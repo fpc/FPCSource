@@ -1,3 +1,11 @@
+{ THandle is unsigned at least for win32 OS,
+  this leads to range check errors when fileopen
+  returns invalid handle.
+  Explicitly disable range checks }
+
+{$R-}
+
+
 {$ifdef fpc}
 {$mode objfpc}
 {$h+}

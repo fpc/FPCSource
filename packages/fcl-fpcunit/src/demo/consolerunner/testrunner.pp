@@ -26,6 +26,22 @@ const
     'all','list','format:','suite:','help');
   Version = 'Version 0.2';
 
+Type
+
+  { TSingleInstanceTest }
+
+  TSingleInstanceTest = Class(TTestCase)
+  Protected
+    FCreateCount : Integer;
+    Class function SingleInstanceForSuite : Boolean; override;
+  Public
+    Constructor Create; override;
+    Destructor Destroy; override;
+  Published
+    Procedure TestWillSucceed;
+    Procedure TestWillAlsoSucceed;
+    Procedure TestWillFail;
+  end;
 
 type
   TTestRunner = Class(TCustomApplication)
@@ -38,6 +54,40 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
   end;
+
+{ TSingleInstanceTest }
+
+class function TSingleInstanceTest.SingleInstanceForSuite: Boolean;
+begin
+  Result:=True;
+end;
+
+constructor TSingleInstanceTest.Create;
+begin
+  Inc(FCreateCount);
+  inherited Create;
+end;
+
+destructor TSingleInstanceTest.Destroy;
+begin
+  Dec(FCreateCount);
+  inherited Destroy;
+end;
+
+procedure TSingleInstanceTest.TestWillSucceed;
+begin
+  AssertEquals('Created once',1,FCreateCount);
+end;
+
+procedure TSingleInstanceTest.TestWillAlsoSucceed;
+begin
+  AssertTrue('Created once',FCreateCount>0);
+end;
+
+procedure TSingleInstanceTest.TestWillFail;
+begin
+  AssertTrue('Created more than once',FCreateCount>1);
+end;
 
 
 constructor TTestRunner.Create(AOwner: TComponent);
@@ -129,6 +179,7 @@ var
 
 
 begin
+  RegisterTest(TSingleInstanceTest);
   App := TTestRunner.Create(nil);
   App.Initialize;
   App.Title := 'FPCUnit Console Test Case runner.';

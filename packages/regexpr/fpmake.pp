@@ -18,13 +18,17 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
-    P.OSes:=P.OSes-[embedded];
+    P.Version:='3.3.1';
+    P.OSes:=P.OSes-[embedded,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+
     P.Dependencies.Add('rtl-objpas');
     P.SourcePath.Add('src');
 
     // Sorokin's RegExpr
     T:=P.Targets.AddUnit('regexpr.pas');
+    T:=P.Targets.AddUnit('uregexpr.pp');
 
     // RegEx from Joost
     T:=P.Targets.AddUnit('oldregexpr.pp');
@@ -34,7 +38,7 @@ begin
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testreg1.pp');
-    P.Sources.AddExampleFiles('examples/*',false,'.');
+    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

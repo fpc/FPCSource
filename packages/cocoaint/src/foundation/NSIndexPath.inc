@@ -1,69 +1,39 @@
 { Parsed from Foundation.framework NSIndexPath.h }
 
+
 {$ifdef TYPES}
-{$ifndef NSINDEXPATH_PAS_T}
-{$define NSINDEXPATH_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSINDEXPATH_PAS_R}
-{$define NSINDEXPATH_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSINDEXPATH_PAS_F}
-{$define NSINDEXPATH_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSINDEXPATH_PAS_S}
-{$define NSINDEXPATH_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSIndexPath = objcclass;
-  NSIndexPathPointer = ^NSIndexPath;
-  NSIndexPathPtr = NSIndexPathPointer;
-
+type
+  NSIndexPathPtr = ^NSIndexPath;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSINDEXPATH_PAS_C}
-{$define NSINDEXPATH_PAS_C}
 
-{ NSIndexPath }
-  NSIndexPath = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
+type
+  NSIndexPath = objcclass external (NSObject, NSCopyingProtocol, NSSecureCodingProtocol)
   private
     _indexes: NSUIntegerPtr;
+    {$if  not defined(__OBJC2__)}
     _hash: NSUInteger;
+    {$endif}
     _length: NSUInteger;
-    _reserved: Pointer;
-    
+    _reserved: pointer;
   public
-    class function indexPathWithIndex(index: NSUInteger): id; message 'indexPathWithIndex:';
-    class function indexPathWithIndexes_length(indexes: NSUIntegerPtr; length_: NSUInteger): id; message 'indexPathWithIndexes:length:';
-    function initWithIndex(index: NSUInteger): id; message 'initWithIndex:';
-    function initWithIndexes_length(indexes: NSUIntegerPtr; length_: NSUInteger): id; message 'initWithIndexes:length:';
-    function indexPathByAddingIndex(index: NSUInteger): NSIndexPath; message 'indexPathByAddingIndex:';
+    class function indexPathWithIndex (index: NSUInteger): instancetype; message 'indexPathWithIndex:';
+    class function indexPathWithIndexes_length (indexes: NSUIntegerPtr { variable size array of NSUInteger }; length: NSUInteger): instancetype; message 'indexPathWithIndexes:length:';
+    function initWithIndexes_length (indexes: NSUIntegerPtr { variable size array of NSUInteger }; length: NSUInteger): instancetype; message 'initWithIndexes:length:'; { NS_DESIGNATED_INITIALIZER }
+    function initWithIndex (index: NSUInteger): instancetype; message 'initWithIndex:';
+    function indexPathByAddingIndex (index: NSUInteger): NSIndexPath; message 'indexPathByAddingIndex:';
     function indexPathByRemovingLastIndex: NSIndexPath; message 'indexPathByRemovingLastIndex';
-    function indexAtPosition(position: NSUInteger): NSUInteger; message 'indexAtPosition:';
+    function indexAtPosition (position: NSUInteger): NSUInteger; message 'indexAtPosition:';
     function length: NSUInteger; message 'length';
-    procedure getIndexes(indexes: NSUIntegerPtr); message 'getIndexes:';
-    function compare(otherObject: NSIndexPath): NSComparisonResult; message 'compare:';
+    procedure getIndexes (indexes: NSUIntegerPtr); message 'getIndexes:';
+    function compare (otherObject: NSIndexPath): NSComparisonResult; message 'compare:';
 
-    { Adopted Protocols }
-    function copyWithZone(zone_: NSZonePtr): id;
-    procedure encodeWithCoder(aCoder: NSCoder);
-    function initWithCoder(aDecoder: NSCoder): id;
+    { Adopted protocols }
+    function copyWithZone (zone: NSZonePtr): id; message 'copyWithZone:';
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
+    function initWithCoder (aDecoder: NSCoder): id; message 'initWithCoder:';
+    class function supportsSecureCoding: ObjCBOOL; message 'supportsSecureCoding';
   end;
+{$endif}
 
-{$endif}
-{$endif}

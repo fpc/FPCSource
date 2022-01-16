@@ -157,6 +157,10 @@ uses
          oppostfix : TOpPostfix;
          procedure loadshifterop(opidx:longint;const so:tshifterop);
          procedure loadconditioncode(opidx: longint; const c: tasmcond);
+         procedure loadrealconst(opidx: longint; const _value: bestreal);
+         procedure loadregset(opidx: longint; _basereg: tregister; _nregs: byte; _regsetindex: byte = 255);
+         procedure loadindexedreg(opidx: longint; _indexedreg: tregister; _regindex: byte);
+
          constructor op_none(op : tasmop);
 
          constructor op_reg(op : tasmop;_op1 : tregister);
@@ -168,6 +172,10 @@ uses
          constructor op_reg_cond(op: tasmop; _op1: tregister; _op2: tasmcond);
          constructor op_reg_const(op:tasmop; _op1: tregister; _op2: aint);
          constructor op_reg_const_shifterop(op : tasmop;_op1: tregister; _op2: aint;_op3 : tshifterop);
+         constructor op_reg_realconst(op: tasmop; _op1: tregister; _op2: bestreal);
+
+         constructor op_indexedreg_reg(op : tasmop;_op1: tregister; _op1index: byte; _op2 : tregister);
+         constructor op_reg_indexedreg(op : tasmop;_op1: tregister; _op2 : tregister; _op2index: byte);
 
          constructor op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
          constructor op_reg_reg_reg_reg(op : tasmop;_op1,_op2,_op3,_op4 : tregister);
@@ -179,10 +187,15 @@ uses
          constructor op_reg_reg_shifterop(op : tasmop;_op1,_op2 : tregister;_op3 : tshifterop);
          constructor op_reg_reg_reg_shifterop(op : tasmop;_op1,_op2,_op3 : tregister; const _op4 : tshifterop);
          constructor op_reg_reg_reg_cond(op : tasmop;_op1,_op2,_op3 : tregister; const _op4: tasmcond);
+         constructor op_reg_const_ref(op: tasmop; _op1: tregister; _op2: aint; _op3: treference);
 
+         constructor op_const_ref(op:tasmop; _op1: aint; _op2: treference);
 
          { this is for Jmp instructions }
          constructor op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
+
+         { ldN(r)/stN }
+         constructor op_regset_reg_ref(op: tasmop; basereg: tregister; nregs: byte; const ref: treference);
 
          constructor op_sym(op : tasmop;_op1 : tasmsymbol);
          constructor op_sym_ofs(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint);
@@ -238,8 +251,6 @@ uses
     { inserts pc relative symbols at places where they are reachable
       and transforms special instructions to valid instruction encodings }
     procedure finalizearmcode(list,listtoinsert : TAsmList);
-    { inserts .pdata section and dummy function prolog needed for arm-wince exception handling }
-    procedure InsertPData;
 
     procedure InitAsm;
     procedure DoneAsm;
@@ -278,6 +289,48 @@ implementation
               end;
             cc:=c;
             typ:=top_conditioncode;
+          end;
+      end;
+
+
+    procedure taicpu.loadrealconst(opidx:longint;const _value:bestreal);
+      begin
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
+          begin
+            if typ<>top_realconst then
+              clearop(opidx);
+            val_real:=_value;
+            typ:=top_realconst;
+          end;
+      end;
+
+
+    procedure taicpu.loadregset(opidx: longint; _basereg: tregister; _nregs: byte; _regsetindex: byte = 255);
+      begin
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
+          begin
+            if typ<>top_regset then
+              clearop(opidx);
+            basereg:=_basereg;
+            nregs:=_nregs;
+            regsetindex:=_regsetindex;
+            typ:=top_regset;
+          end;
+      end;
+
+
+    procedure taicpu.loadindexedreg(opidx: longint; _indexedreg: tregister; _regindex: byte);
+      begin
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
+          begin
+            if typ<>top_indexedreg then
+              clearop(opidx);
+            indexedreg:=_indexedreg;
+            regindex:=_regindex;
+            typ:=top_indexedreg;
           end;
       end;
 
@@ -384,6 +437,33 @@ implementation
       end;
 
 
+    constructor taicpu.op_reg_realconst(op : tasmop; _op1 : tregister; _op2 : bestreal);
+      begin
+         inherited create(op);
+         ops:=2;
+         loadreg(0,_op1);
+         loadrealconst(1,_op2);
+      end;
+
+
+    constructor taicpu.op_indexedreg_reg(op: tasmop; _op1: tregister; _op1index: byte; _op2: tregister);
+      begin
+        inherited create(op);
+        ops:=2;
+        loadindexedreg(0,_op1,_op1index);
+        loadreg(1,_op2);
+      end;
+
+
+    constructor taicpu.op_reg_indexedreg(op: tasmop; _op1: tregister; _op2: tregister; _op2index: byte);
+      begin
+        inherited create(op);
+        ops:=2;
+        loadreg(0,_op1);
+        loadindexedreg(1,_op2,_op2index);
+      end;
+
+
      constructor taicpu.op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: aint);
        begin
          inherited create(op);
@@ -467,12 +547,30 @@ implementation
        end;
 
 
+     constructor taicpu.op_const_ref(op : tasmop; _op1 : aint; _op2 : treference);
+      begin
+         inherited create(op);
+         ops:=2;
+         loadconst(0,_op1);
+         loadref(1,_op2);
+      end;
+
+
     constructor taicpu.op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
       begin
          inherited create(op);
          condition:=cond;
          ops:=1;
          loadsymbol(0,_op1,0);
+      end;
+
+
+    constructor taicpu.op_regset_reg_ref(op: tasmop; basereg: tregister; nregs: byte; const ref: treference);
+      begin
+        inherited create(op);
+        ops:=2;
+        loadregset(0,basereg,nregs);
+        loadref(1, ref);
       end;
 
 
@@ -510,6 +608,16 @@ implementation
       end;
 
 
+    constructor taicpu.op_reg_const_ref(op : tasmop;_op1 : tregister;_op2 : aint;_op3 : treference);
+      begin
+         inherited create(op);
+         ops:=3;
+         loadreg(0,_op1);
+         loadconst(1,_op2);
+         loadref(2,_op3);
+      end;
+
+
     function taicpu.is_same_reg_move(regtype: Tregistertype):boolean;
       begin
         { allow the register allocator to remove unnecessary moves }
@@ -530,7 +638,7 @@ implementation
       const
         { invalid sizes for aarch64 are 0 }
         subreg2bytesize: array[TSubRegister] of byte =
-          (0,0,0,0,4,8,0,0,0,4,8,0,0,0);
+          (0,0,0,0,4,8,0,0,0,4,8,0,0,0,0,0,0,0,0,0,0,0,0,8,16,0,16,16,16,16,16,16,16,16,16,16);
       var
         scalefactor: byte;
       begin
@@ -547,7 +655,7 @@ implementation
           R_MMREGISTER:
             result:=taicpu.op_reg_ref(op,r,ref);
           else
-            internalerror(200401041);
+            internalerror(2004010407);
         end;
       end;
 
@@ -556,22 +664,40 @@ implementation
       begin
         result:=sr_complex;
         if not assigned(ref.symboldata) and
-           not(ref.refaddr in [addr_gotpageoffset,addr_gotpage,addr_pageoffset,addr_page]) then
+           not(ref.refaddr in [addr_pic,addr_gotpageoffset,addr_gotpage,addr_pageoffset,addr_page]) then
           exit;
         { can't use pre-/post-indexed mode here (makes no sense either) }
         if ref.addressmode<>AM_OFFSET then
           exit;
         { "ldr literal" must be a 32/64 bit LDR and have a symbol }
-        if assigned(ref.symboldata) and
-           ((op<>A_LDR) or
+        if (ref.refaddr=addr_pic) and
+           (not (op in [A_LDR,A_B,A_BL,A_ADR]) or
             not(oppostfix in [PF_NONE,PF_W,PF_SW]) or
-            not assigned(ref.symbol)) then
+            (not assigned(ref.symbol) and
+             not assigned(ref.symboldata))) then
           exit;
         { if this is a (got) page offset load, we must have a base register and a
-          symbol }
+          symbol (except if we have an ADD with a non-got page offset load) }
         if (ref.refaddr in [addr_gotpageoffset,addr_pageoffset]) and
-           (not assigned(ref.symbol) or
-            (ref.base=NR_NO) or
+           (
+             (
+               (
+                 (op<>A_ADD) or
+                 (ref.refaddr=addr_gotpageoffset)
+               ) and
+               (
+                 not assigned(ref.symbol) or
+                 (ref.base=NR_NO)
+               )
+             ) or
+             (
+               (
+                 (op=A_ADD) and
+                 (ref.refaddr=addr_pageoffset)
+               ) and
+               not assigned(ref.symbol) and
+               (ref.base=NR_NO)
+             ) or
             (ref.index<>NR_NO) or
             (ref.offset<>0)) then
           begin
@@ -594,13 +720,14 @@ implementation
 
     function simple_ref_type(op: tasmop; size:tcgsize; oppostfix: toppostfix; const ref: treference): tsimplereftype;
       var
-        maxoffs: asizeint;
         accesssize: longint;
       begin
         result:=sr_internal_illegal;
         { post-indexed is only allowed for vector and immediate loads/stores }
         if (ref.addressmode=AM_POSTINDEXED) and
-           not(op in [A_LD1,A_LD2,A_LD3,A_LD4,A_ST1,A_ST2,A_ST3,A_ST4]) and
+           not((op = A_LD1) or (op = A_LD2) or (op = A_LD3) or (op = A_LD4) or
+               (op = A_LD1R) or (op = A_LD2R) or (op = A_LD3R) or (op = A_LD4R) or
+               (op = A_ST1) or (op = A_ST2) or (op = A_ST3) or (op = A_ST4)) and
            (not(op in [A_LDR,A_STR,A_LDP,A_STP]) or
             (ref.base=NR_NO) or
             (ref.index<>NR_NO)) then
@@ -643,32 +770,46 @@ implementation
             * can scale with the size of the access
             * can zero/sign extend 32 bit index register, and/or multiple by
               access size
-            * no pre/post-indexing
+            * no pre/post-indexing except for ldN(r)/stN
         }
         if (ref.base<>NR_NO) and
            (ref.index<>NR_NO) then
           begin
-            if ref.addressmode in [AM_PREINDEXED,AM_POSTINDEXED] then
-              exit;
             case op of
               { this holds for both integer and fpu/vector loads }
               A_LDR,A_STR:
-                if (ref.offset=0) and
-                   (((ref.shiftmode=SM_None) and
-                     (ref.shiftimm=0)) or
-                    ((ref.shiftmode in [SM_LSL,SM_UXTW,SM_SXTW]) and
-                     (ref.shiftimm=tcgsizep2size[size]))) then
-                  result:=sr_simple
-                else
-                  result:=sr_complex;
-              { todo }
+                begin
+                  if ref.addressmode in [AM_PREINDEXED,AM_POSTINDEXED] then
+                    exit;
+                  if (ref.offset=0) and
+                     (((ref.shiftmode=SM_None) and
+                       (ref.shiftimm=0)) or
+                      ((ref.shiftmode in [SM_LSL,SM_UXTW,SM_SXTW]) and
+                       (ref.shiftimm=tcgsizep2size[size]))) then
+                    result:=sr_simple
+                  else
+                    result:=sr_complex;
+                end;
               A_LD1,A_LD2,A_LD3,A_LD4,
+              A_LD1R,A_LD2R,A_LD3R,A_LD4R,
               A_ST1,A_ST2,A_ST3,A_ST4:
-                internalerror(2014110704);
+                begin
+                  if ref.addressmode in [AM_PREINDEXED] then
+                    exit;
+                  if (ref.offset=0) and
+                     (ref.addressmode=AM_POSTINDEXED) then
+                    result:=sr_simple
+                  else
+                   result:=sr_complex;
+                end;
               { these don't support base+index }
               A_LDUR,A_STUR,
               A_LDP,A_STP:
-                result:=sr_complex;
+                begin
+                  if ref.addressmode in [AM_PREINDEXED,AM_POSTINDEXED] then
+                    exit;
+                  result:=sr_complex;
+                end
               else
                 { nothing: result is already sr_internal_illegal };
             end;
@@ -685,6 +826,8 @@ implementation
               - regular with signed 9 bit immediate
             * LDUR*/STUR*:
               - regular with signed 9 bit immediate
+            * ldN(r)/stN
+              - 0 or with postindex
         }
         if ref.base<>NR_NO then
           begin
@@ -728,21 +871,49 @@ implementation
                 end;
               A_LDUR,A_STUR:
                 begin
-                  if (ref.addressmode=AM_OFFSET) and
-                     (ref.offset>=-256) and
+                  if ref.addressmode in [AM_PREINDEXED,AM_POSTINDEXED] then
+                    exit;
+                  if (ref.offset>=-256) and
                      (ref.offset<=255) then
                     result:=sr_simple
                   else
                     result:=sr_complex;
                 end;
-              { todo }
               A_LD1,A_LD2,A_LD3,A_LD4,
+              A_LD1R,A_LD2R,A_LD3R,A_LD4R,
               A_ST1,A_ST2,A_ST3,A_ST4:
-                internalerror(2014110907);
+                begin
+                  if ref.addressmode in [AM_PREINDEXED] then
+                    exit;
+                  if (ref.offset=0) or
+                     ((ref.addressmode=AM_POSTINDEXED) and
+                      { to check the validity of the offset, we'd have to analyse the regset argument }
+                      (ref.offset>0)) then
+                    result:=sr_simple
+                  else
+                    result:=sr_complex;
+                end;
+              A_LDADD,
+              A_LDADDA,
+              A_LDADDAL,
+              A_LDADDL,
+
+              A_SWP,
+              A_SWPA,
+              A_SWPAL,
+              A_SWPL,
+
+              A_CAS,
+              A_CASA,
+              A_CASAL,
+              A_CASL,
+
+              A_STADD,
               A_LDAR,
               A_LDAXR,
               A_LDXR,
               A_LDXP,
+
               A_STLR,
               A_STLXR,
               A_STLXP,
@@ -869,24 +1040,20 @@ implementation
     function taicpu.spilling_get_operation_type(opnr: longint): topertype;
       begin
         case opcode of
-          A_B,A_BL,
+          A_B,A_BL,A_BR,A_BLR,
           A_CMN,A_CMP,
           A_CCMN,A_CCMP,
-          A_TST:
+          A_TST,
+          A_FCMP,A_FCMPE,
+          A_CBZ,A_CBNZ,
+          A_PRFM,A_PRFUM,
+          A_RET:
             result:=operand_read;
           A_STR,A_STUR:
             if opnr=0 then
               result:=operand_read
             else
               { check for pre/post indexed in spilling_get_operation_type_ref }
-              result:=operand_read;
-          A_STLXP,
-          A_STLXR,
-          A_STXP,
-          A_STXR:
-            if opnr=0 then
-              result:=operand_write
-            else
               result:=operand_read;
           A_STP:
             begin
@@ -905,11 +1072,94 @@ implementation
                  { check for pre/post indexed in spilling_get_operation_type_ref }
                  result:=operand_read;
              end;
+           A_MOVK,
+           A_BFI:
+             begin
+               if opnr=0 then
+                 result:=operand_readwrite
+               else
+                 result:=operand_read;
+             end;
+{$ifdef EXTDEBUG}
+           { play save to avoid hard to find bugs, better fail at compile time }
+           A_ADD,
+           A_ADRP,
+           A_AND,
+           A_ASR,
+           A_BFXIL,
+           A_CLZ,
+           A_CSEL,
+           A_CSET,
+           A_CSETM,
+           A_FABS,
+           A_EON,
+           A_EOR,
+           A_FADD,
+           A_FCVT,
+           A_FDIV,
+           A_FMADD,
+           A_FMOV,
+           A_FMSUB,
+           A_FMUL,
+           A_FNEG,
+           A_FNMADD,
+           A_FNMSUB,
+           A_FRINTX,
+           A_FRINTZ,
+           A_FSQRT,
+           A_FSUB,
+           A_ORR,
+           A_LSL,
+           A_LSLV,
+           A_LSR,
+           A_LSRV,
+           A_MOV,
+           A_MOVN,
+           A_MOVZ,
+           A_MSUB,
+           A_MUL,
+           A_MVN,
+           A_NEG,
+           A_LDR,
+           A_LDUR,
+           A_RBIT,
+           A_ROR,
+           A_RORV,
+           A_SBFX,
+           A_SCVTF,
+           A_FCVTZS,
+           A_SDIV,
+           A_SMULL,
+           A_SMULH,
+           A_STLXP,
+           A_STLXR,
+           A_STXP,
+           A_STXR,
+           A_SUB,
+           A_SXTB,
+           A_SXTH,
+           A_SXTW,
+           A_UBFIZ,
+           A_UBFX,
+           A_UCVTF,
+           A_UDIV,
+           A_UMULL,
+           A_UMULH,
+           A_UXTB,
+           A_UXTH:
+             if opnr=0 then
+               result:=operand_write
+             else
+               result:=operand_read;
+           else
+             Internalerror(2019090802);
+{$else EXTDEBUG}
            else
              if opnr=0 then
                result:=operand_write
              else
                result:=operand_read;
+{$endif EXTDEBUG}
         end;
       end;
 
@@ -924,8 +1174,8 @@ implementation
 
 
     procedure BuildInsTabCache;
-      var
-        i : longint;
+//      var
+//        i : longint;
       begin
 (*        new(instabcache);
         FillChar(instabcache^,sizeof(tinstabcache),$ff);
@@ -1008,6 +1258,7 @@ implementation
 *)
 
     procedure insertpcrelativedata(list,listtoinsert : TAsmList);
+(*
       var
         curinspos,
         penalty,
@@ -1023,6 +1274,7 @@ implementation
         l : tasmlabel;
         doinsert,
         removeref : boolean;
+*)
       begin
 (*
         curdata:=TAsmList.create;
@@ -1193,24 +1445,6 @@ implementation
     procedure finalizearmcode(list, listtoinsert: TAsmList);
       begin
         insertpcrelativedata(list, listtoinsert);
-      end;
-
-    procedure InsertPData;
-      var
-        prolog: TAsmList;
-      begin
-        prolog:=TAsmList.create;
-        new_section(prolog,sec_code,'FPC_EH_PROLOG',sizeof(pint),secorder_begin);
-        prolog.concat(Tai_const.Createname('_ARM_ExceptionHandler', 0));
-        prolog.concat(Tai_const.Create_32bit(0));
-        prolog.concat(Tai_symbol.Createname_global('FPC_EH_CODE_START',AT_DATA,0));
-        { dummy function }
-        prolog.concat(taicpu.op_reg(A_BR,NR_X29));
-        current_asmdata.asmlists[al_start].insertList(prolog);
-        prolog.Free;
-        new_section(current_asmdata.asmlists[al_end],sec_pdata,'',sizeof(pint));
-        current_asmdata.asmlists[al_end].concat(Tai_const.Createname('FPC_EH_CODE_START', 0));
-        current_asmdata.asmlists[al_end].concat(Tai_const.Create_32bit(longint($ffffff01)));
       end;
 
 (*

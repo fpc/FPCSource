@@ -28,8 +28,7 @@ interface
 uses
   globtype,cclasses,
   symtype,
-  wpobase,
-  ppu;
+  wpobase;
 
 type
   pderefarray = ^tderefarray;
@@ -73,7 +72,8 @@ implementation
   uses
     globals,
     symdef,
-    verbose;
+    verbose,
+    entfile;
 
   procedure tunitwpoinfo.clearderefinfo;
     begin

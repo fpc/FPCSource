@@ -29,98 +29,92 @@
 {****************************************************************************}
 
 
-{               68881/2 FPCR Encodings
-   Rounding Mode                 Rounding Precision
-    (RND Field)        Encoding    (PREC Field)
- To Nearest (RN)         0 0        Extend (X)
- To Zero (RZ)            0 1        Single (S)
- To Minus Infinity (RM)  1 0        Double (D)
- To Plus Infinity (RP)   1 1        Undefined
-}
-
-{ 68881/2 FPCR layout }
-{ Exception Enable Byte: }
-{ 15 - BSUN  - Branch/Set on Unordered }
-{ 14 - SNAN  - Signal Not A Number }
-{ 13 - OPERR - Operand Error }
-{ 12 - OVFL  - Overflow }
-{ 11 - UNFL  - Underflow }
-{ 10 - DZ    - Divide by Zero }
-{ 09 - INEX2 - Inexact Operation }
-{ 08 - INEX1 - Inexact Decimal Input }
-{ Mode Control Byte: }
-{ 07 - PREC  - Rounding Precision }
-{ 06 - PREC  - Rounding Precision }
-{ 05 - RND   - Rounding Mode }
-{ 04 - RND   - Rounding Mode }
-{ 03 - 0     - Reserved, Set to zero }
-{ 02 - 0     - Reserved, Set to zero }
-{ 01 - 0     - Reserved, Set to zero }
-{ 00 - 0     - Reserved, Set to zero }
-
-
-{$IFNDEF FPU_SOFT}
-{$DEFINE FPC_SYSTEM_HAS_SYSRESETFPU}
-procedure SysResetFPU; assembler;
+{$IF DEFINED(FPU68881) OR DEFINED(FPUCOLDFIRE)}
+function GetFPCR: DWord; assembler; nostackframe;
 asm
-  clr.l    d0
-  fmove.l  d0,fpcr
+  fmove.l fpcr,d0
+end;
+
+function GetFPSR: DWord; assembler; nostackframe;
+asm
+  fmove.l fpsr, d0
+end;
+
+procedure SetFPCR(x: DWord); assembler; nostackframe;
+asm
+  fmove.l x, fpcr
+end;
+
+procedure SetFPSR(x: DWord); assembler; nostackframe;
+asm
+  fmove.l x, fpsr
+end;
+
+{$DEFINE FPC_SYSTEM_HAS_SYSRESETFPU}
+procedure SysResetFPU;
+begin
+  SetFPCR(Default68KFPCR);
+  SetFPSR(0);
 end;
 
 {$DEFINE FPC_SYSTEM_HAS_SYSINITFPU}
-procedure SysInitFPU; assembler;
-asm
-  clr.l   d0
-  // FIX ME:
-  // move.w 0,d0 // enable a sane set of exception flags here
-  fmove.l d0,fpcr
+procedure SysInitFPU;
+begin
 end;
-{$ENDIF}
 
 procedure fpc_cpuinit;
   begin
+    if IsLibrary then
+      begin
+        Default68kFPCR:=GetFPCR;
+      end;
+    SysResetFPU;
+  end;
+
+{$ELSE}
+
+procedure fpc_cpuinit;
+  begin
+{$IFNDEF FPUNONE}
     SysResetFPU;
     if (not IsLibrary) then
       SysInitFPU;
+{$ENDIF}
   end;
 
+{$ENDIF}
+
+{$ifndef INTERNAL_BACKTRACE}
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame : pointer; assembler;nostackframe;
   asm
-{$if defined(amiga)}
-    move.l a5,d0
-{$else}
-    move.l a6,d0
-{$endif}
+    move.l fp,d0
   end;
+{$endif not INTERNAL_BACKTRACE}
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp : pointer;addr:pointer=nil) : pointer;
-  begin
-     asm
-        move.l framebp,a0
-        cmp.l #0,a0
-        beq @Lnul_address
-        move.l 4(a0),a0
-     @Lnul_address:
-        move.l a0,@RESULT
-     end ['a0'];
-  end;
+function get_caller_addr(framebp : pointer;addr:pointer=nil) : pointer; assembler;
+asm
+    move.l framebp,d0
+    tst.l  d0
+    beq @Lnul_address
+    move.l d0,a0
+    move.l 4(a0),d0
+@Lnul_address:
+end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp : pointer;addr:pointer=nil) : pointer;
-  begin
-     asm
-        move.l FRAMEBP,a0
-        cmp.l  #0,a0
-        beq    @Lnul_frame
-        move.l (a0),a0
-     @Lnul_frame:
-        move.l a0,@RESULT
-     end ['a0'];
-  end;
+function get_caller_frame(framebp : pointer;addr:pointer=nil) : pointer; assembler;
+asm
+    move.l framebp,d0
+    tst.l  d0
+    beq    @Lnul_frame
+    move.l d0,a0
+    move.l (a0),d0
+@Lnul_frame:
+end;
 
 
 {$define FPC_SYSTEM_HAS_SPTR}
@@ -136,37 +130,133 @@ asm
 end;
 
 
-
 {$define FPC_SYSTEM_HAS_FILLCHAR}
-procedure FillChar(var x; count : longint; value : byte); assembler;
+procedure FillChar(var x; count : longint; value : byte); assembler; register; nostackframe;
 asm
-  move.l x, a0          { destination                   }
-  move.l count, d1      { number of bytes to fill       }
-  move.b value, d0      { fill data                     }
-  tst.l  d1             { anything to fill at all?      }
-  ble    @LMEMSET5
+{$ifdef VER3_0}
+  move.l   x,a0
+  move.l   count,d0
+  clr.l    d1
+  move.b   value,d1
+{$endif VER3_0}
+  { a0 is x, d0 is count, d1 is value }
+  tst.l    d0             { anything to fill at all?      }
+  ble      @Lquit
+  cmp.l    #32,d0         { limits were tested against real hardware on various CPU }
+  blt      @LfillByte
+  cmp.l    #128,d0        { limits were tested against real hardware on various CPU }
+  blt      @LfillWord
+  bra      @LfillDWord
+
+{$ifndef CPUM68K_HAS_DBRA}
+@LfillByte:
+{$endif}
+@LfillByteLoop:
+  move.b   d1,(a0)+
 {$ifdef CPUM68K_HAS_DBRA}
-{ FIXME: Any reason why not always just use DBRA mode on
-         CPUs which support it? (KB)
-         - DBRA does only 16-bit decrements, so handling more than 65535 bytes
-         requires additional code anyway (Sergei) }
-  cmpi.l #65535, d1     { check, if this is a word move }
-  ble    @LMEMSET3      { use fast dbra mode            }
-{$endif CPUM68K_HAS_DBRA}
-  bra    @LMEMSET2
-@LMEMSET1:
-  move.b d0,(a0)+
-@LMEMSET2:
-  subq.l #1,d1
-  bpl @LMEMSET1
-  bra @LMEMSET5         { finished slow mode , exit     }
+@LfillByte:
+  dbra     d0,@LfillByteLoop
+{$else}
+  subq.l   #1,d0
+  bne      @LfillByteLoop
+{$endif}
+  rts
+
+@LfillWord:
+  move.l   d2,-(sp)
+  move.l   a0,d2
+  btst     #0,d2
+  beq      @Leven
+  subq.l   #1,d0
+  move.b   d1,(a0)+
+@Leven:
+  move.b   d1,d2  // copy value to upper byte
+{$ifdef CPUCOLDFIRE}
+  lsl.l    #8,d1
+{$else}
+  lsl.w    #8,d1
+{$endif}
+  move.b   d2,d1
+  move.l   d0,d2  // adjust d0 for leftover copy
+  bclr     #0,d2
+  sub.l    d2,d0
+  lsr.l    #1,d2
 {$ifdef CPUM68K_HAS_DBRA}
-@LMEMSET4:              { fast loop mode section 68010+ }
-  move.b d0,(a0)+
-@LMEMSET3:
-  dbra d1,@LMEMSET4
-{$endif CPUM68K_HAS_DBRA}
-@LMEMSET5:
+  subq.l   #1,d2
+{$endif}
+@LfillWordLoop:
+  move.w   d1,(a0)+
+{$ifdef CPUM68K_HAS_DBRA}
+  dbra     d2,@LFillWordLoop
+{$else}
+  subq.l   #1,d2
+  bne      @LfillWordLoop
+{$endif}
+  move.l   (sp)+,d2
+  tst.l    d0
+  bne      @LfillByte
+  rts
+
+@LfillDWord:
+  move.l   d2,-(sp)
+  move.b   d1,d2  // copy value to upper bytes
+{$ifdef CPUCOLDFIRE}
+  lsl.l    #8,d1
+{$else}
+  lsl.w    #8,d1
+{$endif}
+  move.b   d2,d1
+  move.w   d1,d2
+  swap     d1
+  move.w   d2,d1
+
+  move.l   a0,d2  // do initial byte and word fill, if the address is unaligned
+  btst     #0,d2
+  beq      @Ldeven
+  subq.l   #1,d0
+  move.b   d1,(a0)+
+@Ldeven:
+  move.l   a0,d2
+  btst     #1,d2
+  beq      @Ldquad
+  subq.l   #2,d0
+  move.w   d1,(a0)+
+@Ldquad:
+  move.l   d0,d2  // adjust d0 for leftover copy
+{$ifdef CPUCOLDFIRE}
+  and.l    #$fffffffc,d2
+{$else}
+  and.b    #$fc,d2
+{$endif}
+  sub.l    d2,d0
+  lsr.l    #2,d2
+  bra      @LfillLongLoopStart
+
+@LfillLongLoop:
+  move.l   d1,(a0)+
+  move.l   d1,(a0)+
+  move.l   d1,(a0)+
+  move.l   d1,(a0)+
+  subq.l   #4,d2
+@LfillLongLoopStart:
+  cmp.l    #4,d2
+  bgt      @LfillLongLoop
+
+{$ifdef CPUM68K_HAS_DBRA}
+  subq.l   #1,d2
+{$endif}
+@LfillDWordLoop:
+  move.l   d1,(a0)+
+{$ifdef CPUM68K_HAS_DBRA}
+  dbra     d2,@LFillDWordLoop
+{$else}
+  subq.l   #1,d2
+  bne      @LfillDWordLoop
+{$endif}
+  move.l   (sp)+,d2
+  tst.l    d0
+  bne      @LfillByte
+@Lquit:
 end;
 
 
@@ -305,17 +395,14 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_MOVE}
-procedure move(const source;var dest;count : longint);
+procedure move(const source;var dest;count : longint); assembler;
 { base pointer+8 = source                  }
 { base pointer+12 = destination            }
 { base pointer+16 = number of bytes to move}
-begin
-  asm
-    clr.l      d0
+asm
     move.l   count, d0   {  number of bytes }
-    tst.l  d0            { anything to copy at all? }
-    ble    @LMOVE5
-  @LMOVE0:
+    ble    @LMOVE5       { anything to copy at all? }
+
     move.l   dest, a1    {  destination          }
     move.l   source, a0  {  source               }
 
@@ -325,22 +412,17 @@ begin
 {$endif CPUM68K_HAS_DBRA}
 
     cmp.l      a0,a1         {  check copy direction }
-    bls      @LMOVE4
+    bls      @LMOVE3
     add.l      d0,a0         { move pointers to end  }
     add.l      d0,a1
-    bra     @LMOVE2
   @LMOVE1:
     move.b   -(a0),-(a1)   {  (s < d) copy loop }
-  @LMOVE2:
     subq.l    #1,d0
-    cmpi.l    #-1,d0
     bne       @LMOVE1
     bra       @LMOVE5
   @LMOVE3:
     move.b  (a0)+,(a1)+  { (s >= d) copy loop }
-  @LMOVE4:
     subq.l    #1,d0
-    cmpi.l    #-1,d0
     bne       @LMOVE3
     bra       @LMOVE5
 
@@ -363,67 +445,224 @@ begin
 {$endif CPUM68K_HAS_DBRA}
   { end fast loop mode }
   @LMOVE5:
-  end ['d0','a0','a1'];
 end;
 
 
+{$ifdef CPUM68K_HAS_UNALIGNED}
 {$define FPC_SYSTEM_HAS_FILLWORD}
 procedure FillWord(var x; count : longint; value : word); assembler;
 asm
   move.l x, a0         { destination              }
-  move.l count, d1     { number of bytes to fill  }
-  move.w value, d0     { fill data                }
-  tst.l  d1            { anything to fill at all? }
-  ble @LMEMSET3
+  move.w value, d1     { fill data                }
+  move.l count, d0     { number of bytes to fill  }
+  ble @LMEMSET3        { anything to fill at all? }
   bra @LMEMSET21
 @LMEMSET11:
-  move.w d0,(a0)+
+  move.w d1,(a0)+
 @LMEMSET21:
-  subq.l #1,d1
+  subq.l #1,d0
   bpl @LMEMSET11
 @LMEMSET3:
 end;
+{$endif}
 
-
+{$IFNDEF FPC_SYSTEM_HAS_INTERLOCKEDFUNCS}
 function InterLockedDecrement (var Target: longint) : longint;
+{$IFDEF CPUM68K_HAS_CAS}
+  register; assembler;
+  asm
+    move.l  (a0), d0
+    @loop:
+    move.l  d0, d1
+    subq.l  #1, d1
+    cas.l   d0, d1, (a0)
+    bne @loop
+    move.l  d1, d0
+  end;
+{$ELSE}
   begin
   {$warning FIX ME}
     Dec(Target);
     Result := Target;
   end;
+{$ENDIF}
 
 
 function InterLockedIncrement (var Target: longint) : longint;
+{$IFDEF CPUM68K_HAS_CAS}
+  register; assembler;
+  asm
+    move.l  (a0), d0
+    @loop:
+    move.l  d0, d1
+    addq.l  #1, d1
+    cas.l   d0, d1, (a0)
+    bne @loop
+    move.l  d1, d0
+  end;
+{$ELSE}
   begin
   {$warning FIX ME}
     Inc(Target);
     Result := Target;
   end;
-
+{$ENDIF}
 
 function InterLockedExchange (var Target: longint;Source : longint) : longint;
+{$IFDEF CPUM68K_HAS_CAS}
+  register; assembler;
+  asm
+    move.l  Source, d1
+    move.l  (a0), d0
+    @loop:
+    cas.l   d0, d1, (a0)
+    bne @loop
+  end;
+{$ELSE}
   begin
   {$warning FIX ME}
     Result := Target;
     Target := Source;
   end;
+{$ENDIF}
 
 
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;
+{$IFDEF CPUM68K_HAS_CAS}
+  register; assembler;
+  asm
+    move.l  Source, a1
+    move.l  (a0), d0
+    @loop:
+    move.l  a1, d1
+    add.l   d0, d1
+    cas.l   d0, d1, (a0)
+    bne @loop
+  end;
+{$ELSE}
   begin
   {$warning FIX ME}
     Result := Target;
     Target := Target + Source;
   end;
+{$ENDIF}
 
 
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
+{$IFDEF CPUM68K_HAS_CAS}
+  register; assembler;
+  asm
+    // Target = a0, NewValue = d0, Comperand = d1
+    exg.l   d0, d1
+    cas.l   d0, d1, (a0)
+  end;
+{$ELSE}
   begin
   {$warning FIX ME}
     Result := Target;
     if Target = Comperand then
       Target := NewValue;
   end;
+{$ENDIF}
+{$ENDIF FPC_SYSTEM_HAS_INTERLOCKEDFUNCS}
+
+{$ifndef FPC_SYSTEM_HAS_TEST68K}
+procedure Test68k(var CPU: byte; var FPU: byte);
+begin
+  {$warning Implement me!}
+  CPU:=0;
+  FPU:=0;
+end;
+{$endif}
+
+{$ifndef FPC_SYSTEM_HAS_SAR_QWORD}
+{$define FPC_SYSTEM_HAS_SAR_QWORD}
+function fpc_SarInt64(Const AValue : Int64;const Shift : Byte): Int64; [Public,Alias:'FPC_SARINT64']; compilerproc; assembler; nostackframe;
+asm
+  // d0 = shift
+  lea.l   4(sp),a0
+  move.l  d2,-(sp)
+  move.l  d0,d2
+{$ifndef CPUCOLDFIRE}
+  and.w   #63,d2
+  cmp.w   #32,d2
+{$else}
+  and.l   #63,d2
+  cmp.l   #32,d2
+{$endif}
+  bge.s   @longshift
+
+  move.l  (a0)+,d0
+  move.l  (a0),d1
+
+{$ifdef CPUM68K_HAS_ROLROR}
+  cmp.w   #1,d2
+  beq.s   @oneshift
+{$endif}
+{$ifdef CPU68000}
+  cmp.w   #16,d2
+  beq.s   @sixteenshift
+{$endif}
+
+  move.l  d3,a0
+  move.l  d4,a1
+
+  move.l  d0,d3
+  moveq.l #32,d4
+{$ifndef CPUCOLDFIRE}
+  sub.w   d2,d4
+{$else}
+  sub.l   d2,d4
+{$endif}
+  asr.l   d2,d0
+  lsl.l   d4,d3
+  lsr.l   d2,d1
+  or.l    d3,d1
+
+  move.l  a0,d3
+  move.l  a1,d4
+
+  bra.s   @quit
+
+{$ifdef CPU68000}
+@sixteenshift:
+  move.w  d0,d1
+  swap    d1
+  swap    d0
+  ext.l   d0
+
+  bra.s   @quit
+{$endif}
+
+{$ifdef CPUM68K_HAS_ROLROR}
+@oneshift:
+  asr.l   #1,d0
+  roxr.l  #1,d1
+
+  bra.s   @quit
+{$endif}
+
+@longshift:
+  move.l  (a0),d0
+  move.l  d0,d1
+  smi     d0
+{$if defined(CPU68020) or defined(CPUCOLDFIRE)}
+  extb.l  d0
+{$else}
+  ext.w   d0
+  ext.l   d0
+{$endif}
+{$ifndef CPUCOLDFIRE}
+  sub.w   #32,d2
+{$else}
+  sub.l   #32,d2
+{$endif}
+  asr.l   d2,d1
+
+@quit:
+  move.l (sp)+,d2
+end;
+{$endif}
 
 {$if defined(CPUM68K_HAS_BYTEREV) or defined(CPUM68K_HAS_ROLROR)}
 { Disabled for now, because not all cases below were tested. (KB) }
@@ -597,3 +836,8 @@ asm
 {$endif}
 end;
 {$endif FPC_SYSTEM_HAS_SWAPENDIAN}
+
+procedure fpc_cpucodeinit;
+  begin
+    Test68k(Test68000,Test68881);
+  end;

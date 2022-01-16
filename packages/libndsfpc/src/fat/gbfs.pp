@@ -1,4 +1,7 @@
 unit gbfs;
+
+{$error  gbfs is no longer supported on  nds}
+
 {$mode objfpc} 
 {$apptype arm9}
 {$define arm9}

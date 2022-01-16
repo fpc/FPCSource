@@ -140,19 +140,35 @@
         mr   R4,R6
       end;
 
+{$ifndef VER3_0}	
 {$define FPC_SYSTEM_HAS_MUL_QWORD}
-    { multiplies two qwords
-      the longbool for checkoverflow avoids a misaligned stack
-    }
-    function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword;[public,alias: 'FPC_MUL_QWORD']; compilerproc;
+    function fpc_mul_qword(f1,f2 : qword) : qword;[public,alias: 'FPC_MUL_QWORD']; compilerproc;
       assembler; nostackframe;
       asm
-        // (r3:r4) = (r3:r4) * (r5:r6),  checkoverflow is in r7
+        // (r3:r4) = (r3:r4) * (r5:r6)
         //   res        f1        f2
 
         or.     r10,r3,r5    // are both msw's 0?
         mulhwu  r8,r4,r6    // msw of product of lsw's
-        not     r0,r7       // if no overflowcheck, r0 := $ffffffff, else r0 := 0;
+        beq     .LDone      // if both msw's are zero, skip cross products
+        mullw   r9,r4,r5    // lsw of first cross-product
+        mullw   r7,r3,r6    // lsw of second cross-product
+        add     r8,r8,r9    // add
+        add     r8,r8,r7    // add
+      .LDone:
+        mullw   r4,r4,r6    // lsw of product of lsw's
+        mr      r3,r8       // get msw of product in correct register
+      end;
+	
+	
+    function fpc_mul_qword_checkoverflow(f1,f2 : qword) : qword;[public,alias: 'FPC_MUL_QWORD_CHECKOVERFLOW']; compilerproc;
+      assembler; nostackframe;
+      asm
+        // (r3:r4) = (r3:r4) * (r5:r6)
+        //   res        f1        f2
+
+        or.     r10,r3,r5    // are both msw's 0?
+        mulhwu  r8,r4,r6    // msw of product of lsw's
         beq     .LDone      // if both msw's are zero, skip cross products
         mullw   r9,r4,r5    // lsw of first cross-product
         cntlzw  r11,r3      // count leading zeroes of msw1
@@ -160,9 +176,8 @@
         mullw   r7,r3,r6    // lsw of second cross-product
         add     r12,r11,r12  // sum of leading zeroes
         mr      r10,r8
-        or      r0,r12,r0    // maximise sum if no overflow checking, otherwise it remains
         add     r8,r8,r9    // add
-        cmplwi  cr1,r0,64   // >= 64 leading zero bits in total? If so, no overflow
+        cmplwi  cr1,r12,64   // >= 64 leading zero bits in total? If so, no overflow
         add     r8,r8,r7    // add
         bge+    cr1,.LDone  // if the sum of leading zero's >= 64 (or checkoverflow was 0)
                             // there's no overflow, otherwise more thorough check
@@ -198,5 +213,4 @@
         mullw   r4,r4,r6    // lsw of product of lsw's
         mr      r3,r8       // get msw of product in correct register
       end;
-
-
+{$endif VER3_0}

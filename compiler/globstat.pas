@@ -60,6 +60,7 @@ type
     old_settings : tsettings;
     old_switchesstatestack : tswitchesstatestack;
     old_switchesstatestackpos : Integer;
+    old_verbosity : longint;
 
   { only saved/restored if "full" is true }
     old_asmdata : tasmdata;
@@ -74,7 +75,7 @@ procedure restore_global_state(const state:tglobalstate;full:boolean);
 implementation
 
 uses
-  pbase;
+  pbase,comphook;
 
   procedure save_global_state(out state:tglobalstate;full:boolean);
     begin
@@ -106,6 +107,7 @@ uses
           //flushpendingswitchesstate;
           oldcurrent_filepos:=current_filepos;
           old_settings:=current_settings;
+          old_verbosity:=status.verbosity;
 
           if full then
             begin
@@ -142,6 +144,7 @@ uses
           current_procinfo:=oldcurrent_procinfo;
           current_filepos:=oldcurrent_filepos;
           current_settings:=old_settings;
+          status.verbosity:=old_verbosity;
 
           if full then
             begin

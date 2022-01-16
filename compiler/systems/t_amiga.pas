@@ -27,13 +27,14 @@ unit t_amiga;
 interface
 
     uses
-      link;
+      rescmn, comprsrc, link;
 
 
 type
   PLinkerAmiga = ^TLinkerAmiga;
   TLinkerAmiga = class(texternallinker)
     private
+      UseVLink: boolean;
       function WriteResponseFile(isdll: boolean): boolean;
       procedure SetAmiga68kInfo;
       procedure SetAmigaPPCInfo;
@@ -42,6 +43,7 @@ type
     public
       constructor Create; override;
       procedure SetDefaultInfo; override;
+      procedure InitSysInitUnitName; override;
       function  MakeExecutable: boolean; override;
   end;
 
@@ -50,8 +52,8 @@ implementation
 
     uses
        SysUtils,
-       cutils,cfileutl,cclasses,
-       globtype,globals,systems,verbose,script,fmodule,i_amiga;
+       cutils,cfileutl,cclasses,aasmbase,
+       globtype,globals,systems,verbose,cscript,fmodule,i_amiga;
 
 
 
@@ -61,23 +63,42 @@ implementation
 
 constructor TLinkerAmiga.Create;
 begin
+  UseVLink:=(cs_link_vlink in current_settings.globalswitches);
+
   Inherited Create;
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;
 end;
 
+
 procedure TLinkerAmiga.SetAmiga68kInfo;
 begin
-  with Info do begin
-    ExeCmd[1]:='ld $DYNLINK $OPT -d -n -o $EXE $RES';
-  end;
+  with Info do
+   begin
+    if not UseVLink then
+     begin
+      ExeCmd[1]:='ld $DYNLINK $OPT -d -n -o $EXE $RES';
+     end
+    else
+     begin
+      ExeCmd[1]:='vlink -b amigahunk -e_start $MAP $GCSECTIONS $OPT $STRIP -o $EXE -T $RES';
+     end;
+   end;
 end;
 
 procedure TLinkerAmiga.SetAmigaPPCInfo;
 begin
-  with Info do begin
-    ExeCmd[1]:='ld $DYNLINK $OPT -defsym=__amigaos4__=1 -d -q -n -o $EXE $RES';
+  with Info do 
+   begin
+    if not UseVLink then
+     begin
+      ExeCmd[1]:='ld $DYNLINK $OPT -defsym=__amigaos4__=1 -d -q -N -o $EXE $RES';
+     end
+    else
+     begin
+      ExeCmd[1]:='vlink -q -n -b elf32amigaos -P_start -P__amigaos4__ -nostdlib $MAP $GCSECTIONS $OPT $STRIP -o $EXE -T $RES';
+     end;
   end;
 end;
 
@@ -86,7 +107,15 @@ begin
   case (target_info.system) of
     system_m68k_amiga:      SetAmiga68kInfo;
     system_powerpc_amiga:   SetAmigaPPCInfo;
+    else
+      internalerror(2019050949);
   end;
+end;
+
+
+Procedure TLinkerAmiga.InitSysInitUnitName;
+begin
+  sysinitunit:='si_prc';
 end;
 
 
@@ -102,7 +131,8 @@ begin
 
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
-
+  if UseVLink and (source_info.dirsep <> '/') then
+    LinkRes.fForceUseForwardSlash:=true;
   { Write path to search libraries }
   HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
@@ -124,13 +154,19 @@ begin
 
   LinkRes.Add('INPUT (');
   { add objectfiles, start with prt0 always }
-  s:=FindObjectFile('prt0','',false);
-  LinkRes.AddFileName(s);
+  if not (target_info.system in systems_internal_sysinit) then
+    begin
+      s:=FindObjectFile('prt0','',false);
+      LinkRes.AddFileName(Unix2AmigaPath(maybequoted(s)));
+    end;
   while not ObjectFiles.Empty do
    begin
     s:=ObjectFiles.GetFirst;
     if s<>'' then
      begin
+      { vlink doesn't use SEARCH_DIR for object files }
+      if UseVLink then
+       s:=FindObjectFile(s,'',false);
       LinkRes.AddFileName(Unix2AmigaPath(maybequoted(s)));
      end;
    end;
@@ -138,8 +174,12 @@ begin
   { Write staticlibraries }
   if not StaticLibFiles.Empty then
    begin
-    LinkRes.Add(')');
-    LinkRes.Add('GROUP(');
+     { vlink doesn't need, and doesn't support GROUP }
+    if not UseVLink then
+     begin
+      LinkRes.Add(')');
+      LinkRes.Add('GROUP(');
+     end;
     while not StaticLibFiles.Empty do
      begin
       S:=StaticLibFiles.GetFirst;
@@ -147,7 +187,7 @@ begin
      end;
    end;
 
-  if (cs_link_on_target in current_settings.globalswitches) then
+  if not UseVLink then
    begin
     LinkRes.Add(')');
 
@@ -187,6 +227,116 @@ begin
     LinkRes.Add(')');
    end;
 
+  if (target_info.system = system_powerpc_amiga) and UseVLink then
+   begin
+    with linkres do
+     begin
+      { AmigaOS4-specific linker script from VBCC for VLink, with modifications,
+        courtesy of Frank Wille, used with his permission }
+      Add('SECTIONS');
+      Add('{');
+      Add('  . = 0x01000000 + SIZEOF_HEADERS;');
+      Add('  /* Read-only sections, merged into text segment: */');
+      Add('  .interp         : { *(.interp) }');
+      Add('  .hash           : { *(.hash) }');
+      Add('  .dynsym         : { *(.dynsym) }');
+      Add('  .dynstr         : { *(.dynstr) }');
+      Add('  .fpc            : { *(.fpc) }');
+      Add('  .gnu.version    : { *(.gnu.version) }');
+      Add('  .gnu.version_d  : { *(.gnu.version_d) }');
+      Add('  .gnu.version_r  : { *(.gnu.version_r) }');
+      Add('  .rela.dyn       : { *(.rela.dyn) }');
+      Add('  .rela.plt       : { *(.rela.plt) }');
+      Add('  .init           : { *(.init) }');
+      Add('  .text           : { *(.text .text.* .gnu.linkonce.t.*) }');
+      Add('  .fini           : { *(.fini) }');
+      Add('  .code68k        : { *(CODE text code) }');
+      Add('');
+      Add('  .rodata         : { *(.rodata .rodata.* .gnu.linkonce.r.*) }');
+      Add('  .sdata2         : { *(.sdata2 .sdata2.* .gnu.linkonce.s2.*) }');
+      Add('  .sbss2          : { *(.sbss2 .sbss2.* .gnu.linkonce.sb2.*) }');
+      Add('');
+      Add('  /* data segment: */');
+      Add('  . = ALIGN(16) + 0x10000;');
+      Add('');
+      Add('  .dynamic        : { *(.dynamic) }');
+      Add('  .data           : {');
+      Add('    PROVIDE(_DATA_BASE_ = .);');
+      Add('    *(.data .data.* .gnu.linkonce.d.*)');
+      Add('    *(fpc.resources)');
+      Add('    VBCC_CONSTRUCTORS_ELF');
+      Add('  }');
+      Add('  .ctors          : { *(.ctors .ctors.*) }');
+      Add('  .dtors          : { *(.dtors .dtors.*) }');
+      Add('  .data68k        : { *(DATA data) }');
+      Add('  .got            : { *(.got.plt) *(.got) }');
+      Add('  .sdata          : {');
+      Add('    PROVIDE(_SDATA_BASE_ = .);');
+      Add('    _LinkerDB = . + 0x8000;');
+      Add('    _SDA_BASE_ = . + 0x8000;');
+      Add('    *(.sdata .sdata.* .tocd .gnu.linkonce.s.*)');
+      Add('  }');
+      Add('  .sdata68k       : { *(__MERGED) }');
+      Add('');
+      Add('  /*');
+      Add('  PROVIDE(_edata = .);');
+      Add('  PROVIDE(edata = .);');
+      Add('  PROVIDE(__bss_start = .);');
+      Add('  */');
+      Add('');
+      Add('  .sbss           : {');
+      Add('    PROVIDE(__sbss_start = .);');
+      Add('    PROVIDE(___sbss_start = .);');
+      Add('    *(.sbss .sbss.* .gnu.linkonce.sb.*)');
+      Add('    *(.scommon)');
+      Add('    PROVIDE(__sbss_end = .);');
+      Add('    PROVIDE(___sbss_end = .);');
+      Add('  }');
+      Add('  .plt            : { *(.plt) }');
+      Add('  .bss            : {');
+      Add('    *(.bss .bss.* .gnu.linkonce.b.*)');
+      Add('    *(fpc.reshandles)');
+      Add('    *(COMMON)');
+      Add('  }');
+      Add('  .bss68k         : { *(BSS bss) }');
+      Add('');
+      Add('  . = ALIGN(16);');
+      Add('  PROVIDE(_end = .);');
+      Add('  PROVIDE(end = .);');
+      Add('');
+      Add('  .comment      0 : { *(.comment) }');
+      Add('');
+      { Do not provide the __amigaos4__ symbol for now. It's provided by our prt0.o,
+        sadly various linkers for OS4 either provide it or not, which might or might
+        not work with our prt0.o unmodified. }
+      {Add('  __amigaos4__ = 1;');
+      Add('');}
+      Add('  /* DWARF debug sections.');
+      Add('     Symbols in the DWARF debugging sections are relative to the beginning');
+      Add('     of the section so we begin them at 0.  */');
+      Add('  /* DWARF 1 */');
+      Add('  .debug          0 : { *(.debug) }');
+      Add('  .line           0 : { *(.line) }');
+      Add('  /* GNU DWARF 1 extensions */');
+      Add('  .debug_srcinfo  0 : { *(.debug_srcinfo) }');
+      Add('  .debug_sfnames  0 : { *(.debug_sfnames) }');
+      Add('  /* DWARF 1.1 and DWARF 2 */');
+      Add('  .debug_aranges  0 : { *(.debug_aranges) }');
+      Add('  .debug_pubnames 0 : { *(.debug_pubnames) }');
+      Add('  /* DWARF 2 */');
+      Add('  .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }');
+      Add('  .debug_abbrev   0 : { *(.debug_abbrev) }');
+      Add('  .debug_line     0 : { *(.debug_line) }');
+      Add('  .debug_frame    0 : { *(.debug_frame) }');
+      Add('  .debug_str      0 : { *(.debug_str) }');
+      Add('  .debug_loc      0 : { *(.debug_loc) }');
+      Add('  .debug_macinfo  0 : { *(.debug_macinfo) }');
+      Add('  /* DWARF 2.1 */');
+      Add('  .debug_ranges   0 : { *(.debug_ranges) }');
+      Add('}');
+     end;
+   end;
+
 { Write and Close response }
   linkres.writetodisk;
   linkres.free;
@@ -200,10 +350,26 @@ var
   BinStr,
   CmdStr  : TCmdStr;
   StripStr: string[40];
-  DynLinkStr : string;
+  DynLinkStr : ansistring;
+  GCSectionsStr : string;
+  MapStr: string;
 begin
   StripStr:='';
-  if (cs_link_strip in current_settings.globalswitches) then StripStr:='-s';
+  GCSectionsStr:='';
+  DynLinkStr:='';
+  MapStr:='';
+
+  if UseVlink and (cs_link_map in current_settings.globalswitches) then
+    MapStr:='-M'+Unix2AmigaPath(maybequoted(ScriptFixFilename(current_module.mapfilename)));
+  if (cs_link_strip in current_settings.globalswitches) then
+    StripStr:='-s';
+  if rlinkpath<>'' Then
+    DynLinkStr:='--rpath-link '+rlinkpath;
+  if UseVLink then
+    begin
+      if create_smartlink_sections then
+        GCSectionsStr:='-gc-all -mtype';
+    end;
 
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
@@ -211,12 +377,11 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename))));
   Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
+  Replace(cmdstr,'$MAP',MapStr);
   Replace(cmdstr,'$STRIP',StripStr);
-  if rlinkpath<>'' Then
-    DynLinkStr:='--rpath-link '+rlinkpath
-  else
-    DynLinkStr:='';
+  Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
+
   MakeAmiga68kExe:=DoExec(BinStr,CmdStr,true,false);
 end;
 
@@ -226,10 +391,26 @@ var
   BinStr,
   CmdStr  : TCmdStr;
   StripStr: string[40];
-  DynLinkStr : string;
+  DynLinkStr : ansistring;
+  GCSectionsStr : string;
+  MapStr: string;
 begin
   StripStr:='';
-  if (cs_link_strip in current_settings.globalswitches) then StripStr:='-s';
+  GCSectionsStr:='';
+  DynLinkStr:='';
+  MapStr:='';
+
+  if UseVlink and (cs_link_map in current_settings.globalswitches) then
+    MapStr:='-M'+Unix2AmigaPath(maybequoted(ScriptFixFilename(current_module.mapfilename)));
+  if (cs_link_strip in current_settings.globalswitches) then
+    StripStr:='-s';
+  if rlinkpath<>'' Then
+    DynLinkStr:='--rpath-link '+rlinkpath;
+  if UseVLink then
+    begin
+      if create_smartlink_sections then
+        GCSectionsStr:='-gc-all -sc -sd';
+    end;
 
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
@@ -237,12 +418,11 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename))));
   Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
+  Replace(cmdstr,'$MAP',MapStr);
   Replace(cmdstr,'$STRIP',StripStr);
-  if rlinkpath<>'' Then
-    DynLinkStr:='--rpath-link '+rlinkpath
-  else
-    DynLinkStr:='';
+  Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
+
   MakeAmigaPPCExe:=DoExec(BinStr,CmdStr,true,false);
 end;
 
@@ -261,6 +441,8 @@ begin
   case (target_info.system) of
     system_m68k_amiga:      success:=MakeAmiga68kExe;
     system_powerpc_amiga:   success:=MakeAmigaPPCExe;
+    else
+      internalerror(2019050948);
   end;
 
   { Remove ReponseFile }
@@ -277,9 +459,9 @@ end;
 
 initialization
 {$ifdef m68k}
-{ TODO: No executable creation support for m68k yet!}
   RegisterLinker(ld_amiga,TLinkerAmiga);
   RegisterTarget(system_m68k_Amiga_info);
+  RegisterRes(res_ext_info, TWinLikeResourceFile);
 {$endif m68k}
 {$ifdef powerpc}
   RegisterLinker(ld_amiga,TLinkerAmiga);

@@ -52,10 +52,14 @@ interface
        end;
 
        tjvmloadvmtaddrnode = class(tcgloadvmtaddrnode)
+         function pass_1: tnode; override;
          procedure pass_generate_code; override;
        end;
 
        tjvmvecnode = class(tcgvecnode)
+        protected
+          function gen_array_rangecheck: tnode; override;
+        public
          function pass_1: tnode; override;
          procedure pass_generate_code;override;
        end;
@@ -116,8 +120,8 @@ implementation
               parameters stored in nestedfpstructs, and by programmers for any
               kind of pointers) }
             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-            location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),4);
-            reference_reset_base(location.reference,left.location.register,0,4);
+            location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),4,[]);
+            reference_reset_base(location.reference,left.location.register,0,ctempposinvalid,4,[]);
             location.reference.arrayreftype:=art_indexconst;
             if (left.nodetype<>addrn) and
                not(resultdef.typ in [orddef,floatdef]) and
@@ -143,7 +147,7 @@ implementation
                (location.reference.index<>NR_NO) or
                assigned(location.reference.symbol) then
               internalerror(2011011301);
-            location.reference.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname);
+            location.reference.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname,AT_METADATA);
             result:=true;
           end
       end;
@@ -175,10 +179,7 @@ implementation
 
 
     function tjvmaddrnode.isdererence: boolean;
-      var
-        target: tnode;
       begin
-        target:=actualtargetnode(@left)^;
         result:=
           (left.nodetype=derefn);
       end;
@@ -259,7 +260,7 @@ implementation
                   end;
               end
             else
-              internalerror(2011072506);
+              internalerror(2011072503);
           end
         else if (left.resultdef.typ=procdef) then
           begin
@@ -317,10 +318,32 @@ implementation
                          TJVMLOADVMTADDRNODE
 *****************************************************************************}
 
+    function tjvmloadvmtaddrnode.pass_1: tnode;
+      var
+        vs: tsym;
+      begin
+        result:=nil;
+        if is_javaclass(left.resultdef) and
+           (left.nodetype<>typen) and
+           (left.resultdef.typ<>classrefdef) then
+          begin
+            { call java.lang.Object.getClass() }
+            vs:=search_struct_member(tobjectdef(left.resultdef),'GETCLASS');
+            if not assigned(vs) or
+               (tsym(vs).typ<>procsym) then
+              internalerror(2011041903);
+            result:=ccallnode.create(nil,tprocsym(vs),vs.owner,left,[],nil);
+            inserttypeconv_explicit(result,resultdef);
+            { reused }
+            left:=nil;
+          end;
+      end;
+
+
     procedure tjvmloadvmtaddrnode.pass_generate_code;
       begin
         current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_ldc,current_asmdata.RefAsmSymbol(
-          tabstractrecorddef(tclassrefdef(resultdef).pointeddef).jvm_full_typename(true))));
+          tabstractrecorddef(tclassrefdef(resultdef).pointeddef).jvm_full_typename(true),AT_METADATA)));
         thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,1);
         location_reset(location,LOC_REGISTER,OS_ADDR);
         location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
@@ -331,6 +354,13 @@ implementation
 {*****************************************************************************
                              TJVMVECNODE
 *****************************************************************************}
+
+    function tjvmvecnode.gen_array_rangecheck: tnode;
+      begin
+        { JVM does the range checking for us }
+        result:=nil;
+      end;
+
 
     function tjvmvecnode.pass_1: tnode;
       var
@@ -350,7 +380,7 @@ implementation
                   stringclass:=java_shortstring;
                   left:=caddrnode.create_internal(left);
                   { avoid useless typecheck when casting to shortstringclass }
-                  include(left.flags,nf_typedaddr);
+                  include(taddrnode(left).addrnodeflags,anf_typedaddr);
                 end
               else
                 internalerror(2011052407);
@@ -358,11 +388,11 @@ implementation
             psym:=search_struct_member(tabstractrecorddef(stringclass),'CHARAT');
             if not assigned(psym) or
                (psym.typ<>procsym) then
-              internalerror(2011031501);
+              internalerror(2011031502);
             { Pascal strings are 1-based, Java strings 0-based }
             result:=ccallnode.create(ccallparanode.create(
               caddnode.create(subn,right,genintconstnode(1)),nil),tprocsym(psym),
-              psym.owner,ctypeconvnode.create_explicit(left,stringclass),[]);
+              psym.owner,ctypeconvnode.create_explicit(left,stringclass),[],nil);
             left:=nil;
             right:=nil;
             exit;
@@ -382,13 +412,9 @@ implementation
 
     procedure tjvmvecnode.pass_generate_code;
       var
-        otl,ofl: tasmlabel;
         psym: tsym;
         newsize: tcgsize;
-        isjump: boolean;
       begin
-        otl:=nil;
-        ofl:=nil;
         if left.resultdef.typ=stringdef then
           internalerror(2011052702);
 
@@ -402,37 +428,25 @@ implementation
         secondpass(left);
         newsize:=def_cgsize(resultdef);
         if left.location.loc=LOC_CREFERENCE then
-          location_reset_ref(location,LOC_CREFERENCE,newsize,left.location.reference.alignment)
+          location_reset_ref(location,LOC_CREFERENCE,newsize,left.location.reference.alignment,left.location.reference.volatility)
         else
-          location_reset_ref(location,LOC_REFERENCE,newsize,left.location.reference.alignment);
+          location_reset_ref(location,LOC_REFERENCE,newsize,left.location.reference.alignment,left.location.reference.volatility);
         { don't use left.resultdef, because it may be an open or regular array,
           and then asking for the size doesn't make any sense }
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,java_jlobject,java_jlobject,true);
         location.reference.base:=left.location.register;
-        isjump:=(right.expectloc=LOC_JUMP);
-        if isjump then
-         begin
-           otl:=current_procinfo.CurrTrueLabel;
-           current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-           ofl:=current_procinfo.CurrFalseLabel;
-           current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
-         end;
         secondpass(right);
+        if (right.expectloc=LOC_JUMP)<>
+           (right.location.loc=LOC_JUMP) then
+          internalerror(2011090501);
 
         { simplify index location if necessary, since array references support
           an index in memory, but not an another array index }
-        if isjump or
+        if (right.location.loc=LOC_JUMP) or
            ((right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
             (right.location.reference.arrayreftype<>art_none)) then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
 
-        if isjump then
-         begin
-           current_procinfo.CurrTrueLabel:=otl;
-           current_procinfo.CurrFalseLabel:=ofl;
-         end
-        else if (right.location.loc = LOC_JUMP) then
-          internalerror(2011090501);
         { replace enum class instance with the corresponding integer value }
         if (right.resultdef.typ=enumdef) then
           begin

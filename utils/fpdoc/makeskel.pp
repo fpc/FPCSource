@@ -1,5 +1,4 @@
 {
-
     FPDoc  -  Free Pascal Documentation Tool
     Copyright (C) 2000 - 2003 by
       Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org
@@ -18,17 +17,13 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
-
-
-{%RunCommand $MakeExe($(EdFile)) --package=fpvectorial --input=/home/felipe/Programas/fpctrunk/packages/fpvectorial/src/fpvectorial.pas}
 program MakeSkel;
 
 {$mode objfpc}
 {$h+}
 
 uses
-  SysUtils, Classes, Gettext,
-  dGlobals, PasTree, PParser,PScanner;
+  fpdocstrs, SysUtils, Classes, Gettext, dGlobals, PasTree, PParser,PScanner;
 
 resourcestring
   STitle = 'MakeSkel - FPDoc skeleton XML description file generator';
@@ -54,12 +49,15 @@ type
     Property DocNode : TDocNode Read FNode;
   end;
 
+  { TSkelEngine }
+
   TSkelEngine = class(TFPDocEngine)
   Private
     FEmittedList, 
     FNodeList,
     FModules : TStringList;
     Procedure  DoWriteUnReferencedNodes(N : TDocNode; NodePath : String);
+    function EffectiveVisibility(El: TPasElement): TPasMemberVisibility;
   public
     Destructor Destroy; override;
     Function MustWriteElement(El : TPasElement; Full : Boolean) : Boolean;
@@ -136,43 +134,56 @@ Var
 begin
   If Assigned(FModules) then 
     begin
-    For I:=0 to FModules.Count-1 do
-      FModules.Objects[i].Free;
+   { For I:=0 to FModules.Count-1 do
+      FModules.Objects[i].Release;}
     FreeAndNil(FModules);    
+    end;
+end;
+
+Function TSkelEngine.EffectiveVisibility (El : TPasElement) :  TPasMemberVisibility;
+
+Var
+  V : TPasMemberVisibility;
+
+begin
+  Result:=EL.Visibility;
+  El:=el.Parent;
+  While Assigned(El) do
+    begin
+    V:=EL.Visibility;
+    if V=visStrictPrivate then
+      V:=visPrivate
+    else if V=visStrictProtected then
+      V:=visProtected;
+    if (V<>visDefault) and ((V<Result) or (Result=visDefault)) then
+      Result:=V;
+    EL:=el.Parent;
     end;
 end;
 
 Function TSkelEngine.MustWriteElement(El : TPasElement; Full : Boolean) : Boolean;
 
 Var
-  ParentVisible:Boolean;
-  PT,PP : TPasElement;
+  VisibilityOK : Boolean;
+  V : TPasMemberVisibility;
+
+
 begin
-  ParentVisible:=True;
-  If (El is TPasArgument) or (El is TPasResultElement) then
-    begin
-    PT:=El.Parent;
-    // Skip ProcedureType or PasFunctionType
-    If (PT<>Nil) then
-      begin
-      if (PT is TPasProcedureType) or (PT is TPasFunctionType) then
-        PT:=PT.Parent;
-      If (PT<>Nil) and ((PT is TPasProcedure) or (PT is TPasProcedure))   then
-        PP:=PT.Parent
-      else
-        PP:=Nil;
-      If (PP<>Nil) and (PP is TPasClassType) then
-        begin
-        ParentVisible:=((not DisablePrivate or (PT.Visibility<>visPrivate)) and
-                       (not DisableProtected or (PT.Visibility<>visProtected)));
-        end;
-      end;
-    end;
-  Result:=Assigned(El.Parent) and (Length(El.Name) > 0) and
-          (ParentVisible and (not DisableArguments or (El.ClassType <> TPasArgument))) and
-          (ParentVisible and (not DisableFunctionResults or (El.ClassType <> TPasResultElement))) and
-          (not DisablePrivate or (el.Visibility<>visPrivate)) and
-          (not DisableProtected or (el.Visibility<>visProtected));
+  V:=EffectiveVisibility(El);
+  Case V of
+    visPrivate,visStrictPrivate:
+      VisibilityOK:= not DisablePrivate;
+    visProtected,visStrictProtected:
+      VisibilityOK:= not DisableProtected;
+  else
+    VisibilityOK:=True;
+  end;
+  Result:= Assigned(el.Parent)
+           and (Length(El.Name) > 0)
+           and VisibilityOK
+           and (Not (El is TPasExpr))
+           and (not DisableArguments or (El.ClassType <> TPasArgument))
+           and (not DisableFunctionResults or (El.ClassType <> TPasResultElement));
   If Result and Full then
     begin
     Result:=(Not Assigned(FEmittedList) or (FEmittedList.IndexOf(El.FullName)=-1));
@@ -223,7 +234,9 @@ Function TSkelEngine.WriteElement(Var F : Text;El : TPasElement; ADocNode : TDoc
   begin
     Result:=(APasElement.ClassType=TPasArgument) or
             (APasElement.ClassType=TPasResultElement) or
-            (APasElement.ClassType=TPasEnumValue);
+            (APasElement.ClassType=TPasEnumValue) or
+            (aPaselement.ClassType=TPasUsesUnit) or
+            ((APasElement.CLassType=TPasVariable) and (APasElement.Parent is TPasRecordType));
   end;
 
   Function IsTypeVarConst(APasElement : TPasElement) : Boolean;
@@ -350,11 +363,33 @@ end;
 
 Procedure TSkelEngine.DocumentFile(Var F : Text; Const AFileName,ATarget,ACPU : String);
 
+  Procedure ResolveOperators;
+
+  Var
+    E : TPasElement;
+    P : TNodePair;
+    N : TDocNode;
+    I : integer;
+
+  begin
+    For I:=0 to FNodeList.Count-1 do
+      begin
+      P:=TNodePair(FNodeList.Objects[i]);
+      if P.Element.InheritsFrom(TPasOperator) then
+        begin
+        N:=FindDocNode(P.Element);
+        If Assigned(N) then
+          N.IncRefCount;
+        P.FNode:=N;
+        end;
+      end;
+  end;
+
 Var
   Module : TPasModule;
   I : Integer;
   N : TDocNode;
-     
+
 begin
 // wrong because afilename is a cmdline with other options. Straight testing filename is therefore wrong.
 //  if not(FileExists(AFileName)) then
@@ -364,13 +399,14 @@ begin
     FEmittedList:=TStringList.Create;
     FEmittedList.Sorted:=True;
     try
-      Module:=ParseSource(Self,AFileName,ATarget,ACPU);
+      Module:=ParseSource (Self,AFileName+' -dFPC',ATarget,ACPU,[poUseStreams,poSkipDefaultDefs]);
       If UpdateMode then
         begin
         N:=FindDocNode(Module);
         If Assigned(N) then
            N.IncRefCount;
-         end;
+        ResolveOperators;
+        end;
       If SortNodes then  
         FNodelist.Sorted:=True;   
       WriteNodes(F,Module,FNodeList);  
@@ -569,7 +605,7 @@ begin
     if FileExists(MOFilename) then
       gettext.TranslateResourceStrings(MoFileName)
     else
-      writeln('NOTE: unable to find tranlation file ',MOFilename);
+      writeln('NOTE: unable to find translation file ',MOFilename);
     // Translate internal documentation strings
     TranslateDocStrings(DocLang);
     end;

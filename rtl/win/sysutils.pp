@@ -4,7 +4,7 @@
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
 
-    Sysutils unit for win32
+    SysUtils unit for win32
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -14,13 +14,15 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit sysutils;
+unit SysUtils;
 interface
 
 {$MODE objfpc}
 {$MODESWITCH OUT}
 { force ansistrings }
 {$H+}
+{$modeswitch typehelpers}
+{$modeswitch advancedrecords}
 
 uses
   windows;
@@ -33,7 +35,11 @@ uses
 {$DEFINE HAS_LOCALTIMEZONEOFFSET}
 {$DEFINE HAS_GETTICKCOUNT}
 {$DEFINE HAS_GETTICKCOUNT64}
+{$DEFINE HAS_FILEDATETIME}
 {$DEFINE OS_FILESETDATEBYNAME}
+
+// this target has an fileflush implementation, don't include dummy
+{$DEFINE SYSUTILS_HAS_FILEFLUSH_IMPL}
 
 { used OS file system APIs use unicodestring }
 {$define SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
@@ -76,6 +82,7 @@ function CheckWin32Version(Major : Integer): Boolean;
 Procedure RaiseLastWin32Error;
 
 function GetFileVersion(const AFileName: string): Cardinal;
+function GetFileVersion(const AFileName: UnicodeString): Cardinal;
 
 procedure GetFormatSettings;
 procedure GetLocaleFormatSettings(LCID: Integer; var FormatSettings: TFormatSettings); platform;
@@ -85,6 +92,10 @@ implementation
   uses
     sysconst,
     windirs;
+
+var 
+  FindExInfoDefaults : TFINDEX_INFO_LEVELS = FindExInfoStandard;
+  FindFirstAdditionalFlags : DWord = 0;
 
 function WinCheck(res:boolean):boolean;
   begin
@@ -153,6 +164,39 @@ function GetFileVersion(const AFileName:string):Cardinal;
       end;
   end;
 
+function GetFileVersion(const AFileName:UnicodeString):Cardinal;
+  var
+    { useful only as long as we don't need to touch different stack pages }
+    buf : array[0..3071] of byte;
+    bufp : pointer;
+    fn : unicodestring;
+    valsize,
+    size : DWORD;
+    h : DWORD;
+    valrec : PVSFixedFileInfo;
+  begin
+    result:=$fffffff;
+    fn:=AFileName;
+    UniqueString(fn);
+    size:=GetFileVersionInfoSizeW(pwidechar(fn),@h);
+    if size>sizeof(buf) then
+      begin
+        getmem(bufp,size);
+        try
+          if GetFileVersionInfoW(pwidechar(fn),h,size,bufp) then
+            if VerQueryValue(bufp,'\',valrec,valsize) then
+              result:=valrec^.dwFileVersionMS;
+        finally
+          freemem(bufp);
+        end;
+      end
+    else
+      begin
+        if GetFileVersionInfoW(pwidechar(fn),h,size,@buf) then
+          if VerQueryValueW(@buf,'\',valrec,valsize) then
+            result:=valrec^.dwFileVersionMS;
+      end;
+  end;
 
 {$define HASCREATEGUID}
 {$define HASEXPANDUNCFILENAME}
@@ -219,7 +263,7 @@ begin
         rc := WNetGetUniversalNameW (pwidechar(s), UNIVERSAL_NAME_INFO_LEVEL, buf, @size);
       end;
     if rc = NO_ERROR then
-      Result := PRemoteNameInfo(buf)^.lpUniversalName
+      Result := PRemoteNameInfoW(buf)^.lpUniversalName
     else if rc = ERROR_NOT_CONNECTED then
       Result := filename
     else
@@ -246,6 +290,11 @@ const
                FILE_SHARE_WRITE,
                FILE_SHARE_READ or FILE_SHARE_WRITE);
 
+
+function FileFlush(Handle: THandle): Boolean;
+begin
+  Result:= FlushFileBuffers(Handle);
+end;
 
 Function FileOpen (Const FileName : unicodestring; Mode : Integer) : THandle;
 begin
@@ -313,8 +362,6 @@ end;
 
 Procedure FileClose (Handle : THandle);
 begin
-  if Handle<=4 then
-   exit;
   CloseHandle(Handle);
 end;
 
@@ -348,48 +395,207 @@ begin
 end;
 
 
-Function FileAge (Const FileName : UnicodeString): Longint;
+Function FileAge (Const FileName : UnicodeString): Int64;
 var
   Handle: THandle;
   FindData: TWin32FindDataW;
+  tmpdtime    : longint;
 begin
   Handle := FindFirstFileW(Pwidechar(FileName), FindData);
   if Handle <> INVALID_HANDLE_VALUE then
     begin
       Windows.FindClose(Handle);
       if (FindData.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY) = 0 then
-        If WinToDosTime(FindData.ftLastWriteTime,Result) then
-          exit;
+        If WinToDosTime(FindData.ftLastWriteTime,tmpdtime) then
+          begin
+            result:=tmpdtime;
+            exit;
+          end;
     end;
   Result := -1;
 end;
 
 
-Function FileExists (Const FileName : UnicodeString) : Boolean;
-var
-  Attr:Dword;
-begin
+type
+  TSymLinkResult = (
+    slrOk,
+    slrNoSymLink,
+    slrError
+  );
 
-  Attr:=GetFileAttributesW(PWideChar(FileName));
-  if Attr <> $ffffffff then
-    Result:= (Attr and FILE_ATTRIBUTE_DIRECTORY) = 0
-  else
-    Result:=False;
+
+function FileGetSymLinkTargetInt(const FileName: UnicodeString; out SymLinkRec: TUnicodeSymLinkRec; RaiseErrorOnMissing: Boolean): TSymLinkResult;
+{ reparse point specific declarations from Windows headers }
+const
+  IO_REPARSE_TAG_MOUNT_POINT = $A0000003;
+  IO_REPARSE_TAG_SYMLINK = $A000000C;
+  ERROR_REPARSE_TAG_INVALID = 4393;
+  FSCTL_GET_REPARSE_POINT = $900A8;
+  MAXIMUM_REPARSE_DATA_BUFFER_SIZE = 16 * 1024;
+  SYMLINK_FLAG_RELATIVE = 1;
+  FILE_FLAG_OPEN_REPARSE_POINT = $200000;
+  FILE_READ_EA = $8;
+type
+  TReparseDataBuffer = record
+    ReparseTag: ULONG;
+    ReparseDataLength: Word;
+    Reserved: Word;
+    SubstituteNameOffset: Word;
+    SubstituteNameLength: Word;
+    PrintNameOffset: Word;
+    PrintNameLength: Word;
+    case ULONG of
+      IO_REPARSE_TAG_MOUNT_POINT: (
+        PathBufferMount: array[0..4095] of WCHAR);
+      IO_REPARSE_TAG_SYMLINK: (
+        Flags: ULONG;
+        PathBufferSym: array[0..4095] of WCHAR);
+  end;
+
+const
+  CShareAny = FILE_SHARE_READ or FILE_SHARE_WRITE or FILE_SHARE_DELETE;
+  COpenReparse = FILE_FLAG_OPEN_REPARSE_POINT or FILE_FLAG_BACKUP_SEMANTICS;
+  CVolumePrefix = 'Volume';
+  CGlobalPrefix = '\\?\';
+var
+  HFile, Handle: THandle;
+  PBuffer: ^TReparseDataBuffer;
+  BytesReturned: DWORD;
+  guid: TGUID;
+begin
+  Result := slrError;
+  SymLinkRec := Default(TUnicodeSymLinkRec);
+
+  HFile := CreateFileW(PUnicodeChar(FileName), FILE_READ_EA, CShareAny, Nil, OPEN_EXISTING, COpenReparse, 0);
+  if HFile <> INVALID_HANDLE_VALUE then
+    try
+      GetMem(PBuffer, MAXIMUM_REPARSE_DATA_BUFFER_SIZE);
+      try
+        if DeviceIoControl(HFile, FSCTL_GET_REPARSE_POINT, Nil, 0,
+             PBuffer, MAXIMUM_REPARSE_DATA_BUFFER_SIZE, @BytesReturned, Nil) then begin
+          case PBuffer^.ReparseTag of
+            IO_REPARSE_TAG_MOUNT_POINT: begin
+              SymLinkRec.TargetName := WideCharLenToString(
+                @PBuffer^.PathBufferMount[4 { skip start '\??\' } +
+                  PBuffer^.SubstituteNameOffset div SizeOf(WCHAR)],
+                PBuffer^.SubstituteNameLength div SizeOf(WCHAR) - 4);
+              if (Length(SymLinkRec.TargetName) = Length(CVolumePrefix) + 2 { brackets } + 32 { guid } + 4 { - } + 1 { \ }) and
+                  (Copy(SymLinkRec.TargetName, 1, Length(CVolumePrefix)) = CVolumePrefix) and
+                  TryStringToGUID(String(Copy(SymLinkRec.TargetName, Length(CVolumePrefix) + 1, Length(SymLinkRec.TargetName) - Length(CVolumePrefix) - 1)), guid) then
+                SymLinkRec.TargetName := CGlobalPrefix + SymLinkRec.TargetName;
+            end;
+            IO_REPARSE_TAG_SYMLINK: begin
+              SymLinkRec.TargetName := WideCharLenToString(
+                @PBuffer^.PathBufferSym[PBuffer^.PrintNameOffset div SizeOf(WCHAR)],
+                PBuffer^.PrintNameLength div SizeOf(WCHAR));
+              if (PBuffer^.Flags and SYMLINK_FLAG_RELATIVE) <> 0 then
+                SymLinkRec.TargetName := ExpandFileName(ExtractFilePath(FileName) + SymLinkRec.TargetName);
+            end;
+          end;
+
+          if SymLinkRec.TargetName <> '' then begin
+            { the fields of WIN32_FILE_ATTRIBUTE_DATA match with the first fields of WIN32_FIND_DATA }
+            if GetFileAttributesExW(PUnicodeChar(SymLinkRec.TargetName), GetFileExInfoStandard, @SymLinkRec.FindData) then begin
+              SymLinkRec.Attr := SymLinkRec.FindData.dwFileAttributes;
+              SymLinkRec.Size := QWord(SymLinkRec.FindData.nFileSizeHigh) shl 32 + QWord(SymLinkRec.FindData.nFileSizeLow);
+            end else if RaiseErrorOnMissing then
+              raise EDirectoryNotFoundException.Create(SysErrorMessage(GetLastOSError))
+            else
+              SymLinkRec.TargetName := '';
+          end else begin
+            SetLastError(ERROR_REPARSE_TAG_INVALID);
+            Result := slrNoSymLink;
+          end;
+        end else
+          SetLastError(ERROR_REPARSE_TAG_INVALID);
+      finally
+        FreeMem(PBuffer);
+      end;
+    finally
+      CloseHandle(HFile);
+    end;
+
+  if SymLinkRec.TargetName <> '' then
+    Result := slrOk
 end;
 
 
-Function DirectoryExists (Const Directory : UnicodeString) : Boolean;
-var
-  Attr:Dword;
+function FileGetSymLinkTarget(const FileName: UnicodeString; out SymLinkRec: TUnicodeSymLinkRec): Boolean;
 begin
-  Attr:=GetFileAttributesW(PWideChar(Directory));
-  if Attr <> $ffffffff then
-    Result:= (Attr and FILE_ATTRIBUTE_DIRECTORY) > 0
-  else
-    Result:=False;
+  Result := FileGetSymLinkTargetInt(FileName, SymLinkRec, True) = slrOk;
+end;
+
+
+function FileOrDirExists(const FileOrDirName: UnicodeString; CheckDir: Boolean; FollowLink: Boolean): Boolean;
+const
+  CDirAttributes: array[Boolean] of DWORD = (0, FILE_ATTRIBUTE_DIRECTORY);
+
+  function FoundByEnum: Boolean;
+  var
+    FindData: TWin32FindDataW;
+    Handle: THandle;
+  begin
+    { FindFirstFileEx is faster than FindFirstFile }
+    Handle := FindFirstFileExW(PUnicodeChar(FileOrDirName), FindExInfoDefaults , @FindData,
+                FindExSearchNameMatch, Nil, 0);
+    Result := Handle <> INVALID_HANDLE_VALUE;
+    if Result then begin
+      Windows.FindClose(Handle);
+      Result := (FindData.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY) = CDirAttributes[CheckDir];
+    end;
+  end;
+
+const
+  CNotExistsErrors = [
+    ERROR_FILE_NOT_FOUND,
+    ERROR_PATH_NOT_FOUND,
+    ERROR_INVALID_NAME, // protects from names in the form of masks like '*'
+    ERROR_INVALID_DRIVE,
+    ERROR_NOT_READY,
+    ERROR_INVALID_PARAMETER,
+    ERROR_BAD_PATHNAME,
+    ERROR_BAD_NETPATH,
+    ERROR_BAD_NET_NAME
+  ];
+var
+  Attr : DWord;
+  slr : TUnicodeSymLinkRec;
+  res : TSymLinkResult;
+begin
+  Attr := GetFileAttributesW(PUnicodeChar(FileOrDirName));
+  if Attr = INVALID_FILE_ATTRIBUTES then
+    Result := not (GetLastError in CNotExistsErrors) and FoundByEnum
+  else begin
+    Result := (Attr and FILE_ATTRIBUTE_DIRECTORY) = CDirAttributes[CheckDir];
+    if Result and FollowLink and ((Attr and FILE_ATTRIBUTE_REPARSE_POINT) <> 0) then begin
+      res := FileGetSymLinkTargetInt(FileOrDirName, slr, False);
+      case res of
+        slrOk:
+          Result := FileOrDirExists(slr.TargetName, CheckDir, False);
+        slrNoSymLink:
+          Result := True;
+        else
+          Result := False;
+      end;
+    end;
+  end;
+end;
+
+
+Function FileExists (Const FileName : UnicodeString; FollowLink : Boolean) : Boolean;
+begin
+  Result := FileOrDirExists(FileName, False, FollowLink);
+end;
+
+
+Function DirectoryExists (Const Directory : UnicodeString; FollowLink : Boolean) : Boolean;
+begin
+  Result := FileOrDirExists(Directory, True, FollowLink);
 end;
 
 Function FindMatch(var f: TAbstractSearchRec; var Name: UnicodeString) : Longint;
+var
+  tmpdtime : longint;
 begin
   { Find file with correct attribute }
   While (F.FindData.dwFileAttributes and cardinal(F.ExcludeAttr))<>0 do
@@ -401,13 +607,22 @@ begin
       end;
    end;
   { Convert some attributes back }
-  WinToDosTime(F.FindData.ftLastWriteTime,F.Time);
+  WinToDosTime(F.FindData.ftLastWriteTime,tmpdtime);
+  F.Time:=tmpdtime;
   f.size:=F.FindData.NFileSizeLow+(qword(maxdword)+1)*F.FindData.NFileSizeHigh;
   f.attr:=F.FindData.dwFileAttributes;
   Name:=F.FindData.cFileName;
   Result:=0;
 end;
 
+Procedure InternalFindClose (var Handle: THandle; var FindData: TFindData);
+begin
+   if Handle <> INVALID_HANDLE_VALUE then
+    begin
+    Windows.FindClose(Handle);
+    Handle:=INVALID_HANDLE_VALUE;
+    end;
+end;
 
 Function InternalFindFirst (Const Path : UnicodeString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name : UnicodeString) : Longint;
 begin
@@ -416,7 +631,9 @@ begin
   Rslt.ExcludeAttr:=(not Attr) and ($1e);
                  { $1e = faHidden or faSysFile or faVolumeID or faDirectory }
   { FindFirstFile is a Win32 Call }
-  Rslt.FindHandle:=FindFirstFileW (PWideChar(Path),Rslt.FindData);
+  Rslt.FindHandle:=FindFirstFileExW(PUnicodeChar(Path), FindExInfoDefaults , @Rslt.FindData,
+                      FindExSearchNameMatch, Nil, FindFirstAdditionalFlags);
+
   If Rslt.FindHandle=Invalid_Handle_value then
    begin
      Result:=GetLastError;
@@ -424,6 +641,8 @@ begin
    end;
   { Find file with correct attribute }
   Result:=FindMatch(Rslt,Name);
+  if (Result<>0) then
+    InternalFindClose(Rslt.FindHandle,Rslt.FindData);
 end;
 
 Function InternalFindNext (Var Rslt : TAbstractSearchRec; var Name: UnicodeString) : Longint;
@@ -435,24 +654,41 @@ begin
 end;
 
 
-Procedure InternalFindClose (var Handle: THandle; var FindData: TFindData);
-begin
-   if Handle <> INVALID_HANDLE_VALUE then
-    Windows.FindClose(Handle);
-end;
 
 
-Function FileGetDate (Handle : THandle) : Longint;
+Function FileGetDate (Handle : THandle) : Int64;
 Var
   FT : TFileTime;
+  tmpdtime : longint;
 begin
   If GetFileTime(Handle,nil,nil,@ft) and
-     WinToDosTime(FT,Result) then
-    exit;
+     WinToDosTime(FT,tmpdtime) then
+    begin
+      result:=tmpdtime;
+      exit;
+    end;
   Result:=-1;
 end;
 
-Function FileSetDate (Handle : THandle;Age : Longint) : Longint;
+Function FileGetDate (Handle : THandle; out FileDateTime: TDateTime) : Boolean;
+Var
+  FT : TFileTime;
+begin
+  Result :=
+     GetFileTime(Handle,nil,nil,@ft) and
+     FindDataTimeToDateTime(FT, FileDateTime);
+end;
+
+Function FileGetDateUTC (Handle : THandle; out FileDateTimeUTC: TDateTime) : Boolean;
+Var
+  FT : TFileTime;
+begin
+  Result :=
+     GetFileTime(Handle,nil,nil,@ft) and
+     FindDataTimeToUTC(FT, FileDateTimeUTC);
+end;
+
+Function FileSetDate (Handle : THandle;Age : Int64) : Longint;
 Var
   FT: TFileTime;
 begin
@@ -463,14 +699,40 @@ begin
   Result := GetLastError;
 end;
 
+Function FileSetDate (Handle : THandle; const FileDateTime: TDateTime) : Longint;
+var
+  FT: TFiletime;
+  LT: TFiletime;
+  ST: TSystemTime;
+begin
+  DateTimeToSystemTime(FileDateTime,ST);
+  if SystemTimeToFileTime(ST,LT) and LocalFileTimeToFileTime(LT,FT)
+    and SetFileTime(Handle,nil,nil,@FT) then
+    Result:=0
+  else
+    Result:=GetLastError;
+end;
+
+Function FileSetDateUTC (Handle : THandle; const FileDateTimeUTC: TDateTime) : Longint;
+var
+  FT: TFiletime;
+  ST: TSystemTime;
+begin
+  DateTimeToSystemTime(FileDateTimeUTC,ST);
+  if SystemTimeToFileTime(ST,FT) and SetFileTime(Handle,nil,nil,@FT) then
+    Result:=0
+  else
+    Result:=GetLastError;
+end;
+
 {$IFDEF OS_FILESETDATEBYNAME}
-Function FileSetDate (Const FileName : UnicodeString;Age : Longint) : Longint;
+Function FileSetDate (Const FileName : UnicodeString;Age : Int64) : Longint;
 Var
   fd : THandle;
 begin
   FD := CreateFileW (PWideChar (FileName), GENERIC_READ or GENERIC_WRITE,
                      FILE_SHARE_WRITE, nil, OPEN_EXISTING,
-                     FILE_FLAG_BACKUP_SEMANTICS, 0);  
+                     FILE_FLAG_BACKUP_SEMANTICS, 0);
   If (Fd<>feInvalidHandle) then
     try
       Result:=FileSetDate(fd,Age);
@@ -480,7 +742,41 @@ begin
   else
     Result:=GetLastOSError;
 end;
-{$ENDIF}                                                                                
+
+Function FileSetDate (Const FileName : UnicodeString;const FileDateTime : TDateTime) : Longint;
+Var
+  fd : THandle;
+begin
+  FD := CreateFileW (PWideChar (FileName), GENERIC_READ or GENERIC_WRITE,
+                     FILE_SHARE_WRITE, nil, OPEN_EXISTING,
+                     FILE_FLAG_BACKUP_SEMANTICS, 0);
+  If (Fd<>feInvalidHandle) then
+    try
+      Result:=FileSetDate(fd,FileDateTime);
+    finally
+      FileClose(fd);
+    end
+  else
+    Result:=GetLastOSError;
+end;
+
+Function FileSetDateUTC (Const FileName : UnicodeString;const FileDateTimeUTC : TDateTime) : Longint;
+Var
+  fd : THandle;
+begin
+  FD := CreateFileW (PWideChar (FileName), GENERIC_READ or GENERIC_WRITE,
+                     FILE_SHARE_WRITE, nil, OPEN_EXISTING,
+                     FILE_FLAG_BACKUP_SEMANTICS, 0);
+  If (Fd<>feInvalidHandle) then
+    try
+      Result:=FileSetDateUTC(fd,FileDateTimeUTC);
+    finally
+      FileClose(fd);
+    end
+  else
+    Result:=GetLastOSError;
+end;
+{$ENDIF}
 
 Function FileGetAttr (Const FileName : UnicodeString) : Longint;
 begin
@@ -601,9 +897,15 @@ begin
   windows.Getlocaltime(SystemTime);
 end;
 
+function GetUniversalTime(var SystemTime: TSystemTime): Boolean;
+begin
+  windows.GetSystemTime(SystemTime);
+  Result:=True;
+end;
+
 function GetLocalTimeOffset: Integer;
 
-var 
+var
   TZInfo: TTimeZoneInformation;
 
 begin
@@ -617,7 +919,84 @@ begin
      else
        Result := 0;
    end;
-end; 
+end;
+
+
+type
+  TGetTimeZoneInformationForYear = function(wYear: USHORT; lpDynamicTimeZoneInformation: PDynamicTimeZoneInformation;
+    var lpTimeZoneInformation: TTimeZoneInformation): BOOL;stdcall;
+var
+  GetTimeZoneInformationForYear:TGetTimeZoneInformationForYear=nil;
+
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer): Boolean;
+var
+  Year: Integer;
+const
+  DaysPerWeek = 7;
+
+  // MonthOf and YearOf are not available in SysUtils
+  function MonthOf(const AValue: TDateTime): Word;
+  var
+    Y,D : Word;
+  begin
+    DecodeDate(AValue,Y,Result,D);
+  end;
+  function YearOf(const AValue: TDateTime): Word;
+  var
+    D,M : Word;
+  begin
+    DecodeDate(AValue,Result,D,M);
+  end;
+
+  function RelWeekDayToDateTime(const SysTime: TSystemTime): TDateTime;
+  var
+    WeekDay, IncDays: Integer;
+  begin
+    // get first day in month
+    Result := EncodeDate(Year, SysTime.Month, 1);
+    WeekDay := DayOfWeek(Result)-1;
+    // get the correct first weekday in month
+    IncDays := SysTime.wDayOfWeek-WeekDay;
+    if IncDays<0 then
+      Inc(IncDays, DaysPerWeek);
+    // inc weeks
+    Result := Result+IncDays+DaysPerWeek*(SysTime.Day-1);
+    // SysTime.DayOfWeek=5 means the last one - check if we are not in the next month
+    while (MonthOf(Result)>SysTime.Month) do
+      Result := Result-DaysPerWeek;
+    Result := Result+EncodeTime(SysTime.Hour, SysTime.Minute, SysTime.Second, SysTime.Millisecond);
+  end;
+
+var
+  TZInfo: TTimeZoneInformation;
+  DSTStart, DSTEnd: TDateTime;
+
+begin
+  if not Assigned(GetTimeZoneInformationForYear) then
+    Exit(False);
+  Year := YearOf(DateTime);
+  TZInfo := Default(TTimeZoneInformation);
+  if not GetTimeZoneInformationForYear(Year, nil, TZInfo) then
+    Exit(False);
+
+  if (TZInfo.StandardDate.Month>0) and (TZInfo.DaylightDate.Month>0) then
+  begin // there is DST
+    // DaylightDate and StandardDate are local times
+    DSTStart := RelWeekDayToDateTime(TZInfo.DaylightDate);
+    DSTEnd := RelWeekDayToDateTime(TZInfo.StandardDate);
+    if InputIsUTC then
+    begin
+      DSTStart := DSTStart + (TZInfo.Bias+TZInfo.StandardBias)/MinsPerDay;
+      DSTEnd := DSTEnd + (TZInfo.Bias+TZInfo.DaylightBias)/MinsPerDay;
+    end;
+    if (DSTStart<=DateTime) and (DateTime<DSTEnd) then
+      Offset := TZInfo.Bias+TZInfo.DaylightBias
+    else
+      Offset := TZInfo.Bias+TZInfo.StandardBias;
+  end else // no DST
+    Offset := TZInfo.Bias;
+  Result := True;
+end;
 
 
 function GetTickCount: LongWord;
@@ -635,25 +1014,19 @@ var
 {$ENDIF}
 
 function GetTickCount64: QWord;
-{$IFNDEF WINCE}
-var
-  lib: THandle;
-{$ENDIF}
 begin
 {$IFNDEF WINCE}
+  if Assigned(WinGetTickCount64) then
+    Exit(WinGetTickCount64());
   { on Vista and newer there is a GetTickCount64 implementation }
   if Win32MajorVersion >= 6 then begin
-    if not Assigned(WinGetTickCount64) then begin
-      lib := LoadLibrary('kernel32.dll');
-      WinGetTickCount64 := TGetTickCount64(
-                             GetProcAddress(lib, 'GetTickCount64'));
-    end;
+    WinGetTickCount64 := TGetTickCount64(GetProcAddress(GetModuleHandle('kernel32.dll'), 'GetTickCount64'));
     Result := WinGetTickCount64();
   end else
 {$ENDIF}
     Result := Windows.GetTickCount;
 end;
-                                                                    
+
 
 {****************************************************************************
                               Misc Functions
@@ -669,14 +1042,19 @@ end;
                               Locale Functions
 ****************************************************************************}
 
-function GetLocaleStr(LID, LT: Longint; const Def: string): ShortString;
+function GetLocaleStr(LID, LT: Longint; const Def: string): AnsiString;
 var
   L: Integer;
-  Buf: array[0..255] of Char;
+  Buf: unicodestring;
 begin
-  L := GetLocaleInfoA(LID, LT, Buf, SizeOf(Buf));
+  L := GetLocaleInfoW(LID, LT, nil, 0);
   if L > 0 then
-    SetString(Result, @Buf[0], L - 1)
+    begin
+      SetLength(Buf,L-1); // L includes terminating NULL
+      if l>1 Then
+        L := GetLocaleInfoW(LID, LT, @Buf[1], L);
+      result:=buf;
+    end
   else
     Result := Def;
 end;
@@ -695,39 +1073,22 @@ end;
 function ConvertEraString(Count ,Year,Month,Day : integer) : string;
   var
     ASystemTime: TSystemTime;
-    buf: array[0..100] of char;
+    wbuf: array[0..100] of WideChar;
     ALCID : LCID;
-    PriLangID : Word;
-    SubLangID : Word;
 begin
   Result := ''; if (Count<=0) then exit;
   DateTimeToSystemTime(EncodeDate(Year,Month,Day),ASystemTime);
 
   ALCID := GetThreadLocale;
 //  ALCID := SysLocale.DefaultLCID;
-  if GetDateFormatA(ALCID , DATE_USE_ALT_CALENDAR
-      , @ASystemTime, PChar('gg')
-      , @buf, SizeOf(buf)) > 0 then
+  if GetDateFormatW(ALCID , DATE_USE_ALT_CALENDAR
+      , @ASystemTime, PWChar('gg')
+      , @wbuf, SizeOf(wbuf)) > 0 then
   begin
-    Result := buf;
     if Count = 1 then
-    begin
-      PriLangID := ALCID and $3FF;
-      SubLangID := (ALCID and $FFFF) shr 10;
-      case PriLangID of
-        LANG_JAPANESE:
-          begin
-            Result := Copy(WideString(Result),1,1);
-          end;
-        LANG_CHINESE:
-          if (SubLangID = SUBLANG_CHINESE_TRADITIONAL) then
-          begin
-            Result := Copy(WideString(Result),1,1);
-          end;
-      end;
-    end;
+      wbuf[1] := #0;
+    Result := string(WideString(wbuf));
   end;
-// if Result = '' then Result := StringOfChar('G',Count);
 end;
 
 function ConvertEraYearString(Count ,Year,Month,Day : integer) : string;
@@ -836,6 +1197,21 @@ begin
 end;
 
 procedure GetLocaleFormatSettings(LCID: Integer; var FormatSettings: TFormatSettings);
+  function FixSeparator(const Format: string; const FromSeparator, ToSeparator: Char): string;
+  var
+    R: PChar;
+  begin
+    if (Format='') or (FromSeparator=ToSeparator) then
+      Exit(Format);
+    Result := Copy(Format, 1);
+    R := PChar(Result);
+    while R^<>#0 do
+      begin
+      if R^=FromSeparator then
+        R^:=ToSeparator;
+      Inc(R);
+      end;
+  end;
 var
   HF  : Shortstring;
   LID : Windows.LCID;
@@ -857,8 +1233,8 @@ begin
         LongDayNames[I]:=GetLocaleStr(LID,LOCALE_SDAYNAME1+Day,LongDayNames[i]);
         end;
       DateSeparator := GetLocaleChar(LID, LOCALE_SDATE, '/');
-      ShortDateFormat := GetLocaleStr(LID, LOCALE_SSHORTDATE, 'm/d/yy');
-      LongDateFormat := GetLocaleStr(LID, LOCALE_SLONGDATE, 'mmmm d, yyyy');
+      ShortDateFormat := FixSeparator(GetLocaleStr(LID, LOCALE_SSHORTDATE, 'm/d/yy'), DateSeparator, '/');
+      LongDateFormat := FixSeparator(GetLocaleStr(LID, LOCALE_SLONGDATE, 'mmmm d, yyyy'), DateSeparator, '/');
       { Time stuff }
       TimeSeparator := GetLocaleChar(LID, LOCALE_STIME, ':');
       TimeAMString := GetLocaleStr(LID, LOCALE_S1159, 'AM');
@@ -887,18 +1263,50 @@ begin
   GetlocaleFormatSettings(GetThreadLocale, DefaultFormatSettings);
 end;
 
+Procedure InitLeadBytes;
+
+var
+  I,B,C,E: Byte;
+  Info: TCPInfo;
+
+begin
+  GetCPInfo(CP_ACP,Info);
+  I:=0;
+  With Info do
+    begin
+    B:=LeadByte[i];
+    E:=LeadByte[i+1];
+    while (I<MAX_LEADBYTES) and (B<>0) and (E<>0) do
+      begin
+      for C:=B to E do
+        Include(LeadBytes,AnsiChar(C));
+      Inc(I,2);
+      if (I<MAX_LEADBYTES) then
+        begin
+        B:=LeadByte[i];
+        E:=LeadByte[i+1];
+        end;
+      end;
+    end;   
+end;
+
+
 Procedure InitInternational;
 var
+{$if defined(CPU386) or defined(CPUX86_64)}
   { A call to GetSystemMetrics changes the value of the 8087 Control Word on
     Pentium4 with WinXP SP2 }
   old8087CW: word;
+{$endif}
   DefaultCustomLocaleID : LCID;   // typedef DWORD LCID;
   DefaultCustomLanguageID : Word; // typedef WORD LANGID;
 begin
   /// workaround for Windows 7 bug, see bug report #18574
   SetThreadLocale(GetUserDefaultLCID);
   InitInternationalGeneric;
+{$if defined(CPU386) or defined(CPUX86_64)}
   old8087CW:=Get8087CW;
+{$endif}
   SysLocale.MBCS:=GetSystemMetrics(SM_DBCSENABLED)<>0;
   SysLocale.RightToLeft:=GetSystemMetrics(SM_MIDEASTENABLED)<>0;
   SysLocale.DefaultLCID := $0409;
@@ -928,7 +1336,9 @@ begin
         end;
      end;
 
+{$if defined(CPU386) or defined(CPUX86_64)}
   Set8087CW(old8087CW);
+{$endif}
   GetFormatSettings;
   if SysLocale.FarEast then GetEraNamesAndYearOffsets;
 end;
@@ -939,22 +1349,26 @@ end;
 ****************************************************************************}
 
 function SysErrorMessage(ErrorCode: Integer): String;
-const
-  MaxMsgSize = Format_Message_Max_Width_Mask;
 var
-  MsgBuffer: pChar;
+  MsgBuffer: PWideChar;
+  Msg: UnicodeString;
+  len: longint;
 begin
-  GetMem(MsgBuffer, MaxMsgSize);
-  FillChar(MsgBuffer^, MaxMsgSize, #0);
-  FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM,
-                 nil,
-                 ErrorCode,
-                 MakeLangId(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                 MsgBuffer,                 { This function allocs the memory }
-                 MaxMsgSize,                           { Maximum message size }
-                 nil);
-  SysErrorMessage := MsgBuffer;
-  FreeMem(MsgBuffer, MaxMsgSize);
+  len := FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM or
+                        FORMAT_MESSAGE_IGNORE_INSERTS or
+                        FORMAT_MESSAGE_ALLOCATE_BUFFER,
+                        nil,
+                        ErrorCode,
+                        MakeLangId(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                        PWideChar(@MsgBuffer),
+                        0,
+                        nil);
+  // Remove trailing #13#10
+  if (len > 1) and (MsgBuffer[len - 2] = #13) and (MsgBuffer[len - 1] = #10) then
+    Dec(len, 2);
+  SetString(Msg, PUnicodeChar(MsgBuffer), len);
+  LocalFree(HLOCAL(MsgBuffer));
+  Result := Msg;
 end;
 
 {****************************************************************************
@@ -1074,14 +1488,20 @@ end;
 
 {$pop}
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
+function ExecuteProcess(Const Path: RawByteString; Const ComLine: RawByteString;Flags:TExecuteFlags=[]):integer;
+begin
+  result:=ExecuteProcess(Unicodestring(Path),UnicodeString(ComLine),Flags);
+end;
+
+
+function ExecuteProcess(Const Path: UnicodeString; Const ComLine: UnicodeString;Flags:TExecuteFlags=[]):integer;
 // win specific  function
 var
-  SI: TStartupInfo;
+  SI: TStartupInfoW;
   PI: TProcessInformation;
   Proc : THandle;
   l    : DWord;
-  CommandLine : ansistring;
+  CommandLine : unicodestring;
   e : EOSError;
   ExecInherits : longbool;
 begin
@@ -1104,7 +1524,7 @@ begin
 
   ExecInherits:=ExecInheritsHandles in Flags;
 
-  if not CreateProcessA(nil, pchar(CommandLine),
+  if not CreateProcessW(nil, pwidechar(CommandLine),
     Nil, Nil, ExecInherits,$20, Nil, Nil, SI, PI) then
     begin
       e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,GetLastError]);
@@ -1129,10 +1549,11 @@ begin
     end;
 end;
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString;Flags:TExecuteFlags=[]):integer;
+
+function ExecuteProcess(Const Path: RawByteString; Const ComLine: Array of RawByteString;Flags:TExecuteFlags=[]):integer;
 
 var
-  CommandLine: AnsiString;
+  CommandLine: UnicodeString;
   I: integer;
 
 begin
@@ -1142,7 +1563,23 @@ begin
     CommandLine := CommandLine + ' ' + '"' + ComLine [I] + '"'
    else
     CommandLine := CommandLine + ' ' + Comline [I];
-  ExecuteProcess := ExecuteProcess (Path, CommandLine,Flags);
+  ExecuteProcess := ExecuteProcess (UnicodeString(Path), CommandLine,Flags);
+end;
+
+function ExecuteProcess(Const Path: UnicodeString; Const ComLine: Array of UnicodeString;Flags:TExecuteFlags=[]):integer;
+
+var
+  CommandLine: UnicodeString;
+  I: integer;
+
+begin
+  Commandline := '';
+  for I := 0 to High (ComLine) do
+   if Pos (' ', ComLine [I]) <> 0 then
+    CommandLine := CommandLine + ' ' + '"' + ComLine [I] + '"'
+   else
+    CommandLine := CommandLine + ' ' + Comline [I];
+  ExecuteProcess := ExecuteProcess (Path,CommandLine,Flags);
 end;
 
 Procedure Sleep(Milliseconds : Cardinal);
@@ -1181,6 +1618,13 @@ begin
   kernel32dll:=GetModuleHandle('kernel32');
   if kernel32dll<>0 then
     GetDiskFreeSpaceEx:=TGetDiskFreeSpaceEx(GetProcAddress(kernel32dll,'GetDiskFreeSpaceExA'));
+  if Win32MajorVersion<6 then
+     FindExInfoDefaults := FindExInfoStandard; // also searches SFNs. XP only.
+  if (Win32MajorVersion>=6) and (Win32MinorVersion>=1) then 
+    FindFirstAdditionalFlags := FIND_FIRST_EX_LARGE_FETCH; // win7 and 2008R2+
+  // GetTimeZoneInformationForYear is supported only on Vista and newer
+  if (kernel32dll<>0) and (Win32MajorVersion>=6) then
+    GetTimeZoneInformationForYear:=TGetTimeZoneInformationForYear(GetProcAddress(kernel32dll,'GetTimeZoneInformationForYear'));
 end;
 
 Function GetAppConfigDir(Global : Boolean) : String;
@@ -1249,10 +1693,25 @@ function DoCompareStringW(P1, P2: PWideChar; L1, L2: PtrUInt; Flags: DWORD): Ptr
       RaiseLastOSError;
   end;
 
-function Win32CompareWideString(const s1, s2 : WideString) : PtrInt;
-  begin
-    Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), 0);
-  end;
+const
+  WinAPICompareFlags : array [TCompareOption] of LongWord
+    = ({LINGUISTIC_IGNORECASE,  LINGUISTIC_IGNOREDIACRITIC, }NORM_IGNORECASE{,
+       NORM_IGNOREKANATYPE, NORM_IGNORENONSPACE, NORM_IGNORESYMBOLS, NORM_IGNOREWIDTH,
+       NORM_LINGUISTIC_CASING, SORT_DIGITSASNUMBERS, SORT_STRINGSORT});
+
+function Win32CompareWideString(const s1, s2 : WideString; Options : TCompareOptions) : PtrInt;
+
+Var
+  O : LongWord;
+  CO : TCompareOption;
+
+begin
+  O:=0;
+  for CO in TCompareOption do
+    if CO in Options then
+      O:=O or WinAPICompareFlags[CO];
+  Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), O);
+end;
 
 
 function Win32CompareTextWideString(const s1, s2 : WideString) : PtrInt;
@@ -1338,10 +1797,19 @@ function Win32AnsiStrUpper(Str: PChar): PChar;
     result:=str;
   end;
 
-function Win32CompareUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
-  begin
-    Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), 0);
-  end;
+function Win32CompareUnicodeString(const s1, s2 : UnicodeString; Options : TCompareOptions) : PtrInt;
+
+Var
+  O : LongWord;
+  CO : TCompareOption;
+
+begin
+  O:=0;
+  for CO in TCompareOption do
+    if CO in Options then
+      O:=O or WinAPICompareFlags[CO];
+    Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), O);
+end;
 
 
 function Win32CompareTextUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
@@ -1365,7 +1833,6 @@ procedure InitWin32Widestrings;
       > 0 if that's the length in bytes of the code point }
 //!!!!    CodePointLengthProc : function(const Str: PChar; MaxLookAead: PtrInt): Ptrint;
     widestringmanager.CompareWideStringProc:=@Win32CompareWideString;
-    widestringmanager.CompareTextWideStringProc:=@Win32CompareTextWideString;
     widestringmanager.UpperAnsiStringProc:=@Win32AnsiUpperCase;
     widestringmanager.LowerAnsiStringProc:=@Win32AnsiLowerCase;
     widestringmanager.CompareStrAnsiStringProc:=@Win32AnsiCompareStr;
@@ -1377,7 +1844,6 @@ procedure InitWin32Widestrings;
     widestringmanager.StrLowerAnsiStringProc:=@Win32AnsiStrLower;
     widestringmanager.StrUpperAnsiStringProc:=@Win32AnsiStrUpper;
     widestringmanager.CompareUnicodeStringProc:=@Win32CompareUnicodeString;
-    widestringmanager.CompareTextUnicodeStringProc:=@Win32CompareTextUnicodeString;
   end;
 
 { Platform-specific exception support }
@@ -1415,10 +1881,12 @@ Initialization
   ExceptObjProc:=@WinExceptionObject;
   ExceptClsProc:=@WinExceptionClass;
 {$endif mswindows}
+  InitLeadBytes;
   InitInternational;    { Initialize internationalization settings }
   LoadVersionInfo;
   InitSysConfigDir;
   OnBeep:=@SysBeep;
 Finalization
+  FreeTerminateProcs;
   DoneExceptions;
 end.

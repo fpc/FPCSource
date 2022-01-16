@@ -12,7 +12,7 @@ program tisdigit;
   
 uses     
   SysUtils,
-  character;
+  unicodedata,character;
     
 {$ifndef FPC}
   type UnicodeChar = WideChar;   
@@ -49,6 +49,8 @@ begin
 
   Inc(e);
   for i := Low(Word) to High(Word) do begin
+    { Skip all surrogate values }
+    if (i>=HIGH_SURROGATE_BEGIN) and (i<=LOW_SURROGATE_END) then continue;
     uc := UnicodeChar(i);
     if (TCharacter.GetUnicodeCategory(uc) = TUnicodeCategory.ucDecimalNumber) then begin
       if not TCharacter.IsDigit(uc) then

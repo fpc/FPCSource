@@ -1911,12 +1911,15 @@ begin
   CheckName;
   SetString(FDocType.FName, FName.Buffer, FName.Length);
   DTDName := FNameTable.FindOrAdd(FName.Buffer, FName.Length);
-  SkipS(True);
-  StoreLocation(Locs[0]);
-  HasAtts := ParseExternalID(FDocType.FSystemID, FDocType.FPublicID, Locs[1], False);
-  if HasAtts then
-    Locs[2] := FTokenStart;
-  SkipS;
+
+  if SkipS then
+  begin
+    StoreLocation(Locs[0]);
+    HasAtts := ParseExternalID(FDocType.FSystemID, FDocType.FPublicID, Locs[1], False);
+    if HasAtts then
+      Locs[2] := FTokenStart;
+    SkipS;
+  end;
 
   if CheckForChar('[') then
   begin
@@ -2208,7 +2211,7 @@ begin
           SkipWhitespace;
           CheckName([cnToken]);
           if not AttDef.AddEnumToken(FName.Buffer, FName.Length) then
-            ValidationError('Duplicate token in enumerated attibute declaration', [], FName.Length);
+            ValidationError('Duplicate token in enumerated attribute declaration', [], FName.Length);
           SkipWhitespace;
         until not CheckForChar('|');
         ExpectChar(')');

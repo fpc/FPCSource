@@ -3,7 +3,7 @@
  
      Contains:   *** DEPRECATED *** Power Manager Interfaces.
  
-     Copyright:  (c) 1990-2011 Apple Inc. All rights reserved.
+     Copyright:  (c) 1990-2012 Apple Inc. All rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -11,8 +11,6 @@
                      http://bugs.freepascal.org
  
 }
-{      Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
-{      Pascal Translation Updated: Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -21,6 +19,7 @@
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
+{$modeswitch cblocks}
 {$packenum 1}
 {$macro on}
 {$inline on}
@@ -113,7 +112,7 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-{$ifc defined(iphonesim)}
+{$ifc defined iphonesim}
  	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
@@ -130,7 +129,7 @@ interface
 	{$setc TARGET_CPU_X86_64 := TRUE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-{$ifc defined(iphonesim)}
+{$ifc defined iphonesim}
  	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
@@ -147,7 +146,6 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := TRUE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-	{ will require compiler define when/if other Apple devices with ARM cpus ship }
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
@@ -159,11 +157,16 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := TRUE}
-	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+{$ifc defined ios}
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
-	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 	{$setc TARGET_OS_EMBEDDED := TRUE}
+{$elsec}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
+{$endc}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ nor __arm64__ is defined.}
 {$endc}
@@ -263,7 +266,7 @@ const
 	UsrActivity = 1;    { Delays idle sleep and dimming by timeout time              }
 	NetActivity = 2;    { Delays idle sleep and power cycling by small amount        }
 	HDActivity = 3;    { Delays hard drive spindown and idle sleep by small amount  }
-	IdleActivity = 4;     { Delays idle sleep by timeout time                 }
+	IdleActivity = 4;     { Delays idle sleep by timeout time                          }
 
 type
 	SleepQRecPtr = ^SleepQRec;

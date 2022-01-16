@@ -1,4 +1,5 @@
 {$mode tp}
+{$F+}
 type ProcType    = procedure(s:string);
      GetProcType = function(s:string;var Proc:ProcType):boolean;
 

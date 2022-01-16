@@ -3,6 +3,7 @@
 program tlea1;
 
 {$ASMMODE intel}
+{$define 16BITADDRSUPPORT}
 
 procedure Fail;
 begin

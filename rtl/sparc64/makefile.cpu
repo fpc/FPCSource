@@ -1,0 +1,8 @@
+#
+# Here we set processor dependent include file names.
+#
+
+CPUNAMES=sparc64 cpuh
+# not yet: math set
+
+CPUINCNAMES=$(addsuffix .inc,$(CPUNAMES))

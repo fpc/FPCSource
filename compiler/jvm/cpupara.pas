@@ -35,6 +35,7 @@ interface
       { tcpuparamanager }
 
       tcpuparamanager=class(TParaManager)
+        function  get_saved_registers_int(calloption: tproccalloption): tcpuregisterarray;override;
         function  push_high_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
         function  keep_para_array_range(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean; override;
         function  push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
@@ -43,13 +44,14 @@ interface
         {Returns a structure giving the information on the storage of the parameter
         (which must be an integer parameter)
         @param(nr Parameter number of routine, starting from 1)}
-        procedure getintparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
+        procedure getcgtempparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
         function  create_paraloc_info(p : TAbstractProcDef; side: tcallercallee):longint;override;
-        function  create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
+        function  create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
         function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
         function param_use_paraloc(const cgpara: tcgpara): boolean; override;
         function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;override;
         function is_stack_paraloc(paraloc: pcgparalocation): boolean;override;
+        function has_strict_proc_signature: boolean;override;
       private
         procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
                                              var parasize:longint);
@@ -64,10 +66,18 @@ implementation
       hlcgobj;
 
 
-    procedure tcpuparamanager.GetIntParaLoc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
+    procedure tcpuparamanager.getcgtempparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
       begin
         { not yet implemented/used }
         internalerror(2010121001);
+      end;
+
+    function tcpuparamanager.get_saved_registers_int(calloption: tproccalloption): tcpuregisterarray;
+      const
+        { dummy, not used for JVM }
+        saved_regs: tcpuregisterarray = (RS_NO);
+      begin
+        result:=saved_regs;
       end;
 
     function tcpuparamanager.push_high_param(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean;
@@ -160,7 +170,7 @@ implementation
         else if jvmimplicitpointertype(result.def) then
           begin
             retcgsize:=OS_ADDR;
-            result.def:=getpointerdef(result.def);
+            result.def:=cpointerdef.getreusable_no_free(result.def);
           end
         else
           begin
@@ -200,15 +210,28 @@ implementation
       end;
 
 
-    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
+    function tcpuparamanager.has_strict_proc_signature: boolean;
+      begin
+        result:=true;
+      end;
+
+
+    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;
       var
         parasize : longint;
       begin
         parasize:=0;
         { calculate the registers for the normal parameters }
-        create_paraloc_info_intern(p,callerside,p.paras,parasize);
+        create_paraloc_info_intern(p,side,p.paras,parasize);
         { append the varargs }
-        create_paraloc_info_intern(p,callerside,varargspara,parasize);
+        if assigned(varargspara) then
+          begin
+            if side=callerside then
+              create_paraloc_info_intern(p,side,varargspara,parasize)
+            else
+              internalerror(2019021924);
+          end;
+        create_funcretloc_info(p,side);
         result:=parasize;
       end;
 
@@ -237,7 +260,7 @@ implementation
             else if jvmimplicitpointertype(hp.vardef) then
               begin
                 paracgsize:=OS_ADDR;
-                paradef:=getpointerdef(hp.vardef);
+                paradef:=cpointerdef.getreusable_no_free(hp.vardef);
               end
             else
               begin
@@ -257,7 +280,7 @@ implementation
               left to right (including self, if applicable). At the callee side,
               they're available as local variables 0..n-1 (with 64 bit values
               taking up two slots) }
-            paraloc^.loc:=LOC_REFERENCE;;
+            paraloc^.loc:=LOC_REFERENCE;
             paraloc^.reference.offset:=paraofs;
             paraloc^.size:=paracgsize;
             paraloc^.def:=paradef;
@@ -275,6 +298,8 @@ implementation
                   paraloc^.loc:=LOC_REFERENCE;
                   paraloc^.reference.index:=NR_STACK_POINTER_REG;
                 end;
+              else
+                ;
             end;
             { 2 slots for 64 bit integers and floats, 1 slot for the rest }
             if not(is_64bit(paradef) or

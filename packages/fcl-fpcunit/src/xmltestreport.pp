@@ -49,6 +49,7 @@ type
     FSuitePath: TFPList;
     FCurrentTest: TDOMElement;
   protected
+    function GetCurrentElement: TDOMElement;
     procedure WriteTestHeader(ATest: TTest; ALevel: integer; ACount: integer); override;
     procedure WriteTestFooter(ATest: TTest; ALevel: integer; ATiming: TDateTime); override;
     procedure WriteSuiteHeader(ATestSuite: TTestSuite; ALevel: integer); override;
@@ -70,7 +71,7 @@ type
   end;
 
 function GetSuiteAsXML(aSuite: TTestSuite): string;
-function TestSuiteAsXML(n: TDOMElement; FDoc: TXMLDocument; aSuite:TTestSuite): string;
+function TestSuiteAsXML(n: TDOMElement; FDoc: TXMLDocument; aSuite:TTest): string;
 
 implementation
 
@@ -93,25 +94,53 @@ begin
 
     stream := TStringStream.Create('');
     WriteXMLFile(FDoc, stream);
-    writeln(stream.DataString);
+    Result:=stream.DataString;
     stream.Free;
   end;
 end;
 
-function TestSuiteAsXML(n: TDOMElement; FDoc: TXMLDocument; aSuite:TTestSuite): string;
+function TestSuiteAsXML(n: TDOMElement; FDoc: TXMLDocument; aSuite:TTest): string;
 var
   i: integer;
+  E,T : TDomElement;
+  
 begin
-  for i := 0 to Pred(aSuite.Tests.Count) do
-    if TTest(aSuite.Tests.Items[i]) is TTestSuite then
-      TestSuiteAsXML(n, FDoc, TTestSuite(aSuite.Tests.Items[i]))
+  Result:='';
+  if aSuite.GetChildTestCount>0 then
+    begin
+    if (aSuite.TestName='') then
+      E:=N
     else
-      if TTest(aSuite.Tests.Items[i]) is TTestCase then
-        n.AppendChild(FDoc.CreateTextNode(TTestcase(aSuite.Tests.Items[i]).TestName + ' '));
+      begin
+      E:=FDoc.CreateElement('Suite');
+      E['Name']:=aSuite.TestName;
+      N.AppendChild(E);
+      end;
+    for i:=0 to Pred(aSuite.GetChildTestCount) do
+      TestSuiteAsXML(E,FDoc,aSuite.GetChildTest(i));
+    end
+  else
+    begin
+    T:=FDoc.CreateElement('Test');
+    T['name']:=aSuite.TestName;
+    N.AppendChild(T);
+    end;
 end;
 
 
 { TXMLResultsWriter }
+
+function TXMLResultsWriter.GetCurrentElement: TDOMElement;
+begin
+  if Assigned(FCurrentTest) then
+    Result := FCurrentTest
+  else if FSuitePath.Count > 0 then
+  //test is included in a suite
+    Result := TDOMElement(FSuitePath[FSuitePath.Count -1])
+  else
+  //no suite to append so append directly to the listing node
+    FListing.LastChild;
+end;
 
 procedure TXMLResultsWriter.WriteTestHeader(ATest: TTest; ALevel: integer; ACount: integer);
 var
@@ -207,35 +236,41 @@ begin
 end;
 
 procedure TXMLResultsWriter.AddFailure(ATest: TTest; AFailure: TTestFailure);
+var
+  CurrentElement: TDOMElement;
 begin
   inherited;
+  CurrentElement := GetCurrentElement;
   if AFailure.IsIgnoredTest then
-    FCurrentTest['Result'] := 'Ignored'
+    CurrentElement['Result'] := 'Ignored'
   else  
-    FCurrentTest['Result'] := 'Failed';
-    FCurrentTest.AppendChild(FDoc.CreateElement('Message')).AppendChild
+    CurrentElement['Result'] := 'Failed';
+    CurrentElement.AppendChild(FDoc.CreateElement('Message')).AppendChild
       (FDoc.CreateTextNode(AFailure.AsString));
-    FCurrentTest.AppendChild(FDoc.CreateElement('ExceptionClass')).AppendChild
+    CurrentElement.AppendChild(FDoc.CreateElement('ExceptionClass')).AppendChild
       (FDoc.CreateTextNode(AFailure.ExceptionClassName));
-    FCurrentTest.AppendChild(FDoc.CreateElement('ExceptionMessage')).AppendChild
+    CurrentElement.AppendChild(FDoc.CreateElement('ExceptionMessage')).AppendChild
       (FDoc.CreateTextNode(AFailure.ExceptionMessage));
 end;
 
 procedure TXMLResultsWriter.AddError(ATest: TTest; AError: TTestFailure);
+var
+  CurrentElement: TDOMElement;
 begin
   inherited;
-  FCurrentTest['Result'] := 'Error';
-  FCurrentTest.AppendChild(FDoc.CreateElement('Message')).AppendChild
+  CurrentElement := GetCurrentElement;
+  CurrentElement['Result'] := 'Error';
+  CurrentElement.AppendChild(FDoc.CreateElement('Message')).AppendChild
     (FDoc.CreateTextNode(AError.AsString));
-  FCurrentTest.AppendChild(FDoc.CreateElement('ExceptionClass')).AppendChild
+  CurrentElement.AppendChild(FDoc.CreateElement('ExceptionClass')).AppendChild
     (FDoc.CreateTextNode(AError.ExceptionClassName));
-  FCurrentTest.AppendChild(FDoc.CreateElement('ExceptionMessage')).AppendChild
+  CurrentElement.AppendChild(FDoc.CreateElement('ExceptionMessage')).AppendChild
     (FDoc.CreateTextNode(AError.ExceptionMessage));
-  FCurrentTest.AppendChild(FDoc.CreateElement('SourceUnitName')).AppendChild
+  CurrentElement.AppendChild(FDoc.CreateElement('SourceUnitName')).AppendChild
     (FDoc.CreateTextNode(AError.SourceUnitName));
-  FCurrentTest.AppendChild(FDoc.CreateElement('LineNumber')).AppendChild
+  CurrentElement.AppendChild(FDoc.CreateElement('LineNumber')).AppendChild
     (FDoc.CreateTextNode(IntToStr(AError.LineNumber)));
-  FCurrentTest.AppendChild(FDoc.CreateElement('FailedMethodName')).AppendChild
+  CurrentElement.AppendChild(FDoc.CreateElement('FailedMethodName')).AppendChild
     (FDoc.CreateTextNode(AError.FailedMethodName));
 end;
 

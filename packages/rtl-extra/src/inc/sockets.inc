@@ -302,6 +302,19 @@ begin
 end;
 
 function StrToHostAddr(IP : AnsiString) : in_addr ;
+var
+  ip4: in_addr;
+begin
+  ip4.s_addr := 0;
+  StrToHostAddr.s_addr:=0;              //:=NoAddress;
+  if TryStrToHostAddr(IP, ip4) then
+    StrToHostAddr := ip4;
+end;
+
+function TryStrToHostAddr(IP: AnsiString; out ip4: in_addr): Boolean;
+
+Const
+  AllowedChars = ['.','0'..'9'];
 
 Var
     Dummy : AnsiString;
@@ -309,7 +322,11 @@ Var
     Temp : in_addr;
 
 begin
-  strtohostaddr.s_addr:=0;              //:=NoAddress;
+  TryStrToHostAddr := False;
+  ip4.s_addr:=0;              //:=NoAddress;
+  for I:=1 to Length(IP) do
+    if Not (IP[I] in AllowedChars) then
+      exit;
   For I:=1 to 4 do
     begin
       If I<4 Then
@@ -322,11 +339,19 @@ begin
         end
        else
          Dummy:=IP;
+      if Length(Dummy)>3 then
+        exit;
       Val (Dummy,k,J);
-      array4int(temp.s_addr)[i]:=k;
-      If J<>0 then Exit;
+      If J<>0 then
+        exit;
+      array4int(temp.s_addr)[i]:=byte(k);
+      { check if after wrapping to a byte, our number is
+        still the same. if not, it can't be part of an IP. }
+      If array4int(temp.s_addr)[i]<>k then
+        exit;
    end;
-   strtohostaddr.s_addr:=ntohl(Temp.s_addr);
+   ip4.s_addr:=ntohl(Temp.s_addr);
+   TryStrToHostAddr := True;
 end;
 
 function StrToNetAddr(IP : AnsiString) : in_addr;
@@ -373,7 +398,7 @@ end;
 
 const digittab : shortstring = ('0123456789ABCDEF');
 
-function lclinttohex (i:integer;digits:longint): ansistring;
+function lclinttohex (i:longint;digits:longint): ansistring;
 
 begin
   SetLength(lclinttohex,4);
@@ -437,55 +462,282 @@ begin
     SetLength(HostAddrToStr6, Length(HostAddrToStr6)-1);
 end;
 
+function StrToHostAddr6(IP: AnsiString): in6_addr;
+var
+  i6: in6_addr;
+begin
+  i6.u6_addr32[0] := 0;
+  i6.u6_addr32[1] := 0;
+  i6.u6_addr32[2] := 0;
+  i6.u6_addr32[3] := 0;
+  StrToHostAddr6.u6_addr32[0] := 0;
+  StrToHostAddr6.u6_addr32[1] := 0;
+  StrToHostAddr6.u6_addr32[2] := 0;
+  StrToHostAddr6.u6_addr32[3] := 0;
 
-function StrToHostAddr6(IP : String) : TIn6_addr;
-Var Part   : String;
-    IPv6   : TIn6_addr;
-    P,J    : Integer;
-    W      : Word;
-    Index  : Integer;
-    ZeroAt : Integer;
-Begin
-  FillChar(IPv6,SizeOf(IPv6),0);
-  { Every 16-bit block is converted at its own and stored into Result. When }
-  { the '::' zero-spacer is found, its location is stored. Afterwards the   }
-  { address is shifted and zero-filled.                                     }
-  Index := 0; ZeroAt := -1;
-  J := 0;
-  P := Pos(':',IP);
-  While (P > 0) and (Length(IP) > 0) and (Index < 8) do
-    Begin
-      Part := '$'+Copy(IP,1,P-1);
-      Delete(IP,1,P);
-      if Length(Part) > 1 then  { is there a digit after the '$'? }
-        Val(Part,W,J)
-      else W := 0;
-      IPv6.u6_addr16[Index] := HtoNS(W);
-      if J <> 0 then
-        Begin
-          FillChar(IPv6,SizeOf(IPv6),0);
-          Exit;
-        End;
-      if IP[1] = ':' then
-        Begin
-          ZeroAt := Index;
-          Delete(IP,1,1);
-        End;
-      Inc(Index);
-      P := Pos(':',IP); if P = 0 then P := Length(IP)+1;
-    End;
-  { address      a:b:c::f:g:h }
-  { Result now   a : b : c : f : g : h : 0 : 0, ZeroAt = 2, Index = 6 }
-  { Result after a : b : c : 0 : 0 : f : g : h }
-  if ZeroAt >= 0 then
-    Begin
-      Move(IPv6.u6_addr16[ZeroAt+1],IPv6.u6_addr16[(8-Index)+ZeroAt+1],2*(Index-ZeroAt-1));
-      FillChar(IPv6.u6_addr16[ZeroAt+1],2*(8-Index),0);
-    End;
+  if TryStrToHostAddr6(IP, i6) then
+    StrToHostAddr6 := i6;
+end;
 
-  StrToHostAddr6:=IPv6;
-End;
+function TryStrToHostAddr6(IP: AnsiString; out ip6: in6_addr): Boolean;
+type
+  TCharClass = (cHexDigit, cColon, cDot, cUnknown, cEndStr);
+  TParserMode = (pmIPv6, pmIPv4);
 
+  TCharRec = record
+    ch: AnsiChar;
+    ctype: TCharClass;
+  end;
+
+  TToken = record
+    s: ShortString;
+    tt: TCharClass;
+  end;
+
+  function get_char_class(ch: AnsiChar): TCharClass;
+  begin
+    get_char_class := cUnknown;
+    case ch of
+      'A' .. 'F', 'a' .. 'f', '0' .. '9': get_char_class := cHexDigit;
+      ':': get_char_class := cColon;
+      '.': get_char_class := cDot;
+    else
+      get_char_class := cUnknown;
+    end;
+  end;
+
+  function is_eos(idx: Cardinal): Boolean;
+  begin
+    is_eos := (idx < 1) or (idx > Length(IP));
+  end;
+
+  function next_char(idx: Cardinal): TCharRec;
+  begin
+    next_char.ctype := cUnknown;
+    if is_eos(idx) then
+    begin
+      next_char.ch := '-';
+      next_char.ctype := cEndStr;
+    end
+    else
+    begin
+      next_char.ch := IP[idx];
+      next_char.ctype := get_char_class(next_char.ch);
+    end;
+  end;
+
+  function next_token(var idx: Cardinal): TToken;
+  var
+    rch: TCharRec;
+    prv: TCharClass;
+  begin
+    next_token.s := '';
+    next_token.tt := cUnknown;
+    rch := next_char(idx);
+    prv := rch.ctype;
+    next_token.tt := rch.ctype;
+    while (rch.ctype <> cEndStr) and (rch.ctype = prv) do
+    begin
+      next_token.s := next_token.s + rch.ch;
+      Inc(idx);
+      rch := next_char(idx);
+    end;
+  end;
+
+  function convert_hextet(const s: ShortString; var res: Word): Boolean;
+  var
+    tmpval,valcode: Word;
+  begin
+    convert_hextet := False;
+    if Length(s) > 4 then exit;
+    Val('0x'+s,tmpval,valcode);
+    if valcode <> 0 then exit;
+    res := htons(tmpval);
+    convert_hextet := True;
+  end;
+
+  function convert_octet(const s: ShortString; var res: Byte): Boolean;
+  var
+    tmpval: Word;
+    valcode: Word;
+  begin
+    convert_octet := False;
+    if Length(s) > 3 then exit;
+    Val(s,tmpval,valcode);
+    if valcode <> 0 then exit;
+    if tmpval > 255 then exit;
+    res := tmpval;
+    convert_octet := True;
+  end;
+
+var
+  tkn, ptkn: TToken;
+  idx: Cardinal;
+  hextet_arr: array[0 .. 7] of Word = (0,0,0,0,0,0,0,0);
+  hextet_idx, octet_idx,coll_start_idx: byte;
+  octet_arr: array[0 .. 3] of byte = (0,0,0,0);
+  coll_zero_seen: Boolean = False;
+  parser_mode: TParserMode = pmIPv6;
+  tmpval: Word = 0;
+  tmpByte: Byte = 0;
+
+begin
+  TryStrToHostAddr6 := False;
+  ip6.u6_addr32[0] := 0;
+  ip6.u6_addr32[1] := 0;
+  ip6.u6_addr32[2] := 0;
+  ip6.u6_addr32[3] := 0;
+
+  if (Length(IP) > 45) or (Length(IP) < 2) then exit;
+
+  hextet_idx := 0;
+  coll_start_idx := 0;
+  octet_idx := 0;
+  idx := 1;
+
+  ptkn.s := '';
+  ptkn.tt := cUnknown;
+
+  tkn := next_token(idx);
+  while (tkn.tt <> cEndStr) do
+  begin
+    case tkn.tt of
+      cHexDigit:
+        begin
+          case parser_mode of
+            pmIPv6:
+              begin
+                if (hextet_idx <= 7) and (convert_hextet(tkn.s, tmpval)) then
+                begin
+                  hextet_arr[hextet_idx] := tmpval;
+                  Inc(hextet_idx);
+                end
+                else
+                  exit; // too many hextets, or invalid hextet.
+              end;
+            pmIPv4:
+              begin
+                if (octet_idx <= 3) and (convert_octet(tkn.s, tmpByte)) then
+                begin
+                  octet_arr[octet_idx] := tmpByte;
+                  Inc(octet_idx);
+                end
+                else
+                  exit; // too many octets, or invalid octet.
+              end;
+          end;
+        end;
+
+      cColon:
+        begin
+          if (parser_mode = pmIPv4) or (Length(tkn.s) > 2) then exit;
+          if Length(tkn.s) = 2 then
+          begin
+            // if we saw a collapsed sequence before, or if we've already
+            // seen 8 hextets.
+            if coll_zero_seen or (hextet_idx > 7) then exit;
+            coll_zero_seen := True;
+            coll_start_idx := hextet_idx;
+            Inc(hextet_idx);
+          end
+          else if Length(tkn.s) = 1 then
+          begin
+            // is this single colon the first token? if so, address is invalid.
+            // if the prev token is cUnknown, then this must be the first token.
+            if ptkn.tt = cUnknown then exit;
+          end;
+        end;
+
+      cDot:
+        begin
+          if Length(tkn.s) > 1 then exit;
+
+          // By the time we see the first dot, the first octet of the IPv4
+          // address has already been processed as an IPv6 hextet. we have
+          // to backtrack to remove that value from hextet_arr
+          // and reprocess the value as ipv4.
+          if parser_mode = pmIPv6 then
+          begin
+            if ptkn.tt = cHexDigit then
+            begin
+              Dec(hextet_idx);
+              hextet_arr[hextet_idx] := 0;
+
+              if (octet_idx <= 3) and (convert_octet(ptkn.s, tmpByte)) then
+              begin
+                octet_arr[octet_idx] := tmpByte;
+                Inc(octet_idx);
+              end
+              else
+                exit; // too many octets, or invalid octet.
+            end
+            else // dot preceded by something other than digit
+              exit;
+            parser_mode := pmIPv4;
+          end;
+        end;
+
+      cUnknown:
+        exit;
+    end;
+    ptkn := tkn;
+    tkn := next_token(idx);
+  end;
+
+  // if we finished on a . or :, the address is invalid.
+  if (ptkn.tt = cDot) or ((ptkn.tt = cColon) and (Length(ptkn.s) = 1)) then
+    exit;
+
+  // if there's an ipv4 addr, add its octets onto the end
+  // of the ipv6 hextet array. we have to convert the bytes to
+  // words.
+  if (parser_mode = pmIPv4) then
+  begin
+    if (octet_idx = 4) and (hextet_idx <= 6) then
+    begin
+      tmpval := (octet_arr[0] shl 8) + (octet_arr[1]);
+      hextet_arr[hextet_idx] := htons(tmpval);
+      Inc(hextet_idx);
+      tmpval := (octet_arr[2] shl 8) + (octet_arr[3]);
+      hextet_arr[hextet_idx] := htons(tmpval);
+      Inc(hextet_idx);
+    end
+    else
+      exit; // invalid no of ipv4 octets, or not enough room for them.
+  end;
+
+  // finish line is in sight. if we have a collapsed-zeroes sequence
+  // then we must fill that in now.
+  if coll_zero_seen then
+  begin
+    for tmpByte := 0 to coll_start_idx do
+      ip6.u6_addr16[tmpByte] := hextet_arr[tmpByte];
+
+    // hextet_idx-1 points to the final byte we processed, in the hextet_arr
+    // array. starting there, reading back to coll_start_idx, we copy these
+    // words to the end of the Result array, with word hextet_idx-1 going at
+    // the end of the Result array, hextet_idx-2 going to the end - 1 of Result,
+    // and so on.
+    // NOTE: optimization note -- a memmove/memcpy equivalent could help here.
+    tmpByte := hextet_idx-1;
+    idx := 7;
+    while tmpByte > coll_start_idx do
+    begin
+      ip6.u6_addr16[idx] := hextet_arr[tmpByte];
+      Dec(tmpByte);
+      Dec(idx);
+    end;
+  end
+  else
+  begin
+    // no collapsed zeroes. we must have exactly 8 words then, or we're short.
+    // NOTE: optimization note: memmove/memcpy equivalent could help here.
+    if hextet_idx < 8 then exit;
+    for tmpByte := 0 to 7 do
+      ip6.u6_addr16[tmpByte] := hextet_arr[tmpByte];
+  end;
+  TryStrToHostAddr6 := True;
+end;
 
 function NetAddrToStr6 (Entry : TIn6_Addr) : ansiString;
 begin

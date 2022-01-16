@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003, 2006, 2007, 2009-2011  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2003, 2006, 2007, 2009-2011, 2015, 2017, 2021  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -27,10 +27,18 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with this library; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 }
 
 type
+  TPTCModifierKey = (pmkAlt, pmkShift, pmkControl, pmkLeftAlt, pmkRightAlt,
+    pmkLeftShift, pmkRightShift, pmkLeftControl, pmkRightControl,
+    pmkNumLockActive, pmkNumLockPressed,
+    pmkCapsLockActive, pmkCapsLockPressed,
+    pmkScrollLockActive, pmkScrollLockPressed,
+    pmkRightKey, pmkNumPadKey, pmkDeadKey,
+    pmkCommand, pmkFunction);
+  TPTCModifierKeys = set of TPTCModifierKey;
   IPTCKeyEvent = interface(IPTCEvent)
     ['{9BD1CD41-1DF6-4392-99DC-885EADB6D85A}']
     function GetCode: Integer;
@@ -40,8 +48,7 @@ type
     function GetControl: Boolean;
     function GetPress: Boolean;
     function GetRelease: Boolean;
-
-//    function Equals(AKey: IPTCKeyEvent): Boolean;
+    function GetModifierKeys: TPTCModifierKeys;
 
     property Code: Integer read GetCode;
     property Unicode: Integer read GetUnicode;
@@ -50,6 +57,7 @@ type
     property Control: Boolean read GetControl;
     property Press: Boolean read GetPress;
     property Release: Boolean read GetRelease;
+    property ModifierKeys: TPTCModifierKeys read GetModifierKeys;
   end;
 
   TPTCKeyEventFactory = class
@@ -58,12 +66,18 @@ type
     class function CreateNew(ACode: Integer): IPTCKeyEvent;
     class function CreateNew(ACode, AUnicode: Integer): IPTCKeyEvent;
     class function CreateNew(ACode, AUnicode: Integer; APress: Boolean): IPTCKeyEvent;
-    class function CreateNew(ACode: Integer; AAlt, AShift, AControl: Boolean): IPTCKeyEvent;
-    class function CreateNew(ACode: Integer; AAlt, AShift, AControl, APress: Boolean): IPTCKeyEvent;
+    class function CreateNew(ACode: Integer; AAlt, AShift, AControl: Boolean): IPTCKeyEvent; deprecated;
+    class function CreateNew(ACode: Integer; AAlt, AShift, AControl, APress: Boolean): IPTCKeyEvent; deprecated;
     class function CreateNew(ACode, AUnicode: Integer;
-                             AAlt, AShift, AControl: Boolean): IPTCKeyEvent;
+                             AAlt, AShift, AControl: Boolean): IPTCKeyEvent; deprecated;
     class function CreateNew(ACode, AUnicode: Integer;
-                             AAlt, AShift, AControl, APress: Boolean): IPTCKeyEvent;
+                             AAlt, AShift, AControl, APress: Boolean): IPTCKeyEvent; deprecated;
+    class function CreateNew(ACode: Integer; const AModifierKeys: TPTCModifierKeys): IPTCKeyEvent;
+    class function CreateNew(ACode: Integer; const AModifierKeys: TPTCModifierKeys; APress: Boolean): IPTCKeyEvent;
+    class function CreateNew(ACode, AUnicode: Integer;
+                             const AModifierKeys: TPTCModifierKeys): IPTCKeyEvent;
+    class function CreateNew(ACode, AUnicode: Integer;
+                             const AModifierKeys: TPTCModifierKeys; APress: Boolean): IPTCKeyEvent;
     class function CreateNew(AKey: IPTCKeyEvent): IPTCKeyEvent;
   end;
 
@@ -178,3 +192,28 @@ const
   PTCKEY_MINUS        = $BD;
   PTCKEY_BACKQUOTE    = $C0;
   PTCKEY_QUOTE        = $DE;
+  PTCKEY_COMMAND      = $100;
+  PTCKEY_F13          = $101;
+  PTCKEY_F14          = $102;
+  PTCKEY_F15          = $103;
+  PTCKEY_F16          = $104;
+  PTCKEY_F17          = $105;
+  PTCKEY_F18          = $106;
+  PTCKEY_F19          = $107;
+  PTCKEY_F20          = $108;
+  PTCKEY_F21          = $109;
+  PTCKEY_F22          = $10A;
+  PTCKEY_F23          = $10B;
+  PTCKEY_F24          = $10C;
+  PTCKEY_F25          = $10D;
+  PTCKEY_F26          = $10E;
+  PTCKEY_F27          = $10F;
+  PTCKEY_F28          = $110;
+  PTCKEY_F29          = $111;
+  PTCKEY_F30          = $112;
+  PTCKEY_F31          = $113;
+  PTCKEY_F32          = $114;
+  PTCKEY_F33          = $115;
+  PTCKEY_F34          = $116;
+  PTCKEY_F35          = $117;
+  PTCKEY_FUNCTION     = $118;  { the 'fn' key on Apple keyboards }

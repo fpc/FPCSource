@@ -2967,7 +2967,7 @@ const
 (*
  * DirectDraw supports deinterlacing of overlay surfaces
  *)
-  DDFXCAPS_OVERLAYDEINTERLACE		= $20000000;
+  DDFXCAPS_OVERLAYDEINTERLACE     = $20000000;
 
 (*
  * Driver can do alpha blending for blits.

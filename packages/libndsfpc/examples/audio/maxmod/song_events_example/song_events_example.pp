@@ -48,7 +48,7 @@ end;
 
 var
   gfx: pcuint16;
-
+  keys: cint;
 begin	
 	videoSetMode(MODE_0_2D);
 	
@@ -114,6 +114,17 @@ begin
 		
 		//send the updates to the hardware
 		oamUpdate(oamMain);
+   
+ 		//-----------------------------------------------------
+		// get new keypad input
+		//-----------------------------------------------------
+		scanKeys();
+		keys := keysDown();
+
+		//-----------------------------------------------------
+		// START: exit
+		//-----------------------------------------------------
+		if (keys and KEY_START) <> 0 then break;
 	end;
 
 end.

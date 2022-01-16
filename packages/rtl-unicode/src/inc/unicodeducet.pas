@@ -20,19 +20,21 @@
 }
 
 unit unicodeducet;
-{$ifndef VER2_4}
-{$mode objfpc}
-{$H+}
-{$PACKENUM 1}
+{$IFDEF FPC}
+  {$mode delphi}
+  {$H+}
+  {$PACKENUM 1}
+{$ENDIF FPC}
+
+{$IFNDEF FPC}
+  {$DEFINE ENDIAN_LITTLE}
+{$ENDIF !FPC}
+
 {$SCOPEDENUMS ON}
-{$modeswitch advancedrecords}
 
 interface
 
-{$endif VER2_4}
-
 implementation
-{$ifndef VER2_4}
 uses
   unicodedata;
 
@@ -47,8 +49,21 @@ uses
 const
   UCA_DataBookRecord : TUCA_DataBook = (
     Base               : nil;
-    Version            : VERSION_STRING;
-    CollationName      : 'DUCET';//'Default Unicode Collation Element Table (DUCET)';
+    Version            :
+      ( Ord('9'),Ord('.'),Ord('0'),Ord('.'),Ord('0'),0,0,0,
+        0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0
+      );
+    CollationName      :
+      (
+        Ord('D'),Ord('U'),Ord('C'),Ord('E'),Ord('T'),0,0,0,
+        0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0
+      );//'Default Unicode Collation Element Table (DUCET)'
     VariableWeight     : TUCA_VariableKind(VARIABLE_WEIGHT);
     Backwards          : (BACKWARDS_0,BACKWARDS_1,BACKWARDS_2,BACKWARDS_3);
     BMP_Table1         : @UCA_TABLE_1[0];
@@ -56,14 +71,16 @@ const
     OBMP_Table1        : @UCAO_TABLE_1[0];
     OBMP_Table2        : @UCAO_TABLE_2[0];
     PropCount          : PROP_COUNT;
-    Props              : PUCA_PropItemRec(@UCA_PROPS[0]);
+    Props              : @UCA_PROPS[0];
     VariableLowLimit   : VARIABLE_LOW_LIMIT;
     VariableHighLimit  : VARIABLE_HIGH_LIMIT;
+    NoNormalization    : False;
+    ComparisonStrength : DEFAULT_UCA_COMPARISON_STRENGTH;
+    Dynamic            : False;
   );
 
  initialization
-   RegisterCollation(@UCA_DataBookRecord);
-{$endif VER2_4}
+   RegisterCollation(@UCA_DataBookRecord,['ROOT']);
 
 end.
 

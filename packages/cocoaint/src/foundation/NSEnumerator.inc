@@ -1,80 +1,47 @@
 { Parsed from Foundation.framework NSEnumerator.h }
 
+
 {$ifdef TYPES}
-{$ifndef NSENUMERATOR_PAS_T}
-{$define NSENUMERATOR_PAS_T}
-
+type
+  NSEnumeratorPtr = ^NSEnumerator;
+  NSFastEnumerationProtocolPtr = ^NSFastEnumerationProtocol;
 {$endif}
-{$endif}
 
-{$ifdef RECORDS}
-{$ifndef NSENUMERATOR_PAS_R}
-{$define NSENUMERATOR_PAS_R}
-
-{ Records }
+{$ifdef TYPES}
 type
   NSFastEnumerationState = record
     state: culong;
     itemsPtr: idPtr;
     mutationsPtr: pculong;
-    extra: array[0..(5)-1] of culong;
+    extra:array[0..4] of culong;
   end;
-NSFastEnumerationStatePtr = ^NSFastEnumerationState;
-
-
-{$endif}
+type
+  NSFastEnumerationStatePtr = ^NSFastEnumerationState;
 {$endif}
 
-{$ifdef FUNCTIONS}
-{$ifndef NSENUMERATOR_PAS_F}
-{$define NSENUMERATOR_PAS_F}
+{$ifdef PROTOCOLS}
 
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSENUMERATOR_PAS_S}
-{$define NSENUMERATOR_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSFastEnumerationProtocol = objcprotocol;
-  NSEnumerator = objcclass;
-  NSEnumeratorPointer = ^NSEnumerator;
-  NSEnumeratorPtr = NSEnumeratorPointer;
-
+type
+  NSFastEnumerationProtocol = objcprotocol external name 'NSFastEnumeration'
+    function countByEnumeratingWithState_objects_count (state: NSFastEnumerationStatePtr; buffer: idPtr { variable size array of id }; len: NSUInteger): NSUInteger; message 'countByEnumeratingWithState:objects:count:';
+  end;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSENUMERATOR_PAS_C}
-{$define NSENUMERATOR_PAS_C}
 
-{ NSEnumerator }
+type
   NSEnumerator = objcclass external (NSObject, NSFastEnumerationProtocol)
-    
   public
     function nextObject: id; message 'nextObject';
 
-    { Adopted Protocols }
-    function countByEnumeratingWithState_objects_count(state: NSFastEnumerationStatePtr; stackbuf: idPtr; len: NSUInteger): NSUInteger;
+    { Adopted protocols }
+    function countByEnumeratingWithState_objects_count (state: NSFastEnumerationStatePtr; buffer: idPtr { variable size array of id }; len: NSUInteger): NSUInteger; message 'countByEnumeratingWithState:objects:count:';
   end;
 
-{ NSExtendedEnumeratorCategory }
-  NSExtendedEnumeratorCategory = objccategory external (NSEnumerator)
+
+type
+  NSExtendedEnumerator = objccategory external (NSEnumerator)
     function allObjects: NSArray; message 'allObjects';
   end;
+{$endif}
 
-{$endif}
-{$endif}
-{$ifdef PROTOCOLS}
-{$ifndef NSENUMERATOR_PAS_P}
-{$define NSENUMERATOR_PAS_P}
-  
-{ NSFastEnumeration Protocol }
-  NSFastEnumerationProtocol = objcprotocol external name 'NSFastEnumeration'
-    function countByEnumeratingWithState_objects_count(state: NSFastEnumerationStatePtr; stackbuf: idPtr; len: NSUInteger): NSUInteger; message 'countByEnumeratingWithState:objects:count:';
-  end;
-{$endif}
-{$endif}

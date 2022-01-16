@@ -29,20 +29,23 @@ uses
   cutils,cclasses,
   systems,
   symtype,symdef,symsym,
-  aasmbase,aasmdata;
-
-const
-   { export options }
-   eo_resident = $1;
-   eo_index    = $2;
-   eo_name     = $4;
+  aasmdata;
 
 type
+   { export options }
+   texportoption=(eo_none,
+     eo_resident,
+     eo_index,
+     eo_name,
+     eo_no_sym_name { don't try to use another mangled name if symbol is known }
+   );
+   texportoptions=set of texportoption;
+
    texported_item = class(TLinkedListItem)
       sym : tsym;
       index : longint;
       name : pshortstring;
-      options : word;
+      options : texportoptions;
       is_var : boolean;
       constructor create;
       destructor destroy;override;
@@ -51,9 +54,12 @@ type
    texportlib=class
    private
       notsupmsg : boolean;
+      fignoreduplicates : boolean;
       finitname,
       ffininame  : string;
       procedure NotSupported;
+   protected
+      procedure duplicatesymbol(const s:string);
    public
       constructor Create;virtual;
       destructor Destroy;override;
@@ -66,19 +72,20 @@ type
       
       property initname: string read finitname;
       property fininame: string read ffininame;
+      property ignoreduplicates : boolean read fignoreduplicates write fignoreduplicates;
    end;
 
    TExportLibClass=class of TExportLib;
 
 
-  procedure exportprocsym(sym: tsym; const s : string; index: longint; options: word);
-  procedure exportvarsym(sym: tsym; const s : string; index: longint; options: word);
+  procedure exportprocsym(sym: tsym; const s : string; index: longint; options: texportoptions);
+  procedure exportvarsym(sym: tsym; const s : string; index: longint; options: texportoptions);
   { to export symbols not directly related to a tsym (e.g., the Objective-C
     rtti) }
-  procedure exportname(const s : string; options: word);
+  procedure exportname(const s : string; options: texportoptions);
 
-  procedure exportallprocdefnames(sym: tprocsym; pd: tprocdef; options: word);
-  procedure exportallprocsymnames(ps: tprocsym; options: word);
+  procedure exportallprocdefnames(sym: tprocsym; pd: tprocdef; options: texportoptions);
+  procedure exportallprocsymnames(ps: tprocsym; options: texportoptions);
 
 
 var
@@ -98,20 +105,20 @@ uses
                            TExported_procedure
 ****************************************************************************}
 
-procedure exportprocsym(sym: tsym; const s : string; index: longint; options: word);
+procedure exportprocsym(sym: tsym; const s : string; index: longint; options: texportoptions);
   var
     hp : texported_item;
   begin
     hp:=texported_item.create;
     hp.name:=stringdup(s);
     hp.sym:=sym;
-    hp.options:=options or eo_name;
+    hp.options:=options+[eo_name];
     hp.index:=index;
     exportlib.exportprocedure(hp);
   end;
 
 
-procedure exportvarsym(sym: tsym; const s : string; index: longint; options: word);
+procedure exportvarsym(sym: tsym; const s : string; index: longint; options: texportoptions);
   var
     hp : texported_item;
   begin
@@ -119,19 +126,19 @@ procedure exportvarsym(sym: tsym; const s : string; index: longint; options: wor
     hp.name:=stringdup(s);
     hp.sym:=sym;
     hp.is_var:=true;
-    hp.options:=options or eo_name;
+    hp.options:=options+[eo_name];
     hp.index:=index;
     exportlib.exportvar(hp);
   end;
 
 
-procedure exportname(const s : string; options: word);
+procedure exportname(const s : string; options: texportoptions);
   begin
     exportvarsym(nil,s,0,options);
   end;
 
 
-  procedure exportallprocdefnames(sym: tprocsym; pd: tprocdef; options: word);
+  procedure exportallprocdefnames(sym: tprocsym; pd: tprocdef; options: texportoptions);
     var
       item: TCmdStrListItem;
     begin
@@ -148,7 +155,7 @@ procedure exportname(const s : string; options: word);
     end;
     
 
-  procedure exportallprocsymnames(ps: tprocsym; options: word);
+  procedure exportallprocsymnames(ps: tprocsym; options: texportoptions);
     var
       i: longint;
     begin
@@ -167,7 +174,7 @@ begin
   sym:=nil;
   index:=-1;
   name:=nil;
-  options:=0;
+  options:=[];
   is_var:=false;
 end;
 
@@ -186,6 +193,7 @@ end;
 constructor texportlib.Create;
 begin
   notsupmsg:=false;
+  fignoreduplicates:=false;
 end;
 
 
@@ -202,6 +210,15 @@ begin
      Message(exec_e_dll_not_supported);
      notsupmsg:=true;
    end;
+end;
+
+
+procedure texportlib.duplicatesymbol(const s: string);
+begin
+  { only generate an error if the caller is not aware that it could generate
+    duplicates (e.g. exporting from a package) }
+  if not ignoreduplicates then
+    Message1(parser_e_export_name_double,s);
 end;
 
 

@@ -56,6 +56,7 @@ const
   IMAGE_FILE_MACHINE_EBC             = $0EBC;  // EFI Byte Code
 }
   IMAGE_FILE_MACHINE_AMD64           = $8664;  // AMD64 (K8)
+  IMAGE_FILE_MACHINE_ARM64           = $aa64;  // ARM64 little endian
 {
   IMAGE_FILE_MACHINE_M32R            = $9041;  // M32R little-endian
   IMAGE_FILE_MACHINE_CEE             = $C0EE;
@@ -158,6 +159,27 @@ const
   IMAGE_REL_AMD64_SREL32        = $000E;  // 32 bit signed span-dependent value emitted into object
   IMAGE_REL_AMD64_PAIR          = $000F;
   IMAGE_REL_AMD64_SSPAN32       = $0010;  // 32 bit signed span-dependent value applied at link time
+
+// aarch64 relocation types
+
+  IMAGE_REL_ARM64_ABSOLUTE      = $0000;  // The relocation is ignored.
+  IMAGE_REL_ARM64_ADDR32        = $0001;  // The 32-bit VA of the target.
+  IMAGE_REL_ARM64_ADDR32NB      = $0002;  // The 32-bit RVA of the target.
+  IMAGE_REL_ARM64_BRANCH26      = $0003;  // The 26-bit relative displacement to the target, for B and BL instructions.
+  IMAGE_REL_ARM64_PAGEBASE_REL21= $0004;  // The page base of the target, for ADRP instruction.
+  IMAGE_REL_ARM64_REL21         = $0005;  // The 12-bit relative displacement to the target, for instruction ADR
+  IMAGE_REL_ARM64_PAGEOFFSET_12A= $0006;  // The 12-bit page offset of the target, for instructions ADD/ADDS (immediate) with zero shift.
+  IMAGE_REL_ARM64_PAGEOFFSET_12L= $0007;  // The 12-bit page offset of the target, for instruction LDR (indexed, unsigned immediate).
+  IMAGE_REL_ARM64_SECREL        = $0008;  // The 32-bit offset of the target from the beginning of its section. This is used to support debugging information and static thread local storage.
+  IMAGE_REL_ARM64_SECREL_LOW12A = $0009;  // Bit 0:11 of section offset of the target, for instructions ADD/ADDS (immediate) with zero shift.
+  IMAGE_REL_ARM64_SECREL_HIGH12A= $000A;  // Bit 12:23 of section offset of the target, for instructions ADD/ADDS (immediate) with zero shift.
+  IMAGE_REL_ARM64_SECREL_LOW12L = $000B;  // Bit 0:11 of section offset of the target, for instruction LDR (indexed, unsigned immediate).
+  IMAGE_REL_ARM64_TOKEN         = $000C;  // CLR token.
+  IMAGE_REL_ARM64_SECTION       = $000D;  // The 16-bit section index of the section that contains the target. This is used to support debugging information.
+  IMAGE_REL_ARM64_ADDR64        = $000E;  // The 64-bit VA of the relocation target.
+  IMAGE_REL_ARM64_BRANCH19      = $000F;  // The 19-bit offset to the relocation target, for conditional B instruction.
+  IMAGE_REL_ARM64_BRANCH14      = $0010;  // The 14-bit offset to the relocation target, for instructions TBZ and TBNZ.
+  IMAGE_REL_ARM64_REL32         = $0011;  // The 32-bit relative address from the byte following the relocation.
 
 // AIX PPC32/PPC64 relocation types.
 

@@ -13,6 +13,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{$MODE OBJFPC}
 unit Mouse;
 interface
 

@@ -63,6 +63,8 @@ function fpc_sin_real(d : ValReal) : ValReal;compilerproc;{$ifdef MATHINLINE}inl
 function fpc_sqr_real(d : ValReal) : ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
   begin
     HandleError(219);
+    { avoid warning }
+    result:=0;
   end;
 
 
@@ -77,6 +79,8 @@ function fpc_sqrt_real(d : ValReal) : ValReal;compilerproc;
 function fpc_trunc_real(d : ValReal) : int64;compilerproc;
   begin
     HandleError(219);
+    { avoid warning }
+    result:=0;
   end;
 
 

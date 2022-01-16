@@ -45,7 +45,6 @@ procedure libc_init; external name '__libc_init';
 procedure libc_setfpucw; external name '__setfpucw';
 procedure libc_start_main; external name '__libc_start_main';
 
-procedure PASCALMAIN; external name 'PASCALMAIN';
 Procedure fpc_geteipasebx;[external name 'fpc_geteipasebx'];
 
 {******************************************************************************
@@ -150,33 +149,14 @@ asm
   call    PASCALMAIN              { start the program }
 end;
 
-procedure _FPC_libc_haltproc; assembler; nostackframe; public name '_haltproc';
+procedure _FPC_libc_haltproc(e: longint); cdecl; assembler; public name '_haltproc';
 asm
 .Lhaltproc:
-
- {$ifdef FPC_PIC}
-  call    fpc_geteipasebx
-  addl    $_GLOBAL_OFFSET_TABLE_,%ebx
-  movl    ExitCode@GOT(%ebx),%ebx
- {$if sizeof(ExitCode)=2}
-  movzwl  (%ebx),%ebx
- {$else}
-  mov     (%ebx),%ebx
- {$endif}
-{$else FPC_PIC}
- {$if sizeof(ExitCode)=2}
-  movzwl  ExitCode,%ebx
- {$else}
-  mov     ExitCode,%ebx
- {$endif}
-{$endif FPC_PIC}
-
-  pushl   %ebx
-
+  pushl   e
   call    libc_exit
   xorl    %eax,%eax
   incl    %eax                    { eax=1, exit call }
-  popl    %ebx
+  movl    e,%ebx
   int     $0x80
   jmp     .Lhaltproc
 end;

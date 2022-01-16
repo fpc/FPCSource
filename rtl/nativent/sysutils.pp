@@ -21,6 +21,8 @@ interface
 {$MODESWITCH OUT}
 { force ansistrings }
 {$H+}
+{$modeswitch typehelpers}
+{$modeswitch advancedrecords}
 
 uses
   ndk;
@@ -311,14 +313,20 @@ begin
   aNtTime.QuadPart := local.QuadPart + bias.QuadPart;
 end;
 
-function FileAge(const FileName: UnicodeString): Longint;
+function FileAge(const FileName: UnicodeString): Int64;
 begin
   { TODO }
   Result := -1;
 end;
 
 
-function FileExists(const FileName: UnicodeString): Boolean;
+function FileGetSymLinkTarget(const FileName: UnicodeString; out SymLinkRec: TUnicodeSymLinkRec): Boolean;
+begin
+  Result := False;
+end;
+
+
+function FileExists(const FileName: UnicodeString; FollowLink : Boolean): Boolean;
 var
   ntstr: UNICODE_STRING;
   objattr: OBJECT_ATTRIBUTES;
@@ -339,7 +347,7 @@ begin
 end;
 
 
-function DirectoryExists(const Directory : UnicodeString) : Boolean;
+function DirectoryExists(const Directory : UnicodeString; FollowLink : Boolean) : Boolean;
 var
   ntstr: UNICODE_STRING;
   objattr: OBJECT_ATTRIBUTES;
@@ -845,7 +853,7 @@ Begin
 end;
 
 
-function FileGetDate(Handle: THandle): Longint;
+function FileGetDate(Handle: THandle): Int64;
 var
   res: NTSTATUS;
   basic: FILE_BASIC_INFORMATION;
@@ -860,7 +868,7 @@ begin
 end;
 
 
-function FileSetDate(Handle: THandle;Age: Longint): Longint;
+function FileSetDate(Handle: THandle;Age: Int64): Longint;
 var
   res: NTSTATUS;
   basic: FILE_BASIC_INFORMATION;
@@ -1192,17 +1200,39 @@ begin
 end;
 
 
-function ExecuteProcess(const Path: AnsiString; const ComLine: AnsiString;
+function ExecuteProcess(const Path: RawByteString; const ComLine: RawByteString;
   Flags: TExecuteFlags = []): Integer;
 begin
   { TODO : implement }
   Result := 0;
 end;
 
-function ExecuteProcess(const Path: AnsiString;
-  const ComLine: Array of AnsiString; Flags:TExecuteFlags = []): Integer;
+function ExecuteProcess(const Path: RawByteString;
+  const ComLine: Array of RawByteString; Flags:TExecuteFlags = []): Integer;
 var
-  CommandLine: AnsiString;
+  CommandLine: RawByteString;
+  I: integer;
+begin
+  Commandline := '';
+  for I := 0 to High (ComLine) do
+   if Pos (' ', ComLine [I]) <> 0 then
+    CommandLine := CommandLine + ' ' + '"' + ComLine [I] + '"'
+   else
+    CommandLine := CommandLine + ' ' + Comline [I];
+  ExecuteProcess := ExecuteProcess (Path, CommandLine,Flags);
+end;
+
+function ExecuteProcess(const Path: UnicodeString; const ComLine: UnicodeString;
+  Flags: TExecuteFlags = []): Integer;
+begin
+  { TODO : implement }
+  Result := 0;
+end;
+
+function ExecuteProcess(const Path: UnicodeString;
+  const ComLine: Array of UnicodeString; Flags:TExecuteFlags = []): Integer;
+var
+  CommandLine: UnicodeString;
   I: integer;
 begin
   Commandline := '';
@@ -1233,5 +1263,6 @@ initialization
   InitInternational;    { Initialize internationalization settings }
   OnBeep := @SysBeep;
 finalization
+  FreeTerminateProcs;
   DoneExceptions;
 end.

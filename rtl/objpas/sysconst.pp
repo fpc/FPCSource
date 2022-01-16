@@ -12,21 +12,21 @@
 
  **********************************************************************}
 {$mode objfpc}
-{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-{$H+}
-{$endif FPC_HAS_FEATURE_ANSISTRINGS}
-unit sysconst;
+unit SysConst;
 
 interface
 
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+{$H+}
 resourcestring
 {$else FPC_HAS_FEATURE_ANSISTRINGS}
 const
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 { from old str*.inc files }
-
+  SListIndexError        = 'List index (%d) out of bounds';
+  SParamIsNegative       = 'Parameter "%s" cannot be negative.';
+  SListCapacityError     = 'List capacity (%d) exceeded.';
   SAbortError            = 'Operation aborted';
   SAbstractError         = 'Abstract method called';
   SAccessDenied          = 'Access denied';
@@ -41,6 +41,7 @@ const
   SDispatchError         = 'No variant method call dispatch';
   SDivByZero             = 'Division by zero';
   SEndOfFile             = 'Read past end of file';
+  SErrPosToBigForLongint = 'File position %d too big to fit in 32-bit integer; Use Int64 overload instead';
   SErrInvalidDateMonthWeek = 'Year %d, month %d, Week %d and day %d is not a valid date.';
   SerrInvalidHourMinuteSecMsec = '%d:%d:%d.%d is not a valid time specification';
   SErrInvalidDateWeek    = '%d %d %d is not a valid dateweek';
@@ -68,7 +69,8 @@ const
   SInvalidBoolean        = '"%s" is not a valid boolean.';
   SInvalidCast           = 'Invalid type cast';
   SinvalidCurrency       = 'Invalid currency: "%s"';
-  SInvalidDateTime       = '%f is not a valid date/time value.';
+  SInvalidDateTime       = '"%s" is not a valid date/time value.';
+  SInvalidDateTimeFloat  = '%f is not a valid date/time value.';
   SInvalidDrive          = 'Invalid drive specified';
   SInvalidFileHandle     = 'Invalid file handle';
   SInvalidFloat          = '"%s" is an invalid float';
@@ -89,15 +91,17 @@ const
   SNoDynLibsSupport      = 'Dynamic libraries not supported. Recompile program with dynamic library driver.';
   SMissingWStringManager = 'Widestring manager not available. Recompile program with appropriate manager.';
   SSigQuit               = 'SIGQUIT signal received.';
-  SObjectCheckError      = 'Object reference is Nil';
+  SObjectCheckError      = 'Object reference is Nil or VMT is damaged';
   SOSError               = 'System error, (OS Code %d):'+LineEnding+'%s';
   SOutOfMemory           = 'Out of memory';
   SOverflow              = 'Floating point overflow';
   SPrivilege             = 'Privileged instruction';
   SRangeError            = 'Range check error';
-  SStackOverflow         = 'Stack overflow';
+  SStackOverflow         = 'Stack overflow or stack misalignment';
   SSafecallException     = 'Exception in safecall method';
   SiconvError            = 'iconv error';
+  SThreadError           = 'Thread error';
+  SSeekFailed            = 'Seek operation failed';
 
   STooManyOpenFiles      = 'Too many open files';
   SUnKnownRunTimeError   = 'Unknown Run-Time error : %3.3d';
@@ -127,7 +131,7 @@ const
   SVarUnexpected                = 'Unexpected variant error';
   SZeroDivide                   = 'Floating point division by zero';
 
-  SFallbackError                = 'An error, whose error code is larger than can be returned to the OS, has occured';
+  SFallbackError                = 'An error, whose error code is larger than can be returned to the OS, has occurred';
 
   SNoToolserver                 = 'Toolserver is not installed, cannot execute Tool';
 
@@ -142,6 +146,7 @@ const
   SHHMMError                    = 'mm in a sequence hh:mm is interpreted as minutes. No longer versions allowed! (Position : %d).' ;
   SFullpattern                  = 'Couldn''t match entire pattern string. Input too short at pattern position %d.';
   SPatternCharMismatch          = 'Pattern mismatch char "%s" at position %d.';
+  SAMPMError                    = 'Hour >= 13 not allowed in AM/PM mode.';
 
   SShortMonthNameJan = 'Jan';
   SShortMonthNameFeb = 'Feb';
@@ -184,6 +189,10 @@ const
   SLongDayNameFri = 'Friday';
   SLongDayNameSat = 'Saturday';
   SLongDayNameSun = 'Sunday';
+
+const
+   // Do not localize
+   HexDigits: array[0..15] of char = '0123456789ABCDEF';
 
 Function GetRunError(Errno : Word) : String;
 

@@ -16,7 +16,14 @@
 {****************************************************************************}
 
 const
+{$ifdef CPU16}
+  { Avoid too big local stack use for 
+    MSDOS tiny memory model that uses less than 4096
+    bytes for total stack by default. }
+  ParseBufSize     = 512;
+{$else not CPU16}
   ParseBufSize     = 4096;
+{$endif not CPU16}
   LastSpecialToken = 5;
 
   TokNames : array[0..LastSpecialToken] of string =
@@ -293,7 +300,7 @@ begin
           // to ansistring does not give the original ansistring.
           // See bug http://bugs.freepascal.org/view.php?id=15841
           s:=HandleQuotedString;
-          fLastTokenWStr:=fLastTokenWStr+s;
+          fLastTokenWStr:=fLastTokenWStr+UnicodeString(s);
           fLastTokenStr:=fLastTokenStr+s;
         end;
       '#'  :
@@ -354,8 +361,16 @@ begin
 end;
 
 destructor TParser.Destroy;
+
+Var
+  aCount : Integer;
+
 begin
-  fStream.Position:=SourcePos;
+  if fToken=toWString then
+    aCount:=Length(fLastTokenWStr)*2
+  else
+    aCount:=Length(fLastTokenStr);
+  fStream.Position:=SourcePos-aCount;
   FreeMem(fBuf);
 end;
 
@@ -430,7 +445,7 @@ begin
       '$'                   : HandleHexNumber;
       '-'                   : HandleMinus;
       '0'..'9'              : HandleNumber;
-      '''','#'              : HandleString
+      '''','#'              : HandleString;
       else
         HandleUnknown;
     end;
@@ -476,10 +491,10 @@ end;
 function TParser.TokenString: string;
 begin
   case fToken of
-    toWString : Result:=fLastTokenWStr;
+    toWString : Result:=string(fLastTokenWStr);
     toFloat : if fFloatType<>#0 then
                 Result:=fLastTokenStr+fFloatType
-              else Result:=fLastTokenStr
+              else Result:=fLastTokenStr;
     else
       Result:=fLastTokenStr;
   end;
@@ -490,7 +505,7 @@ begin
   if fToken=toWString then
     Result:=fLastTokenWStr
   else
-    Result:=fLastTokenStr;
+    Result:=WideString(fLastTokenStr);
 end;
 
 function TParser.TokenSymbolIs(const S: string): Boolean;

@@ -29,11 +29,11 @@ unit agppcgas;
 {$i fpcdefs.inc}
 
   interface
-  
+
     uses
-       aasmbase,
+       systems,aasmbase,
        aasmtai,aasmdata,
-       aggas,
+       assemble,aggas,
        cpubase,cgutils,
        globtype;
 
@@ -43,19 +43,23 @@ unit agppcgas;
     end;
 
     TPPCGNUAssembler=class(TGNUassembler)
-      constructor create(smart: boolean); override;
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
+      function MakeCmdLine: TCmdStr; override;
       procedure WriteExtraHeader; override;
     end;
 
     TPPCAppleGNUAssembler=class(TAppleGNUassembler)
-      constructor create(smart: boolean); override;
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
       function MakeCmdLine: TCmdStr; override;
     end;
 
     TPPCAIXAssembler=class(TPPCGNUAssembler)
-      constructor create(smart: boolean); override;
+      max_alignment : array[TAsmSectionType] of longint;
+      constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
      protected
       function sectionname(atype: TAsmSectiontype; const aname: string; aorder: TAsmSectionOrder): string; override;
+      procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint;secflags:TSectionFlags=[];secprogbits:TSectionProgbits=SPB_None); override;
+      procedure WriteAsmList; override;
       procedure WriteExtraHeader; override;
       procedure WriteExtraFooter; override;
       procedure WriteDirectiveName(dir: TAsmDirective); override;
@@ -63,9 +67,6 @@ unit agppcgas;
 
     topstr = string[4];
 
-    function getreferencestring(var ref : treference) : string;
-    function getopstr_jmp(const o:toper) : string;
-    function getopstr(const o:toper) : string;
     function branchmode(o: tasmop): topstr;
     function cond2str(op: tasmop; c: tasmcond): string;  
 
@@ -73,8 +74,7 @@ unit agppcgas;
 
     uses
        cutils,globals,verbose,
-       cgbase,systems,
-       assemble,
+       cgbase,
        itcpugas,cpuinfo,
        aasmcpu;
 
@@ -91,7 +91,7 @@ unit agppcgas;
 {$endif cpu64bitaddr}
 
 
-    function getreferencestring(var ref : treference) : string;
+    function getreferencestring(asminfo: pasminfo; var ref : treference) : string;
     var
       s : string;
     begin
@@ -110,9 +110,9 @@ unit agppcgas;
                    (index<>NR_NO) or
                    (offset<>0) or
                    not assigned(symbol) then
-                  internalerror(2011122701);
-                if target_asm.dollarsign<>'$' then
-                  getreferencestring:=ReplaceForbiddenAsmSymbolChars(symbol.name)+'('+gas_regname(NR_RTOC)+')'
+                  internalerror(2011122702);
+                if asminfo^.dollarsign<>'$' then
+                  getreferencestring:=ApplyAsmSymbolRestrictions(symbol.name)+'('+gas_regname(NR_RTOC)+')'
                 else
                   getreferencestring:=symbol.name+'('+gas_regname(NR_RTOC)+')';
                 exit;
@@ -126,11 +126,11 @@ unit agppcgas;
                 s := s+'(';
                 if assigned(symbol) then
                   begin
-                    if target_asm.dollarsign<>'$' then
+                    if asminfo^.dollarsign<>'$' then
                       begin
-                        s:=s+ReplaceForbiddenAsmSymbolChars(symbol.name);
+                        s:=s+ApplyAsmSymbolRestrictions(symbol.name);
                         if assigned(relsymbol) then
-                          s:=s+'-'+ReplaceForbiddenAsmSymbolChars(relsymbol.name)
+                          s:=s+'-'+ApplyAsmSymbolRestrictions(relsymbol.name)
                       end
                     else
                       begin
@@ -161,7 +161,7 @@ unit agppcgas;
              end;
 {$ifdef cpu64bitaddr}
            if (refaddr=addr_pic) and
-	      (target_info.system=system_powerpc64_linux) then
+              (target_info.system=system_powerpc64_linux) then
              s := s + '@got';
 {$endif cpu64bitaddr}
 
@@ -188,9 +188,9 @@ unit agppcgas;
         end;
       getreferencestring:=s;
     end;
-    
 
-    function getopstr_jmp(const o:toper) : string;
+
+    function getopstr_jmp(asminfo: pasminfo; const o:toper) : string;
     var
       hs : string;
     begin
@@ -205,8 +205,8 @@ unit agppcgas;
             if o.ref^.refaddr<>addr_full then
               internalerror(200402267);
             hs:=o.ref^.symbol.name;
-            if target_asm.dollarsign<>'$' then
-              hs:=ReplaceForbiddenAsmSymbolChars(hs);
+            if asminfo^.dollarsign<>'$' then
+              hs:=ApplyAsmSymbolRestrictions(hs);
             if o.ref^.offset>0 then
               hs:=hs+'+'+tostr(o.ref^.offset)
             else
@@ -217,12 +217,12 @@ unit agppcgas;
         top_none:
           getopstr_jmp:='';
         else
-          internalerror(2002070603);
+          internalerror(2002070605);
       end;
     end;
 
 
-    function getopstr(const o:toper) : string;
+    function getopstr(asminfo: pasminfo; const o:toper) : string;
     var
       hs : string;
     begin
@@ -235,8 +235,8 @@ unit agppcgas;
           if o.ref^.refaddr=addr_full then
             begin
               hs:=o.ref^.symbol.name;
-              if target_asm.dollarsign<>'$' then
-                hs:=ReplaceForbiddenAsmSymbolChars(hs);
+              if asminfo^.dollarsign<>'$' then
+                hs:=ApplyAsmSymbolRestrictions(hs);
               if o.ref^.offset>0 then
                hs:=hs+'+'+tostr(o.ref^.offset)
               else
@@ -245,7 +245,7 @@ unit agppcgas;
               getopstr:=hs;
             end
           else
-            getopstr:=getreferencestring(o.ref^);
+            getopstr:=getreferencestring(asminfo,o.ref^);
         else
           internalerror(2002070604);
       end;
@@ -259,12 +259,18 @@ unit agppcgas;
         case o of
           A_BCCTR,A_BCCTRL: tempstr := 'ctr';
           A_BCLR,A_BCLRL: tempstr := 'lr';
+          else
+            ;
         end;
         case o of
           A_BL,A_BLA,A_BCL,A_BCLA,A_BCCTRL,A_BCLRL: tempstr := tempstr+'l';
+          else
+            ;
         end;
         case o of
           A_BA,A_BLA,A_BCA,A_BCLA: tempstr:=tempstr+'a';
+          else
+            ;
         end;
         branchmode := tempstr;
       end;
@@ -287,8 +293,6 @@ unit agppcgas;
                 cond2str:=cond2str+'-';
               DH_Plus:
                 cond2str:=cond2str+'+';
-              else
-                internalerror(2003112901);
             end;
             cond2str:=cond2str+#9+tostr(c.bo)+','+tostr(c.bi);
           end;
@@ -310,12 +314,14 @@ unit agppcgas;
                       tempstr:=tempstr+('-'+#9);
                     DH_Plus:
                       tempstr:=tempstr+('+'+#9);
-                    else
-                      internalerror(2003112901);
                   end;
                   case c.cond of
                     C_LT..C_NU:
-                      cond2str := tempstr+gas_regname(newreg(R_SPECIALREGISTER,c.cr,R_SUBWHOLE));
+                      begin
+                        if byte(c.cr)=0 then
+                          Comment(V_error,'Wrong use of whole CR register for '+tempstr);
+                        cond2str := tempstr+gas_regname(newreg(R_SPECIALREGISTER,c.cr,R_SUBWHOLE));
+                      end;
                     C_T,C_F,C_DNZT,C_DNZF,C_DZT,C_DZF:
                       cond2str := tempstr+tostr(c.crbit);
                     else
@@ -326,7 +332,7 @@ unit agppcgas;
           { we have a trap instruction }
           else
             begin
-              internalerror(2002070601);
+              internalerror(2002070602);
               { not yet implemented !!!!!!!!!!!!!!!!!!!!! }
               { case tempstr := 'tw';}
             end;
@@ -366,8 +372,8 @@ unit agppcgas;
             begin
               { first write the current contents of s, because the symbol }
               { may be 255 characters                                     }
-              owner.asmwrite(s);
-              s:=getopstr_jmp(taicpu(hp).oper[0]^);
+              owner.writer.AsmWrite(s);
+              s:=getopstr_jmp(owner.asminfo,taicpu(hp).oper[0]^);
             end;
         end
       else
@@ -387,12 +393,12 @@ unit agppcgas;
                    // debug code
                    // writeln(s);
                    // writeln(taicpu(hp).fileinfo.line);
-                   s:=s+sep+getopstr(taicpu(hp).oper[i]^);
+                   s:=s+sep+getopstr(owner.asminfo,taicpu(hp).oper[i]^);
                    sep:=',';
                 end;
             end;
         end;
-      owner.AsmWriteLn(s);
+      owner.writer.AsmWriteLn(s);
     end;
 
 
@@ -400,10 +406,26 @@ unit agppcgas;
 {                         GNU PPC Assembler writer                           }
 {****************************************************************************}
 
-    constructor TPPCGNUAssembler.create(smart: boolean);
+    constructor TPPCGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
       begin
-        inherited create(smart);
+        inherited;
         InstrWriter := TPPCInstrWriter.create(self);
+      end;
+
+
+    function TPPCGNUAssembler.MakeCmdLine: TCmdStr;
+      begin
+        result := inherited MakeCmdLine;
+{$ifdef cpu64bitaddr}
+        Replace(result,'$ARCH','-a64')
+{$else cpu64bitaddr}
+        { MorphOS has an old 2.9.1 GNU AS, with a bunch of patches
+          to support the system, and it doesn't know the -a32 argument }
+        if target_info.system = system_powerpc_morphos then
+          Replace(result,'$ARCH','')
+        else
+          Replace(result,'$ARCH','-a32');
+{$endif cpu64bitaddr}
       end;
 
 
@@ -412,11 +434,11 @@ unit agppcgas;
          i : longint;
       begin
         if target_info.abi = abi_powerpc_elfv2 then
-          AsmWriteln(#9'.abiversion 2');
+          writer.AsmWriteln(#9'.abiversion 2');
         for i:=0 to 31 do
-          AsmWriteln(#9'.set'#9'r'+tostr(i)+','+tostr(i));
+          writer.AsmWriteln(#9'.set'#9'r'+tostr(i)+','+tostr(i));
         for i:=0 to 31 do
-          AsmWriteln(#9'.set'#9'f'+tostr(i)+','+tostr(i));
+          writer.AsmWriteln(#9'.set'#9'f'+tostr(i)+','+tostr(i));
       end;
 
 
@@ -424,9 +446,9 @@ unit agppcgas;
 {                      GNU/Apple PPC Assembler writer                        }
 {****************************************************************************}
 
-    constructor TPPCAppleGNUAssembler.create(smart: boolean);
+    constructor TPPCAppleGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
       begin
-        inherited create(smart);
+        inherited;
         InstrWriter := TPPCInstrWriter.create(self);
       end;
 
@@ -453,12 +475,78 @@ unit agppcgas;
 {                         AIX PPC Assembler writer                           }
 {****************************************************************************}
 
-    constructor TPPCAIXAssembler.create(smart: boolean);
+    constructor TPPCAIXAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
+      var
+         cur_sectype : TAsmSectionType;
       begin
-        inherited create(smart);
+        inherited;
         InstrWriter := TPPCInstrWriter.create(self);
+        { Use 8-byte alignment as default for all sections }
+        for cur_sectype:=low(TAsmSectionType) to high(TAsmSectionType) do
+           max_alignment[cur_sectype]:=8;
       end;
 
+    procedure TPPCAIXAssembler.WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder;secalign:longint;
+      secflags:TSectionFlags=[];secprogbits:TSectionProgbits=SPB_None);
+
+      begin
+        secalign:=max_alignment[atype];
+        Inherited WriteSection(atype,aname,aorder,secalign,secflags,secprogbits);
+      end;
+
+    procedure TPPCAIXAssembler.WriteAsmList;
+      var
+        cur_sectype : TAsmSectionType;
+        hal : tasmlisttype;
+        hp : tai;
+        max_al : longint;
+      begin
+        { Parse all asmlists to get maximum alignement used for all types }
+        for hal:=low(TasmlistType) to high(TasmlistType) do
+          begin
+            if not (current_asmdata.asmlists[hal].empty) then
+              begin
+                cur_sectype:=sec_none;
+                hp:=tai(current_asmdata.asmlists[hal].First);
+                while assigned(hp) do
+                  begin
+                    case hp.typ of 
+                     ait_align :
+                       begin
+                         if tai_align_abstract(hp).aligntype > max_alignment[cur_sectype] then
+                           begin 
+                             max_alignment[cur_sectype]:=tai_align_abstract(hp).aligntype;
+                             current_asmdata.asmlists[hal].InsertAfter(tai_comment.Create(strpnew('Alignment put to '+tostr(tai_align_abstract(hp).aligntype))),hp);
+                           end;
+                       end;
+                     ait_section :
+                       begin
+                         cur_sectype:=tai_section(hp).sectype;
+                         if tai_section(hp).secalign > max_alignment[cur_sectype] then
+                           begin
+                             max_alignment[cur_sectype]:=tai_section(hp).secalign;
+                             current_asmdata.asmlists[hal].InsertAfter(tai_comment.Create(strpnew('Section '
+                               +sectionname(tai_section(hp).sectype,'',secorder_default)+' alignment put to '+tostr(tai_section(hp).secalign))),hp);
+                           end;
+                       end;
+                     else
+                       ;
+                    end;
+                    hp:=tai(hp.next);
+                  end;
+              end;
+          end;
+        { sec_data, sec_rodata and sec_bss all are converted into .data[RW],
+          in WriteSection below,
+          so we take the maximum alignment of the three }
+        max_al:=max_alignment[sec_data];
+        max_al:=max(max_al,max_alignment[sec_rodata]);
+        max_al:=max(max_al,max_alignment[sec_bss]);
+        max_alignment[sec_data]:=max_al;
+        max_alignment[sec_rodata]:=max_al;
+        max_alignment[sec_bss]:=max_al;
+        Inherited WriteAsmList;
+      end;
 
     procedure TPPCAIXAssembler.WriteExtraHeader;
       var
@@ -467,13 +555,22 @@ unit agppcgas;
         inherited WriteExtraHeader;
         { map cr registers to plain numbers }
         for i:=0 to 7 do
-          AsmWriteln(#9'.set'#9'cr'+tostr(i)+','+tostr(i));
-        { make sure we always have a code and toc section, the linker expects
-          that }
-        AsmWriteln(#9'.csect .text[PR]');
+          writer.AsmWriteln(#9'.set'#9'cr'+tostr(i)+','+tostr(i));
+        { Ensure .data and .rodata sections are aligned to 8-byte boundary,
+          required for correct RTTI alignment.
+          AIX assembler seems to only care for the first
+          alignment value given }
+        writer.AsmWriteln(#9'.csect .data[RW],'+sectionalignment_aix(sec_data,max_alignment[sec_data]));
+        writer.AsmWriteln(#9'.csect _data.bss_[BS],'+sectionalignment_aix(sec_data,max_alignment[sec_data]));
+        { .rodata is translated into .text[RO]
+          see sectionname in aggas unit. }
+        writer.AsmWriteln(#9'.csect .text[RO],'+sectionalignment_aix(sec_rodata_norel,max_alignment[sec_rodata_norel]));
+        { make sure we always have a code and toc section,
+          the linker expects that }
+        writer.AsmWriteln(#9'.csect .text[PR],'+sectionalignment_aix(sec_code,max_alignment[sec_code]));
         { set _text_s, to be used by footer below } 
-        AsmWriteln(#9'_text_s:');
-        AsmWriteln(#9'.toc');
+        writer.AsmWriteln(#9'_text_s:');
+        writer.AsmWriteln(#9'.toc');
       end;
 
 
@@ -481,11 +578,11 @@ unit agppcgas;
       begin
         inherited WriteExtraFooter;
         { link between data and text section }
-        AsmWriteln(#9'.csect .data[RW],4');
+        writer.AsmWriteln(#9'.csect .data[RW],3');
 {$ifdef cpu64bitaddr}
-        AsmWriteln('text_pos:'#9'.llong _text_s')
+        writer.AsmWriteln('text_pos:'#9'.llong _text_s')
 {$else cpu64bitaddr}
-        AsmWriteln('text_pos:'#9'.long _text_s')
+        writer.AsmWriteln('text_pos:'#9'.long _text_s')
 {$endif cpu64bitaddr}
       end;
 
@@ -494,10 +591,10 @@ unit agppcgas;
       begin
         case dir of
           asd_reference:
-            AsmWrite('.ref ');
+            writer.AsmWrite('.ref ');
           asd_weak_reference,
           asd_weak_definition:
-            AsmWrite('.weak ');
+            writer.AsmWrite('.weak ');
           else
             inherited WriteDirectiveName(dir);
         end;
@@ -542,28 +639,48 @@ unit agppcgas;
          idtxt  : 'AS';
          asmbin : 'as';
 {$ifdef cpu64bitaddr}
-         asmcmd : '-a64 -o $OBJ $EXTRAOPT $ASM';
+         asmcmd : '-a64 $ENDIAN -o $OBJ $EXTRAOPT $ASM';
 {$else cpu64bitaddr}
-         asmcmd: '-o $OBJ $EXTRAOPT $ASM';
+         asmcmd: '$ENDIAN -o $OBJ $EXTRAOPT $ARCH $ASM';
 {$endif cpu64bitaddr}
          supported_targets : [system_powerpc_linux,system_powerpc_netbsd,system_powerpc_openbsd,system_powerpc_MorphOS,system_powerpc_Amiga,system_powerpc64_linux,system_powerpc_embedded,system_powerpc64_embedded];
          flags : [af_needar,af_smartlink_sections];
          labelprefix : '.L';
+         labelmaxlen : -1;
          comment : '# ';
          dollarsign: '$';
        );
 
+    as_ppc_gas_legacy_info : tasminfo =
+       (
+         id     : as_powerpc_gas_legacy;
+
+         idtxt  : 'AS-LEGACY';
+         asmbin : 'as';
+{$ifdef cpu64bitaddr}
+         asmcmd : '-a64 $ENDIAN -o $OBJ $EXTRAOPT $ASM';
+{$else cpu64bitaddr}
+         asmcmd: '$ENDIAN -o $OBJ $EXTRAOPT $ARCH $ASM';
+{$endif cpu64bitaddr}
+         supported_targets : [system_powerpc_morphos];
+         flags : [af_needar];
+         labelprefix : '.L';
+         labelmaxlen : -1;
+         comment : '# ';
+         dollarsign: '$';
+       );
 
     as_ppc_gas_darwin_powerpc_info : tasminfo =
        (
          id     : as_darwin;
 
-         idtxt  : 'AS-Darwin';
+         idtxt  : 'AS-DARWIN';
          asmbin : 'as';
          asmcmd : '-o $OBJ $EXTRAOPT $ASM -arch $ARCH';
          supported_targets : [system_powerpc_darwin,system_powerpc64_darwin];
          flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
          labelprefix : 'L';
+         labelmaxlen : -1;
          comment : '# ';
          dollarsign : '$';
        );
@@ -587,6 +704,7 @@ unit agppcgas;
          supported_targets : [system_powerpc_aix,system_powerpc64_aix];
          flags : [af_needar,af_smartlink_sections,af_stabs_use_function_absolute_addresses];
          labelprefix : 'L';
+         labelmaxlen : -1;
          comment : '# ';
          dollarsign : '.'
        );
@@ -609,13 +727,30 @@ unit agppcgas;
          supported_targets : [system_powerpc_aix,system_powerpc64_aix];
          flags : [af_needar,af_smartlink_sections,af_stabs_use_function_absolute_addresses];
          labelprefix : 'L';
+         labelmaxlen : -1;
          comment : '# ';
          dollarsign : '.'
        );
 
+    as_ppc_clang_darwin_info : tasminfo =
+       (
+         id     : as_clang_asdarwin;
+         idtxt  : 'CLANG';
+         asmbin : 'clang';
+         asmcmd : '-x assembler -c -target $TRIPLET -o $OBJ $EXTRAOPT -x assembler $ASM';
+         supported_targets : [system_powerpc_macosclassic, system_powerpc_darwin, system_powerpc64_darwin];
+         flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_llvm];
+         labelprefix : 'L';
+         labelmaxlen : -1;
+         comment : '# ';
+         dollarsign: '$';
+       );
+
 begin
   RegisterAssembler(as_ppc_gas_info,TPPCGNUAssembler);
+  RegisterAssembler(as_ppc_gas_legacy_info,TPPCGNUAssembler);
   RegisterAssembler(as_ppc_gas_darwin_powerpc_info,TPPCAppleGNUAssembler);
+  RegisterAssembler(as_ppc_clang_darwin_info,TPPCAppleGNUAssembler);
   RegisterAssembler(as_ppc_aix_powerpc_info,TPPCAIXAssembler);
   RegisterAssembler(as_ppc_gas_aix_powerpc_info,TPPCAIXAssembler);
 end.

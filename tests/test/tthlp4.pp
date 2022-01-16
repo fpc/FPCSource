@@ -1,3 +1,5 @@
+{ %OPT=-Oonofastmath }
+
 { this tests that the correct helper is used for constants }
 
 program tthlp4;

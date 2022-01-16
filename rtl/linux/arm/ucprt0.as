@@ -31,8 +31,8 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-   02111-1307 USA.  */
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+   02110-1301 USA.  */
 
 /* This is the canonical entry point, usually the first thing in the text
    segment.
@@ -168,18 +168,3 @@ __data_start:
         .comm operatingsystem_parameter_argc,4
         .comm operatingsystem_parameter_argv,4
 
-/* We need this stuff to make gdb behave itself, otherwise
-   gdb will chokes with SIGILL when trying to debug apps.
-*/
-        .section ".note.ABI-tag", "a"
-        .align 4
-        .long 1f - 0f
-        .long 3f - 2f
-        .long  1
-0:      .asciz "GNU"
-1:      .align 4
-2:      .long 0
-        .long 2,0,0
-3:      .align 4
-
-.section .note.GNU-stack,"",%progbits

@@ -134,11 +134,16 @@ end;
 procedure AfterCompile_gdbint(Sender: TObject);
 var
   L : TStrings;
+  P : TPackage;
 begin
   // Remove the generated gdbver.inc
   L := TStringList.Create;
+  P := Sender as TPackage;
   try
-    L.add(IncludeTrailingPathDelimiter(Installer.BuildEngine.StartDir)+'src/gdbver.inc');
+    if P.Directory<>'' then
+      L.add(IncludeTrailingPathDelimiter(P.Directory)+'src'+DirectorySeparator+'gdbver.inc')
+    else
+      L.add(IncludeTrailingPathDelimiter(Installer.BuildEngine.StartDir)+'src'+DirectorySeparator+'gdbver.inc');
     Installer.BuildEngine.CmdDeleteFiles(L);
   finally
     L.Free;
@@ -156,7 +161,7 @@ begin
     P:=AddPackage('gdbint');
     P.ShortName:='gdb';
     P.Directory:=ADirectory;
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.Author := 'Library : Cygnus, header: Peter Vreman';
     P.License := 'Library: GPL2 or later, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -178,7 +183,7 @@ begin
     T := p.Targets.AddProgram('src'+PathDelim+'gdbver.pp');
     T.Install := false;
     //
-    // NOTE: the gdbver.inc dependancies gives warnings because the makefile.fpc
+    // NOTE: the gdbver.inc dependencies gives warnings because the makefile.fpc
     // does a "cp src/gdbver_nogdb.inc src/gdbver.inc" to create it
 
     T:=P.Targets.AddUnit('gdbcon.pp');
@@ -191,6 +196,8 @@ begin
     P.Targets.AddExampleProgram('testgdb.pp');
     P.Targets.AddExampleProgram('symify.pp');
     P.Targets.AddExampleUnit('mingw.pas');
+
+    P.Sources.AddSrc('src/gdbver_nogdb.inc');
     end;
 end;
 

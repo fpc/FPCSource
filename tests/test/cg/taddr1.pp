@@ -51,7 +51,7 @@ var
  pcharptr : pchar;
  plongint : ^longint;
  long: longint;
- ptr: pointer;
+ ptr: codepointer;
 begin
  { Test procedure variable }
  procptr:=@testprocvar;

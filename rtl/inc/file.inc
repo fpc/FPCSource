@@ -35,8 +35,16 @@ Begin
   InitFile(F);
 {$ifdef FPC_ANSI_TEXTFILEREC}
   FileRec(f).Name:=ToSingleByteFileSystemEncodedFileName(Name);
+{$ifdef USE_FILEREC_FULLNAME}
+  if Length(Name)>255 then
+    RawByteString(FileRec(f).FullName):=Name;
+{$endif USE_FILEREC_FULLNAME}
 {$else FPC_ANSI_TEXTFILEREC}
   FileRec(f).Name:=Name;
+{$ifdef USE_FILEREC_FULLNAME}
+  if Length(Name)>255 then
+    UnicodeString(FileRec(f).FullName):=Name;
+{$endif USE_FILEREC_FULLNAME}
 {$endif FPC_ANSI_TEXTFILEREC}
   { null terminate, since the name array is regularly used as p(wide)char }
   FileRec(f).Name[high(FileRec(f).Name)]:=#0;
@@ -54,8 +62,16 @@ Begin
 {$ifdef FPC_ANSI_TEXTFILEREC}
   { ensure the characters in the record's filename are encoded correctly }
   FileRec(f).Name:=ToSingleByteFileSystemEncodedFileName(Name);
+{$ifdef USE_FILEREC_FULLNAME}
+  if Length(Name)>255 then
+    RawbyteString(FileRec(f).FullName):=Name;
+{$endif USE_FILEREC_FULLNAME}
 {$else FPC_ANSI_TEXTFILEREC}
   FileRec(f).Name:=Name;
+{$ifdef USE_FILEREC_FULLNAME}
+  if Length(Name)>255 then
+    UnicodeString(FileRec(f).FullName):=Name;
+{$endif USE_FILEREC_FULLNAME}
 {$endif FPC_ANSI_TEXTFILEREC}
   { null terminate, since the name array is regularly used as p(wide)char }
   FileRec(f).Name[high(FileRec(f).Name)]:=#0;
@@ -119,7 +135,12 @@ Begin
   else
    Begin
      { Reopen with filemode 2, to be Tp compatible (PFV) }
-     Do_Open(f,PFileTextRecChar(@FileRec(f).Name),$1002,false);
+{$ifdef USE_FILEREC_FULLNAME}
+     if Assigned(FileRec(f).FullName) then
+       Do_Open(f,FileRec(f).FullName,$1002,false)
+     else
+{$endif USE_FILEREC_FULLNAME}
+       Do_Open(f,PFileTextRecChar(@FileRec(f).Name),$1002,false);
      FileRec(f).RecSize:=l;
    End;
 End;
@@ -145,7 +166,12 @@ Begin
    InOutRes:=2
   else
    Begin
-     Do_Open(f,PFileTextRecChar(@FileRec(f).Name),Filemode,false);
+{$ifdef USE_FILEREC_FULLNAME}
+     if Assigned(FileRec(f).FullName) then
+       Do_Open(f,FileRec(f).FullName,Filemode,false)
+     else
+{$endif USE_FILEREC_FULLNAME}
+       Do_Open(f,PFileTextRecChar(@FileRec(f).Name),Filemode,false);
      FileRec(f).RecSize:=l;
    End;
 End;
@@ -195,52 +221,84 @@ Procedure BlockWrite(Var f:File;Const Buf;Count:Longint;var Result:Longint);[IOC
 {
   Write Count records from Buf to file f, return written records in result
 }
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(217);
+end;
+{$else EXCLUDE_COMPLEX_PROCS}
 var
   l : Int64;
 Begin
   BlockWrite(f,Buf,Count,l);
   Result:=longint(l);
 End;
+{$endif EXCLUDE_COMPLEX_PROCS}
 
 
 Procedure BlockWrite(Var f:File;Const Buf;Count:Word;var Result:Word);[IOCheck];
 {
   Write Count records from Buf to file f, return written records in Result
 }
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(217);
+ end;
+{$else EXCLUDE_COMPLEX_PROCS}
 var
   l : Int64;
 Begin
   BlockWrite(f,Buf,Count,l);
   Result:=word(l);
 End;
+{$endif EXCLUDE_COMPLEX_PROCS}
+
 
 Procedure BlockWrite(Var f:File;Const Buf;Count:Cardinal;var Result:Cardinal);[IOCheck];
 {
   Write Count records from Buf to file f, return written records in Result
 }
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(217);
+ end;
+{$else EXCLUDE_COMPLEX_PROCS}
 var
   l : Int64;
 Begin
   BlockWrite(f,Buf,Count,l);
   Result:=l;
 End;
+{$endif EXCLUDE_COMPLEX_PROCS}
+
 
 Procedure BlockWrite(Var f:File;Const Buf;Count:Word;var Result:Integer);[IOCheck];
 {
   Write Count records from Buf to file f, return written records in Result
 }
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(217);
+ end;
+{$else EXCLUDE_COMPLEX_PROCS}
 var
   l : Int64;
 Begin
   BlockWrite(f,Buf,Count,l);
   Result:=integer(l);
 End;
+{$endif EXCLUDE_COMPLEX_PROCS}
+
 
 Procedure BlockWrite(Var f:File;Const Buf;Count:Longint);[IOCheck];
 {
   Write Count records from Buf to file f, if none a Read and Count>0 then
   InOutRes is set
 }
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(217);
+ end;
+{$else EXCLUDE_COMPLEX_PROCS}
 var
   Result : Int64;
 Begin
@@ -248,6 +306,8 @@ Begin
   If (InOutRes=0) and (Result<Count) and (Count>0) Then
    InOutRes:=101;
 End;
+{$endif EXCLUDE_COMPLEX_PROCS}
+
 
 Procedure BlockRead(var f:File;var Buf;Count:Int64;var Result:Int64);[IOCheck];
 {
@@ -272,54 +332,87 @@ Procedure BlockRead(var f:File;var Buf;Count:Longint;var Result:Longint);[IOChec
   Read Count records from file f ro Buf, return number of read records in
   Result
 }
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(217);
+ end;
+{$else EXCLUDE_COMPLEX_PROCS}
 var
   l : int64;
 Begin
   BlockRead(f,Buf,Count,l);
   Result:=longint(l);
 End;
+{$endif EXCLUDE_COMPLEX_PROCS}
+
 
 Procedure BlockRead(var f:File;var Buf;count:Word;var Result:Word);[IOCheck];
 {
   Read Count records from file f to Buf, return number of read records in
   Result
 }
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(217);
+ end;
+{$else EXCLUDE_COMPLEX_PROCS}
 var
   l : int64;
 Begin
   BlockRead(f,Buf,Count,l);
   Result:=word(l);
 End;
+{$endif EXCLUDE_COMPLEX_PROCS}
+
 
 Procedure BlockRead(var f:File;var Buf;count:Cardinal;var Result:Cardinal);[IOCheck];
 {
   Read Count records from file f to Buf, return number of read records in
   Result
 }
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(217);
+ end;
+{$else EXCLUDE_COMPLEX_PROCS}
 var
   l : int64;
 Begin
   BlockRead(f,Buf,Count,l);
   Result:=l;
 End;
+{$endif EXCLUDE_COMPLEX_PROCS}
+
 
 Procedure BlockRead(var f:File;var Buf;count:Word;var Result:Integer);[IOCheck];
 {
   Read Count records from file f to Buf, return number of read records in
   Result
 }
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(217);
+ end;
+{$else EXCLUDE_COMPLEX_PROCS}
 var
   l : int64;
 Begin
   BlockRead(f,Buf,Count,l);
   Result:=integer(l);
 End;
+{$endif EXCLUDE_COMPLEX_PROCS}
+
 
 Procedure BlockRead(Var f:File;Var Buf;Count:Int64);[IOCheck];
 {
   Read Count records from file f to Buf, if none are read and Count>0 then
   InOutRes is set
 }
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(217);
+ end;
+{$else EXCLUDE_COMPLEX_PROCS}
 var
   Result : int64;
 Begin
@@ -327,6 +420,7 @@ Begin
   If (InOutRes=0) and (Result<Count) and (Count>0) Then
    InOutRes:=100;
 End;
+{$endif EXCLUDE_COMPLEX_PROCS}
 
 
 Function FilePos(var f:File):Int64;[IOCheck];
@@ -425,6 +519,11 @@ Begin
       end
     else InOutRes:=103;
   end;
+{$ifdef USE_FILEREC_FULLNAME}
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+  UnicodeString(FileRec(f).FullName):='';
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+{$endif USE_FILEREC_FULLNAME}
 End;
 
 
@@ -581,4 +680,16 @@ Begin
   Rename(f,PAnsiChar(@p));
 End;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
+Function GetFullName(var f:File) : UnicodeString;
+  begin
+{$ifdef USE_FILEREC_FULLNAME}
+  if Assigned(FileRec(f).FullName) then
+    Result:=UnicodeString(FileRec(f).FullName)
+  else
+{$endif USE_FILEREC_FULLNAME}
+    Result:=PFileTextRecChar(@FileRec(f).Name);
+  end;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
 

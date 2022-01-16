@@ -14,7 +14,7 @@
 {$mode objfpc}
 {$H+}
 {$inline on}
-unit comobj;
+unit ComObj;
 
   interface
 
@@ -92,7 +92,7 @@ unit comobj;
         destructor Destroy; override;
         procedure AddObjectFactory(factory: TComObjectFactory);
         procedure RemoveObjectFactory(factory: TComObjectFactory);
-        procedure ForEachFactory(ComServer: TComServerObject; FactoryProc: TFactoryProc);
+        procedure ForEachFactory(ComServer: TComServerObject; FactoryProc: TFactoryProc;const bBackward:boolean=false);
         function GetFactoryFromClass(ComClass: TClass): TComObjectFactory;
         function GetFactoryFromClassID(const ClassID: TGUID): TComObjectFactory;
       end;
@@ -159,11 +159,12 @@ unit comobj;
         FErrorIID: TGUID;
         FInstancing: TClassInstancing;
         FLicString: WideString;
-        //FRegister: Longint;
+        FIsRegistered: dword;
         FShowErrors: Boolean;
         FSupportsLicensing: Boolean;
         FThreadingModel: TThreadingModel;
         function GetProgID: string;
+        function reg_flags(): integer;
       protected
         { IUnknown }
         function QueryInterface(constref IID: TGUID; out Obj): HResult; stdcall;
@@ -324,6 +325,7 @@ unit comobj;
       CoResumeClassObjects : TCoResumeClassObjectsProc = nil;
       CoSuspendClassObjects : TCoSuspendClassObjectsProc = nil;
       CoInitFlags : Longint = -1;
+      CoInitDisable : Boolean = False;
 
   {$ifdef DEBUG_COM}
      var printcom : boolean=true;
@@ -694,7 +696,7 @@ implementation
       end;
 
     procedure TComClassManager.ForEachFactory(ComServer: TComServerObject;
-      FactoryProc: TFactoryProc);
+      FactoryProc: TFactoryProc;const bBackward:boolean=false);
       var
         i: Integer;
         obj: TComObjectFactory;
@@ -703,12 +705,20 @@ implementation
          if printcom then 
         WriteLn('ForEachFactory');
 {$endif}
+        if not bBackward then
         for i := 0 to fClassFactoryList.Count - 1 do
         begin
           obj := TComObjectFactory(fClassFactoryList[i]);
           if obj.ComServer = ComServer then
             FactoryProc(obj);
-        end;
+        end
+        else
+        for i := fClassFactoryList.Count - 1 downto 0 do
+        begin
+          obj := TComObjectFactory(fClassFactoryList[i]);
+          if obj.ComServer = ComServer then
+            FactoryProc(obj);
+        end
       end;
 
 
@@ -937,8 +947,13 @@ implementation
          if printcom then 
         WriteLn('LockServer: ', fLock);
 {$endif}
-        RunError(217);
-        Result:=0;
+{$ifndef wince}
+          Result := CoLockObjectExternal(Self, fLock, True);
+          ComServer.CountObject(fLock);
+{$else}
+          RunError(217);
+          Result:=0;
+{$endif}
       end;
 
 
@@ -1003,13 +1018,16 @@ implementation
         FComClass := ComClass;
         FInstancing := Instancing;;
         ComClassManager.AddObjectFactory(Self);
+        fIsRegistered := dword(-1);
       end;
 
 
     destructor TComObjectFactory.Destroy;
       begin
+{$ifndef wince}
+        if fIsRegistered <> dword(-1) then CoRevokeClassObject(fIsRegistered);
+{$endif}
         ComClassManager.RemoveObjectFactory(Self);
-        //RunError(217);
       end;
 
 
@@ -1023,15 +1041,31 @@ implementation
         Result := TComClass(FComClass).Create();
       end;
 
+    function TComObjectFactory.reg_flags():integer;inline;
+    begin
+       Result:=0;
+       case Self.FInstancing of
+       ciSingleInstance: Result:=Result or REGCLS_SINGLEUSE;
+       ciMultiInstance: Result:=Result or REGCLS_MULTIPLEUSE;
+       end;
+       if FComServer.StartSuspended then
+         Result:=Result or REGCLS_SUSPENDED;
+    end;
 
     procedure TComObjectFactory.RegisterClassObject;
-      begin
+    begin
       {$ifdef DEBUG_COM}
          if printcom then 
         WriteLn('TComObjectFactory.RegisterClassObject');
       {$endif}
-        RunError(217);
-      end;
+{$ifndef wince}
+      if FInstancing <> ciInternal then
+      OleCheck(CoRegisterClassObject(FClassID, Self, CLSCTX_LOCAL_SERVER,
+         reg_flags(), @FIsRegistered));
+{$else}
+      RunError(217);
+{$endif}
+    end;
 
 
 (* Copy from Sample.RGS (http://www.codeproject.com/KB/atl/RegistryMap.aspx)
@@ -1066,6 +1100,7 @@ HKCR
     procedure TComObjectFactory.UpdateRegistry(Register: Boolean);
       var
         classidguid: String;
+        srv_type: string;
 
         function ThreadModelToString(model: TThreadingModel): String;
         begin
@@ -1086,12 +1121,14 @@ HKCR
 {$endif}
         if Instancing = ciInternal then Exit;
 
+        if System.ModuleIsLib then srv_type:='InprocServer32' else srv_type:='LocalServer32';
+
         if Register then
         begin
           classidguid := GUIDToString(ClassID);
-          CreateRegKey('CLSID\' + classidguid + '\InprocServer32', '', FComServer.ServerFileName);
+          CreateRegKey('CLSID\' + classidguid + '\'+srv_type, '', FComServer.ServerFileName);
           //tmSingle, tmApartment, tmFree, tmBoth, tmNeutral
-          CreateRegKey('CLSID\' + classidguid + '\InprocServer32', 'ThreadingModel', ThreadModelToString(ThreadingModel));
+          CreateRegKey('CLSID\' + classidguid + '\'+srv_type, 'ThreadingModel', ThreadModelToString(ThreadingModel));
           CreateRegKey('CLSID\' + classidguid, '', Description);
           if ClassName <> '' then
           begin
@@ -1115,7 +1152,7 @@ HKCR
         end else
         begin
           classidguid := GUIDToString(ClassID);
-          DeleteRegKey('CLSID\' + classidguid + '\InprocServer32');
+          DeleteRegKey('CLSID\' + classidguid + '\'+srv_type);
           DeleteRegKey('CLSID\' + classidguid + '\VersionIndependentProgID');
           if ClassName <> '' then
           begin
@@ -1147,7 +1184,7 @@ HKCR
         { we can't pass pascal ansistrings to COM routines so we've to convert them
           to/from widestring. This array contains the mapping to do so
         }
-        StringMap : array[0..255] of record passtr : pansistring; comstr : pwidechar; end;
+        StringMap : array[0..255] of record passtr : pansistring; paswstr : punicodestring; comstr : pwidechar; end;
         invokekind,
         i : longint;
         invokeresult : HResult;
@@ -1173,7 +1210,7 @@ HKCR
               writeln('DispatchInvoke: Params = ',hexstr(Params));
 {$endif DEBUG_COMDISPATCH}
               { get plain type }
-              CurrType:=CallDesc^.ArgTypes[i] and $3f;
+              CurrType:=CallDesc^.ArgTypes[i] and $7f;
               { a skipped parameter? Don't increment Params pointer if so. }
               if CurrType=varError then
                 begin
@@ -1193,8 +1230,23 @@ HKCR
 {$endif DEBUG_COMDISPATCH}
                         StringMap[NextString].ComStr:=StringToOleStr(PString(Params^)^);
                         StringMap[NextString].PasStr:=PString(Params^);
+                        StringMap[NextString].PasWStr:=Nil;
                         Arguments[i].VType:=varOleStr or varByRef;
-                        Arguments[i].VPointer:=StringMap[NextString].ComStr;
+                        Arguments[i].VPointer:=@StringMap[NextString].ComStr;
+                        inc(NextString);
+                        inc(PPointer(Params));
+                      end;
+                    varUStrArg:
+                      begin
+{$ifdef DEBUG_COMDISPATCH}
+                        if printcom then
+                        writeln('Translating var unicodestring argument ',PUnicodeString(Params^)^);
+{$endif DEBUG_COMDISPATCH}
+                        StringMap[NextString].ComStr:=StringToOleStr(PUnicodeString(Params^)^);
+                        StringMap[NextString].PasStr:=Nil;
+                        StringMap[NextString].PasWStr:=PUnicodeString(Params^);
+                        Arguments[i].VType:=varOleStr or varByRef;
+                        Arguments[i].VPointer:=@StringMap[NextString].ComStr;
                         inc(NextString);
                         inc(PPointer(Params));
                       end;
@@ -1245,6 +1297,22 @@ HKCR
 {$endif DEBUG_COMDISPATCH}
                       StringMap[NextString].ComStr:=StringToOleStr(PString(Params)^);
                       StringMap[NextString].PasStr:=nil;
+                      StringMap[NextString].PasWStr:=nil;
+                      Arguments[i].VType:=varOleStr;
+                      Arguments[i].VPointer:=StringMap[NextString].ComStr;
+                      inc(NextString);
+                      inc(PPointer(Params));
+                    end;
+
+                  varUStrArg:
+                    begin
+{$ifdef DEBUG_COMDISPATCH}
+                    if printcom then
+                      writeln('Translating unicodestring argument ',PUnicodeString(Params)^);
+{$endif DEBUG_COMDISPATCH}
+                      StringMap[NextString].ComStr:=StringToOleStr(PUnicodeString(Params)^);
+                      StringMap[NextString].PasStr:=nil;
+                      StringMap[NextString].PasWStr:=nil;
                       Arguments[i].VType:=varOleStr;
                       Arguments[i].VPointer:=StringMap[NextString].ComStr;
                       inc(NextString);
@@ -1313,7 +1381,13 @@ HKCR
           case InvokeKind of
             DISPATCH_PROPERTYPUT:
               begin
-                if (Arguments[0].VType and varTypeMask) = varDispatch then
+                if ((Arguments[0].VType and varTypeMask) in [varDispatch]) or
+                    { if we have a variant that's passed as a reference we pass it
+                      to the property as a reference as well }
+                    (
+                      ((Arguments[0].VType and varTypeMask) in [varVariant]) and
+                      ((CallDesc^.argtypes[0] and $80) <> 0)
+                    ) then
                   InvokeKind:=DISPATCH_PROPERTYPUTREF;
                 { first name is actually the name of the property to set }
                 DispIDs^[0]:=DISPID_PROPERTYPUT;
@@ -1336,9 +1410,12 @@ HKCR
             DispatchInvokeError(invokeresult,exceptioninfo);
 
           { translate strings back }
-          for i:=0 to NextString-1 do
+          for i:=0 to NextString-1 do begin
             if assigned(StringMap[i].passtr) then
-              OleStrToStrVar(StringMap[i].comstr,StringMap[i].passtr^);
+              OleStrToStrVar(StringMap[i].comstr,StringMap[i].passtr^)
+            else if assigned(StringMap[i].paswstr) then
+              OleStrToStrVar(StringMap[i].comstr,StringMap[i].paswstr^);
+          end;
         finally
           for i:=0 to NextString-1 do
             SysFreeString(StringMap[i].ComStr);
@@ -1841,6 +1918,20 @@ const
   Initialized : boolean = false;
 var
   Ole32Dll : HModule;
+  SaveInitProc : CodePointer;
+
+procedure InitComObj;
+begin
+  if SaveInitProc<>nil then
+    TProcedure(SaveInitProc)();
+  if not CoInitDisable then
+{$ifndef wince}
+    if (CoInitFlags=-1) or not(assigned(ComObj.CoInitializeEx)) then
+      Initialized:=Succeeded(CoInitialize(nil))
+    else
+{$endif wince}
+      Initialized:=Succeeded(ComObj.CoInitializeEx(nil, CoInitFlags));
+end;
 
 initialization
   Uninitializing:=false;
@@ -1857,12 +1948,10 @@ initialization
     end;
 
   if not(IsLibrary) then
-{$ifndef wince}
-    if (CoInitFlags=-1) or not(assigned(comobj.CoInitializeEx)) then
-      Initialized:=Succeeded(CoInitialize(nil))
-    else
-{$endif wince}
-      Initialized:=Succeeded(comobj.CoInitializeEx(nil, CoInitFlags));
+    begin
+      SaveInitProc:=InitProc;
+      InitProc:=@InitComObj;
+    end;
 
   SafeCallErrorProc:=@SafeCallErrorHandler;
   VarDispProc:=@ComObjDispatchInvoke;
@@ -1875,4 +1964,3 @@ finalization
   if Initialized then
     CoUninitialize;
 end.
-

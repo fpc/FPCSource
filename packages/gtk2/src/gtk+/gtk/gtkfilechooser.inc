@@ -63,6 +63,22 @@ function gtk_file_chooser_get_filenames(chooser:PGtkFileChooser):PGSList;cdecl;e
 function gtk_file_chooser_set_current_folder(chooser:PGtkFileChooser; filename:Pgchar):gboolean;cdecl;external gtklib name 'gtk_file_chooser_set_current_folder';
 function gtk_file_chooser_get_current_folder(chooser:PGtkFileChooser):Pgchar;cdecl;external gtklib name 'gtk_file_chooser_get_current_folder';
 
+{$IFDEF WINDOWS}
+{$IFDEF USEUTF8}
+function gtk_file_chooser_get_filename_utf8(chooser:PGtkFileChooser):Pgchar;cdecl;external gtklib name 'gtk_file_chooser_get_filename_utf8';
+function gtk_file_chooser_set_filename_utf8(chooser:PGtkFileChooser; filename:Pchar):gboolean;cdecl;external gtklib name 'gtk_file_chooser_set_filename_utf8';
+
+function gtk_file_chooser_select_filename_utf8(chooser:PGtkFileChooser; filename:Pchar):gboolean;cdecl;external gtklib name 'gtk_file_chooser_select_filename_utf8';
+procedure gtk_file_chooser_unselect_filename_utf8(chooser:PGtkFileChooser; filename:Pchar);cdecl;external gtklib name 'gtk_file_chooser_unselect_filename_utf8';
+
+
+function gtk_file_chooser_get_filenames_utf8(chooser:PGtkFileChooser):PGSList;cdecl;external gtklib name 'gtk_file_chooser_get_filenames_utf8';
+
+function gtk_file_chooser_set_current_folder_utf8(chooser:PGtkFileChooser; filename:Pgchar):gboolean;cdecl;external gtklib name 'gtk_file_chooser_set_current_folder_utf8';
+function gtk_file_chooser_get_current_folder_utf8(chooser:PGtkFileChooser):Pgchar;cdecl;external gtklib name 'gtk_file_chooser_get_current_folder_utf8';
+{$ENDIF}
+{$ENDIF}
+
 { URI manipulation }
 function gtk_file_chooser_get_uri(chooser:PGtkFileChooser):Pgchar;cdecl;external gtklib name 'gtk_file_chooser_get_uri';
 function gtk_file_chooser_set_uri(chooser:PGtkFileChooser; uri:Pchar):gboolean;cdecl;external gtklib name 'gtk_file_chooser_set_uri';
@@ -89,6 +105,12 @@ function gtk_file_chooser_get_use_preview_label(chooser:PGtkFileChooser):gboolea
 
 function gtk_file_chooser_get_preview_filename(chooser:PGtkFileChooser):Pchar;cdecl;external gtklib name 'gtk_file_chooser_get_preview_filename';
 function gtk_file_chooser_get_preview_uri(chooser:PGtkFileChooser):Pchar;cdecl;external gtklib name 'gtk_file_chooser_get_preview_uri';
+{$IFDEF WINDOWS}
+{$IFDEF USEUTF8}
+function gtk_file_chooser_get_preview_filename_utf8(chooser:PGtkFileChooser):Pchar;cdecl;external gtklib name 'gtk_file_chooser_get_preview_filename_utf8';
+function gtk_file_chooser_get_preview_uri_utf8(chooser:PGtkFileChooser):Pchar;cdecl;external gtklib name 'gtk_file_chooser_get_preview_uri_utf8';
+{$ENDIF}
+{$ENDIF}
 
 { Extra widget }
 procedure gtk_file_chooser_set_extra_widget(chooser:PGtkFileChooser; extra_widget:PGtkWidget);cdecl;external gtklib name 'gtk_file_chooser_set_extra_widget';
@@ -107,6 +129,14 @@ function gtk_file_chooser_get_filter(chooser:PGtkFileChooser):PGtkFileFilter;cde
 function gtk_file_chooser_add_shortcut_folder(chooser:PGtkFileChooser; folder:Pchar; error:PPGError):gboolean;cdecl;external gtklib name 'gtk_file_chooser_add_shortcut_folder';
 function gtk_file_chooser_remove_shortcut_folder(chooser:PGtkFileChooser; folder:Pchar; error:PPGError):gboolean;cdecl;external gtklib name 'gtk_file_chooser_remove_shortcut_folder';
 function gtk_file_chooser_list_shortcut_folders(chooser:PGtkFileChooser):PGSList;cdecl;external gtklib name 'gtk_file_chooser_list_shortcut_folders';
+
+{$IFDEF WINDOWS}
+{$IFDEF USEUTF8}
+function gtk_file_chooser_add_shortcut_folder_utf8(chooser:PGtkFileChooser; folder:Pchar; error:PPGError):gboolean;cdecl;external gtklib name 'gtk_file_chooser_add_shortcut_folder_utf8';
+function gtk_file_chooser_remove_shortcut_folder_utf8(chooser:PGtkFileChooser; folder:Pchar; error:PPGError):gboolean;cdecl;external gtklib name 'gtk_file_chooser_remove_shortcut_folder_utf8';
+function gtk_file_chooser_list_shortcut_folders_utf8(chooser:PGtkFileChooser):PGSList;cdecl;external gtklib name 'gtk_file_chooser_list_shortcut_folders_utf8';
+{$ENDIF}
+{$ENDIF}
 
 function gtk_file_chooser_add_shortcut_folder_uri(chooser:PGtkFileChooser; uri:Pchar; error:PPGError):gboolean;cdecl;external gtklib name 'gtk_file_chooser_add_shortcut_folder_uri';
 function gtk_file_chooser_remove_shortcut_folder_uri(chooser:PGtkFileChooser; uri:Pchar; error:PPGError):gboolean;cdecl;external gtklib name 'gtk_file_chooser_remove_shortcut_folder_uri';

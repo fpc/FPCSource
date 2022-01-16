@@ -13,6 +13,28 @@
 
  **********************************************************************}
 
+{$ifdef WIN16}
+
+Function fpc_SetJmp (Var S : Jmp_buf) : smallint;[Public, alias : 'FPC_SETJMP']; compilerproc;
+begin
+{$ifdef FPC_X86_DATA_NEAR}
+  fpc_SetJmp:=Catch(Ptr(DSeg,Word(@CATCHBUF(S.catch_buf))));
+{$else FPC_X86_DATA_NEAR}
+  fpc_SetJmp:=Catch(@CATCHBUF(S.catch_buf));
+{$endif FPC_X86_DATA_NEAR}
+end;
+
+Procedure fpc_longJmp (Var S : Jmp_buf; value : smallint);[Public, alias : 'FPC_LONGJMP']; compilerproc;
+begin
+{$ifdef FPC_X86_DATA_NEAR}
+  Throw(Ptr(DSeg,Word(@CATCHBUF(S.catch_buf))),value);
+{$else FPC_X86_DATA_NEAR}
+  Throw(@CATCHBUF(S.catch_buf),value);
+{$endif FPC_X86_DATA_NEAR}
+end;
+
+{$else WIN16}
+
 Function fpc_SetJmp (Var S : Jmp_buf) : smallint;assembler;nostackframe;[Public, alias : 'FPC_SETJMP']; compilerproc;
 asm
   mov si, sp
@@ -80,3 +102,5 @@ asm
   {$endif FPC_X86_CODE_NEAR}
 {$endif FPC_X86_DATA_NEAR}
 end;
+
+{$endif WIN16}

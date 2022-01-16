@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, toolsunit
   ,db, sqldb
-  ,mysql40conn, mysql41conn, mysql50conn, mysql51conn, mysql55conn, mysql56conn
+  ,mysql40conn, mysql41conn, mysql50conn, mysql51conn, mysql55conn, mysql56conn, mysql57conn, mysql80conn
   ,ibconnection
   ,pqconnection
   ,odbcconn
@@ -20,13 +20,13 @@ uses
   ;
 
 type
-  TSQLConnType = (mysql40,mysql41,mysql50,mysql51,mysql55,mysql56,postgresql,interbase,odbc,oracle,sqlite3,mssql,sybase);
+  TSQLConnType = (mysql40,mysql41,mysql50,mysql51,mysql55,mysql56,mysql57,mysql80,postgresql,interbase,odbc,oracle,sqlite3,mssql,sybase);
   TSQLServerType = (ssFirebird, ssInterbase, ssMSSQL, ssMySQL, ssOracle, ssPostgreSQL, ssSQLite, ssSybase, ssUnknown);
 
 const
-  MySQLConnTypes = [mysql40,mysql41,mysql50,mysql51,mysql55,mysql56];
+  MySQLConnTypes = [mysql40,mysql41,mysql50,mysql51,mysql55,mysql56,mysql57,mysql80];
   SQLConnTypesNames : Array [TSQLConnType] of String[19] =
-        ('MYSQL40','MYSQL41','MYSQL50','MYSQL51','MYSQL55','MYSQL56','POSTGRESQL','INTERBASE','ODBC','ORACLE','SQLITE3','MSSQL','SYBASE');
+        ('MYSQL40','MYSQL41','MYSQL50','MYSQL51','MYSQL55','MYSQL56','MYSQL57','MYSQL80','POSTGRESQL','INTERBASE','ODBC','ORACLE','SQLITE3','MSSQL','SYBASE');
              
   STestNotApplicable = 'This test does not apply to this sqldb connection type';
 
@@ -56,6 +56,8 @@ type
     Function InternalGetFieldDataset : TDataSet; override;
   public
     procedure TryDropIfExist(ATableName : String);
+    procedure TryCreateSequence(ASequenceName : String);
+    procedure TryDropSequence(ASequenceName: String);
     destructor Destroy; override;
     constructor Create; override;
     procedure ExecuteDirect(const SQL: string);
@@ -125,7 +127,13 @@ const
       {ftTimeStamp} 'TIMESTAMP',
       {ftFMTBcd} 'NUMERIC(18,6)',
       {ftFixedWideChar} '',
-      {ftWideMemo} ''
+      {ftWideMemo} '',
+      {ftOraTimeStamp} '',
+      {ftOraInterval} '',
+      {ftLongWord} '',
+      {ftShortint} '',
+      {ftByte} '',
+      {ftExtended} ''
     );
 
   // names as returned by ODBC SQLGetInfo(..., SQL_DBMS_NAME, ...) and GetConnectionInfo(citServerType)
@@ -142,7 +150,7 @@ const
 
   // fall back mapping (e.g. in case GetConnectionInfo(citServerType) is not implemented)
   SQLConnTypeToServerTypeMap : array[TSQLConnType] of TSQLServerType =
-    (ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssPostgreSQL,ssFirebird,ssUnknown,ssOracle,ssSQLite,ssMSSQL,ssSybase);
+    (ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssMySQL,ssPostgreSQL,ssFirebird,ssUnknown,ssOracle,ssSQLite,ssMSSQL,ssSybase);
 
 
 function IdentifierCase(const s: string): string;
@@ -167,23 +175,26 @@ begin
   for t := low(SQLConnTypesNames) to high(SQLConnTypesNames) do
     if UpperCase(dbconnectorparams) = SQLConnTypesNames[t] then SQLConnType := t;
 
-  if SQLConnType = MYSQL40 then Fconnection := TMySQL40Connection.Create(nil);
-  if SQLConnType = MYSQL41 then Fconnection := TMySQL41Connection.Create(nil);
-  if SQLConnType = MYSQL50 then Fconnection := TMySQL50Connection.Create(nil);
-  if SQLConnType = MYSQL51 then Fconnection := TMySQL51Connection.Create(nil);
-  if SQLConnType = MYSQL55 then Fconnection := TMySQL55Connection.Create(nil);
-  if SQLConnType = MYSQL56 then Fconnection := TMySQL56Connection.Create(nil);
-  if SQLConnType = SQLITE3 then Fconnection := TSQLite3Connection.Create(nil);
-  if SQLConnType = POSTGRESQL then Fconnection := TPQConnection.Create(nil);
-  if SQLConnType = INTERBASE then Fconnection := TIBConnection.Create(nil);
-  if SQLConnType = ODBC then Fconnection := TODBCConnection.Create(nil);
+  case SQLConnType of
+    MYSQL40:    Fconnection := TMySQL40Connection.Create(nil);
+    MYSQL41:    Fconnection := TMySQL41Connection.Create(nil);
+    MYSQL50:    Fconnection := TMySQL50Connection.Create(nil);
+    MYSQL51:    Fconnection := TMySQL51Connection.Create(nil);
+    MYSQL55:    Fconnection := TMySQL55Connection.Create(nil);
+    MYSQL56:    Fconnection := TMySQL56Connection.Create(nil);
+    MYSQL57:    Fconnection := TMySQL57Connection.Create(nil);
+    MYSQL80:    Fconnection := TMySQL80Connection.Create(nil);
+    SQLITE3:    Fconnection := TSQLite3Connection.Create(nil);
+    POSTGRESQL: Fconnection := TPQConnection.Create(nil);
+    INTERBASE : Fconnection := TIBConnection.Create(nil);
+    ODBC:       Fconnection := TODBCConnection.Create(nil);
   {$IFNDEF Win64}
-  if SQLConnType = ORACLE then Fconnection := TOracleConnection.Create(nil);
+    ORACLE:     Fconnection := TOracleConnection.Create(nil);
   {$ENDIF Win64}
-  if SQLConnType = MSSQL then Fconnection := TMSSQLConnection.Create(nil);
-  if SQLConnType = SYBASE then Fconnection := TSybaseConnection.Create(nil);
-
-  if not assigned(Fconnection) then writeln('Invalid database type, check if a valid database type for your achitecture was provided in the file ''database.ini''');
+    MSSQL:      Fconnection := TMSSQLConnection.Create(nil);
+    SYBASE:     Fconnection := TSybaseConnection.Create(nil);
+    else        writeln('Invalid database type, check if a valid database type for your achitecture was provided in the file ''database.ini''');
+  end;
 
   FTransaction := TSQLTransaction.Create(nil);
 
@@ -194,6 +205,7 @@ begin
     UserName := dbuser;
     Password := dbpassword;
     HostName := dbhostname;
+    CharSet := dbcharset;
     if dblogfilename<>'' then
     begin
       LogEvents:=[detCustom,detCommit,detExecute,detRollBack];
@@ -242,20 +254,17 @@ begin
     ssMSSQL, ssSybase:
       // todo: Sybase: copied over MSSQL; verify correctness
       // note: test database should have case-insensitive collation
-      // todo: SQL Server 2008 and later supports DATE, TIME and DATETIME2 data types,
-      //       but these are not supported by FreeTDS yet
       begin
       FieldtypeDefinitions[ftBoolean] := 'BIT';
       FieldtypeDefinitions[ftFloat]   := 'FLOAT';
       FieldtypeDefinitions[ftCurrency]:= 'MONEY';
-      FieldtypeDefinitions[ftDate]    := 'DATETIME';
-      FieldtypeDefinitions[ftTime]    := '';
       FieldtypeDefinitions[ftDateTime]:= 'DATETIME';
       FieldtypeDefinitions[ftBytes]   := 'BINARY(5)';
       FieldtypeDefinitions[ftVarBytes]:= 'VARBINARY(10)';
       FieldtypeDefinitions[ftBlob]    := 'IMAGE';
       FieldtypeDefinitions[ftMemo]    := 'TEXT';
       FieldtypeDefinitions[ftGraphic] := '';
+      FieldtypeDefinitions[ftGuid]    := 'UNIQUEIDENTIFIER';
       FieldtypeDefinitions[ftWideString] := 'NVARCHAR(10)';
       FieldtypeDefinitions[ftFixedWideChar] := 'NCHAR(10)';
       //FieldtypeDefinitions[ftWideMemo] := 'NTEXT'; // Sybase has UNITEXT?
@@ -308,6 +317,7 @@ begin
       FieldtypeDefinitions[ftBytes]    := 'BINARY(5)';
       FieldtypeDefinitions[ftVarBytes] := 'VARBINARY(10)';
       FieldtypeDefinitions[ftMemo]     := 'TEXT';
+      FieldtypeDefinitions[ftLongWord] := 'INT UNSIGNED';
       // Add into my.ini: sql-mode="...,PAD_CHAR_TO_FULL_LENGTH,ANSI_QUOTES" or set it explicitly by:
       // PAD_CHAR_TO_FULL_LENGTH to avoid trimming trailing spaces contrary to SQL standard (MySQL 5.1.20+)
       FConnection.ExecuteDirect('SET SESSION sql_mode=''STRICT_ALL_TABLES,PAD_CHAR_TO_FULL_LENGTH,ANSI_QUOTES''');
@@ -355,6 +365,11 @@ begin
       testStringValues[i] := TrimRight(testStringValues[i]);
     end;
 
+  if SQLServerType in [ssMSSQL, ssSQLite, ssSybase] then
+    // Some DB's do not support sql compliant boolean data type.
+    for i := 0 to testValuesCount-1 do
+      testValues[ftBoolean, i] := BoolToStr(testBooleanValues[i], '1', '0');
+
   if SQLServerType in [ssMySQL] then
     begin
     // Some DB's do not support milliseconds in datetime and time fields.
@@ -384,10 +399,7 @@ begin
   if SQLServerType in [ssMSSQL, ssSybase] then
     // Some DB's do not support datetime values before 1753-01-01
     for i := 18 to testValuesCount-1 do
-      begin
-      testValues[ftDate,i] := testValues[ftDate,0];
       testValues[ftDateTime,i] := testValues[ftDateTime,0];
-      end;
 
   // DecimalSeparator must correspond to monetary locale (lc_monetary) set on PostgreSQL server
   // Here we assume, that locale on client side is same as locale on server
@@ -496,46 +508,35 @@ begin
           begin
           sql := sql + ',F' + Fieldtypenames[FType];
           if testValues[FType,CountID] <> '' then
-            case FType of
-              ftBlob, ftBytes, ftGraphic, ftVarBytes:
-                if SQLServerType in [ssOracle] then
-                  // Oracle does not accept string literals in blob insert statements
-                  // convert 'DEADBEEF' hex literal to binary:
-                    sql1 := sql1 + ', HEXTORAW(' + QuotedStr(String2Hex(testValues[FType,CountID])) + ') '
-                  else // other dbs have no problems with the original string values
-                    sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID]);
-              ftCurrency:
-                sql1 := sql1 + ',' + testValues[FType,CountID];
-              ftDate:
-                // Oracle requires date conversion; otherwise
-                // ORA-01861: literal does not match format string
-                if SQLServerType in [ssOracle] then
-                  // ANSI/ISO date literal:
-                  sql1 := sql1 + ', DATE ' + QuotedStr(testValues[FType,CountID])
-                else
-                  sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID]);
-              ftDateTime:
-                // similar to ftDate handling
-                if SQLServerType in [ssOracle] then
-                begin
-                  // Could be a real date+time or only date. Does not consider only time.
-                  if pos(' ',testValues[FType,CountID])>0 then
-                    sql1 := sql1 + ', TIMESTAMP ' + QuotedStr(testValues[FType,CountID])
-                  else
-                    sql1 := sql1 + ', DATE ' + QuotedStr(testValues[FType,CountID]);
-                end
-                else
-                  sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID]);
-              ftTime:
-                // similar to ftDate handling
-                if SQLServerType in [ssOracle] then
-                  // More or less arbitrary default time; there is no time-only data type in Oracle.
-                  sql1 := sql1 + ', TIMESTAMP ' + QuotedStr('0001-01-01 '+testValues[FType,CountID])
-                else
-                  sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID]);
-              else
-                sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID])
+            if FType in [ftBoolean, ftCurrency] then
+               sql1 := sql1 + ',' + testValues[FType,CountID]
+            else if (FType in [ftBlob, ftBytes, ftGraphic, ftVarBytes]) and
+                    (SQLServerType = ssOracle) then
+               // Oracle does not accept string literals in blob insert statements
+               // convert 'DEADBEEF' hex literal to binary:
+               sql1 := sql1 + ', HEXTORAW(' + QuotedStr(String2Hex(testValues[FType,CountID])) + ') '
+            else if (FType = ftDate) and
+                    (SQLServerType = ssOracle) then
+               // Oracle requires date conversion; otherwise
+               // ORA-01861: literal does not match format string
+               // ANSI/ISO date literal:
+               sql1 := sql1 + ', DATE ' + QuotedStr(testValues[FType,CountID])
+            else if (FType = ftDateTime) and
+                    (SQLServerType = ssOracle) then begin
+               // similar to ftDate handling
+               // Could be a real date+time or only date. Does not consider only time.
+               if pos(' ',testValues[FType,CountID])>0 then
+                  sql1 := sql1 + ', TIMESTAMP ' + QuotedStr(testValues[FType,CountID])
+               else
+                  sql1 := sql1 + ', DATE ' + QuotedStr(testValues[FType,CountID]);
             end
+            else if (FType = ftTime) and
+                    (SQLServerType = ssOracle) then
+               // similar to ftDate handling
+               // More or less arbitrary default time; there is no time-only data type in Oracle.
+               sql1 := sql1 + ', TIMESTAMP ' + QuotedStr('0001-01-01 '+testValues[FType,CountID])
+            else
+               sql1 := sql1 + ',' + QuotedStr(testValues[FType,CountID])
           else
             sql1 := sql1 + ',NULL';
           end;
@@ -693,6 +694,53 @@ begin
     FTransaction.RollbackRetaining;
   end;
 end;
+
+procedure TSQLDBConnector.TryDropSequence(ASequenceName: String);
+
+var
+  NoSeq : Boolean;
+
+begin
+  NoSeq:=False;
+  try
+    case SQLServerType of
+      ssInterbase,
+      ssFirebird: FConnection.ExecuteDirect('DROP GENERATOR '+ASequenceName);
+      ssOracle,
+      ssPostgreSQL,
+      ssSybase,
+      ssMSSQL : FConnection.ExecuteDirect('DROP SEQUENCE '+ASequenceName+' START WITH 1 INCREMENT BY 1');
+      ssSQLite : FConnection.ExecuteDirect('delete from sqlite_sequence where (name='''+ASequenceName+''')');
+    else
+      NoSeq:=True;
+    end;
+  except
+    FTransaction.RollbackRetaining;
+  end;
+  if NoSeq then
+    Raise EDatabaseError.Create('Engine does not support sequences');
+end;
+
+procedure TSQLDBConnector.TryCreateSequence(ASequenceName: String);
+
+var
+  NoSeq : Boolean;
+
+begin
+  NoSeq:=False;
+  case SQLServerType of
+    ssInterbase,
+    ssFirebird: FConnection.ExecuteDirect('CREATE GENERATOR '+ASequenceName);
+    ssOracle,
+    ssPostgreSQL,
+    ssSybase,
+    ssMSSQL : FConnection.ExecuteDirect('CREATE SEQUENCE '+ASequenceName+' START WITH 1 INCREMENT BY 1');
+    ssSQLite : FConnection.ExecuteDirect('insert into sqlite_sequence (name,seq) values ('''+ASequenceName+''',1)');
+  else
+    Raise EDatabaseError.Create('Engine does not support sequences');
+  end;
+end;
+
 
 procedure TSQLDBConnector.ExecuteDirect(const SQL: string);
 begin

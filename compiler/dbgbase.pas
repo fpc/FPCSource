@@ -29,7 +29,7 @@ interface
       cclasses,
       systems,
       parabase,
-      symconst,symbase,symdef,symtype,symsym,symtable,
+      symconst,symbase,symdef,symtype,symsym,
       fmodule,
       aasmtai,aasmdata;
 
@@ -103,7 +103,8 @@ implementation
 
     uses
       cutils,
-      verbose;
+      verbose,
+      cgbase;
 
 
     constructor TDebugInfo.Create;
@@ -326,7 +327,11 @@ implementation
                          (tobjectdef(def).childof.dbg_state=dbg_state_written) then
                         appenddef(list,def)
                       else if tobjectdef(def).childof.dbg_state=dbg_state_queued then
-                        deftowritelist.add(def)
+                        begin
+                          { ensure that the parent is indeed queued }
+                          deftowritelist.add(tobjectdef(def).childof);
+                          deftowritelist.add(def);
+                        end
                       else if tobjectdef(def).childof.dbg_state=dbg_state_used then
                         { comes somewhere after the current def in the looplist
                           and will be written at that point, so we will have to
@@ -335,8 +340,6 @@ implementation
                       else
                         internalerror(2012072402);
                     end;
-                  else
-                    internalerror(200610054);
                 end;
               end;
             looplist.clear;
@@ -428,7 +431,8 @@ implementation
           localvarsym :
             appendsym_localvar(list,tlocalvarsym(sym));
           paravarsym :
-            appendsym_paravar(list,tparavarsym(sym));
+            if tparavarsym(sym).localloc.loc<>LOC_VOID then
+              appendsym_paravar(list,tparavarsym(sym));
           constsym :
             appendsym_const(list,tconstsym(sym));
           typesym :
@@ -472,6 +476,8 @@ implementation
             list.concat(tai_comment.Create(strpnew('Defs - Begin Staticsymtable')));
           globalsymtable :
             list.concat(tai_comment.Create(strpnew('Defs - Begin unit '+st.name^+' has index '+tostr(st.moduleid))));
+          else
+            ;
         end;
         repeat
           nonewadded:=true;
@@ -490,6 +496,8 @@ implementation
             list.concat(tai_comment.Create(strpnew('Defs - End Staticsymtable')));
           globalsymtable :
             list.concat(tai_comment.Create(strpnew('Defs - End unit '+st.name^+' has index '+tostr(st.moduleid))));
+          else
+            ;
         end;
       end;
 
@@ -524,6 +532,8 @@ implementation
             list.concat(tai_comment.Create(strpnew('Syms - Begin Staticsymtable')));
           globalsymtable :
             list.concat(tai_comment.Create(strpnew('Syms - Begin unit '+st.name^+' has index '+tostr(st.moduleid))));
+          else
+            ;
         end;
         for i:=0 to st.SymList.Count-1 do
           begin
@@ -541,6 +551,8 @@ implementation
             list.concat(tai_comment.Create(strpnew('Syms - End Staticsymtable')));
           globalsymtable :
             list.concat(tai_comment.Create(strpnew('Syms - End unit '+st.name^+' has index '+tostr(st.moduleid))));
+          else
+            ;
         end;
       end;
 
@@ -564,6 +576,8 @@ implementation
                 begin
                   write_symtable_procdefs(list,tabstractrecorddef(def).symtable);
                 end;
+              else
+                ;
             end;
           end;
       end;
@@ -589,7 +603,7 @@ implementation
         pu:=tused_unit(hp.used_units.first);
         while assigned(pu) do
           begin
-            if not pu.u.is_dbginfo_written then
+            if not pu.u.is_dbginfo_written and not assigned(pu.u.package) then
               begin
                 { prevent infinte loop for circular dependencies }
                 pu.u.is_dbginfo_written:=true;

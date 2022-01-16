@@ -36,7 +36,6 @@ unit cgcpu;
     type
       tcg386 = class(tcgx86)
         procedure init_register_allocators;override;
-        procedure do_register_allocation(list:TAsmList;headertai:tai);override;
 
         { passing parameter using push instead of mov }
         procedure a_load_reg_cgpara(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);override;
@@ -53,9 +52,11 @@ unit cgcpu;
 
       tcg64f386 = class(tcg64f32)
         procedure a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);override;
+        procedure a_op64_reg_ref(list : TAsmList;op:TOpCG;size : tcgsize;reg : tregister64; const ref: treference);override;
         procedure a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);override;
         procedure a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);override;
         procedure a_op64_const_ref(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const ref : treference);override;
+        procedure a_op64_ref(list : TAsmList;op:TOpCG;size : tcgsize;const ref: treference);override;
       private
         procedure get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
       end;
@@ -81,27 +82,13 @@ unit cgcpu;
     procedure tcg386.init_register_allocators;
       begin
         inherited init_register_allocators;
-        if not(target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
-           (cs_create_pic in current_settings.moduleswitches) then
-          rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP])
+        if (cs_useebp in current_settings.optimizerswitches) and assigned(current_procinfo) and (current_procinfo.framepointer<>NR_EBP) then
+          rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI,RS_EBP],first_int_imreg,[])
         else
-          if (cs_useebp in current_settings.optimizerswitches) and assigned(current_procinfo) and (current_procinfo.framepointer<>NR_EBP) then
-            rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI,RS_EBP],first_int_imreg,[])
-          else
-            rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP]);
+          rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP]);
         rg[R_MMXREGISTER]:=trgcpu.create(R_MMXREGISTER,R_SUBNONE,[RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3,RS_XMM4,RS_XMM5,RS_XMM6,RS_XMM7],first_mm_imreg,[]);
         rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBWHOLE,[RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3,RS_XMM4,RS_XMM5,RS_XMM6,RS_XMM7],first_mm_imreg,[]);
         rgfpu:=Trgx86fpu.create;
-      end;
-
-    procedure tcg386.do_register_allocation(list:TAsmList;headertai:tai);
-      begin
-        if (pi_needs_got in current_procinfo.flags) then
-          begin
-            if getsupreg(current_procinfo.got) < first_int_imreg then
-              include(rg[R_INTREGISTER].used_in_proc,getsupreg(current_procinfo.got));
-          end;
-        inherited do_register_allocation(list,headertai);
       end;
 
 
@@ -201,7 +188,7 @@ unit cgcpu;
                 cgpara.check_simple_location;
                 len:=align(cgpara.intsize,cgpara.alignment);
                 g_stackpointer_alloc(list,len);
-                reference_reset_base(href,NR_STACK_POINTER_REG,0,4);
+                reference_reset_base(href,NR_STACK_POINTER_REG,0,ctempposinvalid,4,[]);
                 g_concatcopy(list,r,href,len);
               end
             else
@@ -224,7 +211,11 @@ unit cgcpu;
               end
           end
         else
-          inherited a_load_ref_cgpara(list,size,r,cgpara);
+          begin
+            href:=r;
+            make_simple_ref(list,href);
+            inherited a_load_ref_cgpara(list,size,href,cgpara);
+          end;
       end;
 
 
@@ -232,9 +223,15 @@ unit cgcpu;
       var
         tmpreg : tregister;
         opsize : topsize;
-        tmpref : treference;
+        tmpref,dirref : treference;
       begin
-        with r do
+        dirref:=r;
+
+        { this could probably done in a more optimized way, but for now this
+          is sufficent }
+        make_direct_ref(list,dirref);
+
+        with dirref do
           begin
             if use_push(cgpara) then
               begin
@@ -245,11 +242,11 @@ unit cgcpu;
                     if assigned(symbol) then
                       begin
                         if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
-                           ((r.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
+                           ((dirref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
                             (cs_create_pic in current_settings.moduleswitches)) then
                           begin
                             tmpreg:=getaddressregister(list);
-                            a_loadaddr_ref_reg(list,r,tmpreg);
+                            a_loadaddr_ref_reg(list,dirref,tmpreg);
                             list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
                           end
                         else if cs_create_pic in current_settings.moduleswitches then
@@ -257,18 +254,14 @@ unit cgcpu;
                             if offset<>0 then
                               begin
                                 tmpreg:=getaddressregister(list);
-                                a_loadaddr_ref_reg(list,r,tmpreg);
+                                a_loadaddr_ref_reg(list,dirref,tmpreg);
                                 list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
                               end
                             else
                               begin
-                                reference_reset_symbol(tmpref,r.symbol,0,r.alignment);
+                                reference_reset_symbol(tmpref,dirref.symbol,0,sizeof(pint),[]);
                                 tmpref.refaddr:=addr_pic;
                                 tmpref.base:=current_procinfo.got;
-{$ifdef EXTDEBUG}
-				if not (pi_needs_got in current_procinfo.flags) then
-				  Comment(V_warning,'pi_needs_got not included');
-{$endif EXTDEBUG}
                                 include(current_procinfo.flags,pi_needs_got);
                                 list.concat(taicpu.op_ref(A_PUSH,S_L,tmpref));
                               end
@@ -288,12 +281,12 @@ unit cgcpu;
                 else
                   begin
                     tmpreg:=getaddressregister(list);
-                    a_loadaddr_ref_reg(list,r,tmpreg);
+                    a_loadaddr_ref_reg(list,dirref,tmpreg);
                     list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
                   end;
               end
             else
-              inherited a_loadaddr_ref_cgpara(list,r,cgpara);
+              inherited a_loadaddr_ref_cgpara(list,dirref,cgpara);
           end;
       end;
 
@@ -304,26 +297,26 @@ unit cgcpu;
         var
           href : treference;
         begin
-          reference_reset_base(href,NR_STACK_POINTER_REG,a,0);
+          reference_reset_base(href,NR_STACK_POINTER_REG,a,ctempposinvalid,0,[]);
           { normally, lea is a better choice than an add }
           list.concat(Taicpu.op_ref_reg(A_LEA,TCGSize2OpSize[OS_ADDR],href,NR_STACK_POINTER_REG));
         end;
 
       begin
-        { Release PIC register }
-        if (cs_create_pic in current_settings.moduleswitches) and
-           (tf_pic_uses_got in target_info.flags) and
-           (pi_needs_got in current_procinfo.flags) and
-           not(target_info.system in systems_darwin) then
-          list.concat(tai_regalloc.dealloc(NR_PIC_OFFSET_REG,nil));
-
         { MMX needs to call EMMS }
         if assigned(rg[R_MMXREGISTER]) and
            (rg[R_MMXREGISTER].uses_registers) then
           list.concat(Taicpu.op_none(A_EMMS,S_NO));
 
         { remove stackframe }
-        if not nostackframe then
+        if not(nostackframe) and
+          { we do not need an exit stack frame when we never return
+
+            * the final ret is left so the peephole optimizer can easily do call/ret -> jmp or call conversions
+            * the entry stack frame must be normally generated because the subroutine could be still left by
+              an exception and then the unwinding code might need to restore the registers stored by the entry code
+          }
+          not(po_noreturn in current_procinfo.procdef.procoptions) then
           begin
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) or
                (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
@@ -334,6 +327,7 @@ unit cgcpu;
                   internal_restore_regs(list,true);
                 if (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
                   list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],NR_FRAME_POINTER_REG));
+                current_asmdata.asmcfi.cfa_def_cfa_offset(list,sizeof(pint));
               end
             else
               begin
@@ -344,10 +338,11 @@ unit cgcpu;
             list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
           end;
 
+        if pi_uses_ymm in current_procinfo.flags then
+          list.Concat(taicpu.op_none(A_VZEROUPPER));
+
         { return from proc }
-        if (po_interrupt in current_procinfo.procdef.procoptions) and
-           { this messes up stack alignment }
-           (target_info.stackalign=4) then
+        if po_interrupt in current_procinfo.procdef.procoptions then
           begin
             if assigned(current_procinfo.procdef.funcretloc[calleeside].location) and
                (current_procinfo.procdef.funcretloc[calleeside].location^.loc=LOC_REGISTER) then
@@ -528,6 +523,8 @@ unit cgcpu;
           S_B : list.concat(Taicpu.Op_none(A_MOVSB,S_NO));
           S_W : list.concat(Taicpu.Op_none(A_MOVSW,S_NO));
           S_L : list.concat(Taicpu.Op_none(A_MOVSD,S_NO));
+          else
+            internalerror(2019050901);
         end;
         ungetcpuregister(list,NR_EDI);
         ungetcpuregister(list,NR_ECX);
@@ -548,26 +545,51 @@ unit cgcpu;
 
     procedure tcg386.g_maybe_got_init(list: TAsmList);
       var
-        notdarwin: boolean;
+        i: longint;
+        tmpreg: TRegister;
       begin
         { allocate PIC register }
-        if (cs_create_pic in current_settings.moduleswitches) and
-           (tf_pic_uses_got in target_info.flags) and
-           (pi_needs_got in current_procinfo.flags) then
+        if (tf_pic_uses_got in target_info.flags) and
+          (pi_needs_got in current_procinfo.flags) then
           begin
-            notdarwin:=not(target_info.system in [system_i386_darwin,system_i386_iphonesim]);
-            { on darwin, the got register is virtual (and allocated earlier
-              already) }
-            if notdarwin then
-              { ecx could be used in leaf procedures that don't use ecx to pass
-                aparameter }
-              current_procinfo.got:=NR_EBX;
-            if notdarwin { needs testing before it can be enabled for non-darwin platforms
-                and
-               (current_settings.optimizecputype in [cpu_Pentium2,cpu_Pentium3,cpu_Pentium4]) } then
+            if not (target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
               begin
-                current_module.requires_ebx_pic_helper:=true;
-                a_call_name_static(list,'fpc_geteipasebx');
+                { Use ECX as a temp register by default }
+                if current_procinfo.got = NR_EBX then
+                  tmpreg:=NR_EBX
+                else
+                  tmpreg:=NR_ECX;
+                { Allocate registers used for parameters to make sure they
+                  never allocated during this PIC init code }
+                for i:=0 to current_procinfo.procdef.paras.Count - 1 do
+                  with tparavarsym(current_procinfo.procdef.paras[i]).paraloc[calleeside].Location^ do
+                    if Loc in [LOC_REGISTER, LOC_CREGISTER] then begin
+                      a_reg_alloc(list, register);
+                      { If ECX is used for a parameter, use EBX as temp }
+                      if getsupreg(register) = RS_ECX then
+                        tmpreg:=NR_EBX;
+                    end;
+
+                if tmpreg = NR_EBX then
+                  begin
+                    { Mark EBX as used in the proc }
+                    include(rg[R_INTREGISTER].used_in_proc,RS_EBX);
+                    current_module.requires_ebx_pic_helper:=true;
+                    a_call_name_static(list,'fpc_geteipasebx');
+                  end
+                else
+                  begin
+                    current_module.requires_ecx_pic_helper:=true;
+                    a_call_name_static(list,'fpc_geteipasecx');
+                  end;
+                list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_',AT_DATA),0,tmpreg));
+                list.concat(taicpu.op_reg_reg(A_MOV,S_L,tmpreg,current_procinfo.got));
+
+                { Deallocate parameter registers }
+                for i:=0 to current_procinfo.procdef.paras.Count - 1 do
+                  with tparavarsym(current_procinfo.procdef.paras[i]).paraloc[calleeside].Location^ do
+                    if Loc in [LOC_REGISTER, LOC_CREGISTER] then
+                      a_reg_dealloc(list, register);
               end
             else
               begin
@@ -578,11 +600,6 @@ unit cgcpu;
                 a_call_name_static(list,current_procinfo.CurrGOTLabel.name);
                 a_label(list,current_procinfo.CurrGotLabel);
                 list.concat(taicpu.op_reg(A_POP,S_L,current_procinfo.got))
-              end;
-            if notdarwin then
-              begin
-                list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),0,NR_PIC_OFFSET_REG));
-                list.concat(tai_regalloc.alloc(NR_PIC_OFFSET_REG,nil));
               end;
           end;
       end;
@@ -619,7 +636,7 @@ unit cgcpu;
               op2:=A_AND;
             end;
           else
-            internalerror(200203241);
+            internalerror(2002032408);
         end;
       end;
 
@@ -634,9 +651,13 @@ unit cgcpu;
             get_64bit_ops(op,op1,op2);
             tempref:=ref;
             tcgx86(cg).make_simple_ref(list,tempref);
+            if op in [OP_ADD,OP_SUB] then
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
             list.concat(taicpu.op_ref_reg(op1,S_L,tempref,reg.reglo));
             inc(tempref.offset,4);
             list.concat(taicpu.op_ref_reg(op2,S_L,tempref,reg.reghi));
+            if op in [OP_ADD,OP_SUB] then
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
           end
         else
           begin
@@ -646,9 +667,131 @@ unit cgcpu;
       end;
 
 
+    procedure tcg64f386.a_op64_reg_ref(list : TAsmList;op:TOpCG;size : tcgsize;reg : tregister64; const ref: treference);
+      var
+        op1,op2 : TAsmOp;
+        tempref : treference;
+        tmpreg: TRegister;
+        l1, l2: TAsmLabel;
+      begin
+        case op of
+          OP_NOT,OP_NEG:
+            inherited;
+          OP_SHR,OP_SHL,OP_SAR:
+            begin
+              { load right operators in a register }
+              cg.getcpuregister(list,NR_ECX);
+              cg.a_load_reg_reg(list,OS_32,OS_32,reg.reglo,NR_ECX);
+
+              tempref:=ref;
+              tcgx86(cg).make_simple_ref(list,tempref);
+
+              { the damned shift instructions work only til a count of 32 }
+              { so we've to do some tricks here                           }
+              current_asmdata.getjumplabel(l1);
+              current_asmdata.getjumplabel(l2);
+              list.Concat(taicpu.op_const_reg(A_TEST,S_B,32,NR_CL));
+              cg.a_jmp_flags(list,F_E,l1);
+              tmpreg:=cg.getintregister(list,OS_32);
+              case op of
+                OP_SHL:
+                  begin
+                    cg.a_load_ref_reg(list,OS_32,OS_32,tempref,tmpreg);
+                    list.Concat(taicpu.op_reg_reg(A_SHL,S_L,NR_CL,tmpreg));
+                    inc(tempref.offset,4);
+                    cg.a_load_reg_ref(list,OS_32,OS_32,tmpreg,tempref);
+                    dec(tempref.offset,4);
+                    cg.a_load_const_ref(list,OS_32,0,tempref);
+                    cg.a_jmp_always(list,l2);
+                    cg.a_label(list,l1);
+                    cg.a_load_ref_reg(list,OS_32,OS_32,tempref,tmpreg);
+                    inc(tempref.offset,4);
+                    list.Concat(taicpu.op_reg_reg_ref(A_SHLD,S_L,NR_CL,tmpreg,tempref));
+                    dec(tempref.offset,4);
+                    if cs_opt_size in current_settings.optimizerswitches then
+                      list.concat(taicpu.op_reg_ref(A_SHL,S_L,NR_CL,tempref))
+                    else
+                      begin
+                        list.concat(taicpu.op_reg_reg(A_SHL,S_L,NR_CL,tmpreg));
+                        cg.a_load_reg_ref(list,OS_32,OS_32,tmpreg,tempref);
+                      end;
+                  end;
+                OP_SHR:
+                  begin
+                    inc(tempref.offset,4);
+                    cg.a_load_ref_reg(list,OS_32,OS_32,tempref,tmpreg);
+                    list.Concat(taicpu.op_reg_reg(A_SHR,S_L,NR_CL,tmpreg));
+                    dec(tempref.offset,4);
+                    cg.a_load_reg_ref(list,OS_32,OS_32,tmpreg,tempref);
+                    inc(tempref.offset,4);
+                    cg.a_load_const_ref(list,OS_32,0,tempref);
+                    cg.a_jmp_always(list,l2);
+                    cg.a_label(list,l1);
+                    cg.a_load_ref_reg(list,OS_32,OS_32,tempref,tmpreg);
+                    dec(tempref.offset,4);
+                    list.Concat(taicpu.op_reg_reg_ref(A_SHRD,S_L,NR_CL,tmpreg,tempref));
+                    inc(tempref.offset,4);
+                    if cs_opt_size in current_settings.optimizerswitches then
+                      list.concat(taicpu.op_reg_ref(A_SHR,S_L,NR_CL,tempref))
+                    else
+                      begin
+                        list.concat(taicpu.op_reg_reg(A_SHR,S_L,NR_CL,tmpreg));
+                        cg.a_load_reg_ref(list,OS_32,OS_32,tmpreg,tempref);
+                      end;
+                  end;
+                OP_SAR:
+                  begin
+                    inc(tempref.offset,4);
+                    cg.a_load_ref_reg(list,OS_32,OS_32,tempref,tmpreg);
+                    list.Concat(taicpu.op_reg_reg(A_SAR,S_L,NR_CL,tmpreg));
+                    dec(tempref.offset,4);
+                    cg.a_load_reg_ref(list,OS_32,OS_32,tmpreg,tempref);
+                    inc(tempref.offset,4);
+                    list.Concat(taicpu.op_const_reg(A_SAR,S_L,31,tmpreg));
+                    cg.a_load_reg_ref(list,OS_32,OS_32,tmpreg,tempref);
+                    cg.a_jmp_always(list,l2);
+                    cg.a_label(list,l1);
+                    cg.a_load_ref_reg(list,OS_32,OS_32,tempref,tmpreg);
+                    dec(tempref.offset,4);
+                    list.Concat(taicpu.op_reg_reg_ref(A_SHRD,S_L,NR_CL,tmpreg,tempref));
+                    inc(tempref.offset,4);
+                    if cs_opt_size in current_settings.optimizerswitches then
+                      list.concat(taicpu.op_reg_ref(A_SAR,S_L,NR_CL,tempref))
+                    else
+                      begin
+                        list.concat(taicpu.op_reg_reg(A_SAR,S_L,NR_CL,tmpreg));
+                        cg.a_load_reg_ref(list,OS_32,OS_32,tmpreg,tempref);
+                      end;
+                  end;
+                else
+                  internalerror(2017041801);
+              end;
+              cg.a_label(list,l2);
+
+              cg.ungetcpuregister(list,NR_ECX);
+              exit;
+            end;
+          else
+            begin
+              get_64bit_ops(op,op1,op2);
+              tempref:=ref;
+              tcgx86(cg).make_simple_ref(list,tempref);
+              if op in [OP_ADD,OP_SUB] then
+                cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+              list.concat(taicpu.op_reg_ref(op1,S_L,reg.reglo,tempref));
+              inc(tempref.offset,4);
+              list.concat(taicpu.op_reg_ref(op2,S_L,reg.reghi,tempref));
+              if op in [OP_ADD,OP_SUB] then
+                cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+            end;
+        end;
+      end;
+
+
     procedure tcg64f386.a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);
       var
         op1,op2 : TAsmOp;
+        l1, l2: TAsmLabel;
       begin
         case op of
           OP_NEG :
@@ -656,8 +799,10 @@ unit cgcpu;
               if (regsrc.reglo<>regdst.reglo) then
                 a_load64_reg_reg(list,regsrc,regdst);
               list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reghi));
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
               list.concat(taicpu.op_reg(A_NEG,S_L,regdst.reglo));
               list.concat(taicpu.op_const_reg(A_SBB,S_L,-1,regdst.reghi));
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
               exit;
             end;
           OP_NOT :
@@ -668,10 +813,67 @@ unit cgcpu;
               list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reglo));
               exit;
             end;
+          OP_SHR,OP_SHL,OP_SAR:
+            begin
+              { load right operators in a register }
+              cg.getcpuregister(list,NR_ECX);
+              cg.a_load_reg_reg(list,OS_32,OS_32,regsrc.reglo,NR_ECX);
+
+              { the damned shift instructions work only til a count of 32 }
+              { so we've to do some tricks here                           }
+              current_asmdata.getjumplabel(l1);
+              current_asmdata.getjumplabel(l2);
+              list.Concat(taicpu.op_const_reg(A_TEST,S_B,32,NR_CL));
+              cg.a_jmp_flags(list,F_E,l1);
+              case op of
+                OP_SHL:
+                  begin
+                    list.Concat(taicpu.op_reg_reg(A_SHL,S_L,NR_CL,regdst.reglo));
+                    cg.a_load_reg_reg(list,OS_32,OS_32,regdst.reglo,regdst.reghi);
+                    list.Concat(taicpu.op_reg_reg(A_XOR,S_L,regdst.reglo,regdst.reglo));
+                    cg.a_jmp_always(list,l2);
+                    cg.a_label(list,l1);
+                    list.Concat(taicpu.op_reg_reg_reg(A_SHLD,S_L,NR_CL,regdst.reglo,regdst.reghi));
+                    list.Concat(taicpu.op_reg_reg(A_SHL,S_L,NR_CL,regdst.reglo));
+                  end;
+                OP_SHR:
+                  begin
+                    list.Concat(taicpu.op_reg_reg(A_SHR,S_L,NR_CL,regdst.reghi));
+                    cg.a_load_reg_reg(list,OS_32,OS_32,regdst.reghi,regdst.reglo);
+                    list.Concat(taicpu.op_reg_reg(A_XOR,S_L,regdst.reghi,regdst.reghi));
+                    cg.a_jmp_always(list,l2);
+                    cg.a_label(list,l1);
+                    list.Concat(taicpu.op_reg_reg_reg(A_SHRD,S_L,NR_CL,regdst.reghi,regdst.reglo));
+                    list.Concat(taicpu.op_reg_reg(A_SHR,S_L,NR_CL,regdst.reghi));
+                  end;
+                OP_SAR:
+                  begin
+                    cg.a_load_reg_reg(list,OS_32,OS_32,regdst.reghi,regdst.reglo);
+                    list.Concat(taicpu.op_reg_reg(A_SAR,S_L,NR_CL,regdst.reglo));
+                    list.Concat(taicpu.op_const_reg(A_SAR,S_L,31,regdst.reghi));
+                    cg.a_jmp_always(list,l2);
+                    cg.a_label(list,l1);
+                    list.Concat(taicpu.op_reg_reg_reg(A_SHRD,S_L,NR_CL,regdst.reghi,regdst.reglo));
+                    list.Concat(taicpu.op_reg_reg(A_SAR,S_L,NR_CL,regdst.reghi));
+                  end;
+                else
+                  internalerror(2017041802);
+              end;
+              cg.a_label(list,l2);
+
+              cg.ungetcpuregister(list,NR_ECX);
+              exit;
+            end;
+          else
+            ;
         end;
         get_64bit_ops(op,op1,op2);
+        if op in [OP_ADD,OP_SUB] then
+          cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
         list.concat(taicpu.op_reg_reg(op1,S_L,regsrc.reglo,regdst.reglo));
         list.concat(taicpu.op_reg_reg(op2,S_L,regsrc.reghi,regdst.reghi));
+        if op in [OP_ADD,OP_SUB] then
+          cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
       end;
 
 
@@ -689,8 +891,98 @@ unit cgcpu;
             begin
               // can't use a_op_const_ref because this may use dec/inc
               get_64bit_ops(op,op1,op2);
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
               list.concat(taicpu.op_const_reg(op1,S_L,aint(lo(value)),reg.reglo));
               list.concat(taicpu.op_const_reg(op2,S_L,aint(hi(value)),reg.reghi));
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+            end;
+          OP_SHR,OP_SHL,OP_SAR:
+            begin
+              value:=value and 63;
+              if value<>0 then
+                begin
+                  if (value=1) and (op=OP_SHL) and
+                     (current_settings.optimizecputype<=cpu_486) and
+                     not (cs_opt_size in current_settings.optimizerswitches) then
+                    begin
+                      cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                      list.concat(taicpu.op_reg_reg(A_ADD,S_L,reg.reglo,reg.reglo));
+                      list.concat(taicpu.op_reg_reg(A_ADC,S_L,reg.reghi,reg.reghi));
+                      cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                    end
+                  else if (value=1) and (cs_opt_size in current_settings.optimizerswitches) then
+                    case op of
+                      OP_SHR:
+                        begin
+                          cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                          list.concat(taicpu.op_const_reg(A_SHR,S_L,value,reg.reghi));
+                          list.concat(taicpu.op_const_reg(A_RCR,S_L,value,reg.reglo));
+                          cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                        end;
+                      OP_SHL:
+                        begin
+                          cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                          list.concat(taicpu.op_const_reg(A_SHL,S_L,value,reg.reglo));
+                          list.concat(taicpu.op_const_reg(A_RCL,S_L,value,reg.reghi));
+                          cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                        end;
+                      OP_SAR:
+                        begin
+                          cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                          list.concat(taicpu.op_const_reg(A_SAR,S_L,value,reg.reghi));
+                          list.concat(taicpu.op_const_reg(A_RCR,S_L,value,reg.reglo));
+                          cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                        end;
+                      else
+                        internalerror(2019050902);
+                    end
+                  else if value>31 then
+                    case op of
+                      OP_SAR:
+                        begin
+                          cg.a_load_reg_reg(list,OS_32,OS_32,reg.reghi,reg.reglo);
+                          list.concat(taicpu.op_const_reg(A_SAR,S_L,31,reg.reghi));
+                          if (value and 31)<>0 then
+                            list.concat(taicpu.op_const_reg(A_SAR,S_L,value and 31,reg.reglo));
+                        end;
+                      OP_SHR:
+                        begin
+                          cg.a_load_reg_reg(list,OS_32,OS_32,reg.reghi,reg.reglo);
+                          list.concat(taicpu.op_reg_reg(A_XOR,S_L,reg.reghi,reg.reghi));
+                          if (value and 31)<>0 then
+                            list.concat(taicpu.op_const_reg(A_SHR,S_L,value and 31,reg.reglo));
+                        end;
+                      OP_SHL:
+                        begin
+                          cg.a_load_reg_reg(list,OS_32,OS_32,reg.reglo,reg.reghi);
+                          list.concat(taicpu.op_reg_reg(A_XOR,S_L,reg.reglo,reg.reglo));
+                          if (value and 31)<>0 then
+                            list.concat(taicpu.op_const_reg(A_SHL,S_L,value and 31,reg.reghi));
+                        end;
+                      else
+                        internalerror(2017041201);
+                    end
+                  else
+                    case op of
+                      OP_SAR:
+                        begin
+                          list.concat(taicpu.op_const_reg_reg(A_SHRD,S_L,value,reg.reghi,reg.reglo));
+                          list.concat(taicpu.op_const_reg(A_SAR,S_L,value,reg.reghi));
+                        end;
+                      OP_SHR:
+                        begin
+                          list.concat(taicpu.op_const_reg_reg(A_SHRD,S_L,value,reg.reghi,reg.reglo));
+                          list.concat(taicpu.op_const_reg(A_SHR,S_L,value,reg.reghi));
+                        end;
+                      OP_SHL:
+                        begin
+                          list.concat(taicpu.op_const_reg_reg(A_SHLD,S_L,value,reg.reglo,reg.reghi));
+                          list.concat(taicpu.op_const_reg(A_SHL,S_L,value,reg.reglo));
+                        end;
+                      else
+                        internalerror(2017041202);
+                    end;
+                end;
             end;
           else
             internalerror(200204021);
@@ -702,28 +994,183 @@ unit cgcpu;
       var
         op1,op2 : TAsmOp;
         tempref : treference;
+        tmpreg: TRegister;
       begin
         tempref:=ref;
         tcgx86(cg).make_simple_ref(list,tempref);
         case op of
           OP_AND,OP_OR,OP_XOR:
             begin
-              cg.a_op_const_ref(list,op,OS_32,tcgint(lo(value)),tempref);
+              cg.a_op_const_ref(list,op,OS_32,aint(lo(value)),tempref);
               inc(tempref.offset,4);
-              cg.a_op_const_ref(list,op,OS_32,tcgint(hi(value)),tempref);
+              cg.a_op_const_ref(list,op,OS_32,aint(hi(value)),tempref);
             end;
           OP_ADD, OP_SUB:
             begin
               get_64bit_ops(op,op1,op2);
               // can't use a_op_const_ref because this may use dec/inc
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
               list.concat(taicpu.op_const_ref(op1,S_L,aint(lo(value)),tempref));
               inc(tempref.offset,4);
               list.concat(taicpu.op_const_ref(op2,S_L,aint(hi(value)),tempref));
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+            end;
+          OP_SHR,OP_SHL,OP_SAR:
+            begin
+              value:=value and 63;
+              if value<>0 then
+                begin
+                  if value=1 then
+                    case op of
+                      OP_SHR:
+                        begin
+                          cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                          inc(tempref.offset,4);
+                          list.concat(taicpu.op_const_ref(A_SHR,S_L,value,tempref));
+                          dec(tempref.offset,4);
+                          list.concat(taicpu.op_const_ref(A_RCR,S_L,value,tempref));
+                          cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                        end;
+                      OP_SHL:
+                        begin
+                          cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                          list.concat(taicpu.op_const_ref(A_SHL,S_L,value,tempref));
+                          inc(tempref.offset,4);
+                          list.concat(taicpu.op_const_ref(A_RCL,S_L,value,tempref));
+                          cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                        end;
+                      OP_SAR:
+                        begin
+                          cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+                          inc(tempref.offset,4);
+                          list.concat(taicpu.op_const_ref(A_SAR,S_L,value,tempref));
+                          dec(tempref.offset,4);
+                          list.concat(taicpu.op_const_ref(A_RCR,S_L,value,tempref));
+                          cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+                        end;
+                      else
+                        internalerror(2019050903);
+                    end
+                  else if value>31 then
+                    case op of
+                      OP_SHR,OP_SAR:
+                        begin
+                          tmpreg:=cg.getintregister(list,OS_32);
+                          inc(tempref.offset,4);
+                          cg.a_load_ref_reg(list,OS_32,OS_32,tempref,tmpreg);
+                          if (value and 31)<>0 then
+                            if op=OP_SHR then
+                              list.concat(taicpu.op_const_reg(A_SHR,S_L,value and 31,tmpreg))
+                            else
+                              list.concat(taicpu.op_const_reg(A_SAR,S_L,value and 31,tmpreg));
+                          dec(tempref.offset,4);
+                          cg.a_load_reg_ref(list,OS_32,OS_32,tmpreg,tempref);
+                          inc(tempref.offset,4);
+                          if op=OP_SHR then
+                            cg.a_load_const_ref(list,OS_32,0,tempref)
+                          else
+                            begin
+                              list.concat(taicpu.op_const_reg(A_SAR,S_L,31,tmpreg));
+                              cg.a_load_reg_ref(list,OS_32,OS_32,tmpreg,tempref);
+                            end;
+                        end;
+                      OP_SHL:
+                        begin
+                          tmpreg:=cg.getintregister(list,OS_32);
+                          cg.a_load_ref_reg(list,OS_32,OS_32,tempref,tmpreg);
+                          if (value and 31)<>0 then
+                            list.concat(taicpu.op_const_reg(A_SHL,S_L,value and 31,tmpreg));
+                          inc(tempref.offset,4);
+                          cg.a_load_reg_ref(list,OS_32,OS_32,tmpreg,tempref);
+                          dec(tempref.offset,4);
+                          cg.a_load_const_ref(list,OS_32,0,tempref);
+                        end;
+                      else
+                        internalerror(2017041803);
+                    end
+                  else
+                    case op of
+                      OP_SHR,OP_SAR:
+                        begin
+                          tmpreg:=cg.getintregister(list,OS_32);
+                          inc(tempref.offset,4);
+                          cg.a_load_ref_reg(list,OS_32,OS_32,tempref,tmpreg);
+                          dec(tempref.offset,4);
+                          list.concat(taicpu.op_const_reg_ref(A_SHRD,S_L,value,tmpreg,tempref));
+                          inc(tempref.offset,4);
+                          if cs_opt_size in current_settings.optimizerswitches then
+                            begin
+                              if op=OP_SHR then
+                                list.concat(taicpu.op_const_ref(A_SHR,S_L,value,tempref))
+                              else
+                                list.concat(taicpu.op_const_ref(A_SAR,S_L,value,tempref));
+                            end
+                          else
+                            begin
+                              if op=OP_SHR then
+                                list.concat(taicpu.op_const_reg(A_SHR,S_L,value,tmpreg))
+                              else
+                                list.concat(taicpu.op_const_reg(A_SAR,S_L,value,tmpreg));
+                              cg.a_load_reg_ref(list,OS_32,OS_32,tmpreg,tempref);
+                            end;
+                        end;
+                      OP_SHL:
+                        begin
+                          tmpreg:=cg.getintregister(list,OS_32);
+                          cg.a_load_ref_reg(list,OS_32,OS_32,tempref,tmpreg);
+                          inc(tempref.offset,4);
+                          list.concat(taicpu.op_const_reg_ref(A_SHLD,S_L,value,tmpreg,tempref));
+                          dec(tempref.offset,4);
+                          if cs_opt_size in current_settings.optimizerswitches then
+                            list.concat(taicpu.op_const_ref(A_SHL,S_L,value,tempref))
+                          else
+                            begin
+                              list.concat(taicpu.op_const_reg(A_SHL,S_L,value,tmpreg));
+                              cg.a_load_reg_ref(list,OS_32,OS_32,tmpreg,tempref);
+                            end;
+                        end;
+                      else
+                        internalerror(2017041203);
+                    end;
+                end;
             end;
           else
             internalerror(200204022);
         end;
       end;
+
+
+    procedure tcg64f386.a_op64_ref(list: TAsmList; op: TOpCG; size: tcgsize; const ref: treference);
+      var
+        tempref : treference;
+      begin
+        case op of
+          OP_NOT:
+            begin
+              tempref:=ref;
+              tcgx86(cg).make_simple_ref(list,tempref);
+              list.concat(taicpu.op_ref(A_NOT,S_L,tempref));
+              inc(tempref.offset,4);
+              list.concat(taicpu.op_ref(A_NOT,S_L,tempref));
+            end;
+          OP_NEG:
+            begin
+              tempref:=ref;
+              tcgx86(cg).make_simple_ref(list,tempref);
+              inc(tempref.offset,4);
+              list.concat(taicpu.op_ref(A_NOT,S_L,tempref));
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
+              dec(tempref.offset,4);
+              list.concat(taicpu.op_ref(A_NEG,S_L,tempref));
+              inc(tempref.offset,4);
+              list.concat(taicpu.op_const_ref(A_SBB,S_L,-1,tempref));
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+            end;
+          else
+            internalerror(2020050708);
+        end;
+      end;
+
 
     procedure create_codegen;
       begin

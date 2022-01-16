@@ -16,12 +16,16 @@ type
    end;
 
 const
+{$ifdef CPUI8086}
+  NumIterations = 100;
+{$else not CPUI8086}
 {$ifdef CPU68K}
   { this test takes ages under m68k otherwise PM }
   NumIterations = 10000;
 {$else not CPU68K}
   NumIterations = 100000;
 {$endif not CPU68K}
+{$endif not CPUI8086}
 
 procedure dumpqword(q : qword);
 

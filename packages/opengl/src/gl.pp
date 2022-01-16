@@ -2255,27 +2255,19 @@ initialization
   SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide,exOverflow, exUnderflow, exPrecision]);
   {$endif}
 
-  {$IFDEF Windows}
+  {$if defined(Windows)}
   LoadOpenGL('opengl32.dll');
-  {$ELSE}
-  {$IFDEF OS2}
+  {$elseif defined(OS2)}
   LoadOpenGL('opengl.dll');
-  {$ELSE OS2}
-  {$ifdef darwin}
+  {$elseif defined(darwin)}
   LoadOpenGL('/System/Library/Frameworks/OpenGL.framework/Libraries/libGL.dylib');
-  {$ELSE}
-  {$IFDEF MorphOS}
+  {$elseif defined(MorphOS)}
   InitTinyGLLibrary;
-  {$ELSE}
-  {$ifdef haiku}
+  {$elseif defined(haiku) or defined(OpenBSD)}
   LoadOpenGL('libGL.so');
   {$else}
   LoadOpenGL('libGL.so.1');
   {$endif}
-  {$ENDIF}
-  {$endif}
-  {$ENDIF OS2}
-  {$ENDIF}
 
 finalization
 

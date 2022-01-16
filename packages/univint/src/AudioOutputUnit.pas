@@ -1,18 +1,12 @@
-{
-     File:       AudioOutputUnit.h
- 
-     Contains:   AudioOutputUnit Interfaces
- 
-     Copyright:  © 2000-2008 by Apple, Inc., all rights reserved.
- 
-     Bugs?:      For bug reports, consult the following page on
-                 the World Wide Web:
- 
-                     http://bugs.freepascal.org
- 
+{!
+	@file		AudioOutputUnit.h
+ 	@framework	AudioToolbox.framework
+ 	@copyright	(c) 2000-2015 Apple, Inc. All rights reserved.
+	@brief		Additional Audio Unit API for audio input/output units.
 }
 {  Pascal Translation:  Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
 {  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, October 2012 }
+{  Pascal Translation Update: Jonas Maebe <jonas@freepascal.org>, July 2019 }
 
 {
     Modified for use with Free Pascal
@@ -22,6 +16,7 @@
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
+{$modeswitch cblocks}
 {$packenum 1}
 {$macro on}
 {$inline on}
@@ -114,7 +109,7 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-{$ifc defined(iphonesim)}
+{$ifc defined iphonesim}
  	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
@@ -131,7 +126,7 @@ interface
 	{$setc TARGET_CPU_X86_64 := TRUE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-{$ifc defined(iphonesim)}
+{$ifc defined iphonesim}
  	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
@@ -148,7 +143,6 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := TRUE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-	{ will require compiler define when/if other Apple devices with ARM cpus ship }
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
@@ -160,11 +154,16 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := TRUE}
-	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+{$ifc defined ios}
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
-	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 	{$setc TARGET_OS_EMBEDDED := TRUE}
+{$elsec}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
+{$endc}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ nor __arm64__ is defined.}
 {$endc}
@@ -232,16 +231,16 @@ uses MacTypes,AUComponent;
 //	Start/stop methods for output units
 //-----------------------------------------------------------------------------
 function AudioOutputUnitStart( ci: AudioUnit ): OSStatus; external name '_AudioOutputUnitStart';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_0,__IPHONE_2_0) *)
+(* API_AVAILABLE(macos(10.0), ios(2.0), watchos(2.0), tvos(9.0)) *)
 
 function AudioOutputUnitStop( ci: AudioUnit ): OSStatus; external name '_AudioOutputUnitStop';
-(* __OSX_AVAILABLE_STARTING(__MAC_10_0,__IPHONE_2_0) *)
+(* API_AVAILABLE(macos(10.0), ios(2.0), watchos(2.0), tvos(9.0)) *)
 
 //-----------------------------------------------------------------------------
 //	Selectors for component and audio plugin calls
 //-----------------------------------------------------------------------------
 const
-	kAudioOutputUnitRange = $0200;	// selector range
+	kAudioOutputUnitRange = $0200; 	// selector range
 	kAudioOutputUnitStartSelect = $0201;
 	kAudioOutputUnitStopSelect = $0202;
 

@@ -97,7 +97,7 @@ type
 
 //#include "adshlp.h"
 
-function ADsGetObject(lpszPathName: LPCWSTR; const riid: REFIID; out ppObject: Pointer): HRESULT; stdcall;
+function ADsGetObject(lpszPathName: LPCWSTR; constref riid: REFIID; out ppObject: Pointer): HRESULT; stdcall;
 {$EXTERNALSYM ADsGetObject}
 
 function ADsBuildEnumerator(pADsContainer: IADsContainer; out ppEnumVariant: IEnumVARIANT): HRESULT; stdcall;
@@ -119,7 +119,7 @@ function ADsBuildVarArrayInt(lpdwObjectTypes: LPDWORD; dwObjectTypes: DWORD;
 {$EXTERNALSYM ADsBuildVarArrayInt}
 
 function ADsOpenObject(lpszPathName, lpszUserName, lpszPassword: LPCWSTR;
-  dwReserved: DWORD; const riid: REFIID; out ppObject: Pointer): HRESULT; stdcall;
+  dwReserved: DWORD; constref riid: REFIID; out ppObject: Pointer): HRESULT; stdcall;
 {$EXTERNALSYM ADsOpenObject}
 
 //

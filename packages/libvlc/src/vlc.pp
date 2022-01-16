@@ -473,7 +473,10 @@ end;
 
 function TCustomVLCMediaListPlayer.GetPlaying: Boolean;
 begin
-  Result:=libvlc_media_list_player_is_playing(Instance)<>0;
+  if Assigned(FPlayer) then
+    Result:=libvlc_media_list_player_is_playing(Instance)<>0
+  else
+    Result:=false;
 end;
 
 function TCustomVLCMediaListPlayer.GetInstance: plibvlc_media_list_player_t;
@@ -495,7 +498,10 @@ end;
 
 function TCustomVLCMediaListPlayer.GetState: libvlc_state_t;
 begin
-  Result:=libvlc_media_list_player_get_state(Instance)
+  if Assigned(FInstance) then
+    Result:=libvlc_media_list_player_get_state(Instance)
+  else
+    Result:=libvlc_NothingSpecial;
 end;
 
 function TCustomVLCMediaListPlayer.GetVLC: TVLCLibrary;
@@ -527,6 +533,7 @@ begin
 end;
 
 procedure TCustomVLCMediaListPlayer.SetPlayMode(AValue: TVLCPlayMode);
+
 Const
   M : Array  [TVLCPlayMode] of libvlc_playback_mode_t
     = (libvlc_playback_mode_default,
@@ -534,6 +541,7 @@ Const
        libvlc_playback_mode_repeat);
 
 begin
+  if not Assigned(Finstance) then Exit;
   if FPlayMode=AValue then Exit;
   FPlayMode:=AValue;
   libvlc_media_list_player_set_playback_mode(FInstance, M[AValue]);
@@ -679,7 +687,8 @@ end;
 
 procedure TCustomVLCMediaPlayer.SetAudioMuted(AValue: Boolean);
 begin
-  libvlc_audio_set_mute(instance, ord(AValue));
+  if Assigned(FInstance) then
+    libvlc_audio_set_mute(instance, ord(AValue));
 end;
 
 procedure TCustomVLCMediaPlayer.SetFitWindow(AValue: Boolean);

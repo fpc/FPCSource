@@ -71,7 +71,7 @@ interface
 implementation
 
     uses
-      cutils,globals,verbose,globtype,constexp,fmodule,
+      cutils,globals,verbose,globtype,constexp,fmodule,compinnr,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       symtype,symconst,symdef,symsym,symcpu,symtable,jvmdef,
       defutil,
@@ -161,7 +161,7 @@ implementation
     function tjvminlinenode.first_copy: tnode;
       var
         ppn: tcallparanode;
-        arr, len, start, kind: tnode;
+        arr, len, start: tnode;
         eledef: tdef;
         counter, ndims: longint;
         finaltype: char;
@@ -305,6 +305,14 @@ implementation
              begin
                result:=typecheck_new(handled);
              end;
+           in_sizeof_x:
+             begin
+               { can't get the size of the data of a class/object }
+               if left.resultdef.typ in [objectdef,classrefdef] then
+                 Message(parser_e_illegal_expression);
+             end;
+           else
+             ;
          end;
         if not handled then
           result:=inherited pass_typecheck;
@@ -360,7 +368,7 @@ implementation
         tcallparanode(left).right:=nil;
         seteledef:=tsetdef(setpara.resultdef).elementdef;
         setpara:=caddrnode.create_internal(setpara);
-        include(setpara.flags,nf_typedaddr);
+        include(taddrnode(setpara).addrnodeflags,anf_typedaddr);
         if seteledef.typ=enumdef then
           begin
             inserttypeconv_explicit(setpara,java_juenumset);
@@ -393,7 +401,6 @@ implementation
         lefttemp: ttempcreatenode;
         newblock: tblocknode;
         newstatement: tstatementnode;
-        primitive: boolean;
       begin
         { first parameter is the array, the rest are the dimensions }
         newparas:=tcallparanode(left).right;
@@ -481,7 +488,7 @@ implementation
         { prepend new }
         newparas:=ccallparanode.create(newnode,newparas);
         { prepend deepcopy }
-        newparas:=ccallparanode.create(cordconstnode.create(0,pasbool8type,false),newparas);
+        newparas:=ccallparanode.create(cordconstnode.create(0,pasbool1type,false),newparas);
         { call the right setlenght helper }
         if ndims>1 then
           begin
@@ -515,7 +522,7 @@ implementation
     function tjvminlinenode.first_setlength: tnode;
       begin
         { reverse the parameter order so we can process them more easily }
-        left:=reverseparameters(tcallparanode(left));
+        reverseparameters(tcallparanode(left));
         { treat setlength(x,0) specially: used to init uninitialised locations }
         if not is_shortstring(left.resultdef) and
            not assigned(tcallparanode(tcallparanode(left).right).right) and
@@ -529,7 +536,7 @@ implementation
         { strings are handled the same as on other platforms }
         if left.resultdef.typ=stringdef then
           begin
-            left:=reverseparameters(tcallparanode(left));
+            reverseparameters(tcallparanode(left));
             result:=inherited first_setlength;
             exit;
           end;
@@ -595,7 +602,7 @@ implementation
               internalerror(2011031403);
             stringnonnull:=cassignmentnode.create(
               ctemprefnode.create(lentemp),
-              ccallnode.create(nil,tprocsym(psym),psym.owner,stringtemp,[]));
+              ccallnode.create(nil,tprocsym(psym),psym.owner,stringtemp,[],nil));
             { else-path: length is 0 }
             stringnull:=cassignmentnode.create(
               ctemprefnode.create(lentemp),
@@ -618,7 +625,7 @@ implementation
               internalerror(2011052402);
             result:=
               ccallnode.create(nil,tprocsym(psym),psym.owner,
-                ctypeconvnode.create_explicit(caddrnode.create_internal(left),java_shortstring),[]);
+                ctypeconvnode.create_explicit(caddrnode.create_internal(left),java_shortstring),[],nil);
             { reused }
             left:=nil;
           end

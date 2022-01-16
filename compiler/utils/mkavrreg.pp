@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$mode objfpc}
-program mkspreg;
+program mkavrreg;
 
 const Version = '1.00';
       max_regcount = 200;
@@ -26,6 +26,7 @@ var s : string;
     names,
     regtypes,
     supregs,
+    subregs,
     numbers,
     stdnames,
     stabs,dwarf : array[0..max_regcount-1] of string[63];
@@ -170,6 +171,8 @@ begin
         readcomma;
         regtypes[regcount]:=readstr;
         readcomma;
+        subregs[regcount]:=readstr;
+        readcomma;
         supregs[regcount]:=readstr;
         readcomma;
         stdnames[regcount]:=readstr;
@@ -184,7 +187,7 @@ begin
             writeln('Line: "',s,'"');
             halt(1);
           end;
-        numbers[regcount]:=regtypes[regcount]+'0000'+copy(supregs[regcount],2,255);
+        numbers[regcount]:=regtypes[regcount]+copy(subregs[regcount],2,255)+'00'+copy(supregs[regcount],2,255);
         if i<length(s) then
           begin
             writeln('Extra chars at end of line, at line ',line);

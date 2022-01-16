@@ -19,24 +19,25 @@
                            Threadvar support
 *****************************************************************************}
 
-
+{$ifndef FPC_SECTION_THREADVARS}
 type
   pltvInitEntry = ^ltvInitEntry;
-  ltvInitEntry = packed record
-     varaddr : pdword;
+  ppltvInitEntry = ^pltvInitEntry;
+  ltvInitEntry = {$ifndef FPC_ALIGNED_THREADVARTABLES}packed{$endif} record
+     varaddr : {$ifdef cpu16}pword{$else}pdword{$endif};
      size    : longint;
   end;
 
-  TltvInitTablesTable = packed record
+  TltvInitTablesTable = {$ifndef FPC_ALIGNED_THREADVARTABLES}packed{$endif} record
     count  : dword;
-    tables : packed array [1..{$ifdef cpu16}16{$else}32767{$endif}] of pltvInitEntry;
+    tables : {$ifndef FPC_ALIGNED_THREADVARTABLES}packed{$endif} array [1..{$ifdef cpu16}16{$else}32767{$endif}] of {$ifdef ver3_0}pltvInitEntry{$else}ppltvInitEntry{$endif};
   end;
   PltvInitTablesTable = ^TltvInitTablesTable;
 
-{$ifndef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifndef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 var
   ThreadvarTablesTable : TltvInitTablesTable; external name 'FPC_THREADVARTABLES';
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
 procedure init_unit_threadvars (tableEntry : pltvInitEntry);
 begin
@@ -52,17 +53,17 @@ procedure init_all_unit_threadvars;
 var
   i : longint;
 begin
-{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
   with PltvInitTablesTable(EntryInformation.ThreadvarTablesTable)^ do
-{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
   with ThreadvarTablesTable do
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
   begin
 {$ifdef DEBUG_MT}
     WriteLn ('init_all_unit_threadvars (',count,') units');
 {$endif}
     for i := 1 to count do
-      init_unit_threadvars (tables[i]);
+      init_unit_threadvars (tables[i]{$ifndef ver3_0}^{$endif});
   end;
 end;
 
@@ -86,23 +87,25 @@ procedure copy_all_unit_threadvars;
 var
   i: longint;
 begin
-{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
   with PltvInitTablesTable(EntryInformation.ThreadvarTablesTable)^ do
-{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
   with ThreadvarTablesTable do
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
   begin
 {$ifdef DEBUG_MT}
     WriteLn ('copy_all_unit_threadvars (',count,') units');
 {$endif}
     for i := 1 to count do
-      copy_unit_threadvars (tables[i]);
+      copy_unit_threadvars (tables[i]{$ifndef ver3_0}^{$endif});
   end;
 end;
+{$endif FPC_SECTION_THREADVARS}
 
 procedure InitThreadVars(RelocProc : TRelocateThreadVarHandler);
 
 begin
+{$ifndef FPC_SECTION_THREADVARS}
    { initialize threadvars }
    init_all_unit_threadvars;
    { allocate mem for main thread threadvars }
@@ -111,9 +114,13 @@ begin
    copy_all_unit_threadvars;
    { install threadvar handler }
    fpc_threadvar_relocate_proc:=RelocProc;
+{$endif FPC_SECTION_THREADVARS}
+
 {$ifdef FPC_HAS_FEATURE_HEAP}
 {$ifndef HAS_MEMORYMANAGER}
+{$ifndef FPC_NO_DEFAULT_HEAP}
    RelocateHeap;
+{$endif ndef FPC_NO_DEFAULT_HEAP}
 {$endif HAS_MEMORYMANAGER}
 {$endif}
 end;

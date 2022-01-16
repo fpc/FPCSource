@@ -143,18 +143,18 @@ type
 // buffer must be at least dmDBNameLength bytes.
 
 function OmLocaleToOverlayDBName(const baseDBName: PChar; {const} var targetLocale: LmLocaleType;
-                                 overlayDBName: PChar): Err;
+                                 overlayDBName: PChar): Err; syscall sysTrapOmDispatch, omLocaleToOverlayDBName_;
 
 // Given the name of an overlay database in <overlayDBName>, return back
 // the overlay in overlayLocale. If the name isn't an overlay name,
 // return omErrBadOverlayDBName.
 
-function OmOverlayDBNameToLocale(const overlayDBName: PChar; var overlayLocale: LmLocaleType): Err;
+function OmOverlayDBNameToLocale(const overlayDBName: PChar; var overlayLocale: LmLocaleType): Err; syscall sysTrapOmDispatch, omOverlayDBNameToLocale_;
 
 // Return the current locale in <currentLocale>. This may not be the same as
 // the system locale, which will take effect after the next reset.
 
-procedure OmGetCurrentLocale(var currentLocale: LmLocaleType);
+procedure OmGetCurrentLocale(var currentLocale: LmLocaleType); syscall sysTrapOmDispatch, omGetCurrentLocale_;
 
 // Return the nth valid system locale in <theLocale>. Indexes are zero-based,
 // and omErrInvalidLocaleIndex will be returned if <localeIndex> is out of
@@ -162,24 +162,24 @@ procedure OmGetCurrentLocale(var currentLocale: LmLocaleType);
 // later, since OmGetIndexedLocale can be slow on ROMs with more than few
 // valid system locales.
 
-function OmGetIndexedLocale(localeIndex: UInt16; var theLocale: LmLocaleType): Err;
+function OmGetIndexedLocale(localeIndex: UInt16; var theLocale: LmLocaleType): Err; syscall sysTrapOmDispatch, omGetIndexedLocale_;
 
 // Return the system locale in <systemLocale>. This may not be the same as
 // the current locale. WARNING!!! This routine should only be used in very
 // special situations; typically OmGetCurrentLocale should be used to determine
 // the "active" locale.
 
-procedure OmGetSystemLocale(var systemLocale: LmLocaleType);
+procedure OmGetSystemLocale(var systemLocale: LmLocaleType); syscall sysTrapOmDispatch, omGetSystemLocale_;
 
 //  Set the post-reset system locale to be <systemLocale>. Return omErrInvalidLocale if
 // the passed locale doesnմ correspond to a valid System.prc overlay.
 
-function OmSetSystemLocale({const} var systemLocale: LmLocaleType): Err;
+function OmSetSystemLocale({const} var systemLocale: LmLocaleType): Err; syscall sysTrapOmDispatch, omSetSystemLocale_;
 
 // Return back the address of the routine indicated by <inSelector>. If
 // <inSelector> isn't a valid routine selector, return back NULL.
 
-function OmGetRoutineAddress(inSelector: OmSelector): Pointer;
+function OmGetRoutineAddress(inSelector: OmSelector): Pointer; syscall sysTrapOmDispatch, omGetRoutineAddress_;
 
 // NEW in 4.0. Return back the next valid system locale in <oLocaleP>. The first
 // time the routine is called, <iNewSearch> must be true. When there are no more
@@ -187,84 +187,9 @@ function OmGetRoutineAddress(inSelector: OmSelector): Pointer;
 // should be used in place of OmGetIndexedLocale on Palm OS 4.0 or later, since
 // it's much faster.
 
-function OmGetNextSystemLocale(iNewSearch: Boolean; var ioStateInfoP: OmSearchStateType; var oLocaleP: LmLocaleType): Err;
+function OmGetNextSystemLocale(iNewSearch: Boolean; var ioStateInfoP: OmSearchStateType; var oLocaleP: LmLocaleType): Err; syscall sysTrapOmDispatch, omGetNextSystemLocale_;
+
 
 implementation
-
-function __OmLocaleToOverlayDBName(const baseDBName: PChar; {const} var targetLocale: LmLocaleType;
-                                 overlayDBName: PChar): Err; syscall sysTrapOmDispatch;
-function __OmOverlayDBNameToLocale(const overlayDBName: PChar; var overlayLocale: LmLocaleType): Err; syscall sysTrapOmDispatch;
-procedure __OmGetCurrentLocale(var currentLocale: LmLocaleType); syscall sysTrapOmDispatch;
-function __OmGetIndexedLocale(localeIndex: UInt16; var theLocale: LmLocaleType): Err; syscall sysTrapOmDispatch;
-procedure __OmGetSystemLocale(var systemLocale: LmLocaleType); syscall sysTrapOmDispatch;
-function __OmSetSystemLocale({const} var systemLocale: LmLocaleType): Err; syscall sysTrapOmDispatch;
-function __OmGetRoutineAddress(inSelector: OmSelector): Pointer; syscall sysTrapOmDispatch;
-function __OmGetNextSystemLocale(iNewSearch: Boolean; var ioStateInfoP: OmSearchStateType; var oLocaleP: LmLocaleType): Err; syscall sysTrapOmDispatch;
-
-function OmLocaleToOverlayDBName(const baseDBName: PChar; var targetLocale: LmLocaleType;
-                                 overlayDBName: PChar): Err;
-begin
- asm
-  move.l #$omLocaleToOverlayDBName_,D2;
- end;
- OmLocaleToOverlayDBName := __OmLocaleToOverlayDBName(baseDBName, targetLocale, overlayDBName);
-end;
-
-function OmOverlayDBNameToLocale(const overlayDBName: PChar; var overlayLocale: LmLocaleType): Err;
-begin
- asm
-  move.l #$omOverlayDBNameToLocale_,D2;
- end;
- OmOverlayDBNameToLocale := __OmOverlayDBNameToLocale(overlayDBName, overlayLocale);
-end;
-
-procedure OmGetCurrentLocale(var currentLocale: LmLocaleType);
-begin
- asm
-  move.l #$omGetCurrentLocale_,D2;
- end;
- __OmGetCurrentLocale(currentLocale);
-end;
-
-function OmGetIndexedLocale(localeIndex: UInt16; var theLocale: LmLocaleType): Err;
-begin
- asm
-  move.l #$omGetIndexedLocale_,D2;
- end;
- OmGetIndexedLocale := __OmGetIndexedLocale(localeIndex, theLocale);
-end;
-
-procedure OmGetSystemLocale(var systemLocale: LmLocaleType);
-begin
- asm
-  move.l #$omGetSystemLocale_,D2;
- end;
- __OmGetSystemLocale(systemLocale);
-end;
-
-function OmSetSystemLocale(var systemLocale: LmLocaleType): Err;
-begin
- asm
-  move.l #$omSetSystemLocale_,D2;
- end;
- OmSetSystemLocale := __OmSetSystemLocale(systemLocale);
-end;
-
-function OmGetRoutineAddress(inSelector: OmSelector): Pointer;
-begin
- asm
-  move.l #$omGetRoutineAddress_,D2;
- end;
- OmGetRoutineAddress := __OmGetRoutineAddress(inSelector);
-end;
-
-function OmGetNextSystemLocale(iNewSearch: Boolean; var ioStateInfoP: OmSearchStateType; var oLocaleP: LmLocaleType): Err;
-begin
- asm
-  move.l #$omGetNextSystemLocale_,D2;
- end;
- OmGetNextSystemLocale := __OmGetNextSystemLocale(iNewSearch, ioStateInfoP, oLocaleP);
-end;
-
 
 end.

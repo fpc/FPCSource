@@ -1,3 +1,4 @@
+{ %FILES=tcext4.o }
 { Tests passing of byte arrays by value of different sizes to C methods }
 program passvaluestest;
 {$MODE DELPHI}

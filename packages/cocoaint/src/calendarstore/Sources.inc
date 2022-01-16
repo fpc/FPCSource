@@ -1,0 +1,11 @@
+{$define FRAMEWORK_LOADED_CALENDARSTORE}
+{$include CalendarStore.inc}
+{$include CalCalendarStore.inc}
+{$include CalCalendar.inc}
+{$include CalCalendarItem.inc}
+{$include CalTask.inc}
+{$include CalEvent.inc}
+{$include CalRecurrenceRule.inc}
+{$include CalAttendee.inc}
+{$include CalAlarm.inc}
+{$include CalendarStoreErrors.inc}

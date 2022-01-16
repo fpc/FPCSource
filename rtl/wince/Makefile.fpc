@@ -6,16 +6,17 @@
 main=rtl
 
 [target]
-units=$(SYSTEMUNIT) uuchar fpintres ctypes objpas macpas iso7185 strings \
+units=$(SYSTEMUNIT) uuchar fpintres ctypes objpas macpas iso7185 extpas strings \
       lineinfo heaptrc \
       windows messages dynlibs \
       dos \
       rtlconsts sysconst sysutils \
-      typinfo types fgl classes \
+      typinfo types sortbase fgl classes \
       math fpwidestring \
       charset cpall getopts \
       unicodedata  unicodenumtable character \
-      cmem sharemem
+      cmem sharemem \
+      softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 #    initc  signals \
 #    crt graph \
 #    wincrt winmouse winevent  printer \
@@ -25,7 +26,10 @@ units=$(SYSTEMUNIT) uuchar fpintres ctypes objpas macpas iso7185 strings \
 # rsts=math varutils typinfo variants classes dateutils sysconst
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+      cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 \
+      cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 \
+      cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 \
+      cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u
 
 # fake dll
 # programs=fpcmemdll
@@ -100,7 +104,7 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS) winres.inc
 #
 
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
-        $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
+        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(SYSTEMUNIT).pp
 
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
         $(COMPILER) $(INC)/uuchar.pp
@@ -110,6 +114,9 @@ objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
 
 iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/iso7185.pp
+
+extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/extpas.pp
 
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
@@ -171,10 +178,10 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) \
-		   sysconst$(PPUEXT) fgl$(PPUEXT)
+		   sysconst$(PPUEXT) fgl$(PPUEXT) sortbase$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 
-fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
+fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT) sortbase$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fgl.pp
 
 #winsysut$(PPUEXT) : winsysut.pp sysutils$(PPUEXT)
@@ -186,7 +193,7 @@ typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/math.pp
 
-types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 
 rtlconsts$(PPUEXT) : objpas$(PPUEXT) $(OBJPASDIR)/rtlconsts.pp
@@ -248,6 +255,9 @@ unicodenumtable$(PPUEXT): $(OBJPASDIR)/unicodenumtable.pas
 character$(PPUEXT): $(OBJPASDIR)/character.pas
         $(COMPILER) $(OBJPASDIR)/character.pas
 
+sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+
 #
 # Other system-dependent RTL Units
 #
@@ -261,3 +271,17 @@ sharemem$(PPUEXT) : $(WINDIR)/sharemem.pp system$(PPUEXT)
 fpcmemdll.dll : $(WINDIR)/fpcmemdll.pp system$(PPUEXT)
         $(COMPILER) $(WINDIR)/fpcmemdll.pp
 
+softfpu$(PPUEXT) : $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
+	$(COMPILER) $<
+
+sfpux80$(PPUEXT) : $(INC)/sfpux80.pp $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
+	$(COMPILER) $<
+
+sfpu128$(PPUEXT) : $(INC)/sfpu128.pp $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
+	$(COMPILER) $<
+
+ufloatx80$(PPUEXT) : $(INC)/ufloatx80.pp sfpux80$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+
+ufloat128$(PPUEXT) : $(INC)/ufloat128.pp sfpu128$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<

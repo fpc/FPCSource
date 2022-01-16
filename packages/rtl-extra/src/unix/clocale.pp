@@ -16,6 +16,10 @@
 
 unit clocale;
 
+{$ifdef android}
+  {$error This unit is not intended for Android. Something wrong with the make file. }
+{$endif android}
+
 {$mode objfpc}
 
 interface

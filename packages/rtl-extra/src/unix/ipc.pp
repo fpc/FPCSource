@@ -46,7 +46,7 @@ Type
 Const
   { IPC flags for get calls }
 
-{$if defined(FreeBSD) or defined(NetBSD) or defined(OpenBSD)}  // BSD_VISIBLE
+{$if defined(FreeBSD) or defined(NetBSD) or defined(OpenBSD) or defined(dragonfly)}  // BSD_VISIBLE
   IPC_R      =  4 shl 6;
   IPC_W      =  2 shl 6;
   IPC_M      =  2 shl 12;
@@ -76,7 +76,7 @@ Const
   IPC_EXCL   =  2 shl 9;  { fail if key exists }
   IPC_NOWAIT =  4 shl 9;  { return error on wait }
 
-{$if defined(FreeBSD) or defined(Darwin) or defined(Solaris) or defined(Linux) or defined(OpenBSD)}
+{$if defined(FreeBSD) or defined(Darwin) or defined(Solaris) or defined(Linux) or defined(OpenBSD) or defined (dragonfly)}
   IPC_PRIVATE = TKey(0);
 {$elseif defined(aix)}
   IPC_PRIVATE = TKey(-1)
@@ -118,8 +118,19 @@ type
   End;
 {$elseif defined(darwin) }
 {$packrecords 4}
-{ This is also the strcut for FreeBSD up to version 7
-  renamed ipc_perm_old in /usr/include/sys/ipc.h in version 8 and after }
+  {$ifdef cpu64}
+    TIPC_Perm = record
+          cuid  : uid_t;    { creator user id }
+          cgid  : gid_t;    { creator group id }
+          uid   : uid_t;    { user id }
+          gid   : gid_t;    { group id }
+          mode  : mode_t;   { r/w permission }
+          seq   : cushort;  { sequence # (to generate unique msg/sem/shm id) }
+          key   : key_t;    { user specified msg/sem/shm key }
+    End;
+  {$else}
+    { This is also the struct for FreeBSD up to version 7
+      renamed ipc_perm_old in /usr/include/sys/ipc.h in version 8 and after }
   TIPC_Perm = record
         cuid  : cushort;  { creator user id }
         cgid  : cushort;  { creator group id }
@@ -129,8 +140,9 @@ type
         seq   : cushort;  { sequence # (to generate unique msg/sem/shm id) }
         key   : key_t;    { user specified msg/sem/shm key }
   End;
+  {$endif}
 {$packrecords c}
-{$elseif defined(NetBSD) or defined(OpenBSD) or defined(FreeBSD) }
+{$elseif defined(NetBSD) or defined(OpenBSD) or defined(FreeBSD) or defined(dragonfly)}
   TIPC_Perm = record
         cuid  : uid_t;  { creator user id }
         cgid  : gid_t;  { creator group id }
@@ -167,7 +179,7 @@ type
         cgid  : kernel_gid_t;
         mode  : kernel_mode_t;
 {$if sizeof(kernel_mode_t) < 4}
-        __pad1    : array[1..4-sizeof(mode_t)];
+        __pad1    : array[1..4-sizeof(mode_t)] of byte;
 {$endif}
 {$ifdef cpupowerpc}
         seq       : cuint;
@@ -202,7 +214,7 @@ Function ftok (Path : pchar;  ID : cint) : TKey; {$ifdef FPC_USE_LIBC} cdecl; ex
 Type
   PShmid_DS = ^TShmid_ds;
 
-{$if defined(FreeBSD) or defined(OpenBSD) or defined (NetBSD) }
+{$if defined(FreeBSD) or defined(OpenBSD) or defined (NetBSD) or defined(dragonfly)}
   TShmid_ds = record
     shm_perm  : TIPC_Perm;
     shm_segsz : cint;
@@ -508,6 +520,8 @@ type
 {$elseif defined(Linux)}
   PMSQid_ds = ^TMSQid_ds;
   TMSQid_ds = record
+{ 32 bit }
+{$IFNDEF CPU64}
     msg_perm   : TIPC_perm;
     msg_first  : PMsg;
     msg_last   : PMsg;
@@ -519,6 +533,20 @@ type
     msg_qbytes : word;
     msg_lspid  : ipc_pid_t;
     msg_lrpid  : ipc_pid_t;
+{$ELSE cpu64}
+{ 64 bit }
+    msg_perm   : TIPC_perm;
+    msg_stime  : time_t;
+    msg_rtime  : time_t;
+    msg_ctime  : time_t;
+    msg_cbytes : qword;
+    msg_qnum   : qword;
+    msg_qbytes : qword;
+    msg_lspid  : ipc_pid_t;
+    msg_lrpid  : ipc_pid_t;
+    pad1 : qword;
+    pad2 : qword;
+{$ENDIF}
   end;
 {$else}
   {$if defined(Darwin)}
@@ -656,14 +684,14 @@ const
   MAX_SOPS = 5;
 {$endif}
 
-{$if not defined(aix) and not defined(darwin)}
-  SEM_GETNCNT = 3;   { Return the value of sempid (READ)  }
-  SEM_GETPID  = 4;   { Return the value of semval (READ)  }
-  SEM_GETVAL  = 5;   { Return semvals into arg.array (READ)  }
-  SEM_GETALL  = 6;   { Return the value of semzcnt (READ)  }
-  SEM_GETZCNT = 7;   { Set the value of semval to arg.val (ALTER)  }
-  SEM_SETVAL  = 8;   { Set semvals from arg.array (ALTER)  }
-  SEM_SETALL  = 9;
+{$if not defined(aix)}
+  SEM_GETNCNT = 3;   { Return the value of semncnt (READ)  }
+  SEM_GETPID  = 4;   { Return the value of sempid (READ)  }
+  SEM_GETVAL  = 5;   { Return the value of semval (READ)  }
+  SEM_GETALL  = 6;   { Return semvals into arg.array (READ)  }
+  SEM_GETZCNT = 7;   { Return the value of semzcnt (READ)  }
+  SEM_SETVAL  = 8;   { Set the value of semval to arg.val (ALTER)  }
+  SEM_SETALL  = 9;   { Set semvals from arg.array (ALTER)  }
 {$endif}
 
   { Permissions  }
@@ -860,7 +888,7 @@ uses Syscall;
 
 {$ifndef FPC_USE_LIBC}
  {$if defined(Linux)}
-  {$if defined(cpux86_64) or defined(NO_SYSCALL_IPC)}
+  {$if defined(cpux86_64) or defined(cpuaarch64) or defined(cpuriscv32) or defined(cpuriscv64) or defined(cpuxtensa) or defined(NO_SYSCALL_IPC)}
     {$i ipcsys.inc}
   {$else}
     {$i ipccall.inc}

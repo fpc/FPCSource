@@ -1,6 +1,6 @@
 {$inline on}
 
-procedure test(l1, l2: longint);
+procedure test(l1, l2: longint; var l3: longint);
 
 var
   a1: cardinal;
@@ -11,6 +11,7 @@ var
     begin
       l1:=1;
       l2:=2;
+      l3:=5;
       d1:=3.0;
       d2:=4.0;
     end;
@@ -31,8 +32,13 @@ begin
     halt(5);
   if d2<>4.0 then
     halt(6);
+  if l3<>5 then
+    halt(7);
 end;
 
+var
+  a3: longint;
 begin
-  test(5,6);
+  a3:=1;
+  test(5,6,a3);
 end.

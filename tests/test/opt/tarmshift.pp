@@ -1,4 +1,9 @@
 { %opt=-O2 }
+
+{ Explicitly disable overflow and range checks }
+{$Q-}
+{$R-}
+
 var
   i : longint;
 

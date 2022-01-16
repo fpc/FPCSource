@@ -344,7 +344,7 @@ begin
                         hs^:='';
                       end
                     else
-                     if (Copy(hs^,2,6)='$ELSE') then
+                     if (Copy(hs^,2,5)='$ELSE') then
                       begin
                         skip[level]:=skip[level-1] or (not skip[level]);
                         hs^:='';

@@ -28,8 +28,7 @@ interface
     uses
       symtype,
       node,
-      globals,
-      cpuinfo;
+      globals;
 
     function new_dispose_statement(is_new:boolean) : tnode;
     function new_function : tnode;
@@ -39,27 +38,25 @@ interface
     function inline_initialize : tnode;
     function inline_finalize : tnode;
     function inline_copy : tnode;
+    function inline_insert : tnode;
+    function inline_delete : tnode;
+    function inline_concat : tnode;
 
 
 implementation
 
     uses
-       { common }
-       cutils,
        { global }
        globtype,tokens,verbose,constexp,
-       systems,
+       systems,compinnr,
        { symtable }
        symbase,symconst,symdef,symsym,symtable,defutil,
        { pass 1 }
        pass_1,htypechk,
-       nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,nutils,ngenutil,
+       ncal,nmem,ncnv,ninl,ncon,nld,nbas,ngenutil,nutils,
        { parser }
        scanner,
-       pbase,pexpr,
-       { codegen }
-       cgbase
-       ;
+       pbase,pexpr;
 
 
     function new_dispose_statement(is_new:boolean) : tnode;
@@ -77,13 +74,65 @@ implementation
         storepos : tfileposinfo;
         variantdesc : pvariantrecdesc;
         found : boolean;
-        j,i : longint;
         variantselectsymbol : tfieldvarsym;
+
+      procedure ReadVariantRecordConstants;
+        var
+          i,j : longint;
+        begin
+          if (([m_iso,m_extpas]*current_settings.modeswitches)<>[]) and (is_record(tpointerdef(p.resultdef).pointeddef)) then
+            begin
+              variantdesc:=trecorddef(tpointerdef(p.resultdef).pointeddef).variantrecdesc;
+              while (token=_COMMA) and assigned(variantdesc) do
+                begin
+                  consume(_COMMA);
+                  p2:=factor(false,[]);
+                  do_typecheckpass(p2);
+                  if p2.nodetype=ordconstn then
+                    begin
+                      found:=false;
+                      { we do not have dynamic dfa, so avoid warning on variantselectsymbol below }
+                      variantselectsymbol:=nil;
+                      for i:=0 to high(variantdesc^.branches) do
+                        begin
+                          for j:=0 to high(variantdesc^.branches[i].values) do
+                            if variantdesc^.branches[i].values[j]=tordconstnode(p2).value then
+                              begin
+                                found:=true;
+                                variantselectsymbol:=tfieldvarsym(variantdesc^.variantselector);
+                                variantdesc:=variantdesc^.branches[i].nestedvariant;
+                                break;
+                              end;
+                          if found then
+                            break;
+                        end;
+                      if found then
+                        begin
+                          if is_new then
+                            begin
+                              { if no tag-field is given, do not create an assignment statement for it }
+                              if assigned(variantselectsymbol) then
+                                { setup variant selector }
+                                addstatement(newstatement,cassignmentnode.create(
+                                    csubscriptnode.create(variantselectsymbol,
+                                      cderefnode.create(ctemprefnode.create(temp))),
+                                    p2));
+                            end;
+                        end
+                      else
+                        Message(parser_e_illegal_expression);
+                    end
+                  else
+                    Message(parser_e_illegal_expression);
+                end;
+              end;
+        end;
+
       begin
         if target_info.system in systems_managed_vm then
           message(parser_e_feature_unsupported_for_vm);
         consume(_LKLAMMER);
-        p:=comp_expr(true,false);
+        p:=comp_expr([ef_accept_equal]);
         { calc return type }
         if is_new then
           begin
@@ -125,7 +174,7 @@ implementation
                  exit;
               end;
 
-            do_member_read(classh,false,sym,p2,again,[]);
+            do_member_read(classh,false,sym,p2,again,[],nil);
 
             { we need the real called method }
             do_typecheckpass(p2);
@@ -154,7 +203,7 @@ implementation
             new_dispose_statement := p2;
           end
         { constructor,destructor specified }
-        else if (([m_mac,m_iso]*current_settings.modeswitches)=[]) and
+        else if (([m_mac,m_iso,m_extpas]*current_settings.modeswitches)=[]) and
                 try_to_consume(_COMMA) then
           begin
             { extended syntax of new and dispose }
@@ -167,7 +216,7 @@ implementation
             if is_typeparam(p.resultdef) then
               begin
                  p.free;
-                 p:=factor(false,false);
+                 p:=factor(false,[]);
                  p.free;
                  consume(_RKLAMMER);
                  new_dispose_statement:=cnothingnode.create;
@@ -178,7 +227,7 @@ implementation
               begin
                  Message1(type_e_pointer_type_expected,p.resultdef.typename);
                  p.free;
-                 p:=factor(false,false);
+                 p:=factor(false,[]);
                  p.free;
                  consume(_RKLAMMER);
                  new_dispose_statement:=cerrornode.create;
@@ -189,7 +238,7 @@ implementation
               begin
                  Message(parser_e_pointer_to_class_expected);
                  p.free;
-                 new_dispose_statement:=factor(false,false);
+                 new_dispose_statement:=factor(false,[]);
                  consume_all_until(_RKLAMMER);
                  consume(_RKLAMMER);
                  exit;
@@ -199,7 +248,7 @@ implementation
             if is_class(classh) then
               begin
                  Message(parser_e_no_new_or_dispose_for_classes);
-                 new_dispose_statement:=factor(false,false);
+                 new_dispose_statement:=factor(false,[]);
                  consume_all_until(_RKLAMMER);
                  consume(_RKLAMMER);
                  exit;
@@ -238,14 +287,14 @@ implementation
                 else
                   callflag:=cnf_dispose_call;
                 if is_new then
-                  do_member_read(classh,false,sym,p2,again,[callflag])
+                  do_member_read(classh,false,sym,p2,again,[callflag],nil)
                 else
                   begin
                     if not(m_fpc in current_settings.modeswitches) then
-                      do_member_read(classh,false,sym,p2,again,[callflag])
+                      do_member_read(classh,false,sym,p2,again,[callflag],nil)
                     else
                       begin
-                        p2:=ccallnode.create(nil,tprocsym(sym),sym.owner,p2,[callflag]);
+                        p2:=ccallnode.create(nil,tprocsym(sym),sym.owner,p2,[callflag],nil);
                         { support dispose(p,done()); }
                         if try_to_consume(_LKLAMMER) then
                           begin
@@ -333,14 +382,14 @@ implementation
 
                      { create call to fpc_getmem }
                      para := ccallparanode.create(cordconstnode.create
-                         (tpointerdef(p.resultdef).pointeddef.size,s32inttype,true),nil);
+                         (tpointerdef(p.resultdef).pointeddef.size,ptruinttype,true),nil);
                      addstatement(newstatement,cassignmentnode.create(
                          ctemprefnode.create(temp),
                          ccallnode.createintern('fpc_getmem',para)));
 
                      { create call to fpc_initialize }
                      if is_managed_type(tpointerdef(p.resultdef).pointeddef) or
-                       ((m_iso in current_settings.modeswitches) and (tpointerdef(p.resultdef).pointeddef.typ=filedef)) then
+                       ((m_isolike_io in current_settings.modeswitches) and (tpointerdef(p.resultdef).pointeddef.typ=filedef)) then
                        addstatement(newstatement,cnodeutils.initialize_data_node(cderefnode.create(ctemprefnode.create(temp)),false));
 
                      { copy the temp to the destination }
@@ -348,61 +397,36 @@ implementation
                          p,
                          ctemprefnode.create(temp)));
 
-                     if (m_iso in current_settings.modeswitches) and (is_record(tpointerdef(p.resultdef).pointeddef)) then
-                       begin
-                         variantdesc:=trecorddef(tpointerdef(p.resultdef).pointeddef).variantrecdesc;
-                         while (token=_COMMA) and assigned(variantdesc) do
-                           begin
-                             consume(_COMMA);
-                             p2:=factor(false,false);
-                             do_typecheckpass(p2);
-                             if p2.nodetype=ordconstn then
-                               begin
-                                 found:=false;
-                                 { we do not have dynamic dfa, so avoid warning on variantselectsymbol below }
-                                 variantselectsymbol:=nil;
-                                 for i:=0 to high(variantdesc^.branches) do
-                                   begin
-                                     for j:=0 to high(variantdesc^.branches[i].values) do
-                                       if variantdesc^.branches[i].values[j]=tordconstnode(p2).value then
-                                         begin
-                                           found:=true;
-                                           variantselectsymbol:=tfieldvarsym(variantdesc^.variantselector);
-                                           variantdesc:=variantdesc^.branches[i].nestedvariant;
-                                           break;
-                                         end;
-                                     if found then
-                                       break;
-                                   end;
-                                 if found then
-                                   begin
-                                     { if no tag-field is given, do not create an assignment statement for it }
-                                     if assigned(variantselectsymbol) then
-                                       { setup variant selector }
-                                       addstatement(newstatement,cassignmentnode.create(
-                                           csubscriptnode.create(variantselectsymbol,
-                                             cderefnode.create(ctemprefnode.create(temp))),
-                                           p2));
-                                   end
-                                 else
-                                   Message(parser_e_illegal_expression);
-                               end
-                             else
-                               Message(parser_e_illegal_expression);
-                           end;
-                       end;
+                     ReadVariantRecordConstants;
+
                      { release temp }
                      addstatement(newstatement,ctempdeletenode.create(temp));
                    end
                   else
                    begin
+                     temp:=nil;
                      { create call to fpc_finalize }
                      if is_managed_type(tpointerdef(p.resultdef).pointeddef) then
-                       addstatement(newstatement,cnodeutils.finalize_data_node(cderefnode.create(p.getcopy)));
+                       if might_have_sideeffects(p) then
+                         begin
+                           { ensure that p gets evaluated only once, in case it is e.g. a call }
+                           temp:=ctempcreatenode.create_value(p.resultdef,p.resultdef.size,tt_persistent,true,p);
+                           addstatement(newstatement,temp);
+                           addstatement(newstatement,cnodeutils.finalize_data_node(cderefnode.create(ctemprefnode.create(temp))));
+                         end
+                       else
+                         addstatement(newstatement,cnodeutils.finalize_data_node(cderefnode.create(p.getcopy)));
+
+                     ReadVariantRecordConstants;
 
                      { create call to fpc_freemem }
-                     para := ccallparanode.create(p,nil);
+                     if not assigned(temp) then
+                       para := ccallparanode.create(p,nil)
+                     else
+                       para := ccallparanode.create(ctemprefnode.create(temp),nil);
                      addstatement(newstatement,ccallnode.createintern('fpc_freemem',para));
+                     if assigned(temp) then
+                       addstatement(newstatement,ctempdeletenode.create(temp));
                    end;
                end;
           end;
@@ -412,10 +436,6 @@ implementation
 
     function new_function : tnode;
       var
-        newstatement : tstatementnode;
-        newblock     : tblocknode;
-        temp         : ttempcreatenode;
-        para         : tcallparanode;
         p1,p2  : tnode;
         classh : tobjectdef;
         srsym    : tsym;
@@ -425,7 +445,7 @@ implementation
         if target_info.system in systems_managed_vm then
           message(parser_e_feature_unsupported_for_vm);
         consume(_LKLAMMER);
-        p1:=factor(false,false);
+        p1:=factor(false,[]);
         if p1.nodetype<>typen then
          begin
            Message(type_e_type_id_expected);
@@ -479,7 +499,7 @@ implementation
             afterassignment:=false;
             searchsym_in_class(classh,classh,pattern,srsym,srsymtable,[ssf_search_helper]);
             consume(_ID);
-            do_member_read(classh,false,srsym,p1,again,[cnf_new_call]);
+            do_member_read(classh,false,srsym,p1,again,[cnf_new_call],nil);
             { we need to know which procedure is called }
             do_typecheckpass(p1);
             if not(
@@ -519,6 +539,7 @@ implementation
       var
         paras, strpara, pcharpara: tnode;
         procname: string;
+        cp: tstringencoding;
       begin
         consume(_LKLAMMER);
         paras:=parse_paras(false,false,_RKLAMMER);
@@ -538,7 +559,12 @@ implementation
                   ( = paras.right.right) is an ansistring, add a codepage
                   parameter }
                 if is_ansistring(strpara.resultdef) then
-                  paras:=ccallparanode.create(genintconstnode(tstringdef(strpara.resultdef).encoding),paras);
+                  begin
+                    cp:=tstringdef(strpara.resultdef).encoding;
+                    if (cp=globals.CP_NONE) then
+                      cp:=0;
+                    paras:=ccallparanode.create(genintconstnode(cp),paras);
+                  end;
                 procname:='fpc_setstring_'+tstringdef(strpara.resultdef).stringtypname;
                 { decide which version to call based on the second parameter }
                 if not is_shortstring(strpara.resultdef) then
@@ -634,7 +660,7 @@ implementation
       end;
 
 
-    function inline_copy : tnode;
+    function inline_copy_insert_delete(nr:tinlinenumber;const name:string;checkempty:boolean) : tnode;
       var
         paras   : tnode;
         { for easy exiting if something goes wrong }
@@ -644,13 +670,38 @@ implementation
         consume(_LKLAMMER);
         paras:=parse_paras(false,false,_RKLAMMER);
         consume(_RKLAMMER);
-        if not assigned(paras) then
+        if not assigned(paras) and checkempty then
           begin
-            CGMessage1(parser_e_wrong_parameter_size,'Copy');
+            CGMessage1(parser_e_wrong_parameter_size,name);
             exit;
           end;
         result.free;
-        result:=cinlinenode.create(in_copy_x,false,paras);
+        result:=cinlinenode.create(nr,false,paras);
       end;
+
+
+    function inline_copy: tnode;
+      begin
+        result:=inline_copy_insert_delete(in_copy_x,'Copy',false);
+      end;
+
+
+    function inline_insert: tnode;
+      begin
+        result:=inline_copy_insert_delete(in_insert_x_y_z,'Insert',false);
+      end;
+
+
+    function inline_delete: tnode;
+      begin
+        result:=inline_copy_insert_delete(in_delete_x_y_z,'Delete',false);
+      end;
+
+
+    function inline_concat: tnode;
+      begin
+        result:=inline_copy_insert_delete(in_concat_x,'Concat',false);
+      end;
+
 
 end.

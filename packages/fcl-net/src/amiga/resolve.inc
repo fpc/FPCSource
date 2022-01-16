@@ -46,9 +46,9 @@ Type
   end;
   PServEntry = ^TServEnt;
 
-{ C style calls, linked in from Libc }
-
-function gethostbyname(Name: PChar location 'a0'): PHostEntry; syscall SocketBase 210;
+{ remember, classic style calls are also used on MorphOS, so don't test for AMIGA68K }
+{$ifndef AMIGAOS4}
+function fpgethostbyname(Name: PChar location 'a0'): PHostEntry; syscall SocketBase 210;
 function getnetbyname(Name: PChar location 'a0'): PNetEntry; syscall SocketBase 222;
 function getnetbyaddr(Net: Longint location 'd0'; NetType: Longint location 'd1'): PNetEntry; syscall SocketBase 228;
 function getservbyname(Name: PChar location 'a0'; Protocol: PChar location 'a1'): PServEntry; syscall SocketBase 234;
@@ -61,12 +61,40 @@ procedure setservent(StayOpen: longint location 'd0'); syscall SocketBase 552;
 procedure endservent; syscall SocketBase 558;
 function getservent: PServEntry; syscall SocketBase 564;
 
+{$else AMIGAOS4}
+
+function fpgethostbyname(const Name: PChar): PHostEntry; syscall ISocket 196;
+function getnetbyname(Name: PChar): PNetEntry; syscall ISocket 204;
+function getnetbyaddr(Net: Longint; NetType: Longint): PNetEntry; syscall ISocket 208;
+function getservbyname(Name: PChar; Protocol: PChar): PServEntry; syscall ISocket 212;
+function getservbyport(Port: LongInt; Protocol: PChar): PServEntry; syscall ISocket 216;
+
+procedure setnetent(Stayopen: Longint);  syscall ISocket 456;
+procedure endnetent; syscall ISocket 460;
+function getnetent: PNetEntry; syscall ISocket 464;
+procedure setservent(StayOpen: longint); syscall ISocket 480;
+procedure endservent; syscall ISocket 484;
+function getservent: PServEntry; syscall ISocket 488;
+{$endif AMIGAOS4}
+
+function gethostbyname(Name: PChar): PHostEntry;
+begin
+  if Assigned(SocketBase) then
+    gethostbyname := fpgethostbyname(Name)
+  else
+    gethostbyname := nil;
+end;
+
 function gethostbyaddr(Addr: PChar; Len: Longint; HType: Longint): PHostentry;
 var
   addr1,
   addr2: in_addr;
   IP: PPLongInt;
 begin
+  gethostbyaddr := nil;
+  if not Assigned(SocketBase) then
+    Exit;
+  //
   Addr1 :=  in_addr(PHostAddr(Addr)^);
   Addr2.s_addr := htonl(Addr1.s_addr);
   gethostbyaddr := Pointer(bsd_GetHostByAddr(Pointer(@Addr2.s_addr), Len, HType));
@@ -78,19 +106,21 @@ begin
       repeat
         ip^^ := ntohl(ip^^);
         Inc(IP);
-      until ip^ = nil; 
+      until ip^ = nil;
     end;
   end;
 end;
 
 function  GetDNSError: integer;
 begin
-  GetDNSError:=bsd_Errno;
+  GetDNSError := 0;
+  if assigned(SocketBase) then
+    GetDNSError:=bsd_Errno;
 end;
 
 Function InitResolve : Boolean;
 begin
-  Result:=True;
+  Result:=Assigned(SocketBase);
 end;
 
 Function FinalResolve : Boolean;

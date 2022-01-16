@@ -1,62 +1,29 @@
-{ Parsed from Webkit.framework WebResource.h }
+{ Parsed from WebKit.framework WebResource.h }
+
 
 {$ifdef TYPES}
-{$ifndef WEBRESOURCE_PAS_T}
-{$define WEBRESOURCE_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef WEBRESOURCE_PAS_R}
-{$define WEBRESOURCE_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef WEBRESOURCE_PAS_F}
-{$define WEBRESOURCE_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef WEBRESOURCE_PAS_S}
-{$define WEBRESOURCE_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  WebResource = objcclass;
-  WebResourcePointer = ^WebResource;
-  WebResourcePtr = WebResourcePointer;
-
+type
+  WebResourcePtr = ^WebResource;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef WEBRESOURCE_PAS_C}
-{$define WEBRESOURCE_PAS_C}
 
-{ WebResource }
+type
   WebResource = objcclass external (NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
     _private: WebResourcePrivate;
-    
   public
-    function initWithData_URL_MIMEType_textEncodingName_frameName(data_: NSData; URL_: NSURL; MIMEType_: NSString; textEncodingName_: NSString; frameName_: NSString): id; message 'initWithData:URL:MIMEType:textEncodingName:frameName:';
+    function initWithData_URL_MIMEType_textEncodingName_frameName (data: NSData; URL: NSURL; MIMEType: NSString; textEncodingName: NSString; frameName: NSString): instancetype; message 'initWithData:URL:MIMEType:textEncodingName:frameName:';
     function data: NSData; message 'data';
     function URL: NSURL; message 'URL';
     function MIMEType: NSString; message 'MIMEType';
     function textEncodingName: NSString; message 'textEncodingName';
     function frameName: NSString; message 'frameName';
 
-    { Adopted Protocols }
-    procedure encodeWithCoder(aCoder: NSCoder);
-    function initWithCoder(aDecoder: NSCoder): id;
-    function copyWithZone(zone_: NSZonePtr): id;
+    { Adopted protocols }
+    function copyWithZone (zone: NSZonePtr): id; message 'copyWithZone:';
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
+    function initWithCoder (aDecoder: NSCoder): id; message 'initWithCoder:';
   end;
+{$endif}
 
-{$endif}
-{$endif}

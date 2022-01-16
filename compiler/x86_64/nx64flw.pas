@@ -44,7 +44,8 @@ interface
     tx64tryfinallynode=class(tcgtryfinallynode)
       finalizepi: tcgprocinfo;
       constructor create(l,r:TNode);override;
-      constructor create_implicit(l,r,_t1:TNode);override;
+      constructor create_implicit(l,r:TNode);override;
+      function dogetcopy : tnode;override;
       function simplify(forinline: boolean): tnode;override;
       procedure pass_generate_code;override;
     end;
@@ -52,13 +53,14 @@ interface
 implementation
 
   uses
-    cutils,globtype,globals,verbose,systems,
-    nbas,ncal,nmem,nutils,
-    symconst,symbase,symtable,symsym,symdef,
-    cgbase,cgobj,cgcpu,cgutils,tgobj,
+    globtype,globals,verbose,systems,fmodule,
+    nbas,ncal,nutils,
+    symconst,symsym,symdef,
+    cgbase,cgobj,cgutils,tgobj,
     cpubase,htypechk,
-    parabase,paramgr,pdecsub,pass_1,pass_2,ncgutil,cga,
-    aasmbase,aasmtai,aasmdata,aasmcpu,procinfo,cpupi;
+    pass_1,pass_2,
+    aasmbase,aasmtai,aasmdata,aasmcpu,
+    procinfo,cpupi,procdefutil;
 
   var
     endexceptlabel: tasmlabel;
@@ -87,7 +89,6 @@ end;
 
 procedure tx64onnode.pass_generate_code;
   var
-    oldflowcontrol : tflowcontrol;
     exceptvarsym : tlocalvarsym;
   begin
     if (target_info.system<>system_x86_64_win64) then
@@ -97,9 +98,6 @@ procedure tx64onnode.pass_generate_code;
       end;
 
     location_reset(location,LOC_VOID,OS_NO);
-
-    oldflowcontrol:=flowcontrol;
-    flowcontrol:=flowcontrol*[fc_unwind]+[fc_inflowcontrol];
 
     { RTL will put exceptobject into RAX when jumping here }
     cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
@@ -130,8 +128,6 @@ procedure tx64onnode.pass_generate_code;
       end;
     cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
     cg.a_jmp_always(current_asmdata.CurrAsmList,endexceptlabel);
-
-    flowcontrol:=oldflowcontrol+(flowcontrol-[fc_inflowcontrol]);
   end;
 
 { tx64tryfinallynode }
@@ -143,6 +139,8 @@ function reset_regvars(var n: tnode; arg: pointer): foreachnoderesult;
         make_not_regable(n,[]);
       calln:
         include(tprocinfo(arg).flags,pi_do_call);
+      else
+        ;
     end;
     result:=fen_true;
   end;
@@ -152,6 +150,8 @@ function copy_parasize(var n: tnode; arg: pointer): foreachnoderesult;
     case n.nodetype of
       calln:
         tcgprocinfo(arg).allocate_push_parasize(tcallnode(n).pushed_parasize);
+      else
+        ;
     end;
     result:=fen_true;
   end;
@@ -160,22 +160,13 @@ constructor tx64tryfinallynode.create(l, r: TNode);
   begin
     inherited create(l,r);
     if (target_info.system=system_x86_64_win64) and
-       (
       { Don't create child procedures for generic methods, their nested-like
         behavior causes compilation errors because real nested procedures
         aren't allowed for generics. Not creating them doesn't harm because
         generic node tree is discarded without generating code. }
-        not assigned(current_procinfo.procdef.struct) or
-        not(df_generic in current_procinfo.procdef.struct.defoptions)
-       ) then
+       not (df_generic in current_procinfo.procdef.defoptions) then
       begin
-        finalizepi:=tcgprocinfo(cprocinfo.create(current_procinfo));
-        finalizepi.force_nested;
-        finalizepi.procdef:=create_finalizer_procdef;
-        finalizepi.entrypos:=r.fileinfo;
-        finalizepi.entryswitches:=r.localswitches;
-        finalizepi.exitpos:=current_filepos; // last_endtoken_pos?
-        finalizepi.exitswitches:=current_settings.localswitches;
+        finalizepi:=tcgprocinfo(current_procinfo.create_for_outlining('$fin$',current_procinfo.procdef.struct,potype_exceptfilter,voidtype,r));
         { the init/final code is messing with asm nodes, so inform the compiler about this }
         include(finalizepi.flags,pi_has_assembler_block);
         { Regvar optimization for symbols is suppressed when using exceptions, but
@@ -184,29 +175,49 @@ constructor tx64tryfinallynode.create(l, r: TNode);
       end;
   end;
 
-constructor tx64tryfinallynode.create_implicit(l, r, _t1: TNode);
+
+constructor tx64tryfinallynode.create_implicit(l, r: TNode);
   begin
-    inherited create_implicit(l, r, _t1);
+    inherited create_implicit(l, r);
     if (target_info.system=system_x86_64_win64) then
       begin
-        if assigned(current_procinfo.procdef.struct) and
-          (df_generic in current_procinfo.procdef.struct.defoptions) then
+        if df_generic in current_procinfo.procdef.defoptions then
           InternalError(2013012501);
 
-        finalizepi:=tcgprocinfo(cprocinfo.create(current_procinfo));
-        finalizepi.force_nested;
-        finalizepi.procdef:=create_finalizer_procdef;
-
-        finalizepi.entrypos:=current_filepos;
-        finalizepi.exitpos:=current_filepos; // last_endtoken_pos?
-        finalizepi.entryswitches:=r.localswitches;
-        finalizepi.exitswitches:=current_settings.localswitches;
+        finalizepi:=tcgprocinfo(current_procinfo.create_for_outlining('$fin$',current_procinfo.procdef.struct,potype_exceptfilter,voidtype,r));
         include(finalizepi.flags,pi_do_call);
         { the init/final code is messing with asm nodes, so inform the compiler about this }
         include(finalizepi.flags,pi_has_assembler_block);
         finalizepi.allocate_push_parasize(32);
       end;
   end;
+
+
+function tx64tryfinallynode.dogetcopy: tnode;
+  var
+    n: tx64tryfinallynode;
+  begin
+    n:=tx64tryfinallynode(inherited dogetcopy);
+    if target_info.system=system_x86_64_win64 then
+      begin
+        n.finalizepi:=tcgprocinfo(cprocinfo.create(finalizepi.parent));
+        n.finalizepi.force_nested;
+        n.finalizepi.procdef:=create_outline_procdef('$fin$',current_procinfo.procdef.struct,potype_exceptfilter,voidtype);
+        n.finalizepi.entrypos:=finalizepi.entrypos;
+        n.finalizepi.entryswitches:=finalizepi.entryswitches;
+        n.finalizepi.exitpos:=finalizepi.exitpos;
+        n.finalizepi.exitswitches:=finalizepi.exitswitches;
+        n.finalizepi.flags:=finalizepi.flags;
+        { node already transformed? }
+        if assigned(finalizepi.code) then
+          begin
+            n.finalizepi.code:=finalizepi.code.getcopy;
+            n.right:=ccallnode.create(nil,tprocsym(n.finalizepi.procdef.procsym),nil,nil,[],nil);
+          end;
+      end;
+    result:=n;
+  end;
+
 
 function tx64tryfinallynode.simplify(forinline: boolean): tnode;
   begin
@@ -215,21 +226,24 @@ function tx64tryfinallynode.simplify(forinline: boolean): tnode;
       exit;
     if (result=nil) then
       begin
-        finalizepi.code:=right;
-        foreachnodestatic(right,@copy_parasize,finalizepi);
-        right:=ccallnode.create(nil,tprocsym(finalizepi.procdef.procsym),nil,nil,[]);
-        firstpass(right);
-        { For implicit frames, no actual code is available at this time,
-          it is added later in assembler form. So store the nested procinfo
-          for later use. }
-        if implicitframe then
+        { actually, this is not really the right place to do a node transformation like this }
+        if not(assigned(finalizepi.code)) then
           begin
-            current_procinfo.finalize_procinfo:=finalizepi;
-            { don't leave dangling pointer }
-            tcgprocinfo(current_procinfo).final_asmnode:=nil;
+            finalizepi.code:=right;
+            foreachnodestatic(right,@copy_parasize,finalizepi);
+            right:=ccallnode.create(nil,tprocsym(finalizepi.procdef.procsym),nil,nil,[],nil);
+            firstpass(right);
+            { For implicit frames, no actual code is available at this time,
+              it is added later in assembler form. So store the nested procinfo
+              for later use. }
+            if implicitframe then
+              begin
+                current_procinfo.finalize_procinfo:=finalizepi;
+              end;
           end;
       end;
   end;
+
 
 procedure emit_nop;
   var
@@ -242,12 +256,14 @@ procedure emit_nop;
     current_asmdata.CurrAsmList.concat(Taicpu.op_none(A_NOP,S_NO));
   end;
 
+
 procedure tx64tryfinallynode.pass_generate_code;
   var
     trylabel,
     endtrylabel,
     finallylabel,
     endfinallylabel,
+    templabel,
     oldexitlabel: tasmlabel;
     oldflowcontrol: tflowcontrol;
     catch_frame: boolean;
@@ -263,12 +279,13 @@ procedure tx64tryfinallynode.pass_generate_code;
     { Do not generate a frame that catches exceptions if the only action
       would be reraising it. Doing so is extremely inefficient with SEH
       (in contrast with setjmp/longjmp exception handling) }
-    catch_frame:=implicitframe and ((not has_no_code(t1)) or
-      (current_procinfo.procdef.proccalloption=pocall_safecall));
+    catch_frame:=implicitframe and
+      (current_procinfo.procdef.proccalloption=pocall_safecall);
 
     oldflowcontrol:=flowcontrol;
     flowcontrol:=[fc_inflowcontrol];
 
+    templabel:=nil;
     current_asmdata.getjumplabel(trylabel);
     current_asmdata.getjumplabel(endtrylabel);
     current_asmdata.getjumplabel(finallylabel);
@@ -299,30 +316,29 @@ procedure tx64tryfinallynode.pass_generate_code;
     { try code }
     if assigned(left) then
       begin
-        { fc_unwind tells exit/continue/break statements to emit special
+        { fc_unwind_xx tells exit/continue/break statements to emit special
           unwind code instead of just JMP }
         if not implicitframe then
-          include(flowcontrol,fc_unwind);
+          flowcontrol:=flowcontrol+[fc_catching_exceptions,fc_unwind_exit,fc_unwind_loop];
         secondpass(left);
-        exclude(flowcontrol,fc_unwind);
+        flowcontrol:=flowcontrol-[fc_catching_exceptions,fc_unwind_exit,fc_unwind_loop];
         if codegenerror then
           exit;
       end;
 
-    { If the immediately preceding instruction is CALL,
-      its return address must not end up outside the scope, so pad with NOP. }
-    if catch_frame then
-      cg.a_jmp_always(current_asmdata.CurrAsmList,finallylabel)
-    else
-      emit_nop;
-
-    cg.a_label(current_asmdata.CurrAsmList,endtrylabel);
-
-    { Handle the except block first, so endtrylabel serves both
-      as end of scope and as unwind target. This way it is possible to
-      encode everything into a single scope record. }
+    { finallylabel is only used in implicit frames as an exit point from nested try..finally
+      statements, if any. To prevent finalizer from being executed twice, it must come before
+      endtrylabel (bug #34772) }
     if catch_frame then
       begin
+        current_asmdata.getjumplabel(templabel);
+        cg.a_label(current_asmdata.CurrAsmList, finallylabel);
+        { jump over exception handler }
+        cg.a_jmp_always(current_asmdata.CurrAsmList,templabel);
+        { Handle the except block first, so endtrylabel serves both
+          as end of scope and as unwind target. This way it is possible to
+          encode everything into a single scope record. }
+        cg.a_label(current_asmdata.CurrAsmList,endtrylabel);
         if (current_procinfo.procdef.proccalloption=pocall_safecall) then
           begin
             handle_safecall_exception;
@@ -330,10 +346,24 @@ procedure tx64tryfinallynode.pass_generate_code;
           end
         else
           InternalError(2014031601);
+        cg.a_label(current_asmdata.CurrAsmList,templabel);
+      end
+    else
+      begin
+        { same as emit_nop but using finallylabel instead of dummy }
+        cg.a_label(current_asmdata.CurrAsmList,finallylabel);
+        finallylabel.increfs;
+        current_asmdata.CurrAsmList.concat(Taicpu.op_none(A_NOP,S_NO));
+        cg.a_label(current_asmdata.CurrAsmList,endtrylabel);
       end;
 
+    { i32913 - if the try..finally block is also inside a try..finally or
+      try..except block, make a note of any Exit calls so all necessary labels
+      are generated. [Kit] }
+    if ((flowcontrol*[fc_exit,fc_break,fc_continue])<>[]) and (fc_inflowcontrol in oldflowcontrol) then
+      oldflowcontrol:=oldflowcontrol+(flowcontrol*[fc_exit,fc_break,fc_continue]);
+
     flowcontrol:=[fc_inflowcontrol];
-    cg.a_label(current_asmdata.CurrAsmList,finallylabel);
     { generate finally code as a separate procedure }
     if not implicitframe then
       tcgprocinfo(current_procinfo).generate_exceptfilter(finalizepi);
@@ -350,8 +380,8 @@ procedure tx64tryfinallynode.pass_generate_code;
     cg.a_label(current_asmdata.CurrAsmList,endfinallylabel);
 
     { generate the scope record in .xdata }
-    tx86_64procinfo(current_procinfo).add_finally_scope(trylabel,endtrylabel,
-      current_asmdata.RefAsmSymbol(finalizepi.procdef.mangledname),catch_frame);
+    tcpuprocinfo(current_procinfo).add_finally_scope(trylabel,endtrylabel,
+      current_asmdata.RefAsmSymbol(finalizepi.procdef.mangledname,AT_FUNCTION),catch_frame);
 
     if implicitframe then
       current_procinfo.CurrExitLabel:=oldexitlabel;
@@ -378,6 +408,7 @@ procedure tx64tryexceptnode.pass_generate_code;
     hnode : tnode;
     hlist : tasmlist;
     onnodecount : tai_const;
+    sym : tasmsymbol;
   label
     errorexit;
   begin
@@ -393,7 +424,7 @@ procedure tx64tryexceptnode.pass_generate_code;
     continueexceptlabel:=nil;
     breakexceptlabel:=nil;
 
-    flowcontrol:=flowcontrol*[fc_unwind]+[fc_inflowcontrol];
+    include(flowcontrol,fc_inflowcontrol);
     { this can be called recursivly }
     oldBreakLabel:=nil;
     oldContinueLabel:=nil;
@@ -442,7 +473,13 @@ procedure tx64tryexceptnode.pass_generate_code;
         current_procinfo.CurrBreakLabel:=breakexceptlabel;
       end;
 
-    flowcontrol:=flowcontrol*[fc_unwind]+[fc_inflowcontrol];
+    { i32913 - if the try..finally block is also inside a try..finally or
+      try..except block, make a note of any Exit calls so all necessary labels
+      are generated. [Kit] }
+    if ((flowcontrol*[fc_exit,fc_break,fc_continue])<>[]) and (fc_inflowcontrol in oldflowcontrol) then
+      oldflowcontrol:=oldflowcontrol+(flowcontrol*[fc_exit,fc_break,fc_continue]);
+
+    flowcontrol:=[fc_inflowcontrol];
     { on statements }
     if assigned(right) then
       begin
@@ -460,8 +497,10 @@ procedure tx64tryexceptnode.pass_generate_code;
             if hnode.nodetype<>onn then
               InternalError(2011103101);
             current_asmdata.getjumplabel(onlabel);
-            hlist.concat(tai_const.create_rva_sym(current_asmdata.RefAsmSymbol(tonnode(hnode).excepttype.vmt_mangledname,AT_DATA)));
+            sym:=current_asmdata.RefAsmSymbol(tonnode(hnode).excepttype.vmt_mangledname,AT_DATA,true);
+            hlist.concat(tai_const.create_rva_sym(sym));
             hlist.concat(tai_const.create_rva_sym(onlabel));
+            current_module.add_extern_asmsym(sym);
             cg.a_label(current_asmdata.CurrAsmList,onlabel);
             secondpass(hnode);
             inc(onnodecount.value);
@@ -496,7 +535,7 @@ procedure tx64tryexceptnode.pass_generate_code;
         { do some magic for exit in the try block }
         cg.a_label(current_asmdata.CurrAsmList,exitexceptlabel);
         cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
-        if (fc_unwind in flowcontrol) then
+        if (fc_unwind_exit in oldflowcontrol) then
           cg.g_local_unwind(current_asmdata.CurrAsmList,oldCurrExitLabel)
         else
           cg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
@@ -506,8 +545,8 @@ procedure tx64tryexceptnode.pass_generate_code;
       begin
         cg.a_label(current_asmdata.CurrAsmList,breakexceptlabel);
         cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
-        if (fc_unwind in flowcontrol) then
-          cg.g_local_unwind(current_asmdata.CurrAsmList,oldCurrExitLabel)
+        if (fc_unwind_loop in oldflowcontrol) then
+          cg.g_local_unwind(current_asmdata.CurrAsmList,oldBreakLabel)
         else
           cg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
       end;
@@ -516,19 +555,25 @@ procedure tx64tryexceptnode.pass_generate_code;
       begin
         cg.a_label(current_asmdata.CurrAsmList,continueexceptlabel);
         cg.g_call(current_asmdata.CurrAsmList,'FPC_DONEEXCEPTION');
-        if (fc_unwind in flowcontrol) then
-          cg.g_local_unwind(current_asmdata.CurrAsmList,oldCurrExitLabel)
+        if (fc_unwind_loop in oldflowcontrol) then
+          cg.g_local_unwind(current_asmdata.CurrAsmList,oldContinueLabel)
         else
           cg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
       end;
 
     emit_nop;
     cg.a_label(current_asmdata.CurrAsmList,endexceptlabel);
-    tx86_64procinfo(current_procinfo).add_except_scope(trylabel,exceptlabel,endexceptlabel,filterlabel);
+    tcpuprocinfo(current_procinfo).add_except_scope(trylabel,exceptlabel,endexceptlabel,filterlabel);
 
 errorexit:
     { restore all saved labels }
     endexceptlabel:=oldendexceptlabel;
+
+    { i32913 - if the try..finally block is also inside a try..finally or
+      try..except block, make a note of any Exit calls so all necessary labels
+      are generated. [Kit] }
+    if ((flowcontrol*[fc_exit,fc_break,fc_continue])<>[]) and (fc_inflowcontrol in oldflowcontrol) then
+      oldflowcontrol:=oldflowcontrol+(flowcontrol*[fc_exit,fc_break,fc_continue]);
 
     { restore the control flow labels }
     current_procinfo.CurrExitLabel:=oldCurrExitLabel;

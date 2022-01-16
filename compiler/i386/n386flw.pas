@@ -44,8 +44,9 @@ interface
     ti386tryfinallynode=class(tcgtryfinallynode)
       finalizepi: tcgprocinfo;
       constructor create(l,r:TNode);override;
-      constructor create_implicit(l,r,_t1:TNode);override;
+      constructor create_implicit(l,r:TNode);override;
       function pass_1: tnode;override;
+	  function dogetcopy : tnode;override;
       function simplify(forinline: boolean): tnode;override;
       procedure pass_generate_code;override;
     end;
@@ -53,13 +54,13 @@ interface
 implementation
 
   uses
-    cutils,globtype,globals,verbose,systems,
+    cutils,globtype,globals,verbose,systems,fmodule,
     nbas,ncal,nmem,nutils,
     symconst,symbase,symtable,symsym,symdef,
     cgbase,cgobj,cgcpu,cgutils,tgobj,
     cpubase,htypechk,
-    parabase,paramgr,pdecsub,pass_1,pass_2,ncgutil,cga,
-    aasmbase,aasmtai,aasmdata,aasmcpu,procinfo,cpupi;
+    parabase,paramgr,pass_1,pass_2,ncgutil,cga,
+    aasmbase,aasmtai,aasmdata,aasmcpu,procinfo,cpupi,procdefutil;
 
   var
     endexceptlabel: tasmlabel;
@@ -100,7 +101,7 @@ procedure ti386onnode.pass_generate_code;
     location_reset(location,LOC_VOID,OS_NO);
 
     oldflowcontrol:=flowcontrol;
-    flowcontrol:=flowcontrol*[fc_unwind]+[fc_inflowcontrol];
+    flowcontrol:=[fc_inflowcontrol];
 
     { RTL will put exceptobject into EAX when jumping here }
     cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
@@ -144,38 +145,30 @@ function reset_regvars(var n: tnode; arg: pointer): foreachnoderesult;
         make_not_regable(n,[]);
       calln:
         include(tprocinfo(arg).flags,pi_do_call);
+      else ;
     end;
     result:=fen_true;
   end;
 
 function copy_parasize(var n: tnode; arg: pointer): foreachnoderesult;
   begin
-    case n.nodetype of
-      calln:
+    if n.nodetype=calln then
         tcgprocinfo(arg).allocate_push_parasize(tcallnode(n).pushed_parasize);
-    end;
     result:=fen_true;
   end;
 
 constructor ti386tryfinallynode.create(l, r: TNode);
   begin
     inherited create(l,r);
-    if (target_info.system<>system_i386_win32) or (
+    if (target_info.system<>system_i386_win32) or
       { Don't create child procedures for generic methods, their nested-like
         behavior causes compilation errors because real nested procedures
         aren't allowed for generics. Not creating them doesn't harm because
         generic node tree is discarded without generating code. }
-        assigned(current_procinfo.procdef.struct) and
-        (df_generic in current_procinfo.procdef.struct.defoptions)
-      ) then
+      (df_generic in current_procinfo.procdef.defoptions)
+      then
       exit;
-    finalizepi:=tcgprocinfo(cprocinfo.create(current_procinfo));
-    finalizepi.force_nested;
-    finalizepi.procdef:=create_finalizer_procdef;
-    finalizepi.entrypos:=r.fileinfo;
-    finalizepi.entryswitches:=r.localswitches;
-    finalizepi.exitpos:=current_filepos; // last_endtoken_pos?
-    finalizepi.exitswitches:=current_settings.localswitches;
+    finalizepi:=tcgprocinfo(current_procinfo.create_for_outlining('$fin$',current_procinfo.procdef.struct,potype_exceptfilter,voidtype,r));
     { Regvar optimization for symbols is suppressed when using exceptions, but
       temps may be still placed into registers. This must be fixed. }
     foreachnodestatic(r,@reset_regvars,finalizepi);
@@ -184,9 +177,9 @@ constructor ti386tryfinallynode.create(l, r: TNode);
     include(finalizepi.flags,pi_uses_exceptions);
   end;
 
-constructor ti386tryfinallynode.create_implicit(l, r, _t1: TNode);
+constructor ti386tryfinallynode.create_implicit(l, r: TNode);
   begin
-    inherited create_implicit(l, r, _t1);
+    inherited create_implicit(l, r);
     if (target_info.system<>system_i386_win32) then
       exit;
 
@@ -194,17 +187,10 @@ constructor ti386tryfinallynode.create_implicit(l, r, _t1: TNode);
     if implicitframe and (current_procinfo.procdef.proccalloption=pocall_safecall) then
       exit;
 
-    if assigned(current_procinfo.procdef.struct) and
-      (df_generic in current_procinfo.procdef.struct.defoptions) then
+    if df_generic in current_procinfo.procdef.defoptions then
       InternalError(2013012501);
 
-    finalizepi:=tcgprocinfo(cprocinfo.create(current_procinfo));
-    finalizepi.force_nested;
-    finalizepi.procdef:=create_finalizer_procdef;
-    finalizepi.entrypos:=current_filepos;
-    finalizepi.exitpos:=current_filepos; // last_endtoken_pos?
-    finalizepi.entryswitches:=r.localswitches;
-    finalizepi.exitswitches:=current_settings.localswitches;
+    finalizepi:=tcgprocinfo(current_procinfo.create_for_outlining('$fin$',current_procinfo.procdef.struct,potype_exceptfilter,voidtype,r));
     include(finalizepi.flags,pi_has_assembler_block);
     include(finalizepi.flags,pi_do_call);
     include(finalizepi.flags,pi_uses_exceptions);
@@ -224,12 +210,36 @@ function ti386tryfinallynode.pass_1: tnode;
           begin
             selfsym:=tparavarsym(current_procinfo.procdef.parast.Find('self'));
             if (selfsym=nil) or (selfsym.typ<>paravarsym) then
-              InternalError(2011123101);
+              InternalError(2011123102);
             selfsym.varregable:=vr_none;
           end;
       end;
   end;
 
+function ti386tryfinallynode.dogetcopy: tnode;
+  var
+    n: ti386tryfinallynode;
+  begin
+	n:=ti386tryfinallynode(inherited dogetcopy);
+	if target_info.system=system_i386_win32 then
+	  begin
+	    n.finalizepi:=tcgprocinfo(cprocinfo.create(finalizepi.parent));
+		n.finalizepi.force_nested;
+		n.finalizepi.procdef:=create_outline_procdef('$fin$',current_procinfo.procdef.struct,potype_exceptfilter,voidtype);
+		n.finalizepi.entrypos:=finalizepi.entrypos;
+		n.finalizepi.entryswitches:=finalizepi.entryswitches;
+		n.finalizepi.exitpos:=finalizepi.exitpos;
+		n.finalizepi.exitswitches:=finalizepi.exitswitches;
+		n.finalizepi.flags:=finalizepi.flags;
+		{ node already transformed? }
+		if assigned(finalizepi.code) then
+		  begin
+			n.finalizepi.code:=finalizepi.code.getcopy;
+			n.right:=ccallnode.create(nil,tprocsym(n.finalizepi.procdef.procsym),nil,nil,[],nil);
+		  end;
+	  end;
+	result:=n;
+  end;
 
 function ti386tryfinallynode.simplify(forinline: boolean): tnode;
   begin
@@ -237,11 +247,12 @@ function ti386tryfinallynode.simplify(forinline: boolean): tnode;
     if (target_info.system<>system_i386_win32) then
       exit;
 
-    if (result=nil) and assigned(finalizepi) then
+    { actually, this is not really the right place to do a node transformation like this }
+    if (result=nil) and assigned(finalizepi) and (not(assigned(finalizepi.code))) then
       begin
         finalizepi.code:=right;
         foreachnodestatic(right,@copy_parasize,finalizepi);
-        right:=ccallnode.create(nil,tprocsym(finalizepi.procdef.procsym),nil,nil,[]);
+        right:=ccallnode.create(nil,tprocsym(finalizepi.procdef.procsym),nil,nil,[],nil);
         firstpass(right);
         { For implicit frames, no actual code is available at this time,
           it is added later in assembler form. So store the nested procinfo
@@ -249,8 +260,6 @@ function ti386tryfinallynode.simplify(forinline: boolean): tnode;
         if implicitframe then
           begin
             current_procinfo.finalize_procinfo:=finalizepi;
-            { don't leave dangling pointer }
-            tcgprocinfo(current_procinfo).final_asmnode:=nil;
           end;
       end;
   end;
@@ -262,7 +271,7 @@ procedure emit_scope_start(handler,data: TAsmSymbol);
     hreg: tregister;
   begin
     hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
-    reference_reset_base(href,hreg,0,sizeof(pint));
+    reference_reset_base(href,hreg,0,ctempposinvalid,sizeof(pint),[]);
     href.segment:=NR_FS;
     emit_reg_reg(A_XOR,S_L,hreg,hreg);
     emit_sym(A_PUSH,S_L,data);
@@ -279,7 +288,7 @@ procedure emit_scope_end;
   begin
     hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
     hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
-    reference_reset_base(href,hreg,0,sizeof(pint));
+    reference_reset_base(href,hreg,0,ctempposinvalid,sizeof(pint),[]);
     href.segment:=NR_FS;
     emit_reg_reg(A_XOR,S_L,hreg,hreg);
     emit_reg(A_POP,S_L,hreg2);
@@ -301,7 +310,7 @@ procedure ti386tryfinallynode.pass_generate_code;
     oldBreakLabel : tasmlabel;
     oldflowcontrol,tryflowcontrol : tflowcontrol;
     is_safecall: boolean;
-    hreg: tregister;
+    sym : tasmsymbol;
   begin
     if (target_info.system<>system_i386_win32) then
       begin
@@ -316,7 +325,6 @@ procedure ti386tryfinallynode.pass_generate_code;
     breakfinallylabel:=nil;
     exceptlabel:=nil;
     safecalllabel:=nil;
-    hreg:=NR_NO;
     is_safecall:=implicitframe and (current_procinfo.procdef.proccalloption=pocall_safecall);
 
     { check if child nodes do a break/continue/exit }
@@ -358,16 +366,22 @@ procedure ti386tryfinallynode.pass_generate_code;
           used_in_proc:=used_in_proc+[RS_EBX,RS_ESI,RS_EDI];
 
         current_asmdata.getjumplabel(exceptlabel);
+        sym:=current_asmdata.RefAsmSymbol('__FPC_except_safecall',AT_FUNCTION);
         emit_scope_start(
-          current_asmdata.RefAsmSymbol('__FPC_except_safecall'),
+          sym,
           exceptlabel
         );
+        current_module.add_extern_asmsym(sym);
       end
     else
-      emit_scope_start(
-        current_asmdata.RefAsmSymbol('__FPC_finally_handler'),
-        current_asmdata.RefAsmSymbol(finalizepi.procdef.mangledname)
-      );
+      begin
+        sym:=current_asmdata.RefAsmSymbol('__FPC_finally_handler',AT_FUNCTION);
+        emit_scope_start(
+          sym,
+          current_asmdata.RefAsmSymbol(finalizepi.procdef.mangledname,AT_FUNCTION)
+        );
+        current_module.add_extern_asmsym(sym);
+      end;
 
     { try code }
     if assigned(left) then
@@ -386,13 +400,10 @@ procedure ti386tryfinallynode.pass_generate_code;
     if is_safecall then
       begin
         current_asmdata.getjumplabel(safecalllabel);
-        hreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
-        cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,0,hreg);
         cg.a_jmp_always(current_asmdata.CurrAsmList,safecalllabel);
         { RTL handler will jump here on exception }
         cg.a_label(current_asmdata.CurrAsmList,exceptlabel);
         handle_safecall_exception;
-        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_FUNCTION_RESULT_REG,hreg);
         cg.a_label(current_asmdata.CurrAsmList,safecalllabel);
       end;
 
@@ -442,8 +453,6 @@ procedure ti386tryfinallynode.pass_generate_code;
             cg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
           end;
       end;
-    if is_safecall then
-      cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,hreg,NR_FUNCTION_RETURN_REG);
     cg.a_label(current_asmdata.CurrAsmList,endfinallylabel);
 
     { end cleanup }
@@ -480,6 +489,7 @@ procedure ti386tryexceptnode.pass_generate_code;
     hnode : tnode;
     hlist : tasmlist;
     onnodecount : tai_const;
+    sym : tasmsymbol;
   label
     errorexit;
   begin
@@ -536,14 +546,20 @@ procedure ti386tryexceptnode.pass_generate_code;
     if assigned(right) then
       begin
         current_asmdata.getaddrlabel(filterlabel);
+        sym:=current_asmdata.RefAsmSymbol('__FPC_on_handler',AT_FUNCTION);
         emit_scope_start(
-          current_asmdata.RefAsmSymbol('__FPC_on_handler'),
+          sym,
           filterlabel);
+        current_module.add_extern_asmsym(sym);
       end
     else
-      emit_scope_start(
-        current_asmdata.RefAsmSymbol('__FPC_except_handler'),
-        exceptlabel);
+      begin
+        sym:=current_asmdata.RefAsmSymbol('__FPC_except_handler',AT_FUNCTION);
+        emit_scope_start(
+          sym,
+          exceptlabel);
+        current_module.add_extern_asmsym(sym);
+      end;
 
     { set control flow labels for the try block }
     current_procinfo.CurrExitLabel:=exittrylabel;
@@ -610,8 +626,10 @@ procedure ti386tryexceptnode.pass_generate_code;
             if hnode.nodetype<>onn then
               InternalError(2011103101);
             current_asmdata.getjumplabel(onlabel);
-            hlist.concat(tai_const.create_sym(current_asmdata.RefAsmSymbol(tonnode(hnode).excepttype.vmt_mangledname,AT_DATA)));
+            sym:=current_asmdata.RefAsmSymbol(tonnode(hnode).excepttype.vmt_mangledname,AT_DATA,true);
+            hlist.concat(tai_const.create_sym(sym));
             hlist.concat(tai_const.create_sym(onlabel));
+            current_module.add_extern_asmsym(sym);
             cg.a_label(current_asmdata.CurrAsmList,onlabel);
             secondpass(hnode);
             inc(onnodecount.value);

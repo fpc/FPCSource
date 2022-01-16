@@ -44,7 +44,7 @@ uses
   cutils, verbose, globals,
   symconst, symdef, paramgr,
   aasmbase, aasmtai,aasmdata, aasmcpu, defutil, htypechk,
-  cgbase, cpuinfo, pass_1, pass_2, regvars,
+  cgbase, cpuinfo, pass_1, pass_2,
   cpupara, cgcpu, cgutils,procinfo,
   ncon, nset,
   ncgutil, tgobj, rgobj, rgcpu, cgobj;
@@ -169,14 +169,14 @@ begin
       end;
     stringdef:
       begin
-        internalerror(2002072402);
+        internalerror(2002072401);
         exit;
       end;
     setdef:
       begin
         { normalsets are already handled in pass1 }
         if not is_smallset(left.resultdef) then
-          internalerror(200109041);
+          internalerror(2001090403);
         second_addsmallset;
         exit;
       end;
@@ -195,6 +195,8 @@ begin
         second_addfloat;
         exit;
       end;
+    else
+      ;
   end;
 
   { defaults }
@@ -217,11 +219,7 @@ begin
   else
     location_reset(location, LOC_FLAGS, OS_NO);
 
-  checkoverflow:=
-    (nodetype in [addn,subn,muln]) and
-    (cs_check_overflow in current_settings.localswitches) and
-    (left.resultdef.typ<>pointerdef) and
-    (right.resultdef.typ<>pointerdef);
+  checkoverflow:= (nodetype in [addn,subn,muln]) and needoverflowcheck;
 
   load_left_right(cmpop, checkoverflow);
 
@@ -286,11 +284,13 @@ begin
       ltn, lten, gtn, gten, equaln, unequaln:
         begin
           {$ifdef extdebug}
-          current_asmdata.CurrAsmList.concat(tai_comment.create('tppcaddnode.pass2'));
+          current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('tppcaddnode.pass2')));
           {$endif extdebug}
 
           emit_compare(unsigned);
         end;
+      else
+        internalerror(2019051032);
     end;
   end
   else
@@ -353,6 +353,8 @@ begin
             cg.a_call_name(current_asmdata.CurrAsmList, 'FPC_OVERFLOW',false);
             cg.a_label(current_asmdata.CurrAsmList, hl);
           end;
+        else
+          internalerror(2019051031);
       end;
     end;
   end;

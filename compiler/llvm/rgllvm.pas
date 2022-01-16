@@ -72,6 +72,11 @@ implementation
          inherited;
          { tell the generic register allocator to generate SSA spilling code }
          ssa_safe:=true;
+         { all registers are "usable" for us; we only care about SSA form. This
+           prevents the register allocator from trying to spill every single
+           register (because our "usable registers" array contains just one,
+           dummy, register) }
+         usable_registers_cnt:=high(usable_registers_cnt);
        end;
 
      procedure trgllvm.do_register_allocation(list: TAsmList; headertai: tai);
@@ -92,7 +97,7 @@ implementation
         def:=tdef(reginfo[orgsupreg].def);
         if not assigned(def) then
           internalerror(2013110803);
-        ins:=taillvm.op_reg_size_ref(la_load,tempreg,getpointerdef(def),spilltemp);
+        ins:=taillvm.op_reg_size_ref(la_load,tempreg,cpointerdef.getreusable(def),spilltemp);
         list.insertafter(ins,pos);
         {$ifdef DEBUG_SPILLING}
         list.Insertbefore(tai_comment.Create(strpnew('Spilling: Spill Read')),ins);
@@ -108,7 +113,7 @@ implementation
         def:=tdef(reginfo[orgsupreg].def);
         if not assigned(def) then
           internalerror(2013110802);
-        ins:=taillvm.op_size_reg_size_ref(la_store,def,tempreg,getpointerdef(def),spilltemp);
+        ins:=taillvm.op_size_reg_size_ref(la_store,def,tempreg,cpointerdef.getreusable(def),spilltemp);
         list.insertafter(ins,pos);
         {$ifdef DEBUG_SPILLING}
         list.Insertbefore(tai_comment.Create(strpnew('Spilling: Spill Write')),ins);
@@ -118,7 +123,7 @@ implementation
 
     function trgllvm.instr_get_oper_spilling_info(var regs: tspillregsinfo; const r: tsuperregisterset; instr: tai_cpu_abstract_sym; opidx: longint): boolean;
       var
-        i, paracnt: longint;
+        paracnt: longint;
         callpara: pllvmcallpara;
       begin
         result:=false;
@@ -130,10 +135,10 @@ implementation
                   for paracnt:=0 to paras.count-1 do
                     begin
                       callpara:=pllvmcallpara(paras[paracnt]);
-                      if (callpara^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) and
-                         (getregtype(callpara^.reg)=regtype) then
+                      if (callpara^.typ=top_reg) and
+                         (getregtype(callpara^.register)=regtype) then
                         begin
-                          result:=addreginfo(regs,r,callpara^.reg,operand_read) or result;
+                          result:=addreginfo(regs,r,callpara^.register,operand_read) or result;
                           break
                         end;
                     end;
@@ -157,9 +162,9 @@ implementation
                 for paracnt:=0 to paras.count-1 do
                   begin
                     callpara:=pllvmcallpara(paras[paracnt]);
-                    if (callpara^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) and
-                       (getregtype(callpara^.reg)=regtype) then
-                      try_replace_reg(regs, callpara^.reg,true);
+                    if (callpara^.typ=top_reg) and
+                       (getregtype(callpara^.register)=regtype) then
+                      try_replace_reg(regs, callpara^.register,true);
                   end;
               end;
             else
@@ -201,6 +206,8 @@ implementation
                            writtenregs^[sr]:=succ(writtenregs^[sr]);
                        end;
                  end;
+               else
+                 ;
              end;
              hp:=tai(hp.next);
            end;
@@ -240,15 +247,17 @@ implementation
                   for paracnt:=0 to taillvm(supstart).oper[i]^.paras.count-1 do
                     begin
                       callpara:=pllvmcallpara(taillvm(supstart).oper[i]^.paras[paracnt]);
-                      if (callpara^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) and
-                         (getregtype(callpara^.reg)=regtype) and
-                         (getsupreg(callpara^.reg)=supreg) then
+                      if (callpara^.typ=top_reg) and
+                         (getregtype(callpara^.register)=regtype) and
+                         (getsupreg(callpara^.register)=supreg) then
                         begin
                           def:=callpara^.def;
                           break
                         end;
                     end;
                 end;
+              else
+                ;
             end;
           end;
         if not assigned(def) then

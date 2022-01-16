@@ -3,7 +3,7 @@
     Copyright (c) 1999-2000 by Michael Van Canneyt,
     member of the Free Pascal development team.
 
-    Syscall nrs for 2.4.18
+    Syscall nrs for x86-64
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -340,4 +340,68 @@ const
   syscall_nr_sync_file_range    = 277;
   syscall_nr_vmsplice           = 278;
   syscall_nr_move_pages         = 279;
+  syscall_nr_utimensat          = 280;
+  syscall_nr_epoll_pwait        = 281;
+  syscall_nr_signalfd           = 282;
+  syscall_nr_timerfd_create     = 283;
+  syscall_nr_eventfd            = 284;
+  syscall_nr_fallocate          = 285;
+  syscall_nr_timerfd_settime    = 286;
+  syscall_nr_timerfd_gettime    = 287;
+  syscall_nr_accept4            = 288;
+  syscall_nr_signalfd4          = 289;
+  syscall_nr_eventfd2           = 290;
+  syscall_nr_epoll_create1      = 291;
+  syscall_nr_dup3               = 292;
+  syscall_nr_pipe2              = 293;
+  syscall_nr_inotify_init1      = 294;
+  syscall_nr_preadv             = 295;
+  syscall_nr_pwritev            = 296;
+  syscall_nr_rt_tgsigqueueinfo  = 297;
+  syscall_nr_perf_event_open    = 298;
+  syscall_nr_recvmmsg           = 299;
+  syscall_nr_fanotify_init      = 300;
+  syscall_nr_fanotify_mark      = 301;
+  syscall_nr_prlimit64          = 302;
+  syscall_nr_name_to_handle_at  = 303;
+  syscall_nr_open_by_handle_at  = 304;
+  syscall_nr_clock_adjtime      = 305;
+  syscall_nr_syncfs             = 306;
+  syscall_nr_sendmmsg           = 307;
+  syscall_nr_setns              = 308;
+  syscall_nr_getcpu             = 309;
+  syscall_nr_process_vm_readv   = 310;
+  syscall_nr_process_vm_writev  = 311;
+  syscall_nr_kcmp               = 312;
+  syscall_nr_finit_module       = 313;
+  syscall_nr_sched_setattr      = 314;
+  syscall_nr_sched_getattr      = 315;
+  syscall_nr_renameat2          = 316;
+  syscall_nr_seccomp            = 317;
+  syscall_nr_getrandom          = 318;
+  syscall_nr_memfd_create       = 319;
+  syscall_nr_kexec_file_load    = 320;
+  syscall_nr_bpf                = 321;
+  syscall_nr_userfaultfd        = 323;
+  syscall_nr_membarrier         = 324;
+  syscall_nr_mlock2             = 325;
+  syscall_nr_copy_file_range    = 326;
+  syscall_nr_pkey_mprotect      = 329;
+  syscall_nr_pkey_alloc         = 330;
+  syscall_nr_pkey_free          = 331;
+  syscall_nr_statx                        = 332;
+  syscall_nr_io_pgetevents                = 333;
+  syscall_nr_rseq                         = 334;
+  syscall_nr_pidfd_send_signal            = 424;
+  syscall_nr_io_uring_setup               = 425;
+  syscall_nr_io_uring_enter               = 426;
+  syscall_nr_io_uring_register            = 427;
+  syscall_nr_open_tree                    = 428;
+  syscall_nr_move_mount                   = 429;
+  syscall_nr_fsopen                       = 430;
+  syscall_nr_fsconfig                     = 431;
+  syscall_nr_fsmount                      = 432;
+  syscall_nr_fspick                       = 433;
+  syscall_nr_pidfd_open                   = 434;
+  syscall_nr_clone3                       = 435;
 

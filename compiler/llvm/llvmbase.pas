@@ -65,10 +65,15 @@ interface
       la_icmp, la_fcmp,
       la_phi, la_select, la_call,
       la_va_arg, la_landingpad,
+      la_blockaddress,
       { fpc pseudo opcodes }
       la_type, { type definition }
+      la_catch, { catch clause of a landingpad }
+      la_filter, { filter clause of a landingpad }
+      la_cleanup, { cleanup clause of a landingpad (finally) }
       la_x_to_inttoptr, { have to convert something first to int before it can be converted to a pointer }
-      la_ptrtoint_to_x { have to convert a pointer first to int before it can be converted to something else }
+      la_ptrtoint_to_x, { have to convert a pointer first to int before it can be converted to something else }
+      la_asmblock
     );
 
     tllvmvalueextension = (lve_none, lve_zeroext, lve_signext);
@@ -94,10 +99,10 @@ interface
     llvmop2strtable=array[tllvmop] of string[14];
 
   const
-    { = max(cpubase.max_operands,7) }
-    max_operands = ((-ord(cpubase.max_operands<=7)) and 7) or ((-ord(cpubase.max_operands>7)) and cpubase.max_operands);
+    { = max(cpubase.max_operands,8) }
+    max_operands = ((-ord(cpubase.max_operands<=8)) and 15) or ((-ord(cpubase.max_operands>8)) and cpubase.max_operands);
 
-  function llvm_target_name: ansistring;
+  function llvm_callingconvention_name(c: tproccalloption): ansistring;
 
 implementation
 
@@ -105,84 +110,49 @@ implementation
     globals,
     systems;
 
-{$j-}
-  const
-    llvmsystemcpu: array[tsystemcpu] of ansistring =
-      ('unknown',
-       'i386',
-       'm68k',
-       'alpha',
-       'powerpc',
-       'sparc',
-       'unknown',
-       'ia64',
-       'x86_64',
-       'mips',
-       'arm',
-       'powerpc64',
-       'avr',
-       'mipsel',
-       'unknown',
-       'unknown',
-       'aarch64'
-      );
-
-  function llvm_target_name: ansistring;
+  function llvm_callingconvention_name(c: tproccalloption): ansistring;
     begin
-      { architecture }
-{$ifdef arm}
-      llvm_target_name:=lower(cputypestr[current_settings.cputype]);
-{$else arm}
-      llvm_target_name:=llvmsystemcpu[target_info.cpu];
-{$endif}
-      { vendor and/or OS }
-      if target_info.system in systems_darwin then
-        begin
-          llvm_target_name:=llvm_target_name+'-apple';
-          if not(target_info.system in [system_arm_darwin,system_i386_iphonesim]) then
-            llvm_target_name:=llvm_target_name+'-macosx'+MacOSXVersionMin
-          else
-            llvm_target_name:=llvm_target_name+'-ios'+iPhoneOSVersionMin;
-        end
-      else if target_info.system in (systems_linux+systems_android) then
-        llvm_target_name:=llvm_target_name+'-linux'
-      else if target_info.system in systems_windows then
-        begin
-          { WinCE isn't supported (yet) by llvm, but if/when added this is
-            presumably how they will differentiate it }
-          if not(target_info.system in [system_i386_wince,system_arm_wince]) then
-            llvm_target_name:=llvm_target_name+'-pc';
-          llvm_target_name:=llvm_target_name+'-win32'
-        end
-      else if target_info.system in systems_freebsd then
-        llvm_target_name:=llvm_target_name+'-freebsd'
-      else if target_info.system in systems_openbsd then
-        llvm_target_name:=llvm_target_name+'-openbsd'
-      else if target_info.system in systems_netbsd then
-        llvm_target_name:=llvm_target_name+'-netbsd'
-      else if target_info.system in systems_aix then
-        llvm_target_name:=llvm_target_name+'-ibm-aix'
-      else if target_info.system in [system_i386_haiku] then
-        llvm_target_name:=llvm_target_name+'-haiku'
-      else if target_info.system in systems_embedded then
-        llvm_target_name:=llvm_target_name+'-none'
-      else
-        llvm_target_name:=llvm_target_name+'-unknown';
-
-      { environment/ABI }
-      if target_info.system in systems_android then
-        llvm_target_name:=llvm_target_name+'-android';
-{$if defined(FPC_ARMHF)}
-      llvm_target_name:=llvm_target_name+'-gnueabihf';
-{$elseif defined(FPC_ARMEL)}
-      if target_info.system in systems_embedded then
-        llvm_target_name:=llvm_target_name+'-eabi'
-      else if target_info.system=system_arm_android then
-        { handled above already
-        llvm_target_name:=llvm_target_name+'-android' }
-      else
-        llvm_target_name:=llvm_target_name+'-gnueabi';
-{$endif FPC_ARM_HF}
+      // TODO (unsupported by LLVM at this time):
+      //   * pocall_pascal
+      //   * pocall_oldfpccall
+      //   * pocall_syscall
+      //   * pocall_far16
+      //   * possibly pocall_softfloat
+      case c of
+        { to prevent errors if none of the defines below is active }
+        pocall_none:
+          result:='';
+{$ifdef i386}
+        pocall_register:
+          result:='x86_borlandregcallcc';
+        pocall_stdcall:
+          result:='x86_stdcallcc';
+{$endif i386}
+{$ifdef x86}
+        pocall_interrupt:
+          result:='x86_intrcc';
+        pocall_sysv_abi_default,
+        pocall_sysv_abi_cdecl:
+          result:='x86_64_sysvcc';
+        pocall_ms_abi_default,
+        pocall_ms_abi_cdecl:
+          result:='win64cc';
+        pocall_vectorcall:
+          result:='x86_vectorcallcc';
+        pocall_internproc:
+          result:=llvm_callingconvention_name(pocall_default);
+{$endif x86}
+{$ifdef avr}
+        pocall_interrupt:
+          result:='avr_intrcc';
+{$endif avr}
+{$if defined(arm) and not defined(FPC_ARMHF)}
+        pocall_hardfloat:
+          result:='arm_aapcs_vfpcc';
+{$endif arm and not FPC_ARMHF}
+        else
+          result:='';
+      end;
     end;
 
 end.

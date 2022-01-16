@@ -36,8 +36,8 @@ const
 
 function RGB15(r, g, b: cint): cuint16; inline; 
 function RGB5(r, g, b: cint): cuint16; inline;
-function RGB8(r, g, b: cint): cuint8; inline;
-function ARGB16(a, r, g, b: cint): cuint16; inline;
+function RGB8(r, g, b: cint): cuint16; inline;
+function ARGB16(a, r, g, b: cint): cuint32; inline;
 
 const
   SCREEN_HEIGHT = 192;
@@ -507,12 +507,12 @@ begin
   RGB5 := ((r) or ((g) shl 5) or ((b) shl 10));
 end;
 
-function RGB8(r, g, b: cint): cuint8; inline;
-begin
+function RGB8(r, g, b: cint): cuint16; inline;
+begin                
   RGB8 := (((r) shr 3) or (((g) shr 3) shl 5) or (((b) shr 3) shl 10));
 end;
 
-function ARGB16(a, r, g, b: cint): cuint16; inline;
+function ARGB16(a, r, g, b: cint): cuint32; inline;
 begin
   ARGB16 := ((a shl 15) or r or (g shl 5) or (b shl 10));
 end;

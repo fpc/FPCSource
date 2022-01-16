@@ -1,15 +1,15 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="12"/>
     <General>
       <Flags>
+        <SaveOnlyProjectUnits Value="True"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
-        <UseDefaultCompilerOptions Value="True"/>
+        <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <MainUnit Value="0"/>
       <Title Value="fclbase-unittests"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
@@ -17,24 +17,26 @@
     <i18n>
       <EnableI18N LFM="False"/>
     </i18n>
-    <VersionInfo>
-      <StringTable ProductVersion=""/>
-    </VersionInfo>
     <BuildModes Count="1">
       <Item1 Name="Default" Default="True"/>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
-      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
-      <ExcludeFileFilter Value="*.(bak|ppu|o|so);*~;backup"/>
     </PublishOptions>
     <RunParams>
       <local>
-        <FormatVersion Value="1"/>
-        <LaunchingApplication PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+        <CommandLineParams Value="--suite=TTestCSVReadWrite.TestInlineQuotedLine"/>
       </local>
+      <FormatVersion Value="2"/>
+      <Modes Count="1">
+        <Mode0 Name="default">
+          <local>
+            <CommandLineParams Value="--suite=TTestCSVReadWrite.TestInlineQuotedLine"/>
+          </local>
+        </Mode0>
+      </Modes>
     </RunParams>
-    <Units Count="2">
+    <Units Count="8">
       <Unit0>
         <Filename Value="fclbase-unittests.pp"/>
         <IsPartOfProject Value="True"/>
@@ -42,24 +44,43 @@
       <Unit1>
         <Filename Value="tchashlist.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tchashlist"/>
       </Unit1>
+      <Unit2>
+        <Filename Value="testexprpars.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="tcmaskutils.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="tcinifile.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="tccsvreadwrite.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="tcbufferedfilestream.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="tccsvdocument.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit7>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="project1"/>
+      <Filename Value="fclbase-unittests"/>
     </Target>
     <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="../src"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
-    <Other>
-      <CompilerMessages>
-        <MsgFileName Value=""/>
-      </CompilerMessages>
-      <CompilerPath Value="$(CompPath)"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">

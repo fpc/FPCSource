@@ -76,7 +76,7 @@ _exit:
 
 _initproc:
         mflr 0
-        stw  0,4(1)     
+        stw  0,4(1)
         stwu 1,-128(1)
         stw 13,52(1)
         stw 14,56(1)
@@ -150,11 +150,6 @@ _ExecBase:
 OriginalStkPtr:
         .long 0
 
-        .globl OriginalLinkRegister
-        .align 4
-OriginalLinkRegister:
-        .long 0
-
         .globl returnValue
         .align 4
 returnValue:
@@ -180,4 +175,3 @@ stackSwap:
         .size __abox__,4
 __abox__:
         .long 1
-

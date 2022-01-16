@@ -143,6 +143,12 @@ type
     procedure Refresh(Buffer: TRecordBuffer); override;
   end;
 
+  TBCDFieldVar = class(TFloatFieldVar)
+  public
+    procedure Refresh(Buffer: TRecordBuffer); override;
+  end;
+
+
 //--TFieldVar----------------------------------------------------------------
 constructor TFieldVar.Create(UseField: TField);
 begin
@@ -273,6 +279,16 @@ begin
     FFieldVal := False;
 end;
 
+procedure TBCDFieldVar.Refresh(Buffer: TRecordBuffer);
+var c: currency;
+begin
+  if FField.DataSet.GetFieldData(FField,@c) then
+    FFieldVal := c
+  else
+    FFieldVal := 0;
+end;
+
+
 //--TBufDatasetParser---------------------------------------------------------------
 
 constructor TBufDatasetParser.Create(Adataset: TDataSet);
@@ -387,7 +403,7 @@ begin
         TempFieldVar := TFloatFieldVar.Create(FieldInfo);
         TempFieldVar.FExprWord := DefineFloatVariable(VarName, TempFieldVar.FieldVal);
       end;
-    ftAutoInc, ftInteger, ftSmallInt:
+    ftAutoInc, ftInteger, ftSmallInt, ftWord:
       begin
         TempFieldVar := TIntegerFieldVar.Create(FieldInfo);
         TempFieldVar.FExprWord := DefineIntegerVariable(VarName, TempFieldVar.FieldVal);
@@ -401,6 +417,11 @@ begin
       begin
         TempFieldVar := TDateTimeFieldVar.Create(FieldInfo);
         TempFieldVar.FExprWord := DefineDateTimeVariable(VarName, TempFieldVar.FieldVal);
+      end;
+    ftBCD:
+      begin
+        TempFieldVar := TBCDFieldVar.Create(FieldInfo);
+        TempFieldVar.FExprWord := DefineFloatVariable(VarName, TempFieldVar.FieldVal);
       end;
   else
     raise EDatabaseError.CreateFmt(SErrIndexBasedOnInvField, [VarName,Fieldtypenames[FieldInfo.DataType]]);

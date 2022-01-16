@@ -34,6 +34,7 @@ type
     fEndianess : integer;
     fOppositeEndianess : boolean;
     fMachineType : TMachOMachineType;
+    fSubMachineType : TMachoSubMachineType;
     fBits : integer;
     fHeader : TMachHdr;
     procedure SetDefaultTarget;
@@ -43,15 +44,19 @@ type
     function GetDescription : string; override;
     procedure Load(aResources : TResources; aStream : TStream); override;
     function CheckMagic(aStream : TStream) : boolean; override;
+
+    function FindBestFatArchOffset(aStream : TStream; switchEndian: boolean; fatheader: TMachFatHdr): int64;
   public
-    constructor Create; override;
+    constructor Create; override; overload;
+    constructor Create(AMachineType: TMachOMachineType; ASubMachineType: TMachoSubMachineType);
     destructor Destroy; override;
     property MachineType : TMachOMachineType read fMachineType;
+    property SubMachineType : TMachOSubMachineType read fSubMachineType;
   end;
 
 implementation
 
-uses machoconsts, resfactory, resourcetree, resdatastream, fpcrestypes;
+uses ctypes, machoconsts, resfactory, resourcetree, resdatastream, fpcrestypes;
 
 type
 
@@ -178,12 +183,47 @@ begin
 end;
 
 function TMachOResourceReader.ReadMachOHeader(aStream: TStream): boolean;
-var tmp : longword;
+var
+  fatArchOffset: int64;
+  tmp : longword;
+  magic: cuint32;
+  fathdr: TMachFatHdr;
 begin
   Result:=false;
 
   try
-    aStream.ReadBuffer(fHeader,sizeof(fHeader));
+    aStream.ReadBuffer(magic,sizeof(magic));
+  except
+    on e : EReadError do exit;
+  end;
+
+  case magic of
+    FAT_MAGIC,
+    FAT_CIGAM:
+      begin
+        fathdr.magic:=magic;
+        try
+          aStream.ReadBuffer((pbyte(@fathdr)+sizeof(magic))^,sizeof(fathdr)-sizeof(magic));
+        except
+          on e : EReadError do exit;
+        end;
+
+        fatArchOffset:=FindBestFatArchOffset(aStream,fathdr.magic=FAT_CIGAM,fathdr);
+        if fatArchOffset=-1 then
+          exit;
+        aStream.Seek(fatArchOffset,soBeginning);
+
+        try
+          aStream.ReadBuffer(magic,sizeof(magic));
+        except
+          on e : EReadError do exit;
+        end;
+      end;
+    end;
+
+  fheader.magic:=magic;
+  try
+    aStream.ReadBuffer((pbyte(@fHeader)+sizeof(magic))^,sizeof(fheader)-sizeof(magic));
   except
     on e : EReadError do exit;
   end;
@@ -193,7 +233,8 @@ begin
     MH_MAGIC_64 : begin fBits:=MACH_64BIT; fOppositeEndianess:=false; end;
     MH_CIGAM    : begin fBits:=MACH_32BIT; fOppositeEndianess:=true; end;
     MH_CIGAM_64 : begin fBits:=MACH_64BIT; fOppositeEndianess:=true; end
-    else exit;
+    else
+      exit;
   end;
   
   if fOppositeEndianess then
@@ -201,29 +242,23 @@ begin
       MACH_BIG_ENDIAN    : fEndianess:=MACH_LITTLE_ENDIAN;
       MACH_LITTLE_ENDIAN : fEndianess:=MACH_BIG_ENDIAN;
     end
-  else fEndianess:=fNativeEndianess;
+  else
+    fEndianess:=fNativeEndianess;
   
   if fOppositeEndianess then
-  begin
-    fHeader.magic:=SwapEndian(fHeader.magic);
-    fHeader.cputype:=SwapEndian(fHeader.cputype);
-    fHeader.cpusubtype:=SwapEndian(fHeader.cpusubtype);
-    fHeader.filetype:=SwapEndian(fHeader.filetype);
-    fHeader.ncmds:=SwapEndian(fHeader.ncmds);
-    fHeader.sizeofcmds:=SwapEndian(fHeader.sizeofcmds);
-    fHeader.flags:=SwapEndian(fHeader.flags);
-  end;
+    begin
+      fHeader.magic:=SwapEndian(fHeader.magic);
+      fHeader.cputype:=SwapEndian(fHeader.cputype);
+      fHeader.cpusubtype:=SwapEndian(fHeader.cpusubtype);
+      fHeader.filetype:=SwapEndian(fHeader.filetype);
+      fHeader.ncmds:=SwapEndian(fHeader.ncmds);
+      fHeader.sizeofcmds:=SwapEndian(fHeader.sizeofcmds);
+      fHeader.flags:=SwapEndian(fHeader.flags);
+    end;
   
-  case fHeader.cputype of
-    CPU_TYPE_I386      : fMachineType:=mmti386;
-    CPU_TYPE_X86_64    : fMachineType:=mmtx86_64;
-    CPU_TYPE_POWERPC   : fMachineType:=mmtpowerpc;
-    CPU_TYPE_POWERPC64 : fMachineType:=mmtpowerpc64;
-    CPU_TYPE_ARM       : fMachineType:=mmtarm;
-    CPU_TYPE_ARM64     : fMachineType:=mmtarm64
-    else exit;
-  end;
-  
+  if not MachOMachineTypesToPas(fHeader.cpuType,fheader.cpusubtype,fMachineType,fSubMachineType) then
+    exit;
+
   //64-bit mach-o files have 4 bytes of padding after the header
   if fBits=MACH_64BIT then
     try
@@ -272,12 +307,61 @@ begin
   Result:=ReadMachOHeader(aStream);
 end;
 
+function TMachOResourceReader.FindBestFatArchOffset(aStream : TStream; switchEndian: boolean; fatheader: TMachFatHdr): int64;
+var
+  fatarchs: array of TMachFarArch;
+  machPas: TMachOMachineType;
+  machSubPas: TMachoSubMachineType;
+  i: cuint32;
+  bestCompatibility, newCompatibility: TMachOSubMachineTypeCompatible;
+begin
+  result:=-1;
+  if switchEndian then
+    begin
+      fatheader.magic:=SwapEndian(fatheader.magic);
+      fatheader.nfatarch:=SwapEndian(fatheader.nfatarch);
+    end;
+  setlength(fatarchs,fatheader.nfatarch);
+  try
+    aStream.read(fatarchs[0], fatheader.nfatarch * sizeof(fatarchs[0]));
+  except
+    on e : EReadError do
+      raise EResourceReaderUnexpectedEndOfStreamException.Create('');
+  end;
+  bestCompatibility:=smc_incompatible;
+  for i:=0 to fatheader.nfatarch-1 do
+    begin
+      if switchEndian then
+        begin
+          fatarchs[i].cputype:=swapendian(fatarchs[i].cputype);
+          fatarchs[i].cpusubtype:=swapendian(fatarchs[i].cpusubtype);
+          fatarchs[i].offset:=swapendian(fatarchs[i].offset);
+          fatarchs[i].size:=swapendian(fatarchs[i].size);
+          fatarchs[i].align:=swapendian(fatarchs[i].align);
+        end;
+      if not MachOMachineTypesToPas(fatarchs[i].cputype,fatarchs[i].cpusubtype,machPas,machSubPas) then
+        continue;
+      if machPas<>fMachineType then
+        continue;
+      newCompatibility:=MachOSubMachineTypesEqual(machPas,fSubMachineType,machSubPas);
+      if newCompatibility>bestCompatibility then
+        result:=fatarchs[i].offset;
+    end;
+end;
+
 constructor TMachOResourceReader.Create;
 begin
   fExtensions:='.o .or';
   fDescription:='Mach-O resource reader';
   SetDefaultTarget;
 end;
+
+constructor TMachOResourceReader.Create(AMachineType: TMachOMachineType; ASubMachineType: TMachoSubMachineType);
+  begin
+    Create;
+    fMachineType:=AMachineType;
+    fSubMachineType:=ASubMachineType;
+  end;
 
 destructor TMachOResourceReader.Destroy;
 begin

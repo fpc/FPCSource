@@ -32,33 +32,17 @@ interface
        tarmtypeconvnode = class(tcgtypeconvnode)
          protected
            function first_int_to_real: tnode;override;
-           function first_real_to_real: tnode; override;
-         { procedure second_int_to_int;override; }
-         { procedure second_string_to_string;override; }
-         { procedure second_cstring_to_pchar;override; }
-         { procedure second_string_to_chararray;override; }
-         { procedure second_array_to_pointer;override; }
-         // function first_int_to_real: tnode; override;
-         { procedure second_pointer_to_array;override; }
-         { procedure second_chararray_to_string;override; }
-         { procedure second_char_to_string;override; }
+           function first_real_to_real: tnode;override;
            procedure second_int_to_real;override;
-         // procedure second_real_to_real;override;
-         { procedure second_cord_to_pointer;override; }
-         { procedure second_proc_to_procvar;override; }
-         { procedure second_bool_to_int;override; }
            procedure second_int_to_bool;override;
-         { procedure second_load_smallset;override;  }
-         { procedure second_ansistring_to_pchar;override; }
-         { procedure second_pchar_to_string;override; }
-         { procedure second_class_to_intf;override; }
-         { procedure second_char_to_char;override; }
        end;
 
 implementation
 
    uses
-      verbose,globtype,globals,symdef,aasmbase,aasmtai,aasmdata,symtable,
+      verbose,globtype,globals,
+      systems,
+      symdef,aasmbase,aasmtai,aasmdata,symtable,
       defutil,
       cgbase,cgutils,
       pass_1,pass_2,procinfo,ncal,
@@ -75,7 +59,11 @@ implementation
         fname: string[19];
       begin
         if (cs_fp_emulation in current_settings.moduleswitches) or
-          (current_settings.fputype=fpu_fpv4_s16) then
+{$ifdef cpufpemu}
+          (current_settings.fputype=fpu_soft) or
+{$endif cpufpemu}
+          (not(FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]) and
+           not(FPUARM_HAS_FPA in fpu_capabilities[current_settings.fputype])) then
           result:=inherited first_int_to_real
         else
           begin
@@ -114,20 +102,19 @@ implementation
               fpu_fpa10,
               fpu_fpa11:
                 expectloc:=LOC_FPUREGISTER;
-              fpu_vfpv2,
-              fpu_vfpv3,
-              fpu_vfpv3_d16,
-              fpu_fpv4_s16:
-                expectloc:=LOC_MMREGISTER;
+              else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
+                expectloc:=LOC_MMREGISTER
               else
                 internalerror(2009112702);
             end;
           end;
       end;
 
+
     function tarmtypeconvnode.first_real_to_real: tnode;
       begin
-        if (current_settings.fputype=fpu_fpv4_s16) then
+        if (current_settings.fputype=fpu_soft) and
+           not (target_info.system in systems_wince) then
           begin
             case tfloatdef(left.resultdef).floattype of
               s32real:
@@ -141,7 +128,7 @@ implementation
                       left:=nil;
                     end;
                   else
-                    internalerror(200610151);
+                    internalerror(2006101504);
                 end;
               s64real:
                 case tfloatdef(resultdef).floattype of
@@ -154,10 +141,10 @@ implementation
                       left:=nil;
                     end;
                   else
-                    internalerror(200610152);
+                    internalerror(2006101505);
                 end;
               else
-                internalerror(200610153);
+                internalerror(2006101506);
             end;
             left:=nil;
             firstpass(result);
@@ -208,7 +195,7 @@ implementation
 
                         current_asmdata.getglobaldatalabel(l1);
                         current_asmdata.getjumplabel(l2);
-                        reference_reset_symbol(href,l1,0,const_align(8));
+                        reference_reset_symbol(href,l1,0,const_align(8),[]);
 
                         cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                         current_asmdata.CurrAsmList.concat(Taicpu.op_reg_const(A_CMP,left.location.register,0));
@@ -236,13 +223,11 @@ implementation
                           end;
                       end;
                     else
-                      internalerror(200410031);
+                      internalerror(2004100307);
                   end;
               end;
             end;
-          fpu_vfpv2,
-          fpu_vfpv3,
-          fpu_vfpv3_d16:
+          else if FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype] then
             begin
               location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
               signed:=left.location.size=OS_S32;
@@ -256,14 +241,14 @@ implementation
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VCVT,
                 location.register,left.location.register),
                 signedprec2vfppf[signed,location.size]));
-            end;
-          fpu_fpv4_s16:
+            end
+          else if FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype] then
             begin
               location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
               signed:=left.location.size=OS_S32;
               hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
               if (left.location.size<>OS_F32) then
-                internalerror(2009112703);
+                internalerror(2009112704);
               if left.location.size<>location.size then
                 location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size)
               else
@@ -272,7 +257,10 @@ implementation
                 current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VCVT,location.register,left.location.register), PF_F32S32))
               else
                 current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VCVT,location.register,left.location.register), PF_F32U32));
-            end;
+            end
+          else
+            { should be handled in pass 1 }
+            internalerror(2019050909);
         end;
       end;
 
@@ -283,13 +271,9 @@ implementation
         hregister : tregister;
         href      : treference;
         resflags  : tresflags;
-        hlabel,oldTrueLabel,oldFalseLabel : tasmlabel;
+        hlabel    : tasmlabel;
         newsize   : tcgsize;
       begin
-         oldTrueLabel:=current_procinfo.CurrTrueLabel;
-         oldFalseLabel:=current_procinfo.CurrFalseLabel;
-         current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-         current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
          secondpass(left);
          if codegenerror then
           exit;
@@ -307,13 +291,15 @@ implementation
                 hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
               else
                 location.size:=newsize;
-              current_procinfo.CurrTrueLabel:=oldTrueLabel;
-              current_procinfo.CurrFalseLabel:=oldFalseLabel;
               exit;
            end;
 
          { Load left node into flag F_NE/F_E }
          resflags:=F_NE;
+
+         if (left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) then
+           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+
          case left.location.loc of
             LOC_CREFERENCE,
             LOC_REFERENCE :
@@ -361,10 +347,10 @@ implementation
               begin
                 hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                 current_asmdata.getjumplabel(hlabel);
-                cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+                cg.a_label(current_asmdata.CurrAsmList,left.location.truelabel);
                 cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,1,hregister);
                 cg.a_jmp_always(current_asmdata.CurrAsmList,hlabel);
-                cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                cg.a_label(current_asmdata.CurrAsmList,left.location.falselabel);
                 cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,0,hregister);
                 cg.a_label(current_asmdata.CurrAsmList,hlabel);
                 tbasecgarm(cg).cgsetflags:=true;
@@ -372,7 +358,7 @@ implementation
                 tbasecgarm(cg).cgsetflags:=false;
               end;
             else
-              internalerror(200311301);
+              internalerror(2003113002);
          end;
          { load flags to register }
          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
@@ -397,9 +383,6 @@ implementation
          else
 {$endif cpu64bitalu}
            location.register:=hreg1;
-
-         current_procinfo.CurrTrueLabel:=oldTrueLabel;
-         current_procinfo.CurrFalseLabel:=oldFalseLabel;
       end;
 
 

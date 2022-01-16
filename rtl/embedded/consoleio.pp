@@ -12,7 +12,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$mode objfpc}
 Unit consoleio;
 
   interface
@@ -21,7 +20,7 @@ Unit consoleio;
       TWriteCharFunc = function(ACh: char; AUserData: pointer): boolean;
       TReadCharFunc = function(var ACh: char; AUserData: pointer): boolean;
 
-    procedure OpenIO(var f: Text; AWrite: TWriteCharFunc; ARead: TReadCharFunc; AMode:longint; AUserData: pointer);
+    procedure OpenIO(var f: Text; AWrite: TWriteCharFunc; ARead: TReadCharFunc; AMode: word; AUserData: pointer);
 
   implementation
 
@@ -37,12 +36,12 @@ Unit consoleio;
 
     function EmptyWrite(ACh: char; AUserData: pointer): boolean;
       begin
-        result:=true;
+        EmptyWrite:=true;
       end;
 
     function EmptyRead(var ACh: char; AUserData: pointer): boolean;
       begin
-        result:=true;
+        EmptyRead:=true;
         ACh:=#0;
       end;
 
@@ -50,14 +49,14 @@ Unit consoleio;
       begin
       end;
 
-    function ReadData(Func: TReadCharFunc; UserData: pointer; Buffer: pchar; count: longint): longint;
+    function ReadData(Func: TReadCharFunc; UserData: pointer; Buffer: pchar; count: SizeInt): SizeInt;
       var
         c: char;
         got_linechar: boolean;
       begin
-        result:=0;
+        ReadData:=0;
         got_linechar:=false;
-        while (result < count) and (not got_linechar) do
+        while (ReadData < count) and (not got_linechar) do
           begin
             if Func(c, UserData) then
               begin
@@ -65,7 +64,7 @@ Unit consoleio;
                   got_linechar:=true;
                 buffer^:=c;
                 inc(buffer);
-                inc(result);
+                inc(ReadData);
               end;
           end;
       end;
@@ -84,7 +83,7 @@ Unit consoleio;
       var
         userdata: PUserData;
         p: pchar;
-        i: longint;
+        i: SizeInt;
       begin
         if t.BufPos=0 then exit;
         userdata:=@t.UserData[1];
@@ -104,11 +103,20 @@ Unit consoleio;
         t.BufPos:=0;
       end;
 
-    procedure OpenIO(var f: Text; AWrite: TWriteCharFunc; ARead: TReadCharFunc; AMode:longint; AUserData: pointer);
+    procedure OpenIO(var f: Text; AWrite: TWriteCharFunc; ARead: TReadCharFunc; AMode: word; AUserData: pointer);
       var
         userdata: PUserData;
       begin
-        Assign(f,'');
+        { Essentially just init everything, more or less what Assign(f,'');
+          does }
+        FillChar(f,SizeOf(TextRec),0);
+        { only set things that are not zero }
+        TextRec(f).Handle:=UnusedHandle;
+        TextRec(f).BufSize:=TextRecBufSize;
+        TextRec(f).Bufptr:=@TextRec(f).Buffer;
+        TextRec(f).OpenFunc:=nil;
+        TextRec(f).LineEnd := #13#10;
+
         userdata:=@TextRec(f).UserData[1];
         TextRec(f).Mode:=AMode;
         case AMode of
@@ -119,7 +127,7 @@ Unit consoleio;
         TextRec(f).FlushFunc:=nil;
         case AMode of
           fmInput: TextRec(f).InOutFunc:=@Console_Read;
-          fmOutput: 
+          fmOutput:
             begin
               TextRec(f).InOutFunc:=@Console_Write;
               TextRec(f).FlushFunc:=@Console_Write;
@@ -149,6 +157,7 @@ var
 var
   pstdout : ^Text;
 
+{$ifndef CPUAVR}
 initialization
   { Setup stdin, stdout and stderr }
   SysInitStdIO;
@@ -164,6 +173,8 @@ finalization
      Writeln(pstdout^,'');
    End;
   SysFlushStdIO;
+{$endif CPUAVR}
+
 end.
 
 

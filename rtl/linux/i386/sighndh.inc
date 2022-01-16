@@ -18,15 +18,46 @@
 
 type
   tfpreg = record
-          significand: array[0..3] of word;
-          exponent: word;
+    significand: array[0..3] of word;
+    exponent: word;
   end;
+
+  tfpxreg = record
+    significand: array[0..3] of word;
+    exponent: word;
+    padding : array[0..2] of word;
+  end;
+
+  txmmreg = record
+    element : array[0..3] of dword;
+  end;
+
+  tfpx_sw_bytes = record
+    magic1 : dword;
+    extended_size : dword;
+    xfeatures : qword;
+    xstate_size : dword;
+    padding : array[0..6] of dword;
+  end;
+
 
   pfpstate = ^tfpstate;
   tfpstate = record
-           cw, sw, tag, ipoff, cssel, dataoff, datasel: cardinal;
-           st: array[0..7] of tfpreg;
-           status: cardinal;
+    cw, sw, tag, ipoff, cssel, dataoff, datasel: cardinal;
+    st: array[0..7] of tfpreg;
+    status, magic: word;
+    fxsr_env : array[0..5] of dword;
+    mxcsr : dword;
+    reserved : dword;
+    fxsr_st : array[0..7] of tfpxreg;
+    xmmreg : array[0..7] of txmmreg;
+    case byte of
+       1: (padding : array[0..43] of dword;
+           case byte of
+             1: (padding2 : array[0..11] of dword);
+             2: (sw_reserved : tfpx_sw_bytes);
+          );
+       2: (padding1 : array[0..43] of dword);
   end;
 
   PSigContext = ^TSigContext;

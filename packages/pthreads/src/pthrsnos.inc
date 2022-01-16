@@ -188,6 +188,7 @@ const
   PTHREAD_BARRIER_SERIAL_THREAD = -(2);   
 
 type
+   _Voidpfp = function(_para1:pointer) : pointer;cdecl;
    _Voidfp = procedure (_para1:pointer);cdecl;
   _fp = procedure;cdecl;
 
@@ -225,7 +226,7 @@ function pthread_attr_setschedparam(_RESTRICT_KYWD1:Ppthread_attr_t; _RESTRICT_K
 (* Const before type ignored *)
 function pthread_attr_getschedparam(_RESTRICT_KYWD1:Ppthread_attr_t; _RESTRICT_KYWD2:Psched_param):longint;cdecl;external External_library name 'pthread_attr_getschedparam';
 (* Const before type ignored *)
-function pthread_create(_RESTRICT_KYWD1:Ppthread_t; _RESTRICT_KYWD2:Ppthread_attr_t; _para3:_Voidfp ; _RESTRICT_KYWD3:pointer):longint;cdecl;external External_library name 'pthread_create';
+function pthread_create(_RESTRICT_KYWD1:Ppthread_t; _RESTRICT_KYWD2:Ppthread_attr_t; _para3:_Voidpfp ; _RESTRICT_KYWD3:pointer):longint;cdecl;external External_library name 'pthread_create';
 function pthread_once(_para1:Ppthread_once_t; _para2:_fp ):longint;cdecl;external External_library name 'pthread_once';
 function pthread_join(_para1:pthread_t; _para2:Ppointer):longint;cdecl;external External_library name 'pthread_join';
 function pthread_detach(_para1:pthread_t):longint;cdecl;external External_library name 'pthread_detach';
@@ -239,7 +240,7 @@ function pthread_setcancelstate(_para1:longint; _para2:Plongint):longint;cdecl;e
 function pthread_setcanceltype(_para1:longint; _para2:Plongint):longint;cdecl;external External_library name 'pthread_setcanceltype';
 procedure pthread_testcancel;cdecl;external External_library name 'pthread_testcancel';
 function pthread_equal(_para1:pthread_t; _para2:pthread_t):longint;cdecl;external External_library name 'pthread_equal';
-function pthread_key_create(_para1:Ppthread_key_t; _para2:_Voidfp):longint;cdecl;external External_library name 'pthread_key_create';
+function pthread_key_create(_para1:Ppthread_key_t; _para2:_Voidpfp):longint;cdecl;external External_library name 'pthread_key_create';
 function pthread_key_delete(_para1:pthread_key_t):longint;cdecl;external External_library name 'pthread_key_delete';
 (* Const before type ignored *)
 function pthread_setspecific(_para1:pthread_key_t; _para2:pointer):longint;cdecl;external External_library name 'pthread_setspecific';

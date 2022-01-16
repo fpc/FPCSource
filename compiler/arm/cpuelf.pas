@@ -28,7 +28,7 @@ interface
 implementation
 
   uses
-    globtype,cutils,cclasses,
+    globtype,globals,cutils,cclasses,
     verbose, elfbase,
     systems,aasmbase,ogbase,ogelf,assemble;
 
@@ -327,15 +327,32 @@ implementation
           result:=R_ARM_REL32;
         RELOC_RELATIVE_24:
           result:=R_ARM_JUMP24;
+        RELOC_RELATIVE_CALL:
+          result:=R_ARM_CALL;
         RELOC_RELATIVE_24_THUMB:
           result:=R_ARM_CALL;
         RELOC_RELATIVE_CALL_THUMB:
           result:=R_ARM_THM_CALL;
         RELOC_GOT32:
           result:=R_ARM_GOT_BREL;
+        RELOC_TPOFF:
+          if current_settings.tlsmodel=tlsm_initial_exec then
+            result:=R_ARM_TLS_IE32
+          else if current_settings.tlsmodel=tlsm_local_exec then
+            result:=R_ARM_TLS_LE32
+          else
+            Internalerror(2019092901);
+        RELOC_TLSGD:
+          result:=R_ARM_TLS_GD32;
+        RELOC_TLSDESC:
+          result:=R_ARM_TLS_GOTDESC;
+        RELOC_TLS_CALL:
+          result:=R_ARM_TLS_CALL;
+        RELOC_ARM_CALL:
+          result:=R_ARM_CALL;
+        RELOC_DTPOFF:
+          result:=R_ARM_TLS_LDO32;
       else
-        result:=0;
-        writeln(objrel.typ);
         InternalError(2012110602);
       end;
     end;
@@ -586,6 +603,8 @@ implementation
               data.Write(zero,4);
               continue;
             end;
+          else
+            ;
         end;
 
         if (objreloc.flags and rf_raw)=0 then
@@ -904,7 +923,7 @@ implementation
           else
             begin
               writeln(objreloc.ftype);
-              internalerror(200604014);
+              internalerror(2006040107);
             end;
           end
         else           { not relocsec.Used }
@@ -952,11 +971,13 @@ implementation
          idtxt  : 'ELF';
          asmbin : '';
          asmcmd : '';
-         supported_targets : [system_arm_embedded,system_arm_darwin,
-                              system_arm_linux,system_arm_gba,
-                              system_arm_nds];
+         supported_targets : [system_arm_embedded,system_arm_ios,
+                              system_arm_linux,system_arm_netbsd,
+                              system_arm_gba,system_arm_nds,
+                              system_arm_aros,system_arm_freertos];
          flags : [af_outputbinary,af_smartlink_sections,af_supports_dwarf];
          labelprefix : '.L';
+         labelmaxlen : -1;
          comment : '';
          dollarsign: '$';
        );

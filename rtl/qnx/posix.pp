@@ -1,5 +1,4 @@
 {
-    $Id: posix.pp,v 1.1.2.2 2002/05/01 14:10:36 carl Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by Carl Eric Codere
     development team
@@ -387,17 +386,3 @@ const
 
 end.
 
-{
-  $Log: posix.pp,v $
-  Revision 1.1.2.2  2002/05/01 14:10:36  carl
-  * Correct structures for stat and dirent
-  * correct some compilation problems
-  * change types according to 80x86 version
-
-  Revision 1.1.2.1  2001/12/20 02:55:01  carl
-  + QNX versions (still untested)
-
-  Revision 1.1.2.1  2001/12/09 03:25:17  carl
-  + reinstated
-
-}

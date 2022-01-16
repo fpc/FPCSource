@@ -166,6 +166,7 @@ Var
 begin
   F:=TFileStream.Create(AFileName,fmOpenread or fmShareDenyWrite);
   try
+    FFileName := '';
     ReadXMLFile(Doc, AFilename);
     FFileName:=AFileName;
   finally
@@ -398,11 +399,14 @@ procedure TXMLConfig.DoSetFilename(const AFilename: String; ForceReload: Boolean
 begin
   if (not ForceReload) and (FFilename = AFilename) then
     exit;
-    
+
   Flush;
   FreeAndNil(Doc);
   if csLoading in ComponentState then
+  begin
+    FFilename := AFilename;
     exit;
+  end;
   if FileExists(AFilename) and not FStartEmpty then
     LoadFromFile(AFilename)
   else if not Assigned(Doc) then
@@ -425,6 +429,8 @@ begin
   if AValue <> FRootName then
   begin
     FRootName := AValue;
+    if not (ComponentState * [csLoading,csDesigning] = []) then
+      Exit;
     Root := Doc.DocumentElement;
     Cfg := Doc.CreateElement(AValue);
     while Assigned(Root.FirstChild) do
@@ -475,7 +481,7 @@ var
 begin
   for I := Length(FPathStack)-1 downto 0 do
     FPathStack[I] := '';
-  FElement := nil;    
+  FElement := nil;
   FPathDirty := False;
   FPathCount := 0;
 end;

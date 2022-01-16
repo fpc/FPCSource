@@ -16,9 +16,7 @@
 
 unit Keymap;
 
-INTERFACE
-
-{$mode objfpc}
+interface
 
 uses exec, inputevent;
 

@@ -21,6 +21,8 @@ interface
 {$MODESWITCH OUT}
 { force ansistrings }
 {$H+}
+{$modeswitch typehelpers}
+{$modeswitch advancedrecords}
 
 uses
   dos,
@@ -248,24 +250,34 @@ begin
 end;
 
 
-Function FileAge (Const FileName : UnicodeString): Longint;
+Function FileAge (Const FileName : UnicodeString): Int64;
 var
   Handle: THandle;
   FindData: TWin32FindData;
+  tmpdtime    : longint;
 begin
   Handle := FindFirstFile(PWideChar(FileName), FindData);
   if Handle <> INVALID_HANDLE_VALUE then
     begin
       Windows.FindClose(Handle);
       if (FindData.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY) = 0 then
-        If WinToDosTime(FindData.ftLastWriteTime,Result) then
-          exit;
+        If WinToDosTime(FindData.ftLastWriteTime,tmpdtime) then
+          begin
+            Result:=tmpdtime;
+            exit;
+          end;
     end;
   Result := -1;
 end;
 
 
-Function FileExists (Const FileName : UnicodeString) : Boolean;
+function FileGetSymLinkTarget(const FileName: UnicodeString; out SymLinkRec: TUnicodeSymLinkRec): Boolean;
+begin
+  Result := False;
+end;
+
+
+Function FileExists (Const FileName : UnicodeString; FollowLink : Boolean) : Boolean;
 var
   Attr:Dword;
 begin
@@ -277,7 +289,7 @@ begin
 end;
 
 
-Function DirectoryExists (Const Directory : UnicodeString) : Boolean;
+Function DirectoryExists (Const Directory : UnicodeString; FollowLink : Boolean) : Boolean;
 var
   Attr:Dword;
 begin
@@ -290,6 +302,8 @@ end;
 
 
 Function FindMatch(var f: TAbstractSearchRec; var Name: UnicodeString) : Longint;
+var
+  tmpdtime    : longint;
 begin
   { Find file with correct attribute }
   While (F.FindData.dwFileAttributes and cardinal(F.ExcludeAttr))<>0 do
@@ -301,7 +315,8 @@ begin
       end;
    end;
   { Convert some attributes back }
-  WinToDosTime(F.FindData.ftLastWriteTime,F.Time);
+  WinToDosTime(F.FindData.ftLastWriteTime,tmpdtime);
+  F.Time:=tmpdtime;
   f.size:=F.FindData.NFileSizeLow;
   f.attr:=F.FindData.dwFileAttributes;
   Name:=F.FindData.cFileName;
@@ -346,18 +361,22 @@ begin
 end;
 
 
-Function FileGetDate (Handle : THandle) : Longint;
+Function FileGetDate (Handle : THandle) : Int64;
 Var
   FT : TFileTime;
+  tmpdtime : longint;
 begin
   If GetFileTime(Handle,nil,nil,@ft) and
-     WinToDosTime(FT, Result) then
-    exit;
+     WinToDosTime(FT, tmpdtime) then
+     begin
+       Result:=tmpdtime;       
+       exit;
+     end;
   Result:=-1;
 end;
 
 
-Function FileSetDate (Handle : THandle;Age : Longint) : Longint;
+Function FileSetDate (Handle : THandle;Age : Int64) : Longint;
 Var
   FT: TFileTime;
 begin
@@ -425,6 +444,12 @@ begin
   windows.Getlocaltime(SystemTime);
 end;
 
+function GetUniversalTime(var SystemTime: TSystemTime): Boolean;
+begin
+  windows.GetSystemTime(SystemTime);
+  Result:=True;
+end;
+
 function GetLocalTimeOffset: Integer;
 var
   TZInfo: TTimeZoneInformation;
@@ -439,6 +464,12 @@ begin
      else
        Result := 0;
    end;
+end;
+
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer): Boolean;
+
+begin
+  Result := False; // not supported
 end;
 
 {****************************************************************************
@@ -617,7 +648,12 @@ begin
 end;
 
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
+function ExecuteProcess(Const Path: RawByteString; Const ComLine: RawByteString;Flags:TExecuteFlags=[]):integer;
+begin
+  result:=ExecuteProcess(UnicodeString(Path),UnicodeString(ComLine),Flags);
+end;
+
+function ExecuteProcess(Const Path: UnicodeString; Const ComLine: UnicodeString;Flags:TExecuteFlags=[]):integer;
 var
   PI: TProcessInformation;
   Proc : THandle;
@@ -626,7 +662,7 @@ var
 
 begin
   DosError := 0;
-  if not CreateProcess(PWideChar(widestring(Path)), PWideChar(widestring(ComLine)),
+  if not CreateProcess(PWideChar(Path), PWideChar(ComLine),
                        nil, nil, FALSE, 0, nil, nil, nil, PI) then
     begin
       e:=EOSError.CreateFmt(SExecuteProcessFailed,[Path,GetLastError]);
@@ -650,22 +686,37 @@ begin
     end;
 end;
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString;Flags:TExecuteFlags=[]):integer;
-
+function ExecuteProcess(Const Path: UnicodeString; Const ComLine: Array of UnicodeString;Flags:TExecuteFlags=[]):integer;
+ 
 var
-  CommandLine: AnsiString;
+  CommandLine: UnicodeString;
   I: integer;
 
 begin
   Commandline := '';
   for I := 0 to High (ComLine) do
-   if Pos (' ', ComLine [I]) <> 0 then
-    CommandLine := CommandLine + ' ' + '"' + ComLine [I] + '"'
-   else
-    CommandLine := CommandLine + ' ' + Comline [I];
+    if Pos (' ', ComLine [I]) <> 0 then
+      CommandLine := CommandLine + ' ' + '"' + ComLine [I] + '"'
+    else
+      CommandLine := CommandLine + ' ' + Comline [I];
   ExecuteProcess := ExecuteProcess (Path, CommandLine);
 end;
 
+function ExecuteProcess(Const Path: RawByteString; Const ComLine: Array of RawByteString;Flags:TExecuteFlags=[]):integer;
+
+var
+  CommandLine: UnicodeString;
+  I: integer;
+
+begin
+  Commandline := '';
+  for I := 0 to High (ComLine) do
+    if Pos (' ', ComLine [I]) <> 0 then
+      CommandLine := CommandLine + ' ' + '"' + ComLine [I] + '"'
+    else
+      CommandLine := CommandLine + ' ' + Comline [I];
+  ExecuteProcess := ExecuteProcess (UnicodeString(Path), CommandLine,Flags);
+end;
 
 Procedure Sleep(Milliseconds : Cardinal);
 
@@ -761,9 +812,12 @@ begin
 end;
 
 
-function WinCECompareWideString(const s1, s2 : WideString) : PtrInt;
+function WinCECompareWideString(const s1, s2 : WideString; Options : TCompareOptions) : PtrInt;
 begin
-  Result:=DoCompareString(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), 0);
+  if coIgnoreCase in Options then
+    Result:=DoCompareString(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), NORM_IGNORECASE)
+  else  
+    Result:=DoCompareString(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), 0);
 end;
 
 
@@ -773,9 +827,12 @@ begin
 end;
 
 
-function WinCECompareUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
+function WinCECompareUnicodeString(const s1, s2 : UnicodeString; Options : TCompareOptions) : PtrInt;
 begin
-  Result:=DoCompareString(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), 0);
+   if coIgnoreCase in Options then
+     Result:=DoCompareString(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), NORM_IGNORECASE)
+   else  
+     Result:=DoCompareString(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), 0);
 end;
 
 
@@ -923,9 +980,7 @@ end;
 procedure InitWinCEWidestrings;
   begin
     widestringmanager.CompareWideStringProc:=@WinCECompareWideString;
-    widestringmanager.CompareTextWideStringProc:=@WinCECompareTextWideString;
     widestringmanager.CompareUnicodeStringProc:=@WinCECompareUnicodeString;
-    widestringmanager.CompareTextUnicodeStringProc:=@WinCECompareTextUnicodeString;
 
     widestringmanager.UpperAnsiStringProc:=@WinCEAnsiUpperCase;
     widestringmanager.LowerAnsiStringProc:=@WinCEAnsiLowerCase;
@@ -950,6 +1005,7 @@ Initialization
   SysConfigDir:='\Windows';
 
 Finalization
+  FreeTerminateProcs;
   DoneExceptions;
 
 end.

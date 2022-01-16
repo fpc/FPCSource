@@ -25,7 +25,7 @@ uses
 type
   TXMLVersion = (xmlVersionUnknown, xmlVersion10, xmlVersion11);
   TSetOfChar = set of Char;
-  XMLString = WideString;
+  XMLString = UnicodeString;
   PXMLString = ^XMLString;
   PXMLChar = PWideChar;
 

@@ -34,18 +34,16 @@ unit Dos;
 interface
 
 type
-  SearchRec = Packed Record
-    { watch out this is correctly aligned for all processors }
-    { don't modify.                                          }
-    { Replacement for Fill }
-{0} AnchorPtr : Pointer;    { Pointer to the Anchorpath structure }
-{4} AttrArg: Word;          { The initial Attributes argument }
-{6} Fill: Array[1..13] of Byte; {future use}
-    {End of replacement for fill}
-    Attr : BYTE;        {attribute of found file}
-    Time : LongInt;     {last modify date of found file}
-    Size : LongInt;     {file size of found file}
-    Name : String[255]; {name of found file}
+  SearchRec = record
+    { platform specific }
+    AnchorPtr : Pointer;  { Pointer to the AnchorPath structure }
+    AttrArg: Word;        { The initial Attributes argument }
+
+    { generic }
+    Attr : BYTE;        { attribute of found file }
+    Time : LongInt;     { last modify date of found file }
+    Size : LongInt;     { file size of found file }
+    Name : String;      { name of found file }
   End;
 
 {$I dosh.inc}
@@ -69,7 +67,7 @@ implementation
 {$I dos.inc}
 
 
-{ * include MorphOS specific functions & definitions * }
+{ * include OS specific functions & definitions * }
 
 {$include execd.inc}
 {$include execf.inc}
@@ -77,6 +75,16 @@ implementation
 {$include doslibd.inc}
 {$include doslibf.inc}
 {$include utilf.inc}
+
+{$ifdef cpum68k}
+{$if defined(amiga_v1_0_only) or defined(amiga_v1_2_only)}
+{$include legacyexech.inc}
+{$include legacydosh.inc}
+{$include legacyutilh.inc}
+{$endif}
+{$endif}
+
+{$packrecords default}
 
 const
   DaysPerMonth :  Array[1..12] of ShortInt =
@@ -100,7 +108,7 @@ const
 function PathConv(path: string): string; external name 'PATHCONV';
 
 function dosLock(const name: String;
-                 accessmode: Longint) : LongInt;
+                 accessmode: Longint) : BPTR;
 var
  buffer: array[0..255] of Char;
 begin
@@ -109,9 +117,9 @@ begin
   dosLock:=Lock(buffer,accessmode);
 end;
 
-function BADDR(bval: LongInt): Pointer; Inline;
+function BADDR(bval: PtrInt): Pointer; Inline;
 begin
-  {$if defined(AROS) and (not defined(AROS_FLAVOUR_BINCOMPAT))}
+  {$if defined(AROS)}  // deactivated for now //and (not defined(AROS_BINCOMPAT))}
   BADDR := Pointer(bval);
   {$else}
   BADDR:=Pointer(bval Shl 2);
@@ -120,16 +128,16 @@ end;
 
 function BSTR2STRING(s : Pointer): PChar; Inline;
 begin
-  {$if defined(AROS) and (not defined(AROS_FLAVOUR_BINCOMPAT))}
+  {$if defined(AROS)}  // deactivated for now //and (not defined(AROS_BINCOMPAT))}
   BSTR2STRING:=PChar(s);
   {$else}
   BSTR2STRING:=PChar(BADDR(PtrInt(s)))+1;
   {$endif}
 end;
 
-function BSTR2STRING(s : LongInt): PChar; Inline;
+function BSTR2STRING(s : PtrInt): PChar; Inline;
 begin
-  {$if defined(AROS) and (not defined(AROS_FLAVOUR_BINCOMPAT))}
+  {$if defined(AROS)}  // deactivated for now //and (not defined(AROS_BINCOMPAT))}
   BSTR2STRING:=PChar(s);
   {$else}
   BSTR2STRING:=PChar(BADDR(s))+1;
@@ -230,7 +238,7 @@ begin
   dosSetProtection:=SetProtection(buffer,mask) <> 0;
 end;
 
-function dosSetFileDate(name: string; p : PDateStamp): Boolean;
+function dosSetFileDate(const name: string; p : PDateStamp): Boolean;
 var
   buffer : array[0..255] of Char;
 begin
@@ -405,11 +413,11 @@ begin
     tr^.tr_node.io_Command := TR_GETSYSTIME;
     DoIO(pIORequest(tr));
 
-   { structure assignment }
-   tv^ := tr^.tr_time;
+    { structure assignment }
+    tv^ := tr^.tr_time;
 
-   delete_timer(tr);
-   get_sys_time := 0;
+    delete_timer(tr);
+    get_sys_time := 0;
 end;
 
 procedure GetDate(Var Year, Month, MDay, WDay: Word);
@@ -491,7 +499,7 @@ procedure Exec(const Path: PathStr; const ComLine: ComStr);
 var
   tmpPath: array[0..515] of char;
   result : longint;
-  tmpLock: longint;
+  tmpLock: BPTR;
 begin
   DosError:= 0;
   LastDosExitCode:=0;
@@ -563,10 +571,10 @@ end;
 var
   DeviceList: array[0..26] of string[20];
   NumDevices: Integer = 0;
-  
+
 const
   IllegalDevices: array[0..12] of string =(
-                   'PED:',  
+                   'PED:',
                    'PRJ:',
                    'PIPE:',   // Pipes
                    'XPIPE:',  // Extented Pipe
@@ -649,7 +657,7 @@ end;
 //
 function DiskSize(Drive: AnsiString): Int64;
 var
-  DirLock: LongInt;
+  DirLock: BPTR;
   Inf: TInfoData;
   OldWinPtr: Pointer;
 begin
@@ -670,7 +678,7 @@ end;
 function DiskSize(Drive: Byte): Int64;
 begin
   DiskSize := -1;
-  if (Drive < 0) or (Drive >= NumDevices) then
+  if (Drive >= NumDevices) then
     Exit;
   DiskSize := DiskSize(DeviceList[Drive]);
 end;
@@ -679,7 +687,7 @@ end;
 //
 function DiskFree(Drive: AnsiString): Int64;
 var
-  DirLock: LongInt;
+  DirLock: BPTR;
   Inf: TInfoData;
   OldWinPtr: Pointer;
 begin
@@ -700,7 +708,7 @@ end;
 function DiskFree(Drive: Byte): Int64;
 begin
   DiskFree := -1;
-  if (Drive < 0) or (Drive >= NumDevices) then
+  if (Drive >= NumDevices) then
     Exit;
   DiskFree := DiskFree(DeviceList[Drive]);
 end;
@@ -804,27 +812,42 @@ var
 begin
   { No wildcards allowed in these things }
   if (pos('?',path)<>0) or (pos('*',path)<>0) or (path='') then
-    FSearch:=''
-  else begin
-    repeat
-      p1:=pos(';',dirlist);
-      if p1<>0 then begin
-        newdir:=Copy(dirlist,1,p1-1);
-        Delete(dirlist,1,p1);
-      end else begin
-        newdir:=dirlist;
-        dirlist:='';
-      end;
-      if (newdir<>'') and (not (newdir[length(newdir)] in ['/',':'])) then
-        newdir:=newdir+'/';
-      FindFirst(newdir+path,anyfile,tmpSR);
-      if doserror=0 then
-        newdir:=newdir+path
-      else
-        newdir:='';
-    until (dirlist='') or (newdir<>'');
-    FSearch:=newdir;
+  begin
+    FSearch:='';
+    exit;
   end;
+  { check if the file specified exists }
+  findfirst(path,anyfile and not(directory), tmpSR);
+  if doserror=0 then
+  begin
+    findclose(tmpSR);
+    fsearch:=path;
+    exit;
+  end;
+  findclose(tmpSR);
+
+  repeat
+    p1:=pos(';',dirlist);
+    if p1<>0 then
+    begin
+      newdir:=Copy(dirlist,1,p1-1);
+      Delete(dirlist,1,p1);
+    end
+    else
+    begin
+      newdir:=dirlist;
+      dirlist:='';
+    end;
+    if (newdir<>'') and (not (newdir[length(newdir)] in [DirectorySeparator, DriveSeparator])) then
+      newdir:=newdir+DirectorySeparator;
+    FindFirst(newdir+path,anyfile and not(directory),tmpSR);
+    if doserror=0 then
+      newdir:=newdir+path
+    else
+      newdir:='';
+    findclose(tmpSR);
+  until (dirlist='') or (newdir<>'');
+  FSearch:=newdir;
 end;
 
 
@@ -836,7 +859,7 @@ Procedure getftime (var f; var time : longint);
 var
     FInfo : pFileInfoBlock;
     FTime : Longint;
-    FLock : Longint;
+    FLock : BPTR;
     Str   : String;
     i     : integer;
 begin
@@ -874,7 +897,7 @@ end;
     Str: String;
     i: Integer;
     Days, Minutes,Ticks: longint;
-    FLock: longint;
+    FLock: BPTR;
   Begin
     new(DateStamp);
 {$ifdef FPC_ANSI_TEXTFILEREC}
@@ -905,7 +928,7 @@ end;
 procedure getfattr(var f; var attr : word);
 var
     info : pFileInfoBlock;
-    MyLock : Longint;
+    MyLock : BPTR;
     flags: word;
     Str: String;
     i: integer;
@@ -953,7 +976,7 @@ begin
 procedure setfattr(var f; attr : word);
 var
   flags: longint;
-  tmpLock : longint;
+  tmpLock : BPTR;
 {$ifndef FPC_ANSI_TEXTFILEREC}
   r : rawbytestring;
 {$endif not FPC_ANSI_TEXTFILEREC}
@@ -992,7 +1015,7 @@ end;
 var
   strofpaths : string;
 
-function SystemTags(const command: PChar; const tags: array of DWord): LongInt;
+function SystemTags(const command: PChar; const tags: array of PtrUInt): LongInt;
 begin
   SystemTags:=SystemTagList(command,@tags);
 end;
@@ -1009,7 +1032,7 @@ begin
 
    { Alternatively, this could use PIPE: handler on systems which
      have this by default (not the case on classic Amiga), but then
-     the child process should be started async, which for a simple 
+     the child process should be started async, which for a simple
      Path command probably isn't worth the trouble. (KB) }
    assign(f,'T:'+HexStr(FindTask(nil))+'_path.tmp');
    rewrite(f);
@@ -1058,6 +1081,10 @@ Var
   Res: Integer;
 begin
   SetLength(EnvList, 0);
+
+{$if not defined(AMIGA_V1_0_ONLY) and not defined(AMIGA_V1_2_ONLY)}
+  // pr_LocalVars are introduced with OS2.0
+
   ThisProcess := PProcess(FindTask(nil));  //Get the pointer to our process
   LocalVars_List := @(ThisProcess^.pr_LocalVars);  //get the list of pr_LocalVars as pointer
   LocalVar_Node  := pLocalVar(LocalVars_List^.mlh_head); //get the headnode of the LocalVars list
@@ -1086,6 +1113,8 @@ begin
     end;
     LocalVar_Node := pLocalVar(LocalVar_Node^.lv_node.ln_Succ); //we need to get the next node
   end;
+{$endif not defined(AMIGA_V1_0_ONLY) and not defined(AMIGA_V1_2_ONLY)}
+
   // search in env for all Variables
   FillChar(Anchor,sizeof(TAnchorPath),#0);
   Res := MatchFirst('ENV:#?', @Anchor);
@@ -1147,7 +1176,7 @@ begin
     if EnvList[Index].Local then
       EnvStr := EnvList[Index].Name + '=' + EnvList[Index].Value
     else
-      EnvStr := EnvList[Index].Name + '=' + GetEnvFromEnv(EnvList[Index].Name);  
+      EnvStr := EnvList[Index].Name + '=' + GetEnvFromEnv(EnvList[Index].Name);
   end;
 end;
 
@@ -1164,8 +1193,8 @@ begin
       StrOfPaths := GetPathString;
     GetEnv := StrOfPaths;
   end else
-  begin    
-    InitEnvironmentStrings;  
+  begin
+    InitEnvironmentStrings;
     for i := 0 to High(EnvList) do
     begin
       if EnvVarName = UpCase(EnvList[i].Name) then
@@ -1175,9 +1204,9 @@ begin
         else
           GetEnv := GetEnvFromEnv(EnvList[i].Name);
         Break;
-      end;  
+      end;
     end;
-  end;  
+  end;
 end;
 
 begin

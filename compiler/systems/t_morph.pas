@@ -31,8 +31,8 @@ implementation
 
     uses
        SysUtils,
-       cutils,cfileutl,cclasses,
-       globtype,globals,systems,verbose,script,fmodule,i_morph,link;
+       cutils,cfileutl,cclasses,rescmn,comprsrc,aasmbase,
+       globtype,globals,systems,verbose,cscript,fmodule,i_morph,link;
 
     type
        PlinkerMorphOS=^TlinkerMorphOS;
@@ -43,6 +43,7 @@ implementation
        public
           constructor Create; override;
           procedure SetDefaultInfo; override;
+          procedure InitSysInitUnitName; override;
           function  MakeExecutable:boolean; override;
        end;
 
@@ -53,17 +54,12 @@ implementation
 
 Constructor TLinkerMorphOS.Create;
 begin
+  UseVLink:=(cs_link_vlink in current_settings.globalswitches);
+
   Inherited Create;
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;
-  { TODO: always use vlink on MorphOS for now, but allow ld for cross compiling,
-    we need a command line switch to switch between vlink and ld later. (KB) }
-{$IFDEF MORPHOS}
-  UseVLink:=true;
-{$ELSE}
-  UseVLink:=(cs_link_on_target in current_settings.globalswitches);
-{$ENDIF}
 end;
 
 
@@ -73,14 +69,20 @@ begin
    begin
     if not UseVLink then
      begin
-      ExeCmd[1]:='ld $OPT -o $EXE $RES';
+      ExeCmd[1]:='ld $OPT $GCSECTIONS -o $EXE $RES';
       ExeCmd[2]:='strip --strip-unneeded --remove-section .comment $EXE';
      end
     else
      begin
-      ExeCmd[1]:='fpcvlink -b elf32amiga $OPT $STRIP -o $EXE -T $RES';
+      ExeCmd[1]:='vlink -b elf32amiga $OPT $STRIP $GCSECTIONS -o $EXE -T $RES';
      end;
    end;
+end;
+
+
+Procedure TLinkerMorphOS.InitSysInitUnitName;
+begin
+  sysinitunit:='si_prc';
 end;
 
 
@@ -96,6 +98,8 @@ begin
 
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
+  if UseVLink and (source_info.dirsep <> '/') then
+    LinkRes.fForceUseForwardSlash:=true;
 
   { Write path to search libraries }
   HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
@@ -118,8 +122,11 @@ begin
 
   LinkRes.Add('INPUT (');
   { add objectfiles, start with prt0 always }
-  s:=FindObjectFile('prt0','',false);
-  LinkRes.AddFileName(s);
+  if not (target_info.system in systems_internal_sysinit) then
+    begin
+      s:=FindObjectFile('prt0','',false);
+      LinkRes.AddFileName(Unix2AmigaPath(maybequoted(s)));
+    end;
   while not ObjectFiles.Empty do
    begin
     s:=ObjectFiles.GetFirst;
@@ -203,9 +210,11 @@ var
   binstr,
   cmdstr  : TCmdStr;
   success : boolean;
+  GCSectionsStr: string;
   StripStr: string[40];
 begin
   StripStr:='';
+  GCSectionsStr:='';
 
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.exefilename);
@@ -214,6 +223,13 @@ begin
    begin
     if (cs_link_strip in current_settings.globalswitches) then
      StripStr:='-s -P __abox__';
+    if create_smartlink_sections then
+     GCSectionsStr:='-gc-all -sc -sd';
+   end
+  else
+   begin
+    if create_smartlink_sections then
+     GCSectionsStr:='--gc-sections -e _start';
    end;
 
 { Write used files and libraries }
@@ -227,11 +243,13 @@ begin
     Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename))));
     Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
     Replace(cmdstr,'$STRIP',StripStr);
+    Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
    end
   else
    begin
     Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename)));
     Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
+    Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
    end;
   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
@@ -265,4 +283,5 @@ end;
 initialization
   RegisterLinker(ld_morphos,TLinkerMorphOS);
   RegisterTarget(system_powerpc_morphos_info);
+  RegisterRes(res_elf_info, TWinLikeResourceFile);
 end.

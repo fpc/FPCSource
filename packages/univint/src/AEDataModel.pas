@@ -13,8 +13,8 @@
                      http://bugs.freepascal.org
  
 }
-{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
-{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
+{     Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, July 2018 }
+
 {
     Modified for use with Free Pascal
     Version 308
@@ -23,6 +23,7 @@
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
+{$modeswitch cblocks}
 {$packenum 1}
 {$macro on}
 {$inline on}
@@ -115,7 +116,7 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-{$ifc defined(iphonesim)}
+{$ifc defined iphonesim}
  	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
@@ -132,7 +133,7 @@ interface
 	{$setc TARGET_CPU_X86_64 := TRUE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-{$ifc defined(iphonesim)}
+{$ifc defined iphonesim}
  	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
@@ -149,7 +150,6 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := TRUE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-	{ will require compiler define when/if other Apple devices with ARM cpus ship }
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
@@ -161,11 +161,16 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := TRUE}
-	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+{$ifc defined ios}
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
-	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 	{$setc TARGET_OS_EMBEDDED := TRUE}
+{$elsec}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
+{$endc}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ nor __arm64__ is defined.}
 {$endc}
@@ -305,7 +310,7 @@ const
 	typeType = FourCharCode('type'); { OSType }
 	typeAppParameters = FourCharCode('appa');
 	typeProperty = FourCharCode('prop');
-	typeFSRef = FourCharCode('fsrf'); { FSRef }
+	typeFSRef = FourCharCode('fsrf'); { FSRef.  Deprecated; use typeFileURL or typeBookmark data to refer to files in AppleEvents }
 	typeFileURL = FourCharCode('furl'); { a UTF-8 encoded full path, using native path separators }
 	typeBookmarkData = FourCharCode('bmrk'); { the bytes of a CFURLBookmarkData }
 	typeKeyword = FourCharCode('keyw'); { OSType }
@@ -321,7 +326,7 @@ const
 {$ifc not TARGET_CPU_64}
 {
     FSSpecs are deprecated on Mac OS X, and their use in AppleEvents is discouraged.  You should change
-    your code to use FSRefs.  In __LP64__ code, coercions into typeFSS is not supported,
+    your code to use typeFileURL or typeFileBookmark.  In __LP64__ code, coercions into typeFSS is not supported,
     and coercion from typeFSS is not guaranteed to work correctly in all cases.
 }
 const
@@ -370,16 +375,24 @@ const
 	keyOriginalAddressAttr = FourCharCode('from'); { new in 1.0.1 }
 	keyAcceptTimeoutAttr = FourCharCode('actm'); { new for Mac OS X }
 	keyReplyRequestedAttr = FourCharCode('repq'); { Was a reply requested for this event - returned as typeBoolean }
-	keySenderEUIDAttr = FourCharCode('seid'); { read only, returned as typeSInt32.  Will be the euid of the sender of this event. } { Mac OS X 10.6 or later }
-	keySenderEGIDAttr = FourCharCode('sgid'); { read only, returned as typeSInt32.  Will be the egid of the sender of this event. } { Mac OS X 10.6 or later }
-	keySenderUIDAttr = FourCharCode('uids'); { read only, returned as typeSInt32.  Will be the uid of the sender of this event. } { Mac OS X 10.6 or later }
-	keySenderGIDAttr = FourCharCode('gids'); { read only, returned as typeSInt32.  Will be the gid of the sender of this event. } { Mac OS X 10.6 or later }
-	keySenderPIDAttr = FourCharCode('spid'); { read only, returned as typeSInt32.  Will be the pid of the sender of this event. } { Mac OS X 10.6 or later }
-	keySenderAuditTokenAttr = FourCharCode('tokn'); { read only, returned as an audit_token_t.  Will be the audit token of the sender of this event. } { Mac OS X 10.6 or later } { Mac OS X 10.8 or later }
-	keySenderApplescriptEntitlementsAttr = FourCharCode('entl'); { read only, an AEDesc containing opaque data representing the entitlements held by the sender. Interpreted by sandbox routines. } { Mac OS X 10.8 or later }
+//	#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
+	keySenderEUIDAttr = FourCharCode('seid'); { read only, returned as typeSInt32.  Will be the euid of the sender of this event. }
+	keySenderEGIDAttr = FourCharCode('sgid'); { read only, returned as typeSInt32.  Will be the egid of the sender of this event. }
+	keySenderUIDAttr = FourCharCode('uids'); { read only, returned as typeSInt32.  Will be the uid of the sender of this event. }
+	keySenderGIDAttr = FourCharCode('gids'); { read only, returned as typeSInt32.  Will be the gid of the sender of this event. }
+	keySenderPIDAttr = FourCharCode('spid'); { read only, returned as typeSInt32.  Will be the pid of the sender of this event. }
+	keySenderAuditTokenAttr = FourCharCode('tokn'); { read only, returned as an audit_token_t.  Will be the audit token of the sender of this event. }
+//	#endif
+//	#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 1080
+	keySenderApplescriptEntitlementsAttr = FourCharCode('entl'); { read only, an AEDesc containing opaque data representing the entitlements held by the sender. Interpreted by sandbox routines. }
 	keySenderApplicationIdentifierEntitlementAttr = FourCharCode('aiea');
-	keySenderApplicationSandboxed = FourCharCode('sssb'); { read-only, an AEDesc typeBoolean, true if the sender application was in an application sandbox } { Mac OS X 10.8 or later }
-	keyActualSenderAuditToken = FourCharCode('acat'); { read-only, an AEDesc typeAuditToken of the acual ( possibly over-ridden ) audit token for the sender of this event } { Mac OS X 10.8 or later }
+	keySenderApplicationSandboxed = FourCharCode('sssb'); { read-only, an AEDesc typeBoolean, true if the sender application was in an application sandbox }
+	keyActualSenderAuditToken = FourCharCode('acat'); { read-only, an AEDesc typeAuditToken of the acual ( possibly over-ridden ) audit token for the sender of this event }
+//	#endif
+
+//	#if defined(__MAC_10_13) && __MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_13
+	keyAppleEventAttributesAttr = FourCharCode('attr'); { read-only, an AEDescList of AEKeyword entries of the attributes on this event. }
+//	#endif
 
 { These bits are specified in the keyXMLDebuggingAttr (an SInt32) }
 const
@@ -519,7 +532,6 @@ type
 		descKey: AEKeyword;
 		descContent: AEDesc;
 	end;
-
 { a list of AEDesc's is a special kind of AEDesc }
 
 type

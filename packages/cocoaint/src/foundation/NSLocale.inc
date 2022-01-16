@@ -1,10 +1,13 @@
 { Parsed from Foundation.framework NSLocale.h }
 
-{$ifdef TYPES}
-{$ifndef NSLOCALE_PAS_T}
-{$define NSLOCALE_PAS_T}
 
-{ Constants }
+{ Types from NSLocaleGeneralInfo }
+{$ifdef TYPES}
+
+type
+  NSLocaleLanguageDirection = NSUInteger;
+type
+  NSLocaleLanguageDirectionPtr = ^NSLocaleLanguageDirection;
 
 const
   NSLocaleLanguageDirectionUnknown = kCFLocaleLanguageDirectionUnknown;
@@ -12,36 +15,67 @@ const
   NSLocaleLanguageDirectionRightToLeft = kCFLocaleLanguageDirectionRightToLeft;
   NSLocaleLanguageDirectionTopToBottom = kCFLocaleLanguageDirectionTopToBottom;
   NSLocaleLanguageDirectionBottomToTop = kCFLocaleLanguageDirectionBottomToTop;
+{$endif}
 
-{ Types }
+
+{$ifdef TYPES}
 type
-  NSLocaleLanguageDirection = NSUInteger;
-  NSLocaleLanguageDirectionPtr = ^NSLocaleLanguageDirection;
-
-{$endif}
+  NSLocalePtr = ^NSLocale;
 {$endif}
 
-{$ifdef RECORDS}
-{$ifndef NSLOCALE_PAS_R}
-{$define NSLOCALE_PAS_R}
+{$ifdef CLASSES}
 
-{$endif}
-{$endif}
+type
+  NSLocale = objcclass external (NSObject, NSCopyingProtocol, NSSecureCodingProtocol)
+  public
+    function objectForKey (key: id): id; message 'objectForKey:';
+    function displayNameForKey_value (key: id; value: id): NSString; message 'displayNameForKey:value:';
+    function initWithLocaleIdentifier (string_: NSString): instancetype; message 'initWithLocaleIdentifier:'; { NS_DESIGNATED_INITIALIZER }
+    function initWithCoder (aDecoder: NSCoder): instancetype; message 'initWithCoder:'; { NS_DESIGNATED_INITIALIZER }
 
-{$ifdef FUNCTIONS}
-{$ifndef NSLOCALE_PAS_F}
-{$define NSLOCALE_PAS_F}
+    { Adopted protocols }
+    function copyWithZone (zone: NSZonePtr): id; message 'copyWithZone:';
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
+    class function supportsSecureCoding: ObjCBOOL; message 'supportsSecureCoding';
+  end;
 
-{$endif}
+
+type
+  NSExtendedLocale = objccategory external (NSLocale)
+    function localeIdentifier: NSString; message 'localeIdentifier';
+  end;
+
+type
+  NSLocaleCreation = objccategory external (NSLocale)
+    class function autoupdatingCurrentLocale: NSLocale; message 'autoupdatingCurrentLocale'; { available in 10_5, 2_0 }
+    class function currentLocale: NSLocale; message 'currentLocale';
+    class function systemLocale: NSLocale; message 'systemLocale';
+    class function localeWithLocaleIdentifier (ident: NSString): instancetype; message 'localeWithLocaleIdentifier:'; { available in 10_6, 4_0 }
+    function init: instancetype; message 'init';
+  end;
+
+type
+  NSLocaleGeneralInfo = objccategory external (NSLocale)
+    class function availableLocaleIdentifiers: NSArray; message 'availableLocaleIdentifiers';
+    class function ISOLanguageCodes: NSArray; message 'ISOLanguageCodes';
+    class function ISOCountryCodes: NSArray; message 'ISOCountryCodes';
+    class function ISOCurrencyCodes: NSArray; message 'ISOCurrencyCodes';
+    class function commonISOCurrencyCodes: NSArray; message 'commonISOCurrencyCodes'; { available in 10_5, 2_0 }
+    class function preferredLanguages: NSArray; message 'preferredLanguages'; { available in 10_5, 2_0 }
+    class function componentsFromLocaleIdentifier (string_: NSString): NSDictionary; message 'componentsFromLocaleIdentifier:';
+    class function localeIdentifierFromComponents (dict: NSDictionary): NSString; message 'localeIdentifierFromComponents:';
+    class function canonicalLocaleIdentifierFromString (string_: NSString): NSString; message 'canonicalLocaleIdentifierFromString:';
+    class function canonicalLanguageIdentifierFromString (string_: NSString): NSString; message 'canonicalLanguageIdentifierFromString:';
+    class function localeIdentifierFromWindowsLocaleCode (lcid: cuint32): NSString; message 'localeIdentifierFromWindowsLocaleCode:'; { available in 10_6, 4_0 }
+    class function windowsLocaleCodeFromLocaleIdentifier (localeIdentifier: NSString): cuint32; message 'windowsLocaleCodeFromLocaleIdentifier:'; { available in 10_6, 4_0 }
+    class function characterDirectionForLanguage (isoLangCode: NSString): NSLocaleLanguageDirection; message 'characterDirectionForLanguage:'; { available in 10_6, 4_0 }
+    class function lineDirectionForLanguage (isoLangCode: NSString): NSLocaleLanguageDirection; message 'lineDirectionForLanguage:'; { available in 10_6, 4_0 }
+  end;
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSLOCALE_PAS_S}
-{$define NSLOCALE_PAS_S}
-
-{ External string constants }
 var
-  NSCurrentLocaleDidChangeNotification: NSString; cvar; external;
+  NSCurrentLocaleDidChangeNotification: NSString { available in 10_5, 2_0 }; cvar; external;
   NSLocaleIdentifier: NSString; cvar; external;
   NSLocaleLanguageCode: NSString; cvar; external;
   NSLocaleCountryCode: NSString; cvar; external;
@@ -56,80 +90,25 @@ var
   NSLocaleGroupingSeparator: NSString; cvar; external;
   NSLocaleCurrencySymbol: NSString; cvar; external;
   NSLocaleCurrencyCode: NSString; cvar; external;
-  NSLocaleCollatorIdentifier: NSString; cvar; external;
-  NSLocaleQuotationBeginDelimiterKey: NSString; cvar; external;
-  NSLocaleQuotationEndDelimiterKey: NSString; cvar; external;
-  NSLocaleAlternateQuotationBeginDelimiterKey: NSString; cvar; external;
-  NSLocaleAlternateQuotationEndDelimiterKey: NSString; cvar; external;
-  NSGregorianCalendar: NSString; cvar; external;
-  NSBuddhistCalendar: NSString; cvar; external;
-  NSChineseCalendar: NSString; cvar; external;
-  NSHebrewCalendar: NSString; cvar; external;
-  NSIslamicCalendar: NSString; cvar; external;
-  NSIslamicCivilCalendar: NSString; cvar; external;
-  NSJapaneseCalendar: NSString; cvar; external;
-  NSRepublicOfChinaCalendar: NSString; cvar; external;
-  NSPersianCalendar: NSString; cvar; external;
-  NSIndianCalendar: NSString; cvar; external;
-  NSISO8601Calendar: NSString; cvar; external;
-
-{$endif}
+  NSLocaleCollatorIdentifier: NSString { available in 10_6, 4_0 }; cvar; external;
+  NSLocaleQuotationBeginDelimiterKey: NSString { available in 10_6, 4_0 }; cvar; external;
+  NSLocaleQuotationEndDelimiterKey: NSString { available in 10_6, 4_0 }; cvar; external;
+  NSLocaleAlternateQuotationBeginDelimiterKey: NSString { available in 10_6, 4_0 }; cvar; external;
+  NSLocaleAlternateQuotationEndDelimiterKey: NSString { available in 10_6, 4_0 }; cvar; external;
 {$endif}
 
-{$ifdef FORWARD}
-  NSLocale = objcclass;
-  NSLocalePointer = ^NSLocale;
-  NSLocalePtr = NSLocalePointer;
-
+{$ifdef EXTERNAL_SYMBOLS}
+var
+  NSGregorianCalendar: NSString deprecated 'in 10_4, 10_10, 2_0, 8_0, "Use NSCalendarIdentifierGregorian instead"'; cvar; external;
+  NSBuddhistCalendar: NSString deprecated 'in 10_4, 10_10, 2_0, 8_0, "Use NSCalendarIdentifierBuddhist instead"'; cvar; external;
+  NSChineseCalendar: NSString deprecated 'in 10_4, 10_10, 2_0, 8_0, "Use NSCalendarIdentifierChinese instead"'; cvar; external;
+  NSHebrewCalendar: NSString deprecated 'in 10_4, 10_10, 2_0, 8_0, "Use NSCalendarIdentifierHebrew instead"'; cvar; external;
+  NSIslamicCalendar: NSString deprecated 'in 10_4, 10_10, 2_0, 8_0, "Use NSCalendarIdentifierIslamic instead"'; cvar; external;
+  NSIslamicCivilCalendar: NSString deprecated 'in 10_4, 10_10, 2_0, 8_0, "Use NSCalendarIdentifierIslamicCivil instead"'; cvar; external;
+  NSJapaneseCalendar: NSString deprecated 'in 10_4, 10_10, 2_0, 8_0, "Use NSCalendarIdentifierJapanese instead"'; cvar; external;
+  NSRepublicOfChinaCalendar: NSString deprecated 'in 10_6, 10_10, 4_0, 8_0, "Use NSCalendarIdentifierRepublicOfChina instead"'; cvar; external;
+  NSPersianCalendar: NSString deprecated 'in 10_6, 10_10, 4_0, 8_0, "Use NSCalendarIdentifierPersian instead"'; cvar; external;
+  NSIndianCalendar: NSString deprecated 'in 10_6, 10_10, 4_0, 8_0, "Use NSCalendarIdentifierIndian instead"'; cvar; external;
+  NSISO8601Calendar: NSString deprecated 'in 10_6, 10_10, 4_0, 8_0, "Use NSCalendarIdentifierISO8601 instead"'; cvar; external;
 {$endif}
 
-{$ifdef CLASSES}
-{$ifndef NSLOCALE_PAS_C}
-{$define NSLOCALE_PAS_C}
-
-{ NSLocale }
-  NSLocale = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
-    
-  public
-    function objectForKey(key: id): id; message 'objectForKey:';
-    function displayNameForKey_value(key: id; value: id): NSString; message 'displayNameForKey:value:';
-
-    { Adopted Protocols }
-    function copyWithZone(zone_: NSZonePtr): id;
-    procedure encodeWithCoder(aCoder: NSCoder);
-    function initWithCoder(aDecoder: NSCoder): id;
-  end;
-
-{ NSExtendedLocaleCategory }
-  NSExtendedLocaleCategory = objccategory external (NSLocale)
-    function localeIdentifier: NSString; message 'localeIdentifier';
-  end;
-
-{ NSLocaleCreationCategory }
-  NSLocaleCreationCategory = objccategory external (NSLocale)
-    class function systemLocale: id; message 'systemLocale';
-    class function currentLocale: id; message 'currentLocale';
-    class function autoupdatingCurrentLocale: id; message 'autoupdatingCurrentLocale';
-    function initWithLocaleIdentifier(string_: NSString): id; message 'initWithLocaleIdentifier:';
-  end;
-
-{ NSLocaleGeneralInfoCategory }
-  NSLocaleGeneralInfoCategory = objccategory external (NSLocale)
-    class function availableLocaleIdentifiers: NSArray; message 'availableLocaleIdentifiers';
-    class function ISOLanguageCodes: NSArray; message 'ISOLanguageCodes';
-    class function ISOCountryCodes: NSArray; message 'ISOCountryCodes';
-    class function ISOCurrencyCodes: NSArray; message 'ISOCurrencyCodes';
-    class function commonISOCurrencyCodes: NSArray; message 'commonISOCurrencyCodes';
-    class function preferredLanguages: NSArray; message 'preferredLanguages';
-    class function componentsFromLocaleIdentifier(string_: NSString): NSDictionary; message 'componentsFromLocaleIdentifier:';
-    class function localeIdentifierFromComponents(dict: NSDictionary): NSString; message 'localeIdentifierFromComponents:';
-    class function canonicalLocaleIdentifierFromString(string_: NSString): NSString; message 'canonicalLocaleIdentifierFromString:';
-    class function canonicalLanguageIdentifierFromString(string_: NSString): NSString; message 'canonicalLanguageIdentifierFromString:';
-    class function localeIdentifierFromWindowsLocaleCode(lcid: cuint32): NSString; message 'localeIdentifierFromWindowsLocaleCode:';
-    class function windowsLocaleCodeFromLocaleIdentifier(localeIdentifier_: NSString): cuint32; message 'windowsLocaleCodeFromLocaleIdentifier:';
-    class function characterDirectionForLanguage(isoLangCode: NSString): NSLocaleLanguageDirection; message 'characterDirectionForLanguage:';
-    class function lineDirectionForLanguage(isoLangCode: NSString): NSLocaleLanguageDirection; message 'lineDirectionForLanguage:';
-  end;
-
-{$endif}
-{$endif}

@@ -108,6 +108,39 @@ procedure fillchar(var arr: array of qword; len: sizeint; val: boolean); externa
 procedure fillchar(var arr: array of qword; len: sizeint; val: ansichar); external;
 procedure fillchar(var arr: array of qword; len: sizeint; val: jbyte); external;
 
+procedure fillword(var arr: array of jshort; len: sizeint; val: word);
+procedure fillword(var arr: array of jshort; len: sizeint; val: boolean);
+procedure fillword(var arr: array of jshort; len: sizeint; val: widechar); external;
+procedure fillword(var arr: array of jshort; len: sizeint; val: jshort); external;
+procedure fillword(var arr: array of word; len: sizeint; val: word);  external;
+procedure fillword(var arr: array of word; len: sizeint; val: boolean);  external;
+procedure fillword(var arr: array of word; len: sizeint; val: widechar); external;
+procedure fillword(var arr: array of word; len: sizeint; val: jshort); external;
+
+{ widechar maps to a different signature }
+procedure fillword(var arr: array of widechar; len: sizeint; val: word);
+procedure fillword(var arr: array of widechar; len: sizeint; val: boolean);
+procedure fillword(var arr: array of widechar; len: sizeint; val: widechar); external;
+procedure fillword(var arr: array of widechar; len: sizeint; val: jshort); external;
+
+procedure fillword(var arr: array of jint; len: sizeint; val: word);
+procedure fillword(var arr: array of jint; len: sizeint; val: boolean);
+procedure fillword(var arr: array of jint; len: sizeint; val: widechar); external;
+procedure fillword(var arr: array of jint; len: sizeint; val: jshort); external;
+procedure fillword(var arr: array of dword; len: sizeint; val: word); external;
+procedure fillword(var arr: array of dword; len: sizeint; val: boolean); external;
+procedure fillword(var arr: array of dword; len: sizeint; val: widechar); external;
+procedure fillword(var arr: array of dword; len: sizeint; val: jshort); external;
+
+procedure fillword(var arr: array of jlong; len: sizeint; val: word);
+procedure fillword(var arr: array of jlong; len: sizeint; val: boolean);
+procedure fillword(var arr: array of jlong; len: sizeint; val: widechar); external;
+procedure fillword(var arr: array of jlong; len: sizeint; val: jshort); external;
+procedure fillword(var arr: array of qword; len: sizeint; val: word); external;
+procedure fillword(var arr: array of qword; len: sizeint; val: boolean); external;
+procedure fillword(var arr: array of qword; len: sizeint; val: widechar); external;
+procedure fillword(var arr: array of qword; len: sizeint; val: jshort); external;
+
 
 function  IndexChar(const buf: array of boolean;len:SizeInt;b:ansichar):SizeInt;
 function  IndexChar(const buf: array of jbyte;len:SizeInt;b:ansichar):SizeInt;
@@ -458,13 +491,15 @@ var
 
 
 { Shortstring functions }
+{$ifdef VER3_0}
 Procedure Delete(var s:shortstring;index:SizeInt;count:SizeInt);
 Procedure Insert(const source:shortstring;var s:shortstring;index:SizeInt);
 Procedure Insert(source:Char;var s:shortstring;index:SizeInt);
-Function  Pos(const substr:shortstring;const s:shortstring):SizeInt;
-Function  Pos(C:Char;const s:shortstring):SizeInt;
+{$endif VER3_0}
+Function  Pos(const substr:shortstring;const s:shortstring; Offset: Sizeint = 1):SizeInt;
+Function  Pos(C:Char;const s:shortstring; Offset: Sizeint = 1):SizeInt;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-Function  Pos(const Substr : ShortString; const Source : RawByteString) : SizeInt;
+Function  Pos(const Substr : ShortString; const Source : RawByteString; Offset: Sizeint = 1) : SizeInt;
 
 {$ifdef FPC_HAS_CPSTRING}
 Procedure fpc_setstring_ansistr_pansichar(out S : RawByteString; Buf : PAnsiChar; Len : SizeInt; cp: TSystemCodePage); rtlproc; compilerproc;
@@ -497,10 +532,12 @@ Function  hexStr(Val:Pointer):shortstring;
 {$endif CPUI8086}
 
 { Char functions }
-Function chr(b : byte) : Char;      [INTERNPROC: fpc_in_chr_byte];
+{$if defined(VER3_2) or defined(VER3_0)}
+Function Chr(b : byte) : Char;      [INTERNPROC: fpc_in_chr_byte];
+{$endif defined(VER3_2) or defined(VER3_0)}
 Function  upCase(c:Char):Char;
 Function  lowerCase(c:Char):Char; overload;
-function  pos(const substr : shortstring;c:char): SizeInt;
+function  pos(const substr : shortstring;c:char; Offset : Sizeint=1): SizeInt;
 
 
 {****************************************************************************
@@ -508,11 +545,13 @@ function  pos(const substr : shortstring;c:char): SizeInt;
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-Procedure UniqueString(var S : RawByteString);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}external name 'FPC_ANSISTR_UNIQUE';
-Function  Pos (const Substr : RawByteString; const Source : RawByteString) : SizeInt;
-Function  Pos (c : AnsiChar; const s : RawByteString) : SizeInt;
+Procedure UniqueString(var S : RawByteString);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}{$ifdef SYSTEMINLINE}inline;{$endif}
+Function  Pos (const Substr : RawByteString; const Source : RawByteString; Offset: Sizeint = 1) : SizeInt;
+Function  Pos (c : AnsiChar; const s : RawByteString; Offset: Sizeint = 1) : SizeInt;
+{$ifdef VER3_0}
 Procedure Insert (const Source : RawByteString; var S : RawByteString; Index : SizeInt);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}
 Procedure Delete (var S : RawByteString; Index,Size: SizeInt);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}
+{$endif VER3_0}
 Function  StringOfChar(c : Ansichar;l : SizeInt) : AnsiString;
 function  upcase(const s : ansistring) : ansistring;
 function  lowercase(const s : ansistring) : ansistring;
@@ -759,7 +798,7 @@ type
      reStackOverflow, reVarTypeCast, reVarInvalidOp, reVarDispatch,
      reVarArrayCreate, reVarNotArray, reVarArrayBounds, reAssertionFailed,
      reExternalException, reIntfCastError, reSafeCallError, reQuit,
-     reCodesetConversion);
+     reCodesetConversion, reNoDynLibsSupport, reThreadError);
 
 Const
   // Please keep locations corresponding to location in array above
@@ -770,7 +809,7 @@ Const
      202, 220, 221, 222,
      223, 224, 225, 227,
      212, 228, 229, 233,
-     234);
+     234, 235, 236);
 
 Procedure Error(RunTimeError : TRunTimeError);
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
@@ -885,6 +924,12 @@ const
 {$ifdef FPC_HAS_FEATURE_VARIANTS}
 {$i varianth.inc}
 {$endif FPC_HAS_FEATURE_VARIANTS}
+
+{*****************************************************************************
+                           RTTI support
+*****************************************************************************}
+
+{$i rttih.inc}
 
 {*****************************************************************************
                    Internal helper routines support

@@ -60,7 +60,7 @@ procedure FillFloodImageRel (Canv:TFPCustomCanvas; x,y :integer; const Image:TFP
 
 implementation
 
-uses clipping, ellipses;
+uses clipping;
 
 procedure FillRectangleColor (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer);
 begin
@@ -75,7 +75,7 @@ begin
     begin
     for x := x1 to x2 do
       for y := y1 to y2 do
-        colors[x,y] := color;
+        DrawPixel(x,y,color);
     end;
 end;
 
@@ -104,7 +104,7 @@ type
 procedure PutPixelCopy(Canv:TFPCustomCanvas; x,y:integer; color:TFPColor);
 begin
   with Canv do
-    Colors[x,y] := color;
+    DrawPixel(x,y,color);
 end;
 
 procedure PutPixelXor(Canv:TFPCustomCanvas; x,y:integer; color:TFPColor);
@@ -557,7 +557,7 @@ begin
   with image do
     for x := x1 to x2 do
       for y := y1 to y2 do
-        Canv.colors[x,y] := colors[x mod width, y mod height];
+        Canv.DrawPixel(x,y, colors[x mod width, y mod height]);
 end;
 
 procedure FillRectangleImageRel (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; const Image:TFPCustomImage);
@@ -566,7 +566,7 @@ begin
   with image do
     for x := x1 to x2 do
       for y := y1 to y2 do
-        Canv.colors[x,y] := colors[(x-x1) mod width, (y-y1) mod height];
+        Canv.DrawPixel(x,y, colors[(x-x1) mod width, (y-y1) mod height]);
 end;
 
 type
@@ -587,7 +587,7 @@ type
     DoneList : TList;
   end;
 
-function FindDoneIndex (const data:PFloodFillData; x:integer; var index:integer):boolean;
+function FindDoneIndex (const data:PFloodFillData; x:integer; out index:integer):boolean;
 begin
   with data^.DoneList do
     begin
@@ -890,7 +890,7 @@ end;
 
 procedure SetFloodColor (Canv:TFPCustomCanvas; x,y:integer; data:pointer);
 begin
-  Canv.colors[x,y] := PFPColor(data)^;
+  Canv.DrawPixel(x,y, PFPColor(data)^);
 end;
 
 procedure FillFloodColor (Canv:TFPCustomCanvas; x,y:integer; const color:TFPColor);
@@ -967,7 +967,7 @@ var r : PFloodHashRec;
 begin
   r := PFloodHashRec(data);
   if (y mod r^.width) = 0 then
-    Canv.colors[x,y] := r^.color;
+    Canv.DrawPixel(x,y,r^.color);
 end;
 
 procedure SetFloodHashVer(Canv:TFPCustomCanvas; x,y:integer; data:pointer);
@@ -975,7 +975,7 @@ var r : PFloodHashRec;
 begin
   r := PFloodHashRec(data);
   if (x mod r^.width) = 0 then
-    Canv.colors[x,y] := r^.color;
+    Canv.DrawPixel(x,y,r^.color);
 end;
 
 procedure SetFloodHashDiag(Canv:TFPCustomCanvas; x,y:integer; data:pointer);
@@ -985,7 +985,7 @@ begin
   r := PFloodHashRec(data);
   w := r^.width;
   if ((x mod w) + (y mod w)) = (w - 1) then
-    Canv.colors[x,y] := r^.color;
+    Canv.DrawPixel(x,y,r^.color);
 end;
 
 procedure SetFloodHashBDiag(Canv:TFPCustomCanvas; x,y:integer; data:pointer);
@@ -995,7 +995,7 @@ begin
   r := PFloodHashRec(data);
   w := r^.width;
   if (x mod w) = (y mod w) then
-    Canv.colors[x,y] := r^.color;
+    Canv.DrawPixel(x,y,r^.color);
 end;
 
 procedure SetFloodHashCross(Canv:TFPCustomCanvas; x,y:integer; data:pointer);
@@ -1005,7 +1005,7 @@ begin
   r := PFloodHashRec(data);
   w := r^.width;
   if ((x mod w) = 0) or ((y mod w) = 0) then
-    Canv.colors[x,y] := r^.color;
+    Canv.DrawPixel(x,y,r^.color);
 end;
 
 procedure SetFloodHashDiagCross(Canv:TFPCustomCanvas; x,y:integer; data:pointer);
@@ -1016,7 +1016,7 @@ begin
   w := r^.width;
   if ( (x mod w) = (y mod w) ) or
      ( ((x mod w) + (y mod w)) = (w - 1) ) then
-    Canv.colors[x,y] := r^.color;
+    Canv.DrawPixel(x,y,r^.color);
 end;
 
 procedure FillFloodHash (Canv:TFPCustomCanvas; x,y:integer; width:integer; SetHashColor:TFuncSetColor; const c:TFPColor);
@@ -1109,7 +1109,7 @@ var r : PFloodImageRec;
 begin
   r := PFloodImageRec(data);
   with r^.image do
-    Canv.colors[x,y] := colors[x mod width, y mod height];
+    Canv.DrawPixel(x,y,colors[x mod width, y mod height]);
 end;
 
 procedure FillFloodImage (Canv:TFPCustomCanvas; x,y :integer; const Image:TFPCustomImage);
@@ -1142,7 +1142,7 @@ begin
     yi := (y - yo) mod height;
     if yi < 0 then
       yi := height - yi;
-    Canv.colors[x,y] := colors[xi,yi];
+    Canv.DrawPixel(x,y,colors[xi,yi]);
     end;
 end;
 

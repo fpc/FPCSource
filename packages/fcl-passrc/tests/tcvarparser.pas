@@ -14,24 +14,37 @@ Type
   TTestVarParser = Class(TTestParser)
   private
     FHint: string;
+    FIsThreadVar: Boolean;
     FVar: TPasVariable;
   Protected
     Function ParseVar(ASource : String; Const AHint : String = '') : TPasVariable; virtual; overload;
     Procedure AssertVariableType(Const ATypeName : String);
     Procedure AssertVariableType(Const AClass : TClass);
     Procedure AssertParseVarError(ASource : String);
+    Property IsThreadVar : Boolean Read FIsThreadVar Write FIsThreadVar;
     Property TheVar : TPasVariable Read FVar;
     Property Hint : string Read FHint Write FHint;
     procedure SetUp; override;
     Procedure TearDown; override;
   Published
     Procedure TestSimpleVar;
+    Procedure TestSimpleThreadVar;
+    Procedure TestSimpleVarAbsoluteName;
+    Procedure TestSimpleVarHelperName;
+    procedure TestSimpleVarHelperType;
     Procedure TestSimpleVarDeprecated;
     Procedure TestSimpleVarPlatform;
     Procedure TestSimpleVarInitialized;
     procedure TestSimpleVarInitializedDeprecated;
     procedure TestSimpleVarInitializedPlatform;
+    Procedure TestSimpleVarAbsolute;
+    Procedure TestSimpleVarAbsoluteAddress;
+    Procedure TestSimpleVarAbsoluteDot;
+    Procedure TestSimpleVarAbsolute2Dots;
     Procedure TestVarProcedure;
+    procedure TestVarProcedureCdecl;
+    procedure TestVarFunctionFar;
+    Procedure TestVarFunctionINitialized;
     Procedure TestVarProcedureDeprecated;
     Procedure TestVarRecord;
     Procedure TestVarRecordDeprecated;
@@ -42,8 +55,11 @@ Type
     Procedure TestVarExternal;
     Procedure TestVarExternalLib;
     Procedure TestVarExternalLibName;
+    procedure TestVarExternalNoSemiColon;
+    procedure TestVarExternalLibNoName;
     Procedure TestVarCVar;
     Procedure TestVarCVarExternal;
+    Procedure TestVarCVarExport;
     Procedure TestVarPublic;
     Procedure TestVarPublicName;
     Procedure TestVarDeprecatedExternalName;
@@ -62,7 +78,10 @@ Var
   D : String;
 begin
   Hint:=AHint;
-  Add('Var');
+  if not IsThreadVar then
+    Add('Var')
+  else
+    Add('Threadvar');
   D:='A : '+ASource;
   If Hint<>'' then
     D:=D+' '+Hint;
@@ -120,6 +139,50 @@ begin
   AssertVariableType('b');
 end;
 
+procedure TTestVarParser.TestSimpleThreadVar;
+begin
+  IsThreadVar:=True;
+  ParseVar('b','');
+  AssertVariableType('b');
+end;
+
+procedure TTestVarParser.TestSimpleVarAbsoluteName;
+Var
+  R : TPasVariable;
+
+begin
+  Add('Var');
+  Add('  Absolute : integer;');
+//  Writeln(source.text);
+  ParseDeclarations;
+  AssertEquals('One variable definition',1,Declarations.Variables.Count);
+  AssertEquals('First declaration is type definition.',TPasVariable,TObject(Declarations.Variables[0]).ClassType);
+  R:=TPasVariable(Declarations.Variables[0]);
+  AssertEquals('First declaration has correct name.','Absolute',R.Name);
+end;
+
+procedure TTestVarParser.TestSimpleVarHelperName;
+
+Var
+  R : TPasVariable;
+
+begin
+  Add('Var');
+  Add('  Helper : integer;');
+//  Writeln(source.text);
+  ParseDeclarations;
+  AssertEquals('One variable definition',1,Declarations.Variables.Count);
+  AssertEquals('First declaration is type definition.',TPasVariable,TObject(Declarations.Variables[0]).ClassType);
+  R:=TPasVariable(Declarations.Variables[0]);
+  AssertEquals('First declaration has correct name.','Helper',R.Name);
+end;
+
+procedure TTestVarParser.TestSimpleVarHelperType;
+begin
+  ParseVar('helper','');
+  AssertVariableType('helper');
+end;
+
 procedure TTestVarParser.TestSimpleVarDeprecated;
 begin
   ParseVar('b','deprecated');
@@ -156,10 +219,66 @@ begin
   AssertExpression('Variable value',TheVar.expr,pekNumber,'123');
 end;
 
+procedure TTestVarParser.TestSimpleVarAbsolute;
+begin
+  ParseVar('q absolute v','');
+  AssertVariableType('q');
+  AssertExpression('correct absolute location',TheVar.AbsoluteExpr,pekIdent,'v');
+end;
+
+procedure TTestVarParser.TestSimpleVarAbsoluteAddress;
+begin
+  ParseVar('q absolute $123','');
+  AssertVariableType('q');
+  AssertExpression('correct absolute location',TheVar.AbsoluteExpr,pekNumber,'$123');
+end;
+
+procedure TTestVarParser.TestSimpleVarAbsoluteDot;
+var
+  B: TBinaryExpr;
+begin
+  ParseVar('q absolute v.w','');
+  AssertVariableType('q');
+  B:=AssertExpression('binary',TheVar.AbsoluteExpr,eopSubIdent);
+  AssertExpression('correct absolute expr v',B.left,pekIdent,'v');
+  AssertExpression('correct absolute expr w',B.right,pekIdent,'w');
+end;
+
+procedure TTestVarParser.TestSimpleVarAbsolute2Dots;
+var
+  B: TBinaryExpr;
+begin
+  ParseVar('q absolute v.w.x','');
+  AssertVariableType('q');
+  B:=AssertExpression('binary',TheVar.AbsoluteExpr,eopSubIdent);
+  AssertExpression('correct absolute expr x',B.right,pekIdent,'x');
+  B:=AssertExpression('binary',B.left,eopSubIdent);
+  AssertExpression('correct absolute expr w',B.right,pekIdent,'w');
+  AssertExpression('correct absolute expr v',B.left,pekIdent,'v');
+end;
+
 procedure TTestVarParser.TestVarProcedure;
 begin
   ParseVar('procedure','');
   AssertVariableType(TPasProcedureType);
+end;
+
+procedure TTestVarParser.TestVarProcedureCdecl;
+begin
+  ParseVar('procedure; cdecl;','');
+  AssertVariableType(TPasProcedureType);
+end;
+
+procedure TTestVarParser.TestVarFunctionFar;
+begin
+  ParseVar('function (cinfo : j_decompress_ptr) : int; far;','');
+  AssertVariableType(TPasFunctionType);
+end;
+
+procedure TTestVarParser.TestVarFunctionINitialized;
+begin
+  ParseVar('function (device: pointer): pointer; cdecl = nil','');
+  AssertVariableType(TPasFunctionType);
 end;
 
 procedure TTestVarParser.TestVarProcedureDeprecated;
@@ -245,20 +364,37 @@ begin
   AssertEquals('Variable modifiers',[vmexternal],TheVar.VarModifiers);
 end;
 
+procedure TTestVarParser.TestVarExternalNoSemiColon;
+begin
+  ParseVar('integer external','');
+  AssertEquals('Variable modifiers',[vmexternal],TheVar.VarModifiers);
+end;
+
 procedure TTestVarParser.TestVarExternalLib;
 begin
   ParseVar('integer; external name ''mylib''','');
   AssertEquals('Variable modifiers',[vmexternal],TheVar.VarModifiers);
-  AssertEquals('Library name','',TheVar.LibraryName);
-  AssertEquals('Library name','''mylib''',TheVar.ExportName);
+  AssertNull('Library name',TheVar.LibraryName);
+  AssertNotNull('Library symbol',TheVar.ExportName);
 end;
+
+
+procedure TTestVarParser.TestVarExternalLibNoName;
+begin
+  // Found in e.g.apache headers
+  ParseVar('integer; external ''mylib''','');
+  AssertEquals('Variable modifiers',[vmexternal],TheVar.VarModifiers);
+  AssertNotNull('Library name',TheVar.LibraryName);
+
+end;
+
 
 procedure TTestVarParser.TestVarExternalLibName;
 begin
-  ParseVar('integer; external ''mylib'' name ''d''','');
+  ParseVar('integer; external ''mylib'' name ''de''','');
   AssertEquals('Variable modifiers',[vmexternal],TheVar.VarModifiers);
-  AssertEquals('Library name','''mylib''',TheVar.LibraryName);
-  AssertEquals('Library name','''d''',TheVar.ExportName);
+  AssertNotNull('Library name',TheVar.LibraryName);
+  AssertNotNull('Library symbol',TheVar.ExportName);
 end;
 
 procedure TTestVarParser.TestVarCVar;
@@ -273,6 +409,12 @@ begin
   AssertEquals('Variable modifiers',[vmcvar,vmexternal],TheVar.VarModifiers);
 end;
 
+procedure TTestVarParser.TestVarCVarExport;
+begin
+  ParseVar('integer; cvar; export','');
+  AssertEquals('Variable modifiers',[vmCVar,vmExport],TheVar.VarModifiers);
+end;
+
 procedure TTestVarParser.TestVarPublic;
 begin
   ParseVar('integer; public','');
@@ -281,9 +423,9 @@ end;
 
 procedure TTestVarParser.TestVarPublicName;
 begin
-  ParseVar('integer; public name ''c''','');
+  ParseVar('integer; public name ''ce''','');
   AssertEquals('Variable modifiers',[vmpublic],TheVar.VarModifiers);
-  AssertEquals('Public export name','''c''',TheVar.ExportName);
+  AssertNotNull('Public export name',TheVar.ExportName);
 end;
 
 procedure TTestVarParser.TestVarDeprecatedExternalName;
@@ -291,7 +433,8 @@ begin
   ParseVar('integer deprecated; external name ''me''','');
   CheckHint(TPasMemberHint(Getenumvalue(typeinfo(TPasMemberHint),'hdeprecated')));
   AssertEquals('Variable modifiers',[vmexternal],TheVar.VarModifiers);
-  AssertEquals('Library name','''me''',TheVar.ExportName);
+  AssertNull('Library name',TheVar.LibraryName);
+  AssertNotNull('Library symbol',TheVar.ExportName);
 end;
 
 procedure TTestVarParser.TestVarHintPriorToInit;

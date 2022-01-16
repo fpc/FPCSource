@@ -1,6 +1,6 @@
 {   Unicode parser helper unit.
 
-    Copyright (c) 2012 by Inoussa OUEDRAOGO
+    Copyright (c) 2012-2015 by Inoussa OUEDRAOGO
 
     The source code is distributed under the Library GNU
     General Public License with the following modification:
@@ -42,7 +42,7 @@ const
   SLicenseText =
     '    {   Unicode implementation tables. ' + sLineBreak +
     ' ' + sLineBreak +
-    '        Copyright (c) 2013 by Inoussa OUEDRAOGO ' + sLineBreak +
+    '        Copyright (c) 2013 - 2017 by Inoussa OUEDRAOGO ' + sLineBreak +
     ' ' + sLineBreak +
     '        Permission is hereby granted, free of charge, to any person ' + sLineBreak +
     '        obtaining a copy of the Unicode data files and any associated ' + sLineBreak +
@@ -66,6 +66,7 @@ const
     '        but WITHOUT ANY WARRANTY; without even the implied warranty of ' + sLineBreak +
     '        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. }';
 
+  WEIGHT_LEVEL_COUNT = 3;
 
 type
   // Unicode General Category
@@ -231,35 +232,39 @@ type
   end;
   TPropListLineRecArray = array of TPropListLineRec;
 
+  { TUCA_WeightRec }
+
   TUCA_WeightRec = packed record
+  public
     Weights  : array[0..3] of Cardinal;
     Variable : Boolean;
+  public
+    class operator Equal(a, b: TUCA_WeightRec): Boolean;{$ifdef USE_INLINE}inline;{$ENDIF}
   end;
   TUCA_WeightRecArray = array of TUCA_WeightRec;
 
+  PUCA_LineContextItemRec = ^TUCA_LineContextItemRec;
   TUCA_LineContextItemRec = X_PACKED record
   public
     CodePoints : TUnicodeCodePointArray;
     Weights    : TUCA_WeightRecArray;
   public
     procedure Clear();
-    procedure Assign(ASource : TUCA_LineContextItemRec);
+    procedure Assign(ASource : PUCA_LineContextItemRec);
     function Clone() : TUCA_LineContextItemRec;
   end;
-  PUCA_LineContextItemRec = ^TUCA_LineContextItemRec;
 
+  PUCA_LineContextRec = ^TUCA_LineContextRec;
   TUCA_LineContextRec = X_PACKED record
   public
     Data : array of TUCA_LineContextItemRec;
   public
     procedure Clear();
-    procedure Assign(ASource : TUCA_LineContextRec);
+    procedure Assign(ASource : PUCA_LineContextRec);
     function Clone() : TUCA_LineContextRec;
   end;
-  PUCA_LineContextRec = ^TUCA_LineContextRec;
 
-  { TUCA_LineRec }
-
+  PUCA_LineRec = ^TUCA_LineRec;
   TUCA_LineRec = X_PACKED record
   public
     CodePoints : TUnicodeCodePointArray;
@@ -270,11 +275,10 @@ type
     Stored     : Boolean;
   public
     procedure Clear();
-    procedure Assign(ASource : TUCA_LineRec);
+    procedure Assign(ASource : PUCA_LineRec);
     function Clone() : TUCA_LineRec;
     function HasContext() : Boolean;
   end;
-  PUCA_LineRec = ^TUCA_LineRec;
   TUCA_VariableKind = (
     ucaShifted, ucaNonIgnorable, ucaBlanked, ucaShiftedTrimmed,
     ucaIgnoreSP
@@ -658,11 +662,13 @@ type
   );
 
 type
-  TCollationName = string[128];
+  TCollationName = array[0..(128-1)] of Byte;
+  TCollationVersion = TCollationName;
   TSerializedCollationHeader = packed record
     Base               : TCollationName;
-    Version            : TCollationName;
+    Version            : TCollationVersion;
     CollationName      : TCollationName;
+    CollationAliases   : TCollationName; // ";" separated
     VariableWeight     : Byte;
     Backwards          : Byte;
     BMP_Table1Length   : DWord;
@@ -672,13 +678,26 @@ type
     PropCount          : DWord;
     VariableLowLimit   : Word;
     VariableHighLimit  : Word;
+    NoNormalization    : Byte;
+    Strength           : Byte;
     ChangedFields      : Byte;
   end;
   PSerializedCollationHeader = ^TSerializedCollationHeader;
 
+  procedure StringToByteArray(AStr : UnicodeString; var ABuffer : array of Byte);overload;
+  procedure StringToByteArray(AStr : UnicodeString; ABuffer : PByte; const ABufferLength : Integer);overload;
+
   procedure ReverseRecordBytes(var AItem : TSerializedCollationHeader);
   procedure ReverseBytes(var AData; const ALength : Integer);
   procedure ReverseArray(var AValue; const AArrayLength, AItemSize : PtrInt);
+
+  function CalcMaxLevel2Value(ALines : array of TUCA_LineRec) : Cardinal;
+  procedure RewriteLevel2Values(ALines : PUCA_LineRec; ALength : Integer);
+  function RewriteLevel2(
+    const ALevel1Value : Cardinal;
+          ALines       : PUCA_LineRec;
+    const ALinesLength : Integer
+  ) : Integer;
 
 resourcestring
   SInsufficientMemoryBuffer = 'Insufficient Memory Buffer';
@@ -892,6 +911,52 @@ end;
 class operator TUInt24Rec.LessThanOrEqual(a: Cardinal; b: TUInt24Rec): Boolean;
 begin
   Result := a <= Cardinal(b);
+end;
+
+{ TUCA_WeightRec }
+
+class operator TUCA_WeightRec.Equal(a, b : TUCA_WeightRec) : Boolean;
+begin
+  Result := (a.Weights[0] = b.Weights[0]) and (a.Weights[1] = b.Weights[1]) and
+            (a.Weights[2] = b.Weights[2]) and (a.Weights[3] = b.Weights[3]) and
+            (a.Variable = b.Variable);
+end;
+
+procedure StringToByteArray(AStr : UnicodeString; var ABuffer : array of Byte);
+begin
+  StringToByteArray(AStr,@(ABuffer[Low(ABuffer)]),Length(ABuffer));
+end;
+
+procedure StringToByteArray(AStr : UnicodeString; ABuffer : PByte; const ABufferLength : Integer);
+var
+  c, i, bl : Integer;
+  ps : PWord;
+  pb : PByte;
+begin
+  if (ABufferLength < 1) then
+    exit;
+  c := Length(AStr);
+  if (c > ABufferLength) then
+    c := ABufferLength;
+  bl := 0;
+  pb := ABuffer;
+  if (c > 0) then begin
+    ps := PWord(@AStr[1]);
+    for i := 1 to c do begin
+      if (ps^ <= High(Byte)) then begin
+        pb^ := ps^;
+        bl := bl+1;
+        Inc(pb);
+      end;
+      Inc(ps);
+    end;
+  end;
+  if (bl < ABufferLength) then begin
+    for i := bl+1 to ABufferLength do begin
+      pb^:= 0;
+      Inc(pb);
+    end;
+  end;
 end;
 
 function GenerateEndianIncludeFileName(
@@ -1728,6 +1793,8 @@ var
       Inc(actualPropLen);
     end;
     locData.PropID := k;
+    if (actualDataLen >= Length(ADataLineList)) then
+      SetLength(ADataLineList,(2*Length(ADataLineList)));
     ADataLineList[actualDataLen] := locData;
     Inc(actualDataLen);
   end;
@@ -2477,7 +2544,7 @@ var
     a := LowerCase(Trim(AToken));
     b := LowerCase(Trim(NextToken()));
     if (a <> b) then
-      raise Exception.CreateFmt('Expected token "%s" but found "%s".',[a,b]);
+      raise Exception.CreateFmt('Expected token "%s" but found "%s", Line = "%s".',[a,b,line]);
   end;
 
   function ReadWeightBlock(var ADest : TUCA_WeightRec) : Boolean;
@@ -2498,7 +2565,7 @@ var
       ADest.Variable := True;
     end;
     ADest.Weights[0] := StrToInt('$'+NextToken());
-    for k := 1 to 3 do begin
+    for k := 1 to WEIGHT_LEVEL_COUNT-1 do begin
       CheckToken('.');
       ADest.Weights[k] := StrToInt('$'+NextToken());
     end;
@@ -2638,8 +2705,11 @@ begin
   exit(-1);
 end;
 
-Procedure QuickSort(var AList: TUCA_DataBookIndex; L, R : Longint;
-                     ABook : PUCA_DataBook);
+procedure QuickSort(
+  var AList : TUCA_DataBookIndex;
+      L, R  : Longint;
+      ABook : PUCA_DataBook
+);overload;
 var
   I, J : Longint;
   P, Q : Integer;
@@ -2941,7 +3011,7 @@ begin
   locIndex := CreateIndex(ABook);
   i := Length(ABook^.Lines);
   i := 30 * i * (SizeOf(TUCA_PropItemRec) + SizeOf(TUCA_PropWeights));
-  AProps := AllocMem(SizeOf(TUCA_DataBook));
+  AProps := AllocMem(SizeOf(TUCA_PropBook));
   AProps^.ItemSize := i;
   AProps^.Items := AllocMem(i);
   propIndexCount := 0;
@@ -3035,7 +3105,8 @@ begin
         MaxSize := size;
     end;
   end;
-  c := Int64(PtrUInt(p)) - Int64(PtrUInt(AProps^.Items));
+  //c := Int64(PtrUInt(p)) - Int64(PtrUInt(AProps^.Items));
+  c := UInt64(PtrUInt(p)) - UInt64(PtrUInt(AProps^.Items));
   ReAllocMem(AProps^.Items,c);
   AProps^.ItemSize := c;
   SetLength(AProps^.Index,propIndexCount);
@@ -3068,6 +3139,7 @@ begin
   ABook := nil;
   p^.Index := nil;
   FreeMem(p^.Items,p^.ItemSize);
+  FreeMem(p^.ItemsOtherEndian,p^.ItemSize);
   FreeMem(p,SizeOf(p^));
 end;
 
@@ -3245,7 +3317,7 @@ procedure GenerateUCA_Head(
 
 begin
   AddLine('const');
-  AddLine('  VERSION_STRING = ' + QuotedStr(ABook^.Version) + ';');
+  //AddLine('  VERSION_STRING = ' + QuotedStr(ABook^.Version) + ';');
   AddLine('  VARIABLE_LOW_LIMIT = ' + IntToStr(AProps^.VariableLowLimit) + ';');
   AddLine('  VARIABLE_HIGH_LIMIT = ' + IntToStr(AProps^.VariableHighLimit) + ';');
   AddLine('  VARIABLE_WEIGHT = ' + IntToStr(Ord(ABook^.VariableWeight)) + ';');
@@ -3820,20 +3892,24 @@ begin
   Data := nil
 end;
 
-procedure TUCA_LineContextRec.Assign(ASource : TUCA_LineContextRec);
+procedure TUCA_LineContextRec.Assign(ASource : PUCA_LineContextRec);
 var
   c, i : Integer;
 begin
-  c := Length(ASource.Data);
+  if (ASource = nil) then begin
+    Clear();
+    exit;
+  end;
+  c := Length(ASource^.Data);
   SetLength(Self.Data,c);
   for i := 0 to c-1 do
-    Self.Data[i].Assign(ASource.Data[i]);
+    Self.Data[i].Assign(@ASource^.Data[i]);
 end;
 
 function TUCA_LineContextRec.Clone : TUCA_LineContextRec;
 begin
   Result.Clear();
-  Result.Assign(Self);
+  Result.Assign(@Self);
 end;
 
 { TUCA_LineContextItemRec }
@@ -3844,16 +3920,20 @@ begin
   Weights := nil;
 end;
 
-procedure TUCA_LineContextItemRec.Assign(ASource : TUCA_LineContextItemRec);
+procedure TUCA_LineContextItemRec.Assign(ASource : PUCA_LineContextItemRec);
 begin
-  Self.CodePoints := Copy(ASource.CodePoints);
-  Self.Weights := Copy(ASource.Weights);
+  if (ASource = nil) then begin
+    Clear();
+    exit;
+  end;
+  Self.CodePoints := Copy(ASource^.CodePoints);
+  Self.Weights := Copy(ASource^.Weights);
 end;
 
 function TUCA_LineContextItemRec.Clone() : TUCA_LineContextItemRec;
 begin
   Result.Clear();
-  Result.Assign(Self);
+  Result.Assign(@Self);
 end;
 
 { TUCA_LineRec }
@@ -3867,19 +3947,23 @@ begin
   Context.Clear();
 end;
 
-procedure TUCA_LineRec.Assign(ASource : TUCA_LineRec);
+procedure TUCA_LineRec.Assign(ASource : PUCA_LineRec);
 begin
-  Self.CodePoints := Copy(ASource.CodePoints);
-  Self.Weights := Copy(ASource.Weights);
-  Self.Deleted := ASource.Deleted;
-  Self.Stored := ASource.Stored;
-  Self.Context.Assign(ASource.Context);
+  if (ASource = nil) then begin
+    Clear();
+    exit;
+  end;
+  Self.CodePoints := Copy(ASource^.CodePoints);
+  Self.Weights := Copy(ASource^.Weights);
+  Self.Deleted := ASource^.Deleted;
+  Self.Stored := ASource^.Stored;
+  Self.Context.Assign(@ASource^.Context);
 end;
 
 function TUCA_LineRec.Clone : TUCA_LineRec;
 begin
   Result.Clear();
-  Result.Assign(Self);
+  Result.Assign(@Self);
 end;
 
 function TUCA_LineRec.HasContext() : Boolean;
@@ -4671,6 +4755,201 @@ begin
     a := PUCA_PropItemRec(PtrUInt(a)+k);
     b := PUCA_PropItemRec(PtrUInt(b)+k);
   end;
+end;
+
+Procedure QuickSort(AList : PCardinal; L, R : Longint);overload;
+var
+  I, J : Longint;
+  P, Q : Cardinal;
+begin
+ repeat
+   I := L;
+   J := R;
+   P := AList[ (L + R) div 2 ];
+   repeat
+     while (P > AList[i]) do
+       I := I + 1;
+     while (P < AList[J]) do
+       J := J - 1;
+     If I <= J then
+     begin
+       Q := AList[I];
+       AList[I] := AList[J];
+       AList[J] := Q;
+       I := I + 1;
+       J := J - 1;
+     end;
+   until I > J;
+   if J - L < R - I then
+   begin
+     if L < J then
+       QuickSort(AList, L, J);
+     L := I;
+   end
+   else
+   begin
+     if I < R then
+       QuickSort(AList, I, R);
+     R := J;
+   end;
+ until L >= R;
+end;
+
+function CalcMaxLevel2Count(
+  const ALevel1Value : Cardinal;
+        ALines       : array of TUCA_LineRec
+) : Integer;
+var
+  i, c, k : Integer;
+  ac : Integer;
+  items : array of Cardinal;
+  p : PUCA_LineRec;
+  pw : ^TUCA_WeightRec;
+begin
+  c := Length(ALines);
+  if (c < 1) then
+    exit(0);
+  SetLength(items,0);
+  ac := 0;
+  p := @ALines[Low(ALines)];
+  for i := 0 to c-1 do begin
+    if (Length(p^.Weights) > 0) then begin
+      pw := @p^.Weights[Low(p^.Weights)];
+      for k := 0 to Length(p^.Weights)-1 do begin
+        if (pw^.Weights[0] = ALevel1Value) then begin
+          if (ac = 0) or (IndexDWord(items[0],ac,pw^.Weights[1]) < 0) then begin
+            if (ac >= Length(items)) then
+              SetLength(items,Length(items)+256);
+            items[ac] := pw^.Weights[1];
+            ac := ac+1;
+          end;
+        end;
+        Inc(pw);
+      end;
+    end;
+    Inc(p);
+  end;
+  Result := ac;
+end;
+
+function RewriteLevel2(
+  const ALevel1Value : Cardinal;
+        ALines       : PUCA_LineRec;
+  const ALinesLength : Integer
+) : Integer;
+var
+  i, c, k : Integer;
+  ac : Integer;
+  items : array of Cardinal;
+  p : PUCA_LineRec;
+  pw : ^TUCA_WeightRec;
+  newValue : Int64;
+begin
+  c := ALinesLength;
+  if (c < 1) then
+    exit(0);
+  SetLength(items,256);
+  ac := 0;
+  p := ALines;
+  for i := 0 to c-1 do begin
+    if (Length(p^.Weights) > 0) then begin
+      for k := 0 to Length(p^.Weights)-1 do begin
+        pw := @p^.Weights[k];
+        if (pw^.Weights[0] = ALevel1Value) then begin
+          if (ac = 0) or (IndexDWord(items[0],ac,pw^.Weights[1]) < 0) then begin
+            if (ac >= Length(items)) then
+              SetLength(items,Length(items)+256);
+            items[ac] := pw^.Weights[1];
+            ac := ac+1;
+          end;
+        end;
+      end;
+    end;
+    Inc(p);
+  end;
+  SetLength(items,ac);
+  if (ac > 1) then
+    QuickSort(@items[0],0,(ac-1));
+
+  p := ALines;
+  for i := 0 to c-1 do begin
+    if (Length(p^.Weights) > 0) then begin
+      for k := 0 to Length(p^.Weights)-1 do begin
+        pw := @p^.Weights[k];
+        if (pw^.Weights[0] = ALevel1Value) then begin
+          newValue := IndexDWord(items[0],ac,pw^.Weights[1]);
+          if (newValue < 0) then
+            raise Exception.CreateFmt('level 2 value %d missed in rewrite of level 1 value of %d.',[pw^.Weights[1],ALevel1Value]);
+          pw^.Weights[1] := newValue;//+1;
+        end;
+      end;
+    end;
+    Inc(p);
+  end;
+  if (Length(items) > 0) then
+    Result := items[Length(items)-1]
+  else
+    Result := 0;
+end;
+
+procedure RewriteLevel2Values(ALines : PUCA_LineRec; ALength : Integer);
+var
+  c, i, ac, k : Integer;
+  p : PUCA_LineRec;
+  level1List : array of Cardinal;
+  pw : ^TUCA_WeightRec;
+begin
+  c := ALength;
+  if (c < 1) then
+    exit;
+  ac := 0;
+  SetLength(level1List,c);
+  p := ALines;
+  for i := 0 to c-1 do begin
+    if (Length(p^.Weights) > 0) then begin
+      for k := 0 to Length(p^.Weights)-1 do begin
+        pw := @p^.Weights[k];
+        if (ac = 0) or (IndexDWord(level1List[0],ac,pw^.Weights[0]) < 0) then begin
+          if (ac >= Length(level1List)) then
+            SetLength(level1List,ac+1000);
+          level1List[ac] := pw^.Weights[0];
+          RewriteLevel2(level1List[ac],ALines,ALength);
+          ac := ac+1;
+        end;
+      end;
+    end;
+    Inc(p);
+  end;
+end;
+
+function CalcMaxLevel2Value(ALines : array of TUCA_LineRec) : Cardinal;
+var
+  i, c, k, tempValue : Integer;
+  p : PUCA_LineRec;
+  maxLevel : Cardinal;
+  maxValue : Integer;
+begin
+  c := Length(ALines);
+  if (c < 2) then
+    exit(0);
+  maxLevel := 0;
+  maxValue := CalcMaxLevel2Count(maxLevel,ALines);
+  p := @ALines[Low(ALines)+1];
+  for i := 1 to c-1 do begin
+    if (Length(p^.Weights) > 0) then begin
+      for k := 0 to Length(p^.Weights)-1 do begin
+        if (p^.Weights[k].Weights[0] <> maxLevel) then begin
+          tempValue := CalcMaxLevel2Count(p^.Weights[k].Weights[0],ALines);
+          if (tempValue > maxValue) then begin
+            maxLevel := p^.Weights[k].Weights[0];
+            maxValue := tempValue;
+          end;
+        end;
+      end;
+    end;
+    Inc(p);
+  end;
+  Result := maxValue;
 end;
 
 initialization

@@ -48,7 +48,7 @@ Begin
 End;
 
 { truncate at a given position }
-procedure do_truncate (handle:thandle;fpos:longint);
+procedure do_truncate (handle:thandle;fpos:int64);
 begin
   { should be simulated in cases where it is not }
   { available.                                   }

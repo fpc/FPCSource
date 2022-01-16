@@ -27,7 +27,7 @@ type
   _TElfRelocTable_= class
   private
     fList : TFPList;
-    fRelocType : byte;
+    fRelocType : longword;
     fEntrySize : integer;
     fSectionType : integer;
     fSectionName : string;
@@ -418,13 +418,19 @@ begin
       EM_386    : begin RelocType:=R_386_32;        SectionType:=SHT_REL;  end;
       EM_PPC    : begin RelocType:=R_PPC_ADDR32;    SectionType:=SHT_RELA; end;
       EM_ARM    : begin RelocType:=R_ARM_ABS32;     SectionType:=SHT_REL;  end;
+      EM_AARCH64: begin RelocType:=R_AARCH64_ABS64; SectionType:=SHT_RELA; end;
       EM_68K    : begin RelocType:=R_68K_32;        SectionType:=SHT_RELA; end;
       EM_SPARC  : begin RelocType:=R_SPARC_32;      SectionType:=SHT_RELA; end;
       EM_X86_64 : begin RelocType:=R_x86_64_64;     SectionType:=SHT_RELA; end;
       EM_PPC64  : begin RelocType:=R_PPC64_ADDR64;  SectionType:=SHT_RELA; end;
       EM_ALPHA  : begin RelocType:=R_ALPHA_REFQUAD; SectionType:=SHT_RELA; end;
       EM_IA_64  : begin RelocType:=R_IA64_DIR64LSB; SectionType:=SHT_RELA; end;
-      EM_MIPS   : begin RelocType:=R_MIPS_32;      SectionType:=SHT_RELA; end;
+      EM_MIPS   : begin RelocType:=R_MIPS_32;       SectionType:=SHT_RELA; end;
+      {$IF _TElfSubWriter_=TElf64SubWriter}
+      EM_RISCV  : begin RelocType:=R_RISCV_64;      SectionType:=SHT_RELA; end;
+      {$ELSE}
+      EM_RISCV  : begin RelocType:=R_RISCV_32;      SectionType:=SHT_RELA; end;
+      {$ENDIF}
       else
         raise EElfResourceWriterUnknownMachineException.Create('');
     end;
@@ -435,8 +441,16 @@ begin
   {$ELSE}
   fDataAlignment:=4;
   {$ENDIF}
-  if aMachineType=EM_IA_64 then fMachineFlags:=EF_IA_64_ABI64
-  else fMachineFlags:=0;
+  case aMachineType of
+    EM_IA_64:
+      fMachineFlags:=EF_IA_64_ABI64;
+    EM_RISCV:
+      fMachineFlags:=EF_RISCV_FLOAT_ABI_DOUBLE or EF_RISCV_RVC; // This is the default class for now;
+    EM_ARM:
+      fMachineFlags:=EF_ARM_ABI5;
+    else
+      fMachineFlags:=0;
+  end;
 end;
 
 destructor _TElfSubWriter_.Destroy;

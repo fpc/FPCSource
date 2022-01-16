@@ -1,9 +1,6 @@
 {	CFString.h
-	Copyright (c) 1998-2012, Apple Inc. All rights reserved.
+	Copyright (c) 1998-2013, Apple Inc. All rights reserved.
 }
-{	  Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, November 2005 }
-{	  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
-{	  Pascal Translation Updated:  Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -12,6 +9,7 @@
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
+{$modeswitch cblocks}
 {$packenum 1}
 {$macro on}
 {$inline on}
@@ -104,7 +102,7 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-{$ifc defined(iphonesim)}
+{$ifc defined iphonesim}
  	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
@@ -121,7 +119,7 @@ interface
 	{$setc TARGET_CPU_X86_64 := TRUE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-{$ifc defined(iphonesim)}
+{$ifc defined iphonesim}
  	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
@@ -138,7 +136,6 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := TRUE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-	{ will require compiler define when/if other Apple devices with ARM cpus ship }
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
@@ -150,11 +147,16 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := TRUE}
-	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+{$ifc defined ios}
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
-	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 	{$setc TARGET_OS_EMBEDDED := TRUE}
+{$elsec}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
+{$endc}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ nor __arm64__ is defined.}
 {$endc}
@@ -310,7 +312,8 @@ const
 { CFString type ID }
 function CFStringGetTypeID: CFTypeID; external name '_CFStringGetTypeID';
 
-{ Macro to allow creation of compile-time constant strings; the argument should be a constant string.
+{ CFSTR() allows creation of compile-time constant CFStringRefs; the argument 
+should be a constant C-string.
 
 CFSTR(), not being a "Copy" or "Create" function, does not return a new
 reference for you. So, you should not release the return value. This is
@@ -430,7 +433,8 @@ function CFStringCreateWithCStringNoCopy( alloc: CFAllocatorRef; cStr: ConstCStr
 
 { The following takes an explicit length, and allows you to specify whether the data is an external format --- that is, whether to pay attention to the BOM character (if any) and do byte swapping if necessary
 }
-function CFStringCreateWithBytesNoCopy( alloc: CFAllocatorRef; bytes: UnivPtr; numBytes: CFIndex; encoding: CFStringEncoding; isExternalRepresentation: Boolean; contentsDeallocator: CFAllocatorRef ): CFStringRef; external name '_CFStringCreateWithBytesNoCopy'; (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+function CFStringCreateWithBytesNoCopy( alloc: CFAllocatorRef; bytes: UnivPtr; numBytes: CFIndex; encoding: CFStringEncoding; isExternalRepresentation: Boolean; contentsDeallocator: CFAllocatorRef ): CFStringRef; external name '_CFStringCreateWithBytesNoCopy';
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 
 function CFStringCreateWithCharactersNoCopy( alloc: CFAllocatorRef; chars: UniCharPtr; numChars: CFIndex; contentsDeallocator: CFAllocatorRef ): CFStringRef; external name '_CFStringCreateWithCharactersNoCopy';
 
@@ -871,7 +875,7 @@ procedure CFStringNormalize( theString: CFMutableStringRef; theForm: CFStringNor
 }
 
 procedure CFStringFold( theString: CFMutableStringRef; theFlags: CFOptionFlags; theLocale: CFLocaleRef ); external name '_CFStringFold';
-(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+(* CF_AVAILABLE_STARTING(10_5, 2_0) *)
 {#endif MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED }
 
 

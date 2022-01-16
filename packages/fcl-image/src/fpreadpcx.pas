@@ -301,9 +301,27 @@ begin
 end;
 
 function TFPReaderPCX.InternalCheck(Stream: TStream): boolean;
+var
+  hdr: TPcxHeader;
+  n: Integer;
+  oldPos: Int64;
 begin
-  Result := True;
+  Result:=False;
+  if Stream = nil then
+    exit;
+  oldPos := Stream.Position;
+  try
+    n:=SizeOf(hdr);
+    Result:=(Stream.Read(hdr, n)=n)
+            and (hdr.FileID in [$0A, $0C]) 
+            and (hdr.ColorPlanes in [1, 3, 4]) 
+            and (hdr.Version in [0, 2, 3, 5])
+            and (hdr.PaletteType in [1, 2]);
+  finally
+    Stream.Position := oldPos;
+  end;
 end;
+
 
 initialization
   ImageHandlers.RegisterImageReader('PCX Format', 'pcx', TFPReaderPCX);

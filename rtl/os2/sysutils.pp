@@ -21,6 +21,8 @@ interface
 {$MODESWITCH OUT}
 { force ansistrings }
 {$H+}
+{$modeswitch typehelpers}
+{$modeswitch advancedrecords}
 
 {$DEFINE HAS_SLEEP}
 {$DEFINE HAS_OSERROR}
@@ -29,6 +31,8 @@ interface
 {$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
 { OS has an ansistring/single byte environment variable API }
 {$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
+{ OS has an ansistring/single byte API for executing other processes }
+{$DEFINE EXECUTEPROCUNI}
 
 { Include platform independent interface part }
 {$i sysutilh.inc}
@@ -52,6 +56,7 @@ threadvar
 {$DEFINE FPC_FEXPAND_GETENV_PCHAR}
 {$DEFINE HAS_GETTICKCOUNT}
 {$DEFINE HAS_GETTICKCOUNT64}
+{$DEFINE HAS_LOCALTIMEZONEOFFSET}
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
@@ -70,8 +75,8 @@ const
  faOpenReplace = $00040000; {Truncate if file exists}
  faCreate      = $00050000; {Create if file does not exist, truncate otherwise}
 
- FindResvdMask = $00003737; {Allowed bits in attribute
-                             specification for DosFindFirst call.}
+ FindResvdMask = $00003737  {Allowed bits for DosFindFirst parameter Attribute}
+             and $000000FF; {combined with a mask for allowed attributes only}
 
 function FileOpen (const FileName: rawbytestring; Mode: integer): THandle;
 Var
@@ -210,7 +215,7 @@ begin
    OSErrorWatch (RC);
 end;
 
-function FileAge (const FileName: RawByteString): longint;
+function FileAge (const FileName: RawByteString): Int64;
 var Handle: longint;
 begin
     Handle := FileOpen (FileName, 0);
@@ -224,7 +229,13 @@ begin
 end;
 
 
-function FileExists (const FileName: RawByteString): boolean;
+function FileGetSymLinkTarget(const FileName: RawByteString; out SymLinkRec: TRawbyteSymLinkRec): Boolean;
+begin
+  Result := False;
+end;
+
+
+function FileExists (const FileName: RawByteString; FollowLink : Boolean): boolean;
 var
   L: longint;
 begin
@@ -240,10 +251,7 @@ begin
 end;
 
 
-type    TRec = record
-            T, D: word;
-        end;
-        PSearchRec = ^TSearchRec;
+type    PSearchRec = ^TSearchRec;
 
 Function InternalFindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name: RawByteString) : Longint;
 
@@ -273,8 +281,7 @@ begin
   if Err = 0 then
    begin
     Rslt.ExcludeAttr := 0;
-    TRec (Rslt.Time).T := FStat^.TimeLastWrite;
-    TRec (Rslt.Time).D := FStat^.DateLastWrite;
+    Rslt.Time := cardinal (FStat^.DateLastWrite) shl 16 + FStat^.TimeLastWrite;
     if FSApi64 then
      begin
       Rslt.Size := FStat^.FileSize;
@@ -314,8 +321,7 @@ begin
   if Err = 0 then
   begin
     Rslt.ExcludeAttr := 0;
-    TRec (Rslt.Time).T := FStat^.TimeLastWrite;
-    TRec (Rslt.Time).D := FStat^.DateLastWrite;
+    Rslt.Time := cardinal (FStat^.DateLastWrite) shl 16 + FStat^.TimeLastWrite;
     if FSApi64 then
      begin
       Rslt.Size := FStat^.FileSize;
@@ -345,7 +351,8 @@ begin
    OSErrorWatch (RC);
 end;
 
-function FileGetDate (Handle: THandle): longint;
+
+function FileGetDate (Handle: THandle): Int64;
 var
   FStat: TFileStatus3;
   Time: Longint;
@@ -354,9 +361,9 @@ begin
   RC := DosQueryFileInfo(Handle, ilStandard, @FStat, SizeOf(FStat));
   if RC = 0 then
   begin
-    Time := FStat.TimeLastWrite + longint (FStat.DateLastWrite) shl 16;
+    Time := FStat.TimeLastWrite + dword (FStat.DateLastWrite) shl 16;
     if Time = 0 then
-      Time := FStat.TimeCreation + longint (FStat.DateCreation) shl 16;
+      Time := FStat.TimeCreation + dword (FStat.DateCreation) shl 16;
   end else
    begin
     Time:=0;
@@ -365,7 +372,7 @@ begin
   FileGetDate:=Time;
 end;
 
-function FileSetDate (Handle: THandle; Age: longint): longint;
+function FileSetDate (Handle: THandle; Age: Int64): longint;
 var
   FStat: PFileStatus3;
   RC: cardinal;
@@ -379,10 +386,10 @@ begin
    end
   else
    begin
-    FStat^.DateLastAccess := Hi (Age);
-    FStat^.DateLastWrite := Hi (Age);
-    FStat^.TimeLastAccess := Lo (Age);
-    FStat^.TimeLastWrite := Lo (Age);
+    FStat^.DateLastAccess := Hi (dword (Age));
+    FStat^.DateLastWrite := Hi (dword (Age));
+    FStat^.TimeLastAccess := Lo (dword (Age));
+    FStat^.TimeLastWrite := Lo (dword (Age));
     RC := DosSetFileInfo (Handle, ilStandard, FStat, SizeOf (FStat^));
     if RC <> 0 then
      begin
@@ -422,10 +429,15 @@ Var
 Begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(Filename);
   New(FS);
-  FillChar(FS, SizeOf(FS^), 0);
-  FS^.AttrFile:=Attr;
-  RC := DosSetPathInfo(PChar (SystemFileName), ilStandard, FS, SizeOf(FS^), 0);
-  if RC <> 0 then
+  RC := DosQueryPathInfo (PChar (SystemFileName), ilStandard, FS, SizeOf (FS^));
+  if RC = 0 then
+   begin
+    FS^.AttrFile:=Attr;
+    RC := DosSetPathInfo(PChar (SystemFileName), ilStandard, FS, SizeOf(FS^), 0);
+    if RC <> 0 then
+     OSErrorWatch (RC);
+   end
+  else
    OSErrorWatch (RC);
   Result := - longint (RC);
   Dispose(FS);
@@ -506,7 +518,7 @@ begin
 end;
 
 
-function DirectoryExists (const Directory: RawByteString): boolean;
+function DirectoryExists (const Directory: RawByteString; FollowLink : Boolean): boolean;
 var
   L: longint;
 begin
@@ -538,6 +550,21 @@ end;
                               Time Functions
 ****************************************************************************}
 
+{$DEFINE HAS_DUAL_TZHANDLING}
+{$I tzenv.inc}
+
+var
+  TZAlwaysFromEnv: boolean;
+
+procedure InitTZ2; inline;
+var
+  DT: DosCalls.TDateTime;
+begin
+  DosGetDateTime (DT);
+  TZAlwaysFromEnv := DT.TimeZone = -1;
+end;
+
+
 procedure GetLocalTime (var SystemTime: TSystemTime);
 var
   DT: DosCalls.TDateTime;
@@ -548,12 +575,75 @@ begin
     Year:=DT.Year;
     Month:=DT.Month;
     Day:=DT.Day;
+    DayOfWeek:=DT.WeekDay;
     Hour:=DT.Hour;
     Minute:=DT.Minute;
     Second:=DT.Second;
-    MilliSecond:=DT.Sec100;
+    MilliSecond:=DT.Sec100 * 10;
   end;
 end;
+
+
+function GetUniversalTime (var SystemTime: TSystemTime): boolean;
+var
+  DT: DosCalls.TDateTime;
+  Offset: longint;
+begin
+  if TZAlwaysFromEnv then
+   begin
+    GetLocalTime (SystemTime);
+    Offset := GetLocalTimeOffset;
+   end
+  else
+   begin
+    DosGetDateTime (DT);
+    with SystemTime do
+     begin
+      Year := DT.Year;
+      Month := DT.Month;
+      Day := DT.Day;
+      DayOfWeek := DT.WeekDay;
+      Hour := DT.Hour;
+      Minute := DT.Minute;
+      Second := DT.Second;
+      MilliSecond := DT.Sec100 * 10;
+     end;
+    if DT.TimeZone = -1 then
+     Offset := GetLocalTimeOffset
+    else
+     Offset := DT.TimeZone;
+   end;
+  UpdateTimeWithOffset (SystemTime, Offset);
+  GetUniversalTime := true;
+end;
+
+
+function GetLocalTimeOffset: integer;
+var
+  DT: DosCalls.TDateTime;
+begin
+  if TZAlwaysFromEnv then
+   begin
+    if InDST then
+     GetLocalTimeOffset := DSTOffsetMin
+    else
+     GetLocalTimeOffset := TZOffsetMin;
+   end
+  else
+   begin
+    DosGetDateTime (DT);
+    if DT.TimeZone <> -1 then
+     GetLocalTimeOffset := DT.TimeZone
+    else
+     begin
+      if InDST then
+       GetLocalTimeOffset := DSTOffsetMin
+      else
+       GetLocalTimeOffset := TZOffsetMin;
+     end;
+   end;
+end;
+
 
 {****************************************************************************
                               Misc Functions
@@ -749,11 +839,11 @@ begin
   SysTimerTick := L;
 end;
 
-function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString;Flags:TExecuteFlags=[]):
-                                                                       integer;
+function ExecuteProcess (const Path: RawByteString;
+                 const ComLine: RawByteString;Flags:TExecuteFlags=[]): integer;
 var
  E: EOSError;
- CommandLine: ansistring;
+ CommandLine: RawByteString;
  Args0, Args: DosCalls.PByteArray;
  ObjNameBuf: PChar;
  ArgSize: word;
@@ -925,8 +1015,8 @@ begin
 end;
 
 
-function ExecuteProcess (const Path: AnsiString;
-                                  const ComLine: array of AnsiString;Flags:TExecuteFlags=[]): integer;
+function ExecuteProcess (const Path: RawByteString;
+        const ComLine: array of RawByteString;Flags:TExecuteFlags=[]): integer;
 
 var
   CommandLine: AnsiString;
@@ -986,6 +1076,9 @@ Initialization
   OnBeep:=@SysBeep;
   LastOSError := 0;
   OrigOSErrorWatch := TOSErrorWatch (SetOSErrorTracking (@TrackLastOSError));
+  InitTZ;
+  InitTZ2;
 Finalization
+  FreeTerminateProcs;
   DoneExceptions;
 end.

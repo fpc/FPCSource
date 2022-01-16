@@ -17,8 +17,8 @@ type
   { TSQLDBTestCase }
 
   TSQLDBTestCase = class(TTestCase)
-  private
-    function GetSQLDBConnector: TSQLDBConnector;
+    private
+      function GetSQLDBConnector: TSQLDBConnector;
     protected
       procedure SetUp; override;
       procedure TearDown; override;
@@ -30,8 +30,11 @@ type
   TTestTSQLQuery = class(TSQLDBTestCase)
   private
     FMyQ: TSQLQuery;
+    FPrepareCount:Integer;
+    procedure CreateAndFillIDField;
     procedure DoAfterPost(DataSet: TDataSet);
     Procedure DoApplyUpdates;
+    procedure DoCount(Sender: TSQLConnection; EventType: TDBEventType; const Msg: String);
     Procedure TrySetQueryOptions;
     Procedure TrySetPacketRecords;
   Protected
@@ -46,16 +49,20 @@ type
     Procedure TestAutoApplyUpdatesDelete;
     Procedure TestCheckRowsAffected;
     Procedure TestAutoCommit;
-    Procedure TestRefreshSQL;
     Procedure TestGeneratedRefreshSQL;
     Procedure TestGeneratedRefreshSQL1Field;
     Procedure TestGeneratedRefreshSQLNoKey;
+    Procedure TestRefreshSQL;
     Procedure TestRefreshSQLMultipleRecords;
     Procedure TestRefreshSQLNoRecords;
     Procedure TestFetchAutoInc;
     procedure TestSequence;
     procedure TestReturningInsert;
     procedure TestReturningUpdate;
+    procedure TestMacros;
+    Procedure TestPrepareCount;
+    Procedure TestPrepareCount2;
+    Procedure TestNullTypeParam;
   end;
 
   { TTestTSQLConnection }
@@ -72,6 +79,8 @@ type
     procedure TestUseImplicitTransaction;
     procedure TestUseExplicitTransaction;
     procedure TestExplicitConnect;
+    procedure TestGetStatementInfo;
+    procedure TestGetNextValue;
   end;
 
   { TTestTSQLScript }
@@ -92,6 +101,7 @@ implementation
 procedure TTestTSQLQuery.Setup;
 begin
   inherited Setup;
+  FPrepareCount:=0;
   SQLDBConnector.Connection.Options:=[];
 end;
 
@@ -200,7 +210,7 @@ begin
 
     Q := SQLDBConnector.Query;
     Q.SQL.Text:='select * from FPDEV2';
-    Q.Options:=[sqoKeepOpenOnCommit,sqoPreferRefresh];
+    Q.Options:=[sqoKeepOpenOnCommit,sqoRefreshUsingSelect];
     AssertEquals('PacketRecords forced to -1',-1,Q.PacketRecords);
     Q.Open;
     AssertEquals('Got all records',20,Q.RecordCount);
@@ -337,6 +347,12 @@ begin
   FMyQ.ApplyUpdates();
 end;
 
+procedure TTestTSQLQuery.DoCount(Sender: TSQLConnection; EventType: TDBEventType; const Msg: String);
+begin
+  If (EventType=detPrepare) then
+    Inc(FPrepareCount);
+end;
+
 procedure TTestTSQLQuery.TestCheckRowsAffected;
 var Q: TSQLQuery;
     I: Integer;
@@ -392,42 +408,6 @@ begin
     end;
 end;
 
-procedure TTestTSQLQuery.TestRefreshSQL;
-var
-  Q: TSQLQuery;
-
-begin
-  with SQLDBConnector do
-    begin
-    ExecuteDirect('create table FPDEV2 (id integer not null primary key, a varchar(5) default ''abcde'', b integer default 1)');
-    if Transaction.Active then
-      Transaction.Commit;
-    end;
-  Q:=SQLDBConnector.Query;
-  Q.OPtions:=Q.OPtions+[sqoPreferRefresh];
-  Q.SQL.Text:='select * from FPDEV2';
-  Q.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
-  Q.RefreshSQL.Text:='SELECT a,b FROM FPDEV2 WHERE (id=:id)';
-  Q.Open;
-  Q.Insert;  // #1 record
-  Q.FieldByName('id').AsInteger:=1;
-  Q.Post;
-  Q.Append;  // #2 record
-  Q.FieldByName('id').AsInteger:=2;
-  Q.Post;
-  AssertTrue('Field value has not been fetched after Post', Q.FieldByName('a').IsNull);
-  Q.ApplyUpdates(0);
-  // #2 record:
-  AssertEquals('Still on correct field', 2, Q.FieldByName('id').AsInteger);
-  AssertEquals('Field value has been fetched from the database', 'abcde', Q.FieldByName('a').AsString);
-  AssertEquals('Field value has been fetched from the database', 1, Q.FieldByName('b').AsInteger);
-  Q.Prior;
-  // #1 record:
-  AssertEquals('Still on correct field', 1, Q.FieldByName('id').AsInteger);
-  AssertEquals('Field value has been fetched from the database', 'abcde', Q.FieldByName('a').AsString);
-  AssertEquals('Field value has been fetched from the database', 1, Q.FieldByName('b').AsInteger);
-end;
-
 procedure TTestTSQLQuery.TestGeneratedRefreshSQL;
 
 var
@@ -443,7 +423,7 @@ begin
   Q:=SQLDBConnector.Query;
   Q.SQL.Text:='select * from FPDEV2';
   Q.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
-  Q.OPtions:=Q.OPtions+[sqoPreferRefresh];
+  Q.Options:=Q.Options+[sqoRefreshUsingSelect];
   Q.Open;
   With Q.FieldByName('id') do
     ProviderFlags:=ProviderFlags+[pfInKey];
@@ -475,7 +455,7 @@ begin
   Q:=SQLDBConnector.Query;
   Q.SQL.Text:='select * from FPDEV2';
   Q.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
-  Q.OPtions:=Q.OPtions+[sqoPreferRefresh];
+  Q.Options:=Q.Options+[sqoRefreshUsingSelect];
   Q.Open;
   With Q.FieldByName('id') do
     ProviderFlags:=ProviderFlags+[pfInKey];
@@ -502,7 +482,7 @@ begin
   FMyQ:=SQLDBConnector.Query;
   FMyQ.SQL.Text:='select * from FPDEV2';
   FMyQ.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
-  FMyQ.OPtions:=FMyQ.OPtions+[sqoPreferRefresh];
+  FMyQ.Options:=FMyQ.Options+[sqoRefreshUsingSelect];
   FMyQ.Open;
   With FMyQ.FieldByName('id') do
     ProviderFlags:=ProviderFlags-[pfInKey];
@@ -512,6 +492,41 @@ begin
   FMyQ.FieldByName('id').AsInteger:=1;
   FMyQ.Post;
   AssertException('Cannot refresh without primary key',EUpdateError,@DoApplyUpdates);
+end;
+
+procedure TTestTSQLQuery.TestRefreshSQL;
+var
+  Q: TSQLQuery;
+
+begin
+  with SQLDBConnector do
+    begin
+    ExecuteDirect('create table FPDEV2 (id integer not null primary key, a varchar(5) default ''abcde'', b integer default 1)');
+    if Transaction.Active then
+      Transaction.Commit;
+    end;
+  Q:=SQLDBConnector.Query;
+  Q.SQL.Text:='select * from FPDEV2';
+  Q.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
+  Q.RefreshSQL.Text:='SELECT a,b FROM FPDEV2 WHERE (id=:id)';
+  Q.Open;
+  Q.Insert;  // #1 record
+  Q.FieldByName('id').AsInteger:=1;
+  Q.Post;
+  Q.Append;  // #2 record
+  Q.FieldByName('id').AsInteger:=2;
+  Q.Post;
+  AssertTrue('Field value has not been fetched after Post', Q.FieldByName('a').IsNull);
+  Q.ApplyUpdates(0);
+  // #2 record:
+  AssertEquals('Still on correct field', 2, Q.FieldByName('id').AsInteger);
+  AssertEquals('Field value has been fetched from the database', 'abcde', Q.FieldByName('a').AsString);
+  AssertEquals('Field value has been fetched from the database', 1, Q.FieldByName('b').AsInteger);
+  Q.Prior;
+  // #1 record:
+  AssertEquals('Still on correct field', 1, Q.FieldByName('id').AsInteger);
+  AssertEquals('Field value has been fetched from the database', 'abcde', Q.FieldByName('a').AsString);
+  AssertEquals('Field value has been fetched from the database', 1, Q.FieldByName('b').AsInteger);
 end;
 
 procedure TTestTSQLQuery.TestRefreshSQLMultipleRecords;
@@ -527,7 +542,6 @@ begin
       Transaction.Commit;
     end;
   FMyQ:=SQLDBConnector.Query;
-  FMyQ.OPtions:=FMyQ.OPtions+[sqoPreferRefresh];
   FMyQ.SQL.Text:='select * from FPDEV2';
   FMyQ.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
   FMyQ.RefreshSQL.Text:='select * from FPDEV2';
@@ -554,7 +568,6 @@ begin
       Transaction.Commit;
     end;
   FMyQ:=SQLDBConnector.Query;
-  FMyQ.OPtions:=FMyQ.OPtions+[sqoPreferRefresh];
   FMyQ.SQL.Text:='select * from FPDEV2';
   FMyQ.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
   FMyQ.RefreshSQL.Text:='select * from FPDEV2 where 1=2';
@@ -695,11 +708,9 @@ begin
     if not (sqSupportReturning in Connection.ConnOptions) then
       Ignore(STestNotApplicable);
     ExecuteDirect('create table FPDEV2 (id integer not null, a varchar(10) default ''abcde'', b varchar(5) default ''fgh'', constraint PK_FPDEV2 primary key(id))');
-    if Transaction.Active then
-      Transaction.Commit;
-    ExecuteDirect('insert into FPDEV2 (id) values (123)');
-    if Transaction.Active then
-      Transaction.Commit;
+    CommitDDL;
+    ExecuteDirect('insert into FPDEV2 (id) values (1)');
+    ExecuteDirect('insert into FPDEV2 (id) values (2)');
     end;
   FMyQ:=SQLDBConnector.Query;
   FMyQ.SQL.Text:='select * from FPDEV2';
@@ -708,13 +719,149 @@ begin
     ProviderFlags:=ProviderFlags+[pfInKey];
   With FMyQ.FieldByName('b') do
     ProviderFlags:=[pfRefreshOnUpdate];  // Do not update, just fetch new value
+  SQLDBConnector.ExecuteDirect('update FPDEV2 set b=''b1'' where id=1');
+  SQLDBConnector.ExecuteDirect('update FPDEV2 set b=''b2'' where id=2');
   FMyQ.Edit;
-  FMyQ.FieldByName('a').AsString:='ccc';
-  FMyQ.Post;
-  SQLDBConnector.ExecuteDirect('update FPDEV2 set b=''123'' where id=123');
+  FMyQ.FieldByName('a').AsString:='a1';
+  FMyQ.Post;  // #1 record
+  FMyQ.Next;
+  FMyQ.Edit;
+  FMyQ.FieldByName('a').AsString:='a2';
+  FMyQ.Post;  // #2 record
   FMyQ.ApplyUpdates;
-  AssertEquals('a updated','ccc',FMyQ.FieldByName('a').AsString);
-  AssertEquals('b updated','123',FMyQ.FieldByName('b').AsString);
+  FMyQ.First;
+  AssertEquals('#1.a updated', 'a1', FMyQ.FieldByName('a').AsString);
+  AssertEquals('#1.b updated', 'b1', FMyQ.FieldByName('b').AsString);
+  FMyQ.Next;
+  AssertEquals('#2.a updated', 'a2', FMyQ.FieldByName('a').AsString);
+  AssertEquals('#2.b updated', 'b2', FMyQ.FieldByName('b').AsString);
+end;
+
+procedure TTestTSQLQuery.TestMacros;
+begin
+  with SQLDBConnector do
+    begin
+    ExecuteDirect('create table FPDEV2 (id integer not null, constraint PK_FPDEV2 primary key(id))');
+    CommitDDL;
+    ExecuteDirect('insert into FPDEV2 (id) values (1)');
+    ExecuteDirect('insert into FPDEV2 (id) values (2)');
+    end;
+
+  With SQLDBConnector.Query do
+    begin
+    SQL.Text:='Select ID from FPDEV2 '+
+      '%WHERE_CL' +sLineBreak+
+      '%ORDER_CL' +sLineBreak;
+    MacroCheck:=true;
+    MacroByName('WHERE_CL').AsString:='where 1=1';
+    MacroByName('ORDER_CL').AsString:='order by 1';
+    Open;
+    AssertEquals('Correct SQL executed, macros substituted: ',1,Fields[0].AsInteger);
+    Close;
+    MacroByName('ORDER_CL').AsString := 'Order by 1 DESC';
+    Open;
+    AssertEquals('Correct SQL executed, macro value changed: ',2,Fields[0].AsInteger);
+    end;
+end;
+
+procedure TTestTSQLQuery.CreateAndFillIDField;
+
+Var
+  I : Integer;
+
+begin
+  with SQLDBConnector do
+    begin
+    TryDropIfExist('FPDEV2');
+    ExecuteDirect('create table FPDEV2 (id integer not null, constraint PK_FPDEV2 primary key(id))');
+    CommitDDL;
+    for I:=1 to 10 do
+      ExecuteDirect('insert into FPDEV2 (id) values ('+IntToStr(I)+')');
+    Connection.OnLog:=@DoCount;
+    Connection.LogEvents:=[detPrepare];
+    end;
+end;
+
+procedure TTestTSQLQuery.TestPrepareCount;
+
+begin
+  CreateAndFillIDField;
+  try
+    With SQLDBConnector.Query do
+      begin
+      UsePrimaryKeyAsKey:=False; // Disable server index defs etc
+      SQL.Text:='Select ID from FPDEV2 where (ID>=:ID) order by ID';
+      ParamByname('ID').AsInteger:=1;
+      AssertFalse('Not Prepared',SQLDBConnector.Query.Prepared);
+      Open;
+      AssertEquals('Correct record count param 1',10,RecordCount);
+      AssertEquals('Correct SQL executed, correct parameter: ',1,Fields[0].AsInteger);
+      Close;
+      AssertFalse('Still not prepared',SQLDBConnector.Query.Prepared);
+      ParamByname('ID').AsInteger:=2;
+      Open;
+      AssertEquals('Correct record count param 2',9,RecordCount);
+      AssertEquals('Correct SQL executed, macro value changed: ',2,Fields[0].AsInteger);
+      Close;
+      AssertFalse('Still not prepared',SQLDBConnector.Query.Prepared);
+      end;
+    AssertEquals('Prepare called only once ',2,FPrepareCount);
+  finally
+    SQLDBConnector.Connection.OnLog:=Nil;
+  end;
+
+end;
+
+procedure TTestTSQLQuery.TestPrepareCount2;
+
+begin
+  CreateAndFillIDField;
+  try
+    With SQLDBConnector.Query do
+      begin
+      UsePrimaryKeyAsKey:=False; // Disable server index defs etc
+      SQL.Text:='Select ID from FPDEV2 where (ID>=:ID) order by ID';
+      ParamByname('ID').AsInteger:=1;
+      Prepare;
+      AssertTrue('Prepared',SQLDBConnector.Query.Prepared);
+      Open;
+      AssertEquals('Correct record count param 1',10,RecordCount);
+      AssertEquals('Correct SQL executed, correct parameter: ',1,Fields[0].AsInteger);
+      Close;
+      AssertTrue('Still prepared',SQLDBConnector.Query.Prepared);
+      ParamByname('ID').AsInteger:=2;
+      Open;
+      AssertEquals('Correct record count param 2',9,RecordCount);
+      AssertEquals('Correct SQL executed, macro value changed: ',2,Fields[0].AsInteger);
+      end;
+    AssertEquals('Prepare called only once ',1,FPrepareCount);
+  finally
+    SQLDBConnector.Connection.OnLog:=Nil;
+  end;
+end;
+
+procedure TTestTSQLQuery.TestNullTypeParam;
+begin
+  if not (SQLServerType in [ssSQLite, ssFirebird]) then
+    Ignore(STestNotApplicable);
+  CreateAndFillIDField;
+  try
+    With SQLDBConnector.Query do
+      begin
+      UsePrimaryKeyAsKey:=False; // Disable server index defs etc
+      SQL.Text:='Select ID from FPDEV2 where (:ID IS NULL or ID = :ID)';
+      Open;
+      AssertEquals('Correct record count param NULL',10,RecordCount);
+      Close;
+      ParamByname('ID').AsInteger:=1;
+      Open;
+      AssertEquals('Correct record count param 1',1,RecordCount);
+      AssertEquals('Correct field value: ',1,Fields[0].AsInteger);
+      Close;
+      end;
+  finally
+    SQLDBConnector.Connection.OnLog:=Nil;
+  end;
 end;
 
 
@@ -834,6 +981,55 @@ begin
   AssertException('toExplicitStart raises exception on implicit start',EDatabaseError,@TryOpen)
 end;
 
+procedure TTestTSQLConnection.TestGetStatementInfo;
+var StmtInfo: TSQLStatementInfo;
+begin
+  // single table
+  StmtInfo := SQLDBConnector.Connection.GetStatementInfo('SELECT * FROM tab1');
+  AssertEquals('StatementType', ord(stSELECT), ord(StmtInfo.StatementType));
+  AssertEquals('TableName', 'tab1', StmtInfo.TableName);
+  AssertEquals('Updateable', True, StmtInfo.Updateable);
+  StmtInfo := SQLDBConnector.Connection.GetStatementInfo('SELECT * FROM tab2 WHERE col1=1');
+  AssertEquals('TableName', 'tab2', StmtInfo.TableName);
+  AssertEquals('Updateable', True, StmtInfo.Updateable);
+  // single table with schema
+  StmtInfo := SQLDBConnector.Connection.GetStatementInfo('SELECT * FROM dbo.tab2 WHERE col1=1');
+  AssertEquals('TableName', 'dbo.tab2', StmtInfo.TableName);
+  AssertEquals('Updateable', True, StmtInfo.Updateable);
+  // single table with quoted schema
+  StmtInfo := SQLDBConnector.Connection.GetStatementInfo('SELECT * FROM "dbo".tab2 WHERE col1=1');
+  AssertEquals('TableName', '"dbo".tab2', StmtInfo.TableName);
+  AssertEquals('Updateable', True, StmtInfo.Updateable);
+  StmtInfo := SQLDBConnector.Connection.GetStatementInfo('SELECT * FROM "dbo"."tab2" WHERE col1=1');
+  AssertEquals('TableName', '"dbo"."tab2"', StmtInfo.TableName);
+  AssertEquals('Updateable', True, StmtInfo.Updateable);
+  // multiple tables
+  StmtInfo := SQLDBConnector.Connection.GetStatementInfo('SELECT * FROM tab3,tab4 WHERE col1=1');
+  AssertEquals('TableName', '', StmtInfo.TableName);
+  AssertEquals('Updateable', False, StmtInfo.Updateable);
+  // function
+  StmtInfo := SQLDBConnector.Connection.GetStatementInfo('SELECT * FROM dbo.fn1(1)');
+  AssertEquals('TableName', '', StmtInfo.TableName);
+  AssertEquals('Updateable', False, StmtInfo.Updateable);
+end;
+
+procedure TTestTSQLConnection.TestGetNextValue;
+begin
+  if not (sqSequences in SQLDBConnector.Connection.ConnOptions) then
+    Ignore('Connector '+SQLDBConnector.Connection.ClassName+' does not support sequences');
+  if SQLServerType=ssSQLite then
+    begin
+    SQLDBConnector.TryDropIfExist('me');
+    SQLDBConnector.ExecuteDirect('create table me (a integer primary key autoincrement,b int)');
+    SQLDBConnector.ExecuteDirect('insert into me (b) values (1)');// Will create table sqlite_sequence if it didn't exist yet
+    SQLDBConnector.ExecuteDirect('drop table me');
+    end;
+  SQLDBConnector.TryDropSequence('me');
+  SQLDBConnector.TryCreateSequence('me');
+  AssertTrue('Get value',SQLDBConnector.Connection.GetNextValue('me',1)>0);
+end;
+
+
 { TTestTSQLScript }
 
 procedure TTestTSQLScript.TestExecuteScript;
@@ -950,7 +1146,7 @@ end;
 
 function TSQLDBTestCase.GetSQLDBConnector: TSQLDBConnector;
 begin
-  Result:=DBConnector as TSQLDBConnector;
+  Result := DBConnector as TSQLDBConnector;
 end;
 
 procedure TSQLDBTestCase.SetUp;

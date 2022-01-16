@@ -625,8 +625,6 @@ _restvr_31: addi r12,r0,-16
                           Process start/halt
  ******************************************************************************}
 
-procedure PASCALMAIN; external name 'PASCALMAIN';
-
   type
     tdlfiniproc = procedure; cdecl;
 
@@ -696,7 +694,8 @@ procedure _start; cdecl; public; assembler; nostackframe;
 procedure _dynamic_start(r3,r4,r5,r6: pointer; r7: tdlfiniproc); cdecl; public;
   begin
     dlexitproc:=r7;
-    _start;
+    save_argc_argv_envp_stkptr(ptrint(r3),ppchar(r4),sptr);
+    PASCALMAIN;
   end;
 
 label

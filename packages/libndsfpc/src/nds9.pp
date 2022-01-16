@@ -39,6 +39,7 @@ unit nds9;
 {$MACRO ON}
 {$PACKRECORDS C}
 {$ASSERTIONS ON}
+{$modeswitch ADVANCEDRECORDS}
 interface
 
 uses

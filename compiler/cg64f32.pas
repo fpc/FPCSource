@@ -72,6 +72,7 @@ unit cg64f32;
         procedure a_op64_reg_ref(list : TAsmList;op:TOpCG;size : tcgsize;reg : tregister64; const ref: treference);override;
         procedure a_op64_const_loc(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const l: tlocation);override;
         procedure a_op64_reg_loc(list : TAsmList;op:TOpCG;size : tcgsize;reg : tregister64;const l : tlocation);override;
+        procedure a_op64_ref_loc(list: TAsmList; op: TOpCG; size: tcgsize;const ref: treference; const l: tlocation);override;
         procedure a_op64_loc_reg(list : TAsmList;op:TOpCG;size : tcgsize;const l : tlocation;reg : tregister64);override;
         procedure a_op64_const_ref(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const ref : treference);override;
 
@@ -113,8 +114,9 @@ unit cg64f32;
 
     procedure splitparaloc64(const cgpara:tcgpara;var cgparalo,cgparahi:tcgpara);
       var
-        paraloclo,paraloclo2,
-        paralochi,paralochi2 : pcgparalocation;
+        paraloclo,paraloclo2,paraloclo3,paraloclo4,
+        paralochi,paralochi2,paralochi3,paralochi4 : pcgparalocation;
+        curparaloc : PCGParaLocation;
       begin
         if not(cgpara.size in [OS_64,OS_S64]) then
           internalerror(200408231);
@@ -135,6 +137,73 @@ unit cg64f32;
         cgparalo.alignment:=cgpara.alignment;
         paraloclo:=cgparalo.add_location;
         case cgpara.locations_count of
+          8:
+            begin
+              { 8 parameter fields? }
+              { Order for multiple locations is always
+                  paraloc^ -> high
+                  paraloc^.next -> low }
+              if (target_info.endian=ENDIAN_BIG) then
+                begin
+                  { is there any big endian 8 bit ALU/16 bit Addr CPU? }
+                  internalerror(2015041001);
+                  { paraloc^ -> high }
+                  move(cgpara.location^,paralochi^,sizeof(paralochi^));
+                  paralochi^.next:=nil;
+                  paralochi2:=cgparahi.add_location;
+                  move(cgpara.location^.next,paralochi2^,sizeof(paralochi2^));
+
+                  { paraloc^.next^.next^ -> low }
+                  move(cgpara.location^.next^.next^,paraloclo^,sizeof(paraloclo^));
+                  paraloclo^.next:=nil;
+                  paraloclo2:=cgparalo.add_location;
+                  move(cgpara.location^.next^.next^.next^,paraloclo2^,sizeof(paraloclo2^));
+                end
+              else
+                begin
+                  { paraloc^ -> low }
+                  move(cgpara.location^,paraloclo^,sizeof(paraloclo^));
+                  paraloclo^.next:=nil;
+                  paraloclo2:=cgparalo.add_location;
+                  move(cgpara.location^.next^,paraloclo2^,sizeof(paraloclo2^));
+                  paraloclo2^.next:=nil;
+                  paraloclo3:=cgparalo.add_location;
+                  move(cgpara.location^.next^.next^,paraloclo3^,sizeof(paraloclo3^));
+                  paraloclo3^.next:=nil;
+                  paraloclo4:=cgparalo.add_location;
+                  move(cgpara.location^.next^.next^.next^,paraloclo4^,sizeof(paraloclo4^));
+
+                  { paraloc^.next^.next^.next^.next^ -> high }
+                  curparaloc:=cgpara.location^.next^.next^.next^.next;
+                  move(curparaloc^,paralochi^,sizeof(paralochi^));
+                  paralochi^.next:=nil;
+                  paralochi2:=cgparahi.add_location;
+                  move(curparaloc^.next^,paralochi2^,sizeof(paralochi2^));
+                  paralochi2^.next:=nil;
+                  paralochi3:=cgparahi.add_location;
+                  move(curparaloc^.next^.next^,paralochi3^,sizeof(paralochi3^));
+                  paralochi3^.next:=nil;
+                  paralochi4:=cgparahi.add_location;
+                  move(curparaloc^.next^.next^.next^,paralochi4^,sizeof(paralochi4^));
+                end;
+
+              { fix size }
+              paraloclo^.size:=OS_8;
+              paraloclo2^.size:=OS_8;
+              paraloclo3^.size:=OS_8;
+              paraloclo4^.size:=OS_8;
+              paraloclo4^.next:=nil;
+              paralochi^.size:=OS_8;
+              paralochi2^.size:=OS_8;
+              paralochi3^.size:=OS_8;
+              paralochi4^.size:=OS_8;
+              paralochi4^.next:=nil;
+              if cgpara.size=OS_S64 then
+                if target_info.endian=ENDIAN_BIG then
+                  paralochi^.size:=OS_S8
+                else
+                  paraloclo4^.size:=OS_S8;
+            end;
           4:
             begin
               { 4 parameter fields? }
@@ -256,8 +325,23 @@ unit cg64f32;
             reg.reglo:=reg.reghi;
             reg.reghi:=tmpreg;
           end;
-        cg.a_load_reg_ref(list,OS_32,OS_32,reg.reglo,ref);
         tmpref := ref;
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+        { Preload base and index to a separate temp register for 8 & 16 bit CPUs 
+          to reduce spilling and produce a better code. }
+        if (tmpref.base<>NR_NO) and (getsupreg(tmpref.base)>=first_int_imreg) then
+          begin
+            tmpreg:=cg.getaddressregister(list);
+            cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,tmpref.base,tmpreg);
+            tmpref.base:=tmpreg;
+            if tmpref.index<>NR_NO then
+              begin
+                cg.a_op_reg_reg(list,OP_ADD,OS_ADDR,tmpref.index,tmpref.base);
+                tmpref.index:=NR_NO;
+              end;
+          end;
+{$endif}
+        cg.a_load_reg_ref(list,OS_32,OS_32,reg.reglo,tmpref);
         inc(tmpref.offset,4);
         cg.a_load_reg_ref(list,OS_32,OS_32,reg.reghi,tmpref);
       end;
@@ -288,6 +372,21 @@ unit cg64f32;
             reg.reghi := tmpreg;
           end;
         tmpref := ref;
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+        { Preload base and index to a separate temp register for 8 & 16 bit CPUs 
+          to reduce spilling and produce a better code. }
+        if (tmpref.base<>NR_NO) and (getsupreg(tmpref.base)>=first_int_imreg) then
+          begin
+            tmpreg:=cg.getaddressregister(list);
+            cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,tmpref.base,tmpreg);
+            tmpref.base:=tmpreg;
+            if tmpref.index<>NR_NO then
+              begin
+                cg.a_op_reg_reg(list,OP_ADD,OS_ADDR,tmpref.index,tmpref.base);
+                tmpref.index:=NR_NO;
+              end;
+          end;
+{$endif}
         if (tmpref.base=reg.reglo) then
          begin
            tmpreg:=cg.getaddressregister(list);
@@ -606,7 +705,7 @@ unit cg64f32;
           LOC_CONSTANT :
             cg.a_load_const_reg(list,OS_32,longint(hi(l.value64)),reg);
           else
-            internalerror(200203244);
+            internalerror(2002032411);
         end;
       end;
 
@@ -636,6 +735,25 @@ unit cg64f32;
         end;
       end;
 
+
+    procedure tcg64f32.a_op64_ref_loc(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;const l : tlocation);
+      var
+        tempreg: tregister64;
+      begin
+        case l.loc of
+          LOC_REFERENCE, LOC_CREFERENCE:
+            begin
+              tempreg.reghi:=cg.getintregister(list,OS_32);
+              tempreg.reglo:=cg.getintregister(list,OS_32);
+              a_load64_ref_reg(list,ref,tempreg);
+              a_op64_reg_ref(list,op,size,tempreg,l.reference);
+            end;
+          LOC_REGISTER,LOC_CREGISTER:
+            a_op64_ref_reg(list,op,size,ref,l.register64);
+          else
+            internalerror(2020042803);
+        end;
+      end;
 
 
     procedure tcg64f32.a_op64_loc_reg(list : TAsmList;op:TOpCG;size : tcgsize;const l : tlocation;reg : tregister64);
@@ -670,9 +788,17 @@ unit cg64f32;
       begin
         tempreg.reghi:=cg.getintregister(list,OS_32);
         tempreg.reglo:=cg.getintregister(list,OS_32);
-        a_load64_ref_reg(list,ref,tempreg);
-        a_op64_reg_reg(list,op,size,reg,tempreg);
-        a_load64_reg_ref(list,tempreg,ref);
+        if op in [OP_NEG,OP_NOT] then
+          begin
+            a_op64_reg_reg(list,op,size,reg,tempreg);
+            a_load64_reg_ref(list,tempreg,ref);
+          end
+        else
+          begin
+            a_load64_ref_reg(list,ref,tempreg);
+            a_op64_reg_reg(list,op,size,reg,tempreg);
+            a_load64_reg_ref(list,tempreg,ref);
+          end;
       end;
 
 
@@ -844,6 +970,8 @@ unit cg64f32;
                end;
              current_asmdata.getjumplabel(poslabel);
 
+             cg.a_reg_alloc(list, NR_DEFAULTFLAGS);
+
              { check high dword, must be 0 (for positive numbers) }
              cg.a_cmp_const_reg_label(list,OS_32,OC_EQ,0,hreg,poslabel);
 
@@ -857,13 +985,16 @@ unit cg64f32;
                { we do not have dynamic dfa, so avoid a warning below about the unused
                  neglabel }
                neglabel:=nil;
+
+             cg.a_reg_dealloc(list, NR_DEFAULTFLAGS);
+
              { For all other values we have a range check error }
              cg.a_call_name(list,'fpc_rangeerror',false);
 
              { if the high dword = 0, the low dword can be considered a }
              { simple cardinal                                          }
              cg.a_label(list,poslabel);
-             hdef:=corddef.create(u32bit,0,$ffffffff);
+             hdef:=corddef.create(u32bit,0,$ffffffff,false);
 
              location_copy(temploc,l);
              temploc.size:=OS_32;
@@ -876,7 +1007,7 @@ unit cg64f32;
                end;
 
              hlcg.g_rangecheck(list,temploc,hdef,todef);
-             hdef.owner.deletedef(hdef);
+             hdef.free;
 
              if from_signed and to_signed then
                begin
@@ -896,18 +1027,20 @@ unit cg64f32;
                    end;
                  { get a new neglabel (JM) }
                  current_asmdata.getjumplabel(neglabel);
+                 cg.a_reg_alloc(list, NR_DEFAULTFLAGS);
                  cg.a_cmp_const_reg_label(list,OS_32,OC_LT,0,hreg,neglabel);
+                 cg.a_reg_dealloc(list, NR_DEFAULTFLAGS);
 
                  cg.a_call_name(list,'fpc_rangeerror',false);
 
                  { if we get here, the 64bit value lies between }
                  { longint($80000000) and -1 (JM)               }
                  cg.a_label(list,neglabel);
-                 hdef:=corddef.create(s32bit,int64(longint($80000000)),int64(-1));
+                 hdef:=corddef.create(s32bit,int64(longint($80000000)),int64(-1),false);
                  location_copy(temploc,l);
                  temploc.size:=OS_32;
                  hlcg.g_rangecheck(list,temploc,hdef,todef);
-                 hdef.owner.deletedef(hdef);
+                 hdef.free;
                  cg.a_label(list,endlabel);
                end;
            end
@@ -947,7 +1080,9 @@ unit cg64f32;
                      cg.a_load_ref_reg(list,l.size,OS_32,l.reference,hreg);
                  end;
                current_asmdata.getjumplabel(poslabel);
+               cg.a_reg_alloc(list, NR_DEFAULTFLAGS);
                cg.a_cmp_const_reg_label(list,opsize,OC_GTE,0,hreg,poslabel);
+               cg.a_reg_dealloc(list, NR_DEFAULTFLAGS);
 
                cg.a_call_name(list,'fpc_rangeerror',false);
                cg.a_label(list,poslabel);

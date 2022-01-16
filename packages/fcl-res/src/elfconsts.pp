@@ -22,7 +22,8 @@ interface
 type
   TElfMachineType = (emtnone, emtsparc, emti386, emtm68k, emtppc, emtppc64,
                      emtarm, emtarmeb, emtia64, emtx86_64, emtalpha,
-                     emtmips, emtmipsel, emtppc64le);
+                     emtmips, emtmipsel, emtppc64le, emtaarch64,
+                     emtriscv32, emtriscv64);
 const
   ELFMAGIC     = chr($7f)+'ELF';
 
@@ -71,10 +72,22 @@ const
   EM_IA_64       = 50;
   EM_MIPS_X      = 51; // GNU readelf returns machine name "Stanford MIPS-X"
   EM_X86_64      = 62;
+  EM_AARCH64     = 183;
   EM_ALPHA       = $9026; //unofficial, but used by gnu toolchain
+  EM_RISCV       = 243;
   
   //machine-specific flags
   EF_IA_64_ABI64 = $10;  //wow, this is really a 64-bit object file!
+
+  EF_ARM_ABIMASK = $ff000000;
+  EF_ARM_ABI5    = $05000000;
+
+  // riscv flags
+  EF_RISCV_RVC = 1;
+
+  //  bitfield of 2 indicating the largest float abi supported
+  EF_RISCV_FLOAT_ABI_SINGLE = 2;
+  EF_RISCV_FLOAT_ABI_DOUBLE = 4;
 
   //section type
   SHT_NULL     =  0;
@@ -130,11 +143,14 @@ const
   R_PPC_ADDR32    =   1;
   R_PPC64_ADDR64  =  38;
   R_ARM_ABS32     =   2;
+  R_AARCH64_ABS64 = 257;
   R_68K_32        =   1;
   R_SPARC_32      =   3;
   R_ALPHA_REFQUAD =   2;
   R_IA64_DIR64LSB = $27;
   R_MIPS_32       =   2;
+  R_RISCV_32      =   1;
+  R_RISCV_64      =   2;
 
 
   //fpc resource constants

@@ -33,7 +33,8 @@ interface
       { symtable }
       symconst,symbase,
       { aasm }
-      aasmbase,ppu,cpuinfo
+      aasmbase,ppu,
+      finput
       ;
 
     type
@@ -49,20 +50,31 @@ interface
                      TDef
 ************************************************}
 
-      tgeTSymtable = (gs_none,gs_record,gs_local,gs_para);
+      tgetsymtable = (gs_none,gs_record,gs_local,gs_para);
 
       tdef = class(TDefEntry)
+        protected
+         { whether this def is already registered in the unit's def list }
+         function registered : boolean;
+         { initialize the defid field; only call from a constructor as it threats
+           0 as an invalid value! }
+         procedure init_defid;
+{$ifdef DEBUG_NODE_XML}
+         procedure XMLPrintDefTree(var T: Text; Sym: TSym); virtual;
+         procedure XMLPrintDefInfo(var T: Text; Sym: TSym); dynamic;
+         procedure XMLPrintDefData(var T: Text; Sym: TSym); virtual;
+         function XMLPrintType: ansistring; virtual;
+{$endif DEBUG_NODE_XML}
+        public
+         registered_in_module : tmodulebase;
          typesym    : tsym;  { which type the definition was generated this def }
-         { maybe it's useful to merge the dwarf and stabs debugging info with some hacking }
-         { dwarf debugging }
-         dwarf_lab : tasmsymbol;
-         dwarf_ref_lab : tasmsymbol;
          { stabs debugging }
          stab_number : word;
          dbg_state   : tdefdbgstatus;
          defoptions  : tdefoptions;
          defstates   : tdefstates;
          constructor create(dt:tdeftyp);
+         destructor destroy; override;
          procedure buildderef;virtual;abstract;
          procedure buildderefimpl;virtual;abstract;
          procedure deref;virtual;abstract;
@@ -73,22 +85,36 @@ interface
          function  typesymbolprettyname:string;virtual;
          function  mangledparaname:string;
          function  getmangledparaname:TSymStr;virtual;
-         function  rtti_mangledname(rt:trttitype):string;virtual;abstract;
+         function  rtti_mangledname(rt:trttitype):TSymStr;virtual;abstract;
          function  OwnerHierarchyName: string; virtual; abstract;
-         function  fullownerhierarchyname:string;virtual;abstract;
+         function  fullownerhierarchyname(skipprocparams:boolean):TSymStr;virtual;abstract;
+         function  unique_id_str: string;
          function  size:asizeint;virtual;abstract;
          function  packedbitsize:asizeint;virtual;
          function  alignment:shortint;virtual;abstract;
          { alignment when this type appears in a record/class/... }
          function  structalignment:shortint;virtual;
+         function  aggregatealignment:shortint;virtual;
          function  getvardef:longint;virtual;abstract;
          function  getparentdef:tdef;virtual;
-         function  geTSymtable(t:tgeTSymtable):TSymtable;virtual;
+         function  getsymtable(t:tgetsymtable):TSymtable;virtual;
          function  is_publishable:boolean;virtual;abstract;
          function  needs_inittable:boolean;virtual;abstract;
+         { contains a (managed) child that is not initialized to 0/Nil }
+         function  has_non_trivial_init_child(check_parent:boolean):boolean;virtual;abstract;
          function  needs_separate_initrtti:boolean;virtual;abstract;
          procedure ChangeOwner(st:TSymtable);
+         function getreusablesymtab: tsymtable;
          procedure register_created_object_type;virtual;
+         function  get_top_level_symtable(skipprocdefs: boolean): tsymtable;
+         { only valid for registered defs and defs for which a unique id string
+           has been requested; otherwise, first call register_def }
+         function  deflist_index: longint;
+         procedure register_def; virtual; abstract;
+{$ifdef DEBUG_NODE_XML}
+         procedure XMLPrintDef(Sym: TSym);
+{$endif DEBUG_NODE_XML}
+         property is_registered: boolean read registered;
       end;
 
 {************************************************
@@ -101,6 +127,7 @@ interface
 
       tsym = class(TSymEntry)
       protected
+       function registered : boolean;
       public
          fileinfo   : tfileposinfo;
          { size of fileinfo is 10 bytes, so if a >word aligned type would follow,
@@ -123,6 +150,8 @@ interface
          procedure IncRefCountBy(AValue : longint);
          procedure MaybeCreateRefList;
          procedure AddRef;
+         procedure register_sym; virtual; abstract;
+         property is_registered:boolean read registered;
       end;
 
       tsymarr = array[0..maxlongint div sizeof(pointer)-1] of tsym;
@@ -164,10 +193,10 @@ interface
         function  empty:boolean;
         function getcopy: tpropaccesslist;
         procedure addsym(slt:tsltype;p:tsym);
-        procedure addconst(slt:tsltype;v:TConstExprInt;d:tdef);
+        procedure addconst(slt:tsltype;const v:TConstExprInt;d:tdef);
         procedure addtype(slt:tsltype;d:tdef);
         procedure addsymderef(slt:tsltype;d:tderef);
-        procedure addconstderef(slt:tsltype;v:TConstExprInt;d:tderef);
+        procedure addconstderef(slt:tsltype;const v:TConstExprInt;d:tderef);
         procedure addtypederef(slt:tsltype;d:tderef);
         procedure clear;
         procedure resolve;
@@ -182,18 +211,18 @@ interface
          procedure checkerror;
          procedure getguid(var g: tguid);
          function  getexprint:Tconstexprint;
-         function  getptruint:TConstPtrUInt;
          procedure getposinfo(var p:tfileposinfo);
          procedure getderef(var d:tderef);
          function  getpropaccesslist:tpropaccesslist;
          function  getasmsymbol:tasmsymbol;
          procedure putguid(const g: tguid);
          procedure putexprint(const v:tconstexprint);
-         procedure PutPtrUInt(v:TConstPtrUInt);
          procedure putposinfo(const p:tfileposinfo);
          procedure putderef(const d:tderef);
          procedure putpropaccesslist(p:tpropaccesslist);
          procedure putasmsymbol(s:tasmsymbol);
+       protected
+         procedure RaiseAssertion(Code: Longint); override;
        end;
 
 {$ifdef MEMDEBUG}
@@ -253,6 +282,97 @@ implementation
                                 Tdef
 ****************************************************************************}
 
+    function tdef.registered: boolean;
+      begin
+        result:=defid>defid_not_registered;
+      end;
+
+
+    procedure tdef.init_defid;
+      begin
+        if defid=0 then
+          defid:=defid_not_registered;
+      end;
+
+{$ifdef DEBUG_NODE_XML}
+    procedure tdef.XMLPrintDefTree(var T: Text; Sym: TSym);
+      begin
+        Write(T, PrintNodeIndention, '<definition');
+        XMLPrintDefInfo(T, Sym);
+        WriteLn(T, '>');
+        PrintNodeIndent;
+        { Printing the type here instead of in XMLPrintDefData ensures it
+          always appears first no matter how XMLPrintDefData is overridden }
+        WriteLn(T, PrintNodeIndention, '<type>', XMLPrintType, '</type>');
+        XMLPrintDefData(T, Sym);
+        PrintNodeUnindent;
+        WriteLn(T, PrintNodeIndention, '</definition>');
+        WriteLn(T, PrintNodeIndention);
+      end;
+
+
+    procedure tdef.XMLPrintDefInfo(var T: Text; Sym: TSym);
+      var
+        i: TSymOption;
+        first: Boolean;
+      begin
+        { Note that if we've declared something like "INT = Integer", the
+          INT name gets lost in the system and 'typename' just returns
+          Integer, so the correct details can be found via Sym }
+        Write(T, ' name="', SanitiseXMLString(Sym.RealName),
+          '" pos="', Sym.fileinfo.line, ',', Sym.fileinfo.column);
+
+        First := True;
+        for i := Low(TSymOption) to High(TSymOption) do
+          if i in Sym.symoptions then
+            begin
+              if First then
+                begin
+                  Write(T, '" symoptions="', i);
+                  First := False;
+                end
+              else
+                Write(T, ',', i)
+            end;
+
+        Write(T, '"');
+      end;
+
+
+    procedure tdef.XMLPrintDefData(var T: Text; Sym: TSym);
+      begin
+        WriteLn(T, PrintNodeIndention, '<size>', size, '</size>');
+
+        if (alignment = structalignment) and (alignment = aggregatealignment) then
+          begin
+            { Straightforward and simple }
+            WriteLn(T, PrintNodeIndention, '<alignment>', alignment, '</alignment>');
+          end
+        else
+          begin
+            WriteLn(T, PrintNodeIndention, '<alignment>');
+            printnodeindent;
+            WriteLn(T, PrintNodeIndention, '<basic>', alignment, '</basic>');
+
+            if (structalignment <> alignment) then
+              WriteLn(T, PrintNodeIndention, '<struct>', structalignment, '</struct>');
+
+            if (aggregatealignment <> alignment) and (aggregatealignment <> structalignment) then
+              WriteLn(T, PrintNodeIndention, '<aggregate>', aggregatealignment, '</aggregate>');
+
+            printnodeunindent;
+            WriteLn(T, PrintNodeIndention, '</alignment>');
+          end;
+      end;
+
+
+    function tdef.XMLPrintType: ansistring;
+      begin
+        Result := SanitiseXMLString(GetTypeName);
+      end;
+
+{$endif DEBUG_NODE_XML}
+
     constructor tdef.create(dt:tdeftyp);
       begin
          inherited create;
@@ -262,6 +382,24 @@ implementation
          defoptions:=[];
          dbg_state:=dbg_state_unused;
          stab_number:=0;
+         init_defid;
+      end;
+
+
+    destructor tdef.destroy;
+      begin
+        { set self to nil in registered_in_module's deflist, if the def has been
+          registered, in order to avoid dangling pointers in registered_in_module.deflist }
+        if assigned(registered_in_module) then
+          begin
+           if defid>=0 then
+             tmodule(registered_in_module).deflist[defid]:=nil
+           else if defid<defid_not_registered then
+             tmodule(registered_in_module).deflist[-(defid-defid_not_registered+1)]:=nil
+           else
+             internalerror(2021060101);
+          end;
+        inherited;
       end;
 
 
@@ -278,7 +416,7 @@ implementation
 
     function tdef.fulltypename:string;
       begin
-        result:=fullownerhierarchyname;
+        result:=fullownerhierarchyname(false);
         if assigned(typesym) and
            not(typ in [procvardef,procdef]) and
            (typesym.realname[1]<>'$') then
@@ -290,7 +428,8 @@ implementation
 
     function tdef.GetTypeName : string;
       begin
-         GetTypeName:='<unknown type>'      end;
+         GetTypeName:='<unknown type>'
+      end;
 
 
     function tdef.typesymbolprettyname:string;
@@ -319,13 +458,34 @@ implementation
       end;
 
 
+    function tdef.unique_id_str: string;
+      begin
+        if (defid=defid_not_registered) or
+           (defid=defid_registered_nost) then
+          begin
+            if not assigned(current_module) then
+              internalerror(2015102505);
+            current_module.deflist.Add(self);
+            registered_in_module:=current_module;
+            { invert the defid to indicate that it was only set because we
+              needed a unique number -- then add defid_not_registered so we
+              don't get the values between defid_registered and 0 }
+            defid:=-(current_module.deflist.Count-1)+defid_not_registered-1;
+          end;
+        { use deflist_index so that it will remain the same if def first gets a
+          defid just for the unique id (as above) and later it gets registered
+          because it must be saved to the ppu }
+        result:=hexstr(deflist_index,sizeof(defid)*2);
+      end;
+
+
     function tdef.getparentdef:tdef;
       begin
         result:=nil;
       end;
 
 
-    function tdef.geTSymtable(t:tgeTSymtable):TSymtable;
+    function tdef.getsymtable(t:tgetsymtable):TSymtable;
       begin
         result:=nil;
       end;
@@ -342,6 +502,14 @@ implementation
         result:=alignment;
       end;
 
+    function tdef.aggregatealignment: shortint;
+      begin
+        if Assigned(Owner) and Assigned(Owner.defowner) and (Owner.defowner is TDef) and (Owner.defowner <> Self) then
+          Result := max(structalignment, TDef(Owner.defowner).aggregatealignment)
+        else
+          Result := structalignment;
+      end;
+
 
     procedure tdef.ChangeOwner(st:TSymtable);
       begin
@@ -352,13 +520,92 @@ implementation
       end;
 
 
+    function tdef.getreusablesymtab: tsymtable;
+      var
+        origowner: TSymtable;
+      begin
+        { if the original def was in a localsymtable, don't create a
+          reusable copy in the unit's staticsymtable since the localsymtable
+          won't be saved to the ppu and as a result we can get unreachable
+          defs when reloading the derived ones from the ppu }
+        origowner:=owner;
+        while not(origowner.symtabletype in [localsymtable,staticsymtable,globalsymtable,stt_excepTSymtable]) do
+          origowner:=origowner.defowner.owner;
+        { if the def is in an exceptionsymtable, we can't create a reusable
+          def because the original one will be freed when the (always
+          temprary) exceptionsymtable is freed }
+        if origowner.symtabletype=stt_excepTSymtable then
+          internalerror(2015111701)
+        else if origowner.symtabletype=localsymtable then
+          result:=origowner
+        else if assigned(current_module.localsymtable) then
+          result:=current_module.localsymtable
+        else
+          result:=current_module.globalsymtable;
+      end;
+
+
     procedure tdef.register_created_object_type;
       begin
       end;
 
+
+    function tdef.get_top_level_symtable(skipprocdefs: boolean): tsymtable;
+      begin
+        result:=owner;
+        while assigned(result) and
+              assigned(result.defowner) and
+              (skipprocdefs or (result.symtabletype in [ObjectSymtable,recordsymtable])) do
+          result:=tdef(result.defowner).owner;
+      end;
+
+
+    function tdef.deflist_index: longint;
+      begin
+        if defid<defid_not_registered then
+          result:=-(defid-defid_not_registered+1)
+        else if defid>=0 then
+          result:=defid
+        else
+          internalerror(2015102502)
+      end;
+
+{$ifdef DEBUG_NODE_XML}
+    procedure TDef.XMLPrintDef(Sym: TSym);
+      var
+        T: Text;
+
+      begin
+        if current_module.ppxfilefail then
+          Exit;
+
+        Assign(T, current_module.ppxfilename);
+        {$push} {$I-}
+        Append(T);
+        if IOResult <> 0 then
+          begin
+            Message1(exec_e_cant_create_archivefile,current_module.ppxfilename);
+            current_module.ppxfilefail := True;
+            Exit;
+          end;
+        {$pop}
+
+        XMLPrintDefTree(T, Sym);
+        Close(T);
+      end;
+
+{$endif DEBUG_NODE_XML}
+
+
 {****************************************************************************
                           TSYM (base for all symtypes)
 ****************************************************************************}
+
+    function tsym.registered: boolean;
+      begin
+        result:=symid>symid_not_registered;
+      end;
+
 
     constructor tsym.create(st:tsymtyp;const aname:string);
       begin
@@ -371,6 +618,7 @@ implementation
          isdbgwritten := false;
          visibility:=vis_public;
          deprecatedmsg:=nil;
+         symid:=symid_not_registered;
       end;
 
     destructor  Tsym.destroy;
@@ -518,7 +766,7 @@ implementation
       end;
 
 
-    procedure tpropaccesslist.addconst(slt:tsltype;v:TConstExprInt;d:tdef);
+    procedure tpropaccesslist.addconst(slt:tsltype;const v:TConstExprInt;d:tdef);
       var
         hp : ppropaccesslistitem;
       begin
@@ -560,7 +808,7 @@ implementation
       end;
 
 
-    procedure tpropaccesslist.addconstderef(slt:tsltype;v:TConstExprInt;d:tderef);
+    procedure tpropaccesslist.addconstderef(slt:tsltype;const v:TConstExprInt;d:tderef);
       begin
         addconst(slt,v,nil);
         lastsym^.valuedefderef:=d;
@@ -593,7 +841,7 @@ implementation
              sl_vec:
                hp^.valuedef:=tdef(hp^.valuedefderef.resolve);
              else
-              internalerror(200110205);
+              internalerror(2001102001);
            end;
            hp:=hp^.next;
          end;
@@ -619,7 +867,7 @@ implementation
              sl_vec:
                hp^.valuedefderef.build(hp^.valuedef);
              else
-              internalerror(200110205);
+              internalerror(2001102002);
            end;
            hp:=hp^.next;
          end;
@@ -651,9 +899,26 @@ implementation
          begin
 { TODO: ugly hack}
            if s is tsym then
-             st:=FindUnitSymtable(tsym(s).owner)
+             begin
+               { if it has been registered but it wasn't put in a symbol table,
+                 this symbol shouldn't be written to a ppu }
+               if tsym(s).SymId=symid_registered_nost then
+                 Internalerror(2015102504);
+               if not tsym(s).registered then
+                 tsym(s).register_sym;
+               st:=FindUnitSymtable(tsym(s).owner)
+             end
+           else if s is tdef then
+             begin
+               { same as above }
+               if tdef(s).defid=defid_registered_nost then
+                 Internalerror(2015102501);
+               if not tdef(s).registered then
+                 tdef(s).register_def;
+               st:=FindUnitSymtable(tdef(s).owner);
+             end
            else
-             st:=FindUnitSymtable(tdef(s).owner);
+             internalerror(2016090204);
            if not st.iscurrentunit then
              begin
                { register that the unit is needed for resolving }
@@ -753,8 +1018,6 @@ implementation
                   if len<>1 then
                     internalerror(200306232);
                 end;
-              else
-                internalerror(200212277);
             end;
           end;
       end;
@@ -770,6 +1033,10 @@ implementation
          Message(unit_f_ppu_read_error);
       end;
 
+    procedure tcompilerppufile.RaiseAssertion(Code: Longint);
+      begin
+        InternalError(Code);
+      end;
 
     procedure tcompilerppufile.getguid(var g: tguid);
       begin
@@ -784,19 +1051,9 @@ implementation
 
     begin
       getexprint.overflow:=false;
-      getexprint.signed:=boolean(getbyte);
+      getexprint.signed:=getboolean;
       getexprint.svalue:=getint64;
     end;
-
-
-    function tcompilerppufile.getPtrUInt:TConstPtrUInt;
-      begin
-        {$if sizeof(TConstPtrUInt)=8}
-          result:=tconstptruint(getint64);
-        {$else}
-          result:=TConstPtrUInt(getlongint);
-        {$endif}
-      end;
 
 
     procedure tcompilerppufile.getposinfo(var p:tfileposinfo);
@@ -871,8 +1128,6 @@ implementation
                 getderef(hderef);
                 p.addconstderef(slt,idx,hderef);
               end;
-            else
-              internalerror(200110204);
           end;
         until false;
         getpropaccesslist:=tpropaccesslist(p);
@@ -985,19 +1240,9 @@ implementation
     begin
       if v.overflow then
         internalerror(200706102);
-      putbyte(byte(v.signed));
+      putboolean(v.signed);
       putint64(v.svalue);
     end;
-
-
-    procedure tcompilerppufile.PutPtrUInt(v:TConstPtrUInt);
-      begin
-        {$if sizeof(TConstPtrUInt)=8}
-          putint64(int64(v));
-        {$else}
-          putlongint(longint(v));
-        {$endif}
-      end;
 
 
     procedure tcompilerppufile.putderef(const d:tderef);
@@ -1006,7 +1251,10 @@ implementation
       begin
         oldcrc:=do_crc;
         do_crc:=false;
-        putlongint(d.dataidx);
+        if d.dataidx=-1 then
+          internalerror(2019022201)
+        else
+          putlongint(d.dataidx);
         do_crc:=oldcrc;
       end;
 
@@ -1034,7 +1282,7 @@ implementation
                  putderef(hp^.valuedefderef);
                end;
              else
-              internalerror(200110205);
+              internalerror(2001102003);
            end;
            hp:=hp^.next;
          end;

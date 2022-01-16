@@ -27,10 +27,16 @@ interface
 {$MODESWITCH OUT}
 { force ansistrings }
 {$H+}
+{$modeswitch typehelpers}
+{$modeswitch advancedrecords}
 
 {$DEFINE OS_FILESETDATEBYNAME}
 {$DEFINE HAS_SLEEP}
 {$DEFINE HAS_OSERROR}
+{$DEFINE HAS_TEMPDIR}
+
+{OS has only 1 byte version for ExecuteProcess}
+{$define executeprocuni}
 
 { used OS file system APIs use ansistring }
 {$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
@@ -63,13 +69,21 @@ uses
 {$i sysutils.inc}
 
 
-{ * Include sytem specific includes * }
+{ * Include system specific includes * }
 {$include execd.inc}
 {$include execf.inc}
 {$include timerd.inc}
 {$include doslibd.inc}
 {$include doslibf.inc}
 {$include utilf.inc}
+
+{$ifdef cpum68k}
+{$if defined(amiga_v1_0_only) or defined(amiga_v1_2_only)}
+{$include legacyexech.inc}
+{$include legacydosh.inc}
+{$include legacyutilh.inc}
+{$endif}
+{$endif}
 
 { * Followings are implemented in the system unit! * }
 function PathConv(path: shortstring): shortstring; external name 'PATHCONV';
@@ -82,9 +96,9 @@ var
   ASYS_FileList: Pointer; external name 'ASYS_FILELIST';
 
 
-function BADDR(bval: LongInt): Pointer; Inline;
+function BADDR(bval: BPTR): Pointer; Inline;
 begin
-  {$if defined(AROS) and (not defined(AROS_FLAVOUR_BINCOMPAT))}
+  {$if defined(AROS)}  // deactivated for now //and (not defined(AROS_BINCOMPAT))}
   BADDR := Pointer(bval);
   {$else}
   BADDR:=Pointer(bval Shl 2);
@@ -93,16 +107,16 @@ end;
 
 function BSTR2STRING(s : Pointer): PChar; Inline;
 begin
-  {$if defined(AROS) and (not defined(AROS_FLAVOUR_BINCOMPAT))}
+  {$if defined(AROS)}  // deactivated for now //and (not defined(AROS_BINCOMPAT))}
   BSTR2STRING:=PChar(s);
   {$else}
   BSTR2STRING:=PChar(BADDR(PtrInt(s)))+1;
   {$endif}
 end;
 
-function BSTR2STRING(s : LongInt): PChar; Inline;
+function BSTR2STRING(s : BPTR): PChar; Inline;
 begin
-  {$if defined(AROS) and (not defined(AROS_FLAVOUR_BINCOMPAT))}
+  {$if defined(AROS)}  // deactivated for now //and (not defined(AROS_BINCOMPAT))}
   BSTR2STRING:=PChar(s);
   {$else}
   BSTR2STRING:=PChar(BADDR(s))+1;
@@ -113,7 +127,7 @@ function AmigaFileDateToDateTime(aDate: TDateStamp; out success: boolean): TDate
 var
   tmpSecs: DWord;
   tmpDate: TDateTime;
-  tmpTime: TDateTime; 
+  tmpTime: TDateTime;
   clockData: TClockData;
 begin
   with aDate do
@@ -159,7 +173,7 @@ end;
 
 (****** non portable routines ******)
 
-function FileOpen(const FileName: rawbytestring; Mode: Integer): LongInt;
+function FileOpen(const FileName: rawbytestring; Mode: Integer): THandle;
 var
   SystemFileName: RawByteString;
   dosResult: LongInt;
@@ -176,7 +190,7 @@ begin
 end;
 
 
-function FileGetDate(Handle: LongInt) : LongInt;
+function FileGetDate(Handle: THandle) : Int64;
 var
   tmpFIB : PFileInfoBlock;
   tmpDateTime: TDateTime;
@@ -199,7 +213,7 @@ begin
 end;
 
 
-function FileSetDate(Handle, Age: LongInt) : LongInt;
+function FileSetDate(Handle: THandle; Age: Int64) : LongInt;
 var
   tmpDateStamp: TDateStamp;
   tmpName: array[0..255] of char;
@@ -217,7 +231,7 @@ begin
 end;
 
 
-function FileSetDate(const FileName: RawByteString; Age: LongInt) : LongInt;
+function FileSetDate(const FileName: RawByteString; Age: Int64) : LongInt;
 var
   tmpDateStamp: TDateStamp;
   SystemFileName: RawByteString;
@@ -232,7 +246,7 @@ begin
 end;
 
 
-function FileCreate(const FileName: RawByteString) : LongInt;
+function FileCreate(const FileName: RawByteString) : THandle;
 var
   SystemFileName: RawByteString;
   dosResult: LongInt;
@@ -240,13 +254,13 @@ begin
   dosResult:=-1;
 
   { Open file in MODDE_READWRITE, then truncate it by hand rather than
-    opening it in MODE_NEWFILE, because that returns an exclusive lock 
+    opening it in MODE_NEWFILE, because that returns an exclusive lock
     so some operations might fail with it (KB) }
   SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
   dosResult:=Open(PChar(SystemFileName),MODE_READWRITE);
   if dosResult = 0 then exit;
 
-  if SetFileSize(dosResult, 0, OFFSET_BEGINNING) = 0 then 
+  if SetFileSize(dosResult, 0, OFFSET_BEGINNING) = 0 then
     AddToList(ASYS_fileList,dosResult)
   else begin
     dosClose(dosResult);
@@ -256,20 +270,20 @@ begin
   FileCreate:=dosResult;
 end;
 
-function FileCreate(const FileName: RawByteString; Rights: integer): LongInt;
+function FileCreate(const FileName: RawByteString; Rights: integer): THandle;
 begin
   {$WARNING FIX ME! To do: FileCreate Access Modes}
   FileCreate:=FileCreate(FileName);
 end;
 
-function FileCreate(const FileName: RawByteString; ShareMode: integer; Rights : integer): LongInt;
+function FileCreate(const FileName: RawByteString; ShareMode: integer; Rights : integer): THandle;
 begin
   {$WARNING FIX ME! To do: FileCreate Access Modes}
   FileCreate:=FileCreate(FileName);
 end;
 
 
-function FileRead(Handle: LongInt; out Buffer; Count: LongInt): LongInt;
+function FileRead(Handle: THandle; out Buffer; Count: LongInt): LongInt;
 begin
   FileRead:=-1;
   if (Count<=0) or (Handle=0) or (Handle=-1) then exit;
@@ -278,7 +292,7 @@ begin
 end;
 
 
-function FileWrite(Handle: LongInt; const Buffer; Count: LongInt): LongInt;
+function FileWrite(Handle: THandle; const Buffer; Count: LongInt): LongInt;
 begin
   FileWrite:=-1;
   if (Count<=0) or (Handle=0) or (Handle=-1) then exit;
@@ -287,7 +301,7 @@ begin
 end;
 
 
-function FileSeek(Handle, FOffset, Origin: LongInt) : LongInt;
+function FileSeek(Handle: THandle; FOffset, Origin: LongInt) : LongInt;
 var
   seekMode: LongInt;
 begin
@@ -301,19 +315,19 @@ begin
   end;
 
   dosSeek(Handle, FOffset, seekMode);
-  { get the current position when FileSeek ends, which should return 
+  { get the current position when FileSeek ends, which should return
     the *NEW* position, while Amiga Seek() returns the old one }
   FileSeek:=dosSeek(Handle, 0, OFFSET_CURRENT);
 end;
 
-function FileSeek(Handle: LongInt; FOffset: Int64; Origin: Longint): Int64;
+function FileSeek(Handle: THandle; FOffset: Int64; Origin: Longint): Int64;
 begin
   {$WARNING Need to add 64bit call }
   FileSeek:=FileSeek(Handle,LongInt(FOffset),LongInt(Origin));
 end;
 
 
-procedure FileClose(Handle: LongInt);
+procedure FileClose(Handle: THandle);
 begin
   if (Handle=0) or (Handle=-1) then exit;
 
@@ -327,7 +341,7 @@ var
   dosResult: LongInt;
 begin
   FileTruncate:=False;
-  
+
   if Size > high (longint) then exit;
 {$WARNING Possible support for 64-bit FS to be checked!}
 
@@ -362,9 +376,9 @@ end;
 (****** end of non portable routines ******)
 
 
-function FileAge (const FileName : RawByteString): Longint;
+function FileAge (const FileName : RawByteString): Int64;
 var
-  tmpLock: Longint;
+  tmpLock: BPTR;
   tmpFIB : PFileInfoBlock;
   tmpDateTime: TDateTime;
   validFile: boolean;
@@ -390,9 +404,15 @@ begin
 end;
 
 
-function FileExists (const FileName : RawByteString) : Boolean;
+function FileGetSymLinkTarget(const FileName: RawByteString; out SymLinkRec: TRawbyteSymLinkRec): Boolean;
+begin
+  Result := False;
+end;
+
+
+function FileExists (const FileName : RawByteString; FollowLink : Boolean) : Boolean;
 var
-  tmpLock: LongInt;
+  tmpLock: BPTR;
   tmpFIB : PFileInfoBlock;
   SystemFileName: RawByteString;
 begin
@@ -423,13 +443,17 @@ begin
 
   { $1e = faHidden or faSysFile or faVolumeID or faDirectory }
   Rslt.ExcludeAttr := (not Attr) and ($1e);
-  Rslt.FindHandle  := 0;
+  Rslt.FindHandle  := nil;
 
   new(Anchor);
   FillChar(Anchor^,sizeof(TAnchorPath),#0);
+  Rslt.FindHandle := Anchor;
 
-  if MatchFirst(pchar(tmpStr),Anchor)<>0 then exit;
-  Rslt.FindHandle := longint(Anchor);
+  if MatchFirst(pchar(tmpStr),Anchor)<>0 then
+    begin
+      InternalFindClose(Rslt.FindHandle);
+      exit;
+    end;
 
   with Anchor^.ap_Info do begin
     Name := fib_FileName;
@@ -437,7 +461,11 @@ begin
 
     Rslt.Size := fib_Size;
     Rslt.Time := DateTimeToFileDate(AmigaFileDateToDateTime(fib_Date,validDate));
-    if not validDate then exit;
+    if not validDate then 
+      begin
+        InternalFindClose(Rslt.FindHandle);
+        exit;
+      end;
 
     { "128" is Windows "NORMALFILE" attribute. Some buggy code depend on this... :( (KB) }
     Rslt.Attr := 128;
@@ -480,15 +508,15 @@ begin
 end;
 
 
-Procedure InternalFindClose(var Handle: THandle);
+Procedure InternalFindClose(var Handle: Pointer);
 var
-  Anchor: PAnchorPath;
+  Anchor: PAnchorPath absolute Handle;
 begin
-  Anchor:=PAnchorPath(Handle);
-  if not assigned(Anchor) then exit;
+  if not assigned(Anchor) then
+    exit;
   MatchEnd(Anchor);
   Dispose(Anchor);
-  Handle:=THandle(nil);
+  Handle:=nil;
 end;
 
 
@@ -538,10 +566,10 @@ end;
 var
   DeviceList: array[0..26] of string[20];
   NumDevices: Integer = 0;
-  
+
 const
   IllegalDevices: array[0..12] of string =(
-                   'PED:',  
+                   'PED:',
                    'PRJ:',
                    'PIPE:',   // Pipes
                    'XPIPE:',  // Extented Pipe
@@ -624,7 +652,7 @@ end;
 //
 function DiskSize(Drive: AnsiString): Int64;
 var
-  DirLock: LongInt;
+  DirLock: BPTR;
   Inf: TInfoData;
   MyProc: PProcess;
   OldWinPtr: Pointer;
@@ -658,7 +686,7 @@ end;
 //
 function DiskFree(Drive: AnsiString): Int64;
 var
-  DirLock: LongInt;
+  DirLock: BPTR;
   Inf: TInfoData;
   MyProc: PProcess;
   OldWinPtr: Pointer;
@@ -688,9 +716,9 @@ begin
   DiskFree := DiskFree(DeviceList[Drive]);
 end;
 
-function DirectoryExists(const Directory: RawByteString): Boolean;
+function DirectoryExists(const Directory: RawByteString; FollowLink : Boolean): Boolean;
 var
-  tmpLock: LongInt;
+  tmpLock: BPTR;
   FIB    : PFileInfoBlock;
   SystemDirName: RawByteString;
 begin
@@ -752,14 +780,14 @@ end;
 
 Procedure InitInternational;
 begin
-  InitInternationalGeneric; 
+  InitInternationalGeneric;
   InitAnsi;
 end;
 
 function SysErrorMessage(ErrorCode: Integer): String;
 
 begin
-{  Result:=StrError(ErrorCode);}
+  Result:=Format(SUnknownErrorCode,[ErrorCode]);
 end;
 
 function GetLastOSError: Integer;
@@ -774,7 +802,7 @@ end;
 var
   StrOfPaths: String;
 
-function SystemTags(const command: PChar; const tags: array of DWord): LongInt;
+function SystemTags(const command: PChar; const tags: array of PtrUInt): LongInt;
 begin
   SystemTags:=SystemTagList(command,@tags);
 end;
@@ -789,7 +817,7 @@ begin
 
    { Alternatively, this could use PIPE: handler on systems which
      have this by default (not the case on classic Amiga), but then
-     the child process should be started async, which for a simple 
+     the child process should be started async, which for a simple
      Path command probably isn't worth the trouble. (KB) }
    assign(f,'T:'+HexStr(FindTask(nil))+'_path.tmp');
    rewrite(f);
@@ -835,21 +863,21 @@ begin
   Result:=Dos.EnvStr(Index);
 end;
 
-function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString;Flags:TExecuteFlags=[]):
+function ExecuteProcess (const Path: RawByteString; const ComLine: RawByteString;Flags:TExecuteFlags=[]):
                                                                        integer;
 var
-  tmpPath: AnsiString;
-  convPath: AnsiString;
+  tmpPath,
+  convPath: RawByteString;
   CommandLine: AnsiString;
-  tmpLock: longint;
+  tmpLock: BPTR;
 
   E: EOSError;
 begin
   DosError:= 0;
-  
-  convPath:=PathConv(Path);
-  tmpPath:=convPath+' '+ComLine;
-  
+
+  convPath:=PathConv(ToSingleByteFileSystemEncodedFileName(Path));
+  tmpPath:=convPath+' '+ToSingleByteFileSystemEncodedFileName(ComLine);
+
   { Here we must first check if the command we wish to execute }
   { actually exists, because this is NOT handled by the        }
   { _SystemTagList call (program will abort!!)                 }
@@ -868,39 +896,56 @@ begin
     end
   else
     DosError:=3;
-  
+
   if DosError <> 0 then begin
     if ComLine = '' then
       CommandLine := Path
     else
       CommandLine := Path + ' ' + ComLine;
-    
+
     E := EOSError.CreateFmt (SExecuteProcessFailed, [CommandLine, DosError]);
     E.ErrorCode := DosError;
     raise E;
   end;
 end;
 
-function ExecuteProcess (const Path: AnsiString;
-                                  const ComLine: array of AnsiString;Flags:TExecuteFlags=[]): integer;
+function ExecuteProcess (const Path: RawByteString;
+                                  const ComLine: array of RawByteString;Flags:TExecuteFlags=[]): integer;
 var
-  CommandLine: AnsiString;
+  CommandLine: RawByteString;
   I: integer;
 
 begin
   Commandline := '';
   for I := 0 to High (ComLine) do
    if Pos (' ', ComLine [I]) <> 0 then
-    CommandLine := CommandLine + ' ' + '"' + ComLine [I] + '"'
+    CommandLine := CommandLine + ' ' + '"' + ToSingleByteFileSystemEncodedFileName(ComLine [I]) + '"'
    else
-    CommandLine := CommandLine + ' ' + Comline [I];
+    CommandLine := CommandLine + ' ' + ToSingleByteFileSystemEncodedFileName(Comline [I]);
   ExecuteProcess := ExecuteProcess (Path, CommandLine);
 end;
 
 procedure Sleep(Milliseconds: cardinal);
 begin
   // Amiga dos.library Delay() has precision of 1/50 seconds
-  Delay(Milliseconds div 20);
+  DOSDelay(Milliseconds div 20);
+end;
+
+
+function GetTempDir(Global: Boolean): string;
+begin
+  if Assigned(OnGetTempDir) then
+    Result := OnGetTempDir(Global)
+  else
+  begin
+    Result := GetEnvironmentVariable('TEMP');
+    if Result = '' Then
+      Result:=GetEnvironmentVariable('TMP');
+    if Result = '' then
+      Result := 'T:'; // fallback.
+  end;
+  if Result <> '' then
+    Result := IncludeTrailingPathDelimiter(Result);
 end;
 
 
@@ -911,11 +956,12 @@ end;
 Initialization
   InitExceptions;
   InitInternational;    { Initialize internationalization settings }
-  OnBeep:=Nil;          { No SysBeep() on Amiga, for now. Figure out if we want 
+  OnBeep:=Nil;          { No SysBeep() on Amiga, for now. Figure out if we want
                           to use intuition.library/DisplayBeep() for this (KB) }
   StrOfPaths:='';
-  
+
   RefreshDeviceList;
 Finalization
+  FreeTerminateProcs;
   DoneExceptions;
 end.

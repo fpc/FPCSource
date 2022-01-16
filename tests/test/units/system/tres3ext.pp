@@ -37,10 +37,10 @@ var
 
 function CompareDesc(d1, d2 : PChar) : boolean;
 begin
-  if Is_IntResource(d1) then
+  if Is_IntResource(d1) or Is_IntResource(d2) then
     Result:=PtrUInt(d1)=PtrUInt(d2)
   else
-    Result:=CompareChar0(d1[0],d2[0],MaxInt)=0;
+    Result:=StrComp(d1, d2) = 0;
 end;
 
 procedure ResFound(ResourceType, ResourceName : PChar; IDLanguage : word);

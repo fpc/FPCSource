@@ -33,9 +33,9 @@ interface
 
   type
 
-    { TMIPSProcInfo }
+    { tcpuprocinfo }
 
-    TMIPSProcInfo=class(tcgprocinfo)
+    tcpuprocinfo=class(tcgprocinfo)
       intregstart,
       floatregstart : aint;
       intregssave,
@@ -43,6 +43,7 @@ interface
       register_used : tparasupregsused;
       computed_local_size : longint;
       save_gp_ref: treference;
+      setnoat : boolean;
       //intparareg,
       //parasize : longint;
       constructor create(aparent:tprocinfo);override;
@@ -63,7 +64,7 @@ implementation
       cpubase,cgbase,cgobj,
       tgobj,paramgr,symconst,symcpu,aasmcpu;
 
-    constructor TMIPSProcInfo.create(aparent: tprocinfo);
+    constructor tcpuprocinfo.create(aparent: tprocinfo);
       begin
         inherited create(aparent);
         if (cs_generate_stackframes in current_settings.localswitches) or
@@ -85,7 +86,7 @@ implementation
       end;
 
 
-    procedure TMIPSProcInfo.set_first_temp_offset;
+    procedure tcpuprocinfo.set_first_temp_offset;
       begin
         { MIPS stack frame is always "optimized" }
         framepointer:=NR_STACK_POINTER_REG;
@@ -120,7 +121,7 @@ implementation
       end;
 
 
-    procedure TMIPSProcInfo.allocate_got_register(list:tasmlist);
+    procedure tcpuprocinfo.allocate_got_register(list:tasmlist);
       begin
         if (cs_create_pic in current_settings.moduleswitches) then
           begin
@@ -133,7 +134,7 @@ implementation
       end;
 
 
-    function TMIPSProcInfo.calc_stackframe_size:longint;
+    function tcpuprocinfo.calc_stackframe_size:longint;
       begin
         result:=maxpushedparasize;
         floatregstart:=result;
@@ -147,11 +148,11 @@ implementation
             tcpuprocdef(procdef).total_local_size:=result;
           end
         else if computed_local_size <> result then
-          Comment(V_Error,'TMIPSProcInfo.calc_stackframe_size result changed');
+          Comment(V_Error,'tcpuprocinfo.calc_stackframe_size result changed');
       end;
 
 
-    procedure TMIPSProcInfo.postprocess_code;
+    procedure tcpuprocinfo.postprocess_code;
       begin
         fixup_jmps(aktproccode);
       end;
@@ -166,5 +167,5 @@ implementation
       end;
 
 begin
-  cprocinfo:=TMIPSProcInfo;
+  cprocinfo:=tcpuprocinfo;
 end.

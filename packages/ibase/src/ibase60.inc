@@ -92,6 +92,7 @@ Type
    ISC_INT64     = int64;
    ISC_UINT64    = qword;
    ISC_LONG      = Longint;
+   ISC_ULONG     = dword;
 
    PISC_USHORT = ^ISC_USHORT;
    PISC_STATUS = ^ISC_STATUS;
@@ -155,7 +156,7 @@ Type
 
    GDS_QUAD = record
       gds_quad_high : ISC_LONG;
-      gds_quad_low : ISC_LONG;
+      gds_quad_low : ISC_ULONG;
    end;
    TGDS_QUAD = GDS_QUAD;
    PGDS_QUAD = ^GDS_QUAD;
@@ -805,6 +806,8 @@ type
      isc_tpb_no_rec_version = 18;
      isc_tpb_restart_requests = 19;
      isc_tpb_no_auto_undo = 20;
+     isc_tpb_lock_timeout = 21;
+
   {                       }
   { Blob Parameter Block  }
   {                       }
@@ -1193,6 +1196,8 @@ type
      isc_spb_res_page_size = 10;
      isc_spb_res_length = 11;
      isc_spb_res_access_mode = 12;
+     isc_spb_res_fix_fss_data = 13;
+     isc_spb_res_fix_fss_metadata = 14;
      isc_spb_res_deactivate_idx = $0100;
      isc_spb_res_no_shadow = $0200;
      isc_spb_res_no_validity = $0400;

@@ -61,27 +61,9 @@
 
 type
   PReal = ^Real;
-{ also necessary for Int() on systems with 64bit floats (JM) }
-{$ifndef FPC_SYSTEM_HAS_float64}
-{$ifdef ENDIAN_LITTLE}
-  float64 = record
-{$ifndef FPC_DOUBLE_HILO_SWAPPED}
-    low,high: longint;
-{$else}
-    high,low: longint;
-{$endif FPC_DOUBLE_HILO_SWAPPED}
-  end;
-{$else}
-  float64 = record
-{$ifndef FPC_DOUBLE_HILO_SWAPPED}
-    high,low: longint;
-{$else}
-    low,high: longint;
-{$endif FPC_DOUBLE_HILO_SWAPPED}
-  end;
-{$endif}
-{$endif FPC_SYSTEM_HAS_float64}
-
+{ float64 definition is now in genmathh.inc,
+  to ensure that float64 will always be in
+  the system interface symbol table. }
 
 const
       PIO4   =  7.85398163397448309616E-1;    {  pi/4        }
@@ -134,20 +116,21 @@ Begin
   pflags := @softfloat_exception_flags;
   pflags^:=pflags^ + i;
   unmasked_flags := pflags^ - softfloat_exception_mask;
+  { before we raise the exception, we mark it as handled,
+    this behaviour is similiar to the hardware handler in SignalToRunerror }
+  SysResetFPU;
   if (float_flag_invalid in unmasked_flags) then
      HandleError(207)
-  else
-  if (float_flag_divbyzero in unmasked_flags) then
-     HandleError(200)
-  else
-  if (float_flag_overflow in unmasked_flags) then
+  else if (float_flag_divbyzero in unmasked_flags) then
+     HandleError(208)
+  else if (float_flag_overflow in unmasked_flags) then
      HandleError(205)
-  else
-  if (float_flag_underflow in unmasked_flags) then
+  else if (float_flag_underflow in unmasked_flags) then
      HandleError(206)
-  else
-  if (float_flag_inexact in unmasked_flags) then
-     HandleError(207);
+  else if (float_flag_inexact in unmasked_flags) then
+     HandleError(207)
+  else if (float_flag_denormal in unmasked_flags) then
+     HandleError(216);
 end;
 
 
@@ -196,10 +179,6 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_TRUNC}
-{$ifndef FPC_SYSTEM_HAS_float32}
-type
-  float32 = longint;
-{$endif FPC_SYSTEM_HAS_float32}
 
 {$ifdef SUPPORT_DOUBLE}
    { based on softfloat float64_to_int64_round_to_zero }
@@ -369,25 +348,25 @@ type
 
 
 {$ifndef SYSTEM_HAS_FREXP}
-    function frexp(x:Real; out e:Integer ):Real;
+    procedure frexp(X: Real; out Mantissa: Real; out Exponent: longint);
     {*  frexp() extracts the exponent from x.  It returns an integer     *}
     {*  power of two to expnt and the significand between 0.5 and 1      *}
     {*  to y.  Thus  x = y * 2**expn.                                    *}
     begin
-      e :=0;
+      exponent:=0;
       if (abs(x)<0.5) then
        While (abs(x)<0.5) do
        begin
          x := x*2;
-         Dec(e);
+         Dec(exponent);
        end
       else
        While (abs(x)>1) do
        begin
          x := x/2;
-         Inc(e);
+         Inc(exponent);
        end;
-      frexp := x;
+      Mantissa := x;
     end;
 {$endif not SYSTEM_HAS_FREXP}
 
@@ -1004,7 +983,7 @@ type
     { a rough value for the square root.  Then Heron's iteration      }
     { is used three times to converge to an accurate value.           }
     {*****************************************************************}
-    var e   : Integer;
+    var e   : Longint;
         w,z : Real;
     begin
        if( d <= 0.0 ) then
@@ -1018,7 +997,7 @@ type
        begin
           w := d;
           { separate exponent and significand }
-           z := frexp( d, e );
+          frexp( d, z, e );
 
           {  approximate square root of number between 0.5 and 1  }
           {  relative error of approximation = 7.47e-3            }
@@ -1339,7 +1318,7 @@ type
           if j0>=63 then     { Overflow, let trunc() raise an exception }
             exit(trunc(d))   { and/or return +/-MaxInt64 if it's masked }
           else
-            result:=((int64(hx) shl 32) or float64low(d)) shl (j0-52);
+            result:=((int64(hx) shl 32) or dword(float64low(d))) shl (j0-52);
         end
       else
         begin
@@ -1456,6 +1435,12 @@ type
       hfsq,f,s,z,R,w,t1,t2,dk: double;
       k,hx,i,j: longint;
       lx: longword;
+{$push}
+{ if we have to check manually fpu exceptions, then force the exit statements here to
+  throw one }
+{$CHECKFPUEXCEPTIONS+}
+{ turn off fastmath as it converts (d-d)/zero into 0 and thus not raising an exception }
+{$OPTIMIZATION NOFASTMATH}
     begin
       hx := float64high(d);
       lx := float64low(d);
@@ -1472,6 +1457,7 @@ type
       end;
       if (hx >= $7ff00000) then
         exit(d+d);
+{$pop}
       inc(k, (hx shr 20)-1023);
       hx := hx and $000fffff;
       i := (hx + $95f64) and $100000;
@@ -1922,22 +1908,35 @@ function FPower10(val: Extended; Power: Longint): Extended;
   end;
 {$endif SUPPORT_EXTENDED}
 
-{$ifdef SUPPORT_EXTENDED}
-function TExtended80Rec.Mantissa : QWord;
+{$if defined(SUPPORT_EXTENDED) or defined(FPC_SOFT_FPUX80)}
+function TExtended80Rec.Mantissa(IncludeHiddenBit: Boolean = False) : QWord;
   begin
-    Result:=Frac and $7fffffffffffffff;
+    if IncludeHiddenbit then
+      Result:=Frac
+    else
+      Result:=Frac and $7fffffffffffffff;
   end;
-
 
 function TExtended80Rec.Fraction : Extended;
   begin
+{$ifdef SUPPORT_EXTENDED}
     Result:=system.frac(Value);
+{$else}
+    Result:=Frac / Double (1 shl 63) / 2.0;
+{$endif}
   end;
 
 
 function TExtended80Rec.Exponent : Longint;
+  var
+    E: QWord;
   begin
-    Result:=Exp-16383;
+    Result := 0;
+    E := GetExp;
+    if (0<E) and (E<2*Bias+1) then
+      Result:=Exp-Bias
+    else if (Exp=0) and (Frac<>0) then
+      Result:=-(Bias-1);
   end;
 
 
@@ -2018,18 +2017,29 @@ function TExtended80Rec.SpecialType : TFloatSpecial;
       end;
   end;
 
-{
-procedure TExtended80Rec.BuildUp(const _Sign : Boolean; const _Mantissa : QWord; const Exponent : Longint);
-  begin
-  end;
-}
+procedure TExtended80Rec.BuildUp(const _Sign: Boolean; const _Mantissa: QWord; const _Exponent: Longint);
+begin
+{$ifdef SUPPORT_EXTENDED}
+  Value := 0.0;
+{$else SUPPORT_EXTENDED}
+  FillChar(Value, SizeOf(Value),0);
 {$endif SUPPORT_EXTENDED}
+  if (_Mantissa=0) and (_Exponent=0) then
+    SetExp(0)
+  else
+    SetExp(_Exponent + Bias);
+  SetSign(_Sign);
+  Frac := _Mantissa;
+end;
+{$endif SUPPORT_EXTENDED or FPC_SOFT_FPUX80}
 
 
 {$ifdef SUPPORT_DOUBLE}
-function TDoubleRec.Mantissa : QWord;
+function TDoubleRec.Mantissa(IncludeHiddenBit: Boolean = False) : QWord;
   begin
-    Result:=Data and $fffffffffffff;
+    Result:=(Data and $fffffffffffff);
+    if (Result=0) and (GetExp=0) then Exit;
+    if IncludeHiddenBit then Result := Result or $10000000000000; //add the hidden bit
   end;
 
 
@@ -2040,8 +2050,15 @@ function TDoubleRec.Fraction : ValReal;
 
 
 function TDoubleRec.Exponent : Longint;
+  var
+    E: QWord;
   begin
-    Result:=Exp-1023;
+    Result := 0;
+    E := GetExp;
+    if (0<E) and (E<2*Bias+1) then
+      Result:=Exp-Bias
+    else if (Exp=0) and (Frac<>0) then
+      Result:=-(Bias-1);
   end;
 
 
@@ -2071,13 +2088,13 @@ procedure TDoubleRec.SetSign(s : Boolean);
 
 function TDoubleRec.GetFrac : QWord;
   begin
-    Result:=$10000000000000 or Mantissa;
+    Result := Data and $fffffffffffff;
   end;
 
 
 procedure TDoubleRec.SetFrac(e : QWord);
   begin
-    Data:=(Data and $7ff0000000000000) or (e and $fffffffffffff);
+    Data:=(Data and $fff0000000000000) or (e and $fffffffffffff);
   end;
 
 {
@@ -2120,18 +2137,25 @@ function TDoubleRec.SpecialType : TFloatSpecial;
       end;
   end;
 
-{
-procedure TDoubleRec.BuildUp(const _Sign : Boolean; const _Mantissa : QWord; const Exponent : Longint);
+procedure TDoubleRec.BuildUp(const _Sign: Boolean; const _Mantissa: QWord; const _Exponent: Longint);
   begin
+    Value := 0.0;
+    SetSign(_Sign);
+    if (_Mantissa=0) and (_Exponent=0) then
+      Exit //SetExp(0)
+    else
+      SetExp(_Exponent + Bias);
+    SetFrac(_Mantissa and $fffffffffffff); //clear top bit
   end;
-}
 {$endif SUPPORT_DOUBLE}
 
 
 {$ifdef SUPPORT_SINGLE}
-function TSingleRec.Mantissa : QWord;
+function TSingleRec.Mantissa(IncludeHiddenBit: Boolean = False) : QWord;
   begin
-    Result:=Data and $7fffff;
+    Result:=(Data and $7fffff);
+    if (Result=0) and (GetExp=0) then Exit;
+    if IncludeHiddenBit then Result:=Result or $800000; //add the hidden bit
   end;
 
 
@@ -2142,8 +2166,15 @@ function TSingleRec.Fraction : ValReal;
 
 
 function TSingleRec.Exponent : Longint;
+  var
+    E: QWord;
   begin
-    Result:=Exp-127;
+    Result := 0;
+    E := GetExp;
+    if (0<E) and (E<2*Bias+1) then
+      Result:=Exp-Bias
+    else if (Exp=0) and (Frac<>0) then
+      Result:=-(Bias-1);
   end;
 
 
@@ -2173,7 +2204,7 @@ procedure TSingleRec.SetSign(s : Boolean);
 
 function TSingleRec.GetFrac : QWord;
   begin
-    Result:=$8000000 or Mantissa;
+    Result:=Data and $7fffff;
   end;
 
 
@@ -2222,9 +2253,14 @@ function TSingleRec.SpecialType : TFloatSpecial;
       end;
   end;
 
-{
-procedure TSingleRec.BuildUp(const _Sign : Boolean; const _Mantissa : QWord; const Exponent : Longint);
+procedure TSingleRec.BuildUp(const _Sign: Boolean; const _Mantissa: QWord; const _Exponent: Longint);
   begin
+    Value := 0.0;
+    SetSign(_Sign);
+    if (_Mantissa=0) and (_Exponent=0) then
+      Exit //SetExp(0)
+    else
+      SetExp(_Exponent + Bias);
+    SetFrac(_Mantissa and $7fffff); //clear top bit
   end;
-}
 {$endif SUPPORT_SINGLE}

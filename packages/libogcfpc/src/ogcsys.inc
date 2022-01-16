@@ -31,7 +31,5 @@ const
   TB_SECSPERDAY = (TB_SECSPERMIN * TB_MINSPERHR * TB_HRSPERDAY);
   TB_SECSPERNYR = (365 * TB_SECSPERDAY);
 
-function time(timer: ptime_t): time_t; cdecl; external;
-function nanosleep(tb: ptimespec): cint; cdecl; external;
 
 {$endif OGC_INTERFACE}

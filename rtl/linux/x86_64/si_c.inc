@@ -50,7 +50,7 @@ procedure libc_init; external name '__libc_init';
 procedure libc_setfpucw; external name '__setfpucw';
 procedure libc_start_main; external name '__libc_start_main';
 
-procedure PASCALMAIN; external name 'PASCALMAIN';
+procedure _FPC_libc_haltproc(e:longint); forward;
 
 procedure main_stub; assembler; nostackframe;
   asm
@@ -64,13 +64,30 @@ procedure main_stub; assembler; nostackframe;
     movq    %rbp,fpc_ret_rbp(%rip)
     pushq   %rax
 
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+    { Save initial stackpointer }
+    movq    SysInitEntryInformation@GOTPCREL(%rip),%rdi
+    movq    %rsp,TEntryInformation.OS.stkptr(%rdi)
+
+    { store stack length }
+    movq StackLength@GOTPCREL(%rip),%rax
+    movq %rax,TEntryInformation.OS.stklen(%rdi)
+
+    { store pointer to haltproc }
+    movq    _FPC_libc_haltproc@GOTPCREL(%rip),%rax
+    movq    %rax,TEntryInformation.OS.haltproc(%rdi)
+
+    xorq    %rbp,%rbp
+    call    SysEntry
+{$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
     { Save initial stackpointer }
     movq    initialstkptr@GOTPCREL(%rip),%rax
     movq    %rsp,(%rax)
 
     { start the program }
     xorq    %rbp,%rbp
-    call    PASCALMAIN
+    call    PASCALMAIN@PLT
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
     hlt
   end;
 
@@ -108,6 +125,16 @@ procedure _FPC_libc_start; assembler; nostackframe; public name '_start';
     popq %rsi               { Pop the argument count.  }
     movq %rsp, %rdx         { argv starts just at the current stack top.  }
 
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+    movq SysInitEntryInformation@GOTPCREL(%rip),%rcx
+
+    { argc is longint in EntryInformation, thus use %edi register }
+    movl %esi,TEntryInformation.OS.argc(%rcx)
+    movq %rsp,TEntryInformation.OS.argv(%rcx)
+    leaq 8(,%rsi,8),%rax
+    addq %rsp,%rax
+    movq %rax,TEntryInformation.OS.envp(%rcx)
+{$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
     movq operatingsystem_parameter_argc@GOTPCREL(%rip),%rax
     movq %rsi,(%rax)
     movq operatingsystem_parameter_argv@GOTPCREL(%rip),%rax
@@ -116,6 +143,7 @@ procedure _FPC_libc_start; assembler; nostackframe; public name '_start';
     addq %rsp,%rax
     movq operatingsystem_parameter_envp@GOTPCREL(%rip),%rcx
     movq %rax,(%rcx)
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
     { Align the stack to a 16 byte boundary to follow the ABI.  }
     andq  $0xfffffffffffffff0, %rsp
@@ -127,14 +155,14 @@ procedure _FPC_libc_start; assembler; nostackframe; public name '_start';
     pushq %rsp
 
     { Pass address of our own entry points to .fini and .init.  }
-    movq $ini_dummy, %r8
-    movq $ini_dummy, %rcx
+    movq ini_dummy@GOTPCREL(%rip), %r8
+    movq ini_dummy@GOTPCREL(%rip), %rcx
 
-    movq $main_stub, %rdi
+    movq main_stub@GOTPCREL(%rip), %rdi
 
     { Call the user's main function, and exit with its value.
      But let the libc call main.    }
-    call libc_start_main
+    call libc_start_main@PLT
 
     hlt                     { Crash if somehow `exit' does return.  }
   end;
@@ -143,6 +171,7 @@ procedure _FPC_libc_start; assembler; nostackframe; public name '_start';
 procedure _FPC_libc_haltproc(e:longint); assembler; nostackframe; public name '_haltproc';
   asm
     movl      %edi,%eax
+    popq    %rdx                    { keep stack aligned }
     movq fpc_ret(%rip),%rdx         { return to libc }
     movq fpc_ret_rbp(%rip),%rbp
     pushq %rdx

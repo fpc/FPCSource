@@ -5,31 +5,36 @@ program pi;
 {$endif fpc}
 
 {$APPTYPE CONSOLE}
+{$implicitexceptions off}
 
 {$h+}
 
 uses
   timer;
 
-function ComputePi(NumDigits: Integer): string;
+type
+  tchararray = array of char;
+
+function ComputePi(NumDigits: Integer): tchararray;
 var
   A: array of LongInt;
   I, J, K, P, Q, X, Nines, Predigit: Integer;
-  PiLength: Integer;
+  PiLength, ArrHigh: Integer;
 begin
   start;
   SetLength(A, 10*NumDigits div 3);
   SetLength(Result, NumDigits+1);
-  PiLength := 1;
-  for I := Low(A) to High(A) do
+  PiLength := 0;
+  ArrHigh:=high(A);
+  for I := Low(A) to ArrHigh do
     A[I] := 2;
   Nines := 0;
   Predigit := 0;
   for J := 0 to NumDigits-1 do
   begin
     Q := 0;
-    P := 2 * High(A) + 1;
-    for I := High(A) downto Low(A) do
+    P := 2 * ArrHigh + 1;
+    for I := ArrHigh downto Low(A) do
     begin
       X := 10*A[I] + Q*(I+1);
       A[I] := X mod P;
@@ -67,6 +72,7 @@ var
   NumDigits: Integer;
   Code: Integer;
   F: TextFile;
+  arrayresult: tchararray;
   result : string;
 begin
   if ParamCount = 0 then
@@ -80,16 +86,18 @@ begin
       Halt(1);
     end;
 
+    arrayresult:=ComputePi(NumDigits);
+    setlength(result,NumDigits+1);
+    move(arrayresult[0],result[1],(NumDigits+1)*sizeof(result[1]));
     if ParamCount > 1 then
     begin
       AssignFile(F, ParamStr(2));
       Rewrite(F);
-      WriteLn(F, ComputePi(NumDigits));
+      WriteLn(F, result);
       CloseFile(F);
     end
     else
       begin
-        result:=ComputePi(NumDigits);
         WriteLn(result);
       end;
   end;

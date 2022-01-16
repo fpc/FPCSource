@@ -67,12 +67,22 @@ unit racpu;
       begin
         if ops<1 then
           internalerror(2014122001);
-        if operands[1].opr.typ<>OPR_REGISTER then
-          internalerror(2014122002);
-        result:=reg_cgsize(operands[1].opr.reg);
+        if (ops=1) and (operands[1].opr.typ=OPR_REFERENCE) then
+          exit(OS_NO);
+        case operands[1].opr.typ of
+          OPR_REGISTER:
+            result:=reg_cgsize(operands[1].opr.reg);
+          OPR_INDEXEDREG:
+            result:=reg_cgsize(operands[1].opr.indexedreg);
+          OPR_REGSET:
+            result:=OS_NO;
+          else
+           internalerror(2014122002);
+        end;
         { a 32 bit integer register could actually be 16 or 8 bit }
         if result=OS_32 then
           case oppostfix of
+            PF_NONE: ;
             PF_B:
               result:=OS_8;
             PF_SB:
@@ -81,6 +91,8 @@ unit racpu;
               result:=OS_16;
             PF_SH:
               result:=OS_S16;
+            else
+              Message(asmr_e_invalid_opcode_and_operand)
           end;
       end;
 

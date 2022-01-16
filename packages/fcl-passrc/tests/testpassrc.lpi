@@ -1,44 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="12"/>
     <General>
       <Flags>
         <SaveOnlyProjectUnits Value="True"/>
         <SaveJumpHistory Value="False"/>
         <SaveFoldState Value="False"/>
+        <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <MainUnit Value="0"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
     <i18n>
       <EnableI18N LFM="False"/>
     </i18n>
-    <VersionInfo>
-      <StringTable ProductVersion=""/>
-    </VersionInfo>
     <BuildModes Count="1">
       <Item1 Name="Default" Default="True"/>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
-      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
-      <ExcludeFileFilter Value="*.(bak|ppu|o|so);*~;backup"/>
     </PublishOptions>
     <RunParams>
       <local>
-        <FormatVersion Value="1"/>
-        <CommandLineParams Value="--suite=TTestStatementParser.TestCallComment"/>
+        <CommandLineParams Value="--suite=TTestTypeParser.TestAbstractObject"/>
       </local>
+      <FormatVersion Value="2"/>
+      <Modes Count="1">
+        <Mode0 Name="default">
+          <local>
+            <CommandLineParams Value="--suite=TTestTypeParser.TestAbstractObject"/>
+          </local>
+        </Mode0>
+      </Modes>
     </RunParams>
     <RequiredPackages Count="1">
       <Item1>
         <PackageName Value="FCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="12">
+    <Units Count="15">
       <Unit0>
         <Filename Value="testpassrc.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -46,22 +48,18 @@
       <Unit1>
         <Filename Value="tcscanner.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcscanner"/>
       </Unit1>
       <Unit2>
         <Filename Value="tctypeparser.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tctypeparser"/>
       </Unit2>
       <Unit3>
         <Filename Value="tcstatements.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcstatements"/>
       </Unit3>
       <Unit4>
         <Filename Value="tcbaseparser.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcbaseparser"/>
       </Unit4>
       <Unit5>
         <Filename Value="tcmoduleparser.pas"/>
@@ -78,31 +76,56 @@
       <Unit8>
         <Filename Value="tcclasstype.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcclasstype"/>
       </Unit8>
       <Unit9>
         <Filename Value="tcexprparser.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcexprparser"/>
       </Unit9>
       <Unit10>
         <Filename Value="tcprocfunc.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcprocfunc"/>
       </Unit10>
       <Unit11>
         <Filename Value="tcpassrcutil.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcpassrcutil"/>
       </Unit11>
+      <Unit12>
+        <Filename Value="tcresolver.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="tcgenerics.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="tcuseanalyzer.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit14>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
+    <Target>
+      <Filename Value="testpassrc"/>
+    </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
       <OtherUnitFiles Value="../src"/>
     </SearchPaths>
+    <Parsing>
+      <SyntaxOptions>
+        <AllowLabel Value="False"/>
+      </SyntaxOptions>
+    </Parsing>
+    <CodeGeneration>
+      <Checks>
+        <IOChecks Value="True"/>
+        <RangeChecks Value="True"/>
+        <OverflowChecks Value="True"/>
+        <StackChecks Value="True"/>
+      </Checks>
+      <VerifyObjMethodCallValidity Value="True"/>
+    </CodeGeneration>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">

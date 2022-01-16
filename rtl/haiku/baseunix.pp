@@ -25,39 +25,22 @@ Uses UnixType;
 
 {$packrecords C}
 
-{$ifndef FPC_USE_LIBC}
-  {$define FPC_USE_SYSCALL}
-{$endif}
-
 {$i errno.inc}          { Error numbers }
 {$i ostypes.inc}
 
-{$ifdef FPC_USE_LIBC}
-  const clib = 'root';
-  const netlib = 'network';
-  {$i oscdeclh.inc}
-{$ELSE}
-  {$i bunxh.inc}		{ Functions}
-{$ENDIF}
+const
+  clib = 'root';
+  netlib = 'network';
 
-function fpgeterrno:longint; 
-procedure fpseterrno(err:longint); 
+{$i oscdeclh.inc}
 
-{$ifndef ver1_0}
-property errno : cint read fpgeterrno write fpseterrno;
-{$endif}
+  function fpgeterrno:longint; external name 'FPC_SYS_GETERRNO';
+  procedure fpseterrno(err:longint); external name 'FPC_SYS_SETERRNO';
+  property errno : cint read fpgeterrno write fpseterrno;
 
 {$i bunxovlh.inc}
 
-{$ifdef FPC_USE_LIBC}
-{$ifdef beos}
-function  fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint;
-Function fpFlock (var fd : text; mode : longint) : cint; 
-Function fpFlock (var fd : File; mode : longint) : cint; 
-Function fpFlock (fd, mode : longint) : cint; 
-Function  FpNanoSleep  (req : ptimespec;rem : ptimespec):cint;
-{$endif}
-{$endif}
+function fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint;
 
 {$i genfunch.inc}
 
@@ -73,7 +56,7 @@ Const
 
 // MAP_ANON(YMOUS) is OS dependant but used in the RTL and in ostypes.inc
 // Under BSD without -YMOUS, so alias it:
-  MAP_ANON	= MAP_ANONYMOUS;
+  MAP_ANON      = MAP_ANONYMOUS;
 
   PROT_READ     =  $1;          { page can be read }
   PROT_WRITE    =  $2;          { page can be written }
@@ -90,70 +73,18 @@ Uses Sysctl;
 {$I gensigset.inc}     // general sigset funcs implementation.
 {$I genfdset.inc}      // general fdset funcs.
 
-{$ifdef FPC_USE_LIBC}
-  {$i oscdecl.inc}        // implementation of wrappers in oscdeclh.inc
-{$else}
-  {$i syscallh.inc}       // do_syscall declarations themselves
-  {$i sysnr.inc}          // syscall numbers.
-  {$i bsyscall.inc}       // cpu specific syscalls
-  {$i bunxsysc.inc}       // syscalls in system unit.
-//  {$i settimeo.inc}
-{$endif}
-{$i settimeo.inc}
+{$i oscdecl.inc}        // implementation of wrappers in oscdeclh.inc
+
 {$i osmacro.inc}        { macro implenenations }
 {$i bunxovl.inc}        { redefs and overloads implementation }
 
-{$ifndef ver1_0}
-function fpgeterrno:longint; external name 'FPC_SYS_GETERRNO';
-procedure fpseterrno(err:longint); external name 'FPC_SYS_SETERRNO';
-{$else}
-// workaround for 1.0.10 bugs.
 
-function intgeterrno:longint; external name 'FPC_SYS_GETERRNO';
-procedure intseterrno(err:longint); external name 'FPC_SYS_SETERRNO';
-
-function fpgeterrno:longint; 
-begin
-  fpgeterrno:=intgeterrno;
-end;
-
-procedure fpseterrno(err:longint); 
-begin
-  intseterrno(err);
-end;
-
-{$endif}
+function stime(t: ptime_t): cint; cdecl; external clib name 'stime';
 
 function fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint;
 begin
-  fpsettimeofday := settimeofday(tp, tzp);
+  fpsettimeofday:=stime(@tp^.tv_sec);
 end;
 
-Function fpFlock (var fd : File; mode : longint) : cint; 
-begin
-  {$warning TODO BeOS fpFlock implementation}  
-end;
-
-Function fpFlock (var fd : Text; mode : longint) : cint; 
-begin
-  {$warning TODO BeOS fpFlock implementation}  
-end;
-
-Function fpFlock (fd, mode : longint) : cint; 
-begin
-  {$warning TODO BeOS fpFlock implementation}  
-end;
-
-function snooze(microseconds : bigtime_t) : status_t; cdecl; external 'root' name 'snooze';
-
-Function  FpNanoSleep  (req : ptimespec;rem : ptimespec):cint;
-begin
-  case snooze((req^.tv_nsec div 1000) + (req^.tv_sec * 1000 * 1000)) of
-    B_OK : FpNanoSleep := 0;
-    B_INTERRUPTED : FpNanoSleep := - 1;
-    else
-      FpNanoSleep := - 1;
-  end;
-end;
 
 end.

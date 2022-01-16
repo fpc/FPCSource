@@ -23,8 +23,8 @@ begin
     SIGFPE :
       begin
         Case Info^.si_code Of
-          FPE_FLTDIV,
-          FPE_INTDIV : Res:=200;  { floating point divide by zero }
+          FPE_FLTDIV : Res:=208;  { floating point divide by zero }
+          FPE_INTDIV : Res:=200;  { integer divide by zero }
           FPE_FLTOVF : Res:=205;  { floating point overflow }
           FPE_FLTUND : Res:=206;  { floating point underflow }
           FPE_FLTRES,             { floating point inexact result }
@@ -32,8 +32,6 @@ begin
           Else
             Res:=207; {coprocessor error}
         end;
-        { clear "exception happened" flags }
-        SigContext^.uc_mcontext^.__fs.__fpsr:=SigContext^.uc_mcontext^.__fs.__fpsr and not(fpu_exception_mask shr fpu_exception_mask_to_status_mask_shift);
       end;
     SIGBUS:
         res:=214;
@@ -45,6 +43,8 @@ begin
     SIGQUIT:
         res:=233;
   end;
+  { right now, macOS generates SIGILL signals for fpu exceptions, so always clear the fpu exceptions }
+  SigContext^.uc_mcontext^.__fs.__fpsr:=SigContext^.uc_mcontext^.__fs.__fpsr and not(fpu_exception_mask shr fpu_exception_mask_to_status_mask_shift);
   {$ifdef FPC_USE_SIGPROCMASK}
    reenable_signal(sig);
   {$endif }

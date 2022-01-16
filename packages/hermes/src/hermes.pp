@@ -27,7 +27,7 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with this library; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 }
 
 unit Hermes;
@@ -55,6 +55,14 @@ unit Hermes;
 {$ENDIF}
 
 interface
+{$IF  defined(cpui386) and defined(FPC_PIC)}
+  { FPC_PIC is only set after parsing _INTERFFACE keyword
+    so we need to delay the test to here }
+  { the i386 assembler code is not prepared for PIC code }    
+  {$DEFINE noassembler}
+  { Thus, disable assembler code in that case for now }
+  {$UNDEF I386_ASSEMBLER}
+{$ENDIF}
 
 const
   HERMES_CONVERT_NORMAL = 0;

@@ -4,10 +4,10 @@
 
 [package]
 name=fpc
-version=3.1.1
+version=3.3.1
 
 [target]
-dirs=compiler rtl utils packages ide installer
+dirs=compiler rtl utils packages installer
 
 [require]
 nortl=y
@@ -20,8 +20,8 @@ fpcdir=.
 rule=help
 
 [prerules]
-REQUIREDVERSION=2.6.4
-REQUIREDVERSION2=2.6.2
+REQUIREDVERSION=3.2.2
+REQUIREDVERSION2=3.2.0
 
 
 # make versions < 3.77 (OS2 version) are buggy
@@ -48,6 +48,9 @@ PPSUF=x64
 endif
 ifeq ($(CPU_TARGET),sparc)
 PPSUF=sparc
+endif
+ifeq ($(CPU_TARGET),sparc64)
+PPSUF=sparc64
 endif
 ifeq ($(CPU_TARGET),powerpc)
 PPSUF=ppc
@@ -81,6 +84,21 @@ PPSUF=avr
 endif
 ifeq ($(CPU_TARGET),aarch64)
 PPSUF=a64
+endif
+ifeq ($(CPU_TARGET),riscv32)
+PPSUF=rv32
+endif
+ifeq ($(CPU_TARGET),riscv64)
+PPSUF=rv64
+endif
+ifeq ($(CPU_TARGET),xtensa)
+PPSUF=xtensa
+endif
+ifeq ($(CPU_TARGET),z80)
+PPSUF=z80
+endif
+ifeq ($(CPU_TARGET),wasm32)
+PPSUF=wasm32
 endif
 
 # cross compilers uses full cpu_target, not just ppc-suffix
@@ -188,26 +206,24 @@ endif
 ifneq ($(OPT),)
 OPTNEW+=$(OPT)
 endif
-CLEANOPTS=FPC=$(PPNEW)
-BUILDOPTS=FPC=$(PPNEW) FPCFPMAKE=$(FPCFPMAKENEW) RELEASE=1 'OPT=$(OPTNEW)'
-INSTALLOPTS=FPC=$(PPNEW) ZIPDESTDIR=$(BASEDIR) FPCMAKE=$(FPCMAKENEW)
 
-# Compile also IDE (check for ide and fv dir)
-# Skipped by default for cross compiles, because it depends on libc
-ifndef CROSSCOMPILE
-ifneq ($(wildcard ide),)
-IDETARGETS=go32v2 win32 win64 linux freebsd os2 emx beos haiku
-ifneq ($(findstring $(OS_TARGET),$(IDETARGETS)),)
-IDE=1
+# some targets do not generate PIC by default so we have select explicitly
+# the general threading model when compiling the final versions of rtl and packages
+ifneq ($(findstring $(OS_TARGET),linux),)
+ifneq ($(findstring $(CPU_TARGET),i386 arm),)
+override OPTNEW+=-CVglobal-dynamic
 endif
 endif
-endif
+
+CLEANOPTS=FPC=$(PPNEW)
+BUILDOPTS=FPC=$(PPNEW) FPCFPMAKE=$(FPCFPMAKENEW) RELEASE=1 'OPT=$(OPTNEW)' 'FPCMAKEOPT=$(OPT)'
+INSTALLOPTS=FPC=$(PPNEW) ZIPDESTDIR=$(BASEDIR) FPCMAKE=$(FPCMAKENEW)
 
 # CPU targets for which we only build the compiler/rtl
 BuildOnlyBaseCPUs=jvm
 
 ifneq ($(wildcard utils),)
-NOUTILSTARGETS=embedded gba nds msdos $(BuildOnlyBaseCPUs)
+NOUTILSTARGETS=embedded gba nds msdos win16 macosclassic $(BuildOnlyBaseCPUs) freertos
 ifeq ($(findstring $(OS_TARGET),$(NOUTILSTARGETS)),)
 ifdef BUILDFULLNATIVE
 UTILS=1
@@ -215,9 +231,12 @@ endif
 endif
 endif
 
-[rules]
-.NOTPARALLEL:
+INSTALLERTARGETS=emx go32v2 msdos os2
+ifneq ($(findstring $(OS_TARGET),$(INSTALLERTARGETS)),)
+INSTALLER=1
+endif
 
+[rules]
 # These values can change
 unexport FPC_VERSION FPC_COMPILERINFO OS_SOURCE
 
@@ -233,8 +252,7 @@ override TARGET_DIRS:=$(wildcard $(TARGET_DIRS))
 help:
         @$(ECHO)
         @$(ECHO) Targets
-        @$(ECHO)    all         Alias for build
-        @$(ECHO)    build       Build a new compiler and all packages
+        @$(ECHO)    all         Build a new compiler and all packages
         @$(ECHO)    install     Install newly build files
         @$(ECHO)    zipinstall  Create zip/tar of installed files
         @$(ECHO)    singlezipinstall  Alias for zipinstall
@@ -310,8 +328,7 @@ endif
 ifdef UTILS
         $(MAKE) utils_clean $(CLEANOPTS)
 endif
-ifdef IDE
-        $(MAKE) ide_clean $(CLEANOPTS)
+ifdef INSTALLER
         $(MAKE) installer_clean $(CLEANOPTS)
 endif
 # build everything
@@ -320,8 +337,7 @@ endif
 ifdef UTILS
         $(MAKE) utils_all $(BUILDOPTS)
 endif
-ifdef IDE
-        $(MAKE) ide_all $(BUILDOPTS)
+ifdef INSTALLER
         $(MAKE) installer_all $(BUILDOPTS)
 endif
         $(ECHOREDIR) Build > $(BUILDSTAMP)
@@ -355,9 +371,6 @@ installother:
 ifdef UTILS
         $(MAKE) utils_$(INSTALLTARGET) $(INSTALLOPTS)
 endif
-ifdef IDE
-        $(MAKE) ide_$(INSTALLTARGET) $(BUILDOPTS)
-endif
 
 zipinstallbase:
         $(MAKE) fpc_zipinstall ZIPTARGET=installbase ZIPNAME=base $(INSTALLOPTS)
@@ -366,9 +379,6 @@ zipinstallother:
         $(MAKE) packages_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGUNITSPRE)
 ifdef UTILS
         $(MAKE) utils_zip$(INSTALLTARGET) $(INSTALLOPTS)
-endif
-ifdef IDE
-        $(MAKE) ide_zip$(INSTALLTARGET) $(INSTALLOPTS)
 endif
 
 
@@ -380,7 +390,11 @@ endif
 
 singlezipinstall: zipinstallall
 zipinstallall: $(BUILDSTAMP)
-        $(MAKE) fpc_zipinstall ZIPTARGET=install FULLZIPNAME=fpc-$(PACKAGE_VERSION).$(TARGETSUFFIX) $(INSTALLOPTS)
+ifeq ($(FULL_SOURCE),$(FULL_TARGET))
+	$(MAKE) fpc_zipinstall ZIPTARGET=install FULLZIPNAME=fpc-$(PACKAGE_VERSION).$(TARGETSUFFIX) $(INSTALLOPTS)
+else
+	$(MAKE) fpc_zipinstall ZIPTARGET=install FULLZIPNAME=fpc-$(PACKAGE_VERSION).$(TARGETSUFFIX).built.on.$(SOURCESUFFIX) $(INSTALLOPTS)
+endif
 
 
 ##########################################################################
@@ -399,4 +413,4 @@ crosszipinstall:
         $(MAKE) zipinstall CROSSINSTALL=1
 
 crosssinglezipinstall:
-        $(MAKE) fpc_zipinstall ZIPTARGET=crossinstall ZIPNAME=fpc $(INSTALLOPTS)
+	$(MAKE) fpc_zipinstall ZIPTARGET=crossinstall FULLZIPNAME=fpc-$(PACKAGE_VERSION).$(SOURCESUFFIX).cross.$(TARGETSUFFIX) $(INSTALLOPTS)

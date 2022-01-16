@@ -21,13 +21,13 @@ interface
 
 uses
   Classes, SysUtils, resource;
-  
+
 type
   EStringTableResourceException = class(EResourceException);
   EStringTableNameNotAllowedException = class(EStringTableResourceException);
   EStringTableIndexOutOfBoundsException = class(EStringTableResourceException);
 
-  
+
 resourcestring
   SNameNotAllowed = 'Resource ID must be an ordinal in the range 1-4096';
   SIndexOutOfBounds = 'String ID out of bounds: %d';
@@ -42,7 +42,7 @@ type
     fName : TResourceDesc;
     fFirstID : word;
     fCount : integer;
-    fList : TStringList;
+    fList : array of UnicodeString;
     fCanChangeDesc : boolean;
     function IDtoIndex(const aId : word) : integer;
     procedure CheckListLoaded;
@@ -85,54 +85,47 @@ end;
 procedure TStringTableResource.CheckListLoaded;
 var i : integer;
 begin
-  if fList<>nil then exit;
-  fList:=TStringList.Create;
-  fList.Capacity:=16;
+  if Length(fList) <> 0 then exit;
+  SetLength(fList, fCount);
+  for i:=0 to high(fList) do
+    fList[i]:= '';
   if RawData.Size=0 then exit;
   RawData.Position:=0;
-  for i:=0 to 15 do
-    fList.Add(ReadWideString);
+  for i:=0 to high(fList) do
+    fList[i]:= ReadWideString;
 end;
 
 function TStringTableResource.ReadWideString: string;
-var ws : widestring;
+var ws : unicodestring;
     w : word;
     i : integer;
 begin
   RawData.ReadBuffer(w,2);
-  {$IFDEF ENDIAN_BIG}
-  w:=SwapEndian(w);
-  {$ENDIF}
+  w:= LEtoN(w);
   setlength(ws,w);
 
   for i:=1 to length(ws) do
   begin
     RawData.ReadBuffer(w,2);
-    {$IFDEF ENDIAN_BIG}
-    w:=SwapEndian(w);
-    {$ENDIF}
+    w:= LEtoN(w);
     ws[i]:=widechar(w);
   end;
   Result:=ws;
 end;
 
 procedure TStringTableResource.WriteWideString(const aString: string);
-var ws : widestring;
+var ws : unicodestring;
     w : word;
     i : integer;
 begin
   w:=length(aString);
-  {$IFDEF ENDIAN_BIG}
-  w:=SwapEndian(w);
-  {$ENDIF}
+  w:= NtoLE(w);
   RawData.WriteBuffer(w,2);
   ws:=aString;
   for i:=1 to length(ws) do
   begin
     w:=word(ws[i]);
-    {$IFDEF ENDIAN_BIG}
-    w:=SwapEndian(w);
-    {$ENDIF}
+    w:= NtoLE(w);
     RawData.WriteBuffer(w,2);
   end;
 end;
@@ -157,8 +150,8 @@ begin
   CheckIndex(id);
   CheckListLoaded;
   idx:=IDtoIndex(id);
-  if idx>=fList.Count then Result:=''
-  else Result:=fList[idx];
+  if idx>high(fList) then Result:= ''
+  else Result:= fList[idx];
 end;
 
 procedure TStringTableResource.SetString(id: word; aString: string);
@@ -167,13 +160,7 @@ begin
   CheckIndex(id);
   CheckListLoaded;
   idx:=IDtoIndex(id);
-  if idx<fList.Count then fList[idx]:=aString
-  else if idx>=fList.Count then
-  begin
-    for i:=fList.Count to idx-1 do
-      fList.Add('');
-    fList.Add(aString);
-  end;
+  fList[idx]:= aString;
 end;
 
 procedure TStringTableResource.UpdateRawData;
@@ -184,7 +171,7 @@ begin
   RawData.Position:=0;
   for i:=FirstID to LastID do
     WriteWideString(Strings[i]);
-  FreeAndNil(fList);
+  fList:= nil;
 end;
 
 function TStringTableResource.GetType: TResourceDesc;
@@ -223,7 +210,7 @@ constructor TStringTableResource.Create;
 begin
   inherited Create;
   fCanChangeDesc:=false;
-  fList:=nil;
+  fList:= nil;
   fType:=TResourceDesc.Create(RT_STRING);
   fName:=TResourceDesc.Create(1);
   fCount:=16;
@@ -248,8 +235,7 @@ destructor TStringTableResource.Destroy;
 begin
   fType.Free;
   fName.Free;
-  if fList<>nil then
-    fList.Free;
+  SetLength(fList, 0);
   inherited Destroy;
 end;
 

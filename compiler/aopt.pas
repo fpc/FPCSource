@@ -26,6 +26,7 @@ Unit aopt;
 {$i fpcdefs.inc}
 
 { $define DEBUG_OPTALLOC}
+{ $define DEBUG_INSTRUCTIONREGISTERDEPENDENCIES}
 
   Interface
 
@@ -35,12 +36,15 @@ Unit aopt;
 
     Type
       TAsmOptimizer = class(TAoptObj)
+        { Pooled object that can be used by optimisation procedures to evaluate
+          future register usage without upsetting the current state. }
+        TmpUsedRegs: TAllUsedRegs;
 
         { _AsmL is the PAasmOutpout list that has to be optimized }
         Constructor create(_AsmL: TAsmList); virtual; reintroduce;
 
         { call the necessary optimizer procedures }
-        Procedure Optimize;
+        Procedure Optimize;virtual;
         Destructor destroy;override;
 
       private
@@ -49,8 +53,9 @@ Unit aopt;
         { Builds a table with the locations of the labels in the TAsmList.
           Also fixes some RegDeallocs like "# %eax released; push (%eax)"  }
         Procedure BuildLabelTableAndFixRegAlloc;
-        procedure clear;
+      protected
         procedure pass_1;
+        procedure clear;
       End;
       TAsmOptimizerClass = class of TAsmOptimizer;
 
@@ -74,17 +79,19 @@ Unit aopt;
 
     uses
       cutils,
+      cprofile,
       globtype, globals,
       verbose,
       cpubase,
       cgbase,
-      aoptda,aoptcpu,aoptcpud;
+      aoptcpu;
 
     Constructor TAsmOptimizer.create(_AsmL: TAsmList);
       Begin
         inherited create(_asml,nil,nil,nil);
         { setup labeltable, always necessary }
         New(LabelInfo);
+        CreateUsedRegs(TmpUsedRegs);
       End;
 
     procedure TAsmOptimizer.FindLoHiLabels;
@@ -141,6 +148,7 @@ Unit aopt;
           p := BlockStart;
           While (P <> BlockEnd) Do
             Begin
+              prefetch(pointer(p.Next)^);
               Case p.typ Of
                 ait_Label:
                   begin
@@ -184,12 +192,11 @@ Unit aopt;
                       End
                     else if tai_regalloc(p).ratype=ra_dealloc then
                       Begin
-                        ExcludeRegFromUsedRegs(tai_regalloc(p).Reg,Regs);
                         hp1 := p;
                         hp2 := nil;
                         While Not(assigned(FindRegAlloc(tai_regalloc(p).Reg, tai(hp1.Next)))) And
                               GetNextInstruction(hp1, hp1) And
-                              RegInInstruction(tai_regalloc(p).Reg, hp1) Do
+                              InstructionLoadsFromReg(tai_regalloc(p).Reg, hp1) Do
                           hp2 := hp1;
                         { move deallocations }
                         If hp2 <> nil Then
@@ -212,8 +219,9 @@ Unit aopt;
                             p := hp1;
                           End
                         { merge allocations/deallocations }
-                        else if assigned(findregalloc(tai_regalloc(p).reg, tai(p.next)))
-                          and getnextinstruction(p,hp1) and
+                        else if assigned(findregalloc(tai_regalloc(p).reg, tai(p.next))) and
+                          getnextinstruction(p,hp1) and
+                          (not(RegLoadedWithNewValue(tai_regalloc(p).Reg, hp1)) or InstructionLoadsFromReg(tai_regalloc(p).Reg, hp1)) and
                           { don't merge deallocations/allocation which mark a new use of register, this
                             enables more possibilities for the peephole optimizer }
                           not(tai_regalloc(p).keep) then
@@ -225,9 +233,13 @@ Unit aopt;
                             AsmL.remove(p);
                             p.free;
                             p := hp1;
-                          end;
+                          end
+                        else
+                          ExcludeRegFromUsedRegs(tai_regalloc(p).Reg,Regs);
                       End
                   End
+                else
+                  ;
               End;
               P := tai(p.Next);
               While Assigned(p) and
@@ -262,36 +274,16 @@ Unit aopt;
     Procedure TAsmOptimizer.Optimize;
       Var
         HP: tai;
-        pass: longint;
       Begin
-        pass:=0;
         BlockStart := tai(AsmL.First);
         pass_1;
         While Assigned(BlockStart) Do
           Begin
             if (cs_opt_peephole in current_settings.optimizerswitches) then
               begin
-                if pass = 0 then
-                  PrePeepHoleOpts;
-                { Peephole optimizations }
+                PrePeepHoleOpts;
                 PeepHoleOptPass1;
-                { Only perform them twice in the first pass }
-                if pass = 0 then
-                  PeepHoleOptPass1;
-              end;
-            If (cs_opt_asmcse in current_settings.optimizerswitches) Then
-              Begin
-//                DFA:=TAOptDFACpu.Create(AsmL,BlockStart,BlockEnd,LabelInfo);
-                { data flow analyzer }
-//                DFA.DoDFA;
-                { common subexpression elimination }
-      {          CSE;}
-              End;
-            { more peephole optimizations }
-            if (cs_opt_peephole in current_settings.optimizerswitches) then
-              begin
                 PeepHoleOptPass2;
-                { if pass = last_pass then }
                 PostPeepHoleOpts;
               end;
             { free memory }
@@ -324,6 +316,7 @@ Unit aopt;
 
     Destructor TAsmOptimizer.Destroy;
       Begin
+        ReleaseUsedRegs(TmpUsedRegs);
         if assigned(LabelInfo^.LabelTable) then
           Freemem(LabelInfo^.LabelTable);
         Dispose(LabelInfo);
@@ -339,11 +332,12 @@ Unit aopt;
 
     procedure TAsmScheduler.SchedulerPass1;
       var
-        p,hp1,hp2 : tai;
+        p : tai;
       begin
         p:=BlockStart;
         while p<>BlockEnd Do
           begin
+            prefetch(pointer(p.Next)^);
             if SchedulerPass1Cpu(p) then
               continue;
             p:=tai(p.next);
@@ -354,9 +348,7 @@ Unit aopt;
     procedure TAsmScheduler.Optimize;
       Var
         HP: tai;
-        pass: longint;
       Begin
-        pass:=0;
         BlockStart := tai(AsmL.First);
         While Assigned(BlockStart) Do
           Begin
@@ -388,9 +380,14 @@ Unit aopt;
       var
         p : TAsmOptimizer;
       begin
+        ResumeTimer(ct_aopt);
         p:=casmoptimizer.Create(AsmL);
         p.Optimize;
-        p.free
+{$ifdef DEBUG_INSTRUCTIONREGISTERDEPENDENCIES}
+        p.Debug_InsertInstrRegisterDependencyInfo;
+{$endif DEBUG_INSTRUCTIONREGISTERDEPENDENCIES}
+        p.free;
+        StopTimer;
       end;
 
 

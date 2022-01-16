@@ -52,12 +52,9 @@ begin
   Active:=False;
   FFieldDefs.Free;
   FFieldList.Free;
-  With FDataSources do
-    begin
-    While Count>0 do
-      TDataSource(Items[Count - 1]).DataSet:=Nil;
-    Free;
-    end;
+  While MyDatasourceCount>0 do
+    MyDataSources[MyDatasourceCount - 1].DataSet:=Nil;
+  FDatasources.Free;
   for i := 0 to FBufferCount do
     FreeRecordBuffer(FBuffers[i]);
   FConstraints.Free;
@@ -83,6 +80,8 @@ end;
 procedure TDataSet.BindFields(Binding: Boolean);
 
 var i, FieldIndex: Integer;
+    FieldDef: TFieldDef;
+    Field: TField;
 
 begin
   { FieldNo is set to -1 for calculated/lookup fields, to 0 for unbound field
@@ -90,37 +89,45 @@ begin
   FCalcFieldsSize := 0;
   FBlobFieldCount := 0;
   for i := 0 to Fields.Count - 1 do
-    with Fields[i] do
+    begin
+    Field := Fields[i];
+    Field.FFieldDef := Nil;
+    if not Binding then
+      Field.FFieldNo := 0
+    else if Field.FieldKind in [fkCalculated, fkLookup] then
       begin
-      FFieldDef:=Nil;
-      if not Binding then
-        FFieldNo := 0
-      else if FieldKind in [fkCalculated, fkLookup] then
-        begin
-        FFieldNo := -1;
-        FOffset := FCalcFieldsSize;
-        Inc(FCalcFieldsSize, DataSize + 1);
-        end
+      Field.FFieldNo := -1;
+      Field.FOffset := FCalcFieldsSize;
+      Inc(FCalcFieldsSize, Field.DataSize + 1);
+      end
+    else
+      begin
+      FieldIndex := FieldDefs.IndexOf(Field.FieldName);
+      if FieldIndex = -1 then
+        DatabaseErrorFmt(SFieldNotFound,[Field.FieldName],Self)
       else
         begin
-        FFieldDef := nil;
-        FieldIndex := FieldDefs.IndexOf(Fields[i].FieldName);
-        if FieldIndex <> -1 then
+        FieldDef := FieldDefs[FieldIndex];
+        Field.FFieldDef := FieldDef;
+        Field.FFieldNo := FieldDef.FieldNo;
+        if FieldDef.InternalCalcField then
+          FInternalCalcFields := True;
+        if Field.IsBlob then
           begin
-          FFieldDef := FieldDefs[FieldIndex];
-          FFieldNo := FFieldDef.FieldNo;
-          if FieldDef.InternalCalcField then
-            FInternalCalcFields := True;
-          if IsBlob then
-            begin
-            FSize := FFieldDef.Size;
-            FOffset := FBlobFieldCount;
-            Inc(FBlobFieldCount);
-            end;
-          end
+          Field.FSize := FieldDef.Size;
+          Field.FOffset := FBlobFieldCount;
+          Inc(FBlobFieldCount);
+          end;
+        // synchronize CodePage between TFieldDef and TField
+        // character data in record buffer and field buffer should have same CodePage
+        if Field is TStringField then
+          TStringField(Field).FCodePage := FieldDef.FCodePage
+        else if Field is TMemoField then
+          TMemoField(Field).FCodePage := FieldDef.FCodePage;
         end;
-      Bind(Binding);
       end;
+    Field.Bind(Binding);
+    end;
 end;
 
 function TDataSet.BookmarkAvailable: Boolean;
@@ -213,8 +220,8 @@ begin
   For I:=0 to FieldDefs.Count-1 do
     Writeln('Def ',I,' : ',Fielddefs.items[i].Name,'(',Fielddefs.items[i].FieldNo,')');
 {$endif}
-  For I:=0 to fielddefs.Count-1 do
-    With Fielddefs.Items[I] do
+  For I:=0 to FieldDefs.Count-1 do
+    With FieldDefs.Items[I] do
       If DataType<>ftUnknown then
         begin
         {$ifdef DSDebug}
@@ -260,8 +267,8 @@ begin
   end;
 
   if not ControlsDisabled and (FState <> dsBlockRead) then begin
-    for i := 0 to FDataSources.Count - 1 do
-      TDataSource(FDataSources[i]).ProcessEvent(Event, Info);
+    for i := 0 to MyDataSourceCount - 1 do
+      MyDataSources[i].ProcessEvent(Event, Info);
   end;
 end;
 
@@ -466,6 +473,16 @@ begin
   Result:=FBuffers[Index];
 end;
 
+function TDataSet.GetDatasourceCount: Integer;
+begin
+  Result:=FDataSources.Count;
+end;
+
+function TDataSet.GetDatasources(aIndex : integer): TDatasource;
+begin
+  Result:=TDatasource(FDataSources[aIndex]);
+end;
+
 procedure TDataSet.GetCalcFields(Buffer: TRecordBuffer);
 
 begin
@@ -532,23 +549,6 @@ end;
 procedure TDataSet.DataConvert(aField: TField; aSource, aDest: Pointer;
   aToNative: Boolean);
 
- // There seems to be no WStrCopy defined, this is a copy of
- // the generic StrCopy function, adapted for WideChar.
- Function WStrCopy(Dest, Source:PWideChar): PWideChar;
- var
-   counter : SizeInt;
- Begin
-   counter := 0;
-   while Source[counter] <> #0 do
-   begin
-     Dest[counter] := char(Source[counter]);
-     Inc(counter);
-   end;
-   { terminate the string }
-   Dest[counter] := #0;
-   WStrCopy := Dest;
- end;
-
 var
   DT : TFieldType;
 
@@ -564,7 +564,7 @@ begin
   // See notes from mantis bug-report 8204 for more information
   //    ftBytes                   : ;
   //    ftVarBytes                : ;
-      ftWideString              : WStrCopy(PWideChar(aDest), PWideChar(aSource));
+      ftWideString              : StrCopy(PWideChar(aDest), PWideChar(aSource));
       end
     end
   else
@@ -576,7 +576,7 @@ begin
       ftFMTBCD                  : TBcd(aDest^) := TBcd(aSource^);
   //    ftBytes                   : ;
   //    ftVarBytes                : ;
-      ftWideString              : WStrCopy(PWideChar(aDest), PWideChar(aSource));
+      ftWideString              : StrCopy(PWideChar(aDest), PWideChar(aSource));
       end
     end
 end;
@@ -761,20 +761,20 @@ begin
   If FRecordCount>0 Then SetCurrentRecord(FRecordCount-1);
   Result:=GetRecord(FBuffers[FBufferCount],gmNext,True)=grOK;
 
-  if result then
+  if Result then
     begin
       If FRecordCount=0 then ActivateBuffers;
       if FRecordCount=FBufferCount then
         ShiftBuffersBackward
       else
         begin
-          inc(FRecordCount);
+          Inc(FRecordCount);
           FCurrentRecord:=FRecordCount - 1;
           ExchangeBuffers(FBuffers[FCurrentRecord],FBuffers[FBufferCount]);
         end;
     end
   else
-    cursorposchanged;
+    CursorPosChanged;
 {$ifdef dsdebug}
   Writeln ('Result getting next record : ',Result);
 {$endif}
@@ -803,16 +803,16 @@ begin
   CheckBiDirectional;
   If FRecordCount>0 Then SetCurrentRecord(0);
   Result:=GetRecord(FBuffers[FBufferCount],gmPrior,True)=grOK;
-  if result then
+  if Result then
     begin
       If FRecordCount=0 then ActivateBuffers;
       ShiftBuffersForward;
 
       if FRecordCount<FBufferCount then
-        inc(FRecordCount);
+        Inc(FRecordCount);
     end
   else
-    cursorposchanged;
+    CursorPosChanged;
 {$ifdef dsdebug}
   Writeln ('Result getting prior record : ',Result);
 {$endif}
@@ -881,6 +881,12 @@ begin
   FFieldDefs.Assign(AFieldDefs);
 end;
 
+procedure TDataSet.SetSparseArrays(AValue: Boolean);
+begin
+  // http://docwiki.embarcadero.com/Libraries/Sydney/en/Data.DB.TDataSet.SparseArrays
+  FSparseArrays := AValue;
+end;
+
 procedure TDataSet.DoInsertAppendRecord(const Values: array of const; DoAppend : boolean);
 var i : integer;
     ValuesSize : integer;
@@ -892,30 +898,30 @@ begin
   else
     Insert;
 
-  for i := 0 to ValuesSize-1 do with values[i] do
-    fields[i].AssignValue(values[i]);
+  for i := 0 to ValuesSize-1 do
+    Fields[i].AssignValue(Values[i]);
   Post;
 
 end;
 
-procedure TDataSet.InitFieldDefsFromfields;
+procedure TDataSet.InitFieldDefsFromFields;
 var i : integer;
 
 begin
-  if FieldDefs.count = 0 then
+  if FieldDefs.Count = 0 then
     begin
     FieldDefs.BeginUpdate;
     try
-      for i := 0 to Fields.Count-1 do with fields[i] do
+      for i := 0 to Fields.Count-1 do with Fields[i] do
         if not (FieldKind in [fkCalculated,fkLookup]) then // Do not add fielddefs for calculated/lookup fields.
           begin
           FFieldDef:=FieldDefs.FieldDefClass.Create(FieldDefs,FieldName,DataType,Size,Required,FieldDefs.Count+1);
           with FFieldDef do
             begin
-            if Required then Attributes := attributes + [faRequired];
-            if ReadOnly then Attributes := attributes + [faReadOnly];
-            if DataType = ftBCD then precision := (fields[i] as TBCDField).Precision
-            else if DataType = ftFMTBcd then precision := (fields[i] as TFMTBCDField).Precision;
+            if Required then Attributes := Attributes + [faRequired];
+            if ReadOnly then Attributes := Attributes + [faReadOnly];
+            if DataType = ftBCD then Precision := (Fields[i] as TBCDField).Precision
+            else if DataType = ftFMTBcd then Precision := (Fields[i] as TFMTBCDField).Precision;
             end;
           end;
     finally
@@ -1026,7 +1032,7 @@ end;
 
 procedure TDataSet.InternalPost;
 
-  Procedure Checkrequired;
+  Procedure CheckRequiredFields;
 
   Var I : longint;
 
@@ -1040,7 +1046,7 @@ procedure TDataSet.InternalPost;
   end;
 
 begin
-  Checkrequired;
+  CheckRequiredFields;
 end;
 
 procedure TDataSet.InternalSetToRecord(Buffer: TRecordBuffer);
@@ -1142,11 +1148,11 @@ begin
   else
     ABufferCount := DefaultBufferCount;
 
-  for i := 0 to FDataSources.Count - 1 do
-    for j := 0 to TDataSource(FDataSources[i]).DataLinks.Count - 1 do
+  for i := 0 to MyDataSourceCount - 1 do
+    for j := 0 to MyDataSources[i].DataLinkCount - 1 do
       begin
-      DataLink:=TDataLink(TDataSource(FDataSources[i]).DataLinks[j]);
-      if DataLink.BufferCount>ABufferCount then
+      DataLink:=MyDataSources[i].DataLink[j];
+      if ABufferCount<DataLink.BufferCount then
         ABufferCount:=DataLink.BufferCount;
       end;
 
@@ -1174,6 +1180,9 @@ begin
     ' FBufferCount= ',FBufferCount,
     ' FRecordCount=',FRecordCount);
 {$Endif}
+  for i := 0 to MyDataSourceCount - 1 do
+    for j := 0 to MyDataSources[i].DataLinkCount - 1 do
+       MyDataSources[i].DataLink[j].CalcRange;
 end;
 
 procedure TDataSet.SetBookmarkStr(const Value: TBookmarkStr);
@@ -1198,11 +1207,11 @@ begin
 {$ifdef dsdebug}
     Writeln ('   Reallocating memory :',(Value+1)*SizeOf(TRecordBuffer));
 {$endif}
-    ReAllocMem(FBuffers,(Value+1)*SizeOf(PChar));
+    ReAllocMem(FBuffers,(Value+1)*SizeOf(TRecordBuffer));
 {$ifdef dsdebug}
     Writeln ('   Filling memory :',(Value+1-FBufferCount)*SizeOf(TRecordBuffer));
 {$endif}
-    inc(FBufferCount); // Cause FBuffers[FBufferCount] is already allocated
+    Inc(FBufferCount); // Cause FBuffers[FBufferCount] is already allocated
     FillChar(FBuffers[FBufferCount],(Value+1-FBufferCount)*SizeOf(TRecordBuffer),#0);
 {$ifdef dsdebug}
     Writeln ('   Filled memory');
@@ -1284,7 +1293,7 @@ begin
       bfBOF : InternalFirst;
       bfEOF : InternalLast;
       end;
-    FCurrentRecord:=index;
+    FCurrentRecord:=Index;
     end;
 end;
 
@@ -1338,30 +1347,45 @@ end;
 
 procedure TDataSet.SetName(const Value: TComponentName);
 
-function CheckName(const FieldName: string): string;
-var i,j: integer;
-begin
-  Result := FieldName;
-  i := 0;
-  j := 0;
-  while (i < Fields.Count) do begin
-    if Result = Fields[i].FieldName then begin
-      inc(j);
-      Result := FieldName + IntToStr(j);
-    end else Inc(i);
+  function CheckName(const FieldName: string): string;
+
+  var i,j: integer;
+
+  begin
+    Result := FieldName;
+    i := 0;
+    j := 0;
+    // Check if fieldname exists.
+    while (i < Fields.Count) do
+      if Not SameText(Result,Fields[i].Name) then
+        inc(i)
+      else
+        begin
+        inc(j);
+        Result := FieldName + IntToStr(j);
+        i := 0;
+        end;
+    // Check if component with the same name exists.
+    if Assigned(Owner) then
+      While Owner.FindComponent(Result)<>Nil do
+        begin
+        Inc(J);
+        Result := FieldName + IntToStr(j);
+        end;
   end;
-end;
-var i: integer;
-    nm: string;
-    old: string;
+
+var
+  i: integer;
+  OldName, OldFieldName: string;
+
 begin
   if Self.Name = Value then Exit;
-  old := Self.Name;
+  OldName := Self.Name;
   inherited SetName(Value);
   if (csDesigning in ComponentState) then
     for i := 0 to Fields.Count - 1 do begin
-      nm := old + Fields[i].FieldName;
-      if Copy(Fields[i].Name, 1, Length(nm)) = nm then
+      OldFieldName := OldName + Fields[i].FieldName;
+      if Copy(Fields[i].Name, 1, Length(OldFieldName)) = OldFieldName then
         Fields[i].Name := CheckName(Value + Fields[i].FieldName);
     end;
 end;
@@ -1511,6 +1535,8 @@ procedure TDataSet.ClearFields;
 
 
 begin
+  if not (State in dsEditModes) then
+    DatabaseError(SNotEditing, Self);
   DataEvent(deCheckBrowseMode, 0);
   FreeFieldBuffers;
   InternalInitRecord(ActiveBuffer);
@@ -2140,8 +2166,6 @@ begin
 {$endif}
       // nothing found, invalidate buffer and bail out.
       ClearBuffers;
-      // Make sure that the active record is 'empty', ie: that all fields are null
-      InternalInitRecord(ActiveBuffer);
       DataEvent(deDatasetChange,0);
       exit;
       end;
@@ -2163,7 +2187,7 @@ begin
     inc(i);
   FActiveRecord := i;
 // Fill the rest of the buffer
-  getnextrecords;
+  GetNextRecords;
 // If the buffer is not full yet, try to fetch some more prior records
   if FRecordCount < FBufferCount then inc(FActiveRecord,getpriorrecords);
 // That's all folks!

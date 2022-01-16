@@ -31,13 +31,19 @@ unit typelib;
 
   You should have received a copy of the GNU Library General Public License
   along with this library; if not, write to the Free Software Foundation,
-  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 }
 
 interface
 
 uses
   Classes, SysUtils,comobj,activex,windows;
+
+// Style of input ref parameters:
+Type
+    TParamInputRefType = (ParamInputVar,               // old delphi [in] becomes VAR,  Default
+                          ParamInputConstRef,          // (old) FPC    [in] becomes CONSTREF
+                          ParamInputConstRefDelphi);   // XE3+ style  CONST [Ref]
 
 {
 Reads type information from 'FileName' and converts it in a freepascal binding unit. The
@@ -52,12 +58,12 @@ To load a different type of library resource, append an integer index to 'FileNa
 
 Example:  C:\WINDOWS\system32\msvbvm60.dll\3
 }
+
 function ImportTypelib(FileName: WideString;var sUnitName:string;var slDependencies:TStringList;
-  bActiveX,bPackage,bRemoveStructTag:boolean;var sPackageSource,sPackageRegUnitSource:String):string;
+  bActiveX,bPackage,bRemoveStructTag:boolean;var sPackageSource,sPackageRegUnitSource:String;inreftype :TParamInputRefType  = ParamInputVar):string;
 
 
 Type
-
   { TTypeLibImporter }
 
   TTypeLibImporter = Class(TComponent)
@@ -65,6 +71,7 @@ Type
     FActiveX: Boolean;
     FAppendVersionNumber: Boolean;
     FCreatePackage: Boolean;
+    FInParamRefStyle : TParamInputRefType;
     FDependencies: TStringList;
     FRemoveStructTag: Boolean;
     FUnitSource: TStringList;
@@ -157,6 +164,8 @@ Type
     Property RemoveStructTag : Boolean read FRemoveStructTag write SetRemoveStructTag Default False;
     // Set automatically by OutputFileName or by Execute
     Property UnitName : string Read FUnitname Write SetUnitName;
+    // generate constref for [in] parameters instead of delphi compatible VAR, mantis 30764
+    Property InParamRefStyle  : TParamInputRefType read fInParamRefStyle write FInParamRefStyle;
   end;
 
 
@@ -166,7 +175,7 @@ Resourcestring
   SErrInvalidUnitName = 'Invalid unit name : %s';
 
 function ImportTypelib(FileName: WideString;var sUnitName:string;var slDependencies:TStringList;
-  bActiveX,bPackage,bRemoveStructTag:boolean;var sPackageSource,sPackageRegUnitSource:String):string;
+  bActiveX,bPackage,bRemoveStructTag:boolean;var sPackageSource,sPackageRegUnitSource:String;inreftype :TParamInputRefType  = ParamInputVar):string;
 var i:integer;
 begin
   With TTypeLibImporter.Create(Nil) do
@@ -175,11 +184,13 @@ begin
       ActiveX:=bActiveX;
       CreatePackage:=bPackage;
       RemoveStructTag:=bRemoveStructTag;
+      InParamRefStyle :=inreftype;
       Execute;
       Result:=UnitSource.Text;
       sUnitname:=UnitName;
       sPackageSource:=FPackageSource.Text;
       sPackageRegUnitSource:=FPackageRegUnitSource.Text;
+
       if Assigned(slDependencies) then
         begin  //add new dependencies
         for i:=0 to Dependencies.Count-1 do
@@ -394,7 +405,8 @@ begin
         if RegQueryValue(Handle,nil,@sRefSrc[1],@il) = ERROR_SUCCESS then
           begin
           SetLength(sRefSrc,il-1);  // includes null terminator
-          if not FDependencies.Find(sRefSrc,i) then
+          i:=FDependencies.Indexof(sRefSrc);
+          if i < 0 Then
             FDependencies.Add(sRefSrc);
           end
         else
@@ -455,7 +467,7 @@ var
   TIref: ITypeInfo;
   BstrName,BstrNameRef,BstrDocString : WideString;
   s,sl,sPropDispIntfc,sType,sConv,sFunc,sPar,sVarName,sMethodName,
-  sPropParam,sPropParam2,sPropParam3:string;
+  sPropParam,sPropParam2,sPropParam3,tmp: string;
   sEventSignatures,sEventFunctions,sEventProperties,sEventImplementations:string;
   i,j,k:integer;
   FD: lpFUNCDESC;
@@ -466,6 +478,7 @@ var
   VD: lpVARDESC;
   aPropertyDefs:array of TPropertyDef;
   Propertycnt,iType:integer;
+  Modifier: string;
 
   function findProperty(ireqdispid:integer):integer;
   var i:integer;
@@ -545,11 +558,18 @@ begin
     OleCheck(TI.GetNames(FD^.memid,@BL,length(BL),cnt));
     // skip IUnknown and IDispatch methods
     sl:=lowercase(BL[0]);
-    if (sl='queryinterface') or (sl='addref') or (sl='release') then  //IUnknown
+    (*************************
+     * Code portion removed by José Mejuto.
+     * If the interface declaration appears in the TLB it must be imported
+     * or the sequences of functions will be broken and any function below this
+     * point would be called wrongly.
+     *************************
+    if ((sl='queryinterface') or (sl='addref') or (sl='release')) then  //IUnknown
       continue;
     if bIsDispatch and
       ((sl='gettypeinfocount') or (sl='gettypeinfo') or (sl='getidsofnames') or (sl='invoke')) then  //IDispatch
       continue;
+      *)
     // get return type
     if bIsDispatch and ((FD^.invkind=INVOKE_PROPERTYGET) or (FD^.invkind=INVOKE_FUNC)) then
       begin
@@ -577,7 +597,7 @@ begin
     //get calling convention
     if FD^.callconv=CC_STDCALL then
       begin
-      if lowercase(BstrNameRef)='iunknown' then
+      if not (bIsDispatch or ((TA^.wTypeFlags and TYPEFLAG_FDUAL)=TYPEFLAG_FDUAL)) then
         sConv:='stdcall'
       else
         sConv:='safecall';
@@ -634,7 +654,12 @@ begin
             case FD^.lprgelemdescParam[k].paramdesc.wParamFlags and (PARAMFLAG_FIN or PARAMFLAG_FOUT) of
             PARAMFLAG_FIN or PARAMFLAG_FOUT:sPar:='var ';
             PARAMFLAG_FOUT:sPar:='out ';
-            PARAMFLAG_FIN:sPar:='var '; //constref in safecall? TBD
+            PARAMFLAG_NONE,
+            PARAMFLAG_FIN: case FInParamRefStyle of
+                              ParamInputVar             : sPar:='var '; //constref in safecall? TBD
+                              ParamInputConstRef        : sPar:='constref ';
+                              ParamInputConstRefDelphi  : sPar:='const [ref] ';
+                              end;
             end;
           if not MakeValidId(GetName(k+1),sVarName) then
             AddToHeader('//  Warning: renamed parameter ''%s'' in %s.%s to ''%s''',[GetName(k+1),iname,sMethodName,sVarName],True);
@@ -709,9 +734,9 @@ begin
           end;
         if bIsFunction then
           if (sConv<>'safecall') then
-            sFunc:=sFunc+':HRESULT'
+            sFunc:=sFunc+': HRESULT'
           else
-            sFunc:=sFunc+format(':%s',[sType]);
+            sFunc:=sFunc+format(': %s',[sType]);
         if bIsDispatch then
           s:=s+sFunc+format(';dispid %d;'#13#10,[FD^.memid])
         else
@@ -749,7 +774,7 @@ begin
               sType:=sType+'  readonly'
             else
               sType:=sType+' writeonly';
-            sPropDispIntfc:=sPropDispIntfc+format('    // %s : %s '#13#10'   property %s%s:%s dispid %d;%s'#13#10,
+            sPropDispIntfc:=sPropDispIntfc+format('    // %s : %s '#13#10'   property %s%s: %s dispid %d;%s'#13#10,
               [BstrName,BstrDocString,sMethodName,sPropParam,sType,FD^.memid,sl]);
             end
           else //remove readonly or writeonly
@@ -761,6 +786,8 @@ begin
           begin
           //getters/setters for interface, insert in interface as they come,
           //store in aPropertyDefs to create properties at the end
+          bParamByRef:=(FD^.lprgelemdescParam[0].tdesc.vt=VT_PTR) and                         // by ref
+          not((FD^.lprgelemdescParam[0].tdesc.lptdesc^.vt=VT_USERDEFINED) and bIsInterface);// but not pointer to interface
           if bPropHasParam then
             begin
             sPropParam2:='('+sPropParam+')';
@@ -785,33 +812,41 @@ begin
             begin
             if not MakeValidId(GetName(1),sVarName) then
               AddToHeader('//  Warning: renamed parameter ''%s'' in %s.Set_%s to ''%s''',[GetName(1),iname,sMethodName,sVarName]);
-            with aPropertyDefs[findProperty(FD^.memid)] do
+            if not bParamByRef then
               begin
-              if FD^.invkind=INVOKE_PROPERTYPUT then
+              with aPropertyDefs[findProperty(FD^.memid)] do
                 begin
-                sptype:=sType;
-                bput:=true;
-                if bputref then                  //disambiguate  multiple setter
-                  sMethodName:=sMethodName+'_';
-                pname:=sMethodName;
-                end
-              else
-                begin
-                sprtype:=sType;
-                bputref:=true;
-                if bput then                     //disambiguate  multiple setter
-                  sMethodName:=sMethodName+'_';
-                prname:=sMethodName;
+                if FD^.invkind=INVOKE_PROPERTYPUT then
+                  begin
+                  sptype:=sType;
+                  bput:=true;
+                  if bputref then                  //disambiguate  multiple setter
+                    sMethodName:=sMethodName+'_';
+                  pname:=sMethodName;
+                  end
+                else
+                  begin
+                  sprtype:=sType;
+                  bputref:=true;
+                  if bput then                     //disambiguate  multiple setter
+                    sMethodName:=sMethodName+'_';
+                  prname:=sMethodName;
+                  end;
+                  sorgname:=BstrName;
+                  sdoc:=BstrDocString;
+                  sParam:=sPropParam;
+                  sDefault:=sl;
                 end;
-              sorgname:=BstrName;
-              sdoc:=BstrDocString;
-              sParam:=sPropParam;
-              sDefault:=sl;
               end;
-            if bPropHasParam then
-              s:=s+format('   procedure Set_%s(const %s:%s); %s;'#13#10,[sMethodName,sPropParam3,sType,sConv])
+            tmp:='   procedure Set_%s(%s %s:%s); %s;'#13#10;
+            if not bParamByRef then 
+              Modifier:='const'
             else
-              s:=s+format('   procedure Set_%s(const %s:%s); %s;'#13#10,[sMethodName,sVarName,sType,sConv]);
+              Modifier:='var';
+            if bPropHasParam then
+              s:=s+format(tmp,[sMethodName,Modifier,sPropParam3,sType,sConv])
+            else
+              s:=s+format(tmp,[sMethodName,Modifier,sVarName,sType,sConv]);
             end;
           end;
         end;
@@ -829,7 +864,7 @@ begin
         if not MakeValidId(BstrName,sMethodName) then
           AddToHeader('//  Warning: renamed property ''%s'' in %s to ''%s''',[BstrName,iname,sMethodName]);
         sType:=TypeToString(TI,VD^.ElemdescVar.tdesc);
-        sPropDispIntfc:=sPropDispIntfc+format('    // %s : %s '#13#10'   property %s:%s  dispid %d;'#13#10,
+        sPropDispIntfc:=sPropDispIntfc+format('    // %s : %s '#13#10'   property %s: %s  dispid %d;'#13#10,
           [BstrName,BstrDocString,sMethodName,sType,VD^.memId]);
         end;
       end;
@@ -853,23 +888,23 @@ begin
       if not bget then //setter only
         begin
         if bput then
-          s:=s+format('    // %s : %s '#13#10'   property %s%s:%s write Set_%s;%s'#13#10,
+          s:=s+format('    // %s : %s '#13#10'   property %s%s: %s write Set_%s;%s'#13#10,
             [sorgname,sdoc,pname,sParam,sptype,pname,sDefault])
         else
-          s:=s+format('    // %s : %s '#13#10'   property %s%s:%s write Set_%s;%s'#13#10,
+          s:=s+format('    // %s : %s '#13#10'   property %s%s: %s write Set_%s;%s'#13#10,
             [sorgname,sdoc,prname,sParam,sprtype,prname,sDefault]);
         end
       else if not (bput or bputref) then //getter only
-        s:=s+format('    // %s : %s '#13#10'   property %s%s:%s read Get_%s;%s'#13#10,
+        s:=s+format('    // %s : %s '#13#10'   property %s%s: %s read Get_%s;%s'#13#10,
           [sorgname,sdoc,name,sParam,sgtype,name,sDefault])
       else if bput and (sptype=sgtype) then //don't create property if no matching type.
         begin
-        s:=s+format('    // %s : %s '#13#10'   property %s%s:%s read Get_%s write Set_%s;%s'#13#10,
+        s:=s+format('    // %s : %s '#13#10'   property %s%s: %s read Get_%s write Set_%s;%s'#13#10,
           [sorgname,sdoc,name,sParam,sptype,name,pname,sDefault]);
         end
         else if bputref and (sprtype=sgtype) then //don't create property if no matching type.
           begin
-          s:=s+format('    // %s : %s '#13#10'   property %s%s:%s read Get_%s write Set_%s;%s'#13#10,
+          s:=s+format('    // %s : %s '#13#10'   property %s%s: %s read Get_%s write Set_%s;%s'#13#10,
             [sorgname,sdoc,name,sParam,sprtype,name,prname,sDefault]);
           end;
     result:=s+'  end;'#13#10;
@@ -1039,7 +1074,7 @@ Procedure TTypeLibImporter.ImportEnums(Const TL : ITypeLib; TICount : Integer);
 
 Var
   i,j : integer;
-  sl ,senum: string;
+  sl ,senum, stype: string;
   BstrName, BstrDocString, BstrHelpFile : WideString;
   dwHelpContext: DWORD;
   TI:ITypeInfo;
@@ -1064,14 +1099,18 @@ begin
       bDuplicate:=false;
       if not MakeValidId(BstrName,senum) then
         AddToHeader('//  Warning: renamed enum type ''%s'' to ''%s''',[BstrName,senum],True);
-      if (InterfaceSection.IndexOf(Format('  %s =LongWord;',[senum]))<>-1) then  // duplicate enums fe. AXVCL.dll 1.0
+      if TA^.cbSizeInstance > 2 then
+        stype:='Integer' // https://docs.microsoft.com/en-us/windows/win32/midl/enum
+      else
+        stype:='Word';
+      if (InterfaceSection.IndexOf(Format('  %s = %s;',[senum,stype]))<>-1) then  // duplicate enums fe. AXVCL.dll 1.0
         begin
         senum:=senum+IntToStr(i); // index is unique in this typelib
         AddToHeader('//  Warning: duplicate enum ''%s''. Renamed to ''%s''. consts appended with %d',[BstrName,senum,i]);
         bDuplicate:=true;
         end;
       AddToInterface('Type');
-      AddToInterface('  %s =LongWord;',[senum]);
+      AddToInterface('  %s = %s;',[senum,stype]);
       FTypes.Add(senum);
       FDeclared.Add(senum);
       AddToInterface('Const');
@@ -1094,6 +1133,7 @@ begin
             end;
           end;
         end;
+      AddToInterface('');
       end;
     TI.ReleaseTypeAttr(TA);
     end;
@@ -1755,6 +1795,7 @@ begin
   FUses.Add('Classes');
   //FUses.Add('OleServer');
   FUses.Add('Variants');
+  AddToInterface('');
   AddToInterface('Const');
   AddToInterface('  %sMajorVersion = %d;',[BstrName,LA^.wMajorVerNum]);
   AddToInterface('  %sMinorVersion = %d;',[BstrName,LA^.wMinorVerNum]);

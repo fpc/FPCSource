@@ -33,6 +33,7 @@ type
   TTestTypeParser = Class(TBaseTestTypeParser)
   private
   Protected
+    procedure StartTypeHelper(ForType: String; AParent: String);
     Procedure DoTestAliasType(Const AnAliasType : String; Const AHint : String);
     procedure DoTestStringType(const AnAliasType: String; const AHint: String);
     procedure DoTypeError(Const AMsg,ASource : string);
@@ -42,13 +43,14 @@ type
     Procedure DoParseEnumerated(Const ASource : String; Const AHint : String; ACount : integer);
     Procedure DoTestFileType(Const AType : String; Const AHint : String; ADestType : TClass = Nil);
     Procedure DoTestRangeType(Const AStart,AStop,AHint : String);
-    Procedure DoParseSimpleSet(Const ASource : String; Const AHint : String);
+    Procedure DoParseSimpleSet(Const ASource : String; Const AHint : String; IsPacked : Boolean = False);
     Procedure DoParseComplexSet(Const ASource : String; Const AHint : String);
     procedure DoParseRangeSet(const ASource: String; const AHint: String);
     Procedure DoTestComplexSet;
     Procedure DoTestClassOf(Const AHint : string);
   Published
     Procedure TestAliasType;
+    procedure TestAbsoluteAliasType;
     Procedure TestCrossUnitAliasType;
     Procedure TestAliasTypeDeprecated;
     Procedure TestAliasTypePlatform;
@@ -91,6 +93,11 @@ type
     Procedure TestSimpleTypeStringSizeWrong;
     Procedure TestSimpleTypeStringSizeDeprecated;
     Procedure TestSimpleTypeStringSizePlatform;
+    procedure TestSimpleTypeStringCodePage;
+    procedure TestSimpleTypeStringCodePageIncomplete;
+    procedure TestSimpleTypeStringCodePageWrong;
+    procedure TestSimpleTypeStringCodePageDeprecated;
+    procedure TestSimpleTypeStringCodePagePlatform;
     Procedure TestSimpleTypeWord;
     Procedure TestSimpleTypeWordDeprecated;
     Procedure TestSimpleTypeWordPlatform;
@@ -107,13 +114,19 @@ type
     procedure TestPointerSimpleDeprecated;
     procedure TestPointerSimplePlatform;
     Procedure TestStaticArray;
+    procedure TestStaticArrayAsRange;
     Procedure TestStaticArrayComment;
     procedure TestStaticArrayDeprecated;
     procedure TestStaticArrayPlatform;
     Procedure TestStaticArrayPacked;
     Procedure TestStaticArrayTypedIndex;
+    Procedure TestStaticArrayOfMethod;
+    procedure TestStaticArrayOfProcedure;
     Procedure TestDynamicArray;
     Procedure TestDynamicArrayComment;
+    procedure TestDynamicArrayOfMethod;
+    procedure TestDynamicArrayOfProcedure;
+    Procedure TestGenericArray;
     Procedure TestSimpleEnumerated;
     Procedure TestSimpleEnumeratedComment;
     Procedure TestSimpleEnumeratedComment2;
@@ -126,6 +139,8 @@ type
     Procedure TestFileTypeDeprecated;
     Procedure TestFileTypePlatform;
     Procedure TestRangeType;
+    Procedure TestCharRangeType;
+    Procedure TestCharRangeType2;
     Procedure TestRangeTypeDeprecated;
     Procedure TestRangeTypePlatform;
     Procedure TestIdentifierRangeType;
@@ -133,15 +148,18 @@ type
     Procedure TestIdentifierRangeTypePlatform;
     Procedure TestNegativeIdentifierRangeType;
     Procedure TestSimpleSet;
+    Procedure TestPackedSet;
     Procedure TestSimpleSetDeprecated;
     Procedure TestSimpleSetPlatform;
     Procedure TestComplexSet;
     Procedure TestComplexSetDeprecated;
     Procedure TestComplexSetPlatform;
+    procedure TestRangeLowHigh;
     Procedure TestRangeSet;
     Procedure TestSubRangeSet;
     Procedure TestRangeSetDeprecated;
     Procedure TestRangeSetPlatform;
+    Procedure TestNegativeRangeType;
     Procedure TestClassOf;
     Procedure TestClassOfComment;
     Procedure TestClassOfDeprecated;
@@ -152,24 +170,49 @@ type
     Procedure TestReferenceFile;
     Procedure TestReferenceArray;
     Procedure TestReferencePointer;
+    Procedure TestInvalidColon;
+    Procedure TestTypeHelper;
+    Procedure TestTypeHelperWithParent;
+    procedure TestPointerReference;
+    Procedure TestPointerKeyWord;
+    Procedure TestPointerFile;
+    Procedure TestAbstractObject;
   end;
 
   { TTestRecordTypeParser }
 
-  TTestRecordTypeParser= Class(TBaseTestTypeParser)
+  TTestRecordTypeParser = Class(TBaseTestTypeParser)
   private
+    FDecl : TStrings;
+    FAdvanced,
+    FEnded,
+    FStarted: boolean;
+    FRecord: TPasRecordType;
+    FMember1: TPasElement;
+    function GetC(AIndex: Integer): TPasConst;
     Function GetField(AIndex : Integer; R : TPasRecordType) : TPasVariable;
     Function GetField(AIndex : Integer; R : TPasVariant) : TPasVariable;
     function GetF(AIndex: Integer): TPasVariable;
-    function GetR: TPasRecordType;
+    function GetM(AIndex : Integer): TPasElement;
     Function GetVariant(AIndex : Integer; R : TPasRecordType) : TPasVariant;
     function GetV(AIndex: Integer): TPasVariant;
   Protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+    Procedure StartRecord(Advanced: boolean = false);
+    Procedure EndRecord(AEnd : String = 'end');
+    Procedure AddMember(S : String);
+    Procedure ParseRecord;
+    Procedure ParseRecordFail(Msg: string; MsgNumber: integer);
+    Procedure DoParseRecord;
     Procedure TestFields(Const Fields : Array of string; AHint : String; HaveVariant : Boolean = False);
     procedure AssertVariantSelector(AName, AType: string);
+    procedure AssertConst1(Hints: TPasMemberHints; Index: integer = 1);
     procedure AssertField1(Hints: TPasMemberHints);
     procedure AssertField2(Hints: TPasMemberHints);
-    procedure AssertMethod2(Hints: TPasMemberHints);
+    procedure AssertMethod2(Hints: TPasMemberHints; isClass : Boolean = False);
+    procedure AssertConstructor2(Hints: TPasMemberHints; isClass : Boolean = False);
+    procedure AssertOperatorMethod2(Hints: TPasMemberHints; isClass : Boolean = False);
     procedure AssertVariant1(Hints: TPasMemberHints);
     procedure AssertVariant1(Hints: TPasMemberHints; VariantLabels : Array of string);
     procedure AssertVariant2(Hints: TPasMemberHints);
@@ -177,6 +220,7 @@ type
     procedure AssertOneIntegerField(Hints: TPasMemberHints);
     procedure AssertTwoIntegerFields(Hints1, Hints2: TPasMemberHints);
     procedure AssertIntegerFieldAndMethod(Hints1, Hints2: TPasMemberHints);
+    procedure AssertIntegerFieldAndConstructor(Hints1, Hints2: TPasMemberHints);
     procedure AssertRecordField(AIndex: Integer;Hints: TPasMemberHints);
     procedure AssertRecordVariant(AIndex: Integer;Hints: TPasMemberHints; VariantLabels : Array of string);
     Procedure AssertRecordVariantVariant(AIndex: Integer;Const AFieldName,ATypeName: string;Hints: TPasMemberHints; VariantLabels : Array of string);
@@ -196,11 +240,15 @@ type
     procedure DoTestVariantNestedVariantFirstDeprecated(Const AHint : string);
     procedure DoTestVariantNestedVariantSecondDeprecated(const AHint: string);
     procedure DoTestVariantNestedVariantBothDeprecated(const AHint: string);
-    Property TheRecord : TPasRecordType Read GetR;
+    Property TheRecord : TPasRecordType Read FRecord;
+    Property Advanced: boolean read FAdvanced;
+    Property Const1 : TPasConst Index 0 Read GetC;
     Property Field1 : TPasVariable Index 0 Read GetF;
     Property Field2 : TPasVariable Index 1 Read GetF;
     Property Variant1 : TPasVariant Index 0 Read GetV;
     Property Variant2 : TPasVariant Index 1 Read GetV;
+    Property Members[AIndex : Integer] : TPasElement Read GetM;
+    Property Member1 : TPasElement Read FMember1;
   Published
     Procedure TestEmpty;
     Procedure TestEmptyComment;
@@ -219,6 +267,7 @@ type
     Procedure TestOnePlatformField;
     Procedure TestOnePlatformFieldDeprecated;
     Procedure TestOnePlatformFieldPlatform;
+    Procedure TestOneGenericField;
     Procedure TestTwoFields;
     procedure TestTwoFieldProtected;
     procedure TestTwoFieldStrictPrivate;
@@ -241,8 +290,14 @@ type
     Procedure TestTwoDeprecatedFieldsCombined;
     Procedure TestTwoDeprecatedFieldsCombinedDeprecated;
     Procedure TestTwoDeprecatedFieldsCombinedPlatform;
+    procedure TestFieldAndConstructor;
     Procedure TestFieldAndMethod;
     Procedure TestFieldAnd2Methods;
+    Procedure TestFieldAndProperty;
+    Procedure TestFieldAndClassMethod;
+    Procedure TestFieldAndClassOperator;
+    Procedure TestFieldAndClassVar;
+    Procedure TestFieldAndVar;
     Procedure TestNested;
     Procedure TestNestedDeprecated;
     Procedure TestNestedPlatform;
@@ -303,6 +358,25 @@ type
     Procedure TestVariantNestedVariantBothDeprecated;
     Procedure TestVariantNestedVariantBothDeprecatedDeprecated;
     Procedure TestVariantNestedVariantBothDeprecatedPlatform;
+    Procedure TestOperatorField;
+    Procedure TestPropertyFail;
+    Procedure TestAdvRec_TwoConst;
+    Procedure TestAdvRec_Property;
+    Procedure TestAdvRec_PropertyImplementsFail;
+    Procedure TestAdvRec_PropertyNoTypeFail;
+    Procedure TestAdvRec_ForwardFail;
+    Procedure TestAdvRec_PublishedFail;
+    Procedure TestAdvRec_ProcVirtualFail;
+    Procedure TestAdvRec_ProcOverrideFail;
+    Procedure TestAdvRec_ProcMessageFail;
+    Procedure TestAdvRec_DestructorFail;
+    Procedure TestAdvRec_CaseInVar;
+    Procedure TestAdvRec_EmptySections;
+    Procedure TestAdvRecordInFunction;
+    Procedure TestAdvRecordInAnonFunction;
+    Procedure TestAdvRecordClassOperator;
+    Procedure TestAdvRecordInitOperator;
+    Procedure TestAdvRecordGenericFunction;
   end;
 
   { TTestProcedureTypeParser }
@@ -389,6 +463,7 @@ type
     Procedure TestProcedureOutOpenArray;
     Procedure TestProcedureVarOpenArray;
     Procedure TestProcedureArrayOfConst;
+    Procedure TestProcedureReference;
     Procedure TestProcedureOfObject;
     Procedure TestProcedureOfObjectOneArg;
     Procedure TestProcedureIsNested;
@@ -397,6 +472,11 @@ type
     Procedure TestFunctionOneArg;
     Procedure TestFunctionOfObject;
     Procedure TestFunctionOneArgOfObject;
+    Procedure TestCBlock;
+    Procedure TestMacPasoutArg;
+    Procedure TestMacPasPropertyArg;
+    Procedure TestMacPasPropertyVarArg;
+    Procedure TestMacPasClassArg;
   end;
 
 
@@ -685,6 +765,8 @@ begin
   AssertNotNull('have right expr', B.Right);
   AssertEquals('argument right expr type', TPrimitiveExpr, B.right.ClassType);
   AssertEquals('argument right expr value', '2', TPrimitiveExpr(B.right).Value);
+  TAssert.AssertSame('B.left.parent=B',B,B.left.Parent);
+  TAssert.AssertSame('B.right.parent=B',B,B.right.Parent);
 end;
 
 procedure TTestProcedureTypeParser.DoTestProcedureOneArgDefaultSet(
@@ -729,15 +811,20 @@ end;
 Function TTestProcedureTypeParser.ParseType(ASource: String;
   CC: TCallingConvention; ATypeClass: TClass; Const AHint: String
   ): TPasProcedureType;
+
+Var
+  CCS : String;
+
 begin
   if CC=ccdefault then
     Result:=TPasProcedureType(ParseType(ASource,ATypeClass,AHint))
   else
     begin
+    CCS:=cCallingConventions[CC];
     if (AHint<>'') then
-      Result:=TPasProcedureType(ParseType(ASource+';' +cCallingConventions[CC]+';',ATypeClass,AHint))
+      Result:=TPasProcedureType(ParseType(ASource+';' +CCS+';',ATypeClass,AHint))
     else
-      Result:=TPasProcedureType(ParseType(ASource+';' +cCallingConventions[CC],ATypeClass,AHint));
+      Result:=TPasProcedureType(ParseType(ASource+';' +CCS,ATypeClass,AHint));
     end;
   FProc:=Result;
   AssertEquals('Correct calling convention for procedural type',cc,Result.CallingConvention);
@@ -1058,6 +1145,13 @@ begin
   TestCallingConventions(@DoTestProcedureArrayOfConst);
 end;
 
+procedure TTestProcedureTypeParser.TestProcedureReference;
+begin
+  ParseType('reference to procedure',ccDefault,TPasProcedureType);
+  AssertEquals('Argument count',0,Proc.Args.Count);
+  AssertEquals('Is Reference to',True,Proc.IsReferenceTo);
+end;
+
 Procedure TTestProcedureTypeParser.TestProcedureOfObject;
 begin
   TestCallingConventions(@DoTestProcedureOfObject);
@@ -1099,9 +1193,56 @@ begin
 
 end;
 
+procedure TTestProcedureTypeParser.TestCBlock;
+
+
+begin
+  ParseType('reference to procedure (a: integer); cblock;',TPasProcedureType,'');
+  FProc:=Definition as TPasProcedureType;
+  AssertEquals('Argument count',1,Proc.Args.Count);
+  AssertEquals('Is cblock',True,ptmCblock in Proc.Modifiers);
+end;
+
+procedure TTestProcedureTypeParser.TestMacPasoutArg;
+begin
+  Parser.CurrentModeswitches:=[msMac];
+  ParseType('procedure (out: integer); ',TPasProcedureType,'');
+  FProc:=Definition as TPasProcedureType;
+  AssertEquals('Argument count',1,Proc.Args.Count);
+end;
+
+procedure TTestProcedureTypeParser.TestMacPasPropertyArg;
+begin
+  Parser.CurrentModeswitches:=[msMac];
+  ParseType('procedure (property : integer); ',TPasProcedureType,'');
+  FProc:=Definition as TPasProcedureType;
+  AssertEquals('Argument count',1,Proc.Args.Count);
+end;
+
+procedure TTestProcedureTypeParser.TestMacPasPropertyVarArg;
+begin
+  Parser.CurrentModeswitches:=[msMac];
+  ParseType('procedure (var property : integer); ',TPasProcedureType,'');
+  FProc:=Definition as TPasProcedureType;
+  AssertEquals('Argument count',1,Proc.Args.Count);
+end;
+
+procedure TTestProcedureTypeParser.TestMacPasClassArg;
+begin
+  Parser.CurrentModeswitches:=[msMac];
+  ParseType('procedure (class : integer); ',TPasProcedureType,'');
+  FProc:=Definition as TPasProcedureType;
+  AssertEquals('Argument count',1,Proc.Args.Count);
+end;
+
 { TTestRecordTypeParser }
 
-Function TTestRecordTypeParser.GetField(AIndex: Integer; R: TPasRecordType
+function TTestRecordTypeParser.GetC(AIndex: Integer): TPasConst;
+begin
+  Result:=TObject(TheRecord.Members[AIndex]) as TPasConst;
+end;
+
+function TTestRecordTypeParser.GetField(AIndex: Integer; R: TPasRecordType
   ): TPasVariable;
 begin
   AssertNotNull(R);
@@ -1111,7 +1252,7 @@ begin
   Result:=TPasVariable(R.Members[AIndex]);
 end;
 
-Function TTestRecordTypeParser.GetField(AIndex: Integer; R: TPasVariant
+function TTestRecordTypeParser.GetField(AIndex: Integer; R: TPasVariant
   ): TPasVariable;
 begin
   AssertNotNull(R);
@@ -1124,15 +1265,21 @@ end;
 
 function TTestRecordTypeParser.GetF(AIndex: Integer): TPasVariable;
 begin
-  Result:=GetField(AIndex,GetR);
+  Result:=GetField(AIndex,TheRecord);
 end;
 
-function TTestRecordTypeParser.GetR: TPasRecordType;
+function TTestRecordTypeParser.GetM(AIndex : Integer): TPasElement;
 begin
-  Result:=TheType as TPasRecordType;
+  AssertNotNull('Have Record',TheRecord);
+  if (AIndex>=TheRecord.Members.Count) then
+    Fail('No member '+IntToStr(AIndex));
+  AssertNotNull('Have member'+IntToStr(AIndex),TheRecord.Members[AIndex]);
+  If Not (TObject(TheRecord.Members[AIndex]) is TPasElement) then
+    Fail('Member '+IntTostr(AIndex)+' is not a TPasElement');
+  Result:=TPasElement(TheRecord.Members[AIndex])
 end;
 
-Function TTestRecordTypeParser.GetVariant(AIndex: Integer; R: TPasRecordType
+function TTestRecordTypeParser.GetVariant(AIndex: Integer; R: TPasRecordType
   ): TPasVariant;
 begin
   AssertNotNull(R);
@@ -1144,10 +1291,98 @@ end;
 
 function TTestRecordTypeParser.GetV(AIndex: Integer): TPasVariant;
 begin
-  Result:=GetVariant(AIndex,GetR);
+  Result:=GetVariant(AIndex,TheRecord);
 end;
 
-Procedure TTestRecordTypeParser.TestFields(Const Fields: Array of string;
+procedure TTestRecordTypeParser.SetUp;
+begin
+  inherited SetUp;
+  FDecl:=TStringList.Create;
+  FStarted:=false;
+  FEnded:=false;
+end;
+
+procedure TTestRecordTypeParser.TearDown;
+begin
+  FreeAndNil(FDecl);
+  inherited TearDown;
+end;
+
+procedure TTestRecordTypeParser.StartRecord(Advanced: boolean);
+var
+  S: String;
+begin
+  if FStarted then
+    Fail('TTestRecordTypeParser.StartRecord already started');
+  FStarted:=True;
+  S:='TMyRecord = record';
+  if Advanced then
+    S:='{$modeswitch advancedrecords}'+sLineBreak+S;
+  FDecl.Add(S);
+end;
+
+procedure TTestRecordTypeParser.EndRecord(AEnd: String);
+begin
+  if FEnded then exit;
+  if not FStarted then
+    StartRecord;
+  FEnded:=True;
+  if (AEnd<>'') then
+    FDecl.Add('  '+AEnd);
+end;
+
+procedure TTestRecordTypeParser.AddMember(S: String);
+begin
+  if Not FStarted then
+    StartRecord;
+  FDecl.Add('    '+S);
+end;
+
+procedure TTestRecordTypeParser.ParseRecord;
+begin
+  DoParseRecord;
+end;
+
+procedure TTestRecordTypeParser.ParseRecordFail(Msg: string; MsgNumber: integer
+  );
+var
+  ok: Boolean;
+begin
+  ok:=false;
+  try
+    ParseRecord;
+  except
+    on E: EParserError do
+      begin
+      AssertEquals('Expected {'+Msg+'} '+IntToStr(MsgNumber)+', but got msg {'+Parser.LastMsg+'} '+IntToStr(Parser.LastMsgNumber),MsgNumber,Parser.LastMsgNumber);
+      AssertEquals('Expected {'+Msg+'}, but got msg {'+Parser.LastMsg+'}',Msg,Parser.LastMsg);
+      ok:=true;
+      end;
+  end;
+  AssertEquals('Missing parser error {'+Msg+'} ('+IntToStr(MsgNumber)+')',true,ok);
+end;
+
+procedure TTestRecordTypeParser.DoParseRecord;
+begin
+  EndRecord;
+  Add('Type');
+  if AddComment then
+    begin
+    Add('// A comment');
+    Engine.NeedComments:=True;
+    end;
+  Add('  '+TrimRight(FDecl.Text)+';');
+  ParseDeclarations;
+  AssertEquals('One record type definition',1,Declarations.Types.Count);
+  AssertEquals('First declaration is type definition.',TPasRecordType,TObject(Declarations.Types[0]).ClassType);
+  FRecord:=TObject(Declarations.Types[0]) as TPasRecordType;
+  TheType:=FRecord; // needed by AssertComment
+  Definition:=TheType; // needed by CheckHint
+  if TheRecord.Members.Count>0 then
+    FMember1:=TObject(TheRecord.Members[0]) as TPasElement;
+end;
+
+procedure TTestRecordTypeParser.TestFields(const Fields: array of string;
   AHint: String; HaveVariant: Boolean);
 
 Var
@@ -1155,45 +1390,60 @@ Var
   I : integer;
 
 begin
-  S:='';
+  StartRecord;
   For I:=Low(Fields) to High(Fields) do
-    begin
-    if (S<>'') then
-      S:=S+sLineBreak;
-    S:=S+'    '+Fields[i];
-    end;
-  if (S<>'') then
-    S:=S+sLineBreak;
-  S:='record'+sLineBreak+s+'  end';
-  ParseType(S,TPasRecordType,AHint);
+    AddMember(Fields[i]);
+  S:='end';
+  if AHint<>'' then
+    S:=S+' '+AHint;
+  EndRecord(S);
+  ParseRecord;
   if HaveVariant then
     begin
     AssertNotNull('Have variants',TheRecord.Variants);
-    AssertNotNull('Have variant type',TheRecord.VariantType);
+    AssertNotNull('Have variant type',TheRecord.VariantEl);
     end
   else
     begin
     AssertNull('No variants',TheRecord.Variants);
-    AssertNull('No variant type',TheRecord.VariantType);
-    AssertEquals('No variant name','',TheRecord.VariantName);
+    AssertNull('No variant element',TheRecord.VariantEl);
     end;
   if AddComment then
     AssertComment;
+  if (AHint<>'') then
+    CheckHint(TPasMemberHint(GetEnumValue(TypeInfo(TPasMemberHint),'h'+AHint)));
 end;
 
 procedure TTestRecordTypeParser.AssertVariantSelector(AName,AType : string);
 
+var
+  V: TPasVariable;
 begin
-  if (AType='') then
-    AType:='Integer';
-  AssertEquals('Have variant selector storage name',AName,TheRecord.VariantName);
-  AssertNotNull('Have variant selector type',TheRecord.VariantType);
-  AssertEquals('Have variant selector type',TPasUnresolvedTypeRef,TheRecord.VariantType.ClassType);
-  AssertEquals('Have variant selector type name',AType,TheRecord.VariantType.Name);
+  AssertNotNull('Have variant element',TheRecord.VariantEl);
+  if AName<>'' then
+    begin
+    AssertEquals('Have variant variable',TPasVariable,TheRecord.VariantEl.ClassType);
+    V:=TPasVariable(TheRecord.VariantEl);
+    AssertEquals('Have variant variable name',AName,V.Name);
+    AssertNotNull('Have variant var type',V.VarType);
+    AssertEquals('Have variant selector type',TPasUnresolvedTypeRef,V.VarType.ClassType);
+    AssertEquals('Have variant selector type name',lowercase(AType),lowercase(V.VarType.Name));
+    end else begin
+    AssertEquals('Have variant selector type',TPasUnresolvedTypeRef,TheRecord.VariantEl.ClassType);
+    AssertEquals('Have variant selector type name',lowercase(AType),lowercase(TheRecord.VariantEl.Name));
+    end;
 end;
 
+procedure TTestRecordTypeParser.AssertConst1(Hints: TPasMemberHints;
+  Index: integer);
+begin
+  if Hints=[] then ;
+  AssertEquals('Member '+IntToStr(Index+1)+' type',TPasConst,TObject(TheRecord.Members[Index]).ClassType);
+  AssertEquals('Const '+IntToStr(Index+1)+' name','x',Const1.Name);
+  AssertNotNull('Have '+IntToStr(Index+1)+' const expr',Const1.Expr);
+end;
 
-Procedure TTestRecordTypeParser.DoTestEmpty(Const AHint: String);
+procedure TTestRecordTypeParser.DoTestEmpty(const AHint: String);
 begin
   TestFields([],AHint);
   AssertNotNull('Have members array',TheRecord.Members);
@@ -1205,9 +1455,8 @@ begin
   AssertVariant1(Hints,['0']);
 end;
 
-
 procedure TTestRecordTypeParser.AssertVariant1(Hints: TPasMemberHints;
-  VariantLabels: Array of string);
+  VariantLabels: array of string);
 
 Var
   I : Integer;
@@ -1248,7 +1497,7 @@ begin
 end;
 
 procedure TTestRecordTypeParser.AssertVariant2(Hints: TPasMemberHints;
-  VariantLabels: Array of string);
+  VariantLabels: array of string);
 
 Var
   I : Integer;
@@ -1283,119 +1532,119 @@ begin
   AssertTrue('Field 1 hints match',TPasVariable(Variant2.Members.Members[0]).Hints=Hints)
 end;
 
-procedure TTestRecordTypeParser.DoTestVariantNoStorage(Const AHint: string);
+procedure TTestRecordTypeParser.DoTestVariantNoStorage(const AHint: string);
 begin
   TestFields(['x : integer;','case integer of','0 : (y : integer;)'],AHint,True);
   AssertField1([]);
-  AssertVariantSelector('','');
+  AssertVariantSelector('','integer');
   AssertVariant1([]);
 end;
 
 procedure TTestRecordTypeParser.DoTestDeprecatedVariantNoStorage(
-  Const AHint: string);
+  const AHint: string);
 begin
   TestFields(['x : integer;','case integer of','0 : (y : integer deprecated;)'],AHint,True);
   AssertField1([]);
-  AssertVariantSelector('','');
+  AssertVariantSelector('','integer');
   AssertVariant1([hDeprecated]);
 end;
 
 procedure TTestRecordTypeParser.DoTestDeprecatedVariantStorage(
-  Const AHint: string);
+  const AHint: string);
 begin
   TestFields(['x : integer;','case s : integer of','0 : (y : integer deprecated;)'],AHint,True);
   AssertField1([]);
-  AssertVariantSelector('s','');
+  AssertVariantSelector('s','integer');
   AssertVariant1([hDeprecated]);
 end;
 
-procedure TTestRecordTypeParser.DoTestVariantStorage(Const AHint: string);
+procedure TTestRecordTypeParser.DoTestVariantStorage(const AHint: string);
 begin
   TestFields(['x : integer;','case s : integer of','0 : (y : integer;)'],AHint,True);
   AssertField1([]);
-  AssertVariantSelector('s','');
+  AssertVariantSelector('s','integer');
   AssertVariant1([]);
 end;
 
-procedure TTestRecordTypeParser.DoTestTwoVariantsNoStorage(Const AHint: string);
+procedure TTestRecordTypeParser.DoTestTwoVariantsNoStorage(const AHint: string);
 begin
   TestFields(['x : integer;','case integer of','0 : (y : integer;);','1 : (z : integer;)'],AHint,True);
   AssertField1([]);
-  AssertVariantSelector('','');
+  AssertVariantSelector('','integer');
   AssertVariant1([]);
   AssertVariant2([]);
 end;
 
-procedure TTestRecordTypeParser.DoTestTwoVariantsStorage(Const AHint: string);
+procedure TTestRecordTypeParser.DoTestTwoVariantsStorage(const AHint: string);
 begin
   TestFields(['x : integer;','case s : integer of','0 : (y : integer;);','1 : (z : integer;)'],AHint,True);
   AssertField1([]);
-  AssertVariantSelector('s','');
+  AssertVariantSelector('s','integer');
   AssertVariant1([]);
   AssertVariant2([]);
 end;
 
 procedure TTestRecordTypeParser.DoTestTwoVariantsFirstDeprecatedStorage(
-  Const AHint: string);
+  const AHint: string);
 begin
   TestFields(['x : integer;','case s : integer of','0 : (y : integer deprecated;);','1 : (z : integer;)'],AHint,True);
   AssertField1([]);
-  AssertVariantSelector('s','');
+  AssertVariantSelector('s','integer');
   AssertVariant1([hdeprecated]);
   AssertVariant2([]);
 end;
 
 procedure TTestRecordTypeParser.DoTestTwoVariantsSecondDeprecatedStorage(
-  Const AHint: string);
+  const AHint: string);
 begin
   TestFields(['x : integer;','case s : integer of','0 : (y : integer ;);','1 : (z : integer deprecated;)'],AHint,True);
   AssertField1([]);
-  AssertVariantSelector('s','');
+  AssertVariantSelector('s','integer');
   AssertVariant1([]);
   AssertVariant2([hdeprecated]);
 end;
 
-Procedure TTestRecordTypeParser.DoTestVariantTwoLabels(Const AHint: string);
+procedure TTestRecordTypeParser.DoTestVariantTwoLabels(const AHint: string);
 begin
   TestFields(['x : integer;','case integer of','0,1 : (y : integer)'],AHint,True);
   AssertField1([]);
-  AssertVariantSelector('','');
+  AssertVariantSelector('','integer');
   AssertVariant1([],['0','1']);
 end;
 
-Procedure TTestRecordTypeParser.DoTestTwoVariantsTwoLabels(Const AHint: string);
+procedure TTestRecordTypeParser.DoTestTwoVariantsTwoLabels(const AHint: string);
 begin
   TestFields(['x : integer;','case integer of','0,1 : (y : integer);','2,3 : (z : integer);'],AHint,True);
   AssertField1([]);
-  AssertVariantSelector('','');
+  AssertVariantSelector('','integer');
   AssertVariant1([],['0','1']);
   AssertVariant2([],['2','3']);
 end;
 
-procedure TTestRecordTypeParser.DoTestVariantNestedRecord(Const AHint: string);
+procedure TTestRecordTypeParser.DoTestVariantNestedRecord(const AHint: string);
 begin
   TestFields(['x : integer;','case integer of','0 : ( y : record','  z : integer;','end)'],AHint,True);
   AssertField1([]);
-  AssertVariantSelector('','');
+  AssertVariantSelector('','integer');
   AssertRecordVariant(0,[],['0']);
 end;
 
-procedure TTestRecordTypeParser.DoTestVariantNestedVariant(Const AHint: string);
+procedure TTestRecordTypeParser.DoTestVariantNestedVariant(const AHint: string);
 begin
   TestFields(['x : integer;','case integer of','0 : ( y : record','  z : integer;','  case byte of ','    1 : (i : integer);','    2 : ( j :  byte)', 'end)'],AHint,True);
   AssertField1([]);
-  AssertVariantSelector('','');
+  AssertVariantSelector('','integer');
   AssertRecordVariant(0,[],['0']);
   AssertRecordVariantVariant(0,'i','Integer',[],['1']);
   AssertRecordVariantVariant(1,'j','Byte',[],['2'])
 end;
 
 procedure TTestRecordTypeParser.DoTestVariantNestedVariantFirstDeprecated(
-  Const AHint: string);
+  const AHint: string);
 begin
   TestFields(['x : integer;','case integer of','0 : ( y : record','  z : integer;','  case byte of ','    1 : (i : integer deprecated);','    2 : ( j :  byte)', 'end)'],AHint,True);
   AssertField1([]);
-  AssertVariantSelector('','');
+  AssertVariantSelector('','integer');
   AssertRecordVariant(0,[],['0']);
   AssertRecordVariantVariant(0,'i','Integer',[hDeprecated],['1']);
   AssertRecordVariantVariant(1,'j','Byte',[],['2'])
@@ -1406,7 +1655,7 @@ procedure TTestRecordTypeParser.DoTestVariantNestedVariantSecondDeprecated(
 begin
   TestFields(['x : integer;','case integer of','0 : ( y : record','  z : integer;','  case byte of ','    1 : (i : integer );','    2 : ( j :  byte deprecated)', 'end)'],AHint,True);
   AssertField1([]);
-  AssertVariantSelector('','');
+  AssertVariantSelector('','integer');
   AssertRecordVariant(0,[],['0']);
   AssertRecordVariantVariant(0,'i','Integer',[],['1']);
   AssertRecordVariantVariant(1,'j','Byte',[hDeprecated],['2'])
@@ -1417,29 +1666,29 @@ procedure TTestRecordTypeParser.DoTestVariantNestedVariantBothDeprecated(const A
 begin
   TestFields(['x : integer;','case integer of','0 : ( y : record','  z : integer;','  case byte of ','    1 : (i : integer deprecated );','    2 : ( j :  byte deprecated)', 'end)'],AHint,True);
   AssertField1([]);
-  AssertVariantSelector('','');
+  AssertVariantSelector('','integer');
   AssertRecordVariant(0,[],['0']);
   AssertRecordVariantVariant(0,'i','Integer',[hdeprecated],['1']);
   AssertRecordVariantVariant(1,'j','Byte',[hDeprecated],['2'])
 end;
 
-Procedure TTestRecordTypeParser.TestEmpty;
+procedure TTestRecordTypeParser.TestEmpty;
 begin
   DoTestEmpty('')
 end;
 
-Procedure TTestRecordTypeParser.TestEmptyComment;
+procedure TTestRecordTypeParser.TestEmptyComment;
 begin
   AddComment:=True;
   TestEmpty;
 end;
 
-Procedure TTestRecordTypeParser.TestEmptyDeprecated;
+procedure TTestRecordTypeParser.TestEmptyDeprecated;
 begin
   DoTestEmpty('Deprecated')
 end;
 
-Procedure TTestRecordTypeParser.TestEmptyPlatform;
+procedure TTestRecordTypeParser.TestEmptyPlatform;
 begin
   DoTestEmpty('Platform')
 end;
@@ -1466,15 +1715,49 @@ begin
   AssertTrue('Field 2 hints match',Field2.Hints=Hints)
 end;
 
-procedure TTestRecordTypeParser.AssertMethod2(Hints: TPasMemberHints);
+procedure TTestRecordTypeParser.AssertMethod2(Hints: TPasMemberHints; isClass : Boolean = False);
 
 Var
   P : TPasProcedure;
 
 begin
-  AssertEquals('Member 2 type',TPasProcedure,TObject(TheRecord.Members[1]).ClassType);
+  if IsClass then
+    AssertEquals('Member 2 type',TPasClassProcedure,TObject(TheRecord.Members[1]).ClassType)
+  else
+    AssertEquals('Member 2 type',TPasProcedure,TObject(TheRecord.Members[1]).ClassType);
   P:=TPasProcedure(TheRecord.Members[1]);
   AssertEquals('Method name','dosomething2',P.Name);
+  AssertTrue('Method hints match',P.Hints=Hints)
+end;
+
+procedure TTestRecordTypeParser.AssertConstructor2(Hints: TPasMemberHints;
+  isClass: Boolean);
+Var
+  P : TPasProcedure;
+
+begin
+  if IsClass then
+    AssertEquals('Member 2 type',TPasClassConstructor,TObject(TheRecord.Members[1]).ClassType)
+  else
+    AssertEquals('Member 2 type',TPasConstructor,TObject(TheRecord.Members[1]).ClassType);
+  P:=TPasProcedure(TheRecord.Members[1]);
+  AssertEquals('Constructor name','create',P.Name);
+  AssertTrue('Constructor hints match',P.Hints=Hints)
+end;
+
+procedure TTestRecordTypeParser.AssertOperatorMethod2(Hints: TPasMemberHints;
+  isClass: Boolean);
+Var
+  P : TPasOperator;
+
+begin
+  if IsClass then
+    AssertEquals('Member 2 type',TPasClassOperator,TObject(TheRecord.Members[1]).ClassType)
+  else
+    AssertEquals('Member 2 type',TPasOperator,TObject(TheRecord.Members[1]).ClassType);
+  P:=TPasOperator(TheRecord.Members[1]);
+  AssertEquals('Method name','assign(ta,Cardinal):Boolean',P.Name);
+
   AssertTrue('Method hints match',P.Hints=Hints)
 end;
 
@@ -1501,6 +1784,14 @@ begin
   AssertMethod2(Hints2);
 end;
 
+procedure TTestRecordTypeParser.AssertIntegerFieldAndConstructor(Hints1,
+  Hints2: TPasMemberHints);
+begin
+  AssertEquals('Two members',2,TheRecord.Members.Count);
+  AssertField1(Hints1);
+  AssertConstructor2(Hints2);
+end;
+
 procedure TTestRecordTypeParser.AssertRecordField(AIndex: Integer;
   Hints: TPasMemberHints);
 
@@ -1524,7 +1815,7 @@ begin
 end;
 
 procedure TTestRecordTypeParser.AssertRecordVariant(AIndex: Integer;
-  Hints: TPasMemberHints; VariantLabels: Array of string);
+  Hints: TPasMemberHints; VariantLabels: array of string);
 
 Var
   F : TPasVariant;
@@ -1556,9 +1847,9 @@ begin
 
 end;
 
-Procedure TTestRecordTypeParser.AssertRecordVariantVariant(AIndex: Integer;
-  Const AFieldName, ATypeName: string; Hints: TPasMemberHints;
-  VariantLabels: Array of string);
+procedure TTestRecordTypeParser.AssertRecordVariantVariant(AIndex: Integer;
+  const AFieldName, ATypeName: string; Hints: TPasMemberHints;
+  VariantLabels: array of string);
 
 Var
   F : TPasVariant;
@@ -1598,13 +1889,13 @@ begin
   AssertTrue(MN+'hints match',V.Hints=Hints);
 end;
 
-Procedure TTestRecordTypeParser.TestOneField;
+procedure TTestRecordTypeParser.TestOneField;
 begin
   TestFields(['x : integer'],'',False);
   AssertOneIntegerField([]);
 end;
 
-Procedure TTestRecordTypeParser.TestOneFieldComment;
+procedure TTestRecordTypeParser.TestOneFieldComment;
 begin
   AddComment:=True;
   TestFields(['{a} x : integer'],'',False);
@@ -1612,74 +1903,84 @@ begin
   AssertEquals('Member 1 comment','a'+sLineBreak,TPAsElement(TheRecord.Members[0]).DocComment);
 end;
 
-Procedure TTestRecordTypeParser.TestOneFieldDeprecated;
+procedure TTestRecordTypeParser.TestOneFieldDeprecated;
 begin
   TestFields(['x : integer'],'deprecated',False);
   AssertOneIntegerField([]);
 end;
 
-Procedure TTestRecordTypeParser.TestOneFieldPlatform;
+procedure TTestRecordTypeParser.TestOneFieldPlatform;
 begin
   TestFields(['x : integer'],'platform',False);
   AssertOneIntegerField([]);
 end;
 
-Procedure TTestRecordTypeParser.TestOneFieldSemicolon;
+procedure TTestRecordTypeParser.TestOneFieldSemicolon;
 begin
   TestFields(['x : integer;'],'',False);
   AssertOneIntegerField([]);
 end;
 
-Procedure TTestRecordTypeParser.TestOneFieldSemicolonDeprecated;
+procedure TTestRecordTypeParser.TestOneFieldSemicolonDeprecated;
 begin
   TestFields(['x : integer;'],'deprecated',False);
   AssertOneIntegerField([]);
 
 end;
 
-Procedure TTestRecordTypeParser.TestOneFieldSemicolonPlatform;
+procedure TTestRecordTypeParser.TestOneFieldSemicolonPlatform;
 begin
   TestFields(['x : integer;'],'platform',False);
   AssertOneIntegerField([]);
 end;
 
-Procedure TTestRecordTypeParser.TestOneDeprecatedField;
+procedure TTestRecordTypeParser.TestOneDeprecatedField;
 begin
   TestFields(['x : integer deprecated;'],'',False);
   AssertOneIntegerField([hDeprecated]);
 end;
 
-Procedure TTestRecordTypeParser.TestOneDeprecatedFieldDeprecated;
+procedure TTestRecordTypeParser.TestOneDeprecatedFieldDeprecated;
 begin
   TestFields(['x : integer deprecated;'],'deprecated',False);
   AssertOneIntegerField([hDeprecated]);
 end;
 
-Procedure TTestRecordTypeParser.TestOneDeprecatedFieldPlatform;
+procedure TTestRecordTypeParser.TestOneDeprecatedFieldPlatform;
 begin
   TestFields(['x : integer deprecated;'],'platform',False);
   AssertOneIntegerField([hDeprecated]);
 end;
 
-Procedure TTestRecordTypeParser.TestOnePlatformField;
+procedure TTestRecordTypeParser.TestOnePlatformField;
 begin
   TestFields(['x : integer platform;'],'',False);
   AssertOneIntegerField([hplatform]);
 end;
 
-Procedure TTestRecordTypeParser.TestOnePlatformFieldDeprecated;
+procedure TTestRecordTypeParser.TestOnePlatformFieldDeprecated;
 begin
   TestFields(['x : integer platform;'],'Deprecated',False);
   AssertOneIntegerField([hplatform]);
 end;
 
-Procedure TTestRecordTypeParser.TestOnePlatformFieldPlatform;
+procedure TTestRecordTypeParser.TestOnePlatformFieldPlatform;
 begin
   TestFields(['x : integer platform;'],'Platform',False);
   AssertOneIntegerField([hplatform]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFields;
+procedure TTestRecordTypeParser.TestOneGenericField;
+begin
+  TestFields(['Generic : Integer;'],'',False);
+  AssertEquals('Member 1 field type',TPasVariable,TObject(TheRecord.Members[0]).ClassType);
+  AssertEquals('Field 1 name','Generic',Field1.Name);
+  AssertNotNull('Have 1 Field type',Field1.VarType);
+  AssertEquals('Field 1 type',TPasUnresolvedTypeRef,Field1.VarType.ClassType);
+  AssertEquals('Field 1 type name','Integer',Field1.VarType.Name);
+end;
+
+procedure TTestRecordTypeParser.TestTwoFields;
 begin
   TestFields(['x : integer;','y : integer'],'',False);
   AssertTwoIntegerFields([],[]);
@@ -1687,35 +1988,43 @@ end;
 
 procedure TTestRecordTypeParser.TestTwoFieldPrivateNoDelphi;
 Var
-  B : Boolean;
+  EC : TClass;
 begin
+  EC:=nil;
   try
     TestFields(['private','x : integer'],'',False);
-    Fail('Need poDelphi for visibility specifier')
+    Fail('Need po_Delphi for visibility specifier');
   except
+    on EA : EAssertionFailedError do
+      Raise;
     on E : Exception do
-      B:=E is EParserError;
+      EC:=E.ClassType;
   end;
-  If not B then
-    Fail('Wrong exception class.');
+  AssertEquals('Exception class',EParserError,EC);
 end;
 
 procedure TTestRecordTypeParser.TestTwoFieldProtected;
 Var
   B : Boolean;
+  EName: String;
 begin
+  B:=false;
+  EName:='';
   try
     TestFields(['protected','x : integer'],'',False);
     Fail('Protected not allowed as record visibility specifier')
   except
     on E : Exception do
+      begin
+      EName:=E.ClassName;
       B:=E is EParserError;
+      end;
   end;
   If not B then
-    Fail('Wrong exception class.');
+    Fail('Wrong exception class "'+EName+'".');
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldPrivate;
+procedure TTestRecordTypeParser.TestTwoFieldPrivate;
 begin
   Scanner.Options:=[po_Delphi];
   TestFields(['private','x,y : integer'],'',False);
@@ -1729,119 +2038,129 @@ begin
   AssertTwoIntegerFields([],[]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldDeprecated;
+procedure TTestRecordTypeParser.TestTwoFieldDeprecated;
 begin
   TestFields(['x : integer;','y : integer'],'deprecated',False);
   AssertTwoIntegerFields([],[]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldPlatform;
+procedure TTestRecordTypeParser.TestTwoFieldPlatform;
 begin
   TestFields(['x : integer;','y : integer'],'platform',False);
   AssertTwoIntegerFields([],[]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldsFirstDeprecated;
+procedure TTestRecordTypeParser.TestTwoFieldsFirstDeprecated;
 begin
   TestFields(['x : integer deprecated;','y : integer'],'',False);
   AssertTwoIntegerFields([hdeprecated],[]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldsFirstDeprecatedDeprecated;
+procedure TTestRecordTypeParser.TestTwoFieldsFirstDeprecatedDeprecated;
 begin
   TestFields(['x : integer deprecated;','y : integer'],'deprecated',False);
   AssertTwoIntegerFields([hdeprecated],[]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldsFirstDeprecatedPlatform;
+procedure TTestRecordTypeParser.TestTwoFieldsFirstDeprecatedPlatform;
 begin
   TestFields(['x : integer deprecated;','y : integer'],'platform',False);
   AssertTwoIntegerFields([hdeprecated],[]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldsSecondDeprecated;
+procedure TTestRecordTypeParser.TestTwoFieldsSecondDeprecated;
 begin
   TestFields(['x : integer;','y : integer deprecated;'],'',False);
   AssertTwoIntegerFields([],[hdeprecated]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldsSecondDeprecatedDeprecated;
+procedure TTestRecordTypeParser.TestTwoFieldsSecondDeprecatedDeprecated;
 begin
   TestFields(['x : integer;','y : integer deprecated;'],'deprecated',False);
   AssertTwoIntegerFields([],[hdeprecated]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldsSecondDeprecatedPlatform;
+procedure TTestRecordTypeParser.TestTwoFieldsSecondDeprecatedPlatform;
 begin
   TestFields(['x : integer;','y : integer deprecated;'],'platform',False);
   AssertTwoIntegerFields([],[hdeprecated]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldsBothDeprecated;
+procedure TTestRecordTypeParser.TestTwoFieldsBothDeprecated;
 begin
   TestFields(['x : integer deprecated;','y : integer deprecated;'],'',False);
   AssertTwoIntegerFields([hdeprecated],[hdeprecated]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldsBothDeprecatedDeprecated;
+procedure TTestRecordTypeParser.TestTwoFieldsBothDeprecatedDeprecated;
 begin
   TestFields(['x : integer deprecated;','y : integer deprecated;'],'deprecated',False);
   AssertTwoIntegerFields([hdeprecated],[hdeprecated]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldsBothDeprecatedPlatform;
+procedure TTestRecordTypeParser.TestTwoFieldsBothDeprecatedPlatform;
 begin
   TestFields(['x : integer deprecated;','y : integer deprecated;'],'platform',False);
   AssertTwoIntegerFields([hdeprecated],[hdeprecated]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldsCombined;
+procedure TTestRecordTypeParser.TestTwoFieldsCombined;
 begin
   TestFields(['x,y : integer;'],'',False);
   AssertTwoIntegerFields([],[]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldsCombinedDeprecated;
+procedure TTestRecordTypeParser.TestTwoFieldsCombinedDeprecated;
 begin
   TestFields(['x,y : integer;'],'deprecated',False);
   AssertTwoIntegerFields([],[]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoFieldsCombinedPlatform;
+procedure TTestRecordTypeParser.TestTwoFieldsCombinedPlatform;
 begin
   TestFields(['x,y : integer;'],'platform',False);
   AssertTwoIntegerFields([],[]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoDeprecatedFieldsCombined;
+procedure TTestRecordTypeParser.TestTwoDeprecatedFieldsCombined;
 begin
   TestFields(['x,y : integer deprecated;'],'',False);
   AssertTwoIntegerFields([hdeprecated],[hdeprecated]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoDeprecatedFieldsCombinedDeprecated;
+procedure TTestRecordTypeParser.TestTwoDeprecatedFieldsCombinedDeprecated;
 begin
   TestFields(['x,y : integer deprecated;'],'deprecated',False);
   AssertTwoIntegerFields([hdeprecated],[hdeprecated]);
 end;
 
-Procedure TTestRecordTypeParser.TestTwoDeprecatedFieldsCombinedPlatform;
+procedure TTestRecordTypeParser.TestTwoDeprecatedFieldsCombinedPlatform;
 begin
   TestFields(['x,y : integer deprecated;'],'platform',False);
   AssertTwoIntegerFields([hdeprecated],[hdeprecated]);
 end;
 
-Procedure TTestRecordTypeParser.TestFieldAndMethod;
+procedure TTestRecordTypeParser.TestFieldAndConstructor;
+
 begin
+  Parser.Options:=[po_delphi];
+  TestFields(['x : integer;','constructor create;'],'',False);
+  AssertIntegerFieldAndConstructor([],[]);
+end;
+
+procedure TTestRecordTypeParser.TestFieldAndMethod;
+begin
+  Parser.Options:=[po_delphi];
   TestFields(['x : integer;','procedure dosomething2;'],'',False);
   AssertIntegerFieldAndMethod([],[]);
 end;
 
-Procedure TTestRecordTypeParser.TestFieldAnd2Methods;
+procedure TTestRecordTypeParser.TestFieldAnd2Methods;
 Var
   P : TPasFunction;
 
 begin
+  Parser.Options:=[po_delphi];
   TestFields(['x : integer;','procedure dosomething2;','function dosomething3 : Integer;'],'',False);
   AssertEquals('Member count',3,TheRecord.Members.Count);
   AssertField1([]);
@@ -1854,7 +2173,80 @@ begin
   AssertEquals('Method 2 result type','Integer', P.FuncType.ResultEl.ResultType.Name);
 end;
 
-Procedure TTestRecordTypeParser.TestNested;
+procedure TTestRecordTypeParser.TestFieldAndProperty;
+
+Var
+  P : TPasProperty;
+begin
+  Parser.Options:=[po_delphi];
+  TestFields(['private','x : integer;','public','property MyX : Integer read X write X'],'',False);
+  AssertEquals('Member count',2,TheRecord.Members.Count);
+  AssertField1([]);
+  AssertEquals('Member 2 type',TPasProperty,TObject(TheRecord.Members[1]).ClassType);
+  P:=TPasProperty(TheRecord.Members[1]);
+  AssertEquals('Property name','MyX',P.Name);
+  AssertNotNull('Method 2 type',P.ResolvedType);
+  AssertEquals('Method 2 type','Integer',P.ResolvedType.Name);
+  AssertEquals('Method 2 read','X', P.ReadAccessorName);
+  AssertEquals('Method 2 Write','X', P.WriteAccessorName);
+end;
+
+procedure TTestRecordTypeParser.TestFieldAndClassMethod;
+
+Var
+  P : TPasFunction;
+
+begin
+  Parser.Options:=[po_delphi];
+  TestFields(['x : integer;','class procedure dosomething2;','function dosomething3 : Integer;'],'',False);
+  AssertEquals('Member count',3,TheRecord.Members.Count);
+  AssertField1([]);
+  AssertMethod2([],True);
+  AssertEquals('Class procedure',TPasClassProcedure,TObject(TheRecord.Members[1]).ClassType);
+  AssertEquals('Member 3 type',TPasFunction,TObject(TheRecord.Members[2]).ClassType);
+  P:=TPasFunction(TheRecord.Members[2]);
+  AssertEquals('Method 2 name','dosomething3',P.Name);
+  AssertTrue('Method 2 hints match',[]=P.Hints);
+  // Standard type
+  AssertEquals('Method 2 result type','Integer', P.FuncType.ResultEl.ResultType.Name);
+end;
+
+procedure TTestRecordTypeParser.TestFieldAndClassOperator;
+
+Var
+  P : TPasFunction;
+
+begin
+  Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msAdvancedRecords];
+  TestFields(['x : integer;','class operator assign(a : ta; b : Cardinal) : boolean;','function dosomething3 : Integer;'],'',False);
+  AssertEquals('Member count',3,TheRecord.Members.Count);
+  AssertField1([]);
+  AssertOperatorMethod2([],True);
+  AssertEquals('Member 3 type',TPasFunction,TObject(TheRecord.Members[2]).ClassType);
+  P:=TPasFunction(TheRecord.Members[2]);
+  AssertEquals('Method 2 name','dosomething3',P.Name);
+  AssertTrue('Method 2 hints match',[]=P.Hints);
+  // Standard type
+  AssertEquals('Method 2 result type','Integer', P.FuncType.ResultEl.ResultType.Name);
+end;
+
+procedure TTestRecordTypeParser.TestFieldAndClassVar;
+begin
+  Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msAdvancedRecords];
+  TestFields(['x : integer;','class var y : integer;'],'',False);
+  AssertField1([]);
+  AssertTrue('Second field is class var',vmClass in Field2.VarModifiers);
+end;
+
+procedure TTestRecordTypeParser.TestFieldAndVar;
+begin
+  Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msAdvancedRecords];
+  TestFields(['x : integer;','var y : integer;'],'',False);
+  AssertField1([]);
+  AssertTrue('Second field is regular var',not (vmClass in Field2.VarModifiers));
+end;
+
+procedure TTestRecordTypeParser.TestNested;
 begin
   TestFields(['x : integer;','y : record','  z : integer;','end'],'',False);
   AssertField1([]);
@@ -1882,14 +2274,14 @@ begin
   AssertRecordField(1,[])
 end;
 
-Procedure TTestRecordTypeParser.TestNestedDeprecated;
+procedure TTestRecordTypeParser.TestNestedDeprecated;
 begin
   TestFields(['x : integer;','y : record','  z : integer;','end'],'deprecated',False);
   AssertField1([]);
   AssertRecordField(1,[])
 end;
 
-Procedure TTestRecordTypeParser.TestNestedPlatform;
+procedure TTestRecordTypeParser.TestNestedPlatform;
 begin
   TestFields(['x : integer;','y : record','  z : integer;','end'],'platform',False);
   AssertField1([]);
@@ -1917,21 +2309,21 @@ begin
   AssertRecordField(0,[])
 end;
 
-Procedure TTestRecordTypeParser.TestDeprecatedNested;
+procedure TTestRecordTypeParser.TestDeprecatedNested;
 begin
   TestFields(['x : integer;','y : record','  z : integer;','end deprecated;'],'',False);
   AssertField1([]);
   AssertRecordField(1,[hdeprecated])
 end;
 
-Procedure TTestRecordTypeParser.TestDeprecatedNestedDeprecated;
+procedure TTestRecordTypeParser.TestDeprecatedNestedDeprecated;
 begin
   TestFields(['x : integer;','y : record','  z : integer;','end deprecated;'],'deprecated',False);
   AssertField1([]);
   AssertRecordField(1,[hdeprecated])
 end;
 
-Procedure TTestRecordTypeParser.TestDeprecatedNestedPlatform;
+procedure TTestRecordTypeParser.TestDeprecatedNestedPlatform;
 begin
   TestFields(['x : integer;','y : record','  z : integer;','end deprecated;'],'platform',False);
   AssertField1([]);
@@ -1959,7 +2351,7 @@ begin
   AssertRecordField(0,[hdeprecated])
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNoStorage;
+procedure TTestRecordTypeParser.TestVariantNoStorage;
 begin
   DoTestVariantNoStorage('');
 end;
@@ -1976,7 +2368,7 @@ begin
   DoTestVariantNoStorage('platform');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantStorage;
+procedure TTestRecordTypeParser.TestVariantStorage;
 begin
   DoTestVariantStorage('');
 end;
@@ -1992,7 +2384,7 @@ begin
   DoTestVariantStorage('platform');
 end;
 
-Procedure TTestRecordTypeParser.TestDeprecatedVariantNoStorage;
+procedure TTestRecordTypeParser.TestDeprecatedVariantNoStorage;
 begin
   DoTestDeprecatedVariantNoStorage('');
 end;
@@ -2007,7 +2399,7 @@ begin
   DoTestDeprecatedVariantNoStorage('Platform');
 end;
 
-Procedure TTestRecordTypeParser.TestDeprecatedVariantStorage;
+procedure TTestRecordTypeParser.TestDeprecatedVariantStorage;
 begin
   DoTestDeprecatedVariantStorage('');
 end;
@@ -2022,7 +2414,7 @@ begin
   DoTestDeprecatedVariantStorage('Platform');
 end;
 
-Procedure TTestRecordTypeParser.TestTwoVariantsNoStorage;
+procedure TTestRecordTypeParser.TestTwoVariantsNoStorage;
 begin
   DoTestTwoVariantsNoStorage('');
 end;
@@ -2037,7 +2429,7 @@ begin
   DoTestTwoVariantsNoStorage('platform');
 end;
 
-Procedure TTestRecordTypeParser.TestTwoVariantsStorage;
+procedure TTestRecordTypeParser.TestTwoVariantsStorage;
 begin
   DoTestTwoVariantsStorage('');
 end;
@@ -2052,7 +2444,7 @@ begin
   DoTestTwoVariantsStorage('platform');
 end;
 
-Procedure TTestRecordTypeParser.TestTwoVariantsFirstDeprecatedStorage;
+procedure TTestRecordTypeParser.TestTwoVariantsFirstDeprecatedStorage;
 begin
   DoTestTwoVariantsFirstDeprecatedStorage('');
 end;
@@ -2067,7 +2459,7 @@ begin
   DoTestTwoVariantsFirstDeprecatedStorage('platform');
 end;
 
-Procedure TTestRecordTypeParser.TestTwoVariantsSecondDeprecatedStorage;
+procedure TTestRecordTypeParser.TestTwoVariantsSecondDeprecatedStorage;
 begin
   DoTestTwoVariantsSecondDeprecatedStorage('');
 end;
@@ -2082,109 +2474,346 @@ begin
   DoTestTwoVariantsSecondDeprecatedStorage('platform');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantTwoLabels;
+procedure TTestRecordTypeParser.TestVariantTwoLabels;
 begin
   DoTestVariantTwoLabels('');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantTwoLabelsDeprecated;
+procedure TTestRecordTypeParser.TestVariantTwoLabelsDeprecated;
 begin
   DoTestVariantTwoLabels('Deprecated');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantTwoLabelsPlatform;
+procedure TTestRecordTypeParser.TestVariantTwoLabelsPlatform;
 begin
   DoTestVariantTwoLabels('Platform');
 end;
 
-Procedure TTestRecordTypeParser.TestTwoVariantsTwoLabels;
+procedure TTestRecordTypeParser.TestTwoVariantsTwoLabels;
 begin
   DoTestTwoVariantsTwoLabels('');
 end;
 
-Procedure TTestRecordTypeParser.TestTwoVariantsTwoLabelsDeprecated;
+procedure TTestRecordTypeParser.TestTwoVariantsTwoLabelsDeprecated;
 begin
   DoTestTwoVariantsTwoLabels('Deprecated');
 end;
 
-Procedure TTestRecordTypeParser.TestTwoVariantsTwoLabelsPlatform;
+procedure TTestRecordTypeParser.TestTwoVariantsTwoLabelsPlatform;
 begin
   DoTestTwoVariantsTwoLabels('Platform');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedRecord;
+procedure TTestRecordTypeParser.TestVariantNestedRecord;
 begin
   DoTestVariantNestedRecord('');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedRecordDeprecated;
+procedure TTestRecordTypeParser.TestVariantNestedRecordDeprecated;
 begin
   DoTestVariantNestedRecord('Deprecated');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedRecordPlatform;
+procedure TTestRecordTypeParser.TestVariantNestedRecordPlatform;
 begin
   DoTestVariantNestedRecord('Platform');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedVariant;
+procedure TTestRecordTypeParser.TestVariantNestedVariant;
 begin
   DoTestVariantNestedVariant('');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedVariantDeprecated;
+procedure TTestRecordTypeParser.TestVariantNestedVariantDeprecated;
 begin
   DoTestVariantNestedVariant('deprecated');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedVariantPlatForm;
+procedure TTestRecordTypeParser.TestVariantNestedVariantPlatForm;
 begin
   DoTestVariantNestedVariant('Platform');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedVariantFirstDeprecated;
+procedure TTestRecordTypeParser.TestVariantNestedVariantFirstDeprecated;
 begin
   DoTestVariantNestedVariantFirstDeprecated('');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedVariantFirstDeprecatedDeprecated;
+procedure TTestRecordTypeParser.TestVariantNestedVariantFirstDeprecatedDeprecated;
 begin
   DoTestVariantNestedVariantFirstDeprecated('deprecated');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedVariantFirstDeprecatedPlatform;
+procedure TTestRecordTypeParser.TestVariantNestedVariantFirstDeprecatedPlatform;
 begin
   DoTestVariantNestedVariantFirstDeprecated('platform');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedVariantSecondDeprecated;
+procedure TTestRecordTypeParser.TestVariantNestedVariantSecondDeprecated;
 begin
   DoTestVariantNestedVariantSecondDeprecated('');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedVariantSecondDeprecatedDeprecated;
+procedure TTestRecordTypeParser.TestVariantNestedVariantSecondDeprecatedDeprecated;
 begin
   DoTestVariantNestedVariantSecondDeprecated('deprecated');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedVariantSecondDeprecatedPlatform;
+procedure TTestRecordTypeParser.TestVariantNestedVariantSecondDeprecatedPlatform;
 begin
   DoTestVariantNestedVariantSecondDeprecated('platform');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedVariantBothDeprecated;
+procedure TTestRecordTypeParser.TestVariantNestedVariantBothDeprecated;
 begin
   DoTestVariantNestedVariantBothDeprecated('');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedVariantBothDeprecatedDeprecated;
+procedure TTestRecordTypeParser.TestVariantNestedVariantBothDeprecatedDeprecated;
 begin
   DoTestVariantNestedVariantBothDeprecated('deprecated');
 end;
 
-Procedure TTestRecordTypeParser.TestVariantNestedVariantBothDeprecatedPlatform;
+procedure TTestRecordTypeParser.TestVariantNestedVariantBothDeprecatedPlatform;
 begin
   DoTestVariantNestedVariantBothDeprecated('platform');
+end;
+
+procedure TTestRecordTypeParser.TestOperatorField;
+begin
+  TestFields(['operator : integer;'],'',False);
+  AssertEquals('Field 1 name','operator',Field1.Name);
+end;
+
+procedure TTestRecordTypeParser.TestPropertyFail;
+begin
+  AddMember('Property Something');
+  ParseRecordFail(SErrRecordPropertiesNotAllowed,nErrRecordPropertiesNotAllowed);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_TwoConst;
+var
+  aConst: TPasConst;
+begin
+  Scanner.Options:=[po_Delphi];
+  TestFields(['public','Const x =123;','y : integer = 456'],'',False);
+  AssertEquals('Two Const',2,TheRecord.Members.Count);
+  AssertConst1([]);
+  AssertEquals('Correct visibility',visPublic,TPasConst(TheRecord.Members[0]).Visibility);
+  AssertEquals('Member 2 type',TPasConst,TObject(TheRecord.Members[1]).ClassType);
+  aConst:=TPasConst(TheRecord.Members[1]);
+  AssertEquals('Const 2 name','y',aConst.Name);
+  AssertNotNull('Have 2 const expr',aConst.Expr);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_Property;
+begin
+  StartRecord(true);
+  AddMember('Property Something: word');
+  ParseRecord;
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_PropertyImplementsFail;
+begin
+  StartRecord(true);
+  AddMember('Property Something: word implements ISome;');
+  ParseRecordFail('Expected ";"',nParserExpectTokenError);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_PropertyNoTypeFail;
+begin
+  StartRecord(true);
+  AddMember('Property Something;');
+  ParseRecordFail('Expected ":"',nParserExpectTokenError);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_ForwardFail;
+begin
+  StartRecord(true);
+  FDecl.Add(';TMyRecord = record');
+  ParseRecordFail('Syntax error in type',nParserTypeSyntaxError);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_PublishedFail;
+begin
+  StartRecord(true);
+  AddMember('published');
+  AddMember('A: word;');
+  ParseRecordFail(SParserInvalidRecordVisibility,nParserInvalidRecordVisibility);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_ProcVirtualFail;
+begin
+  StartRecord(true);
+  AddMember('procedure DoIt; virtual;');
+  ParseRecordFail(SParserExpectedCommaColon,nParserExpectedCommaColon);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_ProcOverrideFail;
+begin
+  StartRecord(true);
+  AddMember('procedure DoIt; override;');
+  ParseRecordFail(SParserExpectedCommaColon,nParserExpectedCommaColon);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_ProcMessageFail;
+begin
+  StartRecord(true);
+  AddMember('procedure DoIt; message 2;');
+  ParseRecordFail(SParserExpectedCommaColon,nParserExpectedCommaColon);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_DestructorFail;
+begin
+  StartRecord(true);
+  AddMember('destructor Free;');
+  ParseRecordFail(SParserNoConstructorAllowed,nParserNoConstructorAllowed);
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_CaseInVar;
+
+// Found in System.UITypes.pas
+
+begin
+  StartRecord(true);
+  AddMember('var');
+  AddMember('Case Integer of');
+  AddMember('  1 : (x: integer);');
+  AddMember('  2 : (y,z: integer)');
+  ParseRecord;
+end;
+
+procedure TTestRecordTypeParser.TestAdvRec_EmptySections;
+begin
+  StartRecord(true);
+  AddMember('const');
+  AddMember('type');
+  AddMember('var');
+  AddMember('  x: integer;');
+  ParseRecord;
+end;
+
+procedure TTestRecordTypeParser.TestAdvRecordInFunction;
+
+// Src from bug report 36179
+
+Const
+   Src =
+    '{$mode objfpc}'+sLineBreak+
+    '{$modeswitch advancedrecords}'+sLineBreak+
+    'program afile;'+sLineBreak+
+    '  procedure DoThis;'+sLineBreak+
+    '  type'+sLineBreak+
+    '    TMyRecord = record'+sLineBreak+
+    '      private'+sLineBreak+
+    '        x, y, z: integer;'+sLineBreak+
+    '    end;'+sLineBreak+
+    '  begin'+sLineBreak+
+    '  end;'+sLineBreak+
+    'begin'+sLineBreak+
+    'end.';
+
+begin
+  Source.Text:=Src;
+  ParseModule; // We're just interested in that it parses.
+end;
+
+procedure TTestRecordTypeParser.TestAdvRecordInAnonFunction;
+
+// Src from bug report 36179, modified to put record in anonymous function
+//  Delphi 10.3.2 allows this
+
+Const
+   Src =
+    '{$mode objfpc}'+sLineBreak+
+    '{$modeswitch advancedrecords}'+sLineBreak+
+    'program afile;'+sLineBreak+
+    'var a : Procedure;'+sLineBreak+
+    'begin'+sLineBreak+
+    ' a := '+sLineBreak+
+    '  procedure '+sLineBreak+
+    '  type'+sLineBreak+
+    '    TMyRecord = record'+sLineBreak+
+    '      private'+sLineBreak+
+    '        x, y, z: integer;'+sLineBreak+
+    '    end;'+sLineBreak+
+    '  begin'+sLineBreak+
+    '  end;'+sLineBreak+
+    'end.';
+
+begin
+  Source.Text:=Src;
+  ParseModule; // We're just interested in that it parses.
+end;
+
+procedure TTestRecordTypeParser.TestAdvRecordClassOperator;
+
+// Source from bug id 36180
+
+Const
+   SRC =
+    '{$mode objfpc}'+sLineBreak+
+    '{$modeswitch advancedrecords}'+sLineBreak+
+    'program afile;'+sLineBreak+
+    'type'+sLineBreak+
+    '  TMyRecord = record'+sLineBreak+
+    '    class operator = (a, b: TMyRecord): boolean;'+sLineBreak+
+    '  end;'+sLineBreak+
+    'class operator TMyRecord.= (a, b: TMyRecord): boolean;'+sLineBreak+
+    'begin'+sLineBreak+
+    '  result := (@a = @b);'+sLineBreak+
+    'end;'+sLineBreak+
+    'begin'+sLineBreak+
+    'end.';
+
+begin
+  Source.Text:=Src;
+  ParseModule;   // We're just interested in that it parses.
+end;
+
+procedure TTestRecordTypeParser.TestAdvRecordInitOperator;
+// Source from bug id 36180
+
+Const
+   SRC =
+    '{$mode objfpc}'+sLineBreak+
+    '{$modeswitch advancedrecords}'+sLineBreak+
+    'program afile;'+sLineBreak+
+    'type'+sLineBreak+
+    '  TMyRecord = record'+sLineBreak+
+    '    class operator initialize (var self: TMyRecord);'+sLineBreak+
+    '  end;'+sLineBreak+
+    'class operator TMyRecord.initialize (a, b: TMyRecord);'+sLineBreak+
+    'begin'+sLineBreak+
+    '  result := (@a = @b);'+sLineBreak+
+    'end;'+sLineBreak+
+    'begin'+sLineBreak+
+    'end.';
+
+begin
+  Source.Text:=Src;
+  ParseModule;   // We're just interested in that it parses.
+end;
+
+procedure TTestRecordTypeParser.TestAdvRecordGenericFunction;
+
+Const
+   SRC =
+    '{$mode objfpc}'+sLineBreak+
+    '{$modeswitch advancedrecords}'+sLineBreak+
+    'program afile;'+sLineBreak+
+    'type'+sLineBreak+
+    '  TMyRecord = record'+sLineBreak+
+    '    generic class procedure doit<T> (a: T);'+sLineBreak+
+    '  end;'+sLineBreak+
+    'generic class procedure TMyRecord.DoIt<T>(a: T);'+sLineBreak+
+    'begin'+sLineBreak+
+    'end;'+sLineBreak+
+    'begin'+sLineBreak+
+    'end.';
+begin
+  Source.Text:=Src;
+  ParseModule;   // We're just interested in that it parses.
 end;
 
 { TBaseTestTypeParser }
@@ -2194,6 +2823,7 @@ Function TBaseTestTypeParser.ParseType(ASource: String; ATypeClass: TClass;
 
 Var
   D : String;
+
 begin
   Hint:=AHint;
   Add('Type');
@@ -2208,15 +2838,23 @@ begin
   Add('  '+D+';');
 //  Writeln(source.text);
   ParseDeclarations;
-  AssertEquals('One type definition',1,Declarations.Types.Count);
-  If (AtypeClass<>Nil) then
-    AssertEquals('First declaration is type definition.',ATypeClass,TObject(Declarations.Types[0]).ClassType);
-  AssertEquals('First declaration has correct name.','A',TPasType(Declarations.Types[0]).Name);
-  Result:=TPasType(Declarations.Types[0]);
+  if ATypeClass.InHeritsFrom(TPasClassType) then
+    AssertEquals('One type definition',1,Declarations.Classes.Count)
+  else
+    AssertEquals('One type definition',1,Declarations.Types.Count);
+  If ATypeClass<>Nil then
+    begin
+    if ATypeClass.InheritsFrom(TPasClassType) then
+      Result:=TPasType(Declarations.Classes[0])
+    else
+      Result:=TPasType(Declarations.Types[0]);
+    AssertEquals('First declaration is type definition.',ATypeClass,Result.ClassType);
+    end;
+  AssertEquals('First declaration has correct name.','A',Result.Name);
   FType:=Result;
   Definition:=Result;
   if (Hint<>'') then
-    CheckHint(TPasMemberHint(Getenumvalue(typeinfo(TPasMemberHint),'h'+Hint)));
+    CheckHint(TPasMemberHint(GetEnumValue(TypeInfo(TPasMemberHint),'h'+Hint)));
 end;
 
 Procedure TBaseTestTypeParser.AssertParseTypeError(ASource: String);
@@ -2241,6 +2879,7 @@ begin
   FErrorSource:='';
   FHint:='';
   FType:=Nil;
+  Parser.CurrentModeswitches:=[msObjfpc];
 end;
 
 Procedure TBaseTestTypeParser.TearDown;
@@ -2251,8 +2890,8 @@ end;
 
 { TTestTypeParser }
 
-Procedure TTestTypeParser.DoTestAliasType(Const AnAliasType: String;
-  Const AHint: String);
+procedure TTestTypeParser.DoTestAliasType(const AnAliasType: String;
+  const AHint: String);
 begin
   ParseType(AnAliasType,TPasAliasType,AHint);
   AssertEquals('Unresolved type',TPasUnresolvedTypeRef,TPasAliasType(TheType).DestType.ClassType);
@@ -2265,20 +2904,20 @@ begin
   AssertEquals('String type',TPasStringType,TPasAliasType(TheType).DestType.ClassType);
 end;
 
-procedure TTestTypeParser.DoTypeError(Const AMsg,ASource : string);
+procedure TTestTypeParser.DoTypeError(const AMsg, ASource: string);
 
 begin
   FErrorSource:=ASource;
   AssertException(AMsg,EParserError,@DoParseError);
 end;
 
-Procedure TTestTypeParser.DoParseError;
+procedure TTestTypeParser.DoParseError;
 begin
   ParseType(FErrorSource,Nil);
 end;
 
-Procedure TTestTypeParser.DoParsePointer(Const ASource: String;
-  Const AHint: String; ADestType: TClass);
+procedure TTestTypeParser.DoParsePointer(const ASource: String;
+  const AHint: String; ADestType: TClass);
 
 begin
   ParseType('^'+ASource,TPasPointerType,AHint);
@@ -2287,8 +2926,8 @@ begin
   AssertEquals('Destination type '+ADestType.ClassName,ADestType,TPasPointerType(TheType).DestType.ClassType);
 end;
 
-Procedure TTestTypeParser.DoParseArray(Const ASource: String;
-  Const AHint: String; ADestType: TClass);
+procedure TTestTypeParser.DoParseArray(const ASource: String;
+  const AHint: String; ADestType: TClass);
 begin
   ParseType(ASource,TPasArrayType,AHint);
   if ADestType = Nil then
@@ -2296,8 +2935,8 @@ begin
   AssertEquals('Destination type '+ADestType.ClassName,ADestType,TPasArrayType(TheType).ElType.ClassType);
 end;
 
-Procedure TTestTypeParser.DoParseEnumerated(Const ASource: String;
-  Const AHint: String; ACount: integer);
+procedure TTestTypeParser.DoParseEnumerated(const ASource: String;
+  const AHint: String; ACount: integer);
 
 Var
   I : Integer;
@@ -2310,8 +2949,8 @@ begin
     AssertEquals('Enum value typed element '+IntToStr(I),TPasEnumValue,TObject(TPasEnumType(TheType).Values[i]).ClassType);
 end;
 
-Procedure TTestTypeParser.DoTestFileType(Const AType: String;
-  Const AHint: String; ADestType: TClass);
+procedure TTestTypeParser.DoTestFileType(const AType: String;
+  const AHint: String; ADestType: TClass);
 begin
   ParseType('File of '+AType,TPasFileType,AHint);
   AssertNotNull('Have element type',TPasFileType(TheType).ElType);
@@ -2320,23 +2959,26 @@ begin
   AssertEquals('Element type '+ADestType.ClassName,ADestType,TPasFileType(TheType).ElType.ClassType);
 end;
 
-Procedure TTestTypeParser.DoTestRangeType(Const AStart, AStop, AHint: String);
+procedure TTestTypeParser.DoTestRangeType(const AStart, AStop, AHint: String);
 begin
   ParseType(AStart+'..'+AStop,TPasRangeType,AHint);
-  AssertEquals('Range start',AStart,TPasRangeType(TheType).RangeStart);
-  AssertEquals('Range start',AStop,TPasRangeType(TheType).RangeEnd);
+  AssertEquals('Range start',AStart,Stringreplace(TPasRangeType(TheType).RangeStart,' ','',[rfReplaceAll]));
+  AssertEquals('Range start',AStop,Stringreplace(TPasRangeType(TheType).RangeEnd,' ','',[rfReplaceAll]));
 end;
 
-Procedure TTestTypeParser.DoParseSimpleSet(Const ASource: String;
-  Const AHint: String);
+procedure TTestTypeParser.DoParseSimpleSet(const ASource: String; const AHint: String; IsPacked: Boolean);
 begin
-  ParseType('Set of '+ASource,TPasSetType,AHint);
+  if IsPacked then
+    ParseType('Packed Set of '+ASource,TPasSetType,AHint)
+  else
+    ParseType('Set of '+ASource,TPasSetType,AHint);
   AssertNotNull('Have enumtype',TPasSetType(TheType).EnumType);
   AssertEquals('Element type ',TPasUnresolvedTypeRef,TPasSetType(TheType).EnumType.ClassType);
+  AssertEquals('IsPacked is correct',isPacked,TPasSetType(TheType).IsPacked);
 end;
 
-Procedure TTestTypeParser.DoParseComplexSet(Const ASource: String;
-  Const AHint: String);
+procedure TTestTypeParser.DoParseComplexSet(const ASource: String;
+  const AHint: String);
 
 begin
   ParseType('Set of '+ASource,TPasSetType,AHint);
@@ -2353,7 +2995,7 @@ begin
   AssertEquals('Element type ',TPasRangeType,TPasSetType(TheType).EnumType.ClassType);
 end;
 
-Procedure TTestTypeParser.DoTestComplexSet;
+procedure TTestTypeParser.DoTestComplexSet;
 
 Var
   I : integer;
@@ -2371,7 +3013,7 @@ begin
   AssertEquals('Assigned value third enumerated empty','',TPasEnumValue(TPasEnumType(TPasSetType(TheType).EnumType).Values[2]).AssignedValue);
 end;
 
-Procedure TTestTypeParser.DoTestClassOf(Const AHint: string);
+procedure TTestTypeParser.DoTestClassOf(const AHint: string);
 
 begin
   ParseType('Class of TSomeClass',TPasClassOfType,AHint);
@@ -2379,285 +3021,325 @@ begin
   AssertEquals('Element type ',TPasUnresolvedTypeRef,TPasClassOfType(TheType).DestType.ClassType);
 end;
 
-Procedure TTestTypeParser.TestAliasType;
+procedure TTestTypeParser.TestAliasType;
+
 begin
   DoTestAliasType('othertype','');
   AssertEquals('Unresolved type name ','othertype',TPasUnresolvedTypeRef(TPasAliasType(TheType).DestType).name);
 end;
 
-Procedure TTestTypeParser.TestCrossUnitAliasType;
+procedure TTestTypeParser.TestAbsoluteAliasType;
+begin
+  Add('Type');
+  Add('  Absolute = Integer;');
+  ParseDeclarations;
+  AssertEquals('First declaration is type definition.',TPasAliasType,TPasElement(Declarations.Types[0]).ClassType);
+  AssertEquals('First declaration has correct name.','Absolute',TPasElement(Declarations.Types[0]).Name);
+end;
+
+procedure TTestTypeParser.TestCrossUnitAliasType;
 begin
   DoTestAliasType('otherunit.othertype','');
 end;
 
-Procedure TTestTypeParser.TestAliasTypeDeprecated;
+procedure TTestTypeParser.TestAliasTypeDeprecated;
 begin
   DoTestALiasType('othertype','deprecated');
 end;
 
-Procedure TTestTypeParser.TestAliasTypePlatform;
+procedure TTestTypeParser.TestAliasTypePlatform;
 begin
   DoTestALiasType('othertype','platform');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeByte;
+procedure TTestTypeParser.TestSimpleTypeByte;
 begin
   DoTestAliasType('BYTE','');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeByteComment;
+procedure TTestTypeParser.TestSimpleTypeByteComment;
 begin
   AddComment:=True;
   DoTestAliasType('BYTE','');
   AssertComment;
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeByteDeprecated;
+procedure TTestTypeParser.TestSimpleTypeByteDeprecated;
 begin
   DoTestAliasType('BYTE','deprecated');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeBytePlatform;
+procedure TTestTypeParser.TestSimpleTypeBytePlatform;
 begin
   DoTestAliasType('BYTE','platform');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeBoolean;
+procedure TTestTypeParser.TestSimpleTypeBoolean;
 begin
   DoTestAliasType('BOOLEAN','');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeBooleanDeprecated;
+procedure TTestTypeParser.TestSimpleTypeBooleanDeprecated;
 begin
   DoTestAliasType('BOOLEAN','deprecated');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeBooleanPlatform;
+procedure TTestTypeParser.TestSimpleTypeBooleanPlatform;
 begin
   DoTestAliasType('BOOLEAN','platform');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeChar;
+procedure TTestTypeParser.TestSimpleTypeChar;
 begin
   DoTestAliasType('CHAR','');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeCharDeprecated;
+procedure TTestTypeParser.TestSimpleTypeCharDeprecated;
 begin
   DoTestAliasType('CHAR','deprecated');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeCharPlatform;
+procedure TTestTypeParser.TestSimpleTypeCharPlatform;
 begin
   DoTestAliasType('CHAR','platform');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeInteger;
+procedure TTestTypeParser.TestSimpleTypeInteger;
 begin
   DoTestAliasType('INTEGER','');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeIntegerDeprecated;
+procedure TTestTypeParser.TestSimpleTypeIntegerDeprecated;
 begin
   DoTestAliasType('INTEGER','deprecated');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeIntegerPlatform;
+procedure TTestTypeParser.TestSimpleTypeIntegerPlatform;
 begin
   DoTestAliasType('INTEGER','platform');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeInt64;
+procedure TTestTypeParser.TestSimpleTypeInt64;
 begin
   DoTestAliasType('INT64','');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeInt64Deprecated;
+procedure TTestTypeParser.TestSimpleTypeInt64Deprecated;
 begin
   DoTestAliasType('INT64','deprecated');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeInt64Platform;
+procedure TTestTypeParser.TestSimpleTypeInt64Platform;
 begin
   DoTestAliasType('INT64','platform');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeLongInt;
+procedure TTestTypeParser.TestSimpleTypeLongInt;
 begin
   DoTestAliasType('LONGINT','');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeLongIntDeprecated;
+procedure TTestTypeParser.TestSimpleTypeLongIntDeprecated;
 begin
   DoTestAliasType('LONGINT','deprecated');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeLongIntPlatform;
+procedure TTestTypeParser.TestSimpleTypeLongIntPlatform;
 begin
   DoTestAliasType('LONGINT','platform');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeLongWord;
+procedure TTestTypeParser.TestSimpleTypeLongWord;
 begin
   DoTestAliasType('LONGWORD','');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeLongWordDeprecated;
+procedure TTestTypeParser.TestSimpleTypeLongWordDeprecated;
 begin
   DoTestAliasType('LONGWORD','deprecated');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeLongWordPlatform;
+procedure TTestTypeParser.TestSimpleTypeLongWordPlatform;
 begin
   DoTestAliasType('LONGWORD','platform');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeDouble;
+procedure TTestTypeParser.TestSimpleTypeDouble;
 begin
   DoTestAliasType('Double','');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeDoubleDeprecated;
+procedure TTestTypeParser.TestSimpleTypeDoubleDeprecated;
 begin
   DoTestAliasType('Double','deprecated');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeDoublePlatform;
+procedure TTestTypeParser.TestSimpleTypeDoublePlatform;
 begin
   DoTestAliasType('Double','platform');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeShortInt;
+procedure TTestTypeParser.TestSimpleTypeShortInt;
 begin
   DoTestAliasType('SHORTINT','');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeShortIntDeprecated;
+procedure TTestTypeParser.TestSimpleTypeShortIntDeprecated;
 begin
   DoTestAliasType('SHORTINT','deprecated');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeShortIntPlatform;
+procedure TTestTypeParser.TestSimpleTypeShortIntPlatform;
 begin
   DoTestAliasType('SHORTINT','platform');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeSmallInt;
+procedure TTestTypeParser.TestSimpleTypeSmallInt;
 begin
   DoTestAliasType('SMALLINT','');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeSmallIntDeprecated;
+procedure TTestTypeParser.TestSimpleTypeSmallIntDeprecated;
 begin
   DoTestAliasType('SMALLINT','deprecated');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeSmallIntPlatform;
+procedure TTestTypeParser.TestSimpleTypeSmallIntPlatform;
 begin
   DoTestAliasType('SMALLINT','platform');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeString;
+procedure TTestTypeParser.TestSimpleTypeString;
 begin
   DoTestAliasType('STRING','');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeStringDeprecated;
+procedure TTestTypeParser.TestSimpleTypeStringDeprecated;
 begin
   DoTestAliasType('STRING','deprecated');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeStringPlatform;
+procedure TTestTypeParser.TestSimpleTypeStringPlatform;
 begin
   DoTestAliasType('STRING','platform');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeStringSize;
+procedure TTestTypeParser.TestSimpleTypeStringSize;
 begin
   DoTestStringType('String[10]','');
+  AssertEquals('Correct length', '10', TPasStringType(TPasAliasType(TheType).DestType).LengthExpr);
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeStringSizeIncomplete;
+procedure TTestTypeParser.TestSimpleTypeStringCodePage;
+
+begin
+  DoTestStringType('String(10)','');
+  AssertEquals('Correct length', '10', TPasStringType(TPasAliasType(TheType).DestType).CodePageExpr);
+  AssertNotNull('Have codepage expression', TPasAliasType(TheType).CodePageExpr);
+end;
+
+procedure TTestTypeParser.TestSimpleTypeStringCodePageIncomplete;
+begin
+  DoTypeError('Incomplete string: missing )','string(10');
+end;
+
+procedure TTestTypeParser.TestSimpleTypeStringCodePageWrong;
+begin
+  DoTypeError('Incomplete string, ] instead of (','string(10]');
+end;
+
+procedure TTestTypeParser.TestSimpleTypeStringCodePageDeprecated;
+begin
+  DoTestStringType('String(10)','deprecated');
+end;
+
+procedure TTestTypeParser.TestSimpleTypeStringCodePagePlatform;
+begin
+  DoTestStringType('String(10)','Platform');
+end;
+
+
+procedure TTestTypeParser.TestSimpleTypeStringSizeIncomplete;
 begin
   DoTypeError('Incomplete string: missing ]','string[10');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeStringSizeWrong;
+procedure TTestTypeParser.TestSimpleTypeStringSizeWrong;
 begin
   DoTypeError('Incomplete string, ) instead of ]','string[10)');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeStringSizeDeprecated;
+procedure TTestTypeParser.TestSimpleTypeStringSizeDeprecated;
 begin
   DoTestStringType('String[10]','deprecated');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeStringSizePlatform;
+procedure TTestTypeParser.TestSimpleTypeStringSizePlatform;
 begin
   DoTestStringType('String[10]','Platform');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeWord;
+procedure TTestTypeParser.TestSimpleTypeWord;
 BEGIN
   DoTestAliasType('WORD','');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeWordDeprecated;
+procedure TTestTypeParser.TestSimpleTypeWordDeprecated;
 begin
   DoTestAliasType('WORD','deprecated');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeWordPlatform;
+procedure TTestTypeParser.TestSimpleTypeWordPlatform;
 begin
   DoTestAliasType('WORD','platform');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeQWord;
+procedure TTestTypeParser.TestSimpleTypeQWord;
 BEGIN
   DoTestAliasType('QWORD','');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeQWordDeprecated;
+procedure TTestTypeParser.TestSimpleTypeQWordDeprecated;
 begin
   DoTestAliasType('QWORD','deprecated');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeQWordPlatform;
+procedure TTestTypeParser.TestSimpleTypeQWordPlatform;
 begin
   DoTestAliasType('QWORD','platform');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeCardinal;
+procedure TTestTypeParser.TestSimpleTypeCardinal;
 begin
   DoTestAliasType('CARDINAL','');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeCardinalDeprecated;
+procedure TTestTypeParser.TestSimpleTypeCardinalDeprecated;
 begin
   DoTestAliasType('CARDINAL','deprecated');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeCardinalPlatform;
+procedure TTestTypeParser.TestSimpleTypeCardinalPlatform;
 begin
   DoTestAliasType('CARDINAL','platform');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeWideChar;
+procedure TTestTypeParser.TestSimpleTypeWideChar;
 begin
   DoTestAliasType('WIDECHAR','');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeWideCharDeprecated;
+procedure TTestTypeParser.TestSimpleTypeWideCharDeprecated;
 begin
   DoTestAliasType('WIDECHAR','deprecated');
 end;
 
-Procedure TTestTypeParser.TestSimpleTypeWideCharPlatform;
+procedure TTestTypeParser.TestSimpleTypeWideCharPlatform;
 begin
   DoTestAliasType('WIDECHAR','platform');
 end;
 
-Procedure TTestTypeParser.TestPointerSimple;
+procedure TTestTypeParser.TestPointerSimple;
 begin
   DoParsePointer('integer','');
 end;
@@ -2672,13 +3354,13 @@ begin
   DoParsePointer('integer','platform');
 end;
 
-Procedure TTestTypeParser.TestStaticArray;
+procedure TTestTypeParser.TestStaticArray;
 begin
   DoParseArray('array [0..2] of integer','',Nil);
   AssertEquals('Array type','0..2',TPasArrayType(TheType).IndexRange);
 end;
 
-Procedure TTestTypeParser.TestStaticArrayComment;
+procedure TTestTypeParser.TestStaticArrayComment;
 begin
   AddComment:=True;
   TestStaticArray;
@@ -2697,26 +3379,59 @@ begin
   AssertEquals('Array type','0..2',TPasArrayType(TheType).IndexRange);
 end;
 
-Procedure TTestTypeParser.TestStaticArrayPacked;
+procedure TTestTypeParser.TestStaticArrayPacked;
 begin
   DoParseArray('packed array [0..2] of integer','',Nil);
   AssertEquals('Array type','0..2',TPasArrayType(TheType).IndexRange);
   AssertEquals('Packed',True,TPasArrayType(TheType).IsPacked);
 end;
 
-Procedure TTestTypeParser.TestStaticArrayTypedIndex;
+procedure TTestTypeParser.TestStaticArrayAsRange;
+
+begin
+  Parser.Options:=Parser.Options+[po_arrayrangeexpr];
+  DoParseArray('packed array [0..2] of integer','',Nil);
+  AssertEquals('Array has ranges',1,Length(TPasArrayType(TheType).Ranges));
+end;
+
+
+procedure TTestTypeParser.TestStaticArrayTypedIndex;
 begin
   DoParseArray('array [Boolean] of integer','',Nil);
   AssertEquals('Array type','Boolean',TPasArrayType(TheType).IndexRange);
 end;
 
-Procedure TTestTypeParser.TestDynamicArray;
+procedure TTestTypeParser.TestStaticArrayOfMethod;
+begin
+  DoParseArray('array[0..127] of procedure of object','',TPasProcedureType);
+  AssertEquals('Array element type',TPasProcedureType,TPasArrayType(TheType).ElType.ClassType);
+end;
+
+procedure TTestTypeParser.TestStaticArrayOfProcedure;
+begin
+  DoParseArray('array[0..127] of procedure','',TPasProcedureType);
+  AssertEquals('Array element type',TPasProcedureType,TPasArrayType(TheType).ElType.ClassType);
+end;
+
+procedure TTestTypeParser.TestDynamicArrayOfMethod;
+begin
+  DoParseArray('array of procedure of object','',TPasProcedureType);
+  AssertEquals('Array element type',TPasProcedureType,TPasArrayType(TheType).ElType.ClassType);
+end;
+
+procedure TTestTypeParser.TestDynamicArrayOfProcedure;
+begin
+  DoParseArray('array of procedure ','',TPasProcedureType);
+  AssertEquals('Array element type',TPasProcedureType,TPasArrayType(TheType).ElType.ClassType);
+end;
+
+procedure TTestTypeParser.TestDynamicArray;
 begin
   DoParseArray('array of integer','',Nil);
   AssertEquals('Array type','',TPasArrayType(TheType).IndexRange);
 end;
 
-Procedure TTestTypeParser.TestDynamicArrayComment;
+procedure TTestTypeParser.TestDynamicArrayComment;
 begin
   AddComment:=True;
   DoParseArray('array of integer','',Nil);
@@ -2724,7 +3439,21 @@ begin
   AssertComment;
 end;
 
-Procedure TTestTypeParser.TestSimpleEnumerated;
+procedure TTestTypeParser.TestGenericArray;
+begin
+  Add('Type');
+  Add('generic TArray<T> = array of T;');
+//  Writeln(source.text);
+  ParseDeclarations;
+  AssertEquals('One type definition',1,Declarations.Types.Count);
+  AssertEquals('First declaration is type definition.',TPasArrayType,TObject(Declarations.Types[0]).ClassType);
+  FType:=TPasType(Declarations.Types[0]);
+  AssertEquals('First declaration has correct name.','TArray',FType.Name);
+  AssertEquals('Array type','',TPasArrayType(TheType).IndexRange);
+  AssertEquals('Generic Array type',True,TPasArrayType(TheType).IsGenericArray);
+end;
+
+procedure TTestTypeParser.TestSimpleEnumerated;
 
 begin
   DoParseEnumerated('(one,two,three)','',3);
@@ -2736,7 +3465,7 @@ begin
   AssertEquals('Assigned value third enumerated empty','',TPasEnumValue(TPasEnumType(TheType).Values[2]).AssignedValue);
 end;
 
-Procedure TTestTypeParser.TestSimpleEnumeratedComment;
+procedure TTestTypeParser.TestSimpleEnumeratedComment;
 begin
   AddComment:=True;
   TestSimpleEnumerated;
@@ -2746,7 +3475,7 @@ begin
   AssertEquals('No comment on enum 2','',TPasEnumValue(TPasEnumType(TheType).Values[2]).DocComment);
 end;
 
-Procedure TTestTypeParser.TestSimpleEnumeratedComment2;
+procedure TTestTypeParser.TestSimpleEnumeratedComment2;
 begin
   AddComment:=True;
   DoParseEnumerated('( {a} one, {b} two, {c} three)','',3);
@@ -2755,7 +3484,7 @@ begin
   AssertEquals('comment on enum 2','c'+sLineBreak,TPasEnumValue(TPasEnumType(TheType).Values[2]).DocComment);
 end;
 
-Procedure TTestTypeParser.TestSimpleEnumeratedDeprecated;
+procedure TTestTypeParser.TestSimpleEnumeratedDeprecated;
 begin
   DoParseEnumerated('(one,two,three)','deprecated',3);
   AssertEquals('First enumerated value','one',TPasEnumValue(TPasEnumType(TheType).Values[0]).Name);
@@ -2766,7 +3495,7 @@ begin
   AssertEquals('Assigned value third enumerated empty','',TPasEnumValue(TPasEnumType(TheType).Values[2]).AssignedValue);
 end;
 
-Procedure TTestTypeParser.TestSimpleEnumeratedPlatform;
+procedure TTestTypeParser.TestSimpleEnumeratedPlatform;
 begin
   DoParseEnumerated('(one,two,three)','platform',3);
   AssertEquals('First enumerated value','one',TPasEnumValue(TPasEnumType(TheType).Values[0]).Name);
@@ -2777,7 +3506,7 @@ begin
   AssertEquals('Assigned value third enumerated empty','',TPasEnumValue(TPasEnumType(TheType).Values[2]).AssignedValue);
 end;
 
-Procedure TTestTypeParser.TestAssignedEnumerated;
+procedure TTestTypeParser.TestAssignedEnumerated;
 begin
   DoParseEnumerated('(one,two:=2,three)','',3);
   AssertEquals('First enumerated value','one',TPasEnumValue(TPasEnumType(TheType).Values[0]).Name);
@@ -2788,7 +3517,7 @@ begin
   AssertEquals('Assigned value first enumerated empty','',TPasEnumValue(TPasEnumType(TheType).Values[2]).AssignedValue);
 end;
 
-Procedure TTestTypeParser.TestAssignedEnumeratedDeprecated;
+procedure TTestTypeParser.TestAssignedEnumeratedDeprecated;
 begin
   DoParseEnumerated('(one,two:=2,three)','',3);
   AssertEquals('First enumerated value','one',TPasEnumValue(TPasEnumType(TheType).Values[0]).Name);
@@ -2799,7 +3528,7 @@ begin
   AssertEquals('Assigned value first enumerated empty','',TPasEnumValue(TPasEnumType(TheType).Values[2]).AssignedValue);
 end;
 
-Procedure TTestTypeParser.TestAssignedEnumeratedPlatform;
+procedure TTestTypeParser.TestAssignedEnumeratedPlatform;
 begin
   DoParseEnumerated('(one,two:=2,three)','',3);
   AssertEquals('First enumerated value','one',TPasEnumValue(TPasEnumType(TheType).Values[0]).Name);
@@ -2810,73 +3539,83 @@ begin
   AssertEquals('Assigned value first enumerated empty','',TPasEnumValue(TPasEnumType(TheType).Values[2]).AssignedValue);
 end;
 
-Procedure TTestTypeParser.TestFileType;
+procedure TTestTypeParser.TestFileType;
 begin
   DoTestFileType('integer','');
 end;
 
-Procedure TTestTypeParser.TestFileTypeDeprecated;
+procedure TTestTypeParser.TestFileTypeDeprecated;
 begin
   DoTestFileType('integer','deprecated');
 end;
 
-Procedure TTestTypeParser.TestFileTypePlatform;
+procedure TTestTypeParser.TestFileTypePlatform;
 begin
   DoTestFileType('integer','platform');
 end;
 
-Procedure TTestTypeParser.TestRangeType;
+procedure TTestTypeParser.TestRangeType;
 begin
   DoTestRangeType('1','4','');
 end;
 
-Procedure TTestTypeParser.TestRangeTypeDeprecated;
+procedure TTestTypeParser.TestCharRangeType;
+begin
+  DoTestRangeType('#1','#4','');
+end;
+
+procedure TTestTypeParser.TestCharRangeType2;
+begin
+  DoTestRangeType('''A''','''B''','');
+end;
+
+procedure TTestTypeParser.TestRangeTypeDeprecated;
 begin
   DoTestRangeType('1','4','deprecated');
 end;
 
-Procedure TTestTypeParser.TestRangeTypePlatform;
+procedure TTestTypeParser.TestRangeTypePlatform;
 begin
   DoTestRangeType('1','4','platform');
 end;
 
-Procedure TTestTypeParser.TestIdentifierRangeType;
+procedure TTestTypeParser.TestIdentifierRangeType;
 begin
   DoTestRangeType('tkFirst','tkLast','');
 end;
 
-Procedure TTestTypeParser.TestIdentifierRangeTypeDeprecated;
+procedure TTestTypeParser.TestIdentifierRangeTypeDeprecated;
 begin
   DoTestRangeType('tkFirst','tkLast','deprecated');
 end;
 
-Procedure TTestTypeParser.TestIdentifierRangeTypePlatform;
+procedure TTestTypeParser.TestIdentifierRangeTypePlatform;
 begin
   DoTestRangeType('tkFirst','tkLast','platform');
 end;
 
-Procedure TTestTypeParser.TestNegativeIdentifierRangeType;
+procedure TTestTypeParser.TestNegativeIdentifierRangeType;
 begin
   DoTestRangeType('-tkLast','tkLast','');
 end;
 
-Procedure TTestTypeParser.TestSimpleSet;
+procedure TTestTypeParser.TestSimpleSet;
 begin
   DoParseSimpleSet('Byte','');
 end;
 
-Procedure TTestTypeParser.TestSimpleSetDeprecated;
+procedure TTestTypeParser.TestSimpleSetDeprecated;
 begin
   DoParseSimpleSet('Byte','deprecated');
 end;
 
-Procedure TTestTypeParser.TestSimpleSetPlatform;
+procedure TTestTypeParser.TestSimpleSetPlatform;
 begin
   DoParseSimpleSet('Byte','platform');
 end;
 
 
-Procedure TTestTypeParser.TestComplexSet;
+procedure TTestTypeParser.TestComplexSet;
 
 
 begin
@@ -2884,64 +3623,81 @@ begin
   DoTestComplexSet;
 end;
 
-Procedure TTestTypeParser.TestComplexSetDeprecated;
+procedure TTestTypeParser.TestComplexSetDeprecated;
 
 begin
   DoParseComplexSet('(one, two, three)','deprecated');
   DoTestComplexSet;
 end;
 
-Procedure TTestTypeParser.TestComplexSetPlatform;
+procedure TTestTypeParser.TestComplexSetPlatform;
 
 begin
   DoParseComplexSet('(one, two, three)','platform');
   DoTestComplexSet;
 end;
 
-Procedure TTestTypeParser.TestRangeSet;
+procedure TTestTypeParser.TestPackedSet;
+begin
+  DoParseSimpleSet('Byte','',True);
+end;
+
+procedure TTestTypeParser.TestRangeLowHigh;
+
+begin
+  DoParseRangeSet('low(TRange)..high(TRange)','');
+end;
+
+
+procedure TTestTypeParser.TestRangeSet;
 begin
   // TRange = (rLow, rMiddle, rHigh);
   DoParseRangeSet('rMiddle..high(TRange)','');
 end;
 
-Procedure TTestTypeParser.TestSubRangeSet;
+procedure TTestTypeParser.TestSubRangeSet;
 begin
   DoParseRangeSet('0..SizeOf(Integer)*8-1','');
 end;
 
-Procedure TTestTypeParser.TestRangeSetDeprecated;
+procedure TTestTypeParser.TestRangeSetDeprecated;
 begin
   DoParseRangeSet('0..SizeOf(Integer)*8-1','deprecated');
 end;
 
-Procedure TTestTypeParser.TestRangeSetPlatform;
+procedure TTestTypeParser.TestRangeSetPlatform;
 begin
   DoParseRangeSet('0..SizeOf(Integer)*8-1','platform');
 end;
 
-Procedure TTestTypeParser.TestClassOf;
+procedure TTestTypeParser.TestNegativeRangeType;
+begin
+  DoTestRangeType('2-1','3','');
+end;
+
+procedure TTestTypeParser.TestClassOf;
 begin
   DoTestClassOf('');
 end;
 
-Procedure TTestTypeParser.TestClassOfComment;
+procedure TTestTypeParser.TestClassOfComment;
 begin
   AddComment:=True;
   DoTestClassOf('');
   AssertComment;
 end;
 
-Procedure TTestTypeParser.TestClassOfDeprecated;
+procedure TTestTypeParser.TestClassOfDeprecated;
 begin
   DoTestClassOf('deprecated');
 end;
 
-Procedure TTestTypeParser.TestClassOfPlatform;
+procedure TTestTypeParser.TestClassOfPlatform;
 begin
   DoTestClassOf('Platform');
 end;
 
-Procedure TTestTypeParser.TestReferenceAlias;
+procedure TTestTypeParser.TestReferenceAlias;
 begin
   Add('Type');
   Add(' Type1 = Integer;');
@@ -2956,7 +3712,7 @@ begin
   AssertSame('Second declaration references first.',Declarations.Types[0],TPasAliasType(Declarations.Types[1]).DestType);
 end;
 
-Procedure TTestTypeParser.TestReferenceSet;
+procedure TTestTypeParser.TestReferenceSet;
 
 begin
   Add('Type');
@@ -2972,7 +3728,7 @@ begin
   AssertSame('Second declaration references first.',Declarations.Types[0],TPasSetType(Declarations.Types[1]).EnumType);
 end;
 
-Procedure TTestTypeParser.TestReferenceClassOf;
+procedure TTestTypeParser.TestReferenceClassOf;
 begin
   Add('Type');
   Add(' Type1 = Class(TObject);');
@@ -2988,7 +3744,7 @@ begin
   AssertSame('Second declaration references first.',Declarations.Classes[0],TPasClassOfType(Declarations.Types[0]).DestType);
 end;
 
-Procedure TTestTypeParser.TestReferenceFile;
+procedure TTestTypeParser.TestReferenceFile;
 begin
   Add('Type');
   Add(' Type1 = (a,b,c);');
@@ -3003,7 +3759,7 @@ begin
   AssertSame('Second declaration references first.',Declarations.Types[0],TPasFileType(Declarations.Types[1]).elType);
 end;
 
-Procedure TTestTypeParser.TestReferenceArray;
+procedure TTestTypeParser.TestReferenceArray;
 begin
   Add('Type');
   Add(' Type1 = (a,b,c);');
@@ -3018,7 +3774,7 @@ begin
   AssertSame('Second declaration references first.',Declarations.Types[0],TPasArrayType(Declarations.Types[1]).elType);
 end;
 
-Procedure TTestTypeParser.TestReferencePointer;
+procedure TTestTypeParser.TestReferencePointer;
 begin
   Add('Type');
   Add(' Type1 = (a,b,c);');
@@ -3032,6 +3788,91 @@ begin
   AssertEquals('Second declaration has correct name.','Type2',TPasType(Declarations.Types[1]).Name);
   AssertSame('Second declaration references first.',Declarations.Types[0],TPasPointerType(Declarations.Types[1]).DestType);
 end;
+
+procedure TTestTypeParser.TestInvalidColon;
+var
+  ok: Boolean;
+begin
+  ok:=false;
+  try
+    ParseType(':1..2',TPasSetType);
+  except
+    on E: EParserError do
+      ok:=true;
+  end;
+  AssertEquals('wrong colon in type raised an error',true,ok);
+end;
+
+
+procedure TTestTypeParser.StartTypeHelper(ForType: String; AParent: String);
+Var
+  S : String;
+begin
+
+  S:='TMyClass = Type Helper';
+  if (AParent<>'') then
+    begin
+    S:=S+'('+AParent;
+    S:=S+')';
+    end;
+  S:=S+' for '+ForType;
+  Add(S);
+
+end;
+
+procedure TTestTypeParser.TestTypeHelper;
+begin
+  Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msTypeHelpers];
+  ParseType('Type Helper for AnsiString end',TPasClassType,'');
+end;
+
+procedure TTestTypeParser.TestTypeHelperWithParent;
+begin
+  Scanner.CurrentModeSwitches:=Scanner.CurrentModeSwitches+[msTypeHelpers];
+  ParseType('Type Helper(TOtherHelper) for AnsiString end',TPasClassType,'');
+end;
+
+procedure TTestTypeParser.TestPointerReference;
+begin
+  Add('Type');
+  Add('  pReference = ^Reference;');
+  Add('  Reference = object');
+  Add('  end;');
+  ParseDeclarations;
+  AssertEquals('type definition count',1,Declarations.Types.Count);
+  AssertEquals('object definition count',1,Declarations.Classes.Count);
+end;
+
+procedure TTestTypeParser.TestPointerKeyWord;
+begin
+  Add('type');
+  Add('  &file = object');
+  Add('  end;');
+  ParseDeclarations;
+  AssertEquals('object definition count',1,Declarations.Classes.Count);
+end;
+
+procedure TTestTypeParser.TestPointerFile;
+begin
+  Add('type');
+  Add('  pfile = ^file;');
+  ParseDeclarations;
+  AssertEquals('object definition count',1,Declarations.Types.Count);
+end;
+
+procedure TTestTypeParser.TestAbstractObject;
+
+begin
+  Add('Type');
+  Add('  Reference = object abstract');
+  Add('   x : integer;');
+  Add('  end;');
+  ParseDeclarations;
+  AssertEquals('object definition count',1,Declarations.Classes.Count);
+  AssertEquals('object is abstract',True,TPasClassType(Declarations.Classes[0]).IsAbstract);
+  AssertEquals('object is object',True,TPasClassType(Declarations.Classes[0]).ObjKind=okObject);
+end;
+
 
 
 initialization

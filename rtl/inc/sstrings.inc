@@ -49,7 +49,7 @@ end;
 
 {$ifndef FPC_HAS_SHORTSTR_DELETE}
 {$define FPC_HAS_SHORTSTR_DELETE}
-procedure delete(var s : shortstring;index : SizeInt;count : SizeInt);
+procedure {$ifdef VER3_0}delete{$else}fpc_shortstr_delete{$endif}(var s : shortstring;index : SizeInt;count : SizeInt);
 begin
   if index<=0 then
      exit;
@@ -67,7 +67,7 @@ end;
 
 {$ifndef FPC_HAS_SHORTSTR_INSERT}
 {$define FPC_HAS_SHORTSTR_INSERT}
-procedure insert(const source : shortstring;var s : shortstring;index : SizeInt);
+procedure {$ifdef ver3_0}insert{$else}fpc_shortstr_insert{$endif}(const source : shortstring;var s : shortstring;index : SizeInt);
 var
   cut,srclen,indexlen : SizeInt;
 begin
@@ -101,7 +101,7 @@ end;
 
 {$ifndef FPC_HAS_SHORTSTR_INSERT_CHAR}
 {$define FPC_HAS_SHORTSTR_INSERT_CHAR}
-procedure insert(source : Char;var s : shortstring;index : SizeInt);
+procedure {$ifdef ver3_0}insert{$else}fpc_shortstr_insert_char{$endif}(source : Char;var s : shortstring;index : SizeInt);
 var
   indexlen : SizeInt;
 begin
@@ -125,17 +125,17 @@ end;
 
 {$ifndef FPC_HAS_SHORTSTR_POS_SHORTSTR}
 {$define FPC_HAS_SHORTSTR_POS_SHORTSTR}
-function pos(const substr : shortstring;const s : shortstring):SizeInt;
+function pos(const substr : shortstring;const s : shortstring; Offset : Sizeint = 1):SizeInt;
 var
   i,MaxLen : SizeInt;
   pc : pchar;
 begin
   Pos:=0;
-  if Length(SubStr)>0 then
+  if (Length(SubStr)>0) and (Offset>0) and (Offset<=Length(S)) then
    begin
      MaxLen:=sizeint(Length(s))-Length(SubStr);
-     i:=0;
-     pc:=@s[1];
+     i:=Offset-1;
+     pc:=@s[Offset];
      while (i<=MaxLen) do
       begin
         inc(i);
@@ -155,13 +155,16 @@ end;
 {$ifndef FPC_HAS_SHORTSTR_POS_CHAR}
 {$define FPC_HAS_SHORTSTR_POS_CHAR}
 {Faster when looking for a single char...}
-function pos(c:char;const s:shortstring):SizeInt;
+function pos(c:char;const s:shortstring; Offset : Sizeint = 1 ):SizeInt;
 var
   i : SizeInt;
   pc : pchar;
 begin
-  pc:=@s[1];
-  for i:=1 to length(s) do
+  Pos:=0;
+  if (Offset<1) or (Offset>Length(S)) then
+    exit;
+  pc:=@s[Offset];
+  for i:=Offset to length(s) do
    begin
      if pc^=c then
       begin
@@ -183,9 +186,9 @@ begin
    fpc_char_Copy:='';
 end;
 
-function pos(const substr : shortstring;c:char): SizeInt;
+function pos(const substr : shortstring;c:char;  Offset : Sizeint = 1): SizeInt;
 begin
-  if (length(substr)=1) and (substr[1]=c) then
+  if (length(substr)=1) and (substr[1]=c) and (Offset=1) then
    Pos:=1
   else
    Pos:=0;
@@ -487,11 +490,7 @@ end;
 { compilerproc name will fail (JM)                                       }
 
 {$ifndef FPUNONE}
-{$ifdef FLOAT_ASCII_FALLBACK}
-{$I real2str.inc}
-{$else not FLOAT_ASCII_FALLBACK}
 {$I flt_conv.inc}
-{$endif FLOAT_ASCII_FALLBACK}
 {$endif}
 
 {$ifndef FPUNONE}
@@ -503,7 +502,13 @@ end;
 
 {$ifndef FPC_STR_ENUM_INTERN}
 function fpc_shortstr_enum_intern(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring): longint;
-
+{$ifndef FPC_HAS_FEATURE_RTTI}
+begin
+  int_str(ordinal,s);
+  if length(s)<len then
+    s:=space(len-length(s))+s;
+end;
+{$else with RTTI feature}
 { The following contains the TTypeInfo/TTypeData records from typinfo.pp
   specialized for the tkEnumeration case (and stripped of unused things). }
 type
@@ -511,21 +516,41 @@ type
 
   Penum_typeinfo=^Tenum_typeinfo;
   Tenum_typeinfo={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
-    kind:byte; { always tkEnumeration }
+    kind:TTypeKind; { always tkEnumeration }
     num_chars:byte;
     chars:array[0..0] of char; { variable length with size of num_chars }
   end;
 
+{$push}
+{$packrecords c}
   Penum_typedata=^Tenum_typedata;
   Tenum_typedata={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
-    ordtype:byte;
-    { this seemingly extraneous inner record is here for alignment purposes, so
-      that its data gets aligned properly (if FPC_REQUIRES_PROPER_ALIGNMENT is
-      set }
-    inner: {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
-      minvalue,maxvalue:longint;
-      basetype:pointer; { required for alignment }
-    end;
+{$if declared(TRttiDataCommon)}
+    Common: TRttiDataCommon;
+{$endif}
+    case TTypeKind of
+{$ifndef VER3_0}
+      tkInt64,tkQWord,
+{$endif VER3_0}
+      tkInteger,tkChar,tkEnumeration,tkBool,tkWChar: (
+         OrdType : Byte;
+         case TTypeKind of
+            tkInteger,tkChar,tkEnumeration,tkBool,tkWChar: (
+              MinValue,MaxValue : Longint;
+              case TTypeKind of
+                tkEnumeration: (
+                  BaseTypeRef : pointer
+                  );
+{$ifndef VER3_0}
+            {tkBool with OrdType=otSQWord }
+            tkInt64:
+              (MinInt64Value, MaxInt64Value: Int64);
+            {tkBool with OrdType=otUQWord }
+            tkQWord:
+              (MinQWordValue, MaxQWordValue: QWord);
+{$endif VER3_0}
+         );
+    );
     { more data here, but not needed }
   end;
 
@@ -548,7 +573,7 @@ type
       1: (num_entries:longint;
           search_data:array[0..0] of Tsearch_data);
   end;
-
+{$pop}
 var
   enum_o2s : Penum_ord_to_string;
   header:Penum_typeinfo;
@@ -572,9 +597,14 @@ begin
         enum_rtti_header, and then align. Use an alignment of 1 (which
         does nothing) in case FPC_REQUIRES_PROPER_ALIGNMENT is not set
         to avoid the need for an if in this situation }
-      body:=Penum_typedata(align(ptruint(header) + 2 * sizeof(byte) { kind, num_chars } + header^.num_chars,
-        {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT} 1 {$else} sizeof(pointer) {$endif}));
-      with (body^.inner) do
+
+{$ifdef VER3_0}
+      body:=Penum_typedata(aligntoptr(pointer(header) + 2 * sizeof(byte) { kind, num_chars } + header^.num_chars));
+{$else VER3_0}
+      body:=Penum_typedata(aligntoqword(pointer(header) + 2 * sizeof(byte) { kind, num_chars } + header^.num_chars));
+{$endif VER3_0}
+
+      with body^ do
         begin
           { Bounds check for the ordinal value for this enum }
           if (ordinal<minvalue) or (ordinal>maxvalue) then
@@ -626,7 +656,7 @@ begin
     end;
   fpc_shortstr_enum_intern:=0;
 end;
-
+{$endif with RTTI feature}
 
 procedure fpc_shortstr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring);[public,alias:'FPC_SHORTSTR_ENUM'];compilerproc;
 var
@@ -660,7 +690,7 @@ const
   MinLen = 8; { Minimal string length in scientific format }
 var
   buf : array[1..19] of char;
-  i,j,k,reslen,tlen,sign,r,point : longint;
+  i,j,k,reslen,tlen,sign,r,point : ObjpasInt;
   ic : qword;
 begin
   fillchar(buf,length(buf),'0');
@@ -873,6 +903,11 @@ end;
 {$ifndef CPU64}
 
 procedure fpc_chararray_qword(v : qword;len : SizeInt;out a : array of char);compilerproc;
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(219);
+end;
+{$else EXCLUDE_COMPLEX_PROCS}
 var
   ss : shortstring;
   maxlen : SizeInt;
@@ -886,9 +921,15 @@ begin
     maxlen:=high(a)+1;
   fpc_shortstr_chararray_intern_charmove(ss,a,maxlen);
 end;
+{$endif EXCLUDE_COMPLEX_PROCS}
 
 
 procedure fpc_chararray_int64(v : int64;len : SizeInt;out a : array of char);compilerproc;
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(219);
+end;
+{$else EXCLUDE_COMPLEX_PROCS}
 var
   ss : shortstring;
   maxlen : SizeInt;
@@ -902,6 +943,7 @@ begin
     maxlen:=high(a)+1;
   fpc_shortstr_chararray_intern_charmove(ss,a,maxlen);
 end;
+{$endif EXCLUDE_COMPLEX_PROCS}
 
 {$endif CPU64}
 
@@ -990,24 +1032,26 @@ end;
 {$endif}
 
 {$ifndef FPC_STR_ENUM_INTERN}
-{ currently, the avr code generator fails on this procedure, so we disable it, 
+{ currently, the avr code generator fails on this procedure, so we disable it,
   this is not a good solution but fixing compilation of this procedure for
   avr is hard, requires significant changes to the register allocator to take
   care of different register classes }
-{$ifndef CPUAVR}
 procedure fpc_chararray_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out a : array of char);compilerproc;
 var
   ss : shortstring;
   maxlen : SizeInt;
 begin
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+  runerror(219);
+{$else EXCLUDE_COMPLEX_PROCS}
   fpc_shortstr_enum(ordinal,len,typinfo,ord2strindex,ss);
   if length(ss)<high(a)+1 then
     maxlen:=length(ss)
   else
     maxlen:=high(a)+1;
   fpc_shortstr_chararray_intern_charmove(ss,a,maxlen);
+{$endif EXCLUDE_COMPLEX_PROCS}
 end;
-{$endif CPUAVR}
 {$endif not FPC_STR_ENUM_INTERN}
 
 procedure fpc_chararray_bool(b : boolean;len:sizeint;out a : array of char);compilerproc;
@@ -1027,6 +1071,11 @@ end;
 {$ifndef FPC_HAS_CHARARRAY_CURRENCY}
 {$define FPC_HAS_CHARARRAY_CURRENCY}
 procedure fpc_chararray_Currency(c : Currency;len,fr : SizeInt;out a : array of char);compilerproc;
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(217);
+end;
+{$else EXCLUDE_COMPLEX_PROCS}
 var
   ss : shortstring;
   maxlen : SizeInt;
@@ -1038,7 +1087,8 @@ begin
     maxlen:=high(a)+1;
   fpc_shortstr_chararray_intern_charmove(ss,a,maxlen);
 end;
-{$endif FPC_HAS_STR_CURRENCY}
+{$endif EXCLUDE_COMPLEX_PROCS}
+{$endif FPC_HAS_CHARARRAY_CURRENCY}
 
 {*****************************************************************************
                            Val() Functions
@@ -1104,13 +1154,42 @@ end;
 
 Function fpc_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; out Code: ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_SHORTSTR']; compilerproc;
 var
-  temp, prev, maxPrevValue, maxNewValue: ValUInt;
+  temp, prev, maxPrevValue: ValUInt;
   base,u : byte;
-  negative : boolean;
+  negative: boolean;
+  UnsignedUpperLimit: ValUInt;
+const
+  ValueArray : array['0'..'f'] of byte = (0,1,2,3,4,5,6,7,8,9,$FF,$FF,$FF,$FF,$FF,$FF,$FF,10,11,12,13,14,15,
+                                          $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,
+                                          10,11,12,13,14,15);
 begin
   fpc_Val_SInt_ShortStr := 0;
   Temp:=0;
   Code:=InitVal(s,negative,base);
+
+  if (base=10) or negative then
+    begin //always limit to either Low(DestType) or High(DestType)
+      case DestSize of
+        1: UnsignedUpperLimit := ValUInt(High(ShortInt))+Ord(negative);
+        2: UnsignedUpperLimit := ValUInt(High(SmallInt))+Ord(negative);
+        4: UnsignedUpperLimit := ValUInt(High(LongInt))+Ord(negative);
+        {$ifdef CPU64}
+        8: UnsignedUpperLimit := ValUInt(High(Int64))+Ord(negative);
+        {$endif CPU64}
+      end;
+    end
+  else
+    begin //not decimal and not negative
+      case DestSize of
+        1: UnsignedUpperLimit := High(Byte);
+        2: UnsignedUpperLimit := High(Word);
+        4: UnsignedUpperLimit := High(DWord);
+        {$ifdef CPU64}
+        8: UnsignedUpperLimit := High(UInt64);
+        {$endif CPU64}
+      end;
+    end;
+
   if Code>length(s) then
    exit;
   if (s[Code]=#0) then
@@ -1119,26 +1198,25 @@ begin
         Code:=0;
       exit;
     end;
+
   maxPrevValue := ValUInt(MaxUIntValue) div ValUInt(Base);
-  if (base = 10) then
-    maxNewValue := MaxSIntValue + ord(negative)
-  else
-    maxNewValue := MaxUIntValue;
+
   while Code<=Length(s) do
    begin
-     case s[Code] of
-       '0'..'9' : u:=Ord(S[Code])-Ord('0');
-       'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
-       'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+     u:=16;
+     case s[code] of
+       '0'..'f' : u:=ValueArray[S[Code]];
        #0 : break;
      else
-      u:=16;
+       ;
      end;
+
      Prev := Temp;
      Temp := Temp*ValUInt(base);
+
      If (u >= base) or
-        (ValUInt(maxNewValue-u) < Temp) or
-        (prev > maxPrevValue) Then
+        (prev > maxPrevValue)
+        or ((Temp)>(UnsignedUpperLimit-u)) Then
        Begin
          fpc_Val_SInt_ShortStr := 0;
          Exit
@@ -1147,9 +1225,11 @@ begin
      inc(code);
    end;
   code := 0;
+
   fpc_Val_SInt_ShortStr := ValSInt(Temp);
   If Negative Then
     fpc_Val_SInt_ShortStr := -fpc_Val_SInt_ShortStr;
+
   If Not(Negative) and (base <> 10) Then
    {sign extend the result to allow proper range checking}
     Case DestSize of
@@ -1160,6 +1240,7 @@ begin
 {$endif cpu64}
     End;
 end;
+
 
 {$ifndef FPC_HAS_INT_VAL_SINT_SHORTSTR}
 {$define FPC_HAS_INT_VAL_SINT_SHORTSTR}
@@ -1177,7 +1258,10 @@ begin
   fpc_Val_UInt_Shortstr:=0;
   Code:=InitVal(s,negative,base);
   If Negative or (Code>length(s)) Then
-    Exit;
+   begin
+     if Negative then Code:=Pos('-',S);
+     Exit;
+   end;
   if (s[Code]=#0) then
     begin
       if (Code>1) and (s[Code-1]='0') then
@@ -1217,9 +1301,13 @@ end;
        negative : boolean;
 
   const maxint64=qword($7fffffffffffffff);
+        minint64_unsigned=qword($8000000000000000);
         maxqword=qword($ffffffffffffffff);
 
   begin
+  {$ifdef EXCLUDE_COMPLEX_PROCS}
+    runerror(219);
+  {$else EXCLUDE_COMPLEX_PROCS}
     fpc_val_int64_shortstr := 0;
     Temp:=0;
     Code:=InitVal(s,negative,base);
@@ -1251,7 +1339,8 @@ end;
        Temp:=Temp*qword(base);
      If (u >= base) or
         (qword(maxnewvalue-u) < temp) or
-        (prev > maxprevvalue) Then
+        (prev > maxprevvalue) or
+        ((base<>10) and (negative) and ((Temp+u)>minint64_unsigned)) Then
        Begin
          fpc_val_int64_shortstr := 0;
          Exit
@@ -1263,6 +1352,7 @@ end;
     fpc_val_int64_shortstr:=int64(Temp);
     If Negative Then
       fpc_val_int64_shortstr:=-fpc_val_int64_shortstr;
+  {$endif EXCLUDE_COMPLEX_PROCS}
   end;
 
 
@@ -1278,7 +1368,10 @@ end;
     fpc_val_qword_shortstr:=0;
     Code:=InitVal(s,negative,base);
     If Negative or (Code>length(s)) Then
-      Exit;
+      begin
+        if Negative then Code:=Pos('-',S);
+        Exit;
+      end;
     if (s[Code]=#0) then
       begin
         if (Code>1) and (s[Code-1]='0') then
@@ -1411,17 +1504,22 @@ end;
 
   Function fpc_val_smallint_shortstr(Const S: ShortString; out Code: ValSInt): SmallInt; [public, alias:'FPC_VAL_SMALLINT_SHORTSTR']; compilerproc;
 
-  var  u, temp, prev, maxprevvalue, maxnewvalue : word;
+  var  u, temp, prev, maxprevvalue : word;
        base : byte;
        negative : boolean;
-
-  const maxlongint=longword($7fffffff);
-        maxlongword=longword($ffffffff);
-
+       UnsignedUpperLimit: ValUInt;
+  const
+    ValueArray : array['0'..'f'] of byte = (0,1,2,3,4,5,6,7,8,9,$FF,$FF,$FF,$FF,$FF,$FF,$FF,10,11,12,13,14,15,
+                                            $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF,
+                                            10,11,12,13,14,15);
   begin
     fpc_val_smallint_shortstr := 0;
     Temp:=0;
     Code:=InitVal(s,negative,base);
+    if (base=10) or negative then
+      UnsignedUpperLimit := Word(High(SmallInt))+Ord(negative)
+    else
+      UnsignedUpperLimit := High(Word);
     if Code>length(s) then
      exit;
     if (s[Code]=#0) then
@@ -1430,27 +1528,22 @@ end;
           Code:=0;
         exit;
       end;
-    maxprevvalue := maxlongword div base;
-    if (base = 10) then
-      maxnewvalue := maxlongint + ord(negative)
-    else
-      maxnewvalue := maxlongword;
+    maxprevvalue := High(Word) div base;
 
     while Code<=Length(s) do
      begin
-       case s[Code] of
-         '0'..'9' : u:=Ord(S[Code])-Ord('0');
-         'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
-         'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+       u:=16;
+       case s[code] of
+         '0'..'f' : u:=ValueArray[S[Code]];
          #0 : break;
        else
-        u:=16;
+         ;
        end;
        Prev:=Temp;
        Temp:=Temp*longword(base);
-     If (u >= base) or
-        (longword(maxnewvalue-u) < temp) or
-        (prev > maxprevvalue) Then
+       If (u >= base) or
+        (prev > maxPrevValue) or
+        ((Temp)>(UnsignedUpperLimit-u)) Then
        Begin
          fpc_val_smallint_shortstr := 0;
          Exit
@@ -1459,7 +1552,7 @@ end;
        inc(code);
      end;
     code:=0;
-    fpc_val_smallint_shortstr:=longint(Temp);
+    fpc_val_smallint_shortstr:=SmallInt(Temp);
     If Negative Then
       fpc_val_smallint_shortstr:=-fpc_val_smallint_shortstr;
   end;
@@ -1477,7 +1570,10 @@ end;
     fpc_val_word_shortstr:=0;
     Code:=InitVal(s,negative,base);
     If Negative or (Code>length(s)) Then
-      Exit;
+      begin
+        if Negative then Code:=Pos('-',S);
+        Exit;
+      end;
     if (s[Code]=#0) then
       begin
         if (Code>1) and (s[Code-1]='0') then
@@ -1508,357 +1604,12 @@ end;
   end;
 {$endif CPU16 or CPU8}
 
-{$ifdef FLOAT_ASCII_FALLBACK}
-{$ifndef FPUNONE}
-const
-{$ifdef FPC_HAS_TYPE_EXTENDED}
-  valmaxexpnorm=4932;
-  mantissabits=64;
-{$else}
-{$ifdef FPC_HAS_TYPE_DOUBLE}
-  valmaxexpnorm=308;
-  mantissabits=53;
-{$else}
-{$ifdef FPC_HAS_TYPE_SINGLE}
-  valmaxexpnorm=38;
-  mantissabits=24;
-{$else}
-{$error Unknown floating point precision }
-{$endif}
-{$endif}
-{$endif}
-{$endif}
-
-{$ifndef FPUNONE}
-
-(******************
-
-   Derived from: ".\Free Pascal\source\rtl\inc\genmath.inc"
-
-   Origin: "fast 10^n routine"
-     function FPower10(val: Extended; Power: Longint): Extended;
-
-   Changes:
-    > adapted to "ValReal", so float can be single/double/extended
-    > slightly changed arrays [redundant 58+2 float constants gone away]
-    > added some checks etc..
-
-   Notes:
-    > denormalization and overflow should go smooth if corresponding
-      FPU exceptions are masked [no external care needed by now]
-    > adaption to real48 and real128 is not hard if one needed
-
- ******************)
-//
-   function mul_by_power10(x:ValReal;power:integer):ValReal;
-//
-// result:=X*(10^power)
-//
-// Routine achieves result with no more than 3 floating point mul/div's.
-// Up to ABS(power)=31, only 1 floating point mul/div is needed.
-//
-// Limitations:
-//  for ValReal=extended : power=-5119..+5119
-//  for ValReal=double   : power=-319..+319
-//  for ValReal=single   : power=-63..+63
-//
-// If "power" is beyond this limits, routine gives up and returns 0/+INF/-INF.
-// This is not generally correct, but should be ok when routine is used only
-// as "VAL"-helper, since "x" exponent is reasonably close to 0 in this case.
-//
-//==================================
-{$IF DECLARED(C_HIGH_EXPBITS_5TO8)}
-  {$ERROR C_HIGH_EXPBITS_5TO8 declared somewhere in scope}
-{$ENDIF}
-
-{$IF DECLARED(C_HIGH_EXPBITS_9ANDUP)}
-  {$ERROR C_HIGH_EXPBITS_9ANDUP declared somewhere in scope}
-{$ENDIF}
-
-{$IF SIZEOF(ValReal)=10}
-//==================================
-// assuming "type ValReal=extended;"
-//
-const
-  C_MAX_POWER = 5119;
-
-  C_HIGH_EXPBITS_5TO8   = 15;
-  C_HIGH_EXPBITS_9ANDUP = 9;
-
-{$ELSEIF SIZEOF(ValReal)=8}
-//==================================
-// assuming "type ValReal=double;"
-//
-const
-  C_MAX_POWER = 319;
-
-  C_HIGH_EXPBITS_5TO8 = 9;
-
-{$ELSEIF SIZEOF(ValReal)=4}
-//==================================
-// assuming "type ValReal=single;"
-//
-const
-  C_MAX_POWER = 63;
-
-{$ELSE}
-//==================================
-// assuming "ValReal=?"
-//
-  {$ERROR Unsupported ValReal type}
-{$ENDIF}
-
-//==================================
-const
-  C_INFTYP = ValReal( 1.0/0.0);
-  C_INFTYM = ValReal(-1.0/0.0);
-
-  mul_expbits_0_to_4:packed array[0..31]of ValReal=(
-   1E0,  1E1,  1E2,  1E3,
-   1E4,  1E5,  1E6,  1E7,
-   1E8,  1E9,  1E10, 1E11,
-   1E12, 1E13, 1E14, 1E15,
-   1E16, 1E17, 1E18, 1E19,
-   1E20, 1E21, 1E22, 1E23,
-   1E24, 1E25, 1E26, 1E27,
-   1E28, 1E29, 1E30, 1E31);
-
-{$IF DECLARED(C_HIGH_EXPBITS_5TO8)}
-  mul_expbits_5_to_8:packed array[1..C_HIGH_EXPBITS_5TO8] of ValReal=(
-   1E32,  1E64,  1E96,  1E128,
-   1E160, 1E192, 1E224, 1E256, 1E288
-  {$IF DECLARED(C_HIGH_EXPBITS_9ANDUP)},
-   1E320, 1E352, 1E384, 1E416, 1E448, 1E480
-  {$ENDIF});
-{$ELSE}
-  mul_expbits_5_to_8:ValReal=1E32;
-{$ENDIF}
-
-{$IF DECLARED(C_HIGH_EXPBITS_9ANDUP)}
-  mul_expbits_9_and_up:packed array[1..C_HIGH_EXPBITS_9ANDUP] of ValReal=(
-   1E512,  1E1024, 1E1536, 1E2048,
-   1E2560, 1E3072, 1E3584, 1E4096,
-   1E4608);
-{$ENDIF}
-
-begin
-  if power=0 then mul_by_power10:=x else
-  if power<-C_MAX_POWER then mul_by_power10:=0 else
-  if power>C_MAX_POWER then
-   if x<0 then mul_by_power10:=C_INFTYM else
-   if x>0 then mul_by_power10:=C_INFTYP else mul_by_power10:=0
-  else
-   if power<0 then
-    begin
-     power:=-power;
-     mul_by_power10:=x/mul_expbits_0_to_4[power and $1F];
-     power:=(power shr 5);
-     if power=0 then exit;
-    {$IF DECLARED(C_HIGH_EXPBITS_5TO8)}
-     if power and $F<>0 then
-      mul_by_power10:=
-       mul_by_power10/mul_expbits_5_to_8[power and $F];
-    {$ELSE} // "single", power<>0, so always div
-     mul_by_power10:=mul_by_power10/mul_expbits_5_to_8;
-    {$ENDIF}
-    {$IF DECLARED(C_HIGH_EXPBITS_9ANDUP)}
-     power:=(power shr 4);
-     if power<>0 then
-      mul_by_power10:=
-       mul_by_power10/mul_expbits_9_and_up[power];
-    {$ENDIF}
-    end
-   else
-    begin
-     mul_by_power10:=x*mul_expbits_0_to_4[power and $1F];
-     power:=(power shr 5);
-     if power=0 then exit;
-    {$IF DECLARED(C_HIGH_EXPBITS_5TO8)}
-     if power and $F<>0 then
-      mul_by_power10:=
-       mul_by_power10*mul_expbits_5_to_8[power and $F];
-    {$ELSE} // "single", power<>0, so always mul
-     mul_by_power10:=mul_by_power10*mul_expbits_5_to_8;
-    {$ENDIF}
-    {$IF DECLARED(C_HIGH_EXPBITS_9ANDUP)}
-     power:=(power shr 4);
-     if power<>0 then
-      mul_by_power10:=
-       mul_by_power10*mul_expbits_9_and_up[power];
-    {$ENDIF}
-    end;
-end;
-
-Function fpc_Val_Real_ShortStr(const s : shortstring; out Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_SHORTSTR']; compilerproc;
-var
-  hd,
-  sign : valreal;
-  esign,
-  exponent,
-  expstart,
-  decpoint : SizeInt;
-  nint,
-  nlz,
-  explimit,
-  explastdigit: SizeInt;
-begin
-  fpc_Val_Real_ShortStr:=0.0;
-  code:=1;
-  exponent:=0;
-  decpoint:=0;
-  esign:=1;
-  hd:=0.0;
-  nlz:=0;
-  nint:=0;
-  sign:=1;
-  while (code<=length(s)) and (s[code] in [' ',#9]) do
-    inc(code);
-  if code<=length(s) then
-    case s[code] of
-     '+' : inc(code);
-     '-' : begin
-             sign:=-1;
-             inc(code);
-           end;
-    end;
-  { leading zeroes do not influence result, skip all but one of them }
-  expstart:=code;
-  while (code<Length(s)) and (s[code]='0') do
-    inc(code);
-  if (code>expstart) then
-    dec(code);
-  expstart:=code;
-  while (Code<=Length(s)) do
-    begin
-      case s[code] of
-        '0':
-          begin
-            if (hd=0) then
-              inc(nlz,ord(decpoint<>0))
-            else
-              inc(nint,ord(decpoint=0));
-            hd:=hd*10;
-          end;
-        '1'..'9':
-          begin
-            if (decpoint=0) then
-              inc(nint);
-            hd:=hd*10+(ord(s[code])-ord('0'));
-          end;
-        '.':
-          if decpoint=0 then
-            decpoint:=code
-          else
-            exit;
-      else
-        break;
-      end;
-      inc(code);
-    end;
-  { must have seen at least one digit }
-  if (code-expstart)<1+ord(decpoint<>0) then
-    exit;
-
-  if decpoint<>0 then
-    decpoint:=code-decpoint-1;
-
- { Exponent ? }
-  if (length(s)>=code) and (s[code] in ['e','E']) then
-    begin
-      inc(code);
-      if Length(s) >= code then
-        case s[code] of
-          '+': inc(code);
-          '-': begin
-                 esign:=-1;
-                 inc(code);
-               end;
-        end;
-      expstart:=code;
-      { Limit the exponent, accounting for digits in integer part of mantissa
-        and leading zeros in fractional part, e.g 100.0e306 = 1.0e308, etc. }
-      if (esign<0) then
-        explimit:=valmaxexpnorm+mantissabits-1+nint
-      else if (nint>0) then
-        explimit:=valmaxexpnorm+1-nint
-      else
-        explimit:=valmaxexpnorm+1+nlz;
-      explastdigit:=(explimit mod 10)+ord('0');
-      explimit:=explimit div 10;
-      while (length(s)>=code) and (s[code] in ['0'..'9']) do
-        begin
-          { Check commented out: since this code is used by compiler, it would error out
-            e.g. if compiling '1e3000' for non-x86 target. OTOH silently treating it
-            as infinity isn't a good option either. }
-          (*
-          if (exponent>explimit) or
-            ((exponent=explimit) and (ord(s[code])>explastdigit)) then
-            begin
-              { ignore exponent overflow for zero mantissa }
-              if hd<>0.0 then
-                exit;
-            end
-          else *)
-            exponent:=exponent*10+(ord(s[code])-ord('0'));
-          inc(code);
-        end;
-      if code=expstart then
-        exit;
-    end;
-{ Not all characters are read ? }
-  if length(s)>=code then
-    exit;
-
-{ adjust exponent based on decimal point }
-  dec(exponent,decpoint*esign);
-  if (exponent<0) then
-    begin
-      esign:=-1;
-      exponent:=-exponent;
-    end;
-
-{ evaluate sign }
-{ (before exponent, because the exponent may turn it into a denormal) }
-  fpc_Val_Real_ShortStr:=hd*sign;
-
-{ Calculate Exponent }
-  hd:=1.0;
-  { the magnitude range maximum (normal) is lower in absolute value than the }
-  { the magnitude range minimum (denormal). E.g. an extended value can go    }
-  { up to 1E4932, but "down" to 1E-4951. So make sure that we don't try to   }
-  { calculate 1E4951 as factor, since that would overflow and result in 0.   }
-  if (exponent>valmaxexpnorm-2) then
-    begin
-      hd:=mul_by_power10(hd,valmaxexpnorm-2);
-      if esign>0 then
-        fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*hd
-      else
-        fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr/hd;
-      dec(exponent,valmaxexpnorm-2);
-      hd:=1.0;
-    end;
-  hd:=mul_by_power10(hd,exponent);
-
-  if esign>0 then
-    fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*hd
-  else
-    fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr/hd;
-
-{ success ! }
-  code:=0;
-end;
-{$endif}
-
-{$else not FLOAT_ASCII_FALLBACK}
-
 {$ifndef FPUNONE}
 Function fpc_Val_Real_ShortStr(const s : shortstring; out Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_SHORTSTR']; compilerproc;
 begin
     fpc_Val_Real_ShortStr := val_real( s, code );
 end;
 {$endif FPUNONE}
-
-{$endif FLOAT_ASCII_FALLBACK}
 
 {$ifndef FPC_STR_ENUM_INTERN}
 function fpc_val_enum_shortstr(str2ordindex:pointer;const s:shortstring;out code:valsint):longint; [public, alias:'FPC_VAL_ENUM_SHORTSTR']; compilerproc;
@@ -1950,10 +1701,14 @@ function fpc_val_enum_shortstr(str2ordindex:pointer;const s:shortstring;out code
 {$endif FPC_STR_ENUM_INTERN}
 
 function fpc_Val_Currency_ShortStr(const s : shortstring; out Code : ValSInt): currency; [public, alias:'FPC_VAL_CURRENCY_SHORTSTR']; compilerproc;
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(217);
+end;
+{$else EXCLUDE_COMPLEX_PROCS}
 const
-  MaxInt64 : Int64  = $7FFFFFFFFFFFFFFF;
-  Int64Edge : Int64 = ($7FFFFFFFFFFFFFFF - 10) div 10;
-  Int64Edge2 : Int64 = $7FFFFFFFFFFFFFFF div 10;
+  MinInt64 : Int64  =-$8000000000000000;
+  MinInt64Edge : Int64 = (-$8000000000000000 + 10) div 10;
 var
   { to enable taking the address on the JVM target }
   res : array[0..0] of Int64;
@@ -1964,7 +1719,7 @@ begin
   res[0]:=0;
   len:=Length(s);
   Code:=1;
-  sign:=1;
+  sign:=-1;
   power:=0;
   while True do
     if Code > len then
@@ -1976,10 +1731,12 @@ begin
         break;
   { Read sign }
   case s[Code] of
-   '+' : Inc(Code);
+   '+' : begin
+           Inc(Code);
+         end;
    '-' : begin
-           sign:=-1;
-           inc(code);
+           sign:=+1;
+           Inc(Code);
          end;
   end;
   { Read digits }
@@ -1992,9 +1749,9 @@ begin
           begin
             j:=Ord(s[code])-Ord('0');
             { check overflow }
-            if (res[0] <= Int64Edge) or (res[0] <= (MaxInt64 - j) div 10) then
+            if (res[0] >= MinInt64Edge) or (res[0] >= (MinInt64 + j) div 10) then
               begin
-                res[0]:=res[0]*10 + j;
+                res[0]:=res[0]*10 - j;
                 Inc(i);
               end
             else
@@ -2003,9 +1760,9 @@ begin
                 exit
               else
                 begin
-                  if not FracOverflow and (j >= 5) and (res[0] < MaxInt64) then
+                  if not FracOverflow and (j >= 5) and (res[0] > MinInt64) then
                     { round if first digit of fractional part overflow }
-                    Inc(res[0]);
+                    Dec(res[0]);
                   FracOverflow:=True;
                 end;
           end;
@@ -2066,7 +1823,7 @@ begin
   if power > 0 then
     begin
       for i:=1 to power do
-        if res[0] <= Int64Edge2 then
+        if res[0] >= MinInt64 div 10 then
           res[0]:=res[0]*10
         else
           exit;
@@ -2074,14 +1831,21 @@ begin
   else
     for i:=1 to -power do
       begin
-        if res[0] <= MaxInt64 - 5 then
-          Inc(res[0], 5);
+        if res[0] >= MinInt64 + 5 then
+          Dec(res[0], 5);
         res[0]:=res[0] div 10;
       end;
-  res[0]:=res[0]*sign;
+
+  if sign <> 1 then
+    if res[0] > MinInt64 then
+      res[0]:=res[0]*sign
+    else
+      exit;
+
   fpc_Val_Currency_ShortStr:=PCurrency(@res[0])^;
   Code:=0;
 end;
+{$endif EXCLUDE_COMPLEX_PROCS}
 
 
 {$ifndef FPC_HAS_SETSTRING_SHORTSTR}

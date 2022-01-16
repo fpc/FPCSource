@@ -13,19 +13,20 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('arosunits');
+    P.ShortName := 'aru';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
 
     P.Author := 'Marcus Sackrow';
     P.License := 'LGPL with modification';
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
-    P.Description := 'A set of units for AROS. Currently i386 only';
+    P.Description := 'A set of units for AROS.';
     P.NeedLibC:= false;
 
-    P.CPUs:=[i386];
+    P.CPUs:=[arm,i386,x86_64];
     P.OSes:=[aros];
 
     P.SourcePath.Add('src');
@@ -52,6 +53,12 @@ begin
     T:=P.Targets.AddUnit('asl.pas');
     T:=P.Targets.AddUnit('mui.pas');
     T:=P.Targets.AddUnit('cybergraphics.pas');
+    T:=P.Targets.AddUnit('locale.pas');
+    T:=P.Targets.AddUnit('commodities.pas');
+    T:=P.Targets.AddUnit('datatypes.pas');
+    T:=P.Targets.AddUnit('serial.pas');
+    T:=P.Targets.AddUnit('console.pas');
+    T:=P.Targets.AddUnit('conunit.pas');
 
 {$ifndef ALLPACKAGES}
     Run;

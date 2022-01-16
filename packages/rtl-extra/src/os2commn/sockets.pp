@@ -16,6 +16,8 @@
 
 {$MODE ObjFPC}
 { $DEFINE notUnix}      // To make ssockets.pp compile
+{$ModeSwitch out}
+
 unit Sockets;
 
 interface
@@ -108,6 +110,7 @@ const
   EsockENOTSOCK = SOCENOTSOCK;
   EsockEPROTONOSUPPORT = SOCEPROTONOSUPPORT;
   EsockEWOULDBLOCK = SOCEWOULDBLOCK;
+  EsockADDRINUSE = SOCEADDRINUSE;
 
 
 (***************************************************************************)

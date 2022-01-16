@@ -18,10 +18,9 @@
   This file contains the implementation of the WideString type,
   and all things that are needed for it.
   WideString is defined as a 'silent' pwidechar :
-  a pwidechar that points to :
+  a pwidechar that points to:
 
-  @-8  : SizeInt for reference count;
-  @-4  : SizeInt for size; size=number of bytes, not the number of chars. Divide or multiply
+  @-4  : DWord for size; size=number of bytes, not the number of chars. Divide or multiply
          with sizeof(WideChar) to convert. This is needed to be compatible with Delphi and
          Windows COM BSTR.
   @    : String + Terminating #0;
@@ -484,6 +483,12 @@ begin
     HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
 end;
 
+Procedure fpc_WideStr_ZeroBased_RangeCheck(p: Pointer; index: SizeInt);[Public,Alias : 'FPC_WIDESTR_ZEROBASED_RANGECHECK']; compilerproc;
+begin
+  if (p=nil) or (index>=PWideRec(p-WideFirstOff)^.len div 2) or (Index<0) then
+    HandleErrorAddrFrameInd(201,get_pc_addr,get_frame);
+end;
+
 Procedure fpc_WideStr_SetLength(Var S : WideString; l : SizeInt);[Public,Alias : 'FPC_WIDESTR_SETLENGTH']; compilerproc;
 {
   Sets The length of string S to L.
@@ -547,6 +552,15 @@ end;
                      Public functions, In interface.
 *****************************************************************************}
 
+Function fpc_widestr_Unique_func(Var S : WideString): Pointer; external name 'FPC_WIDESTR_UNIQUE';
+
+
+Procedure UniqueString (Var S : WideString);{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    fpc_widestr_Unique_func(S);
+  end;
+
+
 Function fpc_widestr_Unique(Var S : Pointer): Pointer; [Public,Alias : 'FPC_WIDESTR_UNIQUE']; compilerproc;
   begin
     pointer(result) := pointer(s);
@@ -578,24 +592,24 @@ begin
 end;
 
 
-Function Pos (Const Substr : WideString; Const Source : WideString) : SizeInt;
+Function Pos (Const Substr : WideString; Const Source : WideString; Offset : SizeInt = 1) : SizeInt;
 var
   i,MaxLen : SizeInt;
   pc : pwidechar;
 begin
   Pos:=0;
-  if Length(SubStr)>0 then
+  if (Length(SubStr)>0) and (Offset>0) and (Offset<=Length(Source)) then
    begin
-     MaxLen:=Length(source)-Length(SubStr);
+     MaxLen:=Length(source)-Length(SubStr)-(Offset-1);
      i:=0;
-     pc:=@source[1];
+     pc:=@source[Offset];
      while (i<=MaxLen) do
       begin
         inc(i);
         if (SubStr[1]=pc^) and
            (CompareWord(Substr[1],pc^,Length(SubStr))=0) then
          begin
-           Pos:=i;
+           Pos:=Offset+i-1;
            exit;
          end;
         inc(pc);
@@ -605,76 +619,82 @@ end;
 
 
 { Faster version for a widechar alone }
-Function Pos (c : WideChar; Const s : WideString) : SizeInt;
+Function Pos (c : WideChar; Const s : WideString; Offset : Sizeint = 1) : SizeInt;
 var
   i: SizeInt;
   pc : pwidechar;
 begin
-  pc:=@s[1];
-  for i:=1 to length(s) do
+  if (Offset>0) and (Offset<=length(s)) then
    begin
-     if pc^=c then
-      begin
-        pos:=i;
-        exit;
-      end;
-     inc(pc);
+     pc:=@s[OffSet];
+     for i:=OffSet to length(s) do
+       begin
+         if pc^=c then
+           begin
+             pos:=i;
+             exit;
+           end;
+         inc(pc);
+       end;
    end;
   pos:=0;
 end;
 
 { DO NOT inline these! Inlining a managed typecast creates an implicit try..finally
   block, which is significant bloat without any sensible speed improvement. }
-Function Pos (c : WideChar; Const s : RawByteString) : SizeInt;
+Function Pos (c : WideChar; Const s : RawByteString; Offset : SizeInt = 1) : SizeInt;
   begin
-    result:=Pos(c,WideString(s));
+    result:=Pos(c,WideString(s),Offset);
   end;
 
 
-Function Pos (const c : RawByteString; Const s : WideString) : SizeInt;
+Function Pos (const c : RawByteString; Const s : WideString;Offset : SizeInt = 1) : SizeInt;
   begin
-    result:=Pos(WideString(c),s);
+    result:=Pos(WideString(c),s,Offset);
   end;
 
 
-Function Pos (const c : ShortString; Const s : WideString) : SizeInt;
+Function Pos (const c : ShortString; Const s : WideString;Offset : SizeInt = 1) : SizeInt;
   begin
-    result:=Pos(WideString(c),s);
+    result:=Pos(WideString(c),s,Offset);
   end;
 
 
-Function Pos (const c : WideString; Const s : RawByteString) : SizeInt;
+Function Pos (const c : WideString; Const s : RawByteString;Offset : SizeInt = 1) : SizeInt;
   begin
-    result:=Pos(c,WideString(s));
+    result:=Pos(c,WideString(s),Offset);
   end;
 
 { Faster version for a char alone. Must be implemented because   }
 { pos(c: char; const s: shortstring) also exists, so otherwise   }
 { using pos(char,pchar) will always call the shortstring version }
 { (exact match for first argument), also with $h+ (JM)           }
-Function Pos (c : Char; Const s : WideString) : SizeInt;
+Function Pos (c : Char; Const s : WideString; Offset : SizeInt = 1) : SizeInt;
 var
   i: SizeInt;
   wc : widechar;
   pc : pwidechar;
 begin
-  wc:=c;
-  pc:=@s[1];
-  for i:=1 to length(s) do
-   begin
-     if pc^=wc then
-      begin
-        pos:=i;
-        exit;
-      end;
-     inc(pc);
-   end;
+  if (Offset>0) and (Offset<=Length(S)) then
+    begin
+      wc:=c;
+      pc:=@s[OffSet];
+      for i:=OffSet to length(s) do
+       begin
+         if pc^=wc then
+          begin
+            pos:=i;
+            exit;
+          end;
+         inc(pc);
+       end;
+    end;
   pos:=0;
 end;
 
 
 
-Procedure Delete (Var S : WideString; Index,Size: SizeInt);
+Procedure {$ifdef VER3_0}Delete{$else}fpc_widestr_delete{$endif}(Var S : WideString; Index,Size: SizeInt);
 Var
   LS : SizeInt;
 begin
@@ -694,7 +714,7 @@ begin
 end;
 
 
-Procedure Insert (Const Source : WideString; Var S : WideString; Index : SizeInt);
+Procedure {$ifdef VER3_0}Insert{$else}fpc_widestr_insert{$endif}(Const Source : WideString; Var S : WideString; Index : SizeInt);
 var
   Temp : WideString;
   LS : SizeInt;
@@ -876,7 +896,6 @@ begin
   s:=WideString(ss);
 end;
 
-{$ifdef FPC_HAS_STR_CURRENCY}
 procedure fpc_WideStr_Currency(c : Currency;len,fr : SizeInt;out s : WideString);compilerproc;
 var
   ss: ShortString;
@@ -884,7 +903,6 @@ begin
   str(c:len:fr,ss);
   s:=WideString(ss);
 end;
-{$endif FPC_HAS_STR_CURRENCY}
 
 Procedure fpc_WideStr_SInt(v : ValSint; Len : SizeInt; out S : WideString);compilerproc;
 Var

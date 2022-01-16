@@ -20,6 +20,7 @@
 program dotest;
 uses
   sysutils,
+  strutils,
   dos,
 {$ifdef macos}
   macutils,
@@ -111,78 +112,24 @@ const
   rquote : string = '''';
   UseTimeout : boolean = false;
   emulatorname : string = '';
+  EmulatorOpts : string = '';
   TargetCanCompileLibraries : boolean = true;
   UniqueSuffix: string = '';
 
-{ Constants used in IsAbsolute function }
-  TargetHasDosStyleDirectories : boolean = false;
-  TargetAmigaLike : boolean = false;
-  TargetIsMacOS : boolean = false;
-  TargetIsUnix : boolean = false;
 
-{ extracted from rtl/macos/macutils.inc }
+const
+  NoSharedLibSupportPattern='$nosharedlib';
+  TargetHasNoSharedLibSupport = 'msdos,go32v2';
+  NoWorkingUnicodeSupport='$nounicode';
+  TargetHasNoWorkingUnicodeSupport = 'msdos';
+  NoWorkingThread='$nothread';
+  TargetHasNoWorkingThreadSupport = 'go32v2,msdos';
 
-function IsMacFullPath (const path: string): Boolean;
-  begin
-    if Pos(':', path) = 0 then    {its partial}
-      IsMacFullPath := false
-    else if path[1] = ':' then
-      IsMacFullPath := false
-    else
-      IsMacFullPath := true
-  end;
-
-
-Function IsAbsolute (Const F : String) : boolean;
-{
-  Returns True if the name F is a absolute file name
-}
+procedure TranslateConfig(var AConfig: TConfig);
 begin
-  IsAbsolute:=false;
-  if TargetHasDosStyleDirectories then
-    begin
-      if (F[1]='/') or (F[1]='\') then
-        IsAbsolute:=true;
-      if (Length(F)>2) and (F[2]=':') and ((F[3]='\') or (F[3]='/')) then
-        IsAbsolute:=true;
-    end
-  else if TargetAmigaLike then
-    begin
-      if (length(F)>0) and (Pos(':',F) <> 0) then
-        IsAbsolute:=true;
-    end
-  else if TargetIsMacOS then
-    begin
-      IsAbsolute:=IsMacFullPath(F);
-    end
-  { generic case }
-  else if (F[1]='/') then
-    IsAbsolute:=true;
-end;
-
-Function FileExists (Const F : String) : Boolean;
-{
-  Returns True if the file exists, False if not.
-}
-Var
-  info : searchrec;
-begin
-  FindFirst (F,anyfile,Info);
-  FileExists:=DosError=0;
-  FindClose (Info);
-end;
-
-
-Function PathExists (Const F : String) : Boolean;
-{
-  Returns True if the file exists, False if not.
-}
-Var
-  info : searchrec;
-begin
-  FindFirst (F,anyfile,Info);
-  PathExists:=(DosError=0) and (Info.Attr and Directory=Directory);
-  FindClose (Info);
+  AConfig.SkipTarget:=ReplaceText(AConfig.SkipTarget, NoSharedLibSupportPattern, TargetHasNoSharedLibSupport);
+  AConfig.SkipTarget:=ReplaceText(AConfig.SkipTarget, NoWorkingUnicodeSupport, TargetHasNoWorkingUnicodeSupport);
+  AConfig.SkipTarget:=ReplaceText(AConfig.SkipTarget, NoWorkingThread, TargetHasNoWorkingThreadSupport);
 end;
 
 
@@ -262,60 +209,6 @@ begin
 end;
 
 
-function SplitPath(const s:string):string;
-var
-  i : longint;
-begin
-  i:=Length(s);
-  while (i>0) and not(s[i] in ['/','\'{$IFDEF MACOS},':'{$ENDIF}]) do
-   dec(i);
-  SplitPath:=Copy(s,1,i);
-end;
-
-
-function SplitBasePath(const s:string): string;
-var
-  i : longint;
-begin
-  i:=1;
-  while (i<length(s)) and not(s[i] in ['/','\'{$IFDEF MACOS},':'{$ENDIF}]) do
-   inc(i);
-  if s[i] in  ['/','\'{$IFDEF MACOS},':'{$ENDIF}] then
-    dec(i);
-  SplitBasePath:=Copy(s,1,i);
-end;
-
-Function SplitFileName(const s:string):string;
-var
-  p : dirstr;
-  n : namestr;
-  e : extstr;
-begin
-  FSplit(s,p,n,e);
-  SplitFileName:=n+e;
-end;
-
-Function SplitFileBase(const s:string):string;
-var
-  p : dirstr;
-  n : namestr;
-  e : extstr;
-begin
-  FSplit(s,p,n,e);
-  SplitFileBase:=n;
-end;
-
-Function SplitFileExt(const s:string):string;
-var
-  p : dirstr;
-  n : namestr;
-  e : extstr;
-begin
-  FSplit(s,p,n,e);
-  SplitFileExt:=e;
-end;
-
-
 function ForceExtension(Const HStr,ext:String):String;
 {
   Return a filename which certainly has the extension ext
@@ -337,24 +230,6 @@ begin
    end
   else
    ForceExtension:=Copy(Hstr,1,j-1);
-end;
-
-type
-  TCharSet = set of char;
-
-function GetToken(var s: string; Delims: TCharSet = [' ']):string;
-var
-  i : longint;
-  p: PChar;
-begin
-  p:=PChar(s);
-  i:=0;
-  while (p^ <> #0) and not (p^ in Delims) do begin
-    Inc(p);
-    Inc(i);
-  end;
-  GetToken:=Copy(s,1,i);
-  Delete(s,1,i+1);
 end;
 
 procedure mkdirtree(const s:string);
@@ -563,6 +438,17 @@ begin
   assign(t,'out.'+UniqueSuffix);
   {$I-}
    reset(t);
+  {$ifdef windows}
+    { try to cope with Windows problems related to AntiVirus scanner
+      that generate lag time during which access to a given if is forbidden }
+   if (inoutres=5) then
+     begin
+       Sleep(5000);
+       ioresult;
+       Verbose(V_Warning,'Windows file not accessible out.'+UniqueSuffix);
+       reset(t);
+     end;
+   {$endif windows}
    readln(t,hs);
    close(t);
    erase(t);
@@ -675,11 +561,13 @@ begin
   TargetHasDosStyleDirectories :=
     (LTarget='emx') or
     (LTarget='go32v2') or
+    (LTarget='msdos') or
     (LTarget='nativent') or
     (LTarget='os2') or
     (LTarget='symbian') or
     (LTarget='watcom') or
     (LTarget='wdosx') or
+    (LTarget='win16') or
     (LTarget='win32') or
     (LTarget='win64');
   TargetAmigaLike:=
@@ -730,7 +618,9 @@ begin
       DllPrefix:='';
     end
   else if LTarget='wii' then
-    ExeExt:='.dol';
+    ExeExt:='.dol'
+  else if LTarget='wasi' then
+    ExeExt:='.wasm';
 end;
 
 {$ifndef LIMIT83FS}
@@ -817,7 +707,8 @@ begin
   while not eof(t) do
    begin
      readln(t,s);
-     if pos('Fatal: Internal error ',s)>0 then
+     if (pos('Fatal: Internal error ',s)>0) or
+        (pos('Error: Compilation raised exception internally',s)>0) then
       begin
         ExitWithInternalError:=true;
         break;
@@ -950,7 +841,7 @@ end;
 function RunCompiler(const ExtraPara: string):boolean;
 var
   args,LocalExtraArgs,
-  wpoargs : string;
+  wpoargs,wposuffix : string;
   passnr,
   passes  : longint;
   execres : boolean;
@@ -991,6 +882,7 @@ begin
   if Config.NeedOptions<>'' then
    AppendOptions(Config.NeedOptions,args);
   wpoargs:='';
+  wposuffix:='';
   if (Config.WpoPasses=0) or
      (Config.WpoParas='') then
     passes:=1
@@ -1002,6 +894,7 @@ begin
     begin
       if (passes>1) then
         begin
+          wposuffix:='_'+tostr(passnr);
           wpoargs:=' -OW'+config.wpoparas+' -FW'+TestOutputFileName('',PPFile[current],'wp'+tostr(passnr));
           if (passnr>1) then
             wpoargs:=wpoargs+' -Ow'+config.wpoparas+' -Fw'+TestOutputFileName('',PPFile[current],'wp'+tostr(passnr-1));
@@ -1010,12 +903,12 @@ begin
       { also get the output from as and ld that writes to stderr sometimes }
       StartTicks:=GetMicroSTicks;
     {$ifndef macos}
-      execres:=ExecuteRedir(CompilerBin,args+wpoargs,'',CompilerLogFile,'stdout');
+      execres:=ExecuteRedir(CompilerBin,args+wpoargs,'',CompilerLogFile+wposuffix,'stdout');
     {$else macos}
       {Due to that Toolserver is not reentrant, we have to asm and link via script.}
-      execres:=ExecuteRedir(CompilerBin,'-s '+args+wpoargs,'',CompilerLogFile,'stdout');
+      execres:=ExecuteRedir(CompilerBin,'-s '+args+wpoargs,'',CompilerLogFile+wposuffix,'stdout');
       if execres then
-        execres:=ExecuteRedir(TestOutputDir + ':ppas','','',CompilerLogFile,'stdout');
+        execres:=ExecuteRedir(TestOutputDir + ':ppas','','',CompilerLogFile+wpo_suffix,'stdout');
     {$endif macos}
       EndTicks:=GetMicroSTicks;
       Verbose(V_Debug,'Exitcode '+ToStr(ExecuteResult));
@@ -1024,6 +917,8 @@ begin
           Verbose(V_Normal,'Compilation took '+ToStr(EndTicks-StartTicks)+' us');
         end;
 
+      if passes > 1 then
+        CopyFile(CompilerLogFile+wposuffix,CompilerLogFile,true);
       { Error during execution? }
       if (not execres) and (ExecuteResult=0) then
         begin
@@ -1254,6 +1149,7 @@ var
   EndTicks,
   StartTicks : int64;
   FileList   : TStringList;
+  RelativeToConfigMarker : TObject;
 
   function BuildFileList: TStringList;
     var
@@ -1261,44 +1157,64 @@ var
       index  : longint;
     begin
       s:=Config.Files;
-      if length(s) = 0 then
+      if (length(s) = 0) and (Config.ConfigFileSrc='') then
         begin
           Result:=nil;
           exit;
         end;
       Result:=TStringList.Create;
-      repeat
-        index:=pos(' ',s);
-        if index=0 then
-          LocalFile:=s
-        else
-          LocalFile:=copy(s,1,index-1);
-        Result.Add(LocalFile);
-        if index=0 then
-          break;
-        s:=copy(s,index+1,length(s)-index);
-      until false;
+      if s<>'' then
+        repeat
+          index:=pos(' ',s);
+          if index=0 then
+            LocalFile:=s
+          else
+            LocalFile:=copy(s,1,index-1);
+          Result.Add(LocalFile);
+          if index=0 then
+            break;
+          s:=copy(s,index+1,length(s)-index);
+        until false;
+      if Config.ConfigFileSrc<>'' then
+        begin
+          if Config.ConfigFileSrc=Config.ConfigFileDst then
+            Result.AddObject(Config.ConfigFileSrc,RelativeToConfigMarker)
+          else
+            Result.AddObject(Config.ConfigFileSrc+'='+Config.ConfigFileDst,RelativeToConfigMarker);
+        end;
     end;
 
 begin
+  RelativeToConfigMarker:=TObject.Create;
   if RemoteAddr='' then
     begin
-      If UniqueSuffix<>'' then
+      FileList:=BuildFileList;
+      if assigned(FileList) then
         begin
-          FileList:=BuildFileList;
-          if assigned(FileList) then
+          LocalPath:=SplitPath(PPFile[current]);
+          if Length(LocalPath) > 0 then
+            LocalPath:=LocalPath+'/';
+          for i:=0 to FileList.count-1 do
             begin
-              LocalPath:=SplitPath(PPFile[current]);
-              if Length(LocalPath) > 0 then
-                LocalPath:=LocalPath+'/';
-              for i:=0 to FileList.count-1 do
+              if FileList.Names[i]<>'' then
+                begin
+                  LocalFile:=FileList.Names[i];
+                  RemoteFile:=FileList.ValueFromIndex[i];
+                end
+              else
                 begin
                   LocalFile:=FileList[i];
-                  CopyFile(LocalPath+LocalFile,TestOutputDir+'/'+LocalFile,false);
+                  RemoteFile:=LocalFile;
                 end;
-              FileList.Free;
+              if FileList.Objects[i]=RelativeToConfigMarker then
+                s:='config/'+LocalFile
+              else
+                s:=LocalPath+LocalFile;
+              CopyFile(s,TestOutputDir+'/'+RemoteFile,false);
             end;
+          FileList.Free;
         end;
+      RelativeToConfigMarker.Free;
       exit(true);
     end;
   execres:=true;
@@ -1321,6 +1237,7 @@ begin
   if not execres then
   begin
     Verbose(V_normal, 'Could not copy executable '+FileToCopy);
+    RelativeToConfigMarker.Free;
     exit(execres);
   end;
   FileList:=BuildFileList;
@@ -1331,9 +1248,21 @@ begin
       LocalPath:=LocalPath+'/';
     for i:=0 to FileList.count-1 do
       begin
-        LocalFile:=FileList[i];
-        RemoteFile:=RemotePath+'/'+SplitFileName(LocalFile);
-        LocalFile:=LocalPath+LocalFile;
+        if FileList.Names[i]<>'' then
+          begin
+            LocalFile:=FileList.Names[i];
+            RemoteFile:=FileList.ValueFromIndex[i];
+          end
+        else
+          begin
+            LocalFile:=FileList[i];
+            RemoteFile:=LocalFile;
+          end;
+        RemoteFile:=RemotePath+'/'+SplitFileName(RemoteFile);
+        if FileList.Objects[i]=RelativeToConfigMarker then
+          LocalFile:='config/'+LocalFile
+        else
+          LocalFile:=LocalPath+LocalFile;
         if DoVerbose and (rcpprog='pscp') then
           pref:='-v '
         else
@@ -1344,12 +1273,14 @@ begin
         begin
           Verbose(V_normal, 'Could not copy required file '+LocalFile);
           FileList.Free;
+          RelativeToConfigMarker.Free;
           exit(false);
         end;
       end;
   end;
   FileList.Free;
   MaybeCopyFiles:=execres;
+  RelativeToConfigMarker.Free;
 end;
 
 function RunExecutable:boolean;
@@ -1368,6 +1299,7 @@ var
   execres  : boolean;
   EndTicks,
   StartTicks : int64;
+  OldExecuteResult: longint;
 begin
   RunExecutable:=false;
   execres:=true;
@@ -1386,7 +1318,10 @@ begin
       {$I+}
       ioresult;
       s:=CurrDir+SplitFileName(TestExe);
-      execres:=ExecuteEmulated(EmulatorName,s,FullExeLogFile,StartTicks,EndTicks);
+      { Add -Ssource_file_name for dosbox_wrapper }
+      if pos('dosbox_wrapper',EmulatorName)>0 then
+        s:=s+' -S'+PPFile[current];
+      execres:=ExecuteEmulated(EmulatorName,EmulatorOpts+' '+s,FullExeLogFile,StartTicks,EndTicks);
       {$I-}
        ChDir(OldDir);
       {$I+}
@@ -1442,6 +1377,7 @@ begin
       if (deAfter in DelExecutable) and
          not Config.NeededAfter then
         begin
+          { Delete executable if not needed after }
           execcmd:=execcmd+' ; rm ';
           if rshprog <> 'adb' then
             execcmd:=execcmd+'-f ';
@@ -1468,7 +1404,16 @@ begin
                 execcmd:=execcmd + 'rm ' + s;
               execcmd:=execcmd + '; ';
             end;
-          ExecuteRemote(rshprog,execcmd+'}'+rquote,StartTicks,EndTicks);
+          execcmd:=execcmd+'}'+rquote;
+          // Save ExecuteResult and EXELogFile
+          OldExecuteResult:=ExecuteResult;
+          s:=EXELogFile;
+          // Output results of cleanup commands to stdout
+          EXELogFile:='';
+          ExecuteRemote(rshprog,execcmd,StartTicks,EndTicks);
+          // Restore
+          EXELogFile:=s;
+          ExecuteResult:=OldExecuteResult;
         end;
     end
   else
@@ -1605,30 +1550,31 @@ procedure getargs;
     writeln('dotest [Options] <File>');
     writeln;
     writeln('Options can be:');
-    writeln('  !ENV_NAME     parse environment variable ENV_NAME for options');
-    writeln('  -A            include ALL tests');
-    writeln('  -ADB          use ADB to run tests');
-    writeln('  -B            delete executable before remote upload');
-    writeln('  -C<compiler>  set compiler to use');
-    writeln('  -D            display execution time');
-    writeln('  -E            execute test also');
-    writeln('  -G            include graph tests');
-    writeln('  -I            include interactive tests');
-    writeln('  -K            include known bug tests');
-    writeln('  -L<ext>       set extension of temporary files (prevent conflicts with parallel invocations)');
-    writeln('  -M<emulator>  run the tests using the given emulator');
-    writeln('  -O            use timeout wrapper for (remote) execution');
-    writeln('  -P<path>      path to the tests tree on the remote machine');
-    writeln('  -R<remote>    run the tests remotely with the given rsh/ssh address');
-    writeln('  -S            use ssh instead of rsh');
-    writeln('  -T[cpu-]<os>  run tests for target cpu and os');
+    writeln('  !ENV_NAME           parse environment variable ENV_NAME for options');
+    writeln('  -A                  include ALL tests');
+    writeln('  -ADB                use ADB to run tests');
+    writeln('  -B                  delete executable before remote upload');
+    writeln('  -C<compiler>        set compiler to use');
+    writeln('  -D                  display execution time');
+    writeln('  -E                  execute test also');
+    writeln('  -G                  include graph tests');
+    writeln('  -I                  include interactive tests');
+    writeln('  -K                  include known bug tests');
+    writeln('  -L<ext>             set extension of temporary files (prevent conflicts with parallel invocations)');
+    writeln('  -M<emulator>        run the tests using the given emulator');
+    writeln('  -N<emulator opts.>  pass options to the emulator');
+    writeln('  -O                  use timeout wrapper for (remote) execution');
+    writeln('  -P<path>            path to the tests tree on the remote machine');
+    writeln('  -R<remote>          run the tests remotely with the given rsh/ssh address');
+    writeln('  -S                  use ssh instead of rsh');
+    writeln('  -T[cpu-]<os>        run tests for target cpu and os');
     writeln('  -U<remotepara>');
-    writeln('                pass additional parameter to remote program. Multiple -U can be used');
-    writeln('  -V            be verbose');
-    writeln('  -W            use putty compatible file names when testing (plink and pscp)');
-    writeln('  -X            don''t use COMSPEC');
-    writeln('  -Y<opts>      extra options passed to the compiler. Several -Y<opt> can be given.');
-    writeln('  -Z            remove temporary files (executable,ppu,o)');
+    writeln('                      pass additional parameter to remote program. Multiple -U can be used');
+    writeln('  -V                  be verbose');
+    writeln('  -W                  use putty compatible file names when testing (plink and pscp)');
+    writeln('  -X                  don''t use COMSPEC');
+    writeln('  -Y<opts>            extra options passed to the compiler. Several -Y<opt> can be given.');
+    writeln('  -Z                  remove temporary files (executable,ppu,o)');
     halt(1);
   end;
 
@@ -1686,9 +1632,13 @@ procedure getargs;
 
      'L' : begin
              UniqueSuffix:=Para;
+             if UniqueSuffix='' then
+               UniqueSuffix:=toStr(system.GetProcessID);
            end;
 
      'M' : EmulatorName:=Para;
+
+     'N' : EmulatorOpts:=Para;
 
      'O' : UseTimeout:=true;
 
@@ -1816,10 +1766,11 @@ end;
 
 procedure RunTest;
 var
-  PPDir,LibraryName,LogSuffix : string;
+  PPDir,LibraryName,LogSuffix,PPPrefix : string;
   Res : boolean;
 begin
   Res:=GetConfig(PPFile[current],Config);
+  TranslateConfig(Config);
 
   if Res then
     begin
@@ -1846,6 +1797,12 @@ begin
       if PPDir<>'' then
         begin
 {$ifndef MACOS}
+          { handle paths that are parallel to the tests directory (let's hope
+            that noone uses ../../ -.- ) }
+          { ToDo: check relative paths on MACOS }
+          PPPrefix:=Copy(PPDir,1,3);
+          if (PPPrefix='../') or (PPPrefix='..\') then
+            PPDir:='root/'+Copy(PPDir,4,length(PPDir));
           TestOutputDir:=OutputDir+'/'+PPDir;
           if UniqueSuffix<>'' then
             TestOutputDir:=TestOutputDir+'/'+UniqueSuffix;

@@ -37,6 +37,9 @@ interface
        end;
 
        tllvmstringconstnode = class(tcgstringconstnode)
+          constructor createpchar(s: pchar; l: longint; def: tdef); override;
+          function pass_typecheck: tnode; override;
+          function pass_1: tnode; override;
           procedure pass_generate_code; override;
        protected
           procedure load_dynstring(const strpointerdef: tdef; const elementdef: tdef; const winlikewidestring: boolean); override;
@@ -47,20 +50,63 @@ implementation
     uses
       globtype,globals,verbose,cutils,
       symbase,symtable,symconst,symdef,symsym,defutil,
-      aasmdata,aasmcnst,
+      aasmbase,aasmdata,aasmcnst,
       ncon,
-      llvmbase,aasmllvm,hlcgobj,
-      cgbase,cgutils;
+      llvmbase,aasmllvm,aasmllvmmetadata,hlcgobj,
+      cgbase,cgutils,
+      cpubase;
 
 {*****************************************************************************
                            tllvmstringconstnode
 *****************************************************************************}
+
+    constructor tllvmstringconstnode.createpchar(s: pchar; l: longint; def: tdef);
+      begin
+        inherited;
+        if def=llvm_metadatatype then
+          begin
+            { astringdef is only used if the constant type is ansitring }
+            cst_type:=cst_ansistring;
+            astringdef:=def;
+          end;
+      end;
+
+
+    function tllvmstringconstnode.pass_typecheck: tnode;
+      begin
+        if astringdef<>llvm_metadatatype then
+          begin
+            result:=inherited;
+            exit;
+          end;
+        resultdef:=llvm_metadatatype;
+        result:=nil;
+      end;
+
+
+    function tllvmstringconstnode.pass_1: tnode;
+      begin
+        if astringdef<>llvm_metadatatype then
+          begin
+            result:=inherited;
+            exit;
+          end;
+        expectloc:=LOC_CREGISTER;
+        result:=nil;
+      end;
+
 
     procedure tllvmstringconstnode.pass_generate_code;
       var
         datadef, resptrdef: tdef;
         hreg: tregister;
       begin
+        if astringdef=llvm_metadatatype then
+          begin
+            location_reset(location,LOC_CREGISTER,OS_ADDR);
+            location.register:=tllvmmetadata.getpcharreg(value_str,len);
+            exit;
+          end;
         inherited pass_generate_code;
         if cst_type in [cst_conststring,cst_shortstring] then
           begin
@@ -72,21 +118,21 @@ implementation
                   constants (-> excludes terminating #0) and pchars (-> includes
                   terminating #0). The resultdef excludes the #0 while the data
                   includes it -> insert typecast from datadef to resultdef }
-                datadef:=getarraydef(cansichartype,len+1);
+                datadef:=carraydef.getreusable(cansichartype,len+1);
               cst_shortstring:
                 { the resultdef of the string constant is the type of the
                   string to which it is assigned, which can be longer or shorter
                   than the length of the string itself -> typecast it to the
                   correct string type }
-                datadef:=getarraydef(cansichartype,min(len,255)+1);
+                datadef:=carraydef.getreusable(cansichartype,min(len,255)+1);
               else
                 internalerror(2014071203);
             end;
             { get address of array as pchar }
-            resptrdef:=getpointerdef(resultdef);
+            resptrdef:=cpointerdef.getreusable(resultdef);
             hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resptrdef);
             hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,datadef,resptrdef,location.reference,hreg);
-            hlcg.reference_reset_base(location.reference,resptrdef,hreg,0,location.reference.alignment);
+            hlcg.reference_reset_base(location.reference,resptrdef,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
           end;
       end;
 
@@ -95,10 +141,9 @@ implementation
       var
         stringtype: tstringtype;
         strrecdef: trecorddef;
-        srsym: tsym;
-        srsymtable: tsymtable;
         offset: pint;
         field: tfieldvarsym;
+        llvmfield: tllvmshadowsymtableentry;
         dataptrdef: tdef;
         reg: tregister;
         href: treference;
@@ -114,20 +159,21 @@ implementation
             internalerror(2014040804);
         end;
         { get the recorddef for this string constant }
-        if not searchsym_type(ctai_typedconstbuilder.get_dynstring_rec_name(stringtype,winlikewidestring,len),srsym,srsymtable) then
-          internalerror(2014080405);
-        strrecdef:=trecorddef(ttypesym(srsym).typedef);
+        strrecdef:=ctai_typedconstbuilder.get_dynstring_rec(stringtype,winlikewidestring,len);
         { offset in the record of the the string data }
         offset:=ctai_typedconstbuilder.get_string_symofs(stringtype,winlikewidestring);
         { field corresponding to this offset }
         field:=trecordsymtable(strrecdef.symtable).findfieldbyoffset(offset);
+        llvmfield:=trecordsymtable(strrecdef.symtable).llvmst[field];
+        if llvmfield.fieldoffset<>field.fieldoffset then
+          internalerror(2015061001);
         { pointerdef to the string data array }
-        dataptrdef:=getpointerdef(field.vardef);
+        dataptrdef:=cpointerdef.getreusable(field.vardef);
         { load the address of the string data }
         reg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,dataptrdef);
-        reference_reset_symbol(href, lab_str, 0, const_align(strpointerdef.size));
+        reference_reset_symbol(href,lab_str,0,const_align(strpointerdef.size),[]);
         current_asmdata.CurrAsmList.concat(
-          taillvm.getelementptr_reg_size_ref_size_const(reg,dataptrdef,href,
+          taillvm.getelementptr_reg_size_ref_size_const(reg,cpointerdef.getreusable(strrecdef),href,
           s32inttype,field.llvmfieldnr,true));
         { convert into a pointer to the individual elements }
         hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,dataptrdef,strpointerdef,reg,location.register);
@@ -153,10 +199,12 @@ implementation
            s32real,s64real:
              current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_fpconst_size(la_bitcast,location.register,resultdef,value_real,resultdef));
            { comp and currency are handled as int64 at the llvm level }
-           s64comp,
-           s64currency:
+           s64comp:
              { sc80floattype instead of resultdef, see comment in thlcgllvm.a_loadfpu_ref_reg }
              current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_const_size(la_sitofp,location.register,s64inttype,trunc(value_real),sc80floattype));
+           s64currency:
+             { sc80floattype instead of resultdef, see comment in thlcgllvm.a_loadfpu_ref_reg }
+             current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_const_size(la_sitofp,location.register,s64inttype,round(value_real),sc80floattype));
 {$ifdef cpuextended}
            s80real,sc80real:
              current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_fpconst80_size(la_bitcast,location.register,resultdef,value_real,resultdef));

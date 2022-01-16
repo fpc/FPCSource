@@ -1,8 +1,7 @@
-# $Id: makefile.cpu,v 1.1 2003/01/06 19:40:18 florian Exp $
 #
 # Here we set processor dependent include file names.
 #
 
-CPUNAMES=int64p math set setjump setjumph x86_64
+CPUNAMES=int64p math set setjump setjumph x86_64 cpuh
 CPUINCNAMES=$(addsuffix .inc,$(CPUNAMES))
 #

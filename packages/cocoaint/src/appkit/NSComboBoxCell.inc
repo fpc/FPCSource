@@ -1,126 +1,90 @@
-{ Parsed from Appkit.framework NSComboBoxCell.h }
+{ Parsed from AppKit.framework NSComboBoxCell.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSCOMBOBOXCELL_PAS_T}
-{$define NSCOMBOBOXCELL_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSCOMBOBOXCELL_PAS_R}
-{$define NSCOMBOBOXCELL_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSCOMBOBOXCELL_PAS_F}
-{$define NSCOMBOBOXCELL_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSCOMBOBOXCELL_PAS_S}
-{$define NSCOMBOBOXCELL_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSComboBoxCellDataSourceProtocol = objcprotocol;
-  NSComboBoxCell = objcclass;
-  NSComboBoxCellPointer = ^NSComboBoxCell;
-  NSComboBoxCellPtr = NSComboBoxCellPointer;
-
+type
+  NSComboBoxCellPtr = ^NSComboBoxCell;
+  NSComboBoxCellDataSourceProtocolPtr = ^NSComboBoxCellDataSourceProtocol;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSCOMBOBOXCELL_PAS_C}
-{$define NSCOMBOBOXCELL_PAS_C}
 
-{ NSComboBoxCell }
+type
   NSComboBoxCell = objcclass external (NSTextFieldCell)
   private
     _delegate: id;
     _dataSource: id;
-    __cbcFlags: record
+    _cbcFlags: bitpacked record
       case byte of
-       0: (_anonbitfield_NSComboBoxCell0: cuint);
-       1: (data: bitpacked record
-        _usesDataSource: 0..1;
-        _completes: 0..1;
-        buttonBordered: 0..1;
-        popUpIsUp: 0..1;
-        filteringEvents: 0..1;
-        drawing: 0..1;
-        synchronizingSelection: 0..1;
-        reserved: 0..((1 shl 9)-1);
-        visibleItems: 0..((1 shl 16)-1);
-       end;
-      );
+        0: (_anonBitField__cbcFlags0: cuint);
+        1: (
+          usesDataSource: 0..1;
+          completes: 0..1;
+          buttonBordered: 0..1;
+          popUpIsUp: 0..1;
+          filteringEvents: 0..1;
+          drawing: 0..1;
+          synchronizingSelection: 0..1;
+          reserved: 0..((1 shl 9)-1);
+          visibleItems: 0..((1 shl 16)-1);
+        );
       end;
     _buttonCell: NSButtonCell;
     _tableView: NSTableView;
     _scrollView: NSScrollView;
     _popUp: NSWindow;
     _popUpList: NSMutableArray;
-    _cellFrame: NSRectPtr; {garbage collector: __strong }
-    _reserved: Pointer;
-    
+    _cellFrame: NSRectPtr;
+    _reserved: pointer;
   public
-    function hasVerticalScroller: Boolean; message 'hasVerticalScroller';
-    procedure setHasVerticalScroller(flag: Boolean); message 'setHasVerticalScroller:';
+    procedure setHasVerticalScroller(newValue: ObjCBOOL); message 'setHasVerticalScroller:';
+    function hasVerticalScroller: ObjCBOOL; message 'hasVerticalScroller';
+    procedure setIntercellSpacing(newValue: NSSize); message 'setIntercellSpacing:';
     function intercellSpacing: NSSize; message 'intercellSpacing';
-    procedure setIntercellSpacing(aSize: NSSize); message 'setIntercellSpacing:';
+    procedure setItemHeight(newValue: CGFloat); message 'setItemHeight:';
     function itemHeight: CGFloat; message 'itemHeight';
-    procedure setItemHeight(itemHeight_: CGFloat); message 'setItemHeight:';
+    procedure setNumberOfVisibleItems(newValue: NSInteger); message 'setNumberOfVisibleItems:';
     function numberOfVisibleItems: NSInteger; message 'numberOfVisibleItems';
-    procedure setNumberOfVisibleItems(visibleItems: NSInteger); message 'setNumberOfVisibleItems:';
-    procedure setButtonBordered(flag: Boolean); message 'setButtonBordered:';
-    function isButtonBordered: Boolean; message 'isButtonBordered';
+    procedure setButtonBordered(newValue: ObjCBOOL); message 'setButtonBordered:';
+    function isButtonBordered: ObjCBOOL; message 'isButtonBordered';
     procedure reloadData; message 'reloadData';
     procedure noteNumberOfItemsChanged; message 'noteNumberOfItemsChanged';
-    procedure setUsesDataSource(flag: Boolean); message 'setUsesDataSource:';
-    function usesDataSource: Boolean; message 'usesDataSource';
-    procedure scrollItemAtIndexToTop(index: NSInteger); message 'scrollItemAtIndexToTop:';
-    procedure scrollItemAtIndexToVisible(index: NSInteger); message 'scrollItemAtIndexToVisible:';
-    procedure selectItemAtIndex(index: NSInteger); message 'selectItemAtIndex:';
-    procedure deselectItemAtIndex(index: NSInteger); message 'deselectItemAtIndex:';
+    procedure setUsesDataSource(newValue: ObjCBOOL); message 'setUsesDataSource:';
+    function usesDataSource: ObjCBOOL; message 'usesDataSource';
+    procedure scrollItemAtIndexToTop (index: NSInteger); message 'scrollItemAtIndexToTop:';
+    procedure scrollItemAtIndexToVisible (index: NSInteger); message 'scrollItemAtIndexToVisible:';
+    procedure selectItemAtIndex (index: NSInteger); message 'selectItemAtIndex:';
+    procedure deselectItemAtIndex (index: NSInteger); message 'deselectItemAtIndex:';
     function indexOfSelectedItem: NSInteger; message 'indexOfSelectedItem';
     function numberOfItems: NSInteger; message 'numberOfItems';
-    function completes: Boolean; message 'completes';
-    procedure setCompletes(completes_: Boolean); message 'setCompletes:';
-    function completedString(string_: NSString): NSString; message 'completedString:';
+    procedure setCompletes(newValue: ObjCBOOL); message 'setCompletes:';
+    function completes: ObjCBOOL; message 'completes';
+    function completedString (string_: NSString): NSString; message 'completedString:';
+    procedure setDataSource(newValue: NSComboBoxCellDataSourceProtocol); message 'setDataSource:';
     function dataSource: NSComboBoxCellDataSourceProtocol; message 'dataSource';
-    procedure setDataSource(aSource: NSComboBoxCellDataSourceProtocol); message 'setDataSource:';
-    procedure addItemWithObjectValue(object_: id); message 'addItemWithObjectValue:';
-    procedure addItemsWithObjectValues(objects: NSArray); message 'addItemsWithObjectValues:';
-    procedure insertItemWithObjectValue_atIndex(object_: id; index: NSInteger); message 'insertItemWithObjectValue:atIndex:';
-    procedure removeItemWithObjectValue(object_: id); message 'removeItemWithObjectValue:';
-    procedure removeItemAtIndex(index: NSInteger); message 'removeItemAtIndex:';
+    procedure addItemWithObjectValue (object_: id); message 'addItemWithObjectValue:';
+    procedure addItemsWithObjectValues (objects: NSArray); message 'addItemsWithObjectValues:';
+    procedure insertItemWithObjectValue_atIndex (object_: id; index: NSInteger); message 'insertItemWithObjectValue:atIndex:';
+    procedure removeItemWithObjectValue (object_: id); message 'removeItemWithObjectValue:';
+    procedure removeItemAtIndex (index: NSInteger); message 'removeItemAtIndex:';
     procedure removeAllItems; message 'removeAllItems';
-    procedure selectItemWithObjectValue(object_: id); message 'selectItemWithObjectValue:';
-    function itemObjectValueAtIndex(index: NSInteger): id; message 'itemObjectValueAtIndex:';
+    procedure selectItemWithObjectValue (object_: id); message 'selectItemWithObjectValue:';
+    function itemObjectValueAtIndex (index: NSInteger): id; message 'itemObjectValueAtIndex:';
     function objectValueOfSelectedItem: id; message 'objectValueOfSelectedItem';
-    function indexOfItemWithObjectValue(object_: id): NSInteger; message 'indexOfItemWithObjectValue:';
+    function indexOfItemWithObjectValue (object_: id): NSInteger; message 'indexOfItemWithObjectValue:';
     function objectValues: NSArray; message 'objectValues';
   end;
+{$endif}
 
-{$endif}
-{$endif}
 {$ifdef PROTOCOLS}
-{$ifndef NSCOMBOBOXCELL_PAS_P}
-{$define NSCOMBOBOXCELL_PAS_P}
-  
-{ NSComboBoxCellDataSource Protocol }
-  NSComboBoxCellDataSourceProtocol = objcprotocol external name 'NSComboBoxCellDataSource'
+
+type
+  NSComboBoxCellDataSourceProtocol = objcprotocol external name 'NSComboBoxCellDataSource' (NSObjectProtocol)
   optional
-    function numberOfItemsInComboBoxCell(comboBoxCell: NSComboBoxCell): NSInteger; message 'numberOfItemsInComboBoxCell:';
-    function comboBoxCell_objectValueForItemAtIndex(aComboBoxCell: NSComboBoxCell; index: NSInteger): id; message 'comboBoxCell:objectValueForItemAtIndex:';
-    function comboBoxCell_indexOfItemWithStringValue(aComboBoxCell: NSComboBoxCell; string_: NSString): NSUInteger; message 'comboBoxCell:indexOfItemWithStringValue:';
-    function comboBoxCell_completedString(aComboBoxCell: NSComboBoxCell; uncompletedString: NSString): NSString; message 'comboBoxCell:completedString:';
+    function numberOfItemsInComboBoxCell (comboBoxCell: NSComboBoxCell): NSInteger; message 'numberOfItemsInComboBoxCell:';
+    function comboBoxCell_objectValueForItemAtIndex (aComboBoxCell: NSComboBoxCell; index: NSInteger): id; message 'comboBoxCell:objectValueForItemAtIndex:';
+    function comboBoxCell_indexOfItemWithStringValue (aComboBoxCell: NSComboBoxCell; string_: NSString): NSUInteger; message 'comboBoxCell:indexOfItemWithStringValue:';
+    function comboBoxCell_completedString (aComboBoxCell: NSComboBoxCell; uncompletedString: NSString): NSString; message 'comboBoxCell:completedString:';
   end;
 {$endif}
-{$endif}
+

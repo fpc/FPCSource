@@ -31,16 +31,6 @@ type
 
   { TMachOResourceWriter }
 
-  TMachoSubMachineType = record
-    case TMachOMachineType of
-      msmppc_all: (fPpcSubType: TMachOSubMachineTypePowerPC);
-      msmppc64_all: (fPpc64SubType: TMachOSubMachineTypePowerPC64);
-      msm386_all: (f386SubType: TMachOSubMachineType386);
-      msmx64_all: (fX64SubType: TMachOSubMachineTypex64);
-      mmtarm: (fArmSubType: TMachOSubMachineTypeArm);
-      mmtarm64: (fArm64SubType: TMachOSubMachineTypeAarch64);
-  end;
-
   TMachOResourceWriter = class(TAbstractResourceWriter)
   private
     fExtensions : string;
@@ -505,14 +495,14 @@ end;
 
 procedure TAbstractMachOSubWriter.FixHeader(aStream: TStream);
 const
-  ppcsm2int: array[TMachOSubMachineTypePowerPC] of longint = (CPU_SUBTYPE_POWERPC_ALL);
+  ppcsm2int: array[TMachOSubMachineTypePowerPC] of longint = (CPU_SUBTYPE_POWERPC_ALL, CPU_SUBTYPE_POWERPC_7400, CPU_SUBTYPE_POWERPC_7450, CPU_SUBTYPE_POWERPC_970);
   ppc64sm2int: array[TMachOSubMachineTypePowerPC64] of longint = (CPU_SUBTYPE_POWERPC_ALL);
   i386sm2int: array[TMachOSubMachineType386] of longint = (CPU_SUBTYPE_I386_ALL);
-  x86_64sm2int: array[TMachOSubMachineTypex64] of longint = (CPU_SUBTYPE_X86_64_ALL);
+  x86_64sm2int: array[TMachOSubMachineTypex64] of longint = (CPU_SUBTYPE_X86_64_ALL, CPU_SUBTYPE_X86_64_H);
   armsm2int: array[TMachOSubMachineTypeArm] of longint = (CPU_SUBTYPE_ARM_ALL,
     CPU_SUBTYPE_ARM_V4T,CPU_SUBTYPE_ARM_V6,CPU_SUBTYPE_ARM_V5TEJ,
     CPU_SUBTYPE_ARM_XSCALE,CPU_SUBTYPE_ARM_V7);
-  arm64sm2int: array[TMachOSubMachineTypeAarch64] of longint = (CPU_SUBTYPE_ARM64_ALL);
+  arm64sm2int: array[TMachOSubMachineTypeAarch64] of longint = (CPU_SUBTYPE_ARM64_ALL, CPU_SUBTYPE_ARM64_V8, CPU_SUBTYPE_ARM64E);
 begin
   aStream.Position:=0;
   case fMachineType of

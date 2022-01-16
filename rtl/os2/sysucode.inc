@@ -1253,13 +1253,29 @@ begin
 end;
 
 
-function OS2CompareUnicodeString (const S1, S2: UnicodeString): PtrInt;
+function OS2CompareUnicodeString (const S1, S2: UnicodeString; Options : TCompareOptions): PtrInt;
 var
   HS1, HS2: UnicodeString;
+  
 begin
   { UniStrColl interprets null chars as end-of-string -> filter out }
   HS1 := NoNullsUnicodeString (S1);
   HS2 := NoNullsUnicodeString (S2);
+(*
+  if coLingIgnoreCase in Options then
+   begin
+    HS1:=OS2UpperUnicodeString(HS1);
+    HS2:=OS2UpperUnicodeString(HS2);
+{$WARNING TODO: Exclude null characters and convert to uppercase in one-pass}
+   end
+  else
+*)
+  if coIgnoreCase in Options then
+   begin
+    HS1:=OS2UpperUnicodeString(HS1);
+    HS2:=OS2UpperUnicodeString(HS2);
+{$WARNING TODO: Exclude null characters and convert to uppercase in one-pass}
+   end;
   Result := Sys_UniStrColl (DefLocObj, PWideChar (HS1), PWideChar (HS2));
   if Result < -1 then
    Result := -1
@@ -1268,12 +1284,14 @@ begin
 end;
 
 
+(*
 function OS2CompareTextUnicodeString (const S1, S2: UnicodeString): PtrInt;
 begin
   Result := OS2CompareUnicodeString (OS2UpperUnicodeString (S1),
                                                    OS2UpperUnicodeString (S2));
 {$WARNING Language independent uppercase routine may not be appropriate for language dependent case insensitive comparison!}
 end;
+*)
 
 
 function OS2UpperAnsiString (const S: AnsiString): AnsiString;
@@ -1356,7 +1374,8 @@ var
   I, MaxLen: PtrUInt;
 begin
   if UniAPI then
-   Result := OS2CompareUnicodeString (UnicodeString (S1), UnicodeString (S2))
+   Result := OS2CompareUnicodeString (UnicodeString (S1), UnicodeString (S2),
+                                                                            [])
   else
 (* Older OS/2 versions without Unicode support do not provide direct means *)
 (* for case sensitive and codepage and language-aware string comparison.   *)
@@ -1444,8 +1463,8 @@ var
   I: PtrUInt;
 begin
   if UniAPI then
-   Result := OS2CompareTextUnicodeString (UnicodeString (S1),
-                                                            UnicodeString (S2))
+   Result := OS2CompareUnicodeString (UnicodeString (S1), UnicodeString (S2),
+                                                                [coIgnoreCase])
   else
    begin
 (* Let's use collation strings here as a fallback *)
@@ -1695,15 +1714,12 @@ begin
   WideStringManager.UpperWideStringProc := @OS2UpperUnicodeString;
   WideStringManager.LowerWideStringProc := @OS2LowerUnicodeString;
   WideStringManager.CompareWideStringProc := @OS2CompareUnicodeString;
-  WideStringManager.CompareTextWideStringProc := @OS2CompareTextUnicodeString;
     { Unicode }
   WideStringManager.Unicode2AnsiMoveProc := @OS2Unicode2AnsiMove;
   WideStringManager.Ansi2UnicodeMoveProc := @OS2Ansi2UnicodeMove;
   WideStringManager.UpperUnicodeStringProc := @OS2UpperUnicodeString;
   WideStringManager.LowerUnicodeStringProc := @OS2LowerUnicodeString;
   WideStringManager.CompareUnicodeStringProc := @OS2CompareUnicodeString;
-  WideStringManager.CompareTextUnicodeStringProc :=
-                                                  @OS2CompareTextUnicodeString;
     { Codepage }
   WideStringManager.GetStandardCodePageProc := @OS2GetStandardCodePage;
 (*

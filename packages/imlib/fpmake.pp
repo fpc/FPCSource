@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
 
     P.Author := 'Library: Carsten Haitzler, header: ?';
     P.License := 'Library: LGPL 2 or later, header: LGPL with modification';
@@ -26,7 +26,7 @@ begin
     P.Description := 'Headers to imlib, an efficient bitmap manipulation program';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
 
-    P.OSes:=AllUnixOSes+[OS2,EMX]-[darwin,iphonesim,Android];
+    P.OSes:=AllUnixOSes+[OS2,EMX]-[darwin,iphonesim,ios,Android];
     if Defaults.CPU<>arm then
       P.OSes := P.OSes + [darwin];
 

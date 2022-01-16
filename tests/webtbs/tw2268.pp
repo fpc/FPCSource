@@ -2,6 +2,7 @@
 { Submitted by "marco" on  2002-12-19 }
 { e-mail: marco@freepascal.org }
 {$ifdef fpc}{$mode TP}{$endif}
+{$F+}
 
 function P1:longint; begin end;
 function P2:longint; begin end;

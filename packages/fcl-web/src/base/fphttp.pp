@@ -17,7 +17,7 @@ unit fphttp;
 
 Interface
 
-uses sysutils,classes,httpdefs;
+uses sysutils,classes,httpdefs, httproute;
 
 Type
 { TODO : Implement wkSession }
@@ -109,11 +109,16 @@ Type
   private
     FAfterInitModule : TInitModuleEvent;
     FBaseURL: String;
+    FCORS: TCORSSupport;
     FWebModuleKind: TWebModuleKind;
+    procedure SetCORS(AValue: TCORSSupport);
   Protected
     Class Function DefaultModuleName : String; virtual;
     Class Function DefaultSkipStreaming : Boolean; virtual;
+    Class Function CreateCORSSUpport : TCORSSupport; virtual;
+    Property CORS : TCORSSupport Read FCORS Write SetCORS;
   public
+    Constructor CreateNew(aOwner : TComponent; CreateMode: Integer); overload; override;
     Class Procedure RegisterModule(Const AModuleName : String = ''); overload;
     Class Procedure RegisterModule(Const AModuleName : String; ASkipStreaming : Boolean); overload;
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); virtual; abstract;
@@ -123,6 +128,7 @@ Type
     Property AfterInitModule : TInitModuleEvent Read FAfterInitModule Write FAfterInitModule;
   end;
   TCustomHTTPModuleClass = Class of TCustomHTTPModule;
+
 
   { TSessionHTTPModule }
 
@@ -140,9 +146,9 @@ Type
     Procedure InitSession(AResponse : TResponse);
     Procedure UpdateSession(AResponse : TResponse);
     Procedure DoneSession; virtual;
+    Procedure Notification(AComponent : TComponent;Operation : TOperation); override;
   Public
     destructor destroy; override;
-    Procedure Notification(AComponent : TComponent;Operation : TOperation); override;
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); override;
     Property CreateSession : Boolean Read FCreateSession Write FCreateSession;
     Property Session : TCustomSession Read GetSession Write SetSession;
@@ -188,28 +194,43 @@ Type
 
   { TModuleItem }
 
-  TModuleItem = Class(TCollectionItem)
+  TModuleItem = Class(TCollectionItem, IRouteInterface)
   private
     FModuleClass: TCustomHTTPModuleClass;
     FModuleName: String;
     FSkipStreaming: Boolean;
+    FRouteID : Integer;
+  Protected
+    procedure HandleRequest(ARequest: TRequest; AResponse: TResponse);
+    // Route.ID+1
+    Property RouteID : Integer Read FRouteID;
   Public
+    Destructor Destroy; override;
     Property ModuleClass : TCustomHTTPModuleClass Read FModuleClass Write FModuleClass;
     Property ModuleName : String Read FModuleName Write FModuleName;
     Property SkipStreaming : Boolean Read FSkipStreaming Write FSkipStreaming;
   end;
 
   { TModuleFactory }
+  TOnModuleRequest = Procedure (Sender : TModuleItem; ARequest: TRequest; AResponse: TResponse) of object;
 
   TModuleFactory = Class(TCollection)
   private
+    FOnModuleRequest: TOnModuleRequest;
     function GetModule(Index : Integer): TModuleItem;
     procedure SetModule(Index : Integer; const AValue: TModuleItem);
+  Protected
+    procedure DoHandleRequest(Sender : TModuleItem; ARequest: TRequest; AResponse: TResponse);
   Public
+    Procedure RegisterHTTPModule(Const ModuleName : String; ModuleClass : TCustomHTTPModuleClass; SkipStreaming : Boolean = False);virtual;
+    Procedure RegisterHTTPModule(ModuleClass : TCustomHTTPModuleClass; SkipStreaming : Boolean = False);
     Function FindModule(const AModuleName : String) : TModuleItem;
     Function ModuleByName(const AModuleName : String) : TModuleItem;
     Function IndexOfModule(const AModuleName : String) : Integer;
+    Procedure RemoveModule(const AModuleName : String);
+    function MoveModuleBeforeDefault(const AModuleName: String): Boolean;
     Property Modules [Index : Integer]: TModuleItem Read GetModule Write SetModule;default;
+    Property OnModuleRequest : TOnModuleRequest Read FOnModuleRequest Write FOnModuleRequest;
   end;
 
   { EFPHTTPError }
@@ -237,9 +258,9 @@ Resourcestring
 
 Implementation
 
-{$ifdef cgidebug}
-uses dbugintf;
-{$endif}
+
+{$ifdef cgidebug} uses dbugintf; {$endif}
+
 
 Var
   GSM : TSessionFactory;
@@ -256,8 +277,29 @@ begin
   Result:=GSM;
 end;
 
+{ TModuleItem }
+
+procedure TModuleItem.HandleRequest(ARequest: TRequest; AResponse: TResponse);
+begin
+  if (Collection is TModuleFactory) then
+    (Collection as TModuleFactory).DoHandleRequest(Self,ARequest,AResponse);
+end;
+
+destructor TModuleItem.Destroy;
+begin
+  if (FRouteID>0) then
+    httprouter.DeleteRouteByID(FRouteID-1);
+  inherited Destroy;
+end;
+
 
 { TCustomHTTPModule }
+
+procedure TCustomHTTPModule.SetCORS(AValue: TCORSSupport);
+begin
+  if FCORS=AValue then Exit;
+  FCORS.Assign(AValue);
+end;
 
 Class Function TCustomHTTPModule.DefaultModuleName: String;
 begin
@@ -267,6 +309,17 @@ end;
 Class Function TCustomHTTPModule.DefaultSkipStreaming: Boolean;
 begin
   Result:=False;
+end;
+
+class function TCustomHTTPModule.CreateCORSSUpport: TCORSSupport;
+begin
+  Result:=TCORSSupport.Create;
+end;
+
+constructor TCustomHTTPModule.CreateNew(aOwner: TComponent; CreateMode: Integer);
+begin
+  inherited CreateNew(aOwner, CreateMode);
+  FCORS:=CreateCORSSupport;
 end;
 
 Class Procedure TCustomHTTPModule.RegisterModule(Const AModuleName: String);
@@ -335,6 +388,39 @@ begin
   Items[Index]:=AValue;
 end;
 
+procedure TModuleFactory.DoHandleRequest(Sender: TModuleItem; ARequest: TRequest; AResponse: TResponse);
+begin
+  If Assigned(OnModuleRequest) then
+    OnModuleRequest(Sender,ARequest,AResponse)
+  else
+    Raise EFPHTTPError.Create('Cannot handle module request, OnModuleRequest not set');
+end;
+
+procedure TModuleFactory.RegisterHTTPModule(const ModuleName: String; ModuleClass: TCustomHTTPModuleClass; SkipStreaming: Boolean);
+
+Var
+  I : Integer;
+  MI : TModuleItem;
+
+begin
+  I:=IndexOfModule(ModuleName);
+  If (I=-1) then
+    begin
+    MI:=Add as TModuleItem;
+    MI.ModuleName:=ModuleName;
+    MI.FRouteID:=httprouter.RegisterRoute('/'+MI.FModuleName+'/*', MI as IRouteInterface,False).ID+1;
+    end
+  else
+    MI:=ModuleFactory[I];
+  MI.ModuleClass:=ModuleClass;
+  MI.SkipStreaming:=SkipStreaming;
+end;
+
+procedure TModuleFactory.RegisterHTTPModule(ModuleClass: TCustomHTTPModuleClass; SkipStreaming: Boolean);
+begin
+  RegisterHTTPModule(ModuleClass.DefaultModuleName,ModuleClass,SkipStreaming);
+end;
+
 function TModuleFactory.FindModule(const AModuleName: String): TModuleItem;
 
 Var
@@ -363,30 +449,37 @@ begin
     Dec(Result);
 end;
 
+procedure TModuleFactory.RemoveModule(const AModuleName: String);
+
+Var
+  aRouteID,Idx : Integer;
+
+begin
+  Idx:=IndexOfModule(aModuleName);
+  if Idx<>-1 then
+    begin
+    aRouteID:=Modules[Idx].RouteID;
+    HTTPRouter.DeleteRouteByID(aRouteID);
+    Delete(Idx);
+    end;
+end;
+
+function TModuleFactory.MoveModuleBeforeDefault(const AModuleName: String) : Boolean;
+begin
+  Result:=HTTPRouter.MoveRouteBeforeDefault(ModuleByName(aModuleName).RouteID-1);
+end;
+
 
 procedure RegisterHTTPModule(ModuleClass: TCustomHTTPModuleClass; SkipStreaming : Boolean = False);
 begin
-  RegisterHTTPModule(ModuleClass.ClassName,ModuleClass,SkipStreaming);
+  ModuleFactory.RegisterHTTPModule(ModuleClass,SkipStreaming);
 end;
 
 procedure RegisterHTTPModule(const ModuleName: String;
   ModuleClass: TCustomHTTPModuleClass; SkipStreaming : Boolean = False);
   
-Var
-  I : Integer;
-  MI : TModuleItem;
-  
 begin
-  I:=ModuleFactory.IndexOfModule(ModuleName);
-  If (I=-1) then
-    begin
-    MI:=ModuleFactory.Add as TModuleItem;
-    MI.ModuleName:=ModuleName;
-    end
-  else
-    MI:=ModuleFactory[I];
-  MI.ModuleClass:=ModuleClass;
-  MI.SkipStreaming:=SkipStreaming;
+  ModuleFactory.RegisterHTTPModule(ModuleName,ModuleClass,SkipStreaming);
 end;
 
 { THTTPContentProducer }

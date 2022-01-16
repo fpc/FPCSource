@@ -1,6 +1,6 @@
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2009 by the Free Pascal Development team
+#   Copyright (c) 1999-2018 by the Free Pascal Development team
 #
 #   Portuguese (CP850) language file for Free Pascal Compiler
 #   Contributed by Marcelo B Paula, based on errore.msg SVN Rev.19883
@@ -13,6 +13,9 @@
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
+
+# CodePage 850
+
 #
 # The constants are build in the following order:
 # <part>_<type>_<txtidentifier>
@@ -772,7 +775,7 @@ parser_e_function_already_declared_public_forward=03120_E_Funá∆o j† declarada co
 % declaration in the \var{implementation} section.
 parser_e_not_external_and_export=03121_E_Imposs°vel usar ambos EXPORT e EXTERNAL
 % These two procedure directives are mutually exclusive.
-parser_h_not_supported_for_inline=03123_H_"$1" n∆o suportado ainda dentro procedimento/funá∆o em linha
+parser_n_not_supported_for_inline=03123_N_"$1" n∆o suportado ainda dentro procedimento/funá∆o em linha
 % Inline procedures don't support this declaration.
 parser_h_inlining_disabled=03124_H_Procedimentos em linha desabilitados
 % Inlining of procedures is disabled.
@@ -2209,7 +2212,7 @@ asmr_d_finish_reading=07001_DL_Finalizada $1 an†lise estilo assembler
 asmr_e_none_label_contain_at=07002_E_Padr∆o n∆o-r¢tulo contàm @
 % A identifier which isn't a label can't contain a @.
 asmr_e_building_record_offset=07004_E_Erro construindo deslocamento registro
-% There has an error occured while building the offset of a record/object
+% An error occurred while building the offset of a record/object
 % structure, this can happend when there is no field specified at all or
 % an unknown field identifier is used.
 asmr_e_offset_without_identifier=07005_E_'OFFSET' usado sem identificador
@@ -3083,7 +3086,7 @@ wpo_cant_create_feedback_file=12019_E_Imposs°vel criar arquivo retorno otimizaá‰
 #
 option_logo=11023_[
 Compilador Free Pascal vers∆o $FPCFULLVERSION [$FPCDATE] para $FPCCPU
-Copyright (c) 1993-2015 by Florian Klaempfl and others
+Copyright (c) 1993-2022 by Florian Klaempfl and others
 ]
 
 #
@@ -3121,7 +3124,7 @@ Este programa Ç oferecido sob a Licenáa Geral P£blica GNU
 Para maiores informaá‰es leia COPYING.v2
 
 Reportar falhas, sugest‰es, etc. para:
-                 http://bugs.freepascal.org
+                 https://bugs.freepascal.org
 ]
 
 #
@@ -3287,7 +3290,11 @@ S*2Aas_Monta usando o GNU AS
 **2Rdefault_Use assembler padr∆o para alvo
 3*2Ratt_Leia assembler estilo AT&T
 3*2Rintel_Leia assembler estilo Intel
-6*2RMOT_Leia assembler estilo motorola
+4*2Ratt_Leia assembler estilo AT&T
+4*2Rintel_Leia assembler estilo Intel
+8*2Ratt_Leia assembler estilo AT&T
+8*2Rintel_Leia assembler estilo Intel
+6*2RMOT_Leia assembler estilo Motorola
 **1S<x>_Opá‰es sintaxe:
 **2S2_Mesmo que -Mobjfpc
 **2Sc_Suporte operadores similares C (*=,+=,/= and -=)
@@ -3326,7 +3333,6 @@ S*2Aas_Monta usando o GNU AS
 3*2Tnetwlibc_M¢dulo Novell Netware (libc)
 3*2Topenbsd_OpenBSD
 3*2Tos2_OS/2 / eComStation
-3*2Tsunos_SunOS/Solaris
 3*2Tsymbian_Symbian OS
 3*2Tsolaris_Solaris
 3*2Twatcom_Watcom compatible DOS extender

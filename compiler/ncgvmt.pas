@@ -27,7 +27,7 @@ interface
 
     uses
       aasmdata,aasmbase,aasmcnst,
-      symbase,symtype,symdef;
+      symbase,symconst,symtype,symdef;
 
     type
       pprocdeftree = ^tprocdeftree;
@@ -38,7 +38,7 @@ interface
       end;
 
       TVMTWriter=class
-      private
+      protected
         _Class : tobjectdef;
         { message tables }
         root : pprocdeftree;
@@ -69,21 +69,12 @@ interface
         procedure intf_create_vtbl(tcb: ttai_typedconstbuilder; AImplIntf: TImplementedInterface; intfindex: longint);
         procedure intf_gen_intf_ref(tcb: ttai_typedconstbuilder; AImplIntf: TImplementedInterface; intfindex: longint; interfaceentrydef, interfaceentrytypedef: tdef);
         procedure intf_write_table(tcb: ttai_typedconstbuilder; out lab: TAsmLabel; out intftabledef: trecorddef);
-        { get a table def of the form
-            record
-              count: countdef;
-              elements: array[0..count-1] of elementdef
-            end;
-          Returns both the outer record and the inner arraydef
-        }
-        procedure gettabledef(const basename: string; countdef, elementdef: tdef; count: longint; packrecords: shortint; out recdef: trecorddef; out arrdef: tarraydef);
-        function getrecorddef(const name: string; const fields: array of tdef; packrecords: shortint): trecorddef;
         { generates the message tables for a class }
         procedure genstrmsgtab(tcb: ttai_typedconstbuilder; out lab: tasmlabel; out msgstrtabledef: trecorddef);
         procedure genintmsgtab(tcb: ttai_typedconstbuilder; out lab: tasmlabel; out msginttabledef: trecorddef);
         procedure genpublishedmethodstable(tcb: ttai_typedconstbuilder; out lab: tasmlabel; out pubmethodsdef: trecorddef);
         procedure generate_field_table(tcb: ttai_typedconstbuilder; out lab: tasmlabel; out fieldtabledef: trecorddef);
-        procedure generate_abstract_stub(list:TAsmList;pd:tprocdef);
+        procedure generate_abstract_stub(list:TAsmList;pd:tprocdef); virtual;
 {$ifdef WITHDMT}
         { generates a DMT for _class }
         function  gendmt : tasmlabel;
@@ -98,8 +89,8 @@ interface
       end;
       TVMTWriterClass = class of TVMTWriter;
 
-    { generate persistent type information like VMT, RTTI and inittables }
-    procedure write_persistent_type_info(st:tsymtable;is_global:boolean);
+    { generate VMTs }
+    procedure write_vmts(st:tsymtable;is_global:boolean);
 
   var
     CVMTWriter: TVMTWriterClass = TVMTWriter;
@@ -108,13 +99,17 @@ implementation
 
     uses
       cutils,cclasses,
+      fpchash,
       globtype,globals,verbose,constexp,
       systems,fmodule,
-      symconst,symsym,symtable,defutil,
+      symsym,symtable,symcreat,
+{$ifdef cpuhighleveltarget}
+      pparautl,
+{$endif cpuhighleveltarget}
       aasmtai,
       wpobase,
-      nobj,
-      cgbase,parabase,paramgr,cgobj,cgcpu,hlcgobj,hlcgcpu,
+      cgbase,parabase,paramgr,
+      hlcgobj,hlcgcpu,dbgbase,
       ncgrtti;
 
 
@@ -238,16 +233,16 @@ implementation
       begin
          if assigned(p^.l) then
            writenames(tcb,p^.l);
-         tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata_norel,'',datatcb,p^.nl);
+         tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,_class.vmt_mangledname,datatcb,p^.nl);
          len:=length(p^.data.messageinf.str^);
-         datatcb.maybe_begin_aggregate(getarraydef(cansichartype,len+1));
+         datatcb.maybe_begin_aggregate(carraydef.getreusable(cansichartype,len+1));
          datatcb.emit_tai(tai_const.create_8bit(len),cansichartype);
          getmem(ca,len+1);
          move(p^.data.messageinf.str^[1],ca^,len);
          ca[len]:=#0;
-         datatcb.emit_tai(Tai_string.Create_pchar(ca,len),getarraydef(cansichartype,len));
-         datatcb.maybe_end_aggregate(getarraydef(cansichartype,len+1));
-         tcb.finish_internal_data_builder(datatcb,p^.nl,getarraydef(cansichartype,len+1),sizeof(pint));
+         datatcb.emit_tai(Tai_string.Create_pchar(ca,len),carraydef.getreusable(cansichartype,len));
+         datatcb.maybe_end_aggregate(carraydef.getreusable(cansichartype,len+1));
+         tcb.finish_internal_data_builder(datatcb,p^.nl,carraydef.getreusable(cansichartype,len+1),sizeof(pint));
          if assigned(p^.r) then
            writenames(tcb,p^.r);
       end;
@@ -259,7 +254,7 @@ implementation
 
          { write name label }
          tcb.maybe_begin_aggregate(entrydef);
-         tcb.emit_tai(Tai_const.Create_sym(p^.nl),getpointerdef(getarraydef(cansichartype,length(p^.data.messageinf.str^)+1)));
+         tcb.emit_tai(Tai_const.Create_sym(p^.nl),cpointerdef.getreusable(carraydef.getreusable(cansichartype,length(p^.data.messageinf.str^)+1)));
          tcb.queue_init(voidcodepointertype);
          tcb.queue_emit_proc(p^.data);
          tcb.maybe_end_aggregate(entrydef);
@@ -286,7 +281,7 @@ implementation
            writenames(tcb,root);
 
          { now start writing the message string table }
-         tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,'',datatcb,lab);
+         tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,_class.vmt_mangledname,datatcb,lab);
          {
            TStringMessageTable = record
               count : longint;
@@ -296,7 +291,7 @@ implementation
            Instead of 0 as the upper bound, use the actual upper bound
          }
          msgstrentry:=search_system_type('TMSGSTRTABLE').typedef;
-         gettabledef('fpc_intern_TStringMessageTable_',s32inttype,msgstrentry,count,0,msgstrtabledef,msgarraydef);
+         get_tabledef(itp_vmt_tstringmesssagetable,s32inttype,msgstrentry,count,0,msgstrtabledef,msgarraydef);
          { outer record (TStringMessageTable) }
          datatcb.maybe_begin_aggregate(msgstrtabledef);
          datatcb.emit_tai(Tai_const.Create_32bit(count),s32inttype);
@@ -350,15 +345,15 @@ implementation
                 method : codepointer;
              end;
          }
-         msginttabledef:=getrecorddef('fpc_intern_msgint_table',[u32inttype,voidcodepointertype],0);
+         msginttabledef:=get_recorddef(itp_vmt_intern_msgint_table,[u32inttype,voidcodepointertype],0);
          { from objpas.inc:
              TMsgInt = record
                 count : longint;
                 msgs : array[0..0] of TMsgIntTable;
              end;
          }
-         tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,'',datatcb,lab);
-         gettabledef('fpc_msgint_table_entries_',s32inttype,msginttabledef,count,0,msgintdef,msgintarrdef);
+         tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,_class.vmt_mangledname,datatcb,lab);
+         get_tabledef(itp_vmt_msgint_table_entries,s32inttype,msginttabledef,count,0,msgintdef,msgintarrdef);
          datatcb.maybe_begin_aggregate(msgintdef);
          datatcb.emit_tai(Tai_const.Create_32bit(count),s32inttype);
          if assigned(root) then
@@ -439,7 +434,7 @@ implementation
            begin
               current_asmdata.getglobaldatalabel(r);
               gendmt:=r;
-              al_globals.concat(cai_align.create(const_align(sizeof(pint))));
+              al_globals.concat(cai_align.create(sizeof(pint)));
               al_globals.concat(Tai_label.Create(r));
               { entries for caching }
               al_globals.concat(Tai_const.Create_ptr(0));
@@ -503,7 +498,7 @@ implementation
                (pd.visibility=vis_published) then
               begin
                 { l: name_of_method }
-                lists^.pubmethodstcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata_norel,'',datatcb,l);
+                lists^.pubmethodstcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,_class.vmt_mangledname,datatcb,l);
                 namedef:=datatcb.emit_shortstring_const(tsym(p).realname);
                 lists^.pubmethodstcb.finish_internal_data_builder(datatcb,l,namedef,sizeof(pint));
                 { the tmethodnamerec }
@@ -543,15 +538,15 @@ implementation
                      addr : codepointer;
                   end;
               }
-              lists.methodnamerec:=getrecorddef('fpc_intern_tmethodnamerec',[getpointerdef(cshortstringtype),voidcodepointertype],1);
+              lists.methodnamerec:=get_recorddef(itp_vmt_intern_tmethodnamerec,[cpointerdef.getreusable(cshortstringtype),voidcodepointertype],1);
               { from objpas.inc:
                   tmethodnametable = packed record
                     count : dword;
                     entries : packed array[0..0] of tmethodnamerec;
                   end;
                }
-              tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,'',lists.pubmethodstcb,lab);
-              gettabledef('fpc_intern_tmethodnametable_',u32inttype,lists.methodnamerec,count,1,pubmethodsdef,pubmethodsarraydef);
+              tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,_class.vmt_mangledname,lists.pubmethodstcb,lab);
+              get_tabledef(itp_vmt_intern_tmethodnametable,u32inttype,lists.methodnamerec,count,1,pubmethodsdef,pubmethodsarraydef);
               { begin tmethodnametable }
               lists.pubmethodstcb.maybe_begin_aggregate(pubmethodsdef);
               { emit count field }
@@ -594,6 +589,7 @@ implementation
           begin
             sym:=tsym(_class.symtable.SymList[i]);
             if (sym.typ=fieldvarsym) and
+               not(sp_static in sym.symoptions) and
                (sym.visibility=vis_published) then
              begin
                 if tfieldvarsym(sym).vardef.typ<>objectdef then
@@ -613,11 +609,10 @@ implementation
               packrecords:=1;
 
             { generate the class table }
-            tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,'',datatcb,classtable);
+            tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,_class.vmt_mangledname,datatcb,classtable);
             datatcb.begin_anonymous_record('$fpc_intern_classtable_'+tostr(classtablelist.Count-1),
-              packrecords,
-              targetinfos[target_info.system]^.alignment.recordalignmin,
-              targetinfos[target_info.system]^.alignment.maxCrecordalign);
+              packrecords,1,
+              targetinfos[target_info.system]^.alignment.recordalignmin);
             datatcb.emit_tai(Tai_const.Create_16bit(classtablelist.count),u16inttype);
             for i:=0 to classtablelist.Count-1 do
               begin
@@ -626,7 +621,7 @@ implementation
                 datatcb.queue_init(voidpointertype);
                 { reference to the vmt }
                 datatcb.queue_emit_asmsym(
-                  current_asmdata.RefAsmSymbol(classdef.vmt_mangledname,AT_DATA),
+                  current_asmdata.RefAsmSymbol(classdef.vmt_mangledname,AT_DATA,true),
                   tfieldvarsym(classdef.vmt_field).vardef);
               end;
             classtabledef:=datatcb.end_anonymous_record;
@@ -644,21 +639,21 @@ implementation
                 Fields: array[0..0] of TFieldInfo
               end;
             }
-            tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,'',datatcb,lab);
+            tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,_class.vmt_mangledname,datatcb,lab);
             { can't easily specify a name here for reuse of the constructed def,
               since it's full of variable length shortstrings (-> all of those
               lengths and their order would have to incorporated in the name,
               plus there would be very little chance that it could actually be
               reused }
-            datatcb.begin_anonymous_record('',packrecords,
-              targetinfos[target_info.system]^.alignment.recordalignmin,
-              targetinfos[target_info.system]^.alignment.maxCrecordalign);
+            datatcb.begin_anonymous_record('',packrecords,1,
+              targetinfos[target_info.system]^.alignment.recordalignmin);
             datatcb.emit_tai(Tai_const.Create_16bit(fieldcount),u16inttype);
-            datatcb.emit_tai(Tai_const.Create_sym(classtable),getpointerdef(classtabledef));
+            datatcb.emit_tai(Tai_const.Create_sym(classtable),cpointerdef.getreusable(classtabledef));
             for i:=0 to _class.symtable.SymList.Count-1 do
               begin
                 sym:=tsym(_class.symtable.SymList[i]);
                 if (sym.typ=fieldvarsym) and
+                   not(sp_static in sym.symoptions) and
                   (sym.visibility=vis_published) then
                   begin
                     {
@@ -667,15 +662,14 @@ implementation
                       packed
                      $endif FPC_REQUIRES_PROPER_ALIGNMENT
                       record
-                        FieldOffset: PtrUInt;
+                        FieldOffset: SizeUInt;
                         ClassTypeIndex: Word;
                         Name: ShortString;
                       end;
                     }
-                    datatcb.begin_anonymous_record('$fpc_intern_fieldinfo_'+tostr(length(tfieldvarsym(sym).realname)),packrecords,
-                      targetinfos[target_info.system]^.alignment.recordalignmin,
-                      targetinfos[target_info.system]^.alignment.maxCrecordalign);
-                    datatcb.emit_tai(Tai_const.Create_pint(tfieldvarsym(sym).fieldoffset),ptruinttype);
+                    datatcb.begin_anonymous_record('$fpc_intern_fieldinfo_'+tostr(length(tfieldvarsym(sym).realname)),packrecords,1,
+                      targetinfos[target_info.system]^.alignment.recordalignmin);
+                    datatcb.emit_tai(Tai_const.Create_sizeint(tfieldvarsym(sym).fieldoffset),sizeuinttype);
                     classindex:=classtablelist.IndexOf(tfieldvarsym(sym).vardef);
                     if classindex=-1 then
                       internalerror(200611033);
@@ -701,6 +695,30 @@ implementation
            Interface tables
 **************************************}
 
+    function CreateWrapperName(_class : tobjectdef;AImplIntf : TImplementedInterface;i : longint;pd : tprocdef) : string;
+      var
+        realintfdef: tobjectdef;
+        tmpstr : AnsiString;
+        hs : string;
+        crc : DWord;
+      begin
+        realintfdef:=AImplIntf.IntfDef;
+        while realintfdef.is_unique_objpasdef do
+          realintfdef:=realintfdef.childof;
+
+        tmpstr:=_class.objname^+'_$_'+make_mangledname('',realintfdef.owner,'')+'_$$_'+realintfdef.objname^+'_$_'+tostr(i)+'_$_'+pd.mangledname;
+        if length(tmpstr)>100 then
+          begin
+            crc:=0;
+            crc:=UpdateCrc32(crc,tmpstr[101],length(tmpstr)-100);
+            hs:=copy(tmpstr,1,100)+'$CRC'+hexstr(crc,8);
+          end
+        else
+          hs:=tmpstr;
+        result:=make_mangledname('WRPR',_class.owner,hs);
+      end;
+
+
     procedure TVMTWriter.intf_create_vtbl(tcb: ttai_typedconstbuilder; AImplIntf: TImplementedInterface; intfindex: longint);
       var
         datatcb : ttai_typedconstbuilder;
@@ -709,18 +727,16 @@ implementation
         i  : longint;
       begin
         tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,'',datatcb,fintfvtablelabels[intfindex]);
-        datatcb.begin_anonymous_record('',0,
-          targetinfos[target_info.system]^.alignment.recordalignmin,
-          targetinfos[target_info.system]^.alignment.maxCrecordalign);
+        datatcb.begin_anonymous_record('',0,1,
+          targetinfos[target_info.system]^.alignment.recordalignmin);
         if assigned(AImplIntf.procdefs) then
           begin
             for i:=0 to AImplIntf.procdefs.count-1 do
               begin
                 pd:=tprocdef(AImplIntf.procdefs[i]);
-                hs:=make_mangledname('WRPR',_class.owner,_class.objname^+'_$_'+AImplIntf.IntfDef.objname^+'_$_'+
-                                     tostr(i)+'_$_'+pd.mangledname);
+                hs:=CreateWrapperName(_Class,AImplIntf,i,pd);
                 { create reference }
-                datatcb.emit_tai(Tai_const.Createname(hs,AT_FUNCTION,0),pd.getcopyas(procvardef,pc_address_only));
+                datatcb.emit_tai(Tai_const.Createname(hs,AT_FUNCTION,0),cprocvardef.getreusableprocaddr(pd,pc_address_only));
               end;
            end
         else
@@ -734,44 +750,74 @@ implementation
     procedure TVMTWriter.intf_gen_intf_ref(tcb: ttai_typedconstbuilder; AImplIntf: TImplementedInterface; intfindex: longint; interfaceentrydef, interfaceentrytypedef: tdef);
       var
         pd: tprocdef;
+        siid,
+        siidstr: tsymstr;
+        nonuniqueintf: tobjectdef;
       begin
+        nonuniqueintf:=AImplIntf.IntfDef;
+        while nonuniqueintf.is_unique_objpasdef do
+          nonuniqueintf:=nonuniqueintf.childof;
         tcb.maybe_begin_aggregate(interfaceentrydef);
         { GUID (or nil for Corba interfaces) }
-        if AImplIntf.IntfDef.objecttype in [odt_interfacecom] then
-          tcb.emit_tai(Tai_const.CreateName(
-            make_mangledname('IID',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^),AT_DATA,0),getpointerdef(rec_tguid))
+        tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('IIDREF') as tfieldvarsym;
+        siid:='';
+        if nonuniqueintf.objecttype in [odt_interfacecom] then
+          begin
+            siid:=make_mangledname('IID',nonuniqueintf.owner,nonuniqueintf.objname^);
+            tcb.emit_tai(Tai_const.Create_sym_offset(
+              current_asmdata.RefAsmSymbol(siid,AT_DATA,true),0),cpointerdef.getreusable(rec_tguid));
+          end
         else
-          tcb.emit_tai(Tai_const.Create_nil_dataptr,getpointerdef(rec_tguid));
+          tcb.emit_tai(Tai_const.Create_nil_dataptr,cpointerdef.getreusable(rec_tguid));
 
         { VTable }
+        tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('VTABLE') as tfieldvarsym;
         tcb.queue_init(voidpointertype);
-        tcb.queue_emit_asmsym(fintfvtablelabels[intfindex],AImplIntf.VtblImplIntf.IntfDef);
+        tcb.queue_emit_asmsym(fintfvtablelabels[intfindex],nonuniqueintf);
         { IOffset field }
         case AImplIntf.VtblImplIntf.IType of
           etFieldValue, etFieldValueClass,
           etStandard:
-            tcb.emit_tai(Tai_const.Create_pint(AImplIntf.VtblImplIntf.IOffset),ptruinttype);
+            begin
+              tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('IOFFSET') as tfieldvarsym;
+              tcb.emit_tai(Tai_const.Create_sizeint(AImplIntf.VtblImplIntf.IOffset),sizeuinttype);
+            end;
           etStaticMethodResult, etStaticMethodClass:
             begin
+              tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('IOFFSETASCODEPTR') as tfieldvarsym;
               pd:=tprocdef(tpropertysym(AImplIntf.ImplementsGetter).propaccesslist[palt_read].procdef);
-              tcb.queue_init(ptruinttype);
+              tcb.queue_init(codeptruinttype);
               tcb.queue_emit_proc(pd);
             end;
           etVirtualMethodResult, etVirtualMethodClass:
             begin
+              tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('IOFFSET') as tfieldvarsym;
               pd:=tprocdef(tpropertysym(AImplIntf.ImplementsGetter).propaccesslist[palt_read].procdef);
-              tcb.emit_tai(Tai_const.Create_pint(tobjectdef(pd.struct).vmtmethodoffset(pd.extnumber)),ptruinttype);
+              tcb.emit_tai(Tai_const.Create_sizeint(tobjectdef(pd.struct).vmtmethodoffset(pd.extnumber)),sizeuinttype);
             end;
-          else
-            internalerror(200802162);
         end;
 
         { IIDStr }
-        tcb.emit_tai(Tai_const.CreateName(
-          make_mangledname('IIDSTR',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^),AT_DATA,0),getpointerdef(getarraydef(cansichartype,length(AImplIntf.IntfDef.iidstr^)+1)));
+        tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('IIDSTRREF') as tfieldvarsym;
+        siidstr:=make_mangledname('IIDSTR',nonuniqueintf.owner,nonuniqueintf.objname^);
+        tcb.queue_init(cpointerdef.getreusable(cshortstringtype));
+        tcb.queue_emit_asmsym(
+          current_asmdata.RefAsmSymbol(
+            siidstr,
+            AT_DATA,
+            true),
+          cpointerdef.getreusable(carraydef.getreusable(cansichartype,length(nonuniqueintf.iidstr^)+1)));
         { IType }
+        tcb.next_field:=tabstractrecorddef(interfaceentrydef).symtable.Find('ITYPE') as tfieldvarsym;
         tcb.emit_ord_const(aint(AImplIntf.VtblImplIntf.IType),interfaceentrytypedef);
         tcb.maybe_end_aggregate(interfaceentrydef);
+
+        if findunitsymtable(nonuniqueintf.owner).moduleid<>findunitsymtable(_Class.owner).moduleid then
+          begin
+            if siid<>'' then
+              current_module.add_extern_asmsym(siid,AB_EXTERNAL,AT_DATA);
+            current_module.add_extern_asmsym(siidstr,AB_EXTERNAL,AT_DATA);
+          end;
       end;
 
 
@@ -802,82 +848,27 @@ implementation
               fintfvtablelabels[i]:=fintfvtablelabels[_class.ImplementedInterfaces.IndexOf(ImplIntf.VtblImplIntf)];
           end;
 
-        tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,'',datatcb,lab);
-        datatcb.begin_anonymous_record('',default_settings.packrecords,
-          targetinfos[target_info.system]^.alignment.recordalignmin,
-          targetinfos[target_info.system]^.alignment.maxCrecordalign);
-        datatcb.emit_tai(Tai_const.Create_pint(_class.ImplementedInterfaces.count),search_system_type('SIZEUINT').typedef);
+        tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,_class.vmt_mangledname,datatcb,lab);
+        datatcb.begin_anonymous_record('',default_settings.packrecords,1,
+          targetinfos[target_info.system]^.alignment.recordalignmin);
+        datatcb.emit_tai(Tai_const.Create_sizeint(_class.ImplementedInterfaces.count),sizeuinttype);
         interfaceentrydef:=search_system_type('TINTERFACEENTRY').typedef;
         interfaceentrytypedef:=search_system_type('TINTERFACEENTRYTYPE').typedef;
-        interfacearray:=getarraydef(interfaceentrydef,_class.ImplementedInterfaces.count);
-        datatcb.maybe_begin_aggregate(interfacearray);
-        { Write vtbl references }
-        for i:=0 to _class.ImplementedInterfaces.count-1 do
+        if _class.ImplementedInterfaces.count>0 then
           begin
-            ImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[i]);
-            intf_gen_intf_ref(datatcb,ImplIntf,i,interfaceentrydef,interfaceentrytypedef);
+            interfacearray:=carraydef.getreusable(interfaceentrydef,_class.ImplementedInterfaces.count);
+            datatcb.maybe_begin_aggregate(interfacearray);
+            { Write vtbl references }
+            for i:=0 to _class.ImplementedInterfaces.count-1 do
+              begin
+                ImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[i]);
+                intf_gen_intf_ref(datatcb,ImplIntf,i,interfaceentrydef,interfaceentrytypedef);
+              end;
+            datatcb.maybe_end_aggregate(interfacearray);
           end;
-        datatcb.maybe_end_aggregate(interfacearray);
         intftabledef:=datatcb.end_anonymous_record;
         tcb.finish_internal_data_builder(datatcb,lab,intftabledef,intftabledef.alignment);
 
-      end;
-
-
-    procedure TVMTWriter.gettabledef(const basename: string; countdef, elementdef: tdef; count: longint; packrecords: shortint; out recdef: trecorddef; out arrdef: tarraydef);
-      var
-        fields: tfplist;
-        name: TIDString;
-        srsym: tsym;
-        srsymtable: tsymtable;
-      begin
-        { already created a message string table with this number of elements
-          in this unit -> reuse the def }
-        name:=basename+tostr(count);
-        if searchsym_type(name,srsym,srsymtable) then
-          begin
-            recdef:=trecorddef(ttypesym(srsym).typedef);
-            arrdef:=tarraydef(trecordsymtable(recdef.symtable).findfieldbyoffset(countdef.size).vardef);
-            exit
-          end;
-        recdef:=crecorddef.create_global_internal('$'+basename+tostr(count),packrecords,
-          targetinfos[target_info.system]^.alignment.recordalignmin,
-          targetinfos[target_info.system]^.alignment.maxCrecordalign);
-        fields:=tfplist.create;
-        fields.add(countdef);
-        if count>0 then
-          begin
-            arrdef:=carraydef.create(0,count-1,ptruinttype);
-            arrdef.elementdef:=elementdef;
-            fields.add(arrdef);
-          end
-        else
-          arrdef:=nil;
-        recdef.add_fields_from_deflist(fields);
-        fields.free;
-      end;
-
-
-    function TVMTWriter.getrecorddef(const name: string; const fields: array of tdef; packrecords: shortint): trecorddef;
-      var
-        fieldlist: tfplist;
-        srsym: tsym;
-        srsymtable: tsymtable;
-        i: longint;
-      begin
-        if searchsym_type(name,srsym,srsymtable) then
-          begin
-            result:=trecorddef(ttypesym(srsym).typedef);
-            exit
-          end;
-        fieldlist:=tfplist.create;
-        for i:=low(fields) to high(fields) do
-          fieldlist.add(fields[i]);
-        result:=crecorddef.create_global_internal('$'+name,packrecords,
-          targetinfos[target_info.system]^.alignment.recordalignmin,
-          targetinfos[target_info.system]^.alignment.maxCrecordalign);
-        result.add_fields_from_deflist(fieldlist);
-        fieldlist.free;
       end;
 
 
@@ -887,30 +878,35 @@ implementation
       s : string;
       tcb : ttai_typedconstbuilder;
       def : tdef;
+      sym : tasmsymbol;
     begin
       if assigned(_class.iidguid) then
         begin
           s:=make_mangledname('IID',_class.owner,_class.objname^);
-          tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable]);
+          tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_data_force_indirect]);
           tcb.emit_guid_const(_class.iidguid^);
+          sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA_NOINDIRECT,rec_tguid);
           list.concatlist(tcb.get_final_asmlist(
-            current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA),
+            sym,
             rec_tguid,
-            sec_rodata_norel,
+            sec_rodata,
             s,
-            const_align(sizeof(pint))));
+            sizeof(pint)));
           tcb.free;
+          current_module.add_public_asmsym(sym);
         end;
       s:=make_mangledname('IIDSTR',_class.owner,_class.objname^);
-      tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable]);
+      tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_data_force_indirect]);
       def:=tcb.emit_shortstring_const(_class.iidstr^);
+      sym:=current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA_NOINDIRECT,def);
       list.concatlist(tcb.get_final_asmlist(
-        current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA),
+        sym,
         def,
-        sec_rodata_norel,
+        sec_rodata,
         s,
         sizeof(pint)));
       tcb.free;
+      current_module.add_public_asmsym(sym);
     end;
 
 
@@ -951,31 +947,19 @@ implementation
 
 
     procedure TVMTWriter.generate_abstract_stub(list:TAsmList;pd:tprocdef);
-      var
-        sym: TAsmSymbol;
       begin
         { Generate stubs for abstract methods, so their symbols are present and
           can be used e.g. to take address (see issue #24536). }
         if (po_global in pd.procoptions) and
            (pd.owner.defowner<>self._class) then
           exit;
-        sym:=current_asmdata.GetAsmSymbol(pd.mangledname);
-        if assigned(sym) and (sym.bind<>AB_EXTERNAL) then
-          exit;
-        maybe_new_object_file(list);
-        new_section(list,sec_code,lower(pd.mangledname),target_info.alignment.procalign);
-        if (po_global in pd.procoptions) then
-          begin
-            sym:=current_asmdata.DefineAsmSymbol(pd.mangledname,AB_GLOBAL,AT_FUNCTION);
-            list.concat(Tai_symbol.Create_global(sym,0));
-          end
-        else
-          begin
-            sym:=current_asmdata.DefineAsmSymbol(pd.mangledname,AB_LOCAL,AT_FUNCTION);
-            list.concat(Tai_symbol.Create(sym,0));
-          end;
-        hlcg.g_external_wrapper(list,pd,'FPC_ABSTRACTERROR');
-        list.concat(Tai_symbol_end.Create(sym));
+        pd.synthetickind:=tsk_call_no_parameters;
+        pd.skpara:=search_system_proc('ABSTRACTERROR');
+        { abstract methods are not marked as forwarddef, because otherwise
+          the compiler would accept implementations for them (and complain if
+          they were missing); we are now after parsing the user code, so we can
+          mark them again as forwarddef to indicate they need to be parsed }
+        pd.forwarddef:=true;
       end;
 
 
@@ -989,8 +973,6 @@ implementation
          hs : string;
 {$endif vtentry}
       begin
-        if not assigned(_class.VMTEntries) then
-          exit;
         for i:=0 to _class.VMTEntries.Count-1 do
          begin
            vmtentry:=pvmtentry(_class.vmtentries[i]);
@@ -1005,14 +987,22 @@ implementation
                procname:='FPC_ABSTRACTERROR';
                generate_abstract_stub(current_asmdata.AsmLists[al_procedures],vmtpd);
              end
-           else if (cs_opt_remove_emtpy_proc in current_settings.optimizerswitches) and RedirectToEmpty(vmtpd) then
-             procname:='FPC_EMPTYMETHOD'
+           else if (cs_opt_remove_empty_proc in current_settings.optimizerswitches) and RedirectToEmpty(vmtpd) then
+             begin
+               procname:='FPC_EMPTYMETHOD';
+               if current_module.globalsymtable<>systemunit then
+                 current_module.add_extern_asmsym(procname,AB_EXTERNAL,AT_FUNCTION);
+             end
            else if not wpoinfomanager.optimized_name_for_vmt(_class,vmtpd,procname) then
-             procname:=vmtpd.mangledname;
-           tcb.emit_tai(Tai_const.Createname(procname,AT_FUNCTION,0),vmtpd.getcopyas(procvardef,pc_address_only));
+             begin
+               procname:=vmtpd.mangledname;
+               if current_module.moduleid<>vmtpd.owner.moduleid then
+                 current_module.addimportedsym(vmtpd.procsym);
+             end;
+           tcb.emit_tai(Tai_const.Createname(procname,AT_FUNCTION,0),cprocvardef.getreusableprocaddr(vmtpd,pc_address_only));
 {$ifdef vtentry}
            hs:='VTENTRY'+'_'+_class.vmt_mangledname+'$$'+tostr(_class.vmtmethodoffset(i) div sizeof(pint));
-           current_asmdata.asmlists[al_globals].concat(tai_symbol.CreateName(hs,AT_DATA,0));
+           current_asmdata.asmlists[al_globals].concat(tai_symbol.CreateName(hs,AT_DATA,0,voidpointerdef));
 {$endif vtentry}
          end;
       end;
@@ -1023,7 +1013,9 @@ implementation
          methodnametable,intmessagetable,
          strmessagetable,classnamelabel,
          fieldtablelabel : tasmlabel;
+{$ifdef vtentry}
          hs: string;
+{$endif vtentry}
 {$ifdef WITHDMT}
          dmtlabel : tasmlabel;
 {$endif WITHDMT}
@@ -1035,6 +1027,12 @@ implementation
          interfacetabledef,
          strmessagetabledef,
          intmessagetabledef: trecorddef;
+         parentvmtdef: tdef;
+         pinterfacetabledef,
+         pstringmessagetabledef: tdef;
+         vmttypesym: ttypesym;
+         vmtdef: tdef;
+         sym : TAsmSymbol;
       begin
 {$ifdef WITHDMT}
          dmtlabel:=gendmt;
@@ -1058,20 +1056,19 @@ implementation
          intmessagetabledef:=nil;
 
          { generate VMT }
-         tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable]);
+         tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_data_force_indirect]);
 
          { write tables for classes, this must be done before the actual
            class is written, because we need the labels defined }
          if is_class(_class) then
           begin
             { write class name }
-            tcb.start_internal_data_builder(current_asmdata.asmlists[al_const],sec_rodata_norel,'',datatcb,classnamelabel);
-            hs:=_class.RttiName;
+            tcb.start_internal_data_builder(current_asmdata.asmlists[al_const],sec_rodata,_class.vmt_mangledname,datatcb,classnamelabel);
             classnamedef:=datatcb.emit_shortstring_const(_class.RttiName);
             tcb.finish_internal_data_builder(datatcb,classnamelabel,classnamedef,sizeof(pint));
 
             { interface table }
-            if _class.ImplementedInterfaces.count>0 then
+            if _class.implements_any_interfaces then
               intf_write_table(tcb,interfacetable,interfacetabledef);
 
             genpublishedmethodstable(tcb,methodnametable,methodnametabledef);
@@ -1084,14 +1081,20 @@ implementation
               genintmsgtab(tcb,intmessagetable,intmessagetabledef);
           end;
 
-         tcb.begin_anonymous_record('',voidpointertype.alignment,
-           targetinfos[target_info.system]^.alignment.recordalignmin,
-           targetinfos[target_info.system]^.alignment.maxCrecordalign);
+         { reuse the type created in nobj, so we get internal consistency
+           checking for free }
+         vmttypesym:=try_search_current_module_type(internaltypeprefixName[itp_vmtdef]+_class.mangledparaname);
+         if not assigned(vmttypesym) or
+            (vmttypesym.typedef.typ<>recorddef) then
+           internalerror(2015071403);
+         vmtdef:=trecorddef(vmttypesym.typedef);
+
+         tcb.maybe_begin_aggregate(vmtdef);
 
          { determine the size with symtable.datasize, because }
          { size gives back 4 for classes                    }
-         tcb.emit_ord_const(tObjectSymtable(_class.symtable).datasize,ptrsinttype);
-         tcb.emit_ord_const(-int64(tObjectSymtable(_class.symtable).datasize),ptrsinttype);
+         tcb.emit_ord_const(tObjectSymtable(_class.symtable).datasize,sizesinttype);
+         tcb.emit_ord_const(-int64(tObjectSymtable(_class.symtable).datasize),sizesinttype);
 {$ifdef WITHDMT}
          if _class.classtype=ct_object then
            begin
@@ -1105,27 +1108,35 @@ implementation
          { but this is not used in FPC ? (PM) }
          { it's not used yet, but the delphi-operators as and is need it (FK) }
          { it is not written for parents that don't have any vmt !! }
+         if is_class(_class) then
+           parentvmtdef:=cpointerdef.getreusable(search_system_type('TVMT').typedef)
+         else
+           parentvmtdef:=voidpointertype;
          if assigned(_class.childof) and
             (oo_has_vmt in _class.childof.objectoptions) then
            begin
-             tcb.queue_init(voidpointertype);
+             tcb.queue_init(parentvmtdef);
+             sym:=current_asmdata.RefAsmSymbol(_class.childof.vmt_mangledname,AT_DATA,true);
              tcb.queue_emit_asmsym(
-               current_asmdata.RefAsmSymbol(_class.childof.vmt_mangledname,AT_DATA),
+               sym,
                tfieldvarsym(_class.childof.vmt_field).vardef);
+             if _class.childof.owner.moduleid<>current_module.moduleid then
+               current_module.add_extern_asmsym(sym);
            end
          else
-           tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
+           tcb.emit_tai(Tai_const.Create_nil_dataptr,parentvmtdef);
 
          { write extended info for classes, for the order see rtl/inc/objpash.inc }
          if is_class(_class) then
           begin
             { pointer to class name string }
-            tcb.emit_tai(Tai_const.Create_sym(classnamelabel),getpointerdef(classnamedef));
+            tcb.queue_init(cpointerdef.getreusable(cshortstringtype));
+            tcb.queue_emit_asmsym(classnamelabel,classnamedef);
             { pointer to dynamic table or nil }
             if (oo_has_msgint in _class.objectoptions) then
               begin
                 tcb.queue_init(voidpointertype);
-                tcb.queue_emit_asmsym(intmessagetable,getpointerdef(intmessagetabledef));
+                tcb.queue_emit_asmsym(intmessagetable,cpointerdef.getreusable(intmessagetabledef));
               end
             else
               tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
@@ -1133,7 +1144,7 @@ implementation
             if assigned(methodnametable) then
               begin
                 tcb.queue_init(voidpointertype);
-                tcb.queue_emit_asmsym(methodnametable,getpointerdef(methodnametabledef))
+                tcb.queue_emit_asmsym(methodnametable,cpointerdef.getreusable(methodnametabledef))
               end
             else
               tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
@@ -1146,42 +1157,47 @@ implementation
             else
               tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
             { pointer to type info of published section }
-            tcb.emit_tai(Tai_const.Create_sym(RTTIWriter.get_rtti_label(_class,fullrtti)),voidpointertype);
+            tcb.emit_tai(Tai_const.Create_sym(RTTIWriter.get_rtti_label(_class,fullrtti,false)),voidpointertype);
             { inittable for con-/destruction }
             if _class.members_need_inittable then
-              tcb.emit_tai(Tai_const.Create_sym(RTTIWriter.get_rtti_label(_class,initrtti)),voidpointertype)
+              tcb.emit_tai(Tai_const.Create_sym(RTTIWriter.get_rtti_label(_class,initrtti,false)),voidpointertype)
             else
               tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
             { auto table }
             tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
             { interface table }
-            if _class.ImplementedInterfaces.count>0 then
+            pinterfacetabledef:=search_system_type('PINTERFACETABLE').typedef;
+            if _class.implements_any_interfaces then
               begin
-                tcb.queue_init(voidpointertype);
+                tcb.queue_init(pinterfacetabledef);
                 tcb.queue_emit_asmsym(interfacetable,interfacetabledef)
               end
-            else if _class.implements_any_interfaces then
-              tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype)
             else
-              tcb.emit_tai(Tai_const.Create_sym(current_asmdata.RefAsmSymbol('FPC_EMPTYINTF',AT_DATA)),voidpointertype);
+              tcb.emit_tai(Tai_const.Create_nil_dataptr,pinterfacetabledef);
             { table for string messages }
+            pstringmessagetabledef:=search_system_type('PSTRINGMESSAGETABLE').typedef;
             if (oo_has_msgstr in _class.objectoptions) then
               begin
                 tcb.queue_init(voidpointertype);
-                tcb.queue_emit_asmsym(strmessagetable,strmessagetabledef);
+                tcb.queue_emit_asmsym(strmessagetable,pstringmessagetabledef);
               end
             else
-              tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype);
+              tcb.emit_tai(Tai_const.Create_nil_dataptr,pstringmessagetabledef);
           end;
          { write virtual methods }
          writevirtualmethods(tcb);
          tcb.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
 
+         tcb.maybe_end_aggregate(vmtdef);
+
+         sym:=current_asmdata.DefineAsmSymbol(_class.vmt_mangledname,AB_GLOBAL,AT_DATA_NOINDIRECT,vmtdef);
+         current_module.add_public_asmsym(sym);
+
          { concatenate the VMT to the asmlist }
          current_asmdata.asmlists[al_globals].concatlist(
            tcb.get_final_asmlist(
-             current_asmdata.DefineAsmSymbol(_class.vmt_mangledname,AB_GLOBAL,AT_DATA),
-             tcb.end_anonymous_record,sec_rodata,_class.vmt_mangledname,const_align(sizeof(pint))
+             sym,
+             vmtdef,sec_rodata,_class.vmt_mangledname,sizeof(pint)
            )
          );
          tcb.free;
@@ -1192,7 +1208,7 @@ implementation
            hs:=hs+_class.childof.vmt_mangledname
          else
            hs:=hs+_class.vmt_mangledname;
-         current_asmdata.asmlists[al_globals].concat(tai_symbol.CreateName(hs,AT_DATA,0));
+         current_asmdata.asmlists[al_globals].concat(tai_symbol.CreateName(hs,AT_DATA,0,voidpointerdef));
 {$endif vtentry}
         symtablestack.pop(current_module.localsymtable);
       end;
@@ -1204,7 +1220,22 @@ implementation
         tmps : string;
         pd   : TProcdef;
         ImplIntf : TImplementedInterface;
+        wrapperpd: tprocdef;
+        wrapperinfo: pskpara_interface_wrapper;
+        tmplist: tasmlist;
+        oldfileposinfo: tfileposinfo;
+        usehighlevelwrapper: Boolean;
       begin
+{$if defined(cpuhighleveltarget)}
+        usehighlevelwrapper:=true;
+{$else defined(cpuhighleveltarget)}
+{$if defined(powerpc64)}
+        if cs_create_pic in current_settings.moduleswitches then
+          usehighlevelwrapper:=true
+        else
+{$endif defined(powerpc64)}
+          usehighlevelwrapper:=false;
+{$endif defined(cpuhighleveltarget)}
         for i:=0 to _class.ImplementedInterfaces.count-1 do
           begin
             ImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[i]);
@@ -1220,20 +1251,55 @@ implementation
                     if (po_virtualmethod in pd.procoptions) and
                        not is_objectpascal_helper(tprocdef(pd).struct) then
                       tobjectdef(tprocdef(pd).struct).register_vmt_call(tprocdef(pd).extnumber);
-                    tmps:=make_mangledname('WRPR',_class.owner,_class.objname^+'_$_'+
-                      ImplIntf.IntfDef.objname^+'_$_'+tostr(j)+'_$_'+pd.mangledname);
-                    { create wrapper code }
-                    new_section(list,sec_code,tmps,target_info.alignment.procalign);
-                    hlcg.init_register_allocators;
-                    hlcg.g_intf_wrapper(list,pd,tmps,ImplIntf.ioffset);
-                    hlcg.done_register_allocators;
+                    tmps:=CreateWrapperName(_Class,ImplIntf,j,pd);
+
+                  if usehighlevelwrapper then
+                    begin
+                      new(wrapperinfo);
+                      wrapperinfo^.pd:=pd;
+                      wrapperinfo^.offset:=ImplIntf.ioffset;
+                      { insert the wrapper procdef in the current unit's local
+                        symbol table, but set the owning "struct" to the current
+                        class (so self will have the correct type) }
+                      wrapperpd:=create_procdef_alias(pd,tmps,tmps,
+                        current_module.localsymtable,_class,
+                        tsk_interface_wrapper,wrapperinfo);
+                      include(wrapperpd.implprocoptions,pio_thunk);
+                    end
+                  else
+                    begin
+                      oldfileposinfo:=current_filepos;
+                      if pd.owner.iscurrentunit then
+                        current_filepos:=pd.fileinfo
+                      else
+                        begin
+                          current_filepos.moduleindex:=current_module.unit_index;
+                          current_filepos.fileindex:=1;
+                          current_filepos.line:=1;
+                          current_filepos.column:=1;
+                        end;
+                      { create wrapper code }
+                      tmplist:=tasmlist.create;
+                      new_section(tmplist,sec_code,tmps,target_info.alignment.procalign);
+                      tmplist.Concat(tai_function_name.create(tmps));
+                      hlcg.init_register_allocators;
+                      hlcg.g_intf_wrapper(tmplist,pd,tmps,ImplIntf.ioffset);
+                      hlcg.done_register_allocators;
+                      if ((cs_debuginfo in current_settings.moduleswitches) or
+                         (cs_use_lineinfo in current_settings.globalswitches)) and
+                         (target_dbg.id<>dbg_stabx) then
+                           current_debuginfo.insertlineinfo(tmplist);
+                      list.concatlist(tmplist);
+                      tmplist.Free;
+                      current_filepos:=oldfileposinfo;
+                    end;
                   end;
               end;
           end;
       end;
 
 
-    procedure do_write_persistent_type_info(st:tsymtable;is_global:boolean);
+    procedure do_write_vmts(st:tsymtable;is_global:boolean);
       var
         i : longint;
         def : tdef;
@@ -1246,14 +1312,16 @@ implementation
             def:=tdef(st.DefList[i]);
             case def.typ of
               recorddef :
-                do_write_persistent_type_info(trecorddef(def).symtable,is_global);
+                do_write_vmts(trecorddef(def).symtable,is_global);
               objectdef :
                 begin
                   { Skip generics and forward defs }
                   if ([df_generic,df_genconstraint]*def.defoptions<>[]) or
                      (oo_is_forward in tobjectdef(def).objectoptions) then
                     continue;
-                  do_write_persistent_type_info(tobjectdef(def).symtable,is_global);
+                  if tobjectdef(def).is_unique_objpasdef then
+                    continue;
+                  do_write_vmts(tobjectdef(def).symtable,is_global);
                   { Write also VMT if not done yet }
                   if not(ds_vmt_written in def.defstates) then
                     begin
@@ -1266,44 +1334,31 @@ implementation
                       include(def.defstates,ds_vmt_written);
                     end;
                   if is_class(def) then
-                    gen_intf_wrapper(current_asmdata.asmlists[al_globals],tobjectdef(def));
+                    gen_intf_wrapper(current_asmdata.asmlists[al_procedures],tobjectdef(def));
                 end;
               procdef :
                 begin
                   if assigned(tprocdef(def).localst) and
                      (tprocdef(def).localst.symtabletype=localsymtable) then
-                    do_write_persistent_type_info(tprocdef(def).localst,false);
+                    do_write_vmts(tprocdef(def).localst,false);
                   if assigned(tprocdef(def).parast) then
-                    do_write_persistent_type_info(tprocdef(def).parast,false);
+                    do_write_vmts(tprocdef(def).parast,false);
                 end;
+              else
+                ;
             end;
-            { generate always persistent tables for types in the interface so it can
-              be reused in other units and give always the same pointer location. }
-            { Init }
-            if (
-                assigned(def.typesym) and
-                is_global and
-                not is_objc_class_or_protocol(def)
-               ) or
-               is_managed_type(def) or
-               (ds_init_table_used in def.defstates) then
-              RTTIWriter.write_rtti(def,initrtti);
-            { RTTI }
-            if (
-                assigned(def.typesym) and
-                is_global and
-                not is_objc_class_or_protocol(def)
-               ) or
-               (ds_rtti_table_used in def.defstates) then
-              RTTIWriter.write_rtti(def,fullrtti);
           end;
       end;
 
-    procedure write_persistent_type_info(st:tsymtable;is_global:boolean);
+    procedure write_vmts(st:tsymtable;is_global:boolean);
       begin
+{$ifndef cpuhighleveltarget}
         create_hlcodegen;
-        do_write_persistent_type_info(st,is_global);
+{$endif}
+        do_write_vmts(st,is_global);
+{$ifndef cpuhighleveltarget}
         destroy_hlcodegen;
+{$endif}
       end;
 
 end.

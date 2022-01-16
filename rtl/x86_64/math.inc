@@ -1,3 +1,4 @@
+
 {
     Implementation of mathematical routines for x86_64
 
@@ -104,28 +105,47 @@ const
     {$ifndef FPC_SYSTEM_HAS_ABS}
     {$define FPC_SYSTEM_HAS_ABS}
     function fpc_abs_real(d : ValReal) : ValReal;compilerproc;
+{$ifndef cpullvm}
     begin
       { Function is handled internal in the compiler }
       runerror(207);
       result:=0;
+{$else not cpullvm}
+    assembler;
+    asm
+      fldt d
+      fabs
+{$endif not cpullvm}
     end;
     {$endif FPC_SYSTEM_HAS_ABS}
     {$ifndef FPC_SYSTEM_HAS_SQR}
     {$define FPC_SYSTEM_HAS_SQR}
     function fpc_sqr_real(d : ValReal) : ValReal;compilerproc;
+{$ifndef cpullvm}
     begin
       { Function is handled internal in the compiler }
       runerror(207);
       result:=0;
+{$else not cpullvm}
+    begin
+      fpc_sqr_real:=d*d;
+{$endif not cpullvm}
     end;
     {$endif FPC_SYSTEM_HAS_SQR}
     {$ifndef FPC_SYSTEM_HAS_SQRT}
     {$define FPC_SYSTEM_HAS_SQRT}
     function fpc_sqrt_real(d : ValReal) : ValReal;compilerproc;
+{$ifndef cpullvm}
     begin
       { Function is handled internal in the compiler }
       runerror(207);
       result:=0;
+{$else not cpullvm}
+    assembler;
+    asm
+      fldt d
+      fsqrt
+{$endif not cpullvm}
     end;
     {$endif FPC_SYSTEM_HAS_SQRT}
 
@@ -134,37 +154,67 @@ const
     {$ifndef FPC_SYSTEM_HAS_ARCTAN}
     {$define FPC_SYSTEM_HAS_ARCTAN}
     function fpc_arctan_real(d : ValReal) : ValReal;compilerproc;
+{$ifndef cpullvm}
     begin
       { Function is handled internal in the compiler }
       runerror(207);
       result:=0;
+{$else not cpullvm}
+    assembler;
+    asm
+      fldt d
+      fld1
+      fpatan
+{$endif not cpullvm}
     end;
     {$endif FPC_SYSTEM_HAS_ARCTAN}
     {$ifndef FPC_SYSTEM_HAS_LN}
     {$define FPC_SYSTEM_HAS_LN}
     function fpc_ln_real(d : ValReal) : ValReal;compilerproc;
+{$ifndef cpullvm}
     begin
       { Function is handled internal in the compiler }
       runerror(207);
       result:=0;
+{$else not cpullvm}
+    assembler;
+    asm
+      fldln2
+      fldt d
+      fyl2x
+{$endif not cpullvm}
     end;
     {$endif FPC_SYSTEM_HAS_LN}
     {$ifndef FPC_SYSTEM_HAS_SIN}
     {$define FPC_SYSTEM_HAS_SIN}
     function fpc_sin_real(d : ValReal) : ValReal;compilerproc;
+{$ifndef cpullvm}
     begin
       { Function is handled internal in the compiler }
       runerror(207);
       result:=0;
+{$else not cpullvm}
+    assembler;
+    asm
+      fldt d
+      fsin
+{$endif not cpullvm}
     end;
     {$endif FPC_SYSTEM_HAS_SIN}
     {$ifndef FPC_SYSTEM_HAS_COS}
     {$define FPC_SYSTEM_HAS_COS}
     function fpc_cos_real(d : ValReal) : ValReal;compilerproc;
+{$ifndef cpullvm}
     begin
       { Function is handled internal in the compiler }
       runerror(207);
       result:=0;
+{$else not cpullvm}
+    assembler;
+    asm
+      fldt d
+      fcos
+{$endif not cpullvm}
     end;
     {$endif FPC_SYSTEM_HAS_COS}
 
@@ -203,22 +253,17 @@ const
             fld         %st
             fabs
             fld1
-            fcompp
-            fstsw       %ax
-            sahf
+            fcomip      %st(1),%st(0)
+            fstp        %st
             jp          .L3               { NaN }
             jae         .L1               { |frac(z)| <= 1, good }
 
             fld         %st(1)
             fabs
-            fcomps      large(%rip)
-            fstsw       %ax
-            sahf
-            jb          .L0               { int(z) < 24576 }
-   .L3:
-            fstp        %st               { pop frac(z) and load 0 }
-            fldz
-            jmp         .L1
+            flds        large(%rip)
+            fcomip      %st(1),%st(0)
+            fstp        %st
+            jb          .L3               { int(z) >= 24576 }
    .L0:
             { Calculate 2**frac(z)-1 as N*(N+2), where N=2**(frac(z)/2)-1 }
             fmuls       half(%rip)
@@ -227,6 +272,9 @@ const
             fadds       two(%rip)
             fmulp       %st,%st(1)
             jmp         .L2
+   .L3:
+            fstp        %st               { pop frac(z) and load 0 }
+            fldz
    .L1:
             f2xm1
    .L2:
@@ -245,18 +293,15 @@ const
         oldcw,newcw: word;
       asm
             fnstcw oldcw
-            fwait
+            fldt d
             movw oldcw,%cx
-            orw $0x0c3f,%cx
+            orw $0x0c00,%cx
             movw %cx,newcw
             fldcw newcw
-            fwait
-            fldt d
+            fld %st
             frndint
-            fldt d
-            fsub %st(1),%st
-            fstp %st(1)
-            fnclex
+            fsubrp %st,%st(1)
+            fwait
             fldcw oldcw
       end;
     {$endif FPC_SYSTEM_HAS_FRAC}
@@ -269,12 +314,10 @@ const
         oldcw,newcw: word;
       asm
             fnstcw oldcw
-            fwait
             movw oldcw,%cx
-            orw $0x0c3f,%cx
+            orw $0x0c00,%cx
             movw %cx,newcw
             fldcw newcw
-            fwait
             fldt d
             frndint
             fwait
@@ -292,9 +335,8 @@ const
         res   : int64;
       asm
         fnstcw oldcw
-        fwait
         movw oldcw,%cx
-        orw $0x0c3f,%cx
+        orw $0x0c00,%cx
         movw %cx,newcw
         fldcw newcw
         fldt d
@@ -321,16 +363,54 @@ const
 
 {$else FPC_HAS_TYPE_EXTENDED}
 
+    {$ifndef FPC_SYSTEM_HAS_INT}
+    {$define FPC_SYSTEM_HAS_INT}
+    function fpc_int_real(d : ValReal) : ValReal;compilerproc; assembler; nostackframe;
+      asm
+        movq      %xmm0,  %rax
+        shr       $48,    %rax
+        and       $0x7ff0,%ax
+        cmp       $0x4330,%ax
+        jge       .L0
+        cvttsd2si %xmm0,  %rax
+        cvtsi2sd  %rax,   %xmm0
+    .L0:
+      end;
+    {$endif FPC_SYSTEM_HAS_INT}
+
+    {$ifndef FPC_SYSTEM_HAS_TRUNC}
     {$define FPC_SYSTEM_HAS_TRUNC}
     function fpc_trunc_real(d : ValReal) : int64;compilerproc; assembler; nostackframe;
       asm
         cvttsd2si   %xmm0,%rax;
       end;
+    {$endif FPC_SYSTEM_HAS_TRUNC}
 
+    {$ifndef FPC_SYSTEM_HAS_ROUND}
     {$define FPC_SYSTEM_HAS_ROUND}
     function fpc_round_real(d : ValReal) : int64;compilerproc; assembler; nostackframe;
       asm
         cvtsd2si   %xmm0,%rax;
       end;
+    {$endif FPC_SYSTEM_HAS_ROUND}
+
+    {$ifndef FPC_SYSTEM_HAS_FRAC}
+    {$define FPC_SYSTEM_HAS_FRAC}
+    function fpc_frac_real(d: ValReal) : ValReal;compilerproc; assembler; nostackframe;
+      asm
+        { Windows defines %xmm4 and %xmm5 as first non-parameter volatile registers;
+          on SYSV systems all are considered as such, so use %xmm4 }
+        movq      %xmm0,  %rax
+        movapd    %xmm0,  %xmm4
+        shr       $48,    %rax
+        and       $0x7ff0,%ax
+        cmp       $0x4330,%ax
+        jge       .L0
+        cvttsd2si %xmm0,  %rax
+        cvtsi2sd  %rax,   %xmm4
+  .L0:
+        subsd     %xmm4,  %xmm0
+      end;
+    {$endif FPC_SYSTEM_HAS_FRAC}
 
 {$endif FPC_HAS_TYPE_EXTENDED}

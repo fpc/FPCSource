@@ -1,10 +1,15 @@
-{ Parsed from Appkit.framework NSBox.h }
+{ Parsed from AppKit.framework NSBox.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSBOX_PAS_T}
-{$define NSBOX_PAS_T}
+type
+  NSBoxPtr = ^NSBox;
+{$endif}
 
-{ Constants }
+{$ifdef TYPES}
+type
+  NSTitlePosition = NSUInteger;
+  NSTitlePositionPtr = ^NSTitlePosition;
 
 const
   NSNoTitle = 0;
@@ -15,56 +20,21 @@ const
   NSAtBottom = 5;
   NSBelowBottom = 6;
 
+type
+  NSBoxType = NSUInteger;
+  NSBoxTypePtr = ^NSBoxType;
+
 const
   NSBoxPrimary = 0;
   NSBoxSecondary = 1;
   NSBoxSeparator = 2;
   NSBoxOldStyle = 3;
-  NSBoxCustom = 4;
-
-{ Types }
-type
-  NSTitlePosition = NSUInteger;
-  NSTitlePositionPtr = ^NSTitlePosition;
-  NSBoxType = NSUInteger;
-  NSBoxTypePtr = ^NSBoxType;
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSBOX_PAS_R}
-{$define NSBOX_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSBOX_PAS_F}
-{$define NSBOX_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSBOX_PAS_S}
-{$define NSBOX_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSBox = objcclass;
-  NSBoxPointer = ^NSBox;
-  NSBoxPtr = NSBoxPointer;
-
+  NSBoxCustom = 4 { available in 10_5 };
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSBOX_PAS_C}
-{$define NSBOX_PAS_C}
 
-{ NSBox }
+type
   NSBox = objcclass external (NSView)
   private
     _titleCell: id;
@@ -72,64 +42,59 @@ type
     _offsets: NSSize;
     _borderRect: NSRect;
     _titleRect: NSRect;
-    __bFlags: record
+    _bFlags: bitpacked record
       case byte of
-       0: (_anonbitfield_NSBox0: NSBorderType);
-       1: (data: bitpacked record
-        _borderType: 0..((1 shl 2)-1);
-        _titlePosition: 0..((1 shl 3)-1);
-        backgroundTransparent: 0..1;
-        reserved: 0..((1 shl 2)-1);
-        needsTile: 0..1;
-        transparent: 0..1;
-        colorAltInterpretation: 0..1;
-        _boxType: 0..((1 shl 3)-1);
-        _RESERVED: 0..((1 shl 18)-1);
-       end;
-      );
+        0: (_anonBitField__bFlags0: cuint);
+        1: (
+          borderType: 0..((1 shl 2)-1);
+          titlePosition: 0..((1 shl 3)-1);
+          backgroundTransparent: 0..1;
+          orientation: 0..((1 shl 2)-1);
+          needsTile: 0..1;
+          transparent: 0..1;
+          colorAltInterpretation: 0..1;
+          boxType: 0..((1 shl 3)-1);
+          useSuperAddSubview: 0..1;
+          _RESERVED: 0..((1 shl 17)-1);
+        );
       end;
     _unused: id;
-    
   public
+    procedure setBorderType(newValue: NSBorderType); message 'setBorderType:';
     function borderType: NSBorderType; message 'borderType';
+    procedure setTitlePosition(newValue: NSTitlePosition); message 'setTitlePosition:';
     function titlePosition: NSTitlePosition; message 'titlePosition';
-    procedure setBorderType(aType: NSBorderType); message 'setBorderType:';
-    procedure setBoxType(boxType_: NSBoxType); message 'setBoxType:';
+    procedure setBoxType(newValue: NSBoxType); message 'setBoxType:';
     function boxType: NSBoxType; message 'boxType';
-    procedure setTitlePosition(aPosition: NSTitlePosition); message 'setTitlePosition:';
+    procedure setTitle(newValue: NSString); message 'setTitle:';
     function title: NSString; message 'title';
-    procedure setTitle(aString: NSString); message 'setTitle:';
+    procedure setTitleFont(newValue: NSFont); message 'setTitleFont:';
     function titleFont: NSFont; message 'titleFont';
-    procedure setTitleFont(fontObj: NSFont); message 'setTitleFont:';
     function borderRect: NSRect; message 'borderRect';
     function titleRect: NSRect; message 'titleRect';
     function titleCell: id; message 'titleCell';
     procedure sizeToFit; message 'sizeToFit';
+    procedure setContentViewMargins(newValue: NSSize); message 'setContentViewMargins:';
     function contentViewMargins: NSSize; message 'contentViewMargins';
-    procedure setContentViewMargins(offsetSize: NSSize); message 'setContentViewMargins:';
-    procedure setFrameFromContentFrame(contentFrame: NSRect); message 'setFrameFromContentFrame:';
+    procedure setFrameFromContentFrame (contentFrame: NSRect); message 'setFrameFromContentFrame:';
+    procedure setContentView(newValue: id); message 'setContentView:';
     function contentView: id; message 'contentView';
-    procedure setContentView(aView: NSView); message 'setContentView:';
-    function isTransparent: Boolean; message 'isTransparent';
-    procedure setTransparent(flag: Boolean); message 'setTransparent:';
-  end;
-
-{ NSKeyboardUI_NSBoxCategory }
-  NSKeyboardUI_NSBoxCategory = objccategory external name 'NSKeyboardUI' (NSBox)
-    procedure setTitleWithMnemonic(stringWithAmpersand: NSString); message 'setTitleWithMnemonic:';
-  end;
-
-{ NSCustomBoxTypePropertiesCategory }
-  NSCustomBoxTypePropertiesCategory = objccategory external (NSBox)
+    procedure setTransparent(newValue: ObjCBOOL); message 'setTransparent:';
+    function isTransparent: ObjCBOOL; message 'isTransparent';
+    procedure setBorderWidth(newValue: CGFloat); message 'setBorderWidth:';
     function borderWidth: CGFloat; message 'borderWidth';
-    procedure setBorderWidth(borderWidth_: CGFloat); message 'setBorderWidth:';
+    procedure setCornerRadius(newValue: CGFloat); message 'setCornerRadius:';
     function cornerRadius: CGFloat; message 'cornerRadius';
-    procedure setCornerRadius(cornerRadius_: CGFloat); message 'setCornerRadius:';
+    procedure setBorderColor(newValue: NSColor); message 'setBorderColor:';
     function borderColor: NSColor; message 'borderColor';
-    procedure setBorderColor(borderColor_: NSColor); message 'setBorderColor:';
+    procedure setFillColor(newValue: NSColor); message 'setFillColor:';
     function fillColor: NSColor; message 'fillColor';
-    procedure setFillColor(fillColor_: NSColor); message 'setFillColor:';
   end;
 
+
+type
+  NSBox_NSDeprecated = objccategory external name 'NSDeprecated' (NSBox)
+    procedure setTitleWithMnemonic (stringWithAmpersand: NSString); message 'setTitleWithMnemonic:'; deprecated 'in 10_0, 10_8';
+  end;
 {$endif}
-{$endif}
+

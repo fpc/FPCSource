@@ -38,7 +38,7 @@ F7,$02,$00,$07,f7,32,23
 ; allocator because it cannot deal with D0 conflicting with both S0 and S1. 
 ; This unfortunately means that we can only use 16 single precision registers 
 ; instead of 32,  even if no double precision ones are used...
-; Nevertheless the odd numbered single registers must have seperate register 
+; Nevertheless the odd numbered single registers must have separate register
 ; numbers to allow implementation of the "EABI VFP hardfloat" calling convention.
 
 S0,$04,$06,$00,s0,0,0

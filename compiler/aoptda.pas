@@ -29,7 +29,7 @@ Unit aoptda;
 
     uses
       cpubase,cgbase,
-      aasmbase,aasmtai,aasmdata,aasmcpu,
+      aasmtai,aasmdata,aasmcpu,
       aoptcpub, aoptbase;
 
     Type
@@ -56,7 +56,7 @@ Unit aoptda;
   Implementation
 
     uses
-      globals, aoptobj;
+      globals;
 
     Procedure TAOptDFA.DoDFA;
     { Analyzes the Data Flow of an assembler list. Analyses the reg contents     }

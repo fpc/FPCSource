@@ -4,7 +4,7 @@
 
 [package]
 name=insert-name-here
-version=2.7.1
+version=3.1.1
 
 [require]
 packages=rtl fpmkunit
@@ -26,9 +26,11 @@ endif
 LOCALFPMAKE=./fpmake$(SRCEXEEXT)
 
 [rules]
-# Do not pass the Makefile's unit and binary target locations. fpmake uses it's own.
+# Do not pass the Makefile's unit and binary target locations. Fpmake uses it's own.
 override FPCOPT:=$(filter-out -FU%,$(FPCOPT))
 override FPCOPT:=$(filter-out -FE%,$(FPCOPT))
+# Do not pass the package-unitdirectories. Fpmake adds those and this way they don't apear in the .fpm
+override FPCOPT:=$(filter-out $(addprefix -Fu,$(COMPILER_UNITDIR)),$(FPCOPT))# Compose general fpmake-parameters
 # Compose general fpmake-parameters
 ifdef FPMAKEOPT
 FPMAKE_OPT+=$(FPMAKEOPT)

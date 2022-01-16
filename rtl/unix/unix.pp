@@ -15,9 +15,11 @@
 Unit Unix;
 Interface
 
-Uses BaseUnix,UnixType;
+Uses
+  BaseUnix,UnixType;
+
 // If you deprecated new symbols, please annotate the version.
-// this makes it easier to 
+// this makes it easier to decide if they can already be removed.
 
 {$if (defined(BSD) or defined(SUNOS)) and defined(FPC_USE_LIBC)}
 {$define USE_VFORK}
@@ -49,47 +51,69 @@ Const
   MAP_TYPE      = baseunix.MAP_TYPE;          { Mask for type of mapping }
   MAP_FIXED     = baseunix.MAP_FIXED;         { Interpret addr exactly }
 
-{ Flags to `msync'.  There is non msync() call in this unit? 
-  Set to deprecated in 2.7.1, see if sb complains}
-  MS_ASYNC        = 1 deprecated;               { Sync memory asynchronously.  }
-  MS_SYNC         = 4 deprecated;               { Synchronous memory sync.  }
-  MS_INVALIDATE   = 2 deprecated;               { Invalidate the caches.  }
-
-Type
-  // deprecated in 2.7.1, no active use, use the baseunix one.
-  Tpipe = baseunix.tfildes deprecated;     // compability.
-
 {** Time/Date Handling **}
 
-var
-  tzdaylight : boolean;
-  tzname     : array[boolean] of pchar;
+type
+  TTZInfo = record
+    daylight     : boolean;
+    seconds      : Longint; // difference from UTC
+    validsince   : int64;   // UTC timestamp
+    validuntil   : int64;   // UTC timestamp
+  end;
+  TTZInfoEx = record
+    name         : array[boolean] of RawByteString; { False = StandardName, True = DaylightName }
+    leap_correct : longint;
+    leap_hit     : longint;
+  end;
+
+  Function GetTzseconds : Longint;
+  property Tzseconds : Longint read GetTzseconds;
+  function Gettzdaylight : boolean;
+  property tzdaylight : boolean read Gettzdaylight;
+  function Gettzname(const b : boolean) : string;
+  property tzname[b : boolean] : string read Gettzname;
+  function GetTZInfo : TTZInfo;
+  property TZInfo : TTZInfo read GetTZInfo;
+  function GetTZInfoEx : TTZInfoEx;
+  property TZInfoEx : TTZInfoEx read GetTZInfoEx;
+  procedure SetTZInfo(const ATZInfo: TTZInfo; const ATZInfoEx: TTZInfoEx);
 
 {************     Procedure/Functions     ************}
+
+{$ifdef android}
+  {$define DONT_READ_TIMEZONE}
+{$endif android}
 
 {$IFNDEF DONT_READ_TIMEZONE}  // allows to disable linking in and trying for platforms
                        // it doesn't (yet) work for.
 
 { timezone support }
-procedure GetLocalTimezone(timer:cint;var leap_correct,leap_hit:cint);
-procedure GetLocalTimezone(timer:cint);
-procedure ReadTimezoneFile(fn:string);
+function GetLocalTimezone(timer:int64;timerIsUTC:Boolean;var ATZInfo:TTZInfo;var ATZInfoEx:TTZInfoEx):Boolean;
+function GetLocalTimezone(timer:int64;timerIsUTC:Boolean;var ATZInfo:TTZInfo):Boolean;
+procedure RefreshTZInfo;
+function  ReadTimezoneFile(fn:string) : Boolean;
 function  GetTimezoneFile:string;
 Procedure ReReadLocalTime;
 {$ENDIF}
 
+Function UniversalToEpoch(year,month,day,hour,minute,second:Word):int64; // use DateUtils.DateTimeToUnix for cross-platform applications
+Function LocalToEpoch(year,month,day,hour,minute,second:Word):int64; // use DateUtils.DateTimeToUnix for cross-platform applications
+Procedure EpochToLocal(epoch:int64;var year,month,day,hour,minute,second:Word); // use DateUtils.UnixToDateTime for cross-platform applications
+Procedure EpochToUniversal(epoch:int64;var year,month,day,hour,minute,second:Word); // use DateUtils.UnixToDateTime for cross-platform applications
+Procedure JulianToGregorian(JulianDN:LongInt;Var Year,Month,Day:Word); // use DateUtils.DateTimetoJulianDate for cross-platform applications
+Function GregorianToJulian(Year,Month,Day:Longint):LongInt; // use DateUtils.JulianDateToDateTime for cross-platform applications
+
 {**  Process Handling  **}
 
-function FpExecLE (Const PathName:AnsiString;const S:Array Of AnsiString;MyEnv:ppchar):cint;
-function FpExecL  (Const PathName:AnsiString;const S:Array Of AnsiString):cint;
-function FpExecLP (Const PathName:AnsiString;const S:Array Of AnsiString):cint;
-function FpExecLPE(Const PathName:AnsiString;const S:Array Of AnsiString;env:ppchar):cint;
-function FpExecV  (Const PathName:AnsiString;args:ppchar):cint;
-function FpExecVP (Const PathName:AnsiString;args:ppchar):cint;
-function FpExecVPE(Const PathName:AnsiString;args,env:ppchar):cint;
+function FpExecLE (Const PathName:RawByteString;const S:Array Of RawByteString;MyEnv:ppchar):cint;
+function FpExecL  (Const PathName:RawByteString;const S:Array Of RawByteString):cint;
+function FpExecLP (Const PathName:RawByteString;const S:Array Of RawByteString):cint;
+function FpExecLPE(Const PathName:RawByteString;const S:Array Of RawByteString;env:ppchar):cint;
+function FpExecV  (Const PathName:RawByteString;args:ppchar):cint;
+function FpExecVP (Const PathName:RawByteString;args:ppchar):cint;
+function FpExecVPE(Const PathName:RawByteString;args,env:ppchar):cint;
 
-Function fpSystem(const Command:string):cint; deprecated 'use ansistring version';
-Function fpSystem(const Command:AnsiString):cint;
+Function fpSystem(const Command:RawByteString):cint;
 
 Function WaitProcess (Pid:cint):cint; 
 
@@ -100,9 +124,6 @@ Function W_STOPCODE (Signal: Integer): Integer;
 {**      File Handling     **}
 Function  fpFlock   (var T : text;mode : cint) : cint;
 Function  fpFlock   (var F : File;mode : cint) : cint;
-
-Function  SelectText (var T:Text;TimeOut :PTimeVal):cint; deprecated;
-Function  SelectText (var T:Text;TimeOut :cint):cint; deprecated;
 
 {**  Directory Handling  **}
 
@@ -130,10 +151,10 @@ Type
                            CurrentDirectoryFirst,
                            CurrentDirectoryLast);
 
-Function  FSearch  (const path:AnsiString;dirlist:Ansistring;CurrentDirStrategy:TFSearchOption):AnsiString;
-Function  FSearch  (const path:AnsiString;dirlist:AnsiString):AnsiString;
-
-procedure SigRaise (sig:integer); deprecated;
+Function  FSearch  (const path:RawByteString;dirlist:RawByteString;CurrentDirStrategy:TFSearchOption):RawByteString;
+Function  FSearch  (const path:RawByteString;dirlist:RawByteString):RawByteString;
+Function  FSearch  (const path:UnicodeString;dirlist:UnicodeString;CurrentDirStrategy:TFSearchOption):UnicodeString;
+Function  FSearch  (const path:UnicodeString;dirlist:UnicodeString):UnicodeString;
 
 {$ifdef FPC_USE_LIBC}
   const clib = 'c';
@@ -150,10 +171,10 @@ procedure SigRaise (sig:integer); deprecated;
 
 Implementation
 
-Uses 
-  UnixUtil  // tzseconds
-  {$ifndef FPC_USE_LIBC},Syscall{$endif}
-  ;
+{$ifndef FPC_USE_LIBC}
+Uses
+  Syscall;
+{$endif}
 
 {$i unxovl.inc}
 
@@ -165,6 +186,193 @@ Uses
 {$i unxfunc.inc}   { Platform specific implementations }
 
 Function getenv(name:string):Pchar; external name 'FPC_SYSC_FPGETENV';
+
+{******************************************************************************
+                          timezone support
+******************************************************************************}
+
+var
+  CurrentTZinfo : array [0..1] of TTZInfo;
+  CurrentTzinfoEx : array [0..1] of TTZInfoEx;
+  CurrentTZindex : LongInt = 0; // current index for CurrentTZinfo/CurrentTZinfoEx - can be only 0 or 1
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  UseTZThreading: Boolean = false;
+  TZInfoCS: TRTLCriticalSection;
+{$endif}
+
+procedure LockTZInfo;
+begin
+  {$if declared(UseTZThreading)}
+  if UseTZThreading then
+    EnterCriticalSection(TZInfoCS);
+  {$endif}
+end;
+
+procedure UnlockTZInfo;
+begin
+  {$if declared(UseTZThreading)}
+  if UseTZThreading then
+    LeaveCriticalSection(TZInfoCS);
+  {$endif}
+end;
+
+Function GetTzseconds : Longint;
+begin
+  GetTzseconds:=Tzinfo.seconds;
+end;
+
+function Gettzdaylight : boolean;
+begin
+  Gettzdaylight:=Tzinfo.daylight;
+end;
+
+function Gettzname(const b : boolean) : string;
+begin
+  Gettzname:=TzinfoEx.name[b];
+end;
+
+function GetTZInfo : TTZInfo;
+{$IFNDEF DONT_READ_TIMEZONE}
+var
+  curtime: time_t;
+{$ENDIF}
+begin
+  GetTZInfo:=CurrentTZinfo[InterlockedExchangeAdd(CurrentTZindex, 0)];
+{$IFNDEF DONT_READ_TIMEZONE}
+  curtime:=fptime;
+  if not((GetTZInfo.validsince+GetTZInfo.seconds<=curtime) and (curtime<GetTZInfo.validuntil+GetTZInfo.seconds)) then
+    begin
+    RefreshTZInfo;
+    GetTZInfo:=CurrentTZinfo[InterlockedExchangeAdd(CurrentTZindex, 0)];
+    end;
+{$ENDIF}
+end;
+
+function GetTZInfoEx : TTZInfoEx;
+begin
+  GetTZInfoEx:=CurrentTzinfoEx[InterlockedExchangeAdd(CurrentTZindex, 0)];
+end;
+
+procedure SetTZInfo(const ATZInfo: TTZInfo; const ATZInfoEx: TTZInfoEx);
+var
+  OldTZindex,NewTZindex: longint;
+begin
+  LockTZInfo;
+  OldTZindex:=InterlockedExchangeAdd(CurrentTZindex,0);
+  if OldTZindex=0 then
+    NewTZindex:=1
+  else
+    NewTZindex:=0;
+  CurrentTzinfo[NewTZindex]:=ATZInfo;
+  CurrentTzinfoEx[NewTZindex]:=ATZInfoEx;
+  InterlockedExchangeAdd(CurrentTZindex,NewTZindex-OldTZindex);
+  UnlockTZInfo;
+end;
+
+Const
+{Date Translation}
+  C1970=2440588;
+  D0   =   1461;
+  D1   = 146097;
+  D2   =1721119;
+
+Procedure JulianToGregorian(JulianDN:LongInt;Var Year,Month,Day:Word);
+Var
+  YYear,XYear,Temp,TempMonth : LongInt;
+Begin
+  Temp:=((JulianDN-D2) shl 2)-1;
+  JulianDN:=Temp Div D1;
+  XYear:=(Temp Mod D1) or 3;
+  YYear:=(XYear Div D0);
+  Temp:=((((XYear mod D0)+4) shr 2)*5)-3;
+  Day:=((Temp Mod 153)+5) Div 5;
+  TempMonth:=Temp Div 153;
+  If TempMonth>=10 Then
+   Begin
+     inc(YYear);
+     dec(TempMonth,12);
+   End;
+  inc(TempMonth,3);
+  Month := TempMonth;
+  Year:=YYear+(JulianDN*100);
+end;
+
+Procedure EpochToLocal(epoch:Int64;var year,month,day,hour,minute,second:Word);
+{
+  Transforms Epoch time into local time (hour, minute,seconds)
+}
+Var
+  lTZInfo: TTZInfo;
+Begin
+  {$if declared(GetLocalTimezone)}
+  if GetLocalTimezone(epoch,true,lTZInfo) then
+    inc(Epoch,lTZInfo.seconds)
+  else { fallback }
+  {$endif}
+    inc(Epoch,TZInfo.seconds);
+
+  EpochToUniversal(epoch,year,month,day,hour,minute,second);
+End;
+
+Procedure EpochToUniversal(epoch:Int64;var year,month,day,hour,minute,second:Word);
+{
+  Transforms Epoch time into universal time (hour, minute,seconds)
+}
+Var
+  DateNum: LongInt;
+Begin
+  Datenum:=(Epoch Div 86400) + c1970;
+  JulianToGregorian(DateNum,Year,Month,day);
+  Epoch:=Abs(Epoch Mod 86400);
+  Hour:=Epoch Div 3600;
+  Epoch:=Epoch Mod 3600;
+  Minute:=Epoch Div 60;
+  Second:=Epoch Mod 60;
+End;
+
+Function LocalToEpoch(year,month,day,hour,minute,second:Word):Int64;
+{
+  Transforms local time (year,month,day,hour,minutes,second) to Epoch time
+   (seconds since 00:00, january 1 1970, corrected for local time zone)
+}
+Var
+  lTZInfo: TTZInfo;
+  LocalEpoch: Int64;
+Begin
+  LocalEpoch:=UniversalToEpoch(year,month,day,hour,minute,second);
+
+  {$if declared(GetLocalTimezone)}
+  if GetLocalTimezone(LocalEpoch,false,lTZInfo) then
+    LocalToEpoch:=LocalEpoch-lTZInfo.seconds
+  else { fallback }
+  {$endif}
+    LocalToEpoch:=LocalEpoch-TZInfo.seconds;
+End;
+
+Function UniversalToEpoch(year,month,day,hour,minute,second:Word):Int64;
+{
+  Transforms universal time (year,month,day,hour,minutes,second) to Epoch time
+   (seconds since 00:00, january 1 1970, corrected for local time zone)
+}
+Begin
+  UniversalToEpoch:=(Int64(GregorianToJulian(Year,Month,Day)-c1970)*86400)+
+                (LongInt(Hour)*3600)+(Longint(Minute)*60)+Second;
+End;
+
+Function GregorianToJulian(Year,Month,Day:Longint):LongInt;
+Var
+  Century,XYear: LongInt;
+Begin
+  If Month<=2 Then
+   Begin
+     Dec(Year);
+     Inc(Month,12);
+   End;
+  Dec(Month,3);
+  Century:=(longint(Year Div 100)*D1) shr 2;
+  XYear:=(longint(Year Mod 100)*D0) shr 2;
+  GregorianToJulian:=((((Month*153)+2) div 5)+Day)+D2+XYear+Century;
+End;
 
 {******************************************************************************
                           Process related calls
@@ -195,14 +403,14 @@ begin
    end;
 end;
 
-function intFpExecVEMaybeP (Const PathName:AnsiString;Args,MyEnv:ppchar;SearchPath:Boolean):cint;
+function intFpExecVEMaybeP (Const PathName:RawByteString;Args,MyEnv:ppchar;SearchPath:Boolean):cint;
 // does an ExecVE, but still has to handle P
 // execv variants call this directly, execl variants indirectly via
 //     intfpexecl
 
 Var
-  NewCmd  : ansistring;
-  ThePath : AnsiString;
+  NewCmd  : RawByteString;
+  ThePath : RawByteString;
 
 Begin
   If SearchPath and (pos('/',pathname)=0) Then
@@ -212,19 +420,21 @@ Begin
       // Stevens says only search if newcmd contains no '/'
       // fsearch is not ansistring clean yet.
       ThePath:=fpgetenv('PATH');
+      SetCodePage(ThePath,DefaultSystemCodePage,false);
+      SetCodePage(ThePath,DefaultFileSystemCodePage,true);
       if thepath='' then
         thepath:='.';     // FreeBSD uses _PATH_DEFPATH = /usr/bin:/bin
                           // but a quick check showed that _PATH_DEFPATH
                           // varied from OS to OS
 
-      newcmd:=FSearch(pathname,thepath,NoCurrentDirectory);
+      newcmd:=ToSingleByteFileSystemEncodedFileName(FSearch(pathname,thepath,NoCurrentDirectory));
       // FreeBSD libc keeps on trying till a file is successfully run.
       // Stevens says "try each path prefix"
 
       // execp puts newcmd here.
         args^:=pchar(newcmd);
    End else
-      newcmd:=pathname;
+      newcmd:=ToSingleByteFileSystemEncodedFileName(pathname);
  // repeat
 //      if searchpath then args^:=pchar(commandtorun)
 
@@ -234,9 +444,8 @@ Begin
 // Should we deallocate p on fail? -> no fpexit is run no matter what
 //
 }
-// if intfpexecvemaybep=-1 then zoekvolgende file.
+// if intfpexecvemaybep=-1 then seach next file.
 // until (Goexit) or SearchExit;
-
 
 {
  If IntFpExec=-1 Then
@@ -250,19 +459,23 @@ Begin
 }
 end;
 
-function intFpExecl (Const PathName:AnsiString;const s:array of ansistring;MyEnv:ppchar;SearchPath:Boolean):cint;
+function intFpExecl (Const PathName:RawByteString;const s:array of RawByteString;MyEnv:ppchar;SearchPath:Boolean):cint;
 { Handles the array of ansistring -> ppchar conversion.
   Base for the the "l" variants.
 }
 var p:ppchar;
-
+    i:integer;
+    s2:array of Rawbytestring;
 begin
   If PathName='' Then
     Begin
       fpsetErrno(ESysEnoEnt);
       Exit(-1);                 // Errno?
     End;
-  p:=ArrayStringToPPchar(s,1);
+  setlength(s2,high(s)+1);
+  for i:=low(s) to high(s) do
+    s2[i]:=ToSingleByteFileSystemEncodedFileName(s[i]);
+  p:=ArrayStringToPPchar(s2,1);
   if p=NIL Then
     Begin
       GetMem(p,2*sizeof(pchar));
@@ -282,44 +495,44 @@ begin
   Freemem(p);
 end;
 
-function FpExecLE (Const PathName:AnsiString;const S:Array Of AnsiString;MyEnv:ppchar):cint;
+function FpExecLE (Const PathName:RawByteString;const S:Array Of RawByteString;MyEnv:ppchar):cint;
 
 Begin
   FpExecLE:=intFPExecl(PathName,s,MyEnv,false);
 End;
 
 
-function FpExecL(Const PathName:AnsiString;const S:Array Of AnsiString):cint;
+function FpExecL(Const PathName:RawByteString;const S:Array Of RawByteString):cint;
 
 Begin
   FpExecL:=intFPExecl(PathName,S,EnvP,false);
 End;
 
-function FpExecLP(Const PathName:AnsiString;const S:Array Of AnsiString):cint;
+function FpExecLP(Const PathName:RawByteString;const S:Array Of RawByteString):cint;
 
 Begin
   FpExecLP:=intFPExecl(PathName,S,EnvP,True);
 End;
 
-function FpExecLPE(Const PathName:AnsiString;const S:Array Of AnsiString;env:ppchar):cint;
+function FpExecLPE(Const PathName:RawByteString;const S:Array Of RawByteString;env:ppchar):cint;
 
 Begin
   FpExecLPE:=intFPExecl(PathName,S,Env,True);
 End;
 
-function FpExecV(Const PathName:AnsiString;args:ppchar):cint;
+function FpExecV(Const PathName:RawByteString;args:ppchar):cint;
 
 Begin
  fpexecV:=intFpExecVEMaybeP (PathName,args,envp,false);
 End;
 
-function FpExecVP(Const PathName:AnsiString;args:ppchar):cint;
+function FpExecVP(Const PathName:RawByteString;args:ppchar):cint;
 
 Begin
  fpexecVP:=intFpExecVEMaybeP (PathName,args,envp,true);
 End;
 
-function FpExecVPE(Const PathName:AnsiString;args,env:ppchar):cint;
+function FpExecVPE(Const PathName:RawByteString;args,env:ppchar):cint;
 
 Begin
  fpexecVPE:=intFpExecVEMaybeP (PathName,args,env,true);
@@ -338,28 +551,16 @@ End;
 {$ifdef FPC_USE_LIBC}
 function xfpsystem(p:pchar):cint; cdecl; external clib name 'system';
 
-function fpsystem(const Command:string):cint;
-
-var c:array[0..255] of char;
-
+Function fpSystem(const Command:RawByteString):cint;
+var
+  cmd: RawByteString;
 begin
-  move(command[1],c[0],length(command));
-  c[length(command)]:=#0;
-  fpsystem:=xfpsystem(@c);
-end;
-
-Function fpSystem(const Command:AnsiString):cint;
-begin
-  fpsystem:=xfpsystem(pchar(command));
+  cmd:=ToSingleByteFileSystemEncodedFileName(Command);
+  fpsystem:=xfpsystem(pchar(cmd));
 end;
 
 {$else}
-Function fpSystem(const Command:string):cint; // deprecated helper.
-begin
-  fpsystem:=fpsystem(ansistring(command));
-end;
-
-Function fpSystem(const Command:AnsiString):cint;
+Function fpSystem(const Command:RawByteString):cint;
 var
   pid,savedpid   : cint;
   pstat          : cint;
@@ -370,8 +571,10 @@ var
  {$ifndef SHELL_USE_FPEXEC}
    p      : ppchar;
  {$endif}
+  cmd     : RawByteString;
 
 begin { Changes as above }
+  { fpexec* take care of converting the command to the right code page }
   if command='' then exit(1);
   {$ifndef SHELL_USE_FPEXEC}
     p:=CreateShellArgv(command);
@@ -443,6 +646,7 @@ end;
 {$IFNDEF DONT_READ_TIMEZONE}
 { Include timezone handling routines which use /usr/share/timezone info }
 {$i timezone.inc}
+
 {$endif}
 {******************************************************************************
                            FileSystem calls
@@ -928,6 +1132,8 @@ var
   pl   : ^cint;
 begin
   AssignStream:=-1;
+  if fpAccess(prog,X_OK)<>0 then
+    exit(-1);
   if AssignPipe(streamin,pipo)=-1 Then
    exit(-1);
   if AssignPipe(pipi,streamout)=-1 Then
@@ -999,7 +1205,8 @@ var
   pl: ^cint;
 begin
   AssignStream := -1;
-
+  if fpAccess(prog,X_OK)<>0 then
+    exit(-1);
   // Assign pipes
   if AssignPipe(StreamIn, PipeOut)=-1 Then
    Exit(-1);
@@ -1154,19 +1361,10 @@ begin
 end;
 
 {******************************************************************************
-                          Signal handling calls
-******************************************************************************}
-
-procedure SigRaise(sig:integer);
-begin
-  fpKill(fpGetPid,Sig);
-end;
-
-{******************************************************************************
                              Utility calls
 ******************************************************************************}
 
-Function FSearch(const path:AnsiString;dirlist:Ansistring;CurrentDirStrategy:TFSearchOption):AnsiString;
+Function FSearch(const path:RawByteString;dirlist:RawByteString;CurrentDirStrategy:TFSearchOption):RawByteString;
 {
   Searches for a file 'path' in the list of direcories in 'dirlist'.
   returns an empty string if not found. Wildcards are NOT allowed.
@@ -1177,17 +1375,18 @@ stringhandling overhead at the same time.
 
 }
 Var
-  mydir,NewDir : ansistring;
+  mypath,
+  mydir,NewDir : RawByteString;
   p1     : cint;
   Info   : Stat;
   i,j      : cint;
   p      : pchar;
 Begin
-
+ SetCodePage(dirlist,DefaultFileSystemCodePage);
  if CurrentDirStrategy=CurrentDirectoryFirst Then
-     Dirlist:='.:'+dirlist;             {Make sure current dir is first to be searched.}
- if CurrentDirStrategy=CurrentDirectoryLast Then
-     Dirlist:=dirlist+':.';             {Make sure current dir is last to be searched.}
+     Dirlist:=ToSingleByteFileSystemEncodedFileName('.:')+dirlist             {Make sure current dir is first to be searched.}
+ else if CurrentDirStrategy=CurrentDirectoryLast Then
+     Dirlist:=dirlist+ToSingleByteFileSystemEncodedFileName('.:');             {Make sure current dir is last to be searched.}
 
 {Replace ':' and ';' with #0}
 
@@ -1200,14 +1399,19 @@ Begin
    FSearch:='' {No wildcards allowed in these things.}
   Else
    Begin
+     mypath:=ToSingleByteFileSystemEncodedFileName(path);
      p:=pchar(dirlist);
      i:=length(dirlist);
      j:=1;
      Repeat
-       mydir:=ansistring(p);
+       mydir:=RawByteString(p);
        if (length(mydir)>0) and (mydir[length(mydir)]<>'/') then
-          mydir:=mydir+'/';
-       NewDir:=mydir+Path;
+          begin
+            { concatenate character without influencing code page }
+            setlength(mydir,length(mydir)+1);
+            mydir[length(mydir)]:='/';
+          end;
+       NewDir:=mydir+mypath;
        if (FpStat(NewDir,Info)>=0) and
           (not fpS_ISDIR(Info.st_Mode)) then
         Begin
@@ -1221,21 +1425,55 @@ Begin
        if p^=#0 then inc(p);
      Until (j>=i) or (Length(NewDir) > 0);
      FSearch:=NewDir;
+     SetCodePage(FSearch,DefaultRTLFileSystemCodePage);
    End;
 End;
 
-Function FSearch(const path:AnsiString;dirlist:Ansistring):AnsiString;
 
+Function FSearch(const path:RawByteString;dirlist:RawByteString):RawByteString;
 Begin
  FSearch:=FSearch(path,dirlist,CurrentDirectoryFirst);
 End;
 
+function FSearch(const path: UnicodeString; dirlist: UnicodeString; CurrentDirStrategy: TFSearchOption): UnicodeString;
+begin
+  FSearch:=FSearch(ToSingleByteFileSystemEncodedFileName(path),ToSingleByteFileSystemEncodedFileName(dirlist),CurrentDirStrategy);
+end;
+
+function FSearch(const path: UnicodeString; dirlist: UnicodeString): UnicodeString;
+begin
+  FSearch:=FSearch(ToSingleByteFileSystemEncodedFileName(path),ToSingleByteFileSystemEncodedFileName(dirlist),CurrentDirectoryFirst);
+end;
+
+{$ifdef android}
+  {$I unixandroid.inc}
+{$endif android}
+
+{$if declared(UseTZThreading)}
+procedure InitTZThreading;
+begin
+  UseTZThreading:=True;
+  InitCriticalSection(TZInfoCS);
+end;
+{$endif}
+
 Initialization
+{$if declared(UseTZThreading)}
+  RegisterLazyInitThreadingProc(@InitTZThreading);
+{$endif}
 {$IFNDEF DONT_READ_TIMEZONE}
   InitLocalTime;
 {$endif}
+{$ifdef android}
+  InitLocalTime;
+{$endif android}
+
 finalization
 {$IFNDEF DONT_READ_TIMEZONE}
   DoneLocalTime;
+{$endif}
+{$if declared(UseTZThreading)}
+  if UseTZThreading then
+    DoneCriticalSection(TZInfoCS);
 {$endif}
 End.

@@ -22,8 +22,9 @@ type
   THandle = DWord;
   ULONG_PTR = DWord;
 {$endif CPU64}
-  TThreadID = THandle;
+  TThreadID = DWord;
   SIZE_T = ULONG_PTR;
+  TOSTimestamp = Int64;
 
   { the fields of this record are os dependent  }
   { and they shouldn't be used in a program     }
@@ -48,6 +49,18 @@ type
     dwContentions : DWORD ;	// Count of contentions
   end;
 {$endif WINCE}
+
+{$if defined(WIN32) or defined(WIN64)}
+  {$define HAS_ENTRYINFORMATION_OS}
+  TEntryInformationOS = record
+    {$ifdef WIN32}
+    asm_exit : Procedure;stdcall;
+    {$endif WIN32}
+    TlsKeyAddr : PDWord;
+    SysInstance: {$ifdef CPU64}PQWord{$else}PLongInt{$endif};
+    WideInitTables : Pointer;
+  end;
+{$endif WIN32 or WIN64}
 
 const
 {$ifdef WINCE}

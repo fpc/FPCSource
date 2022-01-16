@@ -37,14 +37,15 @@ type
       tcpuregisterset; override;
     function get_volatile_registers_fpu(calloption: tproccalloption):
       tcpuregisterset; override;
+    function get_saved_registers_int(calloption: tproccalloption):
+      tcpuregisterarray; override;
     function push_addr_param(varspez: tvarspez; def: tdef; calloption:
       tproccalloption): boolean; override;
     function ret_in_param(def: tdef; pd: tabstractprocdef): boolean; override;
 
-    procedure getintparaloc(list: TAsmList; pd : tabstractprocdef; nr: longint; var cgpara: tcgpara); override;
+    procedure getcgtempparaloc(list: TAsmList; pd : tabstractprocdef; nr: longint; var cgpara: tcgpara); override;
     function create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint; override;
-    function create_varargs_paraloc_info(p: tabstractprocdef; varargspara:
-      tvarargsparalist): longint; override;
+    function create_varargs_paraloc_info(p: tabstractprocdef; side: tcallercallee; varargspara: tvarargsparalist): longint; override;
     function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
 
   private
@@ -79,7 +80,19 @@ begin
   result := [RS_F0..RS_F13];
 end;
 
-procedure tcpuparamanager.getintparaloc(list: TAsmList; pd : tabstractprocdef; nr: longint; var cgpara: tcgpara);
+function tcpuparamanager.get_saved_registers_int(calloption: tproccalloption):
+  tcpuregisterarray;
+const
+  saved_regs: tcpuregisterarray = (
+    RS_R14, RS_R15, RS_R16, RS_R17, RS_R18, RS_R19,
+    RS_R20, RS_R21, RS_R22, RS_R23, RS_R24, RS_R25,
+    RS_R26, RS_R27, RS_R28, RS_R29, RS_R30, RS_R31
+    );
+begin
+  result:=saved_regs;
+end;
+
+procedure tcpuparamanager.getcgtempparaloc(list: TAsmList; pd : tabstractprocdef; nr: longint; var cgpara: tcgpara);
 var
   paraloc: pcgparalocation;
   psym: tparavarsym;
@@ -88,7 +101,7 @@ begin
   psym:=tparavarsym(pd.paras[nr-1]);
   pdef:=psym.vardef;
   if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
-    pdef:=getpointerdef(pdef);
+    pdef:=cpointerdef.getreusable_no_free(pdef);
   cgpara.reset;
   cgpara.size := def_cgsize(pdef);
   cgpara.intsize := tcgsize2size[cgpara.size];
@@ -146,7 +159,10 @@ begin
     filedef:
       result := LOC_REGISTER;
     arraydef:
-      result := LOC_REFERENCE;
+      if is_dynamic_array(p) then
+        getparaloc:=LOC_REGISTER
+      else
+        result := LOC_REFERENCE;
     setdef:
       if is_smallset(p) then
         result := LOC_REGISTER
@@ -182,7 +198,7 @@ begin
         (varspez = vs_const) and
         (
          (
-          (not (calloption in [pocall_cdecl, pocall_cppdecl]) and
+          (not (calloption in cdecl_pocalls) and
           (def.size > 8))
          ) or
          (calloption = pocall_mwpascal)
@@ -198,6 +214,8 @@ begin
       result := not is_smallset(def);
     stringdef:
       result := tstringdef(def).stringtype in [st_shortstring, st_longstring];
+    else
+      ;
   end;
 end;
 
@@ -250,6 +268,8 @@ function tcpuparamanager.ret_in_param(def: tdef; pd: tabstractprocdef): boolean;
               result:=def.size>8;
             recorddef:
               result:=true;
+            else
+              ;
           end;
         end;
       { Darwin: if completely passed in registers -> returned by registers;
@@ -259,21 +279,31 @@ function tcpuparamanager.ret_in_param(def: tdef; pd: tabstractprocdef): boolean;
         begin
           case def.typ of
             recorddef:
-              { todo: fix once the Darwin/ppc64 abi is fully implemented, as it
-                requires individual fields to be passed in individual registers,
-                so a record with 9 bytes may need to be passed via memory }
-              if def.size>8*sizeof(aint) then
-                result:=true;
+              begin
+                { todo: fix once the Darwin/ppc64 abi is fully implemented, as it
+                  requires individual fields to be passed in individual registers,
+                  so a record with 9 bytes may need to be passed via memory }
+                if def.size>8*sizeof(aint) then
+                  result:=true;
+              end;
+            else
+              ;
           end;
         end;
+      else
+        internalerror(2019051030);
     end;
   end;
 
 procedure tcpuparamanager.init_values(var curintreg, curfloatreg, curmmreg:
   tsuperregister; var cur_stack_offset: aword);
 begin
-  { register parameter save area begins at 48(r2) }
-  cur_stack_offset := 48;
+  case target_info.abi of
+    abi_powerpc_elfv2:
+      cur_stack_offset := 32;
+    else
+      cur_stack_offset := 48;
+  end;
   curintreg := RS_R3;
   curfloatreg := RS_F1;
   curmmreg := RS_M2;
@@ -368,7 +398,7 @@ begin
     end;
 
     { currently only support C-style array of const }
-    if (p.proccalloption in [pocall_cdecl, pocall_cppdecl]) and
+    if (p.proccalloption in cstylearrayofconst) and
       is_array_of_const(hp.vardef) then begin
       paraloc := hp.paraloc[side].add_location;
       { hack: the paraloc must be valid, but is not actually used }
@@ -415,7 +445,7 @@ begin
     next 8 byte boundary? }
   paraaligned:=false;
   if push_addr_param(varspez, paradef, p.proccalloption) then begin
-    paradef := getpointerdef(paradef);
+    paradef := cpointerdef.getreusable_no_free(paradef);
     loc := LOC_REGISTER;
     paracgsize := OS_ADDR;
     paralen := tcgsize2size[OS_ADDR];
@@ -611,6 +641,20 @@ implemented
   { can become < 0 for e.g. 3-byte records }
   while (paralen > 0) do begin
     paraloc := para.add_location;
+    { ELF64v2 a: overflow homogeneous float storage into integer registers
+      if possible (only possible in case of single precision floats, because
+      there are more fprs than gprs for parameter passing) }
+    if assigned(alllocdef) and
+       (loc=LOC_FPUREGISTER) and
+       (((nextfloatreg=RS_F13) and
+         (tcgsize2size[paracgsize]=4) and
+         (paralen>4)) or
+        (nextfloatreg>RS_F13)) then
+      begin
+        loc:=LOC_REGISTER;
+        paracgsize:=OS_64;
+        locdef:=u64inttype;
+      end;
     { In case of po_delphi_nested_cc, the parent frame pointer
       is always passed on the stack. }
     if (loc = LOC_REGISTER) and
@@ -670,12 +714,24 @@ implemented
       paraloc^.def := locdef;
       paraloc^.register := newreg(R_FPUREGISTER, nextfloatreg, R_SUBWHOLE);
       { the PPC64 ABI says that the GPR index is increased for every parameter, no matter
-      which type it is stored in }
-      inc(nextintreg);
+        which type it is stored in
+        -- exception: ELFv2 abi when passing aggregate parts in FPRs, because those are
+           a direct mirror of the memory layout of the aggregate }
+      if not assigned(alllocdef) then
+        begin
+          inc(nextintreg);
+          inc(stack_offset, tcgsize2size[OS_FLOAT]);
+        end
+      else
+        begin
+          if (tcgsize2size[paracgsize]=8) or
+             odd(ord(nextfloatreg)-ord(RS_F1)) then
+            inc(nextintreg);
+          inc(stack_offset, tcgsize2size[paracgsize]);
+        end;
       inc(nextfloatreg);
       dec(paralen, tcgsize2size[paraloc^.size]);
 
-      inc(stack_offset, tcgsize2size[OS_FLOAT]);
     end else if (loc = LOC_MMREGISTER) then begin
       { Altivec not supported }
       internalerror(200510192);
@@ -686,7 +742,10 @@ implemented
       case loc of
         LOC_FPUREGISTER:
           begin
-            paraloc^.size:=int_float_cgsize(paralen);
+            if assigned(alllocdef) then
+              paraloc^.size:=def_cgsize(alllocdef)
+            else
+              paraloc^.size:=int_float_cgsize(paralen);
             case paraloc^.size of
               OS_F32: paraloc^.def:=s32floattype;
               OS_F64: paraloc^.def:=s64floattype;
@@ -711,7 +770,7 @@ implemented
         { create_paraloc_info_intern might be also called when being outside of
           code generation so current_procinfo might be not set }
         if assigned(current_procinfo) then
-          tppcprocinfo(current_procinfo).needs_frame_pointer := true;
+          tcpuprocinfo(current_procinfo).needs_frame_pointer := true;
       end;
       paraloc^.reference.offset := stack_offset;
 
@@ -726,7 +785,7 @@ implemented
   end;
 end;
 
-function tcpuparamanager.create_varargs_paraloc_info(p: tabstractprocdef;
+function tcpuparamanager.create_varargs_paraloc_info(p: tabstractprocdef; side: tcallercallee;
   varargspara: tvarargsparalist): longint;
 var
   cur_stack_offset: aword;
@@ -739,33 +798,28 @@ begin
   init_values(curintreg, curfloatreg, curmmreg, cur_stack_offset);
   firstfloatreg := curfloatreg;
 
-  result := create_paraloc_info_intern(p, callerside, p.paras, curintreg,
+  result := create_paraloc_info_intern(p, side, p.paras, curintreg,
     curfloatreg, curmmreg, cur_stack_offset, false);
-  if (p.proccalloption in [pocall_cdecl, pocall_cppdecl, pocall_mwpascal]) then begin
-    { just continue loading the parameters in the registers }
-    result := create_paraloc_info_intern(p, callerside, varargspara, curintreg,
-      curfloatreg, curmmreg, cur_stack_offset, true);
-    { varargs routines have to reserve at least 64 bytes for the PPC64 ABI }
-    if (result < 64) then
-      result := 64;
-  end else begin
-    parasize := cur_stack_offset;
-    for i := 0 to varargspara.count - 1 do begin
-      hp := tparavarsym(varargspara[i]);
-      hp.paraloc[callerside].alignment := 8;
-      paraloc := hp.paraloc[callerside].add_location;
-      paraloc^.loc := LOC_REFERENCE;
-      paraloc^.size := def_cgsize(hp.vardef);
-      paraloc^.def := hp.vardef;
-      paraloc^.reference.index := NR_STACK_POINTER_REG;
-      l := push_size(hp.varspez, hp.vardef, p.proccalloption);
-      paraloc^.reference.offset := parasize;
-      parasize := parasize + l;
-    end;
-    result := parasize;
-  end;
+  if (p.proccalloption in cstylearrayofconst) then
+    begin
+      { just continue loading the parameters in the registers }
+      if assigned(varargspara) then
+        begin
+          if side=callerside then
+            result := create_paraloc_info_intern(p, side, varargspara, curintreg,
+              curfloatreg, curmmreg, cur_stack_offset, true)
+          else
+            internalerror(2019021920);
+        end;
+      { varargs routines have to reserve at least 64 bytes for the PPC64 ABI }
+      if (result < 64) then
+        result := 64;
+    end
+  else
+    internalerror(2019021911);
   if curfloatreg <> firstfloatreg then
     include(varargspara.varargsinfo, va_uses_float_reg);
+  create_funcretloc_info(p, side);
 end;
 
 function tcpuparamanager.parseparaloc(p: tparavarsym; const s: string): boolean;

@@ -15,7 +15,7 @@ end;
 
 Function TCSetAttr(fd:cint;OptAct:cint;const tios:TermIOS):cint;
 var
-  nr:culong;
+  nr:TIOCtlRequest;
 begin
   case OptAct of
    TCSANOW   : nr:=TCSETS;
@@ -68,7 +68,7 @@ end;
 
 Function TCSetPGrp(fd,id:cint):cint;  inline;
 begin
-  TCSetPGrp:=fpIOCtl(fd,TIOCSPGRP,pointer(ptrint(id)));
+  TCSetPGrp:=fpIOCtl(fd,TIOCtlRequest(TIOCSPGRP),pointer(ptrint(id)));
 end;
 
 

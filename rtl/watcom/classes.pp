@@ -23,11 +23,13 @@ unit Classes;
 interface
 
 uses
-  typinfo,
   rtlconsts,
+  types,
+  sortbase,
 {$ifdef FPC_TESTGENERICS}
   fgl,
 {$endif}
+  typinfo,
   sysutils;
 
 {$i classesh.inc}

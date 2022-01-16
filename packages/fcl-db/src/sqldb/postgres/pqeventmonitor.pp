@@ -27,7 +27,7 @@ unit PQEventMonitor;
 
   You should have received a copy of the GNU Library General Public License
   along with this library; if not, write to the Free Software Foundation,
-  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 }
 
 {$mode objfpc}{$H+}
@@ -47,6 +47,8 @@ uses
 type
   TEventAlert = procedure(Sender: TObject; EventName: string; EventCount: longint;
     var CancelAlerts: boolean) of object;
+  TEventAlertPayload = procedure(Sender: TObject; EventName, PayLoad: string; EventCount: longint;
+    var CancelAlerts: boolean) of object;
   TErrorEvent = procedure(Sender: TObject; ErrorCode: integer) of object;
 
 { TPQEventMonitor }
@@ -59,6 +61,7 @@ type
     FEvents: TStrings;
     FOnError: TErrorEvent;
     FOnEventAlert: TEventAlert;
+    FOnEventAlertPayLoad: TEventAlertPayload;
     FRegistered: Boolean;
     function GetNativeHandle: pointer;
     procedure SetConnection(AValue: TPQConnection);
@@ -77,6 +80,7 @@ type
     property Events: TStrings read FEvents write SetEvents;
     property Registered: Boolean read FRegistered write SetRegistered;
     property OnEventAlert: TEventAlert read FOnEventAlert write FOnEventAlert;
+    property OnEventAlertPayload: TEventAlertPayload read FOnEventAlertPayload write FOnEventAlertPayload;
     property OnError: TErrorEvent read FOnError write FOnError;
   end;
 
@@ -165,6 +169,8 @@ begin
         begin
         if assigned(OnEventAlert) then
           OnEventAlert(Self,notify^.relname,1,CancelAlerts);
+        if assigned(OnEventAlertPayLoad) then
+          OnEventAlertPayLoad(Self,notify^.relname,Notify^.Extra,1,CancelAlerts);
         PQfreemem(notify);
         end;
     until not assigned(notify) or CancelAlerts;

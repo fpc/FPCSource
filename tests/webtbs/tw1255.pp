@@ -20,7 +20,11 @@ end;
 
 begin
 {$ifdef UNIX}
-  testff('/etc/host*');
+  {$ifdef haiku}
+    testff('/boot/system/lib/libroot.*');
+  {$else}
+    testff('/etc/host*');
+  {$endif}
 {$else}
   {$ifdef wince}
     testff('\windows\calc.*');

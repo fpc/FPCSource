@@ -48,7 +48,7 @@ interface
         procedure pass_generate_code; override;
         procedure update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint); override;
         procedure update_reference_reg_packed(maybe_const_reg: tregister; regsize: tdef; l: aint); override;
-        procedure update_reference_offset(var ref: treference; index, mulsize: aint); override;
+        procedure update_reference_offset(var ref: treference; index, mulsize: ASizeInt); override;
       end;
 
 
@@ -59,14 +59,14 @@ implementation
       aasmdata,aasmllvm,
       symtable,symconst,symdef,defutil,
       nmem,
-      cpubase,llvmbase,hlcgobj;
+      cpubase,llvmbase,hlcgobj,hlcgllvm;
 
   { tllvmsubscriptnode }
 
     function tllvmsubscriptnode.handle_platform_subscript: boolean;
       var
-        llvmfielddef: tdef;
         newbase: tregister;
+        fielddef: tdef;
       begin
         if not(location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
           internalerror(2014011905);
@@ -74,29 +74,26 @@ implementation
           begin
             { typecast the result to the expected type, but don't actually index
               (that still has to be done by the generic code, so return false) }
-            newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(resultdef));
-            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,getpointerdef(resultdef),location.reference,newbase);
-            reference_reset_base(location.reference,newbase,0,location.reference.alignment);
+            newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
+            if is_ordinal(resultdef) then
+              fielddef:=
+                cgsize_orddef(
+                  int_cgsize(
+                    packedbitsloadsize(resultdef.packedbitsize)
+                  )
+                )
+            else
+              fielddef:=resultdef;
+            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,
+              left.resultdef,
+              cpointerdef.getreusable(fielddef),
+              location.reference,newbase);
+            reference_reset_base(location.reference,newbase,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
             result:=false;
           end
         else
           begin
-            { get the type of the corresponding field in the llvm shadow
-              definition }
-            llvmfielddef:=tabstractrecordsymtable(tabstractrecorddef(left.resultdef).symtable).llvmst[vs.llvmfieldnr].def;
-            { load the address of that shadow field }
-            newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(llvmfielddef));
-            current_asmdata.CurrAsmList.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,getpointerdef(left.resultdef),location.reference,s32inttype,vs.llvmfieldnr,true));
-            reference_reset_base(location.reference,newbase,vs.offsetfromllvmfield,newalignment(location.reference.alignment,vs.fieldoffset));
-            { if it doesn't match the requested field exactly (variant record),
-              adjust the type of the pointer }
-            if (vs.offsetfromllvmfield<>0) or
-               (llvmfielddef<>resultdef) then
-              begin
-                newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(resultdef));
-                hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,getpointerdef(llvmfielddef),getpointerdef(resultdef),location.reference.base,newbase);
-                location.reference.base:=newbase;
-              end;
+            hlcg.g_set_addr_nonbitpacked_field_ref(current_asmdata.CurrAsmList,tabstractrecorddef(left.resultdef),vs,location.reference);
             location.size:=def_cgsize(resultdef);
             result:=true;
           end;
@@ -109,6 +106,8 @@ implementation
       locref: preference;
       hreg: tregister;
       arrptrelementdef: tdef;
+      packedloadsize: aint;
+      indirect: boolean;
 
     procedure getarrelementptrdef;
       begin
@@ -130,25 +129,35 @@ implementation
           10 bytes) }
         if (resultdef.typ=floatdef) and
            (tfloatdef(resultdef).floattype=s80real) then
-          arrptrelementdef:=getpointerdef(getarraydef(u8inttype,10))
+          arrptrelementdef:=cpointerdef.getreusable(carraydef.getreusable(u8inttype,10))
         else
-          arrptrelementdef:=getpointerdef(resultdef);
+          arrptrelementdef:=cpointerdef.getreusable(resultdef);
       end;
 
     begin
       inherited;
       locref:=nil;
-      if not arraytopointerconverted then
+      { avoid uninitialised warning }
+      arrptrelementdef:=nil;
+      indirect:=
+        not is_dynamicstring(left.resultdef) and
+        not is_dynamic_array(left.resultdef);
+      if (not arraytopointerconverted and
+          indirect) or
+         (constarrayoffset<>0) then
         begin
-          { avoid uninitialised warning }
-          arrptrelementdef:=nil;
           { the result is currently a pointer to left.resultdef (the array type)
              -> convert it into a pointer to an element inside this array }
           getarrelementptrdef;
           hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,arrptrelementdef);
-          current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_const(hreg,getpointerdef(left.resultdef),
-            locref^,ptruinttype,constarrayoffset,true));
-          reference_reset_base(locref^,hreg,0,locref^.alignment);
+          locref^:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,location.reference,left.resultdef);
+          if indirect then
+            current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_const(hreg,cpointerdef.getreusable(left.resultdef),
+              locref^,ptruinttype,constarrayoffset,true))
+          else
+            current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_const(hreg,left.resultdef,
+              locref^,ptruinttype,constarrayoffset,false));
+          reference_reset_base(locref^,hreg,0,locref^.temppos,locref^.alignment,locref^.volatility);
         end;
 
       { see comment in getarrelementptrdef }
@@ -156,15 +165,26 @@ implementation
          (tfloatdef(resultdef).floattype=s80real) then
        begin
          if not assigned(locref) then
-           begin
-             { avoid uninitialised warning }
-             arrptrelementdef:=nil;
-             getarrelementptrdef;
-           end;
-         hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(resultdef));
-         hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,arrptrelementdef,getpointerdef(resultdef),locref^.base,hreg);
+           getarrelementptrdef;
+         hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
+         hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,arrptrelementdef,cpointerdef.getreusable(resultdef),locref^.base,hreg);
          locref^.base:=hreg;
        end;
+
+      { packed arrays are represented by an array of byte, but when we operate
+        on them we treat them as arrays of elements of packedbitsloadsize()
+        -> typecast }
+      if is_packed_array(left.resultdef) and
+         (tarraydef(left.resultdef).elementdef.typ in [enumdef,orddef]) then
+        begin
+          getarrelementptrdef;
+          packedloadsize:=packedbitsloadsize(tarraydef(left.resultdef).elementdef.packedbitsize);
+          arrptrelementdef:=cpointerdef.getreusable(cgsize_orddef(int_cgsize(packedloadsize)));
+          hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,
+            cpointerdef.getreusable(u8inttype),
+            arrptrelementdef,
+            locref^);
+        end;
     end;
 
 
@@ -179,14 +199,24 @@ implementation
           hreg:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
           hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_ADD,ptruinttype,constarrayoffset,maybe_const_reg,hreg);
           maybe_const_reg:=hreg;
+          constarrayoffset:=0;
         end;
-      hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(resultdef));
-      { get address of indexed array element and convert pointer to array into
-        pointer to the elementdef in the process }
-      current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(hreg,getpointerdef(left.resultdef),
-        location.reference,ptruinttype,maybe_const_reg,true));
-      arraytopointerconverted:=true;
-      reference_reset_base(location.reference,hreg,0,location.reference.alignment);
+      hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
+      location.reference:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,location.reference,left.resultdef);
+      if not is_dynamicstring(left.resultdef) and
+         not is_dynamic_array(left.resultdef) then
+        begin
+          { get address of indexed array element and convert pointer to array into
+            pointer to the elementdef in the process }
+          current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(hreg,cpointerdef.getreusable(left.resultdef),
+            location.reference,ptruinttype,maybe_const_reg,true));
+          arraytopointerconverted:=true;
+        end
+      else
+        { the array is already a pointer -> just index }
+        current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(hreg,left.resultdef,
+          location.reference,ptruinttype,maybe_const_reg,false));
+      reference_reset_base(location.reference,hreg,0,location.reference.temppos,location.reference.alignment,location.reference.volatility);
       location.reference.alignment:=newalignment(location.reference.alignment,l);
     end;
 
@@ -214,13 +244,19 @@ implementation
           exit;
         end;
       if (l>8*sizeof(aint)) then
-        internalerror(200608051);
+        internalerror(2006080502);
 
       { adjust the index by subtracting the lower bound of the array and adding
         any constant adjustments }
       sref.ref:=location.reference;
       hreg:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
       hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,ptruinttype,tarraydef(left.resultdef).lowrange-constarrayoffset,maybe_const_reg,hreg);
+      constarrayoffset:=0;
+
+      { multiply index with bitsize of every element }
+      hreg2:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
+      hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_MUL,ptruinttype,l,hreg,hreg2);
+      hreg:=hreg2;
 
       { keep alignment for index }
       sref.ref.alignment:=left.resultdef.alignment;
@@ -233,22 +269,21 @@ implementation
         value: divide the index by 8 (we're working with a bitpacked array here,
         all quantities are expressed in bits), and then by the size of the
         chunks (alignpower) }
+      hreg2:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
+      hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,ptruinttype,3+alignpower,hreg,hreg2);
       offsetreg:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
-      hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,ptruinttype,3+alignpower,hreg,offsetreg);
+      hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,ptruinttype,alignpower,hreg2,offsetreg);
       { index the array using this chunk index }
-      basereg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(defloadsize));
-      current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(basereg,getpointerdef(left.resultdef),
+      basereg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(defloadsize));
+      current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(basereg,cpointerdef.getreusable(left.resultdef),
         sref.ref,ptruinttype,offsetreg,true));
       arraytopointerconverted:=true;
-      reference_reset_base(sref.ref,basereg,0,sref.ref.alignment);
-      { calculate the bit index inside that chunk }
+      reference_reset_base(sref.ref,basereg,0,sref.ref.temppos,sref.ref.alignment,sref.ref.volatility);
+      { calculate the bit index inside that chunk: mask out
+        the chunk index part }
       hreg2:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
-      { multiple index with bitsize of every element }
-      hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_MUL,ptruinttype,l,hreg,hreg2);
-      hreg:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
-      { mask out the chunk index part }
-      hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_AND,ptruinttype,(1 shl (3+alignpower))-1,hreg2,hreg);
-      sref.bitindexreg:=hreg;
+      hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_AND,ptruinttype,(1 shl (3+alignpower))-1,hreg,hreg2);
+      sref.bitindexreg:=hreg2;
       sref.startbit:=0;
       sref.bitlen:=resultdef.packedbitsize;
       if (left.location.loc=LOC_REFERENCE) then
@@ -259,9 +294,13 @@ implementation
     end;
 
 
-  procedure tllvmvecnode.update_reference_offset(var ref: treference; index, mulsize: aint);
+  procedure tllvmvecnode.update_reference_offset(var ref: treference; index, mulsize: ASizeInt);
     begin
-      inc(constarrayoffset,index);
+      if not is_packed_array(left.resultdef) or
+         not (tarraydef(left.resultdef).elementdef.typ in [enumdef,orddef]) then
+        inc(constarrayoffset,index)
+      else
+        inc(constarrayoffset,index*mulsize)
     end;
 
 

@@ -105,62 +105,76 @@ Const
     DP_2DINDEXMASK      = $0f;  { mask for index for 1st of two dead keys }
     DP_2DFACSHIFT       = 4;    { shift for factor for 1st of two dead keys }
 
-VAR KeymapBase : pLibrary;
+VAR KeymapBase : pLibrary = nil;
 
 const
     KEYMAPNAME : PChar = 'keymap.library';
 
+{$if defined(AMIGA_V1_2_ONLY)}
+function MapRawKey(event: PInputEvent; Buffer: PCHAR; Length: LongInt; keyMap: PKeyMap): SmallInt;
+{$else}
 FUNCTION AskKeyMapDefault : pKeyMap; syscall KeymapBase 036;
 FUNCTION MapANSI(thestring : pCHAR location 'a0'; count : LONGINT location 'd0'; buffer : pCHAR location 'a1'; length : LONGINT location 'd1'; keyMap : pKeyMap location 'a2') : LONGINT; syscall KeymapBase 048;
 FUNCTION MapRawKey(event : pInputEvent location 'a0'; buffer : pCHAR location 'a1'; length : LONGINT location 'd1'; keyMap : pKeyMap location 'a2') : smallint; syscall KeymapBase 042;
 PROCEDURE SetKeyMapDefault(keyMap : pKeyMap location 'a0'); syscall KeymapBase 030;
+{$endif}
 
 IMPLEMENTATION
 
-uses amsgbox;
-
-{$I useautoopenlib.inc}
-{$ifdef use_auto_openlib}
-  {$Info Compiling autoopening of keymap.library}
-
+{$if defined(AMIGA_V1_2_ONLY)}
 var
-    keymap_exit : Pointer;
+  ConDev: PDevice = nil;
+  ConMsgPort: PMsgPort = nil;
+  ConIOReq: PIORequest = nil;
 
-procedure ClosekeymapLibrary;
+function RawKeyConvert(Events: PInputEvent location 'a0'; Buffer: PCHAR location 'a1'; Length: LongInt location 'd1'; KeyMap: PKeyMap location 'a2'): LongInt; syscall ConDev 048;
+
+function MapRawKey(event: PInputEvent; Buffer: PCHAR; Length: LongInt; keyMap: PKeyMap): SmallInt;
 begin
-    ExitProc := keymap_exit;
-    if KeymapBase <> nil then begin
-        CloseLibrary(KeymapBase);
-        KeymapBase := nil;
-    end;
+  if not Assigned(ConDev) then
+  begin
+    ConMsgPort := CreatePort(nil, 0);
+    ConIOReq := CreateExtIO(ConMsgPort, SizeOf(TIOStdReq));
+
+    OpenDevice('console.device', -1, ConIOReq, 0);
+
+    ConDev := ConIOReq^.io_Device;
+  end;
+  if Assigned(ConDev) then
+    MapRawKey := RawKeyConvert(event, Buffer, length, keymap)
+  else
+    MapRawKey := 0;
 end;
+
+procedure CloseKeyMapConsole;
+begin
+  if Assigned(ConDev) and Assigned(ConIOReq) then
+  begin
+    CloseDevice(ConIOReq);
+    DeleteExtIO(ConIOReq);
+  end;
+  ConDev := nil;
+  ConIOReq := nil;
+  if Assigned(ConMsgPort) then
+    DeletePort(ConMsgPort);
+  ConMsgPort := nil;
+end;
+
+{$endif}
 
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-begin
-    KeymapBase := nil;
-    KeymapBase := OpenLibrary(KEYMAPNAME,LIBVERSION);
-    if KeymapBase <> nil then begin
-        keymap_exit := ExitProc;
-        ExitProc := @ClosekeymapLibrary
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open keymap.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-
-{$else}
-   {$Warning No autoopening of keymap.library compiled}
-   {$Info Make sure you open keymap.library yourself}
-{$endif use_auto_openlib}
-
-
+initialization
+  KeymapBase := OpenLibrary(KEYMAPNAME,LIBVERSION);
+finalization
+  if Assigned(KeymapBase) then
+    CloseLibrary(KeymapBase);
+  {$if defined(AMIGA_V1_2_ONLY)}
+  CloseKeyMapConsole;
+  {$endif}
 END. (* UNIT KEYMAP *)
 
 

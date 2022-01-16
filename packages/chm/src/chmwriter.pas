@@ -6,7 +6,7 @@
   option) any later version.
 
   This program is distributed in the hope that it will be useful, but WITHOUT
-  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
   FITNESS FOR A PARTICULAR PURPOSE. See the GNU Library General Public License
   for more details.
 
@@ -22,7 +22,7 @@ unit chmwriter;
 {$MODE OBJFPC}{$H+}
 
 interface
-uses Classes, ChmBase, chmtypes, chmspecialfiles, HtmlIndexer, chmsitemap, contnrs, StreamEx, Avl_Tree, lzxcompressthread;
+uses Generics.Collections,Classes, ChmBase, chmtypes, chmspecialfiles, HtmlIndexer, chmsitemap, contnrs, StreamEx, Avl_Tree, lzxcompressthread;
 
 Const
    DefaultHHC = 'Default.hhc';
@@ -117,6 +117,8 @@ Type
     procedure Execute;
     procedure AddStreamToArchive(AFileName, APath: String; AStream: TStream; Compress: Boolean = True);
     procedure PostAddStreamToArchive(AFileName, APath: String; AStream: TStream; Compress: Boolean = True);
+    procedure LocaleToLanguageID(Locale: LongWord);
+    function  LocaleFromLanguageID: LongWord;
     property WindowSize: LongWord read FWindowSize write FWindowSize default 2; // in $8000 blocks
     property FrameSize: LongWord read FFrameSize write FFrameSize default 1; // in $8000 blocks
     property FilesToCompress: TStrings read FFileNames;
@@ -126,7 +128,8 @@ Type
     property TempRawStream: TStream read FTempStream write SetTempRawStream;
     property ReadmeMessage : String read fReadmeMessage write fReadmeMessage;
     property Cores : integer read fcores write fcores;
-    //property LocaleID: dword read ITSFHeader.LanguageID write ITSFHeader.LanguageID;
+    { MS Locale ID code }
+    property LocaleID: LongWord read LocaleFromLanguageID write LocaleToLanguageID;
   end;
 
   { TChmWriter }
@@ -154,6 +157,7 @@ Type
     FAvlStrings   : TAVLTree;    // dedupe strings
     FAVLTopicdedupe : TAVlTree;  // Topic deduping, if we load it both from hhp and TOC
     FAvlURLStr    : TAVLTree;    // dedupe urltbl + binindex must resolve URL to topicid
+    FDictTopicsUrlInd    : specialize TDictionary<string,integer>; // if url exists reuse topic.
     SpareString   : TStringIndex;
     SpareUrlStr   : TUrlStrIndex;
     FWindows      : TObjectList;
@@ -186,6 +190,7 @@ Type
     function AddURL(AURL: String; TopicsIndex: DWord): LongWord;
     procedure CheckFileMakeSearchable(AStream: TStream; AFileEntry: TFileEntryRec);
     function AddTopic(ATitle,AnUrl:AnsiString;code:integer=-1):integer;
+    function AddTopicindex(ATitle,AnUrl:AnsiString;code:integer=-1):integer;
     procedure ScanSitemap(asitemap:TCHMSiteMap);
     function NextTopicIndex: Integer;
     procedure Setwindows (AWindowList:TObjectList);
@@ -271,6 +276,16 @@ begin
   end;
 end;
 
+procedure TITSFWriter.LocaleToLanguageID(Locale: LongWord);
+begin
+    ITSFHeader.LanguageID := NToLE(Locale);
+end;
+
+function  TITSFWriter.LocaleFromLanguageID: LongWord;
+begin
+    Result := LEToN(ITSFHeader.LanguageID);
+end;
+
 procedure TITSFWriter.InitHeaderSectionTable;
 begin
   // header section 0
@@ -312,7 +327,7 @@ begin
 
     Unknown2 := NToLE(Longint(-1));
     //DirectoryChunkCount: LongWord;
-    LanguageID := NToLE(DWord($0409));
+    LanguageID := ITSFHeader.LanguageID;
     GUID := ITSPHeaderGUID;
     LengthAgain := NToLE(DWord($54));
     Unknown3 := NToLE(Longint(-1));
@@ -795,6 +810,7 @@ begin
   FPostStream := TMemoryStream.Create;;
   FDestroyStream := FreeStreamOnDestroy;
   FFileNames := TStringList.Create;
+  InitITSFHeader;
 end;
 
 destructor TITSFWriter.Destroy;
@@ -812,7 +828,6 @@ end;
 
 procedure TITSFWriter.Execute;
 begin
-  InitITSFHeader;
   FOutStream.Position := 0;
   FSection1Size := 0;
 
@@ -984,7 +999,7 @@ begin
   FSection0.WriteWord(NToLE(Word(4)));
   FSection0.WriteWord(NToLE(Word(36))); // size
 
-  FSection0.WriteDWord(NToLE(DWord($0409)));
+  FSection0.WriteDWord(ITSFHeader.LanguageID);
   FSection0.WriteDWord(0);
   FSection0.WriteDWord(NToLE(DWord(Ord(FFullTextSearch and FFullTextSearchAvailable))));
 
@@ -1159,7 +1174,7 @@ const idxhdrmagic ='T#SM';
 procedure TChmWriter.CreateIDXHDRStream;
 var i : Integer;
 begin
-   if fmergefiles.count=0 then  // I assume text/site properties could also trigger idxhdr
+   if (fmergefiles.count=0) and not HasBinaryIndex then  // I assume text/site properties could also trigger idxhdr
      exit;
 
    FIDXHdrStream.setsize(4096);
@@ -1521,6 +1536,7 @@ begin
   FDefaultWindow:= '';
   FMergeFiles   :=TStringList.Create;
   FNrTopics     :=0;
+  FDictTopicsUrlInd    :=specialize TDictionary<string,integer>.Create;
 end;
 
 destructor TChmWriter.Destroy;
@@ -1533,7 +1549,7 @@ begin
   FURLSTRStream.Free;
   FURLTBLStream.Free;
   FFiftiMainStream.Free;
-  FIDXHdrStream.Create;
+  FIDXHdrStream.Free;
   SpareString.free;
   SpareUrlStr.free;
   FAvlUrlStr.FreeAndClear;
@@ -1543,7 +1559,7 @@ begin
   FAVLTopicdedupe.FreeAndClear;
   FAVLTopicdedupe.free;
   FWindows.Free;
-
+  FDictTopicsUrlInd.Free;
   inherited Destroy;
 end;
 
@@ -1664,6 +1680,7 @@ var
     TopicEntry: TTopicEntry;
 
 begin
+    ATitle :=StringReplace(Atitle, '&x27;', '', [rfReplaceAll]);
     anurl:=StringReplace(anurl, '\', '/', [rfReplaceAll]);
     if ATitle <> '' then
       TopicEntry.StringsOffset := AddString(ATitle)
@@ -1691,6 +1708,35 @@ begin
     FTopicsStream.WriteDWord(LEtoN(TopicEntry.URLTableOffset));
     FTopicsStream.WriteWord(LEtoN(TopicEntry.InContents));
     FTopicsStream.WriteWord(LEtoN(TopicEntry.Unknown));
+    {$ifdef binindex}
+    writeln('topout:',result, ' ' , TopicEntry.StringsOffset,' ' ,TopicEntry.URLTableOffset, ' ',atitle,' - ', anurl);
+    {$endif}
+end;
+
+function TChmWriter.AddTopicindex(ATitle, AnUrl: AnsiString; code: integer
+  ): integer;
+
+begin
+   ATitle :=StringReplace(Atitle, '&x27;', '', [rfReplaceAll]);
+
+  // adhoc subsitutions. Replace with real code if exact behaviour is known.
+{  Atitle:=StringReplace(atitle, '&x27;', '''', [rfReplaceAll]);
+  if length(atitle)>0 then
+    atitle[1]:=uppercase(atitle[1])[1];}
+  {$ifdef binindex}
+  writeln('Enter ',ATitle,' ',AnUrl);
+  {$endif}
+  if FDictTopicsUrlInd.trygetvalue(anurl,result) then
+   begin
+     {$ifdef binindex}
+       writeln('found:',result);
+     {$endif}
+   end
+   else
+    begin
+      result:=addtopic(atitle,anurl);
+      FDictTopicsUrlInd.add(anurl,result);
+    end;
 end;
 
 procedure TChmWriter.ScanSitemap(asitemap:TCHMSiteMap);
@@ -2039,38 +2085,71 @@ begin
   inc(blockind,indexentrysize);
 end;
 
-procedure CreateEntry(Item:TChmSiteMapItem;Str:WideString;commaatposition:integer);
+procedure WritestrNT(var p:pbyte;const str:Unicodestring);
+var i : integer;
+    p2 : pbyte;
+begin
+  p2:=p;
+  for i:=1 to Length(str) do
+    WriteWord(p2,Word(str[i]));   // write the wstr in little endian
+  WriteWord(p2,0);                // NT
+  p:=p2;
+end;
+
+procedure CreateEntry(Item:TChmSiteMapItem;const Str:UnicodeString;commaatposition,level:integer);
 
 var p      : pbyte;
     topicid: integer;
     seealso: Integer;
     entrysize:Integer;
     i      : Integer;
+    sb :TChmSiteMapSubItem;
 begin
   inc(TotalEntries);
   fillchar(testblock[0],DefBlockSize,#0);
   p:=@TestBlock[0];
-  for i:=1 to Length(str) do
-    WriteWord(p,Word(str[i]));   // write the wstr in little endian
-  WriteWord(p,0);                // NT
-//  if item.seealso='' then    // no seealso for now
-    seealso:=0;
- // else
-//    seealso:=2;
+
+  WritestrNT(p,Str);
+  if item.seealso='' then    // no seealso for now
+    seealso:=0
+   else
+    seealso:=2;
   WriteWord(p,seealso);          // =0 not a see also 2 =seealso
-  WriteWord(p,0);                // Entrydepth.  We can't know it, so write 2.
+  WriteWord(p,level);            // Entrydepth.  We can't know it, so write 2.
   WriteDword(p,commaatposition); // position of the comma
   WriteDword(p,0);               // unused 0
-  WriteDword(p,1);               // for now only local pair.
-  TopicId:=AddTopic(Item.Text,item.Local);
-  WriteDword(p,TopicId);
-  // if seealso then _here_ a wchar NT string with seealso?
+
+  if seealso=2 then
+   begin
+     {$ifdef binindex}
+     write('!seealso');
+     {$endif}
+     WriteDword(p,1);
+     WritestrNT(p,item.seealso)
+   end
+  else
+    begin
+      WriteDword(p,item.SubItemcount);
+      for i:=0 to item.SubItemcount-1 do
+        begin
+          sb:=item.SubItem[i];
+          if sb.name='' then
+            sb.name:=item.name;
+          {$ifdef binindex}
+          writeln('---',sb.name,' ',sb.local);
+          {$endif}
+          TopicId:=AddTopicIndex(sb.Name,sb.Local);
+          WriteDword(p,TopicId);
+        end;
+    end;
+
   WriteDword(p,1);               // always 1 (unknown);
   WriteDword(p,mod13value);      //a value that increments with 13.
   mod13value:=mod13value+13;
   entrysize:=p-pbyte(@testblock[0]);
   {$ifdef binindex}
     writeln(curind, ' ',entrysize, ' ',defblocksize);
+    writeln('curstr ',str,' ',commaatposition);
   {$endif}
   if (curind+entrysize)>=Defblocksize then
     begin
@@ -2157,32 +2236,36 @@ begin
   Result:=blk-start;
 end;
 
-procedure CombineWithChildren(ParentItem:TChmSiteMapItem;Str:WideString;commaatposition:integer;first:boolean);
+procedure CombineWithChildren(ParentItem:TChmSiteMapItem;Str:UnicodeString;commaatposition:integer;level:integer);
 var i    : Integer;
-    Item : TChmSiteMapItem;
+    llItem : TChmSiteMapItem;
 begin
-  if ParentItem.Children.Count = 0 Then
-    Begin
+   str:=StringReplace(str, '&x27;', '', [rfReplaceAll]);
+   {$ifdef binindex}
+     writeln('i:',level,' ',str);
+   {$endif}
+//  if ParentItem.Children.Count = 0 Then
+//    Begin
      // comment/fix next
      //   if commatposition=length(str) then commaatposition:=0;
-       if first then
-        CreateEntry(ParentItem,Str,0)
+       if level=0 then
+        CreateEntry(ParentItem,Str,0,level)
        else
-        CreateEntry(ParentItem,Str,commaatposition);
-    End
-  Else
+        CreateEntry(ParentItem,Str,commaatposition,level);
+//    End
+//  Else
     for i:=0 to ParentItem.Children.Count-1 do
       begin
-        item := TChmSiteMapItem(ParentItem.Children.Item[i]);
-        if first Then
-          CombineWithChildren(Item,Str+', '+item.text,commaatposition+2,false)
-        else
-          CombineWithChildren(Item,Str+', '+item.text,commaatposition,false);
+        llitem := TChmSiteMapItem(ParentItem.Children.Item[i]);
+{        if level=0 Then
+          CombineWithChildren(Item,str+', '+item.text,0,level+1)
+        else}
+          CombineWithChildren(llItem,Str+', '+llitem.text,length(str)+2,level+1);
       end;
 end;
 
 Var i             : Integer;
-    Key           : WideString;
+    Key           : UnicodeString;
     Item          : TChmSiteMapItem;
     ListingBlocks : Integer;
     EntryBytes    : Integer;
@@ -2200,6 +2283,10 @@ begin
 end;
 {$endif}
 begin
+  {$ifdef binindex}
+    writeln('starting index');
+  {$endif}
+  ASiteMap.sort(@indexitemcompare);
   IndexStream:=TMemoryStream.Create;
   indexstream.size:=sizeof(TBTreeHeader);
   IndexStream.position:=Sizeof(TBTreeHeader);
@@ -2208,7 +2295,7 @@ begin
   mapstream.size:=2;
   mapstream.position:=2;
   propertystream :=TMemoryStream.Create;
-  propertystream.write(NToLE(0),sizeof(4));
+  propertystream.write(NToLE(0),sizeof(longint));
   // we iterate over all entries and write listingblocks directly to the stream.
   // and the first (and maybe last) level is written to blockn.
   // we can't do higher levels yet because we don't know how many listblocks we get
@@ -2247,7 +2334,7 @@ begin
       // so we can see if Windows loads the binary or textual index.
       CombineWithChildren(Item,Key+'2',length(key)+1,true);
       {$else}
-      CombineWithChildren(Item,Key,length(key),true);
+      CombineWithChildren(Item,Key,length(key),0);
       {$endif}
     end;
   PrepareCurrentBlock(True);     // flush last listing block.
@@ -2355,10 +2442,23 @@ begin
   hdr.unknown4       :=NToLE(0);            // unknown 0
   hdr.unknown5       :=NToLE(0);            // unknown 0
 
+  if totalentries<>0 then
+     begin
+       // If there are no links of this type in the CHM then this will be a zero DWORD. Othewise it contains the following DWORDs: 0, 0, 0, 0xC, 1, 1, 0, 0. AFAICS this file is pretty much useless.
+       // we already have written the first 0 dword
+       propertystream.write(NToLE(0),sizeof(longint));
+       propertystream.write(NToLE(0),sizeof(longint));
+       propertystream.write(NToLE($C),sizeof(longint));
+       propertystream.write(NToLE(1),sizeof(longint));
+       propertystream.write(NToLE(1),sizeof(longint));
+       propertystream.write(NToLE(0),sizeof(longint));
+       propertystream.write(NToLE(0),sizeof(longint));
+     end;
+
   IndexStream.Position:=0;
   IndexStream.write(hdr,sizeof(hdr));
   {$ifdef binindex}
-    logentry('before append');
+    logentry('before append '+inttostr(indexstream.size));
   {$endif}
 
   AppendBinaryIndexStream(IndexStream,datastream,MapStream,PropertyStream,chw);
@@ -2367,6 +2467,10 @@ begin
   MapStream.Free;
   DataStream.Free;
   FHasKLinks:=TotalEntries>0;
+  {$ifdef binindex}
+    writeln('end index');
+  {$endif}
+
 end;
 
 procedure TChmWriter.AppendBinaryTOCStream(AStream: TStream);
@@ -2412,7 +2516,6 @@ begin
   PostAddStreamToArchive(AName, '/', AStream);
 end;
 
-
 procedure TChmWriter.AddContext(AContext: DWord; ATopic: String);
 var
   Offset: DWord;
@@ -2440,7 +2543,6 @@ begin
 end;
 
 procedure TChmWriter.Setwindows(AWindowList: TObjectList);
-
 var i : integer;
     x : TCHMWindow;
 begin

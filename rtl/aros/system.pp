@@ -25,8 +25,6 @@ interface
 
 {$define FPC_IS_SYSTEM}
 
-{$define DISABLE_NO_THREAD_MANAGER}
-
 {$I systemh.inc}
 {$I osdebugh.inc}
 
@@ -67,10 +65,13 @@ var
   AROS_ThreadLib : Pointer; public name 'AROS_THREADLIB';
 
   ASYS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
+  ASYS_fileSemaphore: Pointer; { mutex semaphore for filelist access arbitration }
   ASYS_origDir  : LongInt; { original directory on startup }
   AOS_wbMsg    : Pointer;
   AOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
   AOS_ConHandle: THandle;
+
+  SysDebugBase: Pointer = nil;
 
   argc: LongInt;
   argv: PPChar;
@@ -80,6 +81,7 @@ var
 function GetLibAdress(Base: Pointer; Offset: LongInt): Pointer;
 procedure Debug(s: string);
 procedure Debugln(s: string);
+procedure EnableBackTraceStr;
 
 implementation
 
@@ -92,7 +94,7 @@ type
         wa_Name         : PChar;       { a string relative to that lock }
     end;
 
-    WBArgList = array[1..100] of TWBArg; { Only 1..smNumArgs are valid }
+    WBArgList = array[1..MaxInt] of TWBArg; { Only 1..smNumArgs are valid }
     PWBArgList = ^WBArgList;
 
 
@@ -119,11 +121,13 @@ begin
   if Killed then
     Exit;
   Killed := True;
+
+  { Dispose the thread init/exit chains }
+  CleanupThreadProcChain(threadInitProcList);
+  CleanupThreadProcChain(threadExitProcList);
+
   { Closing opened files }
   CloseList(ASYS_fileList);
-  //
-  if AOS_wbMsg <> nil then
-    ReplyMsg(AOS_wbMsg);
   { Changing back to original directory if changed }
   if ASYS_OrigDir <> 0 then begin
     oldDirLock:=CurrentDir(ASYS_origDir);
@@ -131,240 +135,44 @@ begin
     if (oldDirLock<>0) and (oldDirLock<>ASYS_origDir) then
       Unlock(oldDirLock);
   end;
+  // debug lib
+  if SysDebugBase <> nil then
+    CloseLibrary(SysDebugBase);
+  SysDebugBase := nil;
+  // utility
   if AOS_UtilityBase <> nil then
     CloseLibrary(AOS_UtilityBase);
+  // Heap
   if ASYS_heapPool <> nil then
     DeletePool(ASYS_heapPool);
   AOS_UtilityBase := nil;
   ASYS_HeapPool := nil;
-  //
+  // dos
   if AOS_DOSBase<>nil then
     CloseLibrary(AOS_DOSBase);
   AOS_DOSBase := nil;
   //
+  if AOS_wbMsg <> nil then
+  begin
+    // forbid -> Amiga RKM Libraries Manual
+    Forbid();
+    // Reply WBStartupMessage
+    ReplyMsg(AOS_wbMsg);
+  end;
+  //
   HaltProc(ExitCode);
 end;
 
-{ Generates correct argument array on startup }
-procedure GenerateArgs;
-var
-  ArgVLen: LongInt;
-
-  procedure AllocArg(Idx, Len: LongInt);
-  var
-    i, OldArgVLen : LongInt;
-  begin
-    if Idx >= ArgVLen then
-    begin
-      OldArgVLen := ArgVLen;
-      ArgVLen := (Idx + 8) and (not 7);
-      SysReAllocMem(Argv, Argvlen * SizeOf(Pointer));
-      for i := OldArgVLen to ArgVLen - 1 do
-        ArgV[i]:=nil;
-    end;
-    ArgV[Idx] := SysAllocMem(Succ(Len));
-  end;
-
-var
-  Count: Word;
-  Start: Word;
-  Ende: Word;
-  LocalIndex: Word;
-  P : PChar;
-  {$H+}
-  Temp : string;
-  InQuotes: boolean;
-begin
-  P := GetArgStr;
-  ArgVLen := 0;
-
-  { Set argv[0] }
-  Temp := ParamStr(0);
-  AllocArg(0, Length(Temp));
-  Move(Temp[1], Argv[0]^, Length(Temp));
-  Argv[0][Length(Temp)] := #0;
-
-  { check if we're started from Workbench }
-  if AOS_wbMsg <> nil then
-  begin
-    ArgC := 0;
-    Exit;
-  end;
-
-  InQuotes := False;
-  { Handle the other args }
-  Count := 0;
-  { first index is one }
-  LocalIndex := 1;
-  while (P[Count] <> #0) do
-  begin
-    while (p[count]=' ') or (p[count]=#9) or (p[count]=LineEnding) do
-      Inc(count);
-    if p[count] = '"' then
-    begin
-      inQuotes := True;
-      Inc(Count);
-    end;
-    start := count;
-    if inQuotes then
-    begin
-      while (p[count]<>#0) and (p[count]<>'"') and (p[count]<>LineEnding) do
-      begin
-        Inc(Count) 
-      end;
-    end else
-    begin
-      while (p[count]<>#0) and (p[count]<>' ') and (p[count]<>#9) and (p[count]<>LineEnding) do
-        inc(count);
-    end;
-    ende := count;
-    if not inQuotes then
-    begin
-      while (p[start]=' ') and (Start < Ende) do
-        Inc(Start)
-    end;
-    if (ende-start>0) then
-    begin
-      allocarg(localindex,ende-start);
-      move(p[start],argv[localindex]^,ende-start);
-      argv[localindex][ende-start]:=#0;
-      if inQuotes and (argv[localindex][(ende-start) - 1] = '"') then
-        argv[localindex][(ende-start)-1] := #0;
-      inc(localindex);
-    end;
-    if inQuotes and (p[count] = '"') then
-      Inc(Count);
-    inQuotes := False; 
-  end;
-  argc:=localindex;
-end;
-
-function GetProgDir: String;
-var
-  s1     : String;
-  alock  : LongInt;
-  counter: Byte;
-begin
-  GetProgDir:='';
-  SetLength(s1, 256);
-  FillChar(s1,255,#0);
-  { GetLock of program directory }
-
-  alock:=GetProgramDir;
-  if alock<>0 then begin
-    if NameFromLock(alock,@s1[1],255) then begin
-      counter:=1;
-      while (s1[counter]<>#0) and (counter<>0) do Inc(counter);
-      SetLength(s1, counter-1);
-      GetProgDir:=s1;
-    end;
-  end;
-end;
-
-function GetProgramName: String;
-{ Returns ONLY the program name }
-var
-  s1     : String;
-  counter: Byte;
-begin
-  GetProgramName:='';
-  SetLength(s1, 256);
-  FillChar(s1,255,#0);
-
-  if GetProgramName(@s1[1],255) then begin
-    { now check out and assign the length of the string }
-    counter := 1;
-    while (s1[counter]<>#0) and (counter<>0) do Inc(counter);
-    SetLength(s1, counter-1);
-
-    { now remove any component path which should not be there }
-    for counter:=length(s1) downto 1 do
-      if (s1[counter] = '/') or (s1[counter] = ':') then break;
-    { readjust counterv to point to character }
-    if counter<>1 then Inc(counter);
-
-    GetProgramName:=copy(s1,counter,length(s1));
-  end;
-end;
-
-
 {*****************************************************************************
-                             ParamStr/Randomize
+                          Parameterhandling
+                       as include in amicommon
 *****************************************************************************}
 
-function GetWBArgsNum: Integer;
-var
-  startup: PWBStartup;
-begin
-  GetWBArgsNum := 0;
-  Startup := nil;
-  Startup := PWBStartup(AOS_wbMsg);
-  if Startup <> nil then
-  begin
-    Result := Startup^.sm_NumArgs - 1;
-  end;
-end;
+{$I paramhandling.inc}
 
-function GetWBArg(Idx: Integer): string;
-var
-  startup: PWBStartup;
-  wbarg: PWBArgList;
-  Path: array[0..254] of Char;
-  strPath: string;
-  Len: Integer;
-begin
-  GetWBArg := '';
-  FillChar(Path[0],255,#0);
-  Startup := PWBStartup(AOS_wbMsg);
-  if Startup <> nil then
-  begin
-    //if (Idx >= 0) and (Idx < Startup^.sm_NumArgs) then
-    begin
-      wbarg := Startup^.sm_ArgList;
-      if NameFromLock(wbarg^[Idx + 1].wa_Lock,@Path[0],255) then
-      begin
-        Len := 0;
-        while (Path[Len] <> #0) and (Len < 254) do
-          Inc(Len);
-        if Len > 0 then
-          if (Path[Len - 1] <> ':') and (Path[Len - 1] <> '/') then
-            Path[Len] := '/';
-        strPath := Path;
-      end;
-      Result := strPath + wbarg^[Idx + 1].wa_Name;
-    end;
-  end;
-end;
-
-{ number of args }
-function paramcount : longint;
-begin
-  if AOS_wbMsg<>nil then
-    paramcount:=GetWBArgsNum
-  else
-    paramcount:=argc-1;
-end;
-
-{ argument number l }
-function paramstr(l : longint) : string;
-var
-  s1: String;
-begin
-  paramstr:='';
-  if AOS_wbMsg<>nil then
-  begin
-    paramstr := GetWBArg(l);
-  end else
-  begin
-    if l=0 then begin
-      s1:=GetProgDir;
-      if s1[length(s1)]=':' then paramstr:=s1+GetProgramName
-                            else paramstr:=s1+'/'+GetProgramName;
-    end else begin
-      if (l>0) and (l+1<=argc) then paramstr:=strpas(argv[l]);
-    end;
- end;
-end;
+{*****************************************************************************
+                             Randomize
+*****************************************************************************}
 
 { set randseed to a new pseudo random value }
 procedure Randomize;
@@ -384,7 +192,7 @@ var
   self: PProcess;
 begin
   self := PProcess(FindTask(nil));
-  if self^.pr_CLI = NIL then begin
+  if self^.pr_CLI = 0 then begin
     { if we're running from Ambient/Workbench, we catch its message }
     WaitPort(@self^.pr_MsgPort);
     AOS_wbMsg:=GetMsg(@self^.pr_MsgPort);
@@ -396,12 +204,18 @@ begin
   AOS_UtilityBase := OpenLibrary('utility.library', 0);
   if AOS_UtilityBase = nil then
     Halt(1);
-    
+
   { Creating the memory pool for growing heap }
   ASYS_heapPool := CreatePool(MEMF_ANY or MEMF_SEM_PROTECTED, growheapsize2, growheapsize1);
   if ASYS_heapPool = nil then
     Halt(1);
-  
+
+  { Initialize semaphore for filelist access arbitration }
+  ASYS_fileSemaphore:=AllocPooled(ASYS_heapPool,sizeof(TSignalSemaphore));
+  if ASYS_fileSemaphore = nil then
+    Halt(1);
+  InitSemaphore(ASYS_fileSemaphore);
+
   if AOS_wbMsg = nil then begin
     StdInputHandle := THandle(dosInput);
     StdOutputHandle := THandle(dosOutput);
@@ -414,6 +228,52 @@ begin
       StdErrorHandle := AOS_ConHandle;
     end else
       Halt(1);
+  end;
+end;
+
+function AROSBackTraceStr(Addr: CodePointer): ShortString;
+const
+  DL_Dummy = TAG_USER + $03e00000;
+  DL_ModuleName = DL_Dummy + 1;
+  DL_SymbolName = DL_Dummy + 7;
+var
+  SymName, ModName: PChar;
+  Tags: array[0..5] of PtrUInt;
+  s: AnsiString;
+  Res: AnsiString;
+begin
+  if Assigned(SysDebugBase) then
+  begin
+    ModName := nil;
+    SymName := nil;
+    Tags[0] := DL_Modulename;
+    Tags[1] := PtrUInt(@ModName);
+    Tags[2] := DL_SymbolName;
+    Tags[3] := PtrUInt(@SymName);
+    Tags[4] := 0;
+    Tags[5] := 0;
+    DecodeLocation(Addr, @Tags[0]);
+    s := '-';
+    if not Assigned(ModName) then
+      ModName := @S[1];
+    if not Assigned(SymName) then
+      SymName := @S[1];
+    Res := '  $' + HexStr(Addr) + ' ' + ModName  + ' ' + SymName;
+    AROSBackTraceStr := Copy(Res, 1, 254);
+  end
+  else
+  begin
+    AROSBackTraceStr := '  $' + HexStr(Addr) + ' - ';
+  end;
+end;
+
+procedure EnableBackTraceStr;
+begin
+  if not Assigned(SysDebugBase) then
+  begin
+    SysDebugBase := OpenLibrary('debug.library', 0);
+    if Assigned(SysDebugBase) then
+      BackTraceStrFunc := @AROSBackTraceStr;
   end;
 end;
 

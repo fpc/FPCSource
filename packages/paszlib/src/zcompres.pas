@@ -1,4 +1,4 @@
-Unit zCompres;
+Unit ZCompres;
 
 { compress.c -- compress a memory buffer
   Copyright (C) 1995-1998 Jean-loup Gailly.

@@ -188,6 +188,8 @@ uses
       procedure gen_initialize_fields_code(list:TAsmList);
 
       procedure gen_typecheck(list: TAsmList; checkop: tasmop; checkdef: tdef);
+
+      procedure g_copyvalueparas(p: TObject; arg: pointer); override;
      protected
       procedure a_load_const_stack_intern(list : TAsmList;size : tdef;a : tcgint; typ: TRegisterType; legalize_const: boolean);
 
@@ -197,8 +199,6 @@ uses
       procedure allocate_enum_with_base_ref(list: TAsmList; vs: tabstractvarsym; const initref: treference; destbaseref: treference);
       procedure allocate_implicit_struct_with_base_ref(list: TAsmList; vs: tabstractvarsym; ref: treference);
       procedure gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara); override;
-
-      procedure g_copyvalueparas(p: TObject; arg: pointer); override;
 
       procedure inittempvariables(list:TAsmList);override;
 
@@ -233,8 +233,6 @@ uses
       procedure concatcopy_shortstring(list: TAsmList; size: tdef; const source, dest: treference);
 
     end;
-
-  procedure create_hlcodegen;
 
 
   const
@@ -291,8 +289,9 @@ implementation
   class function thlcgjvm.def2regtyp(def: tdef): tregistertype;
     begin
       case def.typ of
-        { records and enums are implemented via classes }
+        { records (including files) and enums are implemented via classes }
         recorddef,
+        filedef,
         enumdef,
         setdef:
           result:=R_ADDRESSREGISTER;
@@ -347,6 +346,8 @@ implementation
               a:=shortint(a);
             u16bit:
               a:=smallint(a);
+            else
+              ;
           end;
         end;
       a_load_const_stack(list,size,a,typ);
@@ -642,6 +643,8 @@ implementation
                      (fromloc.reference.indexbase<>NR_STACK_POINTER_REG) then
                     g_allocload_reg_reg(list,voidpointertype,fromloc.reference.indexbase,toloc.reference.indexbase,R_ADDRESSREGISTER);
                 end;
+              else
+                ;
             end;
           end;
         else
@@ -664,7 +667,7 @@ implementation
         begin
           { multianewarray typedesc ndim }
           list.concat(taicpu.op_sym_const(a_multianewarray,
-            current_asmdata.RefAsmSymbol(jvmarrtype(elemdef,primitivetype)),initdim));
+            current_asmdata.RefAsmSymbol(jvmarrtype(elemdef,primitivetype),AT_METADATA),initdim));
           { has to be a multi-dimensional array type }
           if primitivetype then
             internalerror(2011012207);
@@ -683,7 +686,7 @@ implementation
             opc:=a_newarray
           else
             opc:=a_anewarray;
-          list.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(mangledname)));
+          list.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(mangledname,AT_METADATA)));
         end;
       { all dimensions are removed from the stack, an array reference is
         added }
@@ -725,6 +728,8 @@ implementation
                     end;
                   procvardef:
                     g_call_system_proc(list,'fpc_initialize_array_procvar',[],nil);
+                  else
+                    internalerror(2019051025);
                 end;
                 tg.ungettemp(list,recref);
               end;
@@ -751,7 +756,7 @@ implementation
                 end;
               end;
             else
-              internalerror(2011081801);
+              internalerror(2011081802);
           end;
         end;
     end;
@@ -838,7 +843,7 @@ implementation
               decstack(list,2);
             end;
           else
-            internalerror(2010120538);
+            internalerror(2010120505);
         end;
       end;
 
@@ -855,6 +860,8 @@ implementation
             a_op_const_stack(list,OP_XOR,size,cardinal($80000000));
           OS_64,OS_S64:
             a_op_const_stack(list,OP_XOR,size,tcgint($8000000000000000));
+          else
+            ;
         end;
       end;
 
@@ -870,7 +877,11 @@ implementation
           OS_32,OS_S32:
             result:=a xor cardinal($80000000);
           OS_64,OS_S64:
+{$push}{$r-}
             result:=a xor tcgint($8000000000000000);
+{$pop}
+          else
+            ;
         end;
       end;
 
@@ -939,7 +950,7 @@ implementation
           a_load_loc_stack(list,tparavarsym(p).vardef,tparavarsym(p).initialloc);
           a_op_const_stack(list,OP_AND,tparavarsym(p).vardef,(1 shl (tparavarsym(p).vardef.size*8))-1);
           a_load_stack_ref(list,tparavarsym(p).vardef,tmpref,prepare_stack_for_ref(list,tmpref,false));
-          location_reset_ref(tparavarsym(p).localloc,LOC_REFERENCE,def_cgsize(tparavarsym(p).vardef),4);
+          location_reset_ref(tparavarsym(p).localloc,LOC_REFERENCE,def_cgsize(tparavarsym(p).vardef),4,tmpref.volatility);
           tparavarsym(p).localloc.reference:=tmpref;
         end;
 
@@ -1032,7 +1043,7 @@ implementation
               end;
             art_indexref:
               begin
-                cgutils.reference_reset_base(href,ref.indexbase,ref.indexoffset,4);
+                cgutils.reference_reset_base(href,ref.indexbase,ref.indexoffset,ref.temppos,4,ref.volatility);
                 href.symbol:=ref.indexsymbol;
                 a_load_ref_stack(list,s32inttype,href,prepare_stack_for_ref(list,href,false));
               end;
@@ -1240,7 +1251,7 @@ implementation
           if not ((size.typ=pointerdef) or
                  ((size.typ=orddef) and
                   (torddef(size).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
-                                            pasbool8,pasbool16,pasbool32,pasbool64]))) then
+                                             pasbool1,pasbool8,pasbool16,pasbool32,pasbool64]))) then
             begin
               a_load_reg_stack(list,size,src1);
               if op in [OP_SUB,OP_IMUL] then
@@ -1324,7 +1335,7 @@ implementation
 
   procedure thlcgjvm.a_jmp_always(list: TAsmList; l: tasmlabel);
     begin
-      list.concat(taicpu.op_sym(a_goto,current_asmdata.RefAsmSymbol(l.name)));
+      list.concat(taicpu.op_sym(a_goto,current_asmdata.RefAsmSymbol(l.name,AT_METADATA)));
     end;
 
   procedure thlcgjvm.concatcopy_normal_array(list: TAsmList; size: tdef; const source, dest: treference);
@@ -1345,7 +1356,7 @@ implementation
         orddef:
           begin
             case torddef(eledef).ordtype of
-              pasbool8,s8bit,u8bit,bool8bit,uchar,
+              pasbool1,pasbool8,s8bit,u8bit,bool8bit,uchar,
               s16bit,u16bit,bool16bit,pasbool16,
               uwidechar,
               s32bit,u32bit,bool32bit,pasbool32,
@@ -1370,7 +1381,7 @@ implementation
             else
               begin
                 { deepcopy=true }
-                a_load_const_stack(list,pasbool8type,1,R_INTREGISTER);
+                a_load_const_stack(list,pasbool1type,1,R_INTREGISTER);
                 { ndim }
                 a_load_const_stack(list,s32inttype,ndim,R_INTREGISTER);
                 { eletype }
@@ -1519,6 +1530,8 @@ implementation
                 handled:=true;
               end;
           end;
+        else
+          ;
       end;
       if not handled then
         inherited;
@@ -1605,7 +1618,7 @@ implementation
             s64real:
               opc:=a_dreturn;
             else
-              internalerror(2011010213);
+              internalerror(2011010202);
           end;
         else
           opc:=a_areturn;
@@ -1789,8 +1802,8 @@ implementation
             begin
               { passed by reference in array of single element; l contains the
                 base address of the array }
-              location_reset_ref(tmploc,LOC_REFERENCE,OS_ADDR,4);
-              cgutils.reference_reset_base(tmploc.reference,getaddressregister(list,java_jlobject),0,4);
+              location_reset_ref(tmploc,LOC_REFERENCE,OS_ADDR,4,ref.volatility);
+              cgutils.reference_reset_base(tmploc.reference,getaddressregister(list,java_jlobject),0,tmploc.reference.temppos,4,ref.volatility);
               tmploc.reference.arrayreftype:=art_indexconst;
               tmploc.reference.indexoffset:=0;
               a_load_loc_reg(list,java_jlobject,java_jlobject,l,tmploc.reference.base);
@@ -1833,7 +1846,7 @@ implementation
       stackslots:=prepare_stack_for_ref(list,localref,false);
       { create the local copy of the array (lenloc is invalid, get length
         directly from the array) }
-      location_reset_ref(arrloc,LOC_REFERENCE,OS_ADDR,sizeof(pint));
+      location_reset_ref(arrloc,LOC_REFERENCE,OS_ADDR,sizeof(pint),ref.volatility);
       arrloc.reference:=ref;
       g_getarraylen(list,arrloc);
       g_newarray(list,arrdef,1);
@@ -1857,7 +1870,7 @@ implementation
       case current_procinfo.procdef.proctypeoption of
         potype_unitinit:
           begin
-            cgutils.reference_reset_base(ref,NR_NO,0,1);
+            cgutils.reference_reset_base(ref,NR_NO,0,ctempposinvalid,1,[]);
             if assigned(current_module.globalsymtable) then
               allocate_implicit_structs_for_st_with_base_ref(list,current_module.globalsymtable,ref,staticvarsym);
             allocate_implicit_structs_for_st_with_base_ref(list,current_module.localsymtable,ref,staticvarsym);
@@ -1867,7 +1880,7 @@ implementation
             { also initialise local variables, if any }
             inherited;
             { initialise class fields }
-            cgutils.reference_reset_base(ref,NR_NO,0,1);
+            cgutils.reference_reset_base(ref,NR_NO,0,ctempposinvalid,1,[]);
             allocate_implicit_structs_for_st_with_base_ref(list,tabstractrecorddef(current_procinfo.procdef.owner.defowner).symtable,ref,staticvarsym);
           end
         else
@@ -2236,6 +2249,8 @@ implementation
               a_op_const_stack(list,OP_AND,s32inttype,65535);
           OS_S16:
             list.concat(taicpu.op_none(a_i2s));
+          else
+            ;
         end;
     end;
 
@@ -2277,6 +2292,10 @@ implementation
       { a constructor doesn't actually return a value in the jvm }
       if (tabstractprocdef(pd).proctypeoption=potype_constructor) then
         totalremovesize:=paraheight
+      else if jvmimplicitpointertype(realresdef) then
+        totalremovesize:=paraheight-1
+      else if is_void(realresdef) then
+        totalremovesize:=paraheight
       else
         { even a byte takes up a full stackslot -> align size to multiple of 4 }
         totalremovesize:=paraheight-(align(realresdef.size,4) shr 2);
@@ -2293,7 +2312,7 @@ implementation
     var
       tmpref: treference;
     begin
-      ref.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname);
+      ref.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname,AT_DATA);
       tg.gethltemp(list,vs.vardef,vs.vardef.size,tt_persistent,tmpref);
       { only copy the reference, not the actual data }
       a_load_ref_ref(list,java_jlobject,java_jlobject,tmpref,ref);
@@ -2305,7 +2324,7 @@ implementation
 
   procedure thlcgjvm.allocate_enum_with_base_ref(list: TAsmList; vs: tabstractvarsym; const initref: treference; destbaseref: treference);
     begin
-      destbaseref.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname);
+      destbaseref.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname,AT_DATA);
       { only copy the reference, not the actual data }
       a_load_ref_ref(list,java_jlobject,java_jlobject,initref,destbaseref);
     end;
@@ -2320,7 +2339,7 @@ implementation
       { no enum with ordinal value 0 -> exit }
       if not assigned(sym) then
         exit;
-      reference_reset_symbol(ref,current_asmdata.RefAsmSymbol(sym.mangledname),0,4);
+      reference_reset_symbol(ref,current_asmdata.RefAsmSymbol(sym.mangledname,AT_DATA),0,4,[]);
       result:=true;
     end;
 
@@ -2401,6 +2420,7 @@ implementation
         begin
           sym:=tsym(obj.symtable.symlist[i]);
           if (sym.typ=fieldvarsym) and
+             not(sp_static in sym.symoptions) and
              (jvmimplicitpointertype(tfieldvarsym(sym).vardef) or
               ((tfieldvarsym(sym).vardef.typ=enumdef) and
                get_enum_init_val_ref(tfieldvarsym(sym).vardef,ref))) then
@@ -2413,10 +2433,10 @@ implementation
         exit;
       selfpara:=tparavarsym(current_procinfo.procdef.parast.find('self'));
       if not assigned(selfpara) then
-        internalerror(2011033001);
+        internalerror(2011033002);
       selfreg:=getaddressregister(list,selfpara.vardef);
       a_load_loc_reg(list,obj,obj,selfpara.localloc,selfreg);
-      cgutils.reference_reset_base(ref,selfreg,0,1);
+      cgutils.reference_reset_base(ref,selfreg,0,ctempposinvalid,1,[]);
       allocate_implicit_structs_for_st_with_base_ref(list,obj.symtable,ref,fieldvarsym);
     end;
 
@@ -2447,11 +2467,11 @@ implementation
       else if is_shortstring(checkdef) then
         checkdef:=java_shortstring;
       if checkdef.typ in [objectdef,recorddef] then
-        list.concat(taicpu.op_sym(checkop,current_asmdata.RefAsmSymbol(tabstractrecorddef(checkdef).jvm_full_typename(true))))
+        list.concat(taicpu.op_sym(checkop,current_asmdata.RefAsmSymbol(tabstractrecorddef(checkdef).jvm_full_typename(true),AT_METADATA)))
       else if checkdef.typ=classrefdef then
-        list.concat(taicpu.op_sym(checkop,current_asmdata.RefAsmSymbol('java/lang/Class')))
+        list.concat(taicpu.op_sym(checkop,current_asmdata.RefAsmSymbol('java/lang/Class',AT_METADATA)))
       else
-        list.concat(taicpu.op_sym(checkop,current_asmdata.RefAsmSymbol(jvmencodetype(checkdef,false))));
+        list.concat(taicpu.op_sym(checkop,current_asmdata.RefAsmSymbol(jvmencodetype(checkdef,false),AT_METADATA)));
     end;
 
   procedure thlcgjvm.resizestackfpuval(list: TAsmList; fromsize, tosize: tcgsize);
@@ -2542,16 +2562,16 @@ implementation
           internalerror(2010122602);
       end;
       if (opc<>a_invokeinterface) then
-        list.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(s)))
+        list.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(s,AT_FUNCTION)))
       else
         begin
           pd.init_paraloc_info(calleeside);
-          list.concat(taicpu.op_sym_const(opc,current_asmdata.RefAsmSymbol(s),pd.calleeargareasize));
+          list.concat(taicpu.op_sym_const(opc,current_asmdata.RefAsmSymbol(s,AT_FUNCTION),pd.calleeargareasize));
         end;
       result:=get_call_result_cgpara(pd,forceresdef);
     end;
 
-  procedure create_hlcodegen;
+  procedure create_hlcodegen_cpu;
     begin
       hlcg:=thlcgjvm.create;
       create_codegen;
@@ -2559,4 +2579,5 @@ implementation
 
 begin
   chlcgobj:=thlcgjvm;
+  create_hlcodegen:=@create_hlcodegen_cpu;
 end.

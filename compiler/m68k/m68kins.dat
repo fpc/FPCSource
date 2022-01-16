@@ -1,0 +1,2263 @@
+; the information in this file is based on cpus/m68k/opcodes.h file
+; in the vasm assembler sources, originally authored by Frank Wille,
+; and used in the Free Pascal Compiler project with his permission.
+;
+; for more info about vasm, see: http://sun.hasenbraten.de/vasm/
+
+
+[NONE]
+void                                                                  $0000,$0000    0 ANY                m68000up,cf
+
+[ABCD]
+Dx,Dx                                                                 $c100,$0000    1 B                  m68000up
+-(Ax),-(Ax)                                                           $c108,$0000    1 B                  m68000up
+
+[ADD]
+<ea-data>,Dx                                                          $d000,$0000    1 CFBWL              m68000up,cf
+Ax,Dx                                                                 $d000,$0000    1 CFWL               m68000up,cf
+Dx,<ea-mem-alter>                                                     $d100,$0000    1 CFBWL              m68000up,cf
+<ea-any>,Ax                                                           $d0c0,$0000    1 CFWL               m68000up,cf
+#imm,<ea-data-alter>                                                  $0600,$0000    1 BWL                m68000up
+
+[ADDA]
+<ea-any>,Ax                                                           $d0c0,$0000    1 CFWL               m68000up,cf
+
+[ADDI]
+#imm,Dx                                                               $0600,$0000    1 CFBWL              m68000up,cf
+#imm,<ea-data-alter>                                                  $0600,$0000    1 BWL                m68000up
+
+[ADDQ]
+#immq,Ax                                                              $5000,$0000    1 CFWL               m68000up,cf
+#immq,<ea-data-alter>                                                 $5000,$0000    1 CFBWL              m68000up,cf
+
+[ADDX]
+Dx,Dx                                                                 $d100,$0000    1 CFBWL              m68000up,cf
+-(Ax),-(Ax)                                                           $d108,$0000    1 BWL                m68000up
+
+[AND]
+<ea-data>,Dx                                                          $c000,$0000    1 CFBWL              m68000up,cf
+Dx,<ea-mem-alter>                                                     $c100,$0000    1 CFBWL              m68000up,cf
+#imm,<ea-data-alter>                                                  $0200,$0000    1 BWL                m68000up
+#imm,CCR                                                              $023c,$0000    1 B                  m68000up
+#imm,SR                                                               $027c,$0000    1 W                  m68000up
+
+[ANDI]
+#imm,Dx                                                               $0200,$0000    1 CFBWL              m68000up,cf
+#imm,<ea-data-alter>                                                  $0200,$0000    1 BWL                m68000up
+#imm,CCR                                                              $023c,$0000    1 B                  m68000up
+#imm,SR                                                               $027c,$0000    1 W                  m68000up
+
+[ASL]
+<ea-mem-alter>                                                        $e1c0,$0000    1 W                  m68000up
+Dx,Dx                                                                 $e120,$0000    1 CFBWL              m68000up,cf
+#immq,Dx                                                              $e100,$0000    1 CFBWL              m68000up,cf
+Dx                                                                    $e300,$0000    1 CFBWL              m68000up,cf
+
+[ASR]
+<ea-mem-alter>                                                        $e0c0,$0000    1 W                  m68000up
+Dx,Dx                                                                 $e020,$0000    1 CFBWL              m68000up,cf
+#immq,Dx                                                              $e000,$0000    1 CFBWL              m68000up,cf
+Dx                                                                    $e200,$0000    1 CFBWL              m68000up,cf
+
+[BHS]
+<dest>                                                                $6400,$0000    1 SBW                m68000up,cf
+<dest>                                                                $6400,$0000    1 SBWL               m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[BLO]
+<dest>                                                                $6500,$0000    1 SBW                m68000up,cf
+<dest>                                                                $6500,$0000    1 SBWL               m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[BHI]
+<dest>                                                                $6200,$0000    1 SBW                m68000up,cf
+<dest>                                                                $6200,$0000    1 SBWL               m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[BLS]
+<dest>                                                                $6300,$0000    1 SBW                m68000up,cf
+<dest>                                                                $6300,$0000    1 SBWL               m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[BCC]
+<dest>                                                                $6400,$0000    1 SBW                m68000up,cf
+<dest>                                                                $6400,$0000    1 SBWL               m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[BCS]
+<dest>                                                                $6500,$0000    1 SBW                m68000up,cf
+<dest>                                                                $6500,$0000    1 SBWL               m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[BNE]
+<dest>                                                                $6600,$0000    1 SBW                m68000up,cf
+<dest>                                                                $6600,$0000    1 SBWL               m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[BEQ]
+<dest>                                                                $6700,$0000    1 SBW                m68000up,cf
+<dest>                                                                $6700,$0000    1 SBWL               m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[BVC]
+<dest>                                                                $6800,$0000    1 SBW                m68000up,cf
+<dest>                                                                $6800,$0000    1 SBWL               m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[BVS]
+<dest>                                                                $6900,$0000    1 SBW                m68000up,cf
+<dest>                                                                $6900,$0000    1 SBWL               m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[BPL]
+<dest>                                                                $6a00,$0000    1 SBW                m68000up,cf
+<dest>                                                                $6a00,$0000    1 SBWL               m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[BMI]
+<dest>                                                                $6b00,$0000    1 SBW                m68000up,cf
+<dest>                                                                $6b00,$0000    1 SBWL               m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[BGE]
+<dest>                                                                $6c00,$0000    1 SBW                m68000up,cf
+<dest>                                                                $6c00,$0000    1 SBWL               m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[BLT]
+<dest>                                                                $6d00,$0000    1 SBW                m68000up,cf
+<dest>                                                                $6d00,$0000    1 SBWL               m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[BGT]
+<dest>                                                                $6e00,$0000    1 SBW                m68000up,cf
+<dest>                                                                $6e00,$0000    1 SBWL               m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[BLE]
+<dest>                                                                $6f00,$0000    1 SBW                m68000up,cf
+<dest>                                                                $6f00,$0000    1 SBWL               m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[BRA]
+<dest>                                                                $6000,$0000    1 SBW                m68000up,cf
+<dest>                                                                $6000,$0000    1 SBWL               m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[BSR]
+<dest>                                                                $6100,$0000    1 SBW                m68000up,cf
+<dest>                                                                $6100,$0000    1 SBWL               m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[BCHG]
+Dx,Dx                                                                 $0140,$0000    1 L                  m68000up,cf
+Dx,<ea-mem-alter>                                                     $0140,$0000    1 B                  m68000up,cf
+#immq,Dx                                                              $0840,$0000    2 L                  m68000up,cf
+#immq,<cf-ea-mem-alter>                                               $0840,$0000    2 B                  m68000up,cf
+#immq,<ea-mem-alter>                                                  $0840,$0000    2 B                  m68000up
+
+[BCLR]
+Dx,Dx                                                                 $0180,$0000    1 L                  m68000up,cf
+Dx,<ea-mem-alter>                                                     $0180,$0000    1 B                  m68000up,cf
+#immq,Dx                                                              $0880,$0000    2 L                  m68000up,cf
+#immq,<cf-ea-mem-alter>                                               $0880,$0000    2 B                  m68000up,cf
+#immq,<ea-mem-alter>                                                  $0880,$0000    2 B                  m68000up
+
+[BSET]
+Dx,Dx                                                                 $01c0,$0000    1 L                  m68000up,cf
+Dx,<ea-mem-alter>                                                     $01c0,$0000    1 B                  m68000up,cf
+#immq,Dx                                                              $08c0,$0000    2 L                  m68000up,cf
+#immq,<cf-ea-mem-alter>                                               $08c0,$0000    2 B                  m68000up,cf
+#immq,<ea-mem-alter>                                                  $08c0,$0000    2 B                  m68000up
+
+[BTST]
+Dx,Dx                                                                 $0100,$0000    1 L                  m68000up,cf
+Dx,<ea-mem>                                                           $0100,$0000    1 B                  m68000up,cf
+#immq,Dx                                                              $0800,$0000    2 L                  m68000up,cf
+#immq,<cf-ea-mem-alter>                                               $0800,$0000    2 B                  m68000up,cf
+#immq,<ea-mem-noimm>                                                  $0800,$0000    2 B                  m68000up
+
+[BFCHG]
+<ea-data-alter-bf>                                                    $eac0,$0000    2 UNS                m68020up
+
+[BFCLR]
+<ea-data-alter-bf>                                                    $ecc0,$0000    2 UNS                m68020up
+
+[BFEXTS]
+<ea-data-control-bf>,Dx                                               $ebc0,$0000    2 UNS                m68020up
+
+[BFEXTU]
+<ea-data-control-bf>,Dx                                               $e9c0,$0000    2 UNS                m68020up
+
+[BFFFO]
+<ea-data-control-bf>,Dx                                               $edc0,$0000    2 UNS                m68020up
+
+[BFINS]
+Dx,<ea-data-alter-bf>                                                 $efc0,$0000    2 UNS                m68020up
+
+[BFSET]
+<ea-data-alter-bf>                                                    $eec0,$0000    2 UNS                m68020up
+
+[BFTST]
+<ea-data-control-bf>                                                  $e8c0,$0000    2 UNS                m68020up
+
+[BGND]
+void                                                                  $4afa,$0000    1 UNS                cpu32
+
+[BITREV]
+Dx                                                                    $00c0,$0000    1 L                  cf_isa_apl,cf_isa_c
+
+[BKPT]
+#immq                                                                 $4848,$0000    1 UNS                m68010up
+
+[BYTEREV]
+Dx                                                                    $02c0,$0000    1 L                  cf_isa_apl,cf_isa_c
+
+[CALLM]
+#immq,<ea-control>                                                    $06c0,$0000    2 UNS                m68020
+
+[CAS]
+Dx,Dx,<ea-mem-alter>                                                  $08c0,$0000    2 BWL                m68020up
+
+[CAS2]
+Dx:Dx,Dx:Dx,(Rx):(Rx)                                                 $08fc,$0000    3 WL                 m68020up
+
+[CHK]
+<ea-data>,Dx                                                          $4180,$0000    1 W                  m68000up
+<ea-data>,Dx                                                          $4100,$0000    1 L                  m68020up
+
+[CHK2]
+<ea-control>,Rx                                                       $00c0,$0800    2 BWL                m68020up,cpu32
+
+[CLR]
+<ea-data-alter>                                                       $4200,$0000    1 BWL                m68000up,cf
+
+[CMP]
+Ax,Dx                                                                 $b000,$0000    1 WL                 cf_isa_b,cf_isa_c
+Ax,Dx                                                                 $b000,$0000    1 CFWL               m68000up,cf
+<ea-data>,Dx                                                          $b000,$0000    1 BWL                cf_isa_b,cf_isa_c
+<ea-data>,Dx                                                          $b000,$0000    1 CFBWL              m68000up,cf
+<ea-any>,Ax                                                           $b0c0,$0000    1 WL                 cf_isa_b,cf_isa_c
+<ea-any>,Ax                                                           $b0c0,$0000    1 CFWL               m68000up,cf
+#imm,<ea-data-alter>                                                  $0c00,$0000    1 BWL                m68000up
+#imm,<ea-data-noimm>                                                  $0c00,$0000    1 BWL                m68020up,cpu32
+(Ax)+,(Ax)+                                                           $b108,$0000    1 BWL                m68000up
+
+[CMPA]
+<ea-any>,Ax                                                           $b0c0,$0000    1 WL                 cf_isa_b,cf_isa_c
+<ea-any>,Ax                                                           $b0c0,$0000    1 CFWL               m68000up,cf
+
+[CMPI]
+#imm,Dx                                                               $0c00,$0000    1 BWL                cf_isa_b,cf_isa_c
+#imm,Dx                                                               $0c00,$0000    1 CFBWL              m68000up,cf
+#imm,<ea-data-alter>                                                  $0c00,$0000    1 BWL                m68000up
+#imm,<ea-data-noimm>                                                  $0c00,$0000    1 BWL                m68020up,cpu32
+
+[CMPM]
+(Ax)+,(Ax)+                                                           $b108,$0000    1 BWL                m68000up
+
+[CMP2]
+<ea-control>,Rx                                                       $00c0,$0000    2 BWL                m68020up,cpu32
+
+[CINVL]
+<caches>,(Ax)                                                         $f408,$0000    1 UNS                m68040up
+
+[CINVP]
+<caches>,(Ax)                                                         $f410,$0000    1 UNS                m68040up
+
+[CINVA]
+<caches>                                                              $f418,$0000    1 UNS                m68040up
+
+[CPUSHL]
+(Ax)                                                                  $f4e8,$0000    1 UNS                cf
+<caches>,(Ax)                                                         $f428,$0000    1 UNS                m68040up
+
+[CPUSHP]
+<caches>,(Ax)                                                         $f430,$0000    1 UNS                m68040up
+
+[CPUSHA]
+<caches>                                                              $f438,$0000    1 UNS                m68040up
+
+[DBT]
+Dx,<dest>                                                             $50c8,$0000    1 W                  m68000up
+
+[DBF]
+Dx,<dest>                                                             $51c8,$0000    1 W                  m68000up
+
+[DBRA]
+Dx,<dest>                                                             $51c8,$0000    1 W                  m68000up
+
+[DBHI]
+Dx,<dest>                                                             $52c8,$0000    1 W                  m68000up
+
+[DBLS]
+Dx,<dest>                                                             $53c8,$0000    1 W                  m68000up
+
+[DBCC]
+Dx,<dest>                                                             $54c8,$0000    1 W                  m68000up
+
+[DBHS]
+Dx,<dest>                                                             $54c8,$0000    1 W                  m68000up
+
+[DBCS]
+Dx,<dest>                                                             $55c8,$0000    1 W                  m68000up
+
+[DBLO]
+Dx,<dest>                                                             $55c8,$0000    1 W                  m68000up
+
+[DBNE]
+Dx,<dest>                                                             $56c8,$0000    1 W                  m68000up
+
+[DBEQ]
+Dx,<dest>                                                             $57c8,$0000    1 W                  m68000up
+
+[DBVC]
+Dx,<dest>                                                             $58c8,$0000    1 W                  m68000up
+
+[DBVS]
+Dx,<dest>                                                             $59c8,$0000    1 W                  m68000up
+
+[DBPL]
+Dx,<dest>                                                             $5ac8,$0000    1 W                  m68000up
+
+[DBMI]
+Dx,<dest>                                                             $5bc8,$0000    1 W                  m68000up
+
+[DBGE]
+Dx,<dest>                                                             $5cc8,$0000    1 W                  m68000up
+
+[DBLT]
+Dx,<dest>                                                             $5dc8,$0000    1 W                  m68000up
+
+[DBGT]
+Dx,<dest>                                                             $5ec8,$0000    1 W                  m68000up
+
+[DBLE]
+Dx,<dest>                                                             $5fc8,$0000    1 W                  m68000up
+
+[DIVS]
+<cf-ea-data-alter>,Dx                                                 $81c0,$0000    1 W                  m68000up,cf_hwdiv
+<cf-ea-data-alter>,Dx                                                 $4c40,$0800    2 L                  m68020up,cpu32,cf_hwdiv
+<ea-data>,Dx                                                          $81c0,$0000    1 W                  m68000up,cf_hwdiv
+<ea-data>,Dx                                                          $4c40,$0800    2 L                  m68020up,cpu32
+<ea-data>,Dx:Dx                                                       $4c40,$0c00    2 L                  m68020up,cpu32
+
+[DIVSL]
+<ea-data>,Dx:Dx                                                       $4c40,$0800    2 L                  m68020up,cpu32
+
+[DIVU]
+<cf-ea-data-alter>,Dx                                                 $80c0,$0000    1 W                  m68000up,cf_hwdiv
+<cf-ea-data-alter>,Dx                                                 $4c40,$0000    2 L                  m68020up,cpu32,cf_hwdiv
+<ea-data>,Dx                                                          $80c0,$0000    1 W                  m68000up,cf_hwdiv
+<ea-data>,Dx                                                          $4c40,$0000    2 L                  m68020up,cpu32
+<ea-data>,Dx:Dx                                                       $4c40,$0400    2 L                  m68020up,cpu32
+
+[DIVUL]
+<ea-data>,Dx:Dx                                                       $4c40,$0000    2 L                  m68020up,cpu32
+
+[EOR]
+Dx,<ea-data-alter>                                                    $b100,$0000    1 CFBWL              m68000up,cf
+#imm,Dx                                                               $0a00,$0000    1 CFBWL              m68000up,cf
+#imm,<ea-data-alter>                                                  $0a00,$0000    1 BWL                m68000up
+#imm,CCR                                                              $0a3c,$0000    1 B                  m68000up
+#imm,SR                                                               $0a7c,$0000    1 W                  m68000up
+
+[EORI]
+#imm,Dx                                                               $0a00,$0000    1 CFBWL              m68000up,cf
+#imm,<ea-data-alter>                                                  $0a00,$0000    1 BWL                m68000up
+#imm,CCR                                                              $0a3c,$0000    1 B                  m68000up
+#imm,SR                                                               $0a7c,$0000    1 W                  m68000up
+
+[EXG]
+Dx,Dx                                                                 $c140,$0000    1 L                  m68000up
+Ax,Ax                                                                 $c148,$0000    1 L                  m68000up
+Dx,Ax                                                                 $c188,$0000    1 L                  m68000up
+Ax,Dx                                                                 $c188,$0000    1 L                  m68000up
+
+[EXT]
+Dx                                                                    $4800,$0000    1 WL                 m68000up,cf
+
+[EXTB]
+Dx                                                                    $4900,$0000    1 L                  m68020up,cpu32,cf
+
+[FABS]
+Dx,FPx                                                                $f000,$4018    2 SBWL               m68881,cf_fpu
+<cf-ea-float>,FPx                                                     $f000,$4018    2 CFANY              cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f000,$4018    2 ANY                m68881
+FPx,FPx                                                               $f000,$0018    2 FX                 m68881
+FPx,FPx                                                               $f000,$0018    2 FD                 cf_fpu
+FPx                                                                   $f000,$0018    2 FX                 m68881
+FPx                                                                   $f000,$0018    2 FD                 cf_fpu
+
+[FSABS]
+Dx,FPx                                                                $f200,$4058    2 SBWL               m68040up,cf_fpu
+<cf-ea-float>,FPx                                                     $f200,$4058    2 CFANY              cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f200,$4058    2 ANY                m68040up
+FPx,FPx                                                               $f200,$0058    2 FX                 m68040up
+FPx,FPx                                                               $f200,$0058    2 FD                 cf_fpu
+FPx                                                                   $f200,$0058    2 FX                 m68040up
+FPx                                                                   $f200,$0058    2 FD                 cf_fpu
+
+[FDABS]
+Dx,FPx                                                                $f200,$405c    2 SBWL               m68040up,cf_fpu
+<cf-ea-float>,FPx                                                     $f200,$405c    2 CFANY              cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f200,$405c    2 ANY                m68040up
+FPx,FPx                                                               $f200,$005c    2 FX                 m68040up
+FPx,FPx                                                               $f200,$005c    2 FD                 cf_fpu
+FPx                                                                   $f200,$005c    2 FX                 m68040up
+FPx                                                                   $f200,$005c    2 FD                 cf_fpu
+
+[FACOS]
+Dx,FPx                                                                $f000,$401c    2 SBWL               m68881
+<ea-mem-fpuimm>,FPx                                                   $f000,$401c    2 ANY                m68881
+FPx,FPx                                                               $f000,$001c    2 FX                 m68881
+FPx                                                                   $f000,$001c    2 FX                 m68881
+
+[FADD]
+Dx,FPx                                                                $f000,$4022    2 SBWL               m68881,cf_fpu
+<cf-ea-float>,FPx                                                     $f000,$4022    2 CFANY              cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f000,$4022    2 ANY                m68881
+FPx,FPx                                                               $f000,$0022    2 FX                 m68881
+FPx,FPx                                                               $f000,$0022    2 FD                 cf_fpu
+
+[FSADD]
+Dx,FPx                                                                $f200,$4062    2 SBWL               m68040up
+<cf-ea-float>,FPx                                                     $f200,$4062    2 CFANY              cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f200,$4062    2 ANY                m68040up
+FPx,FPx                                                               $f200,$0062    2 FX                 m68040up
+FPx,FPx                                                               $f200,$0062    2 FD                 cf_fpu
+
+[FDADD]
+Dx,FPx                                                                $f200,$4066    2 SBWL               m68040up
+<cf-ea-float>,FPx                                                     $f200,$4066    2 CFANY              cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f200,$4066    2 ANY                m68040up
+FPx,FPx                                                               $f200,$0066    2 FX                 m68040up
+FPx,FPx                                                               $f200,$0066    2 FD                 cf_fpu
+
+[FASIN]
+Dx,FPx                                                                $f000,$400c    2 SBWL               m68881
+<ea-mem-fpuimm>,FPx                                                   $f000,$400c    2 ANY                m68881
+FPx,FPx                                                               $f000,$000c    2 FX                 m68881
+FPx                                                                   $f000,$000c    2 FX                 m68881
+
+[FATAN]
+Dx,FPx                                                                $f000,$400a    2 SBWL               m68881
+<ea-mem-fpuimm>,FPx                                                   $f000,$400a    2 ANY                m68881
+FPx,FPx                                                               $f000,$000a    2 FX                 m68881
+FPx                                                                   $f000,$000a    2 FX                 m68881
+
+[FATANH]
+Dx,FPx                                                                $f000,$400d    2 SBWL               m68881
+<ea-mem-fpuimm>,FPx                                                   $f000,$400d    2 ANY                m68881
+FPx,FPx                                                               $f000,$000d    2 FX                 m68881
+FPx                                                                   $f000,$000d    2 FX                 m68881
+
+[FBF]
+<dest>                                                                $f080,$0000    1 WL                 m68881,cf_fpu
+
+[FBEQ]
+<dest>                                                                $f081,$0000    1 WL                 m68881,cf_fpu
+
+[FBOGT]
+<dest>                                                                $f082,$0000    1 WL                 m68881,cf_fpu
+
+[FBOGE]
+<dest>                                                                $f083,$0000    1 WL                 m68881,cf_fpu
+
+[FBOLT]
+<dest>                                                                $f084,$0000    1 WL                 m68881,cf_fpu
+
+[FBOLE]
+<dest>                                                                $f085,$0000    1 WL                 m68881,cf_fpu
+
+[FBOGL]
+<dest>                                                                $f086,$0000    1 WL                 m68881,cf_fpu
+
+[FBOR]
+<dest>                                                                $f087,$0000    1 WL                 m68881,cf_fpu
+
+[FBUN]
+<dest>                                                                $f088,$0000    1 WL                 m68881,cf_fpu
+
+[FBUEQ]
+<dest>                                                                $f089,$0000    1 WL                 m68881,cf_fpu
+
+[FBUGT]
+<dest>                                                                $f08a,$0000    1 WL                 m68881,cf_fpu
+
+[FBUGE]
+<dest>                                                                $f08b,$0000    1 WL                 m68881,cf_fpu
+
+[FBULT]
+<dest>                                                                $f08c,$0000    1 WL                 m68881,cf_fpu
+
+[FBULE]
+<dest>                                                                $f08d,$0000    1 WL                 m68881,cf_fpu
+
+[FBNE]
+<dest>                                                                $f08e,$0000    1 WL                 m68881,cf_fpu
+
+[FBT]
+<dest>                                                                $f08f,$0000    1 WL                 m68881,cf_fpu
+
+[FBSF]
+<dest>                                                                $f090,$0000    1 WL                 m68881,cf_fpu
+
+[FBSEQ]
+<dest>                                                                $f091,$0000    1 WL                 m68881,cf_fpu
+
+[FBGT]
+<dest>                                                                $f092,$0000    1 WL                 m68881,cf_fpu
+
+[FBGE]
+<dest>                                                                $f093,$0000    1 WL                 m68881,cf_fpu
+
+[FBLT]
+<dest>                                                                $f094,$0000    1 WL                 m68881,cf_fpu
+
+[FBLE]
+<dest>                                                                $f095,$0000    1 WL                 m68881,cf_fpu
+
+[FBGL]
+<dest>                                                                $f096,$0000    1 WL                 m68881,cf_fpu
+
+[FBGLE]
+<dest>                                                                $f097,$0000    1 WL                 m68881,cf_fpu
+
+[FBNGLE]
+<dest>                                                                $f098,$0000    1 WL                 m68881,cf_fpu
+
+[FBNGL]
+<dest>                                                                $f099,$0000    1 WL                 m68881,cf_fpu
+
+[FBNLE]
+<dest>                                                                $f09a,$0000    1 WL                 m68881,cf_fpu
+
+[FBNLT]
+<dest>                                                                $f09b,$0000    1 WL                 m68881,cf_fpu
+
+[FBNGE]
+<dest>                                                                $f09c,$0000    1 WL                 m68881,cf_fpu
+
+[FBNGT]
+<dest>                                                                $f09d,$0000    1 WL                 m68881,cf_fpu
+
+[FBSNE]
+<dest>                                                                $f09e,$0000    1 WL                 m68881,cf_fpu
+
+[FBST]
+<dest>                                                                $f09f,$0000    1 WL                 m68881,cf_fpu
+
+[FCMP]
+Dx,FPx                                                                $f000,$4038    2 SBWL               m68881,cf_fpu
+<cf-ea-float>,FPx                                                     $f000,$4038    2 CFANY              cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f000,$4038    2 ANY                m68881
+FPx,FPx                                                               $f000,$0038    2 FX                 m68881
+FPx,FPx                                                               $f000,$0038    2 FD                 cf_fpu
+
+[FCOS]
+Dx,FPx                                                                $f000,$401d    2 SBWL               m68881
+<ea-mem-fpuimm>,FPx                                                   $f000,$401d    2 ANY                m68881
+FPx,FPx                                                               $f000,$001d    2 FX                 m68881
+FPx                                                                   $f000,$001d    2 FX                 m68881
+
+[FCOSH]
+Dx,FPx                                                                $f000,$4019    2 SBWL               m68881
+<ea-mem-fpuimm>,FPx                                                   $f000,$4019    2 ANY                m68881
+FPx,FPx                                                               $f000,$0019    2 FX                 m68881
+FPx                                                                   $f000,$0019    2 FX                 m68881
+
+[FDBF]
+Dx,<dest>                                                             $f048,$0000    2 W                  m68881
+
+[FDBEQ]
+Dx,<dest>                                                             $f048,$0001    2 W                  m68881
+
+[FDBOGT]
+Dx,<dest>                                                             $f048,$0002    2 W                  m68881
+
+[FDBOGE]
+Dx,<dest>                                                             $f048,$0003    2 W                  m68881
+
+[FDBOLT]
+Dx,<dest>                                                             $f048,$0004    2 W                  m68881
+
+[FDBOLE]
+Dx,<dest>                                                             $f048,$0005    2 W                  m68881
+
+[FDBOGL]
+Dx,<dest>                                                             $f048,$0006    2 W                  m68881
+
+[FDBOR]
+Dx,<dest>                                                             $f048,$0007    2 W                  m68881
+
+[FDBUN]
+Dx,<dest>                                                             $f048,$0008    2 W                  m68881
+
+[FDBUEQ]
+Dx,<dest>                                                             $f048,$0009    2 W                  m68881
+
+[FDBUGT]
+Dx,<dest>                                                             $f048,$000a    2 W                  m68881
+
+[FDBUGE]
+Dx,<dest>                                                             $f048,$000b    2 W                  m68881
+
+[FDBULT]
+Dx,<dest>                                                             $f048,$000c    2 W                  m68881
+
+[FDBULE]
+Dx,<dest>                                                             $f048,$000d    2 W                  m68881
+
+[FDBNE]
+Dx,<dest>                                                             $f048,$000e    2 W                  m68881
+
+[FDBT]
+Dx,<dest>                                                             $f048,$000f    2 W                  m68881
+
+[FDBSF]
+Dx,<dest>                                                             $f048,$0010    2 W                  m68881
+
+[FDBSEQ]
+Dx,<dest>                                                             $f048,$0011    2 W                  m68881
+
+[FDBGT]
+Dx,<dest>                                                             $f048,$0012    2 W                  m68881
+
+[FDBGE]
+Dx,<dest>                                                             $f048,$0013    2 W                  m68881
+
+[FDBLT]
+Dx,<dest>                                                             $f048,$0014    2 W                  m68881
+
+[FDBLE]
+Dx,<dest>                                                             $f048,$0015    2 W                  m68881
+
+[FDBGL]
+Dx,<dest>                                                             $f048,$0016    2 W                  m68881
+
+[FDBGLE]
+Dx,<dest>                                                             $f048,$0017    2 W                  m68881
+
+[FDBNGLE]
+Dx,<dest>                                                             $f048,$0018    2 W                  m68881
+
+[FDBNGL]
+Dx,<dest>                                                             $f048,$0019    2 W                  m68881
+
+[FDBNLE]
+Dx,<dest>                                                             $f048,$001a    2 W                  m68881
+
+[FDBNLT]
+Dx,<dest>                                                             $f048,$001b    2 W                  m68881
+
+[FDBNGE]
+Dx,<dest>                                                             $f048,$001c    2 W                  m68881
+
+[FDBNGT]
+Dx,<dest>                                                             $f048,$001d    2 W                  m68881
+
+[FDBSNE]
+Dx,<dest>                                                             $f048,$001e    2 W                  m68881
+
+[FDBST]
+Dx,<dest>                                                             $f048,$001f    2 W                  m68881
+
+[FDIV]
+Dx,FPx                                                                $f000,$4020    2 SBWL               m68881,cf_fpu
+<cf-ea-float>,FPx                                                     $f000,$4020    2 CFANY              cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f000,$4020    2 ANY                m68881
+FPx,FPx                                                               $f000,$0020    2 FX                 m68881
+FPx,FPx                                                               $f000,$0020    2 FD                 cf_fpu
+
+[FSDIV]
+Dx,FPx                                                                $f200,$4060    2 SBWL               m68040up,cf_fpu
+<cf-ea-float>,FPx                                                     $f200,$4060    2 CFANY              cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f200,$4060    2 ANY                m68040up
+FPx,FPx                                                               $f200,$0060    2 FX                 m68040up
+FPx,FPx                                                               $f200,$0060    2 FD                 cf_fpu
+
+[FDDIV]
+Dx,FPx                                                                $f200,$4064    2 SBWL               m68040up,cf_fpu
+<cf-ea-float>,FPx                                                     $f200,$4064    2 CFANY              cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f200,$4064    2 ANY                m68040up
+FPx,FPx                                                               $f200,$0064    2 FX                 m68040up
+FPx,FPx                                                               $f200,$0064    2 FD                 cf_fpu
+
+[FETOX]
+Dx,FPx                                                                $f000,$4010    2 SBWL               m68881
+<ea-mem-fpuimm>,FPx                                                   $f000,$4010    2 ANY                m68881
+FPx,FPx                                                               $f000,$0010    2 FX                 m68881
+FPx                                                                   $f000,$0010    2 FX                 m68881
+
+[FETOXM1]
+Dx,FPx                                                                $f000,$4008    2 SBWL               m68881
+<ea-mem-fpuimm>,FPx                                                   $f000,$4008    2 ANY                m68881
+FPx,FPx                                                               $f000,$0008    2 FX                 m68881
+FPx                                                                   $f000,$0008    2 FX                 m68881
+
+[FGETEXP]
+Dx,FPx                                                                $f000,$401e    2 SBWL               m68881
+<ea-mem-fpuimm>,FPx                                                   $f000,$401e    2 ANY                m68881
+FPx,FPx                                                               $f000,$001e    2 FX                 m68881
+FPx                                                                   $f000,$001e    2 FX                 m68881
+
+[FGETMAN]
+Dx,FPx                                                                $f000,$401f    2 SBWL               m68881
+<ea-mem-fpuimm>,FPx                                                   $f000,$401f    2 ANY                m68881
+FPx,FPx                                                               $f000,$001f    2 FX                 m68881
+FPx                                                                   $f000,$001f    2 FX                 m68881
+
+[FINT]
+Dx,FPx                                                                $f000,$4001    2 SBWL               m68881,cf_fpu
+<cf-ea-float>,FPx                                                     $f000,$4001    2 CFANY              cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f000,$4001    2 ANY                m68881
+FPx,FPx                                                               $f000,$0001    2 FX                 m68881
+FPx,FPx                                                               $f000,$0001    2 FD                 cf_fpu
+FPx                                                                   $f000,$0001    2 FX                 m68881
+FPx                                                                   $f000,$0001    2 FD                 cf_fpu
+
+[FINTRZ]
+Dx,FPx                                                                $f000,$4003    2 SBWL               m68881,cf_fpu
+<cf-ea-float>,FPx                                                     $f000,$4003    2 CFANY              cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f000,$4003    2 ANY                m68881
+FPx,FPx                                                               $f000,$0003    2 FX                 m68881
+FPx,FPx                                                               $f000,$0003    2 FD                 cf_fpu
+FPx                                                                   $f000,$0003    2 FX                 m68881
+FPx                                                                   $f000,$0003    2 FD                 cf_fpu
+
+[FJF]
+<dest>                                                                $f080,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJEQ]
+<dest>                                                                $f081,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJOGT]
+<dest>                                                                $f082,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJOGE]
+<dest>                                                                $f083,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJOLT]
+<dest>                                                                $f084,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJOLE]
+<dest>                                                                $f085,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJOGL]
+<dest>                                                                $f086,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJOR]
+<dest>                                                                $f087,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJUN]
+<dest>                                                                $f088,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJUEQ]
+<dest>                                                                $f089,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJUGT]
+<dest>                                                                $f08a,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJUGE]
+<dest>                                                                $f08b,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJULT]
+<dest>                                                                $f08c,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJULE]
+<dest>                                                                $f08d,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJNE]
+<dest>                                                                $f08e,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJT]
+<dest>                                                                $f08f,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJSF]
+<dest>                                                                $f090,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJSEQ]
+<dest>                                                                $f091,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJGT]
+<dest>                                                                $f092,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJGE]
+<dest>                                                                $f093,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJLT]
+<dest>                                                                $f094,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJLE]
+<dest>                                                                $f095,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJGL]
+<dest>                                                                $f096,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJGLE]
+<dest>                                                                $f097,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJNGLE]
+<dest>                                                                $f098,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJNGL]
+<dest>                                                                $f099,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJNLE]
+<dest>                                                                $f09a,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJNLT]
+<dest>                                                                $f09b,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJNGE]
+<dest>                                                                $f09c,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJNGT]
+<dest>                                                                $f09d,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJSNE]
+<dest>                                                                $f09e,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FJST]
+<dest>                                                                $f09f,$0000    1 WL                 gnu_as,m68881,cf_fpu
+
+[FLOG10]
+Dx,FPx                                                                $f000,$4015    2 SBWL               m68881
+<ea-mem-fpuimm>,FPx                                                   $f000,$4015    2 ANY                m68881
+FPx,FPx                                                               $f000,$0015    2 FX                 m68881
+FPx                                                                   $f000,$0015    2 FX                 m68881
+
+[FLOG2]
+Dx,FPx                                                                $f000,$4016    2 SBWL               m68881
+<ea-mem-fpuimm>,FPx                                                   $f000,$4016    2 ANY                m68881
+FPx,FPx                                                               $f000,$0016    2 FX                 m68881
+FPx                                                                   $f000,$0016    2 FX                 m68881
+
+[FLOGN]
+Dx,FPx                                                                $f000,$4014    2 SBWL               m68881
+<ea-mem-fpuimm>,FPx                                                   $f000,$4014    2 ANY                m68881
+FPx,FPx                                                               $f000,$0014    2 FX                 m68881
+FPx                                                                   $f000,$0014    2 FX                 m68881
+
+[FLOGNP1]
+Dx,FPx                                                                $f000,$4006    2 SBWL               m68881
+<ea-mem-fpuimm>,FPx                                                   $f000,$4006    2 ANY                m68881
+FPx,FPx                                                               $f000,$0006    2 FX                 m68881
+FPx                                                                   $f000,$0006    2 FX                 m68881
+
+[FMOD]
+Dx,FPx                                                                $f000,$4021    2 SBWL               m68881
+<ea-mem-fpuimm>,FPx                                                   $f000,$4021    2 ANY                m68881
+FPx,FPx                                                               $f000,$0021    2 FX                 m68881
+
+[FMOVE]
+FPx,FPx                                                               $f000,$0000    2 FX                 m68881
+FPx,FPx                                                               $f000,$0000    2 FD                 cf_fpu
+Dx,FPx                                                                $f000,$4000    2 SBWL               m68881,cf_fpu
+<cf-ea-float>,FPx                                                     $f000,$4000    2 CFANY              cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f000,$4000    2 ANY                m68881
+FPx,Dx                                                                $f000,$6000    2 SBWL               m68881,cf_fpu
+FPx,<ea-mem-alter-kf>                                                 $f000,$6000    2 FP                 m68881
+FPx,<cf-ea-mem-alter>                                                 $f000,$6000    2 CFANY              cf_fpu
+FPx,<ea-mem-alter>                                                    $f000,$6000    2 ANY                m68881
+Ax,FPIAR                                                              $f000,$8000    2 L                  m68881,cf_fpu
+<cf-ea-data-float>,FPspec                                             $f000,$8000    2 L                  cf_fpu
+<ea-data>,FPspec                                                      $f000,$8000    2 L                  m68881
+FPIAR,Ax                                                              $f000,$a000    2 L                  m68881,cf_fpu
+FPspec,<cf-ea-data-alter>                                             $f000,$a000    2 L                  cf_fpu
+FPspec,<ea-data-alter>                                                $f000,$a000    2 L                  m68881
+
+[FSMOVE]
+FPx,FPx                                                               $f200,$0040    2 FX                 m68040up
+FPx,FPx                                                               $f200,$0040    2 FD                 cf_fpu
+Dx,FPx                                                                $f200,$4040    2 SBWL               m68040up,cf_fpu
+<cf-ea-float>,FPx                                                     $f200,$4040    2 CFANY              cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f200,$4040    2 ANY                m68040up
+
+[FDMOVE]
+FPx,FPx                                                               $f200,$0044    2 FX                 m68040up
+FPx,FPx                                                               $f200,$0044    2 FD                 cf_fpu
+Dx,FPx                                                                $f200,$4044    2 SBWL               m68040up,cf_fpu
+<cf-ea-float>,FPx                                                     $f200,$4044    2 CFANY              cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f200,$4044    2 ANY                m68040up
+
+[FMOVECR]
+#immq,FPx                                                             $f000,$5c00    2 FX                 m68881
+
+[FMOVEM]
+FPx-FPx,-(Ax)                                                         $f000,$e000    2 FX                 m68881
+FPx-FPx,<cf-ea-movem>                                                 $f000,$f000    2 FD                 cf_fpu
+FPx-FPx,<ea-control-alter>                                            $f000,$f000    2 FX                 m68881
+#immregs,-(Ax)                                                        $f000,$e000    2 FX                 m68881
+#immregs,<cf-ea-movem>                                                $f000,$f000    2 FD                 cf_fpu
+#immregs,<ea-control-alter>                                           $f000,$f000    2 FX                 m68881
+Dx,-(Ax)                                                              $f000,$e800    2 FX                 m68881
+Dx,<ea-control-alter>                                                 $f000,$f800    2 FX                 m68881
+<cf-ea-fmovem-src>,FPx-FPx                                            $f000,$d000    2 FD                 cf_fpu
+<ea-mem-restore>,FPx-FPx                                              $f000,$d000    2 FX                 m68881
+<cf-ea-fmovem-src>,#immregs                                           $f000,$d000    2 FD                 cf_fpu
+<ea-mem-restore>,#immregs                                             $f000,$d000    2 FX                 m68881
+<ea-mem-restore>,Dx                                                   $f000,$d800    2 FX                 m68881
+FPspec,Dx                                                             $f000,$a000    2 L                  m68881
+FPIAR,Ax                                                              $f000,$a000    2 L                  m68881
+FPspec-list,<ea-mem-alter>                                            $f000,$a000    2 L                  m68881
+Dx,FPspec                                                             $f000,$8000    2 L                  m68881
+Ax,FPIAR                                                              $f000,$8000    2 L                  m68881
+<ea-mem>,FPspec-list                                                  $f000,$8000    2 L                  m68881
+
+[FMOVM]
+FPx-FPx,-(Ax)                                                         $f000,$e000    2 FX                 gnu_as,m68881
+FPx-FPx,<cf-ea-movem>                                                 $f000,$f000    2 FD                 gnu_as,cf_fpu
+FPx-FPx,<ea-control-alter>                                            $f000,$f000    2 FX                 gnu_as,m68881
+#immregs,-(Ax)                                                        $f000,$e000    2 FX                 gnu_as,m68881
+#immregs,<cf-ea-movem>                                                $f000,$f000    2 FD                 gnu_as,cf_fpu
+#immregs,<ea-control-alter>                                           $f000,$f000    2 FX                 gnu_as,m68881
+Dx,-(Ax)                                                              $f000,$e800    2 FX                 gnu_as,m68881
+Dx,<ea-control-alter>                                                 $f000,$f800    2 FX                 gnu_as,m68881
+<cf-ea-fmovem-src>,FPx-FPx                                            $f000,$d000    2 FD                 gnu_as,cf_fpu
+<ea-mem-restore>,FPx-FPx                                              $f000,$d000    2 FX                 gnu_as,m68881
+<cf-ea-fmovem-src>,#immregs                                           $f000,$d000    2 FD                 gnu_as,cf_fpu
+<ea-mem-restore>,#immregs                                             $f000,$d000    2 FX                 gnu_as,m68881
+<ea-mem-restore>,Dx                                                   $f000,$d800    2 FX                 gnu_as,m68881
+FPspec,Dx                                                             $f000,$a000    2 L                  gnu_as,m68881
+FPIAR,Ax                                                              $f000,$a000    2 L                  gnu_as,m68881
+FPspec-list,<ea-mem-alter>                                            $f000,$a000    2 L                  gnu_as,m68881
+Dx,FPspec                                                             $f000,$8000    2 L                  gnu_as,m68881
+Ax,FPIAR                                                              $f000,$8000    2 L                  gnu_as,m68881
+<ea-mem>,FPspec-list                                                  $f000,$8000    2 L                  gnu_as,m68881
+
+[FMUL]
+Dx,FPx                                                                $f000,$4023    2 SBWL               m68881,cf_fpu
+<cf-ea-float>,FPx                                                     $f000,$4023    2 CFANY              cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f000,$4023    2 ANY                m68881
+FPx,FPx                                                               $f000,$0023    2 FX                 m68881
+FPx,FPx                                                               $f000,$0023    2 FD                 cf_fpu
+
+[FSMUL]
+Dx,FPx                                                                $f200,$4063    2 SBWL               m68040up,cf_fpu
+<cf-ea-float>,FPx                                                     $f200,$4063    2 CFANY              cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f200,$4063    2 ANY                m68040up
+FPx,FPx                                                               $f200,$0063    2 FX                 m68040up
+FPx,FPx                                                               $f200,$0063    2 FD                 cf_fpu
+
+[FDMUL]
+Dx,FPx                                                                $f200,$4067    2 SBWL               m68040up,cf_fpu
+<cf-ea-float>,FPx                                                     $f200,$4067    2 CFANY              cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f200,$4067    2 ANY                m68040up
+FPx,FPx                                                               $f200,$0067    2 FX                 m68040up
+FPx,FPx                                                               $f200,$0067    2 FD                 cf_fpu
+
+[FNEG]
+Dx,FPx                                                                $f000,$401a    2 SBWL               m68881,cf_fpu
+<cf-ea-float>,FPx                                                     $f000,$401a    2 CFANY              cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f000,$401a    2 ANY                m68881
+FPx,FPx                                                               $f000,$001a    2 FX                 m68881
+FPx,FPx                                                               $f000,$001a    2 FD                 cf_fpu
+FPx                                                                   $f000,$001a    2 FX                 m68881
+FPx                                                                   $f000,$001a    2 FD                 cf_fpu
+
+[FSNEG]
+Dx,FPx                                                                $f200,$405a    2 SBWL               m68040up,cf_fpu
+<cf-ea-float>,FPx                                                     $f200,$405a    2 CFANY              cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f200,$405a    2 ANY                m68040up
+FPx,FPx                                                               $f200,$005a    2 FX                 m68040up
+FPx,FPx                                                               $f200,$005a    2 FD                 cf_fpu
+FPx                                                                   $f200,$005a    2 FX                 m68040up
+FPx                                                                   $f200,$005a    2 FD                 cf_fpu
+
+[FDNEG]
+Dx,FPx                                                                $f200,$405e    2 SBWL               m68040up,cf_fpu
+<cf-ea-float>,FPx                                                     $f200,$405e    2 CFANY              cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f200,$405e    2 ANY                m68040up
+FPx,FPx                                                               $f200,$005e    2 FX                 m68040up
+FPx,FPx                                                               $f200,$005e    2 FD                 cf_fpu
+FPx                                                                   $f200,$005e    2 FX                 m68040up
+FPx                                                                   $f200,$005e    2 FD                 cf_fpu
+
+[FNOP]
+void                                                                  $f080,$0000    2 UNS                m68881,cf_fpu
+
+[FREM]
+Dx,FPx                                                                $f000,$4025    2 SBWL               m68881
+<ea-mem-fpuimm>,FPx                                                   $f000,$4025    2 ANY                m68881
+FPx,FPx                                                               $f000,$0025    2 FX                 m68881
+
+[FRESTORE]
+<cf-ea-fmovem-src>                                                    $f140,$0000    1 UNS                cf_fpu
+<ea-mem-restore>                                                      $f140,$0000    1 UNS                m68881
+
+[FSAVE]
+<cf-ea-movem>                                                         $f100,$0000    1 UNS                cf_fpu
+<ea-mem-save>                                                         $f100,$0000    1 UNS                m68881
+
+[FSCALE]
+Dx,FPx                                                                $f000,$4026    2 SBWL               m68881
+<ea-mem-fpuimm>,FPx                                                   $f000,$4026    2 ANY                m68881
+FPx,FPx                                                               $f000,$0026    2 FX                 m68881
+
+[FSF]
+<ea-data-alter>                                                       $f040,$0000    2 B                  m68881
+
+[FSEQ]
+<ea-data-alter>                                                       $f040,$0001    2 B                  m68881
+
+[FSOGT]
+<ea-data-alter>                                                       $f040,$0002    2 B                  m68881
+
+[FSOGE]
+<ea-data-alter>                                                       $f040,$0003    2 B                  m68881
+
+[FSOLT]
+<ea-data-alter>                                                       $f040,$0004    2 B                  m68881
+
+[FSOLE]
+<ea-data-alter>                                                       $f040,$0005    2 B                  m68881
+
+[FSOGL]
+<ea-data-alter>                                                       $f040,$0006    2 B                  m68881
+
+[FSOR]
+<ea-data-alter>                                                       $f040,$0007    2 B                  m68881
+
+[FSUN]
+<ea-data-alter>                                                       $f040,$0008    2 B                  m68881
+
+[FSUEQ]
+<ea-data-alter>                                                       $f040,$0009    2 B                  m68881
+
+[FSUGT]
+<ea-data-alter>                                                       $f040,$000a    2 B                  m68881
+
+[FSUGE]
+<ea-data-alter>                                                       $f040,$000b    2 B                  m68881
+
+[FSULT]
+<ea-data-alter>                                                       $f040,$000c    2 B                  m68881
+
+[FSULE]
+<ea-data-alter>                                                       $f040,$000d    2 B                  m68881
+
+[FSNE]
+<ea-data-alter>                                                       $f040,$000e    2 B                  m68881
+
+[FST]
+<ea-data-alter>                                                       $f040,$000f    2 B                  m68881
+
+[FSSF]
+<ea-data-alter>                                                       $f040,$0010    2 B                  m68881
+
+[FSSEQ]
+<ea-data-alter>                                                       $f040,$0011    2 B                  m68881
+
+[FSGT]
+<ea-data-alter>                                                       $f040,$0012    2 B                  m68881
+
+[FSGE]
+<ea-data-alter>                                                       $f040,$0013    2 B                  m68881
+
+[FSLT]
+<ea-data-alter>                                                       $f040,$0014    2 B                  m68881
+
+[FSLE]
+<ea-data-alter>                                                       $f040,$0015    2 B                  m68881
+
+[FSGL]
+<ea-data-alter>                                                       $f040,$0016    2 B                  m68881
+
+[FSGLE]
+<ea-data-alter>                                                       $f040,$0017    2 B                  m68881
+
+[FSNGLE]
+<ea-data-alter>                                                       $f040,$0018    2 B                  m68881
+
+[FSNGL]
+<ea-data-alter>                                                       $f040,$0019    2 B                  m68881
+
+[FSNLE]
+<ea-data-alter>                                                       $f040,$001a    2 B                  m68881
+
+[FSNLT]
+<ea-data-alter>                                                       $f040,$001b    2 B                  m68881
+
+[FSNGE]
+<ea-data-alter>                                                       $f040,$001c    2 B                  m68881
+
+[FSNGT]
+<ea-data-alter>                                                       $f040,$001d    2 B                  m68881
+
+[FSSNE]
+<ea-data-alter>                                                       $f040,$001e    2 B                  m68881
+
+[FSST]
+<ea-data-alter>                                                       $f040,$001f    2 B                  m68881
+
+[FSGLDIV]
+Dx,FPx                                                                $f000,$4024    2 SBWL               m68881
+<ea-mem-fpuimm>,FPx                                                   $f000,$4024    2 ANY                m68881
+FPx,FPx                                                               $f000,$0024    2 FX                 m68881
+
+[FSGLMUL]
+Dx,FPx                                                                $f000,$4027    2 SBWL               m68881
+<ea-mem-fpuimm>,FPx                                                   $f000,$4027    2 ANY                m68881
+FPx,FPx                                                               $f000,$0027    2 FX                 m68881
+
+[FSIN]
+Dx,FPx                                                                $f000,$400e    2 SBWL               m68881
+<ea-mem-fpuimm>,FPx                                                   $f000,$400e    2 ANY                m68881
+FPx,FPx                                                               $f000,$000e    2 FX                 m68881
+FPx                                                                   $f000,$000e    2 FX                 m68881
+
+[FSINCOS]
+Dx,FPx:FPx                                                            $f000,$4030    2 SBWL               m68881
+<ea-mem-fpuimm>,FPx:FPx                                               $f000,$4030    2 ANY                m68881
+FPx,FPx:FPx                                                           $f000,$0030    2 FX                 m68881
+
+[FSINH]
+Dx,FPx                                                                $f000,$4002    2 SBWL               m68881
+<ea-mem-fpuimm>,FPx                                                   $f000,$4002    2 ANY                m68881
+FPx,FPx                                                               $f000,$0002    2 FX                 m68881
+FPx                                                                   $f000,$0002    2 FX                 m68881
+
+[FSQRT]
+Dx,FPx                                                                $f000,$4004    2 SBWL               m68881,cf_fpu
+<cf-ea-float>,FPx                                                     $f000,$4004    2 CFANY              cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f000,$4004    2 ANY                m68881
+FPx,FPx                                                               $f000,$0004    2 FX                 m68881
+FPx,FPx                                                               $f000,$0004    2 FD                 cf_fpu
+FPx                                                                   $f000,$0004    2 FX                 m68881
+FPx                                                                   $f000,$0004    2 FD                 cf_fpu
+
+[FSSQRT]
+Dx,FPx                                                                $f200,$4041    2 SBWL               m68040up,cf_fpu
+<cf-ea-float>,FPx                                                     $f200,$4041    2 CFANY              cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f200,$4041    2 ANY                m68040up
+FPx,FPx                                                               $f200,$0041    2 FX                 m68040up
+FPx,FPx                                                               $f200,$0041    2 FD                 cf_fpu
+FPx                                                                   $f200,$0041    2 FX                 m68040up
+FPx                                                                   $f200,$0041    2 FD                 cf_fpu
+
+[FDSQRT]
+Dx,FPx                                                                $f200,$4045    2 SBWL               m68040up,cf_fpu
+<cf-ea-float>,FPx                                                     $f200,$4045    2 CFANY              cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f200,$4045    2 ANY                m68040up
+FPx,FPx                                                               $f200,$0045    2 FX                 m68040up
+FPx,FPx                                                               $f200,$0045    2 FD                 cf_fpu
+FPx                                                                   $f200,$0045    2 FX                 m68040up
+FPx                                                                   $f200,$0045    2 FD                 cf_fpu
+
+[FSUB]
+Dx,FPx                                                                $f000,$4028    2 SBWL               m68881,cf_fpu
+<cf-ea-float>,FPx                                                     $f000,$4028    2 CFANY              cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f000,$4028    2 ANY                m68881
+FPx,FPx                                                               $f000,$0028    2 FX                 m68881
+FPx,FPx                                                               $f000,$0028    2 FD                 cf_fpu
+
+[FSSUB]
+Dx,FPx                                                                $f200,$4068    2 SBWL               m68040up,cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f200,$4068    2 ANY                m68040up
+FPx,FPx                                                               $f200,$0068    2 FX                 m68040up
+FPx,FPx                                                               $f200,$0068    2 FD                 cf_fpu
+
+[FDSUB]
+Dx,FPx                                                                $f200,$406c    2 SBWL               m68040up,cf_fpu
+<ea-mem-fpuimm>,FPx                                                   $f200,$406c    2 ANY                m68040up
+FPx,FPx                                                               $f200,$006c    2 FX                 m68040up
+FPx,FPx                                                               $f200,$006c    2 FD                 cf_fpu
+
+[FTAN]
+Dx,FPx                                                                $f000,$400f    2 SBWL               m68881
+<ea-mem-fpuimm>,FPx                                                   $f000,$400f    2 ANY                m68881
+FPx,FPx                                                               $f000,$000f    2 FX                 m68881
+FPx                                                                   $f000,$000f    2 FX                 m68881
+
+[FTANH]
+Dx,FPx                                                                $f000,$4009    2 SBWL               m68881
+<ea-mem-fpuimm>,FPx                                                   $f000,$4009    2 ANY                m68881
+FPx,FPx                                                               $f000,$0009    2 FX                 m68881
+FPx                                                                   $f000,$0009    2 FX                 m68881
+
+[FTENTOX]
+Dx,FPx                                                                $f000,$4012    2 SBWL               m68881
+<ea-mem-fpuimm>,FPx                                                   $f000,$4012    2 ANY                m68881
+FPx,FPx                                                               $f000,$0012    2 FX                 m68881
+FPx                                                                   $f000,$0012    2 FX                 m68881
+
+[FTRAPF]
+#imm                                                                  $f078,$0000    2 WL                 m68881
+void                                                                  $f07c,$0000    2 UNS                m68881
+
+[FTRAPEQ]
+#imm                                                                  $f078,$0001    2 WL                 m68881
+void                                                                  $f07c,$0001    2 UNS                m68881
+
+[FTRAPOGT]
+#imm                                                                  $f078,$0002    2 WL                 m68881
+void                                                                  $f07c,$0002    2 UNS                m68881
+
+[FTRAPOGE]
+#imm                                                                  $f078,$0003    2 WL                 m68881
+void                                                                  $f07c,$0003    2 UNS                m68881
+
+[FTRAPOLT]
+#imm                                                                  $f078,$0004    2 WL                 m68881
+void                                                                  $f07c,$0004    2 UNS                m68881
+
+[FTRAPOLE]
+#imm                                                                  $f078,$0005    2 WL                 m68881
+void                                                                  $f07c,$0005    2 UNS                m68881
+
+[FTRAPOGL]
+#imm                                                                  $f078,$0006    2 WL                 m68881
+void                                                                  $f07c,$0006    2 UNS                m68881
+
+[FTRAPOR]
+#imm                                                                  $f078,$0007    2 WL                 m68881
+void                                                                  $f07c,$0007    2 UNS                m68881
+
+[FTRAPUN]
+#imm                                                                  $f078,$0008    2 WL                 m68881
+void                                                                  $f07c,$0008    2 UNS                m68881
+
+[FTRAPUEQ]
+#imm                                                                  $f078,$0009    2 WL                 m68881
+void                                                                  $f07c,$0009    2 UNS                m68881
+
+[FTRAPUGT]
+#imm                                                                  $f078,$000a    2 WL                 m68881
+void                                                                  $f07c,$000a    2 UNS                m68881
+
+[FTRAPUGE]
+#imm                                                                  $f078,$000b    2 WL                 m68881
+void                                                                  $f07c,$000b    2 UNS                m68881
+
+[FTRAPULT]
+#imm                                                                  $f078,$000c    2 WL                 m68881
+void                                                                  $f07c,$000c    2 UNS                m68881
+
+[FTRAPULE]
+#imm                                                                  $f078,$000d    2 WL                 m68881
+void                                                                  $f07c,$000d    2 UNS                m68881
+
+[FTRAPNE]
+#imm                                                                  $f078,$000e    2 WL                 m68881
+void                                                                  $f07c,$000e    2 UNS                m68881
+
+[FTRAPT]
+#imm                                                                  $f078,$000f    2 WL                 m68881
+void                                                                  $f07c,$000f    2 UNS                m68881
+
+[FTRAPSF]
+#imm                                                                  $f078,$0010    2 WL                 m68881
+void                                                                  $f07c,$0010    2 UNS                m68881
+
+[FTRAPSEQ]
+#imm                                                                  $f078,$0011    2 WL                 m68881
+void                                                                  $f07c,$0011    2 UNS                m68881
+
+[FTRAPGT]
+#imm                                                                  $f078,$0012    2 WL                 m68881
+void                                                                  $f07c,$0012    2 UNS                m68881
+
+[FTRAPGE]
+#imm                                                                  $f078,$0013    2 WL                 m68881
+void                                                                  $f07c,$0013    2 UNS                m68881
+
+[FTRAPLT]
+#imm                                                                  $f078,$0014    2 WL                 m68881
+void                                                                  $f07c,$0014    2 UNS                m68881
+
+[FTRAPLE]
+#imm                                                                  $f078,$0015    2 WL                 m68881
+void                                                                  $f07c,$0015    2 UNS                m68881
+
+[FTRAPGL]
+#imm                                                                  $f078,$0016    2 WL                 m68881
+void                                                                  $f07c,$0016    2 UNS                m68881
+
+[FTRAPGLE]
+#imm                                                                  $f078,$0017    2 WL                 m68881
+void                                                                  $f07c,$0017    2 UNS                m68881
+
+[FTRAPNGLE]
+#imm                                                                  $f078,$0018    2 WL                 m68881
+void                                                                  $f07c,$0018    2 UNS                m68881
+
+[FTRAPNGL]
+#imm                                                                  $f078,$0019    2 WL                 m68881
+void                                                                  $f07c,$0019    2 UNS                m68881
+
+[FTRAPNLE]
+#imm                                                                  $f078,$001a    2 WL                 m68881
+void                                                                  $f07c,$001a    2 UNS                m68881
+
+[FTRAPNLT]
+#imm                                                                  $f078,$001b    2 WL                 m68881
+void                                                                  $f07c,$001b    2 UNS                m68881
+
+[FTRAPNGE]
+#imm                                                                  $f078,$001c    2 WL                 m68881
+void                                                                  $f07c,$001c    2 UNS                m68881
+
+[FTRAPNGT]
+#imm                                                                  $f078,$001d    2 WL                 m68881
+void                                                                  $f07c,$001d    2 UNS                m68881
+
+[FTRAPSNE]
+#imm                                                                  $f078,$001e    2 WL                 m68881
+void                                                                  $f07c,$001e    2 UNS                m68881
+
+[FTRAPST]
+#imm                                                                  $f078,$001f    2 WL                 m68881
+void                                                                  $f07c,$001f    2 UNS                m68881
+
+[FTST]
+Dx                                                                    $f000,$403a    2 SBWL               m68881,cf_fpu
+<cf-ea-float>                                                         $f000,$403a    2 CFANY              cf_fpu
+<ea-mem-fpuimm>                                                       $f000,$403a    2 ANY                m68881
+FPx                                                                   $f000,$003a    2 FX                 m68881
+FPx                                                                   $f000,$003a    2 FD                 cf_fpu
+
+[FTWOTOX]
+Dx,FPx                                                                $f000,$4011    2 SBWL               m68881
+<ea-mem-fpuimm>,FPx                                                   $f000,$4011    2 ANY                m68881
+FPx,FPx                                                               $f000,$0011    2 FX                 m68881
+FPx                                                                   $f000,$0011    2 FX                 m68881
+
+[FF1]
+Dx                                                                    $04c0,$0000    1 L                  cf_isa_apl,cf_isa_c
+
+[HALT]
+void                                                                  $4ac8,$0000    1 UNS                m68060,cf
+
+[ILLEGAL]
+void                                                                  $4afc,$0000    1 UNS                m68000up,cf
+
+[INTOUCH]
+(Ax)                                                                  $f428,$0000    1 UNS                cf_isa_b,cf_isa_c
+
+[JHS]
+<dest>                                                                $6400,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6400,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JLO]
+<dest>                                                                $6500,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6500,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JHI]
+<dest>                                                                $6200,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6200,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JLS]
+<dest>                                                                $6300,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6300,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JCC]
+<dest>                                                                $6400,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6400,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JCS]
+<dest>                                                                $6500,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6500,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JNE]
+<dest>                                                                $6600,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6600,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JEQ]
+<dest>                                                                $6700,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6700,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JVC]
+<dest>                                                                $6800,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6800,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JVS]
+<dest>                                                                $6900,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6900,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JPL]
+<dest>                                                                $6a00,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6a00,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JMI]
+<dest>                                                                $6b00,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6b00,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JGE]
+<dest>                                                                $6c00,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6c00,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JLT]
+<dest>                                                                $6d00,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6d00,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JGT]
+<dest>                                                                $6e00,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6e00,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JLE]
+<dest>                                                                $6f00,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6f00,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JBHS]
+<dest>                                                                $6400,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6400,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JBLO]
+<dest>                                                                $6500,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6500,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JBHI]
+<dest>                                                                $6200,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6200,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JBLS]
+<dest>                                                                $6300,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6300,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JBCC]
+<dest>                                                                $6400,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6400,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JBCS]
+<dest>                                                                $6500,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6500,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JBNE]
+<dest>                                                                $6600,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6600,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JBEQ]
+<dest>                                                                $6700,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6700,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JBVC]
+<dest>                                                                $6800,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6800,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JBVS]
+<dest>                                                                $6900,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6900,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JBPL]
+<dest>                                                                $6a00,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6a00,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JBMI]
+<dest>                                                                $6b00,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6b00,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JBGE]
+<dest>                                                                $6c00,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6c00,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JBLT]
+<dest>                                                                $6d00,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6d00,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JBGT]
+<dest>                                                                $6e00,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6e00,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JBLE]
+<dest>                                                                $6f00,$0000    1 SBW                gnu_as,m68000up,cf
+<dest>                                                                $6f00,$0000    1 SBWL               gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[JBRA]
+<dest>                                                                $6000,$0000    1 L                  gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+<ea-control>                                                          $4ec0,$0000    1 UNS                gnu_as,m68000up,cf
+
+[JRA]
+<dest>                                                                $6000,$0000    1 L                  gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+<ea-control>                                                          $4ec0,$0000    1 UNS                gnu_as,m68000up,cf
+
+[JMP]
+<ea-control>                                                          $4ec0,$0000    1 UNS                m68000up,cf
+
+[JBSR]
+<dest>                                                                $6100,$0000    1 L                  gnu_as,m68020up,cpu32,cf_isa_b,cf_isa_c
+<ea-control>                                                          $4e80,$0000    1 UNS                gnu_as,m68000up,cf
+
+[JSR]
+<ea-control>                                                          $4e80,$0000    1 UNS                m68000up,cf
+
+[LEA]
+<ea-control>,Ax                                                       $41c0,$0000    1 L                  m68000up,cf
+
+[LINEA]
+<value>                                                               $a000,$0000    1 UNS                m68000up,cf
+
+[LINE_A]
+<value>                                                               $a000,$0000    1 UNS                m68000up,cf
+
+[LINEF]
+<value>                                                               $f000,$0000    1 UNS                m68000up,cf
+
+[LINE_F]
+<value>                                                               $f000,$0000    1 UNS                m68000up,cf
+
+[LINK]
+Ax,#imm                                                               $4e50,$0000    1 W                  m68000up,cf
+Ax,#imm                                                               $4808,$0000    1 L                  m68020up,cpu32
+
+[LPSTOP]
+#imm                                                                  $f800,$01c0    2 W                  m68060,cpu32
+
+[LSL]
+<ea-mem-alter>                                                        $e3c0,$0000    1 W                  m68000up
+Dx,Dx                                                                 $e128,$0000    1 CFBWL              m68000up,cf
+#immq,Dx                                                              $e108,$0000    1 CFBWL              m68000up,cf
+Dx                                                                    $e308,$0000    1 CFBWL              m68000up,cf
+
+[LSR]
+<ea-mem-alter>                                                        $e2c0,$0000    1 W                  m68000up
+Dx,Dx                                                                 $e028,$0000    1 CFBWL              m68000up,cf
+#immq,Dx                                                              $e008,$0000    1 CFBWL              m68000up,cf
+Dx                                                                    $e208,$0000    1 CFBWL              m68000up,cf
+
+[MOV]
+Ax,<ea-alter>                                                         $0008,$0000    1 WL                 gnu_as,m68000up,cf
+<ea-any>,Ax                                                           $0040,$0000    1 WL                 gnu_as,m68000up,cf
+<ea-data>,<ea-data-alter>                                             $0000,$0000    1 BWL                gnu_as,m68000up,cf
+CCR,Dx                                                                $42c0,$0000    1 W                  gnu_as,m68010up,cf
+CCR,<ea-data-alter>                                                   $42c0,$0000    1 W                  gnu_as,m68010up
+SR,Dx                                                                 $40c0,$0000    1 W                  gnu_as,m68000up,cf
+SR,<ea-data-alter>                                                    $40c0,$0000    1 W                  gnu_as,m68000up
+Dx,CCR                                                                $44c0,$0000    1 W                  gnu_as,m68000up,cf
+#imm,CCR                                                              $44c0,$0000    1 W                  gnu_as,m68000up,cf
+<ea-data>,CCR                                                         $44c0,$0000    1 W                  gnu_as,m68000up
+Dx,SR                                                                 $46c0,$0000    1 W                  gnu_as,m68000up,cf
+#imm,SR                                                               $46c0,$0000    1 W                  gnu_as,m68000up,cf
+<ea-data>,SR                                                          $46c0,$0000    1 W                  gnu_as,m68000up
+USP,Ax                                                                $4e68,$0000    1 L                  gnu_as,m68000up,cf_usp
+Ax,USP                                                                $4e60,$0000    1 L                  gnu_as,m68000up,cf_usp
+
+[MOV3Q]
+#immq,<ea-alter>                                                      $a140,$0000    1 L                  cf_isa_b,cf_isa_c
+
+[MOVE]
+Ax,<ea-alter>                                                         $0008,$0000    1 WL                 m68000up,cf
+<ea-any>,Ax                                                           $0040,$0000    1 WL                 m68000up,cf
+<ea-data>,<ea-data-alter>                                             $0000,$0000    1 BWL                m68000up,cf
+CCR,Dx                                                                $42c0,$0000    1 W                  m68010up,cf
+CCR,<ea-data-alter>                                                   $42c0,$0000    1 W                  m68010up
+SR,Dx                                                                 $40c0,$0000    1 W                  m68000up,cf
+SR,<ea-data-alter>                                                    $40c0,$0000    1 W                  m68000up
+Dx,CCR                                                                $44c0,$0000    1 W                  m68000up,cf
+#imm,CCR                                                              $44c0,$0000    1 W                  m68000up,cf
+<ea-data>,CCR                                                         $44c0,$0000    1 W                  m68000up
+Dx,SR                                                                 $46c0,$0000    1 W                  m68000up,cf
+#imm,SR                                                               $46c0,$0000    1 W                  m68000up,cf
+<ea-data>,SR                                                          $46c0,$0000    1 W                  m68000up
+USP,Ax                                                                $4e68,$0000    1 L                  m68000up,cf_usp
+Ax,USP                                                                $4e60,$0000    1 L                  m68000up,cf_usp
+
+[MOVEA]
+<ea-any>,Ax                                                           $0040,$0000    1 WL                 m68000up,cf
+
+[MOVEC]
+CTRL,Rx                                                               $4e7a,$0000    2 L                  m68010up
+Rx,CTRL                                                               $4e7b,$0000    2 L                  m68010up,cf
+
+[MOVEM]
+Dx-Ax,-(Ax)                                                           $4880,$0000    2 WL                 m68000up
+Dx-Ax,<cf-ea-movem>                                                   $4880,$0000    2 CFWL               cf
+Dx-Ax,<ea-control-alter>                                              $4880,$0000    2 WL                 m68000up
+<cf-ea-movem>,Dx-Ax                                                   $4c80,$0000    2 CFWL               cf
+<ea-mem-restore>,Dx-Ax                                                $4c80,$0000    2 WL                 m68000up
+#immregs,-(Ax)                                                        $4880,$0000    2 WL                 m68000up
+#immregs,<cf-ea-movem>                                                $4880,$0000    2 CFWL               cf
+#immregs,<ea-control-alter>                                           $4880,$0000    2 WL                 m68000up
+<cf-ea-movem>,#immregs                                                $4c80,$0000    2 CFWL               cf
+<ea-mem-restore>,#immregs                                             $4c80,$0000    2 WL                 m68000up
+
+[MOVEP]
+<ea-movep>,Dx                                                         $0108,$0000    1 WL                 m68000up
+Dx,<ea-movep>                                                         $0188,$0000    1 WL                 m68000up
+
+[MOVEQ]
+#immq,Dx                                                              $7000,$0000    1 L                  m68000up,cf
+
+[MOVES]
+<ea-mem-alter>,Rx                                                     $0e00,$0000    2 BWL                m68010up
+Rx,<ea-mem-alter>                                                     $0e00,$0800    2 BWL                m68010up
+
+[MOVE16]
+(Ax)+,(Ax)+                                                           $f620,$8000    2 UNS                m68040up
+(Ax)+,<addr>                                                          $f600,$0000    1 UNS                m68040up
+<addr>,(Ax)+                                                          $f608,$0000    1 UNS                m68040up
+(Ax),<addr>                                                           $f610,$0000    1 UNS                m68040up
+<addr>,(Ax)                                                           $f618,$0000    1 UNS                m68040up
+
+[MOVM]
+Dx-Ax,-(Ax)                                                           $4880,$0000    2 WL                 gnu_as,m68000up
+Dx-Ax,<cf-ea-movem>                                                   $4880,$0000    2 CFWL               gnu_as,m68000up,cf
+Dx-Ax,<ea-control-alter>                                              $4880,$0000    2 WL                 gnu_as,m68000up
+<cf-ea-movem>,Dx-Ax                                                   $4c80,$0000    2 CFWL               gnu_as,m68000up,cf
+<ea-mem-restore>,Dx-Ax                                                $4c80,$0000    2 WL                 gnu_as,m68000up
+#immregs,-(Ax)                                                        $4880,$0000    2 WL                 gnu_as,m68000up
+#immregs,<cf-ea-movem>                                                $4880,$0000    2 CFWL               gnu_as,m68000up,cf
+#immregs,<ea-control-alter>                                           $4880,$0000    2 WL                 gnu_as,m68000up
+<cf-ea-movem>,#immregs                                                $4c80,$0000    2 CFWL               gnu_as,m68000up,cf
+<ea-mem-restore>,#immregs                                             $4c80,$0000    2 WL                 gnu_as,m68000up
+
+[MULS]
+<cf-ea-data-alter>,Dx                                                 $c1c0,$0000    1 W                  m68000up,cf
+<cf-ea-data-alter>,Dx                                                 $4c00,$0800    2 L                  m68020up,cpu32,cf
+<ea-data>,Dx                                                          $c1c0,$0000    1 W                  m68000up,cf
+<ea-data>,Dx                                                          $4c00,$0800    2 L                  m68020up,cpu32
+<ea-data>,Dx:Dx                                                       $4c00,$0c00    2 L                  m68020up,cpu32
+
+[MULU]
+<cf-ea-data-alter>,Dx                                                 $c0c0,$0000    1 W                  m68000up,cf
+<cf-ea-data-alter>,Dx                                                 $4c00,$0000    2 L                  m68020up,cpu32,cf
+<ea-data>,Dx                                                          $c0c0,$0000    1 W                  m68000up,cf
+<ea-data>,Dx                                                          $4c00,$0000    2 L                  m68020up,cpu32
+<ea-data>,Dx:Dx                                                       $4c00,$0400    2 L                  m68020up,cpu32
+
+[MVS]
+<ea-any>,Dx                                                           $7100,$0000    1 BW                 cf_isa_b,cf_isa_c
+
+[MVZ]
+<ea-any>,Dx                                                           $7180,$0000    1 BW                 cf_isa_b,cf_isa_c
+
+[NBCD]
+<ea-data-alter>                                                       $4800,$0000    1 B                  m68000up
+
+[NEG]
+Dx                                                                    $4400,$0000    1 CFBWL              m68000up,cf
+<ea-data-alter>                                                       $4400,$0000    1 BWL                m68000up
+
+[NEGX]
+Dx                                                                    $4000,$0000    1 CFBWL              m68000up,cf
+<ea-data-alter>                                                       $4000,$0000    1 BWL                m68000up
+
+[NOP]
+void                                                                  $4e71,$0000    1 UNS                m68000up,cf
+
+[NOT]
+Dx                                                                    $4600,$0000    1 CFBWL              m68000up,cf
+<ea-data-alter>                                                       $4600,$0000    1 BWL                m68000up
+
+[OR]
+<ea-data>,Dx                                                          $8000,$0000    1 CFBWL              m68000up,cf
+Dx,<ea-mem-alter>                                                     $8100,$0000    1 CFBWL              m68000up,cf
+#imm,<ea-data-alter>                                                  $0000,$0000    1 BWL                m68000up
+#imm,CCR                                                              $003c,$0000    1 B                  m68000up
+#imm,SR                                                               $007c,$0000    1 W                  m68000up
+
+[ORI]
+#imm,Dx                                                               $0000,$0000    1 CFBWL              m68000up,cf
+#imm,<ea-data-alter>                                                  $0000,$0000    1 BWL                m68000up
+#imm,CCR                                                              $003c,$0000    1 B                  m68000up
+#imm,SR                                                               $007c,$0000    1 W                  m68000up
+
+[PACK]
+Dx,Dx,#immq                                                           $8140,$0000    2 UNS                m68020up
+-(Ax),-(Ax),#immq                                                     $8148,$0000    2 UNS                m68020up
+
+[PBBS]
+<dest>                                                                $f080,$0000    1 WL                 m68851
+
+[PBBC]
+<dest>                                                                $f081,$0000    1 WL                 m68851
+
+[PBLS]
+<dest>                                                                $f082,$0000    1 WL                 m68851
+
+[PBLC]
+<dest>                                                                $f083,$0000    1 WL                 m68851
+
+[PBSS]
+<dest>                                                                $f084,$0000    1 WL                 m68851
+
+[PBSC]
+<dest>                                                                $f085,$0000    1 WL                 m68851
+
+[PBAS]
+<dest>                                                                $f086,$0000    1 WL                 m68851
+
+[PBAC]
+<dest>                                                                $f087,$0000    1 WL                 m68851
+
+[PBWS]
+<dest>                                                                $f088,$0000    1 WL                 m68851
+
+[PBWC]
+<dest>                                                                $f089,$0000    1 WL                 m68851
+
+[PBIS]
+<dest>                                                                $f08a,$0000    1 WL                 m68851
+
+[PBIC]
+<dest>                                                                $f08b,$0000    1 WL                 m68851
+
+[PBGS]
+<dest>                                                                $f08c,$0000    1 WL                 m68851
+
+[PBGC]
+<dest>                                                                $f08d,$0000    1 WL                 m68851
+
+[PBCS]
+<dest>                                                                $f08e,$0000    1 WL                 m68851
+
+[PBCC]
+<dest>                                                                $f08f,$0000    1 WL                 m68851
+
+[PDBBS]
+Dx,<dest>                                                             $f048,$0000    2 W                  m68851
+
+[PDBBC]
+Dx,<dest>                                                             $f048,$0001    2 W                  m68851
+
+[PDBLS]
+Dx,<dest>                                                             $f048,$0002    2 W                  m68851
+
+[PDBLC]
+Dx,<dest>                                                             $f048,$0003    2 W                  m68851
+
+[PDBSS]
+Dx,<dest>                                                             $f048,$0004    2 W                  m68851
+
+[PDBSC]
+Dx,<dest>                                                             $f048,$0005    2 W                  m68851
+
+[PDBAS]
+Dx,<dest>                                                             $f048,$0006    2 W                  m68851
+
+[PDBAC]
+Dx,<dest>                                                             $f048,$0007    2 W                  m68851
+
+[PDBWS]
+Dx,<dest>                                                             $f048,$0008    2 W                  m68851
+
+[PDBWC]
+Dx,<dest>                                                             $f048,$0009    2 W                  m68851
+
+[PDBIS]
+Dx,<dest>                                                             $f048,$000a    2 W                  m68851
+
+[PDBIC]
+Dx,<dest>                                                             $f048,$000b    2 W                  m68851
+
+[PDBGS]
+Dx,<dest>                                                             $f048,$000c    2 W                  m68851
+
+[PDBGC]
+Dx,<dest>                                                             $f048,$000d    2 W                  m68851
+
+[PDBCS]
+Dx,<dest>                                                             $f048,$000e    2 W                  m68851
+
+[PDBCC]
+Dx,<dest>                                                             $f048,$000f    2 W                  m68851
+
+[PEA]
+<ea-control>                                                          $4840,$0000    1 L                  m68000up,cf
+
+[PFLUSH]
+(Ax)                                                                  $f508,$0000    1 UNS                m68040up
+#immq,#immq                                                           $f000,$3010    2 UNS                m68030
+#immq,#immq                                                           $f000,$3010    2 UNS                m68851
+Dx,#immq                                                              $f000,$3008    2 UNS                m68030
+Dx,#immq                                                              $f000,$3008    2 UNS                m68851
+FC,#immq                                                              $f000,$3000    2 UNS                m68030
+FC,#immq                                                              $f000,$3000    2 UNS                m68851
+#immq,#immq,<ea-control-alter>                                        $f000,$3810    2 UNS                m68030
+#immq,#immq,<ea-control-alter>                                        $f000,$3810    2 UNS                m68851
+Dx,#immq,<ea-control-alter>                                           $f000,$3808    2 UNS                m68030
+Dx,#immq,<ea-control-alter>                                           $f000,$3808    2 UNS                m68851
+FC,#immq,<ea-control-alter>                                           $f000,$3800    2 UNS                m68030
+FC,#immq,<ea-control-alter>                                           $f000,$3800    2 UNS                m68851
+
+[PFLUSHA]
+void                                                                  $f518,$0000    1 UNS                m68040up
+void                                                                  $f000,$2400    2 UNS                m68030,m68851
+
+[PFLUSHAN]
+void                                                                  $f510,$0000    1 UNS                m68040up
+
+[PFLUSHN]
+(Ax)                                                                  $f500,$0000    1 UNS                m68040up
+
+[PFLUSHR]
+<ea-mem>                                                              $f000,$a000    2 UNS                m68851
+
+[PFLUSHS]
+#immq,#immq                                                           $f000,$3410    2 UNS                m68851
+Dx,#immq                                                              $f000,$3408    2 UNS                m68851
+FC,#immq                                                              $f000,$3400    2 UNS                m68851
+#immq,#immq,<ea-control-alter>                                        $f000,$3c10    2 UNS                m68851
+Dx,#immq,<ea-control-alter>                                           $f000,$3c08    2 UNS                m68851
+FC,#immq,<ea-control-alter>                                           $f000,$3c00    2 UNS                m68851
+
+[PLOADR]
+#immq,<ea-control-alter>                                              $f000,$2210    2 UNS                m68030
+#immq,<ea-control-alter>                                              $f000,$2210    2 UNS                m68851
+Dx,<ea-control-alter>                                                 $f000,$2208    2 UNS                m68030,m68851
+FC,<ea-control-alter>                                                 $f000,$2200    2 UNS                m68030,m68851
+
+[PLOADW]
+#immq,<ea-control-alter>                                              $f000,$2010    2 UNS                m68030
+#immq,<ea-control-alter>                                              $f000,$2010    2 UNS                m68851
+Dx,<ea-control-alter>                                                 $f000,$2008    2 UNS                m68030,m68851
+FC,<ea-control-alter>                                                 $f000,$2000    2 UNS                m68030,m68851
+
+[PLPAR]
+(Ax)                                                                  $f5c8,$0000    1 UNS                m68060
+
+[PLPAW]
+(Ax)                                                                  $f588,$0000    1 UNS                m68060
+
+[PMOVE]
+<ea-control-alter>,RP_030                                             $f000,$4000    2 Q                  m68030,m68851
+<ea-mem-imm64>,RP_851                                                 $f000,$4000    2 Q                  m68851
+<ea-control-alter>,TC                                                 $f000,$4000    2 L                  m68030,m68851
+<ea-any>,TC                                                           $f000,$4000    2 L                  m68851
+<ea-any>,<ea-control-alter>                                           $f000,$4000    2 W                  m68851
+<ea-any>,M1_B                                                         $f000,$4000    2 B                  m68851
+<ea-any>,BAD                                                          $f000,$7000    2 W                  m68851
+<ea-any>,BAC                                                          $f000,$7400    2 W                  m68851
+<ea-control-alter>,PSR                                                $f000,$6000    2 W                  m68030,m68851
+<ea-any>,PSR                                                          $f000,$6000    2 W                  m68851
+<ea-control-alter>,TT                                                 $f000,$0000    2 L                  m68030
+RP_030,<ea-control-alter>                                             $f000,$4200    2 Q                  m68030,m68851
+RP_851,<ea-control-alter>                                             $f000,$4200    2 Q                  m68851
+TC,<ea-control-alter>                                                 $f000,$4200    2 L                  m68030,m68851
+TC,<ea-any>                                                           $f000,$4200    2 L                  m68851
+<ea-control-alter>,<ea-any>                                           $f000,$4200    2 W                  m68851
+M1_B,<ea-any>                                                         $f000,$4200    2 B                  m68851
+BAD,<ea-any>                                                          $f000,$7200    2 W                  m68851
+BAC,<ea-any>                                                          $f000,$7600    2 W                  m68851
+PSR,<ea-control-alter>                                                $f000,$6200    2 W                  m68030,m68851
+PCSR,<ea-alter>                                                       $f000,$6200    2 W                  m68851
+TT,<ea-control-alter>                                                 $f000,$0200    2 L                  m68030
+
+[PMOVEFD]
+<ea-control-alter>,RP_030                                             $f000,$4100    2 Q                  m68030
+<ea-control-alter>,TC                                                 $f000,$4100    2 L                  m68030
+<ea-control-alter>,TT                                                 $f000,$0100    2 L                  m68030
+
+[PRESTORE]
+<ea-mem-restore>                                                      $f140,$0000    1 UNS                m68851
+
+[PSAVE]
+<ea-mem-save>                                                         $f100,$0000    1 UNS                m68851
+
+[PSBS]
+<ea-data-alter>                                                       $f040,$0000    2 B                  m68851
+
+[PSBC]
+<ea-data-alter>                                                       $f040,$0001    2 B                  m68851
+
+[PSLS]
+<ea-data-alter>                                                       $f040,$0002    2 B                  m68851
+
+[PSLC]
+<ea-data-alter>                                                       $f040,$0003    2 B                  m68851
+
+[PSSS]
+<ea-data-alter>                                                       $f040,$0004    2 B                  m68851
+
+[PSSC]
+<ea-data-alter>                                                       $f040,$0005    2 B                  m68851
+
+[PSAS]
+<ea-data-alter>                                                       $f040,$0006    2 B                  m68851
+
+[PSAC]
+<ea-data-alter>                                                       $f040,$0007    2 B                  m68851
+
+[PSWS]
+<ea-data-alter>                                                       $f040,$0008    2 B                  m68851
+
+[PSWC]
+<ea-data-alter>                                                       $f040,$0009    2 B                  m68851
+
+[PSIS]
+<ea-data-alter>                                                       $f040,$000a    2 B                  m68851
+
+[PSIC]
+<ea-data-alter>                                                       $f040,$000b    2 B                  m68851
+
+[PSGS]
+<ea-data-alter>                                                       $f040,$000c    2 B                  m68851
+
+[PSGC]
+<ea-data-alter>                                                       $f040,$000d    2 B                  m68851
+
+[PSCS]
+<ea-data-alter>                                                       $f040,$000e    2 B                  m68851
+
+[PSCC]
+<ea-data-alter>                                                       $f040,$000f    2 B                  m68851
+
+[PTESTR]
+(Ax)                                                                  $f568,$0000    1 UNS                m68040
+#immq,<ea-control-alter>,#immq                                        $f000,$8210    2 UNS                m68030
+#immq,<ea-control-alter>,#immq                                        $f000,$8210    2 UNS                m68851
+Dx,<ea-control-alter>,#immq                                           $f000,$8208    2 UNS                m68030,m68851
+FC,<ea-control-alter>,#immq                                           $f000,$8200    2 UNS                m68030,m68851
+#immq,<ea-control-alter>,#immq,Ax                                     $f000,$8310    2 UNS                m68030
+#immq,<ea-control-alter>,#immq,Ax                                     $f000,$8310    2 UNS                m68851
+Dx,<ea-control-alter>,#immq,Ax                                        $f000,$8308    2 UNS                m68030,m68851
+FC,<ea-control-alter>,#immq,Ax                                        $f000,$8300    2 UNS                m68030,m68851
+
+[PTESTW]
+(Ax)                                                                  $f548,$0000    1 UNS                m68040
+#immq,<ea-control-alter>,#immq                                        $f000,$8010    2 UNS                m68030
+#immq,<ea-control-alter>,#immq                                        $f000,$8010    2 UNS                m68851
+Dx,<ea-control-alter>,#immq                                           $f000,$8008    2 UNS                m68030,m68851
+FC,<ea-control-alter>,#immq                                           $f000,$8000    2 UNS                m68030,m68851
+#immq,<ea-control-alter>,#immq,Ax                                     $f000,$8110    2 UNS                m68030
+#immq,<ea-control-alter>,#immq,Ax                                     $f000,$8110    2 UNS                m68851
+Dx,<ea-control-alter>,#immq,Ax                                        $f000,$8108    2 UNS                m68030,m68851
+FC,<ea-control-alter>,#immq,Ax                                        $f000,$8100    2 UNS                m68030,m68851
+
+[PTRAPBS]
+#imm                                                                  $f078,$0000    2 WL                 m68851
+void                                                                  $f07c,$0000    2 UNS                m68851
+
+[PTRAPBC]
+#imm                                                                  $f078,$0001    2 WL                 m68851
+void                                                                  $f07c,$0001    2 UNS                m68851
+
+[PTRAPLS]
+#imm                                                                  $f078,$0002    2 WL                 m68851
+void                                                                  $f07c,$0002    2 UNS                m68851
+
+[PTRAPLC]
+#imm                                                                  $f078,$0003    2 WL                 m68851
+void                                                                  $f07c,$0003    2 UNS                m68851
+
+[PTRAPSS]
+#imm                                                                  $f078,$0004    2 WL                 m68851
+void                                                                  $f07c,$0004    2 UNS                m68851
+
+[PTRAPSC]
+#imm                                                                  $f078,$0005    2 WL                 m68851
+void                                                                  $f07c,$0005    2 UNS                m68851
+
+[PTRAPAS]
+#imm                                                                  $f078,$0006    2 WL                 m68851
+void                                                                  $f07c,$0006    2 UNS                m68851
+
+[PTRAPAC]
+#imm                                                                  $f078,$0007    2 WL                 m68851
+void                                                                  $f07c,$0007    2 UNS                m68851
+
+[PTRAPWS]
+#imm                                                                  $f078,$0008    2 WL                 m68851
+void                                                                  $f07c,$0008    2 UNS                m68851
+
+[PTRAPWC]
+#imm                                                                  $f078,$0009    2 WL                 m68851
+void                                                                  $f07c,$0009    2 UNS                m68851
+
+[PTRAPIS]
+#imm                                                                  $f078,$000a    2 WL                 m68851
+void                                                                  $f07c,$000a    2 UNS                m68851
+
+[PTRAPIC]
+#imm                                                                  $f078,$000b    2 WL                 m68851
+void                                                                  $f07c,$000b    2 UNS                m68851
+
+[PTRAPGS]
+#imm                                                                  $f078,$000c    2 WL                 m68851
+void                                                                  $f07c,$000c    2 UNS                m68851
+
+[PTRAPGC]
+#imm                                                                  $f078,$000d    2 WL                 m68851
+void                                                                  $f07c,$000d    2 UNS                m68851
+
+[PTRAPCS]
+#imm                                                                  $f078,$000e    2 WL                 m68851
+void                                                                  $f07c,$000e    2 UNS                m68851
+
+[PTRAPCC]
+#imm                                                                  $f078,$000f    2 WL                 m68851
+void                                                                  $f07c,$000f    2 UNS                m68851
+
+[PULSE]
+void                                                                  $4acc,$0000    1 UNS                m68060,cf
+
+[PVALID]
+VAL,<ea-control-alter>                                                $f000,$2800    2 L                  m68851
+Ax,<ea-control-alter>                                                 $f000,$2c00    2 L                  m68851
+
+[REMS]
+<cf-ea-data-alter>,Dx:Dx                                              $4c40,$0800    2 L                  cf_hwdiv
+
+[REMU]
+<cf-ea-data-alter>,Dx:Dx                                              $4c40,$0000    2 L                  cf_hwdiv
+
+[RESET]
+void                                                                  $4e70,$0000    1 UNS                m68000up
+
+[ROL]
+<ea-mem-alter>                                                        $e7c0,$0000    1 W                  m68000up
+Dx,Dx                                                                 $e138,$0000    1 BWL                m68000up
+#immq,Dx                                                              $e118,$0000    1 BWL                m68000up
+Dx                                                                    $e318,$0000    1 BWL                m68000up
+
+[ROR]
+<ea-mem-alter>                                                        $e6c0,$0000    1 W                  m68000up
+Dx,Dx                                                                 $e038,$0000    1 BWL                m68000up
+#immq,Dx                                                              $e018,$0000    1 BWL                m68000up
+Dx                                                                    $e218,$0000    1 BWL                m68000up
+
+[ROXL]
+<ea-mem-alter>                                                        $e5c0,$0000    1 W                  m68000up
+Dx,Dx                                                                 $e130,$0000    1 BWL                m68000up
+#immq,Dx                                                              $e110,$0000    1 BWL                m68000up
+Dx                                                                    $e310,$0000    1 BWL                m68000up
+
+[ROXR]
+<ea-mem-alter>                                                        $e4c0,$0000    1 W                  m68000up
+Dx,Dx                                                                 $e030,$0000    1 BWL                m68000up
+#immq,Dx                                                              $e010,$0000    1 BWL                m68000up
+Dx                                                                    $e210,$0000    1 BWL                m68000up
+
+[RTD]
+#immq                                                                 $4e74,$0000    2 UNS                m68010up
+
+[RTE]
+void                                                                  $4e73,$0000    1 UNS                m68000up,cf
+
+[RTM]
+Rx                                                                    $06c0,$0000    1 UNS                m68020
+
+[RTR]
+void                                                                  $4e77,$0000    1 UNS                m68000up
+
+[RTS]
+void                                                                  $4e75,$0000    1 UNS                m68000up,cf
+
+[SATS]
+Dx                                                                    $4c80,$0000    1 L                  cf_isa_b,cf_isa_c
+
+[SBCD]
+Dx,Dx                                                                 $8100,$0000    1 B                  m68000up
+-(Ax),-(Ax)                                                           $8108,$0000    1 B                  m68000up
+
+[ST]
+Dx                                                                    $50c0,$0000    1 B                  m68000up,cf
+<ea-data-alter>                                                       $50c0,$0000    1 B                  m68000up
+
+[SF]
+Dx                                                                    $51c0,$0000    1 B                  m68000up,cf
+<ea-data-alter>                                                       $51c0,$0000    1 B                  m68000up
+
+[SHI]
+Dx                                                                    $52c0,$0000    1 B                  m68000up,cf
+<ea-data-alter>                                                       $52c0,$0000    1 B                  m68000up
+
+[SLS]
+Dx                                                                    $53c0,$0000    1 B                  m68000up,cf
+<ea-data-alter>                                                       $53c0,$0000    1 B                  m68000up
+
+[SCC]
+Dx                                                                    $54c0,$0000    1 B                  m68000up,cf
+<ea-data-alter>                                                       $54c0,$0000    1 B                  m68000up
+
+[SHS]
+Dx                                                                    $54c0,$0000    1 B                  m68000up,cf
+<ea-data-alter>                                                       $54c0,$0000    1 B                  m68000up
+
+[SCS]
+Dx                                                                    $55c0,$0000    1 B                  m68000up,cf
+<ea-data-alter>                                                       $55c0,$0000    1 B                  m68000up
+
+[SLO]
+Dx                                                                    $55c0,$0000    1 B                  m68000up,cf
+<ea-data-alter>                                                       $55c0,$0000    1 B                  m68000up
+
+[SNE]
+Dx                                                                    $56c0,$0000    1 B                  m68000up,cf
+<ea-data-alter>                                                       $56c0,$0000    1 B                  m68000up
+
+[SEQ]
+Dx                                                                    $57c0,$0000    1 B                  m68000up,cf
+<ea-data-alter>                                                       $57c0,$0000    1 B                  m68000up
+
+[SVC]
+Dx                                                                    $58c0,$0000    1 B                  m68000up,cf
+<ea-data-alter>                                                       $58c0,$0000    1 B                  m68000up
+
+[SVS]
+Dx                                                                    $59c0,$0000    1 B                  m68000up,cf
+<ea-data-alter>                                                       $59c0,$0000    1 B                  m68000up
+
+[SPL]
+Dx                                                                    $5ac0,$0000    1 B                  m68000up,cf
+<ea-data-alter>                                                       $5ac0,$0000    1 B                  m68000up
+
+[SMI]
+Dx                                                                    $5bc0,$0000    1 B                  m68000up,cf
+<ea-data-alter>                                                       $5bc0,$0000    1 B                  m68000up
+
+[SGE]
+Dx                                                                    $5cc0,$0000    1 B                  m68000up,cf
+<ea-data-alter>                                                       $5cc0,$0000    1 B                  m68000up
+
+[SLT]
+Dx                                                                    $5dc0,$0000    1 B                  m68000up,cf
+<ea-data-alter>                                                       $5dc0,$0000    1 B                  m68000up
+
+[SGT]
+Dx                                                                    $5ec0,$0000    1 B                  m68000up,cf
+<ea-data-alter>                                                       $5ec0,$0000    1 B                  m68000up
+
+[SLE]
+Dx                                                                    $5fc0,$0000    1 B                  m68000up,cf
+<ea-data-alter>                                                       $5fc0,$0000    1 B                  m68000up
+
+[STOP]
+#immq                                                                 $4e72,$0000    2 UNS                m68000up,cf
+
+[STRLDSR]
+#imm                                                                  $40e7,$46fc    2 W                  cf_isa_apl,cf_isa_c
+
+[SUB]
+<ea-data>,Dx                                                          $9000,$0000    1 CFBWL              m68000up,cf
+Ax,Dx                                                                 $9000,$0000    1 CFWL               m68000up,cf
+Dx,<ea-mem-alter>                                                     $9100,$0000    1 CFBWL              m68000up,cf
+<ea-any>,Ax                                                           $90c0,$0000    1 CFWL               m68000up,cf
+#imm,<ea-data-alter>                                                  $0400,$0000    1 BWL                m68000up
+
+[SUBA]
+<ea-any>,Ax                                                           $90c0,$0000    1 CFWL               m68000up,cf
+
+[SUBI]
+#imm,Dx                                                               $0400,$0000    1 CFBWL              m68000up,cf
+#imm,<ea-data-alter>                                                  $0400,$0000    1 BWL                m68000up
+
+[SUBQ]
+#immq,Ax                                                              $5100,$0000    1 CFWL               m68000up,cf
+#immq,<ea-data-alter>                                                 $5100,$0000    1 CFBWL              m68000up,cf
+
+[SUBX]
+Dx,Dx                                                                 $9100,$0000    1 CFBWL              m68000up,cf
+-(Ax),-(Ax)                                                           $9108,$0000    1 BWL                m68000up
+
+[SWAP]
+Dx                                                                    $4840,$0000    1 W                  m68000up,cf
+
+[TAS]
+<ea-data-alter>                                                       $4ac0,$0000    1 B                  m68000up,cf_isa_b,cf_isa_c
+
+[TBLS]
+<ea-control>,Dx                                                       $f800,$0900    2 BWL                cpu32
+Dx:Dx,Dx                                                              $f800,$0800    2 BWL                cpu32
+
+[TBLSN]
+<ea-control>,Dx                                                       $f800,$0d00    2 BWL                cpu32
+Dx:Dx,Dx                                                              $f800,$0c00    2 BWL                cpu32
+
+[TBLU]
+<ea-control>,Dx                                                       $f800,$0100    2 BWL                cpu32
+Dx:Dx,Dx                                                              $f800,$0000    2 BWL                cpu32
+
+[TBLUN]
+<ea-control>,Dx                                                       $f800,$0500    2 BWL                cpu32
+Dx:Dx,Dx                                                              $f800,$0400    2 BWL                cpu32
+
+[TPF]
+#imm                                                                  $51f8,$0000    1 WL                 cf
+void                                                                  $51fc,$0000    1 UNS                cf
+
+[TRAP]
+#immq                                                                 $4e40,$0000    1 UNS                m68000up,cf
+
+[TRAPV]
+void                                                                  $4e76,$0000    1 UNS                m68000up
+
+[TRAPT]
+#imm                                                                  $50f8,$0000    1 WL                 m68020up,cpu32
+void                                                                  $50fc,$0000    1 UNS                m68020up,cpu32
+
+[TRAPF]
+#imm                                                                  $51f8,$0000    1 WL                 m68020up,cpu32,cf
+void                                                                  $51fc,$0000    1 UNS                m68020up,cpu32,cf
+
+[TRAPHI]
+#imm                                                                  $52f8,$0000    1 WL                 m68020up,cpu32
+void                                                                  $52fc,$0000    1 UNS                m68020up,cpu32
+
+[TRAPLS]
+#imm                                                                  $53f8,$0000    1 WL                 m68020up,cpu32
+void                                                                  $53fc,$0000    1 UNS                m68020up,cpu32
+
+[TRAPCC]
+#imm                                                                  $54f8,$0000    1 WL                 m68020up,cpu32
+void                                                                  $54fc,$0000    1 UNS                m68020up,cpu32
+
+[TRAPHS]
+#imm                                                                  $54f8,$0000    1 WL                 m68020up,cpu32
+void                                                                  $54fc,$0000    1 UNS                m68020up,cpu32
+
+[TRAPCS]
+#imm                                                                  $55f8,$0000    1 WL                 m68020up,cpu32
+void                                                                  $55fc,$0000    1 UNS                m68020up,cpu32
+
+[TRAPLO]
+#imm                                                                  $55f8,$0000    1 WL                 m68020up,cpu32
+void                                                                  $55fc,$0000    1 UNS                m68020up,cpu32
+
+[TRAPNE]
+#imm                                                                  $56f8,$0000    1 WL                 m68020up,cpu32
+void                                                                  $56fc,$0000    1 UNS                m68020up,cpu32
+
+[TRAPEQ]
+#imm                                                                  $57f8,$0000    1 WL                 m68020up,cpu32
+void                                                                  $57fc,$0000    1 UNS                m68020up,cpu32
+
+[TRAPVC]
+#imm                                                                  $58f8,$0000    1 WL                 m68020up,cpu32
+void                                                                  $58fc,$0000    1 UNS                m68020up,cpu32
+
+[TRAPVS]
+#imm                                                                  $59f8,$0000    1 WL                 m68020up,cpu32
+void                                                                  $59fc,$0000    1 UNS                m68020up,cpu32
+
+[TRAPPL]
+#imm                                                                  $5af8,$0000    1 WL                 m68020up,cpu32
+void                                                                  $5afc,$0000    1 UNS                m68020up,cpu32
+
+[TRAPMI]
+#imm                                                                  $5bf8,$0000    1 WL                 m68020up,cpu32
+void                                                                  $5bfc,$0000    1 UNS                m68020up,cpu32
+
+[TRAPGE]
+#imm                                                                  $5cf8,$0000    1 WL                 m68020up,cpu32
+void                                                                  $5cfc,$0000    1 UNS                m68020up,cpu32
+
+[TRAPLT]
+#imm                                                                  $5df8,$0000    1 WL                 m68020up,cpu32
+void                                                                  $5dfc,$0000    1 UNS                m68020up,cpu32
+
+[TRAPGT]
+#imm                                                                  $5ef8,$0000    1 WL                 m68020up,cpu32
+void                                                                  $5efc,$0000    1 UNS                m68020up,cpu32
+
+[TRAPLE]
+#imm                                                                  $5ff8,$0000    1 WL                 m68020up,cpu32
+void                                                                  $5ffc,$0000    1 UNS                m68020up,cpu32
+
+[TST]
+<ea-data-alter>                                                       $4a00,$0000    1 BWL                m68000up,cf
+<ea-data>                                                             $4a00,$0000    1 BWL                m68020up,cpu32,cf
+Ax                                                                    $4a00,$0000    1 WL                 m68020up,cpu32,cf
+
+[UNLK]
+Ax                                                                    $4e58,$0000    1 UNS                m68000up,cf
+
+[UNPK]
+Dx,Dx,#immq                                                           $8180,$0000    2 UNS                m68020up
+-(Ax),-(Ax),#immq                                                     $8188,$0000    2 UNS                m68020up
+
+[WDDATA]
+<ea-mem-alter>                                                        $fb00,$0000    1 BWL                cf
+
+[WDEBUG]
+<cf-ea-movem>                                                         $fbc0,$0003    2 L                  cf
+
+[BXX]
+<dest>                                                                $0000,$0000    0 SBW                m68000up,cf
+<dest>                                                                $0000,$0000    0 SBWL               m68020up,cpu32,cf_isa_b,cf_isa_c
+
+[DBXX]
+Dx,<dest>                                                             $0000,$0000    0 W                  m68000up
+
+[FBXX]
+<dest>                                                                $0000,$0000    0 WL                 m68881,cf_fpu
+
+[FSXX]
+<ea-data-alter>                                                       $0000,$0000    0 B                  m68881
+
+[SXX]
+Dx                                                                    $0000,$0000    0 B                  m68000up,cf
+<ea-data-alter>                                                       $0000,$0000    0 B                  m68000up

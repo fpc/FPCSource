@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2007 by the Free Pascal development team
+    Copyright (c) 1999-2015 by the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -11,7 +11,11 @@
 
  **********************************************************************}
 {$PACKRECORDS 2}
+{.$DEFINE SOCKETS_DEBUG}
+{$ModeSwitch out}
+
 unit Sockets;
+
 Interface
 
 uses
@@ -85,7 +89,7 @@ const
   SOL_SOCKET    = $FFFF;
 
 const
-  EsockEINTR            = 4; // EsysEINTR;   
+  EsockEINTR            = 4; // EsysEINTR;
   EsockEBADF            = 9; // EsysEBADF;
   EsockEFAULT           = 14; // EsysEFAULT;
   EsockEINVAL           = 22; //EsysEINVAL;
@@ -109,7 +113,9 @@ Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:File):Boolean;  
 //function  fpbind      (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;  maybelibc
 //function  fpconnect     (s:cint; name  : psockaddr; namelen : tsocklen):cint;  maybelibc
 
-var
+{ remember, classic style calls are also compiled for MorphOS, so don't test against AMIGA68K }
+{$ifndef AMIGAOS4}
+threadvar
   SocketBase: PLibrary;
 
 function bsd_socket(Domain: LongInt location 'd0'; Type_: LongInt location 'd1'; Protocol: LongInt location 'd2'): LongInt; syscall SocketBase 30;
@@ -133,6 +139,49 @@ function bsd_inet_addr(const cp: PChar location 'a0'): LongWord; syscall SocketB
 function bsd_gethostbyname(const Name: PChar location 'a0'): PHostEnt; syscall SocketBase 210;
 function bsd_gethostbyaddr(const Addr: PByte location 'a0'; Len: LongInt location 'd0'; Type_: LongInt location 'd1'): PHostEnt; syscall SocketBase 216;
 
+{ Amiga-specific functions for passing socket descriptors between threads (processes) }
+function ObtainSocket(id: LongInt location 'd0'; domain: LongInt location 'd1'; _type: LongInt location 'd2'; protocol: LongInt location 'd3'): LongInt; syscall SocketBase 144;
+function ReleaseSocket(s: LongInt location 'd0'; id: LongInt location 'd1'): LongInt; syscall SocketBase 150;
+function ReleaseCopyOfSocket(s: LongInt location 'd0'; id: LongInt location 'd1'): LongInt; syscall SocketBase 156;
+
+{$else AMIGAOS4}
+
+threadvar
+  SocketBase: PLibrary;
+  ISocket: PInterface;
+
+function bsd_socket(Domain: LongInt; Type_: LongInt; Protocol: LongInt): LongInt; syscall ISocket 76;
+function bsd_bind(s: LongInt; const name: PSockAddr; NameLen: LongInt): LongInt; syscall ISocket 80;
+function bsd_listen(s: LongInt; BackLog: LongInt): LongInt; syscall ISocket 84;
+function bsd_accept(s: LongInt; Addr: PSockaddr; AddrLen: PSockLen): LongInt; syscall ISocket 88;
+function bsd_connect(s : LongInt; const Name: PSockaddr; NameLen: LongInt): LongInt; syscall ISocket 92;
+function bsd_sendto(s: LongInt; const Msg: PChar; Len: LongInt; Flags: LongInt; const To_: PSockaddr; ToLen: LongInt): LongInt; syscall ISocket 96;
+function bsd_send(s: LongInt; const msg: PChar; Len: LongInt; Flags: LongInt): LongInt; syscall ISocket 100;
+function bsd_recvfrom(s: LongInt; Buf: PChar; Len: LongInt; Flags: LongInt; From: PSockaddr; FromLen: PSockLen): LongInt; syscall ISocket 104;
+function bsd_recv(s: LongInt; buf: PChar; Len: LongInt; Flags: LongInt): LongInt; syscall ISocket 108;
+function bsd_shutdown(s: LongInt; How: LongInt): LongInt; syscall ISocket 112;
+function bsd_setsockopt(s: LongInt; level: LongInt; optname: LongInt; const optval: Pointer; optlen: LongInt) : LongInt; syscall ISocket 116;
+function bsd_getsockopt(s: LongInt; Level: LongInt; OptName: LongInt; OptVal: Pointer; OptLen: PSockLen): LongInt; syscall ISocket 120;
+function bsd_getsockname(s: LongInt; HostName: PSockaddr; NameLen: PSockLen): LongInt; syscall ISocket 124;
+function bsd_getpeername(s: LongInt; HostName: PSockaddr; NameLen: PSockLen): LongInt; syscall ISocket 128;
+function bsd_closesocket(s: LongInt): LongInt; syscall ISocket 136;
+function bsd_Errno: LongInt; syscall ISocket 164;
+function bsd_inet_ntoa(in_: LongWord): PChar; syscall ISocket 172;
+function bsd_inet_addr(const cp: PChar): LongWord; syscall ISocket 176;
+function bsd_gethostbyname(const Name: PChar): PHostEnt; syscall ISocket 196;
+function bsd_gethostbyaddr(const Addr: PByte; Len: LongInt; Type_: LongInt): PHostEnt; syscall ISocket 200;
+
+{ Amiga-specific functions for passing socket descriptors between threads (processes) }
+function ObtainSocket(id: LongInt; domain: LongInt; _type: LongInt; protocol: LongInt): LongInt; syscall ISocket 152;
+function ReleaseSocket(s: LongInt; id: LongInt): LongInt; syscall ISocket 156;
+function ReleaseCopyOfSocket(s: LongInt; id: LongInt): LongInt; syscall ISocket 160;
+{$endif AMIGAOS4}
+
+
+{ Definition for Release(CopyOf)Socket unique id }
+const
+  UNIQUE_ID = -1;
+
 Implementation
 
 threadvar internal_socketerror: cint;
@@ -152,18 +201,24 @@ end;
 
 function fpgeterrno: longint; inline;
 begin
-  fpgeterrno := bsd_Errno;
+  if Assigned(SocketBase) then
+    fpgeterrno := bsd_Errno
+  else
+    fpgeterrno := 0;
 end;
 
 function fpClose(d: LongInt): LongInt; inline;
 begin
-  fpClose := bsd_CloseSocket(d);
+  if Assigned(SocketBase) then
+    fpClose := bsd_CloseSocket(d)
+  else
+    fpClose := -1;
 end;
 
 function fpaccept(s: cint; addrx: PSockaddr; Addrlen: PSocklen): cint;
 begin
   fpaccept := bsd_accept(s,addrx,addrlen);
-  internal_socketerror := fpgeterrno; 
+  internal_socketerror := fpgeterrno;
 end;
 
 function fpbind(s:cint; addrx: psockaddr; addrlen: tsocklen): cint;
@@ -240,8 +295,16 @@ end;
 
 function fpsocket(domain: cint; xtype: cint; protocol: cint): cint;
 begin
-  fpsocket := bsd_socket(domain, xtype, protocol);
-  internal_socketerror := fpgeterrno;
+  if Assigned(SocketBase) then
+  begin
+    fpsocket := bsd_socket(domain, xtype, protocol);
+    internal_socketerror := fpgeterrno;
+  end
+  else
+  begin
+    fpsocket := -1;
+    internal_socketerror := ESockEPROTONOSUPPORT;
+  end;
 end;
 
 
@@ -258,14 +321,45 @@ end;
 {$i sockovl.inc}
 {$i sockets.inc}
 
-// FIXME: this doesn't make any sense here, because SocketBase should be task-specific
-// but FPC doesn't support that yet (TODO)
-{$WARNING FIX ME, TODO}
+const
+  BSDSOCKET_LIBRARY_VER = 4;
 
+procedure BSDSocketOpen;
+begin
+{$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: Opening bsdsocket.library...');
+{$ENDIF}
+  SocketBase:=OpenLibrary('bsdsocket.library', BSDSOCKET_LIBRARY_VER);
+  {$ifdef AMIGAOS4}
+  if Assigned(SocketBase) then
+    ISocket := GetInterface(SocketBase, 'main', 1, nil);
+  {$endif}
+{$IFDEF SOCKETS_DEBUG}
+  if SocketBase = nil then
+    SysDebugLn('FPC Sockets: FAILED to open bsdsocket.library.')
+  else
+    SysDebugLn('FPC Sockets: bsdsocket.library opened successfully.');
+{$ENDIF}
+end;
+
+procedure BSDSocketClose;
+begin
+  {$ifdef AMIGAOS4}
+  if Assigned(ISocket) then
+    DropInterface(ISocket);
+  {$endif}
+  if (SocketBase<>NIL) then CloseLibrary(SocketBase);
+  SocketBase:=NIL;
+{$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: bsdsocket.library closed.');
+{$ENDIF}
+end;
 
 initialization
-  SocketBase := OpenLibrary('bsdsocket.library',0);
+  AddThreadInitProc(@BSDSocketOpen);
+  AddThreadExitProc(@BSDSocketClose);
+  BSDSocketOpen;
+
 finalization
-  if SocketBase <> nil then
-    CloseLibrary(SocketBase);
+  BSDSocketClose;
 end.

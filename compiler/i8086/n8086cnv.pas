@@ -34,6 +34,7 @@ interface
 
        t8086typeconvnode = class(tx86typeconvnode)
        protected
+         function typecheck_int_to_int: tnode;override;
          function typecheck_proc_to_procvar: tnode;override;
          procedure second_proc_to_procvar;override;
        end;
@@ -46,28 +47,48 @@ implementation
       aasmbase,aasmtai,aasmdata,aasmcpu,
       symconst,symdef,symcpu,
       cgbase,cga,procinfo,pass_1,pass_2,
-      ncon,ncal,ncnv,
+      ncon,ncal,ncnv,nmem,n8086mem,
       cpubase,cpuinfo,
       cgutils,cgobj,hlcgobj,cgx86,ncgutil,
       tgobj;
 
+    function t8086typeconvnode.typecheck_int_to_int: tnode;
+      begin
+        Result:=inherited typecheck_int_to_int;
+        if (is_16bitint(totypedef) or is_8bitint(totypedef)) and (left.nodetype=addrn) then
+          begin
+            if left.nodetype=addrn then
+              ti8086addrnode(left).get_offset_only:=true;
+          end;
+      end;
+
+
     function t8086typeconvnode.typecheck_proc_to_procvar: tnode;
       begin
-        if (current_settings.x86memorymodel in x86_far_code_models) and
-          not is_proc_far(tabstractprocdef(left.resultdef)) then
-          CGMessage1(type_e_procedure_must_be_far,left.resultdef.GetTypeName);
         Result:=inherited typecheck_proc_to_procvar;
+        if tcnf_proc_2_procvar_get_offset_only in convnodeflags then
+          begin
+            if resultdef.typ<>procvardef then
+              internalerror(2018040401);
+            if po_far in tprocvardef(resultdef).procoptions then
+              resultdef:=cprocvardef.getreusableprocaddr(tabstractprocdef(left.resultdef),pc_offset);
+          end
+        else if (tcnf_proc_2_procvar_2_voidpointer in convnodeflags) and
+                (current_settings.x86memorymodel in x86_far_code_models) then
+          begin
+            if resultdef.typ<>procvardef then
+              internalerror(2018040402);
+            if not (po_far in tprocvardef(resultdef).procoptions) then
+              resultdef:=cprocvardef.getreusableprocaddr(tabstractprocdef(left.resultdef),pc_far_address);
+          end;
       end;
 
 
     procedure t8086typeconvnode.second_proc_to_procvar;
       begin
-        if is_proc_far(tabstractprocdef(resultdef))<>
-           (current_settings.x86memorymodel in x86_far_code_models) then
-          internalerror(2014041302);
-        if is_proc_far(tabstractprocdef(left.resultdef))<>
-           (current_settings.x86memorymodel in x86_far_code_models) then
-          internalerror(2014041303);
+        if (tcnf_proc_2_procvar_get_offset_only in convnodeflags) and
+            is_proc_far(tabstractprocdef(resultdef)) then
+          internalerror(2018040403);
         inherited;
       end;
 

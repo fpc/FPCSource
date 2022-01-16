@@ -18,14 +18,14 @@ const
   );
 
   res2_single: TExpected = (
-    $4EFFFFFF,
+    $4F000000,
     $4EFFFFFF,
     $4F000000,
     $4EFFFFFF
   );
 
   res3_single: TExpected = (
-    $CEFFFFFF,
+    $CF000000,
     $CF000000,
     $CEFFFFFF,
     $CEFFFFFF
@@ -69,6 +69,7 @@ var
   yd: longword absolute y;
 begin
   writeln('integer value=',hexstr(x,8));
+  setroundmode(rmNearest);
   y:=x;
   writeln('rmNearest  ',y, ' ',hexstr(yd,8));
   if yd<>res[rmNearest] then fail;
@@ -100,17 +101,17 @@ begin
   y:=x;
   writeln('rmNearest  ',y, ' ',hexstr(yq,16));
   if yq<>res[rmNearest] then fail;
-  
+
   setroundmode(rmUp);
   y:=x; 
   writeln('rmUp       ',y, ' ',hexstr(yq,16));
   if yq<>res[rmUp] then fail;
-  
+
   setroundmode(rmDown);
   y:=x;
   writeln('rmDown     ',y, ' ',hexstr(yq,16));
   if yq<>res[rmDown] then fail;
-  
+
   setroundmode(rmTruncate);
   y:=x;
   writeln('rmTruncate ',y, ' ',hexstr(yq,16));

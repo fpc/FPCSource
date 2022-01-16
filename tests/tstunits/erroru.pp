@@ -10,7 +10,7 @@ interface
 
   procedure require_error(num : longint);
 
-function DoMem (Var StartMem : sizeint): sizeint;
+function DoMem (Var StartMem : sizeuint): int64;
 
 
 implementation
@@ -29,7 +29,7 @@ end;
 
 procedure error;
 begin
-   Writeln('Error in ',paramstr(0));
+   Writeln('Error' {$ifdef FPC_HAS_FEATURE_COMMANDARGS},' in ',paramstr(0){$endif FPC_HAS_FEATURE_COMMANDARGS});
    program_has_error:=true;
 end;
 
@@ -53,14 +53,14 @@ begin
      begin
         if (required_error_num<>0) and (exitcode<>required_error_num) then
           begin
-             Write('Program ',paramstr(0));
+             Write('Program'{$ifdef FPC_HAS_FEATURE_COMMANDARGS},' ',paramstr(0){$endif FPC_HAS_FEATURE_COMMANDARGS});
              Write(' exited with error ',exitcode,' whereas error ');
              Writeln(required_error_num,' was expected');
              Halt(1);
           end
         else if exitcode<>accepted_error_num then
           begin
-             Write('Program ',paramstr(0));
+             Write('Program'{$ifdef FPC_HAS_FEATURE_COMMANDARGS},' ',paramstr(0){$endif FPC_HAS_FEATURE_COMMANDARGS});
              Write(' exited with error ',exitcode,' whereas only error ');
              Writeln(accepted_error_num,' was expected');
              Halt(1);
@@ -68,7 +68,7 @@ begin
      end
    else if required_error_num<>0 then
      begin
-        Write('Program ',paramstr(0));
+        Write('Program'{$ifdef FPC_HAS_FEATURE_COMMANDARGS},' ',paramstr(0){$endif FPC_HAS_FEATURE_COMMANDARGS});
         Write(' exited without error whereas error ');
         Writeln(required_error_num,' was expected');
         Halt(1);
@@ -78,14 +78,16 @@ begin
    else
      begin
         exitcode:=0;
+{$ifndef CPUJVM}
         erroraddr:=nil;
+{$endif ndef CPUJVM}
      end;
 end;
 
 
-function DoMem (Var StartMem : sizeint): sizeint;
+function DoMem (Var StartMem : sizeuint): int64;
 
-  function getsize(l:sizeint):string;
+  function getsize(l:sizeuint):string;
   begin
     if l<16*1024 then
       begin
@@ -99,9 +101,12 @@ function DoMem (Var StartMem : sizeint): sizeint;
       end;
   end;
 
+{$ifndef CPUJVM}
 var
   hstatus : TFPCHeapstatus;
+{$endif ndef CPUJVM}
 begin
+{$ifndef CPUJVM}
   hstatus:=GetFPCHeapStatus;
   if StartMem=0 then
     begin
@@ -115,6 +120,7 @@ begin
       DoMem:=hstatus.CurrHeapUsed-StartMem;
     end;
   StartMem:=hstatus.CurrHeapUsed;
+{$endif ndef CPUJVM}
 end;
 
 

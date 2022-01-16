@@ -67,8 +67,8 @@ type
 
   TCStream = class(TObject)
   private
-    function GetPosition: Longint;
-    procedure SetPosition(Pos: Longint);
+    function GetPosition: Longint; {$ifdef USEINLINE}inline;{$endif}
+    procedure SetPosition(Pos: Longint); {$ifdef USEINLINE}inline;{$endif}
     function GetSize: Longint;
   protected
     procedure SetSize(NewSize: Longint); virtual;
@@ -79,23 +79,23 @@ type
     procedure ReadBuffer(var Buffer; Count: Longint);
     procedure WriteBuffer(const Buffer; Count: Longint);
     function CopyFrom(Source: TCStream; Count: Longint): Longint;
-    function ReadComponent(Instance: TCComponent): TCComponent;
-    function ReadComponentRes(Instance: TCComponent): TCComponent;
-    procedure WriteComponent(Instance: TCComponent);
-    procedure WriteComponentRes(const ResName: string; Instance: TCComponent);
-    procedure WriteDescendent(Instance, Ancestor: TCComponent);
-    procedure WriteDescendentRes(const ResName: string; Instance, Ancestor: TCComponent);
-    procedure WriteResourceHeader(const ResName: string; {!!!:out} var FixupInfo: Integer);
-    procedure FixupResourceHeader(FixupInfo: Integer);
-    procedure ReadResHeader;
-    function ReadByte : Byte;
-    function ReadWord : Word;
-    function ReadDWord : Cardinal;
+    function ReadComponent(Instance: TCComponent): TCComponent; {$ifdef USEINLINE}inline;{$endif}
+    function ReadComponentRes(Instance: TCComponent): TCComponent; {$ifdef USEINLINE}inline;{$endif}
+    procedure WriteComponent(Instance: TCComponent); {$ifdef USEINLINE}inline;{$endif}
+    procedure WriteComponentRes(const ResName: string; Instance: TCComponent); {$ifdef USEINLINE}inline;{$endif}
+    procedure WriteDescendent(Instance, Ancestor: TCComponent); {$ifdef USEINLINE}inline;{$endif}
+    procedure WriteDescendentRes(const ResName: string; Instance, Ancestor: TCComponent); {$ifdef USEINLINE}inline;{$endif}
+    procedure WriteResourceHeader(const ResName: string; {!!!:out} var FixupInfo: Integer); {$ifdef USEINLINE}inline;{$endif}
+    procedure FixupResourceHeader(FixupInfo: Integer); {$ifdef USEINLINE}inline;{$endif}
+    procedure ReadResHeader; {$ifdef USEINLINE}inline;{$endif}
+    function ReadByte : Byte; {$ifdef USEINLINE}inline;{$endif}
+    function ReadWord : Word; {$ifdef USEINLINE}inline;{$endif}
+    function ReadDWord : Cardinal; {$ifdef USEINLINE}inline;{$endif}
     function ReadAnsiString : AnsiString;
-    procedure WriteByte(b : Byte);
-    procedure WriteWord(w : Word);
-    procedure WriteDWord(d : Cardinal);
-    Procedure WriteAnsiString (S : AnsiString);
+    procedure WriteByte(b : Byte); {$ifdef USEINLINE}inline;{$endif}
+    procedure WriteWord(w : Word); {$ifdef USEINLINE}inline;{$endif}
+    procedure WriteDWord(d : Cardinal); {$ifdef USEINLINE}inline;{$endif}
+    Procedure WriteAnsiString (const S : AnsiString);
     property Position: Longint read GetPosition write SetPosition;
     property Size: Longint read GetSize write SetSize;
   end;
@@ -104,11 +104,11 @@ type
 
   TCCustomFileStream = class(TCStream)
   protected
-    FFileName : String;
+    FFileName : AnsiString;
   public
-    constructor Create(const AFileName: string;{shortstring!} Mode: Word); virtual; abstract;
+    constructor Create(const AFileName: AnsiString; Mode: Word); virtual; abstract;
     function EOF: boolean; virtual; abstract;
-    property FileName : String Read FFilename;
+    property FileName : AnsiString Read FFilename;
   end;
 
 { TFileStream class }
@@ -119,7 +119,7 @@ type
   protected
     procedure SetSize(NewSize: Longint); override;
   public
-    constructor Create(const AFileName: string; Mode: Word); override;
+    constructor Create(const AFileName: AnsiString; Mode: Word); override;
     destructor Destroy; override;
     function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
@@ -132,6 +132,20 @@ var
   CFileStreamClass: TCFileStreamClass = TCFileStream;
 
 type
+  TCRangeStream = class(TCStream)
+  private
+    FBase: TCStream;
+    FOffset: LongInt;
+    FMaxOffset: LongInt;
+    FSize: LongInt;
+    FPosition: LongInt;
+  public
+    constructor Create(ABase: TCStream; AOffset, ASize: LongInt);
+    function Read(var Buffer; Count: LongInt): LongInt; override;
+    function Write(const Buffer; Count: LongInt): LongInt; override;
+    function Seek(Offset: LongInt; Origin: Word): LongInt; override;
+  end;
+
 { TCustomMemoryStream abstract class }
 
   TCCustomMemoryStream = class(TCStream)
@@ -139,11 +153,11 @@ type
     FMemory: Pointer;
     FSize, FPosition: Longint;
   protected
-    procedure SetPointer(Ptr: Pointer; ASize: Longint);
+    procedure SetPointer(Ptr: Pointer; ASize: Longint); {$ifdef USEINLINE}inline;{$endif}
   public
     function Read(var Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
-    procedure SaveToStream(Stream: TCStream);
+    procedure SaveToStream(Stream: TCStream); {$ifdef USEINLINE}inline;{$endif}
     procedure SaveToFile(const FileName: string);
     property Memory: Pointer read FMemory;
   end;
@@ -319,6 +333,7 @@ implementation
     TheSize : Longint;
     P : PByte ;
   begin
+    Result:='';
     ReadBuffer (TheSize,SizeOf(TheSize));
     SetLength(Result,TheSize);
     // Illegal typecast if no AnsiStrings defined.
@@ -330,7 +345,7 @@ implementation
      end;
    end;
 
-  Procedure TCStream.WriteAnsiString (S : AnsiString);
+  Procedure TCStream.WriteAnsiString (const S : AnsiString);
 
   Var L : Longint;
 
@@ -363,7 +378,7 @@ implementation
 {*                             TCFileStream                                  *}
 {****************************************************************************}
 
-constructor TCFileStream.Create(const AFileName: string; Mode: Word);
+constructor TCFileStream.Create(const AFileName: AnsiString; Mode: Word);
 var
   oldfilemode : byte;
 begin
@@ -466,6 +481,92 @@ begin
   EOF:=system.eof(FHandle);
 end;
 
+
+{****************************************************************************}
+{*                             TCRangeStream                                *}
+{****************************************************************************}
+
+
+constructor TCRangeStream.Create(ABase: TCStream; AOffset, ASize: LongInt);
+begin
+  if not assigned(ABase) then
+    CStreamError:=155
+  else
+    { we allow to be positioned directly at the end for appending }
+    if (AOffset<0) or (AOffset>ABase.Size) then
+      CStreamError:=156
+    else
+      begin
+        FBase:=ABase;
+        FOffset:=AOffset;
+        if ASize<0 then
+          FSize:=maxLongint-FOffset
+        else
+          FSize:=ASize;
+        FMaxOffset:=FOffset+FSize-1;
+      end;
+end;
+
+
+function TCRangeStream.Read(var Buffer; Count: LongInt): LongInt;
+begin
+  Count:=Min(Count,FMaxOffset-FPosition+1);
+  if Count>0 then
+    begin
+      FBase.Seek(FOffset+FPosition,soFromBeginning);
+      result:=FBase.Read(Buffer,Count);
+    end
+  else
+    result:=0;
+  FPosition:=FPosition+result;
+end;
+
+
+function TCRangeStream.Write(const Buffer; Count: LongInt): LongInt;
+begin
+  Count:=Min(Count,FMaxOffset-FPosition+1);
+  if Count>0 then
+    begin
+      FBase.Seek(FOffset+FPosition,soFromBeginning);
+      result:=FBase.Write(Buffer,Count);
+    end
+  else
+    result:=0;
+  FPosition:=FPosition+result;
+end;
+
+
+function TCRangeStream.Seek(Offset: LongInt; Origin: Word): LongInt;
+begin
+  case Origin of
+    soFromBeginning:
+      begin
+        if Offset>FMaxOffset then
+          CStreamError:=156
+        else
+          FPosition:=FBase.Seek(FOffset+Offset,soFromBeginning)-FOffset;
+      end;
+    soFromCurrent:
+      begin
+        if Offset>FMaxOffset then
+          CStreamError:=156
+        else
+          FPosition:=FBase.Seek(FOffset+FPosition+Offset,soFromBeginning)-FOffset;
+      end;
+    soFromEnd:
+      begin
+        if Offset>FSize-1 then
+          CStreamError:=156
+        else
+          FPosition:=FBase.Seek(FMaxOffset-Offset,soFromBeginning)-FOffset;
+      end;
+    else
+      begin
+        CStreamError:=156;
+      end;
+  end;
+  Result:=FPosition;
+end;
 
 {****************************************************************************}
 {*                             TCustomMemoryStream                          *}

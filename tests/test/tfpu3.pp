@@ -1,3 +1,4 @@
+{ %skiptarget=android }
 { %CPU=i386 }
 { %OPT=-Cg- }
 { %NOTE= this test requires that nasm assembler is installed }

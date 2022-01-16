@@ -13,10 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('svgalib');
+    P.ShortName := 'svga';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.OSes := [beos,haiku,linux,freebsd,solaris,netbsd,openbsd,dragonfly];
     P.SourcePath.Add('src');
 
@@ -28,7 +29,7 @@ begin
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testvga.pp');
     P.Targets.AddExampleProgram('vgatest.pp');
-    P.Sources.AddExampleFiles('examples/*',false,'.');
+    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

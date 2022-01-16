@@ -15,6 +15,8 @@ begin
   // This is needed, or loading the VLC libraries will fail with a SIGFPE
   setexceptionmask([exInvalidOp, exDenormalized, exZeroDivide,
                      exOverflow, exUnderflow, exPrecision]);
+  With TVLCLibrary.Create(Nil) do
+    Initialize;
   P:=TVLCMediaPlayer.Create(Nil);
   if ParamCount=1 then
     With P do

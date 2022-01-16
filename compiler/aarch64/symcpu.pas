@@ -94,6 +94,9 @@ type
   tcpuunitsym = class(tunitsym)
   end;
 
+  tcpuprogramparasym = class(tprogramparasym)
+  end;
+
   tcpunamespacesym = class(tnamespacesym)
   end;
 
@@ -162,6 +165,7 @@ begin
   { used tsym classes }
   clabelsym:=tcpulabelsym;
   cunitsym:=tcpuunitsym;
+  cprogramparasym:=tcpuprogramparasym;
   cnamespacesym:=tcpunamespacesym;
   cprocsym:=tcpuprocsym;
   ctypesym:=tcputypesym;

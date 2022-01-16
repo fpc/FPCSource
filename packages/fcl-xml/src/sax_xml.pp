@@ -31,6 +31,8 @@ type
     scUnknown,
     scWhitespace,       // within whitespace
     scText,             // within text
+    scCData,            // within cdata section
+    scComment,          // within comment
     scEntityReference,  // within entity reference ("&...;")
     scTag);             // within a start tag or end tag
 
@@ -59,7 +61,7 @@ type
 
 { TXMLToDOMConverter }
 
-  TXMLNodeType = (ntWhitespace, ntText, ntEntityReference, ntTag);
+  TXMLNodeType = (ntWhitespace, ntText, ntEntityReference, ntTag, ntComment);
 
   TXMLNodeInfo = class
     NodeType: TXMLNodeType;
@@ -76,6 +78,8 @@ type
     FragmentRoot: TDOMNode;
 
     procedure ReaderCharacters(Sender: TObject; const ch: PSAXChar;
+      Start, Count: Integer);
+    procedure ReaderComment(Sender: TObject; const ch: PSAXChar;
       Start, Count: Integer);
     procedure ReaderIgnorableWhitespace(Sender: TObject; const ch: PSAXChar;
       Start, Count: Integer);
@@ -214,6 +218,35 @@ begin
               Inc(BufferPos);
             end;
           end;
+        scCData:
+          if (Length(FRawTokenText) = 0) and (Buffer[BufferPos] = '-') then
+          begin
+            Inc(BufferPos);
+            EnterNewScannerContext(scComment);
+          end
+          else if (Buffer[BufferPos] = '>') and (RightStr(FRawTokenText, 2) = ']]') then
+          begin
+            FRawTokenText := Copy(FRawTokenText, 8, Length(FRawTokenText)-9);  //delete '[CDATA[' and ']]' from text
+            Inc(BufferPos);
+            EnterNewScannerContext(scUnknown);
+          end
+          else
+          begin
+            FRawTokenText := FRawTokenText + Buffer[BufferPos];
+            Inc(BufferPos);
+          end;
+        scComment:
+          if (Buffer[BufferPos] = '>') and (RightStr(FRawTokenText, 2) = '--') then
+          begin
+            FRawTokenText := Copy(FRawTokenText, 2, Length(FRawTokenText)-3);  //delete '-' and '--' from text
+            Inc(BufferPos);
+            EnterNewScannerContext(scUnknown);
+          end
+          else
+          begin
+            FRawTokenText := FRawTokenText + Buffer[BufferPos];
+            Inc(BufferPos);
+          end;
         scEntityReference:
           if Buffer[BufferPos] = ';' then
           begin
@@ -249,6 +282,11 @@ begin
                 FAttrNameRead := True;
                 FRawTokenText := FRawTokenText + Buffer[BufferPos];
                 Inc(BufferPos);
+              end;
+            '!':
+              begin
+                Inc(BufferPos);
+                EnterNewScannerContext(scCData);
               end;
             '>':
               begin
@@ -353,8 +391,11 @@ begin
   case ScannerContext of
     scWhitespace:
       DoIgnorableWhitespace(PSAXChar(TokenText), 0, Length(TokenText));
-    scText:
+    scText,
+    scCData:
       DoCharacters(PSAXChar(TokenText), 0, Length(TokenText));
+    scComment:
+      DoComment(PSAXChar(TokenText), 0, Length(TokenText));
     scEntityReference:
       begin
         if (Length(TokenText) >= 2) and (TokenText[1] = '#') and
@@ -456,6 +497,17 @@ begin
   NodeInfo := TXMLNodeInfo.Create;
   NodeInfo.NodeType := ntText;
   NodeInfo.DOMNode := FDocument.CreateTextNodeBuf(ch, Count, False);
+  FNodeBuffer.Add(NodeInfo);
+end;
+
+procedure TXMLToDOMConverter.ReaderComment(Sender: TObject;
+  const ch: PSAXChar; Start, Count: Integer);
+var
+  NodeInfo: TXMLNodeInfo;
+begin
+  NodeInfo := TXMLNodeInfo.Create;
+  NodeInfo.NodeType := ntComment;
+  NodeInfo.DOMNode := FDocument.CreateCommentBuf(ch, Count);
   FNodeBuffer.Add(NodeInfo);
 end;
 

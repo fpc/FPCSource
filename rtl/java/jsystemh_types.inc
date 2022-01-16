@@ -84,10 +84,8 @@ Type
     on Real <-> Double, so use type here, see also tw7425.pp (FK) }
 {$ifndef FPUNONE}
   Real = type Double;
+{$i genmathh.inc}
 {$endif}
-
-{ Can be individually defined/undefined on a per-platform basis }
-{ define FLOAT_ASCII_FALLBACK}
 
 {$ifdef CPUI386}
   {$define CPU32}
@@ -486,8 +484,10 @@ Type
   PDateTime           = ^TDateTime;
 {$endif}
   PError              = ^TError;
+{$ifdef FPC_HAS_FEATURE_VARIANTS}
   PVariant            = ^Variant;
   POleVariant         = ^OleVariant;
+{$endif FPC_HAS_FEATURE_VARIANTS}
 
   PWideChar           = ^WideChar;
   PPWideChar          = ^PWideChar;
@@ -540,9 +540,14 @@ type
   TEntryInformation = record
     InitFinalTable : Pointer;
     ThreadvarTablesTable : Pointer;
-    asm_exit : Procedure;stdcall;
-    PascalMain : Procedure;stdcall;
+    ResourceStringTables : Pointer;
+    ResStrInitTables : Pointer;
+    ResLocation : Pointer;
+    PascalMain : Procedure;
     valgrind_used : boolean;
+    {$ifdef HAS_ENTRYINFORMATION_OS}
+    OS : TEntryInformationOS;
+    {$endif HAS_ENTRYINFORMATION_OS}
   end;
 *)
 

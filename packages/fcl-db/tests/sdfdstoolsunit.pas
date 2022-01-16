@@ -71,8 +71,6 @@ begin
         // work properly)
         Post;
         end;
-      if state = dsinsert then
-        Post;
       Close;
       Free;
       end;
@@ -86,11 +84,11 @@ begin
   with TSdfDataSet.Create(nil) do
     begin
     FileName := dbname+PathDelim+'fpdev_field.dat';
-      DeleteFile(FileName);
     // Make sure the directory exists so we can write
     ForceDirectories(dbname);
+    DeleteFile(FileName);
     FileMustExist:=False;
-    
+
     SetFieldDatasetSchema(Schema);
 
     Open;
@@ -102,6 +100,7 @@ begin
       Post;
       end;
     Close;
+    Free;
     end;
 end;
 
@@ -134,10 +133,10 @@ begin
     begin
     FileName := dbname+PathDelim+'fpdev_field.dat';
     SetFieldDatasetSchema(Schema);
+    TrimSpace := False;
     end;
 end;
 
 initialization
   RegisterClass(TSdfDSDBConnector);
 end.
-

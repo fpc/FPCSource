@@ -13,7 +13,7 @@ begin
 end;
 
 var
-  mem : sizeint;
+  mem : sizeuint;
 begin
   mem:=0;
   DoMem(mem);

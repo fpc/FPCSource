@@ -41,6 +41,7 @@ type
     fobjsize  : longword;
   public
     constructor create;
+    constructor createAr(const Aarfn:string);virtual;
     destructor  destroy;override;
     function  createfile(const fn:string):boolean;virtual;
     procedure closefile;virtual;
@@ -51,6 +52,10 @@ type
     property Size:longword read FSize;
     property ObjSize:longword read FObjSize;
   end;
+
+  tobjectwriterclass = class of tobjectwriter;
+
+  { tobjectreader }
 
   tobjectreader=class
   private
@@ -63,8 +68,12 @@ type
     function readbuf:boolean;
   protected
     function getfilename : string;virtual;
+    function GetSize: longint;virtual;
+    function GetPos: longint;virtual;
+    function GetIsArchive: boolean;virtual;
   public
     constructor create;
+    constructor createAr(const Aarfn:string;allow_nonar:boolean=false);virtual;
     destructor  destroy;override;
     function  openfile(const fn:string):boolean;virtual;
     procedure closefile;virtual;
@@ -72,8 +81,12 @@ type
     function  read(out b;len:longint):boolean;virtual;
     function  readarray(a:TDynamicArray;len:longint):boolean;
     property filename : string read getfilename;
-    property size:longint read bufmax;
+    property size:longint read GetSize;
+    property Pos:longint read GetPos;
+    property IsArchive: boolean read GetIsArchive;
   end;
+
+  tobjectreaderclass = class of tobjectreader;
 
 implementation
 
@@ -103,6 +116,11 @@ begin
   if opened then
    closefile;
   freemem(buf,bufsize);
+end;
+
+constructor tobjectwriter.createAr(const Aarfn:string);
+begin
+  InternalError(2015041901);
 end;
 
 
@@ -188,8 +206,17 @@ var
   empty : array[0..1023] of byte;
 begin
   if l>sizeof(empty) then
-    internalerror(200404081);
-  if l>0 then
+    begin
+      fillchar(empty,sizeof(empty),0);
+      while l>sizeof(empty) do
+        begin
+          Write(empty,sizeof(empty));
+          Dec(l,sizeof(empty));
+        end;
+      if l>0 then
+        Write(empty,l);
+    end
+  else if l>0 then
     begin
       fillchar(empty,l,0);
       Write(empty,l);
@@ -228,6 +255,12 @@ destructor tobjectreader.destroy;
 begin
   if opened then
     closefile;
+end;
+
+
+constructor tobjectreader.createAr(const Aarfn:string;allow_nonar:boolean=false);
+begin
+  InternalError(2015081401);
 end;
 
 
@@ -300,6 +333,22 @@ end;
 function tobjectreader.getfilename : string;
   begin
     result:=ffilename;
+  end;
+
+function tobjectreader.GetSize: longint;
+  begin
+    result:=bufmax;
+  end;
+
+function tobjectreader.GetPos: longint;
+  begin
+    Result:=bufidx;
+  end;
+
+
+function tobjectreader.GetIsArchive: boolean;
+  begin
+    Result:=false;
   end;
 
 end.

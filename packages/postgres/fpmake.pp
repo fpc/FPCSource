@@ -17,9 +17,11 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.SourcePath.Add('src');
     P.OSes := AllUnixOSes-[qnx]+AllWindowsOSes;
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.IncludePath.Add('src');
 
@@ -57,7 +59,7 @@ begin
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testpg2.pp');
     P.Targets.AddExampleProgram('testpg1.pp');
-    P.Sources.AddExampleFiles('examples/*',false,'.');
+    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

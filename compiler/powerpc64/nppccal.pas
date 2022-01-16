@@ -52,7 +52,7 @@ uses
   pass_2,
   cpuinfo, cpubase, aasmbase, aasmtai, aasmcpu,
   nmem, nld, ncnv,
-  ncgutil, cgutils, cgobj, tgobj, regvars, rgobj, rgcpu,
+  ncgutil, cgutils, cgobj, tgobj, rgobj, rgcpu,
   cgcpu, cpupi, procinfo;
 
 

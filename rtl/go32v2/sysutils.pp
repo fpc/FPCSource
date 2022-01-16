@@ -23,6 +23,8 @@ interface
 {$MODESWITCH out}
 { force ansistrings }
 {$H+}
+{$modeswitch typehelpers}
+{$modeswitch advancedrecords}
 
 uses
   go32,dos;
@@ -45,6 +47,7 @@ implementation
 
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
+{$DEFINE HAS_LOCALTIMEZONEOFFSET}
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
@@ -282,7 +285,7 @@ begin
 end;
 
 
-Function FileAge (Const FileName : RawByteString): Longint;
+Function FileAge (Const FileName : RawByteString): Int64;
 var Handle: longint;
 begin
   Handle := FileOpen(FileName, 0);
@@ -296,7 +299,13 @@ begin
 end;
 
 
-function FileExists (const FileName: RawByteString): boolean;
+function FileGetSymLinkTarget(const FileName: RawByteString; out SymLinkRec: TRawbyteSymLinkRec): Boolean;
+begin
+  Result := False;
+end;
+
+
+function FileExists (const FileName: RawByteString; FollowLink : Boolean): boolean;
 var
   L: longint;
 begin
@@ -312,7 +321,7 @@ begin
 end;
 
 
-Function DirectoryExists (Const Directory : RawByteString) : Boolean;
+Function DirectoryExists (Const Directory : RawByteString; FollowLink : Boolean) : Boolean;
 Var
   Dir : RawByteString;
   drive : byte;
@@ -416,7 +425,7 @@ begin
 end;
 
 
-Function FileGetDate (Handle : Longint) : Longint;
+Function FileGetDate (Handle : Longint) : Int64;
 var
   Regs: registers;
 begin
@@ -427,21 +436,18 @@ begin
   if Regs.Flags and CarryFlag <> 0 then
    result := -1
   else
-   begin
-     LongRec(result).Lo := Regs.cx;
-     LongRec(result).Hi := Regs.dx;
-   end ;
+   result:=(Regs.dx shl 16) or Regs.cx;
 end;
 
 
-Function FileSetDate (Handle, Age : Longint) : Longint;
+Function FileSetDate (Handle: longint; Age: Int64) : Longint;
 var
   Regs: registers;
 begin
   Regs.Ebx := Handle;
   Regs.Eax := $5701;
-  Regs.Ecx := Lo(Age);
-  Regs.Edx := Hi(Age);
+  Regs.Ecx := Lo(dword(Age));
+  Regs.Edx := Hi(dword(Age));
   RealIntr($21, Regs);
   if Regs.Flags and CarryFlag <> 0 then
    result := -Regs.Ax
@@ -639,6 +645,8 @@ end;
                               Time Functions
 ****************************************************************************}
 
+{$I tzenv.inc}
+
 Procedure GetLocalTime(var SystemTime: TSystemTime);
 var
   Regs: Registers;
@@ -654,6 +662,7 @@ begin
   SystemTime.Year := Regs.Cx;
   SystemTime.Month := Regs.Dh;
   SystemTime.Day := Regs.Dl;
+  SystemTime.DayOfWeek := Regs.Al;
 end ;
 
 
@@ -661,8 +670,16 @@ end ;
                               Misc Functions
 ****************************************************************************}
 
+const
+  BeepChars: array [1..2] of char = #7'$';
+
 procedure sysBeep;
+var
+  Regs: Registers;
 begin
+  Regs.dx := Ofs (BeepChars);
+  Regs.ah := 9;
+  MsDos (Regs);
 end;
 
 
@@ -753,7 +770,8 @@ begin
     DosMemGet(CountryInfo.UpperCaseTable shr 16, 2 + CountryInfo.UpperCaseTable and 65535, UpperCaseTable[128], 128);
     for i := 128 to 255 do
        begin
-       if UpperCaseTable[i] <> chr(i) then
+       { Never modify the lowercase of any char if ord(char) < 127 }
+       if (UpperCaseTable[i] <> chr(i)) and (ord(UpperCaseTable[i])>=128) then
           LowerCaseTable[ord(UpperCaseTable[i])] := chr(i);
        end;
     end;
@@ -795,7 +813,7 @@ begin
 end;
 
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
+function ExecuteProcess(Const Path: RawByteString; Const ComLine: RawByteString;Flags:TExecuteFlags=[]):integer;
 var
   e : EOSError;
   CommandLine: AnsiString;
@@ -817,11 +835,50 @@ begin
 end;
 
 
-function ExecuteProcess (const Path: AnsiString;
-                                  const ComLine: array of AnsiString;Flags:TExecuteFlags=[]): integer;
+function ExecuteProcess (const Path: RawByteString;
+                                  const ComLine: array of RawByteString;Flags:TExecuteFlags=[]): integer;
 
 var
-  CommandLine: AnsiString;
+  CommandLine: RawByteString;
+  I: integer;
+
+begin
+  Commandline := '';
+  for I := 0 to High (ComLine) do
+   if Pos (' ', ComLine [I]) <> 0 then
+    CommandLine := CommandLine + ' ' + '"' + ComLine [I] + '"'
+   else
+    CommandLine := CommandLine + ' ' + Comline [I];
+  ExecuteProcess := ExecuteProcess (Path, CommandLine);
+end;
+
+function ExecuteProcess(Const Path: unicodeString; Const ComLine: unicodeString;Flags:TExecuteFlags=[]):integer;
+var
+  e : EOSError;
+  CommandLine: UnicodeString;
+
+begin
+  dos.exec_ansistring(path,comline);
+
+  if (Dos.DosError <> 0) then
+    begin
+      if ComLine <> '' then
+       CommandLine := Path + ' ' + ComLine
+      else
+       CommandLine := Path;
+      e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,Dos.DosError]);
+      e.ErrorCode:=Dos.DosError;
+      raise e;
+    end;
+  Result := DosExitCode;
+end;
+
+
+function ExecuteProcess (const Path: unicodeString;
+                                  const ComLine: array of unicodeString;Flags:TExecuteFlags=[]): integer;
+
+var
+  CommandLine: UnicodeString;
   I: integer;
 
 begin
@@ -870,7 +927,9 @@ end;
 Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
+  InitTZ;
   OnBeep:=@SysBeep;
 Finalization
+  FreeTerminateProcs;
   DoneExceptions;
 end.

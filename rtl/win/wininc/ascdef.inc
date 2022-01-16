@@ -40,7 +40,7 @@
   You should have received a copy of the GNU Library General Public
   License along with this library; see the file COPYING.LIB.
   If not, write to the Free Software Foundation,
-  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 }
 
 {$ifdef read_interface}
@@ -111,7 +111,7 @@ function GetDiskFreeSpace(lpRootPathName:LPCSTR; lpSectorsPerCluster:LPDWORD; lp
 function CreateDirectory(lpPathName:LPCSTR; lpSecurityAttributes:LPSECURITY_ATTRIBUTES):WINBOOL; external 'kernel32' name 'CreateDirectoryA';
 function CreateDirectoryEx(lpTemplateDirectory:LPCSTR; lpNewDirectory:LPCSTR; lpSecurityAttributes:LPSECURITY_ATTRIBUTES):WINBOOL; external 'kernel32' name 'CreateDirectoryExA';
 function RemoveDirectory(lpPathName:LPCSTR):WINBOOL; external 'kernel32' name 'RemoveDirectoryA';
-function GetFullPathName(lpFileName:LPCSTR; nBufferLength:DWORD; lpBuffer:LPSTR; var lpFilePart:LPSTR):DWORD; external 'kernel32' name 'GetFullPathNameA';
+function GetFullPathName(lpFileName:LPCSTR; nBufferLength:DWORD; lpBuffer:LPSTR; lpFilePart:PLPSTR):DWORD; external 'kernel32' name 'GetFullPathNameA';
 function DefineDosDevice(dwFlags:DWORD; lpDeviceName:LPCSTR; lpTargetPath:LPCSTR):WINBOOL; external 'kernel32' name 'DefineDosDeviceA';
 function QueryDosDevice(lpDeviceName:LPCSTR; lpTargetPath:LPSTR; ucchMax:DWORD):DWORD; external 'kernel32' name 'QueryDosDeviceA';
 function CreateFile(lpFileName:LPCSTR; dwDesiredAccess:DWORD; dwShareMode:DWORD; lpSecurityAttributes:LPSECURITY_ATTRIBUTES; dwCreationDisposition:DWORD;dwFlagsAndAttributes:DWORD; hTemplateFile:HANDLE):HANDLE; external 'kernel32' name 'CreateFileA';
@@ -293,6 +293,7 @@ function WinHelp(hWndMain:HWND; lpszHelp:LPCSTR; uCommand:UINT; dwData:DWORD):WI
 function ChangeDisplaySettings(lpDevMode:LPDEVMODE; dwFlags:DWORD):LONG; external 'user32' name 'ChangeDisplaySettingsA';
 function EnumDisplaySettings(lpszDeviceName:LPCSTR; iModeNum:DWORD; lpDevMode:LPDEVMODE):WINBOOL; external 'user32' name 'EnumDisplaySettingsA';
 function SystemParametersInfo(uiAction:UINT; uiParam:UINT; pvParam:PVOID; fWinIni:UINT):WINBOOL; external 'user32' name 'SystemParametersInfoA';
+function GetRawInputDeviceInfo(hDevice: HANDLE; uiCommand: UINT; pData: LPVOID; pcbSize: PUINT): UINT external 'user32' name 'GetRawInputDeviceInfoA';
 function AddFontResource(_para1:LPCSTR):longint; external 'gdi32' name 'AddFontResourceA';
 function CopyMetaFile(_para1:HMETAFILE; _para2:LPCSTR):HMETAFILE; external 'gdi32' name 'CopyMetaFileA';
 function CreateFont(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:DWORD; _para7:DWORD; _para8:DWORD; _para9:DWORD; _para10:DWORD;_para11:DWORD; _para12:DWORD; _para13:DWORD; _para14:LPCSTR):HFONT;
@@ -474,10 +475,13 @@ function DdeQueryString(_para1:DWORD; _para2:HSZ; _para3:pchar;_para4:DWORD; _pa
 function LogonUser(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR; _para4:DWORD; _para5:DWORD;_para6:PHANDLE):WINBOOL; external 'advapi32' name 'LogonUserA';
 function CreateProcessAsUser(_para1:HANDLE; _para2:LPCTSTR; _para3:LPTSTR; _para4:LPSECURITY_ATTRIBUTES; _para5:LPSECURITY_ATTRIBUTES;_para6:WINBOOL; _para7:DWORD; _para8:LPVOID; _para9:LPCTSTR;
   _para10:LPSTARTUPINFO; _para11:LPPROCESS_INFORMATION):WINBOOL; external 'advapi32' name 'CreateProcessAsUserA';
-function FindFirstFileEx(lpfilename : LPCStr;fInfoLevelId:FINDEX_INFO_LEVELS ;lpFindFileData:pointer;fSearchOp : FINDEX_SEARCH_OPS;lpSearchFilter:pointer;dwAdditionalFlags:dword):Handle; stdcall; external name 'FindFirstFileExA';
+function FindFirstFileEx(lpfilename : LPCStr;fInfoLevelId:FINDEX_INFO_LEVELS ;lpFindFileData:pointer;fSearchOp : FINDEX_SEARCH_OPS;lpSearchFilter:pointer;dwAdditionalFlags:dword):Handle; stdcall; external 'kernel32' name 'FindFirstFileExA';
 // winver>$0600
 function FindFirstFileTransacted(lpfilename : LPCStr;fInfoLevelId:FINDEX_INFO_LEVELS ;lpFindFileData:pointer;fSearchOp : FINDEX_SEARCH_OPS;lpSearchFilter:pointer;dwAdditionalFlags:dword;htransaction : HANDLE):Handle; stdcall;
-    external name 'FindFirstFileTransactedA';
+    external 'kernel32' name 'FindFirstFileTransactedA';
+function GetComputerNameEx(NameType:COMPUTER_NAME_FORMAT;lpbuffer:LPSTR;nSize:LPDWORD):BOOL;stdcall;external 'kernel32' name 'GetComputerNameExA';
+function QueryFullProcessImageName(hProcess:THandle;dwFlags:DWord; lpexename :lpstr;lpdwsize:pdword):BOOL; stdcall; external 'kernel32.dll' name 'QueryFullProcessImageNameA';
+function RealGetWindowClass(Wnd : HWND;ClassnameBuffer : pansichar;ClassnameBufferSize : DWORD): DWORD; stdcall; external 'user32.dll' name 'RealGetWindowClassA';
 {$endif read_interface}
 
 

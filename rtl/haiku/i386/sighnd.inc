@@ -29,13 +29,13 @@ begin
         res:=200;
         // fp_status always here under BeOS and x86 CPU
         // (fp_status is not behind a pointer in the BeOS context record)
-        FpuState:=ucontext^.xregs.state.old_format.fp_status;
-            
+        FpuState:=ucontext^.uc_mcontext.xregs.state.old_format.fp_status;
+
         if (FpuState and FPU_ExceptionMask) <> 0 then
           begin
             { first check the more precise options }
             if (FpuState and FPU_DivisionByZero)<>0 then
-              res:=200
+              res:=208
             else if (FpuState and (FPU_StackOverflow or FPU_StackUnderflow or FPU_Invalid))<>0 Then
               res:=207
             else if (FpuState and FPU_Overflow)<>0 then
@@ -43,11 +43,11 @@ begin
             else if (FpuState and FPU_Underflow)<>0 then
               res:=206
             else if (FpuState and FPU_Denormal)<>0 then
-              res:=216
+              res:=207
             else
               res:=207;  {'Coprocessor Error'}
           end;
-        with ucontext^.xregs.state.old_format do
+        with ucontext^.uc_mcontext.xregs.state.old_format do
         begin
           fp_status := fp_status and not FPU_ExceptionMask;
         end;
@@ -63,7 +63,7 @@ begin
         begin
           os_supports_sse := false;
           res := 0;
-          inc(ucontext^.eip, 3);
+          inc(ucontext^.uc_mcontext.eip, 3);
         end
       else
         res:=216;
@@ -85,8 +85,8 @@ begin
 { give runtime error at the position where the signal was raised }
   if res<>0 then
   begin
-    HandleErrorAddrFrame(res, pointer(ucontext^.eip),
-                              pointer(ucontext^.ebp));    
+    HandleErrorAddrFrame(res, pointer(ucontext^.uc_mcontext.eip),
+                              pointer(ucontext^.uc_mcontext.ebp));
   end;
 end;
 

@@ -402,11 +402,17 @@ begin
   if CtrlBreak then
     CrtCtrlBreakHandler := not (CheckBreak)
   else (* Ctrl-C pressed *)
+{$IFDEF FPC_CRT_CTRLC_TREATED_AS_KEY}
+ (* If Ctrl-C is really treated as a key, the following branch should never *)
+ (* be executed, but let's stay on the safe side and ensure predictability. *)
+   CrtCtrlBreakHandler := false;
+{$ELSE FPC_CRT_CTRLC_TREATED_AS_KEY}
     begin
       if not (SpecialKey) and (ScanCode = 0) then
         ScanCode := 3;
       CrtCtrlBreakHandler := true;
     end;
+{$ENDIF FPC_CRT_CTRLC_TREATED_AS_KEY}
 end;
 
 

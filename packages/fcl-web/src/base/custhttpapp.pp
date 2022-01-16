@@ -21,7 +21,7 @@ unit custhttpapp;
 Interface
 
 uses
-  Classes, SysUtils, httpdefs, custweb, ssockets,  fphttpserver;
+  Classes, SysUtils, httpdefs, custweb, ssockets,  fphttpserver, sslbase;
 
 Type
   TCustomHTTPApplication = Class;
@@ -35,8 +35,19 @@ Type
   protected
     Procedure InitRequest(ARequest : TFPHTTPConnectionRequest); override;
     Procedure InitResponse(AResponse : TFPHTTPConnectionResponse); override;
+  Public
     Property WebHandler : TFPHTTPServerHandler Read FWebHandler;
     Property Active;
+    Property OnAcceptIdle;
+    Property AcceptIdleTimeout;
+    Property Address;
+    property AdminMail;
+    property AdminName;
+    property ServerBanner;
+    Property LookupHostNames;
+    property HostName;
+    Property CertificateData;
+    Property UseSSL;
   end;
 
   { TFCgiHandler }
@@ -48,15 +59,25 @@ Type
     FOnRequestError: TRequestErrorHandler;
     FServer: TEmbeddedHTTPServer;
     function GetAllowConnect: TConnectQuery;
+    function GetAddress: string;
+    function GetHostName: String;
+    function GetIdle: TNotifyEvent;
+    function GetIDleTimeOut: Cardinal;
     function GetPort: Word;
     function GetQueueSize: Word;
     function GetThreaded: Boolean;
+    function GetUseSSL: Boolean;
+    procedure SetHostName(AValue: String);
+    procedure SetIdle(AValue: TNotifyEvent);
+    procedure SetIDleTimeOut(AValue: Cardinal);
     procedure SetOnAllowConnect(const AValue: TConnectQuery);
+    procedure SetAddress(const AValue: string);
     procedure SetPort(const AValue: Word);
     procedure SetQueueSize(const AValue: Word);
     procedure SetThreaded(const AValue: Boolean);
     function GetLookupHostNames : Boolean;
     Procedure SetLookupHostnames(Avalue : Boolean);
+    procedure SetUseSSL(AValue: Boolean);
   protected
     procedure HTTPHandleRequest(Sender: TObject; var ARequest: TFPHTTPConnectionRequest; var AResponse: TFPHTTPConnectionResponse); virtual;
     procedure HandleRequestError(Sender: TObject; E: Exception); virtual;
@@ -64,12 +85,13 @@ Type
     Procedure InitResponse(AResponse : TResponse); override;
     function WaitForRequest(out ARequest : TRequest; out AResponse : TResponse) : boolean; override;
     Function CreateServer : TEmbeddedHttpServer; virtual;
-    Property HTTPServer : TEmbeddedHttpServer Read FServer;
   Public
     Procedure Run; override;
     Procedure Terminate; override;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    // Address to listen on.
+    Property Address : string Read GetAddress Write SetAddress;
     // Port to listen on.
     Property Port : Word Read GetPort Write SetPort Default 80;
     // Max connections on queue (for Listen call)
@@ -82,26 +104,51 @@ Type
     Property OnRequestError : TRequestErrorHandler Read FOnRequestError Write FOnRequestError;
     // Should addresses be matched to hostnames ? (expensive)
     Property LookupHostNames : Boolean Read GetLookupHostNames Write SetLookupHostNames;
+    // Event handler called when going Idle while waiting for a connection
+    Property OnAcceptIdle : TNotifyEvent Read GetIdle Write SetIdle;
+    // If >0, when no new connection appeared after timeout, OnAcceptIdle is called.
+    Property AcceptIdleTimeout : Cardinal Read GetIDleTimeOut Write SetIDleTimeOut;
+    // Use SSL or not ?
+    Property UseSSL : Boolean Read GetUseSSL Write SetUseSSL;
+    // HostName to use when using SSL
+    Property HostName : String Read GetHostName Write SetHostName;
+    // Access to server so you can set certificate data
+    Property HTTPServer : TEmbeddedHttpServer Read FServer;
   end;
 
   { TCustomHTTPApplication }
 
   TCustomHTTPApplication = Class(TCustomWebApplication)
   private
+    procedure FakeConnect;
+    function GetCertificateData: TCertificateData;
+    function GetHostName: String;
+    function GetIdle: TNotifyEvent;
+    function GetIDleTimeOut: Cardinal;
     function GetLookupHostNames : Boolean;
+    function GetUseSSL: Boolean;
+    procedure SetHostName(AValue: String);
+    procedure SetIdle(AValue: TNotifyEvent);
+    procedure SetIDleTimeOut(AValue: Cardinal);
     Procedure SetLookupHostnames(Avalue : Boolean);
     function GetAllowConnect: TConnectQuery;
+    function GetAddress: String;
     function GetPort: Word;
     function GetQueueSize: Word;
     function GetThreaded: Boolean;
     procedure SetOnAllowConnect(const AValue: TConnectQuery);
+    procedure SetAddress(const AValue: string);
     procedure SetPort(const AValue: Word);
     procedure SetQueueSize(const AValue: Word);
     procedure SetThreaded(const AValue: Boolean);
+    procedure SetUseSSL(AValue: Boolean);
   protected
     function InitializeWebHandler: TWebHandler; override;
-    Function HTTPHandler : TFPHTTPServerHandler;
   Public
+    procedure Terminate; override;
+    // Access to HTTP handler
+    Function HTTPHandler : TFPHTTPServerHandler;
+    Property Address : string Read GetAddress Write SetAddress;
     Property Port : Word Read GetPort Write SetPort Default 80;
     // Max connections on queue (for Listen call)
     Property QueueSize : Word Read GetQueueSize Write SetQueueSize Default 5;
@@ -111,6 +158,16 @@ Type
     property Threaded : Boolean read GetThreaded Write SetThreaded;
     // Should addresses be matched to hostnames ? (expensive)
     Property LookupHostNames : Boolean Read GetLookupHostNames Write SetLookupHostNames;
+    // Event handler called when going Idle while waiting for a connection
+    Property OnAcceptIdle : TNotifyEvent Read GetIdle Write SetIdle;
+    // If >0, when no new connection appeared after timeout, OnAcceptIdle is called.
+    Property AcceptIdleTimeout : Cardinal Read GetIDleTimeOut Write SetIDleTimeOut;
+    // Use SSL ?
+    Property UseSSL : Boolean Read GetUseSSL Write SetUseSSL;
+    // Hostname to use when using SSL
+    Property HostName : String Read GetHostName Write SetHostName;
+    // Access to certificate data
+    Property CertificateData : TCertificateData Read GetCertificateData;
   end;
 
 
@@ -136,13 +193,43 @@ uses
 
 { TCustomHTTPApplication }
 
+function TCustomHTTPApplication.GetIdle: TNotifyEvent;
+begin
+  Result:=HTTPHandler.OnAcceptIdle;
+end;
+
+function TCustomHTTPApplication.GetIDleTimeOut: Cardinal;
+begin
+  Result:=HTTPHandler.AcceptIdleTimeout;
+end;
+
 function TCustomHTTPApplication.GetLookupHostNames : Boolean;
 
 begin
   Result:=HTTPHandler.LookupHostNames;
 end;
 
-Procedure TCustomHTTPApplication.SetLookupHostnames(Avalue : Boolean);
+function TCustomHTTPApplication.GetUseSSL: Boolean;
+begin
+  Result:=HTTPHandler.UseSSL;
+end;
+
+procedure TCustomHTTPApplication.SetHostName(AValue: String);
+begin
+  HTTPHandler.HostName:=aValue;
+end;
+
+procedure TCustomHTTPApplication.SetIdle(AValue: TNotifyEvent);
+begin
+  HTTPHandler.OnAcceptIdle:=AValue;
+end;
+
+procedure TCustomHTTPApplication.SetIDleTimeOut(AValue: Cardinal);
+begin
+  HTTPHandler.AcceptIdleTimeOut:=AValue;
+end;
+
+procedure TCustomHTTPApplication.SetLookupHostnames(Avalue: Boolean);
 
 begin
   HTTPHandler.LookupHostNames:=AValue;
@@ -151,6 +238,11 @@ end;
 function TCustomHTTPApplication.GetAllowConnect: TConnectQuery;
 begin
   Result:=HTTPHandler.OnAllowConnect;
+end;
+
+function TCustomHTTPApplication.GetAddress: String;
+begin
+  Result:=HTTPHandler.Address;
 end;
 
 function TCustomHTTPApplication.GetPort: Word;
@@ -173,6 +265,11 @@ begin
   HTTPHandler.OnAllowConnect:=AValue;
 end;
 
+procedure TCustomHTTPApplication.SetAddress(const AValue: string);
+begin
+  HTTPHandler.Address:=Avalue;
+end;
+
 procedure TCustomHTTPApplication.SetPort(const AValue: Word);
 begin
   HTTPHandler.Port:=Avalue;
@@ -188,6 +285,11 @@ begin
   HTTPHandler.Threaded:=Avalue;
 end;
 
+procedure TCustomHTTPApplication.SetUseSSL(AValue: Boolean);
+begin
+  HTTPHandler.UseSSL:=aValue;
+end;
+
 function TCustomHTTPApplication.InitializeWebHandler: TWebHandler;
 begin
   Result:=TFPHTTPServerHandler.Create(Self);
@@ -196,6 +298,35 @@ end;
 function TCustomHTTPApplication.HTTPHandler: TFPHTTPServerHandler;
 begin
   Result:=Webhandler as TFPHTTPServerHandler;
+end;
+
+procedure TCustomHTTPApplication.FakeConnect;
+
+begin
+  try
+    TInetSocket.Create('localhost',Self.Port).Free;
+  except
+    // Ignore errors this may raise.
+  end
+end;
+
+function TCustomHTTPApplication.GetCertificateData: TCertificateData;
+begin
+  Result:=HTTPHandler.HTTPServer.CertificateData;
+end;
+
+function TCustomHTTPApplication.GetHostName: String;
+begin
+  Result:=HTTPHandler.HostName;
+end;
+
+procedure TCustomHTTPApplication.Terminate;
+
+begin
+  inherited Terminate;
+  // We need to break the accept loop. Do a fake connect.
+  if Threaded And (AcceptIdleTimeout=0) then
+    FakeConnect;
 end;
 
 { TFPHTTPServerHandler }
@@ -234,15 +365,40 @@ begin
   Result:=FServer.LookupHostNames;
 end;
 
-Procedure TFPHTTPServerHandler.SetLookupHostnames(Avalue : Boolean);
+procedure TFPHTTPServerHandler.SetLookupHostnames(Avalue: Boolean);
 
 begin
   FServer.LookupHostNames:=AValue;
 end;
 
+procedure TFPHTTPServerHandler.SetUseSSL(AValue: Boolean);
+begin
+  FServer.UseSSL:=aValue;
+end;
+
 function TFPHTTPServerHandler.GetAllowConnect: TConnectQuery;
 begin
   Result:=FServer.OnAllowConnect;
+end;
+
+function TFPHTTPServerHandler.GetAddress: string;
+begin
+  Result:=FServer.Address;
+end;
+
+function TFPHTTPServerHandler.GetHostName: String;
+begin
+  Result:=FServer.CertificateData.HostName;
+end;
+
+function TFPHTTPServerHandler.GetIdle: TNotifyEvent;
+begin
+  Result:=FServer.OnAcceptIdle;
+end;
+
+function TFPHTTPServerHandler.GetIDleTimeOut: Cardinal;
+begin
+  Result:=FServer.AcceptIdleTimeout;
 end;
 
 function TFPHTTPServerHandler.GetPort: Word;
@@ -260,9 +416,34 @@ begin
   Result:=FServer.Threaded;
 end;
 
+function TFPHTTPServerHandler.GetUseSSL: Boolean;
+begin
+  Result:=FServer.UseSSL;
+end;
+
+procedure TFPHTTPServerHandler.SetHostName(AValue: String);
+begin
+  FServer.CertificateData.HostName:=aValue;
+end;
+
+procedure TFPHTTPServerHandler.SetIdle(AValue: TNotifyEvent);
+begin
+  FServer.OnAcceptIdle:=AValue;
+end;
+
+procedure TFPHTTPServerHandler.SetIDleTimeOut(AValue: Cardinal);
+begin
+  FServer.AcceptIdleTimeOut:=AValue;
+end;
+
 procedure TFPHTTPServerHandler.SetOnAllowConnect(const AValue: TConnectQuery);
 begin
   FServer.OnAllowConnect:=Avalue
+end;
+
+procedure TFPHTTPServerHandler.SetAddress(const AValue: string);
+begin
+  FServer.Address:=AValue
 end;
 
 procedure TFPHTTPServerHandler.SetPort(const AValue: Word);

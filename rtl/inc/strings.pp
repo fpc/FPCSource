@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit strings;
+unit Strings;
 {$S-}
 {$inline on}
 interface
@@ -155,10 +155,7 @@ implementation
 
       begin
          if p<>nil then
-          begin
-            freemem(p);
-            p:=nil;
-          end;
+           freemem(p);
       end;
 
 end.

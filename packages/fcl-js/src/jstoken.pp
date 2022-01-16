@@ -1,3 +1,17 @@
+{ ********************************************************************* 
+    This file is part of the Free Component Library (FCL)
+    Copyright (c) 2016 Michael Van Canneyt.
+       
+    Javascript token definitions
+            
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+                   
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+                                
+  **********************************************************************}
 unit jstoken;
 
 {$mode objfpc}{$H+}
@@ -8,7 +22,7 @@ type
 
   TJSToken = (tjsUnknown,
      // Specials
-     tjsEOF,tjsWhiteSpace,tjsChar,tjsString, tjsIdentifier,tjsNumber, tjsComment,tjsREGEX, tjsRESERVED,
+     tjsEOF,tjsWhiteSpace,tjsChar,tjsString{this bites TJSString}, tjsIdentifier,tjsNumber, tjsComment,tjsREGEX, tjsRESERVED,
      tjsANDAND, tjsANDEQ,
      tjsBraceOpen,tjsBraceClose,tjsSQuaredBraceOpen,tjsSQuaredBraceClose,tjsCurlyBraceOpen,tjsCurlyBraceClose,
      tjsCOMMA,tjsCOLON,  tjsDOT,tjsSEMICOLON, tjsASSIGN,tjsGT,tjsLT, tjsConditional,
@@ -22,26 +36,29 @@ type
      tjsPLUSEQ, tjsPLUSPLUS,
      tjsURSHIFT, tjsURSHIFTEQ,
      tjsRSHIFT, tjsRSHIFTEQ,
-     tjsSEQ, tjsSNE, tjsMULEQ,
+     tjsSEQ, tjsSNE, tjsMULEQ, tjsArrow, tjsEllipsis,
      { Reserved words start here. They must be last }
-     tjsBREAK,tjsCASE, tjsCATCH, tjsCONTINUE,
-     tjsDEFAULT, tjsDELETE, tjsDO,
-     tjsELSE,
-     tjsFalse, tjsFINALLY, tjsFOR, tjsFUNCTION,
-     tjsIF, tjsIN, tjsINSTANCEOF,
-     tjsNEW,tjsNULL,
+     tjsAWAIT, tjsBREAK, tjsCASE, tjsCATCH, tjsCLASS, tjsCONST, tjsCONTINUE,
+     tjsDEBUGGER, tjsDEFAULT, tjsDELETE, tjsDO,
+     tjsELSE, tjsENUM, tjsEXPORT, tjsEXTENDS,
+     tjsFALSE, tjsFINALLY, tjsFOR, tjsFUNCTION,
+     tjsIF, tjsIMPORT, tjsIN, tjsINSTANCEOF,
+     tjsLet,
+     tjsNEW, tjsNULL,
      tjsRETURN,
-     tjsSWITCH,
+     tjsSUPER, tjsSWITCH,
      tjsTHIS, tjsTHROW, tjsTrue, tjsTRY, tjsTYPEOF,
      tjsVAR, tjsVOID,
-     tjsWHILE, tjsWITH
+     tjsWHILE, tjsWITH,
+     tjsYield
    );
+   TJSTokens = Set of TJSToken;
 
 const
-  FirstKeyword = tjsBreak;
-  LastKeyWord = tJSWith;
+  FirstKeyword = tjsAwait;
+  LastKeyWord = tJSYield;
 
-  TokenInfos: array[TJSToken] of string = ('unknown',
+  TokenInfos: array[TJSToken] of String = ('unknown',
        // Specials
         'EOF','whitespace','Char','String', 'identifier','number','comment','regular expression', 'reserved word',
         '&&','&=',
@@ -57,19 +74,21 @@ const
         '+=', '++',
         '>>>', '>>>=',
         '>>', '>>=',
-        '===', '!==', '*=',
+        '===', '!==', '*=', '=>', '...',
         // Identifiers last
-        'break','case','catch', 'continue',
-     'default','delete', 'do',
-     'else',
+        'await', 'break','case','catch', 'class','const','continue',
+     'debugger','default','delete', 'do',
+     'else','enum','export','extends',
      'false','finally', 'for', 'function',
-     'if', 'in', 'instanceof',
+     'if', 'import', 'in', 'instanceof',
+     'let',
      'new','null',
      'return',
-     'switch',
+     'super', 'switch',
      'this', 'throw', 'true', 'try', 'typeof',
      'var', 'void',
-     'while', 'with'
+     'while', 'with',
+     'yield'
     );
 
 

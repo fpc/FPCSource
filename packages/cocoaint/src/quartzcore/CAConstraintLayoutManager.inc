@@ -1,10 +1,16 @@
-{ Parsed from Quartzcore.framework CAConstraintLayoutManager.h }
+{ Parsed from QuartzCore.framework CAConstraintLayoutManager.h }
+
 
 {$ifdef TYPES}
-{$ifndef CACONSTRAINTLAYOUTMANAGER_PAS_T}
-{$define CACONSTRAINTLAYOUTMANAGER_PAS_T}
+type
+  CAConstraintLayoutManagerPtr = ^CAConstraintLayoutManager;
+  CAConstraintPtr = ^CAConstraint;
+{$endif}
 
-{ Constants }
+{$ifdef TYPES}
+type
+  CAConstraintAttribute = cint;
+  CAConstraintAttributePtr = ^CAConstraintAttribute;
 
 const
   kCAConstraintMinX = 0;
@@ -15,94 +21,52 @@ const
   kCAConstraintMidY = 5;
   kCAConstraintMaxY = 6;
   kCAConstraintHeight = 7;
-
-{ Types }
-type
-  CAConstraintAttribute = cint;
-  CAConstraintAttributePtr = ^CAConstraintAttribute;
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef CACONSTRAINTLAYOUTMANAGER_PAS_R}
-{$define CACONSTRAINTLAYOUTMANAGER_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef CACONSTRAINTLAYOUTMANAGER_PAS_F}
-{$define CACONSTRAINTLAYOUTMANAGER_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef CACONSTRAINTLAYOUTMANAGER_PAS_S}
-{$define CACONSTRAINTLAYOUTMANAGER_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  CAConstraintLayoutManager = objcclass;
-  CAConstraintLayoutManagerPointer = ^CAConstraintLayoutManager;
-  CAConstraintLayoutManagerPtr = CAConstraintLayoutManagerPointer;
-  CAConstraint = objcclass;
-  CAConstraintPointer = ^CAConstraint;
-  CAConstraintPtr = CAConstraintPointer;
-
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef CACONSTRAINTLAYOUTMANAGER_PAS_C}
-{$define CACONSTRAINTLAYOUTMANAGER_PAS_C}
 
-{ CAConstraintLayoutManager }
+type
+  CALayer_CAConstraintLayoutManager = objccategory external name 'CAConstraintLayoutManager' (CALayer)
+    procedure setConstraints(newValue: NSArray); message 'setConstraints:';
+    function constraints: NSArray; message 'constraints';
+    procedure addConstraint (c: CAConstraint); message 'addConstraint:';
+  end;
+
+
+type
   CAConstraintLayoutManager = objcclass external (NSObject)
-    
   public
     class function layoutManager: id; message 'layoutManager';
   end;
 
-{ CAConstraint }
+type
   CAConstraint = objcclass external (NSObject, NSCodingProtocol)
   private
     _srcId: NSString;
-    _anoninternstruct_CAConstraintLayoutManager0: record
+    _anonStruct_CAConstraintLayoutManager0: record
       case byte of
-       0: (_anonbitfield_CAConstraintLayoutManager0: CAConstraintAttribute);
-       1: (data: bitpacked record
-        _srcAttr: 0..((1 shl 16)-1);
-        _attr: 0..((1 shl 16)-1);
-       end;
+        0: (anonBitField_CAConstraintLayoutManager0: cuint);
+        1: (data: bitpacked record
+          _srcAttr: 0..((1 shl 16)-1);
+          _attr: 0..((1 shl 16)-1);
+        end;
       );
-      end;
+    end;
     _scale, _offset: CGFloat;
-    
   public
-    class function constraintWithAttribute_relativeTo_attribute_scale_offset(attr: CAConstraintAttribute; srcId: NSString; srcAttr: CAConstraintAttribute; m: CGFloat; c: CGFloat): id; message 'constraintWithAttribute:relativeTo:attribute:scale:offset:';
-    class function constraintWithAttribute_relativeTo_attribute_offset(attr: CAConstraintAttribute; srcId: NSString; srcAttr: CAConstraintAttribute; c: CGFloat): id; message 'constraintWithAttribute:relativeTo:attribute:offset:';
-    class function constraintWithAttribute_relativeTo_attribute(attr: CAConstraintAttribute; srcId: NSString; srcAttr: CAConstraintAttribute): id; message 'constraintWithAttribute:relativeTo:attribute:';
-    function initWithAttribute_relativeTo_attribute_scale_offset(attr: CAConstraintAttribute; srcId: NSString; srcAttr: CAConstraintAttribute; m: CGFloat; c: CGFloat): id; message 'initWithAttribute:relativeTo:attribute:scale:offset:';
+    class function constraintWithAttribute_relativeTo_attribute_scale_offset (attr: CAConstraintAttribute; srcId: NSString; srcAttr: CAConstraintAttribute; m: CGFloat; c: CGFloat): id; message 'constraintWithAttribute:relativeTo:attribute:scale:offset:';
+    class function constraintWithAttribute_relativeTo_attribute_offset (attr: CAConstraintAttribute; srcId: NSString; srcAttr: CAConstraintAttribute; c: CGFloat): id; message 'constraintWithAttribute:relativeTo:attribute:offset:';
+    class function constraintWithAttribute_relativeTo_attribute (attr: CAConstraintAttribute; srcId: NSString; srcAttr: CAConstraintAttribute): id; message 'constraintWithAttribute:relativeTo:attribute:';
+    function initWithAttribute_relativeTo_attribute_scale_offset (attr: CAConstraintAttribute; srcId: NSString; srcAttr: CAConstraintAttribute; m: CGFloat; c: CGFloat): id; message 'initWithAttribute:relativeTo:attribute:scale:offset:';
     function attribute: CAConstraintAttribute; message 'attribute';
     function sourceName: NSString; message 'sourceName';
     function sourceAttribute: CAConstraintAttribute; message 'sourceAttribute';
     function scale: CGFloat; message 'scale';
     function offset: CGFloat; message 'offset';
 
-    { Adopted Protocols }
-    procedure encodeWithCoder(aCoder: NSCoder);
-    function initWithCoder(aDecoder: NSCoder): id;
+    { Adopted protocols }
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
+    function initWithCoder (aDecoder: NSCoder): id; message 'initWithCoder:';
   end;
-
-{ CAConstraintLayoutManager_CALayerCategory }
-  CAConstraintLayoutManager_CALayerCategory = objccategory external name 'CAConstraintLayoutManager' (CALayer)
-    procedure setConstraints (newValue: NSArray); message 'setConstraints:';
-    function constraints: NSArray; message 'constraints';
-    procedure addConstraint(c: CAConstraint); message 'addConstraint:';
-  end;
-
 {$endif}
-{$endif}
+

@@ -35,11 +35,12 @@ unit cpupara;
        tcpuparamanager = class(tparamanager)
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
+          function get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
 
-          procedure getintparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
+          procedure getcgtempparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
-          function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
+          function create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
          private
           procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
@@ -78,7 +79,19 @@ unit cpupara;
       end;
 
 
-    procedure tcpuparamanager.getintparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
+    function tcpuparamanager.get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;
+      const
+        saved_regs : tcpuregisterarray = (
+          RS_R13,RS_R14,RS_R15,RS_R16,RS_R17,RS_R18,RS_R19,
+          RS_R20,RS_R21,RS_R22,RS_R23,RS_R24,RS_R25,RS_R26,RS_R27,RS_R28,RS_R29,
+          RS_R30,RS_R31
+        );
+      begin
+        result:=saved_regs;
+      end;
+
+
+    procedure tcpuparamanager.getcgtempparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
       var
         paraloc : pcgparalocation;
         psym : tparavarsym;
@@ -87,7 +100,7 @@ unit cpupara;
         psym:=tparavarsym(pd.paras[nr-1]);
         pdef:=psym.vardef;
         if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
-          pdef:=getpointerdef(pdef);
+          pdef:=cpointerdef.getreusable_no_free(pdef);
         cgpara.reset;
         cgpara.size:=def_cgsize(pdef);
         cgpara.intsize:=tcgsize2size[cgpara.size];
@@ -165,7 +178,10 @@ unit cpupara;
             filedef:
               result:=LOC_REGISTER;
             arraydef:
-              result:=LOC_REFERENCE;
+              if is_dynamic_array(p) then
+                getparaloc:=LOC_REGISTER
+              else
+                result:=LOC_REFERENCE;
             setdef:
               if is_smallset(p) then
                 result:=LOC_REGISTER
@@ -217,7 +233,7 @@ unit cpupara;
               not(target_info.abi in [abi_powerpc_aix,abi_powerpc_darwin]) or
               ((varspez = vs_const) and
                ((calloption = pocall_mwpascal) or
-                (not (calloption in [pocall_cdecl,pocall_cppdecl]) and
+                (not (calloption in cdecl_pocalls) and
                  (def.size > 8)
                 )
                )
@@ -233,6 +249,8 @@ unit cpupara;
             result:=not is_smallset(def);
           stringdef :
             result:=tstringdef(def).stringtype in [st_shortstring,st_longstring];
+          else
+            ;
         end;
       end;
 
@@ -365,11 +383,8 @@ unit cpupara;
               paradef := hp.vardef;
               { Syscall for Morphos can have already a paraloc set }
               if (vo_has_explicit_paraloc in hp.varoptions) then
-                begin
-                  if not(vo_is_syscall_lib in hp.varoptions) then
-                    internalerror(200412153);
-                  continue;
-                end;
+                continue;
+
               hp.paraloc[side].reset;
               { currently only support C-style array of const }
               if (p.proccalloption in cstylearrayofconst) and
@@ -386,7 +401,7 @@ unit cpupara;
 
               if push_addr_param(hp.varspez,paradef,p.proccalloption) then
                 begin
-                  paradef:=getpointerdef(paradef);
+                  paradef:=cpointerdef.getreusable_no_free(paradef);
                   loc:=LOC_REGISTER;
                   paracgsize := OS_ADDR;
                   paralen := tcgsize2size[OS_ADDR];
@@ -499,9 +514,9 @@ unit cpupara;
                         registers is left-aligned }
                       if (target_info.system in systems_aix) and
                          (paradef.typ = recorddef) and
-                         (tcgsize2size[paraloc^.size] <> sizeof(aint)) then
+                         (paralen < sizeof(aint)) then
                         begin
-                          paraloc^.shiftval := (sizeof(aint)-tcgsize2size[paraloc^.size])*(-8);
+                          paraloc^.shiftval := (sizeof(aint)-paralen)*(-8);
                           paraloc^.size := OS_INT;
                           paraloc^.def := u32inttype;
                         end;
@@ -567,7 +582,7 @@ unit cpupara;
                              if paraloc^.size<>OS_NO then
                                paraloc^.def:=cgsize_orddef(paraloc^.size)
                              else
-                               paraloc^.def:=getarraydef(u8inttype,paralen);
+                               paraloc^.def:=carraydef.getreusable_no_free(u8inttype,paralen);
                            end;
                          else
                            internalerror(2006011101);
@@ -581,7 +596,7 @@ unit cpupara;
                            { create_paraloc_info_intern might be also called when being outside of
                              code generation so current_procinfo might be not set }
                            if assigned(current_procinfo) then
-                             tppcprocinfo(current_procinfo).needs_frame_pointer := true;
+                             tcpuprocinfo(current_procinfo).needs_frame_pointer := true;
                          end;
 
                        if not((target_info.system in systems_aix) and
@@ -612,48 +627,35 @@ unit cpupara;
       end;
 
 
-    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
+    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;
       var
         cur_stack_offset: aword;
-        parasize, l: longint;
         curintreg, firstfloatreg, curfloatreg, curmmreg: tsuperregister;
-        i : integer;
-        hp: tparavarsym;
-        paraloc: pcgparalocation;
       begin
         init_values(curintreg,curfloatreg,curmmreg,cur_stack_offset);
         firstfloatreg:=curfloatreg;
 
-        result:=create_paraloc_info_intern(p,callerside,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset, false);
+        result:=create_paraloc_info_intern(p,side,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset, false);
         if (p.proccalloption in cstylearrayofconst) then
           { just continue loading the parameters in the registers }
           begin
-            result:=create_paraloc_info_intern(p,callerside,varargspara,curintreg,curfloatreg,curmmreg,cur_stack_offset,true);
+            if assigned(varargspara) then
+              begin
+                if side=callerside then
+                  result:=create_paraloc_info_intern(p,side,varargspara,curintreg,curfloatreg,curmmreg,cur_stack_offset,true)
+                else
+                  internalerror(2019021921);
+              end;
             { varargs routines have to reserve at least 32 bytes for the AIX abi }
             if (target_info.abi in [abi_powerpc_aix,abi_powerpc_darwin]) and
                (result < 32) then
               result := 32;
            end
         else
-          begin
-            parasize:=cur_stack_offset;
-            for i:=0 to varargspara.count-1 do
-              begin
-                hp:=tparavarsym(varargspara[i]);
-                hp.paraloc[callerside].alignment:=4;
-                paraloc:=hp.paraloc[callerside].add_location;
-                paraloc^.loc:=LOC_REFERENCE;
-                paraloc^.size:=def_cgsize(hp.vardef);
-                paraloc^.def:=hp.vardef;
-                paraloc^.reference.index:=NR_STACK_POINTER_REG;
-                l:=push_size(hp.varspez,hp.vardef,p.proccalloption);
-                paraloc^.reference.offset:=parasize;
-                parasize:=parasize+l;
-              end;
-            result:=parasize;
-          end;
+          internalerror(2019021710);
         if curfloatreg<>firstfloatreg then
           include(varargspara.varargsinfo,va_uses_float_reg);
+        create_funcretloc_info(p,side);
       end;
 
 
@@ -661,8 +663,22 @@ unit cpupara;
       var
         paraloc : pcgparalocation;
         paracgsize : tcgsize;
+        offset_lo: aint;
+        offset_hi: aint;
+
+      function parse68kregname(idx: longint): longint;
+        begin
+          result:=-1;
+          if (lowercase(s[idx]) = 'd') and (s[idx+1] in ['0'..'7']) then
+            result:=(ord(s[idx+1]) - ord('0')) * sizeof(pint)
+          else if (lowercase(s[idx]) = 'a') and (s[idx+1] in ['0'..'6']) then
+            result:=(ord(s[idx+1]) - ord('0') + 8) * sizeof(pint);
+        end;
+
       begin
         result:=false;
+        offset_hi:=-1;
+        offset_lo:=-1;
         case target_info.system of
           system_powerpc_morphos:
             begin
@@ -671,62 +687,68 @@ unit cpupara;
               p.paraloc[callerside].size:=paracgsize;
               p.paraloc[callerside].intsize:=tcgsize2size[paracgsize];
               paraloc:=p.paraloc[callerside].add_location;
-              paraloc^.loc:=LOC_REFERENCE;
+
               { The OS side should be zero extended and the entire "virtual"
                 68k register should be overwritten. This is what the C ppcinline
                 macros do as well, by casting all arguments to ULONG. A call
                 which breaks w/o this is for example exec/RawPutChar (KB) }
               paraloc^.size:=OS_ADDR;
               paraloc^.def:=p.vardef;
-              paraloc^.reference.index:=newreg(R_INTREGISTER,RS_R2,R_SUBWHOLE);
-              { pattern is always uppercase'd }
-              if s='D0' then
-                paraloc^.reference.offset:=0
-              else if s='D1' then
-                paraloc^.reference.offset:=4
-              else if s='D2' then
-                paraloc^.reference.offset:=8
-              else if s='D3' then
-                paraloc^.reference.offset:=12
-              else if s='D4' then
-                paraloc^.reference.offset:=16
-              else if s='D5' then
-                paraloc^.reference.offset:=20
-              else if s='D6' then
-                paraloc^.reference.offset:=24
-              else if s='D7' then
-                paraloc^.reference.offset:=28
-              else if s='A0' then
-                paraloc^.reference.offset:=32
-              else if s='A1' then
-                paraloc^.reference.offset:=36
-              else if s='A2' then
-                paraloc^.reference.offset:=40
-              else if s='A3' then
-                paraloc^.reference.offset:=44
-              else if s='A4' then
-                paraloc^.reference.offset:=48
-              else if s='A5' then
-                paraloc^.reference.offset:=52
-              { 'A6' (offset 56) is used by mossyscall as libbase, so API
-                never passes parameters in it,
-                Indeed, but this allows to declare libbase either explicitly
-                or let the compiler insert it }
-              else if s='A6' then
-                paraloc^.reference.offset:=56
-              { 'A7' is the stack pointer on 68k, can't be overwritten
-                by API calls, so it has no offset }
-              { 'R12' is special, used internally to support r12base sysv
-                calling convention }
-              else if s='R12' then
-                begin
-                  paraloc^.loc:=LOC_REGISTER;
-                  paraloc^.size:=OS_ADDR;
-                  paraloc^.def:=voidpointertype;
-                  paraloc^.register:=NR_R12;
-                end
+
+              { convert virtual 68k reg patterns into offsets }
+              case length(s) of
+                2: begin
+                     { single register }
+                     offset_lo:=parse68kregname(1);
+                     if offset_lo<0 then
+                       message(parser_e_illegal_explicit_paraloc);
+
+                     if tcgsize2size[paracgsize]>4 then
+                       message(parser_e_location_size_too_small);
+
+                     paraloc^.loc:=LOC_REFERENCE;
+                     paraloc^.reference.index:=newreg(R_INTREGISTER,RS_R2,R_SUBWHOLE);
+                     paraloc^.reference.offset:=offset_lo;
+                   end;
+                5: begin
+                     { 64bit register pair, used by AmiSSL 68k for example }
+                     offset_hi:=parse68kregname(1);
+                     offset_lo:=parse68kregname(4);
+
+                     if (not (s[3] in [':','-'])) or
+                        (offset_lo<0) or (offset_hi<0) then
+                       message(parser_e_illegal_explicit_paraloc);
+
+                     if offset_lo>=(8*sizeof(pint)) then
+                       message(parser_e_location_regpair_only_data);
+
+                     if (offset_lo-offset_hi)<>4 then
+                       message(parser_e_location_regpair_only_consecutive);
+
+                     if tcgsize2size[paracgsize]<=4 then
+                       message(parser_e_location_size_too_large);
+
+                     if tcgsize2size[paracgsize]>8 then
+                       message(parser_e_location_size_too_small);
+
+                     paraloc^.loc:=LOC_REFERENCE;
+                     paraloc^.reference.index:=newreg(R_INTREGISTER,RS_R2,R_SUBWHOLE);
+                     paraloc^.reference.offset:=offset_hi;
+                     paraloc^.size:=OS_64;
+                   end;
               else
-                exit;
+                begin
+                  { 'R12' is special, used internally to support regbase and nobase
+                    calling convention }
+                  if lowercase(s)='r12' then
+                    begin
+                      paraloc^.loc:=LOC_REGISTER;
+                      paraloc^.register:=NR_R12;
+                    end
+                  else
+                    exit; { error, cannot parse }
+                end;
+              end;
 
               { copy to callee side }
               p.paraloc[calleeside].add_location^:=paraloc^;

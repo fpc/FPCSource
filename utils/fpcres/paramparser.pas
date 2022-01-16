@@ -45,8 +45,12 @@ type
     fInputFiles : TStringList;
     fOutputFile : string;
     fTarget : TResTarget;
+    fRCIncludeDirs: TStringList;
+    fRCDefines: TStringList;
 
     procedure ParseInputFiles(aList : TStringList; var index : integer; const parname : string);
+    procedure ParseRCInclude(aList: TStringList; var index: integer; const parname: string);
+    procedure ParseRCUnDefine(aList: TStringList; var index: integer; const parname: string);
     procedure ParseOutputFile(aList : TStringList; var index : integer; const parname : string);
     procedure ParseOutputFormat(aList : TStringList; var index : integer; const parname : string);virtual;
     procedure ParseArchitecture(aList : TStringList; var index : integer; const parname : string);virtual;
@@ -65,6 +69,8 @@ type
     property Version : boolean read fVersion;
     property Verbose : boolean read fVerbose;
     property InputFiles : TStringList read fInputFiles;
+    property RCIncludeDirs: TStringList read fRCIncludeDirs;
+    property RCDefines: TStringList read fRCDefines;
     property OutputFile : string read fOutputFile write fOutputFile;
     property Target : TResTarget read fTarget;
   end;
@@ -193,6 +199,42 @@ begin
     fInputFiles.Add(tmp);
     tmp:=DoOptionalArgument(aList,index+1);
   end;
+end;
+
+procedure TParameters.ParseRCInclude(aList: TStringList; var index: integer;
+  const parname : string);
+var
+  tmp: String;
+begin
+  inc(index);
+  tmp:=DoMandatoryArgument(aList,index);
+  if tmp='' then
+    raise EArgumentMissingException.Create(parname);
+  fRCIncludeDirs.Add(tmp);
+end;
+
+procedure TParameters.ParseRCUnDefine(aList: TStringList; var index: integer;
+  const parname : string);
+var
+  tmp: String;
+  i: integer;
+begin
+  inc(index);
+  tmp:=DoMandatoryArgument(aList,index);
+  if tmp='' then
+    raise EArgumentMissingException.Create(parname);
+  if (parname='-D') or (parname='--define') then begin
+    i:= pos('=', tmp);
+    if i<1 then
+      fRCDefines.Values[tmp]:= ''
+    else
+      fRCDefines.Values[Copy(tmp, 1, i-1)]:= Copy(tmp, i+1);
+  end else begin
+    i:= fRCDefines.IndexOfName(tmp);
+    if i >= 0 then
+      fRCDefines.Delete(i);
+  end;
+  fRCIncludeDirs.Add(tmp);
 end;
 
 procedure TParameters.ParseOutputFile(aList: TStringList; var index: integer;
@@ -361,6 +403,11 @@ begin
           fVerbose:=true
         else if ((tmp='-i') or (tmp='--input')) then
           ParseInputFiles(fList,i,tmp)
+        else if ((tmp='-I') or (tmp='--include')) then
+          ParseRCInclude(fList,i,tmp)
+        else if ((tmp='-D') or (tmp='--define'))
+             or ((tmp='-U') or (tmp='--undefine')) then
+          ParseRCUnDefine(fList,i,tmp)
         else if ((tmp='-o') or (tmp='--output')) then
           ParseOutputFile(fList,i,tmp)
         else if (tmp='-of') then
@@ -386,10 +433,14 @@ end;
 
 constructor TParameters.Create;
 begin
+  inherited Create;
   fHelp:=false;
   fVersion:=false;
   fVerbose:=false;
   fInputFiles:=TStringList.Create;
+  fRCIncludeDirs:= TStringList.Create;
+  fRCIncludeDirs.Duplicates:= dupIgnore;
+  fRCDefines:= TStringList.Create;
   fOutputFile:='';
   fTarget.machine:=mtnone;
   GetDefaultSubMachineForMachine(fTarget.machine);
@@ -398,7 +449,10 @@ end;
 
 destructor TParameters.Destroy;
 begin
+  fRCDefines.Free;
+  fRCIncludeDirs.Free;
   fInputFiles.Free;
+  inherited;
 end;
 
 end.

@@ -33,11 +33,6 @@
 
     nils.sjoholm@mailbox.swipnet.se
 }
-{$mode objfpc}
-{$I useamigasmartlink.inc}
-{$ifdef use_amiga_smartlink}
-    {$smartlink on}
-{$endif use_amiga_smartlink}
 
 unit mui;
 
@@ -466,27 +461,20 @@ uses exec, intuition,utility,agraphics,iffparse;
        MUIV_DragReport_Continue = 1;
        MUIV_DragReport_Lock = 2;
        MUIV_DragReport_Refresh = 3;
-    {
-       Control codes for text strings
-                                                                               }
-    { right justified  }
-       MUIX_R : PChar = '\033r';
-    { centered         }
-       MUIX_C : PChar = '\033c';
-    { left justified   }
-       MUIX_L : PChar = '\033l';
-    { normal      }
-       MUIX_N : PChar = '\033n';
-    { bold        }
-       MUIX_B : PChar = '\033b';
-    { italic      }
-       MUIX_I : PChar = '\033i';
-    { underlined  }
-       MUIX_U : PChar = '\033u';
-    { text pen            }
-       MUIX_PT : PChar = '\0332';
-    { highlight text pen  }
-       MUIX_PH : PChar = '\0338';
+
+//       Control codes for text strings
+  MUIX_R  = #27+'r';     // right justified
+  MUIX_C  = #27+'c';     // centered
+  MUIX_L  = #27+'l';     // left justified
+
+  MUIX_N  = #27+'n';     // normal
+  MUIX_B  = #27+'b';     // bold
+  MUIX_I  = #27+'i';     // italic
+  MUIX_U  = #27+'u';     // underlined
+
+  MUIX_PT = #27+'2';     // text pen
+  MUIX_PH = #27+'8';     // highlight text pen
+
     {
        Parameter structures for some classes
                                                                                }
@@ -1205,6 +1193,8 @@ uses exec, intuition,utility,agraphics,iffparse;
        MUIA_Application_Title = $804281b8;
     { V10 i.. BOOL               }
        MUIA_Application_UseCommodities = $80425ee5;
+    { V10 i.. STRPTR               }
+     MUIA_Application_UsedClasses = $8042e9a7;
     { V10 i.. BOOL               }
        MUIA_Application_UseRexx = $80422387;
     { V4  i.g STRPTR             }
@@ -1520,12 +1510,12 @@ uses exec, intuition,utility,agraphics,iffparse;
      { MUI_MinMax structure holds information about minimum, maximum
        and default dimensions of an object.  }
        tMUI_MinMax = record
-            MinWidth : WORD;
-            MinHeight : WORD;
-            MaxWidth : WORD;
-            MaxHeight : WORD;
-            DefWidth : WORD;
-            DefHeight : WORD;
+            MinWidth : SmallInt;
+            MinHeight : SmallInt;
+            MaxWidth : SmallInt;
+            MaxHeight : SmallInt;
+            DefWidth : SmallInt;
+            DefHeight : SmallInt;
          end;
        pMUI_MinMax = ^tMUI_MinMax;
 
@@ -3478,7 +3468,7 @@ uses exec, intuition,utility,agraphics,iffparse;
          end;
        pMUI_CustomClass = ^tMUI_CustomClass;
 
-VAR MUIMasterBase : pLibrary;
+VAR MUIMasterBase : pLibrary = nil;
 
 FUNCTION MUI_NewObjectA(class_ : pCHar location 'a0'; tags : pTagItem location 'a1') : pObject_; syscall MUIMasterBase 030;
 PROCEDURE MUI_DisposeObject(obj : pObject_ location 'a0'); syscall MUIMasterBase 036;
@@ -3575,31 +3565,16 @@ function MUIV_Window_Width_Visible(p : longint) : longint;
 function MUIV_Window_Width_Screen(p : longint) : longint;
 
 {
- Functions and procedures with array of const go here
+ Functions and procedures with array of PtrUInt go here
 }
-FUNCTION MUI_AllocAslRequestTags(_type : longword; const tags : Array Of Const) : POINTER;
-FUNCTION MUI_AslRequestTags(req : POINTER; const tags : Array Of Const) : BOOLEAN;
-FUNCTION MUI_MakeObject(_type : LONGINT; const params : Array Of Const) : pULONG;
-FUNCTION MUI_NewObject(a0arg : pCHAR; const tags : Array Of Const) : pULONG;
-FUNCTION MUI_Request(app : POINTER; win : POINTER; flags : longword; title : pCHAR; gadgets : pCHAR; format : pCHAR; const params : Array Of Const) : LONGINT;
+FUNCTION MUI_AllocAslRequestTags(_type : longword; const tags : array of PtrUInt) : POINTER;
+FUNCTION MUI_AslRequestTags(req : POINTER; const tags : array of PtrUInt) : BOOLEAN;
+FUNCTION MUI_MakeObject(_type : LONGINT; const params : array of PtrUInt) : pULONG;
+FUNCTION MUI_NewObject(a0arg : pCHAR; const tags : array of PtrUInt) : pULONG;
+FUNCTION MUI_Request(app : POINTER; win : POINTER; flags : longword; title : pCHAR; gadgets : pCHAR; format : pCHAR; const params : array of PtrUInt) : LONGINT;
 
-{You can remove this include and use a define instead}
-{$I useautoopenlib.inc}
-{$ifdef use_init_openlib}
-procedure InitMUIMASTERLibrary;
-{$endif use_init_openlib}
-
-{This is a variable that knows how the unit is compiled}
-var
-    MUIMASTERIsCompiledHow : longint;
 
 implementation
-
-uses
-{$ifndef dont_use_openlib}
-amsgbox,
-{$endif dont_use_openlib}
-tagsarray,longarray;
 
 function MUINotifyData(obj : APTR) : pMUI_NotifyData;
 begin
@@ -3633,57 +3608,57 @@ end;
 
 function OBJ_App(obj : APTR) : pObject_;       (* valid between MUIM_Setup/Cleanup *)
 begin
-    OBJ_App := pMUI_GlobalInfo(obj)^.mgi_ApplicationObject;
+    OBJ_App := MUIGlobalInfo(obj)^.mgi_ApplicationObject;
 end;
 
 function OBJ_Win(obj : APTR) : pObject_;       (* valid between MUIM_Setup/Cleanup *)
 begin
-    OBJ_Win := pMUI_RenderInfo(obj)^.mri_WindowObject;
+    OBJ_Win := MUIRenderInfo(obj)^.mri_WindowObject;
 end;
 
 function OBJ_Dri(obj : APTR) : pDrawInfo;          (* valid between MUIM_Setup/Cleanup *)
 begin
-    OBJ_Dri := pMUI_RenderInfo(obj)^.mri_DrawInfo;
+    OBJ_Dri := MUIRenderInfo(obj)^.mri_DrawInfo;
 end;
 
 function OBJ_Screen(obj : APTR) : pScreen;         (* valid between MUIM_Setup/Cleanup *)
 begin
-    OBJ_Screen := pMUI_RenderInfo(obj)^.mri_Screen;
+    OBJ_Screen := MUIRenderInfo(obj)^.mri_Screen;
 end;
 
 function OBJ_Pens(obj : APTR) : pWord;      (* valid between MUIM_Setup/Cleanup *)
 begin
-    OBJ_Pens := pMUI_RenderInfo(obj)^.mri_Pens;
+    OBJ_Pens := MUIRenderInfo(obj)^.mri_Pens;
 end;
 
 function OBJ_Window(obj : APTR) : pWindow;         (* valid between MUIM_Show/Hide *)
 begin
-    OBJ_Window := PMUI_RenderInfo(obj)^.mri_Window;
+    OBJ_Window := MUIRenderInfo(obj)^.mri_Window;
 end;
 
 function OBJ_Rp(obj : APTR) : pRastPort;           (* valid between MUIM_Show/Hide *)
 begin
-    OBJ_Rp := pMUI_RenderInfo(obj)^.mri_RastPort;
+    OBJ_Rp := MUIRenderInfo(obj)^.mri_RastPort;
 end;
 
 function OBJ_Left(obj : APTR) : smallint;           (* valid during MUIM_Draw *)
 begin
-    OBJ_Left := pMUI_AreaData(obj)^.mad_Box.Left;
+    OBJ_Left := MUIAreaData(obj)^.mad_Box.Left;
 end;
 
 function OBJ_Top(obj : APTR) : smallint;            (* valid during MUIM_Draw *)
 begin
-    OBJ_Top := pMUI_AreaData(obj)^.mad_Box.Top;
+    OBJ_Top := MUIAreaData(obj)^.mad_Box.Top;
 end;
 
 function OBJ_Width(obj : APTR) : smallint;          (* valid during MUIM_Draw *)
 begin
-    OBJ_Width := pMUI_AreaData(obj)^.mad_Box.Width;
+    OBJ_Width := MUIAreaData(obj)^.mad_Box.Width;
 end;
 
 function OBJ_Height(obj : APTR) : smallint;         (* valid during MUIM_Draw *)
 begin
-    OBJ_Height := pMUI_AreaData(obj)^.mad_Box.Height;
+    OBJ_Height := MUIAreaData(obj)^.mad_Box.Height;
 end;
 
 function OBJ_Right(obj : APTR) : smallint;          (* valid during MUIM_Draw *)
@@ -3698,22 +3673,22 @@ end;
 
 function OBJ_AddLeft(obj : APTR) : smallint;        (* valid during MUIM_Draw *)
 begin
-    OBJ_AddLeft := pMUI_AreaData(obj)^.mad_AddLeft;
+    OBJ_AddLeft := MUIAreaData(obj)^.mad_AddLeft;
 end;
 
 function OBJ_AddTop(obj : APTR) : smallint;         (* valid during MUIM_Draw *)
 begin
-    OBJ_AddTop := pMUI_AreaData(obj)^.mad_AddTop;
+    OBJ_AddTop := MUIAreaData(obj)^.mad_AddTop;
 end;
 
 function OBJ_SubWidth(obj : APTR) : smallint;       (* valid during MUIM_Draw *)
 begin
-    OBJ_SubWidth := pMUI_AreaData(obj)^.mad_SubWidth;
+    OBJ_SubWidth := MUIAreaData(obj)^.mad_SubWidth;
 end;
 
 function OBJ_SubHeight(obj : APTR) : smallint;      (* valid during MUIM_Draw *)
 begin
-    OBJ_SubHeight := pMUI_AreaData(obj)^.mad_SubHeight;
+    OBJ_SubHeight := MUIAreaData(obj)^.mad_SubHeight;
 end;
 
 function OBJ_MLeft(obj : APTR) : smallint;          (* valid during MUIM_Draw *)
@@ -3748,42 +3723,42 @@ end;
 
 function OBJ_Font(obj : APTR) : pTextFont;         (* valid between MUIM_Setup/Cleanup *)
 begin
-    OBJ_Font := pMUI_AreaData(obj)^.mad_Font;
+    OBJ_Font := MUIAreaData(obj)^.mad_Font;
 end;
 
 function OBJ_MinWidth(obj : APTR) : ULONG;         (* valid between MUIM_Show/Hide *)
 begin
-    OBJ_MinWidth := pMUI_AreaData(obj)^.mad_MinMax.MinWidth;
+    OBJ_MinWidth := MUIAreaData(obj)^.mad_MinMax.MinWidth;
 end;
 
 function OBJ_MinHeight(obj : APTR) : ULONG;        (* valid between MUIM_Show/Hide *)
 begin
-    OBJ_MinHeight := pMUI_AreaData(obj)^.mad_MinMax.MinHeight;
+    OBJ_MinHeight := MUIAreaData(obj)^.mad_MinMax.MinHeight;
 end;
 
 function OBJ_MaxWidth(obj : APTR) : ULONG;         (* valid between MUIM_Show/Hide *)
 begin
-    OBJ_maxWidth := pMUI_AreaData(obj)^.mad_MinMax.MaxWidth;
+    OBJ_maxWidth := MUIAreaData(obj)^.mad_MinMax.MaxWidth;
 end;
 
 function OBJ_MaxHeight(obj : APTR) : ULONG;        (* valid between MUIM_Show/Hide *)
 begin
-    OBJ_maxHeight := pMUI_AreaData(obj)^.mad_MinMax.MaxHeight;
+    OBJ_maxHeight := MUIAreaData(obj)^.mad_MinMax.MaxHeight;
 end;
 
 function OBJ_DefWidth(obj : APTR) : ULONG;         (* valid between MUIM_Show/Hide *)
 begin
-    OBJ_DefWidth := pMUI_AreaData(obj)^.mad_MinMax.DefWidth;
+    OBJ_DefWidth := MUIAreaData(obj)^.mad_MinMax.DefWidth;
 end;
 
 function OBJ_DefHeight(obj : APTR) : ULONG;        (* valid between MUIM_Show/Hide *)
 begin
-    OBJ_DefHeight := pMUI_AreaData(obj)^.mad_MinMax.DefHeight;
+    OBJ_DefHeight := MUIAreaData(obj)^.mad_MinMax.DefHeight;
 end;
 
 function OBJ_Flags(obj : APTR) : ULONG;
 begin
-    OBJ_Flags := pMUI_AreaData(obj)^.mad_Flags;
+    OBJ_Flags := MUIAreaData(obj)^.mad_Flags;
 end;
 
 (*
@@ -3873,113 +3848,41 @@ begin
 end;
 
 {
- Functions and procedures with array of const go here
+ Functions and procedures with array of PtrUInt go here
 }
-FUNCTION MUI_AllocAslRequestTags(_type : longword; const tags : Array Of Const) : POINTER;
+FUNCTION MUI_AllocAslRequestTags(_type : longword; const tags : array of PtrUInt) : POINTER;
 begin
-    MUI_AllocAslRequestTags := MUI_AllocAslRequest(_type , readintags(tags));
+    MUI_AllocAslRequestTags := MUI_AllocAslRequest(_type , @tags);
 end;
 
-FUNCTION MUI_AslRequestTags(req : POINTER; const tags : Array Of Const) : BOOLEAN;
+FUNCTION MUI_AslRequestTags(req : POINTER; const tags : array of PtrUInt) : BOOLEAN;
 begin
-    MUI_AslRequestTags := MUI_AslRequest(req , readintags(tags));
+    MUI_AslRequestTags := MUI_AslRequest(req , @tags);
 end;
 
-FUNCTION MUI_MakeObject(_type : LONGINT; const params : Array Of Const) : pULONG;
+FUNCTION MUI_MakeObject(_type : LONGINT; const params : array of PtrUInt) : pULONG;
 begin
-    MUI_MakeObject := MUI_MakeObjectA(_type , readinlongs(params));
+    MUI_MakeObject := MUI_MakeObjectA(_type , @params);
 end;
 
-FUNCTION MUI_NewObject(a0arg : pCHAR; const tags : Array Of Const) : pULONG;
+FUNCTION MUI_NewObject(a0arg : pCHAR; const tags : array of PtrUInt) : pULONG;
 begin
-    MUI_NewObject := MUI_NewObjectA(a0arg , readintags(tags));
+    MUI_NewObject := MUI_NewObjectA(a0arg , @tags);
 end;
 
-FUNCTION MUI_Request(app : POINTER; win : POINTER; flags : longword; title : pCHAR; gadgets : pCHAR; format : pCHAR; const params : Array Of Const) : LONGINT;
+FUNCTION MUI_Request(app : POINTER; win : POINTER; flags : longword; title : pCHAR; gadgets : pCHAR; format : pCHAR; const params : array of PtrUInt) : LONGINT;
 begin
-    MUI_Request := MUI_RequestA(app , win , flags , title , gadgets , format , readintags(params));
+    MUI_Request := MUI_RequestA(app , win , flags , title , gadgets , format , @params);
 end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-{$ifdef use_init_openlib}
-  {$Info Compiling initopening of muimaster.library}
-  {$Info don't forget to use InitMUIMASTERLibrary in the beginning of your program}
-
-var
-    muimaster_exit : Pointer;
-
-procedure ClosemuimasterLibrary;
-begin
-    ExitProc := muimaster_exit;
-    if MUIMasterBase <> nil then begin
-        CloseLibrary(MUIMasterBase);
-        MUIMasterBase := nil;
-    end;
-end;
-
-procedure InitMUIMASTERLibrary;
-begin
-    MUIMasterBase := nil;
-    MUIMasterBase := OpenLibrary(MUIMASTER_NAME,LIBVERSION);
-    if MUIMasterBase <> nil then begin
-        muimaster_exit := ExitProc;
-        ExitProc := @ClosemuimasterLibrary;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open muimaster.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-end;
-
-begin
-    MUIMASTERIsCompiledHow := 2;
-{$endif use_init_openlib}
-
-{$ifdef use_auto_openlib}
-  {$Info Compiling autoopening of muimaster.library}
-
-var
-    muimaster_exit : Pointer;
-
-procedure ClosemuimasterLibrary;
-begin
-    ExitProc := muimaster_exit;
-    if MUIMasterBase <> nil then begin
-        CloseLibrary(MUIMasterBase);
-        MUIMasterBase := nil;
-    end;
-end;
-
-begin
-    MUIMasterBase := nil;
-    MUIMasterBase := OpenLibrary(MUIMASTER_NAME,LIBVERSION);
-    if MUIMasterBase <> nil then begin
-        muimaster_exit := ExitProc;
-        ExitProc := @ClosemuimasterLibrary;
-        MUIMASTERIsCompiledHow := 1;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open muimaster.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-
-{$endif use_auto_openlib}
-
-{$ifdef dont_use_openlib}
-begin
-    MUIMASTERIsCompiledHow := 3;
-   {$Warning No autoopening of muimaster.library compiled}
-   {$Warning Make sure you open muimaster.library yourself}
-{$endif dont_use_openlib}
-
-
+initialization
+  MUIMasterBase := OpenLibrary(MUIMASTER_NAME,LIBVERSION);
+finalization
+  if Assigned(MUIMasterBase) then
+    CloseLibrary(MUIMasterBase);
 end.

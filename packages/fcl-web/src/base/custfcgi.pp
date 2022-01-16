@@ -36,7 +36,7 @@ uses
 {$else}
   winsock2, windows,
 {$endif}
-  Sockets, custweb, custcgi, fastcgi;
+  Sockets, custweb, cgiprotocol, httpprotocol, custcgi, fastcgi;
 
 Type
   { TFCGIRequest }
@@ -62,11 +62,14 @@ Type
     FUR: TUnknownRecordEvent;
     FLog : TLogEvent;
     FSTDin : String;
-    procedure GetNameValuePairsFromContentRecord(const ARecord : PFCGI_ContentRecord; NameValueList : TStrings);
+    FSTDinRead: Integer;
+
+    FRequestHeadersInitialized: Boolean;
+    FStreamingContentReceived: Boolean;
   Protected
+    function DoGetCGIVar(AVarName: String): String; override;
+    procedure GetNameValuePairsFromContentRecord(const ARecord : PFCGI_ContentRecord; NameValueList : TStrings); virtual;
     Procedure Log(EventType : TEventType; Const Msg : String);
-    Function GetFieldValue(Index : Integer) : String; override;
-    procedure ReadContent; override;
   Public
     destructor Destroy; override;
     function ProcessFCGIRecord(AFCGIRecord : PFCGI_Header) : boolean; virtual;
@@ -240,11 +243,6 @@ end;
 
 { TFCGIHTTPRequest }
 
-procedure TFCGIRequest.ReadContent;
-begin
-  // Nothing has to be done. This should never be called
-end;
-
 destructor TFCGIRequest.Destroy;
 begin
   FCGIParams.Free;
@@ -253,6 +251,7 @@ end;
 
 function TFCGIRequest.ProcessFCGIRecord(AFCGIRecord: PFCGI_Header): boolean;
 var cl,rcl : Integer;
+  State: TContentStreamingState;
 begin
   Result := False;
   case AFCGIRecord^.reqtype of
@@ -263,6 +262,7 @@ begin
 //           log(etDebug,Format('Begin request body role & flags: %d %d',[Beton(Role),Flags]));
          end;
     FCGI_PARAMS :       begin
+                        FRequestHeadersInitialized := False;
                         if AFCGIRecord^.contentLength=0 then
                           Result := False
                         else
@@ -273,19 +273,34 @@ begin
                           end;
                         end;
     FCGI_STDIN :        begin
-                        if AFCGIRecord^.contentLength=0 then
+                        if not FRequestHeadersInitialized then
                           begin
-                          Result := True;
-                          InitRequestVars;
-                          ParseCookies;
+                          InitHeaderRequestVars;
+                          FRequestHeadersInitialized := True;
+                          end;
+                        Result:=AFCGIRecord^.contentLength=0;
+                        if not Result then
+                          begin
+                          rcl := BetoN(PFCGI_ContentRecord(AFCGIRecord)^.header.contentLength);
+                          if FStreamingContentReceived then
+                            State := cssData
+                          else
+                            State := cssStart;
+                          FStreamingContentReceived := True;
+
+                          ProcessStreamingContent(State, PFCGI_ContentRecord(AFCGIRecord)^.ContentData[0], rcl);
                           end
                         else
                           begin
-                          cl := length(FSTDin);
-                          rcl := BetoN(PFCGI_ContentRecord(AFCGIRecord)^.header.contentLength);
-                          SetLength(FSTDin, rcl+cl);
-                          move(PFCGI_ContentRecord(AFCGIRecord)^.ContentData[0],FSTDin[cl+1],rcl);
-                          InitContent(FSTDin);
+                          if not FStreamingContentReceived then
+                            begin
+                            ProcessStreamingContent(cssStart, PFCGI_ContentRecord(AFCGIRecord)^.ContentData[0], 0);
+                            ProcessStreamingContent(cssEnd, PFCGI_ContentRecord(AFCGIRecord)^.ContentData[0], 0);
+                            end
+                          else
+                            begin
+                            ProcessStreamingContent(cssEnd, PFCGI_ContentRecord(AFCGIRecord)^.ContentData[0], 0);
+                            end;
                           end;
                         end;
   else
@@ -295,6 +310,11 @@ begin
       if poFailonUnknownRecord in FPO then
         TFCgiHandler.DoError('Unknown FASTCGI record type: %s',[AFCGIRecord^.reqtype]);
   end;
+end;
+
+function TFCGIRequest.DoGetCGIVar(AVarName: String): String;
+begin
+  Result:=FCGIParams.Values[AVarName];
 end;
 
 procedure TFCGIRequest.GetNameValuePairsFromContentRecord(const ARecord: PFCGI_ContentRecord; NameValueList: TStrings);
@@ -327,9 +347,11 @@ var
   end;
 
 var
-  NameLength, ValueLength : Integer;
+  VarNo,NameLength, ValueLength : Integer;
   RecordLength : Integer;
   Name,Value : String;
+  h : THeader;
+  v : THTTPVariableType;
 
 begin
   i := 0;
@@ -338,11 +360,27 @@ begin
     begin
     NameLength:=GetVarLength;
     ValueLength:=GetVarLength;
-
     Name:=GetString(NameLength);
     Value:=GetString(ValueLength);
-    NameValueList.Add(Name+'='+Value);
+    VarNo:=IndexOfCGIVar(Name);
+    if Not DoMapCgiToHTTP(Name,H,V) then
+      NameValueList.Add(Name+'='+Value)
+    else if (H<>hhUnknown) then
+      SetHeader(H,Value)
+    else if (v<>hvUnknown) then
+      begin
+      if (V=hvPathInfo) and (Copy(Value,1,2)='//') then //mod_proxy_fcgi gives double slashes at the beginning for some reason
+          Delete(Value,1,3);
+      if (V<>hvQuery) then
+        Value:=HTTPDecode(Value);
+      SetHTTPVariable(v,Value);
+      end
+    else
+      NameValueList.Add(Name+'='+Value)
     end;
+  // Microsoft-IIS hack. IIS includes the script name in the PATH_INFO
+  if Pos('IIS', ServerSoftware) > 0 then
+    SetHTTPVariable(hvPathInfo,StringReplace(PathInfo, ScriptName, '', [rfReplaceAll, rfIgnoreCase]));
 end;
 
 procedure TFCGIRequest.Log(EventType: TEventType; const Msg: String);
@@ -351,74 +389,8 @@ begin
     FLog(EventType,Msg);
 end;
 
-
-Function TFCGIRequest.GetFieldValue(Index : Integer) : String;
-
-Type THttpToCGI = array[1..37] of byte;
-
-const HttpToCGI : THttpToCGI =
-   (
-     18,  //  1 'HTTP_ACCEPT'           - field Accept
-     19,  //  2 'HTTP_ACCEPT_CHARSET'   - field AcceptCharset
-     20,  //  3 'HTTP_ACCEPT_ENCODING'  - field AcceptEncoding
-     26,  //  4 'HTTP_ACCEPT_LANGUAGE'  - field AcceptLanguage
-     37,  //  5  HTTP_AUTHORIZATION     - field Authorization
-      0,  //  6
-      0,  //  7
-      0,  //  8
-      2,  //  9 'CONTENT_LENGTH'
-      3,  // 10 'CONTENT_TYPE'          - fieldAcceptEncoding
-     24,  // 11 'HTTP_COOKIE'           - fieldCookie
-      0,  // 12
-      0,  // 13
-      0,  // 14
-     21,  // 15 'HTTP_IF_MODIFIED_SINCE'- fieldIfModifiedSince
-      0,  // 16
-      0,  // 17
-      0,  // 18
-     22,  // 19 'HTTP_REFERER'          - fieldReferer
-      0,  // 20
-      0,  // 21
-      0,  // 22
-     23,  // 23 'HTTP_USER_AGENT'       - fieldUserAgent
-      1,  // 24 'AUTH_TYPE'             - fieldWWWAuthenticate
-      5,  // 25 'PATH_INFO'
-      6,  // 26 'PATH_TRANSLATED'
-      8,  // 27 'REMOTE_ADDR'
-      9,  // 28 'REMOTE_HOST'
-     13,  // 29 'SCRIPT_NAME'
-     15,  // 30 'SERVER_PORT'
-     12,  // 31 'REQUEST_METHOD'
-      0,  // 32
-      7,  // 33 'QUERY_STRING'
-     27,  // 34 'HTTP_HOST'
-      0,  // 35 'CONTENT'
-     36,  // 36 'XHTTPREQUESTEDWITH'
-     37   // 37 'HTTP_AUTHORIZATION'
-    );
-
-var ACgiVarNr : Integer;
-
-begin
-
-  Result := '';
-  if assigned(FCGIParams) and (index <= high(HttpToCGI)) and (index > 0) and (index<>35) then
-    begin
-    ACgiVarNr:=HttpToCGI[Index];
-    if ACgiVarNr>0 then
-      begin
-        Result:=FCGIParams.Values[CgiVarNames[ACgiVarNr]];
-        if (ACgiVarNr = 5) and                                          //PATH_INFO
-           (length(Result)>=2)and(word(Pointer(@Result[1])^)=$2F2F)then //mod_proxy_fcgi gives double slashes at the beginning for some reason
-          Delete(Result, 1, 1);                                         //Remove the extra first one
-      end else
-      Result := '';
-    end
-  else
-    Result:=inherited GetFieldValue(Index);
-end;
-
 { TCGIResponse }
+
 procedure TFCGIResponse.Write_FCGIRecord(ARecord : PFCGI_Header);
 
 var ErrorCode,
@@ -439,6 +411,13 @@ begin
       begin
       // TODO : Better checking on ErrorCode
       R.FKeepConnectionAfterRequest:=False;
+
+{$ifdef windowspipe}
+      case ErrorCode of
+        ERROR_BROKEN_PIPE, ERROR_NO_DATA : Exit; //No error here. Server cancel pipe
+      end;
+{$endif}
+
       TFCgiHandler.DoError(SErrWritingSocket,[ErrorCode]);
       end;
     Inc(P,BytesWritten);
@@ -954,7 +933,7 @@ begin
 {$else windowspipe}
   if Not fIsWinPipe then
     Result:=fpaccept(Socket,Nil,Nil);
-  If FIsWinPipe or ((Result<0) and (socketerror=10038)) then
+  If FIsWinPipe or ((Result<0) and ((socketerror=10038) or (socketerror = 10022))) then
     begin
     Result:=-1;
     B:=ConnectNamedPipe(Socket,Nil);

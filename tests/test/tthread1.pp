@@ -1,3 +1,4 @@
+{%skiptarget=$nothread }
 program tthread1;
 
 {$mode objfpc}

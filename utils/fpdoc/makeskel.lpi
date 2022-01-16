@@ -1,13 +1,17 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="11"/>
     <General>
       <Flags>
+        <SaveClosedFiles Value="False"/>
+        <SaveOnlyProjectUnits Value="True"/>
         <MainUnitHasUsesSectionForAllUnits Value="False"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
         <LRSInOutputDirectory Value="False"/>
+        <SaveJumpHistory Value="False"/>
+        <SaveFoldState Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
@@ -15,23 +19,29 @@
     <VersionInfo>
       <Language Value=""/>
       <CharSet Value=""/>
-      <StringTable ProductVersion=""/>
     </VersionInfo>
     <BuildModes Count="1">
       <Item1 Name="default" Default="True"/>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
-      <IgnoreBinaries Value="False"/>
-      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
-      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
     </PublishOptions>
     <RunParams>
       <local>
-        <FormatVersion Value="1"/>
-        <CommandLineParams Value="--package=fpvectorial --input=/home/felipe/Programas/fpctrunk/packages/fpvectorial/src/fpvectorial.pas"/>
+        <CommandLineParams Value="--update --disable-protected --disable-private --emit-class-separator --package=rtl --disable-arguments --disable-function-results --descr=matrix.xml --input=&quot;-Fi../packages/rtl-extra/src/inc  ../packages/rtl-extra/src/inc/matrix.pp &quot; --output=matrix.new.xml"/>
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+        <WorkingDirectory Value="/home/michael/docs/"/>
       </local>
+      <FormatVersion Value="2"/>
+      <Modes Count="1">
+        <Mode0 Name="default">
+          <local>
+            <CommandLineParams Value="--update --disable-protected --disable-private --emit-class-separator --package=rtl --disable-arguments --disable-function-results --descr=matrix.xml --input=&quot;-Fi../packages/rtl-extra/src/inc  ../packages/rtl-extra/src/inc/matrix.pp &quot; --output=matrix.new.xml"/>
+            <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+            <WorkingDirectory Value="/home/michael/docs/"/>
+          </local>
+        </Mode0>
+      </Modes>
     </RunParams>
     <Units Count="2">
       <Unit0>
@@ -47,18 +57,12 @@
     </Units>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="10"/>
+    <Version Value="11"/>
     <Parsing>
       <SyntaxOptions>
         <UseAnsiStrings Value="False"/>
       </SyntaxOptions>
     </Parsing>
-    <Other>
-      <CompilerMessages>
-        <UseMsgFile Value="True"/>
-      </CompilerMessages>
-      <CompilerPath Value="$(CompPath)"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="2">

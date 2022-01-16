@@ -4,9 +4,6 @@ program testds;
 {$H+}
 {$define DEBUGHEAP}
 
-//To test the sqlite3 version replace sqliteds by sqlite3ds
-//  and TSqliteDataset by TSqlite3Dataset
-
 uses
 {$ifdef DEBUGHEAP}
   Heaptrc,
@@ -14,7 +11,7 @@ uses
 {$ifdef Linux}
   cmem,
 {$endif}
-  crt,sysutils,db,sqliteds,IniFiles;
+  crt,sysutils,db,sqlite3ds,IniFiles;
 
 const
   SQLITEDS_TESTS_INI_FILE = 'sqlitedstests.ini';
@@ -22,14 +19,14 @@ const
   DEFAULT_FILENAME = 'test.db';
 
 var
-  dsTest:TSqliteDataset;
+  dsTest: TSqlite3Dataset;
   ini: TIniFile;
 
 begin
   {$ifdef DEBUGHEAP}
   SetHeapTraceOutput(ExtractFileName(ParamStr(0))+'.heap.log');
   {$endif}
-  dsTest:=TSqliteDataset.Create(nil);
+  dsTest:=TSqlite3Dataset.Create(nil);
   with dsTest do
   begin
     //Load Database properties from a inifile

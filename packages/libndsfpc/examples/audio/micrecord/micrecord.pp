@@ -55,7 +55,7 @@ procedure play();
 begin
 	soundMicOff();
 	soundEnable();
-	iprintf('data length: %i'#10, data_length);
+	iprintf('data length: %li'#10, data_length);
 	soundPlaySample(sound_buffer, SoundFormat_16Bit, data_length, sample_rate, 127, 64, false, 0);
 end;
 
@@ -89,7 +89,11 @@ begin
 			end;
       recording := not recording;
 		end;
-
+		//-----------------------------------------------------
+		// START: exit
+		//-----------------------------------------------------
+		if (keys and KEY_START) <> 0 then break;
+      
 		swiWaitForVBlank();
 
 	end;

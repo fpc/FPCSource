@@ -104,10 +104,9 @@ _start:
 	je	.L9
 	movq	-48(%rbp), %rdi
 	call	atexit
-	jmp	.L11
 .L9:
 	call	_init_tls
-.L11:
+        call    _rtld_call_init
 	movl	$_fini, %edi
 	call	atexit
 	call	_init

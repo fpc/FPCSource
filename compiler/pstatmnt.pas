@@ -44,23 +44,20 @@ implementation
        globtype,globals,verbose,constexp,
        systems,
        { aasm }
-       cpubase,aasmbase,aasmtai,aasmdata,
+       cpubase,aasmtai,aasmdata,aasmbase,
        { symtable }
        symconst,symbase,symtype,symdef,symsym,symtable,defutil,defcmp,
-       paramgr,symutil,
+       paramgr,
        { pass 1 }
        pass_1,htypechk,
-       nutils,ngenutil,nbas,nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
+       nutils,ngenutil,nbas,ncal,nmem,nset,ncnv,ncon,nld,nflw,
        { parser }
        scanner,
        pbase,ptype,pexpr,
        { codegen }
        procinfo,cgbase,
        { assembler reader }
-       rabase,
-       { wide- and unicodestrings}
-       widestr
-       ;
+       rabase;
 
 
     function statement : tnode;forward;
@@ -71,7 +68,7 @@ implementation
          ex,if_a,else_a : tnode;
       begin
          consume(_IF);
-         ex:=comp_expr(true,false);
+         ex:=comp_expr([ef_accept_equal]);
          consume(_THEN);
          if not(token in endtokens) then
            if_a:=statement
@@ -112,6 +109,8 @@ implementation
            end;
          consume(_END);
          statements_til_end:=cblocknode.create(first);
+         if assigned(first) then
+           statements_til_end.fileinfo:=first.fileinfo;
       end;
 
 
@@ -126,7 +125,7 @@ implementation
          casenode : tcasenode;
       begin
          consume(_CASE);
-         caseexpr:=comp_expr(true,false);
+         caseexpr:=comp_expr([ef_accept_equal]);
          { determines result type }
          do_typecheckpass(caseexpr);
          { variants must be accepted, but first they must be converted to integer }
@@ -224,8 +223,8 @@ implementation
                        CGMessage(parser_e_case_lower_less_than_upper_bound);
                      if not casedeferror then
                        begin
-                         testrange(casedef,hl1,false,false);
-                         testrange(casedef,hl2,false,false);
+                         adaptrange(casedef,hl1,false,false,cs_check_range in current_settings.localswitches);
+                         adaptrange(casedef,hl2,false,false,cs_check_range in current_settings.localswitches);
                        end;
                    end
                  else
@@ -253,7 +252,7 @@ implementation
                    begin
                      hl1:=get_ordinal_value(p);
                      if not casedeferror then
-                       testrange(casedef,hl1,false,false);
+                       adaptrange(casedef,hl1,false,false,cs_check_range in current_settings.localswitches);
                      casenode.addlabel(blockid,hl1,hl1);
                    end;
                end;
@@ -320,7 +319,7 @@ implementation
          consume(_UNTIL);
 
          first:=cblocknode.create(first);
-         p_e:=comp_expr(true,false);
+         p_e:=comp_expr([ef_accept_equal]);
          result:=cwhilerepeatnode.create(p_e,first,false,true);
       end;
 
@@ -332,7 +331,7 @@ implementation
 
       begin
          consume(_WHILE);
-         p_e:=comp_expr(true,false);
+         p_e:=comp_expr([ef_accept_equal]);
          consume(_DO);
          p_a:=statement;
          result:=cwhilerepeatnode.create(p_e,p_a,true,false);
@@ -362,8 +361,10 @@ implementation
         procedure check_range(hp:tnode; fordef: tdef);
           begin
             if (hp.nodetype=ordconstn) and
-               (fordef.typ<>errordef) then
-              testrange(fordef,tordconstnode(hp).value,false,true);
+               (fordef.typ<>errordef) and
+               { the node was derived from a generic parameter so ignore range check }
+               not(nf_generic_para in hp.flags) then
+              adaptrange(fordef,tordconstnode(hp).value,false,false,true);
           end;
 
         function for_loop_create(hloopvar: tnode): tnode;
@@ -378,12 +379,18 @@ implementation
              loopvarsym:=nil;
 
              { variable must be an ordinal, int64 is not allowed for 32bit targets }
-             if not(is_ordinal(hloopvar.resultdef))
-    {$ifndef cpu64bitaddr}
-                or is_64bitint(hloopvar.resultdef)
-    {$endif not cpu64bitaddr}
-                then
-               MessagePos(hloopvar.fileinfo,type_e_ordinal_expr_expected);
+             if (
+                 not(is_ordinal(hloopvar.resultdef))
+    {$if not defined(cpu64bitaddr) and not defined(cpu64bitalu)}
+                 or is_64bitint(hloopvar.resultdef)
+    {$endif not cpu64bitaddr and not cpu64bitalu}
+               ) and
+               (hloopvar.resultdef.typ<>undefineddef)
+               then
+               begin
+                 MessagePos(hloopvar.fileinfo,type_e_ordinal_expr_expected);
+                 hloopvar.resultdef:=generrordef;
+               end;
 
              hp:=hloopvar;
              while assigned(hp) and
@@ -462,7 +469,7 @@ implementation
              else
                MessagePos(hloopvar.fileinfo,type_e_illegal_count_var);
 
-             hfrom:=comp_expr(true,false);
+             hfrom:=comp_expr([ef_accept_equal]);
 
              if try_to_consume(_DOWNTO) then
                backward:=true
@@ -472,7 +479,7 @@ implementation
                  backward:=false;
                end;
 
-             hto:=comp_expr(true,false);
+             hto:=comp_expr([ef_accept_equal]);
              consume(_DO);
 
              { Check if the constants fit in the range }
@@ -502,6 +509,13 @@ implementation
                exclude(loopvarsym.varoptions,vo_is_loop_counter);
 
              result:=cfornode.create(hloopvar,hfrom,hto,hblock,backward);
+
+             { only in tp and mac pascal mode, we care about the value of the loop counter on loop exit
+
+               I am not sure though, if this is the right rule, at least in delphi the loop counter is undefined
+               on loop exit, we assume the same in all FPC modes }
+             if ([m_objfpc,m_fpc,m_delphi]*current_settings.modeswitches)<>[] then
+               Include(tfornode(Result).loopflags,lnf_dont_mind_loopvar_on_exit);
           end;
 
 
@@ -519,7 +533,7 @@ implementation
               else
                 loopvarsym:=nil;
 
-              expr:=comp_expr(true,false);
+              expr:=comp_expr([ef_accept_equal]);
 
               consume(_DO);
 
@@ -541,7 +555,7 @@ implementation
          { parse loop header }
          consume(_FOR);
 
-         hloopvar:=factor(false,false);
+         hloopvar:=factor(false,[]);
          valid_for_loopvar(hloopvar,true);
 
          if try_to_consume(_ASSIGNMENT) then
@@ -604,7 +618,7 @@ implementation
 
       begin
          calltempnode:=nil;
-         p:=comp_expr(true,false);
+         p:=comp_expr([ef_accept_equal]);
          do_typecheckpass(p);
 
          if (p.nodetype=vecn) and
@@ -683,7 +697,7 @@ implementation
                 if not hasimplicitderef then
                   begin
                     valuenode:=caddrnode.create_internal_nomark(valuenode);
-                    include(valuenode.flags,nf_typedaddr);
+                    include(taddrnode(valuenode).addrnodeflags,anf_typedaddr);
                     refnode:=cderefnode.create(refnode);
                     fillchar(refnode.fileinfo,sizeof(tfileposinfo),0);
                   end;
@@ -776,8 +790,6 @@ implementation
               symtablestack.pop(TSymtable(withsymtablelist[i]));
             withsymtablelist.free;
 
-//            p:=cwithnode.create(right,twithsymtable(withsymtable),levelcount,refnode);
-
             { Finalize complex withnode with destroy of temp }
             if assigned(newblock) then
              begin
@@ -830,12 +842,12 @@ implementation
          if not(token in endtokens) then
            begin
               { object }
-              pobj:=comp_expr(true,false);
+              pobj:=comp_expr([ef_accept_equal]);
               if try_to_consume(_AT) then
                 begin
-                   paddr:=comp_expr(true,false);
+                   paddr:=comp_expr([ef_accept_equal]);
                    if try_to_consume(_COMMA) then
-                     pframe:=comp_expr(true,false);
+                     pframe:=comp_expr([ef_accept_equal]);
                 end;
            end
          else
@@ -843,6 +855,8 @@ implementation
               if (block_type<>bt_except) then
                 Message(parser_e_no_reraise_possible);
            end;
+         if (po_noreturn in current_procinfo.procdef.procoptions) and (exceptblockcounter=0) then
+           Message(parser_e_raise_with_noreturn_not_allowed);
          p:=craisenode.create(pobj,paddr,pframe);
          raise_statement:=p;
       end;
@@ -874,6 +888,7 @@ implementation
          t:ttoken;
          unit_found:boolean;
          oldcurrent_exceptblock: integer;
+         filepostry : tfileposinfo;
       begin
          p_default:=nil;
          p_specific:=nil;
@@ -882,6 +897,7 @@ implementation
 
          { read statements to try }
          consume(_TRY);
+         filepostry:=current_filepos;
          first:=nil;
          inc(exceptblockcounter);
          oldcurrent_exceptblock := current_exceptblock;
@@ -913,6 +929,7 @@ implementation
               current_exceptblock := exceptblockcounter;
               p_finally_block:=statements_til_end;
               try_statement:=ctryfinallynode.create(p_try_block,p_finally_block);
+              try_statement.fileinfo:=filepostry;
            end
          else
            begin
@@ -948,7 +965,7 @@ implementation
                                  with "e: Exception" the e is not necessary }
 
                                { support unit.identifier }
-                               unit_found:=try_consume_unitsym_no_specialize(srsym,srsymtable,t,false);
+                               unit_found:=try_consume_unitsym_no_specialize(srsym,srsymtable,t,[],objname);
                                if srsym=nil then
                                  begin
                                    identifier_not_found(orgpattern);
@@ -976,6 +993,7 @@ implementation
                                sym:=clocalvarsym.create('$exceptsym',vs_value,ot,[]);
                             end;
                           excepTSymtable:=tstt_excepTSymtable.create;
+                          excepTSymtable.defowner:=current_procinfo.procdef;
                           excepTSymtable.insert(sym);
                           symtablestack.push(excepTSymtable);
                        end
@@ -1041,7 +1059,6 @@ implementation
     function _asm_statement : tnode;
       var
         asmstat : tasmnode;
-        Marker  : tai;
         reg     : tregister;
         asmreader : tbaseasmreader;
         entrypos : tfileposinfo;
@@ -1070,9 +1087,19 @@ implementation
 
          { Mark procedure that it has assembler blocks }
          include(current_procinfo.flags,pi_has_assembler_block);
-
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+         { We assume the function result is always used in the TP mode }
+         if (m_tp7 in current_settings.modeswitches) and
+            not (po_assembler in current_procinfo.procdef.procoptions) and
+            assigned(current_procinfo.procdef.funcretsym) then
+           current_procinfo.procdef.funcretsym.IncRefCount;
+{$endif}
          { Read first the _ASM statement }
          consume(_ASM);
+
+         { Force an empty register list for pure assembler routines,
+           so that pass2 won't allocate volatile registers for them. }
+         asmstat.has_registerlist:=(po_assembler in current_procinfo.procdef.procoptions);
 
          { END is read, got a list of changed registers? }
          if try_to_consume(_LECKKLAMMER) then
@@ -1083,7 +1110,12 @@ implementation
                   Message(parser_w_register_list_ignored);
                 repeat
                   { it's possible to specify the modified registers }
-                  reg:=std_regnum_search(lower(cstringpattern));
+                  if token=_CSTRING then
+                    reg:=std_regnum_search(lower(cstringpattern))
+                  else if token=_CCHAR then
+                    reg:=std_regnum_search(lower(pattern))
+                  else
+                    reg:=NR_NO;
                   if reg<>NR_NO then
                     begin
                       if not(po_assembler in current_procinfo.procdef.procoptions) and assigned(hl) then
@@ -1095,7 +1127,10 @@ implementation
                     end
                   else
                     Message(asmr_e_invalid_register);
-                  consume(_CSTRING);
+                  if token=_CCHAR then
+                    consume(_CCHAR)
+                  else
+                    consume(_CSTRING);
                   if not try_to_consume(_COMMA) then
                     break;
                 until false;
@@ -1106,6 +1141,172 @@ implementation
 
          Inside_asm_statement:=false;
          _asm_statement:=asmstat;
+      end;
+
+
+    { Old Turbo Pascal INLINE(data/data/...) }
+    function tp_inline_statement : tnode;
+      var
+        actype : taiconst_type;
+
+      function eval_intconst: asizeint;
+        var
+          cv : Tconstexprint;
+          def: tdef;
+        begin
+          cv:=get_intconst;
+          case actype of
+            aitconst_8bit:
+              def:=s8inttype;
+            aitconst_16bit:
+              def:=s16inttype;
+            else
+              def:=sizesinttype;
+          end;
+          if cv.uvalue>get_max_value(def).uvalue then
+            def:=get_unsigned_inttype(def);
+          adaptrange(def,cv,rc_implicit);
+          result:=cv.svalue;
+        end;
+
+      var
+        cur_line : longint;
+        w : asizeint;
+        hl : TAsmList;
+        asmstat : tasmnode;
+        sym : tsym;
+        symtable : TSymtable;
+        s : tsymstr;
+        ac : tai_const;
+        nesting : integer;
+        tokenbuf : tdynamicarray;
+      begin
+        consume(_INLINE);
+        consume(_LKLAMMER);
+        hl:=TAsmList.create;
+        asmstat:=casmnode.create(hl);
+        asmstat.fileinfo:=current_filepos;
+        tokenbuf:=tdynamicarray.Create(16);
+        cur_line:=0;
+        { Parse data blocks }
+        repeat
+          { Record one data block for further replaying.
+            This is needed  since / is used as a data block delimiter and cause troubles
+            with constant evaluation which is allowed inside a data block. }
+          tokenbuf.reset;
+          current_scanner.startrecordtokens(tokenbuf);
+          nesting:=0;
+          while token<>_SLASH do
+            begin
+              case token of
+                _LKLAMMER:
+                  inc(nesting);
+                _RKLAMMER:
+                  begin
+                    dec(nesting);
+                    if nesting<0 then
+                      break;
+                  end;
+                _SEMICOLON:
+                  consume(_RKLAMMER); { error }
+                else
+                  ; {no action}
+              end;
+              consume(token);
+            end;
+          current_scanner.stoprecordtokens;
+          { Set the current token to ; to make the constant evaluator happy }
+          token:=_SEMICOLON;
+          { Parse recorded tokens }
+          current_scanner.startreplaytokens(tokenbuf,false);
+
+          if cur_line<>current_filepos.line then
+            begin
+              hl.concat(tai_force_line.Create);
+              cur_line:=current_filepos.line;
+            end;
+
+          { Data size override }
+          if try_to_consume(_GT) then
+            actype:=aitconst_16bit
+          else
+            if try_to_consume(_LT) then
+              actype:=aitconst_8bit
+            else
+              actype:=aitconst_128bit; { default size }
+          sym:=nil;
+          if token=_ID then
+            begin
+              if searchsym(pattern,sym,symtable) then
+                begin
+                  if sym.typ in [staticvarsym,localvarsym,paravarsym] then
+                    begin
+                      { Address of the static symbol or base offset for local symbols }
+                      consume(_ID);
+                      if (sym.typ=staticvarsym) and not (actype in [aitconst_128bit,aitconst_ptr]) then
+                        Message1(type_e_integer_expr_expected,sym.name);
+                      { Additional offset }
+                      if token in [_PLUS,_MINUS] then
+                        w:=eval_intconst
+                      else
+                        w:=0;
+                      if sym.typ=staticvarsym then
+                        s:=sym.mangledname
+                      else
+                        s:=sym.name;
+                      ac:=tai_const.Createname(s,w);
+                      if actype=aitconst_128bit then
+                        ac.consttype:=aitconst_ptr
+                      else
+                        ac.consttype:=actype;
+                      { For a local symbol it is needed to generate a constant with the symbols's stack offset.
+                        The stack offset is unavailable rigth now and will be resolved later in tcgasmnode.pass_generate_code.
+                        Set sym.bind:=AB_NONE to indicate that this is a local symbol. }
+                      if sym.typ<>staticvarsym then
+                        ac.sym.bind:=AB_NONE;
+                      hl.concat(ac);
+                    end
+                  else
+                    if sym.typ=constsym then
+                      sym:=nil
+                    else
+                      begin
+                        consume(_ID);
+                        Message(asmr_e_wrong_sym_type);
+                      end;
+                end;
+            end;
+
+          if sym=nil then
+            begin
+              { Integer constant expression }
+              w:=eval_intconst;
+              case actype of
+                aitconst_8bit:
+                  hl.concat(tai_const.Create_8bit(w));
+                aitconst_16bit:
+                  hl.concat(tai_const.Create_16bit(w));
+                else
+                  if w<$100 then
+                    hl.concat(tai_const.Create_8bit(w))
+                  else
+                    hl.concat(tai_const.Create_sizeint(w));
+              end;
+            end;
+
+          if not try_to_consume(_SEMICOLON) then
+            consume(_RKLAMMER); {error}
+        until nesting<0;
+        tokenbuf.free;
+        { mark boundaries of assembler block, this is necessary for optimizer }
+        hl.insert(tai_marker.create(mark_asmblockstart));
+        hl.concat(tai_marker.create(mark_asmblockend));
+        { Mark procedure that it has assembler blocks }
+        include(current_procinfo.flags,pi_has_assembler_block);
+        { Assume the function result is always used }
+        if assigned(current_procinfo.procdef.funcretsym) then
+          current_procinfo.procdef.funcretsym.IncRefCount;
+        result:=asmstat;
       end;
 
 
@@ -1141,8 +1342,8 @@ implementation
                           internalerror(201008021);
 
                         { strip leading 0's in iso mode }
-                        if m_iso in current_settings.modeswitches then
-                          while pattern[1]='0' do
+                        if (([m_iso,m_extpas]*current_settings.modeswitches)<>[]) then
+                          while (length(pattern)>1) and (pattern[1]='0') do
                             delete(pattern,1,1);
 
                         searchsym(pattern,srsym,srsymtable);
@@ -1169,6 +1370,8 @@ implementation
                              if not(m_non_local_goto in current_settings.modeswitches) then
                                Message(parser_e_goto_outside_proc);
                              include(current_procinfo.flags,pi_has_global_goto);
+                             if is_nested_pd(current_procinfo.procdef) then
+                               current_procinfo.set_needs_parentfp(srsym.owner.symtablelevel);
                            end;
                          code:=cgotonode.create(tlabelsym(srsym));
                          tgotonode(code).labelsym:=tlabelsym(srsym);
@@ -1214,6 +1417,15 @@ implementation
                  Message(parser_e_no_assembler_in_generic);
                code:=_asm_statement;
              end;
+           _PLUS:
+             begin
+               Message(parser_e_syntax_error);
+               consume(_PLUS);
+             end;
+           _INLINE:
+             begin
+               code:=tp_inline_statement;
+             end;
            _EOF :
              Message(scan_f_end_of_file);
          else
@@ -1235,7 +1447,7 @@ implementation
                 try_to_consume(_COLON) then
               begin
                 { in iso mode, 0003: is equal to 3: }
-                if m_iso in current_settings.modeswitches then
+                if (([m_iso,m_extpas]*current_settings.modeswitches)<>[]) then
                   searchsym(tostr(tordconstnode(p).value),srsym,srsymtable)
                 else
                   searchsym(s,srsym,srsymtable);
@@ -1248,12 +1460,10 @@ implementation
                      Message(sym_e_label_already_defined);
                    if symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
                      begin
-                       tlabelsym(srsym).nonlocal:=true;
-                       exclude(current_procinfo.procdef.procoptions,po_inline);
+                       include(current_procinfo.flags,pi_has_interproclabel);
+                       if (current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
+                         Message(sym_e_interprocgoto_into_init_final_code_not_allowed);
                      end;
-                   if tlabelsym(srsym).nonlocal and
-                     (current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
-                     Message(sym_e_interprocgoto_into_init_final_code_not_allowed);
 
                    tlabelsym(srsym).defined:=true;
                    p:=clabelnode.create(nil,tlabelsym(srsym));
@@ -1327,6 +1537,7 @@ implementation
                     ) then
                    Message(parser_e_illegal_expression);
                end;
+
              code:=p;
            end;
          end;
@@ -1351,7 +1562,7 @@ implementation
          filepos:=current_tokenpos;
          consume(starttoken);
 
-         while not(token in [_END,_FINALIZATION]) do
+         while not((token=_END) or (token=_FINALIZATION)) do
            begin
               if first=nil then
                 begin
@@ -1363,7 +1574,7 @@ implementation
                    tstatementnode(last).right:=cstatementnode.create(statement,nil);
                    last:=tstatementnode(last).right;
                 end;
-              if (token in [_END,_FINALIZATION]) then
+              if ((token=_END) or (token=_FINALIZATION)) then
                 break
               else
                 begin
@@ -1393,9 +1604,9 @@ implementation
     function assembler_block : tnode;
       var
         p : tnode;
-{$ifndef arm}
+        {$if not(defined(sparcgen)) and not(defined(arm)) and not(defined(avr)) and not(defined(mips))}
         locals : longint;
-{$endif arm}
+        {$endif not(defined(sparcgen)) and not(defined(arm)) and not(defined(avr)) and not(defined(mips))}
         srsym : tsym;
       begin
          if parse_generic then
@@ -1421,7 +1632,7 @@ implementation
          include(current_procinfo.flags,pi_is_assembler);
          p:=_asm_statement;
 
-{$if not(defined(sparc)) and not(defined(arm)) and not(defined(avr)) and not(defined(mips))}
+{$if not(defined(sparcgen)) and not(defined(arm)) and not(defined(avr)) and not(defined(mips))}
          if (po_assembler in current_procinfo.procdef.procoptions) then
            begin
              { set the framepointer to esp for assembler functions when the
@@ -1447,7 +1658,7 @@ implementation
                  current_procinfo.framepointer:=NR_STACK_POINTER_REG;
                end;
            end;
-{$endif not(defined(sparc)) and not(defined(arm)) and not(defined(avr)) not(defined(mipsel))}
+{$endif not(defined(sparcgen)) and not(defined(arm)) and not(defined(avr)) not(defined(mipsel))}
 
         { Flag the result as assigned when it is returned in a
           register.

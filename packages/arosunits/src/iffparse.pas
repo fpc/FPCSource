@@ -17,10 +17,7 @@ unit iffparse;
 
 interface
 
-{$mode objfpc}
-
 uses exec, clipboard, utility;
-
 
 const
     IFFPARSENAME  : PChar = 'iffparse.library';
@@ -259,7 +256,7 @@ function Make_ID(str: String): LongInt;
 
 implementation
 
-function Make_ID(str: String): LongInt;
+function Make_ID(str: String): LongInt; inline;
 begin
         Make_ID:= (LongInt(Ord(Str[1])) shl 24) or
                   (LongInt(Ord(Str[2])) shl 16 ) or

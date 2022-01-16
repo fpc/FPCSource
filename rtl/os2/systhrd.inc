@@ -250,7 +250,7 @@ begin
   end;
 { The Windows API apparently provides a way to fill the allocated memory with }
 { zeros; we probably need to do it ourselves for compatibility. }
- FillChar (DataIndex^^, 0, ThreadVarBlockSize);
+ FillChar (DataIndex^^, ThreadVarBlockSize, 0);
 end;
 
 function SysRelocateThreadVar (Offset: dword): pointer;
@@ -659,6 +659,17 @@ begin
 end;
 
 
+procedure SysSetThreadDebugNameA(threadHandle: TThreadID; const ThreadName: AnsiString);
+begin
+  {$Warning SetThreadDebugName needs to be implemented}
+end;
+
+
+procedure SysSetThreadDebugNameU(threadHandle: TThreadID; const ThreadName: UnicodeString);
+begin
+  {$Warning SetThreadDebugName needs to be implemented}
+end;
+
 
 {*****************************************************************************
                           Delphi/Win32 compatibility
@@ -936,12 +947,14 @@ begin
     SuspendThread          :=@SysSuspendThread;
     ResumeThread           :=@SysResumeThread;
     KillThread             :=@SysKillThread;
-    CloseThread		   :=@SysCloseThread;
+    CloseThread            :=@SysCloseThread;
     ThreadSwitch           :=@SysThreadSwitch;
     WaitForThreadTerminate :=@SysWaitForThreadTerminate;
     ThreadSetPriority      :=@SysThreadSetPriority;
     ThreadGetPriority      :=@SysThreadGetPriority;
     GetCurrentThreadId     :=@SysGetCurrentThreadId;
+    SetThreadDebugNameA    :=@SysSetThreadDebugNameA;
+    SetThreadDebugNameU    :=@SysSetThreadDebugNameU;
     InitCriticalSection    :=@SysInitCriticalSection;
     DoneCriticalSection    :=@SysDoneCriticalSection;
     EnterCriticalSection   :=@SysEnterCriticalSection;

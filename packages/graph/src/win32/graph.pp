@@ -2190,7 +2190,7 @@ function queryadapterinfo : pmodeinfo;
           mode.PaletteSize := mode.MaxColor;
           mode.DirectColor := FALSE;
           mode.MaxX := 1023;
-          mode.MaxY := 768;
+          mode.MaxY := 767;
           SetupWin32GUIDefault;
           mode.XAspect := 10000;
           mode.YAspect := 10000;

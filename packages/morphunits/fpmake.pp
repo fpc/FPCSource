@@ -13,10 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('morphunits');
+    P.ShortName := 'mrph';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
 
     P.Author := 'Karoly Balogh';
     P.License := 'LGPL with modification';
@@ -34,6 +35,8 @@ begin
     T:=P.Targets.AddUnit('exec.pas');
     T:=P.Targets.AddUnit('timer.pas');
     T:=P.Targets.AddUnit('utility.pas');
+    T:=P.Targets.AddUnit('akeyboard.pas');
+    T:=P.Targets.AddUnit('input.pas');
     T:=P.Targets.AddUnit('intuition.pas');
     T:=P.Targets.AddUnit('agraphics.pas');
     T:=P.Targets.AddUnit('amigalib.pas');
@@ -47,11 +50,20 @@ begin
     T:=P.Targets.AddUnit('layers.pas');
     T:=P.Targets.AddUnit('inputevent.pas');
     T:=P.Targets.AddUnit('mui.pas');
-    T:=P.Targets.AddUnit('muihelper.pas');
     T:=P.Targets.AddUnit('ahi.pas');
-    T:=P.Targets.AddUnit('kvm.pas');
     T:=P.Targets.AddUnit('get9.pas');
     T:=P.Targets.AddUnit('tinygl.pas');
+    T:=P.Targets.AddUnit('diskfont.pas');
+    T:=P.Targets.AddUnit('cybergraphics.pas');
+    T:=P.Targets.AddUnit('cgxvideo.pas');
+    T:=P.Targets.AddUnit('gadtools.pas');
+    T:=P.Targets.AddUnit('workbench.pas');
+    T:=P.Targets.AddUnit('icon.pas');
+    T:=P.Targets.AddUnit('locale.pas');
+    T:=P.Targets.AddUnit('commodities.pas');
+    T:=P.Targets.AddUnit('serial.pas');
+    T:=P.Targets.AddUnit('console.pas');
+    T:=P.Targets.AddUnit('conunit.pas');
 
 {$ifndef ALLPACKAGES}
     Run;

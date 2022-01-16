@@ -87,32 +87,14 @@ const
 
 // Return the current mode for the active FEP. The <nullParam> parameter
 // is unused and must be set to NULL.
-function TsmGetFepMode(nullParam: Pointer): TsmFepModeType;
+function TsmGetFepMode(nullParam: Pointer): TsmFepModeType; syscall sysTrapTsmDispatch, tsmGetFepMode_;
 
 // Set the mode for the active FEP to be <inNewMode>. The previous mode
 // is returned. The <nullParam> parameter is unused and must be set
 // to NULL.
-function TsmSetFepMode(nullParam: Pointer; inNewMode: TsmFepModeType): TsmFepModeType;
+function TsmSetFepMode(nullParam: Pointer; inNewMode: TsmFepModeType): TsmFepModeType; syscall sysTrapTsmDispatch, tsmSetFepMode_;
+
 
 implementation
-
-function __TsmGetFepMode(nullParam: Pointer): TsmFepModeType; syscall sysTrapTsmDispatch;
-function __TsmSetFepMode(nullParam: Pointer; inNewMode: TsmFepModeType): TsmFepModeType; syscall sysTrapTsmDispatch;
-
-function TsmGetFepMode(nullParam: Pointer): TsmFepModeType;
-begin
- asm
-  move.l #$tsmGetFepMode_, D2;
- end;
- TsmGetFepMode := __TsmGetFepMode(nullParam);
-end;
-
-function TsmSetFepMode(nullParam: Pointer; inNewMode: TsmFepModeType): TsmFepModeType;
-begin
- asm
-  move.l #$tsmSetFepMode_, D2;
- end;
- TsmSetFepMode := __TsmSetFepMode(nullParam, inNewMode);
-end;
 
 end.

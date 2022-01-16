@@ -3,9 +3,9 @@
     This file is part of Free Pascal build tools
     Copyright (c) 2014-2015 by Tomas Hajny, member of the FPC core team.
 
-    This program takes processes one or more listing files created with
-    fpmake (e.g. using 'fpmake pkglist --target=<FPC_target> -zp units-'
-    for unit packages or without the '-zp <prefix>' for utils), compares
+    This program processes one or more listing files created with fpmake
+    (e.g. using 'fpmake pkglist --target=<FPC_target> -zp units-' for
+    unit packages or without the '-zp <prefix>' for utils), compares
     them to the text-mode installer configuration file install.dat and
     creates file install.add which provides information about packages
     missing in install.dat in a form allowing copy&paste of individual
@@ -439,9 +439,13 @@ begin
 end;
 
 var
- I, J: byte;
+ I, J, K: byte;
  DAT: TDatFile;
  PrevCount: SW_Integer;
+ SR: SearchRec;
+ D: DirStr;
+ N: NameStr;
+ E: ExtStr;
 
 begin
  J := ParamCount;
@@ -459,21 +463,36 @@ begin
  else
   Error ('Failure while loading source install.dat file (' + ParamStr (1) +
                                                                        ')', 1);
+ K := 0;
  for I := 2 to J do
   begin
-   PrevCount := DAT.LstCollection^.Count;
-   if DAT.ReadLstFile (ParamStr (I)) then
-    WriteLn ('Package listing #', Pred (I), ' (', ParamStr (I),
-      ') loaded correctly: ', DAT.LstCollection^.Count - PrevCount,
-                                                                ' new records')
+   FSplit (ParamStr (I), D, N, E);
+   FindFirst (ParamStr (I), AnyFile - Directory, SR);
+   if DosError <> 0 then
+    Error ('No package listing file found for "' + ParamStr (I) + '"', I)
    else
-    Error ('Failure while loading package listing (' + ParamStr (I) + ')', I);
+    begin
+     while (DosError = 0) do
+      begin
+       Inc (K);
+       PrevCount := DAT.LstCollection^.Count;
+       if DAT.ReadLstFile (D + SR.Name) then
+        WriteLn ('Package listing #', K, ' (', D + SR.Name,
+          ') loaded correctly: ', DAT.LstCollection^.Count - PrevCount,
+                                                                ' new records')
+       else
+        Error ('Failure while loading package listing (' + D + SR.Name + ')',
+                                                                        J + K);
+       FindNext (SR);
+      end;
+     FindClose (SR);
+    end;
   end;
  WriteLn ('Total: ', DAT.LstCollection^.Count, ' new records');
  if DAT.WriteNew (DefDiffFN) then
   WriteLn ('Output file (' + DefDiffFN + ') created successfully.')
  else
   Error ('Failure while trying to write records to the output file (' +
-                                                    DefDiffFN + ')', Succ (J));
+                                                DefDiffFN + ')', Succ (J) + K);
  DAT.Done;
 end.

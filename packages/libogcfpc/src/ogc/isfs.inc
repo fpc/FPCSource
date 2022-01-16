@@ -22,12 +22,12 @@ type
 
 
 function ISFS_Initialize: cint32; cdecl; external;
-
 function ISFS_Deinitialize: cint32; cdecl; external;
 
+function ISFS_Format(): cint32; cdecl; external;
+function ISFS_FormatAsync(cb: isfscallback; usrdata: pointer): cint32; cdecl; external;
 
 function ISFS_Open(filepath: pcchar; mode: cuint8): cint32; cdecl; external;
-
 function ISFS_OpenAsync(filepath: pcchar; mode: cuint8; cb: isfscallback;
   usrdata: pointer): cint32; cdecl; external;
 

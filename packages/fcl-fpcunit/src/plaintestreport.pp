@@ -19,7 +19,7 @@ unit plaintestreport;
 interface
 
 uses
-  classes, SysUtils, fpcunit, fpcunitreport;
+  classes, SysUtils, fpcunit, fpcunitreport, testdecorator;
 
 type
   TTestResultOption = (ttoSkipAddress,ttoSkipExceptionMessage,ttoErrorsOnly);
@@ -208,17 +208,27 @@ begin
   FSuiteHeaderIdx.Add(Pointer(FDoc.Count - 1));
 end;
 
-function TestSuiteAsPlain(aSuite:TTestSuite; Options : TTestResultOptions = []): string;
+function DoTestSuiteAsPlain(aSuite:TTest; Prefix : String; Options : TTestResultOptions = []): string;
+
 var
   i: integer;
+
 begin
-  Result := '';
-  for i := 0 to aSuite.Tests.Count - 1 do
-    if TTest(aSuite.Tests.Items[i]) is TTestSuite then
-      Result := Result + TestSuiteAsPlain(TTestSuite(aSuite.Tests.Items[i]),Options)
-    else
-      if TTest(aSuite.Tests.Items[i]) is TTestCase then
-        Result := Result + '  ' + ASuite.TestName+'.' + TTestcase(aSuite.Tests.Items[i]).TestName + System.sLineBreak;
+  if (ASuite.TestSuiteName<>'') then
+    begin
+    Prefix:='  '+Prefix;
+    Prefix:=Prefix+ASuite.TestSuiteName+'.';
+    end;
+  if (ASuite.TestName<>'') then
+    Result := Prefix+ASuite.TestName+System.sLineBreak;
+  for i := 0 to aSuite.GetChildTestCount - 1 do
+    Result := Result + DoTestSuiteAsPlain(aSuite.GetChildTest(i),Prefix,Options);
+end;
+
+function TestSuiteAsPlain(aSuite:TTestSuite; Options : TTestResultOptions = []): string;
+
+begin
+  Result:=DoTestSuiteAsPLain(ASuite,'',Options);
 end;
 
 function GetSuiteAsPlain(aSuite: TTestSuite; Options : TTestResultOptions = []): string;

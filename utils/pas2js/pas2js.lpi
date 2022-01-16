@@ -1,27 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="12"/>
     <General>
       <Flags>
-        <SaveOnlyProjectUnits Value="True"/>
+        <MainUnitHasUsesSectionForAllUnits Value="False"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
-        <SaveJumpHistory Value="False"/>
-        <SaveFoldState Value="False"/>
+        <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <MainUnit Value="0"/>
       <Title Value="pas2js"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
-    <i18n>
-      <EnableI18N LFM="False"/>
-    </i18n>
-    <VersionInfo>
-      <StringTable ProductVersion=""/>
-    </VersionInfo>
     <BuildModes Count="1">
       <Item1 Name="Default" Default="True"/>
     </BuildModes>
@@ -29,21 +21,39 @@
       <Version Value="2"/>
     </PublishOptions>
     <RunParams>
-      <local>
-        <FormatVersion Value="1"/>
-      </local>
+      <FormatVersion Value="2"/>
+      <Modes Count="1">
+        <Mode0 Name="default"/>
+      </Modes>
     </RunParams>
-    <Units Count="2">
+    <Units Count="6">
       <Unit0>
         <Filename Value="pas2js.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="pas2js"/>
       </Unit0>
       <Unit1>
-        <Filename Value="fppas2js.pp"/>
+        <Filename Value="../../packages/pastojs/src/pas2jspcucompiler.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="fppas2js"/>
+        <UnitName Value="Pas2JSPCUCompiler"/>
       </Unit1>
+      <Unit2>
+        <Filename Value="../../packages/pastojs/src/pas2jscompilercfg.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="../../packages/pastojs/src/pas2jsfs.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Pas2JSFS"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="../../packages/pastojs/src/pas2jscompilerpp.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="../../packages/pastojs/src/pas2jsfscompiler.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Pas2JSFSCompiler"/>
+      </Unit5>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -53,14 +63,14 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="../../packages/fcl-js/src;../../packages/fcl-json/src;../../packages/fcl-passrc/src;../../packages/pastojs/src"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
-    <Other>
-      <CompilerMessages>
-        <MsgFileName Value=""/>
-      </CompilerMessages>
-      <CompilerPath Value="$(CompPath)"/>
-    </Other>
+    <Parsing>
+      <SyntaxOptions>
+        <AllowLabel Value="False"/>
+      </SyntaxOptions>
+    </Parsing>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">

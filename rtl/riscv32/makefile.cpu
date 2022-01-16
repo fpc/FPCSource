@@ -1,0 +1,6 @@
+#
+# Here we set processor dependent include file names.
+#
+
+CPUNAMES=riscv32 int64p math set setjump setjumph strings stringss
+CPUINCNAMES=$(addsuffix .inc,$(CPUNAMES))

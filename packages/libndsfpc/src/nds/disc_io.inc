@@ -1,10 +1,10 @@
 {$ifdef NDS_INTERFACE}
 
-const
-  FEATURE_MEDIUM_CANREAD		= $00000001;
-  FEATURE_MEDIUM_CANWRITE		= $00000002;
-  FEATURE_SLOT_GBA			= $00000010;
-  FEATURE_SLOT_NDS			= $00000020;
+//const
+//  FEATURE_MEDIUM_CANREAD	= $00000001;
+//  FEATURE_MEDIUM_CANWRITE	= $00000002;
+//  FEATURE_SLOT_GBA			= $00000010;
+//  FEATURE_SLOT_NDS			= $00000020;
 
 function DEVICE_TYPE_DSI_SD(): cuint32; inline;
 
@@ -30,6 +30,8 @@ type
   DISC_INTERFACE = DISC_INTERFACE_STRUCT;
   TDISC_INTERFACE = DISC_INTERFACE_STRUCT;
   PDISC_INTERFACE = ^DISC_INTERFACE_STRUCT;
+  
+
 (*
   PARTITION_INTERFACE = (
     PI_DEFAULT = 0,
@@ -39,16 +41,14 @@ type
   );
 *)
 
-var
-  __io_dsisd: DISC_INTERFACE; cvar; external;
-
+function get_io_dsisd(): PDISC_INTERFACE; cdecl; external;
 {$endif NDS_INTERFACE}
 
 {$ifdef NDS_IMPLEMENTATION}
 
 function DEVICE_TYPE_DSI_SD(): cuint32; inline; 
 begin
-  DEVICE_TYPE_DSI_SD := ord('i') or (ord('_') shl 8) or (ord('S') shl 16) or (ord('D') shl 24);
+  DEVICE_TYPE_DSI_SD := ord('_') or (ord('S') shl 8) or (ord('D') shl 16) or (ord('_') shl 24);
 end;
 
 

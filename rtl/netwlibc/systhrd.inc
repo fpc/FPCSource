@@ -133,6 +133,8 @@
           { We're still running in single thread mode, setup the TLS }
            pthread_key_create(@TLSKey,nil);
            InitThreadVars(@SysRelocateThreadvar);
+          { lazy initialize thread support }
+           LazyInitThreading;
            IsMultiThread:=true;
          end;
         { the only way to pass data to the newly created thread
@@ -221,6 +223,15 @@
       SysGetCurrentThreadId:=dword(pthread_self);
     end;
 
+    procedure SysSetThreadDebugNameA(threadHandle: TThreadID; const ThreadName: AnsiString);
+    begin
+      {$Warning SetThreadDebugName needs to be implemented}
+    end;
+
+    procedure SysSetThreadDebugNameU(threadHandle: TThreadID; const ThreadName: UnicodeString);
+    begin
+      {$Warning SetThreadDebugName needs to be implemented}
+    end;
 
 {*****************************************************************************
                           Delphi/Win32 compatibility
@@ -364,6 +375,8 @@ begin
     ThreadSetPriority      :=@SysThreadSetPriority;
     ThreadGetPriority      :=@SysThreadGetPriority;
     GetCurrentThreadId     :=@SysGetCurrentThreadId;
+    SetThreadDebugNameA    :=@SysSetThreadDebugNameA;
+    SetThreadDebugNameU    :=@SysSetThreadDebugNameU;
     InitCriticalSection    :=@SysInitCriticalSection;
     DoneCriticalSection    :=@SysDoneCriticalSection;
     EnterCriticalSection   :=@SysEnterCriticalSection;

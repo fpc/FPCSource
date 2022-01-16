@@ -22,7 +22,7 @@ type
     function Compare(constref ALeft, ARight: T): Integer; override;
   end;
 
-function TGOrdinalStringComparer<THashFactory, T>.Compare(constref ALeft,
+function TGOrdinalStringComparer<T, THashFactory>.Compare(constref ALeft,
   ARight: T): Integer;
 begin
   Result := FComparer.Compare(ALeft, ARight);

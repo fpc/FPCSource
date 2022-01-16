@@ -35,9 +35,9 @@ implementation
     uses
        globtype,systems,globals,verbose,cutils,tokens,
        aasmbase,aasmtai,
-       procinfo,fmodule,
+       fmodule,
        scanner,pbase,pdecvar,
-       node,nbas,ngtcon,ngenutil,
+       node,ngtcon,
        symconst,symbase,symdef
        ;
 
@@ -92,7 +92,7 @@ implementation
            (
             (
              (token = _ID) and
-             (idtoken in [_EXPORT,_EXTERNAL,_WEAKEXTERNAL,_PUBLIC,_CVAR]) and
+             ((idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) or (idtoken = _WEAKEXTERNAL)) and
              (m_cvar_support in current_settings.modeswitches)
             ) or
             (
@@ -123,20 +123,26 @@ implementation
               end;
           end;
 
-        if not(target_info.system in systems_typed_constants_node_init) then
+        if not parse_generic then
           begin
-            { only now get the final asmlist, because inserting the symbol
-              information depends on potential section information set above }
-            tasmlisttypedconstbuilder(tcbuilder).get_final_asmlists(reslist,datalist);
-             { add the parsed value }
-            list.concatlist(reslist);
-            { and pointed data, if any }
-            current_asmdata.asmlists[al_const].concatlist(datalist);
-            { the (empty) lists themselves are freed by tcbuilder }
-          end
-        else
-          begin
-            { nothing to do }
+            if vo_is_public in sym.varoptions then
+              current_module.add_public_asmsym(sym.mangledname,AB_GLOBAL,AT_DATA);
+
+            if not(target_info.system in systems_typed_constants_node_init) then
+              begin
+                { only now get the final asmlist, because inserting the symbol
+                  information depends on potential section information set above }
+                tasmlisttypedconstbuilder(tcbuilder).get_final_asmlists(reslist,datalist);
+                 { add the parsed value }
+                list.concatlist(reslist);
+                { and pointed data, if any }
+                current_asmdata.asmlists[al_const].concatlist(datalist);
+                { the (empty) lists themselves are freed by tcbuilder }
+              end
+            else
+              begin
+                { nothing to do }
+              end;
           end;
 
         tcbuilder.free;

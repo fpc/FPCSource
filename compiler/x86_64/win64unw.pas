@@ -276,7 +276,7 @@ end;
 
 procedure TWin64CFI.end_frame(objdata:TObjData);
 var
-  pdatasym:TObjSymbol;
+  pdatasec:TObjSection;
 begin
   if not assigned(FName) then
     internalerror(2011072307);
@@ -286,15 +286,14 @@ begin
 
   if not codegenerror then
     begin
-      objdata.createsection(sec_pdata,lower(FName^));
-      pdatasym:=objdata.symboldefine('$pdata$'+FName^,AB_LOCAL,AT_DATA);
+      pdatasec:=objdata.createsection(sec_pdata,lower(FName^));
       objdata.writereloc(0,4,FFrameStartSym,RELOC_RVA);
       objdata.writereloc(FFrameStartSec.Size,4,FFrameStartSym,RELOC_RVA);
       objdata.writereloc(0,4,FXdataSym,RELOC_RVA);
       { restore previous state }
       objdata.SetSection(FFrameStartSec);
       { create a dummy relocation, so pdata is not smartlinked away }
-      objdata.writereloc(0,0,pdatasym,RELOC_NONE);
+      FFrameStartSec.AddSectionReloc(0,pdatasec,RELOC_NONE);
     end;
   FElements.Clear;
   FFrameStartSym:=nil;
@@ -350,7 +349,7 @@ begin
   if info=0 then                 { frame register cannot be RAX }
     InternalError(2011072304);
   if (ofs>240) or ((ofs and 15)<>0) then
-    InternalError(2011072310);
+    InternalError(2011072309);
   FFrameReg:=info;
   FFrameOffs:=ofs;
   { !! looks like docs aren't correct and info should be set to register }
@@ -395,6 +394,11 @@ begin
     ash_savexmm:
       current_unw.save_xmm(objdata,data.reg,data.offset);
     ash_pushframe: {TBD};
+    ash_pushnv,
+    ash_savenv:
+      internalerror(2019050712);
+    else
+      internalerror(2020041901);
   end;
 end;
 

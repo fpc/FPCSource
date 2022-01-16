@@ -29,6 +29,11 @@ unit iso7185;
     Procedure Reset(var f : TypedFile);   [INTERNPROC: fpc_in_Reset_TypedFile];
     Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
 
+    Procedure Rewrite(var t : Text;const filename : string);
+    Procedure Reset(var t : Text;const filename : string);
+    Procedure Reset(var f : TypedFile;const filename : string);   [INTERNPROC: fpc_in_Reset_TypedFile_Name];
+    Procedure Rewrite(var f : TypedFile;const filename : string); [INTERNPROC: fpc_in_Rewrite_TypedFile_Name];
+
     Function Eof(Var t: Text): Boolean;
     Function Eof:Boolean;
     Function Eoln(Var t: Text): Boolean;
@@ -39,14 +44,33 @@ unit iso7185;
 
     Procedure Get(Var t: Text);
     Procedure Put(Var t: Text);
+    procedure Get;
+    Procedure Put;
 
     Procedure Get(Var f: TypedFile);
     Procedure Put(Var f: TypedFile);
+    Procedure Seek(var f:TypedFile;Pos:Int64);
+    Function FilePos(var f:TypedFile):Int64;
 
     Function Eof(var f:TypedFile): Boolean;
 
+{$ifndef FPUNONE}
+{$ifdef FPC_CURRENCY_IS_INT64}
+    function round(c : currency) : int64;
+{$ifndef cpujvm}
+    function round(c : comp) : int64;
+{$else not cpujvm}
+    function round_comp(c : comp) : int64;
+{$endif not cpujvm}
+{$endif FPC_CURRENCY_IS_INT64}
+    function Round(d : ValReal) : int64;
+{$endif FPUNONE}
+
   implementation
 
+
+{$i isotmp.inc}
+ 
 {$i-}
     procedure DoAssign(var t : Text);
 {$ifndef FPC_HAS_FEATURE_RANDOM}
@@ -55,9 +79,9 @@ unit iso7185;
 {$endif FPC_HAS_FEATURE_RANDOM}
       begin
 {$ifdef FPC_HAS_FEATURE_RANDOM}
-        Assign(t,'fpc_'+HexStr(random(1000000000),8)+'.tmp');
+        Assign(t,getTempDir+'fpc_'+HexStr(random(1000000000),8)+'.tmp');
 {$else FPC_HAS_FEATURE_RANDOM}
-        Assign(t,'fpc_'+HexStr(NextIndex,4)+'.tmp');
+        Assign(t,getTempDir+'fpc_'+HexStr(NextIndex,4)+'.tmp');
         Inc(NextIndex);
 {$endif FPC_HAS_FEATURE_RANDOM}
       end;
@@ -87,6 +111,30 @@ unit iso7185;
       End;
 
 
+    Procedure Rewrite(var t : Text;const filename : string);[IOCheck];
+      Begin
+        { create file name? }
+        if Textrec(t).mode=0 then
+          Assign(t,filename);
+
+        System.Rewrite(t);
+      End;
+
+
+    Procedure Reset(var t : Text;const filename : string);[IOCheck];
+      Begin
+        case Textrec(t).mode of
+          { create file name? }
+          0:
+            Assign(t,filename);
+          fmOutput:
+            Write(t,#26);
+        end;
+
+        System.Reset(t);
+      End;
+
+
     Function Eof(Var t: Text): Boolean;[IOCheck];
       var
         OldCtrlZMarksEof : Boolean;
@@ -98,7 +146,7 @@ unit iso7185;
         else
           begin
             OldCtrlZMarksEof:=CtrlZMarksEOF;
-            CtrlZMarksEof:=false;
+            CtrlZMarksEof:=true;
             Eof:=System.Eof(t);
             CtrlZMarksEof:=OldCtrlZMarksEOF;
           end;
@@ -158,25 +206,111 @@ unit iso7185;
       end;
 
 
+    procedure Get;[IOCheck];
+      var
+        c : char;
+      Begin
+        Read(input,c);
+      End;
+
+
+    Procedure Put;[IOCheck];
+      type
+        FileFunc = Procedure(var t : TextRec);
+      begin
+        inc(TextRec(Output).BufPos);
+        If TextRec(Output).BufPos>=TextRec(Output).BufSize Then
+          FileFunc(TextRec(Output).InOutFunc)(TextRec(Output));
+      end;
+
+
     procedure Get(var f:TypedFile);[IOCheck];
       Begin
-        if not(eof(f)) then
+        if not(system.eof(f)) then
           BlockRead(f,(pbyte(@f)+sizeof(FileRec))^,1)
+        else
+          FileRec(f)._private[1]:=1;
       End;
 
 
     Procedure Put(var f:TypedFile);[IOCheck];
       begin
-        BlockWrite(f,(pbyte(@f)+sizeof(FileRec))^,1)
+        BlockWrite(f,(pbyte(@f)+sizeof(FileRec))^,1);
       end;
 
 
     Function Eof(var f:TypedFile): Boolean;[IOCheck];
-      Type
-        UnTypedFile = File;
       Begin
-        Eof:=System.Eof(UnTypedFile(f));
+        Eof:=FileRec(f)._private[1]=1;
       End;
+
+
+    Procedure Seek(var f:TypedFile;Pos:Int64);[IOCheck];
+      Begin
+        System.Seek(f,Pos);
+        if (FileRec(f).mode=fmInOut) or
+          (FileRec(f).mode=fmInput) then
+          begin
+            if FilePos(f)<FileSize(f) then
+              begin
+                FileRec(f)._private[1]:=0;
+                Get(f);
+              end
+            else
+              FileRec(f)._private[1]:=1;
+          end;
+      End;
+
+
+    Function FilePos(var f:TypedFile):Int64;[IOCheck];
+      Begin
+        FilePos:=System.FilePos(f);
+        { in case of reading a file, the buffer is always filled, so the result of Do_FilePos is off by one }
+        if (FileRec(f).mode=fmInOut) or
+          (FileRec(f).mode=fmInput) then
+          dec(FilePos);
+      End;
+
+
+{$ifndef FPUNONE}
+{$ifdef FPC_CURRENCY_IS_INT64}
+    function round(c : currency) : int64;
+      begin
+        if c>=0.0 then
+          Round:=Trunc(c+0.5)
+        else
+          Round:=Trunc(c-0.5);
+      end;
+
+
+{$ifndef cpujvm}
+    function round(c : comp) : int64;
+      begin
+        if c>=0.0 then
+          round:=Trunc(c+0.5)
+        else
+          round:=Trunc(c-0.5);
+      end;
+{$else not cpujvm}
+    function round_comp(c : comp) : int64;
+      begin
+        if c>=0.0 then
+          round_comp:=Trunc(c+0.5)
+        else
+          round_comp:=Trunc(c-0.5);
+      end;
+{$endif cpujvm}
+{$endif FPC_CURRENCY_IS_INT64}
+
+
+    function Round(d : ValReal) : int64;
+      begin
+        if d>=0.0 then
+          Round:=Trunc(d+0.5)
+        else
+          Round:=Trunc(d-0.5);
+      end;
+{$endif FPUNONE}
 
 begin
   { we shouldn't do this because it might confuse user programs, but for now it

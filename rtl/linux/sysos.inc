@@ -78,7 +78,7 @@ end;
 
 {
   The lowlevel file functions should take care of setting the InOutRes to the
-  correct value if an error has occured, else leave it untouched
+  correct value if an error has occurred, else leave it untouched
 }
 
 function PosixToRunError  (PosixErrno : longint):word;
@@ -113,6 +113,8 @@ begin
     ESysEEXIST,
     ESysENOTEMPTY,
     ESysEACCES:         r:=5;
+    ESysEBusy,
+    ESysENOTDIR,        // busy, enotdir, mantis #25931      
     ESysEISDIR:         r:=5;
   else
     r:=PosixErrno;
@@ -135,27 +137,15 @@ end;
 *****************************************************************************}
 
 Function Do_IsDevice(Handle:THandle):boolean;
-{
-  Interface to Unix ioctl call.
-  Performs various operations on the filedescriptor Handle.
-  Ndx describes the operation to perform.
-  Data points to data needed for the Ndx function. The structure of this
-  data is function-dependent.
-}
-const
-{$if defined(PowerPC) or defined(PowerPc64)}
-  IOCtl_TCGETS=$402c7413;
-{$else}
-{$if defined(sparc)}
-  IOCtl_TCGETS=$40245408;
-{$else}
-  IOCtl_TCGETS=$5401; // TCGETS is also in termios.inc, but the sysunix needs only this
-{$endif}
-{$endif}
 var
-  Data : array[0..255] of byte; {Large enough for termios info}
+  StatRec: Stat;
 begin
-  Do_IsDevice:=(Fpioctl(handle,IOCTL_TCGETS,@data)<>-1);
+  fpFStat (Handle, StatRec);
+  case StatRec.st_Mode and S_IFMT of
+   S_IFCHR, S_IFIFO, S_IFSOCK: Do_IsDevice := true
+  else
+   Do_IsDevice := false;
+  end;
 end;
 
 

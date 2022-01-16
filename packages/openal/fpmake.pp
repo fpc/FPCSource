@@ -17,11 +17,11 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     if Defaults.CPU = i386 then
       P.OSes := [linux,win32,darwin]
     else
-      P.OSes := [linux,win32];
+      P.OSes := [linux,win32,win64];
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 

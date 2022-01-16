@@ -105,7 +105,6 @@ uses
     type
       { Number of registers used for indexing in tables }
       tregisterindex=0..{$i rppcnor.inc}-1;
-      totherregisterset = set of tregisterindex;
 
     const
       maxvarregs = 32-6; { 32 int registers - r0 - stackpointer - r2 - 3 scratch registers }
@@ -338,23 +337,6 @@ uses
                        GCC /ABI linking information
 *****************************************************************************}
 
-      {# Registers which must be saved when calling a routine declared as
-         cppdecl, cdecl, stdcall, safecall, palmossyscall. The registers
-         saved should be the ones as defined in the target ABI and / or GCC.
-
-         This value can be deduced from CALLED_USED_REGISTERS array in the
-         GCC source.
-      }
-      saved_standard_registers : array[0..18] of tsuperregister = (
-        RS_R13,RS_R14,RS_R15,RS_R16,RS_R17,RS_R18,RS_R19,
-        RS_R20,RS_R21,RS_R22,RS_R23,RS_R24,RS_R25,RS_R26,RS_R27,RS_R28,RS_R29,
-        RS_R30,RS_R31
-      );
-
-      { this is only for the generic code which is not used for this architecture }
-      saved_address_registers : array[0..0] of tsuperregister = (RS_INVALID);
-      saved_mm_registers : array[0..0] of tsuperregister = (RS_INVALID);
-
       {# Required parameter alignment when calling a routine declared as
          stdcall and cdecl. The alignment value should be the one defined
          by GCC or the target ABI.
@@ -413,7 +395,13 @@ uses
 
     function inverse_cond(const c: TAsmCond): Tasmcond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean;
+
+    { Checks if Subset is a subset of c (e.g. "less than" is a subset of "less than or equal" }
+    function condition_in(const Subset, c: TAsmCond): Boolean;
+
     function dwarf_reg(r:tregister):shortint;
+    function dwarf_reg_no_error(r:tregister):shortint;
+    function eh_return_data_regno(nr: longint): longint;
 
 implementation
 
@@ -444,6 +432,8 @@ implementation
         case o of
           A_B,A_BA,A_BL,A_BLA,A_BC,A_BCA,A_BCL,A_BCLA,A_BCCTR,A_BCCTRL,A_BCLR,
             A_BCLRL,A_TW,A_TWI: is_calljmp:=true;
+          else
+            ;
         end;
       end;
 
@@ -485,6 +475,16 @@ implementation
           ((not(c1.cond in [C_T..C_DZF]) and
            (c1.cr = c2.cr)) or
            (c1.crbit = c2.crbit));
+      end;
+
+
+    { Checks if Subset is a subset of c (e.g. "less than" is a subset of "less than or equal" }
+    function condition_in(const Subset, c: TAsmCond): Boolean;
+      begin
+        Result := (c.cond = C_None) or conditions_equal(Subset, c);
+
+        { TODO: Can a PowerPC programmer please update this procedure to
+          actually detect subsets? Thanks. [Kit] }
       end;
 
 
@@ -585,6 +585,19 @@ implementation
         result:=regdwarf_table[findreg_by_number(r)];
         if result=-1 then
           internalerror(200603251);
+      end;
+
+    function dwarf_reg_no_error(r:tregister):shortint;
+      begin
+        result:=regdwarf_table[findreg_by_number(r)];
+      end;
+
+    function eh_return_data_regno(nr: longint): longint;
+      begin
+        if (nr>=0) and (nr<2) then
+          result:=nr+3
+        else
+          result:=-1;
       end;
 
 end.

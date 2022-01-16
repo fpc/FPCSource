@@ -30,7 +30,7 @@ interface
        cutils,cclasses,
        aasmbase,aasmtai,aasmdata,aasmcpu,fmodule,globtype,globals,systems,verbose,
        symconst,symdef,symsym,
-       script,gendef,
+       cscript,gendef,
        cpubase,
        import,export,link,cgobj, i_symbian;
 
@@ -56,6 +56,7 @@ implementation
     constructor TInternalLinkerSymbian.Create;
       begin
         inherited Create;
+        CArObjectReader:=TArObjectReader;
         CExeoutput:=TPECoffexeoutput;
         CObjInput:=TPECoffObjInput;
       end;

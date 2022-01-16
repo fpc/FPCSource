@@ -32,7 +32,6 @@ Interface
 {$define FPC_USE_SYSCALL}
 {$endif}
 
-
 {$define FPC_IS_SYSTEM}
 
 {$I sysunixh.inc}
@@ -45,13 +44,13 @@ var argc:longint;
 
 CONST SIGSTKSZ = 40960;
 
-{$if defined(CPUARM)}
+{$if defined(CPUARM) or defined(CPUM68K)}
 
 {$define fpc_softfpu_interface}
 {$i softfpu.pp}
 {$undef fpc_softfpu_interface}
 
-{$endif defined(CPUARM)}
+{$endif defined(CPUARM) or defined(CPUM68K)}
 
 
 Implementation
@@ -77,7 +76,22 @@ Implementation
 {$endif defined(CPUARM) or defined(CPUM68K)}
 
 
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+{$define FPC_SYSTEM_HAS_OSSETUPENTRYINFORMATION}
+procedure OsSetupEntryInformation(constref info: TEntryInformation); forward;
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+
 {$I system.inc}
+
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+procedure OsSetupEntryInformation(constref info: TEntryInformation);
+begin
+  argc := info.OS.argc;
+  argv := info.OS.argv;
+  envp := info.OS.envp;
+  initialstklen := info.OS.stklen;
+end;
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
 {$ifdef FPC_HAS_SETSYSNR_INC}
 {$I setsysnr.inc}
@@ -91,17 +105,25 @@ Implementation
 procedure normalexit(status: cint); cdecl; external 'c' name 'exit';
 {$endif}
 
+{$if defined(openbsd)}
+procedure haltproc; cdecl; external name '_haltproc';
+{$endif}
+
 procedure System_exit;
-{$ifndef darwin}
-begin
-   Fpexit(cint(ExitCode));
-end;
-{$else darwin}
+{$if defined(darwin)}
 begin
    { make sure the libc atexit handlers are called, needed for e.g. profiling }
    normalexit(cint(ExitCode));
 end;
-{$endif darwin}
+{$elseif defined(openbsd)}
+begin
+   haltproc;
+end;
+{$else}
+begin
+   Fpexit(cint(ExitCode));
+end;
+{$endif}
 
 
 Function ParamCount: Longint;
@@ -137,7 +159,7 @@ function paramstr(l: longint) : string;
 //       paramstr := execpathstr;
 //     end
 //   else
-     if (l < argc) then
+     if (l >= 0) and (l < argc) then
        paramstr:=strpas(argv[l])
      else
        paramstr:='';
@@ -296,7 +318,17 @@ end;
 
 {$ifdef Darwin}
 
-procedure pascalmain;cdecl;external name 'PASCALMAIN';
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+
+procedure SysEntry(constref info: TEntryInformation);[public,alias:'FPC_SysEntry'];
+begin
+  SetupEntryInformation(info);
+  info.PascalMain();
+end;
+
+{$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+
+procedure pascalmain;external name '_PASCALMAIN';
 
 procedure FPC_SYSTEMMAIN(argcparam: Longint; argvparam: ppchar; envpparam: ppchar); cdecl; [public];
 
@@ -309,6 +341,7 @@ begin
 {$endif cpui386}
   pascalmain;  {run the pascal main program}
 end;
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 {$endif Darwin}
 {$endif FPC_USE_LIBC}
 
@@ -317,20 +350,37 @@ begin
  GetProcessID := SizeUInt (fpGetPID);
 end;
 
+function InternalPageSize: SizeUInt; inline;
+begin
+{$ifndef darwin}
+  InternalPageSize := 4096;
+{$else not darwin}
+  InternalPageSize := darwin_page_size;
+{$endif not darwin}
+end;
+
+function AlignedStackTop: Pointer;
+begin
+  AlignedStackTop:=Pointer((ptruint(sptr) + InternalPageSize - 1) and not(InternalPageSize - 1));
+end;
+
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
 var
   stackpointer: ptruint;
 begin
-  stackpointer := (ptruint(sptr) + 4095) and not(4095);
+  stackpointer := ptruint(AlignedStackTop);
   if stklen > stackpointer then
-    stklen := stackpointer-4096;
+    stklen := stackpointer - InternalPageSize;
   result := stklen;
 end;
 
 Begin
+{$ifdef darwin}
+  darwin_init_page_size;
+{$endif darwin}
   IsConsole := TRUE;
   StackLength := CheckInitialStkLen(InitialStkLen);
-  StackBottom := Sptr - StackLength;
+  StackBottom := AlignedStackTop - StackLength;
 {$ifdef FPC_HAS_SETSYSNR_INC}
   { This procedure is needed for openbsd system which re-uses
     the same syscall numbers depending on OS version }

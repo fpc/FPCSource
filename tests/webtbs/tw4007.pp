@@ -5,32 +5,35 @@ PROGRAM H;
 {$IFDEF FPC} {$MODE TP} {$ENDIF}
 
 VAR
-  Handler: function: boolean;
+  Handler: function: boolean; far;
 
   function AHandler: boolean; far;
   begin
     AHandler:=true;
   end;
 
+const
+  error_count : integer = 0;
+
 begin
   Handler:= AHandler;
 
   {here FPC differs from BP ->BUG}
-  if Handler then writeln('1');
+  if Handler then writeln('1') else inc(error_count);
   {BP7 : '1'}
   {1010: '1'}
   {19x : Boolean expression expected, but got "<procedure variable type of function:Boolean;Register>"}
   {200 : Boolean expression expected, but got "<procedure variable type of function:Boolean;Register>"}
 
   {the same with "=true" shows no difference -> conflict to '1'}
-  if Handler=true then writeln('2');
+  if Handler=true then writeln('2') else inc(error_count);
   {BP7 : '2'}
   {1010: '2'}
   {19x : '2'}
   {200 : '2'}
 
   {here FPC differs from BP again -> BUG}
-  if Handler() then writeln('3');
+  if Handler() then writeln('3') else inc(error_count);
   {BP7 : THEN expected}
   {1010: '3'}
   {19x : '3'}
@@ -38,7 +41,7 @@ begin
 
 {$ifdef nok}
   {this both BP and FPC don't like -> ok}
-  if Handler=NIL then writeln('4');
+  if Handler=NIL then writeln('4') else inc(error_count);
   {BP7 : Type Mismatch}
   {1010: Operator is not overloaded}
   {19x : Incompatible types: got "Boolean" expected "LongInt"}
@@ -46,8 +49,12 @@ begin
 {$endif nok}
 
   {the rest is accepted by both BP and FPC -> ok}
-  if @Handler<>NIL     then writeln('5');
-  if assigned(Handler) then writeln('6');
+  if @Handler<>NIL     then writeln('5') else inc(error_count);
+  if assigned(Handler) then writeln('6') else inc(error_count);
+  if error_count = 0 then
+    writeln('Test finished OK')
+  else
+    halt(error_count);
 
 end.
 

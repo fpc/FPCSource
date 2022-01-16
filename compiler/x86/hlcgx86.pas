@@ -29,6 +29,7 @@ interface
 {$i fpcdefs.inc}
 
   uses
+    globtype,
     aasmdata,
     symtype,symdef,
     parabase,
@@ -41,14 +42,15 @@ interface
     thlcgx86 = class(thlcg2ll)
      protected
       procedure gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara); override;
+      procedure a_jmp_external_name(list: TAsmList; const externalname: TSymStr); override;
      public
-      procedure g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string); override;
+      procedure a_load_undefined_cgpara(list: TAsmList; size: tdef; const cgpara: TCGPara); override;
     end;
 
 implementation
 
   uses
-    globtype,globals,systems,
+    globals,systems,
     aasmbase,
     cgbase,cgutils,
     cpubase,aasmcpu;
@@ -64,7 +66,7 @@ implementation
     end;
 
 
-  procedure thlcgx86.g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string);
+  procedure thlcgx86.a_jmp_external_name(list: TAsmList; const externalname: TSymStr);
     var
       ref : treference;
       sym : tasmsymbol;
@@ -72,12 +74,12 @@ implementation
      if (target_info.system = system_i386_darwin) then
        begin
          { a_jmp_name jumps to a stub which is always pic-safe on darwin }
-         inherited g_external_wrapper(list,procdef,externalname);
+         inherited;
          exit;
        end;
 
-      sym:=current_asmdata.RefAsmSymbol(externalname);
-      reference_reset_symbol(ref,sym,0,sizeof(pint));
+      sym:=current_asmdata.RefAsmSymbol(externalname,AT_FUNCTION);
+      reference_reset_symbol(ref,sym,0,sizeof(pint),[]);
 
       { create pic'ed? }
       if (cs_create_pic in current_settings.moduleswitches) and
@@ -87,6 +89,16 @@ implementation
       else
         ref.refaddr:=addr_full;
       list.concat(taicpu.op_ref(A_JMP,S_NO,ref));
+    end;
+
+
+  procedure thlcgx86.a_load_undefined_cgpara(list: TAsmList; size: tdef; const cgpara: TCGPara);
+    begin
+      if not (cgpara.Location^.Loc in [LOC_REGISTER,LOC_CREGISTER]) and
+        (cgpara.size=OS_ADDR) then
+        a_load_reg_cgpara(list,size,NR_FRAME_POINTER_REG,cgpara)
+      else
+        inherited;
     end;
 
 end.

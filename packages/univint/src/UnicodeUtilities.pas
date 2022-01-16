@@ -3,7 +3,7 @@
  
      Contains:   Types, constants, prototypes for Unicode Utilities (Unicode input and text utils)
  
-     Copyright:  © 1997-2011 by Apple Inc. All rights reserved.
+     Copyright:  © 1997-2016 by Apple Inc. All rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -11,8 +11,8 @@
                      http://bugs.freepascal.org
  
 }
-{    Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
-{    Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
+{     Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, June 2018 }
+
 {
     Modified for use with Free Pascal
     Version 308
@@ -21,6 +21,7 @@
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
+{$modeswitch cblocks}
 {$packenum 1}
 {$macro on}
 {$inline on}
@@ -113,7 +114,7 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-{$ifc defined(iphonesim)}
+{$ifc defined iphonesim}
  	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
@@ -130,7 +131,7 @@ interface
 	{$setc TARGET_CPU_X86_64 := TRUE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-{$ifc defined(iphonesim)}
+{$ifc defined iphonesim}
  	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
@@ -147,7 +148,6 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := TRUE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-	{ will require compiler define when/if other Apple devices with ARM cpus ship }
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
@@ -159,11 +159,16 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := TRUE}
-	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+{$ifc defined ios}
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
-	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 	{$setc TARGET_OS_EMBEDDED := TRUE}
+{$elsec}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
+{$endc}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ nor __arm64__ is defined.}
 {$endc}
@@ -366,7 +371,7 @@ type
 		keyToCharTableIndexFormat: UInt16; { =kUCKeyToCharTableIndexFormat}
 		keyToCharTableSize: UInt16;     { Max keyCode (128 for ADB keyboards)}
 		keyToCharTableCount: UInt32;    { Dimension for keyToCharTableOffsets[] (usually 6 to 12 tables)}
-		keyToCharTableOffsets:	array [0..0] of ByteOffset;
+		keyToCharTableOffsets: array [0..0] of UInt32;
 
                                               { Each offset in keyToCharTableOffsets is from the beginning of the resource to a}
                                               { table as follows:}
@@ -380,7 +385,7 @@ type
 	UCKeyStateRecordsIndex = record
 		keyStateRecordsIndexFormat: UInt16; { =kUCKeyStateRecordsIndexFormat}
 		keyStateRecordCount: UInt16;    { Dimension for keyStateRecordOffsets[]}
-		keyStateRecordOffsets:	array [0..0] of ByteOffset;
+		keyStateRecordOffsets: array [0..0] of UInt32;
 
                                               { Each offset in keyStateRecordOffsets is from the beginning of the resource to a}
                                               { UCKeyStateRecord. These UCKeyStateRecords follow the keyStateRecordOffsets[] array.}
@@ -547,6 +552,7 @@ const
 	kUCTSOptionsNoneMask = 0;
 	kUCTSOptionsReleaseStringMask = 1;
 	kUCTSOptionsDataIsOrderedMask = 2;
+  // Additional option bits are defined for internal use
 
 
 {
@@ -610,8 +616,8 @@ const
 	kUnicodeTextBreakClass = FourCharCode('ubrk');
 
 type
-	TextBreakLocatorRef = ^SInt32; { an opaque type }
-	TextBreakLocatorRefPtr = ^TextBreakLocatorRef;  { when a var xx:TextBreakLocatorRef parameter can be nil, it is changed to xx: TextBreakLocatorRefPtr }
+	TextBreakLocatorRef = ^OpaqueTextBreakLocatorRef; { an opaque type }
+	OpaqueTextBreakLocatorRef = record end;
 
 {
  *  UCTextBreakType

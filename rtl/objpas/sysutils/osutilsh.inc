@@ -21,6 +21,7 @@ Function GetLastOSError : Integer;
 {$endif}
 Procedure RaiseLastOSError;overload;
 Procedure RaiseLastOSError(LastError: Integer);overload;
+procedure CheckOSError(LastError: Integer);platform;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 Function GetEnvironmentVariable(Const EnvVar : AnsiString) : AnsiString;
 Function GetEnvironmentVariable(Const EnvVar : UnicodeString) : UnicodeString;
@@ -29,8 +30,10 @@ Function GetEnvironmentVariableCount : Integer;
 {$IFDEF HAS_SLEEP}
 procedure Sleep(milliseconds: Cardinal);
 {$ENDIF}
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString;Flags:TExecuteFlags=[]):integer;
+function ExecuteProcess(Const Path: RawByteString; Const ComLine: RawByteString;Flags:TExecuteFlags=[]):integer;
+function ExecuteProcess(Const Path: RawByteString; Const ComLine: Array of RawByteString;Flags:TExecuteFlags=[]):integer;
+function ExecuteProcess(Const Path: UnicodeString; Const ComLine: UnicodeString;Flags:TExecuteFlags=[]):integer;
+function ExecuteProcess(Const Path: UnicodeString; Const ComLine: Array of UnicodeString;Flags:TExecuteFlags=[]):integer;
 
 Function GetTempDir(Global : Boolean) : String;
 Function GetTempDir : String;

@@ -95,7 +95,7 @@ implementation
     begin
       { create reference to the local symbol at the same address as the global
         symbol (with same name as unmangled symbol, so GDB can find it) }
-      Result:=ReplaceForbiddenAsmSymbolChars(sym.name);
+      Result:=ApplyAsmSymbolRestrictions(sym.name);
     end;
 
 
@@ -109,7 +109,7 @@ implementation
              assigned(def.owner.name) then
             list.concat(Tai_stab.create_ansistr(stabsdir,ansistring('"vmt_')+GetSymTableName(def.owner)+tobjectdef(def).objname^+':S'+
                    def_stab_number(vmttype)+'",'+
-                   base_stabs_str(globalvarsym_inited_stab,'0','0',ReplaceForbiddenAsmSymbolChars(tobjectdef(def).vmt_mangledname)+'.')));
+                   base_stabs_str(globalvarsym_inited_stab,'0','0',ApplyAsmSymbolRestrictions(tobjectdef(def).vmt_mangledname)+'.')));
         end;
 *)
       { do nothing, because creating debug information for a global symbol
@@ -158,7 +158,7 @@ implementation
           declstabnr:=def_stab_number(def)
         end;
       if (symname='') or
-         not(def.typ in tagtypes) then
+         not(use_tag_prefix(def)) then
         begin
           st:=def_stabstr_evaluate(def,':$1$2=',[stabchar,declstabnr]);
           st:='"'+def_stabstr_evaluate(def,symname,[])+st+ss;
@@ -193,7 +193,7 @@ implementation
         the place where it is defined }
       if not assigned(def.procstarttai) then
         exit;
-      mangledname:=ReplaceForbiddenAsmSymbolChars(def.mangledname);
+      mangledname:=ApplyAsmSymbolRestrictions(def.mangledname);
       if target_info.system in systems_dotted_function_names then
         mangledname:='.'+mangledname;
       result.concat(tai_stab.create(stabx_function,
@@ -254,7 +254,7 @@ implementation
       result:=inherited gen_procdef_endsym_stabs(def);
       if not assigned(def.procstarttai) then
         exit;
-      procendsymbol:=current_asmdata.DefineAsmSymbol('LT..'+ReplaceForbiddenAsmSymbolChars(def.mangledname),AB_LOCAL,AT_ADDR);
+      procendsymbol:=current_asmdata.DefineAsmSymbol('LT..'+ApplyAsmSymbolRestrictions(def.mangledname),AB_LOCAL,AT_ADDR,voidpointertype);
       current_asmdata.asmlists[al_procedures].insertbefore(tai_symbol.create(procendsymbol,0),def.procendtai);
     end;
 
@@ -276,7 +276,7 @@ implementation
       ismem:=not(sym.localloc.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_MMREGISTER,LOC_CMMREGISTER,LOC_FPUREGISTER,LOC_CFPUREGISTER]);
       isglobal:=false;
       if ismem then
-        isglobal:=current_asmdata.RefAsmSymbol(sym.mangledname).bind=AB_GLOBAL;
+        isglobal:=current_asmdata.RefAsmSymbol(sym.mangledname,AT_DATA).bind=AB_GLOBAL;
 
       { put extra ss/es markers in place }
       if ismem then
@@ -299,7 +299,6 @@ implementation
       currsectype  : TAsmSectiontype;
       hp, inclinsertpos, last : tai;
       infile : tinputfile;
-      i,
       linenr, stabx_func_level,
       nolineinfolevel: longint;
       nextlineisfunstart: boolean;
@@ -341,8 +340,12 @@ implementation
                     inc(nolineinfolevel);
                   mark_NoLineInfoEnd:
                     dec(nolineinfolevel);
+                  else
+                    ;
                 end;
               end;
+            else
+              ;
           end;
 
           if (currsectype=sec_code) and

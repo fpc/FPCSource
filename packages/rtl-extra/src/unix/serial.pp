@@ -63,7 +63,7 @@ function SerRead(Handle: TSerialHandle; var Buffer; Count: LongInt): LongInt;
 
 { Tries to write "Count" bytes from "Buffer".
   Result: Number of bytes written. }
-function SerWrite(Handle: TSerialHandle; var Buffer; Count: LongInt): LongInt;
+function SerWrite(Handle: TSerialHandle; Const Buffer; Count: LongInt): LongInt;
 
 procedure SerSetParams(Handle: TSerialHandle; BitsPerSec: LongInt;
   ByteSize: Integer; Parity: TParityType; StopBits: Integer;
@@ -156,7 +156,7 @@ begin
   Result := fpRead(Handle, Buffer, Count);
 end;
 
-function SerWrite(Handle: TSerialHandle; var Buffer; Count: LongInt): LongInt;
+function SerWrite(Handle: TSerialHandle; Const Buffer; Count: LongInt): LongInt;
 begin
   Result := fpWrite(Handle, Buffer, Count);
 end;
@@ -190,6 +190,39 @@ begin
 {$ifndef BSD}
     460800: tios.c_cflag := B460800;
 {$endif}
+{$if declared(B500000)}
+    500000: tios.c_cflag := B500000;
+{$endif declared(B500000)}
+{$if declared(B576000)}
+    576000: tios.c_cflag := B576000;
+{$endif declared(B576000)}
+{$if declared(B921600)}
+    921600: tios.c_cflag := B921600;
+{$endif declared(B921600)}
+{$if declared(B1000000)}
+    1000000: tios.c_cflag := B1000000;
+{$endif declared(B1000000)}
+{$if declared(B1152000)}
+    1152000: tios.c_cflag := B1152000;
+{$endif declared(B1152000)}
+{$if declared(B1500000)}
+    1500000: tios.c_cflag := B1500000;
+{$endif declared(B1500000)}
+{$if declared(B2000000)}
+    2000000: tios.c_cflag := B2000000;
+{$endif declared(B2000000)}
+{$if declared(B2500000)}
+    2500000: tios.c_cflag := B2500000;
+{$endif declared(B2500000)}
+{$if declared(B3000000)}
+    3000000: tios.c_cflag := B3000000;
+{$endif declared(B3000000)}
+{$if declared(B3500000)}
+    3500000: tios.c_cflag := B3500000;
+{$endif declared(B3500000)}
+{$if declared(B4000000)}
+    4000000: tios.c_cflag := B4000000;
+{$endif declared(B4000000)}
     else tios.c_cflag := B9600;
   end;
 {$ifndef SOLARIS}

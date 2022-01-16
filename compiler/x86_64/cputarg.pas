@@ -21,8 +21,10 @@
 }
 { This unit includes the x86-64 dependent target units. }
 unit cputarg;
-
 {$i fpcdefs.inc}
+
+{ this unit adds all target relevant units, so this hint is not usefull }
+{$WARN 5023 off : Unit "$1" not used in $2}
 
 interface
 
@@ -42,12 +44,27 @@ implementation
     {$ifndef NOTARGETFREEBSD}
       ,t_bsd
     {$endif}
+    {$ifndef NOTARGETDARWIN}
+      ,t_darwin
+    {$endif}
     {$ifndef NOTARGETWIN}
       ,t_win
       ,win64unw
     {$endif}
     {$ifndef NOTARGETSUNOS}
       ,t_sunos
+    {$endif}
+    {$ifndef NOTARGETAROS}
+      ,t_aros
+    {$endif}
+    {$ifndef NOTARGETHAIKU}
+      ,t_haiku
+    {$endif}
+    {$ifndef NOTARGETEMBEDDED}
+      ,t_embed
+    {$endif}
+    {$ifndef NOTARGETANDROID}
+      ,t_android
     {$endif}
 
 {**************************************

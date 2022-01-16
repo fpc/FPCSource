@@ -44,6 +44,7 @@ const
   RT_ANIICON      = 22;  //Animated icon.
   RT_HTML         = 23;  //HTML.
   RT_MANIFEST     = 24;  //Microsoft Windows XP: Side-by-Side Assembly XML Manifest.
+  RT_DLGINIT      = 240; //Never present in compiled form
 
   CREATEPROCESS_MANIFEST_RESOURCE_ID                 = 1;
   ISOLATIONAWARE_MANIFEST_RESOURCE_ID                = 2;

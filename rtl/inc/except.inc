@@ -26,6 +26,10 @@ Var
   ExceptObjectStack : PExceptObject;
   ExceptTryLevel    : ObjpasInt;
 
+{$ifdef FPC_USE_PSABIEH}
+{$i psabieh.inc}
+{$endif}
+
 Function RaiseList : PExceptObject;
 begin
   RaiseList:=ExceptObjectStack;
@@ -82,12 +86,12 @@ end;
 { This routine is called only from fpc_raiseexception, which uses ExceptTryLevel
   flag to guard against repeated exceptions which can occur due to corrupted stack
   or heap. }
-Procedure PushExceptObject(Obj : TObject; AnAddr : CodePointer; AFrame : Pointer);
+function PushExceptObject(Obj : TObject; AnAddr : CodePointer; AFrame : Pointer): PExceptObject;
 var
   Newobj : PExceptObject;
   _ExceptObjectStack : ^PExceptObject;
   framebufsize,
-  framecount  : longint;
+  framecount  : PtrInt;
   frames      : PCodePointer;
   prev_frame,
   curr_frame  : Pointer;
@@ -97,40 +101,44 @@ begin
   writeln ('In PushExceptObject');
 {$endif}
   _ExceptObjectStack:=@ExceptObjectStack;
-  New(NewObj);
+  NewObj:=AllocMem(sizeof(TExceptObject));
   NewObj^.Next:=_ExceptObjectStack^;
   _ExceptObjectStack^:=NewObj;
 
   NewObj^.FObject:=Obj;
   NewObj^.Addr:=AnAddr;
-  NewObj^.refcount:=0;
+  if assigned(get_frame) then
+    begin
+	  NewObj^.refcount:=0;
 
-  { Backtrace }
-  curr_frame:=AFrame;
-  curr_addr:=AnAddr;
-  frames:=nil;
-  framebufsize:=0;
-  framecount:=0;
-  { The frame pointer of this procedure is used as initial stack bottom value. }
-  prev_frame:=get_frame;
-  while (framecount<RaiseMaxFrameCount) and (curr_frame > prev_frame) and
-        (curr_frame<StackTop) do
-    Begin
-      prev_frame:=curr_frame;
-      get_caller_stackinfo(curr_frame,curr_addr);
-      if (curr_addr=nil) or
-         (curr_frame=nil) then
-        break;
-      if (framecount>=framebufsize) then
-        begin
-          inc(framebufsize,16);
-          reallocmem(frames,framebufsize*sizeof(codepointer));
-        end;
-      frames[framecount]:=curr_addr;
-      inc(framecount);
-    End;
-  NewObj^.framecount:=framecount;
-  NewObj^.frames:=frames;
+	  { Backtrace }
+	  curr_frame:=AFrame;
+	  curr_addr:=AnAddr;
+	  frames:=nil;
+	  framecount:=0;
+      framebufsize:=0;
+      { The frame pointer of this procedure is used as initial stack bottom value. }
+      prev_frame:=get_frame;
+      while (framecount<RaiseMaxFrameCount) and (curr_frame > prev_frame) and
+            (curr_frame<StackTop) do
+        Begin
+          prev_frame:=curr_frame;
+          get_caller_stackinfo(curr_frame,curr_addr);
+          if (curr_addr=nil) or
+             (curr_frame=nil) then
+            break;
+          if (framecount>=framebufsize) then
+            begin
+              inc(framebufsize,16);
+              reallocmem(frames,framebufsize*sizeof(codepointer));
+            end;
+          frames[framecount]:=curr_addr;
+          inc(framecount);
+        End;
+	  NewObj^.framecount:=framecount;
+	  NewObj^.frames:=frames;
+    end;
+  Result:=NewObj;
 end;
 
 Procedure DoUnHandledException;
@@ -312,26 +320,6 @@ begin
     end;
 end;
 
-{$ifdef VER2_6}
-Procedure fpc_DestroyException(o : TObject);[Public, Alias : 'FPC_DESTROYEXCEPTION']; compilerproc;
-begin
-  { with free we're on the really safe side }
-  o.Free;
-end;
-
-{ TODO: no longer used, clean up }
-function fpc_GetExceptionAddr : CodePointer;[Public, Alias : 'FPC_GETEXCEPTIONADDR']; compilerproc;
-var
-  _ExceptObjectStack : PExceptObject;
-begin
-  _ExceptObjectStack:=ExceptObjectStack;
-  if _ExceptObjectStack=nil then
-    fpc_GetExceptionAddr:=nil
-  else
-    fpc_GetExceptionAddr:=_ExceptObjectStack^.Addr;
-end;
-{$endif VER2_6}
-
 Procedure SysInitExceptions;
 {
   Initialize exceptionsupport
@@ -349,11 +337,13 @@ begin
 end;
 {$endif FPC_SYSTEM_HAS_DONEEXCEPTION}
 
+{$ifndef FPC_SYSTEM_HAS_RAISENESTED}
 procedure fpc_raise_nested;[public,alias:'FPC_RAISE_NESTED']compilerproc;
 begin
   Internal_PopSecondObjectStack.Free;
   Internal_Reraise;
 end;
+{$endif FPC_SYSTEM_HAS_RAISENESTED}
 
 {$ifndef FPC_SYSTEM_HAS_SAFECALLHANDLER}
 function fpc_safecallhandler(obj: TObject): HResult; [public,alias:'FPC_SAFECALLHANDLER']; compilerproc;

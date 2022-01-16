@@ -1,0 +1,9 @@
+{$define FRAMEWORK_LOADED_MULTIPEERCONNECTIVITY}
+{$include MultipeerConnectivity.inc}
+{$include MCError.inc}
+{$include MCPeerID.inc}
+{$include MCSession.inc}
+{$include MCNearbyServiceAdvertiser.inc}
+{$include MCNearbyServiceBrowser.inc}
+{$include MCBrowserViewController.inc}
+{$include MCAdvertiserAssistant.inc}

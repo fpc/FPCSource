@@ -35,11 +35,11 @@ unit i_nativent;
             system       : system_i386_NATIVENT;
             name         : 'Native NT for i386';
             shortname    : 'NativeNT';
-            flags        : [tf_files_case_aware,tf_use_function_relative_addresses,tf_smartlink_library
+            flags        : [tf_files_case_aware,tf_use_function_relative_addresses
                             ,tf_smartlink_sections{,tf_section_threadvars}{,tf_needs_dwarf_cfi},
                             tf_no_pic_supported,
                             tf_no_generic_stackcheck{,tf_has_winlike_resources},tf_under_development,
-                            tf_dwarf_only_local_labels];
+                            tf_dwarf_only_local_labels,tf_supports_hidden_symbols];
             cpu          : cpu_i386;
             unit_env     : 'NTUNITS';
             extradefines : 'NATIVENT;FPC_OS_UNICODE';
@@ -80,6 +80,9 @@ unit i_nativent;
                 procalign       : 16;
                 loopalign       : 4;
                 jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 16;
                 varalignmin     : 0;

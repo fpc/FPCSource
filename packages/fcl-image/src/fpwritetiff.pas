@@ -82,6 +82,7 @@ type
     fStream: TStream;
     fPosition: DWord;
     procedure ClearEntries;
+    procedure SortEntries;
     procedure WriteTiff;
     procedure WriteHeader;
     procedure WriteIFDs;
@@ -257,6 +258,29 @@ begin
   WriteDWord(8);
 end;
 
+procedure TFPWriterTiff.SortEntries;
+var
+  i, j: Integer;
+  Entry: TTiffWriterEntry;
+  List: TFPList;
+begin
+  // Sort Entries by Tag Value Ascending
+  for i:= 0 to FEntries.Count-1 do begin
+    List := TFPList(FEntries[i]);
+    j := 0;
+    repeat
+        if TTiffWriterEntry(List[j]).Tag > TTiffWriterEntry(List[j+1]).Tag then begin
+          Entry := TTiffWriterEntry(List[j+1]);
+          List[j] := List[j+1];
+          List[j+1] := Entry;
+          j := 0;
+        end
+        else
+            j := j+1;
+    until j >= List.Count-2;
+  end;
+end;
+
 procedure TFPWriterTiff.WriteIFDs;
 var
   i: Integer;
@@ -265,6 +289,8 @@ var
   Entry: TTiffWriterEntry;
   NextIFDPos: DWord;
 begin
+  // Sort the Entries before writing!
+  SortEntries;
   for i:=0 to FEntries.Count-1 do begin
     List:=TFPList(FEntries[i]);
     // write count
@@ -438,12 +464,12 @@ begin
     Compression:=IFD.Compression;
     case Compression of
     TiffCompressionNone,
-    TiffCompressionDeflateZLib: ;
+    TiffCompressionDeflateAdobe: ;
     else
       {$ifdef FPC_DEBUG_IMAGE}
       writeln('TFPWriterTiff.AddImage unsupported compression '+TiffCompressionName(Compression)+', using deflate instead.');
       {$endif}
-      Compression:=TiffCompressionDeflateZLib;
+      Compression:=TiffCompressionDeflateAdobe;
     end;
 
     if IFD.Orientation in [1..4] then begin
@@ -553,7 +579,8 @@ begin
         TilesDown:=(OrientedHeight+IFD.TileLength{%H-}-1) div IFD.TileLength;
         ChunkCount:=TilesAcross*TilesDown;
         {$IFDEF FPC_Debug_Image}
-        writeln('TFPWriterTiff.AddImage BitsPerPixel=',BitsPerPixel,' OrientedWidth=',OrientedWidth,' OrientedHeight=',OrientedHeight,' TileWidth=',IFD.TileWidth,' TileLength=',IFD.TileLength,' TilesAcross=',TilesAcross,' TilesDown=',TilesDown,' ChunkCount=',ChunkCount);
+        writeln('TFPWriterTiff.AddImage BitsPerPixel=',BitsPerPixel,' OrientedWidth=',OrientedWidth,' OrientedHeight=',OrientedHeight,' TileWidth=',IFD.TileWidth,' TileLength=',IFD.TileLength,' TilesAcross=',TilesAcross,' TilesDown=',TilesDown,' ChunkCoun
+t=',ChunkCount);
         {$ENDIF}
       end else begin
         ChunkCount:=(OrientedHeight+IFD.RowsPerStrip{%H-}-1) div IFD.RowsPerStrip;
@@ -671,7 +698,7 @@ begin
 
         // compress
         case Compression of
-        TiffCompressionDeflateZLib: EncodeDeflate(Chunk,ChunkBytes);
+        TiffCompressionDeflateZLib, TiffCompressionDeflateAdobe: EncodeDeflate(Chunk,ChunkBytes);
         end;
 
         ChunkOffsets.Chunks[ChunkIndex].Data:=Chunk;

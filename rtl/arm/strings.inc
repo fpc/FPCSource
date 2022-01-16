@@ -28,7 +28,7 @@ asm
 {$if defined(cputhumb2)}
         it eq
 {$endif}
-{$if defined(cpuarmv3) or defined(cpuarmv4)}
+{$if not defined(CPUARM_HAS_BX)}
         moveq   pc, lr
 {$else}
         bxeq    lr
@@ -58,7 +58,7 @@ asm
 {$if defined(cputhumb2)}
         it eq
 {$endif}
-{$if defined(cpuarmv3) or defined(cpuarmv4)}
+{$if not defined(CPUARM_HAS_BX)}
         moveq   pc, lr
 {$else}
         bxeq    lr

@@ -28,7 +28,7 @@ type
       FColorShift : word;
       FColorSize : byte;
       procedure SetColorSize (AValue : byte);
-      function ColorToHex (c:TFPColor) : string;
+      function ColorToHex (const c:TFPColor) : string;
     protected
       procedure InternalWrite (Str:TStream; Img:TFPCustomImage); override;
     public
@@ -61,7 +61,7 @@ begin
     FColorSize := AValue;
 end;
 
-function TFPWriterXPM.ColorToHex (c:TFPColor) : string;
+function TFPWriterXPM.ColorToHex (const c:TFPColor) : string;
 var r,g,b : word;
 begin
   with c do

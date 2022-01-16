@@ -59,9 +59,16 @@ uses
 {$ENDIF LINUX}
 
 {$IFDEF AMIGA}
+ {$IFNDEF HASAMIGA}
+  {$DEFINE HASAMIGA}
+ {$ENDIF HASAMIGA}
+{$ENDIF AMIGA}
+
+{$IFDEF HASAMIGA}
  {$DEFINE VOLUMES}
  {$DEFINE NODRIVEC}
-{$ENDIF AMIGA}
+ {$DEFINE NODOTS}
+{$ENDIF HASAMIGA}
 
 {$IFDEF NETWARE}
  {$DEFINE VOLUMES}
@@ -103,13 +110,13 @@ const
  DriveSeparator = '/';
  FileNameCasePreserving = true;
    {$ELSE UNIX}
-    {$IFDEF AMIGA}
- DirectorySeparator = ':';
+    {$IFDEF HASAMIGA}
+ DirectorySeparator = '/';
  FileNameCasePreserving = true;
-    {$ELSE AMIGA}
+    {$ELSE HASAMIGA}
  DirectorySeparator = '\';
  FileNameCasePreserving = false;
-    {$ENDIF AMIGA}
+    {$ENDIF HASAMIGA}
    {$ENDIF UNIX}
   {$ENDIF MACOS}
  {$ENDIF DIRECT}
@@ -117,11 +124,7 @@ const
  {$IFDEF MACOS}
  DriveSep = '';
  {$ELSE MACOS}
-  {$IFDEF AMIGA}
- DriveSep = '';
-  {$ELSE AMIGA}
  DriveSep = DriveSeparator;
-  {$ENDIF AMIGA}
  {$ENDIF MACOS}
  {$IFDEF UNIX}
  CDrive = '';
@@ -129,11 +132,11 @@ const
   {$IFDEF MACOS}
  CDrive = 'C';
   {$ELSE MACOS}
-   {$IFDEF AMIGA}
+   {$IFDEF HASAMIGA}
  CDrive = 'C';
-   {$ELSE AMIGA}
+   {$ELSE HASAMIGA}
  CDrive = 'C:';
-   {$ENDIF AMIGA}
+   {$ENDIF HASAMIGA}
   {$ENDIF MACOS}
  {$ENDIF UNIX}
 {$ENDIF FPC}
@@ -278,6 +281,7 @@ begin
 {$ENDIF DIRECT}
 {$I+}
  GetDir (0, CurDir);
+ Writeln('CurDir is "',CurDir,'"');
 {$IFDEF DIRECT}
  {$IFNDEF FPC_FEXPAND_DRIVES}
  I := Pos (System.DriveSeparator, CurDir);
@@ -287,13 +291,14 @@ begin
 {$ENDIF DIRECT}
 {$IFNDEF NODRIVEC}
  GetDir (3, CDir);
+ Writeln('GetDir(3,X) gives X="',CurDir,'"');
 {$ENDIF NODRIVEC}
  Check (' ', CurDir + DirSep + ' ');
-{$IFDEF AMIGA}
+{$IFDEF HASAMIGA}
  Check ('', CurDir);
-{$ELSE AMIGA}
+{$ELSE HASAMIGA}
  Check ('', CurDir + DirSep);
-{$ENDIF AMIGA}
+{$ENDIF HASAMIGA}
 {$IFDEF MACOS}
  Check (':', CurDir + DirSep);
 {$ELSE MACOS}
@@ -304,26 +309,26 @@ begin
 if CDir [Length (CDir)] = DirSep then Check ('c:anything', CDir + 'anything')
                          else Check ('c:anything', CDir + DirSep + 'anything');
  Check (CC + DirSep, CDrive + DirSep);
-{$IFDEF NODOTS}
+ {$IFDEF NODOTS}
  Check ('C:.', 'C:.');
  Check (CC + DirSep + '.', CDrive + DirSep + '.');
  Check (CC + DirSep + '..', CDrive + DirSep + '..');
-{$ELSE NODOTS}
+ {$ELSE NODOTS}
  Check ('C:.', CDir);
  Check (CC + DirSep + '.', CDrive + DirSep);
  Check (CC + DirSep + '..', CDrive + DirSep);
-{$ENDIF NODOTS}
+ {$ENDIF NODOTS}
  Check (CC + DirSep + 'DOS', CDrive + DirSep + 'DOS');
-{$IFNDEF NODOTS}
+ {$IFNDEF NODOTS}
  Check (CC + DirSep + '..' + DirSep + 'DOS', CDrive + DirSep + 'DOS');
-{$ENDIF NODOTS}
+ {$ENDIF NODOTS}
  Check (CC + DirSep + 'DOS.', CDrive + DirSep + 'DOS.');
-{$IFDEF AMIGA}
+ {$IFDEF HASAMIGA} (* This has no effect - AMIGA has NODRIVEC defined... *)
  Check (CC + DirSep + 'DOS' + DirSep, CDrive + DirSep);
-{$ELSE AMIGA}
+ {$ELSE HASAMIGA}
  Check (CC + DirSep + 'DOS' + DirSep, CDrive + DirSep + 'DOS' + DirSep);
-{$ENDIF AMIGA}
-{$IFNDEF NODOTS}
+ {$ENDIF HASAMIGA}
+ {$IFNDEF NODOTS}
  Check (CC + DirSep + 'DOS' + DirSep + '.', CDrive + DirSep + 'DOS');
  Check (CC + DirSep + 'DOS' + DirSep + '..', CDrive + DirSep);
  Check (CC + DirSep + 'DOS' + DirSep + '..' + DirSep, CDrive + DirSep);
@@ -331,14 +336,20 @@ if CDir [Length (CDir)] = DirSep then Check ('c:anything', CDir + 'anything')
                                                                DirSep + 'DOS');
  Check ('C:' + DirSep + 'DOS' + DirSep + 'TEST' + DirSep + '..' + DirSep,
                                              CDrive + DirSep + 'DOS' + DirSep);
-{$ENDIF NODOTS}
+ {$ENDIF NODOTS}
 {$ENDIF NODRIVEC}
 
 {$IFNDEF MACOS}
+ {$IFDEF HASAMIGA}
+ Check (DirSep, TestDir + TestDir1Name);
+ Check (DirSep + DirSep + TestFileName, TestDir + TestFileName);
+ Check (DirSep + 'DOS', TestDir + TestDir1Name + DirSep + 'DOS');
+ {$ELSE HASAMIGA}
  Check (DirSep, TestDrive + DirSep);
  Check (DirSep + '.', TestDrive + DirSep);
  Check (DirSep + '..', TestDrive + DirSep);
  Check (DirSep + 'DOS', TestDrive + DirSep + 'DOS');
+ {$ENDIF HASAMIGA}
 {$ENDIF MACOS}
  Check ('d', CurDir + DirSep + 'd');
 {$IFDEF MACOS}
@@ -367,15 +378,15 @@ if CDir [Length (CDir)] = DirSep then Check ('c:anything', CDir + 'anything')
  Check ('.special', CurDir + DirSep + '.special');
  Check ('..special', CurDir + DirSep + '..special');
  Check ('special..', CurDir + DirSep + 'special..');
-{$IFDEF AMIGA}
- Check ('special.' + DirSep, CurDir);
-{$ELSE AMIGA}
+{$IFDEF HASAMIGA}
+ Check ('special.' + DirSep, CurDir + DirSep + 'special.' + DirSep);
+{$ELSE HASAMIGA}
  {$IFDEF MACOS}
  Check ('special.' + DirSep, 'special.' + DirSep);
  {$ELSE MACOS}
  Check ('special.' + DirSep, CurDir + DirSep + 'special.' + DirSep);
  {$ENDIF MACOS}
-{$ENDIF AMIGA}
+{$ENDIF HASAMIGA}
 {$IFDEF MACOS}
  Check (DirSep + DirSep, TestDir + TestDir1Name + DirSep);
  Check (DirSep + DirSep + TestFileName, TestDir + TestDir1Name + DirSep
@@ -386,6 +397,13 @@ if CDir [Length (CDir)] = DirSep then Check ('c:anything', CDir + 'anything')
  Check ('..', TestDir + TestDir1Name);
  Check ('.' + DirSep + '..', TestDir + TestDir1Name);
  Check ('..' + DirSep + '.', TestDir + TestDir1Name);
+ Check (TestDir + TestDir1Name + DirSep + DirSep + '..' + DirSep, TestDir);
+ Check (TestDir + TestDir1Name + DirSep + '/' + DirSep + '..' + DirSep, TestDir);
+ Check (TestDir + TestDir1Name + DirSep + DirSep + DirSep + '..' + DirSep, TestDir);
+ Check (TestDir + TestDir1Name + DirSep + DirSep + TestDir2Name + DirSep + DirSep + '..',
+                                                                  TestDir + TestDir1Name);
+ Check (TestDir + TestDir1Name + DirSep + DirSep + TestDir2Name + DirSep + DirSep + '..'
+                                               + DirSep + DirSep, TestDir + TestDir1Name + DirSep);
  {$ENDIF NODOTS}
 {$ENDIF MACOS}
 {$IFDEF NETWARE}
@@ -461,27 +479,44 @@ if CDir [Length (CDir)] = DirSep then Check ('c:anything', CDir + 'anything')
 {$I+}
   {$IFDEF FPC}
  Check ('d\d/d', CurDir + DirSep + 'd' + DirSep + 'd' + DirSep + 'd');
- Check ('\\server\share\directory', '\\server\share\directory');
- Check ('\\server\share\directory1\directory2\..',
-                                                  '\\server\share\directory1');
- Check ('\\', '\\');
- Check ('\\.', '\\.\');
- Check ('\\.\', '\\.\');
- Check ('\\.\.', '\\.\.');
- Check ('\\.\..', '\\.\..');
- Check ('\\.\...', '\\.\...');
- Check ('\\.\TEST', '\\.\TEST');
- Check ('\\..\', '\\..\');
- Check ('\\..\TEST', '\\..\TEST');
- Check ('\\..\TEST\.', '\\..\TEST');
- Check ('\\..\TEST1\TEST2\..', '\\..\TEST1');
- Check ('\\..\TEST\..', '\\..\TEST');
- Check ('\\..\TEST\..\..', '\\..\TEST');
+{$ifdef go32v2}
+ { for go32v2 target UNC paths are only handled if LFNSupport is true }
+ { Remark: The previous statement may not be correct, UNC paths were already  }
+ { supported with IBM / Microsoft LAN Manager client on plain DOS before LFN  }
+ { / W95 availability, but that probably doesn't matter for our purposes.     }
+ { See e.g. http://www.drdobbs.com/undocumented-corner/184408984 (TH).        }
+ if not LFNSupport then
+   writeln('Go32v2 without LFN, no UNC support')
+ else
+{$endif}
+ begin
+   { Check UNC style paths }
+   Check ('\\server\share\directory', '\\server\share\directory');
+   Check ('\\server\share\directory1\directory2\..',
+          '\\server\share\directory1');
+   Check ('\\', '\\');
+   Check ('\\.', '\\.\');
+   Check ('\\.\', '\\.\');
+   Check ('\\.\.', '\\.\.');
+   Check ('\\.\..', '\\.\..');
+   Check ('\\.\...', '\\.\...');
+   Check ('\\.\TEST', '\\.\TEST');
+   Check ('\\..\', '\\..\');
+   Check ('\\..\TEST', '\\..\TEST');
+   Check ('\\..\TEST\.', '\\..\TEST');
+   Check ('\\..\TEST1\TEST2\..', '\\..\TEST1');
+   Check ('\\..\TEST\..', '\\..\TEST');
+   Check ('\\..\TEST\..\..', '\\..\TEST');
+ end;
   {$ENDIF FPC}
  {$ENDIF NODRIVEC}
 {$ENDIF UNIX}
 {$IFDEF VOLUMES}
+ {$IFDEF HASAMIGA}
+ Check ('VolName' + DriveSep + 'DIR1', 'VolName' + DriveSep + 'DIR1');
+ {$ELSE HASAMIGA}
  Check ('VolName' + DriveSep + DirSep + 'DIR1', 'VolName' + DriveSep + DirSep + 'DIR1');
+ {$ENDIF HASAMIGA}
  {$IFNDEF NODOTS}
  Check ('VolName' + DriveSep + DirSep + 'DIR1' + DirSep + '..', 'VolName' + DriveSep + DirSep);
  Check ('VolName' + DriveSep + DirSep + 'DIR1' + DirSep + '..' + DirSep + '..',
@@ -496,13 +531,13 @@ if CDir [Length (CDir)] = DirSep then Check ('c:anything', CDir + 'anything')
  Check ('SrvName/VolName' + DriveSep + DirSep + 'TEST', 'SrvName' + DirSep + 'VolName' +
                                                          DriveSep + DirSep + 'TEST');
  {$ENDIF NETWARE}
- {$IFDEF AMIGA}
+ {$IFDEF HASAMIGA}
   {$IFDEF NODOTS}
  Check ('.', CurDir + DirSep + '.');
   {$ELSE NODOTS}
  Check ('.', CurDir);
   {$ENDIF NODOTS}
- {$ENDIF AMIGA}
+ {$ENDIF HASAMIGA}
 {$ENDIF VOLUMES}
  Erase (F);
 {$IFNDEF NODRIVEC}

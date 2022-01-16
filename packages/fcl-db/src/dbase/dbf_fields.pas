@@ -177,6 +177,7 @@ database.
   DIGITS_WORD = 5;
   DIGITS_INTEGER = 9;
   DIGITS_LARGEINT = 18;
+  DIGITS_LONGWORD = 9;
 
 //====================================================================
 // DbfFieldDefs
@@ -475,6 +476,9 @@ begin
 {$ifdef SUPPORT_INT64}
       , ftLargeInt
 {$endif}
+{$ifdef SUPPORT_LONGWORD}
+      , ftLongWord, ftShortInt, ftByte, ftExtended
+{$endif}
                :
       FNativeFieldType := 'N'; //numerical
     ftDate     :
@@ -560,6 +564,24 @@ begin
         FPrecision := 0;
       end;
 {$endif}
+{$ifdef SUPPORT_LONGWORD}
+    ftLongWord:
+      begin
+        FSize := DIGITS_LONGWORD;
+        FPrecision := 0;
+      end;
+    ftShortInt,
+    ftByte:
+      begin
+        FSize := 3;
+        FPrecision := 0;
+      end;
+    ftExtended:
+      begin
+        FSize := 19;
+        FPrecision := 8;
+      end;
+{$endif}
     ftString {$ifdef SUPPORT_FIELDTYPES_V4}, ftFixedChar, ftWideString{$endif}:
       begin
         FSize := 30;
@@ -600,7 +622,8 @@ begin
         // Note: this field can be stored as BCD or integer, depending on FPrecision;
         // that's why we allow 0 precision
         if FSize < 1   then FSize := 1;
-        if FSize >= 20 then FSize := 20;
+        // Removed, bug report 39009
+        // if FSize >= 20 then FSize := 20;
         if FPrecision > FSize-2 then FPrecision := FSize-2; //Leave space for . and -
         if FPrecision < 0       then FPrecision := 0;
       end;

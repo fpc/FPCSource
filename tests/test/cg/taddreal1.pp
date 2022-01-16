@@ -53,11 +53,11 @@ end;
   i:=i-j;
   if trunc(i) <> trunc(89.9) then
     result := false;
-  WriteLn('Result (89.9) :',i);
+  WriteLn('Result (89.9) :',i,' trunc(i)=',trunc(i),' trunc(89.9)=',trunc(89.9));
   i:=j-i;
   if trunc(i) <> trunc(-79.9) then
     result := false;
-  WriteLn('Result (-79.9) :',i);
+  WriteLn('Result (-79.9) :',i,' trunc(i)=',trunc(i),' trunc(-79.9)=',trunc(-79.9));
   j:=j-10.0;
   if j <> 0.0 then
     result := false;

@@ -1,4 +1,4 @@
-unit SqliteDS;
+unit SQLiteDS;
 
 {
   This is TSqliteDataset, a TDataset descendant class for use with fpc compiler
@@ -28,7 +28,7 @@ unit SqliteDS;
 
   You should have received a copy of the GNU Library General Public License
   along with this library; if not, write to the Free Software Foundation,
-  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 }
 
 {$mode objfpc}
@@ -184,12 +184,16 @@ begin
     begin
       AType := ftString;
     end;
-    FieldDefs.Add(String(ColumnNames[i]), AType, DataSize);
+    FieldDefs.Add(FieldDefs.MakeNameUnique(String(ColumnNames[i])), AType, DataSize);
     //Set the pchar2sql function
-    if AType in [ftString, ftMemo] then
-      FGetSqlStr[i] := @Char2SQLStr
+    case AType of
+      ftString:
+        FGetSqlStr[i] := @Char2SQLStr;
+      ftMemo:
+        FGetSqlStr[i] := @Memo2SQLStr;
     else
       FGetSqlStr[i] := @Num2SQLStr;
+    end;
   end;
   sqlite_finalize(vm, nil);
   {
@@ -267,9 +271,9 @@ begin
   FEndItem^.Previous := TempItem;
 
   // Alloc item used in append/insert
-  GetMem(FCacheItem^.Row, FRowBufferSize);
+  GetMem(FSavedEditItem^.Row, FRowBufferSize);
   for Counter := 0 to FRowCount - 1 do
-    FCacheItem^.Row[Counter] := nil;
+    FSavedEditItem^.Row[Counter] := nil;
   // Fill FBeginItem.Row with nil -> necessary for avoid exceptions in empty datasets
   GetMem(FBeginItem^.Row, FRowBufferSize);
   for Counter := 0 to FRowCount - 1 do
@@ -321,7 +325,7 @@ begin
         Exit;
       end;
   else
-    Result := 'Unknow Return Value';
+    Result := 'Unknown Return Value';
   end;
   Result := Result + ' - ' + sqlite_error_string(FReturnCode);
 end;

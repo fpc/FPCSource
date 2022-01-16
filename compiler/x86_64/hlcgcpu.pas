@@ -38,8 +38,6 @@ interface
      procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
     end;
 
-  procedure create_hlcodegen;
-
 implementation
 
   uses
@@ -48,7 +46,7 @@ implementation
     aasmbase,aasmtai,aasmcpu,
     symconst,
     hlcgobj,
-    cgbase,cgutils,cgobj,cpubase,cgcpu;
+    cgbase,cgutils,cgobj,cpubase,cgcpu,cpupi;
 
   procedure thlcgcpu.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
     var
@@ -72,9 +70,9 @@ implementation
         make_global:=true;
 
       if make_global then
-        List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
+        List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0,procdef))
       else
-        List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
+        List.concat(Tai_symbol.Createname_hidden(labelname,AT_FUNCTION,0,procdef));
 
       { set param1 interface to self  }
       g_adjust_self_value(list,procdef,ioffset);
@@ -83,22 +81,22 @@ implementation
           not is_objectpascal_helper(procdef.struct) then
         begin
           if (procdef.extnumber=$ffff) then
-            Internalerror(200006139);
+            Internalerror(2000061301);
           { load vmt from first paramter }
           { win64 uses a different abi }
-          if target_info.system=system_x86_64_win64 then
-            reference_reset_base(href,voidpointertype,NR_RCX,0,sizeof(pint))
+          if x86_64_use_ms_abi(procdef.proccalloption) then
+            reference_reset_base(href,voidpointertype,NR_RCX,0,ctempposinvalid,sizeof(pint),[])
           else
-            reference_reset_base(href,voidpointertype,NR_RDI,0,sizeof(pint));
+            reference_reset_base(href,voidpointertype,NR_RDI,0,ctempposinvalid,sizeof(pint),[]);
           cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_RAX);
           { jmp *vmtoffs(%eax) ; method offs }
-          reference_reset_base(href,voidpointertype,NR_RAX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
+          reference_reset_base(href,voidpointertype,NR_RAX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,sizeof(pint),[]);
           list.concat(taicpu.op_ref(A_JMP,S_Q,href));
         end
       else
         begin
-          sym:=current_asmdata.RefAsmSymbol(procdef.mangledname);
-          reference_reset_symbol(r,sym,0,sizeof(pint));
+          sym:=current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION);
+          reference_reset_symbol(r,sym,0,sizeof(pint),[]);
           if (cs_create_pic in current_settings.moduleswitches) and
              { darwin/x86_64's assembler doesn't want @PLT after call symbols }
              not(target_info.system in systems_darwin) then
@@ -113,7 +111,7 @@ implementation
     end;
 
 
-  procedure create_hlcodegen;
+  procedure create_hlcodegen_cpu;
     begin
       hlcg:=thlcgcpu.create;
       create_codegen;
@@ -121,4 +119,5 @@ implementation
 
 begin
   chlcgobj:=thlcgcpu;
+  create_hlcodegen:=@create_hlcodegen_cpu;
 end.

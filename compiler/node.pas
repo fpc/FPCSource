@@ -86,7 +86,6 @@ interface
           whilerepeatn,     {A while or repeat statement}
           forn,             {A for loop}
           exitn,            {An exit statement}
-          withn,            {A with statement}
           casen,            {A case statement}
           labeln,           {A label}
           goton,            {A goto statement}
@@ -108,9 +107,10 @@ interface
           guidconstn,       { A GUID COM Interface constant }
           rttin,            { Rtti information so they can be accessed in result/firstpass}
           loadparentfpn,    { Load the framepointer of the parent for nested procedures }
-          dataconstn,       { node storing some binary data }
           objcselectorn,    { node for an Objective-C message selector }
-          objcprotocoln     { node for an Objective-C @protocol() expression (returns metaclass associated with protocol) }
+          objcprotocoln,    { node for an Objective-C @protocol() expression (returns metaclass associated with protocol) }
+          specializen,      { parser-only node to handle Delphi-mode inline specializations }
+          finalizetempsn        { Internal node used to clean up code generator temps (warning: must NOT create additional tepms that may need to be finalised!) }
        );
 
        tnodetypeset = set of tnodetype;
@@ -170,7 +170,6 @@ interface
           'whilerepeatn',
           'forn',
           'exitn',
-          'withn',
           'casen',
           'labeln',
           'goton',
@@ -192,17 +191,19 @@ interface
           'guidconstn',
           'rttin',
           'loadparentfpn',
-          'dataconstn',
           'objcselectorn',
-          'objcprotocoln');
+          'objcprotocoln',
+          'specializen',
+          'finalizetempsn');
 
       { a set containing all const nodes }
-      nodetype_const = [ordconstn,
+      nodetype_const = [niln,
+                        ordconstn,
                         pointerconstn,
                         stringconstn,
-                        dataconstn,
                         guidconstn,
-                        realconstn];
+                        realconstn,
+                        setconstn];
 
     type
        { all boolean field of ttree are now collected in flags }
@@ -230,9 +231,6 @@ interface
            during simplify, the flag must be moved to another node }
          nf_usercode_entry,
 
-         { taddrnode }
-         nf_typedaddr,
-
          { tderefnode }
          nf_no_checkpointer,
 
@@ -245,8 +243,10 @@ interface
          nf_absolute,
 
          { taddnode }
+         { if the result type of a node is currency, then this flag denotes, that the value is already mulitplied by 10000 }
          nf_is_currency,
          nf_has_pointerdiv,
+         { the node shall be short boolean evaluated, this flag has priority over localswitches }
          nf_short_bool,
 
          { tmoddivnode }
@@ -276,10 +276,13 @@ interface
          nf_block_with_exit,
 
          { tloadvmtaddrnode }
-         nf_ignore_for_wpo  { we know that this loadvmtaddrnode cannot be used to construct a class instance }
+         nf_ignore_for_wpo, { we know that this loadvmtaddrnode cannot be used to construct a class instance }
+
+         { node is derived from generic parameter }
+         nf_generic_para
 
          { WARNING: there are now 32 elements in this type, and a set of this
-             type is written to the PPU. So before adding more than 32 elements,
+             type is written to the PPU. So before adding more elements,
              either move some flags to specific nodes, or stream a normalset
              to the ppu
          }
@@ -312,9 +315,6 @@ interface
          expectloc : tcgloc;
          { the location of the result of this node (pass2) }
          location : tlocation;
-         { the parent node of this is node    }
-         { this field is set by concattolist  }
-         parent : tnode;
          { next node in control flow on the same block level, i.e.
            for loop nodes, this is the next node after the end of the loop,
            same for if and case, if this field is nil, the next node is the procedure exit,
@@ -385,7 +385,13 @@ interface
          procedure printnodeinfo(var t:text);virtual;
          procedure printnodedata(var t:text);virtual;
          procedure printnodetree(var t:text);virtual;
-         procedure concattolist(l : tlinkedlist);virtual;
+{$ifdef DEBUG_NODE_XML}
+         { For writing nodes to XML files - do not call directly, but
+           instead call XMLPrintNode to write a complete tree }
+         procedure XMLPrintNodeInfo(var T: Text); dynamic;
+         procedure XMLPrintNodeData(var T: Text); virtual;
+         procedure XMLPrintNodeTree(var T: Text); virtual;
+{$endif DEBUG_NODE_XML}
          function ischild(p : tnode) : boolean;virtual;
 
          { ensures that the optimizer info record is allocated }
@@ -409,12 +415,14 @@ interface
          procedure ppuwrite(ppufile:tcompilerppufile);override;
          procedure buildderefimpl;override;
          procedure derefimpl;override;
-         procedure concattolist(l : tlinkedlist);override;
          function ischild(p : tnode) : boolean;override;
          function docompare(p : tnode) : boolean;override;
          function dogetcopy : tnode;override;
          procedure insertintolist(l : tnodelist);override;
          procedure printnodedata(var t:text);override;
+{$ifdef DEBUG_NODE_XML}
+         procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
       end;
 
       //pbinarynode = ^tbinarynode;
@@ -426,13 +434,16 @@ interface
          procedure ppuwrite(ppufile:tcompilerppufile);override;
          procedure buildderefimpl;override;
          procedure derefimpl;override;
-         procedure concattolist(l : tlinkedlist);override;
          function ischild(p : tnode) : boolean;override;
          function docompare(p : tnode) : boolean;override;
          procedure swapleftright;
          function dogetcopy : tnode;override;
          procedure insertintolist(l : tnodelist);override;
          procedure printnodedata(var t:text);override;
+{$ifdef DEBUG_NODE_XML}
+         procedure XMLPrintNodeTree(var T: Text); override;
+         procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
          procedure printnodelist(var t:text);
       end;
 
@@ -445,17 +456,22 @@ interface
          procedure ppuwrite(ppufile:tcompilerppufile);override;
          procedure buildderefimpl;override;
          procedure derefimpl;override;
-         procedure concattolist(l : tlinkedlist);override;
          function ischild(p : tnode) : boolean;override;
          function docompare(p : tnode) : boolean;override;
          function dogetcopy : tnode;override;
          procedure insertintolist(l : tnodelist);override;
          procedure printnodedata(var t:text);override;
+{$ifdef DEBUG_NODE_XML}
+         procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
       end;
 
       tbinopnode = class(tbinarynode)
          constructor create(t:tnodetype;l,r : tnode);virtual;
          function docompare(p : tnode) : boolean;override;
+{$ifdef DEBUG_NODE_XML}
+         procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
       end;
 
     var
@@ -468,17 +484,11 @@ interface
     function ppuloadnodetree(ppufile:tcompilerppufile):tnode;
     procedure ppuwritenodetree(ppufile:tcompilerppufile;n:tnode);
 
-    const
-      printnodespacing = '   ';
-    var
-      { indention used when writing the tree to the screen }
-      printnodeindention : string;
-
-    procedure printnodeindent;
-    procedure printnodeunindent;
     procedure printnode(var t:text;n:tnode);
     procedure printnode(n:tnode);
-
+{$ifdef DEBUG_NODE_XML}
+    procedure XMLPrintNode(var T: Text; N: TNode);
+{$endif DEBUG_NODE_XML}
     function is_constnode(p : tnode) : boolean;
     function is_constintnode(p : tnode) : boolean;
     function is_constcharnode(p : tnode) : boolean;
@@ -495,7 +505,11 @@ interface
 implementation
 
     uses
-       verbose,ppu,comphook,
+       verbose,entfile,comphook,
+{$ifdef DEBUG_NODE_XML}
+       cutils,
+{$endif DEBUG_NODE_XML}
+       ppu,
        symconst,
        nutils,nflw,
        defutil;
@@ -632,18 +646,6 @@ implementation
       end;
 
 
-    procedure printnodeindent;
-      begin
-        printnodeindention:=printnodeindention+printnodespacing;
-      end;
-
-
-    procedure printnodeunindent;
-      begin
-        delete(printnodeindention,1,length(printnodespacing));
-      end;
-
-
     procedure printnode(var t:text;n:tnode);
       begin
         if assigned(n) then
@@ -658,10 +660,17 @@ implementation
         printnode(output,n);
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure XMLPrintNode(var T: Text; N: TNode);
+      begin
+        if Assigned(N) then
+          N.XMLPrintNodeTree(T);
+      end;
+{$endif DEBUG_NODE_XML}
 
     function is_constnode(p : tnode) : boolean;
       begin
-        is_constnode:=(p.nodetype in [niln,ordconstn,realconstn,stringconstn,setconstn,pointerconstn,guidconstn]);
+        is_constnode:=(p.nodetype in nodetype_const);
       end;
 
 
@@ -703,19 +712,24 @@ implementation
 
     function is_constpointernode(p : tnode) : boolean;
       begin
-         is_constpointernode:=(p.nodetype=pointerconstn);
+         is_constpointernode:=(p.nodetype in [pointerconstn,niln]);
       end;
 
     function is_conststringnode(p : tnode) : boolean;
       begin
          is_conststringnode :=
-           (p.nodetype = stringconstn) and is_chararray(p.resultdef);
+           (p.nodetype = stringconstn) and
+           (is_chararray(p.resultdef) or
+            is_shortstring(p.resultdef) or
+            is_ansistring(p.resultdef));
       end;
 
     function is_constwidestringnode(p : tnode) : boolean;
       begin
          is_constwidestringnode :=
-           (p.nodetype = stringconstn) and is_widechararray(p.resultdef);
+           (p.nodetype = stringconstn) and
+           (is_widechararray(p.resultdef) or
+            is_wide_or_unicode_string(p.resultdef));
       end;
 
     function is_conststring_or_constcharnode(p : tnode) : boolean;
@@ -760,10 +774,10 @@ implementation
         { tnode fields }
         blocktype:=tblock_type(ppufile.getbyte);
         ppufile.getposinfo(fileinfo);
-        ppufile.getsmallset(localswitches);
+        ppufile.getset(tppuset5(localswitches));
         verbosity:=ppufile.getlongint;
         ppufile.getderef(resultdefderef);
-        ppufile.getsmallset(flags);
+        ppufile.getset(tppuset4(flags));
         { updated by firstpass }
         expectloc:=LOC_INVALID;
         { updated by secondpass }
@@ -775,10 +789,10 @@ implementation
       begin
         ppufile.putbyte(byte(block_type));
         ppufile.putposinfo(fileinfo);
-        ppufile.putsmallset(localswitches);
+        ppufile.putset(tppuset5(localswitches));
         ppufile.putlongint(verbosity);
         ppufile.putderef(resultdefderef);
-        ppufile.putsmallset(flags);
+        ppufile.putset(tppuset4(flags));
       end;
 
 
@@ -832,11 +846,6 @@ implementation
       end;
 
 
-    procedure tnode.concattolist(l : tlinkedlist);
-      begin
-      end;
-
-
     function tnode.ischild(p : tnode) : boolean;
       begin
          ischild:=false;
@@ -876,6 +885,8 @@ implementation
               write(t, i);
             end;
         write(t,']');
+        if (nf_pass1_done in flags) then
+          write(t,', cmplx = ',node_complexity(self));
       end;
 
 
@@ -895,6 +906,52 @@ implementation
          writeln(t,printnodeindention,')');
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    { For writing nodes to XML files - do not call directly, but
+      instead call XMLPrintNode to write a complete tree }
+    procedure tnode.XMLPrintNodeInfo(var T: Text);
+      var
+        i: TNodeFlag;
+        first: Boolean;
+      begin
+        if Assigned(resultdef) then
+          Write(T,' resultdef="', SanitiseXMLString(resultdef.typesymbolprettyname), '"');
+
+        Write(T,' pos="',fileinfo.line,',',fileinfo.column);
+
+        First := True;
+        for i := Low(TNodeFlag) to High(TNodeFlag) do
+          if i in flags then
+            begin
+              if First then
+                begin
+                  Write(T, '" flags="', i);
+                  First := False;
+                end
+              else
+                Write(T, ',', i)
+            end;
+        write(t,'"');
+        if (nf_pass1_done in flags) then
+          write(t,' complexity="',node_complexity(self),'"');
+      end;
+
+    procedure tnode.XMLPrintNodeData(var T: Text);
+      begin
+        { Nothing by default }
+      end;
+
+    procedure tnode.XMLPrintNodeTree(var T: Text);
+      begin
+        Write(T, PrintNodeIndention, '<', nodetype2str[nodetype]);
+        XMLPrintNodeInfo(T);
+        WriteLn(T, '>');
+        PrintNodeIndent;
+        XMLPrintNodeData(T);
+        PrintNodeUnindent;
+        WriteLn(T, PrintNodeIndention, '</', nodetype2str[nodetype], '>');
+      end;
+{$endif DEBUG_NODE_XML}
 
     function tnode.isequal(p : tnode) : boolean;
       begin
@@ -931,9 +988,19 @@ implementation
       end;
 
 
+    function setuplabelnode(var n : tnode;arg : pointer) : foreachnoderesult;
+      begin
+        result:=fen_true;
+        if (n.nodetype=goton) and assigned(tgotonode(n).labelnode) and
+          assigned(tgotonode(n).labelnode.copiedto) then
+          tgotonode(n).labelnode:=tgotonode(n).labelnode.copiedto;
+      end;
+
+
     function tnode.getcopy : tnode;
       begin
         result:=dogetcopy;
+        foreachnodestatic(pm_postprocess,result,@setuplabelnode,nil);
         foreachnodestatic(pm_postprocess,self,@cleanupcopiedto,nil);
       end;
 
@@ -948,7 +1015,6 @@ implementation
          p.nodetype:=nodetype;
          p.expectloc:=expectloc;
          p.location:=location;
-         p.parent:=parent;
          p.flags:=flags;
          p.resultdef:=resultdef;
          p.fileinfo:=fileinfo;
@@ -982,6 +1048,9 @@ implementation
     constructor tunarynode.create(t:tnodetype;l : tnode);
       begin
          inherited create(t);
+         { transfer generic paramater flag }
+         if assigned(l) and (nf_generic_para in l.flags) then
+           include(flags,nf_generic_para);
          left:=l;
       end;
 
@@ -1055,14 +1124,13 @@ implementation
          printnode(t,left);
       end;
 
-
-    procedure tunarynode.concattolist(l : tlinkedlist);
+{$ifdef DEBUG_NODE_XML}
+    procedure TUnaryNode.XMLPrintNodeData(var T: Text);
       begin
-         left.parent:=self;
-         left.concattolist(l);
-         inherited concattolist(l);
+         inherited XMLPrintNodeData(T);
+         XMLPrintNode(T, Left);
       end;
-
+{$endif DEBUG_NODE_XML}
 
     function tunarynode.ischild(p : tnode) : boolean;
       begin
@@ -1077,7 +1145,10 @@ implementation
     constructor tbinarynode.create(t:tnodetype;l,r : tnode);
       begin
          inherited create(t,l);
-         right:=r
+         { transfer generic paramater flag }
+         if assigned(r) and (nf_generic_para in r.flags) then
+           include(flags,nf_generic_para);
+         right:=r;
       end;
 
 
@@ -1115,18 +1186,6 @@ implementation
         inherited derefimpl;
         if assigned(right) then
           right.derefimpl;
-      end;
-
-
-    procedure tbinarynode.concattolist(l : tlinkedlist);
-      begin
-         { we could change that depending on the number of }
-         { required registers                              }
-         left.parent:=self;
-         left.concattolist(l);
-         left.parent:=self;
-         left.concattolist(l);
-         inherited concattolist(l);
       end;
 
 
@@ -1182,6 +1241,26 @@ implementation
          printnode(t,right);
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure TBinaryNode.XMLPrintNodeTree(var T: Text);
+      begin
+        Write(T, PrintNodeIndention, '<', nodetype2str[nodetype]);
+        XMLPrintNodeInfo(T);
+        WriteLn(T, '>');
+        PrintNodeIndent;
+        XMLPrintNodeData(T);
+      end;
+
+
+    procedure TBinaryNode.XMLPrintNodeData(var T: Text);
+      begin
+        inherited XMLPrintNodeData(T);
+        PrintNodeUnindent;
+        WriteLn(T, PrintNodeIndention, '</', nodetype2str[nodetype], '>');
+        { Right nodes are on the same indentation level }
+        XMLPrintNode(T, Right);
+      end;
+{$endif DEBUG_NODE_XML}
 
     procedure tbinarynode.printnodelist(var t:text);
       var
@@ -1210,6 +1289,9 @@ implementation
     constructor ttertiarynode.create(_t:tnodetype;l,r,t : tnode);
       begin
          inherited create(_t,l,r);
+         { transfer generic parameter flag }
+         if assigned(t) and (nf_generic_para in t.flags) then
+           include(flags,nf_generic_para);
          third:=t;
       end;
 
@@ -1283,14 +1365,21 @@ implementation
          printnode(t,third);
       end;
 
-
-    procedure ttertiarynode.concattolist(l : tlinkedlist);
+{$ifdef DEBUG_NODE_XML}
+    procedure TTertiaryNode.XMLPrintNodeData(var T: Text);
       begin
-         third.parent:=self;
-         third.concattolist(l);
-         inherited concattolist(l);
-      end;
+         if Assigned(Third) then
+           begin
+             WriteLn(T, PrintNodeIndention, '<third-branch>');
+             PrintNodeIndent;
+             XMLPrintNode(T, Third);
+             PrintNodeUnindent;
+             WriteLn(T, PrintNodeIndention, '</third-branch>');
+           end;
 
+         inherited XMLPrintNodeData(T);
+      end;
+{$endif DEBUG_NODE_XML}
 
     function ttertiarynode.ischild(p : tnode) : boolean;
       begin
@@ -1316,6 +1405,18 @@ implementation
             left.isequal(tbinopnode(p).right) and
             right.isequal(tbinopnode(p).left));
       end;
+
+{$ifdef DEBUG_NODE_XML}
+    procedure TBinOpNode.XMLPrintNodeData(var T: Text);
+      begin
+        { For binary operations, put the left and right branches on the same level for clarity }
+        XMLPrintNode(T, Left);
+        XMLPrintNode(T, Right);
+        PrintNodeUnindent;
+        WriteLn(T, PrintNodeIndention, '</', nodetype2str[nodetype], '>');
+      end;
+{$endif DEBUG_NODE_XML}
+
 
 begin
 {$push}{$warnings off}

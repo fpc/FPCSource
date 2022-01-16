@@ -59,7 +59,7 @@ implementation
       symconst,symdef,
       defutil,
       cgbase,pass_2,
-      cpuinfo,ncgutil,
+      cpuinfo,ncgutil,nutils,
       hlcgobj,cgutils,cgobj,rgobj,tgobj;
 
 
@@ -176,13 +176,13 @@ implementation
          tmpreg: tregister;
        begin
          if (current_settings.cputype < cpu_PPC970) then
-           internalerror(2007020910);
+           internalerror(2007020901);
          secondpass(left);
          hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
          tmpreg:=cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,tmpreg,
            left.location.register));
-         location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),0);
+         location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),0,[]);
          tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,
            tt_normal,location.reference);
          cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,OS_F64,OS_F64,tmpreg,
@@ -205,8 +205,15 @@ implementation
      procedure tgppcinlinenode.second_prefetch;
        var
          r: tregister;
+         checkpointer_used : boolean;
        begin
+         { do not call Checkpointer for left node }
+         checkpointer_used:=(cs_checkpointer in current_settings.localswitches);
+         if checkpointer_used then
+           node_change_local_switch(left,cs_checkpointer,false);
          secondpass(left);
+         if checkpointer_used then
+           node_change_local_switch(left,cs_checkpointer,false);
          case left.location.loc of
            LOC_CREFERENCE,
            LOC_REFERENCE:
@@ -227,7 +234,7 @@ implementation
                  end;
              end;
            else
-             internalerror(200402021);
+             { nothing to prefetch };
          end;
        end;
 

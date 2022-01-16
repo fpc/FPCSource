@@ -20,7 +20,7 @@
 procedure do_mkdir(const s : rawbytestring);
 var
   tmpStr : rawbytestring;
-  tmpLock: LongInt;
+  tmpLock: BPTR;
 begin
   checkCTRLC;
   tmpStr:=PathConv(s);
@@ -50,7 +50,7 @@ end;
 procedure do_ChDir(const s: rawbytestring);
 var
   tmpStr : rawbytestring;
-  tmpLock: LongInt;
+  tmpLock: BPTR;
   FIB    : PFileInfoBlock;
 begin
   checkCTRLC;
@@ -86,7 +86,7 @@ end;
 procedure do_GetDir (DriveNr: byte; var Dir: RawByteString);
 var
   tmpbuf: array[0..255] of char;
-  lockDir: LongInt;
+  lockDir: BPTR;
 begin
   checkCTRLC;
   Dir := '';

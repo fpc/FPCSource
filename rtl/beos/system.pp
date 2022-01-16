@@ -10,7 +10,7 @@ interface
 
 {$I sysunixh.inc}
 
-  
+
 type
   THeapPointer = ^pointer;
 var
@@ -93,7 +93,7 @@ begin
   WriteLn('SBRK');
   Str(size, s);
   WriteLn('size : ' + s);
-  if (myheapsize+size)<=myheaprealsize then 
+  if (myheapsize+size)<=myheaprealsize then
   begin
     Sbrk:=pointer(heapstart+myheapsize);
     myheapsize:=myheapsize+size;
@@ -102,7 +102,7 @@ begin
   newsize:=myheapsize+size;
   newrealsize:=(newsize and $FFFFF000)+$1000;
   case resize_area(heap_handle,newrealsize) of
-    B_OK : 
+    B_OK :
       begin
         WriteLn('B_OK');
         Sbrk:=pointer(heapstart+myheapsize);
@@ -140,7 +140,7 @@ function sys_resize_area (handle:cardinal; size:longint):longint; cdecl; externa
   WriteLn('sbrk');
   Str(size, s);
   WriteLn('size : ' + s);
-  if (myheapsize+size)<=myheaprealsize then 
+  if (myheapsize+size)<=myheaprealsize then
   begin
     Sbrk:=heapstart+myheapsize;
     myheapsize:=myheapsize+size;
@@ -148,7 +148,7 @@ function sys_resize_area (handle:cardinal; size:longint):longint; cdecl; externa
   end;
   newsize:=myheapsize+size;
   newrealsize:=(newsize and $FFFFF000)+$1000;
-  if sys_resize_area(heap_handle,newrealsize+$1000)=0 then 
+  if sys_resize_area(heap_handle,newrealsize+$1000)=0 then
   begin
     WriteLn('sys_resize_area OK');
     Str(longint(newrealsize), s);
@@ -160,15 +160,15 @@ function sys_resize_area (handle:cardinal; size:longint):longint; cdecl; externa
     Str(myheapsize, s);
     WriteLn('Total : ' + s);
     WriteLn('Before fillchar');
-    WriteLn('sbrk : $' + Hexstr(longint(heapstart+myheapsize), 8));        
+    WriteLn('sbrk : $' + Hexstr(longint(heapstart+myheapsize), 8));
     Sbrk:=heapstart+myheapsize;
-    FillChar(sbrk^, size, #0);    
+    FillChar(sbrk^, size, #0);
     WriteLn('EndFillChar');
     WriteLn('sbrk : $' + Hexstr(longint(sbrk), 8));
 //    ReadLn(s);
     myheapsize:=newsize;
     Str({longint(heapstartpointer) +} myheapsize, s);
-    WriteLn('Total : ' + s);    
+    WriteLn('Total : ' + s);
     myheaprealsize:=newrealsize;
     exit;
   end
@@ -265,14 +265,14 @@ var
   s: string;
   s1: string;
 begin
-   
+
   { stricly conforming POSIX applications  }
   { have the executing filename as argv[0] }
   if l = 0 then
   begin
     paramstr := execpathstr;
   end
-  else if (l < argc) then
+  else if (l > 0) and (l < argc) then
   begin
     paramstr:=strpas(argv[l]);
   end
@@ -389,7 +389,7 @@ begin
   heapstart:=nil;
   heapstartpointer := nil;
   heapstartpointer := Sbrk2(4096*1);
-{$IFDEF FPC_USE_LIBC}  
+{$IFDEF FPC_USE_LIBC}
 //  heap_handle := create_area('fpcheap',heapstart,0,myheaprealsize,0,3);//!!
 {$ELSE}
 //  debugger('tata'#0);
@@ -403,8 +403,8 @@ begin
 
   FillChar(heapstartpointer^, myheaprealsize, #0);
 //  WriteLn('EndFillChar');
-//    WriteLn('P : $' + Hexstr(longint(heapstartpointer), 8));        
-//    WriteLn('heapstart : $' + Hexstr(longint(heapstartpointer^), 8));        
+//    WriteLn('P : $' + Hexstr(longint(heapstartpointer), 8));
+//    WriteLn('heapstart : $' + Hexstr(longint(heapstartpointer^), 8));
   heapstart := heapstartpointer;
 {$ENDIF}
 //  WriteLn('before InitHeap');
@@ -415,10 +415,10 @@ begin
 //    B_ERROR : WriteLn('B_ERROR');
 //  else
 //    begin
-//      WriteLn('ok');  
-//      WriteLn('P : $' + Hexstr(longint(heapstartpointer), 8));        
-//      WriteLn('heapstart : $' + Hexstr(longint(heapstartpointer^), 8));       
-//      if heap_handle>0 then 
+//      WriteLn('ok');
+//      WriteLn('P : $' + Hexstr(longint(heapstartpointer), 8));
+//      WriteLn('heapstart : $' + Hexstr(longint(heapstartpointer^), 8));
+//      if heap_handle>0 then
 //      begin
         InitHeap;
 //      end;

@@ -1,3 +1,4 @@
+{ %skiptarget=msdos,go32v2 }
 program tdb3;
 // Test for bug 12875
 {$mode objfpc}{$H+}

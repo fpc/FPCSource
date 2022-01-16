@@ -76,12 +76,12 @@ begin
                 res:=205
               else if FpuState = FPE_FltUnd then
                 res:=206
-              { else if FpuState and FPU_Denormal)<>0 then
-                res:=216 }
+              else if (FpuState and FPU_Denormal)<>0 then
+                res:=207
               else if FpuState = FPE_FltSub then
                 res:=207
              else if FpuState = FPE_FltInv then
-                res:=216
+                res:=207
               else
                 res:=207;  {'Coprocessor Error'}
             end;

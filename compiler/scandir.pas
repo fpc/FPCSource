@@ -26,7 +26,8 @@ unit scandir;
   interface
 
     uses
-      globtype;
+      globtype,
+      systems;
 
     const
       switchesstatestackmax = 20;
@@ -36,6 +37,10 @@ unit scandir;
         localsw: tlocalswitches;
         verbosity: longint;
         pmessage : pmessagestaterecord;
+        alignment : talignmentinfo;
+        setalloc,
+        packenum,
+        packrecords : shortint;
       end;
 
     type
@@ -52,12 +57,13 @@ unit scandir;
     uses
       SysUtils,
       cutils,cfileutl,
-      globals,systems,widestr,cpuinfo,
+      globals,widestr,cpuinfo,
       verbose,comphook,ppu,
       scanner,switches,
       fmodule,
       defutil,
       dirparse,link,
+      syscinfo,
       symconst,symtable,symbase,symtype,symsym,
       rabase;
 
@@ -118,11 +124,95 @@ unit scandir;
       end;
 
 
+    procedure do_moduleflagswitch(flag:tmoduleflag;optional:boolean);
+      var
+        state : char;
+      begin
+        if optional then
+          state:=current_scanner.readoptionalstate('+')
+        else
+          state:=current_scanner.readstate;
+        if state='-' then
+          exclude(current_module.moduleflags,flag)
+        else
+          include(current_module.moduleflags,flag);
+      end;
+
+
     procedure do_message(w:integer);
       begin
         current_scanner.skipspace;
         Message1(w,current_scanner.readcomment);
       end;
+
+
+    procedure do_version(out major, minor, revision: word; out verstr: string; allowrevision: boolean; out isset: boolean);
+      var
+        majorl,
+        minorl,
+        revisionl,
+        error : longint;
+      begin
+        { change description global var in all cases }
+        { it not used but in win32, os2 and netware }
+        current_scanner.skipspace;
+        { we should only accept Major.Minor format for win32 and os2 }
+        current_scanner.readnumber;
+        major:=0;
+        minor:=0;
+        revision:=0;
+        verstr:='';
+        isset:=false;
+        majorl:=0;
+        minorl:=0;
+        revisionl:=0;
+        val(pattern,majorl,error);
+        if (error<>0) or (majorl > high(word)) or (majorl < 0) then
+          begin
+            Message1(scan_w_wrong_version_ignored,pattern);
+            exit;
+          end;
+        isset:=true;
+        if c='.' then
+          begin
+            current_scanner.readchar;
+            current_scanner.readnumber;
+            val(pattern,minorl,error);
+            if (error<>0) or (minorl > high(word)) or (minorl < 0) then
+              begin
+                Message1(scan_w_wrong_version_ignored,tostr(majorl)+'.'+pattern);
+                exit;
+              end;
+            if (c='.') and
+               allowrevision then
+              begin
+                 current_scanner.readchar;
+                 current_scanner.readnumber;
+                 val(pattern,revisionl,error);
+                 if (error<>0) or (revisionl > high(word)) or (revisionl < 0) then
+                   begin
+                      Message1(scan_w_wrong_version_ignored,tostr(majorl)+'.'+tostr(minorl)+'.'+pattern);
+                      exit;
+                   end;
+                 major:=word(majorl);
+                 minor:=word(minorl);
+                 revision:=word(revisionl);
+                 verstr:=tostr(major)+','+tostr(minor)+','+tostr(revision);
+              end
+            else
+              begin
+                 major:=word(majorl);
+                 minor:=word(minorl);
+                 verstr:=tostr(major)+'.'+tostr(minor);
+              end;
+          end
+        else
+          begin
+            major:=word(majorl);
+            verstr:=tostr(major);
+          end;
+      end;
+
 
 {*****************************************************************************
                               Directive Callbacks
@@ -195,6 +285,35 @@ unit scandir;
         current_settings.packrecords:=8;
       end;
 
+    procedure dir_asmcpu;
+      var
+        s : string;
+        cpu: tcputype;
+        found: Boolean;
+      begin
+        current_scanner.skipspace;
+        s:=current_scanner.readid;
+        If Inside_asm_statement then
+          Message1(scan_w_no_asm_reader_switch_inside_asm,s);
+        if s='ANY' then
+          current_settings.asmcputype:=cpu_none
+        else if s='CURRENT' then
+          current_settings.asmcputype:=current_settings.cputype
+        else
+          begin
+            found:=false;
+            for cpu:=succ(low(tcputype)) to high(tcputype) do
+              if s=cputypestr[cpu] then
+                begin
+                  found:=true;
+                  current_settings.asmcputype:=cpu;
+                  break;
+                end;
+            if not found then
+              Message1(scan_e_illegal_asmcpu_specifier,s);
+          end;
+      end;
+
     procedure dir_asmmode;
       var
         s : string;
@@ -237,8 +356,9 @@ unit scandir;
          hs : string;
       begin
         if not (target_info.system in systems_all_windows + [system_i386_os2,
-                                       system_i386_emx, system_powerpc_macos,
-                                       system_arm_nds, system_i8086_msdos] +
+                                       system_i386_emx, system_powerpc_macosclassic,
+                                       system_arm_nds, system_i8086_msdos,
+                                       system_i8086_embedded, system_m68k_atari] +
                                        systems_nativent) then
           begin
             if m_delphi in current_settings.modeswitches then
@@ -254,24 +374,24 @@ unit scandir;
               begin
                  current_scanner.skipspace;
                  hs:=current_scanner.readid;
-                 if (hs='GUI') and not (target_info.system in [system_i8086_msdos]) then
+                 if (hs='GUI') and not (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
                    SetApptype(app_gui)
-                 else if (hs='CONSOLE') and not (target_info.system in [system_i8086_msdos]) then
+                 else if (hs='CONSOLE') and not (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
                    SetApptype(app_cui)
                  else if (hs='NATIVE') and (target_info.system in systems_windows + systems_nativent) then
                    SetApptype(app_native)
                  else if (hs='FS') and (target_info.system in [system_i386_os2,
                                                              system_i386_emx]) then
                    SetApptype(app_fs)
-                 else if (hs='TOOL') and (target_info.system in [system_powerpc_macos]) then
+                 else if (hs='TOOL') and (target_info.system in [system_powerpc_macosclassic]) then
                    SetApptype(app_tool)
                  else if (hs='ARM9') and (target_info.system in [system_arm_nds]) then
                    SetApptype(app_arm9)
                  else if (hs='ARM7') and (target_info.system in [system_arm_nds]) then
                    SetApptype(app_arm7)
-                 else if (hs='COM') and (target_info.system in [system_i8086_msdos]) then
+                 else if (hs='COM') and (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
                    SetApptype(app_com)
-                 else if (hs='EXE') and (target_info.system in [system_i8086_msdos]) then
+                 else if (hs='EXE') and (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
                    SetApptype(app_cui)
                  else
                    Message1(scan_w_unsupported_app_type,hs);
@@ -310,6 +430,24 @@ unit scandir;
       end;
 
 
+    procedure dir_excessprecision;
+      begin
+        do_localswitch(cs_excessprecision);
+      end;
+
+
+    procedure dir_checkcasecoverage;
+      begin
+        do_localswitch(cs_check_all_case_coverage);
+      end;
+
+
+    procedure dir_checkfpuexceptions;
+      begin
+        do_localswitch(cs_check_fpu_exceptions);
+      end;
+
+
     procedure dir_objectchecks;
       begin
         do_localswitch(cs_check_object);
@@ -338,10 +476,15 @@ unit scandir;
         do_delphiswitch('D');
       end;
 
+    procedure dir_denypackageunit;
+      begin
+        do_moduleflagswitch(mf_package_deny,true);
+      end;
+
     procedure dir_description;
       begin
         if not (target_info.system in systems_all_windows+[system_i386_os2,system_i386_emx,
-                 system_i386_netware,system_i386_wdosx,system_i386_netwlibc]) then
+                 system_i386_netware,system_i386_wdosx,system_i386_netwlibc,system_i8086_win16]) then
           Message(scan_w_description_not_support);
         { change description global var in all cases }
         { it not used but in win32, os2 and netware }
@@ -389,7 +532,7 @@ unit scandir;
 
     procedure dir_forcefarcalls;
       begin
-        if (target_info.system<>system_i8086_msdos)
+        if not (target_info.system in [system_i8086_msdos,system_i8086_embedded])
 {$ifdef i8086}
            or (current_settings.x86memorymodel in x86_near_code_models)
 {$endif i8086}
@@ -459,6 +602,11 @@ unit scandir;
     procedure dir_implicitexceptions;
       begin
         do_moduleswitch(cs_implicit_exceptions);
+      end;
+
+    procedure dir_importeddata;
+      begin
+        do_delphiswitch('G');
       end;
 
     procedure dir_includepath;
@@ -707,7 +855,12 @@ unit scandir;
         maxheapsize_limit: longint;
       begin
 {$if defined(i8086)}
-        if current_settings.x86memorymodel in x86_far_data_models then
+        if target_info.system=system_i8086_win16 then
+          begin
+            heapsize_limit:=65520;
+            maxheapsize_limit:=65520;
+          end
+        else if current_settings.x86memorymodel in x86_far_data_models then
           begin
             heapsize_limit:=655360;
             maxheapsize_limit:=655360;
@@ -786,6 +939,9 @@ unit scandir;
               if (hs='NOTE') then
                 w:=scan_n_user_defined
             else
+              if (hs='INFO') then
+                w:=scan_i_user_defined
+            else
               Message1(scan_w_illegal_directive,hs);
           end;
         { Only print message when there was no error }
@@ -843,8 +999,10 @@ unit scandir;
             current_scanner.skipspace;
             current_scanner.readstring;
             s:=pattern;
-            if c in ['+','-'] then
-              s:=s+current_scanner.readstate;
+            { don't combine the assignments to s as the method call will be
+              done before "pattern" is assigned to s and the method changes
+              "pattern" }
+            s:=s+current_scanner.readoptionalstate('+');
             if not SetCompileModeSwitch(s,false) then
               Message1(scan_w_illegal_switch,s)
           end;
@@ -875,6 +1033,10 @@ unit scandir;
           end;
       end;
 
+    procedure dir_legacyifend;
+      begin
+        do_localswitch(cs_legacyifend);
+      end;
 
     procedure dir_mmx;
       begin
@@ -1047,6 +1209,10 @@ unit scandir;
       Dec(switchesstatestackpos);
       recordpendinglocalfullswitch(switchesstatestack[switchesstatestackpos].localsw);
       recordpendingverbosityfullswitch(switchesstatestack[switchesstatestackpos].verbosity);
+      recordpendingalignmentfullswitch(switchesstatestack[switchesstatestackpos].alignment);
+      recordpendingpackenum(switchesstatestack[switchesstatestackpos].packenum);
+      recordpendingpackrecords(switchesstatestack[switchesstatestackpos].packrecords);
+      recordpendingsetalloc(switchesstatestack[switchesstatestackpos].setalloc);
       pendingstate.nextmessagerecord:=switchesstatestack[switchesstatestackpos].pmessage;
       { Reset verbosity and forget previous pmeesage }
       RestoreLocalVerbosity(nil);
@@ -1079,11 +1245,39 @@ unit scandir;
       if switchesstatestackpos > switchesstatestackmax then
         Message(scan_e_too_many_push);
 
-      flushpendingswitchesstate;
+      { do not flush here as we might have read directives which shall not be active yet,
+        see e.g. tests/webtbs/tw22744b.pp }
+      if psf_alignment_changed in pendingstate.flags then
+        switchesstatestack[switchesstatestackpos].alignment:=pendingstate.nextalignment
+      else
+        switchesstatestack[switchesstatestackpos].alignment:=current_settings.alignment;
 
-      switchesstatestack[switchesstatestackpos].localsw:= current_settings.localswitches;
-      switchesstatestack[switchesstatestackpos].pmessage:= current_settings.pmessage;
-      switchesstatestack[switchesstatestackpos].verbosity:=status.verbosity;
+      if psf_verbosity_full_switched in pendingstate.flags then
+        switchesstatestack[switchesstatestackpos].verbosity:=pendingstate.nextverbosityfullswitch
+      else
+        switchesstatestack[switchesstatestackpos].verbosity:=status.verbosity;
+
+      if psf_local_switches_changed in pendingstate.flags then
+        switchesstatestack[switchesstatestackpos].localsw:=pendingstate.nextlocalswitches
+      else
+        switchesstatestack[switchesstatestackpos].localsw:=current_settings.localswitches;
+
+      if psf_packenum_changed in pendingstate.flags then
+        switchesstatestack[switchesstatestackpos].packenum:=pendingstate.nextpackenum
+      else
+        switchesstatestack[switchesstatestackpos].packenum:=current_settings.packenum;
+
+      if psf_packrecords_changed in pendingstate.flags then
+        switchesstatestack[switchesstatestackpos].packrecords:=pendingstate.nextpackrecords
+      else
+        switchesstatestack[switchesstatestackpos].packrecords:=current_settings.packrecords;
+
+      if psf_setalloc_changed in pendingstate.flags then
+        switchesstatestack[switchesstatestackpos].setalloc:=pendingstate.nextsetalloc
+      else
+        switchesstatestack[switchesstatestackpos].setalloc:=current_settings.setalloc;
+
+      switchesstatestack[switchesstatestackpos].pmessage:=pendingstate.nextmessagerecord;
       Inc(switchesstatestackpos);
     end;
 
@@ -1123,12 +1317,12 @@ unit scandir;
           s:=ChangeFileExt(s,target_info.resext);
         if target_info.res<>res_none then
           begin
-          current_module.flags:=current_module.flags or uf_has_resourcefiles;
-          if (res_single_file in target_res.resflags) and
-                                 not (Current_module.ResourceFiles.Empty) then
-            Message(scan_w_only_one_resourcefile_supported)
-          else
-            current_module.resourcefiles.insert(FixFileName(s));
+            include(current_module.moduleflags,mf_has_resourcefiles);
+            if (res_single_file in target_res.resflags) and
+                                   not (Current_module.ResourceFiles.Empty) then
+              Message(scan_w_only_one_resourcefile_supported)
+            else
+              current_module.resourcefiles.insert(FixFileName(s));
           end
         else
           Message(scan_e_resourcefiles_not_supported);
@@ -1172,39 +1366,78 @@ unit scandir;
 
     procedure dir_setpeflags;
       var
-        ident : string;
+        flags : int64;
       begin
         if not (target_info.system in (systems_all_windows)) then
           Message(scan_w_setpeflags_not_support);
-        current_scanner.skipspace;
-        ident:=current_scanner.readid;
-        if ident<>'' then
-          peflags:=peflags or get_peflag_const(ident,scan_e_illegal_peflag)
-        else
-          peflags:=peflags or current_scanner.readval;
+        if current_scanner.readpreprocint(flags,'SETPEFLAGS') then
+          begin
+            if flags>$ffff then
+              message(scan_e_illegal_peflag);
+            peflags:=peflags or uint16(flags);
+          end;
         SetPEFlagsSetExplicity:=true;
       end;
 
     procedure dir_setpeoptflags;
       var
-        ident : string;
+        flags : int64;
       begin
         if not (target_info.system in (systems_all_windows)) then
           Message(scan_w_setpeoptflags_not_support);
-        current_scanner.skipspace;
-        ident:=current_scanner.readid;
-        if ident<>'' then
-          peoptflags:=peoptflags or get_peflag_const(ident,scan_e_illegal_peoptflag)
-        else
-          peoptflags:=peoptflags or current_scanner.readval;
+        if current_scanner.readpreprocint(flags,'SETPEOPTFLAGS') then
+          begin
+            if flags>$ffff then
+              message(scan_e_illegal_peoptflag);
+            peoptflags:=peoptflags or uint16(flags);
+          end;
         SetPEOptFlagsSetExplicity:=true;
+      end;
+
+    procedure dir_setpeuserversion;
+      var
+        dummystr : string;
+        dummyrev : word;
+      begin
+        if not (target_info.system in systems_all_windows) then
+          Message(scan_w_setpeuserversion_not_support);
+        if (compile_level<>1) then
+          Message(scan_n_only_exe_version)
+        else
+          do_version(peuserversionmajor,peuserversionminor,dummyrev,dummystr,false,SetPEUserVersionSetExplicitely);
+      end;
+
+    procedure dir_setpeosversion;
+      var
+        dummystr : string;
+        dummyrev : word;
+      begin
+        if not (target_info.system in systems_all_windows) then
+          Message(scan_w_setpeosversion_not_support);
+        if (compile_level<>1) then
+          Message(scan_n_only_exe_version)
+        else
+          do_version(peosversionmajor,peosversionminor,dummyrev,dummystr,false,SetPEOSVersionSetExplicitely);
+      end;
+
+    procedure dir_setpesubsysversion;
+      var
+        dummystr : string;
+        dummyrev : word;
+      begin
+        if not (target_info.system in systems_all_windows) then
+          Message(scan_w_setpesubsysversion_not_support);
+        if (compile_level<>1) then
+          Message(scan_n_only_exe_version)
+        else
+          do_version(pesubsysversionmajor,pesubsysversionminor,dummyrev,dummystr,false,SetPESubSysVersionSetExplicitely);
       end;
 
     procedure dir_smartlink;
       begin
         do_moduleswitch(cs_create_smart);
-        if (paratargetdbg in [dbg_dwarf2,dbg_dwarf3]) and
-            not(target_info.system in (systems_darwin+[system_i8086_msdos])) and
+        if (target_dbg.id in [dbg_dwarf2,dbg_dwarf3]) and
+            not(target_info.system in (systems_darwin+[system_i8086_msdos,system_i8086_embedded])) and
             { smart linking does not yet work with DWARF debug info on most targets }
             (cs_create_smart in current_settings.moduleswitches) and
             not (af_outputbinary in target_asm.flags) then
@@ -1244,27 +1477,25 @@ unit scandir;
         // different places. Skip it for now.
       end;
 
-{$ifdef powerpc}
     procedure dir_syscall;
       var
         sctype : string;
+        syscall : psyscallinfo;
       begin
-        { not needed on amiga/m68k for now, because there's only one }
-        { syscall convention (legacy) (KB) }
-        { not needed on amiga/powerpc because there's only one }
-        { syscall convention (sysv) (KB) }
-        if not (target_info.system in [system_powerpc_morphos]) then
-          comment (V_Warning,'Syscall directive is useless on this target.');
         current_scanner.skipspace;
-
         sctype:=current_scanner.readid;
-        if (sctype='LEGACY') or (sctype='SYSV') or (sctype='SYSVBASE') or
-          (sctype='BASESYSV') or (sctype='R12BASE') then
-          syscall_convention:=sctype
-        else
-          comment (V_Warning,'Invalid Syscall directive ignored.');
+
+        syscall:=get_syscall_by_name(sctype);
+        if assigned(syscall) then
+          begin
+            if not (target_info.system in syscall^.validon) then
+              Message(scan_w_syscall_convention_not_useable_on_target)
+            else
+              set_default_syscall(syscall^.procoption);
+            exit;
+          end;
+        Message(scan_w_syscall_convention_invalid);
       end;
-{$endif}
 
     procedure dir_targetswitch;
       var
@@ -1279,6 +1510,11 @@ unit scandir;
             current_scanner.readid;
             value:=orgpattern;
             UpdateTargetSwitchStr(name+'='+value,current_settings.targetswitches,current_module.in_global);
+          end
+        else if c='-' then
+          begin
+            current_scanner.readchar;
+            UpdateTargetSwitchStr(name+'-',current_settings.targetswitches,current_module.in_global);
           end
         else
           UpdateTargetSwitchStr(name,current_settings.targetswitches,current_module.in_global);
@@ -1295,15 +1531,20 @@ unit scandir;
       end;
 
     procedure dir_unitpath;
+      var
+        unitpath: TPathStr;
       begin
         if not current_module.in_global then
          Message(scan_w_switch_is_global)
         else
-          with current_scanner,current_module,localunitsearchpath do
-            begin
-              skipspace;
-              AddPath(path,readcomment,false);
-            end;
+          begin
+            current_scanner.skipspace;
+            unitpath:=current_scanner.readcomment;
+            if (current_module.path<>'') and
+               not path_absolute(unitpath) then
+             unitpath:=current_module.path+source_info.DirSep+unitpath;
+            current_module.localunitsearchpath.AddPath(unitpath,false);
+          end;
       end;
 
     procedure dir_varparacopyoutcheck;
@@ -1526,6 +1767,13 @@ unit scandir;
         do_setverbose('W');
       end;
 
+    procedure dir_weakpackageunit;
+      begin
+        { old Delphi versions seem to use merely $WEAKPACKAGEUNIT while newer
+          Delphis have $WEAPACKAGEUNIT ON... :/ }
+        do_moduleflagswitch(mf_package_weak, true);
+      end;
+
     procedure dir_writeableconst;
       begin
         do_delphiswitch('J');
@@ -1560,7 +1808,7 @@ unit scandir;
 
     procedure dir_hugecode;
       begin
-        if (target_info.system<>system_i8086_msdos)
+        if not (target_info.system in [system_i8086_msdos,system_i8086_embedded])
 {$ifdef i8086}
            or (current_settings.x86memorymodel in x86_near_code_models)
 {$endif i8086}
@@ -1576,7 +1824,7 @@ unit scandir;
       var
         hs : string;
       begin
-        if target_info.system<>system_i8086_msdos then
+        if not (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
           begin
             Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERNORMALIZATION');
             exit;
@@ -1606,7 +1854,7 @@ unit scandir;
 
     procedure dir_hugepointerarithmeticnormalization;
       begin
-        if target_info.system<>system_i8086_msdos then
+        if not (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
           begin
             Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERARITHMETICNORMALIZATION');
             exit;
@@ -1616,16 +1864,12 @@ unit scandir;
 
     procedure dir_hugepointercomparisonnormalization;
       begin
-        if target_info.system<>system_i8086_msdos then
+        if not (target_info.system in [system_i8086_msdos,system_i8086_embedded]) then
           begin
             Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERCOMPARISONNORMALIZATION');
             exit;
           end;
         do_localswitch(cs_hugeptr_comparison_normalization);
-      end;
-
-    procedure dir_weakpackageunit;
-      begin
       end;
 
     procedure dir_codealign;
@@ -1654,6 +1898,9 @@ unit scandir;
               Message1(option_code_page_not_available,s)
             else
               current_settings.sourcecodepage:=codepagebyname(s);
+            { we're not using the system code page now }
+            exclude(current_settings.modeswitches,m_systemcodepage);
+            exclude(current_settings.moduleswitches,cs_system_codepage);
             include(current_settings.moduleswitches,cs_explicit_codepage);
           end;
       end;
@@ -1671,6 +1918,8 @@ unit scandir;
 
     procedure dir_region;
       begin
+        current_scanner.skipspace;
+        current_scanner.readquotedstring;
       end;
 
     procedure dir_endregion;
@@ -1699,11 +1948,14 @@ unit scandir;
         AddDirective('APPNAME',directive_all, @dir_appname);
 {$endif m68k}
         AddDirective('APPTYPE',directive_all, @dir_apptype);
+        AddDirective('ASMCPU',directive_all, @dir_asmcpu);
         AddDirective('ASMMODE',directive_all, @dir_asmmode);
         AddDirective('ASSERTIONS',directive_all, @dir_assertions);
         AddDirective('BOOLEVAL',directive_all, @dir_booleval);
         AddDirective('BITPACKING',directive_all, @dir_bitpacking);
         AddDirective('CALLING',directive_all, @dir_calling);
+        AddDirective('CHECKCASECOVERAGE',directive_all, @dir_checkcasecoverage);
+        AddDirective('CHECKFPUEXCEPTIONS',directive_all, @dir_checkfpuexceptions);
         AddDirective('CHECKLOWADDRLOADS',directive_all, @dir_checklowaddrloads);
         AddDirective('CHECKPOINTER',directive_all, @dir_checkpointer);
         AddDirective('CODEALIGN',directive_all, @dir_codealign);
@@ -1712,10 +1964,12 @@ unit scandir;
         AddDirective('COPYRIGHT',directive_all, @dir_copyright);
         AddDirective('D',directive_all, @dir_description);
         AddDirective('DEBUGINFO',directive_all, @dir_debuginfo);
+        AddDirective('DENYPACKAGEUNIT',directive_all,@dir_denypackageunit);
         AddDirective('DESCRIPTION',directive_all, @dir_description);
         AddDirective('ENDREGION',directive_all, @dir_endregion);
         AddDirective('ERROR',directive_all, @dir_error);
         AddDirective('ERRORC',directive_mac, @dir_error);
+        AddDirective('EXCESSPRECISION',directive_all, @dir_excessprecision);
         AddDirective('EXTENDEDSYNTAX',directive_all, @dir_extendedsyntax);
         AddDirective('EXTERNALSYM',directive_all, @dir_externalsym);
         AddDirective('F',directive_all, @dir_forcefarcalls);
@@ -1734,11 +1988,13 @@ unit scandir;
         AddDirective('IOCHECKS',directive_all, @dir_iochecks);
         AddDirective('IMAGEBASE',directive_all, @dir_imagebase);
         AddDirective('IMPLICITEXCEPTIONS',directive_all, @dir_implicitexceptions);
+        AddDirective('IMPORTEDDATA',directive_all, @dir_importeddata);
         AddDirective('INCLUDEPATH',directive_all, @dir_includepath);
         AddDirective('INFO',directive_all, @dir_info);
         AddDirective('INLINE',directive_all, @dir_inline);
         AddDirective('INTERFACES',directive_all, @dir_interfaces);
         AddDirective('L',directive_all, @dir_link);
+        AddDirective('LEGACYIFEND',directive_all, @dir_legacyifend);
         AddDirective('LIBEXPORT',directive_mac, @dir_libexport);
         AddDirective('LIBRARYPATH',directive_all, @dir_librarypath);
         AddDirective('LINK',directive_all, @dir_link);
@@ -1787,14 +2043,15 @@ unit scandir;
         AddDirective('SCOPEDENUMS',directive_all, @dir_scopedenums);
         AddDirective('SETPEFLAGS', directive_all, @dir_setpeflags);
         AddDirective('SETPEOPTFLAGS', directive_all, @dir_setpeoptflags);
+        AddDirective('SETPEOSVERSION', directive_all, @dir_setpeosversion);
+        AddDirective('SETPEUSERVERSION', directive_all, @dir_setpeuserversion);
+        AddDirective('SETPESUBSYSVERSION', directive_all, @dir_setpesubsysversion);
         AddDirective('SCREENNAME',directive_all, @dir_screenname);
         AddDirective('SMARTLINK',directive_all, @dir_smartlink);
         AddDirective('STACKFRAMES',directive_all, @dir_stackframes);
         AddDirective('STOP',directive_all, @dir_stop);
         AddDirective('STRINGCHECKS', directive_all, @dir_stringchecks);
-{$ifdef powerpc}
         AddDirective('SYSCALL',directive_all, @dir_syscall);
-{$endif powerpc}
         AddDirective('TARGETSWITCH',directive_all, @dir_targetswitch);
         AddDirective('THREADNAME',directive_all, @dir_threadname);
         AddDirective('TYPEDADDRESS',directive_all, @dir_typedaddress);

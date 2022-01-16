@@ -27,29 +27,13 @@ unit unixutil;
 
 interface
 
-var
-  Tzseconds : Longint;
-
-Type
-  ComStr  = String[255] deprecated 'Clean up shortstring use, or use same type from unit dos.';
-  PathStr = String[255] deprecated 'Clean up shortstring use, or use same type from unit dos.';
-  DirStr  = String[255] deprecated 'Clean up shortstring use, or use same type from unit dos.';
-  NameStr = String[255] deprecated 'Clean up shortstring use, or use same type from unit dos.';
-  ExtStr  = String[255] deprecated 'Clean up shortstring use, or use same type from unit dos.';
-
 Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
-Function StringToPPChar(Var S:AnsiString;ReserveEntries:integer):ppchar;
-function ArrayStringToPPchar(const S:Array of AnsiString;reserveentries:Longint):ppchar; // const ?
-Function GetFS(var T:Text):longint; deprecated;
-Function GetFS(Var F:File):longint; deprecated; // use sysutils.getfilehandle
-Function LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
-Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word);
-Procedure JulianToGregorian(JulianDN:LongInt;Var Year,Month,Day:Word);
-Function GregorianToJulian(Year,Month,Day:Longint):LongInt;
+Function StringToPPChar(Var S:RawByteString;ReserveEntries:integer):ppchar;
+function ArrayStringToPPchar(const S:Array of RawByteString;reserveentries:Longint):ppchar; // const ?
 
 implementation
 
-function ArrayStringToPPchar(const S:Array of AnsiString;reserveentries:Longint):ppchar; // const ?
+function ArrayStringToPPchar(const S:Array of RawByteString;reserveentries:Longint):ppchar; // const ?
 // Extra allocate reserveentries pchar's at the beginning (default param=0 after 1.0.x ?)
 // Note: for internal use by skilled programmers only
 // if "s" goes out of scope in the parent procedure, the pointer is dangling.
@@ -73,7 +57,7 @@ begin
   ArrayStringToPPchar:=p;
 end;
 
-Function StringToPPChar(Var S:AnsiString;ReserveEntries:integer):ppchar;
+Function StringToPPChar(Var S:RawByteString;ReserveEntries:integer):ppchar;
 {
   Create a PPChar to structure of pchars which are the arguments specified
   in the string S. Especially useful for creating an ArgV for Exec-calls
@@ -154,101 +138,5 @@ begin
        end;
    end;
 end;
-
-Function GetFS (var T:Text):longint;
-{
-  Get File Descriptor of a text file.
-}
-begin
-  if textrec(t).mode=fmclosed then
-   exit(-1)
-  else
-   GETFS:=textrec(t).Handle
-end;
-
-Function GetFS(Var F:File):longint;
-{
-  Get File Descriptor of an unTyped file.
-}
-begin
-  { Handle and mode are on the same place in textrec and filerec. }
-  if filerec(f).mode=fmclosed then
-   exit(-1)
-  else
-   GETFS:=filerec(f).Handle
-end;
-
-Const
-{Date Translation}
-  C1970=2440588;
-  D0   =   1461;
-  D1   = 146097;
-  D2   =1721119;
-
-
-Procedure JulianToGregorian(JulianDN:LongInt;Var Year,Month,Day:Word);
-Var
-  YYear,XYear,Temp,TempMonth : LongInt;
-Begin
-  Temp:=((JulianDN-D2) shl 2)-1;
-  JulianDN:=Temp Div D1;
-  XYear:=(Temp Mod D1) or 3;
-  YYear:=(XYear Div D0);
-  Temp:=((((XYear mod D0)+4) shr 2)*5)-3;
-  Day:=((Temp Mod 153)+5) Div 5;
-  TempMonth:=Temp Div 153;
-  If TempMonth>=10 Then
-   Begin
-     inc(YYear);
-     dec(TempMonth,12);
-   End;
-  inc(TempMonth,3);
-  Month := TempMonth;
-  Year:=YYear+(JulianDN*100);
-end;
-
-Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word);
-{
-  Transforms Epoch time into local time (hour, minute,seconds)
-}
-Var
-  DateNum: LongInt;
-Begin
-  inc(Epoch,TZSeconds);
-  Datenum:=(Epoch Div 86400) + c1970;
-  JulianToGregorian(DateNum,Year,Month,day);
-  Epoch:=Abs(Epoch Mod 86400);
-  Hour:=Epoch Div 3600;
-  Epoch:=Epoch Mod 3600;
-  Minute:=Epoch Div 60;
-  Second:=Epoch Mod 60;
-End;
-
-Function LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
-{
-  Transforms local time (year,month,day,hour,minutes,second) to Epoch time
-   (seconds since 00:00, january 1 1970, corrected for local time zone)
-}
-Begin
-  LocalToEpoch:=((GregorianToJulian(Year,Month,Day)-c1970)*86400)+
-                (LongInt(Hour)*3600)+(Longint(Minute)*60)+Second-TZSeconds;
-End;
-
-
-Function GregorianToJulian(Year,Month,Day:Longint):LongInt;
-Var
-  Century,XYear: LongInt;
-Begin
-  If Month<=2 Then
-   Begin
-     Dec(Year);
-     Inc(Month,12);
-   End;
-  Dec(Month,3);
-  Century:=(longint(Year Div 100)*D1) shr 2;
-  XYear:=(longint(Year Mod 100)*D0) shr 2;
-  GregorianToJulian:=((((Month*153)+2) div 5)+Day)+D2+XYear+Century;
-End;
-
 
 end.

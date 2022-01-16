@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.Author := 'Library: Peter Mattis, Spencer Kimball and Josh MacDonald, header: Peter Vreman';
     P.License := 'Library: LGPL2.1, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -24,7 +24,7 @@ begin
     P.Description := 'Header to the GTK widgetset (v1).';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
 
-    P.OSes:=AllUnixOSes+[Win32,Win64,OS2,EMX]-[darwin,iphonesim,Android];
+    P.OSes:=AllUnixOSes+[Win32,Win64,OS2,EMX]-[darwin,iphonesim,ios,Android];
     if Defaults.CPU<>arm then
       P.OSes := P.OSes + [darwin];
 

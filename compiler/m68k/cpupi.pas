@@ -31,7 +31,7 @@ unit cpupi;
       psub;
 
     type
-      tm68kprocinfo = class(tcgprocinfo)
+      tcpuprocinfo = class(tcgprocinfo)
         procedure init_framepointer;override;
       end;
 
@@ -42,23 +42,26 @@ unit cpupi;
       cpubase,
       systems;
 
-  { tm68kprocinfo }
+  { tcpuprocinfo }
 
-    procedure tm68kprocinfo.init_framepointer;
+    procedure tcpuprocinfo.init_framepointer;
       begin
-        { ToDo : what about system_m68k_embedded? }
-        if target_info.system in [system_m68k_linux,system_m68k_netbsd,system_m68k_openbsd] then
+        if not (target_info.system in [system_m68k_amiga]) then
           begin
             RS_FRAME_POINTER_REG:=RS_A6;
             NR_FRAME_POINTER_REG:=NR_A6;
+            RS_PIC_OFFSET_REG:=RS_A5;
+            NR_PIC_OFFSET_REG:=NR_A5;
           end
         else
           begin
             NR_FRAME_POINTER_REG:=NR_A5;
             RS_FRAME_POINTER_REG:=RS_A5;
+            RS_PIC_OFFSET_REG:=RS_A4;
+            NR_PIC_OFFSET_REG:=NR_A4;
           end;
       end;
 
 begin
-   cprocinfo:=tm68kprocinfo;
+   cprocinfo:=tcpuprocinfo;
 end.

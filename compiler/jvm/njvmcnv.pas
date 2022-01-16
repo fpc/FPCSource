@@ -30,6 +30,8 @@ interface
 
     type
        tjvmtypeconvnode = class(tcgtypeconvnode)
+          class function target_specific_need_equal_typeconv(fromdef, todef: tdef): boolean; override;
+
           function typecheck_dynarray_to_openarray: tnode; override;
           function typecheck_string_to_chararray: tnode; override;
           function typecheck_string_to_string: tnode;override;
@@ -95,7 +97,7 @@ interface
 implementation
 
    uses
-      verbose,globals,globtype,constexp,cutils,
+      verbose,globals,globtype,constexp,cutils,compinnr,
       symbase,symconst,symdef,symsym,symcpu,symtable,aasmbase,aasmdata,
       defutil,defcmp,jvmdef,
       cgbase,cgutils,pass_1,pass_2,
@@ -146,6 +148,19 @@ implementation
           docheck(fromdef,todef) or
           docheck(todef,fromdef);
       end;
+
+
+   class function tjvmtypeconvnode.target_specific_need_equal_typeconv(fromdef, todef: tdef): boolean;
+     begin
+       result:=
+         (fromdef<>todef) and
+         { two procdefs that are structurally the same but semantically different
+           still need a convertion }
+         (
+          ((fromdef.typ=procvardef) and
+           (todef.typ=procvardef))
+         );
+     end;
 
 
    function tjvmtypeconvnode.typecheck_dynarray_to_openarray: tnode;
@@ -359,7 +374,7 @@ implementation
                     setclassdef:=java_juenumset;
                   end;
                 left:=caddrnode.create_internal(left);
-                include(left.flags,nf_typedaddr);
+                include(taddrnode(left).addrnodeflags,anf_typedaddr);
                 inserttypeconv_explicit(left,setclassdef);
                 result:=ccallnode.createinternmethod(
                   cloadvmtaddrnode.create(ctypenode.create(setclassdef)),
@@ -368,7 +383,7 @@ implementation
                       genintconstnode(tsetdef(left.resultdef).setbase),
                         ccallparanode.create(left,nil))));
               end;
-            inserttypeconv_explicit(result,getpointerdef(resultdef));
+            inserttypeconv_explicit(result,cpointerdef.getreusable(resultdef));
             result:=cderefnode.create(result);
             { reused }
             left:=nil;
@@ -387,7 +402,7 @@ implementation
         result:=ccallnode.createinternmethod(
           cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(resultdef).classdef)),'CREATE',nil);
         { method pointer is an implicit pointer type }
-        result:=ctypeconvnode.create_explicit(result,getpointerdef(resultdef));
+        result:=ctypeconvnode.create_explicit(result,cpointerdef.getreusable(resultdef));
         result:=cderefnode.create(result);
       end;
 
@@ -476,7 +491,7 @@ implementation
                      { get the class representing the primitive type }
                      fvs:=search_struct_member(tobjectdef(corrclass),'FTYPE');
                      newpara:=nil;
-                     if not handle_staticfield_access(fvs,false,newpara) then
+                     if not handle_staticfield_access(fvs,newpara) then
                        internalerror(2011072417);
                    end
                  else
@@ -487,6 +502,7 @@ implementation
           end;
         if not assigned(procdefparas) then
           procdefparas:=carrayconstructornode.create(nil,nil);
+        procdefparas.allow_array_constructor:=true;
         constrparas:=ccallparanode.create(procdefparas,constrparas);
         result:=ccallnode.createinternmethod(cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(resultdef).classdef)),'CREATE',constrparas);
         { typecast to the procvar type }
@@ -494,7 +510,7 @@ implementation
           result:=ctypeconvnode.create_explicit(result,resultdef)
         else
           begin
-            result:=ctypeconvnode.create_explicit(result,getpointerdef(resultdef));
+            result:=ctypeconvnode.create_explicit(result,cpointerdef.getreusable(resultdef));
             result:=cderefnode.create(result)
           end;
         { reused }
@@ -524,7 +540,7 @@ implementation
           with a single #0 }
         result:=ccallnode.create(ccallparanode.create(left,nil),tprocsym(ps),
           ps.owner,
-          cloadvmtaddrnode.create(ctypenode.create(java_ansistring)),[]);
+          cloadvmtaddrnode.create(ctypenode.create(java_ansistring)),[],nil);
         include(result.flags,nf_isproperty);
         result:=ctypeconvnode.create_explicit(result,resultdef);
         { reused }
@@ -696,7 +712,7 @@ implementation
       begin
         tg.gethltemp(current_asmdata.currasmlist,java_jlobject,java_jlobject.size,tt_normal,r);
         hlcg.a_load_const_ref(current_asmdata.CurrAsmList,java_jlobject,0,r);
-        location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1);
+        location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1,[]);
         location.reference:=r;
       end;
 
@@ -704,12 +720,7 @@ implementation
     procedure tjvmtypeconvnode.second_bool_to_int;
       var
          newsize: tcgsize;
-         oldTrueLabel,oldFalseLabel : tasmlabel;
       begin
-         oldTrueLabel:=current_procinfo.CurrTrueLabel;
-         oldFalseLabel:=current_procinfo.CurrFalseLabel;
-         current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-         current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
          secondpass(left);
          location_copy(location,left.location);
          newsize:=def_cgsize(resultdef);
@@ -737,20 +748,14 @@ implementation
          else
            { may differ in sign, e.g. bytebool -> byte   }
            location.size:=newsize;
-         current_procinfo.CurrTrueLabel:=oldTrueLabel;
-         current_procinfo.CurrFalseLabel:=oldFalseLabel;
       end;
 
 
     procedure tjvmtypeconvnode.second_int_to_bool;
       var
-        hlabel1,hlabel2,oldTrueLabel,oldFalseLabel : tasmlabel;
+        hlabel1,hlabel2: tasmlabel;
         newsize  : tcgsize;
       begin
-        oldTrueLabel:=current_procinfo.CurrTrueLabel;
-        oldFalseLabel:=current_procinfo.CurrFalseLabel;
-        current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-        current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
         secondpass(left);
         if codegenerror then
           exit;
@@ -770,8 +775,6 @@ implementation
                hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
              else
                location.size:=newsize;
-             current_procinfo.CurrTrueLabel:=oldTrueLabel;
-             current_procinfo.CurrFalseLabel:=oldFalseLabel;
              exit;
           end;
 
@@ -786,8 +789,8 @@ implementation
            end;
          LOC_JUMP :
            begin
-             hlabel1:=current_procinfo.CurrFalseLabel;
-             hlcg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+             hlabel1:=left.location.falselabel;
+             hlcg.a_label(current_asmdata.CurrAsmList,left.location.truelabel);
            end;
          else
            internalerror(10062);
@@ -805,9 +808,6 @@ implementation
        thlcgjvm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,resultdef,0,R_INTREGISTER);
        hlcg.a_label(current_asmdata.CurrAsmList,hlabel2);
        thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
-
-       current_procinfo.CurrTrueLabel:=oldTrueLabel;
-       current_procinfo.CurrFalseLabel:=oldFalseLabel;
      end;
 
 
@@ -827,15 +827,15 @@ implementation
         else
           opc:=a_anewarray;
         { doesn't change stack height: one int replaced by one reference }
-        current_asmdata.CurrAsmList.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(mangledname)));
+        current_asmdata.CurrAsmList.concat(taicpu.op_sym(opc,current_asmdata.RefAsmSymbol(mangledname,AT_METADATA)));
         { store the data in the newly created array }
         basereg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,java_jlobject);
         thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,java_jlobject,basereg);
-        reference_reset_base(arrayref,basereg,0,4);
+        reference_reset_base(arrayref,basereg,0,ctempposinvalid,4,[]);
         arrayref.arrayreftype:=art_indexconst;
         arrayref.indexoffset:=0;
         hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location,arrayref);
-        location_reset_ref(location,LOC_REFERENCE,OS_ADDR,4);
+        location_reset_ref(location,LOC_REFERENCE,OS_ADDR,4,[]);
         tg.gethltemp(current_asmdata.CurrAsmList,java_jlobject,4,tt_normal,location.reference);
         hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,java_jlobject,java_jlobject,basereg,location.reference);
       end;
@@ -879,7 +879,7 @@ implementation
           { call the (static class) method to get the raw bits }
           result:=ccallnode.create(ccallparanode.create(left,nil),
             tprocsym(psym),psym.owner,
-            cloadvmtaddrnode.create(ctypenode.create(csym.typedef)),[]);
+            cloadvmtaddrnode.create(ctypenode.create(csym.typedef)),[],nil);
           { convert the result to the result type of this type conversion node }
           inserttypeconv_explicit(result,resultdef);
           { left is reused }
@@ -898,7 +898,7 @@ implementation
             internalerror(2011062601);
           result:=ccallnode.create(ccallparanode.create(left,nil),
             tprocsym(psym),psym.owner,
-            cloadvmtaddrnode.create(ctypenode.create(todef.classdef)),[]);
+            cloadvmtaddrnode.create(ctypenode.create(todef.classdef)),[],nil);
           { convert the result to the result type of this type conversion node }
           inserttypeconv_explicit(result,resultdef);
           { left is reused }
@@ -915,7 +915,7 @@ implementation
           if not assigned(psym) or
              (psym.typ<>procsym) then
             internalerror(2011062602);
-          result:=ccallnode.create(nil,tprocsym(psym),psym.owner,left,[]);
+          result:=ccallnode.create(nil,tprocsym(psym),psym.owner,left,[],nil);
           { convert the result to the result type of this type conversion node }
           inserttypeconv_explicit(result,resultdef);
           { left is reused }
@@ -1021,7 +1021,7 @@ implementation
           fsym:=tfieldvarsym(search_struct_member(tcpuprocvardef(fromdef).classdef,'METHOD'));
           if not assigned(fsym) or
              (fsym.typ<>fieldvarsym) then
-            internalerror(2011072414);
+            internalerror(2011072401);
           result:=csubscriptnode.create(fsym,left);
           left:=nil;
         end;
@@ -1136,6 +1136,22 @@ implementation
             end;
           result:=false;
         end;
+
+
+      function compatible_file_conversion(def1, def2: tdef): boolean;
+        begin
+          if def1.typ=filedef then
+            case tfiledef(def1).filetyp of
+              ft_text:
+                result:=def2=search_system_type('TEXTREC').typedef;
+              ft_typed,
+              ft_untyped:
+                result:=def2=search_system_type('FILEREC').typedef;
+            end
+          else
+            result:=false;
+        end;
+
 
       var
         fromclasscompatible,
@@ -1263,7 +1279,7 @@ implementation
                   a proper checkcast is inserted }
                 if not check_only then
                   begin
-                    resnode:=ctypeconvnode.create_explicit(left,getpointerdef(resultdef));
+                    resnode:=ctypeconvnode.create_explicit(left,cpointerdef.getreusable(resultdef));
                     resnode:=cderefnode.create(resnode);
                     left:=nil;
                   end;
@@ -1385,7 +1401,7 @@ implementation
                   begin
                     resnode:=to_set_explicit_typecast;
                     { convert to desired result }
-                    inserttypeconv_explicit(resnode,getpointerdef(resultdef));
+                    inserttypeconv_explicit(resnode,cpointerdef.getreusable(resultdef));
                     resnode:=cderefnode.create(resnode);
                   end;
                 result:=true;
@@ -1395,6 +1411,15 @@ implementation
               could also be added (cannot be handled by the above, because
               float(intvalue) will convert rather than re-interpret the value) }
           end;
+
+        { files }
+        if compatible_file_conversion(left.resultdef,resultdef) or
+           compatible_file_conversion(resultdef,left.resultdef) then
+          begin
+            result:=true;
+            exit;
+          end;
+
 
         { anything not explicitly handled is a problem }
         result:=true;
@@ -1470,7 +1495,7 @@ implementation
         if node.nodetype=asn then
           node.resultdef:=realtodef
         else
-          node.resultdef:=pasbool8type;
+          node.resultdef:=pasbool1type;
     end;
 
 
@@ -1495,7 +1520,7 @@ implementation
               if not assigned(ps) or
                  (ps.typ<>procsym) then
                 internalerror(2011041910);
-              call:=ccallnode.create(ccallparanode.create(node.left,nil),tprocsym(ps),ps.owner,ctypeconvnode.create_explicit(node.right,jlclass),[]);
+              call:=ccallnode.create(ccallparanode.create(node.left,nil),tprocsym(ps),ps.owner,ctypeconvnode.create_explicit(node.right,jlclass),[],nil);
               node.left:=nil;
               node.right:=nil;
               firstpass(call);
@@ -1590,14 +1615,14 @@ implementation
   constructor tjvmasnode.ppuload(t: tnodetype; ppufile: tcompilerppufile);
     begin
       inherited;
-      classreftypecast:=boolean(ppufile.getbyte);
+      classreftypecast:=ppufile.getboolean;
     end;
 
 
   procedure tjvmasnode.ppuwrite(ppufile: tcompilerppufile);
     begin
       inherited ppuwrite(ppufile);
-      ppufile.putbyte(byte(classreftypecast));
+      ppufile.putboolean(classreftypecast);
     end;
 
 

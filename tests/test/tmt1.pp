@@ -1,19 +1,19 @@
-{ %skiptarget=go32v2 }
+{ %skiptarget=$nothread }
 { %version=1.1 }
 
 {$mode objfpc}
 
 uses
-  sysutils
 {$ifdef unix}
-  ,cthreads
+  cthreads,
 {$endif}
+  sysutils
   ;
 
 const
-{$ifdef cpuarm}
+{$if defined(cpuarm) or defined(cpuavr) or defined(cpui8086) or defined(cpum68k) or defined(cpumips) or defined(cpuz80)}
   {$define slowcpu}
-{$endif cpuarm}
+{$endif}
 
 {$ifdef slowcpu}
    threadcount = 40;
@@ -55,7 +55,7 @@ begin
      if BeginThread({$ifdef fpc}@{$endif}f,pointer(i)) <> tthreadid(0) then
        inc(started);
 
-   while finished<started do
+   while volatile(finished)<started do
      {$ifdef wince}sleep(10){$endif};
    writeln(finished);
 end.

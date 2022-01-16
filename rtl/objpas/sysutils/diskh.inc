@@ -21,9 +21,11 @@ Function SetCurrentDir (Const NewDir : RawByteString) : Boolean;
 Function CreateDir (Const NewDir : RawByteString) : Boolean;
 Function RemoveDir (Const Dir : RawByteString) : Boolean;
 Function ForceDirectories(Const Dir: RawByteString): Boolean;
+Function GetDriveIDFromLetter(Const ADrive : RawByteString) : Byte;
 
 Function SetCurrentDir (Const NewDir : UnicodeString) : Boolean;
 Function CreateDir (Const NewDir : UnicodeString) : Boolean;
 Function RemoveDir (Const Dir : UnicodeString) : Boolean;
 Function ForceDirectories(Const Dir: UnicodeString): Boolean;
+Function GetDriveIDFromLetter(Const ADrive : UnicodeString) : Byte;
 

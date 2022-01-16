@@ -52,7 +52,7 @@ const
 
 function findreg_by_gasname(const s: string): tregisterindex;
 var
-  i, p: tregisterindex;
+  p: tregisterindex;
 begin
   for p := low(tregisterindex) to high(tregisterindex) do
   begin
@@ -84,6 +84,8 @@ begin
       setsubreg(hr, R_SUBFS);
     R_SUBL, R_SUBW, R_SUBD, R_SUBQ:
       setsubreg(hr, R_SUBD);
+    else
+      ;
   end;
   p := findreg_by_number(hr);
   if p <> 0 then

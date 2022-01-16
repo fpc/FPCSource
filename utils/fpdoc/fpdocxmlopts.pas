@@ -1,7 +1,7 @@
 unit fpdocxmlopts;
 
 {$mode objfpc}{$H+}
-
+{$WARN 5024 off : Parameter "$1" not used}
 interface
 
 uses
@@ -13,6 +13,7 @@ Type
   TXMLFPDocOptions = Class(TComponent)
   private
   Protected
+    Function PreProcessFile(const AFileName: String; Macros: TStrings): TStream; virtual;
     Procedure Error(Const Msg : String);
     Procedure Error(Const Fmt : String; Args : Array of Const);
     Procedure LoadPackage(APackage : TFPDocPackage; E : TDOMElement); virtual;
@@ -24,7 +25,7 @@ Type
     procedure SaveInputFile(const AInputFile: String; XML: TXMLDocument; AParent: TDOMElement);virtual;
     Procedure SavePackage(APackage : TFPDocPackage; XML : TXMLDocument; AParent : TDOMElement); virtual;
   Public
-    Procedure LoadOptionsFromFile(AProject : TFPDocProject; Const AFileName : String);
+    Procedure LoadOptionsFromFile(AProject : TFPDocProject; Const AFileName : String; Macros : TStrings = Nil);
     Procedure LoadFromXML(AProject : TFPDocProject; XML : TXMLDocument); virtual;
     Procedure SaveOptionsToFile(AProject : TFPDocProject; Const AFileName : String);
     procedure SaveToXML(AProject : TFPDocProject; ADoc: TXMLDocument); virtual;
@@ -43,15 +44,8 @@ Const
 
 implementation
 
-Uses XMLRead, XMLWrite;
+Uses fpdocstrs, XMLRead, XMLWrite;
 
-Resourcestring
-  SErrInvalidRootNode = 'Invalid options root node: Got "%s", expected "docproject"';
-  SErrNoPackagesNode = 'No "packages" node found in docproject';
-  SErrNoInputFile = 'unit tag without file attribute found';
-  SErrNoDescrFile = 'description tag without file attribute';
-  SErrNoImportFile = 'Import tag without file attribute';
-  SErrNoImportPrefix = 'Import tag without prefix attribute';
 
 { TXMLFPDocOptions }
 
@@ -65,7 +59,7 @@ begin
 end;
 
 
-procedure TXMLFPDocOptions.Error(Const Msg: String);
+procedure TXMLFPDocOptions.Error(const Msg: String);
 begin
   Raise EXMLFPDoc.Create(Msg);
 end;
@@ -79,10 +73,10 @@ end;
 
 procedure TXMLFPDocOptions.LoadPackage(APackage: TFPDocPackage; E: TDOMElement);
 
-  Function LoadInput(I : TDOMElement) : String;
+  Function LoadInput(I : TDOMElement) : UnicodeString;
 
   Var
-    S : String;
+    S : UnicodeString;
 
   begin
     Result:=I['file'];
@@ -93,7 +87,7 @@ procedure TXMLFPDocOptions.LoadPackage(APackage: TFPDocPackage; E: TDOMElement);
       Result:=S+' '+Result;
   end;
 
-  Function LoadDescription(I : TDOMElement) : String;
+  Function LoadDescription(I : TDOMElement) : UnicodeString;
 
   begin
     Result:=I['file'];
@@ -101,10 +95,11 @@ procedure TXMLFPDocOptions.LoadPackage(APackage: TFPDocPackage; E: TDOMElement);
       Error(SErrNoDescrFile);
   end;
 
-  Function LoadImport(I : TDOMElement) : String;
+  Function LoadImport(I : TDOMElement) : UnicodeString;
 
   Var
-    S : String;
+    S : UnicodeString;
+
   begin
     Result:=I['file'];
     If (Result='') then
@@ -120,9 +115,9 @@ Var
   O : TDomElement;
 
 begin
-  APackage.Name:=E['name'];
-  APackage.output:=E['output'];
-  APackage.ContentFile:=E['content'];
+  APackage.Name:=UTF8Encode(E['name']);
+  APackage.output:=UTF8Encode(E['output']);
+  APackage.ContentFile:=UTF8Encode(E['content']);
   N:=E.FirstChild;
   While (N<>Nil) do
     begin
@@ -135,7 +130,7 @@ begin
         While (S<>Nil) do
           begin
           If (S.NodeType=Element_Node) and (S.NodeName='unit') then
-            APackage.Inputs.add(LoadInput(S as TDomElement));
+            APackage.Inputs.add(UTF8Encode(LoadInput(S as TDomElement)));
           S:=S.NextSibling;
           end;
         end
@@ -145,7 +140,7 @@ begin
         While (S<>Nil) do
           begin
           If (S.NodeType=Element_Node) and (S.NodeName='description') then
-            APackage.Descriptions.add(LoadDescription(S as TDomElement));
+            APackage.Descriptions.add(UTF8Encode(LoadDescription(S as TDomElement)));
           S:=S.NextSibling;
           end;
         end
@@ -155,7 +150,7 @@ begin
         While (S<>Nil) do
           begin
           If (S.NodeType=Element_Node) and (S.NodeName='import') then
-            APackage.Imports.add(LoadImport(S as TDomElement));
+            APackage.Imports.add(UTF8Encode(LoadImport(S as TDomElement)));
           S:=S.NextSibling;
           end;
         end
@@ -201,8 +196,8 @@ begin
     begin
     If (O.NodeType=Element_NODE) and (O.NodeName='option') then
       begin
-      N:=LowerCase(TDOMElement(o)['name']);
-      V:=TDOMElement(o)['value'];
+      N:=LowerCase(Utf8Encode(TDOMElement(o)['name']));
+      V:=UTF8Encode(TDOMElement(o)['value']);
       Case IndexOfString(N,OptionNames) of
         0 : Options.HideProtected:=TrueValue(v);
         1 : Options.WarnNoNode:=TrueValue(v);
@@ -248,7 +243,8 @@ begin
     end;
 end;
 
-Procedure TXMLFPDocOptions.SaveEngineOptions(Options : TEngineOptions; XML : TXMLDocument; AParent : TDOMElement);
+procedure TXMLFPDocOptions.SaveEngineOptions(Options: TEngineOptions;
+  XML: TXMLDocument; AParent: TDOMElement);
 
   procedure AddStr(const n, v: string);
   var
@@ -258,8 +254,8 @@ Procedure TXMLFPDocOptions.SaveEngineOptions(Options : TEngineOptions; XML : TXM
       Exit;
     E:=XML.CreateElement('option');
     AParent.AppendChild(E);
-    E['name'] := n;
-    E['value'] := v;
+    E['name'] := Utf8Decode(n);
+    E['value'] := Utf8Decode(v);
   end;
 
   procedure AddBool(const AName: string; B: Boolean);
@@ -288,21 +284,23 @@ begin
 end;
 
 
-Procedure TXMLFPDocOptions.SaveInputFile(Const AInputFile : String; XML : TXMLDocument; AParent: TDOMElement);
+procedure TXMLFPDocOptions.SaveInputFile(const AInputFile: String;
+  XML: TXMLDocument; AParent: TDOMElement);
 
 Var
   F,O : String;
 
 begin
   SplitInputFileOption(AInputFile,F,O);
-  AParent['file']:=F;
-  AParent['options']:=O;
+  AParent['file']:=Utf8Decode(F);
+  AParent['options']:=Utf8Decode(O);
 end;
 
-Procedure TXMLFPDocOptions.SaveDescription(Const ADescription : String; XML : TXMLDocument; AParent: TDOMElement);
+procedure TXMLFPDocOptions.SaveDescription(const ADescription: String;
+  XML: TXMLDocument; AParent: TDOMElement);
 
 begin
-  AParent['file']:=ADescription;
+  AParent['file']:=Utf8Decode(ADescription);
 end;
 
 procedure TXMLFPDocOptions.SaveImportFile(const AImportFile: String;
@@ -313,11 +311,12 @@ Var
 
 begin
   I:=Pos(',',AImportFile);
-  AParent['file']:=Copy(AImportFile,1,I-1);
-  AParent['prefix']:=Copy(AImportFile,i+1,Length(AImportFile));
+  AParent['file']:=Utf8Decode(Copy(AImportFile,1,I-1));
+  AParent['prefix']:=Utf8Decode(Copy(AImportFile,i+1,Length(AImportFile)));
 end;
 
-Procedure TXMLFPDocOptions.SavePackage(APackage: TFPDocPackage; XML : TXMLDocument; AParent: TDOMElement);
+procedure TXMLFPDocOptions.SavePackage(APackage: TFPDocPackage;
+  XML: TXMLDocument; AParent: TDOMElement);
 
 
 var
@@ -325,9 +324,9 @@ var
   E,PE : TDomElement;
 
 begin
-  AParent['name']:=APackage.Name;
-  AParent['output']:=APackage.Output;
-  AParent['content']:=APackage.ContentFile;
+  AParent['name']:=UTF8Decode(APackage.Name);
+  AParent['output']:=UTF8Decode(APackage.Output);
+  AParent['content']:=UTF8Decode(APackage.ContentFile);
   // Units
   PE:=XML.CreateElement('units');
   AParent.AppendChild(PE);
@@ -358,17 +357,55 @@ begin
 end;
 
 
+Function TXMLFPDocOptions.PreprocessFile(const AFileName: String; Macros : TStrings) : TStream;
 
-procedure TXMLFPDocOptions.LoadOptionsFromFile(AProject: TFPDocProject; const AFileName: String);
+Var
+  F : TFileStream;
+  P : TTemplateParser;
+  I : Integer;
+  N,V : String;
+
+begin
+  Result:=Nil;
+  P:=Nil;
+  F:=TFileStream.Create(AFileName,fmOpenRead or fmShareDenyWrite);
+  try
+    P:=TTemplateParser.Create;
+    P.AllowTagParams:=False;
+    P.StartDelimiter:='{{';
+    P.EndDelimiter:='}}';
+    For I:=0 to Macros.Count-1 do
+      begin
+      Macros.GetNameValue(I,N,V);
+      P.Values[N]:=V;
+      end;
+    Result:=TMemoryStream.Create;
+    P.ParseStream(F,Result);
+    Result.Position:=0;
+  finally
+    FreeAndNil(F);
+    FreeAndNil(P);
+  end;
+end;
+
+procedure TXMLFPDocOptions.LoadOptionsFromFile(AProject: TFPDocProject;
+  const AFileName: String; Macros: TStrings = Nil);
 
 Var
   XML : TXMLDocument;
+  S : TStream;
 
 begin
-  ReadXMLFile(XML,AFileName);
+  XML:=Nil;
+  if Macros=Nil then
+    S:=TFileStream.Create(AFileName,fmOpenRead or fmShareDenyWrite)
+  else
+    S:=PreProcessFile(AFileName,Macros);
   try
+    ReadXMLFile(XML,S);
     LoadFromXML(AProject,XML);
   finally
+    FreeAndNil(S);
     FreeAndNil(XML);
   end;
 end;
@@ -393,7 +430,8 @@ begin
     LoadEngineOptions(AProject.Options,N as TDOMElement);
 end;
 
-Procedure TXMLFPDocOptions.SaveOptionsToFile(AProject: TFPDocProject; const AFileName: String);
+procedure TXMLFPDocOptions.SaveOptionsToFile(AProject: TFPDocProject;
+  const AFileName: String);
 
 Var
   XML : TXMLDocument;

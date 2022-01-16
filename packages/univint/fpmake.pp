@@ -13,12 +13,13 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('univint');
+    P.ShortName := 'univ';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.SourcePath.Add('src');
-    P.OSes:=[darwin,iphonesim];
+    P.OSes:=[darwin,iphonesim,ios];
     P.Options.Add('-Mmacpas');
 
     P.SupportBuildModes:=[bmOneByOne];
@@ -73,13 +74,22 @@ begin
     T:=P.Targets.AddImplicitUnit('AppleScript.pas');
     T:=P.Targets.AddImplicitUnit('AudioCodecs.pas');
     T:=P.Targets.AddImplicitUnit('AudioComponents.pas');
+    T:=P.Targets.AddImplicitUnit('AudioConverter.pas');
+    T:=P.Targets.AddImplicitUnit('AudioFile.pas');
+    T:=P.Targets.AddImplicitUnit('AudioFileComponents.pas');
+    T:=P.Targets.AddImplicitUnit('AudioFileStream.pas');
+    T:=P.Targets.AddImplicitUnit('AudioFormat.pas');
     T:=P.Targets.AddImplicitUnit('AudioHardware.pas');
     T:=P.Targets.AddImplicitUnit('AudioHardwareBase.pas');
     T:=P.Targets.AddImplicitUnit('AudioHardwareDeprecated.pas');
+    T:=P.Targets.AddImplicitUnit('AudioHardwareService.pas');
     T:=P.Targets.AddImplicitUnit('AudioOutputUnit.pas');
+    T:=P.Targets.AddImplicitUnit('AudioQueue.pas');
+    T:=P.Targets.AddImplicitUnit('AudioServices.pas');
     T:=P.Targets.AddImplicitUnit('AudioUnitCarbonViews.pas');
     T:=P.Targets.AddImplicitUnit('AudioUnitParameters.pas');
     T:=P.Targets.AddImplicitUnit('AudioUnitProperties.pas');
+    T:=P.Targets.AddImplicitUnit('AudioUnitUtilities.pas');
     T:=P.Targets.AddImplicitUnit('AuthSession.pas');
     T:=P.Targets.AddImplicitUnit('Authorization.pas');
     T:=P.Targets.AddImplicitUnit('AuthorizationDB.pas');
@@ -101,12 +111,15 @@ begin
     T:=P.Targets.AddImplicitUnit('CFDateFormatter.pas');
     T:=P.Targets.AddImplicitUnit('CFDictionary.pas');
     T:=P.Targets.AddImplicitUnit('CFError.pas');
+    T:=P.Targets.AddImplicitUnit('CFFileDescriptor.pas');
+    T:=P.Targets.AddImplicitUnit('CFFileSecurity.pas');
     T:=P.Targets.AddImplicitUnit('CFFTPStream.pas');
     T:=P.Targets.AddImplicitUnit('CFHTTPAuthentication.pas');
     T:=P.Targets.AddImplicitUnit('CFHTTPMessage.pas');
     T:=P.Targets.AddImplicitUnit('CFHTTPStream.pas');
     T:=P.Targets.AddImplicitUnit('CFHost.pas');
     T:=P.Targets.AddImplicitUnit('CFLocale.pas');
+    T:=P.Targets.AddImplicitUnit('CFURLEnumerator.pas');
     T:=P.Targets.AddImplicitUnit('CFMachPort.pas');
     T:=P.Targets.AddImplicitUnit('CFMessagePort.pas');
     T:=P.Targets.AddImplicitUnit('CFNetDiagnostics.pas');
@@ -426,6 +439,11 @@ begin
     T:=P.Targets.AddImplicitUnit('Script.pas');
     T:=P.Targets.AddImplicitUnit('SecBase.pas');
     T:=P.Targets.AddImplicitUnit('SecTrust.pas');
+    T:=P.Targets.AddImplicitUnit('SKAnalysis.pas');
+    T:=P.Targets.AddImplicitUnit('SKDocument.pas');
+    T:=P.Targets.AddImplicitUnit('SKIndex.pas');
+    T:=P.Targets.AddImplicitUnit('SKSearch.pas');
+    T:=P.Targets.AddImplicitUnit('SKSummary.pas');
     T:=P.Targets.AddImplicitUnit('Sound.pas');
     T:=P.Targets.AddImplicitUnit('SpeechRecognition.pas');
     T:=P.Targets.AddImplicitUnit('SpeechSynthesis.pas');
@@ -456,6 +474,7 @@ begin
     T:=P.Targets.AddImplicitUnit('WSMethodInvocation.pas');
     T:=P.Targets.AddImplicitUnit('WSProtocolHandler.pas');
     T:=P.Targets.AddImplicitUnit('WSTypes.pas');
+    T:=P.Targets.AddImplicitUnit('acl.pas');
     T:=P.Targets.AddImplicitUnit('cblas.pas');
     T:=P.Targets.AddImplicitUnit('certextensions.pas');
     T:=P.Targets.AddImplicitUnit('cssmapple.pas');
@@ -505,6 +524,7 @@ begin
           AddInclude('src/Threads.pas');
           AddInclude('src/UTCUtils.pas');
           AddInclude('src/UnicodeConverter.pas');
+          AddInclude('src/acl.pas');
           AddInclude('src/cblas.pas');
           AddInclude('src/cssmconfig.pas');
           AddInclude('src/cssmerr.pas');
@@ -645,11 +665,14 @@ begin
           AddInclude('src/CFArray.pas');
           AddInclude('src/CFBag.pas');
           AddInclude('src/CFCharacterSet.pas');
+          AddInclude('src/CFFileDescriptor.pas');
+          AddInclude('src/CFFileSecurity.pas');
           AddInclude('src/CFLocale.pas');
           AddInclude('src/CFNumberFormatter.pas');
           AddInclude('src/CFString.pas');
           AddInclude('src/CFStringTokenizer.pas');
           AddInclude('src/CFTimeZone.pas');
+          AddInclude('src/CFURLEnumerator.pas');
           AddInclude('src/CFUUID.pas');
           AddInclude('src/CGAffineTransforms.pas');
           AddInclude('src/CGImageMetadata.pas');
@@ -935,6 +958,11 @@ begin
           AddInclude('src/IBCarbonRuntime.pas');
           AddInclude('src/HIToolbox.pas');
           AddInclude('src/ObjCRuntime.pas');
+          AddInclude('src/SKAnalysis.pas');
+          AddInclude('src/SKDocument.pas');
+          AddInclude('src/SKIndex.pas');
+          AddInclude('src/SKSearch.pas');
+          AddInclude('src/SKSummary.pas');
         end;
 
     P.ExamplePath.Add('examples');

@@ -15,6 +15,8 @@
 
 Unit CPUInfo;
 
+{$i fpcdefs.inc}
+
 Interface
 
   uses
@@ -22,13 +24,11 @@ Interface
 
 Type
    bestreal = extended;
-{$if FPC_FULLVERSION>20700}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
    bestrealrec = TExtended80Rec;
 {$else}
    bestrealrec = TDoubleRec;
 {$endif}
-{$endif FPC_FULLVERSION>20700}
    ts32real = single;
    ts64real = double;
    ts80real = type extended;
@@ -42,6 +42,10 @@ Type
       (cpu_none
       );
 
+   { copied from arm/cpuinfo unit for arm specific
+     TSettings field }
+   tinstructionset = (is_thumb,is_arm);
+
 
 Type
    tfputype =
@@ -52,6 +56,12 @@ Type
    tcontrollertype =
      (ct_none
      );
+
+   tcontrollerdatatype = record
+      controllertypestr, controllerunitstr: string[20];
+      cputype: tcputype; fputype: tfputype;
+      flashbase, flashsize, srambase, sramsize, eeprombase, eepromsize, bootbase, bootsize: dword;
+   end;
 
 Const
    { Is there support for dealing with multiple microcontrollers available }
@@ -64,7 +74,7 @@ Const
     {$WARN 3177 OFF}
    embedded_controllers : array [tcontrollertype] of tcontrollerdatatype =
    (
-      (controllertypestr:''; controllerunitstr:''; flashbase:0; flashsize:0; srambase:0; sramsize:0));
+      (controllertypestr:''; controllerunitstr:''; cputype:cpu_none; fputype:fpu_none; flashbase:0; flashsize:0; srambase:0; sramsize:0));
    {$POP}
 
    cputypestr : array[tcputype] of string[8] = ('none');

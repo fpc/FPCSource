@@ -38,6 +38,23 @@ begin
   RawPutChar(#10);
 end;
 
+procedure SysDebug(const s: ShortString); platform;
+var
+  i: LongInt;
+begin
+  for i:=1 to Length(s) do
+    RawPutChar(s[i]);
+end;
+
+procedure SysDebugLn(const s: ShortString); platform;
+var
+  i: LongInt;
+begin
+  for i:=1 to Length(s) do
+    RawPutChar(s[i]);
+  RawPutChar(#10);
+end;
+
 procedure SysDebugLn; {$IFDEF SYSTEMINLINE}inline;{$ENDIF} platform;
 begin
   RawPutChar(#10);

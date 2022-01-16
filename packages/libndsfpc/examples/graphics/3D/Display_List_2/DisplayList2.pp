@@ -70,6 +70,7 @@ begin
 		glPopMatrix(1);
 			
 		glFlush(0);
+   if (keys and KEY_START) <> 0 then break;
 	end;
 
 end.

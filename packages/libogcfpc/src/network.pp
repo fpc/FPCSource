@@ -235,9 +235,9 @@ type
 function net_init_async(cb: netcallback; usrdata: pointer): cint32; cdecl; external;
 function net_get_status: cint32; cdecl; external;
 procedure net_wc24cleanup; cdecl; external;
-function net_get_mac_address(mac_buf: pointer): cint32; cdecl; external;
 {$endif}
 
+function net_get_mac_address(mac_buf: pointer): cint32; cdecl; external;
 procedure net_deinit; cdecl; external;
 function net_gethostip: cuint32; cdecl; external;
 function net_socket(domain, type_, protocol: cuint32): cint32; cdecl; external;

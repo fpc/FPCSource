@@ -77,7 +77,7 @@ unit rgcpu;
             else
               hreg:=cg.getintregister(helplist,OS_ADDR);
 
-            reference_reset(tmpref,sizeof(aint));
+            reference_reset(tmpref,sizeof(aint),[]);
             tmpref.offset:=spilltemp.offset;
             tmpref.refaddr := addr_higha;
             ins:=taicpu.op_reg_reg_ref(A_ADDIS,hreg,spilltemp.base,tmpref);
@@ -117,7 +117,7 @@ unit rgcpu;
             helplist:=TAsmList.create;
 
             if (spilltemp.index<>NR_NO) then
-              internalerror(200704201);
+              internalerror(2007042002);
 
             if getregtype(tempreg)=R_INTREGISTER then
               begin
@@ -127,7 +127,7 @@ unit rgcpu;
               end
             else
               hreg:=cg.getintregister(helplist,OS_ADDR);
-            reference_reset(tmpref,sizeof(aint));
+            reference_reset(tmpref,sizeof(aint),[]);
             tmpref.offset:=spilltemp.offset;
             tmpref.refaddr := addr_higha;
             ins:=taicpu.op_reg_reg_ref(A_ADDIS,hreg,spilltemp.base,tmpref);

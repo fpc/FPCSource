@@ -60,7 +60,7 @@ function SerRead(Handle: TSerialHandle; var Buffer; Count: LongInt): LongInt;
 
 { Tries to write "Count" bytes from "Buffer".
   Result: Number of bytes written. }
-function SerWrite(Handle: TSerialHandle; var Buffer; Count: LongInt): LongInt;
+function SerWrite(Handle: TSerialHandle; Const Buffer; Count: LongInt): LongInt;
 
 procedure SerSetParams(Handle: TSerialHandle; BitsPerSec: LongInt;
   ByteSize: Integer; Parity: TParityType; StopBits: Integer;
@@ -278,7 +278,7 @@ begin
 end { SerRead } ;
 
 
-function SerWrite(Handle: TSerialHandle; var Buffer; Count: LongInt): LongInt;
+function SerWrite(Handle: TSerialHandle; const Buffer; Count: LongInt): LongInt;
 
 var     BytesWritten: DWORD;
 
@@ -463,7 +463,7 @@ begin
     Timeouts.ReadTotalTimeoutConstant := mSec;
     SetCommTimeouts(Handle, Timeouts)
   end;
-  if not ReadFile(Handle, Buffer, count, BytesRead, nil) then
+  if not ReadFile(Handle, Buffer[0], count, BytesRead, nil) then
     result := 0
   else
     result := BytesRead

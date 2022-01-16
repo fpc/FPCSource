@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
 
@@ -27,7 +27,9 @@ begin
     P.Email := '';
     P.Description := 'Windows registry + emulation parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes:=AllOSes-[embedded,msdos];
+    P.OSes:=AllOSes-[embedded,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
@@ -35,7 +37,8 @@ begin
       with T.Dependencies do
         begin
           AddInclude('regdef.inc');
-          AddInclude('xregreg.inc');
+          AddInclude('winreg.inc',AllWindowsOSes);
+          AddInclude('xregreg.inc',AllOSes-AllWindowsOSes);
           AddInclude('regini.inc');
           AddUnit('xmlreg');
         end;
@@ -43,8 +46,7 @@ begin
     T:=P.Targets.AddUnit('xmlreg.pp');
 
     P.ExamplePath.Add('examples');
-    P.Targets.AddExampleProgram('tests/testbasics.pp');
-    P.Targets.AddExampleProgram('tests/regtestframework.pp');
+    P.Targets.AddExampleProgram('tests/tregtestframework.pp');
     // 'tests/Makefile
     // 'tests/Makefile.fpc
 

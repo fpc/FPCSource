@@ -28,7 +28,7 @@ unit hlcgppc;
 interface
 
 uses
-  globals,
+  globtype,globals,
   aasmdata,
   symtype,symdef,
   cgbase,cgutils,hlcgobj,hlcg2ll;
@@ -39,7 +39,7 @@ type
     procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tdef; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); override;
    public
     procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
-    procedure g_external_wrapper(list: TAsmList; pd: TProcDef; const externalname: string); override;
+    procedure a_jmp_external_name(list: TAsmList; const externalname: TSymStr); override;
     procedure gen_load_para_value(list: TAsmList); override;
   end;
 
@@ -50,7 +50,7 @@ implementation
     systems,fmodule,
     symconst,
     aasmbase,aasmtai,aasmcpu,
-    cpubase,globtype,
+    cpubase,
     procinfo,cpupi,cgobj,cgppc,
     defutil;
 
@@ -103,7 +103,7 @@ implementation
       var
         href : treference;
       begin
-        reference_reset_base(href,voidpointertype,NR_R3,0,sizeof(pint));
+        reference_reset_base(href,voidpointertype,NR_R3,0,ctempposinvalid,sizeof(pint),[]);
         cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R11);
       end;
 
@@ -113,16 +113,16 @@ implementation
         href : treference;
       begin
         if (procdef.extnumber=$ffff) then
-          Internalerror(200006139);
+          Internalerror(2000061310);
         { call/jmp  vmtoffs(%eax) ; method offs }
-        reference_reset_base(href,voidpointertype,NR_R11,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
+        reference_reset_base(href,voidpointertype,NR_R11,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,sizeof(pint),[]);
         if tcgppcgen(cg).hasLargeOffset(href) then
           begin
-{$ifdef cpu64}
+{$ifdef cpu64bitaddr}
             if (longint(href.offset) <> href.offset) then
               { add support for offsets > 32 bit }
               internalerror(200510201);
-{$endif cpu64}
+{$endif cpu64bitaddr}
             list.concat(taicpu.op_reg_reg_const(A_ADDIS,NR_R11,NR_R11,
               smallint((href.offset shr 16)+ord(smallint(href.offset and $ffff) < 0))));
             href.offset := smallint(href.offset and $ffff);
@@ -134,7 +134,7 @@ implementation
            ((target_info.system = system_powerpc64_linux) and
             (target_info.abi=abi_powerpc_sysv)) then
           begin
-            reference_reset_base(href, voidpointertype, NR_R12, 0, sizeof(pint));
+            reference_reset_base(href, voidpointertype, NR_R12, 0, ctempposinvalid, sizeof(pint),[]);
             cg.a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R12);
           end;
         list.concat(taicpu.op_reg(A_MTCTR,NR_R12));
@@ -163,9 +163,9 @@ implementation
         make_global:=true;
 
       if make_global then
-        List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
+        List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0,procdef))
       else
-        List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
+        List.concat(Tai_symbol.Createname_hidden(labelname,AT_FUNCTION,0,procdef));
 
       { set param1 interface to self  }
       g_adjust_self_value(list,procdef,ioffset);
@@ -183,17 +183,22 @@ implementation
           system_powerpc_darwin,
           system_powerpc64_darwin:
             list.concat(taicpu.op_sym(A_B,tcgppcgen(cg).get_darwin_call_stub(procdef.mangledname,false)));
-          else if use_dotted_functions then
-            {$note ts:todo add GOT change?? - think not needed :) }
-            list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol('.' + procdef.mangledname)))
           else
-            list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname)))
+            begin
+              if use_dotted_functions then
+                {$note ts:todo add GOT change?? - think not needed :) }
+                list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol('.' + procdef.mangledname,AT_FUNCTION)))
+              else
+                list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)));
+              if (target_info.system in ([system_powerpc64_linux]+systems_aix)) then
+                list.concat(taicpu.op_none(A_NOP));
+            end;
         end;
       List.concat(Tai_symbol_end.Createname(labelname));
     end;
 
 
-  procedure thlcgppcgen.g_external_wrapper(list: TAsmList; pd: TProcDef; const externalname: string);
+  procedure thlcgppcgen.a_jmp_external_name(list: TAsmList; const externalname: TSymStr);
     var
       href : treference;
     begin
@@ -221,11 +226,11 @@ implementation
       }
       list.concat(taicpu.op_reg(A_MFLR, NR_R0));
       if target_info.abi=abi_powerpc_sysv then
-        reference_reset_base(href, voidstackpointertype, NR_STACK_POINTER_REG, LA_LR_SYSV, 8)
+        reference_reset_base(href, voidstackpointertype, NR_STACK_POINTER_REG, LA_LR_SYSV, ctempposinvalid, 8, [])
       else
-        reference_reset_base(href, voidstackpointertype, NR_STACK_POINTER_REG, LA_LR_AIX, 8);
+        reference_reset_base(href, voidstackpointertype, NR_STACK_POINTER_REG, LA_LR_AIX, ctempposinvalid, 8, []);
       cg.a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_R0,href);
-      reference_reset_base(href, voidstackpointertype, NR_STACK_POINTER_REG, -MINIMUM_STACKFRAME_SIZE, 8);
+      reference_reset_base(href, voidstackpointertype, NR_STACK_POINTER_REG, -MINIMUM_STACKFRAME_SIZE, ctempposinvalid, 8, []);
       list.concat(taicpu.op_reg_ref({$ifdef cpu64bitaddr}A_STDU{$else}A_STWU{$endif}, NR_STACK_POINTER_REG, href));
 
       cg.a_call_name(list,externalname,false);
@@ -234,9 +239,9 @@ implementation
 
 
       if target_info.abi=abi_powerpc_sysv then
-        reference_reset_base(href, voidstackpointertype, NR_STACK_POINTER_REG, LA_LR_SYSV, 8)
+        reference_reset_base(href, voidstackpointertype, NR_STACK_POINTER_REG, LA_LR_SYSV, ctempposinvalid, 8, [])
       else
-        reference_reset_base(href, voidstackpointertype, NR_STACK_POINTER_REG, LA_LR_AIX, 8);
+        reference_reset_base(href, voidstackpointertype, NR_STACK_POINTER_REG, LA_LR_AIX, ctempposinvalid, 8, []);
       cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R0);
       list.concat(taicpu.op_reg(A_MTLR, NR_R0));
       list.concat(taicpu.op_none(A_BLR));
@@ -248,11 +253,11 @@ implementation
       { get the register that contains the stack pointer before the procedure
         entry, which is used to access the parameters in their original
         callee-side location }
-      if (tppcprocinfo(current_procinfo).needs_frame_pointer) then
+      if (tcpuprocinfo(current_procinfo).needs_frame_pointer) then
         getcpuregister(list,NR_OLD_STACK_POINTER_REG);
       inherited;
       { free it again }
-      if (tppcprocinfo(current_procinfo).needs_frame_pointer) then
+      if (tcpuprocinfo(current_procinfo).needs_frame_pointer) then
         ungetcpuregister(list,NR_OLD_STACK_POINTER_REG);
     end;
 

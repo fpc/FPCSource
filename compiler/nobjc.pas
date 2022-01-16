@@ -57,14 +57,10 @@ var
 implementation
 
 uses
-  sysutils,
-  globtype,globals,cclasses,systems,
+  globtype,globals,
   verbose,pass_1,
-  defutil,
-  symtype,symtable,symdef,symconst,symsym,
-  paramgr,
-  nutils,
-  nbas,nld,ncnv,ncon,ncal,nmem,
+  symdef,symconst,
+  ncon,ncal,
   objcutil,
   cgbase;
 
@@ -84,6 +80,7 @@ function tobjcselectornode.pass_typecheck: tnode;
     len: longint;
     s: shortstring;
   begin
+    s:='';
     if not(m_objectivec1 in current_settings.modeswitches) then
       Message(parser_f_modeswitch_objc_required);
     result:=nil;

@@ -43,6 +43,8 @@ unit tgcpu;
 implementation
 
 uses
+  globals,
+  verbose,
   cpubase;
 
 { ttgi8086 }
@@ -51,6 +53,8 @@ procedure ttgi8086.alloctemp(list: TAsmList; size: asizeint; alignment: shortint
   begin
     inherited;
     ref.segment:=NR_SS;
+    if abs(ref.offset) > globals.StackSize then
+      message(cg_e_localsize_too_big);
   end;
 
 begin

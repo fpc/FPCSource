@@ -73,7 +73,7 @@ const  // Checked OK 05.08.2011 ALB
   NT_KICKMEM      = 17;
   NT_GRAPHICS     = 18;
   NT_DEATHMESSAGE = 19;
-  NT_HIDD	  = 20;	// AROS specific
+  NT_HIDD   = 20; // AROS specific
   NT_USER         = 254;
   NT_EXTENDED     = 255;
 
@@ -111,7 +111,7 @@ type  // Checked OK 05.08.2011 ALB
 
 const  // Checked OK 04.08.2011 ALB
 // General Types
-  AT_DeadEnd              = $80000000;  // Alert that crashes 
+  AT_DeadEnd              = $80000000;  // Alert that crashes
   AT_Recovery             = $00000000;  // Alert that returns
 // General Errors
   AG_NoMemory             = $00010000;
@@ -406,7 +406,7 @@ const  // Checked OK 04.08.2011 ALB
   AN_OOP                  = $41000000;
 // Hidd Subsystem */
   AN_Hidd                 = $42000000;
-  AN_HiddNoRoot           = $C2000001;	// Could not create root device
+  AN_HiddNoRoot           = $C2000001;  // Could not create root device
 
   { *
     * For use by any application that needs it
@@ -416,7 +416,7 @@ const  // Checked OK 04.08.2011 ALB
 
 
 
-{ * exec error definitions 
+{ * exec error definitions
   *********************************************************************
   * }
 
@@ -506,7 +506,7 @@ type  // Checked OK 05.08.2011 ALB
   TMemEntry = record
     me_Un: record
     case Byte of
-      0 : (meu_Regs: DWord);
+      0 : (meu_Reqs: DWord);
       1 : (meu_Addr: Pointer)
     end;
     me_Length: DWord;
@@ -517,7 +517,7 @@ type  // Checked OK 05.08.2011 ALB
   TMemList = record
     ml_Node      : TNode;
     ml_NumEntries: Word;
-    ml_ME        : PMemEntry;
+    ml_ME        : array [0..0] of TMemEntry;
   end;
 
 
@@ -603,32 +603,33 @@ type
 type
   PTask = ^TTask;
   TTask = record
-    tc_Node     : TNode;
-    tc_Flags    : Byte;
-    tc_State    : Byte;
-    tc_IDNestCnt: ShortInt;
-    tc_TDNestCnt: ShortInt;
-    tc_SigAlloc : DWord;
-    tc_SigWait  : DWord;
-    tc_SigRecvd : DWord;
-    tc_SigExcept: DWord;
-    {$IF 0}
-      tc_TrapAlloc: Word;
-      tc_TrapAble : Word;
-    {$ELSE}
-      tc_ETask: Pointer;
-    {$ENDIF}
-    tc_ExceptData: Pointer;
-    tc_ExceptCode: Pointer;
-    tc_TrapData  : Pointer;
-    tc_TrapCode  : Pointer;
-    tc_SPReg     : Pointer;
-    tc_SPLower   : Pointer;
-    tc_SPUpper   : Pointer;
-    tc_Switch    : Pointer; { *** OBSOLETE *** }
-    tc_Launch    : Pointer; { *** OBSOLETE *** }
-    tc_MemEntry  : TEList;
-    tc_UserData  : Pointer;
+    tc_Node: TNode;
+    tc_Flags: Byte;
+    tc_State: Byte;
+    tc_IDNestCnt: Shortint; // intr disabled nesting
+    tc_TDNestCnt: Shortint; // task disabled nesting
+    tc_SigAlloc: LongWord;  // sigs allocated
+    tc_SigWait: LongWord;   // sigs we are waiting for
+    tc_SigRecvd: LongWord;  // sigs we have received
+    tc_SigExcept: LongWord; // sigs we will take excepts for
+    case boolean of
+      True:(
+        tc_TrapAlloc: Word;  // traps allocated
+        tc_TrapAble: Word;); // traps enabled
+      False:(
+        tc_ETask: Pointer;      // Valid if TF_ETask is set
+        tc_ExceptData: Pointer; // points to except data
+        tc_ExceptCode: Pointer; // points to except code
+        tc_TrapData: Pointer;   // points to trap data
+        tc_TrapCode: Pointer;   // points to trap code
+        tc_SPReg: Pointer;      // stack pointer
+        tc_SPLower: Pointer;    // stack lower bound
+        tc_SPUpper: Pointer;    // stack upper bound + 2
+        tc_Switch: Pointer;     // task losing CPU
+        tc_Launch: Pointer;     // task getting CPU
+        tc_MemEntry: TEList;    // allocated memory
+        tc_UserData: Pointer;   // per task data
+      );
   end;
 
 
@@ -881,9 +882,9 @@ type
   end;
 
 type
-  PPPCStackSwapArgs = ^TPPCStackSwapArgs;
-  TPPCStackSwapArgs = record
-    Args: Array[0..7] Of DWord; { * The C register arguments from gpr3..gpr11 * }
+  PStackSwapArgs = ^TStackSwapArgs;
+  TStackSwapArgs = record
+    Args: Array[0..7] Of Pointer;
   end;
 
 
@@ -1522,9 +1523,9 @@ type  // Checked OK 05.08.2011 ALB
   TExecBase = record
     // lib structure for Exec
     LIbNode     : TLibrary;
-    
+
     // system constants
-    
+
     SoftVer     : Word; // obsolete
     LowMemChkSum: SmallInt;
     ChkBase     : PtrUInt;
@@ -1539,13 +1540,13 @@ type  // Checked OK 05.08.2011 ALB
     AlertData   : Pointer;
     MaxExtMem   : Pointer; // Extended Memory Pointer (may be nil)
     ChkSum      : Word;    // SoftVer to MaxExtMem
-    
+
     // interrupts
-    
+
     IntVects    : Array[0..15] Of TIntVector;
-    
+
     // System Variables
-    
+
     ThisTask    : PTask; // Pointer to currently running Task READONLY
     IdleCount   : DWord;
     DispCount   : DWord;
@@ -1575,23 +1576,23 @@ type  // Checked OK 05.08.2011 ALB
     TaskReady   : TEList;
     TaskWait    : TEList;
     SoftInts    : Array[0..4] Of TSoftIntList;
-    
+
     //stuff
-    
+
     LastAlert   : Array[0..3] Of LongInt;
 
     VBlankFrequency     : Byte;
     PowerSupplyFrequency: Byte;  // AROS PRIVATE: VBlankFreq * PowerSupplyFreq = Timer Tick Rate
     SemaphoreList       : TEList;
-    
+
     // Kickstart
-    
+
     KickMemPtr          : Pointer;
     KickTagPtr          : Pointer;
     KickCheckSum        : Pointer;
-    
+
     // Miscellaneous stuff
-    
+
     ex_Pad0             : Word;
     ex_LaunchPoint      : PtrUInt;
     ex_RamLibPrivate    : Pointer;
@@ -1743,7 +1744,7 @@ const  // Checked OK 05.08.2011 ALB
 // AttnFlags
   ARF_AttnSwitch      = (1 shl 7);  // Delayed Switch() pending
   ARF_AttnDispatch    = (1 shl 15); // Delayed Dispatch() pending
-  
+
 const
   { *
     * Execbase list IDs

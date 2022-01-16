@@ -302,7 +302,7 @@ const NLM_MAX_DESCRIPTION_LENGTH = 127;
        end;
 
        TNLMCoffassembler = class(tinternalassembler)
-         constructor create(smart:boolean);override;
+         constructor create(info: pasminfo; smart:boolean);override;
        end;
 
       TNLMCoffObjData = class(TCoffObjData)
@@ -314,7 +314,7 @@ const NLM_MAX_DESCRIPTION_LENGTH = 127;
        end;
 
       TNLMCoffObjSection = class(TCoffObjSection)
-         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
+         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);override;
        end;
 
 implementation
@@ -326,7 +326,7 @@ implementation
        SysUtils,
        cutils,verbose,globals,
        fmodule,aasmdata,
-       ogmap,export
+       ogmap,export,owar
        ;
 
 
@@ -1452,7 +1452,7 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
                                TNLMoffObjSection
 ****************************************************************************}
 
-    constructor TNLMCoffObjSection.create(AList:TFPHashObjectList;const aname:string;aalign:shortint;aoptions:TObjSectionOptions);
+    constructor TNLMCoffObjSection.create(AList:TFPHashObjectList;const aname:string;aalign:longint;aoptions:TObjSectionOptions);
       begin
         inherited create(alist,aname,aalign,aoptions);
       end;
@@ -1471,10 +1471,11 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
                                  TDJCoffAssembler
 ****************************************************************************}
 
-    constructor TNLMCoffAssembler.Create(smart:boolean);
+    constructor TNLMCoffAssembler.Create(info: pasminfo; smart:boolean);
       begin
-        inherited Create(smart);
+        inherited;
         CObjOutput:=TNLMCoffObjOutput;
+        CInternalAr:=tarobjectwriter;
       end;
 
     constructor TNLMCoffObjInput.create;
@@ -1496,6 +1497,7 @@ const
             supported_targets : [system_i386_Netware,system_i386_netwlibc];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '';
             dollarsign: '$';
           );

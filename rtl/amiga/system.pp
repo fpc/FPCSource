@@ -21,15 +21,47 @@ unit System;
 interface
 
 {$define FPC_IS_SYSTEM}
+{$define FPC_ANSI_TEXTFILEREC}
+
+{$if defined(AMIGA_V1_0_ONLY) or defined(AMIGA_V1_2_ONLY)}
+{$define AMIGA_LEGACY}
+{$endif}
+
+{$if defined(AMIGA_LEGACY) or defined(AMIGA_USE_OSHEAP)}
+{$define FPC_AMIGA_USE_OSHEAP}
+{$endif}
+
+{$ifdef FPC_AMIGA_USE_OSHEAP}
+{$define HAS_MEMORYMANAGER}
+{$endif FPC_AMIGA_USE_OSHEAP}
 
 {$I systemh.inc}
 {$I osdebugh.inc}
 
-{$ifdef cpum68k}
+{$if defined(cpum68k) and defined(fpusoft)}
 {$define fpc_softfpu_interface}
 {$i softfpu.pp}
 {$undef fpc_softfpu_interface}
-{$endif cpum68k}
+{$endif defined(cpum68k) and defined(fpusoft)}
+
+const
+{$if defined(AMIGA_V1_0_ONLY)}
+  AMIGA_OS_MINVERSION = 0;
+{$else}
+{$if defined(AMIGA_V1_2_ONLY)}
+  AMIGA_OS_MINVERSION = 33;
+{$else}
+{$if defined(AMIGA_V2_0_ONLY)}
+  AMIGA_OS_MINVERSION = 37;
+{$else}
+{$ifndef cpupowerpc}
+  AMIGA_OS_MINVERSION = 39;
+{$else}
+  AMIGA_OS_MINVERSION = 50;
+{$endif}
+{$endif}
+{$endif}
+{$endif}
 
 const
   LineEnding = #10;
@@ -80,6 +112,7 @@ var
 
   ASYS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
   ASYS_heapSemaphore: Pointer; { 68k OS from 3.x has no MEMF_SEM_PROTECTED for pools, have to do it ourselves }
+  ASYS_fileSemaphore: Pointer; { mutex semaphore for filelist access arbitration }
   ASYS_origDir  : LongInt; { original directory on startup }
   AOS_wbMsg    : Pointer; public name '_WBenchMsg'; { the "public" part is amunits compatibility kludge }
   _WBenchMsg   : Pointer; external name '_WBenchMsg'; { amunits compatibility kludge }
@@ -93,8 +126,11 @@ var
 
 implementation
 
-{$ifdef cpum68k}
+{$if defined(cpum68k) and defined(fpusoft)}
+
 {$define fpc_softfpu_implementation}
+{$define softfpu_compiler_mul32to64}
+{$define softfpu_inline}
 {$i softfpu.pp}
 {$undef fpc_softfpu_implementation}
 
@@ -109,9 +145,12 @@ implementation
 {$define FPC_SYSTEM_HAS_ExtractFloat32Frac}
 {$define FPC_SYSTEM_HAS_extractFloat32Exp}
 {$define FPC_SYSTEM_HAS_extractFloat32Sign}
-{$endif cpum68k}
+{$endif defined(cpum68k) and defined(fpusoft)}
 
 {$I system.inc}
+{$ifdef FPC_AMIGA_USE_OSHEAP}
+{$i osheap.inc}
+{$endif FPC_AMIGA_USE_OSHEAP}
 {$I osdebug.inc}
 
 {$IFDEF AMIGAOS4}
@@ -128,6 +167,27 @@ implementation
 {$WARNING Compiling with memory debug enabled!}
 {$ENDIF}
 
+type
+    PWBArg = ^TWBArg;
+    TWBArg = record
+        wa_Lock         : LongInt;      { a lock descriptor }
+        wa_Name         : PChar;       { a string relative to that lock }
+    end;
+
+    WBArgList = array[1..MaxInt] of TWBArg; { Only 1..smNumArgs are valid }
+    PWBArgList = ^WBArgList;
+
+
+    PWBStartup = ^TWBStartup;
+    TWBStartup = record
+        sm_Message      : TMessage;      { a standard message structure }
+        sm_Process      : Pointer;   { the process descriptor for you }
+        sm_Segment      : Pointer;     { a descriptor for your code }
+        sm_NumArgs      : Longint;      { the number of elements in ArgList }
+        sm_ToolWindow   : Pointer;       { description of window }
+        sm_ArgList      : PWBArgList; { the arguments themselves }
+    end;
+
 
 {*****************************************************************************
                        Misc. System Dependent Functions
@@ -139,6 +199,10 @@ procedure System_exit;
 var
   oldDirLock: LongInt;
 begin
+  { Dispose the thread init/exit chains }
+  CleanupThreadProcChain(threadInitProcList);
+  CleanupThreadProcChain(threadExitProcList);
+
   { We must remove the CTRL-C FLAG here because halt }
   { may call I/O routines, which in turn might call  }
   { halt, so a recursive stack crash                 }
@@ -177,146 +241,16 @@ begin
   haltproc(ExitCode);
 end;
 
-{ Generates correct argument array on startup }
-procedure GenerateArgs;
-var
-  argvlen : longint;
-
-  procedure allocarg(idx,len:longint);
-    var
-      i,oldargvlen : longint;
-    begin
-      if idx>=argvlen then
-        begin
-          oldargvlen:=argvlen;
-          argvlen:=(idx+8) and (not 7);
-          sysreallocmem(argv,argvlen*sizeof(pointer));
-          for i:=oldargvlen to argvlen-1 do
-            argv[i]:=nil;
-        end;
-      ArgV [Idx] := SysAllocMem (Succ (Len));
-    end;
-
-var
-  count: word;
-  start: word;
-  localindex: word;
-  p : pchar;
-  temp : string;
-
-begin
-  p:=GetArgStr;
-  argvlen:=0;
-
-  { Set argv[0] }
-  temp:=paramstr(0);
-  allocarg(0,length(temp));
-  move(temp[1],argv[0]^,length(temp));
-  argv[0][length(temp)]:=#0;
-
-  { check if we're started from Ambient }
-  if AOS_wbMsg<>nil then
-    begin
-      argc:=0;
-      exit;
-    end;
-
-  { Handle the other args }
-  count:=0;
-  { first index is one }
-  localindex:=1;
-  while (p[count]<>#0) do
-    begin
-      while (p[count]=' ') or (p[count]=#9) or (p[count]=LineEnding) do inc(count);
-      start:=count;
-      while (p[count]<>#0) and (p[count]<>' ') and (p[count]<>#9) and (p[count]<>LineEnding) do inc(count);
-      if (count-start>0) then
-        begin
-          allocarg(localindex,count-start);
-          move(p[start],argv[localindex]^,count-start);
-          argv[localindex][count-start]:=#0;
-          inc(localindex);
-        end;
-    end;
-  argc:=localindex;
-end;
-
-function GetProgDir: String;
-var
-  s1     : String;
-  alock  : LongInt;
-  counter: Byte;
-begin
-  GetProgDir:='';
-  FillChar(s1,255,#0);
-  { GetLock of program directory }
-
-  alock:=GetProgramDir;
-  if alock<>0 then begin
-    if NameFromLock(alock,@s1[1],255) then begin
-      counter:=1;
-      while (s1[counter]<>#0) and (counter<>0) do Inc(counter);
-      s1[0]:=Char(counter-1);
-      GetProgDir:=s1;
-    end;
-  end;
-end;
-
-function GetProgramName: String;
-{ Returns ONLY the program name }
-var
-  s1     : String;
-  counter: Byte;
-begin
-  GetProgramName:='';
-  FillChar(s1,255,#0);
-
-  if GetProgramName(@s1[1],255) then begin
-    { now check out and assign the length of the string }
-    counter := 1;
-    while (s1[counter]<>#0) and (counter<>0) do Inc(counter);
-    s1[0]:=Char(counter-1);
-
-    { now remove any component path which should not be there }
-    for counter:=length(s1) downto 1 do
-      if (s1[counter] = '/') or (s1[counter] = ':') then break;
-    { readjust counterv to point to character }
-    if counter<>1 then Inc(counter);
-
-    GetProgramName:=copy(s1,counter,length(s1));
-  end;
-end;
-
-
 {*****************************************************************************
-                             ParamStr/Randomize
+                          Parameterhandling
+                       as include in amicommon
 *****************************************************************************}
 
-{ number of args }
-function paramcount : longint;
-begin
-  if AOS_wbMsg<>nil then
-    paramcount:=0
-  else
-    paramcount:=argc-1;
-end;
+{$I paramhandling.inc}
 
-{ argument number l }
-function paramstr(l : longint) : string;
-var
-  s1: String;
-begin
-  paramstr:='';
-  if AOS_wbMsg<>nil then exit;
-
-  if l=0 then begin
-    s1:=GetProgDir;
-    if s1[length(s1)]=':' then paramstr:=s1+GetProgramName
-                          else paramstr:=s1+'/'+GetProgramName;
-  end else begin
-    if (l>0) and (l+1<=argc) then paramstr:=strpas(argv[l]);
-  end;
-end;
+{*****************************************************************************
+                             Randomize
+*****************************************************************************}
 
 { set randseed to a new pseudo random value }
 procedure randomize;
@@ -325,6 +259,12 @@ begin
   DateStamp(@tmpTime);
   randseed:=tmpTime.ds_tick;
 end;
+
+{$IFDEF FPC_AMIGA_USE_OSHEAP}
+var
+  { generated by the compiler based on the $MEMORY directive }
+  heapsize : PtrInt; external name '__heapsize';
+{$ENDIF FPC_AMIGA_USE_OSHEAP}
 
 
 { AmigaOS specific startup }
@@ -338,11 +278,13 @@ begin
     AOS_wbMsg:=GetMsg(@self^.pr_MsgPort);
   end;
 
-  AOS_DOSBase:=OpenLibrary('dos.library',37);
+  AOS_DOSBase:=OpenLibrary('dos.library',AMIGA_OS_MINVERSION);
   if AOS_DOSBase=nil then Halt(1);
-  AOS_UtilityBase:=OpenLibrary('utility.library',37);
+{$ifndef AMIGA_LEGACY}
+  AOS_UtilityBase:=OpenLibrary('utility.library',AMIGA_OS_MINVERSION);
   if AOS_UtilityBase=nil then Halt(1);
-  AOS_IntuitionBase:=OpenLibrary('intuition.library',37); { amunits support kludge }
+{$endif}
+  AOS_IntuitionBase:=OpenLibrary('intuition.library',AMIGA_OS_MINVERSION); { amunits support kludge }
   if AOS_IntuitionBase=nil then Halt(1);
 
 {$IFDEF AMIGAOS4}
@@ -352,19 +294,31 @@ begin
 {$ENDIF}
 
   { Creating the memory pool for growing heap }
-  ASYS_heapPool:=CreatePool(MEMF_FAST,growheapsize2,growheapsize1);
+{$IFNDEF FPC_AMIGA_USE_OSHEAP}
+  ASYS_heapPool:=CreatePool(MEMF_ANY,growheapsize2,growheapsize1);
+{$ELSE FPC_AMIGA_USE_OSHEAP}
+  ASYS_heapPool:=CreatePool(MEMF_ANY,min(heapsize,1024),min(heapsize div 2,1024));
+{$ENDIF FPC_AMIGA_USE_OSHEAP}
   if ASYS_heapPool=nil then Halt(1);
   ASYS_heapSemaphore:=AllocPooled(ASYS_heapPool,sizeof(TSignalSemaphore));
+  if ASYS_heapSemaphore = nil then Halt(1);
   InitSemaphore(ASYS_heapSemaphore);
+
+  { Initialize semaphore for filelist access arbitration }
+  ASYS_fileSemaphore:=AllocPooled(ASYS_heapPool,sizeof(TSignalSemaphore));
+  if ASYS_fileSemaphore = nil then Halt(1);
+  InitSemaphore(ASYS_fileSemaphore);
 
   if AOS_wbMsg=nil then begin
     StdInputHandle:=dosInput;
     StdOutputHandle:=dosOutput;
+    StdErrorHandle:=StdOutputHandle;
   end else begin
     AOS_ConHandle:=Open(AOS_ConName,MODE_OLDFILE);
     if AOS_ConHandle<>0 then begin
       StdInputHandle:=AOS_ConHandle;
       StdOutputHandle:=AOS_ConHandle;
+      StdErrorHandle:=AOS_ConHandle;
     end else
       Halt(1);
   end;
@@ -375,13 +329,11 @@ procedure SysInitStdIO;
 begin
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
+  OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
+{$ifndef FPC_STDOUT_TRUE_ALIAS}
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
-
-  { * AmigaOS doesn't have a separate stderr * }
-
-  StdErrorHandle:=StdOutputHandle;
-  //OpenStdIO(StdErr,fmOutput,StdErrorHandle);
-  //OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
+  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+{$endif FPC_STDOUT_TRUE_ALIAS}
 end;
 
 function GetProcessID: SizeUInt;
@@ -397,11 +349,8 @@ end;
 
 begin
   IsConsole := TRUE;
-  SysResetFPU;
-  if not(IsLibrary) then
-    SysInitFPU;
   StackLength := CheckInitialStkLen(InitialStkLen);
-  StackBottom := Sptr - StackLength;
+  StackBottom := StackTop - StackLength;
 { OS specific startup }
   AOS_wbMsg:=nil;
   ASYS_origDir:=0;
@@ -410,9 +359,14 @@ begin
   SysInitAmigaOS;
 { Set up signals handlers }
 //  InstallSignals;
+{$ifndef FPC_AMIGA_USE_OSHEAP}
 { Setup heap }
   InitHeap;
+{$endif FPC_AMIGA_USE_OSHEAP}
   SysInitExceptions;
+{$ifdef cpum68k}
+  fpc_cpucodeinit;
+{$endif}
   initunicodestringmanager;
 { Setup stdin, stdout and stderr }
   SysInitStdIO;
@@ -421,5 +375,7 @@ begin
 { Arguments }
   GenerateArgs;
   InitSystemThreads;
+{$ifdef FPC_HAS_FEATURE_DYNLIBS}
   InitSystemDynLibs;
+{$endif}
 end.

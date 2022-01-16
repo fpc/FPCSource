@@ -33,7 +33,7 @@ unit cpupi;
        aasmdata;
 
     type
-       tarmprocinfo = class(tcgprocinfo)
+       tcpuprocinfo = class(tcgprocinfo)
           { for arm thumb, we need to know the stackframe size before
             starting procedure compilation, so this contains the stack frame size, the compiler
             should assume
@@ -49,13 +49,15 @@ unit cpupi;
           procedure generate_parameter_info;override;
           procedure allocate_got_register(list : TAsmList);override;
           procedure postprocess_code;override;
+
+          procedure allocate_tls_register(list : TAsmList);override;
        end;
 
 
   implementation
 
     uses
-       globals,systems,
+       globals,systems,verbose,
        cpubase,
        tgobj,
        symconst,symtype,symsym,symcpu,paramgr,
@@ -64,7 +66,7 @@ unit cpupi;
        defutil,
        aasmcpu;
 
-    procedure tarmprocinfo.set_first_temp_offset;
+    procedure tcpuprocinfo.set_first_temp_offset;
       var
         localsize : aint;
         i : longint;
@@ -86,7 +88,7 @@ unit cpupi;
           end;
         if tg.direction = -1 then
           begin
-            if (target_info.system<>system_arm_darwin) then
+            if (target_info.system<>system_arm_ios) then
               { Non-Darwin, worst case: r4-r10,r11,r13,r14,r15 is saved -> -28-16, but we
                 always adjust the frame pointer to point to the first stored
                 register (= last register in list above) -> + 4 }
@@ -140,7 +142,7 @@ unit cpupi;
       end;
 
 
-    function tarmprocinfo.calc_stackframe_size:longint;
+    function tcpuprocinfo.calc_stackframe_size:longint;
       var
          firstfloatreg,lastfloatreg,
          r : byte;
@@ -154,6 +156,10 @@ unit cpupi;
             maxpushedparasize:=align(maxpushedparasize,max(current_settings.alignment.localalignmin,4));
             floatsavesize:=0;
             case current_settings.fputype of
+              fpu_none,
+              fpu_soft,
+              fpu_libgcc:
+                ;
               fpu_fpa,
               fpu_fpa10,
               fpu_fpa11:
@@ -172,17 +178,15 @@ unit cpupi;
                   if firstfloatreg<>RS_NO then
                     floatsavesize:=(lastfloatreg-firstfloatreg+1)*12;
                 end;
-              fpu_vfpv2,
-              fpu_vfpv3,
-              fpu_vfpv3_d16:
+              else if FPUARM_HAS_32REGS in fpu_capabilities[current_settings.fputype] then
                 begin
                   floatsavesize:=0;
                   regs:=cg.rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall);
                   for r:=RS_D0 to RS_D31 do
                     if r in regs then
                       inc(floatsavesize,8);
-                end;
-              fpu_fpv4_s16:
+                end
+              else
                 begin
                   floatsavesize:=0;
                   regs:=cg.rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall);
@@ -239,7 +243,7 @@ unit cpupi;
       end;
 
 
-    procedure tarmprocinfo.init_framepointer;
+    procedure tcpuprocinfo.init_framepointer;
       begin
         if (target_info.system in systems_darwin) or GenerateThumbCode then
           begin
@@ -254,14 +258,14 @@ unit cpupi;
       end;
 
 
-    procedure tarmprocinfo.generate_parameter_info;
+    procedure tcpuprocinfo.generate_parameter_info;
       begin
        tcpuprocdef(procdef).total_stackframe_size:=stackframesize;
        inherited generate_parameter_info;
       end;
 
 
-    procedure tarmprocinfo.allocate_got_register(list: TAsmList);
+    procedure tcpuprocinfo.allocate_got_register(list: TAsmList);
       begin
         { darwin doesn't use a got }
         if tf_pic_uses_got in target_info.flags then
@@ -269,12 +273,18 @@ unit cpupi;
       end;
 
 
-    procedure tarmprocinfo.postprocess_code;
+    procedure tcpuprocinfo.postprocess_code;
       begin
         { because of the limited constant size of the arm, all data access is done pc relative }
         finalizearmcode(aktproccode,aktlocaldata);
       end;
 
+
+    procedure tcpuprocinfo.allocate_tls_register(list: TAsmList);
+      begin
+        current_procinfo.tlsoffset:=cg.getaddressregister(list);
+      end;
+
 begin
-   cprocinfo:=tarmprocinfo;
+   cprocinfo:=tcpuprocinfo;
 end.

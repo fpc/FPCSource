@@ -10,7 +10,7 @@ begin
 end;
 
 var
-  p: pointer;
+  p: codepointer;
 begin
   p := @tclass.t;
 end.

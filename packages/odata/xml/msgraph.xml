@@ -1,0 +1,1047 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+  <edmx:DataServices>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="microsoft.graph">
+      <EnumType Name="bodyType">
+        <Member Name="text" Value="0"/>
+        <Member Name="html" Value="1"/>
+      </EnumType>
+      <EnumType Name="importance">
+        <Member Name="low" Value="0"/>
+        <Member Name="normal" Value="1"/>
+        <Member Name="high" Value="2"/>
+      </EnumType>
+      <EnumType Name="calendarColor">
+        <Member Name="lightBlue" Value="0"/>
+        <Member Name="lightGreen" Value="1"/>
+        <Member Name="lightOrange" Value="2"/>
+        <Member Name="lightGray" Value="3"/>
+        <Member Name="lightYellow" Value="4"/>
+        <Member Name="lightTeal" Value="5"/>
+        <Member Name="lightPink" Value="6"/>
+        <Member Name="lightBrown" Value="7"/>
+        <Member Name="lightRed" Value="8"/>
+        <Member Name="maxColor" Value="9"/>
+        <Member Name="auto" Value="-1"/>
+      </EnumType>
+      <EnumType Name="responseType">
+        <Member Name="none" Value="0"/>
+        <Member Name="organizer" Value="1"/>
+        <Member Name="tentativelyAccepted" Value="2"/>
+        <Member Name="accepted" Value="3"/>
+        <Member Name="declined" Value="4"/>
+        <Member Name="notResponded" Value="5"/>
+      </EnumType>
+      <EnumType Name="sensitivity">
+        <Member Name="normal" Value="0"/>
+        <Member Name="personal" Value="1"/>
+        <Member Name="private" Value="2"/>
+        <Member Name="confidential" Value="3"/>
+      </EnumType>
+      <EnumType Name="recurrencePatternType">
+        <Member Name="daily" Value="0"/>
+        <Member Name="weekly" Value="1"/>
+        <Member Name="absoluteMonthly" Value="2"/>
+        <Member Name="relativeMonthly" Value="3"/>
+        <Member Name="absoluteYearly" Value="4"/>
+        <Member Name="relativeYearly" Value="5"/>
+      </EnumType>
+      <EnumType Name="dayOfWeek">
+        <Member Name="sunday" Value="0"/>
+        <Member Name="monday" Value="1"/>
+        <Member Name="tuesday" Value="2"/>
+        <Member Name="wednesday" Value="3"/>
+        <Member Name="thursday" Value="4"/>
+        <Member Name="friday" Value="5"/>
+        <Member Name="saturday" Value="6"/>
+      </EnumType>
+      <EnumType Name="weekIndex">
+        <Member Name="first" Value="0"/>
+        <Member Name="second" Value="1"/>
+        <Member Name="third" Value="2"/>
+        <Member Name="fourth" Value="3"/>
+        <Member Name="last" Value="4"/>
+      </EnumType>
+      <EnumType Name="recurrenceRangeType">
+        <Member Name="endDate" Value="0"/>
+        <Member Name="noEnd" Value="1"/>
+        <Member Name="numbered" Value="2"/>
+      </EnumType>
+      <EnumType Name="freeBusyStatus">
+        <Member Name="free" Value="0"/>
+        <Member Name="tentative" Value="1"/>
+        <Member Name="busy" Value="2"/>
+        <Member Name="oof" Value="3"/>
+        <Member Name="workingElsewhere" Value="4"/>
+        <Member Name="unknown" Value="-1"/>
+      </EnumType>
+      <EnumType Name="eventType">
+        <Member Name="singleInstance" Value="0"/>
+        <Member Name="occurrence" Value="1"/>
+        <Member Name="exception" Value="2"/>
+        <Member Name="seriesMaster" Value="3"/>
+      </EnumType>
+      <EnumType Name="attendeeType">
+        <Member Name="required" Value="0"/>
+        <Member Name="optional" Value="1"/>
+        <Member Name="resource" Value="2"/>
+      </EnumType>
+      <EnumType Name="meetingMessageType">
+        <Member Name="none" Value="0"/>
+        <Member Name="meetingRequest" Value="1"/>
+        <Member Name="meetingCancelled" Value="2"/>
+        <Member Name="meetingAccepted" Value="3"/>
+        <Member Name="meetingTenativelyAccepted" Value="4"/>
+        <Member Name="meetingDeclined" Value="5"/>
+      </EnumType>
+      <EntityType Name="entity" Abstract="true">
+        <Key>
+          <PropertyRef Name="id"/>
+        </Key>
+        <Property Name="id" Type="Edm.String" Nullable="false" Unicode="false"/>
+      </EntityType>
+      <EntityType Name="directoryObject" BaseType="microsoft.graph.entity" OpenType="true"/>
+      <EntityType Name="device" BaseType="microsoft.graph.directoryObject" OpenType="true">
+        <Property Name="accountEnabled" Type="Edm.Boolean"/>
+        <Property Name="alternativeSecurityIds" Type="Collection(microsoft.graph.alternativeSecurityId)" Nullable="false"/>
+        <Property Name="approximateLastSignInDateTime" Type="Edm.DateTimeOffset"/>
+        <Property Name="deviceId" Type="Edm.String" Unicode="false"/>
+        <Property Name="deviceMetadata" Type="Edm.String" Unicode="false"/>
+        <Property Name="deviceVersion" Type="Edm.Int32"/>
+        <Property Name="displayName" Type="Edm.String" Unicode="false"/>
+        <Property Name="isCompliant" Type="Edm.Boolean"/>
+        <Property Name="isManaged" Type="Edm.Boolean"/>
+        <Property Name="onPremisesLastSyncDateTime" Type="Edm.DateTimeOffset"/>
+        <Property Name="onPremisesSyncEnabled" Type="Edm.Boolean"/>
+        <Property Name="operatingSystem" Type="Edm.String" Unicode="false"/>
+        <Property Name="operatingSystemVersion" Type="Edm.String" Unicode="false"/>
+        <Property Name="physicalIds" Type="Collection(Edm.String)" Nullable="false" Unicode="false"/>
+        <Property Name="trustType" Type="Edm.String" Unicode="false"/>
+        <NavigationProperty Name="registeredOwners" Type="Collection(microsoft.graph.directoryObject)"/>
+        <NavigationProperty Name="registeredUsers" Type="Collection(microsoft.graph.directoryObject)"/>
+      </EntityType>
+      <ComplexType Name="alternativeSecurityId">
+        <Property Name="type" Type="Edm.Int32"/>
+        <Property Name="identityProvider" Type="Edm.String" Unicode="false"/>
+        <Property Name="key" Type="Edm.Binary"/>
+      </ComplexType>
+      <EntityType Name="directoryRole" BaseType="microsoft.graph.directoryObject" OpenType="true">
+        <Property Name="description" Type="Edm.String" Unicode="false"/>
+        <Property Name="displayName" Type="Edm.String" Unicode="false"/>
+        <Property Name="roleTemplateId" Type="Edm.String" Unicode="false"/>
+        <NavigationProperty Name="members" Type="Collection(microsoft.graph.directoryObject)"/>
+      </EntityType>
+      <EntityType Name="directoryRoleTemplate" BaseType="microsoft.graph.directoryObject" OpenType="true">
+        <Property Name="description" Type="Edm.String" Unicode="false"/>
+        <Property Name="displayName" Type="Edm.String" Unicode="false"/>
+      </EntityType>
+      <EntityType Name="group" BaseType="microsoft.graph.directoryObject" OpenType="true">
+        <Property Name="description" Type="Edm.String" Unicode="false"/>
+        <Property Name="displayName" Type="Edm.String" Unicode="false"/>
+        <Property Name="groupTypes" Type="Collection(Edm.String)" Nullable="false" Unicode="false"/>
+        <Property Name="mail" Type="Edm.String" Unicode="false"/>
+        <Property Name="mailEnabled" Type="Edm.Boolean"/>
+        <Property Name="mailNickname" Type="Edm.String" Unicode="false"/>
+        <Property Name="onPremisesLastSyncDateTime" Type="Edm.DateTimeOffset"/>
+        <Property Name="onPremisesSecurityIdentifier" Type="Edm.String" Unicode="false"/>
+        <Property Name="onPremisesSyncEnabled" Type="Edm.Boolean"/>
+        <Property Name="proxyAddresses" Type="Collection(Edm.String)" Nullable="false" Unicode="false"/>
+        <Property Name="securityEnabled" Type="Edm.Boolean"/>
+        <Property Name="visibility" Type="Edm.String" Unicode="false"/>
+        <Property Name="allowExternalSenders" Type="Edm.Boolean"/>
+        <Property Name="autoSubscribeNewMembers" Type="Edm.Boolean"/>
+        <Property Name="isSubscribedByMail" Type="Edm.Boolean"/>
+        <Property Name="unseenCount" Type="Edm.Int32"/>
+        <NavigationProperty Name="members" Type="Collection(microsoft.graph.directoryObject)"/>
+        <NavigationProperty Name="memberOf" Type="Collection(microsoft.graph.directoryObject)"/>
+        <NavigationProperty Name="createdOnBehalfOf" Type="microsoft.graph.directoryObject"/>
+        <NavigationProperty Name="owners" Type="Collection(microsoft.graph.directoryObject)"/>
+        <NavigationProperty Name="threads" Type="Collection(microsoft.graph.conversationThread)" ContainsTarget="true"/>
+        <NavigationProperty Name="calendar" Type="microsoft.graph.calendar" ContainsTarget="true"/>
+        <NavigationProperty Name="calendarView" Type="Collection(microsoft.graph.event)" ContainsTarget="true"/>
+        <NavigationProperty Name="events" Type="Collection(microsoft.graph.event)" ContainsTarget="true"/>
+        <NavigationProperty Name="conversations" Type="Collection(microsoft.graph.conversation)" ContainsTarget="true"/>
+        <NavigationProperty Name="photo" Type="microsoft.graph.profilePhoto" ContainsTarget="true"/>
+        <NavigationProperty Name="acceptedSenders" Type="Collection(microsoft.graph.directoryObject)" ContainsTarget="true"/>
+        <NavigationProperty Name="rejectedSenders" Type="Collection(microsoft.graph.directoryObject)" ContainsTarget="true"/>
+        <NavigationProperty Name="drive" Type="microsoft.graph.drive" ContainsTarget="true"/>
+      </EntityType>
+      <EntityType Name="conversationThread" BaseType="microsoft.graph.entity">
+        <Property Name="toRecipients" Type="Collection(microsoft.graph.recipient)" Nullable="false"/>
+        <Property Name="topic" Type="Edm.String" Nullable="false" Unicode="false"/>
+        <Property Name="hasAttachments" Type="Edm.Boolean" Nullable="false"/>
+        <Property Name="lastDeliveredDateTime" Type="Edm.DateTimeOffset" Nullable="false"/>
+        <Property Name="uniqueSenders" Type="Collection(Edm.String)" Nullable="false" Unicode="false"/>
+        <Property Name="ccRecipients" Type="Collection(microsoft.graph.recipient)" Nullable="false"/>
+        <Property Name="preview" Type="Edm.String" Nullable="false" Unicode="false"/>
+        <Property Name="isLocked" Type="Edm.Boolean" Nullable="false"/>
+        <NavigationProperty Name="posts" Type="Collection(microsoft.graph.post)" ContainsTarget="true"/>
+      </EntityType>
+      <EntityType Name="calendar" BaseType="microsoft.graph.entity">
+        <Property Name="name" Type="Edm.String" Unicode="false"/>
+        <Property Name="color" Type="microsoft.graph.calendarColor"/>
+        <Property Name="changeKey" Type="Edm.String" Unicode="false"/>
+        <NavigationProperty Name="events" Type="Collection(microsoft.graph.event)" ContainsTarget="true"/>
+        <NavigationProperty Name="calendarView" Type="Collection(microsoft.graph.event)" ContainsTarget="true"/>
+      </EntityType>
+      <EntityType Name="outlookItem" BaseType="microsoft.graph.entity" Abstract="true">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset"/>
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset"/>
+        <Property Name="changeKey" Type="Edm.String" Unicode="false"/>
+        <Property Name="categories" Type="Collection(Edm.String)" Unicode="false"/>
+      </EntityType>
+      <EntityType Name="event" BaseType="microsoft.graph.outlookItem">
+        <Property Name="originalStartTimeZone" Type="Edm.String" Unicode="false"/>
+        <Property Name="originalEndTimeZone" Type="Edm.String" Unicode="false"/>
+        <Property Name="responseStatus" Type="microsoft.graph.responseStatus"/>
+        <Property Name="iCalUId" Type="Edm.String" Unicode="false"/>
+        <Property Name="reminderMinutesBeforeStart" Type="Edm.Int32"/>
+        <Property Name="isReminderOn" Type="Edm.Boolean"/>
+        <Property Name="hasAttachments" Type="Edm.Boolean"/>
+        <Property Name="subject" Type="Edm.String" Unicode="false"/>
+        <Property Name="body" Type="microsoft.graph.itemBody"/>
+        <Property Name="bodyPreview" Type="Edm.String" Unicode="false"/>
+        <Property Name="importance" Type="microsoft.graph.importance"/>
+        <Property Name="sensitivity" Type="microsoft.graph.sensitivity"/>
+        <Property Name="start" Type="microsoft.graph.dateTimeTimeZone"/>
+        <Property Name="originalStart" Type="Edm.DateTimeOffset"/>
+        <Property Name="end" Type="microsoft.graph.dateTimeTimeZone"/>
+        <Property Name="location" Type="microsoft.graph.location"/>
+        <Property Name="isAllDay" Type="Edm.Boolean"/>
+        <Property Name="isCancelled" Type="Edm.Boolean"/>
+        <Property Name="isOrganizer" Type="Edm.Boolean"/>
+        <Property Name="recurrence" Type="microsoft.graph.patternedRecurrence"/>
+        <Property Name="responseRequested" Type="Edm.Boolean"/>
+        <Property Name="seriesMasterId" Type="Edm.String" Unicode="false"/>
+        <Property Name="showAs" Type="microsoft.graph.freeBusyStatus"/>
+        <Property Name="type" Type="microsoft.graph.eventType"/>
+        <Property Name="attendees" Type="Collection(microsoft.graph.attendee)"/>
+        <Property Name="organizer" Type="microsoft.graph.recipient"/>
+        <Property Name="webLink" Type="Edm.String" Unicode="false"/>
+        <NavigationProperty Name="calendar" Type="microsoft.graph.calendar" ContainsTarget="true"/>
+        <NavigationProperty Name="instances" Type="Collection(microsoft.graph.event)" ContainsTarget="true"/>
+        <NavigationProperty Name="attachments" Type="Collection(microsoft.graph.attachment)" ContainsTarget="true"/>
+      </EntityType>
+      <EntityType Name="conversation" BaseType="microsoft.graph.entity">
+        <Property Name="topic" Type="Edm.String" Nullable="false" Unicode="false"/>
+        <Property Name="hasAttachments" Type="Edm.Boolean" Nullable="false"/>
+        <Property Name="lastDeliveredDateTime" Type="Edm.DateTimeOffset" Nullable="false"/>
+        <Property Name="uniqueSenders" Type="Collection(Edm.String)" Nullable="false" Unicode="false"/>
+        <Property Name="preview" Type="Edm.String" Nullable="false" Unicode="false"/>
+        <NavigationProperty Name="threads" Type="Collection(microsoft.graph.conversationThread)" ContainsTarget="true"/>
+      </EntityType>
+      <EntityType Name="profilePhoto" BaseType="microsoft.graph.entity" HasStream="true">
+        <Property Name="height" Type="Edm.Int32"/>
+        <Property Name="width" Type="Edm.Int32"/>
+      </EntityType>
+      <EntityType Name="drive" BaseType="microsoft.graph.entity">
+        <Property Name="driveType" Type="Edm.String" Unicode="false"/>
+        <Property Name="owner" Type="microsoft.graph.identitySet"/>
+        <Property Name="quota" Type="microsoft.graph.quota"/>
+        <NavigationProperty Name="items" Type="Collection(microsoft.graph.driveItem)" ContainsTarget="true"/>
+        <NavigationProperty Name="special" Type="Collection(microsoft.graph.driveItem)" ContainsTarget="true"/>
+        <NavigationProperty Name="root" Type="microsoft.graph.driveItem" ContainsTarget="true"/>
+      </EntityType>
+      <EntityType Name="subscribedSku" BaseType="microsoft.graph.entity">
+        <Property Name="capabilityStatus" Type="Edm.String" Unicode="false"/>
+        <Property Name="consumedUnits" Type="Edm.Int32"/>
+        <Property Name="prepaidUnits" Type="microsoft.graph.licenseUnitsDetail"/>
+        <Property Name="servicePlans" Type="Collection(microsoft.graph.servicePlanInfo)" Nullable="false"/>
+        <Property Name="skuId" Type="Edm.Guid"/>
+        <Property Name="skuPartNumber" Type="Edm.String" Unicode="false"/>
+        <Property Name="appliesTo" Type="Edm.String" Unicode="false"/>
+      </EntityType>
+      <ComplexType Name="licenseUnitsDetail">
+        <Property Name="enabled" Type="Edm.Int32"/>
+        <Property Name="suspended" Type="Edm.Int32"/>
+        <Property Name="warning" Type="Edm.Int32"/>
+      </ComplexType>
+      <ComplexType Name="servicePlanInfo">
+        <Property Name="servicePlanId" Type="Edm.Guid"/>
+        <Property Name="servicePlanName" Type="Edm.String" Unicode="false"/>
+        <Property Name="provisioningStatus" Type="Edm.String" Unicode="false"/>
+        <Property Name="appliesTo" Type="Edm.String" Unicode="false"/>
+      </ComplexType>
+      <EntityType Name="organization" BaseType="microsoft.graph.directoryObject" OpenType="true">
+        <Property Name="assignedPlans" Type="Collection(microsoft.graph.assignedPlan)" Nullable="false"/>
+        <Property Name="businessPhones" Type="Collection(Edm.String)" Nullable="false" Unicode="false"/>
+        <Property Name="city" Type="Edm.String" Unicode="false"/>
+        <Property Name="country" Type="Edm.String" Unicode="false"/>
+        <Property Name="countryLetterCode" Type="Edm.String" Unicode="false"/>
+        <Property Name="displayName" Type="Edm.String" Unicode="false"/>
+        <Property Name="marketingNotificationEmails" Type="Collection(Edm.String)" Nullable="false" Unicode="false"/>
+        <Property Name="onPremisesLastSyncDateTime" Type="Edm.DateTimeOffset"/>
+        <Property Name="onPremisesSyncEnabled" Type="Edm.Boolean"/>
+        <Property Name="postalCode" Type="Edm.String" Unicode="false"/>
+        <Property Name="preferredLanguage" Type="Edm.String" Unicode="false"/>
+        <Property Name="provisionedPlans" Type="Collection(microsoft.graph.provisionedPlan)" Nullable="false"/>
+        <Property Name="securityComplianceNotificationMails" Type="Collection(Edm.String)" Nullable="false" Unicode="false"/>
+        <Property Name="securityComplianceNotificationPhones" Type="Collection(Edm.String)" Nullable="false" Unicode="false"/>
+        <Property Name="state" Type="Edm.String" Unicode="false"/>
+        <Property Name="street" Type="Edm.String" Unicode="false"/>
+        <Property Name="technicalNotificationMails" Type="Collection(Edm.String)" Nullable="false" Unicode="false"/>
+        <Property Name="verifiedDomains" Type="Collection(microsoft.graph.verifiedDomain)" Nullable="false"/>
+      </EntityType>
+      <ComplexType Name="assignedPlan">
+        <Property Name="assignedDateTime" Type="Edm.DateTimeOffset"/>
+        <Property Name="capabilityStatus" Type="Edm.String" Unicode="false"/>
+        <Property Name="service" Type="Edm.String" Unicode="false"/>
+        <Property Name="servicePlanId" Type="Edm.Guid"/>
+      </ComplexType>
+      <ComplexType Name="provisionedPlan">
+        <Property Name="capabilityStatus" Type="Edm.String" Unicode="false"/>
+        <Property Name="provisioningStatus" Type="Edm.String" Unicode="false"/>
+        <Property Name="service" Type="Edm.String" Unicode="false"/>
+      </ComplexType>
+      <ComplexType Name="verifiedDomain">
+        <Property Name="capabilities" Type="Edm.String" Unicode="false"/>
+        <Property Name="isDefault" Type="Edm.Boolean"/>
+        <Property Name="isInitial" Type="Edm.Boolean"/>
+        <Property Name="name" Type="Edm.String" Unicode="false"/>
+        <Property Name="type" Type="Edm.String" Unicode="false"/>
+      </ComplexType>
+      <EntityType Name="user" BaseType="microsoft.graph.directoryObject" OpenType="true">
+        <Property Name="accountEnabled" Type="Edm.Boolean"/>
+        <Property Name="assignedLicenses" Type="Collection(microsoft.graph.assignedLicense)" Nullable="false"/>
+        <Property Name="assignedPlans" Type="Collection(microsoft.graph.assignedPlan)" Nullable="false"/>
+        <Property Name="businessPhones" Type="Collection(Edm.String)" Nullable="false" Unicode="false"/>
+        <Property Name="city" Type="Edm.String" Unicode="false"/>
+        <Property Name="companyName" Type="Edm.String" Unicode="false"/>
+        <Property Name="country" Type="Edm.String" Unicode="false"/>
+        <Property Name="department" Type="Edm.String" Unicode="false"/>
+        <Property Name="displayName" Type="Edm.String" Unicode="false"/>
+        <Property Name="givenName" Type="Edm.String" Unicode="false"/>
+        <Property Name="jobTitle" Type="Edm.String" Unicode="false"/>
+        <Property Name="mail" Type="Edm.String" Unicode="false"/>
+        <Property Name="mailNickname" Type="Edm.String" Unicode="false"/>
+        <Property Name="mobilePhone" Type="Edm.String" Unicode="false"/>
+        <Property Name="onPremisesImmutableId" Type="Edm.String" Unicode="false"/>
+        <Property Name="onPremisesLastSyncDateTime" Type="Edm.DateTimeOffset"/>
+        <Property Name="onPremisesSecurityIdentifier" Type="Edm.String" Unicode="false"/>
+        <Property Name="onPremisesSyncEnabled" Type="Edm.Boolean"/>
+        <Property Name="passwordPolicies" Type="Edm.String" Unicode="false"/>
+        <Property Name="passwordProfile" Type="microsoft.graph.passwordProfile"/>
+        <Property Name="officeLocation" Type="Edm.String" Unicode="false"/>
+        <Property Name="postalCode" Type="Edm.String" Unicode="false"/>
+        <Property Name="preferredLanguage" Type="Edm.String" Unicode="false"/>
+        <Property Name="provisionedPlans" Type="Collection(microsoft.graph.provisionedPlan)" Nullable="false"/>
+        <Property Name="proxyAddresses" Type="Collection(Edm.String)" Nullable="false" Unicode="false"/>
+        <Property Name="state" Type="Edm.String" Unicode="false"/>
+        <Property Name="streetAddress" Type="Edm.String" Unicode="false"/>
+        <Property Name="surname" Type="Edm.String" Unicode="false"/>
+        <Property Name="usageLocation" Type="Edm.String" Unicode="false"/>
+        <Property Name="userPrincipalName" Type="Edm.String" Unicode="false"/>
+        <Property Name="userType" Type="Edm.String" Unicode="false"/>
+        <Property Name="aboutMe" Type="Edm.String" Unicode="false"/>
+        <Property Name="birthday" Type="Edm.DateTimeOffset" Nullable="false"/>
+        <Property Name="hireDate" Type="Edm.DateTimeOffset" Nullable="false"/>
+        <Property Name="interests" Type="Collection(Edm.String)" Unicode="false"/>
+        <Property Name="mySite" Type="Edm.String" Unicode="false"/>
+        <Property Name="pastProjects" Type="Collection(Edm.String)" Unicode="false"/>
+        <Property Name="preferredName" Type="Edm.String" Unicode="false"/>
+        <Property Name="responsibilities" Type="Collection(Edm.String)" Unicode="false"/>
+        <Property Name="schools" Type="Collection(Edm.String)" Unicode="false"/>
+        <Property Name="skills" Type="Collection(Edm.String)" Unicode="false"/>
+        <NavigationProperty Name="ownedDevices" Type="Collection(microsoft.graph.directoryObject)"/>
+        <NavigationProperty Name="registeredDevices" Type="Collection(microsoft.graph.directoryObject)"/>
+        <NavigationProperty Name="manager" Type="microsoft.graph.directoryObject"/>
+        <NavigationProperty Name="directReports" Type="Collection(microsoft.graph.directoryObject)"/>
+        <NavigationProperty Name="memberOf" Type="Collection(microsoft.graph.directoryObject)"/>
+        <NavigationProperty Name="createdObjects" Type="Collection(microsoft.graph.directoryObject)"/>
+        <NavigationProperty Name="ownedObjects" Type="Collection(microsoft.graph.directoryObject)"/>
+        <NavigationProperty Name="messages" Type="Collection(microsoft.graph.message)" ContainsTarget="true"/>
+        <NavigationProperty Name="mailFolders" Type="Collection(microsoft.graph.mailFolder)" ContainsTarget="true"/>
+        <NavigationProperty Name="calendar" Type="microsoft.graph.calendar" ContainsTarget="true"/>
+        <NavigationProperty Name="calendars" Type="Collection(microsoft.graph.calendar)" ContainsTarget="true"/>
+        <NavigationProperty Name="calendarGroups" Type="Collection(microsoft.graph.calendarGroup)" ContainsTarget="true"/>
+        <NavigationProperty Name="calendarView" Type="Collection(microsoft.graph.event)" ContainsTarget="true"/>
+        <NavigationProperty Name="events" Type="Collection(microsoft.graph.event)" ContainsTarget="true"/>
+        <NavigationProperty Name="contacts" Type="Collection(microsoft.graph.contact)" ContainsTarget="true"/>
+        <NavigationProperty Name="contactFolders" Type="Collection(microsoft.graph.contactFolder)" ContainsTarget="true"/>
+        <NavigationProperty Name="photo" Type="microsoft.graph.profilePhoto" ContainsTarget="true"/>
+        <NavigationProperty Name="drive" Type="microsoft.graph.drive" ContainsTarget="true"/>
+      </EntityType>
+      <ComplexType Name="assignedLicense">
+        <Property Name="disabledPlans" Type="Collection(Edm.Guid)" Nullable="false"/>
+        <Property Name="skuId" Type="Edm.Guid"/>
+      </ComplexType>
+      <ComplexType Name="passwordProfile">
+        <Property Name="password" Type="Edm.String" Unicode="false"/>
+        <Property Name="forceChangePasswordNextSignIn" Type="Edm.Boolean"/>
+      </ComplexType>
+      <EntityType Name="message" BaseType="microsoft.graph.outlookItem">
+        <Property Name="receivedDateTime" Type="Edm.DateTimeOffset"/>
+        <Property Name="sentDateTime" Type="Edm.DateTimeOffset"/>
+        <Property Name="hasAttachments" Type="Edm.Boolean"/>
+        <Property Name="internetMessageId" Type="Edm.String" Unicode="false"/>
+        <Property Name="subject" Type="Edm.String" Unicode="false"/>
+        <Property Name="body" Type="microsoft.graph.itemBody"/>
+        <Property Name="bodyPreview" Type="Edm.String" Unicode="false"/>
+        <Property Name="importance" Type="microsoft.graph.importance"/>
+        <Property Name="parentFolderId" Type="Edm.String" Unicode="false"/>
+        <Property Name="sender" Type="microsoft.graph.recipient"/>
+        <Property Name="from" Type="microsoft.graph.recipient"/>
+        <Property Name="toRecipients" Type="Collection(microsoft.graph.recipient)"/>
+        <Property Name="ccRecipients" Type="Collection(microsoft.graph.recipient)"/>
+        <Property Name="bccRecipients" Type="Collection(microsoft.graph.recipient)"/>
+        <Property Name="replyTo" Type="Collection(microsoft.graph.recipient)"/>
+        <Property Name="conversationId" Type="Edm.String" Unicode="false"/>
+        <Property Name="uniqueBody" Type="microsoft.graph.itemBody"/>
+        <Property Name="isDeliveryReceiptRequested" Type="Edm.Boolean"/>
+        <Property Name="isReadReceiptRequested" Type="Edm.Boolean"/>
+        <Property Name="isRead" Type="Edm.Boolean"/>
+        <Property Name="isDraft" Type="Edm.Boolean"/>
+        <Property Name="webLink" Type="Edm.String" Unicode="false"/>
+        <NavigationProperty Name="attachments" Type="Collection(microsoft.graph.attachment)" ContainsTarget="true"/>
+      </EntityType>
+      <EntityType Name="mailFolder" BaseType="microsoft.graph.entity">
+        <Property Name="displayName" Type="Edm.String" Unicode="false"/>
+        <Property Name="parentFolderId" Type="Edm.String" Unicode="false"/>
+        <Property Name="childFolderCount" Type="Edm.Int32"/>
+        <Property Name="unreadItemCount" Type="Edm.Int32"/>
+        <Property Name="totalItemCount" Type="Edm.Int32"/>
+        <NavigationProperty Name="messages" Type="Collection(microsoft.graph.message)" ContainsTarget="true"/>
+        <NavigationProperty Name="childFolders" Type="Collection(microsoft.graph.mailFolder)" ContainsTarget="true"/>
+      </EntityType>
+      <EntityType Name="calendarGroup" BaseType="microsoft.graph.entity">
+        <Property Name="name" Type="Edm.String" Unicode="false"/>
+        <Property Name="classId" Type="Edm.Guid"/>
+        <Property Name="changeKey" Type="Edm.String" Unicode="false"/>
+        <NavigationProperty Name="calendars" Type="Collection(microsoft.graph.calendar)" ContainsTarget="true"/>
+      </EntityType>
+      <EntityType Name="contact" BaseType="microsoft.graph.outlookItem">
+        <Property Name="parentFolderId" Type="Edm.String" Unicode="false"/>
+        <Property Name="birthday" Type="Edm.DateTimeOffset"/>
+        <Property Name="fileAs" Type="Edm.String" Unicode="false"/>
+        <Property Name="displayName" Type="Edm.String" Unicode="false"/>
+        <Property Name="givenName" Type="Edm.String" Unicode="false"/>
+        <Property Name="initials" Type="Edm.String" Unicode="false"/>
+        <Property Name="middleName" Type="Edm.String" Unicode="false"/>
+        <Property Name="nickName" Type="Edm.String" Unicode="false"/>
+        <Property Name="surname" Type="Edm.String" Unicode="false"/>
+        <Property Name="title" Type="Edm.String" Unicode="false"/>
+        <Property Name="yomiGivenName" Type="Edm.String" Unicode="false"/>
+        <Property Name="yomiSurname" Type="Edm.String" Unicode="false"/>
+        <Property Name="yomiCompanyName" Type="Edm.String" Unicode="false"/>
+        <Property Name="generation" Type="Edm.String" Unicode="false"/>
+        <Property Name="emailAddresses" Type="Collection(microsoft.graph.emailAddress)"/>
+        <Property Name="imAddresses" Type="Collection(Edm.String)" Unicode="false"/>
+        <Property Name="jobTitle" Type="Edm.String" Unicode="false"/>
+        <Property Name="companyName" Type="Edm.String" Unicode="false"/>
+        <Property Name="department" Type="Edm.String" Unicode="false"/>
+        <Property Name="officeLocation" Type="Edm.String" Unicode="false"/>
+        <Property Name="profession" Type="Edm.String" Unicode="false"/>
+        <Property Name="businessHomePage" Type="Edm.String" Unicode="false"/>
+        <Property Name="assistantName" Type="Edm.String" Unicode="false"/>
+        <Property Name="manager" Type="Edm.String" Unicode="false"/>
+        <Property Name="homePhones" Type="Collection(Edm.String)" Unicode="false"/>
+        <Property Name="mobilePhone" Type="Edm.String" Unicode="false"/>
+        <Property Name="businessPhones" Type="Collection(Edm.String)" Unicode="false"/>
+        <Property Name="homeAddress" Type="microsoft.graph.physicalAddress"/>
+        <Property Name="businessAddress" Type="microsoft.graph.physicalAddress"/>
+        <Property Name="otherAddress" Type="microsoft.graph.physicalAddress"/>
+        <Property Name="spouseName" Type="Edm.String" Unicode="false"/>
+        <Property Name="personalNotes" Type="Edm.String" Unicode="false"/>
+        <Property Name="children" Type="Collection(Edm.String)" Unicode="false"/>
+        <NavigationProperty Name="photo" Type="microsoft.graph.profilePhoto" ContainsTarget="true"/>
+      </EntityType>
+      <EntityType Name="contactFolder" BaseType="microsoft.graph.entity">
+        <Property Name="parentFolderId" Type="Edm.String" Unicode="false"/>
+        <Property Name="displayName" Type="Edm.String" Unicode="false"/>
+        <NavigationProperty Name="contacts" Type="Collection(microsoft.graph.contact)" ContainsTarget="true"/>
+        <NavigationProperty Name="childFolders" Type="Collection(microsoft.graph.contactFolder)" ContainsTarget="true"/>
+      </EntityType>
+      <EntityType Name="attachment" BaseType="microsoft.graph.entity" Abstract="true">
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset"/>
+        <Property Name="name" Type="Edm.String" Unicode="false"/>
+        <Property Name="contentType" Type="Edm.String" Unicode="false"/>
+        <Property Name="size" Type="Edm.Int32" Nullable="false"/>
+        <Property Name="isInline" Type="Edm.Boolean" Nullable="false"/>
+      </EntityType>
+      <ComplexType Name="reminder">
+        <Property Name="eventId" Type="Edm.String" Unicode="false"/>
+        <Property Name="eventStartTime" Type="microsoft.graph.dateTimeTimeZone"/>
+        <Property Name="eventEndTime" Type="microsoft.graph.dateTimeTimeZone"/>
+        <Property Name="changeKey" Type="Edm.String" Unicode="false"/>
+        <Property Name="eventSubject" Type="Edm.String" Unicode="false"/>
+        <Property Name="eventLocation" Type="microsoft.graph.location"/>
+        <Property Name="eventWebLink" Type="Edm.String" Unicode="false"/>
+        <Property Name="reminderFireTime" Type="microsoft.graph.dateTimeTimeZone"/>
+      </ComplexType>
+      <ComplexType Name="dateTimeTimeZone">
+        <Property Name="dateTime" Type="Edm.String" Nullable="false" Unicode="false"/>
+        <Property Name="timeZone" Type="Edm.String" Unicode="false"/>
+      </ComplexType>
+      <ComplexType Name="location">
+        <Property Name="displayName" Type="Edm.String" Unicode="false"/>
+        <Property Name="address" Type="microsoft.graph.physicalAddress"/>
+      </ComplexType>
+      <ComplexType Name="physicalAddress">
+        <Property Name="street" Type="Edm.String" Unicode="false"/>
+        <Property Name="city" Type="Edm.String" Unicode="false"/>
+        <Property Name="state" Type="Edm.String" Unicode="false"/>
+        <Property Name="countryOrRegion" Type="Edm.String" Unicode="false"/>
+        <Property Name="postalCode" Type="Edm.String" Unicode="false"/>
+      </ComplexType>
+      <ComplexType Name="itemBody">
+        <Property Name="contentType" Type="microsoft.graph.bodyType"/>
+        <Property Name="content" Type="Edm.String" Unicode="false"/>
+      </ComplexType>
+      <ComplexType Name="recipient">
+        <Property Name="emailAddress" Type="microsoft.graph.emailAddress"/>
+      </ComplexType>
+      <ComplexType Name="emailAddress">
+        <Property Name="name" Type="Edm.String" Unicode="false"/>
+        <Property Name="address" Type="Edm.String" Unicode="false"/>
+      </ComplexType>
+      <EntityType Name="fileAttachment" BaseType="microsoft.graph.attachment">
+        <Property Name="contentId" Type="Edm.String" Unicode="false"/>
+        <Property Name="contentLocation" Type="Edm.String" Unicode="false"/>
+        <Property Name="contentBytes" Type="Edm.Binary"/>
+      </EntityType>
+      <EntityType Name="itemAttachment" BaseType="microsoft.graph.attachment">
+        <NavigationProperty Name="item" Type="microsoft.graph.outlookItem" ContainsTarget="true"/>
+      </EntityType>
+      <ComplexType Name="responseStatus">
+        <Property Name="response" Type="microsoft.graph.responseType"/>
+        <Property Name="time" Type="Edm.DateTimeOffset"/>
+      </ComplexType>
+      <ComplexType Name="patternedRecurrence">
+        <Property Name="pattern" Type="microsoft.graph.recurrencePattern"/>
+        <Property Name="range" Type="microsoft.graph.recurrenceRange"/>
+      </ComplexType>
+      <ComplexType Name="recurrencePattern">
+        <Property Name="type" Type="microsoft.graph.recurrencePatternType"/>
+        <Property Name="interval" Type="Edm.Int32" Nullable="false"/>
+        <Property Name="month" Type="Edm.Int32" Nullable="false"/>
+        <Property Name="dayOfMonth" Type="Edm.Int32" Nullable="false"/>
+        <Property Name="daysOfWeek" Type="Collection(microsoft.graph.dayOfWeek)"/>
+        <Property Name="firstDayOfWeek" Type="microsoft.graph.dayOfWeek"/>
+        <Property Name="index" Type="microsoft.graph.weekIndex"/>
+      </ComplexType>
+      <ComplexType Name="recurrenceRange">
+        <Property Name="type" Type="microsoft.graph.recurrenceRangeType"/>
+        <Property Name="startDate" Type="Edm.Date"/>
+        <Property Name="endDate" Type="Edm.Date"/>
+        <Property Name="recurrenceTimeZone" Type="Edm.String" Unicode="false"/>
+        <Property Name="numberOfOccurrences" Type="Edm.Int32" Nullable="false"/>
+      </ComplexType>
+      <ComplexType Name="attendee" BaseType="microsoft.graph.recipient">
+        <Property Name="status" Type="microsoft.graph.responseStatus"/>
+        <Property Name="type" Type="microsoft.graph.attendeeType"/>
+      </ComplexType>
+      <EntityType Name="eventMessage" BaseType="microsoft.graph.message">
+        <Property Name="meetingMessageType" Type="microsoft.graph.meetingMessageType"/>
+        <NavigationProperty Name="event" Type="microsoft.graph.event" ContainsTarget="true"/>
+      </EntityType>
+      <EntityType Name="referenceAttachment" BaseType="microsoft.graph.attachment"/>
+      <EntityType Name="post" BaseType="microsoft.graph.outlookItem">
+        <Property Name="body" Type="microsoft.graph.itemBody"/>
+        <Property Name="receivedDateTime" Type="Edm.DateTimeOffset" Nullable="false"/>
+        <Property Name="hasAttachments" Type="Edm.Boolean" Nullable="false"/>
+        <Property Name="from" Type="microsoft.graph.recipient" Nullable="false"/>
+        <Property Name="sender" Type="microsoft.graph.recipient" Nullable="false"/>
+        <Property Name="conversationThreadId" Type="Edm.String" Unicode="false"/>
+        <Property Name="newParticipants" Type="Collection(microsoft.graph.recipient)" Nullable="false"/>
+        <Property Name="conversationId" Type="Edm.String" Unicode="false"/>
+        <NavigationProperty Name="inReplyTo" Type="microsoft.graph.post" ContainsTarget="true"/>
+        <NavigationProperty Name="attachments" Type="Collection(microsoft.graph.attachment)" ContainsTarget="true"/>
+      </EntityType>
+      <ComplexType Name="identitySet" OpenType="true">
+        <Property Name="application" Type="microsoft.graph.identity"/>
+        <Property Name="device" Type="microsoft.graph.identity"/>
+        <Property Name="user" Type="microsoft.graph.identity"/>
+      </ComplexType>
+      <ComplexType Name="identity">
+        <Property Name="displayName" Type="Edm.String" Unicode="false"/>
+        <Property Name="id" Type="Edm.String" Unicode="false"/>
+      </ComplexType>
+      <ComplexType Name="quota">
+        <Property Name="deleted" Type="Edm.Int64"/>
+        <Property Name="remaining" Type="Edm.Int64"/>
+        <Property Name="state" Type="Edm.String" Unicode="false"/>
+        <Property Name="total" Type="Edm.Int64"/>
+        <Property Name="used" Type="Edm.Int64"/>
+      </ComplexType>
+      <EntityType Name="driveItem" BaseType="microsoft.graph.entity" OpenType="true">
+        <Property Name="content" Type="Edm.Stream"/>
+        <Property Name="createdBy" Type="microsoft.graph.identitySet"/>
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset"/>
+        <Property Name="cTag" Type="Edm.String" Unicode="false"/>
+        <Property Name="description" Type="Edm.String" Unicode="false"/>
+        <Property Name="eTag" Type="Edm.String" Unicode="false"/>
+        <Property Name="lastModifiedBy" Type="microsoft.graph.identitySet"/>
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset"/>
+        <Property Name="name" Type="Edm.String" Unicode="false"/>
+        <Property Name="parentReference" Type="microsoft.graph.itemReference"/>
+        <Property Name="size" Type="Edm.Int64"/>
+        <Property Name="webDavUrl" Type="Edm.String" Unicode="false"/>
+        <Property Name="webUrl" Type="Edm.String" Unicode="false"/>
+        <Property Name="audio" Type="microsoft.graph.audio"/>
+        <Property Name="deleted" Type="microsoft.graph.deleted"/>
+        <Property Name="file" Type="microsoft.graph.file"/>
+        <Property Name="fileSystemInfo" Type="microsoft.graph.fileSystemInfo"/>
+        <Property Name="folder" Type="microsoft.graph.folder"/>
+        <Property Name="image" Type="microsoft.graph.image"/>
+        <Property Name="location" Type="microsoft.graph.geoCoordinates"/>
+        <Property Name="photo" Type="microsoft.graph.photo"/>
+        <Property Name="remoteItem" Type="microsoft.graph.remoteItem"/>
+        <Property Name="searchResult" Type="microsoft.graph.searchResult"/>
+        <Property Name="shared" Type="microsoft.graph.shared"/>
+        <Property Name="specialFolder" Type="microsoft.graph.specialFolder"/>
+        <Property Name="video" Type="microsoft.graph.video"/>
+        <Property Name="package" Type="microsoft.graph.package"/>
+        <NavigationProperty Name="createdByUser" Type="microsoft.graph.user"/>
+        <NavigationProperty Name="lastModifiedByUser" Type="microsoft.graph.user"/>
+        <NavigationProperty Name="permissions" Type="Collection(microsoft.graph.permission)" ContainsTarget="true"/>
+        <NavigationProperty Name="children" Type="Collection(microsoft.graph.driveItem)" ContainsTarget="true"/>
+        <NavigationProperty Name="thumbnails" Type="Collection(microsoft.graph.thumbnailSet)" ContainsTarget="true"/>
+      </EntityType>
+      <ComplexType Name="itemReference">
+        <Property Name="driveId" Type="Edm.String" Unicode="false"/>
+        <Property Name="id" Type="Edm.String" Unicode="false"/>
+        <Property Name="path" Type="Edm.String" Unicode="false"/>
+      </ComplexType>
+      <ComplexType Name="audio">
+        <Property Name="album" Type="Edm.String" Unicode="false"/>
+        <Property Name="albumArtist" Type="Edm.String" Unicode="false"/>
+        <Property Name="artist" Type="Edm.String" Unicode="false"/>
+        <Property Name="bitrate" Type="Edm.Int64"/>
+        <Property Name="composers" Type="Edm.String" Unicode="false"/>
+        <Property Name="copyright" Type="Edm.String" Unicode="false"/>
+        <Property Name="disc" Type="Edm.Int16"/>
+        <Property Name="discCount" Type="Edm.Int16"/>
+        <Property Name="duration" Type="Edm.Int64"/>
+        <Property Name="genre" Type="Edm.String" Unicode="false"/>
+        <Property Name="hasDrm" Type="Edm.Boolean"/>
+        <Property Name="isVariableBitrate" Type="Edm.Boolean"/>
+        <Property Name="title" Type="Edm.String" Unicode="false"/>
+        <Property Name="track" Type="Edm.Int32"/>
+        <Property Name="trackCount" Type="Edm.Int32"/>
+        <Property Name="year" Type="Edm.Int32"/>
+      </ComplexType>
+      <ComplexType Name="deleted">
+        <Property Name="state" Type="Edm.String" Unicode="false"/>
+      </ComplexType>
+      <ComplexType Name="file">
+        <Property Name="hashes" Type="microsoft.graph.hashes"/>
+        <Property Name="mimeType" Type="Edm.String" Unicode="false"/>
+      </ComplexType>
+      <ComplexType Name="hashes">
+        <Property Name="crc32Hash" Type="Edm.String" Unicode="false"/>
+        <Property Name="sha1Hash" Type="Edm.String" Unicode="false"/>
+      </ComplexType>
+      <ComplexType Name="fileSystemInfo">
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset"/>
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset"/>
+      </ComplexType>
+      <ComplexType Name="folder">
+        <Property Name="childCount" Type="Edm.Int32"/>
+      </ComplexType>
+      <ComplexType Name="image">
+        <Property Name="height" Type="Edm.Int32"/>
+        <Property Name="width" Type="Edm.Int32"/>
+      </ComplexType>
+      <ComplexType Name="geoCoordinates">
+        <Property Name="altitude" Type="Edm.Double"/>
+        <Property Name="latitude" Type="Edm.Double"/>
+        <Property Name="longitude" Type="Edm.Double"/>
+      </ComplexType>
+      <ComplexType Name="photo">
+        <Property Name="cameraMake" Type="Edm.String" Unicode="false"/>
+        <Property Name="cameraModel" Type="Edm.String" Unicode="false"/>
+        <Property Name="exposureDenominator" Type="Edm.Double"/>
+        <Property Name="exposureNumerator" Type="Edm.Double"/>
+        <Property Name="focalLength" Type="Edm.Double"/>
+        <Property Name="fNumber" Type="Edm.Double"/>
+        <Property Name="takenDateTime" Type="Edm.DateTimeOffset"/>
+        <Property Name="iso" Type="Edm.Int32"/>
+      </ComplexType>
+      <ComplexType Name="remoteItem">
+        <Property Name="file" Type="microsoft.graph.file"/>
+        <Property Name="fileSystemInfo" Type="microsoft.graph.fileSystemInfo"/>
+        <Property Name="folder" Type="microsoft.graph.folder"/>
+        <Property Name="id" Type="Edm.String" Unicode="false"/>
+        <Property Name="name" Type="Edm.String" Unicode="false"/>
+        <Property Name="parentReference" Type="microsoft.graph.itemReference"/>
+        <Property Name="size" Type="Edm.Int64"/>
+      </ComplexType>
+      <ComplexType Name="searchResult">
+        <Property Name="onClickTelemetryUrl" Type="Edm.String" Unicode="false"/>
+      </ComplexType>
+      <ComplexType Name="shared">
+        <Property Name="owner" Type="microsoft.graph.identitySet"/>
+        <Property Name="scope" Type="Edm.String" Unicode="false"/>
+      </ComplexType>
+      <ComplexType Name="specialFolder">
+        <Property Name="name" Type="Edm.String" Unicode="false"/>
+      </ComplexType>
+      <ComplexType Name="video">
+        <Property Name="bitrate" Type="Edm.Int32"/>
+        <Property Name="duration" Type="Edm.Int64"/>
+        <Property Name="height" Type="Edm.Int32"/>
+        <Property Name="width" Type="Edm.Int32"/>
+      </ComplexType>
+      <ComplexType Name="package">
+        <Property Name="type" Type="Edm.String" Unicode="false"/>
+      </ComplexType>
+      <EntityType Name="permission" BaseType="microsoft.graph.entity">
+        <Property Name="grantedTo" Type="microsoft.graph.identitySet"/>
+        <Property Name="invitation" Type="microsoft.graph.sharingInvitation"/>
+        <Property Name="inheritedFrom" Type="microsoft.graph.itemReference"/>
+        <Property Name="link" Type="microsoft.graph.sharingLink"/>
+        <Property Name="roles" Type="Collection(Edm.String)" Unicode="false"/>
+        <Property Name="shareId" Type="Edm.String" Unicode="false"/>
+      </EntityType>
+      <EntityType Name="thumbnailSet" BaseType="microsoft.graph.entity" OpenType="true">
+        <Property Name="large" Type="microsoft.graph.thumbnail"/>
+        <Property Name="medium" Type="microsoft.graph.thumbnail"/>
+        <Property Name="small" Type="microsoft.graph.thumbnail"/>
+        <Property Name="source" Type="microsoft.graph.thumbnail"/>
+      </EntityType>
+      <ComplexType Name="sharingInvitation">
+        <Property Name="email" Type="Edm.String" Unicode="false"/>
+        <Property Name="invitedBy" Type="microsoft.graph.identitySet"/>
+        <Property Name="redeemedBy" Type="Edm.String" Unicode="false"/>
+        <Property Name="signInRequired" Type="Edm.Boolean"/>
+      </ComplexType>
+      <ComplexType Name="sharingLink">
+        <Property Name="application" Type="microsoft.graph.identity"/>
+        <Property Name="type" Type="Edm.String" Unicode="false"/>
+        <Property Name="webUrl" Type="Edm.String" Unicode="false"/>
+      </ComplexType>
+      <ComplexType Name="thumbnail">
+        <Property Name="content" Type="Edm.Stream"/>
+        <Property Name="height" Type="Edm.Int32"/>
+        <Property Name="url" Type="Edm.String" Unicode="false"/>
+        <Property Name="width" Type="Edm.Int32"/>
+      </ComplexType>
+      <EntityType Name="subscription" BaseType="microsoft.graph.entity">
+        <Property Name="resource" Type="Edm.String" Nullable="false" Unicode="false"/>
+        <Property Name="changeType" Type="Edm.String" Nullable="false" Unicode="false"/>
+        <Property Name="clientState" Type="Edm.String" Unicode="false"/>
+        <Property Name="notificationUrl" Type="Edm.String" Nullable="false" Unicode="false"/>
+        <Property Name="expirationDateTime" Type="Edm.DateTimeOffset"/>
+      </EntityType>
+      <Action Name="checkMemberGroups" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.directoryObject" Nullable="false"/>
+        <Parameter Name="groupIds" Type="Collection(Edm.String)" Nullable="false" Unicode="false"/>
+        <ReturnType Type="Collection(Edm.String)" Nullable="false" Unicode="false"/>
+      </Action>
+      <Action Name="getMemberGroups" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.directoryObject" Nullable="false"/>
+        <Parameter Name="securityEnabledOnly" Type="Edm.Boolean"/>
+        <ReturnType Type="Collection(Edm.String)" Nullable="false" Unicode="false"/>
+      </Action>
+      <Action Name="getMemberObjects" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.directoryObject" Nullable="false"/>
+        <Parameter Name="securityEnabledOnly" Type="Edm.Boolean"/>
+        <ReturnType Type="Collection(Edm.String)" Nullable="false" Unicode="false"/>
+      </Action>
+      <Action Name="assignLicense" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.user" Nullable="false"/>
+        <Parameter Name="addLicenses" Type="Collection(microsoft.graph.assignedLicense)" Nullable="false"/>
+        <Parameter Name="removeLicenses" Type="Collection(Edm.Guid)" Nullable="false"/>
+        <ReturnType Type="microsoft.graph.user"/>
+      </Action>
+      <Action Name="changePassword" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.user" Nullable="false"/>
+        <Parameter Name="currentPassword" Type="Edm.String" Unicode="false"/>
+        <Parameter Name="newPassword" Type="Edm.String" Unicode="false"/>
+      </Action>
+      <Action Name="sendMail" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.user"/>
+        <Parameter Name="Message" Type="microsoft.graph.message" Nullable="false"/>
+        <Parameter Name="SaveToSentItems" Type="Edm.Boolean"/>
+      </Action>
+      <Function Name="reminderView" IsBound="true">
+        <Parameter Name="bindingparameter" Type="microsoft.graph.user"/>
+        <Parameter Name="StartDateTime" Type="Edm.String" Nullable="false" Unicode="false"/>
+        <Parameter Name="EndDateTime" Type="Edm.String" Unicode="false"/>
+        <ReturnType Type="Collection(microsoft.graph.reminder)" Nullable="false"/>
+      </Function>
+      <Action Name="copy" IsBound="true" EntitySetPath="bindingParameter">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.mailFolder"/>
+        <Parameter Name="DestinationId" Type="Edm.String" Unicode="false"/>
+        <ReturnType Type="microsoft.graph.mailFolder"/>
+      </Action>
+      <Action Name="move" IsBound="true" EntitySetPath="bindingParameter">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.mailFolder"/>
+        <Parameter Name="DestinationId" Type="Edm.String" Unicode="false"/>
+        <ReturnType Type="microsoft.graph.mailFolder"/>
+      </Action>
+      <Action Name="copy" IsBound="true" EntitySetPath="bindingParameter">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.message"/>
+        <Parameter Name="DestinationId" Type="Edm.String" Unicode="false"/>
+        <ReturnType Type="microsoft.graph.message"/>
+      </Action>
+      <Action Name="move" IsBound="true" EntitySetPath="bindingParameter">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.message"/>
+        <Parameter Name="DestinationId" Type="Edm.String" Unicode="false"/>
+        <ReturnType Type="microsoft.graph.message"/>
+      </Action>
+      <Action Name="createReply" IsBound="true" EntitySetPath="bindingParameter">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.message"/>
+        <ReturnType Type="microsoft.graph.message"/>
+      </Action>
+      <Action Name="createReplyAll" IsBound="true" EntitySetPath="bindingParameter">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.message"/>
+        <ReturnType Type="microsoft.graph.message"/>
+      </Action>
+      <Action Name="createForward" IsBound="true" EntitySetPath="bindingParameter">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.message"/>
+        <ReturnType Type="microsoft.graph.message"/>
+      </Action>
+      <Action Name="reply" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.message"/>
+        <Parameter Name="Comment" Type="Edm.String" Unicode="false"/>
+      </Action>
+      <Action Name="replyAll" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.message"/>
+        <Parameter Name="Comment" Type="Edm.String" Unicode="false"/>
+      </Action>
+      <Action Name="forward" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.message"/>
+        <Parameter Name="Comment" Type="Edm.String" Unicode="false"/>
+        <Parameter Name="ToRecipients" Type="Collection(microsoft.graph.recipient)"/>
+      </Action>
+      <Action Name="send" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.message"/>
+      </Action>
+      <Action Name="accept" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.event"/>
+        <Parameter Name="Comment" Type="Edm.String" Unicode="false"/>
+        <Parameter Name="SendResponse" Type="Edm.Boolean"/>
+      </Action>
+      <Action Name="decline" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.event"/>
+        <Parameter Name="Comment" Type="Edm.String" Unicode="false"/>
+        <Parameter Name="SendResponse" Type="Edm.Boolean"/>
+      </Action>
+      <Action Name="tentativelyAccept" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.event"/>
+        <Parameter Name="Comment" Type="Edm.String" Unicode="false"/>
+        <Parameter Name="SendResponse" Type="Edm.Boolean"/>
+      </Action>
+      <Action Name="snoozeReminder" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.event"/>
+        <Parameter Name="NewReminderTime" Type="microsoft.graph.dateTimeTimeZone" Nullable="false"/>
+      </Action>
+      <Action Name="dismissReminder" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.event"/>
+      </Action>
+      <Action Name="subscribeByMail" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.group"/>
+      </Action>
+      <Action Name="unsubscribeByMail" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.group"/>
+      </Action>
+      <Action Name="addFavorite" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.group"/>
+      </Action>
+      <Action Name="removeFavorite" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.group"/>
+      </Action>
+      <Action Name="resetUnseenCount" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.group"/>
+      </Action>
+      <Action Name="reply" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.conversationThread"/>
+        <Parameter Name="Post" Type="microsoft.graph.post" Nullable="false"/>
+      </Action>
+      <Action Name="forward" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.post"/>
+        <Parameter Name="Comment" Type="Edm.String" Unicode="false"/>
+        <Parameter Name="ToRecipients" Type="Collection(microsoft.graph.recipient)" Nullable="false"/>
+      </Action>
+      <Action Name="reply" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.post"/>
+        <Parameter Name="Post" Type="microsoft.graph.post" Nullable="false"/>
+      </Action>
+      <Function Name="search" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.driveItem" Nullable="false"/>
+        <Parameter Name="q" Type="Edm.String" Unicode="false"/>
+        <ReturnType Type="Collection(microsoft.graph.driveItem)" Nullable="false"/>
+      </Function>
+      <Action Name="createLink" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.driveItem" Nullable="false"/>
+        <Parameter Name="type" Type="Edm.String" Nullable="false" Unicode="false"/>
+        <Parameter Name="scope" Type="Edm.String" Unicode="false"/>
+        <ReturnType Type="microsoft.graph.permission" Nullable="false"/>
+      </Action>
+      <Function Name="delta" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.driveItem" Nullable="false"/>
+        <Parameter Name="token" Type="Edm.String" Unicode="false"/>
+        <ReturnType Type="Collection(microsoft.graph.driveItem)" Nullable="false"/>
+      </Function>
+      <Function Name="delta" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.driveItem" Nullable="false"/>
+        <ReturnType Type="Collection(microsoft.graph.driveItem)" Nullable="false"/>
+      </Function>
+      <Function Name="recent" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.drive" Nullable="false"/>
+        <ReturnType Type="Collection(microsoft.graph.driveItem)" Nullable="false"/>
+      </Function>
+      <Function Name="sharedWithMe" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.drive" Nullable="false"/>
+        <ReturnType Type="Collection(microsoft.graph.driveItem)" Nullable="false"/>
+      </Function>
+      <Action Name="copy" IsBound="true">
+        <Parameter Name="bindingParameter" Type="microsoft.graph.driveItem" Nullable="false"/>
+        <Parameter Name="name" Type="Edm.String" Unicode="false"/>
+        <Parameter Name="parentReference" Type="microsoft.graph.itemReference"/>
+        <ReturnType Type="microsoft.graph.driveItem" Nullable="false"/>
+      </Action>
+      <Term Name="sourceUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItem"/>
+      <Term Name="downloadUrl" Type="Edm.String" AppliesTo="microsoft.graph.driveItem"/>
+      <Term Name="conflictBehavior" Type="Edm.String" AppliesTo="microsoft.graph.driveItem"/>
+      <EntityContainer Name="GraphService">
+        <EntitySet Name="directoryObjects" EntityType="microsoft.graph.directoryObject"/>
+        <EntitySet Name="devices" EntityType="microsoft.graph.device">
+          <NavigationPropertyBinding Path="registeredOwners" Target="directoryObjects"/>
+          <NavigationPropertyBinding Path="registeredUsers" Target="directoryObjects"/>
+        </EntitySet>
+        <EntitySet Name="groups" EntityType="microsoft.graph.group">
+          <NavigationPropertyBinding Path="members" Target="directoryObjects"/>
+          <NavigationPropertyBinding Path="memberOf" Target="directoryObjects"/>
+          <NavigationPropertyBinding Path="createdOnBehalfOf" Target="directoryObjects"/>
+          <NavigationPropertyBinding Path="owners" Target="directoryObjects"/>
+          <NavigationPropertyBinding Path="microsoft.graph.driveItem/lastModifiedByUser" Target="users"/>
+          <NavigationPropertyBinding Path="microsoft.graph.driveItem/createdByUser" Target="users"/>
+        </EntitySet>
+        <EntitySet Name="directoryRoles" EntityType="microsoft.graph.directoryRole">
+          <NavigationPropertyBinding Path="members" Target="directoryObjects"/>
+        </EntitySet>
+        <EntitySet Name="directoryRoleTemplates" EntityType="microsoft.graph.directoryRoleTemplate"/>
+        <EntitySet Name="organization" EntityType="microsoft.graph.organization"/>
+        <EntitySet Name="subscribedSkus" EntityType="microsoft.graph.subscribedSku"/>
+        <EntitySet Name="users" EntityType="microsoft.graph.user">
+          <NavigationPropertyBinding Path="ownedDevices" Target="directoryObjects"/>
+          <NavigationPropertyBinding Path="registeredDevices" Target="directoryObjects"/>
+          <NavigationPropertyBinding Path="manager" Target="directoryObjects"/>
+          <NavigationPropertyBinding Path="directReports" Target="directoryObjects"/>
+          <NavigationPropertyBinding Path="memberOf" Target="directoryObjects"/>
+          <NavigationPropertyBinding Path="createdObjects" Target="directoryObjects"/>
+          <NavigationPropertyBinding Path="ownedObjects" Target="directoryObjects"/>
+          <NavigationPropertyBinding Path="microsoft.graph.driveItem/lastModifiedByUser" Target="users"/>
+          <NavigationPropertyBinding Path="microsoft.graph.driveItem/createdByUser" Target="users"/>
+        </EntitySet>
+        <EntitySet Name="drives" EntityType="microsoft.graph.drive">
+          <NavigationPropertyBinding Path="microsoft.graph.driveItem/lastModifiedByUser" Target="users"/>
+          <NavigationPropertyBinding Path="microsoft.graph.driveItem/createdByUser" Target="users"/>
+        </EntitySet>
+        <EntitySet Name="subscriptions" EntityType="microsoft.graph.subscription"/>
+        <Singleton Name="me" Type="microsoft.graph.user">
+          <NavigationPropertyBinding Path="ownedDevices" Target="directoryObjects"/>
+          <NavigationPropertyBinding Path="registeredDevices" Target="directoryObjects"/>
+          <NavigationPropertyBinding Path="manager" Target="directoryObjects"/>
+          <NavigationPropertyBinding Path="directReports" Target="directoryObjects"/>
+          <NavigationPropertyBinding Path="memberOf" Target="directoryObjects"/>
+          <NavigationPropertyBinding Path="createdObjects" Target="directoryObjects"/>
+          <NavigationPropertyBinding Path="ownedObjects" Target="directoryObjects"/>
+        </Singleton>
+        <Singleton Name="drive" Type="microsoft.graph.drive">
+          <NavigationPropertyBinding Path="microsoft.graph.driveItem/lastModifiedByUser" Target="users"/>
+          <NavigationPropertyBinding Path="microsoft.graph.driveItem/createdByUser" Target="users"/>
+        </Singleton>
+      </EntityContainer>
+      <Annotations Target="microsoft.graph.directoryObject">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false"/>
+      </Annotations>
+      <Annotations Target="microsoft.graph.directoryRole">
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false"/>
+      </Annotations>
+      <Annotations Target="microsoft.graph.directoryRoleTemplate">
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false"/>
+      </Annotations>
+      <Annotations Target="microsoft.graph.subscribedSku">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false"/>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false"/>
+      </Annotations>
+      <Annotations Target="microsoft.graph.subscription">
+        <Annotation Term="Org.OData.Capabilities.V1.ExpandRestrictions">
+          <Record>
+            <PropertyValue Property="Expandable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.NavigationRestrictions">
+          <Record>
+            <PropertyValue Property="Referenceable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SelectRestrictions">
+          <Record>
+            <PropertyValue Property="Selectable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.CountRestrictions">
+          <Record>
+            <PropertyValue Property="Countable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.FilterRestrictions">
+          <Record>
+            <PropertyValue Property="Filterable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SortRestrictions">
+          <Record>
+            <PropertyValue Property="Sortable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Org.OData.Capabilities.V1.SkipSupported" Bool="false"/>
+        <Annotation Term="Org.OData.Capabilities.V1.TopSupported" Bool="false"/>
+      </Annotations>
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>

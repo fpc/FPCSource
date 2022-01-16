@@ -130,6 +130,14 @@ const
       Result := 0;
     end;
 
+    procedure SysSetThreadDebugNameA(threadHandle: TThreadID; const ThreadName: AnsiString);
+    begin
+    end;
+
+    procedure SysSetThreadDebugNameU(threadHandle: TThreadID; const ThreadName: UnicodeString);
+    begin
+    end;
+
 {*****************************************************************************
                           Delphi/Win32 compatibility
 *****************************************************************************}
@@ -231,11 +239,13 @@ begin
     ResumeThread           :=@SysResumeThread;
     KillThread             :=@SysKillThread;
     ThreadSwitch           :=@SysThreadSwitch;
-    CloseThread		   :=@SysCloseThread;
+    CloseThread            :=@SysCloseThread;
     WaitForThreadTerminate :=@SysWaitForThreadTerminate;
     ThreadSetPriority      :=@SysThreadSetPriority;
     ThreadGetPriority      :=@SysThreadGetPriority;
     GetCurrentThreadId     :=@SysGetCurrentThreadId;
+    SetThreadDebugNameA    :=@SysSetThreadDebugNameA;
+    SetThreadDebugNameU    :=@SysSetThreadDebugNameU;
     InitCriticalSection    :=@SysInitCriticalSection;
     DoneCriticalSection    :=@SysDoneCriticalSection;
     EnterCriticalSection   :=@SysEnterCriticalSection;

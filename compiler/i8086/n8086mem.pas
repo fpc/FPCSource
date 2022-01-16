@@ -34,8 +34,11 @@ interface
     type
        ti8086addrnode = class(ti86addrnode)
         protected
+         procedure set_labelsym_resultdef; override;
          procedure set_absvarsym_resultdef; override;
-         function typecheck_non_proc(realsource: tnode; out res: tnode): boolean; override;
+        public
+         get_offset_only: boolean;
+         procedure pass_generate_code;override;
        end;
 
        ti8086derefnode = class(tx86derefnode)
@@ -45,6 +48,7 @@ interface
        { tx86vecnode doesn't work for i8086, so we inherit tcgvecnode }
        ti8086vecnode = class(tcgvecnode)
         protected
+         function get_address_type: tdef;override;
          function first_arraydef: tnode;override;
          procedure update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint);override;
        end;
@@ -66,29 +70,38 @@ implementation
                              TI8086ADDRNODE
 *****************************************************************************}
 
+    procedure ti8086addrnode.set_labelsym_resultdef;
+      begin
+        if anf_ofs in addrnodeflags then
+          resultdef:=voidnearcspointertype
+        else
+          inherited;
+      end;
+
+
     procedure ti8086addrnode.set_absvarsym_resultdef;
       begin
-        if not(nf_typedaddr in flags) then
+        if not(anf_typedaddr in addrnodeflags) then
           resultdef:=voidfarpointertype
         else
           resultdef:=tcpupointerdefclass(cpointerdef).createx86(left.resultdef,x86pt_far);
       end;
 
 
-    function ti8086addrnode.typecheck_non_proc(realsource: tnode; out res: tnode): boolean;
+    procedure ti8086addrnode.pass_generate_code;
       begin
-        res:=nil;
-        if (realsource.nodetype=loadn) and
-           (tloadnode(realsource).symtableentry.typ=labelsym) then
+        if get_offset_only then
           begin
-            if current_settings.x86memorymodel in x86_far_code_models then
-              resultdef:=voidfarpointertype
-            else
-              resultdef:=voidnearpointertype;
-            result:=true
+            secondpass(left);
+
+            location_reset(location,LOC_REGISTER,OS_16);
+            location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidnearpointertype);
+            if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+              internalerror(2015103003);
+            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,voidnearpointertype,left.location.reference,location.register);
           end
         else
-          result:=inherited;
+          inherited;
       end;
 
 {*****************************************************************************
@@ -109,9 +122,9 @@ implementation
             { assume natural alignment, except for packed records }
             if not(resultdef.typ in [recorddef,objectdef]) or
                (tabstractrecordsymtable(tabstractrecorddef(resultdef).symtable).usefieldalignment<>1) then
-              location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),resultdef.alignment)
+              location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),resultdef.alignment,[])
             else
-              location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1);
+              location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1,[]);
             if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER,LOC_CREFERENCE,LOC_REFERENCE,LOC_CONSTANT]) then
               hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
             case left.location.loc of
@@ -120,7 +133,7 @@ implementation
                  begin
                    hlcg.maybe_change_load_node_reg(current_asmdata.CurrAsmList,left,true);
                    location.reference.base := left.location.register;
-                   location.reference.segment := GetNextReg(left.location.register);
+                   location.reference.segment := cg.GetNextReg(left.location.register);
                  end;
                LOC_CREFERENCE,
                LOC_REFERENCE:
@@ -139,7 +152,7 @@ implementation
                    cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_16,(left.location.value shr 16) and $FFFF,location.reference.segment);
                  end;
                else
-                 internalerror(200507031);
+                 internalerror(2005070302);
             end;
             if (cs_use_heaptrc in current_settings.globalswitches) and
                (cs_checkpointer in current_settings.localswitches) and
@@ -153,16 +166,17 @@ implementation
              begin
                if not searchsym_in_named_module('HEAPTRC','CHECKPOINTER',sym,st) or
                   (sym.typ<>procsym) then
-                 internalerror(2012010601);
+                 internalerror(2012010603);
                pd:=tprocdef(tprocsym(sym).ProcdefList[0]);
                paraloc1.init;
-               paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
-               hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,resultdef,location.reference.base,paraloc1);
+               paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
+               hlcg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,resultdef,location.reference,paraloc1);
                paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                paraloc1.done;
                hlcg.allocallcpuregisters(current_asmdata.CurrAsmList);
                hlcg.a_call_name(current_asmdata.CurrAsmList,pd,'FPC_CHECKPOINTER',[],nil,false);
                hlcg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+               system.include(current_settings.moduleswitches,cs_checkpointer_called);
              end;
           end
         else
@@ -172,6 +186,12 @@ implementation
 {*****************************************************************************
                              TI8086VECNODE
 *****************************************************************************}
+
+    function ti8086vecnode.get_address_type: tdef;
+      begin
+        result:=tx86pointerdef(cpointerdef).getreusablex86(resultdef,x86pt_near);
+      end;
+
 
     function ti8086vecnode.first_arraydef: tnode;
       var
@@ -199,7 +219,7 @@ implementation
             result:=ccallnode.createintern(procname,
               ccallparanode.create(right,
               ccallparanode.create(ttypeconvnode(left).left,nil)));
-            inserttypeconv_internal(result,getx86pointerdef(arraydef.elementdef,x86pt_huge));
+            inserttypeconv_internal(result,tx86pointerdef(cpointerdef).getreusablex86(arraydef.elementdef,x86pt_huge));
             result:=cderefnode.create(result);
 
             ttypeconvnode(left).left:=nil;

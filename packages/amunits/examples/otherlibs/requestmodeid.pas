@@ -34,22 +34,27 @@ Var
 
 
 Begin
+  if not Assigned(P96Base) then
+  begin
+    writeln('Cannot open ', PICASSO96APINAME);
+    Halt(5);
+  end;
     width:=640;
     height:=480;
     depth:=15;
 
     rda:=ReadArgs (template,@vecarray,Nil);
     If rda<>Nil Then Begin
-       If vecarray[0] <> 0 then width := long(@vecarray[0]);
-       If vecarray[1] <> 0 then height := long(@vecarray[1]);
-       If vecarray[2] <> 0 then depth := long(@vecarray[2]);
+       If vecarray[0] <> 0 then width := PlongInt(vecarray[0])^;
+       If vecarray[1] <> 0 then height := PLongInt(vecarray[1])^;
+       If vecarray[2] <> 0 then depth := PLongInt(vecarray[2])^;
        FreeArgs(rda);
     End;
 
     DisplayID := p96RequestModeIDTags([P96MA_MinWidth, width,
                                        P96MA_MinHeight, height,
                                        P96MA_MinDepth, depth,
-                                       P96MA_WindowTitle, 'RequestModeID Test',
+                                       P96MA_WindowTitle, AsTag('RequestModeID Test'),
                                        P96MA_FormatsAllowed, (RGBFF_CLUT or RGBFF_R5G6B5 or RGBFF_R8G8B8 or RGBFF_A8R8G8B8),
                                        TAG_DONE]);
 

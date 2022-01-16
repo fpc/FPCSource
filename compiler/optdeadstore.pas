@@ -24,6 +24,7 @@ unit optdeadstore;
 {$i fpcdefs.inc}
 
 { $define DEBUG_DEADSTORE}
+{ $define EXTDEBUG_DEADSTORE}
 
   interface
 
@@ -36,10 +37,9 @@ unit optdeadstore;
 
     uses
       verbose,globtype,globals,
-      fmodule,
       procinfo,pass_1,
       nutils,
-      nbas,nld,nmem,nflw,nset,
+      nbas,nld,
       optbase,
       symsym,symconst;
 
@@ -72,7 +72,8 @@ unit optdeadstore;
                      (tparavarsym(tloadnode(a.left).symtableentry).varspez in [vs_const,vs_value])) or
                     ((tloadnode(a.left).symtableentry.typ=staticvarsym) and
                      (tloadnode(a.left).symtable.symtabletype=staticsymtable) and
-                     (current_procinfo.procdef.proctypeoption<>potype_unitinit)
+                     (current_procinfo.procdef.proctypeoption<>potype_unitinit) and
+                     not(vsa_different_scope in tstaticvarsym(tloadnode(a.left).symtableentry).varsymaccess)
                     )
                    ) and
                     ((a.right.nodetype in [niln,stringconstn,pointerconstn,setconstn,guidconstn]) or
@@ -95,8 +96,9 @@ unit optdeadstore;
                         tstatementnode(n).statement.free;
 
                         tstatementnode(n).statement:=cnothingnode.create;
-                        Exclude(tstatementnode(n).flags, nf_pass1_done);
-                        do_firstpass(n);
+                        { do not run firstpass on n here, as it will remove the statement node
+                          and this will make foreachnodestatic process the wrong nodes as the current statement
+                          node will disappear }
                       end
                   end;
               end;
@@ -108,13 +110,24 @@ unit optdeadstore;
       var
         changed: boolean;
       begin
+{$ifdef EXTDEBUG_DEADSTORE}
+        writeln('******************* Tree before deadstore elimination **********************');
+        printnode(rootnode);
+        writeln('****************************************************************************');
+{$endif EXTDEBUG_DEADSTORE}
         if not(pi_dfaavailable in current_procinfo.flags) then
           internalerror(2013110201);
+        changed:=false;
         if not current_procinfo.has_nestedprocs then
+          foreachnodestatic(pm_postprocess, rootnode, @deadstoreelim, @changed);
+{$ifdef DEBUG_DEADSTORE}
+        if changed then
           begin
-            changed:=false;
-            foreachnodestatic(pm_postprocess, rootnode, @deadstoreelim, @changed);
+            writeln('******************** Tree after deadstore elimination **********************');
+            printnode(rootnode);
+            writeln('****************************************************************************');
           end;
+{$endif DEBUG_DEADSTORE}
         result:=rootnode;
       end;
 

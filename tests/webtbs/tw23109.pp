@@ -1,4 +1,5 @@
 { %cpu=x86_64}
+{ %skiptarget=win64}
 { %opt=-Cg -vew }
 
 var

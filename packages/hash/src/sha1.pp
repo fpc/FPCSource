@@ -15,10 +15,10 @@
 
 // Normally, if an optimized version is available for OS/CPU, that will be used
 // Define to use existing unoptimized implementation
-{ the assembler implementation does not work on darwin }
-{$ifdef darwin}
+{ the i386 assembler implementation does not work on platforms with a fixed stack }
+{$if DEFINED(CPU386) and (defined(darwin) or defined(linux))}
 {$DEFINE SHA1PASCAL}
-{$endif darwin}
+{$endif}
 
 unit sha1;
 {$mode objfpc}{$h+}
@@ -50,6 +50,8 @@ function SHA1Print(const Digest: TSHA1Digest): String;
 function SHA1Match(const Digest1, Digest2: TSHA1Digest): Boolean;
 
 implementation
+
+uses sysutils,sysconst;
 
 // inverts the bytes of (Count div 4) cardinals from source to target.
 procedure Invert(Source, Dest: Pointer; Count: PtrUInt);
@@ -257,6 +259,11 @@ begin
   SHA1Final(Context, Result);
 end;
 
+procedure RaiseFileNotFoundException(const fn : String);
+begin
+  raise EFileNotFoundException.Create(SFileNotFound);
+end;
+
 function SHA1File(const Filename: String; const Bufsize: PtrUInt): TSHA1Digest;
 var
   F: File;
@@ -284,7 +291,9 @@ begin
     until Count < BufSize;
     FreeMem(Buf, BufSize);
     Close(F);
-  end;
+  end
+  else
+    RaiseFileNotFoundException(FileName);
 
   SHA1Final(Context, Result);
   FileMode := ofm;
@@ -313,7 +322,10 @@ var
   A: array[0..4] of Cardinal absolute Digest1;
   B: array[0..4] of Cardinal absolute Digest2;
 begin
+{$push}
+{$B+}
   Result := (A[0] = B[0]) and (A[1] = B[1]) and (A[2] = B[2]) and (A[3] = B[3]) and (A[4] = B[4]);
+{$pop}
 end;
 
 end.

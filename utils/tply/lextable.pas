@@ -77,7 +77,7 @@ type
 SymTable = array [1..max_keys] of record
              pname  : StrPtr;
                (* print name; empty entries are denoted by pname=nil *)
-             case sym_type : ( none, macro_sym, start_state_sym ) of
+             case sym_type : ( none_sym, macro_sym, start_state_sym ) of
              macro_sym : ( subst : StrPtr );
                (* macro substitution *)
              start_state_sym : ( start_state : Integer );
@@ -104,6 +104,8 @@ FirstPosTable  = array [0..2*max_start_states+1] of IntSetPtr;
                       at the beginning of the line; states 0 and 1 denote
                       default, states 2..2*n_start_states+1 user-defined
                       start states) *)
+
+StartStateExclusive = array[0..max_start_states] of Boolean;
 
 StateTableEntry = record
                     state_pos : IntSetPtr;
@@ -137,6 +139,7 @@ optimize          : Boolean;          (* status of the optimization option *)
 sym_table         : ^SymTable;        (* symbol table *)
 pos_table         : ^PosTable;        (* position table *)
 first_pos_table   : ^FirstPosTable;   (* first positions table *)
+start_excl        : ^StartStateExclusive; (* user-defined start state type *)
 state_table       : ^StateTable;      (* DFA state table *)
 trans_table       : ^TransTable;      (* DFA transition table *)
 
@@ -212,7 +215,7 @@ procedure entry(k : Integer; symbol : String);
     with sym_table^[k] do
       begin
         pname    := newStr(symbol);
-        sym_type := none;
+        sym_type := none_sym;
       end
   end(*entry*);
 
@@ -460,6 +463,7 @@ begin
   new(sym_table);
   new(pos_table);
   new(first_pos_table);
+  new(start_excl);
   new(state_table);
   new(trans_table);
 

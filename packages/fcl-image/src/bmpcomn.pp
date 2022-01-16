@@ -29,6 +29,7 @@ const
   BI_BITFIELDS = 3;
   BI_JPEG = 4;
   BI_PNG = 5;
+  BI_ALPHABITFIELDS = 6;  // WINCE5+, sometimes also abused by others.
 
 type
 

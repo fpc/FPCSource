@@ -567,7 +567,7 @@ VAR NumCols, NumRows, NumTileable, LeftOver, TileNum: Integer;
 
 BEGIN
    NumTileable := 0;                                  { Zero tileable count }
-   ForEach(@DoCountTileable);                         { Count tileable views }
+   ForEach(TCallbackProcParam(@DoCountTileable));     { Count tileable views }
    If (NumTileable>0) Then Begin
      MostEqualDivisors(NumTileable, NumCols, NumRows,
      NOT TileColumnsFirst);                           { Do pre calcs }
@@ -576,7 +576,7 @@ BEGIN
      Else Begin
        LeftOver := NumTileable MOD NumCols;           { Left over count }
        TileNum := NumTileable-1;                      { Tileable views }
-       ForEach(@DoTile);                              { Tile each view }
+       ForEach(TCallbackProcParam(@DoTile));          { Tile each view }
        DrawView;                                      { Now redraw }
      End;
    End;
@@ -622,14 +622,14 @@ VAR CascadeNum: Integer; LastView: PView; Min, Max: TPoint;
 
 BEGIN
    CascadeNum := 0;                                   { Zero cascade count }
-   ForEach(@DoCount);                                 { Count cascadable }
+   ForEach(TCallbackProcParam(@DoCount));             { Count cascadable }
    If (CascadeNum>0) Then Begin
      LastView^.SizeLimits(Min, Max);                  { Check size limits }
      If (Min.X > R.B.X - R.A.X - CascadeNum) OR
      (Min.Y > R.B.Y - R.A.Y - CascadeNum) Then
      TileError Else Begin                             { Check for error }
        Dec(CascadeNum);                               { One less view }
-       ForEach(@DoCascade);                           { Cascade view }
+       ForEach(TCallbackProcParam(@DoCascade));       { Cascade view }
        DrawView;                                      { Redraw now }
      End;
    End;
@@ -807,17 +807,25 @@ BEGIN
     video unit capabilities, the mono modus can't be handled
   }
   Drivers.DetectVideo;
-  if (ScreenMode.Col div ScreenMode.Row<2) then
-    ShadowSize.X := 1
-  else
+{ ScreenMode.Row may be 0 if there's no console on startup }
+  if ScreenMode.Row = 0 then
+   begin
     ShadowSize.X := 2;
-
+    AppPalette := apColor;
+   end
+  else
+   begin
+    if (ScreenMode.Col div ScreenMode.Row<2) then
+     ShadowSize.X := 1
+    else
+     ShadowSize.X := 2;
+    if ScreenMode.color then
+     AppPalette := apColor
+    else
+     AppPalette := apBlackWhite;
+   end;
   ShadowSize.Y := 1;
   ShowMarkers := False;
-  if ScreenMode.color then
-    AppPalette := apColor
-  else
-    AppPalette := apBlackWhite;
   Buffer := Views.PVideoBuf(VideoBuf);
 END;
 

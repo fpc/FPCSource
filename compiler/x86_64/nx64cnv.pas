@@ -26,7 +26,7 @@ unit nx64cnv;
 interface
 
     uses
-      node,ncgcnv,defutil,defcmp,pass_1,
+      node,defutil,pass_1,
       nx86cnv;
 
     type
@@ -59,21 +59,21 @@ interface
 implementation
 
     uses
-      verbose,systems,globals,globtype,
+      verbose,globals,globtype,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       symconst,symdef,
-      cgbase,cga,procinfo,pass_2,
-      ncon,ncal,ncnv,
-      cpubase,
-      cgutils,cgobj,hlcgobj,cgx86,ncgutil,
-      tgobj;
+      cgbase,cga,
+      ncnv,
+      cpubase,cpuinfo,
+      cgutils,cgobj,hlcgobj,cgx86;
 
 
     function tx8664typeconvnode.first_int_to_real : tnode;
       begin
         result:=nil;
         if use_vectorfpu(resultdef) and
-           (torddef(left.resultdef).ordtype=u32bit) then
+           (torddef(left.resultdef).ordtype=u32bit) and
+           not(FPUX86_HAS_AVX512F in fpu_capabilities[current_settings.fputype]) then
           begin
             inserttypeconv(left,s64inttype);
             firstpass(left);
@@ -91,7 +91,7 @@ implementation
          l1,l2 : tasmlabel;
          op : tasmop;
       begin
-        if use_vectorfpu(resultdef) then
+        if use_vectorfpu(resultdef) and not(FPUX86_HAS_AVX512F in fpu_capabilities[current_settings.fputype]) then
           begin
             if is_double(resultdef) then
               op:=A_CVTSI2SD
@@ -138,7 +138,7 @@ implementation
                    cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NC,l2);
                    new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,const_align(sizeof(pint)));
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
-                   reference_reset_symbol(href,l1,0,4);
+                   reference_reset_symbol(href,l1,0,4,[]);
                    { simplify for PIC }
                    tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
 

@@ -33,12 +33,13 @@ interface
        public
          function first_sar: tnode; override;
          procedure second_rox_sar; override;
+         procedure second_abs_long; override;
        end;
 
 implementation
 
   uses
-    globtype,globals,
+    globtype,globals,compinnr,
     defutil,
     aasmbase,aasmdata,
     cgbase,pass_2,
@@ -118,6 +119,27 @@ implementation
         end
       else
         inherited second_rox_sar;
+    end;
+
+
+  procedure ti386inlinenode.second_abs_long;
+    begin
+      if is_64bitint(left.resultdef) then
+        begin
+          secondpass(left);
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+          location:=left.location;
+          location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+          location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+          cg64.a_load64_reg_reg(current_asmdata.CurrAsmList,left.location.register64,location.register64);
+          cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,OS_32,31,left.location.register64.reghi);
+          cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,left.location.register64.reghi,location.register64.reglo);
+          cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,left.location.register64.reghi,location.register64.reghi);
+          emit_reg_reg(A_SUB,S_L,left.location.register64.reghi,location.register64.reglo);
+          emit_reg_reg(A_SBB,S_L,left.location.register64.reghi,location.register64.reghi);
+        end
+      else
+        inherited second_abs_long;
     end;
 
 

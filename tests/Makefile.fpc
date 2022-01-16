@@ -10,7 +10,7 @@ fpcdir=..
 rule=allexectests
 
 [target]
-programs=gparmake
+programs=gparmake createlst
 
 [rules]
 unexport FPC_VERSION
@@ -34,6 +34,11 @@ endif
 #Defaults *not* to OPT
 ifndef TEST_OPT
 TEST_OPT=
+endif
+
+# Use TEST_USE_LONGLOG by default, as it transfers less data to server
+ifndef TEST_DISABLE_LONGLOG
+TEST_USE_LONGLOG=1
 endif
 
 # disable directory cache; completely loading all directories significantly
@@ -106,7 +111,7 @@ C_SUBDIR=$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)
 
 # Date and time the testsuite was run
 ifneq ($(DATE),__missing_command_DATE)
-TEST_DATETIME:=$(shell $(DATE) +%Y%m%d%H%M)
+TEST_DATETIME:=$(shell $(DATE) -u +%Y%m%d%H%M)
 else
 # Use a spaceless string, as it will be used for file names
 TEST_DATETIME="No-date"
@@ -154,13 +159,19 @@ LOGFILES=$(TEST_OUTPUTDIR)/log $(TEST_OUTPUTDIR)/longlog $(TEST_OUTPUTDIR)/faill
 LOGEXT=.testlog .tbslog .tbflog .webtbslog .webtbflog
 
 # Subdirs available in the test subdir
-TESTSUBDIRS=cg cg/variants cg/cdecl cpu16 cpu16/i8086 library opt units/system units/dos units/crt units/objects units/strings units/sysutils units/math units/sharemem units/strutils units/matrix units/lineinfo units/ucomplex units/fpwidestring units/cpu
-TESTPACKAGESUBDIRS=packages/win-base packages/webtbs packages/hash packages/fcl-registry packages/fcl-process packages/zlib packages/fcl-db packages/fcl-base packages/fcl-xml packages/cocoaint packages/bzip2
+TESTUNITDIRS=system dos crt objects strings sysutils math sharemem strutils matrix lineinfo ucomplex fpwidestring cpu fmtbcd windows classes character dateutil fpcunit softfpu variants sortbase sortalgs linux unixutil types nullable
+TESTDIRECTDIRS=
+TESTSUBDIRS=cg cg/variants cg/cdecl cpu16 cpu16/i8086 library opt $(addprefix units/,$(TESTUNITDIRS))
+TESTPACKAGESDIRS=win-base webtbs hash fcl-registry fcl-process zlib fcl-db fcl-xml cocoaint bzip2 fcl-net
+TESTPACKAGESUBDIRS=$(addprefix packages/,$(TESTPACKAGESDIRS))
+TESTPACKAGESDIRECTDIRS=rtl-objpas rtl-generics hash regexpr fcl-registry fcl-passrc fcl-json fcl-image pastojs
+TESTPACKAGESDIRECTSUBDIRS=$(addprefix ../packages/,$(addsuffix /tests,$(TESTPACKAGESDIRECTDIRS)))
 
 ifdef QUICKTEST
 export QUICKTEST
 else
 override TESTSUBDIRS+=$(TESTPACKAGESUBDIRS) alglib
+override TESTDIRECTDIRS+=$(TESTPACKAGESDIRECTSUBDIRS)
 endif
 
 # number of tests to run per (potentially parallel) chunk/dotest invocation
@@ -169,13 +180,16 @@ export CHUNKSIZE:=100
 endif
 
 # All full dirnames in the test/ dir including the subdir self
-TESTDIRS:=test $(addprefix test/,$(TESTSUBDIRS))
+TESTDIRS:=test $(addprefix test/,$(TESTSUBDIRS)) $(TESTDIRECTDIRS)
 
 .PHONY: utils tstunits copyfiles testprep
 
 ################################
 # Utilities
 #
+
+$(TEST_OUTPUTDIR):
+	$(MKDIRTREE) $(TEST_OUTPUTDIR)
 
 utils:
         $(MAKE) -C utils utils
@@ -196,11 +210,15 @@ CONCAT=utils/concat
 endif
 
 ifndef GPARMAKE
-GPARMAKE=./gparmake$(EXEEXT)
+GPARMAKE=./gparmake$(SRCEXEEXT)
 endif
 
 ifndef PREPUP
 PREPUP=utils/prepup
+endif
+
+ifndef CREATELST
+CREATELST=./createlst$(SRCEXEEXT)
 endif
 
 
@@ -210,9 +228,9 @@ endif
 
 tstunits:
 ifdef inOS2
-        $(MAKE) -C tstunits FPC_VERSION= FPC=$(TEST_FPC) CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET) "OPT=$(TEST_OPT)" CCOMPILER=$(TEST_CCOMPILER) BINUTILSPREFIX=$(TEST_BINUTILSPREFIX)
+        $(MAKE) -C tstunits FPC_VERSION= FPC=$(TEST_FPC) NATIVE_FPC=$(FPC) CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET) SUBARCH=$(TEST_SUBARCH) "OPT=$(TEST_OPT)" CCOMPILER=$(TEST_CCOMPILER) BINUTILSPREFIX=$(TEST_BINUTILSPREFIX)
 else
-        $(MAKE) -C tstunits FPC_VERSION= FPC=$(TEST_FPC) CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET) 'OPT=$(TEST_OPT)' CCOMPILER=$(TEST_CCOMPILER) BINUTILSPREFIX=$(TEST_BINUTILSPREFIX)
+        $(MAKE) -C tstunits FPC_VERSION= FPC=$(TEST_FPC) NATIVE_FPC=$(FPC) CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET) SUBARCH=$(TEST_SUBARCH) 'OPT=$(TEST_OPT)' CCOMPILER=$(TEST_CCOMPILER) BINUTILSPREFIX=$(TEST_BINUTILSPREFIX)
 endif
 
 ################################
@@ -224,6 +242,7 @@ endif
 C_SOURCE_DIR=test/cg/obj
 C_SOURCES=ctest.c tcext3.c tcext4.c tcext5.c tcext6.c
 CPP_SOURCES=cpptcl1.cpp cpptcl2.cpp
+TASM_SOURCES=ttasm1.asm
 ifneq ($(TEST_ABI),)
 C_OBJECTS_DIR=$(C_SOURCE_DIR)/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)
 else
@@ -231,10 +250,12 @@ C_OBJECTS_DIR=$(C_SOURCE_DIR)/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)
 endif
 C_OBJECTS=$(addprefix $(C_OBJECTS_DIR)/, $(subst .c,.o, $(C_SOURCES)))
 CPP_OBJECTS=$(addprefix $(C_OBJECTS_DIR)/, $(subst .cpp,.o, $(CPP_SOURCES)))
+TASM_OBJECTS=$(addprefix $(C_OBJECTS_DIR)/, $(subst .asm,.obj, $(TASM_SOURCES)))
 
 
 create_c_objects:
 ifneq ($(TEST_CCOMPILER),)
+		$(MKDIRTREE) $(C_OBJECTS_DIR)
 		-$(COPY) $(addprefix $(C_SOURCE_DIR)/, $(C_SOURCES)) $(C_OBJECTS_DIR)
 		$(MAKE) $(C_OBJECTS)
 		-$(COPY) $(addprefix $(C_SOURCE_DIR)/, $(CPP_SOURCES)) $(C_OBJECTS_DIR)
@@ -258,11 +279,12 @@ $(C_OBJECTS) : %.o: %.c
 
 $(CPP_OBJECTS) : %.o: %.cpp
 		$(TEST_CCOMPILER) -c $(TEST_CFLAGS) $< -o $@
-		
-copyfiles: $(TEST_OUTPUTDIR)
+
+copyfiles:
         -$(MKDIRTREE) $(TEST_OUTPUTDIR)/test/cg
         -$(COPY) $(C_OBJECTS) $(TEST_OUTPUTDIR)/test/cg
         -$(COPY) $(CPP_OBJECTS) $(TEST_OUTPUTDIR)/test/cg
+        -$(COPY) $(TASM_OBJECTS) $(TEST_OUTPUTDIR)/test/cg
         -$(MKDIRTREE) $(TEST_OUTPUTDIR)/test/units/system
 
 
@@ -273,9 +295,6 @@ copyfiles: $(TEST_OUTPUTDIR)
 testprep: testprep-stamp.$(TEST_FULL_TARGET)
 testprep-stamp.$(TEST_FULL_TARGET): utils tstunits copyfiles
         $(ECHOREDIR) $(DATE) > testprep-stamp.$(TEST_FULL_TARGET)
-
-$(TEST_OUTPUTDIR):
-        $(MKDIRTREE) $@
 
 ################################
 # Dotest options
@@ -319,6 +338,9 @@ override DOTESTOPT+=-O
 endif
 ifdef TEST_VERBOSE
 override DOTESTOPT+=-V
+endif
+ifdef TEST_PARALLEL
+override DOTESTOPT+=-L
 endif
 # Also display benchmarks
 ifdef TEST_BENCH
@@ -366,6 +388,10 @@ endif
 
 ifdef EMULATOR
 override DOTESTOPT+=-M$(EMULATOR)
+endif
+
+ifdef EMULATOR_OPTS
+override DOTESTOPT+=-N$(EMULATOR_OPTS)
 endif
 
 
@@ -435,11 +461,11 @@ endif
 alltests: alltest alltbs alltbf allwebtbs allwebtbf
 
 test_c_objects: testprep
-	$(MAKE) $(patsubst %.pp,%.log, $(wildcard test/cg/cdecl/tcalext*.pp)))
-	$(MAKE) $(patsubst %.pp,%.elg, $(wildcard test/cg/cdecl/tcalext*.pp)))
-	$(MAKE) $(patsubst %.pp,%.log, $(wildcard test/cg/cdecl/tcppcl*.pp)))
-	$(MAKE) $(patsubst %.pp,%.elg, $(wildcard test/cg/cdecl/tcppcl*.pp)))
-	
+	$(MAKE) $(patsubst %.pp,%.log, $(wildcard test/cg/cdecl/tcalext*.pp))
+	$(MAKE) $(patsubst %.pp,%.elg, $(wildcard test/cg/cdecl/tcalext*.pp))
+	$(MAKE) $(patsubst %.pp,%.log, $(wildcard test/cg/cdecl/tcppcl*.pp))
+	$(MAKE) $(patsubst %.pp,%.elg, $(wildcard test/cg/cdecl/tcppcl*.pp))
+
 ################################
 # Compile and Run tests
 #
@@ -491,8 +517,13 @@ else
 
 MAKEINC=$(TEST_OUTPUTDIR)/MakeChunks-$(TEST_TARGETSUFFIX).inc
 
-$(GPARMAKE): $(COMPILER_UNITTARGETDIR) utils/gparmake.pp
-        $(FPC) $(FPCOPT) -FE. utils/gparmake.pp $(OPT)
+$(GPARMAKE): utils/gparmake.pp $(CREATELST)
+	$(Q)$(MAKE)  $(COMPILER_UNITTARGETDIR)
+	$(FPC) -FE. utils/gparmake.pp $(OPT)
+
+$(CREATELST): utils/createlst.pp
+	$(Q)$(MAKE)  $(COMPILER_UNITTARGETDIR)
+	$(FPC) -FE. utils/createlst.pp $(OPT)
 
 # Can't have testprep as prerequisite, because that is a phony target and
 # phony targets are always remade. Since the makefile will be reparsed
@@ -506,17 +537,23 @@ $(GPARMAKE): $(COMPILER_UNITTARGETDIR) utils/gparmake.pp
 # As a result, we list TEST_OUTPUTDIR as a dependency (that just creates
 # the directory) and have an explicit rule to build GPARMAKE rather than
 # building it via the utils Makefile
-$(MAKEINC): $(GPARMAKE) $(TEST_OUTPUTDIR)
+$(MAKEINC): $(GPARMAKE) $(CREATELST)
 # generate rules for parallel executions of dotest
 # gparmake now also needs an additional parameter for the name of the
 # used subdirectory. Note also that the index must be increasing for each
 # new call with a gap insuring that all the previous files have lower index
 # even if CHUNKSIZE is equal to 1.
-	$(Q)$(GPARMAKE) $(MAKEINC) test 1 $(CHUNKSIZE) $(sort $(wildcard $(addsuffix /t*.pp,$(TESTDIRS))))
-	$(Q)$(GPARMAKE) -a $(MAKEINC) tbs 10000 $(CHUNKSIZE) $(sort $(wildcard tbs/t*.pp))
-	$(Q)$(GPARMAKE) -a $(MAKEINC) tbf 15000 $(CHUNKSIZE) $(sort $(wildcard tbf/t*.pp))
-	$(Q)$(GPARMAKE) -a $(MAKEINC) webtbs 20000 $(CHUNKSIZE) $(sort $(wildcard webtbs/t*.pp))
-	$(Q)$(GPARMAKE) -a $(MAKEINC) webtbf 30000 $(CHUNKSIZE) $(sort $(wildcard webtbf/t*.pp))
+	$(Q)$(MAKE) $(TEST_OUTPUTDIR)
+	$(Q)$(CREATELST) filelisttest.lst $(TESTDIRS)
+	$(Q)$(GPARMAKE) $(MAKEINC) test 1 $(CHUNKSIZE) @filelisttest.lst
+	$(Q)$(CREATELST) filelisttbs.lst tbs
+	$(Q)$(GPARMAKE) -a $(MAKEINC) tbs 10000 $(CHUNKSIZE) @filelisttbs.lst
+        $(Q)$(CREATELST) filelisttbf.lst tbf
+	$(Q)$(GPARMAKE) -a $(MAKEINC) tbf 15000 $(CHUNKSIZE) @filelisttbf.lst
+        $(Q)$(CREATELST) filelistwebtbs.lst webtbs
+	$(Q)$(GPARMAKE) -a $(MAKEINC) webtbs 20000 $(CHUNKSIZE) @filelistwebtbs.lst
+        $(Q)$(CREATELST) filelistwebtbf.lst webtbf
+	$(Q)$(GPARMAKE) -a $(MAKEINC) webtbf 30000 $(CHUNKSIZE) @filelistwebtbf.lst
 
 
 # only include the targets to compile/run the tests when we want to
@@ -559,8 +596,9 @@ clean_test:
         -$(DEL) core gmon.out testprep-stamp.$(TEST_FULL_TARGET) dotgz$(SRCBATCHEXT)
 
 clean: clean_sources fpc_clean
-        $(MAKE) clean_test CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET)
-        $(MAKE) -C tstunits clean CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET)
+        $(MAKE) clean_test CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET) SUBARCH=$(TEST_SUBARCH)
+        $(MAKE) -C tstunits clean CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET) SUBARCH=$(TEST_SUBARCH)
+	-$(DEL) filelisttest.lst filelisttbs.lst filelisttbf.lst filelistwebtbs.lst filelistwebtbf.lst
 
 distclean: clean fpc_distclean
         $(DELTREE) output
@@ -582,11 +620,26 @@ digest : utils
 
 
 SVNVERSION:=$(firstword $(wildcard $(addsuffix /svnversion$(SRCEXEEXT),$(SEARCHPATH))))
+GIT:=$(firstword $(wildcard $(addsuffix /git$(SRCEXEEXT),$(SEARCHPATH))))
+ifneq ($(wildcard ../.git),)
+ifneq ($(GIT),)
+GIT_GET_HASH=$(GIT) log -1 --format=%h
+SVN_TESTS_REV_STR=$(shell $(GIT_GET_HASH) .)
+SVN_COMPILER_REV_STR=$(shell $(GIT_GET_HASH) ../compiler)
+SVN_RTL_REV_STR=$(shell $(GIT_GET_HASH) ../rtl)
+SVN_PACKAGES_REV_STR=$(shell $(GIT_GET_HASH) ../packages)
+endif
+else
 ifneq ($(SVNVERSION),)
 SVN_TESTS_REV_STR=$(shell $(SVNVERSION) -c .)
 SVN_COMPILER_REV_STR=$(shell $(SVNVERSION) -c ../compiler)
 SVN_RTL_REV_STR=$(shell $(SVNVERSION) -c ../rtl)
 SVN_PACKAGES_REV_STR=$(shell $(SVNVERSION) -c ../packages)
+endif
+endif
+
+ifeq ($(TEST_COMMENT),)
+TEST_COMMENT=$(TEST_OPT)
 endif
 
 $(TEST_OUTPUTDIR)/dbdigest.cfg:
@@ -599,7 +652,7 @@ ifneq ($(TEST_USE_LONGLOG),)
 endif
         $(ECHOREDIR) Submitter=$(TEST_USER) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
         $(ECHOREDIR) Machine=$(TEST_HOSTNAME) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
-	$(ECHOREDIR) Comment=$(TEST_OPT) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+	$(ECHOREDIR) Comment=$(TEST_COMMENT) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
 ifneq ($(TEST_DATETIME),)
         $(ECHOREDIR) Date=$(TEST_DATETIME) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
 endif
@@ -609,7 +662,7 @@ endif
 ifneq ($(TEST_FPC_FULLVERSION),)
         $(ECHOREDIR) CompilerFullVersion=$(TEST_FPC_FULLVERSION) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
 endif
-ifneq ($(SVNVERSION),)
+ifneq ($(SVN_TESTS_REV_STR),)
         $(ECHOREDIR) svntestsrevision=$(SVN_TESTS_REV_STR) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
         $(ECHOREDIR) svncompilerrevision=$(SVN_COMPILER_REV_STR) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
         $(ECHOREDIR) svnrtlrevision=$(SVN_RTL_REV_STR) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
@@ -619,6 +672,12 @@ endif
 # OpenBSD system tar executable doesn't know
 # about --files-from option, but supports -I
 ifeq ($(OS_SOURCE),openbsd)
+ifeq ($(TARPROG),$(subst gtar,,$(TARPROG)))
+  BSD_SYSTEM_TAR=1
+endif
+endif
+
+ifdef BSD_SYSTEM_TAR
 TARFROM=-I tar.lst
 else
 TARFROM=--files-from=tar.lst

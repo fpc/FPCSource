@@ -39,10 +39,16 @@ interface
     type
        TAsmsymbind=(
          AB_NONE,AB_EXTERNAL,AB_COMMON,AB_LOCAL,AB_GLOBAL,AB_WEAK_EXTERNAL,
-         { global in the current program/library, but not visible outside it }
-         AB_PRIVATE_EXTERN,AB_LAZY,AB_IMPORT,
+         { global in the current program/library, but not visible outside it
+           (= "hidden" in ELF) }
+         AB_PRIVATE_EXTERN,
+         AB_LAZY,AB_IMPORT,
          { a symbol that's internal to the compiler and used as a temp }
-         AB_TEMP);
+         AB_TEMP,
+         { a global symbol that points to another global symbol and is only used
+           to allow indirect loading in case of packages and indirect imports }
+         AB_INDIRECT,AB_EXTERNAL_INDIRECT,
+         AB_WEAK);
 
        TAsmsymtype=(
          AT_NONE,AT_FUNCTION,AT_DATA,AT_SECTION,AT_LABEL,
@@ -51,21 +57,41 @@ interface
            so it must be taken care of it when creating pic
          }
          AT_ADDR,
+         { Label for debug or other non-program information }
+         AT_METADATA,
+         { label for data that must always be accessed indirectly, because it
+           is handled explcitely in the system unit or (e.g. RTTI and threadvar
+           tables) -- never seen in an assembler/assembler writer, always
+           changed to AT_DATA }
+         AT_DATA_FORCEINDIRECT,
+         { don't generate an implicit indirect symbol as that might be provided
+           by other means (e.g. the typed const builder) to ensure a correct
+           section name }
+         AT_DATA_NOINDIRECT,
          { Thread-local symbol (ELF targets) }
          AT_TLS,
          { GNU indirect function (ELF targets) }
-         AT_GNU_IFUNC
+         AT_GNU_IFUNC,
+         { WebAssembly global variable }
+         AT_WASM_GLOBAL,
+         { WebAssembly exception tag (used as a parameter for the 'throw' and
+           'catch' instructions) }
+         AT_WASM_EXCEPTION_TAG
          );
 
        { is the label only there for getting an DataOffset (e.g. for i/o
          checks -> alt_addr) or is it a jump target (alt_jump), for debug
          info alt_dbgline and alt_dbgfile, etc. }
-       TAsmLabelType = (alt_jump,alt_addr,alt_data,alt_dbgline,alt_dbgfile,alt_dbgtype,alt_dbgframe);
+       TAsmLabelType = (alt_jump,alt_addr,alt_data,alt_dbgline,alt_dbgfile,alt_dbgtype,alt_dbgframe,alt_eh_begin,alt_eh_end);
+
+       TSymbolPairKind = (spk_set, spk_set_global, spk_thumb_set, spk_localentry);
 
     const
-       asmlabeltypeprefix : array[TAsmLabeltype] of char = ('j','a','d','l','f','t','c');
+       asmlabeltypeprefix : array[TAsmLabeltype] of string[2] = ('j','a','d','l','f','t','c','eb','ee');
        asmsymbindname : array[TAsmsymbind] of string[23] = ('none', 'external','common',
-       'local','global','weak external','private external','lazy','import','internal temp');
+       'local','global','weak external','private external','lazy','import','internal temp',
+       'indirect','external indirect','weak');
+       asmsymbindindirect = [AB_INDIRECT,AB_EXTERNAL_INDIRECT];
 
     type
        TAsmSectiontype=(sec_none,
@@ -98,6 +124,8 @@ interface
          sec_debug_info,
          sec_debug_line,
          sec_debug_abbrev,
+         sec_debug_aranges,
+         sec_debug_ranges,
          { Yury: "sec_fpc is intended for storing fpc specific data
                   which must be recognized and processed specially by linker.
                   Currently fpc version string, dummy links to stab sections
@@ -148,10 +176,19 @@ interface
          { stack segment for 16-bit DOS }
          sec_stack,
          { initial heap segment for 16-bit DOS }
-         sec_heap
+         sec_heap,
+         { dwarf based/gcc style exception handling }
+         sec_gcc_except_table,
+         sec_arm_attribute
        );
 
+       TObjCAsmSectionType = sec_objc_class..sec_objc_protolist;
+
        TAsmSectionOrder = (secorder_begin,secorder_default,secorder_end);
+
+       TSectionFlag = (SF_A,SF_W,SF_X);
+       TSectionFlags = set of TSectionFlag;
+       TSectionProgbits = (SPB_None,SPB_PROGBITS,SPB_NOBITS,SPB_NOTE,SPB_ARM_ATTRIBUTES);
 
        TAsmSymbol = class(TFPHashObject)
        private
@@ -159,6 +196,9 @@ interface
            TAsmList with loadsym/loadref/const_symbol (PFV) }
          refs       : longint;
        public
+{$ifdef wasm}
+         nestingdepth : longint;
+{$endif wasm}
          { on avr the compiler needs to replace cond. jumps with too large offsets
            so we have to store an offset somewhere to calculate jump distances }
 {$ifdef AVR}
@@ -199,6 +239,8 @@ interface
          labelnr   : longint;
          labeltype : TAsmLabelType;
          is_set    : boolean;
+         is_public : boolean;
+         defined_in_asmstatement : boolean;
          constructor Createlocal(AList: TFPHashObjectList; nr: longint; ltyp: TAsmLabelType);
          constructor Createstatic(AList: TFPHashObjectList; nr: longint; ltyp: TAsmLabelType);
          constructor Createglobal(AList: TFPHashObjectList; const modulename: TSymStr; nr: longint; ltyp: TAsmLabelType);
@@ -209,12 +251,7 @@ interface
     function create_smartlink_library:boolean;inline;
     function create_smartlink:boolean;inline;
 
-    function LengthUleb128(a: qword) : byte;
-    function LengthSleb128(a: int64) : byte;
-    function EncodeUleb128(a: qword;out buf) : byte;
-    function EncodeSleb128(a: int64;out buf) : byte;
-
-    function ReplaceForbiddenAsmSymbolChars(const s: ansistring): ansistring;
+    function ApplyAsmSymbolRestrictions(const s: ansistring): ansistring;
 
     { dummy default noop callback }
     procedure default_global_used;
@@ -231,7 +268,7 @@ interface
 implementation
 
     uses
-      verbose;
+      verbose,fpchash;
 
 
     function create_smartlink_sections:boolean;inline;
@@ -262,119 +299,33 @@ implementation
       end;
 
 
-    function LengthUleb128(a: qword) : byte;
-      begin
-        result:=0;
-        repeat
-          a := a shr 7;
-          inc(result);
-          if a=0 then
-            break;
-        until false;
-      end;
-
-
-    function LengthSleb128(a: int64) : byte;
-      var
-        b, size: byte;
-        asign : int64;
-        neg, more: boolean;
-      begin
-        more := true;
-        neg := a < 0;
-        size := sizeof(a)*8;
-        result:=0;
-        repeat
-          b := a and $7f;
-          a := a shr 7;
-          if neg then
-            begin
-              { Use a variable to be sure that the correct or mask is generated }
-              asign:=1;
-              asign:=asign shl (size - 7);
-              a := a or -asign;
-            end;
-          if (((a = 0) and
-               (b and $40 = 0)) or
-              ((a = -1) and
-               (b and $40 <> 0))) then
-            more := false;
-          inc(result);
-          if not(more) then
-            break;
-        until false;
-      end;
-
-
-    function EncodeUleb128(a: qword;out buf) : byte;
-      var
-        b: byte;
-        pbuf : pbyte;
-      begin
-        result:=0;
-        pbuf:=@buf;
-        repeat
-          b := a and $7f;
-          a := a shr 7;
-          if a<>0 then
-            b := b or $80;
-          pbuf^:=b;
-          inc(pbuf);
-          inc(result);
-          if a=0 then
-            break;
-        until false;
-      end;
-
-
-    function EncodeSleb128(a: int64;out buf) : byte;
-      var
-        b, size: byte;
-        asign : int64;
-        neg, more: boolean;
-        pbuf : pbyte;
-      begin
-        more := true;
-        neg := a < 0;
-        size := sizeof(a)*8;
-        result:=0;
-        pbuf:=@buf;
-        repeat
-          b := a and $7f;
-          a := a shr 7;
-          if neg then
-            begin
-              { Use a variable to be sure that the correct or mask is generated }
-              asign:=1;
-              asign:=asign shl (size - 7);
-              a := a or -asign;
-            end;
-          if (((a = 0) and
-               (b and $40 = 0)) or
-              ((a = -1) and
-               (b and $40 <> 0))) then
-            more := false
-          else
-            b := b or $80;
-          pbuf^:=b;
-          inc(pbuf);
-          inc(result);
-          if not(more) then
-            break;
-        until false;
-      end;
-
-
-    function ReplaceForbiddenAsmSymbolChars(const s: ansistring): ansistring;
+    function ApplyAsmSymbolRestrictions(const s: ansistring): ansistring;
       var
         i : longint;
-        rchar: char;
+        rchar, ochar: char;
+        crc: Cardinal;
+        charstoremove: integer;
       begin
         Result:=s;
         rchar:=target_asm.dollarsign;
-        for i:=1 to Length(Result) do
-          if Result[i]='$' then
-            Result[i]:=rchar;
+        if target_asm.id=as_i386_wasm then
+          ochar:='.'
+        else
+          ochar:='$';
+        if (ochar<>rchar) then
+          for  i:=1 to Length(Result) do
+            if Result[i]=ochar then
+              Result[i]:=rchar;
+        if (target_asm.labelmaxlen<>-1) and (Length(Result)>target_asm.labelmaxlen) then
+          begin
+            crc:=0;
+            crc:=UpdateCrc32(crc,Result[1],Length(Result));
+            charstoremove:=Length(Result)-target_asm.labelmaxlen+13;
+            Delete(Result,(Length(Result)-charstoremove) div 2,charstoremove);
+            Result:='_'+target_asm.dollarsign+'CRC'+hexstr(crc,8)+Result;
+            if Length(Result)>target_asm.labelmaxlen then
+              Internalerror(2020042502);
+          end;
       end;
 
 
@@ -389,6 +340,9 @@ implementation
         typ:=_typ;
         { used to remove unused labels from the al_procedures }
         refs:=0;
+{$ifdef wasm}
+        nestingdepth:=-1;
+{$endif wasm}
       end;
 
 

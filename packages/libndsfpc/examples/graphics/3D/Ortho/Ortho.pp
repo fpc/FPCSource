@@ -84,6 +84,9 @@ begin
   result := true;
 end;
 
+var
+  held: integer;
+
 begin
   // Setup the Main screen for 3D
   videoSetMode(MODE_0_3D);
@@ -132,13 +135,14 @@ begin
   while true do
   begin
     scanKeys();
+    held := keysHeld();
 
     //reset the projection matrix
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
     // set the projection matrix as either ortho or perspective
-    if (keysHeld() and KEY_R) = 0 then
+    if (held and KEY_R) = 0 then
       gluPerspective(70, 256.0 / 192.0, 0.1, 100)
     else
       glOrtho(-3, 3,-2, 2, 0.1, 100);
@@ -147,7 +151,7 @@ begin
     glMatrixMode(GL_MODELVIEW);
 
     //ds specific, several attributes can be set here
-    if (keysHeld() and KEY_L) <> 0 then
+    if (held and KEY_L) <> 0 then
       glPolyFmt(POLY_ALPHA(0) or POLY_CULL_NONE or POLY_FORMAT_LIGHT0 or POLY_FORMAT_LIGHT1 or POLY_FORMAT_LIGHT2)
     else
       glPolyFmt(POLY_ALPHA(31) or POLY_CULL_NONE or POLY_FORMAT_LIGHT0 or POLY_FORMAT_LIGHT1 or POLY_FORMAT_LIGHT2);
@@ -163,5 +167,7 @@ begin
 
     // flush to screen
     glFlush(0);
+    
+    if (held and KEY_START) <> 0 then break;
   end;
 end.

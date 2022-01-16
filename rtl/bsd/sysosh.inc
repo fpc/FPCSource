@@ -21,10 +21,21 @@ type
   THandle = Longint;
   TThreadRec = record end;
   TThreadID  = ^TThreadRec;
-  
+  TOSTimestamp = Int64;
+
   { pthread_mutex_t }
   PRTLCriticalSection = ^TRTLCriticalSection;
   TRTLCriticalSection = {$i pmutext.inc}
+
+{$ifdef darwin}
+{$define HAS_ENTRYINFORMATION_OS}
+  TEntryInformationOS = record
+    argc: longint;
+    argv: ppchar;
+    envp: ppchar;
+    stklen: sizeuint;
+  end;
+{$endif}
 
 {$if defined(darwin) and defined(powerpc)}
   { for profiling support }

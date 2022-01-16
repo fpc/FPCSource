@@ -142,7 +142,6 @@ implementation
   procedure taarch64typeconvnode.second_int_to_bool;
     var
       resflags: tresflags;
-      hlabel,oldTrueLabel,oldFalseLabel : tasmlabel;
     begin
       if (nf_explicit in flags) and
          not(left.expectloc in [LOC_FLAGS,LOC_JUMP]) then
@@ -154,15 +153,15 @@ implementation
       { can't use the generic code, as it assumes that OP_OR automatically sets
         the flags. We can also do things more efficiently directly }
 
-      oldTrueLabel:=current_procinfo.CurrTrueLabel;
-      oldFalseLabel:=current_procinfo.CurrFalseLabel;
-      current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-      current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
       secondpass(left);
       if codegenerror then
        exit;
 
       case left.location.loc of
+        LOC_SUBSETREG,
+        LOC_CSUBSETREG,
+        LOC_SUBSETREF,
+        LOC_CSUBSETREF,
         LOC_CREFERENCE,
         LOC_REFERENCE,
         LOC_REGISTER,
@@ -191,8 +190,6 @@ implementation
       else
         cg.g_flags2reg(current_asmdata.CurrAsmList,location.size,resflags,location.register);
       cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-      current_procinfo.CurrTrueLabel:=oldTrueLabel;
-      current_procinfo.CurrFalseLabel:=oldFalseLabel;
     end;
 
 

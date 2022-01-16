@@ -4,6 +4,7 @@
 {       Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, August 2015 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -12,6 +13,7 @@
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
+{$modeswitch cblocks}
 {$packenum 1}
 {$macro on}
 {$inline on}
@@ -104,7 +106,7 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-{$ifc defined(iphonesim)}
+{$ifc defined iphonesim}
  	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
@@ -121,7 +123,7 @@ interface
 	{$setc TARGET_CPU_X86_64 := TRUE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-{$ifc defined(iphonesim)}
+{$ifc defined iphonesim}
  	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
@@ -138,7 +140,6 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := TRUE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-	{ will require compiler define when/if other Apple devices with ARM cpus ship }
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
@@ -150,11 +151,16 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := TRUE}
-	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+{$ifc defined ios}
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
-	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 	{$setc TARGET_OS_EMBEDDED := TRUE}
+{$elsec}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
+{$endc}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ nor __arm64__ is defined.}
 {$endc}
@@ -284,6 +290,30 @@ function CGPathCreateWithRect( rect: CGRect; transform: {const} CGAffineTransfor
 
 function CGPathCreateWithEllipseInRect( rect: CGRect; transform: {const} CGAffineTransformPtr): CGPathRef; external name '_CGPathCreateWithEllipseInRect';
 (* CG_AVAILABLE_STARTING(__MAC_10_7, __IPHONE_5_0) *)
+
+{ Return a path representing a rounded rectangle. The rounded rectangle
+   coincides with the edges of `rect'. Each corner is consists of
+   one-quarter of an ellipse with axes equal to `cornerWidth' and
+   `cornerHeight'. The rounded rectangle forms a complete subpath of the
+   path --- that is, it begins with a "move to" and ends with a "close
+   subpath" --- oriented in the clockwise direction. If `transform' is
+   non-NULL, then the path elements representing the rounded rectangle will
+   be transformed by `transform' before they are added to the path. }
+
+function CGPathCreateWithRoundedRect( rect: CGRect; cornerWidth: CGFloat; cornerHeight: CGFloat; transform: {const} CGAffineTransformPtr ): CGPathRef; external name '_CGPathCreateWithRoundedRect';
+(* CG_AVAILABLE_STARTING(__MAC_10_9, __IPHONE_7_0) *)
+
+{ Add a rounded rectangle to `path'. The rounded rectangle coincides with
+   the edges of `rect'. Each corner is consists of one-quarter of an ellipse
+   with axes equal to `cornerWidth' and `cornerHeight'. The rounded
+   rectangle forms a complete subpath of the path --- that is, it begins
+   with a "move to" and ends with a "close subpath" --- oriented in the
+   clockwise direction. If `transform' is non-NULL, then the path elements
+   representing the rounded rectangle will be transformed by `transform'
+   before they are added to the path. }
+
+procedure CGPathAddRoundedRect( path: CGMutablePathRef; transform: {const} CGAffineTransformPtr; rect: CGRect; cornerWidth: CGFloat; cornerHeight: CGFloat ); external name '_CGPathAddRoundedRect';
+(* CG_AVAILABLE_STARTING(__MAC_10_9, __IPHONE_7_0) *)
 
 { Create a dashed path from `path'. The parameters `phase', `lengths', and
    `count' have the same meaning as the corresponding parameters for

@@ -280,9 +280,11 @@ var
   SI: TStartupInfo;
   PI: TProcessInformation;
   l    : Longint;
-  CommandLine : array[0..511] of char;
-  AppParam : array[0..255] of char;
-  pathlocal : string;
+  { Maximum length of both short string is
+    2x255 = 510, plus possibly two double-quotes,
+    two spaces and the final #0, makes 515 chars }
+  CommandLine : array[0..515] of char;
+  has_no_double_quote : boolean;
 begin
   DosError:=0;
   FillChar(SI, SizeOf(SI), 0);
@@ -293,18 +295,31 @@ begin
     do it if there are already double quotes, since Win32 does not
     like double quotes which are duplicated!
   }
-  if pos('"',path) = 0 then
-    pathlocal:='"'+path+'"'
+  has_no_double_quote:=pos('"',path)=0;
+  if has_no_double_quote then
+    begin
+      CommandLine[0]:='"';
+      l:=1;
+    end
   else
-    pathlocal := path;
-  Move(Pathlocal[1],CommandLine,length(Pathlocal));
-
-  AppParam[0]:=' ';
-  AppParam[1]:=' ';
-  Move(ComLine[1],AppParam[2],length(Comline));
-  AppParam[Length(ComLine)+2]:=#0;
-  { concatenate both pathnames }
-  Move(Appparam[0],CommandLine[length(Pathlocal)],strlen(Appparam)+1);
+    l:=0;
+  Move(Path[1],CommandLine[l],length(Path));
+  l:=l+length(Path);
+  if has_no_double_quote then
+    begin
+      CommandLine[l]:='"';
+      inc(l);
+    end;
+  { Add two spaces }
+  CommandLine[l]:=' ';
+  inc(l);
+  CommandLine[l]:=' ';
+  inc(l);
+  { Add comline string }
+  Move(ComLine[1],CommandLine[l],length(Comline));
+  l:=l+length(ComLine);
+  { Terminate string }
+  CommandLine[l]:=#0;
   if not CreateProcess(nil, PChar(@CommandLine),
            Nil, Nil, ExecInheritsHandles,$20, Nil, Nil, SI, PI) then
    begin
@@ -539,44 +554,45 @@ var
   s      : searchrec;
   newdir : pathstr;
 begin
+  { No wildcards allowed in these things }
+  if (pos('?',path)<>0) or (pos('*',path)<>0) then
+  begin
+    fsearch:='';
+    exit;
+  end;
   { check if the file specified exists }
   findfirst(path,anyfile and not(directory),s);
   if doserror=0 then
-   begin
+    begin
      findclose(s);
      fsearch:=path;
      exit;
-   end;
-  { No wildcards allowed in these things }
-  if (pos('?',path)<>0) or (pos('*',path)<>0) then
-    fsearch:=''
-  else
-    begin
-       { allow slash as backslash }
-       DoDirSeparators(dirlist);
-       repeat
-         p1:=pos(';',dirlist);
-         if p1<>0 then
-          begin
-            newdir:=copy(dirlist,1,p1-1);
-            delete(dirlist,1,p1);
-          end
-         else
-          begin
-            newdir:=dirlist;
-            dirlist:='';
-          end;
-         if (newdir<>'') and (not (newdir[length(newdir)] in ['\',':'])) then
-          newdir:=newdir+'\';
-         findfirst(newdir+path,anyfile and not(directory),s);
-         if doserror=0 then
-          newdir:=newdir+path
-         else
-          newdir:='';
-       until (dirlist='') or (newdir<>'');
-       fsearch:=newdir;
     end;
   findclose(s);
+  { allow slash as backslash }
+  DoDirSeparators(dirlist);
+ repeat
+   p1:=pos(';',dirlist);
+   if p1<>0 then
+    begin
+      newdir:=copy(dirlist,1,p1-1);
+      delete(dirlist,1,p1);
+    end
+   else
+    begin
+      newdir:=dirlist;
+      dirlist:='';
+    end;
+   if (newdir<>'') and (not (newdir[length(newdir)] in [DirectorySeparator,DriveSeparator])) then
+    newdir:=newdir+DirectorySeparator;
+   findfirst(newdir+path,anyfile and not(directory),s);
+   if doserror=0 then
+    newdir:=newdir+path
+   else
+    newdir:='';
+   findclose(s);
+ until (dirlist='') or (newdir<>'');
+ fsearch:=newdir;
 end;
 
 

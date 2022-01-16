@@ -16,9 +16,9 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
 
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.Author := 'Library: Matteo Frigo and Steven G. Johnson, header: Daniel Mantione';
     P.License := 'Library: GPL or commercial, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -26,6 +26,8 @@ begin
     P.Description := 'Library for computing the discrete Fourier transform (DFT) in one or more dimensions, of arbitrary input size, and of both real and complex data';
     P.NeedLibC:= true; // should be true for a header linking to C?
     P.OSes := AllUnixOSes+AllWindowsOSes-[qnx];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.SourcePath.Add('src');
 

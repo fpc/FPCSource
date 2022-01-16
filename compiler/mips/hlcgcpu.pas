@@ -43,10 +43,8 @@ uses
       procedure a_load_regconst_subsetreg_intern(list: TAsmList; fromsize, subsetsize: tdef; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt); override;
     public
       procedure g_intf_wrapper(list: tasmlist; procdef: tprocdef; const labelname: string; ioffset: longint); override;
-      procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string);override;
+      procedure a_jmp_external_name(list: TAsmList; const externalname: TSymStr);override;
   end;
-
-  procedure create_hlcodegen;
 
 implementation
 
@@ -67,15 +65,15 @@ implementation
       sym: tasmsymbol;
     begin
       if weak then
-        sym:=current_asmdata.WeakRefAsmSymbol(s)
+        sym:=current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION)
       else
-        sym:=current_asmdata.RefAsmSymbol(s);
+        sym:=current_asmdata.RefAsmSymbol(s,AT_FUNCTION);
 
       if (po_external in pd.procoptions) then
         begin
           if not (cs_create_pic in current_settings.moduleswitches) then
             begin
-              reference_reset_symbol(ref,current_asmdata.RefAsmSymbol('_gp'),0,sizeof(aint));
+              reference_reset_symbol(ref,current_asmdata.RefAsmSymbol('_gp',AT_DATA),0,sizeof(aint),[]);
               list.concat(tai_comment.create(strpnew('Using PIC code for a_call_name')));
               cg.a_loadaddr_ref_reg(list,ref,NR_GP);
             end;
@@ -137,6 +135,8 @@ implementation
                 fromreg:=cg.getintregister(list,OS_INT);
                 cg.a_load_const_reg(list,OS_INT,-1,fromreg);
               end;
+            else
+              ;
           end;
           list.concat(taicpu.op_reg_reg_const_const(A_INS,sreg.subsetreg,fromreg,
             sreg.startbit,sreg.bitlen));
@@ -148,11 +148,11 @@ implementation
     end;
 
 
-  procedure thlcgmips.g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string);
+  procedure thlcgmips.a_jmp_external_name(list: TAsmList; const externalname: TSymStr);
     var
       href: treference;
     begin
-      reference_reset_symbol(href,current_asmdata.RefAsmSymbol(externalname),0,sizeof(aint));
+      reference_reset_symbol(href,current_asmdata.RefAsmSymbol(externalname,AT_DATA),0,sizeof(aint),[]);
       { Always do indirect jump using $t9, it won't harm in non-PIC mode }
       if (cs_create_pic in current_settings.moduleswitches) then
         begin
@@ -202,9 +202,9 @@ implementation
       make_global := True;
 
     if make_global then
-      List.concat(Tai_symbol.Createname_global(labelname, AT_FUNCTION, 0))
+      List.concat(Tai_symbol.Createname_global(labelname, AT_FUNCTION, 0, procdef))
     else
-      List.concat(Tai_symbol.Createname(labelname, AT_FUNCTION, 0));
+      List.concat(Tai_symbol.Createname_hidden(labelname, AT_FUNCTION, 0, procdef));
 
     IsVirtual:=(po_virtualmethod in procdef.procoptions) and
         not is_objectpascal_helper(procdef.struct);
@@ -245,24 +245,24 @@ implementation
     if IsVirtual then
     begin
       { load VMT pointer }
-      reference_reset_base(href,voidpointertype,paraloc^.register,0,sizeof(aint));
+      reference_reset_base(href,voidpointertype,paraloc^.register,0,ctempposinvalid,sizeof(aint),[]);
       list.concat(taicpu.op_reg_ref(A_LW,NR_VMT,href));
 
       if (procdef.extnumber=$ffff) then
-        Internalerror(200006139);
+        Internalerror(2000061303);
 
       { TODO: case of large VMT is not handled }
       { We have no reason not to use $t9 even in non-PIC mode. }
-      reference_reset_base(href, voidpointertype, NR_VMT, tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber), sizeof(aint));
+      reference_reset_base(href, voidpointertype, NR_VMT, tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber), ctempposinvalid, sizeof(aint), []);
       list.concat(taicpu.op_reg_ref(A_LW,NR_PIC_FUNC,href));
       list.concat(taicpu.op_reg(A_JR, NR_PIC_FUNC));
     end
     else if not (cs_create_pic in current_settings.moduleswitches) then
-      list.concat(taicpu.op_sym(A_J,current_asmdata.RefAsmSymbol(procdef.mangledname)))
+      list.concat(taicpu.op_sym(A_J,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)))
     else
       begin
         { GAS does not expand "J symbol" into PIC sequence }
-        reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname),0,sizeof(pint));
+        reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION),0,sizeof(pint),[]);
         href.base:=NR_GP;
         href.refaddr:=addr_pic_call16;
         list.concat(taicpu.op_reg_ref(A_LW,NR_PIC_FUNC,href));
@@ -275,7 +275,7 @@ implementation
   end;
 
 
-  procedure create_hlcodegen;
+  procedure create_hlcodegen_cpu;
     begin
       hlcg:=thlcgmips.create;
       create_codegen;
@@ -283,4 +283,5 @@ implementation
 
 begin
   chlcgobj:=thlcgmips;
+  create_hlcodegen:=@create_hlcodegen_cpu;
 end.

@@ -1,11 +1,12 @@
-{ Parsed from Webkit.framework DOMNodeFilter.h }
+{ Parsed from WebKit.framework DOMNodeFilter.h }
+
 
 {$ifdef TYPES}
-{$ifndef DOMNODEFILTER_PAS_T}
-{$define DOMNODEFILTER_PAS_T}
+type
+  DOMNodeFilterProtocolPtr = ^DOMNodeFilterProtocol;
+{$endif}
 
-{ Constants }
-
+{$ifdef TYPES}
 const
   DOM_FILTER_ACCEPT = 1;
   DOM_FILTER_REJECT = 2;
@@ -23,42 +24,13 @@ const
   DOM_SHOW_DOCUMENT_TYPE = $00000200;
   DOM_SHOW_DOCUMENT_FRAGMENT = $00000400;
   DOM_SHOW_NOTATION = $00000800;
-
-{$endif}
 {$endif}
 
-{$ifdef RECORDS}
-{$ifndef DOMNODEFILTER_PAS_R}
-{$define DOMNODEFILTER_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef DOMNODEFILTER_PAS_F}
-{$define DOMNODEFILTER_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef DOMNODEFILTER_PAS_S}
-{$define DOMNODEFILTER_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  DOMNodeFilterProtocol = objcprotocol;
-
-{$endif}
 {$ifdef PROTOCOLS}
-{$ifndef DOMNODEFILTER_PAS_P}
-{$define DOMNODEFILTER_PAS_P}
-  
-{ DOMNodeFilter Protocol }
-  DOMNodeFilterProtocol = objcprotocol external name 'DOMNodeFilter'
-    function acceptNode(n: DOMNode): cshort; message 'acceptNode:';
+
+type
+  DOMNodeFilterProtocol = objcprotocol external name 'DOMNodeFilter' (NSObjectProtocol)
+    function acceptNode (n: DOMNode): cshort; message 'acceptNode:';
   end;
 {$endif}
-{$endif}
+

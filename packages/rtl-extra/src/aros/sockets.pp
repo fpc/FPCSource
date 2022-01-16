@@ -11,6 +11,9 @@
 
  **********************************************************************}
 {$PACKRECORDS 2}
+{.$DEFINE SOCKETS_DEBUG}
+{$ModeSwitch out}
+
 unit Sockets;
 Interface
 
@@ -85,7 +88,7 @@ const
   SOL_SOCKET    = $FFFF;
 
 const
-  EsockEINTR            = 4; // EsysEINTR;   
+  EsockEINTR            = 4; // EsysEINTR;
   EsockEBADF            = 9; // EsysEBADF;
   EsockEFAULT           = 14; // EsysEFAULT;
   EsockEINVAL           = 22; //EsysEINVAL;
@@ -109,7 +112,7 @@ Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:File):Boolean;  
 //function  fpbind      (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;  maybelibc
 //function  fpconnect     (s:cint; name  : psockaddr; namelen : tsocklen):cint;  maybelibc
 
-var
+threadvar
   SocketBase: PLibrary;
 
 function bsd_socket(Domain: LongInt; Type_: LongInt; Protocol: LongInt): LongInt; syscall SocketBase 5;
@@ -152,18 +155,24 @@ end;
 
 function fpgeterrno: longint; inline;
 begin
-  fpgeterrno := bsd_Errno;
+  if Assigned(SocketBase) then
+    fpgeterrno := bsd_Errno
+  else
+    fpgeterrno := 0;
 end;
 
 function fpClose(d: LongInt): LongInt; inline;
 begin
-  fpClose := bsd_CloseSocket(d);
+  if Assigned(SocketBase) then
+    fpClose := bsd_CloseSocket(d)
+  else
+    fpClose := -1;
 end;
 
 function fpaccept(s: cint; addrx: PSockaddr; Addrlen: PSocklen): cint;
 begin
   fpaccept := bsd_accept(s,addrx,addrlen);
-  internal_socketerror := fpgeterrno; 
+  internal_socketerror := fpgeterrno;
 end;
 
 function fpbind(s:cint; addrx: psockaddr; addrlen: tsocklen): cint;
@@ -174,8 +183,16 @@ end;
 
 function fpconnect(s:cint; name: psockaddr; namelen: tsocklen): cint;
 begin
-  fpconnect := bsd_connect(s, name, namelen);
-  internal_socketerror := fpgeterrno;
+  if Assigned(SocketBase) then
+  begin
+    fpconnect := bsd_connect(s, name, namelen);
+    internal_socketerror := fpgeterrno;
+  end
+  else
+  begin
+    fpconnect := -1;
+    internal_socketerror := ESockEPROTONOSUPPORT;
+  end;
 end;
 
 function fpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint;
@@ -240,8 +257,16 @@ end;
 
 function fpsocket(domain: cint; xtype: cint; protocol: cint): cint;
 begin
-  fpsocket := bsd_socket(domain, xtype, protocol);
-  internal_socketerror := fpgeterrno;
+  if Assigned(SocketBase) then
+  begin
+    fpsocket := bsd_socket(domain, xtype, protocol);
+    internal_socketerror := fpgeterrno;
+  end
+  else
+  begin
+    internal_socketerror := ESockEPROTONOSUPPORT;
+    fpsocket := -1;
+  end;
 end;
 
 
@@ -258,14 +283,37 @@ end;
 {$i sockovl.inc}
 {$i sockets.inc}
 
-// FIXME: this doesn't make any sense here, because SocketBase should be task-specific
-// but FPC doesn't support that yet (TODO)
-{$WARNING FIX ME, TODO}
+const
+  BSDSOCKET_LIBRARY_VER = 4;
 
+procedure BSDSocketOpen;
+begin
+{$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: Opening bsdsocket.library...');
+{$ENDIF}
+  SocketBase:=OpenLibrary('bsdsocket.library', BSDSOCKET_LIBRARY_VER);
+{$IFDEF SOCKETS_DEBUG}
+  if SocketBase = nil then
+    SysDebugLn('FPC Sockets: FAILED to open bsdsocket.library.')
+  else
+    SysDebugLn('FPC Sockets: bsdsocket.library opened successfully.');
+{$ENDIF}
+end;
+
+procedure BSDSocketClose;
+begin
+  if (SocketBase<>NIL) then CloseLibrary(SocketBase);
+  SocketBase:=NIL;
+{$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: bsdsocket.library closed.');
+{$ENDIF}
+end;
 
 initialization
-  SocketBase := OpenLibrary('bsdsocket.library',0);
+  AddThreadInitProc(@BSDSocketOpen);
+  AddThreadExitProc(@BSDSocketClose);
+  BSDSocketOpen;
+
 finalization
-  if SocketBase <> nil then
-    CloseLibrary(SocketBase);
+  BSDSocketClose;
 end.

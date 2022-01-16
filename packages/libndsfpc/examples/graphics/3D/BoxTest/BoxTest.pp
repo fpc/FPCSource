@@ -9,9 +9,9 @@ uses
 function startTimer(timer: integer): cuint16;
 begin
   TIMER_CR(timer)^ := 0;
-	TIMER_DATA(0)^ := 0;
-	TIMER_CR(timer)^ := TIMER_DIV_1 or TIMER_ENABLE;
-	startTimer := TIMER_DATA(0)^;
+  TIMER_DATA(0)^ := 0;
+  TIMER_CR(timer)^ := TIMER_DIV_1 or TIMER_ENABLE;
+  startTimer := TIMER_DATA(0)^;
 end;
 
 
@@ -74,7 +74,7 @@ begin
 end;
 
 var
-	touchXY: touchPosition;
+  touchXY: touchPosition;
 
   rotX: cfloat = 0;
   rotY: cfloat = 0;
@@ -92,7 +92,7 @@ var
   oldx: integer = 0;
   oldy: integer = 0;
 
-	held, pressed: integer;
+  held, pressed: integer;
   hit: integer;
   
   i: integer;
@@ -121,114 +121,114 @@ begin
   // Set our view port to be the same size as the screen
   glViewport(0,0,255,191);
   
-	printf(#$1b'[10;0HPress A to change culling');
-	printf(#10#10'Press B to change Ortho vs Persp');
-	printf(#10'Left/Right/Up/Down to rotate');
-	printf(#10'Press L and R to zoom');
-	printf(#10'Touch screen to rotate cube');
+  printf(#$1b'[10;0HPress A to change culling');
+  printf(#10#10'Press B to change Ortho vs Persp');
+  printf(#10'Left/Right/Up/Down to rotate');
+  printf(#10'Press L and R to zoom');
+  printf(#10'Touch screen to rotate cube');
 
-	//main loop
-	while true do
-	begin
+  //main loop
+  while true do
+  begin
     
     //process input
     scanKeys();
     
     touchRead(touchXY);
 
-		
+    
     held := keysHeld();
     pressed := keysDown();
-		
-		if( held and KEY_LEFT) <> 0 then rotY := rotY + 1;
-		if( held and KEY_RIGHT) <> 0 then rotY := rotY - 1;
-		if( held and KEY_UP) <> 0 then rotX := rotX + 1;
-		if( held and KEY_DOWN) <> 0 then rotX := rotX - 1;
-		if( held and KEY_L) <> 0 then translate := translate + 0.1;
-		if( held and KEY_R) <> 0 then translate := translate - 0.1;
+    
+    if( held and KEY_LEFT) <> 0 then rotY := rotY + 1;
+    if( held and KEY_RIGHT) <> 0 then rotY := rotY - 1;
+    if( held and KEY_UP) <> 0 then rotX := rotX + 1;
+    if( held and KEY_DOWN) <> 0 then rotX := rotX - 1;
+    if( held and KEY_L) <> 0 then translate := translate + 0.1;
+    if( held and KEY_R) <> 0 then translate := translate - 0.1;
 
-		//reset x and y when user touches screen
-		if (pressed and KEY_TOUCH) <> 0 then
-		begin
-			oldx := touchXY.px;
-			oldy := touchXY.py;
-		end;
+    //reset x and y when user touches screen
+    if (pressed and KEY_TOUCH) <> 0 then
+    begin
+      oldx := touchXY.px;
+      oldy := touchXY.py;
+    end;
 
-		//if user drags then grab the delta
-		if (held and KEY_TOUCH) <> 0 then
-		begin
-			rx := rx + (touchXY.px - oldx); 
-			ry := ry + (touchXY.py - oldy);
-			oldx := touchXY.px;
-			oldy := touchXY.py;
-		end;
+    //if user drags then grab the delta
+    if (held and KEY_TOUCH) <> 0 then
+    begin
+      rx := rx + (touchXY.px - oldx); 
+      ry := ry + (touchXY.py - oldy);
+      oldx := touchXY.px;
+      oldy := touchXY.py;
+    end;
 
-		
-		//change ortho vs perspective
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		if (keysHeld() and KEY_B) <> 0 then
-			glOrtho(-4,4,-3,3,0.1,10)	
-		else 
-			gluPerspective(70, 256.0 / 192.0, 0.1, 10);
-	
-		//change cull mode
-		if (held and KEY_A) <> 0 then
-			glPolyFmt(POLY_ALPHA(31) or POLY_CULL_NONE )
-		else
-			glPolyFmt(POLY_ALPHA(31) or POLY_CULL_FRONT );
+    
+    //change ortho vs perspective
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    if (keysHeld() and KEY_B) <> 0 then
+      glOrtho(-4,4,-3,3,0.1,10) 
+    else 
+      gluPerspective(70, 256.0 / 192.0, 0.1, 10);
+  
+    //change cull mode
+    if (held and KEY_A) <> 0 then
+      glPolyFmt(POLY_ALPHA(31) or POLY_CULL_NONE )
+    else
+      glPolyFmt(POLY_ALPHA(31) or POLY_CULL_FRONT );
 
-		// Set the current matrix to be the model matrix
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
+    // Set the current matrix to be the model matrix
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 
-		//handle camera
-		glRotateY(rotY);
-		glRotateX(rotX);
-		glTranslatef(0,0,translate);
+    //handle camera
+    glRotateY(rotY);
+    glRotateX(rotX);
+    glTranslatef(0,0,translate);
 
-		//move the cube
-		glRotateX(ry);
-		glRotateY(rx);
+    //move the cube
+    glRotateX(ry);
+    glRotateY(rx);
 
-		DrawBox(-1,-1,-1,2,2,2);
+    DrawBox(-1,-1,-1,2,2,2);
 
-		swiWaitForVBlank();
-		printf(#$1b'[0;0HBox test cycle count');
+    swiWaitForVBlank();
+    printf(#$1b'[0;0HBox test cycle count');
 
-		time := startTimer(0);
-		hit := BoxTestf(-1,-1,-1,2,2,2);
-		printf(#10'Single test (float): %i', 2*(getTimer(0) - time));
+    time := startTimer(0);
+    hit := BoxTestf(-1,-1,-1,2,2,2);
+    printf(#10'Single test (float): %i', 2*(getTimer(0) - time));
 
-		time := startTimer(0);
-		BoxTest(inttov16(-1),inttov16(-1),inttov16(-1),inttov16(2),inttov16(2),inttov16(2));
-		printf(#10'Single test (fixed): %i', 2*(getTimer(0) - time));
+    time := startTimer(0);
+    BoxTest(inttov16(-1),inttov16(-1),inttov16(-1),inttov16(2),inttov16(2),inttov16(2));
+    printf(#10'Single test (fixed): %i', 2*(getTimer(0) - time));
 
-		time := startTimer(0);
-		for i := 0 to 63 do
-			BoxTest(inttov16(-1),inttov16(-1),inttov16(-1),inttov16(2),inttov16(2),inttov16(2));
+    time := startTimer(0);
+    for i := 0 to 63 do
+      BoxTest(inttov16(-1),inttov16(-1),inttov16(-1),inttov16(2),inttov16(2),inttov16(2));
 
-		printf(#10'64 tests avg. (fixed): %i', (getTimer(0) - time) / 32);
-		if hit <> 0 then
-		  printf(#10'Box Test result: hit') 
+    printf(#10'64 tests avg. (fixed): %i', (getTimer(0) - time) / 32);
+    if hit <> 0 then
+      printf(#10'Box Test result: hit') 
     else
       printf(#10'Box Test result: miss');
 
-		while (GFX_STATUS^ and (1 shl 27)) <> 0 do; // wait until the geometry engine is not busy
+    while (GFX_STATUS^ and (1 shl 27)) <> 0 do; // wait until the geometry engine is not busy
 
-		glGetInt(GL_GET_VERTEX_RAM_COUNT, vertex_count);
-		glGetInt(GL_GET_POLYGON_RAM_COUNT, polygon_count);
+    glGetInt(GL_GET_VERTEX_RAM_COUNT, vertex_count);
+    glGetInt(GL_GET_POLYGON_RAM_COUNT, polygon_count);
 
     if (held and KEY_A)<> 0 then 
-		  printf(#10#10'Ram usage: Culling none')
+      printf(#10#10'Ram usage: Culling none')
     else 
     printf(#10#10'Ram usage: Culling back faces');
     
-		printf(#10'Vertex ram: %i', vertex_count);
-		printf(#10'Polygon ram: %i', polygon_count);
+    printf(#10'Vertex ram: %i', vertex_count);
+    printf(#10'Polygon ram: %i', polygon_count);
 
-		// flush to the screen
-		glFlush(0);
-
-	end;
+    // flush to the screen
+    glFlush(0);
+    if (pressed and KEY_START) <> 0 then break;
+  end;
 end.

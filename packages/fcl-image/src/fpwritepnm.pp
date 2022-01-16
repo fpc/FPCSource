@@ -15,8 +15,8 @@
 {*****************************************************************************}
 {Support for writing PNM (Portable aNyMap) formats added :
     * PBM (P1,P4) : Portable BitMap format : 1 bit per pixel
-    * PGM (P2,P5) : Portable GrayMap format : 8 bits per pixel
-    * PPM (P5,P6) : Portable PixelMap foramt : 24 bits per pixel}
+    * PGM (P2,P5) : Portable GrayMap format : 8 bits per pixel for P2 (ASCII), 8 or 16 bit for P5 (binary)
+    * PPM (P3,P6) : Portable PixelMap format : 24 bits per pixel for P3 (ASCII), 24 or 48 bit for P6 (binary)}
 {$mode objfpc}{$h+}
 unit FPWritePNM;
 
@@ -30,15 +30,21 @@ type
   { TFPWriterPNM }
 
   TFPWriterPNM = class(TFPCustomImageWriter)
-    protected
-      procedure InternalWrite(Stream:TStream;Img:TFPCustomImage);override;
-    public
-      ColorDepth: TPNMColorDepth;
-      BinaryFormat: boolean;
-      function GuessColorDepthOfImage(Img: TFPCustomImage): TPNMColorDepth;
-      function GetColorDepthOfExtension(AExtension: string): TPNMColorDepth;
-      function GetFileExtension(AColorDepth: TPNMColorDepth): string;
-      constructor Create; override;
+  private
+    FFullWidth: Boolean;
+    FColorDepth: TPNMColorDepth;
+    FBinaryFormat: boolean;
+    procedure SetFullWidth(AValue: Boolean);
+  protected
+    procedure InternalWrite(Stream:TStream;Img:TFPCustomImage);override;
+  public
+    Property FullWidth: Boolean Read FFullWidth Write SetFullWidth; {if true write 16 bits per colour for P5, P6 formats}
+    function GuessColorDepthOfImage(Img: TFPCustomImage): TPNMColorDepth;
+    function GetColorDepthOfExtension(AExtension: string): TPNMColorDepth;
+    function GetFileExtension(AColorDepth: TPNMColorDepth): string;
+    constructor Create; override;
+    Property BinaryFormat : Boolean Read FBinaryFormat Write FBinaryFormat;
+    Property ColorDepth: TPNMColorDepth Read FColorDepth Write FColorDepth;
   end;
 
   { TFPWriterPBM }
@@ -113,6 +119,14 @@ begin
   BinaryFormat := True;
 end;
 
+procedure TFPWriterPNM.SetFullWidth(AValue: Boolean);
+begin
+  if FFullWidth=AValue then Exit;
+  FFullWidth:=AValue;
+  if FFullWidth then
+    BinaryFormat:=True;
+end;
+
 procedure TFPWriterPNM.InternalWrite(Stream:TStream;Img:TFPCustomImage);
 var useBitMapType: integer;
 
@@ -130,8 +144,9 @@ var useBitMapType: integer;
           Str(Img.Height,StrHeight);
         end;
       PNMInfo:=Concat(MagicWords[useBitMapType],#10,StrWidth,#32,StrHeight,#10);
-      if useBitMapType in [2,3,5,6]
-      then
+      if (useBitMapType in [5,6]) and FullWidth then
+        PNMInfo:=Concat(PNMInfo,'65535'#10)
+      else if (useBitMapType in [2,3,5,6]) then
         PNMInfo:=Concat(PNMInfo,'255'#10);
       stream.seek(0,soFromBeginning);
       stream.Write(PNMInfo[1],Length(PNMInfo));
@@ -141,6 +156,7 @@ var useBitMapType: integer;
     Row,Coulumn,nBpLine,i:Integer;
     aColor:TFPColor;
     aLine:PByte;
+    dLine : PWord;
     strCol:String[3];
     LinuxEndOfLine: char;
     UseColorDepth: TPNMColorDepth;
@@ -160,17 +176,20 @@ var useBitMapType: integer;
       pcdRGB: useBitMapType := 3;
     end;
     if BinaryFormat then inc(useBitMapType,3);
-
+    if FullWidth and Not BinaryFormat then
+      Raise FPImageException.Create('Fullwidth can only be used with binary format');
     SaveHeader(Stream);
     case useBitMapType of
       1:nBpLine:=Img.Width*2;{p p p}
       2:nBpLine:=Img.Width*4;{lll lll lll}
       3:nBpLine:=Img.Width*3*4;{rrr ggg bbb rrr ggg bbb}
       4:nBpLine:=(Img.Width+7) SHR 3;
-      5:nBpLine:=Img.Width;
-      6:nBpLine:=Img.Width*3;
+      5:nBpLine:=Img.Width*(1+Ord(FullWidth));
+      6:nBpLine:=Img.Width*3*(1+Ord(FullWidth));
     end;
+
     GetMem(aLine,nBpLine);//3 extra byte for BMP 4Bytes alignement.
+    dLine:=PWord(aLine);
     for Row:=0 to img.Height-1 do
       begin
         FillChar(aLine^,nBpLine,0);
@@ -214,8 +233,18 @@ var useBitMapType: integer;
                 4:if(Red<=$2F00)or(Green<=$2F00)or(Blue<=$2F00)
                   then
                     aLine[Coulumn shr 3]:=aLine[Coulumn shr 3] or ($80 shr (Coulumn and $07));
-                5:aLine[Coulumn]:=Hi(Word(Round(Red*0.299+Green*0.587+Blue*0.114)));
-                6:begin
+                5: if FullWidth then {16 bit per colour}
+                     dLine[Coulumn]:=NToBe(Word(Round(Red*0.299+Green*0.587+Blue*0.114))) {write in big-endian format}
+                   else {8 bit per colour}
+                     aLine[Coulumn]:=Hi(Word(Round(Red*0.299+Green*0.587+Blue*0.114)));
+                6:if FullWidth then
+                  begin {16 bit per colour}
+                    dLine[3*Coulumn]:=NToBE(Red); {write in big-endian format}
+                    dLine[3*Coulumn+1]:=NToBE(Green);
+                    dLine[3*Coulumn+2]:=NToBE(Blue);
+                  end
+                  else
+                  begin {8 bit per colour}
                     aLine[3*Coulumn]:=Hi(Red);
                     aLine[3*Coulumn+1]:=Hi(Green);
                     aLine[3*Coulumn+2]:=Hi(Blue);

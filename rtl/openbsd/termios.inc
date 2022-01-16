@@ -55,17 +55,16 @@ Type
 
 
 type
-  Termios = packed record
+  tcflag_t = cuint;
+  cc_t = cuchar;
+  Termios = record
     c_iflag,
     c_oflag,
     c_cflag,
-    c_lflag  : longint;
-//    c_line   : char;
-    c_cc     : array[0..NCCS-1] of byte;
-   {$IFDEF BSD}
+    c_lflag  : tcflag_t;
+    c_cc     : array[0..NCCS-1] of cc_t;
     c_ispeed,
-    c_ospeed : longint;
-   {$endif}
+    c_ospeed : cint;
   end;
   TTermios=Termios;
 
@@ -92,6 +91,7 @@ CONST
         IXON            =     $200;     { enable output flow control }
         IXOFF           =     $400;     { enable input flow control }
         IXANY           =     $800;     { any char will restart after stop }
+        IUCLC           =    $1000;     { translate upper to lower case }
         IMAXBEL         =    $2000;     { ring bell on input queue full }
 
 {
@@ -101,6 +101,10 @@ CONST
         ONLCR           =       $2;     { map NL to CR-NL (ala CRMOD) }
         OXTABS          =       $4;     { expand tabs to spaces }
         ONOEOT          =       $8;     { discard EOT's (^D) on output) }
+        OCRNL           =      $10;     { map CR to NL }
+        OLCUC           =      $20;     { translate lower case to upper case }
+        ONOCR           =      $40;     { No CR output at column 0 }
+        ONLRET          =      $80;     { NL performs the CR function }
 
 {
  * Control flags - hardware control of terminal
@@ -117,13 +121,11 @@ CONST
         PARODD          =    $2000;     { odd parity, else even }
         HUPCL           =    $4000;     { hang up on last close }
         CLOCAL          =    $8000;     { ignore modem status lines }
-        CCTS_OFLOW      =   $10000;     { CTS flow control of output }
-        CRTS_IFLOW      =   $20000;     { RTS flow control of input }
-        CRTSCTS         =   (CCTS_OFLOW or CRTS_IFLOW);
-        CDTR_IFLOW      =   $40000;     { DTR flow control of input }
-        CDSR_OFLOW      =   $80000;     { DSR flow control of output }
-        CCAR_OFLOW      =  $100000;     { DCD flow control of output }
-        MDMBUF          =  $100000;     { old name for CCAR_OFLOW }
+        CRTSCTS         =   $10000;     { RTS/CTS full-duplex flow control }
+        CRTS_IFLOW      =  CRTSCTS;     { XXX compat }
+        CCTS_OFLOW      =  CRTSCTS;     { XXX compat }
+        MDMBUF          =  $100000;     { DTR/DCD hardware flow control }
+        CHWFLOW    = MDMBUF or CRTSCTS; { all types of hw flow control }
 
 {
  * "Local" flags - dumping ground for other state
@@ -144,9 +146,10 @@ CONST
         ICANON          =     $100;     { canonicalize input lines }
         ALTWERASE       =     $200;     { use alternate WERASE algorithm }
         IEXTEN          =     $400;     { enable DISCARD and LNEXT }
-        EXTPROC         =     $800;      { external processing }
+        EXTPROC         =     $800;     { external processing }
         TOSTOP          =  $400000;     { stop background jobs from output }
         FLUSHO          =  $800000;     { output being flushed (state) }
+        XCASE           = $1000000;     { canonical upper/lower case }
         NOKERNINFO      = $2000000;     { no kernel output from VSTATUS }
         PENDIN          =$20000000;     { XXX retype pending input (state) }
         NOFLSH          =$80000000;     { don't flush after interrupt }

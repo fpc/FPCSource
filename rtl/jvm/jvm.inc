@@ -175,11 +175,77 @@ procedure fillchar(var arr: array of jlong; len: sizeint; val: boolean);
     fillchar(arr,len,jbyte(val));
   end;
 
-{$pop}
-
 {$define FPC_SYSTEM_HAS_FILLWORD}
+procedure fillword(var arr: array of jshort; len: sizeint; val: word);
+  begin
+    JUArrays.fill(arr,0,len,jshort(val));
+  end;
+
+procedure fillword(var arr: array of jshort; len: sizeint; val: boolean);
+  begin
+    fillword(arr,len,jshort(jbyte(val)));
+  end;
+
+{ widechar maps to a different signature }
+procedure fillword(var arr: array of widechar; len: sizeint; val: word);
+  var
+    w : widechar;
+  begin
+    w:=widechar(val);
+    JUArrays.fill(arr,0,len,w);
+  end;
+
+procedure fillword(var arr: array of widechar; len: sizeint; val: boolean);
+  begin
+    fillword(arr,len,jshort(jbyte(val)));
+  end;
+
+procedure fillword(var arr: array of jint; len: sizeint; val: word);
+  var
+    d, dmask: jint;
+  begin
+    d:=cardinal(val shl 16) or val;
+    JUArrays.fill(arr,0,len div 2,d);
+    len:=len and 1;
+    if len<>0 then
+      begin
+        dmask:=not((1 shl (32-8*len))-1);
+        d:=d and dmask;
+        arr[len shr 2+1]:=(arr[len shr 2+1] and not(dmask)) or d;
+      end;
+  end;
+
+procedure fillword(var arr: array of jint; len: sizeint; val: boolean);
+  begin
+    fillword(arr,len,jshort(jbyte(val)));
+  end;
+
+
+procedure fillword(var arr: array of jlong; len: sizeint; val: word);
+  var
+    i, imask: jlong;
+  begin
+    i:=cardinal(val shl 16) or val;
+    i:=(i shl 32) or i;
+    JUArrays.fill(arr,0,len shr 2,i);
+    len:=len and 3;
+    if len<>0 then
+      begin
+        imask:=not((1 shl (32-8*len))-1);
+        i:=i and imask;
+        arr[len shr 2+1]:=(arr[len shr 2+1] and not(imask)) or i;
+      end;
+  end;
+
+procedure fillword(var arr: array of jlong; len: sizeint; val: boolean);
+  begin
+    fillword(arr,len,jshort(jbyte(val)));
+  end;
+
 {$define FPC_SYSTEM_HAS_FILLDWORD}
 {$define FPC_SYSTEM_HAS_FILLQWORD}
+
+{$pop}
 
 {$define FPC_SYSTEM_HAS_INDEXBYTE}
 
@@ -188,8 +254,8 @@ function  IndexByte(const buf: array of jbyte;len:SizeInt;b:jbyte):SizeInt;
     i: SizeInt;
   begin
     if len<0 then
-      len:=high(buf);
-    for i:=0 to len do
+      len:=high(buf)+1;
+    for i:=0 to len-1 do
       if buf[i]=b then
         exit(i);
     IndexByte:=-1;
@@ -201,8 +267,8 @@ var
   i: SizeInt;
 begin
   if len<0 then
-    len:=high(buf);
-  for i:=0 to len do
+    len:=high(buf)+1;
+  for i:=0 to len-1 do
     if jbyte(buf[i])=b then
       exit(i);
   IndexByte:=-1;
@@ -227,8 +293,8 @@ function  IndexWord(const buf: array of jshort;len:SizeInt;b:jshort):SizeInt;
     i: SizeInt;
   begin
     if len<0 then
-      len:=high(buf);
-    for i:=0 to len do
+      len:=high(buf)+1;
+    for i:=0 to len-1 do
       if buf[i]=b then
         exit(i);
     IndexWord:=-1;
@@ -240,8 +306,8 @@ function  IndexWord(const buf: array of jchar;len:SizeInt;b:jchar):SizeInt;
     i: SizeInt;
   begin
     if len<0 then
-      len:=high(buf);
-    for i:=0 to len do
+      len:=high(buf)+1;
+    for i:=0 to len-1 do
       if buf[i]=b then
         exit(i);
     IndexWord:=-1;
@@ -254,8 +320,8 @@ function  IndexWord(const buf: array of jchar;len:SizeInt;b:jshort):SizeInt;
   begin
     c:=jchar(b);
     if len<0 then
-      len:=high(buf);
-    for i:=0 to len do
+      len:=high(buf)+1;
+    for i:=0 to len-1 do
       if buf[i]=c then
         exit(i);
     IndexWord:=-1;
@@ -273,6 +339,17 @@ function  IndexWord(const buf: array of jchar;len:SizeInt;b:jshort):SizeInt;
 {****************************************************************************
                                  String
 ****************************************************************************}
+
+{$define FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
+
+function fpc_pchar_length(p:pchar):sizeint;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc;
+begin
+  if assigned(p) then
+    Result:=IndexByte(TAnsiCharArray(p),high(Result),0)
+  else
+    Result:=0;
+end;
+
 
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 procedure fpc_pchar_to_shortstr(out res : shortstring;p:pchar); compilerproc;
@@ -377,6 +454,7 @@ begin
   if zerobased then
     begin
       foundnull:=false;
+      index:=0;
       for index:=low(arr) to l-1 do
         if arr[index]=#0 then
           begin

@@ -34,17 +34,22 @@ interface
 
       ti8086pointerconstnode = class(tcgpointerconstnode)
         constructor create(v : TConstPtrUInt;def:tdef);override;
+        procedure printnodedata(var t: text);override;
+{$ifdef DEBUG_NODE_XML}
+        procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
         procedure pass_generate_code;override;
       end;
 
 implementation
 
     uses
-      systems,globals,
+      systems,globals,verbose,
       symconst,symdef,symcpu,
       defutil,
       cpubase,
-      cga,cgx86,cgobj,cgbase,cgutils;
+      cga,cgx86,cgobj,cgbase,cgutils,
+      node;
 
     {*****************************************************************************
                                T8086POINTERCONSTNODE
@@ -59,6 +64,24 @@ implementation
         inherited create(v, def);
       end;
 
+
+    procedure ti8086pointerconstnode.printnodedata(var t: text);
+      begin
+        if (typedef.typ=pointerdef) and (tcpupointerdef(typedef).x86pointertyp in [x86pt_far,x86pt_huge]) then
+          writeln(t,printnodeindention,'value = $',hexstr(word(value shr 16),4),':',hexstr(word(value),4))
+        else
+          inherited printnodedata(t);
+      end;
+
+{$ifdef DEBUG_NODE_XML}
+    procedure Ti8086PointerConstNode.XMLPrintNodeData(var T: Text);
+      begin
+        if (typedef.typ=pointerdef) and (tcpupointerdef(typedef).x86pointertyp in [x86pt_far,x86pt_huge]) then
+          WriteLn(T, PrintNodeIndention, '<value>$', hexstr(word(value shr 16),4),':',hexstr(word(value),4), '</value>')
+        else
+          inherited XMLPrintNodeData(T);
+      end;
+{$endif DEBUG_NODE_XML}
 
     procedure ti8086pointerconstnode.pass_generate_code;
       begin

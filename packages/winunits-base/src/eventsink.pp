@@ -28,7 +28,7 @@ unit EventSink;
 
   You should have received a copy of the GNU Library General Public License
   along with this library; if not, write to the Free Software Foundation,
-  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 }
 
 interface
@@ -169,9 +169,11 @@ procedure TAbstractEventSink.Disconnect;
 begin
  if Assigned(FDispatch) then begin
   // Unhook the sink from the automation server
+  Self._addRef;
   InterfaceDisconnect(FDispatch, FDispIntfIID, FConnection);
   FDispatch := nil;
   FConnection := 0;
+  self._Release;
  end;
 end;
 

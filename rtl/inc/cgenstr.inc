@@ -108,7 +108,7 @@
 
 {$ifndef FPC_UNIT_HAS_STRLCOMP}
 {$define FPC_UNIT_HAS_STRLCOMP}
- function libc_strncmp(const str1,str2: pchar; l: Cardinal): longint; cdecl; external 'c' name 'strncmp';
+ function libc_strncmp(const str1,str2: pchar; l: sizeint): longint; cdecl; external 'c' name 'strncmp';
 
  function StrLComp(Str1, Str2 : PChar; L: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
    Begin
@@ -119,7 +119,7 @@
 
 {$ifndef FPC_UNIT_HAS_STRLICOMP}
 {$define FPC_UNIT_HAS_STRLICOMP}
- function libc_strncasecmp(const str1,str2: pchar; l: Cardinal): longint; cdecl; external 'c' name 'strncasecmp';
+ function libc_strncasecmp(const str1,str2: pchar; l: sizeint): longint; cdecl; external 'c' name 'strncasecmp';
 
  function StrLIComp(Str1, Str2 : PChar; L: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
    Begin

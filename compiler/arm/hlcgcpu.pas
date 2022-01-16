@@ -29,6 +29,7 @@ unit hlcgcpu;
 interface
 
   uses
+    globtype,
     aasmdata,
     symdef,
     hlcg2ll;
@@ -42,15 +43,13 @@ interface
     end;
 
     tthumbhlcgcpu = class(tbasehlcgarm)
-      procedure g_external_wrapper(list : TAsmList; procdef : tprocdef; const externalname : string); override;
+      procedure a_jmp_external_name(list: TAsmList; const externalname: TSymStr); override;
     end;
-
-  procedure create_hlcodegen;
 
 implementation
 
   uses
-    globals,globtype,verbose,
+    globals,verbose,
     procinfo,fmodule,
     symconst,
     aasmbase,aasmtai,aasmcpu, cpuinfo,
@@ -63,10 +62,9 @@ implementation
       var
         tmpref,
         href : treference;
-        extrareg : boolean;
         l : TAsmLabel;
       begin
-        reference_reset_base(href,voidpointertype,NR_R0,0,sizeof(pint));
+        reference_reset_base(href,voidpointertype,NR_R0,0,ctempposinvalid,sizeof(pint),[]);
         if GenerateThumbCode then
           begin
             if (href.offset in [0..124]) and ((href.offset mod 4)=0) then
@@ -80,7 +78,7 @@ implementation
               begin
                 list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R0,RS_R1]));
                 { create consts entry }
-                reference_reset(tmpref,4);
+                reference_reset(tmpref,4,[]);
                 current_asmdata.getjumplabel(l);
                 current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
                 cg.a_label(current_procinfo.aktlocaldata,l);
@@ -108,10 +106,10 @@ implementation
         l : TAsmLabel;
       begin
         if (procdef.extnumber=$ffff) then
-          Internalerror(200006139);
+          Internalerror(2000061311);
         if GenerateThumbCode then
           begin
-            reference_reset_base(href,voidpointertype,NR_R0,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
+            reference_reset_base(href,voidpointertype,NR_R0,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,sizeof(pint),[]);
             if (href.offset in [0..124]) and ((href.offset mod 4)=0) then
               begin
                 list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
@@ -124,7 +122,7 @@ implementation
               begin
                 list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R0,RS_R1]));
                 { create consts entry }
-                reference_reset(tmpref,4);
+                reference_reset(tmpref,4,[]);
                 current_asmdata.getjumplabel(l);
                 current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
                 cg.a_label(current_procinfo.aktlocaldata,l);
@@ -144,7 +142,7 @@ implementation
           end
         else
           begin
-            reference_reset_base(href,voidpointertype,NR_R12,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
+            reference_reset_base(href,voidpointertype,NR_R12,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),ctempposinvalid,sizeof(pint),[]);
             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R12);
           end;
         if not(CPUARM_HAS_BX in cpu_capabilities[current_settings.cputype]) then
@@ -177,9 +175,9 @@ implementation
         make_global:=true;
 
       if make_global then
-        list.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
+        list.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0,procdef))
       else
-        list.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
+        list.concat(Tai_symbol.Createname_hidden(labelname,AT_FUNCTION,0,procdef));
 
       { the wrapper might need aktlocaldata for the additional data to
         load the constant }
@@ -203,12 +201,12 @@ implementation
           list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
 
           { create consts entry }
-          reference_reset(tmpref,4);
+          reference_reset(tmpref,4,[]);
           current_asmdata.getjumplabel(l);
           current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
           cg.a_label(current_procinfo.aktlocaldata,l);
           tmpref.symboldata:=current_procinfo.aktlocaldata.last;
-          current_procinfo.aktlocaldata.concat(tai_const.Create_sym(current_asmdata.RefAsmSymbol(procdef.mangledname)));
+          current_procinfo.aktlocaldata.concat(tai_const.Create_sym(current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)));
 
           tmpref.symbol:=l;
           tmpref.base:=NR_PC;
@@ -218,7 +216,7 @@ implementation
           list.concat(taicpu.op_reg(A_BX,NR_R12));
         end
       else
-        list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname)));
+        list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)));
       list.concatlist(current_procinfo.aktlocaldata);
 
       current_procinfo.Free;
@@ -230,7 +228,7 @@ implementation
 
   { tthumbhlcgcpu }
 
-  procedure tthumbhlcgcpu.g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string);
+  procedure tthumbhlcgcpu.a_jmp_external_name(list: TAsmList; const externalname: TSymStr);
     var
       tmpref : treference;
       l : tasmlabel;
@@ -239,7 +237,7 @@ implementation
         and which allows to switch the instruction set }
 
       { create const entry }
-      reference_reset(tmpref,4);
+      reference_reset(tmpref,4,[]);
       current_asmdata.getjumplabel(l);
       tmpref.symbol:=l;
       tmpref.base:=NR_PC;
@@ -252,12 +250,12 @@ implementation
       { append const entry }
       list.Concat(tai_align.Create(4));
       list.Concat(tai_label.create(l));
-      list.concat(tai_const.Create_sym(current_asmdata.RefAsmSymbol(externalname)));
+      list.concat(tai_const.Create_sym(current_asmdata.RefAsmSymbol(externalname,AT_FUNCTION)));
     end;
 
 
 
-  procedure create_hlcodegen;
+  procedure create_hlcodegen_cpu;
     begin
       if GenerateThumbCode then
         hlcg:=tthumbhlcgcpu.create
@@ -268,4 +266,5 @@ implementation
 
 begin
   chlcgobj:=tbasehlcgarm;
+  create_hlcodegen:=@create_hlcodegen_cpu;
 end.

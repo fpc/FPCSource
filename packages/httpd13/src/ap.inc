@@ -123,7 +123,7 @@ function ap_vformatter(flush_func: flush_func_t;
  * is the number of characters placed in the buffer, excluding the
  * terminating NUL. All this implies that, at most, (len-1) characters
  * will be copied over; if the return value is >= len, then truncation
- * occured.
+ * occurred.
  *
  * In no event does ap_snprintf return a negative number.
  }

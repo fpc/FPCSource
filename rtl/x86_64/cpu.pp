@@ -32,7 +32,28 @@ unit cpu;
     function AESSupport : boolean;inline;
     function AVXSupport : boolean;inline;
     function AVX2Support: boolean;inline;
+    function AVX512FSupport: boolean;inline;    
+    function AVX512DQSupport: boolean;inline;    
+    function AVX512IFMASupport: boolean;inline;    
+    function AVX512PFSupport: boolean;inline;    
+    function AVX512ERSupport: boolean;inline;    
+    function AVX512CDSupport: boolean;inline;    
+    function AVX512BWSupport: boolean;inline;    
+    function AVX512VLSupport: boolean;inline;
+    function RDSEEDSupport: boolean;inline;
+    function ADXSupport: boolean;inline;
+    function SHASupport: boolean;inline;    
     function FMASupport: boolean;inline;
+    function POPCNTSupport: boolean;inline;
+    function LZCNTSupport: boolean;inline;
+    function SSE41Support: boolean;inline;
+    function SSE42Support: boolean;inline;
+    function MOVBESupport: boolean;inline;
+    function F16CSupport: boolean;inline;
+    function RDRANDSupport: boolean;inline;
+    function RTMSupport: boolean;inline;
+    function BMI1Support: boolean;inline;
+    function BMI2Support: boolean;inline;
 
     var
       is_sse3_cpu : boolean = false;
@@ -48,7 +69,28 @@ unit cpu;
       _AVXSupport,
       _InterlockedCompareExchange128Support,
       _AVX2Support,
-      _FMASupport : boolean;
+      _AVX512FSupport,
+      _AVX512DQSupport,
+      _AVX512IFMASupport,
+      _AVX512PFSupport,
+      _AVX512ERSupport,
+      _AVX512CDSupport,
+      _AVX512BWSupport,
+      _AVX512VLSupport,
+      _RDSEEDSupport,
+      _ADXSupport,
+      _SHASupport,
+      _FMASupport,
+      _POPCNTSupport,
+      _LZCNTSupport,
+      _SSE41Support,
+      _SSE42Support,
+      _MOVBESupport,
+      _F16CSupport,
+      _RDRANDSupport,
+      _RTMSupport,
+      _BMI1Support,
+      _BMI2Support: boolean;
 
     function InterlockedCompareExchange128(var Target: Int128Rec; NewValue: Int128Rec; Comperand: Int128Rec): Int128Rec; assembler;
      {
@@ -131,18 +173,28 @@ unit cpu;
 
     procedure SetupSupport;
       var
+        _edx,
         _ecx,
-        _ebx : longint;
+        _ebx,maxcpuidvalue : longint;
       begin
         asm
-           pushq %rbx
+           movl $0x0,%eax
+           cpuid
+           movl %eax,maxcpuidvalue
+        end ['rax','rbx','rcx','rdx'];
+        asm
            movl $0x00000001,%eax
            cpuid
            movl %ecx,_ecx
-           popq %rbx
-        end;
+        end ['rax','rbx','rcx','rdx'];
         _InterlockedCompareExchange128Support:=(_ecx and $2000)<>0;
         _AESSupport:=(_ecx and $2000000)<>0;
+        _POPCNTSupport:=(_ecx and $800000)<>0;
+        _SSE41Support:=(_ecx and $80000)<>0;
+        _SSE42Support:=(_ecx and $100000)<>0;
+        _MOVBESupport:=(_ecx and $400000)<>0;
+        _F16CSupport:=(_ecx and $20000000)<>0;
+        _RDRANDSupport:=(_ecx and $40000000)<>0;
 
         _AVXSupport:=
           { XGETBV suspport? }
@@ -157,14 +209,38 @@ unit cpu;
         _FMASupport:=_AVXSupport and ((_ecx and $1000)<>0);
 
         asm
-           pushq %rbx
-           movl $7,%eax
-           movl $0,%ecx
-           cpuid
-           movl %ebx,_ebx
-           popq %rbx
+          movl $0x80000001,%eax
+          cpuid
+          movl %ecx,_ecx
+          movl %edx,_edx
         end;
-        _AVX2Support:=_AVXSupport and ((_ebx and $20)<>0);
+        _LZCNTSupport:=(_ecx and $20)<>0;
+
+        { very early x86-64 CPUs might not support eax=7 }
+        if maxcpuidvalue>=7 then
+          begin
+            asm
+              movl $7,%eax
+              movl $0,%ecx
+              cpuid
+              movl %ebx,_ebx
+            end ['rax','rbx','rcx','rdx'];
+            _AVX2Support:=_AVXSupport and ((_ebx and $20)<>0);
+            _AVX512FSupport:=(_ebx and $10000)<>0;
+            _AVX512DQSupport:=(_ebx and $20000)<>0;
+            _RDSEEDSupport:=(_ebx and $40000)<>0;
+            _ADXSupport:=(_ebx and $80000)<>0;
+            _AVX512IFMASupport:=(_ebx and $200000)<>0;
+            _AVX512PFSupport:=(_ebx and $4000000)<>0;
+            _AVX512ERSupport:=(_ebx and $8000000)<>0;
+            _AVX512CDSupport:=(_ebx and $10000000)<>0;
+            _SHASupport:=(_ebx and $20000000)<>0;
+            _AVX512BWSupport:=(_ebx and $40000000)<>0;
+            _AVX512VLSupport:=(_ebx and $80000000)<>0;
+            _BMI1Support:=(_ebx and $8)<>0;
+            _BMI2Support:=(_ebx and $100)<>0;
+            _RTMSupport:=(_ebx and $800)<>0;
+          end;
       end;
 
 
@@ -192,9 +268,135 @@ unit cpu;
       end;
 
 
+    function AVX512FSupport: boolean;inline;
+      begin
+        result:=_AVX512FSupport;
+      end;
+
+
+    function AVX512DQSupport: boolean;inline;
+      begin
+        result:=_AVX512DQSupport;
+      end;
+
+
+    function AVX512IFMASupport: boolean;inline;    
+      begin
+        result:=_AVX512IFMASupport;
+      end;
+
+
+    function AVX512PFSupport: boolean;inline;    
+      begin
+        result:=_AVX512PFSupport;
+      end;
+
+
+    function AVX512ERSupport: boolean;inline;    
+      begin
+        result:=_AVX512ERSupport;
+      end;
+
+
+    function AVX512CDSupport: boolean;inline;    
+      begin
+        result:=_AVX512CDSupport;
+      end;
+
+
+    function AVX512BWSupport: boolean;inline;    
+      begin
+        result:=_AVX512BWSupport;
+      end;
+
+
+    function AVX512VLSupport: boolean;inline;    
+      begin
+        result:=_AVX512VLSupport;
+      end;
+
+
+    function RDSEEDSupport: boolean;inline;
+      begin
+        result:=_RDSEEDSupport;
+      end;
+
+
+    function ADXSupport: boolean;inline;
+      begin
+        result:=_ADXSupport;
+      end;
+
+
+    function SHASupport: boolean;inline;    
+      begin
+        result:=_SHASupport;
+      end;
+
+
     function FMASupport: boolean;inline;
       begin
         result:=_FMASupport;
+      end;
+
+
+    function POPCNTSupport: boolean;inline;
+      begin
+        result:=_POPCNTSupport;
+      end;
+
+
+    function LZCNTSupport: boolean;inline;
+      begin
+        result:=_LZCNTSupport;
+      end;
+
+
+    function SSE41Support: boolean;inline;
+      begin
+        result:=_SSE41Support;
+      end;
+
+
+    function SSE42Support: boolean;inline;
+      begin
+        result:=_SSE42Support;
+      end;
+
+
+    function MOVBESupport: boolean;inline;
+      begin
+        result:=_MOVBESupport;
+      end;
+
+
+    function F16CSupport: boolean;inline;
+      begin
+        result:=_F16CSupport;
+      end;
+
+
+    function RDRANDSupport: boolean;inline;
+      begin
+        result:=_RDRANDSupport;
+      end;
+
+
+    function RTMSupport: boolean;inline;
+      begin
+        result:=_RTMSupport;
+      end;
+
+
+    function BMI1Support: boolean;inline;
+      begin
+        result:=_BMI1Support;
+      end;
+
+
+    function BMI2Support: boolean;inline;
+      begin
+        result:=_BMI2Support;
       end;
 
 

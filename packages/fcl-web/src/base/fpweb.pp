@@ -50,13 +50,20 @@ Type
 
   TFPWebActions = Class(TCustomWebActions)
   private
-    FCurrentAction : TCustomWebAction;
+    FCurrentAction : TFPWebAction;
+    function GetFPWebActions(Index : Integer): TFPWebAction;
+    procedure SetFPWebActions(Index : Integer; const AValue: TFPWebAction);
   protected
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse; Var Handled : Boolean); virtual;
     Procedure GetContent(ARequest : TRequest; Content : TStream; Var Handled : Boolean); virtual;
+    Function  GetRequestAction(ARequest: TRequest) : TFPWebAction;
   Public
+    Function Add : TFPWebAction;
+    Function ActionByName(const AName : String) : TFPWebAction;
+    Function FindAction(const AName : String): TFPWebAction;
+    Property FPWebActions[Index : Integer] : TFPWebAction Read GetFPWebActions Write SetFPWebActions; Default;
     Property ActionVar;
-    Property CurrentAction: TCustomWebAction read FCurrentAction;
+    Property CurrentAction: TFPWebAction read FCurrentAction;
   end;
 
   { TTemplateVar }
@@ -111,6 +118,10 @@ Type
     procedure SetOnGetAction(const AValue: TGetActionEvent);
     procedure SetTemplate(const AValue: TFPTemplate);
   Protected
+    // Override these 3 if you want to have customized versions of the appropriate properties...
+    function CreateTemplateVars: TTemplateVars; virtual;
+    function CreateTemplate: TFPTemplate; virtual;
+    function CreateActions: TFPWebActions; virtual;
     Function HandleActions(ARequest : TRequest): Boolean; virtual;
     procedure DoOnRequest(ARequest: TRequest; AResponse: TResponse; var AHandled: Boolean); virtual;
     Procedure DoBeforeRequest(ARequest : TRequest); virtual;
@@ -153,6 +164,7 @@ Type
     Property OnNewSession;
     Property OnSessionExpired;
     Property AfterInitModule;
+    Property CORS;
   end;
 
   EFPWebError = Class(EHTTP);
@@ -428,9 +440,9 @@ end;
 constructor TCustomFPWebModule.CreateNew(AOwner: TComponent; CreateMode : Integer);
 begin
   inherited;
-  FActions:=TFPWebActions.Create(TFPWebAction);
-  FTemplate:=TFPWebTemplate.Create(Self);
-  FTemplateVars:=TTemplateVars.Create(TTemplateVar);
+  FActions:=CreateActions;
+  FTemplate:=CreateTemplate;
+  FTemplateVars:=CreateTemplateVars
 end;
 
 destructor TCustomFPWebModule.Destroy;
@@ -441,6 +453,23 @@ begin
   inherited Destroy;
 end;
 
+Function TCustomFPWebModule.CreateTemplateVars : TTemplateVars;
+
+begin
+  Result:=TTemplateVars.Create(TTemplateVar);
+end;
+
+Function TCustomFPWebModule.CreateTemplate : TFPTemplate;
+
+begin
+  Result:=TFPWebTemplate.Create(Self);
+end;
+
+Function TCustomFPWebModule.CreateActions : TFPWebActions;
+
+begin
+  Result:=TFPWebActions.Create(TFPWebAction);
+end;
 
 procedure TCustomFPWebModule.DoOnRequest(ARequest: TRequest; AResponse: TResponse; Var AHandled : Boolean);
 
@@ -460,31 +489,37 @@ begin
 {$endif cgidebug}
   FRequest := ARequest; //So everything in the web module can access the current request variables
   FResponse := AResponse;//So everything in the web module can access the current response variables
-  CheckSession(ARequest);
-  DoBeforeRequest(ARequest);
-  B:=False;
-  InitSession(AResponse);
-  DoOnRequest(ARequest,AResponse,B);
-  If B then
-    begin
-    if not AResponse.ContentSent then
-      AResponse.SendContent;
-    end
-  else
-    if FTemplate.HasContent then
-      GetTemplateContent(ARequest,AResponse)
-    else if HandleActions(ARequest) then
+  try
+    CheckSession(ARequest);
+    DoBeforeRequest(ARequest);
+    B:=False;
+    InitSession(AResponse);
+    if not CORS.HandleRequest(aRequest,aResponse,[hcDetect,hcSend]) then
       begin
-      Actions.HandleRequest(ARequest,AResponse,B);
-      FTemplate.Template := '';//if apache mod, then need to clear for next call because it is a webmodule global property,
-      FTemplate.FileName := '';//so following calls are OK and the above FTemplate.HasContent is not becoming True
-      If Not B then
-        Raise EFPWebError.Create(SErrRequestNotHandled);
+      DoOnRequest(ARequest,AResponse,B);
+      If B then
+        begin
+        if not AResponse.ContentSent then
+          AResponse.SendContent;
+        end
+      else
+        if FTemplate.HasContent then
+          GetTemplateContent(ARequest,AResponse)
+        else if HandleActions(ARequest) then
+          begin
+          Actions.HandleRequest(ARequest,AResponse,B);
+          FTemplate.Template := '';//if apache mod, then need to clear for next call because it is a webmodule global property,
+          FTemplate.FileName := '';//so following calls are OK and the above FTemplate.HasContent is not becoming True
+          If Not B then
+            Raise EFPWebError.Create(SErrRequestNotHandled);
+          end;
       end;
-  DoAfterResponse(AResponse);
-  UpdateSession(AResponse);
-  FRequest := Nil;
-  FResponse := Nil;
+    DoAfterResponse(AResponse);
+    UpdateSession(AResponse);
+  finally
+    FRequest := Nil;
+    FResponse := Nil;
+  end;
   // Clean up session for the case the webmodule is used again
   DoneSession;
 {$ifdef cgidebug}
@@ -553,10 +588,40 @@ end;
 
 { TFPWebActions }
 
+Function TFPWebActions.GetRequestAction(ARequest: TRequest) : TFPWebAction;
+begin
+  Result := inherited GetRequestAction(ARequest) as TFPWebAction;
+end;
+
+Function TFPWebActions.Add : TFPWebAction;
+begin
+  Result := inherited Add as TFPWebAction;
+end;
+
+Function TFPWebActions.ActionByName(const AName : String) : TFPWebAction;
+begin
+  Result := inherited ActionByName(AName) as TFPWebAction;
+end;
+
+Function TFPWebActions.FindAction(const AName : String): TFPWebAction;
+begin
+  Result := inherited FindAction(AName) as TFPWebAction;
+end;
+
+function TFPWebActions.GetFPWebActions(Index : Integer): TFPWebAction;
+begin
+  Result := Actions[Index] as TFPWebAction;
+end;
+
+procedure TFPWebActions.SetFPWebActions(Index : Integer; const AValue: TFPWebAction);
+begin
+  Actions[Index] := AValue;
+end;
+
 procedure TFPWebActions.HandleRequest(ARequest: TRequest; AResponse: TResponse; Var Handled : Boolean);
 
 Var
-  A : TCustomWebAction;
+  A : TFPWebAction;
 
 begin
 {$ifdef cgidebug}SendMethodEnter('FPWebActions.handlerequest');{$endif cgidebug}

@@ -21,9 +21,23 @@ interface
 
 uses SysUtils, Classes, jstoken;
 
+Type
+  TECMAVersion = (ecma5,ecma2015,ecma2021);
+
+Const
+  // TJSToken is the maximum known set of keywords.
+  // Here we specify what keywords are not keywords for 'older' versions.
+  NonJSKeywords : Array [TECMAVersion] of TJSTokens
+    = (
+        [tjsAwait, tjsClass, tjsConst,tjsDebugger,tjsEnum, tjsExport, tjsExtends, tjsImport, tjsLet, tjsSUPER, tjsYield], //ecma5
+        [], // ecma2015
+        [] // ecma2022
+      );
+
 resourcestring
   SErrInvalidCharacter = 'Invalid character ''%s''';
-  SErrOpenString = 'string exceeds end of line';
+  SErrUnTerminatedString = 'string exceeds end of line';
+  SErrExpectedEllipsis = 'Expected ellipsis, got ..';
   SErrIncludeFileNotFound = 'Could not find include file ''%s''';
   SErrIfXXXNestingLimitReached = 'Nesting of $IFxxx too deep';
   SErrInvalidPPElse = '$ELSE without matching $IFxxx';
@@ -33,10 +47,16 @@ resourcestring
   SErrInvalidRegularExpression = 'Syntax error in regular expression: / expected, got: %s';
 
 Type
+
+  { TLineReader }
+
   TLineReader = class
+  private
+    FLastLF: string;
   public
     function IsEOF: Boolean; virtual; abstract;
     function ReadLine: string; virtual; abstract;
+    Property LastLF : string Read FLastLF Write FLastLF;
   end;
 
   { TStreamLineReader }
@@ -71,19 +91,23 @@ Type
 
   TJSScanner = class
   private
+    FDisableRShift: Boolean;
+    FECMAVersion: TECMAVersion;
+    FIsTypeScript: Boolean;
     FReturnComments: Boolean;
     FReturnWhiteSpace: Boolean;
     FSourceFile: TLineReader;
     FSourceFilename: string;
     FCurRow: Integer;
     FCurToken: TJSToken;
-    FCurTokenString: string;
+    FCurTokenString: UTF8String;
     FCurLine: string;
-    FDefines: TStrings;
+    FWasMultilineString: Boolean;
     TokenStr: PChar;
     FWasEndOfLine : Boolean;
     FSourceStream : TStream;
     FOwnSourceFile : Boolean;
+    FNonKeyWords : TJSTokens;
     function CommentDiv: TJSToken;
     function DoIdentifier : TJSToken;
     function DoMultiLineComment: TJSToken;
@@ -95,12 +119,14 @@ Type
     function GetCurColumn: Integer;
     function ReadUnicodeEscape: WideChar;
     Function ReadRegex : TJSToken;
+    procedure SetECMAVersion(AValue: TECMAVersion);
+    procedure SetIsTypeScript(AValue: Boolean);
   protected
     procedure Error(const Msg: string);overload;
     procedure Error(const Msg: string; Args: array of Const);overload;
   public
-    constructor Create(ALineReader: TLineReader);
-    constructor Create(AStream : TStream);
+    constructor Create(ALineReader: TLineReader; aECMAVersion : TECMAVersion = ecma5);
+    constructor Create(AStream : TStream; aECMAVersion : TECMAVersion = ecma5; const aFileName : string = '');
     destructor Destroy; override;
     procedure OpenFile(const AFilename: string);
     Function FetchRegexprToken: TJSToken;
@@ -115,7 +141,11 @@ Type
     property CurRow: Integer read FCurRow;
     property CurColumn: Integer read GetCurColumn;
     property CurToken: TJSToken read FCurToken;
-    property CurTokenString: string read FCurTokenString;
+    property CurTokenString: UTF8String read FCurTokenString;
+    property ECMAVersion : TECMAVersion Read FECMAVersion Write SetECMAVersion;
+    Property IsTypeScript : Boolean Read FIsTypeScript Write SetIsTypeScript;
+    Property DisableRShift : Boolean Read FDisableRShift Write FDisableRShift;
+    Property WasMultilineString : Boolean Read FWasMultilineString;
   end;
 
 
@@ -147,17 +177,20 @@ begin
   ReadLn(FTextFile, Result);
 end;
 
-constructor TJSScanner.Create(ALineReader: TLineReader);
+constructor TJSScanner.Create(ALineReader: TLineReader; aECMAVersion: TECMAVersion);
 begin
   inherited Create;
   FSourceFile := ALineReader;
+  ECMAVersion:=aECMAVersion;
+  FNonKeyWords:=NonJSKeywords[aECMAVersion];
 end;
 
-constructor TJSScanner.Create(AStream: TStream);
+constructor TJSScanner.Create(AStream: TStream; aECMAVersion: TECMAVersion; Const aFileName : string = '');
 begin
   FSourceStream:=ASTream;
   FOwnSourceFile:=True;
-  Create(TStreamLineReader.Create(AStream));
+  FSourceFilename:=aFilename;
+  Create(TStreamLineReader.Create(AStream),aECMAVersion);
 end;
 
 destructor TJSScanner.Destroy;
@@ -372,13 +405,38 @@ begin
   Result:=tjsRegEx;
 end;
 
+procedure TJSScanner.SetECMAVersion(AValue: TECMAVersion);
+begin
+  if FECMAVersion=AValue then Exit;
+  FECMAVersion:=AValue;
+  FNonKeyWords:=NonJSKeywords[aValue];
+end;
+
+procedure TJSScanner.SetIsTypeScript(AValue: Boolean);
+begin
+  if FIsTypeScript=AValue then Exit;
+  FIsTypeScript:=AValue;
+  if True then
+    ecmaversion:=ecma2021;
+end;
+
 function TJSScanner.DoStringLiteral: TJSToken;
 
 Var
   Delim : Char;
   TokenStart : PChar;
-  Len,OLen,I : Integer;
-  S : String;
+  Len,OLen: Integer;
+  S : UTF8String;
+
+  Procedure AddToString;
+
+  begin
+    Len := TokenStr - TokenStart;
+    SetLength(FCurTokenString, OLen + Len);
+    if Len > 0 then
+      Move(TokenStart^, FCurTokenString[OLen+1], Len);
+    OLen:=OLen+Len;
+  end;
 
 begin
   Delim:=TokenStr[0];
@@ -405,9 +463,9 @@ begin
         '\' : S:='\';
         '/' : S:='/';
         'u' : begin
-              S:=ReadUniCodeEscape;
+              S:=UTF8Encode(ReadUniCodeEscape);
               end;
-        #0  : Error(SErrOpenString);
+        #0  : Error(SErrUnterminatedString);
       else
         Error(SErrInvalidCharacter, [TokenStr[0]]);
       end;
@@ -420,16 +478,25 @@ begin
       // Inc(TokenStr);
       TokenStart := TokenStr+1;
       end;
-    if TokenStr[0] = #0 then
-      Error(SErrOpenString);
     Inc(TokenStr);
+    if TokenStr[0] = #0 then
+      begin
+      if Delim<>'`' then
+        Error(SErrUnterminatedString)
+      else
+        begin
+        AddToString;
+        FCurTokenString:=FCurTokenString+FSourceFile.LastLF;
+        oLen:=oLen+Length(FSourceFile.LastLF);
+        if Not FetchLine then
+          Error(SErrUnterminatedString);
+        TokenStart:=TokenStr;
+        end
+      end;
     end;
   if TokenStr[0] = #0 then
-    Error(SErrOpenString);
-  Len := TokenStr - TokenStart;
-  SetLength(FCurTokenString, OLen + Len);
-  if Len > 0 then
-    Move(TokenStart^, FCurTokenString[OLen+1], Len);
+    Error(SErrUnterminatedString);
+  AddToString;
   Inc(TokenStr);
   Result := tjsString;
 end;
@@ -452,6 +519,7 @@ begin
           Inc(TokenStr);
           while Upcase(TokenStr[0]) in ['0'..'9','A'..'F'] do
             Inc(TokenStr);
+          Break;  
           end
         else
           Error(SInvalidHexadecimalNumber);
@@ -483,7 +551,7 @@ begin
   Len:=TokenStr-TokenStart;
   Setlength(FCurTokenString, Len);
   if (Len>0) then
-  Move(TokenStart^,FCurTokenString[1],Len);
+    Move(TokenStart^,FCurTokenString[1],Len);
   Result := tjsNumber;
 end;
 
@@ -499,34 +567,25 @@ begin
   TokenStart := TokenStr;
   repeat
     Inc(TokenStr);
-    If (TokenStr[0]='\') and (TokenStr[1]='u') then
+    //If (TokenStr[0]='\') and (TokenStr[1]='u') then
   until not (TokenStr[0] in ['A'..'Z', 'a'..'z', '0'..'9', '_','$']);
   Len:=(TokenStr-TokenStart);
   SetLength(FCurTokenString,Len);
   if Len > 0 then
     Move(TokenStart^,FCurTokenString[1],Len);
- // Check if this is a keyword or identifier
- // !!!: Optimize this!
-  I:=FirstKeyword;
-  While (Result=tjsIdentifier) and (I<=Lastkeyword) do
-    begin
-    if (CurTokenString=TokenInfos[i]) then
-      begin
-      Result := i;
-      FCurToken := Result;
-      exit;
-      end;
-    I:=Succ(I);
-    end
+  // Check if this is a keyword or identifier
+  // !!!: Optimize this!
+  for i:=FirstKeyword to Lastkeyword do
+    if Not (I in FNonKeyWords) then
+      if (CurTokenString=TokenInfos[i]) then
+        begin
+        Result := i;
+        FCurToken := Result;
+        exit;
+        end;
 end;
 
 Function TJSScanner.FetchToken: TJSToken;
-
-
-var
-  TokenStart, CurPos: PChar;
-  i: TJSToken;
-  OldLength, SectionLength, NestingLevel, Index: Integer;
 
 begin
   if not (FCurtoken in [tjsWhiteSpace,tjsComment]) then
@@ -541,7 +600,7 @@ begin
         exit;
         end;
       end;
-    CurPos:=TokenStr;
+    //CurPos:=TokenStr;
     FCurTokenString := '';
     case TokenStr[0] of
       #0:         // Empty line
@@ -553,8 +612,11 @@ begin
          Result:=CommentDiv;
       #9, ' ':
          Result := DoWhiteSpace;
-      '''','"':
+      '''','"','`':
+         begin
+         FWasMultilineString:=(TokenStr[0]='`');
          Result:=DoStringLiteral;
+         end;
       '0'..'9':
          Result:=DoNumericLiteral;
      '&':
@@ -684,6 +746,17 @@ begin
         If (Result=tjsNumber) then
           FCurTokenString:='0.'+FCurTokenString;
          end
+      else if TokenStr[0] = '.' then
+        begin
+        Inc(TokenStr);
+        if TokenStr[0]='.' then
+          begin
+          Inc(TokenStr);
+          Result:=tjsEllipsis
+          end
+        else
+          Error(SerrExpectedEllipsis);
+        end
       else
         Result := tjsDot;
       end;
@@ -738,6 +811,11 @@ begin
         else
           Result:=tjsEQ;
         end
+      else if (TokenStr[0]='>') then
+        begin
+        Inc(TokenStr);
+        Result:=tjsArrow;
+        end
       else
         Result := tjsAssign;
       end;
@@ -771,7 +849,7 @@ begin
         Inc(TokenStr);
         Result:=tjsGE;
         end
-      else if TokenStr[0] = '>' then
+      else if (TokenStr[0] = '>') and Not DisableRShift then
   	begin
         Inc(TokenStr);
         if (TokenStr[0] = '>') then
@@ -815,6 +893,18 @@ begin
       begin
       Inc(TokenStr);
       Result := tJSCurlyBraceClose;
+      end;
+    #$C2:
+      begin
+      // Non-breaking space in UTF8
+      if TokenStr[1]=#$A0 then
+        begin
+        Inc(TokenStr);
+        Inc(TokenStr);
+        Result:=tjsWhiteSpace;
+        end
+      else
+        Result:=DoIdentifier;
       end;
    else
      Result:=DoIdentifier;
@@ -868,8 +958,8 @@ Var
   PRun : PByte;
 
 begin
+  Result:='';
   FPos:=FBufPos;
-  SetLength(Result,0);
   Repeat
     PRun:=@Buffer[FBufPos];
     While (FBufPos<FBufLen) and Not (PRun^ in [10,13]) do
@@ -899,6 +989,7 @@ begin
     end;
   If (PRun^ in [10,13]) and (FBufPos<FBufLen) then
     begin
+    LastLF:=PChar(PRun)^;
     Inc(FBufPos);
     // Check #13#10
     If (PRun^=13) then
@@ -906,7 +997,10 @@ begin
       If (FBufPos=FBufLen) then
         FillBuffer;
       If (FBufPos<FBufLen) and (Buffer[FBufpos]=10) then
+        begin
+        LastLF:=LastLF+#10;
         Inc(FBufPos);
+        end;
       end;
     end;
 end;

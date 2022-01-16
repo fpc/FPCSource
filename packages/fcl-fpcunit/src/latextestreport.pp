@@ -51,7 +51,7 @@ type
     procedure EndTest(ATest: TTest); override;
   end;
 
-function TestSuiteAsLatex(aSuite:TTestSuite): string;
+function TestSuiteAsLatex(aSuite:TTest): string;
 function GetSuiteAsLatex(aSuite: TTestSuite): string;
 
 implementation
@@ -250,24 +250,26 @@ begin
   
 end;
 
-function TestSuiteAsLatex(aSuite:TTestSuite): string;
+function TestSuiteAsLatex(aSuite:TTest): string;
 var
   i,j: integer;
   s: TTestSuite;
 begin
-  Result := '\flushleft' + System.sLineBreak;
-  for i := 0 to aSuite.Tests.Count - 1 do
-  begin
-    s := TTestSuite(ASuite.Tests.Items[i]);
-    Result := Result + TLatexResultsWriter.EscapeText(s.TestSuiteName) + System.sLineBreak;
+  Result:='';
+  if (aSuite.TestName<>'') then
+    begin
+    Result:=Result + '\item[-] ';
+    Result:=Result+TLatexResultsWriter.EscapeText(ASuite.TestName)+slineBreak
+    end;
+  if aSuite.GetChildTestCount>0 then
+    begin
     Result := Result + '\begin{itemize}'+ System.sLineBreak;
-    for j := 0 to s.Tests.Count - 1 do
-      if TTest(s.Tests.Items[j]) is TTestCase then
-        Result := Result + '\item[-] ' + 
-          TLatexResultsWriter.EscapeText(TTestcase(s.Tests.Items[j]).TestName)
-          + System.sLineBreak;
-    Result := Result +'\end{itemize}' + System.sLineBreak;
-  end;
+    for i:=0 to Pred(aSuite.GetChildTestCount) do
+      Result:=Result+TestSuiteAsLatex(aSuite.GetChildTest(i));
+    if (aSuite.TestName<>'') then
+      Result := Result +'\end{itemize}' + System.sLineBreak;
+    end
+
 end;
 
 
@@ -281,7 +283,9 @@ begin
       Result := Result + '\begin{document}' + System.sLineBreak + System.sLineBreak;
       if aSuite.TestName = '' then
         aSuite.TestName := 'Test Suite';
+      Result := Result + '\begin{itemize}'+ System.sLineBreak;
       Result := Result + TestSuiteAsLatex(aSuite);
+      Result := Result +'\end{itemize}' + System.sLineBreak;
       Result := Result + '\end{document}';
     end
   else

@@ -55,7 +55,7 @@ implementation
       cutils,verbose,globals,
       symconst,symdef,paramgr,
       aasmbase,aasmtai,aasmdata,aasmcpu,defutil,htypechk,
-      cgbase,cpuinfo,pass_1,pass_2,regvars,
+      cgbase,cpuinfo,pass_1,pass_2,
       cpupara,cgcpu,cgutils,procinfo,
       ncon,nset,
       ncgutil,tgobj,rgobj,rgcpu,cgobj,hlcgobj;
@@ -146,6 +146,11 @@ implementation
                   lten : result.flag:=F_GE;
                   gtn : result.flag:=F_LT;
                   gten : result.flag:=F_LE;
+                  equaln,
+                  unequaln:
+                    ;
+                  else
+                    internalerror(2019050942);
                 end
               else
                 case nodetype of
@@ -153,6 +158,11 @@ implementation
                   lten : result.flag:=F_LE;
                   gtn : result.flag:=F_GT;
                   gten : result.flag:=F_GE;
+                  equaln,
+                  unequaln:
+                    ;
+                  else
+                    internalerror(2019050943);
                 end;
             end
           end
@@ -193,18 +203,14 @@ implementation
       var
         cgop      : TOpCg;
         cgsize  : TCgSize;
-        cmpop,
-        isjump  : boolean;
-        otl,ofl : tasmlabel;
+        cmpop   : boolean;
       begin
         { calculate the operator which is more difficult }
         firstcomplex(self);
-        otl:=nil;
-        ofl:=nil;
 
         cmpop:=false;
-        if (torddef(left.resultdef).ordtype in [pasbool8,bool8bit]) or
-           (torddef(right.resultdef).ordtype in [pasbool8,bool8bit]) then
+        if (torddef(left.resultdef).ordtype in [pasbool1,pasbool8,bool8bit]) or
+           (torddef(right.resultdef).ordtype in [pasbool1,pasbool8,bool8bit]) then
           cgsize:=OS_8
         else if (torddef(left.resultdef).ordtype in [pasbool16,bool16bit]) or
            (torddef(right.resultdef).ordtype in [pasbool16,bool16bit]) then
@@ -223,43 +229,19 @@ implementation
             if left.nodetype in [ordconstn,realconstn] then
              swapleftright;
 
-            isjump:=(left.expectloc=LOC_JUMP);
-            if isjump then
-              begin
-                 otl:=current_procinfo.CurrTrueLabel;
-                 current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-                 ofl:=current_procinfo.CurrFalseLabel;
-                 current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
-              end;
             secondpass(left);
+            if (left.expectloc=LOC_JUMP)<>
+               (left.location.loc=LOC_JUMP) then
+              internalerror(2003122901);
             if left.location.loc in [LOC_FLAGS,LOC_JUMP] then
               hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(cgsize),false);
-            if isjump then
-             begin
-               current_procinfo.CurrTrueLabel:=otl;
-               current_procinfo.CurrFalseLabel:=ofl;
-             end
-            else if left.location.loc=LOC_JUMP then
-              internalerror(2003122901);
 
-            isjump:=(right.expectloc=LOC_JUMP);
-            if isjump then
-              begin
-                 otl:=current_procinfo.CurrTrueLabel;
-                 current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-                 ofl:=current_procinfo.CurrFalseLabel;
-                 current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
-              end;
             secondpass(right);
+            if (right.expectloc=LOC_JUMP)<>
+               (right.location.loc=LOC_JUMP) then
+              internalerror(200312292);
             if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
               hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(cgsize),false);
-            if isjump then
-             begin
-               current_procinfo.CurrTrueLabel:=otl;
-               current_procinfo.CurrFalseLabel:=ofl;
-             end
-            else if right.location.loc=LOC_JUMP then
-              internalerror(200312292);
 
             cmpop := nodetype in [ltn,lten,gtn,gten,equaln,unequaln];
 
@@ -297,7 +279,7 @@ implementation
                     andn :
                       cgop:=OP_AND;
                     else
-                      internalerror(200203247);
+                      internalerror(2002032413);
                   end;
 
                   if right.location.loc <> LOC_CONSTANT then
@@ -354,7 +336,13 @@ implementation
           ltn,lten,gtn,gten,
           equaln,unequaln :
             begin
-              op:=A_FCMPO;
+              { clang does not recognize fcmpo instruction,
+                so we need to fall back to fcmpu, which does not
+                generate the same exeception information }
+              if target_asm.id in [as_clang_gas,as_clang_asdarwin] then
+                op:=A_FCMPU
+              else
+                op:=A_FCMPO;
               cmpop:=true;
             end;
           else
@@ -476,9 +464,10 @@ implementation
                       left.location.register,location.register)
                   else
                     begin
+                      hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,u32inttype,true);
                       tmpreg := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                       cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,aint((aword(1) shl (resultdef.size*8-1))),tmpreg);
-                      register_maybe_adjust_setbase(current_asmdata.CurrAsmList,right.location,setbase);
+                      register_maybe_adjust_setbase(current_asmdata.CurrAsmList,u32inttype,right.location,setbase);
                       cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,
                         right.location.register,tmpreg);
                       if left.location.loc <> LOC_CONSTANT then
@@ -561,7 +550,7 @@ implementation
               opdone := true;
             end;
           else
-            internalerror(2002072701);
+            internalerror(2002072702);
         end;
 
         if not opdone then

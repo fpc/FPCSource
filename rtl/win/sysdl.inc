@@ -59,7 +59,7 @@ begin
                  MakeLangId(LANG_NEUTRAL, SUBLANG_DEFAULT),
                  @temp[1], 255,nil);
   SetLength(temp,c);
-  Result:=AnsiString(temp);
+  Result:=String(temp);
 end;
 
 const

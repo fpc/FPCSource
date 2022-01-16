@@ -14,11 +14,6 @@
 
  **********************************************************************}
 
-{$I useamigasmartlink.inc}
-{$ifdef use_amiga_smartlink}
-    {$smartlink on}
-{$endif use_amiga_smartlink}
-
 unit doublebuffer;
 
 
@@ -141,7 +136,7 @@ begin
         OpenDoubleBuffer := Nil;
     end;
 
-    bm := AllocMem(SizeOf(tBitMap), MEMF_PUBLIC);
+    bm := ExecAllocMem(SizeOf(tBitMap), MEMF_PUBLIC);
     if bm = Nil then begin
         CloseWindow(w);
         CloseScreen(s);
@@ -181,7 +176,7 @@ var
     bm1,
     bm2 : pBitMap;
     rp : pRastPort;
-    Temp : Array [0..7] of PLANEPTR;
+    Temp : Array [0..7] of TPLANEPTR;
 begin
     s := w^.WScreen;
     rp := w^.RPort;

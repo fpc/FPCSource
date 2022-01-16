@@ -27,8 +27,8 @@ interface
 
     uses
        globtype,
-       cpuinfo,cpubase,cgbase,cgutils,
-       aasmbase,aasmtai,aasmdata,aasmcpu,
+       cgbase,cgutils,
+       aasmtai,aasmdata,aasmcpu,
        node,
        symtype;
 
@@ -37,6 +37,9 @@ interface
           constructor create;virtual;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeTree(var T: Text); override;
+{$endif DEBUG_NODE_XML}
        end;
        tnothingnodeclass = class of tnothingnode;
 
@@ -47,6 +50,25 @@ interface
           procedure mark_write;override;
        end;
        terrornodeclass = class of terrornode;
+
+       tspecializenode = class(tunarynode)
+          sym:tsym;
+          getaddr:boolean;
+          inheriteddef:tdef;
+          constructor create(l:tnode;g:boolean;s:tsym);virtual;
+          constructor create_inherited(l:tnode;g:boolean;s:tsym;i:tdef);virtual;
+          function pass_1:tnode;override;
+          function pass_typecheck:tnode;override;
+       end;
+       tspecializenodeclass = class of tspecializenode;
+
+       tfinalizetempsnode = class(tnode)
+          constructor create;virtual;
+          function pass_1 : tnode;override;
+          function pass_typecheck:tnode;override;
+          function docompare(p: tnode): boolean; override;
+       end;
+       tfinalizetempsnodeclass = class of tfinalizetempsnode;
 
        tasmnode = class(tnode)
           p_asm : TAsmList;
@@ -64,6 +86,9 @@ interface
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function docompare(p: tnode): boolean; override;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
        end;
        tasmnodeclass = class of tasmnode;
 
@@ -144,20 +169,38 @@ interface
          }
          ti_nofini,
          { the value described by this temp. node is const/immutable, this is important for
-           managed types like ansistrings where temp. refs are pointers to the actual value }
-         ti_const
+           managed types like ansistrings where temp. refs are pointers to the actual value
+           -- in this case, assignments to the temp do not increase the
+             reference count, and if the assigned value was a temp itself then
+             that temp is not deallocated until this temp is deleted (since
+             otherwise the assigned value may be freed before the last use of
+             the temp) }
+         ti_const,
+         { the temp. needs no final sync instruction if it is located in a register,
+           so there are no loops involved in the usage of the temp.
+         }
+         ti_no_final_regsync,
+         { this applied only to delete nodes: the single purpose of the temp. delete node is to clean up memory. In case
+           of cse it might happen that the tempcreate node is optimized away so tempinfo is never initialized properly but
+           the allocated memory must be disposed
+           If a temp. node has this flag set, the life time of the temp. data must be determined by reg. life, the temp.
+           location (in the sense of stack space/register) is never release }
+         ti_cleanup_only
          );
        ttempinfoflags = set of ttempinfoflag;
 
      const
-       tempinfostoreflags = [ti_may_be_in_reg,ti_addr_taken,ti_reference,ti_readonly];
+       tempinfostoreflags = [ti_may_be_in_reg,ti_addr_taken,ti_reference,ti_readonly,ti_no_final_regsync,ti_nofini,ti_const];
 
      type
        { to allow access to the location by temp references even after the temp has }
        { already been disposed and to make sure the coherency between temps and     }
        { temp references is kept after a getcopy                                    }
        ptempinfo = ^ttempinfo;
-       ttempinfo = record
+       ttempinfo = object
+        private
+         flags                      : ttempinfoflags;
+        public
          { set to the copy of a tempcreate pnode (if it gets copied) so that the }
          { refs and deletenode can hook to this copy once they get copied too    }
          hookoncopy                 : ptempinfo;
@@ -167,15 +210,36 @@ interface
          owner                      : ttempcreatenode;
          withnode                   : tnode;
          location                   : tlocation;
-         flags                      : ttempinfoflags;
          tempinitcode               : tnode;
+       end;
+
+       ttempinfoaccessor = class
+         class procedure settempinfoflags(tempinfo: ptempinfo; const flags: ttempinfoflags); virtual;
+         class function gettempinfoflags(tempinfo: ptempinfo): ttempinfoflags; static; inline;
+       end;
+       ttempinfoaccessorclass = class of ttempinfoaccessor;
+
+       ttempbasenode = class(tnode)
+        protected
+          class var tempinfoaccessor: ttempinfoaccessorclass;
+        protected
+          procedure settempinfoflags(const tempflags: ttempinfoflags); inline;
+          function gettempinfoflags: ttempinfoflags; inline;
+        public
+          tempinfo: ptempinfo;
+          procedure includetempflag(flag: ttempinfoflag); inline;
+          procedure excludetempflag(flag: ttempinfoflag); inline;
+          property tempflags: ttempinfoflags read gettempinfoflags write settempinfoflags;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeInfo(var T: Text); override;
+          procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
        end;
 
        { a node which will create a (non)persistent temp of a given type with a given  }
        { size (the size is separate to allow creating "void" temps with a custom size) }
-       ttempcreatenode = class(tnode)
+       ttempcreatenode = class(ttempbasenode)
           size: tcgint;
-          tempinfo: ptempinfo;
           ftemplvalue : tnode;
           { * persistent temps are used in manually written code where the temp }
           { be usable among different statements and where you can manually say }
@@ -197,15 +261,15 @@ interface
           function pass_typecheck: tnode; override;
           function docompare(p: tnode): boolean; override;
           procedure printnodedata(var t:text);override;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
         end;
        ttempcreatenodeclass = class of ttempcreatenode;
 
         { a node which is a reference to a certain temp }
-        ttemprefnode = class(tnode)
-          tempinfo: ptempinfo;
-
+        ttemprefnode = class(ttempbasenode)
           constructor create(const temp: ttempcreatenode); virtual;
-          constructor create_offset(const temp: ttempcreatenode;aoffset:longint);
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure resolveppuidx;override;
@@ -215,16 +279,13 @@ interface
           procedure mark_write;override;
           function docompare(p: tnode): boolean; override;
           procedure printnodedata(var t:text);override;
-         protected
-          offset : longint;
          private
           tempidx : longint;
         end;
        ttemprefnodeclass = class of ttemprefnode;
 
         { a node which removes a temp }
-        ttempdeletenode = class(tnode)
-          tempinfo: ptempinfo;
+        ttempdeletenode = class(ttempbasenode)
           constructor create(const temp: ttempcreatenode); virtual;
           { this will convert the persistant temp to a normal temp
             for returning to the other nodes }
@@ -238,6 +299,9 @@ interface
           function docompare(p: tnode): boolean; override;
           destructor destroy; override;
           procedure printnodedata(var t:text);override;
+{$ifdef DEBUG_NODE_XML}
+          procedure XMLPrintNodeData(var T: Text); override;
+{$endif DEBUG_NODE_XML}
          protected
           release_to_normal : boolean;
         private
@@ -248,9 +312,12 @@ interface
     var
        cnothingnode : tnothingnodeclass = tnothingnode;
        cerrornode : terrornodeclass = terrornode;
+       cspecializenode : tspecializenodeclass = tspecializenode;
+       cfinalizetempsnode: tfinalizetempsnodeclass = tfinalizetempsnode;
        casmnode : tasmnodeclass = tasmnode;
        cstatementnode : tstatementnodeclass = tstatementnode;
        cblocknode : tblocknodeclass = tblocknode;
+       ctempinfoaccessor : ttempinfoaccessorclass = ttempinfoaccessor;
        ctempcreatenode : ttempcreatenodeclass = ttempcreatenode;
        ctemprefnode : ttemprefnodeclass = ttemprefnode;
        ctempdeletenode : ttempdeletenodeclass = ttempdeletenode;
@@ -264,16 +331,26 @@ interface
        { if the complexity of n is "high", creates a reference temp to n's
          location and replace n with a ttemprefnode referring to that location }
        function maybereplacewithtempref(var n: tnode; var block: tblocknode; var stat: tstatementnode; size: ASizeInt; readonly: boolean): ttempcreatenode;
+       { same as above, but create a regular temp rather than reference temp }
+       function maybereplacewithtemp(var n: tnode; var block: tblocknode; var stat: tstatementnode; size: ASizeInt; allowreg: boolean): ttempcreatenode;
 
 implementation
 
     uses
-      cutils,
       verbose,globals,systems,
+      ppu,
       symconst,symdef,defutil,defcmp,
       pass_1,
-      nutils,nld,ncal,nflw,
+      nutils,nld,ncnv,
       procinfo
+{$ifdef DEBUG_NODE_XML}
+{$ifndef jvm}
+      ,
+      cpubase,
+      cutils,
+      itcpugas
+{$endif jvm}
+{$endif DEBUG_NODE_XML}
       ;
 
 
@@ -309,7 +386,8 @@ implementation
     function maybereplacewithtempref(var n: tnode; var block: tblocknode; var stat: tstatementnode; size: ASizeInt; readonly: boolean): ttempcreatenode;
       begin
         result:=nil;
-        if node_complexity(n) > 4 then
+        if (node_complexity(n)>4) or
+           might_have_sideeffects(n) then
           begin
             result:=ctempcreatenode.create_reference(n.resultdef,size,tt_persistent,true,n,readonly);
             typecheckpass(tnode(result));
@@ -321,7 +399,21 @@ implementation
           end;
       end;
 
-
+    function maybereplacewithtemp(var n: tnode; var block: tblocknode; var stat: tstatementnode; size: ASizeInt; allowreg: boolean): ttempcreatenode;
+      begin
+        result:=nil;
+        if (node_complexity(n)>4) or
+           might_have_sideeffects(n) then
+          begin
+            result:=ctempcreatenode.create_value(n.resultdef,size,tt_persistent,allowreg,n);
+            typecheckpass(tnode(result));
+            n:=ctemprefnode.create(result);
+            typecheckpass(n);
+            if not assigned(stat) then
+              block:=internalstatements(stat);
+            addstatement(stat,result)
+          end;
+      end;
 
 {*****************************************************************************
                              TFIRSTNOTHING
@@ -346,6 +438,15 @@ implementation
         expectloc:=LOC_VOID;
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure TNothingNode.XMLPrintNodeTree(var T: Text);
+      begin
+        Write(T, PrintNodeIndention, '<', nodetype2str[nodetype]);
+        XMLPrintNodeInfo(T);
+        { "Nothing nodes" contain no data, so just use "/>" to terminate it early }
+        WriteLn(T, ' />');
+      end;
+{$endif DEBUG_NODE_XML}
 
 {*****************************************************************************
                              TFIRSTERROR
@@ -378,6 +479,70 @@ implementation
     procedure terrornode.mark_write;
       begin
       end;
+
+
+{*****************************************************************************
+                             TSPECIALIZENODE
+*****************************************************************************}
+
+    constructor tspecializenode.create(l:tnode;g:boolean;s:tsym);
+      begin
+         inherited create(specializen,l);
+         sym:=s;
+         getaddr:=g;
+      end;
+
+    constructor tspecializenode.create_inherited(l:tnode;g:boolean;s:tsym;i:tdef);
+      begin
+        create(l,g,s);
+        inheriteddef:=i;
+      end;
+
+
+    function tspecializenode.pass_typecheck:tnode;
+      begin
+         result:=nil;
+         resultdef:=cundefinedtype;
+      end;
+
+
+    function tspecializenode.pass_1:tnode;
+      begin
+         { such a node should not reach pass_1 }
+         internalerror(2015071704);
+         result:=nil;
+         expectloc:=LOC_VOID;
+         codegenerror:=true;
+      end;
+
+
+{*****************************************************************************
+                             TFINALIZETEMPSNODE
+*****************************************************************************}
+
+    constructor tfinalizetempsnode.create;
+      begin
+        inherited create(finalizetempsn);
+      end;
+
+    function tfinalizetempsnode.pass_1: tnode;
+      begin
+        result:=nil;
+        expectloc:=LOC_VOID;
+      end;
+
+    function tfinalizetempsnode.pass_typecheck: tnode;
+      begin
+        resultdef:=voidtype;
+        result:=nil;
+      end;
+
+    function tfinalizetempsnode.docompare(p: tnode): boolean;
+      begin
+        { these nodes should never be coalesced }
+        result:=false;
+      end;
+
 
 {*****************************************************************************
                             TSTATEMENTNODE
@@ -531,13 +696,26 @@ implementation
       end;
 
 
+    function NodesEqual(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        if n.IsEqual(tnode(arg)) then
+          result:=fen_norecurse_true
+        else
+          result:=fen_false;
+      end;
+
+
     function tblocknode.simplify(forinline : boolean): tnode;
+{$ifdef break_inlining}
+      var
+        a : array[0..3] of tstatementnode;
+{$endif break_inlining}
       begin
         result := nil;
-        { Warning: never replace a blocknode with another node type,      }
-        {  since the block may be the main block of a procedure/function/ }
-        {  main program body, and those nodes should always be blocknodes }
-        {  since that's what the compiler expects elsewhere.              }
+        { Warning: never replace a blocknode with another node type,
+          since the block may be the main block of a procedure/function/
+          main program body, and those nodes should always be blocknodes
+          since that's what the compiler expects elsewhere. }
 
         if assigned(left) and
            not assigned(tstatementnode(left).right) then
@@ -562,8 +740,34 @@ implementation
                   left:=nil;
                   exit;
                 end;
+              else
+                ;
             end;
           end;
+{$ifdef break_inlining}
+        { simple sequence of tempcreate, assign and return temp.? }
+        if GetStatements(left,a) and
+          (a[0].left.nodetype=tempcreaten) and
+          (a[1].left.nodetype=assignn) and
+          (actualtargetnode(@tassignmentnode(a[1].left).left)^.nodetype=temprefn) and
+          (a[2].left.nodetype=tempdeleten) and
+          (a[3].left.nodetype=temprefn) and
+          (ttempcreatenode(a[0].left).tempinfo=ttemprefnode(actualtargetnode(@tassignmentnode(a[1].left).left)^).tempinfo) and
+          (ttempcreatenode(a[0].left).tempinfo=ttempdeletenode(a[2].left).tempinfo) and
+          (ttempcreatenode(a[0].left).tempinfo=ttemprefnode(a[3].left).tempinfo) and
+          { the temp. node might not be references inside the assigned expression }
+          not(foreachnodestatic(tassignmentnode(a[1].left).right,@NodesEqual,actualtargetnode(@tassignmentnode(a[1].left).left)^)) then
+          begin
+            result:=tassignmentnode(a[1].left).right;
+            tassignmentnode(a[1].left).right:=nil;
+            { ensure the node is first passed, so the resultdef does not get changed if the
+              the type conv. below is merged }
+            firstpass(result);
+            result:=ctypeconvnode.create_internal(result,ttemprefnode(a[3].left).resultdef);
+            firstpass(result);
+            exit;
+          end;
+{$endif break_inlining}
       end;
 
 
@@ -674,6 +878,8 @@ implementation
               if hp=nil then
                 break;
               p_asm.concat(hp);
+              if hp.typ=ait_section then
+                inc(p_asm.section_count);
             until false;
           end
         else
@@ -775,6 +981,247 @@ implementation
         docompare := false;
       end;
 
+{$ifdef DEBUG_NODE_XML}
+    procedure TAsmNode.XMLPrintNodeData(var T: Text);
+
+      procedure PadString(var S: string; Len: Integer);
+        var
+          X, C: Integer;
+        begin
+          C := Length(S);
+          if C < Len then
+            begin
+              SetLength(S, 7);
+              for X := C + 1 to Len do
+                S[X] := ' '
+            end;
+        end;
+
+{$ifndef jvm}
+      function FormatOp(const Oper: POper): string;
+        begin
+          case Oper^.typ of
+            top_const:
+              begin
+                case Oper^.val of
+                  -15..15:
+                    Result := '$' + tostr(Oper^.val);
+                  $10..$FF:
+                    Result := '$0x' + hexstr(Oper^.val, 2);
+                  $100..$FFFF:
+                    Result := '$0x' + hexstr(Oper^.val, 4);
+                  $10000..$FFFFFFFF:
+                    Result := '$0x' + hexstr(Oper^.val, 8);
+                  else
+                    Result := '$0x' + hexstr(Oper^.val, 16);
+                end;
+              end;
+            top_reg:
+              Result := gas_regname(Oper^.reg);
+            top_ref:
+              with Oper^.ref^ do
+                begin
+{$if defined(x86)}
+                  if segment <> NR_NO then
+                    Result := gas_regname(segment) + ':'
+                  else
+{$endif defined(x86)}
+                    Result := '';
+
+                  if Assigned(symbol) then
+                    begin
+                      Result := Result + symbol.Name;
+                      if offset > 0 then
+                        Result := Result + '+';
+                    end;
+
+                  if offset <> 0 then
+                    Result := Result + tostr(offset)
+                  else
+                    Result := Result;
+
+                  if (base <> NR_NO) or (index <> NR_NO) then
+                    begin
+                      Result := Result + '(';
+
+                      if base <> NR_NO then
+                        begin
+                          Result := Result + gas_regname(base);
+                          if index <> NR_NO then
+                            Result := Result + ',';
+                        end;
+
+                      if index <> NR_NO then
+                        Result := Result + gas_regname(index);
+
+                      if scalefactor <> 0 then
+                        Result := Result + ',' + tostr(scalefactor) + ')'
+                      else
+                        Result := Result + ')';
+                    end;
+                end;
+            top_bool:
+              begin
+                if Oper^.b then
+                  Result := 'TRUE'
+                else
+                  Result := 'FALSE';
+              end
+            else
+              Result := '';
+          end;
+        end;
+
+{$if defined(x86)}
+      procedure ProcessInstruction(p: tai); inline;
+        var
+          ThisOp, ThisOper: string;
+          X: Integer;
+        begin
+          case p.typ of
+            ait_label:
+              WriteLn(T, PrintNodeIndention, tai_label(p).labsym.name);
+
+            ait_instruction:
+              begin
+                ThisOp := gas_op2str[taicpu(p).opcode]+cond2str[taicpu(p).condition];
+                if gas_needsuffix[taicpu(p).opcode] <> AttSufNONE then
+                  ThisOp := ThisOp + gas_opsize2str[taicpu(p).opsize];
+
+                { Pad the opcode with spaces so the succeeding operands are aligned }
+                PadString(ThisOp, 7);
+
+                Write(T, PrintNodeIndention, '  ', ThisOp); { Extra indentation to account for label formatting }
+                for X := 0 to taicpu(p).ops - 1 do
+                  begin
+                    Write(T, ' ');
+
+                    ThisOper := FormatOp(taicpu(p).oper[X]);
+                    if X < taicpu(p).ops - 1 then
+                      begin
+                        ThisOper := ThisOper + ',';
+                        PadString(ThisOper, 7);
+                      end;
+
+                    Write(T, ThisOper);
+                  end;
+                WriteLn(T);
+              end;
+            else
+              { Do nothing };
+          end;
+        end;
+
+      var
+        hp: tai;
+      begin
+        if not Assigned(p_asm) then
+          Exit;
+
+        hp := tai(p_asm.First);
+        while Assigned(hp) do
+          begin
+            ProcessInstruction(hp);
+            hp := tai(hp.Next);
+          end;
+{$else defined(x86)}
+      begin
+        WriteLn(T, PrintNodeIndention, '(Assembler output not currently supported on this platform)');
+{$endif defined(x86)}
+{$else jvm}
+      begin
+        WriteLn(T, PrintNodeIndention, '(Should assembly language even be possible under JVM?)');
+{$endif jvm}
+      end;
+{$endif DEBUG_NODE_XML}
+
+{*****************************************************************************
+                          TEMPBASENODE
+*****************************************************************************}
+
+    class procedure ttempinfoaccessor.settempinfoflags(tempinfo: ptempinfo; const flags: ttempinfoflags);
+      begin
+        tempinfo^.flags:=flags;
+      end;
+
+
+    class function ttempinfoaccessor.gettempinfoflags(tempinfo: ptempinfo): ttempinfoflags;
+      begin
+        result:=tempinfo^.flags;
+      end;
+
+
+{*****************************************************************************
+                          TEMPBASENODE
+*****************************************************************************}
+
+    procedure ttempbasenode.settempinfoflags(const tempflags: ttempinfoflags);
+      begin
+        ctempinfoaccessor.settempinfoflags(tempinfo,tempflags);
+      end;
+
+
+    function ttempbasenode.gettempinfoflags: ttempinfoflags;
+      begin
+        result:=ctempinfoaccessor.gettempinfoflags(tempinfo);
+      end;
+
+
+    procedure ttempbasenode.includetempflag(flag: ttempinfoflag);
+      begin
+        { go through settempinfoflags() so it can filter out unsupported tempflags }
+        settempinfoflags(gettempinfoflags+[flag])
+      end;
+
+
+    procedure ttempbasenode.excludetempflag(flag: ttempinfoflag);
+      begin
+        { go through settempinfoflags() so it can prevent required tempflags from
+          being removed (if any) }
+        settempinfoflags(gettempinfoflags-[flag])
+      end;
+
+{$ifdef DEBUG_NODE_XML}
+    procedure TTempBaseNode.XMLPrintNodeInfo(var T: Text);
+      begin
+        inherited XMLPrintNodeInfo(T);
+
+        { The raw pointer is the only way to uniquely identify the temp }
+        Write(T, ' id="', WritePointer(tempinfo), '"');
+      end;
+
+
+    procedure TTempBaseNode.XMLPrintNodeData(var T: Text);
+      var
+        Flag: TTempInfoFlag;
+        NotFirst: Boolean;
+      begin
+        inherited XMLPrintNodeData(t);
+
+        if not assigned(tempinfo) then
+          exit;
+
+        WriteLn(T, PrintNodeIndention, '<typedef>', SanitiseXMLString(tempinfo^.typedef.typesymbolprettyname), '</typedef>');
+
+        NotFirst := False;
+        for Flag := Low(TTempInfoFlag) to High(TTempInfoFlag) do
+          if (Flag in tempinfo^.flags) then
+            if not NotFirst then
+              begin
+                Write(T, PrintNodeIndention, '<tempflags>', Flag);
+                NotFirst := True;
+              end
+            else
+              Write(T, ',', Flag);
+
+        if NotFirst then
+          WriteLn(T, '</tempflags>')
+        else
+          WriteLn(T, PrintNodeIndention, '<tempflags />');
+
+        WriteLn(T, PrintNodeIndention, '<temptype>', tempinfo^.temptype, '</temptype>');
+      end;
+{$endif DEBUG_NODE_XML}
 
 {*****************************************************************************
                           TEMPCREATENODE
@@ -799,7 +1246,7 @@ implementation
            (def_cgsize(_typedef)<>OS_NO) and
            { no init/final needed }
            not is_managed_type(_typedef) then
-          include(tempinfo^.flags,ti_may_be_in_reg);
+          includetempflag(ti_may_be_in_reg);
       end;
 
 
@@ -827,9 +1274,9 @@ implementation
         ftemplvalue:=templvalue;
         // no assignment node, just the tempvalue
         tempinfo^.tempinitcode:=ftemplvalue;
-        include(tempinfo^.flags,ti_reference);
+        includetempflag(ti_reference);
         if readonly then
-          include(tempinfo^.flags,ti_readonly);
+          includetempflag(ti_readonly);
       end;
 
 
@@ -845,7 +1292,7 @@ implementation
         n.tempinfo^.owner:=n;
         n.tempinfo^.typedef := tempinfo^.typedef;
         n.tempinfo^.temptype := tempinfo^.temptype;
-        n.tempinfo^.flags := tempinfo^.flags * tempinfostoreflags;
+        n.tempflags := tempflags * tempinfostoreflags;
 
         { when the tempinfo has already a hookoncopy then it is not
           reset by a tempdeletenode }
@@ -855,7 +1302,7 @@ implementation
         { so that if the refs get copied as well, they can hook themselves }
         { to the copy of the temp                                          }
         tempinfo^.hookoncopy := n.tempinfo;
-        exclude(tempinfo^.flags,ti_nextref_set_hookoncopy_nil);
+        excludetempflag(ti_nextref_set_hookoncopy_nil);
 
         if assigned(tempinfo^.withnode) then
           n.tempinfo^.withnode := tempinfo^.withnode.getcopy
@@ -878,7 +1325,7 @@ implementation
         size:=ppufile.getlongint;
         new(tempinfo);
         fillchar(tempinfo^,sizeof(tempinfo^),0);
-        ppufile.getsmallset(tempinfo^.flags);
+        ppufile.getset(tppuset2(tempinfo^.flags));
         ppufile.getderef(tempinfo^.typedefderef);
         tempinfo^.temptype := ttemptype(ppufile.getbyte);
         tempinfo^.owner:=self;
@@ -891,7 +1338,7 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putlongint(size);
-        ppufile.putsmallset(tempinfo^.flags);
+        ppufile.putset(tppuset2(tempinfo^.flags));
         ppufile.putderef(tempinfo^.typedefderef);
         ppufile.putbyte(byte(tempinfo^.temptype));
         ppuwritenode(ppufile,tempinfo^.withnode);
@@ -929,17 +1376,19 @@ implementation
         result := nil;
         expectloc:=LOC_VOID;
         { temps which are immutable do not need to be initialized/finalized }
-        if (tempinfo^.typedef.needs_inittable) and not(ti_const in tempinfo^.flags) then
+        if (tempinfo^.typedef.needs_inittable) and not(ti_const in tempflags) then
           include(current_procinfo.flags,pi_needs_implicit_finally);
-        if (cs_create_pic in current_settings.moduleswitches) and
-           (tf_pic_uses_got in target_info.flags) and
-           is_rtti_managed_type(tempinfo^.typedef) then
-          include(current_procinfo.flags,pi_needs_got);
         if assigned(tempinfo^.withnode) then
           firstpass(tempinfo^.withnode);
         if assigned(tempinfo^.tempinitcode) then
           firstpass(tempinfo^.tempinitcode);
-        inc(current_procinfo.estimatedtempsize,size);;
+        inc(current_procinfo.estimatedtempsize,size);
+        { if a temp. create node is loaded from a ppu, it could be that the unit was compiled with other settings which
+          enabled a certain type to be stored in a register while the current settings do not support this, so correct this here
+          if needed
+        }
+        if not(tstoreddef(tempinfo^.typedef).is_fpuregable) and not(tstoreddef(tempinfo^.typedef).is_intregable) and (ti_may_be_in_reg in tempflags) then
+          excludetempflag(ti_may_be_in_reg);
       end;
 
 
@@ -960,7 +1409,7 @@ implementation
         result :=
           inherited docompare(p) and
           (ttempcreatenode(p).size = size) and
-          (ttempcreatenode(p).tempinfo^.flags*tempinfostoreflags=tempinfo^.flags*tempinfostoreflags) and
+          (ttempcreatenode(p).tempflags*tempinfostoreflags=tempflags*tempinfostoreflags) and
           equal_defs(ttempcreatenode(p).tempinfo^.typedef,tempinfo^.typedef) and
           (ttempcreatenode(p).tempinfo^.withnode.isequal(tempinfo^.withnode)) and
           (ttempcreatenode(p).tempinfo^.tempinitcode.isequal(tempinfo^.tempinitcode));
@@ -968,13 +1417,44 @@ implementation
 
 
     procedure ttempcreatenode.printnodedata(var t:text);
+      var
+        f: ttempinfoflag;
+        first: Boolean;
       begin
         inherited printnodedata(t);
         writeln(t,printnodeindention,'size = ',size,', temptypedef = ',tempinfo^.typedef.typesymbolprettyname,' = "',
           tempinfo^.typedef.GetTypeName,'", tempinfo = $',hexstr(ptrint(tempinfo),sizeof(ptrint)*2));
+        write(t,printnodeindention,'[');
+        first:=true;
+        for f in tempflags do
+          begin
+            if not(first) then
+              write(t,',');
+            write(t,f);
+            first:=false;
+          end;
+        writeln(t,']');
         writeln(t,printnodeindention,'tempinit =');
         printnode(t,tempinfo^.tempinitcode);
       end;
+
+{$ifdef DEBUG_NODE_XML}
+    procedure TTempCreateNode.XMLPrintNodeData(var T: Text);
+      begin
+        inherited XMLPrintNodeData(T);
+        WriteLn(T, PrintNodeIndention, '<size>', size, '</size>');
+        if Assigned(TempInfo^.TempInitCode) then
+          begin
+            WriteLn(T, PrintNodeIndention, '<tempinit>');
+            PrintNodeIndent;
+            XMLPrintNode(T, TempInfo^.TempInitCode);
+            PrintNodeUnindent;
+            WriteLn(T, PrintNodeIndention, '</tempinit>');
+          end
+        else
+          WriteLn(T, PrintNodeIndention, '<tempinit />');
+      end;
+{$endif DEBUG_NODE_XML}
 
 {*****************************************************************************
                              TEMPREFNODE
@@ -984,14 +1464,6 @@ implementation
       begin
         inherited create(temprefn);
         tempinfo := temp.tempinfo;
-        offset:=0;
-      end;
-
-
-    constructor ttemprefnode.create_offset(const temp: ttempcreatenode;aoffset:longint);
-      begin
-        self.create(temp);
-        offset := aoffset;
       end;
 
 
@@ -1000,7 +1472,6 @@ implementation
         n: ttemprefnode;
       begin
         n := ttemprefnode(inherited dogetcopy);
-        n.offset := offset;
 
         if assigned(tempinfo^.hookoncopy) then
           { if the temp has been copied, assume it becomes a new }
@@ -1012,7 +1483,7 @@ implementation
             { from a persistent one into a normal one, we must be  }
             { the last reference (since our parent should free the }
             { temp (JM)                                            }
-            if (ti_nextref_set_hookoncopy_nil in tempinfo^.flags) then
+            if (ti_nextref_set_hookoncopy_nil in tempflags) then
               tempinfo^.hookoncopy := nil;
           end
         else
@@ -1033,7 +1504,6 @@ implementation
       begin
         inherited ppuload(t,ppufile);
         tempidx:=ppufile.getlongint;
-        offset:=ppufile.getlongint;
       end;
 
 
@@ -1041,7 +1511,6 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putlongint(tempinfo^.owner.ppuidx);
-        ppufile.putlongint(offset);
       end;
 
 
@@ -1060,7 +1529,7 @@ implementation
       begin
         expectloc := LOC_REFERENCE;
         if not tempinfo^.typedef.needs_inittable and
-           (ti_may_be_in_reg in tempinfo^.flags) then
+           (ti_may_be_in_reg in tempflags) then
           begin
             if tempinfo^.typedef.typ=floatdef then
               begin
@@ -1101,22 +1570,33 @@ implementation
       begin
         result :=
           inherited docompare(p) and
-          (ttemprefnode(p).tempinfo = tempinfo) and
-          (ttemprefnode(p).offset = offset);
+          (ttemprefnode(p).tempinfo = tempinfo);
       end;
 
 
     procedure ttemprefnode.mark_write;
+      begin
+        include(flags,nf_write);
+      end;
 
-    begin
-      include(flags,nf_write);
-    end;
 
     procedure ttemprefnode.printnodedata(var t:text);
+      var
+        f : ttempinfoflag;
+        notfirst : Boolean;
       begin
         inherited printnodedata(t);
-        writeln(t,printnodeindention,'temptypedef = ',tempinfo^.typedef.typesymbolprettyname,' = "',
-          tempinfo^.typedef.GetTypeName,'", tempinfo = $',hexstr(ptrint(tempinfo),sizeof(ptrint)*2));
+        write(t,printnodeindention,'temptypedef = ',tempinfo^.typedef.typesymbolprettyname,' = "',
+          tempinfo^.typedef.GetTypeName,'", (tempinfo = $',hexstr(ptrint(tempinfo),sizeof(ptrint)*2),' flags = [');
+        notfirst:=false;
+        for f in tempinfo^.flags do
+          begin
+            if notfirst then
+              write(t,',');
+            write(t,f);
+            notfirst:=true;
+          end;
+        writeln(t,'])');
       end;
 
 
@@ -1161,7 +1641,7 @@ implementation
             if (not release_to_normal) then
               tempinfo^.hookoncopy:=nil
             else
-              include(tempinfo^.flags,ti_nextref_set_hookoncopy_nil);
+              includetempflag(ti_nextref_set_hookoncopy_nil);
           end
         else
           { if the temp we refer to hasn't been copied, we have a }
@@ -1194,7 +1674,7 @@ implementation
       begin
         temp:=ttempcreatenode(nodeppuidxget(tempidx));
         if temp.nodetype<>tempcreaten then
-          internalerror(200311075);
+          internalerror(2003110701);
         tempinfo:=temp.tempinfo;
       end;
 
@@ -1223,6 +1703,7 @@ implementation
         tempinfo^.withnode.free;
         tempinfo^.tempinitcode.free;
         dispose(tempinfo);
+        inherited destroy;
       end;
 
     procedure ttempdeletenode.printnodedata(var t:text);
@@ -1231,5 +1712,13 @@ implementation
         writeln(t,printnodeindention,'release_to_normal: ',release_to_normal,', temptypedef = ',tempinfo^.typedef.typesymbolprettyname,' = "',
           tempinfo^.typedef.GetTypeName,'", temptype = ',tempinfo^.temptype,', tempinfo = $',hexstr(ptrint(tempinfo),sizeof(ptrint)*2));
       end;
+
+{$ifdef DEBUG_NODE_XML}
+    procedure TTempDeleteNode.XMLPrintNodeData(var T: Text);
+      begin
+        inherited XMLPrintNodeData(T);
+        WriteLn(T, PrintNodeIndention, '<release_to_normal>', release_to_normal, '</release_to_normal>');
+      end;
+{$endif DEBUG_NODE_XML}
 
 end.

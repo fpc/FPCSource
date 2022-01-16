@@ -170,9 +170,7 @@ unit optvirt;
       fmodule,
       symconst,
       symbase,
-      symtable,
       defcmp,
-      nobj,
       verbose;
 
     const
@@ -723,6 +721,8 @@ unit optvirt;
                   { static reference to FPC_ABSTRACTERROR }
                   classdevirtinfo.addstaticmethod(i,'FPC_ABSTRACTERROR');
                 end;
+              else
+                ;
             end;
       end;
 
@@ -855,7 +855,7 @@ unit optvirt;
 {$ENDIF}
                  ;
                else
-                 internalerror(2008101101);
+                 internalerror(2008101106);
              end;
            end;
 

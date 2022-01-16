@@ -13,9 +13,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$H+}
 program msg2inc;
-uses
-  strings;
 
 {$ifdef unix}
   {$define EOL_ONE_CHAR}
@@ -55,6 +54,7 @@ var
 
   msgidxmax  : array[1..msgparts] of longint;
   msgs       : array[0..msgparts,0..999] of boolean;
+  msgcodepage: TSystemCodePage;
 
 procedure LoadMsgFile(const fn:string);
 var
@@ -77,6 +77,7 @@ var
 
 begin
   Writeln('Loading messagefile ',fn);
+  msgcodepage:=CP_ACP;
 {Read the message file}
   assign(f,fn);
   {$push} {$I-}
@@ -102,7 +103,7 @@ begin
       begin
         if s=']' then
          multiline:=false
-        else
+        else if (s='') or (s[1] <> '#') then
          inc(msgsize,length(s)+1); { +1 for linebreak }
       end
      else
@@ -128,6 +129,8 @@ begin
               numpart:=num div 1000;
               if numpart=0 then
                err('number should be > 1000');
+              if code<>0 then
+               err('illegal number: '+s);
               numidx:=num mod 1000;
               { duplicate ? }
               if msgs[numpart,numidx] then
@@ -150,6 +153,12 @@ begin
             end
            else
             err('no = found');
+         end
+        else if (Length(s)>11) and (Copy(s,1,11)='# CodePage ') then
+         begin
+           val(Copy(s,12,Length(s)-11),msgcodepage,code);
+           if code<>0 then
+             err('illegal code page number: '+s);
          end;
       end;
    end;
@@ -183,7 +192,7 @@ begin
            ptxt^:=#0;
            inc(ptxt);
          end
-        else
+        else if (s='') or (s[1] <> '#') then
          begin
            move(s[1],ptxt^,length(s));
            inc(ptxt,length(s));
@@ -240,7 +249,7 @@ end;
                                WriteEnumFile
 *****************************************************************************}
 
-procedure WriteEnumFile(const fn,typename:string);
+procedure WriteEnumFile(const fn:string);
 var
   t : text;
   i : longint;
@@ -329,6 +338,7 @@ begin
 {Open textfile}
   assign(t,fn);
   rewrite(t);
+  writeln(t,'const '+constname+'_codepage=',msgcodepage:5,';');
   writeln(t,'{$ifdef Delphi}');
   writeln(t,'const '+constname+' : array[0..000000] of string[',maxslen,']=(');
   writeln(t,'{$else Delphi}');
@@ -402,12 +412,12 @@ begin
   writeln(t,');');
   close(t);
 {update arraysize}
-  s:=l0(msgsize div maxslen); { we start with 0 }
+  s:=l0((msgsize-1) div maxslen); { we start with 0 }
   assign(f,fn);
   reset(f,1);
-  seek(f,34+eollen+length(constname));
+  seek(f,22+34+2*eollen+2*length(constname));
   blockwrite(f,s[1],5);
-  seek(f,90+3*eollen+2*length(constname));
+  seek(f,22+90+4*eollen+3*length(constname));
   blockwrite(f,s[1],5);
   close(f);
 end;
@@ -613,22 +623,29 @@ Var
   hs : string;
 begin
   hs:='';
-  for i:=1 to length(s) do
-    case S[i] of
-      '$' :
-        if (s[i+1] in ['0'..'9']) then
-          hs:=hs+'arg'
-        else
-          hs:=hs+'\$';
-      '&','{','}','#','_','%':            // Escape these characters
-        hs := hs + '\' + S[i];
-      '~','^':
-        hs := hs + '\'+S[i]+' ';
-      '\':
-        hs:=hs+'$\backslash$'
-    else
-      hs := hs + S[i];
-    end;  
+  i:=1;
+  while i<=length(s) do
+    begin
+      case S[i] of
+        '$' :
+          if (s[i+1] in ['0'..'9']) then
+            begin
+              hs:=hs+'\textlangle arg. '+s[i+1]+'\textrangle{}';
+              inc(i);
+            end
+          else
+            hs:=hs+'\$';
+        '&','{','}','#','_','%':            // Escape these characters
+          hs := hs + '\' + S[i];
+        '~','^':
+          hs := hs + '\'+S[i]+' ';
+        '\':
+          hs:=hs+'$\backslash$'
+      else
+        hs := hs + S[i];
+      end;
+      inc(i);
+    end;
   EscapeString:=hs;
 end;
 
@@ -637,6 +654,7 @@ var
   t,f   : text;
   line,
   i,k   : longint;
+  number,
   s,s1  : string;
   texoutput : boolean;
 begin
@@ -686,26 +704,36 @@ begin
            if i>0 then
             begin
               inc(i);
+              number:='';
               while s[i] in ['0'..'9'] do
-               inc(i);
+               begin
+                 number:=number+s[i];
+                 inc(i);
+               end;
+              { strip leading zeros }
+              while number[1]='0' do
+                Delete(number,1,1);
               inc(i);
               s1:='';
               k:=0;
               while (k<5) and (s[i+k]<>'_') do
                begin
                  case s[i+k] of
-                  'W' : s1:='Warning: ';
-                  'E' : s1:='Error: ';
-                  'F' : s1:='Fatal: ';
-                  'N' : s1:='Note: ';
-                  'I' : s1:='Info: ';
-                  'H' : s1:='Hint: ';
+                  'W' : s1:='Warning '+number+': ';
+                  'E' : s1:='Error '+number+': ';
+                  'F' : s1:='Fatal error '+number+': ';
+                  'N' : s1:='Note '+number+': ';
+                  'I' : s1:='Info '+number+': ';
+                  'H' : s1:='Hint '+number+': ';
                  end;
                  inc(k);
                end;
               if s[i+k]='_' then
                inc(i,k+1);
-              writeln(t,'\item ['+s1+escapestring(Copy(s,i,255))+']');
+              if number<>'' then
+                writeln(t,'\index[msgnr]{',number,'}');
+              writeln(t,'\index[msgtxt]{',escapestring(Copy(s,i,255)),'}');
+              writeln(t,'\item ['+s1+escapestring(Copy(s,i,255))+'] \hfill \\');
             end
            else
             writeln('error in line: ',line,' skipping');
@@ -744,9 +772,8 @@ var
   end;
 
 begin
-  Mode:=M_String;
-  FIles:=0;
-  for i:=1to paramcount do
+  Files:=0;
+  for i:=1 to paramcount do
    begin
      para:=paramstr(i);
      if (para[1]='-') then
@@ -789,13 +816,17 @@ begin
         M_Tex : if Files<2 then
                  Helpscreen;
   else
-   if FIles<3 then
+   if Files<3 then
     HelpScreen;
   end;
 end;
 
 
 begin
+  Mode:=M_String;
+  OutFile:='';
+  InFile:='';
+  OutName:='';
   GetPara;
   case Mode of
    M_Renumber : begin
@@ -806,17 +837,17 @@ begin
                 end;
       M_Intel : begin
                   Loadmsgfile(InFile);
-                  WriteEnumFile(OutFile+'idx.inc',OutName+'const');
+                  WriteEnumFile(OutFile+'idx.inc');
                   WriteIntelFile(OutFile+'txt.inc',OutName+'txt');
                 end;
      M_String : begin
                   Loadmsgfile(InFile);
-                  WriteEnumFile(OutFile+'idx.inc',OutName+'const');
+                  WriteEnumFile(OutFile+'idx.inc');
                   WriteStringFile(OutFile+'txt.inc',OutName+'txt');
                 end;
        M_Char : begin
                   Loadmsgfile(InFile);
-                  WriteEnumFile(OutFile+'idx.inc',OutName+'const');
+                  WriteEnumFile(OutFile+'idx.inc');
                   WriteCharFile(OutFile+'txt.inc',OutName+'txt');
                 end;
   end;

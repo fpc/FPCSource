@@ -5,7 +5,7 @@ unit tconstparser;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, pastree, pscanner, tcbaseparser, testregistry;
+  Classes, SysUtils, fpcunit, pastree, pscanner, tcbaseparser, testregistry, pparser;
 
 Type
     { TTestConstParser }
@@ -16,6 +16,7 @@ Type
     FExpr: TPasExpr;
     FHint : string;
     FTyped: String;
+    procedure DoParseConstUnTypedRange;
   Protected
     Function ParseConst(ASource : String) : TPasConst;
     Procedure CheckExprNameKindClass(AKind : TPasExprKind; AClass : TClass);
@@ -42,6 +43,7 @@ Type
     Procedure TestSimpleIdentifierConst;
     Procedure TestSimpleSetConst;
     Procedure TestSimpleExprConst;
+    Procedure TestSimpleAbsoluteConst;
     Procedure TestSimpleIntConstDeprecatedMsg;
     Procedure TestSimpleIntConstDeprecated;
     Procedure TestSimpleFloatConstDeprecated;
@@ -76,7 +78,11 @@ Type
     Procedure TestTypedSetConst;
     Procedure TestTypedExprConst;
     Procedure TestRecordConst;
+    Procedure TestRecordConstEmpty;
     Procedure TestArrayConst;
+    Procedure TestRangeConst;
+    Procedure TestRangeConstUnTyped;
+    Procedure TestArrayOfRangeConst;
   end;
 
   { TTestResourcestringParser }
@@ -108,8 +114,62 @@ Type
     Procedure TestSum2Platform;
   end;
 
+  { TTestLabelParser }
+
+  TTestLabelParser = Class(TTestParser)
+  private
+    FHint : string;
+  Protected
+    Function ParseLabel(ASource : String) : TPasLabels;
+    Property Hint : string Read FHint Write FHint;
+  Published
+    Procedure TestSimple;
+    Procedure TestSimpleNumber;
+  end;
 
 implementation
+
+{ TTestLabelParser }
+
+function TTestLabelParser.ParseLabel(ASource: String): TPasLabels;
+Var
+  D : String;
+begin
+  UseImplementation:=True;
+  Add('label');
+  D:=ASource;
+  If Hint<>'' then
+    D:=D+' '+Hint;
+  Add('  '+D+';');
+  Add('end.');
+  //Writeln(source.text);
+  ParseDeclarations;
+  AssertEquals('One labels section',1,Declarations.Labels.Count);
+  AssertEquals('First declaration is label section.',TPasLabels,TObject(Declarations.Labels[0]).ClassType);
+  Result:=TPasLabels(Declarations.Labels[0]);
+end;
+
+procedure TTestLabelParser.TestSimple;
+
+Var
+  Res : TPasLabels;
+
+begin
+   Res:=ParseLabel('a');
+   AssertEquals('One label definition',1,Res.Labels.Count);
+   AssertEquals('One label definition','a',Res.Labels[0]);
+end;
+
+procedure TTestLabelParser.TestSimpleNumber;
+Var
+  Res : TPasLabels;
+
+begin
+   Res:=ParseLabel('100');
+   AssertEquals('One label definition',1,Res.Labels.Count);
+   AssertEquals('One label definition','100',Res.Labels[0]);
+end;
+
 { TTestConstParser }
 
 function TTestConstParser.ParseConst(ASource: String): TPasConst;
@@ -205,6 +265,8 @@ begin
   ParseConst('1 + 2');
   CheckExprNameKindClass(pekBinary,TBinaryExpr);
   B:=TBinaryExpr(TheExpr);
+  TAssert.AssertSame('B.Left.Parent=B',B,B.left.Parent);
+  TAssert.AssertSame('B.right.Parent=B',B,B.right.Parent);
   AssertExpression('Left expression',B.Left,pekNumber,'1');
   AssertExpression('Right expression',B.Right,pekNumber,'2');
 end;
@@ -247,6 +309,19 @@ end;
 procedure TTestConstParser.TestSimpleExprConst;
 begin
   DoTestSimpleExprConst;
+end;
+
+procedure TTestConstParser.TestSimpleAbsoluteConst;
+
+// Found in xi.pp
+
+begin
+  Add('Const');
+  Add('  Absolute = 1;');
+  ParseDeclarations;
+  AssertEquals('One constant definition',1,Declarations.Consts.Count);
+  AssertEquals('First declaration is constant definition.',TPasConst,TObject(Declarations.Consts[0]).ClassType);
+
 end;
 
 procedure TTestConstParser.TestSimpleIntConstDeprecatedMsg;
@@ -491,6 +566,27 @@ begin
   AssertExpression('Field 2 value',Fi.ValueExp,pekNumber,'2');
 end;
 
+procedure TTestConstParser.TestRecordConstEmpty;
+Var
+  R : TRecordValues;
+  //Fi : TRecordValuesItem;
+begin
+  Typed := 'TPoint';
+  ParseConst('()');
+  AssertEquals('Record Values',TRecordValues,TheExpr.ClassType);
+  R:=TheExpr as TRecordValues;
+  AssertEquals('Expression list of ',pekListOfExp,TheExpr.Kind);
+  AssertEquals('0 elements',0,Length(R.Fields));
+(*
+FI:=R.Fields[0];
+  AssertEquals('Name field 1','x',Fi.Name);
+  AssertExpression('Field 1 value',Fi.ValueExp,pekNumber,'1');
+  FI:=R.Fields[1];
+  AssertEquals('Name field 2','y',Fi.Name);
+  AssertExpression('Field 2 value',Fi.ValueExp,pekNumber,'2');
+  *)
+end;
+
 procedure TTestConstParser.TestArrayConst;
 
 Var
@@ -504,6 +600,39 @@ begin
   AssertEquals('2 elements',2,Length(R.Values));
   AssertExpression('Element 1 value',R.Values[0],pekNumber,'1');
   AssertExpression('Element 2 value',R.Values[1],pekNumber,'2');
+end;
+
+procedure TTestConstParser.TestRangeConst;
+begin
+  Typed:='0..1';
+  ParseConst('1');
+  AssertEquals('Range type',TPasRangeType,TheConst.VarType.ClassType);
+  AssertExpression('Float const', TheExpr,pekNumber,'1');
+end;
+
+procedure TTestConstParser.DoParseConstUnTypedRange;
+
+begin
+  ParseConst('1..2');
+end;
+
+procedure TTestConstParser.TestRangeConstUnTyped;
+begin
+  AssertException('Range const is not allowed',EParserError,@DoParseConstUnTypedRange);
+end;
+
+procedure TTestConstParser.TestArrayOfRangeConst;
+Var
+  R : TArrayValues;
+begin
+  Typed:='array [0..7] of 0..1';
+  ParseConst('(0, 0, 0, 0, 0, 0, 0, 0)');
+  AssertEquals('Array Values',TArrayValues,TheExpr.ClassType);
+  R:=TheExpr as TArrayValues;
+  AssertEquals('Expression list of ',pekListOfExp,TheExpr.Kind);
+  AssertEquals('elements',8,Length(R.Values));
+//  AssertEquals('Range type',TPasRangeType,TheConst.VarType.ClassType);
+//  AssertExpression('Float const', TheExpr,pekNumber,'1');
 end;
 
 { TTestResourcestringParser }
@@ -547,24 +676,33 @@ begin
 end;
 
 procedure TTestResourcestringParser.DoTestSum;
+var
+  B: TBinaryExpr;
 begin
   ParseResourcestring('''Something''+'' else''');
   CheckExprNameKindClass(pekBinary,TBinaryExpr);
-  AssertEquals('Correct left',TPrimitiveExpr,TBinaryExpr(TheExpr).Left.ClassType);
-  AssertEquals('Correct right',TPrimitiveExpr,TBinaryExpr(TheExpr).Right.ClassType);
-  AssertEquals('Correct left expression value','''Something''',TPrimitiveExpr(TBinaryExpr(TheExpr).Left).Value);
-  AssertEquals('Correct right expression value',''' else''',TPrimitiveExpr(TBinaryExpr(TheExpr).Right).Value);
+  B:=TBinaryExpr(TheExpr);
+  TAssert.AssertSame('B.left.parent=B',B,B.left.Parent);
+  TAssert.AssertSame('B.right.parent=B',B,B.right.Parent);
+  AssertEquals('Correct left',TPrimitiveExpr,B.Left.ClassType);
+  AssertEquals('Correct right',TPrimitiveExpr,B.Right.ClassType);
+  AssertEquals('Correct left expression value','''Something''',TPrimitiveExpr(B.Left).Value);
+  AssertEquals('Correct right expression value',''' else''',TPrimitiveExpr(B.Right).Value);
 end;
 
 procedure TTestResourcestringParser.DoTestSum2;
+var
+  B: TBinaryExpr;
 begin
   ParseResourcestring('''Something''+different');
   CheckExprNameKindClass(pekBinary,TBinaryExpr);
-  AssertEquals('Correct left',TPrimitiveExpr,TBinaryExpr(TheExpr).Left.ClassType);
-  AssertEquals('Correct right',TPrimitiveExpr,TBinaryExpr(TheExpr).Right.ClassType);
-  AssertEquals('Correct left expression value','''Something''',TPrimitiveExpr(TBinaryExpr(TheExpr).Left).Value);
-  AssertEquals('Correct right expression value','different',TPrimitiveExpr(TBinaryExpr(TheExpr).Right).Value);
-
+  B:=TBinaryExpr(TheExpr);
+  TAssert.AssertSame('B.left.parent=B',B,B.left.Parent);
+  TAssert.AssertSame('B.right.parent=B',B,B.right.Parent);
+  AssertEquals('Correct left',TPrimitiveExpr,B.Left.ClassType);
+  AssertEquals('Correct right',TPrimitiveExpr,B.Right.ClassType);
+  AssertEquals('Correct left expression value','''Something''',TPrimitiveExpr(B.Left).Value);
+  AssertEquals('Correct right expression value','different',TPrimitiveExpr(B.Right).Value);
 end;
 
 procedure TTestResourcestringParser.TestSimple;
@@ -624,7 +762,7 @@ begin
 end;
 
 initialization
-  RegisterTests([TTestConstParser,TTestResourcestringParser]);
+  RegisterTests([TTestConstParser,TTestResourcestringParser,TTestLabelParser]);
 
 
 end.

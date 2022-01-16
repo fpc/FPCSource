@@ -32,9 +32,10 @@ Const
   libname = 'libvlc.so.5';
 {$else}
 {$ifdef windows}
-  DefaultlibPath = 'C:\Program files\Videolan\VLC\';
   corelibname    = 'libvlccore.dll';
   libname        = 'libvlc.dll';
+var
+  DefaultlibPath: String;
 {$endif}
 {$endif}
 
@@ -71,35 +72,38 @@ Const
   Plibvlc_media_track_info_t  = ^libvlc_media_track_info_t;
   Plibvlc_module_description_t  = ^libvlc_module_description_t;
   Plibvlc_track_description_t  = ^libvlc_track_description_t;
-
+  
+  
   int8_t = cschar;
   int16_t = csint;
   int32_t = cint;
-  int64_t = clong;
+  int64_t = cint64;
   uint8_t = cuchar;
   uint16_t = csint;
   uint32_t = cuint;
-  uint64_t = culong;
+  uint64_t = cuint64;
   int_least8_t = cschar;
   int_least16_t = csint;
   int_least32_t = cint;
-  int_least64_t = clong;
+  int_least64_t = cint64;
   uint_least8_t = cuchar;
   uint_least16_t = csint;
   uint_least32_t = cuint;
-  uint_least64_t = culong;
+  uint_least64_t = cuint64;
   int_fast8_t = cschar;
   int_fast16_t = clong;
   int_fast32_t = clong;
-  int_fast64_t = clong;
+  int_fast64_t = cint64;
   uint_fast8_t = cuchar;
   uint_fast16_t = culong;
   uint_fast32_t = culong;
-  uint_fast64_t = culong;
-  intptr_t = clong;
-  uintptr_t = culong;
-  intmax_t = clong;
-  uintmax_t = culong;
+  uint_fast64_t = cuint64;
+
+  intptr_t = PtrInt;
+  uintptr_t = PtrUInt;
+  intmax_t = cint64;
+  uintmax_t = cuint64;
+
 
   libvlc_time_t = int64_t;
   libvlc_log_message_t = record
@@ -617,14 +621,24 @@ Var
 
 Procedure Freelibvlc;
 Procedure Loadlibvlc(lib : AnsiString; CheckProcNames : Boolean = False);
+{$IFDEF WINDOWS}
+function GetVLCLibPath: String;
+{$ENDIF WINDOWS}
 
 implementation
 
 uses
-  SysUtils, dynlibs;
+  SysUtils, 
+ {$IFDEF WINDOWS}
+  windows,
+ {$ENDIF}
+  dynlibs;
 
 var
   hlib : tlibhandle;
+  {$IFDEF WINDOWS}
+  hclib : tlibhandle;
+  {$ENDIF}
   LibRefCount : Integer;
 
 procedure Freelibvlc;
@@ -635,6 +649,11 @@ begin
   if LibRefCount>0 then
     exit;
   FreeLibrary(hlib);
+  hlib:=NilHandle;
+{$IFDEF WINDOWS}
+  FreeLibrary(hclib);
+  hclib:=NilHandle;
+{$ENDIF}
   libvlc_errmsg:=nil;
   libvlc_clearerr:=nil;
   libvlc_printerr:=nil;
@@ -876,6 +895,34 @@ begin
   libvlc_playlist_play:=nil;
 end;
 
+{$IFDEF WINDOWS}
+function GetVLCLibPath: String;
+var
+  Handle: HKEY;
+  RegType: Integer;
+  DataSize: Cardinal;
+  Key: PWideChar;
+  res: WideString;
+begin
+  Result := '';
+  try
+    Key := 'Software\VideoLAN\VLC';
+    if RegOpenKeyExW(HKEY_LOCAL_MACHINE, Key, 0, KEY_READ, Handle) = ERROR_SUCCESS then
+    begin
+      if RegQueryValueExW(Handle, 'InstallDir', nil, @RegType, nil, @DataSize) = ERROR_SUCCESS then
+        begin
+        SetLength(res, DataSize div 2);
+        RegQueryValueExW(Handle, 'InstallDir', nil, @RegType, PByte(@res[1]), @DataSize);
+        res[DataSize div 2] := '\';
+        end;
+      RegCloseKey(Handle);
+      Result := UTF8Encode(res);
+    end;
+  except
+    // Ignore errors.
+  end;
+end;
+{$ENDIF}
 
 Procedure Loadlibvlc(lib : AnsiString; CheckProcNames : Boolean = False);
 
@@ -896,36 +943,60 @@ Procedure Loadlibvlc(lib : AnsiString; CheckProcNames : Boolean = False);
     raise Exception.CreateFmt('Could not load library "%s"',[FN]);
     {$endif}
   end;
-  
-  
-  
+
+  Function TryLoadLib(ALib : String) : TLibHandle;
+  // On Windows, the vlccore lib must be loaded first.
+  // If it is not in the PATH then this will fail when specifying an arbitrary path.
+  // So we load it explicitly from the same directory first
+  {$IFDEF WINDOWS}
+  Var
+    ADir : String;
+  {$endif}
+
+  begin
+    {$IFDEF WINDOWS}
+    Result:=NilHandle;
+    ADir:=ExtractFilePath(ALib);
+    if ADir<>'' then
+      ADir:=IncludeTrailingPathDelimiter(ADir);
+    hclib:=LoadLibrary(ADir+corelibname);
+    if (HCLib<>Nilhandle) then
+    {$ENDIF}
+      Result:=LoadLibrary(ALib);
+  end;
+
+
+{$IFDEF WINDOWS}  
 Var
   D : String;
-  
+{$endif}  
+
 begin
   if (hLib<>NilHandle) then
     begin
     Inc(LibRefCount);
     Exit;
     end;
-  D:=ExtractFilePath(lib);
-  {$ifdef windows}
-  if (LoadLibrary(d+corelibname)=NilHandle) then
-    if (d='') and (LoadLibrary(DefaultlibPath+corelibname)=NilHandle) then
-      EM(DefaultlibPath+corelibname);
-  {$endif}
-  hlib:=LoadLibrary(lib);
+  hlib:=TryLoadLib(lib);
+{$IFDEF WINDOWS}
+  // MVC: This automatism is highly questionable; The end user should in fact determine the library.
   if (hlib=NilHandle) then
-{$ifndef windows}
-    EM(Lib);
-{$else}
-    if (d='') then
+    begin
+    D:=ExtractFilePath(lib);
+    // Try default name in same directiory.
+    hlib:=TryLoadLib(d+libname);
+    if (hLib=NilHandle) and (d='') then
       begin
-      hlib:=LoadLibrary(DefaultlibPath+ExtractFileName(Lib));
-      if (hlib=NilHandle) then
-        EM(Lib);
-      end;
+      // No directory specified, try default name in installation directory.
+      if (DefaultlibPath='') then
+        DefaultLibPath:=GetVLCLibPath;
+      if (DefaultLibPath<>'') then
+        hLib:=TryLoadLib(IncludeTrailingPathDelimiter(DefaultlibPath)+libname);
+      end;  
+    end;  
 {$endif}
+  if (hLib=NilHandle) then
+    EM(Lib);
   Inc(LibRefCount);
   pointer(libvlc_errmsg):=GetProcAddress(hlib,'libvlc_errmsg');
   pointer(libvlc_clearerr):=GetProcAddress(hlib,'libvlc_clearerr');

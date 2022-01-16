@@ -35,7 +35,8 @@ type
     S_NEAR,S_FAR,S_SHORT,
     S_T,
     S_XMM,
-    S_YMM
+    S_YMM,
+    S_ZMM
   );
 
   TOpSizes = set of topsize;
@@ -92,7 +93,7 @@ const
       RS_FRAME_POINTER_REG = RS_RBP;
       NR_FRAME_POINTER_REG = NR_RBP;
       { Return address for DWARF }
-      NR_RETURN_ADDRESS_REG = NR_EIP;
+      NR_RETURN_ADDRESS_REG = NR_RIP;
       { Register for addressing absolute data in a position independant way,
         such as in PIC code. The exact meaning is ABI specific. For
         further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
@@ -125,11 +126,6 @@ const
 *****************************************************************************}
 
     const
-      { these arrays differ between unix and win64 }
-      saved_standard_registers : array of tsuperregister = nil;
-      saved_mm_registers : array of tsuperregister = nil;
-
-      saved_address_registers : array[0..0] of tsuperregister = (RS_INVALID);
       { Required parameter alignment when calling a routine declared as
         stdcall and cdecl. The alignment value should be the one defined
         by GCC or the target ABI.

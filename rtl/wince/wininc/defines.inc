@@ -39,7 +39,7 @@
 
   License along with this library; see the file COPYING.LIB.
   If not, write to the Free Software Foundation,
-  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 
 }
@@ -616,6 +616,7 @@
      CREATE_NEW_PROCESS_GROUP = 512;
      CREATE_SEPARATE_WOW_VDM = 2048;
      CREATE_SUSPENDED = 4;
+     STACK_SIZE_PARAM_IS_A_RESERVATION = 0; // Disabling this, it needs in fact to be checked
      CREATE_UNICODE_ENVIRONMENT = 1024;
      DEBUG_PROCESS = 1;
      DEBUG_ONLY_THIS_PROCESS = 2;
@@ -1617,6 +1618,9 @@
 
     { was #define dname def_expr }
      INVALID_HANDLE_VALUE = HANDLE(-1);
+     INVALID_FILE_SIZE    = DWORD(-1);
+     INVALID_SET_FILE_POINTER = DWORD(-1);
+     INVALID_FILE_ATTRIBUTES  = DWORD(-1);
 
   { GetStockObject  }
 
@@ -2221,6 +2225,7 @@
      REG_LINK = 6;
      REG_MULTI_SZ = 7;
      REG_NONE = 0;
+     REG_QWORD = 11;
      REG_RESOURCE_LIST = 8;
      REG_RESOURCE_REQUIREMENTS_LIST = 10;
      REG_SZ = 1;

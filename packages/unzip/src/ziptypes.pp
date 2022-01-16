@@ -1,6 +1,6 @@
 {
 }
-UNIT ziptypes;
+UNIT ZipTypes;
 {
 Type definitions for UNZIP
   * original version by Christian Ghisler

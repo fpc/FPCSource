@@ -39,11 +39,14 @@ Var
         SysInitFPU;
 {$endif}
 {$ifndef HAS_MEMORYMANAGER}
+{$ifndef FPC_NO_DEFAULT_HEAP}
         { initialize this thread's heap }
         InitHeapThread;
-{$endif HAS_MEMORYMANAGER}
+{$endif ndef FPC_NO_DEFAULT_HEAP}
+{$else HAS_MEMORYMANAGER}
         if MemoryManager.InitThread <> nil then
           MemoryManager.InitThread();
+{$endif HAS_MEMORYMANAGER}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
         if assigned(widestringmanager.ThreadInitProc) then
           widestringmanager.ThreadInitProc;
@@ -76,7 +79,9 @@ Var
           widestringmanager.ThreadFiniProc;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$ifndef HAS_MEMORYMANAGER}
+{$ifndef FPC_NO_DEFAULT_HEAP}
         FinalizeHeap;
+{$endif ndef FPC_NO_DEFAULT_HEAP}
 {$endif HAS_MEMORYMANAGER}
         if MemoryManager.DoneThread <> nil then
           MemoryManager.DoneThread();
@@ -89,6 +94,13 @@ Var
         ThreadID := TThreadID(0);
         if assigned(CurrentTM.ReleaseThreadVars) then
           CurrentTM.ReleaseThreadVars;
+      end;
+
+
+    procedure InitThread;
+      begin
+        { we should find a reasonable value here }
+        InitThread($1000000);
       end;
 
 {*****************************************************************************
@@ -200,44 +212,56 @@ begin
   Result:=CurrentTM.GetCurrentThreadID();
 end;
 
-procedure InitCriticalSection(var cs : TRTLCriticalSection);
+procedure SetThreadDebugName(threadHandle: TThreadID; const ThreadName: AnsiString);
+begin
+  CurrentTM.SetThreadDebugNameA(threadHandle, ThreadName);
+end;
+
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
+procedure SetThreadDebugName(threadHandle: TThreadID; const ThreadName: UnicodeString);
+begin
+  CurrentTM.SetThreadDebugNameU(threadHandle, ThreadName);
+end;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
+
+procedure InitCriticalSection(out cs : TRTLCriticalSection);
 
 begin
   CurrentTM.InitCriticalSection(cs);
 end;
 
-procedure DoneCriticalsection(var cs : TRTLCriticalSection);
+procedure DoneCriticalSection(var cs : TRTLCriticalSection);
 
 begin
   CurrentTM.DoneCriticalSection(cs);
 end;
 
-procedure EnterCriticalsection(var cs : TRTLCriticalSection);
+procedure EnterCriticalSection(var cs : TRTLCriticalSection);
 
 begin
   CurrentTM.EnterCriticalSection(cs);
 end;
 
-function TryEnterCriticalsection(var cs : TRTLCriticalSection):longint;
+function TryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
 
 begin
   result:=CurrentTM.TryEnterCriticalSection(cs);
 end;
 
-procedure LeaveCriticalsection(var cs : TRTLCriticalSection);
+procedure LeaveCriticalSection(var cs : TRTLCriticalSection);
 
 begin
   CurrentTM.LeaveCriticalSection(cs);
 end;
 
-Function GetThreadManager(Var TM : TThreadManager) : Boolean;
+Function GetThreadManager(Out TM : TThreadManager) : Boolean;
 
 begin
   TM:=CurrentTM;
   Result:=True;
 end;
 
-Function SetThreadManager(Const NewTM : TThreadManager; Var OldTM : TThreadManager) : Boolean;
+Function SetThreadManager(Const NewTM : TThreadManager; Out OldTM : TThreadManager) : Boolean;
 
 begin
   GetThreadManager(OldTM);
@@ -264,85 +288,122 @@ begin
   result:=currenttm.BasicEventCreate(EventAttributes,AManualReset,InitialState, Name);
 end;
 
-procedure basiceventdestroy(state:peventstate);
+procedure BasicEventDestroy(state:peventstate);
 
 begin
-  currenttm.basiceventdestroy(state);
+  currenttm.BasicEventDestroy(state);
 end;
 
-procedure basiceventResetEvent(state:peventstate);
+procedure BasicEventResetEvent(state:peventstate);
 
 begin
-  currenttm.basiceventResetEvent(state);
+  currenttm.BasicEventResetEvent(state);
 end;
 
-procedure basiceventSetEvent(state:peventstate);
+procedure BasicEventSetEvent(state:peventstate);
 
 begin
-  currenttm.basiceventSetEvent(state);
+  currenttm.BasicEventSetEvent(state);
 end;
 
-function  basiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
+function  BasicEventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
 
 begin
- result:=currenttm.basiceventWaitFor(Timeout,state);
+ result:=currenttm.BasicEventWaitFor(Timeout,state);
 end;
 
 function  RTLEventCreate :PRTLEvent;
 
 begin
-  result:=currenttm.rtleventcreate();
+  result:=currenttm.RTLEventCreate();
 end;
 
 
-procedure RTLeventdestroy(state:pRTLEvent);
+procedure RTLeventDestroy(state:pRTLEvent);
 
 begin
-  currenttm.rtleventdestroy(state);
+  currenttm.RTLEventDestroy(state);
 end;
 
 procedure RTLeventSetEvent(state:pRTLEvent);
 
 begin
-  currenttm.rtleventsetEvent(state);
+  currenttm.RTLEventSetEvent(state);
 end;
 
 procedure RTLeventResetEvent(state:pRTLEvent);
 
 begin
-  currenttm.rtleventResetEvent(state);
+  currenttm.RTLEventResetEvent(state);
 end;
 
 procedure RTLeventWaitFor(state:pRTLEvent);
 
 begin
-  currenttm.rtleventWaitFor(state);
+  currenttm.RTLEventWaitFor(state);
 end;
 
 procedure RTLeventWaitFor(state:pRTLEvent;timeout : longint);
 
 begin
-  currenttm.rtleventWaitForTimeout(state,timeout);
+  currenttm.RTLEventWaitForTimeout(state,timeout);
 end;
 
-function SemaphoreInit: pointer;
+{ ---------------------------------------------------------------------
+    lazy thread initialization support
+  ---------------------------------------------------------------------}
+
+type
+  PLazyInitThreadingProcInfo = ^TLazyInitThreadingProcInfo;
+  TLazyInitThreadingProcInfo = Record
+    Next     : PLazyInitThreadingProcInfo;
+    Proc     : TProcedure;
+  End;
+const
+  LazyInitThreadingProcList: PLazyInitThreadingProcInfo = nil;
+
+procedure FinalizeLazyInitThreading;
+var
+  p: PLazyInitThreadingProcInfo;
 begin
-  result:=currenttm.SemaphoreInit();
+  while assigned(LazyInitThreadingProcList) do
+    begin
+    p:=LazyInitThreadingProcList^.Next;
+    Dispose(LazyInitThreadingProcList);
+    LazyInitThreadingProcList:=p;
+    end;
 end;
 
-procedure SemaphoreDestroy(const sem: pointer);
+procedure RegisterLazyInitThreadingProc(const proc: TProcedure);
+var
+  p: PLazyInitThreadingProcInfo;
 begin
-  currenttm.SemaphoreDestroy(sem);
+  if IsMultiThread then
+    begin
+    { multithreading is already enabled - execute directly }
+    proc();
+    end
+  else
+    begin
+    if not assigned(LazyInitThreadingProcList) then
+      AddExitProc(@FinalizeLazyInitThreading);
+    new(p);
+    p^.Next:=LazyInitThreadingProcList;
+    p^.Proc:=proc;
+    LazyInitThreadingProcList:=p;
+    end;
 end;
 
-procedure SemaphoreWait(const sem: pointer);
+procedure LazyInitThreading;
+var
+  p: PLazyInitThreadingProcInfo;
 begin
-  currenttm.SemaphoreWait(sem);
-end;
-
-procedure SemaphorePost(const sem: pointer);
-begin
-  currenttm.SemaphorePost(sem);
+  p:=LazyInitThreadingProcList;
+  while assigned(p) do
+    begin
+    p^.Proc();
+    p:=p^.Next;
+    end;
 end;
 
 { ---------------------------------------------------------------------
@@ -418,6 +479,18 @@ begin
   result:=TThreadID(1);
 end;
 
+procedure NoSetThreadDebugNameA(threadHandle: TThreadID; const ThreadName: AnsiString);
+begin
+  NoThreadError;
+end;
+
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
+procedure NoSetThreadDebugNameU(threadHandle: TThreadID; const ThreadName: UnicodeString);
+begin
+  NoThreadError;
+end;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
+
 procedure NoCriticalSection(var CS);
 
 begin
@@ -437,13 +510,13 @@ begin
   Result:=-1;
 end;
 
-procedure NoInitThreadvar(var offset : dword;size : dword);
+procedure NoInitThreadvar(var offset : {$ifdef cpu16}word{$else}dword{$endif};size : dword);
 
 begin
   NoThreadError;
 end;
 
-function NoRelocateThreadvar(offset : dword) : pointer;
+function NoRelocateThreadvar(offset : {$ifdef cpu16}word{$else}dword{$endif}) : pointer;
 
 begin
   NoThreadError;
@@ -508,28 +581,6 @@ begin
 end;
 
 
-function NoSemaphoreInit: Pointer;
-begin
-  if IsMultiThread then
-    NoThreadError
-  else
-    ThreadingAlreadyUsed:=true;
-  result:=nil;
-end;
-
-procedure NoSemaphoreWait(const FSem: Pointer);
-begin
-  NoThreadError;
-end;
-
-procedure NoSemaphore(const FSem: Pointer);
-begin
-  if IsMultiThread then
-    NoThreadError
-  else
-    ThreadingAlreadyUsed:=true;
-end;
-
 const
   NoThreadManager : TThreadManager = (
          InitManager            : Nil;
@@ -548,6 +599,10 @@ const
          ThreadSetPriority      : TThreadSetPriorityHandler(@NoThreadError);
          ThreadGetPriority      : TThreadGetPriorityHandler(@NoThreadError);
          GetCurrentThreadId     : @NoGetCurrentThreadId;
+         SetThreadDebugNameA    : TThreadSetThreadDebugNameHandlerA(@NoThreadError);
+         {$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
+         SetThreadDebugNameU    : TThreadSetThreadDebugNameHandlerU(@NoThreadError);
+         {$endif FPC_HAS_FEATURE_UNICODESTRINGS}
          InitCriticalSection    : TCriticalSectionHandler(@NoThreadError);
          DoneCriticalSection    : TCriticalSectionHandler(@NoThreadError);
          EnterCriticalSection   : TCriticalSectionHandler(@NoThreadError);
@@ -558,20 +613,16 @@ const
          AllocateThreadVars     : @NoThreadError;
          ReleaseThreadVars      : @NoThreadError;
          BasicEventCreate       : TBasicEventCreateHandler(@NoThreadError);
-         basiceventdestroy      : TBasicEventHandler(@NoThreadError);
-         basiceventResetEvent   : TBasicEventHandler(@NoThreadError);
-         basiceventSetEvent     : TBasicEventHandler(@NoThreadError);
-         basiceventWaitFor      : TBasicEventWaitForHandler(@NoThreadError);
-         rtlEventCreate         : TRTLCreateEventHandler(@NoThreadError);
-         rtleventdestroy        : TRTLEventHandler(@NoThreadError);
-         rtleventSetEvent       : TRTLEventHandler(@NoThreadError);
-         rtleventResetEvent     : TRTLEventHandler(@NoThreadError);
-         rtleventWaitFor        : TRTLEventHandler(@NoThreadError);
-         rtleventwaitfortimeout : TRTLEventHandlerTimeout(@NoThreadError);
-         SemaphoreInit          : TSempahoreInitHandler(@NoThreadError);
-         SemaphoreDestroy       : TSemaphoreDestroyHandler(@NoThreadError);
-         SemaphorePost          : TSemaphorePostHandler(@NoThreadError);
-         SemaphoreWait          : TSemaphoreWaitHandler(@NoThreadError)
+         BasicEventdestroy      : TBasicEventHandler(@NoThreadError);
+         BasicEventResetEvent   : TBasicEventHandler(@NoThreadError);
+         BasicEventSetEvent     : TBasicEventHandler(@NoThreadError);
+         BasicEventWaitFor      : TBasicEventWaitForHandler(@NoThreadError);
+         RTLEventCreate         : TRTLCreateEventHandler(@NoThreadError);
+         RTLEventdestroy        : TRTLEventHandler(@NoThreadError);
+         RTLEventSetEvent       : TRTLEventHandler(@NoThreadError);
+         RTLEventResetEvent     : TRTLEventHandler(@NoThreadError);
+         RTLEventWaitFor        : TRTLEventHandler(@NoThreadError);
+         RTLEventwaitfortimeout : TRTLEventHandlerTimeout(@NoThreadError);
 {$else EMBEDDED}
          BeginThread            : @NoBeginThread;
          EndThread              : @NoEndThread;
@@ -584,6 +635,10 @@ const
          ThreadSetPriority      : @NoThreadSetPriority;
          ThreadGetPriority      : @NoThreadGetPriority;
          GetCurrentThreadId     : @NoGetCurrentThreadId;
+         SetThreadDebugNameA    : @NoSetThreadDebugNameA;
+         {$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
+         SetThreadDebugNameU    : @NoSetThreadDebugNameU;
+         {$endif FPC_HAS_FEATURE_UNICODESTRINGS}
          InitCriticalSection    : @NoCriticalSection;
          DoneCriticalSection    : @NoCriticalSection;
          EnterCriticalSection   : @NoCriticalSection;
@@ -594,20 +649,16 @@ const
          AllocateThreadVars     : @NoThreadError;
          ReleaseThreadVars      : @NoThreadError;
          BasicEventCreate       : @NoBasicEventCreate;
-         basiceventdestroy      : @NoBasicEvent;
-         basiceventResetEvent   : @NoBasicEvent;
-         basiceventSetEvent     : @NoBasicEvent;
-         basiceventWaitFor      : @NoBasiceventWaitFor;
-         rtlEventCreate         : @NoRTLEventCreate;
-         rtleventdestroy        : @NoRTLevent;
-         rtleventSetEvent       : @NoRTLevent;
-         rtleventResetEvent     : @NoRTLEvent;
-         rtleventWaitFor        : @NoRTLEvent;
-         rtleventwaitfortimeout : @NoRTLEventWaitForTimeout;
-         SemaphoreInit          : @NoSemaphoreInit;
-         SemaphoreDestroy       : @NoSemaphore;
-         SemaphorePost          : @NoSemaphore;
-         SemaphoreWait          : @NoSemaphoreWait
+         BasicEventDestroy      : @NoBasicEvent;
+         BasicEventResetEvent   : @NoBasicEvent;
+         BasicEventSetEvent     : @NoBasicEvent;
+         BasicEventWaitFor      : @NoBasiceventWaitFor;
+         RTLEventCreate         : @NoRTLEventCreate;
+         RTLEventDestroy        : @NoRTLevent;
+         RTLEventSetEvent       : @NoRTLevent;
+         RTLEventResetEvent     : @NoRTLEvent;
+         RTLEventWaitFor        : @NoRTLEvent;
+         RTLEventWaitforTimeout : @NoRTLEventWaitForTimeout;
 {$endif EMBEDDED}
       );
 

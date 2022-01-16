@@ -1,3 +1,4 @@
+{ %skiptarget=android }
 { %CPU=i386 }
 { %OPT=-Cg- }
 { testfdiv variant with GNU AS output forced }

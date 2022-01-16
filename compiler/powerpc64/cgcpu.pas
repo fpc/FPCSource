@@ -293,9 +293,9 @@ begin
   if (prependDot) then
     s := '.' + s;
   if not(weak) then
-    list.concat(taicpu.op_sym(opc, current_asmdata.RefAsmSymbol(s)))
+    list.concat(taicpu.op_sym(opc, current_asmdata.RefAsmSymbol(s,AT_FUNCTION)))
   else
-    list.concat(taicpu.op_sym(opc, current_asmdata.WeakRefAsmSymbol(s)));
+    list.concat(taicpu.op_sym(opc, current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION)));
   if (addNOP) then
     list.concat(taicpu.op_none(A_NOP));
 
@@ -334,22 +334,22 @@ begin
     tempreg := getintregister(list, OS_INT);
     { load actual function entry (reg contains the reference to the function descriptor)
     into tempreg }
-    reference_reset_base(tmpref, reg, 0, sizeof(pint));
+    reference_reset_base(tmpref, reg, 0, ctempposinvalid, sizeof(pint), []);
     a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, tempreg);
 
     { save TOC pointer in stackframe }
-    reference_reset_base(tmpref, NR_STACK_POINTER_REG, get_rtoc_offset, 8);
+    reference_reset_base(tmpref, NR_STACK_POINTER_REG, get_rtoc_offset, ctempposinvalid, 8, []);
     a_load_reg_ref(list, OS_ADDR, OS_ADDR, NR_RTOC, tmpref);
 
     { move actual function pointer to CTR register }
     list.concat(taicpu.op_reg(A_MTCTR, tempreg));
 
     { load new TOC pointer from function descriptor into RTOC register }
-    reference_reset_base(tmpref, reg, tcgsize2size[OS_ADDR], 8);
+    reference_reset_base(tmpref, reg, tcgsize2size[OS_ADDR], ctempposinvalid, 8, []);
     a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, NR_RTOC);
 
     { load new environment pointer from function descriptor into R11 register }
-    reference_reset_base(tmpref, reg, 2*tcgsize2size[OS_ADDR], 8);
+    reference_reset_base(tmpref, reg, 2*tcgsize2size[OS_ADDR], ctempposinvalid, 8, []);
     a_reg_alloc(list, NR_R11);
     a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, NR_R11);
     { call function }
@@ -365,7 +365,7 @@ begin
   end;
 
   { we need to load the old RTOC from stackframe because we changed it}
-  reference_reset_base(tmpref, NR_STACK_POINTER_REG, get_rtoc_offset, 8);
+  reference_reset_base(tmpref, NR_STACK_POINTER_REG, get_rtoc_offset, ctempposinvalid, 8, []);
   a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, NR_RTOC);
 
   include(current_procinfo.flags, pi_do_call);
@@ -509,7 +509,7 @@ begin
   {$ENDIF EXTDEBUG}
 
   if not (fromsize in [OS_8, OS_S8, OS_16, OS_S16, OS_32, OS_S32, OS_64, OS_S64]) then
-    internalerror(2002090904);
+    internalerror(2002090910);
 
   { the caller is expected to have adjusted the reference already
    in this case }
@@ -545,7 +545,7 @@ var
   bytesize : byte;
 begin
   {$ifdef extdebug}
-  list.concat(tai_comment.create(strpnew('a_load_reg_reg from : ' + cgsize2string(fromsize) + ' to ' + cgsize2string(tosize))));
+  list.concat(tai_comment.create(strpnew('a_load_reg_reg from : ' + tcgsize2str(fromsize) + ' to ' + tcgsize2str(tosize))));
   {$endif}
 
   if (tcgsize2size[fromsize] > tcgsize2size[tosize]) or
@@ -891,7 +891,7 @@ var
   op : TAsmOp;
 begin
   {$IFDEF EXTDEBUG}
-  list.concat(tai_comment.create(strpnew('a_cmp_const_reg_label ' + cgsize2string(size) + ' ' + booltostr(cmp_op in [OC_GT, OC_LT, OC_GTE, OC_LTE]) + ' ' + inttostr(a) )));
+  list.concat(tai_comment.create(strpnew('a_cmp_const_reg_label ' + tcgsize2str(size) + ' ' + booltostr(cmp_op in [OC_GT, OC_LT, OC_GTE, OC_LTE]) + ' ' + inttostr(a) )));
   {$ENDIF EXTDEBUG}
 
   signed := cmp_op in [OC_GT, OC_LT, OC_GTE, OC_LTE];
@@ -936,7 +936,7 @@ var
   op: tasmop;
 begin
   {$IFDEF extdebug}
-  list.concat(tai_comment.create(strpnew('a_cmp_reg_reg_label, size ' + cgsize2string(size) + ' op ' + inttostr(ord(cmp_op)))));
+  list.concat(tai_comment.create(strpnew('a_cmp_reg_reg_label, size ' + tcgsize2str(size) + ' op ' + inttostr(ord(cmp_op)))));
   {$ENDIF extdebug}
 
   {$note Commented out below check because of compiler weirdness}
@@ -965,7 +965,7 @@ var
 begin
   if (prependDot) then
     s := '.' + s;
-  p := taicpu.op_sym(opc, current_asmdata.RefAsmSymbol(s));
+  p := taicpu.op_sym(opc, current_asmdata.RefAsmSymbol(s,AT_FUNCTION));
   p.is_jmp := true;
   list.concat(p)
 end;
@@ -1047,6 +1047,8 @@ begin
     LOC_MMREGISTER, LOC_CMMREGISTER:
       { not supported }
       internalerror(2006041801);
+    else
+      ;
   end;
 end;
 
@@ -1063,6 +1065,8 @@ begin
     LOC_MMREGISTER, LOC_CMMREGISTER:
       { not supported }
       internalerror(2006041802);
+    else
+      ;
   end;
 end;
 
@@ -1115,7 +1119,7 @@ end;
  called by the current one
 
  IMPORTANT: registers are not to be allocated through the register
- allocator here, because the register colouring has already occured !!
+ allocator here, because the register colouring has already occurred !!
 }
 procedure tcgppc.g_proc_entry(list: TAsmList; localsize: longint;
   nostackframe: boolean);
@@ -1155,7 +1159,7 @@ var
         mayNeedLRStore := true;
     end else begin
       { save registers, FPU first, then GPR }
-      reference_reset_base(href, NR_STACK_POINTER_REG, -8, 8);
+      reference_reset_base(href, NR_STACK_POINTER_REG, -8, ctempposinvalid, 8, []);
       if (fprcount > 0) then
         for regcount := RS_F31 downto firstregfpu do begin
           a_loadfpu_reg_ref(list, OS_FLOAT, OS_FLOAT, newreg(R_FPUREGISTER,
@@ -1176,7 +1180,7 @@ var
 
     { we may need to store R0 (=LR) ourselves }
     if ((cs_profile in init_settings.moduleswitches) or (mayNeedLRStore)) and (needslinkreg) then begin
-      reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_SYSV, 8);
+      reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_SYSV, ctempposinvalid, 8, []);
       list.concat(taicpu.op_reg_ref(A_STD, NR_R0, href));
     end;
   end;
@@ -1201,7 +1205,7 @@ begin
       getcpuregister(list,NR_R12);
       getcpuregister(list,NR_R2);
       cg.a_label(list,lab);
-      reference_reset_symbol(href,current_asmdata.RefAsmSymbol('.TOC.',AT_DATA),0,sizeof(PInt));
+      reference_reset_symbol(href,current_asmdata.RefAsmSymbol('.TOC.',AT_DATA),0,sizeof(PInt),[]);
       href.relsymbol:=lab;
       href.refaddr:=addr_higha;
       list.concat(taicpu.op_reg_reg_ref(a_addis,NR_R2,NR_R12,href));
@@ -1214,7 +1218,7 @@ begin
   calcFirstUsedGPR(firstreggpr, gprcount);
 
   { calculate real stack frame size }
-  localsize := tppcprocinfo(current_procinfo).calc_stackframe_size(
+  localsize := tcpuprocinfo(current_procinfo).calc_stackframe_size(
     gprcount, fprcount);
 
   { determine whether we need to save the link register }
@@ -1235,17 +1239,17 @@ begin
   save_standard_registers;
 
   { save old stack frame pointer }
-  if (tppcprocinfo(current_procinfo).needs_frame_pointer) then
+  if (tcpuprocinfo(current_procinfo).needs_frame_pointer) then
     list.concat(taicpu.op_reg_reg(A_MR, NR_OLD_STACK_POINTER_REG, NR_STACK_POINTER_REG));
 
   { create stack frame }
   if (not nostackframe) and (localsize > 0) and
-     tppcprocinfo(current_procinfo).needstackframe then begin
+     tcpuprocinfo(current_procinfo).needstackframe then begin
     if (localsize <= high(smallint)) then begin
-      reference_reset_base(href, NR_STACK_POINTER_REG, -localsize, 8);
+      reference_reset_base(href, NR_STACK_POINTER_REG, -localsize, ctempposinvalid, 8, []);
       a_load_store(list, A_STDU, NR_STACK_POINTER_REG, href);
     end else begin
-      reference_reset_base(href, NR_NO, -localsize, 8);
+      reference_reset_base(href, NR_NO, -localsize, ctempposinvalid, 8, []);
 
       { Use R0 for loading the constant (which is definitely > 32k when entering
        this branch).
@@ -1281,7 +1285,7 @@ end;
  is called.
 
  IMPORTANT: registers are not to be allocated through the register
- allocator here, because the register colouring has already occured !!
+ allocator here, because the register colouring has already occurred !!
 }
 procedure tcgppc.g_proc_exit(list: TAsmList; parasize: longint; nostackframe:
   boolean);
@@ -1327,7 +1331,7 @@ var
     end else begin
       needsExitCode := true;
       { restore registers, FPU first, GPR next }
-      reference_reset_base(href, NR_STACK_POINTER_REG, -tcgsize2size[OS_FLOAT], 8);
+      reference_reset_base(href, NR_STACK_POINTER_REG, -tcgsize2size[OS_FLOAT], ctempposinvalid, 8, []);
       if (fprcount > 0) then
         for regcount := RS_F31 downto firstregfpu do begin
           a_loadfpu_ref_reg(list, OS_FLOAT, OS_FLOAT, href, newreg(R_FPUREGISTER, regcount,
@@ -1348,7 +1352,7 @@ var
 
       { restore LR (if needed) }
       if (needslinkreg) then begin
-        reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_SYSV, 8);
+        reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_SYSV, ctempposinvalid, 8, []);
         list.concat(taicpu.op_reg_ref(A_LD, NR_R0, href));
         list.concat(taicpu.op_reg(A_MTLR, NR_R0));
       end;
@@ -1375,17 +1379,17 @@ begin
      ([cs_lineinfo, cs_debuginfo] * current_settings.moduleswitches <> []));
 
   { calculate stack frame }
-  localsize := tppcprocinfo(current_procinfo).calc_stackframe_size(
+  localsize := tcpuprocinfo(current_procinfo).calc_stackframe_size(
     gprcount, fprcount);
   { CR register not supported }
 
   { restore stack pointer }
   if (not nostackframe) and (localsize > 0) and
-    tppcprocinfo(current_procinfo).needstackframe then begin
+    tcpuprocinfo(current_procinfo).needstackframe then begin
     if (localsize <= high(smallint)) then begin
       list.concat(taicpu.op_reg_reg_const(A_ADDI, NR_STACK_POINTER_REG, NR_STACK_POINTER_REG, localsize));
     end else begin
-      reference_reset_base(href, NR_NO, localsize, 8);
+      reference_reset_base(href, NR_NO, localsize, ctempposinvalid, 8, []);
 
       { use R0 for loading the constant (which is definitely > 32k when entering
        this branch)
@@ -1434,7 +1438,7 @@ begin
   if (assigned(ref2.symbol) or (hasLargeOffset(ref2))) then begin
     { add the symbol's value to the base of the reference, and if the }
     { reference doesn't have a base, create one                       }
-    reference_reset(tmpref, ref2.alignment);
+    reference_reset(tmpref, ref2.alignment, ref2.volatility);
     tmpref.offset := ref2.offset;
     tmpref.symbol := ref2.symbol;
     tmpref.relsymbol := ref2.relsymbol;
@@ -1510,8 +1514,6 @@ var
 
 begin
 {$IFDEF extdebug}
-  if len > high(aint) then
-    internalerror(2002072704);
   list.concat(tai_comment.create(strpnew('g_concatcopy1 ' + inttostr(len) + ' bytes left ')));
 {$ENDIF extdebug}
   { if the references are equal, exit, there is no need to copy anything }
@@ -1570,8 +1572,8 @@ begin
     end;
 
   tempreg:=getintregister(list,size);
-  reference_reset(src,source.alignment);
-  reference_reset(dst,dest.alignment);
+  reference_reset(src,source.alignment,source.volatility);
+  reference_reset(dst,dest.alignment,dest.volatility);
   { load the address of source into src.base }
   if (count > 4) or
     not issimpleref(source) or
@@ -1664,7 +1666,7 @@ const
   overflowops = [OP_MUL,OP_SHL,OP_ADD,OP_SUB,OP_NOT,OP_NEG];
 begin
   {$IFDEF EXTDEBUG}
-  list.concat(tai_comment.create(strpnew('maybeadjustresult op = ' + cgop2string(op) + ' size = ' + cgsize2string(size))));
+  list.concat(tai_comment.create(strpnew('maybeadjustresult op = ' + cgop2string(op) + ' size = ' + tcgsize2str(size))));
   {$ENDIF EXTDEBUG}
 
   if (op in overflowops) and (size in [OS_8, OS_S8, OS_16, OS_S16, OS_32, OS_S32]) then
@@ -1710,6 +1712,8 @@ procedure tcgppc.a_load_store(list: TAsmList; op: tasmop; reg: tregister;
             end;
             ref.offset := (ref.offset div 4) * 4;
           end;
+        else
+          ;
       end;
     end;
 
@@ -1758,7 +1762,7 @@ begin
       ref.offset := 0;
     end;
 
-    reference_reset(tmpref, ref.alignment);
+    reference_reset(tmpref, ref.alignment, ref.volatility);
     tmpref.symbol := ref.symbol;
     tmpref.relsymbol := ref.relsymbol;
     tmpref.offset := ref.offset;
@@ -1794,7 +1798,7 @@ begin
       end else
         a_load_const_reg(list, OS_ADDR, tmpref.offset, tmpreg2);
 
-      reference_reset(tmpref, ref.alignment);
+      reference_reset(tmpref, ref.alignment, ref.volatility);
       tmpref.base := ref.base;
       tmpref.index := tmpreg2;
       case op of
@@ -1858,12 +1862,12 @@ begin
   symname := '_$' + current_asmdata.name^ + '$toc$' + hexstr(a, sizeof(a)*2);
   l:=current_asmdata.getasmsymbol(symname);
   if not(assigned(l)) then begin
-    l:=current_asmdata.DefineAsmSymbol(symname,AB_GLOBAL, AT_DATA);
+    l:=current_asmdata.DefineAsmSymbol(symname,AB_GLOBAL, AT_METADATA, voidpointertype);
     new_section(current_asmdata.asmlists[al_picdata],sec_toc, '.toc', 8);
     current_asmdata.asmlists[al_picdata].concat(tai_symbol.create_global(l,0));
     current_asmdata.asmlists[al_picdata].concat(tai_directive.create(asd_toc_entry, symname + '[TC], ' + inttostr(a)));
   end;
-  reference_reset_symbol(ref,l,0, 8);
+  reference_reset_symbol(ref,l,0,8,[]);
   ref.base := NR_R2;
   ref.refaddr := addr_no;
 

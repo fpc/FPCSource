@@ -347,7 +347,12 @@ var zn:byte;
 begin
   if group_pos=0 then
     begin
-      inc(group_no);
+      { Code changed to avoid range/overflow check errors
+        where compiled with -Cr or -Co options. }
+      if group_no=high(group_no) then
+        group_no:=0
+      else
+        inc(group_no);
       group_pos:=group_size;
       gsel:=selector[group_no];
       gminlen:=minlens[gsel];
@@ -426,7 +431,7 @@ begin
             error(SDecodingError,bzip2_data_error);
           while es>0 do
             begin
-              tt^[t]:=n;
+              tt^[t]:=ntole(cardinal(n));
               dec(es);
               inc(t);
             end;
@@ -471,7 +476,7 @@ begin
                 move_mtf_block;
             end;
           inc(cftab[seq_to_unseq[n]]);
-          tt^[t]:=cardinal(seq_to_unseq[n]);
+          tt^[t]:=ntole(cardinal(seq_to_unseq[n]));
           inc(t);
           if t>100000*blocksize then
             error(SDecodingError,bzip2_data_error);
@@ -503,9 +508,9 @@ begin
   q:=p+tt_count;
   while p<>q do
     begin
-      r:=@tt^[cftab[p^ and $ff]];
-      inc(cftab[p^ and $ff]);
-      r^:=r^ or a;
+      r:=@tt^[cftab[ntole(p^) and $ff]];
+      inc(cftab[ntole(p^) and $ff]);
+      r^:=r^ or ntole(a);
       inc(a,256);
       inc(p);
     end;
@@ -563,7 +568,7 @@ Function TDecompressBzip2Stream.new_block : Boolean;
 begin
   Result:=decode_block;
   If result then
-    nextrle:=@tt^[tt^[block_origin] shr 8]
+    nextrle:=@tt^[ntole(tt^[block_origin]) shr 8]
   else
     nextrle:=nil;
 end;
@@ -575,7 +580,7 @@ Function TDecompressBzip2Stream.consume_rle : Boolean;inline;
 
 begin
 {  Pcardinal(nextrle)^:=Pcardinal(nextrle)^ shr 8;}
-  nextrle:=@tt^[Pcardinal(nextrle)^ shr 8];
+  nextrle:=@tt^[ntole(Pcardinal(nextrle)^) shr 8];
   dec(decode_available);
   if decode_available=0 then
     Result:=new_block
@@ -652,7 +657,7 @@ begin
         nextrle:=nil;
         error(SDecodingError,bzip2_endoffile);
         end;
-      nextrle:=@tt^[tt^[block_origin] shr 8];
+      nextrle:=@tt^[ntole(tt^[block_origin]) shr 8];
     end;
   Result:=rle_read(bufptr,count);
 end;

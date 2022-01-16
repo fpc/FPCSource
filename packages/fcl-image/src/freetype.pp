@@ -15,9 +15,11 @@
 {$mode objfpc}{$h+}
 unit freetype;
 
+{$DEFINE DYNAMIC}
+
 interface
 
-uses sysutils, classes, freetypeh, FPImgCmn;
+uses sysutils, classes, {$IFDEF DYNAMIC}freetypehdyn{$ELSE}freetypeh{$ENDIF}, FPImgCmn;
 
 { TODO : take resolution in account to find the size }
 { TODO : speed optimization: search glyphs with a hash-function/tree/binary search/... }
@@ -29,7 +31,7 @@ uses sysutils, classes, freetypeh, FPImgCmn;
               fontfiles and faces available in a fontfile }
 
 // determine if file comparison need to be case sensitive or not
-{$ifdef WIN32}
+{$ifdef windows}
   {$undef CaseSense}
 {$else}
   {$define CaseSense}
@@ -42,17 +44,16 @@ type
   TBitmapType = (btBlackWhite, bt256Gray);
   TFontBitmap = record
     height, width, pitch,
-    x,y, advanceX, advanceY : integer;
+    x,y, bearingX, bearingY, advanceX, advanceY : integer;
     data : PByteArray;
   end;
   PFontBitmap = ^TFontBitmap;
 
 
-  TStringBitMaps = class
+  TBaseStringBitMaps = class
     private
       FList : TList;
       FBounds : TRect;
-      FText : string;
       FMode : TBitmapType;
       function GetCount : integer;
       function GetBitmap (index:integer) : PFontBitmap;
@@ -61,17 +62,30 @@ type
       constructor Create (ACount : integer);
       destructor destroy; override;
       procedure GetBoundRect (out aRect : TRect);
-      property Text : string read FText;
       property Mode : TBitmapType read FMode;
       property Count : integer read GetCount;
       property Bitmaps[index:integer] : PFontBitmap read GetBitmap;
+  end;
+
+  TStringBitMaps = class(TBaseStringBitMaps)
+    private
+      FText : STring;
+    public
+      property Text : string read FText;
+  end;
+
+  TUnicodeStringBitMaps = class(TBaseStringBitMaps)
+  private
+    FText : UnicodeString;
+  public
+    property Text : Unicodestring read FText;
   end;
 
   TFontManager = class;
 
   PMgrGlyph = ^TMgrGlyph;
   TMgrGlyph = record
-    Character : char;
+    Character : unicodechar;
     GlyphIndex : FT_UInt;
     Glyph : PFT_Glyph;
   end;
@@ -109,33 +123,41 @@ type
       function GetSearchPath : string;
       procedure SetSearchPath (AValue : string);
       procedure SetExtention (AValue : string);
+      Procedure DoMakeString (Text : Array of cardinal; ABitmaps  : TBaseStringBitmaps);
+      Procedure DoMakeString (Text : Array of cardinal; angle: real; ABitmaps  : TBaseStringBitmaps);
     protected
       function GetFontId (afilename:string; anindex:integer) : integer;
       function CreateFont (afilename:string; anindex:integer) : integer;
-      function SearchFont (afilename:string) : string;
       function GetFont (FontID:integer) : TMgrFont;
       procedure GetSize (aSize, aResolution : integer);
       function CreateSize (aSize, aResolution : integer) : PMgrSize;
       procedure SetPixelSize (aSize, aResolution : integer);
-      function GetGlyph (c : char) : PMgrGlyph;
-      function CreateGlyph (c : char) : PMgrGlyph;
+      function GetGlyph (c : cardinal) : PMgrGlyph;
+      function CreateGlyph (c : cardinal) : PMgrGlyph;
       procedure MakeTransformation (angle:real; out Transformation:FT_Matrix);
-      procedure InitMakeString (FontID, Size:integer);
-      function MakeString (FontId:integer; Text:string; size:integer; angle:real) : TStringBitmaps;
-      function MakeString (FontId:integer; Text:string; Size:integer) : TStringBitmaps;
+      procedure InitMakeString (FontID, Size:real);
+      function MakeString (FontId:integer; Text:string; size:real; angle:real) : TStringBitmaps;
+      function MakeString (FontId:integer; Text:string; Size:real) : TStringBitmaps;
+      function MakeString (FontId:integer; Text:Unicodestring; size:real; angle:real) : TUnicodeStringBitmaps;
+      function MakeString (FontId:integer; Text:Unicodestring; Size:real) : TUnicodeStringBitmaps;
     public
       constructor Create;
       destructor destroy; override;
+      function SearchFont(afilename: string; doraise: boolean=true): string;
       function RequestFont (afilename:string) : integer;
       function RequestFont (afilename:string; anindex:integer) : integer;
       function GetFreeTypeFont (aFontID:integer) : PFT_Face;
-      function GetString (FontId:integer; Text:string; size:integer; angle:real) : TStringBitmaps;
+      function GetString (FontId:integer; Text:string; size:real; angle:real) : TStringBitmaps;
+      function GetString (FontId:integer; Text:Unicodestring; size:real; angle:real) : TUnicodeStringBitmaps;
       // Black and white
-      function GetStringGray (FontId:integer; Text:string; size:integer; angle:real) : TStringBitmaps;
+      function GetStringGray (FontId:integer; Text:string; size:real; angle:real) : TStringBitmaps;
+      function GetStringGray (FontId:integer; Text:unicodestring; size:real; angle:real) : TUnicodeStringBitmaps;
       // Anti Aliased gray scale
-      function GetString (FontId:integer; Text:string; Size:integer) : TStringBitmaps;
+      function GetString (FontId:integer; Text:string; Size:real) : TStringBitmaps;
+      function GetString (FontId:integer; Text:Unicodestring; Size:real) : TUnicodeStringBitmaps;
       // Black and white, following the direction of the font (left to right, top to bottom, ...)
-      function GetStringGray (FontId:integer; Text:string; Size:integer) : TStringBitmaps;
+      function GetStringGray (FontId:integer; Text: String; Size:real) : TStringBitmaps;
+      function GetStringGray (FontId:integer; Text:Unicodestring; Size:real) : TUnicodeStringBitmaps;
       // Anti Aliased gray scale, following the direction of the font (left to right, top to bottom, ...)
       property SearchPath : string read GetSearchPath write SetSearchPath;
       property DefaultExtention : string read FExtention write SetExtention;
@@ -173,12 +195,10 @@ const
   {$IFDEF MAC}
   DefaultResolution : integer = 72;
   {$ELSE}
-  DefaultResolution : integer = 97;
+  DefaultResolution : integer = 96;
   {$ENDIF}
 
 implementation
-
-{$IFDEF win32}uses dos;{$ENDIF}
 
 procedure FTError (Event:string; Err:integer);
 begin
@@ -295,6 +315,10 @@ begin
   inherited create;
   FList := Tlist.Create;
   FPaths := TStringList.Create;
+{$IFDEF DYNAMIC}
+  if Pointer(FT_Init_FreeType)=Nil then
+    InitializeFreetype();
+{$ENDIF}
   r := FT_Init_FreeType(FTLib);
   if r <> 0  then
     begin
@@ -381,11 +405,12 @@ begin
     AValue := '';
 end;
 
-function TFontManager.SearchFont (afilename:string) : string;
+function TFontManager.SearchFont (afilename:string; doraise : boolean = true) : string;
 // returns full filename of font, taking SearchPath in account
 var p,fn : string;
     r : integer;
 begin
+  Result:='';
   if (pos('.', afilename)=0) and (DefaultFontExtention<>'') then
     fn := afilename + DefaultFontExtention
   else
@@ -401,14 +426,12 @@ begin
       repeat
         dec (r);
       until (r < 0) or FileExists(FPaths[r]+fn);
-      if r < 0 then
-        raise FreeTypeException.CreateFmt (sErrFontFileNotFound, [fn])
-      else
-        result := FPaths[r]+fn;
+      if r >= 0 then
+        Result := FPaths[r]+fn;
       end
-    else
-      raise FreeTypeException.CreateFmt (sErrFontFileNotFound, [afilename]);
     end;
+  if (Result='') and doRaise then
+    raise FreeTypeException.CreateFmt (sErrFontFileNotFound, [fn])
 end;
 
 function TFontManager.GetFontId (afilename:string; anindex:integer) : integer;
@@ -495,8 +518,7 @@ procedure TFontManager.SetPixelSize (aSize, aResolution : integer);
       end;
   end;
 
-var s : longint;
-    Err : integer;
+var Err : integer;
 
 begin
   with Curfont, Font^ do
@@ -509,8 +531,7 @@ begin
       end
     else
       begin
-      s := aSize shl 6;
-      Err := FT_Set_char_size (Font, s, s, aResolution, aResolution);
+      Err := FT_Set_char_size (Font, aSize, aSize, aResolution, aResolution);
       if Err <> 0 then
         FTError (format(sErrSetCharSize,[aSize,aResolution]), Err);
       end;
@@ -527,13 +548,13 @@ begin
     end;
 end;
 
-function TFontManager.CreateGlyph (c : char) : PMgrGlyph;
+function TFontManager.CreateGlyph (c : cardinal) : PMgrGlyph;
 var e : integer;
 begin
   new (result);
   FillByte(Result^,SizeOf(Result),0);
-  result^.character := c;
-  result^.GlyphIndex := FT_Get_Char_Index (CurFont.font, ord(c));
+  result^.character := unicodechar(c);
+  result^.GlyphIndex := FT_Get_Char_Index (CurFont.font, c);
   //WriteFT_Face(CurFont.Font);
   e := FT_Load_Glyph (CurFont.font, result^.GlyphIndex, FT_Load_Default);
   if e <> 0 then
@@ -548,7 +569,7 @@ begin
   CurSize^.Glyphs.Add (result);
 end;
 
-function TFontManager.GetGlyph (c : char) : PMgrGlyph;
+function TFontManager.GetGlyph (c : cardinal) : PMgrGlyph;
 var r : integer;
 begin
   With CurSize^ do
@@ -556,7 +577,7 @@ begin
     r := Glyphs.Count;
     repeat
       dec (r)
-    until (r < 0) or (PMgrGlyph(Glyphs[r])^.character = c);
+    until (r < 0) or (PMgrGlyph(Glyphs[r])^.character = unicodechar(c));
     if r < 0 then
       result := CreateGlyph (c)
     else
@@ -564,35 +585,73 @@ begin
     end;
 end;
 
-procedure TFontManager.InitMakeString (FontID, Size:integer);
+procedure TFontManager.InitMakeString (FontID, Size:real);
 begin
-  GetSize (size,Resolution);
+  GetSize (round(size*64),Resolution);
   UseKerning := ((Curfont.font^.face_flags and FT_FACE_FLAG_KERNING) <> 0);
 end;
 
-function TFontManager.MakeString (FontId:integer; Text:string; size:integer; angle:real) : TStringBitmaps;
+function TFontManager.MakeString (FontId:integer; Text:string; size:real; angle:real) : TStringBitmaps;
+
+Var
+  T : Array of cardinal;
+  C,I : Integer;
+  U: UnicodeString;
+
+begin
+  CurFont := GetFont(FontID);
+  InitMakeString (FontID, Size);
+  U := UnicodeString(Text);
+  c := length(U);
+  result := TStringBitmaps.Create(c);
+  result.FText := Text;
+  SetLength(T,c);
+  For I:=1 to c do
+    T[I-1]:=Ord(U[i]);
+  DoMakeString(T,Angle,Result);
+end;
+
+function TFontManager.MakeString (FontId:integer; Text:Unicodestring; size:real; angle:real) : TUnicodeStringBitmaps;
+
+Var
+  T : Array of cardinal;
+  c,I : Integer;
+
+begin
+  CurFont := GetFont(FontID);
+  InitMakeString (FontID, Size);
+  c := length(text);
+  result := TUnicodeStringBitmaps.Create(c);
+  result.FText := Text;
+  SetLength(T,C);
+  For I:=1 to c do
+    T[I-1]:=Ord(Text[i]);
+  DoMakeString(T,Angle,Result);
+end;
+
+
+procedure TFontManager.DoMakeString(Text: Array of cardinal; angle:real; ABitmaps : TBaseStringBitmaps);
+
 var g : PMgrGlyph;
     bm : PFT_BitmapGlyph;
     gl : PFT_Glyph;
-    prevIndex, prevx, c, r, rx : integer;
+    prevIndex, prevx, r, rx : integer;
     pre, adv, pos, kern : FT_Vector;
     buf : PByteArray;
     reverse : boolean;
     trans : FT_Matrix;
+    FBM : PFontBitmap;
+
 begin
-  CurFont := GetFont(FontID);
   if  (Angle = 0) or   // no angle asked, or can't work with angles (not scalable)
       ((CurFont.Font^.face_flags and FT_FACE_FLAG_SCALABLE)=0) then
-    result := MakeString (FontID, Text, Size)
+    DoMakeString (Text, ABitmaps)
   else
     begin
-    InitMakeString (FontID, Size);
-    c := length(text);
-    result := TStringBitmaps.Create(c);
     if (CurRenderMode = FT_RENDER_MODE_MONO) then
-      result.FMode := btBlackWhite
+      ABitmaps.FMode := btBlackWhite
     else
-      result.FMode := bt256Gray;
+      ABitmaps.FMode := bt256Gray;
     MakeTransformation (angle, trans);
     prevIndex := 0;
     prevx := 0;
@@ -600,10 +659,10 @@ begin
     pos.y := 0;
     pre.x := 0;
     pre.y := 0;
-    for r := 0 to c-1 do
+    for r := 0 to Length(Text)-1 do
       begin
       // retrieve loaded glyph
-      g := GetGlyph (Text[r+1]);
+      g := GetGlyph (Text[r]);
       // check kerning
       if UseKerning and (g^.glyphindex <>0) and (PrevIndex <> 0) then
         begin
@@ -623,19 +682,25 @@ begin
       FTCheck(FT_Glyph_To_Bitmap (gl, CurRenderMode, nil, true),sErrMakingString4);
       // Copy what is needed to record
       bm := PFT_BitmapGlyph(gl);
-      with result.Bitmaps[r]^ do
+      FBM:=ABitmaps.Bitmaps[r];
+      with FBM^ do
         begin
         with gl^.advance do
           begin
-          advanceX := x div 64;
-          advanceY := y div 64;
+          // do not use shr 16 - rotated text can have negative advances
+          advanceX := x div 65536;
+          advanceY := y div 65536;
           end;
         with bm^ do
           begin
           height := bitmap.rows;
           width := bitmap.width;
-          x := {(pos.x div 64)} + left;  // transformed bitmap has correct x,y
-          y := {(pos.y div 64)} - top;   // not transformed has only a relative correction
+          // transformed bitmap has correct x,y
+          x := {(pos.x div 64)} + left;
+          y := {(pos.y div 64)} - top;
+          // bearings are not supported for rotated text (don't make sense)
+          bearingX := 0;
+          bearingY := 0;
           buf := PByteArray(bitmap.buffer);
           reverse := (bitmap.pitch < 0);
           if reverse then
@@ -649,8 +714,13 @@ begin
             begin
             pitch := bitmap.pitch;
             rx := pitch*height;
-            getmem (data, rx);
-            move (buf^[0], data^[0], rx);
+            if RX=0 then
+              Data:=Nil
+            else
+              begin
+              getmem (data, rx);
+              move (buf^[0], data^[0], rx);
+              end;
             end;
           end;
         end;
@@ -667,36 +737,71 @@ begin
       // finish rendered glyph
       FT_Done_Glyph (gl);
       end;
-    result.FText := Text;
-    result.CalculateGlobals;
+    ABitmaps.CalculateGlobals;
     end;
 end;
 
-function TFontManager.MakeString (FontId:integer; Text:string; Size:integer) : TStringBitmaps;
-var g : PMgrGlyph;
-    bm : PFT_BitmapGlyph;
-    gl : PFT_Glyph;
-    e, prevIndex, prevx, c, r, rx : integer;
-    pos, kern : FT_Vector;
-    buf : PByteArray;
-    reverse : boolean;
+function TFontManager.MakeString (FontId:integer; Text:string; Size:real) : TStringBitmaps;
+
+Var
+  T : Array of Cardinal;
+  C,I : Integer;
+  U : UnicodeString;
+  
+begin
+  CurFont := GetFont(FontID);
+  InitMakeString (FontID, Size);
+  U := UnicodeString(Text);
+  c := length(U);
+  result := TStringBitmaps.Create(c);
+  result.FText := Text;
+  SetLength(T,c);
+  For I:=1 to c do
+    T[I-1]:=Ord(U[i]);
+  DoMakeString(T,Result);
+end;
+
+function TFontManager.MakeString (FontId:integer; Text:Unicodestring; Size:real) : TUnicodeStringBitmaps;
+
+Var
+  T : Array of Cardinal;
+  C,I : Integer;
+  
 begin
   CurFont := GetFont(FontID);
   InitMakeString (FontID, Size);
   c := length(text);
-  result := TStringBitmaps.Create(c);
+  result := TUnicodeStringBitmaps.Create(c);
+  result.FText := Text;
+  SetLength(T,C);
+  For I:=1 to C do
+    T[I-1]:=Ord(Text[i]);
+  DoMakeString(T,Result);
+end;
+
+Procedure TFontManager.DoMakeString (Text : Array of cardinal; ABitmaps  : TBaseStringBitmaps);
+
+var g : PMgrGlyph;
+    bm : PFT_BitmapGlyph;
+    gl : PFT_Glyph;
+    e, prevIndex, prevx, r, rx : integer;
+    pos, kern : FT_Vector;
+    buf : PByteArray;
+    reverse : boolean;
+    bmpr : PFontBitmap;
+begin
   if (CurRenderMode = FT_RENDER_MODE_MONO) then
-    result.FMode := btBlackWhite
+    ABitmaps.FMode := btBlackWhite
   else
-    result.FMode := bt256Gray;
+    ABitmaps.FMode := bt256Gray;
   prevIndex := 0;
   prevx := 0;
   pos.x := 0;
   pos.y := 0;
-  for r := 0 to c-1 do
+  for r := 0 to length(text)-1 do
     begin
     // retrieve loaded glyph
-    g := GetGlyph (Text[r+1]);
+    g := GetGlyph (Text[r]);
     // check kerning
     if UseKerning and (g^.glyphindex <>0) and (PrevIndex <> 0) then
       begin
@@ -708,22 +813,29 @@ begin
       end;
     // render the glyph
     FTCheck(FT_Glyph_Copy (g^.glyph, gl),sErrMakingString1);
-    FTCheck(FT_Glyph_To_Bitmap (gl, CurRenderMode, @pos, true),sErrMakingString4);
+    FTCheck(FT_Glyph_To_Bitmap (gl, CurRenderMode, PFT_Vector(0), true),sErrMakingString4);
     // Copy what is needed to record
     bm := PFT_BitmapGlyph(gl);
-    with result.Bitmaps[r]^ do
+    bmpr := ABitmaps.Bitmaps[r];
+    with bmpr^ do
       begin
+      // glyph size including bearings all around
       with gl^.advance do
         begin
-        advanceX := x shr 6;
-        advanceY := y shr 6;
+        advanceX := x shr 16;
+        advanceY := y shr 16;
         end;
       with bm^ do
         begin
+        // glyph pixel size
         height := bitmap.rows;
         width := bitmap.width;
-        x := (pos.x shr 6) + left;   // transformed bitmap has correct x,y
-        y := (pos.y shr 6) - top;    // not transformed has only a relative correction
+        // origin of the glyph
+        x := pos.x shr 6;
+        y := pos.y shr 6;
+        // bearing - where the pixels start relative to x/y origin
+        bearingX := left;
+        bearingY := top;
         buf := PByteArray(bitmap.buffer);
         reverse := (bitmap.pitch < 0);
         if reverse then
@@ -743,28 +855,24 @@ begin
         end;
       end;
     // place position for next glyph
-    // The previous code in this place used shr 10, which
-    // produces wrongly spaced text and looks very ugly
-    // for more information see: http://bugs.freepascal.org/view.php?id=17156
-    pos.x := pos.x + (gl^.advance.x shr 11);
-    // pos.y := pos.y + (gl^.advance.y shr 6); // for angled texts also
+    // pos is in 26.6 format, whereas advance is in 16.16 format - we need (shr (16-6)) for the conversion
+    pos.x := pos.x + (gl^.advance.x shr 10);
     if prevx > pos.x then
       pos.x := prevx;
     // finish rendered glyph
     FT_Done_Glyph (gl);
     end;
-  result.FText := Text;
-  result.CalculateGlobals;
+  ABitmaps.CalculateGlobals;
 end;
 
-function TFontManager.GetString (FontId:integer; Text:string; size:integer; angle:real) : TStringBitmaps;
+function TFontManager.GetString (FontId:integer; Text:string; size:real; angle:real) : TStringBitmaps;
 // Black and white
 begin
   CurRenderMode := FT_RENDER_MODE_MONO;
   result := MakeString (FontID, text, Size, angle);
 end;
 
-function TFontManager.GetStringGray (FontId:integer; Text:string; size:integer; angle:real) : TStringBitmaps;
+function TFontManager.GetStringGray (FontId:integer; Text:string; size:real; angle:real) : TStringBitmaps;
 // Anti Aliased gray scale
 begin
   CurRenderMode := FT_RENDER_MODE_NORMAL;
@@ -773,14 +881,44 @@ end;
 
 { Procedures without angle have own implementation to have better speed }
 
-function TFontManager.GetString (FontId:integer; Text:string; Size:integer) : TStringBitmaps;
+function TFontManager.GetString (FontId:integer; Text:string; Size:real) : TStringBitmaps;
 // Black and white, following the direction of the font (left to right, top to bottom, ...)
 begin
   CurRenderMode := FT_RENDER_MODE_MONO;
   result := MakeString (FontID, text, Size);
 end;
 
-function TFontManager.GetStringGray (FontId:integer; Text:string; Size:integer) : TStringBitmaps;
+function TFontManager.GetStringGray (FontId:integer; Text:string; Size:real) : TStringBitmaps;
+// Anti Aliased gray scale, following the direction of the font (left to right, top to bottom, ...)
+begin
+  CurRenderMode := FT_RENDER_MODE_NORMAL;
+  result := MakeString (FontID, text, Size);
+end;
+
+function TFontManager.GetString (FontId:integer; Text:Unicodestring; size:real; angle:real) : TUnicodeStringBitmaps;
+// Black and white
+begin
+  CurRenderMode := FT_RENDER_MODE_MONO;
+  result := MakeString (FontID, text, Size, angle);
+end;
+
+function TFontManager.GetStringGray (FontId:integer; Text:Unicodestring; size:real; angle:real) : TUnicodeStringBitmaps;
+// Anti Aliased gray scale
+begin
+  CurRenderMode := FT_RENDER_MODE_NORMAL;
+  result := MakeString (FontID, text, Size, angle);
+end;
+
+{ Procedures without angle have own implementation to have better speed }
+
+function TFontManager.GetString (FontId:integer; Text:Unicodestring; Size:real) : TUnicodeStringBitmaps;
+// Black and white, following the direction of the font (left to right, top to bottom, ...)
+begin
+  CurRenderMode := FT_RENDER_MODE_MONO;
+  result := MakeString (FontID, text, Size);
+end;
+
+function TFontManager.GetStringGray (FontId:integer; Text:Unicodestring; Size:real) : TUnicodeStringBitmaps;
 // Anti Aliased gray scale, following the direction of the font (left to right, top to bottom, ...)
 begin
   CurRenderMode := FT_RENDER_MODE_NORMAL;
@@ -813,17 +951,17 @@ end;
 
 { TStringBitmaps }
 
-function TStringBitmaps.GetCount : integer;
+function TBaseStringBitmaps.GetCount : integer;
 begin
   result := FList.Count;
 end;
 
-function TStringBitmaps.GetBitmap (index:integer) : PFontBitmap;
+function TBaseStringBitmaps.GetBitmap (index:integer) : PFontBitmap;
 begin
   result := PFontBitmap(FList[index]);
 end;
 
-constructor TStringBitmaps.Create (ACount : integer);
+constructor TBaseStringBitmaps.Create (ACount : integer);
 var r : integer;
     bm : PFontBitmap;
 begin
@@ -833,11 +971,12 @@ begin
   for r := 0 to ACount-1 do
     begin
     new (bm);
+    FillChar(BM^,SizeOf(TFontBitmap),#0);
     FList.Add (bm);
     end;
 end;
 
-destructor TStringBitmaps.destroy;
+destructor TBaseStringBitmaps.destroy;
 var r : integer;
     bm : PFontBitmap;
 begin
@@ -851,57 +990,69 @@ begin
   inherited;
 end;
 
-procedure TStringBitmaps.CalculateGlobals;
-var r : integer;
+(*
+Procedure DumpBitmap(BM : PFontBitmap);
+
+begin
+  Writeln('Bitmap h: ',BM^.height,', w: ',BM^.width,', x:',BM^.x,', y: ',bm^.y);
+end;
+*)
+
+procedure TBAseStringBitmaps.CalculateGlobals;
+var
+  r : integer;
+  Bmp : PFontBitmap;
+
 begin
   if count = 0 then
     Exit;
-  // check first 2 bitmaps for left side
-  // check last 2 bitmaps for right side
-  with BitMaps[0]^ do
+  Bmp := Bitmaps[0];
+  with Bmp^ do
     begin
     FBounds.left := x;
-    FBounds.top := y + height;
-    FBounds.bottom := y;
+    FBounds.top := y + bearingY;
+    FBounds.bottom := y + bearingY - height;
     end;
-  with Bitmaps[count-1]^ do
-    FBounds.right := x + width;
-  if count > 1 then
+  Bmp := Bitmaps[Count-1];
+  With Bmp^ do
     begin
-    with Bitmaps[1]^ do
-      r := x;
-    if r < FBounds.left then
-      FBounds.left := r;
-    with Bitmaps[count-2]^ do
-      r := x + width;
-    if r > FBounds.right then
-      FBounds.right := r;
+    FBounds.right := x + advanceX;
+    // typographically it is not correct to check the real width of the character
+    //   because accents can exceed the advance (e.g. í - the dash goes beyond the character
+    //   but i and í should have the same width)
+    // on the other hand for some fonts the advance is always 1px short also for normal characters
+    //   and also with this we support rotated text
+    if FBounds.right < x + bearingX + width then
+      FBounds.right := x + bearingX + width;
     end;
   // check top/bottom of other bitmaps
   for r := 1 to count-1 do
-    with Bitmaps[r]^ do
+    begin
+    Bmp := Bitmaps[r];
+    with Bmp^ do
       begin
-      if FBounds.top < y + height then
-        FBounds.top := y + height;
-      if FBounds.bottom > y then
-        FBounds.bottom := y;
+      if FBounds.top < y + bearingY then
+        FBounds.top := y + bearingY;
+      if FBounds.bottom > y + bearingY - height then
+        FBounds.bottom := y + bearingY - height;
       end;
+    end;
 end;
 
-procedure TStringBitmaps.GetBoundRect (out aRect : TRect);
+procedure TBaseStringBitmaps.GetBoundRect (out aRect : TRect);
 begin
   aRect := FBounds;
 end;
 
-{$ifdef win32}
+{$ifdef WINDOWS}
 procedure SetWindowsFontPath;
 begin
-  DefaultSearchPath := includetrailingbackslash(GetEnv('windir')) + 'fonts';
+  DefaultSearchPath := includetrailingbackslash(GetEnvironmentVariable('windir')) + 'fonts';
 end;
 {$endif}
 
 initialization
-  {$ifdef win32}
+  {$ifdef WINDOWS}
   SetWindowsFontPath;
   {$endif}
 end.

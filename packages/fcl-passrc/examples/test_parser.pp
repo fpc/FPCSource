@@ -544,9 +544,9 @@ begin
     begin
      lifl:=TPasImplForLoop(lsmt);
      //TODO variable
-     write(s1,'for ',lifl.VariableName,':= ',lifl.StartValue,' ');
+     write(s1,'for ',lifl.Variable.Name,':= ',lifl.StartExpr.GetDeclaration(True),' ');
      if lifl.Down then write('down');
-     writeln('to ',lifl.EndValue,' do');
+     writeln('to ',lifl.EndExpr.GetDeclaration(True),' do');
      GetTPasImplBlock(TPasImplBlock(lifl),lindent+1,0,false,false);
      DoSem:=false;
     end
@@ -1147,8 +1147,8 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
       Result:=true;
       writeln(';');
       write(s,'case ');
-      if prct.VariantName <>'' then write(prct.VariantName,'=');
-      write(TPasType(prct.VariantType).Name);
+      if prct.VariantEl.GetDeclaration(True) <>'' then write(prct.VariantEl.GetDeclaration(True),'=');
+      write(TPasType(prct.VariantEl).Name);
       writeln(' of');
       if assigned(prct.Variants)then
        if prct.Variants.Count >0 then
@@ -1235,8 +1235,8 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
     if assigned(prct.Variants) then
      begin
       write(s1,'case ');
-      if prct.VariantName <>'' then write(prct.VariantName,'=');
-        write(TPasType(prct.VariantType).Name);
+      if prct.VariantEl.Name <>'' then write(prct.VariantEl.Name,'=');
+        write(TPasType(prct.VariantEl).Name);
       writeln(' of');
       if assigned(prct.Variants)then
        if prct.Variants.Count >0 then
@@ -1297,12 +1297,17 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
      ccSafeCall:WriteFmt(true,'SaveCall;',false);
    end;
   end;
-  
+
+  procedure GetHiddenModifiers(Mfs:TProcTypeModifiers);
+
+  begin
+   if ptmVarargs in Mfs then WriteFmt(true,'varargs;',false);
+  end;
+
  procedure GetHiddenModifiers(Mfs:TProcedureModifiers);
   begin
    if pmInline in Mfs then WriteFmt(true,'inline;',false);
    if pmAssembler in Mfs then WriteFmt(true,'assembler;',false);
-   if pmVarargs in Mfs then WriteFmt(true,'varargs;',false);
    if pmCompilerProc in Mfs then WriteFmt(true,'compilerproc;',false);
   end; 
 
@@ -1349,6 +1354,7 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
    if lpp.IsStatic then WriteFmt(true,'static;',false);
    if lpp.IsForward then WriteFmt(true,'forward;',false);
    GetHiddenModifiers(lpp.Modifiers);
+   GetHiddenModifiers(lpp.ProcType.Modifiers);
    GetTCallingConvention(lpp.CallingConvention);
    if GetTPasMemberHints(TPasElement(lpp).Hints) then WriteFmt(false,'',true); //BUG ? missing hints
    if not Unformated then writeln;
@@ -1443,7 +1449,7 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
    if assigned(pc) then
     begin
      s:=GetIndent(indent);
-     if (pc.ObjKind=okGeneric) then
+     if (pc.GenericTemplateTypes<>Nil) then
        begin
        write(s,'generic ',pc.Name);
        for l:=0 to pc.GenericTemplateTypes.Count-1 do
@@ -1459,30 +1465,10 @@ procedure GetTypes(pe:TPasElement; lindent:integer);
      else
        write(s,pc.Name,' = ');
      if pc.IsPacked then write('packed ');
-     case pc.ObjKind of
-      okObject:write('Object');
-      okClass:write('Class');
-      okInterface:write('Interface');
-      okGeneric:write('class');
-      okspecialize : write('specialize');
-     end;
+     write(ObjKindNames[pc.ObjKind]);
      if assigned(pc.AncestorType) and (pc.AncestorType.ElementTypeName <> '') then
         begin
-        if pc.ObjKind<>okspecialize then
-          write('(',pc.AncestorType.Name,')')
-        else
-          begin
-          write(' ',pc.AncestorType.Name);
-          for l:=0 to pc.GenericTemplateTypes.Count-1 do
-           begin
-           if l=0 then
-            Write('<')
-           else
-            Write(',');
-           Write(TPasGenericTemplateType(pc.GenericTemplateTypes[l]).Name);
-           end;
-          Write('>');
-          end;
+        write('(',pc.AncestorType.Name,')');
         end;
      if pc.IsForward or pc.IsShortDefinition then //pparser.pp: 3417 :class(anchestor); is allowed !
       begin

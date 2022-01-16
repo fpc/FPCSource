@@ -57,8 +57,11 @@ type
 
   tcpupointerdef = class(tx86pointerdef)
     class function default_x86_data_pointer_type: tx86pointertyp; override;
+    function alignment:shortint;override;
     function pointer_arithmetic_int_type:tdef; override;
+    function pointer_arithmetic_uint_type:tdef; override;
     function pointer_subtraction_result_type:tdef; override;
+    function converted_pointer_to_array_range_type: tdef; override;
   end;
   tcpupointerdefclass = class of tcpupointerdef;
 
@@ -75,6 +78,7 @@ type
   tcpuobjectdefclass = class of tcpuobjectdef;
 
   tcpuclassrefdef = class(tclassrefdef)
+    function alignment:shortint;override;
   end;
   tcpuclassrefdefclass = class of tcpuclassrefdef;
 
@@ -106,6 +110,12 @@ type
 
   tcpuprocvardef = class(ti86procvardef)
     constructor create(level:byte);override;
+    function getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp;const paraprefix:string):tstoreddef;override;
+    function address_type:tdef;override;
+    function ofs_address_type:tdef;override;
+    function size:asizeint;override;
+    procedure declared_far;override;
+    procedure declared_near;override;
     function is_far:boolean;
   end;
   tcpuprocvardefclass = class of tcpuprocvardef;
@@ -120,9 +130,13 @@ type
       - it has no 'near' or 'far' specifiers
       - it is compiled in a $F- state }
     function default_far:boolean;
+   protected
+    procedure Setinterfacedef(AValue: boolean);override;
    public
-    constructor create(level:byte);override;
+    constructor create(level:byte;doregister:boolean);override;
+    function getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp;const paraprefix:string):tstoreddef;override;
     function address_type:tdef;override;
+    function ofs_address_type:tdef;override;
     function size:asizeint;override;
     procedure declared_far;override;
     procedure declared_near;override;
@@ -150,6 +164,10 @@ type
   tcpuunitsym = class(tunitsym)
   end;
   tcpuunitsymclass = class of tcpuunitsym;
+
+  tcpuprogramparasym = class(tprogramparasym)
+  end;
+  tcpuprogramparasymclass = class(tprogramparasym);
 
   tcpunamespacesym = class(tnamespacesym)
   end;
@@ -233,7 +251,7 @@ implementation
     else if p is tcpuprocvardef then
       result:=tcpuprocvardef(p).is_far
     else
-      internalerror(2014041301);
+      internalerror(2014041303);
   end;
 
   { true if p is a far proc var }
@@ -254,25 +272,45 @@ implementation
       result:=(p.typ=pointerdef) and (tcpupointerdef(p).x86pointertyp=x86pt_huge);
     end;
 
+  procedure handle_procdef_copyas(src: tabstractprocdef; is_far: boolean; copytyp:tproccopytyp; var result: tabstractprocdef);
+    begin
+      if is_far then
+        include(result.procoptions,po_far)
+      else
+        exclude(result.procoptions,po_far);
+      case copytyp of
+        pc_far_address:
+          begin
+            include(result.procoptions,po_addressonly);
+            include(result.procoptions,po_far);
+          end;
+        pc_offset:
+          begin
+            include(result.procoptions,po_addressonly);
+            exclude(result.procoptions,po_far);
+          end;
+        else
+          ; {none}
+      end;
+    end;
+
+{****************************************************************************
+                               tcpuclassrefdef
+****************************************************************************}
+
+  function tcpuclassrefdef.alignment:shortint;
+    begin
+      Result:=2;
+    end;
+
 {****************************************************************************
                                tcpuarraydef
 ****************************************************************************}
 
   constructor tcpuarraydef.create_from_pointer(def: tpointerdef);
     begin
-      if tcpupointerdef(def).x86pointertyp=x86pt_huge then
-        begin
-          huge:=true;
-          { use -1 so that the elecount will not overflow }
-          self.create(0,high(asizeint)-1,s32inttype);
-          arrayoptions:=[ado_IsConvertedPointer];
-          setelementdef(def.pointeddef);
-        end
-      else
-        begin
-          huge:=false;
-          inherited create_from_pointer(def);
-        end;
+      huge:=tcpupointerdef(def).x86pointertyp=x86pt_huge;
+      inherited create_from_pointer(def);
     end;
 
 
@@ -309,13 +347,20 @@ implementation
                              tcpuprocdef
 ****************************************************************************}
 
-  constructor tcpuprocdef.create(level: byte);
+  constructor tcpuprocdef.create(level: byte;doregister:boolean);
     begin
-      inherited create(level);
+      inherited create(level,doregister);
       if (current_settings.x86memorymodel in x86_far_code_models) and
          ((cs_huge_code in current_settings.moduleswitches) or
           (cs_force_far_calls in current_settings.localswitches)) then
         procoptions:=procoptions+[po_far];
+    end;
+
+
+  function tcpuprocdef.getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp;const paraprefix:string):tstoreddef;
+    begin
+      result:=inherited;
+      handle_procdef_copyas(self,is_far,copytyp,tabstractprocdef(result));
     end;
 
 
@@ -328,6 +373,12 @@ implementation
     end;
 
 
+  function tcpuprocdef.ofs_address_type:tdef;
+    begin
+      result:=voidnearpointertype;
+    end;
+
+
   function tcpuprocdef.size: asizeint;
     begin
       result:=address_type.size;
@@ -336,18 +387,18 @@ implementation
 
   procedure tcpuprocdef.declared_far;
     begin
-      if current_settings.x86memorymodel in x86_far_code_models then
-        include(procoptions,po_far)
-      else
-        inherited declared_far;
+      include(procoptions,po_far);
+      include(procoptions,po_hasnearfarcallmodel);
     end;
 
 
   procedure tcpuprocdef.declared_near;
     begin
-      if (current_settings.x86memorymodel in x86_far_code_models) and
-         not (cs_huge_code in current_settings.moduleswitches) then
-        exclude(procoptions,po_far)
+      if not (cs_huge_code in current_settings.moduleswitches) then
+        begin
+          exclude(procoptions,po_far);
+          include(procoptions,po_hasnearfarcallmodel);
+        end
       else
         inherited declared_near;
     end;
@@ -370,10 +421,19 @@ implementation
     end;
 
 
+  procedure tcpuprocdef.Setinterfacedef(AValue: boolean);
+    begin
+      inherited;
+      if (current_settings.x86memorymodel in x86_far_code_models) and AValue then
+        include(procoptions,po_far);
+    end;
+
+
   function tcpuprocdef.is_far: boolean;
     begin
-      result:=(current_settings.x86memorymodel in x86_far_code_models) and
-        ((po_far in procoptions) or default_far);
+      result:=(po_exports in procoptions) or
+              (po_far in procoptions) or
+              ((current_settings.x86memorymodel in x86_far_code_models) and default_far);
     end;
 
 {****************************************************************************
@@ -383,16 +443,84 @@ implementation
   constructor tcpuprocvardef.create(level: byte);
     begin
       inherited create(level);
-      { procvars are always far in the far code memory models }
       if current_settings.x86memorymodel in x86_far_code_models then
         procoptions:=procoptions+[po_far];
     end;
 
 
+  function tcpuprocvardef.getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp;const paraprefix:string):tstoreddef;
+    begin
+      result:=inherited;
+      handle_procdef_copyas(self,is_far,copytyp,tabstractprocdef(result));
+    end;
+
+
+  function tcpuprocvardef.address_type:tdef;
+    begin
+      if is_addressonly then
+        if is_far then
+          result:=voidfarpointertype
+        else
+          begin
+            { near }
+            if current_settings.x86memorymodel=mm_tiny then
+              result:=voidnearpointertype
+            else
+              result:=voidnearcspointertype;
+          end
+      else
+        result:=inherited;
+    end;
+
+
+  function tcpuprocvardef.ofs_address_type:tdef;
+    begin
+      result:=voidnearpointertype;
+    end;
+
+
+  function tcpuprocvardef.size:asizeint;
+    begin
+      if is_addressonly then
+        if is_far then
+          result:=4
+        else
+          result:=2
+      else
+        result:=inherited;
+    end;
+
+
+  procedure tcpuprocvardef.declared_far;
+    begin
+      if is_addressonly then
+        begin
+          include(procoptions,po_far);
+          include(procoptions,po_hasnearfarcallmodel);
+        end
+      else
+        inherited;
+    end;
+
+
+  procedure tcpuprocvardef.declared_near;
+    begin
+      if is_addressonly then
+        begin
+          exclude(procoptions,po_far);
+          include(procoptions,po_hasnearfarcallmodel);
+        end
+      else
+        inherited;
+    end;
+
+
   function tcpuprocvardef.is_far: boolean;
     begin
-      { procvars are always far in the far code memory models }
-      result:=current_settings.x86memorymodel in x86_far_code_models;
+      if is_addressonly then
+        result:=po_far in procoptions
+      else
+        result:=current_settings.x86memorymodel in x86_far_code_models;
     end;
 
 {****************************************************************************
@@ -408,12 +536,47 @@ implementation
       end;
 
 
+    function tcpupointerdef.alignment:shortint;
+      begin
+        { on i8086, we use 16-bit alignment for all pointer types, even far and
+          huge (which are 4 bytes long) }
+        result:=2;
+      end;
+
+
     function tcpupointerdef.pointer_arithmetic_int_type:tdef;
       begin
-        if x86pointertyp=x86pt_huge then
-          result:=s32inttype
-        else
-          result:=inherited;
+        case x86pointertyp of
+          x86pt_huge:
+            result:=s32inttype;
+          x86pt_far,
+          x86pt_near,
+          x86pt_near_cs,
+          x86pt_near_ds,
+          x86pt_near_ss,
+          x86pt_near_es,
+          x86pt_near_fs,
+          x86pt_near_gs:
+            result:=s16inttype;
+        end;
+      end;
+
+
+    function tcpupointerdef.pointer_arithmetic_uint_type:tdef;
+      begin
+        case x86pointertyp of
+          x86pt_huge:
+            result:=u32inttype;
+          x86pt_far,
+          x86pt_near,
+          x86pt_near_cs,
+          x86pt_near_ds,
+          x86pt_near_ss,
+          x86pt_near_es,
+          x86pt_near_fs,
+          x86pt_near_gs:
+            result:=u16inttype;
+        end;
       end;
 
 
@@ -424,8 +587,32 @@ implementation
             result:=s32inttype;
           x86pt_far:
             result:=u16inttype;
-          else
-            result:=inherited;
+          x86pt_near,
+          x86pt_near_cs,
+          x86pt_near_ds,
+          x86pt_near_ss,
+          x86pt_near_es,
+          x86pt_near_fs,
+          x86pt_near_gs:
+            result:=s16inttype;
+        end;
+      end;
+
+
+    function tcpupointerdef.converted_pointer_to_array_range_type: tdef;
+      begin
+        case x86pointertyp of
+          x86pt_huge:
+            result:=s32inttype;
+          x86pt_far,
+          x86pt_near,
+          x86pt_near_cs,
+          x86pt_near_ds,
+          x86pt_near_ss,
+          x86pt_near_es,
+          x86pt_near_fs,
+          x86pt_near_gs:
+            result:=s16inttype;
         end;
       end;
 
@@ -474,6 +661,7 @@ begin
   { used tsym classes }
   clabelsym:=tcpulabelsym;
   cunitsym:=tcpuunitsym;
+  cprogramparasym:=tcpuprogramparasym;
   cnamespacesym:=tcpunamespacesym;
   cprocsym:=tcpuprocsym;
   ctypesym:=tcputypesym;
@@ -486,7 +674,5 @@ begin
   cconstsym:=tcpuconstsym;
   cenumsym:=tcpuenumsym;
   csyssym:=tcpusyssym;
-
-  cPtrDefHashSet:=tx86PtrDefHashSet;
 end.
 

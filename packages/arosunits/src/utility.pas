@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utility;
 
-{$mode objfpc}{$H+}
 {$PACKRECORDS C}
 
 interface
@@ -33,18 +32,18 @@ type
     Year: Word;
     WDay: Word;
   end;
-  
+
 // Use CALLHOOKPKT to call a hook
   PHook = ^THook;
   THookFunctionProc = function(Hook: PHook; Object_: APTR; Message: APTR): IPTR; cdecl;
-  
+
   THook = record
     h_MinNode: TMinNode;
     h_Entry: IPTR;    // Main Entry point THookFunctionProc
     h_SubEntry: IPTR; // Secondary entry point
     h_Data: Pointer;     // owner specific
   end;
-  
+
 // The named object structure
   PNamedObject = ^TNamedObject;
   TNamedObject = record
@@ -66,16 +65,16 @@ const
 
 //   Control attributes for Pack/UnpackStructureTags()
 { PackTable definition:
- 
+
   The PackTable is a simple array of LONGWORDS that are evaluated by
   PackStructureTags() and UnpackStructureTags().
- 
+
   The table contains compressed information such as the tag offset from
   the base tag. The tag offset has a limited range so the base tag is
   defined in the first longword.
- 
+
   After the first longword, the fields look as follows:
- 
+
        +--------- 1 = signed, 0 = unsigned (for bits, 1=inverted boolean)
        |
        |  +------ 00 = Pack/Unpack, 10 = Pack, 01 = Unpack, 11 = special
@@ -91,11 +90,11 @@ const
        Bit offset (for bit operations) ----/ |               |
                                              \                       |
        Offset into data structure -----------------------------------/
- 
+
   A -1 longword signifies that the next longword will be a new base tag
- 
+
   A 0 longword signifies that it is the end of the pack table.
- 
+
   What this implies is that there are only 13-bits of address offset
   and 10 bits for tag offsets from the base tag.  For most uses this
   should be enough, but when this is not, either multiple pack tables
@@ -108,7 +107,7 @@ const
   PSTB_PACK   = 29;       // Note that these are active low...
   PSTF_PACK   = 1 shl 29;
   PSTB_UNPACK = 30;       // Note that these are active low...
-  PSTF_UNPACK = 1 shl 30;  
+  PSTF_UNPACK = 1 shl 30;
   PSTB_SIGNED = 31;
   PSTF_SIGNED = 1 shl 31;
 
@@ -199,7 +198,7 @@ const
   MAP_REMOVE_NOT_FOUND = 0; // remove tags that aren't in mapList
   MAP_KEEP_NOT_FOUND   = 1; // keep tags that aren't in mapList
 
-  UTILITYNAME	= 'utility.library';
+  UTILITYNAME = 'utility.library';
 
 type
   PUtilityBase = ^TUtilityBase;
@@ -209,87 +208,144 @@ type
     ub_Reserved: Byte;
   end;
 
-function AddNamedObject(NameSpace, Object_: PNamedObject): LongBool; syscall AOS_UtilityBase 37;
-function AllocateTagItems(Num: LongWord): PTagItem; syscall AOS_UtilityBase 11;
-function AllocNamedObjectA(const Name: STRPTR; TagList: PTagItem): PNamedObject; syscall AOS_UtilityBase 38;
-procedure Amiga2Date(Seconds: LongWord; Resultat: PClockData); syscall AOS_UtilityBase 20;
-procedure ApplyTagChanges(List: PTagItem; ChangeList: PTagItem); syscall AOS_UtilityBase 31;
-function AttemptRemNamedObject(Object_: PNamedObject): LongInt; syscall AOS_UtilityBase 39;
-function CallHookPkt(Hook: PHook; Object_, ParamPaket: APTR): IPTR; syscall AOS_UtilityBase 17;
-function CheckDate(Date: PClockData): LongWord; syscall AOS_UtilityBase 22;
-function CloneTagItems(const TagList: PTagItem): PTagItem; syscall AOS_UtilityBase 12;
-function Date2Amiga(Date: PClockData): LongWord; syscall AOS_UtilityBase 21;
-procedure FilterTagChanges(ChangeList: PTagItem; const Oldvalues: PTagItem; Apply: LongBool); syscall AOS_UtilityBase 9;
-function FilterTagItems(TagList: PTagItem; FilterArray: PTag; Logic: LongWord): LongWord; syscall AOS_UtilityBase 16;
-function FindNamedObject(NameSpace: PNamedObject; const Name: STRPTR; LastObject: PNamedObject): PNamedObject; syscall AOS_UtilityBase 40;
 function FindTagItem(TagValue: Tag; const TagList: PTagItem): PTagItem; syscall AOS_UtilityBase 5;
-procedure FreeNamedObject(Object_: PNamedObject); syscall AOS_UtilityBase 41;
-procedure FreeTagItems(TagList: PTagItem); syscall AOS_UtilityBase 13;
 function GetTagData(TagValue: Tag; Default: IPTR; const TagList: PTagItem): IPTR; syscall AOS_UtilityBase 6;
-function GetUniqueID: LongWord; syscall AOS_UtilityBase 45;
-procedure MapTags(TagList: PTagItem; const MapList: PTagItem; MapType: LongWord); syscall AOS_UtilityBase 10;
-function NamedObjectName(Object_: PNamedObject): STRPTR; syscall AOS_UtilityBase 42;
-function NextTagItem(var Item: PTagItem): PTagItem; syscall AOS_UtilityBase 8;
 function PackBoolTags(InitialFlags: LongWord; const TagList, BoolMap: PTagItem): IPTR; syscall AOS_UtilityBase 7;
-function PackStructureTags(Pack: APTR; PackTable: PLongWord; TagList: PTagItem): LongWord; syscall AOS_UtilityBase 35;
+function NextTagItem(var Item: PTagItem): PTagItem; overload; syscall AOS_UtilityBase 8;
+function NextTagItem(ItemPtr: PPTagItem): PTagItem; overload; syscall AOS_UtilityBase 8;
+procedure FilterTagChanges(ChangeList: PTagItem; const Oldvalues: PTagItem; Apply: LongBool); syscall AOS_UtilityBase 9;
+procedure MapTags(TagList: PTagItem; const MapList: PTagItem; MapType: LongWord); syscall AOS_UtilityBase 10;
+function AllocateTagItems(Num: LongWord): PTagItem; syscall AOS_UtilityBase 11;
+function CloneTagItems(const TagList: PTagItem): PTagItem; syscall AOS_UtilityBase 12;
+procedure FreeTagItems(TagList: PTagItem); syscall AOS_UtilityBase 13;
 procedure RefreshTagItemClones(Clone: PTagItem; const Original: PTagItem); syscall AOS_UtilityBase 14;
-procedure ReleaseNamedObject(Object_: PNamedObject); syscall AOS_UtilityBase 43;
-procedure RemNamedObject(Object_: PNamedObject; Message: PMessage); syscall AOS_UtilityBase 44;
-function SDivMod32(Dividend, Divisor: LongInt): Int64; syscall AOS_UtilityBase 25;
+function TagInArray(TagValue: Tag; TagArray: PTag): LongBool; syscall AOS_UtilityBase 15;
+function FilterTagItems(TagList: PTagItem; FilterArray: PTag; Logic: LongWord): LongWord; syscall AOS_UtilityBase 16;
+function CallHookPkt(Hook: PHook; Object_, ParamPaket: APTR): IPTR; syscall AOS_UtilityBase 17;
+procedure Amiga2Date(Seconds: LongWord; Resultat: PClockData); syscall AOS_UtilityBase 20;
+function Date2Amiga(Date: PClockData): LongWord; syscall AOS_UtilityBase 21;
+function CheckDate(Date: PClockData): LongWord; syscall AOS_UtilityBase 22;
 function SMult32(Arg1, Arg2: LongInt): LongInt; syscall AOS_UtilityBase 23;
-function SMult64(Arg1, Arg2: LongInt): Int64; syscall AOS_UtilityBase 33;
+function UMult32(Arg1, Arg2: LongWord): LongWord; syscall AOS_UtilityBase 24;
+function SDivMod32(Dividend, Divisor: LongInt): Int64; syscall AOS_UtilityBase 25;
+function UDivMod32(Dividend, Divisor: LongWord): LongWord; syscall AOS_UtilityBase 26;
 function Stricmp(const Str1: STRPTR; const Str2: STRPTR): LongInt; syscall AOS_UtilityBase 27;
 function Strnicmp(const Str1: STRPTR; const Str2 : STRPTR; Length_: LongInt): LongInt; syscall AOS_UtilityBase 28;
-function TagInArray(TagValue: Tag; TagArray: PTag): LongBool; syscall AOS_UtilityBase 15;
-function ToLower(c: LongWord): Char; syscall AOS_UtilityBase 30;
 function ToUpper(c: LongWord): Char; syscall AOS_UtilityBase 29;
-function UDivMod32(Dividend, Divisor: LongWord): LongWord; syscall AOS_UtilityBase 26;
-function UMult32(Arg1, Arg2: LongWord): LongWord; syscall AOS_UtilityBase 24;
+function ToLower(c: LongWord): Char; syscall AOS_UtilityBase 30;
+procedure ApplyTagChanges(List: PTagItem; ChangeList: PTagItem); syscall AOS_UtilityBase 31;
+function SMult64(Arg1, Arg2: LongInt): Int64; syscall AOS_UtilityBase 33;
 function UMult64(Arg1, Arg2: LongWord): QWord; syscall AOS_UtilityBase 34;
+function PackStructureTags(Pack: APTR; PackTable: PLongWord; TagList: PTagItem): LongWord; syscall AOS_UtilityBase 35;
 function UnpackStructureTags(Pack: APTR; PackTable: PLongWord; TagList: PTagItem): LongWord; syscall AOS_UtilityBase 36;
+function AddNamedObject(NameSpace, Object_: PNamedObject): LongBool; syscall AOS_UtilityBase 37;
+function AllocNamedObjectA(const Name: STRPTR; TagList: PTagItem): PNamedObject; syscall AOS_UtilityBase 38;
+function AttemptRemNamedObject(Object_: PNamedObject): LongInt; syscall AOS_UtilityBase 39;
+function FindNamedObject(NameSpace: PNamedObject; const Name: STRPTR; LastObject: PNamedObject): PNamedObject; syscall AOS_UtilityBase 40;
+procedure FreeNamedObject(Object_: PNamedObject); syscall AOS_UtilityBase 41;
+function NamedObjectName(Object_: PNamedObject): STRPTR; syscall AOS_UtilityBase 42;
+procedure ReleaseNamedObject(Object_: PNamedObject); syscall AOS_UtilityBase 43;
+procedure RemNamedObject(Object_: PNamedObject; Message: PMessage); syscall AOS_UtilityBase 44;
+function GetUniqueID: LongWord; syscall AOS_UtilityBase 45;
 
 // Macros
 function CALLHOOKPKT_(Hook: PHook; Object_: APTR; Message: APTR): IPTR; inline;
-function TAGLIST(var Args: array of const): PTagItem; // NOT threadsafe! Better use AddTags/GetTagPtr
 
 // VarArgs Versions
-function AllocNamedObject(const Name: STRPTR; const Tags: array of const): PNamedObject;
-function CallHook(Hook: PHook; Object_: APTR; const Params: array of const): IPTR;
+function AllocNamedObject(const Name: STRPTR; const Tags: array of PtrUInt): PNamedObject;
+function CallHook(Hook: PHook; Object_: APTR; const Params: array of PtrUInt): IPTR;
+
+function TAG_(Value: Pointer): PtrUInt; overload; inline;
+function TAG_(Value: PChar): PtrUInt; overload; inline;
+function TAG_(Value: boolean): PtrUInt; overload; inline;
+function TAG_(Value: LongInt): PtrUInt; overload; inline;
+function TAG_(Value: LongWord): PtrUInt; overload; inline;
+
+function AsTag(Value: Pointer): PtrUInt; overload; inline;
+function AsTag(Value: PChar): PtrUInt; overload; inline;
+function AsTag(Value: boolean): PtrUInt; overload; inline;
+function AsTag(Value: LongInt): PtrUInt; overload; inline;
+function AsTag(Value: LongWord): PtrUInt; overload; inline;
 
 implementation
 
-uses
-  tagsarray,longarray;
-
-function AllocNamedObject(const Name: STRPTR; const Tags: array of const): PNamedObject;
-var
-  TagList: TTagsList;
+function AllocNamedObject(const Name: STRPTR; const Tags: array of PtrUInt): PNamedObject; inline;
 begin
-  AddTags(TagList, Tags);
-  Result := AllocNamedObjectA(Name, GetTagPtr(TagList));
-end;
-  
-function TAGLIST(var Args: array of const): PTagItem;
-begin
-  Result := ReadInTags(Args);
+  AllocNamedObject := AllocNamedObjectA(Name, @Tags);
 end;
 
-function CallHook(Hook: PHook; Object_: APTR; const Params: array of const): IPTR;
+function CallHook(Hook: PHook; Object_: APTR; const Params: array of PtrUInt): IPTR; inline;
 begin
-  CallHook := CallHookPkt(Hook, Object_ , ReadInLongs(Params));
+  CallHook := CallHookPkt(Hook, Object_ , @Params);
 end;
 
 function CALLHOOKPKT_(Hook: PHook; Object_: APTR; Message: APTR): IPTR;
 var
-  FuncPtr: THookFunctionProc; 
+  FuncPtr: THookFunctionProc;
 begin
-  Result := 0;
+  CALLHOOKPKT_ := 0;
   if (Hook = nil) or (Object_ = nil) or (Message = nil) then
     Exit;
   if (Hook^.h_Entry = 0) then
     Exit;
   FuncPtr := THookFunctionProc(Hook^.h_Entry);
-  Result := FuncPtr(Hook, Object_, Message);
+  CALLHOOKPKT_ := FuncPtr(Hook, Object_, Message);
+end;
+
+function TAG_(Value: pointer): PtrUInt; inline;
+begin
+  TAG_ := PtrUInt(Value);
+end;
+
+function TAG_(value: pchar): PtrUInt; inline;
+begin
+  TAG_ := PtrUInt(Value);
+end;
+
+function TAG_(value: boolean): PtrUInt; inline;
+begin
+  if Value then
+    TAG_ := LTrue
+  else
+    TAG_ := LFalse;
+end;
+
+function TAG_(Value: LongInt): PtrUInt; inline;
+begin
+  TAG_ := PtrUInt(Value);
+end;
+
+function TAG_(Value: LongWord): PtrUInt; inline;
+begin
+  TAG_ := PtrUInt(Value);
+end;
+
+function AsTag(Value: pointer): PtrUInt; inline;
+begin
+  AsTag := PtrUInt(Value);
+end;
+
+function AsTag(value: pchar): PtrUInt; inline;
+begin
+  AsTag := PtrUInt(Value);
+end;
+
+function AsTag(value: boolean): PtrUInt; inline;
+begin
+  if Value then
+    AsTag := LTrue
+  else
+    AsTag := LFalse;
+end;
+
+function AsTag(Value: LongInt): PtrUInt; inline;
+begin
+  AsTag := PtrUInt(Value);
+end;
+
+function AsTag(Value: LongWord): PtrUInt; inline;
+begin
+  AsTag := PtrUInt(Value);
 end;
 
 end.

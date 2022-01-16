@@ -8,15 +8,20 @@ main=rtl
 [target]
 loaders=$(LOADERS)
 units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(CPU_UNITS) \
-      uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil \
+      uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil \
       fpintres heaptrc lineinfo lnfodwrf termio unix linux initc cmem \
       linuxvcs sysutils typinfo math charset cpall character \
       getopts errors dl dynlibs \
-      types  sysconst cthreads classes fgl  \
-      rtlconsts dos cwstring fpcylix unixcp fpwidestring
+      types  sysconst cthreads sortbase classes fgl  \
+      rtlconsts dos cwstring fpcylix unixcp fpwidestring \
+      softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
+      cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 \
+      cp863 cp864 cp865 cp866 cp869 cp874 cp3021 cp8859_1 cp8859_2 cp8859_3 cp8859_4 \
+      cp8859_5 cp8859_6 cp8859_7 cp8859_8 cp8859_9 cp8859_10 cp8859_11 \
+      cp8859_13 cp8859_14 cp8859_15 cp8859_16 cpkoi8_r cpkoi8_u \
+      unicodedata  unicodenumtable
 rsts=math  typinfo  sysconst rtlconsts
 
 [require]
@@ -43,7 +48,7 @@ libunits=$(SYSTEMUNIT) objpas strings dos \
       sysutils typinfo math \
       $(CPU_UNITS) getopts \
       errors sockets \
-      classes fgl sysconst rtlconsts \
+      sortbase classes fgl sysconst rtlconsts \
 
 [prerules]
 RTL=..
@@ -61,8 +66,11 @@ SYSINIT_UNITS=
 
 LOADERS=prt0 dllprt0
 
+ifeq ($(findstring $(ARCH),i386 x86_64 arm),$(ARCH))
+CPU_UNITS=cpu
+endif
 ifeq ($(ARCH),i386)
-CPU_UNITS=cpu mmx
+CPU_UNITS+=mmx
 endif
 
 SYSTEMUNIT=system
@@ -82,6 +90,7 @@ OBJPASDIR=$(RTL)/objpas
 # SYSINCNAMES
 include $(INC)/makefile.inc
 SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
+SYSINCDEPS:=$(SYSINCDEPS) sysandroidh.inc sysandroid.inc
 
 # Get the processor dependent include file names.
 # This will set the following variables :
@@ -102,23 +111,28 @@ ifeq ($(ARCH),mipsel)
   ASTARGET=-mips32 -KPIC
 endif
 
+ifneq ($(findstring $(ARCH),aarch64 x86_64),)
+  CPUBITS=64
+else
+  CPUBITS=32
+endif
 
 #
 # Loaders
 #
 
-prt0$(OEXT) : $(ARCH)/prt0.as
-        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(ARCH)/prt0.as
+prt0$(OEXT) : prt0.as
+        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) --defsym CPU$(CPUBITS)=1 prt0.as
 
-dllprt0$(OEXT) : $(ARCH)/dllprt0.as
-        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(ARCH)/dllprt0.as
+dllprt0$(OEXT) : dllprt0.as
+        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) --defsym CPU$(CPUBITS)=1 dllprt0.as
 
 #
 # $(SYSTEMUNIT) Units ($(SYSTEMUNIT), Objpas, Strings)
 #
 
 $(SYSTEMUNIT)$(PPUEXT) : $(LINUXINC)/$(SYSTEMUNIT).pp $(SYSDEPS)
-        $(COMPILER) -Us -Sg $(LINUXINC)/$(SYSTEMUNIT).pp
+        $(COMPILER) $(FPC_SYSTEM_OPT) -Us -Sg $(LINUXINC)/$(SYSTEMUNIT).pp
 
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
 	$(COMPILER) $(INC)/uuchar.pp
@@ -137,7 +151,7 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 
 unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) baseunix$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
                  $(LINUXINC)/unxconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) \
-                 $(LINUXINC)/unxfunc.inc
+                 $(LINUXINC)/unxfunc.inc unixandroid.inc cwstring$(PPUEXT)
         $(COMPILER) $(UNIXINC)/unix.pp
 
 syscall$(PPUEXT) : $(UNIXINC)/syscall.pp $(LINUXINC)/$(ARCH)/syscallh.inc $(LINUXINC)/$(ARCH)/sysnr.inc $(SYSTEMUNIT)$(PPUEXT)
@@ -156,7 +170,7 @@ baseunix$(PPUEXT) : $(UNIXINC)/baseunix.pp $(LINUXINC)/errno.inc $(LINUXINC)/pty
   $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(UNIXINC)/baseunix.pp
 
-dl$(PPUEXT) : $(UNIXINC)/dl.pp $(SYSTEMUNIT)$(PPUEXT) dlandroid.inc
+dl$(PPUEXT) : $(UNIXINC)/dl.pp $(SYSTEMUNIT)$(PPUEXT) ctypes$(PPUEXT) dlandroid.inc
         $(COMPILER) $(UNIXINC)/dl.pp
 
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT)
@@ -185,7 +199,7 @@ sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.in
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) fgl$(PPUEXT)
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) fgl$(PPUEXT) sortbase$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT)
@@ -197,10 +211,10 @@ character$(PPUEXT): $(OBJPASDIR)/character.pas objpas$(PPUEXT) sysutils$(PPUEXT)
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/math.pp
 
-fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
+fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT) sortbase$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fgl.pp
 
-types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
@@ -220,7 +234,7 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 # Other $(SYSTEMUNIT)-independent RTL Units
 #
 
-ifeq ($(ARCH),x86_64)
+ifneq ($(findstring $(ARCH),x86_64 i386),)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) sysutils$(PPUEXT)
 else
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
@@ -236,10 +250,10 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp
 
-lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(INC)/lineinfo.pp
 
-lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
+lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) lineinfo$(PPUEXT)
         $(COMPILER) $(INC)/lnfodwrf.pp
 
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
@@ -250,6 +264,9 @@ cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 
 iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/iso7185.pp
+
+extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/extpas.pp
 
 fpintres$(PPUEXT) : $(INC)/fpintres.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/fpintres.pp
@@ -290,3 +307,20 @@ linux$(PPUEXT) : $(LINUXINC)/linux.pp $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT) u
 linuxvcs$(PPUEXT) : $(LINUXINC)/linuxvcs.pp $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT) strings$(PPUEXT)
         $(COMPILER) $(LINUXINC)/linuxvcs.pp
 
+sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/sortbase.pp
+
+softfpu$(PPUEXT) : $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
+	$(COMPILER) $<
+
+sfpux80$(PPUEXT) : $(INC)/sfpux80.pp $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
+	$(COMPILER) $<
+
+sfpu128$(PPUEXT) : $(INC)/sfpu128.pp $(INC)/softfpu.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
+	$(COMPILER) $<
+
+ufloatx80$(PPUEXT) : $(INC)/ufloatx80.pp sfpux80$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+
+ufloat128$(PPUEXT) : $(INC)/ufloat128.pp sfpu128$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<

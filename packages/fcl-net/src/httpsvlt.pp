@@ -478,7 +478,7 @@ begin
     except
       on e: Exception do
       begin
-        s := 'An error occured: ' + ' ' + e.Message;
+        s := 'An error occurred: ' + ' ' + e.Message;
         ResponseHeader.ContentType := 'text/plain';
         ResponseStream.Write(s[1], Length(s));
       end;

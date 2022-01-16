@@ -3,15 +3,13 @@
  
      Contains:   Public interfaces for LaunchServices.framework
  
-     Copyright:  Copyright 2003-2009 by Apple Inc., all rights reserved.
+     Copyright:  (c) 2003-2012 by Apple Inc. All rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
  
                      http://bugs.freepascal.org
 }
-{	 Pascal Translation: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
-{	 Updated Pascal Translation: Jonas Maebe <jonas@freepascal.org>, September 2012 }
 
 
 {
@@ -22,6 +20,7 @@
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
+{$modeswitch cblocks}
 {$packenum 1}
 {$macro on}
 {$inline on}
@@ -114,7 +113,7 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-{$ifc defined(iphonesim)}
+{$ifc defined iphonesim}
  	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
@@ -131,7 +130,7 @@ interface
 	{$setc TARGET_CPU_X86_64 := TRUE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-{$ifc defined(iphonesim)}
+{$ifc defined iphonesim}
  	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
@@ -148,7 +147,6 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := TRUE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-	{ will require compiler define when/if other Apple devices with ARM cpus ship }
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
@@ -160,11 +158,16 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := TRUE}
-	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+{$ifc defined ios}
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
-	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 	{$setc TARGET_OS_EMBEDDED := TRUE}
+{$elsec}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
+{$endc}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ nor __arm64__ is defined.}
 {$endc}
@@ -294,7 +297,7 @@ type
  *      launch the document. Can be NULL.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -331,7 +334,7 @@ function LSOpenFSRef( const (*var*) inRef: FSRef; outLaunchedRef: FSRefPtr { can
  *      CALLER MUST EVENTUALLY RELEASE THE RETURNED URL REFERENCE.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -362,7 +365,7 @@ function LSOpenCFURLRef( inURL: CFURLRef; outLaunchedURL: CFURLRefPtr { can be N
  *      launch the document. Can be NULL.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -395,7 +398,7 @@ function LSOpenFromRefSpec( const (*var*) inLaunchSpec: LSLaunchFSRefSpec; outLa
  *      CALLER MUST EVENTUALLY RELEASE THE RETURNED URL REFERENCE.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
@@ -455,7 +458,7 @@ type
  *    Thread safe since version 10.4
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
@@ -497,7 +500,7 @@ function LSOpenApplication( const (*var*) appParams: LSApplicationParameters; ou
  *    Thread safe since version 10.4
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
@@ -542,7 +545,7 @@ function LSOpenItemsWithRole( const (*var*) inItems: FSRef; inItemCount: CFIndex
  *    Thread safe since version 10.4
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }

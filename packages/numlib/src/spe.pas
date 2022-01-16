@@ -20,6 +20,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$mode objfpc}{$H+}
+{$modeswitch nestedprocvars}
+
 unit spe;
 {$I DIRECT.INC}
 
@@ -57,8 +60,16 @@ function speent(x: ArbFloat): longint;
 {  Errorfunction ( 2/sqrt(pi)* Int(t,0,pi,exp(sqr(t)) )}
 function speerf(x: ArbFloat): ArbFloat;
 
-{  Errorfunction's complement ( 2/sqrt(pi)* Int(t,pi,inf,exp(sqr(t)) )}
+{  Errorfunction's complement ( 2/sqrt(pi)* Int(t,pi,inf,exp(sqr(t))) )}
 function speefc(x: ArbFloat): ArbFloat;
+
+{  Calculates the cumulative normal distribution
+   N(x) = 1/sqrt(2*pi) * Int(t, -INF, x, exp(t^2/2) ) }
+function normaldist(x: ArbFloat): ArbFloat;
+
+{  Inverse of cumulative normal distribution:
+   Returns x such that y = normaldist(x) }
+function invnormaldist(y: ArbFloat): ArbFloat;
 
 {  Function to calculate the Gamma function ( int(t,0,inf,t^(x-1)*exp(-t)) }
 function spegam(x: ArbFloat): ArbFloat;
@@ -66,44 +77,110 @@ function spegam(x: ArbFloat): ArbFloat;
 {  Function to calculate the natural logaritm of the Gamma function}
 function spelga(x: ArbFloat): ArbFloat;
 
-{  "Calculates" the maximum of two ArbFloat values     }
-function spemax(a, b: ArbFloat): ArbFloat;
+{  Function to calculate the lower incomplete Gamma function
+     int(t,0,x,exp(-t)t^(s-1)) / spegam(s)  (s > 0) }
+function gammap(s, x: ArbFloat): ArbFloat;
 
-{  Calculates the functionvalue of a polynomalfunction with n coefficients in a
-for variable X }
+{  Function to calculate the upper incomplete Gamma function
+     int(t,x,inf,exp(-t)t^(s-1)) / spegam(s)  (s > 0)
+     gammaq(s,x) = 1 - gammap(s,x) }
+function gammaq(s, x: ArbFloat): ArbFloat;
+function invgammaq(s, y: ArbFloat): ArbFloat;
+
+{  Function to calculate the (complete) beta function
+      beta(a, b) = int(t, 0, 1, t^(a-1) * (1-t)^(b-1) with a > 0, b > 0
+      beta(a, b) = spegam(a) * spegam(b) / spegam(a + b) }
+function beta(a, b: ArbFloat): ArbFloat;
+
+{  Function to calculate the (regularized) incomplete beta function
+      betai(a, b, x) = int(t, 0, x, t^(x-1) * (1-t)^(y-1) ) / beta(a,b) }
+function betai(a, b, x: ArbFloat): ArbFloat;
+function invbetai(a, b, y: ArbFloat; eps: ArbFloat = 0.0): ArbFloat;
+
+{ Function to calculate the cumulative chi2 distribution with n degrees of
+  freedom (upper tail) }
+function chi2dist(x: ArbFloat; n: ArbInt): ArbFloat;
+function invchi2dist(y: Arbfloat; n: ArbInt): ArbFloat;
+
+{  Function to calculate Student's t distribution with n degrees of freedom
+   (cumulative, upper tail if Tails = 1, else both tails }
+type
+  TNumTails = 1..2;
+
+function tdist(t: ArbFloat; n: ArbInt; Tails: TNumTails): ArbFloat;
+function invtdist(y: ArbFloat; n: ArbInt; Tails: TNumTails; eps: ArbFloat = 0.0): ArbFloat;
+
+{  Function to calculate the cumulative F distribution function of value F
+   with n1 and n2 degrees of freedom }
+function Fdist(F: ArbFloat; n1, n2: ArbInt): ArbFloat;
+function invFdist(p: ArbFloat; n1, n2: ArbInt; eps: ArbFloat = 0.0): ArbFloat;
+
+{  "Calculates" the maximum of two ArbFloat values     }
+function spemax(a, b: ArbFloat): ArbFloat; deprecated 'Use max(a,b) in unit math.';
+
+{  Calculates the function value of a polynomial of degree n for variable x.
+   The polynomial coefficients a are ordered from lowest to highest degree term.
+     y = a0 + a1 x + a2 x^2 + ... + an x^n }
 function spepol(x: ArbFloat; var a: ArbFloat; n: ArbInt): ArbFloat;
 
 { Calc a^b with a and b real numbers}
-function spepow(a, b: ArbFloat): ArbFloat;
+function spepow(a, b: ArbFloat): ArbFloat; deprecated 'Use power(a,b) in unit math.';
 
 { Returns sign of x (-1 for x<0, 0 for x=0 and 1 for x>0)  }
-function spesgn(x: ArbFloat): ArbInt;
+function spesgn(x: ArbFloat): ArbInt;  deprecated 'Use sign(x) in unit math.';
 
 {  ArcSin(x) }
-function spears(x: ArbFloat): ArbFloat;
+function spears(x: ArbFloat): ArbFloat; deprecated 'Use arcsin(x) in unit math.';
 
 {  ArcCos(x) }
-function spearc(x: ArbFloat): ArbFloat;
+function spearc(x: ArbFloat): ArbFloat; deprecated 'Use arccos(x) in unit math.';
 
 {  Sinh(x) }
-function spesih(x: ArbFloat): ArbFloat;
+function spesih(x: ArbFloat): ArbFloat; deprecated 'Use sinh(x) in unit math.';
 
 {  Cosh(x) }
-function specoh(x: ArbFloat): ArbFloat;
+function specoh(x: ArbFloat): ArbFloat; deprecated 'Use cosh(x) in unit math.';
 
 {  Tanh(x) }
-function spetah(x: ArbFloat): ArbFloat;
+function spetah(x: ArbFloat): ArbFloat; deprecated 'Use tanh(x) in unit math.';
 
 {  ArcSinH(x) }
-function speash(x: ArbFloat): ArbFloat;
+function speash(x: ArbFloat): ArbFloat; deprecated 'Use arcsinh(x) in unit math.';
 
 {  ArcCosh(x) }
-function speach(x: ArbFloat): ArbFloat;
+function speach(x: ArbFloat): ArbFloat; deprecated 'Use arccosh(x) in unit math';
 
 {  ArcTanH(x) }
-function speath(x: ArbFloat): ArbFloat;
+function speath(x: ArbFloat): ArbFloat; deprecated 'Use arctanh(x) in unit math';
+
+{ Error numbers used within this unit:
+
+  401 - function spebk0(x) is not defined for x <= 0.
+  402 - function spebk1(x) is not defined for x <= 0.
+  403 - function speby0(x) is not defined for x <= 0.
+  404 - function speby1(x) is not defined for x <= 0.
+  405 - function speach(x) is not defined for x < 1
+  406 - function speath(x) is not defined for x <= -1 or x >= 1
+  407 - function spgam(x): x is too small or too large.
+  408 - function splga(x) cannot be calculated for x <= 0, or x is too large.
+  409 - function spears(s, x) is not defined for x < -1 or x > 1
+  410 - function gammap(s, x) is not defined for s <= 0 or x < 0
+  411 - function gammaq(s, x) is not defined for s <= 0 or x < 0
+  412 - function beta(a, b) is not defined for a <= 0 or b <= 0
+  413 - function betai(a, b, x) is not defined for a <= 0 or b <= 0
+  414 - function betai(a, b, x) is not defined for x < 0 or x > 0
+  415 - function invtdist(t, n) is not defined for t <= 0 or t >= 1 or n <= 0.
+}
 
 implementation
+
+uses
+  math, roo;
+
+const
+  SQRT2 = 1.4142135623730950488016887242097;   // sqrt(2)
+  SQRT2PI = 2.506628274631000502415765284811;  // sqrt(2*pi)
+  EXP_2 = 0.13533528323661269189399949497248;  // exp(-2)
 
 function spebi0(x: ArbFloat): ArbFloat;
 
@@ -869,6 +946,120 @@ begin
     end
 end {speefc};
 
+{ N(x) = 1/sqrt(2 pi) int(-INF, x, exp(t^2/2) = (1 + erf(x/sqrt(2))) / 2 }
+function normaldist(x: ArbFloat): ArbFloat;
+begin
+  Result := 0.5 * (1.0 + speerf(x / SQRT2));
+end;
+
+function invnormaldist(y: ArbFloat): ArbFloat;
+{ Ref.: Moshier, "Methods and programs for mathematical function" }
+const
+  P0: array[0..4] of ArbFloat = (
+    -1.23916583867381258016,
+    13.9312609387279679503,
+    -56.6762857469070293439,
+    98.0010754185999661536,
+    -59.9633501014107895267);
+  Q0: array[0..8] of ArbFloat = (
+    -1.18331621121330003142,
+    15.9056225126211695515,
+    -82.0372256168333339912,
+    200.260212380060660359,
+    -225.462687854119370527,
+    86.3602421390890590575,
+    4.67627912898881538453,
+    1.95448858338141759834,
+    1.0);
+  P1: array[0..8] of ArbFloat = (
+    -8.57456785154685413611E-4,
+    -3.50424626827848203418E-2,
+    -1.40256079171354495875E-1,
+    2.18663306850790267539,
+    14.6849561928858024014,
+    44.0805073893200834700,
+    57.1628192246421288162,
+    31.5251094599893866154,
+    4.05544892305962419923);
+  Q1: array[0..8] of Arbfloat = (
+    -9.33259480895457427372E-4,
+    -3.80806407691578277194E-2,
+    -1.42182922854787788574E-1,
+    2.50464946208309415979,
+    15.0425385692907503408,
+    41.3172038254672030440,
+    45.3907635128879210584,
+    15.7799883256466749731,
+    1.0);
+  P2: array[0..8] of ArbFloat = (
+    6.23974539184983293730E-9,
+    2.65806974686737550832E-6,
+    3.01581553508235416007E-4,
+    1.23716634817820021358E-2,
+    2.01485389549179081538E-1,
+    1.33303460815807542389,
+    3.93881025292474443415,
+    6.91522889068984211695,
+    3.23774891776946035970);
+  Q2: array[0..8] of ArbFloat = (
+    6.79019408009981274425E-9,
+    2.89247864745380683936E-6,
+    3.28014464682127739104E-4,
+    1.34204006088543189037E-2,
+    2.16236993594496635890E-1,
+    1.37702099489081330271,
+    3.67983563856160859403,
+    6.02427039364742014255,
+    1.0);
+var
+  x, x0, x1: ArbFloat;
+  yy, y2: ArbFloat;
+  z: ArbFloat;
+  code: Integer;
+begin
+  if y <= 0.0 then
+  begin
+    Result := -giant;
+    exit;
+  end;
+
+  if y >= 1.0 then
+  begin
+    Result := +giant;
+    exit;
+  end;
+
+  code := 1;
+  yy := y;
+  if yy > 1.0 - EXP_2 then begin    // EXP_2 = exp(-2)
+    yy := 1.0 - yy;
+    code := 0;
+  end;
+
+  if yy > EXP_2 then begin
+    yy := yy - 0.5;
+    y2 := yy * yy;
+    x := y2 * spepol(y2, P0[0], 4) / spepol(y2, Q0[0], 8);
+    x := (yy + yy * x) * SQRT2PI;   // SQRT2PI = sqrt(2*pi);
+    Result := x;
+    exit;
+  end;
+
+  x := sqrt(-2.0 * ln(yy));
+  x0 := x - ln(x) / x;
+  z := 1.0 / x;
+
+  if x < 8.0 then
+    x1 := z * spepol(z, P1[0], 8) / spepol(z, Q1[0], 8)
+  else
+    x1 := z * spepol(z, P2[0], 8) / spepol(z, Q2[0], 8);
+
+  x := x0 - x1;
+  if code <> 0 then
+    x := -x;
+  Result := x;
+end;
+
 function spegam(x: ArbFloat): ArbFloat;
 const
 
@@ -1003,6 +1194,307 @@ begin
     RunError(408)
 end; {spelga}
 
+{ Implements power series expansion for lower incomplete gamma function
+  according to
+  https://en.wikipedia.org/wiki/Incomplete_gamma_function#Evaluation_formulae
+    gamma(s, x) = sum {k = 0 to inf, x^s exp(-x) x^k / (s (s+1) ... (s+k) ) }
+  Converges rapidly for x < s + 1 }
+function gammaser(s, x: ArbFloat): ArbFloat;
+const
+  MAX_IT = 100;
+  EPS = 1E-7;
+var
+  delta: Arbfloat;
+  sum: ArbFloat;
+  k: Integer;
+  lngamma: ArbFloat;
+begin
+  delta := 1 / s;
+  sum := delta;
+  for k := 1 to MAX_IT do begin
+    delta := delta * x / (s + k);
+    sum := sum + delta;
+    if delta < EPS then break;
+  end;
+  lngamma := spelga(s);  // log of complete gamma(s)
+  Result := exp(s * ln(x) - x + ln(sum) - lngamma);
+end;
+
+type
+  TCFFunc = function(n: Integer): ArbFloat is nested;
+
+{ Calculates the continued fraction a0 + (b1 / (a1 + b2 / (a2 + b3 / (a3 + b4 /...))))
+  using convergents.
+  Ref.: http://lib.dr.iastate.edu/cgi/viewcontent.cgi?article=8639&context=rtd
+    nth convergent: wn = P(n)/Q(n).
+    P(n) = a(n) P(n-1) + b(n) P(n-2)
+    Q(n) = a(n) Q(n-1) + b(n) Q(n-2)
+    P(-1) = 1, P(0) = a(0), Q(-1) = 0, Q(0) = 1 }
+function CalcCF(funca, funcb: TCfFunc; MaxIt: Integer; Eps: ArbFloat): ArbFloat;
+var
+  Pn, Pn1, Pn2: ArbFloat;
+  Qn, Qn1, Qn2: ArbFloat;
+  it: Integer;
+  prev: ArbFloat;
+  a, b: ArbFloat;
+begin
+  Pn2 := 1.0;
+  Pn1 := funca(0);
+  Qn2 := 0.0;
+  Qn1 := 1.0;
+  prev := Giant;
+  for it := 1 to MaxIt do begin
+    a := funca(it);
+    b := funcb(it);
+    Pn := a * Pn1 + b * Pn2;
+    Qn := a * Qn1 + b * Qn2;
+    Result := Pn/Qn;
+    if abs(Result - prev) < EPS * abs(Result) then
+      exit;
+    prev := Result;
+    Pn2 := Pn1;
+    Pn1 := Pn;
+    Qn2 := Qn1;
+    Qn1 := Qn;
+  end;
+end;
+
+
+{ calculates the upper incomplete gamma function using its continued
+  fraction expansion
+  https://en.wikipedia.org/wiki/Incomplete_gamma_function#Connection_with_Kummer.27s_confluent_hypergeometric_function }
+function gammacf(s, x: ArbFloat): ArbFloat;
+
+  function funca(i: Integer): ArbFloat;
+  begin
+    if i = 0 then
+      Result := 0
+    else
+    if odd(i) then
+      Result := x
+    else
+      Result := 1;
+  end;
+
+  function funcb(i: Integer): ArbFloat;
+  begin
+    if i = 1 then
+      Result := 1
+    else
+    if odd(i) then
+      Result := (i-1) div 2
+    else
+      Result := i div 2 - s;
+  end;
+
+const
+  MAX_IT = 100;
+  EPS = 1E-7;
+begin
+  Result := exp(-x + s*ln(x) - spelga(s)) * CalcCF(@funca, @funcb, MAX_IT, EPS);
+end;
+
+function gammap(s, x: ArbFloat): ArbFloat;
+begin
+  if (x < 0.0) or (s <= 0.0) then
+    RunError(410);                  // Invalid argument of gammap
+  if x = 0.0 then
+    Result := 0.0
+  else if x < s + 1 then
+    Result := gammaser(s, x)        // Use series expansion
+  else
+    Result := 1.0 - gammacf(s, x);  // Use continued fraction
+end;
+
+function gammaq(s, x: ArbFloat): ArbFloat;
+begin
+  if (x < 0.0) or (s <= 0.0) then
+    RunError(411);                  // Invalid argument of gammaq
+  if x = 0.0 then
+    Result := 1.0
+  else if x < s + 1 then
+    Result := 1.0 - gammaser(s, x)  // Use series expansion
+  else
+    Result := gammacf(s, x);        // Use continued fraction
+end;
+
+{ Ref.: Moshier, "Methods and programs for mathematical functions" }
+function invgammaq(s, y: ArbFloat): ArbFloat;
+const
+  NUM_IT = 30;
+var
+  d, y0, x0, xinit, lgm: ArbFloat;
+  it: Integer;
+  eps: ArbFloat;
+begin
+  d := 1.0 / (9 * s);
+  y0 := invnormaldist(y);
+  if y0 = giant then
+    exit(0.0);
+
+  y0 := 1.0 - d - y0 * sqrt(d);
+  x0 := s * y0 * y0 * y0;
+  xinit := x0;
+  lgm := spelga(s);
+  eps := 2.0 * MachEps;
+
+  for it := 1 to NUM_IT do
+  begin
+    if (x0 <= 0.0) then   // underflow
+      exit(0.0);
+    y0 := gammaq(s, x0);
+    d := (s - 1.0) * ln(x0) - x0 - lgm;
+    if d < -lnGiant then  // underflow
+      break;
+    d := -exp(d);
+    if d = 0.0 then
+      break;
+    d := (y0 - y) / d;
+    x0 := x0 - d;
+    if it <= 3 then
+      continue;
+    if abs(d / x0) < eps then
+      break;
+  end;
+  Result := x0;
+end;
+
+{ Calculates the complete beta function based on its property that
+    beta(a, b) = gamma(a) * gamma(b) / gamma(a+b)
+  https://en.wikipedia.org/wiki/Beta_function }
+function beta(a, b: ArbFloat): ArbFloat;
+begin
+  if (a <= 0) or (b <= 0) then
+    RunError(412);
+  Result := exp(spelga(a) + spelga(b) - spelga(a + b));
+end;
+
+{ Calculates the continued fraction of the incomplete beta function.
+  Ref: https://www.encyclopediaofmath.org/index.php/Incomplete_beta-function }
+function betaicf(a, b, x: ArbFloat): Arbfloat;
+
+  function funca(i: Integer): ArbFloat;
+  begin
+    if i = 0 then Result := 0.0 else Result := 1.0;
+  end;
+
+  function funcb(i: Integer): ArbFloat;
+  var
+    am: ArbFloat;
+    amm: ArbFloat;
+    m: Integer;
+  begin
+    if i = 1 then
+      Result := 1.0
+    else begin
+      m := (i-1) div 2;
+      am := a + m;
+      amm := am + m;
+      if odd(i) then
+        Result := m * (b - m) * x / ((amm - 1) * amm)
+      else
+        Result := -am * (am + b) * x / (amm * (amm + 1));
+    end;
+  end;
+
+const
+  MAX_IT = 100;
+  EPS = 1E-7;
+begin
+  Result := CalcCF(@funca, @funcb, MAX_IT, EPS);
+end;
+
+function betai(a, b, x: ArbFloat): ArbFloat;
+var
+  factor: ArbFloat;
+begin
+  // Check for invalid arguments
+  if (a <= 0) or (b <= 0) then
+    RunError(413);
+  if (x < 0) or (x > 1) then
+    RunError(414);
+
+  if (x = 0) or (x = 1) then
+    factor := 0
+  else
+    factor := exp(a * ln(x) + b * ln(1.0 - x) + spelga(a + b) - spelga(a) - spelga(b));
+
+  // The continued fraction expansion converges quickly only for
+  //    x < (a + 1) / (a + b + 2)
+  // For the other case, we apply the relation
+  //    beta(a, b, x) = 1 - beta(b, a, 1-x)
+  if x < (a + 1) / (a + b + 2) then
+    Result := factor * betaicf(a, b, x) / a
+  else
+    Result := 1.0 - factor * betaicf(b, a, 1.0 - x) / b;
+end;
+
+{ Inverse of the incomplete beta function }
+function invbetai(a, b, y: ArbFloat; eps: ArbFloat = 0.0): ArbFloat;
+
+  function _betai(x: ArbFloat): ArbFloat;
+  begin
+    Result := betai(a, b, x) - y;
+  end;
+
+var
+  term: ArbInt = 0;
+begin
+  if eps = 0.0 then
+    eps := MachEps;
+  roof1rn(@_betai, 0, 1, eps, eps, Result, term);
+  if term = 3 then
+    Result := NaN;
+end;
+
+function chi2dist(x: ArbFloat; n: ArbInt): ArbFloat;
+begin
+  Result := gammaQ(0.5*n, 0.5*x);
+end;
+
+function invchi2dist(y: Arbfloat; n: ArbInt): ArbFloat;
+begin
+  Result := 2.0 * invgammaQ(n/2, y);
+//  Result := 2.0 * invgammaQ_alglib(n/2, y);
+end;
+
+function tdist(t: ArbFloat; n: ArbInt; Tails: TNumTails): ArbFloat;
+begin
+  Result := betai(0.5*n, 0.5, n/(n+t*t));
+  if Tails = 1 then Result := Result * 0.5;
+end;
+
+function invtdist(y: ArbFloat; n: ArbInt; Tails: TNumTails;
+  eps: ArbFloat = 0.0): ArbFloat;
+var
+  w: ArbFloat;
+begin
+  if (n <= 0) or (y <= 0) or (y >= 1) then
+    RunError(415);
+
+  if Tails = 2 then y := y * 0.5;
+  w := invbetai(0.5*n, 0.5, 2*y, eps);
+  Result := sqrt(n/w - n);
+end;
+
+// Calculates the F distribution with n1 and n2 degrees of freedom in the
+// numerator and denominator, respectively
+function Fdist(F: ArbFloat; n1, n2: ArbInt): ArbFloat;
+begin
+  Result := betai(n2*0.5, n1*0.5, n2 / (n2 + n1*F));
+end;
+
+// Calculates the inverse of the F distribution
+// Ref. Moshier, "Methods and programs for mathematical functions"
+function invFdist(p: ArbFloat; n1, n2: ArbInt; eps: ArbFloat = 0.0): ArbFloat;
+var
+  s: ArbFloat;
+begin
+  if eps = 0.0 then eps := machEps;
+  s := invbetai(n2*0.5, n1*0.5, p, eps);
+  Result := n2 * (1-s) / (n1 * s);
+end;
+
 function spepol(x: ArbFloat; var a: ArbFloat; n: ArbInt): ArbFloat;
 var   pa : ^arfloat0;
        i : ArbInt;
@@ -1080,7 +1572,7 @@ var    y, u, t, s : ArbFloat;
 begin
   if abs(x) > 1
   then
-    RunError(401);
+    RunError(411);
   u:=sqr(x); uprang:= u > 0.5;
   if uprang
   then
@@ -1268,6 +1760,7 @@ end; {speath}
 var exitsave : pointer;
 
 procedure MyExit;
+{
 const ErrorS : array[400..408,1..6] of char =
      ('spepow',
       'spebk0',
@@ -1277,7 +1770,7 @@ const ErrorS : array[400..408,1..6] of char =
       'speach',
       'speath',
       'spegam',
-      'spelga');
+      'spelga'); }
 
 //var ErrFil : text;
 
@@ -1285,7 +1778,7 @@ begin
      ExitProc := ExitSave;
 //     Assign(ErrFil, 'CON');
 //    ReWrite(ErrFil);
-     if (ExitCode>=400) AND (ExitCode<=408) then
+     if (ExitCode>=400) AND (ExitCode<=415) then
        begin
 //         write(ErrFil, 'critical error in ', ErrorS[ExitCode]);
          ExitCode := 201

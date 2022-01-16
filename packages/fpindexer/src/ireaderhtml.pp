@@ -28,17 +28,17 @@ type
 
   TIReaderHTML = class(TCustomFileReader)
   private
-    sLine: string;
+    sLine: UTF8String;
     StartPos: integer;
     Offset: integer;
     LinePos: integer;
     Tg, Tx: integer;
     FParser: THTMLParser; //our htmlparser class
-    procedure OnTag(NoCaseTag, ActualTag: string);
-    procedure OnText(Text: string);
+    procedure OnTag(NoCaseTag, ActualTag: String);
+    procedure OnText(Text: String);
   protected
-    function GetToken: string; override;
-    function AllowedToken(token: string): boolean; override;
+    function GetToken: UTF8String; override;
+    function AllowedToken(token: UTF8String): boolean; override;
   public
     procedure LoadFromStream(FileStream: TStream); override;
   end;
@@ -47,13 +47,13 @@ implementation
 
 { TIReaderHTML }
 
-procedure TIReaderHTML.OnTag(NoCaseTag, ActualTag: string);
+procedure TIReaderHTML.OnTag(NoCaseTag, ActualTag: String);
 begin
 end;
 
-procedure TIReaderHTML.OnText(Text: string);
+procedure TIReaderHTML.OnText(Text: String);
 var
-  token: string;
+  token: UTF8String;
   s: TSearchWordData;
   i : Integer;
 begin
@@ -78,10 +78,10 @@ begin
     end;
 end;
 
-function TIReaderHTML.GetToken: string;
+function TIReaderHTML.GetToken: UTF8String;
 var
-  s: string;
-  c: string;
+  s: UTF8String;
+  c: UTF8String;
 begin
   Result := '';
 
@@ -126,7 +126,7 @@ begin
   end;
 end;
 
-function TIReaderHTML.AllowedToken(token: string): boolean;
+function TIReaderHTML.AllowedToken(token: UTF8String): boolean;
 begin
   Result := (Length(token) > 1) and
             (token <> 'nbsp') and (token <> 'quot') and (token <> 'apos') and

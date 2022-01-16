@@ -20,7 +20,7 @@ unit cofftypes;
 interface
 
 type
-  TCoffMachineType = (cmti386, cmtarm, cmtx8664, cmtppc32aix, cmtppc64aix);
+  TCoffMachineType = (cmti386, cmtarm, cmtx8664, cmtppc32aix, cmtppc64aix, cmtaarch64);
 
 type
   TSectionName = array [0..7] of char;

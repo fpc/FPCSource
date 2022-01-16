@@ -13,16 +13,17 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('amunits');
+    P.ShortName := 'amu';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
 
     P.Author := 'Nils Sjoholm';
     P.License := 'LGPL with modification';
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
-    P.Description := 'A set of units for Amiga OS. 68k only?';
+    P.Description := 'A set of units for classic AmigaOS. (68k only)';
     P.NeedLibC:= false;
 
     P.CPUs:=[m68k];
@@ -33,17 +34,13 @@ begin
     P.SourcePath.Add('src/utilunits');
     P.IncludePath.Add('src');
 
-    T:=P.Targets.AddUnit('amsgbox.pas');
     T:=P.Targets.AddUnit('amigautils.pas');
     T:=P.Targets.AddUnit('wbargs.pas');
     T:=P.Targets.AddUnit('vartags.pas');
     T:=P.Targets.AddUnit('pastoc.pas');
     T:=P.Targets.AddUnit('tagsarray.pas');
-    T:=P.Targets.AddUnit('systemvartags.pas');
     T:=P.Targets.AddUnit('deadkeys.pas');
     T:=P.Targets.AddUnit('consoleio.pas');
-    T:=P.Targets.AddUnit('pcq.pas');
-    T:=P.Targets.AddUnit('longarray.pas');
     T:=P.Targets.AddUnit('linklist.pas');
     T:=P.Targets.AddUnit('hisoft.pas');
     T:=P.Targets.AddUnit('timerutils.pas');
@@ -125,6 +122,7 @@ begin
 
     P.ExamplePath.Add('examples');
     P.ExamplePath.Add('examples/otherlibs');
+    T:=P.Targets.AddExampleProgram('amicube.pas');
     T:=P.Targets.AddExampleProgram('simple_timer.pas');
     T:=P.Targets.AddExampleProgram('getfontasl.pas');
     T:=P.Targets.AddExampleProgram('asltest.pas');

@@ -50,6 +50,10 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils');
+    P.ShortName := 'utils';
+    P.OSes:=AllOSes-[embedded,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql,wasi];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';
@@ -64,17 +68,21 @@ begin
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('paszlib');
     P.Dependencies.Add('hash');
-    P.Dependencies.Add('univint',[darwin,iphonesim]);
+    P.Dependencies.Add('univint',[darwin,iphonesim,ios]);
+    P.Dependencies.Add('fcl-json');
+
     P.Dependencies.Add('rtl-extra');
-	
-    P.Version:='3.1.1';
+    P.Dependencies.Add('rtl-objpas');
+
+    P.Version:='3.3.1';
 
     T:=P.Targets.AddProgram('ptop.pp');
     T.Dependencies.AddUnit('ptopu');
     T.ResourceStrings:=true;
 
     P.Targets.AddProgram('ppdep.pp');
-    P.Targets.AddProgram('rstconv.pp').ResourceStrings:=true;
+    T:=P.Targets.AddProgram('rstconv.pp');
+    T.ResourceStrings:=true;
     P.Targets.AddProgram('data2inc.pp');
     P.Targets.AddProgram('delp.pp');
     P.Targets.AddProgram('bin2obj.pp');
@@ -84,8 +92,13 @@ begin
     P.Targets.AddProgram('grab_vcsa.pp',[linux]);
     T:=P.Targets.AddProgram('fpcsubst.pp');
     T.Dependencies.AddUnit('usubst');
+    T.ResourceStrings:=true;
     P.Targets.AddUnit('usubst.pp').install:=false;
     P.Targets.AddUnit('ptopu.pp').install:=false;
+    { The source files fpmake_proc.inc and fpmake_add.inc
+      need to be added explicitly to be integrated in source zip }
+    P.Sources.AddSrc('fpmake_proc.inc');
+    P.Sources.AddSrc('fpmake_add.inc');
     end;
 
   {$include fpmake_add.inc}

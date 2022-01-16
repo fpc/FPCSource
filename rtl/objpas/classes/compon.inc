@@ -227,9 +227,9 @@ begin
   Temp:=0;
   Ancestor:=TComponent(Filer.Ancestor);
   If Assigned(Ancestor) then Temp:=Ancestor.FDesignInfo;
-  Filer.Defineproperty('left',@readleft,@writeleft,
+  Filer.Defineproperty('Left',@readleft,@writeleft,
                        (longrec(FDesignInfo).Lo<>Longrec(temp).Lo));
-  Filer.Defineproperty('top',@readtop,@writetop,
+  Filer.Defineproperty('Top',@readtop,@writetop,
                        (longrec(FDesignInfo).Hi<>Longrec(temp).Hi));
 end;
 
@@ -291,21 +291,22 @@ end;
 Procedure TComponent.Notification(AComponent: TComponent;
   Operation: TOperation);
 
-Var Runner : Longint;
+Var 
+  C : Longint;
 
 begin
-  If (Operation=opRemove) and Assigned(FFreeNotifies) then
+  If (Operation=opRemove) then
+    RemoveFreeNotification(AComponent);
+  If Not assigned(FComponents) then
+    exit;
+  C:=FComponents.Count-1;
+  While (C>=0) do
     begin
-    FFreeNotifies.Remove(AComponent);
-            If FFreeNotifies.Count=0 then
-      begin
-      FFreeNotifies.Free;
-      FFreenotifies:=Nil;
-      end;
-    end;
-  If assigned(FComponents) then
-    For Runner:=0 To FComponents.Count-1 do
-      TComponent(FComponents.Items[Runner]).Notification(AComponent,Operation);
+    TComponent(FComponents.Items[C]).Notification(AComponent,Operation);
+    Dec(C);
+    if C>=FComponents.Count then
+      C:=FComponents.Count-1;
+    end;  
 end;
 
 
@@ -542,16 +543,16 @@ end;
 Function  TComponent.FindComponent(const AName: string): TComponent;
 
 Var I : longint;
-
+    C : TComponent;
 begin
   Result:=Nil;
   If (AName='') or Not assigned(FComponents) then exit;
   For i:=0 to FComponents.Count-1 do
-    if (CompareText(TComponent(FComponents[I]).Name,AName)=0) then
-      begin
-      Result:=TComponent(FComponents.Items[I]);
-      exit;
-      end;
+    Begin
+      c:=TComponent(FComponents[I]);
+      If (CompareText(C.Name,AName)=0) then
+        Exit(C);
+    End;
 end;
 
 
@@ -602,6 +603,8 @@ Procedure TComponent.InsertComponent(AComponent: TComponent);
 begin
   AComponent.ValidateContainer(Self);
   ValidateRename(AComponent,'',AComponent.FName);
+  If AComponent.FOwner<>Nil then
+    AComponent.FOwner.Remove(AComponent);
   Insert(AComponent);
   AComponent.SetReference(True);
   If csDesigning in FComponentState then

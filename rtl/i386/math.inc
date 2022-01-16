@@ -71,9 +71,22 @@ const
     procedure SetMXCSR(w : dword);
       begin
         defaultmxcsr:=w;
+    {$ifndef OLD_ASSEMBLER}
         asm
           ldmxcsr w
         end;
+    {$else}
+        { Use convoluted code to avoid relocation on
+          ldmxcsr opcode, and use .byte version }
+        asm
+          mov     w,%eax
+          subl    $4,%esp
+          mov     %eax,(%esp)
+          //ldmxcsr (%esp)
+          .byte   0x0f,0xae,0x14,0x24
+          addl    $4,%esp
+        end;
+    {$endif OLD_ASSEMBLER}
       end;
 
 
@@ -81,9 +94,22 @@ const
       var
         _w : dword;
       begin
+    {$ifndef OLD_ASSEMBLER}
         asm
           stmxcsr _w
         end;
+    {$else}
+        asm
+        { Use convoluted code to avoid relocation on
+          ldmxcsr opcode, and use .byte version }
+          subl    $4,%esp
+          //stmxcsr (%esp)
+          .byte   0x0f,0xae,0x14,0x24
+          mov     (%esp),%eax
+          addl    $4,%esp
+          mov     %eax,_w
+        end;
+    {$endif OLD_ASSEMBLER}
         result:=_w;
       end;
 
@@ -152,28 +178,45 @@ const
       result:=0;
     end;
 
+
+  {$ifdef OLD_ASSEMBLER}
+    {$define DISABLE_PIC_IN_EXP_REAL}
+  {$endif}
   {$define FPC_SYSTEM_HAS_EXP}
     { exp function adapted from AMath library (C) Copyright 2009-2013 Wolfgang Ehrhardt
       * translated into AT&T syntax
       + PIC support
       * return +Inf/0 for +Inf/-Inf input, instead of NaN }
     function fpc_exp_real(d : ValReal) : ValReal;assembler;compilerproc;
+      const
+        ln2hi: double=6.9314718036912382E-001;
+        ln2lo: double=1.9082149292705877E-010;
+        large: single=24576.0;
+        two:   single=2.0;
+        half:  single=0.5;
       asm
+{$ifndef DISABLE_PIC_IN_EXP_REAL}
+        call     .LPIC
+.LPIC:
+        pop         %ecx
+{$endif not DISABLE_PIC_IN_EXP_REAL}
         fldt        d
         fldl2e
         fmul        %st(1),%st        { z = d * log2(e) }
         frndint
-      { Calculate frac(z) using modular arithmetic to avoid precision loss.
-        Avoid PIC hacks by using immediate operands (it's not the fastest,
-        but likely the cleanest solution). }
-        pushl       $0x3fe62e42       { ln(2).hi=6.9314718036912382E-001 }
-        pushl       $0xfee00000
-        fldl        (%esp)
+      { Calculate frac(z) using modular arithmetic to avoid precision loss. }
+{$ifndef DISABLE_PIC_IN_EXP_REAL}
+        fldl        ln2hi-.LPIC(%ecx)
+{$else}
+        fldl        ln2hi
+{$endif}
         fmul        %st(1),%st
         fsubrp      %st,%st(2)
-        pushl       $0x3dea39ef       { ln(2).lo=1.9082149292705877E-010 }
-        pushl       $0x35793c76
-        fldl        (%esp)
+{$ifndef DISABLE_PIC_IN_EXP_REAL}
+        fldl        ln2lo-.LPIC(%ecx)
+{$else}
+        fldl        ln2lo
+{$endif}
         fmul        %st(1),%st
         fsubrp      %st,%st(2)
         fxch        %st(1)            { (d-int(z)*ln2_hi)-int(z)*ln2_lo }
@@ -193,8 +236,11 @@ const
         jae         .L1               { frac(z) <= 1 }
         fld         %st(1)
         fabs
-        pushl       $0x46c00000       { single(24576.0) }
-        fcomps      (%esp)
+{$ifndef DISABLE_PIC_IN_EXP_REAL}
+        fcomps      large-.LPIC(%ecx)
+{$else}
+        fcomps      large
+{$endif}
         fstsw       %ax
         sahf
         jb          .L0               { int(z) < 24576 }
@@ -204,12 +250,18 @@ const
         jmp         .L1
 .L0:
         { Calculate 2**frac(z)-1 as N*(N+2), where N=2**(frac(z)/2)-1 }
-        pushl       $0x3f000000       { single(0.5) }
-        fmuls       (%esp)
+{$ifndef DISABLE_PIC_IN_EXP_REAL}
+        fmuls       half-.LPIC(%ecx)
+{$else}
+        fmuls       half
+{$endif}
         f2xm1
         fld         %st
-        pushl       $0x40000000       { single(2.0) }
-        fadds       (%esp)
+{$ifndef DISABLE_PIC_IN_EXP_REAL}
+        fadds       two-.LPIC(%ecx)
+{$else}
+        fadds       two
+{$endif}
         fmulp       %st,%st(1)
         jmp         .L2
 .L1:
@@ -289,6 +341,6 @@ const
         movl res,%eax
         movl res+4,%edx
       end;
-    
+
 
 

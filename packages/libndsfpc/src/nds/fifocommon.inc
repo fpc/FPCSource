@@ -51,10 +51,12 @@ type
  FifoSdmmcCommands = integer;
 const
   SDMMC_HAVE_SD        : FifoSystemCommands = 0;
-	SDMMC_SD_START       : FifoSystemCommands = 1;
-	SDMMC_SD_IS_INSERTED : FifoSystemCommands = 2;
-	SDMMC_SD_STOP        : FifoSystemCommands = 3;
-
+  SDMMC_SD_START       : FifoSystemCommands = 1;
+  SDMMC_SD_IS_INSERTED : FifoSystemCommands = 2;
+  SDMMC_SD_STOP        : FifoSystemCommands = 3;
+  SDMMC_NAND_START     : FifoSystemCommands = 4;
+  SDMMC_NAND_STOP      : FifoSystemCommands = 5;
+  SDMMC_NAND_SIZE      : FifoSystemCommands = 6;
 type
   FifoFirmwareCommands = integer;
 const
@@ -71,7 +73,8 @@ const
   PM_REQ_SLEEP_DISABLE  : FifoPMCommands = (5 shl 16);
   PM_REQ_SLEEP_ENABLE   : FifoPMCommands = (6 shl 16);
   PM_REQ_BATTERY        : FifoPMCommands = (7 shl 16);
-  PM_DSI_HACK           : FifoPMCommands = (8 shl 16);
+  PM_REQ_SLOT1_DISABLE  : FifoPMCommands = (8 shl 16);
+  PM_REQ_SLOT1_ENABLE   : FifoPMCommands = (9 shl 16);
 	
 type
   FifoWifiCommands = integer;
@@ -123,11 +126,23 @@ function fifoGetValue32(channel: integer): cuint32; cdecl; external;
 
 function fifoGetDatamsg(channel, buffersize: cint; destbuffer: pcuint8): cint; cdecl; external;
 
+procedure fifoWaitValue32(channel: cint); inline; 
+
 {$endif NDS_INTERFACE}
 
 
 
 {$ifdef NDS_IMPLEMENTATION}
+
+procedure fifoWaitValue32(channel: cint); inline; 
+begin
+
+	while (not fifoCheckValue32(channel)) do
+	begin
+		swiIntrWait(1, IRQ_FIFO_NOT_EMPTY);
+	end;
+
+end;
 
 
 {$endif NDS_IMPLEMENTATION}

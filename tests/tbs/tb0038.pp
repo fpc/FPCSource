@@ -1,5 +1,5 @@
 { %CPU=i386 }
-{ %TARGET=go32v2,win32,linux }
+{ %TARGET=go32v2,win32,linux,haiku }
 { %NOTE=This test requires an installed Nasm }
 
 { Old file: tbs0043.pp }

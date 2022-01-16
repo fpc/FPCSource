@@ -14,7 +14,7 @@
 unit dw_ipflin;
 
 {$mode objfpc}{$H+}
-
+{$WARN 5024 off : Parameter "$1" not used}
 interface
 
 uses
@@ -29,13 +29,15 @@ const
   TIPFExtension = '.ipf';
 
 type
+
+  { TIPFNewWriter }
+
   TIPFNewWriter = class(TLinearWriter)
   private
     InPackageOverview: Boolean;
     InHeading: Boolean;
     FInHeadingText: string;
     OrderedList: boolean;
-    TableRowStartFlag: Boolean;
     TableCaptionWritten: Boolean;
     InTableCell: Boolean;
     InTypesDeclaration: Boolean;
@@ -69,8 +71,8 @@ type
     Procedure StartAccess; override;
     Procedure StartErrors; override;
     Procedure StartVersion; override;
-    Procedure StartSeealso; override;
-    Procedure EndSeealso; override;
+    Procedure StartSeeAlso; override;
+    Procedure EndSeeAlso; override;
     procedure StartUnitOverview(AModuleName,AModuleLabel : String);override;
     procedure WriteUnitEntry(UnitRef : TPasType); override;
     Procedure EndUnitOverview; override;
@@ -85,7 +87,7 @@ type
     procedure StartSubSection(SubSectionName : String);override;
     procedure StartSubSubSection(SubSubSectionName : String);override;
     procedure StartChapter(ChapterName : String); override;
-    procedure StartOverview(WithAccess : Boolean); override;
+    procedure StartOverview(Const What : String;WithAccess : Boolean); override;
     procedure EndOverview; override;
     procedure WriteOverviewMember(const ALabel,AName,Access,ADescr : String); override;
     procedure WriteOverviewMember(const ALabel,AName,ADescr : String); override;
@@ -149,7 +151,7 @@ type
 implementation
 
 uses
-  SysUtils, dwriter;
+  fpdocstrs, SysUtils, dwriter;
 
 
 { TFPDocWriter overrides }
@@ -202,12 +204,12 @@ begin
   // IPF has an imposed line length limit.
   if (Length(AText) > cMax) then // then we need to wrap the text.
   begin
-    lText := WrapText(AText, LineEnding, [' ', '-', #9], cMax);
+    lText := WrapText(UTF8Encode(AText), LineEnding, [' ', '-', #9], cMax);
     sl := TStringlist.Create;
     try
       sl.Text := lText;
       for i := 0 to sl.Count-1 do
-        inherited DescrWriteText(sl.Strings[i] + LineEnding);
+        inherited DescrWriteText(UTF8Decode(sl.Strings[i] + LineEnding));
     finally
       sl.Free;
     end;
@@ -243,7 +245,7 @@ end;
 procedure TIPFNewWriter.DescrBeginLink(const AId: DOMString);
 begin
   { Start link to label ID - links are never nested.}
-  FLink := Engine.ResolveLink(Module, AId);
+  FLink := Engine.ResolveLink(Module, UTF8Encode(AId));
   FLink := StringReplace(FLink, ':', '_', [rfReplaceAll]);
   FLink := StringReplace(FLink, '.', '_', [rfReplaceAll]);
   WriteF(':link reftype=hd refid=%s.', [flink]);
@@ -284,7 +286,7 @@ end;
 procedure TIPFNewWriter.DescrWriteCodeLine(const ALine: String);
 begin
   { Write line of code }
-  DescrWriteText(ALine + LineEnding);
+  DescrWriteText(UTF8Decode(ALine + LineEnding));
 //  writeln(EscapeText(ALine));
 end;
 
@@ -502,7 +504,6 @@ end;
 
 procedure TIPFNewWriter.WriteClassInheritanceOverview(ClassDecl: TPasClassType);
 var
-  DocNode: TDocNode;
   ancestor: TPasClassType;
   ancestor2: TPasType;
   List: TStringList;
@@ -513,7 +514,6 @@ var
   var
     s: string;
     o: TPasClassType;
-    t: string;
   begin
     if List.Objects[i] <> nil then
     begin
@@ -522,7 +522,7 @@ var
       begin
         s := ChangeFileExt(ExtractFileName(o.SourceFilename), '');
         s := '#' + PackageName + '.' + s + '.' + o.Name;
-        DescrBeginLink(s);
+        DescrBeginLink(UTF8Decode(s));
         Write(o.Name);
         DescrEndLink;
         writeln('');
@@ -613,14 +613,14 @@ end;
 
 { TLinearWriter overrides}
 
-class function TIPFNewWriter.FileNameExtension: String;
+class function TIPFNewWriter.FileNameExtension: string;
 begin
   Result := TIPFExtension;
 end;
 
 procedure TIPFNewWriter.DescrBeginURL(const AURL: DOMString);
 begin
-  Write(':link reftype=launch object=''netscape'' data=''' + AURL + '''.');
+  Write(':link reftype=launch object=''netscape'' data=''' + UTF8Encode(AURL) + '''.');
 end;
 
 procedure TIPFNewWriter.DescrEndURL;
@@ -641,11 +641,11 @@ begin
   Result := StringReplace(Result, ' ', '_', [rfReplaceAll]);
 end;
 
-Function TIPFNewWriter.EscapeText(S : String) : String;
+function TIPFNewWriter.EscapeText(S: String): String;
 var
   i: Integer;
 begin
-  SetLength(Result, 0);
+  Result:='';
   for i := 1 to Length(S) do
     case S[i] of
       '.':              // Escape these characters
@@ -697,12 +697,11 @@ begin
     end;
 end;
 
-Function TIPFNewWriter.StripText(S : String) : String;
+function TIPFNewWriter.StripText(S: String): String;
 var
   I: Integer;
 begin
-  //Result := S;
-  SetLength(Result, 0);
+  Result := '';
   for i := 1 to Length(S) do
     if not (S[i] in ['&','{','}','#'{,'_'},'$','%','''','~','^', '\', ' ', '<', '>']) then
       Result := Result + S[i];
@@ -740,7 +739,7 @@ begin
   writeln('');
 end;
 
-procedure TIPFNewWriter.WriteLabel(const s: String);
+procedure TIPFNewWriter.WriteLabel(const S: String);
 var
   x: String;
 begin
@@ -762,7 +761,7 @@ begin
   end;
 end;
 
-procedure TIPFNewWriter.WriteIndex(const s : String);
+procedure TIPFNewWriter.WriteIndex(const S: String);
 begin
 //  writeln(':i1 id=' + s + '.');
 end;
@@ -878,19 +877,19 @@ begin
   //Writeln(':h5.' + SubSubSectionName);
 end;
 
-Procedure TIPFNewWriter.StartProcedure;
+procedure TIPFNewWriter.StartProcedure;
 begin
   //writeln('');
   //writeln(':ul.');
 end;
 
-Procedure TIPFNewWriter.EndProcedure;
+procedure TIPFNewWriter.EndProcedure;
 begin
   //writeln('');
   //writeln(':eul.');
 end;
 
-Procedure TIPFNewWriter.StartSynopsis;
+procedure TIPFNewWriter.StartSynopsis;
 begin
   writeln('');
   writeln(':p.');
@@ -900,7 +899,7 @@ begin
   writeln(':lm margin=3.');
 end;
 
-Procedure TIPFNewWriter.StartDeclaration;
+procedure TIPFNewWriter.StartDeclaration;
 begin
   writeln('');
   writeln(':p.');
@@ -909,7 +908,7 @@ begin
   writeln(':lm margin=3.');
 end;
 
-Procedure TIPFNewWriter.StartVisibility;
+procedure TIPFNewWriter.StartVisibility;
 begin
   writeln('');
   writeln(':p.');
@@ -919,7 +918,7 @@ begin
   writeln('.br');
 end;
 
-Procedure TIPFNewWriter.StartDescription;
+procedure TIPFNewWriter.StartDescription;
 begin
   writeln('');
   writeln(':p.');
@@ -929,7 +928,7 @@ begin
   writeln('.br');
 end;
 
-Procedure TIPFNewWriter.StartErrors;
+procedure TIPFNewWriter.StartErrors;
 begin
   writeln('');
   writeln(':p.');
@@ -949,7 +948,7 @@ begin
   writeln('.br');
 end;
 
-Procedure TIPFNewWriter.StartAccess;
+procedure TIPFNewWriter.StartAccess;
 begin
   writeln('');
   writeln(':p.');
@@ -959,14 +958,14 @@ begin
   writeln('.br');
 end;
 
-Procedure TIPFNewWriter.StartProperty;
+procedure TIPFNewWriter.StartProperty;
 begin
   //writeln('');
   //Writeln('.* here I am');
   //writeln(':ul.');
 end;
 
-Procedure TIPFNewWriter.EndProperty;
+procedure TIPFNewWriter.EndProperty;
 begin
   //writeln('');
   //writeln(':eul.');
@@ -1003,7 +1002,7 @@ begin
   end;
 end;
 
-procedure TIPFNewWriter.StartOverview(WithAccess : Boolean);
+procedure TIPFNewWriter.StartOverview(const What: String; WithAccess: Boolean);
 begin
 {
   If With access then it is a property overview.
@@ -1065,7 +1064,7 @@ begin
   WriteLn(Format(':pd. %s', [ADescr]));
 end;
 
-Procedure TIPFNewWriter.StartSeeAlso;
+procedure TIPFNewWriter.StartSeeAlso;
 begin
   writeln('');
   writeln(':p.');
@@ -1075,7 +1074,7 @@ begin
   writeln('.br');
 end;
 
-procedure TIPFNewWriter.EndSeealso;
+procedure TIPFNewWriter.EndSeeAlso;
 begin
   writeln('');
 end;

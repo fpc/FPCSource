@@ -1,5 +1,4 @@
 {
-    $Id: signal.inc,v 1.1.2.1 2001/12/20 02:55:01 carl Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by Free Pascal development team
 
@@ -71,11 +70,4 @@ const
     SIGPROF    =29;     { profileing timer expired           }
     SIGXCPU    =30;     { exceded cpu limit                  }
     SIGXFSZ    =31;     { exceded file size limit            }
-    
 
-{
-  $Log: signal.inc,v $
-  Revision 1.1.2.1  2001/12/20 02:55:01  carl
-  + QNX versions (still untested)
-
-}

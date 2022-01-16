@@ -3,7 +3,7 @@
 program testhttp;
 
 uses
-  SysUtils, fphttpapp, fpwebfile;
+  SysUtils, fphttpapp, fpwebfile, wmecho;
 
 Procedure Usage;
 

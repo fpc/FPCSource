@@ -1,5 +1,4 @@
 {
-    $Id: osposix.inc,v 1.1.2.2 2002/04/17 17:16:14 carl Exp $
     Copyright (c) 2001 by Carl Eric Codere
 
     Implements POSIX 1003.1 conforming interface
@@ -343,15 +342,3 @@ const
          wifsignaled := 0;
      end;
 
-
-
-{
-
- $Log: osposix.inc,v $
- Revision 1.1.2.2  2002/04/17 17:16:14  carl
- * more fixes for QNX target
-
- Revision 1.1.2.1  2001/12/20 02:55:01  carl
- + QNX versions (still untested)
-
-}

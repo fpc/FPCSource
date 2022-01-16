@@ -46,12 +46,15 @@ interface
        preproctyp = (pp_ifdef,pp_ifndef,pp_if,pp_ifopt,pp_else,pp_elseif);
 
        tpreprocstack = class
-          typ     : preproctyp;
+          typ,
+          { stores the preproctyp of the last (else)if(ndef) directive
+            so we can check properly for ifend when legacyifend is on }
+          iftyp   : preproctyp;
           accept  : boolean;
           next    : tpreprocstack;
           name    : TIDString;
           line_nb : longint;
-          owner   : tscannerfile;
+          fileindex : longint;
           constructor Create(atyp:preproctyp;a:boolean;n:tpreprocstack);
        end;
 
@@ -68,11 +71,20 @@ interface
        // stack for replay buffers
        treplaystack = class
          token    : ttoken;
+         idtoken  : ttoken;
+         orgpattern,
+         pattern  : string;
+         cstringpattern: ansistring;
+         patternw : pcompilerwidestring;
          settings : tsettings;
          tokenbuf : tdynamicarray;
+         tokenbuf_needs_swapping : boolean;
          next     : treplaystack;
-         constructor Create(atoken: ttoken;asettings:tsettings;
-           atokenbuf:tdynamicarray;anext:treplaystack);
+         constructor Create(atoken: ttoken;aidtoken:ttoken;
+           const aorgpattern,apattern:string;const acstringpattern:ansistring;
+           apatternw:pcompilerwidestring;asettings:tsettings;
+           atokenbuf:tdynamicarray;change_endian:boolean;anext:treplaystack);
+         destructor destroy;override;
        end;
 
        tcompile_time_predicate = function(var valuedescr: String) : Boolean;
@@ -126,16 +138,21 @@ interface
           { if nexttoken<>NOTOKEN, then nexttokenpos holds its filepos }
           next_filepos   : tfileposinfo;
 
+          { current macro nesting depth }
+          macro_nesting_depth,
           comment_level,
           yylexcount     : longint;
-          lastasmgetchar : char;
           ignoredirectives : TFPHashList; { ignore directives, used to give warnings only once }
           preprocstack   : tpreprocstack;
           replaystack    : treplaystack;
-          in_asm_string  : boolean;
 
           preproc_pattern : string;
           preproc_token   : ttoken;
+
+          { true, if we are parsing preprocessor expressions }
+          in_preproc_comp_expr : boolean;
+          { true if tokens must be converted to opposite endianess}
+          change_endian_for_replay : boolean;
 
           constructor Create(const fn:string; is_macro: boolean = false);
           destructor Destroy;override;
@@ -164,14 +181,16 @@ interface
           procedure elseifpreprocstack(compile_time_predicate:tcompile_time_predicate);
           procedure elsepreprocstack;
           procedure popreplaystack;
+          function replay_stack_depth:longint;
           procedure handleconditional(p:tdirectiveitem);
           procedure handledirectives;
           procedure linebreak;
           procedure recordtoken;
           procedure startrecordtokens(buf:tdynamicarray);
           procedure stoprecordtokens;
+          function is_recording_tokens:boolean;
           procedure replaytoken;
-          procedure startreplaytokens(buf:tdynamicarray);
+          procedure startreplaytokens(buf:tdynamicarray; change_endian:boolean);
           { bit length asizeint is target depend }
           procedure tokenwritesizeint(val : asizeint);
           procedure tokenwritelongint(val : longint);
@@ -201,18 +220,19 @@ interface
           procedure readnumber;
           function  readid:string;
           function  readval:longint;
-          function  readcomment:string;
+          function  readcomment(include_special_char: boolean = false):string;
           function  readquotedstring:string;
           function  readstate:char;
+          function  readoptionalstate(fallback:char):char;
           function  readstatedefault:char;
           procedure skipspace;
           procedure skipuntildirective;
-          procedure skipcomment;
+          procedure skipcomment(read_first_char:boolean);
           procedure skipdelphicomment;
-          procedure skipoldtpcomment;
+          procedure skipoldtpcomment(read_first_char:boolean);
           procedure readtoken(allowrecordtoken:boolean);
           function  readpreproc:ttoken;
-          function  asmgetcharstart : char;
+          function  readpreprocint(var value:int64;const place:string):boolean;
           function  asmgetchar:char;
        end;
 
@@ -223,7 +243,7 @@ interface
          spacefound,
          eolfound : boolean;
          constructor create(const fn:string);
-         destructor  destroy;
+         destructor  destroy; override;
          procedure Add(const s:string);
          procedure AddSpace;
        end;
@@ -243,7 +263,7 @@ interface
 
         current_scanner : tscannerfile;  { current scanner in use }
 
-        aktcommentstyle : tcommentstyle; { needed to use read_comment from directives }
+        current_commentstyle : tcommentstyle; { needed to use read_comment from directives }
 {$ifdef PREPROCWRITE}
         preprocfile     : tpreprocfile;  { used with only preprocessing }
 {$endif PREPROCWRITE}
@@ -262,7 +282,6 @@ interface
     Function SetCompileModeSwitch(s:string; changeInit: boolean):boolean;
     procedure SetAppType(NewAppType:tapptype);
 
-
 implementation
 
     uses
@@ -273,11 +292,9 @@ implementation
       symbase,symtable,symtype,symsym,symconst,symdef,defutil,
       { This is needed for tcputype }
       cpuinfo,
-      fmodule
-{$if FPC_FULLVERSION<20700}
-      ,ccharset
-{$endif}
-      ;
+      fmodule,fppu,
+      { this is needed for $I %CURRENTROUTINE%}
+      procinfo;
 
     var
       { dictionaries with the supported directives }
@@ -381,28 +398,79 @@ implementation
         { turn on system codepage by default }
         if switch in [m_none,m_systemcodepage] then
           begin
+            { both m_systemcodepage and specifying a code page via -FcXXX or
+              "$codepage XXX" change current_settings.sourcecodepage. If
+              we used -FcXXX and then have a sourcefile with "$mode objfpc",
+              this routine will be called to disable m_systemcodepage (to ensure
+              it's off in case it would have been set on the command line, or
+              by a previous mode(switch).
+
+              In that case, we have to ensure that we don't overwrite
+              current_settings.sourcecodepage, as that would cancel out the
+              -FcXXX. This is why we use two separate module switches
+              (cs_explicit_codepage and cs_system_codepage) for the same setting
+              (current_settings.sourcecodepage)
+            }
             if m_systemcodepage in current_settings.modeswitches then
               begin
+                { m_systemcodepage gets enabled -> disable any -FcXXX and
+                  "codepage XXX" settings (exclude cs_explicit_codepage), and
+                  overwrite the sourcecode page }
                 current_settings.sourcecodepage:=DefaultSystemCodePage;
                 if (current_settings.sourcecodepage<>CP_UTF8) and not cpavailable(current_settings.sourcecodepage) then
                   begin
                     Message2(scan_w_unavailable_system_codepage,IntToStr(current_settings.sourcecodepage),IntToStr(default_settings.sourcecodepage));
                     current_settings.sourcecodepage:=default_settings.sourcecodepage;
                   end;
-                include(current_settings.moduleswitches,cs_explicit_codepage);
+                exclude(current_settings.moduleswitches,cs_explicit_codepage);
+                include(current_settings.moduleswitches,cs_system_codepage);
                 if changeinit then
-                begin
-                  init_settings.sourcecodepage:=current_settings.sourcecodepage;
-                  include(init_settings.moduleswitches,cs_explicit_codepage);
-                end;
+                  begin
+                    init_settings.sourcecodepage:=current_settings.sourcecodepage;
+                    exclude(init_settings.moduleswitches,cs_explicit_codepage);
+                    include(init_settings.moduleswitches,cs_system_codepage);
+                  end;
               end
             else
               begin
-                exclude(current_settings.moduleswitches,cs_explicit_codepage);
+                { m_systemcodepage gets disabled -> reset sourcecodepage only if
+                  cs_explicit_codepage is not set (it may be set in the scenario
+                  where -FcXXX was passed on the command line and then "$mode
+                  fpc" is used, because then the caller of this routine will
+                  set the "$mode fpc" modeswitches (which don't include
+                  m_systemcodepage) and call this routine with m_none).
+
+                  Or it can happen if -FcXXX was passed, and the sourcefile
+                  contains "$modeswitch systemcodepage-" statement.
+
+                  Since we unset cs_system_codepage if m_systemcodepage gets
+                  activated, we will revert to the default code page if you
+                  set a source file code page, then enable the systemcode page
+                  and finally disable it again. We don't keep a stack of
+                  settings, by design. The only thing we have to ensure is that
+                  disabling m_systemcodepage if it wasn't on in the first place
+                  doesn't overwrite the sourcecodepage }
+                exclude(current_settings.moduleswitches,cs_system_codepage);
+                if not(cs_explicit_codepage in current_settings.moduleswitches) then
+                  current_settings.sourcecodepage:=default_settings.sourcecodepage;
                 if changeinit then
-                  exclude(init_settings.moduleswitches,cs_explicit_codepage);
+                  begin
+                    exclude(init_settings.moduleswitches,cs_system_codepage);
+                    if not(cs_explicit_codepage in init_settings.moduleswitches) then
+                      init_settings.sourcecodepage:=default_settings.sourcecodepage;
+                  end;
               end;
           end;
+
+{$ifdef i8086}
+        { enable cs_force_far_calls when m_nested_procvars is enabled }
+        if switch=m_nested_procvars then
+          begin
+            include(current_settings.localswitches,cs_force_far_calls);
+            if changeinit then
+              include(init_settings.localswitches,cs_force_far_calls);
+          end;
+{$endif i8086}
       end;
 
 
@@ -447,6 +515,9 @@ implementation
          if s='ISO' then
           current_settings.modeswitches:=isomodeswitches
         else
+         if s='EXTENDEDPASCAL' then
+          current_settings.modeswitches:=extpasmodeswitches
+        else
          b:=false;
 
 {$ifdef jvm}
@@ -464,16 +535,21 @@ implementation
 
            HandleModeSwitches(m_none,changeinit);
 
-           { turn on bitpacking for mode macpas and iso pascal }
-           if ([m_mac,m_iso] * current_settings.modeswitches <> []) then
+           { turn on bitpacking and case checking for mode macpas and iso pascal,
+             as well as extended pascal }
+           if ([m_mac,m_iso,m_extpas] * current_settings.modeswitches <> []) then
              begin
                include(current_settings.localswitches,cs_bitpacking);
+               include(current_settings.localswitches,cs_check_all_case_coverage);
                if changeinit then
-                 include(init_settings.localswitches,cs_bitpacking);
+                 begin
+                   include(init_settings.localswitches,cs_bitpacking);
+                   include(init_settings.localswitches,cs_check_all_case_coverage);
+                 end;
              end;
 
-           { support goto/label by default in delphi/tp7/mac modes }
-           if ([m_delphi,m_tp7,m_mac,m_iso] * current_settings.modeswitches <> []) then
+           { support goto/label by default in delphi/tp7/mac/iso/extpas modes }
+           if ([m_delphi,m_tp7,m_mac,m_iso,m_extpas] * current_settings.modeswitches <> []) then
              begin
                include(current_settings.moduleswitches,cs_support_goto);
                if changeinit then
@@ -515,13 +591,15 @@ implementation
            { Default to intel assembler for delphi/tp7 on i386/i8086 }
            if (m_delphi in current_settings.modeswitches) or
               (m_tp7 in current_settings.modeswitches) then
+             begin
 {$ifdef i8086}
-             current_settings.asmmode:=asmmode_i8086_intel;
+               current_settings.asmmode:=asmmode_i8086_intel;
 {$else i8086}
-             current_settings.asmmode:=asmmode_i386_intel;
+               current_settings.asmmode:=asmmode_i386_intel;
 {$endif i8086}
-           if changeinit then
-             init_settings.asmmode:=current_settings.asmmode;
+               if changeinit then
+                 init_settings.asmmode:=current_settings.asmmode;
+             end;
 {$endif i386 or i8086}
 
            { Exception support explicitly turned on (mainly for macpas, to }
@@ -537,6 +615,30 @@ implementation
                  include(init_settings.localswitches,cs_strict_var_strings);
              end;
 
+           { in delphi mode, excess precision is by default on }
+           if ([m_delphi] * current_settings.modeswitches <> []) then
+             begin
+               include(current_settings.localswitches,cs_excessprecision);
+               if changeinit then
+                 include(init_settings.localswitches,cs_excessprecision);
+             end;
+
+{$ifdef i8086}
+           { Do not force far calls in the TP mode by default, force it in other modes }
+           if (m_tp7 in current_settings.modeswitches) then
+             begin
+               exclude(current_settings.localswitches,cs_force_far_calls);
+               if changeinit then
+                 exclude(init_settings.localswitches,cs_force_far_calls);
+             end
+           else
+             begin
+               include(current_settings.localswitches,cs_force_far_calls);
+               if changeinit then
+                 include(init_settings.localswitches,cs_force_far_calls);
+             end;
+{$endif i8086}
+
             { Undefine old symbol }
             if (m_delphi in oldmodeswitches) then
               undef_system_macro('FPC_DELPHI')
@@ -549,7 +651,11 @@ implementation
               undef_system_macro('FPC_GPC')
 {$endif}
             else if (m_mac in oldmodeswitches) then
-              undef_system_macro('FPC_MACPAS');
+              undef_system_macro('FPC_MACPAS')
+            else if (m_iso in oldmodeswitches) then
+              undef_system_macro('FPC_ISO')
+            else if (m_extpas in oldmodeswitches) then
+              undef_system_macro('FPC_EXTENDEDPASCAL');
 
             { define new symbol in delphi,objfpc,tp,gpc,macpas mode }
             if (m_delphi in current_settings.modeswitches) then
@@ -563,7 +669,11 @@ implementation
               def_system_macro('FPC_GPC')
 {$endif}
             else if (m_mac in current_settings.modeswitches) then
-              def_system_macro('FPC_MACPAS');
+              def_system_macro('FPC_MACPAS')
+            else if (m_iso in current_settings.modeswitches) then
+              def_system_macro('FPC_ISO')
+            else if (m_extpas in current_settings.modeswitches) then
+              def_system_macro('FPC_EXTENDEDPASCAL');
          end;
 
         SetCompileMode:=b;
@@ -647,16 +757,16 @@ implementation
     procedure SetAppType(NewAppType:tapptype);
       begin
 {$ifdef i8086}
-        if (target_info.system=system_i8086_msdos) and (apptype<>NewAppType) then
+        if (target_info.system in [system_i8086_msdos,system_i8086_embedded]) and (apptype<>NewAppType) then
           begin
             if NewAppType=app_com then
               begin
-                targetinfos[system_i8086_msdos]^.exeext:='.com';
+                targetinfos[target_info.system]^.exeext:='.com';
                 target_info.exeext:='.com';
               end
             else
               begin
-                targetinfos[system_i8086_msdos]^.exeext:='.exe';
+                targetinfos[target_info.system]^.exeext:='.exe';
                 target_info.exeext:='.exe';
               end;
           end;
@@ -676,9 +786,21 @@ implementation
         current_scanner.elsepreprocstack;
       end;
 
-
     procedure dir_endif;
       begin
+        if (cs_legacyifend in current_settings.localswitches) and
+          (current_scanner.preprocstack.typ<>pp_ifdef) and (current_scanner.preprocstack.typ<>pp_ifndef) and
+            not((current_scanner.preprocstack.typ=pp_else) and (current_scanner.preprocstack.iftyp in [pp_ifdef,pp_ifndef])) then
+          Message(scan_e_unexpected_endif);
+        current_scanner.poppreprocstack;
+      end;
+
+    procedure dir_ifend;
+      begin
+        if (cs_legacyifend in current_settings.localswitches) and
+          (current_scanner.preprocstack.typ<>pp_elseif) and (current_scanner.preprocstack.typ<>pp_if) and
+            not((current_scanner.preprocstack.typ=pp_else) and (current_scanner.preprocstack.iftyp in [pp_if,pp_elseif])) then
+          Message(scan_e_unexpected_ifend);
         current_scanner.poppreprocstack;
       end;
 
@@ -846,16 +968,18 @@ type
     constructor create_int(v: int64);
     constructor create_uint(v: qword);
     constructor create_bool(b: boolean);
-    constructor create_str(s: string);
+    constructor create_str(const s: string);
     constructor create_set(ns: tnormalset);
     constructor create_real(r: bestreal);
-    class function try_parse_number(s:string):texprvalue; static;
-    class function try_parse_real(s:string):texprvalue; static;
+    class function try_parse_number(const s:string):texprvalue; static;
+    class function try_parse_real(const s:string):texprvalue; static;
     function evaluate(v:texprvalue;op:ttoken):texprvalue;
     procedure error(expecteddef, place: string);
     function isBoolean: Boolean;
+    function isInt: Boolean;
     function asBool: Boolean;
     function asInt: Integer;
+    function asInt64: Int64;
     function asStr: String;
     destructor destroy; override;
   end;
@@ -866,12 +990,12 @@ type
         variables are initialised. Since these types are only used for
         compile-time evaluation of conditional expressions, it doesn't matter
         that we use the base types instead of the cpu-specific ones. }
-      sintdef:=torddef.create(s64bit,low(int64),high(int64));
-      uintdef:=torddef.create(u64bit,low(qword),high(qword));
-      booldef:=torddef.create(pasbool8,0,1);
-      strdef:=tstringdef.createansi(0);
-      setdef:=tsetdef.create(sintdef,0,255);
-      realdef:=tfloatdef.create(s80real);
+      sintdef:=torddef.create(s64bit,low(int64),high(int64),false);
+      uintdef:=torddef.create(u64bit,low(qword),high(qword),false);
+      booldef:=torddef.create(pasbool1,0,1,false);
+      strdef:=tstringdef.createansi(0,false);
+      setdef:=tsetdef.create(sintdef,0,255,false);
+      realdef:=tfloatdef.create(s80real,false);
     end;
 
   class destructor texprvalue.destroydefs;
@@ -894,7 +1018,7 @@ type
           begin
             value.len:=c.value.len;
             getmem(value.valueptr,value.len+1);
-            move(c.value.valueptr^,value.valueptr,value.len+1);
+            move(c.value.valueptr^,value.valueptr^,value.len+1);
           end;
         constwstring:
           begin
@@ -963,7 +1087,7 @@ type
       def:=booldef;
     end;
 
-  constructor texprvalue.create_str(s: string);
+  constructor texprvalue.create_str(const s: string);
     var
       sp: pansichar;
       len: integer;
@@ -974,7 +1098,7 @@ type
       getmem(sp,len+1);
       move(s[1],sp^,len+1);
       value.valueptr:=sp;
-      value.len:=length(s);
+      value.len:=len;
       def:=strdef;
     end;
 
@@ -996,7 +1120,7 @@ type
       def:=realdef;
     end;
 
-  class function texprvalue.try_parse_number(s:string):texprvalue;
+  class function texprvalue.try_parse_number(const s:string):texprvalue;
     var
       ic: int64;
       qc: qword;
@@ -1017,7 +1141,7 @@ type
         end;
     end;
 
-  class function texprvalue.try_parse_real(s:string):texprvalue;
+  class function texprvalue.try_parse_real(const s:string):texprvalue;
     var
       d: bestreal;
       code: integer;
@@ -1031,13 +1155,13 @@ type
 
   function texprvalue.evaluate(v:texprvalue;op:ttoken):texprvalue;
 
-    function check_compatbile: boolean;
+    function check_compatible: boolean;
       begin
         result:=(
                   (is_ordinal(v.def) or is_fpu(v.def)) and
                   (is_ordinal(def) or is_fpu(def))
                 ) or
-                (is_string(v.def) and is_string(def));
+                (is_stringlike(v.def) and is_stringlike(def));
         if not result then
           Message2(type_e_incompatible_types,def.typename,v.def.typename);
       end;
@@ -1070,6 +1194,12 @@ type
         begin
           if isBoolean then
             result:=texprvalue.create_bool(not asBool)
+          else if is_ordinal(def) then
+            begin
+              result:=texprvalue.create_ord(value.valueord);
+              result.def:=def;
+              calc_not_ordvalue(result.value.valueord,result.def);
+            end
           else
             begin
               error('Boolean', 'NOT');
@@ -1084,6 +1214,14 @@ type
             else
               begin
                 v.error('Boolean','OR');
+                result:=texprvalue.create_error;
+              end
+          else if is_ordinal(def) then
+            if is_ordinal(v.def) then
+              result:=texprvalue.create_ord(value.valueord or v.value.valueord)
+            else
+              begin
+                v.error('Ordinal','OR');
                 result:=texprvalue.create_error;
               end
           else
@@ -1102,6 +1240,14 @@ type
                 v.error('Boolean','XOR');
                 result:=texprvalue.create_error;
               end
+          else if is_ordinal(def) then
+            if is_ordinal(v.def) then
+              result:=texprvalue.create_ord(value.valueord xor v.value.valueord)
+            else
+              begin
+                v.error('Ordinal','XOR');
+                result:=texprvalue.create_error;
+              end
           else
             begin
               error('Boolean','XOR');
@@ -1118,6 +1264,14 @@ type
                 v.error('Boolean','AND');
                 result:=texprvalue.create_error;
               end
+          else if is_ordinal(def) then
+            if is_ordinal(v.def) then
+              result:=texprvalue.create_ord(value.valueord and v.value.valueord)
+            else
+              begin
+                v.error('Ordinal','AND');
+                result:=texprvalue.create_error;
+              end
           else
             begin
               error('Boolean','AND');
@@ -1125,7 +1279,7 @@ type
             end;
         end;
         _EQ,_NE,_LT,_GT,_GTE,_LTE,_PLUS,_MINUS,_STAR,_SLASH,_OP_DIV,_OP_MOD,_OP_SHL,_OP_SHR:
-        if check_compatbile then
+        if check_compatible then
           begin
             if (is_ordinal(def) and is_ordinal(v.def)) then
               begin
@@ -1253,14 +1407,19 @@ type
 
   function texprvalue.isBoolean: Boolean;
     var
-      i: integer;
+      i: int64;
     begin
       result:=is_boolean(def);
       if not result and is_integer(def) then
         begin
-          i:=asInt;
+          i:=asInt64;
           result:=(i=0)or(i=1);
         end;
+    end;
+
+  function texprvalue.isInt: Boolean;
+    begin
+      result:=is_integer(def);
     end;
 
   function texprvalue.asBool: Boolean;
@@ -1269,6 +1428,11 @@ type
     end;
 
   function texprvalue.asInt: Integer;
+    begin
+      result:=value.valueord.svalue;
+    end;
+
+  function texprvalue.asInt64: Int64;
     begin
       result:=value.valueord.svalue;
     end;
@@ -1305,7 +1469,7 @@ type
       case consttyp of
         conststring,
         constresourcestring :
-          freemem(pchar(value.valueptr),value.len+1);
+          freemem(value.valueptr,value.len+1);
         constwstring :
           donewidestring(pcompilerwidestring(value.valueptr));
         constreal :
@@ -1424,7 +1588,9 @@ type
                               tokentoconsume:=_STRING;
                             end;
                         end
-                      end;
+                      else
+                        ;
+                    end;
                   end
                 else
                   begin
@@ -1482,7 +1648,7 @@ type
                end;
           end;
 
-        function preproc_substitutedtoken(searchstr:string;eval:Boolean):texprvalue;
+        function preproc_substitutedtoken(const basesearchstr:string;eval:Boolean):texprvalue;
         { Currently this parses identifiers as well as numbers.
           The result from this procedure can either be that the token
           itself is a value, or that it is a compile time variable/macro,
@@ -1494,19 +1660,24 @@ type
           mac: tmacro;
           macrocount,
           len: integer;
+          foundmacro: boolean;
+          searchstr: pshortstring;
+          searchstr2store: string;
         begin
           if not eval then
             begin
-              result:=texprvalue.create_str(searchstr);
+              result:=texprvalue.create_str(basesearchstr);
               exit;
             end;
 
+          searchstr := @basesearchstr;
           mac:=nil;
+          foundmacro:=false;
           { Substitue macros and compiler variables with their content/value.
             For real macros also do recursive substitution. }
           macrocount:=0;
           repeat
-            mac:=tmacro(search_macro(searchstr));
+            mac:=tmacro(search_macro(searchstr^));
 
             inc(macrocount);
             if macrocount>max_macro_nesting then
@@ -1527,12 +1698,14 @@ type
                     len:=mac.buflen;
                   hs[0]:=char(len);
                   move(mac.buftext^,hs[1],len);
-                  searchstr:=upcase(hs);
+                  searchstr2store:=upcase(hs);
+                  searchstr:=@searchstr2store;
                   mac.is_used:=true;
+                  foundmacro:=true;
                 end
               else
                 begin
-                  Message1(scan_e_error_macro_lacks_value,searchstr);
+                  Message1(scan_e_error_macro_lacks_value,searchstr^);
                   break;
                 end
             else
@@ -1544,12 +1717,12 @@ type
 
           { At this point, result do contain the value. Do some decoding and
             determine the type.}
-          result:=texprvalue.try_parse_number(searchstr);
+          result:=texprvalue.try_parse_number(searchstr^);
           if not assigned(result) then
             begin
-              if assigned(mac) and (searchstr='FALSE') then
+              if foundmacro and (searchstr^='FALSE') then
                 result:=texprvalue.create_bool(false)
-              else if assigned(mac) and (searchstr='TRUE') then
+              else if foundmacro and (searchstr^='TRUE') then
                 result:=texprvalue.create_bool(true)
               else if (m_mac in current_settings.modeswitches) and
                       (not assigned(mac) or not mac.defined) and
@@ -1557,11 +1730,11 @@ type
                 begin
                   {Errors in mode mac is issued here. For non macpas modes there is
                    more liberty, but the error will eventually be caught at a later stage.}
-                  Message1(scan_e_error_macro_undefined,searchstr);
-                  result:=texprvalue.create_str(searchstr); { just to have something }
+                  Message1(scan_e_error_macro_undefined,searchstr^);
+                  result:=texprvalue.create_str(searchstr^); { just to have something }
                 end
               else
-                result:=texprvalue.create_str(searchstr);
+                result:=texprvalue.create_str(searchstr^);
             end;
         end;
 
@@ -1937,6 +2110,8 @@ type
                                     result.free;
                                     result:=texprvalue.create_int(tenumsym(srsym).value);
                                   end;
+                                else
+                                  ;
                               end;
                           end
                         end
@@ -1987,6 +2162,11 @@ type
                    result:=texprvalue.create_int(1);
                  end;
                preproc_consume(_INTCONST);
+             end
+           else if current_scanner.preproc_token = _CSTRING then
+             begin
+               result:=texprvalue.create_str(current_scanner.preproc_pattern);
+               preproc_consume(_CSTRING);
              end
            else if current_scanner.preproc_token = _REALNUMBER then
              begin
@@ -2058,10 +2238,12 @@ type
         end;
 
      begin
+       current_scanner.in_preproc_comp_expr:=true;
        current_scanner.skipspace;
        { start preproc expression scanner }
        current_scanner.preproc_token:=current_scanner.readpreproc;
        preproc_comp_expr:=preproc_sub_expr(opcompare,true);
+       current_scanner.in_preproc_comp_expr:=false;
      end;
 
     function boolean_compile_time_expr(var valuedescr: string): Boolean;
@@ -2100,6 +2282,11 @@ type
       begin
         current_scanner.skipspace;
         hs:=current_scanner.readid;
+        if hs='' then
+          begin
+            Message(scan_e_emptymacroname);
+            exit;
+          end;
         mac:=tmacro(search_macro(hs));
         if not assigned(mac) or (mac.owner <> current_module.localmacrosymtable) then
           begin
@@ -2204,8 +2391,6 @@ type
       var
         hs  : string;
         mac : tmacro;
-        l : longint;
-        w : integer;
         exprvalue: texprvalue;
       begin
         current_scanner.skipspace;
@@ -2372,40 +2557,71 @@ type
            path:=hs;
          { first check for internal macros }
            macroIsString:=true;
-           if hs='TIME' then
-            hs:=gettimestr
-           else
-            if hs='DATE' then
-             hs:=getdatestr
-           else
-            if hs='FILE' then
-             hs:=current_module.sourcefiles.get_file_name(current_filepos.fileindex)
-           else
-            if hs='LINE' then
-             hs:=tostr(current_filepos.line)
-           else
-            if hs='LINENUM' then
-              begin
-                hs:=tostr(current_filepos.line);
-                macroIsString:=false;
-              end
-           else
-            if hs='FPCVERSION' then
-             hs:=version_string
-           else
-            if hs='FPCDATE' then
-             hs:=date_string
-           else
-            if hs='FPCTARGET' then
-             hs:=target_cpu_string
-           else
-            if hs='FPCTARGETCPU' then
-             hs:=target_cpu_string
-           else
-            if hs='FPCTARGETOS' then
-             hs:=target_info.shortname
-           else
-             hs:=GetEnvironmentVariable(hs);
+           case hs of
+             'TIME':
+               if timestr<>'' then
+                 hs:=timestr
+               else
+                 hs:=gettimestr;
+             'DATE':
+               if datestr<>'' then
+                 hs:=datestr
+               else
+                 hs:=getdatestr;
+             'DATEYEAR':
+               begin
+                 hs:=tostr(startsystime.Year);
+                 macroIsString:=false;
+               end;
+             'DATEMONTH':
+               begin
+                 hs:=tostr(startsystime.Month);
+                 macroIsString:=false;
+               end;
+             'DATEDAY':
+               begin
+                 hs:=tostr(startsystime.Day);
+                 macroIsString:=false;
+               end;
+             'TIMEHOUR':
+               begin
+                 hs:=tostr(startsystime.Hour);
+                 macroIsString:=false;
+               end;
+             'TIMEMINUTE':
+               begin
+                 hs:=tostr(startsystime.Minute);
+                 macroIsString:=false;
+               end;
+             'TIMESECOND':
+               begin
+                 hs:=tostr(startsystime.Second);
+                 macroIsString:=false;
+               end;
+             'FILE':
+               hs:=current_module.sourcefiles.get_file_name(current_filepos.fileindex);
+             'LINE':
+               hs:=tostr(current_filepos.line);
+             'LINENUM':
+               begin
+                 hs:=tostr(current_filepos.line);
+                 macroIsString:=false;
+               end;
+             'FPCVERSION':
+               hs:=version_string;
+             'FPCDATE':
+               hs:=date_string;
+             'FPCTARGET':
+               hs:=target_cpu_string;
+             'FPCTARGETCPU':
+               hs:=target_cpu_string;
+             'FPCTARGETOS':
+               hs:=target_info.shortname;
+             'CURRENTROUTINE':
+               hs:=current_procinfo.procdef.procsym.RealName;
+             else
+               hs:=GetEnvironmentVariable(hs);
+           end;
            if hs='' then
             Message1(scan_w_include_env_not_found,path);
            { make it a stringconst }
@@ -2437,11 +2653,16 @@ type
               if (not found) then
                found:=findincludefile(path,ChangeFileExt(name,pasext),foundfile);
             end;
+           { if the name ends in dot, try without the dot }
+           if (not found) and (ExtractFileExt(name)=ExtensionSeparator) and (Length(name)>=2) then
+             found:=findincludefile(path,Copy(name,1,Length(name)-1),foundfile);
            if current_scanner.inputfilecount<max_include_nesting then
              begin
                inc(current_scanner.inputfilecount);
                { we need to reread the current char }
                dec(current_scanner.inputpointer);
+               { reset c }
+               c:=#0;
                { shutdown current file }
                current_scanner.tempcloseinputfile;
                { load new file }
@@ -2469,6 +2690,7 @@ type
 {$ifdef PREPROCWRITE}
     constructor tpreprocfile.create(const fn:string);
       begin
+        inherited create;
       { open outputfile }
         assign(f,fn);
         {$push}{$I-}
@@ -2528,13 +2750,32 @@ type
 {*****************************************************************************
                               TReplayStack
 *****************************************************************************}
-    constructor treplaystack.Create(atoken:ttoken;asettings:tsettings;
-      atokenbuf:tdynamicarray;anext:treplaystack);
+    constructor treplaystack.Create(atoken:ttoken;aidtoken:ttoken;
+      const aorgpattern,apattern:string;const acstringpattern:ansistring;
+      apatternw:pcompilerwidestring;asettings:tsettings;
+      atokenbuf:tdynamicarray;change_endian:boolean;anext:treplaystack);
       begin
         token:=atoken;
+        idtoken:=aidtoken;
+        orgpattern:=aorgpattern;
+        pattern:=apattern;
+        cstringpattern:=acstringpattern;
+        initwidestring(patternw);
+        if assigned(apatternw) then
+          begin
+            setlengthwidestring(patternw,apatternw^.len);
+            move(apatternw^.data^,patternw^.data^,apatternw^.len*sizeof(tcompilerwidechar));
+          end;
         settings:=asettings;
         tokenbuf:=atokenbuf;
+        tokenbuf_needs_swapping:=change_endian;
         next:=anext;
+      end;
+
+
+    destructor treplaystack.destroy;
+      begin
+        donewidestring(patternw);
       end;
 
 {*****************************************************************************
@@ -2584,9 +2825,8 @@ type
         nexttokenpos:=0;
         lasttoken:=NOTOKEN;
         nexttoken:=NOTOKEN;
-        lastasmgetchar:=#0;
         ignoredirectives:=TFPHashList.Create;
-        in_asm_string:=false;
+        change_endian_for_replay:=false;
       end;
 
 
@@ -2702,7 +2942,10 @@ type
         if assigned(inputfile.next) then
          begin
            if inputfile.is_macro then
-             to_dispose:=inputfile
+             begin
+               to_dispose:=inputfile;
+               dec(macro_nesting_depth);
+             end
            else
              begin
                to_dispose:=nil;
@@ -2738,6 +2981,11 @@ type
         recordtokenbuf:=nil;
       end;
 
+    function tscannerfile.is_recording_tokens: boolean;
+      begin
+        result:=assigned(recordtokenbuf);
+      end;
+
 
     procedure tscannerfile.writetoken(t : ttoken);
       var
@@ -2754,17 +3002,11 @@ type
 
     procedure tscannerfile.tokenwritesizeint(val : asizeint);
       begin
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
         recordtokenbuf.write(val,sizeof(asizeint));
       end;
 
     procedure tscannerfile.tokenwritelongint(val : longint);
       begin
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
         recordtokenbuf.write(val,sizeof(longint));
       end;
 
@@ -2775,17 +3017,11 @@ type
 
     procedure tscannerfile.tokenwriteword(val : word);
       begin
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
         recordtokenbuf.write(val,sizeof(word));
       end;
 
     procedure tscannerfile.tokenwritelongword(val : longword);
       begin
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
         recordtokenbuf.write(val,sizeof(longword));
       end;
 
@@ -2794,9 +3030,8 @@ type
         val : asizeint;
       begin
         replaytokenbuf.read(val,sizeof(asizeint));
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
+        if change_endian_for_replay then
+          val:=swapendian(val);
         result:=val;
       end;
 
@@ -2805,9 +3040,8 @@ type
         val : longword;
       begin
         replaytokenbuf.read(val,sizeof(longword));
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
+        if change_endian_for_replay then
+          val:=swapendian(val);
         result:=val;
       end;
 
@@ -2816,9 +3050,8 @@ type
         val : longint;
       begin
         replaytokenbuf.read(val,sizeof(longint));
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
+        if change_endian_for_replay then
+          val:=swapendian(val);
         result:=val;
       end;
 
@@ -2843,9 +3076,8 @@ type
         val : smallint;
       begin
         replaytokenbuf.read(val,sizeof(smallint));
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
+        if change_endian_for_replay then
+          val:=swapendian(val);
         result:=val;
       end;
 
@@ -2854,9 +3086,8 @@ type
         val : word;
       begin
         replaytokenbuf.read(val,sizeof(word));
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
+        if change_endian_for_replay then
+          val:=swapendian(val);
         result:=val;
       end;
 
@@ -2873,16 +3104,13 @@ type
    end;
 
    procedure tscannerfile.tokenreadset(var b;size : longint);
-{$ifdef FPC_BIG_ENDIAN}
    var
      i : longint;
-{$endif}
    begin
      replaytokenbuf.read(b,size);
-{$ifdef FPC_BIG_ENDIAN}
-     for i:=0 to size-1 do
-       Pbyte(@b)[i]:=reverse_byte(Pbyte(@b)[i]);
-{$endif}
+     if change_endian_for_replay then
+       for i:=0 to size-1 do
+         Pbyte(@b)[i]:=reverse_byte(Pbyte(@b)[i]);
    end;
 
    procedure tscannerfile.tokenwriteenum(var b;size : longint);
@@ -2891,22 +3119,8 @@ type
    end;
 
    procedure tscannerfile.tokenwriteset(var b;size : longint);
-{$ifdef FPC_BIG_ENDIAN}
-   var
-     i: longint;
-     tmpset: array[0..31] of byte;
-{$endif}
    begin
-{$ifdef FPC_BIG_ENDIAN}
-     { satisfy DFA because it assumes that size may be 0 and doesn't know that
-       recordtokenbuf.write wouldn't use tmpset in that case }
-     tmpset[0]:=0;
-     for i:=0 to size-1 do
-       tmpset[i]:=reverse_byte(Pbyte(@b)[i]);
-     recordtokenbuf.write(tmpset,size);
-{$else}
      recordtokenbuf.write(b,size);
-{$endif}
    end;
 
 
@@ -2929,6 +3143,9 @@ type
             alignment.procalign:=tokenreadlongint;
             alignment.loopalign:=tokenreadlongint;
             alignment.jumpalign:=tokenreadlongint;
+            alignment.jumpalignskipmax:=tokenreadlongint;
+            alignment.coalescealign:=tokenreadlongint;
+            alignment.coalescealignskipmax:=tokenreadlongint;
             alignment.constalignmin:=tokenreadlongint;
             alignment.constalignmax:=tokenreadlongint;
             alignment.varalignmin:=tokenreadlongint;
@@ -2969,6 +3186,8 @@ type
             minfpconstprec:=tfloattype(tokenreadenum(sizeof(tfloattype)));
 
             disabledircache:=boolean(tokenreadbyte);
+
+            tlsmodel:=ttlsmodel(tokenreadenum(sizeof(ttlsmodel)));
 { TH: Since the field was conditional originally, it was not stored in PPUs.  }
 { While adding ControllerSupport constant, I decided not to store ct_none     }
 { on targets not supporting controllers, but this might be changed here and   }
@@ -3009,6 +3228,9 @@ type
             tokenwritelongint(alignment.procalign);
             tokenwritelongint(alignment.loopalign);
             tokenwritelongint(alignment.jumpalign);
+            tokenwritelongint(alignment.jumpalignskipmax);
+            tokenwritelongint(alignment.coalescealign);
+            tokenwritelongint(alignment.coalescealignskipmax);
             tokenwritelongint(alignment.constalignmin);
             tokenwritelongint(alignment.constalignmax);
             tokenwritelongint(alignment.varalignmin);
@@ -3047,6 +3269,9 @@ type
             tokenwriteenum(minfpconstprec,sizeof(tfloattype));
 
             recordtokenbuf.write(byte(disabledircache),1);
+
+            tokenwriteenum(tlsmodel,sizeof(tlsmodel));
+
 { TH: See note about controllertype field in tokenreadsettings. }
 {$PUSH}
  {$WARN 6018 OFF} (* Unreachable code due to compile time evaluation *)
@@ -3121,6 +3346,15 @@ type
           end;
 
         { file pos changes? }
+        if current_tokenpos.fileindex<>last_filepos.fileindex then
+          begin
+            s:=ST_FILEINDEX;
+            writetoken(t);
+            recordtokenbuf.write(s,1);
+            tokenwriteword(current_tokenpos.fileindex);
+            last_filepos.fileindex:=current_tokenpos.fileindex;
+            last_filepos.line:=0;
+          end;
         if current_tokenpos.line<>last_filepos.line then
           begin
             s:=ST_LINE;
@@ -3128,6 +3362,7 @@ type
             recordtokenbuf.write(s,1);
             tokenwritelongint(current_tokenpos.line);
             last_filepos.line:=current_tokenpos.line;
+            last_filepos.column:=0;
           end;
         if current_tokenpos.column<>last_filepos.column then
           begin
@@ -3145,14 +3380,6 @@ type
                 tokenwriteword(current_tokenpos.column);
               end;
             last_filepos.column:=current_tokenpos.column;
-          end;
-        if current_tokenpos.fileindex<>last_filepos.fileindex then
-          begin
-            s:=ST_FILEINDEX;
-            writetoken(t);
-            recordtokenbuf.write(s,1);
-            tokenwriteword(current_tokenpos.fileindex);
-            last_filepos.fileindex:=current_tokenpos.fileindex;
           end;
 
         writetoken(token);
@@ -3191,23 +3418,27 @@ type
               recordtokenbuf.write(orgpattern[0],1);
               recordtokenbuf.write(orgpattern[1],length(orgpattern));
             end;
+          else
+            ;
         end;
       end;
 
 
-    procedure tscannerfile.startreplaytokens(buf:tdynamicarray);
+    procedure tscannerfile.startreplaytokens(buf:tdynamicarray; change_endian:boolean);
       begin
         if not assigned(buf) then
           internalerror(200511175);
-        { save current token }
-        if token in [_CWCHAR,_CWSTRING,_CCHAR,_CSTRING,_INTCONST,_REALNUMBER,_ID] then
-          internalerror(200511178);
-        replaystack:=treplaystack.create(token,current_settings,
-          replaytokenbuf,replaystack);
+
+        { save current scanner state }
+        replaystack:=treplaystack.create(token,idtoken,orgpattern,pattern,
+          cstringpattern,patternw,current_settings,replaytokenbuf,change_endian_for_replay,replaystack);
         if assigned(inputpointer) then
           dec(inputpointer);
         { install buffer }
         replaytokenbuf:=buf;
+
+        { Initialize value of change_endian_for_replay variable }
+        change_endian_for_replay:=change_endian;
 
         { reload next token }
         replaytokenbuf.seek(0);
@@ -3243,7 +3474,14 @@ type
         if replaytokenbuf.pos>=replaytokenbuf.size then
           begin
             token:=replaystack.token;
+            idtoken:=replaystack.idtoken;
+            pattern:=replaystack.pattern;
+            orgpattern:=replaystack.orgpattern;
+            setlengthwidestring(patternw,replaystack.patternw^.len);
+            move(replaystack.patternw^.data^,patternw^.data^,replaystack.patternw^.len*sizeof(tcompilerwidechar));
+            cstringpattern:=replaystack.cstringpattern;
             replaytokenbuf:=replaystack.tokenbuf;
+            change_endian_for_replay:=replaystack.tokenbuf_needs_swapping;
             { restore compiler settings }
             current_settings:=replaystack.settings;
             popreplaystack;
@@ -3354,11 +3592,11 @@ type
                         current_tokenpos.fileindex:=tokenreadword;
                         current_filepos:=current_tokenpos;
                       end;
-                    else
-                      internalerror(2006103010);
                   end;
                 continue;
               end;
+            else
+              ;
           end;
           break;
         until false;
@@ -3387,7 +3625,7 @@ type
             exit;
            repeat
            { still more to read?, then change the #0 to a space so its seen
-             as a seperator, this can't be used for macro's which can change
+             as a separator, this can't be used for macro's which can change
              the place of the #0 in the buffer with tempopen }
              if (c=#0) and (bufsize>0) and
                 not(inputfile.is_macro) and
@@ -3423,6 +3661,7 @@ type
                        inc(inputpointer,3);
                        message(scan_c_switching_to_utf8);
                        current_settings.sourcecodepage:=CP_UTF8;
+                       exclude(current_settings.moduleswitches,cs_system_codepage);
                        include(current_settings.moduleswitches,cs_explicit_codepage);
                      end;
 
@@ -3470,6 +3709,7 @@ type
         addfile(hp);
         with inputfile do
          begin
+           inc(macro_nesting_depth);
            setmacro(p,len);
          { local buffer }
            inputbuffer:=buf;
@@ -3630,7 +3870,8 @@ type
         while assigned(preprocstack) do
          begin
            Message4(scan_e_endif_expected,preprocstring[preprocstack.typ],preprocstack.name,
-             preprocstack.owner.inputfile.name,tostr(preprocstack.line_nb));
+             current_module.sourcefiles.get_file_name(preprocstack.fileindex),
+             tostr(preprocstack.line_nb));
            poppreprocstack;
          end;
       end;
@@ -3667,7 +3908,7 @@ type
         preprocstack:=tpreprocstack.create(atyp, condition, preprocstack);
         preprocstack.name:=valuedescr;
         preprocstack.line_nb:=line_no;
-        preprocstack.owner:=self;
+        preprocstack.fileindex:=current_filepos.fileindex;
         if preprocstack.accept then
           Message2(messid,preprocstack.name,'accepted')
         else
@@ -3684,8 +3925,10 @@ type
            else
              if (not(assigned(preprocstack.next)) or (preprocstack.next.accept)) then
                preprocstack.accept:=not preprocstack.accept;
+           preprocstack.iftyp:=preprocstack.typ;
            preprocstack.typ:=pp_else;
            preprocstack.line_nb:=line_no;
+           preprocstack.fileindex:=current_filepos.fileindex;
            if preprocstack.accept then
             Message2(scan_c_else_found,preprocstack.name,'accepted')
            else
@@ -3700,14 +3943,14 @@ type
         valuedescr: String;
       begin
         if assigned(preprocstack) and
-           (preprocstack.typ in [pp_if,pp_elseif]) then
+           (preprocstack.typ in [pp_if,pp_ifdef,pp_ifndef,pp_elseif]) then
          begin
            { when the branch is accepted we use pp_elseif so we know that
              all the next branches need to be rejected. when this branch is still
              not accepted then leave it at pp_if }
            if (preprocstack.typ=pp_elseif) then
              preprocstack.accept:=false
-           else if (preprocstack.typ=pp_if) and preprocstack.accept then
+           else if (preprocstack.typ in [pp_if,pp_ifdef,pp_ifndef]) and preprocstack.accept then
                begin
                  preprocstack.accept:=false;
                  preprocstack.typ:=pp_elseif;
@@ -3721,6 +3964,7 @@ type
                end;
 
            preprocstack.line_nb:=line_no;
+           preprocstack.fileindex:=current_filepos.fileindex;
            if preprocstack.accept then
              Message2(scan_c_else_found,preprocstack.name,'accepted')
            else
@@ -3741,6 +3985,20 @@ type
            replaystack.free;
            replaystack:=hp;
          end;
+      end;
+
+
+    function tscannerfile.replay_stack_depth:longint;
+      var
+        tmp: treplaystack;
+      begin
+        result:=0;
+        tmp:=replaystack;
+        while assigned(tmp) do
+          begin
+            inc(result);
+            tmp:=tmp.next;
+          end;
       end;
 
     procedure tscannerfile.handleconditional(p:tdirectiveitem);
@@ -3788,11 +4046,14 @@ type
 {$ifdef PREPROCWRITE}
          if parapreprocess then
           begin
-            t:=Get_Directive(hs);
-            if not(is_conditional(t) or (t=_DIR_DEFINE) or (t=_DIR_UNDEF)) then
+            if not (m_mac in current_settings.modeswitches) then
+              t:=tdirectiveitem(turbo_scannerdirectives.Find(hs))
+            else
+              t:=tdirectiveitem(mac_scannerdirectives.Find(hs));
+            if assigned(t) and not(t.is_conditional) then
              begin
-               preprocfile^.AddSpace;
-               preprocfile^.Add('{$'+hs+current_scanner.readcomment+'}');
+               preprocfile.AddSpace;
+               preprocfile.Add('{$'+hs+current_scanner.readcomment+'}');
                exit;
              end;
           end;
@@ -3803,7 +4064,7 @@ type
             if (comment_level>0) then
              readcomment;
             { we've read the whole comment }
-            aktcommentstyle:=comment_none;
+            current_commentstyle:=comment_none;
             exit;
           end;
          { Check for compiler switches }
@@ -3858,7 +4119,7 @@ type
             if (current_scanner.comment_level>0) then
              current_scanner.readcomment;
             { we've read the whole comment }
-            aktcommentstyle:=comment_none;
+            current_commentstyle:=comment_none;
           end;
       end;
 
@@ -3937,6 +4198,7 @@ type
       var
         base,
         i  : longint;
+        firstdigitread: Boolean;
       begin
         case c of
           '%' :
@@ -3966,17 +4228,20 @@ type
               i:=0;
             end;
         end;
+        firstdigitread:=false;
         while ((base>=10) and (c in ['0'..'9'])) or
               ((base=16) and (c in ['A'..'F','a'..'f'])) or
               ((base=8) and (c in ['0'..'7'])) or
-              ((base=2) and (c in ['0'..'1'])) do
+              ((base=2) and (c in ['0'..'1'])) or
+              ((m_underscoreisseparator in current_settings.modeswitches) and firstdigitread and (c='_')) do
          begin
-           if i<255 then
+           if (i<255) and (c<>'_') then
             begin
               inc(i);
               pattern[i]:=c;
             end;
            readchar;
+           firstdigitread:=true;
          end;
         pattern[0]:=chr(i);
       end;
@@ -4000,7 +4265,7 @@ type
       end;
 
 
-    function tscannerfile.readcomment:string;
+    function tscannerfile.readcomment(include_special_char: boolean):string;
       var
         i : longint;
       begin
@@ -4009,15 +4274,29 @@ type
           case c of
             '{' :
               begin
-                if aktcommentstyle=comment_tp then
+                if (include_special_char) and (i<255) then
+                begin
+                  inc(i);
+                  readcomment[i]:=c;
+                end;
+
+                if current_commentstyle=comment_tp then
                   inc_comment_level;
               end;
             '}' :
               begin
-                if aktcommentstyle=comment_tp then
+                if (include_special_char) and (i<255) then
+                begin
+                  inc(i);
+                  readcomment[i]:=c;
+                end;
+
+                if current_commentstyle=comment_tp then
                   begin
                     readchar;
                     dec_comment_level;
+
+
                     if comment_level=0 then
                       break
                     else
@@ -4026,7 +4305,7 @@ type
               end;
             '*' :
               begin
-                if aktcommentstyle=comment_oldtp then
+                if current_commentstyle=comment_oldtp then
                   begin
                     readchar;
                     if c=')' then
@@ -4142,6 +4421,37 @@ type
       end;
 
 
+    function tscannerfile.readoptionalstate(fallback:char):char;
+      var
+        state : char;
+      begin
+        state:=' ';
+        if c=' ' then
+         begin
+           current_scanner.skipspace;
+           if c in ['*','}'] then
+             state:=fallback
+           else
+             begin
+               current_scanner.readid;
+               if pattern='ON' then
+                state:='+'
+               else
+                if pattern='OFF' then
+                 state:='-';
+             end;
+         end
+        else
+          if c in ['*','}'] then
+            state:=fallback
+          else
+            state:=c;
+        if not (state in ['+','-']) then
+         Message(scan_e_wrong_switch_toggle);
+        readoptionalstate:=state;
+      end;
+
+
     function tscannerfile.readstatedefault:char;
       var
         state : char;
@@ -4213,9 +4523,9 @@ type
                end;
              '{' :
                begin
-                 if (aktcommentstyle in [comment_tp,comment_none]) then
+                 if (current_commentstyle in [comment_tp,comment_none]) then
                    begin
-                     aktcommentstyle:=comment_tp;
+                     current_commentstyle:=comment_tp;
                      if (comment_level=0) then
                        found:=1;
                      inc_comment_level;
@@ -4223,14 +4533,14 @@ type
                end;
              '*' :
                begin
-                 if (aktcommentstyle=comment_oldtp) then
+                 if (current_commentstyle=comment_oldtp) then
                    begin
                      readchar;
                      if c=')' then
                        begin
                          dec_comment_level;
                          found:=0;
-                         aktcommentstyle:=comment_none;
+                         current_commentstyle:=comment_none;
                        end
                      else
                        next_char_loaded:=true;
@@ -4240,11 +4550,11 @@ type
                end;
              '}' :
                begin
-                 if (aktcommentstyle=comment_tp) then
+                 if (current_commentstyle=comment_tp) then
                    begin
                      dec_comment_level;
                      if (comment_level=0) then
-                       aktcommentstyle:=comment_none;
+                       current_commentstyle:=comment_none;
                      found:=0;
                    end;
                end;
@@ -4254,7 +4564,7 @@ type
                   found:=2;
                end;
              '''' :
-               if (aktcommentstyle=comment_none) then
+               if (current_commentstyle=comment_none) then
                 begin
                   repeat
                     readchar;
@@ -4277,7 +4587,7 @@ type
                 end;
              '(' :
                begin
-                 if (aktcommentstyle=comment_none) then
+                 if (current_commentstyle=comment_none) then
                   begin
                     readchar;
                     if c='*' then
@@ -4287,11 +4597,11 @@ type
                         begin
                           found:=2;
                           inc_comment_level;
-                          aktcommentstyle:=comment_oldtp;
+                          current_commentstyle:=comment_oldtp;
                         end
                        else
                         begin
-                          skipoldtpcomment;
+                          skipoldtpcomment(false);
                           next_char_loaded:=true;
                         end;
                      end
@@ -4303,7 +4613,7 @@ type
                end;
              '/' :
                begin
-                 if (aktcommentstyle=comment_none) then
+                 if (current_commentstyle=comment_none) then
                   begin
                     readchar;
                     if c='/' then
@@ -4328,10 +4638,11 @@ type
                              Comment Handling
 ****************************************************************************}
 
-    procedure tscannerfile.skipcomment;
+    procedure tscannerfile.skipcomment(read_first_char:boolean);
       begin
-        aktcommentstyle:=comment_tp;
-        readchar;
+        current_commentstyle:=comment_tp;
+        if read_first_char then
+          readchar;
         inc_comment_level;
       { handle compiler switches }
         if (c='$') then
@@ -4344,6 +4655,16 @@ type
               inc_comment_level;
             '}' :
               dec_comment_level;
+            '*' :
+              { in iso mode, comments opened by a curly bracket can be closed by asterisk, round bracket }
+              if m_iso in current_settings.modeswitches then
+                begin
+                  readchar;
+                  if c=')' then
+                    dec_comment_level
+                  else
+                    continue;
+                end;
             #10,#13 :
               linebreak;
             #26 :
@@ -4356,13 +4677,13 @@ type
            end;
            readchar;
          end;
-        aktcommentstyle:=comment_none;
+        current_commentstyle:=comment_none;
       end;
 
 
     procedure tscannerfile.skipdelphicomment;
       begin
-        aktcommentstyle:=comment_delphi;
+        current_commentstyle:=comment_delphi;
         inc_comment_level;
         readchar;
         { this is not supported }
@@ -4372,19 +4693,19 @@ type
         while not (c in [#10,#13,#26]) do
           readchar;
         dec_comment_level;
-        aktcommentstyle:=comment_none;
+        current_commentstyle:=comment_none;
       end;
 
 
-    procedure tscannerfile.skipoldtpcomment;
+    procedure tscannerfile.skipoldtpcomment(read_first_char:boolean);
       var
         found : longint;
       begin
-        aktcommentstyle:=comment_oldtp;
+        current_commentstyle:=comment_oldtp;
         inc_comment_level;
         { only load a char if last already processed,
           was cause of bug1634 PM }
-        if c=#0 then
+        if read_first_char then
           readchar;
       { this is now supported }
         if (c='$') then
@@ -4414,7 +4735,11 @@ type
                    if found=3 then
                     found:=4
                    else
-                    found:=1;
+                    begin
+                      if found=4 then
+                        inc_comment_level;
+                      found:=1;
+                    end;
                  end;
                ')' :
                  begin
@@ -4429,6 +4754,16 @@ type
                    else
                     found:=0;
                  end;
+              '}' :
+                { in iso mode, comments opened by asterisk, round bracket can be closed by a curly bracket }
+                if m_iso in current_settings.modeswitches then
+                  begin
+                    dec_comment_level;
+                    if comment_level=0 then
+                      found:=2
+                    else
+                      found:=0;
+                  end;
                '(' :
                  begin
                    if found=4 then
@@ -4445,7 +4780,7 @@ type
              readchar;
            until (found=2);
          end;
-        aktcommentstyle:=comment_none;
+        current_commentstyle:=comment_none;
       end;
 
 
@@ -4457,13 +4792,14 @@ type
     procedure tscannerfile.readtoken(allowrecordtoken:boolean);
       var
         code    : integer;
+        d : cardinal;
         len,
         low,high,mid : longint;
         w : word;
         m       : longint;
         mac     : tmacro;
         asciinr : string[33];
-        iswidestring : boolean;
+        iswidestring , firstdigitread: boolean;
       label
          exit_label;
       begin
@@ -4492,7 +4828,7 @@ type
         repeat
           case c of
             '{' :
-              skipcomment;
+              skipcomment(true);
             #26 :
               begin
                 reload;
@@ -4561,18 +4897,27 @@ type
                  mac:=tmacro(search_macro(pattern));
                  if assigned(mac) and (not mac.is_compiler_var) and (assigned(mac.buftext)) then
                   begin
-                    if yylexcount<max_macro_nesting then
+                    if (yylexcount<max_macro_nesting) and (macro_nesting_depth<max_macro_nesting) then
                      begin
                        mac.is_used:=true;
                        inc(yylexcount);
                        substitutemacro(pattern,mac.buftext,mac.buflen,
                          mac.fileinfo.line,mac.fileinfo.fileindex);
-                     { handle empty macros }
+                       { handle empty macros }
                        if c=#0 then
-                         reload;
-                       readtoken(false);
-                       { that's all folks }
-                       dec(yylexcount);
+                         begin
+                           reload;
+                           { avoid macro nesting error in case of
+                             a sequence of empty macros, see #38802 }
+                           dec(yylexcount);
+                           readtoken(false);
+                         end
+                       else
+                         begin
+                           readtoken(false);
+                           { that's all folks }
+                           dec(yylexcount);
+                         end;
                        exit;
                      end
                     else
@@ -4597,7 +4942,7 @@ type
 
              '%' :
                begin
-                 if not(m_fpc in current_settings.modeswitches) then
+                 if [m_fpc,m_delphi] * current_settings.modeswitches = [] then
                   Illegal_Char(c)
                  else
                   begin
@@ -4665,10 +5010,14 @@ type
                            begin
                              { insert the number after the . }
                              pattern:=pattern+'.';
-                             while c in ['0'..'9'] do
+                             firstdigitread:=false;
+                             while (c in ['0'..'9']) or
+                              ((m_underscoreisseparator in current_settings.modeswitches) and firstdigitread and (c='_')) do
                               begin
-                                pattern:=pattern+c;
+                                if c<>'_' then
+                                  pattern:=pattern+c;
                                 readchar;
+                                firstdigitread:=true;
                               end;
                            end;
                          else
@@ -4690,11 +5039,15 @@ type
                           readchar;
                         end;
                        if not(c in ['0'..'9']) then
-                        Illegal_Char(c);
-                       while c in ['0'..'9'] do
+                         Illegal_Char(c);
+                       firstdigitread:=false;
+                       while (c in ['0'..'9']) or
+                        ((m_underscoreisseparator in current_settings.modeswitches) and firstdigitread and (c='_')) do
                         begin
+                          if c<>'_' then
                           pattern:=pattern+c;
                           readchar;
+                          firstdigitread:=true;
                         end;
                      end;
                     token:=_REALNUMBER;
@@ -4731,8 +5084,7 @@ type
                  case c of
                    '*' :
                      begin
-                       c:=#0;{Signal skipoldtpcomment to reload a char }
-                       skipoldtpcomment;
+                       skipoldtpcomment(true);
                        readtoken(false);
                        exit;
                      end;
@@ -4936,7 +5288,7 @@ type
                              begin
                                readchar; { read leading $ }
                                asciinr:='$';
-                               while (upcase(c) in ['A'..'F','0'..'9']) and (length(asciinr)<=5) do
+                               while (upcase(c) in ['A'..'F','0'..'9']) and (length(asciinr)<=7) do
                                  begin
                                    asciinr:=asciinr+c;
                                    readchar;
@@ -4946,7 +5298,7 @@ type
                              begin
                                readchar; { read leading $ }
                                asciinr:='&';
-                               while (upcase(c) in ['0'..'7']) and (length(asciinr)<=7) do
+                               while (upcase(c) in ['0'..'7']) and (length(asciinr)<=8) do
                                  begin
                                    asciinr:=asciinr+c;
                                    readchar;
@@ -4956,7 +5308,7 @@ type
                              begin
                                readchar; { read leading $ }
                                asciinr:='%';
-                               while (upcase(c) in ['0','1']) and (length(asciinr)<=17) do
+                               while (upcase(c) in ['0','1']) and (length(asciinr)<=22) do
                                  begin
                                    asciinr:=asciinr+c;
                                    readchar;
@@ -4965,7 +5317,7 @@ type
                            else
                              begin
                                asciinr:='';
-                               while (c in ['0'..'9']) and (length(asciinr)<=5) do
+                               while (c in ['0'..'9']) and (length(asciinr)<=8) do
                                  begin
                                    asciinr:=asciinr+c;
                                    readchar;
@@ -4977,7 +5329,7 @@ type
                            Message(scan_e_illegal_char_const)
                          else if (m<0) or (m>255) or (length(asciinr)>3) then
                            begin
-                              if (m>=0) and (m<=65535) then
+                              if (m>=0) and (m<=$10FFFF) then
                                 begin
                                   if not iswidestring then
                                    begin
@@ -4988,7 +5340,15 @@ type
                                      iswidestring:=true;
                                      len:=0;
                                    end;
-                                  concatwidestringchar(patternw,tcompilerwidechar(m));
+                                  if m<=$FFFF then
+                                    concatwidestringchar(patternw,tcompilerwidechar(m))
+                                  else
+                                    begin
+                                      { split into surrogate pair }
+                                      dec(m,$10000);
+                                      concatwidestringchar(patternw,tcompilerwidechar((m shr 10) + $D800));
+                                      concatwidestringchar(patternw,tcompilerwidechar((m and $3FF) + $DC00));
+                                    end;
                                 end
                               else
                                 Message(scan_e_illegal_char_const)
@@ -5032,9 +5392,35 @@ type
                                    iswidestring:=true;
                                    len:=0;
                                  end;
-                               { four or more chars aren't handled }
+                               { four chars }
                                if (ord(c) and $f0)=$f0 then
-                                 message(scan_e_utf8_bigger_than_65535)
+                                 begin
+                                   { this always represents a surrogate pair, so
+                                     read as 32-bit value and then split into
+                                     the corresponding pair of two wchars }
+                                   d:=ord(c) and $f;
+                                   readchar;
+                                   if (ord(c) and $c0)<>$80 then
+                                     message(scan_e_utf8_malformed);
+                                   d:=(d shl 6) or (ord(c) and $3f);
+                                   readchar;
+                                   if (ord(c) and $c0)<>$80 then
+                                     message(scan_e_utf8_malformed);
+                                   d:=(d shl 6) or (ord(c) and $3f);
+                                   readchar;
+                                   if (ord(c) and $c0)<>$80 then
+                                     message(scan_e_utf8_malformed);
+                                   d:=(d shl 6) or (ord(c) and $3f);
+                                   if d<$10000 then
+                                     message(scan_e_utf8_malformed);
+                                   d:=d-$10000;
+                                   { high surrogate }
+                                   w:=$d800+(d shr 10);
+                                   concatwidestringchar(patternw,w);
+                                   { low surrogate }
+                                   w:=$dc00+(d and $3ff);
+                                   concatwidestringchar(patternw,w);
+                                 end
                                { three chars }
                                else if (ord(c) and $e0)=$e0 then
                                  begin
@@ -5247,6 +5633,12 @@ exit_label:
                current_scanner.preproc_pattern:=pattern;
                readpreproc:=optoken;
              end;
+           '''' :
+             begin
+               readquotedstring;
+               current_scanner.preproc_pattern:=cstringpattern;
+               readpreproc:=_CSTRING;
+             end;
            '0'..'9' :
              begin
                readnumber;
@@ -5413,87 +5805,36 @@ exit_label:
       end;
 
 
-    function tscannerfile.asmgetcharstart : char;
+    function tscannerfile.readpreprocint(var value:int64;const place:string):boolean;
+      var
+        hs : texprvalue;
       begin
-        { return first the character already
-          available in c }
-        lastasmgetchar:=c;
-        result:=asmgetchar;
+        hs:=preproc_comp_expr;
+        if hs.isInt then
+          begin
+            value:=hs.asInt64;
+            result:=true;
+          end
+        else
+          begin
+            hs.error('Integer',place);
+            result:=false;
+          end;
+        hs.free;
       end;
 
 
     function tscannerfile.asmgetchar : char;
       begin
-         if lastasmgetchar<>#0 then
-          begin
-            c:=lastasmgetchar;
-            lastasmgetchar:=#0;
-          end
-         else
-          readchar;
-         if in_asm_string then
-           begin
-             asmgetchar:=c;
-             exit;
-           end;
+         readchar;
          repeat
            case c of
-             // the { ... } is used in ARM assembler to define register sets,  so we can't used
-             // it as comment, either (* ... *), /* ... */ or // ... should be used instead.
-             // But compiler directives {$...} are allowed in ARM assembler.
-             '{' :
-               begin
-{$ifdef arm}
-                 readchar;
-                 dec(inputpointer);
-                 if c<>'$' then
-                   begin
-                     asmgetchar:='{';
-                     exit;
-                   end
-                 else
-{$endif arm}
-                   skipcomment;
-               end;
-             #10,#13 :
-               begin
-                 linebreak;
-                 asmgetchar:=c;
-                 exit;
-               end;
              #26 :
                begin
                  reload;
                  if (c=#26) and not assigned(inputfile.next) then
                    end_of_file;
                  continue;
-               end;
-             '/' :
-               begin
-                  readchar;
-                  if c='/' then
-                   skipdelphicomment
-                  else
-                   begin
-                     asmgetchar:='/';
-                     lastasmgetchar:=c;
-                     exit;
-                   end;
-               end;
-             '(' :
-               begin
-                  readchar;
-                  if c='*' then
-                   begin
-                     c:=#0;{Signal skipoldtpcomment to reload a char }
-                     skipoldtpcomment;
-                   end
-                  else
-                   begin
-                     asmgetchar:='(';
-                     lastasmgetchar:=c;
-                     exit;
-                   end;
                end;
              else
                begin
@@ -5553,7 +5894,7 @@ exit_label:
         AddDirective('LIBSUFFIX',directive_turbo, @dir_libsuffix);
         AddDirective('EXTENSION',directive_turbo, @dir_extension);
 
-        AddConditional('IFEND',directive_turbo, @dir_endif);
+        AddConditional('IFEND',directive_turbo, @dir_ifend);
         AddConditional('IFOPT',directive_turbo, @dir_ifopt);
 
         { Directives and conditionals for mode macpas: }

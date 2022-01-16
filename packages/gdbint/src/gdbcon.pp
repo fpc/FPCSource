@@ -474,7 +474,7 @@ begin
   SavedWindowWidth:=-1;
   val(strpas(p),SavedWindowWidth);
   if SavedWindowWidth<>-1 then
-    Command('set width 0xffffffff');
+    Command('set width 0');
 end;
 
 procedure TGDBController.NormWidth;

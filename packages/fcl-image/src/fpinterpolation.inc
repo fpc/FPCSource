@@ -1,9 +1,38 @@
+{
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2003 by the Free Pascal development team
+
+    Some more interpolation filters implementation for TFPCanvas.StretchDraw:
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
 { TFPCustomInterpolation }
 
 procedure TFPCustomInterpolation.Initialize(aimage: TFPCustomImage; acanvas: TFPCustomCanvas);
 begin
   fimage := aimage;
   fcanvas := acanvas;
+end;
+
+{ TFPBoxInterpolation }
+
+procedure TFPBoxInterpolation.Execute(x,y,w,h:integer);
+var
+  dx, dy, iw, ih: Integer;
+begin
+  iw := Image.Width;
+  ih := Image.Height;
+
+  for dx := 0 to w-1 do
+    for dy := 0 to h-1 do
+      Canvas.DrawPixel(x+dx,y+dy, Image.Colors[dx*iw div w, dy*ih div h]);
 end;
 
 { TFPBaseInterpolation }
@@ -125,7 +154,6 @@ var
   yEntry: Pointer;
   SrcStartY: LongInt;
   LastSrcStartY: LongInt;
-  LastyEntry: Pointer;
   sy: Integer;
   xEntry: Pointer;
   sx: LongInt;
@@ -148,7 +176,6 @@ begin
     // current y line
     GetMem(HorzResized,w*ySupport*SizeOf(TFPColor));
 
-    LastyEntry:=nil;
     SrcStartY:=0;
     for dy:=0 to h-1 do
     begin
@@ -159,7 +186,6 @@ begin
         NewSupportLines:=ySupport;
       end else
       begin
-        LastyEntry:=yEntry;
         LastSrcStartY:=SrcStartY;
         inc(yEntry,yEntrySize);
         SrcStartY:=PInteger(yEntry)^;
@@ -209,7 +235,7 @@ begin
           NewCol.blue:=Min(NewCol.blue+round(Col.blue*f),$ffff);
           NewCol.alpha:=Min(NewCol.alpha+round(Col.alpha*f),$ffff);
         end;
-        Canvas.Colors[x+dx,y+dy]:=NewCol;
+        Canvas.DrawPixel(x+dx,y+dy, NewCol);
       end;
     end;
   finally

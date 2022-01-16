@@ -21,6 +21,8 @@
 { This unit implements support information structures for the Nintendo Wii. }
 unit i_wii;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses
@@ -75,6 +77,9 @@ unit i_wii;
                 procalign       : 4;
                 loopalign       : 4;
                 jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 4;
                 varalignmin     : 0;

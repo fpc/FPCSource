@@ -13,7 +13,7 @@
 
  **********************************************************************}
  
-unit dbIndexer;
+unit DBIndexer;
 
 {$mode objfpc}{$H+}
 
@@ -395,9 +395,9 @@ Var
 begin
   Result:=0;
   T:='';
-  R:=TIReaderTXT.Create;
+  URL:=TableName+'/'+KeyField.AsString;
+  R:=TIReaderTXT.Create(URL,CP_UTF8);
   try
-    URL:=TableName+'/'+KeyField.AsString;
     For I:=0 to List.Count-1 do
       begin
       F:=TField(List.Objects[i]);

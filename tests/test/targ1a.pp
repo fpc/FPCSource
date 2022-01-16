@@ -9,7 +9,8 @@ type
   TMemArray = array [0..MAX_SIZE div SIZE_INC] of pointer;
 
 var
-  i : longint;
+  i, length_arg2 : longint;
+  err :word;
   MemArray : TMemArray;
 
 function Size(i: longint) : longint;
@@ -23,10 +24,22 @@ begin
     begin
       GetMem(MemArray[i],Size(i));
     end;
-  for i:=0 to MAX_SIZE div SIZE_INC do
+  for i:=1 to MAX_SIZE div SIZE_INC do
     begin
       FreeMem(MemArray[i],Size(i));
     end;
-  Writeln(stderr,'Everything is fine');
-
+  i:=length(paramstr(1));
+  Writeln(stderr,'Everthing is fine, arg1 length=',i);
+  val(paramstr(1),length_arg2,err);
+  if err=0 then
+    begin
+      i:=length(paramstr(2));
+      if (i<>length_arg2) then
+        begin
+          Writeln('Length of arg2 is ',i,' not ',length_arg2);
+          halt(1);
+        end
+      else
+        Writeln('length of arg2 OK: ',length_arg2);
+    end;
 end.

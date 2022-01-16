@@ -28,9 +28,8 @@ unit rgx86;
   interface
 
     uses
-      cclasses,globtype,
-      cpubase,cpuinfo,cgbase,cgutils,
-      aasmbase,aasmtai,aasmdata,aasmsym,aasmcpu,
+      cpubase,cgbase,cgutils,
+      aasmtai,aasmdata,aasmsym,aasmcpu,
       rgobj;
 
     type
@@ -48,11 +47,6 @@ unit rgx86;
        tpushedsavedfpu = array[tsuperregister] of tpushedsavedloc;
 
        trgx86fpu = class
-          { The "usableregsxxx" contain all registers of type "xxx" that }
-          { aren't currently allocated to a regvar. The "unusedregsxxx"  }
-          { contain all registers of type "xxx" that aren't currently    }
-          { allocated                                                    }
-          unusedregsfpu,usableregsfpu : Tsuperregisterset;
           { these counters contain the number of elements in the }
           { unusedregsxxx/usableregsxxx sets                     }
           countunusedregsfpu : byte;
@@ -88,7 +82,6 @@ unit rgx86;
 implementation
 
     uses
-       systems,
        verbose;
 
     const
@@ -107,11 +100,70 @@ implementation
       end;
 
 
+    { Decide wether a "replace" spill is possible, i.e. wether we can replace a register
+      in an instruction by a memory reference. For example, in "mov ireg26d,0", the imaginary
+      register ireg26d can be replaced by a memory reference.}
     function trgx86.do_spill_replace(list:TAsmList;instr:tai_cpu_abstract_sym;orgreg:tsuperregister;const spilltemp:treference):boolean;
 
-    {Decide wether a "replace" spill is possible, i.e. wether we can replace a register
-     in an instruction by a memory reference. For example, in "mov ireg26d,0", the imaginary
-     register ireg26d can be replaced by a memory reference.}
+       { returns true if opcde is an avx opcode which allows only the first (zero) operand might be a memory reference }
+       function avx_opcode_only_op0_may_be_memref(opcode : TAsmOp) : boolean;
+         begin
+           case opcode of
+             A_VMAXPD,
+             A_VMAXPS,
+             A_VMAXSD,
+             A_VMAXSS,
+             A_VMINPD,
+             A_VMINPS,
+             A_VMINSD,
+             A_VMINSS,
+             A_VMULSS,
+             A_VMULSD,
+             A_VSUBSS,
+             A_VSUBSD,
+             A_VADDSD,
+             A_VADDSS,
+             A_VDIVSD,
+             A_VDIVSS,
+             A_VSQRTSD,
+             A_VSQRTSS,
+             A_VCVTDQ2PD,
+             A_VCVTDQ2PS,
+             A_VCVTPD2DQ,
+             A_VCVTPD2PS,
+             A_VCVTPS2DQ,
+             A_VCVTPS2PD,
+             A_VCVTSD2SI,
+             A_VCVTSD2SS,
+             A_VCVTSI2SD,
+             A_VCVTSS2SD,
+             A_VCVTTPD2DQ,
+             A_VCVTTPS2DQ,
+             A_VCVTTSD2SI,
+             A_VCVTSI2SS,
+             A_VCVTSS2SI,
+             A_VCVTTSS2SI,
+             A_VXORPD,
+             A_VXORPS,
+             A_VORPD,
+             A_VORPS,
+             A_VANDPD,
+             A_VANDPS,
+             A_VUNPCKLPS,
+             A_VUNPCKHPS,
+             A_VSHUFPD,
+             A_VREDUCEPD,
+             A_VREDUCEPS,
+             A_VREDUCESD,
+             A_VREDUCESS,
+             A_VROUNDSS,
+             A_VROUNDSD:
+               result:=true;
+             else
+               result:=false;
+           end;
+         end;
+
 
       var
         n,replaceoper : longint;
@@ -148,6 +200,7 @@ implementation
                       { avx instructions allow only the first operand (at&t counting) to be a register operand
                         all operands must be registers ... }
                       else if (oper[0]^.typ=top_reg) and
+                         (getregtype(oper[0]^.reg)=regtype) and
                          (oper[1]^.typ=top_reg) and
                          (oper[2]^.typ=top_reg) and
                          { but they must be different }
@@ -229,11 +282,20 @@ implementation
                               A_BTC,
                               A_BTR,
 
-                              { shufp* would require 16 byte alignment for memory locations so we force the source
+                              { shufp*/unpcklp* would require 16 byte alignment for memory locations so we force the source
                                 operand into a register }
                               A_SHUFPD,
-                              A_SHUFPS :
+                              A_SHUFPS,
+                              A_UNPCKLPD,
+                              A_UNPCKLPS :
                                 replaceoper:=-1;
+
+                              { movlhps/movhlps requires the second parameter to be XMM registers }
+                              A_MOVHLPS,
+                              A_MOVLHPS:
+                                replaceoper:=-1;
+                              else
+                                ;
                             end;
                           end;
                         1 :
@@ -285,6 +347,9 @@ implementation
                               A_CVTTSS2SI,
                               A_XORPD,
                               A_XORPS,
+                              A_PXOR,
+                              A_PAND,
+                              A_POR,
                               A_ORPD,
                               A_ORPS,
                               A_ANDPD,
@@ -294,7 +359,15 @@ implementation
                               A_SHUFPD,
                               A_SHUFPS,
                               A_VCOMISD,
-                              A_VCOMISS:
+                              A_VCOMISS,
+                              A_MINSS,
+                              A_MINSD,
+                              A_MINPS,
+                              A_MINPD,
+                              A_MAXSS,
+                              A_MAXSD,
+                              A_MAXPS,
+                              A_MAXPD:
                                 replaceoper:=-1;
 
                               A_IMUL:
@@ -309,6 +382,9 @@ implementation
                                      (oper[0]^.val>high(longint))) then
                                    replaceoper:=-1;
 {$endif x86_64}
+                              else
+                                if avx_opcode_only_op0_may_be_memref(opcode) then
+                                  replaceoper:=-1;
                             end;
                           end;
                         2 :
@@ -318,6 +394,9 @@ implementation
                             case instr.opcode of
                               A_IMUL:
                                 replaceoper:=-1;
+                              else
+                                if avx_opcode_only_op0_may_be_memref(opcode) then
+                                  replaceoper:=-1;
                             end;
                           end;
                       end;
@@ -329,8 +408,10 @@ implementation
             { 32 bit operations on 32 bit registers on x86_64 can result in
               zeroing the upper 32 bits of the register. This does not happen
               with memory operations, so we have to perform these calculations
-              in registers.  }
-            if (opsize=S_L) then
+              in registers.
+
+              However, for instructions not modifying registers, this is not a problem }
+            if (opsize=S_L) and (opcode<>A_CMP) and (opcode<>A_TEST) and (opcode<>A_BT) then
               replaceoper:=-1;
 {$endif x86_64}
 
@@ -360,6 +441,8 @@ implementation
                         opcode:=A_VMOVSS;
                       A_VMOVAPD:
                         opcode:=A_VMOVSD;
+                      else
+                        ;
                     end;
                   end;
                 result:=true;
@@ -375,7 +458,6 @@ implementation
     constructor Trgx86fpu.create;
       begin
         used_in_proc:=[];
-        unusedregsfpu:=usableregsfpu;
       end;
 
 

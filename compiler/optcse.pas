@@ -42,16 +42,20 @@ unit optcse;
       Further, it could be done probably in a faster way though the complexity can't probably not reduced
     }
     function do_optcse(var rootnode : tnode) : tnode;
+    function do_consttovar(var rootnode : tnode) : tnode;
 
   implementation
 
     uses
       globtype,globals,
       cutils,cclasses,
-      nutils,
-      nbas,nld,ninl,ncal,nadd,nmem,
+      nutils,compinnr,
+      nbas,nld,ninl,ncal,nadd,nmem,ncnv,
       pass_1,
-      symconst,symdef,symsym,
+      procinfo,
+      paramgr,
+      cpubase,
+      symconst,symdef,symsym,symtable,symtype,
       defutil,
       optbase;
 
@@ -66,11 +70,14 @@ unit optcse;
       begin
         if (n.nodetype in cseinvariant) or
           ((n.nodetype=inlinen) and
-           (tinlinenode(n).inlinenumber in [in_assigned_x,in_sqr_real,in_sqrt_real,in_sin_real,in_cos_real,in_abs_long,
+           (tinlinenode(n).inlinenumber in [in_length_x,in_assigned_x,in_sqr_real,in_sqrt_real,in_sin_real,in_cos_real,in_abs_long,
              in_abs_real,in_exp_real,in_ln_real,in_pi_real,in_popcnt_x,in_arctan_real,in_round_real,in_trunc_real,
              { cse on fma will still not work because it would require proper handling of call nodes
                with more than one parameter }
-             in_fma_single,in_fma_double,in_fma_extended,in_fma_float128])
+             in_fma_single,in_fma_double,in_fma_extended,in_fma_float128,
+             in_min_single,in_min_double,in_max_single,in_max_double,
+             in_max_longint,in_max_dword,in_min_longint,in_min_dword
+             ])
           ) or
           ((n.nodetype=callparan) and not(assigned(tcallparanode(n).right))) or
           ((n.nodetype=loadn) and
@@ -138,14 +145,22 @@ unit optcse;
 
       var
         i : longint;
+        tempdef : tdef;
       begin
         result:=fen_false;
         { don't add the tree below an untyped const parameter: there is
           no information available that this kind of tree actually needs
           to be addresable, this could be improved }
-        if ((n.nodetype=callparan) and
-          (tcallparanode(n).left.resultdef.typ=formaldef) and
-          (tcallparanode(n).parasym.varspez=vs_const)) then
+        { the nodes below a type conversion node created for an absolute
+          reference cannot be handled separately, because the absolute reference
+          may have special requirements (no regability, must be in memory, ...)
+        }
+        if (((n.nodetype=callparan) and
+             (tcallparanode(n).left.resultdef.typ=formaldef) and
+             (tcallparanode(n).parasym.varspez=vs_const)) or
+            ((n.nodetype=typeconvn) and
+             (nf_absolute in n.flags))
+           ) then
           begin
             result:=fen_norecurse_false;
             exit;
@@ -153,12 +168,30 @@ unit optcse;
         if
           { node possible to add? }
           assigned(n.resultdef) and
-          (
+          ((
             { regable expressions }
             (actualtargetnode(@n)^.flags*[nf_write,nf_modify,nf_address_taken]=[]) and
-            ((((tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable or tstoreddef(n.resultdef).is_const_intregable) and
+            (
+              tstoreddef(n.resultdef).is_intregable or
+              tstoreddef(n.resultdef).is_fpuregable or
+              tstoreddef(n.resultdef).is_const_intregable
+            ) and
             { is_int/fpuregable allows arrays and records to be in registers, cse cannot handle this }
-            (not(n.resultdef.typ in [arraydef,recorddef]))) or is_dynamic_array(n.resultdef)) and
+            (
+              not(n.resultdef.typ in [arraydef,recorddef]) or
+              (
+                (
+                  (n.resultdef.typ = recorddef) and
+                  tabstractrecordsymtable(tabstractrecorddef(n.resultdef).symtable).has_single_field(tempdef)
+                ) or
+                is_dynamic_array(n.resultdef) or
+                (
+                  not(is_special_array(tstoreddef(n.resultdef))) and
+                  not(tstoreddef(n.resultdef).is_intregable) and
+                  not(tstoreddef(n.resultdef).is_fpuregable)
+                )
+              )
+            ) and
             { same for voiddef }
             not(is_void(n.resultdef)) and
             { adding tempref and callpara nodes itself is worthless but
@@ -186,7 +219,7 @@ unit optcse;
              not(tloadnode(actualtargetnode(@n)^).symtableentry.typ in [paravarsym,localvarsym,staticvarsym]) or
              { apply cse on non-regable variables }
              ((tloadnode(actualtargetnode(@n)^).symtableentry.typ in [paravarsym,localvarsym,staticvarsym]) and
-               not(tabstractvarsym(tloadnode(actualtargetnode(@n)^).symtableentry).is_regvar(false)) and
+               not(tabstractvarsym(tloadnode(actualtargetnode(@n)^).symtableentry).is_regvar(true)) and
                not(vo_volatile in tabstractvarsym(tloadnode(actualtargetnode(@n)^).symtableentry).varoptions)) or
              (node_complexity(n)>1)
             ) and
@@ -274,22 +307,26 @@ unit optcse;
         nodes : tblocknode;
         creates,
         statements : tstatementnode;
+        deletetemp : ttempdeletenode;
         hp : ttempcreatenode;
         addrstored : boolean;
         hp2 : tnode;
       begin
         result:=fen_false;
         nodes:=nil;
-        if n.nodetype in cseinvariant then
+        if (n.nodetype in cseinvariant) and
+          { a setelement node is cseinvariant, but it might not be replaced by a block so
+            it cannot be the root of the cse search }
+          (n.nodetype<>setelementn) then
           begin
             csedomain:=true;
             foreachnodestatic(pm_postprocess,n,@searchsubdomain,@csedomain);
             if not(csedomain) then
               begin
                 { try to transform the tree to get better cse domains, consider:
-                       +
+                       +   (1)
                       / \
-                     +   C
+                (2)  +   C
                     / \
                    A   B
 
@@ -318,6 +355,9 @@ unit optcse;
                    (is_set(n.resultdef))
                    ) then
                   while (n.nodetype=tbinarynode(n).left.nodetype) and
+                    { if node (1) is fully boolean evaluated and node (2) not, we cannot do the swap as this might result in B being evaluated always,
+                      the other way round is no problem, C is still evaluated only if needed }
+                    (not(is_boolean(n.resultdef)) or not(n.nodetype in [andn,orn]) or doshortbooleval(n) or not(doshortbooleval(tbinarynode(n).left))) and
                         { the resulttypes of the operands we'll swap must be equal,
                           required in case of a 32x32->64 multiplication, then we
                           cannot swap out one of the 32 bit operands for a 64 bit one
@@ -333,6 +373,17 @@ unit optcse;
                           foreachnodestatic(pm_postprocess,tbinarynode(tbinarynode(n).left).right,@searchsubdomain,@csedomain);
                           if csedomain then
                             begin
+                              { move the full boolean evaluation of (2) to (1), if it was there (so it again applies to A and
+                                what follows) }
+                              if not(doshortbooleval(tbinarynode(n).left)) and
+                                 doshortbooleval(n) then
+                                begin
+                                  n.localswitches:=n.localswitches+(tbinarynode(n).left.localswitches*[cs_full_boolean_eval]);
+                                  exclude(tbinarynode(n).left.localswitches,cs_full_boolean_eval);
+                                  tbinarynode(n).left.flags:=tbinarynode(n).left.flags+(n.flags*[nf_short_bool]);
+                                  exclude(n.Flags,nf_short_bool);
+                                end;
+
                               hp2:=tbinarynode(tbinarynode(n).left).left;
                               tbinarynode(tbinarynode(n).left).left:=tbinarynode(tbinarynode(n).left).right;
                               tbinarynode(tbinarynode(n).left).right:=tbinarynode(n).right;
@@ -387,7 +438,7 @@ unit optcse;
                         addrstored:=((def.typ in [arraydef,recorddef]) or is_object(def)) and not(is_dynamic_array(def));
 
                         if addrstored then
-                          templist[i]:=ctempcreatenode.create_value(getpointerdef(def),voidpointertype.size,tt_persistent,
+                          templist[i]:=ctempcreatenode.create_value(cpointerdef.getreusable(def),voidpointertype.size,tt_persistent,
                             true,caddrnode.create_internal(tnode(lists.nodelist[i])))
                         else
                           templist[i]:=ctempcreatenode.create_value(def,def.size,tt_persistent,
@@ -397,13 +448,19 @@ unit optcse;
 
                           ttempcreatenode.create normally takes care of the register location but it does not
                           know about immutability so it cannot take care of managed types }
-                        include(ttempcreatenode(templist[i]).tempinfo^.flags,ti_const);
-                        include(ttempcreatenode(templist[i]).tempinfo^.flags,ti_may_be_in_reg);
+                        ttempcreatenode(templist[i]).includetempflag(ti_const);
+                        ttempcreatenode(templist[i]).includetempflag(ti_may_be_in_reg);
 
                         { make debugging easier and set temp. location to the original location }
                         tnode(templist[i]).fileinfo:=tnode(lists.nodelist[i]).fileinfo;
 
                         addstatement(creates,tnode(templist[i]));
+
+                        { the delete node has no semantic use yet, it is just used to clean up memory }
+                        deletetemp:=ctempdeletenode.create(ttempcreatenode(templist[i]));
+                        deletetemp.includetempflag(ti_cleanup_only);
+                        addstatement(tstatementnode(arg^),deletetemp);
+
                         { make debugging easier and set temp. location to the original location }
                         creates.fileinfo:=tnode(lists.nodelist[i]).fileinfo;
 
@@ -495,16 +552,286 @@ unit optcse;
 
 
     function do_optcse(var rootnode : tnode) : tnode;
+      var
+        deletes,
+        statements : tstatementnode;
+        deleteblock,
+        rootblock : tblocknode;
       begin
 {$ifdef csedebug}
-         writeln('====================================================================================');
-         writeln('CSE optimization pass started');
-         writeln('====================================================================================');
-         printnode(rootnode);
-         writeln('====================================================================================');
-         writeln;
+        writeln('====================================================================================');
+        writeln('CSE optimization pass started');
+        writeln('====================================================================================');
+        printnode(rootnode);
+        writeln('====================================================================================');
+        writeln;
 {$endif csedebug}
-        foreachnodestatic(pm_postprocess,rootnode,@searchcsedomain,nil);
+        deleteblock:=internalstatements(deletes);
+        foreachnodestatic(pm_postprocess,rootnode,@searchcsedomain,@deletes);
+        rootblock:=internalstatements(statements);
+        addstatement(statements,rootnode);
+        addstatement(statements,deleteblock);
+        rootnode:=rootblock;
+        do_firstpass(rootnode);
+{$ifdef csedebug}
+        writeln('====================================================================================');
+        writeln('CSE optimization result');
+        writeln('====================================================================================');
+        printnode(rootnode);
+        writeln('====================================================================================');
+        writeln;
+{$endif csedebug}
+        result:=nil;
+      end;
+
+    type
+      tconstentry = record
+        valuenode : tnode;
+        weight : TCGInt;
+        temp : ttempcreatenode;
+      end;
+
+      pconstentry = ^tconstentry;
+
+      tconstentries = array of tconstentry;
+      pconstentries = ^tconstentries;
+
+    function CSEOnReference(n : tnode) : Boolean;
+      begin
+        Result:=(n.nodetype=loadn) and (tloadnode(n).symtableentry.typ=staticvarsym)
+          and ((vo_is_thread_var in tstaticvarsym(tloadnode(n).symtableentry).varoptions)
+{$if defined(aarch64)}
+            or (not(tabstractvarsym(tloadnode(n).symtableentry).is_regvar(false)))
+{$endif defined(aarch64)}
+           );
+      end;
+
+
+    function collectconsts(var n:tnode; arg: pointer) : foreachnoderesult;
+      var
+        consts: pconstentries;
+        found: Boolean;
+        i: Integer;
+      begin
+        result:=fen_true;
+        consts:=pconstentries(arg);
+        if ((n.nodetype=realconstn)
+{$ifdef x86}
+          { x87 consts would end up in memory, so loading them in temps. makes no sense }
+          and use_vectorfpu(n.resultdef)
+{$endif x86}
+          ) or
+          CSEOnReference(n) then
+          begin
+            found:=false;
+            i:=0;
+            for i:=0 to High(consts^) do
+              begin
+                if tnode(consts^[i].valuenode).isequal(n) then
+                  begin
+                    found:=true;
+                    break;
+                  end;
+              end;
+            if found then
+              inc(consts^[i].weight)
+            else
+              begin
+                SetLength(consts^,length(consts^)+1);
+                with consts^[high(consts^)] do
+                  begin
+                    valuenode:=n.getcopy;
+                    valuenode.fileinfo:=current_procinfo.entrypos;
+                    weight:=1;
+                  end;
+              end;
+          end;
+      end;
+
+
+    function replaceconsts(var n:tnode; arg: pointer) : foreachnoderesult;
+      var
+        hp: tnode;
+      begin
+        result:=fen_true;
+        if tnode(pconstentry(arg)^.valuenode).isequal(n) then
+          begin
+            { shall we take the address? }
+            if CSEOnReference(pconstentry(arg)^.valuenode) then
+              begin
+                hp:=ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(pconstentry(arg)^.temp)),pconstentry(arg)^.valuenode.resultdef);
+                ttypeconvnode(hp).left.fileinfo:=n.fileinfo;
+              end
+            else
+              hp:=ctemprefnode.create(pconstentry(arg)^.temp);
+
+            hp.fileinfo:=n.fileinfo;
+            n.Free;
+            n:=hp;
+            do_firstpass(n);
+          end;
+       end;
+
+
+    function do_consttovar(var rootnode : tnode) : tnode;
+      var
+        constentries : tconstentries;
+      Procedure QuickSort(L, R : Longint);
+        var
+          I, J, P: Longint;
+          Item, Q : tconstentry;
+        begin
+         repeat
+           I := L;
+           J := R;
+           P := (L + R) div 2;
+           repeat
+             Item := constentries[P];
+             while Item.weight>constentries[I].weight do
+               I := I + 1;
+             while Item.weight<constentries[J].weight do
+               J := J - 1;
+             If I <= J then
+             begin
+               Q := constentries[I];
+               constentries[I] := constentries[J];
+               constentries[J] := Q;
+               if P = I then
+                P := J
+               else if P = J then
+                P := I;
+               I := I + 1;
+               J := J - 1;
+             end;
+           until I > J;
+           if L < J then
+             QuickSort(L, J);
+           L := I;
+         until I >= R;
+        end;
+
+      var
+        creates,
+        deletes,
+        statements : tstatementnode;
+        createblock,
+        deleteblock,
+        rootblock : tblocknode;
+        i, max_fpu_regs_assigned, fpu_regs_assigned,
+        max_int_regs_assigned, int_regs_assigned: Integer;
+        old_current_filepos: tfileposinfo;
+      begin
+  {$ifdef csedebug}
+        writeln('====================================================================================');
+        writeln('Const optimization pass started');
+        writeln('====================================================================================');
+        printnode(rootnode);
+        writeln('====================================================================================');
+        writeln;
+  {$endif csedebug}
+        foreachnodestatic(pm_postprocess,rootnode,@collectconsts,@constentries);
+        createblock:=nil;
+        deleteblock:=nil;
+        rootblock:=nil;
+        { estimate how many int registers can be used }
+        if pi_do_call in current_procinfo.flags then
+          max_int_regs_assigned:=length(paramanager.get_saved_registers_int(current_procinfo.procdef.proccalloption))
+          { we store only addresses, so take care of the relation between address sizes and register sizes }
+            div (sizeof(PtrUInt) div sizeof(ALUUInt))
+          { heuristics, just use a quarter of all registers at maximum }
+            div 4
+        else
+          max_int_regs_assigned:=max(first_int_imreg div 4,1);
+{$if defined(x86) or defined(aarch64) or defined(arm)}
+        { x86, aarch64 and arm (neglecting fpa) use mm registers for floats }
+        if pi_do_call in current_procinfo.flags then
+          { heuristics, just use a fifth of all registers at maximum }
+          max_fpu_regs_assigned:=length(paramanager.get_saved_registers_mm(current_procinfo.procdef.proccalloption)) div 5
+        else
+          max_fpu_regs_assigned:=max(first_mm_imreg div 5,1);
+{$else defined(x86) or defined(aarch64) or defined(arm)}
+        if pi_do_call in current_procinfo.flags then
+          { heuristics, just use a fifth of all registers at maximum }
+          max_fpu_regs_assigned:=length(paramanager.get_saved_registers_fpu(current_procinfo.procdef.proccalloption)) div 5
+        else
+          max_fpu_regs_assigned:=max(first_fpu_imreg div 5,1);
+{$endif defined(x86) or defined(aarch64) or defined(arm)}
+        fpu_regs_assigned:=0;
+        int_regs_assigned:=0;
+        if Length(constentries)>0 then
+          begin
+            { sort entries by weight }
+            QuickSort(0,High(constentries));
+            { assign only the constants with the highest weight to a register }
+            for i:=High(constentries) downto 0 do
+              begin
+                if (constentries[i].valuenode.nodetype=realconstn) and
+                   { if there is a call, we need most likely to save/restore a register }
+                  ((constentries[i].weight>3) or
+                  ((constentries[i].weight>1) and not(pi_do_call in current_procinfo.flags)))
+                then
+                  begin
+                    if fpu_regs_assigned>=max_fpu_regs_assigned then
+                      break;
+                    old_current_filepos:=current_filepos;
+                    current_filepos:=current_procinfo.entrypos;
+                    if not(assigned(createblock)) then
+                      begin
+                        rootblock:=internalstatements(statements);
+                        createblock:=internalstatements(creates);
+                        deleteblock:=internalstatements(deletes);
+                      end;
+                     constentries[i].temp:=ctempcreatenode.create(constentries[i].valuenode.resultdef,
+                       constentries[i].valuenode.resultdef.size,tt_persistent,true);
+                     addstatement(creates,constentries[i].temp);
+                     addstatement(creates,cassignmentnode.create_internal(ctemprefnode.create(constentries[i].temp),constentries[i].valuenode));
+                     current_filepos:=old_current_filepos;
+                     foreachnodestatic(pm_postprocess,rootnode,@replaceconsts,@constentries[i]);
+                     inc(fpu_regs_assigned);
+                  end
+                else if CSEOnReference(constentries[i].valuenode) and
+                   { if there is a call, we need most likely to save/restore a register }
+                  ((constentries[i].weight>2) or
+                  ((constentries[i].weight>1) and not(pi_do_call in current_procinfo.flags)))
+                then
+                  begin
+                    if int_regs_assigned>=max_int_regs_assigned then
+                      break;
+                    old_current_filepos:=current_filepos;
+                    current_filepos:=current_procinfo.entrypos;
+                    if not(assigned(createblock)) then
+                      begin
+                        rootblock:=internalstatements(statements);
+                        createblock:=internalstatements(creates);
+                        deleteblock:=internalstatements(deletes);
+                      end;
+                     constentries[i].temp:=ctempcreatenode.create(voidpointertype,
+                       voidpointertype.size,tt_persistent,true);
+                     addstatement(creates,constentries[i].temp);
+                     addstatement(creates,cassignmentnode.create_internal(ctemprefnode.create(constentries[i].temp),
+                       caddrnode.create_internal(constentries[i].valuenode)));
+                     current_filepos:=old_current_filepos;
+                     foreachnodestatic(pm_postprocess,rootnode,@replaceconsts,@constentries[i]);
+                     inc(int_regs_assigned);
+                  end;
+              end;
+          end;
+        if assigned(createblock) then
+          begin
+            addstatement(statements,createblock);
+            addstatement(statements,rootnode);
+            addstatement(statements,deleteblock);
+            rootnode:=rootblock;
+            do_firstpass(rootnode);
+          end;
+  {$ifdef csedebug}
+        writeln('====================================================================================');
+        writeln('Const optimization result');
+        writeln('====================================================================================');
+        printnode(rootnode);
+        writeln('====================================================================================');
+        writeln;
+  {$endif csedebug}
         result:=nil;
       end;
 

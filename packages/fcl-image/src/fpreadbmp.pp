@@ -62,6 +62,8 @@ type
     public
       constructor Create; override;
       destructor Destroy; override;
+      property XPelsPerMeter : integer read BFI.XPelsPerMeter;
+      property YPelsPerMeter : integer read BFI.YPelsPerMeter;
   end;
 
 implementation
@@ -122,15 +124,8 @@ end;
 
 { Counts how many bits are set }
 function TFPReaderBMP.CountBits(Value : byte) : shortint;
-var i,bits : shortint;
 begin
-  bits:=0;
-  for i:=0 to 7 do
-  begin
-    if (value mod 2)<>0 then inc(bits);
-    value:=value shr 1;
-  end;
-  Result:=bits;
+   Result:=PopCnt(Value);
 end;
 
 { If compression is bi_bitfields, there could be arbitrary masks for colors.
@@ -154,7 +149,7 @@ begin
     inc(tmp);
     Mask:= Mask shr 1;
   end;
-  tmp:=tmp-(8-CountBits(Mask and $FF));
+  tmp:=tmp-(8-popcnt(byte(Mask and $FF)));
   Result:=tmp;
 end;
 
@@ -222,7 +217,7 @@ begin
 end;
 
 procedure TFPReaderBMP.InternalRead(Stream:TStream; Img:TFPCustomImage);
-
+// NOTE: Assumes that BMP header already has been read
 Var
   Row, i, pallen : Integer;
   BadCompression : boolean;
@@ -502,16 +497,23 @@ begin
 end;
 
 function  TFPReaderBMP.InternalCheck (Stream:TStream) : boolean;
-
+// NOTE: Does not rewind the stream!
 var
   BFH:TBitMapFileHeader;
+  n: Int64;
 begin
-  stream.Read(BFH,SizeOf(BFH));
-  {$IFDEF ENDIAN_BIG}
-  SwapBMPFileHeader(BFH);
-  {$ENDIF}
-  With BFH do
-    Result:=(bfType=BMmagic); // Just check magic number
+  Result:=False;
+  if Stream=nil then
+    exit;
+  n:=SizeOf(BFH);
+  Result:=Stream.Read(BFH,n)=n;
+  if Result then 
+    begin
+   {$IFDEF ENDIAN_BIG}
+    SwapBMPFileHeader(BFH);
+   {$ENDIF}
+    Result := BFH.bfType = BMmagic; // Just check magic number
+    end;
 end;
 
 initialization

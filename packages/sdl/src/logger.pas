@@ -64,7 +64,7 @@ unit logger;
 {
   $Log: logger.pas,v $
   Revision 1.2  2006/11/26 16:58:04  savage
-  Modifed to create separate log files. Therefore each instance running from the same directory will have their own individual log file, prepended with a number.
+  Modified to create separate log files. Therefore each instance running from the same directory will have their own individual log file, prepended with a number.
 
   Revision 1.1  2004/02/05 00:08:20  savage
   Module 1.0 release

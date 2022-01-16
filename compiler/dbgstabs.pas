@@ -148,12 +148,18 @@ interface
 implementation
 
     uses
+{$ifdef MIPS}
+      { we need taicpu definition to add .set nomips16 pseudo-instruction
+        before any procedure/function reference }
+      aasmcpu,
+{$endif}
       SysUtils,cutils,cfileutl,
       globals,globtype,verbose,constexp,
       defutil, cgutils, parabase,
       cpuinfo,cpubase,cpupi,paramgr,
       aasmbase,procinfo,
-      finput,fmodule,ppu;
+      finput,fmodule,ppu,
+      symutil;
 
 
     const
@@ -191,7 +197,7 @@ implementation
       if (Sym.typ=typesym) and (ttypesym(Sym).Fprettyname<>'') then
         result:=ttypesym(Sym).FPrettyName;
       if target_asm.dollarsign<>'$' then
-        result:=ReplaceForbiddenAsmSymbolChars(result);
+        result:=ApplyAsmSymbolRestrictions(result);
     end;
 
     function GetSymTableName(SymTable : TSymTable) : string;
@@ -201,7 +207,7 @@ implementation
       else
         result := SymTable.RealName^;
       if target_asm.dollarsign<>'$' then
-        result:=ReplaceForbiddenAsmSymbolChars(result);
+        result:=ApplyAsmSymbolRestrictions(result);
     end;
 
     const
@@ -245,6 +251,7 @@ implementation
       varcounter:=0;
       varptr:=@varvaluedata[0];
       varvalues[0]:=nil;
+      result:='';
       while i<=length(s) do
         begin
           if (s[i]='$') and (i<length(s)) then
@@ -422,8 +429,7 @@ implementation
         if (tsym(p).visibility=vis_hidden) then
           exit;
         { static variables from objects are like global objects }
-        if (Tsym(p).typ=fieldvarsym) and
-           not(sp_static in Tsym(p).symoptions) then
+        if is_normal_fieldvarsym(Tsym(p)) then
           begin
            case tsym(p).visibility of
              vis_private,
@@ -474,6 +480,9 @@ implementation
       begin
         if tsym(p).typ = procsym then
          begin
+           if (sp_generic_dummy in tsym(p).symoptions) and
+               (tprocsym(p).procdeflist.count=0) then
+             exit;
            pd :=tprocdef(tprocsym(p).ProcdefList[0]);
            if (po_virtualmethod in pd.procoptions) and
                not is_objectpascal_helper(pd.struct) then
@@ -510,6 +519,10 @@ implementation
                         argnames:=argnames+'3out';
                       vs_constref :
                         argnames:=argnames+'8constref';
+                      vs_value :
+                        ;
+                      vs_final:
+                        internalerror(2019050911);
                     end;
                   end
                 else
@@ -547,8 +560,7 @@ implementation
 
     procedure TDebugInfoStabs.field_write_defs(p:TObject;arg:pointer);
       begin
-        if (Tsym(p).typ=fieldvarsym) and
-           not(sp_static in Tsym(p).symoptions) then
+        if is_normal_fieldvarsym(Tsym(p)) then
           appenddef(TAsmList(arg),tfieldvarsym(p).vardef);
       end;
 
@@ -559,7 +571,7 @@ implementation
           just associated to pointer types }
         use_tag_prefix:=(def.typ in tagtypes) and
                       ((def.typ<>stringdef) or
-                       (tstringdef(tdef).stringtype in [st_shortstring,st_longstring]));
+                       (tstringdef(def).stringtype in [st_shortstring,st_longstring]));
       end;
 
 
@@ -690,6 +702,7 @@ implementation
             case def.ordtype of
               uvoid :
                 ss:=def_stab_number(def);
+              pasbool1,
               pasbool8,
               pasbool16,
               pasbool32,
@@ -701,7 +714,9 @@ implementation
                 ss:=def_stabstr_evaluate(def,'r${numberstring};0;255;',[]);
               u32bit,
               s64bit,
-              u64bit :
+              u64bit,
+              s128bit,
+              u128bit:
                 ss:=def_stabstr_evaluate(def,'r${numberstring};0;-1;',[]);
               else
                 ss:=def_stabstr_evaluate(def,'r${numberstring};$1;$2;',[tostr(longint(def.low.svalue)),tostr(longint(def.high.svalue))]);
@@ -716,6 +731,7 @@ implementation
                 ss:='-20;';
               uwidechar :
                 ss:='-30;';
+              pasbool1,
               pasbool8,
               bool8bit :
                 ss:='-21;';
@@ -1069,6 +1085,8 @@ implementation
                         def.dbg_state:=dbg_state_queued;
                         break;
                       end;
+                    else
+                      ;
                   end;
                 end;
               appenddef(list,vmtarraytype);
@@ -1096,6 +1114,8 @@ implementation
                       appenddef(list,TImplementedInterface(anc.ImplementedInterfaces[i]).IntfDef);
                 end;
             end;
+          else
+            ;
         end;
       end;
 
@@ -1173,7 +1193,7 @@ implementation
         if s='name' then
           result:=GetSymName(sym)
         else if s='mangledname' then
-          result:=ReplaceForbiddenAsmSymbolChars(sym.mangledname)
+          result:=ApplyAsmSymbolRestrictions(sym.mangledname)
         else if s='ownername' then
           result:=GetSymTableName(sym.owner)
         else if s='line' then
@@ -1200,7 +1220,7 @@ implementation
 
     function TDebugInfoStabs.staticvarsym_mangled_name(sym: tstaticvarsym): string;
       begin
-        result:=ReplaceForbiddenAsmSymbolChars(sym.mangledname);
+        result:=ApplyAsmSymbolRestrictions(sym.mangledname);
       end;
 
 
@@ -1211,7 +1231,7 @@ implementation
            assigned(def.owner.name) then
           list.concat(Tai_stab.create_ansistr(stabsdir,ansistring('"vmt_')+GetSymTableName(def.owner)+tobjectdef(def).objname^+':S'+
                  def_stab_number(vmttype)+'",'+
-                 base_stabs_str(globalvarsym_inited_stab,'0','0',ReplaceForbiddenAsmSymbolChars(tobjectdef(def).vmt_mangledname))));
+                 base_stabs_str(globalvarsym_inited_stab,'0','0',ApplyAsmSymbolRestrictions(tobjectdef(def).vmt_mangledname))));
       end;
 
 
@@ -1384,7 +1404,7 @@ implementation
                assigned(tprocdef(def.owner.defowner).procsym) then
               info := ','+GetSymName(def.procsym)+','+GetSymName(tprocdef(def.owner.defowner).procsym);
           end;
-        mangledname:=ReplaceForbiddenAsmSymbolChars(def.mangledname);
+        mangledname:=ApplyAsmSymbolRestrictions(def.mangledname);
         if target_info.system in systems_dotted_function_names then
           mangledname:='.'+mangledname;
         result.concat(Tai_stab.Create_ansistr(stabsdir,'"'+obj+':'+RType+def_stab_number(def.returndef)+info+'",'+
@@ -1544,7 +1564,7 @@ implementation
                   ss:=sym_stabstr_evaluate(sym,'"${name}:$1",'+base_stabs_str(paravarsymref_stab,'0','${line}','$2'),[c+st,getoffsetstr(sym.localloc.reference)])
                 end;
               else
-                internalerror(2003091814);
+                internalerror(2003091805);
             end;
           end;
         write_sym_stabstr(list,sym,ss);
@@ -1577,6 +1597,7 @@ implementation
       var
         st : string;
         ss : ansistring;
+        i : longint;
       begin
         ss:='';
         { Don't write info for default parameter values, the N_Func breaks
@@ -1589,10 +1610,15 @@ implementation
           conststring:
             begin
               if sym.value.len<200 then
-                if target_dbg.id=dbg_stabs then
-                  st:='s'''+backspace_quote(octal_quote(strpas(pchar(sym.value.valueptr)),[#0..#9,#11,#12,#14..#31,'''']),['"','\',#10,#13])+''''
-                else
-                  st:='s'''+stabx_quote_const(octal_quote(strpas(pchar(sym.value.valueptr)),[#0..#9,#11,#12,#14..#31,'''']))+''''
+                begin
+                  setlength(ss,sym.value.len);
+                  for i:=0 to sym.value.len-1 do
+                    ss[i+1]:=pchar(sym.value.valueptr)[i];
+                  if target_dbg.id=dbg_stabs then
+                    st:='s'''+backspace_quote(octal_quote(ss,[#0..#9,#11,#12,#14..#31,'''']),['"','\',#10,#13])+''''
+                  else
+                    st:='s'''+stabx_quote_const(octal_quote(ss,[#0..#9,#11,#12,#14..#31,'''']))+'''';
+                end
               else
                 st:='<constant string too long>';
             end;
@@ -1624,7 +1650,7 @@ implementation
         ss:='';
         if not assigned(sym.typedef) then
           internalerror(200509262);
-        if sym.typedef.typ in tagtypes then
+        if use_tag_prefix(sym.typedef) then
           stabchar:=tagtypeprefix
         else
           stabchar:='t';
@@ -1669,11 +1695,11 @@ implementation
 
         { include symbol that will be referenced from the main to be sure to
           include this debuginfo .o file }
-        current_module.flags:=current_module.flags or uf_has_stabs_debuginfo;
+        include(current_module.moduleflags,mf_has_stabs_debuginfo);
         if not(target_info.system in systems_darwin) then
           begin
             new_section(current_asmdata.asmlists[al_stabs],sec_data,GetSymTableName(current_module.localsymtable),sizeof(pint));
-            current_asmdata.asmlists[al_stabs].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',current_module.localsymtable,''),AT_DATA,0));
+            current_asmdata.asmlists[al_stabs].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',current_module.localsymtable,''),AT_METADATA,0,voidpointertype));
           end
         else
           new_section(current_asmdata.asmlists[al_stabs],sec_code,GetSymTableName(current_module.localsymtable),sizeof(pint));
@@ -1750,6 +1776,8 @@ implementation
                 currfuncname:=tai_function_name(hp).funcname;
               ait_force_line :
                 lastfileinfo.line:=-1;
+              else
+                ;
             end;
 
             if (currsectype=sec_code) and
@@ -1811,7 +1839,12 @@ implementation
         infile:=current_module.sourcefiles.get_file(1);
         new_section(current_asmdata.asmlists[al_start],sec_code,make_mangledname('DEBUGSTART',current_module.localsymtable,''),sizeof(pint),secorder_begin);
         if not(target_info.system in systems_darwin) then
-          current_asmdata.asmlists[al_start].concat(tai_symbol.Createname_global(make_mangledname('DEBUGSTART',current_module.localsymtable,''),AT_DATA,0));
+          current_asmdata.asmlists[al_start].concat(tai_symbol.Createname_global(make_mangledname('DEBUGSTART',current_module.localsymtable,''),AT_METADATA,0,voidpointertype));
+{$ifdef MIPS}
+       { at least mipsel needs an explicit '.set nomips16' before any reference to
+         procedure/function, see bug report 32138 }
+        current_asmdata.asmlists[al_start].concat(Taicpu.op_none(A_P_SET_NOMIPS16));
+{$endif MIPS}
         current_asmdata.asmlists[al_start].concat(Tai_stab.Create_str(stabsdir,'"'+BsToSlash(FixPath(getcurrentdir,false))+'",'+
           base_stabs_str(stabs_n_sourcefile,'0','0',hlabel.name)));
         current_asmdata.asmlists[al_start].concat(Tai_stab.Create_str(stabsdir,'"'+BsToSlash(FixPath(infile.path,false))+FixFileName(infile.name)+'",'+
@@ -1826,7 +1859,7 @@ implementation
         current_asmdata.getlabel(hlabel,alt_dbgfile);
         new_section(current_asmdata.asmlists[al_end],sec_code,make_mangledname('DEBUGEND',current_module.localsymtable,''),sizeof(pint),secorder_end);
         if not(target_info.system in systems_darwin) then
-          current_asmdata.asmlists[al_end].concat(tai_symbol.Createname_global(make_mangledname('DEBUGEND',current_module.localsymtable,''),AT_DATA,0));
+          current_asmdata.asmlists[al_end].concat(tai_symbol.Createname_global(make_mangledname('DEBUGEND',current_module.localsymtable,''),AT_METADATA,0,voidpointertype));
         current_asmdata.asmlists[al_end].concat(Tai_stab.Create_str(stabsdir,'"",'+base_stabs_str(stabs_n_sourcefile,'0','0',hlabel.name)));
         current_asmdata.asmlists[al_end].concat(tai_label.create(hlabel));
       end;
@@ -1838,13 +1871,13 @@ implementation
         dbgtable : tai_symbol;
       begin
         { Reference all DEBUGINFO sections from the main .fpc section }
-        if (target_info.system in ([system_powerpc_macos]+systems_darwin)) then
+        if (target_info.system in ([system_powerpc_macosclassic]+systems_darwin)) then
           exit;
         new_section(list,sec_fpc,'links',0);
         { make sure the debuginfo doesn't get stripped out }
         if (target_info.system in systems_darwin) then
           begin
-            dbgtable:=tai_symbol.createname('DEBUGINFOTABLE',AT_DATA,0);
+            dbgtable:=tai_symbol.createname('DEBUGINFOTABLE',AT_METADATA,0,voidpointertype);
             list.concat(tai_directive.create(asd_no_dead_strip,dbgtable.sym.name));
             list.concat(dbgtable);
           end;
@@ -1852,7 +1885,7 @@ implementation
         hp:=tmodule(loaded_units.first);
         while assigned(hp) do
           begin
-            If (hp.flags and uf_has_stabs_debuginfo)=uf_has_stabs_debuginfo then
+            If (mf_has_stabs_debuginfo in hp.moduleflags) and not assigned(hp.package) then
               begin
                 list.concat(Tai_const.Createname(make_mangledname('DEBUGINFO',hp.localsymtable,''),0));
                 list.concat(Tai_const.Createname(make_mangledname('DEBUGSTART',hp.localsymtable,''),0));

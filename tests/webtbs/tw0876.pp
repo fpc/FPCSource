@@ -1,4 +1,4 @@
-{ %target=go32v2,linux,freebsd,darwin }
+{ %target=go32v2,linux,freebsd,darwin,haiku }
 { %note=This test needs C libraries }
 { %OPT=-pg }
 

@@ -15,7 +15,7 @@
 {$mode objfpc}
 {$H+}
 unit dw_LinRTF;
-
+{$WARN 5024 off : Parameter "$1" not used}
 interface
 
 uses DOM, dGlobals, PasTree;
@@ -28,7 +28,7 @@ Procedure CreateRTFDocForPackage(APackage: TPasPackage; AEngine: TFPDocEngine);
 
 implementation
 
-uses SysUtils, Classes, dwLinear, dwriter;
+uses fpdocstrs, SysUtils, Classes, dwLinear, dwriter;
 
 const
   Indent = 300;
@@ -110,7 +110,7 @@ type
     procedure StartSubSection(SubSectionName : String);override;
     procedure StartSubSubSection(SubSubSectionName : String);override;
     procedure StartChapter(ChapterName : String); override;
-    procedure StartOverview(WithAccess : Boolean); override;
+    procedure StartOverview(Const What : String; WithAccess : Boolean); override;
     procedure WriteOverviewMember(const ALabel,AName,Access,ADescr : String); override;
     procedure WriteOverviewMember(const ALabel,AName,ADescr : String); override;
     procedure EndOverview; override;
@@ -121,6 +121,8 @@ type
     procedure DescrEndItalic; override;
     procedure DescrBeginEmph; override;
     procedure DescrEndEmph; override;
+    procedure DescrBeginUnderline; override;
+    procedure DescrEndUnderline; override;
     procedure DescrWriteFileEl(const AText: DOMString); override;
     procedure DescrWriteKeywordEl(const AText: DOMString); override;
     procedure DescrWriteVarEl(const AText: DOMString); override;
@@ -160,8 +162,8 @@ type
     procedure DescrBeginTableCell; override;
     procedure DescrEndTableCell; override;
     // TFPDocWriter class methods
-    Function InterPretOption(Const Cmd,Arg : String) : boolean; override;
   public
+    Function InterPretOption(Const Cmd,Arg : String) : boolean; override;
     Class Function FileNameExtension : String; override;
   end;
 
@@ -185,7 +187,7 @@ begin
 end;
 
 
-Function TRTFWriter.EscapeText(S : String) : String;
+function TRTFWriter.EscapeText(S: String): String;
 
 var
   i: Integer;
@@ -206,13 +208,13 @@ begin
     end;
 end;
 
-Function TRTFWriter.StripText(S : String) : String;
+function TRTFWriter.StripText(S: String): String;
 
 var
   I: Integer;
 
 begin
-  SetLength(Result, 0);
+  Result:='';
   for i := 1 to Length(S) do
     If not (S[i] in ['{','}','\']) then
       Result := Result + S[i];
@@ -344,6 +346,16 @@ begin
   Write('}')
 end;
 
+procedure TRTFWriter.DescrBeginUnderline;
+begin
+  Write('{\ul ');
+end;
+
+procedure TRTFWriter.DescrEndUnderline;
+begin
+  Write('}');
+end;
+
 procedure TRTFWriter.DescrWriteFileEl(const AText: DOMString);
 begin
   Write('{\f0 ');
@@ -367,7 +379,7 @@ end;
 
 procedure TRTFWriter.DescrBeginLink(const AId: DOMString);
 begin
-  FLink := Engine.ResolveLink(Module, AId);
+  FLink := Engine.ResolveLink(Module, Utf8Encode(AId));
 //  System.WriteLn('Link "', AId, '" => ', FLink);
 end;
 
@@ -558,14 +570,14 @@ begin
   write('\cell');
 end;
 
-procedure TRTFWriter.WriteLabel(const s: String);
+procedure TRTFWriter.WriteLabel(const S: String);
 var b: string;
 begin
   b := LowerCase(StripText(s));
   WriteF('{\bkmkstart %s}{\bkmkend %s}', [b,b]);
 end;
 
-procedure TRTFWriter.WriteIndex(const s : String);
+procedure TRTFWriter.WriteIndex(const S: String);
 begin
   Write('{\xe{\v '+EscapeText(s)+'}}');
 end;
@@ -632,57 +644,57 @@ begin
           EscapeText(SubSubSectionName)]);
 end;
 
-Procedure TRTFWriter.StartProcedure;
+procedure TRTFWriter.StartProcedure;
 begin
   Write('{\pard');
 end;
 
-Procedure TRTFWriter.StartProperty;
+procedure TRTFWriter.StartProperty;
 begin
   Write('{\pard');
 end;
 
-Procedure TRTFWriter.Header(text:string; font:integer);
+procedure TRTFWriter.Header(text: string; font: integer);
 begin
   WriteF('\par\s9 %s\pard\par\s10\f%d ',[text, font]);
 end;
 
-Procedure TRTFWriter.StartSynopsis;
+procedure TRTFWriter.StartSynopsis;
 begin
   Header(SDocSynopsis,2);
 end;
 
-Procedure TRTFWriter.StartDeclaration;
+procedure TRTFWriter.StartDeclaration;
 begin
   Header(SDocDeclaration,1);
 end;
 
-Procedure TRTFWriter.StartVisibility;
+procedure TRTFWriter.StartVisibility;
 begin
   Header(SDocVisibility,2);
 end;
 
-Procedure TRTFWriter.StartDescription;
+procedure TRTFWriter.StartDescription;
 begin
   Header(SDocDescription,2);
 end;
 
-Procedure TRTFWriter.StartErrors;
+procedure TRTFWriter.StartErrors;
 begin
   Header(SDocErrors,2);
 end;
 
-Procedure TRTFWriter.StartAccess;
+procedure TRTFWriter.StartAccess;
 begin
   Header(SDocAccess,2)
 end;
 
-Procedure TRTFWriter.EndProcedure;
+procedure TRTFWriter.EndProcedure;
 begin
   Write('}');
 end;
 
-Procedure TRTFWriter.EndProperty;
+procedure TRTFWriter.EndProperty;
 begin
   Write('}');
 end;
@@ -705,14 +717,14 @@ begin
     end;
 end;
 
-procedure TRTFWriter.StartOverview(WithAccess : Boolean);
+procedure TRTFWriter.StartOverview(const What: String; WithAccess: Boolean);
 begin
   If WithAccess then
     WriteF('\par\trowd\pard\intbl %s\cell\pard\intbl %s\cell\pard\intbl %s \cell\pard\intbl %s \cell\row',
-        [EscapeText(SDocPage), EscapeText(SDocProperty), EscapeText(SDocAccess), EscapeText(SDocDescription)])
+        [EscapeText(SDocPage), EscapeText(What), EscapeText(SDocAccess), EscapeText(SDocDescription)])
   else
     WriteF('\par\trowd\pard\intbl %s\cell\pard\intbl %s\cell\pard\intbl %s\cell\row',
-        [EscapeText(SDocPage), EscapeText(SDocProperty), EscapeText(SDocDescription)]);
+        [EscapeText(SDocPage), EscapeText(What), EscapeText(SDocDescription)]);
 end;
 
 procedure TRTFWriter.WriteOverviewMember(const ALabel,AName,Access,ADescr : String);
@@ -736,7 +748,7 @@ begin
   Write ('\par');
 end;
 
-Procedure TRTFWriter.StartSeeAlso;
+procedure TRTFWriter.StartSeealso;
 begin
   Header(SDocSeeAlso, 2);
 end;
@@ -770,13 +782,13 @@ var
 begin
   Writer := TRTFWriter.Create(APackage, AEngine);
   try
-    Writer.WriteDoc;
+    Writer.DoWriteDocumentation;
   finally
     Writer.Free;
   end;
 end;
 
-Function TRTFWriter.InterPretOption(Const Cmd,Arg : String) : boolean;
+function TRTFWriter.InterPretOption(const Cmd, Arg: String): boolean;
 begin
   if Cmd = '--RTF-extension' then
     begin

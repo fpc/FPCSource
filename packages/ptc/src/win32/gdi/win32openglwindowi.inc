@@ -26,7 +26,7 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with this library; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 }
 
 {$ifdef VER2_6}
@@ -160,13 +160,13 @@ begin
     Flags := Flags or PFD_DOUBLEBUFFER_DONTCARE
   else
     if AOpenGLAttributes.DoubleBuffer then
-	  Flags := Flags or PFD_DOUBLEBUFFER;
+      Flags := Flags or PFD_DOUBLEBUFFER;
 
   if AOpenGLAttributes.StereoDontCare then
     Flags := Flags or PFD_STEREO_DONTCARE
   else
     if AOpenGLAttributes.Stereo then
-	  Flags := Flags or PFD_STEREO;
+      Flags := Flags or PFD_STEREO;
 
   FillChar(FPixelFormatDescriptor, SizeOf(FPixelFormatDescriptor), 0);
   FPixelFormatDescriptor.nSize := SizeOf(FPixelFormatDescriptor);

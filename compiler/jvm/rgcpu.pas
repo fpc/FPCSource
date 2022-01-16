@@ -164,6 +164,8 @@ implementation
                   if (getsupreg(taicpu(p).oper[0]^.ref^.indexbase)=sr) then
                     exit(true);
                 end;
+              else
+                ;
             end;
         end;
 
@@ -181,8 +183,8 @@ implementation
             and remove. We don't have to check that the load/store
             types match, because they have to for this to be
             valid JVM code }
-          dealloc:=nextskipping(p,[ait_comment]);
-          load:=nextskipping(dealloc,[ait_comment]);
+          dealloc:=nextskipping(p,[ait_comment,ait_tempalloc]);
+          load:=nextskipping(dealloc,[ait_comment,ait_tempalloc]);
           reg:=NR_NO;
           if issimpleregstore(p,reg,true) and
              isregallocoftyp(dealloc,ra_dealloc,reg) and
@@ -201,6 +203,71 @@ implementation
         end;
 
 
+     function try_swap_store_x_load(var p: tai): boolean;
+       var
+         insertpos,
+         storex,
+         deallocy,
+         loady,
+         deallocx,
+         loadx: tai;
+         swapxy: taicpu;
+         regx, regy: tregister;
+       begin
+         result:=false;
+         { check for:
+             alloc regx (optional)
+             store regx (p)
+             dealloc regy
+             load regy
+             dealloc regx
+             load regx
+           and change to
+             dealloc regy
+             load regy
+             swap
+             alloc regx (if it existed)
+             store regx
+             dealloc regx
+             load  regx
+
+           This will create opportunities to remove the store/load regx
+           (and possibly also for regy)
+         }
+         regx:=NR_NO;
+         regy:=NR_NO;
+         if not issimpleregstore(p,regx,false) then
+           exit;
+         storex:=p;
+         deallocy:=nextskipping(storex,[ait_comment,ait_tempalloc]);
+         loady:=nextskipping(deallocy,[ait_comment,ait_tempalloc]);
+         deallocx:=nextskipping(loady,[ait_comment,ait_tempalloc]);
+         loadx:=nextskipping(deallocx,[ait_comment,ait_tempalloc]);
+         if not assigned(loadx) then
+           exit;
+         if not issimpleregload(loady,regy,false) then
+           exit;
+         if not issimpleregload(loadx,regx,false) then
+           exit;
+         if not isregallocoftyp(deallocy,ra_dealloc,regy) then
+           exit;
+         if not isregallocoftyp(deallocx,ra_dealloc,regx) then
+           exit;
+         insertpos:=tai(p.previous);
+         if not assigned(insertpos) or
+            not isregallocoftyp(insertpos,ra_alloc,regx) then
+           insertpos:=storex;
+         list.remove(deallocy);
+         list.insertbefore(deallocy,insertpos);
+         list.remove(loady);
+         list.insertbefore(loady,insertpos);
+         swapxy:=taicpu.op_none(a_swap);
+         swapxy.fileinfo:=taicpu(loady).fileinfo;
+         list.insertbefore(swapxy,insertpos);
+         result:=true;
+       end;
+
+
       var
         p,next,nextnext: tai;
         reg: tregister;
@@ -215,7 +282,7 @@ implementation
                 ait_regalloc:
                   begin
                     reg:=NR_NO;
-                    next:=nextskipping(p,[ait_comment]);
+                    next:=nextskipping(p,[ait_comment,ait_tempalloc]);
                     nextnext:=nextskipping(next,[ait_comment,ait_regalloc]);
                     if assigned(nextnext) then
                       begin
@@ -241,27 +308,15 @@ implementation
                   end;
                 ait_instruction:
                   begin
-                    if try_remove_store_dealloc_load(p) then
+                    if try_remove_store_dealloc_load(p) or
+                       try_swap_store_x_load(p) then
                       begin
                         removedsomething:=true;
                         continue;
                       end;
-                    { todo in peephole optimizer:
-                        alloc regx // not double precision
-                        store regx // not double precision
-                        load  regy or memy
-                        dealloc regx
-                        load regx
-                      -> change into
-                        load regy or memy
-                        swap       // can only handle single precision
-
-                      and then
-                        swap
-                        <commutative op>
-                       -> remove swap
-                    }
                   end;
+                else
+                  ;
               end;
               p:=tai(p.next);
             end;
@@ -307,46 +362,54 @@ implementation
               ait_regalloc:
                 with Tai_regalloc(p) do
                   begin
-                    case getregtype(reg) of
-                      R_INTREGISTER:
-                        if getsubreg(reg)=R_SUBD then
-                          size:=4
-                        else
-                          size:=8;
-                      R_ADDRESSREGISTER:
-                        size:=4;
-                      R_FPUREGISTER:
-                        if getsubreg(reg)=R_SUBFS then
-                          size:=4
-                        else
-                          size:=8;
-                      else
-                        internalerror(2010122912);
-                    end;
-                    case ratype of
-                      ra_alloc :
-                        tg.gettemp(templist,
-                                   size,1,
-                                   tt_regallocator,spill_temps[getregtype(reg)]^[getsupreg(reg)]);
-                      ra_dealloc :
-                        begin
-                          tg.ungettemp(templist,spill_temps[getregtype(reg)]^[getsupreg(reg)]);
-                          { don't invalidate the temp reference, may still be used one instruction
-                            later }
+                    { NR_DEFAULTFLAGS is NR_NO for JVM CPU }
+                    if (reg<>NR_DEFAULTFLAGS) then
+                      begin
+                        case getregtype(reg) of
+                          R_INTREGISTER:
+                            if getsubreg(reg)=R_SUBD then
+                              size:=4
+                            else
+                              size:=8;
+                          R_ADDRESSREGISTER:
+                            size:=4;
+                          R_FPUREGISTER:
+                            if getsubreg(reg)=R_SUBFS then
+                              size:=4
+                            else
+                              size:=8;
+                          else
+                            internalerror(2010122912);
                         end;
-                    end;
-                    { insert the tempallocation/free at the right place }
-                    list.insertlistbefore(p,templist);
-                    { remove the register allocation info for the register
-                      (p.previous is valid because we just inserted the temp
-                       allocation/free before p) }
-                    q:=Tai(p.previous);
-                    list.remove(p);
-                    p.free;
-                    p:=q;
+                        case ratype of
+                          ra_alloc :
+                            tg.gettemp(templist,
+                                       size,1,
+                                       tt_regallocator,spill_temps[getregtype(reg)]^[getsupreg(reg)]);
+                          ra_dealloc :
+                            begin
+                              tg.ungettemp(templist,spill_temps[getregtype(reg)]^[getsupreg(reg)]);
+                              { don't invalidate the temp reference, may still be used one instruction
+                                later }
+                            end;
+                          else
+                            ;
+                        end;
+                        { insert the tempallocation/free at the right place }
+                        list.insertlistbefore(p,templist);
+                        { remove the register allocation info for the register
+                          (p.previous is valid because we just inserted the temp
+                           allocation/free before p) }
+                        q:=Tai(p.previous);
+                        list.remove(p);
+                        p.free;
+                        p:=q;
+                      end;
                   end;
               ait_instruction:
                 do_spill_replace_all(list,taicpu(p),spill_temps);
+              else
+                ;
             end;
             p:=Tai(p.next);
           end;

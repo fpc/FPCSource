@@ -248,10 +248,16 @@ begin
 end;
 {$endif}
 
+const
+  { read/write permission for everyone }
+  MODE_FPOPEN = S_IWUSR OR S_IRUSR OR
+                S_IWGRP OR S_IRGRP OR
+                S_IWOTH OR S_IROTH;
+
 Function  FpOpen    (path : pChar; flags : cInt):cInt; {$ifdef VER2_0}inline;{$endif}
 
 begin
- FpOpen:=FpOpen(path,flags,438);
+ FpOpen:=FpOpen(path,flags,MODE_FPOPEN);
 end;
 
 Function  FpOpen    (const path : RawByteString; flags : cInt):cInt; {$ifdef VER2_0}inline;{$endif}
@@ -259,14 +265,14 @@ var
   SystemPath: RawByteString;
 Begin
   SystemPath:=ToSingleByteFileSystemEncodedFileName(path);
-  FpOpen:=FpOpen(pchar(SystemPath),flags,438);
+  FpOpen:=FpOpen(pchar(SystemPath),flags,MODE_FPOPEN);
 end;
 
 Function  FpOpen    (path : String; flags : cInt):cInt;
 
 begin
  path:=path+#0;
- FpOpen:=FpOpen(@path[1],flags,438);
+ FpOpen:=FpOpen(@path[1],flags,MODE_FPOPEN);
 end;
 
 Function  FpOpen    (path : String; flags : cInt; Mode: TMode):cInt;

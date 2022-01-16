@@ -28,10 +28,10 @@ unit cpupi;
   interface
 
     uses
-       psub,procinfo,aasmdata;
+       psub,procinfo,psabiehpi,aasmdata;
 
     type
-       ti386procinfo = class(tcgprocinfo)
+       tcpuprocinfo = class(tpsabiehprocinfo)
          constructor create(aparent:tprocinfo);override;
          procedure set_first_temp_offset;override;
          function calc_stackframe_size:longint;override;
@@ -50,14 +50,14 @@ unit cpupi;
       cgutils,
       symconst;
 
-    constructor ti386procinfo.create(aparent:tprocinfo);
+    constructor tcpuprocinfo.create(aparent:tprocinfo);
       begin
         inherited create(aparent);
         got:=NR_EBX;
       end;
 
 
-    procedure ti386procinfo.set_first_temp_offset;
+    procedure tcpuprocinfo.set_first_temp_offset;
       begin
         if paramanager.use_fixed_stack then
           begin
@@ -72,7 +72,7 @@ unit cpupi;
       end;
 
 
-    function ti386procinfo.calc_stackframe_size:longint;
+    function tcpuprocinfo.calc_stackframe_size:longint;
       begin
         { align to 4 bytes at least
           otherwise all those subl $2,%esp are meaningless PM }
@@ -85,25 +85,32 @@ unit cpupi;
       end;
 
 
-    procedure ti386procinfo.generate_parameter_info;
+    procedure tcpuprocinfo.generate_parameter_info;
       begin
         inherited generate_parameter_info;
-        { Para_stack_size is only used to determine how many bytes to remove }
-        { from the stack at the end of the procedure (in the "ret $xx").     }
-        { If the stack is fixed, nothing has to be removed by the callee     }
-        if paramanager.use_fixed_stack then
+        { Para_stack_size is only used to determine how many bytes to remove
+          from the stack at the end of the procedure (in the "ret $xx").
+          If the stack is fixed, nothing has to be removed by the callee, except
+          if a 16 byte aligned stack on i386-linux is used     }
+        if paramanager.use_fixed_stack and not(target_info.abi=abi_i386_dynalignedstack) then
           para_stack_size := 0;
       end;
 
-    procedure ti386procinfo.allocate_got_register(list: tasmlist);
+
+    procedure tcpuprocinfo.allocate_got_register(list: tasmlist);
       begin
-        if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
-           (cs_create_pic in current_settings.moduleswitches) then
+        if (pi_uses_threadvar in flags) and (tf_section_threadvars in target_info.flags) and (current_settings.tlsmodel in [tlsm_global_dynamic]) then
           begin
-            got := cg.getaddressregister(list);
-          end;
+            { FIXME: It is better to use an imaginary register for GOT and
+              if EBX is needed for some reason just allocate EBX and
+              copy GOT into it before its usage. }
+            cg.getcpuregister(list,NR_EBX);
+            got := NR_EBX;
+          end
+        else if cs_create_pic in current_settings.moduleswitches then
+          got := cg.getaddressregister(list);
       end;
 
 begin
-   cprocinfo:=ti386procinfo;
+   cprocinfo:=tcpuprocinfo;
 end.

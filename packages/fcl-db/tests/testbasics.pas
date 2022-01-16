@@ -7,7 +7,7 @@ unit TestBasics;
 interface
 
 uses
-  fpcunit, testutils, testregistry, testdecorator,
+  fpcunit, testregistry,
   Classes, SysUtils, db;
 
 type
@@ -34,7 +34,49 @@ implementation
 
 uses toolsunit;
 
-Type HackedDataset = class(TDataset);
+Type
+  HackedDataset = class(TDataset);
+  
+  { TMyDataset }
+
+  TMyDataset = Class(TDataset)
+
+  protected
+    function GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
+    procedure InternalClose; override;
+    procedure InternalInitFieldDefs; override;
+    procedure InternalOpen; override;
+    function IsCursorOpen: Boolean; override;
+  end;
+
+{ TMyDataset }
+
+function TMyDataset.GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
+begin
+  Result:=grOK;
+  Raise ENotImplemented.Create('GetRecord not implemented');
+end;
+
+procedure TMyDataset.InternalClose;
+begin
+  Raise ENotImplemented.Create('Internalclose not implemented');
+end;
+
+procedure TMyDataset.InternalInitFieldDefs;
+begin
+  Raise ENotImplemented.Create('InternalInitFieldDefs not implemented');
+end;
+
+procedure TMyDataset.InternalOpen;
+begin
+  Raise ENotImplemented.Create('InternalOpen not implemented');
+end;
+
+function TMyDataset.IsCursorOpen: Boolean;
+begin
+  Result:=False;
+  Raise ENotImplemented.Create('IsCursorOpen not implemented');
+end;
 
 { TTestBasics }
 
@@ -42,7 +84,7 @@ function TTestBasics.CreateDatasetWith3Fields: TDataset;
 var
   F: TField;
 begin
-  Result := TDataSet.Create(nil);
+  Result := TMyDataset.Create(nil);
   F := TIntegerField.Create(Result);
   F.FieldName := 'Field1';
   F.DataSet := Result;
@@ -145,6 +187,11 @@ begin
   // Bracketed comment
   AssertEquals(     'select * from table where id=/*comment :c*/$1-$2',
     Params.ParseSQL('select * from table where id=/*comment :c*/:a-:b', True, True, True, psPostgreSQL));
+  AssertEquals(     'select * from table where id=/*comment :c**/$1-$2',
+    Params.ParseSQL('select * from table where id=/*comment :c**/:a-:b', True, True, True, psPostgreSQL));
+  // Consecutive comments, with quote in second comment
+  AssertEquals(     '--c1'#10'--c'''#10'select '':a'' from table where id=$1',
+    Params.ParseSQL('--c1'#10'--c'''#10'select '':a'' from table where id=:id', True, True, True, psPostgreSQL));
 
   Params.Free;
 end;
@@ -164,7 +211,7 @@ var ds       : TDataset;
   end;
     
 begin
-  ds := TDataset.Create(nil);
+  ds := TMyDataset.Create(nil);
   try
 
   F1:=TStringField.Create(ds);
@@ -206,7 +253,7 @@ var ds : TDataset;
 begin
   // If a second field with the same name is added to a TFieldDefs, an exception
   // should occur
-  ds := TDataset.create(nil);
+  ds := TMyDataset.Create(nil);
   try
     ds.FieldDefs.Add('Field1',ftInteger);
     PassException:=False;

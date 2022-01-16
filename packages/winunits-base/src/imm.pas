@@ -434,7 +434,7 @@ function ImmGetStatusWindowPos(imc: HIMC; lpptPos: LPPOINT): LongBool; stdcall ;
 function ImmSetStatusWindowPos(imc: HIMC; lpptPos: LPPOINT): LongBool; stdcall ; external Imm name 'ImmSetStatusWindowPos';
 function ImmGetCompositionWindow(imc: HIMC; lpCompForm: LPCOMPOSITIONFORM): LongBool; stdcall ; external Imm name 'ImmGetCompositionWindow';
 function ImmSetCompositionWindow(imc: HIMC; lpCompForm: LPCOMPOSITIONFORM): LongBool; stdcall ; external Imm name 'ImmSetCompositionWindow';
-function ImmGetCandidateWindow(imc: HIMC; par1: DWORD; lpCandidate: LPCANDIDATEFORM): LongBool; stdcall ; external Imm name 'ImmGetCandidateWindow(';
+function ImmGetCandidateWindow(imc: HIMC; par1: DWORD; lpCandidate: LPCANDIDATEFORM): LongBool; stdcall ; external Imm name 'ImmGetCandidateWindow';
 function ImmSetCandidateWindow(imc: HIMC; lpCandidate: LPCANDIDATEFORM): LongBool; stdcall ; external Imm name 'ImmSetCandidateWindow';
 
 function ImmIsUIMessageA(wnd: HWND; msg: UINT; wPar: WPARAM; lPar: LPARAM): LongBool; stdcall ; external Imm name 'ImmIsUIMessageA';

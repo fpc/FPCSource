@@ -33,6 +33,9 @@ var s : string;
     dwarfs : array[0..max_regcount-1] of string[63];
     regnumber_index,
     std_regname_index : array[0..max_regcount-1] of byte;
+	sparc64 : boolean;
+	cpustr,
+	fileprefix : string;
 
 function tostr(l : longint) : string;
 
@@ -180,6 +183,13 @@ begin
         stabs[regcount]:=readstr;
         readcomma;
         dwarfs[regcount]:=readstr;
+        if (i<=high(s)) and (s[i]=',') then
+          begin
+            readcomma;
+            cpustr:=readstr;
+          end
+        else
+          cpustr:='';
         { Create register number }
         if supregs[regcount][1]<>'$' then
           begin
@@ -187,14 +197,18 @@ begin
             writeln('Line: "',s,'"');
             halt(1);
           end;
-        numbers[regcount]:=regtypes[regcount]+copy(subregs[regcount],2,255)+'00'+copy(supregs[regcount],2,255);
+
         if i<length(s) then
           begin
             writeln('Extra chars at end of line, at line ',line);
             writeln('Line: "',s,'"');
             halt(1);
           end;
-        inc(regcount);
+        if (cpustr<>'SPARC64') or sparc64 then
+          begin
+            numbers[regcount]:=regtypes[regcount]+copy(subregs[regcount],2,255)+'00'+copy(supregs[regcount],2,255);
+            inc(regcount);
+          end;
         if regcount>max_regcount then
           begin
             writeln('Error: Too much registers, please increase maxregcount in source');
@@ -214,15 +228,15 @@ var
 
 begin
   { create inc files }
-  openinc(confile,'rspcon.inc');
-  openinc(supfile,'rspsup.inc');
-  openinc(numfile,'rspnum.inc');
-  openinc(stdfile,'rspstd.inc');
-  openinc(stabfile,'rspstab.inc');
-  openinc(dwarffile,'rspdwrf.inc');
-  openinc(norfile,'rspnor.inc');
-  openinc(rnifile,'rsprni.inc');
-  openinc(srifile,'rspsri.inc');
+  openinc(confile,'rsp'+fileprefix+'con.inc');
+  openinc(supfile,'rsp'+fileprefix+'sup.inc');
+  openinc(numfile,'rsp'+fileprefix+'num.inc');
+  openinc(stdfile,'rsp'+fileprefix+'std.inc');
+  openinc(stabfile,'rsp'+fileprefix+'stab.inc');
+  openinc(dwarffile,'rsp'+fileprefix+'dwrf.inc');
+  openinc(norfile,'rsp'+fileprefix+'nor.inc');
+  openinc(rnifile,'rsp'+fileprefix+'rni.inc');
+  openinc(srifile,'rsp'+fileprefix+'sri.inc');
   first:=true;
   for i:=0 to regcount-1 do
     begin
@@ -263,6 +277,15 @@ end;
 
 begin
    writeln('Register Table Converter Version ',Version);
+   sparc64:=paramstr(1)='sparc64';
+   fileprefix:='';
+   if sparc64 then
+     begin
+       fileprefix:='64';
+       writeln('Processing for CPU SPARC64');
+     end
+   else
+     writeln('Processing for CPU SPARC');
    line:=0;
    regcount:=0;
    read_spreg_file;

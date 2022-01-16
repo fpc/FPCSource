@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003, 2006, 2007, 2009-2013  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2003, 2006, 2007, 2009-2013, 2016, 2017  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -27,7 +27,7 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with this library; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 }
 
 type
@@ -116,6 +116,9 @@ type
     procedure ReadKey(out AKey: IPTCKeyEvent);
     procedure ReadKey;
     property KeyReleaseEnabled: Boolean read GetKeyReleaseEnabled write SetKeyReleaseEnabled;
+
+    { mouse handling }
+    function MoveMouseTo(X, Y: Integer): Boolean; virtual;
 
     property Pages: Integer read GetPages;
     property Name: string read GetName;
@@ -210,6 +213,12 @@ end;
 function TPTCBaseConsole.GetKeyReleaseEnabled: Boolean;
 begin
   Result := FReleaseEnabled;
+end;
+
+{ must be overriden in consoles, that support moving the mouse cursor }
+function TPTCBaseConsole.MoveMouseTo(X, Y: Integer): Boolean;
+begin
+  Result := False;
 end;
 
 function TPTCOpenGLLessConsole.GetOpenGL_Enabled: Boolean;

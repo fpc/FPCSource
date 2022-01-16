@@ -15,9 +15,57 @@
 
  **********************************************************************}
 
+function GetHandleErrorAddrFrameAddr: pointer;
+begin
+  result:=@HandleErrorAddrFrame;
+end;
+
+{$if not(defined(CPUTHUMB)) and not(defined(CPUTHUMB2))}
+Procedure SignalToHandleErrorAddrFrame_ARM(Errno : longint;addr : CodePointer; frame : Pointer); nostackframe; assembler;
+asm
+{$if FPC_FULLVERSION >= 30200}
+.code 32
+{$endif}
+  // the address is of the faulting instruction, and sigreturn will
+  //  skip it -> start with a nop
+  nop
+  push {r0,r1,r2,r3}
+  bl GetHandleErrorAddrFrameAddr
+  // overwrite last stack slot with new return address
+  str r0, [sp,#12]
+  // lr := addr
+  ldr lr, [sp,#4]
+  pop {r0,r1,r2,pc}
+.text
+end;
+{$endif not(defined(CPUTHUMB)) and not(defined(CPUTHUMB2))}
+
+{$if FPC_FULLVERSION >= 30200}
+{$if defined(CPU_HAS_THUMB))}
+Procedure SignalToHandleErrorAddrFrame_Thumb(Errno : longint;addr : CodePointer; frame : Pointer); nostackframe; assembler;
+asm
+.thumb_func
+.code 16
+  // the address is of the faulting instruction, and sigreturn will
+  // skip it -> start with a nop
+  nop
+  push {r0,r1,r2,r3}
+  bl GetHandleErrorAddrFrameAddr
+  // overwrite last stack slot with new return address
+  str r0, [sp,#12]
+  // lr := addr
+  ldr r0, [sp,#4]
+  mov lr, r0
+  pop {r0,r1,r2,pc}
+.text
+{$if not(defined(CPUTHUMB)) and not(defined(CPUTHUMB2))}
+.code 32
+{$endif not(defined(CPUTHUMB)) and not(defined(CPUTHUMB2))}
+end;
+{$endif defined(CPU_HAS_THUMB))}
+{$endif FPC_FULLVERSION >= 30200}
 
 procedure SignalToRunerror(Sig: longint; { _a2,_a3,_a4 : dword; } SigContext: PSigInfo; uContext : PuContext); public name '_FPC_DEFAULTSIGHANDLER'; cdecl;
-
 var
   res : word;
 begin
@@ -27,6 +75,7 @@ begin
         begin
           { don't know how to find the different causes, maybe via xer? }
           res := 207;
+          SysResetFPU;
         end;
     SIGILL:
 {$ifdef FPC_SYSTEM_FPC_MOVE}
@@ -48,10 +97,31 @@ begin
     SIGQUIT:
         res:=233;
   end;
-  reenable_signal(sig);
   { give runtime error at the position where the signal was raised }
   if res<>0 then
-    HandleErrorAddrFrame(res,pointer(uContext^.uc_mcontext.arm_pc),pointer(uContext^.uc_mcontext.arm_fp));
+    begin
+      ucontext^.uc_mcontext.arm_r0:=res;
+      ucontext^.uc_mcontext.arm_r1:=uContext^.uc_mcontext.arm_pc;
+      ucontext^.uc_mcontext.arm_r2:=uContext^.uc_mcontext.arm_fp;
+{$if FPC_FULLVERSION >= 30200}
+{$if not(defined(CPUTHUMB)) and not(defined(CPUTHUMB2))}
+      if (ucontext^.uc_mcontext.arm_cpsr and (1 shl 5))=0 then
+        begin
+          ucontext^.uc_mcontext.arm_pc:=ptruint(@SignalToHandleErrorAddrFrame_ARM);
+        end
+      else
+{$endif not(defined(CPUTHUMB)) and not(defined(CPUTHUMB2))}
+        begin
+{$if defined(CPU_HAS_THUMB))}
+          ucontext^.uc_mcontext.arm_pc:=ptruint(@SignalToHandleErrorAddrFrame_Thumb);
+{$else defined(CPU_HAS_THUMB))}
+          halt(217);
+{$endif defined(CPU_HAS_THUMB))}
+        end;
+{$else}
+      ucontext^.uc_mcontext.arm_pc:=ptruint(@SignalToHandleErrorAddrFrame_ARM);
+{$endif}
+    end;
 end;
 
 

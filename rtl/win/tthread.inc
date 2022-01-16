@@ -7,7 +7,7 @@ begin
   FInitialSuspended := CreateSuspended;
   { Always start in suspended state, will be resumed in AfterConstruction if necessary
     See Mantis #16884 }
-  FHandle := BeginThread(nil, StackSize, @ThreadProc, pointer(self), CREATE_SUSPENDED,
+  FHandle := BeginThread(nil, StackSize, @ThreadProc, pointer(self), CREATE_SUSPENDED OR STACK_SIZE_PARAM_IS_A_RESERVATION,
                          FThreadID);
   if FHandle = TThreadID(0) then
     raise EThread.CreateFmt(SThreadCreateError, [SysErrorMessage(getlasterror)]);
@@ -90,11 +90,6 @@ end;
 procedure TThread.Resume;
 begin
   if ResumeThread(FHandle) = 1 then FSuspended := False;
-end;
-
-procedure TThread.Terminate;
-begin
-  FTerminated := True;
 end;
 
 function TThread.WaitFor: Integer;

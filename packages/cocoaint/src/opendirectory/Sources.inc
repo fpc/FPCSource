@@ -1,0 +1,11 @@
+{$define FRAMEWORK_LOADED_OPENDIRECTORY}
+{$include OpenDirectory.inc}
+{$include ODSession.inc}
+{$include ODRecord.inc}
+{$include ODNode.inc}
+{$include ODQuery.inc}
+{$include ODConfiguration.inc}
+{$include ODMappings.inc}
+{$include ODRecordMap.inc}
+{$include ODAttributeMap.inc}
+{$include ODModuleEntry.inc}

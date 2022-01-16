@@ -26,7 +26,7 @@ unit nppcmat;
 interface
 
 uses
-  node, nmat;
+  node, nmat, ncgmat;
 
 type
   tppcmoddivnode = class(tmoddivnode)
@@ -42,7 +42,7 @@ type
     procedure pass_generate_code override;
   end;
 
-  tppcnotnode = class(tnotnode)
+  tppcnotnode = class(tcgnotnode)
     procedure pass_generate_code override;
   end;
 
@@ -169,7 +169,7 @@ var
       end;
     end else begin
       cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, divCgOps[is_signed(right.resultdef)], OS_INT,
-        tordconstnode(right).value, numerator, resultreg);
+        tordconstnode(right).value.svalue, numerator, resultreg);
       cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_MUL, OS_INT, tordconstnode(right).value.svalue, resultreg,
         resultreg);
       cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_SUB, OS_INT, resultreg, numerator, resultreg);
@@ -202,7 +202,7 @@ begin
   if (cs_opt_level1 in current_settings.optimizerswitches) and (right.nodetype = ordconstn) then begin
     if (nodetype = divn) then
       cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, divCgOps[is_signed(right.resultdef)],
-        size, tordconstnode(right).value, numerator, resultreg)
+        size, tordconstnode(right).value.svalue, numerator, resultreg)
     else
       genOrdConstNodeMod;
     done := true;
@@ -351,7 +351,7 @@ begin
           end;
         end;
       else
-       internalerror(2013120112);
+       internalerror(2013120113);
     end;
     { choose appropriate operand }
     if left.resultdef.typ <> floatdef then begin
@@ -376,30 +376,13 @@ end;
 
 procedure tppcnotnode.pass_generate_code;
 
-var
-  hl: tasmlabel;
-
 begin
+  secondpass(left);
   if is_boolean(resultdef) then
   begin
-    { if the location is LOC_JUMP, we do the secondpass after the
-      labels are allocated
-    }
-    if left.expectloc = LOC_JUMP then
+    if not handle_locjump then
     begin
-      hl := current_procinfo.CurrTrueLabel;
-      current_procinfo.CurrTrueLabel := current_procinfo.CurrFalseLabel;
-      current_procinfo.CurrFalseLabel := hl;
-      secondpass(left);
-      maketojumpbool(current_asmdata.CurrAsmList, left, lr_load_regvars);
-      hl := current_procinfo.CurrTrueLabel;
-      current_procinfo.CurrTrueLabel := current_procinfo.CurrFalseLabel;
-      current_procinfo.CurrFalseLabel := hl;
-      location.loc := LOC_JUMP;
-    end
-    else
-    begin
-      secondpass(left);
+      { handle_locjump does call secondpass }
       case left.location.loc of
         LOC_FLAGS:
           begin
@@ -426,7 +409,6 @@ begin
   end
   else
   begin
-    secondpass(left);
     hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location,
       left.resultdef, left.resultdef, true);
     location_copy(location, left.location);

@@ -60,6 +60,10 @@ interface
  {$endif darwin}
 {$endif}
 
+{$if defined(Darwin) or defined(iphonesim)}
+  {$define dynpthreads}
+{$endif darwin}
+
 {$define basicevents_with_pthread_cond}
 
 Procedure SetCThreadManager;
@@ -67,6 +71,9 @@ Procedure SetCThreadManager;
 implementation
 
 Uses
+{$if defined(Linux) and not defined(Android)}
+  Linux,
+{$endif}
   BaseUnix,
   unix,
   unixtype,
@@ -113,36 +120,68 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
     procedure CInitThreadvar(var offset : dword;size : dword);
       begin
         {$ifdef cpusparc}
+        {$define threadvarblocksize_set}
         threadvarblocksize:=align(threadvarblocksize,16);
         {$endif cpusparc}
+        
+        {$ifdef cpusparc64}
+        {$define threadvarblocksize_set}
+        threadvarblocksize:=align(threadvarblocksize,16);
+        {$endif cpusparc64}
 
         {$ifdef cpupowerpc}
+        {$define threadvarblocksize_set}
         threadvarblocksize:=align(threadvarblocksize,8);
         {$endif cpupowerc}
 
         {$ifdef cpui386}
+        {$define threadvarblocksize_set}
         threadvarblocksize:=align(threadvarblocksize,8);
         {$endif cpui386}
 
         {$ifdef cpuarm}
+        {$define threadvarblocksize_set}
         threadvarblocksize:=align(threadvarblocksize,4);
         {$endif cpuarm}
 
         {$ifdef cpum68k}
+        {$define threadvarblocksize_set}
         threadvarblocksize:=align(threadvarblocksize,2);
         {$endif cpum68k}
 
         {$ifdef cpux86_64}
+        {$define threadvarblocksize_set}
         threadvarblocksize:=align(threadvarblocksize,16);
         {$endif cpux86_64}
 
         {$ifdef cpupowerpc64}
+        {$define threadvarblocksize_set}
         threadvarblocksize:=align(threadvarblocksize,16);
         {$endif cpupowerpc64}
 
         {$ifdef cpuaarch64}
+        {$define threadvarblocksize_set}
         threadvarblocksize:=align(threadvarblocksize,16);
         {$endif cpuaarch64}
+
+        {$ifdef cpuriscv}
+        {$define threadvarblocksize_set}
+        threadvarblocksize:=align(threadvarblocksize,16);
+        {$endif cpuriscv}
+
+        {$ifdef cpumips}
+        {$define threadvarblocksize_set}
+        threadvarblocksize:=align(threadvarblocksize,16);
+        {$endif cpumips}
+
+        {$ifdef cpuxtensa}
+        {$define threadvarblocksize_set}
+        threadvarblocksize:=align(threadvarblocksize,16);
+        {$endif cpuxtensa}
+
+        {$ifndef threadvarblocksize_set}
+        {$error threadvarblocksize must be set! }
+        {$endif threadvarblocksize_set}
 
         offset:=threadvarblocksize;
 
@@ -155,6 +194,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       var
         dataindex : pointer;
       begin
+{$ifndef FPC_SECTION_THREADVARS}
         { we've to allocate the memory from system  }
         { because the FPC heap management uses      }
         { exceptions which use threadvars but       }
@@ -163,6 +203,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         DataIndex:=Pointer(Fpmmap(nil,threadvarblocksize,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0));
         FillChar(DataIndex^,threadvarblocksize,0);
         pthread_setspecific(tlskey,dataindex);
+{$endif FPC_SECTION_THREADVARS}
       end;
 
 
@@ -176,11 +217,19 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         s := 'finishing externally started thread'#10;
         fpwrite(0,s[1],length(s));
 {$endif DEBUG_MT}
+        { Restore tlskey value as it may already have been set to null,
+          in which case
+            a) DoneThread can't release the memory
+            b) accesses to threadvars from DoneThread or anything it
+               calls would allocate new threadvar memory
+        }
+        pthread_setspecific(tlskey,p);
         { clean up }
         DoneThread;
         { the pthread routine that calls us is supposed to do this, but doesn't
           at least on Mac OS X 10.6 }
         pthread_setspecific(CleanupKey,nil);
+        pthread_setspecific(tlskey,nil);
       end;
 
 
@@ -192,8 +241,12 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         { we cannot know the stack size of the current thread, so pretend it
           is really large to prevent spurious stack overflow errors }
         InitThread(1000000000);
-        { instruct the pthreads system to clean up this thread when it exits }
-        pthread_setspecific(CleanupKey,pointer(1));
+        { instruct the pthreads system to clean up this thread when it exits.
+          Use current tlskey as value so that if tlskey is cleared before
+          CleanupKey is called, we still know its value (the order in which
+          pthread tls data is zeroed by pthreads is undefined, and under some
+          systems the tlskey is cleared first) }
+        pthread_setspecific(CleanupKey,pthread_getspecific(tlskey));
       end;
 
 
@@ -215,7 +268,9 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 
     procedure CReleaseThreadVars;
       begin
+{$ifndef FPC_SECTION_THREADVARS}
         Fpmunmap(pointer(pthread_getspecific(tlskey)),threadvarblocksize);
+{$endif FPC_SECTION_THREADVARS}
       end;
 
 { Include OS independent Threadvar initialization }
@@ -282,9 +337,11 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         fpwrite(0,s[1],length(s));
 {$endif DEBUG_MT}
         ti:=pthreadinfo(param)^;
-        dispose(pthreadinfo(param));
+
         { Initialize thread }
         InitThread(ti.stklen);
+
+        dispose(pthreadinfo(param));
         { Start thread function }
 {$ifdef DEBUG_MT}
         writeln('Jumping to thread function');
@@ -294,10 +351,14 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         pthread_exit(ThreadMain);
       end;
 
-  Procedure InitCThreading;
+
+  var
+    TLSInitialized : longbool = FALSE;
+
+  Procedure InitCTLS;
   
   begin
-    if (InterLockedExchange(longint(IsMultiThread),ord(true)) = 0) then
+    if (InterLockedExchange(longint(TLSInitialized),ord(true)) = 0) then
       begin
         { We're still running in single thread mode, setup the TLS }
         pthread_key_create(@TLSKey,nil);
@@ -326,8 +387,15 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       writeln('Creating new thread');
 {$endif DEBUG_MT}
       { Initialize multithreading if not done }
+      if not TLSInitialized then
+        InitCTLS;
       if not IsMultiThread then
-        InitCThreading;
+        begin
+          { We're still running in single thread mode, lazy initialize thread support }
+           LazyInitThreading;
+           IsMultiThread:=true;
+        end;
+
       { the only way to pass data to the newly created thread
         in a MT safe way, is to use the heap }
       new(ti);
@@ -339,7 +407,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       writeln('Starting new thread');
 {$endif DEBUG_MT}
       pthread_attr_init(@thread_attr);
-      {$if not defined(HAIKU) and not defined(ANDROID)}
+      {$if not defined(HAIKU)and not defined(BEOS) and not defined(ANDROID)}
       {$if defined (solaris) or defined (netbsd) }
       pthread_attr_setinheritsched(@thread_attr, PTHREAD_INHERIT_SCHED);
       {$else not solaris}
@@ -456,6 +524,67 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
     end;
 
 
+  procedure CSetThreadDebugNameA(threadHandle: TThreadID; const ThreadName: AnsiString);
+{$if defined(Linux) or defined(Android)}
+    var
+      CuttedName: AnsiString;
+{$endif}
+    begin
+{$if defined(Linux) or defined(Android)}
+      if ThreadName = '' then
+        Exit;
+  {$ifdef dynpthreads}
+      if Assigned(pthread_setname_np) then
+  {$endif dynpthreads}
+      begin
+        // length restricted to 16 characters including terminating null byte
+        CuttedName:=Copy(ThreadName, 1, 15);
+        if threadHandle=TThreadID(-1) then
+        begin
+          pthread_setname_np(pthread_self(), @CuttedName[1]);
+        end
+        else
+        begin
+          pthread_setname_np(pthread_t(threadHandle), @CuttedName[1]);
+        end;
+      end;
+{$elseif defined(Darwin) or defined(iphonesim)}
+  {$ifdef dynpthreads}
+      if Assigned(pthread_setname_np) then
+  {$endif dynpthreads}
+      begin
+        // only allowed to set from within the thread
+        if threadHandle=TThreadID(-1) then
+          pthread_setname_np(@ThreadName[1]);
+      end;
+{$else}
+       {$Warning SetThreadDebugName needs to be implemented}
+{$endif}
+    end;
+
+
+  procedure CSetThreadDebugNameU(threadHandle: TThreadID; const ThreadName: UnicodeString);
+    begin
+{$if defined(Linux) or defined(Android)}
+  {$ifdef dynpthreads}
+      if Assigned(pthread_setname_np) then
+  {$endif dynpthreads}
+      begin
+        CSetThreadDebugNameA(threadHandle, AnsiString(ThreadName));
+      end;
+{$elseif defined(Darwin) or defined(iphonesim)}
+  {$ifdef dynpthreads}
+      if Assigned(pthread_setname_np) then
+  {$endif dynpthreads}
+      begin
+        CSetThreadDebugNameA(threadHandle, AnsiString(ThreadName));
+      end;
+{$else}
+       {$Warning SetThreadDebugName needs to be implemented}
+{$endif}
+    end;
+
+
 {*****************************************************************************
                           Delphi/Win32 compatibility
 *****************************************************************************}
@@ -519,196 +648,16 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
                            Semaphore routines
 *****************************************************************************}
 
-procedure cSemaphoreWait(const FSem: Pointer);
-var
-  res: cint;
-  err: cint;
-{$if not defined(has_sem_init) and not defined(has_sem_open)}
-  b: byte;
-{$endif}
-begin
-{$if defined(has_sem_init) or defined(has_sem_open)}
-  repeat
-    res:=sem_wait(PSemaphore(FSem));
-    err:=fpgetCerrno;
-  until (res<>-1) or (err<>ESysEINTR);
-{$else}
-  repeat
-    res:=fpread(PFilDes(FSem)^[0], b, 1);
-    err:=fpgeterrno;
-  until (res<>-1) or ((err<>ESysEINTR) and (err<>ESysEAgain));
-{$endif}
-end;
-
-{$if defined(has_sem_timedwait)}
-
-function cSemaphoreTimedWait(const FSem: Pointer; const Timeout: ttimespec): cint;
-var
-  res: cint;
-  err: cint;
-begin
-  repeat
-    res:=sem_timedwait(PSemaphore(FSem), @Timeout);
-    if res=0 then exit(0);
-    err:=fpgetCerrno;
-  until err<>ESysEINTR;
-  result:=err;
-end;
-
-{$endif}
-
-procedure cSemaphorePost(const FSem: Pointer);
-{$if defined(has_sem_init) or defined(has_sem_open)}
-begin
-  sem_post(PSemaphore(FSem));
-end;
-{$else}
-var
-  writeres: cint;
-  err: cint;
-  b : byte;
-begin
-  b:=0;
-  repeat
-    writeres:=fpwrite(PFilDes(FSem)^[1], b, 1);
-    err:=fpgeterrno;
-  until (writeres<>-1) or ((err<>ESysEINTR) and (err<>ESysEAgain));
-end;
-{$endif}
-
-
-function cSemaphoreTryWait(const FSem: pointer): TTryWaitResult;
-var
-  res: cint;
-  err: cint;
-{$if defined(has_sem_init) or defined(has_sem_open)}
-begin
-  repeat
-    res:=sem_trywait(FSem);
-    err:=fpgetCerrno;
-  until (res<>-1) or (err<>ESysEINTR);
-  if (res=0) then
-    result:=tw_semwasunlocked
-  else if (err=ESysEAgain) then
-    result:=tw_semwaslocked
-  else
-    result:=tw_error;
-{$else has_sem_init or has_sem_open}
-var
-  fds: TFDSet;
-  tv : timeval;
-begin
-  tv.tv_sec:=0;
-  tv.tv_usec:=0;
-  fpFD_ZERO(fds);
-  fpFD_SET(PFilDes(FSem)^[0],fds);
-  repeat
-    res:=fpselect(PFilDes(FSem)^[0]+1,@fds,nil,nil,@tv);
-    err:=fpgeterrno;
-  until (res>=0) or ((res=-1) and (err<>ESysEIntr));
-  if (res>0) then
-    begin
-      cSemaphoreWait(FSem);
-      result:=tw_semwasunlocked
-    end
-  else if (res=0) then
-    result:=tw_semwaslocked
-  else
-    result:=tw_error;
-{$endif has_sem_init or has_sem_open}
-end;
-
-
-
-
-{$if defined(has_sem_open) and not defined(has_sem_init)}
-function cIntSemaphoreOpen(const name: pchar; initvalue: boolean): Pointer;
-var
-  err: cint;
-begin
-  repeat
-    cIntSemaphoreOpen := sem_open(name,O_CREAT,0,ord(initvalue));
-    err:=fpgetCerrno;
-  until (ptrint(cIntSemaphoreOpen) <> SEM_FAILED) or (err <> ESysEINTR);
-  if (ptrint(cIntSemaphoreOpen) <> SEM_FAILED) then
-    { immediately unlink so the semaphore will be destroyed when the }
-    { the process exits                                              }
-    sem_unlink(name)
-  else
-    { 0 is a valid for sem_open on some platforms; pointer(-1) shouldn't
-      be valid anywhere, even for sem_init }
-    cIntSemaphoreOpen:=pointer(-1);
-end;
-{$endif}
-
-
-function cIntSemaphoreInit(initvalue: boolean): Pointer;
-{$if defined(has_sem_open) and not defined(has_sem_init)}
-var
-  tid: string[31];
-  semname: string[63];
-{$endif}
-begin
-{$ifdef has_sem_init}
-  cIntSemaphoreInit := GetMem(SizeOf(TSemaphore));
-  if sem_init(PSemaphore(cIntSemaphoreInit), 0, ord(initvalue)) <> 0 then
-    begin
-      FreeMem(cIntSemaphoreInit);
-      { 0 is a valid for sem_open on some platforms; pointer(-1) shouldn't
-        be valid anywhere, even for sem_init }
-      cIntSemaphoreInit:=pointer(-1);
-    end;
-{$else}
-{$ifdef has_sem_open}
-  { avoid a potential temporary nameclash with another process/thread }
-  str(fpGetPid,semname);
-  str(ptruint(pthread_self()),tid);
-  semname:='/FPC'+semname+'T'+tid+#0;
-  cIntSemaphoreInit:=cIntSemaphoreOpen(@semname[1],initvalue);
-{$else}
-  cIntSemaphoreInit := GetMem(SizeOf(TFilDes));
-  if (fppipe(PFilDes(cIntSemaphoreInit)^) <> 0) then
-    begin
-      FreeMem(cIntSemaphoreInit);
-      { 0 is a valid for sem_open on some platforms; pointer(-1) shouldn't
-        be valid anywhere, even for sem_init }
-      cIntSemaphoreInit:=pointer(-1);
-    end
-  else if initvalue then
-    cSemaphorePost(cIntSemaphoreInit);
-{$endif}
-{$endif}
-end;
-
-
-function cSemaphoreInit: Pointer;
-begin
-  cSemaphoreInit:=cIntSemaphoreInit(false);
-end;
-
-
-procedure cSemaphoreDestroy(const FSem: Pointer);
-begin
-{$ifdef has_sem_init}
-  sem_destroy(PSemaphore(FSem));
-  FreeMem(FSem);
-{$else}
-{$ifdef has_sem_open}
-  sem_close(PSemaphore(FSem));
-{$else has_sem_init}
-  fpclose(PFilDes(FSem)^[0]);
-  fpclose(PFilDes(FSem)^[1]);
-  FreeMem(FSem);
-{$endif}
-{$endif}
-end;
-
 
 type
      TPthreadCondition = pthread_cond_t;
      TPthreadMutex = pthread_mutex_t;
      Tbasiceventstate=record
          FCondVar: TPthreadCondition;
+{$if defined(Linux) and not defined(Android)}         
+         FAttr: pthread_condattr_t;
+         FClockID: longint;
+{$ifend}        
          FEventSection: TPthreadMutex;
          FWaiters: longint;
          FIsSet,
@@ -727,19 +676,67 @@ Const
 function IntBasicEventCreate(EventAttributes : Pointer; AManualReset,InitialState : Boolean;const Name : ansistring):pEventState;
 var
   MAttr : pthread_mutexattr_t;
-  res   : cint;
+  res   : cint;  
+{$if defined(Linux) and not defined(Android)}  
+  timespec: ttimespec;
+{$ifend}  
 begin
   new(plocaleventstate(result));
   plocaleventstate(result)^.FManualReset:=AManualReset;
   plocaleventstate(result)^.FWaiters:=0;
   plocaleventstate(result)^.FDestroying:=False;
   plocaleventstate(result)^.FIsSet:=InitialState;
+{$if defined(Linux) and not defined(Android)}  
+  res := pthread_condattr_init(@plocaleventstate(result)^.FAttr);
+  if (res <> 0) then
+  begin
+    FreeMem(result);
+    fpc_threaderror;  
+  end;
+  
+  if clock_gettime(CLOCK_MONOTONIC_RAW, @timespec) = 0 then
+  begin
+    res := pthread_condattr_setclock(@plocaleventstate(result)^.FAttr, CLOCK_MONOTONIC_RAW);
+  end
+  else
+  begin
+    res := -1; // No support for CLOCK_MONOTONIC_RAW   
+  end;
+  
+  if (res = 0) then
+  begin
+    plocaleventstate(result)^.FClockID := CLOCK_MONOTONIC_RAW;
+  end
+  else
+  begin
+    res := pthread_condattr_setclock(@plocaleventstate(result)^.FAttr, CLOCK_MONOTONIC);
+    if (res = 0) then
+    begin
+      plocaleventstate(result)^.FClockID := CLOCK_MONOTONIC;
+    end
+    else
+    begin
+      pthread_condattr_destroy(@plocaleventstate(result)^.FAttr);
+      FreeMem(result);
+      fpc_threaderror;  
+    end;    
+  end;  
+
+  res := pthread_cond_init(@plocaleventstate(result)^.FCondVar, @plocaleventstate(result)^.FAttr);
+  if (res <> 0) then
+  begin
+    pthread_condattr_destroy(@plocaleventstate(result)^.FAttr);  
+    FreeMem(result);
+    fpc_threaderror;
+  end;
+{$else}
   res := pthread_cond_init(@plocaleventstate(result)^.FCondVar, nil);
   if (res <> 0) then
   begin
     FreeMem(result);
     fpc_threaderror;
-  end;
+  end; 
+{$ifend} 
 
   res:=pthread_mutexattr_init(@MAttr);
   if res=0 then
@@ -757,6 +754,9 @@ begin
   if res <> 0 then
     begin
       pthread_cond_destroy(@plocaleventstate(result)^.FCondVar);
+{$if defined(Linux) and not defined(Android)}  
+      pthread_condattr_destroy(@plocaleventstate(result)^.FAttr);	
+{$ifend}      
       FreeMem(result);
       fpc_threaderror;
     end;
@@ -778,6 +778,9 @@ begin
 
   { and clean up }
   pthread_cond_destroy(@plocaleventstate(state)^.Fcondvar);
+{$if defined(Linux) and not defined(Android)}  
+  pthread_condattr_destroy(@plocaleventstate(state)^.FAttr);	
+{$ifend}  
   pthread_mutex_destroy(@plocaleventstate(state)^.FEventSection);
   dispose(plocaleventstate(state));
 end;
@@ -808,6 +811,7 @@ var
   isset: boolean;
   tnow : timeval;
 begin
+
   { safely check whether we are being destroyed, if so immediately return. }
   { otherwise (under the same mutex) increase the number of waiters        }
   pthread_mutex_lock(@plocaleventstate(state)^.feventsection);
@@ -829,18 +833,33 @@ begin
     end
   else
     begin
-      //Wait with timeout using pthread_cont_timedwait
-      fpgettimeofday(@tnow,nil);
+      //Wait with timeout using pthread_cond_timedwait
+{$if defined(Linux) and not defined(Android)}
+      if clock_gettime(plocaleventstate(state)^.FClockID, @timespec) <> 0 then
+      begin
+        Result := Ord(wrError);
+        Exit;
+      end;
+      timespec.tv_sec  := timespec.tv_sec + (clong(timeout) div 1000);
+      timespec.tv_nsec := ((clong(timeout) mod 1000) * 1000000) + (timespec.tv_nsec);
+{$else}
+      // TODO: FIX-ME: Also use monotonic clock for other *nix targets
+      fpgettimeofday(@tnow, nil);
       timespec.tv_sec  := tnow.tv_sec + (clong(timeout) div 1000);
-      timespec.tv_nsec := (clong(timeout) mod 1000)*1000000 + tnow.tv_usec*1000;
+      timespec.tv_nsec := ((clong(timeout) mod 1000) * 1000000) + (tnow.tv_usec * 1000);
+{$ifend}
       if timespec.tv_nsec >= 1000000000 then
         begin
           inc(timespec.tv_sec);
           dec(timespec.tv_nsec, 1000000000);
         end;
-      errres:=0;
-      while (not plocaleventstate(state)^.FDestroying) and (not plocaleventstate(state)^.FIsSet) and (errres<>ESysETIMEDOUT) do
-        errres:=pthread_cond_timedwait(@plocaleventstate(state)^.Fcondvar, @plocaleventstate(state)^.feventsection, @timespec);
+      errres := 0;
+      while (not plocaleventstate(state)^.FDestroying) and
+            (not plocaleventstate(state)^.FIsSet) and 
+            (errres<>ESysETIMEDOUT) do
+        errres := pthread_cond_timedwait(@plocaleventstate(state)^.Fcondvar,
+                                         @plocaleventstate(state)^.feventsection, 
+                                         @timespec);
     end;
 
   isset := plocaleventstate(state)^.FIsSet;
@@ -989,7 +1008,7 @@ begin
   Writeln('InitThreads : ',Result);
 {$endif DEBUG_MT}
   // We assume that if you set the thread manager, the application is multithreading.
-  InitCThreading;
+  InitCTLS;
 end;
 
 Function CDoneThreads : Boolean;
@@ -1023,6 +1042,8 @@ begin
     ThreadSetPriority      :=@CThreadSetPriority;
     ThreadGetPriority      :=@CThreadGetPriority;
     GetCurrentThreadId     :=@CGetCurrentThreadId;
+    SetThreadDebugNameA    :=@CSetThreadDebugNameA;
+    SetThreadDebugNameU    :=@CSetThreadDebugNameU;
     InitCriticalSection    :=@CInitCriticalSection;
     DoneCriticalSection    :=@CDoneCriticalSection;
     EnterCriticalSection   :=@CEnterCriticalSection;
@@ -1043,11 +1064,6 @@ begin
     rtlEventResetEvent     :=@intrtlEventResetEvent;
     rtleventWaitForTimeout :=@intrtleventWaitForTimeout;
     rtleventWaitFor        :=@intrtleventWaitFor;
-    // semaphores
-    SemaphoreInit          :=@cSemaphoreInit;
-    SemaphoreDestroy       :=@cSemaphoreDestroy;
-    SemaphoreWait          :=@cSemaphoreWait;
-    SemaphorePost          :=@cSemaphorePost;
   end;
   SetThreadManager(CThreadManager);
 end;

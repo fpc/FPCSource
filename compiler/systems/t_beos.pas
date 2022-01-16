@@ -59,7 +59,7 @@ implementation
     SysUtils,
     cutils,cfileutl,cclasses,
     verbose,systems,globtype,globals,
-    symconst,script,
+    symconst,cscript,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,i_beos,ogbase;
 
 {*****************************************************************************
@@ -93,7 +93,7 @@ var
   hp2 : texported_item;
 begin
   { first test the index value }
-  if (hp.options and eo_index)<>0 then
+  if eo_index in hp.options then
    begin
      Message1(parser_e_no_export_with_index_for_target,'beos');
      exit;
@@ -107,7 +107,7 @@ begin
   if assigned(hp2) and (hp2.name^=hp.name^) then
     begin
       { this is not allowed !! }
-      Message1(parser_e_export_name_double,hp.name^);
+      duplicatesymbol(hp.name^);
       exit;
     end;
   if hp2=texported_item(current_module._exports.first) then
@@ -151,8 +151,8 @@ begin
 {$ifdef i386}
            { place jump in al_procedures }
            current_asmdata.asmlists[al_procedures].concat(Tai_align.Create_op(4,$90));
-           current_asmdata.asmlists[al_procedures].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
-           current_asmdata.asmlists[al_procedures].concat(Taicpu.Op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(pd.mangledname)));
+           current_asmdata.asmlists[al_procedures].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0,pd));
+           current_asmdata.asmlists[al_procedures].concat(Taicpu.Op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(pd.mangledname,AT_FUNCTION)));
            current_asmdata.asmlists[al_procedures].concat(Tai_symbol_end.Createname(hp2.name^));
 {$endif i386}
          end;
@@ -171,19 +171,19 @@ end;
 Constructor TLinkerBeos.Create;
 var
   s : string;
-  i : integer;
 begin
   Inherited Create;
   s:=GetEnvironmentVariable('BELIBRARIES');
   { convert to correct format in case under unix system }
-  for i:=1 to length(s) do
-    if s[i] = ':' then
-      s[i] := ';';
+  Replace(s,':',';=');
+  Insert('=',s,1);
+  if s[length(s)]='=' then
+    setlength(s,length(s)-1);
   { just in case we have a single path : add the ending ; }
   { since that is what the compiler expects.              }
   if pos(';',s) = 0 then
     s:=s+';';
-  LibrarySearchPath.AddPath(sysrootpath,s,true); {format:'path1;path2;...'}
+  LibrarySearchPath.AddLibraryPath(sysrootpath,s,true); {format:'path1;path2;...'}
 end;
 
 
@@ -364,7 +364,7 @@ var
   cmdstr : TCmdStr;
   success,
   useshell : boolean;
-  DynLinkStr : string[60];
+  DynLinkStr : ansistring;
   GCSectionsStr,
   StaticStr,
   StripStr   : string[40];
@@ -426,7 +426,7 @@ var
   cmdstr,
   SoNameStr : TCmdStr;
   success : boolean;
-  DynLinkStr : string[60];
+  DynLinkStr : ansistring;
   StaticStr,
   StripStr   : string[40];
 

@@ -19,56 +19,47 @@ unit jsonparser;
 interface
 
 uses
-  Classes, SysUtils, fpJSON, jsonscanner;
+  Classes, SysUtils, fpJSON, jsonscanner, jsonreader;
   
 Type
 
   { TJSONParser }
 
-  TJSONParser = Class(TObject)
-  Private
-    FScanner : TJSONScanner;
-    FuseUTF8,
-    FStrict: Boolean;
-    function ParseNumber: TJSONNumber;
-    procedure SetStrict(const AValue: Boolean);
-    function GetUTF8 : Boolean;
-    procedure SetUTF8(const AValue: Boolean);
+  TJSONParser = Class(TBaseJSONReader)
+  private
+    FStack : Array of TJSONData;
+    FStackPos : integer;
+    FStruct : TJSONData;
+    FValue : TJSONData;
+    FKey: TJSONStringType;
+    procedure Pop(aType: TJSONType);
+    Procedure Push(AValue : TJSONData);
+    Function NewValue(AValue : TJSONData) : TJSONData;
   Protected
-    procedure DoError(const Msg: String);
-    function DoParse(AtCurrent,AllowEOF: Boolean): TJSONData;
-    function GetNextToken: TJSONToken;
-    function CurrentTokenString: String;
-    function CurrentToken: TJSONToken;
-    function ParseArray: TJSONArray;
-    function ParseObject: TJSONObject;
-    Property Scanner : TJSONScanner read FScanner;
+    Procedure KeyValue(Const AKey : TJSONStringType); override;
+    Procedure StringValue(Const AValue : TJSONStringType);override;
+    Procedure NullValue; override;
+    Procedure FloatValue(Const AValue : Double); override;
+    Procedure BooleanValue(Const AValue : Boolean); override;
+    Procedure NumberValue(Const AValue : TJSONStringType); override;
+    Procedure IntegerValue(Const AValue : integer); override;
+    Procedure Int64Value(Const AValue : int64); override;
+    Procedure QWordValue(Const AValue : QWord); override;
+    Procedure StartArray; override;
+    Procedure StartObject; override;
+    Procedure EndArray; override;
+    Procedure EndObject; override;
   Public
     function Parse: TJSONData;
-    Constructor Create(Source : TStream; AUseUTF8 : Boolean = True); overload;
-    Constructor Create(Source : TJSONStringType; AUseUTF8 : Boolean = True); overload;
-    destructor Destroy();override;
-    // Use strict JSON: " for strings, object members are strings, not identifiers
-    Property Strict : Boolean Read FStrict Write SetStrict;
-    // if set to TRUE, then strings will be converted to UTF8 ansistrings, not system codepage ansistrings.
-    Property UseUTF8 : Boolean Read GetUTF8 Write SetUTF8;
   end;
   
-  EJSONParser = Class(EParserError);
+  EJSONParser = jsonReader.EJSONParser;
   
 implementation
 
 Resourcestring
-  SErrUnexpectedEOF   = 'Unexpected EOF encountered.';
-  SErrUnexpectedToken = 'Unexpected token (%s) encountered.';
-  SErrExpectedColon   = 'Expected colon (:), got token "%s".';
-  SErrUnexpectedComma = 'Invalid comma encountered.';
-  SErrEmptyElement = 'Empty element encountered.';
-  SErrExpectedElementName    = 'Expected element name, got token "%s"';
-  SExpectedCommaorBraceClose = 'Expected , or ], got token "%s".';
-  SErrInvalidNumber          = 'Number is not an integer or real number: %s';
-  SErrNoScanner = 'No scanner. No source specified ?';
-  
+  SErrStructure = 'Structural error';
+
 { TJSONParser }
 
 procedure DefJSONParserHandler(AStream: TStream; const AUseUTF8: Boolean; out
@@ -76,10 +67,14 @@ procedure DefJSONParserHandler(AStream: TStream; const AUseUTF8: Boolean; out
 
 Var
   P : TJSONParser;
+  AOptions: TJSONOptions;
 
 begin
   Data:=Nil;
-  P:=TJSONParser.Create(AStream,AUseUTF8);
+  AOptions:=[];
+  if AUseUTF8 then
+    Include(AOptions,joUTF8);
+  P:=TJSONParser.Create(AStream,AOptions);
   try
     Data:=P.Parse;
   finally
@@ -87,12 +82,163 @@ begin
   end;
 end;
 
-Function TJSONParser.Parse : TJSONData;
+procedure DefJSONStringParserHandler(Const S : TJSONStringType; const AUseUTF8: Boolean; out
+  Data: TJSONData);
+
+Var
+  P : TJSONParser;
+  AOptions: TJSONOptions;
 
 begin
-  if (FScanner=Nil) then
-    DoError(SErrNoScanner);
-  Result:=DoParse(False,True);
+  Data:=Nil;
+  AOptions:=[];
+  if AUseUTF8 then
+    Include(AOptions,joUTF8);
+  P:=TJSONParser.Create(S,AOptions);
+  try
+    Data:=P.Parse;
+  finally
+    P.Free;
+  end;
+end;
+
+procedure TJSONParser.Pop(aType: TJSONType);
+
+begin
+  if (FStackPos=0) then
+    DoError(SErrStructure);
+  If (FStruct.JSONType<>aType) then
+    DoError(SErrStructure);
+  Dec(FStackPos);
+  FStruct:=FStack[FStackPos];
+end;
+
+procedure TJSONParser.Push(AValue: TJSONData);
+
+begin
+  if (FStackPos=Length(FStack)) then
+    SetLength(FStack,FStackPos+10);
+  FStack[FStackPos]:=FStruct;
+  Inc(FStackPos);
+  FStruct:=AValue;
+end;
+
+function TJSONParser.NewValue(AValue: TJSONData): TJSONData;
+begin
+  Result:=AValue;
+  // Add to existing structural type
+  if (FStruct is TJSONObject) then
+    begin
+    if (Not (joIgnoreDuplicates in options)) then
+      try
+        TJSONObject(FStruct).Add(FKey,AValue);
+      except
+        AValue.Free;
+        Raise;
+      end
+    else if (TJSONObject(FStruct).IndexOfName(FKey)=-1) then
+      TJSONObject(FStruct).Add(FKey,AValue)
+    else
+      AValue.Free;
+    FKey:='';
+    end
+  else if (FStruct is TJSONArray) then
+    TJSONArray(FStruct).Add(AValue);
+  // The first actual value is our result
+  if (FValue=Nil) then
+    FValue:=AValue;
+end;
+
+procedure TJSONParser.KeyValue(const AKey: TJSONStringType);
+begin
+  if (FStruct is TJSONObject) and (FKey='') then
+    FKey:=Akey
+  else
+    DoError('Duplicatekey or no object');
+end;
+
+procedure TJSONParser.StringValue(const AValue: TJSONStringType);
+begin
+  NewValue(CreateJSON(AValue));
+end;
+
+procedure TJSONParser.NullValue;
+begin
+  NewValue(CreateJSON);
+end;
+
+procedure TJSONParser.FloatValue(const AValue: Double);
+begin
+  NewValue(CreateJSON(AValue));
+end;
+
+procedure TJSONParser.BooleanValue(const AValue: Boolean);
+begin
+  NewValue(CreateJSON(AValue));
+end;
+
+procedure TJSONParser.NumberValue(const AValue: TJSONStringType);
+begin
+  // Do nothing
+  if AValue='' then ;
+end;
+
+procedure TJSONParser.IntegerValue(const AValue: integer);
+begin
+  NewValue(CreateJSON(AValue));
+end;
+
+procedure TJSONParser.Int64Value(const AValue: int64);
+begin
+  NewValue(CreateJSON(AValue));
+end;
+
+procedure TJSONParser.QWordValue(const AValue: QWord);
+begin
+  NewValue(CreateJSON(AValue));
+end;
+
+procedure TJSONParser.StartArray;
+begin
+  Push(NewValue(CreateJSONArray([])))
+end;
+
+
+procedure TJSONParser.StartObject;
+begin
+  Push(NewValue(CreateJSONObject([])));
+end;
+
+procedure TJSONParser.EndArray;
+begin
+  Pop(jtArray);
+end;
+
+procedure TJSONParser.EndObject;
+begin
+  Pop(jtObject);
+end;
+
+
+function TJSONParser.Parse: TJSONData;
+
+begin
+  SetLength(FStack,0);
+  FStackPos:=0;
+  FValue:=Nil;
+  FStruct:=Nil;
+  try
+    DoExecute;
+    Result:=FValue;
+  except
+    On E : exception do
+      begin
+      FreeAndNil(FValue);
+      FStackPos:=0;
+      SetLength(FStack,0);
+      Raise;
+      end;
+  end;
 end;
 
 {
@@ -102,245 +248,14 @@ end;
   If AllowEOF is false, encountering a tkEOF will result in an exception.
 }
 
-Function TJSONParser.CurrentToken : TJSONToken;
-
-begin
-  Result:=FScanner.CurToken;
-end;
-
-Function TJSONParser.CurrentTokenString : String;
-
-begin
-  If CurrentToken in [tkString,tkIdentifier,tkNumber] then
-    Result:=FScanner.CurTokenString
-  else
-    Result:=TokenInfos[CurrentToken];
-end;
-
-Function TJSONParser.DoParse(AtCurrent,AllowEOF : Boolean) : TJSONData;
-
-var
-  T : TJSONToken;
-  
-begin
-  Result:=nil;
-  try
-    If not AtCurrent then
-      T:=GetNextToken
-    else
-      T:=FScanner.CurToken;
-    Case T of
-      tkEof : If Not AllowEof then
-                DoError(SErrUnexpectedEOF);
-      tkNull  : Result:=CreateJSON;
-      tkTrue,
-      tkFalse : Result:=CreateJSON(t=tkTrue);
-      tkString : Result:=CreateJSON(CurrentTokenString);
-      tkCurlyBraceOpen : Result:=ParseObject;
-      tkCurlyBraceClose : DoError(SErrUnexpectedToken);
-      tkSQuaredBraceOpen : Result:=ParseArray;
-      tkSQuaredBraceClose : DoError(SErrUnexpectedToken);
-      tkNumber : Result:=ParseNumber;
-      tkComma : DoError(SErrUnexpectedToken);
-    end;
-  except
-    FreeAndNil(Result);
-    Raise;
-  end;
-end;
-
-
-// Creates the correct JSON number type, based on the current token.
-Function TJSONParser.ParseNumber : TJSONNumber;
-
-Var
-  I : Integer;
-  I64 : Int64;
-  QW  : QWord;
-  F : TJSONFloat;
-  S : String;
-
-begin
-  S:=CurrentTokenString;
-  I:=0;
-  if TryStrToQWord(S,QW) then
-    begin
-    if QW>qword(high(Int64)) then
-      Result:=CreateJSON(QW)
-    else
-      if QW>MaxInt then
-      begin
-        I64 := QW;
-        Result:=CreateJSON(I64);
-      end
-      else
-      begin
-        I := QW;
-        Result:=CreateJSON(I);
-      end
-    end
-  else
-    begin
-    If TryStrToInt64(S,I64) then
-      if (I64>Maxint) or (I64<-MaxInt) then
-        Result:=CreateJSON(I64)
-      Else
-        begin
-        I:=I64;
-        Result:=CreateJSON(I);
-        end
-    else
-      begin
-      I:=0;
-      Val(S,F,I);
-      If (I<>0) then
-        DoError(SErrInvalidNumber);
-      Result:=CreateJSON(F);
-      end;
-    end;
-
-end;
-
-function TJSONParser.GetUTF8 : Boolean;
-
-begin
-  if Assigned(FScanner) then
-    Result:=FScanner.UseUTF8
-  else
-    Result:=FUseUTF8;  
-end;
-
-procedure TJSONParser.SetUTF8(const AValue: Boolean);
-
-begin
-  FUseUTF8:=AValue;
-  if Assigned(FScanner) then
-    FScanner.UseUTF8:=FUseUTF8;
-end;
-
-procedure TJSONParser.SetStrict(const AValue: Boolean);
-begin
-  if (FStrict=AValue) then
-     exit;
-  FStrict:=AValue;
-  If Assigned(FScanner) then
-    FScanner.Strict:=Fstrict;
-end;
-
-// Current token is {, on exit current token is }
-Function TJSONParser.ParseObject : TJSONObject;
-
-Var
-  T : TJSONtoken;
-  E : TJSONData;
-  N : String;
-  
-begin
-  Result:=CreateJSONObject([]);
-  Try
-    T:=GetNextToken;
-    While T<>tkCurlyBraceClose do
-      begin
-      If (T<>tkString) and (T<>tkIdentifier) then
-        DoError(SErrExpectedElementName);
-      N:=CurrentTokenString;
-      T:=GetNextToken;
-      If (T<>tkColon) then
-        DoError(SErrExpectedColon);
-      E:=DoParse(False,False);
-      Result.Add(N,E);
-      T:=GetNextToken;
-      If Not (T in [tkComma,tkCurlyBraceClose]) then
-        DoError(SExpectedCommaorBraceClose);
-      If T=tkComma then
-        T:=GetNextToken;
-      end;
-  Except
-    FreeAndNil(Result);
-    Raise;
-  end;
-end;
-
-// Current token is [, on exit current token is ]
-Function TJSONParser.ParseArray : TJSONArray;
-
-Var
-  T : TJSONtoken;
-  E : TJSONData;
-  LastComma : Boolean;
-  
-begin
-  Result:=CreateJSONArray([]);
-  LastComma:=False;
-  Try
-    Repeat
-      T:=GetNextToken;
-      If (T<>tkSquaredBraceClose) then
-        begin
-        E:=DoParse(True,False);
-        If (E<>Nil) then
-          Result.Add(E)
-        else if (Result.Count>0) then
-          DoError(SErrEmptyElement);
-        T:=GetNextToken;
-        If Not (T in [tkComma,tkSquaredBraceClose]) then
-          DoError(SExpectedCommaorBraceClose);
-        LastComma:=(t=TkComma);
-        end;
-    Until (T=tkSquaredBraceClose);
-    If LastComma then // Test for ,] case
-      DoError(SErrUnExpectedToken);
-  Except
-    FreeAndNil(Result);
-    Raise;
-  end;
-end;
-
-// Get next token, discarding whitespace
-Function TJSONParser.GetNextToken : TJSONToken ;
-
-begin
-  Repeat
-    Result:=FScanner.FetchToken;
-  Until (Result<>tkWhiteSpace);
-end;
-
-Procedure TJSONParser.DoError(const Msg : String);
-
-Var
-  S : String;
-
-begin
-  S:=Format(Msg,[CurrentTokenString]);
-  S:=Format('Error at line %d, Pos %d:',[FScanner.CurRow,FSCanner.CurColumn])+S;
-  Raise EJSONParser.Create(S);
-end;
-
-constructor TJSONParser.Create(Source: TStream; AUseUTF8 : Boolean = True);
-begin
-  Inherited Create;
-  FScanner:=TJSONScanner.Create(Source);
-  UseUTF8:=AUseUTF8;
-end;
-
-constructor TJSONParser.Create(Source: TJSONStringType; AUseUTF8 : Boolean = True);
-begin
-  Inherited Create;
-  FScanner:=TJSONScanner.Create(Source);
-  UseUTF8:=AUseUTF8;
-end;
-
-destructor TJSONParser.Destroy();
-begin
-  FreeAndNil(FScanner);
-  inherited Destroy();
-end;
 
 Procedure InitJSONHandler;
 
 begin
   if GetJSONParserHandler=Nil then
     SetJSONParserHandler(@DefJSONParserHandler);
+  if GetJSONStringParserHandler=Nil then
+    SetJSONStringParserHandler(@DefJSONStringParserHandler);
 end;
 
 Procedure DoneJSONHandler;
@@ -348,6 +263,8 @@ Procedure DoneJSONHandler;
 begin
   if GetJSONParserHandler=@DefJSONParserHandler then
     SetJSONParserHandler(Nil);
+  if GetJSONStringParserHandler=@DefJSONStringParserHandler then
+    SetJSONStringParserHandler(Nil);
 end;
 
 initialization

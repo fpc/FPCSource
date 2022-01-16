@@ -51,7 +51,7 @@ implementation
 
     uses
       globtype,systems,constexp,
-      cutils,verbose,globals,
+      cutils,verbose,globals,compinnr,
       symconst,symdef,
       aasmbase,aasmcpu,aasmtai,aasmdata,
       defutil,
@@ -78,7 +78,6 @@ implementation
       var
         tmpreg: tregister;
         lab: tasmlabel;
-        ovloc: tlocation;
         op: topcg;
         isu32int: boolean;
       begin

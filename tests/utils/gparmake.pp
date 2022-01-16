@@ -2,6 +2,9 @@
 
 Program GParMake;
 
+Uses
+  Classes;
+
 procedure Usage;
   begin
     writeln('GParMake: create make rules for parallel execution of testsuite');
@@ -43,6 +46,7 @@ var
   startchunk: longint;
   dirname : ansistring;
   doappend: boolean;
+  FileList : TStringList;
 
 Function ProcessArgs: longint;
   var
@@ -51,11 +55,23 @@ Function ProcessArgs: longint;
     chunktargetsize,
     chunksize,
     chunknr,
+    nextfileindex,
     error: longint;
     testname,
     nexttestname,
     testlist,
+    s,
     outputname: ansistring;
+    filelist : array of ansistring;
+    responsefile : text;
+
+  procedure AddFile(const s : ansistring);
+    begin
+      if nextfileindex>high(filelist) then
+        SetLength(filelist,length(filelist)+128);
+      filelist[nextfileindex]:=s;
+      inc(nextfileindex);
+    end;
 
   procedure FlushChunk;
     begin
@@ -105,20 +121,41 @@ Function ProcessArgs: longint;
     chunknr:=startchunk;
     chunksize:=0;
     testlist:='';
+    nextfileindex:=0;
     for i := paramnr to paramcount do
       begin
-        testname:=paramstr(i);
+        if paramstr(i)[1]='@' then
+          begin
+            assign(responsefile,copy(paramstr(i),2,length(paramstr(i))));
+            reset(responsefile);
+            while not(eof(responsefile)) do
+              begin
+                readln(responsefile,s);
+                AddFile(s);
+              end;
+            close(responsefile);
+          end
+        else
+          AddFile(paramstr(i));
+      end;
+
+    for i := 0 to nextfileindex-1 do
+      begin
+        testname:=filelist[i];
         testlist:=testlist+' '+testname;
         inc(chunksize);
         if chunksize>=chunktargetsize then
           begin
-            if (i=paramcount) then
+            if (i=nextfileindex-1) then
               FlushChunk
             else
               begin
                 { keep tests with the same name except for the last character in the same chunk,
                   because they may have to be executed in order (skip ".pp" suffix and last char) }
-                nexttestname:=paramstr(i+1);
+                if i+1>=nextfileindex then
+                  nexttestname:=''
+                else
+                  nexttestname:=filelist[i+1];
                 if lowercase(copy(testname,1,length(testname)-4))<>lowercase(copy(nexttestname,1,length(nexttestname)-4)) then
                   FlushChunk;
               end;

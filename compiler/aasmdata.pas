@@ -46,6 +46,8 @@ interface
       TAsmListType=(
         al_start,
         al_stabs,
+        { pure assembler routines }
+        al_pure_assembler,
         al_procedures,
         al_globals,
         al_const,
@@ -56,10 +58,14 @@ interface
         al_exports,
         al_resources,
         al_rtti,
+        { all symbols with indirect suffix }
+        al_indirectglobals,
         al_dwarf_frame,
         al_dwarf_info,
         al_dwarf_abbrev,
         al_dwarf_line,
+        al_dwarf_aranges,
+        al_dwarf_ranges,
         al_picdata,
         al_indirectpicdata,
         al_resourcestrings,
@@ -90,13 +96,15 @@ interface
          sp_objcprotocolrefs,
          sp_varsets,
          sp_floats,
-         sp_guids
+         sp_guids,
+         sp_paraloc
       );
       
     const
       AsmListTypeStr : array[TAsmListType] of string[24] =(
         'al_begin',
         'al_stabs',
+        'al_pure_assembler',
         'al_procedures',
         'al_globals',
         'al_const',
@@ -107,10 +115,13 @@ interface
         'al_exports',
         'al_resources',
         'al_rtti',
+        'al_indirectglobals',
         'al_dwarf_frame',
         'al_dwarf_info',
         'al_dwarf_abbrev',
         'al_dwarf_line',
+        'al_dwarf_aranges',
+        'al_dwarf_ranges',
         'al_picdata',
         'al_indirectpicdata',
         'al_resourcestrings',
@@ -121,8 +132,25 @@ interface
 
     type
       TAsmList = class(tlinkedlist)
+         section_count : longint;
          constructor create;
          function  getlasttaifilepos : pfileposinfo;
+         { inserts another List at the begin and make this List empty }
+         procedure insertList(p : TLinkedList); override;
+         { inserts another List before the provided item and make this List empty }
+         procedure insertListBefore(Item:TLinkedListItem;p : TLinkedList); override;
+         { inserts another List after the provided item and make this List empty }
+         procedure insertListAfter(Item:TLinkedListItem;p : TLinkedList); override;
+         { concats another List at the end and make this List empty }
+         procedure concatList(p : TLinkedList); override;
+         { concats another List at the start and makes a copy
+           the list is ordered in reverse.
+         }
+         procedure insertListcopy(p : TLinkedList); override;
+         { concats another List at the end and makes a copy }
+         procedure concatListcopy(p : TLinkedList); override;
+         { removes all items from the list, the items are not freed }
+         procedure RemoveAll; override;
       end;
 
       TAsmCFI=class
@@ -132,10 +160,13 @@ interface
         procedure generate_code(list:TAsmList);virtual;
         procedure start_frame(list:TAsmList);virtual;
         procedure end_frame(list:TAsmList);virtual;
+        procedure outmost_frame(list:TAsmList);virtual;
         procedure cfa_offset(list:TAsmList;reg:tregister;ofs:longint);virtual;
         procedure cfa_restore(list:TAsmList;reg:tregister);virtual;
         procedure cfa_def_cfa_register(list:TAsmList;reg:tregister);virtual;
         procedure cfa_def_cfa_offset(list:TAsmList;ofs:longint);virtual;
+        function get_frame_start: TAsmLabel;virtual;
+        function get_cfa_list : TAsmList;virtual;
       end;
       TAsmCFIClass=class of TAsmCFI;
 
@@ -152,6 +183,8 @@ interface
         FAsmCFI        : TAsmCFI;
         FConstPools    : array[TConstPoolType] of THashSet;
         function GetConstPools(APoolType: TConstPoolType): THashSet;
+      protected
+        function  DefineAsmSymbolByClassBase(symclass: TAsmSymbolClass; const s : TSymStr;_bind:TAsmSymBind;_typ:Tasmsymtype; def: tdef; out wasdefined: boolean) : TAsmSymbol;
       public
         name          : pshortstring;       { owned by tmodule }
         NextVTEntryNr : longint;
@@ -163,10 +196,11 @@ interface
         constructor create(n: pshortstring);
         destructor  destroy;override;
         { asmsymbol }
-        function  DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s : TSymStr;_bind:TAsmSymBind;_typ:Tasmsymtype) : TAsmSymbol;
-        function  DefineAsmSymbol(const s : TSymStr;_bind:TAsmSymBind;_typ:Tasmsymtype) : TAsmSymbol;
-        function  WeakRefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype=AT_NONE) : TAsmSymbol;
-        function  RefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype=AT_NONE) : TAsmSymbol;
+        function  DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s : TSymStr;_bind:TAsmSymBind;_typ:Tasmsymtype; def: tdef) : TAsmSymbol; virtual;
+        function  DefineAsmSymbol(const s : TSymStr;_bind:TAsmSymBind;_typ:Tasmsymtype; def: tdef) : TAsmSymbol;
+        function  DefineProcAsmSymbol(pd: tdef; const s: TSymStr; global: boolean): TAsmSymbol;
+        function  WeakRefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype) : TAsmSymbol;
+        function  RefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype;indirect:boolean=false) : TAsmSymbol;
         function  GetAsmSymbol(const s : TSymStr) : TAsmSymbol;
         { create new assembler label }
         procedure getlabel(out l : TAsmLabel;alt:TAsmLabeltype);
@@ -198,11 +232,12 @@ interface
         sym: tsym;
         offset: aint;
         datalabel: TAsmSymbol;
-        constructor Create(asym: tsym; aoffset: aint; alabel: TAsmSymbol);
+        datadef: TDef;
+        constructor Create(asym: tsym; aoffset: aint; alabel: TAsmSymbol; alabeldef: tdef);
       end;
 
-    const
-      casmdata: TAsmDataClass = TAsmData;
+    var
+      casmdata: TAsmDataClass;
 
 
     var
@@ -214,6 +249,8 @@ implementation
 
     uses
       verbose,
+      globals,
+      symconst,
       aasmtai;
 
 {$ifdef MEMDEBUG}
@@ -253,6 +290,11 @@ implementation
       end;
 
 
+    procedure TAsmCFI.outmost_frame(list: TAsmList);
+      begin
+      end;
+
+
     procedure TAsmCFI.cfa_offset(list:TAsmList;reg:tregister;ofs:longint);
       begin
       end;
@@ -272,17 +314,30 @@ implementation
       begin
       end;
 
+
+    function TAsmCFI.get_frame_start: TAsmLabel;
+      begin
+        Result:=nil;
+      end;
+
+
+    function TAsmCFI.get_cfa_list: TAsmList;
+      begin
+        Result:=nil;
+      end;
+
 {*****************************************************************************
                                  TTCInitItem
 *****************************************************************************}
 
 
-    constructor TTCInitItem.Create(asym: tsym; aoffset: aint; alabel: TAsmSymbol);
+    constructor TTCInitItem.Create(asym: tsym; aoffset: aint; alabel: TAsmSymbol; alabeldef: tdef);
       begin
         inherited Create;
         sym:=asym;
         offset:=aoffset;
         datalabel:=alabel;
+        datadef:=alabeldef;
       end;
 
 {*****************************************************************************
@@ -321,6 +376,59 @@ implementation
       end;
 
 
+    procedure TAsmList.insertList(p : TLinkedList);
+      begin
+        inherited insertList(p);
+        inc(section_count,TAsmList(p).section_count);
+        TAsmList(p).section_count:=0;
+      end;
+
+
+    procedure TAsmList.insertListBefore(Item : TLinkedListItem; p : TLinkedList);
+      begin
+        inherited insertListBefore(Item,p);
+        inc(section_count,TAsmList(p).section_count);
+        TAsmList(p).section_count:=0;
+      end;
+
+
+    procedure TAsmList.insertListAfter(Item : TLinkedListItem; p : TLinkedList);
+      begin
+        inherited insertListAfter(Item,p);
+        inc(section_count,TAsmList(p).section_count);
+        TAsmList(p).section_count:=0;
+      end;
+
+
+    procedure TAsmList.concatList(p : TLinkedList);
+      begin
+        inherited concatList(p);
+        inc(section_count,TAsmList(p).section_count);
+        TAsmList(p).section_count:=0;
+      end;
+
+
+    procedure TAsmList.insertListcopy(p : TLinkedList);
+      begin
+        inherited insertListcopy(p);
+        inc(section_count,TAsmList(p).section_count);
+     end;
+
+
+    procedure TAsmList.concatListcopy(p : TLinkedList);
+      begin
+        inherited concatListcopy(p);
+        inc(section_count,TAsmList(p).section_count);
+      end;
+
+
+    procedure TAsmList.RemoveAll;
+      begin
+         inherited RemoveAll;
+         section_count:=0;
+      end;
+
+
 {****************************************************************************
                                 TAsmData
 ****************************************************************************}
@@ -335,6 +443,59 @@ implementation
           end;
         Result := FConstPools[APoolType];
       end;
+
+
+    function TAsmData.DefineAsmSymbolByClassBase(symclass: TAsmSymbolClass; const s: TSymStr; _bind: TAsmSymBind; _typ: Tasmsymtype; def: tdef; out wasdefined: boolean): TAsmSymbol;
+      var
+        hp : TAsmSymbol;
+        namestr : TSymStr;
+      begin
+        { this difference is only necessary to determine whether we always need
+          indirect references or not }
+        if _typ in [AT_DATA_FORCEINDIRECT,AT_DATA_NOINDIRECT] then
+          _typ:=AT_DATA;
+        namestr:=s;
+        if _bind in asmsymbindindirect then
+          namestr:=namestr+suffix_indirect;
+        hp:=TAsmSymbol(FAsmSymbolDict.Find(namestr));
+        if assigned(hp) then
+         begin
+           { Redefine is allowed, but the types must be the same. The redefine
+             is needed for Darwin where the labels are first allocated }
+           wasdefined:=not(hp.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]);
+           if wasdefined then
+             begin
+               if (hp.bind<>_bind) and
+                  (hp.typ<>_typ) then
+                 internalerror(200603261);
+             end;
+           hp.typ:=_typ;
+           { Changing bind from AB_GLOBAL to AB_LOCAL is wrong
+             if bind is already AB_GLOBAL or AB_EXTERNAL,
+             GOT might have been used, so change might be harmful. }
+           if (_bind<>hp.bind) and (hp.getrefs>0) then
+             begin
+{$ifdef extdebug}
+               { the changes that matter must become internalerrors, the rest
+                 should be ignored; a used cannot change anything about this,
+                 so printing a warning/hint is not useful }
+               if (_bind=AB_LOCAL) then
+                 Message3(asmw_w_changing_bind_type,namestr,asmsymbindname[hp.bind],asmsymbindname[_bind])
+               else
+                 Message3(asmw_h_changing_bind_type,namestr,asmsymbindname[hp.bind],asmsymbindname[_bind]);
+{$endif extdebug}
+             end;
+           hp.bind:=_bind;
+         end
+        else
+         begin
+           wasdefined:=false;
+           { Not found, insert it. }
+           hp:=symclass.create(AsmSymbolDict,namestr,_bind,_typ);
+         end;
+        result:=hp;
+      end;
+
 
     constructor TAsmData.create(n:pshortstring);
       var
@@ -354,8 +515,8 @@ implementation
         CurrAsmList:=TAsmList.create;
         for hal:=low(TAsmListType) to high(TAsmListType) do
           AsmLists[hal]:=TAsmList.create;
-        WideInits :=TLinkedList.create;
-        ResStrInits:=TLinkedList.create;
+        WideInits :=TAsmList.create;
+        ResStrInits:=TAsmList.create;
         { CFI }
         FAsmCFI:=CAsmCFI.Create;
       end;
@@ -399,67 +560,60 @@ implementation
            FConstPools[hp].Free;
       end;
 
-
-    function TAsmData.DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s : TSymStr;_bind:TAsmSymBind;_typ:Tasmsymtype) : TAsmSymbol;
+    function TAsmData.DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s: TSymStr; _bind: TAsmSymBind; _typ: Tasmsymtype; def: tdef): TAsmSymbol;
       var
-        hp : TAsmSymbol;
+        wasdefined: boolean;
       begin
-        hp:=TAsmSymbol(FAsmSymbolDict.Find(s));
-        if assigned(hp) then
-         begin
-           { Redefine is allowed, but the types must be the same. The redefine
-             is needed for Darwin where the labels are first allocated }
-           if not(hp.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) then
-             begin
-               if (hp.bind<>_bind) and
-                  (hp.typ<>_typ) then
-                 internalerror(200603261);
-             end;
-           hp.typ:=_typ;
-           { Changing bind from AB_GLOBAL to AB_LOCAL is wrong
-             if bind is already AB_GLOBAL or AB_EXTERNAL,
-             GOT might have been used, so change might be harmful. }
-           if (_bind<>hp.bind) and (hp.getrefs>0) then
-             begin
-{$ifdef extdebug}
-               { the changes that matter must become internalerrors, the rest
-                 should be ignored; a used cannot change anything about this,
-                 so printing a warning/hint is not useful }
-               if (_bind=AB_LOCAL) then
-                 Message3(asmw_w_changing_bind_type,s,asmsymbindname[hp.bind],asmsymbindname[_bind])
-               else
-                 Message3(asmw_h_changing_bind_type,s,asmsymbindname[hp.bind],asmsymbindname[_bind]);
-{$endif extdebug}
-             end;
-           hp.bind:=_bind;
-         end
+        result:=DefineAsmSymbolByClassBase(symclass,s,_bind,_typ,def,wasdefined);
+      end;
+
+
+    function TAsmData.DefineAsmSymbol(const s: TSymStr; _bind: TAsmSymBind; _typ: Tasmsymtype; def: tdef): TAsmSymbol;
+      begin
+        result:=DefineAsmSymbolByClass(TAsmSymbol,s,_bind,_typ,def);
+      end;
+
+
+    function TAsmData.DefineProcAsmSymbol(pd: tdef; const s: TSymStr; global: boolean): TAsmSymbol;
+      begin
+        { The condition to use global or local symbol must match
+          the code written in hlcg.gen_proc_symbol to
+          avoid change from AB_LOCAL to AB_GLOBAL, which generates
+          erroneous code (at least for targets using GOT) }
+        if global or
+           (cs_profile in current_settings.moduleswitches) then
+          result:=DefineAsmSymbol(s,AB_GLOBAL,AT_FUNCTION,pd)
+        else if tf_supports_hidden_symbols in target_info.flags then
+          result:=DefineAsmSymbol(s,AB_PRIVATE_EXTERN,AT_FUNCTION,pd)
         else
-         begin
-           { Not found, insert it. }
-           hp:=symclass.create(AsmSymbolDict,s,_bind,_typ);
-         end;
-        result:=hp;
+          result:=DefineAsmSymbol(s,AB_LOCAL,AT_FUNCTION,pd);
       end;
 
-
-    function TAsmData.DefineAsmSymbol(const s : TSymStr;_bind:TAsmSymBind;_typ:Tasmsymtype) : TAsmSymbol;
+    function TAsmData.RefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype;indirect:boolean) : TAsmSymbol;
+      var
+        namestr : TSymStr;
+        bind : tasmsymbind;
       begin
-        result:=DefineAsmSymbolByClass(TAsmSymbol,s,_bind,_typ);
-      end;
-
-
-    function TAsmData.RefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype=AT_NONE) : TAsmSymbol;
-      begin
-        result:=TAsmSymbol(FAsmSymbolDict.Find(s));
+        namestr:=s;
+        if indirect then
+          begin
+            namestr:=namestr+suffix_indirect;
+            bind:=AB_EXTERNAL_INDIRECT;
+          end
+        else
+          begin
+            bind:=AB_EXTERNAL;
+          end;
+        result:=TAsmSymbol(FAsmSymbolDict.Find(namestr));
         if not assigned(result) then
-          result:=TAsmSymbol.create(AsmSymbolDict,s,AB_EXTERNAL,_typ)
+          result:=TAsmSymbol.create(AsmSymbolDict,namestr,bind,_typ)
         { one normal reference removes the "weak" character of a symbol }
         else if (result.bind=AB_WEAK_EXTERNAL) then
-          result.bind:=AB_EXTERNAL;
+          result.bind:=bind;
       end;
 
 
-    function TAsmData.WeakRefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype=AT_NONE) : TAsmSymbol;
+    function TAsmData.WeakRefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype) : TAsmSymbol;
       begin
         result:=TAsmSymbol(FAsmSymbolDict.Find(s));
         if not assigned(result) then
@@ -557,7 +711,8 @@ initialization
   memasmlists:=TMemDebug.create('AsmLists');
   memasmlists.stop;
 {$endif MEMDEBUG}
-  CAsmCFI:=TAsmCFI;
+  if not(assigned(CAsmCFI)) then
+    CAsmCFI:=TAsmCFI;
 
 finalization
 {$ifdef MEMDEBUG}

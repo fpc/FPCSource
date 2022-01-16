@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testutils, testregistry,
-  BucketList;
+  contnrs;
 
 type
   TMyBucketList = Class(TBucketList)

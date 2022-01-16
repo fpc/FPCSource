@@ -82,10 +82,12 @@ end;
 procedure detect_linuxvcs;
 
 var f:text;
-    c:char;
-    pid,ppid,dummy:integer;
-    device:longint;
+    fields:array [0..60] of int64;
+    fieldct,i:integer;
+    pid,ppid:longint;
+    magnitude:int64;
     s:string[15];
+    statln:ansistring;
 
 begin
   {Extremely aggressive VCSA detection. Works even through Midnight
@@ -94,34 +96,45 @@ begin
   pid:=fpgetpid;
   repeat
     str(pid,s);
-    assign(f,'/proc/'+s+'/stat');
+    assign(f, '/proc/'+s+'/stat');
     {$I-}
     reset(f);
     {$I+}
     if ioresult<>0 then
       break;
-    read(f,dummy);
-    read(f,c);
-    repeat
-      read(f,c);
-    until c=' ';
-    repeat
-      read(f,c);
-    until c=' ';
-    ppid:=pid;
-    read(f,pid);
-    read(f,dummy);
-    read(f,dummy);
-    read(f,device);
+    readln(f, statln);
     close(f);
-    if device and $ffffffc0=$00000400 then {/dev/tty*}
+    magnitude := 1;
+    fieldct := 0;
+    fields[fieldct] := 0;
+    for i := high(statln) downto low(statln) do
       begin
-        vcs_device:=device and $3f;
+        case statln[i] of
+          '-': magnitude := -1;
+          '0'..'9': begin
+            fields[fieldct] := fields[fieldct]
+                               + (magnitude * (ord(statln[i]) - ord('0')));
+            magnitude := magnitude * 10;
+          end;
+          ' ': begin
+            magnitude := 1;
+            fieldct := fieldct + 1;
+            fields[fieldct] := 0;
+          end;
+        else
+          break;
+        end;
+      end;
+    ppid := pid;
+    pid := fields[fieldct - 1];
+    if (fields[fieldct - 4] and $ffffffc0) = $00000400 then {/dev/tty*}
+      begin
+        vcs_device:=fields[fieldct - 4] and $3f;
         break;
       end;
-   until (device=0) {Not attached to a terminal, i.e. an xterm.}
-      or (pid=-1)
-      or (ppid=pid);
+  until (fields[fieldct - 4]=0) {Not attached to a terminal, i.e. an xterm.}
+        or (pid=-1)
+        or (ppid=pid);
 end;
 
 begin

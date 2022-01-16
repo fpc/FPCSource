@@ -76,6 +76,7 @@ uses
       OT_IMMTINY   = $00002100;
       OT_IMMSHIFTER= $00002200;
       OT_IMMEDIATEZERO = $10002200;
+      OT_IMMEDIATEMM     = $00002400;
       OT_IMMEDIATE24 = OT_IMM24;
       OT_SHIFTIMM  = OT_SHIFTEROP or OT_IMMSHIFTER;
       OT_SHIFTIMMEDIATE = OT_SHIFTIMM;
@@ -137,6 +138,10 @@ uses
 
       IF_NONE   = $00000000;
 
+      IF_EXTENSIONS = $0000000F;
+
+      IF_NEON       = $00000001;
+
       IF_ARMMASK    = $000F0000;
       IF_ARM32      = $00010000;
       IF_THUMB      = $00020000;
@@ -161,14 +166,15 @@ uses
       IF_ARMv7M     = $00F00000;
       IF_ARMv7EM    = $01000000;
 
-      IF_FPMASK     = $F0000000;
-      IF_FPA        = $10000000;
-      IF_VFPv2      = $20000000;
-      IF_VFPv3      = $40000000;
-      IF_VFPv4      = $80000000;
+      IF_FPMASK     = $c0000F00;
+      IF_FPA        = $00000100;
+      IF_VFPv2      = $00000200;
+      IF_VFPv3      = $00000400;
+      IF_VFPv4      = $00000800;
+      IF_VFPv5      = $80000000;
 
       { if the instruction can change in a second pass }
-      IF_PASS2  = longint($80000000);
+      IF_PASS2  = $80000000;
 
     type
       TInsTabCache=array[TasmOp] of longint;
@@ -184,6 +190,9 @@ uses
 
       pinsentry=^tinsentry;
 
+      taicpuflag = (cf_wideformat,cf_inIT,cf_lastinIT,cf_thumb);
+      taicpuflags = set of taicpuflag;
+
     const
       InsTab : array[0..instabentries-1] of TInsEntry={$i armtab.inc}
 
@@ -193,13 +202,15 @@ uses
     type
       taicpu = class(tai_cpu_abstract_sym)
          oppostfix : TOpPostfix;
-         wideformat : boolean;
          roundingmode : troundingmode;
+         flags : taicpuflags;
          procedure loadshifterop(opidx:longint;const so:tshifterop);
          procedure loadregset(opidx:longint; regsetregtype: tregistertype; regsetsubregtype: tsubregister; const s:tcpuregisterset; ausermode: boolean=false);
-         procedure loadconditioncode(opidx:longint;const cond:tasmcond);
-         procedure loadmodeflags(opidx:longint;const flags:tcpumodeflags);
+         procedure loadconditioncode(opidx:longint;const acond:tasmcond);
+         procedure loadmodeflags(opidx:longint;const _modeflags:tcpumodeflags);
          procedure loadspecialreg(opidx:longint;const areg:tregister; const aflags:tspecialregflags);
+         procedure loadrealconst(opidx:longint;const _value:bestreal);
+
          constructor op_none(op : tasmop);
 
          constructor op_reg(op : tasmop;_op1 : tregister);
@@ -228,14 +239,16 @@ uses
          constructor op_cond(op: tasmop; cond: tasmcond);
 
          { CPSxx }
-         constructor op_modeflags(op: tasmop; flags: tcpumodeflags);
-         constructor op_modeflags_const(op: tasmop; flags: tcpumodeflags; a: aint);
+         constructor op_modeflags(op: tasmop; _modeflags: tcpumodeflags);
+         constructor op_modeflags_const(op: tasmop; _modeflags: tcpumodeflags; a: aint);
 
          { MSR }
          constructor op_specialreg_reg(op: tasmop; specialreg: tregister; specialregflags: tspecialregflags; _op2: tregister);
 
          { *M*LL }
          constructor op_reg_reg_reg_reg(op : tasmop;_op1,_op2,_op3,_op4 : tregister);
+
+         constructor op_reg_realconst(op : tasmop;_op1: tregister;_op2: bestreal);
 
          { this is for Jmp instructions }
          constructor op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
@@ -264,18 +277,15 @@ uses
          procedure ppubuildderefimploper(var o:toper);override;
          procedure ppuderefoper(var o:toper);override;
       private
-         { pass1 info }
-         inIT,
-         lastinIT: boolean;
          { arm version info }
          fArmVMask,
-         fArmMask  : longint;
+         fArmMask  : longword;
          { next fields are filled in pass1, so pass2 is faster }
          inssize   : shortint;
          insoffset : longint;
          LastInsOffset : longint; { need to be public to be reset }
          insentry  : PInsEntry;
-         procedure BuildArmMasks;
+         procedure BuildArmMasks(objdata:TObjData);
          function  InsEnd:longint;
          procedure create_ot(objdata:TObjData);
          function  Matches(p:PInsEntry):longint;
@@ -311,7 +321,7 @@ implementation
 
   uses
     itcpugas,aoptcpu,
-    systems;
+    systems,symdef;
 
 
     procedure taicpu.loadshifterop(opidx:longint;const so:tshifterop);
@@ -328,6 +338,19 @@ implementation
             typ:=top_shifterop;
             if assigned(add_reg_instruction_hook) then
               add_reg_instruction_hook(self,shifterop^.rs);
+          end;
+      end;
+
+
+    procedure taicpu.loadrealconst(opidx:longint;const _value:bestreal);
+      begin
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
+          begin
+            if typ<>top_realconst then
+              clearop(opidx);
+            val_real:=_value;
+            typ:=top_realconst;
           end;
       end;
 
@@ -363,31 +386,33 @@ implementation
                    if assigned(add_reg_instruction_hook) and (i in regset^) then
                      add_reg_instruction_hook(self,newreg(R_MMREGISTER,i,regsetsubregtype));
                  end;
+             else
+               internalerror(2019050932);
            end;
          end;
       end;
 
 
-    procedure taicpu.loadconditioncode(opidx:longint;const cond:tasmcond);
+    procedure taicpu.loadconditioncode(opidx:longint;const acond:tasmcond);
       begin
         allocate_oper(opidx+1);
         with oper[opidx]^ do
          begin
            if typ<>top_conditioncode then
              clearop(opidx);
-           cc:=cond;
+           cc:=acond;
            typ:=top_conditioncode;
          end;
       end;
 
-    procedure taicpu.loadmodeflags(opidx: longint; const flags: tcpumodeflags);
+    procedure taicpu.loadmodeflags(opidx: longint; const _modeflags: tcpumodeflags);
       begin
         allocate_oper(opidx+1);
         with oper[opidx]^ do
          begin
            if typ<>top_modeflags then
              clearop(opidx);
-           modeflags:=flags;
+           modeflags:=_modeflags;
            typ:=top_modeflags;
          end;
       end;
@@ -504,6 +529,15 @@ implementation
       end;
 
 
+    constructor taicpu.op_reg_realconst(op : tasmop; _op1 : tregister; _op2 : bestreal);
+      begin
+         inherited create(op);
+         ops:=2;
+         loadreg(0,_op1);
+         loadrealconst(1,_op2);
+      end;
+
+
      constructor taicpu.op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: aint);
        begin
          inherited create(op);
@@ -552,18 +586,18 @@ implementation
         loadconditioncode(0, cond);
       end;
 
-    constructor taicpu.op_modeflags(op: tasmop; flags: tcpumodeflags);
+    constructor taicpu.op_modeflags(op: tasmop; _modeflags: tcpumodeflags);
       begin
         inherited create(op);
         ops := 1;
-        loadmodeflags(0,flags);
+        loadmodeflags(0,_modeflags);
       end;
 
-    constructor taicpu.op_modeflags_const(op: tasmop; flags: tcpumodeflags; a: aint);
+    constructor taicpu.op_modeflags_const(op: tasmop; _modeflags: tcpumodeflags; a: aint);
       begin
         inherited create(op);
         ops := 2;
-        loadmodeflags(0,flags);
+        loadmodeflags(0,_modeflags);
         loadconst(1,a);
       end;
 
@@ -690,7 +724,7 @@ implementation
           R_MMREGISTER :
             result:=taicpu.op_reg_ref(A_VLDR,r,ref);
           else
-            internalerror(200401041);
+            internalerror(2004010415);
         end;
       end;
 
@@ -708,97 +742,193 @@ implementation
           R_MMREGISTER :
             result:=taicpu.op_reg_ref(A_VSTR,r,ref);
           else
-            internalerror(200401041);
+            internalerror(2004010416);
         end;
       end;
 
 
     function taicpu.spilling_get_operation_type(opnr: longint): topertype;
       begin
-        case opcode of
-          A_ADC,A_ADD,A_AND,A_BIC,
-          A_EOR,A_CLZ,A_RBIT,
-          A_LDR,A_LDRB,A_LDRBT,A_LDRH,A_LDRSB,
-          A_LDRSH,A_LDRT,
-          A_MOV,A_MVN,A_MLA,A_MUL,
-          A_ORR,A_RSB,A_RSC,A_SBC,A_SUB,
-          A_SWP,A_SWPB,
-          A_LDF,A_FLT,A_FIX,
-          A_ADF,A_DVF,A_FDV,A_FML,
-          A_RFS,A_RFC,A_RDF,
-          A_RMF,A_RPW,A_RSF,A_SUF,A_ABS,A_ACS,A_ASN,A_ATN,A_COS,
-          A_EXP,A_LOG,A_LGN,A_MVF,A_MNF,A_FRD,A_MUF,A_POL,A_RND,A_SIN,A_SQT,A_TAN,
-          A_LFM,
-          A_FLDS,A_FLDD,
-          A_FMRX,A_FMXR,A_FMSTAT,
-          A_FMSR,A_FMRS,A_FMDRR,
-          A_FCPYS,A_FCPYD,A_FCVTSD,A_FCVTDS,
-          A_FABSS,A_FABSD,A_FSQRTS,A_FSQRTD,A_FMULS,A_FMULD,
-          A_FADDS,A_FADDD,A_FSUBS,A_FSUBD,A_FDIVS,A_FDIVD,
-          A_FMACS,A_FMACD,A_FMSCS,A_FMSCD,A_FNMACS,A_FNMACD,
-          A_FNMSCS,A_FNMSCD,A_FNMULS,A_FNMULD,
-          A_FMDHR,A_FMRDH,A_FMDLR,A_FMRDL,
-          A_FNEGS,A_FNEGD,
-          A_FSITOS,A_FSITOD,A_FTOSIS,A_FTOSID,
-          A_FTOUIS,A_FTOUID,A_FUITOS,A_FUITOD,
-          A_SXTB16,A_UXTB16,
-          A_UXTB,A_UXTH,A_SXTB,A_SXTH,
-          A_NEG,
-          A_VABS,A_VADD,A_VCVT,A_VDIV,A_VLDR,A_VMOV,A_VMUL,A_VNEG,A_VSQRT,A_VSUB:
-            if opnr=0 then
-              result:=operand_write
-            else
+        if GenerateThumbCode then
+          case opcode of
+            A_ADC,A_ADD,A_AND,A_BIC,
+            A_EOR,A_CLZ,A_RBIT,
+            A_LDR,A_LDRB,A_LDRBT,A_LDRH,A_LDRSB,
+            A_LDRSH,A_LDRT,
+            A_MOV,A_MVN,A_MLA,A_MUL,
+            A_ORR,A_RSB,A_RSC,A_SBC,A_SUB,
+            A_SWP,A_SWPB,
+            A_LDF,A_FLT,A_FIX,
+            A_ADF,A_DVF,A_FDV,A_FML,
+            A_RFS,A_RFC,A_RDF,
+            A_RMF,A_RPW,A_RSF,A_SUF,A_ABS,A_ACS,A_ASN,A_ATN,A_COS,
+            A_EXP,A_LOG,A_LGN,A_MVF,A_MNF,A_FRD,A_MUF,A_POL,A_RND,A_SIN,A_SQT,A_TAN,
+            A_LFM,
+            A_FLDS,A_FLDD,
+            A_FMRX,A_FMXR,A_FMSTAT,
+            A_FMSR,A_FMRS,A_FMDRR,
+            A_FCPYS,A_FCPYD,A_FCVTSD,A_FCVTDS,
+            A_FABSS,A_FABSD,A_FSQRTS,A_FSQRTD,A_FMULS,A_FMULD,
+            A_FADDS,A_FADDD,A_FSUBS,A_FSUBD,A_FDIVS,A_FDIVD,
+            A_FMACS,A_FMACD,A_FMSCS,A_FMSCD,A_FNMACS,A_FNMACD,
+            A_FNMSCS,A_FNMSCD,A_FNMULS,A_FNMULD,
+            A_FMDHR,A_FMRDH,A_FMDLR,A_FMRDL,
+            A_FNEGS,A_FNEGD,
+            A_FSITOS,A_FSITOD,A_FTOSIS,A_FTOSID,
+            A_FTOUIS,A_FTOUID,A_FUITOS,A_FUITOD,
+            A_SXTB16,A_UXTB16,
+            A_UXTB,A_UXTH,A_SXTB,A_SXTH,
+            A_NEG,
+            A_VABS,A_VADD,A_VCVT,A_VDIV,A_VLDR,A_VMOV,A_VMUL,A_VNEG,A_VSQRT,A_VSUB,
+            A_MRS,A_MSR:
+              if opnr=0 then
+                result:=operand_readwrite
+              else
+                result:=operand_read;
+            A_BKPT,A_B,A_BL,A_BLX,A_BX,
+            A_CMN,A_CMP,A_TEQ,A_TST,
+            A_CMF,A_CMFE,A_WFS,A_CNF,
+            A_FCMPS,A_FCMPD,A_FCMPES,A_FCMPED,A_FCMPEZS,A_FCMPEZD,
+            A_FCMPZS,A_FCMPZD,
+            A_VCMP,A_VCMPE:
               result:=operand_read;
-          A_BKPT,A_B,A_BL,A_BLX,A_BX,
-          A_CMN,A_CMP,A_TEQ,A_TST,
-          A_CMF,A_CMFE,A_WFS,A_CNF,
-          A_FCMPS,A_FCMPD,A_FCMPES,A_FCMPED,A_FCMPEZS,A_FCMPEZD,
-          A_FCMPZS,A_FCMPZD,
-          A_VCMP,A_VCMPE:
-            result:=operand_read;
-          A_SMLAL,A_UMLAL:
-            if opnr in [0,1] then
-              result:=operand_readwrite
+            A_SMLAL,A_UMLAL:
+              if opnr in [0,1] then
+                result:=operand_readwrite
+              else
+                result:=operand_read;
+             A_SMULL,A_UMULL,
+             A_FMRRD:
+              if opnr in [0,1] then
+                result:=operand_readwrite
+              else
+                result:=operand_read;
+            A_STR,A_STRB,A_STRBT,
+            A_STRH,A_STRT,A_STF,A_SFM,
+            A_FSTS,A_FSTD,
+            A_VSTR:
+              { important is what happens with the involved registers }
+              if opnr=0 then
+                result := operand_read
+              else
+                { check for pre/post indexed }
+                result := operand_read;
+            //Thumb2
+            A_LSL, A_LSR, A_ROR, A_ASR, A_SDIV, A_UDIV, A_MOVW, A_MOVT, A_MLS, A_BFI,
+            A_SMMLA,A_SMMLS:
+              if opnr in [0] then
+                result:=operand_readwrite
+              else
+                result:=operand_read;
+            A_BFC:
+              if opnr in [0] then
+                result:=operand_readwrite
+              else
+                result:=operand_read;
+            A_LDREX:
+              if opnr in [0] then
+                result:=operand_readwrite
+              else
+                result:=operand_read;
+            A_STREX:
+              result:=operand_write;
             else
+              internalerror(200403151);
+          end
+        else
+          case opcode of
+            A_ADC,A_ADD,A_AND,A_BIC,A_ORN,
+            A_EOR,A_CLZ,A_RBIT,
+            A_LDR,A_LDRB,A_LDRBT,A_LDRH,A_LDRSB,
+            A_LDRSH,A_LDRT,
+            A_MOV,A_MVN,A_MLA,A_MUL,
+            A_ORR,A_RSB,A_RSC,A_SBC,A_SUB,
+            A_SWP,A_SWPB,
+            A_LDF,A_FLT,A_FIX,
+            A_ADF,A_DVF,A_FDV,A_FML,
+            A_RFS,A_RFC,A_RDF,
+            A_RMF,A_RPW,A_RSF,A_SUF,A_ABS,A_ACS,A_ASN,A_ATN,A_COS,
+            A_EXP,A_LOG,A_LGN,A_MVF,A_MNF,A_FRD,A_MUF,A_POL,A_RND,A_SIN,A_SQT,A_TAN,
+            A_LFM,
+            A_FLDS,A_FLDD,
+            A_FMRX,A_FMXR,A_FMSTAT,
+            A_FMSR,A_FMRS,A_FMDRR,
+            A_FCPYS,A_FCPYD,A_FCVTSD,A_FCVTDS,
+            A_FABSS,A_FABSD,A_FSQRTS,A_FSQRTD,A_FMULS,A_FMULD,
+            A_FADDS,A_FADDD,A_FSUBS,A_FSUBD,A_FDIVS,A_FDIVD,
+            A_FMACS,A_FMACD,A_FMSCS,A_FMSCD,A_FNMACS,A_FNMACD,
+            A_FNMSCS,A_FNMSCD,A_FNMULS,A_FNMULD,
+            A_FMDHR,A_FMRDH,A_FMDLR,A_FMRDL,
+            A_FNEGS,A_FNEGD,
+            A_FSITOS,A_FSITOD,A_FTOSIS,A_FTOSID,
+            A_FTOUIS,A_FTOUID,A_FUITOS,A_FUITOD,
+            A_SXTB16,A_UXTB16,
+            A_UXTB,A_UXTH,A_SXTB,A_SXTH,
+            A_NEG,
+            A_VABS,A_VADD,A_VCVT,A_VDIV,A_VLDR,A_VMOV,A_VMUL,A_VNEG,A_VSQRT,A_VSUB,
+            A_VEOR,
+            A_VMRS,A_VMSR,
+            A_MRS,A_MSR:
+              if opnr=0 then
+                result:=operand_write
+              else
+                result:=operand_read;
+            A_BKPT,A_B,A_BL,A_BLX,A_BX,
+            A_CMN,A_CMP,A_TEQ,A_TST,
+            A_CMF,A_CMFE,A_WFS,A_CNF,
+            A_FCMPS,A_FCMPD,A_FCMPES,A_FCMPED,A_FCMPEZS,A_FCMPEZD,
+            A_FCMPZS,A_FCMPZD,
+            A_VCMP,A_VCMPE:
               result:=operand_read;
-           A_SMULL,A_UMULL,
-           A_FMRRD:
-            if opnr in [0,1] then
-              result:=operand_write
+            A_SMLAL,A_UMLAL:
+              if opnr in [0,1] then
+                result:=operand_readwrite
+              else
+                result:=operand_read;
+             A_SMULL,A_UMULL,
+             A_FMRRD:
+              if opnr in [0,1] then
+                result:=operand_write
+              else
+                result:=operand_read;
+            A_STR,A_STRB,A_STRBT,
+            A_STRH,A_STRT,A_STF,A_SFM,
+            A_FSTS,A_FSTD,
+            A_VSTR:
+              { important is what happens with the involved registers }
+              if opnr=0 then
+                result := operand_read
+              else
+                { check for pre/post indexed }
+                result := operand_read;
+            //Thumb2
+            A_LSL, A_LSR, A_ROR, A_ASR, A_SDIV, A_UDIV, A_MOVW, A_MOVT, A_MLS, A_BFI,
+            A_QADD,
+            A_PKHTB,A_PKHBT,
+            A_SMMLA,A_SMMLS,A_SMUAD,A_SMUSD:
+              if opnr in [0] then
+                result:=operand_write
+              else
+                result:=operand_read;
+            A_VFMA,A_VFMS,A_VFNMA,A_VFNMS,
+            A_BFC:
+              if opnr in [0] then
+                result:=operand_readwrite
+              else
+                result:=operand_read;
+            A_LDREX:
+              if opnr in [0] then
+                result:=operand_write
+              else
+                result:=operand_read;
+            A_STREX:
+              result:=operand_write;
             else
-              result:=operand_read;
-          A_STR,A_STRB,A_STRBT,
-          A_STRH,A_STRT,A_STF,A_SFM,
-          A_FSTS,A_FSTD,
-          A_VSTR:
-            { important is what happens with the involved registers }
-            if opnr=0 then
-              result := operand_read
-            else
-              { check for pre/post indexed }
-              result := operand_read;
-          //Thumb2
-          A_LSL, A_LSR, A_ROR, A_ASR, A_SDIV, A_UDIV, A_MOVW, A_MOVT, A_MLS, A_BFI,
-          A_SMMLA,A_SMMLS:
-            if opnr in [0] then
-              result:=operand_write
-            else
-              result:=operand_read;
-          A_BFC:
-            if opnr in [0] then
-              result:=operand_readwrite
-            else
-              result:=operand_read;
-          A_LDREX:
-            if opnr in [0] then
-              result:=operand_write
-            else
-              result:=operand_read;
-          A_STREX:
-            result:=operand_write;
-          else
-            internalerror(200403151);
-        end;
+              begin
+                writeln(opcode);
+                internalerror(2004031502);
+              end;
+          end;
       end;
 
 
@@ -919,7 +1049,9 @@ implementation
                (tai(hp).typ=ait_instruction) and
                ((taicpu(hp).opcode=A_FLDS) or
                 (taicpu(hp).opcode=A_FLDD) or
-                (taicpu(hp).opcode=A_VLDR)) then
+                (taicpu(hp).opcode=A_VLDR) or
+                (taicpu(hp).opcode=A_LDF) or
+                (taicpu(hp).opcode=A_STF)) then
               limit:=254;
         end;
 
@@ -942,12 +1074,10 @@ implementation
         penalty,
         lastinspos,
         { increased for every data element > 4 bytes inserted }
-        currentsize,
         extradataoffset,
         curop : longint;
         curtai,
         inserttai : tai;
-        ai_label : tai_label;
         curdatatai,hp,hp2 : tai;
         curdata : TAsmList;
         l : tasmlabel;
@@ -1025,6 +1155,8 @@ implementation
                                           begin
                                             inc(extradataoffset,multiplier*(((tai_realconst(hp).savesize-4)+3) div 4));
                                           end;
+                                        else
+                                          ;
                                       end;
                                       { check if the same constant has been already inserted into the currently handled list,
                                         if yes, reuse it }
@@ -1034,8 +1166,9 @@ implementation
                                           while assigned(hp2) do
                                             begin
                                               if (hp2.typ=ait_const) and (tai_const(hp2).sym=tai_const(hp).sym)
-                                                and (tai_const(hp2).value=tai_const(hp).value) and (tai(hp2.previous).typ=ait_label)
-                                              then
+                                                and (tai_const(hp2).value=tai_const(hp).value) and (tai(hp2.previous).typ=ait_label) and
+                                                { gottpoff and tlsgd symbols are PC relative, so we cannot reuse them }
+                                                (not(tai_const(hp2).consttype in [aitconst_gottpoff,aitconst_tlsgd,aitconst_tlsdesc])) then
                                                 begin
                                                   with taicpu(curtai).oper[curop]^.ref^ do
                                                     begin
@@ -1083,6 +1216,8 @@ implementation
                 begin
                   inc(curinspos,multiplier*((tai_realconst(hp).savesize+3) div 4));
                 end;
+              else
+                ;
             end;
             { special case for case jump tables }
             penalty:=0;
@@ -1100,9 +1235,9 @@ implementation
                       begin
                         penalty:=multiplier;
                         hp:=tai(hp.next);
-                        { skip register allocations and comments inserted by the optimizer as well as a label
+                        { skip register allocations and comments inserted by the optimizer as well as a label and align
                           as jump tables for thumb might have }
-                        while assigned(hp) and (hp.typ in [ait_comment,ait_regalloc,ait_label]) do
+                        while assigned(hp) and (hp.typ in [ait_comment,ait_regalloc,ait_label,ait_align]) do
                           hp:=tai(hp.next);
                         while assigned(hp) and (hp.typ=ait_const) do
                           begin
@@ -1153,6 +1288,8 @@ implementation
                           or if we splitted them so split before }
                       CheckLimit(hp,4);
                     end;
+                  else
+                    ;
                 end;
               end;
 
@@ -1291,7 +1428,7 @@ implementation
                                        (taicpu(curtai).oper[1]^.reg >= NR_R8) or
                                        (op2reg >= NR_R8) then
                                       begin
-                                        taicpu(curtai).wideformat:=true;
+                                        include(taicpu(curtai).flags,cf_wideformat);
 
                                         { Handle special cases where register rules are violated by optimizer/user }
                                         { if d == 13 || (d == 15 && S == ‚Äò0‚Äô) || n == 15 || m IN [13,15] then UNPREDICTABLE; }
@@ -1307,8 +1444,11 @@ implementation
                               end;
                           end;
                       end;
+                    else;
                   end;
                 end;
+              else
+                ;
             end;
 
             curtai:=tai(curtai.Next);
@@ -1319,7 +1459,6 @@ implementation
     procedure ensurethumbencodings(list: TAsmList);
       var
         curtai: tai;
-        op2reg: TRegister;
       begin
         { Do Thumb 16bit transformations to form valid instruction forms }
         curtai:=tai(list.first);
@@ -1329,6 +1468,36 @@ implementation
               ait_instruction:
                 begin
                   case taicpu(curtai).opcode of
+                    A_STM:
+                      begin
+                        if (taicpu(curtai).ops=2) and
+                           (taicpu(curtai).oper[0]^.typ=top_ref) and
+                           (taicpu(curtai).oper[0]^.ref^.index=NR_STACK_POINTER_REG) and
+                           (taicpu(curtai).oper[0]^.ref^.addressmode=AM_PREINDEXED) and
+                           (taicpu(curtai).oppostfix in [PF_FD,PF_DB]) then
+                          begin
+                            taicpu(curtai).oppostfix:=PF_None;
+                            taicpu(curtai).loadregset(0, taicpu(curtai).oper[1]^.regtyp, taicpu(curtai).oper[1]^.subreg, taicpu(curtai).oper[1]^.regset^);
+                            taicpu(curtai).ops:=1;
+                            taicpu(curtai).opcode:=A_PUSH;
+                          end;
+                      end;
+
+                    A_LDM:
+                      begin
+                        if (taicpu(curtai).ops=2) and
+                           (taicpu(curtai).oper[0]^.typ=top_ref) and
+                           (taicpu(curtai).oper[0]^.ref^.index=NR_STACK_POINTER_REG) and
+                           (taicpu(curtai).oper[0]^.ref^.addressmode=AM_PREINDEXED) and
+                           (taicpu(curtai).oppostfix in [PF_FD,PF_IA]) then
+                          begin
+                            taicpu(curtai).oppostfix:=PF_None;
+                            taicpu(curtai).loadregset(0, taicpu(curtai).oper[1]^.regtyp, taicpu(curtai).oper[1]^.subreg, taicpu(curtai).oper[1]^.regset^);
+                            taicpu(curtai).ops:=1;
+                            taicpu(curtai).opcode:=A_POP;
+                          end;
+                      end;
+
                     A_ADD,
                     A_AND,A_EOR,A_ORR,A_BIC,
                     A_LSL,A_LSR,A_ASR,A_ROR,
@@ -1343,8 +1512,12 @@ implementation
                             taicpu(curtai).ops:=2;
                           end;
                       end;
+                    else
+                      ;
                   end;
                 end;
+              else
+                ;
             end;
 
             curtai:=tai(curtai.Next);
@@ -1390,61 +1563,68 @@ implementation
           begin
             case curtai.typ of
               ait_instruction:
-                if IsIT(taicpu(curtai).opcode) then
-                  begin
-                    levels := GetITLevels(taicpu(curtai).opcode);
-                    if levels < 4 then
-                      begin
-                        i:=levels;
-                        hp1:=tai(curtai.Next);
-                        while assigned(hp1) and
-                          (i > 0) do
-                          begin
-                            if hp1.typ=ait_instruction then
-                              begin
-                                dec(i);
-                                if (i = 0) and
-                                  mustbelast(hp1) then
-                                  begin
-                                    hp1:=nil;
-                                    break;
-                                  end;
-                              end;
-                            hp1:=tai(hp1.Next);
-                          end;
+                begin
+                  if IsIT(taicpu(curtai).opcode) then
+                    begin
+                      levels := GetITLevels(taicpu(curtai).opcode);
+                      if levels < 4 then
+                        begin
+                          i:=levels;
+                          hp1:=tai(curtai.Next);
+                          while assigned(hp1) and
+                            (i > 0) do
+                            begin
+                              if hp1.typ=ait_instruction then
+                                begin
+                                  dec(i);
+                                  if (i = 0) and
+                                    mustbelast(hp1) then
+                                    begin
+                                      hp1:=nil;
+                                      break;
+                                    end;
+                                end;
+                              hp1:=tai(hp1.Next);
+                            end;
 
-                        if assigned(hp1) then
-                          begin
-                            // We are pointing at the first instruction after the IT block
-                            while assigned(hp1) and
-                              (hp1.typ<>ait_instruction) do
-                                hp1:=tai(hp1.Next);
+                          if assigned(hp1) then
+                            begin
+                              // We are pointing at the first instruction after the IT block
+                              while assigned(hp1) and
+                                (hp1.typ<>ait_instruction) do
+                                  hp1:=tai(hp1.Next);
 
-                            if assigned(hp1) and
-                              (hp1.typ=ait_instruction) and
-                              IsIT(taicpu(hp1).opcode) then
-                              begin
-                                if (levels+GetITLevels(taicpu(hp1).opcode) <= 4) and
-                                  ((taicpu(curtai).oper[0]^.cc=taicpu(hp1).oper[0]^.cc) or
-                                   (taicpu(curtai).oper[0]^.cc=inverse_cond(taicpu(hp1).oper[0]^.cc))) then
-                                  begin
-                                    taicpu(curtai).opcode:=getMergedInstruction(taicpu(curtai).opcode,
-                                                                                taicpu(hp1).opcode,
-                                                                                taicpu(curtai).oper[0]^.cc=inverse_cond(taicpu(hp1).oper[0]^.cc));
+                              if assigned(hp1) and
+                                (hp1.typ=ait_instruction) and
+                                IsIT(taicpu(hp1).opcode) then
+                                begin
+                                  if (levels+GetITLevels(taicpu(hp1).opcode) <= 4) and
+                                    ((taicpu(curtai).oper[0]^.cc=taicpu(hp1).oper[0]^.cc) or
+                                     (taicpu(curtai).oper[0]^.cc=inverse_cond(taicpu(hp1).oper[0]^.cc))) then
+                                    begin
+                                      taicpu(curtai).opcode:=getMergedInstruction(taicpu(curtai).opcode,
+                                                                                  taicpu(hp1).opcode,
+                                                                                  taicpu(curtai).oper[0]^.cc=inverse_cond(taicpu(hp1).oper[0]^.cc));
 
-                                    list.Remove(hp1);
-                                    hp1.Free;
-                                  end;
-                              end;
-                          end;
-                      end;
-                  end;
+                                      list.Remove(hp1);
+                                      hp1.Free;
+                                    end;
+                                end;
+                            end;
+                        end;
+                    end;
+                end
+              else
+                ;
             end;
 
             curtai:=tai(curtai.Next);
           end;
       end;
 
+{$push}
+{ Disable range and overflow checking here }
+{$R-}{$Q-}        
     procedure fix_invalid_imms(list: TAsmList);
       var
         curtai: tai;
@@ -1465,6 +1645,8 @@ implementation
                       case taicpu(curtai).opcode of
                         A_AND: taicpu(curtai).opcode:=A_BIC;
                         A_BIC: taicpu(curtai).opcode:=A_AND;
+                        else
+                          internalerror(2019050931);
                       end;
                       taicpu(curtai).oper[2]^.val:=(not taicpu(curtai).oper[2]^.val) and $FFFFFFFF;
                     end
@@ -1477,16 +1659,21 @@ implementation
                       case taicpu(curtai).opcode of
                         A_ADD: taicpu(curtai).opcode:=A_SUB;
                         A_SUB: taicpu(curtai).opcode:=A_ADD;
+                        else
+                          internalerror(2019050930);
                       end;
                       taicpu(curtai).oper[2]^.val:=-taicpu(curtai).oper[2]^.val;
                     end;
                 end;
+              else
+                ;
             end;
 
             curtai:=tai(curtai.Next);
           end;
       end;
 
+{$pop}
 
     procedure gather_it_info(list: TAsmList);
       var
@@ -1516,8 +1703,14 @@ implementation
                       end;
                     else
                       begin
-                        taicpu(curtai).inIT:=in_it;
-                        taicpu(curtai).lastinIT:=in_it and (it_count=1);
+                        if in_it then
+                          include(taicpu(curtai).flags,cf_inIT)
+                        else
+                          exclude(taicpu(curtai).flags,cf_inIT);
+                        if in_it and (it_count=1) then
+                          include(taicpu(curtai).flags,cf_lastinIT)
+                        else
+                          exclude(taicpu(curtai).flags,cf_lastinIT);
 
                         if in_it then
                           begin
@@ -1528,6 +1721,8 @@ implementation
                       end;
                   end;
                 end;
+              else
+                ;
             end;
 
             curtai:=tai(curtai.Next);
@@ -1553,6 +1748,7 @@ implementation
                            (taicpu(curtai).oper[2]^.typ=top_shifterop) then
                           begin
                             case taicpu(curtai).oper[2]^.shifterop^.shiftmode of
+                              SM_NONE: ;
                               SM_LSL: taicpu(curtai).opcode:=A_LSL;
                               SM_LSR: taicpu(curtai).opcode:=A_LSR;
                               SM_ASR: taicpu(curtai).opcode:=A_ASR;
@@ -1589,8 +1785,12 @@ implementation
                       begin
                         taicpu(curtai).opcode:=A_SVC;
                       end;
+                    else
+                      ;
                   end;
                 end;
+              else
+                ;
             end;
 
             curtai:=tai(curtai.Next);
@@ -1629,7 +1829,7 @@ implementation
         new_section(prolog,sec_code,'FPC_EH_PROLOG',sizeof(pint),secorder_begin);
         prolog.concat(Tai_const.Createname('_ARM_ExceptionHandler', 0));
         prolog.concat(Tai_const.Create_32bit(0));
-        prolog.concat(Tai_symbol.Createname_global('FPC_EH_CODE_START',AT_DATA,0));
+        prolog.concat(Tai_symbol.Createname_global('FPC_EH_CODE_START',AT_METADATA,0,voidpointertype));
         { dummy function }
         prolog.concat(taicpu.op_reg_reg(A_MOV,NR_R15,NR_R14));
         current_asmdata.asmlists[al_start].insertList(prolog);
@@ -2007,15 +2207,15 @@ implementation
       end;
 
 
-    procedure taicpu.BuildArmMasks;
+    procedure taicpu.BuildArmMasks(objdata:TObjData);
       const
         Masks: array[tcputype] of longint =
           (
             IF_NONE,
             IF_ARMv4,
             IF_ARMv4,
+            IF_ARMv4,
             IF_ARMv4T or IF_ARMv4,
-            IF_ARMv4T or IF_ARMv4 or IF_ARMv5,
             IF_ARMv4T or IF_ARMv4 or IF_ARMv5 or IF_ARMv5T,
             IF_ARMv4T or IF_ARMv4 or IF_ARMv5 or IF_ARMv5T or IF_ARMv5TE,
             IF_ARMv4T or IF_ARMv4 or IF_ARMv5 or IF_ARMv5T or IF_ARMv5TE or IF_ARMv5TEJ,
@@ -2033,22 +2233,28 @@ implementation
 
         FPUMasks: array[tfputype] of longword =
           (
-            IF_NONE,
-            IF_NONE,
-            IF_NONE,
-            IF_FPA,
-            IF_FPA,
-            IF_FPA,
-            IF_VFPv2,
-            IF_VFPv2 or IF_VFPv3,
-            IF_VFPv2 or IF_VFPv3,
-            IF_NONE,
-            IF_VFPv2 or IF_VFPv3 or IF_VFPv4
+            { fpu_none       } IF_NONE,
+            { fpu_soft       } IF_NONE,
+            { fpu_libgcc     } IF_NONE,
+            { fpu_fpa        } IF_FPA,
+            { fpu_fpa10      } IF_FPA,
+            { fpu_fpa11      } IF_FPA,
+            { fpu_vfpv2      } IF_VFPv2,
+            { fpu_vfpv3      } IF_VFPv2 or IF_VFPv3,
+            { fpu_neon_vfpv3 } IF_VFPv2 or IF_VFPv3 or IF_NEON,
+            { fpu_vfpv3_d16  } IF_VFPv2 or IF_VFPv3,
+            { fpu_fpv4_s16   } IF_NONE,
+            { fpu_vfpv4      } IF_VFPv2 or IF_VFPv3 or IF_VFPv4,
+            { fpu_vfpv4      } IF_VFPv2 or IF_VFPv3 or IF_VFPv4,
+            { fpu_neon_vfpv4 } IF_VFPv2 or IF_VFPv3 or IF_VFPv4 or IF_NEON,
+            { fpu_fpv5_d16   } IF_VFPv2 or IF_VFPv3 or IF_VFPv4 or IF_VFPv5,
+            { fpu_fpv5_sp_d16} IF_VFPv2 or IF_VFPv3 or IF_VFPv4 or IF_VFPv5,
+            { fpu_fp_armv8   } IF_VFPv2 or IF_VFPv3 or IF_VFPv4 or IF_VFPv5
           );
       begin
         fArmVMask:=Masks[current_settings.cputype] or FPUMasks[current_settings.fputype];
 
-        if current_settings.instructionset=is_thumb then
+        if cf_thumb in flags then
           begin
             fArmMask:=IF_THUMB;
             if CPUARM_HAS_THUMB2 in cpu_capabilities[current_settings.cputype] then
@@ -2244,6 +2450,10 @@ implementation
                 begin
                   ot:=OT_MODEFLAGS;
                 end;
+              top_realconst:
+                begin
+                  ot:=OT_IMMEDIATEMM;
+                end;
               else
                 internalerror(2004022623);
             end;
@@ -2300,7 +2510,7 @@ implementation
           end;
 
         { Check wideformat flag }
-        if wideformat and ((p^.flags and IF_WIDE)=0) then
+        if (cf_wideformat in flags) and ((p^.flags and IF_WIDE)=0) then
           begin
             matches:=0;
             exit;
@@ -2398,8 +2608,8 @@ implementation
         begin
           if (p^.code[0]=#$60) and
              (GenerateThumb2Code and
-              ((not inIT) and (oppostfix<>PF_S)) or
-              (inIT and (condition=C_None))) then
+              ((not(cf_inIT in flags)) and (oppostfix<>PF_S)) or
+              ((cf_inIT in flags) and (condition=C_None))) then
             begin
               Matches:=0;
               exit;
@@ -2413,10 +2623,10 @@ implementation
         end
       else if p^.code[0]=#$62 then
         begin
-          if (GenerateThumb2Code and
-              (condition<>C_None) and
-              (not inIT) and
-              (not lastinIT)) then
+          if GenerateThumb2Code and
+            (condition<>C_None) and
+            (not(cf_inIT in flags)) and
+            (not(cf_lastinIT in flags)) then
             begin
               Matches:=0;
               exit;
@@ -2424,7 +2634,7 @@ implementation
         end
       else if p^.code[0]=#$63 then
         begin
-          if inIT then
+          if cf_inIT in flags then
             begin
               Matches:=0;
               exit;
@@ -2445,7 +2655,7 @@ implementation
         end
       else if p^.code[0]=#$6B then
         begin
-          if inIT or
+          if (cf_inIT in flags) or
              (oppostfix<>PF_S) then
             begin
               Matches:=0;
@@ -2549,7 +2759,7 @@ implementation
            { create the .ot fields }
            create_ot(objdata);
 
-           BuildArmMasks;
+           BuildArmMasks(objdata);
            { set the file postion }
            current_filepos:=fileinfo;
          end
@@ -2600,6 +2810,8 @@ implementation
         refoper : poper;
         msb : longint;
         r: byte;
+        singlerec : tcompsinglerec;
+        doublerec : tcompdoublerec;
 
       procedure setshifterop(op : byte);
         var
@@ -2660,15 +2872,15 @@ implementation
 
       function MakeRegList(reglist: tcpuregisterset): word;
         var
-          i, w: word;
+          i, w: integer;
         begin
           result:=0;
-          w:=1;
+          w:=0;
           for i:=RS_R0 to RS_R15 do
             begin
               if i in reglist then
-                result:=result or w;
-              w:=w shl 1
+                result:=result or (1 shl w);
+              inc(w);
             end;
         end;
 
@@ -2684,8 +2896,13 @@ implementation
         end;
 
       function getcoprocreg(reg: tregister): byte;
+        var
+          tmpr: tregister;
         begin
-          result:=getsupreg(reg)-getsupreg(NR_CR0);
+          { FIXME: temp variable r is needed here to avoid Internal error 20060521 }
+          {        while compiling the compiler. }
+          tmpr:=NR_CR0;
+          result:=getsupreg(reg)-getsupreg(tmpr);
         end;
 
       function getmmreg(reg: tregister): byte;
@@ -2813,6 +3030,7 @@ implementation
           shift:=0;
           typ:=0;
           case oper[op]^.shifterop^.shiftmode of
+            SM_None: ;
             SM_LSL: begin typ:=0; shift:=oper[op]^.shifterop^.shiftimm; end;
             SM_LSR: begin typ:=1; shift:=oper[op]^.shifterop^.shiftimm; if shift=32 then shift:=0; end;
             SM_ASR: begin typ:=2; shift:=oper[op]^.shifterop^.shiftimm; if shift=32 then shift:=0; end;
@@ -2852,13 +3070,25 @@ implementation
               else
                 begin
                   currsym:=objdata.symbolref(oper[0]^.ref^.symbol);
-                  if (currsym.bind<>AB_LOCAL) and (currsym.objsection<>objdata.CurrObjSec) then
-                    begin
-                      objdata.writereloc(oper[0]^.ref^.offset,0,currsym,RELOC_RELATIVE_24);
-                      bytes:=bytes or $fffffe; // TODO: Not sure this is right, but it matches the output of gas
-                    end
+
+                  { tlscall is not relative so ignore the offset }
+                  if oper[0]^.ref^.refaddr<>addr_tlscall then
+                    bytes:=bytes or (((oper[0]^.ref^.offset-8) shr 2) and $ffffff);
+
+                  if (opcode<>A_BL) or (condition<>C_None) then
+                    objdata.writereloc(aint(bytes),4,currsym,RELOC_RELATIVE_24)
                   else
-                    bytes:=bytes or (((currsym.offset-insoffset-8) shr 2) and $ffffff);
+                    case oper[0]^.ref^.refaddr of
+                      addr_pic:
+                        objdata.writereloc(aint(bytes),4,currsym,RELOC_ARM_CALL);
+                      addr_full:
+                        objdata.writereloc(aint(bytes),4,currsym,RELOC_RELATIVE_CALL);
+                      addr_tlscall:
+                        objdata.writereloc(aint(bytes),4,currsym,RELOC_TLS_CALL);
+                      else
+                        Internalerror(2019092903);
+                    end;
+                  exit;
                 end;
             end;
           #$02:
@@ -3755,36 +3985,76 @@ implementation
                   end;
                 PF_F32:
                   begin
-                    if (getregtype(oper[0]^.reg)<>R_MMREGISTER) or
-                       (getregtype(oper[1]^.reg)<>R_MMREGISTER) then
+                    if (getregtype(oper[0]^.reg)<>R_MMREGISTER) then
                       Message(asmw_e_invalid_opcode_and_operands);
 
+                    case oper[1]^.typ of
+                      top_realconst:
+                        begin
+                          if not(IsVFPFloatImmediate(s32real,oper[1]^.val_real)) then
+                            Message(asmw_e_invalid_opcode_and_operands);
+                          singlerec.value:=oper[1]^.val_real;
+                          singlerec:=tcompsinglerec(NtoLE(DWord(singlerec)));
+
+                          bytes:=bytes or ((singlerec.bytes[2] shr 3) and $f);
+                          bytes:=bytes or (DWord((singlerec.bytes[2] shr 7) and $1) shl 16) or (DWord(singlerec.bytes[3] and $3) shl 17) or (DWord((singlerec.bytes[3] shr 7) and $1) shl 19);
+                        end;
+                      top_reg:
+                        begin
+                          if getregtype(oper[1]^.reg)<>R_MMREGISTER then
+                            Message(asmw_e_invalid_opcode_and_operands);
+                          Rm:=getmmreg(oper[1]^.reg);
+                          bytes:=bytes or (((Rm and $1E) shr 1) shl 0);
+                          bytes:=bytes or ((Rm and $1) shl 5);
+                        end;
+                      else
+                        Message(asmw_e_invalid_opcode_and_operands);
+                    end;
                     Rd:=getmmreg(oper[0]^.reg);
-                    Rm:=getmmreg(oper[1]^.reg);
 
                     bytes:=bytes or (((Rd and $1E) shr 1) shl 12);
                     bytes:=bytes or ((Rd and $1) shl 22);
 
-                    bytes:=bytes or (((Rm and $1E) shr 1) shl 0);
-                    bytes:=bytes or ((Rm and $1) shl 5);
                   end;
                 PF_F64:
                   begin
-                    if (getregtype(oper[0]^.reg)<>R_MMREGISTER) or
-                       (getregtype(oper[1]^.reg)<>R_MMREGISTER) then
+                    if (getregtype(oper[0]^.reg)<>R_MMREGISTER) then
                       Message(asmw_e_invalid_opcode_and_operands);
 
+                    case oper[1]^.typ of
+                      top_realconst:
+                        begin
+                          if not(IsVFPFloatImmediate(s64real,oper[1]^.val_real)) then
+                            Message(asmw_e_invalid_opcode_and_operands);
+                          doublerec.value:=oper[1]^.val_real;
+                          doublerec:=tcompdoublerec(NtoLE(QWord(doublerec)));
+
+                          //      32c:       eeb41b00        vmov.f64        d1, #64 ; 0x40
+
+                          // 32c:       eeb61b00        vmov.f64        d1, #96 ; 0x60
+                          bytes:=bytes or (doublerec.bytes[6] and $f);
+                          bytes:=bytes or (DWord((doublerec.bytes[6] shr 4) and $7) shl 16) or (DWord((doublerec.bytes[7] shr 7) and $1) shl 19);
+                        end;
+                      top_reg:
+                        begin
+                          if getregtype(oper[1]^.reg)<>R_MMREGISTER then
+                            Message(asmw_e_invalid_opcode_and_operands);
+                          Rm:=getmmreg(oper[1]^.reg);
+                          bytes:=bytes or (Rm and $F);
+                          bytes:=bytes or ((Rm and $10) shl 1);
+                        end;
+                      else
+                        Message(asmw_e_invalid_opcode_and_operands);
+                    end;
                     Rd:=getmmreg(oper[0]^.reg);
-                    Rm:=getmmreg(oper[1]^.reg);
 
                     bytes:=bytes or (1 shl 8);
 
                     bytes:=bytes or ((Rd and $F) shl 12);
                     bytes:=bytes or (((Rd and $10) shr 4) shl 22);
-
-                    bytes:=bytes or (Rm and $F);
-                    bytes:=bytes or ((Rm and $10) shl 1);
                   end;
+                else
+                  Message(asmw_e_invalid_opcode_and_operands);
               end;
             end;
           #$41,#$91: // VMRS/VMSR
@@ -3945,6 +4215,8 @@ implementation
                         d:=(rd shr 4) and 1;
                         rd:=rd and $F;
                       end;
+                    else
+                      internalerror(2019050929);
                   end;
 
                   m:=0;
@@ -3965,6 +4237,8 @@ implementation
                         m:=(rm shr 4) and 1;
                         rm:=rm and $F;
                       end;
+                    else
+                      internalerror(2019050928);
                   end;
 
                   bytes:=bytes or (Rd shl 12);
@@ -3981,6 +4255,8 @@ implementation
                     PF_F64S32,
                     PF_F64U32:
                       bytes:=bytes or (1 shl 8);
+                    else
+                      ;
                   end;
 
                   if oppostfix in [PF_S32F32,PF_S32F64,PF_U32F32,PF_U32F64] then
@@ -3989,6 +4265,8 @@ implementation
                         PF_S32F64,
                         PF_S32F32:
                           bytes:=bytes or (1 shl 16);
+                        else
+                          ;
                       end;
 
                       bytes:=bytes or (1 shl 18);
@@ -4059,9 +4337,9 @@ implementation
 
                         rn:=16;
                       end;
-                  else
-                    Rn:=0;
-                    message(asmw_e_invalid_opcode_and_operands);
+                    else
+                      Rn:=0;
+                      message(asmw_e_invalid_opcode_and_operands);
                   end;
 
                   case oppostfix of
@@ -4073,10 +4351,10 @@ implementation
                         bytes:=bytes or (1 shl 8);
                         D:=(rd shr 4) and $1; Rd:=Rd and $F;
                       end;
-                  else
-                    begin
-                      D:=rd and $1; Rd:=Rd shr 1;
-                    end;
+                    else
+                      begin
+                        D:=rd and $1; Rd:=Rd shr 1;
+                      end;
                   end;
 
                   case oppostfix of
@@ -4085,6 +4363,8 @@ implementation
                     PF_F64U16,PF_F32U16,
                     PF_F32U32,PF_F64U32:
                       bytes:=bytes or (1 shl 16);
+                    else
+                      ;
                   end;
 
                   if oppostfix in [PF_S32F32,PF_S32F64,PF_U32F32,PF_U32F64,PF_S16F32,PF_S16F64,PF_U16F32,PF_U16F64] then
@@ -4137,6 +4417,8 @@ implementation
                       bytes:=bytes or (1 shl 23);
                     PF_DB,PF_DBS,PF_DBD,PF_DBX:
                       bytes:=bytes or (2 shl 23);
+                    else
+                      ;
                   end;
 
                   case oppostfix of
@@ -4145,6 +4427,8 @@ implementation
                         bytes:=bytes or (1 shl 8);
                         bytes:=bytes or (1 shl 0); // Offset is odd
                       end;
+                    else
+                      ;
                   end;
 
                   dp_operation:=(oper[1]^.subreg=R_SUBFD);
@@ -4395,11 +4679,9 @@ implementation
               bytes:=bytes or (ord(insentry^.code[1]) shl 8);
               bytes:=bytes or ord(insentry^.code[2]);
 
-
               case opcode of
                 A_SUB:
                   begin
-                    bytes:=bytes or (getsupreg(oper[0]^.reg) and $7);
                     if (ops=3) and
                        (oper[2]^.typ=top_const) then
                       bytes:=bytes or ((oper[2]^.val shr 2) and $7F)
@@ -4438,6 +4720,8 @@ implementation
                         bytes:=bytes or ((oper[2]^.val shr 2) and $7F);
                       end;
                   end;
+                else
+                  internalerror(2019050926);
               end;
             end;
           #$65: { Thumb load/store }
@@ -4559,7 +4843,7 @@ implementation
                         bytes:=bytes or (1 shl r);
 
                     if oper[0]^.typ=top_ref then
-                      bytes:=bytes or (getsupreg(oper[0]^.ref^.base) shl 8)
+                      bytes:=bytes or (getsupreg(oper[0]^.ref^.index) shl 8)
                     else
                       bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
                   end;
@@ -4570,10 +4854,12 @@ implementation
                         bytes:=bytes or (1 shl r);
 
                     if oper[0]^.typ=top_ref then
-                      bytes:=bytes or (getsupreg(oper[0]^.ref^.base) shl 8)
+                      bytes:=bytes or (getsupreg(oper[0]^.ref^.index) shl 8)
                     else
                       bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
                   end;
+                else
+                  internalerror(2019050925);
               end;
             end;
           #$6A: { Thumb: IT }
@@ -5179,6 +5465,8 @@ implementation
               case oppostfix of
                 PF_None,PF_IA,PF_FD: bytes:=bytes or ($1 shl 23);
                 PF_DB,PF_EA: bytes:=bytes or ($2 shl 23);
+              else
+                message1(asmw_e_invalid_opcode_and_operands, '"Invalid Postfix"');
               end;
             end;
           #$8D: { Thumb-2: BL/BLX }
@@ -5326,9 +5614,13 @@ implementation
                     bytes:=bytes or (1 shl 24);
 
                   case oppostfix of
+                    PF_S: bytes:=bytes or (0 shl 22) or (0 shl 15);
                     PF_D: bytes:=bytes or (0 shl 22) or (1 shl 15);
                     PF_E: bytes:=bytes or (1 shl 22) or (0 shl 15);
                     PF_P: bytes:=bytes or (1 shl 22) or (1 shl 15);
+                    PF_EP: ;
+                    else
+                      message1(asmw_e_invalid_opcode_and_operands, '"Invalid postfix"');
                   end;
                 end
               else
@@ -5403,6 +5695,7 @@ implementation
                 end;
 
               case roundingmode of
+                RM_NONE: ;
                 RM_P: bytes:=bytes or (1 shl 5);
                 RM_M: bytes:=bytes or (2 shl 5);
                 RM_Z: bytes:=bytes or (3 shl 5);
@@ -5430,6 +5723,7 @@ implementation
                     bytes:=bytes or (getsupreg(oper[1]^.reg) shl 12);
 
                     case roundingmode of
+                      RM_NONE: ;
                       RM_P: bytes:=bytes or (1 shl 5);
                       RM_M: bytes:=bytes or (2 shl 5);
                       RM_Z: bytes:=bytes or (3 shl 5);
@@ -5449,6 +5743,7 @@ implementation
                     bytes:=bytes or (getsupreg(oper[1]^.reg) shl 0);
 
                     case roundingmode of
+                      RM_NONE: ;
                       RM_P: bytes:=bytes or (1 shl 5);
                       RM_M: bytes:=bytes or (2 shl 5);
                       RM_Z: bytes:=bytes or (3 shl 5);
@@ -5478,6 +5773,8 @@ implementation
                         Message(asmw_e_invalid_opcode_and_operands);
                       end;
                   end;
+                else
+                  Message1(asmw_e_invalid_opcode_and_operands, '"Unsupported opcode"');
               end;
             end;
           #$fe: // No written data

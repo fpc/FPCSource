@@ -75,18 +75,20 @@ end;
 {   MSecsToTimeStamp   }
 
 function MSecsToTimeStamp(MSecs: comp): TTimeStamp;
+var
+  D1:Int64;
 begin
-  result.Date := Trunc(msecs / msecsperday);
-  msecs:= msecs-comp(result.date)*msecsperday;
-  result.Time := Round(MSecs);
-end ;
+  D1:=Trunc(msecs);
+  result.Date := D1 div msecsperday;
+  result.Time := D1 - result.date * msecsperday;
+end;
 
 {   TimeStampToMSecs   }
 
 function TimeStampToMSecs(const TimeStamp: TTimeStamp): comp;
 begin
   result := TimeStamp.Time + comp(timestamp.date)*msecsperday;
-end ;
+end;
 
 Function TryEncodeDate(Year,Month,Day : Word; Out Date : TDateTime) : Boolean;
 
@@ -164,7 +166,10 @@ begin
       Date:=Date+1/(msecsperday*2)
     else  
       Date:=Date-1/(msecsperday*2);
-    j := pred((Trunc(System.Int(Date)) + 693900) SHL 2);
+    if Date>MaxDateTime then
+      Date:=MaxDateTime;
+//       Raise EConvertError.CreateFmt('%f is not a valid TDatetime encoding, maximum value is %f.',[Date,MaxDateTime]);
+    j := pred((longint(Trunc(System.Int(Date))) + 693900) SHL 2);
     ly:= j DIV 146097;
     j:= j - 146097 * cardinal(ly);
     ld := j SHR 2;
@@ -268,6 +273,17 @@ begin
   result := systemTimeToDateTime(SystemTime);
 end;
 
+{   NowUTC returns the current UTC Date and Time if available on the OS. If not, local date is returned   }
+
+function NowUTC: TDateTime;
+var
+  SystemTime: TSystemTime;
+begin
+  if not GetUniversalTime(SystemTime) then
+    GetLocalTime(SystemTime);
+  result := systemTimeToDateTime(SystemTime);
+end;
+
 {   IncMonth increments DateTime with NumberOfMonths months,
     NumberOfMonths can be less than zero   }
 
@@ -334,16 +350,19 @@ begin
   DateTimeToString(Result, FormatSettings.LongTimeFormat, Time, FormatSettings);
 end;
 
-{   DateTimeToStr returns a string representation of DateTime using LongDateTimeFormat   }
+{   DateTimeToStr returns a string representation of DateTime using ShortDateFormat and LongTimeFormat   }
 
-function DateTimeToStr(DateTime: TDateTime): string;
+Const
+  DateTimeToStrFormat : Array[Boolean] of string = ('c','f');
+
+function DateTimeToStr(DateTime: TDateTime; ForceTimeIfZero : Boolean = False): string;
 begin
-  DateTimeToString(Result, 'c', DateTime);
+  DateTimeToString(Result, DateTimeToStrFormat[ForceTimeIfZero], DateTime)
 end ;
 
-function DateTimeToStr(DateTime: TDateTime; const FormatSettings: TFormatSettings): string;
+function DateTimeToStr(DateTime: TDateTime; const FormatSettings: TFormatSettings; ForceTimeIfZero : Boolean = False): string;
 begin
-  DateTimeToString(Result, 'c', DateTime ,FormatSettings);
+  DateTimeToString(Result,  DateTimeToStrFormat[ForceTimeIfZero], DateTime ,FormatSettings);
 end;
 
 {   StrToDate converts the string S to a TDateTime value
@@ -362,11 +381,11 @@ end;
 
 var
    df:string;
-   d,m,y,ly:word;
+   d,m,y,ly:integer;
    n,i:longint;
    c:word;
    dp,mp,yp,which : Byte;
-   s1:string[4];
+   s1:string;
    values:array[0..3] of longint;
    LocalTime:tsystemtime;
    YearMoreThenTwoDigits : boolean;
@@ -440,6 +459,7 @@ begin
          // Check if the year has more then two digits (if n=yp, then we are evaluating the year.)
         if (n=yp) and (length(s1)>2) then YearMoreThenTwoDigits := True;
         val(s1, values[n], c);
+//        Writeln(s1,'->',values[n]);
         if c<>0 then
           begin
             FixErrorMsg(SInvalidDateFormat,s);
@@ -461,6 +481,12 @@ begin
   // Fill in values.
   getLocalTime(LocalTime);
   ly := LocalTime.Year;
+  for I:=1 to 3 do
+    if values[i]>high(Word) then
+      begin
+      errormsg:='Invalid date';
+      exit;
+      end;
   If N=3 then
    begin
      y:=values[yp];
@@ -494,6 +520,7 @@ begin
     if (defs.TwoDigitYearCenturyWindow > 0) and (Y < ly) then
       Inc(Y, 100);
     end;
+
   if not TryEncodeDate(y, m, d, result) then
     errormsg:='Invalid date';
 end;
@@ -782,6 +809,7 @@ function SplitDateTimeStr(DateTimeStr: AnsiString; const FS: TFormatSettings; ou
 }
 const
   WhiteSpace = [#9,#10,#13,#32];
+  Space : String = #32; // String, to avoid error 'Cannot decide what overload to call'
 
 var
   p: Integer;
@@ -804,7 +832,7 @@ begin
     end;
   p:=1;
   //find separator
-  if (FS.DateSeparator<>#32) then
+  if Pos(Space,FS.DateSeparator)=0 then
     begin  
     while (p<Length(DateTimeStr)) and (not (DateTimeStr[p+1] in WhiteSpace)) do 
       Inc(p);
@@ -897,13 +925,11 @@ var
   ResultLen: integer;
   ResultBuffer: array[0..255] of char;
   ResultCurrent: pchar;
-{$IFDEF MSWindows}
+{$if defined(win32) or defined(win64)}
   isEnable_E_Format : Boolean;
   isEnable_G_Format : Boolean;
   eastasiainited : boolean;
-{$ENDIF MSWindows}
 
-{$IFDEF MSWindows}
   procedure InitEastAsia;
   var     ALCID : LCID;
          PriLangID , SubLangID : Word;
@@ -934,7 +960,7 @@ var
                   );
     eastasiainited :=true;
   end;
-{$ENDIF MSWindows}
+{$endif win32 or win64}
 
   procedure StoreStr(Str: PChar; Len: Integer);
   begin
@@ -976,7 +1002,6 @@ var
 
 var
   Year, Month, Day, DayOfWeek, Hour, Minute, Second, MilliSecond: word;
-  DT : TDateTime;
 
   procedure StoreFormat(const FormatStr: string; Nesting: Integer; TimeFlag: Boolean);
   var
@@ -1064,11 +1089,11 @@ var
           else
             raise EConvertError.Create('Illegal character in format string');
         end ;
-        '/': StoreStr(@FormatSettings.DateSeparator, 1);
-        ':': StoreStr(@FormatSettings.TimeSeparator, 1);
-	'[': if (fdoInterval in Options) then isInterval := true else StoreStr(FormatCurrent, 1);
-	']': if (fdoInterval in Options) then isInterval := false else StoreStr(FormatCurrent, 1);
-        ' ', 'C', 'D', 'H', 'M', 'N', 'S', 'T', 'Y', 'Z', 'F' :
+        '/': if FormatSettings.DateSeparator<>#0 then StoreStr(@FormatSettings.DateSeparator, 1);
+        ':': if FormatSettings.TimeSeparator<>#0 then StoreStr(@FormatSettings.TimeSeparator, 1);
+        '[': if (fdoInterval in Options) then isInterval := true else StoreStr(FormatCurrent, 1);
+        ']': if (fdoInterval in Options) then isInterval := false else StoreStr(FormatCurrent, 1);
+        ' ', 'C', 'D', 'H', 'M', 'N', 'S', 'T', 'Y', 'Z', 'F' {$IFDEF MSWindows}, 'G', 'E'{$ENDIF MSWindows} :
         begin
           while (P < FormatEnd) and (UpCase(P^) = Token) do
             Inc(P);
@@ -1082,9 +1107,9 @@ var
                 StoreInt(Year mod 100, 2);
             end;
             'M': begin
-	      if isInterval and ((prevlasttoken = 'H') or TimeFlag) then
-	        StoreInt(Minute + (Hour + trunc(abs(DateTime))*24)*60, 0)
-	      else
+              if isInterval and ((prevlasttoken = 'H') or TimeFlag) then
+                StoreInt(Minute + (Hour + trunc(abs(DateTime))*24)*60, 0)
+              else
               if (lastformattoken = 'H') or TimeFlag then
               begin
                 if Count = 1 then
@@ -1114,11 +1139,11 @@ var
                 StoreFormat(FormatSettings.LongDateFormat, Nesting+1, False);
               end ;
             end ;
-            'H': 
-	      if isInterval then
-	        StoreInt(Hour + trunc(abs(DateTime))*24, 0)
-	      else
-	      if Clock12 then
+            'H':
+              if isInterval then
+                StoreInt(Hour + trunc(abs(DateTime))*24, Count)
+              else
+              if Clock12 then
               begin
                 tmp := hour mod 12;
                 if tmp=0 then tmp:=12;
@@ -1129,32 +1154,32 @@ var
               end
               else begin
                 if Count = 1 then
-		  StoreInt(Hour, 0)
+                  StoreInt(Hour, 0)
                 else
                   StoreInt(Hour, 2);
               end;
             'N': if isInterval then
-	           StoreInt(Minute + (Hour + trunc(abs(DateTime))*24)*60, 0)
-		 else
-		 if Count = 1 then
+                   StoreInt(Minute + (Hour + trunc(abs(DateTime))*24)*60, Count)
+                 else
+                 if Count = 1 then
                    StoreInt(Minute, 0)
                  else
                    StoreInt(Minute, 2);
             'S': if isInterval then
-	           StoreInt(Second + (Minute + (Hour + trunc(abs(DateTime))*24)*60)*60, 0)
-	         else 
-	         if Count = 1 then
+                   StoreInt(Second + (Minute + (Hour + trunc(abs(DateTime))*24)*60)*60, Count)
+                 else
+                 if Count = 1 then
                    StoreInt(Second, 0)
                  else
                    StoreInt(Second, 2);
             'Z': if Count = 1 then
                    StoreInt(MilliSecond, 0)
                  else
-		   StoreInt(MilliSecond, 3);
+                   StoreInt(MilliSecond, 3);
             'T': if Count = 1 then
-		   StoreFormat(FormatSettings.ShortTimeFormat, Nesting+1, True)
+                   StoreFormat(FormatSettings.ShortTimeFormat, Nesting+1, True)
                  else
-	           StoreFormat(FormatSettings.LongTimeFormat, Nesting+1, True);
+                   StoreFormat(FormatSettings.LongTimeFormat, Nesting+1, True);
             'C': begin
                    StoreFormat(FormatSettings.ShortDateFormat, Nesting+1, False);
                    if (Hour<>0) or (Minute<>0) or (Second<>0) then
@@ -1168,11 +1193,11 @@ var
                    StoreString(' ');
                    StoreFormat(FormatSettings.LongTimeFormat, Nesting+1, True);
                  end;
-{$IFDEF MSWindows}
+{$if defined(win32) or defined(win64)}
             'E':
                begin
                  if not Eastasiainited then InitEastAsia;
-                 if Not(isEnable_E_Format) then StoreStr(@FormatCurrent^, 1)
+                 if Not(isEnable_E_Format) then StoreStr(FormatCurrent, 1)
                   else
                    begin
                      while (P < FormatEnd) and (UpCase(P^) = Token) do
@@ -1180,13 +1205,13 @@ var
                      Count := P - FormatCurrent;
                      StoreString(ConvertEraYearString(Count,Year,Month,Day));
                    end;
-		 prevlasttoken := lastformattoken;  
+                 prevlasttoken := lastformattoken;  
                  lastformattoken:=token;
                end;
              'G':
                begin
                  if not Eastasiainited then InitEastAsia;
-                 if Not(isEnable_G_Format) then StoreStr(@FormatCurrent^, 1)
+                 if Not(isEnable_G_Format) then StoreStr(FormatCurrent, 1)
                   else
                    begin
                      while (P < FormatEnd) and (UpCase(P^) = Token) do
@@ -1194,12 +1219,12 @@ var
                      Count := P - FormatCurrent;
                      StoreString(ConvertEraString(Count,Year,Month,Day));
                    end;
-		 prevlasttoken := lastformattoken;
+                 prevlasttoken := lastformattoken;
                  lastformattoken:=token;
                end;
-{$ENDIF MSWindows}
+{$endif win32 or win64}
           end;
-	  prevlasttoken := lastformattoken;
+          prevlasttoken := lastformattoken;
           lastformattoken := token;
         end;
         else
@@ -1210,9 +1235,9 @@ var
   end;
 
 begin
-{$ifdef MSWindows}
+{$if defined(win32) or defined(win64)}
   eastasiainited:=false;
-{$endif MSWindows}
+{$endif win32 or win64}
   DecodeDateFully(DateTime, Year, Month, Day, DayOfWeek);
   DecodeTime(DateTime, Hour, Minute, Second, MilliSecond);
   ResultLen := 0;
@@ -1226,14 +1251,14 @@ begin
 end ;
 
 
-Function DateTimeToFileDate(DateTime : TDateTime) : Longint;
+Function DateTimeToFileDate(DateTime : TDateTime) : Int64;
 
 Var YY,MM,DD,H,m,s,msec : Word;
 
 begin
   Decodedate (DateTime,YY,MM,DD);
   DecodeTime (DateTime,h,m,s,msec);
-{$ifndef unix}
+{$if not defined(unix) and not defined(wasi)}
   If (YY<1980) or (YY>2099) then
     Result:=0
   else
@@ -1241,10 +1266,24 @@ begin
     Result:=(s shr 1) or (m shl 5) or (h shl 11);
     Result:=Result or longint(DD shl 16 or (MM shl 21) or (word(YY-1980) shl 25));
     end;
-{$else unix}
+{$else unix or wasi}
   Result:=LocalToEpoch(yy,mm,dd,h,m,s);
-{$endif unix}
+{$endif unix or wasi}
 end;
+
+Function UniversalToFileDate(DateTime : TDateTime) : int64;
+{$if not defined(unix) and not defined(wasi)}
+begin
+  Result := DateTimeToFileDate(UniversalTimeToLocal(DateTime));
+end;
+{$else unix or wasi}
+Var YY,MM,DD,H,m,s,msec : Word;
+begin
+  Decodedate (DateTime,YY,MM,DD);
+  DecodeTime (DateTime,h,m,s,msec);
+  Result:=UniversalToEpoch(yy,mm,dd,h,m,s);
+end;
+{$endif unix or wasi}
 
 function CurrentYear: Word;
 var
@@ -1254,9 +1293,9 @@ begin
   Result := SysTime.Year;
 end;
 
-Function FileDateToDateTime (Filedate : Longint) : TDateTime;
+Function FileDateToDateTime (Filedate : Int64) : TDateTime;
 
-{$ifndef unix}
+{$if not defined(unix) and not defined(wasi)}
 Var Date,Time : Word;
 
 begin
@@ -1265,14 +1304,29 @@ begin
   Result:=ComposeDateTime(EncodeDate((Date shr 9) + 1980,(Date shr 5) and 15, Date and 31),
           EncodeTime(Time shr 11, (Time shr 5) and 63, (Time and 31) shl 1,0));
 end;
-{$else unix}
+{$else unix or wasi}
 var
   y, mon, d, h, min, s: word;
 begin
   EpochToLocal(FileDate,y,mon,d,h,min,s);
   Result:=ComposeDateTime(EncodeDate(y,mon,d),EncodeTime(h,min,s,0));
 end;
-{$endif unix}
+{$endif unix or wasi}
+
+Function FileDateToUniversal (Filedate : Int64) : TDateTime;
+
+{$if not defined(unix) and not defined(wasi)}
+begin
+  Result := LocalTimeToUniversal(FileDateToDateTime(Filedate));
+end;
+{$else unix or wasi}
+var
+  y, mon, d, h, min, s: word;
+begin
+  EpochToUniversal(FileDate,y,mon,d,h,min,s);
+  Result:=ComposeDateTime(EncodeDate(y,mon,d),EncodeTime(h,min,s,0));
+end;
+{$endif unix or wasi}
 
 function TryStrToDate(const S: ShortString; out Value: TDateTime): Boolean;
 begin
@@ -1428,7 +1482,12 @@ end;
 
 function StrToDateTimeDef(const S: ShortString; const Defvalue : TDateTime): TDateTime;
 begin
-  if not TryStrToDateTime(s,Result) Then
+  Result:=StrToDateTimeDef(S,DefValue,DefaultFormatSettings);
+end;
+
+function StrToDateTimeDef(const S: AnsiString; const Defvalue : TDateTime; const FormatSettings: TFormatSettings): TDateTime;
+begin
+  if not TryStrToDateTime(s,Result,FormatSettings) Then
     result:=defvalue;
 end;
 
@@ -1492,4 +1551,57 @@ Function GetLocalTimeOffset : Integer;
 begin
   Result:=0;
 end;
+
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer): Boolean;
+begin
+  Result:=False;
+end;
+
+function GetUniversalTime(var SystemTime: TSystemTime): Boolean;
+begin
+  Result:=False;
+end;
 {$ENDIF}
+
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean): Integer;
+begin
+  if not GetLocalTimeOffset(DateTime, InputIsUTC, Result) then
+    Result:=GetLocalTimeOffset();
+end;
+
+{ Conversion of UTC to local time and vice versa }
+
+function UniversalTimeToLocal(UT: TDateTime): TDateTime;
+
+begin
+  Result:=UniversalTimeToLocal(UT,-GetLocalTimeOffset(UT, True));
+end;
+
+function UniversalTimeToLocal(UT: TDateTime; TZOffset : Integer): TDateTime;
+
+begin
+  if (TZOffset > 0) then
+    Result := UT + EncodeTime(TZOffset div 60, TZOffset mod 60, 0, 0)
+  else if (TZOffset < 0) then
+    Result := UT - EncodeTime(Abs(TZOffset) div 60, Abs(TZOffset) mod 60, 0, 0)
+  else
+    Result := UT;
+end;
+
+Function LocalTimeToUniversal(LT: TDateTime): TDateTime;
+
+begin
+  Result:=LocalTimeToUniversal(LT,-GetLocalTimeOffset(LT, False));
+end;
+
+Function LocalTimeToUniversal(LT: TDateTime;TZOffset: Integer): TDateTime;
+
+begin
+  if (TZOffset > 0) then
+    Result := LT - EncodeTime(TZOffset div 60, TZOffset mod 60, 0, 0)
+  else if (TZOffset < 0) then
+    Result := LT + EncodeTime(Abs(TZOffset) div 60, Abs(TZOffset) mod 60, 0, 0)
+  else
+    Result := LT;
+end;
+

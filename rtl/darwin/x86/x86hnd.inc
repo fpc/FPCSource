@@ -25,13 +25,13 @@ begin
     SIGFPE :
       begin
         Case Info^.si_code Of
-          FPE_INTDIV,             { integer divide by zero -NOTIMP on Mac OS X 10.4.7 }
-          FPE_FLTDIV : Res:=200;  { floating point divide by zero }
+          FPE_INTDIV : Res:=200;  { integer divide by zero -NOTIMP on Mac OS X 10.4.7 }
+          FPE_FLTDIV : Res:=208;  { floating point divide by zero }
           FPE_FLTOVF : Res:=205;  { floating point overflow }
           FPE_FLTUND : Res:=206;  { floating point underflow }
           FPE_FLTRES,             { floating point inexact result }
           FPE_FLTINV : Res:=207;  { invalid floating point operation }
-          Else
+          else
             begin
               { Assume that if an integer divide was executed, the }
               { error was a divide-by-zero (FPE_INTDIV is not      }
@@ -80,9 +80,11 @@ begin
       sigcontext^.uc_mcontext^.ts.rdi:=res;
       sigcontext^.uc_mcontext^.ts.rsi:=sigcontext^.uc_mcontext^.ts.rip;
       sigcontext^.uc_mcontext^.ts.rdx:=sigcontext^.uc_mcontext^.ts.rbp;
-      { the ABI expects the stack pointer to be 4 bytes off alignment }
-      { due to the return address which has been pushed               }
-      dec(sigcontext^.uc_mcontext^.ts.rsp,sizeof(pointer));
+      { the ABI expects the stack pointer to be 8 bytes off alignment
+        due to the return address which has been pushed -- but take into account
+        that rsp may already unaligned in case of a leaf routine }
+      if (sigcontext^.uc_mcontext^.ts.rsp and 15)=0 then
+        dec(sigcontext^.uc_mcontext^.ts.rsp,sizeof(pointer));
       { return to run time error handler }
       sigcontext^.uc_mcontext^.ts.rip:=ptruint(@HandleErrorAddrFrame);
 {$else cpu64}
@@ -90,9 +92,11 @@ begin
       sigcontext^.uc_mcontext^.ts.eax:=res;
       sigcontext^.uc_mcontext^.ts.edx:=sigcontext^.uc_mcontext^.ts.eip;
       sigcontext^.uc_mcontext^.ts.ecx:=sigcontext^.uc_mcontext^.ts.ebp;
-      { the ABI expects the stack pointer to be 8 bytes off alignment }
-      { due to the return address which has been pushed               }
-      dec(sigcontext^.uc_mcontext^.ts.esp,sizeof(pointer));
+      { the ABI expects the stack pointer to be 4 bytes off alignment }
+      { due to the return address which has been pushed -- but take into account
+        that esp may already unaligned in case of a leaf routine }
+      if (sigcontext^.uc_mcontext^.ts.esp and 15)=0 then
+        dec(sigcontext^.uc_mcontext^.ts.esp,sizeof(pointer));
       { return to run time error handler }
       sigcontext^.uc_mcontext^.ts.eip:=ptruint(@HandleErrorAddrFrame);
 {$endif cpu64}

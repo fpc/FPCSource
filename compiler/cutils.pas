@@ -42,9 +42,11 @@ interface
     {# Returns the minimal value between @var(a) and @var(b) }
     function min(a,b : longint) : longint;{$ifdef USEINLINE}inline;{$endif}
     function min(a,b : int64) : int64;{$ifdef USEINLINE}inline;{$endif}
+    function min(a,b : qword) : qword;{$ifdef USEINLINE}inline;{$endif}
     {# Returns the maximum value between @var(a) and @var(b) }
     function max(a,b : longint) : longint;{$ifdef USEINLINE}inline;{$endif}
     function max(a,b : int64) : int64;{$ifdef USEINLINE}inline;{$endif}
+    function max(a,b : qword) : qword;{$ifdef USEINLINE}inline;{$endif}
 
     { These functions are intenionally put here and not in the constexp unit.
       Since Tconstexprint may be automatically converted to int, which causes
@@ -58,6 +60,8 @@ interface
 
     {# Return value @var(i) aligned on @var(a) boundary }
     function align(i,a:longint):longint;{$ifdef USEINLINE}inline;{$endif}
+    function align(i,a:int64):int64;{$ifdef USEINLINE}inline;{$endif}
+    function align(i,a:qword):qword;{$ifdef USEINLINE}inline;{$endif}
     { if you have an address aligned using "oldalignment" and add an
       offset of (a multiple of) offset to it, this function calculates
       the new minimally guaranteed alignment
@@ -65,12 +69,15 @@ interface
     function newalignment(oldalignment: longint; offset: int64): longint;
     {# Return @var(b) with the bit order reversed }
     function reverse_byte(b: byte): byte;
+    {# Return @var(w) with the bit order reversed }
+    function reverse_word(w: word): word;
+    {# Return @var(l) with the bit order reversed }
+    function reverse_longword(l: longword): longword;
 
     function next_prime(l: longint): longint;
 
-    function used_align(varalign,minalign,maxalign:shortint):shortint;
+    function used_align(varalign,minalign,maxalign:longint):longint;
     function isbetteralignedthan(new, org, limit: cardinal): boolean;
-    function size_2_align(len : longint) : shortint;
     function packedbitsloadsize(bitlen: int64) : int64;
     procedure Replace(var s:string;s1:string;const s2:string);
     procedure Replace(var s:AnsiString;s1:string;const s2:AnsiString);
@@ -85,10 +92,13 @@ interface
     function lower(const s : ansistring) : ansistring;
     function rpos(const needle: char; const haystack: shortstring): longint; overload;
     function rpos(const needle: shortstring; const haystack: shortstring): longint; overload;
-    function trimbspace(const s:string):string;
     function trimspace(const s:string):string;
+    function trimspace(const s:AnsiString):AnsiString;
     function space (b : longint): string;
+    { returns the position of the first char of the set cs in s, if there is none, then it returns 0 }
+    function PosCharset(const cs : TCharSet;const s : ansistring) : integer;
     function PadSpace(const s:string;len:longint):string;
+    function PadSpace(const s:AnsiString;len:longint):AnsiString;
     function GetToken(var s:string;endchar:char):string;
     procedure uppervar(var s : string);
     function realtostr(e:extended):string;{$ifdef USEINLINE}inline;{$endif}
@@ -103,13 +113,13 @@ interface
        exponent value is returned in power.
     }
     function ispowerof2(value : int64;out power : longint) : boolean;
-    function nextpowerof2(value : int64; out power: longint) : int64;
-{$ifdef VER2_6}  { only 2.7.1+ has a popcnt function in the system unit }
-    function PopCnt(AValue : Byte): Byte;
-    function PopCnt(AValue : Word): Word;
-    function PopCnt(AValue : DWord): DWord;
-    function PopCnt(Const AValue : QWord): QWord;
-{$endif VER2_6}
+    function ispowerof2(const value : Tconstexprint;out power : longint) : boolean;
+    {# Returns true if abs(value) is a power of 2, the actual
+       exponent value is returned in power.
+    }
+    function isabspowerof2(const value : Tconstexprint; out power : longint) : boolean;
+    { # Returns the power of 2 >= value }
+    function nextpowerof2(value : qword; out power: longint) : qword;
 
     function backspace_quote(const s:string;const qchars:Tcharset):string;
     function octal_quote(const s:string;const qchars:Tcharset):string;
@@ -131,7 +141,8 @@ interface
 
     { allocates mem for a copy of s, copies s to this mem and returns }
     { a pointer to this mem                                           }
-    function stringdup(const s : string) : pshortstring;{$ifdef USEINLINE}inline;{$endif}
+    function stringdup(const s : shortstring) : pshortstring;{$ifdef USEINLINE}inline;{$endif}
+    function stringdup(const s : ansistring) : pshortstring;{$ifdef USEINLINE}inline;{$endif}
 
     {# Allocates memory for the string @var(s) and copies s as zero
        terminated string to that allocated memory and returns a pointer
@@ -165,6 +176,11 @@ interface
     function minilzw_decode(const s:string):string;
 
     Function nextafter(x,y:double):double;
+
+    function LengthUleb128(a: qword) : byte;
+    function LengthSleb128(a: int64) : byte;
+    function EncodeUleb128(a: qword;out buf;len: byte) : byte;
+    function EncodeSleb128(a: int64;out buf;len: byte) : byte;
 
   { hide Sysutils.ExecuteProcess in units using this one after SysUtils}
   const
@@ -216,6 +232,18 @@ implementation
       end;
 
 
+    function min(a,b : qword) : qword;
+    {
+      return the minimal of a and b
+    }
+      begin
+         if a<=b then
+           min:=a
+         else
+           min:=b;
+      end;
+
+
     function max(a,b : longint) : longint;{$ifdef USEINLINE}inline;{$endif}
     {
       return the maximum of a and b
@@ -240,6 +268,18 @@ implementation
       end;
 
 
+    function max(a,b : qword) : qword;{$ifdef USEINLINE}inline;{$endif}
+    {
+      return the maximum of a and b
+    }
+      begin
+         if a>=b then
+           max:=a
+         else
+           max:=b;
+      end;
+
+
     function max(const a,b : Tconstexprint) : Tconstexprint;{$ifdef USEINLINE}inline;{$endif}
     {
       return the maximum of a and b
@@ -253,13 +293,15 @@ implementation
 
 
     function newalignment(oldalignment: longint; offset: int64): longint;
-      var
-        localoffset: longint;
       begin
-        localoffset:=longint(offset);
-        while (localoffset mod oldalignment)<>0 do
-          oldalignment:=oldalignment div 2;
-        newalignment:=oldalignment;
+        { oldalignment must be power of two.
+
+          Negating two's complement number keeps its tail '100...000' and complements all bits above.
+          "x and -x" extracts this tail of 'x'.
+          Said tail of "oldalignment or offset" is the desired answer. }
+
+        result:=oldalignment or longint(offset); { high part of offset won't matter as long as alignment is 32-bit }
+        result:=result and -result;
       end;
 
 
@@ -272,38 +314,73 @@ implementation
         reverse_byte:=(reverse_nible[b and $f] shl 4) or reverse_nible[b shr 4];
       end;
 
-    function align(i,a:longint):longint;{$ifdef USEINLINE}inline;{$endif}
-    {
-      return value <i> aligned <a> boundary
-    }
+    function reverse_word(w: word): word;
+      type
+        TWordRec = packed record
+          hi, lo: Byte;
+        end;
+
       begin
-        { for 0 and 1 no aligning is needed }
-        if a<=1 then
-          result:=i
-        else
-          begin
-            if i<0 then
-              result:=((i-a+1) div a) * a
-            else
-              result:=((i+a-1) div a) * a;
-          end;
+        TWordRec(reverse_word).hi := reverse_byte(TWordRec(w).lo);
+        TWordRec(reverse_word).lo := reverse_byte(TWordRec(w).hi);
       end;
 
 
-    function size_2_align(len : longint) : shortint;
+    function reverse_longword(l: longword): longword;
+      type
+        TLongWordRec = packed record
+          b: array[0..3] of Byte;
+        end;
+
       begin
-         if len>16 then
-           size_2_align:=32
-         else if len>8 then
-           size_2_align:=16
-         else if len>4 then
-           size_2_align:=8
-         else if len>2 then
-           size_2_align:=4
-         else if len>1 then
-           size_2_align:=2
-         else
-           size_2_align:=1;
+        TLongWordRec(reverse_longword).b[0] := reverse_byte(TLongWordRec(l).b[3]);
+        TLongWordRec(reverse_longword).b[1] := reverse_byte(TLongWordRec(l).b[2]);
+        TLongWordRec(reverse_longword).b[2] := reverse_byte(TLongWordRec(l).b[1]);
+        TLongWordRec(reverse_longword).b[3] := reverse_byte(TLongWordRec(l).b[0]);
+      end;
+
+
+    function align(i,a:longint):longint;{$ifdef USEINLINE}inline;{$endif}
+    {
+      return value <i> aligned <a> boundary. <a> must be power of two.
+    }
+      begin
+        { One-line formula for i >= 0 is
+          >>> (i + a - 1) and not (a - 1),
+          and for i < 0 is
+          >>> i and not (a - 1). }
+
+        if a>0 then
+          a:=a-1; { 'a' is decremented beforehand, this also allows a=0 as a synonym for a=1. }
+        if i>=0 then
+          i:=i+a;
+        result:=i and not a;
+      end;
+
+
+    function align(i,a:int64):int64;{$ifdef USEINLINE}inline;{$endif}
+    {
+      return value <i> aligned <a> boundary. <a> must be power of two.
+    }
+      begin
+        { Copy of 'longint' version. }
+        if a>0 then
+          a:=a-1;
+        if i>=0 then
+          i:=i+a;
+        result:=i and not a;
+      end;
+
+
+    function align(i,a:qword):qword;{$ifdef USEINLINE}inline;{$endif}
+    {
+      return value <i> aligned <a> boundary. <a> must be power of two.
+    }
+      begin
+        { No i < 0 case here. }
+        if a>0 then
+          a:=a-1;
+        result:=(i+a) and not a;
       end;
 
 
@@ -384,7 +461,7 @@ implementation
       end;
 
 
-    function used_align(varalign,minalign,maxalign:shortint):shortint;
+    function used_align(varalign,minalign,maxalign:longint):longint;
       begin
         { varalign  : minimum alignment required for the variable
           minalign  : Minimum alignment of this structure, 0 = undefined
@@ -569,6 +646,7 @@ implementation
       var
         i  : longint;
       begin
+        Result:='';
         setlength(upper,length(s));
         for i:=1 to length(s) do
           upper[i]:=uppertbl[s[i]];
@@ -604,6 +682,7 @@ implementation
       var
         i : longint;
       begin
+        Result:='';
         setlength(lower,length(s));
         for i:=1 to length(s) do
           lower[i]:=lowertbl[s[i]];
@@ -685,23 +764,24 @@ implementation
       end;
 
 
-    function trimbspace(const s:string):string;
+    function trimspace(const s:string):string;
     {
-      return s with all leading spaces and tabs removed
+      return s with all leading and ending spaces and tabs removed
     }
       var
         i,j : longint;
       begin
-        j:=1;
         i:=length(s);
+        while (i>0) and (s[i] in [#9,' ']) do
+         dec(i);
+        j:=1;
         while (j<i) and (s[j] in [#9,' ']) do
          inc(j);
-        trimbspace:=Copy(s,j,i-j+1);
+        trimspace:=Copy(s,j,i-j+1);
       end;
 
 
-
-    function trimspace(const s:string):string;
+    function trimspace(const s:AnsiString):AnsiString;
     {
       return s with all leading and ending spaces and tabs removed
     }
@@ -730,6 +810,18 @@ implementation
 
 
     function PadSpace(const s:string;len:longint):string;
+    {
+      return s with spaces add to the end
+    }
+      begin
+         if length(s)<len then
+          PadSpace:=s+Space(len-length(s))
+         else
+          PadSpace:=s;
+      end;
+
+
+    function PadSpace(const s:AnsiString;len:longint):AnsiString;
     {
       return s with spaces add to the end
     }
@@ -859,80 +951,55 @@ implementation
       return if value is a power of 2. And if correct return the power
     }
       begin
-        if (value = 0) or (value and (value - 1) <> 0) then
+        if (value <= 0) or (value and (value - 1) <> 0) then
           exit(false);
         power:=BsfQWord(value);
         result:=true;
       end;
 
 
-    function nextpowerof2(value : int64; out power: longint) : int64;
-    {
-      returns the power of 2 >= value
-    }
-      var
-        i : longint;
+    function ispowerof2(const value: Tconstexprint; out power: longint): boolean;
       begin
-        result := 0;
-        power := -1;
-        if ((value <= 0) or
-            (value >= $4000000000000000)) then
-          exit;
-        result := 1;
-        for i:=0 to 63 do
+        if value.signed or
+           (value.uvalue<=high(int64)) then
+          result:=ispowerof2(value.svalue,power)
+        else if not value.signed and
+            (value.svalue=low(int64)) then
           begin
-            if result>=value then
-              begin
-                power := i;
-                exit;
-              end;
+            result:=true;
+            power:=63;
+          end
+        else
+          result:=false;
+      end;
+
+
+    function isabspowerof2(const value : Tconstexprint;out power : longint) : boolean;
+      begin
+        if ispowerof2(value,power) then
+          result:=true
+        else if value.signed and (value.svalue<0) and (value.svalue<>low(int64)) and ispowerof2(-value.svalue,power) then
+          result:=true
+        else
+          result:=false;
+      end;
+
+
+    function nextpowerof2(value : qword; out power: longint) : qword;
+      begin
+        power:=-1;
+        result:=0;
+        if (value=0) or (value>qword($8000000000000000)) then
+          exit;
+
+        power:=BsrQWord(value);
+        result:=qword(1) shl power;
+        if (value and (value-1))<>0 then
+          begin
+            inc(power);
             result:=result shl 1;
           end;
       end;
-
-{$ifdef VER2_6}
-    const
-      PopCntData : array[0..15] of byte = (0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4);
-
-    function PopCnt(AValue : Byte): Byte;
-      var
-        i : SizeInt;
-      begin
-        Result:=PopCntData[AValue and $f]+PopCntData[(AValue shr 4) and $f];
-      end;
-
-
-    function PopCnt(AValue : Word): Word;
-      var
-        i : SizeInt;
-      begin
-        Result:=0;
-        for i:=0 to 3 do
-          begin
-            inc(Result,PopCntData[AValue and $f]);
-            AValue:=AValue shr 4;
-          end;
-      end;
-
-
-    function PopCnt(AValue : DWord): DWord;
-      var
-        i : SizeInt;
-      begin
-        Result:=0;
-        for i:=0 to 7 do
-          begin
-            inc(Result,PopCntData[AValue and $f]);
-            AValue:=AValue shr 4;
-          end;
-      end;
-
-
-    function PopCnt(Const AValue : QWord): QWord;
-      begin
-        Result:=PopCnt(lo(AValue))+PopCnt(hi(AValue))
-      end;
- {$endif VER2_6}
 
 
     function backspace_quote(const s:string;const qchars:Tcharset):string;
@@ -984,6 +1051,7 @@ implementation
         t: string;
         ch: Char;
     begin
+      t:='';
       DePascalQuote:= false;
       len:= length(s);
       if (len >= 1) and (s[1] = '''') then
@@ -1099,10 +1167,31 @@ implementation
       end;
 
 
-    function stringdup(const s : string) : pshortstring;{$ifdef USEINLINE}inline;{$endif}
+    function stringdup(const s : shortstring) : pshortstring;{$ifdef USEINLINE}inline;{$endif}
       begin
          getmem(result,length(s)+1);
          result^:=s;
+      end;
+
+
+    function stringdup(const s : ansistring) : pshortstring;{$ifdef USEINLINE}inline;{$endif}
+      begin
+         getmem(result,length(s)+1);
+         result^:=s;
+      end;
+
+
+    function PosCharset(const cs : TCharSet;const s : ansistring) : integer;
+      var
+        i : integer;
+      begin
+        result:=0;
+        for i:=1 to length(s) do
+          if s[i] in cs then
+            begin
+              result:=i;
+              exit;
+            end;
       end;
 
 
@@ -1167,10 +1256,11 @@ implementation
             exit(res);
           { if one of the two is at the end while the other isn't, add a '.0' }
           if (i1>length(s1)) and
-             (i2<=length(s1)) then
-            s1:=s1+'.0'
-          else if i2>length(s2) then
-            s2:=s2+'.0';
+             (i2<=length(s2)) then
+            s1:=s1+'.0';
+          if (i2>length(s2)) and
+             (i1<=length(s1)) then
+             s2:=s2+'.0';
           { compare non-numerical characters normally }
           while (i1<=length(s1)) and
                 not(s1[i1] in ['0'..'9']) and
@@ -1500,6 +1590,89 @@ implementation
     nextafter:=x;
 
     end;
+
+
+    function LengthUleb128(a: qword) : byte;
+      begin
+        result:=0;
+        repeat
+          a := a shr 7;
+          inc(result);
+          if a=0 then
+            break;
+        until false;
+      end;
+
+
+    function LengthSleb128(a: int64) : byte;
+      var
+        b: byte;
+        more: boolean;
+      begin
+        more := true;
+        result:=0;
+        repeat
+          b := a and $7f;
+          a := SarInt64(a, 7);
+
+          if (
+            ((a = 0) and (b and $40 = 0)) or
+            ((a = -1) and (b and $40 <> 0))
+          ) then
+            more := false;
+          inc(result);
+          if not(more) then
+            break;
+        until false;
+      end;
+
+
+    function EncodeUleb128(a: qword;out buf;len : byte) : byte;
+      var
+        b: byte;
+        pbuf : pbyte;
+      begin
+        result:=0;
+        pbuf:=@buf;
+        repeat
+          b := a and $7f;
+          a := a shr 7;
+          if a<>0 then
+            b := b or $80;
+          pbuf^:=b;
+          inc(pbuf);
+          inc(result);
+          if (a=0) and  (result>=len) then
+            break;
+        until false;
+      end;
+
+
+    function EncodeSleb128(a: int64;out buf;len : byte) : byte;
+      var
+        b: byte;
+        more: boolean;
+        pbuf : pbyte;
+      begin
+        more := true;
+        result:=0;
+        pbuf:=@buf;
+        repeat
+          b := a and $7f;
+          a := SarInt64(a, 7);
+
+          if (result+1>=len) and (
+            ((a = 0) and (b and $40 = 0)) or
+            ((a = -1) and (b and $40 <> 0))
+          ) then
+            more := false
+          else
+            b := b or $80;
+          pbuf^:=b;
+          inc(pbuf);
+          inc(result);
+        until not more;
+      end;
 
 
 initialization

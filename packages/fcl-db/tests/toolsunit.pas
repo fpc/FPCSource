@@ -26,6 +26,7 @@ type
        FLogTimeFormat: TFormatSettings; //for error logging only
        FFormatSettings: TFormatSettings;
        FChangedFieldDataset : boolean;
+       function GetCharSize: integer;
      protected
        FChangedDatasets : array[0..MaxDataSet] of boolean;
        FUsedDatasets : TFPList;
@@ -78,6 +79,7 @@ type
        procedure StopTest(TestName: string);
        property TestUniDirectional: boolean read GetTestUniDirectional write SetTestUniDirectional;
        property FormatSettings: TFormatSettings read FFormatSettings;
+       property CharSize: integer read GetCharSize;
      end;
 
   { TTestDataLink }
@@ -129,6 +131,9 @@ const
   testIntValues : Array[0..testValuesCount-1] of integer = (-maxInt,-maxInt+1,-maxSmallint-1,-maxSmallint,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint+1,MaxInt-1,MaxInt,100,130,150,-150,-132,234);
   testWordValues : Array[0..testValuesCount-1] of Word = (1,2,3,4,5,6,7,8,0,1,127,128,255,256,maxSmallint,maxSmallint+1,maxSmallInt-1,maxSmallInt,65535,100,130,150,151,132,234);
   testSmallIntValues : Array[0..testValuesCount-1] of smallint = (-maxSmallint,-maxSmallint+1,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint-1,100,110,120,130,150,-150,-132,234,231,42);
+  testByteValues: Array[0..testValuesCount-1] of Byte = (1,2,3,4,5,6,7,8,0,1,127,128,255,0,0,0,0,0,0,0,0,0,0,0,0);
+  testShortintValues: Array[0..testValuesCount-1] of ShortInt = (1,2,3,4,5,6,7,8,0,1,-128,-127,-64,64,126,127,0,0,0,0,0,0,0,0,0);
+  testLongWordValues : Array[0..testValuesCount-1] of LongWord = (1,2,3,4,5,6,7,8,0,1,$FF,$FFFF,$FFFFFF,$FFFFFFFF,0,0,0,0,0,0,0,0,0,0,0);
   testLargeIntValues : Array[0..testValuesCount-1] of LargeInt = (-$7fffffffffffffff,-$7ffffffffffffffe,-maxInt-1,-maxInt+1,-maxSmallint,-maxSmallint+1,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint-1,maxSmallint+1,MaxInt-1,MaxInt,$7fffffffffffffff-1,$7fffffffffffffff,235253244);
   testBooleanValues : Array[0..testValuesCount-1] of boolean = (true,false,false,true,true,false,false,true,false,true,true,true,false,false,false,false,true,true,true,true,false,true,true,false,false);
   testStringValues : Array[0..testValuesCount-1] of string = (
@@ -224,6 +229,7 @@ var dbtype,
     dbuser,
     dbhostname,
     dbpassword,
+    dbcharset,
     dblogfilename,
     dbQuoteChars   : string;
     dblogfile      : TextFile;
@@ -238,7 +244,7 @@ procedure FreeDBConnector;
 function DateTimeToTimeString(d: tdatetime) : string;
 function TimeStringToDateTime(d: String): TDateTime;
 function StringToByteArray(const s: ansistring): Variant;
-function StringToBytes(const s: ansistring): TBytes;
+
 
 implementation
 
@@ -291,7 +297,7 @@ begin
   raise exception.create('Connector does not support tests for unidirectional datasets');
 end;
 
-procedure TDBConnector.DataEvent(dataset : tdataset);
+procedure TDBConnector.DataEvent(dataset: TDataset);
 begin
   DataEvents := DataEvents + 'DataEvent' + ';';
 end;
@@ -379,6 +385,16 @@ begin
       // ignore log file errors
     end;
     end;
+end;
+
+function TDBConnector.GetCharSize: integer;
+begin
+  case LowerCase(dbcharset) of
+    'utf8','utf-8','utf8mb4':
+      Result := 4;
+    else
+      Result := 1;
+  end;
 end;
 
 
@@ -476,17 +492,18 @@ procedure ReadIniFile;
 var IniFile : TIniFile;
 
 begin
-  IniFile := TIniFile.Create(getcurrentdir + PathDelim + 'database.ini');
+  IniFile := TIniFile.Create(GetCurrentDir + PathDelim + 'database.ini');
   dbtype:='';
-  if Paramcount>0 then
+  if ParamCount>0 then
     dbtype := ParamStr(1);
-  if (dbtype='') or not inifile.SectionExists(dbtype) then
+  if (dbtype='') or not IniFile.SectionExists(dbtype) then
     dbtype := IniFile.ReadString('Database','Type','');
   dbconnectorname := IniFile.ReadString(dbtype,'Connector','');
   dbname := IniFile.ReadString(dbtype,'Name','');
   dbuser := IniFile.ReadString(dbtype,'User','');
   dbhostname := IniFile.ReadString(dbtype,'Hostname','');
   dbpassword := IniFile.ReadString(dbtype,'Password','');
+  dbcharset := IniFile.ReadString(dbtype,'CharSet','');
   dbconnectorparams := IniFile.ReadString(dbtype,'ConnectorParams','');
   dblogfilename := IniFile.ReadString(dbtype,'LogFile','');
   dbquotechars := IniFile.ReadString(dbtype,'QuoteChars','"');
@@ -526,8 +543,6 @@ end;
 
 procedure InitialiseDBConnector;
 
-const B: array[boolean] of char=('0','1');  // should be exported from some main db unit, as SQL true/false?
-
 var DBConnectorClass : TPersistentClass;
     i                : integer;
     FormatSettings   : TFormatSettings;
@@ -548,12 +563,13 @@ begin
   testValues[ftFMTBcd] := testFmtBCDValues;
   for i := 0 to testValuesCount-1 do
     begin
-    testValues[ftBoolean,i] := B[testBooleanValues[i]];
+    testValues[ftBoolean,i] := BoolToStr(testBooleanValues[i], True);
     testValues[ftFloat,i] := FloatToStr(testFloatValues[i],FormatSettings);
     testValues[ftSmallint,i] := IntToStr(testSmallIntValues[i]);
     testValues[ftInteger,i] := IntToStr(testIntValues[i]);
     testValues[ftWord,i] := IntToStr(testWordValues[i]);
     testValues[ftLargeint,i] := IntToStr(testLargeIntValues[i]);
+    testValues[ftLongWord,i] := IntToStr(testLongWordValues[i]);
     testValues[ftCurrency,i] := CurrToStr(testCurrencyValues[i],FormatSettings);
     testValues[ftBCD,i] := CurrToStr(testCurrencyValues[i],FormatSettings);
     // For date '0001-01-01' other time-part like '00:00:00' causes "Invalid variant type cast", because of < MinDateTime constant
@@ -561,6 +577,9 @@ begin
       testValues[ftDateTime,i] := testDateValues[i] + ' ' + testTimeValues[i]
     else
       testValues[ftDateTime,i] := testDateValues[i];
+    testValues[ftShortInt,i] := IntToStr(testShortIntValues[i]);
+    testValues[ftByte,i] := IntToStr(testByteValues[i]);
+    testValues[ftExtended,i] := FloatToStr(testFloatValues[i]);
     end;
 
   if dbconnectorname = '' then raise Exception.Create('There is no db connector specified');
@@ -623,14 +642,6 @@ begin
   finally
     VarArrayUnlock(Result);
   end;
-end;
-
-function StringToBytes(const s: ansistring): TBytes;
-var Len: integer;
-begin
-  Len := Length(s) * SizeOf(AnsiChar);
-  SetLength(Result, Len);
-  Move(s[1], Result[0], Len);
 end;
 
 

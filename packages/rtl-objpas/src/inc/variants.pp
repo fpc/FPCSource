@@ -23,7 +23,7 @@
 {$inline on}
 {$define VARIANTINLINE}
 
-unit variants;
+unit Variants;
 
 interface
 
@@ -54,12 +54,12 @@ type
 
 Const
   OrdinalVarTypes = [varSmallInt, varInteger, varBoolean, varShortInt,
-                     varByte, varWord,varLongWord,varInt64];
+                     varByte, varWord,varLongWord,varInt64,varQWord];
   FloatVarTypes = [
 {$ifndef FPUNONE}
     varSingle, varDouble,
 {$endif}
-    varCurrency];
+    varCurrency, varDecimal];
 
 { Variant support procedures and functions }
 
@@ -342,9 +342,8 @@ const
 
 { Typinfo unit Variant routines have been moved here, so as not to make TypInfo dependent on variants }
 
-Function GetPropValue(Instance: TObject; const PropName: string): Variant;
-Function GetPropValue(Instance: TObject; const PropName: string; PreferStrings: Boolean): Variant;
-Procedure SetPropValue(Instance: TObject; const PropName: string; const Value: Variant);
+Function  GetPropValue(Instance: TObject; PropInfo: PPropInfo; PreferStrings: Boolean): Variant; overload;
+Procedure SetPropValue(Instance: TObject; PropInfo: PPropInfo; const Value: Variant); overload;
 Function  GetVariantProp(Instance: TObject; PropInfo : PPropInfo): Variant;
 Function  GetVariantProp(Instance: TObject; const PropName: string): Variant;
 Procedure SetVariantProp(Instance: TObject; const PropName: string; const Value: Variant);
@@ -389,16 +388,6 @@ begin
   if v.vType and varComplexType <> 0 then
     DoVarClearComplex(v);
 end;
-
-function AlignToPtr(p : Pointer) : Pointer;inline;
-begin
-  {$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
-  Result:=align(p,SizeOf(p));
-  {$ELSE FPC_REQUIRES_PROPER_ALIGNMENT}
-  Result:=p;
-  {$ENDIF FPC_REQUIRES_PROPER_ALIGNMENT}
-end;
-
 
 { ---------------------------------------------------------------------
     String Messages
@@ -536,7 +525,7 @@ constructor tdynarrayiter.init(d : Pointer;typeInfo : Pointer;_dims: SizeInt;b :
         if i>0 then
           positions[i]:=Pointer(positions[i-1]^);
         { skip kind and name }
-        typeInfo:=aligntoptr(typeInfo+2+Length(PTypeInfo(typeInfo)^.Name));
+        typeInfo:=AlignTypeData(typeInfo+2+Length(PTypeInfo(typeInfo)^.Name));
 
         elesize[i]:=PTypeData(typeInfo)^.elSize;
         typeInfo:=PTypeData(typeInfo)^.elType2;
@@ -815,7 +804,7 @@ begin
 
   { get TypeInfo of second level }
   { skip kind and name }
-  TypeInfo:=aligntoptr(TypeInfo+2+Length(PTypeInfo(TypeInfo)^.Name));
+  TypeInfo:=AlignTypeData(TypeInfo+2+Length(PTypeInfo(TypeInfo)^.Name));
   TypeInfo:=PTypeData(TypeInfo)^.elType2;
 
   { check recursively? }
@@ -1194,10 +1183,10 @@ begin
   if OpCode in [opCmpEq, opCmpNe] then
     if Length(WideString(Left)) <> Length(WideString(Right)) then
       Exit(-1);
-  Result := WideCompareStr(
+  Result := sign(WideCompareStr(
     WideString(Left),
     WideString(Right)
-  );
+  ));
 end;
 
 
@@ -1215,10 +1204,10 @@ begin
   if OpCode in [opCmpEq, opCmpNe] then
     if Length(AnsiString(Left)) <> Length(AnsiString(Right)) then
       Exit(-1);
-  Result := CompareStr(
+  Result := sign(CompareStr(
     AnsiString(Left),
     AnsiString(Right)
-  );
+  ));
 end;
 
 
@@ -2362,10 +2351,14 @@ begin
 end;
 
 procedure DoVarCast(var aDest : TVarData; const aSource : TVarData; aVarType : LongInt);
+var
+  Handler: TCustomVariantType;
 begin
   with aSource do
     if vType = aVarType then
       DoVarCopy(aDest, aSource)
+    else if FindCustomVariantType(vType, Handler) then
+      Handler.CastTo(aDest, aSource, aVarType)
     else begin
       if (vType = varNull) and NullStrictConvert then
         VarCastError(varNull, aVarType);
@@ -2499,12 +2492,25 @@ begin
   DoOleVarFromVar(TVarData(aDest), TVarData(aSource));
 end;
 
-procedure sysolevarfromint(var Dest : olevariant; const Source : LongInt; const range : ShortInt);
+procedure sysolevarfromint(var Dest : olevariant; const Source : Int64; const range : ShortInt);
 begin
   DoVarClearIfComplex(TVarData(Dest));
+  { 64-bit values have their own types, all smaller ones are stored as signed 32-bit value }
   with TVarData(Dest) do begin
-    vInteger := Source;
-    vType := varInteger;
+    case range of
+      -8: begin
+        vInt64 := Int64(Source);
+        vType := varInt64;
+      end;
+      8: begin
+        vQWord := QWord(Source);
+        vType := varQWord;
+      end;
+      else begin
+        vInteger := LongInt(Source);
+        vType := varInteger;
+      end;
+    end;
   end;
 end;
 
@@ -3377,7 +3383,7 @@ function DynArrayGetVariantInfo(p : Pointer; var Dims : sizeint) : sizeint;
   begin
     Result:=varNull;
     { skip kind and name }
-    p:=aligntoptr(p+2+Length(PTypeInfo(p)^.Name));
+    p:=AlignTypeData(p+2+Length(PTypeInfo(p)^.Name));
 
     { search recursive? }
     if PTypeInfo(PTypeData(p)^.elType2)^.kind=tkDynArray then
@@ -3505,8 +3511,6 @@ procedure DynArrayFromVariant(var DynArray: Pointer; const V: Variant; TypeInfo:
     vararraybounds : PVarArrayBoundArray;
     dynarraybounds : tdynarraybounds;
     i : SizeInt;
-  type
-    TDynArray = array of Pointer;
   begin
     VarArrayDims:=VarArrayDimCount(V);
 
@@ -3595,8 +3599,10 @@ function FindCustomVariantType(const aVarType: TVarType; out CustomVariantType: 
     Result:=(aVarType>=CMinVarType);
     if Result then
       begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
         EnterCriticalSection(customvarianttypelock);
         try
+{$endif}
           Result:=(aVarType-CMinVarType)<=high(customvarianttypes);
           if Result then
             begin
@@ -3604,9 +3610,11 @@ function FindCustomVariantType(const aVarType: TVarType; out CustomVariantType: 
               Result:=assigned(CustomVariantType) and
                (CustomVariantType<>InvalidCustomVariantType);
             end;
+{$ifdef FPC_HAS_FEATURE_THREADING}
         finally
           LeaveCriticalSection(customvarianttypelock);
         end;
+{$endif}
       end;
   end;
 
@@ -3619,8 +3627,10 @@ function FindCustomVariantType(const TypeName: string;  out CustomVariantType: T
   begin
     ShortTypeName:=TypeName;  // avoid conversion in the loop
     result:=False;
+{$ifdef FPC_HAS_FEATURE_THREADING}
     EnterCriticalSection(customvarianttypelock);
     try
+{$endif}
       for i:=low(customvarianttypes) to high(customvarianttypes) do
         begin
           tmp:=customvarianttypes[i];
@@ -3632,9 +3642,11 @@ function FindCustomVariantType(const TypeName: string;  out CustomVariantType: T
               Exit;
             end;
         end;
+{$ifdef FPC_HAS_FEATURE_THREADING}
     finally
       LeaveCriticalSection(customvarianttypelock);
     end;
+{$endif}
   end;
 
 function Unassigned: Variant; // Unassigned standard constant
@@ -3880,8 +3892,10 @@ procedure RegisterCustomVariantType(obj: TCustomVariantType; RequestedVarType: T
 var
   index,L: Integer;
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalSection(customvarianttypelock);
   try
+{$endif}
     L:=Length(customvarianttypes);
     if UseFirstAvailable then
     begin
@@ -3898,7 +3912,7 @@ begin
 
     index:=RequestedVarType-CMinVarType;
     if index>=L then
-      SetLength(customvarianttypes,L+1);
+      SetLength(customvarianttypes,index+1);
     if Assigned(customvarianttypes[index]) then
     begin
       if customvarianttypes[index]=InvalidCustomVariantType then
@@ -3909,9 +3923,11 @@ begin
     end;
     customvarianttypes[index]:=obj;
     obj.FVarType:=RequestedVarType;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   finally
     LeaveCriticalSection(customvarianttypelock);
   end;
+{$endif}
 end;
 
 constructor TCustomVariantType.Create;
@@ -3927,13 +3943,17 @@ end;
 
 destructor TCustomVariantType.Destroy;
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalSection(customvarianttypelock);
   try
+{$endif}
     if FVarType<>0 then
       customvarianttypes[FVarType-CMinVarType]:=InvalidCustomVariantType;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   finally
     LeaveCriticalSection(customvarianttypelock);
   end;
+{$endif}
   inherited Destroy;
 end;
 
@@ -4109,7 +4129,7 @@ begin
         if not DoProcedure(Source,method_name,args) then
         // may be function?
         try
-          variant(dummy_data) := Unassigned;
+          dummy_data.VType := varEmpty;
           if not DoFunction(dummy_data,Source,method_name,args) then
             RaiseDispError;
         finally
@@ -4169,14 +4189,14 @@ function TInvokeableVariantType.SetProperty(var V: TVarData; const Name: string;
 function TPublishableVariantType.GetProperty(var Dest: TVarData; const V: TVarData; const Name: string): Boolean;
   begin
     Result:=true;
-    Variant(Dest):=GetPropValue(getinstance(v),name);
+    Variant(Dest):=TypInfo.GetPropValue(getinstance(v),name);
   end;
 
 
 function TPublishableVariantType.SetProperty(var V: TVarData; const Name: string; const Value: TVarData): Boolean;
   begin
     Result:=true;
-    SetPropValue(getinstance(v),name,Variant(value));
+    TypInfo.SetPropValue(getinstance(v),name,Variant(value));
   end;
 
 
@@ -4462,7 +4482,7 @@ Var
 begin
   case (PropInfo^.PropProcs shr 2) and 3 of
     ptfield:
-      PVariant(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Value;	
+      PVariant(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Value;
     ptVirtual,ptStatic:
       begin
         if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
@@ -4497,170 +4517,161 @@ end;
 
 Function GetPropValue(Instance: TObject; const PropName: string): Variant;
 begin
-  Result:=GetPropValue(Instance,PropName,True);
+  Result:=TypInfo.GetPropValue(Instance,PropName,True);
 end;
 
 
-Function GetPropValue(Instance: TObject; const PropName: string; PreferStrings: Boolean): Variant;
-
-var
-  PropInfo: PPropInfo;
+Function GetPropValue(Instance: TObject; PropInfo: PPropInfo; PreferStrings: Boolean): Variant;
 
 begin
-  // find the property
-  PropInfo := GetPropInfo(Instance, PropName);
-  if PropInfo = nil then
-    raise EPropertyError.CreateFmt(SErrPropertyNotFound, [PropName])
- else
-   begin
-   Result := Null; //at worst
-   // call the Right GetxxxProp
-   case PropInfo^.PropType^.Kind of
-     tkInteger, tkChar, tkWChar, tkClass, tkBool:
+  Result := Null; //at worst
+  // call the Right GetxxxProp
+  case PropInfo^.PropType^.Kind of
+    tkInteger, tkChar, tkWChar, tkClass, tkBool:
+      Result := GetOrdProp(Instance, PropInfo);
+    tkEnumeration:
+      if PreferStrings then
+        Result := GetEnumProp(Instance, PropInfo)
+      else
         Result := GetOrdProp(Instance, PropInfo);
-     tkEnumeration:
-       if PreferStrings then
-         Result := GetEnumProp(Instance, PropInfo)
-       else
-         Result := GetOrdProp(Instance, PropInfo);
-     tkSet:
-       if PreferStrings then
-         Result := GetSetProp(Instance, PropInfo, False)
-       else
-         Result := GetOrdProp(Instance, PropInfo);
+    tkSet:
+      if PreferStrings then
+        Result := GetSetProp(Instance, PropInfo, False)
+      else
+        Result := GetOrdProp(Instance, PropInfo);
 {$ifndef FPUNONE}
-     tkFloat:
-       Result := GetFloatProp(Instance, PropInfo);
+    tkFloat:
+      Result := GetFloatProp(Instance, PropInfo);
 {$endif}
-     tkMethod:
-       Result := PropInfo^.PropType^.Name;
-     tkString, tkLString, tkAString:
-       Result := GetStrProp(Instance, PropInfo);
-     tkWString:
-       Result := GetWideStrProp(Instance, PropInfo);
-     tkUString:
-       Result := GetUnicodeStrProp(Instance, PropInfo);
-     tkVariant:
-       Result := GetVariantProp(Instance, PropInfo);
-     tkInt64:
-       Result := GetInt64Prop(Instance, PropInfo);
-     tkQWord:
-       Result := QWord(GetInt64Prop(Instance, PropInfo));
-   else
-     raise EPropertyConvertError.CreateFmt('Invalid Property Type: %s',[PropInfo^.PropType^.Name]);
-   end;
-   end;
+    tkMethod:
+      Result := PropInfo^.PropType^.Name;
+    tkString, tkLString, tkAString:
+      Result := GetStrProp(Instance, PropInfo);
+    tkWString:
+      Result := GetWideStrProp(Instance, PropInfo);
+    tkUString:
+      Result := GetUnicodeStrProp(Instance, PropInfo);
+    tkVariant:
+      Result := GetVariantProp(Instance, PropInfo);
+    tkInt64:
+      Result := GetInt64Prop(Instance, PropInfo);
+    tkQWord:
+      Result := QWord(GetInt64Prop(Instance, PropInfo));
+    tkDynArray:
+      DynArrayToVariant(Result,GetDynArrayProp(Instance, PropInfo), PropInfo^.PropType);
+    else
+      raise EPropertyConvertError.CreateFmt('Invalid Property Type: %s',[PropInfo^.PropType^.Name]);
+  end;
 end;
 
-Procedure SetPropValue(Instance: TObject; const PropName: string;  const Value: Variant);
+Procedure SetPropValue(Instance: TObject; PropInfo: PPropInfo;  const Value: Variant);
 
 var
- PropInfo: PPropInfo;
  TypeData: PTypeData;
  O: Integer;
  I64: Int64;
  Qw: QWord;
  S: String;
  B: Boolean;
+ dynarr: Pointer;
 
 begin
-   // find the property
-   PropInfo := GetPropInfo(Instance, PropName);
-   if PropInfo = nil then
-     raise EPropertyError.CreateFmt(SErrPropertyNotFound, [PropName])
-   else
-     begin
-     TypeData := GetTypeData(PropInfo^.PropType);
-     // call Right SetxxxProp
-     case PropInfo^.PropType^.Kind of
-       tkBool:
+   TypeData := GetTypeData(PropInfo^.PropType);
+   // call Right SetxxxProp
+   case PropInfo^.PropType^.Kind of
+     tkBool:
+       begin
+       { to support the strings 'true' and 'false' }
+       if (VarType(Value)=varOleStr) or
+          (VarType(Value)=varString) or
+          (VarType(Value)=varBoolean) then
          begin
-         { to support the strings 'true' and 'false' }
-         if (VarType(Value)=varOleStr) or
-            (VarType(Value)=varString) or
-            (VarType(Value)=varBoolean) then
-           begin
-             B:=Value;
-             SetOrdProp(Instance, PropInfo, ord(B));
-           end
-         else
-           begin
-             I64:=Value;
-             if (I64<TypeData^.MinValue) or (I64>TypeData^.MaxValue) then
-               raise ERangeError.Create(SRangeError);
-             SetOrdProp(Instance, PropInfo, I64);
-           end;
-         end;
-       tkInteger, tkChar, tkWChar:
+           B:=Value;
+           SetOrdProp(Instance, PropInfo, ord(B));
+         end
+       else
          begin
-         I64:=Value;
-         if (TypeData^.OrdType=otULong) then
-           if (I64<LongWord(TypeData^.MinValue)) or (I64>LongWord(TypeData^.MaxValue)) then
-             raise ERangeError.Create(SRangeError)
-           else
-         else
-         if (I64<TypeData^.MinValue) or (I64>TypeData^.MaxValue) then
-           raise ERangeError.Create(SRangeError);
-         SetOrdProp(Instance, PropInfo, I64);
-         end;
-       tkEnumeration :
-         begin
-         if (VarType(Value)=varOleStr) or (VarType(Value)=varString) then
-           begin
-           S:=Value;
-           SetEnumProp(Instance,PropInfo,S);
-           end
-         else
-           begin
            I64:=Value;
            if (I64<TypeData^.MinValue) or (I64>TypeData^.MaxValue) then
              raise ERangeError.Create(SRangeError);
            SetOrdProp(Instance, PropInfo, I64);
-           end;
          end;
-       tkSet :
-         begin
-         if (VarType(Value)=varOleStr) or (VarType(Value)=varString) then
-           begin
-           S:=Value;
-           SetSetProp(Instance,PropInfo,S);
-           end
+       end;
+     tkInteger, tkChar, tkWChar:
+       begin
+       I64:=Value;
+       if (TypeData^.OrdType=otULong) then
+         if (I64<LongWord(TypeData^.MinValue)) or (I64>LongWord(TypeData^.MaxValue)) then
+           raise ERangeError.Create(SRangeError)
          else
-           begin
-           O:=Value;
-           SetOrdProp(Instance, PropInfo, O);
-           end;
-         end;
-{$ifndef FPUNONE}
-       tkFloat:
-         SetFloatProp(Instance, PropInfo, Value);
-{$endif}
-       tkString, tkLString, tkAString:
-         SetStrProp(Instance, PropInfo, VarToStr(Value));
-       tkWString:
-         SetWideStrProp(Instance, PropInfo, VarToWideStr(Value));
-       tkUString:
-         SetUnicodeStrProp(Instance, PropInfo, VarToUnicodeStr(Value));
-       tkVariant:
-         SetVariantProp(Instance, PropInfo, Value);
-       tkInt64:
+       else
+       if (I64<TypeData^.MinValue) or (I64>TypeData^.MaxValue) then
+         raise ERangeError.Create(SRangeError);
+       SetOrdProp(Instance, PropInfo, I64);
+       end;
+     tkEnumeration :
+       begin
+       if (VarType(Value)=varOleStr) or (VarType(Value)=varString) then
          begin
-           I64:=Value;
-           if (I64<TypeData^.MinInt64Value) or (I64>TypeData^.MaxInt64Value) then
-             raise ERangeError.Create(SRangeError);
-           SetInt64Prop(Instance, PropInfo, I64);
-         end;
-       tkQWord:
-         begin
-           Qw:=Value;
-           if (Qw<TypeData^.MinQWordValue) or (Qw>TypeData^.MaxQWordValue) then
-             raise ERangeError.Create(SRangeError);
-           SetInt64Prop(Instance, PropInfo,Qw);
+         S:=Value;
+         SetEnumProp(Instance,PropInfo,S);
          end
-     else
-       raise EPropertyConvertError.CreateFmt('SetPropValue: Invalid Property Type %s',
-                                      [PropInfo^.PropType^.Name]);
-     end;
+       else
+         begin
+         I64:=Value;
+         if (I64<TypeData^.MinValue) or (I64>TypeData^.MaxValue) then
+           raise ERangeError.Create(SRangeError);
+         SetOrdProp(Instance, PropInfo, I64);
+         end;
+       end;
+     tkSet :
+       begin
+       if (VarType(Value)=varOleStr) or (VarType(Value)=varString) then
+         begin
+         S:=Value;
+         SetSetProp(Instance,PropInfo,S);
+         end
+       else
+         begin
+         O:=Value;
+         SetOrdProp(Instance, PropInfo, O);
+         end;
+       end;
+{$ifndef FPUNONE}
+     tkFloat:
+       SetFloatProp(Instance, PropInfo, Value);
+{$endif}
+     tkString, tkLString, tkAString:
+       SetStrProp(Instance, PropInfo, VarToStr(Value));
+     tkWString:
+       SetWideStrProp(Instance, PropInfo, VarToWideStr(Value));
+     tkUString:
+       SetUnicodeStrProp(Instance, PropInfo, VarToUnicodeStr(Value));
+     tkVariant:
+       SetVariantProp(Instance, PropInfo, Value);
+     tkInt64:
+       begin
+         I64:=Value;
+         if (I64<TypeData^.MinInt64Value) or (I64>TypeData^.MaxInt64Value) then
+           raise ERangeError.Create(SRangeError);
+         SetInt64Prop(Instance, PropInfo, I64);
+       end;
+     tkQWord:
+       begin
+         Qw:=Value;
+         if (Qw<TypeData^.MinQWordValue) or (Qw>TypeData^.MaxQWordValue) then
+           raise ERangeError.Create(SRangeError);
+         SetInt64Prop(Instance, PropInfo,Qw);
+       end;
+     tkDynArray:
+       begin
+         dynarr:=Nil;
+         DynArrayFromVariant(dynarr, Value, PropInfo^.PropType);
+         SetDynArrayProp(Instance, PropInfo, dynarr);
+       end;
+   else
+     raise EPropertyConvertError.CreateFmt('SetPropValue: Invalid Property Type %s',
+                                    [PropInfo^.PropType^.Name]);
    end;
 end;
 
@@ -4668,7 +4679,9 @@ var
   i : LongInt;
 
 Initialization
+{$ifdef FPC_HAS_FEATURE_THREADING}
   InitCriticalSection(customvarianttypelock);
+{$endif}
   // start with one-less value, so first increment yields CFirstUserType
   customvariantcurrtype:=CFirstUserType-1;
   SetSysVariantManager;
@@ -4684,14 +4697,20 @@ Initialization
   InvalidCustomVariantType:=TCustomVariantType(-1);
   SetLength(customvarianttypes,CFirstUserType);
 Finalization
+{$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalSection(customvarianttypelock);
   try
+{$endif}
     for i:=0 to high(customvarianttypes) do
       if customvarianttypes[i]<>InvalidCustomVariantType then
         customvarianttypes[i].Free;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   finally
     LeaveCriticalSection(customvarianttypelock);
   end;
+{$endif}
   UnSetSysVariantManager;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   DoneCriticalSection(customvarianttypelock);
+{$endif}
 end.

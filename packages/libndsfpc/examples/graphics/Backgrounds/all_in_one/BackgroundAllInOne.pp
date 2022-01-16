@@ -76,7 +76,8 @@ var
     (name: 'Basic';     demos: @basicExamples;      count: sizeof(basicExamples) div sizeof(Demo);),
     (name: 'Bitmap';    demos: @bitmapExamples;     count: sizeof(bitmapExamples) div sizeof(Demo);),
     (name: 'Scrolling'; demos: @scrollingExamples;  count: sizeof(scrollingExamples) div sizeof(Demo);),
-    (name: 'Advanced';  demos: @advancedExamples;   count: sizeof(advancedExamples) div sizeof(Demo);)
+    (name: 'Advanced';  demos: @advancedExamples;   count: sizeof(advancedExamples) div sizeof(Demo);),
+    (name: 'Exit';      demos: nil;                 count: 0;)
   );
 
 
@@ -85,82 +86,83 @@ var
   selectedCategory: integer = 0;
   selectedDemo: integer = 0;
   selected: boolean = false;
-	catCount: integer;
+  catCount: integer;
   demoCount: integer = 0;
   ci: integer;
   di: integer;
 
 begin
 
-	while true do
-	begin
-		catCount := sizeof(categories) div sizeof(Category);
-		demoCount := 0;
+  while true do
+  begin
+    catCount := sizeof(categories) div sizeof(Category);
+    demoCount := 0;
 
-		videoSetModeSub(MODE_0_2D);
-		consoleDemoInit();
+    videoSetModeSub(MODE_0_2D);
+    consoleDemoInit();
 
-		while not selected do
-		begin
-			scanKeys();
+    while not selected do
+    begin
+      scanKeys();
 
-			keys := keysDown();
+      keys := keysDown();
 
-			if (keys and KEY_UP) <> 0 then dec(selectedCategory);
-			if (keys and KEY_DOWN) <> 0 then inc(selectedCategory);
-			if (keys and KEY_A) <> 0 then selected := true;
+      if (keys and KEY_UP) <> 0 then dec(selectedCategory);
+      if (keys and KEY_DOWN) <> 0 then inc(selectedCategory);
+      if (keys and KEY_A) <> 0 then selected := true;
 
-			if (selectedCategory < 0) then selectedCategory := catCount - 1;
-			if (selectedCategory >= catCount) then selectedCategory := 0;
+      if (selectedCategory < 0) then selectedCategory := catCount - 1;
+      if (selectedCategory >= catCount) then selectedCategory := 0;
 
-			swiWaitForVBlank();
-			consoleClear();
-			for ci := 0 to catCount - 1 do
-			begin
+      swiWaitForVBlank();
+      consoleClear();
+      for ci := 0 to catCount - 1 do
+      begin
         if ci = selectedCategory then
-				  iprintf('%c%d: %s'#10, '*', ci + 1, categories[ci].name)
+          iprintf('%c%d: %s'#10, '*', ci + 1, categories[ci].name)
         else
-				  iprintf('%c%d: %s'#10, ' ', ci + 1, categories[ci].name);
-			end;
-		end;
+          iprintf('%c%d: %s'#10, ' ', ci + 1, categories[ci].name);
+      end;
+    end;
 
-		selected := false;
+    selected := false;
 
-		demoCount := categories[selectedCategory].count;
+    demoCount := categories[selectedCategory].count;
+    if demoCount = o then exit;
+    
+    while not (selected) do
+    begin
+      scanKeys();
 
-		while not (selected) do
-		begin
-			scanKeys();
+      keys := keysDown();
 
-			keys := keysDown();
+      if (keys and KEY_UP) <> 0 then dec(selectedDemo);
+      if (keys and KEY_DOWN) <> 0 then inc(selectedDemo);
+      if (keys and KEY_A) <> 0 then selected := true;
+      if (keys and KEY_B) <> 0 then break;
 
-			if (keys and KEY_UP) <> 0 then dec(selectedDemo);
-			if (keys and KEY_DOWN) <> 0 then inc(selectedDemo);
-			if (keys and KEY_A) <> 0 then selected := true;
-			if (keys and KEY_B) <> 0 then break;
+      if (selectedDemo < 0) then selectedDemo := demoCount - 1;
+      if (selectedDemo >= demoCount) then selectedDemo := 0;
 
-			if (selectedDemo < 0) then selectedDemo := demoCount - 1;
-			if (selectedDemo >= demoCount) then selectedDemo := 0;
+      swiWaitForVBlank();
+      consoleClear();
 
-			swiWaitForVBlank();
-			consoleClear();
-
-			for di := 0 to demoCount - 1 do
-			begin
+      for di := 0 to demoCount - 1 do
+      begin
         if di = selectedDemo then
-				  iprintf('%c%d: %s'#10, '*', di + 1, categories[selectedCategory].demos[di].name)
+          iprintf('%c%d: %s'#10, '*', di + 1, categories[selectedCategory].demos[di].name)
         else
           iprintf('%c%d: %s'#10, ' ', di + 1, categories[selectedCategory].demos[di].name);
-			end;
-		end;
+      end;
+    end;
 
-		if (selected) then
-		begin
-			consoleClear();
-			iprintf('Use arrow keys to scroll'#10'Press ''B'' to exit');
-			categories[selectedCategory].demos[selectedDemo].go();
-		end;
-	end;
+    if (selected) then
+    begin
+      consoleClear();
+      iprintf('Use arrow keys to scroll'#10'Press ''B'' to exit');
+      categories[selectedCategory].demos[selectedDemo].go();
+    end;
+  end;
 
 end.
 

@@ -28,12 +28,24 @@ interface
 
 uses FPImage, classes, sysutils;
 
+Const
+  BufSize = 1024;
+
 type
+
+  { TFPReaderPNM }
+
   TFPReaderPNM=class (TFPCustomImageReader)
     private
       FBitMapType : Integer;
       FWidth      : Integer;
       FHeight     : Integer;
+      FBufPos : Integer;
+      FBufLen : Integer;
+      FBuffer : Array of char;
+      function DropWhiteSpaces(Stream: TStream): Char;
+      function ReadChar(Stream: TStream): Char;
+      function ReadInteger(Stream: TStream): Integer;
     protected
       FMaxVal     : Cardinal;
       FBitPP        : Byte;
@@ -48,32 +60,55 @@ type
 
 implementation
 
-function TFPReaderPNM.InternalCheck(Stream:TStream):boolean;
+const
+  WhiteSpaces=[#9,#10,#13,#32];
+  {Whitespace (TABs, CRs, LFs, blanks) are separators in the PNM Headers}
 
+{ The magic number at the beginning of a pnm file is 'P1', 'P2', ..., 'P7'
+  followed by a WhiteSpace character }
+
+function TFPReaderPNM.InternalCheck(Stream:TStream):boolean;
+var
+  hdr: array[0..2] of char;
+  oldPos: Int64;
+  i,n: Integer;
 begin
-  InternalCheck:=True;
+  Result:=False;
+  if Stream = nil then
+    exit;
+  oldPos := Stream.Position;
+  try
+    n := SizeOf(hdr);
+    Result:=(Stream.Size-OldPos>=N);
+    if not Result then exit;
+    For I:=0 to N-1 do
+      hdr[i]:=ReadChar(Stream);
+    Result:=(hdr[0] = 'P')
+            and (hdr[1] in ['1'..'7']) 
+            and (hdr[2] in WhiteSpaces);
+  finally
+    Stream.Position := oldPos;
+    FBufLen:=0;
+  end;
 end;
 
-const
-  WhiteSpaces=[#9,#10,#13,#32]; {Whitespace (TABs, CRs, LFs, blanks) are separators in the PNM Headers}
-
-function DropWhiteSpaces(Stream : TStream) :Char;
+function TFPReaderPNM.DropWhiteSpaces(Stream : TStream) :Char;
 
 begin
   with Stream do
     begin
     repeat
-      ReadBuffer(DropWhiteSpaces,1);
+      Result:=ReadChar(Stream);
 {If we encounter comment then eate line}
       if DropWhiteSpaces='#' then
       repeat
-        ReadBuffer(DropWhiteSpaces,1);
-      until DropWhiteSpaces=#10;
-    until not(DropWhiteSpaces in WhiteSpaces);
+        Result:=ReadChar(Stream);
+      until Result=#10;
+    until not (Result in WhiteSpaces);
     end;
 end;
 
-function ReadInteger(Stream : TStream) :Integer;
+function TFPReaderPNM.ReadInteger(Stream : TStream) :Integer;
 
 var
   s:String[7];
@@ -81,12 +116,27 @@ var
 begin
   s:='';
   s[1]:=DropWhiteSpaces(Stream);
-  with Stream do
-    repeat
-      Inc(s[0]);
-      ReadBuffer(s[Length(s)+1],1)
-    until (s[0]=#7) or (s[Length(s)+1] in WhiteSpaces);
+  repeat
+    Inc(s[0]);
+    s[Length(s)+1]:=ReadChar(Stream);
+  until (s[0]=#7) or (s[Length(s)+1] in WhiteSpaces);
   Result:=StrToInt(s);
+end;
+
+Function TFPReaderPNM.ReadChar(Stream : TStream) : Char;
+
+begin
+  If (FBufPos>=FBufLen) then
+    begin
+    if Length(FBuffer)=0 then
+      SetLength(FBuffer,BufSize);
+    FBufLen:=Stream.Read(FBuffer[0],Length(FBuffer));
+    if FBuflen=0 then
+      Raise EReadError.Create('Failed to read from stream');
+    FBufPos:=0;
+    end;
+  Result:=FBuffer[FBufPos];
+  Inc(FBufPos);
 end;
 
 procedure TFPReaderPNM.ReadHeader(Stream : TStream);
@@ -95,10 +145,10 @@ Var
   C : Char;
 
 begin
-  Stream.ReadBuffer(C,1);
+  C:=ReadChar(Stream);
   If (C<>'P') then
     Raise Exception.Create('Not a valid PNM image.');
-  Stream.ReadBuffer(C,1);
+  C:=ReadChar(Stream);
   FBitmapType:=Ord(C)-Ord('0');
   If Not (FBitmapType in [1..6]) then
     Raise Exception.CreateFmt('Unknown PNM subtype : %s',[C]);
@@ -139,7 +189,7 @@ begin
   Case FBitmapType of
     5,6 : FScanLineSize:=(FBitPP div 8) * FWidth;
   else  
-    FScanLineSize:=FBitPP*((FWidth+7)shr 3);
+    FScanLineSize:=FBitPP*((FWidth+7) shr 3);
   end;
   GetMem(FScanLine,FScanLineSize);
   try
@@ -147,6 +197,7 @@ begin
       begin
       ReadScanLine(Row,Stream);
       WriteScanLine(Row,Img);
+//      Writeln(Stream.Position,' ',Stream.Size);
       end;
   finally
     FreeMem(FScanLine);
@@ -194,7 +245,8 @@ begin
           Inc(P)
           end;
         end;
-    4,5,6 : Stream.ReadBuffer(FScanLine^,FScanLineSize);
+    4,5,6 :
+       Stream.ReadBuffer(FScanLine^,FScanLineSize);
     end;
 end;
 
@@ -204,7 +256,7 @@ procedure TFPReaderPNM.WriteScanLine(Row : Integer; Img : TFPCustomImage);
 Var
   C : TFPColor;
   L : Cardinal;
-  Scale: Cardinal;
+  Scale: Int64;
 
   function ScaleByte(B: Byte):Word;
   begin
@@ -217,7 +269,7 @@ Var
   function ScaleWord(W: Word):Word;
   begin
     if FMaxVal = 65535 then
-      Result := W
+      Result := BEtoN(W)
     else { Mimic the above with multiplications }
       Result := Int64(W*(FMaxVal+1) + W) * 65535 div Scale;
   end;

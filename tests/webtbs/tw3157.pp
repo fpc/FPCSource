@@ -1,3 +1,7 @@
+{ %opt=-CE }
+{ %skiptarget=go32v2 }
+{ This test generates trouble in ntvdm.exe under Windows
+  for go32v2 executables }
 { Source provided for Free Pascal Bug Report 3157 }
 { Submitted by "Michalis Kamburelis" on  2004-06-11 }
 { e-mail: michalis@camelot.homedns.org }
@@ -19,7 +23,7 @@ begin
     not fit in Single or Double.
     So instruction below should raise Floating point overflow.
     But it does not (yet). }
-  c:=cosh(800);  
+  c:=cosh(800);
  except
   on E:Exception do
     begin

@@ -13,10 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('palmunits');
+    P.ShortName := 'palm';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.OSes := [palmos];
 
     P.SourcePath.Add('src');
@@ -122,6 +123,10 @@ begin
     P.Targets.AddUnit('penmgr.pp',[PalmOS]);
     P.Targets.AddUnit('pdilib.pp',[PalmOS]);
     P.Targets.AddUnit('helperserviceclass.pp',[PalmOS]);
+
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('hello.pas');
+    P.Targets.AddExampleProgram('palmcube.pas');
 
 {$ifndef ALLPACKAGES}
     Run;

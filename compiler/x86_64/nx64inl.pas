@@ -30,12 +30,42 @@ interface
 
     type
        tx8664inlinenode = class(tx86inlinenode)
+        protected
+          procedure maybe_remove_round_trunc_typeconv; override;
        end;
 
 implementation
 
   uses
-    ninl;
+    symconst,
+    node,ncnv,ninl;
+
+  procedure tx8664inlinenode.maybe_remove_round_trunc_typeconv;
+    var
+      temp: tnode;
+    begin
+      { the prototype of trunc()/round() in the system unit is declared
+        with valreal as parameter type, so the argument will always be
+        extended -> remove the typeconversion to extended if any; not done
+        in ninl, because there are other code generators that assume that
+        the parameter to trunc has been converted to valreal (e.g. PowerPC).
+
+        We can always remove such typeconversions here if they exist, because
+        on the x87 all floating point types are handled the same, and
+        if we call the inherited version we'll insert a call node, which
+        will insert the necessary type conversion again }
+      if (left.nodetype=typeconvn) and
+         not(nf_explicit in left.flags) and
+         (ttypeconvnode(left).left.resultdef.typ=floatdef) then
+        begin
+          { get rid of the type conversion, so the use_vectorfpu will be
+            applied to the original type }
+          temp:=ttypeconvnode(left).left;
+          ttypeconvnode(left).left:=nil;
+          left.free;
+          left:=temp;
+        end;
+    end;
 
 begin
    cinlinenode:=tx8664inlinenode;

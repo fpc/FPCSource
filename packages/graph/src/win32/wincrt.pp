@@ -14,7 +14,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit wincrt;
+unit WinCRT;
 
   interface
 

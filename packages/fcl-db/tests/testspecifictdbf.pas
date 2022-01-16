@@ -12,7 +12,7 @@ interface
 
 uses
 {$IFDEF FPC}
-  fpcunit, testutils, testregistry, testdecorator,
+  fpcunit, testregistry,
 {$ELSE FPC}
   TestFramework,
 {$ENDIF FPC}

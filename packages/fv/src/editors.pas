@@ -30,7 +30,7 @@ const
   { Length constants. }
   Tab_Stop_Length = 74;
 
-{$ifdef PPC_BP}
+{$ifdef BIT_16}
   MaxLineLength  = 1024;
   MinBufLength   = $1000;
   MaxBufLength   = $ff00;
@@ -428,7 +428,7 @@ resourcestring  sClipboard='Clipboard';
                 sReformatNotPossible='Paragraph reformat not possible while trying to wrap current line with current margins.';
                 sReformattingTheDocument='Reformatting the document:';
                 sReplaceNotPossible='Wordwrap on:  Replace not possible in current margins when at end of line.';
-                sReplaceThisOccurence='Replace this occurence?';
+                sReplaceThisOccurence='Replace this occurrence?';
                 sRightMargin='Right Margin';
                 sSearchStringNotFound='Search string not found.';
                 sSelectWhereToBegin='Please select where to begin.';
@@ -1180,7 +1180,7 @@ procedure TIndicator.Draw;
 VAR
   Color : Byte;
   Frame : Char;
-  L     : array[0..1] of Longint;
+  L     : array[0..1] of PtrInt;
   S     : String[15];
   B     : TDrawBuffer;
 begin

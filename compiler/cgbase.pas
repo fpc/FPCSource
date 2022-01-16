@@ -63,15 +63,15 @@ interface
        TCGNonRefLoc=low(TCGLoc)..pred(LOC_CREFERENCE);
        TCGRefLoc=LOC_CREFERENCE..LOC_REFERENCE;
 
-       { since we have only 16bit offsets, we need to be able to specify the high
-         and lower 16 bits of the address of a symbol of up to 64 bit }
        trefaddr = (
          addr_no,
          addr_full,
          addr_pic,
          addr_pic_no_got
-         {$IF defined(POWERPC) or defined(POWERPC64) or defined(SPARC) or defined(MIPS)}
+         {$IF defined(POWERPC) or defined(POWERPC64) or defined(SPARC) or defined(MIPS) or defined(SPARC64)}
          ,
+         { since we have only 16bit offsets, we need to be able to specify the high
+           and lower 16 bits of the address of a symbol of up to 64 bit }
          addr_low,         // bits 48-63
          addr_high,        // bits 32-47
          {$IF defined(POWERPC64)}
@@ -84,7 +84,7 @@ interface
          addr_highera,     // bits 32-47, adjusted
          addr_highesta     // bits 48-63, adjusted
          {$ENDIF}
-         {$ENDIF POWERPC or POWERPC64 or SPARC or MIPS}
+         {$ENDIF POWERPC or POWERPC64 or SPARC or MIPS or SPARC64}
          {$IFDEF MIPS}
          ,
          addr_pic_call16,  // like addr_pic, but generates call16 reloc instead of got16
@@ -93,12 +93,29 @@ interface
          addr_low_call,    // counterpart of two above, generate call_hi16 and call_lo16 relocs
          addr_high_call
          {$ENDIF}
+         {$if defined(RISCV32) or defined(RISCV64)}
+         ,
+         addr_hi20,
+         addr_lo12,
+         addr_pcrel_hi20,
+         addr_pcrel_lo12,
+         addr_pcrel,
+         addr_got_pcrel_hi,
+         addr_plt
+         {$endif RISCV}
          {$IFDEF AVR}
+         ,addr_lo8
+         ,addr_lo8_gs
+         ,addr_hi8
+         ,addr_hi8_gs
+         {$ENDIF}
+         {$IFDEF Z80}
          ,addr_lo8
          ,addr_hi8
          {$ENDIF}
          {$IFDEF i8086}
          ,addr_dgroup      // the data segment group
+         ,addr_fardataseg  // the far data segment of the current pascal module (unit or program)
          ,addr_seg         // used for getting the segment of an object, e.g. 'mov ax, SEG symbol'
          {$ENDIF}
          {$IFDEF AARCH64}
@@ -107,6 +124,25 @@ interface
          ,addr_gotpage
          ,addr_gotpageoffset
          {$ENDIF AARCH64}
+         {$ifdef SPARC64}
+         ,addr_gdop_hix22
+         ,addr_gdop_lox22
+         {$endif SPARC64}
+         {$IFDEF ARM}
+         ,addr_gottpoff
+         ,addr_tpoff
+         ,addr_tlsgd
+         ,addr_tlsdesc
+         ,addr_tlscall
+         {$ENDIF}
+         {$IFDEF i386}
+         ,addr_ntpoff
+         ,addr_tlsgd
+         {$ENDIF}
+{$ifdef x86_64}
+          ,addr_tpoff
+          ,addr_tlsgd
+{$endif x86_64}
          );
 
 
@@ -157,14 +193,13 @@ interface
        { OS_NO is also used memory references with large data that can
          not be loaded in a register directly }
        TCgSize = (OS_NO,
-                 { integer registers }
-                  OS_8,OS_16,OS_32,OS_64,OS_128,OS_S8,OS_S16,OS_S32,OS_S64,OS_S128,
-                 { single,double,extended,comp,float128 }
-                  OS_F32,OS_F64,OS_F80,OS_C64,OS_F128,
-                 { multi-media sizes: split in byte, word, dword, ... }
-                 { entities, then the signed counterparts             }
-                  OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_M256,  
-                  OS_MS8,OS_MS16,OS_MS32,OS_MS64,OS_MS128,OS_MS256 );  
+                  OS_8,   OS_16,   OS_32,   OS_64,   OS_128,
+                  OS_S8,  OS_S16,  OS_S32,  OS_S64,  OS_S128,
+                 { single, double, extended, comp, float128 }
+                  OS_F32, OS_F64,  OS_F80,  OS_C64,  OS_F128,
+                 { multi-media sizes, describes only the register size but not how it is split,
+                   this information must be passed separately }
+                  OS_M8,  OS_M16,  OS_M32,  OS_M64,  OS_M128,  OS_M256,  OS_M512);
 
       { Register types }
       TRegisterType = (
@@ -177,7 +212,15 @@ interface
         R_SPECIALREGISTER, { = 5 }
         R_ADDRESSREGISTER, { = 6 }
         { used on llvm, every temp gets its own "base register" }
-        R_TEMPREGISTER     { = 7 }
+        R_TEMPREGISTER,    { = 7 }
+        { used on llvm for tracking metadata (every unique metadata has its own base register) }
+        R_METADATAREGISTER,{ = 8 }
+        { optional MAC16 (16 bit multiply-accumulate) registers on Xtensa }
+        R_MAC16REGISTER    { = 9 }
+
+        { do not add more than 16 elements (ifdef by cpu type if needed)
+          so we can store this in one nibble and pack TRegister
+          if the supreg width should be extended }
       );
 
       { Sub registers }
@@ -197,7 +240,45 @@ interface
         R_SUBMMWHOLE,  { = 11; complete MM register, size depends on CPU }
         { For Intel X86 AVX-Register }
         R_SUBMMX,     { = 12; 128 BITS }
-        R_SUBMMY      { = 13; 256 BITS }
+        R_SUBMMY,     { = 13; 256 BITS }
+        R_SUBMMZ,     { = 14; 512 BITS }
+{$ifdef Z80}
+        { Subregisters for the flags register (Z80) }
+        R_SUBFLAGCARRY,          { = 15; Carry flag }
+        R_SUBFLAGADDSUBTRACT,    { = 16; Add/Subtract flag }
+        R_SUBFLAGPARITYOVERFLOW, { = 17; Parity/Overflow flag }
+        R_SUBFLAGUNUSEDBIT3,     { = 18; Unused flag (bit 3) }
+        R_SUBFLAGHALFCARRY,      { = 19; Half Carry flag }
+        R_SUBFLAGUNUSEDBIT5,     { = 20; Unused flag (bit 5) }
+        R_SUBFLAGZERO,           { = 21; Zero flag }
+        R_SUBFLAGSIGN,           { = 22; Sign flag }
+{$else Z80}
+        { Subregisters for the flags register (x86) }
+        R_SUBFLAGCARRY,     { = 15; Carry flag }
+        R_SUBFLAGPARITY,    { = 16; Parity flag }
+        R_SUBFLAGAUXILIARY, { = 17; Auxiliary flag }
+        R_SUBFLAGZERO,      { = 18; Zero flag }
+        R_SUBFLAGSIGN,      { = 19; Sign flag }
+        R_SUBFLAGOVERFLOW,  { = 20; Overflow flag }
+        R_SUBFLAGINTERRUPT, { = 21; Interrupt enable flag }
+        R_SUBFLAGDIRECTION, { = 22; Direction flag }
+{$endif Z80}
+        { subregisters for the metadata register (llvm) }
+        R_SUBMETASTRING    { = 23 }
+{$ifdef aarch64}
+        , R_SUBMM8B          { = 24; for arrangement of v regs on aarch64 }
+        , R_SUBMM16B         { = 25; for arrangement of v regs on aarch64 }
+        , R_SUBMM4H          { = 26; for arrangement of v regs on aarch64 }
+        , R_SUBMM8H          { = 27; for arrangement of v regs on aarch64 }
+        , R_SUBMM2S          { = 28; for arrangement of v regs on aarch64 }
+        , R_SUBMM4S          { = 29; for arrangement of v regs on aarch64 }
+        , R_SUBMM1D          { = 30; for arrangement of v regs on aarch64 }
+        , R_SUBMM2D          { = 31; for arrangement of v regs on aarch64 }
+        , R_SUBMMB1          { = 32; for arrangement of v regs on aarch64; for use with ldN/stN }
+        , R_SUBMMH1          { = 33; for arrangement of v regs on aarch64; for use with ldN/stN }
+        , R_SUBMMS1          { = 34; for arrangement of v regs on aarch64; for use with ldN/stN }
+        , R_SUBMMD1          { = 35; for arrangement of v regs on aarch64; for use with ldN/stN }
+{$endif aarch64}
       );
       TSubRegisterSet = set of TSubRegister;
 
@@ -241,10 +322,6 @@ interface
       end;
 {$endif cpu64bitalu}
 
-      Tregistermmxset = record
-        reg0,reg1,reg2,reg3:Tregister
-      end;
-
       { Set type definition for registers }
       tsuperregisterset = array[byte] of set of byte;
 
@@ -254,11 +331,12 @@ interface
         passed to an mm operation is nil, it means that the whole location is moved }
       tmmshuffle = record
         { describes how many shuffles are actually described, if len=0 then
-          moving the scalar with index 0 to the scalar with index 0 is meant }
-        len : byte;
-        { lower nibble of each entry of this array describes index of the source data index while
-          the upper nibble describes the destination index }
-        shuffles : array[1..1] of byte;
+          moving the scalar with index 0 to the scalar with index 0 is meant,
+          if len=-1, then a variable/unknown length is assumed }
+        len : Shortint;
+        { lower byte of each entry of this array describes index of the source data index while
+          the upper byte describes the destination index }
+        shuffles : array[1..1] of word;
       end;
 
       Tsuperregisterarray=array[0..$ffff] of Tsuperregister;
@@ -275,6 +353,7 @@ interface
         procedure clear;
         procedure add(s:tsuperregister);
         function addnodup(s:tsuperregister): boolean;
+        { returns the last element and removes it from the list }
         function get:tsuperregister;
         function readidx(i:word):tsuperregister;
         procedure deleteidx(i:word);
@@ -288,15 +367,17 @@ interface
 
        { Invalid register number }
        RS_INVALID    = high(tsuperregister);
-       NR_INVALID    = tregister($fffffffff);
+       NR_INVALID    = tregister($ffffffff);
 
        tcgsize2size : Array[tcgsize] of integer =
+        (0,
          { integer values }
-        (0,1,2,4,8,16,1,2,4,8,16,
+         1,  2,  4,  8, 16,
+         1,  2,  4,  8, 16,
          { floating point values }
-         4,8,10,8,16,
+         4,  8, 10,  8, 16,
          { multimedia values }
-         1,2,4,8,16,32,1,2,4,8,16,32); 
+         1,  2,  4,  8, 16, 32, 64);
 
        tfloat2tcgsize: array[tfloattype] of tcgsize =
          (OS_F32,OS_F64,OS_F80,OS_F80,OS_C64,OS_C64,OS_F128);
@@ -332,16 +413,19 @@ interface
        { Table to convert tcgsize variables to the correspondending
          unsigned types }
        tcgsize2unsigned : array[tcgsize] of tcgsize = (OS_NO,
-          OS_8,OS_16,OS_32,OS_64,OS_128,OS_8,OS_16,OS_32,OS_64,OS_128,
-          OS_F32,OS_F64,OS_F80,OS_C64,OS_F128,
-          OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_M256,OS_M8,OS_M16,OS_M32,
-          OS_M64,OS_M128,OS_M256);
+         OS_8,    OS_16,   OS_32,   OS_64,   OS_128,
+         OS_8,    OS_16,   OS_32,   OS_64,   OS_128,
+
+         OS_F32,  OS_F64,  OS_F80,  OS_C64,  OS_F128,
+         OS_M8,   OS_M16,  OS_M32,  OS_M64,  OS_M128, OS_M256, OS_M512);
+
 
        tcgsize2signed : array[tcgsize] of tcgsize = (OS_NO,
-          OS_S8,OS_S16,OS_S32,OS_S64,OS_S128,OS_S8,OS_S16,OS_S32,OS_S64,OS_S128,
-          OS_F32,OS_F64,OS_F80,OS_C64,OS_F128,
-          OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_M256,OS_M8,OS_M16,OS_M32,
-          OS_M64,OS_M128,OS_M256);
+         OS_S8,   OS_S16,  OS_S32,  OS_S64,  OS_S128,
+         OS_S8,   OS_S16,  OS_S32,  OS_S64,  OS_S128,
+
+         OS_F32,  OS_F64,  OS_F80,  OS_C64,  OS_F128,
+         OS_M8,   OS_M16,  OS_M32,  OS_M64,  OS_M128, OS_M256,OS_M512);
 
 
        tcgloc2str : array[TCGLoc] of string[12] = (
@@ -367,7 +451,13 @@ interface
             );
 
     var
-       mms_movescalar : pmmshuffle;
+       mms_movescalar,
+       mms_variable,
+       mms_2,
+       mms_4,
+       mms_8,
+       mms_16,
+       mms_32 : pmmshuffle;
 
     procedure supregset_reset(var regs:tsuperregisterset;setall:boolean;
                               maxreg:Tsuperregister);{$ifdef USEINLINE}inline;{$endif}
@@ -388,6 +478,8 @@ interface
     }
     function int_cgsize(const a: tcgint): tcgsize;{$ifdef USEINLINE}inline;{$endif}
     function int_float_cgsize(const a: tcgint): tcgsize;
+    function float_array_cgsize(const a: tcgint): tcgsize;{$ifdef USEINLINE}inline;{$endif}
+    function double_array_cgsize(const a: tcgint): tcgsize;{$ifdef USEINLINE}inline;{$endif}
 
     function tcgsize2str(cgsize: tcgsize):string;
 
@@ -410,10 +502,13 @@ interface
       the source }
     procedure removeshuffles(var shuffle : tmmshuffle);
 
+    function is_float_cgsize(size: tcgsize): boolean;{$ifdef USEINLINE}inline;{$endif}
+
 implementation
 
     uses
-      verbose;
+      verbose,
+      cutils;
 
 {******************************************************************************
                              tsuperregisterworklist
@@ -506,9 +601,8 @@ implementation
     begin
       if length=0 then
         internalerror(200310142);
-      get:=buf^[0];
-      buf^[0]:=buf^[length-1];
       dec(length);
+      get:=buf^[length];
     end;
 
 
@@ -644,6 +738,32 @@ implementation
             result:=result+'mx';
           R_SUBMMY:
             result:=result+'my';
+          R_SUBMMZ:
+            result:=result+'mz';
+{$ifdef aarch64}
+          R_SUBMM8B:
+            result:=result+'m8b';
+          R_SUBMM16B:
+            result:=result+'m16b';
+          R_SUBMM4H:
+            result:=result+'m4h';
+          R_SUBMM8H:
+            result:=result+'m8h';
+          R_SUBMM2S:
+            result:=result+'m2s';
+          R_SUBMM4S:
+            result:=result+'m4s';
+          R_SUBMM2D:
+            result:=result+'m2d';
+          R_SUBMMB1:
+            result:=result+'mb1';
+          R_SUBMMH1:
+            result:=result+'mh1';
+          R_SUBMMS1:
+            result:=result+'ms1';
+          R_SUBMMD1:
+            result:=result+'md1';
+{$endif}
           else
             internalerror(200308252);
         end;
@@ -681,6 +801,39 @@ implementation
             result:=OS_F128;
           else
             internalerror(200603211);
+        end;
+      end;
+
+
+    function float_array_cgsize(const a: tcgint): tcgsize;{$ifdef USEINLINE}inline;{$endif}
+      begin
+        case a of
+          4:
+            result := OS_M32;
+          16:
+            result := OS_M128;
+          32:
+            result := OS_M256;
+          64:
+            result := OS_M512;
+          else
+            result := int_cgsize(a);
+        end;
+      end;
+
+    function double_array_cgsize(const a: tcgint): tcgsize;{$ifdef USEINLINE}inline;{$endif}
+      begin
+        case a of
+          8:
+            result := OS_M64;
+          16:
+            result := OS_M128;
+          32:
+            result := OS_M256;
+          64:
+            result := OS_M512;
+          else
+            result := int_cgsize(a);
         end;
       end;
 
@@ -726,13 +879,13 @@ implementation
         i : longint;
       begin
         realshuffle:=true;
-        if (shuffle=nil) or (shuffle^.len=0) then
+        if (shuffle=nil) or (shuffle^.len<1) then
           realshuffle:=false
         else
           begin
             for i:=1 to shuffle^.len do
               begin
-                if (shuffle^.shuffles[i] and $f)<>((shuffle^.shuffles[i] and $f0) shr 4) then
+                if (shuffle^.shuffles[i] and $ff)<>((shuffle^.shuffles[i] and $ff00) shr 8) then
                   exit;
               end;
             realshuffle:=false;
@@ -757,9 +910,40 @@ implementation
       end;
 
 
+    function is_float_cgsize(size: tcgsize): boolean;{$ifdef USEINLINE}inline;{$endif}
+      begin
+        result:=size in [OS_F32..OS_F128];
+      end;
+
+
+   procedure Initmms(var p : pmmshuffle;len : ShortInt);
+     var
+       i : Integer;
+     begin
+       Getmem(p,sizeof(tmmshuffle)+(max(len,0)-1)*2);
+       p^.len:=len;
+       for i:=1 to len do
+{$push}
+{$R-}
+         p^.shuffles[i]:=i;
+{$pop}
+     end;
+
 initialization
-  new(mms_movescalar);
-  mms_movescalar^.len:=0;
+  Initmms(mms_movescalar,0);
+  Initmms(mms_variable,-1);
+  Initmms(mms_2,2);
+  Initmms(mms_4,4);
+  Initmms(mms_8,8);
+  Initmms(mms_16,16);
+  Initmms(mms_32,32);
 finalization
-  dispose(mms_movescalar);
+  Freemem(mms_movescalar);
+  Freemem(mms_variable);
+  Freemem(mms_2);
+  Freemem(mms_4);
+  Freemem(mms_8);
+  Freemem(mms_16);
+  Freemem(mms_32);
 end.
+

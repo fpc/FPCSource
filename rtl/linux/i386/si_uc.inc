@@ -47,7 +47,6 @@ procedure uclibc_init; external name '__uClibc_init';
 procedure uclibc_fini; external name '__uClibc_fini';
 procedure uclibc_exit; external name 'exit';
 procedure uclibc_main; external name '__uClibc_main';
-procedure PASCALMAIN; external name 'PASCALMAIN';
 
 { Some helpers }
 
@@ -145,27 +144,10 @@ asm
 	hlt
 end;
 
-procedure _FPC_libc21_haltproc; assembler; nostackframe; public name '_haltproc';
+procedure _FPC_libc21_haltproc(e: longint); assembler; public name '_haltproc';
 asm
 .Lhaltproc:
-
-  {$ifdef FPC_PIC}
-        call    get3eipasebx
-        addl    $_GLOBAL_OFFSET_TABLE_,%ebx
-        movl    ExitCode@GOT(%ebx),%ebx
-    {$if sizeof(ExitCode)=2}
-        movzwl  (%ebx),%ebx
-    {$else}
-        mov     (%ebx),%ebx
-    {$endif}
-  {$else FPC_PIC}
-    {$if sizeof(ExitCode)=2}
-        movzwl  ExitCode,%ebx
-    {$else}
-        mov     ExitCode,%ebx
-    {$endif}
-  {$endif FPC_PIC}
-
+  movl    e,%ebx
   pushl   %ebx
   call    uclibc_exit
   xorl    %eax,%eax

@@ -881,8 +881,8 @@ Begin
    Fail;
  Write('wordbool conversion to boolean...');
  result := TRUE;
- move(values,lb1,sizeof(lb1));
- if lb1 <> TRUE then
+ move(values,wb1,sizeof(wb1));
+ if wb1 <> TRUE then
     result := false;
  if result then
     WriteLn('Success.')

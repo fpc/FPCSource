@@ -29,7 +29,7 @@ interface
       node,ncnv,ncgcnv,defcmp;
 
     type
-       tarmtypeconvnode = class(tcgtypeconvnode)
+       tavrtypeconvnode = class(tcgtypeconvnode)
          protected
          { procedure second_int_to_int;override; }
          { procedure second_string_to_string;override; }
@@ -55,5 +55,5 @@ interface
 implementation
 
 begin
-  ctypeconvnode:=tarmtypeconvnode;
+  ctypeconvnode:=tavrtypeconvnode;
 end.

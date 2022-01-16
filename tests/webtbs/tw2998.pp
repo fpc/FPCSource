@@ -1,3 +1,4 @@
+{ %skiptarget=android }
 { %cpu=i386 }
 { %OPT=-OaVARMIN=16 -Cg- }
 

@@ -16,21 +16,25 @@ uses
   pkgglobals,
   pkgmessages,
   pkgrepos,
+  pkgFppkg,
   fpxmlrep;
 
 type
   { TFPMakeCompiler }
 
   TFPMakeCompiler = Class(TPackagehandler)
+  protected
+    function DeterminePackage: TFPPackage;
   Public
-    Procedure Execute;override;
+    function Execute: Boolean; override;
   end;
 
 
   { TFPMakeRunner }
 
-  TFPMakeRunner = Class(TPackagehandler)
+  TFPMakeRunner = Class(TFPMakeCompiler)
   Protected
+    function IncludeInstallationOptions: Boolean; virtual;
     Function RunFPMake(const Command:string):Integer;
   end;
 
@@ -39,7 +43,7 @@ type
 
   TFPMakeRunnerCompile = Class(TFPMakeRunner)
   Public
-    Procedure Execute;override;
+    function Execute: Boolean;override;
   end;
 
 
@@ -47,43 +51,47 @@ type
 
   TFPMakeRunnerBuild = Class(TFPMakeRunner)
   Public
-    Procedure Execute;override;
+    function Execute: Boolean;override;
   end;
 
 
   { TFPMakeRunnerInstall }
 
   TFPMakeRunnerInstall = Class(TFPMakeRunner)
+  protected
+    function IncludeInstallationOptions: Boolean; override;
   Public
-    Procedure Execute;override;
+    function Execute: Boolean;override;
   end;
 
   { TFPMakeRunnerUnInstall }
 
   TFPMakeRunnerUnInstall = Class(TFPMakeRunner)
+  protected
+    function IncludeInstallationOptions: Boolean; override;
   Public
-    Procedure Execute;override;
+    function Execute: Boolean;override;
   end;
 
   { TFPMakeRunnerClean }
 
   TFPMakeRunnerClean = Class(TFPMakeRunner)
   Public
-    Procedure Execute;override;
+    function Execute: Boolean;override;
   end;
 
   { TFPMakeRunnerManifest }
 
   TFPMakeRunnerManifest = Class(TFPMakeRunner)
   Public
-    Procedure Execute;override;
+    function Execute: Boolean;override;
   end;
 
   { TFPMakeRunnerArchive }
 
   TFPMakeRunnerArchive = Class(TFPMakeRunner)
   Public
-    Procedure Execute;override;
+    function Execute: Boolean;override;
   end;
 
    TMyMemoryStream=class(TMemoryStream)
@@ -131,29 +139,29 @@ end;
 
 { TFPMakeCompiler }
 
-Procedure TFPMakeCompiler.Execute;
+function TFPMakeCompiler.DeterminePackage: TFPPackage;
+begin
+  Result := PackageManager.DetermineSourcePackage(PackageName);
+
+  if not Assigned(Result) then
+    Raise EPackage.CreateFmt(SErrMissingPackage,[PackageName]);
+end;
+
+function TFPMakeCompiler.Execute: Boolean;
 var
   OOptions : string;
 
-  function CheckUnitDir(const AUnitName:string;Out AUnitDir:string):boolean;
+  function CheckUnitDir(const APackageName:string;Out AUnitDir:string):boolean;
+  var
+    P: TFPPackage;
   begin
     Result:=false;
-    if FPMakeCompilerOptions.LocalUnitDir<>'' then
+    P := PackageManager.FPMakeRepoFindPackage(APackageName, pkgpkInstalled);
+    if Assigned(P) then
       begin
-        AUnitDir:=IncludeTrailingPathDelimiter(FPMakeCompilerOptions.LocalUnitDir+AUnitName);
-        if DirectoryExistsLog(AUnitDir) then
-          begin
-            Result:=true;
-            exit;
-          end;
+        AUnitDir := P.PackagesStructure.GetUnitDirectory(P);
+        Result := DirectoryExistsLog(AUnitDir);
       end;
-    AUnitDir:=IncludeTrailingPathDelimiter(FPMakeCompilerOptions.GlobalUnitDir+AUnitName);
-    if DirectoryExistsLog(AUnitDir) then
-      begin
-        Result:=true;
-        exit;
-      end;
-    AUnitDir:='';
   end;
 
   procedure AddOption(const s:string);
@@ -161,6 +169,35 @@ var
     if OOptions<>'' then
       OOptions:=OOptions+' ';
     OOptions:=OOptions+maybequoted(s);
+  end;
+
+  procedure AddDependencySearchPaths(ADepDirList: TStrings; APackageName: string);
+  var
+    i: Integer;
+    D: TFPDependency;
+    UnitDir: string;
+    Package: TFPPackage;
+  begin
+    Package := PackageManager.FindPackage(APackageName, pkgpkInstalled);
+    if not assigned(Package) then
+      begin
+        Error(SErrMissingInstallPackage, [PackageName]);
+      end;
+    for i := 0 to Package.Dependencies.Count -1 do
+      begin
+        D := Package.Dependencies[i];
+        if (PackageManager.CompilerOptions.CompilerOS in D.OSes) and
+           (PackageManager.CompilerOptions.CompilerCPU in D.CPUs) then
+          begin
+            if CheckUnitDir(D.PackageName, UnitDir) then
+              begin
+                AddDependencySearchPaths(ADepDirList, D.PackageName);
+                ADepDirList.Add(UnitDir);
+              end
+            else
+              Error(SErrMissingInstallPackage, [D.PackageName]);
+          end;
+      end;
   end;
 
 Var
@@ -171,12 +208,18 @@ Var
   FPMakeSrc : string;
   NeedFPMKUnitSource,
   HaveFpmake : boolean;
+  FPMKUnitDepAvailable: Boolean;
+  FPMKUnitDepPackage: TFPPackage;
   P : TFPPackage;
+  DepPackage: TFPPackage;
+  DepDirList: TStringList;
+  S,Reason: string;
 begin
-  P:=AvailableRepository.PackageByName(PackageName);
+  Result := True;
+  P:=DeterminePackage;
   NeedFPMKUnitSource:=false;
   OOptions:='';
-  SetCurrentDir(PackageBuildPath(P));
+  SetCurrentDir(PackageManager.PackageBuildPath(P));
   // Generate random name for build path
   TempBuildDir:='build_fpmake_'+HexStr(DateTimeToUnix(Now),8)+HexStr(GetProcessId,4);
   // Check for fpmake source
@@ -197,57 +240,97 @@ begin
         Error(SErrMissingFPMake);
       AddOption('-n');
       AddOption('-dCOMPILED_BY_FPPKG');
-      for i:=0 to high(FPMKUnitDeps) do
-        begin
-          if FPMKUnitDeps[i].available then
-            begin
-              if CheckUnitDir(FPMKUnitDeps[i].package,DepDir) then
-                AddOption('-Fu'+DepDir)
-              else
-                Error(SErrMissingInstallPackage,[FPMKUnitDeps[i].package]);
-              if FPMKUnitDeps[i].def<>'' then
-                AddOption('-d'+FPMKUnitDeps[i].def);
-            end
-          else
-            begin
-              // If fpmkunit is not installed, we use the internal fpmkunit source
-              if FPMKUnitDeps[i].package='fpmkunit' then
-                begin
-                  NeedFPMKUnitSource:=true;
-                  AddOption('-Fu'+TempBuildDir);
-                end;
-              if FPMKUnitDeps[i].undef<>'' then
-                AddOption('-d'+FPMKUnitDeps[i].undef);
-            end;
-        end;
-      // Add RTL unit dir
-      if not CheckUnitDir('rtl',DepDir) then
-        Error(SErrMissingInstallPackage,['rtl']);
-      AddOption('-Fu'+DepDir);
+
+      DepDirList := TStringList.Create;
+      try
+        DepDirList.Sorted := True;
+        DepDirList.Duplicates := dupIgnore;
+        for i:=0 to high(FPMKUnitDeps) do
+          begin
+            FPMKUnitDepAvailable := FPMKUnitDeps[i].available;
+            if FPMKUnitDepAvailable then
+              begin
+                // Do not try to use packages which are broken. This can happen when
+                // fixbroken is being called and one of the fpmkunit-dependencies itself
+                // is broken. In that case, build fpmake without the dependency.
+                // (Plugins are also fpmkunit-dependencies)
+                FPMKUnitDepPackage := PackageManager.FindPackage(FPMKUnitDeps[i].package, pkgpkInstalled);
+                if Assigned(FPMKUnitDepPackage) then
+                  begin
+                    if PackageManager.PackageIsBroken(FPMKUnitDepPackage, Reason, nil) then
+                      FPMKUnitDepAvailable := False;
+                  end;
+              end;
+
+            if FPMKUnitDepAvailable then
+              begin
+                if CheckUnitDir(FPMKUnitDeps[i].package,DepDir) then
+                  begin
+                    AddDependencySearchPaths(DepDirList, FPMKUnitDeps[i].package);
+                    DepDirList.Add(DepDir);
+                  end
+                else
+                  Error(SErrMissingInstallPackage,[FPMKUnitDeps[i].package]);
+                if FPMKUnitDeps[i].def<>'' then
+                  AddOption('-d'+FPMKUnitDeps[i].def);
+                if FPMKUnitDeps[i].PluginUnit<>'' then
+                  AddOption('-Fa'+FPMKUnitDeps[i].PluginUnit);
+              end
+            else
+              begin
+                // If fpmkunit is not installed, we use the internal fpmkunit source
+                if FPMKUnitDeps[i].package='fpmkunit' then
+                  begin
+                    NeedFPMKUnitSource:=true;
+                    DepDirList.Add(TempBuildDir);
+                  end;
+                if FPMKUnitDeps[i].undef<>'' then
+                  AddOption('-d'+FPMKUnitDeps[i].undef);
+              end;
+          end;
+        // Add RTL unit dir
+        if not CheckUnitDir('rtl',DepDir) then
+          Error(SErrMissingInstallPackage,['rtl']);
+        DepDirList.Add(DepDir);
+        DepDirList.Add(TempBuildDir);
+        for i := 0 to DepDirList.Count -1 do
+          AddOption('-Fu'+DepDirList[i]);
+      finally
+        DepDirList.Free;
+      end;
       // Units in a directory for easy cleaning
       DeleteDir(TempBuildDir);
       ForceDirectories(TempBuildDir);
-      AddOption('-FU'+TempBuildDir);
-      // Compile options
-      //   -- default is to optimize, smartlink and strip to reduce
-      //      the executable size (there can be 100's of fpmake's on a system)
-      if llInfo in LogLevels then
-        AddOption('-vi');
-      AddOption('-O2');
-      AddOption('-XXs');
-      // Create fpmkunit.pp if needed
-      if NeedFPMKUnitSource then
-        CreateFPMKUnitSource(TempBuildDir+PathDelim+'fpmkunit.pp');
-      // Call compiler
-      If ExecuteProcess(FPMakeCompilerOptions.Compiler,OOptions+' '+FPmakeSrc)<>0 then
-        begin
-          if not GlobalOptions.RecoveryMode then
-            Error(SErrCompileFailureFPMakeTryRecovery)
-          else
-            Error(SErrCompileFailureFPMake);
-        end;
-      // Cleanup units
-      DeleteDir(TempBuildDir);
+      try
+        // Compile options
+        //   -- default is to optimize, smartlink and strip to reduce
+        //      the executable size (there can be 100's of fpmake's on a system)
+        if llInfo in LogLevels then
+          AddOption('-vi');
+        AddOption('-O2');
+        AddOption('-XXs');
+        if PackageManager.FPMakeCompilerOptions.HasOptions then
+          for S in PackageManager.FPMakeCompilerOptions.Options do
+            AddOption(S);
+         // AddOption(PackageManager.FPMakeCompilerOptions.Options.DelimitedText) ;
+        // Create fpmkunit.pp if needed
+        if NeedFPMKUnitSource then
+          begin
+            Log(llWarning,SLogUseInternalFpmkunit);
+            CreateFPMKUnitSource(TempBuildDir+PathDelim+'fpmkunit.pp');
+          end;
+        // Call compiler
+        If ExecuteProcess(PackageManager.FPMakeCompilerOptions.Compiler,OOptions+' '+FPmakeSrc)<>0 then
+          begin
+            if not PackageManager.Options.CommandLineSection.RecoveryMode then
+              Error(SErrCompileFailureFPMakeTryRecovery)
+            else
+              Error(SErrCompileFailureFPMake);
+          end;
+      finally
+        // Cleanup units
+        DeleteDir(TempBuildDir);
+      end;
     end
   else
     Log(llCommands,SLogNotCompilingFPMake);
@@ -256,12 +339,21 @@ end;
 
 { TFPMakeRunner }
 
+function TFPMakeRunner.IncludeInstallationOptions: Boolean;
+begin
+  Result := False;
+end;
+
 Function TFPMakeRunner.RunFPMake(const Command:string) : Integer;
 Var
-  ManifestPackage,
   P : TFPPackage;
   FPMakeBin,
   OOptions : string;
+  InstallRepo: TFPRepository;
+  GlobalUnitDir,
+  LocalUnitDir: string;
+  BaseInstDir: string;
+  i: Integer;
 
   procedure AddOption(const s:string);
   begin
@@ -300,11 +392,12 @@ Var
   end;
 
 begin
+  Result := -1;
   OOptions:='';
   // Does the current package support this CPU-OS?
   if PackageName<>'' then
     begin
-      P:=AvailableRepository.PackageByName(PackageName);
+      P := DeterminePackage;
       if (PackageName=CurrentDirPackageName) and (FileExists(ManifestFileName)) then
         ObtainSupportedTargetsFromManifest(p);
     end
@@ -313,19 +406,22 @@ begin
   if assigned(P) then
     begin
       if (command<>'archive') and (command<>'manifest') and
-         (not(CompilerOptions.CompilerOS in P.OSes) or
-          not(CompilerOptions.CompilerCPU in P.CPUs)) then
-        Error(SErrPackageDoesNotSupportTarget,[P.Name,MakeTargetString(CompilerOptions.CompilerCPU,CompilerOptions.CompilerOS)]);
+         (not(PackageManager.CompilerOptions.CompilerOS in P.OSes) or
+          not(PackageManager.CompilerOptions.CompilerCPU in P.CPUs)) then
+        begin
+          Error(SErrPackageDoesNotSupportTarget,[P.Name,MakeTargetString(PackageManager.CompilerOptions.CompilerCPU,PackageManager.CompilerOptions.CompilerOS)]);
+          Exit;
+        end;
     end;
   { Maybe compile fpmake executable? }
-  ExecuteAction(PackageName,'compilefpmake');
+  if not ExecuteAction(PackageName,'compilefpmake') then
+    Exit;
   { Create options }
   if llDebug in LogLevels then
     AddOption('--debug')
   else if llInfo in LogLevels then
     AddOption('--verbose');
-  if P.RecompileBroken and
-     (P.FPMakeOptionsString<>'') then // Check for a empty FPMakeOptionString for packages being installed with an old fpmkunit
+  if (P.FPMakeOptionsString<>'') then
     begin
       // When the package is being reinstalled because of broken dependencies, use the same fpmake-options
       // as were used to compile the package in the first place.
@@ -333,81 +429,127 @@ begin
     end
   else
     begin
-      if CompilerOptions.HasOptions then
-        AddOption('--options='+CompilerOptions.Options.DelimitedText);
+      if PackageManager.CompilerOptions.HasOptions then
+        AddOption('--options='+PackageManager.CompilerOptions.Options.DelimitedText);
 
-      if GlobalOptions.CustomFPMakeOptions<>'' then
+      if PackageManager.Options.GlobalSection.CustomFPMakeOptions<>'' then
         begin
         AddOption('--ignoreinvalidoption');
-        AddOption(GlobalOptions.CustomFPMakeOptions);
+        AddOption(PackageManager.Options.GlobalSection.CustomFPMakeOptions);
         end;
     end;
 
   AddOption('--nofpccfg');
-  AddOption('--compiler='+CompilerOptions.Compiler);
-  AddOption('--cpu='+CPUToString(CompilerOptions.CompilerCPU));
-  AddOption('--os='+OSToString(CompilerOptions.CompilerOS));
-  if IsSuperUser or GlobalOptions.InstallGlobal then
+  AddOption('--compiler='+PackageManager.CompilerOptions.Compiler);
+  AddOption('--cpu='+CPUToString(PackageManager.CompilerOptions.CompilerCPU));
+  AddOption('--os='+OSToString(PackageManager.CompilerOptions.CompilerOS));
+
+  // While scanning a source-repository it could be necessary to create manifest
+  // files. At this moment the InstallRepo could not be initialized yet. And the
+  // manifest command does not use the --prefix and --baseinstalldir parameters.
+  if IncludeInstallationOptions then
     begin
-      CondAddOption('--prefix',CompilerOptions.GlobalPrefix);
-      CondAddOption('--baseinstalldir',CompilerOptions.GlobalInstallDir);
-    end
-  else
-    begin
-      CondAddOption('--prefix',CompilerOptions.LocalPrefix);
-      CondAddOption('--baseinstalldir',CompilerOptions.LocalInstallDir);
+      InstallRepo := PackageManager.GetInstallRepository(P);
+
+      if not Assigned(InstallRepo.DefaultPackagesStructure) then
+        begin
+          Error(SErrIllConfRepository,[InstallRepo.RepositoryName]);
+          Exit;
+        end;
+      CondAddOption('--baseinstalldir',InstallRepo.DefaultPackagesStructure.GetBaseInstallDir);
+      CondAddOption('--prefix',InstallRepo.DefaultPackagesStructure.GetPrefix);
     end;
-  CondAddOption('--localunitdir',CompilerOptions.LocalInstallDir);
-  CondAddOption('--globalunitdir',CompilerOptions.GlobalInstallDir);
+
+  for i := PackageManager.RepositoryList.Count-1 downto 0 do
+    begin
+      if PackageManager.RepositoryList[i] is TFPRepository then
+        begin
+          InstallRepo := TFPRepository(PackageManager.RepositoryList[i]);
+          if (InstallRepo.RepositoryType = fprtInstalled) and Assigned(InstallRepo.DefaultPackagesStructure) then
+            begin
+              BaseInstDir := InstallRepo.DefaultPackagesStructure.GetBaseInstallDir;
+              CondAddOption('--searchpath', BaseInstDir);
+              if LocalUnitDir='' then
+                LocalUnitDir := BaseInstDir
+              else if GlobalUnitDir='' then
+                GlobalUnitDir := BaseInstDir;
+            end;
+        end;
+    end;
+  if GlobalUnitDir<>'' then
+    CondAddOption('--globalunitdir', GlobalUnitDir);
+  if LocalUnitDir<>'' then
+    CondAddOption('--localunitdir', LocalUnitDir);
 
   { Run FPMake }
   FPMakeBin:='fpmake'+ExeExt;
-  SetCurrentDir(PackageBuildPath(P));
+  SetCurrentDir(PackageManager.PackageBuildPath(P));
   Result:=ExecuteProcess(FPMakeBin,Command+' '+OOptions);
   if Result<>0 then
     Error(SErrExecutionFPMake,[Command]);
 end;
 
 
-procedure TFPMakeRunnerCompile.Execute;
+function TFPMakeRunnerCompile.Execute: Boolean;
 begin
-  RunFPMake('compile');
+  Result := RunFPMake('compile') = 0;
 end;
 
 
-procedure TFPMakeRunnerBuild.Execute;
+function TFPMakeRunnerBuild.Execute: Boolean;
 begin
-  RunFPMake('build');
+  Result := RunFPMake('build') = 0;
+end;
+
+function TFPMakeRunnerInstall.IncludeInstallationOptions: Boolean;
+begin
+  Result := True;
+end;
+
+function TFPMakeRunnerInstall.Execute: Boolean;
+begin
+  Result := RunFPMake('install') = 0;
+end;
+
+function TFPMakeRunnerUnInstall.IncludeInstallationOptions: Boolean;
+begin
+  Result := True;
+end;
+
+function TFPMakeRunnerUnInstall.Execute: Boolean;
+begin
+  Result := RunFPMake('uninstall') = 0;
 end;
 
 
-procedure TFPMakeRunnerInstall.Execute;
+function TFPMakeRunnerClean.Execute: Boolean;
 begin
-  RunFPMake('install');
+  Result := RunFPMake('clean') = 0;
 end;
 
 
-procedure TFPMakeRunnerUnInstall.Execute;
+function TFPMakeRunnerManifest.Execute: Boolean;
 begin
-  RunFPMake('uninstall');
+  Result := RunFPMake('manifest') = 0;
 end;
 
 
-procedure TFPMakeRunnerClean.Execute;
+function TFPMakeRunnerArchive.Execute: Boolean;
+var
+  StoredLocalPrefix: string;
+  StoredGlobalPrefix: string;
 begin
-  RunFPMake('clean');
-end;
-
-
-procedure TFPMakeRunnerManifest.Execute;
-begin
-  RunFPMake('manifest');
-end;
-
-
-procedure TFPMakeRunnerArchive.Execute;
-begin
-  RunFPMake('archive');
+  // In most (all?) cases we do not want a prefix in the archive.
+  StoredGlobalPrefix := PackageManager.CompilerOptions.GlobalPrefix;
+  StoredLocalPrefix := PackageManager.CompilerOptions.LocalPrefix;
+  PackageManager.CompilerOptions.GlobalPrefix := '';
+  PackageManager.CompilerOptions.LocalPrefix := '';
+  try
+    Result := RunFPMake('archive') = 0;
+  finally
+    PackageManager.CompilerOptions.GlobalPrefix := StoredGlobalPrefix;
+    PackageManager.CompilerOptions.LocalPrefix := StoredLocalPrefix;
+  end;
 end;
 
 

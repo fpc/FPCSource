@@ -1,6 +1,7 @@
 unit tcstrutils;
 
 {$mode objfpc}{$H+}
+{$codepage utf8}
 
 interface
 
@@ -8,8 +9,6 @@ uses
   Classes, SysUtils, fpcunit, testregistry, strutils;
 
 type
-
-  { TTestSearchBuf }
 
   TTestSearchBuf= class(TTestCase)
   Private
@@ -40,6 +39,14 @@ type
     procedure testSelstartAfterBuf;
     Procedure TestDecodeSoundexInt;
   end;
+
+
+  TTestGeneral = class(TTestCase)
+  published
+    procedure TestIndexStr;
+    procedure TestMatchStr;
+  end;
+
 
 implementation
 
@@ -258,8 +265,56 @@ begin
   TestSearch('in',0,[soWholeWord,soDown],39);
 end;
 
+procedure TTestGeneral.TestIndexStr;
+var
+  s: UnicodeString;
+  a: array of UnicodeString;
+begin
+  s := 'Henry';
+  AssertTrue('Failed on 1', IndexStr(s, ['Brian', 'Jim', 'Henry']) = 2);
+  AssertTrue('Failed on 2', IndexStr(s, ['Brian', 'Jim', 'henry']) = -1);
+  AssertTrue('Failed on 3', IndexStr(s, ['BRIAN', 'JIM', 'HENRY']) = -1);
+  s := 'HENRY';
+  AssertTrue('Failed on 4', IndexStr(s, ['BRIAN', 'HENRY', 'JIM']) = 1);
+
+  SetLength(a, 3);
+  a[0] := 'Brian';
+  a[1] := 'Jim';
+  a[2] := 'Henry';
+  AssertTrue('Failed on 5', IndexStr(s, a) = -1);
+  s := 'Henry';
+  AssertTrue('Failed on 6', IndexStr(s, a) = 2);
+  a[2] := 'henry';
+  AssertTrue('Failed on 7', IndexStr(s, a) = -1);
+end;
+
+procedure TTestGeneral.TestMatchStr;
+var
+  s: UnicodeString;
+  a: array of UnicodeString;
+begin
+  s := 'Henry';
+  AssertEquals('Failed on 1', True, MatchStr(s, ['Brian', 'Jim', 'Henry']));
+  AssertEquals('Failed on 2', False, MatchStr(s, ['Brian', 'Jim', 'henry']));
+  AssertEquals('Failed on 3', False, MatchStr(s, ['BRIAN', 'JIM', 'HENRY']));
+  s := 'HENRY';
+  AssertEquals('Failed on 4', True, MatchStr(s, ['BRIAN', 'HENRY', 'JIM']));
+
+  SetLength(a, 3);
+  a[0] := 'Brian';
+  a[1] := 'Jim';
+  a[2] := 'Henry';
+  AssertEquals('Failed on 5', False, MatchStr(s, a));
+  s := 'Henry';
+  AssertEquals('Failed on 6', True, MatchStr(s, a));
+  a[2] := 'henry';
+  AssertEquals('Failed on 7', False, MatchStr(s, a));
+end;
+
+
 initialization
   RegisterTest(TTestSearchBuf);
+  RegisterTest(TTestGeneral);
   writeln ('Testing with ', WhichSearchbuf, ' implementation');
   writeln;
 end.

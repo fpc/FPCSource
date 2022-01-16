@@ -57,7 +57,7 @@ begin
   b:=MyObject.alloc.init;
   b.extraproc(2);
   b.release;
-  c:=MyObject.alloc.init;
-  c.extraproc(2);
+  c:=MyObject2.alloc.init;
+  c.extraproc(3);
   c.release;
 end.

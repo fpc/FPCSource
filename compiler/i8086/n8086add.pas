@@ -88,6 +88,11 @@ interface
             (rt = pointerconstn) and is_farpointer(rd) and
             is_constintnode(left) and
             (nodetype=addn)
+           ) or
+           (
+            (lt in [pointerconstn,niln]) and is_farpointer(ld) and
+            (rt in [pointerconstn,niln]) and is_farpointer(rd) and
+            (nodetype in [ltn,lten,gtn,gten,equaln,unequaln])
            ) then
           begin
             t:=nil;
@@ -101,7 +106,7 @@ interface
               niln:
                 lv:=0;
               else
-                internalerror(2002080202);
+                internalerror(2002080201);
             end;
             case rt of
               ordconstn:
@@ -111,7 +116,7 @@ interface
               niln:
                 rv:=0;
               else
-                internalerror(2002080203);
+                internalerror(2002080204);
             end;
 
             case nodetype of
@@ -133,7 +138,7 @@ interface
                     if (rt=pointerconstn) then
                       begin
                         if not(nf_has_pointerdiv in flags) then
-                          internalerror(2008030101);
+                          internalerror(2008030102);
                         { todo: implement pointer-pointer as well }
                         internalerror(2014040607);
                         //t := cpointerconstnode.create(qword(v),resultdef);
@@ -143,6 +148,18 @@ interface
                   else
                     internalerror(2014040606);
                 end;
+              ltn:
+                t:=cordconstnode.create(ord(word(qword(lv))<word(qword(rv))),pasbool1type,true);
+              lten:
+                t:=cordconstnode.create(ord(word(qword(lv))<=word(qword(rv))),pasbool1type,true);
+              gtn:
+                t:=cordconstnode.create(ord(word(qword(lv))>word(qword(rv))),pasbool1type,true);
+              gten:
+                t:=cordconstnode.create(ord(word(qword(lv))>=word(qword(rv))),pasbool1type,true);
+              equaln:
+                t:=cordconstnode.create(ord(lv=rv),pasbool1type,true);
+              unequaln:
+                t:=cordconstnode.create(ord(lv<>rv),pasbool1type,true);
               else
                 internalerror(2014040605);
             end;
@@ -223,7 +240,7 @@ interface
           else
             begin
               { everything should be handled in pass_1 (JM) }
-              internalerror(200109051);
+              internalerror(2001090503);
             end;
         end;
 
@@ -246,6 +263,9 @@ interface
               toggleflag(nf_swapped);
             end;
          end;
+
+        if mboverflow and needoverflowcheck then
+          cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
 
         { at this point, left.location.loc should be LOC_REGISTER }
         if right.location.loc=LOC_REGISTER then
@@ -274,15 +294,15 @@ interface
               r:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
               cg64.a_load64low_loc_reg(current_asmdata.CurrAsmList,right.location,r);
               emit_reg_reg(op1,S_W,left.location.register64.reglo,r);
-              emit_reg_reg(op2,S_W,GetNextReg(left.location.register64.reglo),GetNextReg(r));
+              emit_reg_reg(op2,S_W,cg.GetNextReg(left.location.register64.reglo),cg.GetNextReg(r));
               emit_reg_reg(A_MOV,S_W,r,left.location.register64.reglo);
-              emit_reg_reg(A_MOV,S_W,GetNextReg(r),GetNextReg(left.location.register64.reglo));
+              emit_reg_reg(A_MOV,S_W,cg.GetNextReg(r),cg.GetNextReg(left.location.register64.reglo));
               cg64.a_load64high_loc_reg(current_asmdata.CurrAsmList,right.location,r);
               { the carry flag is still ok }
               emit_reg_reg(op2,S_W,left.location.register64.reghi,r);
-              emit_reg_reg(op2,S_W,GetNextReg(left.location.register64.reghi),GetNextReg(r));
+              emit_reg_reg(op2,S_W,cg.GetNextReg(left.location.register64.reghi),cg.GetNextReg(r));
               emit_reg_reg(A_MOV,S_W,r,left.location.register64.reghi);
-              emit_reg_reg(A_MOV,S_W,GetNextReg(r),GetNextReg(left.location.register64.reghi));
+              emit_reg_reg(A_MOV,S_W,cg.GetNextReg(r),cg.GetNextReg(left.location.register64.reghi));
             end
            else
             begin
@@ -298,13 +318,14 @@ interface
         { is in unsigned VAR!!                              }
         if mboverflow then
          begin
-           if cs_check_overflow in current_settings.localswitches  then
+           if needoverflowcheck then
             begin
               current_asmdata.getjumplabel(hl4);
               if unsigned then
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_AE,hl4)
               else
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NO,hl4);
+              cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
               cg.a_label(current_asmdata.CurrAsmList,hl4);
             end;
@@ -431,7 +452,7 @@ interface
         pointernode: tnode;
       begin
         pass_left_right;
-        force_reg_left_right(false,true);
+        force_reg_left_right(true,true);
         set_result_location_reg;
 
         if (left.resultdef.typ=pointerdef) and (right.resultdef.typ<>pointerdef) then
@@ -439,7 +460,7 @@ interface
         else if (left.resultdef.typ<>pointerdef) and (right.resultdef.typ=pointerdef) then
           pointernode:=right
         else
-          internalerror(2014040601);
+          internalerror(2014040608);
 
         if not (nodetype in [addn,subn]) then
           internalerror(2014040602);
@@ -451,7 +472,7 @@ interface
                 cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_16,
                    left.location.register,right.location.register,location.register);
                 cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,
-                   GetNextReg(pointernode.location.register),GetNextReg(location.register));
+                   cg.GetNextReg(pointernode.location.register),cg.GetNextReg(location.register));
               end
             else
               begin
@@ -461,7 +482,7 @@ interface
                     cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_16,
                        right.location.value,left.location.register,location.register);
                     cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,
-                       GetNextReg(left.location.register),GetNextReg(location.register));
+                       cg.GetNextReg(left.location.register),cg.GetNextReg(location.register));
                   end
                 else
                   begin
@@ -472,7 +493,7 @@ interface
                     cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_16,
                       left.location.register,tmpreg,location.register);
                     cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,
-                       GetNextReg(tmpreg),GetNextReg(location.register));
+                       cg.GetNextReg(tmpreg),cg.GetNextReg(location.register));
                   end;
               end;
           end
@@ -490,7 +511,7 @@ interface
                     cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_16,
                         right.location.register,left.location.register,location.register);
                     cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,
-                       GetNextReg(pointernode.location.register),GetNextReg(location.register));
+                       cg.GetNextReg(pointernode.location.register),cg.GetNextReg(location.register));
                   end
                 else
                   begin
@@ -498,7 +519,7 @@ interface
                     cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_16,
                        right.location.value,left.location.register,location.register);
                     cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,
-                       GetNextReg(left.location.register),GetNextReg(location.register));
+                       cg.GetNextReg(left.location.register),cg.GetNextReg(location.register));
                   end;
               end
             else
@@ -510,7 +531,7 @@ interface
                 cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_16,
                   right.location.register,tmpreg,location.register);
                 cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,
-                   GetNextReg(tmpreg),GetNextReg(location.register));
+                   cg.GetNextReg(tmpreg),cg.GetNextReg(location.register));
               end;
           end;
       end;
@@ -518,6 +539,8 @@ interface
 
     procedure ti8086addnode.second_cmp64bit;
       var
+        truelabel,
+        falselabel : tasmlabel;
         hregister,
         hregister2 : tregister;
         href       : treference;
@@ -529,17 +552,14 @@ interface
            oldnodetype : tnodetype;
 
         begin
-{$ifdef OLDREGVARS}
-           load_all_regvars(current_asmdata.CurrAsmList);
-{$endif OLDREGVARS}
            { the jump the sequence is a little bit hairy }
            case nodetype of
               ltn,gtn:
                 begin
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrTrueLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.truelabel);
                    { cheat a little bit for the negative test }
                    toggleflag(nf_swapped);
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrFalseLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.falselabel);
                    toggleflag(nf_swapped);
                 end;
               lten,gten:
@@ -549,19 +569,21 @@ interface
                      nodetype:=ltn
                    else
                      nodetype:=gtn;
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrTrueLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.truelabel);
                    { cheat for the negative test }
                    if nodetype=ltn then
                      nodetype:=gtn
                    else
                      nodetype:=ltn;
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrFalseLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.falselabel);
                    nodetype:=oldnodetype;
                 end;
               equaln:
-                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrFalseLabel);
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.falselabel);
               unequaln:
-                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrTrueLabel);
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.truelabel);
+              else
+                internalerror(2019051024);
            end;
         end;
 
@@ -571,19 +593,16 @@ interface
            oldnodetype : tnodetype;
 
         begin
-{$ifdef OLDREGVARS}
-           load_all_regvars(current_asmdata.CurrAsmList);
-{$endif OLDREGVARS}
            { the jump the sequence is a little bit hairy }
            case nodetype of
               ltn,gtn:
                 begin
                    { the comparisaion of the low word have to be }
                    {  always unsigned!                           }
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),current_procinfo.CurrTrueLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),location.truelabel);
                    { cheat a little bit for the negative test }
                    toggleflag(nf_swapped);
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),current_procinfo.CurrFalseLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),location.falselabel);
                    toggleflag(nf_swapped);
                 end;
               lten,gten:
@@ -593,19 +612,21 @@ interface
                      nodetype:=ltn
                    else
                      nodetype:=gtn;
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),current_procinfo.CurrTrueLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),location.truelabel);
                    { cheat for the negative test }
                    if nodetype=ltn then
                      nodetype:=gtn
                    else
                      nodetype:=ltn;
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),current_procinfo.CurrFalseLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),location.falselabel);
                    nodetype:=oldnodetype;
                 end;
               equaln:
-                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrFalseLabel);
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.falselabel);
               unequaln:
-                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrTrueLabel);
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.truelabel);
+              else
+                internalerror(2019051023);
            end;
         end;
 
@@ -618,29 +639,38 @@ interface
                 begin
                    { the comparisaion of the low word have to be }
                    {  always unsigned!                           }
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),current_procinfo.CurrTrueLabel);
-                   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),location.truelabel);
+                   cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
                 end;
               equaln:
                 begin
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrFalseLabel);
-                   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.falselabel);
+                   cg.a_jmp_always(current_asmdata.CurrAsmList,location.truelabel);
                 end;
               unequaln:
                 begin
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrTrueLabel);
-                   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.truelabel);
+                   cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
                 end;
+              else
+                internalerror(2019051022);
            end;
         end;
 
       begin
+        truelabel:=nil;
+        falselabel:=nil;
         pass_left_right;
 
         unsigned:=((left.resultdef.typ=orddef) and
                    (torddef(left.resultdef).ordtype=u64bit)) or
                   ((right.resultdef.typ=orddef) and
                    (torddef(right.resultdef).ordtype=u64bit));
+
+        { we have LOC_JUMP as result }
+        current_asmdata.getjumplabel(truelabel);
+        current_asmdata.getjumplabel(falselabel);
+        location_reset_jump(location,truelabel,falselabel);
 
         { left and right no register?  }
         { then one must be demanded    }
@@ -670,11 +700,11 @@ interface
         { at this point, left.location.loc should be LOC_REGISTER }
         if right.location.loc=LOC_REGISTER then
          begin
-           emit_reg_reg(A_CMP,S_W,GetNextReg(right.location.register64.reghi),GetNextReg(left.location.register64.reghi));
+           emit_reg_reg(A_CMP,S_W,cg.GetNextReg(right.location.register64.reghi),cg.GetNextReg(left.location.register64.reghi));
            firstjmp64bitcmp;
            emit_reg_reg(A_CMP,S_W,right.location.register64.reghi,left.location.register64.reghi);
            middlejmp64bitcmp;
-           emit_reg_reg(A_CMP,S_W,GetNextReg(right.location.register64.reglo),GetNextReg(left.location.register64.reglo));
+           emit_reg_reg(A_CMP,S_W,cg.GetNextReg(right.location.register64.reglo),cg.GetNextReg(left.location.register64.reglo));
            middlejmp64bitcmp;
            emit_reg_reg(A_CMP,S_W,right.location.register64.reglo,left.location.register64.reglo);
            lastjmp64bitcmp;
@@ -684,11 +714,11 @@ interface
            case right.location.loc of
              LOC_CREGISTER :
                begin
-                 emit_reg_reg(A_CMP,S_W,GetNextReg(right.location.register64.reghi),GetNextReg(left.location.register64.reghi));
+                 emit_reg_reg(A_CMP,S_W,cg.GetNextReg(right.location.register64.reghi),cg.GetNextReg(left.location.register64.reghi));
                  firstjmp64bitcmp;
                  emit_reg_reg(A_CMP,S_W,right.location.register64.reghi,left.location.register64.reghi);
                  middlejmp64bitcmp;
-                 emit_reg_reg(A_CMP,S_W,GetNextReg(right.location.register64.reglo),GetNextReg(left.location.register64.reglo));
+                 emit_reg_reg(A_CMP,S_W,cg.GetNextReg(right.location.register64.reglo),cg.GetNextReg(left.location.register64.reglo));
                  middlejmp64bitcmp;
                  emit_reg_reg(A_CMP,S_W,right.location.register64.reglo,left.location.register64.reglo);
                  lastjmp64bitcmp;
@@ -699,26 +729,26 @@ interface
                  tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,right.location.reference);
                  href:=right.location.reference;
                  inc(href.offset,6);
-                 emit_ref_reg(A_CMP,S_W,href,GetNextReg(left.location.register64.reghi));
+                 emit_ref_reg(A_CMP,S_W,href,cg.GetNextReg(left.location.register64.reghi));
                  firstjmp64bitcmp;
                  dec(href.offset,2);
                  emit_ref_reg(A_CMP,S_W,href,left.location.register64.reghi);
                  middlejmp64bitcmp;
                  dec(href.offset,2);
-                 emit_ref_reg(A_CMP,S_W,href,GetNextReg(left.location.register64.reglo));
+                 emit_ref_reg(A_CMP,S_W,href,cg.GetNextReg(left.location.register64.reglo));
                  middlejmp64bitcmp;
                  emit_ref_reg(A_CMP,S_W,right.location.reference,left.location.register64.reglo);
                  lastjmp64bitcmp;
-                 cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                 cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
                  location_freetemp(current_asmdata.CurrAsmList,right.location);
                end;
              LOC_CONSTANT :
                begin
-                 current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint((right.location.value64 shr 48) and $FFFF),GetNextReg(left.location.register64.reghi)));
+                 current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint((right.location.value64 shr 48) and $FFFF),cg.GetNextReg(left.location.register64.reghi)));
                  firstjmp64bitcmp;
                  current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint((right.location.value64 shr 32) and $FFFF),left.location.register64.reghi));
                  middlejmp64bitcmp;
-                 current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint((right.location.value64 shr 16) and $FFFF),GetNextReg(left.location.register64.reglo)));
+                 current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint((right.location.value64 shr 16) and $FFFF),cg.GetNextReg(left.location.register64.reglo)));
                  middlejmp64bitcmp;
                  current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint(right.location.value64 and $FFFF),left.location.register64.reglo));
                  lastjmp64bitcmp;
@@ -727,13 +757,12 @@ interface
                internalerror(200203282);
            end;
          end;
-
-        { we have LOC_JUMP as result }
-        location_reset(location,LOC_JUMP,OS_NO)
       end;
 
     procedure ti8086addnode.second_cmp32bit;
       var
+        truelabel,
+        falselabel: tasmlabel;
         hregister : tregister;
         href      : treference;
         unsigned  : boolean;
@@ -744,17 +773,14 @@ interface
            oldnodetype : tnodetype;
 
         begin
-{$ifdef OLDREGVARS}
-           load_all_regvars(current_asmdata.CurrAsmList);
-{$endif OLDREGVARS}
            { the jump the sequence is a little bit hairy }
            case nodetype of
               ltn,gtn:
                 begin
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrTrueLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.truelabel);
                    { cheat a little bit for the negative test }
                    toggleflag(nf_swapped);
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrFalseLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.falselabel);
                    toggleflag(nf_swapped);
                 end;
               lten,gten:
@@ -764,19 +790,21 @@ interface
                      nodetype:=ltn
                    else
                      nodetype:=gtn;
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrTrueLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.truelabel);
                    { cheat for the negative test }
                    if nodetype=ltn then
                      nodetype:=gtn
                    else
                      nodetype:=ltn;
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrFalseLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.falselabel);
                    nodetype:=oldnodetype;
                 end;
               equaln:
-                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrFalseLabel);
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.falselabel);
               unequaln:
-                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrTrueLabel);
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.truelabel);
+              else
+                internalerror(2019051021);
            end;
         end;
 
@@ -789,23 +817,27 @@ interface
                 begin
                    { the comparisaion of the low dword have to be }
                    {  always unsigned!                            }
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),current_procinfo.CurrTrueLabel);
-                   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),location.truelabel);
+                   cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
                 end;
               equaln:
                 begin
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrFalseLabel);
-                   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.falselabel);
+                   cg.a_jmp_always(current_asmdata.CurrAsmList,location.truelabel);
                 end;
               unequaln:
                 begin
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrTrueLabel);
-                   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.truelabel);
+                   cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
                 end;
+              else
+                internalerror(2019051020);
            end;
         end;
 
       begin
+        truelabel:=nil;
+        falselabel:=nil;
         pass_left_right;
 
         unsigned:=((left.resultdef.typ=orddef) and
@@ -813,6 +845,11 @@ interface
                   ((right.resultdef.typ=orddef) and
                    (torddef(right.resultdef).ordtype=u32bit)) or
                   is_hugepointer(left.resultdef);
+
+        { we have LOC_JUMP as result }
+        current_asmdata.getjumplabel(truelabel);
+        current_asmdata.getjumplabel(falselabel);
+        location_reset_jump(location,truelabel,falselabel);
 
         { left and right no register?  }
         { then one must be demanded    }
@@ -840,7 +877,7 @@ interface
         { at this point, left.location.loc should be LOC_REGISTER }
         if right.location.loc=LOC_REGISTER then
          begin
-           emit_reg_reg(A_CMP,S_W,GetNextReg(right.location.register),GetNextReg(left.location.register));
+           emit_reg_reg(A_CMP,S_W,cg.GetNextReg(right.location.register),cg.GetNextReg(left.location.register));
            firstjmp32bitcmp;
            emit_reg_reg(A_CMP,S_W,right.location.register,left.location.register);
            secondjmp32bitcmp;
@@ -850,7 +887,7 @@ interface
            case right.location.loc of
              LOC_CREGISTER :
                begin
-                 emit_reg_reg(A_CMP,S_W,GetNextReg(right.location.register),GetNextReg(left.location.register));
+                 emit_reg_reg(A_CMP,S_W,cg.GetNextReg(right.location.register),cg.GetNextReg(left.location.register));
                  firstjmp32bitcmp;
                  emit_reg_reg(A_CMP,S_W,right.location.register,left.location.register);
                  secondjmp32bitcmp;
@@ -861,28 +898,33 @@ interface
                  tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,right.location.reference);
                  href:=right.location.reference;
                  inc(href.offset,2);
-                 emit_ref_reg(A_CMP,S_W,href,GetNextReg(left.location.register));
+                 emit_ref_reg(A_CMP,S_W,href,cg.GetNextReg(left.location.register));
                  firstjmp32bitcmp;
                  dec(href.offset,2);
                  emit_ref_reg(A_CMP,S_W,href,left.location.register);
                  secondjmp32bitcmp;
-                 cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                 cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
                  location_freetemp(current_asmdata.CurrAsmList,right.location);
                end;
              LOC_CONSTANT :
                begin
-                 current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint((right.location.value shr 16) and $FFFF),GetNextReg(left.location.register)));
-                 firstjmp32bitcmp;
-                 current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint(right.location.value and $FFFF),left.location.register));
-                 secondjmp32bitcmp;
+                 if (right.location.value=0) and (nodetype in [equaln,unequaln]) and (left.location.loc=LOC_REGISTER) then
+                   begin
+                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_OR,S_W,cg.GetNextReg(left.location.register),left.location.register));
+                     secondjmp32bitcmp;
+                   end
+                 else
+                   begin
+                     current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint((right.location.value shr 16) and $FFFF),cg.GetNextReg(left.location.register)));
+                     firstjmp32bitcmp;
+                     current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_W,aint(right.location.value and $FFFF),left.location.register));
+                     secondjmp32bitcmp;
+                   end;
                end;
              else
-               internalerror(200203282);
+               internalerror(2002032801);
            end;
          end;
-
-        { we have LOC_JUMP as result }
-        location_reset(location,LOC_JUMP,OS_NO)
       end;
 
 
@@ -955,20 +997,23 @@ interface
         ref:Treference;
         use_ref:boolean;
         hl4 : tasmlabel;
+        overflowcheck: boolean;
 
     const
       asmops: array[boolean] of tasmop = (A_IMUL, A_MUL);
 
     begin
       reg:=NR_NO;
-      reference_reset(ref,sizeof(pint));
+      reference_reset(ref,sizeof(pint),[]);
 
       pass_left_right;
+
+      overflowcheck:=needoverflowcheck;
 
       { MUL is faster than IMUL on the 8086 & 8088 (and equal in speed on 286+),
         but it's only safe to use in place of IMUL when overflow checking is off
         and we're doing a 16-bit>16-bit multiplication }
-      if not (cs_check_overflow in current_settings.localswitches) and
+      if not overflowcheck and
         (not is_32bitint(resultdef)) then
         unsigned:=true;
 
@@ -997,16 +1042,23 @@ interface
       hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,NR_AX);
       {Also allocate DX, since it is also modified by a mul (JM).}
       cg.getcpuregister(current_asmdata.CurrAsmList,NR_DX);
+
+      if overflowcheck and
+        { 16->32 bit cannot overflow }
+        (not is_32bitint(resultdef)) then
+        cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+
       if use_ref then
         emit_ref(asmops[unsigned],S_W,ref)
       else
         emit_reg(asmops[unsigned],S_W,reg);
-      if (cs_check_overflow in current_settings.localswitches) and
+      if overflowcheck and
         { 16->32 bit cannot overflow }
         (not is_32bitint(resultdef)) then
         begin
           current_asmdata.getjumplabel(hl4);
           cg.a_jmp_flags(current_asmdata.CurrAsmList,F_AE,hl4);
+          cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
           cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
           cg.a_label(current_asmdata.CurrAsmList,hl4);
         end;
@@ -1017,7 +1069,7 @@ interface
         {Allocate an imaginary 32-bit register, which consists of a pair of
          16-bit registers and store DX:AX into it}
         location.register := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_DX,GetNextReg(location.register));
+        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_DX,cg.GetNextReg(location.register));
         cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_AX);
         cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_AX,location.register);
       end

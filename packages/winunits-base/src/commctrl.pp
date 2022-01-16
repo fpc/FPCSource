@@ -75,6 +75,7 @@ CONST CommCtrlDLL = 'comctl32.dll';
 
 {$ifdef win64}
   {$define _win32}
+  {$define _win64}
 {$endif win64}
 
 {$DEFINE WIN32_WINNT=0}                     // NO XP
@@ -750,7 +751,7 @@ CONST
          ILP_DOWNLEVEL                  = 1;                  // Write or reads the stream using downlevel sematics.
 
 
-function ImageList_ReadEx(dwFlags:DWORD;pstm:ISTREAM;riid:REFIID;ppv:PPointer):HRESULT; stdcall; external commctrldll name 'ImageList_ReadEx';
+function ImageList_ReadEx(dwFlags:DWORD;pstm:ISTREAM;constref riid:REFIID;ppv:PPointer):HRESULT; stdcall; external commctrldll name 'ImageList_ReadEx';
 function ImageList_WriteEx(himl:HIMAGELIST;dwFlags:DWORD;pstm:ISTREAM):HRESULT; stdcall; external commctrldll name 'ImageList_WriteEx';
 {$ENDIF}
 
@@ -2450,9 +2451,6 @@ TYPE
 
          LPCREBARBANDINFOA    = ^REBARBANDINFOA;
 
-// #define REBARBANDINFOA_V3_SIZE CCSIZEOF_STRUCT(REBARBANDINFOA, wID)
-// #define REBARBANDINFOW_V3_SIZE CCSIZEOF_STRUCT(REBARBANDINFOW, wID)
-
          tagREBARBANDINFOW    = Record
                                  cbSize       : UINT;
                                  fMask        : UINT;
@@ -2489,12 +2487,17 @@ TYPE
 
          LPCREBARBANDINFOW    = {const} ^REBARBANDINFOW;
 
+Const
+         REBARBANDINFOA_V3_SIZE = SIZEOF(REBARBANDINFOA);
+         REBARBANDINFOW_V3_SIZE = SIZEOF(REBARBANDINFOW);
+
+Type
+
 {$IFDEF UNICODE}
          REBARBANDINFO       = REBARBANDINFOW;
          LPREBARBANDINFO     = LPREBARBANDINFOW;
          LPCREBARBANDINFO    = LPCREBARBANDINFOW;
 
-//         REBARBANDINFO_V3_SIZE          = REBARBANDINFOW_V3_SIZE;
 {$ELSE}
 
          REBARBANDINFO       = REBARBANDINFOA;
@@ -2504,10 +2507,16 @@ TYPE
          TRebarBandInfo      = REBARBANDINFO;
          PRebarBandInfo      = ^LPREBARBANDINFO;
 
-//         REBARBANDINFO_V3_SIZE          = REBARBANDINFOA_V3_SIZE;
+
 {$ENDIF}
 
 CONST
+         {$IFDEF UNICODE}
+         REBARBANDINFO_V3_SIZE          = REBARBANDINFOW_V3_SIZE;
+         {$ELSE}
+         REBARBANDINFO_V3_SIZE          = REBARBANDINFOA_V3_SIZE;
+         {$ENDIF}
+
          RB_INSERTBANDA                 = (WM_USER +  1);
          RB_DELETEBAND                  = (WM_USER +  2);
          RB_GETBARINFO                  = (WM_USER +  3);
@@ -8414,7 +8423,7 @@ TYPE
 CONST
          MCN_GETDAYSTATE                = (MCN_FIRST + 3);
 
-// MCN_SELECT is sent whenever a selection has occured (via mouse or keyboard)
+// MCN_SELECT is sent whenever a selection has occurred (via mouse or keyboard)
 //
 TYPE
 

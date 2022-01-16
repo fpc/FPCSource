@@ -13,10 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('fastcgi');
+    P.ShortName := 'fcgi';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
 
     P.Author := 'FreePascal development team';
     P.License := 'LGPL with modification, ';
@@ -24,7 +25,7 @@ begin
     P.Email := '';
     P.Description := 'FastCGI header translation to Pascal';
     P.NeedLibC:= false;
-    P.OSes := AllUnixOSes+AllWindowsOSes-[qnx]+[amiga,aros];
+    P.OSes := AllUnixOSes+AllWindowsOSes+AllAmigaLikeOSes-[qnx];
 
     P.SourcePath.Add('src');
 

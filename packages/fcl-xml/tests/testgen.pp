@@ -932,7 +932,7 @@ begin
       try
         ConvertTest(root, sl);
       except
-        Writeln('An exception occured while converting ', casename);
+        Writeln('An exception occurred while converting ', casename);
         raise;
       end;
       if sl.Count > 0 then

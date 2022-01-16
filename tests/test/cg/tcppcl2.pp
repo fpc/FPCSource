@@ -1,8 +1,13 @@
+{ %FILES=cpptcl2.o }
 { Test the C++ class renaming }
 program tcppcl2;
 
 {$mode objfpc}
 {$L cpptcl2.o}
+{$ifdef openbsd}
+  {$linklib stdc++}
+  {$linklib c}
+{$endif}
 
 type
   TestClass = cppclass external

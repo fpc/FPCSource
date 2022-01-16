@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -32,14 +32,12 @@
       <local>
         <FormatVersion Value="1"/>
         <CommandLineParams Value="http://home/~michael/redirect.cgi out"/>
-        <LaunchingApplication PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
     <Units Count="1">
       <Unit0>
         <Filename Value="httpget.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="httpget"/>
       </Unit0>
     </Units>
   </ProjectOptions>
@@ -48,12 +46,6 @@
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
     </SearchPaths>
-    <Other>
-      <CompilerMessages>
-        <UseMsgFile Value="True"/>
-      </CompilerMessages>
-      <CompilerPath Value="$(CompPath)"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">

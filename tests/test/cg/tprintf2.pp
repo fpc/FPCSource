@@ -4,7 +4,7 @@
 {$mode objfpc}
 
 uses
-  strings;
+  strings, ctypes;
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 {$define TEST_EXTENDED}
@@ -14,6 +14,11 @@ uses
   {it seems that BeOS doesn't support extended...}
   {$undef TEST_EXTENDED}
 {$endif beos}
+
+{$if defined(cpux86_64) and defined(android) and (sizeof(clongdouble)<>16)}
+  // On x86_64-android long double is 128-bit. There is no support for 128-bit floats in FPC yet.
+  {$undef TEST_EXTENDED}
+{$endif}
 
 {$ifdef WINDOWS}
 const
@@ -54,7 +59,7 @@ const
   s2 : pchar = 'next';
   si : single = 32.12;
   d : double = 45.45;
-  e : extended = 74.74;
+  e : cextended = 74.74;
   p : pchar = nil;
   has_errors : boolean = false;
 

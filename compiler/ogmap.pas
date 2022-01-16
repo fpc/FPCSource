@@ -27,24 +27,25 @@ interface
 
     uses
        { common }
-       cclasses,globtype,systems,
+       globtype,
        { object writer }
-       aasmbase,ogbase
+       ogbase
        ;
 
     type
        texemap = class
        private
          t : text;
-         FImageBase : aword;
+         FImageBase : qword;
        public
          constructor Create(const s:string);
          destructor Destroy;override;
+         procedure Flush;
          procedure Add(const s:string);
          procedure AddHeader(const s:string);
          procedure AddCommonSymbolsHeader;
          procedure AddCommonSymbol(p:TObjSymbol);
-         procedure AddMemoryMapHeader(abase:aint);
+         procedure AddMemoryMapHeader(abase:qword);
          procedure AddMemoryMapExeSection(p:texesection);
          procedure AddMemoryMapObjectSection(p:TObjSection);
          procedure AddMemoryMapSymbol(p:TObjSymbol);
@@ -57,14 +58,12 @@ interface
 implementation
 
     uses
-      cutils,cfileutl,
-      globals,verbose;
-
+      cutils,cfileutl;
 
     const
       HexTbl : array[0..15] of char='0123456789abcdef';
 
-    function sizestr(v:aword):string;
+    function sizestr(v:qword):string;
       var
         tmp:array [0..19] of char;
         i:longint;
@@ -113,6 +112,12 @@ implementation
        end;
 
 
+     procedure TExeMap.Flush;
+       begin
+         System.Flush(t);
+       end;
+
+
      procedure TExeMap.Add(const s:string);
        begin
          writeln(t,s);
@@ -149,7 +154,7 @@ implementation
        end;
 
 
-     procedure TExeMap.AddMemoryMapHeader(abase:aint);
+     procedure TExeMap.AddMemoryMapHeader(abase:qword);
        var
          imagebasestr : string;
        begin
@@ -166,7 +171,7 @@ implementation
      procedure TExeMap.AddMemoryMapExeSection(p:texesection);
        begin
          { .text           0x000018a8     0xd958 }
-         Add(PadSpace(p.name,15)+PadSpace(' 0x'+HexStr(p.mempos+Fimagebase,sizeof(pint)*2),12)+
+         Add(PadSpace(p.name,15)+PadSpace(' '+p.MemPosStr(Fimagebase),12)+
              ' '+PadSpaceLeft(sizestr(p.size),9));
        end;
 
@@ -182,7 +187,7 @@ implementation
              Add(' '+secname);
              secname:='';
            end;
-         Add(' '+PadSpace(secname,14)+PadSpace(' 0x'+HexStr(p.mempos+FImageBase,sizeof(pint)*2),12)+
+         Add(' '+PadSpace(secname,14)+PadSpace(' '+p.MemPosStr(FImageBase),12)+
              ' '+PadSpaceLeft(sizestr(p.size),9)+' '+p.objdata.name);
        end;
 
@@ -190,7 +195,7 @@ implementation
      procedure TExeMap.AddMemoryMapSymbol(p:TObjSymbol);
        begin
          {                 0x00001e30                setup_screens }
-         Add(Space(16)+PadSpace('0x'+HexStr(p.address+Fimagebase,sizeof(pint)*2),25)+' '+p.name);
+         Add(Space(16)+PadSpace(p.AddressStr(FImageBase),25)+' '+p.name);
        end;
 
 end.

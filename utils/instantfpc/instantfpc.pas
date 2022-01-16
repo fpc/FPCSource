@@ -14,8 +14,8 @@
 
   A copy of the GNU General Public License is available on the World Wide Web
   at <http://www.gnu.org/copyleft/gpl.html>. You can also obtain it by writing
-  to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-  MA 02111-1307, USA.
+  to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+  MA 02110-1301, USA.
 }
 program instantfpc;
 
@@ -29,9 +29,11 @@ const
   // 1.3 compile in a separate directory, so that parallel invocations do not overwrite link.res files
 
 
-Procedure Usage;
+Procedure Usage(Err : string);
 
 begin
+  if (Err<>'') then
+    Writeln('Error : ',Err);
   writeln('instantfpc '+Version);
   writeln;
   writeln('Run pascal source files as scripts.');
@@ -63,6 +65,8 @@ begin
   writeln;
   writeln('Options:');
   writeln;
+  writeln('  --');
+  Writeln('      Read program from standard input');
   writeln('  --set-cache=<path to cache>');
   writeln('      Set the cache to be used. Otherwise using environment variable');
   writeln('      INSTANTFPCCACHE.');
@@ -76,7 +80,7 @@ begin
   writeln;
   writeln('  -B');
   writeln('      Always recompile.');
-  Halt(0);
+  Halt(Ord(Err<>''));
 end;
 
 Procedure DisplayCache;
@@ -93,7 +97,8 @@ var
   CacheDir: String;
   CacheFilename: String;
   OutputFilename: String;
-  E : String;
+  S,E : String;
+  DeleteCache : Boolean = False;
   RunIt: boolean = true;
   
 // Return true if filename found.
@@ -108,7 +113,7 @@ begin
     Halt(1);
     end
   else if p='-h' then 
-    usage
+    usage('')
   else if p='--get-cache' then 
     DisplayCache
   else if copy(p,1,11)='--compiler=' then 
@@ -128,6 +133,11 @@ begin
   else if (P<>'') and (p[1]<>'-') then
     begin
     Filename:=p;
+    Result:=True;
+    end
+  else if (p='--') then
+    begin
+    Filename:='--';
     Result:=True;
     end;
 end;
@@ -167,15 +177,22 @@ begin
       end;  
   end;
   if (Filename='') then 
-    begin
-    writeln('missing source file');
-    Halt(1);
-    end;
+    Usage('Missing source file');
   CheckSourceName(Filename);
-
   Src:=TStringList.Create;
   try
-    Src.LoadFromFile(Filename);
+    if FileName<>'--' then
+      Src.LoadFromFile(Filename)
+    else  
+      begin
+      While not EOF do 
+        begin
+        Readln(S);
+        Src.Add(S);
+        end;
+      FileName:=ChangeFileExt(GetTempFileName,'.pp');  
+      DeleteCache:=true;
+      end;  
     CommentShebang(Src);
     CacheDir:=GetCacheDir;
 
@@ -189,10 +206,14 @@ begin
       // save source in cache to find out next time if something changed
       Src.SaveToFile(CacheFilename);
       Compile(Filename,CacheFilename,OutputFilename);
+      if deleteCache then
+        DeleteFile(CacheFileName);
     end;
     // run
     if RunIt then
       Run(OutputFilename);
+    if DeleteCache then
+      DeleteFile(OutputFileName);  
   finally
     // memory is freed by OS, but for debugging puposes you can do it manually
     {$IFDEF IFFreeMem}

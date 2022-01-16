@@ -47,7 +47,7 @@ type
     procedure WriteBool(const AName: string; AValue: boolean); override;
     procedure WriteNull(const AName: string); override;
   public
-    constructor Create(var OutFile: Text); override;
+    constructor Create(OutFileHandle: THandle); override;
     procedure IncI; override;
     procedure DecI; override;
   end;
@@ -214,9 +214,9 @@ begin
   Write('}');
 end;
 
-constructor TPpuJsonOutput.Create(var OutFile: Text);
+constructor TPpuJsonOutput.Create(OutFileHandle: THandle);
 begin
-  inherited Create(OutFile);
+  inherited Create(OutFileHandle);
   SetLength(FNeedDelim, 10);
   FNeedDelim[0]:=False;
 end;

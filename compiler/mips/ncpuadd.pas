@@ -36,7 +36,7 @@ type
   private
     procedure cmp64_lt(left_reg, right_reg: TRegister64;unsigned:boolean);
     procedure cmp64_le(left_reg, right_reg: TRegister64;unsigned:boolean);
-    procedure second_generic_cmp32(unsigned: boolean);
+    procedure second_generic_cmp32(unsigned,is_smallset: boolean);
     procedure second_mul64bit;
   protected
     procedure second_addfloat; override;
@@ -72,18 +72,31 @@ uses
                                tmipsaddnode
 *****************************************************************************}
 
-procedure tmipsaddnode.second_generic_cmp32(unsigned: boolean);
+procedure tmipsaddnode.second_generic_cmp32(unsigned,is_smallset: boolean);
 var
   cond: TOpCmp;
+  allow_constant : boolean;
+  dreg : tregister;
 begin
   pass_left_right;
-  force_reg_left_right(True, True);
+  allow_constant:=(not is_smallset) or not (nodetype in [lten,gten]);
+  force_reg_left_right(True, allow_constant);
   location_reset(location,LOC_FLAGS,OS_NO);
 
   cond:=cmpnode2topcmp(unsigned);
   if nf_swapped in flags then
     cond:=swap_opcmp(cond);
 
+  if is_smallset and (nodetype in [lten,gten]) then
+    begin
+      if ((nodetype=lten) and not (nf_swapped in flags)) or
+         ((nodetype=gten) and (nf_swapped in flags)) then
+        dreg:=right.location.register
+      else
+        dreg:=left.location.register;
+      current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(A_AND,dreg,right.location.register,left.location.register));
+      cond:=OC_EQ;
+    end;
   location.resflags.cond:=cond;
   location.resflags.reg1:=left.location.register;
   location.resflags.use_const:=(right.location.loc=LOC_CONSTANT);
@@ -108,28 +121,33 @@ const
 
 procedure tmipsaddnode.cmp64_lt(left_reg, right_reg: TRegister64;unsigned: boolean);
 begin
-  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cmpops[unsigned],right_reg.reghi,left_reg.reghi,current_procinfo.CurrTrueLabel);
-  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,current_procinfo.CurrFalseLabel);
-  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_B,right_reg.reglo,left_reg.reglo,current_procinfo.CurrTrueLabel);
-  cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cmpops[unsigned],right_reg.reghi,left_reg.reghi,location.truelabel);
+  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,location.falselabel);
+  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_B,right_reg.reglo,left_reg.reglo,location.truelabel);
+  cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
 end;
 
 
 procedure tmipsaddnode.cmp64_le(left_reg, right_reg: TRegister64;unsigned: boolean);
 begin
-  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cmpops[unsigned],left_reg.reghi,right_reg.reghi,current_procinfo.CurrFalseLabel);
-  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,current_procinfo.CurrTrueLabel);
-  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_B,left_reg.reglo,right_reg.reglo,current_procinfo.CurrFalseLabel);
-  cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cmpops[unsigned],left_reg.reghi,right_reg.reghi,location.falselabel);
+  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,location.truelabel);
+  cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_B,left_reg.reglo,right_reg.reglo,location.falselabel);
+  cg.a_jmp_always(current_asmdata.CurrAsmList,location.truelabel);
 end;
 
 
 procedure tmipsaddnode.second_cmp64bit;
 var
+  truelabel,
+  falselabel: tasmlabel;
   unsigned: boolean;
   left_reg,right_reg: TRegister64;
 begin
-  location_reset(location, LOC_JUMP, OS_NO);
+  current_asmdata.getjumplabel(truelabel);
+  current_asmdata.getjumplabel(falselabel);
+  location_reset_jump(location,truelabel,falselabel);
+
   pass_left_right;
   force_reg_left_right(true,true);
 
@@ -160,15 +178,15 @@ begin
   case NodeType of
     equaln:
       begin
-        cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,current_procinfo.CurrFalseLabel);
-        cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reglo,right_reg.reglo,current_procinfo.CurrFalseLabel);
-        cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+        cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,location.falselabel);
+        cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reglo,right_reg.reglo,location.falselabel);
+        cg.a_jmp_always(current_asmdata.CurrAsmList,location.truelabel);
       end;
     unequaln:
       begin
-        cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,current_procinfo.CurrTrueLabel);
-        cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reglo,right_reg.reglo,current_procinfo.CurrTrueLabel);
-        cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+        cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reghi,right_reg.reghi,location.truelabel);
+        cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,left_reg.reglo,right_reg.reglo,location.truelabel);
+        cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
       end;
   else
     if nf_swapped in flags then
@@ -181,6 +199,8 @@ begin
           cmp64_lt(left_reg, right_reg,unsigned);
         gten:
           cmp64_le(left_reg, right_reg,unsigned);
+        else
+          internalerror(2019051034);
       end
     else
       case NodeType of
@@ -192,6 +212,8 @@ begin
           cmp64_lt(right_reg, left_reg,unsigned);
         gten:
           cmp64_le(right_reg, left_reg,unsigned);
+        else
+          internalerror(2019051033);
       end;
   end;
 end;
@@ -262,7 +284,6 @@ procedure tmipsaddnode.second_cmpfloat;
 var
   op: tasmop;
   lreg,rreg: tregister;
-  ai: Taicpu;
 begin
   pass_left_right;
   if nf_swapped in flags then
@@ -296,13 +317,13 @@ end;
 
 procedure tmipsaddnode.second_cmpboolean;
 begin
-  second_generic_cmp32(true);
+  second_generic_cmp32(true,false);
 end;
 
 
 procedure tmipsaddnode.second_cmpsmallset;
 begin
-  second_generic_cmp32(true);
+  second_generic_cmp32(true,true);
 end;
 
 
@@ -311,7 +332,7 @@ var
   unsigned: boolean;
 begin
   unsigned := not (is_signed(left.resultdef)) or not (is_signed(right.resultdef));
-  second_generic_cmp32(unsigned);
+  second_generic_cmp32(unsigned,false);
 end;
 
 
@@ -418,7 +439,7 @@ end;
 
 function tmipsaddnode.use_generic_mul64bit: boolean;
 begin
-  result:=(cs_check_overflow in current_settings.localswitches) or
+  result:=needoverflowcheck or
     (not (CPUMIPS_HAS_ISA32R2 in cpu_capabilities[current_settings.cputype]));
 end;
 

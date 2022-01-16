@@ -1,55 +1,23 @@
-{ Parsed from Webkit.framework DOMXPathExpression.h }
+{ Parsed from WebKit.framework DOMXPathExpression.h }
+
 
 {$ifdef TYPES}
-{$ifndef DOMXPATHEXPRESSION_PAS_T}
-{$define DOMXPATHEXPRESSION_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef DOMXPATHEXPRESSION_PAS_R}
-{$define DOMXPATHEXPRESSION_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef DOMXPATHEXPRESSION_PAS_F}
-{$define DOMXPATHEXPRESSION_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef DOMXPATHEXPRESSION_PAS_S}
-{$define DOMXPATHEXPRESSION_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  DOMXPathExpression = objcclass;
-  DOMXPathExpressionPointer = ^DOMXPathExpression;
-  DOMXPathExpressionPtr = DOMXPathExpressionPointer;
-
+type
+  DOMXPathExpressionPtr = ^DOMXPathExpression;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef DOMXPATHEXPRESSION_PAS_C}
-{$define DOMXPATHEXPRESSION_PAS_C}
 
-{ DOMXPathExpression }
+type
   DOMXPathExpression = objcclass external (DOMObject)
-    
   public
-    function evaluate_type_inResult(contextNode: DOMNode; type_: cushort; inResult: DOMXPathResult): DOMXPathResult; message 'evaluate:type:inResult:';
+    function evaluate_type_inResult (contextNode: DOMNode; type_: cushort; inResult: DOMXPathResult): DOMXPathResult; message 'evaluate:type:inResult:'; { available in 10_5 }
   end;
 
-{ DOMXPathExpressionDeprecatedCategory }
-  DOMXPathExpressionDeprecatedCategory = objccategory external (DOMXPathExpression)
-    function evaluate(contextNode: DOMNode; type_: cushort; inResult: DOMXPathResult): DOMXPathResult; message 'evaluate:contextNode:type:';
-  end;
 
+type
+  DOMXPathExpressionDeprecated = objccategory external (DOMXPathExpression)
+    function evaluate_type (contextNode: DOMNode; inResult: DOMXPathResult): DOMXPathResult; message 'evaluate:type:'; deprecated 'in 10_5, 10_5';
+  end;
 {$endif}
-{$endif}
+

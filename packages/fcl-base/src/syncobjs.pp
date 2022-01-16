@@ -28,6 +28,10 @@ const
   INFINITE = Cardinal(-1);
 
 type
+   ESyncObjectException = Class(Exception);
+   ELockException = Class(ESyncObjectException);
+   ELockRecursionException = Class(ESyncObjectException);
+   
    TWaitResult = (wrSignaled, wrTimeout, wrAbandoned, wrError);
 
    TSynchroObject = class(TObject)
@@ -48,7 +52,7 @@ type
       destructor Destroy;override;
    end;
 
-   THandleObject = class(TSynchroObject)
+   THandleObject = class abstract  (TSynchroObject)
    protected
       FHandle : TEventHandle;
       FLastError : Integer;
@@ -78,6 +82,9 @@ type
    end;
 
 implementation
+
+Resourcestring
+  SErrEventCreateFailed = 'Failed to create OS basic event with name "%s"'; 
 
 { ---------------------------------------------------------------------
     Real syncobjs implementation
@@ -150,6 +157,8 @@ constructor TEventObject.Create(EventAttributes : PSecurityAttributes;
 
 begin
   FHandle := BasicEventCreate(EventAttributes, AManualReset, InitialState, Name);
+  if (FHandle=Nil) then
+    Raise ESyncObjectException.CreateFmt(SErrEventCreateFailed,[Name]);
   FManualReset:=AManualReset;
 end;
 
@@ -180,7 +189,11 @@ begin
 {$IFDEF OS2}
     FLastError := PLocalEventRec (Handle)^.FLastError;
 {$ELSE OS2}
+  {$if defined(getlastoserror)}
     FLastError := GetLastOSError;
+  {$else}
+    FLastError:=-1;
+  {$endif}
 {$ENDIF OS2}
 end;
 

@@ -32,8 +32,8 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-   02111-1307 USA.  */
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+   02110-1301 USA.  */
 
 /* This is the canonical entry point, usually the first thing in the text
    segment.  The SVR4/Mips ABI (pages 3-31, 3-32) says that when the entry
@@ -128,6 +128,11 @@ _start:
         .globl  main_stub
         .type   main_stub,@function
 main_stub:
+        /* load fp */
+        move    $s8,$sp
+        /* set __stkptr value to $s8 */
+        lui     $v0,%hi(__stkptr)
+        sw      $s8,%lo(__stkptr)($v0)
         lui     $v0,%hi(__fpc_ret_sp)
         sw      $sp,%lo(__fpc_ret_sp)($v0)
         lui     $v0,%hi(__fpc_ret_ra)
@@ -147,8 +152,11 @@ _haltproc:
         lw      $sp,%lo(__fpc_ret_sp)($v0)
         lui     $v0,%hi(__fpc_ret_ra)
         lw      $ra,%lo(__fpc_ret_ra)($v0)
+	/* $a0 contains exitcode, we need to move it to $v0,
+	   as it would be at return of C main unction.  */
+        move	$v0,$a0
         jr      $ra
-        nop
+	nop
 hlt:
         b hlt
         .end _haltproc

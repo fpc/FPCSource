@@ -1,9 +1,7 @@
 { %NEEDLIBRARY }
+{ %skiptarget=$nosharedlib }
 { %delfiles=tweaklib1 }
 
-{$ifdef mswindows}
- {$define supported}
-{$endif mswindows}
 {$if defined(Unix) and not defined(aix)}
  {$define supported}
 {$endif Unix}

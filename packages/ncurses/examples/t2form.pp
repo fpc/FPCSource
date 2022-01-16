@@ -3,11 +3,10 @@ program form_test_2;
 {$MODE OBJFPC}
 
 uses
-  ncurses, form;
+  ncurses, form, initc;
 
 
-{$linklib c}
-procedure setlocale(cat : integer; p : pchar); cdecl; external 'c';
+procedure setlocale(cat : integer; p : pchar); cdecl; external clib;
 
 
 const

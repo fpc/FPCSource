@@ -81,7 +81,7 @@ function formatop(s:string):string;
   var
     i : longint;
   begin
-    for i:=1to replaces do
+    for i:=1 to replaces do
      replace(s,replacetab[i,1],replacetab[i,2]);
     formatop:=s;
   end;
@@ -199,10 +199,6 @@ begin
    assign(nopfile,'armnop.inc');
    openinc(attfile,'armatt.inc');
    openinc(attsuffile,'armatts.inc');
-   {
-   openinc(intfile,'i386int.inc');
-   openinc(propfile,'i386prop.inc');
-   }
    rewrite(nopfile);
    writeln(nopfile,'{ don''t edit, this file is generated from armins.dat }');
    reset(infile);
@@ -275,7 +271,6 @@ begin
               writeln(opfile,',');
               writeln(attfile,',');
               writeln(attsuffile,',');
-{              writeln(propfile,','); }
             end;
            write(opfile,opcode);
            write(attfile,'''',attopcode,'''');
@@ -401,6 +396,5 @@ begin
    closeinc(opfile);
    writeln(nopfile,insns,';');
    close(nopfile);
-{   closeinc(propfile); }
    writeln(insns,' nodes processed (maxinfolen=',maxinfolen,')');
 end.

@@ -19,7 +19,8 @@
 {==============================================================================}
 
 type
-   PString = ^String;
+   PString = ObjPas.PString;
+   TLocaleOptions = (loInvariantLocale, loUserLocale);
 
    { For FloatToText }
    TFloatFormat = (ffGeneral, ffExponent, ffFixed, ffNumber, ffCurrency);
@@ -35,19 +36,19 @@ type
 const
   { For floattodatetime and VariantToDate }
 {$ifndef FPUNONE}
-  MinDateTime: TDateTime =  -693593.0;     { 01/01/0001 12:00:00.000 AM }
-  MaxDateTime: TDateTime =  2958465.99999; { 12/31/9999 11:59:59.999 PM }
+  MinDateTime: TDateTime =  -693593.99999999; { 01/01/0001 12:00:00.000 AM }
+  MaxDateTime: TDateTime =  2958465.99999999;  { 12/31/9999 11:59:59.999 PM }
 
 {$if defined(FPC_HAS_TYPE_EXTENDED) or defined(FPC_HAS_TYPE_FLOAT128)}
-  MinCurrency: Currency = -922337203685477.5807;
+  MinCurrency: Currency = -922337203685477.5808;
   MaxCurrency: Currency =  922337203685477.5807;
 {$else}
   MinCurrency: Currency = -922337203685477.0000;
   MaxCurrency: Currency =  922337203685477.0000;
 {$endif}
 {$else}
-  MinCurrency: Currency = -9223372036854775807;
-  MaxCurrency: Currency =  9223372036854775807;
+  MinCurrency: Currency = -922337203685477;
+  MaxCurrency: Currency =  922337203685477;
 {$endif}
 
 Const
@@ -66,29 +67,36 @@ Var TrueBoolStrs,
 function NewStr(const S: string): PString; overload;
 procedure DisposeStr(S: PString); overload;
 procedure DisposeStr(S: PShortString); overload;
-procedure AssignStr(var P: PString; const S: string);
-procedure AppendStr(var Dest: String; const S: string);
+procedure AssignStr(var P: PString; const S: string); {$ifdef SYSUTILSINLINE}inline;{$endif}
+procedure AppendStr(var Dest: String; const S: string);{$ifdef SYSUTILSINLINE}inline;{$endif}
 function UpperCase(const s: string): string; overload;
+function UpperCase(const s: string; LocaleOptions: TLocaleOptions): string; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function LowerCase(const s: string): string; overload;
+function LowerCase(const s: string; LocaleOptions: TLocaleOptions): string; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
 { the compiler can't decide else if it should use the char or the ansistring
   version for a variant }
 function LowerCase(const V: variant): string; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function CompareStr(const S1, S2: string): Integer; overload;
+function CompareStr(const S1, S2: string; LocaleOptions: TLocaleOptions): Integer; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function CompareMemRange(P1, P2: Pointer; Length: PtrUInt): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function CompareMem(P1, P2: Pointer; Length: PtrUInt): Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function CompareText(const S1, S2: string): integer;
-function SameText(const s1,s2:String):Boolean;
+function CompareText(const S1, S2: string): Integer; overload;
+function CompareText(const S1, S2: string; LocaleOptions: TLocaleOptions): Integer; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function SameText(const s1,s2:String):Boolean; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function SameText(const s1,s2:String; LocaleOptions: TLocaleOptions):Boolean; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function SameStr(const s1,s2:String):Boolean; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function SameStr(const s1,s2:String; LocaleOptions: TLocaleOptions):Boolean; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
 
 function AnsiUpperCase(const s: string): string;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiLowerCase(const s: string): string;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function AnsiCompareStr(const S1, S2: string): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function AnsiCompareText(const S1, S2: string): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiCompareStr(const S1, S2: string): Integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiCompareText(const S1, S2: string): Integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiSameText(const s1,s2:String):Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiSameStr(const s1,s2:String):Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function AnsiStrComp(S1, S2: PChar): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function AnsiStrIComp(S1, S2: PChar): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function AnsiStrLComp(S1, S2: PChar; MaxLen: cardinal): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function AnsiStrLIComp(S1, S2: PChar; MaxLen: cardinal): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrComp(S1, S2: PChar): Integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrIComp(S1, S2: PChar): Integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrLComp(S1, S2: PChar; MaxLen: SizeUInt): Integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrLIComp(S1, S2: PChar; MaxLen: SizeUInt): Integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiStrLower(Str: PChar): PChar;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiStrUpper(Str: PChar): PChar;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiLastChar(const S: string): PChar;
@@ -97,29 +105,48 @@ function AnsiStrLastChar(Str: PChar): PChar;
 function Trim(const S: string): string;
 function TrimLeft(const S: string): string;
 function TrimRight(const S: string): string;
-function QuotedStr(const S: string): string;
+function QuotedStr(const S: string): string; {$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiQuotedStr(const S: string; Quote: char): string;
 function AnsiDequotedStr(const S: string; AQuote: Char): string;
 function AnsiExtractQuotedStr(var Src: PChar; Quote: Char): string;
 function AdjustLineBreaks(const S: string): string;
 function AdjustLineBreaks(const S: string; Style: TTextLineBreakStyle): string;
-function IsValidIdent(const Ident: string): boolean;
-function IntToStr(Value: Longint): string;
-function IntToStr(Value: Int64): string;
-function IntToStr(Value: QWord): string;
+function IsValidIdent(const Ident: string; AllowDots: Boolean = False; StrictDots: Boolean = False): Boolean;
+function IntToStr(Value: Longint): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
+function IntToStr(Value: Int64): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
+function IntToStr(Value: QWord): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
+function UIntToStr(Value: QWord): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
+function UIntToStr(Value: Cardinal): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
 function IntToHex(Value: Longint; Digits: integer): string;
 function IntToHex(Value: Int64; Digits: integer): string;
-function IntToHex(Value: QWord; Digits: integer): string;
+function IntToHex(Value: QWord; Digits: integer): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
+function IntToHex(Value: Int8): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
+function IntToHex(Value: UInt8): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
+function IntToHex(Value: Int16): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
+function IntToHex(Value: UInt16): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
+function IntToHex(Value: Int32): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
+function IntToHex(Value: UInt32): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
+function IntToHex(Value: Int64): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
+function IntToHex(Value: UInt64): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
 function StrToInt(const s: string): Longint;
-function TryStrToInt(const s: string; Out i : Longint) : boolean;
+function StrToDWord(const s: string): DWord;
+function StrToUInt(const s: string): Cardinal;
 function StrToInt64(const s: string): int64;
+function StrToQWord(const s: string): QWord; 
+function StrToUInt64(const s: string): UInt64; inline;
+function TryStrToInt(const s: string; Out i : Longint) : boolean;
+function TryStrToDWord(const s: string; Out D : DWord) : boolean;
+function TryStrToUInt(const s: string; out C: Cardinal): Boolean;
 function TryStrToInt64(const s: string; Out i : int64) : boolean;
-function StrToQWord(const s: string): QWord;
 function TryStrToQWord(const s: string; Out Q : QWord) : boolean;
+function TryStrToUInt64(const s: string; Out u : UInt64) : boolean; inline;
 function StrToIntDef(const S: string; Default: Longint): Longint;
+function StrToDWordDef(const S: string; Default: DWord): DWord;
+function StrToUIntDef(const S: string; Default: Cardinal): Cardinal;
 function StrToInt64Def(const S: string; Default: int64): int64;
 function StrToQWordDef(const S: string; Default: QWord): QWord;
-function LoadStr(Ident: integer): string;
+function StrToUInt64Def(const S: string; Default: UInt64): UInt64; inline;
+function LoadStr(Ident: integer): string;{$ifdef SYSUTILSINLINE}inline;{$ENDIF}
 // function FmtLoadStr(Ident: integer; const Args: array of const): string;
 Function Format (Const Fmt : String; const Args : Array of const) : String;
 Function Format (Const Fmt: string; const Args: array of const; const FormatSettings: TFormatSettings): string;
@@ -191,11 +218,11 @@ function TryFloatToCurr(const Value: Extended; var AResult: Currency): Boolean;
 Function CurrToStr(Value: Currency): string;
 Function CurrToStr(Value: Currency; Const FormatSettings: TFormatSettings): string;
 function StrToCurr(const S: string): Currency;
-function StrToCurr(const S: string; Const FormatSettings: TFormatSettings): Currency;  
+function StrToCurr(const S: string; Const FormatSettings: TFormatSettings): Currency;
 function TryStrToCurr(const S: string;Out Value : Currency): Boolean;
-function TryStrToCurr(const S: string;Out Value : Currency; Const FormatSettings: TFormatSettings): Boolean;       
+function TryStrToCurr(const S: string;Out Value : Currency; Const FormatSettings: TFormatSettings): Boolean;
 function StrToCurrDef(const S: string; Default : Currency): Currency;
-function StrToCurrDef(const S: string; Default : Currency; Const FormatSettings: TFormatSettings): Currency;  
+function StrToCurrDef(const S: string; Default : Currency; Const FormatSettings: TFormatSettings): Currency;
 
 Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar; FormatSettings : TFormatSettings): Integer;
 Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar): Integer;
@@ -209,14 +236,18 @@ Function FormatCurr(const Format: string; Value: Currency; Const FormatSettings:
 {$endif}
 
 function StrToBool(const S: string): Boolean;
+function StrToBool(const S: string; Const FormatSettings: TFormatSettings): Boolean;
 function BoolToStr(B: Boolean;UseBoolStrs:Boolean=False): string;
 function BoolToStr(B: Boolean;const TrueS,FalseS:string): string; inline;
 function StrToBoolDef(const S: string; Default: Boolean): Boolean;
+function StrToBoolDef(const S: string; Default: Boolean; Const FormatSettings: TFormatSettings): Boolean;
 function TryStrToBool(const S: string; out Value: Boolean): Boolean;
+function TryStrToBool(const S: string; out Value: Boolean; Const FormatSettings: TFormatSettings): Boolean;
 
-function LastDelimiter(const Delimiters, S: string): Integer;
+function LastDelimiter(const Delimiters, S: string): SizeInt;
+function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags; Out aCount : Integer): string;
 function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags): string;
-Function IsDelimiter(const Delimiters, S: string; Index: Integer): Boolean;
+Function IsDelimiter(const Delimiters, S: string; Index: SizeInt): Boolean;
 
 function SScanf(const s: string; const fmt : string;const Pointers : array of Pointer) : Integer;
 
@@ -224,13 +255,15 @@ function SScanf(const s: string; const fmt : string;const Pointers : array of Po
 Type
   TMbcsByteType = (mbSingleByte, mbLeadByte, mbTrailByte);
 
-Function ByteType(const S: string; Index: Integer): TMbcsByteType;
-Function StrByteType(Str: PChar; Index: Cardinal): TMbcsByteType;
-Function ByteToCharLen(const S: string; MaxLen: Integer): Integer;
-Function CharToByteLen(const S: string; MaxLen: Integer): Integer;
-Function ByteToCharIndex(const S: string; Index: Integer): Integer;
-Function StrCharLength(const Str: PChar): Integer;
+Function ByteType(const S: string; Index: SizeUInt): TMbcsByteType;
+Function StrByteType(Str: PChar; Index: SizeUInt): TMbcsByteType;
+Function ByteToCharLen(const S: string; MaxLen: SizeInt): SizeInt;
+Function CharToByteLen(const S: string; MaxLen: SizeInt): SizeInt;
+Function ByteToCharIndex(const S: string; Index: SizeInt): SizeInt;
+Function StrCharLength(const Str: PChar): SizeInt;
 function StrNextChar(const Str: PChar): PChar;
+function IsLeadChar(C: AnsiChar): Boolean; inline; overload;
+function IsLeadChar(B: Byte): Boolean; inline; overload;
 
 
 const
@@ -259,4 +292,49 @@ function WrapText(const Line: string; MaxCol: Integer): string;
 function LeftStr(const S: string; Count: integer): string;
 function RightStr(const S: string; Count: integer): string;
 function BCDToInt(Value: integer): integer;
+
+Type
+  {==============================================================================}
+  {   TStringBuilder                                                             }
+  {==============================================================================}
+
+  // Ansi version implementation
+
+{$MACRO ON}
+{$UNDEF SBUNICODE}
+{$define SBChar:=AnsiChar}
+{$define SBString:=AnsiString}
+{$define TSBCharArray:=Array of SBChar}
+{$define PSBChar:=PAnsiChar}
+{$define SBRAWString:=RawByteString}
+{$define TGenericStringBuilder:=TAnsiStringBuilder}
+
+{$i syssbh.inc}
+{$undef SBChar}
+{$undef SBString}
+{$undef TSBCharArray}
+{$undef PSBChar}
+{$undef SBRAWString}
+{$undef TGenericStringBuilder}
+
+// Unicode version implementation
+
+{$define SBUNICODE}
+{$define SBChar:=WideChar}
+{$define SBString:=UnicodeString}
+{$define TSBCharArray:=Array of SBChar}
+{$define PSBChar:=PWideChar}
+{$define SBRAWString:=UnicodeString}
+{$define TGenericStringBuilder:=TUnicodeStringBuilder}
+{$i syssbh.inc}
+{$undef SBChar}
+{$undef SBString}
+{$undef TSBCharArray}
+{$undef PSBChar}
+{$undef SBRAWString}
+{$undef TGenericStringBuilder}
+{$undef SBUNICODE}
+
+Type
+  TStringBuilder = TAnsiStringBuilder;
 

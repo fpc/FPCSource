@@ -28,10 +28,13 @@ unit cpupi;
 interface
 
     uses
-       psub,procinfo,aasmbase,aasmdata;
+       globtype,
+       psub,
+       procinfo,psabiehpi,
+       aasmbase,aasmdata;
 
     type
-       tx86_64procinfo = class(tcgprocinfo)
+       tcpuprocinfo = class(tpsabiehprocinfo)
        private
          scopes: TAsmList;
          scopecount: longint;
@@ -46,24 +49,26 @@ interface
          destructor destroy;override;
        end;
 
+    function x86_64_use_ms_abi(proccall: tproccalloption): boolean;
 
 implementation
 
     uses
       systems,
-      globtype,
       globals,
       cutils,
       symconst,
+      symtable,
       aasmtai,
-      tgobj;
+      tgobj,
+      fmodule;
 
     const
       SCOPE_FINALLY=0;
       SCOPE_CATCHALL=1;
       SCOPE_IMPLICIT=2;
 
-    procedure tx86_64procinfo.set_first_temp_offset;
+    procedure tcpuprocinfo.set_first_temp_offset;
       begin
         if target_info.system=system_x86_64_win64 then
           begin
@@ -83,7 +88,7 @@ implementation
       end;
 
 
-    procedure tx86_64procinfo.generate_parameter_info;
+    procedure tcpuprocinfo.generate_parameter_info;
       begin
         inherited generate_parameter_info;
         if target_info.system=system_x86_64_win64 then
@@ -91,7 +96,7 @@ implementation
       end;
 
 
-    function tx86_64procinfo.calc_stackframe_size:longint;
+    function tcpuprocinfo.calc_stackframe_size:longint;
       begin
         maxpushedparasize:=align(maxpushedparasize,max(current_settings.alignment.localalignmin,16));
         { Note 1: when tg.direction>0, tg.lasttemp is already offset by maxpushedparasize
@@ -105,7 +110,7 @@ implementation
           result:=Align(tg.direction*tg.lasttemp+maxpushedparasize,8);
       end;
 
-    procedure tx86_64procinfo.add_finally_scope(startlabel,endlabel,handler:TAsmSymbol;implicit:Boolean);
+    procedure tcpuprocinfo.add_finally_scope(startlabel,endlabel,handler:TAsmSymbol;implicit:Boolean);
       begin
         unwindflags:=unwindflags or 2;
         if implicit then  { also needs catch functionality }
@@ -123,7 +128,7 @@ implementation
         scopes.concat(tai_const.create_rva_sym(handler));
       end;
 
-    procedure tx86_64procinfo.add_except_scope(trylabel,exceptlabel,endlabel,filter:TAsmSymbol);
+    procedure tcpuprocinfo.add_except_scope(trylabel,exceptlabel,endlabel,filter:TAsmSymbol);
       begin
         unwindflags:=unwindflags or 3;
         inc(scopecount);
@@ -139,16 +144,19 @@ implementation
         scopes.concat(tai_const.create_rva_sym(endlabel));
       end;
 
-    procedure tx86_64procinfo.dump_scopes(list: TAsmList);
+    procedure tcpuprocinfo.dump_scopes(list: TAsmList);
       var
         hdir: tai_seh_directive;
       begin
         if (scopecount=0) then
           exit;
         hdir:=cai_seh_directive.create_name(ash_handler,'__FPC_specific_handler');
+        if not systemunit.iscurrentunit then
+          current_module.add_extern_asmsym('__FPC_specific_handler',AB_EXTERNAL,AT_FUNCTION);
         hdir.data.flags:=unwindflags;
         list.concat(hdir);
         list.concat(cai_seh_directive.create(ash_handlerdata));
+        inc(list.section_count);
         list.concat(tai_const.create_32bit(scopecount));
         list.concatlist(scopes);
         { return to text, required for GAS compatibility }
@@ -156,12 +164,22 @@ implementation
         new_section(list,sec_code,lower(procdef.mangledname),0);
       end;
 
-    destructor tx86_64procinfo.destroy;
+    destructor tcpuprocinfo.destroy;
       begin
         scopes.free;
         inherited destroy;
       end;
 
+
+    function x86_64_use_ms_abi(proccall: tproccalloption): boolean;
+      begin
+        result:=
+          ((target_info.system=system_x86_64_win64) and
+            not(proccall in [pocall_sysv_abi_default,pocall_sysv_abi_cdecl])) or
+          (proccall in [pocall_ms_abi_default,pocall_ms_abi_cdecl]);
+      end;
+
+
 begin
-   cprocinfo:=tx86_64procinfo;
+   cprocinfo:=tcpuprocinfo;
 end.

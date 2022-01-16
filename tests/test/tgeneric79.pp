@@ -14,7 +14,7 @@ type
   private
   protected
     function GenericIntf_SomeMethod: LongInt;
-    function IGenericIntf<LongInt>.SomeMethod = GenericIntf_SomeMethod;
+    function specialize IGenericIntf<LongInt>.SomeMethod = GenericIntf_SomeMethod;
   end;
 
 function TGenericClass.GenericIntf_SomeMethod: LongInt;

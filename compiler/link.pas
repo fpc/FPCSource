@@ -24,6 +24,8 @@ unit link;
 
 {$i fpcdefs.inc}
 
+{ $define DEBUG_MACHO_INFO}
+
 interface
 
     uses
@@ -33,13 +35,14 @@ interface
       fmodule,
       globtype,
       ldscript,
-      ogbase;
+      ogbase,
+      owbase;
 
     Type
       TLinkerInfo=record
         ExeCmd,
         DllCmd,
-        ExtDbgCmd     : array[1..3] of string;
+        ExtDbgCmd     : array[1..3] of ansistring;
         ResName       : string[100];
         ScriptName    : string[100];
         ExtraOptions  : TCmdStr;
@@ -54,7 +57,8 @@ interface
          ObjectFiles,
          SharedLibFiles,
          StaticLibFiles,
-         FrameworkFiles  : TCmdStrList;
+         FrameworkFiles,
+         OrderedSymbols: TCmdStrList;
          Constructor Create;virtual;
          Destructor Destroy;override;
          procedure AddModuleFiles(hp:tmodule);
@@ -64,6 +68,7 @@ interface
          Procedure AddStaticCLibrary(const S : TCmdStr);
          Procedure AddSharedCLibrary(S : TCmdStr);
          Procedure AddFramework(S : TCmdStr);
+         Procedure AddOrderedSymbol(const s: TCmdStr);
          procedure AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);virtual;
          Procedure InitSysInitUnitName;virtual;
          Function  MakeExecutable:boolean;virtual;
@@ -75,6 +80,8 @@ interface
        end;
 
       TExternalLinker = class(TLinker)
+      protected
+         Function WriteSymbolOrderFile: TCmdStr;
       public
          Info : TLinkerInfo;
          Constructor Create;override;
@@ -84,15 +91,21 @@ interface
          Function  DoExec(const command:TCmdStr; para:TCmdStr;showinfo,useshell:boolean):boolean;
          procedure SetDefaultInfo;virtual;
          Function  MakeStaticLibrary:boolean;override;
+
+         Function UniqueName(const str:TCmdStr): TCmdStr;
+
+         function PostProcessELFExecutable(const fn: string; isdll: boolean): boolean;
+         function PostProcessMachExecutable(const fn: string; isdll: boolean): boolean;
        end;
 
-      TBooleanArray = array [1..1024] of boolean;
+      TBooleanArray = array [1..100000] of boolean;
       PBooleanArray = ^TBooleanArray;
 
       TInternalLinker = class(TLinker)
       private
          FCExeOutput : TExeOutputClass;
          FCObjInput  : TObjInputClass;
+         FCArObjectReader : TObjectReaderClass;
          { Libraries }
          FStaticLibraryList : TFPObjectList;
          FImportLibraryList : TFPHashObjectList;
@@ -115,6 +128,7 @@ interface
          linkscript : TCmdStrList;
          ScriptCount : longint;
          IsHandled : PBooleanArray;
+         property CArObjectReader:TObjectReaderClass read FCArObjectReader write FCArObjectReader;
          property CObjInput:TObjInputClass read FCObjInput write FCObjInput;
          property CExeOutput:TExeOutputClass read FCExeOutput write FCExeOutput;
          property StaticLibraryList:TFPObjectList read FStaticLibraryList;
@@ -122,6 +136,11 @@ interface
          procedure DefaultLinkScript;virtual;abstract;
          procedure ScriptAddGenericSections(secnames:string);
          procedure ScriptAddSourceStatements(AddSharedAsStatic:boolean);virtual;
+         function GetCodeSize(aExeOutput: TExeOutput): QWord;virtual;
+         function GetDataSize(aExeOutput: TExeOutput): QWord;virtual;
+         function GetBssSize(aExeOutput: TExeOutput): QWord;virtual;
+         function ExecutableFilename:String;virtual;
+         function SharedLibFilename:String;virtual;
       public
          IsSharedLibrary : boolean;
          UseStabs : boolean;
@@ -154,9 +173,9 @@ Implementation
 {$ifdef hasUnix}
       baseunix,
 {$endif hasUnix}
-      script,globals,verbose,comphook,ppu,fpccrc,
-      aasmbase,aasmtai,aasmdata,aasmcpu,
-      owbase,owar,ogmap;
+      cscript,globals,verbose,comphook,ppu,fpchash,
+      aasmbase,aasmcpu,
+      ogmap;
 
     var
       CLinker : array[tlink] of TLinkerClass;
@@ -174,13 +193,13 @@ Implementation
       begin
         result:=0;
         bufsize:=64*1024;
-	      fs:=CFileStreamClass.Create(fn,fmOpenRead or fmShareDenyNone);
-	      if CStreamError<>0 then
-	        begin
-	          fs.Free;
-	          Comment(V_Error,'Can''t open file: '+fn);
-	          exit;
-	        end;
+        fs:=CFileStreamClass.Create(fn,fmOpenRead or fmShareDenyNone);
+        if CStreamError<>0 then
+          begin
+            fs.Free;
+            Comment(V_Error,'Can''t open file: '+fn);
+            exit;
+          end;
         getmem(buf,bufsize);
         repeat
           bufcount:=fs.Read(buf^,bufsize);
@@ -202,10 +221,11 @@ Implementation
          exit;
 
         {When linking on target, the units has not been assembled yet,
+         if assembling is also done on target,
          so there is no object files to look for at
          the host. Look for the corresponding assembler file instead,
          because it will be assembled to object file on the target.}
-        if isunit and (cs_link_on_target in current_settings.globalswitches) then
+        if isunit and (cs_assemble_on_target in current_settings.globalswitches) then
           s:=ChangeFileExt(s,target_info.asmext);
 
         { when it does not belong to the unit then check if
@@ -252,7 +272,7 @@ Implementation
          Message1(exec_w_objfile_not_found,s);
 
         {Restore file extension}
-        if isunit and (cs_link_on_target in current_settings.globalswitches) then
+        if isunit and (cs_assemble_on_target in current_settings.globalswitches) then
           foundfile:= ChangeFileExt(foundfile,target_info.objext);
 
         findobjectfile:=ScriptFixFileName(foundfile);
@@ -347,6 +367,7 @@ Implementation
         SharedLibFiles:=TCmdStrList.Create_no_double;
         StaticLibFiles:=TCmdStrList.Create_no_double;
         FrameworkFiles:=TCmdStrList.Create_no_double;
+        OrderedSymbols:=TCmdStrList.Create;
       end;
 
 
@@ -356,6 +377,8 @@ Implementation
         SharedLibFiles.Free;
         StaticLibFiles.Free;
         FrameworkFiles.Free;
+        OrderedSymbols.Free;
+        inherited;
       end;
 
 
@@ -368,71 +391,81 @@ Implementation
       begin
         with hp do
          begin
-           if (flags and uf_has_resourcefiles)<>0 then
+           if mf_has_resourcefiles in moduleflags then
              HasResources:=true;
-           if (flags and uf_has_exports)<>0 then
+           if mf_has_exports in moduleflags then
              HasExports:=true;
          { link unit files }
-           if (flags and uf_no_link)=0 then
+           if (headerflags and uf_no_link)=0 then
             begin
               { create mask which unit files need linking }
               mask:=link_always;
-              { static linking ? }
-              if (cs_link_static in current_settings.globalswitches) then
-               begin
-                 if (flags and uf_static_linked)=0 then
-                  begin
-                    { if smart not avail then try static linking }
-                    if (flags and uf_smart_linked)<>0 then
-                     begin
-                       Message1(exec_t_unit_not_static_linkable_switch_to_smart,modulename^);
-                       mask:=mask or link_smart;
-                     end
-                    else
-                     Message1(exec_e_unit_not_smart_or_static_linkable,modulename^);
-                  end
-                 else
-                   mask:=mask or link_static;
-               end;
-              { smart linking ? }
-
-              if (cs_link_smart in current_settings.globalswitches) then
-               begin
-                 if (flags and uf_smart_linked)=0 then
-                  begin
-                    { if smart not avail then try static linking }
-                    if (flags and uf_static_linked)<>0 then
-                     begin
-                       { if not create_smartlink_library, then smart linking happens using the
-                         regular object files
-                       }
-                       if create_smartlink_library then
-                         Message1(exec_t_unit_not_smart_linkable_switch_to_static,modulename^);
+              { lto linking ?}
+              if (cs_lto in current_settings.moduleswitches) and
+                 ((headerflags and uf_lto_linked)<>0) and
+                 (not(cs_lto_nosystem in init_settings.globalswitches) or
+                  (hp.modulename^<>'SYSTEM')) then
+                begin
+                  mask:=mask or link_lto;
+                end
+              else
+                begin
+                  { static linking ? }
+                  if (cs_link_static in current_settings.globalswitches) then
+                   begin
+                     if (headerflags and uf_static_linked)=0 then
+                      begin
+                        { if static not avail then try smart linking }
+                        if (headerflags and uf_smart_linked)<>0 then
+                         begin
+                           Message1(exec_t_unit_not_static_linkable_switch_to_smart,modulename^);
+                           mask:=mask or link_smart;
+                         end
+                        else
+                         Message1(exec_e_unit_not_smart_or_static_linkable,modulename^);
+                      end
+                     else
                        mask:=mask or link_static;
-                     end
-                    else
-                     Message1(exec_e_unit_not_smart_or_static_linkable,modulename^);
-                  end
-                 else
-                  mask:=mask or link_smart;
-               end;
-              { shared linking }
-              if (cs_link_shared in current_settings.globalswitches) then
-               begin
-                 if (flags and uf_shared_linked)=0 then
-                  begin
-                    { if shared not avail then try static linking }
-                    if (flags and uf_static_linked)<>0 then
-                     begin
-                       Message1(exec_t_unit_not_shared_linkable_switch_to_static,modulename^);
-                       mask:=mask or link_static;
-                     end
-                    else
-                     Message1(exec_e_unit_not_shared_or_static_linkable,modulename^);
-                  end
-                 else
-                  mask:=mask or link_shared;
-               end;
+                   end;
+                  { smart linking ? }
+                  if (cs_link_smart in current_settings.globalswitches) then
+                   begin
+                     if (headerflags and uf_smart_linked)=0 then
+                      begin
+                        { if smart not avail then try static linking }
+                        if (headerflags and uf_static_linked)<>0 then
+                         begin
+                           { if not create_smartlink_library, then smart linking happens using the
+                             regular object files
+                           }
+                           if create_smartlink_library then
+                             Message1(exec_t_unit_not_smart_linkable_switch_to_static,modulename^);
+                           mask:=mask or link_static;
+                         end
+                        else
+                         Message1(exec_e_unit_not_smart_or_static_linkable,modulename^);
+                      end
+                     else
+                      mask:=mask or link_smart;
+                   end;
+                  { shared linking }
+                  if (cs_link_shared in current_settings.globalswitches) then
+                   begin
+                     if (headerflags and uf_shared_linked)=0 then
+                      begin
+                        { if shared not avail then try static linking }
+                        if (headerflags and uf_static_linked)<>0 then
+                         begin
+                           Message1(exec_t_unit_not_shared_linkable_switch_to_static,modulename^);
+                           mask:=mask or link_static;
+                         end
+                        else
+                         Message1(exec_e_unit_not_shared_or_static_linkable,modulename^);
+                      end
+                     else
+                      mask:=mask or link_shared;
+                   end;
+                end;
               { unit files }
               while not linkunitofiles.empty do
                 AddObject(linkunitofiles.getusemask(mask),path,true);
@@ -462,6 +495,8 @@ Implementation
                      ImportSymbol.MangledName,ImportSymbol.OrdNr,ImportSymbol.IsVar);
                  end;
              end;
+           { ordered symbols }
+           OrderedSymbols.concatList(linkorderedsymbols);
          end;
       end;
 
@@ -473,7 +508,7 @@ Implementation
 
     Procedure TLinker.AddObject(const S,unitpath : TPathStr;isunit:boolean);
       begin
-        ObjectFiles.Concat(FindObjectFile(s,unitpath,isunit));
+        ObjectFiles.Concat(FindObjectFile(s,unitpath,isunit))
       end;
 
 
@@ -527,6 +562,12 @@ Implementation
           exit;
         { ready to be added }
         FrameworkFiles.Concat(S);
+      end;
+
+
+    procedure TLinker.AddOrderedSymbol(const s: TCmdStr);
+      begin
+        OrderedSymbols.Concat(s);
       end;
 
 
@@ -613,6 +654,30 @@ Implementation
                               TEXTERNALLINKER
 *****************************************************************************}
 
+    Function TExternalLinker.WriteSymbolOrderFile: TCmdStr;
+      var
+        item: TCmdStrListItem;
+        symfile: TScript;
+      begin
+        result:='';
+        { only for darwin for now; can also enable for other platforms when using
+          the LLVM linker }
+        if (OrderedSymbols.Empty) or
+           not(tf_supports_symbolorderfile in target_info.flags) then
+          exit;
+        symfile:=TScript.Create(outputexedir+UniqueName('symbol_order')+'.fpc');
+        item:=TCmdStrListItem(OrderedSymbols.First);
+        while assigned(item) do
+          begin
+            symfile.add(item.str);
+            item:=TCmdStrListItem(item.next);
+          end;
+        symfile.WriteToDisk;
+        result:=symfile.fn;
+        symfile.Free;
+      end;
+
+
     Constructor TExternalLinker.Create;
       begin
         inherited Create;
@@ -625,8 +690,8 @@ Implementation
           end
         else
           begin
-            Info.ResName:='link.res';
-            Info.ScriptName:='script.res';
+            Info.ResName:=UniqueName('link')+'.res';
+            Info.ScriptName:=UniqueName('script')+'.res';
           end;
         { set the linker specific defaults }
         SetDefaultInfo;
@@ -661,10 +726,20 @@ Implementation
         if cs_link_on_target in current_settings.globalswitches then
           begin
             { If linking on target, don't add any path PM }
-            FindUtil:=ChangeFileExt(s,target_info.exeext);
+            { change extension only on platforms that use an exe extension, otherwise on OpenBSD 'ld.bfd' gets
+              converted to 'ld' }
+            if target_info.exeext<>'' then
+              FindUtil:=ChangeFileExt(s,target_info.exeext)
+            else
+              FindUtil:=s;
             exit;
           end;
-        UtilExe:=ChangeFileExt(s,source_info.exeext);
+        { change extension only on platforms that use an exe extension, otherwise on OpenBSD 'ld.bfd' gets converted
+          to 'ld' }
+        if source_info.exeext<>'' then
+          UtilExe:=ChangeFileExt(s,source_info.exeext)
+        else
+          UtilExe:=s;
         FoundBin:='';
         Found:=false;
         if utilsdirectory<>'' then
@@ -748,7 +823,7 @@ Implementation
          begin
            if showinfo then
              begin
-               if DLLsource then
+               if current_module.islibrary then
                  AsmRes.AddLinkCommand(Command,Para,current_module.sharedlibfilename)
                else
                  AsmRes.AddLinkCommand(Command,Para,current_module.exefilename);
@@ -768,6 +843,11 @@ Implementation
               result := result + ' ' + addfilecmd + item.str;
               item := TCmdStrListItem(item.next);
             end;
+          end;
+
+        function get_wlib_record_size: integer;
+          begin
+            result:=align(align(SmartLinkOFiles.Count,128) div 128,16);
           end;
 
       var
@@ -800,7 +880,8 @@ Implementation
 
 
         scripted_ar:=(target_ar.id=ar_gnu_ar_scripted) or
-                     (target_ar.id=ar_watcom_wlib_omf_scripted);
+                     (target_ar.id=ar_watcom_wlib_omf_scripted) or
+                     (target_ar.id=ar_sdcc_sdar_scripted);
 
         if scripted_ar then
           begin
@@ -809,21 +890,21 @@ Implementation
             Assign(script, scriptfile);
             Rewrite(script);
             try
-              if (target_ar.id=ar_gnu_ar_scripted) then
+              if (target_ar.id in [ar_gnu_ar_scripted,ar_sdcc_sdar_scripted]) then
                 writeln(script, 'CREATE ' + current_module.staticlibfilename)
               else { wlib case }
-                writeln(script,'-q -fo -c -b '+
+                writeln(script,'-q -p=',get_wlib_record_size,' -fo -c -b '+
                   maybequoted(current_module.staticlibfilename));
               current := TCmdStrListItem(SmartLinkOFiles.First);
               while current <> nil do
                 begin
-                  if (target_ar.id=ar_gnu_ar_scripted) then
+                  if (target_ar.id in [ar_gnu_ar_scripted,ar_sdcc_sdar_scripted]) then
                   writeln(script, 'ADDMOD ' + current.str)
                   else
                     writeln(script,'+' + current.str);
                   current := TCmdStrListItem(current.next);
                 end;
-              if (target_ar.id=ar_gnu_ar_scripted) then
+              if (target_ar.id in [ar_gnu_ar_scripted,ar_sdcc_sdar_scripted]) then
                 begin
                   writeln(script, 'SAVE');
                   writeln(script, 'END');
@@ -840,6 +921,11 @@ Implementation
             Replace(firstcmd,'$LIB',maybequoted(current_module.staticlibfilename));
             Replace(cmdstr,'$OUTPUTLIB',maybequoted(current_module.staticlibfilename+'.tmp'));
             Replace(firstcmd,'$OUTPUTLIB',maybequoted(current_module.staticlibfilename+'.tmp'));
+            if target_ar.id=ar_watcom_wlib_omf then
+              begin
+                Replace(cmdstr,'$RECSIZE','-p='+IntToStr(get_wlib_record_size));
+                Replace(firstcmd,'$RECSIZE','-p='+IntToStr(get_wlib_record_size));
+              end;
             { create AR commands }
             success := true;
             current := TCmdStrListItem(SmartLinkOFiles.First);
@@ -885,12 +971,424 @@ Implementation
           end
          else
           begin
-            AsmRes.AddDeleteCommand(FixFileName(smartpath+current_module.asmprefix^+'*'+target_info.objext));
+            while not SmartLinkOFiles.Empty do
+              AsmRes.AddDeleteCommand(SmartLinkOFiles.GetFirst);
             if scripted_ar then
               AsmRes.AddDeleteCommand(scriptfile);
             AsmRes.AddDeleteDirCommand(smartpath);
           end;
         MakeStaticLibrary:=success;
+      end;
+
+    function TExternalLinker.UniqueName(const str: TCmdStr): TCmdStr;
+      const
+        pid: SizeUInt = 0;
+      begin
+        if pid=0 then
+          pid:=GetProcessID;
+        if pid>0 then
+          result:=str+tostr(pid)
+        else
+          result:=str;
+      end;
+
+
+    function TExternalLinker.PostProcessELFExecutable(const fn : string;isdll:boolean):boolean;
+      type
+        TElf32header=packed record
+          magic0123         : array[0..3] of char;
+          file_class        : byte;
+          data_encoding     : byte;
+          file_version      : byte;
+          padding           : array[$07..$0f] of byte;
+
+          e_type            : word;
+          e_machine         : word;
+          e_version         : longint;
+          e_entry           : longint;          { entrypoint }
+          e_phoff           : longint;          { program header offset }
+
+          e_shoff           : longint;          { sections header offset }
+          e_flags           : longint;
+          e_ehsize          : word;             { elf header size in bytes }
+          e_phentsize       : word;             { size of an entry in the program header array }
+          e_phnum           : word;             { 0..e_phnum-1 of entrys }
+          e_shentsize       : word;             { size of an entry in sections header array }
+          e_shnum           : word;             { 0..e_shnum-1 of entrys }
+          e_shstrndx        : word;             { index of string section header }
+        end;
+        TElf32sechdr=packed record
+          sh_name           : longint;
+          sh_type           : longint;
+          sh_flags          : longint;
+          sh_addr           : longint;
+
+          sh_offset         : longint;
+          sh_size           : longint;
+          sh_link           : longint;
+          sh_info           : longint;
+
+          sh_addralign      : longint;
+          sh_entsize        : longint;
+        end;
+
+        telf64header=packed record
+          magic0123         : array[0..3] of char;
+          file_class        : byte;
+          data_encoding     : byte;
+          file_version      : byte;
+          padding           : array[$07..$0f] of byte;
+
+          e_type            : word;
+          e_machine         : word;
+          e_version         : longword;
+          e_entry           : qword;            { entrypoint }
+          e_phoff           : qword;            { program header offset }
+          e_shoff           : qword;            { sections header offset }
+          e_flags           : longword;
+          e_ehsize          : word;             { elf header size in bytes }
+          e_phentsize       : word;             { size of an entry in the program header array }
+          e_phnum           : word;             { 0..e_phnum-1 of entrys }
+          e_shentsize       : word;             { size of an entry in sections header array }
+          e_shnum           : word;             { 0..e_shnum-1 of entrys }
+          e_shstrndx        : word;             { index of string section header }
+        end;
+        TElf64sechdr=packed record
+          sh_name           : longword;
+          sh_type           : longword;
+          sh_flags          : qword;
+          sh_addr           : qword;
+          sh_offset         : qword;
+          sh_size           : qword;
+          sh_link           : longword;
+          sh_info           : longword;
+          sh_addralign      : qword;
+          sh_entsize        : qword;
+        end;
+
+
+      function MayBeSwapHeader(h : telf32header) : telf32header;
+        begin
+          result:=h;
+          if source_info.endian<>target_info.endian then
+            with h do
+              begin
+                result.e_type:=swapendian(e_type);
+                result.e_machine:=swapendian(e_machine);
+                result.e_version:=swapendian(e_version);
+                result.e_entry:=swapendian(e_entry);
+                result.e_phoff:=swapendian(e_phoff);
+                result.e_shoff:=swapendian(e_shoff);
+                result.e_flags:=swapendian(e_flags);
+                result.e_ehsize:=swapendian(e_ehsize);
+                result.e_phentsize:=swapendian(e_phentsize);
+                result.e_phnum:=swapendian(e_phnum);
+                result.e_shentsize:=swapendian(e_shentsize);
+                result.e_shnum:=swapendian(e_shnum);
+                result.e_shstrndx:=swapendian(e_shstrndx);
+              end;
+        end;
+
+
+      function MayBeSwapHeader(h : telf64header) : telf64header;
+        begin
+          result:=h;
+          if source_info.endian<>target_info.endian then
+            with h do
+              begin
+                result.e_type:=swapendian(e_type);
+                result.e_machine:=swapendian(e_machine);
+                result.e_version:=swapendian(e_version);
+                result.e_entry:=swapendian(e_entry);
+                result.e_phoff:=swapendian(e_phoff);
+                result.e_shoff:=swapendian(e_shoff);
+                result.e_flags:=swapendian(e_flags);
+                result.e_ehsize:=swapendian(e_ehsize);
+                result.e_phentsize:=swapendian(e_phentsize);
+                result.e_phnum:=swapendian(e_phnum);
+                result.e_shentsize:=swapendian(e_shentsize);
+                result.e_shnum:=swapendian(e_shnum);
+                result.e_shstrndx:=swapendian(e_shstrndx);
+              end;
+        end;
+
+
+      function MaybeSwapSecHeader(h : telf32sechdr) : telf32sechdr;
+        begin
+          result:=h;
+          if source_info.endian<>target_info.endian then
+            with h do
+              begin
+                result.sh_name:=swapendian(sh_name);
+                result.sh_type:=swapendian(sh_type);
+                result.sh_flags:=swapendian(sh_flags);
+                result.sh_addr:=swapendian(sh_addr);
+                result.sh_offset:=swapendian(sh_offset);
+                result.sh_size:=swapendian(sh_size);
+                result.sh_link:=swapendian(sh_link);
+                result.sh_info:=swapendian(sh_info);
+                result.sh_addralign:=swapendian(sh_addralign);
+                result.sh_entsize:=swapendian(sh_entsize);
+              end;
+        end;
+
+
+      function MaybeSwapSecHeader(h : telf64sechdr) : telf64sechdr;
+        begin
+          result:=h;
+          if source_info.endian<>target_info.endian then
+            with h do
+              begin
+                result.sh_name:=swapendian(sh_name);
+                result.sh_type:=swapendian(sh_type);
+                result.sh_flags:=swapendian(sh_flags);
+                result.sh_addr:=swapendian(sh_addr);
+                result.sh_offset:=swapendian(sh_offset);
+                result.sh_size:=swapendian(sh_size);
+                result.sh_link:=swapendian(sh_link);
+                result.sh_info:=swapendian(sh_info);
+                result.sh_addralign:=swapendian(sh_addralign);
+                result.sh_entsize:=swapendian(sh_entsize);
+              end;
+        end;
+
+      var
+        f : file;
+
+      function ReadSectionName(pos : longint) : String;
+        var
+          oldpos : longint;
+          c : char;
+        begin
+          oldpos:=filepos(f);
+          seek(f,pos);
+          Result:='';
+          while true do
+            begin
+              blockread(f,c,1);
+              if c=#0 then
+                break;
+              Result:=Result+c;
+            end;
+          seek(f,oldpos);
+        end;
+
+      var
+        elfheader32 : TElf32header;
+        secheader32 : TElf32sechdr;
+        elfheader64 : TElf64header;
+        secheader64 : TElf64sechdr;
+        i : longint;
+        stringoffset : longint;
+        secname : string;
+      begin
+        Result:=false;
+        { open file }
+        assign(f,fn);
+        {$push}{$I-}
+        reset(f,1);
+        if ioresult<>0 then
+          Message1(execinfo_f_cant_open_executable,fn);
+        { read header }
+        blockread(f,elfheader32,sizeof(tElf32header));
+        with elfheader32 do
+          if not((magic0123[0]=#$7f) and (magic0123[1]='E') and (magic0123[2]='L') and (magic0123[3]='F')) then
+            Exit;
+        case elfheader32.file_class of
+          1:
+            begin
+              elfheader32:=MayBeSwapHeader(elfheader32);
+              seek(f,elfheader32.e_shoff);
+              { read string section header }
+              seek(f,elfheader32.e_shoff+sizeof(TElf32sechdr)*elfheader32.e_shstrndx);
+              blockread(f,secheader32,sizeof(secheader32));
+              secheader32:=MaybeSwapSecHeader(secheader32);
+              stringoffset:=secheader32.sh_offset;
+
+              seek(f,elfheader32.e_shoff);
+              status.datasize:=0;
+              for i:=0 to elfheader32.e_shnum-1 do
+                begin
+                  blockread(f,secheader32,sizeof(secheader32));
+                  secheader32:=MaybeSwapSecHeader(secheader32);
+                  secname:=ReadSectionName(stringoffset+secheader32.sh_name);
+                  case secname of
+                    '.text':
+                      begin
+                        Message1(execinfo_x_codesize,tostr(secheader32.sh_size));
+                        status.codesize:=secheader32.sh_size;
+                      end;
+                    '.fpcdata',
+                    '.rodata',
+                    '.data':
+                      begin
+                        Message1(execinfo_x_initdatasize,tostr(secheader32.sh_size));
+                        inc(status.datasize,secheader32.sh_size);
+                      end;
+                    '.bss':
+                      begin
+                        Message1(execinfo_x_uninitdatasize,tostr(secheader32.sh_size));
+                        inc(status.datasize,secheader32.sh_size);
+                      end;
+                  end;
+                end;
+            end;
+          2:
+            begin
+              seek(f,0);
+              blockread(f,elfheader64,sizeof(tElf64header));
+              with elfheader64 do
+                if not((magic0123[0]=#$7f) and (magic0123[1]='E') and (magic0123[2]='L') and (magic0123[3]='F')) then
+                  Exit;
+              elfheader64:=MayBeSwapHeader(elfheader64);
+              seek(f,elfheader64.e_shoff);
+              { read string section header }
+              seek(f,elfheader64.e_shoff+sizeof(TElf64sechdr)*elfheader64.e_shstrndx);
+              blockread(f,secheader64,sizeof(secheader64));
+              secheader64:=MaybeSwapSecHeader(secheader64);
+              stringoffset:=secheader64.sh_offset;
+
+              seek(f,elfheader64.e_shoff);
+              status.datasize:=0;
+              for i:=0 to elfheader64.e_shnum-1 do
+                begin
+                  blockread(f,secheader64,sizeof(secheader64));
+                  secheader64:=MaybeSwapSecHeader(secheader64);
+                  secname:=ReadSectionName(stringoffset+secheader64.sh_name);
+                  case secname of
+                    '.text':
+                      begin
+                        Message1(execinfo_x_codesize,tostr(secheader64.sh_size));
+                        status.codesize:=secheader64.sh_size;
+                      end;
+                    '.fpcdata',
+                    '.rodata',
+                    '.data':
+                      begin
+                        Message1(execinfo_x_initdatasize,tostr(secheader64.sh_size));
+                        inc(status.datasize,secheader64.sh_size);
+                      end;
+                    '.bss':
+                      begin
+                        Message1(execinfo_x_uninitdatasize,tostr(secheader64.sh_size));
+                        inc(status.datasize,secheader64.sh_size);
+                      end;
+                  end;
+                end;
+            end;
+          else
+            exit;
+        end;
+        close(f);
+        {$pop}
+        if ioresult<>0 then
+          ;
+        Result:=true;
+      end;
+
+
+    function TExternalLinker.PostProcessMachExecutable(const fn : string;isdll:boolean):boolean;
+      type
+        TMachHeader=record
+          magic       : longword;
+          cputype     : integer;
+          cpusubtype  : integer;
+          filetype    : longword;
+          ncmds       : longword;
+          sizeofcmds  : longword;
+          flags       : longword;
+          reserved    : longword;
+        end;
+
+        TMachLoadCommand = record
+          cmd : longword;
+          cmdsize : longword;
+        end;
+
+        TMachSegmentCommand64 = record
+          segname  : array[0..15] of char;
+          vmaddr   : qword;
+          vmsize   : qword;
+          fileoff  : qword;
+          filesize : qword;
+          maxprot  : integer;
+          initprot : integer;
+          nsects   : dword;
+          flags    : dword;
+        end;
+
+      var
+        f : file;
+        machheader : TMachHeader;
+        machloadcmd : TMachLoadCommand;
+        machsegmentcommand64 :TMachSegmentCommand64;
+        i : longint;
+      begin
+        Result:=false;
+        { open file }
+        assign(f,fn);
+        {$push}{$I-}
+        reset(f,1);
+        if ioresult<>0 then
+          Message1(execinfo_f_cant_open_executable,fn);
+
+{$ifdef DEBUG_MACHO_INFO}
+        writeln('Start reading Mach-O file');
+{$endif DEBUG_MACHO_INFO}
+        blockread(f,machheader,sizeof(TMachHeader));
+        if machheader.magic<>$feedfacf then
+          Exit;
+
+{$ifdef DEBUG_MACHO_INFO}
+        writeln('Magic header recognized (64 Bit, Little Endian)');
+        writeln('Reading ',machheader.ncmds,' commands');
+{$endif DEBUG_MACHO_INFO}
+
+        for i:=1 to machheader.ncmds do
+          begin
+            blockread(f,machloadcmd,sizeof(machloadcmd));
+            case machloadcmd.cmd of
+              $19:
+                begin
+                  blockread(f,machsegmentcommand64,sizeof(machsegmentcommand64));
+{$ifdef DEBUG_MACHO_INFO}
+                  writeln('Found SegmentCommand64: Name = ',StrPas(@machsegmentcommand64.segname),
+                    '; VMSize = $',hexstr(machsegmentcommand64.vmsize,8),
+                    '; FileSize = $',hexstr(machsegmentcommand64.filesize,8));
+{$endif DEBUG_MACHO_INFO}
+                  case StrPas(@machsegmentcommand64.segname) of
+                    '__TEXT':
+                      begin
+                        Message1(execinfo_x_codesize,tostr(machsegmentcommand64.vmsize));
+                        status.codesize:=machsegmentcommand64.vmsize;
+                      end;
+                    '__DATA_CONST':
+                      begin
+                        Message1(execinfo_x_initdatasize,tostr(machsegmentcommand64.vmsize));
+                        inc(status.datasize,machsegmentcommand64.vmsize);
+                      end;
+                    '__DATA':
+                      begin
+                        Message1(execinfo_x_uninitdatasize,tostr(machsegmentcommand64.vmsize));
+                        inc(status.datasize,machsegmentcommand64.vmsize);
+                      end;
+                  end;
+                  Seek(f,FilePos(f)+machloadcmd.cmdsize-sizeof(machloadcmd)-sizeof(machsegmentcommand64));
+                end;
+              else
+                begin
+{$ifdef DEBUG_MACHO_INFO}
+                  writeln('Found Load Command: $',hexstr(machloadcmd.cmd,4),', skipping');
+{$endif DEBUG_MACHO_INFO}
+                  Seek(f,FilePos(f)+machloadcmd.cmdsize-sizeof(machloadcmd));
+                end;
+            end;
+          end;
+        close(f);
+        {$pop}
+        if ioresult<>0 then
+          ;
+        Result:=true;
       end;
 
 
@@ -983,6 +1481,30 @@ Implementation
       end;
 
 
+    function TInternalLinker.GetCodeSize(aExeOutput: TExeOutput): QWord;
+      begin
+        Result:=aExeOutput.findexesection('.text').size;
+      end;
+
+
+    function TInternalLinker.GetDataSize(aExeOutput: TExeOutput): QWord;
+      begin
+        Result:=aExeOutput.findexesection('.data').size;
+      end;
+
+
+    function TInternalLinker.GetBssSize(aExeOutput: TExeOutput): QWord;
+      var
+        bsssec: TExeSection;
+      begin
+        bsssec:=aExeOutput.findexesection('.bss');
+        if assigned(bsssec) then
+          Result:=bsssec.size
+        else
+          Result:=0;
+      end;
+
+
     procedure TInternalLinker.ParseLdScript(src:TScriptLexer);
       var
         asneeded: boolean;
@@ -1067,7 +1589,7 @@ Implementation
 
     procedure TInternalLinker.Load_ReadStaticLibrary(const para:TCmdStr;asneededflag:boolean);
       var
-        objreader : TArObjectReader;
+        objreader : TObjectReader;
         objinput: TObjInput;
         objdata: TObjData;
         ScriptLexer: TScriptLexer;
@@ -1078,7 +1600,7 @@ Implementation
         if copy(ExtractFileName(para),1,6)='libimp' then
           exit;
         Comment(V_Tried,'Opening library '+para);
-        objreader:=TArObjectreader.create(para,true);
+        objreader:=CArObjectreader.createAr(para,true);
         if ErrorCount>0 then
           exit;
         if objreader.isarchive then
@@ -1126,7 +1648,7 @@ Implementation
 
     procedure TInternalLinker.ParseScript_Handle;
       var
-        s, para, keyword : String;
+        s{, para}, keyword : String;
         hp : TCmdStrListItem;
         i : longint;
       begin
@@ -1142,7 +1664,7 @@ Implementation
                 continue;
               end;
             keyword:=Upper(GetToken(s,' '));
-            para:=GetToken(s,' ');
+            {para:=}GetToken(s,' ');
             if Trim(s)<>'' then
               Comment(V_Warning,'Unknown part "'+s+'" in "'+hp.str+'" internal linker script');
             if (keyword<>'SYMBOL') and
@@ -1419,8 +1941,7 @@ Implementation
       label
         myexit;
       var
-        bsssize : aword;
-        bsssec  : TExeSection;
+        bsssize : qword;
         dbgname : TCmdStr;
       begin
         result:=false;
@@ -1500,14 +2021,9 @@ Implementation
         { Post check that everything was handled }
         ParseScript_PostCheck;
 
-{ TODO: fixed section names}
-        status.codesize:=exeoutput.findexesection('.text').size;
-        status.datasize:=exeoutput.findexesection('.data').size;
-        bsssec:=exeoutput.findexesection('.bss');
-        if assigned(bsssec) then
-          bsssize:=bsssec.size
-        else
-          bsssize:=0;
+        status.codesize:=GetCodeSize(exeoutput);
+        status.datasize:=GetDataSize(exeoutput);
+        bsssize:=GetBssSize(exeoutput);
 
         { Executable info }
         Message1(execinfo_x_codesize,tostr(status.codesize));
@@ -1531,10 +2047,22 @@ Implementation
       end;
 
 
+    function TInternalLinker.ExecutableFilename:String;
+      begin
+        result:=current_module.exefilename;
+      end;
+
+
+    function TInternalLinker.SharedLibFilename:String;
+      begin
+        result:=current_module.sharedlibfilename;
+      end;
+
+
     function TInternalLinker.MakeExecutable:boolean;
       begin
         IsSharedLibrary:=false;
-        result:=RunLinkScript(current_module.exefilename);
+        result:=RunLinkScript(ExecutableFilename);
 {$ifdef hasUnix}
         fpchmod(current_module.exefilename,493);
 {$endif hasUnix}
@@ -1544,7 +2072,7 @@ Implementation
     function TInternalLinker.MakeSharedLibrary:boolean;
       begin
         IsSharedLibrary:=true;
-        result:=RunLinkScript(current_module.sharedlibfilename);
+        result:=RunLinkScript(SharedLibFilename);
       end;
 
 
@@ -1630,8 +2158,8 @@ Implementation
       ar_watcom_wlib_omf_info : tarinfo =
           ( id          : ar_watcom_wlib_omf;
             addfilecmd  : '+';
-            arfirstcmd  : 'wlib -q -fo -c -b -n -o=$OUTPUTLIB $LIB $FILES';
-            arcmd       : 'wlib -q -fo -c -b -o=$OUTPUTLIB $LIB $FILES';
+            arfirstcmd  : 'wlib -q $RECSIZE -fo -c -b -n -o=$OUTPUTLIB $LIB $FILES';
+            arcmd       : 'wlib -q $RECSIZE -fo -c -b -o=$OUTPUTLIB $LIB $FILES';
             arfinishcmd : ''
           );
 
@@ -1644,6 +2172,23 @@ Implementation
             arfinishcmd : ''
           );
 
+      ar_sdcc_sdar_info : tarinfo =
+          ( id          : ar_sdcc_sdar;
+          addfilecmd  : '';
+          arfirstcmd  : '';
+          arcmd       : 'sdar qS $LIB $FILES';
+          arfinishcmd : 'sdar s $LIB'
+          );
+
+      ar_sdcc_sdar_scripted_info : tarinfo =
+          (
+            id    : ar_sdcc_sdar_scripted;
+            addfilecmd  : '';
+            arfirstcmd  : '';
+            arcmd : 'sdar -M < $SCRIPT';
+            arfinishcmd : ''
+          );
+
 
 initialization
   RegisterAr(ar_gnu_ar_info);
@@ -1651,4 +2196,6 @@ initialization
   RegisterAr(ar_gnu_gar_info);
   RegisterAr(ar_watcom_wlib_omf_info);
   RegisterAr(ar_watcom_wlib_omf_scripted_info);
+  RegisterAr(ar_sdcc_sdar_info);
+  RegisterAr(ar_sdcc_sdar_scripted_info);
 end.

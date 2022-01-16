@@ -47,11 +47,18 @@ type
   TPersistentBufDataSet=class(TBufDataset)
     private
       TempFileName:string;
+    protected
+      procedure LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField); override;
     public
       destructor Destroy; override;
   end;
 
 { TPersistentBufDataSet }
+
+procedure TPersistentBufDataSet.LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField);
+begin
+  Raise ENotImplemented.Create('LoadBlobIntoBuffer not implemented');
+end;
 
 destructor TPersistentBufDataSet.Destroy;
 begin
@@ -83,9 +90,9 @@ begin
 end;
 
 function TbufdatasetDBConnector.InternalGetNDataset(n: integer): TDataset;
-var BufDataset  : TPersistentBufDataSet;
-    i      : integer;
-
+var
+  BufDataset : TPersistentBufDataSet;
+  i : integer;
 begin
   BufDataset := TPersistentBufDataSet.Create(nil);
   with BufDataset do
@@ -148,6 +155,10 @@ begin
     FieldDefs.Add('FWIDESTRING',ftWideString,10);
     FieldDefs.Add('FFIXEDWIDECHAR',ftFixedWideChar,10);
     FieldDefs.Add('FWIDEMEMO',ftWideMemo);
+    FieldDefs.Add('FLONGWORD',ftLongWord);
+    FieldDefs.Add('FSHORTINT',ftShortInt);
+    FieldDefs.Add('FBYTE',ftByte);
+    FieldDefs.Add('FEXTENDED',ftExtended);
     CreateDataset;
     Open;
     for i := 0 to testValuesCount-1 do
@@ -176,6 +187,10 @@ begin
       FieldByName('FWIDESTRING').AsString := testStringValues[i];
       FieldByName('FFIXEDWIDECHAR').AsString := PadRight(testStringValues[i], 10);
       FieldByName('FWIDEMEMO').AsString := testStringValues[i];
+      FieldByName('FLONGWORD').AsLongWord := testLongWordValues[i];
+      FieldByName('FSHORTINT').AsInteger := testShortIntValues[i];
+      FieldByName('FBYTE').AsInteger := testByteValues[i];
+      FieldByName('FEXTENDED').AsExtended := testFloatValues[i];
       Post;
     end;
     MergeChangeLog;

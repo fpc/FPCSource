@@ -11,8 +11,8 @@ uses
 {$if defined(UNIX) and defined(THREAD)}
    cthreads,
 {$ifend}
-   sysutils,
-   classes;
+   SysUtils,
+   Classes;
 
 const
   BenchCount = 1;

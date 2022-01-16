@@ -38,6 +38,8 @@ type
 var
   hlibICU: TLibHandle;
   hlibICUi18n: TLibHandle;
+  LibVer: ansistring;
+
   ucnv_open: function (converterName: PAnsiChar; var pErrorCode: UErrorCode): PUConverter; cdecl;
   ucnv_close: procedure (converter: PUConverter); cdecl;
   ucnv_setSubstChars: procedure (converter: PUConverter; subChars: PAnsiChar; len: byte; var pErrorCode: UErrorCode); cdecl;
@@ -48,12 +50,14 @@ var
   u_strToLower: function (dest: PUnicodeChar; destCapacity: int32_t; src: PUnicodeChar; srcLength: int32_t; locale: PAnsiChar; var pErrorCode: UErrorCode): int32_t; cdecl;
   u_strCompare: function (s1: PUnicodeChar; length1: int32_t; s2: PUnicodeChar; length2: int32_t; codePointOrder: UBool): int32_t; cdecl;
   u_strCaseCompare: function (s1: PUnicodeChar; length1: int32_t; s2: PUnicodeChar; length2: int32_t; options: uint32_t; var pErrorCode: UErrorCode): int32_t; cdecl;
+  u_getDataDirectory: function(): PAnsiChar; cdecl;
+  u_setDataDirectory: procedure(directory: PAnsiChar); cdecl;
+  u_init: procedure(var status: UErrorCode); cdecl;
 
   ucol_open: function(loc: PAnsiChar; var status: UErrorCode): PUCollator; cdecl;
   ucol_close: procedure (coll: PUCollator); cdecl;
   ucol_strcoll: function (coll: PUCollator; source: PUnicodeChar; sourceLength: int32_t; target: PUnicodeChar; targetLength: int32_t): int32_t; cdecl;
 	ucol_setStrength: procedure (coll: PUCollator; strength: int32_t); cdecl;
-  u_errorName: function (code: UErrorCode): PAnsiChar; cdecl;
 
 threadvar
   ThreadDataInited: boolean;
@@ -61,16 +65,37 @@ threadvar
   LastCP: TSystemCodePage;
   DefColl: PUCollator;
 
+function MaskExceptions: dword;
+begin
+{$if defined(cpux86_64) or defined(cpui386)}
+  Result:=GetMXCSR;
+  SetMXCSR(Result or %0000000010000000 {MM_MaskInvalidOp} or %0001000000000000 {MM_MaskPrecision});
+{$else}
+  Result:=0;
+{$endif}
+end;
+
+procedure UnmaskExceptions(oldmask: dword);
+begin
+{$if defined(cpux86_64) or defined(cpui386)}
+  SetMXCSR(oldmask);
+{$endif}
+end;
+
 function OpenConverter(const name: ansistring): PUConverter;
 var
   err: UErrorCode;
+  oldmask: dword;
 begin
+  { ucnv_open() must be called with some SSE exception masked on x86_64-android. }
+  oldmask:=MaskExceptions;
   err:=0;
   Result:=ucnv_open(PAnsiChar(name), err);
   if Result <> nil then begin
     ucnv_setSubstChars(Result, '?', 1, err);
     ucnv_setFallback(Result, True);
   end;
+  UnmaskExceptions(oldmask);
 end;
 
 procedure InitThreadData;
@@ -98,7 +123,7 @@ begin
     exit;
   end;
   InitThreadData;
-  if (cp = DefaultSystemCodePage) or (cp = CP_ACP) then
+  if (cp = CP_UTF8) or (cp = CP_ACP) then
     Result:=DefConv
   else begin
     if cp <> LastCP then begin
@@ -121,20 +146,32 @@ begin
     exit;
   end;
   conv:=GetConverter(cp);
-  if conv = nil then begin
-    DefaultUnicode2AnsiMove(source,dest,DefaultSystemCodePage,len);
+  if (conv = nil) and not ( (cp = CP_UTF8) or (cp = CP_ACP) ) then begin
+    // fallback implementation
+    DefaultUnicode2AnsiMove(source,dest,cp,len);
     exit;
   end;
 
   len2:=len*3;
   SetLength(dest, len2);
   err:=0;
-  len2:=ucnv_fromUChars(conv, PAnsiChar(dest), len2, source, len, err);
+  if conv <> nil then
+    len2:=ucnv_fromUChars(conv, PAnsiChar(dest), len2, source, len, err)
+  else begin
+    // Use UTF-8 conversion from RTL
+    cp:=CP_UTF8;
+    len2:=UnicodeToUtf8(PAnsiChar(dest), len2, source, len) - 1;
+  end;
   if len2 > Length(dest) then begin
     SetLength(dest, len2);
     err:=0;
-    len2:=ucnv_fromUChars(conv, PAnsiChar(dest), len2, source, len, err);
+    if conv <> nil then
+      len2:=ucnv_fromUChars(conv, PAnsiChar(dest), len2, source, len, err)
+    else
+      len2:=UnicodeToUtf8(PAnsiChar(dest), len2, source, len) - 1;
   end;
+  if len2 < 0 then
+    len2:=0;
   SetLength(dest, len2);
   SetCodePage(dest, cp, False);
 end;
@@ -150,20 +187,30 @@ begin
     exit;
   end;
   conv:=GetConverter(cp);
-  if conv = nil then begin
-    DefaultAnsi2UnicodeMove(source,DefaultSystemCodePage,dest,len);
+  if (conv = nil) and not ( (cp = CP_UTF8) or (cp = CP_ACP) ) then begin
+    // fallback implementation
+    DefaultAnsi2UnicodeMove(source,cp,dest,len);
     exit;
   end;
 
   len2:=len;
   SetLength(dest, len2);
   err:=0;
-  len2:=ucnv_toUChars(conv, PUnicodeChar(dest), len2, source, len, err);
+  if conv <> nil then
+    len2:=ucnv_toUChars(conv, PUnicodeChar(dest), len2, source, len, err)
+  else
+    // Use UTF-8 conversion from RTL
+    len2:=Utf8ToUnicode(PUnicodeChar(dest), len2, source, len) - 1;
   if len2 > Length(dest) then begin
     SetLength(dest, len2);
     err:=0;
-    len2:=ucnv_toUChars(conv, PUnicodeChar(dest), len2, source, len, err);
+    if conv <> nil then
+      len2:=ucnv_toUChars(conv, PUnicodeChar(dest), len2, source, len, err)
+    else
+      len2:=Utf8ToUnicode(PUnicodeChar(dest), len2, source, len) - 1;
   end;
+  if len2 < 0 then
+    len2:=0;
   SetLength(dest, len2);
 end;
 
@@ -231,21 +278,7 @@ begin
     result:=Count1 - Count2;
 end;
 
-function CompareUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
-begin
-  if hlibICU = 0 then begin
-    // fallback implementation
-    Result:=_CompareStr(s1, s2);
-    exit;
-  end;
-  InitThreadData;
-  if DefColl <> nil then
-    Result:=ucol_strcoll(DefColl, PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2))
-  else
-    Result:=u_strCompare(PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2), True);
-end;
-
-function CompareTextUnicodeString(const s1, s2 : UnicodeString): PtrInt;
+function CompareUnicodeString(const s1, s2 : UnicodeString; Options : TCompareOptions) : PtrInt;
 const
   U_COMPARE_CODE_POINT_ORDER = $8000;
 var
@@ -253,11 +286,20 @@ var
 begin
   if hlibICU = 0 then begin
     // fallback implementation
-    Result:=_CompareStr(UpperUnicodeString(s1), UpperUnicodeString(s2));
+    Result:=_CompareStr(s1, s2);
     exit;
   end;
-  err:=0;
-  Result:=u_strCaseCompare(PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2), U_COMPARE_CODE_POINT_ORDER, err);
+  if (coIgnoreCase in Options) then begin
+    err:=0;
+    Result:=u_strCaseCompare(PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2), U_COMPARE_CODE_POINT_ORDER, err);
+  end
+  else begin
+    InitThreadData;
+    if DefColl <> nil then
+      Result:=ucol_strcoll(DefColl, PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2))
+    else
+      Result:=u_strCompare(PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2), True);
+  end;
 end;
 
 function UpperAnsiString(const s : AnsiString) : AnsiString;
@@ -272,22 +314,22 @@ end;
 
 function CompareStrAnsiString(const s1, s2: ansistring): PtrInt;
 begin
-  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2));
+  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2), []);
 end;
 
 function StrCompAnsi(s1,s2 : PChar): PtrInt;
 begin
-  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2));
+  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2), []);
 end;
 
 function AnsiCompareText(const S1, S2: ansistring): PtrInt;
 begin
-  Result:=CompareTextUnicodeString(UnicodeString(s1), UnicodeString(s2));
+  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2), [coIgnoreCase]);
 end;
 
 function AnsiStrIComp(S1, S2: PChar): PtrInt;
 begin
-  Result:=CompareTextUnicodeString(UnicodeString(s1), UnicodeString(s2));
+  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2), [coIgnoreCase]);
 end;
 
 function AnsiStrLComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
@@ -296,7 +338,7 @@ var
 begin
   SetString(as1, S1, MaxLen);
   SetString(as2, S2, MaxLen);
-  Result:=CompareUnicodeString(UnicodeString(as1), UnicodeString(as2));
+  Result:=CompareUnicodeString(UnicodeString(as1), UnicodeString(as2), []);
 end;
 
 function AnsiStrLIComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
@@ -305,7 +347,7 @@ var
 begin
   SetString(as1, S1, MaxLen);
   SetString(as2, S2, MaxLen);
-  Result:=CompareTextUnicodeString(UnicodeString(as1), UnicodeString(as2));
+  Result:=CompareUnicodeString(UnicodeString(as1), UnicodeString(as2), [coIgnoreCase]);
 end;
 
 function AnsiStrLower(Str: PChar): PChar;
@@ -396,14 +438,9 @@ begin
   Result:=LowerUnicodeString(s);
 end;
 
-function CompareWideString(const s1, s2 : WideString) : PtrInt;
+function CompareWideString(const s1, s2 : WideString; Options : TCompareOptions) : PtrInt;
 begin
-  Result:=CompareUnicodeString(s1, s2);
-end;
-
-function CompareTextWideString(const s1, s2 : WideString): PtrInt;
-begin
-  Result:=CompareTextUnicodeString(s1, s2);
+  Result:=CompareUnicodeString(s1, s2, Options);
 end;
 
 Procedure SetCWideStringManager;
@@ -418,7 +455,6 @@ begin
       UpperWideStringProc:=@UpperWideString;
       LowerWideStringProc:=@LowerWideString;
       CompareWideStringProc:=@CompareWideString;
-      CompareTextWideStringProc:=@CompareTextWideString;
 
       UpperAnsiStringProc:=@UpperAnsiString;
       LowerAnsiStringProc:=@LowerAnsiString;
@@ -436,7 +472,6 @@ begin
       UpperUnicodeStringProc:=@UpperUnicodeString;
       LowerUnicodeStringProc:=@LowerUnicodeString;
       CompareUnicodeStringProc:=@CompareUnicodeString;
-      CompareTextUnicodeStringProc:=@CompareTextUnicodeString;
 
       GetStandardCodePageProc:=@GetStandardCodePage;
       CodePointLengthProc:=@CodePointLength;
@@ -446,54 +481,67 @@ end;
 
 procedure UnloadICU;
 begin
-  if hlibICUi18n <> 0 then begin
-    if DefColl <> nil then
-      ucol_close(DefColl);
-    UnloadLibrary(hlibICUi18n);
-    hlibICUi18n:=0;
-  end;
+  if DefColl <> nil then
+    ucol_close(DefColl);
+  if DefConv <> nil then
+    ucnv_close(DefConv);
+  if LastConv <> nil then
+    ucnv_close(LastConv);
+
+  if LibVer = '_3_8' then
+    exit;  // ICU v3.8 on Android 1.5-2.1 is buggy and can't be unloaded properly
+
   if hlibICU <> 0 then begin
-    if DefConv <> nil then
-      ucnv_close(DefConv);
-    if LastConv <> nil then
-      ucnv_close(LastConv);
     UnloadLibrary(hlibICU);
     hlibICU:=0;
   end;
+  if hlibICUi18n <> 0 then begin
+    UnloadLibrary(hlibICUi18n);
+    hlibICUi18n:=0;
+  end;
 end;
 
-procedure LoadICU;
+function GetIcuProc(const Name: AnsiString; out ProcPtr; libId: longint = 0): boolean;
 var
-  LibVer: ansistring;
+  p: pointer;
+  hLib: TLibHandle;
+begin
+  Result:=False;
+  if libId = 0 then
+    hLib:=hlibICU
+  else
+    hLib:=hlibICUi18n;
+  if hLib = 0 then
+    exit;
+  p:=GetProcedureAddress(hlib, Name + LibVer);
+  if p = nil then
+    exit;
+  pointer(ProcPtr):=p;
+  Result:=True;
+end;
 
-  function _GetProc(const Name: AnsiString; out ProcPtr; hLib: TLibHandle = 0): boolean;
-  var
-    p: pointer;
-  begin
-    if hLib = 0 then
-      hLib:=hlibICU;
-    p:=GetProcedureAddress(hlib, Name + LibVer);
-    if p = nil then begin
-      // unload lib on failure
-      UnloadICU;
-      Result:=False;
-    end
-    else begin
-      pointer(ProcPtr):=p;
-      Result:=True;
-    end;
-  end;
-
+function LoadICU: boolean;
 const
-  ICUver: array [1..5] of ansistring = ('3_8', '4_2', '44', '46', '48');
+  ICUver: array [1..15] of ansistring =
+    ('3_8', '4_2', '44', '46', '48', '50', '51', '53', '55', '56', '58', '60',
+     '63', '66', '68');
   TestProcName = 'ucnv_open';
 
 var
   i: longint;
   s: ansistring;
+  dir: PAnsiChar;
+  err: UErrorCode;
 begin
+  Result:=False;
+{$ifdef android}
   hlibICU:=LoadLibrary('libicuuc.so');
   hlibICUi18n:=LoadLibrary('libicui18n.so');
+{$else}
+  hlibICU:=LoadLibrary('icuuc40.dll');
+  hlibICUi18n:=LoadLibrary('icuin40.dll');
+  LibVer:='_4_0';
+{$endif android}
   if (hlibICU = 0) or (hlibICUi18n = 0) then begin
     UnloadICU;
     exit;
@@ -511,7 +559,7 @@ begin
     // Finding unknown ICU version
     Val(ICUver[High(ICUver)], i);
     repeat
-      Inc(i, 2);
+      Inc(i);
       Str(i, s);
       s:='_'  + s;
       if GetProcedureAddress(hlibICU, TestProcName + s) <> nil then begin
@@ -525,38 +573,64 @@ begin
     // Trying versionless name
     if GetProcedureAddress(hlibICU, TestProcName) = nil then begin
       // Unable to get ICU version
+      SysLogWrite(ANDROID_LOG_ERROR, 'cwstring: Unable to get ICU version.');
       UnloadICU;
       exit;
     end;
   end;
 
-  if not _GetProc('ucnv_open', ucnv_open) then exit;
-  if not _GetProc('ucnv_close', ucnv_close) then exit;
-  if not _GetProc('ucnv_setSubstChars', ucnv_setSubstChars) then exit;
-  if not _GetProc('ucnv_setFallback', ucnv_setFallback) then exit;
-  if not _GetProc('ucnv_fromUChars', ucnv_fromUChars) then exit;
-  if not _GetProc('ucnv_toUChars', ucnv_toUChars) then exit;
-  if not _GetProc('u_strToUpper', u_strToUpper) then exit;
-  if not _GetProc('u_strToLower', u_strToLower) then exit;
-  if not _GetProc('u_strCompare', u_strCompare) then exit;
-  if not _GetProc('u_strCaseCompare', u_strCaseCompare) then exit;
+  if not GetIcuProc('ucnv_open', ucnv_open) then exit;
+  if not GetIcuProc('ucnv_close', ucnv_close) then exit;
+  if not GetIcuProc('ucnv_setSubstChars', ucnv_setSubstChars) then exit;
+  if not GetIcuProc('ucnv_setFallback', ucnv_setFallback) then exit;
+  if not GetIcuProc('ucnv_fromUChars', ucnv_fromUChars) then exit;
+  if not GetIcuProc('ucnv_toUChars', ucnv_toUChars) then exit;
+  if not GetIcuProc('u_strToUpper', u_strToUpper) then exit;
+  if not GetIcuProc('u_strToLower', u_strToLower) then exit;
+  if not GetIcuProc('u_strCompare', u_strCompare) then exit;
+  if not GetIcuProc('u_strCaseCompare', u_strCaseCompare) then exit;
+  if not GetIcuProc('u_getDataDirectory', u_getDataDirectory) then exit;
+  if not GetIcuProc('u_setDataDirectory', u_setDataDirectory) then exit;
+  if not GetIcuProc('u_init', u_init) then exit;
 
-  if not _GetProc('u_errorName', u_errorName) then exit;
+  if not GetIcuProc('ucol_open', ucol_open, 1) then exit;
+  if not GetIcuProc('ucol_close', ucol_close, 1) then exit;
+  if not GetIcuProc('ucol_strcoll', ucol_strcoll, 1) then exit;
+  if not GetIcuProc('ucol_setStrength', ucol_setStrength, 1) then exit;
 
-  if not _GetProc('ucol_open', ucol_open, hlibICUi18n) then exit;
-  if not _GetProc('ucol_close', ucol_close, hlibICUi18n) then exit;
-  if not _GetProc('ucol_strcoll', ucol_strcoll, hlibICUi18n) then exit;
-  if not _GetProc('ucol_setStrength', ucol_setStrength, hlibICUi18n) then exit;
+  // Checking if ICU data dir is set
+  dir:=u_getDataDirectory();
+  if (dir = nil) or (dir^ = #0) then
+    u_setDataDirectory('/system/usr/icu');
+
+  err:=0;
+  u_init(err);
+
+  Result:=True;
 end;
 
+var
+  oldm: TUnicodeStringManager;
+{$ifdef android}
+  SysGetIcuProc: pointer; external name 'ANDROID_GET_ICU_PROC';
+{$endif android}
+
 initialization
+  GetUnicodeStringManager(oldm);
   DefaultSystemCodePage:=GetStandardCodePage(scpAnsi);
   DefaultUnicodeCodePage:=CP_UTF16;
-  LoadICU;
-  SetCWideStringManager;
-  SetStdIOCodePages;
+  if LoadICU then begin
+    SetCWideStringManager;
+    {$ifdef android}
+    SysGetIcuProc:=@GetIcuProc;
+    SetStdIOCodePages;
+    {$endif android}
+  end
+  else
+    SysLogWrite(ANDROID_LOG_ERROR, 'cwstring: Failed to load ICU.');
 
 finalization
+  SetUnicodeStringManager(oldm);
   UnloadICU;
 
 end.

@@ -25,13 +25,13 @@ function inflate_codes(var s : inflate_blocks_state;
                        var z : z_stream;
                        r : integer) : integer;
 
-procedure inflate_codes_free(c : pInflate_codes_state;
+procedure inflate_codes_free(var c : pInflate_codes_state;
                              var z : z_stream);
 
 implementation
 
 uses
-  infutil, inffast;
+  infutil, inffast{$IFDEF ZLIB_DEBUG}, SysUtils{$ENDIF};
 
 
 function inflate_codes_new (bl : cardinal;
@@ -150,6 +150,20 @@ begin
           z.next_in := p;
           s.write := q;
           inflate_codes := inflate_flush(s,z,r);
+
+          //if this is the last block, there are no bytes left in stream and the block end code follows, finish processing this block
+          if s.last then
+          begin
+            t := c^.sub.code.tree;
+            { update t (like as in following code), and check, if requested
+              bits are available }
+            Inc(t, cardinal(b) and inflate_mask[j]);
+            if k >= t^.bits then
+            { now, we can examine t^.exop value }
+              if t^.exop and 32 <> 0 then
+                break;
+          end;
+
           exit;
         end;
         dec(n);
@@ -171,7 +185,7 @@ begin
         if (t^.base >= $20) and (t^.base < $7f) then
           Tracevv('inflate:         literal '+char(t^.base))
         else
-          Tracevv('inflate:         literal '+IntToStr(t^.base));
+          Tracevv('inflate:         literal $'+IntToHex(t^.base, 2));
         {$ENDIF}          
         c^.mode := LIT;
         continue;  { break switch statement }
@@ -561,10 +575,11 @@ begin
 end;
 
 
-procedure inflate_codes_free(c : pInflate_codes_state;
+procedure inflate_codes_free(var c : pInflate_codes_state;
                              var z : z_stream);
 begin
   dispose(c);
+  c := nil;
   {$IFDEF ZLIB_DEBUG}  
   Tracev('inflate:       codes free');
   {$ENDIF}

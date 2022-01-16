@@ -30,9 +30,7 @@ uses
 
 type
   bestreal = double;
-{$if FPC_FULLVERSION>20700}
   bestrealrec = TDoubleRec;
-{$endif FPC_FULLVERSION>20700}
   ts32real = single;
   ts64real = double;
   ts80real = extended;
@@ -55,11 +53,17 @@ type
   tcontrollertype =(ct_none
   );
 
+   tcontrollerdatatype = record
+      controllertypestr, controllerunitstr: string[20];
+      cputype: tcputype; fputype: tfputype;
+      flashbase, flashsize, srambase, sramsize, eeprombase, eepromsize, bootbase, bootsize: dword;
+   end;
+
 
 Const
   { Is there support for dealing with multiple microcontrollers available }
   { for this platform? }
-  ControllerSupport = true;
+  ControllerSupport = false;
 
   { We know that there are fields after sramsize
     but we don't care about this warning }
@@ -67,7 +71,7 @@ Const
    {$WARN 3177 OFF}
   embedded_controllers : array [tcontrollertype] of tcontrollerdatatype =
   (
-     (controllertypestr:''; controllerunitstr:''; flashbase:0; flashsize:0; srambase:0; sramsize:0));
+      (controllertypestr:''; controllerunitstr:''; cputype:cpu_none; fputype:fpu_none; flashbase:0; flashsize:0; srambase:0; sramsize:0));
   {$POP}
 
   { calling conventions supported by the code generator }
@@ -85,7 +89,8 @@ Const
      'SPARCV9'
    );
 
-   fputypestr : array[tfputype] of string[6] = ('',
+   fputypestr : array[tfputype] of string[6] = (
+     'NONE',
      'SOFT',
      'HARD'
    );

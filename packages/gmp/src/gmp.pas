@@ -125,22 +125,27 @@ type
   // ---- ext types with automatic mem mngmt & cow, ~ fpc string type style -----
 
   IMPBase = interface
+    ['{390336B5-6B78-47E0-BB0B-48F3AF9D5CCC}']
     function refs: longint;
   end;
 
   MPInteger = interface(IMPBase)
+    ['{F6A977E7-B5E6-42BB-981F-E1A7C7EE0D30}']
     function ptr: mpz_ptr;
   end;
 
   MPFloat = interface(IMPBase)
+    ['{73F21043-CC71-425E-9825-1EF0FF4B9B85}']
     function ptr: mpf_ptr;
   end;
 
   MPRational = interface(IMPBase)
+    ['{0ACDDB76-5C1A-48E5-96EF-EA8647680FC1}']
     function ptr: mpq_ptr;
   end;
 
   MPRandState = interface(IMPBase)
+    ['{0E7EDBB9-E009-4A29-8BAC-8B967404B7B7}']
     function ptr: randstate_ptr;
   end;
 
@@ -1746,7 +1751,7 @@ end;
 
 procedure propagate_prec(var result, op1, op2: MPFloat);
 begin
-  f_set_prec(result, max(valsint(f_get_prec(op1)), f_get_prec(op2)));
+  f_set_prec(result, max(  int64(f_get_prec(op1)), Int64(f_get_prec(op2)) ) );
 end;
 
 // --- ext bindings ----

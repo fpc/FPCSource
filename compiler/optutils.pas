@@ -27,7 +27,8 @@ unit optutils;
 
     uses
       cclasses,
-      node;
+      node,
+      globtype;
 
     type
       { this implementation should be really improved,
@@ -41,11 +42,21 @@ unit optutils;
     procedure SetNodeSucessors(p,last : tnode);
     procedure PrintDFAInfo(var f : text;p : tnode);
     procedure PrintIndexedNodeSet(var f : text;s : TIndexedNodeSet);
+
     { determines the optinfo.defsum field for the given node
       this field contains a sum of all expressions defined by
       all child expressions reachable through p
     }
     procedure CalcDefSum(p : tnode);
+
+    { calculates/estimates the field execution weight of optinfo }
+    procedure CalcExecutionWeights(p : tnode;Initial : longint = 100);
+
+    { determines the optinfo.defsum field for the given node
+      this field contains a sum of all expressions defined by
+      all child expressions reachable through p
+    }
+    procedure CalcUseSum(p : tnode);
 
     { returns true, if n is a valid node and has life info }
     function has_life_info(n : tnode) : boolean;
@@ -53,6 +64,7 @@ unit optutils;
   implementation
 
     uses
+      cutils,
       verbose,
       optbase,
       ncal,nbas,nflw,nutils,nset,ncon;
@@ -133,6 +145,8 @@ unit optutils;
               write(text(arg^),' Successor: ',nodetype2str[n.successor.nodetype],'(',n.successor.fileinfo.line,',',n.successor.fileinfo.column,')')
             else
               write(text(arg^),' Successor: nil');
+            write(text(arg^),' DefSum: ');
+            PrintDFASet(text(arg^),n.optinfo^.defsum);
             writeln(text(arg^));
           end;
         result:=fen_false;
@@ -145,15 +159,74 @@ unit optutils;
       end;
 
 
+    type
+      PBreakContinueStackNode = ^TBreakContinueStackNode;
+      TBreakContinueStackNode = record
+        { successor node for a break statement in the current loop }
+        brk,
+        { successor node for a continue statement in the current loop }
+        cont : tnode;
+        next : PBreakContinueStackNode;
+      end;
+
+      { implements a stack to track successor nodes for break and continue
+        statements }
+      TBreakContinueStack = object
+        top: PBreakContinueStackNode;
+        constructor Init;
+        destructor Done;
+        procedure Push(brk,cont : tnode);
+        procedure Pop;
+      end;
+
+    const
+      NullBreakContinueStackNode : TBreakContinueStackNode = (brk: nil; cont: nil; next: nil);
+
+
+    constructor TBreakContinueStack.Init;
+      begin
+        top:=@NullBreakContinueStackNode;
+      end;
+
+
+    destructor TBreakContinueStack.Done;
+      begin
+        while top<>@NullBreakContinueStackNode do
+          Pop;
+      end;
+
+
+    procedure TBreakContinueStack.Push(brk,cont : tnode);
+      var
+        n : PBreakContinueStackNode;
+      begin
+        new(n);
+        n^.brk:=brk;
+        n^.cont:=cont;
+        n^.next:=top;
+        top:=n;
+      end;
+
+
+    procedure TBreakContinueStack.Pop;
+      var
+        n : PBreakContinueStackNode;
+      begin
+        n:=top;
+        top:=n^.next;
+        Dispose(n);
+      end;
+
+
     procedure SetNodeSucessors(p,last : tnode);
       var
-        Continuestack : TFPList;
-        Breakstack : TFPList;
+        BreakContinueStack : TBreakContinueStack;
+        Exitsuccessor: TNode;
       { sets the successor nodes of a node tree block
         returns the first node of the tree if it's a controll flow node }
       function DoSet(p : tnode;succ : tnode) : tnode;
         var
-          hp1,hp2 : tnode;
+          hp1,hp2, oldexitsuccessor: tnode;
           i : longint;
         begin
           result:=nil;
@@ -189,16 +262,19 @@ unit optutils;
             blockn:
               begin
                 result:=p;
+                oldexitsuccessor:=Exitsuccessor;
+                if nf_block_with_exit in p.flags then
+                  Exitsuccessor:=succ;
                 DoSet(tblocknode(p).statements,succ);
                 if assigned(tblocknode(p).statements) then
                   p.successor:=tblocknode(p).statements
                 else
                   p.successor:=succ;
+                Exitsuccessor:=oldexitsuccessor;
               end;
             forn:
               begin
-                Breakstack.Add(succ);
-                Continuestack.Add(p);
+                BreakContinueStack.Push(succ,p);
                 result:=p;
                 { the successor of the last node of the for body is the dummy loop iteration node
                   it allows the dfa to inject needed life information into the loop }
@@ -206,23 +282,21 @@ unit optutils;
 
                 DoSet(tfornode(p).t2,tfornode(p).loopiteration);
                 p.successor:=succ;
-                Breakstack.Delete(Breakstack.Count-1);
-                Continuestack.Delete(Continuestack.Count-1);
+                BreakContinueStack.Pop;
               end;
             breakn:
               begin
                 result:=p;
-                p.successor:=tnode(Breakstack.Last);
+                p.successor:=BreakContinueStack.top^.brk;
               end;
             continuen:
               begin
                 result:=p;
-                p.successor:=tnode(Continuestack.Last);
+                p.successor:=BreakContinueStack.top^.cont;
               end;
             whilerepeatn:
               begin
-                Breakstack.Add(succ);
-                Continuestack.Add(p);
+                BreakContinueStack.Push(succ,p);
                 result:=p;
                 { the successor of the last node of the while/repeat body is the while node itself }
                 DoSet(twhilerepeatnode(p).right,p);
@@ -238,8 +312,7 @@ unit optutils;
                       p.successor:=nil;
                   end;
 
-                Breakstack.Delete(Breakstack.Count-1);
-                Continuestack.Delete(Continuestack.Count-1);
+                BreakContinueStack.Pop;
               end;
             ifn:
               begin
@@ -274,7 +347,7 @@ unit optutils;
             exitn:
               begin
                 result:=p;
-                p.successor:=nil;
+                p.successor:=Exitsuccessor;
               end;
             casen:
               begin
@@ -288,7 +361,9 @@ unit optutils;
               begin
                 { not sure if this is enough (FK) }
                 result:=p;
-                if not(cnf_call_never_returns in tcallnode(p).callnodeflags) then
+                if cnf_call_never_returns in tcallnode(p).callnodeflags then
+                  p.successor:=nil
+                else
                   p.successor:=succ;
               end;
             inlinen:
@@ -311,42 +386,115 @@ unit optutils;
                 { raise never returns }
                 p.successor:=nil;
               end;
-            withn,
             tryexceptn,
             tryfinallyn,
             onn:
               internalerror(2007050501);
+            else
+              ;
           end;
         end;
 
       begin
-        Breakstack:=TFPList.Create;
-        Continuestack:=TFPList.Create;
+        BreakContinueStack.Init;
+        Exitsuccessor:=nil;
         DoSet(p,last);
-        Continuestack.Free;
-        Breakstack.Free;
+        BreakContinueStack.Done;
       end;
 
-    var
-      sum : TDFASet;
 
     function adddef(var n: tnode; arg: pointer): foreachnoderesult;
+      var
+        defsum : PDFASet absolute arg;
       begin
         if assigned(n.optinfo) then
-          DFASetIncludeSet(sum,n.optinfo^.def);
+          begin
+            DFASetIncludeSet(defsum^,n.optinfo^.def);
+            { for nodes itself do not necessarily expose the definition of the counter as
+              the counter might be undefined after the for loop, so include here the counter
+              explicitly }
+            if (n.nodetype=forn) and assigned(tfornode(n).left.optinfo) then
+              DFASetInclude(defsum^,tfornode(n).left.optinfo^.index);
+          end;
         Result:=fen_false;
       end;
 
 
     procedure CalcDefSum(p : tnode);
+      var
+        defsum : PDFASet;
       begin
         p.allocoptinfo;
-        if not assigned(p.optinfo^.defsum) then
-          begin
-            sum:=nil;
-            foreachnodestatic(pm_postprocess,p,@adddef,nil);
-            p.optinfo^.defsum:=sum;
-          end;
+        defsum:=@p.optinfo^.defsum;
+        if not assigned(defsum^) then
+            foreachnodestatic(pm_postprocess,p,@adddef,defsum);
+      end;
+
+
+    function SetExecutionWeight(var n: tnode; arg: pointer): foreachnoderesult;
+      var
+        Weight, CaseWeight : longint;
+        i : Integer;
+      begin
+        Result:=fen_false;
+        n.allocoptinfo;
+        Weight:=max(plongint(arg)^,1);
+        case n.nodetype of
+          casen:
+            begin
+              CalcExecutionWeights(tcasenode(n).left,Weight);
+              CaseWeight:=max(Weight div tcasenode(n).labelcnt,1);
+              for i:=0 to tcasenode(n).blocks.count-1 do
+                CalcExecutionWeights(pcaseblock(tcasenode(n).blocks[i])^.statement,CaseWeight);
+
+              CalcExecutionWeights(tcasenode(n).elseblock,CaseWeight);
+              Result:=fen_norecurse_false;
+            end;
+          whilerepeatn:
+            begin
+              CalcExecutionWeights(twhilerepeatnode(n).right,Weight*8);
+              CalcExecutionWeights(twhilerepeatnode(n).left,Weight*8);
+              Result:=fen_norecurse_false;
+            end;
+          ifn:
+            begin
+              CalcExecutionWeights(tifnode(n).left,Weight);
+              CalcExecutionWeights(tifnode(n).right,Weight div 2);
+              CalcExecutionWeights(tifnode(n).t1,Weight div 2);
+              Result:=fen_norecurse_false;
+            end;
+          else
+            ;
+        end;
+        n.optinfo^.executionweight:=Weight;
+      end;
+
+
+    procedure CalcExecutionWeights(p : tnode;Initial : longint = 100);
+      begin
+        if assigned(p) then
+          foreachnodestatic(pm_postprocess,p,@SetExecutionWeight,Pointer(@Initial));
+      end;
+
+
+    function adduse(var n: tnode; arg: pointer): foreachnoderesult;
+      var
+        usesum : PDFASet absolute arg;
+      begin
+        if assigned(n.optinfo) then
+          DFASetIncludeSet(usesum^,n.optinfo^.use);
+        Result:=fen_false;
+      end;
+
+
+    procedure CalcUseSum(p : tnode);
+      var
+        usesum : PDFASet;
+      begin
+        p.allocoptinfo;
+        usesum:=@p.optinfo^.usesum;
+        if not assigned(usesum^) then
+            foreachnodestatic(pm_postprocess,p,@adduse,usesum);
       end;
 
 

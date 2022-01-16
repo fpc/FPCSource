@@ -30,7 +30,7 @@ _dynamic_start:
 1:      or     %o0,%lo(_GLOBAL_OFFSET_TABLE_+8),%o0
         add    %o0,%o7,%o0
         sethi  %hi(__dl_fini),%o1
-        or     %o0,%lo(__dl_fini),%o1
+        or     %o1,%lo(__dl_fini),%o1
         ld     [%o0+%o1],%o0
         b      _start
         st     %g1,[%o0]

@@ -104,6 +104,7 @@ const
  syscall_nr_waitpid                     =   7;
  syscall_nr_write                       =   4;
  syscall_nr_munmap                      =  73;
+ syscall_nr_mprotect                    =  74;
  syscall_nr_getsockopt                  = 118;
  syscall_nr_rfork                       = 251;
  syscall_nr_clock_gettime               = 232;

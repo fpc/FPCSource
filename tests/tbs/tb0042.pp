@@ -8,7 +8,7 @@ procedure test;
 
 var
    p1 : procedure;
-   p2 : pointer;
+   p2 : codepointer;
 
 begin
    p1:=@test;

@@ -28,7 +28,7 @@ type
   TIReaderPAS = class(TIReaderTXT)
   private
   protected
-    function AllowedToken(token: string): boolean; override;
+    function AllowedToken(token: UTF8String): boolean; override;
   public
     procedure LoadFromStream(FileStream: TStream); override;
   end;
@@ -37,7 +37,7 @@ implementation
 
 { TIReaderPAS }
 
-function TIReaderPAS.AllowedToken(token: string): boolean;
+function TIReaderPAS.AllowedToken(token: UTF8String): boolean;
 begin
   Result:=inherited AllowedToken(token);
 end;

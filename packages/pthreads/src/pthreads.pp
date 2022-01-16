@@ -23,6 +23,9 @@ interface
 {$if defined(BSD)}
   uses initc,BaseUnix, unixtype;
   {$i pthrbsd.inc}
+{$elseif defined(android)}
+  uses initc, ctypes, unixtype;
+  {$i pthrandroid.inc}
 {$elseif defined(linux)}
   uses initc, ctypes, unixtype;
   {$i pthrlinux.inc}

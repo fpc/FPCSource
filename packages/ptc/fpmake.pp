@@ -16,13 +16,13 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
 
     P.Author := 'Nikolay Nikolov, Glenn Fiedler, Christian Nentwich';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'http://ptcpas.sourceforge.net/';
     P.Description := 'A free, portable framebuffer library.';
-    p.OSes:=[linux,win32,win64,go32v2];
+    p.OSes:=[linux,win32,win64,go32v2,macosx];
 
     P.SourcePath.Add('src');
     P.SourcePath.Add('src/ptcwrapper');
@@ -34,6 +34,7 @@ begin
     P.SourcePath.Add('src/dos/vesa',[go32v2]);
     P.SourcePath.Add('src/dos/vga',[go32v2]);
     P.IncludePath.Add('src');
+    P.IncludePath.Add('src/cocoa',[macosx]);
     P.IncludePath.Add('src/core');
     P.IncludePath.Add('src/dos',[go32v2]);
     P.IncludePath.Add('src/dos/base',[go32v2]);
@@ -50,6 +51,7 @@ begin
     P.IncludePath.Add('src/x11',AllUnixOSes);
 
   P.Dependencies.Add('hermes');
+  P.Dependencies.Add('cocoaint',[macosx]);
   P.Dependencies.Add('x11',AllUnixOSes);
   P.Dependencies.Add('opengl',AllUnixOSes + [win32, win64]);
   P.Dependencies.Add('fcl-base');
@@ -57,7 +59,6 @@ begin
 
   T:=P.Targets.AddUnit('p_ddraw.pp', [win32, win64]);
 
-  T:=P.Targets.AddUnit('go32fix.pp',[go32v2]);
   T:=P.Targets.AddUnit('mouse33h.pp',[go32v2]);
   T:=P.Targets.AddUnit('textfx2.pp',[go32v2]);
   T:=P.Targets.AddUnit('cga.pp',[go32v2]);
@@ -185,8 +186,9 @@ begin
       AddInclude('vesaconsolei.inc', [go32v2]);
       AddInclude('vgaconsoled.inc', [go32v2]);
       AddInclude('vgaconsolei.inc', [go32v2]);
+      AddInclude('cocoaconsoled.inc', [macosx]);
+      AddInclude('cocoaconsolei.inc', [macosx]);
       AddUnit('p_gx',[Wince]);
-      AddUnit('go32fix',[go32v2]);
       AddUnit('mouse33h',[go32v2]);
       AddUnit('textfx2',[go32v2]);
       AddUnit('cga',[go32v2]);
@@ -197,6 +199,8 @@ begin
     T:=P.Targets.AddUnit('ptceventqueue.pp');
     with T.Dependencies do
       begin
+        AddInclude('ptceventqueue_st.inc');
+        AddInclude('ptceventqueue_mt.inc');
         AddUnit('ptc');
       end;
     T:=P.Targets.AddUnit('ptcwrapper.pp');
@@ -235,7 +239,7 @@ begin
     P.Targets.AddExampleProgram('tunnel3d.pp');
     P.Targets.AddExampleProgram('ptcgl.pp', AllUnixOSes + [win32, win64]);
     P.Targets.AddExampleProgram('ptcgl2.pp', AllUnixOSes + [win32, win64]);
-    P.Sources.AddExampleFiles('examples/*',false,'.');
+    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

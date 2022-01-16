@@ -26,10 +26,10 @@ unit nx64mat;
 interface
 
     uses
-      node,nmat,ncgmat,nx86mat;
+      node,nmat,nx86mat;
 
     type
-      tx8664shlshrnode = class(tshlshrnode)
+      tx8664shlshrnode = class(tx86shlshrnode)
          procedure pass_generate_code;override;
       end;
 
@@ -42,14 +42,12 @@ interface
 implementation
 
     uses
-      globtype,systems,constexp,
-      cutils,verbose,globals,
-      symconst,symdef,aasmbase,aasmtai,aasmdata,defutil,
-      pass_1,pass_2,
+      globtype,constexp,
+      cutils,
+      aasmdata,defutil,
+      pass_2,
       ncon,
-      cpubase,cpuinfo,
-      cgbase,cgutils,cga,cgobj,hlcgobj,cgx86,
-      ncgutil;
+      cgbase,cgutils,cgobj,hlcgobj;
 
 
 {*****************************************************************************
@@ -72,24 +70,8 @@ implementation
         else
           op:=OP_SHR;
 
-        { special treatment of 32bit values for backwards compatibility }
-        { mul optimizations require to keep the sign (FK) }
-        if left.resultdef.size<=4 then
-          begin
-            if is_signed(left.resultdef) then
-              opsize:=OS_S32
-            else
-              opsize:=OS_32;
-            mask:=31;
-          end
-        else
-          begin
-            if is_signed(left.resultdef) then
-              opsize:=OS_S64
-            else
-              opsize:=OS_64;
-            mask:=63;
-          end;
+        opsize:=def_cgsize(resultdef);
+        mask:=max(resultdef.size,4)*8-1;
 
         { load left operators in a register }
         if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or

@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
-    Borland Pascal 7 Compatible CRT Unit - win32 implentation
+    Borland Pascal 7 Compatible CRT Unit - win32 implementation
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -18,12 +18,17 @@ interface
 
 {$i crth.inc}
 
+procedure SetSafeCPSwitching(Switching:Boolean);
+procedure SetUseACP(ACP:Boolean);
 procedure Window32(X1,Y1,X2,Y2: DWord);
 procedure GotoXY32(X,Y: DWord);
 function WhereX32: DWord;
 function WhereY32: DWord;
 
 implementation
+
+{$DEFINE FPC_CRT_CTRLC_TREATED_AS_KEY}
+(* Treatment of Ctrl-C as a regular key ensured during initialization (SetupConsoleInput). *)
 
 uses
   windows;
@@ -32,20 +37,20 @@ var
     SaveCursorSize: Longint;
     Win32Platform : Longint; // pulling in sysutils changes exception behaviour
 
+    UseACP        : Boolean; (* True means using active process codepage for
+                                console output, False means use the original
+                                setting (usually OEM codepage). *)
+    SafeCPSwitching : Boolean; (* True in combination with UseACP means that
+                                  the console codepage will be set on every
+                                  output, False means that the console codepage
+                                  will only be set on Initialization and
+                                  Finalization *)
+    OriginalConsoleOutputCP : Word;
+ 
+
 {****************************************************************************
                            Low level Routines
 ****************************************************************************}
-
-procedure TurnMouseOff;
-var Mode: DWORD;
-begin
-  if GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), @Mode) then begin { Turn the mouse-cursor off }
-    Mode := Mode AND cardinal(NOT enable_processed_input)
-      AND cardinal(NOT enable_mouse_input);
-
-    SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), Mode);
-  end; { if }
-end; { proc. TurnMouseOff }
 
 function GetScreenHeight : DWord;
 var
@@ -102,6 +107,30 @@ end;
                              Public Crt Functions
 ****************************************************************************}
 
+procedure SetSafeCPSwitching(Switching:Boolean);
+begin
+    SafeCPSwitching:=Switching;
+    if SafeCPSwitching then
+      SetConsoleOutputCP(OriginalConsoleOutputCP)  // Set Console back to Original since it will now be switched
+                                                   // every read and write
+    else
+      if UseACP then
+        SetConsoleOutputCP(GetACP);   // Set Console only once here if SafeCPSwitching is False and
+                                      // if UseACP is true
+end;
+
+procedure SetUseACP(ACP:Boolean);
+begin
+    UseACP:=ACP;
+    if not(SafeCPSwitching) then
+     begin
+      if UseACP then
+        SetConsoleOutputCP(GetACP)   // Set console CP only once here if SafeCPSwitching is False and
+                                     // if UseACP is True
+      else
+        SetConsoleOutputCP(OriginalConsoleOutputCP)    // Set console back to original if UseACP is False
+     end;
+end;
 
 procedure TextMode (Mode: word);
 begin
@@ -268,7 +297,7 @@ var
    DoingNumChars: Boolean;
    DoingNumCode: Byte;
 
-Function RemapScanCode (ScanCode: byte; CtrlKeyState: byte; keycode:longint): byte;
+Function RemapScanCode (ScanCode: word; CtrlKeyState: dword; keycode:word): byte;
   { Several remappings of scancodes are necessary to comply with what
     we get with MSDOS. Special Windows keys, as Alt-Tab, Ctrl-Esc etc.
     are excluded }
@@ -479,6 +508,8 @@ begin
     ScanCode := #0;
   end;
 end;
+
+{$ifndef win64}
 //----Windows 9x Sound Helper ---
 {$ASMMODE INTEL}
 function InPort(PortAddr:word): byte; assembler; stdcall;
@@ -493,6 +524,7 @@ asm
   mov dx,PortAddr
   out dx,al
 end;
+{$endif win64}
 
 //----Windows 2000/XP Sound Helper ---
 const IOCTL_BEEP_SET={CTL_CODE(FILE_DEVICE_BEEP, 0, METHOD_BUFFERED, FILE_ANY_ACCESS)}1 shl 16;
@@ -542,10 +574,12 @@ begin
     opt.Duration:=-1; //very long
     DeviceIoControl(beeperDevice,IOCTL_BEEP_SET,@opt,sizeof(opt),nil,0,@result,nil);
   end else begin
+{$ifndef win64}
     OutPort($43,182);
     OutPort($61,InPort($61) or 3);
     OutPort($42,lo(1193180 div hz));
     OutPort($42, hi(1193180 div hz));
+{$endif win64}
   end;
 end;
 
@@ -560,8 +594,10 @@ begin
     opt.Duration:=0;
     DeviceIoControl(beeperDevice,IOCTL_BEEP_SET,@opt,sizeof(opt),nil,0,@result,nil);
   end else begin
+{$ifndef win64}
     OutPort($43,182);
     OutPort($61,InPort($61) and 3);
+{$endif win64}
   end;
 end;
 
@@ -754,8 +790,11 @@ var
   s : string;
   OldConsoleOutputCP : Word;
 begin
-  OldConsoleOutputCP:=GetConsoleOutputCP;
-  SetConsoleOutputCP(GetACP);
+  if SafeCPSwitching and UseACP then    //Switch codepage on every Write.
+    begin
+      OldConsoleOutputCP:=GetConsoleOutputCP;
+      SetConsoleOutputCP(GetACP);
+    end;
 
   GetScreenCursor(CurrX, CurrY);
   s:='';
@@ -782,7 +821,8 @@ begin
     WriteStr(s);
   SetScreenCursor(CurrX, CurrY);
 
-  SetConsoleOutputCP(OldConsoleOutputCP);
+  if SafeCPSwitching and UseACP then     //restore codepage on every write if set previously
+    SetConsoleOutputCP(OldConsoleOutputCP);
 
   f.bufpos:=0;
 end;
@@ -803,9 +843,12 @@ Procedure CrtRead(Var F: TextRec);
 var
   ch : Char;
   OldConsoleOutputCP : Word;
-Begin
-  OldConsoleOutputCP:=GetConsoleOutputCP;
-  SetConsoleOutputCP(GetACP);
+begin
+  if SafeCPSwitching and UseACP then    //Switch codepage on every Read
+    begin
+      OldConsoleOutputCP:=GetConsoleOutputCP;
+      SetConsoleOutputCP(GetACP);
+    end;
 
   GetScreenCursor(CurrX,CurrY);
   f.bufpos:=0;
@@ -884,7 +927,8 @@ Begin
       end;
   until false;
 
-  SetConsoleOutputCP(OldConsoleOutputCP);
+  if SafeCPSwitching and UseACP then    //Restore codepage on every Read if set previously
+    SetConsoleOutputCP(OldConsoleOutputCP);
 	
   f.bufpos:=0;
   SetScreenCursor(CurrX, CurrY);
@@ -934,7 +978,48 @@ begin
   GetVersionEx(versioninfo);
   Win32Platform:=versionInfo.dwPlatformId;
 end;
+
+procedure SetupConsoleInput(ihnd: THANDLE);
+var
+  Mode : DWORD;
+begin
+  GetConsoleMode(ihnd, Mode);
+  Mode:=Mode and not ENABLE_PROCESSED_INPUT;
+  SetConsoleMode(ihnd, Mode);
+end;
+
+var
+  PrevCtrlBreakHandler: TCtrlBreakHandler;
+
+
+function CrtCtrlBreakHandler (CtrlBreak: boolean): boolean;
+begin
+(* Earlier registered handlers (e.g. FreeVision) have priority. *)
+  if Assigned (PrevCtrlBreakHandler) then
+    if PrevCtrlBreakHandler (CtrlBreak) then
+      begin
+        CrtCtrlBreakHandler := true;
+        Exit;
+      end;
+(* If Ctrl-Break was pressed, either ignore it or allow default processing. *)
+  if CtrlBreak then
+    CrtCtrlBreakHandler := not (CheckBreak)
+  else (* Ctrl-C pressed *)
+{$IFDEF FPC_CRT_CTRLC_TREATED_AS_KEY}
+ (* If Ctrl-C is really treated as a key, the following branch should never *)
+ (* be executed, but let's stay on the safe side and ensure predictability. *)
+   CrtCtrlBreakHandler := false;
+{$ELSE FPC_CRT_CTRLC_TREATED_AS_KEY}
+    begin
+      if not (SpecialKey) and (ScanCode = 0) then
+        ScanCode := 3;
+      CrtCtrlBreakHandler := true;
+    end;
+{$ENDIF FPC_CRT_CTRLC_TREATED_AS_KEY}
+end;
+
 // ts
+
 
 Initialization
   LoadVersionInfo;
@@ -944,6 +1029,13 @@ Initialization
   LastMode := 3;
 
   SetActiveWindow(0);
+
+  OriginalConsoleOutputCP:=GetConsoleOutputCP;  //Always save the original console codepage so it can be restored on exit.
+  UseACP:=True;  // Default to use GetACP CodePage to remain compatible with previous CRT version.
+  SafeCPSwitching:=True;  // Default to switch codepage on every read and write to remain compatible with previous CRT version.
+
+  //SetSafeCPSwitching(False); // With these defaults the code page does not need to be changed here. If SafeCPSwitching defaulted
+                               // to False and UseACP to True then SetSafeCPSwitching(False) needs to be run here.
 
   {--------------------- Get the cursor size and such -----------------------}
   FillChar(CursorInfo, SizeOf(CursorInfo), 00);
@@ -976,10 +1068,20 @@ Initialization
   AssignCrt(Input);
   Reset(Input);
   TextRec(Input).Handle:= GetStdHandle(STD_INPUT_HANDLE);
+
+  SetupConsoleInput(TextRec(Input).Handle);
+
+  PrevCtrlBreakHandler := SysSetCtrlBreakHandler (@CrtCtrlBreakHandler);
+  if PrevCtrlBreakHandler = TCtrlBreakHandler (pointer (-1)) then
+   PrevCtrlBreakHandler := nil;
+  CheckBreak := true;
+
 finalization
   if beeperDevice <> INVALID_HANDLE_VALUE then begin
     nosound;
     CloseHandle(beeperDevice);
     DefineDosDevice(DDD_REMOVE_DEFINITION,'DosBeep','\Device\Beep');
   end;
+  SetConsoleOutputCP(OriginalConsoleOutputCP);  //Always put the console back the way it was on start;
+                                                //useful if the program is executed from command line.
 end. { unit Crt }

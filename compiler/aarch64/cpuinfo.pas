@@ -14,6 +14,8 @@
 
 Unit CPUInfo;
 
+{$i fpcdefs.inc}
+
 Interface
 
   uses
@@ -21,9 +23,7 @@ Interface
 
 Type
    bestreal = double;
-{$if FPC_FULLVERSION>20700}
    bestrealrec = TDoubleRec;
-{$endif FPC_FULLVERSION>20700}
    ts32real = single;
    ts64real = double;
    ts80real = type extended;
@@ -35,7 +35,14 @@ Type
    { possible supported processors for this target }
    tcputype =
       (cpu_none,
-       cpu_armv8
+       cpu_armv8,
+       cpu_armv8a,
+       cpu_armv81a,
+       cpu_armv82a,
+       cpu_armv83a,
+       cpu_armv84a,
+       cpu_armv85a,
+       cpu_armv86a
       );
 
 Type
@@ -45,18 +52,30 @@ Type
      );
 
    tcontrollertype =
-     (ct_none
+     (ct_none,
+
+      { Raspberry Pi 3/4 }
+      ct_raspi3,
+      ct_raspi4
      );
+
+   tcontrollerdatatype = record
+      controllertypestr, controllerunitstr: string[20];
+      cputype: tcputype; fputype: tfputype;
+      flashbase, flashsize, srambase, sramsize, eeprombase, eepromsize, bootbase, bootsize: dword;
+   end;
 
 
 Const
+   fputypestrllvm : array[tfputype] of string[6] = ('',
+     ''
+   );
+
    { Is there support for dealing with multiple microcontrollers available }
    { for this platform? }
-   ControllerSupport = false; (* Not yet at least ;-) *)
+   ControllerSupport = true; (* Not yet at least ;-) *)
    {# Size of native extended floating point type }
    extended_size = 8;
-   {# Size of a multimedia register               }
-   mmreg_size = 16;
    { target cpu string (used by compiler options) }
    target_cpu_string = 'aarch64';
 
@@ -66,7 +85,13 @@ Const
     {$WARN 3177 OFF}
    embedded_controllers : array [tcontrollertype] of tcontrollerdatatype =
    (
-      (controllertypestr:''; controllerunitstr:''; flashbase:0; flashsize:0; srambase:0; sramsize:0));
+      (controllertypestr:''; controllerunitstr:''; cputype:cpu_none; fputype:fpu_none; flashbase:0; flashsize:0; srambase:0; sramsize:0),
+
+      { Raspberry Pi 3/4 }
+      (controllertypestr:'RASPI3'; controllerunitstr:'RASPI3'; cputype:cpu_armv8a; fputype:fpu_vfp; flashbase:$00000000; flashsize:$00000000; srambase:$00008000; sramsize:$10000000),
+      (controllertypestr:'RASPI4'; controllerunitstr:'RASPI4'; cputype:cpu_armv8a; fputype:fpu_vfp; flashbase:$00000000; flashsize:$00000000; srambase:$00008000; sramsize:$10000000)
+
+      );
    {$POP}
 
    { calling conventions supported by the code generator }
@@ -87,8 +112,15 @@ Const
      pocall_interrupt
    ];
 
-   cputypestr : array[tcputype] of string[8] = ('',
-     'ARMV8'
+   cputypestr : array[tcputype] of string[9] = ('',
+     'ARMV8',
+     'ARMV8-A',
+     'ARMV8.1-A',
+     'ARMV8.2-A',
+     'ARMV8.3-A',
+     'ARMV8.4-A',
+     'ARMV8.5-A',
+     'ARMV8.6-A'
    );
 
    fputypestr : array[tfputype] of string[9] = ('',
@@ -102,14 +134,51 @@ Const
                                  genericlevel3optimizerswitches-
                                  { no need to write info about those }
                                  [cs_opt_level1,cs_opt_level2,cs_opt_level3]+
-                                 [cs_opt_regvar,cs_opt_loopunroll,cs_opt_tailrecursion,
+                                 [{$ifndef llvm}cs_opt_regvar,{$endif}cs_opt_loopunroll,cs_opt_tailrecursion,
 				  cs_opt_nodecse,cs_opt_reorder_fields,cs_opt_fastmath];
 
    level1optimizerswitches = genericlevel1optimizerswitches;
    level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches +
-     [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion,cs_opt_nodecse];
+     [{$ifndef llvm}cs_opt_regvar,{$endif}cs_opt_stackframe,cs_opt_tailrecursion,cs_opt_nodecse,cs_opt_consts];
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
    level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [];
+
+type
+   tcpuflags =
+     (CPUAARCH64_HAS_LSE,     { CPU supports Large System Extensions }
+      CPUAARCH64_HAS_DOTPROD, { CPU supports dotprod extension }
+      CPUAARCH64_HAS_CRYPTO,  { CPU supports the crypto extension }
+      CPUAARCH64_HAS_AES,     { CPU supports the AES extension }
+      CPUAARCH64_HAS_SHA2,    { CPU supports the SHA2 extension }
+      CPUAARCH64_HAS_SHA3,    { CPU supports the SHA3 extension }
+      CPUAARCH64_HAS_SM4,     { CPU supports the SM3 and SM4 extension }
+      CPUAARCH64_HAS_PROFILE, { CPU supports the profile extension }
+      CPUAARCH64_HAS_MEMTAG,  { CPU supports the memtag extension }
+      CPUAARCH64_HAS_TME,     { CPU supports the tme extension }
+      CPUAARCH64_HAS_PAUTH    { CPU supports the pauth extension }
+     );
+
+   tfpuflags =
+     (CPUAARCH64_HAS_VFP       { CPU supports VFP }
+     );
+
+const
+   cpu_capabilities : array[tcputype] of set of tcpuflags =
+     ( { cpu_none      } [],
+       { cpu_armv8     } [],
+       { cpu_armv8a    } [],
+       { cpu_armv81a   } [CPUAARCH64_HAS_LSE],
+       { cpu_armv82a   } [CPUAARCH64_HAS_LSE],
+       { cpu_armv83a   } [CPUAARCH64_HAS_LSE],
+       { cpu_armv84a   } [CPUAARCH64_HAS_LSE],
+       { cpu_armv85a   } [CPUAARCH64_HAS_LSE],
+       { cpu_armv86a   } [CPUAARCH64_HAS_LSE]
+     );
+
+   fpu_capabilities : array[tfputype] of set of tfpuflags =
+     ( { fpu_none         } [],
+       { fpu_vfp          } [CPUAARCH64_HAS_VFP]
+     );
 
 Implementation
 

@@ -1,9 +1,6 @@
 {	CFRunLoop.h
-	Copyright (c) 1998-2012, Apple Inc. All rights reserved.
+	Copyright (c) 1998-2013, Apple Inc. All rights reserved.
 }
-{   Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, September 2005 }
-{   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
-{   Pascal Translation Updated:  Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -12,6 +9,7 @@
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
+{$modeswitch cblocks}
 {$packenum 1}
 {$macro on}
 {$inline on}
@@ -104,7 +102,7 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-{$ifc defined(iphonesim)}
+{$ifc defined iphonesim}
  	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
@@ -121,7 +119,7 @@ interface
 	{$setc TARGET_CPU_X86_64 := TRUE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-{$ifc defined(iphonesim)}
+{$ifc defined iphonesim}
  	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
@@ -138,7 +136,6 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := TRUE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-	{ will require compiler define when/if other Apple devices with ARM cpus ship }
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
@@ -150,11 +147,16 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := TRUE}
-	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+{$ifc defined ios}
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
-	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 	{$setc TARGET_OS_EMBEDDED := TRUE}
+{$elsec}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
+{$endc}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ nor __arm64__ is defined.}
 {$endc}
@@ -596,6 +598,10 @@ type
 function CFRunLoopTimerGetTypeID: CFTypeID; external name '_CFRunLoopTimerGetTypeID';
 
 function CFRunLoopTimerCreate( allocator: CFAllocatorRef; fireDate: CFAbsoluteTime; interval: CFTimeInterval; flags: CFOptionFlags; order: CFIndex; callout: CFRunLoopTimerCallBack; var context: CFRunLoopTimerContext ): CFRunLoopTimerRef; external name '_CFRunLoopTimerCreate';
+{$ifdef __BLOCKS__}
+extern CFRunLoopTimerRef CFRunLoopTimerCreateWithHandler(CFAllocatorRef allocator, CFAbsoluteTime fireDate, CFTimeInterval interval, CFOptionFlags flags, CFIndex order, void (^block) (CFRunLoopTimerRef timer)) CF_AVAILABLE_STARTING(10_7, 5_0);
+{$endif} { __BLOCKS__ }
+
 function CFRunLoopTimerGetNextFireDate( timer: CFRunLoopTimerRef ): CFAbsoluteTime; external name '_CFRunLoopTimerGetNextFireDate';
 procedure CFRunLoopTimerSetNextFireDate( timer: CFRunLoopTimerRef; fireDate: CFAbsoluteTime ); external name '_CFRunLoopTimerSetNextFireDate';
 function CFRunLoopTimerGetInterval( timer: CFRunLoopTimerRef ): CFTimeInterval; external name '_CFRunLoopTimerGetInterval';
@@ -604,6 +610,16 @@ function CFRunLoopTimerGetOrder( timer: CFRunLoopTimerRef ): CFIndex; external n
 procedure CFRunLoopTimerInvalidate( timer: CFRunLoopTimerRef ); external name '_CFRunLoopTimerInvalidate';
 function CFRunLoopTimerIsValid( timer: CFRunLoopTimerRef ): Boolean; external name '_CFRunLoopTimerIsValid';
 procedure CFRunLoopTimerGetContext( timer: CFRunLoopTimerRef; var context: CFRunLoopTimerContext ); external name '_CFRunLoopTimerGetContext';
+
+{
+Setting a tolerance for a timer allows it to fire later than the scheduled fire date, improving the ability of the system to optimize for increased power savings and responsiveness. The timer may fire at any time between its scheduled fire date and the scheduled fire date plus the tolerance. The timer will not fire before the scheduled fire date. For repeating timers, the next fire date is calculated from the original fire date regardless of tolerance applied at individual fire times, to avoid drift. The default value is zero, which means no additional tolerance is applied. The system reserves the right to apply a small amount of tolerance to certain timers regardless of the value of this property.
+
+ As the user of the timer, you will have the best idea of what an appropriate tolerance for a timer may be. A general rule of thumb, though, is to set the tolerance to at least 10% of the interval, for a repeating timer. Even a small amount of tolerance will have a significant positive impact on the power usage of your application. The system may put a maximum value of the tolerance.
+}
+function CFRunLoopTimerGetTolerance( timer: CFRunLoopTimerRef ): CFTimeInterval; external name '_CFRunLoopTimerGetTolerance';
+(* CF_AVAILABLE_STARTING(10_9, 7_0) *)
+procedure CFRunLoopTimerSetTolerance( timer: CFRunLoopTimerRef; tolerance: CFTimeInterval ); external name '_CFRunLoopTimerSetTolerance';
+(* CF_AVAILABLE_STARTING(10_9, 7_0) *)
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 

@@ -33,11 +33,12 @@ interface
        private
          function  GetResFlags(unsigned:Boolean):TResFlags;
        protected
-         function pass_1 : tnode;override;
          procedure second_cmpordinal;override;
          procedure second_cmpsmallset;override;
          procedure second_cmp64bit;override;
          procedure second_cmp;
+       public
+         function pass_1 : tnode;override;
        end;
 
   implementation
@@ -48,10 +49,11 @@ interface
       symconst,symdef,paramgr,
       aasmbase,aasmtai,aasmdata,aasmcpu,defutil,htypechk,
       cgbase,cgutils,cgcpu,
-      cpuinfo,pass_1,pass_2,regvars,procinfo,
+      cpuinfo,pass_1,pass_2,procinfo,
       cpupara,
       ncon,nset,nadd,
-      ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
+      ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32,
+      hlcgobj;
 
 {*****************************************************************************
                                TAVRAddNode
@@ -136,8 +138,8 @@ interface
           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,tmpreg1,tmpreg2));
           for i:=2 to tcgsize2size[left.location.size] do
             begin
-              tmpreg1:=GetNextReg(tmpreg1);
-              tmpreg2:=GetNextReg(tmpreg2);
+              tmpreg1:=cg.GetNextReg(tmpreg1);
+              tmpreg2:=cg.GetNextReg(tmpreg2);
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
             end;
         end;
@@ -187,15 +189,62 @@ interface
         i : longint;
       begin
         pass_left_right;
-        force_reg_left_right(true,false);
+        force_reg_left_right(true,true);
 
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
 
         if getresflags(unsigned)=F_NotPossible then
-          swapleftright;
+          begin
+            swapleftright;
+            { if we have to swap back and left is a constant, force it to a register because we cannot generate
+              the needed code using a constant }
+            if (left.location.loc=LOC_CONSTANT) and (left.location.value<>0) then
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+          end;
 
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,right.location.register));
+        if (not unsigned) and
+          (right.location.loc=LOC_CONSTANT) and
+          (right.location.value=0) and
+          (getresflags(unsigned) in [F_LT,F_GE]) then
+          begin
+            { This is a simple sign test, where we can just test the msb }
+            tmpreg1:=left.location.register;
+            for i:=2 to tcgsize2size[left.location.size] do
+              begin
+                if i=5 then
+                  tmpreg1:=left.location.registerhi
+                else
+                  tmpreg1:=cg.GetNextReg(tmpreg1);
+              end;
+
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,tmpreg1,GetDefaultZeroReg));
+
+            location_reset(location,LOC_FLAGS,OS_NO);
+            location.resflags:=getresflags(unsigned);
+
+            exit;
+          end;
+
+        if right.location.loc=LOC_CONSTANT then
+          begin
+            { decrease register pressure on registers >= r16 }
+            if (right.location.value and $ff)=0 then
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,GetDefaultZeroReg))
+            else
+              begin
+                cg.getcpuregister(current_asmdata.CurrAsmList,NR_R26);
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LDI,NR_R26,right.location.value and $ff));
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,NR_R26));
+                cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R26);
+              end;
+          end
+        { on the left side, we allow only a constant if it is 0 }
+        else if (left.location.loc=LOC_CONSTANT) and (left.location.value=0) then
+          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,GetDefaultZeroReg,right.location.register))
+        else
+          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,right.location.register));
+
         tmpreg1:=left.location.register;
         tmpreg2:=right.location.register;
 
@@ -203,15 +252,35 @@ interface
           begin
             if i=5 then
               begin
-                tmpreg1:=left.location.registerhi;
-                tmpreg2:=right.location.registerhi;
+                if left.location.loc<>LOC_CONSTANT then
+                  tmpreg1:=left.location.registerhi;
+                if right.location.loc<>LOC_CONSTANT then
+                  tmpreg2:=right.location.registerhi;
               end
             else
               begin
-                tmpreg1:=GetNextReg(tmpreg1);
-                tmpreg2:=GetNextReg(tmpreg2);
+                if left.location.loc<>LOC_CONSTANT then
+                  tmpreg1:=cg.GetNextReg(tmpreg1);
+                if right.location.loc<>LOC_CONSTANT then
+                  tmpreg2:=cg.GetNextReg(tmpreg2);
               end;
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
+            if right.location.loc=LOC_CONSTANT then
+              begin
+                { just use R1? }
+                if ((right.location.value64 shr ((i-1)*8)) and $ff)=0 then
+                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,GetDefaultZeroReg))
+                else
+                  begin
+                    tmpreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_8);
+                    cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_8,(right.location.value64 shr ((i-1)*8)) and $ff,tmpreg2);
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
+                  end;
+              end
+            { above it is checked, if left=0, then a constant is allowed }
+            else if (left.location.loc=LOC_CONSTANT) and (left.location.value=0) then
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,GetDefaultZeroReg,tmpreg2))
+            else
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
           end;
 
         location_reset(location,LOC_FLAGS,OS_NO);

@@ -20,6 +20,8 @@ interface
 {$MODESWITCH OUT}
 { force ansistrings }
 {$H+}
+{$modeswitch typehelpers}
+{$modeswitch advancedrecords}
 
 {$if (defined(BSD) or defined(SUNOS)) and defined(FPC_USE_LIBC)}
 {$define USE_VFORK}
@@ -36,6 +38,9 @@ interface
 {$DEFINE HAS_LOCALTIMEZONEOFFSET}
 {$DEFINE HAS_GETTICKCOUNT64}
 
+// this target has an fileflush implementation, don't include dummy
+{$DEFINE SYSUTILS_HAS_FILEFLUSH_IMPL}
+
 { used OS file system APIs use ansistring }
 {$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
 { OS has an ansistring/single byte environment variable API }
@@ -49,6 +54,20 @@ uses
 {$IF defined(LINUX) or defined(FreeBSD)}
 {$DEFINE HAVECLOCKGETTIME}
 {$ENDIF}
+
+{$IF defined(DARWIN)}
+{$DEFINE HAS_ISFILENAMECASEPRESERVING}
+{$DEFINE HAS_ISFILENAMECASESENSITIVE}
+{$ENDIF}
+
+{$if defined(LINUX)}
+  {$if sizeof(clong)<8}
+    {$DEFINE USE_STATX}
+    {$DEFINE USE_UTIMENSAT}
+  {$endif sizeof(clong)<=4}
+
+  {$DEFINE USE_FUTIMES}
+{$endif}
 
 { Include platform independent interface part }
 {$i sysutilh.inc}
@@ -78,6 +97,9 @@ procedure UnhookSignal(RtlSigNum: Integer; OnlyIfHooked: Boolean = True);
 implementation
 
 Uses
+{$ifdef android}
+  dl,
+{$endif android}
   {$ifdef FPC_USE_LIBC}initc{$ELSE}Syscall{$ENDIF}, Baseunix, unixutil;
 
 type
@@ -236,7 +258,6 @@ procedure UnhookSignal(RtlSigNum: Integer; OnlyIfHooked: Boolean = True);
   var
     act: SigActionRec;
     lowsig, highsig, i: Integer;
-    state: TSignalState;
   begin
     if not signalinfoinited then
       initsignalinfo;
@@ -267,7 +288,7 @@ procedure UnhookSignal(RtlSigNum: Integer; OnlyIfHooked: Boolean = True);
                 fillchar(act,sizeof(act),0);
                 pointer(act.sa_handler):=pointer(SIG_DFL);
               end;
-            if (fpsigaction(rtlsig2ossig[RtlSigNum],@act,nil)=0) then
+            if (fpsigaction(rtlsig2ossig[i],@act,nil)=0) then
               siginfo[i].hooked:=false;
           end;
       end;
@@ -279,59 +300,12 @@ procedure UnhookSignal(RtlSigNum: Integer; OnlyIfHooked: Boolean = True);
 {$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PChar }
 
 { Include platform independent implementation part }
+
+{$define executeprocuni}
 {$i sysutils.inc}
 
 { Include SysCreateGUID function }
 {$i suuid.inc}
-
-Const
-{Date Translation}
-  C1970=2440588;
-  D0   =   1461;
-  D1   = 146097;
-  D2   =1721119;
-
-
-Procedure JulianToGregorian(JulianDN:LongInt;Var Year,Month,Day:Word);
-Var
-  YYear,XYear,Temp,TempMonth : LongInt;
-Begin
-  Temp:=((JulianDN-D2) shl 2)-1;
-  JulianDN:=Temp Div D1;
-  XYear:=(Temp Mod D1) or 3;
-  YYear:=(XYear Div D0);
-  Temp:=((((XYear mod D0)+4) shr 2)*5)-3;
-  Day:=((Temp Mod 153)+5) Div 5;
-  TempMonth:=Temp Div 153;
-  If TempMonth>=10 Then
-   Begin
-     inc(YYear);
-     dec(TempMonth,12);
-   End;
-  inc(TempMonth,3);
-  Month := TempMonth;
-  Year:=YYear+(JulianDN*100);
-end;
-
-
-
-Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word);
-{
-  Transforms Epoch time into local time (hour, minute,seconds)
-}
-Var
-  DateNum: LongInt;
-Begin
-  inc(Epoch,TZSeconds);
-  Datenum:=(Epoch Div 86400) + c1970;
-  JulianToGregorian(DateNum,Year,Month,day);
-  Epoch:=Abs(Epoch Mod 86400);
-  Hour:=Epoch Div 3600;
-  Epoch:=Epoch Mod 3600;
-  Minute:=Epoch Div 60;
-  Second:=Epoch Mod 60;
-End;
-
 
 function GetTickCount64: QWord;
 var
@@ -396,10 +370,9 @@ begin
         fmShareCompat,
         fmShareExclusive:
           lockop:=LOCK_EX or LOCK_NB;
-        fmShareDenyWrite:
-          lockop:=LOCK_SH or LOCK_NB;
+        fmShareDenyWrite,
         fmShareDenyNone:
-          exit;
+          lockop:=LOCK_SH or LOCK_NB;
         else
           begin
             { fmShareDenyRead does not exit under *nix, only shared access
@@ -436,11 +409,17 @@ begin
 end;
 
 
-Function FileOpen (Const FileName : RawbyteString; Mode : Integer) : Longint;
+Function FileOpenNoLocking (Const FileName : RawbyteString; Mode : Integer) : Longint;
+
+  Function IsHandleDirectory(Handle : Longint) : boolean;
+  Var Info : Stat;
+  begin
+    Result := (fpFStat(Handle, Info)<0) or fpS_ISDIR(info.st_mode);
+  end;
 
 Var
   SystemFileName: RawByteString;
-  LinuxFlags : longint;
+  fd,LinuxFlags : longint;
 begin
   LinuxFlags:=0;
   case (Mode and (fmOpenRead or fmOpenWrite or fmOpenReadWrite)) of
@@ -451,12 +430,32 @@ begin
 
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   repeat
-    FileOpen:=fpOpen (pointer(SystemFileName),LinuxFlags);
-  until (FileOpen<>-1) or (fpgeterrno<>ESysEINTR);
+    fd:=fpOpen (pointer(SystemFileName),LinuxFlags);
+  until (fd<>-1) or (fpgeterrno<>ESysEINTR);
 
+  { Do not allow to open directories with FileOpen.
+    This would cause weird behavior of TFileStream.Size, 
+    TMemoryStream.LoadFromFile etc. }
+  if (fd<>-1) and IsHandleDirectory(fd) then
+    begin
+    fpClose(fd);
+    fd:=feInvalidHandle;
+    end;
+  FileOpenNoLocking:=fd;  
+end;
+
+
+Function FileOpen (Const FileName : RawbyteString; Mode : Integer) : Longint;
+
+begin
+  FileOpen:=FileOpenNoLocking(FileName, Mode);
   FileOpen:=DoFileLocking(FileOpen, Mode);
 end;
 
+function FileFlush(Handle: THandle): Boolean;
+begin
+  Result:= fpfsync(handle)=0;
+end;
 
 Function FileCreate (Const FileName : RawByteString) : Longint;
 
@@ -483,8 +482,25 @@ end;
 
 Function FileCreate (Const FileName : RawByteString; ShareMode : Longint; Rights:LongInt ) : Longint;
 
+Var
+  fd: Longint;
 begin
-  Result:=FileCreate( FileName, Rights );
+  { if the file already exists and we can't open it using the requested
+    ShareMode (e.g. exclusive sharing), exit immediately so that we don't
+    first empty the file and then check whether we can lock this new file
+    (which we can by definition) }
+  fd:=FileOpenNoLocking(FileName,ShareMode);
+  { the file exists, check whether our locking request is compatible }
+  if fd>=0 then
+    begin
+      Result:=DoFileLocking(fd,ShareMode);
+      FileClose(fd);
+     { Can't lock -> abort }
+      if Result<0 then
+        exit;
+    end;
+  { now create the file }
+  Result:=FileCreate(FileName,Rights);
   Result:=DoFileLocking(Result,ShareMode);
 end;
 
@@ -509,8 +525,14 @@ end;
 
 Function FileSeek (Handle,FOffset,Origin : Longint) : Longint;
 
+Var
+  I : Int64;
+
 begin
-  result:=longint(FileSeek(Handle,int64(FOffset),Origin));
+  I:=FileSeek(Handle,int64(FOffset),Origin);
+  if I>High(Longint) then
+     Raise EInOutError.CreateFmt(SErrPosToBigForLongint,[I]);
+  result:=I;
 end;
 
 
@@ -545,37 +567,32 @@ begin
     end;
 end;
 
-Function FileAge (Const FileName : RawByteString): Longint;
+
+Function FileAge (Const FileName : RawByteString): Int64;
 Var
   Info : Stat;
   SystemFileName: RawByteString;
+{$ifdef USE_STATX}
+  Infox : TStatx;
+{$endif USE_STATX}
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+
+{$ifdef USE_STATX}
+  { first try statx }
+  if (statx(AT_FDCWD,pchar(SystemFileName),0,STATX_MTIME or STATX_MODE,Infox)>=0) and not(fpS_ISDIR(Infox.stx_mode)) then
+    begin
+      Result:=Infox.stx_mtime.tv_sec;
+      exit;
+    end;
+{$endif USE_STATX}
+
   If  (fpstat(pchar(SystemFileName),Info)<0) or fpS_ISDIR(info.st_mode) then
     exit(-1)
   else 
     Result:=info.st_mtime;
 end;
 
-
-Function FileExists (Const FileName : RawByteString) : Boolean;
-var
-  SystemFileName: RawByteString;
-begin
-  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
-  // Don't use stat. It fails on files >2 GB.
-  // Access obeys the same access rules, so the result should be the same.
-  FileExists:=fpAccess(pointer(SystemFileName),F_OK)=0;
-end;
-
-Function DirectoryExists (Const Directory : RawByteString) : Boolean;
-Var
-  Info : Stat;
-  SystemFileName: RawByteString;
-begin
-  SystemFileName:=ToSingleByteFileSystemEncodedFileName(Directory);
-  DirectoryExists:=(fpstat(pointer(SystemFileName),Info)>=0) and fpS_ISDIR(Info.st_mode);
-end;
 
 Function LinuxToWinAttr (const FN : RawByteString; Const Info : Stat) : Longint;
 Var
@@ -601,6 +618,99 @@ begin
       if (fpstat(pchar(FN),LinkInfo)>=0) and fpS_ISDIR(LinkInfo.st_mode) then
         Result := Result or faDirectory;
     end;
+end;
+
+
+{$ifdef USE_STATX}
+Function LinuxToWinAttr (const FN : RawByteString; Const Info : TStatx) : Longint;
+Var
+  LinkInfo : Stat;
+  nm : RawByteString;
+begin
+  Result:=faArchive;
+  If fpS_ISDIR(Info.stx_mode) then
+    Result:=Result or faDirectory;
+  nm:=ExtractFileName(FN);
+  If (Length(nm)>=2) and
+     (nm[1]='.') and
+     (nm[2]<>'.')  then
+    Result:=Result or faHidden;
+  If (Info.stx_Mode and S_IWUSR)=0 Then
+     Result:=Result or faReadOnly;
+  If fpS_ISSOCK(Info.stx_mode) or fpS_ISBLK(Info.stx_mode) or fpS_ISCHR(Info.stx_mode) or fpS_ISFIFO(Info.stx_mode) Then
+     Result:=Result or faSysFile;
+  If fpS_ISLNK(Info.stx_mode) Then
+    begin
+      Result:=Result or faSymLink;
+      // Windows reports if the link points to a directory.
+      { as we are only interested in the st_mode field here, we do not need to use statx }
+      if (fpstat(pchar(FN),LinkInfo)>=0) and fpS_ISDIR(LinkInfo.st_mode) then
+        Result := Result or faDirectory;
+    end;
+end;
+{$endif USE_STATX}
+
+
+function FileGetSymLinkTarget(const FileName: RawByteString; out SymLinkRec: TRawbyteSymLinkRec): Boolean;
+var
+  Info : Stat;
+  SystemFileName: RawByteString;
+begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  if (fplstat(SystemFileName,Info)>=0) and fpS_ISLNK(Info.st_mode) then begin
+    FillByte(SymLinkRec, SizeOf(SymLinkRec), 0);
+    SymLinkRec.TargetName:=fpreadlink(SystemFileName);
+    if fpstat(pointer(SystemFileName), Info) < 0 then
+      raise EDirectoryNotFoundException.Create(SysErrorMessage(GetLastOSError));
+    SymLinkRec.Attr := LinuxToWinAttr(SystemFileName, Info);
+    SymLinkRec.Size := Info.st_size;
+    SymLinkRec.Mode := Info.st_mode;
+    Result:=True;
+  end else
+    Result:=False;
+end;
+
+
+Function FileExists (Const FileName : RawByteString; FollowLink : Boolean) : Boolean;
+var
+  Info : Stat;
+  SystemFileName: RawByteString;
+  isdir: Boolean;
+begin
+  // Do not call fpAccess with an empty name. (Valgrind will complain)
+  if Filename='' then
+    Exit(False);
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
+  // Don't use stat. It fails on files >2 GB.
+  // Access obeys the same access rules, so the result should be the same.
+  FileExists:=fpAccess(pointer(SystemFileName),F_OK)=0;
+  { we need to ensure however that we aren't dealing with a directory }
+  isdir:=False;
+  if FileExists then begin
+    if (fpstat(pointer(SystemFileName),Info)>=0) and fpS_ISDIR(Info.st_mode) then begin
+      FileExists:=False;
+      isdir:=True;
+    end;
+  end;
+  { if we shall not follow the link we only need to check for a symlink if the
+    target file itself should not exist }
+  if not FileExists and not isdir and not FollowLink then
+    FileExists:=(fplstat(pointer(SystemFileName),Info)>=0) and fpS_ISLNK(Info.st_mode);
+end;
+
+Function DirectoryExists (Const Directory : RawByteString; FollowLink : Boolean) : Boolean;
+Var
+  Info : Stat;
+  SystemFileName: RawByteString;
+  exists: Boolean;
+begin
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(Directory);
+  exists:=fpstat(pointer(SystemFileName),Info)>=0;
+  DirectoryExists:=exists and fpS_ISDIR(Info.st_mode);
+  { if we shall not follow the link we only need to check for a symlink if the
+    target directory itself should not exist }
+  if not exists and not FollowLink then
+    DirectoryExists:=(fplstat(pointer(SystemFileName),Info)>=0) and fpS_ISLNK(Info.st_mode);
 end;
 
 
@@ -806,7 +916,7 @@ Type
     DirPtr     : Pointer;     {directory pointer for reading directory}
     SearchSpec : RawbyteString;
     SearchType : Byte;        {0=normal, 1=open will close, 2=only 1 file}
-    SearchAttr : Byte;        {attribute we are searching for}
+    SearchAttr : Longint;     {attribute we are searching for}
   End;
   PUnixFindData = ^TUnixFindData;
 
@@ -828,26 +938,54 @@ end;
 
 Function FindGetFileInfo(const s: RawByteString; var f: TAbstractSearchRec; var Name: RawByteString):boolean;
 Var
+{$ifdef USE_STATX}
+  stx : linux.tstatx;
+{$endif USE_STATX}
   st : baseunix.stat;
   WinAttr : longint;
 begin
+{$ifdef USE_STATX}
   if Assigned(f.FindHandle) and ( (PUnixFindData(F.FindHandle)^.searchattr and faSymlink) > 0) then
-    FindGetFileInfo:=(fplstat(pointer(s),st)=0)
+    FindGetFileInfo:=statx(AT_FDCWD,pointer(s),AT_SYMLINK_NOFOLLOW,STATX_ALL,stx)=0
   else
-    FindGetFileInfo:=(fpstat(pointer(s),st)=0);
-  if not FindGetFileInfo then
-    exit;
-  WinAttr:=LinuxToWinAttr(s,st);
-  FindGetFileInfo:=(WinAttr and Not(PUnixFindData(f.FindHandle)^.searchattr))=0;
-
+    FindGetFileInfo:=statx(AT_FDCWD,pointer(s),0,STATX_ALL,stx)=0;
   if FindGetFileInfo then
     begin
-      Name:=ExtractFileName(s);
-      f.Attr:=WinAttr;
-      f.Size:=st.st_Size;
-      f.Mode:=st.st_mode;
-      f.Time:=st.st_mtime;
-      FindGetFileInfo:=true;
+      WinAttr:=LinuxToWinAttr(s,stx);
+      FindGetFileInfo:=(WinAttr and Not(PUnixFindData(f.FindHandle)^.searchattr))=0;
+
+      if FindGetFileInfo then
+        begin
+          Name:=ExtractFileName(s);
+          f.Attr:=WinAttr;
+          f.Size:=stx.stx_Size;
+          f.Mode:=stx.stx_mode;
+          f.Time:=stx.stx_mtime.tv_sec;
+          FindGetFileInfo:=true;
+        end;
+    end
+  { no statx? try stat }
+  else if fpgeterrno=ESysENOSYS then
+{$endif USE_STATX}
+    begin
+      if Assigned(f.FindHandle) and ( (PUnixFindData(F.FindHandle)^.searchattr and faSymlink) > 0) then
+        FindGetFileInfo:=(fplstat(pointer(s),st)=0)
+      else
+        FindGetFileInfo:=(fpstat(pointer(s),st)=0);
+      if not FindGetFileInfo then
+        exit;
+      WinAttr:=LinuxToWinAttr(s,st);
+      FindGetFileInfo:=(WinAttr and Not(PUnixFindData(f.FindHandle)^.searchattr))=0;
+
+      if FindGetFileInfo then
+        begin
+          Name:=ExtractFileName(s);
+          f.Attr:=WinAttr;
+          f.Size:=st.st_Size;
+          f.Mode:=st.st_mode;
+          f.Time:=st.st_mtime;
+          FindGetFileInfo:=true;
+        end;
     end;
 end;
 
@@ -949,23 +1087,45 @@ Begin
 End;
 
 
-Function FileGetDate (Handle : Longint) : Longint;
-
-Var Info : Stat;
-
+Function FileGetDate (Handle : Longint) : Int64;
+Var
+  Info : Stat;
+{$ifdef USE_STATX}
+  Infox : TStatx;
+{$endif USE_STATX}
+  Char0 : char;
 begin
-  If (fpFStat(Handle,Info))<0 then
-    Result:=-1
-  else
-    Result:=Info.st_Mtime;
+  Result:=-1;
+{$ifdef USE_STATX}
+  Char0:=#0;
+  if statx(Handle,@Char0,AT_EMPTY_PATH,STATX_MTIME,Infox)=0 then
+    Result:=Infox.stx_Mtime.tv_sec
+  else if fpgeterrno=ESysENOSYS then
+{$endif USE_STATX}
+    begin
+      If fpFStat(Handle,Info)=0 then
+        Result:=Info.st_Mtime;
+    end;
 end;
 
 
-Function FileSetDate (Handle,Age : Longint) : Longint;
-
+Function FileSetDate (Handle : Longint;Age : Int64) : Longint;
+{$ifdef USE_FUTIMES}
+var
+  times : tkernel_timespecs;
+{$endif USE_FUTIMES}
 begin
-  // Impossible under Linux from FileHandle !!
+  Result:=0;
+{$ifdef USE_FUTIMES}
+  times[0].tv_sec:=Age;
+  times[0].tv_nsec:=0;
+  times[1].tv_sec:=Age;
+  times[1].tv_nsec:=0;
+  if futimens(Handle,times) = -1 then
+    Result:=fpgeterrno;
+{$else USE_FUTIMES}
   FileSetDate:=-1;
+{$endif USE_FUTIMES}
 end;
 
 
@@ -1019,18 +1179,69 @@ begin
   Result:=fpAccess(PChar(SystemFileName),W_OK)<>0;
 end;
 
-Function FileSetDate (Const FileName : RawByteString; Age : Longint) : Longint;
+Function FileSetDate (Const FileName : RawByteString; Age : Int64) : Longint;
 var
   SystemFileName: RawByteString;
+{$ifdef USE_UTIMENSAT}
+  times : tkernel_timespecs;
+{$endif USE_UTIMENSAT}
   t: TUTimBuf;
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   Result:=0;
-  t.actime:= Age;
-  t.modtime:=Age;
-  if fputime(PChar(SystemFileName), @t) = -1 then
+{$ifdef USE_UTIMENSAT}
+  times[0].tv_sec:=Age;
+  times[0].tv_nsec:=0;
+  times[1].tv_sec:=Age;
+  times[1].tv_nsec:=0;
+  if utimensat(AT_FDCWD,PChar(SystemFileName),times,0) = -1 then
     Result:=fpgeterrno;
+  if fpgeterrno=ESysENOSYS then
+{$endif USE_UTIMENSAT}
+    begin
+      Result:=0;
+      t.actime:= Age;
+      t.modtime:=Age;
+      if fputime(PChar(SystemFileName), @t) = -1 then
+        Result:=fpgeterrno;
+    end
 end;
+
+{$IF defined(DARWIN)}
+Function IsFileNameCaseSensitive(Const aFileName : RawByteString) : Boolean;
+var
+  res : clong;
+begin
+  res:=FpPathconf(PChar(aFileName),11 {_PC_CASE_SENSITIVE });
+  { fall back to default if path is not found }
+  if res<0 then
+    Result:=FileNameCaseSensitive
+  else
+     Result:=res<>0;
+end;
+
+Function IsFileNameCaseSensitive(Const aFileName : UnicodeString) : Boolean;
+begin
+  Result:=IsFileNameCaseSensitive(RawByteString(aFileName));
+end;
+
+Function IsFileNameCasePreserving(Const aFileName : RawByteString) : Boolean;
+var
+  res : clong;
+begin
+  res:=FpPathconf(PChar(aFileName),12 { _PC_CASE_PRESERVING });
+  if res<0 then
+    { fall back to default if path is not found }
+    Result:=FileNameCasePreserving
+  else
+     Result:=res<>0;
+end;
+
+Function IsFileNameCasePreserving(Const aFileName : UnicodeString) : Boolean;
+begin
+  Result:=IsFileNameCasePreserving(RawByteString(aFileName));
+end;
+{$ENDIF defined(DARWIN)}
 
 {****************************************************************************
                               Disk Functions
@@ -1059,42 +1270,54 @@ var
   Drives   : byte = 4;
   DriveStr : array[4..26] of pchar;
 
-Function AddDisk(const path:string) : Byte;
+Function GetDriveStr(Drive : Byte) : Pchar;
+
 begin
-  if not (DriveStr[Drives]=nil) then
+  case Drive of
+    Low(FixDriveStr)..High(FixDriveStr):
+      Result := FixDriveStr[Drive];
+    Low(DriveStr)..High(DriveStr):
+      Result := DriveStr[Drive];
+    else
+      Result := nil;
+  end;
+end;
+
+Function DiskFree(Drive: Byte): int64;
+var
+  p : PChar;
+  fs : TStatfs;
+Begin
+  p:=GetDriveStr(Drive);
+  if (p<>nil) and (fpStatFS(p, @fs)<>-1) then
+    DiskFree := int64(fs.bavail)*int64(fs.bsize)
+  else
+    DiskFree := -1;
+End;
+
+Function DiskSize(Drive: Byte): int64;
+var
+  p : PChar;
+  fs : TStatfs;
+Begin
+  p:=GetDriveStr(Drive);
+  if (p<>nil) and (fpStatFS(p, @fs)<>-1) then
+    DiskSize := int64(fs.blocks)*int64(fs.bsize)
+  else
+    DiskSize := -1;
+End;
+
+Function AddDisk(const path: string): Byte;
+begin
+  if DriveStr[Drives]<>nil then
    FreeMem(DriveStr[Drives]);
   GetMem(DriveStr[Drives],length(Path)+1);
   StrPCopy(DriveStr[Drives],path);
   Result:=Drives;
   inc(Drives);
-  if Drives>26 then
-   Drives:=4;
+  if Drives>High(DriveStr) then
+   Drives:=Low(DriveStr);
 end;
-
-
-Function DiskFree(Drive: Byte): int64;
-var
-  fs : tstatfs;
-Begin
-  if ((Drive in [Low(FixDriveStr)..High(FixDriveStr)]) and (not (fixdrivestr[Drive]=nil)) and (fpstatfs(StrPas(fixdrivestr[drive]),@fs)<>-1)) or
-     ((Drive <= High(drivestr)) and (not (drivestr[Drive]=nil)) and (fpstatfs(StrPas(drivestr[drive]),@fs)<>-1)) then
-   Diskfree:=int64(fs.bavail)*int64(fs.bsize)
-  else
-   Diskfree:=-1;
-End;
-
-
-
-Function DiskSize(Drive: Byte): int64;
-var
-  fs : tstatfs;
-Begin
-  if ((Drive in [Low(FixDriveStr)..High(FixDriveStr)]) and (not (fixdrivestr[Drive]=nil)) and (fpstatfs(StrPas(fixdrivestr[drive]),@fs)<>-1)) or
-     ((drive <= High(drivestr)) and (not (drivestr[Drive]=nil)) and (fpstatfs(StrPas(drivestr[drive]),@fs)<>-1)) then
-   DiskSize:=int64(fs.blocks)*int64(fs.bsize)
-  else
-   DiskSize:=-1;
-End;
 
 
 Procedure FreeDriveStr;
@@ -1128,6 +1351,17 @@ Function GetEpochTime: cint;
 }
 begin
   GetEpochTime:=fptime;
+end;
+
+Procedure DoGetUniversalDateTime(var year, month, day, hour, min,  sec, msec, usec : word);
+
+var
+  tz:timeval;
+begin
+  fpgettimeofday(@tz,nil);
+  EpochToUniversal(tz.tv_sec,year,month,day,hour,min,sec);
+  msec:=tz.tv_usec div 1000;
+  usec:=tz.tv_usec mod 1000;
 end;
 
 // Now, adjusted to local time.
@@ -1204,6 +1438,7 @@ var
   usecs : Word;
 begin
   DoGetLocalDateTime(SystemTime.Year, SystemTime.Month, SystemTime.Day,SystemTime.Hour, SystemTime.Minute, SystemTime.Second, SystemTime.MilliSecond, usecs);
+  SystemTime.DayOfWeek:=DayOfWeek(EncodeDate(SystemTime.Year,SystemTime.Month,SystemTime.Day))-1;
 end ;
 {$endif}
 
@@ -1268,11 +1503,12 @@ begin
 end;
 
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
+function ExecuteProcess(Const Path: RawByteString; Const ComLine: RawByteString;Flags:TExecuteFlags=[]):integer;
 var
   pid    : longint;
   e      : EOSError;
-  CommandLine: AnsiString;
+  CommandLine: RawByteString;
+  LPath  : RawByteString;
   cmdline2 : ppchar;
 
 Begin
@@ -1283,19 +1519,24 @@ Begin
 
    // Only place we still parse
    cmdline2:=nil;
+   LPath:=Path;
+   UniqueString(LPath);
+   SetCodePage(LPath,DefaultFileSystemCodePage,true);
    if Comline<>'' Then
      begin
        CommandLine:=ComLine;
+
        { Make an unique copy because stringtoppchar modifies the
-         string }
+         string, and force conversion to intended fscp }
        UniqueString(CommandLine);
+       SetCodePage(CommandLine,DefaultFileSystemCodePage,true);
        cmdline2:=StringtoPPChar(CommandLine,1);
-       cmdline2^:=pchar(pointer(Path));
+       cmdline2^:=pchar(pointer(LPath));
      end
    else
      begin
        getmem(cmdline2,2*sizeof(pchar));
-       cmdline2^:=pchar(Path);
+       cmdline2^:=pchar(LPath);
        cmdline2[1]:=nil;
      end;
 
@@ -1307,14 +1548,14 @@ Begin
   if pid=0 then
    begin
    {The child does the actual exec, and then exits}
-      fpexecv(pchar(pointer(Path)),Cmdline2);
+      fpexecv(pchar(pointer(LPath)),Cmdline2);
      { If the execve fails, we return an exitvalue of 127, to let it be known}
      fpExit(127);
    end
   else
    if pid=-1 then         {Fork failed}
     begin
-      e:=EOSError.CreateFmt(SExecuteProcessFailed,[Path,-1]);
+      e:=EOSError.CreateFmt(SExecuteProcessFailed,[LPath,-1]);
       e.ErrorCode:=-1;
       raise e;
     end;
@@ -1327,18 +1568,17 @@ Begin
 
   if (result<0) or (result=127) then
     begin
-    E:=EOSError.CreateFmt(SExecuteProcessFailed,[Path,result]);
+    E:=EOSError.CreateFmt(SExecuteProcessFailed,[LPath,result]);
     E.ErrorCode:=result;
     Raise E;
     end;
 End;
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array Of AnsiString;Flags:TExecuteFlags=[]):integer;
+function ExecuteProcess(Const Path: RawByteString; Const ComLine: Array Of RawByteString;Flags:TExecuteFlags=[]):integer;
 
 var
   pid    : longint;
-  e : EOSError;
-
+  e      : EOSError;
 Begin
   pid:=fpFork;
   if pid=0 then
@@ -1394,9 +1634,54 @@ end;
     Application config files
   ---------------------------------------------------------------------}
 
+{$ifdef android}
+
+var
+  _HomeDir: string;
+  _HasPackageDataDir: boolean;
 
 Function GetHomeDir : String;
+var
+  h: longint;
+  i: longint;
+begin
+  Result:=_HomeDir;
+  if Result <> '' then
+    exit;
+  if IsLibrary then
+    begin
+      // For shared library get the package name of a host Java application
+      h:=FileOpen('/proc/self/cmdline', fmOpenRead or fmShareDenyNone);
+      if h >= 0 then
+        begin
+          SetLength(Result, MAX_PATH);
+          SetLength(Result, FileRead(h, Result[1], Length(Result)));
+          SetLength(Result, strlen(PChar(Result)));
+          FileClose(h);
+          Result:='/data/data/' + Result;
+          _HasPackageDataDir:=DirectoryExists(Result);
+          if _HasPackageDataDir then
+            begin
+              Result:=Result + '/files/';
+              ForceDirectories(Result);
+            end
+          else
+            Result:='';  // No package
+        end;
+    end;
+  if Result = '' then
+    Result:='/data/local/tmp/';
+  _HomeDir:=Result;
+end;
 
+Function XdgConfigHome : String;
+begin
+  Result:=GetHomeDir;
+end;
+
+{$else}
+
+Function GetHomeDir : String;
 begin
   Result:=GetEnvironmentVariable('HOME');
   If (Result<>'') then
@@ -1415,6 +1700,8 @@ begin
     Result:=IncludeTrailingPathDelimiter(Result);
 end;
 
+{$endif android}
+
 Function GetAppConfigDir(Global : Boolean) : String;
 
 begin
@@ -1422,6 +1709,10 @@ begin
     Result:=IncludeTrailingPathDelimiter(SysConfigDir)
   else
     Result:=IncludeTrailingPathDelimiter(XdgConfigHome);
+{$ifdef android}
+  if _HasPackageDataDir then
+    exit;
+{$endif android}
   if VendorName<>'' then
     Result:=IncludeTrailingPathDelimiter(Result+VendorName);
   Result:=IncludeTrailingPathDelimiter(Result+ApplicationName);
@@ -1434,6 +1725,13 @@ begin
     Result:=IncludeTrailingPathDelimiter(SysConfigDir)
   else
     Result:=IncludeTrailingPathDelimiter(XdgConfigHome);
+{$ifdef android}
+  if _HasPackageDataDir then
+    begin
+      Result:=Result+'config'+ConfigExtension;
+      exit;
+    end;
+{$endif android}
   if SubDir then
     begin
       if VendorName<>'' then
@@ -1456,13 +1754,18 @@ begin
     Result:=OnGetTempDir(Global)
   else
     begin
-    Result:=GetEnvironmentVariable('TEMP');
-    If (Result='') Then
-      Result:=GetEnvironmentVariable('TMP');
-    If (Result='') Then
-      Result:=GetEnvironmentVariable('TMPDIR');
-    if (Result='') then
-      Result:='/tmp/' // fallback.
+{$ifdef android}
+      Result:=GetHomeDir + 'tmp';
+      ForceDirectories(Result);
+{$else}
+      Result:=GetEnvironmentVariable('TEMP');
+      If (Result='') Then
+        Result:=GetEnvironmentVariable('TMP');
+      If (Result='') Then
+        Result:=GetEnvironmentVariable('TMPDIR');
+      if (Result='') then
+        Result:='/tmp/'; // fallback.
+{$endif android}
     end;
   if (Result<>'') then
     Result:=IncludeTrailingPathDelimiter(Result);
@@ -1480,7 +1783,11 @@ Function GetUserDir : String;
 begin
   If (TheUserDir='') then
     begin
-    TheUserDir:=GetEnvironmentVariable('HOME'); 
+{$ifdef android}
+    TheUserDir:=GetHomeDir;
+{$else}
+    TheUserDir:=GetEnvironmentVariable('HOME');
+{$endif android}
     if (TheUserDir<>'') then
       TheUserDir:=IncludeTrailingPathDelimiter(TheUserDir)
     else
@@ -1496,11 +1803,56 @@ begin
   Flush(Output);
 end;
 
+function GetUniversalTime(var SystemTime: TSystemTime): Boolean;
+var
+  usecs : Word;
+begin
+  DoGetUniversalDateTime(SystemTime.Year, SystemTime.Month, SystemTime.Day,SystemTime.Hour, SystemTime.Minute, SystemTime.Second, SystemTime.MilliSecond, usecs);
+  Result:=True;
+end;
+
 function GetLocalTimeOffset: Integer;
 
 begin
  Result := -Tzseconds div 60; 
 end;
+
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer): Boolean;
+
+var
+  Year, Month, Day, Hour, Minute, Second, MilliSecond: word;
+  UnixTime: Int64;
+  lTZInfo: TTZInfo;
+begin
+  DecodeDate(DateTime, Year, Month, Day);
+  DecodeTime(DateTime, Hour, Minute, Second, MilliSecond);
+  UnixTime:=UniversalToEpoch(Year, Month, Day, Hour, Minute, Second);
+
+  {$if declared(GetLocalTimezone)}
+  GetLocalTimeOffset:=GetLocalTimezone(UnixTime,InputIsUTC,lTZInfo);
+  if GetLocalTimeOffset then
+    Offset:=-lTZInfo.seconds div 60;
+  {$else}
+  GetLocalTimeOffset:=False;
+  {$endif}
+end;
+
+{$ifdef android}
+
+procedure InitAndroid;
+var
+  dlinfo: dl_info;
+  s: string;
+begin
+  FillChar(dlinfo, sizeof(dlinfo), 0);
+  dladdr(@InitAndroid, @dlinfo);
+  s:=dlinfo.dli_fname;
+  if s <> '' then
+    SetDefaultSysLogTag(ExtractFileName(s));
+end;
+
+{$endif android}
+
 
 {****************************************************************************
                               Initialization code
@@ -1511,8 +1863,12 @@ Initialization
   InitInternational;    { Initialize internationalization settings }
   SysConfigDir:='/etc'; { Initialize system config dir }
   OnBeep:=@SysBeep;
-  
+{$ifdef android}
+  InitAndroid;
+{$endif android}
+
 Finalization
   FreeDriveStr;
+  FreeTerminateProcs;
   DoneExceptions;
 end.

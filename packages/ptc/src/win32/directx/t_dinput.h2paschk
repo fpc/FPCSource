@@ -1,0 +1,475 @@
+@Pascal uses p_dinput;
+@Pascal begin
+
+@C #include <dinput.h>
+@C #include <stdio.h>
+@C #include <stddef.h>
+@C #include <tchar.h>
+@C int _tmain(int argc, _TCHAR* argv[])
+@C {
+
+@record TDICONSTANTFORCE,DICONSTANTFORCE
+.lMagnitude
+
+@record TDIRAMPFORCE,DIRAMPFORCE
+.lStart
+.lEnd
+
+@record TDIPERIODIC,DIPERIODIC
+.dwMagnitude
+.lOffset
+.dwPhase
+.dwPeriod
+
+@record TDICONDITION,DICONDITION
+.lOffset
+.lPositiveCoefficient
+.lNegativeCoefficient
+.dwPositiveSaturation
+.dwNegativeSaturation
+.lDeadBand
+
+@record TDICUSTOMFORCE,DICUSTOMFORCE
+.cChannels
+.dwSamplePeriod
+.cSamples
+.rglForceData
+
+@record TDIENVELOPE,DIENVELOPE
+.dwSize
+.dwAttackLevel
+.dwAttackTime
+.dwFadeLevel
+.dwFadeTime
+
+@record TDIEFFECT_DX5,DIEFFECT_DX5
+.dwSize
+.dwFlags
+.dwDuration
+.dwSamplePeriod
+.dwGain
+.dwTriggerButton
+.dwTriggerRepeatInterval
+.cAxes
+.rgdwAxes
+.rglDirection
+.lpEnvelope
+.cbTypeSpecificParams
+.lpvTypeSpecificParams
+
+@record TDIEFFECT,DIEFFECT
+.dwSize
+.dwFlags
+.dwDuration
+.dwSamplePeriod
+.dwGain
+.dwTriggerButton
+.dwTriggerRepeatInterval
+.cAxes
+.rgdwAxes
+.rglDirection
+.lpEnvelope
+.cbTypeSpecificParams
+.lpvTypeSpecificParams
+.dwStartDelay
+
+@record TDIFILEEFFECT,DIFILEEFFECT
+.dwSize
+.GuidEffect
+.lpDiEffect
+.szFriendlyName
+
+@record TDIEFFESCAPE,DIEFFESCAPE
+.dwSize
+.dwCommand
+.lpvInBuffer
+.cbInBuffer
+.lpvOutBuffer
+.cbOutBuffer
+
+@record TDIDEVCAPS_DX3,DIDEVCAPS_DX3
+.dwSize
+.dwFlags
+.dwDevType
+.dwAxes
+.dwButtons
+.dwPOVs
+
+@record TDIDEVCAPS,DIDEVCAPS
+.dwSize
+.dwFlags
+.dwDevType
+.dwAxes
+.dwButtons
+.dwPOVs
+.dwFFSamplePeriod
+.dwFFMinTimeResolution
+.dwFirmwareRevision
+.dwHardwareRevision
+.dwFFDriverVersion
+
+@record TDIOBJECTDATAFORMAT,DIOBJECTDATAFORMAT
+.pguid
+.dwOfs
+.dwType
+.dwFlags
+
+@record TDIDATAFORMAT,DIDATAFORMAT
+.dwSize
+.dwObjSize
+.dwFlags
+.dwDataSize
+.dwNumObjs
+.rgodf
+
+@record TDIACTIONA,DIACTIONA
+.uAppData
+.dwSemantic
+.dwFlags
+.lptszActionName
+.guidInstance
+.dwObjID
+.dwHow
+.uResIdString
+
+@record TDIACTIONW,DIACTIONW
+.uAppData
+.dwSemantic
+.dwFlags
+.lptszActionName
+.guidInstance
+.dwObjID
+.dwHow
+.uResIdString
+
+@record TDIACTIONFORMATA,DIACTIONFORMATA
+.dwSize
+.dwActionSize
+.dwDataSize
+.dwNumActions
+.rgoAction
+.guidActionMap
+.dwGenre
+.dwBufferSize
+.lAxisMin
+.lAxisMax
+.hInstString
+.ftTimeStamp
+.dwCRC
+.tszActionMap
+
+@record TDIACTIONFORMATW,DIACTIONFORMATW
+.dwSize
+.dwActionSize
+.dwDataSize
+.dwNumActions
+.rgoAction
+.guidActionMap
+.dwGenre
+.dwBufferSize
+.lAxisMin
+.lAxisMax
+.hInstString
+.ftTimeStamp
+.dwCRC
+.tszActionMap
+
+@record TDICOLORSET,DICOLORSET
+.dwSize
+.cTextFore
+.cTextHighlight
+.cCalloutLine
+.cCalloutHighlight
+.cBorder
+.cControlFill
+.cHighlightFill
+.cAreaFill
+
+@record TDICONFIGUREDEVICESPARAMSA,DICONFIGUREDEVICESPARAMSA
+.dwSize
+.dwcUsers
+.lptszUserNames
+.dwcFormats
+.lprgFormats
+.hwnd
+.dics
+.lpUnkDDSTarget
+
+@record TDICONFIGUREDEVICESPARAMSW,DICONFIGUREDEVICESPARAMSW
+.dwSize
+.dwcUsers
+.lptszUserNames
+.dwcFormats
+.lprgFormats
+.hwnd
+.dics
+.lpUnkDDSTarget
+
+@record TDIDEVICEIMAGEINFOA,DIDEVICEIMAGEINFOA
+.tszImagePath
+.dwFlags
+.dwViewID
+.rcOverlay
+.dwObjID
+.dwcValidPts
+.rgptCalloutLine
+.rcCalloutRect
+.dwTextAlign
+
+@record TDIDEVICEIMAGEINFOW,DIDEVICEIMAGEINFOW
+.tszImagePath
+.dwFlags
+.dwViewID
+.rcOverlay
+.dwObjID
+.dwcValidPts
+.rgptCalloutLine
+.rcCalloutRect
+.dwTextAlign
+
+@record TDIDEVICEIMAGEINFOHEADERA,DIDEVICEIMAGEINFOHEADERA
+.dwSize
+.dwSizeImageInfo
+.dwcViews
+.dwcButtons
+.dwcAxes
+.dwcPOVs
+.dwBufferSize
+.dwBufferUsed
+.lprgImageInfoArray
+
+@record TDIDEVICEIMAGEINFOHEADERW,DIDEVICEIMAGEINFOHEADERW
+.dwSize
+.dwSizeImageInfo
+.dwcViews
+.dwcButtons
+.dwcAxes
+.dwcPOVs
+.dwBufferSize
+.dwBufferUsed
+.lprgImageInfoArray
+
+@record TDIDEVICEOBJECTINSTANCE_DX3A,DIDEVICEOBJECTINSTANCE_DX3A
+.dwSize
+.guidType
+.dwOfs
+.dwType
+.dwFlags
+.tszName
+
+@record TDIDEVICEOBJECTINSTANCE_DX3W,DIDEVICEOBJECTINSTANCE_DX3W
+.dwSize
+.guidType
+.dwOfs
+.dwType
+.dwFlags
+.tszName
+
+@record TDIDEVICEOBJECTINSTANCEA,DIDEVICEOBJECTINSTANCEA
+.dwSize
+.guidType
+.dwOfs
+.dwType
+.dwFlags
+.tszName
+.dwFFMaxForce
+.dwFFForceResolution
+.wCollectionNumber
+.wDesignatorIndex
+.wUsagePage
+.wUsage
+.dwDimension
+.wExponent
+.wReportId
+
+@record TDIDEVICEOBJECTINSTANCEW,DIDEVICEOBJECTINSTANCEW
+.dwSize
+.guidType
+.dwOfs
+.dwType
+.dwFlags
+.tszName
+.dwFFMaxForce
+.dwFFForceResolution
+.wCollectionNumber
+.wDesignatorIndex
+.wUsagePage
+.wUsage
+.dwDimension
+.wExponent
+.wReportId
+
+@record TDIPROPHEADER,DIPROPHEADER
+.dwSize
+.dwHeaderSize
+.dwObj
+.dwHow
+
+@record TDIPROPDWORD,DIPROPDWORD
+.diph
+.dwData
+
+@record TDIPROPPOINTER,DIPROPPOINTER
+.diph
+.uData
+
+@record TDIPROPRANGE,DIPROPRANGE
+.diph
+.lMin
+.lMax
+
+@record TDIPROPCAL,DIPROPCAL
+.diph
+.lMin
+.lCenter
+.lMax
+
+@record TDIPROPCALPOV,DIPROPCALPOV
+.diph
+.lMin
+.lMax
+
+@record TDIPROPGUIDANDPATH,DIPROPGUIDANDPATH
+.diph
+.guidClass
+.wszPath
+
+@record TDIPROPSTRING,DIPROPSTRING
+.diph
+.wsz
+
+@record TCPOINT,CPOINT
+.lP
+.dwLog
+
+@record TDIPROPCPOINTS,DIPROPCPOINTS
+.diph
+.dwCPointsNum
+.cp
+
+@record TDIDEVICEOBJECTDATA_DX3,DIDEVICEOBJECTDATA_DX3
+.dwOfs
+.dwData
+.dwTimeStamp
+.dwSequence
+
+@record TDIDEVICEOBJECTDATA,DIDEVICEOBJECTDATA
+.dwOfs
+.dwData
+.dwTimeStamp
+.dwSequence
+.uAppData
+
+@record TDIDEVICEINSTANCE_DX3A,DIDEVICEINSTANCE_DX3A
+.dwSize
+.guidInstance
+.guidProduct
+.dwDevType
+.tszInstanceName
+.tszProductName
+
+@record TDIDEVICEINSTANCE_DX3W,DIDEVICEINSTANCE_DX3W
+.dwSize
+.guidInstance
+.guidProduct
+.dwDevType
+.tszInstanceName
+.tszProductName
+
+@record TDIDEVICEINSTANCEA,DIDEVICEINSTANCEA
+.dwSize
+.guidInstance
+.guidProduct
+.dwDevType
+.tszInstanceName
+.tszProductName
+.guidFFDriver
+.wUsagePage
+.wUsage
+
+@record TDIDEVICEINSTANCEW,DIDEVICEINSTANCEW
+.dwSize
+.guidInstance
+.guidProduct
+.dwDevType
+.tszInstanceName
+.tszProductName
+.guidFFDriver
+.wUsagePage
+.wUsage
+
+@record TDIEFFECTINFOA,DIEFFECTINFOA
+.dwSize
+.guid
+.dwEffType
+.dwStaticParams
+.dwDynamicParams
+.tszName
+
+@record TDIEFFECTINFOW,DIEFFECTINFOW
+.dwSize
+.guid
+.dwEffType
+.dwStaticParams
+.dwDynamicParams
+.tszName
+
+@record TDIMOUSESTATE,DIMOUSESTATE
+.lX
+.lY
+.lZ
+.rgbButtons
+
+@record TDIMOUSESTATE2,DIMOUSESTATE2
+.lX
+.lY
+.lZ
+.rgbButtons
+
+@record TDIJOYSTATE,DIJOYSTATE
+.lX
+.lY
+.lZ
+.lRx
+.lRy
+.lRz
+.rglSlider
+.rgdwPOV
+.rgbButtons
+
+@record TDIJOYSTATE2,DIJOYSTATE2
+.lX
+.lY
+.lZ
+.lRx
+.lRy
+.lRz
+.rglSlider
+.rgdwPOV
+.rgbButtons
+.lVX
+.lVY
+.lVZ
+.lVRx
+.lVRy
+.lVRz
+.rglVSlider
+.lAX
+.lAY
+.lAZ
+.lARx
+.lARy
+.lARz
+.rglASlider
+.lFX
+.lFY
+.lFZ
+.lFRx
+.lFRy
+.lFRz
+.rglFSlider
+
+@C   return 0;
+@C }
+
+@Pascal end.

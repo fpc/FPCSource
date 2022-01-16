@@ -47,7 +47,7 @@ begin
 	begin
 		scanKeys();
 		keys := keysHeld();
-
+    if (keys and KEY_START) <> 0 then break;
 		if (keys and KEY_TOUCH) <> 0 then
 		begin
 			touchRead(touch);

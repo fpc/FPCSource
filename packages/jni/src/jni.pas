@@ -177,7 +177,7 @@ type va_list=pointer;
 
       // Local Reference Management
       PushLocalFrame:function(Env:PJNIEnv;Capacity:JInt):JInt;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
-      PopLocalFrame:function(Env:PJNIEnv;Result:JObject):JObject;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
+      PopLocalFrame:function(Env:PJNIEnv;_Result:JObject):JObject;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
 
       NewGlobalRef:function(Env:PJNIEnv;LObj:JObject):JObject;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
       DeleteGlobalRef:procedure(Env:PJNIEnv;GRef:JObject);{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
@@ -370,7 +370,7 @@ type va_list=pointer;
 
       NewStringUTF:function(Env:PJNIEnv;const UTF:pchar):JString;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
       GetStringUTFLength:function(Env:PJNIEnv;Str:JString):JSize;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
-      GetStringUTFChars:function(Env:PJNIEnv;Str:JString;var IsCopy:JBoolean):pchar;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
+      GetStringUTFChars:function(Env:PJNIEnv;Str:JString; IsCopy: PJBoolean):pchar;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
       ReleaseStringUTFChars:procedure(Env:PJNIEnv;Str:JString;const Chars:pchar);{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}
 
       GetArrayLength:function(Env:PJNIEnv;AArray:JArray):JSize;{$ifdef mswindows}stdcall;{$else}cdecl;{$endif}

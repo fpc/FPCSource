@@ -10,7 +10,7 @@ const
 
 var
  rc       : Integer;
- db       : PPsqlite3;
+ db       : Psqlite3;
  sql      : string;
  pzErrMsg : PChar;
  
@@ -77,7 +77,11 @@ begin
    then writeln(Format('SQL error: %s', [pzErrMsg^]));
   finally sqlite3_close(db); end;
 
-  sleep(5000);
+{$ifdef Windows}
+  writeln('Hit enter to exit');
+  Readln;
+{$endif}
+
 end.
 
 

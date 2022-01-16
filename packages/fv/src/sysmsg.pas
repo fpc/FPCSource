@@ -19,9 +19,10 @@
    MA 02110-1301, USA.
 
  ****************************************************************************}
-Unit sysmsg;
+Unit SysMsg;
 
 interface
+{$i platform.inc}
 
 type
   TSystemMessage = (
@@ -103,7 +104,7 @@ begin
    begin
      PendingSystemTail^:=SystemEvent;
      inc(PendingSystemTail);
-     if longint(PendingSystemTail)=longint(@PendingSystemEvent)+sizeof(PendingSystemEvent) then
+     if PtrUInt(PendingSystemTail)=PtrUInt(@PendingSystemEvent)+sizeof(PendingSystemEvent) then
       PendingSystemTail:=@PendingSystemEvent;
        inc(PendingSystemEvents);
    end;

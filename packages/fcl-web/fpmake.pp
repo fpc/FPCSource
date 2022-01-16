@@ -4,33 +4,45 @@ program fpmake;
 
 uses fpmkunit;
 
+{$endif ALLPACKAGES}
+
+procedure add_fcl_web(const ADirectory: string);
+
+Const
+  LibMicroHttpdOSes = AllUnixOSes + [win32,win64];
+
 Var
   T : TTarget;
   P : TPackage;
 begin
   With Installer do
     begin
-{$endif ALLPACKAGES}
-
     P:=AddPackage('fcl-web');
     P.ShortName:='fclw';
-{$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
-{$endif ALLPACKAGES}
-    P.Version:='3.1.1';
-    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,dragonfly];
+    P.Version:='3.3.1';
+    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,ios,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly,android];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-db');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-json');
     P.Dependencies.Add('fcl-net');
     P.Dependencies.Add('fcl-process');
+    P.Dependencies.Add('fcl-fpcunit');
+    P.Dependencies.Add('fcl-hash');
+    P.Dependencies.Add('hash');
+    P.Dependencies.Add('fcl-registry',AllWindowsOSes);
+    P.Dependencies.Add('openssl',AllUnixOSes+AllWindowsOSes);
     P.Dependencies.Add('fastcgi');
-    P.Dependencies.Add('httpd22', AllOses - [amiga,aros]);
-    P.Dependencies.Add('httpd24', AllOses - [amiga,aros]);
+    P.Dependencies.Add('httpd22', AllOses - [amiga,aros,morphos]);
+    P.Dependencies.Add('httpd24', AllOses - [amiga,aros,morphos]);
+    P.Dependencies.Add('winunits-base', [Win32,Win64]);
     // (Temporary) indirect dependencies, not detected by fpcmake:
-    P.Dependencies.Add('univint',[MacOSX,iphonesim]);
-
+    P.Dependencies.Add('univint',[MacOSX,iphonesim,ios]);
+    P.Dependencies.Add('libmicrohttpd',LibMicroHttpdOSes);
     P.Author := 'FreePascal development team';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -40,7 +52,25 @@ begin
 
     P.SourcePath.Add('src/base');
     P.SourcePath.Add('src/webdata');
+    P.SourcePath.Add('src/jwt');
     P.SourcePath.Add('src/jsonrpc');
+    P.SourcePath.Add('src/hpack');
+    P.SourcePath.Add('src/restbridge');
+    P.SourcePath.Add('src/websocket');
+    T:=P.Targets.addUnit('fpmimetypes.pp');
+
+    T:=P.Targets.AddUnit('httpdefs.pp');
+    T.ResourceStrings:=true;
+    T.Dependencies.AddUnit('httpprotocol');
+
+    T:=P.Targets.AddUnit('httproute.pp');
+      T.ResourceStrings:=true;
+    T.Dependencies.AddUnit('httpdefs');
+
+    T:=P.Targets.AddUnit('httpjson.pp');
+    T.ResourceStrings:=true;
+    T.Dependencies.AddUnit('httpdefs');
+    T.Dependencies.AddUnit('httpprotocol');
 
     T:=P.Targets.AddUnit('cgiapp.pp');
     T.ResourceStrings:=true;
@@ -48,6 +78,8 @@ begin
     T.ResourceStrings:=true;
       with T.Dependencies do
         begin
+          AddUnit('httpprotocol');
+          AddUnit('cgiprotocol');
           AddUnit('httpdefs');
         end;
     T:=P.Targets.AddUnit('ezcgi.pp');
@@ -83,8 +115,10 @@ begin
           AddUnit('fphttp');
           AddUnit('websession');
         end;
-    T:=P.Targets.AddUnit('httpdefs.pp');
-    T.ResourceStrings:=true;
+    T:=P.Targets.AddUnit('httpprotocol.pp');
+    T:=P.Targets.AddUnit('cgiprotocol.pp');
+
+    
     T:=P.Targets.AddUnit('iniwebsession.pp');
     T.ResourceStrings:=true;
       with T.Dependencies do
@@ -106,6 +140,7 @@ begin
       begin
         ResourceStrings:=true;
         Dependencies.AddUnit('httpdefs');
+        Dependencies.AddUnit('httproute');
         Dependencies.AddUnit('fphttp');
       end;
     with P.Targets.AddUnit('webpage.pp') do
@@ -116,29 +151,83 @@ begin
       end;
     with P.Targets.AddUnit('fpfcgi.pp') do
       begin
-        OSes:=AllOses-[wince,darwin,iphonesim,aix,amiga,aros];
+        OSes:=AllOses-[wince,darwin,iphonesim,ios,aix,amiga,aros,morphos];
         Dependencies.AddUnit('custfcgi');
       end;
     with P.Targets.AddUnit('custfcgi.pp') do
       begin
-        OSes:=AllOses-[wince,darwin,iphonesim,aix,amiga,aros];
+        OSes:=AllOses-[wince,darwin,iphonesim,ios,aix,amiga,aros,morphos];
+        Dependencies.AddUnit('httpprotocol');
+        Dependencies.AddUnit('cgiprotocol');
+        Dependencies.AddUnit('custcgi');
         Dependencies.AddUnit('httpdefs');
+        Dependencies.AddUnit('custweb');
+        ResourceStrings:=true;
+      end;
+    with P.Targets.AddUnit('custapache.pp') do
+      begin
+        OSes:=AllOses-[amiga,aros,morphos];
+        Dependencies.AddUnit('httpprotocol');
+        Dependencies.AddUnit('fphttp');
         Dependencies.AddUnit('custweb');
         ResourceStrings:=true;
       end;
     with P.Targets.AddUnit('fpapache.pp') do
       begin
-        OSes:=AllOses-[amiga,aros];
+        OSes:=AllOses-[amiga,aros,morphos];
+        Dependencies.AddUnit('custapache');
+      end;
+    with P.Targets.AddUnit('custapache24.pp') do
+      begin
+        OSes:=AllOses-[amiga,aros,morphos];
         Dependencies.AddUnit('fphttp');
         Dependencies.AddUnit('custweb');
         ResourceStrings:=true;
       end;
     with P.Targets.AddUnit('fpapache24.pp') do
       begin
-        OSes:=AllOses-[amiga,aros];
-        Dependencies.AddUnit('fphttp');
+        OSes:=AllOses-[amiga,aros,morphos];
+        Dependencies.AddUnit('custapache24');
+      end;
+    with P.Targets.AddUnit('custhttpsys.pp') do
+      begin
+        OSes:=[Win32,Win64];
         Dependencies.AddUnit('custweb');
+        Dependencies.AddUnit('httpdefs');
+        Dependencies.AddUnit('httpprotocol');
         ResourceStrings:=true;
+      end;
+    with P.Targets.AddUnit('fphttpsys.pp') do
+      begin
+        OSes:=[Win32,Win64];
+        Dependencies.AddUnit('custhttpsys');
+      end;
+    with P.Targets.AddUnit('custmicrohttpapp.pp') do
+      begin
+        Dependencies.AddUnit('custweb');
+        Dependencies.AddUnit('httpdefs');
+        Dependencies.AddUnit('httpprotocol');
+        ResourceStrings:=true;
+        OSes := LibMicroHttpdOSes;
+        if Defaults.CPU=jvm then
+          OSes := OSes - [java,android];
+      end;  
+    with P.Targets.AddUnit('microhttpapp.pp') do
+      begin
+        Dependencies.AddUnit('custweb');
+        Dependencies.AddUnit('httpdefs');
+        Dependencies.AddUnit('httpprotocol');
+        Dependencies.AddUnit('custmicrohttpapp');
+        OSes := LibMicroHttpdOSes;
+        if Defaults.CPU=jvm then
+          OSes := OSes - [java,android];
+      end;  
+
+      
+    with P.Targets.AddUnit('fphttpstatus.pas') do
+      begin
+        Dependencies.AddUnit('fphttpserver');
+        Dependencies.AddUnit('HTTPDefs');
       end;
     T:=P.Targets.AddUnit('fcgigate.pp');
     T.ResourceStrings:=true;
@@ -159,6 +248,20 @@ begin
     // T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('fphttpapp.pp');
     T:=P.Targets.AddUnit('fpwebfile.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('fphttp');
+      AddUnit('httpdefs');
+      AddUnit('httproute');
+      end;
+    T:=P.Targets.AddUnit('fpwebproxy.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('fphttp');
+      AddUnit('httpdefs');
+      AddUnit('httpprotocol');
+      AddUnit('fphttpclient');
+      end;
     T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('fpwebdata.pp');
     T.ResourceStrings:=true;
@@ -199,28 +302,197 @@ begin
       AddUnit('httpdefs');
       AddUnit('fpextjs');
       end;
-    T:=P.Targets.AddUnit('fpjsonrpc.pp');
+    T:=P.Targets.AddUnit('fprpcstrings.pp');
     T.ResourceStrings:=true;
+    T:=P.Targets.AddUnit('fpjsonrpc.pp');
     T:=P.Targets.AddUnit('webjsonrpc.pp');
     With T.Dependencies do
       begin
       AddUnit('fpjsonrpc');
       end;
+    T:=P.Targets.AddUnit('fprpcrtti.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('fpjsonrpc');
+      end;
+    T:=P.Targets.AddUnit('fprpcclient.pp');
+    T:=P.Targets.AddUnit('fprpccodegen.pp');
     T:=P.Targets.AddUnit('fpdispextdirect.pp');
     With T.Dependencies do
       begin
       AddUnit('fpjsonrpc');
       end;
     T:=P.Targets.AddUnit('fpextdirect.pp');
-    T.ResourceStrings:=true;
     With T.Dependencies do
       begin
       AddUnit('fpdispextdirect');
       AddUnit('webjsonrpc');
       AddUnit('httpdefs');
       end;
-{$ifndef ALLPACKAGES}
-    Run;
+    T:=P.Targets.AddUnit('fpwebclient.pp');
+    T:=P.Targets.AddUnit('fpjwt.pp');
+    T:=P.Targets.AddUnit('fpoauth2.pp');
+      T.ResourceStrings:=true;
+    T.Dependencies.AddUnit('fpwebclient');
+    T.Dependencies.AddUnit('fpjwt');
+    T:=P.Targets.AddUnit('fpoauth2ini.pp');
+    T.Dependencies.AddUnit('fpoauth2');
+    T:=P.Targets.AddUnit('fpjwasha256.pp');
+    T.Dependencies.AddUnit('fpjwt');
+    T:=P.Targets.AddUnit('fpjwasha512.pp');
+    T.Dependencies.AddUnit('fpjwt');
+    T:=P.Targets.AddUnit('fpjwasha384.pp');
+    T.Dependencies.AddUnit('fpjwt');
+    T:=P.Targets.AddUnit('fpjwaes256.pp');
+    T.Dependencies.AddUnit('fpjwt');
+    T:=P.Targets.AddUnit('fphttpwebclient.pp');
+    T.Dependencies.AddUnit('fpwebclient');
+    T:=P.Targets.AddUnit('restbase.pp');
+    T:=P.Targets.AddUnit('restcodegen.pp');
+
+    T:=P.Targets.AddUnit('uhpacktables.pp');
+    T:=P.Targets.AddUnit('uhpackimp.pp');
+    With T.Dependencies do  
+      AddUnit('uhpacktables');
+    T:=P.Targets.AddUnit('uhpack.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('uhpackimp');
+      end;
+    
+    T:=P.Targets.AddUnit('sqldbrestconst.pp');
+    T.ResourceStrings:=true;
+    
+    T:=P.Targets.AddUnit('sqldbrestschema.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestconst');
+      end;
+    T:=P.Targets.AddUnit('sqldbrestio.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestconst');
+      AddUnit('sqldbrestschema');
+      end;
+    T:=P.Targets.AddUnit('sqldbrestdata.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestconst');
+      AddUnit('sqldbrestschema');
+      AddUnit('sqldbrestio');
+      end;
+    T:=P.Targets.AddUnit('sqldbrestauth.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestconst');
+      AddUnit('sqldbrestio');
+      AddUnit('sqldbrestschema');
+      end;
+    T:=P.Targets.AddUnit('sqldbrestjson.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestio');
+      AddUnit('sqldbrestschema');
+      AddUnit('sqldbrestconst');
+      end;
+    T:=P.Targets.AddUnit('sqldbrestbridge.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestio');
+      AddUnit('sqldbrestdata');
+      AddUnit('sqldbrestschema');
+      AddUnit('sqldbrestconst');
+      end;
+    T:=P.Targets.AddUnit('sqldbrestcds.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestio');
+      AddUnit('sqldbrestschema');
+      AddUnit('sqldbrestconst');
+      end;
+    T:=P.Targets.AddUnit('sqldbrestcsv.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestio');
+      AddUnit('sqldbrestschema');
+      AddUnit('sqldbrestconst');
+      end;
+    T:=P.Targets.AddUnit('sqldbrestxml.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestio');
+      AddUnit('sqldbrestschema');
+      AddUnit('sqldbrestconst');
+      end;
+    T:=P.Targets.AddUnit('sqldbrestado.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestio');
+      AddUnit('sqldbrestschema');
+      AddUnit('sqldbrestconst');
+      end;
+    T:=P.Targets.AddUnit('sqldbrestini.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestbridge');
+      AddUnit('sqldbrestschema');
+      AddUnit('sqldbrestconst');
+      end;
+    T:=P.Targets.AddUnit('sqldbrestauthini.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestauth');
+      AddUnit('sqldbrestschema');
+      AddUnit('sqldbrestconst');
+      end;
+    T:=P.Targets.AddUnit('sqldbrestmodule.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('sqldbrestbridge');
+      AddUnit('sqldbrestconst');
+      end;
+    T:=P.Targets.AddUnit('fpwebsocket.pp');
+    T.Resourcestrings:=True;
+    T:=P.Targets.AddUnit('fpcustwsserver.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('fpwebsocket');
+      end;
+    T:=P.Targets.AddUnit('fpwebsocketserver.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('fpwebsocket');
+      AddUnit('fpcustwsserver');
+      end;
+    T:=P.Targets.AddUnit('fpwebsocketclient.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('fpwebsocket');
+      end;
+    T:=P.Targets.AddUnit('wsupgrader.pp');
+    With T.Dependencies do  
+      begin
+      AddUnit('fpwebsocket');
+      AddUnit('fpcustwsserver');
+      end;
     end;
+    T:=P.Targets.AddUnit('fphttpclientpool.pas');
+    T.Resourcestrings:=True;
+    With T.Dependencies do  
+      begin
+      AddUnit('fphttpclient');
+      end;
+    T:=P.Targets.AddUnit('fphttpclientasyncpool.pas');
+    With T.Dependencies do  
+      begin
+      AddUnit('fphttpclient');
+      AddUnit('fphttpclientpool');
+      end;
+end;
+    
+{$ifndef ALLPACKAGES}
+begin
+  add_fcl_web('');
+  Installer.Run;
 end.
 {$endif ALLPACKAGES}

@@ -1,5 +1,8 @@
 ; common startup code for all the memory models
 
+; uncomment this, if you want to use i8086 section based smartlinking:
+;%define __I8086_SMARTLINK_SECTIONS__
+
 %ifdef __TINY__
         %define __NEAR_CODE__
         %define __NEAR_DATA__
@@ -36,7 +39,7 @@
 
         cpu 8086
 
-        segment text use16 class=code
+        segment _TEXT use16 class=CODE
 
         extern PASCALMAIN
         extern __fpc_PrefixSeg
@@ -69,38 +72,49 @@
 %endif
 
         extern __SaveInt00
+        extern __SaveInt10
+        extern __SaveInt75
 
-        extern FPC_HANDLEERROR
+        extern __fpu_status
+
+        extern FPC_HANDLE_I8086_ERROR
 
 %ifdef __TINY__
         resb 0100h
 %endif
 ..start:
+%ifndef __HUGE__
 %ifdef __TINY__
         mov bx, cs
 %else
-        mov bx, dgroup
+        mov bx, DGROUP
     %ifdef __NEAR_DATA__
         ; init the stack
         mov ss, bx
-        mov sp, ___stacktop wrt dgroup
+        mov sp, ___stacktop wrt DGROUP
     %endif
 %endif
 
         ; zero fill the BSS section
         mov es, bx
-        mov di, _edata wrt dgroup
-        mov cx, _end wrt dgroup
+        mov di, _edata wrt DGROUP
+        mov cx, _end wrt DGROUP
         sub cx, di
         xor al, al
         cld
         rep stosb
+%endif ; not __HUGE__
 
         ; save the Program Segment Prefix
         push ds
 
         ; init DS
+%ifdef __HUGE__
+        mov bx, SYSTEM_DATA
         mov ds, bx
+%else
+        mov ds, bx
+%endif
 
         ; pop the PSP from stack and store it in the pascal variable PrefixSeg
         pop ax
@@ -150,7 +164,7 @@ cpu_detect_done:
 
         ; allocate max heap
         ; first we determine in paragraphs ax:=min(64kb, data+bss+stack+maxheap)
-        mov ax, _end wrt dgroup
+        mov ax, _end wrt DGROUP
         add ax, 15
         mov cl, 4
         shr ax, cl
@@ -165,7 +179,7 @@ data_with_maxheap_less_than_64k:
 %ifdef __TINY__
         mov dx, cs
 %else
-        mov dx, dgroup
+        mov dx, DGROUP
 %endif
         sub dx, cx  ; dx = (ds - psp) in paragraphs
         push dx  ; save (ds - psp)
@@ -203,11 +217,11 @@ skip_mem_realloc:
         and bl, 0FEh
         mov word [__stkbottom], bx
 
-        mov ax, _end wrt dgroup
+        mov ax, _end wrt DGROUP
         cmp bx, ax
         jb not_enough_mem
 
-        ; heap is between [ds:_end wrt dgroup] and [ds:__stkbottom - 1]
+        ; heap is between [ds:_end wrt DGROUP] and [ds:__stkbottom - 1]
         add ax, 3
         and al, 0FCh
         mov word [__nearheap_start], ax
@@ -269,8 +283,10 @@ error_msg:
         int 21h
 %endif
 
+        global FPC_INT00_HANDLER
 FPC_INT00_HANDLER:
-        sub sp, 4  ; reserve space on the stack for the retf
+        pushf
+        sub sp, 4  ; reserve space on the stack for the iret
 
         push cx
         push ds
@@ -279,8 +295,10 @@ FPC_INT00_HANDLER:
         ; init ds
 %ifdef __TINY__
         mov bp, cs
+%elifdef __HUGE__
+        mov bp, SYSTEM_DATA
 %else
-        mov bp, dgroup
+        mov bp, DGROUP
 %endif
         mov ds, bp
 
@@ -289,46 +307,200 @@ FPC_INT00_HANDLER:
         ; check whether we're running on the same stack
         mov cx, ss
         cmp bp, cx
-        jne .call_previous_handler
+        jne .call_previous_handler00
 %endif
 
 %ifndef __FAR_CODE__
         ; check whether we're coming from the same code segment
         mov bp, sp
-        mov cx, [bp + 3*2 + 6]  ; get caller segment
+        mov cx, [bp + 3*2 + 6 + 2]  ; get caller segment
         mov bp, cs
         cmp bp, cx
-        jne .call_previous_handler
+        jne .call_previous_handler00
 %endif
 
-        ; runerror 200
+        ; Call Fpc_Handle_I8086_Error, with err=0
         mov bp, sp
-        mov cx, [bp + 3*2 + 4]  ; get caller offset
+        mov cx, [bp + 3*2 + 6]  ; get caller offset
 %ifdef __FAR_CODE__
-        mov dx, [bp + 3*2 + 6]  ; get caller segment
+        mov dx, [bp + 3*2 + 6 + 2]  ; get caller segment
 %endif
         pop bp
-        add sp, 2*2 + 4 + 6
+        add sp, 2*2 + 6 + 6
         xor ax, ax
         push ax
-        mov ax, 200
+        mov ax, 0
         push ax
 %ifdef __FAR_CODE__
         push dx
 %endif
         push cx
         cld
+        sti
 %ifdef __FAR_CODE__
-        jmp far FPC_HANDLEERROR
+        jmp far FPC_HANDLE_I8086_ERROR
 %else
-        jmp FPC_HANDLEERROR
+        jmp FPC_HANDLE_I8086_ERROR
 %endif
 
-.call_previous_handler:
+.call_previous_handler00:
         mov bp, sp
         mov cx, [__SaveInt00]
         mov [bp + 3*2], cx
         mov cx, [__SaveInt00+2]
+        mov [bp + 3*2 + 2], cx
+        pop bp
+        pop ds
+        pop cx
+        iret  ; jumps to the previous handler with all registers and stack intact
+
+        global FPC_INT10_HANDLER
+FPC_INT10_HANDLER:
+        pushf
+        sub sp, 4  ; reserve space on the stack for the iret
+
+        push cx
+        push ds
+        push bp
+
+        ; init ds
+%ifdef __TINY__
+        mov bp, cs
+%elifdef __HUGE__
+        mov bp, SYSTEM_DATA
+%else
+        mov bp, DGROUP
+%endif
+        mov ds, bp
+        ; Check that an unmasked exception is indeed set
+        fnstsw word [__fpu_status]
+        test byte [__fpu_status], 80h ; really just this bit is enough, see i8087 datasheet
+        je  .call_previous_handler10
+
+%ifdef __NEAR_DATA__
+        ; in memory models, where SS=DS, also
+        ; check whether we're running on the same stack
+        mov cx, ss
+        cmp bp, cx
+        jne .call_previous_handler10
+%endif
+
+%ifndef __FAR_CODE__
+        ; check whether we're coming from the same code segment
+        mov bp, sp
+        mov cx, [bp + 3*2 + 6 + 2]  ; get caller segment
+        mov bp, cs
+        cmp bp, cx
+        jne .call_previous_handler10
+%endif
+
+        ; Call Fpc_Handle_I8086_Error, with err=$10
+        mov bp, sp
+        mov cx, [bp + 3*2 + 6]  ; get caller offset
+%ifdef __FAR_CODE__
+        mov dx, [bp + 3*2 + 6 + 2]  ; get caller segment
+%endif
+        pop bp
+        add sp, 2*2 + 6 + 6
+        xor ax, ax
+        push ax
+        mov ax, 10h
+        push ax
+%ifdef __FAR_CODE__
+        push dx
+%endif
+        push cx
+        cld
+        sti
+%ifdef __FAR_CODE__
+        jmp far FPC_HANDLE_I8086_ERROR
+%else
+        jmp FPC_HANDLE_I8086_ERROR
+%endif
+
+.call_previous_handler10:
+        mov bp, sp
+        mov cx, [__SaveInt10]
+        mov [bp + 3*2], cx
+        mov cx, [__SaveInt10+2]
+        mov [bp + 3*2 + 2], cx
+        pop bp
+        pop ds
+        pop cx
+        iret  ; jumps to the previous handler with all registers and stack intact
+
+        global FPC_INT75_HANDLER
+FPC_INT75_HANDLER:
+        pushf
+        sub sp, 4  ; reserve space on the stack for the iret
+
+        push cx
+        push ds
+        push bp
+
+        ; init ds
+%ifdef __TINY__
+        mov bp, cs
+%elifdef __HUGE__
+        mov bp, SYSTEM_DATA
+%else
+        mov bp, DGROUP
+%endif
+        mov ds, bp
+
+%ifdef __NEAR_DATA__
+        ; in memory models, where SS=DS, also
+        ; check whether we're running on the same stack
+        mov cx, ss
+        cmp bp, cx
+        jne .call_previous_handler75
+%endif
+
+%ifndef __FAR_CODE__
+        ; check whether we're coming from the same code segment
+        mov bp, sp
+        mov cx, [bp + 3*2 + 6 + 2]  ; get caller segment
+        mov bp, cs
+        cmp bp, cx
+        jne .call_previous_handler75
+%endif
+
+        ; Call Fpc_Handle_I8086_Error, with err=$75
+        mov bp, sp
+        mov cx, [bp + 3*2 + 6]  ; get caller offset
+%ifdef __FAR_CODE__
+        mov dx, [bp + 3*2 + 6 + 2]  ; get caller segment
+%endif
+        pop bp
+        add sp, 2*2 + 6 + 6
+        xor ax, ax
+        push ax
+        mov ax, 75h
+        push ax
+%ifdef __FAR_CODE__
+        push dx
+%endif
+        push cx
+        cld
+
+        ; Reset IRQ/#IGNNE latch; signal EOI; enable interrupts
+        mov al,20h
+        out 0F0h,al ; al=any
+        out 0A0h,al
+        out 020h,al
+        sti
+
+%ifdef __FAR_CODE__
+        jmp far FPC_HANDLE_I8086_ERROR
+%else
+        jmp FPC_HANDLE_I8086_ERROR
+%endif
+
+.call_previous_handler75:
+        mov bp, sp
+        mov cx, [__SaveInt75]
+        mov [bp + 3*2], cx
+        mov cx, [__SaveInt75+2]
         mov [bp + 3*2 + 2], cx
         pop bp
         pop ds
@@ -339,7 +511,12 @@ FPC_INT00_HANDLER:
 
         global FPC_INSTALL_INTERRUPT_HANDLERS
 FPC_INSTALL_INTERRUPT_HANDLERS:
+
+%ifdef __HUGE__
         push ds
+        mov ax, SYSTEM_DATA
+        mov ds, ax
+%endif
 
         ; save old int 00 handler
         mov ax, 3500h
@@ -350,14 +527,61 @@ FPC_INSTALL_INTERRUPT_HANDLERS:
 
         ; install the new int 00 handler
 %ifndef __TINY__
+        push ds
         push cs
         pop ds
 %endif
         mov dx, FPC_INT00_HANDLER
         mov ax, 2500h
         int 21h
-
+%ifndef __TINY__
         pop ds
+%endif
+
+        ; save old int $10 handler
+        mov ax, 3510h
+        int 21h
+        mov [__SaveInt10], bx
+        mov bx, es
+        mov [__SaveInt10+2], bx
+
+        ; install the new int $10 handler
+%ifndef __TINY__
+        push ds
+        push cs
+        pop ds
+%endif
+        mov dx, FPC_INT10_HANDLER
+        mov ax, 2510h
+        int 21h
+%ifndef __TINY__
+        pop ds
+%endif
+
+        ; save old int $75 handler
+        mov ax, 3575h
+        int 21h
+        mov [__SaveInt75], bx
+        mov bx, es
+        mov [__SaveInt75+2], bx
+
+        ; install the new int $75 handler
+%ifndef __TINY__
+        push ds
+        push cs
+        pop ds
+%endif
+        mov dx, FPC_INT75_HANDLER
+        mov ax, 2575h
+        int 21h
+%ifndef __TINY__
+        pop ds
+%endif
+
+
+%ifdef __HUGE__
+        pop ds
+%endif
 %ifdef __FAR_CODE__
         retf
 %else
@@ -367,13 +591,33 @@ FPC_INSTALL_INTERRUPT_HANDLERS:
 
         global FPC_RESTORE_INTERRUPT_HANDLERS
 FPC_RESTORE_INTERRUPT_HANDLERS:
-        push ds
 
+%ifdef __HUGE__
+        push ds
+        mov ax, SYSTEM_DATA
+        mov ds, ax
+%endif
+        push ds
         mov ax, 2500h
         lds dx, [__SaveInt00]
         int 21h
-
         pop ds
+
+        push ds
+        mov ax, 2510h
+        lds dx, [__SaveInt10]
+        int 21h
+        pop ds
+
+        push ds
+        mov ax, 2575h
+        lds dx, [__SaveInt75]
+        int 21h
+        pop ds
+
+%ifdef __HUGE__
+        pop ds
+%endif
 %ifdef __FAR_CODE__
         retf
 %else
@@ -427,12 +671,12 @@ FPC_INTR:
         mov bp, word [si + 8]
         mov di, word [si + 12]
         mov si, word [si + 10]
-        
+
         pop ds
         db 0CDh  ; opcode of INT xx
 int_number:
         db 255
-        
+
         pushf
         push ds
         push si
@@ -460,7 +704,7 @@ int_number:
         mov word [si + 14], ax
         pop ax
         mov word [si + 18], ax
-        
+
         pop ds
         pop bp
 %ifdef __FAR_CODE__
@@ -472,8 +716,13 @@ int_number:
 %ifndef __TINY__
         global FPC_CHECK_NULLAREA
 FPC_CHECK_NULLAREA:
+%ifdef __HUGE__
+        mov ax, DGROUP
+        mov es, ax
+%else
         push ds
         pop es
+%endif
         xor di, di
         mov cx, 32
         mov al, 1
@@ -489,7 +738,12 @@ FPC_CHECK_NULLAREA:
     %endif
 %endif
 
-        segment data class=data
+%ifdef __HUGE__
+        ; reference the system unit's data segment
+        segment SYSTEM_DATA use16 class=FAR_DATA align=2
+%endif
+
+        segment data class=DATA align=2
 %ifdef __NEAR_DATA__
 mem_realloc_err_msg:
         db 'Memory allocation error', 13, 10, '$'
@@ -498,9 +752,9 @@ not_enough_mem_msg:
 %endif
         ; add reference to the beginning of the minimal heap, so the object
         ; module, containing the heap segment doesn't get smartlinked away
-        dd ___heap
+        dw ___heap
 
-        segment bss class=bss
+        segment bss class=BSS align=2
 
 %ifndef __TINY__
         segment _NULL align=16 class=BEGDATA
@@ -513,21 +767,24 @@ __nullarea:
         dw 0
 
     %ifdef __NEAR_DATA__
-        segment stack stack class=stack
+        segment stack stack class=STACK align=16
     %else
         segment data
         ; add reference to the beginning of stack, so the object module,
         ; containing the stack segment doesn't get smartlinked away
-        dd ___stack
+        dw ___stack
     %endif
 %endif
 
 %ifdef __TINY__
-        group dgroup text data bss
+        group DGROUP _TEXT data bss
 %else
     %ifdef __NEAR_DATA__
-        group dgroup _NULL _AFTERNULL data bss stack
+        group DGROUP _NULL _AFTERNULL data bss stack
     %else
-        group dgroup _NULL _AFTERNULL data bss
+        group DGROUP _NULL _AFTERNULL data bss
+    %endif
+    %ifdef __I8086_SMARTLINK_SECTIONS__
+        group CGROUP _TEXT
     %endif
 %endif

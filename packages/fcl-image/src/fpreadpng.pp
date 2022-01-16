@@ -1,5 +1,4 @@
 {
-    $Id: fpreadpng.pp,v 1.10 2003/10/19 21:09:51 luk Exp $
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by the Free Pascal development team
 
@@ -26,6 +25,8 @@ Type
   TSetPixelProc = procedure (x,y:integer; CD : TColordata) of object;
   TConvertColorProc = function (CD:TColorData) : TFPColor of object;
 
+  { TFPReaderPNG }
+
   TFPReaderPNG = class (TFPCustomImageReader)
     private
 
@@ -46,6 +47,11 @@ Type
       FPalette : TFPPalette;
       FSetPixel : TSetPixelProc;
       FConvertColor : TConvertColorProc;
+      function GetGrayScale: Boolean;
+      function GetHeaderByte(AIndex: Integer): Byte;
+      function GetIndexed: Boolean;
+      function GetUseAlpha: Boolean;
+      function GetWordSized: Boolean;
       procedure ReadChunk;
       procedure HandleData;
       procedure HandleUnknown;
@@ -87,6 +93,7 @@ Type
       function DecideSetPixel : TSetPixelProc; virtual;
       procedure InternalRead  (Str:TStream; Img:TFPCustomImage); override;
       function  InternalCheck (Str:TStream) : boolean; override;
+      class function InternalSize(Str:TStream): TPoint; override;
       //property ColorFormat : TColorformat read CFmt;
       property ConvertColor : TConvertColorProc read FConvertColor;
       property CurrentPass : byte read FCurrentPass;
@@ -98,6 +105,17 @@ Type
     public
       constructor create; override;
       destructor destroy; override;
+      // These 2 match writer properties. Calculated from header values
+      Property GrayScale : Boolean Read GetGrayScale;
+      Property WordSized : Boolean Read GetWordSized;
+      Property Indexed : Boolean Read GetIndexed;
+      Property UseAlpha : Boolean Read GetUseAlpha;
+      // Raw reader values
+      Property BitDepth : Byte Index 0 Read GetHeaderByte;
+      Property ColorType : Byte Index 1 Read GetHeaderByte;
+      Property Compression : Byte Index 2 Read GetHeaderByte;
+      Property Filter : Byte Index 3 Read GetHeaderByte;
+      Property Interlace : Byte Index 4 Read GetHeaderByte;
   end;
 
 implementation
@@ -173,6 +191,40 @@ begin
     if ReadCRC <> l then
       raise PNGImageException.Create ('CRC check failed');
     end;
+end;
+
+function TFPReaderPNG.GetHeaderByte(AIndex: Integer): Byte;
+begin
+  With FHeader do
+  Case aIndex of
+     0 : Result:=BitDepth;
+     1 : Result:=ColorType;
+     2 : Result:=Compression;
+     3 : Result:=Filter;
+     4 : Result:=Interlace;
+  else
+    Result:=0;
+  end;
+end;
+
+function TFPReaderPNG.GetIndexed: Boolean;
+begin
+  Result:=ColorType=3;
+end;
+
+function TFPReaderPNG.GetUseAlpha: Boolean;
+begin
+  Result:=ColorType in [4,6]; // Can also be in 3, but that would require scanning the palette
+end;
+
+function TFPReaderPNG.GetWordSized: Boolean;
+begin
+  Result:=BitDepth=16;
+end;
+
+function TFPReaderPNG.GetGrayScale: Boolean;
+begin
+  Result:=ColorType in [0,4];
 end;
 
 procedure TFPReaderPNG.HandleData;
@@ -804,6 +856,7 @@ begin
     raise PNGImageException.Create('Critical chunk '+chunk.readtype+' not recognized');
 end;
 
+// NOTE: It is assumed that signature and IDHDR chunk already have been read.
 procedure TFPReaderPNG.InternalRead (Str:TStream; Img:TFPCustomImage);
 begin
   {$ifdef FPC_Debug_Image}
@@ -831,38 +884,74 @@ begin
     ZData.Free;
     if not img.UsePalette and assigned(FPalette) then
       begin
-      FPalette.Free;
+      FreeAndNil(FPalette);
       end;
   end;
 end;
 
+class function TFPReaderPNG.InternalSize(Str: TStream): TPoint;
+var
+  SigCheck: array[0..7] of byte;
+  r: Integer;
+  Width, Height: Word;
+  StartPos: Int64;
+begin
+  Result.X := 0;
+  Result.Y := 0;
+
+  StartPos := Str.Position;
+  // Check Signature
+  Str.Read(SigCheck, SizeOf(SigCheck));
+  for r := Low(SigCheck) to High(SigCheck) do
+  begin
+    If SigCheck[r] <> Signature[r] then
+      Exit;
+  end;
+  if not(
+        (Str.Seek(10, soFromCurrent)=StartPos+18)
+    and (Str.Read(Width, 2)=2)
+    and (Str.Seek(2, soFromCurrent)=StartPos+22)
+    and (Str.Read(Height, 2)=2))
+  then
+    Exit;
+
+  {$IFDEF ENDIAN_LITTLE}
+  Width := Swap(Width);
+  Height := Swap(Height);
+  {$ENDIF}
+
+  Result.X := Width;
+  Result.Y := Height;
+end;
+
+// NOTE: Stream does not rewind here!
 function  TFPReaderPNG.InternalCheck (Str:TStream) : boolean;
 var SigCheck : array[0..7] of byte;
     r : integer;
 begin
-  try
-    // Check Signature
-    Str.Read(SigCheck, SizeOf(SigCheck));
-    for r := 0 to 7 do
+  Result:=False;
+  if Str=Nil then 
+    exit;
+  // Check Signature
+  if Str.Read(SigCheck, SizeOf(SigCheck)) <> SizeOf(SigCheck) then
+    Exit;
+  for r := 0 to 7 do
     begin
-      If SigCheck[r] <> Signature[r] then
-        raise PNGImageException.Create('This is not PNG-data');
+    If SigCheck[r] <> Signature[r] then
+      Exit;
     end;
-    // Check IHDR
-    ReadChunk;
-    move (chunk.data^, FHeader, sizeof(Header));
-    with header do
-      begin
-      {$IFDEF ENDIAN_LITTLE}
-      Width := swap(width);
-      height := swap (height);
-      {$ENDIF}
-      result := (width > 0) and (height > 0) and (compression = 0)
-                and (filter = 0) and (Interlace in [0,1]);
-      end;
-  except
-    result := false;
-  end;
+  // Check IHDR
+  ReadChunk;
+  move (chunk.data^, FHeader, sizeof(Header));
+  with header do
+    begin
+    {$IFDEF ENDIAN_LITTLE}
+    Width := swap(width);
+    height := swap (height);
+    {$ENDIF}
+    result :=(width > 0) and (height > 0) and (compression = 0)
+              and (filter = 0) and (Interlace in [0,1]);
+    end;
 end;
 
 initialization

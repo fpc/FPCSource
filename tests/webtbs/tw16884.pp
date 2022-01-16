@@ -1,3 +1,4 @@
+{%skiptarget=$nothread }
 {$mode objfpc}
 
 uses
@@ -13,7 +14,7 @@ type
   public
     constructor CreateRace(const ForceFail: Boolean);
     procedure Execute; override;
-  end; 
+  end;
 
 constructor TThreadChild.CreateRace(const ForceFail: Boolean);
 begin
@@ -42,7 +43,7 @@ begin
 
   if ThreadState = 1 then
     begin
-      writeln(Format('ThreadState = %d - constructor race condition occured (should be 2)', [FThreadState])); { we should get the Value 2 here every time, not 1. }
+      writeln(Format('ThreadState = %d - constructor race condition occurred (should be 2)', [FThreadState])); { we should get the Value 2 here every time, not 1. }
       ATestFailed := True;
       readwritebarrier;
     end

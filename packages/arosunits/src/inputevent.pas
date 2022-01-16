@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2014 by Free Pascal development team
+    Copyright (c) 2015 by Free Pascal development team
 
     input event structures
 
@@ -15,72 +15,51 @@
 
 unit inputevent;
 
-INTERFACE
+interface
 
-uses exec, utility, timer;
+uses
+  exec, utility, timer;
 
 const
 
 {------ constants -------------------------------------------------}
 
 {   --- InputEvent.ie_Class --- }
-{ A NOP input event }
-    IECLASS_NULL        = $00;
-{ A raw keycode from the keyboard device }
-    IECLASS_RAWKEY      = $01;
-{ The raw mouse report from the game port device }
-    IECLASS_RAWMOUSE    = $02;
-{ A private console event }
-    IECLASS_EVENT       = $03;
-{ A Pointer Position report }
-    IECLASS_POINTERPOS  = $04;
-{ A timer event }
-    IECLASS_TIMER       = $06;
-{ select button pressed down over a Gadget (address in ie_EventAddress) }
-    IECLASS_GADGETDOWN  = $07;
-{ select button released over the same Gadget (address in ie_EventAddress) }
-    IECLASS_GADGETUP    = $08;
-{ some Requester activity has taken place.  See Codes REQCLEAR and REQSET }
-    IECLASS_REQUESTER   = $09;
-{ this is a Menu Number transmission (Menu number is in ie_Code) }
-    IECLASS_MENULIST    = $0A;
-{ User has selected the active Window's Close Gadget }
-    IECLASS_CLOSEWINDOW = $0B;
-{ this Window has a new size }
-    IECLASS_SIZEWINDOW  = $0C;
-{ the Window pointed to by ie_EventAddress needs to be refreshed }
-    IECLASS_REFRESHWINDOW = $0D;
-{ new preferences are available }
-    IECLASS_NEWPREFS    = $0E;
-{ the disk has been removed }
-    IECLASS_DISKREMOVED = $0F;
-{ the disk has been inserted }
-    IECLASS_DISKINSERTED = $10;
-{ the window is about to be been made active }
-    IECLASS_ACTIVEWINDOW = $11;
-{ the window is about to be made inactive }
-    IECLASS_INACTIVEWINDOW = $12;
-{ extended-function pointer position report (V36) }
-    IECLASS_NEWPOINTERPOS  = $13;
-{ Help key report during Menu session (V36) }
-    IECLASS_MENUHELP       = $14;
-{ the Window has been modified with move, size, zoom, or change (V36) }
-    IECLASS_CHANGEWINDOW   = $15;
+  IECLASS_NULL           = $00; // A NOP input event
+  IECLASS_RAWKEY         = $01; // A raw keycode from the keyboard device
+  IECLASS_RAWMOUSE       = $02; // The raw mouse report from the game port device
+  IECLASS_EVENT          = $03; // A private console event
+  IECLASS_POINTERPOS     = $04; // A Pointer Position report
+  IECLASS_TIMER          = $06; // A timer event
+  IECLASS_GADGETDOWN     = $07; // select button pressed down over a Gadget (address in ie_EventAddress)
+  IECLASS_GADGETUP       = $08; // select button released over the same Gadget (address in ie_EventAddress)
+  IECLASS_REQUESTER      = $09; // some Requester activity has taken place.  See Codes REQCLEAR and REQSET
+  IECLASS_MENULIST       = $0A; // this is a Menu Number transmission (Menu number is in ie_Code)
+  IECLASS_CLOSEWINDOW    = $0B; // User has selected the active Window's Close Gadget
+  IECLASS_SIZEWINDOW     = $0C; // this Window has a new size
+  IECLASS_REFRESHWINDOW  = $0D; // the Window pointed to by ie_EventAddress needs to be refreshed
+  IECLASS_NEWPREFS       = $0E; // new preferences are available
+  IECLASS_DISKREMOVED    = $0F; // the disk has been removed
+  IECLASS_DISKINSERTED   = $10; // the disk has been inserted
+  IECLASS_ACTIVEWINDOW   = $11; // the window is about to be been made active
+  IECLASS_INACTIVEWINDOW = $12; // the window is about to be made inactive
+  IECLASS_NEWPOINTERPOS  = $13; // extended-function pointer position report (V36)
+  IECLASS_MENUHELP       = $14; // Help key report during Menu session (V36)
+  IECLASS_CHANGEWINDOW   = $15; // the Window has been modified with move, size, zoom, or change (V36)
+  // AROS
+  IECLASS_NEWMOUSE       = $16; // NewMouse standard
 
 
-
-{ the last class }
-
-    IECLASS_MAX         = $15;
+  IECLASS_MAX            = $16; // the last Class
 
 {  --- InputEvent.ie_SubClass --- }
 {  IECLASS_NEWPOINTERPOS }
 {      like IECLASS_POINTERPOS }
- IESUBCLASS_COMPATIBLE  = $00;
-{      ie_EventAddress points to struct IEPointerPixel }
- IESUBCLASS_PIXEL       = $01;
-{      ie_EventAddress points to struct IEPointerTablet }
- IESUBCLASS_TABLET      = $02;
+  IESUBCLASS_COMPATIBLE  = $00;
+  IESUBCLASS_PIXEL       = $01; // ie_EventAddress points to struct IEPointerPixel
+  IESUBCLASS_TABLET      = $02; // ie_EventAddress points to struct IEPointerTablet
+  IESUBCLASS_NEWTABLET   = $03; // ie_EventAddress points to struct IENewTablet
+
 
 { pointed to by ie_EventAddress for IECLASS_NEWPOINTERPOS,
  * and IESUBCLASS_PIXEL.
@@ -92,15 +71,14 @@ const
  *
  * IEQUALIFIER_RELATIVEMOUSE is supported for IESUBCLASS_PIXEL.
  }
-Type
-
-   pIEPointerPixel = ^tIEPointerPixel;
-   tIEPointerPixel = record
-    iepp_Screen : Pointer;   { pointer to an open screen }
-    iepp_Position : record
-       x,y : smallint;
+type
+   PIEPointerPixel = ^TIEPointerPixel;
+   TIEPointerPixel = record
+    iepp_Screen: Pointer;   {PScreen pointer to an open screen }
+    iepp_Position: record
+       x, y: SmallInt;
     end;
-   END;
+   end;
 
 { pointed to by ie_EventAddress for IECLASS_NEWPOINTERPOS,
  * and IESUBCLASS_TABLET.
@@ -115,16 +93,16 @@ Type
  * IEQUALIFIER_RELATIVEMOUSE is not supported for IESUBCLASS_TABLET.
  }
 
-   pIEPointerTablet = ^tIEPointerTablet;
-   tIEPointerTablet = record
-    iept_Range : record       { 0 is min, these are max      }
-       x,y : Word;
+   PIEPointerTablet = ^TIEPointerTablet;
+   TIEPointerTablet = record
+    iept_Range: record   // 0 is min, these are max
+       x, y: word;
     end;
-    iept_Value : record       { between 0 AND iept_Range     }
-       x,y : Word;
+    iept_Value : record  // between 0 AND iept_Range
+       x, y: word;
     end;
-    iept_Pressure : Word;  { -128 to 127 (unused, set to 0)  }
-   END;
+    iept_Pressure: SmallInt; // -128 to 127 (unused, set to 0)
+   end;
 
 { The ie_EventAddress of an IECLASS_NEWPOINTERPOS event of subclass
  * IESUBCLASS_NEWTABLET points at an IENewTablet structure.
@@ -133,8 +111,8 @@ Type
  * IEQUALIFIER_RELATIVEMOUSE is not supported for IESUBCLASS_NEWTABLET.
  }
 
- pIENewTablet = ^tIENewTablet;
- tIENewTablet = record
+   PIENewTablet = ^TIENewTablet;
+   TIENewTablet = record
     { Pointer to a hook you wish to be called back through, in
      * order to handle scaling.  You will be provided with the
      * width and height you are expected to scale your tablet
@@ -143,7 +121,7 @@ Type
      * to that width and height for you, and you will not be
      * called back.
      }
-    ient_CallBack : pHook;
+    ient_CallBack: PHook;
 
     { Post-scaling coordinates and fractional coordinates.
      * DO NOT FILL THESE IN AT THE TIME THE EVENT IS WRITTEN!
@@ -159,33 +137,33 @@ Type
      * information, and should be scaled to fill a UWORD fraction.
      }
     ient_ScaledX, ient_ScaledY,
-    ient_ScaledXFraction, ient_ScaledYFraction : WORD;
+    ient_ScaledXFraction, ient_ScaledYFraction: word;
 
     { Current tablet coordinates along each axis: }
-    ient_TabletX, ient_TabletY : ULONG;
+    ient_TabletX, ient_TabletY: LongWord;
 
     { Tablet range along each axis.  For example, if ient_TabletX
      * can take values 0-999, ient_RangeX should be 1000.
      }
-    ient_RangeX, ient_RangeY : ULONG;
+    ient_RangeX, ient_RangeY: LongWord;
 
     { Pointer to tag-list of additional tablet attributes.
      * See <intuition/intuition.h> for the tag values.
      }
-    ient_TagList : pTagItem;
+    ient_TagList: PTagItem;
  end;
 
 
 CONST
 {   --- InputEvent.ie_Code ---   }
-{ IECLASS_RAWKEY }
+// IECLASS_RAWKEY
     IECODE_UP_PREFIX            = $80;
     IECODE_KEY_CODE_FIRST       = $00;
     IECODE_KEY_CODE_LAST        = $77;
     IECODE_COMM_CODE_FIRST      = $78;
     IECODE_COMM_CODE_LAST       = $7F;
 
-{ IECLASS_ANSI }
+// IECLASS_ANSI
     IECODE_C0_FIRST             = $00;
     IECODE_C0_LAST              = $1F;
     IECODE_ASCII_FIRST          = $20;
@@ -196,25 +174,20 @@ CONST
     IECODE_LATIN1_FIRST         = $A0;
     IECODE_LATIN1_LAST          = $FF;
 
-{ IECLASS_RAWMOUSE }
-    IECODE_LBUTTON              = $68;  { also uses IECODE_UP_PREFIX }
+// IECLASS_RAWMOUSE
+    IECODE_LBUTTON              = $68; // also uses IECODE_UP_PREFIX
     IECODE_RBUTTON              = $69;
     IECODE_MBUTTON              = $6A;
     IECODE_NOBUTTON             = $FF;
 
-{ IECLASS_EVENT }
-    IECODE_NEWACTIVE            = $01;  { active input window changed }
-    IECODE_NEWSIZE              = $02;  { resize of window }
-    IECODE_REFRESH              = $03;  { refresh of window }
+// IECLASS_EVENT
+    IECODE_NEWACTIVE            = $01; // active input window changed }
+    IECODE_NEWSIZE              = $02; // resize of window }
+    IECODE_REFRESH              = $03; // refresh of window }
 
-{ IECLASS_REQUESTER Codes }
-{ REQSET is broadcast when the first Requester (not subsequent ones) opens
- * in the Window
- }
-    IECODE_REQSET               = $01;
-{ REQCLEAR is broadcast when the last Requester clears out of the Window }
-    IECODE_REQCLEAR             = $00;
-
+// IECLASS_REQUESTER Codes
+    IECODE_REQSET               = $01; // REQSET is broadcast when the first Requester (not subsequent ones) opens in the Window
+    IECODE_REQCLEAR             = $00; // REQCLEAR is broadcast when the last Requester clears out of the Window
 
 {   --- InputEvent.ie_Qualifier --- }
     IEQUALIFIER_LSHIFT          = $0001;
@@ -254,31 +227,31 @@ CONST
 
 {------ InputEvent ------------------------------------------------}
 
-    type
-       pInputEvent = ^tInputEvent;
-       tInputEvent = record
-            ie_NextEvent : pInputEvent;
-            ie_Class : BYTE;
-            ie_SubClass : BYTE;
-            ie_Code : WORD;
-            ie_Qualifier : WORD;
-            ie_position : record
-                case longint of
-                   0 : ( ie_xy : record
-                        ie_x : smallint;
-                        ie_y : smallint;
-                     end );
-                   1 : ( ie_addr : APTR );
-                   2 : ( ie_dead : record
-                        ie_prev1DownCode : BYTE;
-                        ie_prev1DownQual : BYTE;
-                        ie_prev2DownCode : BYTE;
-                        ie_prev2DownQual : BYTE;
-                     end );
-                end;
-            ie_TimeStamp : tTimeVal;
-         end;
+type
+  PInputEvent = ^TInputEvent;
+  TInputEvent = record
+    ie_NextEvent: PInputEvent;
+    ie_Class: byte;              // IECLASS_*
+    ie_SubClass: byte;           // IESUBCLASS_*
+    ie_Code: word;               // IECODE_*
+    ie_Qualifier: word;          // IEQUALIFIER_*
+    ie_Position: record
+        case LongInt of
+           0:(ie_xy: record
+                ie_x: SmallInt;
+                ie_y: SmallInt;
+             end);
+           1:(ie_addr: APTR);
+           2:(ie_dead: record
+                ie_prev1DownCode: byte;
+                ie_prev1DownQual: byte;
+                ie_prev2DownCode: byte;
+                ie_prev2DownQual: byte;
+             end);
+        end;
+    ie_TimeStamp: TTimeVal;
+  end;
 
-IMPLEMENTATION
+implementation
 
 end.

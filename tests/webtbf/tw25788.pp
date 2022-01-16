@@ -1,7 +1,7 @@
 { %norun }
 { %opt=-Cg }
 { %fail }
-{ %target=linux,freebsd,darwin }
+{ %target=linux,freebsd,darwin,haiku }
 
 unit tw25788;
 

@@ -22,6 +22,8 @@ interface
 
 {$DEFINE HAS_SLEEP}
 {$DEFINE HAS_OSERROR}
+{$modeswitch typehelpers}
+{$modeswitch advancedrecords}
 
 { used OS file system APIs use ansistring }
 {$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
@@ -45,66 +47,66 @@ uses
 {****************************************************************************
                               File Functions
 ****************************************************************************}
-function FileOpen(const FileName: RawByteString; Mode: Integer): LongInt;
+function FileOpen(const FileName: RawByteString; Mode: Integer): THandle;
 begin
   result := -1;
 end;
 
 
-function FileGetDate(Handle: LongInt) : LongInt;
+function FileGetDate(Handle: THandle) : TOSTimestamp;
 begin
   result := -1;
 end;
 
 
-function FileSetDate(Handle, Age: LongInt) : LongInt;
+function FileSetDate(Handle: THandle; Age: TOSTimestamp) : Longint;
 begin
   result := -1;
 end;
 
 
-function FileCreate(const FileName: RawByteString) : LongInt;
+function FileCreate(const FileName: RawByteString) : THandle;
 begin
   result := -1;
 end;
 
 
-function FileCreate(const FileName: RawByteString; Rights: integer): LongInt;
+function FileCreate(const FileName: RawByteString; Rights: integer): THandle;
 begin
   result := -1;
 end;
 
 
-function FileCreate(const FileName: RawByteString; ShareMode: integer; rights : integer): LongInt;
+function FileCreate(const FileName: RawByteString; ShareMode: integer; rights : integer): THandle;
 begin
   result := -1;
 end;
 
 
-function FileRead(Handle: LongInt; Out Buffer; Count: LongInt): LongInt;
+function FileRead(Handle: THandle; Out Buffer; Count: LongInt): LongInt;
 begin
   result := -1;
 end;
 
 
-function FileWrite(Handle: LongInt; const Buffer; Count: LongInt): LongInt;
+function FileWrite(Handle: THandle; const Buffer; Count: LongInt): LongInt;
 begin
   result := -1;
 end;
 
 
-function FileSeek(Handle, FOffset, Origin: LongInt) : LongInt;
+function FileSeek(Handle: THandle; FOffset, Origin: LongInt) : LongInt;
 begin
   result := -1;
 end;
 
-function FileSeek(Handle: LongInt; FOffset: Int64; Origin: Longint): Int64;
+function FileSeek(Handle: THandle; FOffset: Int64; Origin: Longint): Int64;
 begin
   result := -1;
 end;
 
 
-procedure FileClose(Handle: LongInt);
+procedure FileClose(Handle: THandle);
 begin
 end;
 
@@ -127,13 +129,19 @@ begin
 end;
 
 
-Function FileAge (Const FileName : RawByteString): Longint;
+Function FileAge (Const FileName : RawByteString): TOSTimestamp;
 begin
   result := -1;
 end;
 
 
-Function FileExists (Const FileName : RawByteString) : Boolean;
+function FileGetSymLinkTarget(const FileName: RawByteString; out SymLinkRec: TRawbyteSymLinkRec): Boolean;
+begin
+  Result := False;
+end;
+
+
+Function FileExists (Const FileName : RawByteString; FollowLink : Boolean) : Boolean;
 Begin
   result := false;
 end;
@@ -189,7 +197,7 @@ Begin
 End;
 
 
-function DirectoryExists(const Directory: RawByteString): Boolean;
+function DirectoryExists(const Directory: RawByteString; FollowLink : Boolean): Boolean;
 begin
   result := false;
 end;
@@ -253,14 +261,24 @@ begin
 end;
 
 
-function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString;Flags:TExecuteFlags=[]): integer;
+function ExecuteProcess (const Path: RawByteString; const ComLine: RawByteString;Flags:TExecuteFlags=[]): integer;
 begin
   result := -1;
 end;
 
+function ExecuteProcess (const Path: RawByteString;
+                               const ComLine: array of RawByteString;Flags:TExecuteFlags=[]): integer;
+begin
+  result := -1;
+end;
 
-function ExecuteProcess (const Path: AnsiString;
-                                  const ComLine: array of AnsiString;Flags:TExecuteFlags=[]): integer;
+function ExecuteProcess (const Path: UnicodeString; const ComLine: UnicodeString;Flags:TExecuteFlags=[]): integer;
+begin
+  result := -1;
+end;
+
+function ExecuteProcess (const Path: UnicodeString;
+                               const ComLine: array of UnicodeString;Flags:TExecuteFlags=[]): integer;
 begin
   result := -1;
 end;
@@ -273,5 +291,6 @@ end;
 Initialization
   InitExceptions;
 Finalization
+  FreeTerminateProcs;
   DoneExceptions;
 end.

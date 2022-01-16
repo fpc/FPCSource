@@ -392,6 +392,7 @@ destructor TChmSearchWriter.Destroy;
 
 begin
  freeandnil(FActiveLeafNode);
+ inherited;
 end;
 
 
@@ -854,63 +855,66 @@ end;
 
 function TChmSearchReader.ReadWLCEntries (AWLCCount: DWord; AWLCOffset: DWord; AWLCSize: DWord ) : TChmWLCTopicArray;
 
-  function AtEndOfWLCEntries: Boolean;
-  begin
-    Result := AWLCOffset + AWLCSize <= FStream.Position;
-  end;
 var
   Buf: Byte;
   BitsInBuffer: Integer;
+  FinalPosition: int64;
 
-  procedure FillBuffer;
+  function GetNextByte(): Boolean;
   begin
-    while (BitsInBuffer = 0) and not AtEndOfWLCEntries do
+    Result := (FStream.Position < FinalPosition);
+    if Result then
     begin
       Buf := FStream.ReadByte;
       Inc(BitsInBuffer, 8);
     end;
   end;
 
+  function ShiftBuffer: Boolean;
+  begin
+    Buf := (Buf and $7F) shl 1;
+    Dec(BitsInBuffer);
+    Result := (BitsInBuffer > 0) or GetNextByte();
+  end;
+
   function ReadWLC(RootSize: DWord): DWord;
   var
     PrefixBits: Integer = 0;
-    BitCount: Integer = 0;
     RemainingBits: Integer; // only the bits for this number not the bits in buffer
   begin
-    FillBuffer;
-    Result := 0;
+    if (BitsInBuffer = 0) then
+      GetNextByte();
+    Result := (Buf and $80) shr 7;
+
     while (Buf and $80) > 0 do // find out how many prefix bits there are
     begin
       Inc(PrefixBits);
-      Buf := Buf shl 1;
-      Dec(BitsInBuffer);
-      FillBuffer;
-
+      if not ShiftBuffer then
+        Exit;
     end;
 
-    if PrefixBits > 0 then
-      Result := 1;
-    Inc(BitCount, PrefixBits+1);
-    Buf := Buf shl 1;
-    Dec(BitsInBuffer);
+    // skip divider (zero) bit
+    if not ShiftBuffer then
+      Exit;
 
-    FillBuffer;
     Remainingbits := RootSize + Max(Integer(PrefixBits-1), 0);
     while RemainingBits > 0 do
     begin
       Result := Result shl 1;
       Result := Result or (Buf shr 7);
       Dec(RemainingBits);
-      Buf := Buf shl 1;
-      Dec(BitsInBuffer);
-      FillBuffer;
-      Inc(BitCount);
+      if not ShiftBuffer then
+        Exit;
     end;
   end;
+
   procedure ClearBuffer;
   begin
-    BitsInBuffer := 0;
-    Buf := 0;
+    if BitsInBuffer < 8 then
+    begin
+      BitsInBuffer := 0;
+      Buf := 0;
+    end;
   end;
 
 var
@@ -921,6 +925,7 @@ var
   LastDoc,
   LastLocCode: DWord;
 begin
+  FinalPosition := AWLCOffset + AWLCSize;
   CachedStreamPos := FStream.Position;
   FStream.Position := AWLCOffset;
   {for i := 0 to AWLCSize-1 do

@@ -1,13 +1,13 @@
 {$ifdef NDS_INTERFACE}
 const  
   // Card bus
-  CARD_COMMAND   : pcuint8  = pointer($040001A8);
-  REG_ROMCTRL    : pcuint32 = pointer($040001A4);
-  REG_AUXSPICNT  : pcuint16 = pointer($040001A0);
-  REG_AUXSPICNTH : pcuint8  = pointer($040001A1);
-  REG_AUXSPIDATA : pcuint8  = pointer($040001A2);
-  CARD_DATA_RD   : pcuint32 = pointer($04100010);
-
+  REG_CARD_DATA_RD   : pcuint32 = pointer($04100010);  
+  REG_AUXSPICNT      : pcuint16 = pointer($040001A0);
+  REG_AUXSPICNTH     : pcuint8  = pointer($040001A1);
+  REG_AUXSPIDATA     : pcuint8  = pointer($040001A2);
+  REG_ROMCTRL        : pcuint32 = pointer($040001A4);
+  REG_CARD_COMMAND   : pcuint8  = pointer($040001A8);
+  
   CARD_1B0       : pcuint32 = pointer($040001B0);
   CARD_1B4       : pcuint32 = pointer($040001B4);
   CARD_1B8       : pcuint16 = pointer($040001B8);
@@ -80,7 +80,8 @@ const
   CARD_SPICNTH_IRQ    = (1 shl 6);  // in byte 1, i.e. 0x4000
 
 
-
+procedure enableSlot1(); cdecl; external;
+procedure disableSlot1(); cdecl; external;
 
 procedure cardWriteCommand(const command: pcuint8); cdecl; external;
 procedure cardPolledTransfer(flags: cuint32;  destination: pcuint32;  length: cuint32; const command: pcuint8); cdecl; external; 

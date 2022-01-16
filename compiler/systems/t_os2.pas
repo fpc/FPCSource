@@ -40,7 +40,7 @@ implementation
      SysUtils,
      cutils,cfileutl,cclasses,
      globtype,systems,symconst,symdef,
-     globals,verbose,fmodule,script,
+     globals,verbose,fmodule,cscript,
      import,link,i_os2,ogbase;
 
   type

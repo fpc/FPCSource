@@ -95,9 +95,9 @@ implementation
     SysUtils,
     cutils,cfileutl,
     verbose,systems,globtype,globals,
-    symconst,script,
+    symconst,cscript,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,symsym,symdef,
-    import,export,link,i_nwm,ogbase, ogcoff, ognlm, cclasses
+    import,export,link,i_nwm,ogbase, ogcoff, ognlm, owar, cclasses
     {$ifdef netware} ,dos {$endif}
     ;
 
@@ -167,16 +167,16 @@ var
   hp2 : texported_item;
 begin
   { first test the index value }
-  if (hp.options and eo_index)<>0 then
+  if eo_index in hp.options then
    begin
      Comment(V_Error,'can''t export with index under netware');
      exit;
    end;
   { use pascal name is none specified }
-  if (hp.options and eo_name)=0 then
+  if eo_name in hp.options then
     begin
        hp.name:=stringdup(hp.sym.name);
-       hp.options:=hp.options or eo_name;
+       include(hp.options,eo_name);
     end;
   { now place in correct order }
   hp2:=texported_item(current_module._exports.first);
@@ -187,7 +187,7 @@ begin
   if assigned(hp2) and (hp2.name^=hp.name^) then
     begin
       { this is not allowed !! }
-      Message1(parser_e_export_name_double,hp.name^);
+      duplicatesymbol(hp.name^);
       exit;
     end;
   if hp2=texported_item(current_module._exports.first) then
@@ -231,8 +231,8 @@ begin
 {$ifdef i386}
            { place jump in al_procedures }
            current_asmdata.asmlists[al_procedures].concat(Tai_align.Create_op(4,$90));
-           current_asmdata.asmlists[al_procedures].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
-           current_asmdata.asmlists[al_procedures].concat(Taicpu.Op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(pd.mangledname)));
+           current_asmdata.asmlists[al_procedures].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0,pd));
+           current_asmdata.asmlists[al_procedures].concat(Taicpu.Op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(pd.mangledname,AT_FUNCTION)));
            current_asmdata.asmlists[al_procedures].concat(Tai_symbol_end.Createname(hp2.name^));
 {$endif i386}
          end;
@@ -593,6 +593,7 @@ end;
     constructor TInternalLinkerNetware.Create;
       begin
         inherited Create;
+        CArObjectReader:=TArObjectReader;
         CExeoutput:=TNLMexeoutput;
         CObjInput:=TNLMCoffObjInput;
         nlmSpecialSymbols_Segments := TFPHashList.create;

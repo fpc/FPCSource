@@ -42,7 +42,7 @@ unit openssl;
 |==============================================================================|
 | FreePascal basic cleanup (original worked too): Ales Katona                  |
 | WARNING: due to reliance on some units, I have removed the ThreadLocks init  |
-|          if need be, it should be re-added, or handled by the                | 
+|          if need be, it should be re-added, or handled by the                |
 |           OS threading init somehow                                          |
 |                                                                              |
 | 2010 - Felipe Monteiro de Carvalho - Added RAND functios                     |
@@ -84,42 +84,54 @@ uses
 {$ENDIF OS2}
   DynLibs, cTypes, SysUtils;
 
-var
-  {$IFDEF WINDOWS}
-  DLLSSLName: string = 'ssleay32.dll';
-  DLLSSLName2: string = 'libssl32.dll';
-  DLLUtilName: string = 'libeay32.dll';
-  {$ELSE}
-   {$IFDEF OS2}
-    {$IFDEF OS2GCC}
-  DLLSSLName: string = 'kssl10.dll';
-  DLLUtilName: string = 'kcrypt10.dll';
-  DLLSSLName2: string = 'kssl.dll';
-  DLLUtilName2: string = 'kcrypto.dll';
-    {$ELSE OS2GCC}
-  DLLSSLName: string = 'emssl10.dll';
-  DLLUtilName: string = 'emcrpt10.dll';
-  DLLSSLName2: string = 'ssl.dll';
-  DLLUtilName2: string = 'crypto.dll';
-    {$ENDIF OS2GCC}
-   {$ELSE OS2}
-  DLLSSLName: string = 'libssl';
-  DLLUtilName: string = 'libcrypto';
-  
+Type
+  TLibreSSLSupport = (lssFirst,lssLast,lssDisabled);
+
+const
+// SSL and Crypto DLL arrays must have the same length and contain
+// matched pairs of DLL filenames. Place newer versions at the beginning.
+{$IF DEFINED(WIN64)}
+  SSL_DLL_Names:    array[1..3] of string = ('libssl-1_1-x64',    'ssleay32', 'libssl32');
+  Crypto_DLL_Names: array[1..3] of string = ('libcrypto-1_1-x64', 'libeay32', 'libeay32');
+{$ELSEIF DEFINED(WINDOWS)}
+  SSL_DLL_Names:    array[1..3] of string = ('libssl-1_1',    'ssleay32', 'libssl32');
+  Crypto_DLL_Names: array[1..3] of string = ('libcrypto-1_1', 'libeay32', 'libeay32');
+{$ELSEIF DEFINED(OS2GCC)}
+  SSL_DLL_Names:    array[1..2] of string = ('kssl10',   'kssl');
+  Crypto_DLL_Names: array[1..2] of string = ('kcrypt10', 'kcrypto');
+{$ELSEIF DEFINED(OS2)}
+  SSL_DLL_Names:    array[1..2] of string = ('emssl10',  'ssl');
+  Crypto_DLL_Names: array[1..2] of string = ('emcrpt10', 'crypto');
+{$ELSE}
+  BaseSSLName: string = 'libssl';
+  BaseCryptoName: string = 'libcrypto';
   { ADD NEW ONES WHEN THEY APPEAR!
     Always make .so/dylib first, then versions, in descending order!
     Add "." .before the version, first is always just "" }
-  DLLVersions: array[1..16] of string = ('', '.1.0.6', '.1.0.5', '.1.0.4', '.1.0.3',
+  DLLVersions: array[1..19] of string = ('', '.1.1', '.11', '.10', '.1.0.6', '.1.0.5', '.1.0.4', '.1.0.3',
                                         '.1.0.2', '.1.0.1','.1.0.0','.0.9.8',
                                         '.0.9.7', '.0.9.6', '.0.9.5', '.0.9.4',
                                         '.0.9.3', '.0.9.2', '.0.9.1');
-   {$ENDIF OS2}
-  {$ENDIF WINDOWS}
+  LibreSSLVersions : Array[1..8] of string =
+                     ('', '.48', '.47', '.46', '.45', '.44', '.43', '.35');
+
+  // Mac OS no longer allows you to load the unversioned one. Bug ID 36484.
+  {$IFDEF DARWIN}
+  StartVersionOffset = 1;
+  DefaultLibreSSLSupport = lssFirst;
+  {$ElSE}
+  StartVersionOffset = 0;
+  DefaultLibreSSLSupport = lssLast;
+  {$ENDIF}
+
+Var
+   LibreSSLSupport : TLibreSSLSupport = DefaultLibreSSLSupport;
+{$ENDIF}
 
 const
   // EVP.h Constants
 
-  EVP_MAX_MD_SIZE               = 64; //* longest known is SHA512 */
+  EVP_MAX_MD_SIZE       = 64; //* longest known is SHA512 */
   EVP_MAX_KEY_LENGTH    = 32;
   EVP_MAX_IV_LENGTH     = 16;
   EVP_MAX_BLOCK_LENGTH  = 32;
@@ -127,6 +139,7 @@ const
   SHA_DIGEST_LENGTH = 20;
 
 type
+  uint64_t = qword;
   SslPtr = Pointer;
   PSslPtr = ^SslPtr;
   PSSL_CTX = SslPtr;
@@ -134,13 +147,14 @@ type
   PSSL_METHOD = SslPtr;
 {  PX509 = SslPtr;}
 {  PX509_NAME = SslPtr;}
-  PEVP_MD	= SslPtr;
+  PEVP_MD = SslPtr;
   PBIO_METHOD = SslPtr;
   PBIO = SslPtr;
 {  EVP_PKEY = SslPtr;}
   PRSA = SslPtr;
   PASN1_UTCTIME = SslPtr;
   PASN1_INTEGER = SSlPtr;
+  POPENSSL_INIT_SETTINGS = SSLPtr;
 
   PDH = pointer;
   PSTACK_OFX509 = pointer;
@@ -155,20 +169,20 @@ type
   PDN = ^X509_NAME;
 
   ASN1_STRING = record
-	length: integer;
-	asn1_type: integer;
-	data: pointer;
-	flags: longint;
+  length: integer;
+  asn1_type: integer;
+  data: pointer;
+  flags: longint;
   end;
   PASN1_STRING = ^ASN1_STRING;
   PASN1_TIME = PASN1_STRING;
 
   X509_VAL = record
-	notBefore: PASN1_TIME;
+  notBefore: PASN1_TIME;
     notAfter: PASN1_TIME;
   end;
   PX509_VAL = ^X509_VAL;
-  
+
   X509_CINF = record
     version: pointer;
     serialNumber: pointer;
@@ -182,7 +196,7 @@ type
     extensions: pointer;
   end;
   PX509_CINF = ^X509_CINF;
-  
+
   CRYPTO_EX_DATA = record
     sk: pointer;
     dummy: integer;
@@ -207,26 +221,27 @@ type
     aux: pointer;  // ^X509_CERT_AUX
   end;
   pX509 = ^X509;
+  PPX509 = ^PX509;
 
   DSA = record
-	pad: integer;
-	version: integer;
-	write_params: integer;
-	p: pointer;
-	q: pointer;
-	g: pointer;
-	pub_key: pointer;
-	priv_key: pointer;
-	kinv: pointer;
-	r: pointer;
-	flags: integer;
-	method_mont_p: PChar;
-	references: integer;
-	ex_data: record
+  pad: integer;
+  version: integer;
+  write_params: integer;
+  p: pointer;
+  q: pointer;
+  g: pointer;
+  pub_key: pointer;
+  priv_key: pointer;
+  kinv: pointer;
+  r: pointer;
+  flags: integer;
+  method_mont_p: PChar;
+  references: integer;
+  ex_data: record
       sk: pointer;
       dummy: integer;
     end;
-	meth: pointer;
+  meth: pointer;
   end;
   pDSA = ^DSA;
 
@@ -237,7 +252,7 @@ type
       2: (dsa: pDSA);
       3: (dh: pDH);
    end;
-  
+
   EVP_PKEY = record
     ktype: integer;
     save_type: integer;
@@ -248,10 +263,15 @@ type
   end;
   PEVP_PKEY = ^EVP_PKEY;
   PPEVP_PKEY = ^PEVP_PKEY;
-  
+
   PPRSA = ^PRSA;
   PASN1_cInt = SslPtr;
   PPasswdCb = SslPtr;
+  PCallbackCb = SslPtr;
+
+  PX509_STORE_CTX = SslPtr;
+  TSSLCTXVerifyCallback = function (ok : cInt; ctx : PX509_STORE_CTX) : Cint; cdecl;
+
   PFunction = procedure;
   DES_cblock = array[0..7] of Byte;
   PDES_cblock = ^DES_cblock;
@@ -375,6 +395,11 @@ type
     end;
   PEVP_MD_CTX = ^EVP_MD_CTX;
 
+  EVP_PKEY_CTX = record
+  end;
+  PEVP_PKEY_CTX = ^EVP_PKEY_CTX;
+  PPEVP_PKEY_CTX = ^PEVP_PKEY_CTX;
+
   PEVP_CIPHER_CTX = ^EVP_CIPHER_CTX;
 
   PASN1_TYPE = Pointer;
@@ -392,14 +417,14 @@ type
     key_len: cint;  //* Default value for variable length ciphers */
     iv_len: cint;
     flags: culong; //* Various flags */
-    init: EVP_CIPHER_INIT_FUNC;	//* init key */
+    init: EVP_CIPHER_INIT_FUNC; //* init key */
     do_cipher: EVP_CIPHER_DO_CIPHER_FUNC;//* encrypt/decrypt data */
     cleanup: EVP_CIPHER_CLEANUP_FUNC; //* cleanup ctx */
-    ctx_size: cint;		//* how big ctx->cipher_data needs to be */
+    ctx_size: cint;   //* how big ctx->cipher_data needs to be */
     set_asn1_parameters: EVP_CIPHER_SET_ASN1_PARAMETERS_FUNC; //* Populate a ASN1_TYPE with parameters */
     get_asn1_parameters: EVP_CIPHER_GET_ASN1_PARAMETERS_FUNC; //* Get parameters from a ASN1_TYPE */
     ctrl: EVP_CIPHER_CTRL_FUNC; //* Miscellaneous operations */
-    app_data: Pointer;	//* Application data */
+    app_data: Pointer;  //* Application data */
   end;
   PEVP_CIPHER = ^EVP_CIPHER;
 
@@ -416,7 +441,7 @@ type
 
     app_data: Pointer;   //* application stuff */
     key_len: cint;    //* May change for variable length cipher */
-    flags: culong;	//* Various flags */
+    flags: culong;  //* Various flags */
     cipher_data: Pointer; //* per EVP data */
     final_used: cint;
     block_mask: cint;
@@ -429,6 +454,134 @@ type
 
   Ppem_password_cb = Pointer;
 
+  // PKCS7
+
+  PPKCS7  = ^PKCS7;
+  PPKCS7_DIGEST  = ^PKCS7_DIGEST;
+  PPKCS7_ENC_CONTENT  = ^PKCS7_ENC_CONTENT;
+  PPKCS7_ENCRYPT  = ^TPKCS7_ENCRYPT;
+  PPKCS7_ENVELOPE  = ^PKCS7_ENVELOPE;
+  PPKCS7_ISSUER_AND_SERIAL  = ^PKCS7_ISSUER_AND_SERIAL;
+  PPKCS7_RECIP_INFO  = ^PKCS7_RECIP_INFO;
+  PPKCS7_SIGN_ENVELOPE  = ^PKCS7_SIGN_ENVELOPE;
+  PPKCS7_SIGNED  = ^PKCS7_SIGNED;
+  PPKCS7_SIGNER_INFO  = ^PKCS7_SIGNER_INFO;
+  Pstack_st_X509  = Pointer;
+  Pstack_st_X509_ALGOR  = Pointer;
+  Pstack_st_X509_ATTRIBUTE  = Pointer;
+  ppkcs7_st = ^pkcs7_st;
+
+    pkcs7_issuer_and_serial_st = record
+        issuer : ^X509_NAME;
+        serial : PASN1_INTEGER;
+      end;
+    PKCS7_ISSUER_AND_SERIAL = pkcs7_issuer_and_serial_st;
+
+    pkcs7_signer_info_st = record
+        version : PASN1_INTEGER;
+        issuer_and_serial : PPKCS7_ISSUER_AND_SERIAL;
+        digest_alg : pointer;
+        auth_attr : pointer;
+        digest_enc_alg : pointer;
+        enc_digest : pointer;
+        unauth_attr : pointer;
+        pkey : ^EVP_PKEY;
+      end;
+    PKCS7_SIGNER_INFO = pkcs7_signer_info_st;
+
+    stack_st_PKCS7_SIGNER_INFO = record
+      stack : Pointer;
+    end;
+
+
+    pkcs7_recip_info_st = record
+        version : PASN1_INTEGER;
+        issuer_and_serial : PPKCS7_ISSUER_AND_SERIAL;
+        key_enc_algor : Pointer;
+        enc_key : Pointer;
+        cert : PX509;
+      end;
+    PKCS7_RECIP_INFO = pkcs7_recip_info_st;
+    stack_st_PKCS7_RECIP_INFO = record
+        stack : Pointer;
+      end;
+
+
+    pkcs7_signed_st = record
+        version : PASN1_INTEGER;
+        md_algs : Pointer;
+        cert : pointer;
+        crl : pointer;
+        signer_info : pointer;
+        contents : Pointer;
+      end;
+    PKCS7_SIGNED = pkcs7_signed_st;
+(* Const before type ignored *)
+
+    pkcs7_enc_content_st = record
+        content_type : Pointer;
+        algorithm : Pointer;
+        enc_data : Pointer;
+        cipher : PEVP_CIPHER;
+      end;
+    PKCS7_ENC_CONTENT = pkcs7_enc_content_st;
+
+    pkcs7_enveloped_st = record
+        version : PASN1_INTEGER;
+        recipientinfo : ^stack_st_PKCS7_RECIP_INFO;
+        enc_data : ^PKCS7_ENC_CONTENT;
+      end;
+    PKCS7_ENVELOPE = pkcs7_enveloped_st;
+
+    pkcs7_signedandenveloped_st = record
+        version : PASN1_INTEGER;
+        md_algs : Pstack_st_X509_ALGOR;
+        cert : Pstack_st_X509;
+        crl : Pointer;
+        signer_info : pointer;
+        enc_data : PPKCS7_ENC_CONTENT;
+        recipientinfo : ^stack_st_PKCS7_RECIP_INFO;
+      end;
+    PKCS7_SIGN_ENVELOPE = pkcs7_signedandenveloped_st;
+
+    pkcs7_digest_st = record
+        version : PASN1_INTEGER;
+        md : POinter;
+        contents : ppkcs7_st;
+        digest : Pointer;
+      end;
+    PKCS7_DIGEST = pkcs7_digest_st;
+
+    pkcs7_encrypted_st = record
+      version : PASN1_INTEGER;
+      enc_data : ^PKCS7_ENC_CONTENT;
+      end;
+    TPKCS7_ENCRYPT = pkcs7_encrypted_st;
+
+    pkcs7_st = record
+        asn1 : ^byte;
+        length : longint;
+        state : longint;
+        detached : longint;
+        _type : Pointer;
+        d : record
+            case longint of
+              0 : ( ptr : pchar );
+              1 : ( data : Pointer);
+              2 : ( sign : PPKCS7_SIGNED );
+              3 : ( enveloped : ^PKCS7_ENVELOPE );
+              4 : ( signed_and_enveloped : ^PKCS7_SIGN_ENVELOPE );
+              5 : ( digest : ^PKCS7_DIGEST );
+              6 : ( encrypted : ^TPKCS7_ENCRYPT );
+              7 : ( other : PASN1_TYPE );
+            end;
+      end;
+    pkcs7 = pkcs7_st;
+    stack_st_PKCS7 = record
+      stack : Pointer;
+      end;
+    PPPKCS7_ISSUER_AND_SERIAL = ^PPKCS7_ISSUER_AND_SERIAL;
+
 const
   SSL_ERROR_NONE = 0;
   SSL_ERROR_SSL = 1;
@@ -439,7 +592,39 @@ const
   SSL_ERROR_ZERO_RETURN = 6;
   SSL_ERROR_WANT_CONNECT = 7;
   SSL_ERROR_WANT_ACCEPT = 8;
-  
+  SSL_ERROR_WANT_CHANNEL_ID_LOOKUP = 9;
+  SSL_ERROR_PENDING_SESSION = 11;
+
+  OPENSSL_INIT_NO_LOAD_CRYPTO_STRINGS = $00000001;
+  OPENSSL_INIT_LOAD_CRYPTO_STRINGS    = $00000002;
+  OPENSSL_INIT_ADD_ALL_CIPHERS        = $00000004;
+  OPENSSL_INIT_ADD_ALL_DIGESTS        = $00000008;
+  OPENSSL_INIT_NO_ADD_ALL_CIPHERS     = $00000010;
+  OPENSSL_INIT_NO_ADD_ALL_DIGESTS     = $00000020;
+  OPENSSL_INIT_LOAD_CONFIG            = $00000040;
+  OPENSSL_INIT_NO_LOAD_CONFIG         = $00000080;
+  OPENSSL_INIT_ASYNC                  = $00000100;
+  OPENSSL_INIT_ENGINE_RDRAND          = $00000200;
+  OPENSSL_INIT_ENGINE_DYNAMIC         = $00000400;
+  OPENSSL_INIT_ENGINE_OPENSSL         = $00000800;
+  OPENSSL_INIT_ENGINE_CRYPTODEV       = $00001000;
+  OPENSSL_INIT_ENGINE_CAPI            = $00002000;
+  OPENSSL_INIT_ENGINE_PADLOCK         = $00004000;
+  OPENSSL_INIT_ENGINE_AFALG           = $00008000;
+  OPENSSL_INIT_ATFORK                 = $00020000;
+  OPENSSL_INIT_NO_LOAD_SSL_STRINGS    = $00100000;
+  OPENSSL_INIT_LOAD_SSL_STRINGS       = $00200000;
+
+  OPENSSL_INIT_SSL_DEFAULT            =  (OPENSSL_INIT_LOAD_SSL_STRINGS or OPENSSL_INIT_LOAD_CRYPTO_STRINGS);
+
+  OPENSSL_INIT_ENGINE_ALL_BUILTIN =
+      OPENSSL_INIT_ENGINE_RDRAND or
+      OPENSSL_INIT_ENGINE_DYNAMIC or
+      OPENSSL_INIT_ENGINE_CRYPTODEV or
+      OPENSSL_INIT_ENGINE_CAPI or
+      OPENSSL_INIT_ENGINE_PADLOCK;
+
+
   SSL_CTRL_NEED_TMP_RSA = 1;
   SSL_CTRL_SET_TMP_RSA = 2;
   SSL_CTRL_SET_TMP_DH = 3;
@@ -512,34 +697,142 @@ const
   SSL_CTRL_TLS_EXT_SEND_HEARTBEAT             = 85;
   SSL_CTRL_GET_TLS_EXT_HEARTBEAT_PENDING      = 86;
   SSL_CTRL_SET_TLS_EXT_HEARTBEAT_NO_REQUESTS  = 87;
-  // Some missing values ?
+  SSL_CTRL_CHAIN                              = 88;
+  SSL_CTRL_CHAIN_CERT                         = 89;
+  SSL_CTRL_GET_CURVES                         = 90;
+  SSL_CTRL_SET_CURVES                         = 91;
+  SSL_CTRL_SET_CURVES_LIST                    = 92;
+  SSL_CTRL_GET_SHARED_CURVE                   = 93;
+  SSL_CTRL_SET_ECDH_AUTO                      = 94;
+  SSL_CTRL_SET_SIGALGS                        = 97;
+  SSL_CTRL_SET_SIGALGS_LIST                   = 98;
+  SSL_CTRL_CERT_FLAGS                         = 99;
+  SSL_CTRL_CLEAR_CERT_FLAGS                   = 100;
+  SSL_CTRL_SET_CLIENT_SIGALGS                 = 101;
+  SSL_CTRL_SET_CLIENT_SIGALGS_LIST            = 102;
+  SSL_CTRL_GET_CLIENT_CERT_TYPES              = 103;
+  SSL_CTRL_SET_CLIENT_CERT_TYPES              = 104;
+  SSL_CTRL_BUILD_CERT_CHAIN                   = 105;
+  SSL_CTRL_SET_VERIFY_CERT_STORE              = 106;
+  SSL_CTRL_SET_CHAIN_CERT_STORE               = 107;
+  SSL_CTRL_GET_PEER_SIGNATURE_NID             = 108;
+  SSL_CTRL_GET_SERVER_TMP_KEY                 = 109;
+  SSL_CTRL_GET_RAW_CIPHERLIST                 = 110;
+  SSL_CTRL_GET_EC_POINT_FORMATS               = 111;
+  SSL_CTRL_GET_TLSA_RECORD                    = 112;
+  SSL_CTRL_SET_TLSA_RECORD                    = 113;
+  SSL_CTRL_PULL_TLSA_RECORD                   = 114;
+  SSL_CTRL_GET_CHAIN_CERTS                    = 115;
+  SSL_CTRL_SELECT_CURRENT_CERT                = 116;
+  SSL_CTRL_CHANNEL_ID                         = 117;
+  SSL_CTRL_GET_CHANNEL_ID                     = 118;
+  SSL_CTRL_SET_CHANNEL_ID                     = 119;
 
 
-  DTLS_CTRL_GET_TIMEOUT	           = 73;
+  DTLS_CTRL_GET_TIMEOUT            = 73;
   DTLS_CTRL_HANDLE_TIMEOUT         = 74;
-  DTLS_CTRL_LISTEN		   = 75;
-  SSL_CTRL_GET_RI_SUPPORT	   = 76;
-  SSL_CTRL_CLEAR_OPTIONS	   = 77;
-  SSL_CTRL_CLEAR_MODE		   = 78;
-  
-  TLSEXT_NAMETYPE_host_name        = 0;
+  DTLS_CTRL_LISTEN       = 75;
+  SSL_CTRL_GET_RI_SUPPORT    = 76;
+  SSL_CTRL_CLEAR_OPTIONS     = 77;
+  SSL_CTRL_CLEAR_MODE      = 78;
 
-  SSL_MODE_ENABLE_PARTIAL_WRITE = 1;
-  SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER = 2;
-  SSL_MODE_AUTO_RETRY = 4;
-  SSL_MODE_NO_AUTO_CHAIN = 8;
+  TLSEXT_TYPE_server_name = 0;
+  TLSEXT_TYPE_max_fragment_length = 1;
+  TLSEXT_TYPE_client_certificate_url = 2;
+  TLSEXT_TYPE_trusted_ca_keys = 3;
+  TLSEXT_TYPE_truncated_hmac = 4;
+  TLSEXT_TYPE_status_request = 5;
+  TLSEXT_TYPE_user_mapping = 6;
+  TLSEXT_TYPE_client_authz = 7;
+  TLSEXT_TYPE_server_authz = 8;
+  TLSEXT_TYPE_cert_type = 9;
+  TLSEXT_TYPE_elliptic_curves = 10;
+  TLSEXT_TYPE_ec_point_formats = 11;
+  TLSEXT_TYPE_srp = 12;
+  TLSEXT_TYPE_signature_algorithms = 13;
+  TLSEXT_TYPE_use_srtp = 14;
+  TLSEXT_TYPE_heartbeat = 15;
+  TLSEXT_TYPE_session_ticket = 35;
+  TLSEXT_TYPE_renegotiate = $ff01;
+  TLSEXT_TYPE_next_proto_neg = 13172;
+  TLSEXT_NAMETYPE_host_name = 0;
+  TLSEXT_STATUSTYPE_ocsp = 1;
+  TLSEXT_ECPOINTFORMAT_first = 0;
+  TLSEXT_ECPOINTFORMAT_uncompressed = 0;
+  TLSEXT_ECPOINTFORMAT_ansiX962_compressed_prime = 1;
+  TLSEXT_ECPOINTFORMAT_ansiX962_compressed_char2 = 2;
+  TLSEXT_ECPOINTFORMAT_last = 2;
+  TLSEXT_signature_anonymous = 0;
+  TLSEXT_signature_rsa = 1;
+  TLSEXT_signature_dsa = 2;
+  TLSEXT_signature_ecdsa = 3;
+  TLSEXT_hash_none = 0;
+  TLSEXT_hash_md5 = 1;
+  TLSEXT_hash_sha1 = 2;
+  TLSEXT_hash_sha224 = 3;
+  TLSEXT_hash_sha256 = 4;
+  TLSEXT_hash_sha384 = 5;
+  TLSEXT_hash_sha512 = 6;
+  TLSEXT_MAXLEN_host_name = 255;
 
-  SSL_OP_NO_SSLv2 = $01000000;
-  SSL_OP_NO_SSLv3 = $02000000;
-  SSL_OP_NO_TLSv1 = $04000000;
-  SSL_OP_ALL = $000FFFFF;
+  SSL_TLSEXT_ERR_OK = 0;
+  SSL_TLSEXT_ERR_ALERT_WARNING = 1;
+  SSL_TLSEXT_ERR_ALERT_FATAL = 2;
+  SSL_TLSEXT_ERR_NOACK = 3;
+
+  SSL_MODE_ENABLE_PARTIAL_WRITE                 = $00000001;
+  SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER           = $00000002;
+  SSL_MODE_AUTO_RETRY                           = $00000004;
+  SSL_MODE_NO_AUTO_CHAIN                        = $00000008;
+  SSL_MODE_RELEASE_BUFFERS                      = $00000010;
+
+  SSL_OP_MICROSOFT_SESS_ID_BUG                  = $00000001;
+  SSL_OP_NETSCAPE_CHALLENGE_BUG                 = $00000002;
+  SSL_OP_LEGACY_SERVER_CONNECT                  = $00000004;
+  SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG       = $00000008;
+  SSL_OP_SSLREF2_REUSE_CERT_TYPE_BUG            = $00000010;
+  SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER             = $00000020;
+  SSL_OP_MSIE_SSLV2_RSA_PADDING                 = $00000040;
+  SSL_OP_SAFARI_ECDHE_ECDSA_BUG                 = $00000040;
+  SSL_OP_SSLEAY_080_CLIENT_DH_BUG               = $00000080;
+  SSL_OP_TLS_D5_BUG                             = $00000100;
+  SSL_OP_TLS_BLOCK_PADDING_BUG                  = $00000200;
+  SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS            = $00000800;
+  SSL_OP_NO_QUERY_MTU                           = $00001000;
+  SSL_OP_COOKIE_EXCHANGE                        = $00002000;
+  SSL_OP_NO_TICKET                              = $00004000;
+  SSL_OP_CISCO_ANYCONNECT                       = $00008000;
+  SSL_OP_ALL                                    = $000FFFFF;
+  SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION = $00010000;
+  SSL_OP_NO_COMPRESSION                         = $00020000;
+  SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION      = $00040000;
+  SSL_OP_SINGLE_ECDH_USE                        = $00080000;
+  SSL_OP_SINGLE_DH_USE                          = $00100000;
+  SSL_OP_EPHEMERAL_RSA                          = $00200000;
+  SSL_OP_CIPHER_SERVER_PREFERENCE               = $00400000;
+  SSL_OP_TLS_ROLLBACK_BUG                       = $00800000;
+  SSL_OP_NO_SSLv2                               = $01000000;
+  SSL_OP_NO_SSLv3                               = $02000000;
+  SSL_OP_NO_TLSv1                               = $04000000;
+  SSL_OP_NO_TLSv1_2                             = $08000000;
+  SSL_OP_NO_TLSv1_1                             = $10000000;
+  SSL_OP_NETSCAPE_CA_DN_BUG                     = $20000000;
+  SSL_OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG        = $40000000;
+  SSL_OP_CRYPTOPRO_TLSEXT_BUG                   = $80000000;
+
   SSL_VERIFY_NONE = $00;
   SSL_VERIFY_PEER = $01;
+
+  SSL_CERT_FLAG_TLS_STRICT                      = $00000001;
+
+  // Used in SSL_set_shutdown()/SSL_get_shutdown();
+  SSL_SENT_SHUTDOWN = 1;
+  SSL_RECEIVED_SHUTDOWN = 2;
 
   OPENSSL_DES_DECRYPT = 0;
   OPENSSL_DES_ENCRYPT = 1;
 
-  X509_V_OK =	0;
+  X509_V_OK = 0;
   X509_V_ILLEGAL = 1;
   X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT = 2;
   X509_V_ERR_UNABLE_TO_GET_CRL = 3;
@@ -578,7 +871,7 @@ const
   //The application is not happy
   X509_V_ERR_APPLICATION_VERIFICATION = 50;
 
-  SSL_FILETYPE_ASN1	= 2;
+  SSL_FILETYPE_ASN1 = 2;
   SSL_FILETYPE_PEM = 1;
   EVP_PKEY_RSA = 6;
 
@@ -588,75 +881,127 @@ const
   RSA_NO_PADDING         = 3;
   RSA_PKCS1_OAEP_PADDING = 4;
 
+  // ASN1 values
+  V_ASN1_EOC                     = 0;
+  V_ASN1_BOOLEAN                 = 1;
+  V_ASN1_INTEGER                 = 2;
+  V_ASN1_BIT_STRING              = 3;
+  V_ASN1_OCTET_STRING            = 4;
+  V_ASN1_NULL                    = 5;
+  V_ASN1_OBJECT                  = 6;
+  V_ASN1_OBJECT_DESCRIPTOR       = 7;
+  V_ASN1_EXTERNAL                = 8;
+  V_ASN1_REAL                    = 9;
+  V_ASN1_ENUMERATED              = 10;
+  V_ASN1_UTF8STRING              = 12;
+  V_ASN1_SEQUENCE                = 16;
+  V_ASN1_SET                     = 17;
+  V_ASN1_NUMERICSTRING           = 18;
+  V_ASN1_PRINTABLESTRING         = 19;
+  V_ASN1_T61STRING               = 20;
+  V_ASN1_TELETEXSTRING           = 20;
+  V_ASN1_VIDEOTEXSTRING          = 21;
+  V_ASN1_IA5STRING               = 22;
+  V_ASN1_UTCTIME                 = 23;
+  V_ASN1_GENERALIZEDTIME         = 24;
+  V_ASN1_GRAPHICSTRING           = 25;
+  V_ASN1_ISO64STRING             = 26;
+  V_ASN1_VISIBLESTRING           = 26;
+  V_ASN1_GENERALSTRING           = 27;
+  V_ASN1_UNIVERSALSTRING         = 28;
+  V_ASN1_BMPSTRING               = 30;
+
+  // BN
+{$ifdef cpu64}
+// * 64-bit processor with LP64 ABI
+type
+  BN_ULONG = culong;
+const
+  BN_BYTES = 8;
+{$else}
+{$ifdef SIXTY_FOUR_BIT}
+// * 64-bit processor other than LP64 ABI
+type
+  BN_ULONG = culonglong;
+const
+  BN_BYTES = 8;
+{$else}
+type
+  BN_ULONG = cuint;
+const
+  BN_BYTES = 4;
+{$endif}
+{$endif}
+
   // BIO
 
-  BIO_NOCLOSE	        = $00;
-  BIO_CLOSE 	        = $01;
+  BIO_NOCLOSE         = $00;
+  BIO_CLOSE           = $01;
 
   //* modifiers */
-  BIO_FP_READ		= $02;
-  BIO_FP_WRITE		= $04;
-  BIO_FP_APPEND		= $08;
-  BIO_FP_TEXT		= $10;
+  BIO_FP_READ   = $02;
+  BIO_FP_WRITE    = $04;
+  BIO_FP_APPEND   = $08;
+  BIO_FP_TEXT   = $10;
 
   BIO_C_SET_CONNECT                 = 100;
   BIO_C_DO_STATE_MACHINE            = 101;
-  BIO_C_SET_NBIO	            = 102;
-  BIO_C_SET_PROXY_PARAM	            = 103;
-  BIO_C_SET_FD	                    = 104;
-  BIO_C_GET_FD		            = 105;
-  BIO_C_SET_FILE_PTR	            = 106;
-  BIO_C_GET_FILE_PTR	            = 107;
-  BIO_C_SET_FILENAME	            = 108;
-  BIO_C_SET_SSL		            = 109;
-  BIO_C_GET_SSL		            = 110;
-  BIO_C_SET_MD		            = 111;
-  BIO_C_GET_MD	                    = 112;
+  BIO_C_SET_NBIO              = 102;
+  BIO_C_SET_PROXY_PARAM             = 103;
+  BIO_C_SET_FD                      = 104;
+  BIO_C_GET_FD                = 105;
+  BIO_C_SET_FILE_PTR              = 106;
+  BIO_C_GET_FILE_PTR              = 107;
+  BIO_C_SET_FILENAME              = 108;
+  BIO_C_SET_SSL               = 109;
+  BIO_C_GET_SSL               = 110;
+  BIO_C_SET_MD                = 111;
+  BIO_C_GET_MD                      = 112;
   BIO_C_GET_CIPHER_STATUS           = 113;
-  BIO_C_SET_BUF_MEM 	            = 114;
-  BIO_C_GET_BUF_MEM_PTR  	    = 115;
+  BIO_C_SET_BUF_MEM               = 114;
+  BIO_C_GET_BUF_MEM_PTR       = 115;
   BIO_C_GET_BUFF_NUM_LINES          = 116;
-  BIO_C_SET_BUFF_SIZE	            = 117;
-  BIO_C_SET_ACCEPT 	            = 118;
-  BIO_C_SSL_MODE 	            = 119;
-  BIO_C_GET_MD_CTX	            = 120;
-  BIO_C_GET_PROXY_PARAM	            = 121;
-  BIO_C_SET_BUFF_READ_DATA 	    = 122; // data to read first */
-  BIO_C_GET_CONNECT	 	    = 123;
-  BIO_C_GET_ACCEPT		    = 124;
+  BIO_C_SET_BUFF_SIZE             = 117;
+  BIO_C_SET_ACCEPT              = 118;
+  BIO_C_SSL_MODE              = 119;
+  BIO_C_GET_MD_CTX              = 120;
+  BIO_C_GET_PROXY_PARAM             = 121;
+  BIO_C_SET_BUFF_READ_DATA      = 122; // data to read first */
+  BIO_C_GET_CONNECT       = 123;
+  BIO_C_GET_ACCEPT        = 124;
   BIO_C_SET_SSL_RENEGOTIATE_BYTES   = 125;
   BIO_C_GET_SSL_NUM_RENEGOTIATES    = 126;
   BIO_C_SET_SSL_RENEGOTIATE_TIMEOUT = 127;
-  BIO_C_FILE_SEEK		    = 128;
-  BIO_C_GET_CIPHER_CTX		    = 129;
-  BIO_C_SET_BUF_MEM_EOF_RETURN	= 130;//*return end of input value*/
-  BIO_C_SET_BIND_MODE		= 131;
-  BIO_C_GET_BIND_MODE		= 132;
-  BIO_C_FILE_TELL		= 133;
-  BIO_C_GET_SOCKS		= 134;
-  BIO_C_SET_SOCKS		= 135;
+  BIO_C_FILE_SEEK       = 128;
+  BIO_C_GET_CIPHER_CTX        = 129;
+  BIO_C_SET_BUF_MEM_EOF_RETURN  = 130;//*return end of input value*/
+  BIO_C_SET_BIND_MODE   = 131;
+  BIO_C_GET_BIND_MODE   = 132;
+  BIO_C_FILE_TELL   = 133;
+  BIO_C_GET_SOCKS   = 134;
+  BIO_C_SET_SOCKS   = 135;
 
-  BIO_C_SET_WRITE_BUF_SIZE	= 136;//* for BIO_s_bio */
-  BIO_C_GET_WRITE_BUF_SIZE	= 137;
-  BIO_C_MAKE_BIO_PAIR		= 138;
-  BIO_C_DESTROY_BIO_PAIR	= 139;
-  BIO_C_GET_WRITE_GUARANTEE	= 140;
-  BIO_C_GET_READ_REQUEST	= 141;
-  BIO_C_SHUTDOWN_WR		= 142;
-  BIO_C_NREAD0		        = 143;
-  BIO_C_NREAD			= 144;
-  BIO_C_NWRITE0			= 145;
-  BIO_C_NWRITE			= 146;
-  BIO_C_RESET_READ_REQUEST	= 147;
-  BIO_C_SET_MD_CTX		= 148;
+  BIO_C_SET_WRITE_BUF_SIZE  = 136;//* for BIO_s_bio */
+  BIO_C_GET_WRITE_BUF_SIZE  = 137;
+  BIO_C_MAKE_BIO_PAIR   = 138;
+  BIO_C_DESTROY_BIO_PAIR  = 139;
+  BIO_C_GET_WRITE_GUARANTEE = 140;
+  BIO_C_GET_READ_REQUEST  = 141;
+  BIO_C_SHUTDOWN_WR   = 142;
+  BIO_C_NREAD0            = 143;
+  BIO_C_NREAD     = 144;
+  BIO_C_NWRITE0     = 145;
+  BIO_C_NWRITE      = 146;
+  BIO_C_RESET_READ_REQUEST  = 147;
+  BIO_C_SET_MD_CTX    = 148;
 
-  BIO_C_SET_PREFIX		= 149;
-  BIO_C_GET_PREFIX		= 150;
-  BIO_C_SET_SUFFIX		= 151;
-  BIO_C_GET_SUFFIX		= 152;
+  BIO_C_SET_PREFIX    = 149;
+  BIO_C_GET_PREFIX    = 150;
+  BIO_C_SET_SUFFIX    = 151;
+  BIO_C_GET_SUFFIX    = 152;
 
-  BIO_C_SET_EX_ARG		= 153;
-  BIO_C_GET_EX_ARG		= 154;
+  BIO_C_SET_EX_ARG    = 153;
+  BIO_C_GET_EX_ARG    = 154;
 
   BIO_CTRL_RESET  =    1  ; { opt - rewind/zero etc }
   BIO_CTRL_EOF    =    2  ; { opt - are we at the eof }
@@ -706,8 +1051,16 @@ const
 //DES modes
   DES_ENCRYPT = 1;
   DES_DECRYPT = 0;
-  
-  
+
+// Error codes for ECDH Function
+  ECDH_F_ECDH_COMPUTE_KEY = 100;
+  ECDH_F_ECDH_DATA_NEW_METHOD = 101;
+
+// Error codes for ECDH Reason
+  ECDH_R_NO_PRIVATE_VALUE = 100;
+  ECDH_R_POINT_ARITHMETIC_FAILURE = 101;
+  ECDH_R_KDF_FAILED = 102;
+
 var
   SSLLibHandle: TLibHandle = 0;
   SSLUtilHandle: TLibHandle = 0;
@@ -715,7 +1068,9 @@ var
   SSLUtilFile: string = '';
 
 // libssl.dll
+  function OpenSSLGetVersion(t: cint):String;
   function SslGetError(s: PSSL; ret_code: cInt):cInt;
+  Function OPENSSL_init_ssl(opts: uint64_t ; settings : POPENSSL_INIT_SETTINGS) : cint;
   function SslLibraryInit:cInt;
   procedure SslLoadErrorStrings;
 //  function SslCtxSetCipherList(arg0: PSSL_CTX; str: PChar):cInt;
@@ -723,7 +1078,7 @@ var
   function SslCtxNew(meth: PSSL_METHOD):PSSL_CTX;
   procedure SslCtxFree(arg0: PSSL_CTX);
   function SslSetFd(s: PSSL; fd: cInt):cInt;
-  
+
   function SslCtrl(ssl: PSSL; cmd: cInt; larg: clong; parg: Pointer): cLong;
   function SslCTXCtrl(ctx: PSSL_CTX; cmd: cInt; larg: clong; parg: Pointer): cLong;
 
@@ -731,17 +1086,22 @@ var
   function SSLSetMode(s: PSSL; mode: cLong): cLong;
   function SSLCTXGetMode(ctx: PSSL_CTX): cLong;
   function SSLGetMode(s: PSSL): cLong;
-  
+
   function SslMethodV2:PSSL_METHOD;
   function SslMethodV3:PSSL_METHOD;
   function SslMethodTLSV1:PSSL_METHOD;
+  function SslMethodTLSV1_1:PSSL_METHOD;
+  function SslMethodTLSV1_2:PSSL_METHOD;
   function SslMethodV23:PSSL_METHOD;
+  function SslTLSMethod:PSSL_METHOD;
   function SslCtxUsePrivateKey(ctx: PSSL_CTX; pkey: SslPtr):cInt;
-  function SslCtxUsePrivateKeyASN1(pk: cInt; ctx: PSSL_CTX; d: String; len: cLong):cInt;
+  function SslCtxUsePrivateKeyASN1(pk: cInt; ctx: PSSL_CTX; d: String; len: cLong):cInt;overload;
+  function SslCtxUsePrivateKeyASN1(pk: cInt; ctx: PSSL_CTX; b: TBytes; len: cLong):cInt;overload;
 //  function SslCtxUsePrivateKeyFile(ctx: PSSL_CTX; const _file: PChar; _type: cInt):cInt;
   function SslCtxUsePrivateKeyFile(ctx: PSSL_CTX; const _file: String; _type: cInt):cInt;
   function SslCtxUseCertificate(ctx: PSSL_CTX; x: SslPtr):cInt;
-  function SslCtxUseCertificateASN1(ctx: PSSL_CTX; len: cLong; d: String):cInt;
+  function SslCtxUseCertificateASN1(ctx: PSSL_CTX; len: cLong; d: String):cInt; overload;
+  function SslCtxUseCertificateASN1(ctx: PSSL_CTX; len: cLong; Buf: TBytes):cInt; overload;
   function SslCtxUseCertificateFile(ctx: PSSL_CTX; const _file: String; _type: cInt):cInt;
 //  function SslCtxUseCertificateChainFile(ctx: PSSL_CTX; const _file: PChar):cInt;
   function SslCtxUseCertificateChainFile(ctx: PSSL_CTX; const _file: String):cInt;
@@ -761,13 +1121,21 @@ var
   function SslPending(ssl: PSSL):cInt;
   function SslGetVersion(ssl: PSSL):String;
   function SslGetPeerCertificate(ssl: PSSL):PX509;
-  procedure SslCtxSetVerify(ctx: PSSL_CTX; mode: cInt; arg2: PFunction);
+  procedure SslCtxSetVerify(ctx: PSSL_CTX; mode: cInt; arg2: TSSLCTXVerifyCallback);
   function SSLGetCurrentCipher(s: PSSL):SslPtr;
   function SSLCipherGetName(c: SslPtr): String;
   function SSLCipherGetBits(c: SslPtr; var alg_bits: cInt):cInt;
   function SSLGetVerifyResult(ssl: PSSL):cLong;
+  function SSLGetServername(ssl: PSSL; _type: cInt = TLSEXT_NAMETYPE_host_name): string;
+  procedure SslCtxCallbackCtrl(ssl: PSSL; _type: cInt; cb: PCallbackCb);
+  function SslSetSslCtx(ssl: PSSL; ctx: PSSL_CTX): PSSL;
 
 // libeay.dll
+  function OPENSSL_INIT_new : POPENSSL_INIT_SETTINGS;
+  Procedure OPENSSL_INIT_free(aSettings : POPENSSL_INIT_SETTINGS);
+  function OPENSSL_INIT_set_config_appname (settings:POPENSSL_INIT_SETTINGS; config_file : Pchar) : cint;
+  Function OPENSSL_init_crypto ( opts: uint64_t ; settings : POPENSSL_INIT_SETTINGS) : cint;
+  Procedure OPENSSL_cleanup;
   procedure ERR_load_crypto_strings;
   function X509New: PX509;
   procedure X509Free(x: PX509);
@@ -780,6 +1148,7 @@ var
   function X509print(b: PBIO; a: PX509): cInt;
   function X509SetVersion(x: PX509; version: cInt): cInt;
   function X509SetPubkey(x: PX509; pkey: PEVP_PKEY): cInt;
+  function X509GetPubkey(x: PX509): PEVP_PKEY;
   function X509SetIssuerName(x: PX509; name: PX509_NAME): cInt;
   function X509NameAddEntryByTxt(name: PX509_NAME; field: string; _type: cInt;
     bytes: string; len, loc, _set: cInt): cInt;
@@ -793,16 +1162,19 @@ var
   function EvpPkeyAssign(pkey: PEVP_PKEY; _type: cInt; key: Prsa): cInt;
   function EvpGetDigestByName(Name: String): PEVP_MD;
   procedure EVPcleanup;
-  function SSLeayversion(t: cInt): string;
+  function SSLeayversion(t: cInt): string;  deprecated 'For 1.1+ use OpenSSLGetVersion';
   procedure ErrErrorString(e: cInt; var buf: string; len: cInt);
   function ErrGetError: cInt;
   procedure ErrClearError;
   procedure ErrFreeStrings;
   procedure ErrRemoveState(pid: cInt);
-  procedure RandScreen;
+  procedure RandScreen; deprecated 'Deprecated as of 1.1+';
   function d2iPKCS12bio(b:PBIO; Pkcs12: SslPtr): SslPtr;
   function PKCS12parse(p12: SslPtr; pass: string; var pkey, cert, ca: SslPtr): cInt;
   procedure PKCS12free(p12: SslPtr);
+  function Asn1StringTypeNew(aType : cint): PASN1_STRING;
+  Function Asn1UtctimePrint(b : PBio; a: PASN1_UTCTIME) : integer;
+  Function ASN1UtcTimeSetString(t : PASN1_UTCTIME; s : PAnsichar) : cint;
   function Asn1UtctimeNew: PASN1_UTCTIME;
   procedure Asn1UtctimeFree(a: PASN1_UTCTIME);
   function Asn1IntegerSet(a: PASN1_INTEGER; v: integer): integer;
@@ -820,8 +1192,8 @@ var
 
   function RAND_set_rand_method(const meth: PRAND_METHOD): cint;
   function RAND_get_rand_method: PRAND_METHOD;
-  function RAND_SSLeay: PRAND_METHOD;
-  procedure RAND_cleanup;
+  function RAND_SSLeay: PRAND_METHOD; deprecated 'No longer in OpenSSL';
+  procedure RAND_cleanup; deprecated 'deprecated as of 1.1';
   function RAND_bytes(buf: PByte; num: cint): cint;
   function RAND_pseudo_bytes(buf: PByte; num: cint): cint;
   procedure RAND_seed(const buf: Pointer; num: cint);
@@ -845,7 +1217,7 @@ var
   // For compatibility with previous versions of this file
   function RsaGenerateKey(bits, e: cInt; callback: PFunction; cb_arg: SslPtr): PRSA;
   // New version of the previous deprecated routine
-  function RSA_generate_key_ex(arsa: PRSA; bits: cInt; e: PBIGNUM; cb: PBN_GENCB): PRSA;
+  function RSA_generate_key_ex(arsa: PRSA; bits: cInt; e: PBIGNUM; cb: PBN_GENCB): cint;
   //
   function RSA_check_key(arsa: PRSA): cint;
   // Next 4 return -1 on error
@@ -872,13 +1244,16 @@ var
   function d2i_RSAPrivateKey(arsa: PPRSA; pp: PPByte; len: cint): PRSA;
   function i2d_RSAPrivateKey(arsa: PRSA; pp: PPByte): cint;
 
+  function d2i_PubKey(a: PPEVP_PKEY; pp: PPByte; len: clong): PEVP_PKEY;
+  function d2i_AutoPrivateKey(a: PPEVP_PKEY; pp: PPByte; len: clong): PEVP_PKEY;
+
   // ERR Functions
 
   function Err_Error_String(e: cInt; buf: PChar): PChar;
 
   // Crypto Functions
 
-  function SSLeay_version(t: cint): PChar;
+  function SSLeay_version(t: cint): PChar; deprecated 'For 1.1+ use OpenSSLGetVersion';
 
   // EVP Functions - evp.h
   function EVP_des_ede3_cbc : PEVP_CIPHER;
@@ -898,6 +1273,7 @@ var
   Function EVP_camellia_128_cbc : PEVP_CIPHER;
   Function EVP_camellia_192_cbc : PEVP_CIPHER;
   Function EVP_camellia_256_cbc : PEVP_CIPHER;
+  function EVP_sha256: PEVP_CIPHER;
 
   procedure OpenSSL_add_all_algorithms;
   procedure OpenSSL_add_all_ciphers;
@@ -933,34 +1309,165 @@ var
            outl: pcint; const in_: PByte; inl: cint): cint;
   function EVP_DecryptFinal(ctx: PEVP_CIPHER_CTX; outm: PByte; outlen: pcint): cint;
   //
+  function EVP_MD_CTX_new: PEVP_MD_CTX;
+  function EVP_MD_CTX_create: PEVP_MD_CTX;
+  procedure EVP_MD_CTX_destroy(ctx: PEVP_MD_CTX);
+  procedure EVP_MD_CTX_free(ctx: PEVP_MD_CTX);
+  function EVP_DigestSignInit(ctx: PEVP_MD_CTX; pctx: PPEVP_PKEY_CTX; const evptype: PEVP_MD; e: PENGINE; pkey: PEVP_PKEY): cint;
+  function EVP_DigestSignUpdate(ctx: PEVP_MD_CTX; const data: Pointer; cnt: csize_t): cint;
+  function EVP_DigestSignFinal(ctx: PEVP_MD_CTX; sigret: PByte; siglen: pcsize_t): cint;
+  function EVP_DigestVerifyInit(ctx: PEVP_MD_CTX; pctx: PPEVP_PKEY_CTX; const evptype: PEVP_MD; e: PENGINE; pkey: PEVP_PKEY): cint;
+  function EVP_DigestVerifyUpdate(ctx: PEVP_MD_CTX; const data: Pointer; cnt: csize_t): cint;
+  function EVP_DigestVerifyFinal(ctx: PEVP_MD_CTX; sig: PByte; siglen: csize_t): cint;
+  //function
+  //
   // PEM Functions - pem.h
   //
   function PEM_read_bio_PrivateKey(bp: PBIO; X: PPEVP_PKEY;
-           cb: Ppem_password_cb; u: Pointer): PEVP_PKEY;  	   
+           cb: Ppem_password_cb; u: Pointer): PEVP_PKEY;
   function PEM_read_bio_PUBKEY(bp: pBIO; var x: pEVP_PKEY;
                cb: Ppem_password_cb; u: pointer): pEVP_PKEY;
   function PEM_write_bio_PrivateKey(bp: pBIO; x: pEVP_PKEY;
                const enc: pEVP_CIPHER; kstr: PChar; klen: Integer; cb: Ppem_password_cb;
-               u: pointer): integer;	
+               u: pointer): integer;
   function PEM_write_bio_PUBKEY(bp: pBIO; x: pEVP_PKEY): integer;
-
+  function PEM_read_bio_X509(bp: PBIO; x: PPX509; cb: ppem_password_cb; u: pointer): PX509;
+  function PEM_write_bio_X509(bp: pBIO;  x: px509): integer;
+  function PEM_write_bio_PKCS7(bp : PBIO; x : PPKCS7) : cint;
   // BIO Functions - bio.h
   function BioNew(b: PBIO_METHOD): PBIO;
   procedure BioFreeAll(b: PBIO);
   function BioSMem: PBIO_METHOD;
   function BioCtrlPending(b: PBIO): cInt;
   function BioRead(b: PBIO; var Buf: String; Len: cInt): cInt;
-  function BioWrite(b: PBIO; Buf: String; Len: cInt): cInt;
+  function BioRead(b: PBIO; Buf: TBytes; Len: cInt): cInt;
+  function BioWrite(b: PBIO; Buf: String; Len: cInt): cInt; overload;
+  function BioWrite(b: PBIO; Buf: TBytes; Len: cInt): cInt; overload;
   function BIO_ctrl(bp: PBIO; cmd: cint; larg: clong; parg: Pointer): clong;
   function BIO_read_filename(b: PBIO; const name: PChar): cint;
-  
+
   function BIO_s_file: pBIO_METHOD;
   function BIO_new_file(const filename: PChar; const mode: PChar): pBIO;
   function BIO_new_mem_buf(buf: pointer; len: integer): pBIO;
   procedure CRYPTOcleanupAllExData;
   procedure OPENSSLaddallalgorithms;
 
+  // PKCS7 functions
+  function PKCS7_ISSUER_AND_SERIAL_new : PPKCS7_ISSUER_AND_SERIAL;
+  procedure PKCS7_ISSUER_AND_SERIAL_free (a:PPKCS7_ISSUER_AND_SERIAL);
+  function PKCS7_ISSUER_AND_SERIAL_digest(data:PPKCS7_ISSUER_AND_SERIAL; _type:PEVP_MD; md:Pbyte; len:Pdword):longint;
+  function PKCS7_dup(p7:PPKCS7):PPKCS7;
+  function PEM_write_bio_PKCS7_stream(_out:PBIO; p7:PPKCS7; _in:PBIO; flags:longint):longint;
+  function PKCS7_SIGNER_INFO_new:PPKCS7_SIGNER_INFO;
+  procedure PKCS7_SIGNER_INFO_free(a:PPKCS7_SIGNER_INFO);
+  function PKCS7_RECIP_INFO_new:PPKCS7_RECIP_INFO;
+  procedure PKCS7_RECIP_INFO_free(a:PPKCS7_RECIP_INFO);
+  function PKCS7_SIGNED_new:PPKCS7_SIGNED;
+  procedure PKCS7_SIGNED_free(a:PPKCS7_SIGNED);
+  function PKCS7_ENC_CONTENT_new:PPKCS7_ENC_CONTENT;
+  procedure PKCS7_ENC_CONTENT_free(a:PPKCS7_ENC_CONTENT);
+  function PKCS7_ENVELOPE_new:PPKCS7_ENVELOPE;
+  procedure PKCS7_ENVELOPE_free(a:PPKCS7_ENVELOPE);
+  function PKCS7_SIGN_ENVELOPE_new:PPKCS7_SIGN_ENVELOPE;
+  procedure PKCS7_SIGN_ENVELOPE_free(a:PPKCS7_SIGN_ENVELOPE);
+  function PKCS7_DIGEST_new:PPKCS7_DIGEST;
+  procedure PKCS7_DIGEST_free(a:PPKCS7_DIGEST);
+  function PKCS7_ENCRYPT_new:PPKCS7_ENCRYPT;
+  procedure PKCS7_ENCRYPT_free(a:PPKCS7_ENCRYPT);
+  function PKCS7_new:PPKCS7;
+  procedure PKCS7_free(a:PPKCS7);
+  function PKCS7_print_ctx(_out:PBIO; x:PPKCS7; indent:longint; pctx:Pointer):longint;
+  function PKCS7_ctrl(p7:PPKCS7; cmd:longint; larg:longint; parg:Pchar):longint;
+  function PKCS7_set_type(p7:PPKCS7; _type:longint):longint;
+  function PKCS7_set0_type_other(p7:PPKCS7; _type:longint; other:PASN1_TYPE):longint;
+  function PKCS7_set_content(p7:PPKCS7; p7_data:PPKCS7):longint;
+  function PKCS7_SIGNER_INFO_set(p7i:PPKCS7_SIGNER_INFO; x509:PX509; pkey:PEVP_PKEY; dgst:PEVP_MD):longint;
+  function PKCS7_SIGNER_INFO_sign(si:PPKCS7_SIGNER_INFO):longint;
+  function PKCS7_add_signer(p7:PPKCS7; p7i:PPKCS7_SIGNER_INFO):longint;
+  function PKCS7_add_certificate(p7:PPKCS7; x509:PX509):longint;
+  function PKCS7_add_crl(p7:PPKCS7; x509: Pointer):longint;
+  function PKCS7_content_new(p7:PPKCS7; nid:longint):longint;
+  function PKCS7_add_signature(p7:PPKCS7; x509:PX509; pkey:PEVP_PKEY; dgst:PEVP_MD):PPKCS7_SIGNER_INFO;
+  function PKCS7_cert_from_signer_info(p7:PPKCS7; si:PPKCS7_SIGNER_INFO):PX509;
+  function PKCS7_set_digest(p7:PPKCS7; md:PEVP_MD):longint;
+  function PKCS7_add_recipient(p7:PPKCS7; x509:PX509):PPKCS7_RECIP_INFO;
+  function PKCS7_add_recipient_info(p7:PPKCS7; ri:PPKCS7_RECIP_INFO):longint;
+  function PKCS7_RECIP_INFO_set(p7i:PPKCS7_RECIP_INFO; x509:PX509):longint;
+  function PKCS7_set_cipher(p7:PPKCS7; cipher:PEVP_CIPHER):longint;
+  function PKCS7_get_issuer_and_serial(p7:PPKCS7; idx:longint):PPKCS7_ISSUER_AND_SERIAL;
+  function PKCS7_digest_from_attributes(sk:Pstack_st_X509_ATTRIBUTE):Pointer;
+  function PKCS7_add_signed_attribute(p7si:PPKCS7_SIGNER_INFO; nid:longint; _type:longint; data:pointer):longint;
+  function PKCS7_add_attribute(p7si:PPKCS7_SIGNER_INFO; nid:longint; atrtype:longint; value:pointer):longint;
+  function PKCS7_get_attribute(si:PPKCS7_SIGNER_INFO; nid:longint):PASN1_TYPE;
+  function PKCS7_get_signed_attribute(si:PPKCS7_SIGNER_INFO; nid:longint):PASN1_TYPE;
+  function PKCS7_set_signed_attributes(p7si:PPKCS7_SIGNER_INFO; sk:Pstack_st_X509_ATTRIBUTE):longint;
+  function PKCS7_set_attributes(p7si:PPKCS7_SIGNER_INFO; sk:Pstack_st_X509_ATTRIBUTE):longint;
+  function PKCS7_sign(signcert:PX509; pkey:PEVP_PKEY; certs:Pstack_st_X509; data:PBIO; flags:longint):PPKCS7;
+  function PKCS7_sign_add_signer(p7:PPKCS7; signcert:PX509; pkey:PEVP_PKEY; md:PEVP_MD; flags:longint):PPKCS7_SIGNER_INFO;
+  function PKCS7_final(p7:PPKCS7; data:PBIO; flags:longint):longint;
+  function PKCS7_verify(p7:PPKCS7; certs:Pstack_st_X509; store: Pointer; indata:PBIO; _out:PBIO;  flags:longint):longint;
+  function PKCS7_encrypt(certs:Pstack_st_X509; _in:PBIO; cipher:PEVP_CIPHER; flags:longint):PPKCS7;
+  function PKCS7_decrypt(p7:PPKCS7; pkey:PEVP_PKEY; cert:PX509; data:PBIO; flags:longint):longint;
+  function PKCS7_add_attrib_smimecap(si:PPKCS7_SIGNER_INFO; cap:Pstack_st_X509_ALGOR):longint;
+  function PKCS7_simple_smimecap(sk:Pstack_st_X509_ALGOR; nid:longint; arg:longint):longint;
+  function PKCS7_add_attrib_content_type(si:PPKCS7_SIGNER_INFO; coid:Pointer):longint;
+  function PKCS7_add0_attrib_signing_time(si:PPKCS7_SIGNER_INFO; t:PASN1_TIME):longint;
+  function PKCS7_add1_attrib_digest(si:PPKCS7_SIGNER_INFO; md:Pbyte; mdlen:longint):longint;
+  function BIO_new_PKCS7(_out:PBIO; p7:PPKCS7):PBIO;
+  procedure ERR_load_PKCS7_strings;
+
+  // BN functions
+  function BN_new:PBIGNUM;
+  function BN_secure_new:PBIGNUM;
+  procedure BN_clear_free(a:PBIGNUM);
+  function BN_copy(a:PBIGNUM; b:PBIGNUM):PBIGNUM;
+  procedure BN_swap(a:PBIGNUM; b:PBIGNUM);
+  function BN_bin2bn(s:pcuchar; len:cint; ret:PBIGNUM):PBIGNUM;
+  function BN_bn2bin(a:PBIGNUM; _to:pcuchar):cint;
+  function BN_bn2binpad(a:PBIGNUM; _to:pcuchar; tolen:cint):cint;
+  function BN_lebin2bn(s:pcuchar; len:cint; ret:PBIGNUM):PBIGNUM;
+  function BN_bn2lebinpad(a:PBIGNUM; _to:pcuchar; tolen:cint):cint;
+  function BN_mpi2bn(s:pcuchar; len:cint; ret:PBIGNUM):PBIGNUM;
+  function BN_bn2mpi(a:PBIGNUM; _to:pcuchar):cint;
+  function BN_sub(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM):cint;
+  function BN_usub(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM):cint;
+  function BN_uadd(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM):cint;
+  function BN_add(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM):cint;
+  function BN_mul(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM; ctx:PBN_CTX):cint;
+  function BN_sqr(r:PBIGNUM; a:PBIGNUM; ctx:PBN_CTX):cint;
+  // BN_set_negative sets sign of a BIGNUM
+  // \param  b  pointer to the BIGNUM object
+  // \param  n  0 if the BIGNUM b should be positive and a value != 0 otherwise
+  procedure BN_set_negative(b:PBIGNUM; n:cint);
+  // BN_is_negative returns 1 if the BIGNUM is negative
+  // \param  b  pointer to the BIGNUM object
+  // \return 1 if a < 0 and 0 otherwise
+  function BN_is_negative(b:PBIGNUM):cint;
+  function BN_div(dv:PBIGNUM; rem:PBIGNUM; m:PBIGNUM; d:PBIGNUM; ctx:PBN_CTX):cint;
+  function BN_mod(rem: PBIGNUM; a:PBIGNUM; m: PBIGNUM; ctx : PBN_CTX) : cint;
+  function BN_nnmod(r:PBIGNUM; m:PBIGNUM; d:PBIGNUM; ctx:PBN_CTX):cint;
+  function BN_mod_add(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM; m:PBIGNUM; ctx:PBN_CTX):cint;
+  function BN_mod_add_quick(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM; m:PBIGNUM):cint;
+  function BN_mod_sub(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM; m:PBIGNUM; ctx:PBN_CTX):cint;
+  function BN_mod_sub_quick(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM; m:PBIGNUM):cint;
+  function BN_mod_mul(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM; m:PBIGNUM; ctx:PBN_CTX):cint;
+  function BN_mod_sqr(r:PBIGNUM; a:PBIGNUM; m:PBIGNUM; ctx:PBN_CTX):cint;
+  function BN_mod_lshift1(r:PBIGNUM; a:PBIGNUM; m:PBIGNUM; ctx:PBN_CTX):cint;
+  function BN_mod_lshift1_quick(r:PBIGNUM; a:PBIGNUM; m:PBIGNUM):cint;
+  function BN_mod_lshift(r:PBIGNUM; a:PBIGNUM; n:cint; m:PBIGNUM; ctx:PBN_CTX):cint;
+  function BN_mod_lshift_quick(r:PBIGNUM; a:PBIGNUM; n:cint; m:PBIGNUM):cint;
+  function BN_mod_word(a:PBIGNUM; w:BN_ULONG):BN_ULONG;
+  function BN_div_word(a:PBIGNUM; w:BN_ULONG):BN_ULONG;
+  function BN_mul_word(a:PBIGNUM; w:BN_ULONG):cint;
+  function BN_add_word(a:PBIGNUM; w:BN_ULONG):cint;
+  function BN_sub_word(a:PBIGNUM; w:BN_ULONG):cint;
+  function BN_set_word(a:PBIGNUM; w:BN_ULONG):cint;
+  function BN_get_word(a:PBIGNUM):BN_ULONG;
+  function BN_cmp(a:PBIGNUM; b:PBIGNUM):cint;
+  procedure BN_free(a:PBIGNUM);
+
 function IsSSLloaded: Boolean;
+function InitSSLInterface(Const aSSLName, acryptoName : String) : Boolean; overload;
 function InitSSLInterface: Boolean; overload;
 function DestroySSLInterface: Boolean;
 
@@ -988,6 +1495,8 @@ Var
   SSLCS : TRTLCriticalSection;
   Locks: Array of TRTLCriticalSection;
 
+resourcestring
+  SFailedToLoadOpenSSL = 'Failed to load OpenSSL library';
 
 function Islibealoaded: Boolean; deprecated;
 begin
@@ -1055,6 +1564,12 @@ type
 // libssl.dll
   TSslGetError = function(s: PSSL; ret_code: cInt):cInt; cdecl;
   TSslLibraryInit = function:cInt; cdecl;
+  TOPENSSL_INIT_new = function : POPENSSL_INIT_SETTINGS; cdecl;
+  TOPENSSL_INIT_free = procedure(settings : POPENSSL_INIT_SETTINGS); cdecl;
+  TOPENSSL_INIT_set_config_appname = function (settings:POPENSSL_INIT_SETTINGS; config_file : Pchar) : cint;
+
+  TOPENSSL_init_ssl = function ( opts: uint64_t ; settings : POPENSSL_INIT_SETTINGS) : cint; cdecl;
+  TOPENSSL_cleanup = procedure; cdecl;
   TSslLoadErrorStrings = procedure; cdecl;
   TSslCtxSetCipherList = function(arg0: PSSL_CTX; str: PChar):cInt; cdecl;
   TSslCtxNew = function(meth: PSSL_METHOD):PSSL_CTX; cdecl;
@@ -1065,7 +1580,10 @@ type
   TSslMethodV2 = function:PSSL_METHOD; cdecl;
   TSslMethodV3 = function:PSSL_METHOD; cdecl;
   TSslMethodTLSV1 = function:PSSL_METHOD; cdecl;
+  TSslMethodTLSV1_1 = function:PSSL_METHOD; cdecl;
+  TSslMethodTLSV1_2 = function:PSSL_METHOD; cdecl;
   TSslMethodV23 = function:PSSL_METHOD; cdecl;
+  TSslTLSMethod = function:PSSL_METHOD; cdecl;
   TSslCtxUsePrivateKey = function(ctx: PSSL_CTX; pkey: sslptr):cInt; cdecl;
   TSslCtxUsePrivateKeyASN1 = function(pk: cInt; ctx: PSSL_CTX; d: sslptr; len: cInt):cInt; cdecl;
   TSslCtxUsePrivateKeyFile = function(ctx: PSSL_CTX; const _file: PChar; _type: cInt):cInt; cdecl;
@@ -1093,6 +1611,9 @@ type
   TSSLCipherGetName = function(c: Sslptr):PChar; cdecl;
   TSSLCipherGetBits = function(c: SslPtr; alg_bits: PcInt):cInt; cdecl;
   TSSLGetVerifyResult = function(ssl: PSSL):cInt; cdecl;
+  TSSLGetServername = function(ssl: PSSL; _type: cInt = TLSEXT_NAMETYPE_host_name): PChar; cdecl;
+  TSSLCtxCallbackCtrl = procedure(ctx: PSSL_CTX; _type: cInt; cb: PCallbackCb); cdecl;
+  TSSLSetSslCtx = function(ssl: PSSL; ctx: PSSL_CTX): PSSL; cdecl;
 
 // libeay.dll
   TERR_load_crypto_strings = procedure; cdecl;
@@ -1106,6 +1627,7 @@ type
   TX509print = function(b: PBIO; a: PX509): cInt; cdecl;
   TX509SetVersion = function(x: PX509; version: cInt): cInt; cdecl;
   TX509SetPubkey = function(x: PX509; pkey: PEVP_PKEY): cInt; cdecl;
+  TX509GetPubkey = function(x: PX509): PEVP_PKEY; cdecl;
   TX509SetIssuerName = function(x: PX509; name: PX509_NAME): cInt; cdecl;
   TX509NameAddEntryByTxt = function(name: PX509_NAME; field: PChar; _type: cInt;
     bytes: PChar; len, loc, _set: cInt): cInt; cdecl;
@@ -1119,6 +1641,7 @@ type
   TEvpPkeyAssign = function(pkey: PEVP_PKEY; _type: cInt; key: Prsa): cInt; cdecl;
   TEvpGetDigestByName = function(Name: PChar): PEVP_MD; cdecl;
   TEVPcleanup = procedure; cdecl;
+  TOpenSSLversion = function (arg : cint) : pchar; cdecl;
   TSSLeayversion = function(t: cInt): PChar; cdecl;
   TErrErrorString = procedure(e: cInt; buf: PChar; len: cInt); cdecl;
   TErrGetError = function: cInt; cdecl;
@@ -1135,7 +1658,9 @@ type
   Td2iPKCS12bio = function(b:PBIO; Pkcs12: SslPtr): SslPtr; cdecl;
   TPKCS12parse = function(p12: SslPtr; pass: PChar; var pkey, cert, ca: SslPtr): cInt; cdecl;
   TPKCS12free = procedure(p12: SslPtr); cdecl;
-  TAsn1UtctimeNew = function: PASN1_UTCTIME; cdecl;
+  TAsn1StringTypeNew = function(aype : cint): SSlPtr; cdecl;
+  TAsn1UtcTimeSetString = function(t : PASN1_UTCTIME; S : PAnsiChar): cint; cdecl;
+  TAsn1UtctimePrint = Function(b : PBio;a: PASN1_UTCTIME) : cint; cdecl;
   TAsn1UtctimeFree = procedure(a: PASN1_UTCTIME); cdecl;
   TAsn1IntegerSet = function(a: PASN1_INTEGER; v: integer): integer; cdecl;
   TAsn1IntegerGet = function(a: PASN1_INTEGER): integer; cdecl;
@@ -1175,7 +1700,7 @@ type
   TRSA_new_method = function (method: PENGINE): PRSA; cdecl;
   TRSA_size = function (arsa: PRSA): cint; cdecl;
   TRsaGenerateKey = function(bits, e: cInt; callback: PFunction; cb_arg: SslPtr): PRSA; cdecl;
-  TRSA_generate_key_ex = function (arsa: PRSA; bits: cInt; e: PBIGNUM; cb: PBN_GENCB): PRSA; cdecl;
+  TRSA_generate_key_ex = function (arsa: PRSA; bits: cInt; e: PBIGNUM; cb: PBN_GENCB): cint; cdecl;
   TRSA_check_key = function (arsa: PRSA): cint; cdecl;
   TRSA_public_encrypt = function (flen: cint; from_buf, to_buf: PByte; arsa: PRSA; padding: cint): cint; cdecl;
   TRSA_private_encrypt = function (flen: cint; from_buf, to_buf: PByte; arsa: PRSA; padding: cint): cint; cdecl;
@@ -1194,6 +1719,7 @@ type
   Ti2d_RSAPublicKey = function (arsa: PRSA; pp: PPByte): cint; cdecl;
   Td2i_RSAPrivateKey = function (arsa: PPRSA; pp: PPByte; len: cint): PRSA; cdecl;
   Ti2d_RSAPrivateKey = function (arsa: PRSA; pp: PPByte): cint; cdecl;
+  Td2i_Key = function (a: PPEVP_PKEY; pp: PPByte; len: clong): PRSA; cdecl;
 
   // ERR Functions
 
@@ -1201,7 +1727,6 @@ type
 
   // Crypto Functions
 
-  TSSLeay_version = function(t: cint): PChar; cdecl;
   TCRYPTOcleanupAllExData = procedure; cdecl;
   TOPENSSLaddallalgorithms = procedure; cdecl;
 
@@ -1214,7 +1739,7 @@ type
   TEVP_DigestInit = function(ctx: PEVP_MD_CTX; type_: PEVP_MD): cint; cdecl;
   TEVP_DigestUpdate = function(ctx: PEVP_MD_CTX; const data: Pointer; cnt: csize_t): cint; cdecl;
   TEVP_DigestFinal = function(ctx: PEVP_MD_CTX; md: PByte; s: pcuint): cint; cdecl;
-  
+
   TEVP_SignFinal = function(ctx: pEVP_MD_CTX; sig: pointer; var s: cardinal;
     key: pEVP_PKEY): integer; cdecl;
   TEVP_PKEY_size = function(key: pEVP_PKEY): integer; cdecl;
@@ -1228,6 +1753,7 @@ type
   //
   TEVP_CIPHER_CTX_init = procedure(a: PEVP_CIPHER_CTX); cdecl;
   TEVP_CIPHER_CTX_cleanup = function(a: PEVP_CIPHER_CTX): cint; cdecl;
+  TEVP_CIPHER_CTX_reset = function(a: PEVP_CIPHER_CTX): cint; cdecl;
   TEVP_CIPHER_CTX_set_key_length = function(x: PEVP_CIPHER_CTX; keylen: cint): cint; cdecl;
   TEVP_CIPHER_CTX_ctrl = function(ctx: PEVP_CIPHER_CTX; type_, arg: cint; ptr: Pointer): cint; cdecl;
   //
@@ -1242,23 +1768,31 @@ type
   TEVP_DecryptUpdate = function(ctx: PEVP_CIPHER_CTX; out_data: PByte;
            outl: pcint; const in_: PByte; inl: cint): cint; cdecl;
   TEVP_DecryptFinal = function(ctx: PEVP_CIPHER_CTX; outm: PByte; outlen: pcint): cint; cdecl;
-
+  //
+  TEVP_MD_CTX_new = function(): PEVP_MD_CTX; cdecl;
+  TEVP_MD_CTX_free = procedure(ctx: PEVP_MD_CTX); cdecl;
+  TEVP_DigestSignVerifyInit = function(ctx: PEVP_MD_CTX; pctx: PPEVP_PKEY_CTX; const evptype: PEVP_MD; e: PENGINE; pkey: PEVP_PKEY): cint;
+  TEVP_DigestSignFinal = function(ctx: PEVP_MD_CTX; sigret: PByte; siglen: pcsize_t): cint;
+  TEVP_DigestVerifyFinal = function(ctx: PEVP_MD_CTX; sig: PByte; siglen: csize_t): cint;
   // PEM functions
 
   TPEM_read_bio_PrivateKey = function(bp: PBIO; X: PPEVP_PKEY;
            cb: Ppem_password_cb; u: Pointer): PEVP_PKEY; cdecl;
-   
+
   TPEM_read_bio_PUBKEY = function(bp: pBIO; var x: pEVP_PKEY;
                cb: Ppem_password_cb; u: pointer): pEVP_PKEY; cdecl;
   TPEM_write_bio_PrivateKey = function(bp: pBIO; x: pEVP_PKEY;
                const enc: pEVP_CIPHER; kstr: PChar; klen: Integer; cb: Ppem_password_cb;
-               u: pointer): integer; cdecl;	
+               u: pointer): integer; cdecl;
   TPEM_write_bio_PUBKEY = function(bp: pBIO; x: pEVP_PKEY): integer; cdecl;
+  TPEM_read_bio_X509 = function(bp: pBIO; x: PPX509; cb: Ppem_password_cb; u: pointer): px509; cdecl;
+  TPEM_write_bio_X509 = function(bp: pBIO; x: PX509): integer; cdecl;
+  TPEM_write_bio_PKCS7 = function(bp: pBIO; x: PPKCS7): integer; cdecl;
 
   // BIO Functions
 
   TBIO_ctrl = function(bp: PBIO; cmd: cint; larg: clong; parg: Pointer): clong; cdecl;
-  
+
   TBIO_s_file = function: pBIO_METHOD; cdecl;
   TBIO_new_file = function(const filename: PChar; const mode: PChar): pBIO; cdecl;
   TBIO_new_mem_buf = function(buf: pointer; len: integer): pBIO; cdecl;
@@ -1267,6 +1801,7 @@ var
 // libssl.dll
   _SslGetError: TSslGetError = nil;
   _SslLibraryInit: TSslLibraryInit = nil;
+  _OPENSSL_init_ssl : TOPENSSL_init_ssl = Nil;
   _SslLoadErrorStrings: TSslLoadErrorStrings = nil;
   _SslCtxSetCipherList: TSslCtxSetCipherList = nil;
   _SslCtxNew: TSslCtxNew = nil;
@@ -1277,7 +1812,10 @@ var
   _SslMethodV2: TSslMethodV2 = nil;
   _SslMethodV3: TSslMethodV3 = nil;
   _SslMethodTLSV1: TSslMethodTLSV1 = nil;
+  _SslMethodTLSV1_1: TSslMethodTLSV1_1 = nil;
+  _SslMethodTLSV1_2: TSslMethodTLSV1_2 = nil;
   _SslMethodV23: TSslMethodV23 = nil;
+  _SslTLSMethod: TSslTLSMethod = nil;
   _SslCtxUsePrivateKey: TSslCtxUsePrivateKey = nil;
   _SslCtxUsePrivateKeyASN1: TSslCtxUsePrivateKeyASN1 = nil;
   _SslCtxUsePrivateKeyFile: TSslCtxUsePrivateKeyFile = nil;
@@ -1305,8 +1843,16 @@ var
   _SSLCipherGetName: TSSLCipherGetName = nil;
   _SSLCipherGetBits: TSSLCipherGetBits = nil;
   _SSLGetVerifyResult: TSSLGetVerifyResult = nil;
+  _SSLGetServername: TSSLGetServername = nil;
+  _SslCtxCallbackCtrl: TSSLCtxCallbackCtrl = nil;
+  _SslSetSslCtx: TSSLSetSslCtx = nil;
 
 // libeay.dll
+  _OPENSSL_cleanup : TOPENSSL_cleanup = Nil;
+  _OPENSSL_INIT_new : TOPENSSL_INIT_new = nil;
+  _OPENSSL_INIT_free : TOPENSSL_INIT_free = nil;
+  _OPENSSL_INIT_set_config_appname : TOPENSSL_INIT_set_config_appname = Nil;
+  _OPENSSL_init_crypto : TOPENSSL_init_ssl = Nil;
   _ERR_load_crypto_strings: TERR_load_crypto_strings = nil;
   _X509New: TX509New = nil;
   _X509Free: TX509Free = nil;
@@ -1318,6 +1864,7 @@ var
   _X509print: TX509print = nil;
   _X509SetVersion: TX509SetVersion = nil;
   _X509SetPubkey: TX509SetPubkey = nil;
+  _X509GetPubkey: TX509GetPubkey = nil;
   _X509SetIssuerName: TX509SetIssuerName = nil;
   _X509NameAddEntryByTxt: TX509NameAddEntryByTxt = nil;
   _X509Sign: TX509Sign = nil;
@@ -1330,6 +1877,7 @@ var
   _EvpPkeyAssign: TEvpPkeyAssign = nil;
   _EvpGetDigestByName: TEvpGetDigestByName = nil;
   _EVPcleanup: TEVPcleanup = nil;
+  _OpenSSLVersion : TOpenSSLversion = Nil;
   _SSLeayversion: TSSLeayversion = nil;
   _ErrErrorString: TErrErrorString = nil;
   _ErrGetError: TErrGetError = nil;
@@ -1346,7 +1894,9 @@ var
   _d2iPKCS12bio: Td2iPKCS12bio = nil;
   _PKCS12parse: TPKCS12parse = nil;
   _PKCS12free: TPKCS12free = nil;
-  _Asn1UtctimeNew: TAsn1UtctimeNew = nil;
+  _Asn1StringTypeNew: TAsn1StringTypeNew = nil;
+  _Asn1UtctimeSetString : TAsn1UtctimeSetString = Nil;
+  _Asn1UtctimePrint: TAsn1UtctimePrint = nil;
   _Asn1UtctimeFree: TAsn1UtctimeFree = nil;
   _Asn1IntegerSet: TAsn1IntegerSet = nil;
   _Asn1IntegerGet: TAsn1IntegerGet = nil;
@@ -1369,10 +1919,11 @@ var
   _EVP_camellia_128_cbc : TEVP_CIPHERFunction = nil;
   _EVP_camellia_192_cbc : TEVP_CIPHERFunction = nil;
   _EVP_camellia_256_cbc : TEVP_CIPHERFunction = nil;
+  _EVP_sha256 : TEVP_CIPHERFunction = nil;
 
   // 3DES functions
   _DESsetoddparity: TDESsetoddparity = nil;
-  _DESsetkey	   : TDESsetkey = nil;
+  _DESsetkey     : TDESsetkey = nil;
   _DESsetkeychecked: TDESsetkeychecked = nil;
   _DESecbencrypt: TDESecbencrypt = nil;
   //thread lock functions
@@ -1422,14 +1973,14 @@ var
   _i2d_RSAPublicKey: Ti2d_RSAPublicKey = nil;
   _d2i_RSAPrivateKey: Td2i_RSAPrivateKey = nil;
   _i2d_RSAPrivateKey: Ti2d_RSAPrivateKey = nil;
-
+  _d2i_PubKey: Td2i_Key = nil;
+  _d2i_AutoPrivateKey: Td2i_Key = nil;
   // ERR Functions
 
   _Err_Error_String: TErr_Error_String = nil;
 
   // Crypto Functions
 
-  _SSLeay_version: TSSLeay_version = nil;
   _CRYPTOcleanupAllExData: TCRYPTOcleanupAllExData = nil;
   _OPENSSLaddallalgorithms: TOPENSSLaddallalgorithms = nil;
 
@@ -1451,6 +2002,7 @@ var
   _EVP_get_cipherbyname: TEVP_get_cipherbyname = nil;
   _EVP_get_digestbyname: TEVP_get_digestbyname = nil;
   //
+  _EVP_CIPHER_CTX_reset: TEVP_CIPHER_CTX_reset = nil;
   _EVP_CIPHER_CTX_init: TEVP_CIPHER_CTX_init = nil;
   _EVP_CIPHER_CTX_cleanup: TEVP_CIPHER_CTX_cleanup = nil;
   _EVP_CIPHER_CTX_set_key_length: TEVP_CIPHER_CTX_set_key_length = nil;
@@ -1463,22 +2015,150 @@ var
   _EVP_DecryptInit: TEVP_DecryptInit = nil;
   _EVP_DecryptUpdate: TEVP_DecryptUpdate = nil;
   _EVP_DecryptFinal: TEVP_DecryptFinal = nil;
-
+  //
+  _EVP_MD_CTX_new : TEVP_MD_CTX_new = nil;
+  _EVP_MD_CTX_free : TEVP_MD_CTX_free = nil;
+  _EVP_DigestSignInit: TEVP_DigestSignVerifyInit = nil;
+  _EVP_DigestSignFinal: TEVP_DigestSignFinal = nil;
+  _EVP_DigestVerifyInit: TEVP_DigestSignVerifyInit = nil;
+  _EVP_DigestVerifyFinal: TEVP_DigestVerifyFinal = nil;
   // PEM
   _PEM_read_bio_PrivateKey: TPEM_read_bio_PrivateKey = nil;
-  	   
-  _PEM_read_bio_PUBKEY: TPEM_read_bio_PUBKEY = nil; 
-  _PEM_write_bio_PrivateKey: TPEM_write_bio_PrivateKey = nil;	
-  _PEM_write_bio_PUBKEY: TPEM_write_bio_PUBKEY = nil;
 
+  _PEM_read_bio_PUBKEY: TPEM_read_bio_PUBKEY = nil;
+  _PEM_write_bio_PrivateKey: TPEM_write_bio_PrivateKey = nil;
+  _PEM_write_bio_PUBKEY: TPEM_write_bio_PUBKEY = nil;
+  _PEM_read_bio_X509: TPEM_read_bio_X509 = nil;
+  _PEM_write_bio_X509: TPEM_write_bio_X509 = nil;
+  _PEM_write_bio_PKCS7 : TPEM_write_bio_PKCS7 = Nil;
   // BIO Functions
 
   _BIO_ctrl: TBIO_ctrl = nil;
-  
+
   _BIO_s_file: TBIO_s_file = nil;
   _BIO_new_file: TBIO_new_file = nil;
   _BIO_new_mem_buf: TBIO_new_mem_buf = nil;
 
+  //  PKCS7 functions
+{  PKCS7_ISSUER_AND_SERIAL_it : ASN1_ITEM;cvar;external;
+  PKCS7_SIGNER_INFO_it : ASN1_ITEM;cvar;external;
+  PKCS7_RECIP_INFO_it : ASN1_ITEM;cvar;external;
+  PKCS7_SIGNED_it : ASN1_ITEM;cvar;external;
+  PKCS7_ENC_CONTENT_it : ASN1_ITEM;cvar;external;
+  PKCS7_ENVELOPE_it : ASN1_ITEM;cvar;external;
+  PKCS7_SIGN_ENVELOPE_it : ASN1_ITEM;cvar;external;
+  PKCS7_DIGEST_it : ASN1_ITEM;cvar;external;
+  PKCS7_ENCRYPT_it : ASN1_ITEM;cvar;external;
+  PKCS7_it : ASN1_ITEM;cvar;external;
+  PKCS7_ATTR_SIGN_it : ASN1_ITEM;cvar;external;
+  PKCS7_ATTR_VERIFY_it : ASN1_ITEM;cvar;external;
+}
+  _PKCS7_ISSUER_AND_SERIAL_new : function: PPKCS7_ISSUER_AND_SERIAL;cdecl;
+  _PKCS7_ISSUER_AND_SERIAL_free : procedure(a:PPKCS7_ISSUER_AND_SERIAL);cdecl;
+  _PKCS7_ISSUER_AND_SERIAL_digest : function(data:PPKCS7_ISSUER_AND_SERIAL; _type:PEVP_MD; md:Pbyte; len:Pdword):longint;cdecl;
+  _PKCS7_dup : function(p7:PPKCS7):PPKCS7;cdecl;
+  _PEM_write_bio_PKCS7_stream : function(_out:PBIO; p7:PPKCS7; _in:PBIO; flags:longint):longint;cdecl;
+  _PKCS7_SIGNER_INFO_new : function:PPKCS7_SIGNER_INFO;cdecl;
+  _PKCS7_SIGNER_INFO_free : procedure(a:PPKCS7_SIGNER_INFO);cdecl;
+  _PKCS7_RECIP_INFO_new : function:PPKCS7_RECIP_INFO;cdecl;
+  _PKCS7_RECIP_INFO_free : procedure(a:PPKCS7_RECIP_INFO);cdecl;
+  _PKCS7_SIGNED_new : function:PPKCS7_SIGNED;cdecl;
+  _PKCS7_SIGNED_free : procedure(a:PPKCS7_SIGNED);cdecl;
+  _PKCS7_ENC_CONTENT_new : function:PPKCS7_ENC_CONTENT;cdecl;
+  _PKCS7_ENC_CONTENT_free : procedure(a:PPKCS7_ENC_CONTENT);cdecl;
+  _PKCS7_ENVELOPE_new : function:PPKCS7_ENVELOPE;cdecl;
+  _PKCS7_ENVELOPE_free : procedure(a:PPKCS7_ENVELOPE);cdecl;
+  _PKCS7_SIGN_ENVELOPE_new : function:PPKCS7_SIGN_ENVELOPE;cdecl;
+  _PKCS7_SIGN_ENVELOPE_free : procedure(a:PPKCS7_SIGN_ENVELOPE);cdecl;
+  _PKCS7_DIGEST_new : function:PPKCS7_DIGEST;cdecl;
+  _PKCS7_DIGEST_free : procedure(a:PPKCS7_DIGEST);cdecl;
+  _PKCS7_ENCRYPT_new : function:PPKCS7_ENCRYPT;cdecl;
+  _PKCS7_ENCRYPT_free : procedure(a:PPKCS7_ENCRYPT);cdecl;
+  _PKCS7_new : function:PPKCS7;cdecl;
+  _PKCS7_free : procedure(a:PPKCS7);cdecl;
+  _PKCS7_print_ctx : function(_out:PBIO; x:PPKCS7; indent:longint; pctx:Pointer):longint;cdecl;
+  _PKCS7_ctrl : function(p7:PPKCS7; cmd:longint; larg:longint; parg:Pchar):longint;cdecl;
+  _PKCS7_set_type : function(p7:PPKCS7; _type:longint):longint;cdecl;
+  _PKCS7_set0_type_other : function(p7:PPKCS7; _type:longint; other:PASN1_TYPE):longint;cdecl;
+  _PKCS7_set_content : function(p7:PPKCS7; p7_data:PPKCS7):longint;cdecl;
+  _PKCS7_SIGNER_INFO_set : function(p7i:PPKCS7_SIGNER_INFO; x509:PX509; pkey:PEVP_PKEY; dgst:PEVP_MD):longint;cdecl;
+  _PKCS7_SIGNER_INFO_sign : function(si:PPKCS7_SIGNER_INFO):longint;cdecl;
+  _PKCS7_add_signer : function(p7:PPKCS7; p7i:PPKCS7_SIGNER_INFO):longint;cdecl;
+  _PKCS7_add_certificate : function(p7:PPKCS7; x509:PX509):longint;cdecl;
+  _PKCS7_add_crl : function(p7:PPKCS7; x509: Pointer):longint;cdecl;
+  _PKCS7_content_new : function(p7:PPKCS7; nid:longint):longint;cdecl;
+  _PKCS7_add_signature : function(p7:PPKCS7; x509:PX509; pkey:PEVP_PKEY; dgst:PEVP_MD):PPKCS7_SIGNER_INFO;cdecl;
+  _PKCS7_cert_from_signer_info : function(p7:PPKCS7; si:PPKCS7_SIGNER_INFO):PX509;cdecl;
+  _PKCS7_set_digest : function(p7:PPKCS7; md:PEVP_MD):longint;cdecl;
+  _PKCS7_add_recipient : function(p7:PPKCS7; x509:PX509):PPKCS7_RECIP_INFO;cdecl;
+  _PKCS7_add_recipient_info : function(p7:PPKCS7; ri:PPKCS7_RECIP_INFO):longint;cdecl;
+  _PKCS7_RECIP_INFO_set : function(p7i:PPKCS7_RECIP_INFO; x509:PX509):longint;cdecl;
+  _PKCS7_set_cipher : function(p7:PPKCS7; cipher:PEVP_CIPHER):longint;cdecl;
+  _PKCS7_get_issuer_and_serial : function(p7:PPKCS7; idx:longint):PPKCS7_ISSUER_AND_SERIAL;cdecl;
+  _PKCS7_digest_from_attributes : function(sk:Pstack_st_X509_ATTRIBUTE):Pointer;cdecl;
+  _PKCS7_add_signed_attribute : function(p7si:PPKCS7_SIGNER_INFO; nid:longint; _type:longint; data:pointer):longint;cdecl;
+  _PKCS7_add_attribute : function(p7si:PPKCS7_SIGNER_INFO; nid:longint; atrtype:longint; value:pointer):longint;cdecl;
+  _PKCS7_get_attribute : function(si:PPKCS7_SIGNER_INFO; nid:longint):PASN1_TYPE;cdecl;
+  _PKCS7_get_signed_attribute : function(si:PPKCS7_SIGNER_INFO; nid:longint):PASN1_TYPE;cdecl;
+  _PKCS7_set_signed_attributes : function(p7si:PPKCS7_SIGNER_INFO; sk:Pstack_st_X509_ATTRIBUTE):longint;cdecl;
+  _PKCS7_set_attributes : function(p7si:PPKCS7_SIGNER_INFO; sk:Pstack_st_X509_ATTRIBUTE):longint;cdecl;
+  _PKCS7_sign : function(signcert:PX509; pkey:PEVP_PKEY; certs:Pstack_st_X509; data:PBIO; flags:longint):PPKCS7;cdecl;
+  _PKCS7_sign_add_signer : function(p7:PPKCS7; signcert:PX509; pkey:PEVP_PKEY; md:PEVP_MD; flags:longint):PPKCS7_SIGNER_INFO;cdecl;
+  _PKCS7_final : function(p7:PPKCS7; data:PBIO; flags:longint):longint;cdecl;
+  _PKCS7_verify : function(p7:PPKCS7; certs:Pstack_st_X509; store: Pointer; indata:PBIO; _out:PBIO;  flags:longint):longint;cdecl;
+  _PKCS7_encrypt : function(certs:Pstack_st_X509; _in:PBIO; cipher:PEVP_CIPHER; flags:longint):PPKCS7;cdecl;
+  _PKCS7_decrypt : function(p7:PPKCS7; pkey:PEVP_PKEY; cert:PX509; data:PBIO; flags:longint):longint;cdecl;
+  _PKCS7_add_attrib_smimecap : function(si:PPKCS7_SIGNER_INFO; cap:Pstack_st_X509_ALGOR):longint;cdecl;
+  _PKCS7_simple_smimecap : function(sk:Pstack_st_X509_ALGOR; nid:longint; arg:longint):longint;cdecl;
+  _PKCS7_add_attrib_content_type : function(si:PPKCS7_SIGNER_INFO; coid:Pointer):longint;cdecl;
+  _PKCS7_add0_attrib_signing_time : function(si:PPKCS7_SIGNER_INFO; t:PASN1_TIME):longint;cdecl;
+  _PKCS7_add1_attrib_digest : function(si:PPKCS7_SIGNER_INFO; md:Pbyte; mdlen:longint):longint;cdecl;
+  _BIO_new_PKCS7 : function(_out:PBIO; p7:PPKCS7):PBIO;cdecl;
+  _ERR_load_PKCS7_strings : procedure;cdecl;
+
+  // BN
+  _BN_new : function():PBIGNUM; cdecl;
+  _BN_secure_new : function():PBIGNUM; cdecl;
+  _BN_clear_free : procedure(a:PBIGNUM); cdecl;
+  _BN_copy : function(a:PBIGNUM; b:PBIGNUM):PBIGNUM; cdecl;
+  _BN_swap : procedure(a:PBIGNUM; b:PBIGNUM); cdecl;
+  _BN_bin2bn : function(s:pcuchar; len:cint; ret:PBIGNUM):PBIGNUM; cdecl;
+  _BN_bn2bin : function(a:PBIGNUM; _to:pcuchar):cint; cdecl;
+  _BN_bn2binpad : function(a:PBIGNUM; _to:pcuchar; tolen:cint):cint; cdecl;
+  _BN_lebin2bn : function(s:pcuchar; len:cint; ret:PBIGNUM):PBIGNUM; cdecl;
+  _BN_bn2lebinpad : function(a:PBIGNUM; _to:pcuchar; tolen:cint):cint; cdecl;
+  _BN_mpi2bn : function(s:pcuchar; len:cint; ret:PBIGNUM):PBIGNUM; cdecl;
+  _BN_bn2mpi : function(a:PBIGNUM; _to:pcuchar):cint;cdecl;
+  _BN_sub : function(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM):cint; cdecl;
+  _BN_usub : function(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM):cint; cdecl;
+  _BN_uadd : function(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM):cint; cdecl;
+  _BN_add : function(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM):cint; cdecl;
+  _BN_mul : function(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM; ctx:PBN_CTX):cint; cdecl;
+  _BN_sqr : function(r:PBIGNUM; a:PBIGNUM; ctx:PBN_CTX):cint; cdecl;
+  _BN_set_negative : procedure(b:PBIGNUM; n:cint);cdecl;
+  _BN_is_negative : function(b:PBIGNUM):cint;cdecl;
+  _BN_div : function(dv:PBIGNUM; rem:PBIGNUM; m:PBIGNUM; d:PBIGNUM; ctx:PBN_CTX):cint; cdecl;
+  _BN_mod : function(rem: PBIGNUM; a:PBIGNUM; m: PBIGNUM; ctx : PBN_CTX) : cint; cdecl;
+  _BN_nnmod : function(r:PBIGNUM; m:PBIGNUM; d:PBIGNUM; ctx:PBN_CTX):cint; cdecl;
+  _BN_mod_add : function(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM; m:PBIGNUM; ctx:PBN_CTX):cint; cdecl;
+  _BN_mod_add_quick : function(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM; m:PBIGNUM):cint; cdecl;
+  _BN_mod_sub : function(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM; m:PBIGNUM; ctx:PBN_CTX):cint; cdecl;
+  _BN_mod_sub_quick : function(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM; m:PBIGNUM):cint; cdecl;
+  _BN_mod_mul : function(r:PBIGNUM; a:PBIGNUM; b:PBIGNUM; m:PBIGNUM; ctx:PBN_CTX):cint; cdecl;
+  _BN_mod_sqr : function(r:PBIGNUM; a:PBIGNUM; m:PBIGNUM; ctx:PBN_CTX):cint; cdecl;
+  _BN_mod_lshift1 : function(r:PBIGNUM; a:PBIGNUM; m:PBIGNUM; ctx:PBN_CTX):cint; cdecl;
+  _BN_mod_lshift1_quick : function(r:PBIGNUM; a:PBIGNUM; m:PBIGNUM):cint; cdecl;
+  _BN_mod_lshift : function(r:PBIGNUM; a:PBIGNUM; n:cint; m:PBIGNUM; ctx:PBN_CTX):cint; cdecl;
+  _BN_mod_lshift_quick : function(r:PBIGNUM; a:PBIGNUM; n:cint; m:PBIGNUM):cint; cdecl;
+  _BN_mod_word : function(a:PBIGNUM; w:BN_ULONG):BN_ULONG; cdecl;
+  _BN_div_word : function(a:PBIGNUM; w:BN_ULONG):BN_ULONG; cdecl;
+  _BN_mul_word : function(a:PBIGNUM; w:BN_ULONG):cint; cdecl;
+  _BN_add_word : function(a:PBIGNUM; w:BN_ULONG):cint; cdecl;
+  _BN_sub_word : function(a:PBIGNUM; w:BN_ULONG):cint; cdecl;
+  _BN_set_word : function(a:PBIGNUM; w:BN_ULONG):cint; cdecl;
+  _BN_get_word : function(a:PBIGNUM):BN_ULONG; cdecl;
+  _BN_cmp : function(a:PBIGNUM; b:PBIGNUM):cint; cdecl;
+  _BN_free : procedure(a:PBIGNUM); cdecl;
 
 // libssl.dll
 
@@ -1490,18 +2170,31 @@ begin
     Result := SSL_ERROR_SSL;
 end;
 
+Function OPENSSL_init_ssl(opts: uint64_t ; settings : POPENSSL_INIT_SETTINGS) : cint;
+
+begin
+  Result := 1;
+  if InitSSLInterface and Assigned(_OPENSSL_init_ssl) then
+    Result:=_OPENSSL_init_ssl(opts,settings);
+end;
+
 function SslLibraryInit:cInt;
 begin
-  if InitSSLInterface and Assigned(_SslLibraryInit) then
-    Result := _SslLibraryInit
-  else
-    Result := 1;
+  Result := 1;
+  if InitSSLInterface then
+    if Assigned(_SslLibraryInit) then
+      Result := _SslLibraryInit
+    else if Assigned(_OPENSSL_init_ssl) then
+      Result:=_OPENSSL_init_ssl(0,Nil)
 end;
 
 procedure SslLoadErrorStrings;
 begin
-  if InitSSLInterface and Assigned(_SslLoadErrorStrings) then
-    _SslLoadErrorStrings;
+  if InitSSLInterface then
+    if Assigned(_SslLoadErrorStrings) then
+      _SslLoadErrorStrings
+    else if Assigned(_OpenSSl_init_ssl) then
+      _OpenSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS or OPENSSL_INIT_LOAD_CRYPTO_STRINGS,Nil)
 end;
 
 function SslCtxSetCipherList(arg0: PSSL_CTX; var str: String):cInt;
@@ -1595,10 +2288,34 @@ begin
     Result := nil;
 end;
 
+function SslMethodTLSV1_1:PSSL_METHOD;
+begin
+  if InitSSLInterface and Assigned(_SslMethodTLSV1_1) then
+    Result := _SslMethodTLSV1_1
+  else
+    Result := nil;
+end;
+
+function SslMethodTLSV1_2:PSSL_METHOD;
+begin
+  if InitSSLInterface and Assigned(_SslMethodTLSV1_2) then
+    Result := _SslMethodTLSV1_2
+  else
+    Result := nil;
+end;
+
 function SslMethodV23:PSSL_METHOD;
 begin
   if InitSSLInterface and Assigned(_SslMethodV23) then
     Result := _SslMethodV23
+  else
+    Result := nil;
+end;
+
+function SslTLSMethod:PSSL_METHOD;
+begin
+  if InitSSLInterface and Assigned(_SslTLSMethod) then
+    Result := _SslTLSMethod
   else
     Result := nil;
 end;
@@ -1611,10 +2328,18 @@ begin
     Result := 0;
 end;
 
-function SslCtxUsePrivateKeyASN1(pk: cInt; ctx: PSSL_CTX; d: String; len: cLong):cInt;
+function SslCtxUsePrivateKeyASN1(pk: cInt; ctx: PSSL_CTX; d: String; len: cLong):cInt; overload;
 begin
   if InitSSLInterface and Assigned(_SslCtxUsePrivateKeyASN1) then
     Result := _SslCtxUsePrivateKeyASN1(pk, ctx, Sslptr(d), len)
+  else
+    Result := 0;
+end;
+
+function SslCtxUsePrivateKeyASN1(pk: cInt; ctx: PSSL_CTX; b: TBytes; len: cLong): cInt;overload;
+begin
+  if InitSSLInterface and Assigned(_SslCtxUsePrivateKeyASN1) then
+    Result := _SslCtxUsePrivateKeyASN1(pk, ctx, Sslptr(b), len)
   else
     Result := 0;
 end;
@@ -1639,6 +2364,14 @@ function SslCtxUseCertificateASN1(ctx: PSSL_CTX; len: cLong; d: String):cInt;
 begin
   if InitSSLInterface and Assigned(_SslCtxUseCertificateASN1) then
     Result := _SslCtxUseCertificateASN1(ctx, len, SslPtr(d))
+  else
+    Result := 0;
+end;
+
+function SslCtxUseCertificateASN1(ctx: PSSL_CTX; len: cLong; Buf: TBytes): cInt;
+begin
+  if InitSSLInterface and Assigned(_SslCtxUseCertificateASN1) then
+    Result := _SslCtxUseCertificateASN1(ctx, len, SslPtr(Buf))
   else
     Result := 0;
 end;
@@ -1757,6 +2490,14 @@ begin
     Result := 0;
 end;
 
+function OpenSSLGetVersion(t: cint):String;
+begin
+  if InitSSLInterface and Assigned(_OpenSSLVersion) then
+    Result := _OpenSSLVersion(t)
+  else
+    Result := '';
+end;
+
 //function SslGetVersion(ssl: PSSL):PChar;
 function SslGetVersion(ssl: PSSL):String;
 begin
@@ -1774,7 +2515,7 @@ begin
     Result := nil;
 end;
 
-procedure SslCtxSetVerify(ctx: PSSL_CTX; mode: cInt; arg2: PFunction);
+procedure SslCtxSetVerify(ctx: PSSL_CTX; mode: cInt; arg2: TSSLCTXVerifyCallback);
 begin
   if InitSSLInterface and Assigned(_SslCtxSetVerify) then
     _SslCtxSetVerify(ctx, mode, @arg2);
@@ -1815,6 +2556,27 @@ begin
     Result := X509_V_ERR_APPLICATION_VERIFICATION;
 end;
 
+function SSLGetServername(ssl: PSSL; _type: cInt = TLSEXT_NAMETYPE_host_name): string;
+begin
+  if InitSSLInterface and Assigned(_SSLGetServername) then
+    result := PChar(_SSLGetServername(ssl, _type))
+  else
+    result := '';
+end;
+
+procedure SslCtxCallbackCtrl(ssl: PSSL; _type: cInt; cb: PCallbackCb);
+begin
+  if InitSSLInterface and Assigned(_SslCtxCallbackCtrl) then
+    _SslCtxCallbackCtrl(ssl, _type, cb);
+end;
+
+function SslSetSslCtx(ssl: PSSL; ctx: PSSL_CTX): PSSL;
+begin
+  if InitSSLInterface and Assigned(_SslSetSslCtx) then
+    result := _SslSetSslCtx(ssl, ctx)
+  else
+    result := nil;
+end;
 
 // libeay.dll
 function SSLeayversion(t: cInt): string;
@@ -1825,10 +2587,53 @@ begin
     Result := '';
 end;
 
+Procedure OPENSSL_cleanup;
+
+begin
+  if InitSSLInterface and Assigned(_OPENSSL_cleanup) then
+    _OPENSSL_cleanup();
+end;
+
+function OPENSSL_INIT_new : POPENSSL_INIT_SETTINGS;
+
+begin
+  if InitsslInterface and assigned(_OPENSSL_INIT_new) then
+    Result:=_OPENSSL_INIT_new()
+  else
+    result:=nil;
+end;
+
+procedure OPENSSL_INIT_free(aSettings : POPENSSL_INIT_SETTINGS);
+
+begin
+  if InitsslInterface and assigned(_OPENSSL_INIT_free) then
+    _OPENSSL_INIT_free(aSettings);
+end;
+
+function OPENSSL_INIT_set_config_appname (settings:POPENSSL_INIT_SETTINGS; config_file : Pchar) : cint;
+
+begin
+  if InitsslInterface and assigned(_OPENSSL_INIT_set_config_appname) then
+    Result:=_OPENSSL_INIT_set_config_appname(Settings,config_file)
+  else
+    Result:=1;
+end;
+
+Function OPENSSL_init_crypto ( opts: uint64_t ; settings : POPENSSL_INIT_SETTINGS) : cint;
+begin
+  if InitSSLInterface and Assigned(_OPENSSL_init_crypto) then
+    Result:=_OPENSSL_init_crypto(opts,Settings)
+  else
+    Result:=1;
+end;
+
 procedure ERR_load_crypto_strings;
 Begin
-  if InitSSLInterface and Assigned(_ERR_load_crypto_strings) then
-    _ERR_load_crypto_strings;
+  if InitSSLInterface then
+    if Assigned(_ERR_load_crypto_strings) then
+     _ERR_load_crypto_strings
+    else if Assigned(_OPENSSL_init_crypto) then
+     _OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS,Nil);
 end;
 
 function X509New: PX509;
@@ -1902,7 +2707,9 @@ end;
 procedure ErrErrorString(e: cInt; var buf: string; len: cInt);
 begin
   if InitSSLInterface and Assigned(_ErrErrorString) then
-    _ErrErrorString(e, Pointer(buf), len);
+    _ErrErrorString(e, @buf[1], len)
+  else
+    buf := SFailedToLoadOpenSSL;
   buf := PChar(Buf);
 end;
 
@@ -1975,6 +2782,14 @@ begin
     Result := 0;
 end;
 
+function BioRead(b: PBIO; Buf: TBytes; Len: cInt): cInt;
+begin
+  if InitSSLInterface and Assigned(_BioRead) then
+    Result := _BioRead(b, PChar(Buf), Len)
+  else
+    Result := -2;
+end;
+
 function BioRead(b: PBIO; var Buf: String; Len: cInt): cInt;
 begin
   if InitSSLInterface and Assigned(_BioRead) then
@@ -1991,6 +2806,16 @@ begin
   else
     Result := -2;
 end;
+
+function BioWrite(b: PBIO; Buf: TBytes; Len: cInt): cInt;
+
+begin
+  if InitSSLInterface and Assigned(_BioWrite) then
+    Result := _BioWrite(b, PChar(Buf), Len)
+  else
+    Result := -2;
+end;
+
 
 function X509print(b: PBIO; a: PX509): cInt;
 begin
@@ -2046,6 +2871,15 @@ begin
     Result := 0;
 end;
 
+function X509GetPubkey(x: PX509): PEVP_PKEY;
+begin
+  if InitSSLInterface and Assigned(_X509GetPubkey) then
+    Result := _X509GetPubkey(x)
+  else
+   Result := Nil;
+end;
+
+
 function X509SetIssuerName(x: PX509; name: PX509_NAME): cInt;
 begin
   if InitSSLInterface and Assigned(_X509SetIssuerName) then
@@ -2073,8 +2907,14 @@ end;
 
 function Asn1UtctimeNew: PASN1_UTCTIME;
 begin
-  if InitSSLInterface and Assigned(_Asn1UtctimeNew) then
-    Result := _Asn1UtctimeNew
+  Result:=PASN1_UTCTIME(Asn1StringTypeNew(V_ASN1_UTCTIME));
+end;
+
+function Asn1StringTypeNew(aType : cint): PASN1_STRING;
+
+begin
+  if InitSSLInterface and Assigned(_Asn1StringTypeNew) then
+    Result := _Asn1StringTypeNew(aType)
   else
     Result := nil;
 end;
@@ -2083,6 +2923,22 @@ procedure Asn1UtctimeFree(a: PASN1_UTCTIME);
 begin
   if InitSSLInterface and Assigned(_Asn1UtctimeFree) then
     _Asn1UtctimeFree(a);
+end;
+
+function Asn1UtctimePrint(b: PBio; a: PASN1_UTCTIME): integer;
+begin
+  if InitSSLInterface and Assigned(_Asn1UtctimePrint) then
+    Result:=_Asn1UtctimePrint(b,a)
+  else
+    Result:=0;
+end;
+
+function ASN1UtcTimeSetString(t: PASN1_UTCTIME; s: PAnsichar): cint;
+begin
+  if InitSSLInterface and Assigned(_Asn1UtctimeSetString) then
+    Result:=_Asn1UtctimeSetString(t,s)
+  else
+    Result:=0;
 end;
 
 function Asn1IntegerSet(a: PASN1_INTEGER; v: integer): integer;
@@ -2214,7 +3070,7 @@ end;
 procedure RAND_cleanup;
 begin
   if InitSSLInterface and Assigned(_RAND_cleanup) then
-    _RAND_cleanup();
+    _RAND_cleanup(); // OK if it does not exit;
 end;
 
 function RAND_bytes(buf: PByte; num: cint): cint;
@@ -2349,12 +3205,12 @@ begin
     Result := nil;
 end;
 
-function RSA_generate_key_ex(arsa: PRSA; bits: cInt; e: PBIGNUM; cb: PBN_GENCB): PRSA;
+function RSA_generate_key_ex(arsa: PRSA; bits: cInt; e: PBIGNUM; cb: PBN_GENCB): cint;
 begin
   if InitSSLInterface and Assigned(_RSA_generate_key_ex) then
     Result := _RSA_generate_key_ex(arsa, bits, e, cb)
   else
-    Result := nil;
+    Result := 0;
 end;
 
 function RSA_check_key(arsa: PRSA): cint;
@@ -2473,6 +3329,22 @@ begin
     Result := -1;
 end;
 
+function d2i_PubKey(a: PPEVP_PKEY; pp: PPByte; len: clong): PEVP_PKEY;
+begin
+  if InitSSLInterface and Assigned(_d2i_PubKey) then
+    Result := _d2i_PubKey(a, pp, len)
+  else
+    Result := nil;
+end;
+
+function d2i_AutoPrivateKey(a: PPEVP_PKEY; pp: PPByte; len: clong): PEVP_PKEY;
+begin
+  if InitSSLInterface and Assigned(_d2i_AutoPrivateKey) then
+    Result := _d2i_AutoPrivateKey(a, pp, len)
+  else
+    Result := nil;
+end;
+
 // ERR Functions
 
 function Err_Error_String(e: cInt; buf: PChar): PChar;
@@ -2487,8 +3359,8 @@ end;
 
 function SSLeay_version(t: cint): PChar;
 begin
-  if InitSSLInterface and Assigned(_SSLeay_version) then
-    Result := _SSLeay_version(t)
+  if InitSSLInterface and Assigned(_SSLeayversion) then
+    Result := _SSLeayversion(t)
   else
     Result := nil;
 end;
@@ -2631,22 +3503,41 @@ begin
     Result := Nil;
 end;
 
+function EVP_sha256: PEVP_CIPHER;
+begin
+  if InitSSLInterface and Assigned(_EVP_sha256) then
+    Result := _EVP_sha256()
+  else
+    Result := Nil;
+end;
+
+
 procedure OpenSSL_add_all_algorithms;
 begin
-  if InitSSLInterface and Assigned(_OpenSSL_add_all_algorithms) then
-    _OpenSSL_add_all_algorithms();
+  if InitSSLInterface then
+    if Assigned(_OpenSSL_add_all_algorithms) then
+      _OpenSSL_add_all_algorithms()
+    else if assigned(_OPENSSL_init_crypto) then
+       _OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS or OPENSSL_INIT_ADD_ALL_DIGESTS or OPENSSL_INIT_LOAD_CONFIG, Nil)
 end;
 
 procedure OpenSSL_add_all_ciphers;
 begin
-  if InitSSLInterface and Assigned(_OpenSSL_add_all_ciphers) then
-    _OpenSSL_add_all_ciphers();
+  if InitSSLInterface then
+    if Assigned(_OpenSSL_add_all_ciphers) then
+      _OpenSSL_add_all_ciphers()
+   else if assigned(_OPENSSL_init_crypto) then
+      _OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS, Nil)
 end;
 
 procedure OpenSSL_add_all_digests;
+
 begin
-  if InitSSLInterface and Assigned(_OpenSSL_add_all_digests) then
-    _OpenSSL_add_all_digests();
+  if InitSSLInterface then
+    if Assigned(_OpenSSL_add_all_digests) then
+      _OpenSSL_add_all_digests()
+    else if assigned(_OPENSSL_init_crypto) then
+     _OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_DIGESTS, Nil)
 end;
 //
 function EVP_DigestInit(ctx: PEVP_MD_CTX; type_: PEVP_MD): cint;
@@ -2725,14 +3616,20 @@ end;
 //
 procedure EVP_CIPHER_CTX_init(a: PEVP_CIPHER_CTX);
 begin
-  if InitSSLInterface and Assigned(_EVP_CIPHER_CTX_init) then
-    _EVP_CIPHER_CTX_init(a);
+  if InitSSLInterface then
+    if Assigned(_EVP_CIPHER_CTX_init) then
+    _EVP_CIPHER_CTX_init(a)
+  else if Assigned(_EVP_CIPHER_CTX_reset) then
+    _EVP_CIPHER_CTX_reset(a);
 end;
 
 function EVP_CIPHER_CTX_cleanup(a: PEVP_CIPHER_CTX): cint;
 begin
-  if InitSSLInterface and Assigned(_EVP_CIPHER_CTX_cleanup) then
+  if InitSSLInterface then
+   if  Assigned(_EVP_CIPHER_CTX_cleanup) then
     Result := _EVP_CIPHER_CTX_cleanup(a)
+  else if  Assigned(_EVP_CIPHER_CTX_reset) then
+    Result := _EVP_CIPHER_CTX_reset(a)
   else
     Result := -1;
 end;
@@ -2805,6 +3702,75 @@ begin
     Result := -1;
 end;
 
+function EVP_MD_CTX_new: PEVP_MD_CTX;
+begin
+  if InitSSLInterface and Assigned(_EVP_MD_CTX_new) then
+    Result := _EVP_MD_CTX_new
+  else
+    Result := Nil;
+end;
+
+function EVP_MD_CTX_create: PEVP_MD_CTX;
+begin
+  if InitSSLInterface and Assigned(_EVP_MD_CTX_new) then
+    Result := _EVP_MD_CTX_new
+  else
+    Result := Nil;
+end;
+
+procedure EVP_MD_CTX_destroy(ctx: PEVP_MD_CTX);
+begin
+  EVP_MD_CTX_free(ctx);
+end;
+
+procedure EVP_MD_CTX_free(ctx: PEVP_MD_CTX);
+begin
+  if InitSSLInterface and Assigned(_EVP_MD_CTX_free) then
+    _EVP_MD_CTX_free(ctx)
+end;
+
+function EVP_DigestSignInit(ctx: PEVP_MD_CTX; pctx: PPEVP_PKEY_CTX; const evptype: PEVP_MD; e: PENGINE; pkey: PEVP_PKEY): cint;
+begin
+  if InitSSLInterface and Assigned(_EVP_DigestSignInit) then
+    Result := _EVP_DigestSignInit(ctx, pctx, evptype, e, pkey)
+  else
+    Result := -1;
+end;
+
+function EVP_DigestSignUpdate(ctx: PEVP_MD_CTX; const data: Pointer; cnt: csize_t): cint;
+begin
+  Result := EVP_DigestUpdate(ctx, data, cnt);
+end;
+
+function EVP_DigestSignFinal(ctx: PEVP_MD_CTX; sigret: PByte; siglen: pcsize_t): cint;
+begin
+  if InitSSLInterface and Assigned(_EVP_DigestSignFinal) then
+    Result := _EVP_DigestSignFinal(ctx, sigret, siglen)
+  else
+    Result := -1;
+end;
+
+function EVP_DigestVerifyInit(ctx: PEVP_MD_CTX; pctx: PPEVP_PKEY_CTX; const evptype: PEVP_MD; e: PENGINE; pkey: PEVP_PKEY): cint;
+begin
+  if InitSSLInterface and Assigned(_EVP_DigestVerifyInit) then
+    Result := _EVP_DigestVerifyInit(ctx, pctx, evptype, e, pkey)
+  else
+    Result := -1;
+end;
+
+function EVP_DigestVerifyUpdate(ctx: PEVP_MD_CTX; const data: Pointer; cnt: csize_t): cint;
+begin
+  Result := EVP_DigestUpdate(ctx, data, cnt);
+end;
+
+function EVP_DigestVerifyFinal(ctx: PEVP_MD_CTX; sig: PByte; siglen: csize_t): cint;
+begin
+  if InitSSLInterface and Assigned(_EVP_DigestVerifyFinal) then
+    Result := _EVP_DigestVerifyFinal(ctx, sig, siglen)
+  else
+    Result := -1;
+end;
+
 { PEM }
 
 function PEM_read_bio_PrivateKey(bp: PBIO; X: PPEVP_PKEY;
@@ -2827,21 +3793,47 @@ end;
 
 function PEM_write_bio_PrivateKey(bp: pBIO; x: pEVP_PKEY;
                const enc: pEVP_CIPHER; kstr: PChar; klen: Integer; cb: Ppem_password_cb;
-               u: pointer): integer; 
+               u: pointer): integer;
 Begin
    if InitSSLInterface and Assigned(_PEM_write_bio_PrivateKey) then
     Result := _PEM_write_bio_PrivateKey(bp, x, enc ,kstr ,klen ,cb, u)
   else
     Result := -1;
-end;   
+end;
 
-function PEM_write_bio_PUBKEY(bp: pBIO; x: pEVP_PKEY): integer; 
+function PEM_write_bio_PUBKEY(bp: pBIO; x: pEVP_PKEY): integer;
 Begin
    if InitSSLInterface and Assigned(_PEM_write_bio_PUBKEY) then
     Result := _PEM_write_bio_PUBKEY(bp, x)
   else
     Result := -1;
-end; 
+end;
+
+function PEM_read_bio_X509(bp: PBIO; x: PPX509; cb: ppem_password_cb; u: pointer): PX509;
+begin
+  if InitSSLInterface and Assigned(_PEM_read_bio_X509) then
+    Result := _PEM_read_bio_X509(bp, x, cb, u)
+  else
+    Result := nil;
+end;
+
+function PEM_write_bio_X509(bp: pBIO;  x: px509): integer;
+begin
+  if InitSSLInterface and Assigned(_PEM_write_bio_X509) then
+    Result := _PEM_write_bio_X509(bp, x)
+  else
+    Result := 0;
+end;
+
+function PEM_write_bio_PKCS7(bp : PBIO; x : PPKCS7) : cint;
+
+begin
+  if InitSSLInterface and Assigned(_PEM_write_bio_PKCS7) then
+    Result := _PEM_write_bio_PKCS7(bp, x)
+  else
+    Result := 0;
+end;
+
 
 // BIO Functions
 
@@ -2858,7 +3850,7 @@ begin
   Result := BIO_ctrl(b, BIO_C_SET_FILENAME, BIO_CLOSE or BIO_FP_READ, name);
 end;
 
-function BIO_s_file: PBIO_METHOD;
+function BIO_s_file: pBIO_METHOD;
 begin
   if InitSSLInterface and Assigned(_BIO_s_file) then
     Result := _BIO_s_file
@@ -2882,6 +3874,884 @@ begin
     Result := nil;
 end;
 
+// PKCS7 Functions
+
+
+function PKCS7_ISSUER_AND_SERIAL_new : PPKCS7_ISSUER_AND_SERIAL;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_ISSUER_AND_SERIAL_new) then
+    Result := _PKCS7_ISSUER_AND_SERIAL_new
+  else
+    Result := nil;
+end;
+
+procedure PKCS7_ISSUER_AND_SERIAL_free (a:PPKCS7_ISSUER_AND_SERIAL);
+begin
+  if InitSSLInterface and Assigned(_PKCS7_ISSUER_AND_SERIAL_free) then
+    _PKCS7_ISSUER_AND_SERIAL_free(a)
+end;
+
+function PKCS7_ISSUER_AND_SERIAL_digest(data:PPKCS7_ISSUER_AND_SERIAL; _type:PEVP_MD; md:Pbyte; len:Pdword):longint;
+begin
+  if InitSSLInterface and Assigned(_PKCS7_ISSUER_AND_SERIAL_digest) then
+    Result:=_PKCS7_ISSUER_AND_SERIAL_digest(data,_type,md,len)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_dup(p7:PPKCS7):PPKCS7;
+begin
+  if InitSSLInterface and Assigned(_PKCS7_dup) then
+    Result:=_PKCS7_dup(p7)
+  else
+    Result:=Nil;
+end;
+
+function PEM_write_bio_PKCS7_stream(_out:PBIO; p7:PPKCS7; _in:PBIO; flags:longint):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PEM_write_bio_PKCS7_stream) then
+    Result:=_PEM_write_bio_PKCS7_stream(_out,p7,_in,flags)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_SIGNER_INFO_new:PPKCS7_SIGNER_INFO;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_SIGNER_INFO_new) then
+    Result:=_PKCS7_SIGNER_INFO_new
+  else
+    Result:=Nil;
+end;
+
+procedure PKCS7_SIGNER_INFO_free(a:PPKCS7_SIGNER_INFO);
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_SIGNER_INFO_free) then
+    _PKCS7_SIGNER_INFO_free(a);
+end;
+
+
+function PKCS7_RECIP_INFO_new:PPKCS7_RECIP_INFO;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_RECIP_INFO_new) then
+    Result:=_PKCS7_RECIP_INFO_new
+  else
+    Result:=Nil;
+end;
+
+procedure PKCS7_RECIP_INFO_free(a:PPKCS7_RECIP_INFO);
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_RECIP_INFO_free) then
+    _PKCS7_RECIP_INFO_free(a);
+end;
+
+
+function PKCS7_SIGNED_new:PPKCS7_SIGNED;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_SIGNED_new) then
+    Result:=_PKCS7_SIGNED_new
+  else
+    Result:=Nil;
+end;
+
+procedure PKCS7_SIGNED_free(a:PPKCS7_SIGNED);
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_SIGNED_free) then
+    _PKCS7_SIGNED_free(a)
+end;
+
+
+function PKCS7_ENC_CONTENT_new:PPKCS7_ENC_CONTENT;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_ENC_CONTENT_new) then
+    Result:=_PKCS7_ENC_CONTENT_new
+  else
+    Result:=Nil;
+end;
+
+procedure PKCS7_ENC_CONTENT_free(a:PPKCS7_ENC_CONTENT);
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_ENC_CONTENT_free) then
+    _PKCS7_ENC_CONTENT_free(a)
+end;
+
+
+function PKCS7_ENVELOPE_new:PPKCS7_ENVELOPE;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_ENVELOPE_new) then
+    Result:=_PKCS7_ENVELOPE_new
+  else
+    Result:=Nil;
+end;
+
+procedure PKCS7_ENVELOPE_free(a:PPKCS7_ENVELOPE);
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_ENVELOPE_free) then
+    _PKCS7_ENVELOPE_free(a)
+end;
+
+
+function PKCS7_SIGN_ENVELOPE_new:PPKCS7_SIGN_ENVELOPE;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_SIGN_ENVELOPE_new) then
+    Result:=_PKCS7_SIGN_ENVELOPE_new
+  else
+    Result:=Nil;
+end;
+
+procedure PKCS7_SIGN_ENVELOPE_free(a:PPKCS7_SIGN_ENVELOPE);
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_SIGN_ENVELOPE_free) then
+    _PKCS7_SIGN_ENVELOPE_free(a)
+end;
+
+
+function PKCS7_DIGEST_new:PPKCS7_DIGEST;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_DIGEST_new) then
+    Result:=_PKCS7_DIGEST_new
+  else
+    Result:=Nil;
+end;
+
+procedure PKCS7_DIGEST_free(a:PPKCS7_DIGEST);
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_DIGEST_free) then
+    _PKCS7_DIGEST_free(a)
+end;
+
+
+function PKCS7_ENCRYPT_new:PPKCS7_ENCRYPT;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_ENCRYPT_new) then
+    Result:=_PKCS7_ENCRYPT_new
+  else
+    Result:=Nil;
+end;
+
+procedure PKCS7_ENCRYPT_free(a:PPKCS7_ENCRYPT);
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_ENCRYPT_free) then
+    _PKCS7_ENCRYPT_free(a)
+end;
+
+
+function PKCS7_new:PPKCS7;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_new) then
+    Result:=_PKCS7_new
+  else
+    Result:=Nil;
+end;
+
+procedure PKCS7_free(a:PPKCS7);
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_free) then
+    _PKCS7_free(a)
+end;
+
+
+function PKCS7_print_ctx(_out:PBIO; x:PPKCS7; indent:longint; pctx:Pointer):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_print_ctx) then
+    Result:=PKCS7_print_ctx(_out,x,indent,pctx)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_ctrl(p7:PPKCS7; cmd:longint; larg:longint; parg:Pchar):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_ctrl) then
+    Result:=_PKCS7_ctrl(p7,cmd,larg,parg)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_set_type(p7:PPKCS7; _type:longint):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_set_type) then
+    Result:=_PKCS7_set_type(p7,_type)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_set0_type_other(p7:PPKCS7; _type:longint; other:PASN1_TYPE):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_set0_type_other) then
+    Result:=_PKCS7_set0_type_other(p7,_type,other)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_set_content(p7:PPKCS7; p7_data:PPKCS7):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_set_content) then
+    Result:=_PKCS7_set_content(p7,p7_Data)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_SIGNER_INFO_set(p7i:PPKCS7_SIGNER_INFO; x509:PX509; pkey:PEVP_PKEY; dgst:PEVP_MD):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_SIGNER_INFO_set) then
+    Result:=_PKCS7_SIGNER_INFO_set(p7i,x509,pkey,dgst)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_SIGNER_INFO_sign(si:PPKCS7_SIGNER_INFO):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_SIGNER_INFO_sign) then
+    Result:=_PKCS7_SIGNER_INFO_sign(si)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_add_signer(p7:PPKCS7; p7i:PPKCS7_SIGNER_INFO):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_add_signer) then
+    Result:=_PKCS7_add_signer(p7,p7i)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_add_certificate(p7:PPKCS7; x509:PX509):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_add_certificate) then
+    Result:=_PKCS7_add_certificate(p7,x509)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_add_crl(p7:PPKCS7; x509: Pointer):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_add_crl) then
+    Result:=PKCS7_add_crl(p7,x509)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_content_new(p7:PPKCS7; nid:longint):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_content_new) then
+    Result:=_PKCS7_content_new(p7,nid)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_add_signature(p7:PPKCS7; x509:PX509; pkey:PEVP_PKEY; dgst:PEVP_MD):PPKCS7_SIGNER_INFO;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_add_signature) then
+    Result:=PKCS7_add_signature(p7,x509,pkey,dgst)
+  else
+    Result:=Nil;
+end;
+
+function PKCS7_cert_from_signer_info(p7:PPKCS7; si:PPKCS7_SIGNER_INFO):PX509;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_cert_from_signer_info) then
+    Result:=_PKCS7_cert_from_signer_info(p7,si)
+  else
+    Result:=Nil;
+end;
+
+function PKCS7_set_digest(p7:PPKCS7; md:PEVP_MD):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_set_digest) then
+    Result:=_PKCS7_set_digest(p7,md)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_add_recipient(p7:PPKCS7; x509:PX509):PPKCS7_RECIP_INFO;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_add_recipient) then
+    Result:=_PKCS7_add_recipient(p7,x509)
+  else
+    Result:=Nil;
+end;
+
+function PKCS7_add_recipient_info(p7:PPKCS7; ri:PPKCS7_RECIP_INFO):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_add_recipient_info) then
+    Result:=_PKCS7_add_recipient_info(p7,ri)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_RECIP_INFO_set(p7i:PPKCS7_RECIP_INFO; x509:PX509):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_RECIP_INFO_set) then
+    Result:=_PKCS7_RECIP_INFO_set(p7i,x509)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_set_cipher(p7:PPKCS7; cipher:PEVP_CIPHER):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_set_cipher) then
+    Result:=_PKCS7_set_cipher(p7,cipher)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_get_issuer_and_serial(p7:PPKCS7; idx:longint):PPKCS7_ISSUER_AND_SERIAL;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_get_issuer_and_serial) then
+    Result:=_PKCS7_get_issuer_and_serial(P7,idx)
+  else
+    Result:=Nil;
+end;
+
+function PKCS7_digest_from_attributes(sk:Pstack_st_X509_ATTRIBUTE):Pointer;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_digest_from_attributes) then
+    Result:=_PKCS7_digest_from_attributes(sk)
+  else
+    Result:=Nil;
+end;
+
+function PKCS7_add_signed_attribute(p7si:PPKCS7_SIGNER_INFO; nid:longint; _type:longint; data:pointer):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_add_signed_attribute) then
+    Result:=_PKCS7_add_signed_attribute(p7si,nid,_type,data)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_add_attribute(p7si:PPKCS7_SIGNER_INFO; nid:longint; atrtype:longint; value:pointer):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_add_attribute) then
+    Result:=_PKCS7_add_attribute(p7si,nid,atrtype,value)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_get_attribute(si:PPKCS7_SIGNER_INFO; nid:longint):PASN1_TYPE;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_get_attribute) then
+    Result:=_PKCS7_get_attribute(si,nid)
+  else
+    Result:=Nil;
+end;
+
+function PKCS7_get_signed_attribute(si:PPKCS7_SIGNER_INFO; nid:longint):PASN1_TYPE;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_get_signed_attribute) then
+    Result:=_PKCS7_get_signed_attribute(si,nid)
+  else
+    Result:=Nil;
+end;
+
+function PKCS7_set_signed_attributes(p7si:PPKCS7_SIGNER_INFO; sk:Pstack_st_X509_ATTRIBUTE):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_set_signed_attributes) then
+    Result:=_PKCS7_set_signed_attributes(p7si,sk)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_set_attributes(p7si:PPKCS7_SIGNER_INFO; sk:Pstack_st_X509_ATTRIBUTE):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_set_attributes) then
+    Result:=_PKCS7_set_attributes(p7si,sk)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_sign(signcert:PX509; pkey:PEVP_PKEY; certs:Pstack_st_X509; data:PBIO; flags:longint):PPKCS7;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_sign) then
+    Result:=_PKCS7_sign(signcert,pkey,certs,data,flags)
+  else
+    Result:=Nil;
+end;
+
+function PKCS7_sign_add_signer(p7:PPKCS7; signcert:PX509; pkey:PEVP_PKEY; md:PEVP_MD; flags:longint):PPKCS7_SIGNER_INFO;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_sign_add_signer) then
+    Result:=_PKCS7_sign_add_signer(p7,signcert,pkey,md,flags)
+  else
+    Result:=Nil;
+end;
+
+function PKCS7_final(p7:PPKCS7; data:PBIO; flags:longint):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_final) then
+    Result:=_PKCS7_final(p7,data,Flags)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_verify(p7:PPKCS7; certs:Pstack_st_X509; store: Pointer; indata:PBIO; _out:PBIO;  flags:longint):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_verify) then
+    Result:=_PKCS7_verify(p7,certs,store,indata,_out,flags)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_encrypt(certs:Pstack_st_X509; _in:PBIO; cipher:PEVP_CIPHER; flags:longint):PPKCS7;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_encrypt) then
+    Result:=_PKCS7_encrypt(certs,_in,cipher,flags)
+  else
+    Result:=Nil;
+end;
+
+function PKCS7_decrypt(p7:PPKCS7; pkey:PEVP_PKEY; cert:PX509; data:PBIO; flags:longint):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_decrypt) then
+    Result:=_PKCS7_decrypt(P7,pkey,cert,data,flags)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_add_attrib_smimecap(si:PPKCS7_SIGNER_INFO; cap:Pstack_st_X509_ALGOR):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_add_attrib_smimecap) then
+    Result:=_PKCS7_add_attrib_smimecap(si,cap)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_simple_smimecap(sk:Pstack_st_X509_ALGOR; nid:longint; arg:longint):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_simple_smimecap) then
+    Result:=_PKCS7_simple_smimecap(sk,nid,arg)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_add_attrib_content_type(si:PPKCS7_SIGNER_INFO; coid:Pointer):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_add_attrib_content_type) then
+    Result:=_PKCS7_add_attrib_content_type(si,coid)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_add0_attrib_signing_time(si:PPKCS7_SIGNER_INFO; t:PASN1_TIME):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_add0_attrib_signing_time) then
+    Result:=_PKCS7_add0_attrib_signing_time(si,t)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_add1_attrib_digest(si:PPKCS7_SIGNER_INFO; md:Pbyte; mdlen:longint):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_add1_attrib_digest) then
+    Result:=_PKCS7_add1_attrib_digest(si,md,mdlen)
+  else
+    Result:=-1;
+end;
+
+function BIO_new_PKCS7(_out:PBIO; p7:PPKCS7):PBIO;
+
+begin
+  if InitSSLInterface and Assigned(_BIO_new_PKCS7) then
+    Result:=_BIO_new_PKCS7(_out,p7)
+  else
+    Result:=Nil;
+end;
+
+procedure ERR_load_PKCS7_strings;
+
+begin
+  if InitSSLInterface and Assigned(_ERR_load_PKCS7_strings) then
+    _ERR_load_PKCS7_strings
+end;
+
+// BN
+
+function BN_new: PBIGNUM;
+begin
+  if InitSSLInterface and Assigned(_BN_new) then
+    Result:=_BN_new()
+  else
+    Result:=Nil;
+end;
+
+function BN_secure_new: PBIGNUM;
+begin
+  if InitSSLInterface and Assigned(_BIO_new_PKCS7) then
+    Result:=_BN_secure_new()
+  else
+    Result:=Nil;
+end;
+
+procedure BN_clear_free(a: PBIGNUM);
+begin
+  if InitSSLInterface and Assigned(_BN_clear_free) then
+    _BN_clear_free(a)
+end;
+
+function BN_copy(a: PBIGNUM; b: PBIGNUM): PBIGNUM;
+begin
+  if InitSSLInterface and Assigned(_BN_copy) then
+    Result:=_BN_copy(a, b)
+  else
+    Result:=Nil;
+end;
+
+procedure BN_swap(a: PBIGNUM; b: PBIGNUM);
+begin
+  if InitSSLInterface and Assigned(_BN_swap) then
+    _BN_swap(a, b);
+end;
+
+function BN_bin2bn(s: pcuchar; len: cint; ret: PBIGNUM): PBIGNUM;
+begin
+  if InitSSLInterface and Assigned(_BN_bin2bn) then
+    Result:=_BN_bin2bn(s, len, ret)
+  else
+    Result:=Nil;
+end;
+
+function BN_bn2bin(a: PBIGNUM; _to: pcuchar): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_bn2bin) then
+    Result:=_BN_bn2bin(a, _to)
+  else
+    Result:=-1;
+end;
+
+function BN_bn2binpad(a: PBIGNUM; _to: pcuchar; tolen: cint): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_bn2binpad) then
+    Result:=_BN_bn2binpad(a, _to, tolen)
+  else
+    Result:=-1;
+end;
+
+function BN_lebin2bn(s: pcuchar; len: cint; ret: PBIGNUM): PBIGNUM;
+begin
+  if InitSSLInterface and Assigned(_BN_lebin2bn) then
+    Result:=_BN_lebin2bn(s, len, ret)
+  else
+    Result:=Nil;
+end;
+
+function BN_bn2lebinpad(a: PBIGNUM; _to: pcuchar; tolen: cint): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_bn2lebinpad) then
+    Result:=_BN_bn2lebinpad(a, _to, tolen)
+  else
+    Result:=-1;
+end;
+
+function BN_mpi2bn(s: pcuchar; len: cint; ret: PBIGNUM): PBIGNUM;
+begin
+  if InitSSLInterface and Assigned(_BN_mpi2bn) then
+    Result:=_BN_mpi2bn(s, len, ret)
+  else
+    Result:=Nil;
+end;
+
+function BN_bn2mpi(a: PBIGNUM; _to: pcuchar): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_bn2mpi) then
+    Result:=_BN_bn2mpi(a, _to)
+  else
+    Result:=-1;
+end;
+
+function BN_sub(r: PBIGNUM; a: PBIGNUM; b: PBIGNUM): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_sub) then
+    Result:=_BN_sub(r, a, b)
+  else
+    Result:=-1;
+end;
+
+function BN_usub(r: PBIGNUM; a: PBIGNUM; b: PBIGNUM): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_usub) then
+    Result:=_BN_usub(r, a, b)
+  else
+    Result:=-1;
+end;
+
+function BN_uadd(r: PBIGNUM; a: PBIGNUM; b: PBIGNUM): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_uadd) then
+    Result:=_BN_uadd(r, a, b)
+  else
+    Result:=-1;
+end;
+
+function BN_add(r: PBIGNUM; a: PBIGNUM; b: PBIGNUM): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_add) then
+    Result:=_BN_add(r, a, b)
+  else
+    Result:=-1;
+end;
+
+function BN_mul(r: PBIGNUM; a: PBIGNUM; b: PBIGNUM; ctx: PBN_CTX): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_mul) then
+    Result:=_BN_mul(r, a, b, ctx)
+  else
+    Result:=-1;
+end;
+
+function BN_sqr(r: PBIGNUM; a: PBIGNUM; ctx: PBN_CTX): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_sqr) then
+    Result:=_BN_sqr(r, a, ctx)
+  else
+    Result:=-1;
+end;
+
+procedure BN_set_negative(b: PBIGNUM; n: cint);
+begin
+  if InitSSLInterface and Assigned(_BN_set_negative) then
+    _BN_set_negative(b, n);
+end;
+
+function BN_is_negative(b: PBIGNUM): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_is_negative) then
+    Result:=_BN_is_negative(b)
+  else
+    Result:=-1;
+end;
+
+function BN_div(dv: PBIGNUM; rem: PBIGNUM; m: PBIGNUM; d: PBIGNUM; ctx: PBN_CTX): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_div) then
+    Result:=_BN_div(dv, rem, m, d, ctx)
+  else
+    Result:=-1;
+end;
+
+function BN_mod(rem: PBIGNUM; a: PBIGNUM; m: PBIGNUM; ctx: PBN_CTX): cint;
+begin
+  Result:=-1;
+  if InitSSLInterface then
+    if Assigned(_BN_mod) then
+      Result:=_BN_mod(rem, a, m, ctx)
+    else if assigned(_BN_div) then
+      Result:=_BN_div(nil,rem, a, m, ctx)
+end;
+
+function BN_nnmod(r: PBIGNUM; m: PBIGNUM; d: PBIGNUM; ctx: PBN_CTX): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_nnmod) then
+    Result:=_BN_nnmod(r, m, d, ctx)
+  else
+    Result:=-1;
+end;
+
+function BN_mod_add(r: PBIGNUM; a: PBIGNUM; b: PBIGNUM; m: PBIGNUM; ctx: PBN_CTX): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_mod_add) then
+    Result:=_BN_mod_add(r, a, b, m, ctx)
+  else
+    Result:=-1;
+end;
+
+function BN_mod_add_quick(r: PBIGNUM; a: PBIGNUM; b: PBIGNUM; m: PBIGNUM): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_mod_add_quick) then
+    Result:=_BN_mod_add_quick(r, a, b, m)
+  else
+    Result:=-1;
+end;
+
+function BN_mod_sub(r: PBIGNUM; a: PBIGNUM; b: PBIGNUM; m: PBIGNUM; ctx: PBN_CTX): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_mod_sub) then
+    Result:=_BN_mod_sub(r, a, b, m, ctx)
+  else
+    Result:=-1;
+end;
+
+function BN_mod_sub_quick(r: PBIGNUM; a: PBIGNUM; b: PBIGNUM; m: PBIGNUM): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_mod_sub_quick) then
+    Result:=_BN_mod_sub_quick(r, a, b, m)
+  else
+    Result:=-1;
+end;
+
+function BN_mod_mul(r: PBIGNUM; a: PBIGNUM; b: PBIGNUM; m: PBIGNUM; ctx: PBN_CTX): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_mod_mul) then
+    Result:=_BN_mod_mul(r, a, b, m, ctx)
+  else
+    Result:=-1;
+end;
+
+function BN_mod_sqr(r: PBIGNUM; a: PBIGNUM; m: PBIGNUM; ctx: PBN_CTX): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_mod_sqr) then
+    Result:=_BN_mod_sqr(r, a, m, ctx)
+  else
+    Result:=-1;
+end;
+
+function BN_mod_lshift1(r: PBIGNUM; a: PBIGNUM; m: PBIGNUM; ctx: PBN_CTX): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_mod_lshift1) then
+    Result:=_BN_mod_lshift1(r, a, m, ctx)
+  else
+    Result:=-1;
+end;
+
+function BN_mod_lshift1_quick(r: PBIGNUM; a: PBIGNUM; m: PBIGNUM): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_mod_lshift1_quick) then
+    Result:=_BN_mod_lshift1_quick(r, a, m)
+  else
+    Result:=-1;
+end;
+
+function BN_mod_lshift(r: PBIGNUM; a: PBIGNUM; n: cint; m: PBIGNUM; ctx: PBN_CTX): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_mod_lshift) then
+    Result:=_BN_mod_lshift(r, a, n, m, ctx)
+  else
+    Result:=-1;
+end;
+
+function BN_mod_lshift_quick(r: PBIGNUM; a: PBIGNUM; n: cint; m: PBIGNUM): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_mod_lshift_quick) then
+    Result:=_BN_mod_lshift_quick(r, a, n, m)
+  else
+    Result:=-1;
+end;
+
+function BN_mod_word(a: PBIGNUM; w: BN_ULONG): BN_ULONG;
+begin
+  if InitSSLInterface and Assigned(_BN_mod_word) then
+    Result:=_BN_mod_word(a, w)
+  else
+    Result:=0;
+end;
+
+function BN_div_word(a: PBIGNUM; w: BN_ULONG): BN_ULONG;
+begin
+  if InitSSLInterface and Assigned(_BN_div_word) then
+    Result:=_BN_div_word(a, w)
+  else
+    Result:=0;
+end;
+
+function BN_mul_word(a: PBIGNUM; w: BN_ULONG): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_mul_word) then
+    Result:=_BN_mul_word(a, w)
+  else
+    Result:=-1;
+end;
+
+function BN_add_word(a: PBIGNUM; w: BN_ULONG): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_add_word) then
+    Result:=_BN_add_word(a, w)
+  else
+    Result:=-1;
+end;
+
+function BN_sub_word(a: PBIGNUM; w: BN_ULONG): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_sub_word) then
+    Result:=_BN_sub_word(a, w)
+  else
+    Result:=-1;
+end;
+
+function BN_set_word(a: PBIGNUM; w: BN_ULONG): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_set_word) then
+    Result:=_BN_set_word(a, w)
+  else
+    Result:=-1;
+end;
+
+function BN_get_word(a: PBIGNUM): BN_ULONG;
+begin
+  if InitSSLInterface and Assigned(_BN_get_word) then
+    Result:=_BN_get_word(a)
+  else
+    Result:=0;
+end;
+
+function BN_cmp(a: PBIGNUM; b: PBIGNUM): cint;
+begin
+  if InitSSLInterface and Assigned(_BN_cmp) then
+    Result:=_BN_cmp(a, b)
+  else
+    Result:=-1;
+end;
+
+procedure BN_free(a: PBIGNUM);
+begin
+  if InitSSLInterface and Assigned(_BN_free) then
+    _BN_free(a);
+end;
+
+
 procedure CRYPTOcleanupAllExData;
 begin
   if InitSSLInterface and Assigned(_CRYPTOcleanupAllExData) then
@@ -2894,47 +4764,58 @@ begin
     _OPENSSLaddallalgorithms;
 end;
 
-{$IFNDEF WINDOWS}
- {$IFNDEF OS2}
-{ Try to load all library versions until you find or run out }
-function LoadLibHack(const Value: String): HModule;
-var
-  i: cInt;
-begin
-  Result := NilHandle;
-  
-  for i := Low(DLLVersions) to High(DLLVersions) do begin
-    {$IFDEF DARWIN}
-    Result := LoadLibrary(Value + DLLVersions[i] + '.dylib');
-    {$ELSE}
-    Result := LoadLibrary(Value + '.so' + DLLVersions[i]);
-    {$ENDIF}
-    
-    if Result <> NilHandle then
-      Break;
-  end;
-end;
- {$ENDIF OS2}
-{$ENDIF WINDOWS}
+Function CheckOK(ProcName : string ) : string;
 
-function LoadLib(const Value: String): HModule;
+
 begin
-  {$IFDEF WINDOWS}
-  Result := LoadLibrary(Value);
-  {$ELSE WINDOWS}
-   {$IFDEF OS2}
-  Result := LoadLibrary(Value);
-   {$ELSE OS2}
-  Result := LoadLibHack(Value);
-   {$ENDIF OS2}
-  {$ENDIF WINDOWS}
+  Result:=ProcName;
+  if (ProcName='SSL_library_init')
+     or (ProcName='SSL_load_error_strings')
+     or (ProcName='ERR_load_crypto_strings')
+     or (ProcName='ERR_load_CRYPTOlib_strings')
+     or (ProcName='OpenSSL_add_all_algorithms')
+     or (ProcName='OpenSSL_add_all_ciphers')
+     or (ProcName='OpenSSL_add_all_digests')
+     or (ProcName='EVP_CIPHER_CTX_init')
+     or (ProcName='EVP_CIPHER_CTX_reset')
+     or (ProcName='EVP_CIPHER_CTX_cleanup')
+     or (ProcName='EVP_cleanup')
+     or (ProcName='OPENSSL_cleanup')
+     or (ProcName='OPENSSL_init_crypto')
+     or (ProcName='OPENSSL_INIT_new')
+     or (ProcName='OPENSSL_INIT_free')
+     or (ProcName='OPENSSL_INIT_set_config_appname')
+     or (ProcName='OPENSSL_init_ssl')
+     or (ProcName='SSLeay_version')
+     or (ProcName='ERR_free_strings')
+     or (ProcName='X509_set_notBefore')
+     or (ProcName='X509_set1_notBefore')
+     or (ProcName='X509_set_notAfter')
+     or (ProcName='X509_set1_notAfter')
+     or (ProcName='RAND_screen')
+     or (ProcName='RAND_cleanup')
+     or (ProcName='RAND_SSLeay')
+     or (ProcName='CRYPTO_num_locks')
+     or (ProcName='CRYPTO_set_locking_callback')
+     or (ProcName='BN_mod')
+     or (ProcName='OpenSSL_version') then
+      Result:=Result+' (handled in unit)';
+
+  if (ProcName='SSLv2_method')
+     or (ProcName='SSLv3_method')
+     or (ProcName='SSLv23_method')
+     or (ProcName='RAND_query_egd_bytes')
+     or (ProcName='RAND_egd')
+     or (ProcName='RAND_egd_bytes')
+     then
+    Result:=Result+' (method not supported by lib)';
 end;
 
 function GetProcAddr(module: HModule; const ProcName: string): SslPtr;
 begin
   Result := GetProcAddress(module, PChar(ProcName));
   if LoadVerbose and (Result = nil) then
-    OpenSSL_unavailable_functions := OpenSSL_unavailable_functions + ProcName + LineEnding;
+    OpenSSL_unavailable_functions := OpenSSL_unavailable_functions + CheckOK(ProcName) + LineEnding;
 end;
 
 // The AVerboseLoading parameter can be used to check which particular
@@ -2952,6 +4833,7 @@ Procedure LoadSSLEntryPoints;
 begin
   _SslGetError := GetProcAddr(SSLLibHandle, 'SSL_get_error');
   _SslLibraryInit := GetProcAddr(SSLLibHandle, 'SSL_library_init');
+  _OPENSSL_init_ssl := GetProcAddr(SSLLibHandle, 'OPENSSL_init_ssl');
   _SslLoadErrorStrings := GetProcAddr(SSLLibHandle, 'SSL_load_error_strings');
   _SslCtxSetCipherList := GetProcAddr(SSLLibHandle, 'SSL_CTX_set_cipher_list');
   _SslCtxNew := GetProcAddr(SSLLibHandle, 'SSL_CTX_new');
@@ -2962,7 +4844,10 @@ begin
   _SslMethodV2 := GetProcAddr(SSLLibHandle, 'SSLv2_method');
   _SslMethodV3 := GetProcAddr(SSLLibHandle, 'SSLv3_method');
   _SslMethodTLSV1 := GetProcAddr(SSLLibHandle, 'TLSv1_method');
+  _SslMethodTLSV1_1 := GetProcAddr(SSLLibHandle, 'TLSv1_1_method');
+  _SslMethodTLSV1_2 := GetProcAddr(SSLLibHandle, 'TLSv1_2_method');
   _SslMethodV23 := GetProcAddr(SSLLibHandle, 'SSLv23_method');
+  _SslTLSMethod := GetProcAddr(SSLLibHandle, 'TLS_method');
   _SslCtxUsePrivateKey := GetProcAddr(SSLLibHandle, 'SSL_CTX_use_PrivateKey');
   _SslCtxUsePrivateKeyASN1 := GetProcAddr(SSLLibHandle, 'SSL_CTX_use_PrivateKey_ASN1');
   //use SSL_CTX_use_RSAPrivateKey_file instead SSL_CTX_use_PrivateKey_file,
@@ -2992,12 +4877,24 @@ begin
   _SslCipherGetName := GetProcAddr(SSLLibHandle, 'SSL_CIPHER_get_name');
   _SslCipherGetBits := GetProcAddr(SSLLibHandle, 'SSL_CIPHER_get_bits');
   _SslGetVerifyResult := GetProcAddr(SSLLibHandle, 'SSL_get_verify_result');
+  _SslGetServername := GetProcAddr(SSLLibHandle, 'SSL_get_servername');
+  _SslCtxCallbackCtrl := GetProcAddr(SSLLibHandle, 'SSL_CTX_callback_ctrl');
+  _SslSetSslCtx := GetProcAddr(SSLLibHandle, 'SSL_set_SSL_CTX');
 end;
 
 Procedure LoadUtilEntryPoints;
 
 begin
   _ERR_load_crypto_strings := GetProcAddr(SSLUtilHandle, 'ERR_load_crypto_strings');
+  // aliases used over time
+  if (@_ERR_load_crypto_strings=Nil) then
+    _ERR_load_crypto_strings:=GetProcAddr(SSLUtilHandle, 'ERR_load_CRYPTOlib_strings');
+  if (@_ERR_load_crypto_strings=Nil) then
+    _ERR_load_crypto_strings:=GetProcAddr(SSLUtilHandle, 'ERR_load_CRYPTO_strings');
+  _OPENSSL_init_crypto :=  GetProcAddr(SSLUtilHandle, 'OPENSSL_init_crypto');
+  _OPENSSL_INIT_new := GetProcAddr(SSLUtilHandle, 'OPENSSL_INIT_new');
+  _OPENSSL_INIT_free := GetProcAddr(SSLUtilHandle, 'OPENSSL_INIT_free');
+  _OPENSSL_INIT_set_config_appname :=GetProcAddr(SSLUtilHandle, 'OPENSSL_INIT_set_config_appname');
   _X509New := GetProcAddr(SSLUtilHandle, 'X509_new');
   _X509Free := GetProcAddr(SSLUtilHandle, 'X509_free');
   _X509NameOneline := GetProcAddr(SSLUtilHandle, 'X509_NAME_oneline');
@@ -3008,19 +4905,27 @@ begin
   _X509print := GetProcAddr(SSLUtilHandle, 'X509_print');
   _X509SetVersion := GetProcAddr(SSLUtilHandle, 'X509_set_version');
   _X509SetPubkey := GetProcAddr(SSLUtilHandle, 'X509_set_pubkey');
+  _X509GetPubkey := GetProcAddr(SSLUtilHandle, 'X509_get_pubkey');
   _X509SetIssuerName := GetProcAddr(SSLUtilHandle, 'X509_set_issuer_name');
   _X509NameAddEntryByTxt := GetProcAddr(SSLUtilHandle, 'X509_NAME_add_entry_by_txt');
   _X509Sign := GetProcAddr(SSLUtilHandle, 'X509_sign');
   _X509GmtimeAdj := GetProcAddr(SSLUtilHandle, 'X509_gmtime_adj');
   _X509SetNotBefore := GetProcAddr(SSLUtilHandle, 'X509_set_notBefore');
+  if (@_X509SetNotBefore=nil) then
+    _X509SetNotBefore:=GetProcAddr(SSLUtilHandle, 'X509_set1_notBefore');
   _X509SetNotAfter := GetProcAddr(SSLUtilHandle, 'X509_set_notAfter');
+  if (@_X509SetNotAfter=nil) then
+    _X509SetNotAfter:=GetProcAddr(SSLUtilHandle, 'X509_set1_notAfter');
   _X509GetSerialNumber := GetProcAddr(SSLUtilHandle, 'X509_get_serialNumber');
   _EvpPkeyNew := GetProcAddr(SSLUtilHandle, 'EVP_PKEY_new');
   _EvpPkeyFree := GetProcAddr(SSLUtilHandle, 'EVP_PKEY_free');
   _EvpPkeyAssign := GetProcAddr(SSLUtilHandle, 'EVP_PKEY_assign');
   _EVPCleanup := GetProcAddr(SSLUtilHandle, 'EVP_cleanup');
   _EvpGetDigestByName := GetProcAddr(SSLUtilHandle, 'EVP_get_digestbyname');
+  _OpenSSLVersion := GetProcAddr(SSLUtilHandle, 'OpenSSL_version');
   _SSLeayversion := GetProcAddr(SSLUtilHandle, 'SSLeay_version');
+  if @_SSLeayversion=Nil then
+    _SSLeayversion := _OpenSSLVersion;
   _ErrErrorString := GetProcAddr(SSLUtilHandle, 'ERR_error_string_n');
   _ErrGetError := GetProcAddr(SSLUtilHandle, 'ERR_get_error');
   _ErrClearError := GetProcAddr(SSLUtilHandle, 'ERR_clear_error');
@@ -3036,7 +4941,9 @@ begin
   _d2iPKCS12bio := GetProcAddr(SSLUtilHandle, 'd2i_PKCS12_bio');
   _PKCS12parse := GetProcAddr(SSLUtilHandle, 'PKCS12_parse');
   _PKCS12free := GetProcAddr(SSLUtilHandle, 'PKCS12_free');
-  _Asn1UtctimeNew := GetProcAddr(SSLUtilHandle, 'ASN1_UTCTIME_new');
+  _Asn1UtctimeSetString := GetProcAddr(SSLUtilHandle, 'ASN1_UTCTIME_set_string');
+  _Asn1StringTypeNew := GetProcAddr(SSLUtilHandle, 'ASN1_STRING_type_new');
+  _Asn1UtctimePrint := GetProcAddr(SSLUtilHandle, 'ASN1_UTCTIME_print');
   _Asn1UtctimeFree := GetProcAddr(SSLUtilHandle, 'ASN1_UTCTIME_free');
   _Asn1IntegerSet := GetProcAddr(SSLUtilHandle, 'ASN1_INTEGER_set');
   _Asn1IntegerGet := GetProcAddr(SSLUtilHandle, 'ASN1_INTEGER_get');
@@ -3059,11 +4966,19 @@ begin
   _EVP_camellia_128_cbc := GetProcAddr(SSLUtilHandle, 'EVP_camellia_128_cbc');
   _EVP_camellia_192_cbc := GetProcAddr(SSLUtilHandle, 'EVP_camellia_192_cbc');
   _EVP_camellia_256_cbc := GetProcAddr(SSLUtilHandle, 'EVP_camellia_256_cbc');
+  _EVP_sha256 := GetProcAddr(SSLUtilHandle, 'EVP_sha256');
+
+  _EVP_MD_CTX_new := GetProcAddr(SSLUtilHandle, 'EVP_MD_CTX_new');
+  _EVP_MD_CTX_free := GetProcAddr(SSLUtilHandle, 'EVP_MD_CTX_free');
+  _EVP_DigestSignInit := GetProcAddr(SSLUtilHandle, 'EVP_DigestSignInit');
+  _EVP_DigestSignFinal := GetProcAddr(SSLUtilHandle, 'EVP_DigestSignFinal');
+  _EVP_DigestVerifyInit := GetProcAddr(SSLUtilHandle, 'EVP_DigestVerifyInit');
+  _EVP_DigestVerifyFinal := GetProcAddr(SSLUtilHandle, 'EVP_DigestVerifyFinal');
    // 3DES functions
-  _DESsetoddparity := GetProcAddr(SSLUtilHandle, 'des_set_odd_parity');
-  _DESsetkeychecked := GetProcAddr(SSLUtilHandle, 'des_set_key_checked');
-  _DESsetkey := GetProcAddr(SSLUtilHandle, 'des_set_key');
-  _DESecbencrypt := GetProcAddr(SSLUtilHandle, 'des_ecb_encrypt');
+  _DESsetoddparity := GetProcAddr(SSLUtilHandle, 'DES_set_odd_parity');
+  _DESsetkeychecked := GetProcAddr(SSLUtilHandle, 'DES_set_key_checked');
+  _DESsetkey := GetProcAddr(SSLUtilHandle, 'DES_set_key');
+  _DESecbencrypt := GetProcAddr(SSLUtilHandle, 'DES_ecb_encrypt');
   //
   _CRYPTOnumlocks := GetProcAddr(SSLUtilHandle, 'CRYPTO_num_locks');
   _CRYPTOsetlockingcallback := GetProcAddr(SSLUtilHandle, 'CRYPTO_set_locking_callback');
@@ -3107,10 +5022,12 @@ begin
   _i2d_RSAPublicKey := GetProcAddr(SSLUtilHandle, 'i2d_RSAPublicKey');
   _d2i_RSAPrivateKey := GetProcAddr(SSLUtilHandle, 'd2i_RSAPrivateKey');
   _i2d_RSAPrivateKey := GetProcAddr(SSLUtilHandle, 'i2d_RSAPrivateKey');
+  _d2i_PubKey := GetProcAddr(SSLUtilHandle, 'd2i_PUBKEY');
+  _d2i_AutoPrivateKey := GetProcAddr(SSLUtilHandle, 'd2i_AutoPrivateKey');
    // ERR Functions
   _ERR_error_string := GetProcAddr(SSLUtilHandle, 'ERR_error_string');
    // EVP Functions
-   _OpenSSL_add_all_algorithms := GetProcAddr(SSLUtilHandle, 'OpenSSL_add_all_algorithms');
+  _OpenSSL_add_all_algorithms := GetProcAddr(SSLUtilHandle, 'OpenSSL_add_all_algorithms');
   _OpenSSL_add_all_ciphers := GetProcAddr(SSLUtilHandle, 'OpenSSL_add_all_ciphers');
   _OpenSSL_add_all_digests := GetProcAddr(SSLUtilHandle, 'OpenSSL_add_all_digests');
   _EVP_DigestInit := GetProcAddr(SSLUtilHandle, 'EVP_DigestInit');
@@ -3123,6 +5040,7 @@ begin
   _EVP_get_cipherbyname := GetProcAddr(SSLUtilHandle, 'EVP_get_cipherbyname');
   _EVP_get_digestbyname := GetProcAddr(SSLUtilHandle, 'EVP_get_digestbyname');
   _EVP_CIPHER_CTX_init := GetProcAddr(SSLUtilHandle, 'EVP_CIPHER_CTX_init');
+  _EVP_CIPHER_CTX_reset := GetProcAddr(SSLUtilHandle, 'EVP_CIPHER_CTX_reset');
   _EVP_CIPHER_CTX_cleanup := GetProcAddr(SSLUtilHandle, 'EVP_CIPHER_CTX_cleanup');
   _EVP_CIPHER_CTX_set_key_length := GetProcAddr(SSLUtilHandle, 'EVP_CIPHER_CTX_set_key_length');
   _EVP_CIPHER_CTX_ctrl := GetProcAddr(SSLUtilHandle, 'EVP_CIPHER_CTX_ctrl');
@@ -3137,33 +5055,129 @@ begin
   _PEM_read_bio_PUBKEY := GetProcAddr(SSLUtilHandle, 'PEM_read_bio_PUBKEY');
   _PEM_write_bio_PrivateKey := GetProcAddr(SSLUtilHandle, 'PEM_write_bio_PrivateKey');
   _PEM_write_bio_PUBKEY := GetProcAddr(SSLUtilHandle, 'PEM_write_bio_PUBKEY');
+  _PEM_read_bio_X509 := GetProcAddr(SSLUtilHandle, 'PEM_read_bio_X509');
+  _PEM_write_bio_X509 := GetProcAddr(SSLUtilHandle,'PEM_write_bio_X509');
+  _PEM_write_bio_PKCS7 := GetProcAddr(SSLUtilHandle,'PEM_write_bio_PKCS7');
   // BIO
   _BIO_ctrl := GetProcAddr(SSLUtilHandle, 'BIO_ctrl');
   _BIO_s_file := GetProcAddr(SSLUtilHandle, 'BIO_s_file');
   _BIO_new_file := GetProcAddr(SSLUtilHandle, 'BIO_new_file');
   _BIO_new_mem_buf := GetProcAddr(SSLUtilHandle, 'BIO_new_mem_buf');
-  // Crypto Functions
-  _SSLeay_version := GetProcAddr(SSLUtilHandle, 'SSLeay_version');
+  // PKCS7
+  _PKCS7_ISSUER_AND_SERIAL_new:=GetProcAddr(SSLUtilHandle,'PKCS7_ISSUER_AND_SERIAL_new');
+  _PKCS7_ISSUER_AND_SERIAL_free:=GetProcAddr(SSLUtilHandle,'PKCS7_ISSUER_AND_SERIAL_free');
+  _PKCS7_ISSUER_AND_SERIAL_digest:=GetProcAddr(SSLUtilHandle,'PKCS7_ISSUER_AND_SERIAL_digest');
+  _PKCS7_dup:=GetProcAddr(SSLUtilHandle,'PKCS7_dup');
+  _PEM_write_bio_PKCS7_stream:=GetProcAddr(SSLUtilHandle,'PEM_write_bio_PKCS7_stream');
+  _PKCS7_SIGNER_INFO_new:=GetProcAddr(SSLUtilHandle,'PKCS7_SIGNER_INFO_new');
+  _PKCS7_SIGNER_INFO_free:=GetProcAddr(SSLUtilHandle,'PKCS7_SIGNER_INFO_free');
+  _PKCS7_RECIP_INFO_new:=GetProcAddr(SSLUtilHandle,'PKCS7_RECIP_INFO_new');
+  _PKCS7_RECIP_INFO_free:=GetProcAddr(SSLUtilHandle,'PKCS7_RECIP_INFO_free');
+  _PKCS7_SIGNED_new:=GetProcAddr(SSLUtilHandle,'PKCS7_SIGNED_new');
+  _PKCS7_SIGNED_free:=GetProcAddr(SSLUtilHandle,'PKCS7_SIGNED_free');
+  _PKCS7_ENC_CONTENT_new:=GetProcAddr(SSLUtilHandle,'PKCS7_ENC_CONTENT_new');
+  _PKCS7_ENC_CONTENT_free:=GetProcAddr(SSLUtilHandle,'PKCS7_ENC_CONTENT_free');
+  _PKCS7_ENVELOPE_new:=GetProcAddr(SSLUtilHandle,'PKCS7_ENVELOPE_new');
+  _PKCS7_ENVELOPE_free:=GetProcAddr(SSLUtilHandle,'PKCS7_ENVELOPE_free');
+  _PKCS7_SIGN_ENVELOPE_new:=GetProcAddr(SSLUtilHandle,'PKCS7_SIGN_ENVELOPE_new');
+  _PKCS7_SIGN_ENVELOPE_free:=GetProcAddr(SSLUtilHandle,'PKCS7_SIGN_ENVELOPE_free');
+  _PKCS7_DIGEST_new:=GetProcAddr(SSLUtilHandle,'PKCS7_DIGEST_new');
+  _PKCS7_DIGEST_free:=GetProcAddr(SSLUtilHandle,'PKCS7_DIGEST_free');
+  _PKCS7_ENCRYPT_new:=GetProcAddr(SSLUtilHandle,'PKCS7_ENCRYPT_new');
+  _PKCS7_ENCRYPT_free:=GetProcAddr(SSLUtilHandle,'PKCS7_ENCRYPT_free');
+  _PKCS7_new:=GetProcAddr(SSLUtilHandle,'PKCS7_new');
+  _PKCS7_free:=GetProcAddr(SSLUtilHandle,'PKCS7_free');
+  _PKCS7_print_ctx:=GetProcAddr(SSLUtilHandle,'PKCS7_print_ctx');
+  _PKCS7_ctrl:=GetProcAddr(SSLUtilHandle,'PKCS7_ctrl');
+  _PKCS7_set_type:=GetProcAddr(SSLUtilHandle,'PKCS7_set_type');
+  _PKCS7_set0_type_other:=GetProcAddr(SSLUtilHandle,'PKCS7_set0_type_other');
+  _PKCS7_set_content:=GetProcAddr(SSLUtilHandle,'PKCS7_set_content');
+  _PKCS7_SIGNER_INFO_set:=GetProcAddr(SSLUtilHandle,'PKCS7_SIGNER_INFO_set');
+  _PKCS7_SIGNER_INFO_sign:=GetProcAddr(SSLUtilHandle,'PKCS7_SIGNER_INFO_sign');
+  _PKCS7_add_signer:=GetProcAddr(SSLUtilHandle,'PKCS7_add_signer');
+  _PKCS7_add_certificate:=GetProcAddr(SSLUtilHandle,'PKCS7_add_certificate');
+  _PKCS7_add_crl:=GetProcAddr(SSLUtilHandle,'PKCS7_add_crl');
+  _PKCS7_content_new:=GetProcAddr(SSLUtilHandle,'PKCS7_content_new');
+  _PKCS7_add_signature:=GetProcAddr(SSLUtilHandle,'PKCS7_add_signature');
+  _PKCS7_cert_from_signer_info:=GetProcAddr(SSLUtilHandle,'PKCS7_cert_from_signer_info');
+  _PKCS7_set_digest:=GetProcAddr(SSLUtilHandle,'PKCS7_set_digest');
+  _PKCS7_add_recipient:=GetProcAddr(SSLUtilHandle,'PKCS7_add_recipient');
+  _PKCS7_add_recipient_info:=GetProcAddr(SSLUtilHandle,'PKCS7_add_recipient_info');
+  _PKCS7_RECIP_INFO_set:=GetProcAddr(SSLUtilHandle,'PKCS7_RECIP_INFO_set');
+  _PKCS7_set_cipher:=GetProcAddr(SSLUtilHandle,'PKCS7_set_cipher');
+  _PKCS7_get_issuer_and_serial:=GetProcAddr(SSLUtilHandle,'PKCS7_get_issuer_and_serial');
+  _PKCS7_digest_from_attributes:=GetProcAddr(SSLUtilHandle,'PKCS7_digest_from_attributes');
+  _PKCS7_add_signed_attribute:=GetProcAddr(SSLUtilHandle,'PKCS7_add_signed_attribute');
+  _PKCS7_add_attribute:=GetProcAddr(SSLUtilHandle,'PKCS7_add_attribute');
+  _PKCS7_get_attribute:=GetProcAddr(SSLUtilHandle,'PKCS7_get_attribute');
+  _PKCS7_get_signed_attribute:=GetProcAddr(SSLUtilHandle,'PKCS7_get_signed_attribute');
+  _PKCS7_set_signed_attributes:=GetProcAddr(SSLUtilHandle,'PKCS7_set_signed_attributes');
+  _PKCS7_set_attributes:=GetProcAddr(SSLUtilHandle,'PKCS7_set_attributes');
+  _PKCS7_sign:=GetProcAddr(SSLUtilHandle,'PKCS7_sign');
+  _PKCS7_sign_add_signer:=GetProcAddr(SSLUtilHandle,'PKCS7_sign_add_signer');
+  _PKCS7_final:=GetProcAddr(SSLUtilHandle,'PKCS7_final');
+  _PKCS7_verify:=GetProcAddr(SSLUtilHandle,'PKCS7_verify');
+  _PKCS7_encrypt:=GetProcAddr(SSLUtilHandle,'PKCS7_encrypt');
+  _PKCS7_decrypt:=GetProcAddr(SSLUtilHandle,'PKCS7_decrypt');
+  _PKCS7_add_attrib_smimecap:=GetProcAddr(SSLUtilHandle,'PKCS7_add_attrib_smimecap');
+  _PKCS7_simple_smimecap:=GetProcAddr(SSLUtilHandle,'PKCS7_simple_smimecap');
+  _PKCS7_add_attrib_content_type:=GetProcAddr(SSLUtilHandle,'PKCS7_add_attrib_content_type');
+  _PKCS7_add0_attrib_signing_time:=GetProcAddr(SSLUtilHandle,'PKCS7_add0_attrib_signing_time');
+  _PKCS7_add1_attrib_digest:=GetProcAddr(SSLUtilHandle,'PKCS7_add1_attrib_digest');
+  _BIO_new_PKCS7:=GetProcAddr(SSLUtilHandle,'BIO_new_PKCS7');
+  _ERR_load_PKCS7_strings:=GetProcAddr(SSLUtilHandle,'ERR_load_PKCS7_strings');
+
+  // BN
+  _BN_new:=GetProcAddr(SSLUtilHandle,'BN_new');
+  _BN_secure_new:=GetProcAddr(SSLUtilHandle,'BN_secure_new');
+  _BN_clear_free:=GetProcAddr(SSLUtilHandle,'BN_clear_free');
+  _BN_copy:=GetProcAddr(SSLUtilHandle,'BN_copy');
+  _BN_swap:=GetProcAddr(SSLUtilHandle,'BN_swap');
+  _BN_bin2bn:=GetProcAddr(SSLUtilHandle,'BN_bin2bn');
+  _BN_bn2bin:=GetProcAddr(SSLUtilHandle,'BN_bn2bin');
+  _BN_bn2binpad:=GetProcAddr(SSLUtilHandle,'BN_bn2binpad');
+  _BN_lebin2bn:=GetProcAddr(SSLUtilHandle,'BN_lebin2bn');
+  _BN_bn2lebinpad:=GetProcAddr(SSLUtilHandle,'BN_bn2lebinpad');
+  _BN_mpi2bn:=GetProcAddr(SSLUtilHandle,'BN_mpi2bn');
+  _BN_bn2mpi:=GetProcAddr(SSLUtilHandle,'BN_bn2mpi');
+  _BN_sub:=GetProcAddr(SSLUtilHandle,'BN_sub');
+  _BN_usub:=GetProcAddr(SSLUtilHandle,'BN_usub');
+  _BN_uadd:=GetProcAddr(SSLUtilHandle,'BN_uadd');
+  _BN_add:=GetProcAddr(SSLUtilHandle,'BN_add');
+  _BN_mul:=GetProcAddr(SSLUtilHandle,'BN_mul');
+  _BN_sqr:=GetProcAddr(SSLUtilHandle,'BN_sqr');
+  _BN_set_negative:=GetProcAddr(SSLUtilHandle,'BN_set_negative');
+  _BN_is_negative:=GetProcAddr(SSLUtilHandle,'BN_is_negative');
+  _BN_div:=GetProcAddr(SSLUtilHandle,'BN_div');
+  _BN_mod:=GetProcAddr(SSLUtilHandle,'BN_mod');
+  _BN_nnmod:=GetProcAddr(SSLUtilHandle,'BN_nnmod');
+  _BN_mod_add:=GetProcAddr(SSLUtilHandle,'BN_mod_add');
+  _BN_mod_add_quick:=GetProcAddr(SSLUtilHandle,'BN_mod_add_quick');
+  _BN_mod_sub:=GetProcAddr(SSLUtilHandle,'BN_mod_sub');
+  _BN_mod_sub_quick:=GetProcAddr(SSLUtilHandle,'BN_mod_sub_quick');
+  _BN_mod_mul:=GetProcAddr(SSLUtilHandle,'BN_mod_mul');
+  _BN_mod_sqr:=GetProcAddr(SSLUtilHandle,'BN_mod_sqr');
+  _BN_mod_lshift1:=GetProcAddr(SSLUtilHandle,'BN_mod_lshift1');
+  _BN_mod_lshift1_quick:=GetProcAddr(SSLUtilHandle,'BN_mod_lshift1_quick');
+  _BN_mod_lshift:=GetProcAddr(SSLUtilHandle,'BN_mod_lshift');
+  _BN_mod_lshift_quick:=GetProcAddr(SSLUtilHandle,'BN_mod_lshift_quick');
+  _BN_mod_word:=GetProcAddr(SSLUtilHandle,'BN_mod_word');
+  _BN_div_word:=GetProcAddr(SSLUtilHandle,'BN_div_word');
+  _BN_mul_word:=GetProcAddr(SSLUtilHandle,'BN_mul_word');
+  _BN_add_word:=GetProcAddr(SSLUtilHandle,'BN_add_word');
+  _BN_sub_word:=GetProcAddr(SSLUtilHandle,'BN_sub_word');
+  _BN_set_word:=GetProcAddr(SSLUtilHandle,'BN_set_word');
+  _BN_get_word:=GetProcAddr(SSLUtilHandle,'BN_get_word');
+  _BN_cmp:=GetProcAddr(SSLUtilHandle,'BN_cmp');
+  _BN_free:=GetProcAddr(SSLUtilHandle,'BN_free');
 end;
-
-Function LoadUtilLibrary : Boolean;
-
-begin
-  Result:=(SSLUtilHandle<>0);
-  if not Result then
-    begin
-    SSLUtilHandle := LoadLib(DLLUtilName);
-    Result:=(SSLUtilHandle<>0);
-    end;
-end;
-
-
 
 Procedure ClearSSLEntryPoints;
 
 begin
- _SslGetError := nil;
+  _SslGetError := nil;
   _SslLibraryInit := nil;
+  _OPENSSL_init_ssl:=Nil;
   _SslLoadErrorStrings := nil;
   _SslCtxSetCipherList := nil;
   _SslCtxNew := nil;
@@ -3174,7 +5188,10 @@ begin
   _SslMethodV2 := nil;
   _SslMethodV3 := nil;
   _SslMethodTLSV1 := nil;
+  _SslMethodTLSV1_1 := nil;
+  _SslMethodTLSV1_2 := nil;
   _SslMethodV23 := nil;
+  _SslTLSMethod := nil;
   _SslCtxUsePrivateKey := nil;
   _SslCtxUsePrivateKeyASN1 := nil;
   _SslCtxUsePrivateKeyFile := nil;
@@ -3202,33 +5219,128 @@ begin
   _SslCipherGetName := nil;
   _SslCipherGetBits := nil;
   _SslGetVerifyResult := nil;
-end;
+  _SslGetServername := nil;
+  _SslCtxCallbackCtrl := nil;
+  _SslSetSslCtx := nil;
+  _PKCS7_ISSUER_AND_SERIAL_new:=nil;
+  _PKCS7_ISSUER_AND_SERIAL_free:=nil;
+  _PKCS7_ISSUER_AND_SERIAL_digest:=nil;
+  _PKCS7_dup:=nil;
+  _PEM_write_bio_PKCS7_stream:=nil;
+  _PKCS7_SIGNER_INFO_new:=nil;
+  _PKCS7_SIGNER_INFO_free:=nil;
+  _PKCS7_RECIP_INFO_new:=nil;
+  _PKCS7_RECIP_INFO_free:=nil;
+  _PKCS7_SIGNED_new:=nil;
+  _PKCS7_SIGNED_free:=nil;
+  _PKCS7_ENC_CONTENT_new:=nil;
+  _PKCS7_ENC_CONTENT_free:=nil;
+  _PKCS7_ENVELOPE_new:=nil;
+  _PKCS7_ENVELOPE_free:=nil;
+  _PKCS7_SIGN_ENVELOPE_new:=nil;
+  _PKCS7_SIGN_ENVELOPE_free:=nil;
+  _PKCS7_DIGEST_new:=nil;
+  _PKCS7_DIGEST_free:=nil;
+  _PKCS7_ENCRYPT_new:=nil;
+  _PKCS7_ENCRYPT_free:=nil;
+  _PKCS7_new:=nil;
+  _PKCS7_free:=nil;
+  _PKCS7_print_ctx:=nil;
+  _PKCS7_ctrl:=nil;
+  _PKCS7_set_type:=nil;
+  _PKCS7_set0_type_other:=nil;
+  _PKCS7_set_content:=nil;
+  _PKCS7_SIGNER_INFO_set:=nil;
+  _PKCS7_SIGNER_INFO_sign:=nil;
+  _PKCS7_add_signer:=nil;
+  _PKCS7_add_certificate:=nil;
+  _PKCS7_add_crl:=nil;
+  _PKCS7_content_new:=nil;
+  _PKCS7_add_signature:=nil;
+  _PKCS7_cert_from_signer_info:=nil;
+  _PKCS7_set_digest:=nil;
+  _PKCS7_add_recipient:=nil;
+  _PKCS7_add_recipient_info:=nil;
+  _PKCS7_RECIP_INFO_set:=nil;
+  _PKCS7_set_cipher:=nil;
+  _PKCS7_get_issuer_and_serial:=nil;
+  _PKCS7_digest_from_attributes:=nil;
+  _PKCS7_add_signed_attribute:=nil;
+  _PKCS7_add_attribute:=nil;
+  _PKCS7_get_attribute:=nil;
+  _PKCS7_get_signed_attribute:=nil;
+  _PKCS7_set_signed_attributes:=nil;
+  _PKCS7_set_attributes:=nil;
+  _PKCS7_sign:=nil;
+  _PKCS7_sign_add_signer:=nil;
+  _PKCS7_final:=nil;
+  _PKCS7_verify:=nil;
+  _PKCS7_encrypt:=nil;
+  _PKCS7_decrypt:=nil;
+  _PKCS7_add_attrib_smimecap:=nil;
+  _PKCS7_simple_smimecap:=nil;
+  _PKCS7_add_attrib_content_type:=nil;
+  _PKCS7_add0_attrib_signing_time:=nil;
+  _PKCS7_add1_attrib_digest:=nil;
+  _BIO_new_PKCS7:=nil;
+  _ERR_load_PKCS7_strings:=nil;
 
-Procedure UnloadSSLLib;
-
-begin
-  if (SSLLibHandle<>0) then
-    begin
-    FreeLibrary(SSLLibHandle);
-    SSLLibHandle:=0;
-    end;
-end;
-
-Procedure UnloadUtilLib;
-
-begin
-  if (SSLUtilHandle<>0) then
-     begin
-     FreeLibrary(SSLUtilHandle);
-     SSLUtilHandle := 0;
-     end;
+  // BN
+  _BN_new:=nil;
+  _BN_secure_new:=nil;
+  _BN_clear_free:=nil;
+  _BN_copy:=nil;
+  _BN_swap:=nil;
+  _BN_bin2bn:=nil;
+  _BN_bn2bin:=nil;
+  _BN_bn2binpad:=nil;
+  _BN_lebin2bn:=nil;
+  _BN_bn2lebinpad:=nil;
+  _BN_mpi2bn:=nil;
+  _BN_bn2mpi:=nil;
+  _BN_sub:=nil;
+  _BN_usub:=nil;
+  _BN_uadd:=nil;
+  _BN_add:=nil;
+  _BN_mul:=nil;
+  _BN_sqr:=nil;
+  _BN_set_negative:=nil;
+  _BN_is_negative:=nil;
+  _BN_div:=nil;
+  _BN_mod:=nil;
+  _BN_nnmod:=nil;
+  _BN_mod_add:=nil;
+  _BN_mod_add_quick:=nil;
+  _BN_mod_sub:=nil;
+  _BN_mod_sub_quick:=nil;
+  _BN_mod_mul:=nil;
+  _BN_mod_sqr:=nil;
+  _BN_mod_lshift1:=nil;
+  _BN_mod_lshift1_quick:=nil;
+  _BN_mod_lshift:=nil;
+  _BN_mod_lshift_quick:=nil;
+  _BN_mod_word:=nil;
+  _BN_div_word:=nil;
+  _BN_mul_word:=nil;
+  _BN_add_word:=nil;
+  _BN_sub_word:=nil;
+  _BN_set_word:=nil;
+  _BN_get_word:=nil;
+  _BN_cmp:=nil;
+  _BN_free:=nil;
 end;
 
 Procedure ClearUtilEntryPoints;
 
 begin
+  _OpenSSLVersion := Nil;
   _SSLeayversion := nil;
   _ERR_load_crypto_strings := nil;
+  _OPENSSL_init_crypto:=Nil;
+  _OPENSSL_INIT_free:=nil;
+  _OPENSSL_INIT_set_config_appname:=Nil;
+  _OPENSSL_INIT_new:=nil;
+  _OPENSSL_cleanup:=Nil;
   _X509New := nil;
   _X509Free := nil;
   _X509NameOneline := nil;
@@ -3239,6 +5351,7 @@ begin
   _X509print := nil;
   _X509SetVersion := nil;
   _X509SetPubkey := nil;
+  _X509GetPubkey := nil;
   _X509SetIssuerName := nil;
   _X509NameAddEntryByTxt := nil;
   _X509Sign := nil;
@@ -3266,7 +5379,9 @@ begin
   _d2iPKCS12bio := nil;
   _PKCS12parse := nil;
   _PKCS12free := nil;
-  _Asn1UtctimeNew := nil;
+  _Asn1UtctimeSetString := nil;
+  _Asn1StringTypeNew := nil;
+  _Asn1UtctimePrint := nil;
   _Asn1UtctimeFree := nil;
   _Asn1IntegerSet:= nil;
   _Asn1IntegerGet:= nil;
@@ -3324,6 +5439,8 @@ begin
   _i2d_RSAPublicKey := nil;
   _d2i_RSAPrivateKey := nil;
   _i2d_RSAPrivateKey := nil;
+  _d2i_PubKey := nil;
+  _d2i_AutoPrivateKey := nil;
 
   // ERR Functions
   _ERR_error_string := nil;
@@ -3346,6 +5463,7 @@ begin
   _EVP_get_cipherbyname := nil;
   _EVP_get_digestbyname := nil;
   //
+  _EVP_CIPHER_CTX_reset := nil;
   _EVP_CIPHER_CTX_init := nil;
   _EVP_CIPHER_CTX_cleanup := nil;
   _EVP_CIPHER_CTX_set_key_length := nil;
@@ -3358,14 +5476,25 @@ begin
   _EVP_DecryptInit := nil;
   _EVP_DecryptUpdate := nil;
   _EVP_DecryptFinal := nil;
+  //
+  _EVP_sha256 := nil;
+
+  _EVP_MD_CTX_new := nil;
+  _EVP_MD_CTX_free := nil;
+  _EVP_DigestSignInit := nil;
+  _EVP_DigestSignFinal := nil;
+  _EVP_DigestVerifyInit := nil;
+  _EVP_DigestVerifyFinal := nil;
 
   // PEM
 
   _PEM_read_bio_PrivateKey := nil;
-      _PEM_read_bio_PrivateKey := nil;
+  _PEM_read_bio_PrivateKey := nil;
   _PEM_read_bio_PUBKEY := nil;
-      _PEM_write_bio_PrivateKey := nil;
-      _PEM_write_bio_PUBKEY := nil;
+  _PEM_write_bio_PrivateKey := nil;
+  _PEM_read_bio_X509 := nil;
+  _PEM_write_bio_X509 := nil;
+  _PEM_write_bio_PKCS7 := nil;
 
   // BIO
 
@@ -3373,10 +5502,6 @@ begin
   _BIO_s_file := nil;
   _BIO_new_file := nil;
   _BIO_new_mem_buf := nil;
-
-  // Crypto Functions
-
-  _SSLeay_version := nil;
 end;
 
 procedure locking_callback(mode, ltype: integer; lfile: PChar; line: integer); cdecl;
@@ -3392,18 +5517,23 @@ var
   n: integer;
   max: integer;
 begin
-  max:=_CRYPTOnumlocks;
+  if (@_CRYPTOnumlocks<>nil) then
+    max:=_CRYPTOnumlocks
+  else
+    max:=1; // hardcoded in header
   SetLength(Locks,Max);
   for n := 0 to max-1 do
     InitCriticalSection(Locks[n]);
-  _CRYPTOsetlockingcallback(@locking_callback);
+  if (@_CRYPTOsetlockingcallback<>Nil) then
+    _CRYPTOsetlockingcallback(@locking_callback);
 end;
 
 procedure FreeLocks;
 var
   n: integer;
 begin
-  _CRYPTOsetlockingcallback(nil);
+  if (@_CRYPTOsetlockingcallback<>Nil) then
+    _CRYPTOsetlockingcallback(nil);
   for n := 0 to Length(Locks)-1 do
     DoneCriticalSection(Locks[n]);
   SetLength(Locks,0);
@@ -3425,27 +5555,101 @@ begin
   end;
 end;
 
-Function LoadLibraries : Boolean;
+function TryLoadLibPair(const SSL_DLL_Name, Crypto_DLL_Name: string):boolean;
+begin
+  Assert((SSLUtilHandle = 0) and (SSLLibHandle = 0),
+    'LoadTryLoadLibPair: Handle is not zero');
+
+  SSLUtilHandle := LoadLibrary(Crypto_DLL_Name);
+  if (SSLUtilHandle <> 0) then
+    SSLLibHandle := LoadLibrary(SSL_DLL_Name);
+
+  Result := (SSLUtilHandle <> 0) and (SSLLibHandle <> 0);
+  if not Result then UnloadLibraries;
+end;
+
+ Function MakeLibName(Const aBase,aVersion : String) : string;
+
+ begin
+   {$IF DEFINED(WINDOWS) OR DEFINED(OS2)}
+   Result:=aBase+aVersion+'.dll';
+   {$ELSE}
+   {$IFNDEF DARWIN}
+   Result:=aBase+'.so'+aVersion;
+   {$ELSE}
+   Result:=aBase+aVersion+'.dylib';
+   {$ENDIF}
+   {$ENDIF}
+ end;
+
+{$IF NOT(DEFINED(WINDOWS) OR DEFINED(OS2))}
+Function LoadOpenSSl : Boolean;
+
+var
+  Idx: Integer;
+begin
+  Result:=False;
+  Idx := Low(DLLVersions)+StartVersionOffset;
+  While (not Result) and (Idx<=High(DLLVersions)) do
+    begin
+    Result := TryLoadLibPair(MakeLibName(BaseSSLName,DLLVersions[Idx]),
+                             MakeLibName(BaseCryptoName,DLLVersions[Idx]));
+    Inc(Idx);
+    end;
+end;
+
+Function LoadLibreSSl : Boolean;
+
+var
+  Idx: Integer;
+begin
+  Result:=False;
+  Idx := Low(LibreSSLVersions)+StartVersionOffset;
+  While (not Result) and (Idx<=High(LibreSSLVersions)) do
+    begin
+    Result := TryLoadLibPair(MakeLibName(BaseSSLName,LibreSSLVersions[Idx]),
+                             MakeLibName(BaseCryptoName,LibreSSLVersions[Idx]));
+    Inc(Idx);
+    end;
+end;
+{$ENDIF}
+
+Function LoadLibraries(Const aSSLName, aCryptoName : String) : Boolean;
+
+var
+  Idx: Integer;
 
 begin
   Result:=False;
-  SSLUtilHandle := LoadLib(DLLUtilName);
-  SSLLibHandle := LoadLib(DLLSSLName);
-  {$IFDEF MSWINDOWS}
-  if (SSLLibHandle = 0) then
-    SSLLibHandle := LoadLib(DLLSSLName2);
-  {$ELSE MSWINDOWS}
-   {$IFDEF OS2}
-  if (SSLUtilHandle = 0) then
-    SSLUtilHandle := LoadLib(DLLUtilName2);
-  if (SSLLibHandle = 0) then
-    SSLLibHandle := LoadLib(DLLSSLName2);
-   {$ENDIF OS2}
-  {$ENDIF MSWINDOWS}
-  Result:=(SSLLibHandle<>0) and (SSLUtilHandle<>0);
+  if (aSSLName<>'') and (aCryptoName<>'') then
+    Exit(TryLoadLibPair(aSSLName,aCryptoName));
+{$IF DEFINED(WINDOWS) OR DEFINED(OS2)}
+  Assert(Low(SSL_DLL_Names) = Low(Crypto_DLL_Names));
+  Assert(High(SSL_DLL_Names) = High(Crypto_DLL_Names));
+  Idx:=Low(SSL_DLL_Names);
+  While (not Result) and (Idx<=High(SSL_DLL_Names)) do
+    begin
+    Result := TryLoadLibPair(MakeLibName(SSL_DLL_Names[Idx],''), MakeLibName(Crypto_DLL_Names[Idx],''));
+    Inc(Idx);
+    end;
+{$ELSE}
+  if LibreSSLSupport=lssFirst then
+    Result:=LoadLibreSSL;
+  if not Result then
+    Result:=LoadOpenSSL;
+  if (Not Result) and (LibreSSLSupport=lssFirst) then
+    Result:=LoadLibreSSL;
+{$ENDIF}
 end;
 
 function InitSSLInterface: Boolean;
+
+begin
+  Result:=InitSSLInterface('','');
+end;
+
+function InitSSLInterface(Const aSSLName, acryptoName : String) : Boolean;
+
 begin
   Result:=SSLLoaded;
   if Result then
@@ -3454,7 +5658,7 @@ begin
   try
     if SSLloaded then
       Exit;
-    Result:=LoadLibraries;
+    Result:=LoadLibraries(aSSLName,aCryptoName);
     if Not Result then
       begin
       UnloadLibraries;
@@ -3469,8 +5673,6 @@ begin
       _SslLoadErrorStrings;
     if assigned(_OPENSSLaddallalgorithms) then
       _OPENSSLaddallalgorithms;
-    if assigned(_RandScreen) then
-      _RandScreen;
     if assigned(_CRYPTOnumlocks) and assigned(_CRYPTOsetlockingcallback) then
       InitLocks;
     SSLloaded := True;

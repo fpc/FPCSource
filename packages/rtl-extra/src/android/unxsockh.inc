@@ -13,6 +13,10 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
+{ Use libc for sockets since the "accept" syscall is blocked by SECCOMP,
+  but the "accept4" alternative is not available on old Android versions (2.3 and older). }
+{$define FPC_USE_LIBC}
+
 Const
 {* Supported address families. *}
   AF_UNSPEC     = 0;

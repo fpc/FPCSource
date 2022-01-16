@@ -233,6 +233,8 @@ var
 { === in fe-auth.c === }
   PQencryptPassword : function (passwd:Pcchar; user:Pcchar):Pcchar;cdecl;
 
+{ === in encnames.c === }
+  pg_encoding_to_char: function (encoding:cint):Pcchar;cdecl;
 
 Function InitialisePostgres3(Const libpath : ansistring) : integer;
 Procedure InitialisePostgres3;
@@ -240,8 +242,8 @@ Procedure ReleasePostgres3;
 
 function PQsetdb(M_PGHOST,M_PGPORT,M_PGOPT,M_PGTTY,M_DBNAME : pchar) : ppgconn;
 
-var Postgres3LibraryHandle : TLibHandle;
-  Postgres3LoadedLibrary : String;
+var Postgres3LibraryHandle : TLibHandle= NilHandle;
+  Postgres3LoadedLibrary : String = '';
 
 implementation
 
@@ -398,6 +400,7 @@ begin
       pointer(PQmblen) := GetProcedureAddress(Postgres3LibraryHandle,'PQmblen');
       pointer(PQenv2encoding) := GetProcedureAddress(Postgres3LibraryHandle,'PQenv2encoding');
       pointer(PQencryptPassword) := GetProcedureAddress(Postgres3LibraryHandle,'PQencryptPassword');
+      pointer(pg_encoding_to_char) := GetProcedureAddress(Postgres3LibraryHandle,'pg_encoding_to_char');
 
       InitialiseDllist(libpath);
       end
@@ -418,7 +421,7 @@ begin
   EnterCriticalsection(libpgCriticalSection);
   try
     if RefCount > 0 then dec(RefCount);
-    if RefCount = 0 then
+    if (RefCount = 0) and ( Postgres3LibraryHandle <> nilhandle) then
       begin
       if not UnloadLibrary(Postgres3LibraryHandle) then inc(RefCount);
       ReleaseDllist;

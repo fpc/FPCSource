@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit windows;
+unit Windows;
 
 {$PACKSET 1}
 
@@ -22,6 +22,8 @@ unit windows;
 
 { stuff like array of const is used }
 {$mode objfpc}
+{$modeswitch ADVANCEDRECORDS}
+{$modeswitch class}
 {$inline on}
 {$calling stdcall}
 

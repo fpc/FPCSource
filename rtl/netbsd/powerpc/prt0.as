@@ -153,6 +153,11 @@ _strrchr:
 	.comm	__mainprog_obj,4,4
 	.ident	"GCC: (GNU) 2.95.3 20010315 (release) (NetBSD nb3)"
 
+        .comm environ,4,4
+        .comm operatingsystem_parameter_envp,4,4
+        .comm operatingsystem_parameter_argc,4,4
+        .comm operatingsystem_parameter_argv,4,4
+
       .section ".data"
       .globl  __data_start
 __data_start:

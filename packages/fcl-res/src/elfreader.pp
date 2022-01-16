@@ -282,6 +282,7 @@ begin
                     fMachineType:=emtarm
                   else
                     fMachineType:=emtarmeb;
+      EM_AARCH64: fMachineType:=emtaarch64;
       EM_ALPHA  : fMachineType:=emtalpha;
       EM_IA_64  : fMachineType:=emtia64;
       EM_X86_64 : fMachineType:=emtx86_64;
@@ -289,6 +290,10 @@ begin
                     fMachineType:=emtmipsel
                   else
                     fMachineType:=emtmips;
+      EM_RISCV  : if fBits=ELFCLASS32 then
+                    fMachineType:=emtriscv32
+                  else
+                    fMachineType:=emtriscv64;
     end;
   finally
     subreader.Free;

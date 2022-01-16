@@ -110,7 +110,6 @@ TYPE
        PULONG   = ^longword;
        PAPTR    = ^APTR;
        PLONG    = ^LONG;
-       psmallint = ^smallint;
 
 const
        {There is a problem with boolean
@@ -1075,7 +1074,7 @@ tExecBase =  Record
 { ***** V36 Exec additions start here ************************************* }
 
         ex_Pad0           : Word;
-        ex_Reserved0      : ULONG;
+        ex_LaunchPoint    : ULONG;
         ex_RamLibPrivate  : Pointer;
 
         {  The next ULONG contains the system "E" clock frequency,
@@ -1174,8 +1173,114 @@ CONST
        PAVLKEYCOMP = ^AVLKEYCOMP;
        AVLKEYCOMP = APTR;
 
+var
+  ExecBase: PExecBase absolute _ExecBase;
 
+{$if defined(AMIGA_V1_2_ONLY)}
+FUNCTION Supervisor(userFunction : tPROCEDURE location 'a5') : ULONG; syscall _ExecBase 030;
+PROCEDURE Alert(alertNum : ULONG location 'd7'); syscall _ExecBase 108;
+PROCEDURE Debug(flags : ULONG location 'd0'); syscall _ExecBase 114;
+FUNCTION FindResident(const name : pCHAR location 'a1') : pResident; syscall _ExecBase 096;
+PROCEDURE InitCode(startClass : ULONG location 'd0'; version : ULONG location 'd1'); syscall _ExecBase 072;
+FUNCTION InitResident(const resident_ : pResident location 'a1'; segList : ULONG location 'd0') : POINTER; syscall _ExecBase 102;
+PROCEDURE InitStruct(const initTable : POINTER location 'a1'; memory : POINTER location 'a2'; size : ULONG location 'd0'); syscall _ExecBase 078;
 
+PROCEDURE AddIntServer(intNumber : LONGINT location 'd0'; interrupt_ : pInterrupt location 'a1'); syscall _ExecBase 168;
+PROCEDURE Cause(interrupt_ : pInterrupt location 'a1'); syscall _ExecBase 180;
+PROCEDURE Disable; syscall _ExecBase 120;
+PROCEDURE Enable; syscall _ExecBase 126;
+PROCEDURE Forbid; syscall _ExecBase 132;
+PROCEDURE Permit; syscall _ExecBase 138;
+PROCEDURE RemIntServer(intNumber : LONGINT location 'd0'; interrupt_ : pInterrupt location 'a1'); syscall _ExecBase 174;
+FUNCTION SetIntVector(intNumber : LONGINT location 'd0';const interrupt_ : pInterrupt location 'a1') : pInterrupt; syscall _ExecBase 162;
+FUNCTION SetSR(newSR : ULONG location 'd0'; mask : ULONG location 'd1') : ULONG; syscall _ExecBase 144;
+FUNCTION SuperState : POINTER; syscall _ExecBase 150;
+PROCEDURE UserState(sysStack : POINTER location 'd0'); syscall _ExecBase 156;
+
+FUNCTION AllocAbs(byteSize : ULONG location 'd0'; location : POINTER location 'a1') : POINTER; syscall _ExecBase 204;
+FUNCTION Allocate(freeList : pMemHeader location 'a0'; byteSize : ULONG location 'd0') : POINTER; syscall _ExecBase 186;
+FUNCTION AllocEntry(entry : pMemList location 'a0') : pMemList; syscall _ExecBase 222;
+FUNCTION ExecAllocMem(byteSize : ULONG location 'd0'; requirements : ULONG location 'd1') : POINTER; syscall _ExecBase 198;
+FUNCTION AvailMem(requirements : ULONG location 'd1') : ULONG; syscall _ExecBase 216;
+PROCEDURE Deallocate(freeList : pMemHeader location 'a0'; memoryBlock : POINTER location 'a1'; byteSize : ULONG location 'd1'); syscall _ExecBase 192;
+PROCEDURE FreeEntry(entry : pMemList location 'a0'); syscall _ExecBase 228;
+PROCEDURE ExecFreeMem(memoryBlock : POINTER location 'a1'; byteSize : ULONG location 'd0'); syscall _ExecBase 210;
+
+PROCEDURE AddHead(list : pList location 'a0'; node : pNode location 'a1'); syscall _ExecBase 240;
+PROCEDURE AddTail(list : pList location 'a0'; node : pNode location 'a1'); syscall _ExecBase 246;
+PROCEDURE Enqueue(list : pList location 'a0'; node : pNode location 'a1'); syscall _ExecBase 270;
+FUNCTION FindName(list : pList location 'a0'; const name : pCHAR location 'a1') : pNode; syscall _ExecBase 276;
+PROCEDURE ExecInsert(list : pList location 'a0'; node : pNode location 'a1'; pred : pNode location 'a2'); syscall _ExecBase 234;
+FUNCTION RemHead(list : pList location 'a0') : pNode; syscall _ExecBase 258;
+PROCEDURE Remove(node : pNode location 'a1'); syscall _ExecBase 252;
+FUNCTION RemTail(list : pList location 'a0') : pNode; syscall _ExecBase 264;
+
+FUNCTION AddTask(task : pTask location 'a1';const initPC : POINTER location 'a2';const finalPC : POINTER location 'a3') : POINTER; syscall _ExecBase 282;
+FUNCTION AllocSignal(signalNum : LONGINT location 'd0') : shortint; syscall _ExecBase 330;
+FUNCTION AllocTrap(trapNum : LONGINT location 'd0') : LONGINT; syscall _ExecBase 342;
+FUNCTION FindTask(const name : pCHAR location 'a1') : pTask; syscall _ExecBase 294;
+PROCEDURE FreeSignal(signalNum : LONGINT location 'd0'); syscall _ExecBase 336;
+PROCEDURE FreeTrap(trapNum : LONGINT location 'd0'); syscall _ExecBase 348;
+PROCEDURE RemTask(task : pTask location 'a1'); syscall _ExecBase 288;
+FUNCTION SetExcept(newSignals : ULONG location 'd0'; signalSet : ULONG location 'd1') : ULONG; syscall _ExecBase 312;
+FUNCTION SetSignal(newSignals : ULONG location 'd0'; signalSet : ULONG location 'd1') : ULONG; syscall _ExecBase 306;
+FUNCTION SetTaskPri(task : pTask location 'a1'; priority : LONGINT location 'd0') : shortint; syscall _ExecBase 300;
+FUNCTION Wait(signalSet : ULONG location 'd0') : ULONG; syscall _ExecBase 318;
+
+PROCEDURE AddPort(port : pMsgPort location 'a1'); syscall _ExecBase 354;
+FUNCTION FindPort(const name : pCHAR location 'a1') : pMsgPort; syscall _ExecBase 390;
+FUNCTION GetMsg(port : pMsgPort location 'a0') : pMessage; syscall _ExecBase 372;
+PROCEDURE PutMsg(port : pMsgPort location 'a0'; message : pMessage location 'a1'); syscall _ExecBase 366;
+PROCEDURE RemPort(port : pMsgPort location 'a1'); syscall _ExecBase 360;
+PROCEDURE ReplyMsg(message : pMessage location 'a1'); syscall _ExecBase 378;
+FUNCTION WaitPort(port : pMsgPort location 'a0') : pMessage; syscall _ExecBase 384;
+
+PROCEDURE AddLibrary(lib : pLibrary location 'a1'); syscall _ExecBase 396;
+PROCEDURE CloseLibrary(lib : pLibrary location 'a1'); syscall _ExecBase 414;
+PROCEDURE MakeFunctions(const target : POINTER location 'a0';const functionArray : POINTER location 'a1';const funcDispBase :pointer location 'a2'); syscall _ExecBase 090;
+FUNCTION MakeLibrary(const  funcInit : POINTER location 'a0';const  structInit : POINTER location 'a1'; libInit : tPROCEDURE location 'a2';dataSize : ULONG location 'd0'; segList : ULONG location 'd0') : pLibrary; syscall _ExecBase 084;
+FUNCTION OldOpenLibrary(const libName : pCHAR location 'a1') : pLibrary; syscall _ExecBase 408;
+FUNCTION OpenLibrary(const libName : pCHAR location 'a1'; version : ULONG location 'd0') : pLibrary; syscall _ExecBase 552;
+PROCEDURE RemLibrary(lib : pLibrary location 'a1'); syscall _ExecBase 402;
+FUNCTION SetFunction(lib : pLibrary location 'a1'; funcOffset : LONGINT location 'a0'; newFunction : tPROCEDURE location 'd0') : POINTER; syscall _ExecBase 420;
+PROCEDURE SumLibrary(lib : pLibrary location 'a1'); syscall _ExecBase 426;
+
+PROCEDURE AbortIO(ioRequest : pIORequest location 'a1'); syscall _ExecBase 480;
+PROCEDURE AddDevice(device : pDevice location 'a1'); syscall _ExecBase 432;
+FUNCTION CheckIO(ioRequest : pIORequest location 'a1') : pIORequest; syscall _ExecBase 468;
+PROCEDURE CloseDevice(ioRequest : pIORequest location 'a1'); syscall _ExecBase 450;
+FUNCTION DoIO(ioRequest : pIORequest location 'a1') : shortint; syscall _ExecBase 456;
+FUNCTION OpenDevice(const devName : pCHAR location 'a0'; unite : ULONG location 'd0'; ioRequest : pIORequest location 'a1'; flags : ULONG location 'd1') : shortint; syscall _ExecBase 444;
+PROCEDURE RemDevice(device : pDevice location 'a1'); syscall _ExecBase 438;
+PROCEDURE SendIO(ioRequest : pIORequest location 'a1'); syscall _ExecBase 462;
+FUNCTION WaitIO(ioRequest : pIORequest location 'a1') : shortint; syscall _ExecBase 474;
+
+PROCEDURE AddResource(resource : POINTER location 'a1'); syscall _ExecBase 486;
+FUNCTION OpenResource(const resName : pCHAR location 'a1') : POINTER; syscall _ExecBase 498;
+PROCEDURE RemResource(resource : POINTER location 'a1'); syscall _ExecBase 492;
+
+PROCEDURE AddSemaphore(sigSem : pSignalSemaphore location 'a1'); syscall _ExecBase 600;
+FUNCTION AttemptSemaphore(sigSem : pSignalSemaphore location 'a0') : LongBool; syscall _ExecBase 576;
+FUNCTION FindSemaphore(const sigSem : pCHAR location 'a1') : pSignalSemaphore; syscall _ExecBase 594;
+PROCEDURE InitSemaphore(sigSem : pSignalSemaphore location 'a0'); syscall _ExecBase 558;
+PROCEDURE ObtainSemaphore(sigSem : pSignalSemaphore location 'a0'); syscall _ExecBase 564;
+PROCEDURE ObtainSemaphoreList(sigSem : pList location 'a0'); syscall _ExecBase 582;
+FUNCTION Procure(sigSem : pSignalSemaphore location 'a0'; bidMsg : pSemaphoreMessage location 'a1') : LongBool; syscall _ExecBase 540;
+PROCEDURE ReleaseSemaphore(sigSem : pSignalSemaphore location 'a0'); syscall _ExecBase 570;
+PROCEDURE ReleaseSemaphoreList(sigSem : pList location 'a0'); syscall _ExecBase 588;
+PROCEDURE RemSemaphore(sigSem : pSignalSemaphore location 'a1'); syscall _ExecBase 606;
+PROCEDURE Vacate(sigSem : pSignalSemaphore location 'a0'; bidMsg : pSemaphoreMessage location 'a1'); syscall _ExecBase 546;
+
+PROCEDURE AddMemList(size : ULONG location 'd0'; attributes : ULONG location 'd1'; pri : LONGINT location 'd2'; base : POINTER location 'a0'; const name : pCHAR location 'a1'); syscall _ExecBase 618;
+PROCEDURE CopyMem(const source : POINTER location 'a0'; dest : POINTER location 'a1'; size : ULONG location 'd0'); syscall _ExecBase 624;
+PROCEDURE CopyMemQuick(const source : POINTER location 'a0'; dest : POINTER location 'a1'; size : ULONG location 'd0'); syscall _ExecBase 630;
+PROCEDURE SumKickData; syscall _ExecBase 612;
+
+FUNCTION GetCC : ULONG; syscall _ExecBase 528;
+function RawDoFmt(const formatString : pCHAR location 'a0';const dataStream : POINTER location 'a1'; putChProc : tPROCEDURE location 'a2'; putChData : POINTER location 'a3'): pointer; syscall _ExecBase 522;
+FUNCTION TypeOfMem(const address : POINTER location 'a1') : ULONG; syscall _ExecBase 534;
+
+{$else}
 PROCEDURE AbortIO(ioRequest : pIORequest location 'a1'); syscall _ExecBase 480;
 PROCEDURE AddDevice(device : pDevice location 'a1'); syscall _ExecBase 432;
 PROCEDURE AddHead(list : pList location 'a0'; node : pNode location 'a1'); syscall _ExecBase 240;
@@ -1192,7 +1297,7 @@ PROCEDURE Alert(alertNum : ULONG location 'd7'); syscall _ExecBase 108;
 FUNCTION AllocAbs(byteSize : ULONG location 'd0'; location : POINTER location 'a1') : POINTER; syscall _ExecBase 204;
 FUNCTION Allocate(freeList : pMemHeader location 'a0'; byteSize : ULONG location 'd0') : POINTER; syscall _ExecBase 186;
 FUNCTION AllocEntry(entry : pMemList location 'a0') : pMemList; syscall _ExecBase 222;
-FUNCTION AllocMem(byteSize : ULONG location 'd0'; requirements : ULONG location 'd1') : POINTER; syscall _ExecBase 198;
+FUNCTION ExecAllocMem(byteSize : ULONG location 'd0'; requirements : ULONG location 'd1') : POINTER; syscall _ExecBase 198;
 FUNCTION AllocPooled(poolHeader : POINTER location 'a0'; memSize : ULONG location 'd0') : POINTER; syscall _ExecBase 708;
 FUNCTION AllocSignal(signalNum : LONGINT location 'd0') : shortint; syscall _ExecBase 330;
 FUNCTION AllocTrap(trapNum : LONGINT location 'd0') : LONGINT; syscall _ExecBase 342;
@@ -1306,8 +1411,8 @@ FUNCTION AVL_FindNextNodeByAddress(CONST node : pAVLNode location 'a0') : pAVLNo
 FUNCTION AVL_FindNextNodeByKey(CONST root : pAVLNode location 'a0'; key : POINTER location 'a1'; func : POINTER location 'a2') : pAVLNode; syscall _ExecBase 894;
 FUNCTION AVL_FindFirstNode(CONST root : pAVLNode location 'a0') : pAVLNode; syscall _ExecBase 900;
 FUNCTION AVL_FindLastNode(CONST root : pAVLNode location 'a0') : pAVLNode; syscall _ExecBase 906;
+{$endif}
 
-PROCEDURE AddMemList(size : ULONG; attributes : ULONG; pri : LONGINT; base : POINTER; const name : String);
 FUNCTION FindName(list : pList; const name : String) : pNode;
 FUNCTION FindPort(const name : String) : pMsgPort;
 FUNCTION FindResident(const name : String) : pResident;
@@ -1323,75 +1428,271 @@ function BitMask(no :shortint): longint;
 function IsListEmpty( list : pList): boolean;
 function IsMsgPortEmpty( mp : pMsgPort): boolean;
 
+procedure BeginIO(IORequest: PIORequest);
+function CreateExtIO(Port: PMsgPort; Size: LongInt): PIORequest;
+procedure DeleteExtIO(IOReq: PIORequest);
+function CreateStdIO(Port: PMsgPort): PIOStdReq;
+procedure DeleteStdIO(IOReq: PIOStdReq);
+function CreatePort(Name: PChar; Pri: LongInt): PMsgPort;
+procedure DeletePort(Port: PMsgPort);
+function CreateTask(Name: STRPTR; Pri: LongInt; InitPC: Pointer; StackSize: LongWord): PTask;
+procedure DeleteTask(Task: PTask);
+procedure NewList(List: PList);
+
+{$if defined(AMIGA_V1_2_ONLY)}
+function CreateMsgPort: PMsgPort;
+procedure DeleteMsgPort(Port: PMsgPort);
+
+function CreateIORequest(const Port: PMsgPort; Size: LongWord): PIORequest;
+procedure DeleteIORequest(IOReq: PIORequest);
+{$endif}
+
+
+
 IMPLEMENTATION
 
-uses pastoc;
-
-function BitMask(no :shortint): longint;
+function BitMask(no :shortint): longint; inline;
 begin
    BitMask := 1 shl no;
 end;
 
-function IsListEmpty( list : pList): boolean;
+function IsListEmpty( list : pList): boolean; inline;
 begin
      IsListEmpty := list^.lh_TailPred = pnode(list);
 end;
 
-function IsMsgPortEmpty( mp : pMsgPort): boolean;
+function IsMsgPortEmpty( mp : pMsgPort): boolean; inline;
 begin
      with mp^ do
          IsMsgPortEmpty := mp_MsgList.lh_TailPred = pNode(@mp_MsgList);
 end;
 
-PROCEDURE AddMemList(size : ULONG; attributes : ULONG; pri : LONGINT; base : POINTER; const name : String);
-BEGIN
-    AddMemList(size,attributes,pri,base,pas2c(name));
-END;
 FUNCTION FindName(list : pList; const name : String) : pNode;
 BEGIN
-    FindName := FindName(list,pas2c(name));
+    FindName := FindName(list,PChar(RawByteString(name)));
 END;
+
 FUNCTION FindPort(const name : String) : pMsgPort;
 BEGIN
-    FindPort := FindPort(pas2c(name));
+    FindPort := FindPort(PChar(RawByteString(name)));
 END;
+
 FUNCTION FindResident(const name : String) : pResident;
 BEGIN
-    FindResident := FindResident(pas2c(name));
+    FindResident := FindResident(PChar(RawByteString(name)));
 END;
+
 FUNCTION FindSemaphore(const sigSem : String) : pSignalSemaphore;
 BEGIN
-    FindSemaphore := FindSemaphore(pas2c(sigSem));
+    FindSemaphore := FindSemaphore(PChar(RawByteString(sigSem)));
 END;
+
 FUNCTION FindTask(const name : String) : pTask;
 BEGIN
-    FindTask := FindTask(pas2c(name));
+    FindTask := FindTask(PChar(RawByteString(name)));
 END;
+
 FUNCTION OldOpenLibrary(const libName : String) : pLibrary;
 BEGIN
-    OldOpenLibrary := OldOpenLibrary(pas2c(libName));
+    OldOpenLibrary := OldOpenLibrary(PChar(RawByteString(libName)));
 END;
+
 FUNCTION OpenDevice(const devName : String; unite : ULONG; ioRequest : pIORequest;
 flags : ULONG) : shortint;
 BEGIN
-    OpenDevice := OpenDevice(pas2c(devName),unite,ioRequest,flags);
+    OpenDevice := OpenDevice(PChar(RawByteString(devName)),unite,ioRequest,flags);
 END;
+
 FUNCTION OpenLibrary(const libName : String; version : ULONG) : pLibrary;
 BEGIN
-    OpenLibrary := OpenLibrary(pas2c(libName),version);
+    OpenLibrary := OpenLibrary(PChar(RawByteString(libName)),version);
 END;
+
 FUNCTION OpenResource(const resName : String) : POINTER;
 BEGIN
-    OpenResource := OpenResource(pas2c(resName));
+    OpenResource := OpenResource(PChar(RawByteString(resName)));
 END;
+
 function RawDoFmt(const formatString : String;const dataStream : POINTER; putChProc : tPROCEDURE; putChData : POINTER): pointer;
 BEGIN
-    RawDoFmt := RawDoFmt(pas2c(formatString),dataStream,putChProc,putChData);
+    RawDoFmt := RawDoFmt(PChar(RawByteString(formatString)),dataStream,putChProc,putChData);
 END;
 
+
+procedure BeginIO(IORequest: PIORequest);
+begin
+  asm
+    move.l  a6,-(a7)
+    move.l  ioRequest,a1    ; get IO Request
+    move.l  20(a1),a6      ; extract Device ptr
+    jsr     -30(a6)        ; call BEGINIO directly
+    move.l  (a7)+,a6
+  end;
+end;
+
+function CreateExtIO(Port: PMsgPort; Size: LongInt): PIORequest;
+var
+   IOReq: PIORequest;
+begin
+  IOReq := nil;
+  if port <> nil then
+  begin
+    IOReq := ExecAllocMem(Size, MEMF_CLEAR or MEMF_PUBLIC);
+    if IOReq <> nil then
+    begin
+      IOReq^.io_Message.mn_Node.ln_Type := NT_REPLYMSG;
+      IOReq^.io_Message.mn_Length := Size;
+      IOReq^.io_Message.mn_ReplyPort := Port;
+    end;
+  end;
+  CreateExtIO := IOReq;
+end;
+
+
+procedure DeleteExtIO(IOReq: PIORequest);
+begin
+  if IOReq <> nil then
+  begin
+    IOReq^.io_Message.mn_Node.ln_Type := $FF;
+    IOReq^.io_Message.mn_ReplyPort := PMsgPort(-1);
+    IOReq^.io_Device := PDevice(-1);
+    ExecFreeMem(IOReq, IOReq^.io_Message.mn_Length);
+  end
+end;
+
+{$if defined(AMIGA_V1_2_ONLY)}
+function CreateIORequest(const Port: PMsgPort; Size: LongWord): PIORequest;
+begin
+  CreateIORequest := CreateExtIO(Port, Size);
+end;
+
+procedure DeleteIORequest(IOReq: PIORequest);
+begin
+  DeleteExtIO(IOReq);
+end;
+{$endif}
+
+function CreateStdIO(Port: PMsgPort): PIOStdReq;
+begin
+  CreateStdIO := PIOStdReq(CreateExtIO(Port, SizeOf(TIOStdReq)))
+end;
+
+
+procedure DeleteStdIO(IOReq: PIOStdReq);
+begin
+  DeleteExtIO(PIORequest(IOReq))
+end;
+
+
+function CreatePort(Name: PChar; Pri: LongInt): PMsgPort;
+var
+  SigBit: Byte;
+  Port: PMsgPort;
+begin
+  SigBit := AllocSignal(-1);
+  if SigBit = -1 then
+  begin
+    CreatePort := nil;
+    Exit;
+  end;
+  Port := ExecAllocmem(SizeOf(TMsgPort), MEMF_CLEAR or MEMF_PUBLIC);
+  if Port = nil then
+  begin
+    FreeSignal(SigBit);
+    CreatePort := nil;
+    Exit;
+  end;
+  with Port^ do
+  begin
+    if Assigned(Name) then
+      mp_Node.ln_Name := Name
+    else
+      mp_Node.ln_Name := nil;
+    mp_Node.ln_Pri := Pri;
+    mp_Node.ln_Type := NT_MsgPort;
+    mp_Flags := PA_Signal;
+    mp_SigBit := SigBit;
+    mp_SigTask := FindTask(nil);
+  end;
+  if Assigned(Name) then
+    AddPort(Port)
+  else
+    NewList(Addr(Port^.mp_MsgList));
+  CreatePort := Port;
+end;
+
+procedure DeletePort(Port: PMsgPort);
+begin
+  if Port <> nil then
+  begin
+    if Port^.mp_Node.ln_Name <> nil then
+      RemPort(port);
+    Port^.mp_Node.ln_Type := $FF;
+    Port^.mp_MsgList.lh_Head := PNode(-1);
+    FreeSignal(Port^.mp_SigBit);
+    ExecFreeMem(Port, SizeOf(TMsgPort));
+  end;
+end;
+
+{$if defined(AMIGA_V1_2_ONLY)}
+function CreateMsgPort: PMsgPort;
+begin
+  CreateMsgPort := CreatePort(nil, 0);
+end;
+
+procedure DeleteMsgPort(Port: PMsgPort);
+begin
+  DeletePort(Port);
+end;
+{$endif}
+
+function CreateTask(Name: STRPTR; Pri: LongInt; InitPC: Pointer; StackSize: LongWord): PTask;
+var
+  Memlist: PMemList;
+  Task: PTask;
+  TotalSize: LongInt;
+begin
+  task := nil;
+  StackSize := (StackSize + 3) and not 3;
+  TotalSize := SizeOf(TMemList) + SizeOf(TTask) + StackSize;
+
+  Memlist := ExecAllocMem(TotalSize, MEMF_PUBLIC + MEMF_CLEAR);
+  if MemList <> nil then
+  begin
+    MemList^.ml_NumEntries := 1;
+    MemList^.ml_ME[0].me_Un.meu_Addr := Pointer(MemList + 1);
+    MemList^.ml_ME[0].me_Length := TotalSize - SizeOf(TMemList);
+
+    Task := PTask(MemList + SizeOf(TMemList) + StackSize);
+    Task^.tc_Node.ln_Pri := Pri;
+    Task^.tc_Node.ln_Type := NT_TASK;
+    Task^.tc_Node.ln_Name := Name;
+    Task^.tc_SPLower := Pointer(MemList + SizeOf(TMemList));
+    Task^.tc_SPUpper := Pointer(Task^.tc_SPLower + StackSize);
+    Task^.tc_SPReg := Task^.tc_SPUpper;
+
+    NewList(@Task^.tc_MemEntry);
+    AddTail(@Task^.tc_MemEntry,@MemList^.ml_Node);
+
+    AddTask(Task, InitPC, nil)
+  end;
+  CreateTask := Task;
+end;
+
+procedure DeleteTask (task: pTask);
+begin
+    RemTask(task)
+end;
+
+
+procedure NewList (list: pList);
+begin
+    with list^ do
+    begin
+        lh_Head     := pNode(@lh_Tail);
+        lh_Tail     := NIL;
+        lh_TailPred := pNode(@lh_Head)
+    end
+end;
+
 END. (* UNIT EXEC *)
-
-
-
-
-

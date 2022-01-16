@@ -14,7 +14,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit winmouse;
+unit WinMouse;
 
   interface
     { initializes the mouse with the default values for the current screen mode }

@@ -1,6 +1,6 @@
 {
 }
-unit wincd;
+unit WinCD;
 
 {$mode objfpc}
 {$h+}

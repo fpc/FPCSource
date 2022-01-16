@@ -21,14 +21,17 @@ const
 
 {$ifdef GEKKO}
 
+const
+  GQR_SCALE_MASK = ($3f shl 8);
+
 procedure __set_gqr(_reg,_val: cint); inline;
 procedure CAST_Init(); inline;
-procedure CAST_SetGQR2(_type, scale: cuint32); inline;
-procedure CAST_SetGQR3(_type, scale: cuint32); inline;
-procedure CAST_SetGQR4(_type, scale: cuint32); inline;
-procedure CAST_SetGQR5(_type, scale: cuint32); inline;
-procedure CAST_SetGQR6(_type, scale: cuint32); inline;
-procedure CAST_SetGQR7(_type, scale: cuint32); inline;
+procedure CAST_SetGQR2(_type, scale: cint32); inline;
+procedure CAST_SetGQR3(_type, scale: cint32); inline;
+procedure CAST_SetGQR4(_type, scale: cint32); inline;
+procedure CAST_SetGQR5(_type, scale: cint32); inline;
+procedure CAST_SetGQR6(_type, scale: cint32); inline;
+procedure CAST_SetGQR7(_type, scale: cint32); inline;
 function __castu8f32(_in: pcuint8): f32; inline;
 function __castu16f32(_in: pcuint16): f32; inline;
 function __casts8f32(_in: pcint8): f32; inline
@@ -85,7 +88,7 @@ procedure CAST_SetGQR2(_type, scale: cuint32); inline;
 var
   val: cuint32;
 begin
-  val := (((((scale) shl 8) or (_type)) shl 16) or (((scale) shl 8) or (_type)));
+  val := ((((((scale) shl 8) and GQR_SCALE_MASK) or (_type)) shl 16) or ((((scale) shl 8) and GQR_SCALE_MASK) or (_type)));
 	__set_gqr(GQR2,val);
 end;
 
@@ -93,7 +96,7 @@ procedure CAST_SetGQR3(_type, scale: cuint32); inline;
 var
   val: cuint32;
 begin
-	val := (((((scale) shl 8) or (_type)) shl 16) or (((scale) shl 8) or (_type)));
+  val := ((((((scale) shl 8) and GQR_SCALE_MASK) or (_type)) shl 16) or ((((scale) shl 8) and GQR_SCALE_MASK) or (_type)));
 	__set_gqr(GQR3,val);
 end;
 
@@ -101,7 +104,7 @@ procedure CAST_SetGQR4(_type, scale: cuint32); inline;
 var
   val: cuint32;
 begin
-	val := (((((scale) shl 8) or (_type)) shl 16) or (((scale) shl 8) or (_type)));
+  val := ((((((scale) shl 8) and GQR_SCALE_MASK) or (_type)) shl 16) or ((((scale) shl 8) and GQR_SCALE_MASK) or (_type)));
 	__set_gqr(GQR4,val);
 end;
 
@@ -109,7 +112,7 @@ procedure CAST_SetGQR5(_type, scale: cuint32); inline;
 var
   val: cuint32;
 begin
-	val := (((((scale) shl 8) or (_type)) shl 16) or (((scale) shl 8) or (_type)));
+  val := ((((((scale) shl 8) and GQR_SCALE_MASK) or (_type)) shl 16) or ((((scale) shl 8) and GQR_SCALE_MASK) or (_type)));
 	__set_gqr(GQR5,val);
 end;
 
@@ -117,7 +120,7 @@ procedure CAST_SetGQR6(_type, scale: cuint32); inline;
 var
   val: cuint32;
 begin
-	val := (((((scale) shl 8) or (_type)) shl 16) or (((scale) shl 8) or (_type)));
+  val := ((((((scale) shl 8) and GQR_SCALE_MASK) or (_type)) shl 16) or ((((scale) shl 8) and GQR_SCALE_MASK) or (_type)));
 	__set_gqr(GQR6,val);
 end;
 
@@ -125,7 +128,7 @@ procedure CAST_SetGQR7(_type, scale: cuint32); inline;
 var
   val: cuint32;
 begin
-	val := (((((scale) shl 8) or (_type)) shl 16) or (((scale) shl 8) or (_type)));
+  val := ((((((scale) shl 8) and GQR_SCALE_MASK) or (_type)) shl 16) or ((((scale) shl 8) and GQR_SCALE_MASK) or (_type)));
 	__set_gqr(GQR7,val);
 end;
 

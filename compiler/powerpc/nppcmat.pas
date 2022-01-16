@@ -26,7 +26,7 @@ unit nppcmat;
 interface
 
     uses
-      node,nmat;
+      node,nmat, ncgmat;
 
     type
       tppcmoddivnode = class(tmoddivnode)
@@ -44,7 +44,7 @@ interface
          procedure pass_generate_code;override;
       end;
 
-      tppcnotnode = class(tnotnode)
+      tppcnotnode = class(tcgnotnode)
          procedure pass_generate_code;override;
       end;
 
@@ -93,8 +93,6 @@ implementation
          procedure genOrdConstNodeDiv;
          const
              negops : array[boolean] of tasmop = (A_NEG, A_NEGO);
-         var
-             divreg : tregister;
          begin
              if (tordconstnode(right).value = 0) then begin
                  internalerror(2005061701);
@@ -250,7 +248,7 @@ implementation
          secondpass(left);
          secondpass(right);
 
-         if is_64bitint(left.resultdef) then
+         if is_64bit(left.resultdef) then
            begin
              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,
                left.resultdef,left.resultdef,true);
@@ -478,6 +476,8 @@ implementation
                             left.location.reference,src1);
                        end;
                   end;
+                else
+                  internalerror(2019050913);
               end;
               { choose appropriate operand }
               if left.resultdef.typ <> floatdef then
@@ -513,33 +513,14 @@ implementation
     procedure tppcnotnode.pass_generate_code;
 
       var
-         hl : tasmlabel;
          tmpreg: tregister;
       begin
-         if is_boolean(resultdef) then
+        secondpass(left);
+        if is_boolean(resultdef) then
           begin
-            { if the location is LOC_JUMP, we do the secondpass after the
-              labels are allocated
-            }
-            if left.expectloc=LOC_JUMP then
+            if not handle_locjump then
               begin
-                hl:=current_procinfo.CurrTrueLabel;
-                current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
-                current_procinfo.CurrFalseLabel:=hl;
-                secondpass(left);
-
-                if left.location.loc<>LOC_JUMP then
-                  internalerror(2012081303);
-
-                maketojumpbool(current_asmdata.CurrAsmList,left,lr_load_regvars);
-                hl:=current_procinfo.CurrTrueLabel;
-                current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
-                current_procinfo.CurrFalseLabel:=hl;
-                location.loc:=LOC_JUMP;
-              end
-            else
-              begin
-                secondpass(left);
+                { handle_locjump does call secondpass }
                 case left.location.loc of
                   LOC_FLAGS :
                     begin
@@ -575,7 +556,6 @@ implementation
           end
          else if is_64bitint(left.resultdef) then
            begin
-             secondpass(left);
              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
              location_copy(location,left.location);
              { perform the NOT operation }
@@ -586,7 +566,6 @@ implementation
            end
          else
            begin
-             secondpass(left);
              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
              location_copy(location,left.location);
              location.loc := LOC_REGISTER;

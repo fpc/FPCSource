@@ -36,33 +36,46 @@ type
   private
   protected
     fFileList : TStringList;
+    fRCIncludeDirs: TStringList;
+    fRCDefines: TStringList;
     fStreamList : TFPList;
+    fRCMode: Boolean;
   public
     constructor Create;
     destructor Destroy; override;
     procedure Load(aResources : TResources);
     property FileList : TStringList read fFileList;
+    property RCIncludeDirs: TStringList read fRCIncludeDirs;
+    property RCDefines: TStringList read fRCDefines;
+    property RCMode: Boolean read fRCMode write fRCMode;
   end;
   
 implementation
 
-uses msghandler, closablefilestream;
+uses msghandler, closablefilestream, rcreader;
 
 { TSourceFiles }
 
 constructor TSourceFiles.Create;
 begin
+  inherited Create;
   fFileList:=TStringList.Create;
   fStreamList:=TFPList.Create;
+  fRCDefines:= TStringList.Create;
+  fRCIncludeDirs:= TStringList.Create;
+  fRCMode:=False;
 end;
 
 destructor TSourceFiles.Destroy;
 var i : integer;
 begin
+  fRCIncludeDirs.Free;
+  fRCDefines.Free;
   fFileList.Free;
   for i:=0 to fStreamList.Count-1 do
     TStream(fStreamList[i]).Free;
   fStreamList.Free;
+  inherited;
 end;
 
 procedure TSourceFiles.Load(aResources: TResources);
@@ -70,7 +83,9 @@ var aReader : TAbstractResourceReader;
     aStream : TClosableFileStream;
     i : integer;
     tmpres : TResources;
+    olddir : String;
 begin
+  olddir:=GetCurrentDir;
   tmpres:=TResources.Create;
   try
     for i:=0 to fFileList.Count-1 do
@@ -82,18 +97,30 @@ begin
         raise ECantOpenFileException.Create(fFileList[i]);
       end;
       fStreamList.Add(aStream);
-      try
-        aReader:=TResources.FindReader(aStream);
-      except
-        raise EUnknownInputFormatException.Create(fFileList[i]);
-      end;
+      { the RC reader reads anything, so handle that separately }
+      if fRCMode then
+        aReader:=TRCResourceReader.Create
+      else
+        try
+          aReader:=TResources.FindReader(aStream);
+        except
+          raise EUnknownInputFormatException.Create(fFileList[i]);
+        end;
       Messages.DoVerbose(Format('Chosen reader: %s',[aReader.Description]));
       try
         Messages.DoVerbose('Reading resource information...');
+        if aReader is TRCResourceReader then begin
+          TRCResourceReader(aReader).RCIncludeDirs.Assign(fRCIncludeDirs);
+          TRCResourceReader(aReader).RCDefines.Assign(fRCDefines);
+          SetCurrentDir(ExtractFilePath(ExpandFileName(fFileList[i])));
+        end;
         tmpres.LoadFromStream(aStream,aReader);
         aResources.MoveFrom(tmpres);
         Messages.DoVerbose('Resource information read');
       finally
+        if aReader is TRCResourceReader then begin
+          SetCurrentDir(olddir);
+        end;
         aReader.Free;
       end;
     end;

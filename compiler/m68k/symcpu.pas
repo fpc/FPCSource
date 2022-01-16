@@ -97,7 +97,7 @@ type
     { library symbol for AmigaOS/MorphOS }
     libsym : tsym;
     libsymderef : tderef;
-    function getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp): tstoreddef; override;
+    function getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp; const paraprefix: string): tstoreddef; override;
     procedure buildderef; override;
     procedure deref; override;
   end;
@@ -123,6 +123,10 @@ type
   tcpuunitsym = class(tunitsym)
   end;
   tcpuunitsymclass = class of tcpuunitsym;
+
+  tcpuprogramparasym = class(tprogramparasym)
+  end;
+  tcpuprogramparasymclass = class(tprogramparasym);
 
   tcpunamespacesym = class(tnamespacesym)
   end;
@@ -199,7 +203,7 @@ implementation
     end;
 
 
-  function tcpuprocdef.getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp): tstoreddef;
+  function tcpuprocdef.getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp; const paraprefix: string): tstoreddef;
     begin
       result:=inherited;
       if newtyp=procdef then
@@ -249,6 +253,7 @@ begin
   { used tsym classes }
   clabelsym:=tcpulabelsym;
   cunitsym:=tcpuunitsym;
+  cprogramparasym:=tcpuprogramparasym;
   cnamespacesym:=tcpunamespacesym;
   cprocsym:=tcpuprocsym;
   ctypesym:=tcputypesym;

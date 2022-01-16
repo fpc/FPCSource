@@ -99,6 +99,12 @@ implementation
            end
           else if tok='RECORDMAX' then
            b.recordalignmax:=l
+
+{          disabled for now as - as Jonas pointed out - this
+           is a matter of abi
+
+           else if tok='MAXCRECORD' then
+           b.maxCrecordalign:=l }
           else { Error }
            UpdateAlignmentStr:=false;
         until false;
@@ -137,6 +143,10 @@ implementation
             end;
           if found then
             begin
+{$ifdef llvm}
+             { -Ooregvar is not supported, llvm will take care of that }
+             if opt<>cs_opt_regvar then
+{$endif llvm}
               if doset then
                 include(a,opt)
               else

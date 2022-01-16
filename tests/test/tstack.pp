@@ -1,3 +1,8 @@
+{$ifdef CPUAVR}
+{ avr does not support an exitproc }
+begin
+end.
+{$else CPUAVR}
 {$S+}
 
 { Program to check that an infinite recursion
@@ -19,7 +24,7 @@ end;
 
 
 const
-  saveexit : pointer = nil;
+  saveexit : codepointer = nil;
   x : longint = 0;
 
 {$S-}
@@ -30,7 +35,7 @@ begin
   exitproc:=saveexit;
   if errorcode<>0 then
     begin
-      Writeln('An error occured at level ',level);
+      Writeln('An error occurred at level ',level);
       if errorcode=202 then
         begin
           Writeln('Stack overflow correctly handled');
@@ -60,3 +65,4 @@ begin
   exitproc:=@stack_check_exit;
   x:=inf_rec(5000);
 end.
+{$endif CPUAVR}

@@ -1,6 +1,6 @@
 PROGRAM AslTest;
 
-uses Exec, Utility, Asl, amsgbox, systemvartags;
+uses Exec, Utility, Asl, amsgbox;
 
 
 {
@@ -26,20 +26,20 @@ VAR
 BEGIN
 
     fr := AllocAslRequestTags(ASL_FileRequest,[
-                          ASLFR_InitialPattern,'#?',
-                          ASLFR_TitleText,'Test av ASL-Requester by NS',
-                          ASLFR_DoPatterns,ltrue,
+                          ASLFR_InitialPattern, AsTag('#?'),
+                          ASLFR_TitleText, AsTag('Test av ASL-Requester by NS'),
+                          ASLFR_DoPatterns, AsTag(True),
                           TAG_DONE]);
 
     IF fr <> nil THEN BEGIN
-        dummy := AslRequest(fr,NIL) <> LFALSE;
+        dummy := AslRequest(fr,NIL);
         if dummy then begin
            MessageBox('Test of Asl',
-                      ' The path is :' +
-                      strpas(fr^.rf_Dir) +
+                      ' The path is:" ' +
+                      string(fr^.rf_Dir) + '"' +
                       chr(10) +
-                      'And the file is :' +
-                      strpas(fr^.rf_File),
+                      'And the file is: "' +
+                      string(fr^.rf_File) + '"', 
                       'OK');
         end else MessageBox('Test of Asl','You canceled','OK');
         FreeAslRequest(fr);

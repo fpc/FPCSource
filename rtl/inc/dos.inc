@@ -151,7 +151,7 @@ end;
 
 
 {$IFNDEF HAS_GETINTVEC}
-procedure GetIntVec (IntNo: byte; var Vector: pointer);
+procedure GetIntVec (IntNo: byte; var Vector: {$ifdef cpui8086}farpointer{$else}pointer{$endif});
 begin
   Vector := nil;
 end;
@@ -159,7 +159,7 @@ end;
 
 
 {$IFNDEF HAS_SETINTVEC}
-procedure SetIntVec (IntNo: byte; Vector: pointer);
+procedure SetIntVec (IntNo: byte; Vector: {$ifdef cpui8086}farpointer{$else}pointer{$endif});
 begin
 end;
 {$ENDIF HAS_SETINTVEC}
@@ -232,6 +232,7 @@ end;
 ****************************************************************************}
 
 {$IFNDEF HAS_FSPLIT}
+{$push}
 {$warnings off}
 Procedure FSplit (Path: PathStr; var Dir: DirStr; var Name: NameStr; var Ext: ExtStr);
 var
@@ -275,7 +276,7 @@ begin
   Name := Copy (Path, DirEnd + 1, ExtStart - DirEnd - 1);
   Ext := Copy (Path, ExtStart, Length (Path) - ExtStart + 1);
 end;
-{$warnings on}
+{$pop}
 {$ENDIF HAS_FSPLIT}
 
 

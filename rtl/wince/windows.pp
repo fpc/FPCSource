@@ -25,6 +25,8 @@ unit windows;
 
 { stuff like array of const is used }
 {$mode objfpc}
+{$modeswitch ADVANCEDRECORDS}
+{$modeswitch class}
 { convention is cdecl for WinCE API}
 {$calling cdecl}
 

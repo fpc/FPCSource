@@ -38,7 +38,7 @@ begin
     3: fl_show_message('You typed: Three','','');
   else
     begin
-    fl_show_message('An error occured!','','');
+    fl_show_message('An error occurred!','','');
     end
   end;
   str1:='<Cancel>'#0;

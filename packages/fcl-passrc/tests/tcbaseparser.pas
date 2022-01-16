@@ -7,6 +7,8 @@ interface
 uses
   Classes, SysUtils, fpcunit, pastree, pscanner, pparser, testregistry;
 
+const
+  DefaultMainFilename = 'afile.pp';
 Type
   { TTestEngine }
 
@@ -25,11 +27,12 @@ Type
 
   { TTestParser }
 
-  TTestParser= class(TTestCase)
+  TTestParser = class(TTestCase)
   Private
     FDeclarations: TPasDeclarations;
     FDefinition: TPasElement;
-    FEngine : TTestEngine;
+    FEngine : TPasTreeContainer;
+    FMainFilename: string;
     FModule: TPasModule;
     FParseResult: TPasElement;
     FScanner : TPascalScanner;
@@ -43,9 +46,12 @@ Type
     FUseImplementation: Boolean;
     function GetPL: TPasLibrary;
     function GetPP: TPasProgram;
+    procedure CleanupParser;
+    procedure SetupParser;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
+    procedure CreateEngine(var TheEngine: TPasTreeContainer); virtual;
     Procedure StartUnit(AUnitName : String);
     Procedure StartProgram(AFileName : String; AIn : String = ''; AOut : String = '');
     Procedure StartLibrary(AFileName : String);
@@ -53,17 +59,20 @@ Type
     Procedure StartImplementation;
     Procedure EndSource;
     Procedure Add(Const ALine : String);
+    Procedure Add(Const Lines : array of String);
     Procedure StartParsing;
     Procedure ParseDeclarations;
-    Procedure ParseModule;
+    Procedure ParseModule; virtual;
+    procedure ResetParser;
     Procedure CheckHint(AHint : TPasMemberHint);
     Function AssertExpression(Const Msg: String; AExpr : TPasExpr; aKind : TPasExprKind; AClass : TClass) : TPasExpr;
     Function AssertExpression(Const Msg: String; AExpr : TPasExpr; aKind : TPasExprKind; AValue : String) : TPrimitiveExpr;
+    Function AssertExpression(Const Msg: String; AExpr : TPasExpr; OpCode : TExprOpCode) : TBinaryExpr;
     Procedure AssertExportSymbol(Const Msg: String; AIndex : Integer; AName,AExportName : String; AExportIndex : Integer = -1);
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TPasExprKind); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TLoopType); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TPasObjKind); overload;
-    Procedure AssertEquals(Const Msg : String; AExpected, AActual: TexprOpcode); overload;
+    Procedure AssertEquals(Const Msg : String; AExpected, AActual: TExprOpCode); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TPasMemberHint); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TCallingConvention); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TArgumentAccess); overload;
@@ -72,12 +81,15 @@ Type
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TPasMemberVisibility); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TProcedureModifier); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TProcedureModifiers); overload;
+    Procedure AssertEquals(Const Msg : String; AExpected, AActual: TProcTypeModifiers); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TAssignKind); overload;
     Procedure AssertEquals(Const Msg : String; AExpected, AActual: TProcedureMessageType); overload;
+    Procedure AssertEquals(Const Msg : String; AExpected, AActual: TOperatorType); overload;
+    Procedure AssertSame(Const Msg : String; AExpected, AActual: TPasElement); overload;
     Procedure HaveHint(AHint : TPasMemberHint; AHints : TPasMemberHints);
     Property Resolver : TStreamResolver Read FResolver;
     Property Scanner : TPascalScanner Read FScanner;
-    Property Engine : TTestEngine read FEngine;
+    Property Engine : TPasTreeContainer read FEngine;
     Property Parser : TTestPasParser read FParser ;
     Property Source : TStrings Read FSource;
     Property Module : TPasModule Read FModule;
@@ -88,11 +100,299 @@ Type
     // If set, Will be freed in teardown
     Property ParseResult : TPasElement Read FParseResult Write FParseResult;
     Property UseImplementation : Boolean Read FUseImplementation Write FUseImplementation;
+    Property MainFilename: string read FMainFilename write FMainFilename;
   end;
+
+function ExtractFileUnitName(aFilename: string): string;
+function GetPasElementDesc(El: TPasElement): string;
+procedure ReadNextPascalToken(var Position: PChar; out TokenStart: PChar;
+  NestedComments: boolean; SkipDirectives: boolean);
 
 implementation
 
 uses typinfo;
+
+function ExtractFileUnitName(aFilename: string): string;
+var
+  p: Integer;
+begin
+  Result:=ExtractFileName(aFilename);
+  if Result='' then exit;
+  for p:=length(Result) downto 1 do
+    case Result[p] of
+    '/','\': exit;
+    '.':
+      begin
+      Delete(Result,p,length(Result));
+      exit;
+      end;
+    end;
+end;
+
+function GetPasElementDesc(El: TPasElement): string;
+begin
+  if El=nil then exit('nil');
+  Result:=El.Name+':'+El.ClassName+'['+El.SourceFilename+','+IntToStr(El.SourceLinenumber)+']';
+end;
+
+procedure ReadNextPascalToken(var Position: PChar; out TokenStart: PChar;
+  NestedComments: boolean; SkipDirectives: boolean);
+const
+  IdentChars = ['a'..'z','A'..'Z','_','0'..'9'];
+  HexNumberChars = ['0'..'9','a'..'f','A'..'F'];
+var
+  c1:char;
+  CommentLvl: Integer;
+  Src: PChar;
+begin
+  Src:=Position;
+  // read till next atom
+  while true do
+    begin
+    case Src^ of
+    #0: break;
+    #1..#32:  // spaces and special characters
+      inc(Src);
+    #$EF:
+      if (Src[1]=#$BB)
+      and (Src[2]=#$BF) then
+        begin
+        // skip UTF BOM
+        inc(Src,3);
+        end
+      else
+        break;
+    '{':    // comment start or compiler directive
+      if (Src[1]='$') and (not SkipDirectives) then
+        // compiler directive
+        break
+      else begin
+        // Pascal comment => skip
+        CommentLvl:=1;
+        while true do
+          begin
+          inc(Src);
+          case Src^ of
+          #0: break;
+          '{':
+            if NestedComments then
+              inc(CommentLvl);
+          '}':
+            begin
+            dec(CommentLvl);
+            if CommentLvl=0 then
+              begin
+              inc(Src);
+              break;
+              end;
+            end;
+          end;
+        end;
+      end;
+    '/':  // comment or real division
+      if (Src[1]='/') then
+        begin
+        // comment start -> read til line end
+        inc(Src);
+        while not (Src^ in [#0,#10,#13]) do
+          inc(Src);
+        end
+      else
+        break;
+    '(':  // comment, bracket or compiler directive
+      if (Src[1]='*') then
+        begin
+        if (Src[2]='$') and (not SkipDirectives) then
+          // compiler directive
+          break
+        else
+          begin
+          // comment start -> read til comment end
+          inc(Src,2);
+          CommentLvl:=1;
+          while true do
+            begin
+            case Src^ of
+            #0: break;
+            '(':
+              if NestedComments and (Src[1]='*') then
+                inc(CommentLvl);
+            '*':
+              if (Src[1]=')') then
+                begin
+                dec(CommentLvl);
+                if CommentLvl=0 then
+                  begin
+                  inc(Src,2);
+                  break;
+                  end;
+                inc(Position);
+                end;
+            end;
+            inc(Src);
+            end;
+        end;
+      end else
+        // round bracket open
+        break;
+    else
+      break;
+    end;
+    end;
+  // read token
+  TokenStart:=Src;
+  c1:=Src^;
+  case c1 of
+  #0:
+    ;
+  'A'..'Z','a'..'z','_':
+    begin
+    // identifier
+    inc(Src);
+    while Src^ in IdentChars do
+      inc(Src);
+    end;
+  '0'..'9': // number
+    begin
+    inc(Src);
+    // read numbers
+    while (Src^ in ['0'..'9']) do
+      inc(Src);
+    if (Src^='.') and (Src[1]<>'.') then
+      begin
+      // real type number
+      inc(Src);
+      while (Src^ in ['0'..'9']) do
+        inc(Src);
+      end;
+    if (Src^ in ['e','E']) then
+      begin
+      // read exponent
+      inc(Src);
+      if (Src^='-') then inc(Src);
+      while (Src^ in ['0'..'9']) do
+        inc(Src);
+      end;
+    end;
+  '''','#':  // string constant
+    while true do
+      case Src^ of
+      #0: break;
+      '#':
+        begin
+        inc(Src);
+        while Src^ in ['0'..'9'] do
+          inc(Src);
+        end;
+      '''':
+        begin
+        inc(Src);
+        while not (Src^ in ['''',#0]) do
+          inc(Src);
+        if Src^='''' then
+          inc(Src);
+        end;
+      else
+        break;
+      end;
+  '$':  // hex constant
+    begin
+    inc(Src);
+    while Src^ in HexNumberChars do
+      inc(Src);
+    end;
+  '&':  // octal constant or keyword as identifier (e.g. &label)
+    begin
+    inc(Src);
+    if Src^ in ['0'..'7'] then
+      while Src^ in ['0'..'7'] do
+        inc(Src)
+    else
+      while Src^ in IdentChars do
+        inc(Src);
+    end;
+  '{':  // compiler directive (it can't be a comment, because see above)
+    begin
+    CommentLvl:=1;
+    while true do
+      begin
+      inc(Src);
+      case Src^ of
+      #0: break;
+      '{':
+        if NestedComments then
+          inc(CommentLvl);
+      '}':
+        begin
+        dec(CommentLvl);
+        if CommentLvl=0 then
+          begin
+          inc(Src);
+          break;
+          end;
+        end;
+      end;
+      end;
+    end;
+  '(':  // bracket or compiler directive
+    if (Src[1]='*') then
+      begin
+      // compiler directive -> read til comment end
+      inc(Src,2);
+      while (Src^<>#0) and ((Src^<>'*') or (Src[1]<>')')) do
+        inc(Src);
+      inc(Src,2);
+      end
+    else
+      // round bracket open
+      inc(Src);
+  #192..#255:
+    begin
+    // read UTF8 character
+    inc(Src);
+    if ((ord(c1) and %11100000) = %11000000) then
+      begin
+      // could be 2 byte character
+      if (ord(Src[0]) and %11000000) = %10000000 then
+        inc(Src);
+      end
+    else if ((ord(c1) and %11110000) = %11100000) then
+      begin
+      // could be 3 byte character
+      if ((ord(Src[0]) and %11000000) = %10000000)
+      and ((ord(Src[1]) and %11000000) = %10000000) then
+        inc(Src,2);
+      end
+    else if ((ord(c1) and %11111000) = %11110000) then
+      begin
+      // could be 4 byte character
+      if ((ord(Src[0]) and %11000000) = %10000000)
+      and ((ord(Src[1]) and %11000000) = %10000000)
+      and ((ord(Src[2]) and %11000000) = %10000000) then
+        inc(Src,3);
+      end;
+    end;
+  else
+    inc(Src);
+    case c1 of
+    '<': if Src^ in ['>','='] then inc(Src);
+    '.': if Src^='.' then inc(Src);
+    '@':
+      if Src^='@' then
+        begin
+        // @@ label
+        repeat
+          inc(Src);
+        until not (Src^ in IdentChars);
+        end
+    else
+      if (Src^='=') and (c1 in [':','+','-','/','*','<','>']) then
+        inc(Src);
+    end;
+  end;
+  Position:=Src;
+end;
+
 { TTestEngine }
 
 destructor TTestEngine.Destroy;
@@ -105,7 +405,9 @@ function TTestEngine.CreateElement(AClass: TPTreeElement; const AName: String;
   AParent: TPasElement; AVisibility: TPasMemberVisibility;
   const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
 begin
+  //writeln('TTestEngine.CreateElement ',AName,' ',AClass.ClassName);
   Result := AClass.Create(AName, AParent);
+  {$IFDEF CheckPasTreeRefCount}Result.RefIds.Add('CreateElement');{$ENDIF}
   Result.Visibility := AVisibility;
   Result.SourceFilename := ASourceFilename;
   Result.SourceLinenumber := ASourceLinenumber;
@@ -114,9 +416,12 @@ begin
 //    Writeln('Saving comment : ',CurrentParser.SavedComments);
     Result.DocComment:=CurrentParser.SavedComments;
     end;
-  If not Assigned(FList) then
-    FList:=TFPList.Create;
-  FList.Add(Result);
+  if AName<>'' then
+    begin
+    If not Assigned(FList) then
+      FList:=TFPList.Create;
+    FList.Add(Result);
+    end;
 end;
 
 function TTestEngine.FindElement(const AName: String): TPasElement;
@@ -132,7 +437,7 @@ begin
     While (Result=Nil) and (I>=0) do
       begin
       if CompareText(TPasElement(FList[I]).Name,AName)=0 then
-        Result:=TPasElement(Flist[i]);
+        Result:=TPasElement(FList[i]);
       Dec(i);
       end;
     end;
@@ -148,12 +453,14 @@ begin
   Result:=Module as TPasLibrary;
 end;
 
-procedure TTestParser.SetUp;
+procedure TTestParser.SetupParser;
+
 begin
   FResolver:=TStreamResolver.Create;
   FResolver.OwnsStreams:=True;
   FScanner:=TPascalScanner.Create(FResolver);
-  FEngine:=TTestEngine.Create;
+  FScanner.CurrentBoolSwitches:=FScanner.CurrentBoolSwitches+[bsHints,bsNotes,bsWarnings];
+  CreateEngine(FEngine);
   FParser:=TTestPasParser.Create(FScanner,FResolver,FEngine);
   FSource:=TStringList.Create;
   FModule:=Nil;
@@ -163,8 +470,12 @@ begin
   FIsUnit:=False;
 end;
 
-procedure TTestParser.TearDown;
+procedure TTestParser.CleanupParser;
+
 begin
+  {$IFDEF VerbosePasResolverMem}
+  writeln('TTestParser.CleanupParser START');
+  {$ENDIF}
   if Not Assigned(FModule) then
     FreeAndNil(FDeclarations)
   else
@@ -172,20 +483,78 @@ begin
   FImplementation:=False;
   FEndSource:=False;
   FIsUnit:=False;
-  FreeAndNil(FModule);
+  {$IFDEF VerbosePasResolverMem}
+  writeln('TTestParser.CleanupParser FModule');
+  {$ENDIF}
+  ReleaseAndNil(TPasElement(FModule){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
+  {$IFDEF VerbosePasResolverMem}
+  writeln('TTestParser.CleanupParser FSource');
+  {$ENDIF}
   FreeAndNil(FSource);
+  {$IFDEF VerbosePasResolverMem}
+  writeln('TTestParser.CleanupParser FParseResult');
+  {$ENDIF}
   FreeAndNil(FParseResult);
+  {$IFDEF VerbosePasResolverMem}
+  writeln('TTestParser.CleanupParser FParser');
+  {$ENDIF}
   FreeAndNil(FParser);
+  {$IFDEF VerbosePasResolverMem}
+  writeln('TTestParser.CleanupParser FEngine');
+  {$ENDIF}
   FreeAndNil(FEngine);
+  {$IFDEF VerbosePasResolverMem}
+  writeln('TTestParser.CleanupParser FScanner');
+  {$ENDIF}
   FreeAndNil(FScanner);
+  {$IFDEF VerbosePasResolverMem}
+  writeln('TTestParser.CleanupParser FResolver');
+  {$ENDIF}
   FreeAndNil(FResolver);
+  {$IFDEF VerbosePasResolverMem}
+  writeln('TTestParser.CleanupParser END');
+  {$ENDIF}
+end;
+
+procedure TTestParser.ResetParser;
+
+begin
+  CleanupParser;
+  SetupParser;
+end;
+
+procedure TTestParser.SetUp;
+begin
+  FMainFilename:=DefaultMainFilename;
+  Inherited;
+  SetupParser;
+end;
+
+procedure TTestParser.TearDown;
+begin
+  {$IFDEF VerbosePasResolverMem}
+  writeln('TTestParser.TearDown START CleanupParser');
+  {$ENDIF}
+  CleanupParser;
+  {$IFDEF VerbosePasResolverMem}
+  writeln('TTestParser.TearDown inherited');
+  {$ENDIF}
+  Inherited;
+  {$IFDEF VerbosePasResolverMem}
+  writeln('TTestParser.TearDown END');
+  {$ENDIF}
+end;
+
+procedure TTestParser.CreateEngine(var TheEngine: TPasTreeContainer);
+begin
+  TheEngine:=TTestEngine.Create;
 end;
 
 procedure TTestParser.StartUnit(AUnitName: String);
 begin
   FIsUnit:=True;
   If (AUnitName='') then
-    AUnitName:='afile';
+    AUnitName:=ExtractFileUnitName(MainFilename);
   Add('unit '+aUnitName+';');
   Add('');
   Add('interface');
@@ -203,7 +572,7 @@ begin
     begin
     AFileName:=AFileName+'('+AIn;
     if (AOut<>'') then
-      AFileName:=AFIleName+','+AOut;
+      AFileName:=AFileName+','+AOut;
     AFileName:=AFileName+')';
     end;
   Add('program '+AFileName+';');
@@ -272,18 +641,31 @@ begin
   FSource.Add(ALine);
 end;
 
+procedure TTestParser.Add(const Lines: array of String);
+var
+  i: Integer;
+begin
+  for i:=Low(Lines) to High(Lines) do
+    Add(Lines[i]);
+end;
+
 procedure TTestParser.StartParsing;
 
+var
+  i: Integer;
 begin
   If FIsUnit then
     StartImplementation;
   EndSource;
   If (FFileName='') then
-    FFileName:='afile.pp';
-  FResolver.AddStream(FFileName,TStringStream.Create(FSource.text));
+    FFileName:=MainFilename;
+  FResolver.AddStream(FFileName,TStringStream.Create(FSource.Text));
   FScanner.OpenFile(FFileName);
+  {$ifndef NOCONSOLE} // JC: To get the tests to run with GUI
   Writeln('// Test : ',Self.TestName);
-  Writeln(FSource.Text);
+  for i:=0 to FSource.Count-1 do
+    Writeln(Format('%:4d: ',[i+1]),FSource[i]);
+  {$EndIf}
 end;
 
 procedure TTestParser.ParseDeclarations;
@@ -320,6 +702,7 @@ end;
 function TTestParser.AssertExpression(const Msg: String; AExpr: TPasExpr;
   aKind: TPasExprKind; AClass: TClass): TPasExpr;
 begin
+  AssertNotNull(AExpr);
   AssertEquals(Msg+': Correct expression kind',aKind,AExpr.Kind);
   AssertEquals(Msg+': Correct expression class',AClass,AExpr.ClassType);
   Result:=AExpr;
@@ -330,6 +713,13 @@ function TTestParser.AssertExpression(const Msg: String; AExpr: TPasExpr;
 begin
   Result:=AssertExpression(Msg,AExpr,aKind,TPrimitiveExpr) as TPrimitiveExpr;
   AssertEquals(Msg+': Primitive expression value',AValue,TPrimitiveExpr(AExpr).Value);
+end;
+
+function TTestParser.AssertExpression(const Msg: String; AExpr: TPasExpr;
+  OpCode: TExprOpCode): TBinaryExpr;
+begin
+  Result:=AssertExpression(Msg,AExpr,pekBinary,TBinaryExpr) as TBinaryExpr;
+  AssertEquals(Msg+': Binary opcode',OpCode,TBinaryExpr(AExpr).OpCode);
 end;
 
 procedure TTestParser.AssertExportSymbol(const Msg: String; AIndex: Integer;
@@ -381,12 +771,12 @@ end;
 procedure TTestParser.AssertEquals(const Msg: String; AExpected,
   AActual: TPasObjKind);
 begin
-  AssertEquals(Msg,GetEnumName(TypeInfo(TexprOpcode),Ord(AExpected)),
-                   GetEnumName(TypeInfo(TexprOpcode),Ord(AActual)));
+  AssertEquals(Msg,GetEnumName(TypeInfo(TPasObjKind),Ord(AExpected)),
+                   GetEnumName(TypeInfo(TPasObjKind),Ord(AActual)));
 end;
 
 procedure TTestParser.AssertEquals(const Msg: String; AExpected,
-  AActual: TexprOpcode);
+  AActual: TExprOpCode);
 begin
   AssertEquals(Msg,GetEnumName(TypeInfo(TexprOpcode),Ord(AExpected)),
                    GetEnumName(TypeInfo(TexprOpcode),Ord(AActual)));
@@ -479,6 +869,27 @@ begin
 end;
 
 procedure TTestParser.AssertEquals(const Msg: String; AExpected,
+  AActual: TProcTypeModifiers);
+
+  Function Sn (S : TProcTypeModifiers) : String;
+
+  Var
+    m : TProcTypeModifier;
+  begin
+    Result:='';
+    For M:=Low(TProcTypeModifier) to High(TProcTypeModifier) do
+      If (m in S) then
+        begin
+        If (Result<>'') then
+           Result:=Result+',';
+        Result:=Result+GetEnumName(TypeInfo(TProcTypeModifier),Ord(m))
+        end;
+  end;
+begin
+  AssertEquals(Msg,Sn(AExpected),SN(AActual));
+end;
+
+procedure TTestParser.AssertEquals(const Msg: String; AExpected,
   AActual: TAssignKind);
 begin
   AssertEquals(Msg,GetEnumName(TypeInfo(TAssignKind),Ord(AExpected)),
@@ -490,6 +901,20 @@ procedure TTestParser.AssertEquals(const Msg: String; AExpected,
 begin
   AssertEquals(Msg,GetEnumName(TypeInfo(TProcedureMessageType),Ord(AExpected)),
                    GetEnumName(TypeInfo(TProcedureMessageType),Ord(AActual)));
+end;
+
+procedure TTestParser.AssertEquals(const Msg: String; AExpected,
+  AActual: TOperatorType);
+begin
+  AssertEquals(Msg,GetEnumName(TypeInfo(TOperatorType),Ord(AExpected)),
+                   GetEnumName(TypeInfo(TOperatorType),Ord(AActual)));
+end;
+
+procedure TTestParser.AssertSame(const Msg: String; AExpected,
+  AActual: TPasElement);
+begin
+  if AExpected=AActual then exit;
+  AssertEquals(Msg,GetPasElementDesc(AExpected),GetPasElementDesc(AActual));
 end;
 
 procedure TTestParser.HaveHint(AHint: TPasMemberHint; AHints: TPasMemberHints);

@@ -31,9 +31,12 @@ interface
 
     type
        tx8664callnode = class(tx86callnode)
-        protected
+       protected
+         procedure gen_syscall_para(para: tcallparanode); override;
          procedure extra_call_code;override;
          procedure set_result_location(realresdef: tstoreddef);override;
+       public
+         procedure do_syscall;override;
        end;
 
 
@@ -41,16 +44,51 @@ implementation
 
     uses
       globtype,
-      systems,
+      systems,verbose,cutils,
       cpubase,cgbase,cgutils,cgobj,
-      aasmtai,aasmdata,aasmcpu;
+      symconst,symcpu,nld,
+      aasmtai,aasmdata,aasmcpu,
+      cpupi;
+
+    procedure tx8664callnode.do_syscall;
+      var
+        tmpref: treference;
+      begin
+        case target_info.system of
+          system_x86_64_aros:
+            begin
+              if ([po_syscall_baselast,po_syscall_basereg] * tprocdef(procdefinition).procoptions) <> [] then
+                begin
+                  current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('AROS SysCall')));
+
+                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_RAX);
+                  get_syscall_call_ref(tmpref,NR_RAX);
+
+                  current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,tmpref));
+                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_RAX);
+                  exit;
+                end;
+              internalerror(2016120101);
+            end;
+          else
+            internalerror(2015062801);
+        end;
+      end;
+
+
+    procedure tx8664callnode.gen_syscall_para(para: tcallparanode);
+      begin
+        { lib parameter has no special type but proccalloptions must be a syscall }
+        para.left:=cloadnode.create(tcpuprocdef(procdefinition).libsym,tcpuprocdef(procdefinition).libsym.owner);
+      end;
+
 
     procedure tx8664callnode.extra_call_code;
       var
         mmregs : aint;
       begin
         { x86_64 requires %al to contain the no. SSE regs passed }
-        if (cnf_uses_varargs in callnodeflags) and (target_info.system<>system_x86_64_win64) then
+        if (cnf_uses_varargs in callnodeflags) and not x86_64_use_ms_abi(procdefinition.proccalloption) then
           begin
             if assigned(varargsparas) then
               mmregs:=varargsparas.mmregsused

@@ -18,7 +18,7 @@
 { $define HAS_MEMORYMANAGER}
 
 { Memory manager }
-{$ifndef EMBEDDED}
+{$ifndef FPC_NO_DEFAULT_MEMORYMANAGER}
 const
   MemoryManager: TMemoryManager = (
     NeedLock: false;  // Obsolete
@@ -34,7 +34,7 @@ const
     GetHeapStatus: {$ifndef FPC_NO_DEFAULT_HEAP}@SysGetHeapStatus{$else}nil{$endif};
     GetFPCHeapStatus: {$ifndef FPC_NO_DEFAULT_HEAP}@SysGetFPCHeapStatus{$else}nil{$endif};
   );
-{$else}
+{$else not FPC_NO_DEFAULT_MEMORYMANAGER}
 {$ifndef FPC_IN_HEAPMGR}
 const
   MemoryManager: TMemoryManager = (
@@ -52,7 +52,7 @@ const
     GetFPCHeapStatus: nil;
   );public name 'FPC_SYSTEM_MEMORYMANAGER';
 {$endif FPC_IN_HEAPMGR}
-{$endif EMBEDDED}
+{$endif not FPC_NO_DEFAULT_MEMORYMANAGER}
 
 
 { Try to find the best matching block in general freelist }
@@ -61,8 +61,10 @@ const
 { DEBUG: Dump info when the heap needs to grow }
 { define DUMPGROW}
 
+{ define DEBUG_SYSOSREALLOC}
+
 { Memory profiling: at moment in time of max heap size usage,
-  keep statistics of number of each size allocated 
+  keep statistics of number of each size allocated
   (with 16 byte granularity) }
 { define DUMP_MEM_USAGE}
 
@@ -70,7 +72,7 @@ const
   {$define SHOW_MEM_USAGE}
 {$endif}
 
-{$ifndef HAS_MEMORYMANAGER}
+{$ifndef FPC_NO_DEFAULT_MEMORYMANAGER}
 const
 {$ifdef CPU64}
   blocksize    = 32;  { at least size of freerecord }
@@ -131,9 +133,9 @@ const
   of user freeing/allocing same or a small set of sizes, we only do
   the conversion to the new fixed os chunk size format after we
   reuse the os chunk for another fixed size, or variable. Note that
-  while the fixed size os chunk is on the freelists.oslist, it is also 
-  still present in a freelists.fixedlists, therefore we can easily remove 
-  the os chunk from the freelists.oslist if this size is needed again; we 
+  while the fixed size os chunk is on the freelists.oslist, it is also
+  still present in a freelists.fixedlists, therefore we can easily remove
+  the os chunk from the freelists.oslist if this size is needed again; we
   don't need to search freelists.oslist in alloc_oschunk, since it won't
   be present anymore if alloc_oschunk is reached. Note that removing
   from the freelists.oslist is not really done, only the recycleflag is
@@ -212,9 +214,9 @@ type
   end;
 
 const
-  fixedfirstoffset = ((sizeof(toschunk) + sizeof(tmemchunk_fixed_hdr) + $f) 
+  fixedfirstoffset = ((sizeof(toschunk) + sizeof(tmemchunk_fixed_hdr) + $f)
       and not $f) - sizeof(tmemchunk_fixed_hdr);
-  varfirstoffset = ((sizeof(toschunk) + sizeof(tmemchunk_var_hdr) + $f) 
+  varfirstoffset = ((sizeof(toschunk) + sizeof(tmemchunk_var_hdr) + $f)
       and not $f) - sizeof(tmemchunk_var_hdr);
 {$ifdef BESTMATCH}
   matcheffort = high(longint);
@@ -227,8 +229,8 @@ var
 {$ifdef FPC_HAS_FEATURE_THREADING}
   heap_lock : trtlcriticalsection;
   heap_lock_use : integer;
-{$endif}
 threadvar
+{$endif}
   freelists : tfreelists;
 
 {$ifdef DUMP_MEM_USAGE}
@@ -238,7 +240,11 @@ const
   sizeusagesize = sizeusageindex shl sizeusageshift;
 type
   tsizeusagelist = array[0..sizeusageindex] of longint;
+{$ifdef FPC_HAS_FEATURE_THREADING}
 threadvar
+{$else}
+var
+{$endif}
   sizeusage, maxsizeusage: tsizeusagelist;
 {$endif}
 
@@ -265,8 +271,12 @@ begin
 {$ifdef HAS_MEMORYMANAGER}
   Result:=false;
 {$else HAS_MEMORYMANAGER}
-  IsMemoryManagerSet := (MemoryManager.GetMem<>@SysGetMem) 
+{$ifdef FPC_NO_DEFAULT_MEMORYMANAGER}
+  Result:=false;
+{$else not FPC_NO_DEFAULT_MEMORYMANAGER}
+  IsMemoryManagerSet := (MemoryManager.GetMem<>@SysGetMem)
     or (MemoryManager.FreeMem<>@SysFreeMem);
+{$endif notFPC_NO_DEFAULT_MEMORYMANAGER}
 {$endif HAS_MEMORYMANAGER}
 end;
 
@@ -363,6 +373,8 @@ end;
 
 {$if defined(FPC_HAS_FEATURE_HEAP) or defined(FPC_IN_HEAPMGR)}
 {$ifndef HAS_MEMORYMANAGER}
+
+
 {*****************************************************************************
                                GetHeapStatus
 *****************************************************************************}
@@ -457,7 +469,7 @@ end;
 
 {$ifdef HEAP_DEBUG}
 
-function find_fixed_mc(loc_freelists: pfreelists; chunkindex: ptruint; 
+function find_fixed_mc(loc_freelists: pfreelists; chunkindex: ptruint;
   pmc: pmemchunk_fixed): boolean;
 var
   pmc_temp: pmemchunk_fixed;
@@ -715,7 +727,7 @@ end;
                                 Grow Heap
 *****************************************************************************}
 
-function find_free_oschunk(loc_freelists: pfreelists; 
+function find_free_oschunk(loc_freelists: pfreelists;
   minsize, maxsize: ptruint; var size: ptruint): poschunk;
 var
   prev_poc, poc: poschunk;
@@ -785,7 +797,7 @@ begin
       or assigned(orphaned_freelists.waitvar) or (orphaned_freelists.oscount > 0)) then
     begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
-      entercriticalsection(heap_lock);
+      EnterCriticalSection(heap_lock);
 {$endif}
       finish_waitfixedlist(@orphaned_freelists);
       finish_waitvarlist(@orphaned_freelists);
@@ -811,7 +823,7 @@ begin
             end;
         end;
 {$ifdef FPC_HAS_FEATURE_THREADING}
-      leavecriticalsection(heap_lock);
+      LeaveCriticalSection(heap_lock);
 {$endif}
     end;
   if poc = nil then
@@ -982,9 +994,9 @@ begin
     if currheapused > maxheapused then
     begin
       maxheapused := currheapused;
-{$ifdef DUMP_MEM_USAGE}        
+{$ifdef DUMP_MEM_USAGE}
       maxsizeusage := sizeusage;
-{$endif}        
+{$endif}
     end;
   end;
   inc(poc^.used);
@@ -1051,11 +1063,14 @@ begin
     if currheapused > maxheapused then
     begin
       maxheapused := currheapused;
-{$ifdef DUMP_MEM_USAGE}        
+{$ifdef DUMP_MEM_USAGE}
       maxsizeusage := sizeusage;
-{$endif}        
+{$endif}
     end;
   end;
+{$ifdef DEBUG_SYSOSREALLOC}
+  writeln('Allocated block at: $',hexstr(PtrUInt(pcurr),SizeOf(PtrUInt)*2),', size: ',hexstr(PtrUInt(pcurr^.size and sizemask),SizeOf(PtrUInt)*2));
+{$endif DEBUG_SYSOSREALLOC}
 end;
 
 function SysGetMem(size : ptruint):pointer;
@@ -1095,24 +1110,24 @@ end;
 procedure waitfree_fixed(pmc: pmemchunk_fixed; poc: poschunk);
 begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  entercriticalsection(heap_lock);
+  EnterCriticalSection(heap_lock);
 {$endif}
   pmc^.next_fixed := poc^.freelists^.waitfixed;
   poc^.freelists^.waitfixed := pmc;
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  leavecriticalsection(heap_lock);
+  LeaveCriticalSection(heap_lock);
 {$endif}
 end;
 
 procedure waitfree_var(pmcv: pmemchunk_var);
 begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  entercriticalsection(heap_lock);
+  EnterCriticalSection(heap_lock);
 {$endif}
   pmcv^.next_var := pmcv^.freelists^.waitvar;
   pmcv^.freelists^.waitvar := pmcv;
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  leavecriticalsection(heap_lock);
+  LeaveCriticalSection(heap_lock);
 {$endif}
 end;
 
@@ -1173,7 +1188,9 @@ begin
     waitfree_var(pmcv);
     exit(chunksize);
   end;
-
+{$ifdef DEBUG_SYSOSREALLOC}
+  writeln('Releasing block at: $',hexstr(PtrUInt(pmcv),SizeOf(PtrUInt)*2));
+{$endif DEBUG_SYSOSREALLOC}
   { insert the block in its freelist }
   pmcv^.size := pmcv^.size and (not usedflag);
   append_to_list_var(pmcv);
@@ -1233,14 +1250,14 @@ end;
 
 function try_finish_waitfixedlist(loc_freelists: pfreelists): boolean;
 begin
-  if loc_freelists^.waitfixed = nil then 
+  if loc_freelists^.waitfixed = nil then
     exit(false);
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  entercriticalsection(heap_lock);
+  EnterCriticalSection(heap_lock);
 {$endif}
   finish_waitfixedlist(loc_freelists);
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  leavecriticalsection(heap_lock);
+  LeaveCriticalSection(heap_lock);
 {$endif}
   result := true;
 end;
@@ -1261,14 +1278,14 @@ end;
 
 procedure try_finish_waitvarlist(loc_freelists: pfreelists);
 begin
-  if loc_freelists^.waitvar = nil then 
+  if loc_freelists^.waitvar = nil then
     exit;
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  entercriticalsection(heap_lock);
+  EnterCriticalSection(heap_lock);
 {$endif}
   finish_waitvarlist(loc_freelists);
 {$ifdef FPC_HAS_FEATURE_THREADING}
-  leavecriticalsection(heap_lock);
+  LeaveCriticalSection(heap_lock);
 {$endif}
 end;
 
@@ -1311,9 +1328,9 @@ end;
 
 function SysAllocMem(size: ptruint): pointer;
 begin
-  result := MemoryManager.GetMem(size);
+  result := SysGetMem(size);
   if result<>nil then
-    FillChar(result^,MemoryManager.MemSize(result),0);
+    FillChar(result^,SysMemSize(result),0);
 end;
 
 
@@ -1324,13 +1341,21 @@ end;
 function SysTryResizeMem(var p: pointer; size: ptruint): boolean;
 var
   chunksize,
+  newsize,
   oldsize,
   currsize : ptruint;
   pcurr : pmemchunk_var;
   loc_freelists : pfreelists;
+  poc : poschunk;
+  pmcv : pmemchunk_var;
 begin
   SysTryResizeMem := false;
 
+{$ifdef DEBUG_SYSOSREALLOC}
+  writeln('Resize block at: $',hexstr(PtrUInt(pcurr),SizeOf(PtrUInt)*2),
+    ', from: ',hexstr(SysMemSize(p),SizeOf(PtrUInt)*2),
+    ', to: ',hexstr(size,SizeOf(PtrUInt)*2));
+{$endif DEBUG_SYSOSREALLOC}
   { fix p to point to the heaprecord }
   chunksize := pmemchunk_fixed(p-sizeof(tmemchunk_fixed_hdr))^.size;
 
@@ -1385,6 +1410,62 @@ begin
     currsize := pcurr^.size and sizemask;
   if size>currsize then
     begin
+{$ifdef FPC_SYSTEM_HAS_SYSOSREALLOC}
+      { if the os block is only occupied by the memory block which shall be resized,
+        it can be tried if the OS can reallocate the block. On linux, the OS often does
+        not need to move the data but it can just remap the memory pages }
+      if ((pcurr^.size and firstblockflag) <> 0) and ((pcurr^.size and lastblockflag) <> 0) then
+        begin
+          newsize:=(size+varfirstoffset+sizeof(tmemchunk_var_hdr)+$ffff) and not $ffff;
+          poc:=SysOSRealloc(pointer(pcurr)-varfirstoffset,poschunk(pointer(pcurr)-varfirstoffset)^.size,newsize);
+          if poc<>nil then
+            begin
+              with loc_freelists^.internal_status do
+                begin
+                  inc(currheapsize,newsize-poc^.size);
+                  if currheapsize > maxheapsize then
+                    maxheapsize := currheapsize;
+                end;
+{$ifdef DEBUG_SYSOSREALLOC}
+              writeln('Block successfully resized by SysOSRealloc to: ',hexstr(qword(poc),sizeof(pointer)*2),' new size: $',hexstr(newsize,sizeof(ptruint)*2));
+{$endif DEBUG_SYSOSREALLOC}
+              poc^.size:=newsize;
+              { remove old os block from list, while it is already moved, the data is still the same }
+              if assigned(poc^.prev_any) then
+                poc^.prev_any^.next_any := poc^.next_any
+              else
+                loc_freelists^.oslist_all := poc^.next_any;
+              if assigned(poc^.next_any) then
+                poc^.next_any^.prev_any := poc^.prev_any;
+
+              { insert the block with the new data into oslist_all }
+              poc^.prev_any := nil;
+              poc^.next_any := loc_freelists^.oslist_all;
+              if assigned(loc_freelists^.oslist_all) then
+                loc_freelists^.oslist_all^.prev_any := poc;
+              loc_freelists^.oslist_all := poc;
+              
+              { setup new block location }
+              p:=pointer(poc)+varfirstoffset+sizeof(tmemchunk_var_hdr);
+              
+              { setup the block data }
+              pmcv:=pmemchunk_var(p-sizeof(tmemchunk_var_hdr));
+              pmcv^.size:=(ptruint(newsize-varfirstoffset) and sizemask) or (firstblockflag or lastblockflag);
+              pmcv^.prevsize:=0;
+
+              currsize:=size;
+
+              { create the left over freelist block as we rounded up, if at least 16 bytes are free }
+              size:=split_block(pmcv,size);
+
+              { the block is used }
+              pmcv^.size:=pmcv^.size or usedflag;
+
+              { TryResizeMem is successful }
+              SysTryResizeMem:=true;
+            end;
+        end;
+{$endif FPC_SYSTEM_HAS_SYSOSREALLOC}
       { adjust statistics (try_concat_free_chunk_forward may have merged a free
         block into the current block, which we will subsequently free (so the
         combined size will be freed -> make sure the combined size is marked as
@@ -1431,7 +1512,7 @@ begin
    begin
      if p<>nil then
       begin
-        MemoryManager.FreeMem(p);
+        SysFreeMem(p);
         p := nil;
       end;
    end
@@ -1439,7 +1520,7 @@ begin
    { Allocate a new block? }
    if p=nil then
     begin
-      p := MemoryManager.GetMem(size);
+      p := SysGetMem(size);
     end
   else
    begin
@@ -1449,7 +1530,7 @@ begin
 {$endif}
     if not SysTryResizeMem(p,size) then
     begin
-      oldsize:=MemoryManager.MemSize(p);
+      oldsize:=SysMemSize(p);
       { Grow with bigger steps to prevent the need for
         multiple getmem/freemem calls for fixed blocks. It might cost a bit
         of extra memory, but in most cases a reallocmem is done multiple times. }
@@ -1465,10 +1546,10 @@ begin
       minsize:=oldsize;
       if newsize < minsize then
         minsize := newsize;
-      p2 := MemoryManager.GetMem(newsize);
+      p2 := SysGetMem(newsize);
       if p2<>nil then
         Move(p^,p2^,minsize);
-      MemoryManager.FreeMem(p);
+      SysFreeMem(p);
       p := p2;
 {$ifdef DUMP_MEM_USAGE}
     end else begin
@@ -1490,7 +1571,7 @@ begin
   SysReAllocMem := p;
 end;
 
-{$endif HAS_MEMORYMANAGER}
+{$endif FPC_NO_DEFAULT_HEAP}
 
 {$ifndef HAS_MEMORYMANAGER}
 
@@ -1498,6 +1579,7 @@ end;
                                  InitHeap
 *****************************************************************************}
 
+{$ifndef FPC_NO_DEFAULT_HEAP}
 { This function will initialize the Heap manager and need to be called from
   the initialization of the system unit }
 {$ifdef FPC_HAS_FEATURE_THREADING}
@@ -1507,9 +1589,9 @@ var
 begin
   if heap_lock_use > 0 then
   begin
-    entercriticalsection(heap_lock);
+    EnterCriticalSection(heap_lock);
     inc(heap_lock_use);
-    leavecriticalsection(heap_lock);
+    LeaveCriticalSection(heap_lock);
   end;
   loc_freelists := @freelists;
   fillchar(loc_freelists^,sizeof(tfreelists),0);
@@ -1551,11 +1633,16 @@ begin
   heap_lock_use := 1;
   initcriticalsection(heap_lock);
 {$endif}
+
+{$ifndef FPC_SECTION_THREADVARS}
+  { even if section threadvars are used, this shouldn't cause problems as loc_freelists simply
+    does not change but we do not need it }
   loc_freelists := @freelists;
   { loc_freelists still points to main thread's freelists, but they
     have a reference to the global main freelists, fix them to point
     to the main thread specific variable }
   modify_freelists(loc_freelists, loc_freelists);
+{$endif FPC_SECTION_THREADVARS}
   if MemoryManager.RelocateHeap <> nil then
     MemoryManager.RelocateHeap();
 end;
@@ -1578,7 +1665,7 @@ begin
 {$ifdef FPC_HAS_FEATURE_THREADING}
   if heap_lock_use > 0 then
   begin
-    entercriticalsection(heap_lock);
+    EnterCriticalSection(heap_lock);
     finish_waitfixedlist(loc_freelists);
     finish_waitvarlist(loc_freelists);
   end;
@@ -1611,13 +1698,13 @@ begin
     end;
     dec(heap_lock_use);
     last_thread := heap_lock_use = 0;
-    leavecriticalsection(heap_lock);
+    LeaveCriticalSection(heap_lock);
     if last_thread then
-      donecriticalsection(heap_lock);
+      DoneCriticalSection(heap_lock);
   end;
 {$endif}
 {$ifdef SHOW_MEM_USAGE}
-  writeln('Max heap used/size: ', loc_freelists^.internal_status.maxheapused, '/', 
+  writeln('Max heap used/size: ', loc_freelists^.internal_status.maxheapused, '/',
     loc_freelists^.internal_status.maxheapsize);
   flush(output);
 {$endif}
@@ -1630,6 +1717,8 @@ begin
 {$endif}
 end;
 
-{$endif HAS_MEMORYMANAGER}
+{$endif ndef HAS_MEMORYMANAGER}
+
+{$endif ndef FPC_NO_DEFAULT_MEMORYMANAGER}
 {$endif defined(FPC_HAS_FEATURE_HEAP) or defined(FPC_IN_HEAPMGR)}
 

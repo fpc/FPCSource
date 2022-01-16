@@ -38,6 +38,11 @@ Var
     rda             :   pRDArgs;
 
 Begin
+  if not Assigned(P96Base) then
+  begin
+    writeln('Cannot open ', PICASSO96APINAME);
+    Halt(5);
+  end;
     width := 256;
     height := 256;
     StrCopy(@PubScreenName,WB);
@@ -54,7 +59,7 @@ Begin
     wd := p96PIP_OpenTags([P96PIP_SourceFormat, long(RGBFB_R5G5B5),
                            P96PIP_SourceWidth,256,
                            P96PIP_SourceHeight,256,
-                           WA_Title,'Picasso96 API PIP Test',
+                           WA_Title, AsTag('Picasso96 API PIP Test'),
                            WA_Activate,lTRUE,
                            WA_RMBTrap,lTRUE,
                            WA_Width,Width,
@@ -65,14 +70,14 @@ Begin
                            WA_SizeGadget,lTRUE,
                            WA_CloseGadget,lTRUE,
                            WA_IDCMP,IDCMP_CLOSEWINDOW,
-                           WA_PubScreenName,@PubScreenName,
+                           WA_PubScreenName, AsTag(@PubScreenName),
                            TAG_DONE]);
 
     If wd <> Nil Then Begin
         goahead:=True;
         rp:=Nil;
 
-        p96PIP_GetTags(wd,[P96PIP_SourceRPort, @rp, TAG_END]);
+        p96PIP_GetTags(wd,[P96PIP_SourceRPort, AsTag(@rp), TAG_END]);
         If rp<>Nil Then Begin
             For y:=0 To (Height-1) Do
             For x:=0 To (Width-1) Do

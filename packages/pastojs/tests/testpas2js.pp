@@ -1,3 +1,4 @@
+{ %OPT=-Sc }
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2014 by Michael Van Canneyt
@@ -17,7 +18,11 @@ program testpas2js;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, consoletestrunner, tcconverter, fppas2js;
+  {$IFDEF EnableMemCheck}
+  MemCheck,
+  {$ENDIF}
+  Classes, consoletestrunner, tcconverter, TCModules, TCSrcMap,
+  TCFiler, TCUnitSearch, TCOptimizations, TCGenerics, TCPrecompile;
 
 type
 
@@ -33,7 +38,6 @@ begin
   DefaultRunAllTests:=True;
   Application := TMyTestRunner.Create(nil);
   Application.Initialize;
-  Application.Title:='Pascal to Javascript converter tests';
   Application.Run;
   Application.Free;
 end.

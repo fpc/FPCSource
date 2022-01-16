@@ -7,20 +7,22 @@ uses fpmkunit;
 
 procedure add_rtl_unicode(const ADirectory: string);
 
-Const 
+Const
   // All Unices have full set of KVM+Crt in unix/ except QNX which is not
   // in workable state atm.
   UnixLikes = AllUnixOSes -[QNX];
 
-  CollationOSes = [aix,darwin,emx,freebsd,linux,netbsd,openbsd,os2,solaris,win32,win64,dragonfly];
-  CPUnits       = [aix,amiga,aros,android,beos,darwin,iphonesim,emx,gba,nds,freebsd,go32v2,haiku,linux,morphos,netbsd,netware,netwlibc,openbsd,os2,solaris,watcom,wii,win32,win64,wince,dragonfly];
+  CollationOSes = [aix,android,darwin,emx,freebsd,go32v2,linux,netbsd,openbsd,os2,solaris,win32,win64,dragonfly,haiku,freertos,watcom,wasi];
+  CPUnits       = [aix,amiga,aros,android,beos,darwin,iphonesim,ios,emx,gba,nds,freebsd,go32v2,haiku,linux,morphos,netbsd,netware,netwlibc,openbsd,os2,solaris,watcom,wii,win32,win64,wince,dragonfly,freertos,wasi];
   utf8bidiOSes  = [netware,netwlibc];
-  freebidiOSes  = [netware,netwlibc];  
+  freebidiOSes  = [netware,netwlibc];
+  GraphemeBreakPropertyOSes = AllOSes-[embedded,zxspectrum,msxdos,amstradcpc];
+  EastAsianWidthOSes        = AllOSes-[embedded,zxspectrum,msxdos,amstradcpc];
 
 // Character not movable because fpwidestring depends on it.
 //  CharacterOSes = [android,darwin,freebsd,linux,netbsd,openbsd,solaris,win32,win64,dragonfly];
 
-  UnicodeAllOSes =   CollationOSes + utf8bidiOSes + freebidiOSes + CPUnits;
+  UnicodeAllOSes =   CollationOSes + utf8bidiOSes + freebidiOSes + CPUnits + GraphemeBreakPropertyOSes + EastAsianWidthOSes;
 
 // Amiga has a crt in its RTL dir, but it is commented in the makefile
 
@@ -34,11 +36,14 @@ begin
     P:=AddPackage('rtl-unicode');
     P.ShortName:='rtlu';
     P.Directory:=ADirectory;
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.Author := 'FPC core team';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
     P.OSes:=unicodeAllOSes;
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+
     P.Email := '';
     P.Description := 'Rtl-unicode, misc Unicode units';
     P.NeedLibC:= false;
@@ -49,6 +54,12 @@ begin
     P.IncludePath.Add('src/collations');
 
     T:=P.Targets.AddUnit('unicodeducet.pas',CollationOSes);
+    with T.Dependencies do
+      begin
+        AddInclude('ucadata.inc');
+        AddInclude('ucadata_le.inc');
+        AddInclude('ucadata_be.inc');
+      end;
     T:=P.Targets.AddUnit('buildcollations.pas',CollationOSes);
     T.Install:=False;
     with T.Dependencies do
@@ -70,6 +81,10 @@ begin
         AddInclude('collation_ru_le.inc');
       end;
     T:=P.Targets.AddImplicitUnit('collation_de.pas',CollationOSes);
+    with T.Dependencies do
+      begin
+        AddInclude('collation_de_le.inc');
+      end;
     T:=P.Targets.AddImplicitUnit('collation_ja.pas',CollationOSes);
     with T.Dependencies do
       begin
@@ -125,9 +140,21 @@ begin
     T:=P.Targets.AddImplicitUnit('cp950.pas',CPUnits);
 
 //    T:=P.Targets.AddUnit('character.pp',characterOSes);
+
+    T:=P.Targets.AddUnit('graphemebreakproperty.pp',GraphemeBreakPropertyOSes);
+    with T.Dependencies do
+      begin
+        AddInclude('graphemebreakproperty_code.inc');
+      end;
+
+    T:=P.Targets.AddUnit('eastasianwidth.pp',EastAsianWidthOSes);
+    with T.Dependencies do
+      begin
+        AddInclude('eastasianwidth_code.inc');
+      end;
   end
 end;
- 
+
 {$ifndef ALLPACKAGES}
 begin
   add_rtl_unicode('');

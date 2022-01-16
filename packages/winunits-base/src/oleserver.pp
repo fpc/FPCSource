@@ -46,8 +46,9 @@ type
   TOleServer = class(TComponent, IUnknown)
   private
     FRemoteMachineName: string;
-    FEventDispatch: TServerEventDispatch;
     FServerData: PServerData;
+    FEventDispatch:     TServerEventDispatch;
+    FEventsConnection:  DWord;
   protected
     function QueryInterface(constref IID: TGUID; out Obj): HResult; stdcall; override;
     function _AddRef: Integer; stdcall;
@@ -157,14 +158,16 @@ implementation
       end;
 
 
-    procedure TOleServer.ConnectEvents(const Obj: IUnknown);
-      begin
-      end;
+procedure TOleServer.ConnectEvents(const Obj: IUnknown);
+begin
+  ComObj.InterfaceConnect(Obj, FServerData^.EventIID, FEventDispatch, FEventsConnection);
+end;
 
 
-    procedure TOleServer.DisconnectEvents(const Obj: Iunknown);
-      begin
-      end;
+procedure TOleServer.DisconnectEvents(const Obj: Iunknown);
+begin
+  ComObj.InterfaceDisconnect(Obj, FServerData^.EventIID, FEventsConnection);
+end;
 
 
     procedure TOleServer.InvokeEvent(DispID: TDispID; var Params: TVariantArray);

@@ -16,6 +16,7 @@ program taddr;
 {$ifdef fpc}
   {$mode tp}
 {$endif}
+{$F+}
 
    procedure testprocvar;
      begin

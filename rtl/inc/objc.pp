@@ -3,6 +3,9 @@ unit objc;
 
 {$ifdef darwin}
 {$define targethandled}
+
+{$linklib objc}
+
 {$if defined(iphonesim) or defined(cpuarm) or defined(cpux86_64) or defined(cpupowerpc64) or defined(cpuaarch64)}
 {$i objcnf.inc}
 {$endif}

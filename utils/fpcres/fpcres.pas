@@ -23,12 +23,11 @@ uses
   closablefilestream, resource,
 //readers
   resreader, coffreader, winpeimagereader, elfreader, machoreader,
-  externalreader, dfmreader, tlbreader,
+  externalreader, dfmreader, tlbreader, rcreader,
 //writers
   reswriter, coffwriter, xcoffwriter, elfwriter, machowriter, externalwriter,
 //misc
-  elfconsts, cofftypes, machotypes, externaltypes
-  ;
+  elfconsts, cofftypes, machotypes, externaltypes;
   
 const
   halt_no_err = 0;
@@ -66,12 +65,17 @@ begin
   writeln('  --version, -V        Show program version.');
   writeln('  --verbose, -v        Be verbose.');
   writeln('  --input, -i <x>      Ignored for compatibility.');
+  writeln('  --include, -I <x>    RC files: add a path for include searches');
+  writeln('  --define, -D <sym>[=<val>]');
+  writeln('                       RC files: define a symbol (and value)');
+  writeln('  --undefine, -U <sym> RC files: undefine a symbol');
   writeln('  --output, -o <x>     Set the output file name.');
   writeln('  -of <format>         Set the output file format. Supported formats:');
   writeln('                         res, elf, coff, mach-o, external');
   writeln('  --arch, -a <name>    Set object file architecture. Supported architectures:');
   writeln('                         i386, x86_64, arm (coff)');
   writeln('                         i386, x86_64, powerpc, powerpc64, arm, armeb, m68k,');
+  writeln('                         riscv32, riscv64,');
   writeln('                         sparc, alpha, ia64, mips, mipsel (elf)');
   writeln('                         i386, x86_64, powerpc, powerpc64, arm, aarch64 (mach-o)');
   writeln('                         bigendian, littleendian (external)');
@@ -212,6 +216,9 @@ begin
   resources:=TResources.Create;
   sourcefiles:=TSourceFiles.Create;
   sourcefiles.FileList.AddStrings(params.InputFiles);
+  sourcefiles.RCDefines.AddStrings(params.RCDefines);
+  sourcefiles.RCIncludeDirs.AddStrings(params.RCIncludeDirs);
+  sourcefiles.RCMode:=CurrentTarget.objformat=ofRes;
   try
     sourcefiles.Load(resources);
   except
@@ -253,6 +260,9 @@ begin
     mtmips : Result.MachineType:=emtmips;
     mtmipsel : Result.MachineType:=emtmipsel;
     mtppc64le : Result.MachineType:=emtppc64le;
+    mtaarch64 : Result.MachineType:=emtaarch64;
+    mtriscv32 : Result.MachineType:=emtriscv32;
+    mtriscv64 : Result.MachineType:=emtriscv64;
   end;
 end;
 
@@ -264,6 +274,7 @@ begin
     mti386 : Result.MachineType:=cmti386;
     mtarm : Result.MachineType:=cmtarm;
     mtx86_64 : Result.MachineType:=cmtx8664;
+    mtaarch64 : Result.MachineType:=cmtaarch64;
   end;
 end;
 

@@ -16,7 +16,7 @@ uses erroru,SysUtils;
 
 procedure p1;
 var
-  i : sizeint;
+  i : sizeuint;
 begin
  i:=0;
  domem(i);

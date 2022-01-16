@@ -1,80 +1,56 @@
 { Parsed from Foundation.framework NSProxy.h }
 
+
 {$ifdef TYPES}
-{$ifndef NSPROXY_PAS_T}
-{$define NSPROXY_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSPROXY_PAS_R}
-{$define NSPROXY_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSPROXY_PAS_F}
-{$define NSPROXY_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSPROXY_PAS_S}
-{$define NSPROXY_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSProxy = objcclass;
-  NSProxyPointer = ^NSProxy;
-  NSProxyPtr = NSProxyPointer;
-
+type
+  NSProxyPtr = ^NSProxy;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSPROXY_PAS_C}
-{$define NSPROXY_PAS_C}
 
-{ NSProxy }
+type
   NSProxy = objcclass external (NSObjectProtocol)
   private
-    isa: Pobjc_class;
-    
+    isa: pobjc_class;
   public
     class function alloc: id; message 'alloc';
-    class function allocWithZone(zone_: NSZonePtr): id; message 'allocWithZone:';
-    class function classClass: Pobjc_class; message 'class';
-    procedure forwardInvocation(invocation: NSInvocation); message 'forwardInvocation:';
-    function methodSignatureForSelector(sel_: SEL): NSMethodSignature; message 'methodSignatureForSelector:';
+    class function allocWithZone (zone: NSZonePtr): id; message 'allocWithZone:';
+    class function classClass: pobjc_class; message 'class';
+    procedure forwardInvocation (invocation: NSInvocation); message 'forwardInvocation:';
+    function methodSignatureForSelector (sel_: SEL): NSMethodSignature; message 'methodSignatureForSelector:';
     procedure dealloc; message 'dealloc';
     procedure finalize; message 'finalize';
     function description: NSString; message 'description';
-    class function classRespondsToSelector(aSelector: SEL): Boolean; message 'respondsToSelector:';
+    function debugDescription: NSString; message 'debugDescription';
+    class function classRespondsToSelector (aSelector: SEL): ObjCBOOL; message 'respondsToSelector:';
+    function allowsWeakReference: ObjCBOOL; message 'allowsWeakReference';
+    function retainWeakReference: ObjCBOOL; message 'retainWeakReference';
 
-    { Adopted Protocols }
-    function isEqual(object_: id): Boolean;
-    function hash: NSUInteger;
-    function superclass: Pobjc_class;
-    function _class: Pobjc_class;
-    function self: id;
-    function zone: NSZonePtr;
-    function performSelector(aSelector: SEL): id;
-    function performSelector_withObject(aSelector: SEL; object_: id): id;
-    function performSelector_withObject_withObject(aSelector: SEL; object_: id; object_1: id): id;
-    function isProxy: Boolean;
-    function isKindOfClass(aClass: Pobjc_class): Boolean;
-    function isMemberOfClass(aClass: Pobjc_class): Boolean;
-    function conformsToProtocol(aProtocol: objc_protocol): Boolean;
-    function respondsToSelector(aSelector: SEL): Boolean;
-    function retain: id;
-    procedure release;
-    function autorelease: id;
-    function retainCount: NSUInteger;
+    function isEqual(obj: id): ObjCBOOL; message 'isEqual:';
+    function hash: NSUInteger; message 'hash';
+
+    function superclass: pobjc_class; message 'superclass';
+    function _class: pobjc_class; message 'class';
+    function self: id;  message 'self';
+    function zone: PNSZone;  message 'zone';
+
+    function performSelector(aSelector: SEL): id; message 'performSelector:';
+    function performSelector_withObject(aSelector: SEL; obj: id): id; message 'performSelector:withObject:';
+    function performSelector_withObject_withObject(aSelector: SEL; obj1, obj2: id): id; message 'performSelector:withObject:withObject:';
+
+    function isProxy: ObjCBOOL; message 'isProxy';
+
+    function isKindOfClass(aClass: pobjc_class): ObjCBOOL; message 'isKindOfClass:';
+    function isMemberOfClass(aClass: pobjc_class): ObjCBOOL; message 'isMemberOfClass:';
+    function conformsToProtocol(aProtocol: Protocol): ObjCBOOL; message 'conformsToProtocol:';
+
+    function respondsToSelector(aSelector: SEL): ObjCBOOL; message 'respondsToSelector:';
+
+    function retain: id; message 'retain';
+    procedure release;  message 'release'; { oneway }
+    function autorelease: id; message 'autorelease';
+    function retainCount: NSUInteger; message 'retainCount';
+
   end;
+{$endif}
 
-{$endif}
-{$endif}

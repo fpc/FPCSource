@@ -267,6 +267,54 @@
           fpc_class_as_corbaintf:=nil;
       end;
 
+{****************************************************************************
+                               TVMT
+****************************************************************************}
+
+
+    function TVmt.GetvParent: PVmt;
+      begin
+        {$ifdef VER3_0}
+        GetvParent:=vParentRef;
+        {$else VER3_0}
+        if Assigned(vParentRef) then
+          GetvParent:=vParentRef^
+        else
+          GetvParent:=Nil;
+        {$endif VER3_0}
+      end;
+
+
+{****************************************************************************
+                           TINTERFACEENTRY
+****************************************************************************}
+
+
+    function tinterfaceentry.GetIID: pguid;
+      begin
+        {$ifdef VER3_0}
+        GetIID:=IIDRef;
+        {$else VER3_0}
+        if Assigned(IIDRef) then
+          GetIID:=IIDRef^
+        else
+          GetIID:=Nil;
+        {$endif VER3_0}
+      end;
+
+
+    function tinterfaceentry.GetIIDStr: pshortstring;
+      begin
+        {$ifdef VER3_0}
+        GetIIDStr:=IIDStrRef;
+        {$else VER3_0}
+        if Assigned(IIDStrRef) then
+          GetIIDStr:=IIDStrRef^
+        else
+          GetIIDStr:=Nil;
+        {$endif VER3_0}
+      end;
+
 
 {****************************************************************************
                                TOBJECT
@@ -294,8 +342,10 @@
            InstanceSize := PVmt(Self)^.vInstanceSize;
         end;
 
+      {$ifdef VER3_0}
       var
         emptyintf: ptruint; public name 'FPC_EMPTYINTF';
+      {$endif VER3_0}
 
       procedure InitInterfacePointers(objclass: tclass;instance : pointer);
 
@@ -306,10 +356,12 @@
           Res: pinterfaceentry;
         begin
           ovmt := PVmt(objclass);
-          while assigned(ovmt) and (ovmt^.vIntfTable <> @emptyintf) do
+          while assigned(ovmt) and {$ifdef VER3_0}(ovmt^.vIntfTable <> @emptyintf){$else}assigned(ovmt^.vIntfTable){$endif} do
             begin
               intftable:=ovmt^.vIntfTable;
+              {$ifdef VER3_0}
               if assigned(intftable) then
+              {$endif VER3_0}
               begin
                 i:=intftable^.EntryCount;
                 Res:=@intftable^.Entries[0];
@@ -325,16 +377,50 @@
             end;
         end;
 
-      class function TObject.InitInstance(instance : pointer) : tobject; {$ifdef SYSTEMINLINE} inline; {$ENDIF}
+      class function TObject.InitInstance(instance : pointer) : tobject;
 
+{$ifndef VER3_0}
+        var
+           vmt  : PVmt;
+           inittable : pointer;
+{$ifdef FPC_HAS_FEATURE_RTTI}
+           mopinittable : PRTTIRecordOpOffsetTable;
+{$endif def FPC_HAS_FEATURE_RTTI}
+           i : longint;
+{$endif VER3_0}
         begin
            { the size is saved at offset 0 }
            fillchar(instance^, InstanceSize, 0);
            { insert VMT pointer into the new created memory area }
            { (in class methods self contains the VMT!)           }
            ppointer(instance)^:=pointer(self);
-           if PVmt(self)^.vIntfTable <> @emptyintf then
+           if {$ifdef VER3_0}PVmt(self)^.vIntfTable <> @emptyintf{$else}assigned(PVmt(self)^.vIntfTable){$endif} then
              InitInterfacePointers(self,instance);
+
+{$ifndef VER3_0}
+{$ifdef FPC_HAS_FEATURE_RTTI}
+           { for management operators like initialize call int_initialize }
+           vmt := PVmt(self);
+           if assigned(vmt) then
+             begin
+               inittable:=vmt^.vInitTable;
+               if assigned(inittable) then
+                 begin
+                   mopinittable:=RTTIRecordMopInitTable(inittable);
+                   if assigned(mopinittable) then
+                     begin
+                       {$push}
+                       { ensure that no range check errors pop up with the [0..0] array }
+                       {$R-}
+                       for i:=0 to mopinittable^.Count-1 do
+                         TRTTIRecVarOp(mopinittable^.Entries[i].ManagmentOperator)(PByte(Instance)+mopinittable^.Entries[i].FieldOffset);
+                       {$pop}
+                     end;
+                 end;
+             end;
+{$endif def FPC_HAS_FEATURE_RTTI}
+{$endif VER3_0}
+
            InitInstance:=TObject(Instance);
         end;
 
@@ -437,6 +523,9 @@
 
 
       function TObject.FieldAddress(const name : shortstring) : pointer;
+
+         {The following is copied to the typinfo unit. If it is changed here, change it there as well ! }
+
         type
            PFieldInfo = ^TFieldInfo;
            TFieldInfo =
@@ -444,7 +533,7 @@
            packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
            record
-             FieldOffset: PtrUInt;
+             FieldOffset: SizeUInt;
              ClassTypeIndex: Word;
              Name: ShortString;
            end;
@@ -667,10 +756,12 @@
            while vmt<>nil do
              begin
                Temp:= vmt^.vInitTable;
+{$ifdef FPC_HAS_FEATURE_RTTI}
                { The RTTI format matches one for records, except the type is tkClass.
                  Since RecordRTTI does not check the type, calling it yields the desired result. }
                if Assigned(Temp) then
                  RecordRTTI(Self,Temp,@int_finalize);
+{$endif def FPC_HAS_FEATURE_RTTI}
                vmt:= vmt^.vParent;
              end;
         end;
@@ -727,12 +818,12 @@
                 end;
               etStaticMethodResult:
                 begin
-                  Getter.code := CodePointer(IEntry^.IOffset);
+                  Getter.code := IEntry^.IOffsetAsCodePtr;
                   TInterfaceGetter(Getter)(obj);
                 end;
               etStaticMethodClass:
                 begin
-                  Getter.code := CodePointer(IEntry^.IOffset);
+                  Getter.code := IEntry^.IOffsetAsCodePtr;
                   TObject(obj) := TClassGetter(Getter)();
                 end;
             end;
@@ -844,10 +935,12 @@
           ovmt: PVmt;
         begin
           ovmt := PVmt(Self);
-          while Assigned(ovmt) and (ovmt^.vIntfTable <> @emptyintf) do
+          while Assigned(ovmt) and {$ifdef VER3_0}(ovmt^.vIntfTable <> @emptyintf){$else}Assigned(ovmt^.vIntftable){$endif} do
           begin
             intftable:=ovmt^.vIntfTable;
+            {$ifdef VER3_0}
             if assigned(intftable) then
+            {$endif VER3_0}
             begin
               for i:=0 to intftable^.EntryCount-1 do
               begin
@@ -868,10 +961,12 @@
           ovmt: PVmt;
         begin
           ovmt := PVmt(Self);
-          while Assigned(ovmt) and (ovmt^.vIntfTable <> @emptyintf) do
+          while Assigned(ovmt) and {$ifdef VER3_0}(ovmt^.vIntfTable <> @emptyintf){$else}Assigned(ovmt^.vIntfTable){$endif} do
           begin
             intftable:=ovmt^.vIntfTable;
+            {$ifdef VER3_0}
             if assigned(intftable) then
+            {$endif VER3_0}
             begin
               for i:=0 to intftable^.EntryCount-1 do
               begin
@@ -890,14 +985,22 @@
           getinterfacetable:=PVmt(Self)^.vIntfTable;
         end;
 
-      class function TObject.UnitName : ansistring;
+      class function TObject.UnitName : {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};
+{$ifdef FPC_HAS_FEATURE_RTTI}
         type
-          // from the typinfo unit
           TClassTypeInfo = {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
-            ClassType: TClass;
-            ParentInfo: Pointer;
-            PropCount: SmallInt;
-            UnitName: ShortString;
+            Attributes: Pointer;
+            case TTypeKind of
+              tkClass: (
+                ClassType: TClass;
+                ParentInfo: Pointer;
+                PropCount: SmallInt;
+                UnitName: ShortString;
+              );
+              { include for proper alignment }
+              tkInt64: (
+                Dummy: Int64;
+              );
           end;
           PClassTypeInfo = ^TClassTypeInfo;
         var
@@ -909,12 +1012,28 @@
             // offset PTypeInfo by Length(Name) + 2 (ShortString length byte + SizeOf(Kind))
             inc(Pointer(classtypeinfo), PByte(Pointer(classtypeinfo)+1)^ + 2);
             {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-            classtypeinfo:=align(classtypeinfo,sizeof(classtypeinfo));
+            classtypeinfo:=aligntoqword(classtypeinfo);
             {$endif}
             result:=classtypeinfo^.UnitName;
           end
           else
             result:='';
+        end;
+{$else not FPC_HAS_FEATURE_RTTI}
+        begin
+          result:='';
+        end;
+{$endif ndef FPC_HAS_FEATURE_RTTI}
+
+      class function TObject.QualifiedClassName: {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};
+        var
+          uname: {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};
+        begin
+          uname := UnitName; //TODO: change 'UnitName' to 'UnitScope' as soon as RTL implement it
+          if uname='' then
+            result:=ClassName
+          else
+            result:=Concat(uname, '.', ClassName);
         end;
 
       function TObject.Equals(Obj: TObject) : boolean;
@@ -927,7 +1046,7 @@
           result:=PtrInt(Self);
         end;
 
-      function TObject.ToString: ansistring;
+      function TObject.ToString: {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};
         begin
           result:=ClassName;
         end;
@@ -957,8 +1076,20 @@
       begin
          _Release:=interlockeddecrement(frefcount);
          if _Release=0 then
-           self.destroy;
+           begin
+           if interlockedincrement(fdestroycount)=1 then
+             self.destroy;
+           end;
       end;
+
+   destructor TInterfacedObject.Destroy;
+
+   begin
+     // We must explicitly reset. Bug ID 32353
+     FRefCount:=0;
+     FDestroyCount:=0;
+     inherited Destroy;
+   end;
 
     procedure TInterfacedObject.AfterConstruction;
 
@@ -1035,9 +1166,48 @@
     end;
 
 {****************************************************************************
+                               TCustomAttribute
+****************************************************************************}
+
+
+    constructor TCustomAttribute.Create;
+    begin
+      inherited;
+    end;
+
+{****************************************************************************
+                               TCustomStoredAttribute
+****************************************************************************}
+
+
+    constructor StoredAttribute.Create;
+    begin
+    end;
+
+
+    constructor  StoredAttribute.Create(Const aFlag : Boolean);
+    begin
+      FFlag:=aFlag;
+    end;
+
+
+
+    constructor StoredAttribute.Create(Const aName : string);
+    begin
+      FName:=aName;
+    end;
+
+
+{****************************************************************************
                              Exception Support
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
-{$i except.inc}
+  {$if defined(FPC_WASM_NATIVE_EXCEPTIONS)}
+    {$I except_native.inc}
+  {$elseif defined(FPC_WASM_BRANCHFUL_EXCEPTIONS)}
+    {$I except_branchful.inc}
+  {$else}
+    {$i except.inc}
+  {$endif}
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}

@@ -17,6 +17,17 @@ begin
     begin
     P:=AddPackage('utils-lexyacc');
     P.ShortName:='tply';
+    { java and jvm-android do not support 
+      fpc_get_output used in these sources }
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
+    { palmos does not support command line parameters }
+    P.OSes := P.OSes - [palmos];
+    { Program does not fit in 16-bit memory constraints }
+    P.OSes := P.OSes - [msdos,win16,zxspectrum,msxdos,amstradcpc,sinclairql,wasi];
+    { avr-embedded and i8086-embedded do not meet needed requirements }
+    if Defaults.CPU in [avr,i8086,z80] then
+      P.OSes := P.OSes - [embedded];
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';
@@ -26,7 +37,9 @@ begin
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
+
+    P.Dependencies.Add('tplylib');
 
     P.Options.Add('-Sg');
 
@@ -50,10 +63,6 @@ begin
     T.Dependencies.AddUnit('yaccsem');
     T.Dependencies.AddUnit('yacclr0');
     T.Dependencies.AddUnit('yacctabl');
-
-
-    P.Targets.AddUnit('lexlib.pas');
-    P.Targets.AddUnit('yacclib.pas');
 
     P.Targets.AddUnit('lexbase.pas').install:=false;
     P.Targets.AddUnit('lexopt.pas').install:=false;

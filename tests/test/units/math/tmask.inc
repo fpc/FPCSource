@@ -8,7 +8,7 @@ try
   writeln('no exception was raised');
 except on E:Exception do
   begin
-    writeln('Exception occured: ',E.Message);
+    writeln('Exception occurred: ',E.Message);
     caught := true;
   end;
 end;
@@ -29,7 +29,7 @@ try
   writeln('no exception was raised');
 except on E:Exception do
   begin
-    writeln('Exception occured: ',E.Message);
+    writeln('Exception occurred: ',E.Message);
     caught := true;
   end;
 end;
@@ -49,7 +49,7 @@ try
   writeln('no exception was raised');
 except on E:Exception do
   begin
-    writeln('Exception occured: ',E.Message);
+    writeln('Exception occurred: ',E.Message);
     caught := true;
   end;
 end;

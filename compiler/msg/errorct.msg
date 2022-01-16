@@ -1,6 +1,6 @@
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1993-2008 by the Free Pascal Development team
+#   Copyright (c) 1993-2022 by the Free Pascal Development team
 #
 #   Catalan Language File for Free Pascal
 #
@@ -11,6 +11,9 @@
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
+
+# CodePage 1252
+
 #
 # The constants are build in the following order:
 # <part>_<type>_<txtidentifier>
@@ -716,7 +719,7 @@ parser_e_function_already_declared_public_forward=03120_E_La funció "$1" ja està
 % declaration in the \var{implmentation} section.
 parser_e_not_external_and_export=03121_E_No es poden utilitzar EXPORT i EXTERNAL conjuntament
 % These two procedure directives are mutually exclusive
-parser_h_not_supported_for_inline=03123_H_Encara no es permet "$1" dins de procediment/funció inserits
+parser_n_not_supported_for_inline=03123_N_Encara no es permet "$1" dins de procediment/funció inserits
 % Inline procedures don't support this declaration.
 parser_h_inlining_disabled=03124_H_S'ha deshabilitat l'inseriment
 % Inlining of procedures is disabled.
@@ -1507,7 +1510,7 @@ asmr_d_finish_reading=07001_DL_S'ha finalitzat l'analizació del bloc d'assemblad
 asmr_e_none_label_contain_at=07002_E_Un patró que no és una etiqueta conté @
 % A identifier which isn't a label can't contain a @.
 asmr_e_building_record_offset=07004_E_S'ha produït un error mentre es muntava el desplaçament del registre
-% There has an error occured while building the offset of a record/object
+% An error occurred while building the offset of a record/object
 % structure, this can happend when there is no field specified at all or
 % an unknown field identifier is used.
 asmr_e_offset_without_identifier=07005_E_S'està utilitzant OFFSET sense identificador
@@ -2100,7 +2103,7 @@ option_code_page_not_available=11039_E_La pàgina del codi no està disponible
 #
 option_logo=11023_[
 Free Pascal Compiler versió $FPCFULLVERSION [$FPCDATE] per $FPCCPU
-Copyright (c) 1993-2015 per Florian Klaempfl and others
+Copyright (c) 1993-2022 per Florian Klaempfl and others
 ]
 
 #
@@ -2119,7 +2122,7 @@ Aquest programa ve sota la Llicència Pública General de GNU
 Per a més informació llegiu COPYING.v2
 
 Comuniqueu les errades, suggeriments, etc a:
-  http://bugs.freepascal.org
+  https://bugs.freepascal.org
 ]
 
 #
@@ -2259,6 +2262,10 @@ S*2Aas_assemblar utilitzant GNU AS
 **2Rdefault_utilitza l'assemblador predeterminat
 3*2Ratt_llegeix assemblador d'estil AT&T
 3*2Rintel_llegeix assemblador d'estil Intel
+4*2Ratt_llegeix assemblador d'estil AT&T
+4*2Rintel_llegeix assemblador d'estil Intel
+8*2Ratt_llegeix assemblador d'estil AT&T
+8*2Rintel_llegeix assemblador d'estil Intel
 6*2RMOT_llegeix assemblador d'estil Motorola
 **1S<x>_Opcions de sintaxi:
 **2S2_Igual que -Mobjfpc
@@ -2294,7 +2301,6 @@ S*2Aas_assemblar utilitzant GNU AS
 3*2Tnetwlibc_Novell Netware Module (libc)
 3*2Topenbsd_OpenBSD
 3*2Tos2_OS/2 eComStation
-3*2Tsunos_SunOS/Solaris
 3*2Twatcom_Watcom compatible DOS extender
 3*2Twdosx_WDOSX DOS extender
 3*2Twin32_Windows 32 Bit

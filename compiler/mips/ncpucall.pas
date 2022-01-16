@@ -38,6 +38,7 @@ implementation
 
 uses
   globtype,cpubase,procinfo,
+  symconst,
   aasmtai,aasmcpu,aasmdata,
   paramgr,
   ncal;
@@ -47,7 +48,7 @@ begin
   pass_1 := inherited pass_1;
   if assigned(current_procinfo) and
      assigned(procdefinition) and
-     (procdefinition.proccalloption=pocall_cdecl) then
+     (procdefinition.proccalloption in cdecl_pocalls) then
     include(current_procinfo.flags,pi_needs_got);
 end;
 

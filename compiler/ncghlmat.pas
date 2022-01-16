@@ -43,7 +43,7 @@ uses
   aasmbase,aasmdata,
   defutil,
   procinfo,
-  cgbase,pass_2,hlcgobj;
+  cgbase,cgutils,pass_2,hlcgobj;
 
 {*****************************************************************************
                                tcghlnotnode
@@ -59,18 +59,11 @@ function tcghlnotnode.pass_1: tnode;
 
 
 procedure tcghlnotnode.second_boolean;
-  var
-    hl : tasmlabel;
   begin
-    hl:=current_procinfo.CurrTrueLabel;
-    current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
-    current_procinfo.CurrFalseLabel:=hl;
     secondpass(left);
     hlcg.maketojumpbool(current_asmdata.CurrAsmList,left);
-    hl:=current_procinfo.CurrTrueLabel;
-    current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
-    current_procinfo.CurrFalseLabel:=hl;
-    location.loc:=LOC_JUMP;
+    { switch true and false labels to invert result }
+    location_reset_jump(location,left.location.falselabel,left.location.truelabel);
   end;
 
 end.

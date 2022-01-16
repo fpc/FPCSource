@@ -35,12 +35,12 @@ interface
     type
       { taillvm }
       taillvm = class(tai_cpu_abstract_sym)
-       private
-        procedure maybe_declare(def: tdef; const ref: treference);
-       public
         llvmopcode: tllvmop;
 
         constructor create_llvm(op: tllvmop);
+
+        { e.g. unreachable }
+        constructor op_none(op : tllvmop);
 
         { e.g. ret void }
         constructor op_size(op : tllvmop; size: tdef);
@@ -70,6 +70,12 @@ interface
         constructor op_reg_size_sym_size(op:tllvmop;dst:tregister;fromsize:tdef;src:TAsmSymbol;tosize:tdef);
         { e.g. dst = bitcast fromsize <abstracttaidata> to tosize }
         constructor op_reg_tai_size(op:tllvmop;dst:tregister;src:tai;tosize:tdef);
+
+        { dst = bitcast size undef to size }
+        constructor op_reg_size_undef(op: tllvmop; dst: tregister; size: tdef);
+
+        { return size undef }
+        constructor op_size_undef(op: tllvmop; size: tdef);
 
         { e.g. dst = bitcast fromsize src to tosize }
         constructor op_reg_size_ref_size(op:tllvmop;dst:tregister;fromsize:tdef;const src:treference;tosize:tdef);
@@ -101,15 +107,31 @@ interface
         constructor getelementptr_reg_size_ref_size_const(dst:tregister;ptrsize:tdef;const ref:treference;indextype:tdef;index1:ptrint;indirect:boolean);
         constructor getelementptr_reg_tai_size_const(dst:tregister;const ai:tai;indextype:tdef;index1:ptrint;indirect:boolean);
 
+        constructor blockaddress(size: tdef; fun, lab: tasmsymbol);
+        constructor landingpad(dst:tregister;def:tdef;firstclause:taillvm);
+        constructor exceptclause(op:tllvmop;def:tdef;kind:TAsmSymbol;nextclause:taillvm);
+        constructor cleanupclause;
+
         { e.g. dst = call retsize name (paras) }
-        constructor call_size_name_paras(dst: tregister;retsize: tdef;name:tasmsymbol;paras: tfplist);
+        constructor call_size_name_paras(callpd: tdef;cc: tproccalloption;dst: tregister;retsize: tdef;name:tasmsymbol;paras: tfplist);
         { e.g. dst = call retsize reg (paras) }
-        constructor call_size_reg_paras(dst: tregister;retsize: tdef;reg:tregister;paras: tfplist);
+        constructor call_size_reg_paras(callpd: tdef; cc: tproccalloption; dst: tregister;retsize: tdef;reg:tregister;paras: tfplist);
+        { e.g. dst = invoke retsize name (paras) to label <normal label> unwind label <exception label> }
+        constructor invoke_size_name_paras_retlab_exceptlab(callpd: tdef; cc: tproccalloption; dst: tregister; retsize: tdef;name: tasmsymbol; paras: tfplist; retlab, exceptlab:TAsmLabel);
+        { e.g. dst = invoke retsize reg (paras) to label <normal label> unwind label <exception label> }
+        constructor invoke_size_reg_paras_retlab_exceptlab(callpd: tdef; cc: tproccalloption; dst: tregister; retsize: tdef; reg: tregister; paras: tfplist; retlab, exceptlab:TAsmLabel);
+
+        { e.g. dst := extractvalue srcsize src, 0 (note: no type for the index) }
+        constructor extract(op: tllvmop; dst: tregister; srcsize: tdef; src: tregister; idx: longint);
+
+        { inline function-level assembler code and parameters }
+        constructor asm_paras(asmlist: tasmlist; paras: tfplist);
 
         procedure loadoper(opidx: longint; o: toper); override;
         procedure clearop(opidx: longint); override;
         procedure loadtai(opidx: longint; _ai: tai);
         procedure loaddef(opidx: longint; _def: tdef);
+        procedure loadundef(opidx: longint);
         procedure loadsingle(opidx: longint; _sval: single);
         procedure loaddouble(opidx: longint; _dval: double);
 {$ifdef cpuextended}
@@ -118,6 +140,10 @@ interface
         procedure loadcond(opidx: longint; _cond: topcmp);
         procedure loadfpcond(opidx: longint; _fpcond: tllvmfpcmp);
         procedure loadparas(opidx: longint; _paras: tfplist);
+        procedure loadasmlist(opidx: longint; _asmlist: tasmlist);
+        procedure loadcallingconvention(opidx: longint; calloption: tproccalloption);
+
+        procedure landingpad_add_clause(op: tllvmop; def: tdef; kind: TAsmSymbol);
 
         { register spilling code }
         function spilling_get_operation_type(opnr: longint): topertype;override;
@@ -139,12 +165,22 @@ interface
       );
 
     taillvmalias = class(tailineinfo)
-      vis: tllvmvisibility;
-      linkage: tllvmlinkage;
+      bind: tasmsymbind;
       oldsym, newsym: TAsmSymbol;
       def: tdef;
-      constructor create(_oldsym: tasmsymbol; const newname: TSymStr; _def: tdef; _vis: tllvmvisibility; _linkage: tllvmlinkage);
+      constructor create(_oldsym: tasmsymbol; const newname: TSymStr; _def: tdef; _bind: tasmsymbind);
     end;
+
+    taillvmdeclflag =
+    (
+      ldf_definition,   { definition as opposed to (an external) declaration }
+      ldf_tls,          { tls definition }
+      ldf_unnamed_addr, { address doesn't matter, only content }
+      ldf_vectorized,   { vectorized, dead-strippable data }
+      ldf_weak,         { weak definition }
+      ldf_appending     { appending linkage definition }
+    );
+    taillvmdeclflags = set of taillvmdeclflag;
 
     { declarations/definitions of symbols (procedures, variables), both defined
       here and external }
@@ -155,9 +191,12 @@ interface
       def: tdef;
       sec: TAsmSectiontype;
       alignment: shortint;
-      tls: boolean;
-      constructor create(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
+      flags: taillvmdeclflags;
+      secname: TSymStr;
+      constructor createdecl(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
+      constructor createdef(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
       constructor createtls(_namesym: tasmsymbol; _def: tdef; _alignment: shortint);
+      procedure setsecname(const name: TSymStr);
       destructor destroy; override;
     end;
 
@@ -165,12 +204,17 @@ interface
     pllvmcallpara = ^tllvmcallpara;
     tllvmcallpara = record
       def: tdef;
+      alignment: shortint;
       valueext: tllvmvalueextension;
-      case loc: tcgloc of
-        LOC_REFERENCE,
-        LOC_REGISTER,
-        LOC_FPUREGISTER,
-        LOC_MMREGISTER: (reg: tregister);
+      byval,
+      sret: boolean;
+      case typ: toptype of
+        top_none: ();
+        top_reg: (register: tregister);
+        top_ref: (sym: tasmsymbol);
+        top_const: (value: int64);
+        top_undef :  ();
+        top_tai    : (ai: tai);
     end;
 
 
@@ -179,11 +223,11 @@ implementation
 uses
   cutils, strings,
   symconst,
-  aasmcpu;
+  aasmcnst,aasmcpu;
 
     { taillvmprocdecl }
 
-    constructor taillvmdecl.create(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
+    constructor taillvmdecl.createdecl(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
       begin
         inherited create;
         typ:=ait_llvmdecl;
@@ -193,13 +237,29 @@ uses
         sec:=_sec;
         alignment:=_alignment;
         _namesym.declared:=true;
+        flags:=[];
+      end;
+
+
+    constructor taillvmdecl.createdef(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
+      begin
+        createdecl(_namesym,_def,_initdata,_sec,_alignment);
+        include(flags,ldf_definition);
       end;
 
 
     constructor taillvmdecl.createtls(_namesym: tasmsymbol; _def: tdef; _alignment: shortint);
       begin
-        create(_namesym,_def,nil,sec_data,_alignment);
-        tls:=true;
+        createdef(_namesym,_def,nil,sec_data,_alignment);
+        include(flags,ldf_tls);
+      end;
+
+
+    procedure taillvmdecl.setsecname(const name: TSymStr);
+      begin
+        if sec<>sec_user then
+          internalerror(2015111501);
+        secname:=name;
       end;
 
 
@@ -211,15 +271,28 @@ uses
 
     { taillvmalias }
 
-    constructor taillvmalias.create(_oldsym: tasmsymbol; const newname: TSymStr; _def: tdef; _vis: tllvmvisibility; _linkage: tllvmlinkage);
+    constructor taillvmalias.create(_oldsym: tasmsymbol; const newname: TSymStr; _def: tdef; _bind: tasmsymbind);
       begin
         inherited Create;
         typ:=ait_llvmalias;
         oldsym:=_oldsym;
-        newsym:=current_asmdata.DefineAsmSymbol(newname,AB_GLOBAL,AT_FUNCTION);
+        newsym:=current_asmdata.DefineAsmSymbol(newname,AB_GLOBAL,AT_FUNCTION,_def);
+        newsym.declared:=true;
         def:=_def;
-        vis:=_vis;
-        linkage:=_linkage;
+        { alias cannot be external }
+        case _bind of
+          { weak external should actually become weak, but we don't support that
+            yet }
+          AB_WEAK_EXTERNAL:
+            internalerror(2016071203);
+          AB_EXTERNAL:
+            _bind:=AB_GLOBAL;
+          AB_EXTERNAL_INDIRECT:
+            _bind:=AB_INDIRECT;
+          else
+            ;
+        end;
+        bind:=_bind;
       end;
 
 
@@ -228,23 +301,6 @@ uses
 {*****************************************************************************
                                  taicpu Constructors
 *****************************************************************************}
-
-    procedure taillvm.maybe_declare(def: tdef; const ref: treference);
-      begin
-        { add llvm declarations for imported symbols }
-        if not assigned(ref.symbol) or
-           (ref.symbol.declared) or
-           not(ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) then
-          exit;
-        if ref.refaddr<>addr_full then
-          begin
-            if def.typ<>pointerdef then
-              internalerror(2014020701);
-            def:=tpointerdef(def).pointeddef;
-          end;
-        current_asmdata.AsmLists[al_imports].concat(taillvmdecl.create(ref.symbol,def,nil,sec_none,def.alignment));
-      end;
-
 
     constructor taillvm.create_llvm(op: tllvmop);
       begin
@@ -268,9 +324,9 @@ uses
                 new(callpara);
                 callpara^:=pllvmcallpara(o.paras[i])^;
                 oper[opidx]^.paras.add(callpara);
-                if (callpara^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) and
+                if (callpara^.typ = top_reg) and
                    assigned(add_reg_instruction_hook) then
-                  add_reg_instruction_hook(self,callpara^.reg);
+                  add_reg_instruction_hook(self,callpara^.register);
               end;
           end;
       end;
@@ -278,17 +334,31 @@ uses
 
     procedure taillvm.clearop(opidx: longint);
       var
+        callpara: pllvmcallpara;
         i: longint;
       begin
         case oper[opidx]^.typ of
           top_para:
             begin
               for i:=0 to oper[opidx]^.paras.count-1 do
-                dispose(pllvmcallpara(oper[opidx]^.paras[i]));
+                begin
+                  callpara:=pllvmcallpara(oper[opidx]^.paras[i]);
+                  case callpara^.typ of
+                    top_tai:
+                      callpara^.ai.free;
+                    else
+                      ;
+                  end;
+                  dispose(callpara);
+                end;
               oper[opidx]^.paras.free;
             end;
           top_tai:
             oper[opidx]^.ai.free;
+          top_asmlist:
+            oper[opidx]^.asmlist.free;
+          else
+            ;
         end;
         inherited;
       end;
@@ -316,6 +386,14 @@ uses
            def:=_def;
            typ:=top_def;
          end;
+      end;
+
+
+    procedure taillvm.loadundef(opidx: longint);
+      begin
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
+          typ:=top_undef
       end;
 
 
@@ -398,12 +476,54 @@ uses
             for i:=0 to _paras.count-1 do
               begin
                 callpara:=pllvmcallpara(_paras[i]);
-                if (callpara^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) and
+                if (callpara^.typ=top_reg) and
                    assigned(add_reg_instruction_hook) then
-                  add_reg_instruction_hook(self,callpara^.reg);
+                  add_reg_instruction_hook(self,callpara^.register);
               end;
             typ:=top_para;
           end;
+      end;
+
+
+    procedure taillvm.loadasmlist(opidx: longint; _asmlist: tasmlist);
+      begin
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
+         begin
+           clearop(opidx);
+           asmlist:=_asmlist;
+           typ:=top_asmlist;
+         end;
+      end;
+
+
+    procedure taillvm.loadcallingconvention(opidx: longint; calloption: tproccalloption);
+      begin
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
+         begin
+           clearop(opidx);
+           callingconvention:=calloption;
+           typ:=top_callingconvention;
+         end;
+      end;
+
+
+    procedure taillvm.landingpad_add_clause(op: tllvmop; def: tdef; kind: TAsmSymbol);
+      var
+        lastclause,
+        clause: taillvm;
+      begin
+        if llvmopcode<>la_landingpad then
+          internalerror(2018052001);
+        if op<>la_cleanup then
+          clause:=taillvm.exceptclause(op,def,kind,nil)
+        else
+          clause:=taillvm.cleanupclause;
+        lastclause:=self;
+        while assigned(lastclause.oper[2]^.ai) do
+          lastclause:=taillvm(lastclause.oper[2]^.ai);
+        lastclause.loadtai(2,clause);
       end;
 
 
@@ -411,7 +531,7 @@ uses
       begin
         case llvmopcode of
           la_ret, la_br, la_switch, la_indirectbr,
-          la_invoke, la_resume,
+          la_resume,
           la_unreachable,
           la_store,
           la_fence,
@@ -434,7 +554,7 @@ uses
           la_getelementptr,
           la_load,
           la_icmp, la_fcmp,
-          la_phi, la_select, la_call,
+          la_phi, la_select,
           la_va_arg, la_landingpad:
             begin
               if opnr=0 then
@@ -442,6 +562,19 @@ uses
               else
                 result:=operand_read;
             end;
+          la_invoke, la_call:
+            begin
+              if opnr=1 then
+                result:=operand_write
+              else
+                result:=operand_read;
+            end;
+          la_blockaddress:
+            case opnr of
+              1: result:=operand_write
+              else
+                result:=operand_read;
+            end
           else
             internalerror(2013103101)
         end;
@@ -465,7 +598,7 @@ uses
               end;
             end;
           la_ret, la_switch, la_indirectbr,
-          la_resume:
+          la_resume, la_catch:
             begin
               { ret size reg }
               if opnr=1 then
@@ -475,10 +608,18 @@ uses
             end;
           la_invoke, la_call:
             begin
-              if opnr=0 then
-                result:=oper[1]^.def
-              else
-                internalerror(2013110102);
+              case opnr of
+                1: result:=oper[0]^.def;
+                4:
+                  begin
+                    if oper[4]^.typ=top_reg then
+                      result:=oper[3]^.def
+                    else
+                      internalerror(2015112001)
+                  end
+                else
+                  internalerror(2013110102);
+              end;
             end;
           la_br,
           la_unreachable:
@@ -493,8 +634,7 @@ uses
                   internalerror(2013110104);
               end;
             end;
-          la_load,
-          la_getelementptr:
+          la_load:
             begin
               { dst = load ptrdef srcref }
               case opnr of
@@ -502,6 +642,36 @@ uses
                 2: result:=oper[1]^.def;
                 else
                   internalerror(2013110105);
+              end;
+            end;
+          la_getelementptr:
+            begin
+              { dst = getelementptr ref ... }
+              case opnr of
+                0:
+                  begin
+                    case oper[1]^.typ of
+                      top_def:
+                        result:=oper[1]^.def;
+                      top_tai:
+                        begin
+                          case oper[1]^.ai.typ of
+                            ait_llvmins:
+                              result:=taillvm(oper[1]^.ai).spilling_get_reg_type(0);
+                            ait_typedconst:
+                              result:=tai_abstracttypedconst(oper[1]^.ai).def
+                            else
+                              internalerror(2016071202);
+                          end
+                        end
+                      else
+                        internalerror(2016071201);
+                    end
+                  end;
+                2:
+                  result:=oper[1]^.def;
+                else
+                  internalerror(2013110111);
               end;
             end;
           la_fence,
@@ -538,7 +708,7 @@ uses
           la_icmp, la_fcmp:
             begin
               case opnr of
-                0: result:=pasbool8type;
+                0: result:=llvmbool1type;
                 3,4: result:=oper[2]^.def;
                 else
                   internalerror(2013110801);
@@ -558,9 +728,22 @@ uses
                   internalerror(2013110110);
               end;
             end;
+          la_blockaddress:
+            case opnr of
+              1: result:=voidcodepointertype
+              else
+                internalerror(2015111904);
+            end
           else
-            internalerror(2013103101)
+            internalerror(2013103103)
         end;
+      end;
+
+
+    constructor taillvm.op_none(op: tllvmop);
+      begin
+        create_llvm(op);
+        ops:=0;
       end;
 
 
@@ -702,12 +885,30 @@ uses
       end;
 
 
+    constructor taillvm.op_reg_size_undef(op: tllvmop; dst: tregister; size: tdef);
+      begin
+        create_llvm(op);
+        ops:=4;
+        loadreg(0,dst);
+        loaddef(1,size);
+        loadundef(2);
+        loaddef(3,size);
+      end;
+
+    constructor taillvm.op_size_undef(op: tllvmop; size: tdef);
+      begin
+        create_llvm(op);
+        ops:=2;
+        loaddef(0,size);
+        loadundef(1);
+      end;
+
+
     constructor taillvm.op_reg_size_ref_size(op: tllvmop; dst: tregister; fromsize: tdef; const src: treference; tosize: tdef);
       begin
         create_llvm(op);
         ops:=4;
         loadreg(0,dst);
-        maybe_declare(fromsize,src);
         loaddef(1,fromsize);
         loadref(2,src);
         loaddef(3,tosize);
@@ -721,7 +922,6 @@ uses
         ops:=4;
         loaddef(0,fromsize);
         loadreg(1,src);
-        maybe_declare(ptrsize,toref);
         loaddef(2,ptrsize);
         loadref(3,toref);
       end;
@@ -731,10 +931,8 @@ uses
       begin
         create_llvm(op);
         ops:=4;
-        maybe_declare(fromsize,src);
         loaddef(0,fromsize);
         loadref(1,src);
-        maybe_declare(ptrsize,toref);
         loaddef(2,ptrsize);
         loadref(3,toref);
       end;
@@ -746,7 +944,6 @@ uses
         ops:=4;
         loaddef(0,fromsize);
         loadconst(1,src);
-        maybe_declare(ptrsize,toref);
         loaddef(2,ptrsize);
         loadref(3,toref);
       end;
@@ -757,7 +954,6 @@ uses
         create_llvm(op);
         ops:=3;
         loadreg(0,dst);
-        maybe_declare(fromsize,fromref);
         loaddef(1,fromsize);
         loadref(2,fromref);
       end;
@@ -835,7 +1031,6 @@ uses
         else
           ops:=5;
         loadreg(0,dst);
-        maybe_declare(ptrsize,ref);
         loaddef(1,ptrsize);
         loadref(2,ref);
         if indirect then
@@ -861,7 +1056,6 @@ uses
         else
           ops:=5;
         loadreg(0,dst);
-        maybe_declare(ptrsize,ref);
         loaddef(1,ptrsize);
         loadref(2,ref);
         if indirect then
@@ -900,26 +1094,124 @@ uses
         loadconst(index+1,index1);
       end;
 
-
-    constructor taillvm.call_size_name_paras(dst: tregister; retsize: tdef; name:tasmsymbol; paras: tfplist);
+    constructor taillvm.blockaddress(size: tdef; fun, lab: tasmsymbol);
       begin
-        create_llvm(la_call);
-        ops:=4;
-        loadreg(0,dst);
-        loaddef(1,retsize);
-        loadsymbol(2,name,0);
-        loadparas(3,paras);
+        create_llvm(la_blockaddress);
+        ops:=3;
+        loaddef(0,size);
+        loadsymbol(1,fun,0);
+        loadsymbol(2,lab,0);
       end;
 
 
-    constructor taillvm.call_size_reg_paras(dst: tregister; retsize: tdef; reg: tregister; paras: tfplist);
+    constructor taillvm.landingpad(dst: tregister; def: tdef; firstclause: taillvm);
+      begin
+        create_llvm(la_landingpad);
+        ops:=3;
+        loadreg(0,dst);
+        loaddef(1,def);
+        loadtai(2,firstclause);
+      end;
+
+
+    constructor taillvm.exceptclause(op: tllvmop; def: tdef; kind: TAsmSymbol; nextclause: taillvm);
+      var
+        ref: treference;
+      begin
+        create_llvm(op);
+        ops:=3;
+        loaddef(0,def);
+        reference_reset_symbol(ref,kind,0,def.alignment,[]);
+        loadref(1,ref);
+        loadtai(2,nextclause);
+      end;
+
+
+    constructor taillvm.cleanupclause;
+      begin
+        create_llvm(la_cleanup);
+        ops:=0;
+      end;
+
+
+    constructor taillvm.call_size_name_paras(callpd: tdef; cc: tproccalloption; dst: tregister; retsize: tdef; name:tasmsymbol; paras: tfplist);
       begin
         create_llvm(la_call);
+        ops:=6;
+        { we need this in case the call symbol is an alias for a symbol with a
+          different def in the same module (via "external"), because then we
+          have to insert a type conversion later from the alias def to the
+          call def here; we can't always do that at the point the call itself
+          is generated, because the alias declaration may occur anywhere }
+        loaddef(0,retsize);
+        loadreg(1,dst);
+        loadcallingconvention(2,cc);
+        loaddef(3,callpd);
+        loadsymbol(4,name,0);
+        loadparas(5,paras);
+      end;
+
+
+    constructor taillvm.call_size_reg_paras(callpd: tdef; cc: tproccalloption; dst: tregister; retsize: tdef; reg: tregister; paras: tfplist);
+      begin
+        create_llvm(la_call);
+        ops:=6;
+        loaddef(0,retsize);
+        loadreg(1,dst);
+        loadcallingconvention(2,cc);
+        loaddef(3,callpd);
+        loadreg(4,reg);
+        loadparas(5,paras);
+      end;
+
+
+    constructor taillvm.invoke_size_name_paras_retlab_exceptlab(callpd: tdef; cc: tproccalloption; dst: tregister; retsize: tdef; name: tasmsymbol; paras: tfplist; retlab, exceptlab: TAsmLabel);
+      begin
+        create_llvm(la_invoke);
+        ops:=8;
+        loaddef(0,retsize);
+        loadreg(1,dst);
+        loadcallingconvention(2,cc);
+        loaddef(3,callpd);
+        loadsymbol(4,name,0);
+        loadparas(5,paras);
+        loadsymbol(6,retlab,0);
+        loadsymbol(7,exceptlab,0);
+      end;
+
+
+    constructor taillvm.invoke_size_reg_paras_retlab_exceptlab(callpd: tdef; cc: tproccalloption; dst: tregister; retsize: tdef; reg: tregister; paras: tfplist; retlab, exceptlab: TAsmLabel);
+      begin
+        create_llvm(la_invoke);
+        ops:=8;
+        loaddef(0,retsize);
+        loadreg(1,dst);
+        loadcallingconvention(2,cc);
+        loaddef(3,callpd);
+        loadreg(4,reg);
+        loadparas(5,paras);
+        loadsymbol(6,retlab,0);
+        loadsymbol(7,exceptlab,0);
+      end;
+
+
+    constructor taillvm.extract(op: tllvmop; dst: tregister; srcsize: tdef; src: tregister; idx: longint);
+      begin
+        create_llvm(op);
         ops:=4;
         loadreg(0,dst);
-        loaddef(1,retsize);
-        loadreg(2,reg);
-        loadparas(3,paras);
+        loaddef(1,srcsize);
+        loadreg(2,src);
+        loadconst(3,idx)
+      end;
+
+
+    constructor taillvm.asm_paras(asmlist: tasmlist; paras: tfplist);
+      begin
+        create_llvm(la_asmblock);
+        ops:=2;
+        loadasmlist(0,asmlist);
+        loadparas(1,paras);
       end;
 
 end.

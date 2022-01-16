@@ -1,6 +1,6 @@
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1998-2000 by the Free Pascal Development team
+#   Copyright (c) 1998-2018 by the Free Pascal Development team
 #
 #   French (cp850) Language File for Free Pascal
 #
@@ -11,6 +11,9 @@
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
+
+# CodePage 850
+
 #
 # The constants are build in the following order:
 # <part>_<type>_<txtidentifier>
@@ -737,7 +740,7 @@ parser_e_not_external_and_export=03121_E_EXPORT et EXTERNAL sont incompatibles
 % These two procedure directives are mutually exclusive
 parser_e_name_keyword_expected=03122_E_Le mot r‚serv‚ NAME est requis ici
 % The definition of an external variable needs a \var{name} clause.
-parser_h_not_supported_for_inline=03123_H_$1 n'est pas support‚ pour des fonctions INLINE
+parser_n_not_supported_for_inline=03123_N_$1 n'est pas support‚ pour des fonctions INLINE
 % Inline procedures don't support this declaration.
 parser_h_inlining_disabled=03124_H_Inlining d‚sactiv‚
 % Inlining of procedures is disabled.
@@ -1331,7 +1334,7 @@ asmr_e_none_label_contain_at=07002_E_Non-label pattern contains @
 asmr_w_override_op_not_supported=07003_W_Override operator not supported
 % The Override operator is not supported
 asmr_e_building_record_offset=07004_E_Error building record offset
-% There has an error occured while building the offset of a record/object
+% An error occurred while building the offset of a record/object
 % structure, this can happend when there is no field specified at all or
 % an unknown field identifier is used.
 asmr_e_offset_without_identifier=07005_E_OFFSET used without identifier
@@ -1712,7 +1715,7 @@ option_asm_forced=11022_W_"$1" assembler use forced
 #
 option_logo=11023_[
 Compilateur Free Pascal version $FPCFULLVERSION [$FPCDATE] pour $FPCTARGET
-Copyright (c) 1993-2015 by Florian Klaempfl and others
+Copyright (c) 1993-2022 by Florian Klaempfl and others
 ]
 
 #
@@ -1729,7 +1732,7 @@ This program comes under the GNU General Public Licence
 For more information read COPYING.v2
 
 Report bugs,suggestions etc to:
-                 http://bugs.freepascal.org
+                 https://bugs.freepascal.org
 ]
 
 #
@@ -1838,6 +1841,10 @@ option_help_pages=11025_[
 3*1R<x>_type lecture assembleur :
 3*2Ratt_lit l'assembleur AT&T
 3*2Rintel_lit l'assembleur Intel
+4*2Ratt_lit l'assembleur AT&T
+4*2Rintel_lit l'assembleur Intel
+8*2Ratt_lit l'assembleur AT&T
+8*2Rintel_lit l'assembleur Intel
 3*2Rdirect_copie le texte assembleur directement dans le fichier assembleur
 3*1O<x>_optimisations :
 3*2Og_g‚nŠre du code compact
@@ -1873,7 +1880,7 @@ option_help_pages=11025_[
 6*2Ox_optimize maximum (still BUGGY!!!)
 6*2O2_set target processor to a MC68020+
 6*1R<x>_styles d'assembleur :
-6*2RMOT_lire l'assembleur type motorola
+6*2RMOT_lire l'assembleur type Motorola
 6*1T<x>_SystŠme d'exploitation cible :
 6*2TAMIGA_Commodore Amiga
 6*2TATARI_Atari ST/STe/TT
@@ -1882,7 +1889,7 @@ option_help_pages=11025_[
 **1*_
 **1?_affiche cette aide
 6*1R<x>_version de l'assembleur lu
-6*2RMOT_read motorola style assembler
+6*2RMOT_read Motorola style assembler
 6*1T<x>_Target operating system:
 6*2TAMIGA_Commodore Amiga
 6*2TATARI_Atari ST/STe/TT

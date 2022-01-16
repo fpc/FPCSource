@@ -106,6 +106,7 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  fpSetPriority(Which,Who,What:cint):cint;
     Function  Fpmmap(start:pointer;len:size_t;prot:cint;flags:cint;fd:cint;offst:off_t):pointer; external name 'FPC_SYSC_MMAP';
     Function  Fpmunmap(start:pointer;len:size_t):cint;  external name 'FPC_SYSC_MUNMAP';
+    Function  Fpmprotect(start:pointer;len:size_t;prot:cint):cint; external name 'FPC_SYSC_MPROTECT';
 
     Function  FpGetEnv (name : pChar): pChar; external name 'FPC_SYSC_FPGETENVPCHAR';
     function  fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint;

@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$mode objfpc}
+{$modeswitch result}
 Unit heapmgr;
 
   interface
@@ -49,7 +49,10 @@ Unit heapmgr;
         p, prev: PHeapBlock;
         AllocSize, RestSize: ptruint;
       begin
-        AllocSize := align(size+sizeof(pointer), sizeof(pointer));
+        if size+sizeof(PtrUInt)<MinBlock then
+          AllocSize := MinBlock
+        else
+          AllocSize := align(size+sizeof(PtrUInt), sizeof(pointer));
 
         p := Blocks;
         prev := nil;
@@ -82,7 +85,12 @@ Unit heapmgr;
             InternalFreemem(pointer(ptruint(p)+AllocSize), RestSize);
           end
         else
-          Result := nil;
+          begin
+            if ReturnNilIfGrowHeapFails then
+              Result := nil
+            else
+              RunError(203);
+          end;
       end;
 
     function GetAlignedMem(Size, Alignment: ptruint): pointer;
@@ -187,6 +195,8 @@ Unit heapmgr;
             exit;
           end;
         sz := Align(FindSize(addr)+SizeOf(pointer), sizeof(pointer));
+        if sz < MinBlock then
+          sz := MinBlock;
 
         InternalFreeMem(@pptruint(addr)[-1], sz);
 
@@ -248,6 +258,18 @@ Unit heapmgr;
         InternalFreeMem(AAddress, ASize);
       end;
 
+    { avoid that programs crash due to a heap status request }
+    function SysGetFPCHeapStatus : TFPCHeapStatus;
+      begin
+        FillChar(Result,SizeOf(Result),0);
+      end;
+
+    { avoid that programs crash due to a heap status request }
+    function SysGetHeapStatus : THeapStatus;
+      begin
+        FillChar(Result,SizeOf(Result),0);
+      end;
+
     const
       MyMemoryManager: TMemoryManager = (
         NeedLock: false;  // Obsolete
@@ -260,8 +282,8 @@ Unit heapmgr;
         InitThread: nil;
         DoneThread: nil;
         RelocateHeap: nil;
-        GetHeapStatus: nil;
-        GetFPCHeapStatus: nil;
+        GetHeapStatus: @SysGetHeapStatus;
+        GetFPCHeapStatus: @SysGetFPCHeapStatus;
       );
 
 var
@@ -275,4 +297,3 @@ initialization
 finalization
   //FinalizeHeap;
 end.
-

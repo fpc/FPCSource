@@ -1,8 +1,31 @@
 {$mode objfpc}{$H+}
 
+{$ifdef go32v2}
+  {$define USE_INTERNAL_UNICODE}
+{$endif}
+
+{$ifdef USE_INTERNAL_UNICODE}
+  {$define USE_FPWIDESTRING_UNIT}
+  {$define USE_UNICODEDUCET_UNIT}
+  {$define USE_CPALL_UNIT}
+{$endif}
+
 uses
-{$ifdef unix}{$ifdef darwin}iosxwstr{$else}cwstring{$endif},{$endif}
-Classes, SysUtils;
+ {$ifndef USE_INTERNAL_UNICODE}
+  {$ifdef unix}
+   {$ifdef darwin}iosxwstr{$else}cwstring{$endif},
+  {$endif unix}
+ {$endif ndef USE_INTERNAL_UNICODE}
+ {$ifdef USE_UNICODEDUCET_UNIT}
+  unicodeducet,
+ {$endif}
+ {$ifdef USE_FPWIDESTRING_UNIT}
+  fpwidestring,
+ {$endif}
+ {$ifdef USE_CPALL_UNIT}
+  cpall,
+ {$endif}
+  Classes, SysUtils;
 
 
 const buffer : array[1..20334] of char=(
@@ -1402,9 +1425,14 @@ begin
           SetLength(LineBuffer2,4096);
 
           tmpwide:=UTF8Decode(LineBuffer);
-          
+
           // UnicodeToUTF8 includes terminating #0 -> length-1
-          setlength(LineBuffer2,UnicodeToUTF8(@LineBuffer2[1],length(LineBuffer2),punicodechar(@tmpwide[1]),length(tmpwide))-1);
+
+          if length(tmpwide)>0 then
+            setlength(LineBuffer2,UnicodeToUTF8(@LineBuffer2[1],length(LineBuffer2),punicodechar(@tmpwide[1]),length(tmpwide))-1)
+          else
+            setlength(LineBuffer2,0);
+
           cnvwide:=UTF8Decode(LineBuffer2);
           if (cnvwide <> tmpwide) then
             begin

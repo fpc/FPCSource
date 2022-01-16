@@ -1,45 +1,14 @@
 { Parsed from Foundation.framework NSDistantObject.h }
 
+
 {$ifdef TYPES}
-{$ifndef NSDISTANTOBJECT_PAS_T}
-{$define NSDISTANTOBJECT_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSDISTANTOBJECT_PAS_R}
-{$define NSDISTANTOBJECT_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSDISTANTOBJECT_PAS_F}
-{$define NSDISTANTOBJECT_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSDISTANTOBJECT_PAS_S}
-{$define NSDISTANTOBJECT_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSDistantObject = objcclass;
-  NSDistantObjectPointer = ^NSDistantObject;
-  NSDistantObjectPtr = NSDistantObjectPointer;
-
+type
+  NSDistantObjectPtr = ^NSDistantObject;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSDISTANTOBJECT_PAS_C}
-{$define NSDISTANTOBJECT_PAS_C}
 
-{ NSDistantObject }
+type
   NSDistantObject = objcclass external (NSProxy, NSCodingProtocol)
   private
     _knownSelectors: id;
@@ -50,19 +19,17 @@
     ___1: cuint8;
     _wireType: cuint8;
     _remoteClass: id;
-    
   public
-    class function proxyWithTarget_connection(target: id; connection: NSConnection): NSDistantObject; message 'proxyWithTarget:connection:';
-    function initWithTarget_connection(target: id; connection: NSConnection): id; message 'initWithTarget:connection:';
-    class function proxyWithLocal_connection(target: id; connection: NSConnection): NSDistantObject; message 'proxyWithLocal:connection:';
-    function initWithLocal_connection(target: id; connection: NSConnection): id; message 'initWithLocal:connection:';
-    procedure setProtocolForProxy(proto: objc_protocol); message 'setProtocolForProxy:';
+    class function proxyWithTarget_connection (target: id; connection: NSConnection): id; message 'proxyWithTarget:connection:';
+    function initWithTarget_connection (target: id; connection: NSConnection): instancetype; message 'initWithTarget:connection:';
+    class function proxyWithLocal_connection (target: id; connection: NSConnection): id; message 'proxyWithLocal:connection:';
+    function initWithLocal_connection (target: id; connection: NSConnection): instancetype; message 'initWithLocal:connection:';
+    function initWithCoder (inCoder: NSCoder): instancetype; message 'initWithCoder:'; { NS_DESIGNATED_INITIALIZER }
+    procedure setProtocolForProxy (proto: Protocol); message 'setProtocolForProxy:';
     function connectionForProxy: NSConnection; message 'connectionForProxy';
 
-    { Adopted Protocols }
-    procedure encodeWithCoder(aCoder: NSCoder);
-    function initWithCoder(aDecoder: NSCoder): id;
+    { Adopted protocols }
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
   end;
+{$endif}
 
-{$endif}
-{$endif}

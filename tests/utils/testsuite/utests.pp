@@ -18,6 +18,7 @@ const
   TestsuiteBin='testsuite.cgi';
   ViewURL='http://svn.freepascal.org/cgi-bin/viewvc.cgi/';
   ViewRevURL='http://svn.freepascal.org/cgi-bin/viewvc.cgi?view=revision&amp;revision=';
+  ViewGitHashURL='https://gitlab.com/freepascal.org/fpc/source/-/tree/';
   TestsSubDir='/tests/';
   DataBaseSubDir='/packages/fcl-db/tests/';
 
@@ -142,6 +143,7 @@ Const
   NewTestResultsTableName = 'TESTRESULTS';
   LastOldTestRun = 91178;
   MaxLimit = 1000;
+  UseGit = True;
 
 const
   faction_show_overview = 0;
@@ -153,13 +155,16 @@ const
   faction_compare_with_next = 6;
   faction_compare2_with_previous = 7;
   faction_compare2_with_next = 8;
+  faction_compare_both_with_previous = 9;
+  faction_compare_both_with_next = 10;
+
 
   Function TestResultsTableName(const RunId : String) : string;
   var
     RunIDVal : qword;
     Error : word;
   begin
-    system.val (RunId,RunIdVal,error);
+    system.val (Trim(RunId),RunIdVal,error);
     if (error<>0) then
       result:='ErrorTable'
     else if (RunIdVal <= LastOldTestRun) then
@@ -207,7 +212,16 @@ type
     ver_2_7_1,
     ver_3_0_0,
     ver_3_0_1,
-    ver_3_1_1);
+    ver_3_0_2,
+    ver_3_0_3,
+    ver_3_0_4,
+    ver_3_0_5,
+    ver_3_1_1,
+    ver_3_2_0,
+    ver_3_2_1,
+    ver_3_2_2,
+    ver_3_2_3,
+    ver_3_3_1);
 
 const
   ver_trunk = high (known_versions);
@@ -248,7 +262,16 @@ const
    '2.7.1',
    '3.0.0',
    '3.0.1',
-   '3.1.1'
+   '3.0.2',
+   '3.0.3',
+   '3.0.4',
+   '3.0.5',
+   '3.1.1',
+   '3.2.0',
+   '3.2.1',
+   '3.2.2',
+   '3.2.3',
+   '3.3.1'
   );
 
   ver_branch : array [known_versions] of string =
@@ -269,6 +292,7 @@ const
    'branches/fixes_2_2',
    'tags/release_2_2_4',
    'branches/fixes_2_2',
+   'branches/fixes_2_2',
    'tags/release_2_4_0',
    'tags/release_2_4_0',
    'tags/release_2_4_2',
@@ -283,9 +307,17 @@ const
    'tags/release_2_6_4',
    'tags/release_2_6_4',
    'branches/fixes_2_6',
-   'trunk',
-   'branches/release_3_0_0',
+   'tags/release_3_0_0',
+   'tags/release_3_0_0',
+   'tags/release_3_0_2',
+   'tags/release_3_0_2',
+   'tags/release_3_0_4',
+   'tags/release_3_0_4',
    'branches/fixes_3_0',
+   'tags/release_3_2_0',
+   'tags/release_3_2_0',
+   'tags/release_3_2_2',
+   'branches/fixes_3_2',
    'trunk'
   );
 
@@ -323,6 +355,18 @@ begin
         faction_compare2_with_next : 
           begin
             FRunID:=FCompareRunID;
+            FCompareRunID:=FNext2RunID;
+            ShowRunComparison;
+          end;
+        faction_compare_both_with_previous : 
+          begin
+            FRunID:=FPreviousRunID;
+            FCompareRunID:=FPrevious2RunID;
+            ShowRunComparison;
+          end;
+        faction_compare_both_with_next : 
+          begin
+            FRunID:=FNextRunID;
             FCompareRunID:=FNext2RunID;
             ShowRunComparison;
           end;
@@ -381,6 +425,10 @@ begin
     FAction:=faction_compare2_with_previous
   else if S='Compare_right_to_next' then
     FAction:=faction_compare2_with_next
+  else if S='Compare_both_to_previous' then
+    FAction:=faction_compare_both_with_previous
+  else if S='Compare_both_to_next' then
+    FAction:=faction_compare_both_with_next
   else
     FAction:=StrToIntDef(S,0);
   S:=RequestVariables['limit'];
@@ -1004,6 +1052,10 @@ begin
             TableColumns.ColumnByName('ID').ActionURL:=A;
             TableColumns.ColumnByNAme('Failed').OnGetCellContents:=@FormatFailedOverview;
             TableColumns.ColumnByNAme('svnrev').OnGetCellContents:=@FormatSVN;
+            TableColumns.ColumnByNAme('svncomprev').OnGetCellContents:=@FormatSVN;
+            TableColumns.ColumnByNAme('svnrtlrev').OnGetCellContents:=@FormatSVN;
+            TableColumns.ColumnByNAme('svnpackrev').OnGetCellContents:=@FormatSVN;
+            TableColumns.ColumnByNAme('svntestsrev').OnGetCellContents:=@FormatSVN;
             CreateTable(Response);
           Finally
             Free;
@@ -1113,7 +1165,7 @@ Const
   SGetRunData = 'SELECT TU_ID,TU_DATE,TC_NAME,TO_NAME,' +
                 'TU_SUBMITTER,TU_MACHINE,TU_COMMENT,TV_VERSION,'+
                 'TU_CATEGORY_FK,TU_SVNCOMPILERREVISION,TU_SVNRTLREVISION,'+
-                'TU_COMPILERDATE,'+
+                'TU_COMPILERDATE,TU_COMPILERFULLVERSION,'+
                 'TU_SVNPACKAGESREVISION,TU_SVNTESTSREVISION,'+
                '(TU_SUCCESSFULLYFAILED+TU_SUCCESFULLYCOMPILED+TU_SUCCESSFULLYRUN) AS OK,'+
                '(TU_FAILEDTOCOMPILE+TU_FAILEDTORUN+TU_FAILEDTOFAIL) as Failed,'+
@@ -1129,12 +1181,70 @@ Const
 
 
 Var
-  Q1,Q2 : TSQLQuery;
+  Q1, Q2 : TSQLQuery;
   F : TField;
-  SC : string;
-  Date1, Date2: TDateTime;
-  AddNewPar : boolean;
-  CompilerDate1, CompilerDate2: TDateTime;
+  SC, FRight : string;
+  Date1, Date2 : TDateTime;
+  AddNewPar, same_date : boolean;
+  CompilerDate1, CompilerDate2 : TDateTime;
+
+  procedure EmitOneRow(RowTitle,FieldLeft,FieldRight : String; is_same : boolean);
+    var
+      FieldColor : string;
+    begin
+      if (FieldRight='') then
+        FieldColor:=''
+      else if is_same then
+        FieldColor:='style="color:green;"'
+      else
+        FieldColor:='style="color:red;"';
+      With FHTMLWriter do
+        begin
+          RowNext;
+          if FieldColor<>'' then
+            begin
+              TagStart('TD',FieldColor);
+            end
+          else 
+            CellStart;
+          LDumpLn(RowTitle);
+          if FieldColor<>'' then
+            begin
+              CellEnd;
+              TagStart('TD',FieldColor);
+            end
+          else 
+            CellNext;
+          LDumpLn(FieldLeft);
+          if FieldColor<>'' then
+            begin
+             CellEnd;
+             TagStart('TD',FieldColor);
+            end
+          else 
+            CellNext;
+          LDumpLn(FieldRight);
+          CellEnd;
+        end;
+    end;
+  procedure EmitOneRow(RowTitle,FieldLeft,FieldRight : String);
+    var
+      is_same : boolean;
+    begin
+      is_same:=(FieldLeft=FieldRight);
+      EmitOneRow(RowTitle,FieldLeft,FieldRight,is_same);
+    end;
+  procedure EmitRow(RowTitle,FieldName : String);
+    var
+      FieldLeft, FieldRight : String;
+    begin
+      FieldLeft:=Q1.FieldByName(FieldName).AsString;
+      if Q2=nil then
+        FieldRight:=''
+      else
+        FieldRight:=Q2.FieldByName(FieldName).AsString;
+      EmitOneRow(RowTitle,FieldLeft,FieldRight);
+    end;
 begin
   Result:=(FRunID<>'');
   If Result then
@@ -1170,172 +1280,99 @@ begin
             CellNext;
               EmitInput('run2id',FCompareRunID);
             CellEnd;
-          RowNext;
-            CellStart;
-              DumpLn('Operating system:');
-            CellNext;
-              DumpLn(Q1.FieldByName('TO_NAME').AsString);
-            CellNext;
-              if Q2 <> nil then
-                DumpLn(Q2.FieldByName('TO_NAME').AsString);
-            CellEnd;
-          RowNext;
-            CellStart;
-              DumpLn('Processor:');
-            CellNext;
-              DumpLn(Q1.FieldByName('TC_NAME').AsString);
-            CellNext;
-              if Q2 <> nil then
-                DumpLn(Q2.FieldByName('TC_NAME').AsString);
-            CellEnd;
-          RowNext;
-            CellStart;
-              DumpLn('Version:');
-            CellNext;
-              DumpLn(Q1.FieldByNAme('TV_VERSION').AsString);
-            CellNext;
-              if Q2 <> nil then
-                DumpLn(Q2.FieldByNAme('TV_VERSION').AsString);
-            CellEnd;
-          RowNext;
-            CellStart;
-              DumpLn('Fails/OK/Total:');
-            CellNext;
-              Dump(Q1.FieldByName('Failed').AsString);
-              Dump('/'+Q1.FieldByName('OK').AsString);
-              DumpLn('/'+Q1.FieldByName('Total').AsString);
-            CellNext;
-              if Q2 <> nil then
-                begin
-                  Dump(Q2.FieldByName('Failed').AsString);
-                  Dump('/'+Q2.FieldByName('Ok').AsString);
-                  DumpLn('/'+Q2.FieldByName('Total').AsString);
-               end;
-            CellEnd;
 
-          RowNext;
-            CellStart;
-              DumpLn('Comment:');
-            CellNext;
-              DumpLn(Q1.FieldByName('TU_COMMENT').AsString);
-            CellNext;
-              if Q2 <> nil then
-                DumpLn(Q2.FieldByName('TU_COMMENT').AsString);
-            CellEnd;
-          RowNext;
-            CellStart;
-              DumpLn('Machine:');
-            CellNext;
-              DumpLn(Q1.FieldByName('TU_MACHINE').AsString);
-            CellNext;
-              if Q2 <> nil then
-                DumpLn(Q2.FieldByName('TU_MACHINE').AsString);
-            CellEnd;
-          if GetCategoryName(FCategory)<>'All' then
+          EmitRow('Operating system:','TO_NAME');
+          EmitRow('Processor:','TC_NAME');
+          EmitRow('Version:','TV_VERSION');
+          if Q2 = nil then
+            FRight:=''
+          else
             begin
-              RowNext;
-                CellStart;
-                DumpLn('Category:');
-                CellNext;
-                DumpLn(GetCategoryName(Q1.FieldByName('TU_CATEGORY_FK').AsString));
-                CellNext;
-                if Q2 <> nil then
-                  DumpLn(GetCategoryName(Q2.FieldByName('TU_CATEGORY_FK').AsString));
-                CellEnd;
+              FRight:=Q2.FieldByName('Failed').AsString+
+                      '/'+Q2.FieldByName('Ok').AsString+
+                      '/'+Q2.FieldByName('Total').AsString;
             end;
+          EmitOneRow('Fails/OK/Total:',
+            Q1.FieldByName('Failed').AsString+
+            '/'+Q1.FieldByName('OK').AsString+
+            '/'+Q1.FieldByName('Total').AsString,
+            FRight);
+          EmitRow('Version:','TV_VERSION');
+          EmitRow('Full version:','TU_COMPILERFULLVERSION');
+          EmitRow('Comment:','TU_COMMENT');
+          EmitRow('Machine:','TU_MACHINE');
+          if GetCategoryName(FCategory)<>'All' then
+            EmitRow('Category:','TU_CATEGORY_FK');
           If GetCategoryName(FCategory)<>'DB' then
             begin
-              RowNext;
-                CellStart;
-                DumpLn('SVN Revisions:');
-                CellNext;
-                SC:=Q1.FieldByName('svnrev').AsString;
-                if (SC<>'') then
-                  FormatSVNData(SC);
-                LDumpLn(SC);
-                CellNext;
-                if Q2 <> nil then
-                  begin
-                    SC:=Q2.FieldByName('svnrev').AsString;
-                    FormatSVNData(SC);
-                    LDumpLn(SC);
-                  end;
-                CellEnd;
-            end;
-           RowNext;
-            CellStart;
-              DumpLn('Submitter:');
-            CellNext;
-              DumpLn(Q1.FieldByName('TU_SUBMITTER').AsString);
-            CellNext;
+              SC:=Q1.FieldByName('svnrev').AsString;
+              if (SC<>'') then
+                FormatSVNData(SC);
               if Q2 <> nil then
-                DumpLn(Q2.FieldByName('TU_SUBMITTER').AsString);
-            CellEnd;
-          RowNext;
-            CellStart;
-              DumpLn('Date:');
-            CellNext;
-              F := Q1.FieldByName('TU_DATE');
-              Date1 := F.AsDateTime;
-              DumpLn(F.AsString);
-              F := Q1.FieldByName('TU_COMPILERDATE');
+                begin
+                  FRight:=Q2.FieldByName('svnrev').AsString;
+                  FormatSVNData(FRight);
+                end
+              else
+                FRight:='';
+              EmitOneRow('SVN revisions:',SC,FRight);
+            end;
+          EmitRow('Submitter:','TU_SUBMITTER');
+          F := Q1.FieldByName('TU_DATE');
+          Date1 := F.AsDateTime;
+          SC:=F.AsString;
+          F := Q1.FieldByName('TU_COMPILERDATE');
+          Try
+            CompilerDate1 := F.AsDateTime;
+            if not SameDate(Date1,CompilerDate1) then
+              SC:=SC+' <> '+F.AsString;
+          Except
+            { Not a valid date, do nothing }
+          end;
+          if Q2 = nil then
+            FRight:=''
+          else
+            begin
+              F := Q2.FieldByName('TU_DATE');
+              Date2 := F.AsDateTime;
+              FRight:= F.AsString;
+              F := Q2.FieldByName('TU_COMPILERDATE');
               Try
-                CompilerDate1 := F.AsDateTime;
-                if not SameDate(Date1,CompilerDate1) then
-                  DumpLn(' <> '+F.AsString);
+                CompilerDate2 := F.AsDateTime;
+                if not SameDate(Date2,CompilerDate2) then
+                  FRight:=FRight+' <> '+F.AsString;
               Except
                 { Not a valid date, do nothing }
               end;
-            CellNext;
-              if Q2 <> nil then
-                begin
-                F := Q2.FieldByName('TU_DATE');
-                Date2 := F.AsDateTime;
-                DumpLn(F.AsString);
-                F := Q2.FieldByName('TU_COMPILERDATE');
-                Try
-                  CompilerDate2 := F.AsDateTime;
-                  if not SameDate(Date2,CompilerDate2) then
-                    DumpLn(' <> '+F.AsString);
-                Except
-                  { Not a valid date, do nothing }
-                end;
-                end;
-            CellEnd;
-          RowNext;
-            CellStart;
-              DumpLn('Previous run:');
-            CellNext;
-              FPreviousRunID:=GetPreviousRunID(FRunID);
-              if FPreviousRunID<>'' then
-                EmitHiddenVar('previousrunid',FPreviousRunID);
-              DumpLn(FPreviousRunID);
-            CellNext;
-              if (FCompareRunID<>'') then
-                begin
-                  FPrevious2RunID:=GetPreviousRunID(FCompareRunID);
-                  DumpLn(FPrevious2RunID);
-                  if FPrevious2RunID <> '' then
-                    EmitHiddenVar('previous2runid',FPrevious2RunID);
-                end;
-            CellEnd;
-          RowNext;
-            CellStart;
-              DumpLn('Next run:');
-            CellNext;
-              FNextRunID:=GetNextRunID(FRunID);
-              if FNextRunID<>'' then
-                EmitHiddenVar('nextrunid',FNextRunID);
-              DumpLn(FNextRunID);
-            CellNext;
-              if (FCompareRunID<>'') then
-                begin
-                  FNext2RunID:=GetNextRunID(FCompareRunID);
-                  DumpLn(FNext2RunID);
-                  if FNext2RunID <> '' then
-                    EmitHiddenVar('next2runid',FNext2RunID);
-                end;
-            CellEnd;
+            end;
+          same_date:=(Copy(SC,1,10)=Copy(FRight,1,10));
+          EmitOneRow('Date:',SC,FRight,same_date); 
+          FPreviousRunID:=GetPreviousRunID(FRunID);
+          if FPreviousRunID<>'' then
+            EmitHiddenVar('previousrunid',FPreviousRunID);
+          SC:=FPreviousRunID;
+          if (FCompareRunID<>'') then
+            begin
+              FPrevious2RunID:=GetPreviousRunID(FCompareRunID);
+              FRight:=FPrevious2RunID;
+              if FPrevious2RunID <> '' then
+                EmitHiddenVar('previous2runid',FPrevious2RunID);
+            end
+          else
+            FRight:='';
+          EmitOneRow('Previous run:',SC,FRight);
+          FNextRunID:=GetNextRunID(FRunID);
+          if FNextRunID<>'' then
+            EmitHiddenVar('nextrunid',FNextRunID);
+          SC:=FNextRunID;
+          if (FCompareRunID<>'') then
+            begin
+              FNext2RunID:=GetNextRunID(FCompareRunID);
+              FRight:=FNext2RunID;
+              if FNext2RunID <> '' then
+                EmitHiddenVar('next2runid',FNext2RunID);
+            end;
+          EmitOneRow('Next run:',SC,FRight);
           RowEnd;
           TableEnd;
           ParagraphStart;
@@ -1376,7 +1413,22 @@ begin
               ParaGraphStart;
             end;
               
-          EmitSubmitButton('action','Show/Compare');
+          if (FPrevious2RunID<>'') and (FPreviousRunId<>'') then
+            begin
+              EmitSubmitButton('action','Compare_both_to_previous');
+              AddNewPar:=true;
+            end;
+          if (FNext2RunID<>'') and (FNextRunId<>'') then
+            begin
+              EmitSubmitButton('action','Compare_both_to_next');
+              AddNewPar:=true;
+            end;
+          if AddNewPar then
+            begin
+              ParagraphEnd;
+              ParaGraphStart;
+            end;
+           EmitSubmitButton('action','Show/Compare');
           if FTestFileID<>'' then
             EmitSubmitButton('action','View_history');
           EmitResetButton('','Reset form');
@@ -1470,7 +1522,7 @@ begin
           Open;
           while not EOF do
             Next;
-          RecNo:=0;
+          RecNo:=1;
 
           DumpLn(Format('<p>Record count: %d </p>',[Q.RecordCount]));
           Try
@@ -1503,7 +1555,7 @@ begin
         finally
           Free;
         end;
-      If Not (FRunCount=0) and not (FNoSkipped or FOnlyFailed) then
+      If Not (FRunCount=0) and not (FNoSkipped and FOnlyFailed) then
         begin
         ParaGraphStart;
         TagStart('IMG',Format('Src="'+TestsuiteCGIURL+
@@ -1565,7 +1617,7 @@ Var
   Qry : String;
   Base, Category : string;
   Q : TSQLQuery;
-  i : longint;
+  i,index : longint;
   FieldName,FieldValue,
   LLog,Source : String;
   Res : Boolean;
@@ -1778,7 +1830,17 @@ begin
                       break;
                     end;
               end;
-            FViewVCURL:=ViewURL+Base;
+            if UseGit then
+              begin
+                index:=pos('/',Base);
+                if index>0 then
+                  Base:=Copy(Base,index+1,length(Base));
+                if Base='trunk' then
+                  Base:='main';
+                FViewVCURL:=ViewGitHashURL+Base;
+              end
+            else
+              FViewVCURL:=ViewURL+Base;
             if Category='1' then
               FViewVCUrl:=FViewVCURL+TestsSubDir
             else
@@ -1837,7 +1899,7 @@ Var
   Qry : String;
   Base, Category : string;
   Q : TSQLQuery;
-  i,run_id,os_id,version_id,cpu_id : longint;
+  i,index,run_id,os_id,version_id,cpu_id : longint;
   run_ind,os_ind,version_ind,cpu_ind,
   ok_ind,skip_ind,result_ind,date_ind : longint;
   os_size, cpu_size, version_size : longint;
@@ -1958,8 +2020,8 @@ begin
         +',TU_SVNCOMPILERREVISION AS Compiler_rev'
         +',TU_SVNPACKAGESREVISION AS Packages_rev'
         +',TO_ID,TC_ID,TV_ID'
-        +' FROM TESTRESULTS '
-        +' LEFT JOIN TESTRUN ON  (TR_TESTRUN_FK=TU_ID)'
+        +' FROM TESTRUN '
+        +' LEFT JOIN TESTRESULTS ON  (TR_TESTRUN_FK=TU_ID)'
         +' LEFT JOIN TESTOS ON  (TU_OS_FK=TO_ID)'
         +' LEFT JOIN TESTCPU ON  (TU_CPU_FK=TC_ID)'
         +' LEFT JOIN TESTVERSION ON  (TU_VERSION_FK=TV_ID)';
@@ -1969,9 +2031,9 @@ begin
       if FRunID<>'' then
         S:=S+' AND (TR_TESTRUN_FK='+FRunID+')';
       If FOnlyFailed then
-        S:=S+' AND (TR_OK="-")';
+        S:=S+' AND (NOT TR_OK)';
       If FNoSkipped then
-        S:=S+' AND (TR_SKIP="-")';
+        S:=S+' AND (NOT TR_SKIP)';
       If FCond<>'' then
         S:=S+' AND ('+FCond+')';
 
@@ -1982,7 +2044,7 @@ begin
         end
       else
         begin
-          cpu_last:=StrToInt(GetSingleton('SELECT COUNT(*) FROM TESTCPU'));
+          cpu_last:=StrToInt(GetSingleton('SELECT MAX(TC_ID) FROM TESTCPU'));
           cpu_size:=Sizeof(StatusLongintArray)*(1+cpu_last);
           cpu_count:=GetMem(cpu_size);
           FillChar(cpu_count^,cpu_size,#0);
@@ -2002,7 +2064,7 @@ begin
         end
       else
         begin
-          version_last:=StrToInt(GetSingleton('SELECT COUNT(*) FROM TESTVERSION'));
+          version_last:=StrToInt(GetSingleton('SELECT MAX(TV_ID) FROM TESTVERSION'));
           version_size:=Sizeof(StatusLongintArray)*(1+version_last);
           version_count:=GetMem(version_size);
           FillChar(version_count^,version_size,#0);
@@ -2024,7 +2086,7 @@ begin
         end
       else
         begin
-          os_last:=StrToInt(GetSingleton('SELECT COUNT(*) FROM TESTOS'));
+          os_last:=StrToInt(GetSingleton('SELECT MAX(TO_ID) FROM TESTOS'));
           os_size:=Sizeof(StatusLongintArray)*(1+os_last);
           os_count:=GetMem(os_size);
           FillChar(os_count^,os_size,#0);
@@ -2055,7 +2117,7 @@ begin
       else
         S:=SS;
 
-      S:=S+' ORDER BY TR_ID DESC';
+      S:=S+' ORDER BY TU_ID DESC';
       if FDATE=0 then
         S:=S+' LIMIT '+IntToStr(FLimit)
       else
@@ -2079,7 +2141,7 @@ begin
 
           DumpLn(Format('<p>Record count: %d </p>',[Q.RecordCount]));
           if RecordCount>0 then
-            RecNo:=0;
+            RecNo:=1;
 
           Try
            { if FDebug then
@@ -2103,7 +2165,7 @@ begin
           version_ind:=FieldByName('TV_ID').Index;
           date_ind:=FieldByName('Date').Index;
           run_ind:=FieldByName('TU_ID').Index;
-          For i:=0 to Q.RecordCount-1 do
+          For i:=1 to Q.RecordCount do
             begin
               Q.RecNo:=i;
               inc(total_count);
@@ -2353,7 +2415,7 @@ begin
           if total_count>0 then
             begin
               TableEnd;
-              RecNo:=0;
+              RecNo:=1;
             end;
           If FDebug or FListAll then
            begin
@@ -2480,7 +2542,17 @@ begin
                       break;
                     end;
               end;
-            FViewVCURL:=ViewURL+Base;
+            if UseGit then
+              begin
+                index:=pos('/',Base);
+                if index>0 then
+                  Base:=Copy(Base,index+1,length(Base));
+                if Base='trunk' then
+                  Base:='main';
+                FViewVCURL:=ViewGitHashURL+Base;
+              end
+            else
+              FViewVCURL:=ViewURL+Base;
             if Category='1' then
               FViewVCUrl:=FViewVCURL+TestsSubDir
             else
@@ -2772,7 +2844,10 @@ begin
   if pos_sep=0 then
     begin
       pos_colon:=pos(':',CellData);
-      S:=ViewRevURL+copy(CellData,pos_colon+1,length(CellData));
+      if UseGit then
+        S:=ViewGitHashURL+copy(CellData,pos_colon+1,length(CellData))
+      else
+        S:=ViewRevURL+copy(CellData,pos_colon+1,length(CellData));
       CellData:=Format('<A HREF="%s" target="_blank">%s</A>',[S,CellData]);
     end
   else
@@ -2785,9 +2860,12 @@ begin
           pos_colon:=pos(':',SubStr);
           Rev:=copy(SubStr,pos_colon+1,length(SubStr));
           { Remove suffix like M for modified...}
-          while (length(Rev)>0) and (not (Rev[length(Rev)] in ['0'..'9'])) do
+          while (length(Rev)>0) and (not (Rev[length(Rev)] in ['0'..'9','a'..'f','A'..'F'])) do
             Rev:=Copy(Rev,1,length(Rev)-1);
-          S:=ViewRevURL+Rev;
+          if UseGit then
+            S:=ViewGitHashURL+Rev
+          else
+            S:=ViewRevURL+Rev;
           CellData:=CellData+Format('<A HREF="%s" target="_blank">%s</A>',[S,SubStr]);
           if Remaining='' then
             SubStr:=''
@@ -2895,10 +2973,6 @@ Procedure TTestSuite.DoDrawPie(Img : TFPCustomImage; Skipped,Failed,Total : Inte
 
 Var
   Cnv : TFPImageCanvas;
-  W,H,FH,CR,ra : Integer;
-  A1,A2,FR,SR,PR : Double;
-  R : TRect;
-  F : TFreeTypeFont;
 
   Procedure AddPie(X,Y,R : Integer; AStart,AStop : Double; Col : TFPColor);
 
@@ -2906,14 +2980,14 @@ Var
     DX,Dy : Integer;
 
   begin
-    DX:=Round(R*Cos(A1));
-    DY:=Round(R*Sin(A1));
+    DX:=Round(R*Cos(AStart));
+    DY:=Round(R*Sin(AStart));
     Cnv.Line(X,Y,X+DX,Y-DY);
-    DX:=Round(Ra*Cos(A2));
-    DY:=Round(Ra*Sin(A2));
+    DX:=Round(R*Cos(AStop));
+    DY:=Round(R*Sin(AStop));
     Cnv.Line(X,Y,X+DX,Y-Dy);
-    DX:=Round(R/2*Cos((A1+A2)/2));
-    DY:=Round(R/2*Sin((A1+A2)/2));
+    DX:=Round(R/2*Cos((AStart+AStop)/2));
+    DY:=Round(R/2*Sin((AStart+AStop)/2));
     Cnv.Brush.FpColor:=Col;
     Cnv.FloodFill(X+DX,Y-DY);
   end;
@@ -2924,7 +2998,11 @@ Var
     Result:=(2*Pi*(F/T))
   end;
 
-
+Var
+  W,H,FH,CR,RA : Integer;
+  A1,A2,FR,SR,PR : Double;
+  R : TRect;
+  F : TFreeTypeFont;
 
 begin
   F:=TFreeTypeFont.Create;
@@ -2989,7 +3067,12 @@ begin
       Writeln(stdout,'Setting brush style');
       system.flush(stdout);
     end;
-  cnv.brush.FPColor:=colRed;
+  cnv.brush.FPColor:=colDkGray;
+  SR:=Skipped/Total;
+  FR:=Failed/Total;
+  PR:=1-SR-FR;
+  cnv.font.FPColor:=colDkGray;
+  Cnv.Textout(1,FH*2,Format('%d Skipped (%3.1f%%)',[Skipped,SR*100]));
 //  cnv.pen.width:=1;
   // Writeln('Drawing ellipse');
   Cnv.Ellipse(R);
@@ -2998,15 +3081,16 @@ begin
       Writeln(stdout,'Setting text');
       system.flush(stdout);
     end;
-  Cnv.Textout(1,FH*2,Format('%d Skipped (%3.1f%%)',[Skipped,SR*100]));
-  A1:=(Pi*2*(failed/total));
-  A2:=A1+(Pi*2*(Skipped/Total));
-  AddPie(Ra,R.Top+Ra,Ra,A1,A2,ColYellow);
+  A1:=0;
+  A2:=A1+FractionAngle(Failed,Total);
+  cnv.font.FPColor:=colRed;
+  Cnv.Textout(1,FH*3,Format('%d Failed (%3.1f%%)',[Failed,FR*100]));
+  AddPie(Ra,R.Top+Ra,Ra,A1,A2,ColRed);
   cnv.font.FPColor:=colGreen;
+  Cnv.Textout(1,FH,Format('%d Passed (%3.1f%%)',[Total-Skipped-Failed,PR*100]));
   // Writeln('Palette size : ',Img.Palette.Count);
   A1:=A2;
-  A2:=A1+(Pi*2*((Total-(Skipped+Failed))/Total));
-  Cnv.Textout(1,FH*3,Format('%d Passed (%3.1f%%',[Total-Skipped-Failed,PR*100]));
+  A2:=A1+FractionAngle(Total-(Skipped+Failed),Total);
   AddPie(Ra,R.Top+Ra,Ra,A1,A2,ColGreen);
   // Writeln('Palette size : ',Img.Palette.Count);
   // Writeln('All done');

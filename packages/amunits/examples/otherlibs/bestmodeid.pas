@@ -47,6 +47,11 @@ Var
     rda         :   pRDArgs;
 
 Begin
+  if not Assigned(P96Base) then
+  begin
+    writeln('Cannot open ', PICASSO96APINAME);
+    Halt(5);
+  end;
 
    width:=640;
    height:=480;

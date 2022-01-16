@@ -2,8 +2,8 @@
 {$r+}
 
 type
-  tsubr = 1..100000;
-  tarr = array[1..100000] of longint;
+  tsubr = 1..10;
+  tarr = array[1..10] of longint;
 
 function test(b: tsubr): longint;
 begin
@@ -17,7 +17,7 @@ var
 
 begin
   getmem(p,4);
-  p^ := 100000;
+  p^ := 10;
   l := 5;
   { clear the optimizer state }
   asm
@@ -41,7 +41,7 @@ begin
   {                                                                     }
   { and as such the "pushl (%eax)" pushes a wrong value afterwards      }
   l := test(p^);
-  if l <> 100000 then
+  if l <> 10 then
     begin
       writeln('Problem 1!');
       halt(1);

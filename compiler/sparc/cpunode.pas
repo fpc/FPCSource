@@ -35,6 +35,7 @@ implementation
     { this not really a node }
     rgcpu,
     { symtable }
-    symcpu;
+    symcpu,
+    aasmdef;
 
 end.

@@ -711,7 +711,11 @@ var i : Integer;
 
 begin
 {$ifdef Unix}
-  codfilepath1:='/usr/local/lib/fpc/lexyacc/';
+  codfilepath1:=path(paramstr(0));
+  if (codfilepath1<>'') then
+    codfilepath1:=codfilepath1+'../lib/fpc/lexyacc/'
+  else
+    codfilepath1:='/usr/local/lib/fpc/lexyacc/';
   codfilepath2:='/usr/lib/fpc/lexyacc/';
 {$else}
   codfilepath1:=path(paramstr(0));

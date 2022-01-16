@@ -676,7 +676,7 @@ type
 {$IFDEF WINCE} // #ifdef UNDER_CE
 
 // This structure is used by the RnaApp application on WINCE
-// to signal when a connection has occured.
+// to signal when a connection has occurred.
 
 type
      tagRNAAppInfo = record

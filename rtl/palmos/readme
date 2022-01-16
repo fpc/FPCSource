@@ -1,7 +1,11 @@
-This unit contains the run time library for the PalmOS.
+This unit contains the run time library for PalmOS.
 
-Currently, no makefile is available, so you have to create
-the system unit by hand.
+The 68k version should be functional, was tested on
+POSE emulator and real devices as well, running PalmOS 4.0.
 
-The system unit contains only the really necessary declarations
-and the startup code.
+The recommended and functional GNU binutils are available as
+part of the prc-tools-remix project, which updated the old
+prc-tools to be compilable with modern compilers.
+
+The ARM version is entirely untested, and almost certainly
+non functional.

@@ -17,10 +17,10 @@
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. }
-unit character;
+unit Character;
 
 interface
-{$ifndef VER2_4}
+
 {$mode objfpc}
 {$H+}
 {$PACKENUM 1}
@@ -105,7 +105,7 @@ type
     class function IsHighSurrogate(const AString : UnicodeString; AIndex : Integer) : Boolean; overload; static;  
     class function IsLowSurrogate(AChar : UnicodeChar) : Boolean; overload; static; inline;
     class function IsLowSurrogate(const AString : UnicodeString; AIndex : Integer) : Boolean; overload; static;
-    class function IsSurrogatePair(const AHighSurrogate, ALowSurrogate : UnicodeChar) : Boolean; overload; static; inline; inline;
+    class function IsSurrogatePair(const AHighSurrogate, ALowSurrogate : UnicodeChar) : Boolean; overload; static; inline;
     class function IsSurrogatePair(const AString : UnicodeString; AIndex : Integer) : Boolean; overload; static;
     
     class function IsLetter(AChar : UnicodeChar) : Boolean; overload; static; inline;
@@ -114,7 +114,7 @@ type
     class function IsLetterOrDigit(AChar : UnicodeChar) : Boolean; overload; static; inline;
     class function IsLetterOrDigit(const AString : UnicodeString; AIndex : Integer) : Boolean; overload; static; inline;
     
-    class function IsLower(AChar : UnicodeChar) : Boolean; overload; static; inline; inline;
+    class function IsLower(AChar : UnicodeChar) : Boolean; overload; static; inline;
     class function IsLower(const AString : UnicodeString; AIndex : Integer) : Boolean; overload; static; inline;
 
     class function IsNumber(AChar : UnicodeChar) : Boolean; overload; static; inline;
@@ -187,10 +187,10 @@ type
   function ToLower(const AString : UnicodeString) : UnicodeString; overload;
   function ToUpper(AChar : UnicodeChar) : UnicodeChar; overload;
   function ToUpper(const AString : UnicodeString) : UnicodeString; overload;
-{$endif VER2_4}
+
 
 implementation
-{$ifndef VER2_4}
+
 uses
   SysUtils,
   RtlConsts;
@@ -851,5 +851,4 @@ begin
     raise EArgumentException.Create(SInvalidUnicodeCodePointSequence);
 end;
 
-{$endif VER2_4}
 end.

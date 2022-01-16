@@ -1,83 +1,52 @@
 { Parsed from Foundation.framework NSNotification.h }
 
+
 {$ifdef TYPES}
-{$ifndef NSNOTIFICATION_PAS_T}
-{$define NSNOTIFICATION_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSNOTIFICATION_PAS_R}
-{$define NSNOTIFICATION_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSNOTIFICATION_PAS_F}
-{$define NSNOTIFICATION_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSNOTIFICATION_PAS_S}
-{$define NSNOTIFICATION_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSNotification = objcclass;
-  NSNotificationPointer = ^NSNotification;
-  NSNotificationPtr = NSNotificationPointer;
-  NSNotificationCenter = objcclass;
-  NSNotificationCenterPointer = ^NSNotificationCenter;
-  NSNotificationCenterPtr = NSNotificationCenterPointer;
-
+type
+  NSNotificationPtr = ^NSNotification;
+  NSNotificationCenterPtr = ^NSNotificationCenter;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSNOTIFICATION_PAS_C}
-{$define NSNOTIFICATION_PAS_C}
 
-{ NSNotification }
+type
   NSNotification = objcclass external (NSObject, NSCopyingProtocol, NSCodingProtocol)
-    
   public
     function name: NSString; message 'name';
     function object_: id; message 'object';
     function userInfo: NSDictionary; message 'userInfo';
+    function initWithName_object_userInfo (name_: NSString; object_: id; userInfo_: NSDictionary): instancetype; message 'initWithName:object:userInfo:'; { available in 10_6, 4_0 }
+    function initWithCoder (aDecoder: NSCoder): instancetype; message 'initWithCoder:'; { NS_DESIGNATED_INITIALIZER }
 
-    { Adopted Protocols }
-    function copyWithZone(zone_: NSZonePtr): id;
-    procedure encodeWithCoder(aCoder: NSCoder);
-    function initWithCoder(aDecoder: NSCoder): id;
+    { Adopted protocols }
+    function copyWithZone (zone: NSZonePtr): id; message 'copyWithZone:';
+    procedure encodeWithCoder (aCoder: NSCoder); message 'encodeWithCoder:';
   end;
 
-{ NSNotificationCenter }
+
+type
+  NSNotificationCreation = objccategory external (NSNotification)
+    class function notificationWithName_object (aName: NSString; anObject: id): instancetype; message 'notificationWithName:object:';
+    class function notificationWithName_object_userInfo (aName: NSString; anObject: id; aUserInfo: NSDictionary): instancetype; message 'notificationWithName:object:userInfo:';
+    function init: instancetype; message 'init';
+  end;
+
+
+type
   NSNotificationCenter = objcclass external (NSObject)
   private
-    _impl: Pointer; {garbage collector: __strong }
-    _callback_block: array[0..(4)-1] of Pointer;
-    _pad: array[0..(8)-1] of Pointer;
-    
+    _impl: pointer;
+    _callback: pointer;
+    _pad:array[0..10] of pointer;
   public
-    class function defaultCenter: id; message 'defaultCenter';
-    procedure addObserver_selector_name_object(observer: id; aSelector: SEL; aName: NSString; anObject: id); message 'addObserver:selector:name:object:';
-    procedure postNotification(notification: NSNotification); message 'postNotification:';
-    procedure postNotificationName_object(aName: NSString; anObject: id); message 'postNotificationName:object:';
-    procedure postNotificationName_object_userInfo(aName: NSString; anObject: id; aUserInfo: NSDictionary); message 'postNotificationName:object:userInfo:';
-    procedure removeObserver(observer: id); message 'removeObserver:';
-    procedure removeObserver_name_object(observer: id; aName: NSString; anObject: id); message 'removeObserver:name:object:';
+    class function defaultCenter: NSNotificationCenter; message 'defaultCenter';
+    procedure addObserver_selector_name_object (observer: id; aSelector: SEL; aName: NSString; anObject: id); message 'addObserver:selector:name:object:';
+    procedure postNotification (notification: NSNotification); message 'postNotification:';
+    procedure postNotificationName_object (aName: NSString; anObject: id); message 'postNotificationName:object:';
+    procedure postNotificationName_object_userInfo (aName: NSString; anObject: id; aUserInfo: NSDictionary); message 'postNotificationName:object:userInfo:';
+    procedure removeObserver (observer: id); message 'removeObserver:';
+    procedure removeObserver_name_object (observer: id; aName: NSString; anObject: id); message 'removeObserver:name:object:';
+    function addObserverForName_object_queue_usingBlock (name: NSString; obj: id; queue: NSOperationQueue; block: OpaqueCBlock): NSObjectProtocol; message 'addObserverForName:object:queue:usingBlock:'; { available in 10_6, 4_0 }
   end;
-
-{ NSNotificationCreationCategory }
-  NSNotificationCreationCategory = objccategory external (NSNotification)
-    class function notificationWithName_object(aName: NSString; anObject: id): id; message 'notificationWithName:object:';
-    class function notificationWithName_object_userInfo(aName: NSString; anObject: id; aUserInfo: NSDictionary): id; message 'notificationWithName:object:userInfo:';
-  end;
-
 {$endif}
-{$endif}
+

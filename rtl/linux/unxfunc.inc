@@ -20,7 +20,7 @@ Function AssignPipe(var pipe_in,pipe_out:cint):cint; [public, alias : 'FPC_SYSC_
   If the operation was unsuccesful, linuxerror is set.
 }
 var
-  pip  : tpipe;
+  pip  : tfildes;
 begin
   {$ifdef FPC_USE_LIBC}
   assignpipe:=pipe(pip);

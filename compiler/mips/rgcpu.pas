@@ -81,7 +81,7 @@ implementation
             helplist.concat(taicpu.op_reg_reg_const(A_ORI,hreg,hreg,spilltemp.offset and $FFFF));
             helplist.concat(taicpu.op_reg_reg_reg(A_ADDU,hreg,hreg,spilltemp.base));
 
-            reference_reset_base(tmpref,hreg,0,sizeof(aint));
+            reference_reset_base(tmpref,hreg,0,spilltemp.temppos,sizeof(aint),[]);
 
             helpins:=spilling_create_load(tmpref,tempreg);
             helplist.concat(helpins);
@@ -112,7 +112,7 @@ implementation
             helplist.concat(taicpu.op_reg_reg_const(A_ORI,hreg,hreg,spilltemp.offset and $FFFF));
             helplist.concat(taicpu.op_reg_reg_reg(A_ADDU,hreg,hreg,spilltemp.base));
 
-            reference_reset_base(tmpref,hreg,0,sizeof(aint));
+            reference_reset_base(tmpref,hreg,0,spilltemp.temppos,sizeof(aint),[]);
 
             helplist.concat(spilling_create_store(tempreg,tmpref));
             if getregtype(tempreg)=R_INTREGISTER then
@@ -150,7 +150,7 @@ implementation
             else
               InternalError(2013061003);
           end;
-        if get_alias(getsupreg(instr.oper[1]^.reg))=orgreg then
+        if (getregtype(instr.oper[1]^.reg)=regtype) and  (get_alias(getsupreg(instr.oper[1]^.reg))=orgreg) then
           begin
             case instr.opcode of
               A_MOVE:  instr.opcode:=A_LW;
@@ -160,7 +160,7 @@ implementation
               InternalError(2013061004);
             end;
           end
-        else if get_alias(getsupreg(instr.oper[0]^.reg))=orgreg then
+        else if (getregtype(instr.oper[0]^.reg)=regtype) and  (get_alias(getsupreg(instr.oper[0]^.reg))=orgreg) then
           begin
             case instr.opcode of
               A_MOVE:  instr.opcode:=A_SW;

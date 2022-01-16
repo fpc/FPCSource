@@ -336,9 +336,26 @@ end;
 
 function  TFPReaderTarga.InternalCheck (Stream:TStream) : boolean;
 
+var
+  hdr: TTargaHeader;
+  oldPos: Int64;
+  n: Integer;
+  
 begin
-  Result:=True;
+  Result:=False;
+  if Stream = nil then
+    exit;
+  oldPos := Stream.Position;
+  try
+    n := SizeOf(hdr);
+    Result:=(Stream.Read(hdr, n)=n)
+            and (hdr.ImgType in [1, 2, 3, 9, 10, 11]) 
+            and (hdr.PixelSize in [8, 16, 24, 32]);
+  finally
+    Stream.Position := oldPos;
+  end;
 end;
+
 
 initialization
   ImageHandlers.RegisterImageReader ('TARGA Format', 'tga', TFPReaderTarga);

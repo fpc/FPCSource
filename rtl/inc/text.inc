@@ -57,7 +57,12 @@ Begin
      exit;
    end;
   End;
-  Do_Open(t,PFileTextRecChar(@t.Name),Flags,False);
+{$ifdef USE_FILEREC_FULLNAME}
+  if Assigned(t.FullName) then
+    Do_Open(t,PFileTextRecChar(t.FullName),Flags,False)
+  else
+{$endif USE_FILEREC_FULLNAME}
+    Do_Open(t,PFileTextRecChar(@t.Name),Flags,False);
   t.CloseFunc:=@FileCloseFunc;
   t.FlushFunc:=nil;
   if t.Mode=fmInput then
@@ -98,8 +103,16 @@ begin
   InitText(t);
 {$ifdef FPC_ANSI_TEXTFILEREC}
   TextRec(t).Name:=ToSingleByteFileSystemEncodedFileName(S);
+{$ifdef USE_FILEREC_FULLNAME}
+  if length(s)>255 then
+    RawByteString(TextRec(t).FullName):=ToSingleByteFileSystemEncodedFileName(S);
+{$endif USE_FILEREC_FULLNAME}
 {$else FPC_ANSI_TEXTFILEREC}
   TextRec(t).Name:=S;
+{$ifdef USE_FILEREC_FULLNAME}
+  if length(s)>255 then
+    UnicodeString(TextRec(t).FullName):=S;
+{$endif USE_FILEREC_FULLNAME}
 {$endif FPC_ANSI_TEXTFILEREC}
   { null terminate, since the name array is regularly used as p(wide)char }
   TextRec(t).Name[high(TextRec(t).Name)]:=#0;
@@ -114,8 +127,16 @@ Begin
 {$ifdef FPC_ANSI_TEXTFILEREC}
   { ensure the characters in the record's filename are encoded correctly }
   TextRec(t).Name:=ToSingleByteFileSystemEncodedFileName(S);
+{$ifdef USE_FILEREC_FULLNAME}
+  if length(s)>255 then
+    RawByteString(TextRec(t).FullName):=ToSingleByteFileSystemEncodedFileName(S);
+{$endif USE_FILEREC_FULLNAME}
 {$else FPC_ANSI_TEXTFILEREC}
   TextRec(t).Name:=S;
+{$ifdef USE_FILEREC_FULLNAME}
+  if length(s)>255 then
+    UnicodeString(TextRec(t).FullName):=S;
+{$endif USE_FILEREC_FULLNAME}
 {$endif FPC_ANSI_TEXTFILEREC}
   { null terminate, since the name array is regularly used as p(wide)char }
   TextRec(t).Name[high(TextRec(t).Name)]:=#0;
@@ -183,6 +204,13 @@ Begin
       End
     else inOutRes := 103;
   End;
+{$ifdef USE_FILEREC_FULLNAME}
+{$ifdef FPC_ANSI_TEXTFILEREC}
+  RawByteString(TextRec(t).FullName):='';
+{$else FPC_ANSI_TEXTFILEREC}
+  UnicodeString(TextRec(t).FullName):='';
+{$endif FPC_ANSI_TEXTFILEREC}
+{$endif USE_FILEREC_FULLNAME}
 End;
 
 
@@ -210,7 +238,7 @@ Begin
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 {$endif FPC_HAS_CPSTRING}
   FileFunc(TextRec(t).OpenFunc)(TextRec(t));
-  { reset the mode to closed when an error has occured }
+  { reset the mode to closed when an error has occurred }
   if InOutRes<>0 then
    TextRec(t).mode:=fmClosed;
 End;
@@ -440,11 +468,6 @@ End;
 
 
 Function SeekEof (Var t : Text) : Boolean;
-var
-  oldfilepos : Int64;
-  oldbufpos, oldbufend : SizeInt;
-  reads: longint;
-  isdevice: boolean;
 Begin
   If (InOutRes<>0) then
    exit(true);
@@ -456,31 +479,12 @@ Begin
       InOutRes:=103;
      exit(true);
    end;
-  { try to save the current position in the file, seekeof() should not move }
-  { the current file position (JM)                                          }
-  oldbufpos := TextRec(t).BufPos;
-  oldbufend := TextRec(t).BufEnd;
-  reads := 0;
-  oldfilepos := -1;
-  isdevice := Do_IsDevice(TextRec(t).handle);
   repeat
     If TextRec(t).BufPos>=TextRec(t).BufEnd Then
      begin
-       { signal that the we will have to do a seek }
-       inc(reads);
-       if not isdevice and
-          (reads = 1) then
-         begin
-           oldfilepos := Do_FilePos(TextRec(t).handle) - TextRec(t).BufEnd;
-           InOutRes:=0;
-         end;
        FileFunc(TextRec(t).InOutFunc)(TextRec(t));
        If TextRec(t).BufPos>=TextRec(t).BufEnd Then
         begin
-          { if we only did a read in which we didn't read anything, the }
-          { old buffer is still valid and we can simply restore the     }
-          { pointers (JM)                                               }
-          dec(reads);
           SeekEof := true;
           break;
         end;
@@ -502,24 +506,6 @@ Begin
     end;
    inc(TextRec(t).BufPos);
   until false;
-  { restore file position if not working with a device }
-  if not isdevice then
-    { if we didn't modify the buffer, simply restore the BufPos and BufEnd  }
-    { (the latter because it's now probably set to zero because nothing was }
-    {  was read anymore)                                                    }
-    if (reads = 0) then
-      begin
-        TextRec(t).BufPos:=oldbufpos;
-        TextRec(t).BufEnd:=oldbufend;
-      end
-    { otherwise return to the old filepos and reset the buffer }
-    else
-      begin
-        do_seek(TextRec(t).handle,oldfilepos);
-        InOutRes:=0;
-        FileFunc(TextRec(t).InOutFunc)(TextRec(t));
-        TextRec(t).BufPos:=oldbufpos;
-      end;
 End;
 
 
@@ -628,6 +614,42 @@ begin
 end;
 
 
+procedure SetTextAutoFlush (var T: Text; AutoFlush: boolean);[IOCheck];
+Begin
+  If InOutRes<>0 then
+   exit;
+  if TextRec(T).mode<>fmOutput then
+   begin
+     if TextRec(T).mode=fmInput then
+      InOutRes:=105
+     else
+      InOutRes:=103;
+     exit;
+   end;
+  if AutoFlush then
+   TextRec(T).FlushFunc := TextRec(T).InOutFunc
+  else
+   TextRec(T).FlushFunc := nil;
+End;
+
+
+function GetTextAutoFlush (var T: Text): boolean;[IOCheck];
+Begin
+  GetTextAutoFlush := false;
+  If InOutRes<>0 then
+   exit;
+  if TextRec(t).mode<>fmOutput then
+   begin
+     if TextRec(t).mode=fmInput then
+      InOutRes:=105
+     else
+      InOutRes:=103;
+     exit;
+   end;
+  GetTextAutoFlush := Assigned (TextRec(T).FlushFunc);
+End;
+
+
 Function fpc_get_input:PText;compilerproc;
 begin
   fpc_get_input:=@Input;
@@ -646,18 +668,37 @@ begin
   assign(t,paramstr(nr));
 {$else FPC_HAS_FEATURE_COMMANDARGS}
   { primitive workaround for targets supporting no command line arguments,
-    invent some file name, this will be fixed later on anways because
-    the current way of handling iso program parameters is apparently
-    wrong }
+    invent some file name, try to avoid complex procedures like concating strings which might
+    pull-in bigger parts of the rtl }
   assign(t,chr((nr mod 16)+65));
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
-  reset(t);
 end;
+
+
+Procedure fpc_textinit_filename_iso(var t : Text;nr : DWord;const filename : string);compilerproc;
+begin
+{$ifdef FPC_HAS_FEATURE_COMMANDARGS}
+  if paramstr(nr)='' then
+    assign(t,filename+'.txt')
+  else
+    assign(t,paramstr(nr));
+{$else FPC_HAS_FEATURE_COMMANDARGS}
+  { primitive workaround for targets supporting no command line arguments,
+    invent some file name, try to avoid complex procedures like concating strings which might
+    pull-in bigger parts of the rtl }
+  assign(t,chr((nr mod 16)+65));
+{$endif FPC_HAS_FEATURE_COMMANDARGS}
+end;
+
 
 
 Procedure fpc_textclose_iso(var t : Text);compilerproc;
 begin
+  { reset inout result as this procedure is only called by the compiler and no I/O checking is carried out,
+    so further I/O does not fail }
+  inoutres:=0;
   close(t);
+  inoutres:=0;
 end;
 
 
@@ -1217,6 +1258,9 @@ var
     s:string;
 
 begin
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+  runerror(219);
+{$else EXCLUDE_COMPLEX_PROCS}
   if textrec(t).mode<>fmoutput then
     begin
       if textrec(t).mode=fminput then
@@ -1229,10 +1273,15 @@ begin
   if (inoutres <> 0) then
     exit;
   fpc_writeBuffer(t,s[1],length(s));
+{$endif EXCLUDE_COMPLEX_PROCS}
 end;
 
-{$ifdef FPC_HAS_STR_CURRENCY}
 Procedure fpc_Write_Text_Currency(fixkomma,Len : Longint;var t : Text;c : Currency); iocheck; compilerproc;
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+      begin
+        runerror(217);
+      end;
+{$else EXCLUDE_COMPLEX_PROCS}
 var
   s : String;
 Begin
@@ -1241,7 +1290,7 @@ Begin
   str(c:Len:fixkomma,s);
   Write_Str(Len,t,s);
 End;
-{$endif FPC_HAS_STR_CURRENCY}
+{$endif EXCLUDE_COMPLEX_PROCS}
 
 Procedure fpc_Write_Text_Boolean(Len : Longint;var t : Text;b : Boolean); iocheck; compilerproc;
 Begin
@@ -1430,7 +1479,7 @@ begin
     end;
   if TextRec(f).BufPos>=TextRec(f).BufEnd Then
     FileFunc(TextRec(f).InOutFunc)(TextRec(f));
-  CheckRead:=True;
+  CheckRead:=InOutRes=0;
 end;
 
 
@@ -1582,7 +1631,7 @@ Begin
   repeat
     prev := TextRec(f).BufPtr^[TextRec(f).BufPos];
     inc(TextRec(f).BufPos);
-{ no system uses #10#13 as line seperator (#10 = *nix, #13 = Mac, }
+{ no system uses #10#13 as line separator (#10 = *nix, #13 = Mac, }
 { #13#10 = Dos), so if we've got #10, we can safely exit          }
     if prev = #10 then
       exit;
@@ -1637,7 +1686,7 @@ Begin
   repeat
     prev := TextRec(f).BufPtr^[TextRec(f).BufPos];
     inc(TextRec(f).BufPos);
-{ no system uses #10#13 as line seperator (#10 = *nix, #13 = Mac, }
+{ no system uses #10#13 as line separator (#10 = *nix, #13 = Mac, }
 { #13#10 = Dos), so if we've got #10, we can safely exit          }
     if prev = #10 then
       exit;
@@ -1681,6 +1730,9 @@ var
   p,startp,maxp : pchar;
   end_of_string:boolean;
 Begin
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+  runerror(219);
+{$else EXCLUDE_COMPLEX_PROCS}
   ReadPCharLen:=0;
   If not CheckRead(f) then
     exit;
@@ -1722,6 +1774,7 @@ Begin
     inc(sPos,Len);
   until (spos=MaxLen) or end_of_string;
   ReadPCharLen:=spos;
+{$endif EXCLUDE_COMPLEX_PROCS}
 End;
 
 
@@ -1827,6 +1880,8 @@ procedure fpc_Read_Text_Char_intern(var f : Text; out c: char); iocheck; [extern
 function fpc_GetBuf_Text(var f : Text) : pchar; iocheck; compilerproc;
 Begin
   Result:=@TextRec(f).Bufptr^[TextRec(f).BufEnd];
+  if TextRec(f).mode=fmOutput then
+    exit;
   If not CheckRead(f) then
     exit;
   If TextRec(f).BufPos>=TextRec(f).BufEnd Then
@@ -1958,11 +2013,15 @@ var
   hs   : String;
   code : ValSInt;
 Begin
-    ReadInteger(f,hs);
+  l:=0;
+  if not CheckRead(f) then
+    Exit;
 
-    Val(hs,l,code);
-    if Code <> 0 then
-        InOutRes:=106;
+  ReadInteger(f,hs);
+
+  Val(hs,l,code);
+  if Code <> 0 then
+    InOutRes:=106;
 End;
 
 
@@ -1998,10 +2057,14 @@ var
   hs   : String;
   code : ValSInt;
 Begin
-   ReadInteger(f,hs);
-   Val(hs,u,code);
-   If code<>0 Then
-       InOutRes:=106;
+  u:=0;
+  if not CheckRead(f) then
+    Exit;
+
+  ReadInteger(f,hs);
+  Val(hs,u,code);
+  If code<>0 Then
+     InOutRes:=106;
 End;
 
 
@@ -2034,6 +2097,10 @@ var
   hs : string;
   code : Word;
 begin
+  v:=0.0;
+  if not CheckRead(f) then
+    Exit;
+
   ReadReal(f,hs);
   Val(hs,v,code);
   If code<>0 Then
@@ -2094,6 +2161,10 @@ var
   hs : string;
   code : ValSInt;
 begin
+  v:=0;
+  if not CheckRead(f) then
+    Exit;
+
   ReadReal(f,hs);
   Val(hs,v,code);
   If code<>0 Then
@@ -2130,10 +2201,14 @@ var
   hs   : String;
   code : longint;
 Begin
-   ReadInteger(f,hs);
-   Val(hs,q,code);
-   If code<>0 Then
-       InOutRes:=106;
+  q:=0;
+  if not CheckRead(f) then
+    Exit;
+
+  ReadInteger(f,hs);
+  Val(hs,q,code);
+  If code<>0 Then
+    InOutRes:=106;
 End;
 
 procedure fpc_Read_Text_Int64(var f : text; out i : int64); iocheck; compilerproc;
@@ -2163,10 +2238,14 @@ var
   hs   : String;
   code : Longint;
 Begin
-    ReadInteger(f,hs);
-    Val(hs,i,code);
-    If code<>0 Then
-       InOutRes:=106;
+  i:=0;
+  if not CheckRead(f) then
+    Exit;
+
+  ReadInteger(f,hs);
+  Val(hs,i,code);
+  If code<>0 Then
+    InOutRes:=106;
 End;
 
 
@@ -2311,10 +2390,8 @@ end;
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 function EndOfLastCompleteUTF8CodePoint(var t: textrec): SizeInt;
 var
-  i, lenfound, codepointlen: sizeint;
-  b: byte;
+  i, codepointlen: sizeint;
 begin
-  lenfound:=0;
   for i:=t.bufpos-1 downto 0 do
     begin
       { we don't care about combining diacritical marks here: we just want a
@@ -2605,6 +2682,17 @@ begin
 end;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
+Function GetFullName(var t:Text) : UnicodeString;
+  begin
+{$ifdef USE_FILEREC_FULLNAME}
+  if Assigned(TextRec(t).FullName) then
+    Result:=UnicodeString(TextRec(t).FullName)
+  else
+{$endif USE_FILEREC_FULLNAME}
+    Result:=PFileTextRecChar(@TextRec(t).Name);
+  end;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
 
 {*****************************************************************************
                                Initializing

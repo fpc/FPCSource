@@ -58,7 +58,7 @@ begin
             FPE_INTOVF:
               res:=205;
             FPE_FLTDIV:
-              res:=200;
+              res:=208;
             FPE_FLTOVF:
               res:=205;
             FPE_FLTUND:

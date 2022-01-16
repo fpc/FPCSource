@@ -48,7 +48,7 @@ interface
       cutils,verbose,globals,
       symconst,symdef,paramgr,
       aasmbase,aasmtai,aasmdata,aasmcpu,defutil,htypechk,
-      cgbase,cpuinfo,pass_1,pass_2,regvars,
+      cgbase,cpuinfo,pass_1,pass_2,
       cpupara,cgcpu,cgutils,procinfo,
       ncon,nset,
       ncgutil,tgobj,rgobj,rgcpu,cgobj,hlcgobj,cg64f32;
@@ -143,6 +143,8 @@ interface
 
     procedure tppcaddnode.second_add64bit;
       var
+        truelabel,
+        falselabel : tasmlabel;
         op         : TOpCG;
         op1,op2    : TAsmOp;
         cmpop,
@@ -185,17 +187,14 @@ interface
         var
           oldnodetype: tnodetype;
         begin
-{$ifdef OLDREGVARS}
-           load_all_regvars(current_asmdata.CurrAsmList);
-{$endif OLDREGVARS}
            { the jump the sequence is a little bit hairy }
            case nodetype of
               ltn,gtn:
                 begin
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,current_procinfo.CurrTrueLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,truelabel);
                    { cheat a little bit for the negative test }
                    toggleflag(nf_swapped);
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,current_procinfo.CurrFalseLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,falselabel);
                    toggleflag(nf_swapped);
                 end;
               lten,gten:
@@ -205,25 +204,27 @@ interface
                      nodetype:=ltn
                    else
                      nodetype:=gtn;
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,current_procinfo.CurrTrueLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,truelabel);
                    { cheat for the negative test }
                    if nodetype=ltn then
                      nodetype:=gtn
                    else
                      nodetype:=ltn;
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,current_procinfo.CurrFalseLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,falselabel);
                    nodetype:=oldnodetype;
                 end;
               equaln:
                 begin
                   nodetype := unequaln;
-                  cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,current_procinfo.CurrFalseLabel);
+                  cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,falselabel);
                   nodetype := equaln;
                 end;
               unequaln:
                 begin
-                  cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,current_procinfo.CurrTrueLabel);
+                  cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,truelabel);
                 end;
+              else
+                internalerror(2019050947);
            end;
         end;
 
@@ -237,21 +238,23 @@ interface
                 begin
                    { the comparison of the low dword always has }
                    { to be always unsigned!                     }
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,current_procinfo.CurrTrueLabel);
-                   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,truelabel);
+                   cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
                 end;
               equaln:
                 begin
                    nodetype := unequaln;
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,current_procinfo.CurrFalseLabel);
-                   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,falselabel);
+                   cg.a_jmp_always(current_asmdata.CurrAsmList,truelabel);
                    nodetype := equaln;
                 end;
               unequaln:
                 begin
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,current_procinfo.CurrTrueLabel);
-                   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,truelabel);
+                   cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
                 end;
+              else
+                internalerror(2019050946);
            end;
         end;
 
@@ -260,6 +263,8 @@ interface
       tempreg64: tregister64;
 
       begin
+        truelabel:=nil;
+        falselabel:=nil;
         firstcomplex(self);
 
         pass_left_and_right;
@@ -298,22 +303,29 @@ interface
               { should be handled in pass_1 (JM) }
               if not(torddef(left.resultdef).ordtype in [U32bit,s32bit]) or
                  (torddef(left.resultdef).typ <> torddef(right.resultdef).typ) then
-                internalerror(200109051);
+                internalerror(2001090504);
               { handled separately }
               op := OP_NONE;
             end;
           else
-            internalerror(2002072705);
+            internalerror(2002072703);
         end;
 
-        if not cmpop then
-          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+        if not cmpop or
+           (nodetype in [equaln,unequaln]) then
+          location_reset(location,LOC_REGISTER,def_cgsize(resultdef))
+        else
+          begin
+            { we call emit_cmp, which will set location.loc to LOC_FLAGS ->
+              wait till the end with setting the location }
+            current_asmdata.getjumplabel(truelabel);
+            current_asmdata.getjumplabel(falselabel);
+          end;
 
-        load_left_right(cmpop,((cs_check_overflow in current_settings.localswitches) and
-            (nodetype in [addn,subn])) or (nodetype = muln));
+        load_left_right(cmpop,needoverflowcheck or (nodetype = muln));
 
-        if (nodetype <> muln) and
-           (not(cs_check_overflow in current_settings.localswitches) or
+        if (nodetype<>muln) and
+           (not needoverflowcheck or
             not(nodetype in [addn,subn])) then
           begin
             case nodetype of
@@ -468,12 +480,13 @@ interface
                      end;
                 end;
               else
-                internalerror(2002072803);
+                internalerror(2002072805);
             end;
           end
         else
           begin
-            if is_signed(resultdef) then
+            if is_signed(left.resultdef) and
+               is_signed(right.resultdef) then
               begin
                 case nodetype of
                   addn:
@@ -544,7 +557,7 @@ interface
         {  real location only now) (JM)                               }
         if cmpop and
            not(nodetype in [equaln,unequaln]) then
-          location_reset(location,LOC_JUMP,OS_NO);
+          location_reset_jump(location,truelabel,falselabel);
       end;
 
 
@@ -588,7 +601,7 @@ interface
              end;
            stringdef :
              begin
-               internalerror(2002072402);
+               internalerror(2002072403);
                exit;
              end;
            setdef :
@@ -614,6 +627,8 @@ interface
                second_addfloat;
                exit;
              end;
+           else
+             ;
          end;
 
          { defaults }
@@ -638,9 +653,7 @@ interface
 
          checkoverflow:=
            (nodetype in [addn,subn,muln]) and
-           (cs_check_overflow in current_settings.localswitches) and
-           (left.resultdef.typ<>pointerdef) and
-           (right.resultdef.typ<>pointerdef);
+           needoverflowcheck;
 
          load_left_right(cmpop, checkoverflow);
 
@@ -714,6 +727,8 @@ interface
                  begin
                    emit_compare(unsigned);
                  end;
+               else
+                 internalerror(2019050945);
              end;
            end
          else
@@ -774,6 +789,8 @@ interface
                       cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
                       cg.a_label(current_asmdata.CurrAsmList,hl);
                     end;
+                  else
+                    internalerror(2019050944);
                 end;
               end;
            end;

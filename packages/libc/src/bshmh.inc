@@ -1,10 +1,10 @@
 
 const
-   SHM_R = 0400;
-   SHM_W = 0200;
-   SHM_RDONLY = 010000;
-   SHM_RND = 020000;
-   SHM_REMAP = 040000;
+   SHM_R = &400;
+   SHM_W = &200;
+   SHM_RDONLY = &10000;
+   SHM_RND = &20000;
+   SHM_REMAP = &40000;
    SHM_LOCK = 11;
    SHM_UNLOCK = 12;
 
@@ -32,8 +32,8 @@ type
 const
    SHM_STAT = 13;
    SHM_INFO = 14;
-   SHM_DEST = 01000;
-   SHM_LOCKED = 02000;
+   SHM_DEST = &1000;
+   SHM_LOCKED = &2000;
 
 type
    Pshminfo = ^shminfo;

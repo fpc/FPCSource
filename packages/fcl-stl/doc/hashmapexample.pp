@@ -1,5 +1,7 @@
 {$mode objfpc}
 
+{define oldstyleiterator}
+
 uses ghashmap;
 
 type hashlli=class
@@ -13,7 +15,8 @@ begin
   hash:= a mod b;
 end;
 
-var data:maplli; i:longint; iterator:maplli.TIterator;
+var data:maplli; i:longint;
+    pair : maplli.TPair;
 
 begin
   data:=maplli.Create;
@@ -24,12 +27,9 @@ begin
   data.delete(5);
 
   {Iteration through elements}
-  iterator:=data.Iterator;
-  repeat
-    writeln(iterator.Key, ' ', iterator.Value);
-  until not iterator.Next;
-  {Don't forget to destroy iterator}
-  iterator.Destroy;
+  // destroying class iterators is afaik a FPC extension.
+  for pair in data do
+    writeln(pair.Key, ' ', pair.Value);
 
   data.Destroy;
 end.

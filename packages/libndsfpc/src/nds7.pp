@@ -39,7 +39,7 @@ unit nds7;
 {$INLINE ON}
 {$MACRO ON}
 {$PACKRECORDS C}
-
+{$modeswitch ADVANCEDRECORDS}
 interface
 
 uses

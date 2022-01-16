@@ -286,13 +286,13 @@ const
  * In practice, an array (or chain of arrays) of TagItems is used.
  }
 Type
-    Tag = LongInt;
+    Tag = LongWord;
     pTag = ^Tag;
 
     pTagItem = ^tTagItem;
     tTagItem = record
      ti_Tag  : Tag;
-     ti_Data : LongInt;
+     ti_Data : LongWord;
     END;
 
     ppTagItem = ^pTagItem;
@@ -308,7 +308,7 @@ CONST
  TAG_SKIP          = 3; { skip this AND the next ti_Data items         }
 
 { differentiates user tags from control tags }
- TAG_USER          = $80000000;    { differentiates user tags from system tags}
+ TAG_USER          = DWord($80000000);    { differentiates user tags from system tags}
 
 {* If the TAG_USER bit is set in a tag number, it tells utility.library that
  * the tag is not a control tag (like TAG_DONE, TAG_IGNORE, TAG_MORE) and is
@@ -336,6 +336,14 @@ Type
     ub_Reserved  : Byte;
  END;
 
+var
+  UtilityBase: pUtilityBase;
+
+{$if defined(AMIGA_V1_2_ONLY)}
+function NextTagItem(var Item: PTagItem): PTagItem; inline;
+
+{$else}
+
 function AddNamedObject(nameSpace : pNamedObject location 'a0';obj : pNamedObject location 'a1') : LongBool; syscall _UtilityBase 222;
 function AllocateTagItems(num : ULONG location 'd0') : pTagItem; syscall _UtilityBase 066;
 function AllocNamedObjectA(const name : STRPTR location 'a0';const TagList : pTagItem location 'a1') : pNamedObject; syscall _UtilityBase 228;
@@ -356,7 +364,8 @@ function GetTagData(tagval : Tag location 'd0';default : ULONG location 'd1';con
 function GetUniqueID : ULONG; syscall _UtilityBase 270;
 procedure MapTags(TagList : pTagItem location 'a0';const maplist : pTagItem location 'a1';IncludeMiss : ULONG location 'd0'); syscall _UtilityBase 060;
 function NamedObjectName(Obj : pNamedObject location 'a0') : STRPTR; syscall _UtilityBase 252;
-function NextTagItem(Item : ppTagItem location 'a0') : pTagItem; syscall _UtilityBase 048;
+function NextTagItem(ItemPtr : ppTagItem location 'a0') : pTagItem; overload; syscall _UtilityBase 048;
+function NextTagItem(var Item : pTagItem location 'a0') : pTagItem; overload; syscall _UtilityBase 048;
 function PackBoolTags(InitialFlags : ULONG location 'd0';const TagList: PTagItem location 'a0'; const boolmap : pTagItem location 'a1') : ULONG; syscall _UtilityBase 042;
 function PackStructureTags(packk: APTR location 'a0';const packTable : pULONG location 'a1';const TagList : pTagItem location 'a2') : ULONG; syscall _UtilityBase 210;
 procedure RefreshTagItemClones(cloneTagItem : pTagItem location 'a0'; const OriginalTagItems : pTagItem location 'a1'); syscall _UtilityBase 084;
@@ -375,6 +384,8 @@ function UMult32(Arg1: ULONG location 'd0'; Arg2 : ULONG location 'd1') : ULONG;
 function UMult64(Arg1: ULONG location 'd0'; Arg2 : ULONG location 'd1') : ULONG; syscall _UtilityBase 204;
 function UnpackStructureTags(const pac: APTR location 'a0';const packTable: pULONG location 'a1';TagList : pTagItem location 'a2') : ULONG; syscall _UtilityBase 216;
 
+function AllocNamedObject(name : STRPTR; Const argv : array of PtrUInt) : pNamedObject;
+
 function AllocNamedObjectA(const name : string;const TagList : pTagItem) : pNamedObject;
 FUNCTION FindNamedObject(nameSpace : pNamedObject; CONST name : string; lastObject : pNamedObject) : pNamedObject;
 FUNCTION Stricmp(CONST string1 : string; CONST string2 : pCHAR) : LONGINT;
@@ -383,52 +394,192 @@ FUNCTION Stricmp(CONST string1 : string; CONST string2 : string) : LONGINT;
 FUNCTION Strnicmp(CONST string1 : string; CONST string2 : pCHAR; length : LONGINT) : LONGINT;
 FUNCTION Strnicmp(CONST string1 : pCHAR; CONST string2 : string; length : LONGINT) : LONGINT;
 FUNCTION Strnicmp(CONST string1 : string; CONST string2 : string; length : LONGINT) : LONGINT;
+{$endif}
 
+
+function TAG_(value: pointer): PtrUInt; overload; inline;
+function TAG_(value: pchar): PtrUInt; overload; inline;
+function TAG_(value: boolean): PtrUInt; overload; inline;
+function TAG_(value: LongInt): PtrUInt; overload; inline;
+function TAG_(Value: LongWord): PtrUInt; overload; inline;
+
+function AsTag(value: pointer): PtrUInt; overload; inline;
+function AsTag(value: pchar): PtrUInt; overload; inline;
+function AsTag(value: boolean): PtrUInt; overload; inline;
+function AsTag(value: LongInt): PtrUInt; overload; inline;
+function AsTag(Value: LongWord): PtrUInt; overload; inline;
+
+procedure HookEntry;
+procedure HookEntryPas;
 
 IMPLEMENTATION
 
-uses pastoc;
+{$if defined(AMIGA_V1_2_ONLY)}
+{$HINTS OFF}
+
+function NextTagItem(var Item: PTagItem): PTagItem; inline;
+begin
+  NextTagItem := nil;
+  if Item = nil then
+    Exit;
+  //
+  Inc(Item);
+  repeat
+    if Item = nil then
+      Exit;
+    case Item^.ti_Tag of
+      TAG_DONE:
+      begin
+        Item := nil;
+        NextTagItem := nil;
+        Exit;
+      end;
+      TAG_SKIP: Inc(Item, Item^.ti_Data);
+      TAG_MORE: Item := PTagItem(Item^.ti_Data);
+      TAG_IGNORE: Inc(Item);
+      else
+      begin
+        NextTagItem := Item;
+        Exit;
+      end;
+    end;
+  until False;
+end;
+{$else}
+
+
+function AllocNamedObject(name : STRPTR; Const argv : array of PtrUInt) : pNamedObject;
+begin
+    AllocNamedObject := AllocNamedObjectA(name,@argv);
+end;
 
 
 function AllocNamedObjectA(const name : string;const TagList : pTagItem) : pNamedObject;
 begin
-       AllocNamedObjectA := AllocNamedObjectA(pas2c(name),TagList);
+       AllocNamedObjectA := AllocNamedObjectA(PChar(RawByteString(name)),TagList);
 end;
 
 FUNCTION FindNamedObject(nameSpace : pNamedObject; CONST name : string; lastObject : pNamedObject) : pNamedObject;
 begin
-       FindNamedObject := FindNamedObject(nameSpace,pas2c(name),lastObject);
+       FindNamedObject := FindNamedObject(nameSpace,PChar(RawByteString(name)),lastObject);
 end;
 
 FUNCTION Stricmp(CONST string1 : string; CONST string2 : pCHAR) : LONGINT;
 begin
-       Stricmp := Stricmp(pas2c(string1),string2);
+       Stricmp := Stricmp(PChar(RawbyteString(string1)),string2);
 end;
 
 FUNCTION Stricmp(CONST string1 : pCHAR; CONST string2 : string) : LONGINT;
 begin
-       Stricmp := Stricmp(string1,pas2c(string2));
+       Stricmp := Stricmp(string1,PChar(RawbyteString(string2)));
 end;
 
 FUNCTION Stricmp(CONST string1 : string; CONST string2 : string) : LONGINT;
 begin
-       Stricmp := Stricmp(pas2c(string1),pas2c(string2));
+       Stricmp := Stricmp(PChar(RawbyteString(string1)),PChar(RawbyteString(string2)));
 end;
 
 FUNCTION Strnicmp(CONST string1 : string; CONST string2 : pCHAR; length : LONGINT) : LONGINT;
 begin
-       Strnicmp := Strnicmp(pas2c(string1),string2,length);
+       Strnicmp := Strnicmp(PChar(RawbyteString(string1)),string2,length);
 end;
 
 FUNCTION Strnicmp(CONST string1 : pCHAR; CONST string2 : string; length : LONGINT) : LONGINT;
 begin
-       Strnicmp := Strnicmp(string1,pas2c(string2),length);
+       Strnicmp := Strnicmp(string1,PChar(RawbyteString(string2)),length);
 end;
 
 FUNCTION Strnicmp(CONST string1 : string; CONST string2 : string; length : LONGINT) : LONGINT;
 begin
-       Strnicmp := Strnicmp(pas2c(string1),pas2c(string2),length);
+       Strnicmp := Strnicmp(PChar(RawbyteString(string1)),PChar(RawbyteString(string2)),length);
+end;
+{$endif}
+
+function TAG_(value: pointer): PtrUInt; inline;
+begin
+  TAG_:=PtrUInt(value);
 end;
 
+function TAG_(value: pchar): PtrUInt; inline;
+begin
+  TAG_:=PtrUInt(value);
+end;
 
+function TAG_(value: boolean): PtrUInt; inline;
+begin
+  if value then
+    TAG_ := LTrue
+  else
+    TAG_ := LFalse;
+end;
+
+function TAG_(value: LongInt): PtrUInt; inline;
+begin
+  TAG_:=PtrUInt(value);
+end;
+
+function TAG_(Value: LongWord): PtrUInt; inline;
+begin
+  TAG_ := PtrUInt(Value);
+end;
+
+function AsTag(value: pointer): PtrUInt; inline;
+begin
+  AsTag:=PtrUInt(value);
+end;
+
+function AsTag(value: pchar): PtrUInt; inline;
+begin
+  AsTag:=PtrUInt(value);
+end;
+
+function AsTag(value: boolean): PtrUInt; inline;
+begin
+  if value then
+    AsTag := LTrue
+  else
+    AsTag := LFalse;
+end;
+
+function AsTag(value: LongInt): PtrUInt; inline;
+begin
+  AsTag:=PtrUInt(value);
+end;
+
+function AsTag(Value: LongWord): PtrUInt; inline;
+begin
+  AsTag := PtrUInt(Value);
+end;
+
+{ Do *NOT* change this to nostackframe! }
+{ The compiler will build a stackframe with link/unlk. So that will actually correct
+  the stackpointer for both Pascal/StdCall and Cdecl functions, so the stackpointer
+  will be correct on exit. It also needs no manual RTS. The argument push order is
+  also correct for both. (KB) }
+procedure HookEntry; assembler;
+asm
+  move.l a1,-(a7)    // Msg
+  move.l a2,-(a7)    // Obj
+  move.l a0,-(a7)    // PHook
+  move.l 12(a0),a0   // h_SubEntry = Offset 12
+  jsr (a0)           // Call the SubEntry
+end;
+
+{ This is to be used with when the subentry function uses FPC's register calling
+  convention, also see the comments above HookEntry. It is advised to actually
+  declare Hook functions with cdecl instead of using this function, especially
+  when writing code which is platform independent. (KB) }
+procedure HookEntryPas; assembler;
+asm
+  move.l a2,-(a7)
+  move.l a1,-(a7)    // Msg
+  move.l a2,a1       // Obj
+                     // PHook is in a0 already
+  move.l 12(a0),a2   // h_SubEntry = Offset 12
+  jsr (a2)           // Call the SubEntry
+  move.l (a7)+,a2
+end;
+
+initialization
+  UtilityBase := _UtilityBase;
 end.

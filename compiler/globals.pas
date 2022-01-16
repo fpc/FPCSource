@@ -44,6 +44,9 @@ interface
       { comphook pulls in sysutils anyways }
       cutils,cclasses,cfileutl,
       cpuinfo,
+{$if defined(LLVM) or defined(GENERIC_CPU)}
+      llvminfo,
+{$endif LLVM or GENERIC_CPU}
       globtype,version,systems;
 
     const
@@ -51,7 +54,8 @@ interface
          [m_delphi,m_class,m_objpas,m_result,m_string_pchar,
           m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring,
           m_out,m_default_para,m_duplicate_names,m_hintdirective,
-          m_property,m_default_inline,m_except,m_advanced_records,m_type_helpers];
+          m_property,m_default_inline,m_except,m_advanced_records,
+          m_array_operators,m_prefixed_attributes,m_underscoreisseparator];
        delphiunicodemodeswitches = delphimodeswitches + [m_systemcodepage,m_default_unicodestring];
        fpcmodeswitches =
          [m_fpc,m_string_pchar,m_nested_comment,m_repeat_forward,
@@ -70,7 +74,13 @@ interface
        macmodeswitches =
          [m_mac,m_cvar_support,m_mac_procvar,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus,m_default_inline];
        isomodeswitches =
-         [m_iso,m_tp_procvar,m_duplicate_names,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus];
+         [m_iso,m_tp_procvar,m_duplicate_names,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus,m_isolike_io,
+          m_isolike_program_para,
+          m_isolike_mod];
+       extpasmodeswitches =
+         [m_extpas,m_tp_procvar,m_duplicate_names,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus,m_isolike_io,
+          m_isolike_program_para,
+          m_isolike_mod];
 
        { maximum nesting of routines }
        maxnesting = 32;
@@ -142,7 +152,8 @@ interface
          maxfpuregisters : shortint;
 
          cputype,
-         optimizecputype : tcputype;
+         optimizecputype,
+         asmcputype      : tcputype;
          fputype         : tfputype;
          asmmode         : tasmmode;
          interfacetype   : tinterfacetypes;
@@ -153,19 +164,33 @@ interface
 
          disabledircache : boolean;
 
-{$if defined(i8086)}
-         x86memorymodel  : tx86memorymodel;
-{$endif defined(i8086)}
-
-{$if defined(ARM)}
-         instructionset : tinstructionset;
-{$endif defined(ARM)}
+         tlsmodel : ttlsmodel;
 
         { CPU targets with microcontroller support can add a controller specific unit }
          controllertype   : tcontrollertype;
 
          { WARNING: this pointer cannot be written as such in record token }
          pmessage : pmessagestaterecord;
+{$if defined(generic_cpu)}
+         case byte of
+{$endif}
+{$if defined(i8086) or defined(generic_cpu)}
+   {$ifdef generic_cpu} 1:({$endif}
+           x86memorymodel  : tx86memorymodel;
+   {$ifdef generic_cpu}   );{$endif}
+{$endif defined(i8086) or defined(generic_cpu)}
+
+{$if defined(ARM) or defined(generic_cpu)}
+   {$ifdef generic_cpu} 2:({$endif}
+         instructionset : tinstructionset;
+   {$ifdef generic_cpu}   );{$endif}
+{$endif defined(ARM) or defined(generic_cpu)}
+
+{$if defined(LLVM) or defined(GENERIC_CPU)}
+   {$ifdef generic_cpu} 3:({$endif}
+         llvmversion: tllvmversion;
+   {$ifdef generic_cpu}   );{$endif}
+{$endif defined(LLVM) or defined(GENERIC_CPU)}
        end;
 
     const
@@ -182,16 +207,16 @@ interface
       private
         itemcnt : longint;
         fmap : Array Of TLinkRec;
-        function  Lookup(key:Ansistring):longint;
+        function  Lookup(const key:Ansistring):longint;
         function getlinkrec(i:longint):TLinkRec;
       public
-        procedure Add(key:ansistring;value:AnsiString='';weight:longint=LinkMapWeightDefault);
-        procedure addseries(keys:AnsiString;weight:longint=LinkMapWeightDefault);
-        function  AddDep(keyvalue:String):boolean;
-        function  AddWeight(keyvalue:String):boolean;
-        procedure SetValue(key:AnsiString;Weight:Integer);
+        procedure Add(const key:ansistring;const value:AnsiString='';weight:longint=LinkMapWeightDefault);
+        procedure addseries(const keys:AnsiString;weight:longint=LinkMapWeightDefault);
+        function  AddDep(const keyvalue:String):boolean;
+        function  AddWeight(const keyvalue:String):boolean;
+        procedure SetValue(const key:AnsiString;Weight:Integer);
         procedure SortonWeight;
-        function Find(key:AnsiString):AnsiString;
+        function Find(const key:AnsiString):AnsiString;
         procedure Expand(src:TCmdStrList;dest: TLinkStrMap);
         procedure UpdateWeights(Weightmap:TLinkStrMap);
         constructor Create;
@@ -199,6 +224,15 @@ interface
         property items[I:longint]:TLinkRec read getlinkrec; default;
       end;
 
+      tpendingstateflag = (
+        psf_alignment_changed,
+        psf_verbosity_full_switched,
+        psf_local_switches_changed,
+        psf_packenum_changed,
+        psf_packrecords_changed,
+        psf_setalloc_changed
+      );
+      tpendingstateflags = set of tpendingstateflag;
 
       tpendingstate = record
         nextverbositystr : shortstring;
@@ -206,8 +240,11 @@ interface
         nextverbosityfullswitch: longint;
         nextcallingstr : shortstring;
         nextmessagerecord : pmessagestaterecord;
-        verbosityfullswitched,
-        localswitcheschanged : boolean;
+        nextalignment : talignmentinfo;
+        nextpackenum : shortint;
+        nextpackrecords : shortint;
+        nextsetalloc : shortint;
+        flags : tpendingstateflags;
       end;
 
 
@@ -225,14 +262,16 @@ interface
        { specified with -FW and -Fw }
        wpofeedbackinput,
        wpofeedbackoutput : TPathStr;
-
+{$ifdef XTENSA}
+       { specified with -Ff }
+       idfpath           : TPathStr;
+       { specified with }
+       idf_version       : longint;
+{$endif XTENSA}
        { external assembler extra option }
        asmextraopt       : string;
 
        { things specified with parameters }
-       paratarget        : tsystem;
-       paratargetdbg     : tdbg;
-       paratargetasm     : tasm;
        paralinkoptions   : TCmdStr;
        paradynamiclinker : string;
        paraprintnodetree : byte;
@@ -247,6 +286,10 @@ interface
        utilsdirectory : TPathStr;
        { targetname specific prefix used by these utils (options -XP<path>) }
        utilsprefix    : TCmdStr;
+
+       { Suffix for LLVM utilities, e.g. '-7' for clang-7 }
+       llvmutilssuffix     : TCmdStr;
+
        cshared        : boolean;        { pass --shared to ld to link C libs shared}
        Dontlinkstdlibpath: Boolean;     { Don't add std paths to linkpath}
        rlinkpath      : TCmdStr;        { rpath-link linkdir override}
@@ -256,25 +299,34 @@ interface
        do_build,
        do_release,
        do_make       : boolean;
+
+       timestr,
+       datestr : string;
        { Path to ppc }
        exepath       : TPathStr;
        { Path to unicode charmap/collation binaries }
        unicodepath   : TPathStr;
-       { path for searching units, different paths can be seperated by ; }
+       { path for searching units, different paths can be separated by ; }
        librarysearchpath,
        unitsearchpath,
        objectsearchpath,
        includesearchpath,
        frameworksearchpath  : TSearchPathList;
+       packagesearchpath     : TSearchPathList;
+       { list of default namespaces }
+       namespacelist : TCmdStrList;
+       { contains tpackageentry entries }
+       packagelist : TFPHashList;
        autoloadunits      : string;
 
        { linking }
-       usegnubinutils : boolean;
-       forceforwardslash : boolean;
        usewindowapi  : boolean;
        description   : string;
        SetPEFlagsSetExplicity,
        SetPEOptFlagsSetExplicity,
+       SetPEOSVersionSetExplicitely,
+       SetPESubSysVersionSetExplicitely,
+       SetPEUserVersionSetExplicitely,
        ImageBaseSetExplicity,
        MinStackSizeSetExplicity,
        MaxStackSizeSetExplicity,
@@ -284,6 +336,12 @@ interface
        dllminor,
        dllrevision   : word;  { revision only for netware }
        { win pe  }
+       peosversionminor,
+       peosversionmajor,
+       pesubsysversionminor,
+       pesubsysversionmajor,
+       peuserversionminor,
+       peuserversionmajor : word;
        peoptflags,
        peflags : longint;
        minstacksize,
@@ -297,7 +355,6 @@ interface
        MacOSXVersionMin,
        iPhoneOSVersionMin: string[15];
        RelocSectionSetExplicitly : boolean;
-       LinkTypeSetExplicitly : boolean;
 
        current_tokenpos,                  { position of the last token }
        current_filepos : tfileposinfo;    { current position }
@@ -307,6 +364,7 @@ interface
        nwcopyright  : string;
 
        codegenerror : boolean;           { true if there is an error reported }
+       exception_raised : boolean;           { true if there is an exception reported }
 
        block_type : tblock_type;         { type of currently parsed block }
 
@@ -342,14 +400,9 @@ interface
        prop_auto_getter_prefix,
        prop_auto_setter_prefix : string;
 
+       cgbackend: tcgbackend;
+
     const
-       DLLsource : boolean = false;
-
-       { used to set all registers used for each global function
-         this should dramatically decrease the number of
-         recompilations needed PM }
-       simplify_ppu : boolean = true;
-
        Inside_asm_statement : boolean = false;
 
        global_unit_count : word = 0;
@@ -362,17 +415,20 @@ interface
        palmos_applicationname : string = 'FPC Application';
        palmos_applicationid : string[4] = 'FPCA';
 {$endif defined(m68k) or defined(arm)}
-
-{$ifdef powerpc}
-       { default calling convention used on MorphOS }
-       syscall_convention : string = 'LEGACY';
-{$endif powerpc}
+{$if defined(m68k)}
+       { Sinclair QL specific }
+       sinclairql_metadata_format: string[4] = 'QHDR';
+       sinclairql_vlink_experimental: boolean = true; { temporary }
+{$endif defined(m68k)}
 
        { default name of the C-style "main" procedure of the library/program }
        { (this will be prefixed with the target_info.cprefix)                }
        defaultmainaliasname = 'main';
        mainaliasname : string = defaultmainaliasname;
 
+       custom_attribute_suffix = 'ATTRIBUTE';
+
+      LTOExt: TCmdStr = '';
 
     const
       default_settings : TSettings = (
@@ -380,6 +436,9 @@ interface
           procalign : 0;
           loopalign : 0;
           jumpalign : 0;
+          jumpalignskipmax    : 0;
+          coalescealign   : 0;
+          coalescealignskipmax: 0;
           constalignmin : 0;
           constalignmax : 0;
           varalignmin : 0;
@@ -393,12 +452,16 @@ interface
         globalswitches : [cs_check_unit_name,cs_link_static];
         targetswitches : [];
         moduleswitches : [cs_extsyntax,cs_implicit_exceptions];
-        localswitches : [cs_check_io,cs_typed_const_writable,cs_pointermath{$ifdef i8086},cs_force_far_calls{$endif}];
+        localswitches : [cs_check_io,cs_typed_const_writable,cs_pointermath,cs_imported_data{$ifdef i8086},cs_force_far_calls{$endif}];
         modeswitches : fpcmodeswitches;
         optimizerswitches : [];
         genwpoptimizerswitches : [];
         dowpoptimizerswitches : [];
-        debugswitches : [];
+{$ifdef i8086}
+        debugswitches : [ds_dwarf_sets,ds_dwarf_omf_linnum];
+{$else i8086}
+        debugswitches : [ds_dwarf_sets];
+{$endif i8086}
 
         setalloc : 0;
         packenum : 4;
@@ -416,73 +479,125 @@ interface
 {$ifdef GENERIC_CPU}
         cputype : cpu_none;
         optimizecputype : cpu_none;
+        asmcputype : cpu_none;
         fputype : fpu_none;
 {$else not GENERIC_CPU}
   {$ifdef i386}
-        cputype : cpu_Pentium;
+        cputype : cpu_Pentium2;
         optimizecputype : cpu_Pentium3;
+        asmcputype : cpu_none;
         fputype : fpu_x87;
   {$endif i386}
   {$ifdef m68k}
         cputype : cpu_MC68020;
         optimizecputype : cpu_MC68020;
+        asmcputype : cpu_none;
         fputype : fpu_soft;
   {$endif m68k}
   {$ifdef powerpc}
         cputype : cpu_PPC604;
         optimizecputype : cpu_ppc7400;
+        asmcputype : cpu_none;
         fputype : fpu_standard;
   {$endif powerpc}
   {$ifdef POWERPC64}
         cputype : cpu_PPC970;
         optimizecputype : cpu_ppc970;
+        asmcputype : cpu_none;
         fputype : fpu_standard;
   {$endif POWERPC64}
   {$ifdef sparc}
         cputype : cpu_SPARC_V9;
         optimizecputype : cpu_SPARC_V9;
+        asmcputype : cpu_none;
         fputype : fpu_hard;
   {$endif sparc}
+  {$ifdef sparc64}
+        cputype : cpu_SPARC_V9;
+        optimizecputype : cpu_SPARC_V9;
+        asmcputype : cpu_none;
+        fputype : fpu_hard;
+  {$endif sparc64}
   {$ifdef arm}
         cputype : cpu_armv4;
         optimizecputype : cpu_armv4;
+        asmcputype : cpu_none;
         fputype : fpu_fpa;
   {$endif arm}
   {$ifdef x86_64}
         cputype : cpu_athlon64;
         optimizecputype : cpu_athlon64;
+        asmcputype : cpu_none;
         fputype : fpu_sse64;
   {$endif x86_64}
-  {$ifdef ia64}
-        cputype : cpu_itanium;
-        optimizecputype : cpu_itanium;
-        fputype : fpu_itanium;
-  {$endif ia64}
   {$ifdef avr}
         cputype : cpuinfo.cpu_avr5;
         optimizecputype : cpuinfo.cpu_avr5;
+        asmcputype : cpu_none;
         fputype : fpu_none;
   {$endif avr}
   {$ifdef mips}
         cputype : cpu_mips2;
         optimizecputype : cpu_mips2;
+        asmcputype : cpu_none;
         fputype : fpu_mips2;
   {$endif mips}
   {$ifdef jvm}
         cputype : cpu_none;
         optimizecputype : cpu_none;
+        asmcputype : cpu_none;
         fputype : fpu_standard;
   {$endif jvm}
   {$ifdef aarch64}
         cputype : cpu_armv8;
         optimizecputype : cpu_armv8;
+        asmcputype : cpu_none;
         fputype : fpu_vfp;
   {$endif aarch64}
   {$ifdef i8086}
         cputype : cpu_8086;
         optimizecputype : cpu_8086;
+        { Use cpu_none by default,
+        because using cpu_8086 by default means
+        that we reject any instruction above bare 8086 instruction set
+        for all assembler code PM }
+        asmcputype : cpu_none;
         fputype : fpu_x87;
   {$endif i8086}
+  {$ifdef riscv32}
+        cputype : cpu_rv32ima;
+        optimizecputype : cpu_rv32ima;
+        asmcputype : cpu_none;
+        fputype : fpu_fd;
+  {$endif riscv32}
+  {$ifdef riscv64}
+        cputype : cpu_rv64imac;
+        optimizecputype : cpu_rv64imac;
+        asmcputype : cpu_none;
+        fputype : fpu_fd;
+  {$endif riscv64}
+  {$ifdef xtensa}
+        cputype : cpu_none;
+        optimizecputype : cpu_none;
+        asmcputype : cpu_none;
+        fputype : fpu_none;
+  {$endif xtensa}
+  {$ifdef z80}
+        cputype : cpu_zilog_z80;
+        optimizecputype : cpu_zilog_z80;
+        { Use cpu_none by default,
+        because using cpu_8086 by default means
+        that we reject any instruction above bare 8086 instruction set
+        for all assembler code PM }
+        asmcputype : cpu_none;
+        fputype : fpu_soft;
+  {$endif z80}
+  {$ifdef wasm}
+        cputype : cpu_none;
+        optimizecputype : cpu_none;
+        asmcputype : cpu_none;
+        fputype : fpu_standard;
+  {$endif wasm}
 {$endif not GENERIC_CPU}
         asmmode : asmmode_standard;
 {$ifndef jvm}
@@ -495,22 +610,29 @@ interface
         minfpconstprec : s32real;
 
         disabledircache : false;
-{$if defined(i8086)}
+
+        tlsmodel : tlsm_none;
+        controllertype : ct_none;
+        pmessage : nil;
+{$if defined(i8086) or defined(GENERIC_CPU)}
         x86memorymodel : mm_small;
-{$endif defined(i8086)}
+{$endif defined(i8086) or defined(GENERIC_CPU)}
 {$if defined(ARM)}
         instructionset : is_arm;
 {$endif defined(ARM)}
-        controllertype : ct_none;
-        pmessage : nil;
+{$if defined(LLVM) and not defined(GENERIC_CPU)}
+        llvmversion    : llvmver_7_0;
+{$endif defined(LLVM) and not defined(GENERIC_CPU)}
       );
 
     var
       starttime  : real;
+      startsystime : TSystemTime;
 
     function getdatestr:string;
     function gettimestr:string;
     function filetimestring( t : longint) : string;
+    function getrealtime(const st: TSystemTime) : real;
     function getrealtime : real;
 
     procedure DefaultReplacements(var s:ansistring);
@@ -524,6 +646,7 @@ interface
 
     procedure InitGlobals;
     procedure DoneGlobals;
+    procedure register_initdone_proc(init,done:tprocedure);
 
     function  string2guid(const s: string; var GUID: TGUID): boolean;
     function  guid2string(const GUID: TGUID): string;
@@ -534,17 +657,18 @@ interface
     function Setcputype(const s:string;var a:tsettings):boolean;
     function SetFpuType(const s:string;var a:tfputype):boolean;
     function SetControllerType(const s:string;var a:tcontrollertype):boolean;
-    function IncludeFeature(const s : string) : boolean;
+    function HandleFeature(const s : string) : boolean;
     function SetMinFPConstPrec(const s: string; var a: tfloattype) : boolean;
 
     {# Routine to get the required alignment for size of data, which will
        be placed in bss segment, according to the current alignment requirements }
+    function size_2_align(len : asizeuint) : longint;
     function var_align(want_align: longint): shortint;
-    function var_align_size(siz: longint): shortint;
+    function var_align_size(siz: asizeuint): shortint;
     {# Routine to get the required alignment for size of data, which will
        be placed in data/const segment, according to the current alignment requirements }
     function const_align(want_align: longint): shortint;
-    function const_align_size(siz: longint): shortint;
+    function const_align_size(siz: asizeuint): shortint;
 {$ifdef ARM}
     function is_double_hilo_swapped: boolean;{$ifdef USEINLINE}inline;{$endif}
 {$endif ARM}
@@ -558,14 +682,13 @@ interface
 
 implementation
 
+{$if defined(macos)}
     uses
-{$ifdef macos}
-      macutils,
+      macutils;
+{$elseif defined(mswindows)}
+    uses
+      windirs;
 {$endif}
-{$ifdef mswindows}
-      windirs,
-{$endif}
-      comphook;
 
 {****************************************************************************
                                  TLinkStrMap
@@ -578,7 +701,7 @@ implementation
       end;
 
 
-    procedure TLinkStrMap.Add(key:ansistring;value:AnsiString='';weight:longint=LinkMapWeightDefault);
+    procedure TLinkStrMap.Add(const key:ansistring;const value:AnsiString='';weight:longint=LinkMapWeightDefault);
       begin
         if lookup(key)<>-1 Then
           exit;
@@ -591,7 +714,7 @@ implementation
       end;
 
 
-    function  TLinkStrMap.AddDep(keyvalue:String):boolean;
+    function  TLinkStrMap.AddDep(const keyvalue:String):boolean;
       var
         i : Longint;
       begin
@@ -604,7 +727,7 @@ implementation
       end;
 
 
-    function  TLinkStrMap.AddWeight(keyvalue:String):boolean;
+    function  TLinkStrMap.AddWeight(const keyvalue:String):boolean;
       var
         i,j    : Longint;
         Code : Word;
@@ -624,7 +747,7 @@ implementation
       end;
 
 
-    procedure TLinkStrMap.addseries(keys:AnsiString;weight:longint);
+    procedure TLinkStrMap.addseries(const keys:AnsiString;weight:longint);
       var
         i,j,k : longint;
       begin
@@ -640,7 +763,7 @@ implementation
          end;
       end;
 
-    procedure TLinkStrMap.SetValue(Key:Ansistring;weight:Integer);
+    procedure TLinkStrMap.SetValue(const Key:Ansistring;weight:Integer);
       var
         j : longint;
       begin
@@ -650,7 +773,7 @@ implementation
       end;
 
 
-    function TLinkStrMap.find(key:Ansistring):Ansistring;
+    function TLinkStrMap.find(const key:Ansistring):Ansistring;
       var
         j : longint;
       begin
@@ -661,7 +784,7 @@ implementation
       end;
 
 
-    function TLinkStrMap.lookup(key:Ansistring):longint;
+    function TLinkStrMap.lookup(const key:Ansistring):longint;
       var
         i : longint;
       begin
@@ -753,10 +876,10 @@ implementation
      get the current time in a string HH:MM:SS
    }
       var
-        hour,min,sec,hsec : word;
+        st: TSystemTime;
       begin
-        DecodeTime(Time,hour,min,sec,hsec);
-        gettimestr:=L0(Hour)+':'+L0(min)+':'+L0(sec);
+        GetLocalTime(st);
+        gettimestr:=L0(st.Hour)+':'+L0(st.Minute)+':'+L0(st.Second);
       end;
 
 
@@ -765,10 +888,10 @@ implementation
      get the current date in a string YY/MM/DD
    }
       var
-        Year,Month,Day: Word;
+        st: TSystemTime;
       begin
-        DecodeDate(Date,year,month,day);
-        getdatestr:=L0(Year)+'/'+L0(Month)+'/'+L0(Day);
+        GetLocalTime(st);
+        getdatestr:=L0(st.Year)+'/'+L0(st.Month)+'/'+L0(st.Day);
       end;
 
 
@@ -793,13 +916,17 @@ implementation
        Result := L0(Year)+'/'+L0(Month)+'/'+L0(Day)+' '+L0(Hour)+':'+L0(min)+':'+L0(sec);
      end;
 
+   function getrealtime(const st: TSystemTime) : real;
+     begin
+       result := st.Hour*3600.0 + st.Minute*60.0 + st.Second + st.MilliSecond/1000.0;
+     end;
 
    function getrealtime : real;
      var
-       h,m,s,s1000 : word;
+       st:TSystemTime;
      begin
-       DecodeTime(Time,h,m,s,s1000);
-       result:=h*3600.0+m*60.0+s+s1000/1000.0;
+       GetLocalTime(st);
+       result:=getrealtime(st);
      end;
 
 {****************************************************************************
@@ -818,6 +945,30 @@ implementation
          end;
 
 {$endif mswindows}
+{$ifdef openbsd}
+       function GetOpenBSDLocalBase: ansistring;
+         var
+           envvalue: pchar;
+         begin
+           envvalue := GetEnvPChar('LOCALBASE');
+           if assigned(envvalue) then
+             Result:=envvalue
+           else
+             Result:='/usr/local';
+           FreeEnvPChar(envvalue);
+         end;
+       function GetOpenBSDX11Base: ansistring;
+         var
+           envvalue: pchar;
+         begin
+           envvalue := GetEnvPChar('X11BASE');
+           if assigned(envvalue) then
+             Result:=envvalue
+           else
+             Result:='/usr/X11R6';
+           FreeEnvPChar(envvalue);
+         end;
+{$endif openbsd}
        var
          envstr: string;
          envvalue: pchar;
@@ -829,6 +980,7 @@ implementation
          Replace(s,'$FPCDATE',date_string);
          Replace(s,'$FPCCPU',target_cpu_string);
          Replace(s,'$FPCOS',target_os_string);
+         Replace(s,'$FPCBINDIR',exepath);
          if (tf_use_8_3 in Source_Info.Flags) or
             (tf_use_8_3 in Target_Info.Flags) then
            Replace(s,'$FPCTARGET',target_os_string)
@@ -850,6 +1002,10 @@ implementation
          ReplaceSpecialFolder('$PROGRAM_FILES_COMMON',CSIDL_PROGRAM_FILES_COMMON);
          ReplaceSpecialFolder('$PROFILE',CSIDL_PROFILE);
 {$endif mswindows}
+{$ifdef openbsd}
+         Replace(s,'$OPENBSD_LOCALBASE',GetOpenBSDLocalBase);
+         Replace(s,'$OPENBSD_X11BASE',GetOpenBSDX11Base);
+{$endif openbsd}
          { Replace environment variables between dollar signs }
          i := pos('$',s);
          while i>0 do
@@ -958,7 +1114,7 @@ implementation
         p: pbyte;
       begin
         p := pbyte(@r);
-{$ifdef CPU_ARM}
+{$ifdef FPUARM_HAS_FPA}
         inc(p,4);
 {$else}
 {$ifdef FPC_LITTLE_ENDIAN}
@@ -1062,7 +1218,7 @@ implementation
 
     function SetAktProcCall(const s:string; var a:tproccalloption):boolean;
       const
-        DefProcCallName : array[tproccalloption] of string[12] = ('',
+        DefProcCallName : array[tproccalloption] of string[16] = ('',
          'CDECL',
          'CPPDECL',
          'FAR16',
@@ -1075,7 +1231,13 @@ implementation
          'STDCALL',
          'SOFTFLOAT',
          'MWPASCAL',
-         'INTERRUPT'
+         'INTERRUPT',
+         'HARDFLOAT',
+         'SYSV_ABI_DEFAULT',
+         'SYSV_ABI_CDECL',
+         'MS_ABI_DEFAULT',
+         'MS_ABI_CDECL',
+         'VECTORCALL'
         );
       var
         t  : tproccalloption;
@@ -1210,7 +1372,7 @@ implementation
       end;
 
 
-    function IncludeFeature(const s : string) : boolean;
+    function HandleFeature(const s : string) : boolean;
       var
         i : tfeature;
       begin
@@ -1221,6 +1383,14 @@ implementation
               include(features,i);
               exit;
             end;
+        { Also support -Sfnoheap to exclude heap }
+        if Copy(S,1,2)='NO' then
+          for i:=low(tfeature) to high(tfeature) do
+            if s='NO'+featurestr[i] then
+              begin
+                exclude(features,i);
+                exit;
+              end;
         result:=false;
       end;
 
@@ -1251,13 +1421,30 @@ implementation
       end;
 
 
+    function size_2_align(len : asizeuint) : longint;
+      begin
+         if len>16 then
+           size_2_align:=32
+         else if len>8 then
+           size_2_align:=16
+         else if len>4 then
+           size_2_align:=8
+         else if len>2 then
+           size_2_align:=4
+         else if len>1 then
+           size_2_align:=2
+         else
+           size_2_align:=1;
+      end;
+
+
     function var_align(want_align: longint): shortint;
       begin
         var_align := used_align(want_align,current_settings.alignment.varalignmin,current_settings.alignment.varalignmax);
       end;
 
 
-    function var_align_size(siz: longint): shortint;
+    function var_align_size(siz: asizeuint): shortint;
       begin
         siz := size_2_align(siz);
         var_align_size := var_align(siz);
@@ -1270,7 +1457,7 @@ implementation
       end;
 
 
-    function const_align_size(siz: longint): shortint;
+    function const_align_size(siz: asizeuint): shortint;
       begin
         siz := size_2_align(siz);
         const_align_size := const_align(siz);
@@ -1336,7 +1523,7 @@ implementation
        if localexepath='' then
         begin
           hs1 := ExtractFileName(exeName);
-          ChangeFileExt(hs1,source_info.exeext);
+          hs1 := ChangeFileExt(hs1,source_info.exeext);
 {$ifdef macos}
           FindFile(hs1,GetEnvironmentVariable('Commands'),false,localExepath);
 {$else macos}
@@ -1350,8 +1537,88 @@ implementation
 
 
 
+   type
+     tinitdoneentry=record
+       init:tprocedure;
+       done:tprocedure;
+     end;
+     pinitdoneentry=^tinitdoneentry;
+
+
+   const
+     initdoneprocs : TFPList = nil;
+
+
+   procedure allocinitdoneprocs;
+     begin
+       { Avoid double initialization }
+       if assigned(initdoneprocs) then
+         exit;
+       initdoneprocs:=tfplist.create;
+     end;
+
+
+   procedure register_initdone_proc(init,done:tprocedure);
+     var
+       entry : pinitdoneentry;
+     begin
+       new(entry);
+       entry^.init:=init;
+       entry^.done:=done;
+       { Do not rely on the fact that
+         globals unit initialization code
+         has already been executed.
+         Unit initialization order is too
+         uncertian for that. PM }
+       if not assigned(initdoneprocs) then
+         allocinitdoneprocs;
+       initdoneprocs.add(entry);
+     end;
+
+
+   procedure callinitprocs;
+     var
+       i : longint;
+     begin
+       if not assigned(initdoneprocs) then
+         exit;
+       for i:=0 to initdoneprocs.count-1 do
+         with pinitdoneentry(initdoneprocs[i])^ do
+           if assigned(init) then
+             init();
+     end;
+
+
+   procedure calldoneprocs;
+     var
+       i : longint;
+     begin
+       if not assigned(initdoneprocs) then
+         exit;
+       for i:=0 to initdoneprocs.count-1 do
+         with pinitdoneentry(initdoneprocs[i])^ do
+           if assigned(done) then
+             done();
+     end;
+
+
+   procedure freeinitdoneprocs;
+     var
+       i : longint;
+     begin
+       if not assigned(initdoneprocs) then
+         exit;
+       for i:=0 to initdoneprocs.count-1 do
+         dispose(pinitdoneentry(initdoneprocs[i]));
+       initdoneprocs.free;
+       { Reset variable, to be on the safe side }
+       initdoneprocs:=nil;
+     end;
+
+
    procedure DoneGlobals;
      begin
+       calldoneprocs;
        librarysearchpath.Free;
        unitsearchpath.Free;
        objectsearchpath.Free;
@@ -1359,6 +1626,8 @@ implementation
        frameworksearchpath.Free;
        LinkLibraryAliases.Free;
        LinkLibraryOrder.Free;
+       packagesearchpath.Free;
+       namespacelist.Free;
      end;
 
    procedure InitGlobals;
@@ -1371,10 +1640,6 @@ implementation
         do_make:=true;
         compile_level:=0;
         codegenerror:=false;
-        DLLsource:=false;
-        paratarget:=system_none;
-        paratargetasm:=as_none;
-        paratargetdbg:=dbg_none;
 
         { Output }
         OutputFileName:='';
@@ -1387,9 +1652,13 @@ implementation
         { Utils directory }
         utilsdirectory:='';
         utilsprefix:='';
+        llvmutilssuffix:='';
         cshared:=false;
         rlinkpath:='';
         sysrootpath:='';
+{$ifdef XTENSA}
+        idfpath:='';
+{$endif XTENSA}
 
         { Search Paths }
         unicodepath:='';
@@ -1398,6 +1667,8 @@ implementation
         includesearchpath:=TSearchPathList.Create;
         objectsearchpath:=TSearchPathList.Create;
         frameworksearchpath:=TSearchPathList.Create;
+        packagesearchpath:=TSearchPathList.Create;
+        namespacelist:=TCmdStrList.Create;
 
         { Def file }
         usewindowapi:=false;
@@ -1405,6 +1676,9 @@ implementation
         DescriptionSetExplicity:=false;
         SetPEFlagsSetExplicity:=false;
         SetPEOptFlagsSetExplicity:=false;
+        SetPEOSVersionSetExplicitely:=false;
+        SetPESubSysVersionSetExplicitely:=false;
+        SetPEUserVersionSetExplicitely:=false;
         ImageBaseSetExplicity:=false;
         MinStackSizeSetExplicity:=false;
         MaxStackSizeSetExplicity:=false;
@@ -1421,7 +1695,6 @@ implementation
         GenerateImportSection:=false;
         RelocSection:=false;
         RelocSectionSetExplicitly:=false;
-        LinkTypeSetExplicitly:=false;
         MacOSXVersionMin:='';
         iPhoneOSVersionMin:='';
         { memory sizes, will be overridden by parameter or default for target
@@ -1440,6 +1713,17 @@ implementation
 
         { enable all features by default }
         features:=[low(Tfeature)..high(Tfeature)];
+
+        callinitprocs;
      end;
 
+initialization
+  allocinitdoneprocs;
+{$ifdef LLVM}
+  cgbackend:=cg_llvm;
+{$else}
+  cgbackend:=cg_fpc;
+{$endif}
+finalization
+  freeinitdoneprocs;
 end.

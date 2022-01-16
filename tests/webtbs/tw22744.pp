@@ -1,3 +1,9 @@
+{ Original test is about $Q option only,
+  so we explicitly disabled $R,
+  adding a new tw22744b.pp }
+
+{$R-}
+
 {$mode objfpc}
 
 uses

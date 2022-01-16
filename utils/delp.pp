@@ -167,7 +167,7 @@ begin
   writeln('  -r    Recurse into directories.');
   writeln('  -n    Do not actually delete files.');
   writeln('  -m N  Maximum depth to recurse into directories (1 based, zero is no max).');
-  writeln('  -q    Quietly perfoms deleting.');
+  writeln('  -q    Quietly performs deleting.');
   writeln('  -v    Verbose (print names of deleted files).');
   Halt(1);
 end;
@@ -278,7 +278,7 @@ begin
     Usage;
   { Win32 target }
   AddMask('*.ppw *.ow *.aw *.sw');
-  AddMask('ppas.bat ppas.sh link.res fpcmaked fpcmade fpcmade.*');
+  AddMask('ppas.bat ppas.sh link.res fpcmaked fpcmade fpcmade.* *.fpm');
   AddMask('*.tpu *.tpp *.tpw *.tr');
   AddMask('*.dcu *.dcp *.bpl');
   AddMask('*.log *.bak *.~pas *.~pp *.*~');

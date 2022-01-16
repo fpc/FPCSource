@@ -16,7 +16,8 @@ unit OraOCI;
 
 {$MODE FPC}
 {$linklib clntsh}
-{$linklib common}
+// Disabled - it is a DLL in the windows system dir, apparently unused.
+{  $linklib common}
 {$linklib core4}
 {$linklib nlsrtl3}
 {$ifndef BSD}

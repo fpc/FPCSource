@@ -1,5 +1,7 @@
 { inlining is not compatible with get_caller_frame/get_frame }
 {$inline off}
+
+{$ifndef cpullvm}
 type
   PointerLocal = procedure(_EBP: Pointer);
 
@@ -44,3 +46,8 @@ var
 begin
   t1;
 end.
+{$else ndef cpullvm}
+begin
+  { this kind of hacks can never work on llvm }
+end.
+{$endif cpullvm}

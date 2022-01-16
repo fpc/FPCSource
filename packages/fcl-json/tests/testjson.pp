@@ -1,3 +1,4 @@
+{ %OPT=-S2 -Fcutf8 }
 {
     This file is part of the Free Component Library
 
@@ -17,7 +18,11 @@
 program testjson;
 
 uses
-  Classes, testjsondata, testjsonparser, consoletestrunner; //, testjsonrtti, fpjsonrtti;
+  {$ifdef unix}
+  cwstring,
+  {$endif}
+  Classes, testjsondata, testjsonparser, testjsonrtti, consoletestrunner, testjsonreader;
+
 type
   { TLazTestRunner }
    TMyTestRunner = class(TTestRunner)
@@ -30,8 +35,7 @@ var
 begin
   DefaultFormat := fPlain;
   DefaultRunAllTests := True;
-
-  Application := TMyTestRunner.Create(nil); 
+  Application := TMyTestRunner.Create(nil);
   Application.Initialize;
   Application.Run;  
   Application.Free;

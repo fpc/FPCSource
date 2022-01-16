@@ -15,7 +15,7 @@
 
  **********************************************************************}
 
-unit dateutils;
+unit DateUtils;
 
 interface
 
@@ -44,11 +44,24 @@ const
   DaySaturday  = 6;
   DaySunday    = 7;
 
+  MonthJanuary   = 1;
+  MonthFebruary  = 2;
+  MonthMarch     = 3;
+  MonthApril     = 4;
+  MonthMay       = 5;
+  MonthJune      = 6;
+  MonthJuly      = 7;
+  MonthAugust    = 8;
+  MonthSeptember = 9;
+  MonthOctober   = 10;
+  MonthNovember  = 11;
+  MonthDecember  = 12;
+
   // Fraction of a day
-  OneHour        = 1/HoursPerDay;
-  OneMinute      = 1/MinsPerDay;
-  OneSecond      = 1/SecsPerDay;
-  OneMillisecond = 1/MSecsPerDay;
+  OneHour        = TDateTime(1)/HoursPerDay;
+  OneMinute      = TDateTime(1)/MinsPerDay;
+  OneSecond      = TDateTime(1)/SecsPerDay;
+  OneMillisecond = TDateTime(1)/MSecsPerDay;
 
   { This is actual days per year but you need to know if it's a leap year}
   DaysPerYear: array [Boolean] of Word = (365, 366);
@@ -253,8 +266,8 @@ Function WithinPastMilliSeconds(const ANow, AThen: TDateTime; const AMilliSecond
     Period functions.
   ---------------------------------------------------------------------}
 
-Function YearsBetween(const ANow, AThen: TDateTime): Integer;
-Function MonthsBetween(const ANow, AThen: TDateTime): Integer;
+Function YearsBetween(const ANow, AThen: TDateTime; AExact : Boolean = False): Integer;
+Function MonthsBetween(const ANow, AThen: TDateTime; AExact : Boolean = False): Integer;
 Function WeeksBetween(const ANow, AThen: TDateTime): Integer;
 Function DaysBetween(const ANow, AThen: TDateTime): Integer;
 Function HoursBetween(const ANow, AThen: TDateTime): Int64;
@@ -364,6 +377,10 @@ Function CompareTime(const A, B: TDateTime): TValueRelationship;
 Function SameDateTime(const A, B: TDateTime): Boolean;
 Function SameDate(const A, B: TDateTime): Boolean;
 Function SameTime(const A, B: TDateTime): Boolean;
+function DateTimeInRange(ADateTime: TDateTime; AStartDateTime, AEndDateTime: TDateTime; aInclusive: Boolean = True): Boolean;
+function TimeInRange(ATime: TTime; AStartTime, AEndTime: TTime; AInclusive: Boolean = True): Boolean;
+function DateInRange(ADate: TDate; AStartDate, AEndDate: TDate; AInclusive: Boolean = True): Boolean;
+
 
 { For a given date these Functions tell you the which day of the week of the
   month (or year).  If its a Thursday, they will tell you if its the first,
@@ -405,8 +422,8 @@ Function TryModifiedJulianDateToDateTime(const AValue: Double; out ADateTime: TD
     Unix timestamp support.
   ---------------------------------------------------------------------}
 
-Function DateTimeToUnix(const AValue: TDateTime): Int64;
-Function UnixToDateTime(const AValue: Int64): TDateTime;
+Function DateTimeToUnix(const AValue: TDateTime; AInputIsUTC: Boolean = True): Int64;
+Function UnixToDateTime(const AValue: Int64; aReturnUTC : Boolean = true): TDateTime;
 Function UnixTimeStampToMac(const AValue: Int64): Int64;
 
 { ---------------------------------------------------------------------
@@ -436,12 +453,33 @@ Function LocalTimeToUniversal(LT: TDateTime; TZOffset: Integer): TDateTime;
 function ScanDateTime(const Pattern:string;const s:string;const fmt:TFormatSettings;startpos:integer=1) : tdatetime; overload;
 function ScanDateTime(const Pattern:string;const s:string;startpos:integer=1) : tdatetime; overload;
 
+// ISO date/time
+// YYYYMMDD or YYYY-MM-DD
+function TryISOStrToDate(const aString: string; out outDate: TDateTime): Boolean;
+// HH HH:NN HH:NN:SS HH:NN:SS.ZZZ or HHNN HHNNSS HHNNSS.ZZZ
+function TryISOStrToTime(const aString: string; Out outTime: TDateTime): Boolean;
+// Combination of previous
+function TryISOStrToDateTime(const aString: string; out outDateTime: TDateTime): Boolean;
+// Z +hh:nn -hh:nn
+Function TryISOTZStrToTZOffset(const TZ : String; Out TZOffset : Integer) : boolean;
+
+// ISO 8601 Date/Time formatting
+
+function DateToISO8601(const ADate: TDateTime; AInputIsUTC: Boolean = True): string;
+Function ISO8601ToDate(const DateString: string; ReturnUTC : Boolean = True): TDateTime;
+Function ISO8601ToDateDef(const DateString: string; ReturnUTC : Boolean; aDefault : TDateTime ): TDateTime; deprecated;
+Function ISO8601ToDateDef(const DateString: string; aDefault : TDateTime; ReturnUTC : Boolean = True ): TDateTime;
+Function TryISO8601ToDate(const DateString: string; out ADateTime: TDateTime; ReturnUTC : Boolean = True) : Boolean;
+
+
 implementation
 
 uses sysconst;
 
 const
   TDateTimeEpsilon = 2.2204460493e-16;
+  HalfMilliSecond = OneMillisecond /2 ;
+  
 
 { ---------------------------------------------------------------------
     Auxiliary routines
@@ -1257,6 +1295,50 @@ begin
 end;
 
 
+ 
+function DateTimeInRange(ADateTime: TDateTime; AStartDateTime, AEndDateTime: TDateTime; aInclusive: Boolean = True): Boolean;
+
+begin
+  if aInclusive then
+    Result:=(AStartDateTime<=ADateTime) and (ADateTime<=AEndDateTime)
+  else
+    Result:=(AStartDateTime<ADateTime) and (ADateTime<AEndDateTime);
+end;
+
+
+function TimeInRange(ATime: TTime; AStartTime, AEndTime: TTime; AInclusive: Boolean = True): Boolean;
+
+var
+ LTime, LStartTime, LEndTime: TTime;
+ 
+begin
+  LTime:=TimeOf(ATime);
+  LStartTime:=TimeOf(AStartTime);
+  LEndTime:=TimeOf(AEndTime);
+  if LEndTime<LStartTime then
+    if AInclusive then
+      Result:=(LStartTime<=LTime) or (LTime<=LEndTime)
+    else
+      Result:=(LStartTime<LTime) or (LTime<LEndTime)
+  else
+    if AInclusive then
+      Result:=(LStartTime<=LTime) and (LTime<=LEndTime)
+    else
+      Result:=(LStartTime<LTime) and (LTime<LEndTime);
+end;
+
+
+function DateInRange(ADate: TDate; AStartDate, AEndDate: TDate; AInclusive: Boolean = True): Boolean;
+
+begin
+  if AInclusive then
+    Result:=(DateOf(AStartDate)<=DateOf(ADate)) and (DateOf(ADate)<=DateOf(AEndDate))
+  else
+    Result:=(DateOf(AStartDate)<DateOf(ADate)) and (DateOf(ADate)<DateOf(AEndDate));
+end;
+
+
+
 { ---------------------------------------------------------------------
     Period functions.
   ---------------------------------------------------------------------}
@@ -1279,51 +1361,75 @@ begin
 end;
 
 
-Function YearsBetween(const ANow, AThen: TDateTime): Integer;
+Function YearsBetween(const ANow, AThen: TDateTime; AExact : Boolean = False): Integer;
+
+var
+  yy, mm, dd: Word;
+  
 begin
-  Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+TDateTimeEpsilon)/ApproxDaysPerYear);
+  if AExact and (ANow >= -DateDelta) and (AThen >= -DateDelta) and
+     (ANow <= MaxDateTime) and (AThen <= MaxDateTime) then
+    begin
+    PeriodBetween(ANow, AThen, yy , mm, dd);
+    Result := yy;
+    end
+  else
+    Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+HalfMilliSecond)/ApproxDaysPerYear);
 end;
 
 
-Function MonthsBetween(const ANow, AThen: TDateTime): Integer;
+Function MonthsBetween(const ANow, AThen: TDateTime; AExact : Boolean = False): Integer;
+
+var
+  y, m, d: Word;
+
 begin
-  Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+TDateTimeEpsilon)/ApproxDaysPerMonth);
+  if AExact and (ANow >= -DateDelta) and (AThen >= -DateDelta) and
+     (ANow <= MaxDateTime) and (AThen <= MaxDateTime) then
+    begin
+    PeriodBetween(ANow, AThen, y, m, d);
+    Result := y*12 + m;
+    end
+  else
+    Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+HalfMilliSecond)/ApproxDaysPerMonth);
 end;
 
 
 Function WeeksBetween(const ANow, AThen: TDateTime): Integer;
 begin
-  Result:=Trunc(Abs(DateTimeDiff(ANow,AThen))+TDateTimeEpsilon) div 7;
+  Result:=Trunc(Abs(DateTimeDiff(ANow,AThen))+HalfMilliSecond) div 7;
 end;
 
 
 Function DaysBetween(const ANow, AThen: TDateTime): Integer;
 begin
-  Result:=Trunc(Abs(DateTimeDiff(ANow,AThen))+TDateTimeEpsilon);
-end;
-
+  if anow>athen then
+    Result:=Trunc(Abs(DateTimeDiff(ANow,AThen))+HalfMilliSecond)
+  else
+    Result:=Trunc(Abs(DateTimeDiff(AThen,ANow))+HalfMilliSecond); // bug 37361
+end;            
 
 Function HoursBetween(const ANow, AThen: TDateTime): Int64;
 begin
-  Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+TDateTimeEpsilon)*HoursPerDay);
+  Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+HalfMilliSecond)*HoursPerDay);
 end;
 
 
 Function MinutesBetween(const ANow, AThen: TDateTime): Int64;
 begin
-  Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+TDateTimeEpsilon)*MinsPerDay);
+  Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+HalfMilliSecond)*MinsPerDay);
 end;
 
 
 Function SecondsBetween(const ANow, AThen: TDateTime): Int64;
 begin
-  Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+TDateTimeEpsilon)*SecsPerDay);
+  Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+HalfMilliSecond)*SecsPerDay);
 end;
 
 
 Function MilliSecondsBetween(const ANow, AThen: TDateTime): Int64;
 begin
-  Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+TDateTimeEpsilon)*MSecsPerDay);
+  Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+HalfMilliSecond)*MSecsPerDay);
 end;
 
 Procedure PeriodBetween(Const ANow, AThen: TDateTime; Out Years, months, days : Word); 
@@ -1414,14 +1520,43 @@ end;
     Increment/decrement functions.
   ---------------------------------------------------------------------}
 
+{ TDateTime is not defined in the interval [-1.0..0.0[. Additionally, when
+  negative the time part must be treated using its absolute value (0.25 always
+  means "6 a.m.") -> skip the gap and convert the time part when crossing the
+  gap -- and take care of rounding errors }
 Procedure MaybeSkipTimeWarp(OldDate: TDateTime; var NewDate: TDateTime);
 begin
-  if (OldDate>0) and (NewDate<0) then
-    NewDate:=NewDate-0.5
-  else if (OldDate<-1.0) and (NewDate>-1.0) then
-    NewDate:=NewDate+0.5;
+  if (OldDate>=0) and (NewDate<-TDateTimeEpsilon) then
+    NewDate:=int(NewDate-1.0+TDateTimeEpsilon)-frac(1.0+frac(NewDate))
+  else if (OldDate<=-1.0) and (NewDate>-1.0+TDateTimeEpsilon) then
+    NewDate:=int(NewDate+1.0-TDateTimeEpsilon)+frac(1.0-abs(frac(1.0+NewDate)));
 end;
 
+
+function IncNegativeTime(AValue, Addend: TDateTime): TDateTime;
+var
+  newtime: tdatetime;
+begin
+  newtime:=-frac(Avalue)+frac(Addend);
+  { handle rounding errors }
+  if SameValue(newtime,int(newtime)+1,TDateTimeEpsilon) then
+    newtime:=int(newtime)+1
+  else if SameValue(newtime,int(newtime),TDateTimeEpsilon) then
+    newtime:=int(newtime);
+  { time underflow -> previous day }
+  if newtime<-TDateTimeEpsilon then
+    begin
+      newtime:=1.0+newtime;
+      avalue:=int(avalue)-1;
+    end
+  { time overflow -> next day }
+  else if newtime>=1.0-TDateTimeEpsilon then
+    begin
+      newtime:=newtime-1.0;
+      avalue:=int(avalue)+1;
+    end;
+  Result:=int(AValue)+int(Addend)-newtime;
+end;
 
 Function IncYear(const AValue: TDateTime; const ANumberOfYears: Integer ): TDateTime;
 
@@ -1470,7 +1605,10 @@ end;
 
 Function IncHour(const AValue: TDateTime; const ANumberOfHours: Int64): TDateTime;
 begin
-  Result:=AValue+ANumberOfHours/HoursPerDay;
+  if AValue>=0 then
+    Result:=AValue+ANumberOfHours/HoursPerDay
+  else
+    Result:=IncNegativeTime(Avalue,ANumberOfHours/HoursPerDay);
   MaybeSkipTimeWarp(AValue,Result);
 end;
 
@@ -1483,7 +1621,10 @@ end;
 
 Function IncMinute(const AValue: TDateTime; const ANumberOfMinutes: Int64): TDateTime;
 begin
-  Result:=AValue+ANumberOfMinutes / MinsPerDay;
+  if AValue>=0 then
+    Result:=AValue+ANumberOfMinutes/MinsPerDay
+  else
+    Result:=IncNegativeTime(Avalue,ANumberOfMinutes/MinsPerDay);
   MaybeSkipTimeWarp(AValue,Result);
 end;
 
@@ -1496,7 +1637,10 @@ end;
 
 Function IncSecond(const AValue: TDateTime; const ANumberOfSeconds: Int64): TDateTime;
 begin
-  Result:=AValue+ANumberOfSeconds / SecsPerDay;
+  if AValue>=0 then
+    Result:=AValue+ANumberOfSeconds/SecsPerDay
+  else
+    Result:=IncNegativeTime(Avalue,ANumberOfSeconds/SecsPerDay);
   MaybeSkipTimeWarp(AValue,Result);
 end;
 
@@ -1509,7 +1653,10 @@ end;
 
 Function IncMilliSecond(const AValue: TDateTime; const ANumberOfMilliSeconds: Int64): TDateTime;
 begin
-  Result:=AValue+ANumberOfMilliSeconds/MSecsPerDay;
+  if Avalue>=0 then
+    Result:=AValue+ANumberOfMilliSeconds/MSecsPerDay
+  else
+    Result:=IncNegativeTime(Avalue,ANumberOfMilliSeconds/MSecsPerDay);
   MaybeSkipTimeWarp(AValue,Result);
 end;
 
@@ -1751,7 +1898,7 @@ end;
 
 function TryEncodeTimeInterval(Hour, Min, Sec, MSec: word; out Time: TDateTime): boolean;
 begin
- Result:= (Min<60) and (Sec<60) and (MSec<1000);
+ Result:= (Min<60) and (Sec<60) and (MSec<=1000);
  If Result then
    Time:=TDateTime(cardinal(Hour)*3600000+cardinal(Min)*60000+cardinal(Sec)*1000+MSec)/MSecsPerDay;
 end;
@@ -1872,10 +2019,20 @@ Function CompareDateTime(const A, B: TDateTime): TValueRelationship;
 begin
   If SameDateTime(A,B) then
     Result:=EqualsValue
-  else If A>B then
-    Result:=GreaterThanValue
-  else
-    Result:=LessThanValue
+  else if trunc(a)=trunc(b) then
+    begin
+    if abs(frac(a))>abs(frac(b)) then 
+      result:=GreaterThanValue
+    else 
+      result:=LessThanValue;
+    end 
+  else 
+    begin
+    if a>b then 
+      result:=GreaterThanValue
+    else 
+      result:=LessThanValue;
+    end;
 end;
 
 
@@ -1903,8 +2060,21 @@ end;
 
 
 Function SameDateTime(const A, B: TDateTime): Boolean;
+
+  function MS(X: Double): Int64;
+  begin
+    if X >= 0 then
+      X := X * MSecsPerDay + 0.5
+    else if X > -1.0 then
+      X := -X * MSecsPerDay + 0.5
+    else
+      X := X * MSecsPerDay - 0.5;
+
+    Result := Trunc(X);
+  end;
+
 begin
-  Result:=Abs(A-B)<OneMilliSecond;
+  Result := MS(A) = MS(B);
 end;
 
 
@@ -2050,8 +2220,8 @@ begin
   a := (14-month) div 12;
   y := year + 4800 - a;
   m := month + (12*a) - 3;
-  result := day + ((153*m+2) div 5) + (365*y) + (y div 4) - (y div 100) + (y div 400) - 32045;
-  result := result - 0.5;
+  result := day + ((153*m+2) div 5) + (365*y)
+    + (y div 4) - (y div 100) + (y div 400) - 32045.5 + frac(avalue);
 end;
 
 
@@ -2077,6 +2247,9 @@ begin
   month := m + 3 - 12 *  ( m div 10 );
   year := (100*b) + d - 4800 + ( m div 10 );
   result := TryEncodeDate ( Year, Month, Day, ADateTime );
+  if Result then
+//    ADateTime:=IncMilliSecond(IncHour(ADateTime,-12),MillisecondOfTheDay(Abs(Frac(aValue))));
+    ADateTime:=ADateTime+frac(AValue-0.5);
 end;
 
 Function DateTimeToModifiedJulianDate(const AValue: TDateTime): Double;
@@ -2102,15 +2275,25 @@ end;
     Unix timestamp support.
   ---------------------------------------------------------------------}
 
-Function DateTimeToUnix(const AValue: TDateTime): Int64;
+Function DateTimeToUnix(const AValue: TDateTime; AInputIsUTC: Boolean = True): Int64;
+
+Var
+  T : TDateTime;
+
 begin
-  Result:=Round(DateTimeDiff(AValue,UnixEpoch)*SecsPerDay);
+  T:=aValue;
+  if Not aInputisUTC then
+    T:=IncMinute(T,GetLocalTimeOffset(AValue, AInputisUTC));
+  Result:=Round(DateTimeDiff(RecodeMillisecond(T,0),UnixEpoch)*SecsPerDay);
 end;
 
 
-Function UnixToDateTime(const AValue: Int64): TDateTime;
+Function UnixToDateTime(const AValue: Int64; aReturnUTC : Boolean = true): TDateTime;
+
 begin
   Result:=IncSecond(UnixEpoch, AValue);
+  if Not aReturnUTC then
+    Result:=IncMinute(Result,-GetLocalTimeOffset(Result, True));
 end;
 
 
@@ -2222,6 +2405,8 @@ begin
 end;
 
 function scandatetime(const pattern:string;const s:string;const fmt:TFormatSettings;startpos:integer=1) : tdatetime;
+const
+  EPS = 1E-15;
 
 var len ,ind  : integer;
     yy,mm,dd  : integer;
@@ -2236,13 +2421,17 @@ var
 
 function findimatch(const mnts:array of string;p:pchar):integer;
 var i : integer;
+    plen, findlen: integer;
 begin
   result:=-1;
   i:=0;
+  plen := strlen(p);
   while (i<=high(mnts)) and (result=-1) do
     begin
-      if AnsiStrLIComp(p,@mnts[i][1],length(mnts[i]))=0 then
-        result:=i;
+      findlen := length(mnts[i]);
+      if (findlen > 0) and (findlen <= plen) then // protect against buffer over-read
+        if AnsiStrLIComp(p,@(mnts[i][1]),findlen)=0 then
+          result:=i;
       inc(i);
     end;
 end;
@@ -2253,18 +2442,17 @@ begin
   raiseexception(format(SNoArrayMatch,[pind+1,ind]))
 end;
 
-function findmatch(const mnts : array of string;const s:string):integer;
-
+function scanmatch(const mnts : array of string;p:pchar; patlen: integer):integer;
 begin
-  result:=findimatch(mnts,@s[ind]);
+  result:=findimatch(mnts,p);
   if result=-1 then
     arraymatcherror
   else
-    begin
-      inc(ind,length(mnts[result])+1);
-      inc(pind,length(mnts[result])+1);
-      inc(result); // was 0 based.
-    end;
+  begin
+    inc(ind,length(mnts[result]));
+    inc(pind,patlen);
+    inc(result); // was 0 based.
+  end;
 end;
 
 var
@@ -2343,10 +2531,18 @@ begin
                        i:=scanpatlen;
                        case i of
                           1,2 : dd:=scanfixedint(2);
-                          3   : dd:=findmatch(fmt.shortDayNames,s);
-                          4   : dd:=findmatch(fmt.longDayNames,s);
-                          5   : matchpattern(fmt.shortdateformat);
-                          6   : matchpattern(fmt.longdateformat);
+                          3   : dd:=scanmatch(fmt.shortDayNames,@s[ind],i);
+                          4   : dd:=scanmatch(fmt.longDayNames,@s[ind],i);
+                          5   :
+                            begin
+                              matchpattern(fmt.shortdateformat);
+                              inc(pind, i);
+                            end;
+                          6   :
+                            begin
+                              matchpattern(fmt.longdateformat);
+                              inc(pind, i);
+                            end;
                          end;
                      end;
                'N':  timeval:=timeval+scanfixedint(2)* minfactor;
@@ -2354,7 +2550,10 @@ begin
                'Z':  timeval:=timeval+scanfixedint(3)* mssecfactor;
                'Y':  begin
                        i:=scanpatlen;
-                       yy:=scanfixedint(i);
+                       case i of
+                          1,2 : yy:=scanfixedint(2);
+                          else  yy:=scanfixedint(i);
+                       end;
                        if i<=2 then
                          begin
                            pivot:=YearOf(now)-fmt.TwoDigitYearCenturyWindow;
@@ -2367,58 +2566,79 @@ begin
                        i:=scanpatlen;
                        case i of
                           1,2: mm:=scanfixedint(2);
-                          3:   mm:=findmatch(fmt.ShortMonthNames,s);
-                          4:   mm:=findmatch(fmt.LongMonthNames,s);
+                          3:   mm:=scanmatch(fmt.ShortMonthNames,@s[ind],i);
+                          4:   mm:=scanmatch(fmt.LongMonthNames,@s[ind],i);
                           end;
                     end;
                'T' : begin
                        i:=scanpatlen;
                        case i of
-                       1: matchpattern(fmt.shortdateformat);
-                       2: matchpattern(fmt.longtimeformat);
+                       1:
+                         begin
+                           matchpattern(fmt.shorttimeformat);
+                           inc(pind, i);
+                         end;
+                       2:
+                         begin
+                           matchpattern(fmt.longtimeformat);
+                           inc(pind, i);
+                         end;
                        end;
                      end;
                'A' : begin
-                            i:=findimatch(AMPMformatting,@ptrn[pind]);
-                            case i of
-                              0: begin
-                                   i:=findimatch(['AM','PM'],@s[ind]);
-                                   case i of
-                                     0: ;
-                                     1: timeval:=timeval+12*hrfactor;
-                                   else
-                                     arraymatcherror
-                                     end;
-                                   inc(pind,length(AMPMformatting[0]));
-                                   inc(ind,2);
-                                 end;
-                              1: begin
-                                    case upcase(s[ind]) of
-                                     'A' : ;
-                                     'P' : timeval:=timeval+12*hrfactor;
-                                   else
-                                     arraymatcherror
-                                     end;
-                                   inc(pind,length(AMPMformatting[1]));
-                                   inc(ind);
-                                 end;
-                               2: begin
-                                    i:=findimatch([fmt.timeamstring,fmt.timepmstring],@s[ind]);
-                                    case i of
-                                     0: inc(ind,length(fmt.timeamstring));
-                                     1: begin
-                                          timeval:=timeval+12*hrfactor;
-                                          inc(ind,length(fmt.timepmstring));
-                                        end;
-                                   else
-                                     arraymatcherror
-                                     end;
-                                   inc(pind,length(AMPMformatting[2]));
-                                   inc(pind,2);
-                                   inc(ind,2);
-                                 end;
-                            else  // no AM/PM match. Assume 'a' is simply a char
-                                matchchar(ptrn[pind]);
+                        i:=findimatch(AMPMformatting,@ptrn[pind]);
+                        case i of
+                            0: begin
+                                 if timeval >= 13*hrfactor - EPS then
+                                   raiseexception(SAMPMError);
+                                 i:=findimatch(['AM','PM'],@s[ind]);
+                                 case i of
+                                   0: if timeval >= 12*hrfactor then
+                                        timeval := timeval - 12*hrfactor;
+                                   1: if (timeval + EPS >= hrfactor) and (timeval + EPS <= 12*hrfactor) then
+                                        timeval:=timeval+12*hrfactor;
+                                 else
+                                   arraymatcherror
+                                   end;
+                                 inc(pind,length(AMPMformatting[0]));
+                                 inc(ind,2);
+                               end;
+                            1: begin
+                                 if timeval >= 13*hrfactor - EPS then
+                                   raiseexception(SAMPMError);
+                                  case upcase(s[ind]) of
+                                   'A' : if timeval >= 12*hrfactor then
+                                           timeval := timeval - 12*hrfactor;
+                                   'P' : if (timeval + EPS >= hrfactor) and (timeval + EPS <= 12*hrfactor) then
+                                           timeval := timeval + 12*hrfactor;
+                                 else
+                                   arraymatcherror
+                                   end;
+                                 inc(pind,length(AMPMformatting[1]));
+                                 inc(ind);
+                               end;
+                             2: begin
+                                  if timeval >= 13*hrfactor - EPS then
+                                    raiseexception(SAMPMError);
+                                  i:=findimatch([fmt.timeamstring,fmt.timepmstring],@s[ind]);
+                                  case i of
+                                   0: begin
+                                        if timeval >= 12*hrfactor then
+                                          timeval := timeval - 12*hrfactor;
+                                        inc(ind,length(fmt.timeamstring));
+                                      end;
+                                   1: begin
+                                        if (timeval + EPS >= hrfactor) and (timeval + EPS <= 12*hrfactor) then
+                                          timeval:=timeval + 12*hrfactor;
+                                        inc(ind,length(fmt.timepmstring));
+                                      end;
+                                 else
+                                   arraymatcherror
+                                  end;
+                                 inc(pind,length(AMPMformatting[2]));
+                               end;
+                           else  // no AM/PM match. Assume 'a' is simply a char
+                               matchchar(ptrn[pind]);
                              end;
                          end;
                '/' : matchchar(fmt.dateSeparator);
@@ -2460,7 +2680,7 @@ begin
                 matchchar(ptrn[pind]);
             end;
      end;
-   if (pind<plen) and (plen>0) and (ptrn[plen-1]<>#9) then  // allow omission of trailing whitespace
+   if (pind<plen) and (plen>0) and not (ptrn[plen-1] in [#9, '"']) then  // allow omission of trailing whitespace
      RaiseException(format(SFullpattern,[poffs+pind+1]));
 end;
 
@@ -2482,7 +2702,7 @@ end;
 function scandatetime(const pattern:string;const s:string;startpos:integer=1) : tdatetime; overload;
 
 begin
- result:=scandatetime(pattern,s,defaultformatsettings);
+ result:=scandatetime(pattern,s,defaultformatsettings,startpos);
 end;
 
 { Conversion of UTC to local time and vice versa }
@@ -2491,36 +2711,334 @@ end;
 function UniversalTimeToLocal(UT: TDateTime): TDateTime;
 
 begin
-  Result:=UniversalTimeToLocal(UT,GetLocalTimeOffset);
+  Result:=SysUtils.UniversalTimeToLocal(UT,-GetLocalTimeOffset(UT, True));
 end;
 
 function UniversalTimeToLocal(UT: TDateTime; TZOffset : Integer): TDateTime;
 
 begin
-  if (TZOffset > 0) then
-    Result := UT - EncodeTime(TZOffset div 60, TZOffset mod 60, 0, 0)
-  else if (TZOffset < 0) then
-    Result := UT + EncodeTime(Abs(TZOffset) div 60, Abs(TZOffset) mod 60, 0, 0)
-  else
-    Result := UT;
+  Result:=SysUtils.UniversalTimeToLocal(UT,TZOffset);
 end;
  
 Function LocalTimeToUniversal(LT: TDateTime): TDateTime;
 
 begin
-  Result:=LocalTimeToUniversal(LT,GetLocalTimeOffset);
+  Result:=SysUtils.LocalTimeToUniversal(LT,-GetLocalTimeOffset(LT, False));
 end;
 
 Function LocalTimeToUniversal(LT: TDateTime;TZOffset: Integer): TDateTime;
 
 begin
-  if (TZOffset > 0) then
-    Result := LT + EncodeTime(TZOffset div 60, TZOffset mod 60, 0, 0)
-  else if (TZOffset < 0) then
-    Result := LT - EncodeTime(Abs(TZOffset) div 60, Abs(TZOffset) mod 60, 0, 0)
-  else
-    Result := LT;
+  Result:=SysUtils.LocalTimeToUniversal(LT,TZOffset);
 end;
+
+Const
+  FmtUTC = 'yyyy"-"mm"-"dd"T"hh":"nn":"ss"."zzz';
+  FmtUTCTZ = 'hh":"mm';
+
+function DateToISO8601(const ADate: TDateTime; AInputIsUTC: Boolean = True): string;
+
+const
+  FmtOffset: string = '%.02d:%.02d';
+  Sign: array[Boolean] of Char = ('+', '-');
+
+var
+  Offset: Integer;
+begin
+  Result := FormatDateTime(FmtUTC, ADate);
+  Offset := GetLocalTimeOffset(ADate, AInputIsUTC);
+  if AInputIsUTC or (Offset=0) then
+    Result:=Result+'Z'
+  else
+    begin
+    Result:=Result+Sign[Offset>0];
+    Offset := Abs(Offset);
+    Result:= Result+Format(FmtOffset, [Offset div MinsPerHour, Offset mod MinsPerHour]);
+    end;
+end;
+
+function TryISOStrToDate(const aString: string; out outDate: TDateTime): Boolean;
+var
+  xYear, xMonth, xDay: LongInt;
+begin
+  case Length(aString) of
+    4: Result :=                                        // YYYY
+          TryStrToInt(aString, xYear) and
+          TryEncodeDate(xYear, 1, 1, outDate);
+    6: Result :=                                        // YYYYMM
+          TryStrToInt(Copy(aString, 1, 4), xYear) and
+          TryStrToInt(Copy(aString, 5, 2), xMonth) and
+          TryEncodeDate(xYear, xMonth, 1, outDate);
+    7: Result :=                                        // YYYY-MM
+          TryStrToInt(Copy(aString, 1, 4), xYear) and
+          TryStrToInt(Copy(aString, 6, 2), xMonth) and
+          TryEncodeDate(xYear, xMonth, 1, outDate);
+    8: Result :=                                        // YYYYMMDD
+          TryStrToInt(Copy(aString, 1, 4), xYear) and
+          TryStrToInt(Copy(aString, 5, 2), xMonth) and
+          TryStrToInt(Copy(aString, 7, 2), xDay) and
+          TryEncodeDate(xYear, xMonth, xDay, outDate);
+    10: Result :=                                       //YYYY-MM-DD
+          TryStrToInt(Copy(aString, 1, 4), xYear) and
+          TryStrToInt(Copy(aString, 6, 2), xMonth) and
+          TryStrToInt(Copy(aString, 9, 2), xDay) and
+          TryEncodeDate(xYear, xMonth, xDay, outDate);
+  else
+    Result := False;
+  end;
+  if not Result then
+    outDate := 0;
+end;
+
+
+function TryISOStrToTime(const aString: string; Out outTime: TDateTime): Boolean;
+var
+  xHour, xMinute, xSecond, xLength, res: LongInt;
+  xFractionalSecond: Extended;
+  tmp: String;
+begin
+  Result := True;
+  xLength := Length(aString);
+  if (xLength>0) and (aString[xLength] = 'Z') then
+  begin
+    Dec(xLength);
+  end else
+  if (xLength>6) and CharInSet(aString[xLength-5], ['+', '-']) then
+  begin
+    Result :=
+      TryStrToInt(Copy(aString, xLength-4, 2), xHour) and
+      (aString[xLength-2] = ':') and
+      TryStrToInt(Copy(aString, xLength-1, 2), xMinute);
+    Dec(xLength, 6);
+  end else
+  if (xLength>5) and CharInSet(aString[xLength-4], ['+', '-']) then
+  begin
+    Result :=
+      TryStrToInt(Copy(aString, xLength-3, 2), xHour) and
+      TryStrToInt(Copy(aString, xLength-1, 2), xMinute);
+    Dec(xLength, 5);
+  end else
+  if (xLength>3) and CharInSet(aString[xLength-2], ['+', '-']) then
+  begin
+    Result :=
+      TryStrToInt(Copy(aString, xLength-1, 2), xHour);
+    Dec(xLength, 3);
+  end;
+  if not Result then
+  begin
+    outTime := 0;
+    Exit;
+  end;
+
+  case xLength of
+    2: Result :=                                          // HH
+          TryStrToInt(aString, xHour) and
+          TryEncodeTime(xHour, 0, 0, 0, outTime);
+    4: Result :=                                          // HHNN
+          TryStrToInt(Copy(aString, 1, 2), xHour) and
+          TryStrToInt(Copy(aString, 3, 2), xMinute) and
+          TryEncodeTime(xHour, xMinute, 0, 0, outTime);
+    5: Result :=                                          // HH:NN
+          TryStrToInt(Copy(aString, 1, 2), xHour) and
+          (aString[3] = ':') and
+          TryStrToInt(Copy(aString, 4, 2), xMinute) and
+          TryEncodeTime(xHour, xMinute, 0, 0, outTime);
+    6: Result :=                                          // HHNNSS
+          TryStrToInt(Copy(aString, 1, 2), xHour) and
+          TryStrToInt(Copy(aString, 3, 2), xMinute) and
+          TryStrToInt(Copy(aString, 5, 2), xSecond) and
+          TryEncodeTime(xHour, xMinute, xSecond, 0, outTime);
+    else
+       if (xLength >= 8) and (aString[3] = ':') and (aString[6] = ':') then
+       begin
+         Result :=                            // HH:NN:SS
+           TryStrToInt(Copy(aString, 1, 2), xHour) and
+           TryStrToInt(Copy(aString, 4, 2), xMinute) and
+           TryStrToInt(Copy(aString, 7, 2), xSecond) and
+           TryEncodeTime(xHour, xMinute, xSecond, 0, outTime);
+         if Result and (xLength >= 9) then    // HH:NN:SS.[z] (0 or several z)
+         begin
+           tmp := copy(aString, 10, xLength-9);
+           val('.' + tmp, xFractionalSecond, res);
+           Result := (res = 0);
+           if Result then
+             outTime := outTime + xFractionalSecond * OneSecond;
+         end;
+       end else
+       if (xLength >= 7) and (aString[7] in ['.', ',']) then
+       begin
+         Result :=                         // HHNNSS
+           TryStrToInt(Copy(aString, 1, 2), xHour) and
+           TryStrToInt(Copy(aString, 3, 2), xMinute) and
+           TryStrToInt(Copy(aString, 5, 2), xSecond) and
+           TryEncodeTime(xHour, xMinute, xSecond, 0, outTime);
+         tmp := copy(aString, 8, xLength-7);
+         if Result and (tmp <> '') then
+         begin                           // HHNNSS.[z] (0 or several z)
+           val('.'+tmp, xFractionalSecond, res);
+           Result := res = 0;
+           if Result then
+             outTime := outTime + xFractionalSecond * OneSecond;
+         end;
+       end else
+         Result := false;
+  end;
+
+  if not Result then
+    outTime := 0;
+end;
+
+function TryISOStrToDateTime(const aString: string; out outDateTime: TDateTime): Boolean;
+var
+  xLength: Integer;
+  sDate,sTime : String;
+  xDate, xTime: TDateTime;
+
+begin
+  xLength := Length(aString);
+  if (xLength = 0) then
+    exit(false);
+
+  if (aString[1]='T') then
+    begin
+    Result := TryISOStrToTime(copy(aString, 2, Length(aString)-1), outDateTime);
+    exit;
+  end;
+
+  if (xLength in [4 {YYYY}, 7 {YYYY-MM}, 8 {YYYYMMDD}, 10 {YYYY-MM-DD}]) then
+    begin
+    Result := TryISOStrToDate(aString, outDateTime);
+    exit;
+    end;
+
+  if (xLength>11) and CharInSet(aString[11], [' ', 'T']) then   // YYYY-MM-DDT...
+    begin
+    sDate:=Copy(aString, 1, 10);
+    sTime:=Copy(aString, 12, Length(aString))
+    end
+  else if (xLength>9) and CharInSet(aString[9], [' ', 'T']) then    // YYYYMMDDT...
+    begin
+    sDate:=Copy(aString, 1, 8);
+    sTime:=Copy(aString, 10, Length(aString));
+    end
+  else
+    exit(False);
+  Result:=TryISOStrToDate(sDate, xDate)  and TryISOStrToTime(sTime, xTime);
+  if Result then
+    outDateTime := xDate+xTime
+  else
+    outDateTime := 0;
+end;
+
+Function TryISOTZStrToTZOffset(const TZ : String; Out TZOffset : Integer) : boolean;
+
+Var
+  H,M : LongInt;
+
+begin
+  Result:=(TZ='Z') or (TZ='');
+  if Result then
+    TZOffset:=0
+  else
+    begin
+    Result:=TZ[1] in ['+','-'];
+    if Not Result then
+      Exit;
+    case Length(TZ) of
+      3: begin
+        Result:=TryStrToInt(Copy(TZ,2,2),H);
+        M := 0;
+      end;
+      5: Result:=TryStrToInt(Copy(TZ,2,2),H) and TryStrToInt(Copy(TZ,4,2),M);
+      6: Result:=TryStrToInt(Copy(TZ,2,2),H) and TryStrToInt(Copy(TZ,5,2),M);
+    else
+      Result := False;
+    end;
+    if not Result then
+      exit;
+    TZOffset:=H*60+M;
+    if (TZ[1]='+') then
+      TZOffset:=-TZOffset;
+    end;
+end;
+
+Function ISOTZStrToTZOffset(TZ : String) : Integer;
+
+begin
+  if not TryISOTZStrToTZOffSet(TZ,Result) then
+    Raise EConvertError.CreateFmt('Invalid ISO timezone string',[TZ]);
+end;
+
+Function TryISO8601ToDate(const DateString: string; out ADateTime: TDateTime;ReturnUTC : Boolean = True) : Boolean;
+
+
+Var
+  S,TZ : String;
+  L,Offset,TZOffset : Integer;
+
+begin
+  S:=DateString;
+  L:=Length(S);
+  if L=0 then
+    exit(False);
+  if S[L]='Z' then
+    begin
+    TZ:='Z';
+    S:=Copy(S,1,L-1);
+    end
+  else if ((L>11) and ((S[11] in ['T',' ']) or (S[9] in ['T',' ']))) or // make sure that we dont't have date-only
+          (S[1]='T') then
+  begin
+    If (S[L-2] in ['+','-']) then
+    begin
+    TZ:=Copy(S,L-2,3);
+    S:=Copy(S,1,L-3);
+    end
+  else If (S[L-4] in ['+','-']) then
+    begin
+    TZ:=Copy(S,L-4,5);
+    S:=Copy(S,1,L-5);
+    end
+  else If (S[L-5] in ['+','-']) and ((L > 13) or (S[1]='T')) then  // do not confuse with '2021-05-21T13'
+    begin
+    TZ:=Copy(S,L-5,6);
+    S:=Copy(S,1,L-6);
+    end;
+  end;
+  Result:=TryIsoStrToDateTime(S,aDateTime) and TryISOTZStrToTZOffset(TZ,TZOffset);
+  if not Result then
+    exit;
+  aDateTime:=IncMinute(aDateTime,TZOffSet);
+  // offset for UTC or not
+  if ReturnUTC then
+    Offset:=0
+  else
+    OffSet:=-GetLocalTimeOffset(ADateTime, True);
+  aDateTime:=IncMinute(aDateTime,Offset);
+  Result:=True;
+end;
+
+Function ISO8601ToDate(const DateString: string; ReturnUTC : Boolean = True): TDateTime;
+
+begin
+  if not TryISO8601ToDate(DateString,Result,ReturnUTC) then
+    Raise EConvertError.CreateFmt(SErrInvalidTimeStamp,[DateString]);
+end;
+
+Function ISO8601ToDateDef(const DateString: string; ReturnUTC : Boolean; aDefault : TDateTime): TDateTime;
+
+begin
+  if not TryISO8601ToDate(DateString,Result,ReturnUTC) then
+    Result:=aDefault;
+end;
+
+Function ISO8601ToDateDef(const DateString: string; aDefault : TDateTime; ReturnUTC : Boolean = True): TDateTime;
+
+begin
+  if not TryISO8601ToDate(DateString,Result,ReturnUTC) then
+    Result:=aDefault;
+end;
+
 
 {$else}
 implementation

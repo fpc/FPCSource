@@ -282,277 +282,37 @@ const
   sysSerialCustomControl = Succ(sysSerialOpenBkgndV4);
 // Used by SerialMgrDispatch.c
   maxSerialSelector = sysSerialCustomControl;
-function SerialMgrInstall: Err;
-function SrmOpen(port, baud: UInt32; var newPortIdP: UInt16): Err;
-function SrmExtOpen(port: UInt32; var configP: SrmOpenConfigType; configSize: UInt16; var newPortIdP: UInt16): Err;
-function SrmExtOpenBackground(port: UInt32; var configP: SrmOpenConfigType; configSize: UInt16; var newPortIdP: UInt16): Err;
-function SrmOpenBackground(port, baud: UInt32; var newPortIdP: UInt16): Err;
-function SrmClose(portId: UInt16): Err;
-function SrmSleep: Err;
-function SrmWake: Err;
-function SrmGetDeviceCount(var numOfDevicesP: UInt16): Err;
-function SrmGetDeviceInfo(deviceID: UInt32; var deviceInfoP: DeviceInfoType): Err;
-function SrmGetStatus(portId: UInt16; var statusFieldP: UInt32; var lineErrsP: UInt16): Err;
-function SrmClearErr(portId: UInt16): Err;
-function SrmControl(portId, op: UInt16; valueP: Pointer; var valueLenP: UInt16): Err;
-function SrmCustomControl(portId, opCode: UInt16; creator: UInt32; valueP: Pointer; var valueLenP: UInt16): Err;
-function SrmSend(portId: UInt16; const bufP: Pointer; count: UInt32; var errP: Err): UInt32;
-function SrmSendWait(portId: UInt16): Err;
-function SrmSendCheck(portId: UInt16; var numBytesP: UInt32): Err;
-function SrmSendFlush(portId: UInt16): Err;
-function SrmReceive(portId: UInt16; rcvBufP: Pointer; count: UInt32; timeout: Int32; var errP: Err): UInt32;
-function SrmReceiveWait(portId: UInt16; bytes: UInt32; timeout: Int32): Err;
-function SrmReceiveCheck(portId: UInt16; var numBytesP: UInt32): Err;
-function SrmReceiveFlush(portId: UInt16; timeout: Int32): Err;
-function SrmSetReceiveBuffer(portId: UInt16; bufP: Pointer; bufSize: UInt16): Err;
-function SrmReceiveWindowOpen(portId: UInt16; var bufPP: UInt8Ptr; var sizeP: UInt32): Err;
-function SrmReceiveWindowClose(portId: UInt16; bytesPulled: UInt32): Err;
-function SrmSetWakeupHandler(portId: UInt16; procP: WakeupHandlerProcPtr; refCon: UInt32): Err;
-function SrmPrimeWakeupHandler(portId: UInt16; minBytes: UInt16): Err;
+
+function SerialMgrInstall: Err; syscall sysTrapSerialDispatch, sysSerialInstall;
+function SrmOpen(port, baud: UInt32; var newPortIdP: UInt16): Err; syscall sysTrapSerialDispatch, sysSerialOpen;
+function SrmExtOpen(port: UInt32; var configP: SrmOpenConfigType; configSize: UInt16; var newPortIdP: UInt16): Err; syscall sysTrapSerialDispatch, sysSerialOpenV4;
+function SrmExtOpenBackground(port: UInt32; var configP: SrmOpenConfigType; configSize: UInt16; var newPortIdP: UInt16): Err; syscall sysTrapSerialDispatch, sysSerialOpenBkgndV4;
+function SrmOpenBackground(port, baud: UInt32; var newPortIdP: UInt16): Err; syscall sysTrapSerialDispatch, sysSerialOpenBkgnd;
+function SrmClose(portId: UInt16): Err; syscall sysTrapSerialDispatch, sysSerialClose;
+function SrmSleep: Err; syscall sysTrapSerialDispatch, sysSerialSleep;
+function SrmWake: Err; syscall sysTrapSerialDispatch, sysSerialWake;
+function SrmGetDeviceCount(var numOfDevicesP: UInt16): Err; syscall sysTrapSerialDispatch, sysSerialGetDeviceCount;
+function SrmGetDeviceInfo(deviceID: UInt32; var deviceInfoP: DeviceInfoType): Err; syscall sysTrapSerialDispatch, sysSerialGetDeviceInfo;
+function SrmGetStatus(portId: UInt16; var statusFieldP: UInt32; var lineErrsP: UInt16): Err; syscall sysTrapSerialDispatch, sysSerialGetStatus;
+function SrmClearErr(portId: UInt16): Err; syscall sysTrapSerialDispatch, sysSerialClearErr;
+function SrmControl(portId, op: UInt16; valueP: Pointer; var valueLenP: UInt16): Err; syscall sysTrapSerialDispatch, sysSerialControl;
+function SrmCustomControl(portId, opCode: UInt16; creator: UInt32; valueP: Pointer; var valueLenP: UInt16): Err; syscall sysTrapSerialDispatch, sysSerialCustomControl;
+function SrmSend(portId: UInt16; const bufP: Pointer; count: UInt32; var errP: Err): UInt32; syscall sysTrapSerialDispatch, sysSerialSend;
+function SrmSendWait(portId: UInt16): Err; syscall sysTrapSerialDispatch, sysSerialSendWait;
+function SrmSendCheck(portId: UInt16; var numBytesP: UInt32): Err; syscall sysTrapSerialDispatch, sysSerialSendCheck;
+function SrmSendFlush(portId: UInt16): Err; syscall sysTrapSerialDispatch, sysSerialSendFlush;
+function SrmReceive(portId: UInt16; rcvBufP: Pointer; count: UInt32; timeout: Int32; var errP: Err): UInt32; syscall sysTrapSerialDispatch, sysSerialReceive;
+function SrmReceiveWait(portId: UInt16; bytes: UInt32; timeout: Int32): Err; syscall sysTrapSerialDispatch, sysSerialReceiveWait;
+function SrmReceiveCheck(portId: UInt16; var numBytesP: UInt32): Err; syscall sysTrapSerialDispatch, sysSerialReceiveCheck;
+function SrmReceiveFlush(portId: UInt16; timeout: Int32): Err; syscall sysTrapSerialDispatch, sysSerialReceiveFlush;
+function SrmSetReceiveBuffer(portId: UInt16; bufP: Pointer; bufSize: UInt16): Err; syscall sysTrapSerialDispatch, sysSerialSetRcvBuffer;
+function SrmReceiveWindowOpen(portId: UInt16; var bufPP: UInt8Ptr; var sizeP: UInt32): Err; syscall sysTrapSerialDispatch, sysSerialRcvWindowOpen;
+function SrmReceiveWindowClose(portId: UInt16; bytesPulled: UInt32): Err; syscall sysTrapSerialDispatch, sysSerialRcvWindowClose;
+function SrmSetWakeupHandler(portId: UInt16; procP: WakeupHandlerProcPtr; refCon: UInt32): Err; syscall sysTrapSerialDispatch, sysSerialSetWakeupHandler;
+function SrmPrimeWakeupHandler(portId: UInt16; minBytes: UInt16): Err; syscall sysTrapSerialDispatch, sysSerialPrimeWakeupHandler;
+
 //procedure SrmSelectorErrPrv(UInt16 serialSelector);  // used only by SerialMgrDispatch.c
+
 implementation
-
-function __SerialMgrInstall: Err; syscall sysTrapSerialDispatch;
-function __SrmOpen(port, baud: UInt32; var newPortIdP: UInt16): Err; syscall sysTrapSerialDispatch;
-function __SrmExtOpen(port: UInt32; var configP: SrmOpenConfigType; configSize: UInt16; var newPortIdP: UInt16): Err; syscall sysTrapSerialDispatch;
-function __SrmExtOpenBackground(port: UInt32; var configP: SrmOpenConfigType; configSize: UInt16; var newPortIdP: UInt16): Err; syscall sysTrapSerialDispatch;
-function __SrmOpenBackground(port, baud: UInt32; var newPortIdP: UInt16): Err; syscall sysTrapSerialDispatch;
-function __SrmClose(portId: UInt16): Err; syscall sysTrapSerialDispatch;
-function __SrmSleep: Err; syscall sysTrapSerialDispatch;
-function __SrmWake: Err; syscall sysTrapSerialDispatch;
-function __SrmGetDeviceCount(var numOfDevicesP: UInt16): Err; syscall sysTrapSerialDispatch;
-function __SrmGetDeviceInfo(deviceID: UInt32; var deviceInfoP: DeviceInfoType): Err; syscall sysTrapSerialDispatch;
-function __SrmGetStatus(portId: UInt16; var statusFieldP: UInt32; var lineErrsP: UInt16): Err; syscall sysTrapSerialDispatch;
-function __SrmClearErr(portId: UInt16): Err; syscall sysTrapSerialDispatch;
-function __SrmControl(portId, op: UInt16; valueP: Pointer; var valueLenP: UInt16): Err; syscall sysTrapSerialDispatch;
-function __SrmCustomControl(portId, opCode: UInt16; creator: UInt32; valueP: Pointer; var valueLenP: UInt16): Err; syscall sysTrapSerialDispatch;
-function __SrmSend(portId: UInt16; const bufP: Pointer; count: UInt32; var errP: Err): UInt32; syscall sysTrapSerialDispatch;
-function __SrmSendWait(portId: UInt16): Err; syscall sysTrapSerialDispatch;
-function __SrmSendCheck(portId: UInt16; var numBytesP: UInt32): Err; syscall sysTrapSerialDispatch;
-function __SrmSendFlush(portId: UInt16): Err; syscall sysTrapSerialDispatch;
-function __SrmReceive(portId: UInt16; rcvBufP: Pointer; count: UInt32; timeout: Int32; var errP: Err): UInt32; syscall sysTrapSerialDispatch;
-function __SrmReceiveWait(portId: UInt16; bytes: UInt32; timeout: Int32): Err; syscall sysTrapSerialDispatch;
-function __SrmReceiveCheck(portId: UInt16; var numBytesP: UInt32): Err; syscall sysTrapSerialDispatch;
-function __SrmReceiveFlush(portId: UInt16; timeout: Int32): Err; syscall sysTrapSerialDispatch;
-function __SrmSetReceiveBuffer(portId: UInt16; bufP: Pointer; bufSize: UInt16): Err; syscall sysTrapSerialDispatch;
-function __SrmReceiveWindowOpen(portId: UInt16; var bufPP: UInt8Ptr; var sizeP: UInt32): Err; syscall sysTrapSerialDispatch;
-function __SrmReceiveWindowClose(portId: UInt16; bytesPulled: UInt32): Err; syscall sysTrapSerialDispatch;
-function __SrmSetWakeupHandler(portId: UInt16; procP: WakeupHandlerProcPtr; refCon: UInt32): Err; syscall sysTrapSerialDispatch;
-function __SrmPrimeWakeupHandler(portId: UInt16; minBytes: UInt16): Err; syscall sysTrapSerialDispatch;
-
-function SerialMgrInstall: Err;
-begin
- asm
-  move.l #$sysSerialInstall,D2;
- end;
- SerialMgrInstall := __SerialMgrInstall;
-end;
-
-function SrmOpen(port, baud: UInt32; var newPortIdP: UInt16): Err;
-begin
- asm
-  move.l #$sysSerialOpen,D2;
- end;
- SrmOpen := __SrmOpen(port, baud, newPortIdP);
-end;
-
-function SrmExtOpen(port: UInt32; var configP: SrmOpenConfigType; configSize: UInt16; var newPortIdP: UInt16): Err;
-begin
- asm
-  move.l #$sysSerialOpenV4,D2;
- end;
- SrmExtOpen := __SrmExtOpen(port, configP, configSize, newPortIdP);
-end;
-
-function SrmExtOpenBackground(port: UInt32; var configP: SrmOpenConfigType; configSize: UInt16; var newPortIdP: UInt16): Err;
-begin
- asm
-  move.l #$sysSerialOpenBkgndV4,D2;
- end;
- SrmExtOpenBackground := __SrmExtOpenBackground(port, configP, configSize, newPortIdP);
-end;
-function SrmOpenBackground(port, baud: UInt32; var newPortIdP: UInt16): Err;
-begin
- asm
-  move.l #$sysSerialOpenBkgnd,D2;
- end;
- SrmOpenBackground := __SrmOpenBackground(port, baud, newPortIdP);
-end;
-
-function SrmClose(portId: UInt16): Err;
-begin
- asm
-  move.l #$sysSerialClose,D2;
- end;
- SrmClose := __SrmClose(portId);
-end;
-
-function SrmSleep: Err;
-begin
- asm
-  move.l #$sysSerialSleep,D2;
- end;
- SrmSleep := __SrmSleep;
-end;
-
-function SrmWake: Err;
-begin
- asm
-  move.l #$sysSerialWake,D2;
- end;
- SrmWake := __SrmWake;
-end;
-
-function SrmGetDeviceCount(var numOfDevicesP: UInt16): Err;
-begin
- asm
-  move.l #$sysSerialGetDeviceCount,D2;
- end;
- SrmGetDeviceCount := __SrmGetDeviceCount(numOfDevicesP);
-end;
-
-function SrmGetDeviceInfo(deviceID: UInt32; var deviceInfoP: DeviceInfoType): Err;
-begin
- asm
-  move.l #$sysSerialGetDeviceInfo,D2;
- end;
- SrmGetDeviceInfo := __SrmGetDeviceInfo(deviceID, deviceInfoP);
-end;
-
-function SrmGetStatus(portId: UInt16; var statusFieldP: UInt32; var lineErrsP: UInt16): Err;
-begin
- asm
-  move.l #$sysSerialGetStatus,D2;
- end;
- SrmGetStatus := __SrmGetStatus(portId, statusFieldP, lineErrsP);
-end;
-
-function SrmClearErr(portId: UInt16): Err;
-begin
- asm
-  move.l #$sysSerialClearErr,D2;
- end;
- SrmClearErr := __SrmClearErr(portId);
-end;
-
-function SrmControl(portId, op: UInt16; valueP: Pointer; var valueLenP: UInt16): Err;
-begin
- asm
-  move.l #$sysSerialControl,D2;
- end;
- SrmControl := __SrmControl(portId, op, valueP, valueLenP);
-end;
-
-function SrmCustomControl(portId, opCode: UInt16; creator: UInt32; valueP: Pointer; var valueLenP: UInt16): Err;
-begin
- asm
-  move.l #$sysSerialCustomControl,D2;
- end;
- SrmCustomControl := __SrmCustomControl(portId, opCode, creator, valueP, valueLenP);
-end;
-
-function SrmSend(portId: UInt16; const bufP: Pointer; count: UInt32; var errP: Err): UInt32;
-begin
- asm
-  move.l #$sysSerialSend,D2;
- end;
- SrmSend := __SrmSend(portId, bufP, count, errP);
-end;
-
-function SrmSendWait(portId: UInt16): Err;
-begin
- asm
-  move.l #$sysSerialSendWait,D2;
- end;
- SrmSendwait := __SrmSendwait(portId);
-end;
-
-function SrmSendCheck(portId: UInt16; var numBytesP: UInt32): Err;
-begin
- asm
-  move.l #$sysSerialSendCheck,D2;
- end;
- SrmSendCheck := __SrmSendCheck(portId, numBytesP);
-end;
-
-function SrmSendFlush(portId: UInt16): Err;
-begin
- asm
-  move.l #$sysSerialSendFlush,D2;
- end;
- SrmSendFlush := __SrmSendFlush(portId);
-end;
-
-function SrmReceive(portId: UInt16; rcvBufP: Pointer; count: UInt32; timeout: Int32; var errP: Err): UInt32;
-begin
- asm
-  move.l #$sysSerialReceive,D2;
- end;
- SrmReceive := __SrmReceive(portId, rcvBufP, count, timeout, errP);
-end;
-
-function SrmReceiveWait(portId: UInt16; bytes: UInt32; timeout: Int32): Err;
-begin
- asm
-  move.l #$sysSerialReceiveWait,D2;
- end;
- SrmReceiveWait := __SrmReceiveWait(portId, bytes, timeout);
-end;
-
-function SrmReceiveCheck(portId: UInt16; var numBytesP: UInt32): Err;
-begin
- asm
-  move.l #$sysSerialReceiveCheck,D2;
- end;
- SrmReceiveCheck := __SrmReceiveCheck(portId, numBytesP);
-end;
-
-function SrmReceiveFlush(portId: UInt16; timeout: Int32): Err;
-begin
- asm
-  move.l #$sysSerialReceiveFlush,D2;
- end;
- SrmReceiveFlush := __SrmReceiveFlush(portId, timeout);
-end;
-
-function SrmSetReceiveBuffer(portId: UInt16; bufP: Pointer; bufSize: UInt16): Err;
-begin
- asm
-  move.l #$sysSerialSetRcvBuffer,D2;
- end;
- SrmSetReceiveBuffer := __SrmSetReceiveBuffer(portId, bufP, bufSize);
-end;
-
-function SrmReceiveWindowOpen(portId: UInt16; var bufPP: UInt8Ptr; var sizeP: UInt32): Err;
-begin
- asm
-  move.l #$sysSerialRcvWindowOpen,D2;
- end;
- SrmReceiveWindowOpen := __SrmReceiveWindowOpen(portId, bufPP, sizeP);
-end;
-
-function SrmReceiveWindowClose(portId: UInt16; bytesPulled: UInt32): Err;
-begin
- asm
-  move.l #$sysSerialRcvWindowClose,D2;
- end;
- SrmReceiveWindowClose := __SrmReceiveWindowClose(portId, bytesPulled);
-end;
-
-function SrmSetWakeupHandler(portId: UInt16; procP: WakeupHandlerProcPtr; refCon: UInt32): Err;
-begin
- asm
-  move.l #$sysSerialSetWakeupHandler,D2;
- end;
- SrmSetWakeupHandler := __SrmSetWakeupHandler(portId, procP, refcon);
-end;
-
-function SrmPrimeWakeupHandler(portId: UInt16; minBytes: UInt16): Err;
-begin
- asm
-  move.l #$sysSerialPrimeWakeupHandler,D2;
- end;
- SrmPrimeWakeupHandler := __SrmPrimeWakeupHandler(portId, minBytes);
-end;
 
 end.

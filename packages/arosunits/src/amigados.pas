@@ -14,7 +14,7 @@
  **********************************************************************}
 {
  BSTR Funktions
- 
+
  defines:
  AROS_FAST_BPTR: BPTR is a pointer or a 2 shifted Pointer
    -> atm its standard ABIv0, for v1 needs a ifdef
@@ -23,7 +23,7 @@
 {$define AROS_FAST_BPTR}
 
 unit amigados;
-{$mode objfpc}
+
 interface
 
 uses
@@ -35,8 +35,8 @@ const
 { Predefined Amiga DOS global constants }
   DOSTRUE     = -1;
   DOSFALSE    =  0;
-  TICKS_PER_SECOND = 50;   { Number of ticks in one second }  
-    
+  TICKS_PER_SECOND = 50;   { Number of ticks in one second }
+
   // Still to TEST
   BITSPERBYTE         = 8;
   BYTESPERLONG        = 4;
@@ -51,25 +51,25 @@ type
 
 {* BCPL strings have a length in the first byte and then the characters.
  * For example:  s[0]=3 s[1]=S s[2]=Y s[3]=S                 *}
- 
- 
- 
-const    
+
+
+
+const
 // DOS functions will return this when they reach EOF. */
   ENDSTREAMCH = -1;
-// Buffering types for SetVBuf().  
+// Buffering types for SetVBuf().
   BUF_LINE    = 0; // Flush at the end of lines '\n'.
   BUF_FULL    = 1; // Flush only when buffer is full.
   BUF_NONE    = 2; // Do not buffer, read and write immediatly.
-        
+
 type
   PDateStamp = ^TDateStamp;
   TDateStamp = record
     ds_Days: Longint;        { Number of days since Jan. 1, 1978 }
     ds_Minute: Longint;      { Number of minutes past midnight }
     ds_Tick: Longint;        { Number of ticks past minute }
-  end; 
-      
+  end;
+
 const
 { The maximum length of filenames in AmigaOS. You should not depend on
   this value, as it may change in future versions.}
@@ -78,7 +78,7 @@ const
 { The maximum length of comments in AmigaOS. You should not depend on
   this value, as it may change in future versions.}
   MAXCOMMENTLENGTH = 80;
-  
+
 type
 { Returned by Examine() and ExInfo(), must be on a 4 byte boundary
   Structure used to describe a directory entry. Note that not all fields
@@ -99,7 +99,7 @@ type
     fib_OwnerGID: Word;                                     // GroupID of fileowner.
     fib_Reserved: array [0..31] of Char;                    // PRIVATE
   end;
-    
+
 const
 { FIB stands for TFileInfoBlock (fib_Protection)}
 
@@ -117,7 +117,7 @@ const
 // group flags
   FIBB_GRP_DELETE     = 8;  // Group: prevent file from being deleted *}
   FIBB_GRP_EXECUTE    = 9;  // Group: file is executable *}
-  FIBB_GRP_WRITE      = 10; // Group: file is writable *}   
+  FIBB_GRP_WRITE      = 10; // Group: file is writable *}
   FIBB_GRP_READ       = 11; // Group: file is readable *}
 // other
   FIBB_OTR_DELETE     = 12; // Other: prevent file from being deleted *}
@@ -125,13 +125,13 @@ const
   FIBB_OTR_WRITE      = 14; // Other: file is writable *}
   FIBB_OTR_READ       = 15; // Other: file is readable *}
 // Values
-  FIBF_DELETE         = (1 shl FIBB_DELETE); 
+  FIBF_DELETE         = (1 shl FIBB_DELETE);
   FIBF_EXECUTE        = (1 shl FIBB_EXECUTE);
   FIBF_WRITE          = (1 shl FIBB_WRITE);
-  FIBF_READ           = (1 shl FIBB_READ); 
-  FIBF_ARCHIVE        = (1 shl FIBB_ARCHIVE); 
-  FIBF_PURE           = (1 shl FIBB_PURE); 
-  FIBF_SCRIPT         = (1 shl FIBB_SCRIPT); 
+  FIBF_READ           = (1 shl FIBB_READ);
+  FIBF_ARCHIVE        = (1 shl FIBB_ARCHIVE);
+  FIBF_PURE           = (1 shl FIBB_PURE);
+  FIBF_SCRIPT         = (1 shl FIBB_SCRIPT);
 // Group Values
   FIBF_GRP_DELETE    = (1 shl FIBB_GRP_DELETE);
   FIBF_GRP_EXECUTE   = (1 shl FIBB_GRP_EXECUTE);
@@ -139,9 +139,9 @@ const
   FIBF_GRP_READ      = (1 shl FIBB_GRP_READ);
 // Other Values
   FIBF_OTR_DELETE    = (1 shl FIBB_OTR_DELETE);
-  FIBF_OTR_EXECUTE   = (1 shl FIBB_OTR_EXECUTE);  
-  FIBF_OTR_WRITE     = (1 shl FIBB_OTR_WRITE);  
-  FIBF_OTR_READ      = (1 shl FIBB_OTR_READ);  
+  FIBF_OTR_EXECUTE   = (1 shl FIBB_OTR_EXECUTE);
+  FIBF_OTR_WRITE     = (1 shl FIBB_OTR_WRITE);
+  FIBF_OTR_READ      = (1 shl FIBB_OTR_READ);
 
 // Devices
 type
@@ -158,7 +158,7 @@ type
     id_VolumeNode: BPTR;       // BCPL pointer to volume node
     id_InUse: IPTR;            // Flag, zero if not in use
   end;
-  
+
   {$PACKRECORDS NORMAL}
 
 const
@@ -177,8 +177,8 @@ const
   ID_INTER_FFS_DISK      = $444F5303; // 'DOS#3'
   ID_FASTDIR_DOS_DISK    = $444F5304; // 'DOS#4'
   ID_FASTDIR_FFS_DISK    = $444F5305; // 'DOS#5'
-  ID_NOT_REALLY_DOS      = $4E444F53; // 'NDOS' 
-  ID_KICKSTART_DISK      = $4B49434B; // 'KICK' 
+  ID_NOT_REALLY_DOS      = $4E444F53; // 'NDOS'
+  ID_KICKSTART_DISK      = $4B49434B; // 'KICK'
   ID_MSDOS_DISK          = $4d534400; // 'MSD#0'
   ID_SFS_BE_DISK         = $53465300; // 'SFS#0'
   ID_SFS_LE_DISK         = $73667300; // 'sfs#0'
@@ -205,11 +205,11 @@ const
    went wrong. This is especially useful for emulation devices, when the
    underlying system returned an error that the emulation side does not
    know.}
-  ERROR_UNKNOWN			             = 100;
-//General system errors 
+  ERROR_UNKNOWN                  = 100;
+//General system errors
   ERROR_NO_FREE_STORE            = 103; // Out of memory.
   ERROR_TASK_TABLE_FULL          = 105; // Too many tasks are already running.
-//Errors concerning ReadArgs().  
+//Errors concerning ReadArgs().
   ERROR_BAD_TEMPLATE             = 114; // Supplied template is broken
   ERROR_BAD_NUMBER               = 115; { A supplied argument that was expected to be numeric, was not numeric.
                                           This is also returned by some functions to expresss that a supplied
@@ -229,8 +229,8 @@ const
   ERROR_OBJECT_EXISTS            = 203; // You tried to overwrite an object.
   ERROR_DIR_NOT_FOUND            = 204; // The given directory or the path of a given object does not exist.
   ERROR_OBJECT_NOT_FOUND         = 205; // The given object does not exist.
-// Miscellaneous errors.  
-  ERROR_BAD_STREAM_NAME          = 206; 
+// Miscellaneous errors.
+  ERROR_BAD_STREAM_NAME          = 206;
   ERROR_OBJECT_TOO_LARGE         = 207; { The given object is too large for the operation to be made. Object is
                                           this context are for example components of path-names.}
   ERROR_ACTION_NOT_KNOWN         = 209; { This is usually used to indicate that a filesystem does not support a
@@ -247,7 +247,7 @@ const
   ERROR_DIRECTORY_NOT_EMPTY      = 216; // You tried to delete a directory that still contains some files. Delete these files first.
   ERROR_TOO_MANY_LEVELS          = 217; // A recursive directory search could not be performed, because the stack was too small.
   ERROR_DEVICE_NOT_MOUNTED       = 218; // You tried to access a device that is currently not mounted.
-  ERROR_SEEK_ERROR               = 219; // An error occured, while executing DosSeek().
+  ERROR_SEEK_ERROR               = 219; // An error occurred, while executing DosSeek().
   ERROR_COMMENT_TOO_BIG          = 220; // The supplied file comment was longer than the hardcoded length limit for file comments.
   ERROR_DISK_FULL                = 221; // A write-operation could not be performed, because the volume has no space left.
   ERROR_DELETE_PROTECTED         = 222; // You tried to delete a delete-protected object.
@@ -255,7 +255,7 @@ const
                                           the volume, you wanted to write to, is write-protected!}
   ERROR_READ_PROTECTED           = 224; // You tried to read a read-protected object.
   ERROR_NOT_A_DOS_DISK           = 225; // Accessed disk is unreadable.
-  ERROR_NO_DISK                  = 226; // You tried to perform an action on a device that has no volume mounted (eg. an empty disk drive). 
+  ERROR_NO_DISK                  = 226; // You tried to perform an action on a device that has no volume mounted (eg. an empty disk drive).
   ERROR_NO_MORE_ENTRIES          = 232; { This does not indicate an error, but is returned by several functions to
                                           indicate that the last entry of a list was reached.}
   ERROR_IS_SOFT_LINK              = 233; { Given action can not be performed on a given object, because it is a
@@ -269,33 +269,33 @@ const
   ERROR_RECORD_NOT_LOCKED         = 240; // You tried to access a record that was not locked.
   ERROR_LOCK_COLLISION            = 241; // Somebody already locked a part of the record, you wanted to lock.
   ERROR_LOCK_TIMEOUT              = 242; // LockRecord() timed out.
-  ERROR_UNLOCK_ERROR              = 243; // An error occured, while unlocking a record.
+  ERROR_UNLOCK_ERROR              = 243; // An error occurred, while unlocking a record.
 
-{ more error codes are defined in dosasl.h and filesystem.h } 
-   
+{ more error codes are defined in dosasl.h and filesystem.h }
+
 { Maximum length of strings got from Fault(). Note that they should be
    shorter than 60 characters. }
   FAULT_MAX  = 82;
-  
+
 { Signals that are set, if the user presses the corresponding keys on
    the controlling terminal. They may also be sent by using Signal().
    For more information see <exec/tasks.h>. }
   SIGBREAKB_CTRL_C   = 12; // CTRL-c, usually meaning program abortion.
   SIGBREAKB_CTRL_D   = 13; // CTRL-d
   SIGBREAKB_CTRL_E   = 14; // CTRL-e, usually meaning that the application should iconify itself.
-  SIGBREAKB_CTRL_F   = 15; // CTRL-f, usually meaning that the application should uniconify itself. 
+  SIGBREAKB_CTRL_F   = 15; // CTRL-f, usually meaning that the application should uniconify itself.
 { Bit fields that signal you that a user has issued a break
-  for example:  if (SetSignal(0,0) and SIGBREAKF_CTRL_C) then cleanup_and_exit();} 
+  for example:  if (SetSignal(0,0) and SIGBREAKF_CTRL_C) then cleanup_and_exit();}
   SIGBREAKF_CTRL_C   = 1 shl SIGBREAKB_CTRL_C;
   SIGBREAKF_CTRL_D   = 1 shl SIGBREAKB_CTRL_D;
   SIGBREAKF_CTRL_E   = 1 shl SIGBREAKB_CTRL_E;
-  SIGBREAKF_CTRL_F   = 1 shl SIGBREAKB_CTRL_F;  
+  SIGBREAKF_CTRL_F   = 1 shl SIGBREAKB_CTRL_F;
 
 { Mode parameter to Open() }
   MODE_OLDFILE   = 1005; // Open existing file read/write positioned at beginning of file.
   MODE_NEWFILE   = 1006; // Open freshly created file (delete old file) read/write
   MODE_READWRITE = 1004; // An old file is opened. If it does not exist, a new one is created.
-  
+
 { Passed as type to Lock() }
   SHARED_LOCK    = -2;             // Non-exclusive lock, other tasks may lock this file as well.
   ACCESS_READ    = SHARED_LOCK;    //   This is used for read-only operations.
@@ -306,7 +306,7 @@ const
   LOCK_SAME         =  0;
   LOCK_SAME_HANDLER =  1; // actually same volume
   LOCK_DIFFERENT    = -1;
-  
+
 { Values for MakeLink() }
   LINK_HARD =   0;
   LINK_SOFT =   1;
@@ -315,11 +315,11 @@ const
   OFFSET_BEGINNING = -1; // relative to Begining Of File
   OFFSET_CURRENT   =  0; // relative to Current file position
   OFFSET_END       =  1; // relative to End Of File
-  
+
 { Limits of the "Integer" type already defined in FPC... but ok}
   MAXINT = $7FFFFFFF;
   MININT = $80000000;
-  
+
 { types for ChangeMode() }
   CHANGE_LOCK = 0;
   CHANGE_FH = 1;
@@ -343,13 +343,13 @@ const
 { Data structures and equates used by the V1.4 DOS functions StrtoDate() and DatetoStr() }
 {--------- String/Date structures etc }
 type
-  PDateTime = ^TDateTime;
-  TDateTime = record
+  _PDateTime = ^_TDateTime;
+  _TDateTime = record
     dat_Stamp: TDateStamp; // DOS DateStamp
     dat_Format,            // controls appearance of dat_StrDate
     dat_Flags: Byte;       // see BITDEF's below
     dat_StrDay,            // day of the week string
-    dat_StrDate,           // date string 
+    dat_StrDate,           // date string
     dat_StrTime: STRPTR;   // time string
   end;
 
@@ -365,7 +365,7 @@ const
  FORMAT_MAX     = FORMAT_CDN;
  FORMAT_DEF     = 4;          { use default format, as defined by locale; if locale not
                                 available, use FORMAT_DOS instead }
-  
+
 { flags for dat_Flags }
 
  DTB_SUBST      = 0; // Substitute Today, Tomorrow, etc. if possible.
@@ -403,12 +403,12 @@ type
   TAChain = record
     an_Child,           // The next anchor
     an_Parent: PAChain; // The last anchor
-    an_Lock: BPTR;      // Lock of this anchor   
+    an_Lock: BPTR;      // Lock of this anchor
     an_Info: TFileInfoBlock; // fib Discribing this anchor
     an_Flags: ShortInt;      // se below
     an_String: array[0..0] of Char;
   end;
-const  
+const
 // an_Flags
   DDB_PatternBit  = 0;
   DDB_ExaminedBit = 1;
@@ -420,7 +420,7 @@ const
   DDF_Completed   = 1 shl DDB_Completed;
   DDF_AllBit      = 1 shl DDB_AllBit;
   DDF_Single      = 1 shl DDB_Single;
-   
+
 type
   PAnchorPath = ^TAnchorPath;
   TAnchorPath = record
@@ -444,7 +444,7 @@ type
 
 const
   APB_DOWILD       = 0; // Please check for wildcards in supplied string.
-  APB_ITSWILD      = 1; // There is actually a wildcard in the supplied string. READ-ONLY 
+  APB_ITSWILD      = 1; // There is actually a wildcard in the supplied string. READ-ONLY
   APB_DODIR        = 2; { Set, if a directory is to be entered.
                           Applications may clear this bit to prohibit the
                           matching-functions from entering a directory. }
@@ -456,13 +456,13 @@ const
 
   APF_DOWILD       = 1 shl APB_DOWILD;
   APF_ITSWILD      = 1 shl APB_ITSWILD;
-  APF_DODIR        = 1 shl APB_DODIR; 
+  APF_DODIR        = 1 shl APB_DODIR;
   APF_DIDDIR       = 1 shl APB_DIDDIR;
   APF_NOMEMERR     = 1 shl APB_NOMEMERR;
   APF_DODOT        = 1 shl APB_DODOT;
   APF_DirChanged   = 1 shl APB_DirChanged;
   APF_FollowHLinks = 1 shl APB_FollowHLinks;
-  
+
 { Predefined tokens for wildcards. The characters are replaced by these
   tokens in the tokenized string returned by the ParsePattern() function
   family.}
@@ -523,7 +523,7 @@ const
   EXT_ABSCOMMON  = 130;
   EXT_REF16      = 131; // 16bit relative reference to symbol
   EXT_RELREF16   = 131;
-  EXT_REF8       = 132; // 8bit relative reference to symbol 
+  EXT_REF8       = 132; // 8bit relative reference to symbol
   EXT_RELREF8    = 132;
   EXT_DEXT32     = 133; // 32 bit data releative reference
   EXT_DEXT16     = 134; // 16 bit data releative reference
@@ -581,7 +581,7 @@ type
     pr_PktWait: APTR;            // Function to be called when awaiting msg
     pr_WindowPtr: APTR;          // Window for error printing
     pr_HomeDir: BPTR;            // Home directory of executing program
-    pr_Flags: LongInt;           // flags telling dos about process 
+    pr_Flags: LongInt;           // flags telling dos about process
     pr_ExitCode: TExitProcedure; // code to call on exit of program OR nil
     pr_ExitData: IPTR;           // Passed as an argument to pr_ExitCode.
     pr_Arguments: STRPTR;        // Arguments passed to the process at start
@@ -604,7 +604,7 @@ const
   PRB_SYNCHRONOUS     = 7;
   PRB_WAITINGFORCHILD = 8; // This one is subject to change!
   PRB_NOTIFYONDEATH   = 9;
- 
+
   PRF_FREESEGLIST     = 1 shl PRB_FREESEGLIST;
   PRF_FREECURRDIR     = 1 shl PRB_FREECURRDIR;
   PRF_FREECLI         = 1 shl PRB_FREECLI;
@@ -626,7 +626,7 @@ type
     fh_Flags: ULONG;   { EXEC message        }
     fh_Port: PMsgPort;   { Reply port for the packet }
     fh_Type: PMsgPort;   { Port to do PutMsg() to Address is negative if a plain file }
-    
+
     fh_Buf: BPTR;
     fh_Pos: LongInt;
     fh_End: LongInt;
@@ -720,8 +720,8 @@ const
   ACTION_SEEK                 = 1008;
   ACTION_FORMAT               = 1020;
   ACTION_MAKE_LINK            = 1021;
-  ACTION_SET_FILE_SIZE        = 1022; 
-  ACTION_WRITE_PROTECT        = 1023; 
+  ACTION_SET_FILE_SIZE        = 1022;
+  ACTION_WRITE_PROTECT        = 1023;
   ACTION_READ_LINK            = 1024;
   ACTION_FH_FROM_LOCK         = 1026;
   ACTION_IS_FILESYSTEM        = 1027;
@@ -753,7 +753,7 @@ type
     sp_Msg: TMessage;
     sp_Pkt: TDosPacket;
   end;
-  
+
 const
 { types for initial packets to shells from run/newcli/execute/system.
   NOTE: AROS doesn't use startup packets. This will ONLY make a difference
@@ -773,14 +773,14 @@ type
                            [1] is CPTR to process id of CLI cpl_First
                            [n] is CPTR to process id of CLI cpl_First+n-1}
   end;
-  
+
 { structure for the Dos resident list.  Do NOT allocate these, use       }
 { AddSegment(), and heed the warnings in the autodocs!                   }
 type
   PSegment = ^TSegment;
   TSegment = record
     seg_Next: BPTR;    // Pointer to next segment.
-    seg_UC: LongInt;   // Usage count/type 
+    seg_UC: LongInt;   // Usage count/type
     seg_Seg: BPTR;     // Actual Segment
     seg_Name: array[0..3] of Char;  // actually the first 4 chars of BSTR name }
   end;
@@ -811,15 +811,15 @@ type
     cli_DefaultStack: LongInt; // Stack size to be obtained in long words
     cli_StandardOutput: BPTR;  // Default (terminal) CLI output
     cli_Module: BPTR;          // SegList of currently loaded command
-{$ifdef aros}    
-    cli_StandardError: BPTR;   // Standard/Default Error file. PFileLock 
-{$endif}    
+{$ifdef aros}
+    cli_StandardError: BPTR;   // Standard/Default Error file. PFileLock
+{$endif}
   end;
-  
+
 const
 // CLI_DEFAULTSTACK_UNIT * cli_DefaultStack = stack in bytes
   CLI_DEFAULTSTACK_UNIT = SizeOf(IPTR);
-  
+
 type
 {$ifdef aros}
   PDosListAROSExt = ^TDosListAROSExt;
@@ -848,12 +848,6 @@ type
     dl_DiskType: LongInt; // 'DOS', etc
     dl_unused: BPTR;
     dl_Name: BSTR;        // bptr to bcpl name
-{$ifdef aros}
-  {$ifndef AROS_DOS_PACKETS}         
-    dl_Reserved: array[0..5] of IPTR;
-    dl_AROS: TDosListAROSExt;
-  {$endif}           
-{$endif}     
   end;
 
 { device structure (same as the DeviceNode structure in filehandler.h) }
@@ -869,23 +863,17 @@ type
     dvi_Startup: BPTR;
 {$ifdef aros}
     dvi_NoAROS4: array[0..1] of BPTR;
-{$else}    
+{$else}
     dvi_SegList: BPTR;
     dvi_GlobVec: BSTR;
 {$endif}
     dvi_Name: BSTR;
-{$ifdef aros}
-  {$ifndef AROS_DOS_PACKETS}         
-    dvi_Reserved: array[0..5] of IPTR;
-    dvi_AROS: TDosListAROSExt;
-  {$endif}           
-{$endif}    
   end;
 
 const
-{ Dos list scanning and locking modes as used in LockDosList() 
+{ Dos list scanning and locking modes as used in LockDosList()
   Specify either LDF_READ, if you want a non-exclusive lock, or LDF_WRITE,
-  if you want an exclusive lock (i.e. if you want to modify the list).} 
+  if you want an exclusive lock (i.e. if you want to modify the list).}
   LDB_READ      =  0;
   LDB_WRITE     =  1;
 // Specify which list(s) to lock.
@@ -894,7 +882,7 @@ const
   LDB_ASSIGNS   =  4;
   LDB_ENTRY     =  5;
   LDB_DELETE    =  6;
-  
+
   LDF_READ      =  1 shl LDB_READ;
   LDF_WRITE     =  1 shl LDB_WRITE;
   LDF_DEVICES   =  1 shl LDB_DEVICES;
@@ -904,8 +892,8 @@ const
   LDF_DELETE    =  1 shl LDB_DELETE;
 { actually all but LDF_ENTRY (which is used for internal locking) }
   LDF_ALL       =  (LDF_DEVICES or LDF_VOLUMES or LDF_ASSIGNS);
-  
-type     
+
+type
 { Used for assigns that point to multiple directories. }
 
   PAssignList = ^TAssignList;
@@ -928,19 +916,8 @@ type
           dol_StackSize,              {    stacksize to use when starting process }
           dol_Priority: LongInt;               {    task priority when starting process }
           dol_Startup: BPTR;   {    startup msg: FileSysStartupMsg for disks }
-{$ifdef aros}
-          dol_NoAROS3: array[0..1] of BPTR; 
-{$else}          
           dol_SegList,                {    already loaded code for new task }
           dol_GlobVec: BPTR;      {    BCPL global vector to use when starting }
-{$endif}  
-          dol_Name: BSTR;           {    bptr to bcpl name }
-{$ifdef aros}
-  {$ifndef AROS_DOS_PACKETS}         
-          dol_Reserved: array[0..5] of IPTR;
-          dol_AROS: TDosListAROSExt;
-  {$endif}           
-{$endif}          
         end;
       );
       1 :(
@@ -957,8 +934,16 @@ type
           dol_List: PAssignList;   {    for multi-directory assigns (regular) }
         end;
       );
-    end;        
-    
+      3 :(
+        {$ifdef CPU64}
+        dol_Misc: array[0..39] of Byte;
+        {$else}
+        dol_Misc: array[0..23] of Byte;
+        {$endif}
+        dol_Name: BSTR;           {    bptr to bcpl name }
+      );
+    end;
+
 
 const
 
@@ -992,7 +977,7 @@ const
   This is not necessarily exhaustive!  Some handlers may use other
   values as needed, though <0 and >=0 should remain as supported as
   possible.}
-  ST_ROOT       =  1 ; // Root directory of filesystem 
+  ST_ROOT       =  1 ; // Root directory of filesystem
   ST_USERDIR    =  2 ; // Normal directory
   ST_SOFTLINK   =  3 ; // Soft link (may be a file or directory)
   ST_LINKDIR    =  4 ; // Hard link to a directory
@@ -1030,19 +1015,19 @@ type
     ed_Days,
     ed_Mins,
     ed_Ticks    : ULONG;
-    
+
     ed_Comment: PChar;     // The file comment
     ed_OwnerUID,           // The owner ID
     ed_OwnerGID : Word;    // the group-owner ID
   end;
-  
+
 { Type argument for ExAll(). Each number includes the information of all
   lower numbers, too. If you specify for example ED_SIZE, you will get
   information about name, type and the size of a file. Note that all
   filehandlers must handle all types up to ED_OWNER. If they do not support
   a type, they must return ERROR_WRONG_NUMBER. Currently
   that means, if a value higher than ED_OWNER is specified, filehandlers
-  must fail with this error.} 
+  must fail with this error.}
 const
   ED_NAME        = 1; // Filename.
   ED_TYPE        = 2; // Type of file.
@@ -1056,7 +1041,7 @@ const
   AllocDosObject(DOS_EXALLCONTROL,...) only. All fields must be initialized
   to 0, before using this structure. (AllocDosObject() does that for you.)
   After calling ExAll() the first time, this structure is READ-ONLY. }
-type  
+type
   PExAllControl = ^TExAllControl;
   TExAllControl = record
     eac_Entries: ULONG;     // number of entries returned in buffer
@@ -1165,19 +1150,13 @@ type
                              * vector for you.
                              }
     dn_Name: BSTR;         { the node name, e.g. '\3','D','F','3' }
-{$ifdef aros}
-  {$ifndef AROS_DOS_PACKETS}         
-    dn_Reserved: array[0..5] of IPTR;  // Private extensions Should not be used in user land code.
-    dn_AROS: TDosListAROSExt;
-  {$endif}           
-{$endif}     
   end;
 
 type
 {  General notification structure as passed to StartNotify() and EndNotify().
    After passing it to StartNotify() the first time, this structure becomes
    READ-ONLY! }
-   
+
   PNotifyRequest = ^TNotifyRequest;
   TNotifyRequest = record
     nr_Name: STRPTR;        // Name of the watched file.
@@ -1187,7 +1166,7 @@ type
                                 // The following case specified the way to notify the application, if
     nr_stuff: record            // the watched file changes. IF NRF_SEND_MESSAGE is set, nr_Msg is used,
     case SmallInt of            // when NRF_SEND_SIGNAL is set, nr_Signal is used.
-       0: ( nr_Msg: record                  
+       0: ( nr_Msg: record
             nr_Port: PMsgPort; // Port to send message to.
          end );
        1 : ( nr_Signal: record
@@ -1208,7 +1187,7 @@ type
     nm_Code: Word;               // Code: NOTIFY_CODE
     nm_NReq: PNotifyRequest;     // The notify structure that was passed to StartNotify(). Read-Only
     nm_DoNotTouch,               // like it says!  For use by handlers
-    nm_DoNotTouch2 : LongWord;   // dito 
+    nm_DoNotTouch2 : LongWord;   // dito
    end;
 
 
@@ -1234,7 +1213,7 @@ const
   NOTIFY_CLASS  =  $40000000;
 
 //nm_Code. Do not use, yet.
-   NOTIFY_CODE   =  $1234;  
+   NOTIFY_CODE   =  $1234;
 
 {   *********************************************************************
  *
@@ -1322,7 +1301,7 @@ type
        to ReadArgs(). If either of these fields is 0, ReadArgs() allocates this
        buffer itself.}
     RDA_Buffer: PChar;       // Pointer to buffer. May be nil.
-    RDA_BufSiz: LongInt;     // Size of the supplied RDA_Buffer. May be 0. 
+    RDA_BufSiz: LongInt;     // Size of the supplied RDA_Buffer. May be 0.
     RDA_ExtHelp: PChar;      // Additional help, if user requests it, by supplying '?' as argument.
     RDA_Flags: LongInt;      // Flags for any required control (RDAF_?)
   end;
@@ -1372,7 +1351,7 @@ type
   PLocalVar = ^TLocalVar;
   TLocalVar = record
     lv_Node: TNode;     // Standard node structure as defined in Exec
-    lv_Flags: Word;     
+    lv_Flags: Word;
     lv_Value: STRPTR;   // The contents of the variable.
     lv_Len: LongWord;   // The length of the contents.
   end;
@@ -1389,7 +1368,7 @@ const
   LVF_IGNORE = 1 shl LVB_IGNORE;
 
 { definitions of flags passed to GetVar()/SetVar()/DeleteVar()
-  bit defs to be OR'ed with the type: 
+  bit defs to be OR'ed with the type:
   item will be treated as a single line of text unless BINARY_VAR is used }
   GVB_GLOBAL_ONLY    =  8;      //The variable is not to be used locally.
   GVB_LOCAL_ONLY     =  9;      // The variable is not to be used globally.
@@ -1407,7 +1386,7 @@ const
 {    definitions for the System() call }
 
   SYS_Dummy       = (TAG_USER + 32);
-  SYS_Input       = (SYS_Dummy + 1); // specifies the input filehandle 
+  SYS_Input       = (SYS_Dummy + 1); // specifies the input filehandle
   SYS_Output      = (SYS_Dummy + 2); // specifies the output filehandle
   SYS_Asynch      = (SYS_Dummy + 3); // run asynch, close input/output on exit(!)
   SYS_UserShell   = (SYS_Dummy + 4); // send to user shell instead of boot shell
@@ -1416,8 +1395,8 @@ const
   SYS_Error       = (SYS_Dummy + 10); // (BPTR/struct FileHandle *) Output filehandle.
   SYS_ScriptInput = (SYS_Dummy + 11); // Filehandle to script to execute
   SYS_Background  = (SYS_Dummy + 12); // (BOOL) The shell is run as a "background shell
-  SYS_CliNumPtr   = (SYS_Dummy + 13); // (LONG *) ti_Data to store the cli number    
-    
+  SYS_CliNumPtr   = (SYS_Dummy + 13); // (LONG *) ti_Data to store the cli number
+
 { This is not a Tag its a TAG Item  Use this together with SYS_Input, SYS_Output and
   SYS_Error, to tell SystemTagList to *duplicate* the respective caller's streams.}
   SYS_DupStream   = 1;
@@ -1428,11 +1407,11 @@ const
   is inherited from the parent process. Additionally you may use tags for
   AllocDosObject(DOS_CLI, ...).}
   NP_Dummy       = (TAG_USER + 1000);
-  NP_Seglist     = (NP_Dummy + 1); // seglist of code to run for the process  
+  NP_Seglist     = (NP_Dummy + 1); // seglist of code to run for the process
   NP_FreeSeglist = (NP_Dummy + 2); // free seglist on exit - only valid for for NP_Seglist.  Default is True.
   NP_Entry       = (NP_Dummy + 3); // entry point to run, mutually exclusive with NP_Seglist!
   NP_Input       = (NP_Dummy + 4); // filehandle - default is Open("NIL:"...)
-  NP_Output      = (NP_Dummy + 5); // filehandle - default is Open("NIL:"...) 
+  NP_Output      = (NP_Dummy + 5); // filehandle - default is Open("NIL:"...)
   NP_CloseInput  = (NP_Dummy + 6); // close input filehandle on exit default True
   NP_CloseOutput = (NP_Dummy + 7); // close output filehandle on exit default True
   NP_Error       = (NP_Dummy + 8); // filehandle - default is Open("NIL:"...)
@@ -1449,10 +1428,10 @@ const
   NP_Path        = (NP_Dummy + 19);// path - default is copy of parents path only valid if a cli process!
   NP_CommandName = (NP_Dummy + 20);// commandname - valid only for CLI
   NP_Arguments   = (NP_Dummy + 21);// If this tag is used, NP_Input must not be NULL.
-//The following two tags do not work, yet.  
+//The following two tags do not work, yet.
   NP_NotifyOnDeath = (NP_Dummy + 22); // (BOOL) Notify parent, when process exits? (Default: FALSE)
   NP_Synchronous   = (NP_Dummy + 23); // (BOOL) Wait until called process returns. (Default: FALSE)
-  
+
   NP_ExitCode      = (NP_Dummy + 24);// (APTR) Code that is to be called, when process exits. (Default: NULL)
   NP_ExitData      = (NP_Dummy + 25);// (APTR) Optional data for NP_ExitCode. (Default: NULL)
 {$ifdef aros}
@@ -1482,7 +1461,7 @@ type
     rn_Flags: LongInt;           // dos flags
     rn_RootLock: TSignalSemaphore; // RootNode arbitrator
   end;
-  
+
 { Structure that is linked into the rootnode's rn_CliList. Completely
    private, of course! ... and it's not compatible to AmigaOS.}
   PCLIInfo = ^TCLIInfo;
@@ -1498,8 +1477,8 @@ type
     estr_Nums: PLongInt;
     estr_Strings: STRPTR;
   end;
-  
-const  
+
+const
 { error report types for ErrorReport() }
   REPORT_STREAM = 0; // a stream
   REPORT_TASK   = 1; // a process - unused
@@ -1518,40 +1497,17 @@ type
   TDosLibrary = record
     dl_lib: TLibrary;
     dl_Root: PRootNode;      // Pointer to RootNode, described below }
-{$ifdef AROS_FLAVOUR_BINCOMPAT}    
+
     dl_GV: APTR;             // Pointer to BCPL global vector       }
     dl_A2: LongInt;          // Private register dump of DOS        }
     dl_A5: LongInt;
     dl_A6: LongInt;
-{$endif}    
+
     dl_Errors: PErrorString;    // pointer to array of error msgs
     dl_TimeReq: PTimeRequest;   // private pointer to timer request
     dl_UtilityBase  : PLibrary; // private ptr to utility library
     dl_IntuitionBase : PLibrary;
-{ These were AROS-specific private fields. At the moment they are mostly not used
-  and are present only for binary compatibility with programs that used dl_Flags
-  (Directory Opus for example). Do not try to use them in any way!}
-{$ifdef aros}  
-    dl_TimerBase: PDevice;
-    dl_TimerIO: TTimeRequest;
-    dl_DevInfo: PDosList;
-    dl_SysBase: PExecBase;
-    dl_SegList: BPTR;
-    dl_NulHandler: PDevice;
-    dl_NulLock: PUnit;
-  // LDDemon (library loader) private data
-    dl_LDObjectsListSigSem: TSignalSemaphore;
-    dl_LDObjectsList: TList;
-    dl_LDHandler: TInterrupt;
-    dl_LDDemonPort: PMsgPort;
-    dl_LDDemonTask: PProcess;
-    dl_LDReturn: ULONG;
-    //* AROS-specific and private. Can go away in future.
-    dl_SYSLock: BPTR;
-    // The flags are ORed with RootNode^.rn_Flags. See below for definitions.
-    dl_Flags: ULONG; 
-{$endif}    
-  end; 
+  end;
 
 const
   RNB_WILDSTAR   = 24;
@@ -1577,14 +1533,14 @@ type
   TIFS_READ_WRITE = record
     io_Buffer: PChar;    // The buffer for the data to read/write.
     io_Length: LongInt;  // The length of the buffer. This is filled by the filesystem handler
-  end;                   // with the number of bytes actually read/written.  
+  end;                   // with the number of bytes actually read/written.
 // This action does exactly the same as the function Seek().
   PIFS_SEEK = ^TIFS_SEEK;
   TIFS_SEEK = record
     io_Offset: QWord;     // Offset from position, specified as mode. This is filled by the
-                          // filehandler with the old position in the file.   
-    io_SeekMode: LongInt; // Seek mode (OFFSET_*)                   
-  end;  
+                          // filehandler with the old position in the file.
+    io_SeekMode: LongInt; // Seek mode (OFFSET_*)
+  end;
 { Waits for a character to arrive at the filehandle. This is not used for
    plain files, but for queues only. Optionally a maximum time to wait may be
    specified.}
@@ -1600,20 +1556,20 @@ type
     io_FileMode: LongWord; // The new mode to apply to the filehandle. See below for definitions.
                            //  The filehandler fills this with the old mode bits.
     io_Mask: LongWord;     // This mask defines which flags are to be changed.
-  end;   
+  end;
 { This action can be used to query if a filehandle is interactive, i.e. if it
    is a terminal or not.}
   PIFS_IS_INTERACTIVE = ^TIFS_IS_INTERACTIVE;
   TIFS_IS_INTERACTIVE = record
     io_IsInteractive: LongBool; // This boolean is filled by the filehandler. It is set to TRUE if the
-                                //  filehandle is interactive, otherwise it is set to FALSE. 
+                                //  filehandle is interactive, otherwise it is set to FALSE.
   end;
 // Compares two locks for equality.
   PIFS_SAME_LOCK = ^TIFS_SAME_LOCK;
   TIFS_SAME_LOCK = record
     io_Lock: array[0..1] of APTR; // The two locks to compare.
     io_Same: LongInt;             // This is set to one of LOCK_DIFFERENT or LOCK_SAME
-  end;  
+  end;
 // Examines a filehandle, giving various information about it.
   PIFS_EXAMINE = ^TIFS_EXAMINE;
   TIFS_EXAMINE = record
@@ -1633,7 +1589,7 @@ type
     io_eac: PExallControl;
     io_Size: LongInt;
     io_Mode: LongInt;
-  end;   
+  end;
 { Works exactly like FSA_OPEN, but you can additionally specify protection
    bits to be applied to new files.}
   PIFS_OPEN_FILE = ^TIFS_OPEN_FILE;
@@ -1654,7 +1610,7 @@ type
     io_Filename: STRPTR;  // The filename of the link to create.
     io_OldFile: APTR;     // Filehandle of the file to link to.
   end;
-// Creates a soft link (i.e. a file is created that references another by its name). 
+// Creates a soft link (i.e. a file is created that references another by its name).
   PIFS_CREATE_SOFTLINK = ^TIFS_CREATE_SOFTLINK;
   TIFS_CREATE_SOFTLINK = record
     io_Filename: STRPTR;  // The filename of the link to create.
@@ -1672,7 +1628,7 @@ type
     io_Filename: STRPTR; // file name which returned ERROR_IS_SOFT_LINK
     io_Buffer: STRPTR;   { The buffer to fill with the pathname. If this buffer is too small, the
                             filesystem handler is supposed to return ERROR_LINE_TOO_LONG.}
-    io_Size: LongWord;  // The size of the buffer pointed to by io_Buffer. 
+    io_Size: LongWord;  // The size of the buffer pointed to by io_Buffer.
   end;
 // Deletes an object on the volume.
   PIFS_DELETE_OBJECT = ^TIFS_DELETE_OBJECT;
@@ -1704,12 +1660,12 @@ type
   TIFS_SET_DATE = record
     io_Filename: STRPTR;  // The file to change
     io_Date: TDateStamp;  // The new date
-  end; 
+  end;
 // Check if a filesystem is in fact a FILEsystem, i.e. can contain different files.
   PIFS_IS_FILESYSTEM = ^TIFS_IS_FILESYSTEM;
   TIFS_IS_FILESYSTEM = record
     io_IsFilesystem: LongBool; // This is set to True by the filesystem handler if it is a filesystem
-  end;                         // and set to False if it is not. 
+  end;                         // and set to False if it is not.
 { Changes the number of buffers for the filesystem. The current number of
    buffers is returned. The size of the buffers is filesystem-dependent.}
   PIFS_MORE_CACHE = ^TIFS_MORE_CACHE;
@@ -1738,7 +1694,7 @@ type
   end;
   PIFS_NOTIFY = ^TIFS_NOTIFY;
   TIFS_NOTIFY = record
-    io_FileName: STRPTR;		// Needed for synchronous operation
+    io_FileName: STRPTR;    // Needed for synchronous operation
     io_NotificationRequest: PNotifyRequest;
   end;
   PIFS_INFO = ^TIFS_INFO;
@@ -1781,10 +1737,10 @@ type
   TIFS_PIPE = record
     io_FileName: STRPTR;
     io_Writer: PUnit;
-  end;  
+  end;
 const
   FSA_OPEN            =  1; // Returns a new filehandle. The file may be newly created (depending on io_FileMode) TIFS_OPEN
-  FAS_CLOSE           =  2; // Closes an opened filehandle. Takes no extra arguments. 
+  FAS_CLOSE           =  2; // Closes an opened filehandle. Takes no extra arguments.
   FSA_READ            =  3; // Reads from a filehandle into a buffer. TIFS_READ_WRITE
   FSA_WRITE           =  4; // Writes the contents of a buffer into a filehandle. Uses TIFS_READ_WRITE.
   FSA_SEEK            =  5; // This action does exactly the same as the function Seek(). TIFS_SEEK
@@ -1792,7 +1748,7 @@ const
   FSA_WAIT_CHAR       =  7; // Waits for a character to arrive at the filehandle. (TIFS_WAIT_CHAR)
   FSA_FILE_MODE       =  8; // Applies a new mode to a file.
   FSA_IS_INTERACTIVE  =  9; // Query if a filehandle is interactive
-  FSA_SAME_LOCK       = 10; // Compares two locks for equality. 
+  FSA_SAME_LOCK       = 10; // Compares two locks for equality.
   FSA_EXAMINE         = 11; // Examines a filehandle, giving various information about it.
   FSA_EXAMINE_NEXT    = 12; // Examine next file
   FSA_EXAMINE_ALL     = 13; // Works exactly like FSA_EXAMINE on directories
@@ -1815,12 +1771,12 @@ const
   FSA_MOUNT_MODE      = 29; // Resets/reads the mount-mode
   //FSA_SERIALIZE_DISK = 30; // currently not supported
   // FSA_FLUSH         = 31; // currently not supported
-  FSA_INHIBIT	        = 32;
+  FSA_INHIBIT         = 32;
   //FSA_WRITE_PROTECT   = 33; // currently not supported
   //FSA_DISK_CHANGE     = 34; // currently not supported
-  FSA_ADD_NOTIFY	    = 35;
+  FSA_ADD_NOTIFY      = 35;
   FSA_REMOVE_NOTIFY   = 36;
-  FSA_DISK_INFO	      = 37;
+  FSA_DISK_INFO       = 37;
   FSA_CHANGE_SIGNAL   = 38;
   FSA_LOCK_RECORD     = 39;
   FSA_UNLOCK_RECORD   = 40;
@@ -1828,7 +1784,7 @@ const
   FSA_PARENT_DIR_POST = 42;
   FSA_CONSOLE_MODE    = 43; // Allows us to change a console between raw and cooked mode.
   FSA_RELABEL         = 44;
-  FSA_PIPE            = 45; // create a pair of handles connected to each other 
+  FSA_PIPE            = 45; // create a pair of handles connected to each other
 // io_ConsoleMode
   FCM_COOKED = 0;
   FCM_RAW    = 1 shl 0;
@@ -1846,24 +1802,24 @@ const
   FMF_NONBLOCK = 1 shl 7; // Don't block Open() in case it would and return an error in case Write()/Read()  would block
   FMF_APPEND   = 1 shl 8; // Every write will happen always at the end of the file
   FMF_AMIGADOS = (1 shl 9) or (1 shl 31); // Identifies the old AmigaDOS modes:
-					                                // - bit 9 is the first bit set in the MODE_#? modes
-					                                // - bit 31 is the first bit set in ACCESS_#? modes
+                                          // - bit 9 is the first bit set in the MODE_#? modes
+                                          // - bit 31 is the first bit set in ACCESS_#? modes
   FMF_MODE_OLDFILE   = FMF_AMIGADOS or FMF_WRITE or FMF_READ;
   FMF_MODE_READWRITE = FMF_MODE_OLDFILE or FMF_CREATE;
   FMF_MODE_NEWFILE   = FMF_MODE_READWRITE or FMF_LOCK or FMF_CLEAR;
 // io_MountMode for FSA_MOUNT_MODE. These are flags and may be OR'ed.
   MMF_READ        = 1 shl 0; // Mounted for reading.
-  MMF_WRITE	      = 1 shl 1; // Mounted for writing.
-  MMF_READ_CACHE	= 1 shl 2; // Read cache enabled.
+  MMF_WRITE       = 1 shl 1; // Mounted for writing.
+  MMF_READ_CACHE  = 1 shl 2; // Read cache enabled.
   MMF_WRITE_CACHE = 1 shl 3; // Write cache enabled.
-  MMF_OFFLINE	    = 1 shl 4; // Filesystem currently does not use the device.
-  MMF_LOCKED	    = 1 shl 5; // Mount mode is password protected.
+  MMF_OFFLINE     = 1 shl 4; // Filesystem currently does not use the device.
+  MMF_LOCKED      = 1 shl 5; // Mount mode is password protected.
 { This structure is an extended TIORequest. It is used for
    requesting actions from AROS filesystem handlers.
    Note that this structure may grow in the future. Do not depend on its size!
    You may use sizeof(TIOFileSys) nevertheless if you are reserving
    memory for a TIOFileSys as the size of it will never shrink.}
-type   
+type
   PIOFileSys = ^TIOFileSys;
   TIOFileSys = record
     IOFS: TIORequest; // Standard I/O request.
@@ -1880,13 +1836,13 @@ type
             io_DosName: STRPTR;    // The name with which the
                                    //    filesystem is being mounted
                                    //    (the mount point, one might
-                                   //    say) 
+                                   //    say)
             io_DeviceNode: PDeviceNode; // The DOS entry for this
                                         // filesystem. Packet-based
                                         // filesystems expect to receive
                                         // this along with the
                                         // startup message
-            end;                                     
+            end;
         );
         1: (io_NamedFile: record
           io_Filename: STRPTR;
@@ -1918,31 +1874,31 @@ type
           io_MORE_CACHE: TIFS_MORE_CACHE;           // FSA_MORE_CACHE */
           io_FORMAT: TIFS_FORMAT;                   // FSA_FORMAT */
           io_MOUNT_MODE: TIFS_MOUNT_MODE;           // FSA_MOUNT_MODE */
-	        io_INHIBIT: TIFS_INHIBIT;                 // FSA_INHIBIT */
+          io_INHIBIT: TIFS_INHIBIT;                 // FSA_INHIBIT */
           io_PARENT_DIR: TIFS_PARENT_DIR;           // FSA_PARENT_DIR */
-	      	io_CONSOLE_MODE: TIFS_CONSOLE_MODE;       // FSA_CONSOLE_MODE */
-	        io_RELABEL: TIFS_RELABEL;                 // FSA_RELABEL */
-	        io_NOTIFY: TIFS_NOTIFY;                   // FSA_ADD_NOTIFY
- 	        io_INFO: TIFS_INFO;                       // FSA_INFO
-	        io_RECORD: TIFS_RECORD;                   // FSA_LOCK_RECORD
-	        io_CHANGE_SIGNAL: TIFS_CHANGE_SIGNAL;     // FSA_CHANGE_SIGNAL
+          io_CONSOLE_MODE: TIFS_CONSOLE_MODE;       // FSA_CONSOLE_MODE */
+          io_RELABEL: TIFS_RELABEL;                 // FSA_RELABEL */
+          io_NOTIFY: TIFS_NOTIFY;                   // FSA_ADD_NOTIFY
+          io_INFO: TIFS_INFO;                       // FSA_INFO
+          io_RECORD: TIFS_RECORD;                   // FSA_LOCK_RECORD
+          io_CHANGE_SIGNAL: TIFS_CHANGE_SIGNAL;     // FSA_CHANGE_SIGNAL
           io_PIPE: TIFS_PIPE;                       // FSA_PIPE
     );
     end;
-end;  
+end;
 
 const
   ERROR_BROKEN_PIPE = 400;  // An attempt to write on a pipe without any reader has been made
   ERROR_WOULD_BLOCK = 401;  // A Read() or a Write() on a file opened with the FMF_NONBLOCK flag would block
-  ERROR_INTERRUPTED = 402;  // The I/O file operation has been interrupted for some reason  
-  
-// elf.h  
-  
+  ERROR_INTERRUPTED = 402;  // The I/O file operation has been interrupted for some reason
+
+// elf.h
+
 type
   //*
   //* Define one of ELF_64BIT or ELF_32BIT in your code if you want to enforce specific
   //* version of ELF structures. Otherwize it fails back to your native machine's size.
-  //*  
+  //*
   {$IFDEF ELF_64BIT}
   {$define elf_ptr_t}
   elf_ptr_t             = UQUAD;
@@ -1973,16 +1929,16 @@ Const
   SHT_REL               =  9;
   SHT_SYMTAB_SHNDX      = 18;
   SHT_ARM_ATTRIBUTES    = $70000003;
-  
+
   ET_REL                =  1;
   ET_EXEC               =  2;
-  
+
   EM_386                =  3;
   EM_68K                =  4;
   EM_PPC                = 20;
   EM_ARM                = 40;
   EM_X86_64             = 62;     //* AMD x86-64 */
-  
+
   R_386_NONE            = 0;
   R_386_32              = 1;
   R_386_PC32            = 2;
@@ -1993,7 +1949,7 @@ Const
   R_X86_64_PC32         =  2;      //* PC relative 32 bit signed */
   R_X86_64_32           = 10;
   R_X86_64_32S          = 11;
-  
+
   R_68K_NONE            = 0;
   R_68K_32              = 1;
   R_68K_16              = 2;
@@ -2001,7 +1957,7 @@ Const
   R_68K_PC32            = 4;
   R_68K_PC16            = 5;
   R_68K_PC8             = 6;
-  
+
   R_PPC_NONE            =   0;
   R_PPC_ADDR32          =   1;
   R_PPC_ADDR16_LO       =   4;
@@ -2010,7 +1966,7 @@ Const
   R_PPC_REL32           =  26;
   R_PPC_REL16_LO        = 250;
   R_PPC_REL16_HA        = 252;
-  
+
   R_ARM_NONE            =  0;
   R_ARM_PC24            =  1;
   R_ARM_ABS32           =  2;
@@ -2026,7 +1982,7 @@ Const
   R_ARM_THM_JUMP24      = 30;
   R_ARM_THM_MOVW_ABS_NC = 47;
   R_ARM_THM_MOVT_ABS    = 48;
- 
+
   STT_NOTYPE            =  0;
   STT_OBJECT            =  1;
   STT_FUNC              =  2;
@@ -2034,7 +1990,7 @@ Const
   STT_FILE              =  4;
   STT_LOPROC            = 13;
   STT_HIPROC            = 15;
- 
+
   STB_LOCAL             =  0;
   STB_GLOBAL            =  1;
   STB_WEAK              =  2;
@@ -2043,38 +1999,38 @@ Const
   STB_HIOS              = 12;
   STB_LOPROC            = 13;
   STB_HIPROC            = 15;
- 
+
   SHN_UNDEF             = 0;
   SHN_LORESERVE         = $ff00;
   SHN_ABS               = $fff1;
   SHN_COMMON            = $fff2;
   SHN_XINDEX            = $ffff;
   SHN_HIRESERVE         = $ffff;
- 
+
   SHF_WRITE             = (1 shl 0);
   SHF_ALLOC             = (1 shl 1);
   SHF_EXECINSTR         = (1 shl 2);
- 
+
   //  ELF_ST_TYPE(i)    ((i) & 0x0F)
- 
+
   EI_VERSION            =  6;
   EV_CURRENT            =  1;
- 
+
   EI_DATA               =  5;
   ELFDATA2LSB           =  1;
   ELFDATA2MSB           =  2;
- 
+
   EI_CLASS              =  4;
   ELFCLASS32            =  1;
   ELFCLASS64            =  2;             //* 64-bit objects */
- 
+
   EI_OSABI              =  7;
   EI_ABIVERSION         =  8;
- 
+
   ELFOSABI_AROS         = 15;
- 
+
   PF_X                  = (1 shl 0);
-  
+
   ATTR_VERSION_CURRENT  = $41;
 
 type
@@ -2093,9 +2049,9 @@ type
     PhNum:     Word;
     ShentSize: Word;
     ShNum:     Word;
-    ShStrndx:  Word;  
+    ShStrndx:  Word;
   end;
-  
+
   PSHeader  = ^TSHeader;
   TSHeader = record
     Name:      LongWord;
@@ -2109,7 +2065,7 @@ type
     AddrAlign: elf_uintptr_t ;
     EntSize:   elf_uintptr_t ;
   end;
-  
+
   {$DEFINE PT_LOAD}
 
 {$IFDEF ELF_64BIT}
@@ -2118,19 +2074,19 @@ type
     Flags:  LongWord;
     Offset: elf_uintptr_t;
     VAddr:  elf_ptr_t;
-    PAddr:  elf_ptr_t;  
+    PAddr:  elf_ptr_t;
     Filesz: elf_uintptr_t;
     Memsz:  elf_uintptr_t;
     Align:  elf_uintptr_t;
   end;
-  
+
   TSymbol = record
     Name:    LongWord; // Offset of the name string in the string table
     Info:    Byte;     // What kind of symbol is this ? (global, variable, etc)
-    Other:   Byte;     // undefined                                        
-    ShIndex: Word;     // In which section is the symbol defined ?               
+    Other:   Byte;     // undefined
+    ShIndex: Word;     // In which section is the symbol defined ?
     Value:   elf_uintptr_t ; // Varies; eg. the offset of the symbol in its hunk
-    Size:    elf_uintptr_t ; // How much memory does the symbol occupy    
+    Size:    elf_uintptr_t ; // How much memory does the symbol occupy
   end;
 
   // 209 #define ELF_R_SYM(i)          (ULONG)((i) >> 32)
@@ -2142,13 +2098,13 @@ type
     Type_:  LongWord;
     Offset: LongWord;
     VAddr:  elf_ptr_t;
-    PAddr:  elf_ptr_t;  
+    PAddr:  elf_ptr_t;
     Filesz: LongWord;
     Memsz:  LongWord;
     Flags:  LongWord;
     Align:  LongWord;
   end;
-  
+
   TSymbol = record
     Name:    LongWord;       // Offset of the name string in the string table
     Value:   elf_uintptr_t;  // Varies; eg. the offset of the symbol in its hunk
@@ -2157,7 +2113,7 @@ type
     Other:   Byte;           // undefined
     ShIndex: Word;           // In which section is the symbol defined?
   end;
-  
+
   // 237 #define ELF_R_SYM(val)        ((val) >> 8)
   // 238 #define ELF_R_TYPE(val)       ((val) & 0xff)
   // 239 #define ELF_R_INFO(sym, type) (((sym) << 8) + ((type) & 0xff))
@@ -2187,27 +2143,27 @@ type
  263 /* convert section header number to array index */
  264 /*#define SHINDEX(n) \
  265     ((n) < SHN_LORESERVE ? (n) : ((n) <= SHN_HIRESERVE ? 0 : (n) - (SHN_HIRESERVE + 1 - SHN_LORESERVE)))*/
- 266 
+ 266
  267 /* convert section header array index to section number */
  268 /*#define SHNUM(i) \
  269     ((i) < SHN_LORESERVE ? (i) : (i) + (SHN_HIRESERVE + 1 - SHN_LORESERVE))*/
- 270 
+ 270
  271 /* ARM-specific attributes section definitions follow */
- 272 
- 273 #define  
+ 272
+ 273 #define
   *)
- 
+
   TAttrs_Section = record
     Size:   LongWord;
     Vendor: array[0..0] of char;   // NULL-terminated name
   end;                             // Vendor-specific subsections follow
- 
+
   TAttrs_SubSection = packed record
     Tag: Byte;
-    Size: LongWord;  
+    Size: LongWord;
   end;
 
-const 
+const
   Tag_File                 = 1;
   Tag_Section              = 2;
   Tag_Symbol               = 3;
@@ -2242,187 +2198,193 @@ const
   ELF_FP_v3       = 3;
   ELF_FP_v3_Short = 4;
   ELF_FP_v4       = 5;
-  ELF_FP_v4_Short = 6;  
+  ELF_FP_v4_Short = 6;
 
 {$endif}
 
-
-procedure AbortPkt(Port: PMsgPort; Pkt: PDosPacket); syscall AOS_DOSBase 44;
-function AddBuffers(const DeviceName: STRPTR; NumbBuffers: LongInt): LongBool; syscall AOS_DOSBase 122;
-function AddDosEntry(DList: PDosList): LongInt; syscall AOS_DOSBase 113;
-function AddPart(DirName: STRPTR; const FileName: STRPTR; Size: LongWord): LongBool; syscall AOS_DOSBase 147;
-function AddSegment(const Name: STRPTR; Seg: BPTR; Type_: LongInt): LongBool; syscall AOS_DOSBase 129;
-function AllocDosObject(Type_: LongWord; const Tags: PTagItem): APTR; syscall AOS_DOSBase 38;
-  //function AllocDosObjectTagList(Type_ : LongWord;const Tags : PTagItem) : Pointer;
-function AssignAdd(const Name: STRPTR; Lock: BPTR): LongBool; syscall AOS_DOSBase 105;
-function AssignLate(const Name: STRPTR; const Path: STRPTR): LongBool; syscall AOS_DOSBase 103;
-function AssignLock(const Name: STRPTR; Lock: BPTR): LongInt; syscall AOS_DOSBase 102;
-function AssignPath(const Name: STRPTR; const Path: STRPTR): LongBool; syscall AOS_DOSBase 104;
-function AttemptLockDosList(Flags: LongWord): PDosList; syscall AOS_DOSBase 111;
-function ChangeMode(Type_: LongWord; Object_: BPTR; NewMode: LongWord): LongBool; syscall AOS_DOSBase 75;
-function CheckSignal(Mask: LongInt): LongInt; syscall AOS_DOSBase 132;
-function Cli: PCommandLineInterface; syscall AOS_DOSBase 82;
-function CliInitNewcli(Dp: PDosPacket): IPTR; syscall AOS_DOSBase 155;
-function CliInitRun(Dp: PDosPacket): IPTR; syscall AOS_DOSBase 156;
-function CompareDates(const Date1: PDateStamp; const Date2: PDateStamp): LongInt; syscall AOS_DOSBase 123;
-function CreateDir(const Name: STRPTR): BPTR; syscall AOS_DOSBase 20;
-function CreateNewProc(const Tags: PTagItem): PProcess; syscall AOS_DOSBase 83;
-  //function CreateNewProcTagList(const Tags : PTagItem) : pProcess;
-function CreateProc(const Name: STRPTR; Pri: LongInt; SegList: BPTR; StackSize: LongInt): PMsgPort; syscall AOS_DOSBase 23;
-function CurrentDir(Lock: BPTR): BPTR; syscall AOS_DOSBase 21;
-function DateStamp(Date: PDateStamp): PDateStamp; syscall AOS_DOSBase 32;
-function DateToStr(Datetime: PDateTime): LongBool; syscall AOS_DOSBase 124;
-function DeleteFile(const Name: STRPTR): LongBool; syscall AOS_DOSBase 12;
-function DeleteVar(const Name: STRPTR; Flags: LongWord): LongInt; syscall AOS_DOSBase 152;
-function DeviceProc(const Name: STRPTR): PMsgPort; syscall AOS_DOSBase 29;
-function DisplayError(FormstStr: STRPTR; Flags: LongWord; Args: APTR): LongInt; syscall AOS_DOSBase 81;
-function DoPkt(Port: PMsgPort; Action: LongInt; Arg1, Arg2, Arg3, Arg4, Arg5: LongInt): LongInt; syscall AOS_DOSBase 40;
-function DOSClose(File_: BPTR): LongBool; syscall AOS_DOSBase 6;
-procedure DOSDelay(TimeOut: LongWord); syscall AOS_DOSBase 33;
-procedure DOSExit(ReturnCode: LongInt); syscall AOS_DOSBase 24;
-function DosError(): BPTR; syscall AOS_DOSBase 142;
-function DOSFlush(File_: BPTR): LongInt; syscall AOS_DOSBase 60;
-function DosGetLocalizedString(StringNum: LongInt): STRPTR; syscall AOS_DOSBase 154;
-function DosGetString(StringNum: LongInt): STRPTR; syscall AOS_DOSBase 163;
-function DOSInput: BPTR; syscall AOS_DOSBase 9;
 function DOSOpen(const Name: STRPTR; AccessMode: LongInt): BPTR; syscall AOS_DOSBase 5;
-function DOSOutput : BPTR; syscall AOS_DOSBase 10;
+function DOSClose(File_: BPTR): LongBool; syscall AOS_DOSBase 6;
 function DOSRead(File_: BPTR; Buffer: APTR; Length: LongInt): LongInt; syscall AOS_DOSBase 7;
-function DOSRename(const OldName: STRPTR; const NewName: STRPTR): LongInt; syscall AOS_DOSBase 13;
-function DOSSeek(File_: BPTR; Position: LongInt; Mode: LongInt): LongInt; syscall AOS_DOSBase 11;
 function DOSWrite(File_: BPTR; Buffer: APTR; Length: LongInt): LongInt;  syscall AOS_DOSBase 8;
-function DupLock(Lock: BPTR): BPTR; syscall AOS_DOSBase 16;
-function DupLockFromFH(Lock: BPTR): BPTR; syscall AOS_DOSBase 62;
-procedure EndNotify(Notify: PNotifyRequest); syscall AOS_DOSBase 149;
-function ErrorReport(Code: LongInt; Type_: LongInt; Arg1: IPTR; Device: PMsgPort): LongBool; syscall AOS_DOSBase 80;
-function ExAll(Lock: BPTR; Buffer: PExAllData; Size: LongInt; Data: LongInt; Control: PExAllControl): LongBool; syscall AOS_DOSBase 72;
-procedure ExAllEnd(Lock: BPTR; Buffer: PExAllData; Size: LongInt; Data: LongInt; Control: PExAllControl); syscall AOS_DOSBase 165;
-function Examine(Lock: BPTR; FileInfoBlock: PFileInfoBlock): LongInt; syscall AOS_DOSBase 17;
-function ExamineFH(Fh: BPTR; Fib: PFileInfoBlock): LongBool; syscall AOS_DOSBase 65;
-function Execute(const String_: STRPTR; Input: BPTR; Output: BPTR): LongInt; syscall AOS_DOSBase 37;
-function ExNext(Lock: BPTR; FileInfoBlock: PFileInfoBlock): LongInt; syscall AOS_DOSBase 18;
-function Fault(Code: LongInt; Header: STRPTR; Buffer: STRPTR; Len: LongInt): LongBool; syscall AOS_DOSBase 78;
-function FGetC(File_: BPTR): LongInt; syscall AOS_DOSBase 51;
-function FGets(Fh: BPTR; Buf: STRPTR; BufLen: LongWord): STRPTR; syscall AOS_DOSBase 56;
-function FilePart(const Path: STRPTR): STRPTR; syscall AOS_DOSBase 145;
-function FindArg(const Template: STRPTR; const KeyWord: STRPTR): LongInt; syscall AOS_DOSBase 134;
-function FindCliProc(Num: LongWord): PProcess; syscall AOS_DOSBase 91;
-function FindDosEntry(const DList: PDosList; const Name: STRPTR; Flags: LongWord): PDosList; syscall AOS_DOSBase 114;
-function FindSegment(const Name: STRPTR; const Seg: PSegment; System: LongBool): PSegment; syscall AOS_DOSBase 130;
-function FindVar(const Name: STRPTR; Type_: LongWord): PLocalVar; syscall AOS_DOSBase 153;
-function DosFormat(const DeviceName: STRPTR; const VolumeName: STRPTR; DosType: LongWord): LongBool; syscall AOS_DOSBase 119;
-function FPutC(File_: BPTR; Character: LongInt): LongInt; syscall AOS_DOSBase 52;
-function FPuts(File_: BPTR; const String_: STRPTR): LongInt; syscall AOS_DOSBase 57;
-function FRead(Fh: BPTR; Block: APTR; Blocklen: LongWord; Number: LongWord): LongInt; syscall AOS_DOSBase 54;
-procedure FreeArgs(Args: PRDArgs); syscall AOS_DOSBase 143;
-procedure FreeDeviceProc(Dp: PDevProc); syscall AOS_DOSBase 108;
-procedure FreeDosEntry(DList: PDosList); syscall AOS_DOSBase 117;
-procedure FreeDosObject(Type_: LongWord; Ptr: APTR); syscall AOS_DOSBase 39;
-function FWrite(Fh: BPTR; Block: APTR; Blocklen: LongWord; NumBlocks: LongWord): LongInt; syscall AOS_DOSBase 55;
-function GetArgStr: STRPTR; syscall AOS_DOSBase 89;
-function GetConsoleTask: PMsgPort; syscall AOS_DOSBase 85;
-function GetCurrentDirName(Buf: STRPTR; Len: LongInt): LongBool; syscall AOS_DOSBase 94;
-function GetDeviceProc(const Name: STRPTR; Dp: PDevProc): PDevProc; syscall AOS_DOSBase 107;
-function GetFileSysTask: PMsgPort; syscall AOS_DOSBase 87;
-function GetProgramDir: BPTR; syscall AOS_DOSBase 100;
-function GetProgramName(Buf: STRPTR; Len: LongInt): LongBool; syscall AOS_DOSBase 96;
-function GetPrompt(Buf: STRPTR; Len: LongInt): LongBool; syscall AOS_DOSBase 98;
-function GetVar(const Name: STRPTR; Buffer: STRPTR; Size: LongInt; Flags: LongInt): LongInt; syscall AOS_DOSBase 151;
-function Info(Lock: BPTR; ParameterBlock: PInfoData): LongInt; syscall AOS_DOSBase 19;
-function Inhibit(const Name: STRPTR; OnOff: LongInt): LongInt; syscall AOS_DOSBase 121;
-function InternalLoadSeg(Fh: BPTR; Table: BPTR; const FuncArray: PLongInt; var Stack: LongInt): BPTR; syscall AOS_DOSBase 126;
-function InternalUnLoadSeg(SegList: BPTR; FreeFunc: TProcedure): LongBool; syscall AOS_DOSBase 127;
-function IoErr: LongInt; syscall AOS_DOSBase 22;
-function IsFileSystem(const Name: STRPTR): LongBool; syscall AOS_DOSBase 118;
-function IsInteractive(File_: BPTR): LongInt; syscall AOS_DOSBase 36;
-function LoadSeg(const Name: STRPTR): BPTR; syscall AOS_DOSBase 25;
+function DOSInput: BPTR; syscall AOS_DOSBase 9;
+function DOSOutput : BPTR; syscall AOS_DOSBase 10;
+function DOSSeek(File_: BPTR; Position: LongInt; Mode: LongInt): LongInt; syscall AOS_DOSBase 11;
+function DOSDeleteFile(const Name: STRPTR): LongBool; syscall AOS_DOSBase 12;
+function DOSRename(const OldName: STRPTR; const NewName: STRPTR): LongBool; syscall AOS_DOSBase 13;
 function Lock(const Name: STRPTR; AccessMode: LongInt): BPTR; syscall AOS_DOSBase 14;
-function LockDosList(Flags: LongWord): PDosList; syscall AOS_DOSBase 109;
+function UnLock(Lock: BPTR): LongBool; syscall AOS_DOSBase 15;
+function DupLock(Lock: BPTR): BPTR; syscall AOS_DOSBase 16;
+function Examine(Lock: BPTR; FileInfoBlock: PFileInfoBlock): LongBool; syscall AOS_DOSBase 17;
+function ExNext(Lock: BPTR; FileInfoBlock: PFileInfoBlock): LongBool; syscall AOS_DOSBase 18;
+function Info(Lock: BPTR; ParameterBlock: PInfoData): LongBool; syscall AOS_DOSBase 19;
+function DOSCreateDir(const Name: STRPTR): BPTR; syscall AOS_DOSBase 20;
+function CurrentDir(Lock: BPTR): BPTR; syscall AOS_DOSBase 21;
+function IoErr: LongInt; syscall AOS_DOSBase 22;
+function CreateProc(const Name: STRPTR; Pri: LongInt; SegList: BPTR; StackSize: LongInt): PMsgPort; syscall AOS_DOSBase 23;
+procedure DOSExit(ReturnCode: LongInt); syscall AOS_DOSBase 24;
+function LoadSeg(const Name: STRPTR): BPTR; syscall AOS_DOSBase 25;
+procedure UnLoadSeg(Seglist: BPTR); syscall AOS_DOSBase 26;
+function DeviceProc(const Name: STRPTR): PMsgPort; syscall AOS_DOSBase 29;
+function SetComment(const Name: STRPTR; const Comment: STRPTR): LongBool; syscall AOS_DOSBase 30;
+function SetProtection(const Name: STRPTR; Protect: LongWord): LongBool; syscall AOS_DOSBase 31;
+function DateStamp(Date: PDateStamp): PDateStamp; syscall AOS_DOSBase 32;
+procedure DOSDelay(TimeOut: LongWord); syscall AOS_DOSBase 33;
+function WaitForChar(File_: BPTR; TimeOut: LongInt): LongBool; syscall AOS_DOSBase 34;
+function ParentDir(Lock: BPTR): BPTR; syscall AOS_DOSBase 35;
+function IsInteractive(File_: BPTR): LongInt; syscall AOS_DOSBase 36;
+function Execute(const String_: STRPTR; Input: BPTR; Output: BPTR): LongBool; syscall AOS_DOSBase 37;
+function AllocDosObject(Type_: LongWord; const Tags: PTagItem): APTR; syscall AOS_DOSBase 38;
+function AllocDosObjectTagList(Type_: LongWord; const Tags: PTagItem): APTR; syscall AOS_DOSBase 38;
+procedure FreeDosObject(Type_: LongWord; Ptr: APTR); syscall AOS_DOSBase 39;
+function DoPkt(Port: PMsgPort; Action: LongInt; Arg1, Arg2, Arg3, Arg4, Arg5: LongInt): LongInt; syscall AOS_DOSBase 40;
+procedure SendPkt(Dp: PDosPacket; Port: PMsgPort; ReplyPort: PMsgPort); syscall AOS_DOSBase 41;
+function WaitPkt: PDosPacket; syscall AOS_DOSBase 42;
+procedure ReplyPkt(Dp: PDosPacket; Res1: LongInt; Res2: LongInt); syscall AOS_DOSBase 43;
+procedure AbortPkt(Port: PMsgPort; Pkt: PDosPacket); syscall AOS_DOSBase 44;
 function LockRecord(Fh: BPTR; Offset: LongWord; Length: LongWord; Mode: LongWord; Timeout: LongWord): LongBool; syscall AOS_DOSBase 45;
 function LockRecords(RecArray: PRecordLock; TimeOut: LongWord): LongBool; syscall AOS_DOSBase 46;
-function MakeDosEntry(const Name: STRPTR; Type_: LongInt): PDosList; syscall AOS_DOSBase 116;
-function MakeLink(const Name: STRPTR; Dest: APTR; Soft: LongInt): LongInt; syscall AOS_DOSBase 74;
-procedure MatchEnd(AP: PAnchorPath); syscall AOS_DOSBase 139;
-function MatchFirst(const Pat: STRPTR; AP: PAnchorPath): LongInt; syscall AOS_DOSBase 137;
-function MatchNext(AP: PAnchorPath): LongInt; syscall AOS_DOSBase 138;
-function MatchPattern(const Pat: STRPTR; Str: STRPTR): LongBool; syscall AOS_DOSBase 141;
-function MatchPatternNoCase(const Pat: STRPTR; Str: STRPTR): LongBool; syscall AOS_DOSBase 162;
-function MaxCli: LongWord; syscall AOS_DOSBase 92;
-function NameFromFH(Fh: BPTR; Buffer: STRPTR; Length: LongInt): LongBool; syscall AOS_DOSBase 68;
-function NameFromLock(Lock: BPTR; Buffer: STRPTR; Length: LongInt): LongBool; syscall AOS_DOSBase 67;
-function NewLoadSeg(const File_: STRPTR; const Tags: PTagItem): BPTR; syscall AOS_DOSBase 128;
-  //function NewLoadSegTagList(const file_ : PChar;const Tags : PTagItem) : LongInt;
-function NextDosEntry(const DList: PDosList; Flags: LongWord): PDosList; syscall AOS_DOSBase 115;
-function OpenFromLock(Lock: BPTR): BPTR; syscall AOS_DOSBase 62;
-function ParentDir(Lock: BPTR): BPTR; syscall AOS_DOSBase 35;
-function ParentOfFH(Fh: BPTR): BPTR; syscall AOS_DOSBase 64;
-function ParsePattern(const Source: STRPTR; Dest: STRPTR; DestLength: LongInt): LongInt; syscall AOS_DOSBase 140;
-function ParsePatternNoCase(const Source: STRPTR; Dest: STRPTR; DestLen: LongInt): LongInt; syscall AOS_DOSBase 161;
-function PathPart(const Path: STRPTR): STRPTR; syscall AOS_DOSBase 146; 
-function Pipe(const Name: STRPTR; var Reader: BPTR; var Writer: BPTR): LongInt; syscall AOS_DOSBase 160;
-function PrintFault(Code: LongInt; const Header: STRPTR): LongBool; syscall AOS_DOSBase 79;
-function PutStr(const String_: STRPTR): LongInt; syscall AOS_DOSBase 158;
-function ReadArgs(const Template: STRPTR; var Array_: IPTR; RdArgs: PRDArgs): PRDArgs; syscall AOS_DOSBase 133;
-function ReadItem(const Buffer: STRPTR; MaxChars: LongInt; CSource: PCSource): LongInt; syscall AOS_DOSBase 135;
-function ReadLink(Port: PMsgPort; Lock: LongInt; const Path: STRPTR; Buffer: STRPTR; Size: LongWord): LongInt; syscall AOS_DOSBase 73;
-function Relabel(const Drive: STRPTR; const NewName: STRPTR): LongInt; syscall AOS_DOSBase 120;
-function RemAssignList(const Name: STRPTR; Lock: BPTR): LongInt; syscall AOS_DOSBase 106;
-function RemDosEntry(DList: PDosList): LongInt; syscall AOS_DOSBase 112;
-function RemSegment(Seg: PSegment): LongInt; syscall AOS_DOSBase 131;
-procedure ReplyPkt(Dp: PDosPacket; Res1: LongInt; Res2: LongInt); syscall AOS_DOSBase 43;
-function RunCommand(SegList: BPTR; StackSize: LongWord; const ArgPtr: STRPTR; ArgSize: LongWord): LongInt; syscall AOS_DOSBase 84;
-function RunHandler(DevNode: PDeviceNode; Path: PChar): PMsgPort; syscall AOS_DOSBase 27;
-function SameDevice(Lock1: BPTR; Lock2: BPTR): LongBool; syscall AOS_DOSBase 164;
-function SameLock(Lock1: BPTR; Lock2: BPTR): LongInt; syscall AOS_DOSBase 70;
-function ScanVars(Hook: PHook; Flags: LongWord; UserData: APTR): LongInt; syscall AOS_DOSBase 167;
-function SelectError(Fh: BPTR): BPTR; syscall AOS_DOSBase 144;
-function SelectInput(Fh: BPTR): BPTR; syscall AOS_DOSBase 49;
-function SelectOutput(Fh: BPTR): BPTR; syscall AOS_DOSBase 50;
-procedure SendPkt(Dp: PDosPacket; Port: PMsgPort; ReplyPort: PMsgPort); syscall AOS_DOSBase 41;
-function SetArgStr(const String_: STRPTR): STRPTR; syscall AOS_DOSBase 90;
-function SetComment(const Name: STRPTR; const Comment: STRPTR): LongInt; syscall AOS_DOSBase 30;
-function SetConsoleTask(const Handler: PMsgPort): PMsgPort; syscall AOS_DOSBase 86;
-function SetCurrentDirName(const Name: STRPTR): LongBool; syscall AOS_DOSBase 93;
-function SetFileDate(const Name: STRPTR; Date: PDateStamp): LongBool; syscall AOS_DOSBase 66;
-function SetFileSize(File_: BPTR; Offset: LongInt; Mode: LongInt): LongInt; syscall AOS_DOSBase 76;
-function SetFileSysTask(const Task: PMsgPort): PMsgPort; syscall AOS_DOSBase 88;
-function SetIoErr(Result_: LongInt): LongInt; syscall AOS_DOSBase 77;
-function SetMode(Fh: BPTR; Mode: LongInt): LongBool; syscall AOS_DOSBase 72;
-function SetOwner(const Name: STRPTR; Owner_Info: LongWord): LongBool; syscall AOS_DOSBase 166;
-function SetProgramDir(Lock: BPTR): BPTR; syscall AOS_DOSBase 99;
-function SetProgramName(const Name: STRPTR): LongBool; syscall AOS_DOSBase 95;
-function SetPrompt(const Name: STRPTR): LongBool; syscall AOS_DOSBase 97;
-function SetProtection(const Name: STRPTR; Protect: LongWord): LongInt; syscall AOS_DOSBase 31;
-function SetVar(const Name: STRPTR; Buffer: PChar; Size: LongInt; Flags: LongInt): LongBool;  syscall AOS_DOSBase 150;
-function SetVBuf(File_: BPTR; Buff: STRPTR; Type_: LongInt; Size: LongInt): LongInt; syscall AOS_DOSBase 61;
-function SplitName(const Name: STRPTR; Seperator: LongWord; Buf: STRPTR; OldPos: LongInt; Size: LongInt): LongInt; syscall AOS_DOSBase 69;
-function StartNotify(Notify: PNotifyRequest): LongBool; syscall AOS_DOSBase 148;
-function StrToDate(DateTime: PDateTime): LongBool; syscall AOS_DOSBase 125;
-function StrToLong(const String_: STRPTR; var Value: LongInt): LongInt; syscall AOS_DOSBase 136;
-function SystemTagList(const Command: STRPTR; const Tags: PTagItem): LongInt; syscall AOS_DOSBase 101;
-  //function DOSSystem(const command : PChar;const Tags : PTagItem) : LongInt; //* Real: SystemTagList ???
-function UnGetC(File_: BPTR; Character: LongInt): LongInt; syscall AOS_DOSBase 53;
-procedure UnLoadSeg(Seglist: BPTR); syscall AOS_DOSBase 26;
-function UnLock(Lock: BPTR): LongBool; syscall AOS_DOSBase 15;
-procedure UnLockDosList(Flags: LongWord); syscall AOS_DOSBase 110;
 function UnLockRecord(Fh: BPTR; Offset: LongWord; Length: LongWord): LongBool; syscall AOS_DOSBase 47;
 function UnLockRecords(RecArray: PRecordLock): LongBool; syscall AOS_DOSBase 48;
-function VFPrintf(Fh: BPTR; const format: STRPTR; const ArgArray: PLongInt): LongInt; syscall AOS_DOSBase 59;
+function SelectInput(Fh: BPTR): BPTR; syscall AOS_DOSBase 49;
+function SelectOutput(Fh: BPTR): BPTR; syscall AOS_DOSBase 50;
+function FGetC(File_: BPTR): LongInt; syscall AOS_DOSBase 51;
+function FPutC(File_: BPTR; Character: LongInt): LongInt; syscall AOS_DOSBase 52;
+function UnGetC(File_: BPTR; Character: LongInt): LongInt; syscall AOS_DOSBase 53;
+function FRead(Fh: BPTR; Block: APTR; Blocklen: LongWord; Number: LongWord): LongInt; syscall AOS_DOSBase 54;
+function FWrite(Fh: BPTR; Block: APTR; Blocklen: LongWord; NumBlocks: LongWord): LongInt; syscall AOS_DOSBase 55;
+function FGets(Fh: BPTR; Buf: STRPTR; BufLen: LongWord): STRPTR; syscall AOS_DOSBase 56;
+function FPuts(File_: BPTR; const String_: STRPTR): LongInt; syscall AOS_DOSBase 57;
 function VFWritef(Fh: BPTR; const Fmt: STRPTR; const ArgArray: PLongInt): LongInt; syscall AOS_DOSBase 58;
-function VPrintf(const Format: STRPTR; var ArgArray: IPTR): LongInt; syscall AOS_DOSBase 159;
-function WaitForChar(File_: BPTR; TimeOut: LongInt): LongInt; syscall AOS_DOSBase 34;
-function WaitPkt: PDosPacket; syscall AOS_DOSBase 42;
+function VFPrintf(Fh: BPTR; const format: STRPTR; const ArgArray: PLongInt): LongInt; syscall AOS_DOSBase 59;
+function DOSFlush(File_: BPTR): LongBool; syscall AOS_DOSBase 60;
+function SetVBuf(File_: BPTR; Buff: STRPTR; Type_: LongInt; Size: LongInt): LongBool; syscall AOS_DOSBase 61;
+function DupLockFromFH(Lock: BPTR): BPTR; syscall AOS_DOSBase 62;
+function OpenFromLock(Lock: BPTR): BPTR; syscall AOS_DOSBase 63;
+function ParentOfFH(Fh: BPTR): BPTR; syscall AOS_DOSBase 64;
+function ExamineFH(Fh: BPTR; Fib: PFileInfoBlock): LongBool; syscall AOS_DOSBase 65;
+function SetFileDate(const Name: STRPTR; Date: PDateStamp): LongBool; syscall AOS_DOSBase 66;
+function NameFromLock(Lock: BPTR; Buffer: STRPTR; Length: LongInt): LongBool; syscall AOS_DOSBase 67;
+function NameFromFH(Fh: BPTR; Buffer: STRPTR; Length: LongInt): LongBool; syscall AOS_DOSBase 68;
+function SplitName(const Name: STRPTR; Seperator: LongWord; Buf: STRPTR; OldPos: LongInt; Size: LongInt): LongInt; syscall AOS_DOSBase 69;
+function SameLock(Lock1: BPTR; Lock2: BPTR): LongInt; syscall AOS_DOSBase 70;
+function SetMode(Fh: BPTR; Mode: LongInt): LongBool; syscall AOS_DOSBase 71;
+function ExAll(Lock: BPTR; Buffer: PExAllData; Size: LongInt; Data: LongInt; Control: PExAllControl): LongBool; syscall AOS_DOSBase 72;
+function ReadLink(Port: PMsgPort; Lock: LongInt; const Path: STRPTR; Buffer: STRPTR; Size: LongWord): LongBool; syscall AOS_DOSBase 73;
+function MakeLink(const Name: STRPTR; Dest: APTR; Soft: LongInt): LongBool; syscall AOS_DOSBase 74;
+function ChangeMode(Type_: LongWord; Object_: BPTR; NewMode: LongWord): LongBool; syscall AOS_DOSBase 75;
+function SetFileSize(File_: BPTR; Offset: LongInt; Mode: LongInt): LongInt; syscall AOS_DOSBase 76;
+function SetIoErr(Result_: LongInt): LongInt; syscall AOS_DOSBase 77;
+function Fault(Code: LongInt; Header: STRPTR; Buffer: STRPTR; Len: LongInt): LongBool; syscall AOS_DOSBase 78;
+function PrintFault(Code: LongInt; const Header: STRPTR): LongBool; syscall AOS_DOSBase 79;
+function ErrorReport(Code: LongInt; Type_: LongInt; Arg1: IPTR; Device: PMsgPort): LongBool; syscall AOS_DOSBase 80;
+function DisplayError(FormstStr: STRPTR; Flags: LongWord; Args: APTR): LongInt; syscall AOS_DOSBase 81;
+function Cli: PCommandLineInterface; syscall AOS_DOSBase 82;
+function CreateNewProc(const Tags: PTagItem): PProcess; syscall AOS_DOSBase 83;
+function CreateNewProcTagList(const Tags: PTagItem): PProcess; syscall AOS_DOSBase 83;
+function RunCommand(SegList: BPTR; StackSize: LongWord; const ArgPtr: STRPTR; ArgSize: LongWord): LongInt; syscall AOS_DOSBase 84;
+function GetConsoleTask: PMsgPort; syscall AOS_DOSBase 85;
+function SetConsoleTask(const Handler: PMsgPort): PMsgPort; syscall AOS_DOSBase 86;
+function GetFileSysTask: PMsgPort; syscall AOS_DOSBase 87;
+function SetFileSysTask(const Task: PMsgPort): PMsgPort; syscall AOS_DOSBase 88;
+function GetArgStr: STRPTR; syscall AOS_DOSBase 89;
+function SetArgStr(const String_: STRPTR): STRPTR; syscall AOS_DOSBase 90;
+function FindCliProc(Num: LongWord): PProcess; syscall AOS_DOSBase 91;
+function MaxCli: LongWord; syscall AOS_DOSBase 92;
+function SetCurrentDirName(const Name: STRPTR): LongBool; syscall AOS_DOSBase 93;
+function GetCurrentDirName(Buf: STRPTR; Len: LongInt): LongBool; syscall AOS_DOSBase 94;
+function SetProgramName(const Name: STRPTR): LongBool; syscall AOS_DOSBase 95;
+function GetProgramName(Buf: STRPTR; Len: LongInt): LongBool; syscall AOS_DOSBase 96;
+function SetPrompt(const Name: STRPTR): LongBool; syscall AOS_DOSBase 97;
+function GetPrompt(Buf: STRPTR; Len: LongInt): LongBool; syscall AOS_DOSBase 98;
+function SetProgramDir(Lock: BPTR): BPTR; syscall AOS_DOSBase 99;
+function GetProgramDir: BPTR; syscall AOS_DOSBase 100;
+function SystemTagList(const Command: STRPTR; const Tags: PTagItem): LongInt; syscall AOS_DOSBase 101;
+function DOSSystem(const Command: STRPTR; const Tags: PTagItem): LongInt; syscall AOS_DOSBase 101;
+function AssignLock(const Name: STRPTR; Lock: BPTR): LongBool; syscall AOS_DOSBase 102;
+function AssignLate(const Name: STRPTR; const Path: STRPTR): LongBool; syscall AOS_DOSBase 103;
+function AssignPath(const Name: STRPTR; const Path: STRPTR): LongBool; syscall AOS_DOSBase 104;
+function AssignAdd(const Name: STRPTR; Lock: BPTR): LongBool; syscall AOS_DOSBase 105;
+function RemAssignList(const Name: STRPTR; Lock: BPTR): LongBool; syscall AOS_DOSBase 106;
+function GetDeviceProc(const Name: STRPTR; Dp: PDevProc): PDevProc; syscall AOS_DOSBase 107;
+procedure FreeDeviceProc(Dp: PDevProc); syscall AOS_DOSBase 108;
+function LockDosList(Flags: LongWord): PDosList; syscall AOS_DOSBase 109;
+procedure UnLockDosList(Flags: LongWord); syscall AOS_DOSBase 110;
+function AttemptLockDosList(Flags: LongWord): PDosList; syscall AOS_DOSBase 111;
+function RemDosEntry(DList: PDosList): LongBool; syscall AOS_DOSBase 112;
+function AddDosEntry(DList: PDosList): LongBool; syscall AOS_DOSBase 113;
+function FindDosEntry(const DList: PDosList; const Name: STRPTR; Flags: LongWord): PDosList; syscall AOS_DOSBase 114;
+function NextDosEntry(const DList: PDosList; Flags: LongWord): PDosList; syscall AOS_DOSBase 115;
+function MakeDosEntry(const Name: STRPTR; Type_: LongInt): PDosList; syscall AOS_DOSBase 116;
+procedure FreeDosEntry(DList: PDosList); syscall AOS_DOSBase 117;
+function IsFileSystem(const Name: STRPTR): LongBool; syscall AOS_DOSBase 118;
+function Format(const DeviceName: STRPTR; const VolumeName: STRPTR; DosType: LongWord): LongBool; syscall AOS_DOSBase 119;
+function Relabel(const Drive: STRPTR; const NewName: STRPTR): LongBool; syscall AOS_DOSBase 120;
+function Inhibit(const Name: STRPTR; OnOff: LongInt): LongBool; syscall AOS_DOSBase 121;
+function AddBuffers(const DeviceName: STRPTR; NumbBuffers: LongInt): LongBool; syscall AOS_DOSBase 122;
+function CompareDates(const Date1: PDateStamp; const Date2: PDateStamp): LongInt; syscall AOS_DOSBase 123;
+function DOSDateToStr(Datetime: _PDateTime): LongBool; syscall AOS_DOSBase 124;
+function DOSStrToDate(DateTime: _PDateTime): LongBool; syscall AOS_DOSBase 125;
+function InternalLoadSeg(Fh: BPTR; Table: BPTR; const FuncArray: PLongInt; var Stack: LongInt): BPTR; syscall AOS_DOSBase 126;
+function InternalUnLoadSeg(SegList: BPTR; FreeFunc: TProcedure): LongBool; syscall AOS_DOSBase 127;
+function NewLoadSeg(const File_: STRPTR; const Tags: PTagItem): BPTR; syscall AOS_DOSBase 128;
+function NewLoadSegTagList(const File_: STRPTR; const Tags: PTagItem): BPTR; syscall AOS_DOSBase 128;
+function AddSegment(const Name: STRPTR; Seg: BPTR; Type_: LongInt): LongBool; syscall AOS_DOSBase 129;
+function FindSegment(const Name: STRPTR; const Seg: PSegment; System: LongBool): PSegment; syscall AOS_DOSBase 130;
+function RemSegment(Seg: PSegment): LongBool; syscall AOS_DOSBase 131;
+function CheckSignal(Mask: LongInt): LongInt; syscall AOS_DOSBase 132;
+function ReadArgs(const Template: STRPTR; Array_: PIPTR; RdArgs: PRDArgs): PRDArgs; syscall AOS_DOSBase 133;
+function FindArg(const Template: STRPTR; const KeyWord: STRPTR): LongInt; syscall AOS_DOSBase 134;
+function ReadItem(const Buffer: STRPTR; MaxChars: LongInt; CSource: PCSource): LongInt; syscall AOS_DOSBase 135;
+function StrToLong(const String_: STRPTR; var Value: LongInt): LongInt; syscall AOS_DOSBase 136;
+function MatchFirst(const Pat: STRPTR; AP: PAnchorPath): LongInt; syscall AOS_DOSBase 137;
+function MatchNext(AP: PAnchorPath): LongInt; syscall AOS_DOSBase 138;
+procedure MatchEnd(AP: PAnchorPath); syscall AOS_DOSBase 139;
+function ParsePattern(const Source: STRPTR; Dest: STRPTR; DestLength: LongInt): LongInt; syscall AOS_DOSBase 140;
+function MatchPattern(const Pat: STRPTR; Str: STRPTR): LongBool; syscall AOS_DOSBase 141;
+procedure FreeArgs(Args: PRDArgs); syscall AOS_DOSBase 143;
+function FilePart(const Path: STRPTR): STRPTR; syscall AOS_DOSBase 145;
+function PathPart(const Path: STRPTR): STRPTR; syscall AOS_DOSBase 146;
+function AddPart(DirName: STRPTR; const FileName: STRPTR; Size: LongWord): LongBool; syscall AOS_DOSBase 147;
+function StartNotify(Notify: PNotifyRequest): LongBool; syscall AOS_DOSBase 148;
+procedure EndNotify(Notify: PNotifyRequest); syscall AOS_DOSBase 149;
+function SetVar(const Name: STRPTR; Buffer: PChar; Size: LongInt; Flags: LongInt): LongBool;  syscall AOS_DOSBase 150;
+function GetVar(const Name: STRPTR; Buffer: STRPTR; Size: LongInt; Flags: LongInt): LongInt; syscall AOS_DOSBase 151;
+function DeleteVar(const Name: STRPTR; Flags: LongWord): LongBool; syscall AOS_DOSBase 152;
+function FindVar(const Name: STRPTR; Type_: LongWord): PLocalVar; syscall AOS_DOSBase 153;
+function CliInit(Dp: PDosPacket): IPTR; syscall AOS_DOSBase 154;
+function CliInitNewcli(Dp: PDosPacket): IPTR; syscall AOS_DOSBase 155;
+function CliInitRun(Dp: PDosPacket): IPTR; syscall AOS_DOSBase 156;
 function WriteChars(const Buf: STRPTR; BufLen: LongWord): LongInt; syscall AOS_DOSBase 157;
+function PutStr(const String_: STRPTR): LongInt; syscall AOS_DOSBase 158;
+function VPrintf(const Format: STRPTR; var ArgArray: IPTR): LongInt; syscall AOS_DOSBase 159;
+function ParsePatternNoCase(const Source: STRPTR; Dest: STRPTR; DestLen: LongInt): LongInt; syscall AOS_DOSBase 161;
+function MatchPatternNoCase(const Pat: STRPTR; Str: STRPTR): LongBool; syscall AOS_DOSBase 162;
+function DosGetString(StringNum: LongInt): STRPTR; syscall AOS_DOSBase 163;
+function SameDevice(Lock1: BPTR; Lock2: BPTR): LongBool; syscall AOS_DOSBase 164;
+procedure ExAllEnd(Lock: BPTR; Buffer: PExAllData; Size: LongInt; Data: LongInt; Control: PExAllControl); syscall AOS_DOSBase 165;
+function SetOwner(const Name: STRPTR; Owner_Info: LongWord): LongBool; syscall AOS_DOSBase 166;
+function ScanVars(Hook: PHook; Flags: LongWord; UserData: APTR): LongInt; syscall AOS_DOSBase 167;
+
+{$ifdef AROS_ABIv0}
+function RunHandler(DevNode: PDeviceNode; Path: PChar): PMsgPort; syscall AOS_DOSBase 27;
+function DosError(): BPTR; syscall AOS_DOSBase 142;
+function SelectError(Fh: BPTR): BPTR; syscall AOS_DOSBase 144;
+function Pipe(const Name: STRPTR; var Reader: BPTR; var Writer: BPTR): LongInt; syscall AOS_DOSBase 160;
+{$endif}
+
+{$ifdef AROS_ABIv1}
+function DosError(): BPTR;
+{$endif}
 
 function ReadChar(): LongInt;
 function WriteChar(c: LongInt): LongInt;
 function UnReadChar(c: LongInt): LongInt;
 
 // Special functions for var args
-function AllocDosObjectTags(const Type_: LongWord; const Tags: array of const): APTR;
-function CreateNewProcTags(const Tags: array of const): PProcess;
-function NewLoadSegTags(const File_: STRPTR; const Tags: array of const): BPTR;
-function SystemTags(const Command: STRPTR; const Tags: array of const): LongInt;
+function AllocDosObjectTags(const Type_: LongWord; const Tags: array of PtrUInt): APTR;
+function CreateNewProcTags(const Tags: array of PtrUInt): PProcess;
+function NewLoadSegTags(const File_: STRPTR; const Tags: array of PtrUInt): BPTR;
+function SystemTags(const Command: STRPTR; const Tags: array of PtrUInt): LongInt;
 
 // elf.h
 
@@ -2437,7 +2399,6 @@ function ELF_R_TYPE(i: LongWord): LongWord;
 function ELF_R_INFO(Sym: LongWord; Type_: LongWord): LongWord;
 {$endif}
 
-
 const
   BNULL = nil;
 
@@ -2446,76 +2407,61 @@ function BADDR(a: BPTR): APTR;
 
 implementation
 
-uses
-  tagsarray;
-
-function ELF_ST_TYPE(i: LongWord): LongWord;
+function ELF_ST_TYPE(i: LongWord): LongWord; inline;
 begin
-  Result := i and $0F;
-end;   
-
-{$ifdef ELF_64BIT}
-  function ELF_R_SYM(i: QWord): QWord;
-  begin
-    Result := i shr 32;
-  end;
-  
-  function ELF_R_TYPE(i: QWord): QWord;
-  begin
-    Result := i and $ffffffff;
-  end;
-  
-  function ELF_R_INFO(Sym: QWord; Type_: QWord): QWord;
-  begin
-    Result := Sym shl 32 + Type_;
-  end;
-{$else}
-  function ELF_R_SYM(i: LongWord): LongWord;
-  begin
-    Result := i shr 8;
-  end;
-  
-  function ELF_R_TYPE(i: LongWord): LongWord;
-  begin
-    Result := i and $ff;
-  end;
-  
-  function ELF_R_INFO(Sym: LongWord; Type_: LongWord): LongWord;
-  begin
-    Result := Sym shl 8 + (Type_ and $ff);
-  end;
-{$endif}
-  
-function AllocDosObjectTags(const Type_: LongWord; const Tags: array of const): APTR;
-var
-  TagList: TTagsList;
-begin
-  AddTags(TagList, Tags);
-  AllocDosObjectTags := AllocDosObject(Type_, GetTagPtr(TagList));
-end;  
-
-function CreateNewProcTags(const Tags: array of const): PProcess;
-var
-  TagList: TTagsList;
-begin
-  AddTags(TagList, Tags);
-  CreateNewProcTags := CreateNewProc(GetTagPtr(TagList));
-end; 
-
-function NewLoadSegTags(const File_: STRPTR; const Tags: array of const): BPTR;
-var
-  TagList: TTagsList;
-begin
-  AddTags(TagList, Tags);
-  NewLoadSegTags := NewLoadSeg(File_, GetTagPtr(TagList));
+  ELF_ST_TYPE := i and $0F;
 end;
 
-function SystemTags(const Command: STRPTR; const Tags: array of const): LongInt;
-var
-  TagList: TTagsList;
+{$ifdef ELF_64BIT}
+  function ELF_R_SYM(i: QWord): QWord; inline;
+  begin
+    ELF_R_SYM := i shr 32;
+  end;
+
+  function ELF_R_TYPE(i: QWord): QWord; inline;
+  begin
+    ELF_R_TYPE := i and $ffffffff;
+  end;
+
+  function ELF_R_INFO(Sym: QWord; Type_: QWord): QWord; inline;
+  begin
+    ELF_R_INFO := Sym shl 32 + Type_;
+  end;
+{$else}
+  function ELF_R_SYM(i: LongWord): LongWord; inline;
+  begin
+    ELF_R_SYM := i shr 8;
+  end;
+
+  function ELF_R_TYPE(i: LongWord): LongWord; inline;
+  begin
+    ELF_R_TYPE := i and $ff;
+  end;
+
+  function ELF_R_INFO(Sym: LongWord; Type_: LongWord): LongWord; inline;
+  begin
+    ELF_R_INFO := Sym shl 8 + (Type_ and $ff);
+  end;
+{$endif}
+
+function AllocDosObjectTags(const Type_: LongWord; const Tags: array of PtrUInt): APTR; inline;
 begin
-  AddTags(TagList, Tags);
-  SystemTags := SystemTagList(Command, GetTagPtr(TagList));
+  AllocDosObjectTags := AllocDosObject(Type_, @Tags);
+end;
+
+function CreateNewProcTags(const Tags: array of PtrUInt): PProcess; inline;
+begin
+  CreateNewProcTags := CreateNewProc(@Tags);
+end;
+
+function NewLoadSegTags(const File_: STRPTR; const Tags: array of PtrUInt): BPTR; inline;
+begin
+  NewLoadSegTags := NewLoadSeg(File_, @Tags);
+end;
+
+function SystemTags(const Command: STRPTR; const Tags: array of PtrUInt): LongInt; inline;
+begin
+  SystemTags := SystemTagList(Command, @Tags);
 end;
 
 function MKBADDR(a: APTR): BPTR; inline;
@@ -2524,11 +2470,11 @@ begin
   MKBADDR := a;
   {$else}
   MKBADDR := APTR((IPTR(a)) shr 2);
-  {$endif}  
+  {$endif}
 end;
 
 function BADDR(a: BPTR): APTR; inline;
-begin 
+begin
   {$ifdef AROS_FAST_BPTR}
   BADDR := a;
   {$else}
@@ -2536,20 +2482,34 @@ begin
   {$endif}
 end;
 
-function ReadChar(): LongInt;
+function ReadChar(): LongInt; inline;
 begin
   ReadChar := FGetC(DosInput());
 end;
 
-function WriteChar(c: LongInt): LongInt;
+function WriteChar(c: LongInt): LongInt; inline;
 begin
   WriteChar := FPutC(DosOutput(), c);
 end;
 
-function UnReadChar(c: LongInt): LongInt;
+function UnReadChar(c: LongInt): LongInt; inline;
 begin
   UnReadChar := UnGetC(DosInput(),c);
 end;
+
+{$ifdef AROS_ABIv1}
+function DosError(): BPTR;
+var
+  P: PProcess;
+begin
+  DosError := nil;
+  P := PProcess(FindTask(nil));
+  if Assigned(P) then
+    DosError := P^.pr_CES;
+  if DosError = nil then
+    DosError := DosOutput();
+end;
+{$endif}
 
 end. (* UNIT DOS *)
 

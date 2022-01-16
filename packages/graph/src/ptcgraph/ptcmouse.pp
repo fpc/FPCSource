@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2013 by Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (c) 2013,2019 by Nikolay Nikolov (nickysn@users.sourceforge.net)
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
 
@@ -47,10 +47,10 @@ function RPressed: Boolean;
 { returns true if the middle button is pressed }
 function MPressed: Boolean;
 
-(*!!!!! the following functions aren't implemented yet:
 { positions the mouse pointer }
 procedure SetMousePos(x,y: LongInt);
 
+(*!!!!! the following functions aren't implemented yet:
 { returns at which position "button" was last pressed in x,y and returns the
   number of times this button has been pressed since the last time this
   function was called with "button" as parameter. For button you can use the
@@ -195,6 +195,12 @@ begin
   x := MouseX;
   y := MouseY;
   buttons := MouseButtonState;
+end;
+
+procedure SetMousePos(x,y: LongInt);
+begin
+  if InGraphMode then
+    PTCWrapperObject.MoveMouseTo(x, y);
 end;
 
 begin

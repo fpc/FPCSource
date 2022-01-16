@@ -41,7 +41,7 @@ type
   end;
 
   tarobjectwriter=class(tobjectwriter)
-    constructor create(const Aarfn:string);
+    constructor createAr(const Aarfn:string);override;
     destructor  destroy;override;
     function  createfile(const fn:string):boolean;override;
     procedure closefile;override;
@@ -75,13 +75,15 @@ type
     procedure ReadArchive;
   protected
     function getfilename:string;override;
+    function GetSize: longint;override;
+    function GetPos: longint;override;
+    function GetIsArchive: boolean; override;
   public
-    constructor create(const Aarfn:string;allow_nonar:boolean=false);
+    constructor createAr(const Aarfn:string;allow_nonar:boolean=false);override;
     destructor  destroy;override;
     function  openfile(const fn:string):boolean;override;
     procedure closefile;override;
     procedure seek(len:longint);override;
-    property isarchive: boolean read isar;
   end;
 
 
@@ -159,7 +161,7 @@ implementation
                                 TArObjectWriter
 *****************************************************************************}
 
-    constructor tarobjectwriter.create(const Aarfn:string);
+    constructor tarobjectwriter.createAr(const Aarfn:string);
       var
         time  : TSystemTime;
       begin
@@ -232,10 +234,18 @@ implementation
 
 
     procedure tarobjectwriter.closefile;
+      const
+        LF:char=#10;
+      var
+        filesize:longint;
       begin
-        ardata.align(2);
+        { preserve file size, before aligning on an even boundary }
+        filesize:=ardata.size-objpos-sizeof(tarhdr);
+        { align on an even boundary, by inserting an LF if necessary }
+        if odd(ardata.size) then
+          write(LF,1);
         { fix the size in the header }
-        createarhdr(objfn,ardata.size-objpos-sizeof(tarhdr),'42','42','644');
+        createarhdr(objfn,filesize,'42','42','644');
         { write the header }
         ardata.seek(objpos);
         ardata.write(arhdr,sizeof(tarhdr));
@@ -317,7 +327,7 @@ implementation
 *****************************************************************************}
 
 
-    constructor tarobjectreader.create(const Aarfn:string;allow_nonar:boolean);
+    constructor tarobjectreader.createAr(const Aarfn:string;allow_nonar:boolean);
       var
         magic:array[0..sizeof(armagic)-1] of char;
       begin
@@ -342,7 +352,7 @@ implementation
     destructor  tarobjectreader.destroy;
       begin
         inherited closefile;
-        ArSymbols.destroy;
+        ArSymbols.Free;
         if assigned(LFNStrs) then
           FreeMem(LFNStrs);
         inherited Destroy;
@@ -354,6 +364,24 @@ implementation
         result:=inherited getfilename;
         if CurrMemberName<>'' then
           result:=result+'('+CurrMemberName+')';
+      end;
+
+
+    function tarobjectreader.GetSize: longint;
+      begin
+        result:=CurrMemberSize;
+      end;
+
+
+    function tarobjectreader.GetPos: longint;
+      begin
+        result:=inherited GetPos-CurrMemberPos;
+      end;
+
+
+    function tarobjectreader.GetIsArchive: boolean;
+      begin
+        Result:=isar;
       end;
 
 

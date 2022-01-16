@@ -57,7 +57,7 @@ Function AddDisk(const path:string) : byte; platform;
 Implementation
 
 Uses
-  UnixUtil, // tzSeconds
+  UnixUtil,
   Strings,
   Unix,
   {$ifdef FPC_USE_LIBC}initc{$ELSE}Syscall{$ENDIF};
@@ -88,90 +88,6 @@ type
 {******************************************************************************
                         --- Info / Date / Time ---
 ******************************************************************************}
-
-
-Const
-{Date Calculation}
-  C1970 = 2440588;
-  D0    = 1461;
-  D1    = 146097;
-  D2    = 1721119;
-type
-  GTRec = packed Record
-    Year,
-    Month,
-    MDay,
-    WDay,
-    Hour,
-    Minute,
-    Second : Word;
-  End;
-
-Function GregorianToJulian(Year,Month,Day:Longint):LongInt;
-Var
-  Century,XYear: LongInt;
-Begin
-  If Month<=2 Then
-   Begin
-     Dec(Year);
-     Inc(Month,12);
-   End;
-  Dec(Month,3);
-  Century:=(longint(Year Div 100)*D1) shr 2;
-  XYear:=(longint(Year Mod 100)*D0) shr 2;
-  GregorianToJulian:=((((Month*153)+2) div 5)+Day)+D2+XYear+Century;
-End;
-
-
-Function LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
-{
-  Transforms local time (year,month,day,hour,minutes,second) to Epoch time
-   (seconds since 00:00, january 1 1970, corrected for local time zone)
-}
-Begin
-  LocalToEpoch:=((GregorianToJulian(Year,Month,Day)-c1970)*86400)+
-                (LongInt(Hour)*3600)+(Longint(Minute)*60)+Second-TZSeconds;
-End;
-
-Procedure JulianToGregorian(JulianDN:LongInt;Var Year,Month,Day:Word);
-Var
-  YYear,XYear,Temp,TempMonth : LongInt;
-Begin
-  Temp:=((JulianDN-D2) shl 2)-1;
-  JulianDN:=Temp Div D1;
-  XYear:=(Temp Mod D1) or 3;
-  YYear:=(XYear Div D0);
-  Temp:=((((XYear mod D0)+4) shr 2)*5)-3;
-  Day:=((Temp Mod 153)+5) Div 5;
-  TempMonth:=Temp Div 153;
-  If TempMonth>=10 Then
-   Begin
-     inc(YYear);
-     dec(TempMonth,12);
-   End;
-  inc(TempMonth,3);
-  Month := TempMonth;
-  Year:=YYear+(JulianDN*100);
-end;
-
-Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word);
-{
-  Transforms Epoch time into local time (hour, minute,seconds)
-}
-Var
-  DateNum: LongInt;
-Begin
-  inc(Epoch,TZSeconds);
-  Datenum:=(Epoch Div 86400) + c1970;
-  JulianToGregorian(DateNum,Year,Month,day);
-  Epoch:=Abs(Epoch Mod 86400);
-  Hour:=Epoch Div 3600;
-  Epoch:=Epoch Mod 3600;
-  Minute:=Epoch Div 60;
-  Second:=Epoch Mod 60;
-End;
-
-
 
 Function DosVersion:Word;
 Var
@@ -245,6 +161,7 @@ var
 begin
   GetDate (Year, Month, Day,dow);
   tv.tv_sec:= LocalToEpoch ( Year, Month, Day, Hour, Minute, Second ) ;
+  tv.tv_usec:= Sec100 * 10000;
   fpSettimeofday(@tv,nil);
 end;
 
@@ -255,6 +172,7 @@ var
 begin
   GetTime ( Hour, Min, Sec, Sec100 );
   tv.tv_sec:= LocalToEpoch ( Year, Month, Day, Hour, Min, Sec ) ;
+  tv.tv_usec:= Sec100 * 10000;
   fpSettimeofday(@tv,nil);
 end;
 
@@ -264,6 +182,7 @@ var
   tv : timeval;
 begin
   tv.tv_sec:= LocalToEpoch ( Year, Month, Day, Hour, Minute, Second ) ;
+  tv.tv_usec:= 0;
   SetDatetime:=fpSettimeofday(@tv,nil)=0;
 end;
 
@@ -309,7 +228,7 @@ Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
 var
   pid      : longint; // pid_t?
   cmdline2 : ppchar;
-  commandline : ansistring;
+  commandline : RawByteString;
   realpath : ansistring;
 
 // The Error-Checking in the previous Version failed, since halt($7F) gives an WaitPid-status of $7F00
@@ -319,7 +238,7 @@ Begin
     begin
       doserror:=2;
       exit;
-    end;  
+    end;
   pid:=fpFork;
   if pid=0 then
    begin
@@ -327,7 +246,7 @@ Begin
      realpath:=path;
      if Comline<>'' Then
        begin
-         CommandLine:=ComLine;  // conversion must live till after fpexec!
+         CommandLine:=ToSingleByteFileSystemEncodedFileName(ComLine);  // conversion must live till after fpexec!
          cmdline2:=StringtoPPChar(CommandLine,1);
          cmdline2^:=pchar(realPath);
        end

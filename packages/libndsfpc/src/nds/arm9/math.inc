@@ -53,12 +53,12 @@ procedure normalizef32(a: pcint32); inline;
 {$ifdef NDS_IMPLEMENTATION}
 function inttof32(n: cint): cint32; inline;
 begin
-  inttof32 := ((n) shl 12);
+  inttof32 := n * (1 shl 12);
 end;
 
 function f32toint(n: cint32): cint; inline;
 begin
-  f32toint := ((n) shr 12);
+  f32toint := n div (1 shl 12);
 end;
 
 function floattof32(n: cfloat): cint32; inline;

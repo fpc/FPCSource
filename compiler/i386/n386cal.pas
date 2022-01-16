@@ -50,8 +50,10 @@ implementation
       cpubase,paramgr,
       aasmtai,aasmdata,aasmcpu,
       nbas,nmem,nld,ncnv,
-      symdef,symsym,symcpu,
-      cga,cgobj,cpuinfo;
+      parabase,
+      symdef,symsym,symcpu,symconst,
+      cga,cgobj,cgx86,
+      cpuinfo;
 
 
 {*****************************************************************************
@@ -66,16 +68,18 @@ implementation
         case target_info.system of
           system_i386_aros:
             begin
-              // one syscall convention for AROS
-              current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('AROS SysCall')));
-              reference_reset(tmpref,sizeof(pint));
-              tmpref.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(tcpuprocdef(procdefinition).libsym).mangledname);
-              cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
-              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,NR_EAX);
-              reference_reset_base(tmpref,NR_EAX,-tprocdef(procdefinition).extnumber,sizeof(pint));
-              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,NR_EAX);
-              cg.a_call_reg(current_asmdata.CurrAsmList,NR_EAX);
-              cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EAX);
+              if ([po_syscall_baselast, po_syscall_basereg] * tprocdef(procdefinition).procoptions) <> [] then
+                begin
+                  current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('AROS SysCall')));
+
+                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
+                  get_syscall_call_ref(tmpref,NR_EAX);
+
+                  current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,tmpref));
+                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EAX);
+                  exit;
+                end;
+              internalerror(2016090104);
             end;
           else
             internalerror(2014081801);
@@ -89,29 +93,32 @@ implementation
         para.left:=cloadnode.create(tcpuprocdef(procdefinition).libsym,tcpuprocdef(procdefinition).libsym.owner);
       end;
 
+
     procedure ti386callnode.extra_interrupt_code;
       begin
-        if not(target_info.system in [system_i386_darwin,system_i386_iphonesim,system_i386_android]) then
-          begin
-            emit_none(A_PUSHF,S_L);
-            emit_reg(A_PUSH,S_L,NR_CS);
-          end;
+        emit_none(A_PUSHF,S_L);
+        emit_reg(A_PUSH,S_L,NR_CS);
       end;
 
 
     procedure ti386callnode.pop_parasize(pop_size:longint);
       var
         hreg : tregister;
+        href : treference;
       begin
-        if (paramanager.use_fixed_stack) then
+        if paramanager.use_fixed_stack then
           begin
             { very weird: in this case the callee does a "ret $4" and the }
             { caller immediately a "subl $4,%esp". Possibly this is for   }
             { use_fixed_stack code to be able to transparently call       }
             { old-style code (JM)                                         }
             dec(pop_size,pushedparasize);
-            if (pop_size < 0) then
-              current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_SUB,S_L,-pop_size,NR_ESP));
+            if pop_size<0 then
+              begin
+                reference_reset_base(href,NR_STACK_POINTER_REG,pop_size,ctempposinvalid,0,[]);
+                { it is better to use lea here }
+                current_asmdata.CurrAsmList.concat(Taicpu.op_ref_reg(A_LEA,TCGSize2OpSize[OS_ADDR],href,NR_ESP));
+              end;
             exit;
           end;
 
@@ -160,5 +167,5 @@ implementation
 
 
 begin
-   ccallnode:=ti386callnode;
+  ccallnode:=ti386callnode;
 end.

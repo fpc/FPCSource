@@ -301,9 +301,9 @@ end;
 
 var
  f: file;
- oldexit : pointer;
+ oldexit : codepointer;
 
-  procedure MyExit;far;
+  procedure MyExit;
    begin
      ExitProc := OldExit;
      RmDir(TestDir);

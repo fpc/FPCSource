@@ -66,6 +66,11 @@ USES
          Windows,                                     { Standard unit }
    {$ENDIF}
 
+   {$IFDEF OS_WIN16}                                  { WIN16 CODE }
+         WinProcs, WinTypes,                          { Standard units }
+         Crt,                                         { used for Delay() }
+   {$ENDIF}
+
    {$ifdef OS_DOS}
      Dos,
    {$endif OS_DOS}
@@ -224,9 +229,12 @@ CONST
 {                         MOUSE BUTTON STATE MASKS                          }
 {---------------------------------------------------------------------------}
 CONST
-   mbLeftButton   = $01;                              { Left mouse button }
-   mbRightButton  = $02;                              { Right mouse button }
-   mbMiddleButton = $04;                              { Middle mouse button }
+   mbLeftButton      = $01;                           { Left mouse button }
+   mbRightButton     = $02;                           { Right mouse button }
+   mbMiddleButton    = $04;                           { Middle mouse button }
+   mbScrollWheelDown = $08;                           { Scroll wheel down}
+   mbScrollWheelUp   = $10;                           { Scroll wheel up }
+
 
 {---------------------------------------------------------------------------}
 {                         SCREEN CRT MODE CONSTANTS                         }
@@ -750,6 +758,11 @@ Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
      GetDosTicks:=GetTickCount div 55;
   end;
 {$ENDIF OS_WINDOWS}
+{$IFDEF OS_WIN16}
+  begin
+     GetDosTicks:=GetTickCount div 55;
+  end;
+{$ENDIF OS_WIN16}
 {$IFDEF OS_DOS}
   begin
     GetDosTicks:=MemL[$40:$6c];
@@ -812,6 +825,11 @@ begin
     end;
 end;
 {$ENDIF}
+{$IFDEF OS_WIN16}
+  begin
+    Delay (10);
+  end;
+{$ENDIF}
 {$IFDEF OS_NETWARE_LIBC}
   begin
     Delay (10);
@@ -835,7 +853,7 @@ end;
 {                UNINITIALIZED DOS/DPMI/WIN/NT/OS2 VARIABLES                }
 {---------------------------------------------------------------------------}
 VAR
-   SaveExit: Pointer;                                 { Saved exit pointer }
+   SaveExit: CodePointer;                             { Saved exit pointer }
    Queue   : Array [0..QueueMax-1] Of TEvent;         { New message queue }
 
 {***************************************************************************}

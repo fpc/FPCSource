@@ -507,6 +507,7 @@ implementation
               cgmessage2(wpo_expected_section,tostr(flinenr),s);
               break;
             end;
+          i:=2;
           for i:=2 to length(s) do
             if (s[i]<>' ') then
               break;

@@ -13,7 +13,7 @@ var
 
 begin
   map := TMymap.Create();
-
+  map.sorted:=true;
   map.Add('Hello', ta);
 
   map.Find('Hello', i);

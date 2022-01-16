@@ -50,6 +50,7 @@ interface
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,procinfo,
       ncon,nset,cgutils,tgobj,
+      cpuinfo,
       cga,ncgutil,cgobj,cg64f32,cgx86,
       hlcgobj;
 
@@ -64,7 +65,7 @@ interface
 
     function ti386addnode.use_generic_mul64bit: boolean;
     begin
-      result:=(cs_check_overflow in current_settings.localswitches) or
+      result:=needoverflowcheck or
         (cs_opt_size in current_settings.optimizerswitches);
     end;
 
@@ -78,7 +79,7 @@ interface
                 not(is_signed(right.resultdef));
       { use IMUL instead of MUL in case overflow checking is off and we're
         doing a 32->32-bit multiplication }
-      if not (cs_check_overflow in current_settings.localswitches) and
+      if not needoverflowcheck and
          not is_64bit(resultdef) then
         unsigned:=false;
       if (nodetype=muln) and (unsigned or is_64bit(resultdef)) then
@@ -140,7 +141,7 @@ interface
           else
             begin
               { everything should be handled in pass_1 (JM) }
-              internalerror(200109051);
+              internalerror(2001090505);
             end;
         end;
 
@@ -167,6 +168,9 @@ interface
         { at this point, left.location.loc should be LOC_REGISTER }
         if right.location.loc=LOC_REGISTER then
          begin
+           if mboverflow and needoverflowcheck then
+             cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+
            { when swapped another result register }
            if (nodetype=subn) and (nf_swapped in flags) then
             begin
@@ -190,15 +194,24 @@ interface
             begin
               r:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
               cg64.a_load64low_loc_reg(current_asmdata.CurrAsmList,right.location,r);
+              cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               emit_reg_reg(op1,opsize,left.location.register64.reglo,r);
               emit_reg_reg(A_MOV,opsize,r,left.location.register64.reglo);
               cg64.a_load64high_loc_reg(current_asmdata.CurrAsmList,right.location,r);
               { the carry flag is still ok }
               emit_reg_reg(op2,opsize,left.location.register64.reghi,r);
+
+              { We need to keep the FLAGS register allocated for overflow checks }
+              if not mboverflow or not needoverflowcheck then
+                cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+
               emit_reg_reg(A_MOV,opsize,r,left.location.register64.reghi);
             end
            else
             begin
+              if mboverflow and needoverflowcheck then
+                cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+
               cg64.a_op64_loc_reg(current_asmdata.CurrAsmList,op,location.size,right.location,
                 left.location.register64);
             end;
@@ -211,13 +224,15 @@ interface
         { is in unsigned VAR!!                              }
         if mboverflow then
          begin
-           if cs_check_overflow in current_settings.localswitches  then
+           if needoverflowcheck then
             begin
               current_asmdata.getjumplabel(hl4);
               if unsigned then
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_AE,hl4)
               else
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NO,hl4);
+
+              cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
               cg.a_label(current_asmdata.CurrAsmList,hl4);
             end;
@@ -229,6 +244,8 @@ interface
 
     procedure ti386addnode.second_cmp64bit;
       var
+        truelabel,
+        falselabel,
         hlab       : tasmlabel;
         href       : treference;
         unsigned   : boolean;
@@ -239,19 +256,16 @@ interface
            oldnodetype : tnodetype;
 
         begin
-{$ifdef OLDREGVARS}
-           load_all_regvars(current_asmdata.CurrAsmList);
-{$endif OLDREGVARS}
            { the jump the sequence is a little bit hairy }
            case nodetype of
               ltn,gtn:
                 begin
-                   if (hlab<>current_procinfo.CurrTrueLabel) then
-                     cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrTrueLabel);
+                   if (hlab<>location.truelabel) then
+                     cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.truelabel);
                    { cheat a little bit for the negative test }
                    toggleflag(nf_swapped);
-                   if (hlab<>current_procinfo.CurrFalseLabel) then
-                     cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrFalseLabel);
+                   if (hlab<>location.falselabel) then
+                     cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.falselabel);
                    toggleflag(nf_swapped);
                 end;
               lten,gten:
@@ -261,21 +275,23 @@ interface
                      nodetype:=ltn
                    else
                      nodetype:=gtn;
-                   if (hlab<>current_procinfo.CurrTrueLabel) then
-                     cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrTrueLabel);
+                   if (hlab<>location.truelabel) then
+                     cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.truelabel);
                    { cheat for the negative test }
                    if nodetype=ltn then
                      nodetype:=gtn
                    else
                      nodetype:=ltn;
-                   if (hlab<>current_procinfo.CurrFalseLabel) then
-                     cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrFalseLabel);
+                   if (hlab<>location.falselabel) then
+                     cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),location.falselabel);
                    nodetype:=oldnodetype;
                 end;
               equaln:
-                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrFalseLabel);
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.falselabel);
               unequaln:
-                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrTrueLabel);
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.truelabel);
+              else
+                internalerror(2019050905);
            end;
         end;
 
@@ -288,23 +304,27 @@ interface
                 begin
                    { the comparisaion of the low dword have to be }
                    {  always unsigned!                            }
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),current_procinfo.CurrTrueLabel);
-                   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),location.truelabel);
+                   cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
                 end;
               equaln:
                 begin
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrFalseLabel);
-                   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.falselabel);
+                   cg.a_jmp_always(current_asmdata.CurrAsmList,location.truelabel);
                 end;
               unequaln:
                 begin
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrTrueLabel);
-                   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,location.truelabel);
+                   cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);
                 end;
+              else
+                internalerror(2019050904);
            end;
         end;
 
       begin
+        truelabel:=nil;
+        falselabel:=nil;
         pass_left_right;
 
         unsigned:=((left.resultdef.typ=orddef) and
@@ -313,7 +333,9 @@ interface
                    (torddef(right.resultdef).ordtype=u64bit));
 
         { we have LOC_JUMP as result }
-        location_reset(location,LOC_JUMP,OS_NO);
+        current_asmdata.getjumplabel(truelabel);
+        current_asmdata.getjumplabel(falselabel);
+        location_reset_jump(location,truelabel,falselabel);
 
         { Relational compares against constants having low dword=0 can omit the
           second compare based on the fact that any unsigned value is >=0 }
@@ -322,8 +344,10 @@ interface
            (lo(right.location.value64)=0) then
           begin
             case getresflags(true) of
-              F_AE: hlab:=current_procinfo.CurrTrueLabel;
-              F_B:  hlab:=current_procinfo.CurrFalseLabel;
+              F_AE: hlab:=location.truelabel ;
+              F_B:  hlab:=location.falselabel;
+              else
+                ;
             end;
           end;
 
@@ -394,7 +418,7 @@ interface
                 end;
             end;
         else
-          internalerror(200203282);
+          internalerror(2002032803);
         end;
 
       end;
@@ -432,7 +456,7 @@ interface
 
     procedure ti386addnode.second_mul(unsigned: boolean);
 
-    var reg:Tregister;
+    var reg,reghi,reglo:Tregister;
         ref:Treference;
         use_ref:boolean;
         hl4 : tasmlabel;
@@ -443,7 +467,7 @@ interface
     begin
       pass_left_right;
       reg:=NR_NO;
-      reference_reset(ref,sizeof(pint));
+      reference_reset(ref,sizeof(pint),[]);
 
       { Mul supports registers and references, so if not register/reference,
         load the location into a register.
@@ -459,30 +483,63 @@ interface
         end
       else
         begin
-          {LOC_CONSTANT for example.}
+          { LOC_CONSTANT for example.}
           reg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
           hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,left.resultdef,osuinttype,left.location,reg);
         end;
-      {Allocate EAX.}
-      cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
-      {Load the right value.}
-      hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,NR_EAX);
-      {Also allocate EDX, since it is also modified by a mul (JM).}
-      cg.getcpuregister(current_asmdata.CurrAsmList,NR_EDX);
-      if use_ref then
-        emit_ref(asmops[unsigned],S_L,ref)
-      else
-        emit_reg(asmops[unsigned],S_L,reg);
-      if (cs_check_overflow in current_settings.localswitches) and
+
+      if (CPUX86_HAS_BMI2 in cpu_capabilities[current_settings.cputype]) and
+        (not(needoverflowcheck) or
         { 32->64 bit cannot overflow }
-        (not is_64bit(resultdef)) then
+        is_64bit(resultdef)) then
         begin
-          current_asmdata.getjumplabel(hl4);
-          cg.a_jmp_flags(current_asmdata.CurrAsmList,F_AE,hl4);
-          cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
-          cg.a_label(current_asmdata.CurrAsmList,hl4);
+          cg.getcpuregister(current_asmdata.CurrAsmList,NR_EDX);
+          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,NR_EDX);
+          reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+          reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+          if use_ref then
+            current_asmdata.CurrAsmList.concat(Taicpu.Op_ref_reg_reg(A_MULX,S_L,ref,reglo,reghi))
+          else
+            emit_reg_reg_reg(A_MULX,S_L,reg,reglo,reghi);
+          cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EDX);
+
+          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+          location.register64.reglo:=reglo;
+
+          if is_64bit(resultdef) then
+            location.register64.reghi:=reghi;
+
+          location_freetemp(current_asmdata.CurrAsmList,left.location);
+          location_freetemp(current_asmdata.CurrAsmList,right.location);
+        end
+      else
+        begin
+          { Allocate EAX. }
+          cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
+          { Load the right value. }
+          hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,NR_EAX);
+          { Also allocate EDX, since it is also modified by a mul (JM). }
+          cg.getcpuregister(current_asmdata.CurrAsmList,NR_EDX);
+
+          if needoverflowcheck then
+            cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+
+          if use_ref then
+            emit_ref(asmops[unsigned],S_L,ref)
+          else
+            emit_reg(asmops[unsigned],S_L,reg);
+          if needoverflowcheck and
+            { 32->64 bit cannot overflow }
+            (not is_64bit(resultdef)) then
+            begin
+              current_asmdata.getjumplabel(hl4);
+              cg.a_jmp_flags(current_asmdata.CurrAsmList,F_AE,hl4);
+              cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
+              cg.a_label(current_asmdata.CurrAsmList,hl4);
+            end;
+          set_mul_result_location;
         end;
-      set_mul_result_location;
     end;
 
 
@@ -579,7 +636,7 @@ interface
       else if (hreg2<>NR_NO) then
         emit_reg_reg(A_ADD,S_L,hreg2,NR_EDX)
       else
-        InternalError(2014011604);
+        InternalError(2014011601);
 
       { Result is now in EDX:EAX. Copy it to virtual registers. }
       set_mul_result_location;

@@ -1,4 +1,4 @@
-{ %TARGET=win32,linux,wince }
+{ %TARGET=win32,linux,wince,haiku }
 { %needlibrary }
 { %NORUN }
 

@@ -45,6 +45,7 @@ unit optdfa;
         procedure resetdfainfo(node : tnode);
 
         procedure createdfainfo(node : tnode);
+        procedure redodfainfo(node : tnode);
         destructor destroy;override;
       end;
 
@@ -53,14 +54,13 @@ unit optdfa;
   implementation
 
     uses
-      globtype,globals,
+      globtype,constexp,
       verbose,
-      cpuinfo,
       symconst,symdef,symsym,
       defutil,
       procinfo,
       nutils,htypechk,
-      nbas,nflw,ncon,ninl,ncal,nset,nld,nadd,
+      nbas,nflw,ncal,nset,nld,nadd,
       optbase;
 
 
@@ -137,6 +137,8 @@ unit optdfa;
               else
                 DFASetInclude(pdfainfo(arg)^.use^,n.optinfo^.index);
             end;
+          else
+            ;
         end;
         result:=fen_false;
       end;
@@ -183,7 +185,7 @@ unit optdfa;
         { update life entry of a node with l, set changed if this changes
           life info for the node
         }
-        procedure updatelifeinfo(n : tnode;l : TDFASet);
+        procedure updatelifeinfo(n : tnode;const l : TDFASet);
           var
             b : boolean;
           begin
@@ -224,6 +226,7 @@ unit optdfa;
           dfainfo : tdfainfo;
           l : TDFASet;
           save: TDFASet;
+          lv, hv: TConstExprInt;
           i : longint;
           counteruse_after_loop : boolean;
         begin
@@ -326,8 +329,13 @@ unit optdfa;
                 counteruse_after_loop:=assigned(tfornode(node).left.optinfo) and assigned(node.successor) and
                   DFASetIn(node.successor.optinfo^.life,tfornode(node).left.optinfo^.index);
 
-                { if yes, then we should warn }
-                { !!!!!! }
+                if counteruse_after_loop then
+                  begin
+                    { if yes, then we should warn }
+                    { !!!!!! }
+                  end
+                else
+                  Include(tfornode(node).loopflags,lnf_dont_mind_loopvar_on_exit);
 
                 { first update the dummy node }
 
@@ -381,6 +389,7 @@ unit optdfa;
             temprefn,
             loadn,
             typeconvn,
+            derefn,
             assignn:
               begin
                 if not(assigned(node.optinfo^.def)) and
@@ -480,7 +489,16 @@ unit optdfa;
                 if assigned(tcasenode(node).elseblock) then
                   DFASetIncludeSet(l,tcasenode(node).elseblock.optinfo^.life)
                 else if assigned(node.successor) then
-                  DFASetIncludeSet(l,node.successor.optinfo^.life);
+                  begin
+                    if is_ordinal(tcasenode(node).left.resultdef) then
+                      begin
+                        getrange(tcasenode(node).left.resultdef,lv,hv);
+                        if tcasenode(node).labelcoverage<(hv-lv) then
+                          DFASetIncludeSet(l,node.successor.optinfo^.life);
+                      end
+                    else
+                      DFASetIncludeSet(l,node.successor.optinfo^.life);
+                  end;
 
                 { add use info from the "case" expression }
                 DFASetIncludeSet(l,tcasenode(node).optinfo^.use);
@@ -491,20 +509,32 @@ unit optdfa;
 
             exitn:
               begin
-                if not(is_void(current_procinfo.procdef.returndef)) then
+                { in case of inlining, an exit node can have a successor, in this case, we do not have to
+                  use the faked resultnode }
+                if assigned(node.successor) then
+                  begin
+                    l:=node.optinfo^.life;
+                    DFASetIncludeSet(l,node.successor.optinfo^.life);
+                    UpdateLifeInfo(node,l);
+                  end
+                else if assigned(resultnode) and (resultnode.nodetype<>nothingn) then
                   begin
                     if not(assigned(node.optinfo^.def)) and
                        not(assigned(node.optinfo^.use)) then
                       begin
                         if assigned(texitnode(node).left) then
                           begin
-                            node.optinfo^.def:=resultnode.optinfo^.def;
+{                           this should never happen as
+                            texitnode.pass_typecheck converts the left node into a separate node already
+
+                             node.optinfo^.def:=resultnode.optinfo^.def;
 
                             dfainfo.use:=@node.optinfo^.use;
                             dfainfo.def:=@node.optinfo^.def;
                             dfainfo.map:=map;
                             foreachnodestatic(pm_postprocess,texitnode(node).left,@AddDefUse,@dfainfo);
-                            calclife(node);
+                            calclife(node); }
+                            Internalerror(2020122901);
                           end
                         else
                           begin
@@ -587,6 +617,10 @@ unit optdfa;
       if the tree has been changed without updating dfa }
     procedure TDFABuilder.resetdfainfo(node : tnode);
       begin
+        nodemap.Free;
+        nodemap:=nil;
+        resultnode.Free;
+        resultnode:=nil;
         foreachnodestatic(pm_postprocess,node,@ResetDFA,nil);
       end;
 
@@ -626,18 +660,20 @@ unit optdfa;
       end;
 
 
+    procedure TDFABuilder.redodfainfo(node: tnode);
+      begin
+        resetdfainfo(node);
+        createdfainfo(node);
+        include(current_procinfo.flags,pi_dfaavailable);
+      end;
+
+
     destructor TDFABuilder.Destroy;
       begin
         Resultnode.free;
         nodemap.free;
         inherited destroy;
       end;
-
-    var
-      { we have to pass the address of SearchNode in a call inside of SearchNode:
-        @SearchNode does not work because the compiler thinks we take the address of the result
-        so store the address from outside }
-      SearchNodeProcPointer : function(var n: tnode; arg: pointer): foreachnoderesult;
 
     type
       { helper structure to be able to pass more than one variable to the iterator function }
@@ -675,6 +711,28 @@ unit optdfa;
           PSearchNodeInfo(arg)^.warnedfilelocs[high(PSearchNodeInfo(arg)^.warnedfilelocs)]:=f;
         end;
 
+
+      { Checks if the symbol is a candidate for a warning.
+        Emit warning/note for living locals, result and parameters, but only about the current
+        symtables }
+      function SymbolCandidateForWarningOrHint(sym : tabstractnormalvarsym) : Boolean;
+        begin
+          Result:=(((sym.owner=current_procinfo.procdef.localst) and
+                    (current_procinfo.procdef.localst.symtablelevel=sym.owner.symtablelevel)
+                   ) or
+                   ((sym.owner=current_procinfo.procdef.parast) and
+                    (sym.typ=paravarsym) and
+                    (current_procinfo.procdef.parast.symtablelevel=sym.owner.symtablelevel) and
+                    { all parameters except out parameters are initialized by the caller }
+                    (tparavarsym(sym).varspez=vs_out)
+                   ) or
+                   ((vo_is_funcret in sym.varoptions) and
+                    (current_procinfo.procdef.parast.symtablelevel=sym.owner.symtablelevel)
+                   )
+                  ) and not(vo_is_external in sym.varoptions) and
+                  not sym.inparentfpstruct;
+        end;
+
       var
         varsym : tabstractnormalvarsym;
         methodpointer,
@@ -692,14 +750,7 @@ unit optdfa;
                   while assigned(hpt) and (hpt.nodetype in [subscriptn,vecn,typeconvn]) do
                     hpt:=tunarynode(hpt).left;
                   if assigned(hpt) and (hpt.nodetype=loadn) and not(WarnedForLocation(hpt.fileinfo)) and
-                    { warn only on the current symtable level }
-                    (((tabstractnormalvarsym(tloadnode(hpt).symtableentry).owner=current_procinfo.procdef.localst) and
-                      (current_procinfo.procdef.localst.symtablelevel=tabstractnormalvarsym(tloadnode(hpt).symtableentry).owner.symtablelevel)
-                     ) or
-                     ((tabstractnormalvarsym(tloadnode(hpt).symtableentry).owner=current_procinfo.procdef.parast) and
-                      (current_procinfo.procdef.parast.symtablelevel=tabstractnormalvarsym(tloadnode(hpt).symtableentry).owner.symtablelevel)
-                     )
-                    ) and
+                    SymbolCandidateForWarningOrHint(tabstractnormalvarsym(tloadnode(hpt).symtableentry)) and
                     PSearchNodeInfo(arg)^.nodetosearch.isequal(hpt) then
                     begin
                       { issue only a hint for var, when encountering the node passed as out, we need only to stop searching }
@@ -718,8 +769,8 @@ unit optdfa;
             begin
               { take care of short boolean evaluation: if the expression to be search is found in left,
                 we do not need to search right }
-              if foreachnodestatic(pm_postprocess,taddnode(n).left,SearchNodeProcPointer,arg) or
-                foreachnodestatic(pm_postprocess,taddnode(n).right,SearchNodeProcPointer,arg) then
+              if foreachnodestatic(pm_postprocess,taddnode(n).left,@optdfa.SearchNode,arg) or
+                foreachnodestatic(pm_postprocess,taddnode(n).right,@optdfa.SearchNode,arg) then
                 result:=fen_norecurse_true
               else
                 result:=fen_norecurse_false;
@@ -752,8 +803,8 @@ unit optdfa;
                       { don't warn about the method pointer }
                       AddFilepos(hpt.fileinfo);
 
-                      if not(foreachnodestatic(pm_postprocess,tcallnode(n).left,SearchNodeProcPointer,arg)) then
-                        foreachnodestatic(pm_postprocess,tcallnode(n).right,SearchNodeProcPointer,arg);
+                      if not(foreachnodestatic(pm_postprocess,tcallnode(n).left,@optdfa.SearchNode,arg)) then
+                        foreachnodestatic(pm_postprocess,tcallnode(n).right,@optdfa.SearchNode,arg);
                       result:=fen_norecurse_true
                     end;
                  end;
@@ -765,23 +816,7 @@ unit optdfa;
                 begin
                   varsym:=tabstractnormalvarsym(tloadnode(n).symtableentry);
 
-                  { Give warning/note for living locals, result and parameters, but only about the current
-                    symtables }
-                  if assigned(varsym.owner) and
-                    (((varsym.owner=current_procinfo.procdef.localst) and
-                      (current_procinfo.procdef.localst.symtablelevel=varsym.owner.symtablelevel)
-                     ) or
-                     ((varsym.owner=current_procinfo.procdef.parast) and
-                      (varsym.typ=paravarsym) and
-                      (current_procinfo.procdef.parast.symtablelevel=varsym.owner.symtablelevel) and
-                      { all parameters except out parameters are initialized by the caller }
-                      (tparavarsym(varsym).varspez=vs_out)
-                     ) or
-                     ((vo_is_funcret in varsym.varoptions) and
-                      (current_procinfo.procdef.parast.symtablelevel=varsym.owner.symtablelevel)
-                     )
-                    ) and
-                    not(vo_is_external in varsym.varoptions) then
+                  if assigned(varsym.owner) and SymbolCandidateForWarningOrHint(varsym) then
                     begin
                       if (vo_is_funcret in varsym.varoptions) and not(WarnedForLocation(n.fileinfo)) then
                         begin
@@ -814,6 +849,8 @@ unit optdfa;
 {$endif dummy}
                 end;
             end;
+          else
+            ;
         end;
       end;
 
@@ -906,8 +943,11 @@ unit optdfa;
                 MaybeSearchIn(texitnode(node).left);
                 { exit uses the resultnode implicitly, so searching for a matching node is
                   useless, if we reach the exit node and found the living node not in left, then
-                  it can be only the resultnode  }
-                if not(Result) and not(is_void(current_procinfo.procdef.returndef)) and
+                  it can be only the resultnode
+
+                  successor might be assigned in case of an inlined exit node, in this case we do not warn about an unassigned
+                  result as this had happened already when the routine has been compiled }
+                if not(assigned(node.successor)) and not(Result) and not(is_void(current_procinfo.procdef.returndef)) and
                   not(assigned(texitnode(node).resultexpr)) and
                   { don't warn about constructors }
                   not(current_procinfo.procdef.proctypeoption in [potype_class_constructor,potype_constructor]) then
@@ -959,6 +999,4 @@ unit optdfa;
       end;
 
 
-begin
-  SearchNodeProcPointer:=@SearchNode;
 end.

@@ -1,4 +1,4 @@
-unit sqldbwebdata;
+unit SQLDBWebData;
 
 {$mode objfpc}{$H+}
 

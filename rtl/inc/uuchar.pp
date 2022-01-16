@@ -23,7 +23,12 @@ interface
 
 
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
+{$ifdef MSWINDOWS}
+  {$define HAS_PARAMSTRU}
+  {$undef FPC_HAS_FEATURE_COMMANDARGS} // Skip the implementation of ParamStr()
+{$endif MSWINDOWS}
 Function ParamStr(Param: Longint): UnicodeString;
+  {$ifdef HAS_PARAMSTRU} external name '_FPC_ParamStrU'; {$endif}
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
 implementation
@@ -40,7 +45,7 @@ Function ParamStr(Param: Longint): UnicodeString;
     In time, the system unit should get a GetExeName call.
   }
     if (Param=0) then
-      Paramstr:=System.Paramstr(0)
+      Paramstr:=UnicodeString(System.Paramstr(0))
     else if (Param>0) and (Param<argc) then
       paramstr:=UnicodeString(Argv[Param])
     else

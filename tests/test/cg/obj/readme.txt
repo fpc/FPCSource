@@ -41,7 +41,10 @@ Linux-mips : gcc (Debian 4.4.5-8) 4.4.5
 Android-arm    : GCC 4.7
 Android-i386   : GCC 4.7
 Android-mipsel : GCC 4.7
+Android-aarch64 : GCC 4.9
+Android-x86_64 : GCC 4.9
 haiku-i386 : gcc 2.95.3-haiku-100818
+haiku-x86_64 : gcc version 7.3.0 (2018_05_01)
 aix-powerpc64 : gcc (GCC) 4.8.1 using "gcc -maix64" for TEST_CCOMPILER
                 on (AIX power-aix 1 7 00F84C0C4C00)
 OS/2 (os2-i386): original EMX port of GCC (GCC 2.8.1) except for tcext6.c which
@@ -51,7 +54,7 @@ OS/2 (os2-i386): original EMX port of GCC (GCC 2.8.1) except for tcext6.c which
 Data retieved from .comment or similar section:
 beos-i386 : GCC: (GNU) 2.95v.3-beos-060710
 android-arm-eabi : GCC: (GNU) 4.7.A*
-solaris-sparc : .acomp: WorkShop Compilers 4.2 30 Oct 1996 C 4.2
+solaris-sparc : GCC: (GNU) 5.5.0
 linux-arm : GCC: (GNU) 2.95.1 19990816 (release)
 linux-arm-eabi : GCC: (Debian 4.3.2-1) 4.3.2
 linux-powerpc : GCC: (GNU) 2.95.4 20011002 (Debian prerelease)
@@ -61,3 +64,7 @@ linux-x86_64 : GCC: (GNU) 3.3.5 (Debian 1:3.3.5-8)
 Data retrieved from Dwarf producer information:
 darwin-x86_64 : GNU C 4.0.1 (Apple Inc. build 5465)
 
+linux-aarch64 : gcc (Ubuntu/Linaro 4.8.4-2ubuntu1~14.04) 4.8.4
+linux-sparc64 : GCC: (Debian 7.3.0-10) 7.3.0
+
+wasi-wasm32 : clang version 11.0.0 (https://github.com/llvm/llvm-project 176249bd6732a8044d457092ed932768724a6f06) from WASI SDK 12

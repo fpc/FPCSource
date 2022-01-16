@@ -13,18 +13,19 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('syslog');
+    P.ShortName := 'sysl';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
-    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,aix,dragonfly];
+    P.Version:='3.3.1';
+    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,ios,solaris,netbsd,openbsd,linux,aix,dragonfly];
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('systemlog.pp');
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testlog.pp');
-    P.Sources.AddExampleFiles('examples/*',false,'.');
+    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

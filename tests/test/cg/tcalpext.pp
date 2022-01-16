@@ -27,18 +27,5 @@ uses
   ctypes
   ;
 
-
-{$ifdef USE_PASCAL_OBJECT}
-  {$ifdef win32}
-    {$ifdef ver1_0}
-      {$L ptest.ow}
-    {$else}
-      {$L ptest.o}
-    {$endif}
-  {$else}
-  {$L ptest.o}
-  {$endif not win32}
-{$endif USE_PASCAL_OBJECT}
-
 {$i tcalext.pp }
 

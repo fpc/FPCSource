@@ -1,3 +1,9 @@
+{ Explicitly disable range and overflow checks for this test }
+
+{$Q-}
+{$R-}
+
+
 var
  A: byte;
  w : word;

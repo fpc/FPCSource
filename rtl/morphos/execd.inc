@@ -490,7 +490,7 @@ type
   TMemEntry = packed record
     me_Un: packed record
     case Byte of
-      0 : (meu_Regs: DWord);
+      0 : (meu_Reqs: DWord);
       1 : (meu_Addr: Pointer)
     end;
     me_Length: DWord;
@@ -501,7 +501,7 @@ type
   TMemList = packed record
     ml_Node      : TNode;
     ml_NumEntries: Word;
-    ml_ME        : PMemEntry;
+    ml_ME        : array [0..0] of TMemEntry;
   end;
 
 

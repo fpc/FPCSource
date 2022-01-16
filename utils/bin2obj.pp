@@ -26,7 +26,8 @@ var
   WriteAsciiData,
   CompressData,
   EnCodeData,
-  CompileUnit : Boolean;
+  CompileUnit,
+  WriteHex : Boolean;
   Cryptkey : IDEAcryptKey;
   InStream,
   MemStream,
@@ -39,6 +40,7 @@ begin
   Writeln ('Usage: bin2obj [options] -c constname [infile] ');
   Writeln ('Where options is a combination of : ');
   Writeln ('   -a        write asciii data instead of bytes');
+  Writeln ('   -x        write numerical values as hexadecimal numbers');
   Writeln ('   -z        compress data.');
   Writeln ('   -e key    encrypt data with key (must have 8 characters)');
   Writeln ('   -o        output filename');
@@ -62,13 +64,15 @@ begin
   UnitName:='';
   NeedUnitName:=False;
   WriteAsciiData:=False;
+  WriteHex:=False;
   Repeat
-    c:=GetOpt('ac:e:o:zhu::U::');
+    c:=GetOpt('ac:e:o:zhu::U::x');
     Case C of
       'a' : WriteAsciiData:=True;
       'c' : ConstName:=OptArg;
       'h','?' : usage;
       'z' : CompressData := True;
+      'x' : WriteHex := True;
       'e' : begin
             EncodeData:=True;
             If Length(OptArg)<8 then
@@ -209,13 +213,23 @@ begin
     begin
     MemStream.Read(B,1);
     If Not WriteAsciiData then
-       ToAdd:=Format('%3d',[b])
+       begin
+         if WriteHex then
+           ToAdd:=Format('$%2.2x',[b])
+         else
+           ToAdd:=Format('%3d',[b]);
+       end
     else
       If (B in [32..127]) and not (B in [10,13,39]) then
         ToAdd:=''''+Chr(b)+''''
       else
 //        ToAdd:=Format('''%s''',[Chr(b)]);
-        ToAdd:=Format('#%d',[B]);
+        begin
+          if WriteHex then
+            ToAdd:=Format('#$%x',[B])
+          else
+            ToAdd:=Format('#%d',[B]);
+        end;
     If I<Count then
       ToAdd:=ToAdd+',';
     Line:=Line+ToAdd;

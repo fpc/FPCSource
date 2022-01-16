@@ -184,7 +184,7 @@ implementation
 Resourcestring
   SErrNoDisk         = 'No disk active';
   SErrInvalidTrackNo = 'Invalid track number: %d';
-  SErrParsingLine    = 'An error occured while parsing line %d of the response: %s';
+  SErrParsingLine    = 'An error occurred while parsing line %d of the response: %s';
   SErrCDDBResponse   = 'CDDB error in command response: %s';
 
 function DiscIDToStr(ID: Integer): String;

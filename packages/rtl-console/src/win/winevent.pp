@@ -29,7 +29,7 @@ interface
 
     { these procedures must be used to set the event handlers }
     { these doesn't do something, they signal only the        }
-    { the upper layer that an event occured, this event       }
+    { the upper layer that an event occurred, this event       }
     { must be handled with Win32-API function by the upper    }
     { layer                                                   }
     Procedure SetMouseEventHandler(p : TEventProcedure);
@@ -203,9 +203,10 @@ interface
               { mouse event can be disabled by mouse.inc code
                 in DoneMouse
                 so use a key event instead PM }
-              WriteConsoleInput(StdInputHandle,ir,1,written);
+              { 20170707 mantis #32096, only wait if really written}
+              if WriteConsoleInput(StdInputHandle,ir,1,written) then
               { wait, til the thread is ready }
-              WaitForSingleObject(EventThreadHandle,INFINITE);
+                WaitForSingleObject(EventThreadHandle,INFINITE);
               CloseHandle(EventThreadHandle);
            end;
       end;

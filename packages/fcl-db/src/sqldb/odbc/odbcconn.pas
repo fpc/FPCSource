@@ -16,7 +16,7 @@ unit odbcconn;
 interface
 
 uses
-  Classes, SysUtils, sqldb, db, odbcsqldyn, BufDataset;
+  Classes, SysUtils, db, sqldb, BufDataset, odbcsqldyn;
 
 type
 
@@ -32,6 +32,8 @@ type
     FParamIndex:TParamBinding; // maps the i-th parameter in the query to the TParams passed to PrepareStatement
     FParamBuf:array of pointer; // buffers that can be used to bind the i-th parameter in the query
   public
+    property STMTHandle:SQLHSTMT read FSTMTHandle;
+
     constructor Create(Connection:TODBCConnection);
     destructor Destroy; override;
   end;
@@ -72,6 +74,7 @@ type
     procedure FreeParamBuffers(ODBCCursor:TODBCCursor);
   protected
     // Overrides from TSQLConnection
+    function GetConnectionCharSet: string; override;
     function GetHandle:pointer; override;
     // - Connect/disconnect
     procedure DoInternalConnect; override;
@@ -141,6 +144,8 @@ type
     Class Function Description : String; override;
   end;
 
+function ODBCSuccess(const Res:SQLRETURN):boolean;
+
 implementation
 
 uses
@@ -152,7 +157,7 @@ const
 
 { Generic ODBC helper functions }
 
-function ODBCSucces(const Res:SQLRETURN):boolean;
+function ODBCSuccess(const Res:SQLRETURN):boolean;
 begin
   Result:=(Res=SQL_SUCCESS) or (Res=SQL_SUCCESS_WITH_INFO);
 end;
@@ -195,7 +200,7 @@ var
   RecNumber:SQLSMALLINT;
 begin
   // check result
-  if ODBCSucces(LastReturnCode) then
+  if ODBCSuccess(LastReturnCode) then
     Exit; // no error; all is ok
 
   //WriteLn('LastResultCode: ',ODBCResultToStr(LastReturnCode));
@@ -298,7 +303,7 @@ end;
 constructor TODBCConnection.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FConnOptions := FConnOptions + [sqEscapeRepeat] + [sqEscapeSlash];
+  FConnOptions := FConnOptions + [sqSupportEmptyDatabaseName, sqEscapeRepeat, sqEscapeSlash];
 end;
 
 function TODBCConnection.StrToStatementType(s : string) : TStatementType;
@@ -400,6 +405,7 @@ var
   BufferLength, StrLenOrInd: SQLLEN;
   CType, SqlType, DecimalDigits:SQLSMALLINT;
   APD: SQLHDESC;
+  BytesVal: TBytes;
 begin
   // Note: it is assumed that AParams is the same as the one passed to PrepareStatement, in the sense that
   //       the parameters have the same order and names
@@ -440,43 +446,27 @@ begin
           SqlType:=SQL_BIGINT;
           ColumnSize:=19;
         end;
-      ftString, ftFixedChar, ftBlob, ftMemo, ftGuid,
-      ftBytes, ftVarBytes:
+      ftBlob, ftBytes, ftVarBytes:
         begin
-          StrVal:=AParams[ParamIndex].AsString;
-          StrLenOrInd:=Length(StrVal);
-          if StrVal='' then //HY104
+          BytesVal:=AParams[ParamIndex].AsBytes;
+          StrLenOrInd:=Length(BytesVal);
+          if Length(BytesVal)=0 then //HY104
              begin
-             StrVal:=#0;
+             BytesVal:=[0];
              StrLenOrInd:=SQL_NTS;
              end;
-          PVal:=@StrVal[1];
-          Size:=Length(StrVal);
+          PVal:=@BytesVal[0];
+          Size:=Length(BytesVal);
           ColumnSize:=Size;
           BufferLength:=Size;
+          CType:=SQL_C_BINARY;
           case AParams[ParamIndex].DataType of
-            ftBytes, ftVarBytes:
-              begin
-              CType:=SQL_C_BINARY;
-              SqlType:=SQL_VARBINARY;
-              end;
-            ftBlob:
-              begin
-              CType:=SQL_C_BINARY;
+            ftBytes, ftVarBytes: SqlType:=SQL_VARBINARY;
+            else // ftBlob
               SqlType:=SQL_LONGVARBINARY;
-              end;
-            ftMemo:
-              begin
-              CType:=SQL_C_CHAR;
-              SqlType:=SQL_LONGVARCHAR;
-              end
-            else // ftString, ftFixedChar
-              begin
-              CType:=SQL_C_CHAR;
-              SqlType:=SQL_VARCHAR;
-              end;
           end;
         end;
+      ftString, ftFixedChar, ftMemo, ftGuid, // string parameters must be passed as widestring to support FPC 3.0.x character conversion
       ftWideString, ftFixedWideChar, ftWideMemo:
         begin
           WideStrVal:=AParams[ParamIndex].AsWideString;
@@ -492,7 +482,7 @@ begin
           BufferLength:=Size;
           CType:=SQL_C_WCHAR;
           case AParams[ParamIndex].DataType of
-            ftWideMemo: SqlType:=SQL_WLONGVARCHAR;
+            ftMemo, ftWideMemo: SqlType:=SQL_WLONGVARCHAR;
             else        SqlType:=SQL_WVARCHAR;
           end;
         end;
@@ -563,7 +553,19 @@ begin
           CType:=SQL_C_BIT;
           SqlType:=SQL_BIT;
           ColumnSize:=Size;
-        end
+        end;
+      ftUnknown:
+        begin
+          if AParams[ParamIndex].IsNull then // Null variant is stored as ftUnknown - send it over as TINYINT (it doesn't really matter what type)
+          begin
+            PVal:=nil;
+            Size:=0;
+            CType:=SQL_C_TINYINT;
+            SqlType:=SQL_TINYINT;
+            ColumnSize:=Size;
+          end else
+            raise EDataBaseError.CreateFmt('Not-null unknown Parameter (index %d) is not supported.',[ParamIndex]);
+        end;
       else
         raise EDataBaseError.CreateFmt('Parameter %d is of type %s, which not supported yet',[ParamIndex, Fieldtypenames[AParams[ParamIndex].DataType]]);
     end;
@@ -572,7 +574,8 @@ begin
        StrLenOrInd:=SQL_NULL_DATA;
 
     Buf:=GetMem(Size+SizeOf(StrLenOrInd));
-    Move(PVal^, Buf^, Size);
+    if Size>0 then
+      Move(PVal^, Buf^, Size);
     if StrLenOrInd<>0 then
        begin
        PStrLenOrInd:=Buf + Size;
@@ -616,6 +619,13 @@ begin
     if assigned(ODBCCursor.FParamBuf[i]) then
       FreeMem(ODBCCursor.FParamBuf[i]);
   SetLength(ODBCCursor.FParamBuf,0);
+end;
+
+function TODBCConnection.GetConnectionCharSet: string;
+begin
+  Result := inherited GetConnectionCharSet;
+  if Result='' then
+    Result := TEncoding.ANSI.EncodingName; // by default, ODBC talks in ANSI, which can be different from CP_ACP (DefaultSystemCodePage)
 end;
 
 function TODBCConnection.GetHandle: pointer;
@@ -694,6 +704,7 @@ begin
       else
         begin
         FDBMSInfo.GetLastInsertIDSQL := '';
+        Exclude(FConnOptions, sqLastInsertID);
         end;
     end;
 
@@ -736,6 +747,7 @@ end;
 procedure TODBCConnection.PrepareStatement(cursor: TSQLCursor; ATransaction: TSQLTransaction; buf: string; AParams: TParams);
 var
   ODBCCursor:TODBCCursor;
+  wbuf: widestring;
 begin
   ODBCCursor:=cursor as TODBCCursor;
 
@@ -752,14 +764,19 @@ begin
 
   // Parse the SQL and build FParamIndex
   if assigned(AParams) and (AParams.count > 0) then
+    begin
     buf := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psInterbase,ODBCCursor.FParamIndex);
+    if LogEvent(detActualSQL) then
+      Log(detActualSQL,Buf);
+    end;
 
   // prepare statement
   ODBCCursor.FQuery:=Buf;
-  if not (ODBCCursor.FSchemaType in [stTables, stSysTables, stColumns, stProcedures]) then
+  if not (ODBCCursor.FSchemaType in [stTables, stSysTables, stColumns, stProcedures, stIndexes]) then
     begin
+      wbuf := buf;
       ODBCCheckResult(
-        SQLPrepare(ODBCCursor.FSTMTHandle, PChar(buf), Length(buf)),
+        SQLPrepareW(ODBCCursor.FSTMTHandle, PWideChar(wbuf), Length(wbuf)),
         SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not prepare statement.'
       );
     end;
@@ -854,12 +871,13 @@ begin
       stSysTables : Res:=SQLTables (ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0, TABLE_TYPE_SYSTEM, length(TABLE_TYPE_SYSTEM) );
       stColumns   : Res:=SQLColumns(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, @ODBCCursor.FQuery[1], length(ODBCCursor.FQuery), nil, 0 );
       stProcedures: Res:=SQLProcedures(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0 );
+      stIndexes   : Res:=SQLStatistics(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, @ODBCCursor.FQuery[1], length(ODBCCursor.FQuery), SQL_INDEX_ALL, SQL_QUICK);
       else          Res:=SQLExecute(ODBCCursor.FSTMTHandle); //SQL_NO_DATA returns searched update or delete statement that does not affect any rows
     end; {case}
 
     if (Res<>SQL_NO_DATA) then ODBCCheckResult( Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.' );
 
-    if ODBCSucces(SQLNumResultCols(ODBCCursor.FSTMTHandle, ColumnCount)) then
+    if ODBCSuccess(SQLNumResultCols(ODBCCursor.FSTMTHandle, ColumnCount)) then
       ODBCCursor.FSelectable:=ColumnCount>0
     else
       ODBCCursor.FSelectable:=False;
@@ -875,7 +893,7 @@ var
   RowCount: SQLLEN;
 begin
   if assigned(cursor) then
-    if ODBCSucces( SQLRowCount((cursor as TODBCCursor).FSTMTHandle, RowCount) ) then
+    if ODBCSuccess( SQLRowCount((cursor as TODBCCursor).FSTMTHandle, RowCount) ) then
        Result:=RowCount
     else
        Result:=-1
@@ -889,6 +907,7 @@ var
   StrLenOrInd: SQLLEN;
   LastInsertID: LargeInt;
 begin
+  Result := false;
   if SQLAllocHandle(SQL_HANDLE_STMT, FDBCHandle, STMTHandle) = SQL_SUCCESS then
     begin
     if SQLExecDirect(STMTHandle, PChar(FDBMSInfo.GetLastInsertIDSQL), Length(FDBMSInfo.GetLastInsertIDSQL)) = SQL_SUCCESS then
@@ -910,7 +929,7 @@ var
   i:integer;
   ColNameLength,TypeNameLength,DataType,DecimalDigits,Nullable:SQLSMALLINT;
   ColumnSize:SQLULEN;
-  ColName,TypeName:string;
+  ColName,TypeName:RawByteString;
   FieldType:TFieldType;
   FieldSize:word;
   AutoIncAttr, FixedPrecScale, Unsigned, Updatable: SQLLEN;
@@ -936,7 +955,7 @@ begin
                      ColNameDefaultLength+1, // and its length; we include the #0 terminating any ansistring of Length > 0 in the buffer
                      ColNameLength,          // actual column name length
                      DataType,               // the SQL datatype for the column
-                     ColumnSize,             // column size
+                     ColumnSize,             // column size (in characters)
                      DecimalDigits,          // number of decimal digits
                      Nullable),              // SQL_NO_NULLS, SQL_NULLABLE or SQL_NULLABLE_UNKNOWN
       SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get column properties for column %d.',[i]
@@ -959,15 +978,33 @@ begin
         SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get column name for column %d.',[i]
       );
     end;
+    // ColName is received in ANSI - convert to DefaultSystemCodePage
+    SetCodePage(ColName, CodePage, False);
+    SetCodePage(ColName, DefaultSystemCodePage, True);
 
     // convert type
     // NOTE: I made some guesses here after I found only limited information about TFieldType; please report any problems
     case DataType of
       SQL_CHAR:          begin FieldType:=ftFixedChar;  FieldSize:=ColumnSize; end;
-      SQL_VARCHAR:       begin FieldType:=ftString;     FieldSize:=ColumnSize; end;
+      SQL_VARCHAR:
+      begin
+        FieldSize:=ColumnSize;
+        if FieldSize=BLOB_BUF_SIZE then // SQL_VARCHAR declared as NVARCHAR(MAX) must be ftMemo - variable data size
+          FieldType:=ftMemo
+        else
+          FieldType:=ftString;
+      end;
       SQL_LONGVARCHAR:   begin FieldType:=ftMemo;       FieldSize:=BLOB_BUF_SIZE; end; // is a blob
-      SQL_WCHAR:         begin FieldType:=ftFixedWideChar; FieldSize:=ColumnSize*sizeof(Widechar); end;
-      SQL_WVARCHAR:      begin FieldType:=ftWideString; FieldSize:=ColumnSize*sizeof(Widechar); end;
+      SQL_WCHAR:         begin FieldType:=ftFixedWideChar; FieldSize:=ColumnSize; end;
+      SQL_WVARCHAR:
+      begin
+        FieldSize:=ColumnSize;
+        if FieldSize=BLOB_BUF_SIZE then // SQL_WVARCHAR declared as NVARCHAR(MAX) must be ftWideMemo - variable data size
+          FieldType:=ftWideMemo
+        else
+          FieldType:=ftWideString;
+      end;
+      SQL_SS_XML,
       SQL_WLONGVARCHAR:  begin FieldType:=ftWideMemo;   FieldSize:=BLOB_BUF_SIZE; end; // is a blob
       SQL_DECIMAL:       begin FieldType:=ftFloat;      FieldSize:=0; end;
       SQL_NUMERIC:       begin FieldType:=ftFloat;      FieldSize:=0; end;
@@ -980,7 +1017,14 @@ begin
       SQL_TINYINT:       begin FieldType:=ftSmallint;   FieldSize:=0; end;
       SQL_BIGINT:        begin FieldType:=ftLargeint;   FieldSize:=0; end;
       SQL_BINARY:        begin FieldType:=ftBytes;      FieldSize:=ColumnSize; end;
-      SQL_VARBINARY:     begin FieldType:=ftVarBytes;   FieldSize:=ColumnSize; end;
+      SQL_VARBINARY:
+      begin
+        FieldSize:=ColumnSize;
+        if FieldSize=BLOB_BUF_SIZE then // SQL_VARBINARY declared as VARBINARY(MAX) must be ftBlob - variable data size
+          FieldType:=ftBlob
+        else
+          FieldType:=ftVarBytes;
+      end;
       SQL_LONGVARBINARY: begin FieldType:=ftBlob;       FieldSize:=BLOB_BUF_SIZE; end; // is a blob
       SQL_TYPE_DATE:     begin FieldType:=ftDate;       FieldSize:=0; end;
       SQL_SS_TIME2,
@@ -1002,6 +1046,7 @@ begin
 {      SQL_INTERVAL_HOUR_TO_SECOND:  FieldType:=ftUnknown;}
 {      SQL_INTERVAL_MINUTE_TO_SECOND:FieldType:=ftUnknown;}
       SQL_GUID:          begin FieldType:=ftGuid;       FieldSize:=38; end; //SQL_GUID defines 36, but TGuidField requires 38
+      SQL_SS_VARIANT:    begin FieldType:=ftVariant;    FieldSize:=0; end;
     else
       begin FieldType:=ftUnknown; FieldSize:=ColumnSize; end
     end;
@@ -1110,15 +1155,15 @@ begin
           SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get datasource dependent type name for column %s.',[ColName]
         );
       end;
+      // TypeName is received in ANSI - convert to DefaultSystemCodePage
+      SetCodePage(TypeName, CodePage, False);
+      SetCodePage(TypeName, DefaultSystemCodePage, True);
 
       DatabaseErrorFmt('Column %s has an unknown or unsupported column type. Datasource dependent type name: %s. ODBC SQL data type code: %d.', [ColName, TypeName, DataType]);
     end;
 
     // add FieldDef
-    with FieldDefs.Add(FieldDefs.MakeNameUnique(ColName), FieldType, FieldSize, (Nullable=SQL_NO_NULLS) and (AutoIncAttr=SQL_FALSE), i) do
-    begin
-      if Updatable = SQL_ATTR_READONLY then Attributes := Attributes + [faReadonly];
-    end;
+    AddFieldDef(FieldDefs, i, ColName, FieldType, FieldSize, -1, False, (Nullable=SQL_NO_NULLS) and (AutoIncAttr=SQL_FALSE), Updatable=SQL_ATTR_READONLY);
   end;
 end;
 
@@ -1142,9 +1187,11 @@ const
   DEFAULT_BLOB_BUFFER_SIZE = 1024;
 
 function TODBCConnection.LoadField(cursor: TSQLCursor; FieldDef: TFieldDef; buffer: pointer; out CreateBlob : boolean): boolean;
+const
+  SQL_CA_SS_VARIANT_TYPE = 1215;
 var
   ODBCCursor:TODBCCursor;
-  StrLenOrInd:SQLLEN;
+  StrLenOrInd,VariantCType:SQLLEN;
   ODBCDateStruct:SQL_DATE_STRUCT;
   ODBCTimeStruct:SQL_TIME_STRUCT;
   ODBCTimeStampStruct:SQL_TIMESTAMP_STRUCT;
@@ -1159,9 +1206,9 @@ begin
   // TODO: finish this
   case FieldDef.DataType of
     ftWideString,ftFixedWideChar: // mapped to TWideStringField
-      Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_WCHAR, buffer, FieldDef.Size+sizeof(WideChar), @StrLenOrInd); //buffer must contain space for the null-termination character
+      Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_WCHAR, buffer, FieldDef.Size*FieldDef.CharSize+sizeof(WideChar), @StrLenOrInd); //buffer must contain space for the null-termination character
     ftGuid, ftFixedChar,ftString: // are mapped to a TStringField (including TGuidField)
-      Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_CHAR, buffer, FieldDef.Size+1, @StrLenOrInd);
+      Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_CHAR, buffer, FieldDef.Size*FieldDef.CharSize+1, @StrLenOrInd);
     ftSmallint:           // mapped to TSmallintField
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_SSHORT, buffer, SizeOf(Smallint), @StrLenOrInd);
     ftInteger,ftAutoInc:  // mapped to TLongintField
@@ -1214,15 +1261,42 @@ begin
       else
         PWord(buffer)^ := StrLenOrInd;
     end;
+    ftVariant:
+    begin
+      // Try to read sql_variant header
+      Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_BINARY, buffer, 0, @StrLenOrInd);
+      if ODBCSuccess(Res) then
+      begin
+        Res := SQLColAttribute(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_CA_SS_VARIANT_TYPE, nil, 0, nil, @VariantCType);
+        // map only types, which holds values directly in TVarData record
+        case VariantCType of
+          SQL_C_SSHORT, SQL_C_USHORT, SQL_C_SLONG, SQL_C_ULONG, SQL_C_SBIGINT:
+            begin
+            VariantCType := SQL_C_SBIGINT;
+            PVarData(buffer)^.vtype := varInt64;
+            buffer := @PVarData(buffer)^.vint64;
+            end;
+          SQL_C_FLOAT, SQL_C_DOUBLE:
+            begin
+            VariantCType := SQL_C_DOUBLE;
+            PVarData(buffer)^.vtype := varDouble;
+            buffer := @PVarData(buffer)^.vdouble;
+            end
+          else
+            StrLenOrInd := SQL_NULL_DATA;
+        end;
+        if StrLenOrInd<>SQL_NULL_DATA then
+          Res := SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, VariantCType, buffer, 8, @StrLenOrInd);
+      end;
+    end;
     ftWideMemo,
     ftBlob, ftMemo:       // BLOBs
     begin
       //Writeln('BLOB');
       // Try to discover BLOB data length
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_BINARY, buffer, 0, @StrLenOrInd);
-      ODBCCheckResult(Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get field data for field "%s" (index %d).',[FieldDef.Name, FieldDef.Index+1]);
       // Read the data if not NULL
-      if StrLenOrInd<>SQL_NULL_DATA then
+      if ODBCSuccess(Res) and (StrLenOrInd<>SQL_NULL_DATA) then
       begin
         CreateBlob:=true; // defer actual loading of blob data to LoadBlobIntoBuffer method
         //WriteLn('Deferring loading of blob of length ',StrLenOrInd);
@@ -1395,7 +1469,7 @@ begin
         if Res=SQL_NO_DATA then
           Break;
         // handle data
-        if ODBCSucces(Res) then begin
+        if ODBCSuccess(Res) then begin
           if OrdinalPos=1 then begin
             // create new IndexDef if OrdinalPos=1
             IndexDef:=IndexDefs.AddIndexDef;
@@ -1452,7 +1526,7 @@ begin
         if Res=SQL_NO_DATA then
           Break;
         // handle data
-        if ODBCSucces(Res) then begin
+        if ODBCSuccess(Res) then begin
           // note: SQLStatistics not only returns index info, but also statistics; we skip the latter
           if _Type<>SQL_TABLE_STAT then begin
             if PChar(@IndexName[1])=KeyName then begin
@@ -1498,7 +1572,7 @@ end;
 
 function TODBCConnection.GetSchemaInfoSQL(SchemaType: TSchemaType; SchemaObjectName, SchemaObjectPattern: string): string;
 begin
-  if SchemaType in [stTables, stSysTables, stColumns, stProcedures] then
+  if SchemaType in [stTables, stSysTables, stColumns, stProcedures, stIndexes] then
   begin
     if SchemaObjectName<>'' then
       Result := SchemaObjectName

@@ -29,10 +29,10 @@ type
    POleStr = Types.POleStr;
    PPOleStr = Types.PPOleStr;
    TBStr = POleStr;
-   TBStrList = array[0..(high(integer) div sizeof(TBSTR))-1] of TBstr;
+   TBStrList = array[0..65535] of TBstr;
    PBStrList = ^TBStrList;
    POleStrList = ^TOleStrList;
-   TOleStrList = array[0..(high(integer) div sizeof(POleStr))-1] of POleStr;
+   TOleStrList = array[0..65535] of POleStr;
 
    PBStr = ^TBStr;
    TOleEnum = type LongWord;
@@ -1115,14 +1115,18 @@ Const
     XFORMCOORDS_CONTAINERTOHIMETRIC       = $8;
     XFORMCOORDS_EVENTCOMPAT               = $10;
 
+    REGCLS_SINGLEUSE      = 0;  // class object only generates one instance
+    REGCLS_MULTIPLEUSE    = 1;  // same class object genereates multiple inst.
+    REGCLS_MULTI_SEPARATE = 2;  // multiple use, but separate control over each
+    REGCLS_SUSPENDED      = 4;  // register is as suspended, will be activated
+    REGCLS_SURROGATE      = 8;  // must be used when a surrogate process
+
 TYPE
     TVarType            = USHORT;
-    VARTYPE             = TVarType deprecated;  // not in Delphi, and clashes with VarType function
 
 //TypeInfo stuff.
 
     TDispID             = Long;
-    DISPID              = TDispID deprecated;  // not in Delphi and clashes with property modifier
     SCODE               = Long;
     pSCODE              = ^SCODE;
     lpDISPID            = ^TDispID;
@@ -2529,8 +2533,8 @@ TYPE
      Function Next(Celt:Ulong; out rgelt;pCeltFetched:pulong):HRESULT;StdCall;
 //    HRESULT RemoteNext(        [in] ULONG celt,        [out, size_is(celt), length_is( *pceltFetched)]        IUnknown **rgelt,        [out] ULONG *pceltFetched);
      Function Skip(Celt:Ulong):HResult;StdCall;
-     Function Reset():HResult;
-     Function Close(Out ppenum: IEnumUnknown):HResult;
+     Function Reset():HResult; stdcall;
+     Function Close(Out ppenum: IEnumUnknown):HResult; stdcall;
      END;
 
 
@@ -2544,7 +2548,7 @@ TYPE
        Function GetBindOptions(var BindOpts:TBind_Opts):HResult;  stdCall;
 //       Function RemoteGetBindOptions(Var bind_opts: TBind_Opts2):HResult;StdCall;
        Function GetRunningObjectTable(Out rot : IRunningObjectTable):Hresult; StdCall;
-       Function RegisterObjectParam(Const pszkey:LPOleStr;const punk:IUnknown):HResult;
+       Function RegisterObjectParam(Const pszkey:LPOleStr;const punk:IUnknown):HResult; stdcall;
        Function GetObjectParam(Const pszkey:LPOleStr; out punk: IUnknown):HResult; StdCall;
        Function EnumObjectParam (out enum:IEnumString):Hresult;StdCall;
        Function RevokeObjectParam(pszKey:LPOleStr):HResult;StdCall;
@@ -2790,7 +2794,7 @@ TYPE
        Function GetDataHere(CONST pformatetc : FormatETC; Out medium : STGMEDIUM):HRESULT; STDCALL;
        Function QueryGetData(const pformatetc : FORMATETC):HRESULT; STDCALL;
        Function GetCanonicalFormatEtc(const pformatetcIn : FORMATETC;Out pformatetcOut : FORMATETC):HResult; STDCALl;
-       Function SetData (Const pformatetc : FORMATETC;const medium:STGMEDIUM;FRelease : BOOL):HRESULT; StdCall;
+       Function SetData (Const pformatetc : FORMATETC;var medium:STGMEDIUM;FRelease : BOOL):HRESULT; StdCall;
        Function EnumFormatEtc(dwDirection : DWord; OUT enumformatetcpara : IENUMFORMATETC):HRESULT; StdCall;
        Function DAdvise(const formatetc : FORMATETC;advf :DWORD; CONST AdvSink : IAdviseSink;OUT dwConnection:DWORD):HRESULT;StdCall;
        Function DUnadvise(dwconnection :DWord) :HRESULT;StdCall;
@@ -3193,7 +3197,7 @@ TYPE
    IThumbnailExtractor = Interface (IUnknown)
       ['{969dc708-5c76-11d1-8d86-0000f804b057}']
        Function ExtractThumbnail (pStg : IStorage; uLength,UHeight : ULong; Out uloutputlength,Height :ULong; Out OutputBitmap : HBITMAP): HResult; StdCall;
-       Function OnFileUpdated (pStg : IStorage):HResult;
+       Function OnFileUpdated (pStg : IStorage):HResult;stdcall;
        End;
 
 //****************************************************************************
@@ -3202,12 +3206,12 @@ TYPE
 
     IDummyHICONIncluder = Interface (IUnknown)
        ['{947990de-cc28-11d2-a0f7-00805f858fb1}']
-       Function Dummy (h1 : HICON; H2 :HDC):HResult;
+       Function Dummy (h1 : HICON; H2 :HDC):HResult;stdcall;
        End;
 
     IComThreadingInfo = Interface (IUnknown)
        ['{000001ce-0000-0000-C000-000000000046}']
-       Function GetCurrentApartmentType(out pAptType : DWord {APTTTYPE}):HResult;
+       Function GetCurrentApartmentType(out pAptType : DWord {APTTTYPE}):HResult;stdcall;
        Function GetCurrentThreadType(Out ThreadType : Dword {THDTTYPE}):HResult;StdCall;
        Function GetCurrentLogicalThreadID(Out guidlogicalThreadId : TGUID):HResult;StdCall;
        Function SetCurrentLogicalThreadID(Const guidlogicalThreadId : TGUID):HResult;StdCall;
@@ -4062,7 +4066,7 @@ type
        function Uncache(dwConnection:LongWord):HRESULT;stdcall;
        function EnumCache(out ppenumSTATDATA:IEnumSTATDATA):HRESULT;stdcall;
        function InitCache(pDataObject:IDataObject):HRESULT;stdcall;
-       function SetData(var pFormatetc:tagFORMATETC;var pmedium:wireSTGMEDIUM;fRelease:Bool):HRESULT;stdcall;
+       function SetData(var pFormatetc:tagFORMATETC;var medium:TSTGMEDIUM;fRelease:Bool):HRESULT;stdcall;
       end;
 
     IOleCache2 = interface(IOleCache)
@@ -4537,7 +4541,7 @@ type
   procedure CoTaskMemFree(_para1:PVOID);stdcall; external  'ole32.dll' name 'CoTaskMemFree';
 
 {$ifndef wince}
-  function CreateDataAdviseHolder(_para1:IDataAdviseHolder):HRESULT;stdcall; external  'ole32.dll' name 'CreateDataAdviseHolder';
+  function CreateDataAdviseHolder(out _para1:IDataAdviseHolder):HRESULT;stdcall; external  'ole32.dll' name 'CreateDataAdviseHolder';
   function CreateDataCache(_para1:IUnknown; const _para2:TCLSID; const _para3:TIID; out _para4):HRESULT;stdcall; external  'ole32.dll' name 'CreateDataCache';
 {$endif wince}
 
@@ -4556,7 +4560,8 @@ type
   function StgSetTimes(_para1:POLESTR; _para2:PFILETIME; _para3:PFILETIME; _para4:PFILETIME):HRESULT;stdcall; external  'ole32.dll' name 'StgSetTimes';
   function CoGetObject(pszname:lpwstr; bndop:PBind_Opts; const riid:TIID; out ppv):HRESULT; stdcall; external  'ole32.dll' name 'CoGetObject';
   function BindMoniker(_para1:IMoniker; _para2:DWORD; const _para3:TIID; out _para4):HRESULT;stdcall; external  'ole32.dll' name 'BindMoniker';
-  function MkParseDisplayName(_para1:IBindCtx; _para2:POLESTR; out _para3:PULONG; out _para4:IMoniker):HRESULT;stdcall; external  'ole32.dll' name 'MkParseDisplayName';
+  function MkParseDisplayName(_para1:IBindCtx; _para2:POLESTR; out _para3:ULONG; out _para4:IMoniker):HRESULT;stdcall; external  'ole32.dll' name 'MkParseDisplayName';
+  function MkParseDisplayName(_para1:IBindCtx; _para2:POLESTR; _para3:PULONG; out _para4:IMoniker):HRESULT;stdcall; external  'ole32.dll' name 'MkParseDisplayName';
   function MonikerRelativePathTo(_para1:IMoniker; _para2:IMoniker; out _para3:IMoniker; _para4:BOOL):HRESULT;stdcall; external  'ole32.dll' name 'MonikerRelativePathTo';
   function MonikerCommonPrefixWith(_para1:IMoniker; _para2:IMoniker; _para3:PIMoniker):HRESULT;stdcall; external  'ole32.dll' name 'MonikerCommonPrefixWith';
 {$endif wince}

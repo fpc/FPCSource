@@ -48,6 +48,7 @@ interface
        tjvmstringconstnode = class(tstringconstnode)
           function pass_1: tnode; override;
           procedure pass_generate_code;override;
+          class function emptydynstrnil: boolean; override;
        end;
 
        tjvmsetconsttype = (
@@ -125,7 +126,7 @@ implementation
 
         { c) create loadnode of the field }
         result:=nil;
-        if not handle_staticfield_access(classfield,false,result) then
+        if not handle_staticfield_access(classfield,result) then
           internalerror(2011062606);
       end;
 
@@ -244,6 +245,11 @@ implementation
         end;
         thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,1);
         thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
+      end;
+
+    class function tjvmstringconstnode.emptydynstrnil: boolean;
+      begin
+        result:=false;
       end;
 
 
@@ -391,11 +397,9 @@ implementation
                 begin
                   result:=buildbitset;
                 end;
-              inserttypeconv_explicit(result,getpointerdef(resultdef));
+              inserttypeconv_explicit(result,cpointerdef.getreusable(resultdef));
               result:=cderefnode.create(result);
             end;
-          else
-            internalerror(2011060301);
         end;
       end;
 
@@ -451,7 +455,7 @@ implementation
         current_module.localsymtable.insert(csym);
         { generate assignment of the constant to the typed constant symbol }
         ssym:=jvm_add_typed_const_initializer(csym);
-        result:=current_asmdata.RefAsmSymbol(ssym.mangledname);
+        result:=current_asmdata.RefAsmSymbol(ssym.mangledname,AT_DATA);
       end;
 
 

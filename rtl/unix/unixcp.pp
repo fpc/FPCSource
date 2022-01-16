@@ -279,8 +279,6 @@ const
    (cp:1251; name:'MS-CYRL'),
    (cp:1251; name:'WINDOWS-1251'),
    (cp:1251; name:'windows-1251'), (* ANSI Cyrillic; Cyrillic (Windows) *)
-   (cp:1252; name:'CP819'),
-   (cp:1252; name:'IBM819'),
    (cp:1252; name:'CP1252'),
    (cp:1252; name:'MS-ANSI'),
    (cp:1252; name:'WINDOWS-1252'),
@@ -463,6 +461,8 @@ const
   {$ifdef aix}
    (cp:21866; name:'IBM-1124'), (* AIX *)
   {$endif}
+   (cp:28591; name:'CP819'),
+   (cp:28591; name:'IBM819'),
    (cp:28591; name:'ISO-8859-1'),
    (cp:28591; name:'ISO-IR-100'),
    (cp:28591; name:'ISO8859-1'),
@@ -714,7 +714,7 @@ var
 begin
   // Get one of non-empty environment variables in the next order:
   // LC_ALL, LC_CTYPE, LANG. Default is UTF-8 or ASCII.
-{$if defined(linux) or defined(darwin)}
+{$if defined(linux) or defined(darwin) or defined(haiku)}
   Result:=CP_UTF8;
 {$else}
   Result:=CP_ASCII;

@@ -44,27 +44,42 @@ end;
 
 { TParams }
 
-Function TParams.GetItem(Index: Integer): TParam;
+function TParams.GetItem(Index: Integer): TParam;
 begin
   Result:=(Inherited GetItem(Index)) as TParam;
 end;
 
-Function TParams.GetParamValue(const ParamName: string): Variant;
+function TParams.GetParamValue(const ParamName: string): Variant;
 begin
   Result:=ParamByName(ParamName).Value;
 end;
 
-Procedure TParams.SetItem(Index: Integer; Value: TParam);
+procedure TParams.SetItem(Index: Integer; Value: TParam);
 begin
   Inherited SetItem(Index,Value);
 end;
 
-Procedure TParams.SetParamValue(const ParamName: string; const Value: Variant);
+procedure TParams.SetParamValue(const ParamName: string; const Value: Variant);
 begin
   ParamByName(ParamName).Value:=Value;
 end;
 
-Procedure TParams.AssignTo(Dest: TPersistent);
+function TParams.CreateParseOpts(DoCreate, EscapeSlash, EscapeRepeat: Boolean): TSQLParseOptions;
+
+  Procedure SetO(B : Boolean; O : TSQLParseOption);
+
+  begin
+    if B then Include(Result,O);
+  end;
+
+begin
+  Result:=[];
+  SetO(DoCreate,spoCreate);
+  SetO(EscapeSlash,spoEscapeSlash);
+  SetO(EscapeRepeat,spoEscapeRepeat);
+end;
+
+procedure TParams.AssignTo(Dest: TPersistent);
 begin
  if (Dest is TParams) then
    TParams(Dest).Assign(Self)
@@ -72,7 +87,7 @@ begin
    inherited AssignTo(Dest);
 end;
 
-Function TParams.GetDataSet: TDataSet;
+function TParams.GetDataSet: TDataSet;
 begin
   If (FOwner is TDataset) Then
     Result:=TDataset(FOwner)
@@ -80,17 +95,17 @@ begin
     Result:=Nil;
 end;
 
-Function TParams.GetOwner: TPersistent;
+function TParams.GetOwner: TPersistent;
 begin
   Result:=FOwner;
 end;
 
-Class Function TParams.ParamClass: TParamClass;
+class function TParams.ParamClass: TParamClass;
 begin
   Result:=TParam;
 end;
 
-Constructor TParams.Create(AOwner: TPersistent; AItemClass: TCollectionItemClass
+constructor TParams.Create(AOwner: TPersistent; AItemClass: TCollectionItemClass
   );
 begin
   Inherited Create(AItemClass);
@@ -98,22 +113,22 @@ begin
 end;
 
 
-Constructor TParams.Create(AOwner: TPersistent);
+constructor TParams.Create(AOwner: TPersistent);
 begin
   Create(AOwner,ParamClass);
 end;
 
-Constructor TParams.Create;
+constructor TParams.Create;
 begin
   Create(TPersistent(Nil));
 end;
 
-Procedure TParams.AddParam(Value: TParam);
+procedure TParams.AddParam(Value: TParam);
 begin
   Value.Collection:=Self;
 end;
 
-Procedure TParams.AssignValues(Value: TParams);
+procedure TParams.AssignValues(Value: TParams);
 
 Var
   I : Integer;
@@ -129,7 +144,7 @@ begin
     end;
 end;
 
-Function TParams.CreateParam(FldType: TFieldType; const ParamName: string;
+function TParams.CreateParam(FldType: TFieldType; const ParamName: string;
   ParamType: TParamType): TParam;
 
 begin
@@ -139,7 +154,7 @@ begin
   Result.ParamType:=ParamType;
 end;
 
-Function TParams.FindParam(const Value: string): TParam;
+function TParams.FindParam(const Value: string): TParam;
 
 Var
   I : Integer;
@@ -154,7 +169,7 @@ begin
       Dec(i);
 end;
 
-Procedure TParams.GetParamList(List: TList; const ParamNames: string);
+procedure TParams.GetParamList(List: TList; const ParamNames: string);
 
 Var
   P: TParam;
@@ -172,7 +187,7 @@ begin
   until StrPos > Length(ParamNames);
 end;
 
-Function TParams.IsEqual(Value: TParams): Boolean;
+function TParams.IsEqual(Value: TParams): Boolean;
 
 Var
   I : Integer;
@@ -187,45 +202,53 @@ begin
     end;
 end;
 
-Function TParams.GetEnumerator: TParamsEnumerator;
+function TParams.GetEnumerator: TParamsEnumerator;
 begin
   Result:=TParamsEnumerator.Create(Self);
 end;
 
-Function TParams.ParamByName(const Value: string): TParam;
+function TParams.ParamByName(const Value: string): TParam;
 begin
   Result:=FindParam(Value);
   If (Result=Nil) then
     DatabaseErrorFmt(SParameterNotFound,[Value],Dataset);
 end;
 
-Function TParams.ParseSQL(SQL: String; DoCreate: Boolean): String;
+function TParams.ParseSQL(SQL: String; DoCreate: Boolean): String;
 
-var pb : TParamBinding;
-    rs : string;
+var
+  pb : TParamBinding;
+  rs : string;
+  PO : TSQLParseOptions;
 
 begin
-  Result := ParseSQL(SQL,DoCreate,True,True,psInterbase, pb, rs);
+  PO:=CreateParseOpts(DoCreate,True,True);
+  Result := DoParseSQL(SQL,PO,psInterbase, pb, ' ',rs);
 end;
 
-Function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash,
+function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash,
   EscapeRepeat: Boolean; ParameterStyle: TParamStyle): String;
 
 var pb : TParamBinding;
     rs : string;
+    PO : TSQLParseOptions;
 
 begin
-  Result := ParseSQL(SQL,DoCreate,EscapeSlash,EscapeRepeat,ParameterStyle,pb, rs);
+  PO:=CreateParseOpts(DoCreate,EscapeSlash,EscapeRepeat);
+  Result := DoParseSQL(SQL,PO,ParameterStyle,pb,' ',rs);
 end;
 
-Function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash,
+function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash,
   EscapeRepeat: Boolean; ParameterStyle: TParamStyle; out
   ParamBinding: TParambinding): String;
 
-var rs : string;
+var
+  rs : string;
+  PO : TSQLParseOptions;
 
 begin
-  Result := ParseSQL(SQL,DoCreate,EscapeSlash, EscapeRepeat, ParameterStyle,ParamBinding, rs);
+  PO:=CreateParseOpts(DoCreate,EscapeSlash, EscapeRepeat);
+  Result := DoParseSQL(SQL,PO, ParameterStyle,ParamBinding,' ',rs);
 end;
 
 function SkipComments(var p: PChar; EscapeSlash, EscapeRepeat : Boolean) : Boolean;
@@ -235,9 +258,9 @@ begin
   case p^ of
     '''', '"', '`':
       begin
+        Result := True;
         // single quote, double quote or backtick delimited string
         SkipQuotesString(p, p^, EscapeSlash, EscapeRepeat);
-        Result := True;
       end;
     '-': // possible start of -- comment
       begin
@@ -257,23 +280,44 @@ begin
         if p^='*' then // /* */ comment
         begin
           Result := True;
-          repeat
-            Inc(p);
+          Inc(p);
+          while p^ <> #0 do
+          begin
             if p^='*' then // possible end of comment
             begin
               Inc(p);
               if p^='/' then Break; // end of comment
-            end;
-          until p^=#0;
+            end
+            else
+              Inc(p);
+          end;
           if p^='/' then Inc(p); // skip final /
         end;
       end;
   end; {case}
 end;
 
-Function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash,
+
+function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash,
   EscapeRepeat: Boolean; ParameterStyle: TParamStyle; out
   ParamBinding: TParambinding; out ReplaceString: string): String;
+
+var
+  PO : TSQLParseOptions;
+
+begin
+  PO:=CreateParseOpts(DoCreate,EscapeSlash, EscapeRepeat);
+  Result:=DoParseSQL(SQL,PO,ParameterStyle,ParamBinding,' ',ReplaceString);
+end;
+
+function TParams.ParseSQL(SQL: String; Options: TSQLParseOptions; ParameterStyle: TParamStyle; out ParamBinding: TParambinding;
+  MacroChar: Char; out ReplaceString: string): String;
+begin
+  Result:=DoParseSQL(SQL,Options,ParameterStyle,ParamBinding,MacroChar,ReplaceString);
+end;
+
+function TParams.DoParseSQL(SQL: String; Options : TSQLParseOptions; ParameterStyle: TParamStyle; out
+  ParamBinding: TParambinding; MacroChar : Char; out ReplaceString: string): String;
 
 type
   // used for ParamPart
@@ -296,11 +340,12 @@ var
   NewQueryLength:integer;
   NewQuery:string;
   NewQueryIndex,BufIndex,CopyLen,i:integer;    // Parambinding will have length ParamCount in the end
+  ParamDelim : Set of char;
   b:integer;
   tmpParam:TParam;
 
 begin
-  if DoCreate then Clear;
+  if spoCreate in Options then Clear;
   // Parse the SQL and build ParamBinding
   ParamCount:=0;
   NewQueryLength:=Length(SQL);
@@ -314,16 +359,19 @@ begin
 
   p:=PChar(SQL);
   BufStart:=p; // used to calculate ParamPart.Start values
+  if spoUseMacro in options then
+    ParamDelim:=[MacroChar]
+  else
+    ParamDelim:=[':','?'];
   repeat
-    SkipComments(p,EscapeSlash,EscapeRepeat);
-    case p^ of
-      ':','?': // parameter
+    while SkipComments(p,spoEscapeSlash in Options ,spoEscapeRepeat in options) do ;
+    if p^ in ParamDelim then // parameter
         begin
           IgnorePart := False;
-          if p^=':' then
+          if (P^<>'?') then
           begin // find parameter name
             Inc(p);
-            if p^ in [':','=',' '] then  // ignore ::, since some databases uses this as a cast (wb 4813)
+            if p^ in [':','=',' '] then  // ignore ::, since some databases (postgres) uses this as a cast (wb 4813)
             begin
               IgnorePart := True;
               Inc(p);
@@ -333,7 +381,7 @@ begin
               if p^='"' then // Check if the parameter-name is between quotes
                 begin
                 ParamNameStart:=p;
-                SkipQuotesString(p,'"',EscapeSlash,EscapeRepeat);
+                SkipQuotesString(p,'"',spoEscapeSlash in Options,spoEscapeRepeat in Options);
                 // Do not include the quotes in ParamName, but they must be included
                 // when the parameter is replaced by some place-holder.
                 ParamName:=Copy(ParamNameStart+1,1,p-ParamNameStart-2);
@@ -341,7 +389,7 @@ begin
               else
                 begin
                 ParamNameStart:=p;
-                while not (p^ in (SQLDelimiterCharacters+[#0,'=','+','-','*','\','/','[',']','|'])) do
+                while not (p^ in (SQLDelimiterCharacters+[#0,'=','+','-','*','\','/','[',']','|','<','>'])) do
                   Inc(p);
                 ParamName:=Copy(ParamNameStart,1,p-ParamNameStart);
                 end;
@@ -364,7 +412,7 @@ begin
               SetLength(ParamBinding,NewLength);
             end;
 
-            if DoCreate then
+            if spoCreate in Options then
               begin
               // Check if this is the first occurance of the parameter
               tmpParam := FindParam(ParamName);
@@ -402,11 +450,12 @@ begin
             // update NewQueryLength
             Dec(NewQueryLength,p-ParamNameStart);
           end;
-        end;
-      #0:Break;
-    else
-      Inc(p);
-    end;
+        end
+      else
+        if P^ = #0 then
+          Break// end of SQL
+        else
+          Inc(p);
   until false;
 
   SetLength(ParamPart,ParamCount);
@@ -425,7 +474,7 @@ begin
     for i:=0 to High(ParamPart) do
     begin
       CopyLen:=ParamPart[i].Start-BufIndex;
-      Move(SQL[BufIndex],NewQuery[NewQueryIndex],CopyLen);
+      System.Move(SQL[BufIndex],NewQuery[NewQueryIndex],CopyLen);
       Inc(NewQueryIndex,CopyLen);
       case ParameterStyle of
         psInterbase : begin
@@ -451,16 +500,15 @@ begin
     end;
     CopyLen:=Length(SQL)+1-BufIndex;
     if CopyLen > 0 then
-      Move(SQL[BufIndex],NewQuery[NewQueryIndex],CopyLen);
+      System.Move(SQL[BufIndex],NewQuery[NewQueryIndex],CopyLen);
   end
   else
     NewQuery:=SQL;
-
   Result := NewQuery;
 end;
 
 
-Procedure TParams.RemoveParam(Value: TParam);
+procedure TParams.RemoveParam(Value: TParam);
 begin
    Value.Collection:=Nil;
 end;
@@ -525,12 +573,14 @@ begin
     Result:=FValue;
 end;
 
-function TParam.GetAsBytes: TBytes;
+Function TParam.GetAsBytes: TBytes;
 begin
   if IsNull then
     Result:=nil
   else if VarIsArray(FValue) then
     Result:=FValue
+  else if VarIsStr(FValue) then
+    Result:=BytesOf(VarToStr(FValue))
   else
     // todo: conversion from other variant types to TBytes
     Result:=FValue;
@@ -576,6 +626,13 @@ begin
     Result:=FValue;
 end;
 
+function TParam.GetAsLongWord: LongWord;
+begin
+  If IsNull then
+    Result:=0
+  else
+    Result:=FValue;
+end;
 
 Function TParam.GetAsMemo: string;
 begin
@@ -585,12 +642,20 @@ begin
     Result:=FValue;
 end;
 
+Function TParam.GetAsSingle: Single;
+begin
+  If IsNull then
+    Result:=0.0
+  else
+    Result:=FValue;
+end;
+
 Function TParam.GetAsString: string;
 var P: Pointer;
 begin
   If IsNull then
     Result:=''
-  else if (FDataType in [ftBytes, ftVarBytes]) and VarIsArray(FValue) then
+  else if (FDataType in [ftBytes, ftVarBytes, ftBlob]) and VarIsArray(FValue) then
   begin
     SetLength(Result, (VarArrayHighBound(FValue, 1) + 1) div SizeOf(Char));
     P := VarArrayLock(FValue);
@@ -604,7 +669,28 @@ begin
     Result:=FValue;
 end;
 
-function TParam.GetAsWideString: WideString;
+Function TParam.GetAsAnsiString: AnsiString;
+begin
+  Result := GetAsString;
+end;
+
+Function TParam.GetAsUnicodeString: UnicodeString;
+begin
+  if IsNull then
+    Result := ''
+  else
+    Result := FValue;
+end;
+
+Function TParam.GetAsUTF8String: UTF8String;
+begin
+  if IsNull then
+    Result := ''
+  else
+    Result := FValue;
+end;
+
+Function TParam.GetAsWideString: WideString;
 begin
   if IsNull then
     Result := ''
@@ -620,7 +706,7 @@ begin
     Result:=FValue;
 end;
 
-function TParam.GetAsFMTBCD: TBCD;
+Function TParam.GetAsFMTBCD: TBCD;
 begin
   If IsNull then
     Result:=0
@@ -652,7 +738,7 @@ begin
           and (FValue=AValue.FValue);
 end;
 
-procedure TParam.SetAsBCD(const AValue: Currency);
+Procedure TParam.SetAsBCD(const AValue: Currency);
 begin
   FDataType:=ftBCD;
   Value:=AValue;
@@ -670,7 +756,13 @@ begin
   Value:=AValue;
 end;
 
-procedure TParam.SetAsBytes(const AValue: TBytes);
+procedure TParam.SetAsByte(const AValue: LongInt);
+begin
+  FDataType:=ftByte;
+  Value:=AValue;
+end;
+
+Procedure TParam.SetAsBytes(const AValue: TBytes);
 begin
   FDataType:=ftVarBytes;
   Value:=AValue;
@@ -712,12 +804,29 @@ begin
   Value:=AValue;
 end;
 
+Procedure TParam.SetAsLongWord(AValue: LongWord);
+begin
+  FDataType:=ftLongWord;
+  Value:=AValue;
+end;
+
 Procedure TParam.SetAsMemo(const AValue: string);
 begin
   FDataType:=ftMemo;
   Value:=AValue;
 end;
 
+Procedure TParam.SetAsShortInt(const AValue: LongInt);
+begin
+  FDataType:=ftShortInt;
+  Value:=AValue;
+end;
+
+Procedure TParam.SetAsSingle(AValue: Single);
+begin
+  FDataType:=ftFloat; // we doesn't have ftSingle ATM
+  Value:=AValue;
+end;
 
 Procedure TParam.SetAsSmallInt(AValue: LongInt);
 begin
@@ -732,11 +841,32 @@ begin
   Value:=AValue;
 end;
 
-procedure TParam.SetAsWideString(const aValue: WideString);
+Procedure TParam.SetAsAnsiString(const AValue: AnsiString);
+begin
+  if FDataType <> ftFixedChar then
+    FDataType := ftString;
+  Value:=AValue;
+end;
+
+Procedure TParam.SetAsUTF8String(const AValue: UTF8String);
+begin
+  if FDataType <> ftFixedChar then
+    FDataType := ftString;
+  Value:=AValue;
+end;
+
+Procedure TParam.SetAsUnicodeString(const AValue: UnicodeString);
 begin
   if FDataType <> ftFixedWideChar then
     FDataType := ftWideString;
-  Value := aValue;
+  Value := AValue;
+end;
+
+Procedure TParam.SetAsWideString(const AValue: WideString);
+begin
+  if FDataType <> ftFixedWideChar then
+    FDataType := ftWideString;
+  Value := AValue;
 end;
 
 
@@ -759,7 +889,7 @@ begin
       varWord,
       varInteger  : FDataType:=ftInteger;
       varCurrency : FDataType:=ftCurrency;
-      varLongWord,
+      varLongWord : FDataType:=ftLongWord;
       varSingle,
       varDouble   : FDataType:=ftFloat;
       varDate     : FDataType:=ftDateTime;
@@ -783,7 +913,7 @@ begin
   Value:=AValue;
 end;
 
-procedure TParam.SetAsFMTBCD(const AValue: TBCD);
+Procedure TParam.SetAsFMTBCD(const AValue: TBCD);
 begin
   FDataType:=ftFMTBcd;
   FValue:=VarFmtBCDCreate(AValue);
@@ -795,6 +925,7 @@ Var
   VT : Integer;
 
 begin
+  if FDataType=AValue then Exit;
   FDataType:=AValue;
   VT:=FieldTypetoVariantMap[AValue];
   If (VT=varError) then
@@ -835,7 +966,7 @@ begin
     AssignParam(TParam(Source))
   else if (Source is TField) then
     AssignField(TField(Source))
-  else if (source is TStrings) then
+  else if (Source is TStrings) then
     AsMemo:=TStrings(Source).Text
   else
     inherited Assign(Source);
@@ -856,18 +987,22 @@ begin
     end
 end;
 
-procedure TParam.AssignToField(Field : TField);
+Procedure TParam.AssignToField(Field : TField);
 
 begin
   if Assigned(Field) then
     case FDataType of
       ftUnknown  : DatabaseErrorFmt(SUnknownParamFieldType,[Name],DataSet);
+      ftShortInt : Field.AsInteger:=AsShortInt;
+      ftByte     : Field.AsInteger:=AsByte;
       // Need TField.AsSmallInt
       ftSmallint : Field.AsInteger:=AsSmallInt;
       // Need TField.AsWord
       ftWord     : Field.AsInteger:=AsWord;
       ftInteger,
       ftAutoInc  : Field.AsInteger:=AsInteger;
+      ftLongWord : Field.AsLongWord:=AsLongword;
+      ftLargeInt : Field.AsLargeInt:=AsLargeInt;
       ftCurrency : Field.AsCurrency:=AsCurrency;
       ftFloat    : Field.AsFloat:=AsFloat;
       ftBoolean  : Field.AsBoolean:=AsBoolean;
@@ -885,13 +1020,15 @@ begin
       ftBytes,
       ftVarBytes : Field.AsVariant:=Value;
       ftFmtBCD   : Field.AsBCD:=AsFMTBCD;
+      ftFixedWideChar,
+      ftWideString: Field.AsWideString:=AsWideString;
     else
       If not (DataType in [ftCursor, ftArray, ftDataset,ftReference]) then
         DatabaseErrorFmt(SBadParamFieldType, [Name], DataSet);
     end;
 end;
 
-procedure TParam.AssignFromField(Field : TField);
+Procedure TParam.AssignFromField(Field : TField);
 
 begin
   if Assigned(Field) then
@@ -899,12 +1036,16 @@ begin
     FDataType:=Field.DataType;
     case Field.DataType of
       ftUnknown  : DatabaseErrorFmt(SUnknownParamFieldType,[Name],DataSet);
+      ftShortInt : AsShortInt:=Field.AsInteger;
+      ftByte     : AsByte:=Field.AsInteger;
       // Need TField.AsSmallInt
       ftSmallint : AsSmallint:=Field.AsInteger;
       // Need TField.AsWord
       ftWord     : AsWord:=Field.AsInteger;
       ftInteger,
       ftAutoInc  : AsInteger:=Field.AsInteger;
+      ftLargeInt : AsLargeInt:=Field.AsLargeInt;
+      ftLongWord : AsLongWord:=Field.AsLongWord;
       ftBCD,
       ftCurrency : AsCurrency:=Field.AsCurrency;
       ftFloat    : AsFloat:=Field.AsFloat;
@@ -923,6 +1064,8 @@ begin
       ftBytes,
       ftVarBytes : Value:=Field.AsVariant;
       ftFmtBCD   : AsFMTBCD:=Field.AsBCD;
+      ftFixedWideChar,
+      ftWideString: AsWideString:=Field.AsWideString;
     else
       If not (DataType in [ftCursor, ftArray, ftDataset,ftReference]) then
         DatabaseErrorFmt(SBadParamFieldType, [Name], DataSet);
@@ -977,6 +1120,8 @@ begin
     ftWord     : PWord(Buffer)^:=AsWord;
     ftInteger,
     ftAutoInc  : PInteger(Buffer)^:=AsInteger;
+    ftLargeInt : PInt64(Buffer)^:=AsLargeInt;
+    ftLongWord : PLongWord(Buffer)^:=AsLongWord;
     ftCurrency : PDouble(Buffer)^:=AsCurrency;
     ftFloat    : PDouble(Buffer)^:=AsFloat;
     ftBoolean  : PWordBool(Buffer)^:=AsBoolean;
@@ -986,7 +1131,7 @@ begin
     ftFixedChar:
       begin
       S:=AsString;
-      StrMove(PChar(Buffer),Pchar(S),Length(S)+1);
+      StrMove(PChar(Buffer),PChar(S),Length(S)+1);
       end;
     ftWideString,
     ftWideMemo: begin
@@ -1037,6 +1182,8 @@ begin
     ftAutoInc  : Result:=SizeOf(Integer);
     ftSmallint : Result:=SizeOf(SmallInt);
     ftWord     : Result:=SizeOf(Word);
+    ftLongWord : Result:=SizeOf(LongWord);
+    ftLargeInt : Result:=SizeOf(Int64);
     ftTime,
     ftDate     : Result:=SizeOf(Integer);
     ftDateTime,
@@ -1064,7 +1211,6 @@ begin
     DatabaseErrorFmt(SBadParamFieldType,[Name],DataSet);
   end;
 
-
 end;
 
 Procedure TParam.LoadFromFile(const FileName: string; BlobType: TBlobType);
@@ -1073,7 +1219,7 @@ Var
   S : TFileStream;
 
 begin
-  S:=TFileStream.Create(FileName,fmOpenRead);
+  S:=TFileStream.Create(FileName, fmOpenRead or fmShareDenyWrite);
   Try
     LoadFromStream(S,BlobType);
   Finally
@@ -1093,18 +1239,18 @@ begin
     Position:=0;
     SetLength(Temp,Size);
     ReadBuffer(Pointer(Temp)^,Size);
-    FValue:=Temp;
     end;
+  Value:=Temp;
 end;
 
 Procedure TParam.SetBlobData(Buffer: Pointer; ASize: Integer);
 
 Var
-  Temp : String;
+  Temp : TBlobData;
 
 begin
   SetLength(Temp,ASize);
-  Move(Buffer^,Temp,ASize);
+  Move(Buffer^,Temp[0],ASize);
   AsBlob:=Temp;
 end;
 
@@ -1127,6 +1273,8 @@ begin
     ftWord     : AsWord:=PWord(Buffer)^;
     ftInteger,
     ftAutoInc  : AsInteger:=PInteger(Buffer)^;
+    ftLargeInt : AsLargeInt:=PInt64(Buffer)^;
+    ftLongWord : AsLongWord:=PLongWord(Buffer)^;
     ftCurrency : AsCurrency:= PDouble(Buffer)^;
     ftFloat    : AsFloat:=PDouble(Buffer)^;
     ftBoolean  : AsBoolean:=PWordBool(Buffer)^;
@@ -1148,7 +1296,7 @@ begin
 end;
 
 
-Procedure TParams.CopyParamValuesFromDataset(ADataSet: TDataSet;
+procedure TParams.CopyParamValuesFromDataset(ADataset: TDataset;
   CopyBound: Boolean);
 
 Var

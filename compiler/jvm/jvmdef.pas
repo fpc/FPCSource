@@ -30,7 +30,7 @@ interface
     uses
       globtype,
       node,
-      symbase,symtype;
+      symbase,symtype,symdef;
 
     { returns whether a def can make use of an extra type signature (for
       Java-style generics annotations; not use for FPC-style generics or their
@@ -90,6 +90,10 @@ interface
       array }
     procedure jvmgetarraydimdef(arrdef: tdef; out eledef: tdef; out ndim: longint);
 
+    { the JVM specs require that you add a default parameterless
+      constructor in case the programmer hasn't specified any }
+    procedure maybe_add_public_default_java_constructor(obj: tabstractrecorddef);
+
 
 implementation
 
@@ -97,7 +101,8 @@ implementation
     cutils,cclasses,constexp,
     verbose,systems,
     fmodule,
-    symtable,symconst,symsym,symdef,symcpu,symcreat,
+    symtable,symconst,symsym,symcpu,symcreat,
+    pparautl,
     defutil,paramgr;
 
 {******************************************************************
@@ -290,7 +295,15 @@ implementation
               encodedstr:=encodedstr+c;
             end;
           filedef :
-            result:=false;
+            begin
+              case tfiledef(def).filetyp of
+                ft_text:
+                  result:=jvmaddencodedtype(search_system_type('TEXTREC').typedef,false,encodedstr,forcesignature,founderror);
+                ft_typed,
+                ft_untyped:
+                  result:=jvmaddencodedtype(search_system_type('FILEREC').typedef,false,encodedstr,forcesignature,founderror);
+              end;
+            end;
           recorddef :
             begin
               encodedstr:=encodedstr+'L'+trecorddef(def).jvm_full_typename(true)+';'
@@ -436,7 +449,7 @@ implementation
         errdef: tdef;
       begin
         if not jvmtryencodetype(def,result,false,errdef) then
-          internalerror(2011012205);
+          internalerror(2011012201);
         primitivetype:=false;
         if length(result)=1 then
           begin
@@ -450,7 +463,7 @@ implementation
               'F': result:='float';
               'D': result:='double';
               else
-                internalerror(2011012206);
+                internalerror(2011012203);
               end;
             primitivetype:=true;
           end
@@ -504,7 +517,9 @@ implementation
             result:=(tarraydef(def).highrange>=tarraydef(def).lowrange) or
                 is_open_array(def) or
                 is_array_of_const(def) or
-                is_array_constructor(def);
+                is_array_constructor(def) or
+                is_conststring_array(def);
+          filedef,
           recorddef,
           setdef:
             result:=true;
@@ -528,6 +543,7 @@ implementation
           orddef:
             begin
               case torddef(def).ordtype of
+                pasbool1,
                 pasbool8:
                   begin
                     objdef:=tobjectdef(search_system_type('JLBOOLEAN').typedef);
@@ -611,6 +627,7 @@ implementation
           orddef:
             begin
               case torddef(def).ordtype of
+                pasbool1,
                 pasbool8:
                   result:='BOOLEANVALUE';
                 s8bit,
@@ -750,8 +767,12 @@ implementation
             if torddef(def).high>127 then
               result:=s8inttype;
           u16bit:
-            if torddef(def).high>32767 then
-              result:=s16inttype;
+            begin
+              if torddef(def).high>32767 then
+                result:=s16inttype;
+            end
+          else
+            ;
         end;
     end;
 
@@ -773,6 +794,7 @@ implementation
           orddef:
             begin
               case torddef(def).ordtype of
+                pasbool1,
                 pasbool8:
                   begin
                     result:=tobjectdef(search_system_type('FPCBOOLEANTHREADVAR').typedef);
@@ -881,6 +903,8 @@ implementation
                         usedef:=s16inttype;
                       u16bit:
                         usedef:=s32inttype;
+                      else
+                        ;
                     end;
                 end;
               result:=jvmencodetype(usedef,false);
@@ -919,8 +943,8 @@ implementation
                         begin
                           if tdef(container.defowner).typ<>procdef then
                             internalerror(2011040303);
-                          { defid is added to prevent problem with overloads }
-                          result:=tprocdef(container.defowner).procsym.realname+'$$'+tostr(tprocdef(container.defowner).defid)+'$'+result;
+                          { unique_id_str is added to prevent problem with overloads }
+                          result:=tprocdef(container.defowner).procsym.realname+'$$'+tprocdef(container.defowner).unique_id_str+'$'+result;
                           container:=container.defowner.owner;
                         end;
                     end;
@@ -1008,6 +1032,138 @@ implementation
           are much shorter here so it's not worth it }
         result:=jvmtryencodetype(def,encodedtype,false,founderror);
       end;
+
+
+
+{******************************************************************
+                   Adding extra methods
+*******************************************************************}
+    procedure maybe_add_public_default_java_constructor(obj: tabstractrecorddef);
+      var
+        sym: tsym;
+        ps: tprocsym;
+        pd: tprocdef;
+        topowner: tdefentry;
+        i: longint;
+        sstate: tscannerstate;
+        needclassconstructor: boolean;
+      begin
+        ps:=nil;
+        { if there is at least one constructor for a class, do nothing (for
+           records, we'll always also need a parameterless constructor) }
+        if not is_javaclass(obj) or
+           not (oo_has_constructor in obj.objectoptions) then
+          begin
+            { check whether the parent has a parameterless constructor that we can
+              call (in case of a class; all records will derive from
+              java.lang.Object or a shim on top of that with a parameterless
+              constructor) }
+            if is_javaclass(obj) then
+              begin
+                pd:=nil;
+                { childof may not be assigned in case of a parser error }
+                if not assigned(tobjectdef(obj).childof) then
+                  exit;
+                sym:=tsym(tobjectdef(obj).childof.symtable.find('CREATE'));
+                if assigned(sym) and
+                   (sym.typ=procsym) then
+                  pd:=tprocsym(sym).find_bytype_parameterless(potype_constructor);
+                if not assigned(pd) then
+                  begin
+                    Message(sym_e_no_matching_inherited_parameterless_constructor);
+                    exit
+                  end;
+              end;
+            { we call all constructors CREATE, because they don't have a name in
+              Java and otherwise we can't determine whether multiple overloads
+              are created with the same parameters }
+            sym:=tsym(obj.symtable.find('CREATE'));
+            if assigned(sym) then
+              begin
+                { does another, non-procsym, symbol already exist with that name? }
+                if (sym.typ<>procsym) then
+                  begin
+                    Message1(sym_e_duplicate_id_create_java_constructor,sym.realname);
+                    exit;
+                  end;
+                ps:=tprocsym(sym);
+                { is there already a parameterless function/procedure create? }
+                pd:=ps.find_bytype_parameterless(potype_function);
+                if not assigned(pd) then
+                  pd:=ps.find_bytype_parameterless(potype_procedure);
+                if assigned(pd) then
+                  begin
+                    Message1(sym_e_duplicate_id_create_java_constructor,pd.fullprocname(false));
+                    exit;
+                  end;
+              end;
+            if not assigned(sym) then
+              begin
+                ps:=cprocsym.create('Create');
+                obj.symtable.insert(ps);
+              end;
+            { determine symtable level }
+            topowner:=obj;
+            while not(topowner.owner.symtabletype in [staticsymtable,globalsymtable]) do
+              topowner:=topowner.owner.defowner;
+            { create procdef }
+            pd:=cprocdef.create(topowner.owner.symtablelevel+1,true);
+            if df_generic in obj.defoptions then
+              include(pd.defoptions,df_generic);
+            { method of this objectdef }
+            pd.struct:=obj;
+            { associated procsym }
+            pd.procsym:=ps;
+            { constructor }
+            pd.proctypeoption:=potype_constructor;
+            { needs to be exported }
+            include(pd.procoptions,po_global);
+            { by default do not include this routine when looking for overloads }
+            include(pd.procoptions,po_ignore_for_overload_resolution);
+            { generate anonymous inherited call in the implementation }
+            pd.synthetickind:=tsk_anon_inherited;
+            { public }
+            pd.visibility:=vis_public;
+            { result type }
+            pd.returndef:=obj;
+            { calling convention }
+            if assigned(current_structdef) or
+               (assigned(pd.owner.defowner) and
+                (pd.owner.defowner.typ=recorddef)) then
+              handle_calling_convention(pd,hcc_default_actions_intf_struct)
+            else
+              handle_calling_convention(pd,hcc_default_actions_intf);
+            { register forward declaration with procsym }
+            proc_add_definition(pd);
+          end;
+
+        { also add class constructor if class fields that need wrapping, and
+          if none was defined }
+        if obj.find_procdef_bytype(potype_class_constructor)=nil then
+          begin
+            needclassconstructor:=false;
+            for i:=0 to obj.symtable.symlist.count-1 do
+              begin
+                if (tsym(obj.symtable.symlist[i]).typ=staticvarsym) and
+                   jvmimplicitpointertype(tstaticvarsym(obj.symtable.symlist[i]).vardef) then
+                  begin
+                    needclassconstructor:=true;
+                    break;
+                  end;
+              end;
+            if needclassconstructor then
+              begin
+                replace_scanner('custom_class_constructor',sstate);
+                if str_parse_method_dec('constructor fpc_jvm_class_constructor;',potype_class_constructor,true,obj,pd) then
+                  pd.synthetickind:=tsk_empty
+                else
+                  internalerror(2011040501);
+                restore_scanner(sstate);
+              end;
+          end;
+      end;
+
+
 
 
 end.

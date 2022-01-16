@@ -150,7 +150,7 @@ end;
   ---------------------------------------------------------------------}
 {
  If a particular OS does it different:
- - set the HAVE_OSCONFIG define before including sysutils.inc.
+ - set the HAS_OSCONFIG define before including sysutils.inc.
  - implement the functions.
  Default config assumes a DOS-like configuration.
 }
@@ -245,7 +245,7 @@ begin
     Repeat
       Result:=Format('%s%.5d.tmp',[Start,I]);
       Inc(I);
-    Until not FileExists(Result);
+    Until not (FileExists(Result) or DirectoryExists(Result));
     end;
 end;
 {$endif}

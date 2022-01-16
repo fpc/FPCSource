@@ -28,18 +28,18 @@ Type
 
   TDescrItem = Class(TCollectionItem)
   private
-    FDescription: String;
+    FDescription: UTF8string;
     FTheID: Integer;
   Protected
     Function BlockSize : Integer; virtual;
-    Procedure WriteStringToStream(Astream : TStream; S : String);
+    Procedure WriteStringToStream(Astream : TStream; S : UTF8string);
     Procedure WriteToStream(S : TStream); virtual;
     Procedure WriteRefToStream(AStream : Tstream; AItem : TDescrItem);
-    Function ReadStringFromStream(Astream : TStream) :  String;
+    Function ReadStringFromStream(Astream : TStream) :  UTF8string;
     Function ReadFromStream(S : TStream) : Integer; virtual;
   Published
     // The description
-    Property Description : String Read FDescription Write FDescription;
+    Property Description : UTF8string Read FDescription Write FDescription;
     // ID. Not used during work. Only used when loading/saving,
     // it then equals the Index. (index is slow, uses a linear search)
     Property TheID : Integer Read FTheID Write FTheID;
@@ -61,8 +61,8 @@ Type
     Procedure BeginLoading;
     Procedure EndLoading;
     Procedure AllocateIDS;
-    Function FindDescr(Const ADescription : String) : TDescrItem;
-    Function AddDescr(Const ADescription : String) : TDescrItem;
+    Function FindDescr(Const ADescription : UTF8string) : TDescrItem;
+    Function AddDescr(Const ADescription : UTF8string) : TDescrItem;
     Property Descr [AIndex : Integer] : TDescrItem Read GetD Write SetD; default;
   end;
 
@@ -85,7 +85,10 @@ Type
 
   { TWordItem }
 
-  TWordItem = Class(TMatchedItem);
+  TWordItem = Class(TMatchedItem)
+  Public
+    Function IsAvailableMatch(aContaining : UTF8string; aPartial : TAvailableMatch) : Boolean;
+  end;
 
   { TURLItem }
 
@@ -115,8 +118,8 @@ Type
     FWord: TWordItem;
     FWordID : Integer;
     FURLID : Integer;
-    function GetContext: String;
-    procedure SetContext(AValue: String);
+    function GetContext: UTF8string;
+    procedure SetContext(AValue: UTF8string);
     procedure SetURL(AValue: TURLItem);
     procedure SetWord(AValue: TWordItem);
   protected
@@ -128,7 +131,7 @@ Type
     Property Word : TWordItem Read FWord Write SetWord;
     Property URL : TURLItem Read FURL Write SetURL;
     Property Position : Int64 Read FPosition Write FPosition;
-    Property Context : String Read GetContext Write SetContext;
+    Property Context : UTF8string Read GetContext Write SetContext;
   end;
 
   { TMatches }
@@ -151,7 +154,7 @@ Type
     FLanguages : TDescrCollection;
     FWords : TDescrCollection;
     FMatches : TMatches;
-    procedure GetMatches(AWord: String; SearchOptions: TSearchOptions;  AList: TFPList);
+    procedure GetMatches(AWord: UTF8string; SearchOptions: TSearchOptions;  AList: TFPList);
     procedure IntersectMatches(ListA, ListB: TFPList);
     procedure UnionMatches(ListA, ListB: TFPList);
   protected
@@ -166,9 +169,11 @@ Type
     procedure CommitTrans; override;
     procedure BeginTrans; override;
     procedure CompactDB; override;
-    procedure DeleteWordsFromFile(URL: string); override;
+    Procedure CreateDB; override;
+    procedure DeleteWordsFromFile(URL: UTF8string); override;
     procedure AddSearchData(ASearchData: TSearchWordData); override;
     procedure FindSearchData(SearchWord: TWordParser; FPSearch: TFPSearch; SearchOptions: TSearchOptions); override;
+    Function GetAvailableWords(out aList : TUTF8StringArray; aContaining : UTF8String; Partial : TAvailableMatch) : integer;override;
     procedure CreateIndexerTables; override;
     Property Stream : TStream Read FStream Write FStream;
   end;
@@ -177,7 +182,7 @@ Type
 
   TFileIndexDB = Class(TMemIndexDB)
   private
-    FFIleName: String;
+    FFIleName: UTF8string;
     FWriteOnCommit: Boolean;
   Protected
     Procedure LoadFromStream; override;
@@ -186,7 +191,7 @@ Type
     procedure Connect; override;
     procedure DisConnect; override;
     procedure CommitTrans; override;
-    Property FileName : String Read FFIleName Write FFileName;
+    Property FileName : UTF8string Read FFIleName Write FFileName;
     Property WriteOnCommit : Boolean Read FWriteOnCommit Write FWriteOnCommit;
   end;
 
@@ -197,7 +202,7 @@ uses bufstream;
 { TMemIndexDB }
 
 Resourcestring
-  SErrNoStream = 'No stream assigned';
+  // SErrNoStream = 'No stream assigned';
   SInvalidStreamData = 'Invalid data at offset %d. Got %d, expected %d.';
 
 { TFileIndexDB }
@@ -209,6 +214,18 @@ Const
   WordBlock      = 3;
   MatchBlock     = 4;
 
+{ TWordItem }
+
+function TWordItem.IsAvailableMatch(aContaining: UTF8string; aPartial: TAvailableMatch): Boolean;
+begin
+  case aPartial of
+    amAll   : Result:=True;
+    amExact : Result:=(Description=AContaining);
+    amContains : Result:=Pos(aContaining,Description)>0;
+    amStartsWith : Result:=Pos(aContaining,Description)=1;
+  end;
+end;
+
 { TURLItem }
 
 function TURLItem.BlockSize: Integer;
@@ -219,8 +236,6 @@ end;
 
 procedure TURLItem.WriteToStream(S: TStream);
 
-Var
-  I : Integer;
 
 begin
   inherited WriteToStream(S);
@@ -247,7 +262,7 @@ begin
   Result:=Sizeof(Integer)+Length(FDescription)*SizeOf(Char);
 end;
 
-procedure TDescrItem.WriteStringToStream(Astream: TStream; S: String);
+procedure TDescrItem.WriteStringToStream(Astream: TStream; S: UTF8string);
 Var
   L : Integer;
 begin
@@ -277,10 +292,11 @@ begin
   AStream.WriteBuffer(I,SizeOf(I));
 end;
 
-function TDescrItem.ReadStringFromStream(Astream: TStream): String;
+function TDescrItem.ReadStringFromStream(Astream: TStream): UTF8string;
 Var
   L : Integer;
 begin
+  L:=0;
   AStream.ReadBuffer(L,SizeOf(L));
   SetLength(Result,L);
   if (L>0) then
@@ -290,6 +306,7 @@ end;
 function TDescrItem.ReadFromStream(S: TStream) : Integer;
 
 begin
+  Result:=0;
   S.ReadBuffer(Result,SizeOf(Result));
   Description:=ReadStringFromStream(S);
 end;
@@ -366,8 +383,6 @@ procedure TFileIndexDB.SaveToStream;
 
 Var
   I : Integer;
-  L : Integer;
-  U : TURLItem;
 
 begin
   Stream.WriteDWord(FileVersion);
@@ -440,6 +455,11 @@ begin
   // Do nothing
 end;
 
+procedure TMemIndexDB.CreateDB;
+begin
+  Clear;
+end;
+
 procedure TMemIndexDB.BeginTrans;
 begin
   // Do nothing
@@ -494,7 +514,7 @@ begin
     end;
 end;
 
-procedure TMemIndexDB.DeleteWordsFromFile(URL: string);
+procedure TMemIndexDB.DeleteWordsFromFile(URL: UTF8string);
 begin
  // inherited DeleteWordsFromFile(URL);
 end;
@@ -545,16 +565,13 @@ end;
 procedure TMemIndexDB.IntersectMatches(ListA,ListB : TFPList);
 
 Var
-  L : TFPList;
   URL : TURLItem;
   I,J : Integer;
-  OK : Boolean;
 
 begin
   For I:=ListA.Count-1 downto 0 do
     begin
     URL:=TMatch(ListA[i]).URL;
-    OK:=False;
     J:=ListB.Count-1;
     While (J>=0) and (TMatch(ListB[i]).URL<>URL) do
       Dec(J);
@@ -563,7 +580,7 @@ begin
     end;
 end;
 
-procedure TMemIndexDB.GetMatches(AWord : String; SearchOptions: TSearchOptions; AList : TFPList);
+procedure TMemIndexDB.GetMatches(AWord : UTF8string; SearchOptions: TSearchOptions; AList : TFPList);
 
   Procedure AddMatches(W : TWordItem);
   Var
@@ -608,7 +625,7 @@ procedure TMemIndexDB.FindSearchData(SearchWord: TWordParser;
 
 Var
   L,W : TFPList;
-  S : String;
+  S : UTF8string;
   I : Integer;
   M : TMatch;
   WD : TSearchWordData;
@@ -649,6 +666,24 @@ begin
   end;
 end;
 
+function TMemIndexDB.GetAvailableWords(out aList: TUTF8StringArray; aContaining: UTF8String; Partial: TAvailableMatch): integer;
+
+Var
+  I : integer;
+
+begin
+  Result:=0;
+  aContaining:=LowerCase(aContaining);
+  SetLength(aList,FWords.Count);
+  For I:=0 to FWords.Count-1 do
+    if TWordItem(FWords[i]).IsAvailableMatch(aContaining,Partial) then
+      begin
+      aList[Result]:=FWords[i].Description;
+      Inc(Result);
+      end;
+  SetLength(aList,Result);
+end;
+
 procedure TMemIndexDB.CreateIndexerTables;
 begin
   Clear;
@@ -685,12 +720,12 @@ begin
     FURL.AddMatch(Self);
 end;
 
-function TMatch.GetContext: String;
+function TMatch.GetContext: UTF8string;
 begin
   Result:=Description;
 end;
 
-procedure TMatch.SetContext(AValue: String);
+procedure TMatch.SetContext(AValue: UTF8string);
 begin
   Description:=AValue;
 end;
@@ -712,9 +747,6 @@ begin
 end;
 
 procedure TMatch.WriteToStream(S: TStream);
-
-Var
-  L : Integer;
 
 begin
   inherited WriteToStream(S);
@@ -807,7 +839,7 @@ begin
     GetD(i).TheID:=I;
 end;
 
-function TDescrCollection.FindDescr(const ADescription: String): TDescrItem;
+function TDescrCollection.FindDescr(const ADescription: UTF8string): TDescrItem;
 begin
 
   If FHash=Nil then
@@ -816,7 +848,7 @@ begin
     Result:=TDescrItem(FHash.Find(ADescription));
 end;
 
-function TDescrCollection.AddDescr(const ADescription: String): TDescrItem;
+function TDescrCollection.AddDescr(const ADescription: UTF8string): TDescrItem;
 begin
   Result:=Add as TDescrItem;
   Result.Description:=ADescription;
@@ -845,7 +877,7 @@ end;
 
 function TMatchedItem.AddMatch(AMatch: TMatch): Integer;
 begin
-  FList.Add(AMatch);
+  Result:=FList.Add(AMatch);
 end;
 
 procedure TMatchedItem.RemoveMatch(AMatch: TMatch);

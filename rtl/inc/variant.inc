@@ -203,6 +203,19 @@ begin
   Variantmanager.varfromInt64(Dest,Source);
 end;
 
+
+operator :=(const source : NativeInt) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  dest:=PtrInt(source);
+end;
+
+
+operator :=(const source : NativeUInt) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  dest:=PtrUInt(source);
+end;
+
+
 { Boolean }
 
 operator :=(const source : boolean) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -395,6 +408,18 @@ begin
 end;
 
 
+operator :=(const source : variant) dest : NativeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  PtrInt(dest):=source;
+end;
+
+
+operator :=(const source : variant) dest : NativeUInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  PtrUInt(dest):=source;
+end;
+
+
 { Boolean }
 
 operator :=(const source : variant) dest : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -542,13 +567,6 @@ operator :=(const source : variant) dest : tdatetime;{$ifdef SYSTEMINLINE}inline
     dest:=variantmanager.vartotdatetime(source);
   end;
 {$endif}
-
-{$ifndef FPC_HASINTERNALOLEVARIANT2VARIANTCAST}
-operator :=(const source : olevariant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
-  begin
-    tvardata(result):=tvardata(source);
-  end;
-{$endif FPC_HASINTERNALOLEVARIANT2VARIANTCAST}
 
 operator :=(const source : variant) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
@@ -1083,7 +1101,7 @@ function Null: Variant;       // Null standard constant
                       Variant manager functions
  **********************************************************************}
 
-procedure GetVariantManager(var VarMgr: TVariantManager);
+procedure GetVariantManager(out VarMgr: TVariantManager);
 begin
   VarMgr:=VariantManager;
 end;

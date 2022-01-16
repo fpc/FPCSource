@@ -133,7 +133,7 @@ uses exec, intuition,utility,agraphics{,iffparse};
 {$WARNING IffParse required, look for FIX ME!!!}
 
 var
-  MUIMasterBase : pLibrary;
+  MUIMasterBase : pLibrary = nil;
 
 const
   MUIMASTER_NAME  : PChar = 'muimaster.library';
@@ -248,11 +248,11 @@ const
        end;
      pMUIS_InfoClient = ^tMUIS_InfoClient;
 
-      
+
 
 { ** Object Types for MUI_MakeObject()                                      }
 { ************************************************************************* }
-                                                                             
+
 const
   MUIO_Label         = 1;    { PChar label, LongWord flags  }
   MUIO_Button        = 2;    { PChar label  }
@@ -379,7 +379,7 @@ const
   MUII_BACKGROUND     = 128;     { These are direct color     }
   MUII_SHADOW         = 129;     { combinations and are not   }
   MUII_SHINE          = 130;     { affected by users prefs.   }
-  MUII_FILL           = 131;     
+  MUII_FILL           = 131;
   MUII_SHADOWBACK     = 132;     { Generally, you should      }
   MUII_SHADOWFILL     = 133;     { avoid using them. Better   }
   MUII_SHADOWSHINE    = 134;     { use one of the customized  }
@@ -655,6 +655,7 @@ const
             mri_Window : PWindow;
             mri_RastPort : PRastPort;
             mri_Flags : LongWord;
+            mri_DummyWasTinyFont: PTextFont;
          end;
        pMUI_RenderInfo = ^tMUI_RenderInfo;
 
@@ -782,7 +783,7 @@ type
   end;
   pMUIP_NoNotifySet = ^tMUIP_NoNotifySet;
 
-  tMUIP_Notify = record        { ...  } 
+  tMUIP_Notify = record        { ...  }
     MethodID : LongWord;
     TrigAttr : LongWord;
     TrigVal : LongWord;
@@ -1016,7 +1017,7 @@ type
   pMUIP_Application_AddInputHandler = ^tMUIP_Application_AddInputHandler;
 
   tMUIP_Application_BuildSettingsPanel = record
-    MethodID : LongWord; 
+    MethodID : LongWord;
     number: LongWord;
   end;
   pMUIP_Application_BuildSettingsPanel = ^tMUIP_Application_BuildSettingsPanel;
@@ -1328,7 +1329,7 @@ const
 { FIX ME!!! #define MUIV_Window_AltWidth_Visible(p) (-100-(p)) }
 { FIX ME!!! #define MUIV_Window_AltWidth_Screen(p) (-200-(p)) }
   MUIV_Window_AltWidth_Scaled = -(1000);
-{ FIX ME!!! #define MUIV_Window_Height_MinMax(p) (0-(p))     }   
+{ FIX ME!!! #define MUIV_Window_Height_MinMax(p) (0-(p))     }
 { FIX ME!!! #define MUIV_Window_Height_Visible(p) (-100-(p)) }
 { FIX ME!!! #define MUIV_Window_Height_Screen(p) (-200-(p))  }
   MUIV_Window_Height_Scaled = -(1000);
@@ -1398,12 +1399,12 @@ type
   { MUI_MinMax structure holds information about minimum, maximum
     and default dimensions of an object.  }
   tMUI_MinMax = record
-    MinWidth  : shortint;
-    MinHeight : shortint;
-    MaxWidth  : shortint;
-    MaxHeight : shortint;
-    DefWidth  : shortint;
-    DefHeight : shortint;
+    MinWidth  : SmallInt;
+    MinHeight : SmallInt;
+    MaxWidth  : SmallInt;
+    MaxHeight : SmallInt;
+    DefWidth  : SmallInt;
+    DefHeight : SmallInt;
   end;
   pMUI_MinMax = ^tMUI_MinMax;
 
@@ -1890,7 +1891,7 @@ const
   MUIA_Prop_UseWinBorder = $8042deee; { V13 i.. LongInt            }
   MUIA_Prop_Visible      = $8042fea6; { V4  isg LongInt            }
 
-const  
+const
   MUIV_Prop_UseWinBorder_None = 0;
   MUIV_Prop_UseWinBorder_Left = 1;
   MUIV_Prop_UseWinBorder_Right = 2;
@@ -3313,10 +3314,10 @@ syscall legacy MUIMasterBase 36;
 
 function MUI_RequestA(app : POINTER location 'd0';
                       win : POINTER location 'd1';
-                      flags : LongWord location 'd2'; 
-                      title : pChar location 'a0'; 
-                      gadgets : pChar location 'a1'; 
-                      format : pChar location 'a2'; 
+                      flags : LongWord location 'd2';
+                      title : pChar location 'a0';
+                      gadgets : pChar location 'a1';
+                      format : pChar location 'a2';
                       params : POINTER location 'a3') : longint;
 syscall legacy MUIMasterBase 42;
 
@@ -3350,10 +3351,10 @@ syscall legacy MUIMasterBase 96;
 procedure MUI_Redraw(obj : pObject_ location 'a0'; flags : LongWord location 'd0');
 syscall legacy MUIMasterBase 102;
 
-function MUI_CreateCustomClass(base : pLibrary location 'a0'; 
-                               supername : pChar location 'a1'; 
-                               supermcc : pMUI_CustomClass location 'a2'; 
-                               datasize : LONGINT location 'd0'; 
+function MUI_CreateCustomClass(base : pLibrary location 'a0';
+                               supername : pChar location 'a1';
+                               supermcc : pMUI_CustomClass location 'a2';
+                               datasize : LONGINT location 'd0';
                                dispatcher : POINTER location 'a3') : pMUI_CustomClass;
 syscall legacy MUIMasterBase 108;
 
@@ -3363,32 +3364,32 @@ syscall legacy MUIMasterBase 114;
 function MUI_MakeObjectA(typ: LONGINT location 'd0'; params : pLongWord location 'a0') : pLongWord;
 syscall legacy MUIMasterBase 120;
 
-function MUI_Layout(obj : pObject_ location 'a0'; 
-                    l : LONGINT location 'd0'; 
-                    t : LONGINT location 'd1'; 
-                    w : LONGINT location 'd2'; 
-                    h : LONGINT location 'd3'; 
+function MUI_Layout(obj : pObject_ location 'a0';
+                    l : LONGINT location 'd0';
+                    t : LONGINT location 'd1';
+                    w : LONGINT location 'd2';
+                    h : LONGINT location 'd3';
                     flags : LongWord location 'd4') : BOOLEAN;
 syscall legacy MUIMasterBase 126;
 
 
-function MUI_ObtainPen(mri : pMUI_RenderInfo location 'a0'; 
-                       spec : pMUI_PenSpec location 'a1'; 
+function MUI_ObtainPen(mri : pMUI_RenderInfo location 'a0';
+                       spec : pMUI_PenSpec location 'a1';
                        flags : LongWord location 'd0') : LONGINT;
 syscall legacy MUIMasterBase 156;
 
-procedure MUI_ReleasePen(mri : pMUI_RenderInfo location 'a0'; 
+procedure MUI_ReleasePen(mri : pMUI_RenderInfo location 'a0';
                          pen : LONGINT location 'd0');
 syscall legacy MUIMasterBase 162;
 
-function MUI_AddClipping(mri : pMUI_RenderInfo location 'a0'; 
-                         l : smallint location 'd0'; 
-                         t : smallint location 'd1'; 
-                         w : smallint location 'd2'; 
+function MUI_AddClipping(mri : pMUI_RenderInfo location 'a0';
+                         l : smallint location 'd0';
+                         t : smallint location 'd1';
+                         w : smallint location 'd2';
                          h : smallint location 'd3') : POINTER;
 syscall legacy MUIMasterBase 168;
 
-procedure MUI_RemoveClipping(mri : pMUI_RenderInfo location 'a0'; 
+procedure MUI_RemoveClipping(mri : pMUI_RenderInfo location 'a0';
                              h : POINTER location 'a1');
 syscall legacy MUIMasterBase 174;
 
@@ -3460,7 +3461,7 @@ function OBJ_IsInObject(x,y : smallint; obj : pObject_): boolean; inline;
 
 function MUIV_Window_AltHeight_MinMax(p : longint) : longint;  inline;
 function MUIV_Window_AltHeight_Visible(p : longint) : longint; inline;
-function MUIV_Window_AltHeight_Screen(p : longint) : longint;  inline; 
+function MUIV_Window_AltHeight_Screen(p : longint) : longint;  inline;
 function MUIV_Window_AltTopEdge_Delta(p : longint) : longint;  inline;
 function MUIV_Window_AltWidth_MinMax(p : longint) : longint;   inline;
 function MUIV_Window_AltWidth_Visible(p : longint) : longint;  inline;
@@ -3525,57 +3526,57 @@ end;
 
 function OBJ_App(obj : Pointer) : pObject_;       (* valid between MUIM_Setup/Cleanup *)
 begin
-    OBJ_App := pMUI_GlobalInfo(obj)^.mgi_ApplicationObject;
+    OBJ_App := MUIGlobalInfo(obj)^.mgi_ApplicationObject;
 end;
 
 function OBJ_Win(obj : Pointer) : pObject_;       (* valid between MUIM_Setup/Cleanup *)
 begin
-    OBJ_Win := pMUI_RenderInfo(obj)^.mri_WindowObject;
+    OBJ_Win := MUIRenderInfo(obj)^.mri_WindowObject;
 end;
 
 function OBJ_Dri(obj : Pointer) : pDrawInfo;          (* valid between MUIM_Setup/Cleanup *)
 begin
-    OBJ_Dri := pMUI_RenderInfo(obj)^.mri_DrawInfo;
+    OBJ_Dri := MUIRenderInfo(obj)^.mri_DrawInfo;
 end;
 
 function OBJ_Screen(obj : Pointer) : pScreen;         (* valid between MUIM_Setup/Cleanup *)
 begin
-    OBJ_Screen := pMUI_RenderInfo(obj)^.mri_Screen;
+    OBJ_Screen := MUIRenderInfo(obj)^.mri_Screen;
 end;
 
 function OBJ_Pens(obj : Pointer) : pWord;      (* valid between MUIM_Setup/Cleanup *)
 begin
-    OBJ_Pens := pMUI_RenderInfo(obj)^.mri_Pens;
+    OBJ_Pens := MUIRenderInfo(obj)^.mri_Pens;
 end;
 
 function OBJ_Window(obj : Pointer) : pWindow;         (* valid between MUIM_Show/Hide *)
 begin
-    OBJ_Window := PMUI_RenderInfo(obj)^.mri_Window;
+    OBJ_Window := MUIRenderInfo(obj)^.mri_Window;
 end;
 
 function OBJ_Rp(obj : Pointer) : pRastPort;           (* valid between MUIM_Show/Hide *)
 begin
-    OBJ_Rp := pMUI_RenderInfo(obj)^.mri_RastPort;
+    OBJ_Rp := MUIRenderInfo(obj)^.mri_RastPort;
 end;
 
 function OBJ_Left(obj : Pointer) : smallint;           (* valid during MUIM_Draw *)
 begin
-    OBJ_Left := pMUI_AreaData(obj)^.mad_Box.Left;
+    OBJ_Left := MUIAreaData(obj)^.mad_Box.Left;
 end;
 
 function OBJ_Top(obj : Pointer) : smallint;            (* valid during MUIM_Draw *)
 begin
-    OBJ_Top := pMUI_AreaData(obj)^.mad_Box.Top;
+    OBJ_Top := MUIAreaData(obj)^.mad_Box.Top;
 end;
 
 function OBJ_Width(obj : Pointer) : smallint;          (* valid during MUIM_Draw *)
 begin
-    OBJ_Width := pMUI_AreaData(obj)^.mad_Box.Width;
+    OBJ_Width := MUIAreaData(obj)^.mad_Box.Width;
 end;
 
 function OBJ_Height(obj : Pointer) : smallint;         (* valid during MUIM_Draw *)
 begin
-    OBJ_Height := pMUI_AreaData(obj)^.mad_Box.Height;
+    OBJ_Height := MUIAreaData(obj)^.mad_Box.Height;
 end;
 
 function OBJ_Right(obj : Pointer) : smallint;          (* valid during MUIM_Draw *)
@@ -3590,22 +3591,22 @@ end;
 
 function OBJ_AddLeft(obj : Pointer) : smallint;        (* valid during MUIM_Draw *)
 begin
-    OBJ_AddLeft := pMUI_AreaData(obj)^.mad_AddLeft;
+    OBJ_AddLeft := MUIAreaData(obj)^.mad_AddLeft;
 end;
 
 function OBJ_AddTop(obj : Pointer) : smallint;         (* valid during MUIM_Draw *)
 begin
-    OBJ_AddTop := pMUI_AreaData(obj)^.mad_AddTop;
+    OBJ_AddTop := MUIAreaData(obj)^.mad_AddTop;
 end;
 
 function OBJ_SubWidth(obj : Pointer) : smallint;       (* valid during MUIM_Draw *)
 begin
-    OBJ_SubWidth := pMUI_AreaData(obj)^.mad_SubWidth;
+    OBJ_SubWidth := MUIAreaData(obj)^.mad_SubWidth;
 end;
 
 function OBJ_SubHeight(obj : Pointer) : smallint;      (* valid during MUIM_Draw *)
 begin
-    OBJ_SubHeight := pMUI_AreaData(obj)^.mad_SubHeight;
+    OBJ_SubHeight := MUIAreaData(obj)^.mad_SubHeight;
 end;
 
 function OBJ_MLeft(obj : Pointer) : smallint;          (* valid during MUIM_Draw *)
@@ -3640,42 +3641,42 @@ end;
 
 function OBJ_Font(obj : Pointer) : pTextFont;         (* valid between MUIM_Setup/Cleanup *)
 begin
-    OBJ_Font := pMUI_AreaData(obj)^.mad_Font;
+    OBJ_Font := MUIAreaData(obj)^.mad_Font;
 end;
 
 function OBJ_MinWidth(obj : Pointer) : LongWord;         (* valid between MUIM_Show/Hide *)
 begin
-    OBJ_MinWidth := pMUI_AreaData(obj)^.mad_MinMax.MinWidth;
+    OBJ_MinWidth := MUIAreaData(obj)^.mad_MinMax.MinWidth;
 end;
 
 function OBJ_MinHeight(obj : Pointer) : LongWord;        (* valid between MUIM_Show/Hide *)
 begin
-    OBJ_MinHeight := pMUI_AreaData(obj)^.mad_MinMax.MinHeight;
+    OBJ_MinHeight := MUIAreaData(obj)^.mad_MinMax.MinHeight;
 end;
 
 function OBJ_MaxWidth(obj : Pointer) : LongWord;         (* valid between MUIM_Show/Hide *)
 begin
-    OBJ_maxWidth := pMUI_AreaData(obj)^.mad_MinMax.MaxWidth;
+    OBJ_maxWidth := MUIAreaData(obj)^.mad_MinMax.MaxWidth;
 end;
 
 function OBJ_MaxHeight(obj : Pointer) : LongWord;        (* valid between MUIM_Show/Hide *)
 begin
-    OBJ_maxHeight := pMUI_AreaData(obj)^.mad_MinMax.MaxHeight;
+    OBJ_maxHeight := MUIAreaData(obj)^.mad_MinMax.MaxHeight;
 end;
 
 function OBJ_DefWidth(obj : Pointer) : LongWord;         (* valid between MUIM_Show/Hide *)
 begin
-    OBJ_DefWidth := pMUI_AreaData(obj)^.mad_MinMax.DefWidth;
+    OBJ_DefWidth := MUIAreaData(obj)^.mad_MinMax.DefWidth;
 end;
 
 function OBJ_DefHeight(obj : Pointer) : LongWord;        (* valid between MUIM_Show/Hide *)
 begin
-    OBJ_DefHeight := pMUI_AreaData(obj)^.mad_MinMax.DefHeight;
+    OBJ_DefHeight := MUIAreaData(obj)^.mad_MinMax.DefHeight;
 end;
 
 function OBJ_Flags(obj : Pointer) : LongWord;
 begin
-    OBJ_Flags := pMUI_AreaData(obj)^.mad_Flags;
+    OBJ_Flags := MUIAreaData(obj)^.mad_Flags;
 end;
 
 (*
@@ -3814,35 +3815,19 @@ begin
   MUIset:=SetAttrsA(obj,@args);
 end;
 
-
 const
   { Change VERSION and LIBVERSION to proper values }
   VERSION : string[2] = '19';
   LIBVERSION : longword = MUIMASTER_VMIN;
 
-var
-  muimaster_exit : Pointer;
-
-procedure CloseMUIMasterLibrary;
-begin
-  ExitProc := muimaster_exit;
-  if MUIMasterBase <> nil then begin
-    CloseLibrary(MUIMasterBase);
-    MUIMasterBase := nil;
-  end;
-end;
-
 function InitMUIMasterLibrary : boolean;
 begin
-  MUIMasterBase := nil;
-  MUIMasterBase := OpenLibrary(MUIMASTER_NAME,LIBVERSION);
-  if MUIMasterBase <> nil then begin
-    muimaster_exit := ExitProc;
-    ExitProc := @CloseMUIMasterLibrary;
-    InitMUIMasterLibrary:=True;
-  end else begin
-    InitMUIMasterLibrary:=False;
-  end;
+  InitMUIMasterLibrary := Assigned(MUIMasterBase);
 end;
 
+initialization
+  MUIMasterBase := OpenLibrary(MUIMASTER_NAME,LIBVERSION);
+finalization
+  if Assigned(MUIMasterBase) then
+    CloseLibrary(MUIMasterBase);
 end.

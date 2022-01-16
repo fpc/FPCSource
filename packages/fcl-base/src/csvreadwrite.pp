@@ -32,7 +32,7 @@
 
   You should have received a copy of the GNU Library General Public License
   along with this library; if not, write to the Free Software Foundation,
-  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 }
 
 unit csvreadwrite;
@@ -92,12 +92,16 @@ Type
 
   { TCSVParser }
 
+  TCSVByteOrderMark = (bomNone, bomUTF8, bomUTF16LE, bomUTF16BE);
+
   TCSVParser = class(TCSVHandler)
   private
     FFreeStream: Boolean;
     // fields
     FSourceStream: TStream;
     FStrStreamWrapper: TStringStream;
+    FBOM: TCSVByteOrderMark;
+    FDetectBOM: Boolean;
     // parser state
     EndOfFile: Boolean;
     EndOfLine: Boolean;
@@ -120,7 +124,7 @@ Type
     // simple parsing
     procedure ParseValue;
   public
-    constructor Create;
+    constructor Create; override;
     destructor Destroy; override;
     // Source data stream
     procedure SetSource(AStream: TStream); overload;
@@ -140,6 +144,10 @@ Type
     property MaxColCount: Integer read FMaxColCount;
     // Does the parser own the stream ? If true, a previous stream is freed when set or when parser is destroyed.
     Property FreeStream : Boolean Read FFreeStream Write FFreeStream;
+    // Return BOM found in file
+    property BOM: TCSVByteOrderMark read FBOM;
+    // Detect whether a BOM marker is present. If set to True, then BOM can be used to see what BOM marker there was.
+    property DetectBOM: Boolean read FDetectBOM write FDetectBOM default false;
   end;
 
   // Sequential output to CSV stream
@@ -153,7 +161,7 @@ Type
     procedure AppendStringToStream(const AString: String; AStream: TStream);
     function  QuoteCSVString(const AValue: String): String;
   public
-    constructor Create;
+    constructor Create; override;
     destructor Destroy; override;
     // Set output/destination stream.
     // If not called, output is sent to DefaultOutput
@@ -396,15 +404,17 @@ end;
 
 procedure TCSVParser.ParseValue;
 begin
-  while not ((FCurrentChar = FDelimiter) or EndOfLine or EndOfFile) do
+  while not ((FCurrentChar = FDelimiter) or EndOfLine or EndOfFile or (FCurrentChar = FQuoteChar)) do
   begin
-    AppendStr(FWhitespaceBuffer, FCurrentChar);
+    AppendStr(FCellBuffer, FCurrentChar);
     NextChar;
   end;
+  if FCurrentChar = FQuoteChar then
+    ParseQuotedValue;
   // merge whitespace buffer
   if FIgnoreOuterWhitespace then
     RemoveTrailingChars(FWhitespaceBuffer, WhitespaceChars);
-  AppendStr(FCellBuffer, FWhitespaceBuffer);
+  AppendStr(FWhitespaceBuffer,FCellBuffer);
   FWhitespaceBuffer := '';
 end;
 
@@ -441,9 +451,37 @@ begin
 end;
 
 procedure TCSVParser.ResetParser;
+var
+  b: packed array[0..2] of byte;
+  n: Integer;
 begin
+  B[0]:=0; B[1]:=0; B[2]:=0;
   ClearOutput;
   FSourceStream.Seek(0, soFromBeginning);
+  if FDetectBOM then
+  begin
+    if FSourceStream.Read(b[0], 3)<3 then
+      begin
+      n:=0;
+      FBOM:=bomNone;
+      end
+    else if (b[0] = $EF) and (b[1] = $BB) and (b[2] = $BF) then begin
+      FBOM := bomUTF8;
+      n := 3;
+    end else
+    if (b[0] = $FE) and (b[1] = $FF) then begin
+      FBOM := bomUTF16BE;
+      n := 2;
+    end else
+    if (b[0] = $FF) and (b[1] = $FE) then begin
+      FBOM := bomUTF16LE;
+      n := 2;
+    end else begin
+      FBOM := bomNone;
+      n := 0;
+    end;
+    FSourceStream.Seek(n, soFromBeginning);
+  end;
   EndOfFile := False;
   NextChar;
 end;
@@ -496,6 +534,7 @@ begin
   if StreamSize > 0 then
   begin
     SetLength(Result, StreamSize);
+    FDefaultOutput.Position:=0;
     FDefaultOutput.ReadBuffer(Result[1], StreamSize);
   end;
 end;

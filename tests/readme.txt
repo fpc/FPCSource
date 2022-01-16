@@ -84,7 +84,11 @@ DELFILES...........List of files (separated by spaces) to be deleted after
                    the test. Files will be deleted only if TEST_DELTEMP is
                    set. If no extension is specified for a file, the dotest
                    program will try to delete executable and shared library
-                   of that name, using appropriate exe and dll extensions.
+                   of that name, using appropriate exe and dll extensions
+CONFIGFILE         Specifies a file in ./config that is to be copied to the
+                   test. If two names are given the first is the source filename
+				   and the second is the destination filename. If only one is
+				   given than it acts both as source and destination filename.
 GRAPH..............Requires graph unit
 FAIL...............Compilation must fail
 RECOMPILE..........After compiling a test, recompile the test for a second
@@ -180,9 +184,9 @@ TEST_RSH             set this to the hostname when you want to use rsh/rcp
                      to execute/copy the test
 TEST_SSH             set this to use ssh/scp to execute the test
 TEST_PUTTY           test using putty when remote testing (pscp and plink)
-TEST_ADB             run tests om remote Android device using ADB. Specify
-                     TEST_ADB=1 to run on default connected device. Specify
-                     TEST_ADB=<serial> to run on specific connected device.
+TEST_ADB             run tests on a remote Android device using ADB. Specify
+                     TEST_ADB=1 to run on a default connected device. Specify
+                     TEST_ADB=<serial> to run on a specific connected device.
 TEST_REMOTEOPT       extra options to remote program
 TEST_REMOTEPATH      set remote path to use, default is /tmp
 TEST_DELBEFORE       delete remote executable before uploading
@@ -213,6 +217,7 @@ Emulator execution is possible as well. It can't be combined with remote
 execution though.
 
 EMULATOR: name of the emulator to use
+EMULATOR_OPTS: pass the given options to the emulator
 
 Examples:
 

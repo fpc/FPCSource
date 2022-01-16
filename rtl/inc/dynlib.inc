@@ -89,13 +89,13 @@ end;
 
 {$endif not FPCRTL_FILESYSTEM_TWO_BYTE_API}
 
-Function GetProcedureAddress(Lib : TLibHandle; const ProcName : AnsiString) : Pointer;
+Function GetProcedureAddress(Lib : TLibHandle; const ProcName : AnsiString) : {$ifdef cpui8086}FarPointer{$else}Pointer{$endif};
 begin
   Result:=CurrentDLM.GetProcAddress(Lib, ProcName);
 end;
 
 
-Function GetProcedureAddress(Lib : TLibHandle; Ordinal : TOrdinalEntry) : Pointer;
+Function GetProcedureAddress(Lib : TLibHandle; Ordinal : TOrdinalEntry) : {$ifdef cpui8086}FarPointer{$else}Pointer{$endif};
 begin
   if Assigned(CurrentDLM.GetProcAddressOrdinal) then
     Result:=CurrentDLM.GetProcAddressOrdinal(Lib, Ordinal)
@@ -122,12 +122,12 @@ begin
 end;
 
 
-Function GetProcAddress(Lib : TLibHandle; const ProcName : AnsiString) : Pointer;
+Function GetProcAddress(Lib : TLibHandle; const ProcName : AnsiString) : {$ifdef cpui8086}FarPointer{$else}Pointer{$endif};
 begin
   Result:=GetProcedureAddress(Lib,Procname);
 end;
 
-Procedure GetDynLibsManager (Var Manager : TDynLibsManager);
+Procedure GetDynLibsManager (Out Manager : TDynLibsManager);
 begin
   Manager:=CurrentDLM;
 end;
@@ -138,7 +138,7 @@ begin
 end;
 
 
-Procedure SetDynLibsManager (Const New : TDynLibsManager; Var Old: TDynLibsManager);
+Procedure SetDynLibsManager (Const New : TDynLibsManager; Out Old: TDynLibsManager);
 begin
   Old:=CurrentDLM;
   CurrentDLM:=New;
@@ -156,7 +156,7 @@ const
   SNoDynLibs = 'This binary has no dynamic library support compiled in.';
   SRecompileWithDynLibs = 'Recompile the application with a dynamic-library-driver in the program uses clause before other units using dynamic libraries.';
 
-Procedure NoDynLibsError; {$ifndef ver2_6}noreturn;{$endif}
+Procedure NoDynLibsError; noreturn;
 begin
 {$ifndef EMBEDDED}
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
@@ -170,32 +170,32 @@ begin
   RunError(235)
 end;
 
-Function NoLoadLibraryU(const Name: UnicodeString): TLibHandle; {$ifndef ver2_6}noreturn;{$endif}
+Function NoLoadLibraryU(const Name: UnicodeString): TLibHandle; noreturn;
 begin
   NoDynLibsError;
 end;
 
-Function NoLoadLibraryA(const Name: RawByteString): TLibHandle; {$ifndef ver2_6}noreturn;{$endif}
+Function NoLoadLibraryA(const Name: RawByteString): TLibHandle; noreturn;
 begin
   NoDynLibsError;
 end;
 
-function NoGetProcAddress(Lib: TLibHandle; const Proc: AnsiString): Pointer; {$ifndef ver2_6}noreturn;{$endif}
+function NoGetProcAddress(Lib: TLibHandle; const Proc: AnsiString): {$ifdef cpui8086}FarPointer{$else}Pointer{$endif}; noreturn;
 begin
   NoDynLibsError;
 end;
 
-function NoGetProcAddressOrdinal(Lib: TLibHandle; Ordinal: TOrdinalEntry): Pointer; {$ifndef ver2_6}noreturn;{$endif}
+function NoGetProcAddressOrdinal(Lib: TLibHandle; Ordinal: TOrdinalEntry): {$ifdef cpui8086}FarPointer{$else}Pointer{$endif}; noreturn;
 begin
   NoDynLibsError;
 end;
 
-function NoGetLoadErrorStr: String; {$ifndef ver2_6}noreturn;{$endif}
+function NoGetLoadErrorStr: String; noreturn;
 begin
   NoDynLibsError;
 end;
 
-function NoUnloadLibrary(Lib: TLibHandle): Boolean; {$ifndef ver2_6}noreturn;{$endif}
+function NoUnloadLibrary(Lib: TLibHandle): Boolean; noreturn;
 begin
   NoDynLibsError;
 end;

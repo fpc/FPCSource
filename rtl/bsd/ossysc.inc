@@ -61,7 +61,11 @@ end;
 {$else}
   // generic versions.
 function Fplseek(fd : cint; offset : off_t; whence : cint): off_t; [public, alias : 'FPC_SYSC_LSEEK'];
-
+{$ifdef cpum68k}
+begin
+  Fplseek:=do_syscall64(syscall_nr_lseek,TSysParam(fd),0,hi(offset),lo(offset),whence);
+end;
+{$else}
 {
 this one is special for the return value being 64-bit..
 hi/lo offset not yet tested.
@@ -74,9 +78,13 @@ begin
   {$ifdef CPU64}
     Fplseek:=do_syscall(syscall_nr___syscall,syscall_nr_lseek,TSysParam(fd),0,Offset,whence);
   {$else}
-    Fplseek:=do_syscall(syscall_nr___syscall,syscall_nr_lseek,0,TSysParam(fd),0,lo(Offset),{0} hi(offset),Whence);
+    Fplseek:=do_syscall(syscall_nr___syscall,syscall_nr_lseek,0,TSysParam(fd),0,
+       {$ifdef ENDIAN_BIG}hi(offset),lo(offset){$endif}
+       {$ifdef ENDIAN_LITTLE}lo(Offset),hi(offset){$endif},
+       Whence);
   {$endif}
 end;
+{$endif}
 
 function Fpftruncate(fd : cint; flength : off_t): cint; [public, alias : 'FPC_SYSC_FTRUNCATE'];
 
@@ -164,22 +172,17 @@ end;
 const DIRBLKSIZ=1024;
 
 
+function Fpfstat(fd : cint; var sb : stat): cint; forward;
+
 function Fpopendir(dirname : pchar): pdir;  [public, alias : 'FPC_SYSC_OPENDIR'];
 
 var
   fd:longint;
   st:stat;
   ptr:pdir;
+  save_errno:cint;
 begin
   Fpopendir:=nil;
-  if Fpstat(dirname,st)<0 then
-   exit;
-{ Is it a dir ? }
-  if not((st.st_mode and $f000)=$4000)then
-   begin
-     errno:=ESysENOTDIR;
-     exit
-   end;
 { Open it}
   fd:=Fpopen(dirname,O_RDONLY,438);
   if fd<0 then
@@ -187,15 +190,35 @@ begin
     Errno:=-1;
     exit;
    End;
+  if FpFStat(fd,st)<0 then
+   begin
+    save_errno:=errno;
+    FpClose(fd);
+    errno:=save_errno;
+    exit;
+   end;
+{ Is it a dir ? }
+  if not((st.st_mode and $f000)=$4000)then
+   begin
+     FpClose(fd);
+     errno:=ESysENOTDIR;
+     exit
+   end;
   new(ptr);
   if ptr=nil then
    Begin
+    FpClose(fd);
     Errno:=1;
     exit;
    End;
   Getmem(ptr^.dd_buf,2*DIRBLKSIZ);
   if ptr^.dd_buf=nil then
-   exit;
+   begin
+    dispose(ptr);
+    FpClose(fd);
+    Errno:=1;
+    exit;
+   end;
   ptr^.dd_fd:=fd;
   ptr^.dd_loc:=-1;
   ptr^.dd_rewind:=ptrint(ptr^.dd_buf);
@@ -212,10 +235,6 @@ begin
   dispose(dirp);
 end;
 
-var
-  use_openbsd_getdirentries_49 : boolean = false;
-  use_getdirentries_syscall : boolean = true;
-
 function Fpreaddir(dirp : pdir) : pdirent; [public, alias : 'FPC_SYSC_READDIR'];
 
 {Different from Linux, Readdir on BSD is based on Getdents, due to the
@@ -227,29 +246,8 @@ with blockmode have this higher?}
 function readbuffer:longint;
 
 var retval :longint;
-{$ifdef FPC_USE_GETDIRENTRIES_SYSCALL}
-    basepp : pointer;
-{$ifdef FPC_USE_GETDIRENTRIES_I49_SYSCALL}
-  { OpenBSD i49 getDirEntries system call uses off_t type for last parameter }
-    basep_off_t : off_t;
-{$endif not FPC_USE_GETDIRENTRIES_I49_SYSCALL}
-    basep : clong;
-{$endif FPC_USE_GETDIRENTRIES_SYSCALL}
 begin
-{$ifdef FPC_USE_GETDIRENTRIES_SYSCALL}
-{$ifdef FPC_USE_GETDIRENTRIES_I49_SYSCALL}
- if use_openbsd_getdirentries_49 then
-   basepp:=@basep_off_t
- else
-{$endif FPC_USE_GETDIRENTRIES_I49_SYSCALL}
-   basepp:=@basep;
- if use_getdirentries_syscall then
-   Retval:=do_syscall(syscall_nr_getdirentries,TSysParam(dirp^.dd_fd),TSysParam(@dirp^.dd_buf^),DIRBLKSIZ {sizeof(getdentsbuffer)},TSysParam(basepp))
- else
  Retval:=do_syscall(syscall_nr_getdents,TSysParam(dirp^.dd_fd),TSysParam(@dirp^.dd_buf^),DIRBLKSIZ {sizeof(getdentsbuffer)});
-{$else not FPC_USE_GETDIRENTRIES_SYSCALL}
- Retval:=do_syscall(syscall_nr_getdents,TSysParam(dirp^.dd_fd),TSysParam(@dirp^.dd_buf^),DIRBLKSIZ {sizeof(getdentsbuffer)});
-{$endif not FPC_USE_GETDIRENTRIES_SYSCALL}
    dirp^.dd_rewind:=TSysParam(dirp^.dd_buf);
    if retval=0 then
     begin
@@ -282,7 +280,11 @@ begin
  repeat
   novalid:=false;
   CurEntry:=pdirent(dirp^.dd_rewind);
+{$ifdef dragonfly}
+  RecLen:=(CurEntry^.d_namlen + 24) and $FFFFFFF8;
+{$else}
   RecLen:=CurEntry^.d_reclen;
+{$endif}
   if RecLen<>0 Then
    begin {valid direntry?}
     if CurEntry^.d_fileno<>0 then
@@ -465,6 +467,12 @@ end;
 Function Fpmunmap(start:pointer;len:size_t):cint;    [public, alias :'FPC_SYSC_MUNMAP'];
 begin
   Fpmunmap:=do_syscall(syscall_nr_munmap,TSysParam(start),Len);
+end;
+
+
+Function Fpmprotect(start:pointer;len:size_t;prot:cint):cint; [public, alias : 'FPC_SYSC_MPROTECT'];
+begin
+  Fpmprotect:=do_syscall(syscall_nr_mprotect,TSysParam(start),TSysParam(len),TSysParam(prot));
 end;
 
 

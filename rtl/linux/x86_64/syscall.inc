@@ -4,7 +4,6 @@
     member of the Free Pascal development team.
 
     The syscalls for the new RTL, moved to platform dependant dir.
-    Old linux calling convention is stil kept.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -21,9 +20,10 @@
 procedure mcount; external name 'mcount';
 {$endif FPC_PROFILE}
 
-function FpSysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL0'];
+function FpSysCall(sysnr:TSysParam):TSysResult; assembler; nostackframe; [public,alias:'FPC_SYSCALL0'];
 
 asm
+  pushq %rax              { keep stack aligned }
 {$ifdef FPC_PROFILE}
   pushq sysnr
   call mcount
@@ -38,11 +38,13 @@ asm
   call  seterrno@PLT
   movq  $-1,%rax
 .LSyscOK:
+  popq %rcx               { remove alignment }
 end;
 
-function FpSysCall(sysnr,param1 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL1'];
+function FpSysCall(sysnr,param1 : TSysParam):TSysResult; assembler; nostackframe; [public,alias:'FPC_SYSCALL1'];
 
 asm
+  pushq %rax              { keep stack aligned }
 {$ifdef FPC_PROFILE}
   pushq sysnr
   pushq param1
@@ -60,11 +62,13 @@ asm
   call  seterrno@PLT
   movq  $-1,%rax
 .LSyscOK:
+  popq %rcx               { remove alignment }
 end;
 
-function FpSysCall(sysnr,param1,param2 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL2'];
+function FpSysCall(sysnr,param1,param2 : TSysParam):TSysResult; assembler; nostackframe; [public,alias:'FPC_SYSCALL2'];
 
 asm
+  pushq %rax              { keep stack aligned }
 {$ifdef FPC_PROFILE}
   pushq sysnr
   pushq param1
@@ -85,11 +89,13 @@ asm
   call  seterrno@PLT
   movq  $-1,%rax
 .LSyscOK:
+  popq %rcx               { remove alignment }
 end;
 
-function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL3'];
+function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler; nostackframe; [public,alias:'FPC_SYSCALL3'];
 
 asm
+  pushq %rax              { keep stack aligned }
 {$ifdef FPC_PROFILE}
   pushq sysnr
   pushq param1
@@ -113,11 +119,13 @@ asm
   call  seterrno@PLT
   movq  $-1,%rax
 .LSyscOK:
+  popq %rcx               { remove alignment }
 end;
 
-function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL4'];
+function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler; nostackframe; [public,alias:'FPC_SYSCALL4'];
 
 asm
+  pushq %rax              { keep stack aligned }
 {$ifdef FPC_PROFILE}
   pushq sysnr
   pushq param1
@@ -144,11 +152,13 @@ asm
   call  seterrno@PLT
   movq  $-1,%rax
 .LSyscOK:
+  popq %rcx               { remove alignment }
 end;
 
-function FpSysCall(sysnr,param1,param2,param3,param4,param5 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL5'];
+function FpSysCall(sysnr,param1,param2,param3,param4,param5 : TSysParam):TSysResult; assembler; nostackframe; [public,alias:'FPC_SYSCALL5'];
 
 asm
+  pushq %rax              { keep stack aligned }
 {$ifdef FPC_PROFILE}
   pushq sysnr
   pushq param1
@@ -178,6 +188,7 @@ asm
   call  seterrno@PLT
   movq  $-1,%rax
 .LSyscOK:
+  popq %rcx               { remove alignment }
 end;
 
 

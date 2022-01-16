@@ -187,12 +187,12 @@ type
 
 // Return the number of known locales (maximum locale index + 1).
 
-function LmGetNumLocales: UInt16; // syscall sysTrapLmDispatch, lmGetNumLocales_;
+function LmGetNumLocales: UInt16; syscall sysTrapLmDispatch, lmGetNumLocales_;
 
 // Convert <iLocale> to <oLocaleIndex> by locating it within the set of known
 // locales.
 
-function LmLocaleToIndex({const} var iLocale: LmLocaleType; var oLocaleIndex: UInt16): Err; // syscall sysTrapLmDispatch, lmLocaleToIndex_;
+function LmLocaleToIndex({const} var iLocale: LmLocaleType; var oLocaleIndex: UInt16): Err; syscall sysTrapLmDispatch, lmLocaleToIndex_;
 
 // Return in <oValue> the setting identified by <iChoice> which is appropriate for
 // the locale identified by <iLocaleIndex>.  Return lmErrSettingDataOverflow if the
@@ -200,38 +200,9 @@ function LmLocaleToIndex({const} var iLocale: LmLocaleType; var oLocaleIndex: UI
 // error if <iValueSize> is larger than the data for a fixed-size setting.
 
 function LmGetLocaleSetting(iLocaleIndex: UInt16; iChoice: LmLocaleSettingChoice;
-                            oValue: Pointer; iValueSize: UInt16): Err; // syscall sysTrapLmDispatch, lmGetLocaleSetting_;
+                            oValue: Pointer; iValueSize: UInt16): Err; syscall sysTrapLmDispatch, lmGetLocaleSetting_;
+
 
 implementation
-
-function __LmGetNumLocales: UInt16; syscall sysTrapLmDispatch;
-function __LmLocaleToIndex(var iLocale: LmLocaleType; var oLocaleIndex: UInt16): Err; syscall SysTrapLmDispatch;
-function __LmGetLocaleSetting(iLocaleIndex: UInt16; iChoice: LmLocaleSettingChoice;
-                              oValue: Pointer; iValueSize: UInt16): Err;  syscall sysTrapLmDispatch;
-
-function LmGetNumLocales: UInt16; // syscall sysTrapLmDispatch, lmGetNumLocales_;
-begin
- asm
-  move.l #$lmGetNumLocales_, d2;
- end;
- LmGetNumLocales := __LmGetNumLocales;
-end;
-
-function LmLocaleToIndex({const} var iLocale: LmLocaleType; var oLocaleIndex: UInt16): Err; // syscall sysTrapLmDispatch, lmLocaleToIndex_;
-begin
- asm
-  MOVE.L #$lmLocaleToIndex_, d2;
- end;
- LmLocaleToIndex := __LmLocaleToIndex(iLocale, oLocaleIndex);
-end;
-
-function LmGetLocaleSetting(iLocaleIndex: UInt16; iChoice: LmLocaleSettingChoice;
-                            oValue: Pointer; iValueSize: UInt16): Err; // syscall sysTrapLmDispatch, lmGetLocaleSetting_;
-begin
- asm
-  MOVE.L #$lmGetLocaleSetting_, d2;
- end;
- LmGetLocaleSetting := __LmGetLocaleSetting(iLocaleIndex, iChoice, oValue, iValueSize);
-end;
 
 end.

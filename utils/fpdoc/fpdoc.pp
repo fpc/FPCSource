@@ -14,7 +14,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
-
+{$mode objfpc}
+{$h+}
 program FPDoc;
 
 uses
@@ -31,11 +32,13 @@ uses
   dw_XML,    // XML writer
   dw_dxml,   // Delphi XML doc.
   dw_HTML,   // HTML writer
+  dw_chm,    // CHM Writer
+  dw_markdown, // Markdown writer
   dw_ipflin, // IPF writer (new linear output)
   dw_man,    // Man page writer
   dw_linrtf, // linear RTF writer
   dw_txt,    // TXT writer
-  fpdocproj, mkfpdoc;
+  fpdocproj, mkfpdoc, dw_basemd, dw_basehtml, fpdocstrs;
 
 
 Type
@@ -53,8 +56,9 @@ Type
     procedure OutputLog(Sender: TObject; const Msg: String);
     procedure ParseCommandLine;
     procedure ParseOption(const S: String);
-    Procedure Usage(AnExitCode : Byte);
-    Procedure DoRun; override;
+    procedure Usage(AnExitCode : Byte);
+    procedure ExceptProc(Sender: TObject; E: Exception);
+    procedure DoRun; override;
   Public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
@@ -62,7 +66,7 @@ Type
   end;
 
 
-Procedure TFPDocApplication.Usage(AnExitCode : Byte);
+procedure TFPDocApplication.Usage(AnExitCode: Byte);
 
 Var
   I,P : Integer;
@@ -73,12 +77,15 @@ Var
 
 begin
   Writeln(Format(SCmdLineHelp,[ExtractFileName(Paramstr(0))]));
+  Writeln(SUsageOption008);
+  Writeln(SUsageOption009);
   Writeln(SUsageOption010);
   Writeln(SUsageOption020);
   Writeln(SUsageOption030);
   Writeln(SUsageOption035);
   Writeln(SUsageOption040);
   Writeln(SUsageOption050);
+  Writeln(SUsageOption055);
   Writeln(SUsageOption060);
   Writeln(SUsageOption070);
   Writeln(SUsageOption080);
@@ -88,6 +95,7 @@ begin
   Writeln(SUsageOption120);
   Writeln(SUsageOption130);
   Writeln(SUsageOption140);
+  Writeln(SUsageOption145);
   Writeln(SUsageOption150);
   Writeln(SUsageOption160);
   Writeln(SUsageOption170);
@@ -95,7 +103,14 @@ begin
   Writeln(SUsageOption190);
   Writeln(SUsageOption200);
   Writeln(SUsageOption210);
+  Writeln(SUsageOption211);
+  Writeln(SUsageOption212);
+  Writeln(SUsageOption215);
+  Writeln(SUsageOption215A);
   Writeln(SUsageOption220);
+  Writeln(SUsageOption221);
+  Writeln(SUsageOption222);
+  Writeln(SUsageOption223);
   Writeln(SUsageOption230);
   Writeln(SUsageOption240);
   Writeln(SUsageOption250);
@@ -141,6 +156,15 @@ begin
   Halt(AnExitCode);
 end;
 
+procedure TFPDocApplication.ExceptProc(Sender: TObject; E: Exception);
+begin
+  OutputLog(Sender, Format('Exception: Class - %s', [E.ClassName]));
+  OutputLog(Sender, E.Message);
+{$IFDEF EXCEPTION_STACK}
+  OutputLog(Sender, DumpExceptionCallStack(E));
+{$ENDIF}
+end;
+
 destructor TFPDocApplication.Destroy;
 
 begin
@@ -176,16 +200,21 @@ end;
 
 procedure TFPDocApplication.ParseCommandLine;
 
+Const
+  SOptProject = '--project=';
+  SOptPackage = '--package=';
+  SOptMacro = '--macro=';
+
   Function ProjectOpt(Const s : string) : boolean;
 
   begin
-    Result:=(Copy(s,1,3)='-p=') or (Copy(s,1,10)='--project=');
+    Result:=(Copy(s,1,3)='-p=') or (Copy(s,1,Length(SOptProject))=SOptProject) or (Copy(s,1,Length(SOptMacro))=SOptMacro);
   end;
 
   Function PackageOpt(Const s : string) : boolean;
 
   begin
-    Result:=((Copy(s,1,3)='-a=') or (Copy(s,1,10)='--package='));
+    Result:=((Copy(s,1,3)='-a=') or (Copy(s,1,Length(SOptPackage))=SOptPackage));
   end;
 
 var
@@ -193,17 +222,18 @@ var
   s : string;
 
 begin
+
   // Check project
   for i := 1 to ParamCount do
     begin
     s:=ParamStr(I);
     If ProjectOpt(S) then
       ParseOption(s);
-    If (FCreator.Packages.Count=1) then
-      FPackage:=FCreator.Packages[0]
-    else if (FCreator.Options.DefaultPackageName<>'') then
-      Fpackage:=FCreator.Packages.FindPackage(FCreator.Options.DefaultPackageName);
     end;
+  If (FCreator.Packages.Count=1) then
+    FPackage:=FCreator.Packages[0]
+  else if (FCreator.Options.DefaultPackageName<>'') then
+    Fpackage:=FCreator.Packages.FindPackage(FCreator.Options.DefaultPackageName);
   If FCreator.Project.Packages.Count=0 then
     begin // Add default package if none defined
     FPackage:=FCreator.Packages.Add as TFPDocPackage;
@@ -222,6 +252,11 @@ begin
       ParseOption(s);
     end;
   SelectedPackage; // Will print error if none available.
+  // Set defaults
+  if FCreator.Options.BackEnd='' then
+    FCreator.Options.BackEnd:='html';
+  if SelectedPackage.Output='' then
+    SelectedPackage.Output:=SelectedPackage.Name;
 end;
 
 procedure TFPDocApplication.ParseOption(Const S : String);
@@ -281,10 +316,18 @@ begin
     Usage(0)
   else if s = '--hide-protected' then
     FCreator.Options.HideProtected := True
+  else if s = '--fallback-seealso-links' Then
+   FCreator.Options.FallBackSeeAlsoLinks := True
   else if s = '--warn-no-node' then
     FCreator.Options.WarnNoNode := True
+  else if s = '--warn-documentation-empty' then
+    FCreator.Options.WarnDocumentationEmpty := True
+  else if s = '--info-used-file' then
+    FCreator.Options.InfoUsedFile := True
+  else if s = '--warn-XCT' then
+    FCreator.Options.WarnXCT := True
   else if s = '--show-private' then
-    FCreator.Options.ShowPrivate := False
+    FCreator.Options.ShowPrivate := True
   else if s = '--stop-on-parser-error' then
     FCreator.Options.StopOnParseError := True
   else if s = '--dont-trim' then
@@ -307,10 +350,20 @@ begin
       FProjectFile:=True;
       FCreator.LoadProjectFile(Arg);
       end
+    else if (Cmd = '--examples-dir') then
+      FCreator.ExamplesPath:=Arg
     else if (Cmd = '--descr') then
       AddToFileList(SelectedPackage.Descriptions, Arg)
     else if (Cmd = '--descr-dir') then
       AddDirToFileList(SelectedPackage.Descriptions, Arg, '*.xml')
+    else if (Cmd = '--base-descr-dir') then
+      FCreator.BaseDescrDir:=Arg
+    else if (Cmd = '--macro') then
+      begin
+      If Pos('=',Arg)=0 then
+        WriteLn(StdErr, Format(SCmdLineErrInvalidMacro, [Arg]));
+      FCreator.ProjectMacros.Add(Arg);
+      end
     else if (Cmd = '-f') or (Cmd = '--format') then
       begin
       Arg:=UpperCase(Arg);
@@ -323,6 +376,8 @@ begin
       FCreator.Options.Language := Arg
     else if (Cmd = '-i') or (Cmd = '--input') then
       AddToFileList(SelectedPackage.Inputs, Arg)
+    else if (Cmd = '--base-input-dir') then
+      FCreator.BaseInputDir:=Arg
     else if (Cmd = '--input-dir') then
       begin
       AddDirToFileList(SelectedPackage.Inputs, Arg,'*.pp');
@@ -368,34 +423,43 @@ end;
 Procedure TFPDocApplication.DoRun;
 
 begin
-{$IFDEF Unix}
-  gettext.TranslateResourceStrings('/usr/local/share/locale/%s/LC_MESSAGES/fpdoc.mo');
-{$ELSE}
-  gettext.TranslateResourceStrings('intl/fpdoc.%s.mo');
-{$ENDIF}
-  WriteLn(STitle);
-  WriteLn(Format(SVersion, [DefFPCVersion, DefFPCDate]));
-  WriteLn(SCopyright1);
-  WriteLn(SCopyright2);
-  WriteLn;
-  ParseCommandLine;
-  if (FWriteProjectFile<>'') then
-    FCreator.CreateProjectFile(FWriteProjectFile)
-  else
-    FCreator.CreateDocumentation(FPackage,FDryRun);
-  WriteLn(SDone);
-  Terminate;
+   ExceptionExitCode:=1;
+  try
+  {$IFDEF Unix}
+    gettext.TranslateResourceStrings('/usr/local/share/locale/%s/LC_MESSAGES/fpdoc.mo');
+  {$ELSE}
+    gettext.TranslateResourceStrings('intl/fpdoc.%s.mo');
+  {$ENDIF}
+    WriteLn(STitle);
+    WriteLn(Format(SVersion, [DefFPCVersion, DefFPCDate]));
+    WriteLn(SCopyright1);
+    WriteLn(SCopyright2);
+    WriteLn;
+    ParseCommandLine;
+    if (FWriteProjectFile<>'') then
+      FCreator.CreateProjectFile(FWriteProjectFile)
+    else
+      FCreator.CreateDocumentation(FPackage,FDryRun);
+    WriteLn(SDone);
+    Terminate;
+  except
+    ExitCode:=1;
+    Raise;
+  end;
 end;
 
 constructor TFPDocApplication.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  StopOnException:=true;
+  StopOnException:=false;
   FCreator:=TFPDocCreator.Create(Self);
   FCreator.OnLog:=@OutputLog;
+  OnException:= @ExceptProc;
 end;
 
 begin
+  //AssignFile(StdErr, 'fpdoc_err.log');
+  //rewrite(StdErr);
   With TFPDocApplication.Create(Nil) do
     try
       Run;

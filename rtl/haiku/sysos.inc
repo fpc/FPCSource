@@ -15,14 +15,17 @@
 
  **********************************************************************}
 
-{$ifdef FPC_USE_LIBC}
+{$ifndef FPC_USE_LIBC}
+{$error There's no support on Haiku for building without libc/libroot}
+{$endif}
 
-const clib = 'c';
+const
+  clib = 'root';
 
 type libcint=longint;
      plibcint=^libcint;
 
-function geterrnolocation: Plibcint; cdecl;external 'root' name '_errnop';
+function geterrnolocation: Plibcint; cdecl;external clib name '_errnop';
 
 function geterrno:libcint; [public, alias: 'FPC_SYS_GETERRNO'];
 
@@ -35,26 +38,6 @@ begin
   geterrnolocation^:=err;
 end;
 
-{$else}
-{$ifdef ver1_0}
-Var
-{$else}
-threadvar
-{$endif}
-      Errno : longint;
-
-function geterrno:longint; [public, alias: 'FPC_SYS_GETERRNO'];
-
-begin
- GetErrno:=Errno;
-end;
-
-procedure seterrno(err:longint); [public, alias: 'FPC_SYS_SETERRNO'];
-
-begin
- Errno:=err;
-end;
-{$endif}
 
 { OS dependant parts  }
 
@@ -62,17 +45,8 @@ end;
 {$I ostypes.inc}                        // c-types, unix base types, unix base structures
 {$I osmacro.inc}
 
-{$ifdef FPC_USE_LIBC}
-  {$Linklib c}
-  {$i oscdeclh.inc}
-  {$i oscdecl.inc}
-{$else}
-  {$I syscallh.inc}
-  {$I syscall.inc}
-  {$I sysnr.inc}
-  {$I ossysc.inc}
-{$endif}
-
+{$i oscdeclh.inc}
+{$i oscdecl.inc}
 
 {*****************************************************************************
                             Error conversion
@@ -80,7 +54,7 @@ end;
 
 {
   The lowlevel file functions should take care of setting the InOutRes to the
-  correct value if an error has occured, else leave it untouched
+  correct value if an error has occurred, else leave it untouched
 }
 
 Function PosixToRunError  (PosixErrno : longint) : longint;
@@ -108,6 +82,8 @@ begin
     ESysEROFS,
    ESysEEXIST,
    ESysENOTEMPTY,
+   ESysEBusy,
+   ESysENOTDIR,        // busy, enotdir, mantis #25931
    ESysEACCES : Inoutres:=5;
    ESysEISDIR : InOutRes:=5;
    ESysEPERM  : InOutRes:=5;
@@ -132,15 +108,13 @@ end;
 *****************************************************************************}
 
 Function Do_IsDevice(Handle:Longint):boolean;
-{
-  Interface to Unix ioctl call.
-  Performs various operations on the filedescriptor Handle.
-  Ndx describes the operation to perform.
-  Data points to data needed for the Ndx function. The structure of this
-  data is function-dependent.
-}
+var
+  StatRec: Stat;
 begin
-  do_isdevice:= (handle=StdInputHandle) or
-                (handle=StdOutputHandle) or
-                (handle=StdErrorHandle);
+  fpFStat (Handle, StatRec);
+  case StatRec.st_Mode and S_IFMT of
+   S_IFCHR, S_IFIFO, S_IFSOCK: Do_IsDevice := true
+  else
+   Do_IsDevice := false;
+  end;
 end;

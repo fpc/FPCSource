@@ -22,7 +22,7 @@ interface
 uses exec;
 
 var
-  Get9Base: Pointer;
+  Get9Base: Pointer = nil;
 
 const
   GET9NAME : PChar = 'get9.library';
@@ -34,33 +34,17 @@ function InitGet9Library : boolean;
 
 implementation
 
-var
-  Get9_exit : Pointer;
-
 const
   LIBVERSION=1;
 
-procedure CloseGet9Library;
-begin
-  ExitProc := Get9_exit;
-  if Get9Base <> nil then begin
-    CloseLibrary(PLibrary(Get9Base));
-    Get9Base := nil;
-  end;
-end;
-
 function InitGet9Library : boolean;
 begin
-  Get9Base := nil;
-  Get9Base := OpenLibrary(GET9NAME,LIBVERSION);
-  if Get9Base <> nil then begin
-    Get9_exit := ExitProc;
-    ExitProc := @CloseGet9Library;
-    InitGet9Library:=True;
-  end else begin
-    InitGet9Library:=False;
-  end;
+  InitGet9Library := Assigned(Get9Base);
 end;
 
-begin
+initialization
+  Get9Base := OpenLibrary(GET9NAME,LIBVERSION);
+finalization
+  if Assigned(Get9Base) then
+    CloseLibrary(PLibrary(Get9Base));
 end.

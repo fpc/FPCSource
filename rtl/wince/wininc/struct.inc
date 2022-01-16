@@ -41,7 +41,7 @@
   You should have received a copy of the GNU Library General Public
   License along with this library; see the file COPYING.LIB.
   If not, write to the Free Software Foundation,
-  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 
   Changes :
@@ -53,7 +53,9 @@
 {$ifdef read_interface}
 
   type
-
+    {$calling default}
+    {$i typshrdh.inc}
+    {$calling cdecl}
     { WARNING
       the variable argument list
       is not implemented for FPC
@@ -265,26 +267,14 @@
      TANIMATIONINFO = ANIMATIONINFO;
      PANIMATIONINFO = ^ANIMATIONINFO;
 
-     POINT = record
-          x : LONG;
-          y : LONG;
-       end;
-     LPPOINT = ^POINT;
-     tagPOINT = POINT;
-     TPOINT = POINT;
-     PPOINT = ^POINT;
+     POINT = TPOINT;
+     LPPOINT = PPOINT;
+     tagPOINT = TPOINT;
 
-     RECT = record
-          case Integer of
-             0: (Left,Top,Right,Bottom : Longint);
-             1: (TopLeft,BottomRight : TPoint);
-       end;
-     LPRECT = ^RECT;
-     LPCRECT = ^RECT;
+     RECT = TRect;
+     LPRECT = PRECT;
      _RECT = RECT;
-     TRECT = RECT;
-     PRECT = ^RECT;
-     tagRECT = RECT; //+windef
+     LPRCECT = PRECT;
 
      RECTL = record
           left : LONG;
@@ -538,12 +528,6 @@
      _POINTL = POINTL;
      TPOINTL = POINTL;
      PPOINTL = ^POINTL;
-
-     TSmallPoint = record
-       X,
-       Y : SmallInt;
-       end;
-
 
      POINTS = record
           x : SHORT;
@@ -2345,7 +2329,7 @@
      // routine when a floating point exception is detected
      _EXCEPTION = record  //+stdlib
        type_  : Integer;  //identifier type replaced by Type_ for compilation
-       Name   : PChar;    // name of function where error occured
+       Name   : PChar;    // name of function where error occurred
        arg1   : double;   // first argument to function
        arg2   : double;   // second argument (if any) to function
        retval : double;   // value to be returned by function
@@ -3245,14 +3229,9 @@
      TEMRFORMAT = EMRFORMAT;
      PEMRFORMAT = ^EMRFORMAT;
 
-     SIZE = record
-          cx : LONG;
-          cy : LONG;
-       end;
-     LPSIZE = ^SIZE;
+     SIZE = TSize;
+     LPSIZE = PSIZE;
      tagSIZE = SIZE;
-     TSIZE = SIZE;
-     PSIZE = ^SIZE;
 
      SIZEL = SIZE;        //windef
      TSIZEL = SIZE;       //windef
@@ -5107,7 +5086,7 @@
      // engineering.widget.com/software/spencer katt
      NameCanonical = 7,
      // local logon name
-     NameWindowsCeLocal = $80000001);              //+winbase
+     NameWindowsCeLocal = longint($80000001));              //+winbase
      PEXTENDED_NAME_FORMAT=^EXTENDED_NAME_FORMAT;  //+winbase
 
      NAME_BUFFER = record
@@ -8234,5 +8213,8 @@ type
        a.flag0:=a.flag0 or ((__fAckReq shl bp_DDEUP_fAckReq) and bm_DDEUP_fAckReq);
     end;
 
+ {$calling default}
+ {$i typshrd.inc}
+ {$calling cdecl}
 {$endif read_implementation}
 

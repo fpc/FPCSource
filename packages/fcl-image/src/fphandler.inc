@@ -112,6 +112,30 @@ begin
     end;
 end;
 
+procedure TImageHandlersManager.UnregisterImageHandlers(const ATypeName: string; ARemoveReader: boolean = True;
+  ARemoveWriter: boolean = True);
+var r : integer;
+    ih: TIHData;
+begin
+  if not ARemoveReader and not ARemoveWriter then
+    exit;
+  r := FData.count;
+  repeat
+    dec (r);
+  until (r < 0) or (compareText (TIHData(FData[r]).FTypeName, ATypeName) = 0);
+  if r >= 0 then begin
+    ih:= TIHData(FData[r]);
+    if ARemoveReader then
+      ih.FReader:= nil;
+    if ARemoveWriter then
+      ih.FWriter:= nil;
+    if not Assigned(ih.FReader) and not Assigned(ih.FWriter) then begin
+      FData.Delete(r);
+      ih.Free;
+    end;
+  end;
+end;
+
 function TImageHandlersManager.GetCount : integer;
 begin
   result := FData.Count;
@@ -251,6 +275,23 @@ begin
       FStream := nil;
   end;
 end;
+
+class function TFPCustomImageReader.InternalSize(Str: TStream): TPoint;
+
+begin
+  Result.X:=-1;
+  Result.Y:=-1;
+end;
+
+class function TFPCustomImageReader.ImageSize(Str: TStream): TPoint;
+var
+  P: Int64;
+begin
+  P:=Str.Position;
+  result := InternalSize (Str);
+  Str.Position:=P;
+end;
+
 
 { TFPCustomImageWriter }
 

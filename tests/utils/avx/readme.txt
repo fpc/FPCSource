@@ -2,6 +2,7 @@ create testfiles in shell (linux):
 
 for i in `ls /tmp/avx/*.pp`; do /home/torsten/fpc/avx/ppcx64 -Fu/home/torsten/fpc/avx/rtl/units/x86_64-linux/ "$i"; done;
 
+***********************************************************************************************************
 On windows, complete testing would look like:
 
 i386:
@@ -22,14 +23,51 @@ x86_64:
 fpc avxtestgenerator
 fpc avxtestfilecmp
 avxtestgenerator -px8664 -ffpc -otmp
-cd tmp
-for %%p in (*.pp) do call fpc -Px86_64 %%p -v0
-cd ..
 avxtestgenerator -px8664 -fnasm -otmp
 cd tmp
-for %%a in (*.asm) do nasm -fwin64 %%a
+for %%p in (*.pp) do call fpc -Px86_64 %%p -v0
+for %a in (*.asm) do nasm -fwin64 %a
 cd ..
 avxtestfilecmp -mtmp\*.obj -dtmp -eexe -s
+
+***********************************************************************************************************
+Linux x86-64:
+
+mkdir tmp
+fpc avxtestgenerator
+fpc avxtestfilecmp
+
+./avxtestgenerator -px8664 -ffpc -otmp
+# AVX-512: ./avxtestgenerator -px8664 -ffpc -otmp -z
+
+./avxtestgenerator -px8664 -fnasm -otmp
+# AVX-512: ./avxtestgenerator -px8664 -fnasm -otmp -z
+
+cd tmp
+
+# use GNU Parallel [1]
+# if not available:
+# echo *.pp | xargs -n 1 fpc -Px86_64 -v0i
+find . -name '*.pp' | parallel fpc -Px86_64 -v0i
+
+# use GNU Parallel [1]
+# if not available:
+# echo *.asm | xargs -n 1 nasm -fwin64
+find . -name '*.asm' | parallel nasm -fwin64
+
+cd ..
+./avxtestfilecmp -mtmp/*.o -dtmp -s
+
+***********************************************************************************************************
+x86_64 testing by using self testing fpc executables: 
+
+avxtestgenerator -px8664 -ffpcinc -otmp
+avxtestgenerator -px8664 -fnasm -otmp
+cd tmp
+for %a in (*.asm) do nasm -fbin %a -o %~na.bin
+for %b in (*.bin) do bin2obj -x -c %~nb %b -o%~nb.inc
+for %p in (*.pp) do call fpc -Px86_64 %p -v0i
+for %e in (*.exe) do call %e
 
 ****************************************************************************************************
 Note:
@@ -69,3 +107,4 @@ VMOVUPD
 VMOVUPS
 
 
+[1] O. Tange (2011): GNU Parallel - The Command-Line Power Tool, ;login: The USENIX Magazine, February 2011:42-47.

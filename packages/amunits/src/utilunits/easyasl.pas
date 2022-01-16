@@ -33,11 +33,6 @@
     nils.sjoholm@mailbox.swipnet.se
 }
 
-{$I useamigasmartlink.inc}
-{$ifdef use_amiga_smartlink}
-    {$smartlink on}
-{$endif use_amiga_smartlink}
-
 unit easyasl;
 
 
@@ -142,7 +137,7 @@ BEGIN
 
     fr := AllocAslRequest(ASL_FileRequest,@mytags);
     IF fr <> NIL THEN BEGIN
-       IF AslRequest(fr,NIL) <> 0 THEN BEGIN
+       IF AslRequest(fr,NIL) THEN BEGIN
           IF (strlen(fr^.rf_Dir) >0) and (strlen(fr^.rf_File) > 0) THEN begin
              strcopy(path,fr^.rf_Dir);
              strcopy(fname,fr^.rf_File);
@@ -248,7 +243,7 @@ BEGIN
 
     fr := AllocAslRequest(ASL_FontRequest,@mytags);
     IF fr <> NIL THEN BEGIN
-         IF AslRequest(fr,NIL) <> 0 THEN BEGIN
+         IF AslRequest(fr,NIL) THEN BEGIN
               WITH finfo DO BEGIN
                   nfi_Name := strpas(fr^.fo_Attr.ta_Name);
                   nfi_Size       := fr^.fo_Attr.ta_YSize;
@@ -322,7 +317,7 @@ BEGIN
 
         fr := AllocAslRequest(ASL_FileRequest,@mytags);
         IF fr <> NIL THEN BEGIN
-             IF AslRequest(fr,NIL) <> 0 THEN BEGIN
+             IF AslRequest(fr,NIL) THEN BEGIN
                  IF (strlen(fr^.rf_Dir) >0) THEN begin
                     strcopy(path,fr^.rf_Dir);
                     result := true;
@@ -382,7 +377,7 @@ BEGIN
 
     fr := AllocAslRequest(ASL_FileRequest,@mytags);
     IF fr <> NIL THEN BEGIN
-         IF AslRequest(fr,NIL) <> 0 THEN BEGIN
+         IF AslRequest(fr,NIL) THEN BEGIN
              IF (strlen(fr^.rf_Dir) >0) THEN begin
                 strcopy(path,fr^.rf_Dir);
                 result := true;
@@ -445,7 +440,7 @@ BEGIN
 
     fr := AllocAslRequest(ASL_FileRequest,@mytags);
     IF fr <> NIL THEN BEGIN
-         IF AslRequest(fr,NIL) <> 0 THEN BEGIN
+         IF AslRequest(fr,NIL) THEN BEGIN
              IF (strlen(fr^.rf_Dir) >0) and (strlen(fr^.rf_File) > 0) THEN begin
                 strcopy(path,fr^.rf_Dir);
                 strcopy(fname,fr^.rf_File);

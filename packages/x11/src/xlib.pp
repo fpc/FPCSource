@@ -45,6 +45,7 @@ type
      For function results, longbool is OK, since everything <>0 
      is interpreted as true, so we introduce TBoolResult. }
    TBool = cint;
+   PBoolResult = ^TBoolResult;
    TBoolResult = longbool;
    PStatus = ^TStatus;
    TStatus = cint;
@@ -259,6 +260,7 @@ type
         stack_mode : cint;
      end;
 
+   PPXColor = ^PXColor;
    PXColor = ^TXColor;
    TXColor = record
         pixel : culong;
@@ -802,6 +804,33 @@ type
         window : TWindow;
      end;
 
+   (***************************************************************
+    *
+    * GenericEvent.  This event is the standard event for all newer extensions.
+    *)
+
+   PXGenericEvent = ^TXGenericEvent;
+   TXGenericEvent = record
+        _type: cint;                 { of event. Always GenericEvent }
+        serial: culong;              { # of last request processed }
+        send_event: TBool;           { true if from SendEvent request }
+        display: PDisplay;           { Display the event was read from }
+        extension: cint;             { major opcode of extension that caused the event }
+        evtype: cint;                { actual event type. }
+     end;
+
+   PXGenericEventCookie = ^TXGenericEventCookie;
+   TXGenericEventCookie = record
+        _type: cint;                 { of event. Always GenericEvent }
+        serial: culong;              { # of last request processed }
+        send_event: TBool;           { true if from SendEvent request }
+        display: PDisplay;           { Display the event was read from }
+        extension: cint;             { major opcode of extension that caused the event }
+        evtype: cint;                { actual event type. }
+        cookie: cuint;
+        data: pointer;
+     end;
+
    PXEvent = ^TXEvent;
    TXEvent = record
        case longint of
@@ -837,7 +866,9 @@ type
           29 : ( xmapping : TXMappingEvent );
           30 : ( xerror : TXErrorEvent );
           31 : ( xkeymap : TXKeymapEvent );
-          32 : ( pad : array[0..23] of clong );
+          32 : ( xgeneric : TXGenericEvent );
+          33 : ( xcookie : TXGenericEventCookie );
+          34 : ( pad : array[0..23] of clong );
        end;
 
 type
@@ -990,9 +1021,9 @@ type
    TXIC = record
      end;
 
-   TXIMProc = procedure (para1:TXIM; para2:TXPointer; para3:TXPointer);cdecl;
+   TXIMProc = procedure (para1:PXIM; para2:TXPointer; para3:TXPointer);cdecl;
 
-   TXICProc = function (para1:TXIC; para2:TXPointer; para3:TXPointer):TBoolResult;cdecl;
+   TXICProc = function (para1:PXIC; para2:TXPointer; para3:TXPointer):TBoolResult;cdecl;
 
    TXIDProc = procedure (para1:PDisplay; para2:TXPointer; para3:TXPointer);cdecl;
 
@@ -1727,20 +1758,20 @@ procedure Xutf8DrawImageString(para1:PDisplay; para2:TDrawable; para3:TXFontSet;
             para6:cint; para7:Pchar; para8:cint);cdecl;external libX11;
 function XOpenIM(para1:PDisplay; para2:PXrmHashBucketRec; para3:Pchar; para4:Pchar):PXIM;cdecl;external libX11;
 function XCloseIM(para1:PXIM):TStatus;cdecl;external libX11;
-function XGetIMValues(para1:TXIM; dotdotdot:array of const):Pchar;cdecl;external libX11;
-function XSetIMValues(para1:TXIM; dotdotdot:array of const):Pchar;cdecl;external libX11;
-function XDisplayOfIM(para1:TXIM):PDisplay;cdecl;external libX11;
-function XLocaleOfIM(para1:TXIM):Pchar;cdecl;external libX11;
+function XGetIMValues(para1:PXIM; dotdotdot:array of const):Pchar;cdecl;external libX11;
+function XSetIMValues(para1:PXIM; dotdotdot:array of const):Pchar;cdecl;external libX11;
+function XDisplayOfIM(para1:PXIM):PDisplay;cdecl;external libX11;
+function XLocaleOfIM(para1:PXIM):Pchar;cdecl;external libX11;
 function XCreateIC(para1:PXIM; dotdotdot:array of const):PXIC;cdecl;external libX11;
 procedure XDestroyIC(para1:PXIC);cdecl;external libX11;
 procedure XSetICFocus(para1:PXIC);cdecl;external libX11;
 procedure XUnsetICFocus(para1:PXIC);cdecl;external libX11;
-function XwcResetIC(para1:TXIC):PWideChar;cdecl;external libX11;
-function XmbResetIC(para1:TXIC):Pchar;cdecl;external libX11;
+function XwcResetIC(para1:PXIC):PWideChar;cdecl;external libX11;
+function XmbResetIC(para1:PXIC):Pchar;cdecl;external libX11;
 function Xutf8ResetIC(para1:PXIC):Pchar;cdecl;external libX11;
-function XSetICValues(para1:TXIC; dotdotdot:array of const):Pchar;cdecl;external libX11;
-function XGetICValues(para1:TXIC; dotdotdot:array of const):Pchar;cdecl;external libX11;
-function XIMOfIC(para1:TXIC):TXIM;cdecl;external libX11;
+function XSetICValues(para1:PXIC; dotdotdot:array of const):Pchar;cdecl;external libX11;
+function XGetICValues(para1:PXIC; dotdotdot:array of const):Pchar;cdecl;external libX11;
+function XIMOfIC(para1:PXIC):PXIM;cdecl;external libX11;
 function XFilterEvent(para1:PXEvent; para2:TWindow):TBoolResult;cdecl;external libX11;
 function XmbLookupString(para1:PXIC; para2:PXKeyPressedEvent; para3:Pchar; para4:cint; para5:PKeySym;
            para6:PStatus):cint;cdecl;external libX11;
@@ -1766,6 +1797,16 @@ procedure XSetAuthorization(para1:Pchar; para2:cint; para3:Pchar; para4:cint);cd
   _Xmbtowc?
   _Xwctomb?
 }
+
+function XGetEventData(
+    dpy: PDisplay;
+    cookie: PXGenericEventCookie
+): TBoolResult;cdecl;external libX11;
+
+procedure XFreeEventData(
+    dpy: PDisplay;
+    cookie: PXGenericEventCookie
+);cdecl;external libX11;
 
 {$ifdef MACROS}
 function ConnectionNumber(dpy : PDisplay) : cint;

@@ -121,6 +121,10 @@ type
   end;
   tcpuunitsymclass = class of tcpuunitsym;
 
+  tcpuprogramparasym = class(tprogramparasym)
+  end;
+  tcpuprogramparasymclass = class(tprogramparasym);
+
   tcpunamespacesym = class(tnamespacesym)
   end;
   tcpunamespacesymclass = class of tcpunamespacesym;
@@ -177,7 +181,7 @@ const
 implementation
 
   uses
-    symconst, defutil, defcmp;
+    symconst, symutil, defutil, defcmp;
 
 { tcpurecorddef }
 
@@ -191,7 +195,7 @@ implementation
       result:=false;
       for i:=0 to symtable.SymList.Count-1 do
         begin
-          if tsym(symtable.symlist[i]).typ=fieldvarsym then
+          if is_normal_fieldvarsym(tsym(symtable.symlist[i])) then
             begin
               checkdef:=tfieldvarsym(symtable.symlist[i]).vardef;
               repeat
@@ -272,6 +276,7 @@ begin
   { used tsym classes }
   clabelsym:=tcpulabelsym;
   cunitsym:=tcpuunitsym;
+  cprogramparasym:=tcpuprogramparasym;
   cnamespacesym:=tcpunamespacesym;
   cprocsym:=tcpuprocsym;
   ctypesym:=tcputypesym;

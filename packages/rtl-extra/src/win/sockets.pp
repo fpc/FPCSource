@@ -11,6 +11,7 @@
 
  **********************************************************************}
 {$mode objfpc}
+{$ModeSwitch out}
 unit Sockets;
 
 Interface
@@ -45,6 +46,7 @@ const
   EsockENOTSOCK        = WSAENOTSOCK;
   EsockEPROTONOSUPPORT = WSAEPROTONOSUPPORT;
   EsockEWOULDBLOCK     = WSAEWOULDBLOCK;
+  EsockADDRINUSE       = WSAEADDRINUSE;
 
   SHUT_RD          = SD_RECEIVE; // aliases so we are cross-platform
   SHUT_WR          = SD_SEND;

@@ -125,12 +125,12 @@ end;
 
 function tick_microsecs(ticks: cuint64): cuint64;	inline;
 begin
-  result 	:=	(((cuint64(ticks)*8) mod cuint64(TB_TIMER_CLOCK div 125)));
+  result 	:=	(((cuint64(ticks)*8) div cuint64(TB_TIMER_CLOCK div 125)) mod TB_USPERSEC);
 end;
 
 function tick_nanosecs(ticks: cuint64): cuint64;	inline;
 begin
-  result 	:= (((cuint64(ticks)*8000) mod cuint64(TB_TIMER_CLOCK div 125)));
+  result 	:= (((cuint64(ticks)*8000) div cuint64(TB_TIMER_CLOCK div 125)) mod TB_NSPERSEC);
 end;
 
 

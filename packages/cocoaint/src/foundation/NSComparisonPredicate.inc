@@ -1,19 +1,33 @@
 { Parsed from Foundation.framework NSComparisonPredicate.h }
 
-{$ifdef TYPES}
-{$ifndef NSCOMPARISONPREDICATE_PAS_T}
-{$define NSCOMPARISONPREDICATE_PAS_T}
 
-{ Constants }
+{$ifdef TYPES}
+type
+  NSComparisonPredicatePtr = ^NSComparisonPredicate;
+{$endif}
+
+{$ifdef TYPES}
+type
+  NSComparisonPredicateOptions = NSUInteger;
+  NSComparisonPredicateOptionsPtr = ^NSComparisonPredicateOptions;
 
 const
   NSCaseInsensitivePredicateOption = $01;
   NSDiacriticInsensitivePredicateOption = $02;
+  NSNormalizedPredicateOption = $04 { available in 10_6, 4_0 };
+
+type
+  NSComparisonPredicateModifier = NSUInteger;
+  NSComparisonPredicateModifierPtr = ^NSComparisonPredicateModifier;
 
 const
   NSDirectPredicateModifier = 0;
   NSAllPredicateModifier = 1;
   NSAnyPredicateModifier = 2;
+
+type
+  NSPredicateOperatorType = NSUInteger;
+  NSPredicateOperatorTypePtr = ^NSPredicateOperatorType;
 
 const
   NSLessThanPredicateOperatorType = 0;
@@ -28,71 +42,30 @@ const
   NSEndsWithPredicateOperatorType = 9;
   NSInPredicateOperatorType = 10;
   NSCustomSelectorPredicateOperatorType = 11;
-  NSContainsPredicateOperatorType = 99;
-  NSBetweenPredicateOperatorType = 100;
-
-{ Types }
-type
-  NSComparisonPredicateModifier = NSUInteger;
-  NSComparisonPredicateModifierPtr = ^NSComparisonPredicateModifier;
-  NSPredicateOperatorType = NSUInteger;
-  NSPredicateOperatorTypePtr = ^NSPredicateOperatorType;
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSCOMPARISONPREDICATE_PAS_R}
-{$define NSCOMPARISONPREDICATE_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSCOMPARISONPREDICATE_PAS_F}
-{$define NSCOMPARISONPREDICATE_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSCOMPARISONPREDICATE_PAS_S}
-{$define NSCOMPARISONPREDICATE_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSComparisonPredicate = objcclass;
-  NSComparisonPredicatePointer = ^NSComparisonPredicate;
-  NSComparisonPredicatePtr = NSComparisonPredicatePointer;
-
+  NSContainsPredicateOperatorType = 99 { available in 10_5, 3_0 };
+  NSBetweenPredicateOperatorType = 100 { available in 10_5, 3_0 };
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSCOMPARISONPREDICATE_PAS_C}
-{$define NSCOMPARISONPREDICATE_PAS_C}
 
-{ NSComparisonPredicate }
+type
   NSComparisonPredicate = objcclass external (NSPredicate)
   private
-    _reserved2: Pointer;
+    _reserved2: pointer;
     _predicateOperator: NSPredicateOperator;
     _lhs: NSExpression;
     _rhs: NSExpression;
-    
   public
-    class function predicateWithLeftExpression_rightExpression_modifier_type_options(lhs: NSExpression; rhs: NSExpression; modifier: NSComparisonPredicateModifier; type_: NSPredicateOperatorType; options_: NSUInteger): NSPredicate; message 'predicateWithLeftExpression:rightExpression:modifier:type:options:';
-    class function predicateWithLeftExpression_rightExpression_customSelector(lhs: NSExpression; rhs: NSExpression; selector: SEL): NSPredicate; message 'predicateWithLeftExpression:rightExpression:customSelector:';
-    function initWithLeftExpression_rightExpression_modifier_type_options(lhs: NSExpression; rhs: NSExpression; modifier: NSComparisonPredicateModifier; type_: NSPredicateOperatorType; options_: NSUInteger): id; message 'initWithLeftExpression:rightExpression:modifier:type:options:';
-    function initWithLeftExpression_rightExpression_customSelector(lhs: NSExpression; rhs: NSExpression; selector: SEL): id; message 'initWithLeftExpression:rightExpression:customSelector:';
+    class function predicateWithLeftExpression_rightExpression_modifier_type_options (lhs: NSExpression; rhs: NSExpression; modifier: NSComparisonPredicateModifier; type_: NSPredicateOperatorType; options: NSComparisonPredicateOptions): NSComparisonPredicate; message 'predicateWithLeftExpression:rightExpression:modifier:type:options:';
+    class function predicateWithLeftExpression_rightExpression_customSelector (lhs: NSExpression; rhs: NSExpression; selector: SEL): NSComparisonPredicate; message 'predicateWithLeftExpression:rightExpression:customSelector:';
+    function initWithLeftExpression_rightExpression_modifier_type_options (lhs: NSExpression; rhs: NSExpression; modifier: NSComparisonPredicateModifier; type_: NSPredicateOperatorType; options: NSComparisonPredicateOptions): instancetype; message 'initWithLeftExpression:rightExpression:modifier:type:options:';
+    function initWithLeftExpression_rightExpression_customSelector (lhs: NSExpression; rhs: NSExpression; selector: SEL): instancetype; message 'initWithLeftExpression:rightExpression:customSelector:';
     function predicateOperatorType: NSPredicateOperatorType; message 'predicateOperatorType';
     function comparisonPredicateModifier: NSComparisonPredicateModifier; message 'comparisonPredicateModifier';
     function leftExpression: NSExpression; message 'leftExpression';
     function rightExpression: NSExpression; message 'rightExpression';
     function customSelector: SEL; message 'customSelector';
-    function options: NSUInteger; message 'options';
+    function options: NSComparisonPredicateOptions; message 'options';
   end;
+{$endif}
 
-{$endif}
-{$endif}

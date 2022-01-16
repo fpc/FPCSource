@@ -24,7 +24,10 @@ uses
   bufdatasettoolsunit,
   memdstoolsunit,
   SdfDSToolsUnit,
-  tcsdfdata,
+{$IFDEF TEST_SQLITE3DS}
+  Sqlite3DSToolsUnit,
+  TestSpecificTSqlite3Dataset,
+{$ENDIF}
   // DB unittest
   TestBasics,
   TestDBBasics,
@@ -35,7 +38,9 @@ uses
   TestSpecificTBufDataset,
   TestSpecificTDBF,
   TestSpecificTMemDataset,
-  TestDBExport, tccsvdataset;
+  tcsdfdata,
+  tccsvdataset,
+  TestDBExport;
 
 {$R *.res}
 

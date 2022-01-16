@@ -7,7 +7,7 @@ uses
 
 const
   VMT_COUNT = 100;
-
+  ITEM_COUNT = 1000;
 
 type
   TMethodNameTableEntry = packed record
@@ -17,11 +17,11 @@ type
 
   TMethodNameTable = packed record
     Count: DWord;
-    Entries: packed array[0..9999999] of TMethodNameTableEntry;
+    Entries: packed array[0..ITEM_COUNT-1] of TMethodNameTableEntry;
   end;
   PMethodNameTable =  ^TMethodNameTable;
 
-  TPointerArray = packed array[0..9999999] of Pointer;
+  TPointerArray = packed array[0..ITEM_COUNT-1] of Pointer;
   PPointerArray = ^TPointerArray;
 
 {$M+}

@@ -1,3 +1,4 @@
+{%skiptarget=$nothread }
 { %target=darwin,linux,freebsd,solaris,haiku,aix }
 
 {$mode objfpc}
@@ -58,7 +59,7 @@ begin
     end;
   if res<>pointer(11) then
     begin
-      writeln('error 1');
+      writeln('error 1: ',ptruint(res));
       halt(1);
     end;
 
@@ -69,7 +70,7 @@ begin
     end;
   if res<>pointer(12) then
     begin
-      writeln('error 2');
+      writeln('error 2: ',ptruint(res));
       halt(2);
     end;
 
@@ -80,7 +81,7 @@ begin
     end;
   if res<>pointer(13) then
     begin
-      writeln('error 3');
+      writeln('error 3: ',ptruint(res));
       halt(3);
     end;
 end.

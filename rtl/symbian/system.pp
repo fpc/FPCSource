@@ -16,6 +16,7 @@ unit System;
 
 interface
 
+{$define FPC_IS_SYSTEM}
 {$ifdef SYSTEMDEBUG}
   {$define SYSTEMEXCEPTIONDEBUG}
 {$endif SYSTEMDEBUG}
@@ -161,7 +162,7 @@ end;
                          System Dependent Exit code
 *****************************************************************************}
 
-//procedure PascalMain; stdcall; external name 'PASCALMAIN';
+//procedure PascalMain; external name 'PASCALMAIN';
 //procedure fpc_do_exit; stdcall; external name 'FPC_DO_EXIT';
 
 Procedure system_exit;

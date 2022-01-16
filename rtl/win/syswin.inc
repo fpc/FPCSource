@@ -130,14 +130,6 @@ type
   TExceptClsProc=function(code: Longint): Pointer; { ExceptClass }
 
 
-procedure RaiseException(
-  dwExceptionCode: DWORD;
-  dwExceptionFlags: DWORD;
-  dwArgCount: DWORD;
-  lpArguments: Pointer);  // msdn: *ULONG_PTR
-  stdcall; external 'kernel32.dll' name 'RaiseException';
-
-
 function RunErrorCode(const rec: TExceptionRecord): longint;
 begin
   { negative result means 'FPU reset required' }
@@ -166,12 +158,27 @@ end;
 
 procedure TranslateMxcsr(mxcsr: longword; var code: longint);
 begin
-  case (mxcsr and $3f) of
-    1,32:  code:=-207;  { InvalidOp, Precision }
-    2,16:  code:=-206;  { Denormal, Underflow }
-    4:     code:=-208;  { !!reZeroDivide }
-    8:     code:=-205;  { reOverflow }
-  end;
+  { we can return only one value, further one's are lost }
+  { InvalidOp }
+  if (mxcsr and 1)<>0 then
+    code:=-207
+  { Denormal }
+  else if (mxcsr and 2)<>0 then
+    code:=-206
+  { !!reZeroDivide }
+  else if (mxcsr and 4)<>0 then
+    code:=-208
+  { reOverflow }
+  else if (mxcsr and 8)<>0 then
+    code:=-205
+  { Underflow }
+  else if (mxcsr and 16)<>0 then
+    code:=-206
+  { Precision }
+  else if (mxcsr and 32)<>0 then
+    code:=-207
+  else { this should not happen }
+    code:=-255
 end;
 
 function FilterException(var rec:TExceptionRecord; imagebase: PtrUInt; filterRva: DWord; errcode: Longint): Pointer;
@@ -194,7 +201,7 @@ begin
     CurFilt:=@PFilterRec(Filter+sizeof(Longint))[i];
     if (CurFilt^.RvaClass=$FFFFFFFF) or
       { TODO: exception might be coming from another module, need more advanced comparing }
-      (ExClass.InheritsFrom(TClass(imagebase+CurFilt^.RvaClass))) then
+      (ExClass.InheritsFrom({$if not defined(ver3_0) and not defined(ver3_2)}PClass(imagebase+CurFilt^.RvaClass)^{$else}TClass(imagebase+CurFilt^.RvaClass){$endif})) then
     begin
       result:=Pointer(imagebase+CurFilt^.RvaHandler);
       exit;
@@ -202,165 +209,174 @@ begin
   end;
 end;
 
-  {*****************************************************************************
-                                Parameter Handling
-  *****************************************************************************}
+{*****************************************************************************
+                              Parameter Handling
+*****************************************************************************}
 
-  procedure setup_arguments;
-  var
-    arglen,
-    count   : longint;
-    argstart,
-    pc,arg  : pchar;
-    quote   : Boolean;
-    argvlen : longint;
-    buf: array[0..259] of char;  // need MAX_PATH bytes, not 256!
+var
+  argvw: PPWideChar;
 
-    procedure allocarg(idx,len:longint);
-      var
-        oldargvlen : longint;
-      begin
-        if idx>=argvlen then
-         begin
-           oldargvlen:=argvlen;
-           argvlen:=(idx+8) and (not 7);
-           sysreallocmem(argv,argvlen*sizeof(pointer));
-           fillchar(argv[oldargvlen],(argvlen-oldargvlen)*sizeof(pointer),0);
-         end;
-        { use realloc to reuse already existing memory }
-        { always allocate, even if length is zero, since }
-        { the arg. is still present!                     }
-        sysreallocmem(argv[idx],len+1);
-      end;
-
-  begin
-    { create commandline, it starts with the executed filename which is argv[0] }
-    { Win32 passes the command NOT via the args, but via getmodulefilename}
-    count:=0;
-    argv:=nil;
-    argvlen:=0;
-    ArgLen := GetModuleFileName(0, @buf[0], sizeof(buf));
-    buf[ArgLen] := #0; // be safe
-    allocarg(0,arglen);
-    move(buf,argv[0]^,arglen+1);
-    { Setup cmdline variable }
-    cmdline:=GetCommandLine;
-    { process arguments }
-    pc:=cmdline;
-  {$IfDef SYSTEM_DEBUG_STARTUP}
-    Writeln(stderr,'Win32 GetCommandLine is #',pc,'#');
-  {$EndIf }
-    while pc^<>#0 do
-     begin
-       { skip leading spaces }
-       while pc^ in [#1..#32] do
-        inc(pc);
-       if pc^=#0 then
-        break;
-       { calc argument length }
-       quote:=False;
-       argstart:=pc;
-       arglen:=0;
-       while (pc^<>#0) do
-        begin
-          case pc^ of
-            #1..#32 :
-              begin
-                if quote then
-                 inc(arglen)
-                else
-                 break;
-              end;
-            '"' :
-              if pc[1]<>'"' then
-                quote := not quote
-                else
-                inc(pc);
-            else
-              inc(arglen);
-          end;
-          inc(pc);
-        end;
-       { copy argument }
-       { Don't copy the first one, it is already there.}
-       If Count<>0 then
-        begin
-          allocarg(count,arglen);
-          quote:=False;
-          pc:=argstart;
-          arg:=argv[count];
-          while (pc^<>#0) do
-           begin
-             case pc^ of
-               #1..#32 :
-                 begin
-                   if quote then
+procedure setup_arguments;
+var
+  CmdLineW, pw: PWideChar;
+  c: WideChar;
+  buf: array[0..MaxPathLen] of WideChar;
+  i, len, argvw_size: longint;
+  s: RawByteString;
+  quote: boolean;
+begin
+  // Get the unicode command line
+  CmdLineW:=GetCommandLineW;
+  // Create the ansi command line
+  s:=ansistring(CmdLineW);
+  len:=Length(s) + 1;
+  CmdLine:=SysGetMem(len);
+  Move(PAnsiChar(s)^, CmdLine^, len);
+  // Alloc initial space for argvw
+  if CmdLineW^ = #0 then
+    argvw_size:=2
+  else
+    argvw_size:=10;
+  argvw:=SysGetMem(argvw_size*SizeOf(pointer));
+  // Get the full module name to be used as the first argument
+  len:=GetModuleFileNameW(0, @buf, Length(buf));
+  // Alloc maximum possible space for all arguments
+  pw:=SysGetMem((len + IndexWord(CmdLineW^, High(longint), 0) + 2)*SizeOf(WideChar));
+  // Copy the module name as the first argument. It will be nil terminated later
+  Move(buf, pw^, len*SizeOf(WideChar));
+  argvw[0]:=pw;
+  Inc(pw, len);
+  // Parse the command line
+  argc:=0;
+  quote:=False;
+  while True do
+    begin
+      c:=CmdLineW^;
+      Inc(CmdLineW);
+      case c of
+        #0..#32:
+          if not quote or (c = #0) then
+            begin
+              // Are there any chars of an argument?
+              if argvw[argc] <> pw then
+                begin
+                  // End of an argument found
+                  pw^:=#0;
+                  Inc(pw);
+                  Inc(argc);
+                  if argc = argvw_size then
                     begin
-                      arg^:=pc^;
-                      inc(arg);
-                    end
-                   else
+                      // Increase the argvw space
+                      Inc(argvw_size, argvw_size shr 1);
+                      SysReAllocMem(argvw, argvw_size*SizeOf(pointer));
+                    end;
+                  if c = #0 then
                     break;
-                 end;
-               '"' :
-                 if pc[1]<>'"' then
-                   quote := not quote
-                    else
-                  inc(pc);
-               else
-                 begin
-                   arg^:=pc^;
-                   inc(arg);
-                 end;
-             end;
-             inc(pc);
-           end;
-          arg^:=#0;
+                  argvw[argc]:=pw;
+                  continue;
+                end
+              else
+                if c = #0 then
+                  break
+                else
+                  continue; // Skip whitespace
+            end;
+        '"':
+          begin
+            quote:=not quote;
+            continue;
+          end;
+      end;
+      // Ignore the first argument, it is already copied
+      if argc <> 0 then
+        begin
+          // Copy the argument's char
+          pw^:=c;
+          Inc(pw);
         end;
-   {$IfDef SYSTEM_DEBUG_STARTUP}
-       Writeln(stderr,'dos arg ',count,' #',arglen,'#',argv[count],'#');
-   {$EndIf SYSTEM_DEBUG_STARTUP}
-       inc(count);
-     end;
-    { get argc }
-    argc:=count;
-    { free unused memory, leaving a nil entry at the end }
-    sysreallocmem(argv,(count+1)*sizeof(pointer));
-    argv[count] := nil;
-  end;
+    end;
 
+  // Finalization
+  // argvw is terminated by nil
+  argvw[argc]:=nil;
+  // Trim the memory
+  SysReAllocMem(argvw, (argc + 1)*SizeOf(pointer));
+  SysReAllocMem(argvw[0], ptruint(pw) - ptruint(argvw[0]));
 
-  function paramcount : longint;
-  begin
-    paramcount := argc - 1;
-  end;
+  // Construct the ansi argv
+  argv:=SysGetMem((argc + 1)*SizeOf(pointer));
+  for i:=0 to argc - 1 do
+    begin
+      // Convert argvw[i] to argv[i]
+      s:=ansistring(argvw[i]);
+      len:=Length(s) + 1;
+      argv[i]:=SysGetMem(len);
+      Move(s[1], argv[i]^, len);
+    end;
+  // argv is terminated by nil
+  argv[argc]:=nil;
+end;
 
-  function paramstr(l : longint) : string;
-  begin
-    if (l>=0) and (l<argc) then
-      paramstr:=strpas(argv[l])
-    else
-      paramstr:='';
-  end;
+procedure finalize_arguments;
+var
+  i: longint;
+begin
+  SysFreeMem(CmdLine);
+  // Free unicode arguments
+  SysFreeMem(argvw[0]);
+  SysFreeMem(argvw);
+  // Free ansi arguments
+  for i:=0 to argc - 1 do
+    SysFreeMem(argv[i]);
+  SysFreeMem(argv);
+end;
 
+function paramcount : longint;
+begin
+  paramcount := argc - 1;
+end;
 
-  procedure randomize;
-  begin
-    randseed:=GetTickCount;
-  end;
+Function ParamStrU(l:Longint): UnicodeString; [public,alias:'_FPC_ParamStrU'];
+begin
+  if (l >= 0) and (l < argc) then
+    Result:=argvw[l]
+  else
+    Result:='';
+end;
 
+Function ParamStrA(l:Longint): AnsiString; [public,alias:'_FPC_ParamStrA'];
+begin
+  Result:=AnsiString(ParamStrU(l));
+end;
 
+Function ParamStr(l:Longint): string;
+begin
+  if (l >= 0) and (l < argc) then
+    Result:=argv[l]
+  else
+    Result:='';
+end;
 
+{*****************************************************************************}
+
+procedure randomize;
+begin
+  randseed:=GetTickCount;
+end;
 
 Var
   DLLInitState : Longint = -1;
   DLLBuf : Jmp_buf;
 
-function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntryInformation){$endif FPC_HAS_INDIRECT_MAIN_INFORMATION} : longbool; [public,alias:'_FPC_DLL_Entry'];
+{$if defined(FPC_USE_WIN32_SEH) or defined(FPC_USE_WIN64_SEH)}
+{$define FPC_USE_SEH}
+{$endif}
+
+function Dll_entry{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}(constref info : TEntryInformation){$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION} : longbool; [public,alias:'_FPC_DLL_Entry'];
   begin
-{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
-     EntryInformation:=info;
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+     SetupEntryInformation(info);
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
      IsLibrary:=true;
      DllInitState:=DLLreason;
      Dll_entry:=false;  { return value is ignored, except when DLLreason=DLL_PROCESS_ATTACH }
@@ -371,12 +387,21 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
 
            If SetJmp(DLLBuf) = 0 then
              begin
-{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef FPC_USE_SEH}
+               try
+{$endif}
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
                EntryInformation.PascalMain();
-{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
                PascalMain;
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
                Dll_entry:=true;
+{$ifdef FPC_USE_SEH}
+               except
+                 DoUnHandledException;
+                 Dll_entry:=false;
+               end;
+{$endif}
              end
            else
              Dll_entry:=(ExitCode=0);
@@ -400,7 +425,7 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
            if assigned(Dll_Thread_Detach_Hook) then
              Dll_Thread_Detach_Hook(DllParam);
            { Release Threadvars }
-           if TlsGetValue(TLSKey)<>nil then
+           if TlsGetValue(TLSKey^)<>nil then
              DoneThread; { Assume everything is idempotent there }
          end;
        DLL_PROCESS_DETACH :
@@ -502,11 +527,11 @@ begin
     not for DLL entry code, as the standard handles might
     have been redirected }
   if StdInputHandle=0 then
-    StdInputHandle:=longint(GetStdHandle(cardinal(STD_INPUT_HANDLE)));
+    StdInputHandle:=THandle(GetStdHandle(cardinal(STD_INPUT_HANDLE)));
   if StdOutputHandle=0 then
-    StdOutputHandle:=longint(GetStdHandle(cardinal(STD_OUTPUT_HANDLE)));
+    StdOutputHandle:=THandle(GetStdHandle(cardinal(STD_OUTPUT_HANDLE)));
   if StdErrorHandle=0 then
-    StdErrorHandle:=longint(GetStdHandle(cardinal(STD_ERROR_HANDLE)));
+    StdErrorHandle:=THandle(GetStdHandle(cardinal(STD_ERROR_HANDLE)));
   if not IsConsole then
    begin
      AssignError(stderr);
@@ -576,11 +601,22 @@ procedure Win32Ansi2UnicodeMove(source:pchar;cp : TSystemCodePage;var dest:Unico
   begin
     // retrieve length including trailing #0
     // not anymore, because this must also be usable for single characters
-    if cp=CP_UTF8 then
-      dwFlags:=0
-    else
-      dwFlags:=MB_PRECOMPOSED;
+    case cp of
+    // Under https://docs.microsoft.com/en-us/windows/desktop/api/stringapiset/nf-stringapiset-multibytetowidechar
+      CP_UTF8, CP_UTF7, 50220, 50221, 50222, 50225, 50227, 50229, 57002..57011, 42:
+                           dwFlags:=0
+      else
+        dwFlags:=MB_PRECOMPOSED;
+      end;
     destlen:=MultiByteToWideChar(cp, dwFlags, source, len, nil, 0);
+    { destlen=0 means that Windows cannot convert, so call the default
+      handler. This is similiar to what unix does and is a good fallback
+      if rawbyte strings are passed }
+    if destlen=0 then
+      begin
+        DefaultAnsi2UnicodeMove(source,DefaultSystemCodePage,dest,len);
+        exit;
+      end;
     // this will null-terminate
     setlength(dest, destlen);
     if destlen>0 then
@@ -659,10 +695,13 @@ type
     tables : packed array [1..32767] of PWStrInitEntry;
   end;
 
-{$if not(defined(VER2_2) or defined(VER2_4))}
 var
-  WStrInitTablesTable: TWStrInitTablesTable; external name 'FPC_WIDEINITTABLES';
-{$endif}
+{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+  WStrInitTablesTable: PWStrInitTablesTable;
+{$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+  WStrInitTablesTableVar: TWStrInitTablesTable; external name 'FPC_WIDEINITTABLES';
+  WStrInitTablesTable: PWStrInitTablesTable = @WStrInitTablesTableVar;
+{$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
 function GetACP:UINT; stdcall; external 'kernel32' name 'GetACP';
 function GetConsoleCP:UINT; stdcall; external 'kernel32' name 'GetConsoleCP';
@@ -686,9 +725,9 @@ procedure InitWin32Widestrings;
   begin
 {$if not(defined(VER2_2) or defined(VER2_4))}
     { assign initial values to global Widestring typed consts }
-    for i:=1 to WStrInitTablesTable.count do
+    for i:=1 to WStrInitTablesTable^.count do
       begin
-        ptable:=WStrInitTablesTable.tables[i];
+        ptable:=WStrInitTablesTable^.tables[i];
         while Assigned(ptable^.addr) do
           begin
             fpc_widestr_assign(ptable^.addr^, ptable^.data);
@@ -718,4 +757,38 @@ procedure InitWin32Widestrings;
     DefaultFileSystemCodePage:=CP_UTF8;
     DefaultRTLFileSystemCodePage:=DefaultSystemCodePage;
   end;
+
+type
+  WINBOOL = longbool;
+  PHANDLER_ROUTINE = function (dwCtrlType:DWORD):WINBOOL; stdcall;
+
+function SetConsoleCtrlHandler(HandlerRoutine:PHANDLER_ROUTINE; Add:WINBOOL):WINBOOL; stdcall; 
+  external 'kernel32' name 'SetConsoleCtrlHandler';
+
+function WinCtrlBreakHandler(dwCtrlType:DWORD): WINBOOL;stdcall;
+const
+  CTRL_BREAK_EVENT = 1;
+begin
+  if Assigned(CtrlBreakHandler) then 
+    Result:=CtrlBreakHandler((dwCtrlType and CTRL_BREAK_EVENT > 0))
+  else
+    Result:=false;
+end;
+
+function SysSetCtrlBreakHandler (Handler: TCtrlBreakHandler): TCtrlBreakHandler;
+begin
+  (* Return either nil or previous handler *)
+  if (Assigned(CtrlBreakHandler)) and (not Assigned(Handler)) then   
+    SetConsoleCtrlHandler(@WinCtrlBreakHandler, false)
+  else if (not Assigned(CtrlBreakHandler)) and (Assigned(Handler)) then
+    SetConsoleCtrlHandler(@WinCtrlBreakHandler, true);
+
+  SysSetCtrlBreakHandler := CtrlBreakHandler;
+  CtrlBreakHandler := Handler;
+end;
+
+procedure WinFinalizeSystem;
+begin
+  finalize_arguments;
+end;
 

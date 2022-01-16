@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="10"/>
+    <PathDelim Value="\"/>
+    <General>
+      <Flags>
+        <MainUnitHasUsesSectionForAllUnits Value="False"/>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+        <LRSInOutputDirectory Value="False"/>
+      </Flags>
+      <SessionStorage Value="InProjectDir"/>
+      <MainUnit Value="0"/>
+      <Title Value="ppcx64llvm"/>
+    </General>
+    <BuildModes Count="1">
+      <Item1 Name="default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+      <DestinationDirectory Value="$(TestDir)\publishedproject\"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+      </local>
+    </RunParams>
+    <Units Count="2">
+      <Unit0>
+        <Filename Value="pp.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="x86\aasmcpu.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit1>
+    </Units>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="11"/>
+    <PathDelim Value="\"/>
+    <Target>
+      <Filename Value="x86_64\ppllvm"/>
+    </Target>
+    <SearchPaths>
+      <IncludeFiles Value="x86_64"/>
+      <OtherUnitFiles Value="llvm;x86_64;x86;systems"/>
+      <UnitOutputDirectory Value="x86_64\lazbuildllvm"/>
+    </SearchPaths>
+    <Parsing>
+      <SyntaxOptions>
+        <CStyleOperator Value="False"/>
+        <AllowLabel Value="False"/>
+        <CPPInline Value="False"/>
+        <UseAnsiStrings Value="False"/>
+      </SyntaxOptions>
+    </Parsing>
+    <Other>
+      <Verbosity>
+        <ShowWarn Value="False"/>
+        <ShowNotes Value="False"/>
+        <ShowHints Value="False"/>
+      </Verbosity>
+      <ConfigFile>
+        <StopAfterErrCount Value="50"/>
+      </ConfigFile>
+      <CustomOptions Value="-dx86_64 -dllvm"/>
+    </Other>
+  </CompilerOptions>
+</CONFIG>

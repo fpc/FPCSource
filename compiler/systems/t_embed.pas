@@ -1,8 +1,8 @@
 {
-    This unit implements support import,export,link routines
-    for the (arm) GameBoy Advance target
+    Copyright (c) 2005-2017 by Free Pascal Compiler team
 
-    Copyright (c) 2001-2002 by Peter Vreman
+    This unit implements support import, export, link routines
+    for the Embedded Target
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,18 +32,45 @@ implementation
     uses
        SysUtils,
        cutils,cfileutl,cclasses,
-       globtype,globals,systems,verbose,comphook,script,fmodule,i_embed,link,
-       cpuinfo;
+       globtype,globals,systems,verbose,comphook,cscript,fmodule,i_embed,link,
+{$ifdef wasm32}
+       t_wasi,import,export,
+{$endif wasm32}
+       cpuinfo,aasmbase;
 
     type
        TlinkerEmbedded=class(texternallinker)
        private
           Function  WriteResponseFile: Boolean;
+          Function  GenerateUF2(binFile,uf2File : string;baseAddress : longWord):boolean;
        public
           constructor Create; override;
           procedure SetDefaultInfo; override;
           function  MakeExecutable:boolean; override;
           function postprocessexecutable(const fn : string;isdll:boolean):boolean;
+       end;
+
+       { TlinkerEmbedded_SdccSdld - the sdld linker from the SDCC project ( http://sdcc.sourceforge.net/ ) }
+
+       TlinkerEmbedded_SdccSdld=class(texternallinker)
+       private
+          Function  WriteResponseFile: Boolean;
+       public
+{          constructor Create; override;}
+          procedure SetDefaultInfo; override;
+          function  MakeExecutable:boolean; override;
+{          function postprocessexecutable(const fn : string;isdll:boolean):boolean;}
+       end;
+
+       { TLinkerEmbedded_Wasm }
+
+       TLinkerEmbedded_Wasm=class(texternallinker)
+       public
+         constructor Create;override;
+         procedure SetDefaultInfo;override;
+
+         //function  MakeExecutable:boolean;override;
+         function  MakeSharedLibrary:boolean;override;
        end;
 
 
@@ -74,7 +101,7 @@ const
 begin
   with Info do
    begin
-     ExeCmd[1]:='ld -g '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE -T $RES';
+     ExeCmd[1]:='ld -g '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP -L. -o $EXE -T $RES';
    end;
 end;
 
@@ -90,13 +117,13 @@ Var
   linklibc : boolean;
   found1,
   found2   : boolean;
-{$if defined(ARM) or defined(MIPSEL)}
+{$if defined(ARM)}
   LinkStr  : string;
 {$endif}
 begin
   WriteResponseFile:=False;
   linklibc:=(SharedLibFiles.Find('c')<>nil);
-{$if defined(ARM) or defined(i386) or defined(AVR) or defined(MIPSEL)}
+{$if defined(ARM) or defined(i386) or defined(x86_64) or defined(AVR) or defined(MIPSEL) or defined(RISCV32) or defined(XTENSA) or defined(AARCH64)}
   prtobj:='';
 {$else}
   prtobj:='prt0';
@@ -229,6 +256,107 @@ begin
       end;
    end;
 
+{$ifdef AARCH64}
+  case current_settings.controllertype of
+    ct_none:
+      begin
+      end;
+    ct_raspi3:
+      begin
+        with embedded_controllers[current_settings.controllertype] do
+        begin
+          with linkres do
+          begin
+            Add('ENTRY(_START)');
+            Add('MEMORY');
+            Add('{');
+            Add('    ram : ORIGIN = 0x' + IntToHex(srambase,8)
+              + ', LENGTH = 0x' + IntToHex(sramsize,8));
+
+            Add('}');
+            Add('_stack_top = 0x' + IntToHex(sramsize+srambase,8) + ';');
+
+            Add('SECTIONS');
+            Add('{');
+            Add('    .text :');
+            Add('    {');
+            Add('      _text_start = .;');
+            Add('      KEEP(*(.init .init.*))');
+            Add('      *(.text .text.* .gnu.linkonce.t*)');
+            Add('      *(.strings)');
+            Add('      *(.rodata .rodata.* .gnu.linkonce.r*)');
+            Add('      *(.comment)');
+            Add('      . = ALIGN(8);');
+            Add('      _etext = .;');
+            Add('    } >ram');
+            Add('    .note.gnu.build-id : { *(.note.gnu.build-id) } >ram ');
+
+            Add('    .data :');
+            Add('    {');
+            Add('      _data = .;');
+            Add('      *(.data .data.* .gnu.linkonce.d*)');
+            Add('      KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
+            Add('      _edata = .;');
+            Add('    } >ram');
+
+            Add('    .bss :');
+            Add('    {');
+            Add('      . = ALIGN(16);');
+            Add('      _bss_start = .;');
+            Add('      *(.bss .bss.*)');
+            Add('      *(COMMON)');
+            Add('    } >ram');
+            Add('. = ALIGN(8);');
+            Add('_bss_end = . ;');
+
+            Add('  .stab          0 : { *(.stab) }');
+            Add('  .stabstr       0 : { *(.stabstr) }');
+            Add('  .stab.excl     0 : { *(.stab.excl) }');
+            Add('  .stab.exclstr  0 : { *(.stab.exclstr) }');
+            Add('  .stab.index    0 : { *(.stab.index) }');
+            Add('  .stab.indexstr 0 : { *(.stab.indexstr) }');
+            Add('  .comment       0 : { *(.comment) }');
+            Add('  /* DWARF debug sections.');
+            Add('     Symbols in the DWARF debugging sections are relative to the beginning');
+            Add('     of the section so we begin them at 0.  */');
+            Add('  /* DWARF 1 */');
+            Add('  .debug          0 : { *(.debug) }');
+            Add('  .line           0 : { *(.line) }');
+            Add('  /* GNU DWARF 1 extensions */');
+            Add('  .debug_srcinfo  0 : { *(.debug_srcinfo) }');
+            Add('  .debug_sfnames  0 : { *(.debug_sfnames) }');
+            Add('  /* DWARF 1.1 and DWARF 2 */');
+            Add('  .debug_aranges  0 : { *(.debug_aranges) }');
+            Add('  .debug_pubnames 0 : { *(.debug_pubnames) }');
+            Add('  /* DWARF 2 */');
+            Add('  .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }');
+            Add('  .debug_abbrev   0 : { *(.debug_abbrev) }');
+            Add('  .debug_line     0 : { *(.debug_line) }');
+            Add('  .debug_frame    0 : { *(.debug_frame) }');
+            Add('  .debug_str      0 : { *(.debug_str) }');
+            Add('  .debug_loc      0 : { *(.debug_loc) }');
+            Add('  .debug_macinfo  0 : { *(.debug_macinfo) }');
+            Add('  /* SGI/MIPS DWARF 2 extensions */');
+            Add('  .debug_weaknames 0 : { *(.debug_weaknames) }');
+            Add('  .debug_funcnames 0 : { *(.debug_funcnames) }');
+            Add('  .debug_typenames 0 : { *(.debug_typenames) }');
+            Add('  .debug_varnames  0 : { *(.debug_varnames) }');
+            Add('  /* DWARF 3 */');
+            Add('  .debug_pubtypes 0 : { *(.debug_pubtypes) }');
+            Add('  .debug_ranges   0 : { *(.debug_ranges) }');
+
+            Add('}');
+            Add('_bss_size = (_bss_end - _bss_start)>>3;');
+            Add('_end = .;');
+          end;
+        end;
+    end
+    else
+      if not (cs_link_nolink in current_settings.globalswitches) then
+          internalerror(200902011);
+  end;
+{$endif}
+
 {$ifdef ARM}
   case current_settings.controllertype of
       ct_none:
@@ -359,6 +487,13 @@ begin
       ct_stm32f051r6,
       ct_stm32f051r8,
 
+      ct_stm32f091cc,
+      ct_stm32f091cb,
+      ct_stm32f091rc,
+      ct_stm32f091rb,
+      ct_stm32f091vc,
+      ct_stm32f091vb,
+
       ct_stm32f100x4,
       ct_stm32f100x6,
       ct_stm32f100x8,
@@ -401,6 +536,71 @@ begin
       ct_stm32f107rc,
       ct_stm32f107vb,
       ct_stm32f107vc,
+
+      ct_stm32f401cb,
+      ct_stm32f401rb,
+      ct_stm32f401vb,
+      ct_stm32f401cc,
+      ct_stm32f401rc,
+      ct_stm32f401vc,
+      ct_discoveryf401vc,
+      ct_stm32f401cd,
+      ct_stm32f401rd,
+      ct_stm32f401vd,
+      ct_stm32f401ce,
+      ct_stm32f401re,
+      ct_nucleof401re,
+      ct_stm32f401ve,
+      ct_stm32f407vg,
+      ct_discoveryf407vg,
+      ct_stm32f407ig,
+      ct_stm32f407zg,
+      ct_stm32f407ve,
+      ct_stm32f407ze,
+      ct_stm32f407ie,
+      ct_stm32f411cc,
+      ct_stm32f411rc,
+      ct_stm32f411vc,
+      ct_stm32f411ce,
+      ct_stm32f411re,
+      ct_nucleof411re,
+      ct_stm32f411ve,
+      ct_discoveryf411ve,
+      ct_stm32f429vg,
+      ct_stm32f429zg,
+      ct_stm32f429ig,
+      ct_stm32f429vi,
+      ct_stm32f429zi,
+      ct_discoveryf429zi,
+      ct_stm32f429ii,
+      ct_stm32f429ve,
+      ct_stm32f429ze,
+      ct_stm32f429ie,
+      ct_stm32f429bg,
+      ct_stm32f429bi,
+      ct_stm32f429be,
+      ct_stm32f429ng,
+      ct_stm32f429ni,
+      ct_stm32f429ne,
+      ct_stm32f446mc,
+      ct_stm32f446rc,
+      ct_stm32f446vc,
+      ct_stm32f446zc,
+      ct_stm32f446me,
+      ct_stm32f446re,
+      ct_nucleof446re,
+      ct_stm32f446ve,
+      ct_stm32f446ze,
+
+      ct_stm32f745xe,
+      ct_stm32f745xg,
+      ct_stm32f746xe,
+      ct_stm32f746xg,
+      ct_stm32f756xe,
+      ct_stm32f756xg,
+
+      ct_stm32g071rb,
+      ct_nucleog071rb,
 
       { TI - 64 K Flash, 16 K SRAM Devices }
       ct_lm3s1110,
@@ -474,12 +674,12 @@ begin
       ct_lm3s9b92,
       ct_lm3s9b95,
       ct_lm3s9b96,
-      
+
       ct_lm3s5d51,
-      
+
       { TI - Stellaris something }
       ct_lm4f120h5,
-      
+
       { Infineon }
       ct_xmc4500x1024,
       ct_xmc4500x768,
@@ -488,14 +688,85 @@ begin
 
       { Allwinner }
       ct_allwinner_a20,
-      
+
+      { Freescale }
+      ct_mk20dx128vfm5,
+      ct_mk20dx128vft5,
+      ct_mk20dx128vlf5,
+      ct_mk20dx128vlh5,
+      ct_teensy30,
+      ct_mk20dx128vmp5,
+
+      ct_mk20dx32vfm5,
+      ct_mk20dx32vft5,
+      ct_mk20dx32vlf5,
+      ct_mk20dx32vlh5,
+      ct_mk20dx32vmp5,
+
+      ct_mk20dx64vfm5,
+      ct_mk20dx64vft5,
+      ct_mk20dx64vlf5,
+      ct_mk20dx64vlh5,
+      ct_mk20dx64vmp5,
+
+      ct_mk20dx128vlh7,
+      ct_mk20dx128vlk7,
+      ct_mk20dx128vll7,
+      ct_mk20dx128vmc7,
+
+      ct_mk20dx256vlh7,
+      ct_mk20dx256vlk7,
+      ct_mk20dx256vll7,
+      ct_mk20dx256vmc7,
+      ct_teensy31,
+      ct_teensy32,
+
+      ct_mk20dx64vlh7,
+      ct_mk20dx64vlk7,
+      ct_mk20dx64vmc7,
+
+      ct_mk22fn512cap12,
+      ct_mk22fn512cbp12,
+      ct_mk22fn512vdc12,
+      ct_mk22fn512vlh12,
+      ct_mk22fn512vll12,
+      ct_mk22fn512vmp12,
+      ct_freedom_k22f,
+
+      { Atmel }
+      ct_sam3x8e,
+      ct_samd51p19a,
+      ct_arduino_due,
+      ct_flip_n_click,
+      ct_wio_terminal,
+
+      { Nordic Semiconductor }
+      ct_nrf51422_xxaa,
+      ct_nrf51422_xxab,
+      ct_nrf51422_xxac,
+      ct_nrf51822_xxaa,
+      ct_nrf51822_xxab,
+      ct_nrf51822_xxac,
+      ct_nrf52832_xxaa,
+      ct_nrf52840_xxaa,
+
       ct_sc32442b,
+
+      { Raspberry Pi 2 }
+      ct_raspi2,
+
       ct_thumb2bare:
         begin
          with embedded_controllers[current_settings.controllertype] do
           with linkres do
             begin
-              Add('ENTRY(_START)');
+              if (embedded_controllers[current_settings.controllertype].controllerunitstr='MK20D5')
+              or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK20D7')
+              or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK22F51212')
+              or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK64F12') then
+                Add('ENTRY(_LOWLEVELSTART)')
+              else
+                Add('ENTRY(_START)');
               Add('MEMORY');
               Add('{');
               if flashsize<>0 then
@@ -511,8 +782,8 @@ begin
 
               Add('}');
               Add('_stack_top = 0x' + IntToHex(sramsize+srambase,8) + ';');
-    
-              // Add Checksum Calculation for LPC Controllers so that the bootloader starts the uploaded binary 
+
+              // Add Checksum Calculation for LPC Controllers so that the bootloader starts the uploaded binary
               writeln(controllerunitstr);
               if (controllerunitstr = 'LPC8xx') or (controllerunitstr = 'LPC11XX') or (controllerunitstr = 'LPC122X') then
                 Add('Startup_Checksum = 0 - (_stack_top + _START + 1 + NonMaskableInt_interrupt + 1 + Hardfault_interrupt + 1);');
@@ -532,11 +803,20 @@ begin
       Add('     .text :');
       Add('    {');
       Add('    _text_start = .;');
-      Add('    KEEP(*(.init, .init.*))');
-      Add('    *(.text, .text.*)');
+      Add('    KEEP(*(.init .init.*))');
+      if (embedded_controllers[current_settings.controllertype].controllerunitstr='MK20D5')
+         or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK20D7')
+         or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK22F51212')
+         or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK64F12') then
+        begin
+          Add('    . = 0x400;');
+          Add('    KEEP(*(.flash_config *.flash_config.*))');
+        end;
+      Add('    *(.text .text.*)');
       Add('    *(.strings)');
-      Add('    *(.rodata, .rodata.*)');
+      Add('    *(.rodata .rodata.*)');
       Add('    *(.comment)');
+      Add('    . = ALIGN(4);');
       Add('    _etext = .;');
       if embedded_controllers[current_settings.controllertype].flashsize<>0 then
         begin
@@ -552,7 +832,7 @@ begin
       Add('    .data :');
       Add('    {');
       Add('    _data = .;');
-      Add('    *(.data, .data.*)');
+      Add('    *(.data .data.*)');
       Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
       Add('    _edata = .;');
       if embedded_controllers[current_settings.controllertype].flashsize<>0 then
@@ -566,7 +846,7 @@ begin
       Add('    .bss :');
       Add('    {');
       Add('    _bss_start = .;');
-      Add('    *(.bss, .bss.*)');
+      Add('    *(.bss .bss.*)');
       Add('    *(COMMON)');
       Add('    } >ram');
       Add('. = ALIGN(4);');
@@ -586,17 +866,17 @@ begin
       Add('     .text ALIGN (0x1000) :');
       Add('    {');
       Add('    _text = .;');
-      Add('    KEEP(*(.init, .init.*))');
-      Add('    *(.text, .text.*)');
+      Add('    KEEP(*(.init .init.*))');
+      Add('    *(.text .text.*)');
       Add('    *(.strings)');
-      Add('    *(.rodata, .rodata.*)');
+      Add('    *(.rodata .rodata.*)');
       Add('    *(.comment)');
       Add('    _etext = .;');
       Add('    }');
       Add('    .data ALIGN (0x1000) :');
       Add('    {');
       Add('    _data = .;');
-      Add('    *(.data, .data.*)');
+      Add('    *(.data .data.*)');
       Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
       Add('    _edata = .;');
       Add('    }');
@@ -604,7 +884,7 @@ begin
       Add('    .bss :');
       Add('    {');
       Add('    _bss_start = .;');
-      Add('    *(.bss, .bss.*)');
+      Add('    *(.bss .bss.*)');
       Add('    *(COMMON)');
       Add('    }');
       Add('_bss_end = . ;');
@@ -613,25 +893,90 @@ begin
     end;
 {$endif i386}
 
+{$ifdef x86_64}
+  with linkres do
+    begin
+      Add('ENTRY(_START)');
+      Add('SECTIONS');
+      Add('{');
+      Add('     . = 0x100000;');
+      Add('     .text ALIGN (0x1000) :');
+      Add('    {');
+      Add('    _text = .;');
+      Add('    KEEP(*(.init .init.*))');
+      Add('    *(.text .text.*)');
+      Add('    *(.strings)');
+      Add('    *(.rodata .rodata.*)');
+      Add('    *(.comment)');
+      Add('    _etext = .;');
+      Add('    }');
+      Add('    .data ALIGN (0x1000) :');
+      Add('    {');
+      Add('    _data = .;');
+      Add('    *(.data .data.*)');
+      Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
+      Add('    _edata = .;');
+      Add('    }');
+      Add('    . = ALIGN(4);');
+      Add('    .bss :');
+      Add('    {');
+      Add('    _bss_start = .;');
+      Add('    *(.bss .bss.*)');
+      Add('    *(COMMON)');
+      Add('    }');
+      Add('_bss_end = . ;');
+      Add('}');
+      Add('_end = .;');
+    end;
+{$endif x86_64}
+
 {$ifdef AVR}
   with linkres do
     begin
       { linker script from ld 2.19 }
       Add('ENTRY(_START)');
       Add('OUTPUT_FORMAT("elf32-avr","elf32-avr","elf32-avr")');
-      Add('OUTPUT_ARCH(avr:2)');
+      case current_settings.cputype of
+       cpu_avr1:
+         Add('OUTPUT_ARCH(avr:1)');
+       cpu_avr2:
+         Add('OUTPUT_ARCH(avr:2)');
+       cpu_avr25:
+         Add('OUTPUT_ARCH(avr:25)');
+       cpu_avr3:
+         Add('OUTPUT_ARCH(avr:3)');
+       cpu_avr31:
+         Add('OUTPUT_ARCH(avr:31)');
+       cpu_avr35:
+         Add('OUTPUT_ARCH(avr:35)');
+       cpu_avr4:
+         Add('OUTPUT_ARCH(avr:4)');
+       cpu_avr5:
+         Add('OUTPUT_ARCH(avr:5)');
+       cpu_avr51:
+         Add('OUTPUT_ARCH(avr:51)');
+       cpu_avr6:
+         Add('OUTPUT_ARCH(avr:6)');
+       cpu_avrxmega3:
+         Add('OUTPUT_ARCH(avr:103)');
+       cpu_avrtiny:
+         Add('OUTPUT_ARCH(avr:100)');
+       else
+         Internalerror(2015072701);
+      end;
       Add('MEMORY');
-      Add('{');
       with embedded_controllers[current_settings.controllertype] do
         begin
-          Add('  text      (rx)   : ORIGIN = 0, LENGTH = 0x'+IntToHex(flashsize,8));
-          Add('  data      (rw!x) : ORIGIN = 0x800060, LENGTH = 0x'+IntToHex(sramsize,8));
-          Add('  eeprom    (rw!x) : ORIGIN = 0x810000, LENGTH = 0x'+IntToHex(eepromsize,8));
+          Add('{');
+          Add('  text      (rx)   : ORIGIN = 0, LENGTH = 0x'+IntToHex(flashsize,6));
+          Add('  data      (rw!x) : ORIGIN = 0x'+IntToHex($800000+srambase,6)+', LENGTH = 0x'+IntToHex(sramsize,6));
+          Add('  eeprom    (rw!x) : ORIGIN = 0x810000, LENGTH = 0x'+IntToHex(eepromsize,6));
           Add('  fuse      (rw!x) : ORIGIN = 0x820000, LENGTH = 1K');
           Add('  lock      (rw!x) : ORIGIN = 0x830000, LENGTH = 1K');
           Add('  signature (rw!x) : ORIGIN = 0x840000, LENGTH = 1K');
+          Add('}');
+          Add('_stack_top = 0x' + IntToHex(srambase+sramsize-1,4) + ';');
         end;
-      Add('}');
       Add('SECTIONS');
       Add('{');
       Add('  /* Read-only sections, merged into text segment: */');
@@ -694,7 +1039,7 @@ begin
       Add('  /* Internal text space or external memory.  */');
       Add('  .text   :');
       Add('  {');
-      Add('    KEEP(*(.init, .init.*))');
+      Add('    KEEP(*(.init .init.*))');
       Add('    /* For data that needs to reside in the lower 64k of progmem.  */');
       Add('    *(.progmem.gcc*)');
       Add('    *(.progmem*)');
@@ -846,9 +1191,13 @@ begin
       Add('  .debug_str      0 : { *(.debug_str) }');
       Add('  .debug_loc      0 : { *(.debug_loc) }');
       Add('  .debug_macinfo  0 : { *(.debug_macinfo) }');
+      Add('  /* DWARF 3 */');
+      Add('  .debug_pubtypes 0 : { *(.debug_pubtypes) }');
+      Add('  .debug_ranges   0 : { *(.debug_ranges) }');
+      Add('  /* DWARF Extension.  */');
+      Add('  .debug_macro    0 : { *(.debug_macro) }');
+
       Add('}');
-      { last address of ram on an atmega128 }
-      Add('_stack_top = 0x0fff;');
     end;
 {$endif AVR}
 
@@ -920,9 +1269,6 @@ begin
               Add('_stack_top = 0x' + IntToHex(sramsize+srambase,8) + ';');
             end;
         end
-    else
-      if not (cs_link_nolink in current_settings.globalswitches) then
-      	 internalerror(200902011);
   end;
 
   with linkres do
@@ -992,7 +1338,7 @@ begin
       Add('    .bss :');
       Add('    {');
       Add('    _bss_start = .;');
-      Add('    *(.bss, .bss.*)');
+      Add('    *(.bss .bss.*)');
       Add('    *(COMMON)');
       Add('    } >ram');
       Add('. = ALIGN(4);');
@@ -1042,6 +1388,313 @@ begin
     end;
 {$endif MIPSEL}
 
+{$ifdef RISCV32}
+  with linkres do
+    begin
+      Add('OUTPUT_ARCH("riscv")');
+      Add('ENTRY(_START)');
+      Add('MEMORY');
+      with embedded_controllers[current_settings.controllertype] do
+        begin
+          Add('{');
+          Add('  flash      (rx)   : ORIGIN = 0x'+IntToHex(flashbase,6)+', LENGTH = 0x'+IntToHex(flashsize,6));
+          Add('  ram        (rw!x) : ORIGIN = 0x'+IntToHex(srambase,6)+', LENGTH = 0x'+IntToHex(sramsize,6));
+          Add('}');
+          Add('_stack_top = 0x' + IntToHex(srambase+sramsize-1,4) + ';');
+        end;
+      Add('SECTIONS');
+      Add('{');
+      Add('  .text :');
+      Add('  {');
+      Add('    _text_start = .;');
+      Add('    KEEP(*(.init .init.*))');
+      Add('    *(.text .text.*)');
+      Add('    *(.strings)');
+      Add('    *(.rodata .rodata.*)');
+      Add('    *(.comment)');
+      Add('    . = ALIGN(4);');
+      Add('    _etext = .;');
+      if embedded_controllers[current_settings.controllertype].flashsize<>0 then
+        begin
+          Add('  } >flash');
+          //Add('    .note.gnu.build-id : { *(.note.gnu.build-id) } >flash ');
+        end
+      else
+        begin
+          Add('  } >ram');
+          //Add('    .note.gnu.build-id : { *(.note.gnu.build-id) } >ram ');
+        end;
+
+      Add('  .data :');
+      Add('  {');
+      Add('    _data = .;');
+      Add('    *(.data .data.*)');
+      Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
+      Add('    _edata = .;');
+      if embedded_controllers[current_settings.controllertype].flashsize<>0 then
+        begin
+          Add('  } >ram AT >flash');
+        end
+      else
+        begin
+          Add('  } >ram');
+        end;
+      Add('  .bss :');
+      Add('  {');
+      Add('    _bss_start = .;');
+      Add('    *(.bss .bss.*)');
+      Add('    *(COMMON)');
+      Add('  } >ram');
+      Add('  . = ALIGN(4);');
+      Add('  _bss_end = . ;');
+      Add('  /* Stabs debugging sections.  */');
+      Add('  .stab          0 : { *(.stab) }');
+      Add('  .stabstr       0 : { *(.stabstr) }');
+      Add('  .stab.excl     0 : { *(.stab.excl) }');
+      Add('  .stab.exclstr  0 : { *(.stab.exclstr) }');
+      Add('  .stab.index    0 : { *(.stab.index) }');
+      Add('  .stab.indexstr 0 : { *(.stab.indexstr) }');
+      Add('  .comment       0 : { *(.comment) }');
+      Add('  /* DWARF debug sections.');
+      Add('     Symbols in the DWARF debugging sections are relative to the beginning');
+      Add('     of the section so we begin them at 0.  */');
+      Add('  /* DWARF 1 */');
+      Add('  .debug          0 : { *(.debug) }');
+      Add('  .line           0 : { *(.line) }');
+      Add('  /* GNU DWARF 1 extensions */');
+      Add('  .debug_srcinfo  0 : { *(.debug_srcinfo) }');
+      Add('  .debug_sfnames  0 : { *(.debug_sfnames) }');
+      Add('  /* DWARF 1.1 and DWARF 2 */');
+      Add('  .debug_aranges  0 : { *(.debug_aranges) }');
+      Add('  .debug_pubnames 0 : { *(.debug_pubnames) }');
+      Add('  /* DWARF 2 */');
+      Add('  .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }');
+      Add('  .debug_abbrev   0 : { *(.debug_abbrev) }');
+      Add('  .debug_line     0 : { *(.debug_line) }');
+      Add('  .debug_frame    0 : { *(.debug_frame) }');
+      Add('  .debug_str      0 : { *(.debug_str) }');
+      Add('  .debug_loc      0 : { *(.debug_loc) }');
+      Add('  .debug_macinfo  0 : { *(.debug_macinfo) }');
+      Add('  /* SGI/MIPS DWARF 2 extensions */');
+      Add('  .debug_weaknames 0 : { *(.debug_weaknames) }');
+      Add('  .debug_funcnames 0 : { *(.debug_funcnames) }');
+      Add('  .debug_typenames 0 : { *(.debug_typenames) }');
+      Add('  .debug_varnames  0 : { *(.debug_varnames) }');
+      Add('  /* DWARF 3 */');
+      Add('  .debug_pubtypes 0 : { *(.debug_pubtypes) }');
+      Add('  .debug_ranges   0 : { *(.debug_ranges) }');
+
+      Add('}');
+      Add('_end = .;');
+
+    end;
+  {$endif RISCV32}
+
+  {$ifdef XTENSA}
+  with linkres do
+    begin
+      Add('/* Script for -z combreloc: combine and sort reloc sections */');
+      Add('/* Copyright (C) 2014-2018 Free Software Foundation, Inc.');
+      Add('   Copying and distribution of this script, with or without modification,');
+      Add('   are permitted in any medium without royalty provided the copyright');
+      Add('   notice and this notice are preserved.  */');
+      Add('ENTRY(_start)');
+      Add('SEARCH_DIR("=/builds/idf/crosstool-NG/builds/xtensa-esp32-elf/xtensa-esp32-elf/lib"); SEARCH_DIR("=/usr/local/lib"); SEARCH_DIR("=/lib"); SEARCH_DIR("=/usr/lib");');
+      Add('SECTIONS');
+      Add('{');
+      Add('  /* Read-only sections, merged into text segment: */');
+      Add('  PROVIDE (__executable_start = 0x400000); . = 0x400000 + SIZEOF_HEADERS;');
+      Add('  .interp         : { *(.interp) }');
+      Add('  .note.gnu.build-id : { *(.note.gnu.build-id) }');
+      Add('  .hash           : { *(.hash) }');
+      Add('  .gnu.hash       : { *(.gnu.hash) }');
+      Add('  .dynsym         : { *(.dynsym) }');
+      Add('  .dynstr         : { *(.dynstr) }');
+      Add('  .gnu.version    : { *(.gnu.version) }');
+      Add('  .gnu.version_d  : { *(.gnu.version_d) }');
+      Add('  .gnu.version_r  : { *(.gnu.version_r) }');
+      Add('  .rela.dyn       :');
+      Add('    {');
+      Add('      *(.rela.init)');
+      Add('      *(.rela.text .rela.text.* .rela.gnu.linkonce.t.*)');
+      Add('      *(.rela.fini)');
+      Add('      *(.rela.rodata .rela.rodata.* .rela.gnu.linkonce.r.*)');
+      Add('      *(.rela.data .rela.data.* .rela.gnu.linkonce.d.*)');
+      Add('      *(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*)');
+      Add('      *(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*)');
+      Add('      *(.rela.ctors)');
+      Add('      *(.rela.dtors)');
+      Add('      *(.rela.got)');
+      Add('      *(.rela.bss .rela.bss.* .rela.gnu.linkonce.b.*)');
+      Add('    }');
+      Add('  .rela.plt       : { *(.rela.plt) }');
+      Add('  /* .plt* sections are embedded in .text */');
+      Add('  .text           :');
+      Add('  {');
+      Add('    *(.got.plt* .plt*)');
+      Add('    KEEP (*(.init.literal))');
+      Add('    KEEP (*(SORT_NONE(.init)))');
+      Add('    *(.literal .text .stub .literal.* .text.* .gnu.linkonce.literal.* .gnu.linkonce.t.*.literal .gnu.linkonce.t.*)');
+      Add('    /* .gnu.warning sections are handled specially by elf32.em.  */');
+      Add('    *(.gnu.warning)');
+      Add('    KEEP (*(.fini.literal))');
+      Add('    KEEP (*(SORT_NONE(.fini)))');
+      Add('  } =0');
+      Add('  PROVIDE (__etext = .);');
+      Add('  PROVIDE (_etext = .);');
+      Add('  PROVIDE (etext = .);');
+      Add('  .rodata         : { *(.rodata .rodata.* .gnu.linkonce.r.*) }');
+      Add('  .rodata1        : { *(.rodata1) }');
+      Add('  .got.loc        : { *(.got.loc) }');
+      Add('  .xt_except_table   : ONLY_IF_RO { KEEP (*(.xt_except_table .xt_except_table.* .gnu.linkonce.e.*)) }');
+      Add('  .eh_frame_hdr : { *(.eh_frame_hdr) }');
+      Add('  .eh_frame       : ONLY_IF_RO { KEEP (*(.eh_frame)) }');
+      Add('  .gcc_except_table   : ONLY_IF_RO { *(.gcc_except_table .gcc_except_table.*) }');
+      Add('  /* Adjust the address for the data segment.  We want to adjust up to');
+      Add('     the same address within the page on the next page up.  */');
+      Add('  . = ALIGN(CONSTANT (MAXPAGESIZE)) + (. & (CONSTANT (MAXPAGESIZE) - 1));');
+      Add('  /* Exception handling  */');
+      Add('  .eh_frame       : ONLY_IF_RW { KEEP (*(.eh_frame)) }');
+      Add('  .gcc_except_table   : ONLY_IF_RW { *(.gcc_except_table .gcc_except_table.*) }');
+      Add('  /* Thread Local Storage sections  */');
+      Add('  .tdata	  : { *(.tdata .tdata.* .gnu.linkonce.td.*) }');
+      Add('  .tbss		  : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }');
+      Add('  .preinit_array     :');
+      Add('  {');
+      Add('    PROVIDE_HIDDEN (__preinit_array_start = .);');
+      Add('    KEEP (*(.preinit_array))');
+      Add('    PROVIDE_HIDDEN (__preinit_array_end = .);');
+      Add('  }');
+      Add('  .init_array     :');
+      Add('  {');
+      Add('     PROVIDE_HIDDEN (__init_array_start = .);');
+      Add('     KEEP (*(SORT(.init_array.*)))');
+      Add('     KEEP (*(.init_array))');
+      Add('     PROVIDE_HIDDEN (__init_array_end = .);');
+      Add('  }');
+      Add('  .fini_array     :');
+      Add('  {');
+      Add('    PROVIDE_HIDDEN (__fini_array_start = .);');
+      Add('    KEEP (*(SORT(.fini_array.*)))');
+      Add('    KEEP (*(.fini_array))');
+      Add('    PROVIDE_HIDDEN (__fini_array_end = .);');
+      Add('  }');
+      Add('  .ctors          :');
+      Add('  {');
+      Add('    /* gcc uses crtbegin.o to find the start of');
+      Add('       the constructors, so we make sure it is');
+      Add('       first.  Because this is a wildcard, it');
+      Add('       doesn''t matter if the user does not');
+      Add('       actually link against crtbegin.o; the');
+      Add('       linker won''t look for a file to match a');
+      Add('       wildcard.  The wildcard also means that it');
+      Add('       doesn''t matter which directory crtbegin.o');
+      Add('       is in.  */');
+      Add('    KEEP (*crtbegin.o(.ctors))');
+      Add('    KEEP (*crtbegin?.o(.ctors))');
+      Add('    /* We don''t want to include the .ctor section from');
+      Add('       the crtend.o file until after the sorted ctors.');
+      Add('       The .ctor section from the crtend file contains the');
+      Add('       end of ctors marker and it must be last */');
+      Add('    KEEP (*(EXCLUDE_FILE (*crtend.o *crtend?.o ) .ctors))');
+      Add('    KEEP (*(SORT(.ctors.*)))');
+      Add('    KEEP (*(.ctors))');
+      Add('  }');
+      Add('  .dtors          :');
+      Add('  {');
+      Add('    KEEP (*crtbegin.o(.dtors))');
+      Add('    KEEP (*crtbegin?.o(.dtors))');
+      Add('    KEEP (*(EXCLUDE_FILE (*crtend.o *crtend?.o ) .dtors))');
+      Add('    KEEP (*(SORT(.dtors.*)))');
+      Add('    KEEP (*(.dtors))');
+      Add('  }');
+      Add('  .jcr            : { KEEP (*(.jcr)) }');
+      Add('  .data.rel.ro : { *(.data.rel.ro.local* .gnu.linkonce.d.rel.ro.local.*) *(.data.rel.ro .data.rel.ro.* .gnu.linkonce.d.rel.ro.*) }');
+      Add('  .xt_except_table   : ONLY_IF_RW { KEEP (*(.xt_except_table .xt_except_table.* .gnu.linkonce.e.*)) }');
+      Add('  .dynamic        : { *(.dynamic) }');
+      Add('  .got            : { *(.got) }');
+      Add('  .data           :');
+      Add('  {');
+      Add('    *(.data .data.* .gnu.linkonce.d.*)');
+      Add('    SORT(CONSTRUCTORS)');
+      Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
+      Add('  }');
+      Add('  .data1          : { *(.data1) }');
+      Add('  .xt_except_desc   :');
+      Add('  {');
+      Add('    *(.xt_except_desc .xt_except_desc.* .gnu.linkonce.h.*)');
+      Add('    *(.xt_except_desc_end)');
+      Add('  }');
+      Add('  .lit4           :');
+      Add('  {');
+      Add('    PROVIDE (_lit4_start = .);');
+      Add('    *(.lit4 .lit4.* .gnu.linkonce.lit4.*)');
+      Add('    PROVIDE (_lit4_end = .);');
+      Add('  }');
+      Add('  _edata = .; PROVIDE (edata = .);');
+      Add('  __bss_start = .;');
+      Add('  .bss            :');
+      Add('  {');
+      Add('   *(.dynbss)');
+      Add('   *(.bss .bss.* .gnu.linkonce.b.*)');
+      Add('   *(COMMON)');
+      Add('   /* Align here to ensure that the .bss section occupies space up to');
+      Add('      _end.  Align after .bss to ensure correct alignment even if the');
+      Add('      .bss section disappears because there are no input sections.');
+      Add('      FIXME: Why do we need it? When there is no .bss section, we don''t');
+      Add('      pad the .data section.  */');
+      Add('   . = ALIGN(. != 0 ? 32 / 8 : 1);');
+      Add('  }');
+      Add('  . = ALIGN(32 / 8);');
+      Add('  . = ALIGN(32 / 8);');
+      Add('  _end = .; PROVIDE (end = .);');
+      Add('  /* Stabs debugging sections.  */');
+      Add('  .stab          0 : { *(.stab) }');
+      Add('  .stabstr       0 : { *(.stabstr) }');
+      Add('  .stab.excl     0 : { *(.stab.excl) }');
+      Add('  .stab.exclstr  0 : { *(.stab.exclstr) }');
+      Add('  .stab.index    0 : { *(.stab.index) }');
+      Add('  .stab.indexstr 0 : { *(.stab.indexstr) }');
+      Add('  .comment       0 : { *(.comment) }');
+      Add('  /* DWARF debug sections.');
+      Add('     Symbols in the DWARF debugging sections are relative to the beginning');
+      Add('     of the section so we begin them at 0.  */');
+      Add('  /* DWARF 1 */');
+      Add('  .debug          0 : { *(.debug) }');
+      Add('  .line           0 : { *(.line) }');
+      Add('  /* GNU DWARF 1 extensions */');
+      Add('  .debug_srcinfo  0 : { *(.debug_srcinfo) }');
+      Add('  .debug_sfnames  0 : { *(.debug_sfnames) }');
+      Add('  /* DWARF 1.1 and DWARF 2 */');
+      Add('  .debug_aranges  0 : { *(.debug_aranges) }');
+      Add('  .debug_pubnames 0 : { *(.debug_pubnames) }');
+      Add('  /* DWARF 2 */');
+      Add('  .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }');
+      Add('  .debug_abbrev   0 : { *(.debug_abbrev) }');
+      Add('  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }');
+      Add('  .debug_frame    0 : { *(.debug_frame) }');
+      Add('  .debug_str      0 : { *(.debug_str) }');
+      Add('  .debug_loc      0 : { *(.debug_loc) }');
+      Add('  .debug_macinfo  0 : { *(.debug_macinfo) }');
+      Add('  /* SGI/MIPS DWARF 2 extensions */');
+      Add('  .debug_weaknames 0 : { *(.debug_weaknames) }');
+      Add('  .debug_funcnames 0 : { *(.debug_funcnames) }');
+      Add('  .debug_typenames 0 : { *(.debug_typenames) }');
+      Add('  .debug_varnames  0 : { *(.debug_varnames) }');
+      Add('  /* DWARF 3 */');
+      Add('  .debug_pubtypes 0 : { *(.debug_pubtypes) }');
+      Add('  .debug_ranges   0 : { *(.debug_ranges) }');
+      Add('  /* DWARF Extension.  */');
+      Add('  .debug_macro    0 : { *(.debug_macro) }');
+      Add('  .debug_addr     0 : { *(.debug_addr) }');
+      Add('  .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }');
+      Add('  .xt.lit       0 : { KEEP (*(.xt.lit .xt.lit.* .gnu.linkonce.p.*)) }');
+      Add('  .xt.insn      0 : { KEEP (*(.xt.insn .gnu.linkonce.x.*)) }');
+      Add('  .xt.prop      0 : { KEEP (*(.xt.prop .xt.prop.* .gnu.linkonce.prop.*)) }');
+      Add('  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink)  *(.gnu.lto_*) }');
+      Add('}');
+    end;
+{$endif XTENSA}
 
   { Write and Close response }
   linkres.writetodisk;
@@ -1055,22 +1708,29 @@ end;
 function TlinkerEmbedded.MakeExecutable:boolean;
 var
   binstr,
-  cmdstr  : TCmdStr;
+  cmdstr,
+  mapstr: TCmdStr;
   success : boolean;
   StaticStr,
   GCSectionsStr,
   DynLinkStr,
-  StripStr: string;
+  StripStr,
+  FixedExeFileName: string;
 begin
   { for future use }
   StaticStr:='';
   StripStr:='';
+  mapstr:='';
   DynLinkStr:='';
+  FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf')));
 
   GCSectionsStr:='--gc-sections';
   //if not(cs_link_extern in current_settings.globalswitches) then
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.exefilename);
+
+  if (cs_link_map in current_settings.globalswitches) then
+   mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
 
 { Write used files and libraries }
   WriteResponseFile();
@@ -1080,19 +1740,21 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   if not(cs_link_on_target in current_settings.globalswitches) then
    begin
-    Replace(cmdstr,'$EXE',(maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf')))));
+    Replace(cmdstr,'$EXE',FixedExeFileName);
     Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
     Replace(cmdstr,'$STATIC',StaticStr);
     Replace(cmdstr,'$STRIP',StripStr);
+    Replace(cmdstr,'$MAP',mapstr);
     Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
     Replace(cmdstr,'$DYNLINK',DynLinkStr);
    end
   else
    begin
-    Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.elf'))));
+    Replace(cmdstr,'$EXE',FixedExeFileName);
     Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
     Replace(cmdstr,'$STATIC',StaticStr);
     Replace(cmdstr,'$STRIP',StripStr);
+    Replace(cmdstr,'$MAP',mapstr);
     Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
     Replace(cmdstr,'$DYNLINK',DynLinkStr);
    end;
@@ -1104,17 +1766,25 @@ begin
 
 { Post process }
   if success and not(cs_link_nolink in current_settings.globalswitches) then
-    success:=PostProcessExecutable(current_module.exefilename+'.elf',false);
+    success:=PostProcessExecutable(FixedExeFileName,false);
 
-  if success and (target_info.system in [system_arm_embedded,system_avr_embedded,system_mipsel_embedded]) then
+  if success and (target_info.system in [system_arm_embedded,system_avr_embedded,system_mipsel_embedded,system_xtensa_embedded]) then
     begin
       success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O ihex '+
-        ChangeFileExt(current_module.exefilename,'.elf')+' '+
-        ChangeFileExt(current_module.exefilename,'.hex'),true,false);
+        FixedExeFileName+' '+
+        maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.hex'))),true,false);
       if success then
         success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+
-          ChangeFileExt(current_module.exefilename,'.elf')+' '+
-          ChangeFileExt(current_module.exefilename,'.bin'),true,false);
+          FixedExeFileName+' '+
+          maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin'))),true,false);
+        if success and (target_info.system in systems_support_uf2) and (cs_generate_uf2 in current_settings.globalswitches) then
+          success := GenerateUF2(maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin'))),
+                                 maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.uf2'))),
+                                 embedded_controllers[current_settings.controllertype].flashbase);
+{$ifdef ARM}
+      if success and (current_settings.controllertype = ct_raspi2) then
+        success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+ FixedExeFileName + ' kernel7.img',true,false);
+{$endif ARM}
     end;
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
@@ -1122,159 +1792,431 @@ end;
 
 
 function TLinkerEmbedded.postprocessexecutable(const fn : string;isdll:boolean):boolean;
-  type
-    TElf32header=packed record
-      magic0123         : longint;
-      file_class        : byte;
-      data_encoding     : byte;
-      file_version      : byte;
-      padding           : array[$07..$0f] of byte;
-
-      e_type            : word;
-      e_machine         : word;
-      e_version         : longint;
-      e_entry           : longint;          { entrypoint }
-      e_phoff           : longint;          { program header offset }
-
-      e_shoff           : longint;          { sections header offset }
-      e_flags           : longint;
-      e_ehsize          : word;             { elf header size in bytes }
-      e_phentsize       : word;             { size of an entry in the program header array }
-      e_phnum           : word;             { 0..e_phnum-1 of entrys }
-      e_shentsize       : word;             { size of an entry in sections header array }
-      e_shnum           : word;             { 0..e_shnum-1 of entrys }
-      e_shstrndx        : word;             { index of string section header }
-    end;
-    TElf32sechdr=packed record
-      sh_name           : longint;
-      sh_type           : longint;
-      sh_flags          : longint;
-      sh_addr           : longint;
-
-      sh_offset         : longint;
-      sh_size           : longint;
-      sh_link           : longint;
-      sh_info           : longint;
-
-      sh_addralign      : longint;
-      sh_entsize        : longint;
-    end;
-
-  function MayBeSwapHeader(h : telf32header) : telf32header;
-    begin
-      result:=h;
-      if source_info.endian<>target_info.endian then
-        with h do
-          begin
-            result.e_type:=swapendian(e_type);
-            result.e_machine:=swapendian(e_machine);
-            result.e_version:=swapendian(e_version);
-            result.e_entry:=swapendian(e_entry);
-            result.e_phoff:=swapendian(e_phoff);
-            result.e_shoff:=swapendian(e_shoff);
-            result.e_flags:=swapendian(e_flags);
-            result.e_ehsize:=swapendian(e_ehsize);
-            result.e_phentsize:=swapendian(e_phentsize);
-            result.e_phnum:=swapendian(e_phnum);
-            result.e_shentsize:=swapendian(e_shentsize);
-            result.e_shnum:=swapendian(e_shnum);
-            result.e_shstrndx:=swapendian(e_shstrndx);
-          end;
-    end;
-
-  function MaybeSwapSecHeader(h : telf32sechdr) : telf32sechdr;
-    begin
-      result:=h;
-      if source_info.endian<>target_info.endian then
-        with h do
-          begin
-            result.sh_name:=swapendian(sh_name);
-            result.sh_type:=swapendian(sh_type);
-            result.sh_flags:=swapendian(sh_flags);
-            result.sh_addr:=swapendian(sh_addr);
-            result.sh_offset:=swapendian(sh_offset);
-            result.sh_size:=swapendian(sh_size);
-            result.sh_link:=swapendian(sh_link);
-            result.sh_info:=swapendian(sh_info);
-            result.sh_addralign:=swapendian(sh_addralign);
-            result.sh_entsize:=swapendian(sh_entsize);
-          end;
-    end;
-
-  var
-    f : file;
-
-  function ReadSectionName(pos : longint) : String;
-    var
-      oldpos : longint;
-      c : char;
-    begin
-      oldpos:=filepos(f);
-      seek(f,pos);
-      Result:='';
-      while true do
-        begin
-          blockread(f,c,1);
-          if c=#0 then
-            break;
-          Result:=Result+c;
-        end;
-      seek(f,oldpos);
-    end;
-
-  var
-    elfheader : TElf32header;
-    secheader : TElf32sechdr;
-    i : longint;
-    stringoffset : longint;
-    secname : string;
   begin
-    postprocessexecutable:=false;
-    { open file }
-    assign(f,fn);
-    {$push}{$I-}
+    Result:=PostProcessELFExecutable(fn,isdll);
+  end;
+
+
+function TlinkerEmbedded.GenerateUF2(binFile,uf2File : string;baseAddress : longWord):boolean;
+type
+  TFamilies= record
+    k : String;
+    v : longWord;
+  end;
+  tuf2Block = record
+    magicStart0,
+    magicStart1,
+    flags,
+    targetAddr,
+    payloadSize,
+    blockNo,
+    numBlocks,
+    familyid : longWord;
+    data : array[0..255] of byte;
+    padding : array[0..511-256-32-4] of byte;
+    magicEnd : longWord;
+  end;
+
+const
+  Families : array of TFamilies = (
+    (k:'SAMD21'; v:$68ed2b88),
+    (k:'SAML21'; v:$1851780a),
+    (k:'SAMD51'; v:$55114460),
+    (k:'NRF52';  v:$1b57745f),
+    (k:'STM32F0';v:$647824b6),
+    (k:'STM32F1';v:$5ee21072),
+    (k:'STM32F2';v:$5d1a0a2e),
+    (k:'STM32F3';v:$6b846188),
+    (k:'STM32F4';v:$57755a57),
+    (k:'STM32F7';v:$53b80f00),
+    (k:'STM32G0';v:$300f5633),
+    (k:'STM32G4';v:$4c71240a),
+    (k:'STM32H7';v:$6db66082),
+    (k:'STM32L0';v:$202e3a91),
+    (k:'STM32L1';v:$1e1f432d),
+    (k:'STM32L4';v:$00ff6919),
+    (k:'STM32L5';v:$04240bdf),
+    (k:'STM32WB';v:$70d16653),
+    (k:'STM32WL';v:$21460ff0)
+  );
+
+var
+  f,g : file;
+  uf2block : Tuf2Block;
+  totalRead,numRead : longWord;
+  familyId,i : longWord;
+  ExtraOptions : String;
+
+begin
+  if pos('-Ttext=',Info.ExtraOptions) > 0 then
+  begin
+    ExtraOptions := copy(Info.ExtraOptions,pos('-Ttext=',Info.ExtraOptions)+7,length(Info.ExtraOptions));
+    for i := 1 to length(ExtraOptions) do
+      if pos(copy(ExtraOptions,i,1),'0123456789abcdefxABCDEFX') = 0 then
+        ExtraOptions := copy(ExtraOptions,1,i);
+    baseAddress := StrToIntDef(ExtraOptions,0);
+  end;
+
+  familyId := 0;
+  for i := 0 to length(Families)-1 do
+  begin
+    if pos(Families[i].k,embedded_controllers[current_settings.controllertype].controllerunitstr) = 1 then
+      familyId := Families[i].v;
+  end;
+
+  if (baseAddress and $07ffffff) <> 0 then
+  begin
+    totalRead := 0;
+    numRead := 0;
+    assign(f,binfile);
     reset(f,1);
-    if ioresult<>0 then
-      Message1(execinfo_f_cant_open_executable,fn);
-    { read header }
-    blockread(f,elfheader,sizeof(tElf32header));
-    elfheader:=MayBeSwapHeader(elfheader);
-    seek(f,elfheader.e_shoff);
-    { read string section header }
-    seek(f,elfheader.e_shoff+sizeof(TElf32sechdr)*elfheader.e_shstrndx);
-    blockread(f,secheader,sizeof(secheader));
-    secheader:=MaybeSwapSecHeader(secheader);
-    stringoffset:=secheader.sh_offset;
+    assign(g,uf2file);
+    rewrite(g,1);
 
-    seek(f,elfheader.e_shoff);
-    status.datasize:=0;
-    for i:=0 to elfheader.e_shnum-1 do
-      begin
-        blockread(f,secheader,sizeof(secheader));
-        secheader:=MaybeSwapSecHeader(secheader);
-        secname:=ReadSectionName(stringoffset+secheader.sh_name);
-        if secname='.text' then
-          begin
-            Message1(execinfo_x_codesize,tostr(secheader.sh_size));
-            status.codesize:=secheader.sh_size;
-          end
-        else if secname='.data' then
-          begin
-            Message1(execinfo_x_initdatasize,tostr(secheader.sh_size));
-            inc(status.datasize,secheader.sh_size);
-          end
-        else if secname='.bss' then
-          begin
-            Message1(execinfo_x_uninitdatasize,tostr(secheader.sh_size));
-            inc(status.datasize,secheader.sh_size);
-          end;
-
-      end;
+    repeat
+      fillchar(uf2block,sizeof(uf2block),0);
+      uf2block.magicStart0 := $0A324655; // "UF2\n"
+      uf2block.magicStart1 := $9E5D5157; // Randomly selected
+      if familyId = 0 then
+        uf2block.flags := 0
+      else
+        uf2block.flags := $2000;
+      uf2block.targetAddr := baseAddress + totalread;
+      uf2block.payloadSize := 256;
+      uf2block.blockNo := (totalRead div sizeOf(uf2block.data));
+      uf2block.numBlocks := (filesize(f) + 255) div 256;
+      uf2block.familyId := familyId;
+      uf2block.magicEnd := $0AB16F30; // Randomly selected
+      blockRead(f,uf2block.data,sizeof(uf2block.data),numRead);
+      blockwrite(g,uf2block,sizeof(uf2block));
+      inc(totalRead,numRead);
+    until (numRead=0) or (NumRead<>sizeOf(uf2block.data));
     close(f);
-    {$pop}
-    if ioresult<>0 then
-      ;
-    postprocessexecutable:=true;
+    close(g);
+  end;
+  Result := true;
+end;
+
+{*****************************************************************************
+                              TlinkerEmbedded_SdccSdld
+*****************************************************************************}
+
+function TlinkerEmbedded_SdccSdld.WriteResponseFile: Boolean;
+  Var
+    linkres  : TLinkRes;
+    //i        : longint;
+    //HPath    : TCmdStrListItem;
+    s{,s1,s2}  : TCmdStr;
+    prtobj,
+    cprtobj  : string[80];
+    linklibc : boolean;
+    //found1,
+    //found2   : boolean;
+  begin
+    WriteResponseFile:=False;
+    linklibc:=(SharedLibFiles.Find('c')<>nil);
+    prtobj:='prt0';
+    cprtobj:='cprt0';
+    if linklibc then
+      prtobj:=cprtobj;
+
+    { Open link.res file }
+    LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,true);
+
+    { Write path to search libraries }
+(*    HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
+    while assigned(HPath) do
+     begin
+      s:=HPath.Str;
+      if (cs_link_on_target in current_settings.globalswitches) then
+       s:=ScriptFixFileName(s);
+      LinkRes.Add('-L'+s);
+      HPath:=TCmdStrListItem(HPath.Next);
+     end;
+    HPath:=TCmdStrListItem(LibrarySearchPath.First);
+    while assigned(HPath) do
+     begin
+      s:=HPath.Str;
+      if s<>'' then
+       LinkRes.Add('SEARCH_DIR("'+s+'")');
+      HPath:=TCmdStrListItem(HPath.Next);
+     end;
+
+    LinkRes.Add('INPUT (');
+    { add objectfiles, start with prt0 always }*)
+    //s:=FindObjectFile('prt0','',false);
+    if prtobj<>'' then
+      begin
+        s:=FindObjectFile(prtobj,'',false);
+        LinkRes.AddFileName(s);
+      end;
+
+    { try to add crti and crtbegin if linking to C }
+    if linklibc then
+     begin
+       if librarysearchpath.FindFile('crtbegin.o',false,s) then
+        LinkRes.AddFileName(s);
+       if librarysearchpath.FindFile('crti.o',false,s) then
+        LinkRes.AddFileName(s);
+     end;
+
+    while not ObjectFiles.Empty do
+     begin
+      s:=ObjectFiles.GetFirst;
+      if s<>'' then
+       begin
+        { vlink doesn't use SEARCH_DIR for object files }
+        if not(cs_link_on_target in current_settings.globalswitches) then
+         s:=FindObjectFile(s,'',false);
+        LinkRes.AddFileName((maybequoted(s)));
+       end;
+     end;
+
+    { Write staticlibraries }
+    if not StaticLibFiles.Empty then
+     begin
+      { vlink doesn't need, and doesn't support GROUP }
+{      if (cs_link_on_target in current_settings.globalswitches) then
+       begin
+        LinkRes.Add(')');
+        LinkRes.Add('GROUP(');
+       end;}
+      while not StaticLibFiles.Empty do
+       begin
+        S:=StaticLibFiles.GetFirst;
+        LinkRes.Add('-l'+maybequoted(s));
+       end;
+     end;
+
+(*    if (cs_link_on_target in current_settings.globalswitches) then
+     begin
+      LinkRes.Add(')');
+
+      { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
+        here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
+      linklibc:=false;
+      while not SharedLibFiles.Empty do
+       begin
+        S:=SharedLibFiles.GetFirst;
+        if s<>'c' then
+         begin
+          i:=Pos(target_info.sharedlibext,S);
+          if i>0 then
+           Delete(S,i,255);
+          LinkRes.Add('-l'+s);
+         end
+        else
+         begin
+          LinkRes.Add('-l'+s);
+          linklibc:=true;
+         end;
+       end;
+      { be sure that libc&libgcc is the last lib }
+      if linklibc then
+       begin
+        LinkRes.Add('-lc');
+        LinkRes.Add('-lgcc');
+       end;
+     end
+    else
+     begin
+      while not SharedLibFiles.Empty do
+       begin
+        S:=SharedLibFiles.GetFirst;
+        LinkRes.Add('lib'+s+target_info.staticlibext);
+       end;
+      LinkRes.Add(')');
+     end;*)
+
+    { objects which must be at the end }
+    (*if linklibc then
+     begin
+       found1:=librarysearchpath.FindFile('crtend.o',false,s1);
+       found2:=librarysearchpath.FindFile('crtn.o',false,s2);
+       if found1 or found2 then
+        begin
+          LinkRes.Add('INPUT(');
+          if found1 then
+           LinkRes.AddFileName(s1);
+          if found2 then
+           LinkRes.AddFileName(s2);
+          LinkRes.Add(')');
+        end;
+     end;*)
+
+    { Write and Close response }
+    linkres.writetodisk;
+    linkres.free;
+
+    WriteResponseFile:=True;
+  end;
+
+procedure TlinkerEmbedded_SdccSdld.SetDefaultInfo;
+  const
+{$if defined(Z80)}
+    ExeName='sdldz80';
+{$else}
+    ExeName='sdld';
+{$endif}
+  begin
+    with Info do
+     begin
+       ExeCmd[1]:=ExeName+' -n $OPT -i $MAP $EXE -f $RES'
+       //-g '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP $MAP -L. -o $EXE -T $RES';
+     end;
+  end;
+
+function TlinkerEmbedded_SdccSdld.MakeExecutable: boolean;
+  var
+    binstr,
+    cmdstr,
+    mapstr: TCmdStr;
+    success : boolean;
+    StaticStr,
+//    GCSectionsStr,
+    DynLinkStr,
+    StripStr,
+    FixedExeFileName: string;
+  begin
+    { for future use }
+    StaticStr:='';
+    StripStr:='';
+    mapstr:='';
+    DynLinkStr:='';
+    FixedExeFileName:=maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.ihx')));
+
+(*    GCSectionsStr:='--gc-sections';
+    //if not(cs_link_extern in current_settings.globalswitches) then
+    if not(cs_link_nolink in current_settings.globalswitches) then
+     Message1(exec_i_linking,current_module.exefilename);*)
+
+    if (cs_link_map in current_settings.globalswitches) then
+     mapstr:='-mw';
+
+  { Write used files and libraries }
+    WriteResponseFile();
+
+  { Call linker }
+    SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
+    Replace(cmdstr,'$OPT',Info.ExtraOptions);
+    if not(cs_link_on_target in current_settings.globalswitches) then
+     begin
+      Replace(cmdstr,'$EXE',FixedExeFileName);
+      Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
+      Replace(cmdstr,'$STATIC',StaticStr);
+      Replace(cmdstr,'$STRIP',StripStr);
+      Replace(cmdstr,'$MAP',mapstr);
+//      Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
+      Replace(cmdstr,'$DYNLINK',DynLinkStr);
+     end
+    else
+     begin
+      Replace(cmdstr,'$EXE',FixedExeFileName);
+      Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
+      Replace(cmdstr,'$STATIC',StaticStr);
+      Replace(cmdstr,'$STRIP',StripStr);
+      Replace(cmdstr,'$MAP',mapstr);
+//      Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
+      Replace(cmdstr,'$DYNLINK',DynLinkStr);
+     end;
+    success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
+
+  { Remove ReponseFile }
+    if success and not(cs_link_nolink in current_settings.globalswitches) then
+     DeleteFile(outputexedir+Info.ResName);
+
+(*  { Post process }
+    if success and not(cs_link_nolink in current_settings.globalswitches) then
+      success:=PostProcessExecutable(FixedExeFileName,false);
+
+    if success and (target_info.system in [system_arm_embedded,system_avr_embedded,system_mipsel_embedded,system_xtensa_embedded]) then
+      begin
+        success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O ihex '+
+          FixedExeFileName+' '+
+          maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.hex'))),true,false);
+        if success then
+          success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+
+            FixedExeFileName+' '+
+            maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename,'.bin'))),true,false);
+      end;*)
+
+    MakeExecutable:=success;   { otherwise a recursive call to link method }
+  end;
+
+{*****************************************************************************
+                              TlinkerEmbedded_Wasm
+*****************************************************************************}
+
+constructor TLinkerEmbedded_Wasm.Create;
+  begin
+    inherited Create;
+  end;
+
+procedure TLinkerEmbedded_Wasm.SetDefaultInfo;
+  begin
+    Info.DllCmd[1] := 'wasm-ld $SONAME $GCSECTIONS -o $EXE';
+    //Info.DllCmd[2] := 'wasmtool --exportrename $INPUT $EXE';
+  end;
+
+function TLinkerEmbedded_Wasm.MakeSharedLibrary: boolean;
+  var
+    GCSectionsStr  : ansistring;
+    binstr, cmdstr : Tcmdstr;
+    InitStr,
+    FiniStr,
+    SoNameStr      : string[80];
+    mapstr,ltostr  : TCmdStr;
+    success        : Boolean;
+
+    tmp : TCmdStrListItem;
+    tempFileName : ansistring;
+  begin
+    //Result := true;
+    //Result:=inherited MakeSharedLibrary;
+    if (cs_link_smart in current_settings.globalswitches) and
+       create_smartlink_sections then
+     GCSectionsStr:='--gc-sections'
+    else
+      GCSectionsStr:='';
+
+    SoNameStr:='';
+    SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
+    Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
+
+    tmp := TCmdStrListItem(ObjectFiles.First);
+    while Assigned(tmp) do begin
+      cmdstr := tmp.Str+ ' ' + cmdstr;
+      tmp := TCmdStrListItem(tmp.Next);
+    end;
+
+    if HasExports then
+      cmdstr := cmdstr + ' --export-dynamic'; //' --export-dynamic';
+
+    cmdstr := cmdstr + ' --no-entry --allow-undefined';
+
+    if (cs_link_strip in current_settings.globalswitches) then
+     begin
+       { only remove non global symbols and debugging info for a library }
+       cmdstr := cmdstr + ' --strip-all';
+     end;
+
+    //Replace(cmdstr,'$OPT',Info.ExtraOptions);
+    //Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+    //Replace(cmdstr,'$INIT',InitStr);
+    //Replace(cmdstr,'$FINI',FiniStr);
+    Replace(cmdstr,'$SONAME',SoNameStr);
+    //Replace(cmdstr,'$MAP',mapstr);
+    //Replace(cmdstr,'$LTO',ltostr);
+    Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
+    writeln(utilsprefix+binstr,' ',cmdstr);
+    success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
+
+    //SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
+    //Replace(cmdstr,'$INPUT',current_module.objfilename );
+    //Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
+    //DoExec(FindUtil(utilsprefix+binstr),cmdstr,false,false);
+
+    MakeSharedLibrary:=success;
   end;
 
 
@@ -1283,6 +2225,11 @@ function TLinkerEmbedded.postprocessexecutable(const fn : string;isdll:boolean):
 *****************************************************************************}
 
 initialization
+{$ifdef aarch64}
+  RegisterLinker(ld_embedded,TLinkerEmbedded);
+  RegisterTarget(system_aarch64_embedded_info);
+{$endif aarch64}
+
 {$ifdef arm}
   RegisterLinker(ld_embedded,TLinkerEmbedded);
   RegisterTarget(system_arm_embedded_info);
@@ -1298,9 +2245,53 @@ initialization
   RegisterTarget(system_i386_embedded_info);
 {$endif i386}
 
+{$ifdef x86_64}
+  RegisterLinker(ld_embedded,TLinkerEmbedded);
+  RegisterTarget(system_x86_64_embedded_info);
+{$endif x86_64}
+
+{$ifdef i8086}
+  { no need to register linker ld_embedded, because i8086_embedded uses the
+    regular msdos linker. In case a flat binary, relocated for a specific
+    segment address is needed (e.g. for a BIOS or a real mode bootloader), it
+    can be produced post-compilation with exe2bin or a similar tool. }
+  RegisterTarget(system_i8086_embedded_info);
+{$endif i8086}
+
 {$ifdef mipsel}
   RegisterLinker(ld_embedded,TLinkerEmbedded);
   RegisterTarget(system_mipsel_embedded_info);
 {$endif mipsel}
 
+{$ifdef m68k}
+  RegisterLinker(ld_embedded,TLinkerEmbedded);
+  RegisterTarget(system_m68k_embedded_info);
+{$endif m68k}
+
+{$ifdef riscv32}
+  RegisterLinker(ld_embedded,TLinkerEmbedded);
+  RegisterTarget(system_riscv32_embedded_info);
+{$endif riscv32}
+
+{$ifdef riscv64}
+  RegisterLinker(ld_embedded,TLinkerEmbedded);
+  RegisterTarget(system_riscv64_embedded_info);
+{$endif riscv64}
+
+{$ifdef xtensa}
+  RegisterLinker(ld_embedded,TLinkerEmbedded);
+  RegisterTarget(system_xtensa_embedded_info);
+{$endif xtensa}
+
+{$ifdef z80}
+  RegisterLinker(ld_embedded,TlinkerEmbedded_SdccSdld);
+  RegisterTarget(system_z80_embedded_info);
+{$endif z80}
+
+{$ifdef wasm32}
+  RegisterTarget(system_wasm32_embedded_info);
+  RegisterImport(system_wasm32_embedded, timportlibwasi);
+  RegisterExport(system_wasm32_embedded, texportlibwasi);
+  RegisterLinker(ld_embedded, TLinkerEmbedded_Wasm);
+{$endif wasm32}
 end.

@@ -36,7 +36,7 @@
  3. This notice may not be removed or altered from any source distribution.
 ----------------------------------------------------------------------------}
 {
-  This unit is an equivalent to the Delphi math unit
+  This unit is an equivalent to the Delphi Math unit
   (with some improvements)
 
   What's to do:
@@ -47,23 +47,39 @@
 {$MODE objfpc}
 {$inline on }
 {$GOTO on}
-unit math;
+unit Math;
 interface
+
 
 {$ifndef FPUNONE}
     uses
        sysutils;
 
+{$IFDEF FPDOC_MATH}
+Type
+  Float = MaxFloatType;
+
+Const
+  MinFloat = 0;
+  MaxFloat = 0;
+{$ENDIF}
+
     { Ranges of the IEEE floating point types, including denormals }
 {$ifdef FPC_HAS_TYPE_SINGLE}
     const
-      MinSingle    =  1.5e-45;
-      MaxSingle    =  3.4e+38;
+      { values according to
+        https://en.wikipedia.org/wiki/Single-precision_floating-point_format#Single-precision_examples
+      }
+      MinSingle    =  1.1754943508e-38;
+      MaxSingle    =  3.4028234664e+38;
 {$endif FPC_HAS_TYPE_SINGLE}
 {$ifdef FPC_HAS_TYPE_DOUBLE}
     const
-      MinDouble    =  5.0e-324;
-      MaxDouble    =  1.7e+308;
+      { values according to
+        https://en.wikipedia.org/wiki/Double-precision_floating-point_format#Double-precision_examples
+      }
+      MinDouble    =  2.2250738585072014e-308;
+      MaxDouble    =  1.7976931348623157e+308;
 {$endif FPC_HAS_TYPE_DOUBLE}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
     const
@@ -83,28 +99,28 @@ interface
        { break all assembler code  PM                            }
 {$if defined(FPC_HAS_TYPE_FLOAT128)}
       type
-         float = float128;
+         Float = Float128;
 
       const
          MinFloat = MinFloat128;
          MaxFloat = MaxFloat128;
 {$elseif defined(FPC_HAS_TYPE_EXTENDED)}
       type
-         float = extended;
+         Float = extended;
 
       const
          MinFloat = MinExtended;
          MaxFloat = MaxExtended;
 {$elseif defined(FPC_HAS_TYPE_DOUBLE)}
       type
-         float = double;
+         Float = double;
 
       const
          MinFloat = MinDouble;
          MaxFloat = MaxDouble;
 {$elseif defined(FPC_HAS_TYPE_SINGLE)}
       type
-         float = single;
+         Float = single;
 
       const
          MinFloat = MinSingle;
@@ -117,7 +133,7 @@ interface
        PFloat = ^Float;
        PInteger = ObjPas.PInteger;
 
-       tpaymenttime = (ptendofperiod,ptstartofperiod);
+       TPaymentTime = (ptEndOfPeriod,ptStartOfPeriod);
 
        EInvalidArgument = class(ematherror);
 
@@ -127,6 +143,9 @@ interface
        EqualsValue = 0;
        LessThanValue = Low(TValueRelationship);
        GreaterThanValue = High(TValueRelationship);
+       
+
+       
 {$push}
 {$R-}
 {$Q-}
@@ -134,6 +153,17 @@ interface
        Infinity = 1.0/0.0;
        NegInfinity = -1.0/0.0;
 {$pop}
+
+
+{$IFDEF FPDOC_MATH}
+
+// This must be after the above defines.
+
+{$DEFINE FPC_HAS_TYPE_SINGLE}
+{$DEFINE FPC_HAS_TYPE_DOUBLE}
+{$DEFINE FPC_HAS_TYPE_EXTENDED}
+{$DEFINE FPC_HAS_TYPE_COMP}
+{$ENDIF}
 
 { Min/max determination }
 function MinIntValue(const Data: array of Integer): Integer;
@@ -148,6 +178,8 @@ function Max(a, b: Cardinal): Cardinal; overload;
 }
 function Min(a, b: Int64): Int64;inline; overload;
 function Max(a, b: Int64): Int64;inline; overload;
+function Min(a, b: QWord): QWord;inline; overload;
+function Max(a, b: QWord): QWord;inline; overload;
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function Min(a, b: Single): Single;inline; overload;
 function Max(a, b: Single): Single;inline; overload;
@@ -178,6 +210,21 @@ procedure DivMod(Dividend: LongInt; Divisor: Word;  var Result, Remainder: Word)
 procedure DivMod(Dividend: LongInt; Divisor: Word; var Result, Remainder: SmallInt);
 procedure DivMod(Dividend: DWord; Divisor: DWord; var Result, Remainder: DWord);
 procedure DivMod(Dividend: LongInt; Divisor: LongInt; var Result, Remainder: LongInt);
+
+{ Floating point modulo}
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function FMod(const a, b: Single): Single;inline;overload;
+{$endif FPC_HAS_TYPE_SINGLE}
+
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function FMod(const a, b: Double): Double;inline;overload;
+{$endif FPC_HAS_TYPE_DOUBLE}
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function FMod(const a, b: Extended): Extended;inline;overload;
+{$endif FPC_HAS_TYPE_EXTENDED}
+
+operator mod(const a,b:float) c:float;inline;
 
 // Sign functions
 Type
@@ -216,7 +263,14 @@ function IsNan(const d : Double): Boolean; overload;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function IsNan(const d : Extended): Boolean; overload;
 {$endif FPC_HAS_TYPE_EXTENDED}
-function IsInfinite(const d : Double): Boolean;
+
+function IsInfinite(const d : Single): Boolean; overload;
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function IsInfinite(const d : Double): Boolean; overload;
+{$endif FPC_HAS_TYPE_DOUBLE}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function IsInfinite(const d : Extended): Boolean; overload;
+{$endif FPC_HAS_TYPE_EXTENDED}
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function SameValue(const A, B: Extended): Boolean;inline; overload;
@@ -258,15 +312,15 @@ function SimpleRoundTo(const AValue: Extended; const Digits: TRoundToRange = -2)
 
 { angle conversion }
 
-function degtorad(deg : float) : float;inline;
-function radtodeg(rad : float) : float;inline;
-function gradtorad(grad : float) : float;inline;
-function radtograd(rad : float) : float;inline;
-function degtograd(deg : float) : float;inline;
-function gradtodeg(grad : float) : float;inline;
+function DegToRad(deg : float) : float;inline;
+function RadToDeg(rad : float) : float;inline;
+function GradToRad(grad : float) : float;inline;
+function RadToGrad(rad : float) : float;inline;
+function DegToGrad(deg : float) : float;inline;
+function GradToDeg(grad : float) : float;inline;
 { one cycle are 2*Pi rad }
-function cycletorad(cycle : float) : float;inline;
-function radtocycle(rad : float) : float;inline;
+function CycleToRad(cycle : float) : float;inline;
+function RadToCycle(rad : float) : float;inline;
 {$ifdef FPC_HAS_TYPE_SINGLE}
 Function DegNormalize(deg : single) : single; inline;
 {$ENDIF}
@@ -279,70 +333,70 @@ Function DegNormalize(deg : extended) : extended; inline;
 
 { trigoniometric functions }
 
-function tan(x : float) : float;
-function cotan(x : float) : float;
-function cot(x : float) : float; inline;
+function Tan(x : float) : float;
+function Cotan(x : float) : float;
+function Cot(x : float) : float; inline;
 {$ifdef FPC_HAS_TYPE_SINGLE}
-procedure sincos(theta : single;out sinus,cosinus : single);
+procedure SinCos(theta : single;out sinus,cosinus : single);
 {$endif}
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-procedure sincos(theta : double;out sinus,cosinus : double);
+procedure SinCos(theta : double;out sinus,cosinus : double);
 {$endif}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-procedure sincos(theta : extended;out sinus,cosinus : extended);
+procedure SinCos(theta : extended;out sinus,cosinus : extended);
 {$endif}
 
 
-function secant(x : float) : float; inline;
-function cosecant(x : float) : float; inline;
-function sec(x : float) : float; inline;
-function csc(x : float) : float; inline;
+function Secant(x : float) : float; inline;
+function Cosecant(x : float) : float; inline;
+function Sec(x : float) : float; inline;
+function Csc(x : float) : float; inline;
 
 { inverse functions }
 
-function arccos(x : float) : float;
-function arcsin(x : float) : float;
+function ArcCos(x : float) : float;
+function ArcSin(x : float) : float;
 
 { calculates arctan(y/x) and returns an angle in the correct quadrant }
-function arctan2(y,x : float) : float;
+function ArcTan2(y,x : float) : float;
 
 { hyperbolic functions }
 
-function cosh(x : float) : float;
-function sinh(x : float) : float;
-function tanh(x : float) : float;
+function CosH(x : float) : float;
+function SinH(x : float) : float;
+function TanH(x : float) : float;
 
 { area functions }
 
 { delphi names: }
-function arccosh(x : float) : float;inline;
-function arcsinh(x : float) : float;inline;
-function arctanh(x : float) : float;inline;
+function ArcCosH(x : float) : float;inline;
+function ArcSinH(x : float) : float;inline;
+function ArcTanH(x : float) : float;inline;
 { IMHO the function should be called as follows (FK) }
-function arcosh(x : float) : float;
-function arsinh(x : float) : float;
-function artanh(x : float) : float;
+function ArCosH(x : float) : float;
+function ArSinH(x : float) : float;
+function ArTanH(x : float) : float;
 
 { triangle functions }
 
 { returns the length of the hypotenuse of a right triangle }
 { if x and y are the other sides                           }
-function hypot(x,y : float) : float;
+function Hypot(x,y : float) : float;
 
 { logarithm functions }
 
-function log10(x : float) : float;
-function log2(x : float) : float;
-function logn(n,x : float) : float;
+function Log10(x : float) : float;
+function Log2(x : float) : float;
+function LogN(n,x : float) : float;
 
 { returns natural logarithm of x+1, accurate for x values near zero }
-function lnxp1(x : float) : float;
+function LnXP1(x : float) : float;
 
 { exponential functions }
 
-function power(base,exponent : float) : float;
+function Power(base,exponent : float) : float;
 { base^exponent }
-function intpower(base : float;const exponent : Integer) : float;
+function IntPower(base : float;const exponent : Integer) : float;
 
 operator ** (bas,expo : float) e: float; inline;
 operator ** (bas,expo : int64) i: int64; inline;
@@ -350,196 +404,206 @@ operator ** (bas,expo : int64) i: int64; inline;
 { number converting }
 
 { rounds x towards positive infinity }
-function ceil(x : float) : Integer;
+function Ceil(x : float) : Integer;
+function Ceil64(x: float): Int64;
 { rounds x towards negative infinity }
-function floor(x : float) : Integer;
+function Floor(x : float) : Integer;
+function Floor64(x: float): Int64;
 
 { misc. functions }
 
 { splits x into mantissa and exponent (to base 2) }
 procedure Frexp(X: float; var Mantissa: float; var Exponent: integer);
 { returns x*(2^p) }
-function ldexp(x : float; const p : Integer) : float;
+function Ldexp(x : float; const p : Integer) : float;
 
 { statistical functions }
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
-function mean(const data : array of Single) : float;
-function sum(const data : array of Single) : float;inline;
-function mean(const data : PSingle; Const N : longint) : float;
-function sum(const data : PSingle; Const N : Longint) : float;
+function Mean(const data : array of Single) : float;
+function Sum(const data : array of Single) : float;inline;
+function Mean(const data : PSingle; Const N : longint) : float;
+function Sum(const data : PSingle; Const N : Longint) : float;
 {$endif FPC_HAS_TYPE_SINGLE}
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function mean(const data : array of double) : float;inline;
-function sum(const data : array of double) : float;inline;
-function mean(const data : PDouble; Const N : longint) : float;
-function sum(const data : PDouble; Const N : Longint) : float;
+function Mean(const data : array of double) : float;inline;
+function Sum(const data : array of double) : float;inline;
+function Mean(const data : PDouble; Const N : longint) : float;
+function Sum(const data : PDouble; Const N : Longint) : float;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-function mean(const data : array of Extended) : float;
-function sum(const data : array of Extended) : float;inline;
-function mean(const data : PExtended; Const N : longint) : float;
-function sum(const data : PExtended; Const N : Longint) : float;
+function Mean(const data : array of Extended) : float;
+function Sum(const data : array of Extended) : float;inline;
+function Mean(const data : PExtended; Const N : longint) : float;
+function Sum(const data : PExtended; Const N : Longint) : float;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
-function sumInt(const data : PInt64;Const N : longint) : Int64;
-function sumInt(const data : array of Int64) : Int64;inline;
+function SumInt(const data : PInt64;Const N : longint) : Int64;
+function SumInt(const data : array of Int64) : Int64;inline;
+function Mean(const data : PInt64; const N : Longint):Float;
+function Mean(const data: array of Int64):Float;
+function SumInt(const data : PInteger; Const N : longint) : Int64;
+function SumInt(const data : array of Integer) : Int64;inline;
+function Mean(const data : PInteger; const N : Longint):Float;
+function Mean(const data: array of Integer):Float;
+
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
-function sumofsquares(const data : array of Single) : float;inline;
-function sumofsquares(const data : PSingle; Const N : Integer) : float;
+function SumOfSquares(const data : array of Single) : float;inline;
+function SumOfSquares(const data : PSingle; Const N : Integer) : float;
 { calculates the sum and the sum of squares of data }
-procedure sumsandsquares(const data : array of Single;
+procedure SumsAndSquares(const data : array of Single;
   var sum,sumofsquares : float);inline;
-procedure sumsandsquares(const data : PSingle; Const N : Integer;
+procedure SumsAndSquares(const data : PSingle; Const N : Integer;
   var sum,sumofsquares : float);
 {$endif FPC_HAS_TYPE_SINGLE}
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function sumofsquares(const data : array of double) : float;
-function sumofsquares(const data : PDouble; Const N : Integer) : float;
+function SumOfSquares(const data : array of double) : float;
+function SumOfSquares(const data : PDouble; Const N : Integer) : float;
 { calculates the sum and the sum of squares of data }
-procedure sumsandsquares(const data : array of Double;
+procedure SumsAndSquares(const data : array of Double;
   var sum,sumofsquares : float);inline;
-procedure sumsandsquares(const data : PDouble; Const N : Integer;
+procedure SumsAndSquares(const data : PDouble; Const N : Integer;
   var sum,sumofsquares : float);
 {$endif FPC_HAS_TYPE_DOUBLE}
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-function sumofsquares(const data : array of Extended) : float;inline;
-function sumofsquares(const data : PExtended; Const N : Integer) : float;
+function SumOfSquares(const data : array of Extended) : float;inline;
+function SumOfSquares(const data : PExtended; Const N : Integer) : float;
 { calculates the sum and the sum of squares of data }
-procedure sumsandsquares(const data : array of Extended;
+procedure SumsAndSquares(const data : array of Extended;
   var sum,sumofsquares : float);inline;
-procedure sumsandsquares(const data : PExtended; Const N : Integer;
+procedure SumsAndSquares(const data : PExtended; Const N : Integer;
   var sum,sumofsquares : float);
 {$endif FPC_HAS_TYPE_EXTENDED}
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
-function minvalue(const data : array of Single) : Single;inline;
-function minvalue(const data : PSingle; Const N : Integer) : Single;
-function maxvalue(const data : array of Single) : Single;inline;
-function maxvalue(const data : PSingle; Const N : Integer) : Single;
+function MinValue(const data : array of Single) : Single;inline;
+function MinValue(const data : PSingle; Const N : Integer) : Single;
+function MaxValue(const data : array of Single) : Single;inline;
+function MaxValue(const data : PSingle; Const N : Integer) : Single;
 {$endif FPC_HAS_TYPE_SINGLE}
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function minvalue(const data : array of Double) : Double;inline;
-function minvalue(const data : PDouble; Const N : Integer) : Double;
-function maxvalue(const data : array of Double) : Double;inline;
-function maxvalue(const data : PDouble; Const N : Integer) : Double;
+function MinValue(const data : array of Double) : Double;inline;
+function MinValue(const data : PDouble; Const N : Integer) : Double;
+function MaxValue(const data : array of Double) : Double;inline;
+function MaxValue(const data : PDouble; Const N : Integer) : Double;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-function minvalue(const data : array of Extended) : Extended;inline;
-function minvalue(const data : PExtended; Const N : Integer) : Extended;
-function maxvalue(const data : array of Extended) : Extended;inline;
-function maxvalue(const data : PExtended; Const N : Integer) : Extended;
+function MinValue(const data : array of Extended) : Extended;inline;
+function MinValue(const data : PExtended; Const N : Integer) : Extended;
+function MaxValue(const data : array of Extended) : Extended;inline;
+function MaxValue(const data : PExtended; Const N : Integer) : Extended;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
-function minvalue(const data : array of integer) : Integer;inline;
+function MinValue(const data : array of integer) : Integer;inline;
 function MinValue(const Data : PInteger; Const N : Integer): Integer;
 
-function maxvalue(const data : array of integer) : Integer;inline;
-function maxvalue(const data : PInteger; Const N : Integer) : Integer;
+function MaxValue(const data : array of integer) : Integer;inline;
+function MaxValue(const data : PInteger; Const N : Integer) : Integer;
 
 { returns random values with gaussian distribution }
-function randg(mean,stddev : float) : float;
+function RandG(mean,stddev : float) : float;
+
 function RandomRange(const aFrom, aTo: Integer): Integer;
 function RandomRange(const aFrom, aTo: Int64): Int64;
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
 { calculates the standard deviation }
-function stddev(const data : array of Single) : float;inline;
-function stddev(const data : PSingle; Const N : Integer) : float;
+function StdDev(const data : array of Single) : float;inline;
+function StdDev(const data : PSingle; Const N : Integer) : float;
 { calculates the mean and stddev }
-procedure meanandstddev(const data : array of Single;
+procedure MeanAndStdDev(const data : array of Single;
   var mean,stddev : float);inline;
-procedure meanandstddev(const data : PSingle;
+procedure MeanAndStdDev(const data : PSingle;
   Const N : Longint;var mean,stddev : float);
-function variance(const data : array of Single) : float;inline;
-function totalvariance(const data : array of Single) : float;inline;
-function variance(const data : PSingle; Const N : Integer) : float;
-function totalvariance(const data : PSingle; Const N : Integer) : float;
+function Variance(const data : array of Single) : float;inline;
+function TotalVariance(const data : array of Single) : float;inline;
+function Variance(const data : PSingle; Const N : Integer) : float;
+function TotalVariance(const data : PSingle; Const N : Integer) : float;
 
-{ I don't know what the following functions do: }
-function popnstddev(const data : array of Single) : float;inline;
-function popnstddev(const data : PSingle; Const N : Integer) : float;
-function popnvariance(const data : PSingle; Const N : Integer) : float;
-function popnvariance(const data : array of Single) : float;inline;
-procedure momentskewkurtosis(const data : array of Single;
+{ Population (aka uncorrected) variance and standard deviation }
+function PopnStdDev(const data : array of Single) : float;inline;
+function PopnStdDev(const data : PSingle; Const N : Integer) : float;
+function PopnVariance(const data : PSingle; Const N : Integer) : float;
+function PopnVariance(const data : array of Single) : float;inline;
+procedure MomentSkewKurtosis(const data : array of Single;
   out m1,m2,m3,m4,skew,kurtosis : float);inline;
-procedure momentskewkurtosis(const data : PSingle; Const N : Integer;
+procedure MomentSkewKurtosis(const data : PSingle; Const N : Integer;
   out m1,m2,m3,m4,skew,kurtosis : float);
 
 { geometrical function }
 
 { returns the euclidean L2 norm }
-function norm(const data : array of Single) : float;inline;
-function norm(const data : PSingle; Const N : Integer) : float;
+function Norm(const data : array of Single) : float;inline;
+function Norm(const data : PSingle; Const N : Integer) : float;
 {$endif FPC_HAS_TYPE_SINGLE}
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
 { calculates the standard deviation }
-function stddev(const data : array of Double) : float;inline;
-function stddev(const data : PDouble; Const N : Integer) : float;
+function StdDev(const data : array of Double) : float;inline;
+function StdDev(const data : PDouble; Const N : Integer) : float;
 { calculates the mean and stddev }
-procedure meanandstddev(const data : array of Double;
+procedure MeanAndStdDev(const data : array of Double;
   var mean,stddev : float);inline;
-procedure meanandstddev(const data : PDouble;
+procedure MeanAndStdDev(const data : PDouble;
   Const N : Longint;var mean,stddev : float);
-function variance(const data : array of Double) : float;inline;
-function totalvariance(const data : array of Double) : float;inline;
-function variance(const data : PDouble; Const N : Integer) : float;
-function totalvariance(const data : PDouble; Const N : Integer) : float;
+function Variance(const data : array of Double) : float;inline;
+function TotalVariance(const data : array of Double) : float;inline;
+function Variance(const data : PDouble; Const N : Integer) : float;
+function TotalVariance(const data : PDouble; Const N : Integer) : float;
 
-{ I don't know what the following functions do: }
-function popnstddev(const data : array of Double) : float;inline;
-function popnstddev(const data : PDouble; Const N : Integer) : float;
-function popnvariance(const data : PDouble; Const N : Integer) : float;
-function popnvariance(const data : array of Double) : float;inline;
-procedure momentskewkurtosis(const data : array of Double;
+{ Population (aka uncorrected) variance and standard deviation }
+function PopnStdDev(const data : array of Double) : float;inline;
+function PopnStdDev(const data : PDouble; Const N : Integer) : float;
+function PopnVariance(const data : PDouble; Const N : Integer) : float;
+function PopnVariance(const data : array of Double) : float;inline;
+procedure MomentSkewKurtosis(const data : array of Double;
   out m1,m2,m3,m4,skew,kurtosis : float);inline;
-procedure momentskewkurtosis(const data : PDouble; Const N : Integer;
+procedure MomentSkewKurtosis(const data : PDouble; Const N : Integer;
   out m1,m2,m3,m4,skew,kurtosis : float);
 
 { geometrical function }
 
 { returns the euclidean L2 norm }
-function norm(const data : array of double) : float;inline;
-function norm(const data : PDouble; Const N : Integer) : float;
+function Norm(const data : array of double) : float;inline;
+function Norm(const data : PDouble; Const N : Integer) : float;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 { calculates the standard deviation }
-function stddev(const data : array of Extended) : float;inline;
-function stddev(const data : PExtended; Const N : Integer) : float;
+function StdDev(const data : array of Extended) : float;inline;
+function StdDev(const data : PExtended; Const N : Integer) : float;
 { calculates the mean and stddev }
-procedure meanandstddev(const data : array of Extended;
+procedure MeanAndStdDev(const data : array of Extended;
   var mean,stddev : float);inline;
-procedure meanandstddev(const data : PExtended;
+procedure MeanAndStdDev(const data : PExtended;
   Const N : Longint;var mean,stddev : float);
-function variance(const data : array of Extended) : float;inline;
-function totalvariance(const data : array of Extended) : float;inline;
-function variance(const data : PExtended; Const N : Integer) : float;
-function totalvariance(const data : PExtended; Const N : Integer) : float;
+function Variance(const data : array of Extended) : float;inline;
+function TotalVariance(const data : array of Extended) : float;inline;
+function Variance(const data : PExtended; Const N : Integer) : float;
+function TotalVariance(const data : PExtended; Const N : Integer) : float;
 
-{ I don't know what the following functions do: }
-function popnstddev(const data : array of Extended) : float;inline;
-function popnstddev(const data : PExtended; Const N : Integer) : float;
-function popnvariance(const data : PExtended; Const N : Integer) : float;
-function popnvariance(const data : array of Extended) : float;inline;
-procedure momentskewkurtosis(const data : array of Extended;
+{ Population (aka uncorrected) variance and standard deviation }
+function PopnStdDev(const data : array of Extended) : float;inline;
+function PopnStdDev(const data : PExtended; Const N : Integer) : float;
+function PopnVariance(const data : PExtended; Const N : Integer) : float;
+function PopnVariance(const data : array of Extended) : float;inline;
+procedure MomentSkewKurtosis(const data : array of Extended;
   out m1,m2,m3,m4,skew,kurtosis : float);inline;
-procedure momentskewkurtosis(const data : PExtended; Const N : Integer;
+procedure MomentSkewKurtosis(const data : PExtended; Const N : Integer;
   out m1,m2,m3,m4,skew,kurtosis : float);
 
 { geometrical function }
 
 { returns the euclidean L2 norm }
-function norm(const data : array of Extended) : float;inline;
-function norm(const data : PExtended; Const N : Integer) : float;
+function Norm(const data : array of Extended) : float;inline;
+function Norm(const data : PExtended; Const N : Integer) : float;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
 { Financial functions }
@@ -561,9 +625,9 @@ function PresentValue(ARate: Float; NPeriods: Integer;
 
 { Misc functions }
 
-function ifthen(val:boolean;const iftrue:integer; const iffalse:integer= 0) :integer; inline; overload;
-function ifthen(val:boolean;const iftrue:int64  ; const iffalse:int64 = 0)  :int64;   inline; overload;
-function ifthen(val:boolean;const iftrue:double ; const iffalse:double =0.0):double;  inline; overload;
+function IfThen(val:boolean;const iftrue:integer; const iffalse:integer= 0) :integer; inline; overload;
+function IfThen(val:boolean;const iftrue:int64  ; const iffalse:int64 = 0)  :int64;   inline; overload;
+function IfThen(val:boolean;const iftrue:double ; const iffalse:double =0.0):double;  inline; overload;
 
 function CompareValue ( const A, B  : Integer) : TValueRelationship; inline;
 function CompareValue ( const A, B  : Int64) : TValueRelationship; inline;
@@ -582,8 +646,12 @@ function CompareValue ( const A, B : Extended; delta : Extended = 0.0 ) : TValue
 function RandomFrom(const AValues: array of Double): Double; overload;
 function RandomFrom(const AValues: array of Integer): Integer; overload;
 function RandomFrom(const AValues: array of Int64): Int64; overload;
+{$if FPC_FULLVERSION >=30101}
+generic function RandomFrom<T>(const AValues:array of T):T;
+{$endif}
 
 { cpu specific stuff }
+
 type
   TFPURoundingMode = system.TFPURoundingMode;
   TFPUPrecisionMode = system.TFPUPrecisionMode;
@@ -600,6 +668,8 @@ procedure ClearExceptions(RaisePending: Boolean =true);
 
 
 implementation
+
+function copysign(x,y: float): float; forward;    { returns abs(x)*sign(y) }
 
 { include cpu specific stuff }
 {$i mathu.inc}
@@ -623,35 +693,35 @@ end;
 function Sign(const AValue: Integer): TValueSign;inline;
 
 begin
-  If Avalue<0 then
-    Result:=NegativeValue
-  else If Avalue>0 then
-    Result:=PositiveValue
-  else
-    Result:=ZeroValue;
+  result:=TValueSign(
+    SarLongint(AValue,sizeof(AValue)*8-1) or            { gives -1 for negative values, 0 otherwise }
+    (longint(-AValue) shr (sizeof(AValue)*8-1))         { gives 1 for positive values, 0 otherwise }
+  );
 end;
 
 function Sign(const AValue: Int64): TValueSign;inline;
 
 begin
+{$ifdef cpu64}
+  result:=TValueSign(
+    SarInt64(AValue,sizeof(AValue)*8-1) or
+    (-AValue shr (sizeof(AValue)*8-1))
+  );
+{$else cpu64}
   If Avalue<0 then
     Result:=NegativeValue
   else If Avalue>0 then
     Result:=PositiveValue
   else
     Result:=ZeroValue;
+{$endif}
 end;
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function Sign(const AValue: Single): TValueSign;inline;
 
 begin
-  If Avalue<0.0 then
-    Result:=NegativeValue
-  else If Avalue>0.0 then
-    Result:=PositiveValue
-  else
-    Result:=ZeroValue;
+  Result:=ord(AValue>0.0)-ord(AValue<0.0);
 end;
 {$endif}
 
@@ -659,24 +729,14 @@ end;
 function Sign(const AValue: Double): TValueSign;inline;
 
 begin
-  If Avalue<0.0 then
-    Result:=NegativeValue
-  else If Avalue>0.0 then
-    Result:=PositiveValue
-  else
-    Result:=ZeroValue;
+  Result:=ord(AValue>0.0)-ord(AValue<0.0);
 end;
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function Sign(const AValue: Extended): TValueSign;inline;
 
 begin
-  If Avalue<0.0 then
-    Result:=NegativeValue
-  else If Avalue>0.0 then
-    Result:=PositiveValue
-  else
-    Result:=ZeroValue;
+  Result:=ord(AValue>0.0)-ord(AValue<0.0);
 end;
 {$endif}
 
@@ -722,10 +782,10 @@ function radtocycle(rad : float) : float;inline;
   end;
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
-Function DegNormalize(deg : single) : single; 
+Function DegNormalize(deg : single) : single;
 
 begin
-  Result:=Deg-Trunc(Deg/360)*360;
+  Result:=Deg-Int(Deg/360)*360;
   If Result<0 then Result:=Result+360;
 end;
 {$ENDIF}
@@ -733,7 +793,7 @@ end;
 Function DegNormalize(deg : double) : double; inline;
 
 begin
-  Result:=Deg-Trunc(Deg/360)*360;
+  Result:=Deg-Int(Deg/360)*360;
   If (Result<0) then Result:=Result+360;
 end;
 {$ENDIF}
@@ -741,7 +801,7 @@ end;
 Function DegNormalize(deg : extended) : extended; inline;
 
 begin
-  Result:=Deg-Trunc(Deg/360)*360;
+  Result:=Deg-Int(Deg/360)*360;
   If Result<0 then Result:=Result+360;
 end;
 {$ENDIF}
@@ -878,7 +938,8 @@ function sinh(x : float) : float;
      temp : float;
   begin
      temp:=exp(x);
-     sinh:=0.5*(temp-1.0/temp);
+     { copysign ensures that sinh(-0.0)=-0.0 }
+     sinh:=copysign(0.5*(temp-1.0/temp),x);
   end;
 
 Const MaxTanh = 5678.22249441322; // Ln(MaxExtended)/2
@@ -914,8 +975,13 @@ function arcosh(x : float) : float;
   end;
 
 function arsinh(x : float) : float;
+  var
+    z: float;
   begin
-     arsinh:=Ln(x+Sqrt(1+x*x));
+    z:=abs(x);
+    z:=Ln(z+Sqrt(1+z*z));
+    { copysign ensures that arsinh(-Inf)=-Inf and arsinh(-0.0)=-0.0 }
+    arsinh:=copysign(z,x);
   end;
 
 function artanh(x : float) : float;
@@ -974,8 +1040,8 @@ function lnxp1(x : float) : float;
       end;
   end;
 
-function power(base,exponent : float) : float;
 
+function power(base,exponent : float) : float;
   begin
     if Exponent=0.0 then
       result:=1.0
@@ -987,6 +1053,7 @@ function power(base,exponent : float) : float;
       result:=exp(exponent * ln (base));
   end;
 
+
 function intpower(base : float;const exponent : Integer) : float;
   var
      i : longint;
@@ -995,6 +1062,8 @@ function intpower(base : float;const exponent : Integer) : float;
        result:=1
      else
        begin
+         if exponent<0 then
+           base:=1.0/base;
          i:=abs(exponent);
          intpower:=1.0;
          while i>0 do
@@ -1007,8 +1076,6 @@ function intpower(base : float;const exponent : Integer) : float;
               i:=i-1;
               intpower:=intpower*base;
            end;
-         if exponent<0 then
-           intpower:=1.0/intpower;
        end;
   end;
 
@@ -1027,16 +1094,25 @@ operator ** (bas,expo : int64) i: int64; inline;
 
 function ceil(x : float) : integer;
   begin
-    Ceil:=Trunc(x);
-    If Frac(x)>0 then
-      Ceil:=Ceil+1;
+    Result:=Trunc(x)+ord(Frac(x)>0);
   end;
+
+
+function ceil64(x: float): Int64;
+  begin
+    Result:=Trunc(x)+ord(Frac(x)>0);
+  end;
+
 
 function floor(x : float) : integer;
   begin
-     Floor:=Trunc(x);
-     If Frac(x)<0 then
-       Floor := Floor-1;
+    Result:=Trunc(x)-ord(Frac(x)<0);
+  end;
+
+
+function floor64(x: float): Int64;
+  begin
+    Result:=Trunc(x)-ord(Frac(x)<0);
   end;
 
 
@@ -1083,7 +1159,7 @@ function sum(const data : array of Single) : float;inline;
 
 function sum(const data : PSingle;Const N : longint) : float;
   var
-     i : longint;
+     i : SizeInt;
   begin
      sum:=0.0;
      for i:=0 to N-1 do
@@ -1110,7 +1186,7 @@ function sum(const data : array of Double) : float; inline;
 
 function sum(const data : PDouble;Const N : longint) : float;
   var
-     i : longint;
+     i : SizeInt;
   begin
      sum:=0.0;
      for i:=0 to N-1 do
@@ -1137,7 +1213,7 @@ function sum(const data : array of Extended) : float; inline;
 
 function sum(const data : PExtended;Const N : longint) : float;
   var
-     i : longint;
+     i : SizeInt;
   begin
      sum:=0.0;
      for i:=0 to N-1 do
@@ -1147,7 +1223,7 @@ function sum(const data : PExtended;Const N : longint) : float;
 
 function sumInt(const data : PInt64;Const N : longint) : Int64;
   var
-     i : longint;
+     i : SizeInt;
   begin
      sumInt:=0;
      for i:=0 to N-1 do
@@ -1156,7 +1232,43 @@ function sumInt(const data : PInt64;Const N : longint) : Int64;
 
 function sumInt(const data : array of Int64) : Int64; inline;
   begin
-     Result:=SumInt(@Data[0],High(Data)+1);
+     Result:=SumInt(PInt64(@Data[0]),High(Data)+1);
+  end;
+
+function mean(const data : PInt64; const N : Longint):Float;
+  begin
+     mean:=sumInt(Data,N);
+     mean:=mean/N;
+  end;
+
+function mean(const data: array of Int64):Float;
+  begin
+     mean:=mean(PInt64(@data[0]),High(Data)+1);
+  end;
+
+function sumInt(const data : PInteger; Const N : longint) : Int64;
+var
+   i : SizeInt;
+  begin
+     sumInt:=0;
+     for i:=0 to N-1 do
+       sumInt:=sumInt+data[i];
+  end;
+
+function sumInt(const data : array of Integer) : Int64;inline;
+  begin
+     Result:=sumInt(PInteger(@Data[0]),High(Data)+1);
+  end;
+
+function mean(const data : PInteger; const N : Longint):Float;
+  begin
+     mean:=sumInt(Data,N);
+     mean:=mean/N;
+  end;
+
+function mean(const data: array of Integer):Float;
+  begin
+     mean:=mean(PInteger(@data[0]),High(Data)+1);
   end;
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
@@ -1167,7 +1279,7 @@ function sumInt(const data : array of Int64) : Int64; inline;
 
  function sumofsquares(const data : PSingle; Const N : Integer) : float;
   var
-     i : longint;
+     i : SizeInt;
   begin
      sumofsquares:=0.0;
      for i:=0 to N-1 do
@@ -1183,7 +1295,7 @@ end;
 procedure sumsandsquares(const data : PSingle; Const N : Integer;
   var sum,sumofsquares : float);
   var
-     i : Integer;
+     i : SizeInt;
      temp : float;
   begin
      sumofsquares:=0.0;
@@ -1205,7 +1317,7 @@ procedure sumsandsquares(const data : PSingle; Const N : Integer;
 
  function sumofsquares(const data : PDouble; Const N : Integer) : float;
   var
-     i : longint;
+     i : SizeInt;
   begin
      sumofsquares:=0.0;
      for i:=0 to N-1 do
@@ -1221,7 +1333,7 @@ end;
 procedure sumsandsquares(const data : PDouble; Const N : Integer;
   var sum,sumofsquares : float);
   var
-     i : Integer;
+     i : SizeInt;
      temp : float;
   begin
      sumofsquares:=0.0;
@@ -1243,7 +1355,7 @@ procedure sumsandsquares(const data : PDouble; Const N : Integer;
 
  function sumofsquares(const data : PExtended; Const N : Integer) : float;
   var
-     i : longint;
+     i : SizeInt;
   begin
      sumofsquares:=0.0;
      for i:=0 to N-1 do
@@ -1259,7 +1371,7 @@ end;
 procedure sumsandsquares(const data : PExtended; Const N : Integer;
   var sum,sumofsquares : float);
   var
-     i : Integer;
+     i : SizeInt;
      temp : float;
   begin
      sumofsquares:=0.0;
@@ -1297,8 +1409,17 @@ end;
 
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
-function stddev(const data : array of Single) : float; inline;
+procedure MeanAndTotalVariance
+  (const data: PSingle; N: LongInt; var mu, variance: float);
+var i: SizeInt;
+begin
+  mu := Mean( data, N );
+  variance := 0;
+  for i := 0 to N - 1 do
+    variance := variance + Sqr( data[i] - mu );
+end;
 
+function stddev(const data : array of Single) : float; inline;
 begin
   Result:=Stddev(PSingle(@Data[0]),High(Data)+1);
 end;
@@ -1314,25 +1435,17 @@ begin
   Meanandstddev(PSingle(@Data[0]),High(Data)+1,Mean,stddev);
 end;
 
-procedure meanandstddev(const data : PSingle;
-  Const N : Longint;var mean,stddev : float);
-
-Var I : longint;
-
+procedure meanandstddev
+( const data:   PSingle;
+  const N:      Longint;
+  var   mean,
+        stdDev: Float
+);
+var totalVariance: float;
 begin
-  Mean:=0;
-  StdDev:=0;
-  For I:=0 to N-1 do
-    begin
-    Mean:=Mean+Data[i];
-    StdDev:=StdDev+Sqr(Data[i]);
-    end;
-  Mean:=Mean/N;
-  StdDev:=(StdDev-N*Sqr(Mean));
-  If N>1 then
-    StdDev:=Sqrt(Stddev/(N-1))
-  else
-    StdDev:=0;
+  MeanAndTotalVariance( data, N, mean, totalVariance );
+  if N < 2 then stdDev := 0
+  else stdDev := Sqrt( totalVariance / ( N - 1 ) );
 end;
 
 function variance(const data : array of Single) : float; inline;
@@ -1353,20 +1466,11 @@ begin
   Result:=TotalVariance(PSingle(@Data[0]),High(Data)+1);
 end;
 
-function totalvariance(const data : PSingle;Const N : Integer) : float;
-
-   var S,SS : Float;
-
-  begin
-    If N=1 then
-      Result:=0
-    else
-      begin
-      SumsAndSquares(Data,N,S,SS);
-      Result := SS-Sqr(S)/N;
-      end;
-  end;
-
+function totalvariance(const data : PSingle; const N : Integer) : float;
+var mu: float;
+begin
+  MeanAndTotalVariance( data, N, mu, result );
+end;
 
 function popnstddev(const data : array of Single) : float;
   begin
@@ -1407,7 +1511,7 @@ procedure momentskewkurtosis(
   out kurtosis: float
 );
 var
-  i: integer;
+  i: SizeInt;
   value : psingle;
   deviation, deviation2: single;
   reciprocalN: float;
@@ -1456,8 +1560,17 @@ function norm(const data : PSingle; Const N : Integer) : float;
 {$endif FPC_HAS_TYPE_SINGLE}
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function stddev(const data : array of Double) : float; inline;
+procedure MeanAndTotalVariance
+  (const data: PDouble; N: LongInt; var mu, variance: float);
+var i: SizeInt;
+begin
+  mu := Mean( data, N );
+  variance := 0;
+  for i := 0 to N - 1 do
+    variance := variance + Sqr( data[i] - mu );
+end;
 
+function stddev(const data : array of Double) : float; inline;
 begin
   Result:=Stddev(PDouble(@Data[0]),High(Data)+1)
 end;
@@ -1474,25 +1587,17 @@ begin
   Meanandstddev(PDouble(@Data[0]),High(Data)+1,Mean,stddev);
 end;
 
-procedure meanandstddev(const data : PDouble;
-  Const N : Longint;var mean,stddev : float);
-
-Var I : longint;
-
+procedure meanandstddev
+( const data:   PDouble;
+  const N:      Longint;
+  var   mean,
+        stdDev: Float
+);
+var totalVariance: float;
 begin
-  Mean:=0;
-  StdDev:=0;
-  For I:=0 to N-1 do
-    begin
-    Mean:=Mean+Data[i];
-    StdDev:=StdDev+Sqr(Data[i]);
-    end;
-  Mean:=Mean/N;
-  StdDev:=(StdDev-N*Sqr(Mean));
-  If N>1 then
-    StdDev:=Sqrt(Stddev/(N-1))
-  else
-    StdDev:=0;
+  MeanAndTotalVariance( data, N, mean, totalVariance );
+  if N < 2 then stdDev := 0
+  else stdDev := Sqrt( totalVariance / ( N - 1 ) );
 end;
 
 function variance(const data : array of Double) : float; inline;
@@ -1514,20 +1619,11 @@ begin
   Result:=TotalVariance(PDouble(@Data[0]),High(Data)+1);
 end;
 
-function totalvariance(const data : PDouble;Const N : Integer) : float;
-
-   var S,SS : Float;
-
-  begin
-    If N=1 then
-      Result:=0
-    else
-      begin
-      SumsAndSquares(Data,N,S,SS);
-      Result := SS-Sqr(S)/N;
-      end;
-  end;
-
+function totalvariance(const data : PDouble; const N : Integer) : float;
+var mu: float;
+begin
+  MeanAndTotalVariance( data, N, mu, result );
+end;
 
 function popnstddev(const data : array of Double) : float;
 
@@ -1570,7 +1666,7 @@ procedure momentskewkurtosis(
   out kurtosis: float
 );
 var
-  i: integer;
+  i: SizeInt;
   value : pdouble;
   deviation, deviation2: double;
   reciprocalN: float;
@@ -1619,6 +1715,16 @@ function norm(const data : PDouble; Const N : Integer) : float;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
+procedure MeanAndTotalVariance
+  (const data: PExtended; N: LongInt; var mu, variance: float);
+var i: SizeInt;
+begin
+  mu := Mean( data, N );
+  variance := 0;
+  for i := 0 to N - 1 do
+    variance := variance + Sqr( data[i] - mu );
+end;
+
 function stddev(const data : array of Extended) : float; inline;
 begin
   Result:=Stddev(PExtended(@Data[0]),High(Data)+1)
@@ -1635,25 +1741,17 @@ begin
   Meanandstddev(PExtended(@Data[0]),High(Data)+1,Mean,stddev);
 end;
 
-procedure meanandstddev(const data : PExtended;
-  Const N : Longint;var mean,stddev : float);
-
-Var I : longint;
-
+procedure meanandstddev
+( const data:   PExtended;
+  const N:      Longint;
+  var   mean,
+        stdDev: Float
+);
+var totalVariance: float;
 begin
-  Mean:=0;
-  StdDev:=0;
-  For I:=0 to N-1 do
-    begin
-      Mean:=Mean+Data[i];
-      StdDev:=StdDev+Sqr(Data[i]);
-    end;
-  Mean:=Mean/N;
-  StdDev:=(StdDev-N*Sqr(Mean));
-  If N>1 then
-    StdDev:=Sqrt(Stddev/(N-1))
-  else
-    StdDev:=0;
+  MeanAndTotalVariance( data, N, mean, totalVariance );
+  if N < 2 then stdDev := 0
+  else stdDev := Sqrt( totalVariance / ( N - 1 ) );
 end;
 
 function variance(const data : array of Extended) : float; inline;
@@ -1676,19 +1774,10 @@ begin
 end;
 
 function totalvariance(const data : PExtended;Const N : Integer) : float;
-
-   var S,SS : Float;
-
-  begin
-    If N=1 then
-      Result:=0
-    else
-      begin
-      SumsAndSquares(Data,N,S,SS);
-      Result := SS-Sqr(S)/N;
-      end;
-  end;
-
+var mu: float;
+begin
+  MeanAndTotalVariance( data, N, mu, result );
+end;
 
 function popnstddev(const data : array of Extended) : float;
 
@@ -1721,7 +1810,7 @@ end;
 
 procedure momentskewkurtosis(
   const data: pExtended;
-  Const N: integer;
+  Const N: Integer;
   out m1: float;
   out m2: float;
   out m3: float;
@@ -1781,7 +1870,7 @@ function norm(const data : PExtended; Const N : Integer) : float;
 
 function MinIntValue(const Data: array of Integer): Integer;
 var
-  I: Integer;
+  I: SizeInt;
 begin
   Result := Data[Low(Data)];
   For I := Succ(Low(Data)) To High(Data) Do
@@ -1790,7 +1879,7 @@ end;
 
 function MaxIntValue(const Data: array of Integer): Integer;
 var
-  I: Integer;
+  I: SizeInt;
 begin
   Result := Data[Low(Data)];
   For I := Succ(Low(Data)) To High(Data) Do
@@ -1804,7 +1893,7 @@ end;
 
 function MinValue(const Data: PInteger; Const N : Integer): Integer;
 var
-  I: Integer;
+  I: SizeInt;
 begin
   Result := Data[0];
   For I := 1 To N-1 do
@@ -1818,7 +1907,7 @@ end;
 
 function maxvalue(const data : PInteger; Const N : Integer) : Integer;
 var
-   i : longint;
+   i : SizeInt;
 begin
    { get an initial value }
    maxvalue:=data[0];
@@ -1835,7 +1924,7 @@ end;
 
 function minvalue(const data : PSingle; Const N : Integer) : Single;
 var
-   i : longint;
+   i : SizeInt;
 begin
    { get an initial value }
    minvalue:=data[0];
@@ -1852,7 +1941,7 @@ end;
 
 function maxvalue(const data : PSingle; Const N : Integer) : Single;
 var
-   i : longint;
+   i : SizeInt;
 begin
    { get an initial value }
    maxvalue:=data[0];
@@ -1870,7 +1959,7 @@ end;
 
 function minvalue(const data : PDouble; Const N : Integer) : Double;
 var
-   i : longint;
+   i : SizeInt;
 begin
    { get an initial value }
    minvalue:=data[0];
@@ -1887,7 +1976,7 @@ end;
 
 function maxvalue(const data : PDouble; Const N : Integer) : Double;
 var
-   i : longint;
+   i : SizeInt;
 begin
    { get an initial value }
    maxvalue:=data[0];
@@ -1905,7 +1994,7 @@ end;
 
 function minvalue(const data : PExtended; Const N : Integer) : Extended;
 var
-   i : longint;
+   i : SizeInt;
 begin
    { get an initial value }
    minvalue:=data[0];
@@ -1922,7 +2011,7 @@ end;
 
 function maxvalue(const data : PExtended; Const N : Integer) : Extended;
 var
-   i : longint;
+   i : SizeInt;
 begin
    { get an initial value }
    maxvalue:=data[0];
@@ -1976,6 +2065,22 @@ begin
 end;
 
 function Max(a, b: Int64): Int64;inline;
+begin
+  if a > b then
+    Result := a
+  else
+    Result := b;
+end;
+
+function Min(a, b: QWord): QWord; inline;
+begin
+  if a < b then
+    Result := a
+  else
+    Result := b;
+end;
+
+function Max(a, b: QWord): Qword;inline;
 begin
   if a > b then
     Result := a
@@ -2061,8 +2166,8 @@ function EnsureRange(const AValue, AMin, AMax: Integer): Integer;inline;
 begin
   Result:=AValue;
   If Result<AMin then
-    Result:=AMin
-  else if Result>AMax then
+    Result:=AMin;
+  if Result>AMax then
     Result:=AMax;
 end;
 
@@ -2071,8 +2176,8 @@ function EnsureRange(const AValue, AMin, AMax: Int64): Int64;inline;
 begin
   Result:=AValue;
   If Result<AMin then
-    Result:=AMin
-  else if Result>AMax then
+    Result:=AMin;
+  if Result>AMax then
     Result:=AMax;
 end;
 
@@ -2082,8 +2187,8 @@ function EnsureRange(const AValue, AMin, AMax: Double): Double;inline;
 begin
   Result:=AValue;
   If Result<AMin then
-    Result:=AMin
-  else if Result>AMax then
+    Result:=AMin;
+  if Result>AMax then
     Result:=AMax;
 end;
 {$endif FPC_HAS_TYPE_DOUBLE}
@@ -2146,6 +2251,10 @@ type
     cards: Array[0..1] of cardinal;
   end;
 
+  TSplitExtended = packed record
+    cards: Array[0..1] of cardinal;
+    w: word;
+  end;
 
 function IsNan(const d : Single): Boolean; overload;
   begin
@@ -2172,13 +2281,6 @@ function IsNan(const d : Double): Boolean;
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function IsNan(const d : Extended): Boolean; overload;
-  type
-    TSplitExtended = packed record
-      case byte of
-        0: (bytes: Array[0..9] of byte);
-        1: (words: Array[0..4] of word);
-        2: (cards: Array[0..1] of cardinal; w: word);
-    end;
   var
     fraczero, expMaximal: boolean;
   begin
@@ -2193,7 +2295,13 @@ function IsNan(const d : Extended): Boolean; overload;
   end;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
-function IsInfinite(const d : Double): Boolean;
+function IsInfinite(const d : Single): Boolean; overload;
+  begin
+    result:=(longword(d) and $7fffffff)=$7f800000;
+  end;
+
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function IsInfinite(const d : Double): Boolean; overload;
   var
     fraczero, expMaximal: boolean;
   begin
@@ -2208,7 +2316,41 @@ function IsInfinite(const d : Double): Boolean;
 {$endif FPC_BIG_ENDIAN}
     Result:=expMaximal and fraczero;
   end;
+{$endif FPC_HAS_TYPE_DOUBLE}
 
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function IsInfinite(const d : Extended): Boolean; overload;
+  var
+    fraczero, expMaximal: boolean;
+  begin
+{$ifdef FPC_BIG_ENDIAN}
+  {$error no support for big endian extended type yet}
+{$else FPC_BIG_ENDIAN}
+    expMaximal := (TSplitExtended(d).w and $7fff) = 32767;
+    fraczero := (TSplitExtended(d).cards[0] = 0) and
+                    ((TSplitExtended(d).cards[1] and $7fffffff) = 0);
+{$endif FPC_BIG_ENDIAN}
+    Result:=expMaximal and fraczero;
+  end;
+{$endif FPC_HAS_TYPE_EXTENDED}
+
+function copysign(x,y: float): float;
+begin
+{$if defined(FPC_HAS_TYPE_FLOAT128)}
+  {$error copysign not yet implemented for float128}
+{$elseif defined(FPC_HAS_TYPE_EXTENDED)}
+  TSplitExtended(x).w:=(TSplitExtended(x).w and $7fff) or (TSplitExtended(y).w and $8000);
+{$elseif defined(FPC_HAS_TYPE_DOUBLE)}
+  {$if defined(FPC_BIG_ENDIAN) or defined(FPC_DOUBLE_HILO_SWAPPED)}
+  TSplitDouble(x).cards[0]:=(TSplitDouble(x).cards[0] and $7fffffff) or (TSplitDouble(y).cards[0] and longword($80000000));
+  {$else}
+  TSplitDouble(x).cards[1]:=(TSplitDouble(x).cards[1] and $7fffffff) or (TSplitDouble(y).cards[1] and longword($80000000));
+  {$endif}
+{$else}
+  longword(x):=longword(x and $7fffffff) or (longword(y) and longword($80000000));
+{$endif}
+  result:=x;
+end;
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function SameValue(const A, B: Extended; Epsilon: Extended): Boolean;
@@ -2323,7 +2465,7 @@ begin
   if Dividend < 0 then
     begin
       { Use DivMod with >=0 dividend }
-	  Dividend:=-Dividend;
+      Dividend:=-Dividend;
       { The documented behavior of Pascal's div/mod operators and DivMod
         on negative dividends is to return Result closer to zero and
         a negative Remainder. Which means that we can just negate both
@@ -2333,12 +2475,40 @@ begin
     end
   else
     begin
-	  Result:=Dividend Div Divisor;
+      Result:=Dividend Div Divisor;
       Remainder:=Dividend-(Result*Divisor);
-	end;
+    end;
 end;
 {$endif FPC_MATH_HAS_DIVMOD}
 
+{ Floating point modulo}
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function FMod(const a, b: Single): Single;inline;overload;
+begin
+  result:= a-b * Int(a/b);
+end;
+{$endif FPC_HAS_TYPE_SINGLE}
+
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function FMod(const a, b: Double): Double;inline;overload;
+begin
+  result:= a-b * Int(a/b);
+end;
+{$endif FPC_HAS_TYPE_DOUBLE}
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function FMod(const a, b: Extended): Extended;inline;overload;
+begin
+  result:= a-b * Int(a/b);
+end;
+{$endif FPC_HAS_TYPE_EXTENDED}
+
+operator mod(const a,b:float) c:float;inline;
+begin
+  c:= a-b * Int(a/b);
+  if SameValue(abs(c),abs(b)) then
+    c:=0.0;
+end;
 
 function ifthen(val:boolean;const iftrue:integer; const iffalse:integer= 0) :integer;
 begin
@@ -2471,9 +2641,9 @@ var
 begin
   RV := IntPower(10, -Digits);
   if AValue < 0 then
-    Result := Trunc((AValue*RV) - 0.5)/RV
+    Result := Int((AValue*RV) - 0.5)/RV
   else
-    Result := Trunc((AValue*RV) + 0.5)/RV;
+    Result := Int((AValue*RV) + 0.5)/RV;
 end;
 {$endif}
 
@@ -2486,9 +2656,9 @@ var
 begin
   RV := IntPower(10, -Digits);
   if AValue < 0 then
-    Result := Trunc((AValue*RV) - 0.5)/RV
+    Result := Int((AValue*RV) - 0.5)/RV
   else
-    Result := Trunc((AValue*RV) + 0.5)/RV;
+    Result := Int((AValue*RV) + 0.5)/RV;
 end;
 {$endif}
 
@@ -2501,9 +2671,9 @@ var
 begin
   RV := IntPower(10, -Digits);
   if AValue < 0 then
-    Result := Trunc((AValue*RV) - 0.5)/RV
+    Result := Int((AValue*RV) - 0.5)/RV
   else
-    Result := Trunc((AValue*RV) + 0.5)/RV;
+    Result := Int((AValue*RV) + 0.5)/RV;
 end;
 {$endif}
 
@@ -2521,6 +2691,13 @@ function RandomFrom(const AValues: array of Int64): Int64; overload;
 begin
   result:=AValues[random(High(AValues)+1)];
 end;
+
+{$if FPC_FULLVERSION >=30101}
+generic function RandomFrom<T>(const AValues:array of T):T;
+begin
+  result:=AValues[random(High(AValues)+1)];
+end;
+{$endif}
 
 function FutureValue(ARate: Float; NPeriods: Integer;
   APayment, APresentValue: Float; APaymentTime: TPaymentTime): Float;

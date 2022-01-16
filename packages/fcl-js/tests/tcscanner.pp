@@ -5,7 +5,7 @@ unit tcscanner;
 interface
 
 uses
-  Classes, SysUtils, Typinfo, fpcunit, testutils, testregistry, jstoken, jsscanner;
+  Classes, SysUtils, Typinfo, fpcunit, testregistry, jstoken, jsscanner;
 
 type
 
@@ -34,23 +34,24 @@ type
 
   TTestJSScanner = class(TTestCase)
   Private
+    FNeedWhiteSpace: Boolean;
     FStream : TStream;
     FLineReader : TLineReader;
     FScanner : TJSScanner;
     FErrorSource : String;
     procedure AssertEquals(AMessage: String; AExpected, AActual : TJSToken); overload;
-    procedure CheckToken(AToken: TJSToken; ASource: String);
-    procedure CheckTokens(ASource: String; ATokens: array of TJSToken);
+    procedure CheckToken(AToken: TJSToken; ASource: String; aVersion : TECMAVersion = ecma5);
+    procedure CheckTokens(ASource: String; ATokens: array of TJSToken; aVersion : TECMAVersion = ecma5);
     procedure DoTestFloat(F: Double);
     procedure DoTestFloat(F: Double; S: String);
-    procedure DoTestString(S: String);
+    procedure DoTestString(S: String; WasMultiline : Boolean = False);
     procedure TestErrorSource;
   protected
-    Function CreateScanner(AInput : String) : TJSScanner;
+    Function CreateScanner(AInput : String; aVersion : TECMAVersion = ecma5) : TJSScanner;
     procedure FreeScanner;
     procedure SetUp; override;
     procedure TearDown; override;
-
+    Property NeedWhiteSpace : Boolean Read FNeedWhiteSpace Write FNeedWhiteSpace;
     Property Scanner : TJSScanner Read FScanner;
   published
     Procedure TestEmpty;
@@ -101,22 +102,44 @@ type
     procedure TestStarEq;
     procedure TestURShift;
     procedure TestURShiftEq;
+    procedure TestArrow;
+    procedure TestEllipsis;
+    procedure TestAwaitECMA5;
+    procedure TestAwaitECMA2021;
     procedure TestBreak;
     procedure TestCase;
     procedure TestCatch;
+    procedure TestClassECMA5;
+    procedure TestClassECMA2021;
+    procedure TestConstECMA5;
+    procedure TestConstECMA2021;
     procedure TestContinue;
+    procedure TestDebuggerECMA5;
+    procedure TestDebuggerECMA2021;
     procedure TestDefault;
     procedure TestDelete;
     procedure TestDO;
     procedure TestElse;
+    procedure TestEnumECMA5;
+    procedure TestEnumECMA2021;
+    procedure TestExportECMA5;
+    procedure TestExportECMA2021;
+    procedure TestExtendsECMA5;
+    procedure TestExtendsECMA2021;
     procedure TestFinally;
     procedure TestFor;
     procedure TestFunction;
     procedure TestIf;
+    procedure TestImportECMA5;
+    procedure TestImportECMA2021;
     procedure TestIn;
     procedure TestInstanceOf;
+    procedure TestLetECMA5;
+    procedure TestLetECMA2021;
     procedure TestNew;
     procedure TestReturn;
+    procedure TestSuperECMA5;
+    procedure TestSuperECMA2021;
     procedure TestSwitch;
     procedure TestThis;
     procedure TestThrow;
@@ -126,6 +149,8 @@ type
     procedure TestVoid;
     procedure TestWhile;
     procedure TestWith;
+    procedure TestYieldECMA5;
+    procedure TestYieldECMA2021;
     Procedure Test2Words;
     procedure Test3Words;
     procedure TestIdentifier;
@@ -147,18 +172,25 @@ type
     procedure TestFloat;
     procedure TestStringError;
     procedure TestFloatError;
+    procedure TestMultilineString;
+    procedure TestMultilineStringError;
+    procedure TestMultilineStringError2;
+    Procedure TestNonBreakingSpace;
   end;
 
 
 implementation
 
-Function TTestJSScanner.CreateScanner(AInput : String) : TJSScanner;
+Function TTestJSScanner.CreateScanner(AInput : String; aVersion : TECMAVersion = ecma5) : TJSScanner;
 
 begin
   FStream:=TStringStream.Create(AInput);
   FLineReader:=TStreamLineReader.Create(Fstream);
-  FScanner:=TJSScanner.Create(FLineReader);
+  FScanner:=TJSScanner.Create(FLineReader,aVersion);
+  FScanner.IsTypeScript:=False;
   Result:=FScanner;
+  if FNeedWhiteSpace then
+    FScanner.ReturnWhiteSpace:=True;
 end;
 
 procedure TTestJSScanner.FreeScanner;
@@ -171,6 +203,7 @@ end;
 procedure TTestJSScanner.SetUp;
 begin
   inherited SetUp;
+  FNeedWhiteSpace:=False;
 end;
 
 
@@ -190,7 +223,6 @@ end;
 procedure TTestJSScanner.AssertEquals(AMessage : String; AExpected, AActual: TJSToken);
 
 Var
-  J : TJSToken;
   S,EN1,EN2 : String;
 
 begin
@@ -203,14 +235,14 @@ begin
     end;
 end;
 
-procedure TTestJSScanner.CheckToken(AToken : TJSToken; ASource : String);
+procedure TTestJSScanner.CheckToken(AToken: TJSToken; ASource: String; aVersion: TECMAVersion);
 
 Var
   J : TJSToken;
   EN2 : String;
 
 begin
-  CreateScanner(ASource);
+  CreateScanner(ASource,aVersion);
   J:=Scanner.FetchToken;
   EN2:=GetEnumName(TypeINfo(TJSToken),Ord(AToken));
   AssertEquals(Format('Source %s should result in %s.',[ASource,EN2]),AToken,J);
@@ -462,6 +494,26 @@ begin
   CheckToken(tjsURSHIFTEQ,'>>>=');
 end;
 
+procedure TTestJSScanner.TestArrow;
+begin
+  CheckToken(tjsArrow,'=>');
+end;
+
+procedure TTestJSScanner.TestEllipsis;
+begin
+  CheckToken(tjsEllipsis,'...');
+end;
+
+procedure TTestJSScanner.TestAwaitECMA5;
+begin
+  CheckToken(tjsIdentifier,'await');
+end;
+
+procedure TTestJSScanner.TestAwaitECMA2021;
+begin
+  CheckToken(tjsAwait,'await',ecma2021);
+end;
+
 procedure TTestJSScanner.TestRShift;
 
 begin
@@ -510,10 +562,40 @@ begin
   CheckToken(tjscatch,'catch');
 end;
 
+procedure TTestJSScanner.TestClassECMA5;
+begin
+  CheckToken(tjsIdentifier,'class');
+end;
+
+procedure TTestJSScanner.TestClassECMA2021;
+begin
+  CheckToken(tjsClass,'class',ecma2021);
+end;
+
+procedure TTestJSScanner.TestConstECMA5;
+begin
+  CheckToken(tjsIdentifier,'const');
+end;
+
+procedure TTestJSScanner.TestConstECMA2021;
+begin
+  CheckToken(tjsConst,'const',ecma2021);
+end;
+
 procedure TTestJSScanner.TestContinue;
 
 begin
   CheckToken(tjscontinue,'continue');
+end;
+
+procedure TTestJSScanner.TestDebuggerECMA5;
+begin
+  CheckToken(tjsidentifier,'debugger');
+end;
+
+procedure TTestJSScanner.TestDebuggerECMA2021;
+begin
+  CheckToken(tjsDebugger,'debugger',ecma2021);
 end;
 
 procedure TTestJSScanner.TestDefault;
@@ -540,6 +622,36 @@ begin
   CheckToken(tjselse,'else');
 end;
 
+procedure TTestJSScanner.TestEnumECMA5;
+begin
+  CheckToken(tjsIdentifier,'enum');
+end;
+
+procedure TTestJSScanner.TestEnumECMA2021;
+begin
+  CheckToken(tjsenum,'enum',ecma2021);
+end;
+
+procedure TTestJSScanner.TestExportECMA5;
+begin
+  CheckToken(tjsIdentifier,'export');
+end;
+
+procedure TTestJSScanner.TestExportECMA2021;
+begin
+  CheckToken(tjsexport,'export',ecma2021);
+end;
+
+procedure TTestJSScanner.TestExtendsECMA5;
+begin
+  CheckToken(tjsIdentifier,'extends');
+end;
+
+procedure TTestJSScanner.TestExtendsECMA2021;
+begin
+  CheckToken(tjsextends,'extends',ecma2021);
+end;
+
 procedure TTestJSScanner.TestFinally;
 
 begin
@@ -564,6 +676,16 @@ begin
   CheckToken(tjsif,'if');
 end;
 
+procedure TTestJSScanner.TestImportECMA5;
+begin
+  CheckToken(tjsIdentifier,'import');
+end;
+
+procedure TTestJSScanner.TestImportECMA2021;
+begin
+  CheckToken(tjsImport,'import',ecma2021);
+end;
+
 procedure TTestJSScanner.TestIn;
 
 begin
@@ -576,6 +698,16 @@ begin
   CheckToken(tjsinstanceof,'instanceof');
 end;
 
+procedure TTestJSScanner.TestLetECMA5;
+begin
+  CheckToken(tjsIdentifier,'let');
+end;
+
+procedure TTestJSScanner.TestLetECMA2021;
+begin
+  CheckToken(tjsLet,'let',ecma2021);
+end;
+
 procedure TTestJSScanner.TestNew;
 
 begin
@@ -586,6 +718,16 @@ procedure TTestJSScanner.TestReturn;
 
 begin
   CheckToken(tjsreturn,'return');
+end;
+
+procedure TTestJSScanner.TestSuperECMA5;
+begin
+  CheckToken(tjsIdentifier,'super');
+end;
+
+procedure TTestJSScanner.TestSuperECMA2021;
+begin
+  CheckToken(tjsSuper,'super',ecma2021);
 end;
 
 procedure TTestJSScanner.TestSwitch;
@@ -642,7 +784,17 @@ begin
   CheckToken(tjswith,'with');
 end;
 
-procedure TTestJSScanner.CheckTokens(ASource : String; ATokens : Array of TJSToken);
+procedure TTestJSScanner.TestYieldECMA5;
+begin
+  CheckToken(tjsIdentifier,'yield');
+end;
+
+procedure TTestJSScanner.TestYieldECMA2021;
+begin
+  CheckToken(tjsYield,'yield',ecma2021);
+end;
+
+procedure TTestJSScanner.CheckTokens(ASource : String; ATokens : Array of TJSToken; aVersion: TECMAVersion = ecma5);
 
 Var
   I : Integer;
@@ -650,7 +802,7 @@ Var
   S : String;
 
 begin
-  CreateScanner(ASource);
+  CreateScanner(ASource,aVersion);
   For I:=Low(ATokens) to High(ATokens) do
     begin
     J:=FScanner.FetchToken;
@@ -853,19 +1005,19 @@ begin
 end;
 
 
-procedure TTestJSScanner.DoTestString(S: String);
+procedure TTestJSScanner.DoTestString(S: String; WasMultiline : Boolean = False);
 
 Var
   J : TJSToken;
-  T : String;
 begin
   CreateScanner(S);
   try
     J:=FScanner.FetchToken;
     AssertEquals(S+' is a string',tjsString,J);
-    If (Length(S)>0) and (S[1] in ['"','''']) then
+    If (Length(S)>0) and (S[1] in ['"','''','`']) then
       S:=Copy(S,2,Length(S)-2);
     AssertEquals('Correct string is returned',S,FScanner.CurTokenString);
+    AssertEquals('Multiline ?',WasMultiline,FScanner.WasMultilineString);
   finally
     FreeScanner;
   end;
@@ -899,6 +1051,31 @@ begin
   FErrorSource:='''A string';
   AssertException('Unterminated string',EJSScannerError,@TestErrorSource);
 end;
+
+procedure TTestJSScanner.TestMultilineString;
+
+begin
+  DoTestString('`A'#10'B`',True);
+end;
+
+procedure TTestJSScanner.TestMultilineStringError;
+begin
+  FErrorSource:='`A'#10;
+  AssertException('Unterminated string',EJSScannerError,@TestErrorSource);
+end;
+
+procedure TTestJSScanner.TestMultilineStringError2;
+begin
+  FErrorSource:='`A'#10'B';
+  AssertException('Unterminated string',EJSScannerError,@TestErrorSource);
+end;
+
+procedure TTestJSScanner.TestNonBreakingSpace;
+begin
+  NeedWhiteSpace:=True;
+  CheckToken(tjsWhiteSpace,#$C2#$A0);
+end;
+
 
 
 { TTestLineReader }

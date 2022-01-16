@@ -58,6 +58,10 @@ procedure sincos(theta : single;out sinus,cosinus : single);assembler;
   end;}
 
 
+{NOTE: the fpatan instruction on the 8087 and 80287 has the following restrictions:
+            0 <= ST(0) <= PI/4
+       so the following code requires a 387+ and is therefore disabled, so that we use the
+       generic implementation, until an asm optimized version, compatible with 8087/80287 is written }
 {//$define FPC_MATH_HAS_TAN}
 {function tan(x : float) : float;assembler;
   asm
@@ -151,6 +155,7 @@ function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
 var
   CtlWord: Word;
 begin
+  softfloat_rounding_mode:=RoundMode;
   CtlWord := Get8087CW;
   Set8087CW((CtlWord and $F3FF) or (Ord(RoundMode) shl 10));
 {  if has_sse_support then

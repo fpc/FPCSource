@@ -1,0 +1,10 @@
+{$define FRAMEWORK_LOADED_PUBSUB}
+{$include PubSub.inc}
+{$include PSEnclosure.inc}
+{$include PSClient.inc}
+{$include PSFeed.inc}
+{$include PSFeedSettings.inc}
+{$include PSEntry.inc}
+{$include PSAuthor.inc}
+{$include PSContent.inc}
+{$include PSLink.inc}

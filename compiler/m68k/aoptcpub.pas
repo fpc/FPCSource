@@ -74,10 +74,6 @@ Const
 
   MaxCh = 3;
 
-{ the maximum number of operands an instruction has }
-
-  MaxOps = 3;
-
 {Oper index of operand that contains the source (reference) with a load }
 {instruction                                                            }
 
@@ -127,6 +123,8 @@ End;
           top_ref:
             if (taicpu(p1).spilling_get_operation_type_ref(i,Reg)<>operand_read) then
               exit(true);
+          else
+            ;
         end;
     end;
 

@@ -23,65 +23,7 @@ Interface
 uses
   CustApp,Classes,SysUtils, httpdefs, fphttp, eventlog;
 
-Const
-  CGIVarCount = 44 ;
-
 Type
-  TCGIVarArray = Array[1..CGIVarCount] of String;
-
-Const
-  CgiVarNames : TCGIVarArray =
-   ({ 1  } 'AUTH_TYPE',
-    { 2  } 'CONTENT_LENGTH',
-    { 3  } 'CONTENT_TYPE',
-    { 4  } 'GATEWAY_INTERFACE',
-    { 5  } 'PATH_INFO',
-    { 6  } 'PATH_TRANSLATED',
-    { 7  } 'QUERY_STRING',
-    { 8  } 'REMOTE_ADDR',
-    { 9  } 'REMOTE_HOST',
-    { 10 } 'REMOTE_IDENT',
-    { 11 } 'REMOTE_USER',
-    { 12 } 'REQUEST_METHOD',
-    { 13 } 'SCRIPT_NAME',
-    { 14 } 'SERVER_NAME',
-    { 15 } 'SERVER_PORT',
-    { 16 } 'SERVER_PROTOCOL',
-    { 17 } 'SERVER_SOFTWARE',
-    { 18 } 'HTTP_ACCEPT',
-    { 19 } 'HTTP_ACCEPT_CHARSET',
-    { 20 } 'HTTP_ACCEPT_ENCODING',
-    { 21 } 'HTTP_IF_MODIFIED_SINCE',
-    { 22 } 'HTTP_REFERER',
-    { 23 } 'HTTP_USER_AGENT',
-    { 24 } 'HTTP_COOKIE',
-
-     // Additional Apache vars
-    { 25 } 'HTTP_CONNECTION',
-    { 26 } 'HTTP_ACCEPT_LANGUAGE',
-    { 27 } 'HTTP_HOST',
-    { 28 } 'SERVER_SIGNATURE',
-    { 29 } 'SERVER_ADDR',
-    { 30 } 'DOCUMENT_ROOT',
-    { 31 } 'SERVER_ADMIN',
-    { 32 } 'SCRIPT_FILENAME',
-    { 33 } 'REMOTE_PORT',
-    { 34 } 'REQUEST_URI',
-    { 35 } 'CONTENT',
-    { 36 } 'HTTP_X_REQUESTED_WITH',
-    { 37 } 'HTTP_AUTHORIZATION',
-    { 38 } 'SCRIPT_URI',
-    { 39 } 'SCRIPT_URL',
-    { 40 } 'CONTEXT_DOCUMENT_ROOT',
-    { 41 } 'CONTEXT_PREFIX',
-    { 42 } 'HTTP_CACHE_CONTROL',
-    { 43 } 'HTTP_PRAGMA',
-    { 44 } 'REQUEST_SCHEME'
-
-    );
-
-Type
-
   { TCustomWebApplication }
 
   TGetModuleEvent = Procedure (Sender : TObject; ARequest : TRequest;
@@ -95,6 +37,7 @@ Type
   TWebHandler = class(TComponent)
   private
     FDefaultModuleName: String;
+    FLegacyRouting: Boolean;
     FOnIdle: TNotifyEvent;
     FOnInitModule: TInitModuleEvent;
     FOnUnknownRequestEncoding: TOnUnknownEncodingEvent;
@@ -113,6 +56,9 @@ Type
     FOnTerminate : TNotifyEvent;
     FOnLog : TLogEvent;
     FPreferModuleName : Boolean;
+    procedure DoCallModule(AModule: TCustomHTTPModule; AModuleName: String; ARequest: TRequest; AResponse: TResponse);
+    procedure HandleModuleRequest(Sender: TModuleItem; ARequest: TRequest; AResponse: TResponse);
+    procedure OldHandleRequest(ARequest: TRequest; AResponse: TResponse);
   protected
     Class Procedure DoError(Msg : String; AStatusCode : Integer = 0; AStatusText : String = '');
     Class Procedure DoError(Fmt : String; Const Args : Array of const;AStatusCode : Integer = 0; AStatusText : String = '');
@@ -131,6 +77,7 @@ Type
     property Terminated: boolean read FTerminated;
   Public
     constructor Create(AOwner: TComponent); override;
+    Destructor Destroy; override;
     Procedure Run; virtual;
     Procedure Log(EventType : TEventType; Const Msg : String);
     Procedure DoHandleRequest(ARequest : TRequest; AResponse : TResponse);
@@ -152,6 +99,7 @@ Type
     Property OnUnknownRequestEncoding : TOnUnknownEncodingEvent Read FOnUnknownRequestEncoding Write FOnUnknownRequestEncoding;
     Property OnInitModule: TInitModuleEvent Read FOnInitModule write FOnInitModule;
     Property PreferModuleName : Boolean Read FPreferModuleName Write FPreferModuleName;
+    Property LegacyRouting : Boolean Read FLegacyRouting Write FLegacyRouting;
   end;
 
   TCustomWebApplication = Class(TCustomApplication)
@@ -165,6 +113,7 @@ Type
     function GetEmail: String;
     function GetEventLog: TEventLog;
     function GetHandleGetOnPost: Boolean;
+    function GetLegacyRouting: Boolean;
     function GetModuleVar: String;
     function GetOnGetModule: TGetModuleEvent;
     function GetOnShowRequestException: TOnShowRequestException;
@@ -178,6 +127,7 @@ Type
     procedure SetDefaultModuleName(AValue: String);
     procedure SetEmail(const AValue: String);
     procedure SetHandleGetOnPost(const AValue: Boolean);
+    procedure SetLegacyRouting(AValue: Boolean);
     procedure SetModuleVar(const AValue: String);
     procedure SetOnGetModule(const AValue: TGetModuleEvent);
     procedure SetOnShowRequestException(const AValue: TOnShowRequestException);
@@ -189,6 +139,7 @@ Type
   protected
     Procedure DoRun; override;
     Function CreateEventLog : TEventLog; virtual;
+    procedure FreeEventLog(AEventLog: TEventLog); virtual;
     function InitializeWebHandler: TWebHandler; virtual; abstract;
     Procedure DoLog(EventType: TEventType; const Msg: String); override;
     procedure SetTitle(const AValue: string); override;
@@ -213,6 +164,7 @@ Type
     Property OnUnknownRequestEncoding : TOnUnknownEncodingEvent Read GetOnUnknownRequestEncoding Write SetOnUnknownRequestEncoding;
     Property EventLog: TEventLog read GetEventLog;
     Property PreferModuleName : Boolean Read GetPreferModuleName Write SetPreferModuleName;
+    Property LegacyRouting : Boolean Read GetLegacyRouting Write SetLegacyRouting;
   end;
 
   EFPWebError = Class(EFPHTTPError);
@@ -221,10 +173,12 @@ procedure ExceptionToHTML(S: TStrings; const E: Exception; const Title, Email, A
 
 Implementation
 
-{$ifdef CGIDEBUG}
+
 uses
-  dbugintf;
-{$endif}
+  {$ifdef CGIDEBUG}
+  dbugintf,
+  {$endif}
+  httproute;
 
 resourcestring
   SErrNoModuleNameForRequest = 'Could not determine HTTP module name for request';
@@ -360,7 +314,62 @@ begin
   Result := FAdministrator;
 end;
 
+Procedure TWebHandler.DoCallModule(AModule : TCustomHTTPModule; AModuleName : String ; ARequest: TRequest; AResponse: TResponse);
+
+begin
+  SetBaseURL(AModule,AModuleName,ARequest);
+  if (OnInitModule<>Nil) then
+    OnInitModule(Self,AModule);
+  AModule.DoAfterInitModule(ARequest);
+  if AModule.Kind=wkOneShot then
+    begin
+    try
+      AModule.HandleRequest(ARequest,AResponse);
+    finally
+      AModule.Free;
+    end;
+    end
+  else
+    AModule.HandleRequest(ARequest,AResponse);
+end;
+
+Procedure TWebHandler.HandleModuleRequest(Sender : TModuleItem; ARequest: TRequest; AResponse: TResponse);
+
+Var
+  MC : TCustomHTTPModuleClass;
+  M  : TCustomHTTPModule;
+  MN : String;
+
+begin
+  MC:=Sender.ModuleClass;
+  MN:=Sender.ModuleName;
+  // Modules expect the path info to contain the action name as the first part. (See getmodulename);
+  ARequest.GetNextPathInfo;
+  M:=FindModule(MC);
+  if (M=Nil) then
+    if Sender.SkipStreaming then
+      M:=MC.CreateNew(Self)
+    else
+      M:=MC.Create(Self);
+  DoCallModule(M,MN,ARequest,AResponse);
+end;
+
 Procedure TWebHandler.HandleRequest(ARequest: TRequest; AResponse: TResponse);
+
+begin
+  try
+    if LegacyRouting then
+      OldHandleRequest(ARequest,AResponse)
+    else
+      HTTPRouter.RouteRequest(ARequest,AResponse);
+  except
+    On E : Exception do
+      ShowRequestException(AResponse,E);
+  end;
+end;
+
+Procedure TWebHandler.OldHandleRequest(ARequest: TRequest; AResponse: TResponse);
+
 Var
   MC : TCustomHTTPModuleClass;
   M  : TCustomHTTPModule;
@@ -368,44 +377,26 @@ Var
   MI : TModuleItem;
 
 begin
-  try
-    MC:=Nil;
-    M:=NIL;
-    MI:=Nil;
-    If (OnGetModule<>Nil) then
-      OnGetModule(Self,ARequest,MC);
-    If (MC=Nil) then
-      begin
-      MN:=GetModuleName(ARequest);
-      MI:=ModuleFactory.FindModule(MN);
-      if (MI=Nil) then
-        DoError(SErrNoModuleForRequest,[MN],400,'Not found');
-      MC:=MI.ModuleClass;
-      end;
-    M:=FindModule(MC); // Check if a module exists already
-    If (M=Nil) then
-      if assigned(MI) and Mi.SkipStreaming then
-        M:=MC.CreateNew(Self)
-      else
-        M:=MC.Create(Self);
-    SetBaseURL(M,MN,ARequest);
-    if (OnInitModule<>Nil) then
-      OnInitModule(Self,M);
-    M.DoAfterInitModule(ARequest);
-    if M.Kind=wkOneShot then
-      begin
-      try
-        M.HandleRequest(ARequest,AResponse);
-      finally
-        M.Free;
-      end;
-      end
+  MC:=Nil;
+  M:=NIL;
+  MI:=Nil;
+  If (OnGetModule<>Nil) then
+    OnGetModule(Self,ARequest,MC);
+  If (MC=Nil) then
+    begin
+    MN:=GetModuleName(ARequest);
+    MI:=ModuleFactory.FindModule(MN);
+    if (MI=Nil) then
+      DoError(SErrNoModuleForRequest,[MN],400,'Not found');
+    MC:=MI.ModuleClass;
+    end;
+  M:=FindModule(MC); // Check if a module exists already
+  If (M=Nil) then
+    if assigned(MI) and Mi.SkipStreaming then
+      M:=MC.CreateNew(Self)
     else
-      M.HandleRequest(ARequest,AResponse);
-  except
-    On E : Exception do
-      ShowRequestException(AResponse,E);
-  end;
+      M:=MC.Create(Self);
+   DoCallModule(M,MN,ARequest,AResponse);
 end;
 
 function TWebHandler.GetApplicationURL(ARequest: TRequest): String;
@@ -540,6 +531,13 @@ begin
   FHandleGetOnPost := True;
   FRedirectOnError := False;
   FRedirectOnErrorURL := '';
+  ModuleFactory.OnModuleRequest:=@HandleModuleRequest;
+end;
+
+destructor TWebHandler.Destroy;
+begin
+  ModuleFactory.OnModuleRequest:=@HandleModuleRequest;
+  Inherited;
 end;
 
 { TCustomWebApplication }
@@ -582,6 +580,11 @@ begin
     end;
 end;
 
+procedure TCustomWebApplication.FreeEventLog(AEventLog: TEventLog);
+begin
+  AEventLog.Free;
+end;
+
 function TCustomWebApplication.GetEventLog: TEventLog;
 
 begin
@@ -593,6 +596,11 @@ end;
 function TCustomWebApplication.GetHandleGetOnPost: Boolean;
 begin
   result := FWebHandler.HandleGetOnPost;
+end;
+
+function TCustomWebApplication.GetLegacyRouting: Boolean;
+begin
+  Result:=FWebHandler.LegacyRouting;
 end;
 
 function TCustomWebApplication.GetModuleVar: String;
@@ -660,6 +668,11 @@ begin
   FWebHandler.HandleGetOnPost := AValue;
 end;
 
+procedure TCustomWebApplication.SetLegacyRouting(AValue: Boolean);
+begin
+  FWebHandler.LegacyRouting:=AValue;
+end;
+
 procedure TCustomWebApplication.SetModuleVar(const AValue: String);
 begin
   FWebHandler.ModuleVariable := AValue;
@@ -724,8 +737,8 @@ end;
 destructor TCustomWebApplication.Destroy;
 begin
   FWebHandler.Free;
-  if assigned(FEventLog) then
-    FEventLog.Free;
+  FreeEventLog(FEventLog);
+  Inherited;
 end;
 
 procedure TCustomWebApplication.CreateForm(AClass: TComponentClass; out Reference);

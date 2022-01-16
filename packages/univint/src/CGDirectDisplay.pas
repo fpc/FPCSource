@@ -4,6 +4,7 @@
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, August 2015 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -12,6 +13,7 @@
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
+{$modeswitch cblocks}
 {$packenum 1}
 {$macro on}
 {$inline on}
@@ -104,7 +106,7 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-{$ifc defined(iphonesim)}
+{$ifc defined iphonesim}
  	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
@@ -121,7 +123,7 @@ interface
 	{$setc TARGET_CPU_X86_64 := TRUE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-{$ifc defined(iphonesim)}
+{$ifc defined iphonesim}
  	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
@@ -138,7 +140,6 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := TRUE}
 	{$setc TARGET_CPU_ARM64 := FALSE}
-	{ will require compiler define when/if other Apple devices with ARM cpus ship }
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
@@ -150,11 +151,16 @@ interface
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
 	{$setc TARGET_CPU_ARM64 := TRUE}
-	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+{$ifc defined ios}
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
-	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 	{$setc TARGET_OS_EMBEDDED := TRUE}
+{$elsec}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_OS_EMBEDDED := FALSE}
+{$endc}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elsec}
 	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ nor __arm64__ is defined.}
 {$endc}
@@ -321,7 +327,7 @@ function CGDisplayCopyAllDisplayModes( display: CGDirectDisplayID; options: CFDi
 (* CG_AVAILABLE_STARTING(__MAC_10_6, __IPHONE_NA) *)
 
 var kCGDisplayShowDuplicateLowResolutionModes: CFStringRef; external name '_kCGDisplayShowDuplicateLowResolutionModes'; (* attribute const *)
-(* CG_AVAILABLE_STARTING(__MAC_10_8,__IPHONE_N_A) *)
+(* CG_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_NA) *)
 
 { Return the current mode of the specified display, or NULL if `display'
    is invalid. }
@@ -491,7 +497,7 @@ type
 { Return true if `display' is captured; false otherwise. }
 
 function CGDisplayIsCaptured( display: CGDirectDisplayID ): boolean_t; external name '_CGDisplayIsCaptured';
-(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
+(* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_0,__MAC_10_9, __IPHONE_NA, __IPHONE_NA) *)
 
 { Capture `display' for exclusive use by an application. }
 

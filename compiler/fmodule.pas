@@ -29,7 +29,7 @@ unit fmodule;
 {$ifdef watcom}
   {$define shortasmprefix}
 {$endif}
-{$ifdef tos}
+{$ifdef atari}
   {$define shortasmprefix}
 {$endif}
 {$ifdef OS2}
@@ -43,10 +43,10 @@ interface
 
     uses
        cutils,cclasses,cfileutl,
-       globtype,finput,ogbase,
-       symbase,symconst,symsym,symcpu,
+       globtype,finput,ogbase,fpkg,
+       symbase,symsym,
        wpobase,
-       aasmbase,aasmtai,aasmdata;
+       aasmbase,aasmdata;
 
 
     const
@@ -128,9 +128,12 @@ interface
         crc,
         interface_crc,
         indirect_crc  : cardinal;
-        flags         : cardinal;  { the PPU flags }
+        headerflags   : cardinal;  { the PPU header flags }
+        longversion   : cardinal;  { longer version than what fits in the ppu header }
+        moduleflags   : tmoduleflags; { ppu flags that do not need to be known by just reading the ppu header }
         islibrary     : boolean;  { if it is a library (win32 dll) }
         IsPackage     : boolean;
+        change_endian : boolean;  { if the unit is loaded on a system with a different endianess than it was compiled on }
         moduleid      : longint;
         unitmap       : punitmap; { mapping of all used units }
         unitmapsize   : longint;  { number of units in the map }
@@ -142,10 +145,16 @@ interface
         checkforwarddefs,
         deflist,
         symlist       : TFPObjectList;
-        ptrdefs       : tPtrDefHashSet; { list of pointerdefs created in this module so we can reuse them (not saved/restored) }
+        ptrdefs       : THashSet; { list of pointerdefs created in this module so we can reuse them (not saved/restored) }
         arraydefs     : THashSet; { list of single-element-arraydefs created in this module so we can reuse them (not saved/restored) }
+        procaddrdefs  : THashSet; { list of procvardefs created when getting the address of a procdef (not saved/restored) }
 {$ifdef llvm}
         llvmdefs      : THashSet; { defs added for llvm-specific reasons (not saved/restored) }
+        llvmusedsyms  : TFPObjectList; { a list of asmsymbols and their defs that need to be added to llvm.used (so they're not removed by llvm optimisation passes nor by the linker) }
+        llvmcompilerusedsyms : TFPObjectList; { a list of asmsymbols and their defs that need to be added to llvm.compiler.used (so they're not removed by llvm optimisation passes) }
+        llvminitprocs,
+        llvmfiniprocs : TFPList;
+        llvmmetadatastrings: TFPHashList; { metadata strings (mapping string -> superregister) }
 {$endif llvm}
         ansistrdef    : tobject; { an ansistring def redefined for the current module }
         wpoinfo       : tunitwpoinfobase; { whole program optimization-related information that is generated during the current run for this unit }
@@ -157,11 +166,15 @@ interface
         procinfo      : TObject;  { current procedure being compiled }
         asmdata       : TObject;  { Assembler data }
         asmprefix     : pshortstring;  { prefix for the smartlink asmfiles }
+        publicasmsyms : TFPHashObjectList; { contains the assembler symbols which need to be exported from a package }
+        externasmsyms : TFPHashObjectList; { contains the assembler symbols which are imported from another unit }
+        unitimportsyms : tfpobjectlist; { list of symbols that are imported from other units }
         debuginfo     : TObject;
         loaded_from   : tmodule;
         _exports      : tlinkedlist;
         dllscannerinputlist : TFPHashList;
-        resourcefiles : TCmdStrList;
+        resourcefiles,
+        linkorderedsymbols : TCmdStrList;
         linkunitofiles,
         linkunitstaticlibs,
         linkunitsharedlibs,
@@ -170,6 +183,7 @@ interface
         linkotherstaticlibs,
         linkotherframeworks  : tlinkcontainer;
         mainname      : pshortstring; { alternate name for "main" procedure }
+        package       : tpackage;
 
         used_units           : tlinkedlist;
         dependent_units      : tlinkedlist;
@@ -192,6 +206,12 @@ interface
           non-generic typename and the data is a TFPObjectList of tgenericdummyentry
           instances whereby the last one is the current top most one }
         genericdummysyms: TFPHashObjectList;
+        { contains a list of specializations for which the method bodies need
+          to be generated }
+        pendingspecializations : TFPHashObjectList;
+        { list of attributes that are used and thus need their construction
+          functions generated }
+        used_rtti_attrs: tfpobjectlist;
 
         { this contains a list of units that needs to be waited for until the
           unit can be finished (code generated, etc.); this is needed to handle
@@ -222,6 +242,7 @@ interface
         procedure reset;virtual;
         procedure adddependency(callermodule:tmodule);
         procedure flagdependent(callermodule:tmodule);
+        procedure addimportedsym(sym:TSymEntry);
         function  addusedunit(hp:tmodule;inuses:boolean;usym:tunitsym):tused_unit;
         procedure updatemaps;
         function  derefidx_unit(id:longint):longint;
@@ -230,6 +251,10 @@ interface
         procedure end_of_parsing;virtual;
         procedure setmodulename(const s:string);
         procedure AddExternalImport(const libname,symname,symmangledname:string;OrdNr: longint;isvar:boolean;ImportByOrdinalOnly:boolean);
+        procedure add_public_asmsym(sym:TAsmSymbol);
+        procedure add_public_asmsym(const name:TSymStr;bind:TAsmsymbind;typ:Tasmsymtype);
+        procedure add_extern_asmsym(sym:TAsmSymbol);
+        procedure add_extern_asmsym(const name:TSymStr;bind:TAsmsymbind;typ:Tasmsymtype);
         property ImportLibraryList : TFPHashObjectList read FImportLibraryList;
       end;
 
@@ -274,7 +299,7 @@ implementation
       SysUtils,globals,
       verbose,systems,
       scanner,ppu,dbgbase,
-      procinfo,symdef;
+      procinfo,symdef,symtype;
 
 {$ifdef MEMDEBUG}
     var
@@ -310,7 +335,7 @@ implementation
         { set new module }
         current_module:=p;
         { restore previous module settings }
-        Fillchar(current_filepos,0,sizeof(current_filepos));
+        Fillchar(current_filepos,sizeof(current_filepos),0);
         if assigned(current_module) then
           begin
             current_asmdata:=tasmdata(current_module.asmdata);
@@ -547,6 +572,7 @@ implementation
         used_units:=TLinkedList.Create;
         dependent_units:=TLinkedList.Create;
         resourcefiles:=TCmdStrList.Create;
+        linkorderedsymbols:=TCmdStrList.Create;
         linkunitofiles:=TLinkContainer.Create;
         linkunitstaticlibs:=TLinkContainer.Create;
         linkunitsharedlibs:=TLinkContainer.Create;
@@ -559,7 +585,9 @@ implementation
         crc:=0;
         interface_crc:=0;
         indirect_crc:=0;
-        flags:=0;
+        headerflags:=0;
+        longversion:=0;
+        moduleflags:=[];
         scanner:=nil;
         unitmap:=nil;
         unitmapsize:=0;
@@ -570,18 +598,26 @@ implementation
         derefdataintflen:=0;
         deflist:=TFPObjectList.Create(false);
         symlist:=TFPObjectList.Create(false);
-        ptrdefs:=cPtrDefHashSet.Create;
+        ptrdefs:=THashSet.Create(64,true,false);
         arraydefs:=THashSet.Create(64,true,false);
+        procaddrdefs:=THashSet.Create(64,true,false);
 {$ifdef llvm}
         llvmdefs:=THashSet.Create(64,true,false);
+        llvmusedsyms:=TFPObjectList.Create(true);
+        llvmcompilerusedsyms:=TFPObjectList.Create(true);
+        llvminitprocs:=TFPList.Create;
+        llvmfiniprocs:=TFPList.Create;
+        llvmmetadatastrings:=TFPHashList.Create;
 {$endif llvm}
         ansistrdef:=nil;
         wpoinfo:=nil;
         checkforwarddefs:=TFPObjectList.Create(false);
         extendeddefs:=TFPHashObjectList.Create(true);
         genericdummysyms:=tfphashobjectlist.create(true);
+        pendingspecializations:=tfphashobjectlist.create(false);
         waitingforunit:=tfpobjectlist.create(false);
         waitingunits:=tfpobjectlist.create(false);
+        used_rtti_attrs:=tfpobjectlist.create(false);
         globalsymtable:=nil;
         localsymtable:=nil;
         globalmacrosymtable:=nil;
@@ -599,6 +635,7 @@ implementation
         is_unit:=_is_unit;
         islibrary:=false;
         ispackage:=false;
+        change_endian:=false;
         is_dbginfo_written:=false;
         mode_switch_allowed:= true;
         moduleoptions:=[];
@@ -608,6 +645,9 @@ implementation
         _exports:=TLinkedList.Create;
         dllscannerinputlist:=TFPHashList.Create;
         asmdata:=casmdata.create(modulename);
+        unitimportsyms:=TFPObjectList.Create(false);
+        publicasmsyms:=TFPHashObjectList.Create(true);
+        externasmsyms:=TFPHashObjectList.Create(true);
         InitDebugInfo(self,false);
       end;
 
@@ -659,6 +699,7 @@ implementation
         used_units.free;
         dependent_units.free;
         resourcefiles.Free;
+        linkorderedsymbols.Free;
         linkunitofiles.Free;
         linkunitstaticlibs.Free;
         linkunitsharedlibs.Free;
@@ -667,11 +708,16 @@ implementation
         linkothersharedlibs.Free;
         linkotherframeworks.Free;
         stringdispose(mainname);
+        externasmsyms.Free;
+        publicasmsyms.Free;
+        unitimportsyms.Free;
         FImportLibraryList.Free;
         extendeddefs.Free;
         genericdummysyms.free;
+        pendingspecializations.free;
         waitingforunit.free;
         waitingunits.free;
+        used_rtti_attrs.free;
         stringdispose(asmprefix);
         stringdispose(deprecatedmsg);
         stringdispose(namespace);
@@ -685,12 +731,25 @@ implementation
         memsymtable.start;
 {$endif}
         derefdata.free;
-        deflist.free;
+        if assigned(deflist) then
+          begin
+            for i:=0 to deflist.Count-1 do
+              if assigned(deflist[i]) and
+                 (tdef(deflist[i]).registered_in_module=self) then
+                tdef(deflist[i]).registered_in_module:=nil;
+            deflist.free;
+          end;
         symlist.free;
         ptrdefs.free;
         arraydefs.free;
+        procaddrdefs.free;
 {$ifdef llvm}
         llvmdefs.free;
+        llvmusedsyms.free;
+        llvmcompilerusedsyms.free;
+        llvminitprocs.free;
+        llvmfiniprocs.free;
+        llvmmetadatastrings.free;
 {$endif llvm}
         ansistrdef:=nil;
         wpoinfo.free;
@@ -753,17 +812,35 @@ implementation
         symlist.free;
         symlist:=TFPObjectList.Create(false);
         ptrdefs.free;
-        ptrdefs:=cPtrDefHashSet.Create;
+        ptrdefs:=THashSet.Create(64,true,false);
         arraydefs.free;
         arraydefs:=THashSet.Create(64,true,false);
+        procaddrdefs.free;
+        procaddrdefs:=THashSet.Create(64,true,false);
 {$ifdef llvm}
         llvmdefs.free;
         llvmdefs:=THashSet.Create(64,true,false);
+        llvmusedsyms.free;
+        llvmusedsyms:=TFPObjectList.Create(true);
+        llvmcompilerusedsyms.free;
+        llvmcompilerusedsyms:=TFPObjectList.Create(true);
+        llvminitprocs.free;
+        llvminitprocs:=TFPList.Create;
+        llvmfiniprocs.free;
+        llvmfiniprocs:=TFPList.Create;
+        llvmmetadatastrings.free;
+        llvmmetadatastrings:=TFPHashList.Create;
 {$endif llvm}
         wpoinfo.free;
         wpoinfo:=nil;
         checkforwarddefs.free;
         checkforwarddefs:=TFPObjectList.Create(false);
+        publicasmsyms.free;
+        publicasmsyms:=TFPHashObjectList.Create(true);
+        externasmsyms.free;
+        externasmsyms:=TFPHashObjectList.Create(true);
+        unitimportsyms.free;
+        unitimportsyms:=TFPObjectList.Create(false);
         derefdata.free;
         derefdata:=TDynamicArray.Create(1024);
         if assigned(unitmap) then
@@ -796,6 +873,15 @@ implementation
         dependent_units:=TLinkedList.Create;
         resourcefiles.Free;
         resourcefiles:=TCmdStrList.Create;
+        linkorderedsymbols.Free;
+        linkorderedsymbols:=TCmdStrList.Create;
+        pendingspecializations.free;
+        pendingspecializations:=tfphashobjectlist.create(false);
+        if assigned(waitingforunit) and
+          (waitingforunit.count<>0) then
+          internalerror(2016070501);
+        waitingforunit.free;
+        waitingforunit:=tfpobjectlist.create(false);
         linkunitofiles.Free;
         linkunitofiles:=TLinkContainer.Create;
         linkunitstaticlibs.Free;
@@ -823,12 +909,24 @@ implementation
         stringdispose(namespace);
         tcinitcode.free;
         tcinitcode:=nil;
+        localunitsearchpath.Free;
+        localunitsearchpath:=TSearchPathList.Create;
+        localobjectsearchpath.free;
+        localobjectsearchpath:=TSearchPathList.Create;
+        localincludesearchpath.free;
+        localincludesearchpath:=TSearchPathList.Create;
+        locallibrarysearchpath.free;
+        locallibrarysearchpath:=TSearchPathList.Create;
+        localframeworksearchpath.free;
+        localframeworksearchpath:=TSearchPathList.Create;
         moduleoptions:=[];
         is_dbginfo_written:=false;
         crc:=0;
         interface_crc:=0;
         indirect_crc:=0;
-        flags:=0;
+        headerflags:=0;
+        longversion:=0;
+        moduleflags:=[];
         mainfilepos.line:=0;
         mainfilepos.column:=0;
         mainfilepos.fileindex:=0;
@@ -880,6 +978,12 @@ implementation
          end;
       end;
 
+
+    procedure tmodule.addimportedsym(sym:TSymEntry);
+      begin
+        if unitimportsyms.IndexOf(sym)<0 then
+          unitimportsyms.Add(sym);
+      end;
 
     function tmodule.addusedunit(hp:tmodule;inuses:boolean;usym:tunitsym):tused_unit;
       var
@@ -997,7 +1101,7 @@ implementation
                   this is for units with an initialization/finalization }
                 if (unitmap[pu.u.moduleid].refs=0) and
                    pu.in_uses and
-                   ((pu.u.flags and (uf_init or uf_finalize))=0) then
+                   ((pu.u.moduleflags * [mf_init,mf_finalize])=[]) then
                   CGMessagePos2(pu.unitsym.fileinfo,sym_n_unit_not_used,pu.u.realmodulename^,realmodulename^);
               end;
             pu:=tused_unit(pu.next);
@@ -1033,6 +1137,34 @@ implementation
             macrosymtablestack.free;
             macrosymtablestack:=nil;
           end;
+        waitingforunit.free;
+        waitingforunit:=nil;
+        localmacrosymtable.free;
+        localmacrosymtable:=nil;
+        ptrdefs.free;
+        ptrdefs:=nil;
+        arraydefs.free;
+        arraydefs:=nil;
+        procaddrdefs.free;
+        procaddrdefs:=nil;
+{$ifdef llvm}
+        llvmdefs.free;
+        llvmdefs:=nil;
+{$endif llvm}
+        checkforwarddefs.free;
+        checkforwarddefs:=nil;
+        tcinitcode.free;
+        tcinitcode:=nil;
+        localunitsearchpath.free;
+        localunitsearchpath:=nil;
+        localobjectsearchpath.free;
+        localobjectsearchpath:=nil;
+        localincludesearchpath.free;
+        localincludesearchpath:=nil;
+        locallibrarysearchpath.free;
+        locallibrarysearchpath:=nil;
+        localframeworksearchpath.free;
+        localframeworksearchpath:=nil;
       end;
 
 
@@ -1082,6 +1214,50 @@ implementation
             ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,
               symname,symmangledname,OrdNr,isvar);
           end;
+      end;
+
+
+    procedure tmodule.add_public_asmsym(sym:TAsmSymbol);
+      begin
+        add_public_asmsym(sym.name,sym.bind,sym.typ);
+      end;
+
+
+    procedure tmodule.add_public_asmsym(const name:TSymStr;bind:TAsmsymbind;typ:Tasmsymtype);
+      var
+        sym : tasmsymbol;
+      begin
+        { ToDo: check for AB_GLOBAL, AB_EXTERNAL? }
+        sym:=tasmsymbol(publicasmsyms.find(name));
+        if assigned(sym) then
+          begin
+            if (sym.bind<>bind) or (sym.typ<>typ) then
+              internalerror(2016070101);
+            exit;
+          end;
+        tasmsymbol.create(publicasmsyms,name,bind,typ);
+      end;
+
+
+    procedure tmodule.add_extern_asmsym(sym:TAsmSymbol);
+      begin
+        add_extern_asmsym(sym.name,sym.bind,sym.typ);
+      end;
+
+
+    procedure tmodule.add_extern_asmsym(const name:TSymStr;bind:TAsmsymbind;typ:Tasmsymtype);
+      var
+        sym : tasmsymbol;
+      begin
+        { ToDo: check for AB_EXTERNAL? }
+        sym:=tasmsymbol(externasmsyms.find(name));
+        if assigned(sym) then
+          begin
+            if (sym.bind<>bind) or (sym.typ<>typ) then
+              internalerror(2016070102);
+            exit;
+          end;
+        tasmsymbol.create(externasmsyms,name,bind,typ);
       end;
 
 

@@ -41,8 +41,14 @@ unit i_msdos;
             system       : system_i8086_msdos;
             name         : 'MS-DOS 16-bit real mode';
             shortname    : 'MSDOS';
-            flags        : [tf_use_8_3,tf_smartlink_library,tf_smartlink_sections,
-                            tf_no_objectfiles_when_smartlinking,tf_cld];
+            flags        : [tf_use_8_3,
+{$ifdef I8086_SMARTLINK_SECTIONS}
+                            tf_smartlink_sections,
+{$else I8086_SMARTLINK_SECTIONS}
+                            tf_smartlink_library,
+                            tf_no_objectfiles_when_smartlinking,
+{$endif I8086_SMARTLINK_SECTIONS}
+                            tf_cld,tf_no_generic_stackcheck,tf_emit_stklen];
             cpu          : cpu_i8086;
             unit_env     : 'MSDOSUNITS';
             extradefines : '';
@@ -69,9 +75,9 @@ unit i_msdos;
             Cprefix      : '_';
             newline      : #13#10;
             dirsep       : '\';
-            assem        : as_i8086_nasmobj;
+            assem        : as_i8086_omf;
             assemextern  : as_i8086_nasmobj;
-            link         : ld_none;
+            link         : ld_int_msdos;
             linkextern   : ld_msdos;
 {$ifdef USE_SCRIPTED_WLIB}
             ar           : ar_watcom_wlib_omf_scripted;
@@ -79,14 +85,17 @@ unit i_msdos;
             ar           : ar_watcom_wlib_omf;
 {$endif}
             res          : res_none;
-            dbg          : dbg_stabs;
+            dbg          : dbg_dwarf2;
             script       : script_dos;
             endian       : endian_little;
             alignment    :
               (
-                procalign       : 2;
-                loopalign       : 2;
+                procalign       : 1;
+                loopalign       : 1;
                 jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
                 constalignmin   : 0;
                 constalignmax   : 2;
                 varalignmin     : 0;

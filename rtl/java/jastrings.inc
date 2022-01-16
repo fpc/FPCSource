@@ -669,9 +669,10 @@ end;
 { can't implement reference counting since no control over what javacc-compiled
   code does with ansistrings -> always create a copy }
 {$define FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
-procedure FPC_ANSISTR_UNIQUE(var s: AnsiString); inline;
+function FPC_ANSISTR_UNIQUE(var s: AnsiString): pointer; inline;
 begin
   s:=ansistring(AnsistringClass.Create(s,AnsiStringClass(s).fCodePage));
+  result:=pointer(s);
 end;
 
 
@@ -702,16 +703,16 @@ end;
 
 
 {$define FPC_HAS_POS_SHORTSTR_ANSISTR}
-Function Pos(Const Substr : ShortString; Const Source : RawByteString) : SizeInt;
+Function Pos(Const Substr : ShortString; Const Source : RawByteString; Offset : Sizeint = 1) : SizeInt;
 var
   i,j,k,MaxLen, SubstrLen : SizeInt;
 begin
   Pos:=0;
   SubstrLen:=Length(SubStr);
-  if SubstrLen>0 then
+  if (Length(SubStr)>0) and (Offset>0) and (Offset<=Length(Source)) then
    begin
      MaxLen:=Length(source)-Length(SubStr);
-     i:=0;
+     i:=Offset-1;
      while (i<=MaxLen) do
       begin
         inc(i);
@@ -734,16 +735,16 @@ end;
 
 
 {$define FPC_HAS_POS_ANSISTR_ANSISTR}
-Function Pos(Const Substr : RawByteString; Const Source : RawByteString) : SizeInt;
+Function Pos(Const Substr : RawByteString; Const Source : RawByteString; Offset : Sizeint = 1) : SizeInt;
 var
   i,j,k,MaxLen, SubstrLen : SizeInt;
 begin
   Pos:=0;
   SubstrLen:=Length(SubStr);
-  if SubstrLen>0 then
+  if (SubstrLen>0) and (Offset>0) and (Offset<=Length(Source)) then
    begin
      MaxLen:=Length(source)-Length(SubStr);
-     i:=0;
+     i:=Offset-1;
      while (i<=MaxLen) do
       begin
         inc(i);
@@ -770,11 +771,13 @@ end;
 { pos(c: char; const s: shortstring) also exists, so otherwise   }
 { using pos(char,pchar) will always call the shortstring version }
 { (exact match for first argument), also with $h+ (JM)           }
-Function Pos(c : AnsiChar; Const s : RawByteString) : SizeInt;
-var
+Function Pos(c : AnsiChar; Const s : RawByteString; Offset : Sizeint = 1) : SizeInt;var
   i: SizeInt;
 begin
-  for i:=1 to length(s) do
+  Pos:=0;
+  If (Offset<1) or (Offset>Length(S)) then
+    exit;
+  for i:=Offset to length(s) do
    begin
      if AnsistringClass(s).fdata[i-1]=c then
       begin
@@ -782,7 +785,6 @@ begin
         exit;
       end;
    end;
-  pos:=0;
 end;
 
 

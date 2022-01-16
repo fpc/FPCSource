@@ -19,17 +19,20 @@ begin
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-db');
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
     P.Author := 'Inoussa Ouedraogo';
     P.License := 'LGPL with modification';
     P.HomepageURL := 'www.freepascal.org';
     P.Email := 'inoussa12@gmail.com';
     P.Description := 'Free Pascal implementation of Service Data Objects';
-    P.OSes:=AllOSes-[embedded,msdos];
+    P.OSes:=AllOSes-[embedded,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql,wasi];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [java,android];
 
     // P.NeedLibC:= false;
     P.SourcePath.Add('src/base');
     P.SourcePath.Add('src/das');
+    P.IncludePath.Add('src/das');
 
     T:=P.Targets.AddUnit('sdo_consts.pas');
     T.ResourceStrings := True;
@@ -261,6 +264,7 @@ begin
     with T.Dependencies do
       begin
       AddUnit('data_acces_intf');
+      AddInclude('sdo_global.inc');
       end;
     T:=P.Targets.AddUnit('sdo_das_utils.pas');
     with T.Dependencies do

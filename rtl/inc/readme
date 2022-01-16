@@ -13,7 +13,7 @@ innr.inc        Internal function delcarations.
 int64.inc       Support for 64-bit integer arithmetic.
 lstrings.pp     LongStrings routine implementation.
 mathh.inc       Declarations of mathematical functions.
-real2str.inc    Routine to convert floating point numbers to strings.
+flt_*.inc       Routines to convert floating point numbers to strings and vice versa.
 rtti.inc        Delphi like runtime type information
 sstrings.inc    ShortStrings (TP/BP pascal like strings) implementation.
 system.inc      OS and Processor independent implementation part of system unit.

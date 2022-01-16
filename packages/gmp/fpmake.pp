@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='3.1.1';
+    P.Version:='3.3.1';
 
     P.Author := 'FreePascal development team';
     P.License := 'LGPL with modification, ';
@@ -24,13 +24,13 @@ begin
     P.Email := '';
     P.Description := 'GMP';
     P.NeedLibC:= false;
-    P.OSes := [freebsd,darwin,iphonesim,linux,win32,aix];
+    P.OSes := [freebsd,darwin,iphonesim,ios,linux,win32,aix];
 
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('gmp.pas');
 
-    P.Sources.AddExampleFiles('examples/*',false,'.');
+    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

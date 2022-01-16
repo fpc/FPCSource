@@ -17,14 +17,14 @@
 program mkx86reg;
 
 const Version = '1.00';
-      max_regcount = 200;
+      max_regcount = 255;
 
 var s : string;
     i : longint;
     line : longint;
-    regcount:byte;
+    regcount:longint;
     regcount_bsstart:byte;
-    names,numbers,stdnames,intnames,nasmnames,attnames,stabs,dwarf32,dwarf64,ots,ops:
+    names,numbers,stdnames,intnames,nasmnames,attnames,stabs,dwarf16,dwarf32,dwarf64,ots,ops:
         array[0..max_regcount-1] of string[63];
     regnumber_index,std_regname_index,int_regname_index,att_regname_index,
     nasm_regname_index:array[0..max_regcount-1] of byte;
@@ -246,7 +246,7 @@ var infile:text;
 
 begin
    { open dat file }
-   assign(infile,'x86reg.dat');
+   assign(infile,'../x86/x86reg.dat');
    reset(infile);
    while not(eof(infile)) do
      begin
@@ -272,6 +272,8 @@ begin
         nasmnames[regcount]:=readstr;
         readcomma;
         stabs[regcount]:=readstr;
+        readcomma;
+        dwarf16[regcount]:=readstr;
         readcomma;
         dwarf32[regcount]:=readstr;
         readcomma;
@@ -367,6 +369,8 @@ begin
         write(stabfile,stabs[i]);
       if x86_64 then
         write(dwrffile,dwarf64[i])
+      else if i8086 then
+        write(dwrffile,dwarf16[i])
       else
         write(dwrffile,dwarf32[i]);
       write(otfile,ots[i]);

@@ -23,9 +23,7 @@ unit cclasses;
 
 {$i fpcdefs.inc}
 
-{$ifndef VER2_0}
-  {$define CCLASSESINLINE}
-{$endif}
+{$define CCLASSESINLINE}
 
 interface
 
@@ -77,6 +75,7 @@ type
   TListCallback = procedure(data,arg:pointer) of object;
   TListStaticCallback = procedure(data,arg:pointer);
   TDynStringArray = Array Of String;
+  TDirection = (FromBeginning,FromEnd);
   TFPList = class(TObject)
   private
     FList: PPointerList;
@@ -87,18 +86,20 @@ type
     procedure Put(Index: Integer; Item: Pointer);
     procedure SetCapacity(NewCapacity: Integer);
     procedure SetCount(NewCount: Integer);
-    Procedure RaiseIndexError(Index : Integer);{$ifndef VER2_6}noreturn;{$endif VER2_6}
+    Procedure RaiseIndexError(Index : Integer);
+    property List: PPointerList read FList;
   public
     destructor Destroy; override;
     function Add(Item: Pointer): Integer;
     procedure Clear;
     procedure Delete(Index: Integer);
-    class procedure Error(const Msg: string; Data: PtrInt);{$ifndef VER2_6}noreturn;{$endif VER2_6}
+    class procedure Error(const Msg: string; Data: PtrInt);
     procedure Exchange(Index1, Index2: Integer);
     function Expand: TFPList;
     function Extract(item: Pointer): Pointer;
     function First: Pointer;
     function IndexOf(Item: Pointer): Integer;
+    function IndexOfItem(Item: Pointer; Direction: TDirection): Integer;
     procedure Insert(Index: Integer; Item: Pointer);
     function Last: Pointer;
     procedure Move(CurIndex, NewIndex: Integer);
@@ -111,7 +112,6 @@ type
     property Capacity: Integer read FCapacity write SetCapacity;
     property Count: Integer read FCount write SetCount;
     property Items[Index: Integer]: Pointer read Get write Put; default;
-    property List: PPointerList read FList;
   end;
 
 
@@ -145,6 +145,7 @@ type
     function Extract(Item: TObject): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
     function Remove(AObject: TObject): Integer;
     function IndexOf(AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function IndexOfItem(AObject: TObject; Direction: TDirection): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     function FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt: Integer): Integer;
     procedure Insert(Index: Integer; AObject: TObject); {$ifdef CCLASSESINLINE}inline;{$endif}
     function First: TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
@@ -224,12 +225,12 @@ type
     function HashOfIndex(Index: Integer): LongWord;
     function GetNextCollision(Index: Integer): Integer;
     procedure Delete(Index: Integer);
-    class procedure Error(const Msg: string; Data: PtrInt);{$ifndef VER2_6}noreturn;{$endif VER2_6}
+    class procedure Error(const Msg: string; Data: PtrInt);
     function Expand: TFPHashList;
     function Extract(item: Pointer): Pointer;
     function IndexOf(Item: Pointer): Integer;
     function Find(const AName:TSymStr): Pointer;
-    function FindIndexOf(const AName:TSymStr): Integer;
+    function FindIndexOf(const AName:TSymStr): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     function FindWithHash(const AName:TSymStr;AHash:LongWord): Pointer;
     function Rename(const AOldName,ANewName:TSymStr): Integer;
     function Remove(Item: Pointer): Integer;
@@ -283,7 +284,7 @@ type
     FFreeObjects : Boolean;
     FHashList: TFPHashList;
     function GetCount: integer; {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure SetCount(const AValue: integer);
+    procedure SetCount(const AValue: integer); {$ifdef CCLASSESINLINE}inline;{$endif}
   protected
     function GetItem(Index: Integer): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure SetItem(Index: Integer; AObject: TObject);
@@ -304,7 +305,7 @@ type
     function IndexOf(AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     function Find(const s:TSymStr): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
     function FindIndexOf(const s:TSymStr): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
-    function FindWithHash(const AName:TSymStr;AHash:LongWord): Pointer;
+    function FindWithHash(const AName:TSymStr;AHash:LongWord): Pointer; {$ifdef CCLASSESINLINE}inline;{$endif}
     function Rename(const AOldName,ANewName:TSymStr): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     function FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt: Integer): Integer;
     procedure Pack; {$ifdef CCLASSESINLINE}inline;{$endif}
@@ -365,19 +366,21 @@ type
           { Gets last Item }
           function  GetLast:TLinkedListItem;
           { inserts another List at the begin and make this List empty }
-          procedure insertList(p : TLinkedList);
+          procedure insertList(p : TLinkedList); virtual;
           { inserts another List before the provided item and make this List empty }
-          procedure insertListBefore(Item:TLinkedListItem;p : TLinkedList);
+          procedure insertListBefore(Item:TLinkedListItem;p : TLinkedList); virtual;
           { inserts another List after the provided item and make this List empty }
-          procedure insertListAfter(Item:TLinkedListItem;p : TLinkedList);
+          procedure insertListAfter(Item:TLinkedListItem;p : TLinkedList); virtual;
           { concats another List at the end and make this List empty }
-          procedure concatList(p : TLinkedList);
+          procedure concatList(p : TLinkedList); virtual;
           { concats another List at the start and makes a copy
             the list is ordered in reverse.
           }
-          procedure insertListcopy(p : TLinkedList);
+          procedure insertListcopy(p : TLinkedList); virtual;
           { concats another List at the end and makes a copy }
-          procedure concatListcopy(p : TLinkedList);
+          procedure concatListcopy(p : TLinkedList); virtual;
+          { removes all items from the list, the items are not freed }
+          procedure RemoveAll; virtual;
           property First:TLinkedListItem read FFirst;
           property Last:TLinkedListItem read FLast;
           property Count:Integer read FCount;
@@ -395,13 +398,13 @@ type
           constructor Create(const s:TCmdStr);
           destructor  Destroy;override;
           function GetCopy:TLinkedListItem;override;
-          function Str:TCmdStr; {$ifdef CCLASSESINLINE}inline;{$endif}
+          property Str: TCmdStr read FPStr;
        end;
 
        { string container }
        TCmdStrList = class(TLinkedList)
        private
-          FDoubles : boolean;  { if this is set to true, doubles are allowed }
+          FDoubles : boolean;  { if this is set to true, doubles (case insensitive!) are allowed }
        public
           constructor Create;
           constructor Create_No_Double;
@@ -420,9 +423,9 @@ type
           { true if string is in the container }
           function Find(const s:TCmdStr):TCmdStrListItem;
           { inserts an item }
-          procedure InsertItem(item:TCmdStrListItem); {$ifdef CCLASSESINLINE}inline;{$endif}
+          procedure InsertItem(item:TCmdStrListItem);
           { concats an item }
-          procedure ConcatItem(item:TCmdStrListItem); {$ifdef CCLASSESINLINE}inline;{$endif}
+          procedure ConcatItem(item:TCmdStrListItem);
           property Doubles:boolean read FDoubles write FDoubles;
        end;
 
@@ -462,7 +465,7 @@ type
          constructor Create(Ablocksize:longword);
          destructor  Destroy;override;
          procedure reset;
-         function  size:longword;
+         function  size:longword; {$ifdef CCLASSESINLINE}inline;{$endif}
          procedure align(i:longword);
          procedure seek(i:longword);
          function  read(var d;len:longword):longword;
@@ -470,6 +473,7 @@ type
          procedure writestr(const s:string); {$ifdef CCLASSESINLINE}inline;{$endif}
          procedure readstream(f:TCStream;maxlen:longword);
          procedure writestream(f:TCStream);
+         function  equal(other:tdynamicarray):boolean;
          property  CurrBlockSize : longword read FCurrBlocksize;
          property  FirstBlock : PDynamicBlock read FFirstBlock;
          property  Pos : longword read FPosn;
@@ -567,7 +571,7 @@ type
          constructor create(initsize: longint);
          constructor create_bytesize(bytesize: longint);
          destructor destroy; override;
-         procedure clear;
+         procedure clear; {$ifdef CCLASSESINLINE}inline;{$endif}
          procedure grow(nsize: longint);
          { sets a bit }
          procedure include(index: longint);
@@ -612,6 +616,7 @@ implementation
           s : string;
         begin
           l := c-b;
+          s:='';
           if (l > 0) or AddEmptyStrings then
             begin
               setlength(s, l);
@@ -619,7 +624,7 @@ implementation
                 move (b^, s[1],l*SizeOf(char));
               l:=length(Strings);
               setlength(Strings,l+1);
-              Strings[l]:=S;  
+              Strings[l]:=S;
               inc (result);
             end;
         end;
@@ -711,7 +716,7 @@ implementation
                TFPObjectList (Copied from rtl/objpas/classes/lists.inc)
 *****************************************************************************}
 
-procedure TFPList.RaiseIndexError(Index : Integer);{$ifndef VER2_6}noreturn;{$endif VER2_6}
+procedure TFPList.RaiseIndexError(Index : Integer);
 begin
   Error(SListIndexError, Index);
 end;
@@ -807,7 +812,7 @@ begin
   end;
 end;
 
-class procedure TFPList.Error(const Msg: string; Data: PtrInt);{$ifndef VER2_6}noreturn;{$endif VER2_6}
+class procedure TFPList.Error(const Msg: string; Data: PtrInt);
 begin
   Raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
@@ -865,6 +870,32 @@ begin
           exit;
         end;
       inc(psrc);
+    end;
+end;
+
+function TFPList.IndexOfItem(Item: Pointer; Direction: TDirection): Integer;
+var
+  psrc  : PPointer;
+  Index : Integer;
+begin
+  if Direction=FromBeginning then
+    Result:=IndexOf(Item)
+  else
+    begin
+      Result:=-1;
+      if FCount>0 then
+        begin
+          psrc:=@FList^[FCount-1];
+          For Index:=FCount-1 downto 0 Do
+            begin
+              if psrc^=Item then
+                begin
+                  Result:=Index;
+                  exit;
+                end;
+              dec(psrc);
+            end;
+        end;
     end;
 end;
 
@@ -1027,6 +1058,7 @@ begin
   begin
     Clear;
     FList.Destroy;
+    FList:=nil;
   end;
   inherited Destroy;
 end;
@@ -1046,6 +1078,16 @@ begin
   inherited Create;
   FList := TFPList.Create;
   FFreeObjects := True;
+end;
+
+function TFPObjectList.IndexOf(AObject: TObject): Integer;
+begin
+  Result := FList.IndexOf(Pointer(AObject));
+end;
+
+function TFPObjectList.IndexOfItem(AObject: TObject; Direction: TDirection): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
+begin
+  Result := FList.IndexOfItem(Pointer(AObject),Direction);
 end;
 
 function TFPObjectList.GetCount: integer;
@@ -1118,11 +1160,6 @@ begin
       TObject(FList[Result]).Free;
     FList.Delete(Result);
   end;
-end;
-
-function TFPObjectList.IndexOf(AObject: TObject): Integer;
-begin
-  Result := FList.IndexOf(Pointer(AObject));
 end;
 
 function TFPObjectList.FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt : Integer): Integer;
@@ -1204,38 +1241,64 @@ end;
                             TFPHashList
 *****************************************************************************}
 
-
-    function FPHash(P: PChar; Len: Integer; Tag: LongWord): LongWord;
-    Var
-      pmax : pchar;
-    begin
+// MurmurHash3_32
+function FPHash(P: PChar; Len: Integer; Tag: LongWord): LongWord;
+const
+  C1 = uint32($cc9e2d51);
+  C2 = uint32($1b873593);
+var
+  h, tail: uint32;
+  e4: pChar;
+  len4, nTail: SizeUint;
+begin
 {$push}
 {$q-,r-}
-      result:=Tag;
-      pmax:=p+len;
-      while (p<pmax) do
-        begin
-          {DJBHash: result:=result*33 + next_char}
-          result:=LongWord(LongInt(result shl 5) + LongInt(result)) + LongWord(P^);
-          inc(p);
-        end;
+  h := tag;
+
+  len4 := len and not integer(sizeof(uint32) - 1); { len div sizeof(uint32) * sizeof(uint32) }
+  e4 := p + len4;
+  nTail := len - len4;
+  while p < e4 do
+    begin
+      { If independence on endianness is desired, unaligned(pUint32(p)^) can be replaced with LEtoN(unaligned(pUint32(p)^)). }
+      h := RolDWord(h xor (RolDWord(unaligned(pUint32(p)^) * C1, 15) * C2), 13) * 5 + $e6546b64;
+      p := p + sizeof(uint32);
+    end;
+
+  if nTail > 0 then
+    begin
+      { tail is 1 to 3 bytes }
+      case nTail of
+        3: tail := unaligned(pUint16(p)^) or uint32(p[2]) shl 16; { unaligned(pUint16(p^)) can be LEtoNed for portability }
+        2: tail := unaligned(pUint16(p)^); { unaligned(pUint16(p^)) can be LEtoNed for portability }
+        {1:} else tail := uint32(p^);
+      end;
+      h := h xor (RolDWord(tail * C1, 15) * C2);
+    end;
+
+  h := h xor uint32(len);
+  h := (h xor (h shr 16)) * $85ebca6b;
+  h := (h xor (h shr 13)) * $c2b2ae35;
+  result := h xor (h shr 16);
 {$pop}
-    end;
+end;
 
-    function FPHash(P: PChar; Len: Integer): LongWord; inline;
-    begin
-      result:=fphash(P,Len, 5381);
-    end;
+function FPHash(P: PChar; Len: Integer): LongWord; inline;
+begin
+  result:=fphash(P,Len, 0);
+end;
 
-    function FPHash(const s: shortstring): LongWord; inline;
-    begin
-      result:=fphash(pchar(@s[1]),length(s));
-    end;
 
-    function FPHash(const a: ansistring): LongWord; inline;
-    begin
-      result:=fphash(pchar(a),length(a));
-    end;
+function FPHash(const s: shortstring): LongWord; inline;
+begin
+  result:=fphash(pchar(@s[1]),length(s));
+end;
+
+
+function FPHash(const a: ansistring): LongWord; inline;
+begin
+  result:=fphash(pchar(a),length(a));
+end;
 
 
 procedure TFPHashList.RaiseIndexError(Index : Integer);
@@ -1505,7 +1568,7 @@ begin
     Self.Delete(Result);
 end;
 
-class procedure TFPHashList.Error(const Msg: string; Data: PtrInt);{$ifndef VER2_6}noreturn;{$endif VER2_6}
+class procedure TFPHashList.Error(const Msg: string; Data: PtrInt);
 begin
   Raise EListError.CreateFmt(Msg,[Data])  at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
@@ -1760,72 +1823,6 @@ end;
 
 
 {*****************************************************************************
-                               TFPHashObject
-*****************************************************************************}
-
-procedure TFPHashObject.InternalChangeOwner(HashObjectList:TFPHashObjectList;const s:TSymStr);
-var
-  Index : integer;
-begin
-  FOwner:=HashObjectList;
-  Index:=HashObjectList.Add(s,Self);
-  FStrIndex:=HashObjectList.List.List^[Index].StrIndex;
-end;
-
-
-constructor TFPHashObject.CreateNotOwned;
-begin
-  FStrIndex:=-1;
-end;
-
-
-constructor TFPHashObject.Create(HashObjectList:TFPHashObjectList;const s:TSymStr);
-begin
-  InternalChangeOwner(HashObjectList,s);
-end;
-
-
-procedure TFPHashObject.ChangeOwner(HashObjectList:TFPHashObjectList);
-begin
-  InternalChangeOwner(HashObjectList,PSymStr(@FOwner.List.Strs[FStrIndex])^);
-end;
-
-
-procedure TFPHashObject.ChangeOwnerAndName(HashObjectList:TFPHashObjectList;const s:TSymStr);
-begin
-  InternalChangeOwner(HashObjectList,s);
-end;
-
-
-procedure TFPHashObject.Rename(const ANewName:TSymStr);
-var
-  Index : integer;
-begin
-  Index:=FOwner.Rename(PSymStr(@FOwner.List.Strs[FStrIndex])^,ANewName);
-  if Index<>-1 then
-    FStrIndex:=FOwner.List.List^[Index].StrIndex;
-end;
-
-
-function TFPHashObject.GetName:TSymStr;
-begin
-  if FOwner<>nil then
-    Result:=PSymStr(@FOwner.List.Strs[FStrIndex])^
-  else
-    Result:='';
-end;
-
-
-function TFPHashObject.GetHash:Longword;
-begin
-  if FOwner<>nil then
-    Result:=FPHash(PSymStr(@FOwner.List.Strs[FStrIndex])^)
-  else
-    Result:=$ffffffff;
-end;
-
-
-{*****************************************************************************
             TFPHashObjectList (Copied from rtl/objpas/classes/lists.inc)
 *****************************************************************************}
 
@@ -1842,6 +1839,7 @@ begin
     begin
       Clear;
       FHashList.Destroy;
+      FHashList:=nil;
     end;
   inherited Destroy;
 end;
@@ -1854,6 +1852,11 @@ begin
     for i := 0 to FHashList.Count - 1 do
       TObject(FHashList[i]).Free;
   FHashList.Clear;
+end;
+
+function TFPHashObjectList.IndexOf(AObject: TObject): Integer;
+begin
+  Result := FHashList.IndexOf(Pointer(AObject));
 end;
 
 function TFPHashObjectList.GetCount: integer;
@@ -1938,12 +1941,6 @@ begin
     end;
 end;
 
-function TFPHashObjectList.IndexOf(AObject: TObject): Integer;
-begin
-  Result := FHashList.IndexOf(Pointer(AObject));
-end;
-
-
 function TFPHashObjectList.Find(const s:TSymStr): TObject;
 begin
   result:=TObject(FHashList.Find(s));
@@ -2022,6 +2019,72 @@ end;
 procedure TFPHashObjectList.WhileEachCall(proc2call:TObjectListStaticCallback;arg:pointer);
 begin
   FHashList.WhileEachCall(TListStaticCallBack(proc2call),arg);
+end;
+
+
+{*****************************************************************************
+                               TFPHashObject
+*****************************************************************************}
+
+procedure TFPHashObject.InternalChangeOwner(HashObjectList:TFPHashObjectList;const s:TSymStr);
+var
+  Index : integer;
+begin
+  FOwner:=HashObjectList;
+  Index:=HashObjectList.Add(s,Self);
+  FStrIndex:=HashObjectList.List.List^[Index].StrIndex;
+end;
+
+
+constructor TFPHashObject.CreateNotOwned;
+begin
+  FStrIndex:=-1;
+end;
+
+
+constructor TFPHashObject.Create(HashObjectList:TFPHashObjectList;const s:TSymStr);
+begin
+  InternalChangeOwner(HashObjectList,s);
+end;
+
+
+procedure TFPHashObject.ChangeOwner(HashObjectList:TFPHashObjectList);
+begin
+  InternalChangeOwner(HashObjectList,PSymStr(@FOwner.List.Strs[FStrIndex])^);
+end;
+
+
+procedure TFPHashObject.ChangeOwnerAndName(HashObjectList:TFPHashObjectList;const s:TSymStr);
+begin
+  InternalChangeOwner(HashObjectList,s);
+end;
+
+
+procedure TFPHashObject.Rename(const ANewName:TSymStr);
+var
+  Index : integer;
+begin
+  Index:=FOwner.Rename(PSymStr(@FOwner.List.Strs[FStrIndex])^,ANewName);
+  if Index<>-1 then
+    FStrIndex:=FOwner.List.List^[Index].StrIndex;
+end;
+
+
+function TFPHashObject.GetName:TSymStr;
+begin
+  if FOwner<>nil then
+    Result:=PSymStr(@FOwner.List.Strs[FStrIndex])^
+  else
+    Result:='';
+end;
+
+
+function TFPHashObject.GetHash:Longword;
+begin
+  if FOwner<>nil then
+    Result:=FPHash(PSymStr(@FOwner.List.Strs[FStrIndex])^)
+  else
+    Result:=$ffffffff;
 end;
 
 
@@ -2185,7 +2248,7 @@ end;
         while assigned(NewNode) do
          begin
            Next:=NewNode.Next;
-           prefetch(next.next);
+           prefetch(pointer(Next)^);
            NewNode.Free;
            NewNode:=Next;
           end;
@@ -2353,6 +2416,14 @@ end;
       end;
 
 
+    procedure TLinkedList.RemoveAll;
+      begin
+        FFirst:=nil;
+        FLast:=nil;
+        FCount:=0;
+      end;
+
+
 {****************************************************************************
                              TCmdStrListItem
  ****************************************************************************}
@@ -2367,12 +2438,6 @@ end;
     destructor TCmdStrListItem.Destroy;
       begin
         FPStr:='';
-      end;
-
-
-    function TCmdStrListItem.Str:TCmdStr;
-      begin
-        Str:=FPStr;
       end;
 
 
@@ -2407,7 +2472,7 @@ end;
     procedure TCmdStrList.insert(const s : TCmdStr);
       begin
          if (s='') or
-            ((not FDoubles) and (find(s)<>nil)) then
+            ((not FDoubles) and (findcase(s)<>nil)) then
           exit;
          inherited insert(TCmdStrListItem.create(s));
       end;
@@ -2416,7 +2481,7 @@ end;
     procedure TCmdStrList.concat(const s : TCmdStr);
       begin
          if (s='') or
-            ((not FDoubles) and (find(s)<>nil)) then
+            ((not FDoubles) and (findcase(s)<>nil)) then
           exit;
          inherited concat(TCmdStrListItem.create(s));
       end;
@@ -2428,7 +2493,7 @@ end;
       begin
         if s='' then
          exit;
-        p:=find(s);
+        p:=findcase(s);
         if assigned(p) then
          begin
            inherited Remove(p);
@@ -2789,6 +2854,56 @@ end;
          end;
       end;
 
+
+    function tdynamicarray.equal(other:tdynamicarray):boolean;
+      var
+        ofsthis,
+        ofsother,
+        remthis,
+        remother,
+        len : sizeint;
+        blockthis,
+        blockother : pdynamicblock;
+      begin
+        if not assigned(other) then
+          exit(false);
+        if size<>other.size then
+          exit(false);
+        blockthis:=Firstblock;
+        blockother:=other.FirstBlock;
+        ofsthis:=0;
+        ofsother:=0;
+
+        while assigned(blockthis) and assigned(blockother) do
+          begin
+            remthis:=blockthis^.used-ofsthis;
+            remother:=blockother^.used-ofsother;
+            len:=min(remthis,remother);
+            if not CompareMem(@blockthis^.data[ofsthis],@blockother^.data[ofsother],len) then
+              exit(false);
+            inc(ofsthis,len);
+            inc(ofsother,len);
+            if ofsthis=blockthis^.used then
+              begin
+                blockthis:=blockthis^.next;
+                ofsthis:=0;
+              end;
+            if ofsother=blockother^.used then
+              begin
+                blockother:=blockother^.next;
+                ofsother:=0;
+              end;
+          end;
+
+        if assigned(blockthis) and not assigned(blockother) then
+          result:=blockthis^.used=0
+        else if assigned(blockother) and not assigned(blockthis) then
+          result:=blockother^.used=0
+        else
+          result:=true;
+      end;
+
+
 {****************************************************************************
                                 thashset
 ****************************************************************************}
@@ -2881,7 +2996,7 @@ end;
         h: LongWord;
       begin
         h := FPHash(Key, KeyLen);
-        Entry := @FBucket[h mod FBucketCount];
+        Entry := @FBucket[h and (FBucketCount-1)];
         while Assigned(Entry^) and
           not ((Entry^^.HashValue = h) and (Entry^^.KeyLength = KeyLen) and
             (CompareByte(Entry^^.Key^, Key^, KeyLen) = 0)) do
@@ -2900,7 +3015,7 @@ end;
           end
         else
           begin
-            New(Result);
+            GetMem(Result,SizeOfItem);
             if FOwnsKeys then
             begin
               GetMem(Result^.Key, KeyLen);
@@ -2924,13 +3039,13 @@ end;
         i: Integer;
         e, n: PHashSetItem;
       begin
-        p := AllocMem(NewCapacity * SizeOfItem);
+        p := AllocMem(NewCapacity * SizeOf(PHashSetItem));
         for i := 0 to FBucketCount-1 do
           begin
             e := FBucket[i];
             while Assigned(e) do
             begin
-              chain := @p[e^.HashValue mod NewCapacity];
+              chain := @p[e^.HashValue and (NewCapacity-1)];
               n := e^.Next;
               e^.Next := chain^;
               chain^ := e;
@@ -2988,7 +3103,7 @@ end;
         h: LongWord;
       begin
         h := FPHash(Key, KeyLen, Tag);
-        Entry := @PPTagHashSetItem(FBucket)[h mod FBucketCount];
+        Entry := @PPTagHashSetItem(FBucket)[h and (FBucketCount-1)];
         while Assigned(Entry^) and
           not ((Entry^^.HashValue = h) and (Entry^^.KeyLength = KeyLen) and
             (Entry^^.Tag = Tag) and (CompareByte(Entry^^.Key^, Key^, KeyLen) = 0)) do
@@ -3007,7 +3122,7 @@ end;
           end
         else
           begin
-            New(Result);
+            Getmem(Result,SizeOfItem);
             if FOwnsKeys then
             begin
               GetMem(Result^.Key, KeyLen);

@@ -1,4 +1,4 @@
-{ %target=win32,win64,wince,darwin,linux,freebsd,solaris,beos,aix,android }
+{ %target=win32,win64,wince,darwin,linux,freebsd,solaris,beos,aix,android,haiku }
 { %needlibrary }
 { %delfiles=tw9089a tw9089b }
 

@@ -14,25 +14,25 @@
 
 {$asmmode gas}
 
-function getfpcr: dword; nostackframe; assembler;
+function getfpcr: qword; nostackframe; assembler;
   asm
     mrs x0,fpcr
   end;
 
 
-procedure setfpcr(val: dword); nostackframe; assembler;
+procedure setfpcr(val: qword); nostackframe; assembler;
   asm
     msr fpcr,x0
   end;
 
 
-function getfpsr: dword; nostackframe; assembler;
+function getfpsr: qword; nostackframe; assembler;
   asm
     mrs x0,fpsr
   end;
 
 
-procedure setfpsr(val: dword); nostackframe; assembler;
+procedure setfpsr(val: qword); nostackframe; assembler;
   asm
     msr fpsr, x0
   end;
@@ -51,7 +51,7 @@ function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
     rm2bits: array[TFPURoundingMode] of byte = (0,2,1,3);
   begin
     softfloat_rounding_mode:=RoundMode;
-    SetRoundMode:=RoundMode;
+    SetRoundMode:=GetRoundMode;
     setfpcr((getfpcr and $ff3fffff) or (rm2bits[RoundMode] shl 22));
   end;
 
@@ -75,14 +75,19 @@ const
   fpu_ufe = 1 shl 11;
   fpu_ixe = 1 shl 12;
   fpu_ide = 1 shl 15;
-  fpu_exception_mask = fpu_ioe or fpu_dze or fpu_ofe or fpu_ufe or fpu_ixe or fpu_ide;
+  fpu_exception_mask = qword(fpu_ioe or fpu_dze or fpu_ofe or fpu_ufe or fpu_ixe or fpu_ide);
   fpu_exception_mask_to_status_mask_shift = 8;
 
 
 function GetExceptionMask: TFPUExceptionMask;
+  {
   var
     fpcr: dword;
+  }
   begin
+    { as I am not aware of any hardware exception supporting AArch64 implementation,
+      and else the trapping enable flags are RAZ, return the softfloat exception mask (FK)
+
     fpcr:=getfpcr;
     result:=[];
     if ((fpcr and fpu_ioe)=0) then
@@ -97,14 +102,24 @@ function GetExceptionMask: TFPUExceptionMask;
       result := result+[exPrecision];
     if ((fpcr and fpu_ide)=0) then
       result := result+[exDenormalized];
+    }
+    { as the fpcr flags might be RAZ, the softfloat exception mask
+      is considered as the authoritative mask }
+    result:=softfloat_exception_mask;
   end;
 
 
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
   var
-    newfpcr: dword;
+    newfpcr: qword;
   begin
+    { clear "exception happened" flags }
+    ClearExceptions(false);
     softfloat_exception_mask:=mask;
+
+    { at least the ThunderX AArch64 support apparently hardware exceptions,
+      so set fpcr correctly, thought it might be WI on most implementations it does not hurt
+    }
     newfpcr:=fpu_exception_mask;
     if exInvalidOp in Mask then
       newfpcr:=newfpcr and not(fpu_ioe);
@@ -118,19 +133,17 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
       newfpcr:=newfpcr and not(fpu_ixe);
     if exDenormalized in Mask then
       newfpcr:=newfpcr and not(fpu_ide);
-    { clear "exception happened" flags }
-    ClearExceptions(false);
-    { set new exception mask }
     setfpcr((getfpcr and not(fpu_exception_mask)) or newfpcr);
-    { unsupported mask bits will remain 0 -> read exception mask again }
-    result:=GetExceptionMask;
-    softfloat_exception_mask:=result;
+
+    { as the fpcr flags might be RAZ, the softfloat exception mask
+      is considered as the authoritative mask }
+    result:=softfloat_exception_mask;
   end;
 
 
 procedure ClearExceptions(RaisePending: Boolean);
   var
-    fpsr: dword;
+    fpsr: qword;
     f: TFPUException;
   begin
     fpsr:=getfpsr;

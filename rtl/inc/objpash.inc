@@ -29,6 +29,35 @@
                             Basic Types/constants
 *****************************************************************************}
 
+    type
+      TextFile = Text;
+
+      PGuid = ^TGuid;
+      TGuid = packed record
+         case integer of
+            1 : (
+                 Data1 : DWord;
+                 Data2 : word;
+                 Data3 : word;
+                 Data4 : array[0..7] of byte;
+                );
+            2 : (
+                 D1 : DWord;
+                 D2 : word;
+                 D3 : word;
+                 D4 : array[0..7] of byte;
+                );
+            3 : ( { uuid fields according to RFC4122 }
+                 time_low : dword;			// The low field of the timestamp
+                 time_mid : word;                      // The middle field of the timestamp
+                 time_hi_and_version : word;           // The high field of the timestamp multiplexed with the version number
+                 clock_seq_hi_and_reserved : byte;     // The high field of the clock sequence multiplexed with the variant
+                 clock_seq_low : byte;                 // The low field of the clock sequence
+                 node : array[0..5] of byte;           // The spatially unique node identifier
+                );
+      end;
+
+{$ifdef FPC_HAS_FEATURE_CLASSES}
     const
        vmtInstanceSize         = 0;
        vmtParent               = sizeof(SizeInt)*2;
@@ -68,8 +97,6 @@
        E_NOTIMPL     = hresult($80004001);
 
      type
-       TextFile = Text;
-
        { now the let's declare the base classes for the class object
          model. The compiler expects TObject and IUnknown to be defined
          first as forward classes }
@@ -97,10 +124,11 @@
        pinterfacetable = ^tinterfacetable;
 
        PVmt = ^TVmt;
+       PPVmt = ^PVmt;
        TVmt = record
          vInstanceSize: SizeInt;
          vInstanceSize2: SizeInt;
-         vParent: PVmt;
+         vParentRef: {$ifdef VER3_0}PVmt{$else}PPVmt{$endif};
          vClassName: PShortString;
          vDynamicTable: Pointer;
          vMethodTable: Pointer;
@@ -123,31 +151,10 @@
          vEquals: CodePointer;
          vGetHashCode: CodePointer;
          vToString: CodePointer;
-       end;
-
-       PGuid = ^TGuid;
-       TGuid = packed record
-          case integer of
-             1 : (
-                  Data1 : DWord;
-                  Data2 : word;
-                  Data3 : word;
-                  Data4 : array[0..7] of byte;
-                 );
-             2 : (
-                  D1 : DWord;
-                  D2 : word;
-                  D3 : word;
-                  D4 : array[0..7] of byte;
-                 );
-             3 : ( { uuid fields according to RFC4122 }
-                  time_low : dword;			// The low field of the timestamp
-                  time_mid : word;                      // The middle field of the timestamp
-                  time_hi_and_version : word;           // The high field of the timestamp multiplexed with the version number
-                  clock_seq_hi_and_reserved : byte;     // The high field of the clock sequence multiplexed with the variant
-                  clock_seq_low : byte;                 // The low field of the clock sequence
-                  node : array[0..5] of byte;           // The spatially unique node identifier
-                 );
+       private
+         function GetvParent: PVmt; inline;
+       public
+         property vParent: PVmt read GetvParent;
        end;
 
        // This enumerate is found both in the rtl and compiler. Do not change the order of the fields.
@@ -162,21 +169,24 @@
 
        pinterfaceentry = ^tinterfaceentry;
        tinterfaceentry = record
-         IID         : pguid; { if assigned(IID) then Com else Corba}
+       private
+         function GetIID: pguid; inline;
+         function GetIIDStr: pshortstring; inline;
+       public
+         property IID: pguid read GetIID;
+         property IIDStr: pshortstring read GetIIDStr;
+       public
+         IIDRef      : {$IFNDEF VER3_0}^{$ENDIF}pguid; { if assigned(IID) then Com else Corba}
          VTable      : Pointer;
-         IOffset     : sizeuint;
-         IIDStr      : pshortstring; { never nil. Com: upper(GuidToString(IID^)) }
-{$ifdef VER2_6}
-         case boolean of
-{$ifdef ENDIAN_BIG}
-           true      : ({$IFDEF CPU64}__pad: longint;{$ENDIF}IType : tinterfaceentrytype);
-{$else ENDIAN_BIG}
-           true      : (IType       : tinterfaceentrytype);
-{$endif ENDIAN_BIG}
-           false     : (__pad_dummy : sizeint);
-{$else  VER2_6}
-         IType       : tinterfaceentrytype;
-{$endif VER2_6}
+         case integer of
+           1 : (
+                IOffset: sizeuint;
+               );
+           2 : (
+                IOffsetAsCodePtr: CodePointer;
+                IIDStrRef   : {$IFNDEF VER3_0}^{$ENDIF}pshortstring; { never nil. Com: upper(GuidToString(IID^)) }
+                IType       : tinterfaceentrytype;
+               );
        end;
 
        tinterfacetable = record
@@ -184,6 +194,7 @@
          Entries    : array[0..0] of tinterfaceentry;
        end;
 
+       PMethod = ^TMethod;
        TMethod = record
          Code : CodePointer;
          Data : Pointer;
@@ -204,7 +215,7 @@
           procedure DefaultHandler(var message);virtual;
 
           procedure Free;
-          class function InitInstance(instance : pointer) : tobject; {$ifdef SYSTEMINLINE} inline; {$endif}
+          class function InitInstance(instance : pointer) : tobject;
           procedure CleanupInstance;
           class function ClassType : tclass;{$ifdef SYSTEMINLINE}inline;{$endif}
           class function ClassInfo : pointer;
@@ -240,10 +251,11 @@
           class function GetInterfaceTable : pinterfacetable;
 
           { new since Delphi 2009 }
-          class function UnitName : ansistring;
+          class function UnitName : {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};
+          class function QualifiedClassName: {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};
           function Equals(Obj: TObject) : boolean;virtual;
           function GetHashCode: PtrInt;virtual;
-          function ToString: ansistring;virtual;
+          function ToString: {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}ansistring{$else FPC_HAS_FEATURE_ANSISTRINGS}shortstring{$endif FPC_HAS_FEATURE_ANSISTRINGS};virtual;
        end;
 
        IUnknown = interface
@@ -284,18 +296,22 @@
             VarResult,ExcepInfo,ArgErr : pointer) : HResult;stdcall;
        end;
 
+       { TInterfacedObject }
+
        TInterfacedObject = class(TObject,IUnknown)
        protected
-          frefcount : longint;
+          FRefCount : longint;
+          FDestroyCount : longint;
           { implement methods of IUnknown }
           function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
           function _AddRef : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
           function _Release : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
         public
+          destructor Destroy; override;
           procedure AfterConstruction;override;
           procedure BeforeDestruction;override;
           class function NewInstance : TObject;override;
-          property RefCount : longint read frefcount;
+          property RefCount : longint read FRefCount;
        end;
        TInterfacedClass = class of TInterfacedObject;
 
@@ -325,6 +341,66 @@
        PPDispatch = ^PDispatch;
        PInterface = PUnknown;
 
+{$ifdef FPC_USE_PSABIEH}
+
+{$if (defined(CPUARMEL) or defined(CPUARMHF)) and not defined(darwin)}
+{$define __ARM_EABI_UNWINDER__}
+{$endif}
+
+       { needed here for TExceptObject (rest is in psabiehh.inc) }
+       FPC_Unwind_Reason_Code = longint; {cint}
+       FPC_Unwind_Action = longint; {cint}
+{$ifdef __ARM_EABI_UNWINDER__}
+       FPC_Unwind_State = longint; {cint}
+{$endif}
+
+       PFPC_Unwind_Exception = ^FPC_Unwind_Exception;
+
+       FPC_Unwind_Exception_Cleanup_Fn =
+         procedure(reason: FPC_Unwind_Reason_Code; exc: PFPC_Unwind_Exception); cdecl;
+
+       FPC_Unwind_Exception = record
+         { qword instead of array of char to ensure proper alignment and
+           padding, and also easier to compare }
+         exception_class: qword;
+         exception_cleanup: FPC_Unwind_Exception_Cleanup_Fn;
+
+{$ifdef __ARM_EABI_UNWINDER__}
+         { rest of UCB }
+         // Unwinder cache, private fields for the unwinder's use
+         unwinder_cache: record
+           reserved1, // init reserved1 to 0, then don't touch
+           reserved2,
+           reserved3,
+           reserved4,
+           reserved5: UInt32;
+         end;
+         // Propagation barrier cache (valid after phase 1):
+         barrier_cache: record
+           sp: PtrUInt;
+           bitpattern: array[0..4] of UInt32;
+         end;
+         // Cleanup cache (preserved over cleanup):
+         cleanup_cache: record
+           bitpattern: array[0..3] of UInt32;
+         end;
+         // Pr cache (for pr's benefit):
+         pr_cache: record
+           fnstart: UInt32;      // function start address
+           ehtp: pointer;        // pointer to EHT entry header word
+           additional: UInt32;   // additional data
+           reserved1: UInt32;
+         end;
+{$else}
+         private_1: ptruint;
+         private_2: ptruint;
+         private_3: ptruint;
+         private_4: ptruint;
+         private_5: ptruint;
+         private_6: ptruint;
+{$endif}
+       end;
+{$endif FPC_USE_PSABIEH}
 
        TExceptProc = Procedure (Obj : TObject; Addr : CodePointer; FrameCount:Longint; Frame: PCodePointer);
 
@@ -342,7 +418,45 @@
          ExceptRec  : Pointer;
          ReraiseBuf : jmp_buf;
 {$endif FPC_USE_WIN32_SEH}
+{$ifdef FPC_USE_PSABIEH}
+{$ifndef __ARM_EABI_UNWINDER__}
+         { cached info from unwind phase for action phase }
+         handler_switch_value: longint;
+         language_specific_data: PByte;
+         landing_pad: PtrUInt;
+{$endif __ARM_EABI_UNWINDER__}
+         { libunwind exception handling data (must be last!) }
+         unwind_exception: FPC_Unwind_Exception;
+{$endif FPC_USE_PSABIEH}
        end;
+
+       {$PUSH}
+       { disable the warning that the constructor should be public }
+       {$WARN 3018 OFF}
+       TCustomAttribute = class(TObject)
+       private
+         { if the user wants to use a parameterless constructor they need to
+           explicitely declare it in their type }
+         constructor Create;
+       end;
+       {$POP}
+       WeakAttribute = class(TCustomAttribute);
+       UnsafeAttribute = class(TCustomAttribute);
+       RefAttribute = class(TCustomAttribute);
+       VolatileAttribute = class(TCustomAttribute);
+
+       StoredAttribute = Class(TCustomAttribute)
+       Private
+          FFlag : Boolean;
+          FName : String;
+       Public
+         Constructor Create;
+         Constructor Create(Const aFlag : Boolean);
+         Constructor Create(Const aName : String);
+         Property Flag : Boolean Read FFlag;
+         Property Name : String Read FName;
+       end;
+
 
     Const
        ExceptProc : TExceptProc = Nil;
@@ -371,6 +485,11 @@
       goes into your "property" and you need to free it manually.
       Calling this method is only valid within an except block. }
     procedure ReleaseExceptionObject;
+
+  const
+    { for safe as operator support }
+    IObjectInstance: TGuid = '{D91C9AF4-3C93-420F-A303-BF5BA82BFD23}';
+{$endif FPC_HAS_FEATURE_CLASSES}
 
 {*****************************************************************************
                               Array of const support
@@ -420,12 +539,16 @@
            vtString        : (VString: PShortString);
            vtPointer       : (VPointer: Pointer);
            vtPChar         : (VPChar: PAnsiChar);
+{$ifdef FPC_HAS_FEATURE_CLASSES}
            vtObject        : (VObject: TObject);
            vtClass         : (VClass: TClass);
+{$endif FPC_HAS_FEATURE_CLASSES}
            vtPWideChar     : (VPWideChar: PWideChar);
            vtAnsiString    : (VAnsiString: Pointer);
            vtCurrency      : (VCurrency: PCurrency);
+{$ifdef FPC_HAS_FEATURE_VARIANTS}
            vtVariant       : (VVariant: PVariant);
+{$endif FPC_HAS_FEATURE_VARIANTS}
            vtInterface     : (VInterface: Pointer);
            vtWideString    : (VWideString: Pointer);
            vtInt64         : (VInt64: PInt64);
@@ -436,6 +559,17 @@
   var
     DispCallByIDProc : codepointer;
 
-  const
-    { for safe as operator support }
-    IObjectInstance: TGuid = '{D91C9AF4-3C93-420F-A303-BF5BA82BFD23}';
+{*****************************************************************************
+                              Resourcestring support
+*****************************************************************************}
+
+{$ifdef FPC_HAS_FEATURE_RESOURCES}
+  type
+    PResourceStringRecord = ^TResourceStringRecord;
+    TResourceStringRecord = Record
+       Name,
+       CurrentValue,
+       DefaultValue : AnsiString;
+       HashValue    : LongWord;
+     end;
+{$endif FPC_HAS_FEATURE_RESOURCES}

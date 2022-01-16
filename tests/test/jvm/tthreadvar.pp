@@ -1,3 +1,4 @@
+{%target=java android}
 program tthreadvar;
 
 {$mode delphi}

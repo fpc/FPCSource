@@ -15,6 +15,7 @@
 unit System;
 interface
 
+{$define FPC_IS_SYSTEM}
 {$ifdef SYSTEMDEBUG}
   {$define SYSTEMEXCEPTIONDEBUG}
 {$endif SYSTEMDEBUG}
@@ -276,7 +277,7 @@ end;
                          System Dependent Exit code
 *****************************************************************************}
 
-procedure PascalMain;stdcall;external name 'PASCALMAIN';
+procedure PascalMain;external name 'PASCALMAIN';
 
 {$ifndef KMODE}
 function NtTerminateProcess(aProcess: THandle; aStatus: LongInt): LongInt; stdcall; external ntdll name 'NtTerminateProcess';
@@ -337,7 +338,7 @@ begin
       if Dll_Process_Detach_Hook <> Nil then
         Dll_Process_Detach_Hook(aDllParam);
       // finalize units
-      do_exit;
+      internal_do_exit;
     end;
   end;
 end;

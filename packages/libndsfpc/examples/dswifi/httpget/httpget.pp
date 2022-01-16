@@ -54,6 +54,9 @@ begin
   closesocket(my_socket); // remove the socket.
 end;
 
+var
+    keys: integer;
+
 begin
 	consoleDemoInit();  //setup the sub screen for printing
 
@@ -68,6 +71,10 @@ begin
 		getHttp('www.akkit.org');
 	end;
 
-	while true do
+  while true do
+  begin
 		swiWaitForVBlank();
+		if( keys and KEY_START ) <> 0 then 
+      break;
+  end;
 end.

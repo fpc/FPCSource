@@ -1,3 +1,5 @@
+{ %OPT=-Oonofastmath }
+
 { Test for FloatToStr and CurrToStr functions. }
 
 uses sysutils;

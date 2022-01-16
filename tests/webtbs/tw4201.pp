@@ -1,3 +1,4 @@
+{%skiptarget=$nothread }
 { Source provided for Free Pascal Bug Report 4201 }
 { Submitted by "Gergely Nagy" on  2005-07-19 }
 { e-mail: gergely.nagy@softreal.hu }
@@ -72,6 +73,6 @@ begin
   t:= TBuggedThread.Create;
 
   t.Execute;
-  
+
   t.Free();
 end.

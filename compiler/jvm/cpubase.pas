@@ -119,7 +119,6 @@ uses
     type
       { Number of registers used for indexing in tables }
       tregisterindex=0..{$i rjvmnor.inc}-1;
-      totherregisterset = set of tregisterindex;
 
     const
       { Available Superregisters }
@@ -248,23 +247,16 @@ uses
       NR_FPU_RESULT_REG = NR_NO;
       NR_MM_RESULT_REG = NR_NO;
 
+      { No default flags }
+      NR_DEFAULTFLAGS = NR_NO;
+      RS_DEFAULTFLAGS = RS_NO;
+
 
 {*****************************************************************************
                        GCC /ABI linking information
 *****************************************************************************}
 
       { dummies, not used for JVM }
-
-      {# Registers which must be saved when calling a routine
-
-      }
-      saved_standard_registers : array[0..0] of tsuperregister = (
-        RS_NO
-      );
-
-      { this is only for the generic code which is not used for this architecture }
-      saved_address_registers : array[0..0] of tsuperregister = (RS_INVALID);
-      saved_mm_registers : array[0..0] of tsuperregister = (RS_INVALID);
 
       {# Required parameter alignment when calling a routine
       }
@@ -288,9 +280,18 @@ uses
     function std_regname(r:Tregister):string;
     function findreg_by_number(r:Tregister):tregisterindex;
 
+    function eh_return_data_regno(nr: longint): longint;
+
+    { since we don't use tasmconds, don't call this routine
+      (it will internalerror). We need it anyway to get aoptobj
+      to compile (but it won't execute it).
+    }
+    function inverse_cond(const c: TAsmCond): Tasmcond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+
 implementation
 
 uses
+  verbose,
   rgbase;
 
 {*****************************************************************************
@@ -305,11 +306,11 @@ uses
       regnumber_index : array[tregisterindex] of tregisterindex = (
         {$i rjvmrni.inc}
       );
-
+(*
       std_regname_index : array[tregisterindex] of tregisterindex = (
         {$i rjvmsri.inc}
       );
-
+*)
     function reg_cgsize(const reg: tregister): tcgsize;
       begin
         result:=OS_NO;
@@ -344,5 +345,15 @@ uses
           result:=generic_regname(r);
       end;
 
+    function eh_return_data_regno(nr: longint): longint;
+      begin
+        result:=-1;
+      end;
+
+    function inverse_cond(const c: TAsmCond): Tasmcond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+      begin
+        result:=C_None;
+        internalerror(2015082701);
+      end;
 
 end.

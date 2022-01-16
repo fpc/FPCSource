@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, toolsunit,
   db,
-  Memds;
+  MemDS;
 
 type
 { TMemDSConnector }
@@ -81,7 +81,7 @@ begin
   testTimeValues[2] := '23:59:59.000';
   testTimeValues[3] := '23:59:59.003';
 
-  MemDs := TMemDataset.Create(nil);
+  MemDS := TMemDataset.Create(nil);
   with MemDS do
     begin
     Name := 'FieldDataset';
@@ -100,6 +100,15 @@ begin
     FieldDefs.Add('FFIXEDCHAR',ftFixedChar,10);
     FieldDefs.Add('FLARGEINT',ftLargeint);
     FieldDefs.Add('FFMTBCD',ftFmtBCD);
+    FieldDefs.Add('FBLOB',ftBlob);
+    FieldDefs.Add('FMEMO',ftMemo);
+    FieldDefs.Add('FWIDESTRING',ftWideString);
+    FieldDefs.Add('FFIXEDWIDECHAR',ftFixedWideChar);
+    FieldDefs.Add('FWIDEMEMO',ftWideMemo);
+    FieldDefs.Add('FLONGWORD',ftLongWord);
+    FieldDefs.Add('FSHORTINT',ftShortInt);
+    FieldDefs.Add('FBYTE',ftByte);
+    FieldDefs.Add('FEXTENDED',ftExtended);
     CreateTable;
     Open;
     for i := 0 to testValuesCount-1 do
@@ -120,6 +129,15 @@ begin
       FieldByName('FFIXEDCHAR').AsString := PadRight(testStringValues[i], 10);
       FieldByName('FLARGEINT').AsLargeInt := testLargeIntValues[i];
       FieldByName('FFMTBCD').AsBCD := StrToBCD(testFmtBCDValues[i], Self.FormatSettings);
+      FieldByName('FBLOB').AsString := testValues[ftBlob, i];
+      FieldByName('FMEMO').AsString := testValues[ftMemo, i];
+      FieldByName('FWIDESTRING').AsWideString := testValues[ftWideString, i];
+      FieldByName('FFIXEDWIDECHAR').AsWideString := testValues[ftFixedWideChar, i];
+      FieldByName('FWIDEMEMO').AsWideString := testValues[ftWideMemo, i];
+      FieldByName('FLONGWORD').AsLongWord := testLongWordValues[i];
+      FieldByName('FSHORTINT').AsInteger := testShortIntValues[i];
+      FieldByName('FBYTE').AsInteger := testByteValues[i];
+      FieldByName('FEXTENDED').AsExtended := testFloatValues[i];
       Post;
       end;
     Close;

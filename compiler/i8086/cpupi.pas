@@ -31,11 +31,15 @@ unit cpupi;
        psub,procinfo,aasmdata;
 
     type
-       ti8086procinfo = class(tcgprocinfo)
+       tcpuprocinfo = class(tcgprocinfo)
+       private
+         procedure insert_8087_fwaits(list : TAsmList);
+       public
          constructor create(aparent:tprocinfo);override;
          procedure set_first_temp_offset;override;
          function calc_stackframe_size:longint;override;
          procedure generate_parameter_info;override;
+         procedure postprocess_code;override;
        end;
 
 
@@ -44,19 +48,20 @@ unit cpupi;
     uses
       cutils,
       systems,globals,globtype,
+      aasmtai,aasmcpu,
       cgobj,tgobj,paramgr,
-      cpubase,
+      cpubase,cpuinfo,
       cgutils,
       symconst;
 
-    constructor ti8086procinfo.create(aparent:tprocinfo);
+    constructor tcpuprocinfo.create(aparent:tprocinfo);
       begin
         inherited create(aparent);
         got:=NR_EBX;
       end;
 
 
-    procedure ti8086procinfo.set_first_temp_offset;
+    procedure tcpuprocinfo.set_first_temp_offset;
       begin
         if paramanager.use_fixed_stack then
           begin
@@ -71,7 +76,7 @@ unit cpupi;
       end;
 
 
-    function ti8086procinfo.calc_stackframe_size:longint;
+    function tcpuprocinfo.calc_stackframe_size:longint;
       begin
         { ???:
           align to 4 bytes at least
@@ -85,7 +90,7 @@ unit cpupi;
       end;
 
 
-    procedure ti8086procinfo.generate_parameter_info;
+    procedure tcpuprocinfo.generate_parameter_info;
       begin
         inherited generate_parameter_info;
         { Para_stack_size is only used to determine how many bytes to remove }
@@ -95,6 +100,31 @@ unit cpupi;
           para_stack_size := 0;
       end;
 
+
+    procedure tcpuprocinfo.insert_8087_fwaits(list : TAsmList);
+      var
+        curtai: tai;
+      begin
+        curtai:=tai(list.First);
+        while assigned(curtai) do
+          begin
+            if (curtai.typ=ait_instruction)
+               and requires_fwait_on_8087(taicpu(curtai).opcode) then
+              list.InsertBefore(taicpu.op_none(A_FWAIT),curtai);
+
+            curtai:=tai(curtai.Next);
+          end;
+      end;
+
+
+    procedure tcpuprocinfo.postprocess_code;
+      begin
+        { nickysn note: I don't know if the 187 requires FWAIT before
+          every instruction like the 8087, so I'm including it just in case }
+        if current_settings.cputype<=cpu_186 then
+          insert_8087_fwaits(aktproccode);
+      end;
+
 begin
-   cprocinfo:=ti8086procinfo;
+   cprocinfo:=tcpuprocinfo;
 end.

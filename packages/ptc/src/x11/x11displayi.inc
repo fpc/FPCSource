@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2001-2013 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2013, 2015-2017, 2021 Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
     This library is free software; you can redistribute it and/or
@@ -27,7 +27,7 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with this library; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 }
 
 {$INCLUDE x11unikey.inc}
@@ -380,6 +380,29 @@ begin
   FFunctionKeys[$FF and XK_F10] := Integer(PTCKEY_F10);
   FFunctionKeys[$FF and XK_F11] := Integer(PTCKEY_F11);
   FFunctionKeys[$FF and XK_F12] := Integer(PTCKEY_F12);
+  FFunctionKeys[$FF and XK_F13] := Integer(PTCKEY_F13);
+  FFunctionKeys[$FF and XK_F14] := Integer(PTCKEY_F14);
+  FFunctionKeys[$FF and XK_F15] := Integer(PTCKEY_F15);
+  FFunctionKeys[$FF and XK_F16] := Integer(PTCKEY_F16);
+  FFunctionKeys[$FF and XK_F17] := Integer(PTCKEY_F17);
+  FFunctionKeys[$FF and XK_F18] := Integer(PTCKEY_F18);
+  FFunctionKeys[$FF and XK_F19] := Integer(PTCKEY_F19);
+  FFunctionKeys[$FF and XK_F20] := Integer(PTCKEY_F20);
+  FFunctionKeys[$FF and XK_F21] := Integer(PTCKEY_F21);
+  FFunctionKeys[$FF and XK_F22] := Integer(PTCKEY_F22);
+  FFunctionKeys[$FF and XK_F23] := Integer(PTCKEY_F23);
+  FFunctionKeys[$FF and XK_F24] := Integer(PTCKEY_F24);
+  FFunctionKeys[$FF and XK_F25] := Integer(PTCKEY_F25);
+  FFunctionKeys[$FF and XK_F26] := Integer(PTCKEY_F26);
+  FFunctionKeys[$FF and XK_F27] := Integer(PTCKEY_F27);
+  FFunctionKeys[$FF and XK_F28] := Integer(PTCKEY_F28);
+  FFunctionKeys[$FF and XK_F29] := Integer(PTCKEY_F29);
+  FFunctionKeys[$FF and XK_F30] := Integer(PTCKEY_F30);
+  FFunctionKeys[$FF and XK_F31] := Integer(PTCKEY_F31);
+  FFunctionKeys[$FF and XK_F32] := Integer(PTCKEY_F32);
+  FFunctionKeys[$FF and XK_F33] := Integer(PTCKEY_F33);
+  FFunctionKeys[$FF and XK_F34] := Integer(PTCKEY_F34);
+  FFunctionKeys[$FF and XK_F35] := Integer(PTCKEY_F35);
 
   FFunctionKeys[$FF and XK_Shift_L] := Integer(PTCKEY_SHIFT);
   FFunctionKeys[$FF and XK_Shift_R] := Integer(PTCKEY_SHIFT);
@@ -410,6 +433,7 @@ begin
   FNormalKeys[$FF and XK_semicolon] := Integer(PTCKEY_SEMICOLON);
   FNormalKeys[$FF and XK_equal] := Integer(PTCKEY_EQUALS);
   FNormalKeys[$FF and XK_grave] := Integer(PTCKEY_BACKQUOTE);
+  FNormalKeys[$FF and XK_apostrophe] := Integer(PTCKEY_QUOTE);
 
   FNormalKeys[$FF and XK_bracketleft] := Integer(PTCKEY_OPENBRACKET);
   FNormalKeys[$FF and XK_backslash] := Integer(PTCKEY_BACKSLASH);
@@ -448,29 +472,83 @@ var
   sym: TKeySym;
   sym_modded: TKeySym; { modifiers like shift are taken into account here }
   press: Boolean;
-  alt, shift, ctrl: Boolean;
+  modkeys: TPTCModifierKeys;
   uni: Integer;
   key: TPTCKeyEvent;
   buf: array [1..16] of Char;
+  lslen: cint;
+  status: TStatus;
+  eaten_by_im: Boolean = False;
 begin
-  sym := XLookupKeySym(@e, 0);
+  if Assigned(FXIM) and Assigned(FXIC) and (Self is TX11WindowDisplay) then
+  begin
+    eaten_by_im := XFilterEvent(@e, TX11WindowDisplay(Self).FWindow);
+  end;
   XLookupString(@e, @buf, SizeOf(buf), @sym_modded, nil);
+  if (e._type = KeyPress) and Assigned(FXIM) and Assigned(FXIC) then
+  begin
+    lslen := XmbLookupString(FXIC, @e, @buf, SizeOf(buf), @sym_modded, @status);
+//    Writeln(lslen, ' ', status, ' ', buf[1], ' ', XKeysymToString(sym_modded));
+  end;
+  sym := XLookupKeySym(@e, 0);
 //  Writeln('sym_modded = ', sym_modded);
-  uni := X11ConvertKeySymToUnicode(sym_modded);
-  alt := (e.state and Mod1Mask) <> 0;
-  shift := (e.state and ShiftMask) <> 0;
-  ctrl := (e.state and ControlMask) <> 0;
+//  Writeln(HexStr(e.state, 8));
+  modkeys := [];
+  if (e.state and Mod1Mask) <> 0 then
+    Include(modkeys, pmkAlt);
+  if (e.state and ShiftMask) <> 0 then
+    Include(modkeys, pmkShift);
+  if (e.state and ControlMask) <> 0 then
+    Include(modkeys, pmkControl);
+  if (e.state and LockMask) <> 0 then
+    Include(modkeys, pmkCapsLockActive);
+  if (e.state and Mod2Mask) <> 0 then
+    Include(modkeys, pmkNumLockActive);
+  if X11IsDeadKey(sym_modded) then
+    Include(modkeys, pmkDeadKey);
   if e._type = KeyPress then
-    press := True
+  begin
+    press := True;
+    uni := X11ConvertKeySymToUnicode(sym_modded);
+  end
   else
+  begin
     press := False;
+    uni := -1;
+  end;
+  if (sym_modded = XK_Shift_R) or
+     (sym_modded = XK_Control_R) or
+     (sym_modded = XK_Meta_R) or
+     (sym_modded = XK_Alt_R) then
+    Include(modkeys, pmkRightKey);
+  if (sym_modded = XK_KP_Insert) or
+     (sym_modded = XK_KP_Delete) or
+     (sym_modded = XK_KP_Home) or
+     (sym_modded = XK_KP_End) or
+     (sym_modded = XK_KP_Prior) or
+     (sym_modded = XK_KP_Next) or
+     (sym_modded = XK_KP_Begin) or
+     (sym_modded = XK_KP_Left) or
+     (sym_modded = XK_KP_Right) or
+     (sym_modded = XK_KP_Up) or
+     (sym_modded = XK_KP_Down) or
+     (sym_modded = XK_KP_Divide) or
+     (sym_modded = XK_KP_Multiply) or
+     (sym_modded = XK_KP_Subtract) or
+     (sym_modded = XK_KP_Add) or
+     (sym_modded = XK_KP_Enter) or
+     (sym_modded = XK_KP_Decimal) or
+     ((sym_modded >= XK_KP_0) and (sym_modded <= XK_KP_9)) or
+     (sym_modded = XK_Num_Lock) then
+    Include(modkeys, pmkNumPadKey);
 
   // XK_ISO_Left_Tab is Shift-Tab
   if sym_modded = XK_ISO_Left_Tab then
   begin
     sym_modded := XK_Tab;
-    uni := 9;
-    shift := True;
+    if press then
+      uni := 9;
+    Include(modkeys, pmkShift);
   end;
 
   // Hack, used for handling the code of Shift-Key combinations
@@ -489,12 +567,13 @@ begin
 
   key := nil;
   case sym_modded shr 8 of
-    0: key := TPTCKeyEvent.Create(FNormalKeys[sym_modded and $FF], uni, alt, shift, ctrl, press);
-    $FF: key := TPTCKeyEvent.Create(FFunctionKeys[sym_modded and $FF], uni, alt, shift, ctrl, press);
+    0: key := TPTCKeyEvent.Create(FNormalKeys[sym_modded and $FF], uni, modkeys, press);
+    $FF: key := TPTCKeyEvent.Create(FFunctionKeys[sym_modded and $FF], uni, modkeys, press);
     else
-      key := TPTCKeyEvent.Create;
+      key := TPTCKeyEvent.Create(PTCKEY_UNDEFINED, uni, modkeys, press);
   end;
-  FEventQueue.AddEvent(key);
+  if (not eaten_by_im) or (pmkDeadKey in modkeys) then
+    FEventQueue.AddEvent(key);
 end;
 
 function TX11Display.GetInterceptClose: Boolean;
@@ -513,6 +592,11 @@ end;
 procedure TX11Display.InternalResize(AWidth, AHeight: Integer);
 begin
   raise TPTCError.Create('Console not in windowed mode');
+end;
+
+function TX11Display.MoveMouseTo(X, Y: Integer): Boolean;
+begin
+  Result := False;
 end;
 
 procedure TX11Display.OpenGL_SwapBuffers;

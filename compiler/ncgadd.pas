@@ -66,17 +66,19 @@ interface
           procedure second_cmpsmallset;virtual;abstract;
           procedure second_cmp64bit;virtual;abstract;
           procedure second_cmpordinal;virtual;abstract;
+
+          function needoverflowcheck: boolean;
        end;
 
   implementation
 
     uses
       globtype,systems,
-      cutils,verbose,globals,
-      symconst,symdef,paramgr,
-      aasmbase,aasmtai,aasmdata,defutil,
-      procinfo,pass_2,tgobj,
-      nutils,ncon,nset,ncgutil,cgobj,cgutils,
+      verbose,globals,
+      symconst,symdef,
+      aasmbase,aasmdata,defutil,
+      pass_2,tgobj,
+      nutils,nset,ncgutil,cgobj,cgutils,
       hlcgobj
       ;
 
@@ -86,17 +88,12 @@ interface
 *****************************************************************************}
 
     procedure tcgaddnode.pass_left_right;
+{$if defined(x86) and not defined(llvm)}
       var
         tmpreg     : tregister;
-{$ifdef x86}
-        pushedfpu,
-{$endif x86}
-        isjump     : boolean;
-        otl,ofl    : tasmlabel;
+        pushedfpu  : boolean;
+{$endif x86 and not llvm}
       begin
-        otl:=nil;
-        ofl:=nil;
-
         { calculate the operator which is more difficult }
         firstcomplex(self);
 
@@ -104,27 +101,10 @@ interface
         if (left.nodetype=ordconstn) then
           swapleftright;
 
-        isjump:=(left.expectloc=LOC_JUMP);
-        if isjump then
-          begin
-             otl:=current_procinfo.CurrTrueLabel;
-             current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-             ofl:=current_procinfo.CurrFalseLabel;
-             current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
-          end;
         secondpass(left);
         if left.location.loc in [LOC_FLAGS,LOC_JUMP] then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
-        if isjump then
-          begin
-            current_procinfo.CurrTrueLabel:=otl;
-            current_procinfo.CurrFalseLabel:=ofl;
-          end
-        else
-          if left.location.loc=LOC_JUMP then
-            internalerror(2012081302);
-
-{$ifdef x86}
+{$if defined(x86) and not defined(llvm)}
         { are too few registers free? }
         pushedfpu:=false;
         if (left.location.loc=LOC_FPUREGISTER) and
@@ -133,25 +113,12 @@ interface
             hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
             pushedfpu:=true;
           end;
-{$endif x86}
+{$endif x86 and not llvm}
 
-        isjump:=(right.expectloc=LOC_JUMP);
-        if isjump then
-          begin
-             otl:=current_procinfo.CurrTrueLabel;
-             current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-             ofl:=current_procinfo.CurrFalseLabel;
-             current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
-          end;
         secondpass(right);
         if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,resultdef,false);
-        if isjump then
-          begin
-            current_procinfo.CurrTrueLabel:=otl;
-            current_procinfo.CurrFalseLabel:=ofl;
-          end;
-{$ifdef x86}
+{$if defined(x86) and not defined(llvm)}
         if pushedfpu then
           begin
             if use_vectorfpu(left.resultdef) then
@@ -174,14 +141,14 @@ interface
                   toggleflag(nf_swapped);
               end;
           end;
-{$endif x86}
+{$endif x86 and not llvm}
       end;
 
 
     procedure tcgaddnode.set_result_location_reg;
       begin
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
         if location.size in [OS_64,OS_S64] then
           begin
             location.register64.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
@@ -243,7 +210,7 @@ interface
             equaln:   result:=OC_EQ;
             unequaln: result:=OC_NE;
           else
-            internalerror(2011010412);
+            internalerror(2011010403);
           end
       end;
 
@@ -385,7 +352,7 @@ interface
             tmpreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
             hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,mask,tmpreg);
             hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,resultdef,true);
-            register_maybe_adjust_setbase(current_asmdata.CurrAsmList,right.location,setbase);
+            register_maybe_adjust_setbase(current_asmdata.CurrAsmList,resultdef,right.location,setbase);
             hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,cgop,resultdef,
               right.location.register,tmpreg);
             if left.location.loc <> LOC_CONSTANT then
@@ -414,7 +381,7 @@ interface
     procedure tcgaddnode.second_addboolean;
       var
         cgop    : TOpCg;
-        otl,ofl : tasmlabel;
+        truelabel, falselabel : tasmlabel;
         oldflowcontrol : tflowcontrol;
       begin
         { And,Or will only evaluate from left to right only the
@@ -423,25 +390,22 @@ interface
            (not(cs_full_boolean_eval in current_settings.localswitches) or
             (nf_short_bool in flags)) then
           begin
-            location_reset(location,LOC_JUMP,OS_NO);
             case nodetype of
               andn :
                 begin
-                   otl:=current_procinfo.CurrTrueLabel;
-                   current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
                    secondpass(left);
                    hlcg.maketojumpbool(current_asmdata.CurrAsmList,left);
-                   hlcg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
-                   current_procinfo.CurrTrueLabel:=otl;
+                   hlcg.a_label(current_asmdata.CurrAsmList,left.location.truelabel);
+                   current_asmdata.getjumplabel(truelabel);
+                   location_reset_jump(location,truelabel,left.location.falselabel);
                 end;
               orn :
                 begin
-                   ofl:=current_procinfo.CurrFalseLabel;
-                   current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
                    secondpass(left);
                    hlcg.maketojumpbool(current_asmdata.CurrAsmList,left);
-                   hlcg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
-                   current_procinfo.CurrFalseLabel:=ofl;
+                   hlcg.a_label(current_asmdata.CurrAsmList,left.location.falselabel);
+                   current_asmdata.getjumplabel(falselabel);
+                   location_reset_jump(location,left.location.truelabel,falselabel);
                 end;
               else
                 internalerror(200307044);
@@ -451,7 +415,9 @@ interface
             include(flowcontrol,fc_inflowcontrol);
 
             secondpass(right);
-            hlcg.maketojumpbool(current_asmdata.CurrAsmList,right);
+            { jump to the same labels as the left side, since the andn/orn
+              merges the results of left and right }
+            hlcg.maketojumpboollabels(current_asmdata.CurrAsmList,right,location.truelabel,location.falselabel);
 
             flowcontrol:=oldflowcontrol+(flowcontrol-[fc_inflowcontrol]);
           end
@@ -471,7 +437,7 @@ interface
               else
                  internalerror(200203247);
             end;
-{$ifndef cpu64bitalu}
+{$if not defined(cpu64bitalu) and not defined(cpuhighleveltarget)}
             if right.location.size in [OS_64,OS_S64] then
               begin
                 if right.location.loc <> LOC_CONSTANT then
@@ -554,11 +520,9 @@ interface
 
         checkoverflow:=
           checkoverflow and
-          (left.resultdef.typ<>pointerdef) and
-          (right.resultdef.typ<>pointerdef) and
-          (cs_check_overflow in current_settings.localswitches);
+          needoverflowcheck;
 
-{$ifdef cpu64bitalu}
+{$if defined(cpu64bitalu) or defined(cpuhighleveltarget)}
         case nodetype of
           xorn,orn,andn,addn:
             begin
@@ -599,7 +563,7 @@ interface
           else
             internalerror(2002072803);
         end;
-{$else cpu64bitalu}
+{$else cpu64bitalu or cpuhighleveltarget}
         case nodetype of
           xorn,orn,andn,addn:
             begin
@@ -643,9 +607,9 @@ interface
                 end;
             end;
           else
-            internalerror(2002072803);
+            internalerror(2002072804);
         end;
-{$endif cpu64bitalu}
+{$endif cpu64bitalu or cpuhighleveltarget}
 
         { emit overflow check if enabled }
         if checkoverflow then
@@ -750,7 +714,7 @@ interface
          checkoverflow and
           (left.resultdef.typ<>pointerdef) and
           (right.resultdef.typ<>pointerdef) and
-          (cs_check_overflow in current_settings.localswitches);
+          (cs_check_overflow in current_settings.localswitches) and not(nf_internal in flags);
 
        if nodetype<>subn then
         begin
@@ -797,6 +761,15 @@ interface
     procedure tcgaddnode.second_cmpboolean;
       begin
         second_cmpordinal;
+      end;
+
+    function tcgaddnode.needoverflowcheck: boolean;
+      begin
+        result:=
+          (cs_check_overflow in current_settings.localswitches) and
+          (left.resultdef.typ<>pointerdef) and
+          (right.resultdef.typ<>pointerdef) and
+          not(nf_internal in flags);
       end;
 
 

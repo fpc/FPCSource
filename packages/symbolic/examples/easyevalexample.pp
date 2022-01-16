@@ -46,6 +46,6 @@ begin
    writeln(s,'=',QuickEvaluate(s,['A','B'],[a,b]):10:1,' with A=',a:0:1,' and B=',b);
  except
    on E:Exception do
-     Writeln('An exception occured: ',e.message);
+     Writeln('An exception occurred: ',e.message);
    end;
 end.

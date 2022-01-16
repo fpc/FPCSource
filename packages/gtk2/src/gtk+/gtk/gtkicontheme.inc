@@ -32,6 +32,12 @@ type
      gtk_icon_theme_lookup_icon() includes builtin icons
      as well as files. For a builtin icon, gdk_icon_info_get_filename()
      returns %NULL and you need to call gdk_icon_info_get_builtin_pixbuf().
+   @GTK_ICON_LOOKUP_GENERIC_FALLBACK
+     Try to shorten icon name at '-' characters before looking at inherited
+     themes. For more general fallback, seegtk_icon_theme_choose_icon().
+     Since 2.12.
+	 @GTK_ICON_LOOKUP_FORCE_SIZE
+	   Always return the icon scaled to the requested size. Since 2.14.
 
    Used to specify options for gtk_icon_theme_lookup_icon()
    }
@@ -39,7 +45,10 @@ type
    PGtkIconLookupFlags = ^TGtkIconLookupFlags;
    TGtkIconLookupFlags = (GTK_ICON_LOOKUP_NO_SVG := 1 shl 0,
                           GTK_ICON_LOOKUP_FORCE_SVG := 1 shl 1,
-                          GTK_ICON_LOOKUP_USE_BUILTIN := 1 shl 2);
+                          GTK_ICON_LOOKUP_USE_BUILTIN := 1 shl 2,
+                          GTK_ICON_LOOKUP_GENERIC_FALLBACK := 1 shl 3,
+                          GTK_ICON_LOOKUP_FORCE_SIZE := 1 shl 4
+                          );
 
 {
    GtkIconThemeError:

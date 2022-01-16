@@ -90,7 +90,7 @@ type
   Operator - (c: IMoney; c1: IMoney) c2: IMoney;
   Operator * (c: IMoney; i: integer) c2: IMoney;
 
- implementation
+implementation
 
 Operator + (c: IMoney; c1: IMoney) c2: IMoney;
 begin

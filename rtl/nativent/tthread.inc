@@ -45,11 +45,6 @@ procedure TThread.Resume;
 begin
 end;
 
-procedure TThread.Terminate;
-begin
-  FTerminated := True;
-end;
-
 function TThread.WaitFor: Integer;
 begin
   Result := -1;

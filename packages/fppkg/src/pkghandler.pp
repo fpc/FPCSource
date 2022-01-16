@@ -23,7 +23,8 @@ uses
 {$ifdef HAS_UNIT_PROCESS}
   process,
 {$endif HAS_UNIT_PROCESS}
-  fprepos;
+  fprepos,
+  pkgFppkg;
 
 type
   { TPackageHandler }
@@ -31,6 +32,7 @@ type
   TPackageHandler = Class(TComponent)
   private
     FPackageName : string;
+    FPackageManager: tpkgFPpkg;
   Protected
     Procedure Log(Level: TLogLevel;Msg : String);
     Procedure Log(Level: TLogLevel;Fmt : String; const Args : array of const);
@@ -38,11 +40,12 @@ type
     Procedure Error(Fmt : String; const Args : array of const);
     Function ExecuteProcess(Const Prog,Args:String):Integer;
     Procedure SetCurrentDir(Const ADir:String);
+    Property PackageManager:TpkgFPpkg Read FPackageManager;
   Public
-    Constructor Create(AOwner:TComponent;const APackageName:string); virtual;
+    Constructor Create(AOwner:TComponent; APackageManager:TpkgFPpkg; const APackageName:string); virtual;
     function PackageLogPrefix:String;
-    procedure ExecuteAction(const APackageName,AAction:string);
-    procedure Execute; virtual; abstract;
+    function ExecuteAction(const APackageName,AAction:string): Boolean;
+    function Execute: Boolean; virtual; abstract;
     Property PackageName:string Read FPackageName;
   end;
   TPackageHandlerClass = class of TPackageHandler;
@@ -52,12 +55,10 @@ type
 // Actions/PkgHandler
 procedure RegisterPkgHandler(const AAction:string;pkghandlerclass:TPackageHandlerClass);
 function GetPkgHandler(const AAction:string):TPackageHandlerClass;
-procedure ExecuteAction(const APackageName,AAction:string);
+function ExecuteAction(const APackageName,AAction:string; PackageManager: TpkgFPpkg): Boolean;
 
-function PackageBuildPath(APackage:TFPPackage):String;
-function PackageRemoteArchive(APackage:TFPPackage): String;
-function PackageLocalArchive(APackage:TFPPackage): String;
 function PackageManifestFile(APackage:TFPPackage): String;
+procedure ClearExecutedAction;
 
 
 Implementation
@@ -93,11 +94,12 @@ begin
 end;
 
 
-procedure ExecuteAction(const APackageName,AAction:string);
+function ExecuteAction(const APackageName,AAction:string; PackageManager: TpkgFPpkg): Boolean;
 var
   pkghandlerclass : TPackageHandlerClass;
   FullActionName : string;
 begin
+  Result := True;
   // Check if we have already executed or are executing the action
   FullActionName:=APackageName+AAction;
   if ExecutedActions.Find(FullActionName)<>nil then
@@ -110,62 +112,14 @@ begin
 
   // Create action handler class
   pkghandlerclass:=GetPkgHandler(AAction);
-  With pkghandlerclass.Create(nil,APackageName) do
+  With pkghandlerclass.Create(nil,PackageManager,APackageName) do
     try
       Log(llDebug,SLogRunAction+' start',[AAction]);
-      Execute;
+      Result := Execute;
       Log(llDebug,SLogRunAction+' end',[AAction]);
     finally
       Free;
     end;
-end;
-
-
-function PackageBuildPath(APackage:TFPPackage):String;
-begin
-  if APackage.Name=CurrentDirPackageName then
-    begin
-      // It could be that to resolve some dependencies, the current directory changes. The first time
-      // PackageBuildPath is called the dependencies are not resolved yet, so store the current directory
-      // for later calls.
-      if CurrentDir='' then
-        begin
-          Result:='.';
-          CurrentDir := SysUtils.GetCurrentDir;
-        end
-      else
-        Result:=CurrentDir;
-    end
-  else if APackage.Name=CmdLinePackageName then
-    Result:=GlobalOptions.BuildDir+ChangeFileExt(ExtractFileName(APackage.LocalFileName),'')
-  else if (APackage.RecompileBroken) and (APackage.SourcePath<>'') then
-    Result:=APackage.SourcePath
-  else
-    Result:=GlobalOptions.BuildDir+APackage.Name;
-end;
-
-
-function PackageRemoteArchive(APackage:TFPPackage): String;
-begin
-  if APackage.Name=CurrentDirPackageName then
-    Error(SErrNoPackageSpecified)
-  else if APackage.Name=CmdLinePackageName then
-    Error(SErrPackageIsLocal);
-  if APackage.DownloadURL<>'' then
-    Result:=APackage.DownloadURL
-  else
-    Result:=GetRemoteRepositoryURL(APackage.FileName);
-end;
-
-
-function PackageLocalArchive(APackage:TFPPackage): String;
-begin
-  if APackage.Name=CurrentDirPackageName then
-    Error(SErrNoPackageSpecified)
-  else if APackage.Name=CmdLinePackageName then
-    Result:=APackage.LocalFileName
-  else
-    Result:=GlobalOptions.ArchivesDir+APackage.FileName;
 end;
 
 
@@ -174,14 +128,19 @@ begin
   Result:=ManifestFileName;
 end;
 
-
+procedure ClearExecutedAction;
+begin
+  ExecutedActions.Clear;
+end;
 
 { TPackageHandler }
 
-constructor TPackageHandler.Create(AOwner:TComponent;const APackageName:string);
+Constructor TPackageHandler.Create(AOwner: TComponent; APackageManager: TpkgFPpkg;
+  const APackageName: string);
 begin
   inherited Create(AOwner);
   FPackageName:=APackageName;
+  FPackageManager:=APackageManager;
 end;
 
 {$ifdef HAS_UNIT_PROCESS}
@@ -220,7 +179,7 @@ var
 
         if ch in [#10, #13] then
         begin
-          log(llProgres,sLine);
+          log(llProgress,sLine);
           sLine := '';
           BuffPos := ConsoleOutput.Position;
         end
@@ -297,10 +256,9 @@ begin
 end;
 
 
-procedure TPackageHandler.ExecuteAction(const APackageName,AAction:string);
+function TPackageHandler.ExecuteAction(const APackageName, AAction: string): Boolean;
 begin
-  // Needed to override TComponent.ExecuteAction method
-  pkghandler.ExecuteAction(APackageName,AAction);
+  Result := pkghandler.ExecuteAction(APackageName,AAction,PackageManager);
 end;
 
 

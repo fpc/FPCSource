@@ -16,11 +16,15 @@
 unit System;
 interface
 
+{$define FPC_IS_SYSTEM}
 {$ifdef SYSTEMDEBUG}
   {$define SYSTEMEXCEPTIONDEBUG}
 {$endif SYSTEMDEBUG}
 
-{$define FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef VER3_0}
+{ 3.1.1+ do not require this anymore }
+{$define FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+{$endif VER3_0}
 
 {$ifdef cpui386}
   {$define Set_i386_Exception_handler}
@@ -30,6 +34,7 @@ interface
 {$define HAS_WIDESTRINGMANAGER}
 {$define DISABLE_NO_DYNLIBS_MANAGER}
 {$define FPC_SYSTEM_HAS_SYSDLH}
+{$define FPC_HAS_SETCTRLBREAKHANDLER}
 
 {$ifdef FPC_USE_WIN32_SEH}
   {$define FPC_SYSTEM_HAS_RAISEEXCEPTION}
@@ -40,90 +45,19 @@ interface
 
 { include system-independent routine headers }
 {$I systemh.inc}
-
-const
- LineEnding = #13#10;
- LFNSupport = true;
- DirectorySeparator = '\';
- DriveSeparator = ':';
- ExtensionSeparator = '.';
- PathSeparator = ';';
- AllowDirectorySeparators : set of char = ['\','/'];
- AllowDriveSeparators : set of char = [':'];
-
-{ FileNameCaseSensitive and FileNameCasePreserving are defined separately below!!! }
- maxExitCode = 65535;
- MaxPathLen = 260;
- AllFilesMask = '*';
-
-type
-   PEXCEPTION_FRAME = ^TEXCEPTION_FRAME;
-   TEXCEPTION_FRAME = record
-     next : PEXCEPTION_FRAME;
-     handler : pointer;
-   end;
-
-const
-{ Default filehandles }
-  UnusedHandle    : THandle = THandle(-1);
-  StdInputHandle  : THandle = 0;
-  StdOutputHandle : THandle = 0;
-  StdErrorHandle  : THandle = 0;
-
-  FileNameCaseSensitive : boolean = false;
-  FileNameCasePreserving: boolean = true;
-  CtrlZMarksEOF: boolean = true; (* #26 is considered as end of file *)
-
-  sLineBreak = LineEnding;
-  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
-
-  System_exception_frame : PEXCEPTION_FRAME =nil;
+{ include common windows headers }
+{$I syswinh.inc}
 
 var
-{ C compatible arguments }
-  argc : longint; public name 'operatingsystem_parameter_argc';
-  argv : ppchar; public name 'operatingsystem_parameter_argv';
-{ Win32 Info }
-  startupinfo : tstartupinfo deprecated;  // Delphi does not have one in interface
-  MainInstance,
-  cmdshow     : longint;
-  DLLreason : dword; public name 'operatingsystem_dllreason';
-  DLLparam : PtrInt; public name 'operatingsystem_dllparam';
-  StartupConsoleMode : DWORD;
-const
-  hprevinst: longint=0;
-
-type
-  TDLL_Entry_Hook = procedure (dllparam : PtrInt);
-
-const
-  Dll_Process_Detach_Hook : TDLL_Entry_Hook = nil;
-  Dll_Thread_Attach_Hook : TDLL_Entry_Hook = nil;
-  Dll_Thread_Detach_Hook : TDLL_Entry_Hook = nil;
-
-Const
-  { it can be discussed whether fmShareDenyNone means read and write or read, write and delete, see
-    also http://bugs.freepascal.org/view.php?id=8898, this allows users to configure the used
-	value
-  }
-  fmShareDenyNoneFlags : DWord = 3;
+  MainInstance : longint;
 
 implementation
 
 var
-  SysInstance : Longint;public name '_FPC_SysInstance';
-  InitFinalTable : record end; external name 'INITFINAL';
-  ThreadvarTablesTable : record end; external name 'FPC_THREADVARTABLES';
-  procedure PascalMain;stdcall;external name 'PASCALMAIN';
-  procedure asm_exit;stdcall;external name 'asm_exit';
-const
-  EntryInformation : TEntryInformation = (
-    InitFinalTable : @InitFinalTable;
-    ThreadvarTablesTable : @ThreadvarTablesTable;
-    asm_exit : @asm_exit;
-    PascalMain : @PascalMain;
-    valgrind_used : false;
-    );
+  FPCSysInstance : PLongint;public name '_FPC_SysInstance';
+
+{$define FPC_SYSTEM_HAS_OSSETUPENTRYINFORMATION}
+procedure OsSetupEntryInformation(constref info: TEntryInformation); forward;
 
 {$ifdef FPC_USE_WIN32_SEH}
 function main_wrapper(arg: Pointer; proc: Pointer): ptrint; forward;
@@ -142,6 +76,12 @@ end;
 { include code common with win64 }
 {$I syswin.inc}
 
+procedure OsSetupEntryInformation(constref info: TEntryInformation);
+begin
+  TlsKey := info.OS.TlsKeyAddr;
+  FPCSysInstance := info.OS.SysInstance;
+  WStrInitTablesTable := info.OS.WideInitTables;
+end;
 
 {*****************************************************************************
                          System Dependent Exit code
@@ -183,7 +123,7 @@ begin
 {$endif FPC_USE_WIN32_SEH}
 
   { do cleanup required by the startup code }
-  EntryInformation.asm_exit();
+  EntryInformation.OS.asm_exit();
 
   { call exitprocess, with cleanup as required }
   ExitProcess(exitcode);
@@ -194,11 +134,11 @@ var
     to check if the call stack can be written on exceptions }
   _SS : Cardinal;
 
-procedure Exe_entry(const info : TEntryInformation);[public,alias:'_FPC_EXE_Entry'];
+procedure Exe_entry(constref info : TEntryInformation);[public,alias:'_FPC_EXE_Entry'];
   var
     xframe: TEXCEPTION_FRAME;
   begin
-     EntryInformation:=info;
+     SetupEntryInformation(info);
      IsLibrary:=false;
      { install the handlers for exe only ?
        or should we install them for DLL also ? (PM) }
@@ -423,7 +363,7 @@ procedure JumpToHandleErrorFrame;
 
 function syswin32_i386_exception_handler(excep : PExceptionPointers) : Longint;stdcall;
   var
-    res: longint;
+    res,ssecode: longint;
     err: byte;
     must_reset_fpu: boolean;
   begin
@@ -436,9 +376,10 @@ function syswin32_i386_exception_handler(excep : PExceptionPointers) : Longint;s
               hexstr(excep^.ExceptionRecord^.ExceptionCode, 8));
 {$endif SYSTEMEXCEPTIONDEBUG}
       case excep^.ExceptionRecord^.ExceptionCode of
-        STATUS_INTEGER_DIVIDE_BY_ZERO,
-        STATUS_FLOAT_DIVIDE_BY_ZERO :
+        STATUS_INTEGER_DIVIDE_BY_ZERO :
           err := 200;
+        STATUS_FLOAT_DIVIDE_BY_ZERO :
+          err := 208;
         STATUS_ARRAY_BOUNDS_EXCEEDED :
           begin
             err := 201;
@@ -493,6 +434,17 @@ function syswin32_i386_exception_handler(excep : PExceptionPointers) : Longint;s
           begin
             err := 218;
             must_reset_fpu := false;
+          end;
+        STATUS_FLOAT_MULTIPLE_FAULTS,
+        STATUS_FLOAT_MULTIPLE_TRAPS:
+          begin
+            { dumping ExtendedRegisters and comparing with the actually value of mxcsr revealed 24 }
+            TranslateMxcsr(excep^.ContextRecord^.ExtendedRegisters[24],ssecode);
+{$ifdef SYSTEMEXCEPTIONDEBUG}
+            if IsConsole then
+              Writeln(stderr,'MXSR: ',hexstr(excep^.ContextRecord^.ExtendedRegisters[24], 2),' SSECODE: ',ssecode);
+{$endif SYSTEMEXCEPTIONDEBUG}
+            err:=-ssecode;
           end;
         else
           begin
@@ -650,14 +602,14 @@ function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
     result:=tpeheader((pointer(getmodulehandle(nil))+(tdosheader(pointer(getmodulehandle(nil))^).e_lfanew))^).SizeOfStackReserve;
   end;
 
-begin
+initialization
   { get some helpful informations }
   GetStartupInfo(@startupinfo);
   { some misc Win32 stuff }
   if not IsLibrary then
-    SysInstance:=getmodulehandle(nil);
+    FPCSysInstance^:=getmodulehandle(nil);
 
-  MainInstance:=SysInstance;
+  MainInstance:=FPCSysInstance^;
 
   { pass dummy value }
   StackLength := CheckInitialStkLen($1000000);
@@ -683,4 +635,8 @@ begin
   InOutRes:=0;
   ProcessID := GetCurrentProcessID;
   DispCallByIDProc:=@DoDispCallByIDError;
+
+finalization
+  WinFinalizeSystem;
+
 end.

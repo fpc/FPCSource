@@ -74,6 +74,7 @@ end;
 
 function TSrcContainer.FindElement(const AName: String): TPasElement;
 begin
+  if AName='' then ;
   Result:=Nil;
 end;
 
@@ -122,8 +123,11 @@ begin
     D:=ExtractFilePath(FileName);
     If (D='') then
       D:='.';
+    FResolver.ModuleDirectory:=D;
     FResolver.BaseDirectory:=D;
-    FResolver.AddIncludePath(D);
+
+    FResolver.AddIncludePath(D); // still needed?
+
     FScanner:=TPascalScanner.Create(FResolver);
     FScanner.OpenFile(FileName);
     FContainer:=TSrcContainer.Create;
@@ -171,8 +175,6 @@ procedure TPasSrcAnalysis.GetClassMembers(AClass: TPasClassType; List: TStrings;
 Var
   I : Integer;
   E : TPasElement;
-  V : TPasVariant;
-
 begin
   For I:=0 to AClass.Members.Count-1 do
     begin
@@ -193,7 +195,11 @@ procedure TPasSrcAnalysis.GetUses(ASection : TPasSection; List: TStrings);
 Var
   I : Integer;
 begin
-  If Assigned(ASection) and Assigned(ASection.UsesList) then
+  If not Assigned(ASection) then exit;
+  if ASection.UsesList.Count=length(ASection.UsesClause) then
+    For I:=0 to length(ASection.UsesClause)-1 do
+      List.Add(ASection.UsesClause[i].Name)
+  else
     For I:=0 to ASection.UsesList.Count-1 do
       List.Add(TPasElement(ASection.UsesList[i]).Name);
 end;

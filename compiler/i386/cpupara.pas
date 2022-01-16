@@ -40,8 +40,9 @@ unit cpupara;
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;override;
+          function get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
-          function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
+          function create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;override;
           procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): TCGPara;override;
        private
@@ -53,10 +54,10 @@ unit cpupara;
   implementation
 
     uses
-       cutils,
+       cutils,sysutils,
        systems,verbose,
        symtable,
-       defutil;
+       globals,defutil;
 
       const
         parasupregs : array[0..2] of tsuperregister = (RS_EAX,RS_EDX,RS_ECX);
@@ -104,7 +105,7 @@ unit cpupara;
                       only records of a size of 1,2 or 4 bytes in FUNCTION_RETURN_REG }
                     if ((pd.proccalloption in [pocall_stdcall,pocall_register]) and
                         (def.size in [1,2,4])) or
-                       ((pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
+                       ((pd.proccalloption in cdecl_pocalls) and
                         (def.size>0) and
                         (def.size<=8)) then
                      begin
@@ -112,6 +113,8 @@ unit cpupara;
                        exit;
                      end;
                   end;
+                else
+                  ;
               end;
             end;
           system_i386_os2,
@@ -121,7 +124,7 @@ unit cpupara;
                 recorddef :
                   begin
                     { EMX port of GCC returns small records in the FUNCTION_RETURN_REG up to 4 bytes in registers. }
-                    if ((pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
+                    if ((pd.proccalloption in cdecl_pocalls) and
                         (def.size>0) and
                         (def.size<=4)) then
                      begin
@@ -129,6 +132,8 @@ unit cpupara;
                        exit;
                      end;
                   end;
+                else
+                  ;
               end;
             end;
           system_i386_freebsd,
@@ -156,9 +161,13 @@ unit cpupara;
                         result:=false;
                         exit;
                       end;
+                    else
+                      ;
                   end;
               end;
             end;
+          else
+            ;
         end;
         result:=inherited ret_in_param(def,pd);
       end;
@@ -233,6 +242,8 @@ unit cpupara;
             result:=not(calloption in cdecl_pocalls) and not tprocvardef(def).is_addressonly;
           setdef :
             result:=not(calloption in cdecl_pocalls) and (not is_smallset(def));
+          else
+            ;
         end;
       end;
 
@@ -262,10 +273,10 @@ unit cpupara;
           pocall_cdecl,
           pocall_syscall,
           pocall_cppdecl,
-          pocall_mwpascal :
+          pocall_mwpascal,
+          pocall_pascal:
             result:=[RS_EAX,RS_EDX,RS_ECX];
           pocall_far16,
-          pocall_pascal,
           pocall_oldfpccall :
             result:=[RS_EAX,RS_EDX,RS_ECX,RS_ESI,RS_EDI,RS_EBX];
           else
@@ -283,6 +294,31 @@ unit cpupara;
     function tcpuparamanager.get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=[0..first_mm_imreg-1];
+      end;
+
+
+    function tcpuparamanager.get_saved_registers_int(calloption : tproccalloption):tcpuregisterarray;
+      const
+        saveregs : tcpuregisterarray = (RS_EBX,RS_ESI,RS_EDI,RS_EBP);
+        saveregs_oldfpccall : tcpuregisterarray = (RS_EBP);
+      begin
+        case calloption of
+          pocall_internproc,
+          pocall_register,
+          pocall_safecall,
+          pocall_stdcall,
+          pocall_cdecl,
+          pocall_syscall,
+          pocall_cppdecl,
+          pocall_mwpascal,
+          pocall_pascal:
+            result:=saveregs;
+          pocall_far16,
+          pocall_oldfpccall :
+            result:=saveregs_oldfpccall;
+          else
+            internalerror(2018050401);
+        end;
       end;
 
 
@@ -397,7 +433,7 @@ unit cpupara;
         { we push Flags and CS as long
           to cope with the IRETD
           and we save 6 register + 4 selectors }
-        if po_interrupt in p.procoptions then
+        if (po_interrupt in p.procoptions) and (side=calleeside) then
           inc(parasize,8+6*4+4*2);
         { Offset is calculated like:
            sub esp,12
@@ -417,35 +453,47 @@ unit cpupara;
           begin
             hp:=tparavarsym(paras[i]);
             paradef:=hp.vardef;
+
+            { syscall for AROS can have already a paraloc set }
+            if (vo_has_explicit_paraloc in hp.varoptions) then
+              begin
+                { on AROS-i386, only the libbase can have explicit paraloc }
+                if not (vo_is_syscall_lib in hp.varoptions) then
+                  internalerror(2016090105);
+                if p.proccalloption in pushleftright_pocalls then
+                  dec(i)
+                else
+                  inc(i);
+                continue;
+              end;
+
             pushaddr:=push_addr_param(hp.varspez,paradef,p.proccalloption);
             if pushaddr then
               begin
                 paralen:=sizeof(aint);
                 paracgsize:=OS_ADDR;
-                paradef:=getpointerdef(paradef);
+                paradef:=cpointerdef.getreusable_no_free(paradef);
               end
             else
               begin
                 paralen:=push_size(hp.varspez,paradef,p.proccalloption);
-                { darwin/x86 requires that parameters < sizeof(aint) are sign/ }
-                { zero extended to sizeof(aint)                                }
-                if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
-                   (side = callerside) and
-                   (paralen > 0) and
-                   (paralen < sizeof(aint)) then
-                  begin
-                    paralen:=sizeof(aint);
-                    paracgsize:=OS_SINT;
-                    paradef:=sinttype;
-                  end
-                else
-                  paracgsize:=def_cgsize(paradef);
+                paracgsize:=def_cgsize(paradef);
               end;
             hp.paraloc[side].reset;
             hp.paraloc[side].size:=paracgsize;
             hp.paraloc[side].intsize:=paralen;
             hp.paraloc[side].def:=paradef;
             hp.paraloc[side].Alignment:=paraalign;
+            { darwin/x86 requires that parameters < sizeof(aint) are sign/ }
+            { zero extended to sizeof(aint)                                }
+            if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
+               (side = callerside) and
+               (paralen > 0) and
+               (paralen < sizeof(aint)) then
+              begin
+                paracgsize:=OS_SINT;
+                paradef:=sinttype;
+              end;
             { Copy to stack? }
             if (paracgsize=OS_NO) or
                (use_fixed_stack) then
@@ -474,7 +522,7 @@ unit cpupara;
             else
               begin
                 if paralen=0 then
-                  internalerror(200501163);
+                  internalerror(2005011606);
                 firstparaloc:=true;
                 while (paralen>0) do
                   begin
@@ -574,7 +622,7 @@ unit cpupara;
                       begin
                         paralen:=sizeof(aint);
                         paracgsize:=OS_ADDR;
-                        paradef:=getpointerdef(paradef);
+                        paradef:=cpointerdef.getreusable_no_free(paradef);
                       end
                     else
                       begin
@@ -601,7 +649,8 @@ unit cpupara;
                     if (parareg<=high(parasupregs)) and
                        (paralen<=sizeof(aint)) and
                        (not(hp.vardef.typ in [floatdef,recorddef,arraydef]) or
-                        pushaddr) and
+                        pushaddr or
+                        is_dynamic_array(hp.vardef)) and
                        (not(vo_is_parentfp in hp.varoptions) or
                         not(po_delphi_nested_cc in p.procoptions)) then
                       begin
@@ -639,7 +688,7 @@ unit cpupara;
                           else
                             begin
                               if paralen=0 then
-                                internalerror(200501163);
+                                internalerror(2005011607);
                               firstparaloc:=true;
                               while (paralen>0) do
                                 begin
@@ -729,15 +778,22 @@ unit cpupara;
       end;
 
 
-    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
+    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; side: tcallercallee; varargspara:tvarargsparalist):longint;
       var
         parasize : longint;
       begin
         parasize:=0;
         { calculate the registers for the normal parameters }
-        create_stdcall_paraloc_info(p,callerside,p.paras,parasize);
+        create_stdcall_paraloc_info(p,side,p.paras,parasize);
         { append the varargs }
-        create_stdcall_paraloc_info(p,callerside,varargspara,parasize);
+        if assigned(varargspara) then
+          begin
+            if side=callerside then
+              create_stdcall_paraloc_info(p,side,varargspara,parasize)
+            else
+              internalerror(2019021926);
+          end;
+        create_funcretloc_info(p,side);
         result:=parasize;
       end;
 

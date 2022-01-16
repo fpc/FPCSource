@@ -1,83 +1,51 @@
-{ Parsed from Appkit.framework NSPageLayout.h }
+{ Parsed from AppKit.framework NSPageLayout.h }
+
 
 {$ifdef TYPES}
-{$ifndef NSPAGELAYOUT_PAS_T}
-{$define NSPAGELAYOUT_PAS_T}
-
-{$endif}
-{$endif}
-
-{$ifdef RECORDS}
-{$ifndef NSPAGELAYOUT_PAS_R}
-{$define NSPAGELAYOUT_PAS_R}
-
-{$endif}
-{$endif}
-
-{$ifdef FUNCTIONS}
-{$ifndef NSPAGELAYOUT_PAS_F}
-{$define NSPAGELAYOUT_PAS_F}
-
-{$endif}
-{$endif}
-
-{$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSPAGELAYOUT_PAS_S}
-{$define NSPAGELAYOUT_PAS_S}
-
-{$endif}
-{$endif}
-
-{$ifdef FORWARD}
-  NSPageLayout = objcclass;
-  NSPageLayoutPointer = ^NSPageLayout;
-  NSPageLayoutPtr = NSPageLayoutPointer;
-
+type
+  NSPageLayoutPtr = ^NSPageLayout;
 {$endif}
 
 {$ifdef CLASSES}
-{$ifndef NSPAGELAYOUT_PAS_C}
-{$define NSPAGELAYOUT_PAS_C}
 
-{ NSPageLayout }
+type
   NSPageLayout = objcclass external (NSObject)
   private
     _accessoryControllers: NSMutableArray;
     _originalPrintInfo: NSPrintInfo;
     _delegate: id;
     _didEndSelector: SEL;
-    _contextInfo: Pointer;
+    _contextInfo: pointer;
     _presentedPrintInfo: NSPrintInfo;
     _windowController: NSWindowController;
-    {$ifdef cpu64}
-    _reserved: array[0..(4)-1] of id;
+    {$if defined(__LP64__)}
+    _reserved:array[0..3] of id;
     {$else}
-    _compatibilityPadding: array[0..(156)-1] of char;
+    _compatibilityPadding:array[0..155] of char;
     {$endif}
-    
   public
     class function pageLayout: NSPageLayout; message 'pageLayout';
-    procedure addAccessoryController(accessoryController: NSViewController); message 'addAccessoryController:';
-    procedure removeAccessoryController(accessoryController: NSViewController); message 'removeAccessoryController:';
+    procedure addAccessoryController (accessoryController: NSViewController); message 'addAccessoryController:'; { available in 10_5 }
+    procedure removeAccessoryController (accessoryController: NSViewController); message 'removeAccessoryController:'; { available in 10_5 }
     function accessoryControllers: NSArray; message 'accessoryControllers';
-    procedure beginSheetWithPrintInfo_modalForWindow_delegate_didEndSelector_contextInfo(printInfo_: NSPrintInfo; docWindow: NSWindow; delegate: id; didEndSelector: SEL; contextInfo: Pointer); message 'beginSheetWithPrintInfo:modalForWindow:delegate:didEndSelector:contextInfo:';
-    function runModalWithPrintInfo(printInfo_: NSPrintInfo): NSInteger; message 'runModalWithPrintInfo:';
+    procedure beginSheetWithPrintInfo_modalForWindow_delegate_didEndSelector_contextInfo (printInfo: NSPrintInfo; docWindow: NSWindow; delegate: id; didEndSelector: SEL; contextInfo: pointer); message 'beginSheetWithPrintInfo:modalForWindow:delegate:didEndSelector:contextInfo:';
+    function runModalWithPrintInfo (printInfo: NSPrintInfo): NSInteger; message 'runModalWithPrintInfo:';
     function runModal: NSInteger; message 'runModal';
     function printInfo: NSPrintInfo; message 'printInfo';
   end;
 
-{ NSDeprecated_NSPageLayoutCategory }
-  NSDeprecated_NSPageLayoutCategory = objccategory external name 'NSDeprecated' (NSPageLayout)
-    procedure setAccessoryView(accessoryView: NSView); message 'setAccessoryView:'; deprecated 'in Mac OS X 10.5 and later';
-    function accessoryView: NSView; message 'accessoryView'; deprecated 'in Mac OS X 10.5 and later';
-    procedure readPrintInfo; message 'readPrintInfo'; deprecated 'in Mac OS X 10.5 and later';
-    procedure writePrintInfo; message 'writePrintInfo'; deprecated 'in Mac OS X 10.5 and later';
+
+type
+  NSPageLayout_NSDeprecated = objccategory external name 'NSDeprecated' (NSPageLayout)
+    procedure setAccessoryView (accessoryView: NSView); message 'setAccessoryView:'; deprecated 'in 10_0, 10_5';
+    function accessoryView: NSView; message 'accessoryView'; deprecated 'in 10_0, 10_5';
+    procedure readPrintInfo; message 'readPrintInfo'; deprecated 'in 10_0, 10_5';
+    procedure writePrintInfo; message 'writePrintInfo'; deprecated 'in 10_0, 10_5';
   end;
 
-{ NSPageLayoutPanelCategory }
-  NSPageLayoutPanelCategory = objccategory external (NSApplication)
-    procedure runPageLayout(sender: id); message 'runPageLayout:';
+type
+  NSPageLayoutPanel = objccategory external (NSApplication)
+    procedure runPageLayout (sender: id); message 'runPageLayout:';
   end;
+{$endif}
 
-{$endif}
-{$endif}

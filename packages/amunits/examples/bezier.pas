@@ -35,7 +35,7 @@ Program Bezier;
    nils.sjoholm@mailbox.swipnet.se
 }
 
-uses exec, intuition, agraphics, utility,pastoc, systemvartags;
+uses exec, intuition, agraphics, utility;
 
 type
     PointRec = packed Record
@@ -124,15 +124,13 @@ var
     begin
     SetDrMd(rp, JAM1);
     SetAPen(rp, 0);
-    RectFill(rp, BorderLeft, BorderTop,
-             BorderRight, BorderBottom);
+    RectFill(rp, BorderLeft, BorderTop, BorderRight, BorderBottom);
     SetDrMd(rp, COMPLEMENT);
     SetAPen(rp, 3);
     end;
 
 begin
-    dummy := ModifyIDCMP(w, IDCMP_CLOSEWINDOW or IDCMP_MOUSEBUTTONS or
-IDCMP_MOUSEMOVE);
+    dummy := ModifyIDCMP(w, IDCMP_CLOSEWINDOW or IDCMP_MOUSEBUTTONS or IDCMP_MOUSEMOVE);
     SetDrMd(rp, COMPLEMENT);
     PointCount := 0;
     Leave := False;
@@ -149,25 +147,25 @@ IDCMP_MOUSEMOVE);
         case StoreMsg.IClass of
            IDCMP_MOUSEMOVE : if PointCount > 0 then begin
                  if not OutOfBounds then
-                 DrawLine;
+                     DrawLine;
                      LastX := StoreMsg.MouseX;
                      LastY := StoreMsg.MouseY;
                  if (LastX > BorderLeft) and
-                (LastX < BorderRight) and
-                (LastY > BorderTop) and
-                (LastY < BorderBottom) then begin
-                 DrawLine;
-                 OutOfBounds := False;
+                   (LastX < BorderRight) and
+                   (LastY > BorderTop) and
+                   (LastY < BorderBottom) then begin
+                     DrawLine;
+                     OutOfBounds := False;
                  end else
-                 OutOfBounds := True;
+                     OutOfBounds := True;
                  end;
            IDCMP_MOUSEBUTTONS : if StoreMsg.Code = SELECTUP then begin
                     if PointCount > 0 then
-                    Leave := CheckForExit
+                        Leave := CheckForExit
                 else
                     ClearIt;
                     if (not Leave) and (not OutOfBounds) then
-                    AddPoint;
+                        AddPoint;
                     end;
            IDCMP_CLOSEWINDOW : CleanUpAndDie;
         end;
@@ -221,37 +219,38 @@ end;
 
 begin
 
-   s := OpenScreenTags(nil,[SA_Pens,@pens,
-      SA_Depth,     2,
-      SA_DisplayID, HIRES_KEY,
-      SA_Title,     'Simple Bezier Curves',
+   s := OpenScreenTags(nil,[
+      AsTag(SA_Pens),      AsTag(@pens),
+      AsTag(SA_Depth),     2,
+      AsTag(SA_DisplayID), HIRES_KEY,
+      AsTag(SA_Title),     AsTag('Simple Bezier Curves'),
       TAG_END]);
 
     if s = NIL then CleanUpAndDie;
 
-      w := OpenWindowTags(nil,[
+    w := OpenWindowTags(nil,[
       WA_IDCMP,        IDCMP_CLOSEWINDOW,
       WA_Left,         0,
       WA_Top,          s^.BarHeight +1,
       WA_Width,        s^.Width,
       WA_Height,       s^.Height - (s^.BarHeight + 1),
-      WA_DepthGadget,  ltrue,
-      WA_DragBar,      ltrue,
-      WA_CloseGadget,  ltrue,
-      WA_ReportMouse,  ltrue,
-      WA_SmartRefresh, ltrue,
-      WA_Activate,     ltrue,
-      WA_Title,        'Close the Window to Quit',
-      WA_CustomScreen, s,
+      WA_DepthGadget,  AsTag(True),
+      WA_DragBar,      AsTag(True),
+      WA_CloseGadget,  AsTag(True),
+      WA_ReportMouse,  AsTag(True),
+      WA_SmartRefresh, AsTag(True),
+      WA_Activate,     AsTag(True),
+      WA_Title,        AsTag('Close the Window to Quit'),
+      WA_CustomScreen, AsTag(s),
       TAG_END]);
 
-    IF w=NIL THEN CleanUpAndDie;
+    IF w = NIL THEN CleanUpAndDie;
 
     rp := w^.RPort;
     GfxMove(rp, 252, 30);
-    GfxText(rp, pas2c('Enter points by pressing the left mouse button'), 46);
+    GfxText(rp, 'Enter points by pressing the left mouse button', 46);
     GfxMove(rp, 252, 40);
-    GfxText(rp, pas2c('Double click on the last point to begin drawing'), 47);
+    GfxText(rp, 'Double click on the last point to begin drawing', 47);
     repeat
         GetPoints;  { Both these routines will quit if }
         DrawBezier; { the window is closed. }

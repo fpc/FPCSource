@@ -316,6 +316,7 @@ end;
 procedure setverify(verify : boolean);
 begin
   dosregs.ah:=$2e;
+  dosregs.dl:=0;
   dosregs.al:=ord(verify);
   msdos(dosregs);
 end;
@@ -591,7 +592,7 @@ begin
   if attr=$8 then
    dosregs.cx:=8
   else
-   dosregs.cx:=attr and (not 8);
+   dosregs.cx:=attr and (not 8) and $FF; { No required attributes }
   dosregs.dx:=Ofs(path^);
   dosregs.ds:=Seg(path^);
   dosregs.di:=Ofs(w);
@@ -755,6 +756,8 @@ end;
 procedure SwapVectors;
 begin
   SwapIntVec(0, SaveInt00);
+  SwapIntVec($10, SaveInt10);
+  SwapIntVec($75, SaveInt75);
 end;
 
 
@@ -765,48 +768,49 @@ end;
 
 Function FSearch(path: pathstr; dirlist: string): pathstr;
 var
-  p1     : integer;
+  p1     : longint;
   s      : searchrec;
   newdir : pathstr;
 begin
-{ check if the file specified exists }
+  { No wildcards allowed in these things }
+  if (pos('?',path)<>0) or (pos('*',path)<>0) then
+  begin
+    fsearch:='';
+    exit;
+  end;
+  { check if the file specified exists }
   findfirst(path,anyfile and not(directory),s);
   if doserror=0 then
-   begin
+    begin
      findclose(s);
      fsearch:=path;
      exit;
-   end;
-{ No wildcards allowed in these things }
-  if (pos('?',path)<>0) or (pos('*',path)<>0) then
-    fsearch:=''
-  else
-    begin
-       { allow slash as backslash }
-       DoDirSeparators(dirlist);
-       repeat
-         p1:=pos(';',dirlist);
-         if p1<>0 then
-          begin
-            newdir:=copy(dirlist,1,p1-1);
-            delete(dirlist,1,p1);
-          end
-         else
-          begin
-            newdir:=dirlist;
-            dirlist:='';
-          end;
-         if (newdir<>'') and (not (newdir[length(newdir)] in ['\',':'])) then
-          newdir:=newdir+'\';
-         findfirst(newdir+path,anyfile and not(directory),s);
-         if doserror=0 then
-          newdir:=newdir+path
-         else
-          newdir:='';
-       until (dirlist='') or (newdir<>'');
-       fsearch:=newdir;
     end;
   findclose(s);
+  { allow slash as backslash }
+  DoDirSeparators(dirlist);
+ repeat
+   p1:=pos(';',dirlist);
+   if p1<>0 then
+    begin
+      newdir:=copy(dirlist,1,p1-1);
+      delete(dirlist,1,p1);
+    end
+   else
+    begin
+      newdir:=dirlist;
+      dirlist:='';
+    end;
+   if (newdir<>'') and (not (newdir[length(newdir)] in ['\',':'])) then
+    newdir:=newdir+'\';
+   findfirst(newdir+path,anyfile and not(directory),s);
+   if doserror=0 then
+    newdir:=newdir+path
+   else
+    newdir:='';
+   findclose(s);
+ until (dirlist='') or (newdir<>'');
+ fsearch:=newdir;
 end;
 
 
@@ -935,8 +939,8 @@ begin
   r:=ToSingleByteFileSystemEncodedFileName(filerec(f).Name);
   path:=pchar(r);
 {$endif}
-  dosregs.dx:=Ofs(path);
-  dosregs.ds:=Seg(path);
+  dosregs.dx:=Ofs(path^);
+  dosregs.ds:=Seg(path^);
   if LFNSupport then
    begin
      dosregs.ax:=$7143;

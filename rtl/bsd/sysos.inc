@@ -32,15 +32,7 @@ function geterrnolocation: Plibcint; cdecl;external clib name '__errno';
 function geterrnolocation: Plibcint; cdecl;external clib name '__error';
 {$else}
 {$ifdef OpenBSD}
-
-var libcerrno : libcint; cvar;
-
-function geterrnolocation: Plibcint; cdecl;
-
-begin
- geterrnolocation:=@libcerrno;
-end;
-
+function geterrnolocation: Plibcint; cdecl;external clib name '__errno';
 {$else}
 {$endif}
 {$endif}
@@ -85,6 +77,9 @@ end;
   {$Linklib c}
   {$i oscdeclh.inc}
   {$i oscdecl.inc}
+  {$ifdef darwin}
+    {$i sysmach.inc}
+  {$endif}
 {$else}
   {$I syscallh.inc}
   {$I syscall.inc}
@@ -100,7 +95,7 @@ end;
 
 {
   The lowlevel file functions should take care of setting the InOutRes to the
-  correct value if an error has occured, else leave it untouched
+  correct value if an error has occurred, else leave it untouched
 }
 
 Function PosixToRunError  (PosixErrno : longint) : longint;
@@ -128,6 +123,8 @@ begin
     ESysEROFS,
    ESysEEXIST,
    ESysENOTEMPTY,
+   ESysEBusy,
+   ESysENOTDIR,        // busy, enotdir, mantis #25931
    ESysEACCES : Inoutres:=5;
    ESysEISDIR : InOutRes:=5;
   else
@@ -151,19 +148,15 @@ end;
 *****************************************************************************}
 
 Function Do_IsDevice(Handle:Longint):boolean;
-{
-  Interface to Unix ioctl call.
-  Performs various operations on the filedescriptor Handle.
-  Ndx describes the operation to perform.
-  Data points to data needed for the Ndx function. The structure of this
-  data is function-dependent.
-}
-CONST
-  IOCtl_TCGETS=$40000000+$2C7400+ 19;
 var
-  Data : array[0..255] of byte; {Large enough for termios info}
+  StatRec: Stat;
 begin
-  Do_IsDevice:=(Fpioctl(handle,IOCTL_TCGETS,@data)<>-1);
+  fpFStat (Handle, StatRec);
+  case StatRec.st_Mode and S_IFMT of
+   S_IFCHR, S_IFIFO, S_IFSOCK: Do_IsDevice := true
+  else
+   Do_IsDevice := false;
+  end;
 end;
 
 

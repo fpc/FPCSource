@@ -26,7 +26,9 @@ const
    MinsPerHour = 60;
    SecsPerMin  = 60;
    MSecsPerSec = 1000;
+
    MinsPerDay  = HoursPerDay * MinsPerHour;
+   SecsPerHour = SecsPerMin * MinsPerHour;
    SecsPerDay  = MinsPerDay * SecsPerMin;
    MSecsPerDay = SecsPerDay * MSecsPerSec;
 
@@ -57,8 +59,8 @@ var
       dddd   : day of week (full)
       ddddd  : shortdateformat
       dddddd : longdateformat
-      m      : month
-      mm     : month (leading zero)
+      m      : month. If preceded by h or hh specifiers, then minutes.
+      mm     : month. If preceded by h or hh specifiers, then minutes (leading zero).
       mmm    : month (abbreviation)
       mmmm   : month (full)
       y      : year (two digits)
@@ -82,21 +84,25 @@ var
       tt     : longtimeformat
       am/pm  : use 12 hour clock and display am and pm accordingly
       a/p    : use 12 hour clock and display a and p accordingly
-      /      : insert date seperator
-      :      : insert time seperator
+      /      : insert date separator
+      :      : insert time separator
       "xx"   : literal text
       'xx'   : literal text
    }
 
 type
 { windows isn't defined in 2.0.2 (FK) }
-{$if not(defined(windows)) and not(defined(win32))}
-   { Win32 reuses the struct from the Windows unit }
+{$if defined(win32) or defined(win64) or defined (wince)}
+   { Win32/Win64 reuses the struct from the Windows unit }
+{$DEFINE HAS_SYSTEMTIME}
+{$endif win32 or win64 or wince }
+
+{$IFNDEF HAS_SYSTEMTIME}
    TSystemTime = record
       Year, Month, Day, DayOfWeek: word;
       Hour, Minute, Second, MilliSecond: word;
    end ;
-{$endif windows}
+{$ENDIF}
 
    TTimeStamp = record
       Time: longint;   { Number of milliseconds since midnight }
@@ -122,6 +128,7 @@ function DayOfWeek(DateTime: TDateTime): integer;
 function Date: TDateTime;
 function Time: TDateTime;
 function Now: TDateTime;
+function NowUTC: TDateTime;
 function IncMonth(const DateTime: TDateTime; NumberOfMonths: integer = 1 ): TDateTime;
 procedure IncAMonth(var Year, Month, Day: Word; NumberOfMonths: Integer = 1);
 function IsLeapYear(Year: Word): boolean;
@@ -129,8 +136,8 @@ function DateToStr(Date: TDateTime): string;
 function DateToStr(Date: TDateTime; const FormatSettings: TFormatSettings): string;
 function TimeToStr(Time: TDateTime): string;
 function TimeToStr(Time: TDateTime; const FormatSettings: TFormatSettings): string;
-function DateTimeToStr(DateTime: TDateTime): string;
-function DateTimeToStr(DateTime: TDateTime; const FormatSettings: TFormatSettings): string;
+function DateTimeToStr(DateTime: TDateTime; ForceTimeIfZero : Boolean = False): string;
+function DateTimeToStr(DateTime: TDateTime; const FormatSettings: TFormatSettings; ForceTimeIfZero : Boolean = False): string;
 function StrToDate(const S: ShortString): TDateTime;                  {$ifdef SYSUTILSINLINE}inline;{$endif}
 function StrToDate(const S: Ansistring): TDateTime;                   {$ifdef SYSUTILSINLINE}inline;{$endif}
 function StrToDate(const S: ShortString; separator : char): TDateTime;{$ifdef SYSUTILSINLINE}inline;{$endif}
@@ -152,8 +159,10 @@ function FormatDateTime(const FormatStr: string; DateTime: TDateTime; Options : 
 function FormatDateTime(const FormatStr: string; DateTime: TDateTime; const FormatSettings: TFormatSettings; Options : TFormatDateTimeOptions = []): string;
 procedure DateTimeToString(out Result: string; const FormatStr: string; const DateTime: TDateTime; Options : TFormatDateTimeOptions = []);
 procedure DateTimeToString(out Result: string; const FormatStr: string; const DateTime: TDateTime; const FormatSettings: TFormatSettings; Options : TFormatDateTimeOptions = []);
-Function DateTimeToFileDate(DateTime : TDateTime) : Longint;
-Function FileDateToDateTime (Filedate : Longint) :TDateTime;
+Function DateTimeToFileDate(DateTime : TDateTime) : int64;
+Function UniversalToFileDate(DateTime : TDateTime) : int64;
+Function FileDateToDateTime (Filedate : Int64) :TDateTime;
+Function FileDateToUniversal (Filedate : Int64) :TDateTime;
 function TryStrToDate(const S: ShortString; out Value: TDateTime): Boolean;                         {$ifdef SYSUTILSINLINE}inline;{$endif}
 function TryStrToDate(const S: AnsiString; out Value: TDateTime): Boolean;                         {$ifdef SYSUTILSINLINE}inline;{$endif}
 function TryStrToDate(const S: ShortString; out Value: TDateTime; separator : char): Boolean;
@@ -184,11 +193,23 @@ function StrToDateDef(const S: AnsiString; const Defvalue : TDateTime; separator
 function StrToTimeDef(const S: AnsiString; const Defvalue : TDateTime): TDateTime;                   {$ifdef SYSUTILSINLINE}inline;{$endif}
 function StrToTimeDef(const S: AnsiString; const Defvalue : TDateTime; separator : char): TDateTime; {$ifdef SYSUTILSINLINE}inline;{$endif}
 function StrToDateTimeDef(const S: AnsiString; const Defvalue : TDateTime): TDateTime;               {$ifdef SYSUTILSINLINE}inline;{$endif}
+function StrToDateTimeDef(const S: AnsiString; const Defvalue : TDateTime; const FormatSettings: TFormatSettings): TDateTime;               {$ifdef SYSUTILSINLINE}inline;{$endif}
 
 function CurrentYear:Word;
 { FPC Extra }
 Procedure GetLocalTime(var SystemTime: TSystemTime);
+function GetUniversalTime(var SystemTime: TSystemTime): Boolean;
 
 procedure ReplaceTime(var dati:TDateTime; NewTime : TDateTime); inline;
 procedure ReplaceDate(var DateTime: TDateTime; const NewDate: TDateTime); inline;
+
 function GetLocalTimeOffset: Integer;
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer): Boolean;
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean = False): Integer;
+
+{ UTC <-> Local time }
+Function UniversalTimeToLocal(UT: TDateTime): TDateTime;
+Function UniversalTimeToLocal(UT: TDateTime; TZOffset : Integer): TDateTime;
+Function LocalTimeToUniversal(LT: TDateTime): TDateTime;
+Function LocalTimeToUniversal(LT: TDateTime; TZOffset: Integer): TDateTime;
+

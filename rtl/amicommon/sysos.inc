@@ -28,16 +28,40 @@
                            AmigaOS functions
 *****************************************************************************}
 
-{ exec.library functions }
-
 {$include execf.inc}
 {$include doslibf.inc}
 
+{$ifdef cpum68k}
+{$if defined(amiga_v1_0_only) or defined(amiga_v1_2_only) or defined(amiga_v2_0_only)}
+{$include legacyexec.inc}
+{$if not defined(amiga_v2_0_only)}
+{$include legacydos.inc}
+{$include legacyutil.inc}
+{$endif}
+{$endif}
+{$endif}
+
+{*****************************************************************************
+                             CPU specific
+*****************************************************************************}
+
+{$ifdef cpum68k}
+{$include m68kamiga.inc}
+{$endif}
 
 {*****************************************************************************
                     System Dependent Structures/Consts
 *****************************************************************************}
 
+{$packrecords default}
+
+{$ifndef FPC_SYSTEM_HAS_STACKTOP}
+{$define FPC_SYSTEM_HAS_STACKTOP}
+function StackTop: pointer;
+begin
+  StackTop:=FindTask(nil)^.tc_SPUpper;
+end;
+{$endif FPC_SYSTEM_HAS_STACKTOP}
 
 const
   CTRL_C           = 20;      { Error code on CTRL-C press }
@@ -172,3 +196,66 @@ begin
     end;
   end;
 end;
+
+{ Thread Init/Exit Procedure support }
+Type
+  PThreadProcInfo = ^TThreadProcInfo;
+  TThreadProcInfo = Record
+    Next     : PThreadProcInfo;
+    Proc     : TProcedure;
+  End;
+
+const
+  threadInitProcList :PThreadProcInfo = nil;
+  threadExitProcList :PThreadProcInfo = nil;
+
+Procedure DoThreadProcChain(p: PThreadProcInfo);
+Begin
+  while p <> nil do
+    begin
+      p^.proc;
+      p:=p^.next;
+    end;
+End;
+
+Procedure AddThreadProc(var procList: PThreadProcInfo; Proc: TProcedure);
+var
+  P : PThreadProcInfo;
+Begin
+  New(P);
+  P^.Next:=procList;
+  P^.Proc:=Proc;
+  procList:=P;
+End;
+
+Procedure CleanupThreadProcChain(var procList: PThreadProcInfo);
+var
+  P : PThreadProcInfo;
+Begin
+  while procList <> nil do
+    begin
+      p:=procList;
+      procList:=procList^.next;
+      dispose(p);
+    end;
+End;
+
+Procedure AddThreadInitProc(Proc: TProcedure);
+Begin
+  AddThreadProc(threadInitProcList,Proc);
+End;
+
+Procedure AddThreadExitProc(Proc: TProcedure);
+Begin
+  AddThreadProc(threadExitProcList,Proc);
+End;
+
+Procedure DoThreadInitProcChain;
+Begin
+  DoThreadProcChain(threadInitProcList);
+End;
+
+Procedure DoThreadExitProcChain;
+Begin
+  DoThreadProcChain(threadExitProcList);
+End;

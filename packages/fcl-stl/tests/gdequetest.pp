@@ -14,7 +14,7 @@ type TGDequeTest = class(TTestCase)
     procedure PushTest;
   public
     procedure Setup;override;
-  private 
+  private
     data:dequelli;
   end;
 
@@ -28,7 +28,7 @@ begin
     data.pushback(i);
   for i:=0 to 10 do begin
     AssertEquals('Wrong data', 10-i, data.back);
-    AssertEquals('Wrong size', 11-i, data.size);
+    AssertEquals('Wrong size', 11-i, SizeInt(data.size));
     data.popback;
   end;
   AssertEquals('Not IsEmpty', true, data.IsEmpty);

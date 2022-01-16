@@ -3,13 +3,15 @@ program testjs;
 {$mode objfpc}{$H+}
 
 uses
-  cwstring,Classes, consoletestrunner, tcscanner, jsparser, jsscanner, jstree, jsbase,
-  tcparser, jswriter, tctextwriter, tcwriter, jstoken;
+  {$IFDEF Unix}
+  cwstring,
+  {$ENDIF}
+  Classes, consoletestrunner,
+  // tests
+  tcscanner, tcparser, tcwriter, TCSrcMap, tctsparser, tctstopas;
 
 var
   Application: TTestRunner;
-
-{$IFDEF WINDOWS}{$R testjs.rc}{$ENDIF}
 
 begin
   DefaultFormat:=fplain;

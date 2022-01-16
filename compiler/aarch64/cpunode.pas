@@ -31,10 +31,14 @@ implementation
 
   uses
     ncgbas,ncgflw,ncgcal,ncgcnv,ncgld,ncgmem,ncgcon,ncgset,ncgobjc,
-    ncpuadd,ncpumat,ncpumem,ncpuinl,ncpucnv,ncpuset,
-    { this not really a node }
-    rgcpu,
     { symtable }
-    symcpu;
+    symcpu,
+    aasmdef,
+{$ifndef llvm}
+    ncpuadd,ncpumat,ncpumem,ncpuinl,ncpucnv,ncpuset,ncpucon,ncpuflw,naarch64util
+{$else llvm}
+    llvmnode
+{$endif llvm}
+    ;
 
 end.

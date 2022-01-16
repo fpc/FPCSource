@@ -1085,7 +1085,7 @@ var
     locTmpNode := FTermStack.Pop() as TXPathNode;
     if not locTmpNode.InheritsFrom(TXPathRigthSquareBraketNode) then begin
       FTermStack.Push(locTmpNode);
-      raise EXpathException.Create('Predicate begining expected.');
+      raise EXpathException.Create('Predicate beginning expected.');
     end;
     FreeAndNil(locTmpNode);
     locExp := FTermStack.Pop() as TXPathNode;

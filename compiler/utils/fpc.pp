@@ -35,7 +35,11 @@ program fpc;
     {$ifdef NETWARE}
       exeext='.nlm';
     {$else}
-      exeext='.exe';
+      {$ifdef ATARI}
+        exeext='.ttp';
+      {$else}
+        exeext='.exe';
+      {$endif ATARI}
     {$endif NETWARE}
   {$endif HASAMIGA}
 {$endif UNIX}
@@ -90,7 +94,7 @@ program fpc;
          ppcbin:=extrapath+ppcbin;
          findexe:=true;
        end
-      else if FileExists(path+ppcbin) then
+      else if (path<>'') and FileExists(path+ppcbin) then
        begin
          ppcbin:=path+ppcbin;
          findexe:=true;
@@ -143,10 +147,18 @@ program fpc;
      ppcbin:='ppcarm';
      processorname:='arm';
 {$endif arm}
+{$ifdef aarch64}
+     ppcbin:='ppca64';
+     processorname:='aarch64';
+{$endif aarch64}
 {$ifdef sparc}
      ppcbin:='ppcsparc';
      processorname:='sparc';
 {$endif sparc}
+{$ifdef sparc64}
+     ppcbin:='ppcsparc64';
+     processorname:='sparc64';
+{$endif sparc64}
 {$ifdef x86_64}
      ppcbin:='ppcx64';
      processorname:='x86_64';
@@ -160,6 +172,22 @@ program fpc;
      processorname:='mips';
   {$endif mips}
 {$endif not mipsel}
+{$ifdef riscv32}
+     ppcbin:='ppcrv32';
+     processorname:='riscv32';
+{$endif riscv32}
+{$ifdef riscv64}
+     ppcbin:='ppcrv64';
+     processorname:='riscv64';
+{$endif riscv64}
+{$ifdef xtensa}
+     ppcbin:='ppcxtensa';
+     processorname:='xtensa';
+{$endif xtensa}
+{$ifdef wasm32}
+     ppcbin:='ppcwasm32';
+     processorname:='wasm32';
+{$endif wasm32}
      versionstr:='';                      { Default is just the name }
      if ParamCount = 0 then
        begin
@@ -186,7 +214,16 @@ program fpc;
                        { report the full name of the ppcbin }
                        if versionstr<>'' then
                          ppcbin:=ppcbin+'-'+versionstr;
-                       findexe(ppcbin);
+                       if not findexe(ppcbin) then
+                         begin
+                           if cpusuffix<>'' Then
+                             begin
+                               ppcbin:='ppc'+cpusuffix;
+                               if versionstr<>'' then
+                                 ppcbin:=ppcbin+'-'+versionstr;
+                               findexe(ppcbin);
+                             end;
+                         end;
                        writeln(ppcbin);
                        halt(0);
                      end
@@ -202,10 +239,18 @@ program fpc;
                      else
                        if processorstr <> processorname then
                          begin
-                           if processorstr='arm' then
+                           if processorstr='aarch64' then
+                             cpusuffix:='a64'
+                           else if processorstr='arm' then
                              cpusuffix:='arm'
+                           else if processorstr='avr' then
+                             cpusuffix:='avr'
                            else if processorstr='i386' then
                              cpusuffix:='386'
+                           else if processorstr='i8086' then
+                             cpusuffix:='8086'
+                           else if processorstr='jvm' then
+                             cpusuffix:='jvm'
                            else if processorstr='m68k' then
                              cpusuffix:='68k'
                            else if processorstr='mips' then
@@ -216,16 +261,22 @@ program fpc;
                              cpusuffix:='ppc'
                            else if processorstr='powerpc64' then
                              cpusuffix:='ppc64'
+                           else if processorstr='riscv32' then
+                             cpusuffix:='rv32'
+                           else if processorstr='riscv64' then
+                             cpusuffix:='rv64'
                            else if processorstr='sparc' then
                              cpusuffix:='sparc'
+                           else if processorstr='sparc64' then
+                             cpusuffix:='sparc64'
                            else if processorstr='x86_64' then
                              cpusuffix:='x64'
-                           else if processorstr='jvm' then
-                             cpusuffix:='jvm'
-                           else if processorstr='i8086' then
-                             cpusuffix:='8086'
-                           else if processorstr='avr' then
-                             cpusuffix:='avr'
+                           else if processorstr='xtensa' then
+                             cpusuffix:='xtensa'
+                           else if processorstr='z80' then
+                             cpusuffix:='z80'
+                           else if processorstr='wasm32' then
+                             cpusuffix:='wasm32'
                            else
                              error('Illegal processor type "'+processorstr+'"');
 

@@ -14,7 +14,7 @@
 
  **********************************************************************}
 {$asmmode att}
-unit sysinitcyg;
+unit SysInitCyg;
 
   interface
 

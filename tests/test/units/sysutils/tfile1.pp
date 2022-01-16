@@ -32,6 +32,19 @@ BEGIN
   if FileSetDate('datetest.dat', DateTimeToFileDate(dateTime))<>0 then
     do_error(1002);
 
+  dateTime := IncMonth(Now, -1);
+  Assign(f,'datetest.dat');
+  Rewrite(f);
+  if FileSetDate(filerec(f).handle, DateTimeToFileDate(dateTime))<>0 then
+    do_error(1003);
+  Close(f);
+
+  Assign(f,'datetest.dat');
+  Reset(f);
+  if FileGetDate(filerec(f).handle)<>DateTimeToFileDate(dateTime) then
+    do_error(1004);
+  Close(f);
+
   if FileExists('datetest.dat') then
     begin
       Assign(f,'datetest.dat');

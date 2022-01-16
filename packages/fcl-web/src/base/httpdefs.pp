@@ -29,52 +29,77 @@ unit HTTPDefs;
 
 interface
 
-uses Classes,Sysutils;
+uses typinfo, Classes, Sysutils, httpprotocol, uriparser;
 
 const
   DefaultTimeOut = 15;
   SFPWebSession  = 'FPWebSession'; // Cookie name for session.
 
-  fieldAccept          = 'Accept';
-  fieldAcceptCharset   = 'Accept-Charset';
-  fieldAcceptEncoding  = 'Accept-Encoding';
-  fieldAcceptLanguage  = 'Accept-Language';
-  fieldAuthorization   = 'Authorization';
-  fieldConnection      = 'Connection';
-  fieldContentEncoding = 'Content-Encoding';
-  fieldContentLanguage = 'Content-Language';
-  fieldContentLength   = 'Content-Length';
-  fieldContentType     = 'Content-Type';
-  fieldCookie          = 'Cookie';
-  fieldDate            = 'Date';
-  fieldExpires         = 'Expires';
-  fieldFrom            = 'From';
-  fieldIfModifiedSince = 'If-Modified-Since';
-  fieldLastModified    = 'Last-Modified';
-  fieldLocation        = 'Location';
-  fieldPragma          = 'Pragma';
-  fieldReferer         = 'Referer';
-  fieldRetryAfter      = 'Retry-After';
-  fieldServer          = 'Server';
-  fieldSetCookie       = 'Set-Cookie';
-  fieldUserAgent       = 'User-Agent';
-  fieldWWWAuthenticate = 'WWW-Authenticate';
-  // These cannot be added to the NoHTTPFields constant
-  // They are in the extra array.
-  fieldHost            = 'Host';
-  fieldCacheControl    = 'Cache-Control';
-  fieldXRequestedWith  = 'X-Requested-With';
 
-  NoHTTPFields    = 27;
+  fieldAccept = HeaderAccept deprecated;
+  FieldAcceptCharset = HeaderAcceptCharset deprecated;
+  FieldAcceptEncoding = HeaderAcceptEncoding deprecated;
+  FieldAcceptLanguage = HeaderAcceptLanguage deprecated;
+  FieldAcceptRanges = HeaderAcceptRanges deprecated;
+  FieldAge = HeaderAge deprecated;
+  FieldAllow = HeaderAllow deprecated;
+  FieldAuthorization = HeaderAuthorization deprecated;
+  FieldCacheControl = HeaderCacheControl deprecated;
+  FieldConnection = HeaderConnection deprecated;
+  FieldContentEncoding = HeaderContentEncoding deprecated;
+  FieldContentLanguage = HeaderContentLanguage deprecated;
+  FieldContentLength = HeaderContentLength deprecated;
+  FieldContentLocation = HeaderContentLocation deprecated;
+  FieldContentMD5 = HeaderContentMD5 deprecated;
+  FieldContentRange = HeaderContentRange deprecated;
+  FieldContentType = HeaderContentType deprecated;
+  FieldDate = HeaderDate deprecated;
+  FieldETag = HeaderETag deprecated;
+  FieldExpires = HeaderExpires deprecated;
+  FieldExpect = HeaderExpect deprecated;
+  FieldFrom = HeaderFrom deprecated;
+  FieldHost = HeaderHost deprecated;
+  FieldIfMatch = HeaderIfMatch deprecated;
+  FieldIfModifiedSince = HeaderIfModifiedSince deprecated;
+  FieldIfNoneMatch = HeaderIfNoneMatch deprecated;
+  FieldIfRange = HeaderIfRange deprecated;
+  FieldIfUnModifiedSince = HeaderIfUnModifiedSince deprecated;
+  FieldLastModified = HeaderLastModified deprecated;
+  FieldLocation = HeaderLocation deprecated;
+  FieldMaxForwards = HeaderMaxForwards deprecated;
+  FieldPragma = HeaderPragma deprecated;
+  FieldProxyAuthenticate = HeaderProxyAuthenticate deprecated;
+  FieldProxyAuthorization = HeaderProxyAuthorization deprecated;
+  FieldRange = HeaderRange deprecated;
+  FieldReferer = HeaderReferer deprecated;
+  FieldRetryAfter = HeaderRetryAfter deprecated;
+  FieldServer = HeaderServer deprecated;
+  FieldTE = HeaderTE deprecated;
+  FieldTrailer = HeaderTrailer deprecated;
+  FieldTransferEncoding = HeaderTransferEncoding deprecated;
+  FieldUpgrade = HeaderUpgrade deprecated;
+  FieldUserAgent = HeaderUserAgent deprecated;
+  FieldVary = HeaderVary deprecated;
+  FieldVia = HeaderVia deprecated;
+  FieldWarning = HeaderWarning deprecated;
+  FieldWWWAuthenticate = HeaderWWWAuthenticate deprecated;
 
-  HTTPDateFmt     = '"%s", dd "%s" yyyy hh:mm:ss'; // For use in FormatDateTime
-  SCookieExpire   = ' "Expires="'+HTTPDateFmt+' "GMT"';
-  SCookieDomain   = ' Domain=%s';
-  SCookiePath     = ' Path=%s';
-  SCookieSecure   = ' Secure';
-  SCookieHttpOnly = ' HttpOnly';
+  // These fields are NOT in the HTTP 1.1 definition.
+  FieldXRequestedWith = HeaderXRequestedWith deprecated;
+  FieldCookie = HeaderCookie deprecated;
+  FieldSetCookie = HeaderSetCookie deprecated;
 
-  HTTPMonths: array[1..12] of string[3] = (
+  NoHTTPFields    = 28;
+
+  HTTPDateFmt     = httpProtocol.HTTPDateFmt;
+  SCookieExpire   = httpProtocol.SCookieExpire;
+  SCookieDomain   = httpProtocol.SCookieDomain;
+  SCookiePath     = httpProtocol.SCookiePath;
+  SCookieSecure   = httpProtocol.SCookieSecure;
+  SCookieHttpOnly = httpProtocol.SCookieHttpOnly;
+  SCookieSameSite = httpProtocol.SCookieSameSite;
+
+  HTTPMonths : array[1..12] of string[3] = (
     'Jan', 'Feb', 'Mar', 'Apr',
     'May', 'Jun', 'Jul', 'Aug',
     'Sep', 'Oct', 'Nov', 'Dec');
@@ -82,23 +107,31 @@ const
     'Sun', 'Mon', 'Tue', 'Wed',
     'Thu', 'Fri', 'Sat');
 
+Type
+  // HTTP related variables.
+  THTTPVariableType = (hvUnknown,hvHTTPVersion, hvMethod, hvCookie, hvSetCookie, hvXRequestedWith,
+                   hvPathInfo,hvPathTranslated,hvRemoteAddress,hvRemoteHost,hvScriptName,
+                   hvServerPort,hvURL,hvQuery,hvContent);
+  THTTPVariableTypes = Set of THTTPVariableType;
 
 Type
-  THttpFields  = Array[1..NoHTTPFields] of string;
-  THttpIndexes = Array[1..NoHTTPFields] of integer;
-
+  THTTPVariables = Array[THTTPVariableType] of string;
+  THttpFields  = Array[1..NoHTTPFields] of string deprecated;
+  THttpIndexes = Array[1..NoHTTPFields] of integer deprecated;
 
 Const
+  HeaderBasedVariables = [hvCookie,hvSetCookie,hvXRequestedWith];
   // For this constant, the header names corresponds to the property index used in THTTPHeader.
   HTTPFieldNames : THttpFields
-             = (fieldAccept, fieldAcceptCharset, fieldAcceptEncoding, 
-                fieldAcceptLanguage, fieldAuthorization, fieldConnection,
-                fieldContentEncoding, fieldContentLanguage, fieldContentLength,
-                fieldContentType, fieldCookie, fieldDate, fieldExpires, 
-                fieldFrom, fieldIfModifiedSince, fieldLastModified, fieldLocation,
-                fieldPragma, fieldReferer, fieldRetryAfter, fieldServer, 
-                fieldSetCookie, fieldUserAgent, fieldWWWAuthenticate,
-                fieldHost, fieldCacheControl,fieldXRequestedWith);
+              = (fieldAccept, fieldAcceptCharset, fieldAcceptEncoding,
+                 fieldAcceptLanguage, fieldAuthorization, fieldConnection,
+                 fieldContentEncoding, fieldContentLanguage, fieldContentLength,
+                 fieldContentType, fieldCookie, fieldDate, fieldExpires,
+                 fieldFrom, fieldIfModifiedSince, fieldLastModified, fieldLocation,
+                 fieldPragma, fieldReferer, fieldRetryAfter, fieldServer,
+                 fieldSetCookie, fieldUserAgent, fieldWWWAuthenticate,
+                  fieldHost, fieldCacheControl,fieldXRequestedWith,fieldIfNoneMatch) deprecated;
+
   // Map header names on indexes in property getter/setter. 0 means not mapped !
   HTTPFieldIndexes : THTTPIndexes
                    =  (1,2,3,
@@ -108,19 +141,23 @@ Const
                        14,15,16,17,
                        18,19,20,21,
                        22,23,24,
-                       34,0,36);
+                       34,0,36,26) deprecated;
 
+type
+  TContentStreamingState = (cssStart, cssData, cssEnd);
 
 
 type
   TRequest = Class;
 
   { TCookie }
+  TSameSite = (ssEmpty,ssNone,ssStrict,ssLax);
 
   TCookie = class(TCollectionItem)
   private
     FHttpOnly: Boolean;
     FName: string;
+    FSameSite: TSameSite;
     FValue: string;
     FPath: string;
     FDomain: string;
@@ -139,6 +176,7 @@ type
     property Expires: TDateTime read FExpires write FExpires;
     property Secure: Boolean read FSecure write FSecure;
     property HttpOnly: Boolean read FHttpOnly write FHttpOnly;
+    property SameSite: TSameSite Read FSameSite Write FSameSite;
     Property AsString : String Read GetAsString;
   end;
 
@@ -213,7 +251,11 @@ type
   TMimeItem = Class(TCollectionItem)
   private
   protected
+    FLocalFilename: string;
+
+    Function CreateUploadedFileStreaming(Files : TUploadedFiles) : TUploadedFile; virtual;
     Function CreateUploadedFile(Files : TUploadedFiles) : TUploadedFile; virtual;
+    function CreateFile(Files: TUploadedFiles): TUploadedFile; virtual;
     Function ProcessHeader(Const AHeader,AValue : String) : Boolean; virtual;
     procedure SaveToFile(const AFileName: String); virtual;
     function GetIsFile: Boolean; virtual;
@@ -222,6 +264,7 @@ type
     function GetHeader(AIndex: Integer): String; virtual; abstract;
     Procedure SetHeader(AIndex: Integer; Const AValue: String); virtual; abstract;
   Public
+    Procedure ProcessStreaming(const State: TContentStreamingState; const Buf; const Size: Integer); virtual; abstract;
     Procedure Process(Stream : TStream); virtual; abstract;
     Property Data : String index 0 Read GetHeader Write SetHeader;
     Property Name : String index 1 Read GetHeader Write SetHeader;
@@ -237,16 +280,43 @@ type
 
   TMimeItems = Class(TCollection)
   private
+    FBoundary: string;
+    FFiles: TUploadedFiles;
+    FPreamble: string;
     function GetP(AIndex : Integer): TMimeItem;
   Protected
     Procedure CreateUploadFiles(Files : TUploadedFiles; Vars : TStrings); virtual;
     procedure FormSplit(var Cnt: String; boundary: String); virtual;
+    procedure ProcessStreamingMultiPart(const State: TContentStreamingState; const Buf; const Size: Integer); virtual;
+    // With streaming is meant that the incoming data is processed in smaller
+    // chunks. To support streaming descendents have to implement
+    // ProcessStreamingMultiPart
+    class function SupportsStreamingProcessing: Boolean; virtual;
+    procedure SetBoundary(AValue: string); virtual;
   Public
     Function First : TMimeItem;
     Function Last : TMimeItem;
     Property Parts[AIndex : Integer] : TMimeItem Read GetP; default;
+    property Preamble: string read FPreamble;
+    Property Boundary: string read FBoundary write SetBoundary;
+    Property Files: TUploadedFiles read FFiles write FFiles;
   end;
   TMimeItemsClass = Class of TMimeItems;
+
+  { TStreamingMimeItems }
+
+  TStreamingMimeItems = class(TMimeItems)
+  private
+    FBuffer: string;
+    FBufferCount: SizeInt;
+    FCurrentItem: TMimeItem;
+    FMimeEndFound: Boolean;
+    FAtStart: Boolean;
+  protected
+    procedure SetBoundary(AValue: string); override;
+    procedure ProcessStreamingMultiPart(const State: TContentStreamingState; const Buf; const Size: Integer); override;
+    class function SupportsStreamingProcessing: Boolean; override;
+  end;
 
   { THTTPHeader }
 
@@ -255,121 +325,158 @@ type
     FContentFields: TStrings;
     FCookieFields: TStrings;
     FHTTPVersion: String;
-    FHTTPXRequestedWith: String;
-    FFields : THttpFields;
+    FFields : THeadersArray;
+    FVariables : THTTPVariables;
     FQueryFields: TStrings;
+    FCustomHeaders : TStringList;
+    function GetCustomHeaders: TStringList;
     function GetSetField(AIndex: Integer): String;
     function GetSetFieldName(AIndex: Integer): String;
     procedure SetCookieFields(const AValue: TStrings);
     Function GetFieldCount : Integer;
     Function GetContentLength : Integer;
     Procedure SetContentLength(Value : Integer);
-    Function GetFieldIndex(AIndex : Integer) : Integer;
+    Function GetFieldOrigin(AIndex : Integer; Out H : THeader; Out V : THTTPVAriableType) : Boolean;
     Function GetServerPort : Word;
     Procedure SetServerPort(AValue : Word);
     Function GetSetFieldValue(Index : Integer) : String; virtual;
+    // These are private, because we need to know for sure the index is in the correct enumerated.
+    Function GetHeaderValue(AIndex : Integer) : String;
+    Procedure SetHeaderValue(AIndex : Integer; AValue : String);
+    procedure SetHTTPVariable(AIndex: Integer; AValue: String);
+    Function  GetHTTPVariable(AIndex : Integer) : String;
   Protected
-    Function GetFieldValue(Index : Integer) : String; virtual;
-    Procedure SetFieldValue(Index : Integer; Value : String); virtual;
+    // Kept for backwards compatibility
+    Class Function IndexToHTTPHeader (AIndex : Integer) : THeader;
+    Class Function IndexToHTTPVariable (AIndex : Integer) : THTTPVariableType;
+    procedure SetHTTPVariable(AVariable : THTTPVariableType; AValue: String);
+    Function  GetFieldValue(Index : Integer) : String; virtual; deprecated;
+    Procedure SetFieldValue(Index : Integer; Value : String); virtual; deprecated;
     procedure ParseFirstHeaderLine(const line: String);virtual;
     Procedure ParseCookies; virtual;
   public
     constructor Create; virtual;
     destructor Destroy; override;
+    // This is the clean way to get HTTP headers.
+    Function HeaderIsSet(AHeader : THeader) : Boolean;
+    Function GetHeader(AHeader : THeader) : String;
+    Procedure SetHeader(AHeader : THeader; Const AValue : String);
+    // Get/Set a field by name. These calls handle 'known' fields. For unknown fields, Get/SetCustomheader is called.
     procedure SetFieldByName(const AName, AValue: String);
-    function  GetFieldByName(const AName: String): String;
+    function GetFieldByName(const AName: String): String;
+    // Variables
+    Class Function GetVariableHeaderName(AVariable : THTTPVariableType) : String;
+    Class Function GetVariableHeaderType(Const aName : string) : THTTPVariableType;
+    Function  GetHTTPVariable(AVariable : THTTPVariableType) : String;
+    Class Function ParseContentType(const AContentType: String; Parameters: TStrings) : String;
+    // Get/Set custom headers.
+    Function GetCustomHeader(const Name: String) : String; virtual;
+    Procedure SetCustomHeader(const Name, Value: String); virtual;
     Function LoadFromStream(Stream : TStream; IncludeCommand : Boolean) : integer;
     Function LoadFromStrings(Strings: TStrings; IncludeCommand : Boolean) : integer; virtual;
     // Common access
     // This is an internal table. We should try to get rid of it,
     // It requires a lot of duplication.
-    property FieldCount: Integer read GetFieldCount;
-    property Fields[AIndex: Integer]: String read GetSetField;
-    property FieldNames[AIndex: Integer]: String read GetSetFieldName;
-    property FieldValues[AIndex: Integer]: String read GetSetFieldValue;
-    // Various properties.
-    Property HttpVersion : String Index 0 Read GetFieldValue Write SetFieldValue;
-    Property ProtocolVersion : String Index 0 Read GetFieldValue Write SetFieldValue;
-    property Accept: String Index 1 read GetFieldValue write SetFieldValue;
-    property AcceptCharset: String Index 2 Read GetFieldValue Write SetFieldValue;
-    property AcceptEncoding: String Index 3 Read GetFieldValue Write SetFieldValue;
-    property AcceptLanguage: String Index 4 Read GetFieldValue Write SetFieldValue;
-    property Authorization: String Index 5 Read GetFieldValue Write SetFieldValue;
-    property Connection: String Index 6 Read GetFieldValue Write SetFieldValue;
-    property ContentEncoding: String Index 7 Read GetFieldValue Write SetFieldValue;
-    property ContentLanguage: String Index 8 Read GetFieldValue Write SetFieldValue;
+    property FieldCount: Integer read GetFieldCount; deprecated;
+    property Fields[AIndex: Integer]: String read GetSetField ; deprecated;
+    property FieldNames[AIndex: Integer]: String read GetSetFieldName ;deprecated;
+    property FieldValues[AIndex: Integer]: String read GetSetFieldValue ;deprecated;
+    // Official HTTP headers.
+    property Accept: String Index Ord(hhAccept) read GetHeaderValue write SetHeaderValue;
+    property AcceptCharset: String Index Ord(hhAcceptCharset) Read GetHeaderValue Write SetHeaderValue;
+    property AcceptEncoding: String Index Ord(hhAcceptEncoding) Read GetHeaderValue Write SetHeaderValue;
+    property AcceptLanguage: String Index Ord(hhAcceptLanguage) Read GetHeaderValue Write SetHeaderValue;
+    property Authorization: String Index Ord(hhAuthorization) Read GetHeaderValue Write SetHeaderValue;
+    property Connection: String Index Ord(hhConnection) Read GetHeaderValue Write SetHeaderValue;
+    property ContentEncoding: String Index Ord(hhContentEncoding) Read GetHeaderValue Write SetHeaderValue;
+    property ContentLanguage: String Index Ord(hhContentLanguage) Read GetHeaderValue Write SetHeaderValue;
     property ContentLength: Integer Read GetContentLength Write SetContentLength; // Index 9
-    property ContentType: String Index 10 Read GetFieldValue Write SetFieldValue;
-    property Cookie: String Index 11 Read GetFieldValue Write SetFieldValue;
-    property Date: String Index 12 Read GetFieldValue Write SetFieldValue;
-    property Expires: String Index 13 Read GetFieldValue Write SetFieldValue;
-    property From: String Index 14 Read GetFieldValue Write SetFieldValue;
-    property IfModifiedSince: String Index 15 Read GetFieldValue Write SetFieldValue;
-    property LastModified: String Index 16 Read GetFieldValue Write SetFieldValue;
-    property Location: String Index 17 Read GetFieldValue Write SetFieldValue;
-    property Pragma: String Index 18 Read GetFieldValue Write SetFieldValue;
-    property Referer: String Index 19 Read GetFieldValue Write SetFieldValue;
-    property RetryAfter: String Index 20 Read GetFieldValue Write SetFieldValue;
-    property Server: String Index 21 Read GetFieldValue Write SetFieldValue;
-    property SetCookie: String Index 22 Read GetFieldValue Write SetFieldValue;
-    property UserAgent: String Index 23 Read GetFieldValue Write SetFieldValue;
-    property WWWAuthenticate: String Index 24 Read GetFieldValue Write SetFieldValue;
-    // Various aliases, for compatibility
-    Property PathInfo : String index 25 read GetFieldValue Write SetFieldValue;
-    Property PathTranslated : String Index 26 read GetFieldValue Write SetFieldValue;
-    Property RemoteAddress : String Index 27 read GetFieldValue Write SetFieldValue;
-    Property RemoteAddr : String Index 27 read GetFieldValue Write SetFieldValue; // Alias, Delphi-compat
-    Property RemoteHost : String Index 28 read  GetFieldValue Write SetFieldValue;
-    Property ScriptName : String Index 29 read  GetFieldValue Write SetFieldValue;
+    property ContentType: String Index Ord(hhContentType) Read GetHeaderValue Write SetHeaderValue;
+    property Date: String Index Ord(hhDate) Read GetHeaderValue Write SetHeaderValue;
+    property Expires: String Index Ord(hhExpires) Read GetHeaderValue Write SetHeaderValue;
+    property From: String Index Ord(hhFrom) Read GetHeaderValue Write SetHeaderValue;
+    Property Host : String Index Ord(hhHost) Read GetHeaderValue Write SetHeaderValue;
+    property IfModifiedSince: String Index Ord(hhIfModifiedSince) Read GetHeaderValue Write SetHeaderValue;
+    property LastModified: String Index Ord(hhLastModified) Read GetHeaderValue Write SetHeaderValue;
+    property Location: String Index Ord(hhLocation) Read GetHeaderValue Write SetHeaderValue;
+    property Pragma: String Index Ord(hhPragma) Read GetHeaderValue Write SetHeaderValue;
+    property Referer: String Index Ord(hhReferer) Read GetHeaderValue Write SetHeaderValue;
+    property RetryAfter: String Index Ord(hhRetryAfter) Read GetHeaderValue Write SetHeaderValue;
+    property Server: String Index Ord(hhServer) Read GetHeaderValue Write SetHeaderValue;
+    property UserAgent: String Index Ord(hhUserAgent) Read GetHeaderValue Write SetHeaderValue;
+    property Warning: String Index Ord(hhWarning) Read GetHeaderValue Write SetHeaderValue;
+    property WWWAuthenticate: String Index Ord(hhWWWAuthenticate) Read GetHeaderValue Write SetHeaderValue;
+    property Via: String Index Ord(hhVia) Read GetHeaderValue Write SetHeaderValue;
+    // HTTP headers, Delphi compatibility
+    Property HTTPAccept : String Index Ord(hhAccept) read GetFieldValue Write SetFieldValue;
+    Property HTTPAcceptCharset : String Index Ord(hhAcceptCharset) read GetFieldValue Write SetFieldValue;
+    Property HTTPAcceptEncoding : String Index Ord(hhAcceptEncoding) read GetFieldValue Write SetFieldValue;
+    Property HTTPIfModifiedSince : String Index Ord(hhIfModifiedSince) read GetFieldValue Write SetFieldValue; // Maybe change to TDateTime ??
+    Property HTTPReferer : String Index Ord(hhReferer) read GetFieldValue Write SetFieldValue;
+    Property HTTPUserAgent : String Index Ord(hhUserAgent) read GetFieldValue Write SetFieldValue;
+    // Headers, not in HTTP spec.
+    property Cookie: String Index Ord(hvCookie) Read GetHTTPVariable Write SetHTTPVariable;
+    property SetCookie: String Index Ord(hvSetCookie) Read GetHTTPVariable Write SetHTTPVariable;
+    Property HTTPXRequestedWith : String Index Ord(hvXRequestedWith) read GetHTTPVariable Write SetHTTPVariable;
+    Property HttpVersion : String Index ord(hvHTTPVErsion) Read GetHTTPVariable Write SetHTTPVariable;
+    Property ProtocolVersion : String Index ord(hvHTTPVErsion) Read GetHTTPVariable Write SetHTTPVariable;
+    // Specials, mostly from CGI protocol/Apache.
+    Property PathInfo : String index Ord(hvPathInfo) read GetHTTPVariable Write SetHTTPVariable;
+    Property PathTranslated : String index Ord(hvPathTranslated) read GetHTTPVariable Write SetHTTPVariable;
+    Property RemoteAddress : String Index Ord(hvRemoteAddress) read GetHTTPVariable Write SetHTTPVariable;
+    Property RemoteAddr : String Index Ord(hvRemoteAddress) read GetHTTPVariable Write SetHTTPVariable; // Alias, Delphi-compat
+    Property RemoteHost : String Index Ord(hvRemoteHost) read  GetHTTPVariable Write SetHTTPVariable;
+    Property ScriptName : String Index Ord(hvScriptName) read  GetHTTPVariable Write SetHTTPVariable;
     Property ServerPort : Word Read GetServerPort Write SetServerPort; // Index 30
-    Property HTTPAccept : String Index 1 read GetFieldValue Write SetFieldValue;
-    Property HTTPAcceptCharset : String Index 2 read GetFieldValue Write SetFieldValue;
-    Property HTTPAcceptEncoding : String Index 3 read GetFieldValue Write SetFieldValue;
-    Property HTTPIfModifiedSince : String Index 15 read GetFieldValue Write SetFieldValue; // Maybe change to TDateTime ??
-    Property HTTPReferer : String Index 19 read GetFieldValue Write SetFieldValue;
-    Property HTTPUserAgent : String Index 23 read GetFieldValue Write SetFieldValue;
-    Property Method : String Index 31 read GetFieldValue Write SetFieldValue;
-    Property URL : String Index 32 read GetFieldValue Write SetFieldValue;
-    Property Query : String Index 33 read GetFieldValue Write SetFieldValue;
-    Property Host : String Index 34 Read GetFieldValue Write SetFieldValue;
-    Property Content : String Index 35 Read GetFieldValue Write SetFieldValue;
-    Property HTTPXRequestedWith : String Index 36 read GetFieldValue Write SetFieldValue;
+    Property Method : String Index Ord(hvMethod) read GetHTTPVariable Write SetHTTPVariable;
+    Property URL : String Index Ord(hvURL) read GetHTTPVariable Write SetHTTPVariable;
+    Property Query : String Index Ord(hvQuery) read GetHTTPVariable Write SetHTTPVariable;
+    Property Content : String Index Ord(hvContent) Read GetHTTPVariable Write SetHTTPVariable;
     // Lists
     Property CookieFields : TStrings Read FCookieFields Write SetCookieFields;
     Property ContentFields: TStrings read FContentFields;
     property QueryFields : TStrings read FQueryFields;
+    Property CustomHeaders: TStringList read GetCustomHeaders;
   end;
 
+  TStreamingContentType = (sctUnknown, sctMultipart, sctFormUrlEncoded);
+  TOnStreamEncodingEvent = Procedure (Sender : TRequest; const State: TContentStreamingState; const Buf; const Size: Integer) of object;
   TOnUnknownEncodingEvent = Procedure (Sender : TRequest; Const ContentType : String;Stream : TStream) of object;
   { TRequest }
 
   TRequest = class(THttpHeader)
+  Private
+    class var _RequestCount : {$IFDEF CPU64}QWord{$ELSE}Cardinal{$ENDIF};
   private
     FCommand: String;
     FCommandLine: String;
     FHandleGetOnPost: Boolean;
     FOnUnknownEncoding: TOnUnknownEncodingEvent;
-    FPathInfo,
-    FHost : string;
-    FRequestedWith : String;
-    FURI: String;
     FFiles : TUploadedFiles;
+    FRequestID: String;
     FReturnedPathInfo : String;
     FLocalPathPrefix : string;
-    FServerPort : String;
     FContentRead : Boolean;
-    FContent : String;
+    FRouteParams : TStrings;
+    FStreamingContentType: TStreamingContentType;
+    FMimeItems: TMimeItems;
+    FKeepFullContents: Boolean;
+    FStreamingContent: string;
+    FStreamingContentRead: Integer;
+    FOnStreamEncodingEvent: TOnStreamEncodingEvent;
     function GetLocalPathPrefix: string;
     function GetFirstHeaderLine: String;
+    function GetRP(AParam : String): String;
+    procedure SetRP(AParam : String; AValue: String);
   Protected
+    procedure AllocateRequestID; virtual;
     Function AllowReadContent : Boolean; virtual;
     Function CreateUploadedFiles : TUploadedFiles; virtual;
     Function CreateMimeItems : TMimeItems; virtual;
     procedure HandleUnknownEncoding(Const AContentType : String;Stream : TStream); virtual;
+    procedure HandleStreamEncoding(const State: TContentStreamingState; const Buf; const Size: Integer); virtual;
     procedure ParseFirstHeaderLine(const line: String);override;
     procedure ReadContent; virtual;
-    Function GetFieldValue(AIndex : Integer) : String; override;
-    Procedure SetFieldValue(Index : Integer; Value : String); override;
     Procedure ProcessMultiPart(Stream : TStream; Const Boundary : String;SL:TStrings); virtual;
     Procedure ProcessQueryString(Const FQueryString : String; SL:TStrings); virtual;
     procedure ProcessURLEncoded(Stream : TStream;SL:TStrings); virtual;
@@ -377,25 +484,53 @@ type
     Function GetTempUploadFileName(Const AName, AFileName : String; ASize : Int64) : String; virtual;
     // This will free any TUPloadedFile.Streams that may exist, as they may lock the files and thus prevent them
     Procedure DeleteTempUploadedFiles; virtual;
+
     Procedure InitRequestVars; virtual;
+    procedure InitContentRequestVars; virtual;
+    procedure InitHeaderRequestVars; virtual;
+
     Procedure InitPostVars; virtual;
     Procedure InitGetVars; virtual;
-    Procedure InitContent(Var AContent : String);
+    Procedure InitContent(const AContent : String);
+
+    procedure ProcessStreamingContent(const State: TContentStreamingState; const Buf; const Size: Integer); virtual;
+    function DerriveStreamingContentType(): TStreamingContentType;
+    procedure ProcessStreamingURLEncoded(const State: TContentStreamingState; const Buf; const Size: Integer); virtual;
+    procedure ProcessStreamingMultiPart(const State: TContentStreamingState; const Buf; const Size: Integer); virtual;
+    // ProcessStreamingSetContent collects all data and stores it into Content
+    procedure ProcessStreamingSetContent(const State: TContentStreamingState; const Buf; const Size: Integer); virtual;
+    procedure HandleStreamingUnknownEncoding(const State: TContentStreamingState; const Buf; const Size: Integer);
     Property ContentRead : Boolean Read FContentRead Write FContentRead;
+  Public
+    Type
+      TConnectionIDAllocator = Procedure(out aID : String) of object;
+    class var IDAllocator : TConnectionIDAllocator;
   public
+    Class Var DefaultRequestUploadDir : String;
     constructor Create; override;
     destructor destroy; override;
-    Function  GetNextPathInfo : String;
-    Property  ReturnedPathInfo : String Read FReturnedPathInfo Write FReturnedPathInfo;
-    Property  LocalPathPrefix : string Read GetLocalPathPrefix;
-    Property  CommandLine : String Read FCommandLine;
-    Property  Command : String read FCommand;
-    Property  URI : String read FURI;                // Uniform Resource Identifier
-    Property  QueryString : String Index 33 read GetFieldValue Write SetFieldValue; // Alias
-    Property  HeaderLine : String read GetFirstHeaderLine;
-    Property  Files : TUploadedFiles Read FFiles;
-    Property  HandleGetOnPost : Boolean Read FHandleGetOnPost Write FHandleGetOnPost;
-    Property  OnUnknownEncoding : TOnUnknownEncodingEvent Read FOnUnknownEncoding Write FOnUnknownEncoding;
+    Function GetNextPathInfo : String;
+    Property RequestID : String Read FRequestID;
+    Property RouteParams[AParam : String] : String Read GetRP Write SetRP;
+    Property ReturnedPathInfo : String Read FReturnedPathInfo Write FReturnedPathInfo;
+    Property LocalPathPrefix : string Read GetLocalPathPrefix;
+    Property CommandLine : String Read FCommandLine;
+    Property Command : String read FCommand;
+    Property URI : String Index Ord(hvURL) read GetHTTPVariable Write SetHTTPVariable;                // Uniform Resource Identifier
+    Property QueryString : String Index Ord(hvQuery) read GetHTTPVariable Write SetHTTPVariable;
+    Property HeaderLine : String read GetFirstHeaderLine;
+    Property Files : TUploadedFiles Read FFiles;
+    Property HandleGetOnPost : Boolean Read FHandleGetOnPost Write FHandleGetOnPost;
+    Property OnUnknownEncoding : TOnUnknownEncodingEvent Read FOnUnknownEncoding Write FOnUnknownEncoding;
+    Property OnStreamEncodingEvent: TOnStreamEncodingEvent read FOnStreamEncodingEvent write FOnStreamEncodingEvent;
+    Property IfMatch : String Index ord(hhIfMatch) Read GetHeaderValue Write SetHeaderValue;
+    Property IfNoneMatch : String  Index ord(hhIfNoneMatch) Read GetHeaderValue Write SetHeaderValue;
+    Property IfRange : String  Index ord(hhIfRange) Read GetHeaderValue Write SetHeaderValue;
+    Property IfUnModifiedSince : String  Index ord(hhIfUnmodifiedSince) Read GetHeaderValue Write SetHeaderValue;
+    Property ContentRange : String Index ord(hhContentRange) Read GetHeaderValue Write SetHeaderValue;
+    Property TE : String Index ord(hhTE) Read GetHeaderValue Write SetHeaderValue;
+    Property Upgrade : String Index ord(hhUpgrade) Read GetHeaderValue Write SetHeaderValue;
+    property KeepFullContents: Boolean read FKeepFullContents write FKeepFullContents;
   end;
 
 
@@ -403,7 +538,6 @@ type
 
   TResponse = class(THttpHeader)
   private
-    FCacheControl: String;
     FContents: TStrings;
     FContentStream : TStream;
     FCode: Integer;
@@ -413,9 +547,8 @@ type
     FContentSent: Boolean;
     FRequest : TRequest;
     FCookies : TCookies;
-    FCustomHeaders : TStringList;
-    function GetContent: String;
-    procedure SetContent(const AValue: String);
+    function GetContent: RawByteString;
+    procedure SetContent(const AValue: RawByteString);
     procedure SetContents(AValue: TStrings);
     procedure SetContentStream(const AValue: TStream);
     procedure SetFirstHeaderLine(const line: String);
@@ -431,21 +564,28 @@ type
     Procedure SendContent;
     Procedure SendHeaders;
     Procedure SendResponse; // Delphi compatibility
-    Function GetCustomHeader(const Name: String) : String;
-    Procedure SetCustomHeader(const Name, Value: String);
     Procedure SendRedirect(const TargetURL:String);
+    // Set Code and CodeText. Send content if aSend=True
+    Procedure SetStatus(aStatus : Cardinal; aSend : Boolean = False);
     Property Request : TRequest Read FRequest;
     Property Code: Integer Read FCode Write FCode;
     Property CodeText: String Read FCodeText Write FCodeText;
-    Property CacheControl : String Read FCacheControl Write FCacheControl;
+    Property Age : String  Index Ord(hhAge) Read GetHeaderValue Write SetHeaderValue;
+    Property Allow : String  Index Ord(hhAllow) Read GetHeaderValue Write SetHeaderValue;
+    Property CacheControl : String Index Ord(hhCacheControl) Read GetHeaderValue Write SetHeaderValue;
+    Property ContentLocation : String Index Ord(hhContentLocation) Read GetHeaderValue Write SetHeaderValue;
+    Property ContentMD5 : String Index Ord(hhContentMD5) Read GetHeaderValue Write SetHeaderValue;
+    Property ContentRange : String Index Ord(hhContentRange) Read GetHeaderValue Write SetHeaderValue;
+    Property ETag : String  Index Ord(hhEtag) Read GetHeaderValue Write SetHeaderValue;
+    Property ProxyAuthenticate : String Index Ord(hhProxyAuthenticate) Read GetHeaderValue Write SetHeaderValue;
+    Property RetryAfter : String  Index Ord(hhRetryAfter) Read GetHeaderValue Write SetHeaderValue;
     Property FirstHeaderLine : String Read GetFirstHeaderLine Write SetFirstHeaderLine;
     Property ContentStream : TStream Read FContentStream Write SetContentStream;
-    Property Content : String Read GetContent Write SetContent;
+    Property Content : RawByteString Read GetContent Write SetContent;
     property Contents : TStrings read FContents Write SetContents;
     Property HeadersSent : Boolean Read FHeadersSent;
     Property ContentSent : Boolean Read FContentSent;
     property Cookies: TCookies read FCookies;
-    Property CustomHeaders: TStringList read FCustomHeaders;
     Property FreeContentStream : Boolean Read FFreeContentStream Write FFreeContentStream;
   end;
   
@@ -453,13 +593,20 @@ type
 
 
   { TCustomSession }
+  TSessionState = (ssNew,ssExpired,ssActive,ssResponseInitialized);
+  TSessionStates = set of TSessionState;
 
   TCustomSession = Class(TComponent)
   Private
+    FOnSessionStateChange: TNotifyEvent;
     FSessionCookie: String;
     FSessionCookiePath: String;
+    FStates: TSessionStates;
     FTimeOut: Integer;
+    Procedure SetSessionState(aValue : TSessionStates);
   Protected
+    Procedure AddToSessionState(aValue : TSessionState);
+    Procedure RemoveFromSessionState(aValue : TSessionState);
     // Can be overridden to provide custom behaviour.
     procedure SetSessionCookie(const AValue: String); virtual;
     procedure SetSessionCookiePath(const AValue: String); virtual;
@@ -480,6 +627,8 @@ type
     Procedure RemoveVariable(VariableName : String); virtual; abstract;
     // Terminate session
     Procedure Terminate; virtual; abstract;
+    // checks if session variable exists
+    Function SessionVariableExists(VarName : String) : Boolean; Virtual; abstract;
     // Session timeout in minutes
     Property TimeOutMinutes : Integer Read FTimeOut Write FTimeOut default 15;
     // ID of this session.
@@ -490,6 +639,10 @@ type
     Property SessionCookiePath : String Read FSessionCookiePath write SetSessionCookiePath;
     // Variables, tracked in session.
     Property Variables[VarName : String] : String Read GetSessionVariable Write SetSessionVariable;
+    // Session state
+    Property SessionState : TSessionStates Read FStates;
+    // Called when state changes
+    Property OnSessionStateChange : TNotifyEvent Read FOnSessionStateChange Write FOnSessionStateChange;
   end;
 
   TRequestEvent = Procedure (Sender: TObject; ARequest : TRequest) of object;
@@ -509,6 +662,52 @@ type
   end;
 
   HTTPError = EHTTP;
+  { CORS Support }
+
+  TCORSOption = (coAllowCredentials,   // Set Access-Control-Allow-Credentials header
+                 coEmptyDomainToOrigin // If allowedOrigins is empty, try to determine origin from request and echo that
+                 );
+  TCORSOptions = Set of TCORSOption;
+
+  THandleCORSOption = (hcDetect, // Detect OPTIONS request, send full headers
+                       hcFull,   // Force sending full headers
+                       hcHumanReadable, // Human readable result
+                       hcSend    // In case of full headers, send response
+                       );
+  THandleCORSOptions = set of THandleCORSOption;
+
+  { TCORSSupport }
+
+  TCORSSupport = Class(TPersistent)
+  private
+    FAllowedHeaders: String;
+    FAllowedMethods: String;
+    FAllowedOrigins: String;
+    FMaxAge: Integer;
+    FEnabled: Boolean;
+    FOptions: TCORSOptions;
+    procedure SetAllowedMethods(AValue: String);
+  Public
+    Constructor Create; virtual;
+    function ResolvedCORSAllowedOrigins(aRequest: TRequest): String; virtual;
+    // Handle CORS headers. Returns TRUE if the full headers were added.
+    Function HandleRequest(aRequest: TRequest; aResponse: TResponse; aOptions : THandleCORSOptions = [hcDetect]) : Boolean; virtual;
+    Procedure Assign(Source : TPersistent); override;
+  Published
+    // Enable CORS Support ? if False, the HandleRequest will exit at once
+    Property Enabled : Boolean Read FEnabled Write FEnabled;
+    // Options that control the behaviour
+    Property Options : TCORSOptions Read FOptions Write FOptions;
+    // Allowed methods
+    Property AllowedMethods : String Read FAllowedMethods Write SetAllowedMethods;
+    // Domains that are allowed to use this RPC service
+    Property AllowedOrigins: String Read FAllowedOrigins  Write FAllowedOrigins;
+    // Domains that are allowed to use this RPC service
+    Property AllowedHeaders: String Read FAllowedHeaders Write FAllowedHeaders;
+    // Access-Control-Max-Age header value. Set to zero not to send the header
+    Property MaxAge : Integer Read FMaxAge Write FMaxAge;
+  end;
+
 
 Function HTTPDecode(const AStr: String): String;
 Function HTTPEncode(const AStr: String): String;
@@ -518,8 +717,15 @@ Var
   // Default classes used when instantiating the collections.
   UploadedFilesClass : TUploadedFilesClass = TUploadedFiles;
   UploadedFileClass : TUploadedFileClass = TUploadedFile;
-  MimeItemsClass : TMimeItemsClass = TMimeItems;
+  MimeItemsClass : TMimeItemsClass = TStreamingMimeItems;
   MimeItemClass : TMimeItemClass = nil;
+
+Const
+  DefaultAllowedHeaders = 'x-requested-with, content-type, authorization';
+  DefaultAllowedOrigins = '*';
+  DefaultAllowedMethods = 'GET, PUT, POST, OPTIONS, HEAD';
+
+//Procedure Touch(Const AName : String);
 
 implementation
 
@@ -535,9 +741,7 @@ Resourcestring
   SErrInternalUploadedFileError = 'Internal uploaded file configuration error';
   SErrNoSuchUploadedFile        = 'No such uploaded file : "%s"';
   SErrUnknownCookie             = 'Unknown cookie: "%s"';
-  SErrUnsupportedContentType    = 'Unsupported content type: "%s"';
   SErrNoRequestMethod           = 'No REQUEST_METHOD passed from server.';
-  SErrInvalidRequestMethod      = 'Invalid REQUEST_METHOD passed from server: %s.';
 
 const
    hexTable = '0123456789ABCDEF';
@@ -545,7 +749,12 @@ const
 { ---------------------------------------------------------------------
   Auxiliary functions
   ---------------------------------------------------------------------}
-  
+Procedure Touch(Const AName : String);
+
+begin
+//  FileClose(FileCreate('/tmp/touch-'+StringReplace(AName,'/','_',[rfReplaceAll])));
+end;
+
 Function GetFieldNameIndex(AName : String) : Integer;
 
 var
@@ -559,107 +768,22 @@ begin
     Result:=HTTPFieldIndexes[Result];
 end;
 
-function HTTPDecode(const AStr: String): String;
-
-var
-  S,SS, R : PChar;
-  H : String[3];
-  L,C : Integer;
+Function HTTPDecode(const AStr: String): String;
 
 begin
-  L:=Length(Astr);
-  SetLength(Result,L);
-  If (L=0) then
-    exit;
-  S:=PChar(AStr);
-  SS:=S;
-  R:=PChar(Result);
-  while (S-SS)<L do
-    begin
-    case S^ of
-      '+': R^ := ' ';
-      '%': begin
-           Inc(S);
-           if ((S-SS)<L) then
-             begin
-             if (S^='%') then
-               R^:='%'
-             else
-               begin
-               H:='$00';
-               H[2]:=S^;
-               Inc(S);
-               If (S-SS)<L then
-                 begin
-                 H[3]:=S^;
-                 Val(H,PByte(R)^,C);
-                 If (C<>0) then
-                   R^:=' ';
-                 end;
-               end;
-             end;
-           end;
-      else
-        R^ := S^;
-      end;
-    Inc(R);
-    Inc(S);
-    end;
-  SetLength(Result,R-PChar(Result));
+  Result:=httpProtocol.HTTPDecode(AStr);
 end;
 
-function HTTPEncode(const AStr: String): String;
+Function HTTPEncode(const AStr: String): String;
 
-const
-  HTTPAllowed = ['A'..'Z','a'..'z',
-                 '*','@','.','_','-',
-                 '0'..'9',
-                 '$','!','''','(',')'];
-                 
-var
-  SS,S,R: PChar;
-  H : String[2];
-  L : Integer;
-  
 begin
-  L:=Length(AStr);
-  SetLength(Result,L*3); // Worst case scenario
-  if (L=0) then
-    exit;
-  R:=PChar(Result);
-  S:=PChar(AStr);
-  SS:=S; // Avoid #0 limit !!
-  while ((S-SS)<L) do
-    begin
-    if S^ in HTTPAllowed then
-      R^:=S^
-    else if (S^=' ') then
-      R^:='+'
-    else
-      begin
-      R^:='%';
-      H:=HexStr(Ord(S^),2);
-      Inc(R);
-      R^:=H[1];
-      Inc(R);
-      R^:=H[2];
-      end;
-    Inc(R);
-    Inc(S);
-    end;
-  SetLength(Result,R-PChar(Result));
+  Result:=httpProtocol.HTTPEncode(AStr);
 end;
 
-function IncludeHTTPPathDelimiter(const AStr: String): String;
-
-Var
-  l : Integer;
+Function IncludeHTTPPathDelimiter(const AStr: String): String;
 
 begin
-  Result:=AStr;
-  L:=Length(Result);
-  If (L>0) and (Result[L]<>'/') then
-    Result:=Result+'/';
+  Result:=httpProtocol.IncludeHTTPPathDelimiter(AStr);
 end;
 
 { -------------------------------------------------------------------
@@ -672,14 +796,232 @@ Type
   THTTPMimeItem = Class(TMimeItem)
   private
     FData : Array[0..5] of string;
+    FHeadersProcessed: Boolean;
+    FBuffer: string;
+    FStream: TStream;
+    FDataSize: Int64;
   protected
     Procedure SetHeader(AIndex: Integer; Const AValue: String); override;
     function GetDataSize: Int64; override;
     function GetHeader(AIndex: Integer): String; override;
     function GetIsFile: Boolean; override;
   public
+    destructor Destroy; override;
     Procedure Process(Stream : TStream); override;
+    Procedure ProcessStreaming(const State: TContentStreamingState; const Buf; const Size: Integer); override;
   end;
+
+  { THTTPStreamingMimeItem }
+  THTTPStreamingMimeItem = Class(THTTPMimeItem)
+  protected
+    function GetDataSize: Int64; override;
+  end;
+
+function THTTPStreamingMimeItem.GetDataSize: Int64;
+begin
+  if GetIsFile then
+    Result:=FDataSize
+  else
+    Result:=Length(Data);
+end;
+
+
+{ TStreamingMimeItems }
+
+procedure TStreamingMimeItems.ProcessStreamingMultiPart(const State: TContentStreamingState; const Buf; const Size: Integer);
+var
+  bl: SizeInt;
+  p: SizeInt;
+  BufEnd: SizeInt;
+  LeadingLineEndMissing: Boolean;
+begin
+  // The length of the boundary, including the leading CR/LF, '--' and trailing '--' or
+  // CR/LF.
+  bl := Length(FBoundary)+6;
+  LeadingLineEndMissing:=False;
+  if State=cssStart then
+    begin
+    FMimeEndFound := False;
+    FAtStart := True;
+    end;
+
+  // Allocate enough memory to hold the buffer-size, and the lenght of the
+  // boundary (bl). To be able to find a boundary-string at which is divided between
+  // two calls to this function, the last bl-amount of characters at the end of
+  // the buffer, are stored to be handled in the next call to this function.
+  SetLength(FBuffer, Size+bl);
+  if Size > 0 then
+    System.Move(Buf, FBuffer[FBufferCount+1], Size);
+
+  BufEnd := FBufferCount+1+Size;
+
+  FBufferCount := 1;
+  repeat
+  if FAtStart and CompareMem(@FBuffer[1], PChar('--'+FBoundary), Length(FBoundary)+2) then
+    begin
+    // Sometimes a mime-message (mistakenly) does not start with CR/LF.
+    p := 1;
+    LeadingLineEndMissing := True;
+    end
+  else
+    p := Pos(#13#10'--'+FBoundary, FBuffer, FBufferCount);
+  if (P > 0) and (P < Size) then
+    begin
+    if Assigned(FCurrentItem) then
+      begin
+      FCurrentItem.ProcessStreaming(cssEnd, FBuffer[FBufferCount], P-FBufferCount);
+      FCurrentItem := Nil;
+      end
+    else
+      begin
+      if FAtStart and (P > 1) then
+        // Add the preamble to the content
+        FPreamble := Copy(FBuffer, FBufferCount, P-1);
+      end;
+    FAtStart := False;
+    Inc(P, bl);
+    if LeadingLineEndMissing then
+      begin
+      Dec(P, 2);
+      LeadingLineEndMissing := False;
+      end;
+    FBufferCount := P;
+    if (Copy(FBuffer,p-2,2)='--') then
+      FMimeEndFound := True;
+    end;
+  if not Assigned(FCurrentItem) and not FMimeEndFound then
+    begin
+    FCurrentItem := Add as TMimeItem;
+    FCurrentItem.ProcessStreaming(cssStart, FBuffer[p], 0)
+    end
+  until (P < 1) or FMimeEndFound;
+
+  if Assigned(FCurrentItem) then
+    begin
+    if state<>cssEnd then
+      begin
+      // Call FCurrentItem.ProcessStreaming with the current buffer, excluding
+      // the last bl bytes. Keep those at the start of FBuffer, to be handled
+      // in the next call to this function.
+      FCurrentItem.ProcessStreaming(cssData, FBuffer[FBufferCount], BufEnd-FBufferCount-bl);
+      System.Move(FBuffer[BufEnd-bl], FBuffer[1], bl);
+      FBufferCount := bl;
+      end
+    else
+      begin
+      // This function won't be called again. Call FCurrentItem.ProcessStreaming
+      // with the complete remaining buffer.
+      FCurrentItem.ProcessStreaming(cssEnd, FBuffer[FBufferCount], BufEnd-FBufferCount+bl);
+      FBufferCount := 0;
+      end;
+    end
+  else
+    FBufferCount := 0;
+end;
+
+class function TStreamingMimeItems.SupportsStreamingProcessing: Boolean;
+begin
+  Result := True;
+end;
+
+procedure TStreamingMimeItems.SetBoundary(AValue: string);
+begin
+  if Length(FBuffer) > 0 then
+    Raise Exception.Create('It is not possible to adapt the binary when the evaluation of streaming data has already been started.');
+  inherited SetBoundary(AValue);
+end;
+
+{ TCORSSupport }
+
+procedure TCORSSupport.SetAllowedMethods(AValue: String);
+begin
+  aValue:=UpperCase(aValue);
+  if FAllowedMethods=AValue then Exit;
+  FAllowedMethods:=AValue;
+end;
+
+constructor TCORSSupport.Create;
+begin
+  FOptions:=[coAllowCredentials,coEmptyDomainToOrigin];
+  AllowedHeaders:=DefaultAllowedHeaders;
+  AllowedOrigins:=DefaultAllowedOrigins;
+  AllowedMethods:=DefaultAllowedMethods;
+end;
+
+procedure TCORSSupport.Assign(Source: TPersistent);
+
+Var
+  CS : TCORSSupport absolute source;
+
+begin
+  if (Source is TPersistent) then
+    begin
+    Enabled:=CS.Enabled;
+    Options:=CS.Options;
+    AllowedHeaders:=CS.AllowedHeaders;
+    AllowedOrigins:=CS.AllowedOrigins;
+    AllowedMethods:=CS.AllowedMethods;
+    MaxAge:=CS.MaxAge;
+    end
+  else
+  inherited Assign(Source);
+end;
+
+function TCORSSupport.ResolvedCORSAllowedOrigins(aRequest : TRequest): String;
+
+Var
+  URl : String;
+  uri : TURI;
+
+begin
+  Result:=FAllowedOrigins;
+  if Result='' then
+    begin
+    // Sent with CORS request
+    Result:=aRequest.GetCustomHeader('Origin');
+    if (Result='') and (coEmptyDomainToOrigin in Options) then
+      begin
+      // Fallback
+      URL:=aRequest.Referer;
+      if (URL<>'') then
+        begin
+        uri:=ParseURI(URL,'http',0);
+        Result:=Format('%s://%s',[URI.Protocol,URI.Host]);
+        if (URI.Port<>0) then
+          Result:=Result+':'+IntToStr(URI.Port);
+        end;
+      end;
+    end;
+  if Result='' then
+    Result:='*';
+end;
+
+function TCORSSupport.HandleRequest(aRequest: TRequest; aResponse: TResponse; aOptions: THandleCORSOptions): Boolean;
+
+Var
+  Full : Boolean;
+
+begin
+  Result:=False;
+  if Not Enabled then
+    exit;
+  Full:=(hcFull in aOptions) or ((hcDetect in aOptions) and SameText(aRequest.Method,'OPTIONS'));
+  With aResponse do
+    begin
+    SetCustomHeader('Access-Control-Allow-Origin',ResolvedCORSAllowedOrigins(aRequest));
+    if (coAllowCredentials in Options) then
+      SetCustomHeader('Access-Control-Allow-Credentials','true');
+    if Full then
+      begin
+      SetCustomHeader('Access-Control-Allow-Methods',AllowedMethods);
+      SetCustomHeader('Access-Control-Allow-Headers',AllowedHeaders);
+      if MaxAge>0 then
+        SetCustomHeader('Access-Control-Max-Age',IntToStr(MaxAge));
+      if (hcSend in aOptions) then
+        SetStatus(200,True);
+      end;
+    end;
+end;
 
 { EHTTP }
 
@@ -784,29 +1126,170 @@ begin
       end;
     Line:=GetLine(D);
     end;
-  // Now Data contains the rest of the data, plus a CR/LF. Strip the CR/LF
+  // Now D contains the rest of the data, plus a CR/LF. Strip the CR/LF
   Len:=Length(D);
   If (len>2) then
-    Data:=Copy(D,1,Len-2)
+    begin
+    FDataSize := Len-2;
+    Data:=Copy(D,1,FDataSize)
+    end
   else
     Data:='';
   {$ifdef CGIDEBUG}SendMethodExit('THTTPMimeItem.Process');{$ENDIF}
+end;
+
+procedure THTTPMimeItem.ProcessStreaming(const State: TContentStreamingState; const Buf; const Size: Integer);
+
+  Function GetLine(Var S : String) : String;
+
+  Var
+    P : Integer;
+
+  begin
+    P:=Pos(#13#10,S);
+    If (P<>0) then
+      begin
+      Result:=Copy(S,1,P-1);
+      Delete(S,1,P+1);
+      end;
+  end;
+
+  Function GetWord(Var S : String) : String;
+
+  Var
+    I,len : Integer;
+    Quoted : Boolean;
+    C : Char;
+
+  begin
+    len:=length(S);
+    quoted:=false;
+    Result:='';
+    for i:=1 to len do
+      Begin
+      c:=S[i];
+      if (c='"') then
+        Quoted:=Not Quoted
+      else
+        begin
+        if not (c in [' ','=',';',':']) or Quoted then
+          Result:=Result+C;
+        if (c in [';',':','=']) and (not quoted) then
+          begin
+          Delete(S,1,I);
+          Exit;
+          end;
+        end;
+      end;
+     S:='';
+  end;
+
+  procedure AddData(const Buf; Size: SizeInt);
+  var
+    S: string;
+    i: SizeInt;
+    Files: TUploadedFiles;
+  begin
+    if Size > 0 then
+      begin
+      if GetIsFile then
+        begin
+        // Stream directly to file
+        if not Assigned(FStream) then
+          begin
+          Files := (Collection as TMimeItems).Files;
+          if Assigned(Files) then
+            FLocalFilename := Files.GetTempUploadFileName(Name, FileName, -1)
+          else
+            FLocalFilename := GetTempFileName('', '');
+          FStream := TFileStream.Create(FLocalFilename, fmCreate);
+          FDataSize := 0;
+          end;
+
+        FStream.Write(Buf, Size);
+        Inc(FDataSize, Size);
+        end
+      else
+        begin
+        S := Data;
+        i := Length(S);
+        SetLength(S, i+Size);
+        Move(Buf, S[i+1], Size);
+        Data := S;
+        end;
+      end;
+  end;
+
+var
+  i: SizeInt;
+  Line, S: string;
+begin
+  if not FHeadersProcessed then
+    begin
+    if Size>0 then
+      begin
+      i := Length(FBuffer);
+      SetLength(FBuffer, i + Size);
+      Move(Buf, FBuffer[i+1], Size);
+      if Copy(FBuffer, 1, 2) = #13#10 then
+        i := 3
+      else
+        i := Pos(#13#10#13#10, FBuffer)+4;
+      if i <> 4 then
+        begin
+        // The full headers are in the buffer now.
+        Line:=GetLine(FBuffer);
+        While (Line<>'') do
+          begin
+          {$ifdef CGIDEBUG}SendDebug('Process data line: '+line);{$ENDIF}
+          S:=GetWord(Line);
+          While (S<>'') do
+            begin
+            ProcessHeader(lowercase(S),GetWord(Line));
+            S:=GetWord(Line);
+            end;
+          Line:=GetLine(FBuffer);
+          end;
+        FHeadersProcessed := True;
+
+        AddData(FBuffer[1], Length(FBuffer));
+        end;
+      end;
+    end
+  else
+    AddData(Buf, Size);
+
+  if State=cssEnd then
+    begin
+    if GetIsFile then
+      FreeAndNil(FStream);
+    end;
+end;
+
+destructor THTTPMimeItem.Destroy;
+begin
+  FStream.Free;
+  inherited Destroy;
 end;
 
 { ---------------------------------------------------------------------
   THTTPHeader
   ---------------------------------------------------------------------}
 
-function THttpHeader.GetFieldCount: Integer;
+function THTTPHeader.GetFieldCount: Integer;
+
 
 Var
-  I : Integer;
+  h : THeader;
 
 begin
   Result:=0;
-  For I:=1 to NoHTTPFields do
-    If (GetFieldValue(i)<>'') then
+  For H in THeader do
+    If HeaderIsSet(H) then
       Inc(Result);
+  Inc(Result,Ord(FVariables[hvXRequestedWith]<>''));
+  Inc(Result,Ord(FVariables[hvSetCookie]<>''));
+  Inc(Result,Ord(FVariables[hvCookie]<>''));
 end;
 
 function THTTPHeader.GetContentLength: Integer;
@@ -820,23 +1303,47 @@ begin
 end;
 
 
-Function THttpHeader.GetFieldIndex(AIndex : Integer) : Integer;
+function THTTPHeader.GetFieldOrigin(AIndex: Integer; out H: THeader;
+  Out V: THTTPVAriableType): Boolean;
 
-var
-  I : Integer;
-   
+
 begin
-  I:=1;
-  While (I<=NoHTTPFields) and (AIndex>=0) do
+  V:=hvUnknown;
+  H:=Succ(hhUnknown);
+  While (H<=High(THeader)) and (AIndex>=0) do
     begin
-    If (GetFieldValue(i)<>'') then
+    If (GetHeader(H)<>'') then
       Dec(AIndex);
-    Inc(I);
+    H:=Succ(H);
     end;
-  If (AIndex=-1) then
-    Result:=I-1
-  else
-    Result:=-1;  
+  Result:=(AIndex<0);
+  if Result then
+    begin
+    H:=Pred(H);
+    Exit;
+    end;
+  h:=hhUnknown;
+  if (AIndex>=0) then
+    begin
+    H:=hhUnknown;
+    V:=hvXRequestedWith;
+    if (FVariables[V]<>'') then
+      Dec(AIndex);
+    end;
+  if (AIndex>=0) then
+    begin
+    V:=hvSetCookie;
+    if (FVariables[V]<>'') then
+      Dec(AIndex);
+    end;
+  if (AIndex>=0) then
+    begin
+    V:=hvCookie;
+    if (FVariables[V]<>'') then
+      Dec(AIndex);
+    end;
+  Result:=(AIndex<0);
+  if not Result then V:=hvUnknown
 end;
 
 function THTTPHeader.GetServerPort: Word;
@@ -844,7 +1351,23 @@ begin
   Result:=StrToIntDef(GetFieldValue(30),0);
 end;
 
-Procedure THTTPHeader.SetServerPort(AValue : Word);
+procedure THTTPHeader.SetHTTPVariable(AIndex: Integer; AValue: String);
+begin
+  if (AIndex>=0) and (Aindex<=Ord(High(THTTPVariableType))) then
+    SetHTTPVariable(THTTPVariableType(AIndex),AValue);
+end;
+
+procedure THTTPHeader.SetHTTPVariable(AVariable: THTTPVariableType; AValue: String);
+begin
+//  Touch(GetEnumName(TypeInfo(THTTPVariableType),Ord(AVariable))+'='+AValue);
+  if FVariables[AVariable]=AValue then
+    exit;
+  FVariables[AVariable]:=AValue;
+  if (AVariable=hvCookie) and (AValue<>'') then
+    ParseCookies;
+end;
+
+procedure THTTPHeader.SetServerPort(AValue: Word);
 
 begin
   SetFieldValue(30,IntToStr(AValue));
@@ -853,46 +1376,257 @@ end;
 function THTTPHeader.GetSetFieldValue(Index: Integer): String;
 
 Var
-  I : Integer;
+  H : THeader;
+  V : THTTPVariableType;
 
 begin
-  I:=GetFieldIndex(Index);
-  If (I<>-1) then
-    Result:=GetFieldValue(I);
+  if GetFieldOrigin(Index,H,V) then
+    begin
+    if H<>hhUnknown then
+      Result:=GetHeader(H)
+    else if V<>hVUnknown then
+      Result:=GetHTTPVariable(V);
+    end;
+end;
+
+function THTTPHeader.GetHeaderValue(AIndex: Integer): String;
+begin
+  if (AIndex>=0) and (AIndex<=Ord(High(THeader))) then
+    Result:=GetHeader(THeader(AIndex))
+  else
+    Result:='';
+end;
+
+procedure THTTPHeader.SetHeaderValue(AIndex: Integer; AValue: String);
+begin
+  if (AIndex>=0) and (AIndex<=Ord(High(THeader))) then
+    SetHeader(THeader(AIndex),AValue);
+end;
+
+function THTTPHeader.GetHTTPVariable(AVariable: THTTPVariableType): String;
+
+begin
+  Result:=FVariables[AVariable];
+end;
+
+type
+  TParseState =
+    (psStart, psContentType, psSearchParam, psParam, psSearchParamEqual, psSearchParamValue, psParamValueQuoted, psParamValue);
+
+Class Function THTTPHeader.ParseContentType(const AContentType: String; Parameters: TStrings): String;
+var
+  len: Integer;
+  ind: Integer;
+  state: TParseState;
+  start: Integer;
+  paramname: string;
+  paramvalue: string;
+begin
+  // See rfc1341, Content-Type
+  Result := '';
+  len := Length(AContentType);
+  if len=0 then
+    Exit;
+
+  ind := 1;
+  state := psStart;
+  while ind <= len do
+    begin
+    case state of
+      psStart:
+        begin
+        if not (AContentType[ind] in [' ']) then
+          begin
+          state := psContentType;
+          start := ind;
+          end;
+        end;
+      psContentType:
+        begin
+        if (AContentType[ind] in [' ', ';']) then
+          begin
+            Result := Copy(AContentType, start, ind-start);
+          if not Assigned(Parameters) then
+            Exit;
+          state := psSearchParam;
+          end;
+        if (ind = len) then
+          begin
+          Result := Copy(AContentType, start, ind-start+1);
+          end;
+        end;
+      psSearchParam:
+        begin
+        if not (AContentType[ind] in [' ', ';']) then
+          begin
+          state := psParam;
+          start := ind;
+          end;
+        end;
+      psParam:
+        begin
+        if (AContentType[ind] in [' ', '=']) then
+          begin
+            paramname := Copy(AContentType, start, ind-start);
+          if AContentType[ind] = '=' then
+            state := psSearchParamValue
+          else
+            state := psSearchParamEqual
+          end;
+        end;
+      psSearchParamEqual:
+        begin
+        if (AContentType[ind] = '=') then
+          state := psSearchParamValue;
+        end;
+      psSearchParamValue:
+        begin
+        if (AContentType[ind] = '"') then
+          begin
+          state := psParamValueQuoted;
+          start := ind +1;
+          end
+        else if (AContentType[ind] <> ' ') then
+          begin
+          state := psParamValue;
+          start := ind;
+          end;
+        end;
+      psParamValue:
+        begin
+        if (AContentType[ind] in [' ', ';']) then
+          begin
+          paramvalue := Copy(AContentType, start, ind-start);
+          Parameters.Values[paramname] := paramvalue;
+
+          state := psSearchParam;
+          end
+        else if (ind = len) then
+          begin
+          paramvalue := Copy(AContentType, start, ind-start+1);
+          Parameters.Values[paramname] := paramvalue;
+          end
+        end;
+      psParamValueQuoted:
+        begin
+        if AContentType[ind] = '"' then
+          begin
+          paramvalue := Copy(AContentType, start, ind-start);
+          Parameters.Values[paramname] := paramvalue;
+
+          state := psSearchParam;
+          end
+        else if (ind = len) then
+          begin
+          paramvalue := Copy(AContentType, start, ind-start+1);
+          Parameters.Values[paramname] := paramvalue;
+          end
+        end;
+    end;
+
+    inc(ind);
+    end;
+end;
+
+function THTTPHeader.GetHTTPVariable(AIndex: Integer): String;
+begin
+  if (AIndex>=0) and (AIndex<=Ord(High(THTTPVariableType))) then
+    Result:=GetHTTPVariable(THTTPVariableType(AIndex))
+  else
+    Result:='';
+end;
+
+class function THTTPHeader.IndexToHTTPHeader(AIndex: Integer): THeader;
+
+Const
+  IDX : Array[THeader] of Integer =
+      (-1,
+       1,2,3,4,
+       -1,-1,-1,5,-1,
+       6,7,8,
+       9,-1,-1,-1,
+       10,12,-1,13,-1,
+       14,34,-1,15,26,
+       -1,-1,16,17,-1,
+       18,-1,-1,-1,19,
+       20,21,-1,-1,
+       -1,-1,23,-1,
+       -1,-1,24);
+
+begin
+  Result:=High(THeader);
+  While (Result>hhUnknown) and (IDX[Result]<>AIndex) do
+    Result:=Pred(Result);
+end;
+
+class function THTTPHeader.IndexToHTTPVariable(AIndex: Integer
+  ): THTTPVariableType;
+
+Const
+  IDX : Array[THTTPVariableType] of Integer =
+      (-1,
+       0,31,11,22,36,
+       25,26,27,28,29,
+       30,32,33,35);
+
+begin
+  Result:=High(THTTPVariableType);
+  While (Result>hvUnknown) and (IDX[Result]<>AIndex) do
+    Result:=Pred(Result);
 end;
 
 function THTTPHeader.GetSetField(AIndex: Integer): String;
-var
-  I : Integer;
+
+Var
+  H : THeader;
+  V : THTTPVariableType;
 
 begin
-  I:=GetFieldIndex(AIndex);
-  If (I<>-1) then
-    Result := HTTPFieldNames[I] + ': ' + GetFieldValue(I);
+  if GetFieldOrigin(AIndex,H,V) then
+    if H<>hhUnknown then
+      Result:=HTTPHeaderNames[H]+': '+GetHeader(H)
+    else if V<>hVUnknown then
+      Result:=GetVariableHeaderName(V)+': '+GetHTTPVariable(V);
+end;
+
+function THTTPHeader.GetCustomHeaders: TStringList;
+begin
+  If FCustomHeaders=Nil then
+    FCustomHeaders:=TStringList.Create;
+  Result:=FCustomHeaders;
 end;
 
 function THTTPHeader.GetSetFieldName(AIndex: Integer): String;
-var
-  I : Integer;
+
+Var
+  H : THeader;
+  V : THTTPVariableType;
 
 begin
-  I:=GetFieldIndex(AIndex);
-  if (I<>-1) then
-    Result:=HTTPFieldNames[I];
+  if GetFieldOrigin(AIndex,H,V) then
+    if H<>hhUnknown then
+      Result:=HTTPHeaderNames[H]
+    else
+      Result:=GetVariableHeaderName(V);
 end;
 
 
-Function THttpHeader.GetFieldValue(Index : Integer) : String;
+function THTTPHeader.GetFieldValue(Index: Integer): String;
+
+Var
+  H : THeader;
+  V : THTTPVariableType;
 
 begin
-  if (Index>=1) and (Index<=NoHTTPFields) then
-    Result:=FFields[Index]
+  Result:='';
+  H:=IndexToHTTPHeader(Index);
+  if (H<>hhUnknown) then
+    Result:=GetHeader(H)
   else
-    case Index of
-      0  : Result:=FHTTPVersion;
-      36 : Result:=FHTTPXRequestedWith;
-    else
-      Result := '';
+    begin
+    V:=IndexToHTTPVariable(Index);
+    if V<>hvUnknown then
+      Result:=GetHTTPVariable(V)
     end;
 end;
 
@@ -902,14 +1636,27 @@ begin
 end;
 
 
-Procedure THttpHeader.SetFieldValue(Index : Integer; Value : String);
+procedure THTTPHeader.SetFieldValue(Index: Integer; Value: String);
+
+
+Var
+  H : THeader;
+  V : THTTPVariableType;
 
 begin
-  if (Index>=1) and (Index<=NoHTTPFields) then
+  H:=IndexToHTTPHeader(Index);
+  if (H<>hhUnknown) then
+    SetHeader(H,Value)
+  else
+    begin
+    V:=IndexToHTTPVariable(Index);
+    if V<>hvUnknown then
+      SetHTTPVariable(V,Value)
+    end;
+(* if (Index>=1) and (Index<=NoHTTPFields) then
     begin
     FFields[Index]:=Value;
     If (Index=11) then
-      ParseCookies;
     end
   else
     case Index of
@@ -922,6 +1669,7 @@ begin
       30 : ; // Property ServerPort : Word Read GetServerPort; // Index 30 in TRequest
       36 : FHTTPXRequestedWith:=Value;
     end;
+*)
 end;
 
 procedure THTTPHeader.ParseFirstHeaderLine(const line: String);
@@ -937,6 +1685,7 @@ Var
   
 begin
 {$ifdef cgidebug}  SendMethodEnter('Parsecookies');{$endif}
+  FCookieFields.Clear;
   S:=Cookie;
   While (S<>'') do
     begin
@@ -952,7 +1701,7 @@ begin
 {$ifdef cgidebug}  SendMethodExit('Parsecookies done');{$endif}
 end;
 
-constructor THttpHeader.Create;
+constructor THTTPHeader.Create;
 begin
   FCookieFields:=TStringList.Create;
   FQueryFields:=TStringList.Create;
@@ -960,9 +1709,10 @@ begin
   FHttpVersion := '1.1';
 end;
 
-destructor THttpHeader.Destroy;
+destructor THTTPHeader.Destroy;
 
 begin
+  FreeAndNil(FCustomHeaders);
   FreeAndNil(FContentFields);
   FreeAndNil(FQueryFields);
   FreeAndNil(FCookieFields);
@@ -970,19 +1720,76 @@ begin
 end;
 
 
-function THttpHeader.GetFieldByName(const AName: String): String;
+function THTTPHeader.HeaderIsSet(AHeader: THeader): Boolean;
+begin
+  Result:=(FFields[AHeader]<>'');
+end;
+
+function THTTPHeader.GetHeader(AHeader: THeader): String;
+begin
+  Result:=FFields[AHeader];
+end;
+
+procedure THTTPHeader.SetHeader(AHeader: THeader; const AValue: String);
+begin
+//  Touch(GetEnumName(TypeInfo(THEader),ORd(AHeader))+'='+AValue);
+  FFields[AHeader]:=AValue;
+end;
+
+
+function THTTPHeader.GetFieldByName(const AName: String): String;
+
 var
-  i: Integer;
+  H : THeader;
 
 begin
-  I:=GetFieldNameIndex(AName);
-  If (I<>0) then
-    Result:=self.GetFieldValue(i)
+  H:=HeaderType(aName);
+    If (h<>hhUnknown) then
+    Result:=GetHeader(h)
+  else
+    Result:=GetCustomHeader(AName);
+end;
+
+class function THTTPHeader.GetVariableHeaderName(AVariable: THTTPVariableType
+  ): String;
+begin
+  Case AVariable of
+    hvSetCookie : Result:=HeaderSetCookie;
+    hvCookie : Result:=HeaderCookie;
+    hvXRequestedWith : Result:=HeaderXRequestedWith;
+  end;
+end;
+
+class function THTTPHeader.GetVariableHeaderType(Const aName: string): THTTPVariableType;
+
+begin
+  Case IndexText(aName,[FieldCookie,FieldSetCookie,FieldXRequestedWith]) of
+    0 : Result:=hvCookie;
+    1 : Result:=hvSetCookie;
+    2 : Result:=hvXRequestedWith;
+  else
+    Result:=hvUnknown;
+  end;
+end;
+
+function THTTPHeader.GetCustomHeader(const Name: String): String;
+begin
+  if Assigned(FCustomHeaders) then
+    Result:=CustomHeaders.Values[Name]
   else
     Result:='';
 end;
 
-Function THTTPHeader.LoadFromStream(Stream: TStream; IncludeCommand : Boolean) : Integer;
+procedure THTTPHeader.SetCustomHeader(const Name, Value: String);
+begin
+  if GetCustomHeader(Name) = '' then
+    CustomHeaders.Add(Name + '=' + Value)
+  else
+    CustomHeaders.Values[Name] := Value;
+end;
+
+function THTTPHeader.LoadFromStream(Stream: TStream; IncludeCommand: Boolean
+  ): integer;
 
 Var
   S : TStrings;
@@ -997,7 +1804,8 @@ begin
   end;
 end;
 
-Function THTTPHeader.LoadFromStrings(Strings: TStrings; IncludeCommand : Boolean) : integer;
+function THTTPHeader.LoadFromStrings(Strings: TStrings; IncludeCommand: Boolean
+  ): integer;
 
 Var
   P  : Integer;
@@ -1029,14 +1837,24 @@ begin
     end;
 end;
 
-procedure THttpHeader.SetFieldByName(const AName, AValue: String);
+procedure THTTPHeader.SetFieldByName(const AName, AValue: String);
+
 var
-  i: Integer;
+  H : THeader;
+  V : THTTPVariableType;
 
 begin
-  I:=GetFieldNameIndex(AName);
-  If (I<>0) then
-    SetFieldValue(i,AValue);
+  H:=HeaderType(aName);
+  If (h<>hhUnknown) then
+    SetHeader(H,aValue)
+  else
+    begin
+    V:=GetVariableHeaderType(aName);
+    if V<>hvUnknown then
+      SetHTTPVariable(V,aValue)
+    else
+      SetCustomHeader(AName,AValue);
+    end;
 end;
 
 { ---------------------------------------------------------------------
@@ -1051,10 +1869,9 @@ end;
 procedure TMimeItems.CreateUploadFiles(Files: TUploadedFiles; Vars : TStrings);
 
 Var
-  I,j : Integer;
+  I : Integer;
   P : TMimeItem;
-  LFN,Name,Value : String;
-  U : TUploadedFile;
+  Name,Value : String;
 
 begin
   For I:=Count-1 downto 0 do
@@ -1083,7 +1900,10 @@ begin
     else
       begin
       Value:=P.FileName;
-      P.CreateUploadedFile(Files);
+      if SupportsStreamingProcessing then
+        P.CreateUploadedFileStreaming(Files)
+      else
+        P.CreateUploadedFile(Files);
       end;
     Vars.Add(Name+'='+Value)
     end;
@@ -1132,7 +1952,6 @@ Var
   D,LFN : String;
 
 begin
-  Result:=Nil;
   D:=Data;
   J:=DataSize;
   if (J=0){zero lenght file} or
@@ -1142,8 +1961,15 @@ begin
     begin
     LFN:=Files.GetTempUploadFileName(Name,FileName,J);
     SaveToFile(LFN);
+    FLocalFilename := LFN;
     end;
-  if (LFN<>'') then
+  Result := CreateFile(Files);
+end;
+
+function TMimeItem.CreateFile(Files: TUploadedFiles): TUploadedFile;
+begin
+  Result:=Nil;
+  if (FLocalFileName<>'') then
    begin
    Result:=Files.Add as TUploadedFile;
    with Result do
@@ -1153,10 +1979,22 @@ begin
      ContentType:=Self.ContentType;
      Disposition:=Self.Disposition;
      Size:=Self.Datasize;
-     LocalFileName:=LFN;
+     LocalFileName:=self.FLocalFileName;
      Description:=Self.Description;
      end;
    end;
+end;
+
+function TMimeItem.CreateUploadedFileStreaming(Files: TUploadedFiles): TUploadedFile;
+begin
+  if FLocalFilename='' then
+    // Even though this class supports streaming procesing of data, does not
+    // mean it is being used that way. In those cases the non-streaming file-
+    // creation has to take place: (For example, CGI does not use the
+    // streaming capabilities (may 2021))
+    Result:=CreateUploadedFile(Files)
+  else
+    Result:=CreateFile(Files);
 end;
 
 
@@ -1178,6 +2016,8 @@ var
 
 begin
   {$ifdef CGIDEBUG}SendMethodEnter('TMimeItems.FormSplit');{$ENDIF}
+  FBoundary := boundary;
+
   Sep:='--'+boundary+#13+#10;
   Slen:=length(Sep);
   CLen:=Pos('--'+Boundary+'--',Cnt);
@@ -1220,6 +2060,21 @@ begin
     Result := Parts[Count - 1];
 end;
 
+class function TMimeItems.SupportsStreamingProcessing: Boolean;
+begin
+  Result := False;
+end;
+
+procedure TMimeItems.SetBoundary(AValue: string);
+begin
+  FBoundary := AValue;
+end;
+
+procedure TMimeItems.ProcessStreamingMultiPart(const State: TContentStreamingState; const Buf; const Size: Integer);
+begin
+  raise Exception.Create('Streaming processing of data not supported');
+end;
+
 { -------------------------------------------------------------------
   TRequest
   -------------------------------------------------------------------}
@@ -1231,6 +2086,7 @@ begin
   FFiles:=CreateUploadedFiles;
   FFiles.FRequest:=Self;
   FLocalPathPrefix:='-';
+  AllocateRequestID;
 end;
 
 function TRequest.CreateUploadedFiles: TUploadedFiles;
@@ -1263,11 +2119,14 @@ begin
   if (CI=Nil) then
     CI:=TMimeItem;
   Result:=CC.Create(CI);
+  Result.Files := Files;
 end;
 
 destructor TRequest.destroy;
 begin
+  FreeAndNil(FRouteParams);
   FreeAndNil(FFiles);
+  FreeAndNil(FMimeItems);
   inherited destroy;
 end;
 
@@ -1301,14 +2160,15 @@ begin
   FCommandLine := line;
   i := Pos(' ', line);
   FCommand := UpperCase(Copy(line, 1, i - 1));
-  FURI := Copy(line, i + 1, Length(line));
+  Method:=FCommand;
+  URI := Copy(line, i + 1, Length(line));
 
   // Extract HTTP version
   i := Pos(' ', URI);
   if i > 0 then
   begin
     FHttpVersion := Copy(URI, i + 1, Length(URI));
-    FURI := Copy(URI, 1, i - 1);
+    URI := Copy(URI, 1, i - 1);
     FHttpVersion := Copy(HttpVersion, Pos('/', HttpVersion) + 1, Length(HttpVersion));
   end;
 
@@ -1317,7 +2177,7 @@ begin
   if i > 0 then
   begin
     Query:= Copy(URI, i + 1, Length(URI));
-    FURI := Copy(URI, 1, i - 1);
+    URI := Copy(URI, 1, i - 1);
   end;
 end;
 
@@ -1340,46 +2200,40 @@ begin
   result := FLocalPathPrefix;
 end;
 
-function TRequest.GetFieldValue(AIndex: Integer): String;
-begin
-  Case AIndex of
-    25 : Result:=FPathInfo;
-    31 : Result:=FCommand;
-    32 : Result:=FURI;
-    34 : Result:=FHost;
-    36 : Result:=FRequestedWith;
-    35 : begin
-         If Not FContentRead and AllowReadContent then
-           begin
-           ReadContent;
-           FContentRead:=True; // in case InitContent was not called.
-           end;
-         Result:=FContent;
-         end
-  else
-    Result:=inherited GetFieldValue(AIndex);
-  end;
-end;
-
-procedure TRequest.SetFieldValue(Index: Integer; Value: String);
-begin
-  Case Index of
-    25 : FPathInfo:=Value;
-    30 : FServerPort:=Value;
-    31 : FCommand:=Value;
-    32 : FURI:=Value;
-    34 : FHost:=Value;
-    36 : FRequestedWith:=Value;
-  else
-    inherited SetFieldValue(Index, Value);
-  end
-end;
 
 function TRequest.GetFirstHeaderLine: String;
 begin
   Result := Command + ' ' + URI;
   if Length(HttpVersion) > 0 then
     Result := Result + ' HTTP/' + HttpVersion;
+end;
+
+function TRequest.GetRP(AParam : String): String;
+begin
+  if Assigned(FRouteParams) then
+    Result:=FRouteParams.Values[AParam]
+  else
+    Result:='';
+end;
+
+procedure TRequest.SetRP(AParam : String; AValue: String);
+begin
+  if (AValue<>GetRP(AParam)) And ((AValue<>'')<>Assigned(FRouteParams)) then
+    FRouteParams:=TStringList.Create;
+  if (AValue<>'') and Assigned(FRouteParams) then
+    FRouteParams.Values[AParam]:=AValue;
+end;
+
+procedure TRequest.AllocateRequestID;
+begin
+  if Assigned(IDAllocator) then
+    IDAllocator(FRequestID);
+  if FRequestID='' then
+{$IFDEF CPU64}
+    FRequestID:=IntToStr(InterlockedIncrement64(_RequestCount));
+{$ELSE}
+    FRequestID:=IntToStr(InterlockedIncrement(_RequestCount));
+{$ENDIF}
 end;
 
 function TRequest.AllowReadContent: Boolean;
@@ -1443,6 +2297,8 @@ var
     isSep : Boolean;
 
   begin
+    if aPos > aLenStr then Exit(false);
+    Result := true;    
     BoT:=aPos;
     EoT:=aPos;
     for i:=aPos to aLenStr do
@@ -1467,30 +2323,13 @@ var
         begin
         if i = aLenStr then
           begin
-          EoT  := i;
-          aPos := i;
+          EoT  := i+1;
+          aPos := i+1;
           Break;
           end;
         end;
       end;
-    if aPos < aLenStr then
-      begin
-      aToken := Copy(aString, BoT, EoT - BoT);
-      Result := true;
-      end
-    else
-      begin
-      if aPos = aLenStr then
-        begin
-        aToken := Copy(aString, BoT, EoT - BoT + 1);
-        Result := true;
-        aPos   := aPos + 1;
-        end
-      else
-        begin
-        Result := false;
-       end;
-    end;
+    aToken := Copy(aString, BoT, EoT - BoT);
   end;
 
 
@@ -1511,7 +2350,7 @@ end;
 function TRequest.RequestUploadDir: String;
 
 begin
-  Result:='';
+  Result:=DefaultRequestUploadDir;
 end;
 
 function TRequest.GetTempUploadFileName(const AName, AFileName: String;
@@ -1532,27 +2371,50 @@ begin
   FFiles.DeleteTempUploadedFiles;
 end;
 
-procedure TRequest.InitRequestVars;
+procedure TRequest.InitHeaderRequestVars;
 
 var
   R : String;
 
 begin
 {$ifdef CGIDEBUG}
-  SendMethodEnter('TRequest.InitRequestVars');
+  SendMethodEnter('TRequest.InitHeaderRequestVars');
 {$endif}
   R:=Method;
   if (R='') then
     Raise EHTTP.CreateHelp(SErrNoRequestMethod,400);
   // Always process QUERYSTRING.
   InitGetVars;
+{$ifdef CGIDEBUG}
+  SendMethodExit('TRequest.InitHeaderRequestVars');
+{$endif}
+end;
+
+procedure TRequest.InitContentRequestVars;
+
+var
+  R : String;
+
+begin
+{$ifdef CGIDEBUG}
+  SendMethodEnter('TRequest.InitContentRequestVars');
+{$endif}
+  R:=Method;
   // POST and PUT, force post var treatment.
   // To catch other methods we do not treat specially, we'll do the same if contentlength>0
   if (CompareText(R,'POST')=0) or (CompareText(R,'PUT')=0) or (ContentLength>0) then
     InitPostVars;
 {$ifdef CGIDEBUG}
-  SendMethodExit('TRequest.InitRequestVars');
+  SendMethodExit('TRequest.InitContentRequestVars');
 {$endif}
+end;
+
+
+procedure TRequest.InitRequestVars;
+
+begin
+  InitHeaderRequestVars;
+  InitContentRequestVars;
 end;
 
 Type
@@ -1573,25 +2435,23 @@ begin
   SendMethodEnter('InitPostVars');
 {$endif}
   CL:=ContentLength;
-  if CL<>0 then
+  if (CL<>0) and (Length(Content)>0) then
     begin
     M:=TCapacityStream.Create;
     Try
-      if CL<>0 then
-        begin
-        M.Capacity:=Cl;
-        M.WriteBuffer(Content[1], Cl);
-        end;
+      M.Capacity:=Cl;
+      M.WriteBuffer(Content[1], Cl);
       M.Position:=0;
       CT:=ContentType;
-      if Pos('MULTIPART/FORM-DATA',Uppercase(CT))<>0 then
-        ProcessMultiPart(M,CT, ContentFields)
-      else if Pos('APPLICATION/X-WWW-FORM-URLENCODED',Uppercase(CT))<>0 then
-        ProcessUrlEncoded(M, ContentFields)
+      FStreamingContentType := DerriveStreamingContentType;
+      case FStreamingContentType of
+        sctMultipart:       ProcessMultiPart(M, CT, ContentFields);
+        sctFormUrlEncoded:  ProcessUrlEncoded(M, ContentFields);
       else
         HandleUnknownEncoding(CT,M)
+      end;
     finally
-     M.Free;
+      M.Free;
     end;
     end;
 {$ifdef CGIDEBUG}
@@ -1615,9 +2475,9 @@ begin
 {$endif}
 end;
 
-procedure TRequest.InitContent(var AContent: String);
+procedure TRequest.InitContent(const AContent: String);
 begin
-  FContent:=AContent;
+  FVariables[hvContent]:=AContent;
   FContentRead:=True;
 end;
 
@@ -1628,18 +2488,19 @@ procedure TRequest.ProcessMultiPart(Stream: TStream; const Boundary: String;
 Var
   L : TMimeItems;
   B : String;
-  I,J : Integer;
-  S,FF,key, Value : String;
-  FI : TMimeItem;
-  F : TStream;
+  S : String;
+  ST: TStringList;
 
 begin
 {$ifdef CGIDEBUG} SendMethodEnter('ProcessMultiPart');{$endif CGIDEBUG}
-  i:=Pos('=',Boundary);
-  B:=Copy(Boundary,I+1,Length(Boundary)-I);
-  I:=Length(B);
-  If (I>0) and (B[1]='"') then
-    B:=Copy(B,2,I-2);
+  ST := TStringList.Create;
+  try
+    ParseContentType(Boundary, ST);
+    B := ST.Values['boundary'];
+  finally
+    ST.Free;
+  end;
+
   L:=CreateMimeItems;
   Try
     if Stream is TStringStream then
@@ -1671,12 +2532,147 @@ var
   S : String;
 
 begin
+  S:='';
 {$ifdef CGIDEBUG} SendMethodEnter('ProcessURLEncoded');{$endif CGIDEBUG}
   SetLength(S,Stream.Size); // Skip added Null.
   Stream.ReadBuffer(S[1],Stream.Size);
 {$ifdef CGIDEBUG}SendDebugFmt('Query string : %s',[s]);{$endif CGIDEBUG}
   ProcessQueryString(S,SL);
 {$ifdef CGIDEBUG} SendMethodEnter('ProcessURLEncoded');{$endif CGIDEBUG}
+end;
+
+procedure TRequest.ProcessStreamingContent(const State: TContentStreamingState; const Buf; const Size: Integer);
+begin
+  if state = cssStart then
+    FStreamingContentType := DerriveStreamingContentType;
+  case FStreamingContentType of
+    sctMultipart:       ProcessStreamingMultiPart(State, Buf, Size);
+    sctFormUrlEncoded:  ProcessStreamingUrlEncoded(State, Buf, Size);
+  else
+    HandleStreamingUnknownEncoding(State, Buf, Size)
+  end;
+  HandleStreamEncoding(State, Buf, Size);
+end;
+
+function TRequest.DerriveStreamingContentType(): TStreamingContentType;
+var
+  CT: string;
+begin
+  CT:=Uppercase(ParseContentType(ContentType, nil));
+  if CT='MULTIPART/FORM-DATA' then
+    Result := sctMultipart
+  else if CT='APPLICATION/X-WWW-FORM-URLENCODED' then
+    Result := sctFormUrlEncoded
+  else
+    Result := sctUnknown
+end;
+
+procedure TRequest.ProcessStreamingMultiPart(const State: TContentStreamingState; const Buf; const Size: Integer);
+Var
+  ST: TStrings;
+  S: String;
+begin
+{$ifdef CGIDEBUG} SendMethodEnter('ProcessStreamingMultiPart');{$endif CGIDEBUG}
+  if State=cssStart then
+    begin
+    ST := TStringList.Create;
+    try
+      ParseContentType(ContentType, ST);
+      FMimeItems := CreateMimeItems;
+      FMimeItems.Boundary := ST.Values['boundary'];
+    finally
+      ST.Free;
+    end;
+    end;
+
+  if FKeepFullContents or not FMimeItems.SupportsStreamingProcessing then
+    ProcessStreamingSetContent(State, Buf, Size);
+
+  if FMimeItems.SupportsStreamingProcessing then
+    FMimeItems.ProcessStreamingMultiPart(State, Buf, Size);
+
+  if State=cssEnd then
+    begin
+    FMimeItems.CreateUploadFiles(Files, ContentFields);
+    if not FMimeItems.SupportsStreamingProcessing then
+      begin
+      S := Content;
+      FMimeItems.FormSplit(S, FMimeItems.Boundary);
+      FMimeItems.CreateUploadFiles(Files, ContentFields);
+      end
+    else if not FKeepFullContents then
+      Content := FMimeItems.Preamble;
+    FreeAndNil(FMimeItems);
+    FContentRead := True;
+    end;
+end;
+
+procedure TRequest.ProcessStreamingURLEncoded(const State: TContentStreamingState; const Buf; const Size: Integer);
+begin
+  // This implementation simply collects the contents, and then parses this
+  // content.
+  // ToDo: replace this with some code that really parses the content
+  // block-by-block.
+  ProcessStreamingSetContent(State, Buf, Size);
+  if state=cssEnd then
+    begin
+    ProcessQueryString(Content, ContentFields);
+    if not KeepFullContents then
+      Content := '';
+    end;
+end;
+
+procedure TRequest.HandleStreamingUnknownEncoding(const State: TContentStreamingState; const Buf; const Size: Integer);
+var
+  S: TStream;
+begin
+  ProcessStreamingSetContent(State, Buf, Size);
+  if Assigned(FOnUnknownEncoding) then
+    begin
+    if state=cssEnd then
+      begin
+      try
+        S := TStringStream.Create(Content);
+        FOnUnknownEncoding(Self,ContentType,nil);
+      finally
+        S.Free;
+      end;
+      end;
+    end;
+end;
+
+procedure TRequest.ProcessStreamingSetContent(const State: TContentStreamingState; const Buf; const Size: Integer);
+var
+  CL: LongInt;
+begin
+  {$ifdef CGIDEBUG} SendMethodEnter('ProcessStreamingSetContent');{$endif CGIDEBUG}
+  if State=cssStart then
+    begin
+    // First time this code is called. Search for a content-length
+    // header and use it as hint for the content-length.
+    if HeaderIsSet(hhContentLength) and TryStrToInt(GetHeader(hhContentLength), CL) and (CL>0) then
+      SetLength(FStreamingContent, CL);
+    end;
+
+  CL := FStreamingContentRead;
+  FStreamingContentRead := CL+Size;
+  if Length(FStreamingContent) < FStreamingContentRead then
+    SetLength(FStreamingContent, FStreamingContentRead);
+  if Size > 0 then
+    Move(Buf, FStreamingContent[CL+1], Size);
+
+  if State=cssEnd then
+    begin
+    SetLength(FStreamingContent, FStreamingContentRead);
+    Content := FStreamingContent;
+    FStreamingContent := '';
+    end;
+end;
+
+procedure TRequest.HandleStreamEncoding(const State: TContentStreamingState; const Buf; const Size: Integer);
+begin
+  if Assigned(FOnStreamEncodingEvent) then
+    FOnStreamEncodingEvent(Self, State, Buf, Size);
 end;
 
 { ---------------------------------------------------------------------
@@ -1766,9 +2762,6 @@ end;
 
 procedure TUploadedFile.DeleteTempUploadedFile;
 
-Var
-  s: String;
-
 begin
   if (FStream is TFileStream) then
     FreeStream;
@@ -1809,13 +2802,12 @@ constructor TResponse.Create(ARequest : TRequest);
 begin
   inherited Create;
   FRequest:=ARequest;
-  FCode := 200;
-  FCodeText := 'OK';
+  SetStatus(200);
   ContentType:='text/html';
   FContents:=TStringList.Create;
   TStringList(FContents).OnChange:=@ContentsChanged;
   FCookies:=TCookies.Create(TCookie);
-  FCustomHeaders:=TStringList.Create;
+  FCustomHeaders:=TStringList.Create; // Destroyed in parent
 end;
 
 destructor TResponse.destroy;
@@ -1824,7 +2816,6 @@ begin
     FreeAndNil(FContentStream);
   FreeAndNil(FCookies);
   FreeAndNil(FContents);
-  FreeAndNil(FCustomHeaders);
   inherited destroy;
 end;
 
@@ -1865,18 +2856,6 @@ begin
   SendContent;
 end;
 
-function TResponse.GetCustomHeader(const Name: String): String;
-begin
-  Result := FCustomHeaders.Values[Name];
-end;
-
-procedure TResponse.SetCustomHeader(const Name, Value: String);
-begin
-  if GetCustomHeader(Name) = '' then
-    FCustomHeaders.Add(Name + '=' + Value)
-  else
-    FCustomHeaders.Values[Name] := Value;
-end;
 
 procedure TResponse.SendRedirect(const TargetURL: String);
 begin
@@ -1891,6 +2870,14 @@ begin
     Code := 302;// HTTP/1.0 302 HTTP_MOVED_TEMPORARILY -> 'Found'
     CodeText := 'Moved Temporarily';
     end;
+end;
+
+procedure TResponse.SetStatus(aStatus: Cardinal; aSend: Boolean = False);
+begin
+  Code:=aStatus;
+  CodeText:=GetHTTPStatusText(aStatus);
+  if aSend then
+    SendContent;
 end;
 
 procedure TResponse.SetFirstHeaderLine(const line: String);
@@ -1917,14 +2904,18 @@ begin
   FContents.Assign(AValue);
 end;
 
-function TResponse.GetContent: String;
+function TResponse.GetContent: RawByteString;
 begin
   Result:=Contents.Text;
 end;
 
-procedure TResponse.SetContent(const AValue: String);
+procedure TResponse.SetContent(const AValue: RawByteString);
 begin
-  FContentStream:=Nil;
+  if Assigned(FContentStream) then
+    if FreeContentStream then
+      FreeAndNil(FContentStream)
+    else
+      FContentStream:=Nil;
   FContents.Text:=AValue;
 end;
 
@@ -1964,6 +2955,8 @@ procedure TResponse.CollectHeaders(Headers: TStrings);
 
 Var
   I : Integer;
+  H : THeader;
+  N,V : String;
 
 begin
   Headers.add(Format('Status: %d %s',[Code,CodeText]));
@@ -1975,11 +2968,17 @@ begin
     SendInteger('Nr of cookies',FCookies.Count);
 {$endif}
   For I:=0 to FCookies.Count-1 do
-    Headers.Add('Set-Cookie: '+FCookies[i].AsString);
-  For I:=0 to FieldCount-1 do
-    Headers.Add(Fields[i]);
-  For I:=0 to FCustomHeaders.Count - 1 do if FCustomHeaders[I] <> '' then
-    Headers.Add(FCustomHeaders.Names[I] + ': ' + FCustomHeaders.ValueFromIndex[I]);
+    Headers.Add(HeaderSetCookie+': '+FCookies[i].AsString);
+  For H in THeader do
+    if (hdResponse in HTTPHeaderDirections[H]) and HeaderIsSet(H) then
+      Headers.Add(HTTPHeaderNames[H]+': '+GetHeader(H));
+  if Assigned(FCustomHeaders) then
+    For I:=0 to FCustomHeaders.Count - 1 do
+      begin
+      FCustomHeaders.GetNameValue(I,N,V);
+      if (V<>'') then
+        Headers.Add(N+': '+V);
+      end;
   Headers.Add('');
 {$ifdef cgidebug} SendMethodExit('Collectheaders');{$endif}
 end;
@@ -1996,6 +2995,10 @@ function TCookie.GetAsString: string;
   begin
     Result:=Result+';'+S;
   end;
+
+Const
+  SSameSiteValues : Array[TSameSite] of string
+                  = ('','None','Strict','Lax');
 
 Var
   Y,M,D : Word;
@@ -2018,6 +3021,8 @@ begin
       AddToResult(SCookieHttpOnly);
     if FSecure then
       AddToResult(SCookieSecure);
+    if FSameSite<>ssEmpty then
+      AddToResult(SCookieSameSite+'='+SSameSiteValues[FSameSite]);
   except
 {$ifdef cgidebug}
     On E : Exception do
@@ -2107,6 +3112,36 @@ end;
   TCustomSession
   ---------------------------------------------------------------------}
 
+procedure TCustomSession.SetSessionState(aValue: TSessionStates);
+
+begin
+  if FStates=aValue then exit;
+  If Assigned(OnSessionStateChange) then
+    OnSessionStateChange(Self);
+  FStates:=AValue;
+end;
+
+procedure TCustomSession.AddToSessionState(aValue: TSessionState);
+
+Var
+  S: TSessionStates;
+
+begin
+  S:=SessionState;
+  Include(S,AValue);
+  SetSessionState(S);
+end;
+
+procedure TCustomSession.RemoveFromSessionState(aValue: TSessionState);
+Var
+  S: TSessionStates;
+
+begin
+  S:=SessionState;
+  Exclude(S,AValue);
+  SetSessionState(S);
+end;
+
 procedure TCustomSession.SetSessionCookie(const AValue: String);
 begin
   FSessionCookie:=AValue;
@@ -2132,6 +3167,7 @@ constructor TCustomSession.Create(AOwner: TComponent);
 begin
   FTimeOut:=DefaultTimeOut;
   inherited Create(AOwner);
+  FStates:=[];
 end;
 
 procedure TCustomSession.InitResponse(AResponse: TResponse);
@@ -2146,5 +3182,5 @@ begin
 end;
 
 initialization
-  MimeItemClass:=THTTPMimeItem;
+  MimeItemClass:=THTTPStreamingMimeItem;
 end.

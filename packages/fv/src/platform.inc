@@ -59,6 +59,7 @@
 {  1.33    16 Oct 00  LdB    WIN32/WIN16 defines added     }
 {  1.34    02 May 02  MvdV   FreeBSD, NetBSD, OS_UNIX      }
 {  1.35    28 Nov 10  PM     64 bit OS Linux, Win64, FreeBSD }
+{  1.36    22 Mar 15  PM     64 bit OS DragonFly           }
 {**********************************************************}
 
 { ****************************************************************************
@@ -95,6 +96,9 @@
  FREEBSD  OS_FREEBSD  FPC      PPC_FPC      PROC_Protected  BIT_64  ASM_FPC
           OS_UNIX
 
+ DRAGONFLY OS_DRAGONFLYBSD FPC PPC_FPC      PROC_Protected  BIT_64  ASM_FPC
+          OS_UNIX
+
  OPENBSD  OS_OPENBSD  FPC      PPC_FPC      PROC_Protected  BIT_32  ASM_FPC
           OS_UNIX
 
@@ -104,6 +108,7 @@
  WINDOWS  OS_WINDOWS  BP/TP7   PPC_BP       PROC_Protected  BIT_16  ASM_BP
                       DELPHI   PPC_DELPHI   PROC_Protected  BIT_16  ASM_BP
                       DELPHI2  PPC_DELPHI2  PROC_Protected  BIT_16  ASM_BP
+          OS_WIN16    FPC      PPC_FPC      PROC_Protected  BIT_16  ASM_FPC
 
  WIN95/NT OS_WINDOWS  DELPHI2  PPC_DELPHI2  PROC_Protected  BIT_32  ASM_BP
                       DELPHI3  PPC_DELPHI3  PROC_Protected  BIT_32  ASM_BP
@@ -134,6 +139,7 @@ FOR FPC THESE ARE THE TRANSLATIONS
 
  DOS      OS_DOS,OS_GO32       FPC     32-bit         AT&T         CPU86
 
+ WIN16    OS_WIN16             FPC     16-bit           Intel        CPU86
  WIN32    OS_WINDOWS           FPC     32-bit           AT&T         ----
 
  LINUX    OS_LINUX,OS_UNIX     FPC     32-bit           AT&T         ----
@@ -148,6 +154,8 @@ FOR FPC THESE ARE THE TRANSLATIONS
  MACOS    OS_MAC               FPC     ?????            Internal     CPU68
 
  AMIGA    OS_AMIGA             FPC     32-bit           Internal     CPU68
+
+ DRAGONFLY OS_DRAGONFLYBSD,OS_UNIX   FPC 32-bit         AT&T         ----
 
  ****************************************************************************}
 
@@ -171,13 +179,15 @@ FOR FPC THESE ARE THE TRANSLATIONS
 
   {$UNDEF PROC_Real}
   {$DEFINE PROC_Protected}
-  {$UNDEF BIT_16}
-  {$IFDEF CPU64}
-    {$UNDEF BIT_32}
-    {$DEFINE BIT_64}
-  {$ELSE}
-    {$DEFINE BIT_32}
-    {$UNDEF BIT_64}
+  {$IFNDEF CPU16}
+    {$UNDEF BIT_16}
+    {$IFDEF CPU64}
+      {$UNDEF BIT_32}
+      {$DEFINE BIT_64}
+    {$ELSE}
+      {$DEFINE BIT_32}
+      {$UNDEF BIT_64}
+    {$ENDIF}
   {$ENDIF}
   {$UNDEF PPC_BP}
   {$DEFINE PPC_FPC}
@@ -200,6 +210,12 @@ FOR FPC THESE ARE THE TRANSLATIONS
 {$IFDEF FreeBSD}
   {$UNDEF OS_DOS}
   {$DEFINE OS_FREEBSD}
+  {$DEFINE OS_UNIX}
+{$ENDIF}
+
+{$IFDEF DRAGONFLY}
+  {$UNDEF OS_DOS}
+  {$DEFINE OS_DRAGONFLYBSD}
   {$DEFINE OS_UNIX}
 {$ENDIF}
 
@@ -263,6 +279,18 @@ FOR FPC THESE ARE THE TRANSLATIONS
 {$ENDIF}
 
 {---------------------------------------------------------------------------}
+{  FPC high level COMPILER needs nested procvars                                  }
+{---------------------------------------------------------------------------}
+
+{$IFDEF CPULLVM}
+  {$DEFINE TYPED_LOCAL_CALLBACKS}
+{$ENDIF}
+
+{$IFDEF TYPED_LOCAL_CALLBACKS}
+  {$MODESWITCH NESTEDPROCVARS}
+{$ENDIF}
+
+{---------------------------------------------------------------------------}
 {  32 BIT WINDOWS COMPILERS changes bit size - Updated 27Aug98 LdB          }
 {---------------------------------------------------------------------------}
 {$IFDEF WIN32}
@@ -294,6 +322,10 @@ FOR FPC THESE ARE THE TRANSLATIONS
   {$UNDEF PROC_Real}
   {$DEFINE PROC_Protected}
   {$IFDEF FPC}
+    {$IFDEF WIN16}
+      {$UNDEF OS_WINDOWS}
+      {$DEFINE OS_WIN16}
+    {$ENDIF}
     // {$DEFINE WIN32}
   {$ENDIF}
 {$ENDIF}
@@ -485,6 +517,34 @@ FOR FPC THESE ARE THE TRANSLATIONS
   {$DEFINE BIT_32_OR_MORE}
 {$ENDIF}
 
+{---------------------------------------------------------------------------}
+{  FPC memory models                                                        }
+{---------------------------------------------------------------------------}
 
+{$ifdef FPC}
+  {$ifdef CPUI8086}
+    {$if defined(FPC_MM_TINY)}
+      {$define FPC_X86_CODE_NEAR}
+      {$define FPC_X86_DATA_NEAR}
+    {$elseif defined(FPC_MM_SMALL)}
+      {$define FPC_X86_CODE_NEAR}
+      {$define FPC_X86_DATA_NEAR}
+    {$elseif defined(FPC_MM_MEDIUM)}
+      {$define FPC_X86_CODE_FAR}
+      {$define FPC_X86_DATA_NEAR}
+    {$elseif defined(FPC_MM_COMPACT)}
+      {$define FPC_X86_CODE_NEAR}
+      {$define FPC_X86_DATA_FAR}
+    {$elseif defined(FPC_MM_LARGE)}
+      {$define FPC_X86_CODE_FAR}
+      {$define FPC_X86_DATA_FAR}
+    {$elseif defined(FPC_MM_HUGE)}
+      {$define FPC_X86_CODE_FAR}
+      {$define FPC_X86_DATA_HUGE}
+    {$else}
+      {$fatal No memory model defined}
+    {$endif}
+  {$endif}
+{$endif}
 
 

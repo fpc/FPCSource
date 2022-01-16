@@ -24,7 +24,7 @@ uses
   zbase, crc, zdeflate, zinflate;
 
 type gzFile = pointer;
-type z_off_t = longint;
+type z_off_t = int64;
 
 function gzopen  (path:string; mode:string) : gzFile;
 function gzread  (f:gzFile; buf:pointer; len:cardinal) : integer;
@@ -88,6 +88,7 @@ type gz_stream = record
   transparent : boolean;  { true if input file is not a .gz file }
   mode        : char;     { 'w' or 'r' }
   startpos    : longint;     { start of compressed data in file (header skipped) }
+  total_out : cardinal;  { Total read, over blocks }
 end;
 
 type gz_streamp = ^gz_stream;
@@ -136,6 +137,7 @@ var
   doseek,
   exists,
   writing : boolean;
+  old_file_mode: byte;
 begin
 
   if (path='') or (mode='') then begin
@@ -163,6 +165,7 @@ begin
   s^.crc := crc32(0, nil, 0);
   s^.msg := '';
   s^.transparent := false;
+  s^.total_out:=0;
 
   s^.path := path; { limit to 255 chars }
 
@@ -227,20 +230,22 @@ begin
     GetFAttr(s^.gzfile, Attr);
     exists:=(DosError= 0);
   {$endif}
-  
+
   doseek:=false;
   if ((s^.mode='a') and not exists) or (s^.mode='w') then
     begin
-   
-    ReWrite (s^.gzfile,1)  
+    ReWrite (s^.gzfile,1)
     end
   else
     begin
-      Reset (s^.gzfile,1);  
+      old_file_mode := FileMode;
+      FileMode := 0;
+      Reset (s^.gzfile,1);
+      FileMode := old_file_mode;
       if s^.mode='a' then
         doseek:=true;      // seek AFTER I/O check.
     end;
-    
+
   {$POP}
   if (IOResult <> 0) then begin
     destroy(s);
@@ -526,6 +531,7 @@ begin
   if Assigned (s^.outbuf) then
     FreeMem(s^.outbuf, Z_BUFSIZE);
   FreeMem(s, sizeof(gz_stream));
+  s := nil;
 
 end;
 
@@ -552,14 +558,14 @@ var
   filecrc   : cardinal; { CRC32 stored in GZIP'ed file }
   filelen   : cardinal; { Total lenght of uncompressed file }
   bytes     : integer;  { bytes actually read in I/O blockread }
-  total_in  : cardinal;
-  total_out : cardinal;
+  total_in  : Qword;
+  total_out : Qword;
 {$ifndef pointer_arith}
   next_out  : Pbyte;
 {$endif}
 
 begin
-
+  filelen := 0;
   s := gz_streamp(f);
   start := Pbyte(buf); { starting point for crc computation }
 
@@ -639,7 +645,7 @@ begin
       filecrc := getLong (s);
       filelen := getLong (s);
 
-      if (s^.crc <> filecrc) or (s^.stream.total_out <> filelen)
+      if (s^.crc <> filecrc) or (s^.stream.total_out-s^.total_out <> filelen)
         then s^.z_err := Z_DATA_ERROR
 	else begin
 	  { Check for concatenated .gz files: }
@@ -647,6 +653,7 @@ begin
 	  if (s^.z_err = Z_OK) then begin
             total_in := s^.stream.total_in;
             total_out := s^.stream.total_out;
+            s^.total_out:=total_out;
 
 	    inflateReset (s^.stream);
 	    s^.stream.total_in := total_in;
@@ -1058,9 +1065,9 @@ begin
       exit;
     end;
 
-    s^.stream.total_in := cardinal(offset);
-    s^.stream.total_out := cardinal(offset);
-    gzseek := z_off_t(offset);
+    s^.stream.total_in := offset;
+    s^.stream.total_out := offset;
+    gzseek := offset;
     exit;
   end;
 
@@ -1170,14 +1177,14 @@ begin
     gzclose := Z_STREAM_ERROR;
     exit;
 {$ELSE}
-    err := do_flush (f, Z_FINISH);
+  err := do_flush (f, Z_FINISH);
     if (err <> Z_OK) then begin
       gzclose := destroy (gz_streamp(f));
       exit;
     end;
 
     putLong (s^.gzfile, s^.crc);
-    putLong (s^.gzfile, s^.stream.total_in);
+    putLong (s^.gzfile, s^.stream.total_in and $FFFFFFFF);
 {$ENDIF}
   end;
 
@@ -1187,9 +1194,9 @@ end;
 
 { GZERROR ===================================================================
 
-  Returns the error message for the last error which occured on the
+  Returns the error message for the last error which occurred on the
    given compressed file. errnum is set to zlib error number. If an
-   error occured in the file system and not in the compression library,
+   error occurred in the file system and not in the compression library,
    errnum is set to Z_ERRNO and the application may consult errno
    to get the exact error code.
 

@@ -115,7 +115,7 @@ type
 //
 
 type
-  TSocket = Cardinal;
+  TSocket = UINT_PTR;
 
 //
 // Select uses arrays of SOCKETs.  These macros manipulate such

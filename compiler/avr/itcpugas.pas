@@ -35,14 +35,17 @@ interface
       processor manufacturer.
     }
     gas_op2str : op2strtable = ('',
-        'add','adc','adiw','sub','subi','sbc','sbci','sbrc','sbrs','clc','sec','sbiw','and','andi',
-        'or','ori','eor','com','neg','sbr','cbr','inc','dec','tst','clr',
-        'ser','mul','muls','fmul','fmuls','fmulsu','rjmp','ijmp',
+        'add','adc','adiw','sub','subi','sbc','sbci','sbrc','sbrs','sbiw','and','andi',
+        'or','ori','eor','com','neg','sbr','cbr','inc','dec','tst',
+        'mul','muls','mulsu','fmul','fmuls','fmulsu','rjmp','ijmp',
         'eijmp','jmp','rcall','icall','eicall','call','ret','reti','cpse',
         'cp','cpc','cpi','sbic','sbis','br','mov','movw','ldi','lds','ld','ldd',
         'sts','st','std','lpm','elpm','spm','in','out','push','pop',
         'lsl','lsr','rol','ror','asr','swap','bset','bclr','sbi','cbi',
-        'bst','bld','s','cli','brak','nop','sleep','wdr');
+        'sec','seh','sei','sen','ser','ses','set','sev','sez',
+        'clc','clh','cli','cln','clr','cls','clt','clv','clz',
+        'bst','bld','break','nop','sleep','wdr','xch',
+        'des');
 
     function gas_regnum_search(const s:string):Tregister;
     function gas_regname(r:Tregister):string;
@@ -51,39 +54,21 @@ interface
 implementation
 
     uses
-      cutils,verbose;
+      cutils,verbose,rgbase;
 
     const
-      gas_regname_table : array[tregisterindex] of string[7] = (
+      gas_regname_table : TRegNameTable = (
         {$i ravrstd.inc}
       );
 
-      gas_regname_index : array[tregisterindex] of tregisterindex = (
+      gas_regname_index : TRegisterIndexTable = (
         {$i ravrsri.inc}
       );
-
-    function findreg_by_gasname(const s:string):tregisterindex;
-      var
-        i,p : tregisterindex;
-      begin
-        {Binary search.}
-        p:=0;
-        i:=regnumber_count_bsstart;
-        repeat
-          if (p+i<=high(tregisterindex)) and (gas_regname_table[gas_regname_index[p+i]]<=s) then
-            p:=p+i;
-          i:=i shr 1;
-        until i=0;
-        if gas_regname_table[gas_regname_index[p]]=s then
-          findreg_by_gasname:=gas_regname_index[p]
-        else
-          findreg_by_gasname:=0;
-      end;
 
 
     function gas_regnum_search(const s:string):Tregister;
       begin
-        result:=regnumber_table[findreg_by_gasname(s)];
+        result:=regnumber_table[findreg_by_name_table(s,gas_regname_table,gas_regname_index)];
       end;
 
 

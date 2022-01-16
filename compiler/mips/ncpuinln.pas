@@ -102,7 +102,7 @@ begin
     s64real:
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_ABS_d, location.Register, left.location.Register));
     else
-      internalerror(200410031);
+      internalerror(2004100305);
   end;
 end;
 

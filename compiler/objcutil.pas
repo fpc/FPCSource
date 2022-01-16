@@ -45,17 +45,21 @@ interface
     { Exports all assembler symbols related to the obj-c class }
     procedure exportobjcclass(def: tobjectdef);
 
+    { loads a field of an Objective-C root class (such as ISA) }
+    function objcloadbasefield(n: tnode; const fieldname: string): tnode;
+
+
 implementation
 
     uses
       globtype,
-      cutils,cclasses,
+      cutils,
       pass_1,
       verbose,systems,
-      symtable,symconst,symsym,
+      symconst,symsym,
       objcdef,
       defutil,paramgr,
-      nbas,nmem,ncal,nld,ncon,ncnv,
+      nmem,ncal,nld,ncon,ncnv,
       export;
 
 
@@ -112,12 +116,23 @@ end;
       var
         vs         : tsym;
       begin
-        result:=cderefnode.create(ctypeconvnode.create_internal(n,objc_idtype));
         vs:=tsym(tabstractrecorddef(objc_objecttype).symtable.Find(fieldname));
         if not assigned(vs) or
            (vs.typ<>fieldvarsym) then
           internalerror(200911301);
-        result:=csubscriptnode.create(vs,result);
+        if fieldname='ISA' then
+          result:=ctypeconvnode.create_internal(
+            cderefnode.create(
+              ctypeconvnode.create_internal(n,
+                cpointerdef.getreusable(cpointerdef.getreusable(voidpointertype))
+              )
+            ),tfieldvarsym(vs).vardef
+          )
+        else
+          begin
+            result:=cderefnode.create(ctypeconvnode.create_internal(n,objc_idtype));
+            result:=csubscriptnode.create(vs,result);
+          end;
       end;
 
 
@@ -147,10 +162,7 @@ end;
 {$endif onlymacosx10_6 or arm aarch64}
                   result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(tclassrefdef(def).pointeddef).childof.childof));
                 tloadvmtaddrnode(result).forcall:=true;
-                if target_info.system<>system_aarch64_darwin then
-                  result:=objcloadbasefield(result,'ISA')
-                else
-                  result:=cloadvmtaddrnode.create(result);
+                result:=cloadvmtaddrnode.create(result);
                 typecheckpass(result);
                 { we're done }
                 exit;
@@ -275,7 +287,7 @@ end;
             { TODO: package visibility (private_extern) -- must not be exported
                either}
             if not(vf.visibility in [vis_private,vis_strictprivate]) then
-              exportname(prefix+vf.RealName,0);
+              exportname(prefix+vf.RealName,[]);
           end;
     end;
 
@@ -285,15 +297,15 @@ end;
         if (target_info.system in systems_objc_nfabi) then
           begin
             { export class and metaclass symbols }
-            exportname(def.rtti_mangledname(objcclassrtti),0);
-            exportname(def.rtti_mangledname(objcmetartti),0);
+            exportname(def.rtti_mangledname(objcclassrtti),[]);
+            exportname(def.rtti_mangledname(objcmetartti),[]);
             { export public/protected instance variable offset symbols }
             exportobjcclassfields(def);
           end
         else
           begin
              { export the class symbol }
-             exportname('.objc_class_name_'+def.objextname^,0);
+             exportname('.objc_class_name_'+def.objextname^,[]);
           end;
       end;
 

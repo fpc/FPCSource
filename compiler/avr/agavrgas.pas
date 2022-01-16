@@ -29,9 +29,9 @@ unit agavrgas;
   interface
 
     uses
-       globtype,
+       globtype,systems,
        aasmtai,aasmdata,
-       aggas,
+       assemble,aggas,
        cpubase;
 
     type
@@ -39,7 +39,7 @@ unit agavrgas;
       { TAVRGNUAssembler }
 
       TAVRGNUAssembler=class(TGNUassembler)
-        constructor create(smart: boolean); override;
+        constructor CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean); override;
        function MakeCmdLine: TCmdStr; override;
       end;
 
@@ -52,8 +52,6 @@ unit agavrgas;
 
     uses
        cutils,globals,verbose,
-       systems,
-       assemble,
        aasmbase,aasmcpu,
        itcpugas,
        cpuinfo,
@@ -63,9 +61,9 @@ unit agavrgas;
 {                         GNU Arm Assembler writer                           }
 {****************************************************************************}
 
-    constructor TAVRGNUAssembler.create(smart: boolean);
+    constructor TAVRGNUAssembler.CreateWithWriter(info: pasminfo; wr: TExternalAssemblerOutputFile; freewriter, smart: boolean);
       begin
-        inherited create(smart);
+        inherited;
         InstrWriter := TAVRInstrWriter.create(self);
       end;
 
@@ -76,6 +74,9 @@ unit agavrgas;
 
 
     Procedure TAVRInstrWriter.WriteInstruction(hp : tai);
+
+      var
+        op: TAsmOp;
 
       function getreferencestring(var ref : treference) : string;
         var
@@ -92,10 +93,10 @@ unit agavrgas;
               //   internalerror(200308293);
   {$endif extdebug}
               if index<>NR_NO then
-                internalerror(2011021701)
+                internalerror(2011021707)
               else if base<>NR_NO then
                 begin
-                  if addressmode=AM_PREDRECEMENT then
+                  if addressmode=AM_PREDECREMENT then
                     s:='-';
 
                   case base of
@@ -106,34 +107,45 @@ unit agavrgas;
                     NR_R30:
                       s:=s+'Z';
                     else
-                      s:=gas_regname(base);
+                      s:=s+gas_regname(base);
                   end;
                   if addressmode=AM_POSTINCREMENT then
-                    s:=s+'+';
-
-                  if offset>0 then
-                    s:=s+'+'+tostr(offset)
-                  else if offset<0 then
-                    s:=s+tostr(offset)
+                    s:=s+'+'
+                  else if addressmode = AM_UNCHANGED then
+                    begin
+                      if (offset>0) or ((offset=0) and (op in [A_LDD,A_STD])) then
+                        s:=s+'+'+tostr(offset)
+                      else if offset<0 then
+                        s:=s+tostr(offset);
+                    end;
                 end
               else if assigned(symbol) or (offset<>0) then
                 begin
                   if assigned(symbol) then
-                    s:=ReplaceForbiddenAsmSymbolChars(symbol.name);
+                    s:=ApplyAsmSymbolRestrictions(symbol.name);
 
-                  if offset<0 then
+                  if s='' then
+                    s:=tostr(offset)
+                  else if offset<0 then
                     s:=s+tostr(offset)
                   else if offset>0 then
                     s:=s+'+'+tostr(offset);
                   case refaddr of
                     addr_hi8:
                       s:='hi8('+s+')';
+                    addr_hi8_gs:
+                      s:='hi8(gs('+s+'))';
                     addr_lo8:
                       s:='lo8('+s+')';
+                    addr_lo8_gs:
+                      s:='lo8(gs('+s+'))';
                     else
                       s:='('+s+')';
                   end;
-                end;
+                end
+              { reference to address 0? }
+              else if not(assigned(symbol)) and (offset=0) then
+                s:='(0)';
             end;
           getreferencestring:=s;
         end;
@@ -142,8 +154,6 @@ unit agavrgas;
       function getopstr(const o:toper) : string;
         var
           hs : string;
-          first : boolean;
-          r : tsuperregister;
         begin
           case o.typ of
             top_reg:
@@ -153,11 +163,10 @@ unit agavrgas;
             top_ref:
               if o.ref^.refaddr=addr_full then
                 begin
-                  hs:=ReplaceForbiddenAsmSymbolChars(o.ref^.symbol.name);
+                  hs:=ApplyAsmSymbolRestrictions(o.ref^.symbol.name);
                   if o.ref^.offset>0 then
-                   hs:=hs+'+'+tostr(o.ref^.offset)
-                  else
-                   if o.ref^.offset<0 then
+                    hs:=hs+'+'+tostr(o.ref^.offset)
+                  else if o.ref^.offset<0 then
                     hs:=hs+tostr(o.ref^.offset);
                   getopstr:=hs;
                 end
@@ -168,10 +177,10 @@ unit agavrgas;
           end;
         end;
 
-    var op: TAsmOp;
-        s: string;
-        i: byte;
-        sep: string[3];
+    var
+      s: string;
+      i: byte;
+      sep: string[3];
     begin
       op:=taicpu(hp).opcode;
       s:=#9+gas_op2str[op]+cond2str[taicpu(hp).condition];
@@ -184,7 +193,7 @@ unit agavrgas;
               sep:=',';
             end;
         end;
-      owner.AsmWriteLn(s);
+      owner.writer.AsmWriteLn(s);
     end;
 
 
@@ -205,6 +214,7 @@ unit agavrgas;
             supported_targets : [system_avr_embedded];
             flags : [af_needar,af_smartlink_sections];
             labelprefix : '.L';
+            labelmaxlen : -1;
             comment : '# ';
             dollarsign: 's';
           );

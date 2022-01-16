@@ -5,7 +5,7 @@ unit FPHTTPStatus;
 interface
 
 uses
-  SysUtils, fphttpserver, HTTPDefs;
+  SysUtils, fphttpserver, httpprotocol, HTTPDefs;
 
 (* construct and return the default error message for a given
  * HTTP defined error code
@@ -171,13 +171,13 @@ begin
       HTTPEncode(ARequest.Connection.Server.AdminMail) +
       '">' +
       HTTPEncode(name) +
-      '</a> Port ' + ARequest.ServerPort +
+      '</a> Port ' + IntToStr(ARequest.ServerPort) +
       '</address>'
   else
     Result := prefix + '<address>' + ARequest.Connection.Server.ServerBanner +
       ' Server at ' +
       ARequest.Connection.Server.AdminMail +
-      ' Port ' + ARequest.ServerPort +
+      ' Port ' + IntToStr(ARequest.ServerPort) +
       '</address>';
 end;
 
@@ -186,8 +186,8 @@ var
   title: string;
   h1: string;
 begin
-  title := Format('%d %s', [status, GetStatusCode(status)]);
-  h1 := GetStatusCode(status);
+  h1 := GetHTTPStatusText(status);
+  title := Format('%d %s', [status, h1]);
 
   Result := '<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">' +
     '<html><head><title>' + title +

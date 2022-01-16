@@ -15,8 +15,8 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
  *
  * Authors:
  *      Mark McLoughlin <mark@skynet.ie>
@@ -48,6 +48,7 @@ var
   gtk_status_icon_set_screen : procedure(status_icon:PGtkStatusIcon; screen:PGdkScreen); cdecl;
   gtk_status_icon_get_screen : function(status_icon:PGtkStatusIcon):PGdkScreen; cdecl;
   gtk_status_icon_set_tooltip : procedure(status_icon:PGtkStatusIcon; tooltip_text:Pgchar); cdecl;
+  gtk_status_icon_set_tooltip_text : procedure(status_icon:PGtkStatusIcon; text:Pgchar); cdecl;
   gtk_status_icon_set_visible : procedure(status_icon:PGtkStatusIcon; visible:gboolean); cdecl;
   gtk_status_icon_get_visible : function(status_icon:PGtkStatusIcon):gboolean; cdecl;
   gtk_status_icon_set_blinking : procedure(status_icon:PGtkStatusIcon; blinking:gboolean); cdecl;

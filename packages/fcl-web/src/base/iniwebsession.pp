@@ -46,6 +46,7 @@ Type
   Public
     Destructor Destroy; override;
     Procedure Terminate; override;
+    function SessionVariableExists(VarName: String): Boolean; override;
     Procedure UpdateResponse(AResponse : TResponse); override;
     Procedure InitSession(ARequest : TRequest; OnNewSession, OnExpired: TNotifyEvent); override;
     Procedure InitResponse(AResponse : TResponse); override;
@@ -340,7 +341,7 @@ end;
 
 destructor TIniWebSession.Destroy;
 begin
-  // In case an exception occured and UpdateResponse is not called,
+  // In case an exception occurred and UpdateResponse is not called,
   // write the updates to disk and free FIniFile
   FreeIniFile;
   inherited Destroy;
@@ -354,6 +355,15 @@ begin
     DeleteFile(Finifile.FileName);
     FreeAndNil(FIniFile);
     end;
+  RemoveFromSessionState(ssActive);
+  RemoveFromSessionState(ssNew);
+  RemoveFromSessionState(ssExpired);
+end;
+
+function TIniWebSession.SessionVariableExists(VarName: String): Boolean;
+begin
+  CheckSession;
+  Result:=FIniFile.ValueExists(SData,VarName);
 end;
 
 procedure TIniWebSession.UpdateResponse(AResponse: TResponse);
@@ -376,7 +386,7 @@ begin
   SID := '';
   FSessionStarted := False;
   FTerminated := False;
-  // If a exception occured during a prior request FIniFile is still not freed
+  // If a exception occurred during a prior request FIniFile is still not freed
   if assigned(FIniFile) then FreeIniFile;
   If (SessionCookie='') then
     SessionCookie:=SFPWebSession;
@@ -389,6 +399,7 @@ begin
     FIniFile:=CreateIniFile(FN);
     if SF.SessionExpired(FIniFile) then
       begin
+      AddToSessionState(ssExpired);
       // Expire session.
       If Assigned(OnExpired) then
         OnExpired(Self);
@@ -401,8 +412,7 @@ begin
     end;
   If (S='') then
     begin
-    If Assigned(OnNewSession) then
-      OnNewSession(Self);
+    AddToSessionState(ssNew);
     GetSessionID;
     S:=IncludeTrailingPathDelimiter(SessionDir)+SF.SessionFilePrefix+SessionID;
 {$ifdef cgidebug}SendDebug('Expired or new session. Creating new Ini file : '+S);{$endif}
@@ -410,10 +420,13 @@ begin
     FIniFile.WriteDateTime(SSession,KeyStart,Now);
     FIniFile.WriteInteger(SSession,KeyTimeOut,Self.TimeOutMinutes);
     FSessionStarted:=True;
+    If Assigned(OnNewSession) then
+      OnNewSession(Self);
     end;
   FIniFile.WriteDateTime(SSession,KeyLast,Now);
   If not FCached then
     UpdateIniFile;
+  AddToSessionState(ssActive);
 {$ifdef cgidebug}SendMethodExit('TIniWebSession.InitSession');{$endif}
 end;
 
@@ -442,6 +455,7 @@ begin
     C.Path:=SessionCookiePath;
     end;
 {$ifdef cgidebug}SendMethodExit('TIniWebSession.InitResponse');{$endif}
+  AddToSessionState(ssResponseInitialized);
 end;
 
 procedure TIniWebSession.RemoveVariable(VariableName: String);

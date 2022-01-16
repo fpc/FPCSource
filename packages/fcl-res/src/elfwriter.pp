@@ -155,7 +155,7 @@ type
 
 type
   TElfRelocInfo = record
-    RelocType : byte;
+    RelocType : longword;
     SectionType : integer;
   end;
 (*
@@ -552,11 +552,14 @@ begin
     emtppc64le: begin fMachineTypeInt:=EM_PPC64; fBits:=ELFCLASS64;fOrder:=ELFDATA2LSB; end;
     emtarm    : begin fMachineTypeInt:=EM_ARM; fBits:=ELFCLASS32; fOrder:=ELFDATA2LSB; end;
     emtarmeb  : begin fMachineTypeInt:=EM_ARM; fBits:=ELFCLASS32; fOrder:=ELFDATA2MSB; end;
+    emtaarch64: begin fMachineTypeInt:=EM_AARCH64; fBits:=ELFCLASS64; fOrder:=ELFDATA2LSB; end;
     emtalpha  : begin fMachineTypeInt:=EM_ALPHA; fBits:=ELFCLASS64; fOrder:=ELFDATA2LSB; end;
     emtia64   : begin fMachineTypeInt:=EM_IA_64; fBits:=ELFCLASS64; fOrder:=ELFDATA2LSB; end;
     emtx86_64 : begin fMachineTypeInt:=EM_X86_64; fBits:=ELFCLASS64; fOrder:=ELFDATA2LSB; end;
     emtmips   : begin fMachineTypeInt:=EM_MIPS; fBits:=ELFCLASS32; fOrder:=ELFDATA2MSB; end;
-    emtmipsel : begin fMachineTypeInt:=EM_MIPS; fBits:=ELFCLASS32; fOrder:=ELFDATA2LSB; end
+    emtmipsel : begin fMachineTypeInt:=EM_MIPS; fBits:=ELFCLASS32; fOrder:=ELFDATA2LSB; end;
+    emtriscv32: begin fMachineTypeInt:=EM_RISCV; fBits:=ELFCLASS32; fOrder:=ELFDATA2LSB; end;
+    emtriscv64: begin fMachineTypeInt:=EM_RISCV; fBits:=ELFCLASS64; fOrder:=ELFDATA2LSB; end
     else
       raise EElfResourceWriterUnknownMachineException.Create('');
   end;
