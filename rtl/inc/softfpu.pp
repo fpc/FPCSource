@@ -71,6 +71,11 @@ these four paragraphs for those parts of this code that are retained.
 
 { $define FPC_SOFTFLOAT_FLOATX80}
 { $define FPC_SOFTFLOAT_FLOAT128}
+{ $define FPC_SOFTFLOAT_FLOATX80_FUNCS}
+
+{$ifdef FPC_SOFTFLOAT_FLOATX80_TRIG}
+{$define FPC_SOFTFLOAT_FLOAT128}
+{$endif FPC_SOFTFLOAT_FLOATX80_TRIG}
 
 { the softfpu unit can be also embedded directly into the system unit }
 
@@ -112,7 +117,9 @@ TYPE
   bits16 = word;
   sbits16 = smallint;
   sbits32 = longint;
+  Bit32s = sbits32;
   bits32 = longword;
+  Bit32u = bits32;
 {$ifndef fpc}
   qword = int64;
 {$endif}
@@ -120,7 +127,9 @@ TYPE
   uint64 = qword;
   }
   bits64 = qword;
+  Bit64u = bits64;
   sbits64 = int64;
+  Bit64s = sbits64;
 
 {$ifdef ENDIAN_LITTLE}
 {$ifndef FPC_SYSTEM_HAS_float64}
@@ -180,6 +189,9 @@ TYPE
       2: (high : qword;low : qword);
   end;
 {$endif}
+
+pfloat128 = ^float128;
+pfloatx80 = ^floatx80;
 
 {$define FPC_SYSTEM_HAS_float64}
 
@@ -6724,6 +6736,13 @@ const
     floatx80_default_nan_high = $FFFF;
     floatx80_default_nan_low  = bits64( $C000000000000000 );
 
+    FLOATX80_EXP_BIAS = $3FFF;
+
+    floatx80_default_nan : floatx80 = 
+      (low:  floatx80_default_nan_low;
+       high: floatx80_default_nan_high);
+
+
 {*----------------------------------------------------------------------------
 | Returns 1 if the extended double-precision floating-point value `a' is a
 | signaling NaN; otherwise returns 0.
@@ -6739,6 +6758,18 @@ begin
        and ( bits64( aLow shl 1 ) <> 0 )
        and ( a.low = aLow ) );
 end;
+
+
+{----------------------------------------------------------------------------
+| Returns 1 if the extended double-precision floating-point value `a' is an
+| unsupported; otherwise returns 0.
+*----------------------------------------------------------------------------}
+
+function floatx80_is_unsupported(a: floatx80): Integer;
+begin
+    Result := ord(((a.high and $7FFF)<>0) and not((a.low and QWord($8000000000000000))<>0));
+end;
+
 
 {*----------------------------------------------------------------------------
 | Returns the result of converting the extended double-precision floating-
@@ -9375,6 +9406,13 @@ begin
 end;
 
 {$endif FPC_SOFTFLOAT_FLOAT128}
+
+
+{$ifdef FPC_SOFTFLOAT_FLOATX80_FUNCS}
+
+{$I f80sincos.inc}
+
+{$endif FPC_SOFTFLOAT_FLOATX80_FUNCS}
 
 {$endif not(defined(fpc_softfpu_interface))}
 
