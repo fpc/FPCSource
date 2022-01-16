@@ -1483,7 +1483,7 @@ end;
        base : byte;
        negative : boolean;
 
-  const maxlongword=longword($ffffffff);
+  const UpperLimit=High(longword);
 
   begin
     fpc_val_longword_shortstr:=0;
@@ -1498,22 +1498,20 @@ end;
       end;
     while Code<=Length(s) do
      begin
-       case s[Code] of
-         '0'..'9' : u:=Ord(S[Code])-Ord('0');
-         'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
-         'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+       u:=16;
+       case s[code] of
+         '0'..'f' : u:=ValValueArray[S[Code]];
          #0 : break;
        else
-        u:=16;
+         ;
        end;
-       prev := fpc_val_longword_shortstr;
        If (u>=base) or
-         ((LongWord(maxlongword-u) div LongWord(base))<prev) then
-         Begin
-           fpc_val_longword_shortstr := 0;
-           Exit
-         End;
-       fpc_val_longword_shortstr:=fpc_val_longword_shortstr*LongWord(base) + u;
+          (ValUInt(UpperLimit-u) div ValUInt(Base)<fpc_val_longword_shortstr) then
+        begin
+          fpc_val_longword_shortstr:=0;
+          exit;
+        end;
+       fpc_val_longword_shortstr:=fpc_val_longword_shortstr*ValUInt(base) + u;
        inc(code);
      end;
     code := 0;
@@ -1582,7 +1580,7 @@ end;
        base : byte;
        negative : boolean;
 
-  const maxlongword=longword($ffffffff);
+  const UpperLimit=High(Word);  //this preserves 3.2 (and earlier) behaviour
 
   begin
     fpc_val_word_shortstr:=0;
@@ -1600,22 +1598,20 @@ end;
       end;
     while Code<=Length(s) do
      begin
-       case s[Code] of
-         '0'..'9' : u:=Ord(S[Code])-Ord('0');
-         'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
-         'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+       u:=16;
+       case s[code] of
+         '0'..'f' : u:=ValValueArray[S[Code]];
          #0 : break;
        else
-        u:=16;
+         ;
        end;
-       prev := fpc_val_word_shortstr;
        If (u>=base) or
-         ((LongWord(maxlongword-u) div LongWord(base))<prev) then
-         Begin
-           fpc_val_word_shortstr := 0;
-           Exit
-         End;
-       fpc_val_word_shortstr:=fpc_val_word_shortstr*LongWord(base) + u;
+          (ValUInt(UpperLimit-u) div ValUInt(Base)<fpc_val_word_shortstr) then
+        begin
+          fpc_val_word_shortstr:=0;
+          exit;
+        end;
+       fpc_val_word_shortstr:=fpc_val_word_shortstr*ValUInt(base) + u;
        inc(code);
      end;
     code := 0;
