@@ -1290,6 +1290,7 @@ begin
      else
        ;
      end;
+
      If (u>=base) or
         (ValUInt(UpperLimit-u) div ValUInt(Base)<fpc_val_uint_shortstr) then
       begin
@@ -1347,24 +1348,24 @@ end;
 
     while Code<=Length(s) do
      begin
-       case s[Code] of
-         '0'..'9' : u:=Ord(S[Code])-Ord('0');
-         'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
-         'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+       u:=16;
+       case s[code] of
+         '0'..'f' : u:=ValValueArray[S[Code]];
          #0 : break;
        else
-        u:=16;
+         ;
        end;
+
        Prev:=Temp;
        Temp:=Temp*qword(base);
-     If (u >= base) or
-        (qword(maxnewvalue-u) < temp) or
-        (prev > maxprevvalue) or
-        ((base<>10) and (negative) and ((Temp+u)>minint64_unsigned)) Then
-       Begin
-         fpc_val_int64_shortstr := 0;
-         Exit
-       End;
+       If (u >= base) or
+         (qword(maxnewvalue-u) < temp) or
+         (prev > maxprevvalue) or
+         ((base<>10) and (negative) and ((Temp+u)>minint64_unsigned)) Then
+         Begin
+           fpc_val_int64_shortstr := 0;
+           Exit
+         End;
        Temp:=Temp+u;
        inc(code);
      end;
@@ -1405,6 +1406,7 @@ end;
        else
          ;
        end;
+
        If (u>=base) or
          ((QWord(maxqword-u) div QWord(base))<fpc_val_qword_shortstr) then
          Begin
@@ -1450,23 +1452,23 @@ end;
 
     while Code<=Length(s) do
      begin
-       case s[Code] of
-         '0'..'9' : u:=Ord(S[Code])-Ord('0');
-         'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
-         'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+       u:=16;
+       case s[code] of
+         '0'..'f' : u:=ValValueArray[S[Code]];
          #0 : break;
        else
-        u:=16;
+         ;
        end;
+
        Prev:=Temp;
        Temp:=Temp*longword(base);
-     If (u >= base) or
-        (longword(maxnewvalue-u) < temp) or
-        (prev > maxprevvalue) Then
-       Begin
-         fpc_val_longint_shortstr := 0;
-         Exit
-       End;
+       If (u >= base) or
+         (longword(maxnewvalue-u) < temp) or
+         (prev > maxprevvalue) Then
+         Begin
+           fpc_val_longint_shortstr := 0;
+           Exit;
+         End;
        Temp:=Temp+u;
        inc(code);
      end;
@@ -1505,6 +1507,7 @@ end;
        else
          ;
        end;
+
        If (u>=base) or
           (ValUInt(UpperLimit-u) div ValUInt(Base)<fpc_val_longword_shortstr) then
         begin
@@ -1547,23 +1550,23 @@ end;
 
     while Code<=Length(s) do
      begin
-       case s[Code] of
-         '0'..'9' : u:=Ord(S[Code])-Ord('0');
-         'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
-         'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+       u:=16;
+       case s[code] of
+         '0'..'f' : u:=ValValueArray[S[Code]];
          #0 : break;
        else
-        u:=16;
+         ;
        end;
+
        Prev:=Temp;
        Temp:=Temp*longword(base);
-     If (u >= base) or
-        (longword(maxnewvalue-u) < temp) or
-        (prev > maxprevvalue) Then
-       Begin
-         fpc_val_smallint_shortstr := 0;
-         Exit
-       End;
+       If (u >= base) or
+         (longword(maxnewvalue-u) < temp) or
+         (prev > maxprevvalue) Then
+         Begin
+           fpc_val_smallint_shortstr := 0;
+           Exit
+         End;
        Temp:=Temp+u;
        inc(code);
      end;
@@ -1605,6 +1608,7 @@ end;
        else
          ;
        end;
+
        If (u>=base) or
           (ValUInt(UpperLimit-u) div ValUInt(Base)<fpc_val_word_shortstr) then
         begin
@@ -1915,5 +1919,3 @@ begin
     ShortCompareText := L1 - L2;
 end;
 {$endif FPC_HAS_COMPARETEXT_SHORTSTR}
-
-
