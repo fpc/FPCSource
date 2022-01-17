@@ -342,13 +342,7 @@ implementation
         if find_implemented_interface(current_objectdef,intfdef)<>nil then
           Message1(sym_e_duplicate_id,intfdef.objname^)
         else
-          begin
-            { allocate and prepare the GUID only if the class
-              implements some interfaces. }
-            if current_objectdef.ImplementedInterfaces.count = 0 then
-              current_objectdef.prepareguid;
-            current_objectdef.ImplementedInterfaces.Add(TImplementedInterface.Create(intfdef));
-          end;
+          current_objectdef.register_implemented_interface(intfdef,true);
       end;
 
 
@@ -382,9 +376,7 @@ implementation
         if find_implemented_interface(current_objectdef,intfdef)<>nil then
           Message1(sym_e_duplicate_id,intfdef.objname^)
         else
-          begin
-            current_objectdef.ImplementedInterfaces.Add(TImplementedInterface.Create(intfdef));
-          end;
+          current_objectdef.register_implemented_interface(intfdef,false);
       end;
 
 

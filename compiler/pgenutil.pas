@@ -2303,8 +2303,7 @@ uses
                       internalerror(2012101101);
                   basedef:=cobjectdef.create(tobjectdef(basedef).objecttype,defname,tobjectdef(basedef),false);
                   for i:=0 to constraintdata.interfaces.count-1 do
-                    tobjectdef(basedef).implementedinterfaces.add(
-                      timplementedinterface.create(tobjectdef(constraintdata.interfaces[i])));
+                    tobjectdef(basedef).register_implemented_interface(tobjectdef(constraintdata.interfaces[i]),false);
                 end
               else
                 if constraintdata.interfaces.count=1 then

@@ -170,7 +170,7 @@ implementation
         include(enumclass.objectoptions,oo_is_enum_class);
         include(enumclass.objectoptions,oo_is_sealed);
         { implement FpcEnumValueObtainable interface }
-        enumclass.ImplementedInterfaces.add(TImplementedInterface.Create(tobjectdef(search_system_type('FPCENUMVALUEOBTAINABLE').typedef)));
+        enumclass.register_implemented_interface(tobjectdef(search_system_type('FPCENUMVALUEOBTAINABLE').typedef),false);
         { create an alias for this type inside itself: this way we can choose a
           name that can be used in generated Pascal code without risking an
           identifier conflict (since it is local to this class; the global name

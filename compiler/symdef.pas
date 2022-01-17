@@ -535,6 +535,7 @@ interface
           procedure set_parent(c : tobjectdef);
           function find_destructor: tprocdef;
           function implements_any_interfaces: boolean;
+          function register_implemented_interface(intfdef:tobjectdef;useguid:boolean):timplementedinterface;
           { dispinterface support }
           function get_next_dispid: longint;
           { enumerator support }
@@ -8114,6 +8115,17 @@ implementation
         result := (ImplementedInterfaces.Count > 0) or
           (assigned(childof) and childof.implements_any_interfaces);
       end;
+
+
+    function tobjectdef.register_implemented_interface(intfdef:tobjectdef;useguid:boolean):timplementedinterface;
+      begin
+        { allocate the GUID only if the class implements at least one interface }
+        if useguid then
+          prepareguid;
+        result:=timplementedinterface.create(intfdef);
+        ImplementedInterfaces.Add(result);
+      end;
+
 
     function tobjectdef.size : asizeint;
       begin
