@@ -4200,6 +4200,13 @@ implementation
          if assigned(call_vmt_node) then
            typecheckpass(call_vmt_node);
 
+         if assigned(current_procinfo) and
+             (procdefinition.typ=procdef) and
+             (procdefinition.parast.symtablelevel<=current_procinfo.procdef.parast.symtablelevel) and
+             (procdefinition.parast.symtablelevel>normal_function_level) and
+             (current_procinfo.procdef.parast.symtablelevel>normal_function_level) then
+           current_procinfo.add_captured_sym(tprocdef(procdefinition).procsym,fileinfo);
+
          finally
            aktcallnode:=oldcallnode;
          end;
