@@ -680,7 +680,7 @@ uses
         for i:=0 to unnamed_syms.count-1 do
           begin
             sym:=tsym(unnamed_syms[i]);
-            sym.ChangeOwnerAndName(owner.symlist,sym.realname);
+            sym.ChangeOwnerAndName(owner,sym.realname);
           end;
         unnamed_syms.clear;
       end;
