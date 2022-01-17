@@ -510,8 +510,8 @@ implementation
 
     procedure tdef.ChangeOwner(st:TSymtable);
       begin
-//        if assigned(Owner) then
-//          Owner.DefList.List[i]:=nil;
+        if assigned(Owner) and owner.deflist.OwnsObjects then
+          Owner.DefList.extract(self);
         Owner:=st;
         Owner.DefList.Add(self);
       end;
@@ -680,6 +680,8 @@ implementation
 
     procedure tsym.ChangeOwner(st:TSymtable);
       begin
+        if assigned(owner) and owner.SymList.OwnsObjects then
+          owner.symlist.extract(self);
         Owner:=st;
         inherited ChangeOwner(Owner.SymList);
       end;
