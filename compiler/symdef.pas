@@ -6689,7 +6689,7 @@ implementation
               potype_destructor:
                 s:=s+'destructor ';
               else
-                if (pno_proctypeoption in pno) then
+                if (pno_proctypeoption in pno) and not (po_anonymous in procoptions) then
                   begin
                    if assigned(returndef) and
                      not(is_void(returndef)) then
@@ -6708,6 +6708,15 @@ implementation
                   internalerror(2016060305);
                 rn:=syssym.realname;
               end
+            else if po_anonymous in procoptions then
+              begin
+                s:=s+'anonymous ';
+                if assigned(returndef) and
+                  not(is_void(returndef)) then
+                  s:=s+'function'
+                else
+                  s:=s+'procedure';
+              end
             else
               rn:=procsym.realname;
             if (pno_noleadingdollar in pno) and
@@ -6722,10 +6731,11 @@ implementation
            assigned(returndef) and
            not(is_void(returndef)) then
           s:=s+':'+returndef.GetTypeName;
-        if assigned(owner) and (owner.symtabletype=localsymtable) then
-          s:=s+' is nested'
-        else if po_is_block in procoptions then
-          s:=s+' is block';
+        if not (po_anonymous in procoptions) then
+          if assigned(owner) and (owner.symtabletype=localsymtable) then
+            s:=s+' is nested'
+          else if po_is_block in procoptions then
+            s:=s+' is block';
         s:=s+';';
         if po_far in procoptions then
           s:=s+' far;';
