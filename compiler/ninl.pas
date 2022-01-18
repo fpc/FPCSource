@@ -3201,7 +3201,7 @@ implementation
                   if is_shortstring(left.resultdef) then
                     resultdef:=u8inttype
                   else
-                    resultdef:=ossinttype;
+                    resultdef:=sizesinttype;
                 end;
 
               in_typeinfo_x:
