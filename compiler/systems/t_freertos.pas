@@ -1176,6 +1176,7 @@ begin
   S:=FindUtil(utilsprefix+'objdump');
   if (current_settings.controllertype = ct_esp32) then
     begin
+      out_ld_filename:=outputexedir+'/esp32_out.ld';
       project_ld_filename:=outputexedir+'/esp32.project.ld';
       cmdstr:={$ifndef UNIX}'$IDF_PATH/tools/ldgen/ldgen.py '+{$endif UNIX}
               '--config $OUTPUT/sdkconfig '+
@@ -1193,6 +1194,7 @@ begin
     end
   else
     begin
+      out_ld_filename:=outputexedir+'/esp8266_out.ld';
       project_ld_filename:=outputexedir+'/esp8266.project.ld';
       cmdstr:={$ifndef UNIX}'$IDF_PATH/tools/ldgen/ldgen.py '+{$endif UNIX}
               '--config $OUTPUT/sdkconfig '+
