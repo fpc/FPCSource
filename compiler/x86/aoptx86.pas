@@ -2092,7 +2092,38 @@ unit aoptx86;
                         RemoveInstruction(hp2);
                         result:=true;
                       end;
-                  end;
+                  end
+                else if (hp1.typ = ait_instruction) and
+                  (((taicpu(p).opcode=A_VMOVAPD) and
+                    (taicpu(hp1).opcode=A_VCOMISD)) or
+                   ((taicpu(p).opcode=A_VMOVAPS) and
+                    ((taicpu(hp1).opcode=A_VCOMISS))
+                   )
+                  ) and not(OpsEqual(taicpu(hp1).oper[1]^,taicpu(hp1).oper[0]^)) then
+                  { change
+                             movapX    reg,reg2
+                             addsX/subsX/... reg3, reg2
+                             movapX    reg2,reg
+                    to
+                             addsX/subsX/... reg3,reg
+                  }
+                  begin
+                    TransferUsedRegs(TmpUsedRegs);
+                    UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+                    If not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,TmpUsedRegs)) then
+                      begin
+                        DebugMsg(SPeepholeOptimization + 'MovapXComisX2ComisX2 ('+
+                              debug_op2str(taicpu(p).opcode)+' '+
+                              debug_op2str(taicpu(hp1).opcode)+') done',p);
+                        if OpsEqual(taicpu(p).oper[1]^,taicpu(hp1).oper[0]^) then
+                          taicpu(hp1).loadoper(0, taicpu(p).oper[1]^);
+                        if OpsEqual(taicpu(p).oper[1]^,taicpu(hp1).oper[1]^) then
+                          taicpu(hp1).loadoper(1, taicpu(p).oper[1]^);
+                        RemoveCurrentP(p, nil);
+                        result:=true;
+                        exit;
+                      end;
+                  end
               end;
           end;
       end;
