@@ -12,8 +12,8 @@ uses
   Pas2JSCompilerCfg, ssockets;
 
 Const
+  HTTPCompilerVersion = '1.0';
   nErrTooManyThreads = -1;
-
   nExitCodeSocketError = 1;
 
 Type
@@ -52,7 +52,6 @@ Type
   Public
      Property Compiles[AIndex : Integer] : TCompileItem Read GetC; default;
   end;
-
 
   { TCompileThread }
 
@@ -277,6 +276,7 @@ begin
   {AllowWriteln}
   if (Msg<>'') then
     Writeln('Error: ',Msg);
+  Writeln('Version ',HTTPCompilerVersion);
   Writeln('Usage ',ExtractFileName(ParamStr(0)),' [options] ');
   Writeln('Where options is one or more of : ');
   Writeln('-A --api=location,secret Enable location management API.');
@@ -768,9 +768,15 @@ Var
   S : String;
 
 begin
-  S:=Checkoptions('shqd:ni:p:wP::cm:A:I:',['help','quiet','noindexpage','directory:','port:','indexpage:','watch','project::','config:','simpleserver','mimetypes:','api:','interface:']);
+  S:=Checkoptions('shqVd:ni:p:wP::cm:A:I:',['help','quiet','version','noindexpage','directory:','port:','indexpage:','watch','project::','config:','simpleserver','mimetypes:','api:','interface:']);
   if (S<>'') or HasOption('h','help') then
-    usage(S);
+    Usage(S);
+  if HasOption('V','version') then
+    begin
+    writeln(HTTPCompilerVersion);
+    Terminate;
+    exit;
+    end;
   if HasOption('c','config') then
     ConfigFile:=GetOptionValue('c','config')
   else
