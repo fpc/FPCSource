@@ -160,6 +160,10 @@ const
   { prefix for names of class helper procsyms added to regular symtables }
   class_helper_prefix = 'CH$';
 
+  { name of the Invoke method of a function reference interface }
+  method_name_funcref_invoke_decl = 'Invoke';
+  method_name_funcref_invoke_find = 'INVOKE';
+
   { tsym.symid value in case the sym has not yet been registered }
   symid_not_registered = -2;
   { tsym.symid value in case the sym has been registered, but not put in a
