@@ -394,10 +394,14 @@ interface
     { returns the TTypeKind value of the def }
     function get_typekind(def: tdef): byte;
 
+    { returns the Invoke procdef of a function reference interface }
+    function get_invoke_procdef(def:tobjectdef):tprocdef;
+
 implementation
 
     uses
        verbose,cutils,
+       symsym,
        cpuinfo;
 
     { returns true, if def uses FPU }
@@ -2015,5 +2019,28 @@ implementation
             result:=tkUnknown;
         end;
       end;
+
+
+    function get_invoke_procdef(def:tobjectdef):tprocdef;
+      var
+        sym : tsym;
+      begin
+        repeat
+          if not is_invokable(def) then
+            internalerror(2022011701);
+          sym:=tsym(def.symtable.find(method_name_funcref_invoke_find));
+          if assigned(sym) and (sym.typ<>procsym) then
+            sym:=nil;
+          def:=def.childof;
+        until assigned(sym) or not assigned(def);
+        if not assigned(sym) then
+          internalerror(2021041001);
+        if sym.typ<>procsym then
+          internalerror(2021041002);
+        if tprocsym(sym).procdeflist.count=0 then
+          internalerror(2021041003);
+        result:=tprocdef(tprocsym(sym).procdeflist[0]);
+      end;
+
 
 end.
