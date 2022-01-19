@@ -1509,12 +1509,12 @@ end;
        end;
 
        If (u>=base) or
-          (ValUInt(UpperLimit-u) div ValUInt(Base)<fpc_val_longword_shortstr) then
+          (LongWord(UpperLimit-u) div LongWord(Base)<fpc_val_longword_shortstr) then
         begin
           fpc_val_longword_shortstr:=0;
           exit;
         end;
-       fpc_val_longword_shortstr:=fpc_val_longword_shortstr*ValUInt(base) + u;
+       fpc_val_longword_shortstr:=fpc_val_longword_shortstr*base + u;
        inc(code);
      end;
     code := 0;
@@ -1607,12 +1607,12 @@ end;
        end;
 
        If (u>=base) or
-          (ValUInt(UpperLimit-u) div ValUInt(Base)<fpc_val_word_shortstr) then
+          (Word(UpperLimit-u) div Word(Base)<fpc_val_word_shortstr) then
         begin
           fpc_val_word_shortstr:=0;
           exit;
         end;
-       fpc_val_word_shortstr:=fpc_val_word_shortstr*ValUInt(base) + u;
+       fpc_val_word_shortstr:=fpc_val_word_shortstr*base + u;
        inc(code);
      end;
     code := 0;
