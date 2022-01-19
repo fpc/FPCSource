@@ -180,6 +180,8 @@ else
 ARCH=$(CPU_TARGET)
 endif
 endif
+ifeq ($(FULL_TARGET),aarch64-embedded)
+endif
 ifeq ($(FULL_TARGET),arm-embedded)
 ifeq ($(SUBARCH),)
 $(error When compiling for arm-embedded, a sub-architecture (e.g. SUBARCH=armv4t or SUBARCH=armv7m) must be defined)
