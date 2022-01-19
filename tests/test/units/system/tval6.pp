@@ -2,9 +2,6 @@
 {$h+}
 {$R+}
 
-uses
-  sysutils;
-
 var
   ErrCount: Integer;
   Err, Res: ValSInt;
@@ -32,7 +29,11 @@ begin
     2: begin Val(S, I16, Err); I64:=I16; end;
     4: begin Val(S, I32, Err); I64:=I32; end;
     8: begin Val(S, I64, Err); end;
-    otherwise raise exception.createfmt('Invalid value for DestSize: %d',[DestSize]);
+    otherwise 
+      begin
+        writeln('Invalid value for DestSize: ',DestSize);
+        halt(1);
+      end;
   end;
 
 
@@ -40,11 +41,11 @@ begin
   if (B <> Expected) then
   begin
     Inc(ErrCount);
-    write(format('FAIL: S="%s", Got: %s, Expected: %s, Err: %d',[S,BoolStr[B],BoolStr[Expected],Err]));
+    write('FAIL: S="',S,'", Got: ',B,', Expected: ',Expected,', Err: ',Err);
     if B then
-      writeln(format(', Converted to: %d',[I32]))
+      writeln(', Converted to: ',I32)
     else
-      writeln(format(' ,ExpValue was: %d',[ExpValue]));
+      writeln(',ExpValue was: ',ExpValue);
     {$ifdef cpu64}
     //writeln;
     {$endif}
@@ -53,7 +54,7 @@ begin
   if B and (I64 <> ExpValue) then
   begin
     Inc(ErrCount);
-    writeln(format('FAIL: S="%s", Got value: %d, ExpValue: %d.',[S,I64,ExpValue]));
+    writeln('FAIL: S="',S,'", Got value: ',I64,', ExpValue: ',ExpValue,'.');
     exit;
   end;
   {$ifdef cpu64}
@@ -155,6 +156,14 @@ begin
   {$endif}
   {$ifdef CPU32}
   writeln('32-bit test');
+  writeln;
+  {$endif}
+  {$ifdef CPU16}
+  writeln('16-bit test');
+  writeln;
+  {$endif}
+  {$ifdef CPU8}
+  writeln('8-bit test');
   writeln;
   {$endif}
 
