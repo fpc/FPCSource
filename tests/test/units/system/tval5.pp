@@ -1,8 +1,5 @@
 {$mode objfpc}
 
-uses
-  sysutils;
-
 procedure testcard;
 const
   h = 1;
