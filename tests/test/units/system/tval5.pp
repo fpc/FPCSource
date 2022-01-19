@@ -10,9 +10,6 @@ var
   s: shortstring;
   b, b2: byte;
   ch, ch2: char;
-{$ifdef cpu64}
-  caught: boolean;
-{$endif cpu64}
 begin
   s:='$0fffffff';
   for b := low(hexch) to high(hexch) do
