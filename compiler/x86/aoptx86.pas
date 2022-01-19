@@ -8431,7 +8431,7 @@ unit aoptx86;
         MinSize, MaxSize, TryShiftDown, TargetSize: TOpSize;
         TargetSubReg: TSubRegister;
         hp1, hp2: tai;
-        RegInUse, RegChanged, p_removed: Boolean;
+        RegInUse, RegChanged, p_removed, hp1_removed: Boolean;
 
         { Store list of found instructions so we don't have to call
           GetNextInstructionUsingReg multiple times }
@@ -8480,7 +8480,7 @@ unit aoptx86;
               end;
           end;
 
-        function AdjustInitialLoad: Boolean;
+        function AdjustInitialLoadAndSize: Boolean;
           begin
             Result := False;
 
@@ -8535,45 +8535,95 @@ unit aoptx86;
                       else
                         ;
                     end;
+                  end
+                else if not hp1_removed and not RegInUse then
+                  begin
+                    { If we have something like:
+                        movzbl (oper),%regd
+                        add    x,     %regd
+                        movzbl %regb, %regd
+
+                      We can reduce the register size to the input of the final
+                      movzbl instruction.  Overflows won't have any effect.
+                    }
+                    if (taicpu(p).opsize in [S_BW, S_BL]) and
+                      (taicpu(hp1).opsize in [S_BW, S_BL{$ifdef x86_64}, S_BQ{$endif x86_64}]) then
+                      begin
+                        TargetSize := S_B;
+                        setsubreg(ThisReg, R_SUBL);
+                        Result := True;
+                      end
+                    else if (taicpu(p).opsize = S_WL) and
+                      (taicpu(hp1).opsize in [S_WL{$ifdef x86_64}, S_BQ{$endif x86_64}]) then
+                      begin
+                        TargetSize := S_W;
+                        setsubreg(ThisReg, R_SUBW);
+                        Result := True;
+                      end;
+
+                    if Result then
+                      begin
+                        { Convert the input MOVZX to a MOV }
+                        if (taicpu(p).oper[0]^.typ = top_reg) and
+                          SuperRegistersEqual(taicpu(p).oper[0]^.reg, ThisReg) then
+                          begin
+                            { Or remove it completely! }
+                            DebugMsg(SPeepholeOptimization + 'Movzx2Nop 1a', p);
+                            RemoveCurrentP(p);
+                            p_removed := True;
+                          end
+                        else
+                          begin
+                            DebugMsg(SPeepholeOptimization + 'Movzx2Mov 1a', p);
+                            taicpu(p).opcode := A_MOV;
+                            taicpu(p).oper[1]^.reg := ThisReg;
+                            taicpu(p).opsize := TargetSize;
+                          end;
+                      end;
                   end;
               end;
           end;
 
         procedure AdjustFinalLoad;
           begin
-            if ((TargetSize = S_L) and (taicpu(hp1).opsize in [S_L, S_BL, S_WL])) or
-              ((TargetSize = S_W) and (taicpu(hp1).opsize in [S_W, S_BW])) then
+            if not LowerUnsignedOverflow then
               begin
-                { Convert the output MOVZX to a MOV }
-                if SuperRegistersEqual(taicpu(hp1).oper[1]^.reg, ThisReg) then
+                if ((TargetSize = S_L) and (taicpu(hp1).opsize in [S_L, S_BL, S_WL])) or
+                  ((TargetSize = S_W) and (taicpu(hp1).opsize in [S_W, S_BW])) then
                   begin
-                    { Or remove it completely! }
-                    DebugMsg(SPeepholeOptimization + 'Movzx2Nop 2', hp1);
-
-                    { Be careful; if p = hp1 and p was also removed, p
-                      will become a dangling pointer }
-                    if p = hp1 then
+                    { Convert the output MOVZX to a MOV }
+                    if SuperRegistersEqual(taicpu(hp1).oper[1]^.reg, ThisReg) then
                       begin
-                        RemoveCurrentp(p); { p = hp1 and will then become the next instruction }
-                        p_removed := True;
+                        { Or remove it completely! }
+                        DebugMsg(SPeepholeOptimization + 'Movzx2Nop 2', hp1);
+
+                        { Be careful; if p = hp1 and p was also removed, p
+                          will become a dangling pointer }
+                        if p = hp1 then
+                          begin
+                            RemoveCurrentp(p); { p = hp1 and will then become the next instruction }
+                            p_removed := True;
+                          end
+                        else
+                          RemoveInstruction(hp1);
+
+                        hp1_removed := True;
                       end
                     else
-                      RemoveInstruction(hp1);
+                      begin
+                        DebugMsg(SPeepholeOptimization + 'Movzx2Mov 2', hp1);
+                        taicpu(hp1).opcode := A_MOV;
+                        taicpu(hp1).oper[0]^.reg := ThisReg;
+                        taicpu(hp1).opsize := TargetSize;
+                      end;
                   end
-                else
+                else if (TargetSize = S_B) and (MaxSize = S_W) and (taicpu(hp1).opsize = S_WL) then
                   begin
-                    DebugMsg(SPeepholeOptimization + 'Movzx2Mov 2', hp1);
-                    taicpu(hp1).opcode := A_MOV;
+                    { Need to change the size of the output }
+                    DebugMsg(SPeepholeOptimization + 'movzwl2movzbl 2', hp1);
                     taicpu(hp1).oper[0]^.reg := ThisReg;
-                    taicpu(hp1).opsize := TargetSize;
+                    taicpu(hp1).opsize := S_BL;
                   end;
-              end
-            else if (TargetSize = S_B) and (MaxSize = S_W) and (taicpu(hp1).opsize = S_WL) then
-              begin
-                { Need to change the size of the output }
-                DebugMsg(SPeepholeOptimization + 'movzwl2movzbl 2', hp1);
-                taicpu(hp1).oper[0]^.reg := ThisReg;
-                taicpu(hp1).opsize := S_BL;
               end;
           end;
 
@@ -8643,6 +8693,7 @@ unit aoptx86;
 
             { Update the register to its new size }
             setsubreg(ThisReg, TargetSubReg);
+            RegInUse := False;
 
             if not SuperRegistersEqual(taicpu(hp1).oper[1]^.reg, ThisReg) then
               begin
@@ -8650,7 +8701,6 @@ unit aoptx86;
                 { Check to see if the active register is used afterwards;
                   if not, we can change it and make a saving. }
 
-                RegInUse := False;
                 TransferUsedRegs(TmpUsedRegs);
 
                 { The target register may be marked as in use to cross
@@ -8723,6 +8773,8 @@ unit aoptx86;
                     else
                       RemoveInstruction(hp1);
 
+                    hp1_removed := True;
+
                     { Instruction will become "mov %reg,%reg" }
                     if not p_removed and (taicpu(p).opcode = A_MOV) and
                       MatchOperand(taicpu(p).oper[0]^, ThisReg) then
@@ -8764,7 +8816,7 @@ unit aoptx86;
             else
               AdjustFinalLoad;
 
-            Result := AdjustInitialLoad or Result;
+            Result := AdjustInitialLoadAndSize or Result;
 
             { Now go through every instruction we found and change the
               size. If TargetSize = MaxSize, then almost no changes are
@@ -8799,6 +8851,7 @@ unit aoptx86;
       begin
         Result := False;
         p_removed := False;
+        hp1_removed := False;
         ThisReg := taicpu(p).oper[1]^.reg;
 
         { Check for:
@@ -9057,7 +9110,7 @@ unit aoptx86;
                       if LowerUnsignedOverflow and not UpperUnsignedOverflow then
                         begin
                           { Exceeded lower bound but not upper bound }
-                          TargetSize := MaxSize;
+                          Exit;
                         end
                       else if not LowerSignedOverflow or not LowerUnsignedOverflow then
                         begin
@@ -9078,8 +9131,8 @@ unit aoptx86;
                           InternalError(2021051002);
                       end;
 
-		       if TargetSize <> MaxSize then
-		         begin
+		      if TargetSize <> MaxSize then
+		        begin
                           { Update the register to its new size }
                           setsubreg(ThisReg, TargetSubReg);
 
@@ -9088,7 +9141,7 @@ unit aoptx86;
                           taicpu(hp1).opsize := TargetSize;
 
                           { Convert the input MOVZX to a MOV if necessary }
-                          AdjustInitialLoad;
+                          AdjustInitialLoadAndSize;
 
                           if (InstrMax >= 0) then
                             begin
