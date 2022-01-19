@@ -417,14 +417,16 @@ implementation
         if not(current_module.is_unit) and (target_info.system=system_xtensa_freertos) then
           if (current_settings.controllertype=ct_esp32) then
             begin
-              if idf_version>=40200 then
+              if (idf_version>=40100) and (idf_version<40200) then
+                AddUnit('espidf_40100')
+              else if idf_version>=40200 then
                 AddUnit('espidf_40200')
               else
                 Comment(V_Warning, 'Unsupported esp-idf version');
             end
           else if (current_settings.controllertype=ct_esp8266) then
             begin
-              if idf_version=30300 then
+              if (idf_version>=30300) and (idf_version<30400) then
                 AddUnit('esp8266rtos_30300')
               else if idf_version>=30400 then
                 AddUnit('esp8266rtos_30400')

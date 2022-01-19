@@ -402,37 +402,34 @@ unit optutils;
         BreakContinueStack.Done;
       end;
 
-    var
-      defsum : TDFASet;
 
     function adddef(var n: tnode; arg: pointer): foreachnoderesult;
+      var
+        defsum : PDFASet absolute arg;
       begin
         if assigned(n.optinfo) then
           begin
-            DFASetIncludeSet(defsum,n.optinfo^.def);
+            DFASetIncludeSet(defsum^,n.optinfo^.def);
             { for nodes itself do not necessarily expose the definition of the counter as
               the counter might be undefined after the for loop, so include here the counter
               explicitly }
             if (n.nodetype=forn) and assigned(tfornode(n).left.optinfo) then
-              DFASetInclude(defsum,tfornode(n).left.optinfo^.index);
+              DFASetInclude(defsum^,tfornode(n).left.optinfo^.index);
           end;
         Result:=fen_false;
       end;
 
 
     procedure CalcDefSum(p : tnode);
+      var
+        defsum : PDFASet;
       begin
         p.allocoptinfo;
-        if not assigned(p.optinfo^.defsum) then
-          begin
-            defsum:=nil;
-            foreachnodestatic(pm_postprocess,p,@adddef,nil);
-            p.optinfo^.defsum:=defsum;
-          end;
+        defsum:=@p.optinfo^.defsum;
+        if not assigned(defsum^) then
+            foreachnodestatic(pm_postprocess,p,@adddef,defsum);
       end;
 
-    var
-      usesum : TDFASet;
 
     function SetExecutionWeight(var n: tnode; arg: pointer): foreachnoderesult;
       var
@@ -481,22 +478,23 @@ unit optutils;
 
 
     function adduse(var n: tnode; arg: pointer): foreachnoderesult;
+      var
+        usesum : PDFASet absolute arg;
       begin
         if assigned(n.optinfo) then
-          DFASetIncludeSet(usesum,n.optinfo^.use);
+          DFASetIncludeSet(usesum^,n.optinfo^.use);
         Result:=fen_false;
       end;
 
 
     procedure CalcUseSum(p : tnode);
+      var
+        usesum : PDFASet;
       begin
         p.allocoptinfo;
-        if not assigned(p.optinfo^.usesum) then
-          begin
-            usesum:=nil;
-            foreachnodestatic(pm_postprocess,p,@adduse,nil);
-            p.optinfo^.usesum:=usesum;
-          end;
+        usesum:=@p.optinfo^.usesum;
+        if not assigned(usesum^) then
+            foreachnodestatic(pm_postprocess,p,@adduse,usesum);
       end;
 
 

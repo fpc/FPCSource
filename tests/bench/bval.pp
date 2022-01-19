@@ -5,7 +5,7 @@ const
   chars : shortstring = ('0123456789AbCdEf');
   signs : shortstring = (' -');
 var
-  vals : array[0..1000] of shortstring;
+  vals : array[0..1000] of string;
   base,len,baseindex : byte;
   li,i,j : longint;
   code : word;

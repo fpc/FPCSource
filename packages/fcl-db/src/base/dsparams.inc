@@ -642,6 +642,14 @@ begin
     Result:=FValue;
 end;
 
+Function TParam.GetAsSingle: Single;
+begin
+  If IsNull then
+    Result:=0.0
+  else
+    Result:=FValue;
+end;
+
 Function TParam.GetAsString: string;
 var P: Pointer;
 begin
@@ -808,6 +816,17 @@ begin
   Value:=AValue;
 end;
 
+Procedure TParam.SetAsShortInt(const AValue: LongInt);
+begin
+  FDataType:=ftShortInt;
+  Value:=AValue;
+end;
+
+Procedure TParam.SetAsSingle(AValue: Single);
+begin
+  FDataType:=ftFloat; // we doesn't have ftSingle ATM
+  Value:=AValue;
+end;
 
 Procedure TParam.SetAsSmallInt(AValue: LongInt);
 begin
@@ -974,6 +993,7 @@ begin
   if Assigned(Field) then
     case FDataType of
       ftUnknown  : DatabaseErrorFmt(SUnknownParamFieldType,[Name],DataSet);
+      ftShortInt : Field.AsInteger:=AsShortInt;
       ftByte     : Field.AsInteger:=AsByte;
       // Need TField.AsSmallInt
       ftSmallint : Field.AsInteger:=AsSmallInt;
@@ -1016,6 +1036,7 @@ begin
     FDataType:=Field.DataType;
     case Field.DataType of
       ftUnknown  : DatabaseErrorFmt(SUnknownParamFieldType,[Name],DataSet);
+      ftShortInt : AsShortInt:=Field.AsInteger;
       ftByte     : AsByte:=Field.AsInteger;
       // Need TField.AsSmallInt
       ftSmallint : AsSmallint:=Field.AsInteger;

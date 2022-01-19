@@ -1176,6 +1176,7 @@ begin
   S:=FindUtil(utilsprefix+'objdump');
   if (current_settings.controllertype = ct_esp32) then
     begin
+      out_ld_filename:=outputexedir+'/esp32_out.ld';
       project_ld_filename:=outputexedir+'/esp32.project.ld';
       cmdstr:={$ifndef UNIX}'$IDF_PATH/tools/ldgen/ldgen.py '+{$endif UNIX}
               '--config $OUTPUT/sdkconfig '+
@@ -1193,6 +1194,7 @@ begin
     end
   else
     begin
+      out_ld_filename:=outputexedir+'/esp8266_out.ld';
       project_ld_filename:=outputexedir+'/esp8266.project.ld';
       cmdstr:={$ifndef UNIX}'$IDF_PATH/tools/ldgen/ldgen.py '+{$endif UNIX}
               '--config $OUTPUT/sdkconfig '+
@@ -1271,8 +1273,8 @@ begin
        '-T esp32.rom.ld -T esp32.rom.libgcc.ld -T esp32.rom.newlib-data.ld -T esp32.rom.syscalls.ld -T esp32.rom.newlib-funcs.ld '+
        '-T '+esp_out_ld_filename+' -T '+esp_project_ld_filename+' '+
        '-L $IDF_PATH/components/esp32/ld -T esp32.peripherals.ld';
-      if idf_version>=40200 then
-        Info.ExeCmd[1]:=Info.ExeCmd[1]+' -L $IDF_PATH/components/esp32_rom/esp32/ld -T esp32.rom.api.ld';
+      if idf_version>=40300 then
+        Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T esp32.rom.api.ld';
     end
   else
     begin

@@ -2092,7 +2092,38 @@ unit aoptx86;
                         RemoveInstruction(hp2);
                         result:=true;
                       end;
-                  end;
+                  end
+                else if (hp1.typ = ait_instruction) and
+                  (((taicpu(p).opcode=A_VMOVAPD) and
+                    (taicpu(hp1).opcode=A_VCOMISD)) or
+                   ((taicpu(p).opcode=A_VMOVAPS) and
+                    ((taicpu(hp1).opcode=A_VCOMISS))
+                   )
+                  ) and not(OpsEqual(taicpu(hp1).oper[1]^,taicpu(hp1).oper[0]^)) then
+                  { change
+                             movapX    reg,reg2
+                             addsX/subsX/... reg3, reg2
+                             movapX    reg2,reg
+                    to
+                             addsX/subsX/... reg3,reg
+                  }
+                  begin
+                    TransferUsedRegs(TmpUsedRegs);
+                    UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+                    If not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,TmpUsedRegs)) then
+                      begin
+                        DebugMsg(SPeepholeOptimization + 'MovapXComisX2ComisX2 ('+
+                              debug_op2str(taicpu(p).opcode)+' '+
+                              debug_op2str(taicpu(hp1).opcode)+') done',p);
+                        if OpsEqual(taicpu(p).oper[1]^,taicpu(hp1).oper[0]^) then
+                          taicpu(hp1).loadoper(0, taicpu(p).oper[1]^);
+                        if OpsEqual(taicpu(p).oper[1]^,taicpu(hp1).oper[1]^) then
+                          taicpu(hp1).loadoper(1, taicpu(p).oper[1]^);
+                        RemoveCurrentP(p, nil);
+                        result:=true;
+                        exit;
+                      end;
+                  end
               end;
           end;
       end;
@@ -8228,6 +8259,65 @@ unit aoptx86;
               end;
           end;
 
+        function AdjustInitialLoad: Boolean;
+          begin
+            Result := False;
+
+            if not p_removed then
+              begin
+                if TargetSize = MinSize then
+                  begin
+                    { Convert the input MOVZX to a MOV }
+                    if (taicpu(p).oper[0]^.typ = top_reg) and
+                      SuperRegistersEqual(taicpu(p).oper[0]^.reg, ThisReg) then
+                      begin
+                        { Or remove it completely! }
+                        DebugMsg(SPeepholeOptimization + 'Movzx2Nop 1', p);
+                        RemoveCurrentP(p);
+                        p_removed := True;
+                      end
+                    else
+                      begin
+                        DebugMsg(SPeepholeOptimization + 'Movzx2Mov 1', p);
+                        taicpu(p).opcode := A_MOV;
+                        taicpu(p).oper[1]^.reg := ThisReg;
+                        taicpu(p).opsize := TargetSize;
+                      end;
+
+                    Result := True;
+                  end
+                else if TargetSize <> MaxSize then
+                  begin
+
+                    case MaxSize of
+                      S_L:
+                        if TargetSize = S_W then
+                          begin
+                            DebugMsg(SPeepholeOptimization + 'movzbl2movzbw', p);
+                            taicpu(p).opsize := S_BW;
+                            taicpu(p).oper[1]^.reg := ThisReg;
+                            Result := True;
+                          end
+                        else
+                          InternalError(2020112341);
+
+                      S_W:
+                        if TargetSize = S_L then
+                          begin
+                            DebugMsg(SPeepholeOptimization + 'movzbw2movzbl', p);
+                            taicpu(p).opsize := S_BL;
+                            taicpu(p).oper[1]^.reg := ThisReg;
+                            Result := True;
+                          end
+                        else
+                          InternalError(2020112342);
+                      else
+                        ;
+                    end;
+                  end;
+              end;
+          end;
+
         procedure AdjustFinalLoad;
           begin
             if ((TargetSize = S_L) and (taicpu(hp1).opsize in [S_L, S_BL, S_WL])) or
@@ -8453,60 +8543,7 @@ unit aoptx86;
             else
               AdjustFinalLoad;
 
-            if not p_removed then
-              begin
-                if TargetSize = MinSize then
-                  begin
-                    { Convert the input MOVZX to a MOV }
-                    if (taicpu(p).oper[0]^.typ = top_reg) and
-                      SuperRegistersEqual(taicpu(p).oper[0]^.reg, ThisReg) then
-                      begin
-                        { Or remove it completely! }
-                        DebugMsg(SPeepholeOptimization + 'Movzx2Nop 1', p);
-                        DebugMsg(SPeepholeOptimization + tostr(InstrMax), p);
-                        RemoveCurrentP(p);
-                        p_removed := True;
-                      end
-                    else
-                      begin
-                        DebugMsg(SPeepholeOptimization + 'Movzx2Mov 1', p);
-                        taicpu(p).opcode := A_MOV;
-                        taicpu(p).oper[1]^.reg := ThisReg;
-                        taicpu(p).opsize := TargetSize;
-                      end;
-
-                    Result := True;
-                  end
-                else if TargetSize <> MaxSize then
-                  begin
-
-                    case MaxSize of
-                      S_L:
-                        if TargetSize = S_W then
-                          begin
-                            DebugMsg(SPeepholeOptimization + 'movzbl2movzbw', p);
-                            taicpu(p).opsize := S_BW;
-                            taicpu(p).oper[1]^.reg := ThisReg;
-                            Result := True;
-                          end
-                        else
-                          InternalError(2020112341);
-
-                      S_W:
-                        if TargetSize = S_L then
-                          begin
-                            DebugMsg(SPeepholeOptimization + 'movzbw2movzbl', p);
-                            taicpu(p).opsize := S_BL;
-                            taicpu(p).oper[1]^.reg := ThisReg;
-                            Result := True;
-                          end
-                        else
-                          InternalError(2020112342);
-                      else
-                        ;
-                    end;
-                  end;
-              end;
+            Result := AdjustInitialLoad or Result;
 
             { Now go through every instruction we found and change the
               size. If TargetSize = MaxSize, then almost no changes are
@@ -8820,50 +8857,39 @@ unit aoptx86;
                           InternalError(2021051002);
                       end;
 
-                      { Update the register to its new size }
-                      setsubreg(ThisReg, TargetSubReg);
+		       if TargetSize <> MaxSize then
+		         begin
+                          { Update the register to its new size }
+                          setsubreg(ThisReg, TargetSubReg);
 
-                      taicpu(hp1).oper[1]^.reg := ThisReg;
-                      taicpu(hp1).opsize := MinSize;
+                          DebugMsg(SPeepholeOptimization + 'CMP instruction resized thanks to register size optimisation (see MOV/Z assignment above)', hp1);
+                          taicpu(hp1).oper[1]^.reg := ThisReg;
+                          taicpu(hp1).opsize := TargetSize;
 
-                      { Convert the input MOVZX to a MOV }
-                      if (taicpu(p).oper[0]^.typ = top_reg) and
-                        SuperRegistersEqual(taicpu(p).oper[0]^.reg, ThisReg) then
-                        begin
-                          { Or remove it completely! }
-                          DebugMsg(SPeepholeOptimization + 'Movzx2Nop 1a', p);
-                          RemoveCurrentP(p);
-                          p_removed := True;
-                        end
-                      else
-                        begin
-                          DebugMsg(SPeepholeOptimization + 'Movzx2Mov 1a', p);
-                          taicpu(p).opcode := A_MOV;
-                          taicpu(p).oper[1]^.reg := ThisReg;
-                          taicpu(p).opsize := MinSize;
-                        end;
+                          { Convert the input MOVZX to a MOV if necessary }
+                          AdjustInitialLoad;
 
-                      if (InstrMax >= 0) then
-                        begin
-                          for Index := 0 to InstrMax do
+                          if (InstrMax >= 0) then
                             begin
+                              for Index := 0 to InstrMax do
+                                 begin
 
-                              { If p_removed is true, then the original MOV/Z was removed
-                                and removing the AND instruction may not be safe if it
-                                appears first }
-                              if (InstrList[Index].oper[InstrList[Index].ops - 1]^.typ <> top_reg) then
-                                InternalError(2020112311);
+                                  { If p_removed is true, then the original MOV/Z was removed
+                                    and removing the AND instruction may not be safe if it
+                                    appears first }
+                                  if (InstrList[Index].oper[InstrList[Index].ops - 1]^.typ <> top_reg) then
+                                    InternalError(2020112311);
 
-                              if InstrList[Index].oper[0]^.typ = top_reg then
-                                InstrList[Index].oper[0]^.reg := ThisReg;
+                                  if InstrList[Index].oper[0]^.typ = top_reg then
+                                    InstrList[Index].oper[0]^.reg := ThisReg;
 
-                              InstrList[Index].oper[InstrList[Index].ops - 1]^.reg := ThisReg;
-                              InstrList[Index].opsize := MinSize;
+                                  InstrList[Index].oper[InstrList[Index].ops - 1]^.reg := ThisReg;
+                                  InstrList[Index].opsize := MinSize;
+                                end;
                             end;
 
+                          Result := True;
                         end;
-
-                      Result := True;
                       Exit;
                     end;
                 end;

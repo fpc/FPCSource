@@ -1523,17 +1523,18 @@ end;
 
   Function fpc_val_smallint_shortstr(Const S: ShortString; out Code: ValSInt): SmallInt; [public, alias:'FPC_VAL_SMALLINT_SHORTSTR']; compilerproc;
 
-  var  u, temp, prev, maxprevvalue, maxnewvalue : word;
+  var  u, temp, prev, maxprevvalue : word;
        base : byte;
        negative : boolean;
-
-  const maxlongint=longword($7fffffff);
-        maxlongword=longword($ffffffff);
-
+       UnsignedUpperLimit: ValUInt;
   begin
     fpc_val_smallint_shortstr := 0;
     Temp:=0;
     Code:=InitVal(s,negative,base);
+    if (base=10) or negative then
+      UnsignedUpperLimit := Word(High(SmallInt))+Ord(negative)
+    else
+      UnsignedUpperLimit := High(Word);
     if Code>length(s) then
      exit;
     if (s[Code]=#0) then
@@ -1542,11 +1543,7 @@ end;
           Code:=0;
         exit;
       end;
-    maxprevvalue := maxlongword div base;
-    if (base = 10) then
-      maxnewvalue := maxlongint + ord(negative)
-    else
-      maxnewvalue := maxlongword;
+    maxprevvalue := High(Word) div base;
 
     while Code<=Length(s) do
      begin
@@ -1561,17 +1558,17 @@ end;
        Prev:=Temp;
        Temp:=Temp*longword(base);
        If (u >= base) or
-         (longword(maxnewvalue-u) < temp) or
-         (prev > maxprevvalue) Then
-         Begin
-           fpc_val_smallint_shortstr := 0;
-           Exit
-         End;
+        (prev > maxPrevValue) or
+        ((Temp)>(UnsignedUpperLimit-u)) Then
+       Begin
+         fpc_val_smallint_shortstr := 0;
+         Exit
+       End;
        Temp:=Temp+u;
        inc(code);
      end;
     code:=0;
-    fpc_val_smallint_shortstr:=longint(Temp);
+    fpc_val_smallint_shortstr:=SmallInt(Temp);
     If Negative Then
       fpc_val_smallint_shortstr:=-fpc_val_smallint_shortstr;
   end;
