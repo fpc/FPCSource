@@ -41,6 +41,7 @@ implementation
 
 uses
   globals,
+  globtype,
   aasmcpu;
 
     function TCpuAsmOptimizer.PrePeepHoleOptsCpu(var p : tai) : boolean;
@@ -234,8 +235,9 @@ uses
           else
             ;
         end;
-        { If this flag is set, something was optimised ahead of p, so move
-          ahead by 1 instruction but treat as if Result was set to True }
+        { If this flag is set, force another run of pass 2 even if p wasn't
+          changed (-O3 only), but otherwise move p ahead by 1 instruction
+          and treat as if Result was set to True }
         if aoc_ForceNewIteration in OptsToCheck then
           begin
             Exclude(OptsToCheck, aoc_ForceNewIteration);

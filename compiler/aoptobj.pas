@@ -2523,7 +2523,7 @@ Unit AoptObj;
 
     procedure TAOptObj.PeepHoleOptPass1;
       const
-        MaxPasses: array[1..3] of Cardinal = (1, 2, 8);
+        MaxPasses_Pass1: array[1..3] of Cardinal = (1, 2, 8);
       var
         p : tai;
         stoploop, FirstInstruction, JumpOptsAvailable: boolean;
@@ -2537,11 +2537,11 @@ Unit AoptObj;
         { Determine the maximum number of passes allowed based on the compiler switches }
         if (cs_opt_level3 in current_settings.optimizerswitches) then
           { it should never take more than 8 passes, but the limit is finite to protect against faulty optimisations }
-          MaxCount := MaxPasses[3]
+          MaxCount := MaxPasses_Pass1[3]
         else if (cs_opt_level2 in current_settings.optimizerswitches) then
-          MaxCount := MaxPasses[2] { The original double run of Pass 1 }
+          MaxCount := MaxPasses_Pass1[2] { The original double run of Pass 1 }
         else
-          MaxCount := MaxPasses[1];
+          MaxCount := MaxPasses_Pass1[1];
 
         NotFirstIteration := False;
         repeat
@@ -2606,19 +2606,35 @@ Unit AoptObj;
 
 
     procedure TAOptObj.PeepHoleOptPass2;
+      const
+        MaxPasses_Pass2 = 8;
       var
         p: tai;
+        stoploop: Boolean;
+        PassCount: Cardinal;
       begin
-        p := BlockStart;
-        ClearUsedRegs;
-        while (p <> BlockEnd) Do
-          begin
-            prefetch(pointer(p.Next)^);
-            if PeepHoleOptPass2Cpu(p) then
-              continue;
-            if assigned(p) then
-              p := tai(UpdateUsedRegsAndOptimize(p).Next);
-          end;
+        PassCount := 0;
+
+        { Pass 2 is only executed multiple times under -O3 and above }
+        repeat
+          stoploop := True;
+          p := BlockStart;
+          ClearUsedRegs;
+          while (p <> BlockEnd) Do
+            begin
+              prefetch(pointer(p.Next)^);
+              if PeepHoleOptPass2Cpu(p) then
+                begin
+                  stoploop := False;
+                  continue;
+                end;
+              if assigned(p) then
+                p := tai(UpdateUsedRegsAndOptimize(p).Next);
+            end;
+
+          Inc(PassCount);
+
+        until stoploop or not (cs_opt_level3 in current_settings.optimizerswitches) or (PassCount >= MaxPasses_Pass2);
       end;
 
 
