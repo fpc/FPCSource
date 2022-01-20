@@ -1004,6 +1004,36 @@ Implementation
           p:=hp1;
           result:=true;
         end
+{$ifdef AARCH64}
+      {
+        change
+        sxth reg2,reg1
+        sxtw reg3,reg2
+        dealloc reg2
+        to
+        sxth reg3,reg1
+      }
+      else if MatchInstruction(p, A_SXTH, [C_None], [PF_None]) and
+        (taicpu(p).ops=2) and
+        GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
+        MatchInstruction(hp1, A_SXTW, [C_None], [PF_None]) and
+        (taicpu(hp1).ops=2) and
+        MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
+        RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
+        { reg1 might not be modified inbetween }
+        not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
+        begin
+          DebugMsg('Peephole SxthSxtw2Sxth done', p);
+          AllocRegBetween(taicpu(p).oper[1]^.reg,p,hp1,UsedRegs);
+          taicpu(hp1).opcode:=A_SXTH;
+          taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
+          GetNextInstruction(p, hp1);
+          asml.remove(p);
+          p.free;
+          p:=hp1;
+          result:=true;
+        end
+ {$endif AARCH64}
       {
         change
         sxth reg2,reg1
