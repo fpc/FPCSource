@@ -114,7 +114,7 @@ Implementation
 
       case p.oper[0]^.typ of
         top_reg:
-          Result := (p.oper[0]^.reg = reg);
+          Result := SuperRegistersEqual(p.oper[0]^.reg,reg);
         top_ref:
           Result :=
             (taicpu(p).oper[0]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) and
