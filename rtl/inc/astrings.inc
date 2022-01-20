@@ -493,8 +493,8 @@ begin
      Size:=Length(S2);
      If Size>high(res) then
       Size:=high(res);
-     Move (S2[1],res[1],Size);
      byte(res[0]):=byte(Size);
+     Move (S2[1],res[1],Size);
    end;
 end;
 {$endif FPC_HAS_ANSISTR_TO_SHORTSTR}
