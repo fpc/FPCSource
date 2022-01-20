@@ -210,7 +210,7 @@ procedure fpc_chararray_Currency(c : Currency;len,fr : SizeInt;out a : array of 
 Function fpc_Val_Real_ShortStr(const s : shortstring; out code : ValSInt): ValReal; compilerproc;
 {$endif}
 Function fpc_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; out Code: ValSInt): ValSInt; compilerproc;
-Function fpc_Val_UInt_Shortstr(Const S: ShortString; out Code: ValSInt): ValUInt; compilerproc;
+Function fpc_Val_UInt_Shortstr({$ifndef VER3_2}DestSize: SizeInt;{$endif VER3_2}Const S: ShortString; out Code: ValSInt): ValUInt; compilerproc;
 {$ifndef FPC_STR_ENUM_INTERN}
 function fpc_val_enum_shortstr(str2ordindex:pointer;const s:shortstring;out code:valsint):longint; compilerproc;
 {$endif FPC_STR_ENUM_INTERN}
@@ -219,7 +219,7 @@ Function fpc_Val_Currency_ShortStr(const s : shortstring; out Code : ValSInt): c
 {$ifndef FPUNONE}
 Function fpc_Val_Real_AnsiStr(Const S : RawByteString; out Code : ValSInt): ValReal; compilerproc;
 {$endif}
-Function fpc_Val_UInt_AnsiStr (Const S : RawByteString; out Code : ValSInt): ValUInt; compilerproc;
+Function fpc_Val_UInt_AnsiStr ({$ifndef VER3_2}DestSize: SizeInt;{$endif VER3_2}Const S : RawByteString; out Code : ValSInt): ValUInt; compilerproc;
 Function fpc_Val_SInt_AnsiStr (DestSize: SizeInt; Const S : RawByteString; out Code : ValSInt): ValSInt; compilerproc;
 Function fpc_Val_Currency_AnsiStr(Const S : RawByteString; out Code : ValSInt): Currency; compilerproc;
 {$ifndef FPC_STR_ENUM_INTERN}
@@ -233,7 +233,7 @@ function fpc_Val_enum_ansistr(str2ordindex:pointer;const s:RawByteString;out cod
   Function fpc_Val_Real_WideStr(Const S : WideString; out Code : ValSInt): ValReal; compilerproc;
   {$endif}
   Function fpc_Val_SInt_WideStr (DestSize: SizeInt; Const S : WideString; out Code : ValSInt): ValSInt; compilerproc;
-  Function fpc_Val_UInt_WideStr (Const S : WideString; out Code : ValSInt): ValUInt; compilerproc;
+  Function fpc_Val_UInt_WideStr ({$ifndef VER3_2}DestSize: SizeInt;{$endif VER3_2}Const S : WideString; out Code : ValSInt): ValUInt; compilerproc;
   {$ifndef FPC_STR_ENUM_INTERN}
   function fpc_val_Enum_WideStr (str2ordindex:pointer;const s:WideString;out code:valsint):longint;compilerproc;
   {$endif FPC_STR_ENUM_INTERN}
@@ -243,7 +243,7 @@ function fpc_Val_enum_ansistr(str2ordindex:pointer;const s:RawByteString;out cod
   Function fpc_Val_Real_UnicodeStr(Const S : UnicodeString; out Code : ValSInt): ValReal; compilerproc;
   {$endif}
   Function fpc_Val_SInt_UnicodeStr (DestSize: SizeInt; Const S : UnicodeString; out Code : ValSInt): ValSInt; compilerproc;
-  Function fpc_Val_UInt_UnicodeStr (Const S : UnicodeString; out Code : ValSInt): ValUInt; compilerproc;
+  Function fpc_Val_UInt_UnicodeStr ({$ifndef VER3_2}DestSize: SizeInt;{$endif VER3_2}Const S : UnicodeString; out Code : ValSInt): ValUInt; compilerproc;
   {$ifndef FPC_STR_ENUM_INTERN}
   function fpc_val_Enum_UnicodeStr(str2ordindex:pointer;const s:UnicodeString;out code:valsint):longint;compilerproc;
   {$endif FPC_STR_ENUM_INTERN}
