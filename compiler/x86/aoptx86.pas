@@ -10112,14 +10112,18 @@ unit aoptx86;
                    not(hp1.typ=ait_label) do
                    begin
                       inc(l);
+                      hp5 := hp1;
                       GetNextInstruction(hp1,hp1);
                    end;
                  if assigned(hp1) then
                    begin
+                      TransferUsedRegs(TmpUsedRegs);
                       if FindLabel(tasmlabel(symbol),hp1) then
                         begin
                           if (l<=4) and (l>0) then
                             begin
+                              AllocRegBetween(NR_DEFAULTFLAGS, p, hp5, TmpUsedRegs);
+
                               condition:=inverse_cond(taicpu(p).condition);
                               UpdateUsedRegs(tai(p.next));
                               GetNextInstruction(p,hp1);
@@ -10221,6 +10225,7 @@ unit aoptx86;
                                  CanBeCMOV(hp1) do
                                  begin
                                    inc(l);
+                                   hp5 := hp1;
                                    GetNextInstruction(hp1, hp1);
                                  end;
                                { hp1 points to yyy (or an align right before it) }
@@ -10228,6 +10233,8 @@ unit aoptx86;
                                if assigned(hp1) and
                                  FindLabel(tasmlabel(taicpu(hp2).oper[0]^.ref^.symbol),hp1) then
                                  begin
+                                    AllocRegBetween(NR_DEFAULTFLAGS, p, hp5, TmpUsedRegs);
+
                                     condition:=inverse_cond(taicpu(p).condition);
                                     UpdateUsedRegs(tai(p.next));
                                     GetNextInstruction(p,hp1);
