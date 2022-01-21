@@ -1762,6 +1762,7 @@ begin
       vis_public: Def.Visibility:=dvPublic;
       vis_published: Def.Visibility:=dvPublished;
       vis_protected, vis_strictprotected: Def.Visibility:=dvProtected;
+      vis_hidden: Def.Visibility:=dvHidden;
       else Def.Visibility:=dvPrivate;
     end;
   writeln(Visibility2Str(i));
@@ -3861,6 +3862,8 @@ begin
              def:=TPpuFieldDef.Create(ParentDef);
              readabstractvarsym('Field Variable symbol ',varoptions,TPpuVarDef(def));
              writeln([space,'      Address : ',getasizeint]);
+             if Def.Visibility<>dvHidden then
+               writeln([space,' Dwarf Offset : ',getasizeint]);
              if vo_has_mangledname in varoptions then
                writeln([space,' Mangled name : ',getstring]);
            end;
@@ -4332,6 +4335,7 @@ begin
                 readderef('');
                 readprocinfooptions(space);
               end;
+             writeln([space,'     Dwarf offset : ',ppufile.getasizeint]);
              b:=ppufile.getbyte;
              if b<>0 then
                begin

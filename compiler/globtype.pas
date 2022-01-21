@@ -269,7 +269,14 @@ interface
           { though, they support and use dwarf debug information in the }
           { final executable file, they expect LINNUM records in the    }
           { object modules for the line number information.             }
-          ds_dwarf_omf_linnum
+          ds_dwarf_omf_linnum,
+          { use a self-defined dwarf-extension to add Pascal-property   }
+          { information. With this parameter set the properties are     }
+          { encoded in this format. The limited default property-debug  }
+          { information is not generated.                               }
+          { the dwarf-information of this extension should be ignored   }
+          { by debuggers that do not support it                         }
+          ds_dwarf_properties
        );
        tdebugswitches = set of tdebugswitch;
 
@@ -446,7 +453,7 @@ interface
        );
 
        DebugSwitchStr : array[tdebugswitch] of string[22] = ('',
-         'DWARFSETS','STABSABSINCLUDES','DWARFMETHODCLASSPREFIX','DWARFCPP','DWARFOMFLINNUM');
+         'DWARFSETS','STABSABSINCLUDES','DWARFMETHODCLASSPREFIX','DWARFCPP','DWARFOMFLINNUM', 'DWARFPROPERTIES');
 
        TargetSwitchStr : array[ttargetswitch] of ttargetswitchinfo = (
          (name: '';                    hasvalue: false; isglobal: true ; define: ''),

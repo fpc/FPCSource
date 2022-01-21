@@ -81,6 +81,10 @@ type
     DW_TAG_function_template := $4102,DW_TAG_class_template := $4103,
 
     DW_TAG_GNU_BINCL := $4104,DW_TAG_GNU_EINCL := $4105,
+
+    { FPC specific extensions }
+    DW_TAG_FPC_property := $4230,
+
     { Extensions for UPC.  See: http://upc.gwu.edu/~upc.   }
     DW_TAG_upc_shared_type := $8765,DW_TAG_upc_strict_type := $8766,
     DW_TAG_upc_relaxed_type := $8767,
@@ -214,7 +218,12 @@ type
     DW_AT_APPLE_optimized := $3fe1,
     DW_AT_APPLE_flags := $3fe2,
     DW_AT_APPLE_major_runtime_vers := $3fe5,
-    DW_AT_APPLE_runtime_class := $3fe6
+    DW_AT_APPLE_runtime_class := $3fe6,
+
+    { FPC specific extensions }
+    DW_AT_FPC_property_read := $3230,
+    DW_AT_FPC_property_write := $3231,
+    DW_AT_FPC_property_stored := $3232
   );
 {$pop}
 

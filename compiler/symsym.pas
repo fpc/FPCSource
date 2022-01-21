@@ -225,6 +225,7 @@ interface
           { offset in record/object, for bitpacked fields the offset is
             given in bit, else in bytes }
           fieldoffset   : asizeint;
+          dwarfoffset   : asizeint;
 {$ifdef llvm}
           { the llvm version of the record does not support variants,   }
           { so the llvm equivalent field may not be at the exact same   }
@@ -2011,6 +2012,7 @@ implementation
       begin
          inherited create(fieldvarsym,n,vsp,def,vopts);
          fieldoffset:=-1;
+         dwarfoffset:=-1;
       end;
 
 
@@ -2018,6 +2020,8 @@ implementation
       begin
          inherited ppuload(fieldvarsym,ppufile);
          fieldoffset:=ppufile.getasizeint;
+         if visibility<>vis_hidden then
+           dwarfoffset:=ppufile.getasizeint;
          if (vo_has_mangledname in varoptions) then
            externalname:=ppufile.getpshortstring
          else
@@ -2030,6 +2034,11 @@ implementation
       begin
          inherited ppuwrite(ppufile);
          ppufile.putasizeint(fieldoffset);
+         if visibility<>vis_hidden then
+           { no reason to store an offset of -1 for all hidden fields }
+           ppufile.putasizeint(dwarfoffset)
+         else if dwarfoffset>-1 then
+           Internalerror(2022030601);
          if (vo_has_mangledname in varoptions) then
            ppufile.putstring(externalname^);
          writeentry(ppufile,ibfieldvarsym);
