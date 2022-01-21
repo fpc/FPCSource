@@ -24,13 +24,35 @@ begin
     end
   else
     writeln('no');
-  write('AVXF512 support: ');
+  write('AVX512F support: ');
   if AVX512FSupport then
     begin
       writeln('yes');
       asm
         vpxor %ymm0,%ymm0,%ymm0
         vaddpd %zmm0,%zmm0,%zmm0
+      end;
+    end
+  else
+    writeln('no');
+  write('AVX512VNNI support: ');
+  if AVX512VNNISupport then
+    begin
+      writeln('yes');
+      asm
+       // vpxor %ymm0,%ymm0,%ymm0
+       // vaddpd %zmm0,%zmm0,%zmm0
+      end;
+    end
+  else
+    writeln('no');
+  write('AVX512BITALG support: ');
+  if AVX512BITALGSupport then
+    begin
+      writeln('yes');
+      asm
+        //vpxor %ymm0,%ymm0,%ymm0
+        //vaddpd %zmm0,%zmm0,%zmm0
       end;
     end
   else
