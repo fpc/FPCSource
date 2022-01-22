@@ -1277,6 +1277,9 @@ begin
     {$ifdef CPU64}
     8: UpperLimit:=High(QWord);
     {$endif CPU64}
+    else
+      { avoid error about being uninitialized }
+      UpperLimit:=0;
   end;
   {$else VER3_2}
   UpperLimit:=High(ValUInt);  //this preserves 3.2 (and earlier) behaviour
