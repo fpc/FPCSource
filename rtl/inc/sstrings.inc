@@ -1167,6 +1167,9 @@ begin
   Temp:=0;
   Code:=InitVal(s,negative,base);
 
+  { avoid error about being uninitialized }
+  UnsignedUpperLimit := 0;
+
   if (base=10) or negative then
     begin //always limit to either Low(DestType) or High(DestType)
       case DestSize of
