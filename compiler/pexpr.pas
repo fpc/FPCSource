@@ -2860,6 +2860,7 @@ implementation
         tmpgetaddr : boolean;
       begin
         hdef:=nil;
+        result:=nil;
         case srsym.typ of
           absolutevarsym :
             begin
