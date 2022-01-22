@@ -4431,6 +4431,9 @@ implementation
         filepos : tfileposinfo;
         gendef,parseddef : tdef;
         gensym : tsym;
+        genlist : tfpobjectlist;
+        dummyagain : boolean;
+        dummyspezctxt : tspecializationcontext;
       begin
         SubExprStart:
         if pred_level=highest_precedence then
@@ -4519,6 +4522,39 @@ implementation
                        { this is a normal "<" comparison }
 
                        { potential generic types that are followed by a "<": }
+
+                       if p1.nodetype=specializen then
+                         begin
+                           genlist:=tfpobjectlist(current_module.genericdummysyms.find(tspecializenode(p1).sym.name));
+                           if assigned(genlist) and (genlist.count>0) then
+                             begin
+                               gensym:=tgenericdummyentry(genlist.last).resolvedsym;
+                               check_hints(gensym,gensym.symoptions,gensym.deprecatedmsg,p1.fileinfo);
+
+                               dummyagain:=false;
+                               dummyspezctxt:=nil;
+
+                               ptmp:=factor_handle_sym(gensym,
+                                                       gensym.owner,
+                                                       dummyagain,
+                                                       tspecializenode(p1).getaddr,
+                                                       false,
+                                                       flags,
+                                                       dummyspezctxt);
+
+                               if dummyagain then
+                                 internalerror(2022012201);
+
+                               p1.free;
+                               p1:=ptmp;
+                             end
+                           else
+                             begin
+                               identifier_not_found(tspecializenode(p1).sym.realname);
+                               p1.free;
+                               p1:=cerrornode.create;
+                             end;
+                         end;
 
                        { a) might not have their resultdef set }
                        if not assigned(p1.resultdef) then
