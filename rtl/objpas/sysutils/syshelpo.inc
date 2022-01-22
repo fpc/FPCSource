@@ -112,35 +112,35 @@ begin
   Self := 0;
 end;
 
-function TORDINALHELPER.HighestSetBitPos: cardinal;
+function TORDINALHELPER.HighestSetBitPos: int8;
 begin
   {$ifdef TORDINALTYPESIZE1}
-        Result := BsrByte(byte(Self));
+        Result := int8(BsrByte(byte(Self)));
   {$else}
     {$ifdef TORDINALTYPESIZE2}
-        Result := BsrWord(word(Self));
+        Result := int8(BsrWord(word(Self)));
     {$else}
       {$ifdef TORDINALTYPESIZE4}
-        Result := BsrDWord(dword(Self));
+        Result := int8(BsrDWord(dword(Self)));
       {$else} // TORDINALTYPESIZE8
-        Result := BsrQWord(qword(Self));
+        Result := int8(BsrQWord(qword(Self)));
       {$endif}
     {$endif}
   {$endif}
 end;
 
-function TORDINALHELPER.LowestSetBitPos: cardinal;
+function TORDINALHELPER.LowestSetBitPos: int8;
 begin
   {$ifdef TORDINALTYPESIZE1}
-        Result := BsfByte(byte(Self));
+        Result := int8(BsfByte(byte(Self)));
   {$else}
     {$ifdef TORDINALTYPESIZE2}
-        Result := BsfWord(word(Self));
+        Result := int8(BsfWord(word(Self)));
     {$else}
       {$ifdef TORDINALTYPESIZE4}
-        Result := BsfDWord(dword(Self));
+        Result := int8(BsfDWord(dword(Self)));
       {$else} // TORDINALTYPESIZE8
-        Result := BsfQWord(qword(Self));
+        Result := int8(BsfQWord(qword(Self)));
       {$endif}
     {$endif}
   {$endif}
