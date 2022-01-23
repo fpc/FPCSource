@@ -414,7 +414,7 @@ begin
     if r>High(Longint) then r:=High(Longint);
     r:=Read(PByte(@Buffer)[t],r);
     inc(t,r);
-  until (t=Count) or (r<=0);
+  until (t>=Count) or (r<=0);
   if (t<Count) then
     raise EReadError.Create(SReadError);
 end;
@@ -591,7 +591,7 @@ begin
     if w>High(Longint) then w:=High(Longint);
     w:=Write(PByte(@Buffer)[t],w);
     inc(t,w);
-  until (t=count) or (w<=0);
+  until (t>=count) or (w<=0);
   if (t<Count) then
     raise EWriteError.Create(SWriteError);
 end;
