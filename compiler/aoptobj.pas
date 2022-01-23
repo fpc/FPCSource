@@ -1506,7 +1506,15 @@ Unit AoptObj;
       var
         p,hp1,hp2 : tai;
         stoploop:boolean;
-      begin
+      const
+{$ifdef JVM}
+        TaiFence = SkipInstr + [ait_const, ait_realconst, ait_typedconst, ait_label, ait_jcatch];
+{$else JVM}
+        { Stop if it reaches SEH directive information in the form of
+          consts, which may occur if RemoveDeadCodeAfterJump is called on
+          the final RET instruction on x86, for example }
+        TaiFence = SkipInstr + [ait_const, ait_realconst, ait_typedconst, ait_label, ait_align];
+{$endif JVM}      begin
         repeat
           stoploop:=true;
           p := BlockStart;
@@ -1545,7 +1553,7 @@ Unit AoptObj;
                                   and (hp1.typ <> ait_jcatch)
 {$endif}
                                   do
-                              if not(hp1.typ in ([ait_label,ait_align]+skipinstr)) then
+                              if not(hp1.typ in TaiFence) then
                                 begin
                                   if (hp1.typ = ait_instruction) and
                                      taicpu(hp1).is_jmp and
