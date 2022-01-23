@@ -40,6 +40,22 @@ begin
   Result:=Read(Buffer[aOffset],Count);
 end;
 
+function TStream.Read64(Buffer: TBytes; aOffset, Count: Int64): Int64;
+
+var
+  r,t: Int64;
+begin
+  t:=0;
+  repeat
+    r:=Count-t;
+    if r>High(Longint) then r:=High(Longint);
+    r:=Read(Buffer[aOffset],r);
+    inc(t,r);
+    inc(aOffset,r);
+  until (t>=Count) or (r<=0);
+  Result:=t;
+end;
+
 function TStream.Write(const Buffer: TBytes; Offset, Count: Longint): Longint;
 begin
   Result:=Write(Buffer[Offset],Count);
@@ -54,6 +70,21 @@ function TStream.Write(const Buffer; Count: Longint): Longint;
 begin
   WriteNotImplemented;
   Result := 0;
+end;
+
+function TStream.Write64(const Buffer: TBytes; Offset, Count: Int64): Int64;
+var
+  w,t: NativeInt;
+begin
+  t:=0;
+  repeat
+    w:=Count-t;
+    if w>High(Longint) then w:=High(Longint);
+    w:=Write(Buffer[OffSet],w);
+    inc(t,w);
+    inc(Offset,W);
+  until (t>=count) or (w<=0);
+  Result:=t;
 end;
 
 
@@ -402,6 +433,7 @@ function TStream.ReadData(var Buffer: TExtended80Rec; Count: NativeInt): NativeI
 begin
   Result:=ReadMaxSizeData(Buffer,SizeOf(Buffer),Count);
 end;
+
 {$ENDIF}
 
 procedure TStream.ReadBuffer(var Buffer; Count: NativeInt);
@@ -579,6 +611,7 @@ procedure TStream.ReadBufferData(var Buffer: TExtended80Rec; Count: NativeInt);
 begin
   ReadExactSizeData(Buffer,SizeOf(Buffer),Count);
 end;
+
 {$ENDIF}
 
 procedure TStream.WriteBuffer(const Buffer; Count: NativeInt);
