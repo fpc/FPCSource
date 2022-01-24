@@ -126,6 +126,35 @@ begin
     HPath:=TCmdStrListItem(HPath.Next);
    end;
 
+  if not UseVLink then
+   begin
+    LinkRes.Add('SECTIONS');
+    LinkRes.Add('{');
+    LinkRes.Add('  .text 0xe4:');
+    LinkRes.Add('  {');
+    LinkRes.Add('    CREATE_OBJECT_SYMBOLS');
+    LinkRes.Add('    *(.text)');
+    LinkRes.Add('    CONSTRUCTORS');
+    LinkRes.Add('    _etext = .;');
+    LinkRes.Add('    __etext = .;');
+    LinkRes.Add('  }');
+    LinkRes.Add('  .data :');
+    LinkRes.Add('  {');
+    LinkRes.Add('    *(.data)');
+    LinkRes.Add('    _edata = .;');
+    LinkRes.Add('    __edata = .;');
+    LinkRes.Add('  }');
+    LinkRes.Add('  .bss :');
+    LinkRes.Add('  {');
+    LinkRes.Add('    __bss_start = .;');
+    LinkRes.Add('    *(.bss)');
+    LinkRes.Add('    *(COMMON)');
+    LinkRes.Add('    _end = .;');
+    LinkRes.Add('    __end = .;');
+    LinkRes.Add('  }');
+    LinkRes.Add('}');
+   end;
+
   LinkRes.Add('INPUT (');
   { add objectfiles, start with prt0 always }
   if not (target_info.system in systems_internal_sysinit) then
