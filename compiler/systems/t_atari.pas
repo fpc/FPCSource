@@ -69,7 +69,7 @@ begin
    begin
     if not UseVLink then
      begin
-      ExeCmd[1]:='ld $DYNLINK $OPT -d -n -o $EXE $RES';
+      ExeCmd[1]:='ld $DYNLINK $OPT $STRIP $MAP -d -n -o $EXE -T $RES';
      end
     else
      begin
@@ -225,7 +225,7 @@ begin
   MapStr:='';
   FlagsStr:='-tos-flags '+tostr(ataritos_exe_flags);
 
-  if UseVlink and (cs_link_map in current_settings.globalswitches) then
+  if (cs_link_map in current_settings.globalswitches) then
     MapStr:='-M'+maybequoted(ScriptFixFileName(current_module.mapfilename));
   if (cs_link_strip in current_settings.globalswitches) then
     StripStr:='-s';
