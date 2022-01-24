@@ -23,10 +23,14 @@ begin
     { palmos does not support command line parameters }
     P.OSes := P.OSes - [palmos];
     { Program does not fit in 16-bit memory constraints }
-    P.OSes := P.OSes - [msdos,win16,zxspectrum,msxdos,amstradcpc,sinclairql,wasi];
+    P.OSes := P.OSes - [msdos,win16,zxspectrum,msxdos,amstradcpc,sinclairql];
     { avr-embedded and i8086-embedded do not support all needed features by default }
     if Defaults.CPU in [avr,i8086,z80] then
       P.OSes := P.OSes - [embedded];
+    { wasm32 CPU does not support
+      goto used in these sources }
+    if Defaults.CPU=wasm32 then
+      P.OSes := P.OSes - [wasi,embedded];
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';
