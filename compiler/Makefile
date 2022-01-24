@@ -5230,7 +5230,7 @@ endif
 	$(INSTALLEXE) $(INSTALLEXEFILE) $(PPCCPULOCATION)/$(INSTALLEXEFILE)
 endif
 fullinstall:
-	$(MAKE) $(addsuffix _exe_install,$($(FULL_TARGETS)))
+	$(MAKE) $(addsuffix _exe_install,$(FULL_TARGETS))
 	$(MAKE) $(addsuffix _all,$(TARGET_DIRS))
 	$(MAKE) $(addsuffix _install,$(TARGET_DIRS))
 auxfilesinstall:
