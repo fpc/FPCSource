@@ -224,7 +224,7 @@ begin
   GCSectionsStr:='';
   DynLinkStr:='';
   MapStr:='';
-  FlagsStr:='-tos-flags fastload,fastram';
+  FlagsStr:='-tos-flags '+tostr(ataritos_exe_flags);
 
   if UseVlink and (cs_link_map in current_settings.globalswitches) then
     MapStr:='-M'+maybequoted(ScriptFixFileName(current_module.mapfilename));
