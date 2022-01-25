@@ -43,7 +43,7 @@ INC=$(RTL)/inc
 COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNITPREFIX=rtl
-LOADERS=prt0
+LOADERS=
 SYSTEMUNIT=system
 
 # Use new feature from 1.0.5 version
@@ -73,13 +73,6 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 # Put system unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
-
-#
-# Loaders
-#
-
-prt0$(OEXT) : prt0.as
-        $(AS) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) prt0.as
 
 #
 # Base Units (System, strings, os-dependent-base-unit)
