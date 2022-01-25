@@ -19,6 +19,11 @@
   exceptions in the constructors }
 {$IMPLICITEXCEPTIONS OFF}
 
+{ We don't want the compiler to use fastmath
+  optimization because it considers negative zeroes
+  as normal zeroes }
+{$OPTIMIZATION NOFASTMATH}
+
 { This define enables codepage-aware compiler messages handling. Turning it on
   forces code page conversion from the codepage, specified in the .msg file to
   CP_ACP, before printing the message to the console. Enable this for host
