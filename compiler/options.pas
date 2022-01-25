@@ -5007,6 +5007,7 @@ begin
             init_settings.fputype:=fpu_68881;
           end;
       end;
+    system_m68k_atari,
     system_m68k_sinclairql:
       begin
         if not option.CPUSetExplicitly then
