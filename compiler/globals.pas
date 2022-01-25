@@ -395,6 +395,11 @@ interface
        palmos_applicationid : string[4] = 'FPCA';
 {$endif defined(m68k) or defined(arm)}
 
+{$if defined(m68k)}
+       { Atari Specific }
+       ataritos_exe_flags: dword = 7;
+{$endif defined(m68k)}
+
        { default name of the C-style "main" procedure of the library/program }
        { (this will be prefixed with the target_info.cprefix)                }
        defaultmainaliasname = 'main';

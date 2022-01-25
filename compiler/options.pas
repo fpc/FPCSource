@@ -2321,6 +2321,20 @@ begin
                       end;
                     'F':
                       begin
+{$if defined(m68k)}
+                        if target_info.system in [system_m68k_atari] then
+                          begin
+                            if (length(More)>j) then
+                              begin
+                                val(Copy(More,j+1,255),ataritos_exe_flags,code);
+                                if code<>0 then
+                                  IllegalPara(opt);
+                              end
+                            else
+                              IllegalPara(opt);
+                            break;
+                          end;
+{$endif defined(m68k)}
                         if target_info.system in systems_os2 then
                           begin
                             if UnsetBool(More, j, opt, false) then
