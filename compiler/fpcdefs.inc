@@ -15,6 +15,11 @@
   exceptions in the constructors }
 {$IMPLICITEXCEPTIONS OFF}
 
+{ We don't want the compiler to use fastmath
+  optimization because it considers negative zeroes
+  as normal zeroes }
+{$OPTIMIZATION NOFASTMATH}
+
 { We don't want C operators to be used inside the compiler }
 {$COPERATORS OFF}
 
