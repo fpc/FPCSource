@@ -128,6 +128,9 @@ uses
 {$ifdef solaris}
   ,i_sunos
 {$endif solaris}
+{$ifdef sinclairql}
+  ,i_sinclairql
+{$endif sinclairql}
 {$ifdef wdosx}
   ,i_wdosx
 {$endif wdosx}

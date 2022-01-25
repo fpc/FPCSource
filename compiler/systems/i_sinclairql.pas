@@ -100,8 +100,8 @@ unit i_sinclairql;
 
 initialization
 {$ifdef cpu68}
-  {$ifdef atari}
+  {$ifdef sinclairql}
     set_source_info(system_m68k_sinclairql_info);
-  {$endif atari}
+  {$endif sinclairql}
 {$endif cpu68}
 end.
