@@ -3811,14 +3811,15 @@ begin
   else
     features:=features+target_unsup_features;
 
-{$if defined(atari) or defined(hasamiga)}
-   { enable vlink as default linker on Atari and Amiga but not for cross compilers (for now) }
-   if (target_info.system in [system_m68k_amiga,system_m68k_atari,system_powerpc_amiga]) and
+{$if defined(hasamiga)}
+   { enable vlink as default linker on Amiga but not for cross compilers (for now) }
+   if (target_info.system in [system_m68k_amiga,system_powerpc_amiga]) and
       not LinkerSetExplicitly then
      include(init_settings.globalswitches,cs_link_vlink);
 {$endif}
 {$ifdef m68k}
-   if (target_info.system in [system_m68k_sinclairql]) and
+   { always enable vlink as default linker for the Sinclair QL and Atari }
+   if (target_info.system in [system_m68k_sinclairql,system_m68k_atari]) and
       not LinkerSetExplicitly then
      include(init_settings.globalswitches,cs_link_vlink);
 {$endif m68k}
