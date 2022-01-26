@@ -1461,6 +1461,9 @@ Procedure fpc_setstring_ansistr_pwidechar(out S : RawByteString; Buf : PWideChar
 Procedure SetString(out S : AnsiString; Buf : PWideChar; Len : SizeInt);
 {$endif}
 begin
+{$ifdef FPC_HAS_CPSTRING}
+  cp:=TranslatePlaceholderCP(cp);
+{$endif}
   if (Buf<>nil) and (Len>0) then
     widestringmanager.Wide2AnsiMoveProc(Buf,S,{$ifdef FPC_HAS_CPSTRING}cp{$else}DefaultSystemCodePage{$endif},Len)
   else
