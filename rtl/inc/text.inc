@@ -1819,6 +1819,7 @@ Begin
   SetLength(s,Slen);
   {$ifdef FPC_HAS_CPSTRING}
   SetCodePage(s,TextRec(f).CodePage,false);
+  cp:=TranslatePlaceholderCP(cp);
   if cp<>TextRec(f).CodePage then
     s:=fpc_AnsiStr_To_AnsiStr(s,cp);
   {$endif FPC_HAS_CPSTRING}
