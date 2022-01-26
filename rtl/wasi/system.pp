@@ -18,6 +18,7 @@ unit system;
 interface
 
 {$define FPC_IS_SYSTEM}
+{$define USE_NOTHREADMANAGER}
 
 {$I systemh.inc}
 
