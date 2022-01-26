@@ -123,7 +123,7 @@ const
   NoWorkingUnicodeSupport='$nounicode';
   TargetHasNoWorkingUnicodeSupport = 'msdos';
   NoWorkingThread='$nothread';
-  TargetHasNoWorkingThreadSupport = 'go32v2,msdos';
+  TargetHasNoWorkingThreadSupport = 'go32v2,msdos,wasi';
 
 procedure TranslateConfig(var AConfig: TConfig);
 begin
