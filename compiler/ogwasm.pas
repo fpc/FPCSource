@@ -1025,7 +1025,10 @@ implementation
                       if not assigned(objrel.symbol) then
                         internalerror(2021092509);
                       objsec.Data.seek(objrel.DataOffset);
-                      WriteUleb5(objsec.Data,TWasmObjSymbol(objrel.symbol).FuncIndex);
+                      if TWasmObjSymbol(objrel.symbol).FuncIndex<0 then
+                        internalerror(2022012401)
+                      else
+                        WriteUleb5(objsec.Data,TWasmObjSymbol(objrel.symbol).FuncIndex);
                     end;
                   RELOC_MEMORY_ADDR_OR_TABLE_INDEX_SLEB:
                     begin
@@ -1064,14 +1067,20 @@ implementation
                       if not assigned(objrel.symbol) then
                         internalerror(2021092509);
                       objsec.Data.seek(objrel.DataOffset);
-                      WriteUleb5(objsec.Data,TWasmObjSymbol(objrel.symbol).GlobalIndex);
+                      if TWasmObjSymbol(objrel.symbol).GlobalIndex<0 then
+                        internalerror(2022012402)
+                      else
+                        WriteUleb5(objsec.Data,TWasmObjSymbol(objrel.symbol).GlobalIndex);
                     end;
                   RELOC_TAG_INDEX_LEB:
                     begin
                       if not assigned(objrel.symbol) then
                         internalerror(2021092716);
                       objsec.Data.seek(objrel.DataOffset);
-                      WriteSleb5(objsec.Data,TWasmObjSymbol(objrel.symbol).TagIndex);
+                      if TWasmObjSymbol(objrel.symbol).TagIndex<0 then
+                        internalerror(2022012403)
+                      else
+                        WriteSleb5(objsec.Data,TWasmObjSymbol(objrel.symbol).TagIndex);
                     end;
                   else
                     internalerror(2021092510);
