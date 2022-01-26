@@ -684,8 +684,7 @@ begin
     FSocket:=TUnixSocket.Create(UnixSocketPath)
   else
     FSocket:=TInetSocket.Create(AHost,APort,G);
-  {$endif}
-  {$ifdef windows}
+  {$else}
     FSocket:=TInetSocket.Create(AHost,APort,G);
   {$endif}  
   try
@@ -696,8 +695,7 @@ begin
     {$ifdef Unix}
     if not IsUnixSocketConnection then
       (FSocket as TInetSocket).Connect;
-    {$endif}
-    {$ifdef windows}
+    {$else}
       (FSocket as TInetSocket).Connect;
     {$endif}
   except
