@@ -2532,6 +2532,7 @@ unit aoptx86;
         CurrentReg, ActiveReg: TRegister;
         SourceRef, TargetRef: TReference;
         MovAligned, MovUnaligned: TAsmOp;
+        ThisRef: TReference;
 
       begin
         Result:=false;
@@ -2738,23 +2739,34 @@ unit aoptx86;
                           Exit;
                         end;
                       top_ref:
-                        { We have something like:
+                        begin
+                          { We have something like:
 
-                          movb   mem,  %regb
-                          movzbl %regb,%regd
+                            movb   mem,  %regb
+                            movzbl %regb,%regd
 
-                          Change to:
+                            Change to:
 
-                          movzbl mem,  %regd
-                        }
-                        if (taicpu(p).oper[0]^.ref^.refaddr<>addr_full) and (IsMOVZXAcceptable or (taicpu(hp1).opcode<>A_MOVZX)) then
-                          begin
-                            DebugMsg(SPeepholeOptimization + 'MovMovXX2MovXX 1 done',p);
-                            taicpu(hp1).loadref(0,taicpu(p).oper[0]^.ref^);
-                            RemoveCurrentP(p, hp1);
-                            Result:=True;
-                            Exit;
-                          end;
+                            movzbl mem,  %regd
+                          }
+                          ThisRef := taicpu(p).oper[0]^.ref^;
+                          if (ThisRef.refaddr<>addr_full) and (IsMOVZXAcceptable or (taicpu(hp1).opcode<>A_MOVZX)) then
+                            begin
+                              DebugMsg(SPeepholeOptimization + 'MovMovXX2MovXX 1 done',p);
+                              taicpu(hp1).loadref(0, ThisRef);
+
+                              { Make sure any registers in the references are properly tracked }
+                              if (ThisRef.base <> NR_NO){$ifdef x86_64} and (ThisRef.base <> NR_RIP){$endif x86_64} then
+                                AllocRegBetween(ThisRef.base, p, hp1, UsedRegs);
+
+                              if (ThisRef.index <> NR_NO) then
+                                AllocRegBetween(ThisRef.index, p, hp1, UsedRegs);
+
+                              RemoveCurrentP(p, hp1);
+                              Result := True;
+                              Exit;
+                            end;
+                        end;
                       else
                         if (taicpu(hp1).opcode <> A_MOV) and (taicpu(hp1).opcode <> A_LEA) then
                           { Just to make a saving, since there are no more optimisations with MOVZX and MOVSX/D }
