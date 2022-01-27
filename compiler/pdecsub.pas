@@ -1425,6 +1425,22 @@ implementation
             end;
           potype_function:
             begin
+              if po_anonymous in pd.procoptions then
+                begin
+                  { allow a different result name for anonymous functions (especially
+                    for modes without Result modeswitch), but for consistency with
+                    operators we allow this in other modes as well }
+                  if token<>_ID then
+                    begin
+                       if not(m_result in current_settings.modeswitches) then
+                         consume(_ID);
+                    end
+                  else
+                    begin
+                      pd.resultname:=stringdup(orgpattern);
+                      consume(_ID);
+                    end;
+                end;
               if try_to_consume(_COLON) then
                begin
                  read_returndef(pd);
