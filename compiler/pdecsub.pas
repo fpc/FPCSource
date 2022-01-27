@@ -68,7 +68,7 @@ interface
 
     procedure parse_parameter_dec(pd:tabstractprocdef);
     procedure parse_proc_directives(pd:tabstractprocdef;var pdflags:tpdflags);
-    procedure parse_proctype_directives(pd:tdef);
+    procedure parse_proctype_directives(pd_or_invkdef:tdef);
     procedure parse_object_proc_directives(pd:tprocdef);
     procedure parse_record_proc_directives(pd:tprocdef);
     function  parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;flags:tparse_proc_flags;genericdef:tdef;generictypelist:tfphashobjectlist;out pd:tprocdef):boolean;
@@ -3431,16 +3431,19 @@ const
       end;
 
 
-    procedure parse_proctype_directives(pd:tdef);
+    procedure parse_proctype_directives(pd_or_invkdef:tdef);
       var
         pdflags : tpdflags;
+        pd : tabstractprocdef;
       begin
-        if is_invokable(pd) then
-          pd:=get_invoke_procdef(tobjectdef(pd))
-        else if pd.typ<>procvardef then
+        if is_invokable(pd_or_invkdef) then
+          pd:=get_invoke_procdef(tobjectdef(pd_or_invkdef))
+        else if pd_or_invkdef.typ=procvardef then
+          pd:=tprocvardef(pd_or_invkdef)
+        else
           internalerror(2022012501);
         pdflags:=[pd_procvar];
-        parse_proc_directives(tabstractprocdef(pd),pdflags);
+        parse_proc_directives(pd,pdflags);
       end;
 
 
