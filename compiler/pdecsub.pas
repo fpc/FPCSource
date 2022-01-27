@@ -3436,7 +3436,7 @@ const
         pdflags : tpdflags;
         pd : tabstractprocdef;
       begin
-        if is_invokable(pd_or_invkdef) then
+        if is_funcref(pd_or_invkdef) then
           pd:=get_invoke_procdef(tobjectdef(pd_or_invkdef))
         else if pd_or_invkdef.typ=procvardef then
           pd:=tprocvardef(pd_or_invkdef)

@@ -26,7 +26,7 @@ unit pparautl;
 interface
 
     uses
-      symconst,symdef;
+      symtype,symconst,symdef;
 
     procedure insert_funcret_para(pd:tabstractprocdef);
     procedure insert_parentfp_para(pd:tabstractprocdef);
@@ -52,7 +52,8 @@ interface
       hcc_default_actions_parse=[hcc_check,hcc_insert_hidden_paras];
       PD_VIRTUAL_MUTEXCLPO = [po_interrupt,po_exports,po_overridingmethod,po_inline,po_staticmethod];
 
-    procedure handle_calling_convention(pd:tabstractprocdef;flags:thccflags);
+    { may take procdef, procvardef or defs for which is_funcref is true }
+    procedure handle_calling_convention(pd_or_invkdef:tdef;flags:thccflags);
     function proc_add_definition(var currpd:tprocdef):boolean;
 
     { create "parent frame pointer" record skeleton for procdef, in which local
@@ -65,7 +66,7 @@ implementation
     uses
       globals,globtype,cclasses,cutils,verbose,systems,fmodule,
       tokens,
-      symtype,symbase,symsym,symtable,symutil,defutil,defcmp,blockutl,
+      symbase,symsym,symtable,symutil,defutil,defcmp,blockutl,
 {$ifdef jvm}
       jvmdef,
 {$endif jvm}
@@ -505,8 +506,16 @@ implementation
       end;
 
 
-    procedure handle_calling_convention(pd:tabstractprocdef;flags:thccflags);
+    procedure handle_calling_convention(pd_or_invkdef:tdef;flags:thccflags);
+      var
+        pd : tabstractprocdef;
       begin
+        if is_funcref(pd_or_invkdef) then
+          pd:=get_invoke_procdef(tobjectdef(pd_or_invkdef))
+        else if pd_or_invkdef.typ in [procdef,procvardef] then
+          pd:=tabstractprocdef(pd_or_invkdef)
+        else
+          internalerror(2022012502);
         if hcc_check in flags then
           begin
             { set the default calling convention if none provided }
