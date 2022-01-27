@@ -100,7 +100,7 @@ implementation
 //          op_onr12methodaddr;
         end
       else
-        list.concat(taicpu.op_sym(A_CALL0,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)));
+        cg.a_jmp_name(list,procdef.mangledname);
       list.concatlist(current_procinfo.aktlocaldata);
 
       current_procinfo.Free;
