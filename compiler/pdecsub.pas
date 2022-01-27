@@ -3434,8 +3434,13 @@ const
                 begin
                   { support "record p : procedure stdcall end;" and
                     "var p : procedure stdcall = nil;" }
-                  if (pd_procvar in pdflags) and
-                     (token in [_END,_RKLAMMER,_EQ]) then
+                  if (
+                      (pd_procvar in pdflags) and
+                       (token in [_END,_RKLAMMER,_EQ])
+                    ) or (
+                      (po_anonymous in pd.procoptions) and
+                      (token in [_BEGIN,_VAR,_CONST,_TYPE,_LABEL,_FUNCTION,_PROCEDURE,_OPERATOR])
+                    ) then
                     break
                   else
                     begin
