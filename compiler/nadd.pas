@@ -460,11 +460,16 @@ implementation
       function TransformLengthZero(n1,n2 : tnode) : tnode;
         var
           len : Tconstexprint;
+          lentype : tdef;
         begin
           if is_dynamic_array(tinlinenode(n1).left.resultdef) then
             len:=-1
           else
             len:=0;
+          if is_widestring(tinlinenode(n1).left.resultdef) and (tf_winlikewidestring in target_info.flags) then
+            lentype:=u32inttype
+          else
+            lentype:=sizesinttype;
           result:=caddnode.create_internal(orn,
             caddnode.create_internal(equaln,ctypeconvnode.create_internal(tinlinenode(n1).left.getcopy,voidpointertype),
                 cpointerconstnode.create(0,voidpointertype)),
@@ -472,10 +477,10 @@ implementation
                 ctypeconvnode.create_internal(
                   cderefnode.create(
                     caddnode.create_internal(subn,ctypeconvnode.create_internal(tinlinenode(n1).left.getcopy,voidpointertype),
-                      cordconstnode.create(sizesinttype.size,sizesinttype,false))
-                  ),sizesinttype
+                      cordconstnode.create(lentype.size,lentype,false))
+                  ),lentype
                 ),
-              cordconstnode.create(len,sizesinttype,false))
+              cordconstnode.create(len,lentype,false))
             );
         end;
 
