@@ -1282,7 +1282,9 @@ implementation
                 begin
                   if (torddef(left.resultdef).ordtype=uwidechar) then
                     begin
-                      if (current_settings.sourcecodepage<>CP_UTF8) then
+                      if not((current_settings.sourcecodepage=CP_UTF8) or
+                             ((tstringdef(resultdef).stringtype=st_ansistring) and
+                              (tstringdef(resultdef).encoding=CP_UTF8))) then
                         begin
                           if tordconstnode(left).value.uvalue>127 then
                             begin
@@ -1311,6 +1313,13 @@ implementation
                           l:=UnicodeToUtf8(@(sa[1]),Length(sa),@cw,1);
                           SetLength(sa,l-1);
                           hp:=cstringconstnode.createstr(sa);
+                          { explicitly set the type of string constant to avoid unnecessary conversion }
+                          if (tstringdef(resultdef).stringtype=st_ansistring) and
+                             (tstringdef(resultdef).encoding=CP_UTF8) then
+                            begin
+                              hp.cst_type:=cst_ansistring;
+                              hp.resultdef:=resultdef;
+                            end;
                         end
                     end
                   else
