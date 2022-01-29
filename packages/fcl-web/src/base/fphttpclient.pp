@@ -683,9 +683,13 @@ begin
   if IsUnixSocketConnection then
     FSocket:=TUnixSocket.Create(UnixSocketPath)
   else
-    FSocket:=TInetSocket.Create(AHost,APort,G);
+    begin
+      G:=GetSocketHandler(UseSSL);
+      FSocket:=TInetSocket.Create(AHost,APort,G);
+    end;
   {$else}
-    FSocket:=TInetSocket.Create(AHost,APort,G);
+  G:=GetSocketHandler(UseSSL);
+  FSocket:=TInetSocket.Create(AHost,APort,G);
   {$endif}  
   try
     if FIOTimeout<>0 then
