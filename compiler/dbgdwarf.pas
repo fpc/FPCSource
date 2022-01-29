@@ -1354,7 +1354,10 @@ implementation
           append_labelentry_addr_ref(sym)
         else
           begin
-            AddConstToAbbrev(ord(DW_FORM_ref4));
+            if use_64bit_headers then
+              AddConstToAbbrev(ord(DW_FORM_ref8))
+            else
+              AddConstToAbbrev(ord(DW_FORM_ref4));
             current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetreltype,current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'debug_info0',AB_LOCAL,AT_METADATA,voidpointertype),sym));
           end;
       end;
