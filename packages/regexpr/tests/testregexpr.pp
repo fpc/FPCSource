@@ -5,7 +5,7 @@ program testregexpr;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, consoletestrunner, tcregexp;
+  Classes, consoletestrunner, tcregexp, tests;
 
 type
 

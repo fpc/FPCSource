@@ -12,9 +12,9 @@ uses
 
 type
 
-  { TTestRegexpr }
+  { TOrgTestRegexpr }
 
-  TTestRegexpr= class(TTestCase)
+  TOrgTestRegexpr = class(TTestCase)
   private
     FRE: TRegExpr;
   protected
@@ -243,139 +243,139 @@ const
   );
 
 
-procedure TTestRegexpr.TestEmpty;
+procedure TOrgTestRegexpr.TestEmpty;
 begin
   AssertNotNull('Have RE',RE);
   AssertFalse('UseOsLineEndOnReplace correcly set', RE.UseOsLineEndOnReplace);
 end;
 
-procedure TTestRegexpr.RunTest1;
+procedure TOrgTestRegexpr.RunTest1;
 begin
   RunRETest(1);
 end;
 
-procedure TTestRegexpr.RunTest2;
+procedure TOrgTestRegexpr.RunTest2;
 begin
   RunRETest(2);
 end;
 
-procedure TTestRegexpr.RunTest3;
+procedure TOrgTestRegexpr.RunTest3;
 begin
   RunRETest(3);
 end;
 
-procedure TTestRegexpr.RunTest4;
+procedure TOrgTestRegexpr.RunTest4;
 begin
   RunRETest(4);
 end;
 
-procedure TTestRegexpr.RunTest5;
+procedure TOrgTestRegexpr.RunTest5;
 begin
   RunRETest(5);
 end;
 
-procedure TTestRegexpr.RunTest6;
+procedure TOrgTestRegexpr.RunTest6;
 begin
   RunRETest(6);
 end;
 
-procedure TTestRegexpr.RunTest7;
+procedure TOrgTestRegexpr.RunTest7;
 begin
   RunRETest(7);
 end;
 
-procedure TTestRegexpr.RunTest8;
+procedure TOrgTestRegexpr.RunTest8;
 begin
   RunRETest(8);
 end;
 
-procedure TTestRegexpr.RunTest9;
+procedure TOrgTestRegexpr.RunTest9;
 begin
   RunRETest(9);
 end;
 
-procedure TTestRegexpr.RunTest10;
+procedure TOrgTestRegexpr.RunTest10;
 begin
   RunRETest(10);
 end;
 
-procedure TTestRegexpr.RunTest11;
+procedure TOrgTestRegexpr.RunTest11;
 begin
   RunRETest(11);
 end;
 
-procedure TTestRegexpr.RunTest12;
+procedure TOrgTestRegexpr.RunTest12;
 begin
   RunRETest(12);
 end;
 
-procedure TTestRegexpr.RunTest13;
+procedure TOrgTestRegexpr.RunTest13;
 begin
   RunRETest(13);
 end;
 
-procedure TTestRegexpr.RunTest14;
+procedure TOrgTestRegexpr.RunTest14;
 begin
   RunRETest(14);
 end;
 
-procedure TTestRegexpr.RunTest15;
+procedure TOrgTestRegexpr.RunTest15;
 begin
   RunRETest(15);
 end;
 
-procedure TTestRegexpr.RunTest16;
+procedure TOrgTestRegexpr.RunTest16;
 begin
   RunRETest(16);
 end;
 
-procedure TTestRegexpr.RunTest17;
+procedure TOrgTestRegexpr.RunTest17;
 begin
   RunRETest(17);
 end;
 
-procedure TTestRegexpr.RunTest18;
+procedure TOrgTestRegexpr.RunTest18;
 begin
   RunRETest(18);
 end;
 
-procedure TTestRegexpr.RunTest19;
+procedure TOrgTestRegexpr.RunTest19;
 begin
   RunRETest(19);
 end;
 
-procedure TTestRegexpr.RunTest20;
+procedure TOrgTestRegexpr.RunTest20;
 begin
   RunRETest(20);
 end;
 
-procedure TTestRegexpr.RunTest21;
+procedure TOrgTestRegexpr.RunTest21;
 begin
   RunRETest(21);
 end;
 
-procedure TTestRegexpr.RunTest22;
+procedure TOrgTestRegexpr.RunTest22;
 begin
   RunRETest(22);
 end;
 
-procedure TTestRegexpr.RunTest23;
+procedure TOrgTestRegexpr.RunTest23;
 begin
   RunRETest(23);
 end;
 
-procedure TTestRegexpr.RunTest24;
+procedure TOrgTestRegexpr.RunTest24;
 begin
   RunRETest(24);
 end;
 
-procedure TTestRegexpr.RunTest25;
+procedure TOrgTestRegexpr.RunTest25;
 begin
   RunRETest(25);
 end;
 
 
-Class function TTestRegexpr.PrintableString(AString: string): string;
+Class function TOrgTestRegexpr.PrintableString(AString: string): string;
 
 var
     ch: Char;
@@ -389,7 +389,7 @@ begin
       Result := Result + ch;
 end;
 
-procedure TTestRegexpr.RunRETest(aIndex: Integer);
+procedure TOrgTestRegexpr.RunRETest(aIndex: Integer);
 
 
 var
@@ -423,14 +423,14 @@ begin
     end;
 end;
 
-procedure TTestRegexpr.SetUp;
+procedure TOrgTestRegexpr.SetUp;
 begin
   Inherited;
   FRE := TRegExpr.Create;
   FRE.UseOsLineEndOnReplace:=False;
 end;
 
-procedure TTestRegexpr.TearDown;
+procedure TOrgTestRegexpr.TearDown;
 begin
   FreeAndNil(FRE);
   Inherited;
@@ -438,6 +438,6 @@ end;
 
 initialization
 
-  RegisterTest(TTestRegexpr);
+  RegisterTest(TOrgTestRegexpr);
 end.
 
