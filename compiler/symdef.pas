@@ -389,6 +389,7 @@ interface
           isunion       : boolean;
           constructor create(const n:string; p:TSymtable);virtual;
           constructor create_global_internal(const n: string; packrecords, recordalignmin: shortint); virtual;
+          constructor create_internal(const n: string; packrecords, recordalignmin: shortint; where: tsymtable); virtual;
           function add_field_by_def(const optionalname: TIDString; def: tdef): tsym;
           procedure add_fields_from_deflist(fieldtypes: tfplist);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -5092,12 +5093,11 @@ implementation
       end;
 
 
-    constructor trecorddef.create_global_internal(const n: string; packrecords, recordalignmin: shortint);
+    constructor trecorddef.create_internal(const n: string; packrecords, recordalignmin: shortint; where: tsymtable);
       var
         name : string;
         pname : pshortstring;
         oldsymtablestack: tsymtablestack;
-        where : tsymtable;
         ts: ttypesym;
       begin
         { construct name }
@@ -5118,9 +5118,6 @@ implementation
         symtable.defowner:=self;
         isunion:=false;
         inherited create(pname^,recorddef,true);
-        where:=current_module.localsymtable;
-        if not assigned(where) then
-          where:=current_module.globalsymtable;
         where.insertdef(self);
         { if we specified a name, then we'll probably want to look up the
           type again by name too -> create typesym }
@@ -5137,6 +5134,17 @@ implementation
         { don't create RTTI for internal types, these are not exported }
         defstates:=defstates+[ds_rtti_table_written,ds_init_table_written];
         include(defoptions,df_internal);
+      end;
+
+
+    constructor trecorddef.create_global_internal(const n: string; packrecords, recordalignmin: shortint);
+      var
+        where : tsymtable;
+      begin
+        where:=current_module.localsymtable;
+        if not assigned(where) then
+          where:=current_module.globalsymtable;
+        create_internal(n,packrecords,recordalignmin,where);
       end;
 
 
