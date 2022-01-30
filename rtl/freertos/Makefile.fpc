@@ -227,7 +227,7 @@ endif
 ifeq ($(ARCH),xtensa)
 CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 ifeq ($(SUBARCH),lx6)
-CPU_UNITS=esp32 espidf_40100 espidf_40200
+CPU_UNITS=esp32 espidf_40100 espidf_40200 espidf_40400
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),lx106)

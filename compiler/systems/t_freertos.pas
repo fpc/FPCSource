@@ -40,7 +40,7 @@ implementation
        private
           Function  WriteResponseFile: Boolean;
 {$ifdef XTENSA}
-          procedure GenerateDefaultLinkerScripts(out out_ld_filename,project_ld_filename: AnsiString);
+          procedure GenerateDefaultLinkerScripts(var memory_filename,sections_filename: AnsiString);
 {$endif XTENSA}
        public
           constructor Create; override;
@@ -946,14 +946,65 @@ end;
   default scripts so that linking can proceed.  Note: the generated
   scripts may not match the actual options chosen when the libraries
   were built. }
-procedure TlinkerFreeRTOS.GenerateDefaultLinkerScripts(out out_ld_filename,
-  project_ld_filename: AnsiString);
+procedure TlinkerFreeRTOS.GenerateDefaultLinkerScripts(var memory_filename,
+  sections_filename: AnsiString);
+type
+  Tesp_idf_index=(esp32_v4_2=0,esp32_v4_4,esp8266_v3_3);
+const
+  esp_fragment_list: array[esp32_v4_2..esp8266_v3_3] of array of string=(
+    ('xtensa/linker',
+    'soc/linker',
+    'esp_event/linker',
+    'spi_flash/linker',
+    'esp_wifi/linker',
+    'lwip/linker',
+    'heap/linker',
+    'esp_ringbuf/linker',
+    'espcoredump/linker',
+    'esp32/linker',
+    'esp32/ld/esp32_fragments',
+    'freertos/linker',
+    'newlib/newlib',
+    'esp_gdbstub/linker'),
+    ('driver/linker',
+    'esp_pm/linker',
+    'spi_flash/linker',
+    'esp_gdbstub/linker',
+    'espcoredump/linker',
+    'esp_phy/linker',
+    'esp_system/linker',
+    'esp_system/app',
+    'hal/linker',
+    'esp_event/linker',
+    'esp_wifi/linker',
+    'lwip/linker',
+    'log/linker',
+    'heap/linker',
+    'soc/linker',
+    'esp_hw_support/linker',
+    'xtensa/linker',
+    'esp_common/common',
+    'esp_common/soc',
+    'freertos/linker',
+    'newlib/newlib',
+    'newlib/system_libs',
+    'app_trace/linker',
+    'bt/linker'),
+    ('esp8266/ld/esp8266_fragments',
+    'esp8266/ld/esp8266_bss_fragments',
+    'esp8266/linker',
+    'freertos/linker',
+    'log/linker',
+    'lwip/linker',
+    'spi_flash/linker'));
+
 var
   S: Ansistring;
   t: Text;
   hp: TCmdStrListItem;
   filepath: TCmdStr = '';
   i,j: integer;
+  idf_index: Tesp_idf_index;
   lib,
   binstr,
   cmdstr: AnsiString;
@@ -1154,13 +1205,20 @@ begin
     exit;
   {$pop}
 
+  memory_filename:=IncludeTrailingPathDelimiter(outputexedir)+memory_filename;
+  cmdstr:='-C -P -x c -E -o '+memory_filename+' -I $OUTPUT ';
   binstr:='gcc';
   if current_settings.controllertype = ct_none then
     Message(exec_f_controllertype_expected)
   else if current_settings.controllertype = ct_esp32 then
-    cmdstr:='-C -P -x c -E -o $OUTPUT/esp32_out.ld -I $OUTPUT/ $IDF_PATH/components/esp32/ld/esp32.ld'
+    begin
+      if idf_version>=40400 then
+        cmdstr:=cmdstr+'$IDF_PATH/components/esp_system/ld/esp32/sections.ld.in'
+      else
+        cmdstr:=cmdstr+'$IDF_PATH/components/esp32/ld/esp32.ld';
+    end
   else
-    cmdstr:='-C -P -x c -E -o $OUTPUT/esp8266_out.ld -I $OUTPUT/ $IDF_PATH/components/esp8266/ld/esp8266.ld';
+    cmdstr:=cmdstr+'$IDF_PATH/components/esp8266/ld/esp8266.ld';
   Replace(cmdstr,'$IDF_PATH',idfpath);
   Replace(cmdstr,'$OUTPUT',outputexedir);
   success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,true);
@@ -1173,47 +1231,48 @@ begin
 {$endif UNIX}
   if source_info.exeext<>'' then
     binstr:=binstr+source_info.exeext;
-  S:=FindUtil(utilsprefix+'objdump');
+
+  sections_filename:=IncludeTrailingPathDelimiter(outputexedir)+sections_filename;
+
+  cmdstr:={$ifndef UNIX}'$IDF_PATH/tools/ldgen/ldgen.py '+{$endif UNIX}
+          '--config $OUTPUT/sdkconfig --fragments';
+
+  { Pick corresponding linker fragments list for SDK version }
+  if (current_settings.controllertype = ct_esp32) then
+    if idf_version>=40400 then
+      idf_index:=esp32_v4_4
+    else
+      idf_index:=esp32_v4_2
+  else
+    idf_index:=esp8266_v3_3;
+
+  for S in esp_fragment_list[idf_index] do
+    cmdstr:=cmdstr+' $IDF_PATH/components/'+S+'.lf';
+
   if (current_settings.controllertype = ct_esp32) then
     begin
-      out_ld_filename:=outputexedir+'/esp32_out.ld';
-      project_ld_filename:=outputexedir+'/esp32.project.ld';
-      cmdstr:={$ifndef UNIX}'$IDF_PATH/tools/ldgen/ldgen.py '+{$endif UNIX}
-              '--config $OUTPUT/sdkconfig '+
-              '--fragments $IDF_PATH/components/xtensa/linker.lf $IDF_PATH/components/soc/linker.lf $IDF_PATH/components/esp_event/linker.lf '+
-              '$IDF_PATH/components/spi_flash/linker.lf $IDF_PATH/components/esp_wifi/linker.lf $IDF_PATH/components/lwip/linker.lf '+
-              '$IDF_PATH/components/heap/linker.lf $IDF_PATH/components/esp_ringbuf/linker.lf $IDF_PATH/components/espcoredump/linker.lf $IDF_PATH/components/esp32/linker.lf '+
-              '$IDF_PATH/components/esp32/ld/esp32_fragments.lf $IDF_PATH/components/freertos/linker.lf $IDF_PATH/components/newlib/newlib.lf '+
-              '$IDF_PATH/components/esp_gdbstub/linker.lf '+
-              '--input $IDF_PATH/components/esp32/ld/esp32.project.ld.in '+
-              '--output '+project_ld_filename+' '+
-              '--kconfig $IDF_PATH/Kconfig '+
-              '--env-file $OUTPUT/config.env '+
-              '--libraries-file $OUTPUT/ldgen_libraries '+
-              '--objdump '+S;
+     if idf_version>=40400 then
+       cmdstr:=cmdstr+' --input $IDF_PATH/components/esp_system/esp32/ld/sections.ld.in'
+     else
+       cmdstr:=cmdstr+' --input $IDF_PATH/components/esp32/ld/esp32.project.ld.in';
     end
   else
     begin
-      out_ld_filename:=outputexedir+'/esp8266_out.ld';
-      project_ld_filename:=outputexedir+'/esp8266.project.ld';
-      cmdstr:={$ifndef UNIX}'$IDF_PATH/tools/ldgen/ldgen.py '+{$endif UNIX}
-              '--config $OUTPUT/sdkconfig '+
-              '--fragments $IDF_PATH/components/esp8266/ld/esp8266_fragments.lf '+
-              '$IDF_PATH/components/esp8266/ld/esp8266_bss_fragments.lf $IDF_PATH/components/esp8266/linker.lf '+
-              '$IDF_PATH/components/freertos/linker.lf $IDF_PATH/components/log/linker.lf '+
-              '$IDF_PATH/components/lwip/linker.lf $IDF_PATH/components/spi_flash/linker.lf '+
-              '--env "COMPONENT_KCONFIGS_PROJBUILD=  $IDF_PATH/components/bootloader/Kconfig.projbuild '+
-              '$IDF_PATH/components/esptool_py/Kconfig.projbuild  $IDF_PATH/components/partition_table/Kconfig.projbuild"'+
-              '--env "COMPONENT_KCONFIGS=$IDF_PATH/components/app_update/Kconfig '+
-              '$IDF_PATH/components/esp8266/Kconfig  $IDF_PATH/components/freertos/Kconfig '+
-              '$IDF_PATH/components/log/Kconfig $IDF_PATH/components/lwip/Kconfig" '+
-              '--input $IDF_PATH/components/esp8266/ld/esp8266.project.ld.in '+
-              '--output '+project_ld_filename+' '+
-              '--kconfig $IDF_PATH/Kconfig '+
-              '--env-file $OUTPUT/config.env '+
-              '--libraries-file $OUTPUT/ldgen_libraries '+
-              '--objdump '+S;
+      cmdstr:=cmdstr+
+              ' --env "COMPONENT_KCONFIGS_PROJBUILD=  $IDF_PATH/components/bootloader/Kconfig.projbuild'+
+              ' $IDF_PATH/components/esptool_py/Kconfig.projbuild  $IDF_PATH/components/partition_table/Kconfig.projbuild"'+
+              ' --env "COMPONENT_KCONFIGS=$IDF_PATH/components/app_update/Kconfig'+
+              ' $IDF_PATH/components/esp8266/Kconfig  $IDF_PATH/components/freertos/Kconfig'+
+              ' $IDF_PATH/components/log/Kconfig $IDF_PATH/components/lwip/Kconfig"'+
+              ' --input $IDF_PATH/components/esp8266/ld/esp8266.project.ld.in';
     end;
+
+  S:=FindUtil(utilsprefix+'objdump');
+  cmdstr:=cmdstr+' --output '+sections_filename+
+          ' --kconfig $IDF_PATH/Kconfig'+
+          ' --env-file $OUTPUT/config.env'+
+          ' --libraries-file $OUTPUT/ldgen_libraries'+
+          ' --objdump '+S;
 
   Replace(cmdstr,'$IDF_PATH',idfpath);
   Replace(cmdstr,'$OUTPUT',outputexedir);
@@ -1235,9 +1294,9 @@ var
   StripStr,
   FixedExeFileName: string;
 {$ifdef XTENSA}
-  esp_out_ld_filename,
-  esp_project_ld_filename: AnsiString;
-{$endif XTENSA}
+  memory_script,
+  sections_script: AnsiString;
+  {$endif XTENSA}
 begin
 {$ifdef XTENSA}
   { idfpath can be set by -Ff, else default to environment value of IDF_PATH }
@@ -1257,13 +1316,30 @@ begin
 
 {$ifdef XTENSA}
   { Locate linker scripts.  If not found, generate defaults. }
-  if ((current_settings.controllertype = ct_esp32) and
-      not (FindLibraryFile('esp32_out','', '.ld', esp_out_ld_filename) and
-           FindLibraryFile('esp32.project','', '.ld', esp_project_ld_filename))) or
-     ((current_settings.controllertype = ct_esp8266) and
-      not (FindLibraryFile('esp8266_out','', '.ld', esp_out_ld_filename) and
-           FindLibraryFile('esp8266.project','', '.ld', esp_project_ld_filename))) then
-    GenerateDefaultLinkerScripts(esp_out_ld_filename,esp_project_ld_filename);
+  { Cater for different script names in different esp-idf versions }
+
+  if (current_settings.controllertype = ct_esp32) then
+    begin
+      if idf_version >= 40400 then
+        begin
+          memory_script := 'memory.ld';
+          sections_script := 'sections.ld';
+        end
+      else
+      begin
+        memory_script := 'esp32_out.ld';
+        sections_script := 'esp32.project.ld';
+      end;
+    end
+  else if (current_settings.controllertype = ct_esp8266) then
+    begin
+     memory_script := 'esp8266_out.ld';
+     sections_script := 'esp8266.project.ld';
+    end;
+
+  if not (FindLibraryFile(memory_script,'','',memory_script) and
+         FindLibraryFile(sections_script,'','',sections_script)) then
+    GenerateDefaultLinkerScripts(memory_script,sections_script);
 
   if (current_settings.controllertype = ct_esp32) then
     begin
@@ -1271,16 +1347,22 @@ begin
        '-u newlib_include_heap_impl -u newlib_include_syscalls_impl -u newlib_include_pthread_impl -u app_main -u uxTopUsedPriority '+
        '-L $IDF_PATH/components/esp_rom/esp32/ld '+
        '-T esp32.rom.ld -T esp32.rom.libgcc.ld -T esp32.rom.newlib-data.ld -T esp32.rom.syscalls.ld -T esp32.rom.newlib-funcs.ld '+
-       '-T '+esp_out_ld_filename+' -T '+esp_project_ld_filename+' '+
-       '-L $IDF_PATH/components/esp32/ld -T esp32.peripherals.ld';
+       '-T '+memory_script+' -T '+sections_script;
+
+      if idf_version<40400 then
+        Info.ExeCmd[1]:=Info.ExeCmd[1]+' -L $IDF_PATH/components/esp32/ld -T esp32.peripherals.ld'
+      else
+        Info.ExeCmd[1]:=Info.ExeCmd[1]+' -L $IDF_PATH/components/soc/esp32/ld -T esp32.peripherals.ld';
       if idf_version>=40300 then
         Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T esp32.rom.api.ld';
+      if idf_version>=40400 then
+        Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T esp32.rom.newlib-time.ld';
     end
   else
     begin
       Info.ExeCmd[1] := Info.ExeCmd[1]+' -u call_user_start -u g_esp_sys_info -u _printf_float -u _scanf_float '+
         '-L $IDF_PATH/components/esp8266/ld -T esp8266.peripherals.ld -T esp8266.rom.ld '+ { SDK scripts }
-        '-T '+esp_out_ld_filename+' -T '+esp_project_ld_filename; { Project scripts }
+        '-T '+memory_script+' -T '+sections_script; { Project scripts }
     end;
 
   Replace(Info.ExeCmd[1],'$IDF_PATH',idfpath);

@@ -419,8 +419,10 @@ implementation
             begin
               if (idf_version>=40100) and (idf_version<40200) then
                 AddUnit('espidf_40100')
-              else if idf_version>=40200 then
+              else if (idf_version>=40200) and (idf_version<40400) then
                 AddUnit('espidf_40200')
+              else if idf_version>=40400 then
+                AddUnit('espidf_40400')
               else
                 Comment(V_Warning, 'Unsupported esp-idf version');
             end
