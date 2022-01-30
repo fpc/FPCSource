@@ -13,7 +13,7 @@ unit tests;
 {$IFDEF D5} {$DEFINE OverMeth} {$ENDIF}
 {$IFDEF FPC} {$DEFINE OverMeth} {$ENDIF}
 
-{ $DEFINE Unicode}
+{$DEFINE Unicode}
 
 interface
 
@@ -108,8 +108,10 @@ type
     procedure RunTest50;
     procedure TestGroups;
     {$IFDEF Unicode}
+    {$IFDEF FastUniCodeData}
     procedure RunTest51unicode;
     procedure RunTest52unicode;
+    {$ENDIF}
     procedure RunTest70russian;
     {$ENDIF}
     procedure RunTest53;
@@ -1057,6 +1059,7 @@ begin
 end;
 
 {$IFDEF Unicode}
+{$IFDEF FastUnicodeData}
 procedure TTestRegexpr.RunTest51unicode;
 begin
   RunRETest(51);
@@ -1066,6 +1069,7 @@ procedure TTestRegexpr.RunTest52unicode;
 begin
   RunRETest(52);
 end;
+{$ENDIF}
 
 procedure TTestRegexpr.RunTest70russian;
 //Alexey: if I add Russian test directly to array of tests,
