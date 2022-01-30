@@ -8104,8 +8104,7 @@ implementation
       begin
         if not is_unique_objpasdef then
           begin
-            where:=get_top_level_symtable(true);
-            vmttypesym:=where.Find('vmtdef$'+mangledparaname);
+            vmttypesym:=symtable.Find('vmtdef');
             if not assigned(vmttypesym) or
                (vmttypesym.typ<>symconst.typesym) or
                (ttypesym(vmttypesym).typedef.typ<>recorddef) then

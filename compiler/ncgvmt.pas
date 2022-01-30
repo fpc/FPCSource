@@ -1083,8 +1083,9 @@ implementation
 
          { reuse the type created in nobj, so we get internal consistency
            checking for free }
-         vmttypesym:=try_search_current_module_type(internaltypeprefixName[itp_vmtdef]+_class.mangledparaname);
+         vmttypesym:=ttypesym(_class.symtable.find('vmtdef'));
          if not assigned(vmttypesym) or
+            (vmttypesym.typ<>typesym) or
             (vmttypesym.typedef.typ<>recorddef) then
            internalerror(2015071403);
          vmtdef:=trecorddef(vmttypesym.typedef);

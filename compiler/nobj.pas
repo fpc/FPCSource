@@ -831,10 +831,11 @@ implementation
           exit;
 
         { create VMT type definition }
-        vmtdef:=crecorddef.create_global_internal(
-          internaltypeprefixName[itp_vmtdef]+_class.mangledparaname,
+        vmtdef:=crecorddef.create_internal(
+          '$vmtdef',
           0,
-          target_info.alignment.recordalignmin);
+          target_info.alignment.recordalignmin,
+          _class.symtable);
 {$ifdef llvm}
         { in case of a class declared in the implementation section of unit
           whose method is called from an inline routine -- LLVM needs to be able
