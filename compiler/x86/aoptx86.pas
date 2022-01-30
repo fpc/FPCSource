@@ -138,6 +138,7 @@ unit aoptx86;
 
         function DoSubAddOpt(var p : tai) : Boolean;
         function DoMovCmpMemOpt(var p : tai; const hp1: tai; UpdateTmpUsedRegs: Boolean) : Boolean;
+        function DoSETccLblRETOpt(var p: tai; const hp_label: tai_label) : Boolean;
 
         function PrePeepholeOptSxx(var p : tai) : boolean;
         function PrePeepholeOptIMUL(var p : tai) : boolean;
@@ -5406,6 +5407,214 @@ unit aoptx86;
       end;
 
 
+    function TX86AsmOptimizer.DoSETccLblRETOpt(var p: tai; const hp_label: tai_label) : Boolean;
+      var
+        hp2, hp3, hp4, hp5, hp6: tai;
+        ThisReg: TRegister;
+        JumpLoc: TAsmLabel;
+      begin
+        Result := False;
+        {
+          Convert:
+            j<c>  .L1
+          .L2:
+            mov   1,reg
+            jmp   .L3    (or ret, although it might not be a RET yet)
+          .L1:
+            mov   0,reg
+            jmp   .L3    (or ret)
+
+            ( As long as .L3 <> .L1 or .L2)
+
+          To:
+            mov   0,reg
+            set<not(c)> reg
+            jmp   .L3    (or ret)
+          .L2:
+            mov   1,reg
+            jmp   .L3    (or ret)
+          .L1:
+            mov   0,reg
+            jmp   .L3    (or ret)
+        }
+
+        if JumpTargetOp(taicpu(p))^.ref^.refaddr<>addr_full then
+          Exit;
+
+        JumpLoc := TAsmLabel(JumpTargetOp(taicpu(p))^.ref^.symbol);
+
+        if GetNextInstruction(hp_label, hp2) and
+          MatchInstruction(hp2,A_MOV,[]) and
+          (taicpu(hp2).oper[0]^.typ = top_const) and
+          (
+            (
+              (taicpu(hp2).oper[1]^.typ = top_reg)
+ {$ifdef i386}
+              { Under i386, ESI, EDI, EBP and ESP
+                don't have an 8-bit representation }
+               and not (getsupreg(taicpu(hp2).oper[1]^.reg) in [RS_ESI, RS_EDI, RS_EBP, RS_ESP])
+ {$endif i386}
+            ) or (
+ {$ifdef i386}
+              (taicpu(hp2).oper[1]^.typ <> top_reg) and
+ {$endif i386}
+              (taicpu(hp2).opsize = S_B)
+            )
+          ) and
+          GetNextInstruction(hp2, hp3) and
+          MatchInstruction(hp3, A_JMP, A_RET, []) and
+          (
+            (taicpu(hp3).opcode=A_RET) or
+            (
+              (taicpu(hp3).oper[0]^.ref^.refaddr=addr_full) and
+              (tasmlabel(taicpu(hp3).oper[0]^.ref^.symbol)<>tai_label(hp_label).labsym)
+            )
+          ) and
+          GetNextInstruction(hp3, hp4) and
+          SkipAligns(hp4, hp4) and
+          (hp4.typ=ait_label) and
+          (tai_label(hp4).labsym=JumpLoc) and
+          (
+            not (cs_opt_size in current_settings.optimizerswitches) or
+            { If the initial jump is the label's only reference, then it will
+              become a dead label if the other conditions are met and hence
+              remove at least 2 instructions, including a jump }
+            (JumpLoc.getrefs = 1)
+          ) and
+          { Don't check if hp3 jumps to hp4 because this is a zero-distance jump
+            that will be optimised out }
+          GetNextInstruction(hp4, hp5) and
+          MatchInstruction(hp5,A_MOV,[taicpu(hp2).opsize]) and
+          (taicpu(hp5).oper[0]^.typ = top_const) and
+          (
+            ((taicpu(hp2).oper[0]^.val = 0) and (taicpu(hp5).oper[0]^.val = 1)) or
+            ((taicpu(hp2).oper[0]^.val = 1) and (taicpu(hp5).oper[0]^.val = 0))
+          ) and
+          MatchOperand(taicpu(hp2).oper[1]^,taicpu(hp5).oper[1]^) and
+          GetNextInstruction(hp5,hp6) and
+          (
+            (hp6.typ<>ait_label) or
+            SkipLabels(hp6, hp6)
+          ) and
+          (hp6.typ=ait_instruction) then
+          begin
+            { First, let's look at the two jumps that are hp3 and hp6 }
+            if not
+              (
+                (taicpu(hp6).opcode=taicpu(hp3).opcode) and { Both RET or both JMP to the same label }
+                (
+                  (taicpu(hp6).opcode=A_RET) or
+                  MatchOperand(taicpu(hp6).oper[0]^, taicpu(hp3).oper[0]^)
+                )
+              ) then
+              { If condition is False, then the JMP/RET instructions matched conventionally }
+              begin
+                { See if one of the jumps can be instantly converted into a RET }
+                if (taicpu(hp3).opcode=A_JMP) then
+                  begin
+                    { Reuse hp5 }
+                    hp5 := getlabelwithsym(TAsmLabel(JumpTargetOp(taicpu(hp3))^.ref^.symbol));
+
+                    { Make sure hp5 doesn't jump back to .L2 (infinite loop) }
+                    if not Assigned(hp5) or (hp5=hp4) or not GetNextInstruction(hp5, hp5) then
+                      Exit;
+
+                    if MatchInstruction(hp5, A_RET, []) then
+                      begin
+                        DebugMsg(SPeepholeOptimization + 'Converted JMP to RET as part of SETcc optimisation (1st jump)', hp3);
+                        ConvertJumpToRET(hp3, hp5);
+                        Result := True;
+                      end
+                    else
+                      Exit;
+                  end;
+
+                if (taicpu(hp6).opcode=A_JMP) then
+                  begin
+                    { Reuse hp5 }
+                    hp5 := getlabelwithsym(TAsmLabel(JumpTargetOp(taicpu(hp6))^.ref^.symbol));
+                    if not Assigned(hp5) or not GetNextInstruction(hp5, hp5) then
+                      Exit;
+
+                    if MatchInstruction(hp5, A_RET, []) then
+                      begin
+                        DebugMsg(SPeepholeOptimization + 'Converted JMP to RET as part of SETcc optimisation (2nd jump)', hp6);
+                        ConvertJumpToRET(hp6, hp5);
+                        Result := True;
+                      end
+                    else
+                      Exit;
+                  end;
+
+                if not
+                  (
+                    (taicpu(hp6).opcode=taicpu(hp3).opcode) and { Both RET or both JMP to the same label }
+                    (
+                      (taicpu(hp6).opcode=A_RET) or
+                      MatchOperand(taicpu(hp6).oper[0]^, taicpu(hp3).oper[0]^)
+                    )
+                  ) then
+                  { Still doesn't match }
+                  Exit;
+              end;
+
+
+            if (taicpu(hp2).oper[0]^.val = 1) then
+              begin
+                taicpu(p).condition := inverse_cond(taicpu(p).condition);
+                DebugMsg(SPeepholeOptimization + 'J(c)Mov1Jmp/RetMov0Jmp/Ret -> Set(~c)Jmp/Ret',p)
+              end
+            else
+              DebugMsg(SPeepholeOptimization + 'J(c)Mov0Jmp/RetMov1Jmp/Ret -> Set(c)Jmp/Ret',p);
+
+            if taicpu(hp2).opsize=S_B then
+              begin
+                if taicpu(hp2).oper[1]^.typ = top_reg then
+                  hp4:=taicpu.op_reg(A_SETcc, S_B, taicpu(hp2).oper[1]^.reg)
+                else
+                  hp4:=taicpu.op_ref(A_SETcc, S_B, taicpu(hp2).oper[1]^.ref^);
+
+                hp2 := p;
+              end
+            else
+              begin
+                { Will be a register because the size can't be S_B otherwise }
+                ThisReg:=newreg(R_INTREGISTER,getsupreg(taicpu(hp2).oper[1]^.reg), R_SUBL);
+                hp4:=taicpu.op_reg(A_SETcc, S_B, ThisReg);
+
+                hp2:=taicpu.op_const_reg(A_MOV, taicpu(hp2).opsize, 0, taicpu(hp2).oper[1]^.reg);
+
+                { Inserting it right before p will guarantee that the flags are also tracked }
+                Asml.InsertBefore(hp2, p);
+              end;
+
+            taicpu(hp4).condition:=taicpu(p).condition;
+            asml.InsertBefore(hp4, hp2);
+
+            JumpLoc.decrefs;
+            if taicpu(hp3).opcode = A_JMP then
+              begin
+                MakeUnconditional(taicpu(p));
+                taicpu(p).loadref(0, JumpTargetOp(taicpu(hp3))^.ref^);
+                TAsmLabel(JumpTargetOp(taicpu(hp3))^.ref^.symbol).increfs;
+              end
+            else
+              begin
+                taicpu(p).condition := C_None;
+                taicpu(p).opcode := A_RET;
+                taicpu(p).clearop(0);
+                taicpu(p).ops := 0;
+              end;
+
+            if (JumpLoc.getrefs = 0) then
+              RemoveDeadCodeAfterJump(hp3);
+
+            Result:=true;
+            exit;
+          end;
+      end;
+
+
     function TX86AsmOptimizer.OptPass1Sub(var p : tai) : boolean;
       var
         hp1, hp2: tai;
@@ -6805,11 +7014,11 @@ unit aoptx86;
 
    function TX86AsmOptimizer.OptPass1Jcc(var p : tai) : boolean;
      var
-       hp1, hp2, hp3, hp4, hp5: tai;
+       hp1, hp2, hp3, hp4, hp5, hp6: tai;
        ThisReg: TRegister;
      begin
        Result := False;
-       if not GetNextInstruction(p,hp1) or (hp1.typ <> ait_instruction) then
+       if not GetNextInstruction(p,hp1) then
          Exit;
 
        {
@@ -6966,6 +7175,8 @@ unit aoptx86;
            Result:=true;
            exit;
          end
+       else if (hp1.typ = ait_label) then
+         Result := DoSETccLblRETOpt(p, tai_label(hp1));
      end;
 
 
@@ -9847,8 +10058,16 @@ unit aoptx86;
         increg, tmpreg: TRegister;
       begin
         result:=false;
-        if GetNextInstruction(p,hp1) and (hp1.typ=ait_instruction) then
+        if GetNextInstruction(p,hp1) then
           begin
+            if (hp1.typ=ait_label) then
+              begin
+                Result := DoSETccLblRETOpt(p, tai_label(hp1));
+                Exit;
+              end
+            else if (hp1.typ<>ait_instruction) then
+              Exit;
+
             symbol := TAsmLabel(taicpu(p).oper[0]^.ref^.symbol);
             if (
                 (
