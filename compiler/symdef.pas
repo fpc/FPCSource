@@ -5110,6 +5110,7 @@ implementation
         if n<>'' then
           begin
             ts:=ctypesym.create(n,self);
+            include(ts.symoptions,sp_internal);
             { avoid hints about unused types (these may only be used for
               typed constant data) }
             ts.increfcount;
