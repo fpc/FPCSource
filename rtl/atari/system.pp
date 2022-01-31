@@ -56,7 +56,7 @@ const
     UnusedHandle    = $ffff;
     StdInputHandle  = 0;
     StdOutputHandle = 1;
-    StdErrorHandle  = $ffff;
+    StdErrorHandle  = 2;
 
 var
     args: PChar;
