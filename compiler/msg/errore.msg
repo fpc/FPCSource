@@ -4372,6 +4372,9 @@ A*2WR_Generate relocation code (Windows)
 8*2Wt<x>_Set the target executable format
 8*3Wtcom_Create a DOS .COM file (requires tiny memory model)
 8*3Wtexe_Create a DOS .EXE file (default)
+6*2Wt<x>_Set the target executable format (Atari)
+6*3Wttos_Create TOS executable file (default)
+6*3Wtmint_Create a MiNT executable file
 P*2WT_Specify MPW tool type application (Classic Mac OS)
 6*2WQ<x>_Set executable metadata format (Sinclair QL)
 6*3WQqhdr_Set metadata to QDOS File Header style (default)

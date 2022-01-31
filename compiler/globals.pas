@@ -418,6 +418,7 @@ interface
 {$if defined(m68k)}
        { Atari Specific }
        ataritos_exe_flags: dword = 7;
+       ataritos_exe_format: string = 'ataritos';
 
        { Sinclair QL specific }
        sinclairql_metadata_format: string[4] = 'QHDR';

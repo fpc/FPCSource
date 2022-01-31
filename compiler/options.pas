@@ -3008,6 +3008,19 @@ begin
                           end
                         else
 {$endif defined(i8086)}
+{$if defined(m68k)}
+                        if (target_info.system in [system_m68k_atari]) then
+                          begin
+                            case Upper(Copy(More,j+1,255)) of
+                              'TOS': ataritos_exe_format := 'ataritos';
+                              'MINT': ataritos_exe_format := 'aoutmint';
+                              else
+                                IllegalPara(opt);
+                            end;
+                            break;
+                          end
+                        else
+{$endif defined(m68k)}
                           IllegalPara(opt);
                       end;
                     'T':
