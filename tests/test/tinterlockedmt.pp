@@ -34,7 +34,7 @@ type
 //{$define TEST_BROKEN_CompareExchange}
 
 const
-  TotalThreadCount = 50;
+  TotalThreadCount : longint = 50;
   TestCount = 1000000;
   WaitTime = 60;
 
@@ -210,12 +210,36 @@ begin
   InterLockedIncrement(FinishedCount);
 end;
 
+function New_TWorker_Thread(count : longint; op : TOperation; option : longint = 0) : TWorker;
+var
+  new_worker : TWorker;
+  failed_attempts : longint;
+begin
+  New_TWorker_Thread:=nil;
+  failed_attempts:=0;
+  repeat
+    try
+      new_worker:=TWorker.Create(count,op,option);
+      if assigned(new_worker) then
+        begin
+          New_TWorker_thread:=new_worker;
+          exit;
+        end;
+    except
+      inc(failed_attempts);
+      writeln('Failed to create new thread, ',failed_attempts);
+      sleep(10);
+    end;
+  until false;
+end;
+
 procedure Run;
 var
   i, j, k, CmpCount, ThreadCount: longint;
   t: TDateTime;
-  workers: array[0..TotalThreadCount - 1] of TWorker;
+  workers: ^TWorker;
 begin
+  workers:=getmem(sizeof(pointer)*TotalThreadCount);
   Counter:=0;
   Counter2:=0;
   Counter3:=0;
@@ -225,20 +249,20 @@ begin
   k:=2;
   repeat
     i:=j;
-    workers[j]:=TWorker.Create(TestCount, opAdd);
+    workers[j]:=New_TWorker_Thread(TestCount, opAdd);
     Inc(j);
-    workers[j]:=TWorker.Create(TestCount, opDec);
+    workers[j]:=New_TWorker_Thread(TestCount, opDec);
     Inc(j);
-    workers[j]:=TWorker.Create(TestCount div 3, opExchange);
+    workers[j]:=New_TWorker_Thread(TestCount div 3, opExchange);
     Inc(j);
-    workers[j]:=TWorker.Create(TestCount, opExchangeAdd);
+    workers[j]:=New_TWorker_Thread(TestCount, opExchangeAdd);
     Inc(j);
-    workers[j]:=TWorker.Create(TestCount, opExchangeDec);
+    workers[j]:=New_TWorker_Thread(TestCount, opExchangeDec);
     Inc(j);
-    workers[j]:=TWorker.Create(CmpCount, opCompareExchange, k);
+    workers[j]:=New_TWorker_Thread(CmpCount, opCompareExchange, k);
     Inc(j);
     Inc(k);
-    workers[j]:=TWorker.Create(CmpCount, opCompareExchange, k);
+    workers[j]:=New_TWorker_Thread(CmpCount, opCompareExchange, k);
     Inc(j);
     Inc(k);
   until j + (j - i) > TotalThreadCount;
@@ -303,6 +327,15 @@ begin
   writeln('InterLockedCompareExchange: ', Round(Counter2/(t*SecsPerDay)), ' ops/sec.');
 end;
 
+var
+  j : longint;
+  err : word;
 begin
+  if paramcount>0 then
+    begin
+      val(paramstr(1),j,err);
+      if err=0 then
+        TotalThreadCount:=j;
+    end;
   Run;
 end.
