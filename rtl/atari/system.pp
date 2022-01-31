@@ -119,7 +119,7 @@ var
   procedure SysInitParamsAndEnv;
   begin
     // [0] index contains the args length...
-    args:=@basepage^.p_cmdlin[1];
+    args:=@basepage^.p_cmdlin[0];
     GenerateArgs;
   end;
 
