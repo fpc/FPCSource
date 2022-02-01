@@ -14264,7 +14264,7 @@ begin
       AssignSt.LHS:=SetExpr;
       SetterArgName:=TempRefObjSetterArgName;
       FindAvailableLocalName(SetterArgName,SetExpr);
-      Fun.AFunction.TypedParams.AddParam(SetterArgName);
+      Fun.AFunction.TypedParams.AddParam(TJSString(SetterArgName));
       AssignSt.Expr:=CreatePrimitiveDotExpr(SetterArgName,CodeExpr);
       end;
 
@@ -15436,7 +15436,7 @@ Var
     if ResStrVarEl=nil then
       begin
       ResStrVarEl:=TJSVarDeclaration(CreateElement(TJSVarDeclaration,El));
-      ResStrVarEl.Name:=GetBIName(pbivnModule)+'.'+GetBIName(pbivnResourceStrings);
+      ResStrVarEl.Name:=TJSString(GetBIName(pbivnModule)+'.'+GetBIName(pbivnResourceStrings));
       ResStrVarElAdd:=true;
       ObjLit:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,El));
       ResStrVarEl.Init:=ObjLit;
@@ -16797,7 +16797,7 @@ begin
 
       // function(a){...
       Func:=CreateFunctionSt(El,true,true);
-      Func.AFunction.TypedParams.AddParam(SrcArrName);
+      Func.AFunction.TypedParams.AddParam(TJSString(SrcArrName));
       BodySrc:=Func.AFunction.Body.A as TJSSourceElements;
       FuncContext:=TFunctionContext.Create(El,BodySrc,AContext);
       FuncContext.IsGlobal:=true;
@@ -16828,7 +16828,7 @@ begin
         VarSt:=TJSVariableStatement(CreateElement(TJSVariableStatement,El));
         VarDecl:=TJSVarDeclaration(CreateElement(TJSVarDeclaration,El));
         VarSt.VarDecl:=VarDecl;
-        VarDecl.Name:=NewArrName;
+        VarDecl.Name:=TJSString(NewArrName);
         VarDecl.Init:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));
         AddLoopSt(VarSt);
         if Index>0 then
@@ -17246,7 +17246,7 @@ begin
   for n := 0 to El.ProcType.Args.Count - 1 do
     begin
     Arg:=TPasArgument(El.ProcType.Args[n]);
-    FD.TypedParams.AddParam(TransformElToJSName(Arg,AContext));
+    FD.TypedParams.AddParam(TJSString(TransformElToJSName(Arg,AContext)));
     end;
 
   BodyPas:=ImplProc.Body;
@@ -17737,7 +17737,7 @@ begin
     StList.A:=VarSt;
     VarDecl:=TJSVarDeclaration(CreateElement(TJSVarDeclaration,El.CaseExpr));
     VarSt.VarDecl:=VarDecl;
-    VarDecl.Name:=TmpVar.Name;
+    VarDecl.Name:=TJSString(TmpVar.Name);
     VarDecl.Init:=ConvertExpression(El.CaseExpr,AContext);
 
     LastIfSt:=nil;
@@ -18058,7 +18058,7 @@ begin
       Decl:=Ref.Declaration;
       end;
     NamePath:=CreateReferencePath(Decl,AContext,rpkPathAndName,true);
-    ExpNameJS.Name:=NamePath;
+    ExpNameJS.Name:=TJSString(NamePath);
 
     // alias
     if Symb.ExportName<>nil then
@@ -18069,10 +18069,10 @@ begin
       case EvalValue.Kind of
       {$ifdef FPC_HAS_CPSTRING}
       revkString:
-        ExpNameJS.Alias:=TResEvalString(EvalValue).S;
+        ExpNameJS.Alias:=TJSString(TResEvalString(EvalValue).S);
       {$endif}
       revkUnicodeString:
-        ExpNameJS.Alias:=String(TResEvalUTF16(EvalValue).S);
+        ExpNameJS.Alias:=TResEvalUTF16(EvalValue).S;
       else
         RaiseNotSupported(Symb.ExportName,AContext,20211020144404);
       end;
@@ -18082,7 +18082,7 @@ begin
       begin
       if Decl.Name='' then
         RaiseNotSupported(Symb,AContext,20211020144730);
-      ExpNameJS.Alias:=Decl.Name;
+      ExpNameJS.Alias:=TJSString(Decl.Name);
       end;
     end;
 end;
@@ -19272,7 +19272,7 @@ begin
 
     FuncVD:=TJSVarDeclaration(CreateElement(TJSVarDeclaration,El));
     AddToSourceElements(Src,FuncVD);
-    FuncVD.Name:='this.'+MemberFuncName[Kind];
+    FuncVD.Name:=TJSString('this.'+MemberFuncName[Kind]);
     Func:=CreateFunctionSt(El);
     FuncVD.Init:=Func;
     Func.AFunction.Body.A:=New_Src;
@@ -21647,7 +21647,7 @@ var
     FuncSt:=CreateFunctionSt(PosEl);
     ObjLit.Expr:=FuncSt;
     if SetterArgName<>'' then
-      FuncSt.AFunction.TypedParams.AddParam(SetterArgName);
+      FuncSt.AFunction.TypedParams.AddParam(TJSString(SetterArgName));
     if RgCheck<>nil then
       begin
       List:=TJSStatementList(CreateElement(TJSStatementList,PosEl));
@@ -22239,7 +22239,7 @@ begin
       FuncSt:=CreateFunctionSt(El);
       ObjLit.Expr:=FuncSt;
       SetterArgName:=TempRefObjSetterArgName;
-      FuncSt.AFunction.TypedParams.AddParam(SetterArgName);
+      FuncSt.AFunction.TypedParams.AddParam(TJSString(SetterArgName));
       AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
       FuncSt.AFunction.Body.A:=AssignSt;
       AssignSt.LHS:=CreateMemberExpression(['this',ValueName]);
@@ -22333,7 +22333,7 @@ begin
     RaiseNotSupported(El,AContext,20170208141926,'absolute');
 
   V:=TJSVarDeclaration(CreateElement(TJSVarDeclaration,El));
-  V.Name:=TransformElToJSName(El,AContext);
+  V.Name:=TJSString(TransformElToJSName(El,AContext));
   V.Init:=CreateVarInit(El,AContext);
   Result:=V;
 end;
@@ -24529,7 +24529,7 @@ function TPasToJSConverter.CreateVarDecl(const aName: String; Init: TJSElement;
   El: TPasElement): TJSVarDeclaration;
 begin
   Result:=TJSVarDeclaration(CreateElement(TJSVarDeclaration,El));
-  Result.Name:=aName;
+  Result.Name:=TJSString(aName);
   Result.Init:=Init;
 end;
 
@@ -26554,7 +26554,7 @@ begin
     FuncSt:=CreateFunctionSt(El);
     ObjLit.Expr:=FuncSt;
     if SetterArgName<>'' then
-      FuncSt.AFunction.TypedParams.AddParam(SetterArgName);
+      FuncSt.AFunction.TypedParams.AddParam(TJSString(SetterArgName));
     if RgCheck<>nil then
       begin
       StList:=TJSStatementList(CreateElement(TJSStatementList,El));
