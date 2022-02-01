@@ -731,9 +731,6 @@ end;
 
 procedure TJSONToPascal.GenerateClearArray(M,IM : TPropertyMapItem);
 
-Var
-  IP : String;
-
 begin
   AddLn('');
   AddLn('Procedure ClearArray(Var anArray : %s);',[M.TypeName]);
@@ -849,11 +846,9 @@ procedure TJSONToPascal.GenerateCreateObjectfpJSON(M : TPropertyMapItem);
 
 Var
   IP : String;
-  IM : TPropertyMapItem;
 
 begin
   IP:=AddToPath(M.Path,'[0]');
-  IM:=FPropertyMap.FindPath(IP);
   AddLn('');
   Indent;
   AddLn('Function CreateObject%s(AnObject : TJSONData) : %s;',[M.TypeName,M.TypeName]);
@@ -934,8 +929,6 @@ function TJSONToPascal.GenerateAssign(IM: TPropertyMapItem; AVarName, AJSONName:
 
 Var
   T : String;
-  C : Boolean;
-
 begin
   T:='';
   Case LowerCase(IM.TypeName) of

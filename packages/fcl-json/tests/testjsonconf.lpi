@@ -35,11 +35,11 @@
     </RequiredPackages>
     <Units Count="3">
       <Unit0>
-        <Filename Value="testjsonconf.pp"/>
+        <Filename Value="testjsonconf.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
-        <Filename Value="jsonconftest.pp"/>
+        <Filename Value="jsonconftest.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit1>
       <Unit2>
