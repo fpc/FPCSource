@@ -773,7 +773,9 @@ begin
     Usage(S);
   if HasOption('V','version') then
     begin
+    {AllowWriteln}
     writeln(HTTPCompilerVersion);
+    {AllowWriteln-}
     Terminate;
     exit;
     end;
