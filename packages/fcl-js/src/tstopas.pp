@@ -1779,6 +1779,7 @@ begin
         DoLog(SLogParsedNDefinitions, [FContext.FTypeMap.Count]);
     finally
       Context.PopScope(SourceElements,Fwds);
+      Fwds.Free;
     end;
     if Assigned(TypeAliases) then
       FContext.AddAliases(TypeAliases);
