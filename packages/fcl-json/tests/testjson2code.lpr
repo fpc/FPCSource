@@ -3,7 +3,7 @@ program testjson2code;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, consoletestrunner, fpjsontopas;
+  Classes, consoletestrunner, fpjsontopas, tcjsontocode;
 
 type
 
