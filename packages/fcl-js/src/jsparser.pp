@@ -288,9 +288,9 @@ begin
   else
     begin
     FCurrent:=FScanner.FetchToken;
-    FCurrentString:=FScanner.CurTokenString;
+    FCurrentString:=JSBase.TJSString(FScanner.CurTokenString);
     if (FCurrentString='') then
-       FCurrentString:=TokenInfos[FCurrent];
+       FCurrentString:=JSBase.TJSString(TokenInfos[FCurrent]);
     end;
   Result:=FCurrent;
   {$ifdef debugparser}Writeln('GetNextToken (',FScanner.CurLine,',',FScanner.CurColumn,'): ',GetEnumName(TypeInfo(TJSToken),Ord(FCurrent)), ' As string: ',FCurrentString);{$endif debugparser}
@@ -301,7 +301,7 @@ begin
   If (FPeekToken=tjsUnknown) then
     begin
     FPeekToken:=FScanner.FetchToken;
-    FPeekTokenString:=FScanner.CurTokenString;
+    FPeekTokenString:=JSBase.TJSString(FScanner.CurTokenString);
     end;
   {$ifdef debugparser}Writeln('PeekNextToken : ',GetEnumName(TypeInfo(TJSToken),Ord(FPeekToken)), ' As string: ',FPeekTokenString);{$endif debugparser}
   Result:=FPeekToken;
@@ -1183,6 +1183,7 @@ Function TJSParser.ParseTypeArrayDef(aOptions : TParseTypeOptions; aSub : TJSTyp
 // On exit, after ]
 
 begin
+  if aOptions=[] then ;
   Result:=TJSArrayTypeDef(CreateElement(TJSArrayTypeDef));
   Result.BaseType:=aSub;
   Consume(tjsSQuaredBraceOpen);
@@ -1222,6 +1223,7 @@ Function TJSParser.ParseTypeTuple(aOptions : TParseTypeOptions) : TJSTupleTypeDe
 
 
 begin
+  if aOptions=[] then ;;
   Result:=TJSTupleTypeDef(CreateElement(TJSTupleTypeDef));
   ParseTypeList(Result.Values,tjsSQuaredBraceClose,ltTuple);
   Consume(tjsSQuaredBraceClose);
@@ -3669,6 +3671,8 @@ function TJSParser.ParseTypeStatement(Elements : TJSSourceElements; ScopeType : 
 
 begin
   Result:=Nil;
+  if ScopeType=stClass then ;
+
   if IsIdentifier('module') then
     Result:=Self.ParseModuleDeclarationStatement
   else if IsIdentifier('namespace') or IsIdentifier('global') then
@@ -3718,14 +3722,14 @@ Var
 
   begin
     if CurrentToken in StatementTokens then
-       begin
-       E:=Self.ParseStatement(IsAmbient);
-       Result.Statements.AddNode(IsAmbient).Node:=E;
-       if E is TJSExportStatement then
-         AddToElements(Result,TJSExportStatement(E).Declaration,IsAmbient,True);
-       end
-     else
-       Done:=True;
+      begin
+      E:=Self.ParseStatement(IsAmbient);
+      Result.Statements.AddNode(IsAmbient).Node:=E;
+      if E is TJSExportStatement then
+        AddToElements(Result,TJSExportStatement(E).Declaration,IsAmbient,True);
+      end
+    else
+      Done:=True;
   end;
 
 begin
@@ -3877,9 +3881,9 @@ begin
   For I:=0 to aClassDef.ElementCount-1 do
     begin
     El:=aClassDef.Elements[i];
-    if el is TJSPropertyDeclaration then
+    if El is TJSPropertyDeclaration then
       aClass.Members.Vars.AddNode(True,False).Node:=El
-    else if el is TJSMethodDeclaration then
+    else if El is TJSMethodDeclaration then
       aClass.Members.Functions.AddNode(True,False).Node:=El;
     end;
 end;

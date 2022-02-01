@@ -1231,15 +1231,15 @@ Type
 
   TJSSourceElements = Class(TJSElement)
   private
+    FClasses: TJSElementNodes;
+    FEnums: TJSElementNodes;
     FFunctions: TJSElementNodes;
+    FInterfaces : TJSElementNodes;
     FModules: TJSElementNodes;
     FNamespaces: TJSElementNodes;
     FStatements: TJSElementNodes;
-    FInterfaces : TJSElementNodes;
     FTypes: TJSElementNodes;
-    FEnums: TJSElementNodes;
     FVars: TJSElementNodes;
-    FClasses: TJSElementNodes;
   Public
     Constructor Create(ALine,AColumn : Integer; const ASource : String = ''); override;
     Destructor Destroy; override;
@@ -1732,6 +1732,8 @@ Type
     Property Decl : TJSModuleDeclaration Read FDecl Write FDecl;
   end;
 
+  { TJSNamespaceDeclaration }
+
   TJSNamespaceDeclaration = Class(TJSNamedMembersDeclaration)
   Private
     FIsGlobal : Boolean;
@@ -1965,6 +1967,11 @@ end;
 
 destructor TJSAmbientClassDeclaration.Destroy;
 begin
+  if Members<>nil then
+    begin
+    Members.Vars.ClearNodes;
+    Members.Functions.ClearNodes;
+    end;
   FreeAndNil(FClassDef);
   inherited Destroy;
 end;
@@ -2328,6 +2335,7 @@ end;
 
 destructor TJSMembersDeclaration.Destroy;
 begin
+  FreeAndNil(FMembers);
   inherited Destroy;
 end;
 
@@ -3430,8 +3438,7 @@ end;
 
 { TJSSourceElements }
 
-constructor TJSSourceElements.Create(ALine, AColumn: Integer; const ASource: String
-  );
+constructor TJSSourceElements.Create(ALine, AColumn: Integer; const ASource: String);
 
   Function CN(aName : String; DoClear : Boolean = True) : TJSElementNodes;
   begin
@@ -3442,30 +3449,28 @@ constructor TJSSourceElements.Create(ALine, AColumn: Integer; const ASource: Str
 
 begin
   inherited Create(ALine, AColumn, ASource);
-  FStatements:=CN('Statements',False);
-  FFunctions:=CN('Functions',False);
-  FVars:=CN('Vars');
   FClasses:=CN('Classes');
+  FEnums:=CN('Enums');
+  FFunctions:=CN('Functions',False);
+  FInterfaces:=CN('Interfaces');
   FModules:=CN('Modules');
   FNamespaces:=CN('Namespaces');
+  FStatements:=CN('Statements',False);
   FTypes:=CN('Types');
-  FInterfaces:=CN('Interfaces');
-  FEnums:=CN('Enums');
+  FVars:=CN('Vars');
 end;
 
 destructor TJSSourceElements.Destroy;
-
-
 begin
   // Vars, types, enums, classes, interfaces are owned by their statements, and those are freed later
   FreeAndNil(FVars);
-  FreeAndNil(FClasses);
-  FreeAndNil(FEnums);
   FreeAndNil(FTypes);
-  FreeAndNil(FInterfaces);
-  FreeAndNil(FModules);
   FreeAndNil(FNamespaces);
+  FreeAndNil(FModules);
+  FreeAndNil(FInterfaces);
   FreeAndNil(FFunctions);
+  FreeAndNil(FEnums);
+  FreeAndNil(FClasses);
   // Must come last
   FreeAndNil(FStatements);
   inherited Destroy;

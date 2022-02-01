@@ -163,7 +163,7 @@ procedure TTestTSToPas.Convert(aSource: TStrings);
 Var
   S : TStream;
 begin
-  S:=TStringStream.Create(aSource.text);
+  S:=TStringStream.Create(aSource.Text);
   try
     FConverter.InputStream:=S;
     FConverter.Execute;
