@@ -14264,7 +14264,7 @@ begin
       AssignSt.LHS:=SetExpr;
       SetterArgName:=TempRefObjSetterArgName;
       FindAvailableLocalName(SetterArgName,SetExpr);
-      Fun.AFunction.Params.Add(SetterArgName);
+      Fun.AFunction.TypedParams.AddParam(SetterArgName);
       AssignSt.Expr:=CreatePrimitiveDotExpr(SetterArgName,CodeExpr);
       end;
 
@@ -16797,7 +16797,7 @@ begin
 
       // function(a){...
       Func:=CreateFunctionSt(El,true,true);
-      Func.AFunction.Params.Add(SrcArrName);
+      Func.AFunction.TypedParams.AddParam(SrcArrName);
       BodySrc:=Func.AFunction.Body.A as TJSSourceElements;
       FuncContext:=TFunctionContext.Create(El,BodySrc,AContext);
       FuncContext.IsGlobal:=true;
@@ -17246,7 +17246,7 @@ begin
   for n := 0 to El.ProcType.Args.Count - 1 do
     begin
     Arg:=TPasArgument(El.ProcType.Args[n]);
-    FD.Params.Add(TransformElToJSName(Arg,AContext));
+    FD.TypedParams.AddParam(TransformElToJSName(Arg,AContext));
     end;
 
   BodyPas:=ImplProc.Body;
@@ -18445,7 +18445,7 @@ begin
     FDS:=CreateFunctionSt(El);
     AssignSt.Expr:=FDS;
     FD:=FDS.AFunction;
-    FD.Params.Add(EqualParamName);
+    FD.TypedParams.AddParam(EqualParamName);
     // add "return "
     RetSt:=TJSReturnStatement(CreateElement(TJSReturnStatement,El));
     FD.Body.A:=RetSt;
@@ -18547,7 +18547,7 @@ begin
     FDS:=CreateFunctionSt(El);
     AssignSt.Expr:=FDS;
     FD:=FDS.AFunction;
-    FD.Params.Add(SrcParamName);
+    FD.TypedParams.AddParam(SrcParamName);
     Src:=TJSSourceElements(CreateElement(TJSSourceElements,El));
     FD.Body.A:=Src;
 
@@ -21647,7 +21647,7 @@ var
     FuncSt:=CreateFunctionSt(PosEl);
     ObjLit.Expr:=FuncSt;
     if SetterArgName<>'' then
-      FuncSt.AFunction.Params.Add(SetterArgName);
+      FuncSt.AFunction.TypedParams.AddParam(SetterArgName);
     if RgCheck<>nil then
       begin
       List:=TJSStatementList(CreateElement(TJSStatementList,PosEl));
@@ -22239,7 +22239,7 @@ begin
       FuncSt:=CreateFunctionSt(El);
       ObjLit.Expr:=FuncSt;
       SetterArgName:=TempRefObjSetterArgName;
-      FuncSt.AFunction.Params.Add(SetterArgName);
+      FuncSt.AFunction.TypedParams.AddParam(SetterArgName);
       AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
       FuncSt.AFunction.Body.A:=AssignSt;
       AssignSt.LHS:=CreateMemberExpression(['this',ValueName]);
@@ -22254,8 +22254,8 @@ begin
     AssignSt.LHS:=CreatePrimitiveDotExpr('this.'+GetBIName(pbifnHelperNew),El);
     Func:=CreateFunctionSt(El);
     AssignSt.Expr:=Func;
-    Func.AFunction.Params.Add(FunName);
-    Func.AFunction.Params.Add(ArgsName);
+    Func.AFunction.TypedParams.AddParam(FunName);
+    Func.AFunction.TypedParams.AddParam(ArgsName);
     Func.AFunction.Body.A:=New_Src;
     New_Src:=nil;
   finally
@@ -26554,7 +26554,7 @@ begin
     FuncSt:=CreateFunctionSt(El);
     ObjLit.Expr:=FuncSt;
     if SetterArgName<>'' then
-      FuncSt.AFunction.Params.Add(SetterArgName);
+      FuncSt.AFunction.TypedParams.AddParam(SetterArgName);
     if RgCheck<>nil then
       begin
       StList:=TJSStatementList(CreateElement(TJSStatementList,El));
