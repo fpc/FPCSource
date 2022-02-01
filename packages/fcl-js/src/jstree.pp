@@ -2069,8 +2069,8 @@ begin
   if FExtends=Nil then
     FExtends:=TJSElementNodes.Create(TJSElementNode);
   Lit:=TJSLiteral.Create(0,0,'');
-  Lit.Value:=TJSValue.Create(aName);
-  FExtends.AddNode().Node:=Lit
+  Lit.Value.AsString:=aName;
+  FExtends.AddNode().Node:=Lit;
 end;
 
 { TJSEnumStatement }
