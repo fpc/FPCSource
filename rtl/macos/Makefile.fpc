@@ -9,7 +9,7 @@ main=rtl
 loaders=
 units=system uuchar strings objpas iso7185 heaptrc getopts macostp macutils \
       unixutil dos extpas cmem charset cpall ctypes sysconst \
-      softfpu macpas classes fgl types sysutils 
+      softfpu macpas classes fgl types sysutils \
       sfpux80 ufloatx80 sfpu128 ufloat128
 #     macpas \
 #      exec  \
