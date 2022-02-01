@@ -7432,6 +7432,7 @@ begin
     NextToken;
     end;
   Repeat
+    SaveIdentifierPosition;
     C:=ParseConstDecl(AType);
     C.Visibility:=AVisibility;
     AType.Members.Add(C);
