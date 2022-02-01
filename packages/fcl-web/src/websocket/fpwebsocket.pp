@@ -645,7 +645,7 @@ begin
   repeat
     SetLength(buf, aCount);
     Result := FSocket.ReadData(buf, aCount - aPos);
-    if Result = -1 then
+    if Result <= 0 then
       break;
     SetLength(buf, Result);
     Move(buf[0], aBytes[aPos], Result);
