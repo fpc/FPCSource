@@ -24,7 +24,7 @@ uses
   {$ifdef pas2js}
   JS,
   {$endif}
-  SysUtils, jsbase, jstree;
+  SysUtils, Classes, jsbase, jstree;
 
 Type
   {$ifdef pas2js}
@@ -935,6 +935,8 @@ Var
   C : Boolean;
   I : Integer;
   A, LastEl: TJSElement;
+  OldParams: TStrings;
+  TypedParams: TJSTypedParams;
 
 begin
   LastEl:=Writer.CurElement;
@@ -945,13 +947,26 @@ begin
   If (FD.Name<>'') then
     Write(FD.Name);
   Write('(');
-  if Assigned(FD.Params) then
-    For I:=0 to FD.Params.Count-1 do
+  TypedParams:=FD.TypedParams;
+  if TypedParams.Count>0 then
+    begin
+    For I:=0 to TypedParams.Count-1 do
       begin
-      write(FD.Params[i]);
-      if I<FD.Params.Count-1 then
+      write(TypedParams[i].Name);
+      if I<TypedParams.Count-1 then
         if C then Write(',') else Write (', ');
-      end;
+      end
+    end
+  else
+    begin
+    OldParams:=FD.Params;
+    For I:=0 to OldParams.Count-1 do
+      begin
+      write(OldParams[i]);
+      if I<OldParams.Count-1 then
+        if C then Write(',') else Write (', ');
+      end
+    end;
   Write(') {');
   if Not (C or FD.IsEmpty) then
     begin

@@ -147,7 +147,7 @@ Type
     Procedure UpdateParams;
     Property TypedParams : TJSTypedParams Read FTypedParams;
     Property ResultType : TJSTypeDef Read FResultType Write FResultType;
-    Property Params : TStrings Read FParams; deprecated;
+    Property Params : TStrings Read FParams; deprecated 'use TypedParams instead';
     Property Body : TJSFunctionBody Read FBody Write FBody; // can be nil
     Property Name : TJSString Read FName Write FName;
     Property IsEmpty : Boolean Read FIsEmpty Write FIsEmpty;
