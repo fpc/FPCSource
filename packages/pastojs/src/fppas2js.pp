@@ -15230,7 +15230,7 @@ begin
     if C=nil then
       RaiseInconsistency(20180501114300,El);
     V:=TJSVariableStatement(CreateElement(TJSVariableStatement,El));
-    V.A:=C;
+    V.VarDecl:=C;
     Result:=V;
     end;
 end;
@@ -16827,7 +16827,7 @@ begin
         // var NewArr = [];
         VarSt:=TJSVariableStatement(CreateElement(TJSVariableStatement,El));
         VarDecl:=TJSVarDeclaration(CreateElement(TJSVarDeclaration,El));
-        VarSt.A:=VarDecl;
+        VarSt.VarDecl:=VarDecl;
         VarDecl.Name:=NewArrName;
         VarDecl.Init:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));
         AddLoopSt(VarSt);
@@ -17736,7 +17736,7 @@ begin
     VarSt:=TJSVariableStatement(CreateElement(TJSVariableStatement,El.CaseExpr));
     StList.A:=VarSt;
     VarDecl:=TJSVarDeclaration(CreateElement(TJSVarDeclaration,El.CaseExpr));
-    VarSt.A:=VarDecl;
+    VarSt.VarDecl:=VarDecl;
     VarDecl.Name:=TmpVar.Name;
     VarDecl.Init:=ConvertExpression(El.CaseExpr,AContext);
 
@@ -19827,7 +19827,7 @@ begin
       end;
     // var $in=
     CurInVar:=FuncContext.AddLocalVar(GetBIName(pbivnLoopIn),El.VariableName,cvkNone,true);
-    VarSt.A:=CreateVarDecl(CurInVar.Name,Call,PosEl);
+    VarSt.VarDecl:=CreateVarDecl(CurInVar.Name,Call,PosEl);
 
     PosEl:=El.VariableName;
     TrySt:=nil;
@@ -23402,7 +23402,7 @@ begin
         begin
         // add for("var $l" in <startexpr>)
         VarStat:=TJSVariableStatement(CreateElement(TJSVariableStatement,PosEl));
-        VarStat.A:=CreatePrimitiveDotExpr(CurLoopVarName,PosEl);
+        VarStat.VarDecl:=CreatePrimitiveDotExpr(CurLoopVarName,PosEl);
         TJSForInStatement(ForSt).LHS:=VarStat;
         end
       else
@@ -24349,14 +24349,14 @@ procedure TPasToJSConverter.AddToVarStatement(VarStat: TJSVariableStatement;
 var
   List: TJSVariableDeclarationList;
 begin
-  if VarStat.A=nil then
-    VarStat.A:=Add
+  if VarStat.VarDecl=nil then
+    VarStat.VarDecl:=Add
   else
     begin
     List:=TJSVariableDeclarationList(CreateElement(TJSVariableDeclarationList,Src));
-    List.A:=VarStat.A;
+    List.A:=VarStat.VarDecl;
     List.B:=Add;
-    VarStat.A:=List;
+    VarStat.VarDecl:=List;
     end;
 end;
 
@@ -24522,7 +24522,7 @@ function TPasToJSConverter.CreateVarStatement(const aName: String;
 // create "var aname = init"
 begin
   Result:=TJSVariableStatement(CreateElement(TJSVariableStatement,El));
-  Result.A:=CreateVarDecl(aName,Init,El);
+  Result.VarDecl:=CreateVarDecl(aName,Init,El);
 end;
 
 function TPasToJSConverter.CreateVarDecl(const aName: String; Init: TJSElement;
@@ -26854,7 +26854,7 @@ begin
     if C=nil then
       RaiseInconsistency(20180501114422,El);
     V:=TJSVariableStatement(CreateElement(TJSVariableStatement,El));
-    V.A:=C;
+    V.VarDecl:=C;
     AddToSourceElements(Src,V);
 
     if (coStoreImplJS in Options) and (AContext.Resolver<>nil) then
