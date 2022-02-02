@@ -158,7 +158,7 @@ Type
   end;
 
   { TJSElement }
-
+  
   TJSElement = Class(TJSObject)
   private
     FData: TObject;
@@ -167,8 +167,10 @@ Type
     FColumn: Integer;
     FSource: String;
   Public
+    Type
+      TFreeNotifyEvent = Procedure(aEl : TJSElement) of object;
     class var
-      GlobalFreeHook : Procedure(aEl : TJSElement) of object;
+      GlobalFreeHook : TFreeNotifyEvent;
   Public
     Constructor Create(ALine,AColumn : Integer; Const ASource : String = ''); virtual;
     Destructor Destroy; override;
