@@ -405,6 +405,12 @@ endif
 ifdef MIPSEL
 PPC_TARGET=mipsel
 endif
+ifdef MIPS64
+PPC_TARGET=mips64
+endif
+ifdef MIPS64EL
+PPC_TARGET=mips64el
+endif
 ifdef AVR
 PPC_TARGET=avr
 endif
@@ -535,6 +541,12 @@ endif
 ifeq ($(CPC_TARGET),mipsel)
 CPUSUF=mipsel
 endif
+ifeq ($(CPC_TARGET),mips64)
+CPUSUF=mips64
+endif
+ifeq ($(CPC_TARGET),mips64el)
+CPUSUF=mips64el
+endif
 ifeq ($(CPC_TARGET),avr)
 CPUSUF=avr
 ALLOW_WARNINGS=1
@@ -640,7 +652,16 @@ endif
 ifeq ($(PPC_TARGET),armeb)
 override LOCALOPT+=-Fuarmgen
 endif
+ifeq ($(PPC_TARGET),mips)
+override LOCALOPT+=-Fumips
+endif
 ifeq ($(PPC_TARGET),mipsel)
+override LOCALOPT+=-Fumips
+endif
+ifeq ($(PPC_TARGET),mips64)
+override LOCALOPT+=-Fumips
+endif
+ifeq ($(PPC_TARGET),mips64el)
 override LOCALOPT+=-Fumips
 endif
 ifeq ($(PPC_TARGET),jvm)
@@ -4886,8 +4907,8 @@ endif
 ifdef TEMPWPONAME2PREFIX
 	$(MAKE) g$(TEMPWPONAME2) COMPILERTEMPNAME=$(TEMPWPONAME2)
 endif
-PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 mips mipsel avr jvm i8086 aarch64 sparc64 riscv32 riscv64 xtensa z80 wasm32
-PPC_SUFFIXES=386 68k ppc sparc arm armeb x64 ppc64 mips mipsel avr jvm 8086 a64 sparc64 rv32 rv64 xtensa z80 wasm32
+PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 mips mipsel mips64 mips64el avr jvm i8086 aarch64 sparc64 riscv32 riscv64 xtensa z80 wasm32
+PPC_SUFFIXES=386 68k ppc sparc arm armeb x64 ppc64 mips mipsel mips64 mips64el avr jvm 8086 a64 sparc64 rv32 rv64 xtensa z80 wasm32
 INSTALL_TARGETS=$(addsuffix _exe_install,$(sort $(CYCLETARGETS) $(PPC_TARGETS)))
 SYMLINKINSTALL_TARGETS=$(addsuffix _symlink_install,$(sort $(CYCLETARGETS) $(PPC_TARGETS)))
 .PHONY: $(PPC_TARGETS) $(INSTALL_TARGETS)$(SYMLINKINSTALL_TARGETS)
@@ -5184,7 +5205,7 @@ ifeq ($(findstring -dFPC_SOFT_FPUX80,$(LOCALOPT)),)
 ifeq ($(OS_SOURCE),win64)
   EXCLUDE_80BIT_TARGETS=1
 endif
-ifneq ($(findstring $(CPU_SOURCE),aarch64 arm avr jvm m68k mips mipsel powerpc powerpc64 sparc sparc64 riscv32 riscv64 xtensa),)
+ifneq ($(findstring $(CPU_SOURCE),aarch64 arm avr jvm m68k mips mipsel mips64 mips64el powerpc powerpc64 sparc sparc64 riscv32 riscv64 xtensa),)
   EXCLUDE_80BIT_TARGETS=1
 endif
 endif
