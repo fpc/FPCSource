@@ -18,7 +18,96 @@ unit vdi;
 interface
 
 { The API description of this file is based on the information available
-  online at: http://toshyp.atari.org }
+  online at: https://freemint.github.io/tos.hyp/en/index.html }
+
+const
+	GDOS_NONE		= -2;			(* no GDOS installed           *)
+	GDOS_FSM		= $5F46534D;	(* '_FSM' - FSMGDOS installed  *)
+	GDOS_FNT		= $5F464E54;	(* '_FNT' - FONTGDOS installed *)
+
+const
+{* vst_alignment modes *}
+	TA_LEFT			= 0;
+	TA_CENTER		= 1;
+	TA_RIGHT		= 2;
+	TA_BASELINE		= 0;
+	TA_HALF			= 1;
+	TA_ASCENT		= 2;
+	TA_BOTTOM		= 3;
+	TA_DESCENT		= 4;
+	TA_TOP			= 5;
+
+{* gsx modes *}
+	MD_REPLACE		= 1;
+	MD_TRANS		= 2;
+	MD_XOR			= 3;
+	MD_ERASE		= 4;
+
+{* gsx styles *}
+	FIS_HOLLOW		= 0;
+	FIS_SOLID		= 1;
+	FIS_PATTERN		= 2;
+	FIS_HATCH		= 3;
+	FIS_USER		= 4;
+
+{* polymarker types *}
+	MT_DOT			= 1;
+	MT_PLUS			= 2;
+	MT_ASTERISK		= 3;
+	MT_SQUARE		= 4;
+	MT_DCROSS		= 5;
+	MT_DIAMOND		= 6;
+
+{* linetypes *}
+	LT_SOLID		= 1;
+	LT_LONGDASH		= 2;
+	LT_DOTTED		= 3;
+	LT_DASHDOT		= 4;
+	LT_DASHED		= 5;
+	LT_DASHDOTDOT	= 6;
+	LT_USERDEF		= 7;
+
+{* line ends *}
+	LE_SQUARED		= 0;
+	LE_ARROWED		= 1;
+	LE_ROUNDED		= 2;
+
+{* text effects *}
+	TF_NORMAL		= 0;
+	TF_THICKENED	= 1;
+	TF_LIGHTENED	= 2;
+	TF_SLANTED		= 4;
+	TF_UNDERLINED	= 8;
+	TF_OUTLINED		= 16;
+	TF_SHADOWED		= 32;
+
+{* bit blt rules *}
+	ALL_WHITE		= 0;
+	S_AND_D			= 1;
+	S_AND_NOTD		= 2;
+	S_ONLY			= 3;
+	NOTS_AND_D		= 4;
+	D_ONLY			= 5;
+	S_XOR_D			= 6;
+	S_OR_D			= 7;
+	NOT_SORD		= 8;
+	NOT_SXORD		= 9;
+	D_INVERT		= 10;
+	S_OR_NOTD		= 11;
+	NOT_D			= 12;
+	NOTS_OR_D		= 13;
+	NOT_SANDD		= 14;
+	ALL_BLACK		= 15;
+
+{* input mode *}
+	MODE_REQUEST	= 1;
+	MODE_SAMPLE		= 2;
+
+{* vqin_mode & vsin_mode modes *}
+	DEV_LOCATOR		= 1;
+	DEV_VALUATOR	= 2;
+	DEV_CHOICE		= 3;
+	DEV_STRING		= 4;
 
 type
   PCOLOR_RGB = ^TCOLOR_RGB;
@@ -106,6 +195,11 @@ type
   end;
 
 type
+	String33	= String[33];
+	String80	= String[80];
+	String125	= String[125];
+
+type
   PVDIContrl = ^TVDIContrl;
   TVDIContrl = array[0..11] of smallint;
 
@@ -130,6 +224,35 @@ type
       intout: PVDIIntOut;        {* Pointer to intout array *}
       ptsout: PVDIPtsOut;        {* Pointer to ptsout array *}
   end;
+
+	PFONT_HDR = ^TFONT_HDR;
+	TFONT_HDR = record
+		font_id			: smallint;
+		point			: smallint;
+		name			: Array[0..31] of Char;
+		first_ade		: Word;
+		last_ade		: Word;
+		top				: Word;
+		ascent			: Word;
+		half			: Word;
+		descent			: Word;
+		bottom			: Word;
+		max_char_width	: Word;
+		max_cell_width	: Word;
+		left_offset		: Word;
+		right_offset	: Word;
+		thicken			: Word;
+		ul_size			: Word;
+		lighten			: Word;
+		skew			: Word;
+		flags			: Word;
+		hor_table		: Pointer;
+		off_table		: Pointer;
+		dat_table		: Pointer;
+		form_width		: Word;
+		form_height		: Word;
+		next_font		: PFONT_HDR;
+	end;
 
 const
   VDI_TRAP_MAGIC = $73;

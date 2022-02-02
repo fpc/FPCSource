@@ -17,8 +17,10 @@ unit aes;
 
 interface
 
+uses sysutils;
+
 { The API description of this file is based on the information available
-  online at: http://toshyp.atari.org }
+  online at: https://freemint.github.io/tos.hyp/en/index.html }
 
 type
   PAESContrl = ^TAESContrl;
@@ -63,6 +65,151 @@ type
 const
   AES_TRAP_MAGIC = $C8;
 
+{ object flags }
+const
+    NONE            = 0;
+    SELECTABLE      = 1;
+    DEFAULT         = 2;
+    F_EXIT          = 4;
+    EDITABLE        = 8;
+    RBUTTON         = 16;
+    LASTOB          = 32;
+    TOUCHEXIT       = 64;
+    HIDETREE        = 128;
+    INDIRECT        = 256;
+    FL3DMASK        = $0600;
+    FL3DNONE        = $0000;
+    FL3DIND         = $0200;
+    FL3DBAK         = $0400;
+    FL3DACT         = $0600;
+    SUBMENU         = $0800;         {* falcon aes hierarchical menus *}
+
+{ object state }
+const
+    NORMAL          = $0000;
+    SELECTED        = $0001;
+    CROSSED         = $0002;
+    CHECKED         = $0004;
+    DISABLED        = $0008;
+    OUTLINED        = $0010;
+    SHADOWED        = $0020;
+    WHITEBAK        = $0040;
+    DRAW3D          = $0080;
+
+{ AES object types }
+const
+    G_BOX           = 20;
+    G_TEXT          = 21;
+    G_BOXTEXT       = 22;
+    G_IMAGE         = 23;
+    G_USERDEF       = 24;
+    G_IBOX          = 25;
+    G_BUTTON        = 26;
+    G_BOXCHAR       = 27;
+    G_STRING        = 28;
+    G_FTEXT         = 29;
+    G_FBOXTEXT      = 30;
+    G_ICON          = 31;
+    G_TITLE         = 32;
+    G_CICON         = 33;
+    G_SWBUTTON      = 34;
+    G_POPUP         = 35;
+    G_WINTITLE      = 36;
+    G_EDIT          = 37;
+    G_SHORTCUT      = 38;
+    G_SLIST         = 39;
+    G_EXTBOX        = 40;
+    G_OBLINK        = 41;
+
+
+type
+    PTEDINFO = ^TTEDINFO;
+    TTEDINFO = record
+        te_ptext        : Pchar;
+        te_ptmplt       : Pchar;
+        te_pvalid       : Pchar;
+        te_font         : Integer;
+        te_resvd1       : Integer;
+        te_just         : Integer;
+        te_color        : Integer;
+        te_resvd2       : Integer;
+        te_thickness    : Integer;
+        te_txtlen       : Integer;
+        te_tmplen       : Integer;
+    end;
+
+    PICONBLK = ^TICONBLK;
+    TICONBLK = record
+        ib_pmask        : Pointer;
+        ib_pdata        : Pointer;
+        ib_ptext        : Pchar;
+        ib_char         : smallint;
+        ib_xchar        : smallint;
+        ib_ychar        : smallint;
+        ib_xicon        : smallint;
+        ib_yicon        : smallint;
+        ib_wicon        : smallint;
+        ib_hicon        : smallint;
+        ib_xtext        : smallint;
+        ib_ytext        : smallint;
+        ib_wtext        : smallint;
+        ib_htext        : smallint;
+    end;
+
+    PCICON = ^TCICON;
+    TCICON = record
+        num_planes      : smallint;
+        col_data        : Pointer;
+        col_mask        : Pointer;
+        sel_data        : Pointer;
+        sel_mask        : Pointer;
+        next_res        : PCICON;
+    end;
+
+    PCICONBLK = ^TCICONBLK;
+    TCICONBLK = record
+        monoblk         : TICONBLK;
+        mainlist        : PCICON;
+    end;
+
+    PBITBLK = ^TBITBLK;
+    TBITBLK = record
+        bi_pdata        : Pointer;
+        bi_wb           : smallint;
+        bi_hl           : smallint;
+        bi_x            : smallint;
+        bi_y            : smallint;
+        bi_color        : smallint;
+    end;
+
+    PUSERBLK = ^TUSERBLK;
+    TUSERBLK = record
+        ub_code         : Pointer;
+        ub_parm         : LongInt;
+    end;
+
+    POBSPEC = ^TOBSPEC;
+    TOBSPEC = record
+        case smallint of
+            0,
+            G_BOX,
+            G_IBOX,
+            G_BOXCHAR:  ( index:        LongInt     );
+            G_BOXTEXT,
+            G_TEXT,
+            G_FTEXT,
+            G_FBOXTEXT: ( ted_info:     PTEDINFO    );
+            G_IMAGE:    ( bit_blk:  PBITBLK );
+            G_USERDEF:  ( user_blk:     PUSERBLK    );
+            G_BUTTON,
+            G_STRING,
+            G_TITLE:    ( free_string:  Pchar       );
+            G_ICON:     ( icon_blk: PICONBLK    );
+            G_CICON:    ( cicon_blk:    PCICONBLK   );
+
+            INDIRECT:   ( ob_spec:  POBSPEC );
+    end;
+
 type
   PAESOBJECT = ^TAESOBJECT;
   TAESOBJECT = record
@@ -72,12 +219,91 @@ type
     ob_type: word;       {* Object type                   *}
     ob_flags: word;      {* Manipulation flags            *}
     ob_state: word;      {* Object status                 *}
-    ob_spec: pointer;    {* More under object type        *}
+    ob_spec: TOBSPEC;    {* More under object type        *}
     ob_x: smallint;      {* X-coordinate of the object    *}
     ob_y: smallint;      {* Y-coordinate of the object    *}
     ob_width: smallint;  {* Width of the object           *}
     ob_height: smallint; {* Height of the object          *}
   end;
+
+    PAESTree = ^TAESTree;
+    TAESTree = Array[0..2339] of TAESOBJECT;
+
+    PPARMBLK = ^TPARMBLK;
+    TPARMBLK = record
+        pb_tree         : PAESTree;
+        pb_obj          : smallint;
+        pr_prevstate    : smallint;
+        pr_currstate    : smallint;
+        pb_x            : smallint;
+        pb_y            : smallint;
+        pb_w            : smallint;
+        pb_h            : smallint;
+        pb_xc           : smallint;
+        pb_yc           : smallint;
+        pb_wc           : smallint;
+        pb_hc           : smallint;
+        pb_parm         : LongInt;
+    end;
+
+    PRSHDR = ^TRSHDR;
+    TRSHDR = record
+        rsh_vrsn:       Word;
+        rsh_object:     Word;
+        rsh_tedinfo:    Word;
+        rsh_iconblk:    Word;
+        rsh_bitblk:     Word;
+        rsh_frstr:      Word;
+        rsh_string:     Word;
+        rsh_imdata:     Word;
+        rsh_frimg:      Word;
+        rsh_trindex:    Word;
+        rsh_nobs:       Word;
+        rsh_ntree:      Word;
+        rsh_nted:       Word;
+        rsh_nib:        Word;
+        rsh_nbb:        Word;
+        rsh_nstring:    Word;
+        rsh_nimages:    Word;
+        rsh_rssize:     Word;
+    end;
+
+type
+    ARRAY_2     = ARRAY[0..1] of smallint;
+    ARRAY_3     = ARRAY[0..2] of smallint;
+    ARRAY_4     = ARRAY[0..3] of smallint;
+    ARRAY_5     = ARRAY[0..4] of smallint;
+    ARRAY_6     = ARRAY[0..5] of smallint;
+    ARRAY_8     = ARRAY[0..7] of smallint;
+    ARRAY_10    = ARRAY[0..9] of smallint;
+
+    PEVENT = ^TEVENT;
+    TEVENT = record
+        ev_mflags:      smallint;        { input parameters }
+        ev_mbclicks:    smallint;
+        ev_bmask:       smallint;
+        ev_mbstate:     smallint;
+        ev_mm1flags:    smallint;
+        ev_mm1x:        smallint;
+        ev_mm1y:        smallint;
+        ev_mm1width:    smallint;
+        ev_mm1height:   smallint;
+        ev_mm2flags:    smallint;
+        ev_mm2x:        smallint;
+        ev_mm2y:        smallint;
+        ev_mm2width:    smallint;
+        ev_mm2height:   smallint;
+        ev_mtlocount:   smallint;
+        ev_mthicount:   smallint;
+        ev_mwich:       smallint;       { output parameters }
+        ev_mmox:        smallint;
+        ev_mmoy:        smallint;
+        ev_mmobutton:   smallint;
+        ev_mmokstate:   smallint;
+        ev_mkreturn:    smallint;
+        ev_mbreturn:    smallint;
+        ev_mmgpbuf:     ARRAY_8;
+    end;
 
 type
   PGRECT = ^TGRECT;
@@ -102,28 +328,86 @@ const
   LFARROW = $200;  { Window has a left arrow. }
   RTARROW = $400;  { Window has a right arrow. }
   HSLIDE  = $800;  { Window has a horizontal slider. }
+  MENUBAR = $1000; { Window has a menu bar (XaAES) }
   SMALLER = $4000; { Window has an iconifier. }
+  BORDER  = $8000; { Window has an sizeing border }
 
 { messages as used by evnt_mesag() }
 const
-  WM_REDRAW     = $0014;
-  WM_TOPPED     = $0015;
-  WM_CLOSED     = $0016;
-  WM_FULLED     = $0017;
-  WM_ARROWED    = $0018;
-  WM_HSLID      = $0019;
-  WM_VSLID      = $001a;
-  WM_SIZED      = $001b;
-  WM_MOVED      = $001c;
-  WM_NEWTOP     = $001d;
-  WM_UNTOPPED   = $001e;
-  WM_ONTOP      = $001f;
-  WM_OFFTOP     = $0020;
-  WM_BOTTOMED   = $0021;
-  WM_ICONIFY    = $0022;
-  WM_UNICONIFY  = $0023;
-  WM_ALLICONIFY = $0024;
-  WM_TOOLBAR    = $0025;
+  MN_SELECTED   = 10;
+  WM_REDRAW     = 20;
+  WM_TOPPED     = 21;
+  WM_CLOSED     = 22;
+  WM_FULLED     = 23;
+  WM_ARROWED    = 24;
+  WM_HSLID      = 25;
+  WM_VSLID      = 26;
+  WM_SIZED      = 27;
+  WM_MOVED      = 28;
+  WM_NEWTOP     = 29;
+  WM_UNTOPPED   = 30;
+  WM_ONTOP      = 31;
+  WM_OFFTOP     = 32;
+  WM_BOTTOMED   = 33;
+  WM_ICONIFY    = 34;
+  WM_UNICONIFY  = 35;
+  WM_ALLICONIFY = 36;
+  WM_TOOLBAR    = 37;
+  AC_OPEN       = 40;
+  AC_CLOSE      = 41;
+  CT_UPDATE     = 50;
+  CT_MOVE       = 51;
+  CT_NEWTOP     = 52;
+  AP_TERM       = 50;
+  AP_TFAIL      = 51;
+  AP_RESCHG     = 57;
+  SHUT_COMPLETED = 60;
+  RESCHG_COMPLETED = 61;
+  AP_DRAGDROP   = 63;
+  SH_EXIT       = 68;          {* AES 4.0 *}
+  SH_START      = 69;          {* AES 4.0 *}
+  SH_WDRAW      = 72;          {* AES 4.0 *}
+  SC_CHANGED    = 80;
+  PRN_CHANGED   = 82;          {* NVDI *}
+  FNT_CHANGED   = 83;          {* NVDI *}
+  COLORS_CHANGED = 84;         {* NVDI *}
+  THR_EXIT      = 88;          {* MagiC 4.5 *}
+  PA_EXIT       = 89;          {* MagiC 3 *}
+  CH_EXIT       = 90;
+  WM_WHEEL      = 345;         {* XaAES *}
+  WM_MOUSEWHEEL = 2352;
+  WM_SHADED     = 22360;       {* WiNX *}
+  WM_UNSHADED   = 22361;       {* WinX *}
+
+    WA_UPPAGE       = 0;
+    WA_DNPAGE       = 1;
+    WA_UPLINE       = 2;
+    WA_DNLINE       = 3;
+    WA_LFPAGE       = 4;
+    WA_RTPAGE       = 5;
+    WA_LFLINE       = 6;
+    WA_RTLINE       = 7;
+
+{* AP_DRAGDROP return codes *}
+const
+    DD_OK        = 0;
+    DD_NAK       = 1;
+    DD_EXT       = 2;
+    DD_LEN       = 3;
+    DD_TRASH     = 4;
+    DD_PRINTER   = 5;
+    DD_CLIPBOARD = 6;
+
+    DD_TIMEOUT  = 4000;     {* Timeout in ms *}
+
+    DD_NUMEXTS  = 8;        {* Number of formats *}
+    DD_EXTLEN   = 4;
+    DD_EXTSIZE  = DD_NUMEXTS * DD_EXTLEN;
+
+    DD_FNAME    = 'U:\\PIPE\\DRAGDROP.AA';
+    DD_NAMEMAX  = 128;      {* Maximum length of a format name *}
+    DD_HDRMIN   = 9;            {* Minimum length of Drag&Drop headers *}
+    DD_HDRMAX   = 8 + DD_NAMEMAX;   {* Maximum length *}
 
 { message flags as used by evnt_multi() }
 const
@@ -140,6 +424,7 @@ const
   BEG_UPDATE = (1);  { Screen redraw starts, rectangle lists are frozen, flag is set to prevent any other processes updating the screen }
   END_MCTRL  = (2);  { Application releases control of the mouse to the AES and resumes mouse click message reactions }
   BEG_MCTRL  = (3);  { The application wants to have sole control over mouse button messages }
+  BEG_CHECK  = $100;
 
 { window flags as used by wind_set()/wind_get() }
 const
@@ -159,13 +444,59 @@ const
   WF_HSLSIZE   = (15);
   WF_VSLSIZE   = (16);
   WF_SCREEN    = (17);
+  WF_TATTRB    = 18;
+  WF_DCOLOR    = 19;
+  WF_SIZTOP    = 19;
+  WF_OWNER     = 20;
+  WF_BEVENT    = 24;
+  WF_BOTTOM    = 25;
+  WF_ICONIFY   = 26;
+  WF_UNICONIFY = 27;
+  WF_UNICONIFYXYWH = 28;
   WF_TOOLBAR   = (30);
+  WF_FTOOLBAR  = 31;
+  WF_NTOOLBAR  = 32;
   WF_MENU      = (33);
+  WF_WIDGET    = 34;
+  WF_OPTS      = 41;
+  WF_WINX      = $5758;
+  WF_WINXCFG   = $5759;
+  WF_DDELAY    = $575a;
+  WF_SHADE     = $575d;
+  WF_STACK     = $575e;
+  WF_TOPALL    = $575f;
+  WF_BOTTOMALL = $5760;
+  WF_XAAES     = $5841;
 
 { window calculation types as used by wind_calc() }
 const
   WC_BORDER = 0;
   WC_WORK   = 1;
+
+{ WF_DCOLOR objects }
+const
+    W_BOX           = 0;
+    W_TITLE         = 1;
+    W_CLOSER        = 2;
+    W_NAME          = 3;
+    W_FULLER        = 4;
+    W_INFO          = 5;
+    W_DATA          = 6;
+    W_WORK          = 7;
+    W_SIZER         = 8;
+    W_VBAR          = 9;
+    W_UPARROW       = 10;
+    W_DNARROW       = 11;
+    W_VSLIDE        = 12;
+    W_VELEV         = 13;
+    W_HBAR          = 14;
+    W_LFARROW       = 15;
+    W_RTARROW       = 16;
+    W_HSLIDE        = 17;
+    W_HELEV         = 18;
+    W_SMALLER       = 19;
+    W_BOTTOMER      = 20;
+    W_HIDER         = 30;
 
 { AES standard object colors }
 const
@@ -186,6 +517,47 @@ const
   DYELLOW  = (14);  { Dark yellow     713,  713,    0 }
   DMAGENTA = (15);  { Dark magenta    713,    0,  713 }
 
+{* editable text justification *}
+const
+    TE_LEFT         = 0;
+    TE_RIGHT        = 1;
+    TE_CNTR         = 2;
+    TE_JUST_MASK    = 3;
+
+{* font types *}
+const
+    GDOS_PROP        = 0; {* Speedo GDOS font *}
+    GDOS_MONO        = 1; {* Speedo GDOS font, force monospace output *}
+    GDOS_BITM        = 2; {* GDOS bit map font *}
+    IBM              = 3;
+    SMALL            = 5;
+    TE_FONT_MASK     = 7;
+
+{* editable text field definitions *}
+const
+    ED_START        = 0;
+    ED_INIT         = 1;
+    ED_CHAR         = 2;
+    ED_END          = 3;
+    ED_CRSR         = 100;            {* MAG!X *}
+    ED_DRAW         = 103;            {* MAG!X 2.00 *}
+    EDSTART         = 0;
+    EDINIT          = 1;
+    EDCHAR          = 2;
+    EDEND           = 3;
+
+{* inside patterns *}
+    IP_HOLLOW       = 0;
+    IP_1PATT        = 1;
+    IP_2PATT        = 2;
+    IP_3PATT        = 3;
+    IP_4PATT        = 4;
+    IP_5PATT        = 5;
+    IP_6PATT        = 6;
+    IP_SOLID        = 7;
+
+    ROOT            = 0;
+    MAX_DEPTH       = 8;
 
 { AES mouse form structure }
 type
@@ -254,18 +626,50 @@ const
   R_FRIMG     = 16; { ad_frimg free image                  }
 
 
+type
+    PMENU = ^TMENU;
+    TMENU = record
+        mn_tree:        PAESTree;
+        mn_menu:        smallint;
+        mn_item:        smallint;
+        mn_scroll:      smallint;
+        mn_keystate:    smallint;
+    end;
+
+    PMN_SET = ^TMN_SET;
+    TMN_SET = record
+        Display:        LongInt;
+        Drag:           LongInt;
+        Delay:          LongInt;
+        Speed:          LongInt;
+        Height:     smallint;
+    end;
+
 function appl_exit: smallint;
 function appl_read(ap_rid: smallint; ap_rlength: smallint; ap_rpbuff: pointer): smallint;
 function appl_write(ap_wid: smallint; ap_wlength: smallint; ap_wpbuff: pointer): smallint;
 function appl_find(fname: PChar): smallint;
+function appl_find(ap_fpname: String): smallint;
+function appl_tplay(ap_tpmem: Pointer; ap_tpnum, ap_tpscale: smallint): smallint;
+function appl_trecord(ap_trmem: Pointer; ap_trcount: smallint): smallint;
+function appl_bvset(ap_bvdisk, ap_bvhard: Word): smallint;
+function appl_yield: smallint;
+procedure _appl_yield;
+function appl_search(ap_smode: smallint; ap_sname: Pchar; var ap_stype, ap_sid: smallint): smallint;
+function appl_search(ap_smode: smallint; var ap_sname: String; var ap_stype, ap_sid: smallint): smallint;
+function appl_getinfo(ap_gtype: smallint; var ap_gout1, ap_gout2, ap_gout3, ap_gout4: smallint): smallint;
 function appl_init: smallint;
 
 function evnt_keybd: smallint;
 function evnt_button(ev_bclicks: smallint; ev_bmask: smallint; ev_bstate: smallint;
                      ev_bmx: psmallint; ev_bmy: psmallint; ev_bbutton: psmallint; ev_bkstate: psmallint): smallint;
+function evnt_button(ev_bclicks, ev_bmask, ev_bstate: smallint; var ev_bmx, ev_bmy, ev_bbutton, ev_bkstate: smallint): smallint;
 function evnt_mouse(ev_moflags: smallint; ev_mox: smallint; ev_moy: smallint; ev_mowidth: smallint; ev_moheight: smallint;
                     ev_momx: psmallint; ev_momy: psmallint; ev_mobutton: psmallint; ev_mokstate: psmallint): smallint;
+function evnt_mouse(ev_moflags, ev_mox, ev_moy, ev_mowidth, ev_moheight: smallint;
+	var ev_momx, ev_momy, ev_mobutton, ev_mokstate: smallint): smallint;
 function evnt_mesag(msg: psmallint): smallint;
+function evnt_mesag(var ev_mgpbuff: ARRAY_8): smallint;
 function evnt_timer(ev_tlocount: smallint; ev_thicount: smallint): smallint;
 function evnt_multi(ev_mflags: smallint; ev_mbclicks: smallint; ev_mbmask: smallint; ev_mbstate: smallint;
                     ev_mm1flags: smallint; ev_mm1x: smallint; ev_mm1y: smallint; ev_mm1width: smallint; ev_mm1height: smallint;
@@ -273,6 +677,17 @@ function evnt_multi(ev_mflags: smallint; ev_mbclicks: smallint; ev_mbmask: small
                     ev_mmgpbuff: psmallint; ev_mtlocount: smallint; ev_mthicount: smallint;
                     ev_mmox: psmallint; ev_mmoy: psmallint; ev_mmbutton: psmallint; ev_mmokstate: psmallint;
                     ev_mkreturn: psmallint; ev_mbreturn: psmallint): smallint;
+function evnt_multi(ev_mflags, ev_mbclicks, ev_mbmask,
+		ev_mbstate, ev_mm1flags, ev_mm1x,
+		ev_mm1y, ev_mm1width, ev_mm1height,
+		ev_mm2flags, ev_mm2x, ev_mm2y,
+		ev_mm2width, ev_mm2height: smallint;
+		var ev_mmgpbuf: ARRAY_8;
+		ev_mtlocount, ev_mthicount: smallint;
+		var ev_mmox, ev_mmoy, ev_mmobutton,
+		ev_mmokstate, ev_mkreturn,
+		ev_mbreturn: smallint): smallint;
+function EvntMulti(var evnt_struct: TEVENT): smallint;
 function evnt_dclick(ev_dnew: smallint; ev_dgetset: smallint): smallint;
 
 function menu_bar(me_btree: PAESOBJECT; me_bshow: smallint): smallint;
@@ -339,9 +754,12 @@ function wind_delete(handle: smallint): smallint;
 function wind_get(wi_ghandle: smallint; wi_gfield: smallint;
                   wi_gw1: psmallint; wi_gw2: psmallint;
                   wi_gw3: psmallint; wi_gw4: psmallint): smallint;
+function wind_get(wi_ghandle: smallint; wi_gfield: smallint; gr: PGRECT): smallint;
 function wind_set(wi_shandle: smallint; wi_sfield: smallint;
                   wi_sw1: smallint; wi_sw2: smallint;
                   wi_sw3: smallint; wi_sw4: smallint): smallint;
+function wind_set(wi_shandle: smallint; wi_sfield: smallint; ptr: Pointer): smallint;
+function wind_set(wi_shandle: smallint; wi_sfield: smallint; gr: PGRECT): smallint;
 function wind_find(wi_fmx: smallint; wi_fmy: smallint): smallint;
 function wind_update(wi_ubegend: smallint): smallint;
 function wind_calc(wi_ctype: smallint; wi_ckind: smallint;
@@ -368,6 +786,8 @@ function shel_envrn(sh_epvalue: ppchar; sh_eparm: pchar): smallint;
 
 
 function crys_if(_opcode: dword): smallint;
+function vq_aes: smallint;
+procedure _crystal(pb: PAESPB);
 
 implementation
 
@@ -377,11 +797,11 @@ const
     ( 2, 1, 1, 0 ),    // 11, appl_read
     ( 2, 1, 1, 0 ),    // 12, appl_write
     ( 0, 1, 1, 0 ),    // 13, appl_find
-    ( 2, 1, 1, 0 ),    // 14, appl_tplay !
-    ( 1, 1, 1, 0 ),    // 15, appl_trecord !
-    ( 0, 0, 0, 0 ),    // 16
-    ( 0, 0, 0, 0 ),    // 17
-    ( 1, 3, 1, 0 ),    // 18, appl_search (V4.0) !
+    ( 2, 1, 1, 0 ),    // 14, appl_tplay
+    ( 1, 1, 1, 0 ),    // 15, appl_trecord
+    ( 2, 1, 0, 0 ),    // 16, appl_bvset
+    ( 0, 0, 0, 0 ),    // 17, appl_yield
+    ( 1, 3, 1, 0 ),    // 18, appl_search (V4.0)
     ( 0, 1, 0, 0 ),    // 19, appl_exit
     ( 0, 1, 0, 0 ),    // 20, evnt_keybd 
     ( 3, 5, 0, 0 ),    // 21, evnt_button
@@ -493,7 +913,7 @@ const
     ( 0, 0, 0, 0 ),    // 127
     ( 0, 0, 0, 0 ),    // 128
     ( 0, 0, 0, 0 ),    // 129
-    ( 1, 5, 0, 0 )     // 130, appl_getinfo (V4.0) !
+    ( 1, 5, 0, 0 )     // 130, appl_getinfo (V4.0)
   );
 
 var
@@ -514,9 +934,9 @@ const
     addrout: @_addrout;
   );
 
-function appl_exit: smallint;
+function appl_init: smallint;
 begin
-  appl_exit:=crys_if($13);
+  appl_init:=crys_if(10);
 end;
 
 function appl_read(ap_rid: smallint; ap_rlength: smallint; ap_rpbuff: pointer): smallint;
@@ -525,7 +945,7 @@ begin
   _intin[1]:=ap_rlength;
   _addrin[0]:=ap_rpbuff;
 
-  appl_read:=crys_if($0b);
+  appl_read:=crys_if(11);
 end;
 
 function appl_write(ap_wid: smallint; ap_wlength: smallint; ap_wpbuff: pointer): smallint;
@@ -534,24 +954,97 @@ begin
   _intin[1]:=ap_wlength;
   _addrin[0]:=ap_wpbuff;
 
-  appl_write:=crys_if($0c);
+  appl_write:=crys_if(12);
 end;
 
 function appl_find(fname: PChar): smallint;
 begin
   _addrin[0]:=fname;
-  appl_find:=crys_if($0d);
+  appl_find:=crys_if(13);
 end;
 
-function appl_init: smallint;
+function appl_find(ap_fpname: String): smallint;
+var s: array[0..255] of char;
 begin
-  appl_init:=crys_if($0a);
+  StrPCopy(s, ap_fpname);
+  _addrin[0]:=@s;
+  appl_find:=crys_if(13);
+end;
+
+function appl_tplay(ap_tpmem: Pointer; ap_tpnum, ap_tpscale: smallint): smallint;
+begin
+  _intin[0]:=ap_tpnum;
+  _intin[1]:=ap_tpscale;
+  _addrin[0]:=ap_tpmem;
+  appl_tplay:=crys_if(14);
+end;
+
+function appl_trecord(ap_trmem: Pointer; ap_trcount: smallint): smallint;
+begin
+  _intin[0]:=ap_trcount;
+  _addrin[0]:=ap_trmem;
+  appl_trecord:=crys_if(15);
+end;
+
+function appl_bvset(ap_bvdisk, ap_bvhard: Word): smallint;
+begin
+  _intin[0]:=ap_bvdisk;
+  _intin[1]:=ap_bvhard;
+  appl_bvset:=crys_if(16);
+end;
+
+function appl_yield: smallint;
+begin
+  appl_yield:=crys_if(17);
+end;
+
+procedure _appl_yield;
+begin
+  asm
+    move.w      #$c9,d0
+    trap        #2
+  end;
+end;
+
+function appl_search(ap_smode: smallint; ap_sname: Pchar; var ap_stype, ap_sid: smallint): smallint;
+begin
+  _intin[0]:=ap_smode;
+  _addrin[0]:=ap_sname;
+  appl_search:=crys_if(18);
+  ap_stype:=_intout[1];
+  ap_sid:=_intout[2];
+end;
+
+function appl_search(ap_smode: smallint; var ap_sname: String; var ap_stype, ap_sid: smallint): smallint;
+var s: array[0..255] of char;
+begin
+  _intin[0]:=ap_smode;
+  StrPCopy(s, ap_sname);
+  _addrin[0]:=@s[0];
+  appl_search:=crys_if(18);
+  ap_stype:=_intout[1];
+  ap_sid:=_intout[2];
+end;
+
+function appl_exit: smallint;
+begin
+  appl_exit:=crys_if(19);
+end;
+
+function appl_getinfo(ap_gtype: smallint; var ap_gout1, ap_gout2, ap_gout3, ap_gout4: smallint): smallint;
+begin
+  _intin[0]:=ap_gtype;
+  appl_getinfo:=crys_if(130);
+  ap_gout1:=_intout[1];
+  ap_gout2:=_intout[2];
+  ap_gout3:=_intout[3];
+  ap_gout4:=_intout[4];
 end;
 
 
 function evnt_keybd: smallint;
 begin
-  evnt_keybd:=crys_if($14);
+  evnt_keybd:=crys_if(20);
 end;
 
 function evnt_button(ev_bclicks: smallint; ev_bmask: smallint; ev_bstate: smallint;
@@ -561,12 +1054,28 @@ begin
   _intin[1]:=ev_bmask;
   _intin[2]:=ev_bstate;
 
-  crys_if($15);
+  crys_if(21);
 
   ev_bmx^:=_intout[1];
   ev_bmy^:=_intout[2];
   ev_bbutton^:=_intout[3];
   ev_bkstate^:=_intout[4];
+
+  evnt_button:=_intout[0];
+end;
+
+function evnt_button(ev_bclicks, ev_bmask, ev_bstate: smallint; var ev_bmx, ev_bmy, ev_bbutton, ev_bkstate: smallint): smallint;
+begin
+  _intin[0]:=ev_bclicks;
+  _intin[1]:=ev_bmask;
+  _intin[2]:=ev_bstate;
+
+  crys_if(21);
+
+  ev_bmx:=_intout[1];
+  ev_bmy:=_intout[2];
+  ev_bbutton:=_intout[3];
+  ev_bkstate:=_intout[4];
 
   evnt_button:=_intout[0];
 end;
@@ -580,7 +1089,7 @@ begin
   _intin[3]:=ev_mowidth;
   _intin[4]:=ev_moheight;
 
-  crys_if($16);
+  crys_if(22);
 
   ev_momx^:=_intout[1];
   ev_momy^:=_intout[2];
@@ -590,10 +1099,35 @@ begin
   evnt_mouse:=_intout[0];
 end;
 
+function evnt_mouse(ev_moflags, ev_mox, ev_moy, ev_mowidth, ev_moheight: smallint;
+	var ev_momx, ev_momy, ev_mobutton, ev_mokstate: smallint): smallint;
+begin
+  _intin[0]:=ev_moflags;
+  _intin[1]:=ev_mox;
+  _intin[2]:=ev_moy;
+  _intin[3]:=ev_mowidth;
+  _intin[4]:=ev_moheight;
+
+  crys_if(22);
+
+  ev_momx:=_intout[1];
+  ev_momy:=_intout[2];
+  ev_mobutton:=_intout[3];
+  ev_mokstate:=_intout[4];
+
+  evnt_mouse:=_intout[0];
+end;
+
 function evnt_mesag(msg: psmallint): smallint;
 begin
   _addrin[0]:=msg;
-  evnt_mesag:=crys_if($17);
+  evnt_mesag:=crys_if(23);
+end;
+
+function evnt_mesag(var ev_mgpbuff: ARRAY_8): smallint;
+begin
+  _addrin[0]:=@ev_mgpbuff;
+  evnt_mesag:=crys_if(23);
 end;
 
 function evnt_timer(ev_tlocount: smallint; ev_thicount: smallint): smallint;
@@ -601,7 +1135,7 @@ begin
   _intin[0]:=ev_tlocount;
   _intin[1]:=ev_thicount;
 
-  evnt_timer:=crys_if($18);
+  evnt_timer:=crys_if(24);
 end;
 
 function evnt_multi(ev_mflags: smallint; ev_mbclicks: smallint; ev_mbmask: smallint; ev_mbstate: smallint;
@@ -629,7 +1163,7 @@ begin
   _intin[15]:=ev_mthicount;
   _addrin[0]:=ev_mmgpbuff;
 
-  crys_if($19);
+  crys_if(25);
 
   ev_mmox^:=_intout[1];
   ev_mmoy^:=_intout[2];
@@ -641,12 +1175,86 @@ begin
   evnt_multi:=_intout[0];
 end;
 
+function evnt_multi(ev_mflags, ev_mbclicks, ev_mbmask,
+		ev_mbstate, ev_mm1flags, ev_mm1x,
+		ev_mm1y, ev_mm1width, ev_mm1height,
+		ev_mm2flags, ev_mm2x, ev_mm2y,
+		ev_mm2width, ev_mm2height: smallint;
+		var ev_mmgpbuf: ARRAY_8;
+		ev_mtlocount, ev_mthicount: smallint;
+		var ev_mmox, ev_mmoy, ev_mmobutton,
+		ev_mmokstate, ev_mkreturn,
+		ev_mbreturn: smallint): smallint;
+begin
+  _intin[0]:=ev_mflags;
+  _intin[1]:=ev_mbclicks;
+  _intin[2]:=ev_mbmask;
+  _intin[3]:=ev_mbstate;
+  _intin[4]:=ev_mm1flags;
+  _intin[5]:=ev_mm1x;
+  _intin[6]:=ev_mm1y;
+  _intin[7]:=ev_mm1width;
+  _intin[8]:=ev_mm1height;
+  _intin[9]:=ev_mm2flags;
+  _intin[10]:=ev_mm2x;
+  _intin[11]:=ev_mm2y;
+  _intin[12]:=ev_mm2width;
+  _intin[13]:=ev_mm2height;
+  _intin[14]:=ev_mtlocount;
+  _intin[15]:=ev_mthicount;
+  _addrin[0]:=@ev_mmgpbuf;
+
+  crys_if(25);
+
+  ev_mmox:=_intout[1];
+  ev_mmoy:=_intout[2];
+  ev_mmobutton:=_intout[3];
+  ev_mmokstate:=_intout[4];
+  ev_mkreturn:=_intout[5];
+  ev_mbreturn:=_intout[6];
+
+  evnt_multi:=_intout[0];
+end;
+
+function EvntMulti(var evnt_struct: TEVENT): smallint;
+begin
+  _intin[0]:=evnt_struct.ev_mflags;
+  _intin[1]:=evnt_struct.ev_mbclicks;
+  _intin[2]:=evnt_struct.ev_bmask;
+  _intin[3]:=evnt_struct.ev_mbstate;
+  _intin[4]:=evnt_struct.ev_mm1flags;
+  _intin[5]:=evnt_struct.ev_mm1x;
+  _intin[6]:=evnt_struct.ev_mm1y;
+  _intin[7]:=evnt_struct.ev_mm1width;
+  _intin[8]:=evnt_struct.ev_mm1height;
+  _intin[9]:=evnt_struct.ev_mm2flags;
+  _intin[10]:=evnt_struct.ev_mm2x;
+  _intin[11]:=evnt_struct.ev_mm2y;
+  _intin[12]:=evnt_struct.ev_mm2width;
+  _intin[13]:=evnt_struct.ev_mm2height;
+  _intin[14]:=evnt_struct.ev_mtlocount;
+  _intin[15]:=evnt_struct.ev_mthicount;
+  _addrin[0]:=@evnt_struct.ev_mmgpbuf;
+
+  crys_if(25);
+
+  evnt_struct.ev_mwich:=_intout[0];
+  evnt_struct.ev_mmox:=_intout[1];
+  evnt_struct.ev_mmoy:=_intout[2];
+  evnt_struct.ev_mmobutton:=_intout[3];
+  evnt_struct.ev_mmokstate:=_intout[4];
+  evnt_struct.ev_mkreturn:=_intout[5];
+  evnt_struct.ev_mbreturn:=_intout[6];
+
+  EvntMulti:=_intout[0];
+end;
+
 function evnt_dclick(ev_dnew: smallint; ev_dgetset: smallint): smallint;
 begin
   _intin[0]:=ev_dnew;
   _intin[1]:=ev_dgetset;
 
-  evnt_dclick:=crys_if($1a);
+  evnt_dclick:=crys_if(26);
 end;
 
 
@@ -1020,6 +1628,21 @@ begin
   wind_get:=_intout[0];
 end;
 
+function wind_get(wi_ghandle: smallint; wi_gfield: smallint; gr: PGRECT): smallint;
+begin
+  _intin[0]:=wi_ghandle;
+  _intin[1]:=wi_gfield;
+
+  crys_if($68);
+
+  gr^.x:=_intout[1];
+  gr^.y:=_intout[2];
+  gr^.w:=_intout[3];
+  gr^.h:=_intout[4];
+
+  wind_get:=_intout[0];
+end;
+
 function wind_set(wi_shandle: smallint; wi_sfield: smallint;
                   wi_sw1: smallint; wi_sw2: smallint;
                   wi_sw3: smallint; wi_sw4: smallint): smallint;
@@ -1030,6 +1653,30 @@ begin
   _intin[3]:=wi_sw2;
   _intin[4]:=wi_sw3;
   _intin[5]:=wi_sw4;
+
+  wind_set:=crys_if($69);
+end;
+
+function wind_set(wi_shandle: smallint; wi_sfield: smallint; ptr: Pointer): smallint;
+begin
+  _intin[0]:=wi_shandle;
+  _intin[1]:=wi_sfield;
+  _intin[2]:=dword(ptr) shr 16;
+  _intin[3]:=dword(ptr);
+  _intin[4]:=0;
+  _intin[5]:=0;
+
+  wind_set:=crys_if($69);
+end;
+
+function wind_set(wi_shandle: smallint; wi_sfield: smallint; gr: PGRECT): smallint;
+begin
+  _intin[0]:=wi_shandle;
+  _intin[1]:=wi_sfield;
+  _intin[2]:=gr^.x;
+  _intin[3]:=gr^.y;
+  _intin[4]:=gr^.w;
+  _intin[5]:=gr^.h;
 
   wind_set:=crys_if($69);
 end;
@@ -1179,13 +1826,31 @@ begin
       nums:=ops_table[_opcode-10];
     end;
   asm
-    lea.l       aespb, a0
-    move.l      a0, d1
-    move.w      #AES_TRAP_MAGIC, d0
+    lea.l       aespb,a0
+    move.l      a0, 1
+    move.w      #AES_TRAP_MAGIC,d0
     trap        #2
   end;
   crys_if:=_intout[0];
 end;
 
+
+function vq_aes: smallint;
+begin
+  _global[0] := 0;
+  vq_aes := appl_init;
+  if (_global[0] = 0) then
+    vq_aes := -1;
+end;
+
+procedure _crystal(pb: PAESPB);
+begin
+  asm
+    move.l      pb,a0
+    move.l      a0,d1
+    move.w      #AES_TRAP_MAGIC,d0
+    trap        #2
+  end;
+end;
 
 end.
