@@ -13051,7 +13051,7 @@ begin
       StaticDims.Free;
     end;
     end
-  else if ResolvedParam0.BaseType=btString then
+  else if ResolvedParam0.BaseType in btAllJSStrings then
     begin
     // convert "SetLength(astring,NewLen);" to "astring = rtl.strSetLength(astring,NewLen);"
     {$IFDEF VerbosePasResolver}

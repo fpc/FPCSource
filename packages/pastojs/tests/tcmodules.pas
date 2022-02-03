@@ -8161,24 +8161,35 @@ procedure TTestModule.TestString_SetLength;
 begin
   StartProgram(false);
   Add([
-  'procedure DoIt(var s: string);',
+  'procedure Fly(var s: string);',
+  'begin',
+  '  SetLength(s,1);',
+  'end;',
+  'procedure Run(var s: unicodestring);',
   'begin',
   '  SetLength(s,2);',
   'end;',
   'var s: string;',
+  '  u: unicodestring;',
   'begin',
   '  SetLength(s,3);',
+  '  SetLength(u,4);',
   '']);
   ConvertProgram;
   CheckSource('TestString_SetLength',
     LinesToStr([ // statements
-    'this.DoIt = function (s) {',
+    'this.Fly = function (s) {',
+    '  s.set(rtl.strSetLength(s.get(), 1));',
+    '};',
+    'this.Run = function (s) {',
     '  s.set(rtl.strSetLength(s.get(), 2));',
     '};',
     'this.s = "";',
+    'this.u = "";',
     '']),
     LinesToStr([ // this.$main
-    '$mod.s = rtl.strSetLength($mod.s, 3);'
+    '$mod.s = rtl.strSetLength($mod.s, 3);',
+    '$mod.u = rtl.strSetLength($mod.u, 4);'
     ]));
 end;
 
