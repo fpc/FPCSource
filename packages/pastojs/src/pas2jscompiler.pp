@@ -2815,7 +2815,10 @@ begin
       if Assigned(PostProcessorSupport) then
         PostProcessorSupport.CallPostProcessors(aFile.JSFilename,aFileWriter);
 
-      MapFilename:=aFileWriter.DestFilename+'.map';
+      if SrcMapEnable then
+        MapFilename:=aFileWriter.DestFilename+'.map'
+      else
+        MapFilename:='';
 
       CheckOutputDir(aFileWriter.DestFileName);
 
