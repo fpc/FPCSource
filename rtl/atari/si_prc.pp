@@ -33,9 +33,22 @@ procedure PascalMain; external name 'PASCALMAIN';
 
 { this function must be the first in this unit which contains code }
 {$OPTIMIZATION OFF}
-procedure _FPC_proc_start(pd: PPD); cdecl; public name '_start';
+procedure _FPC_proc_start; cdecl; public name '_start';
+var pd: PPD;
 begin
-  procdesc:=pd;
+  asm
+    move.l a0,d0
+    beq @Lapp
+    moveq #0,d1
+    bra @Lacc
+    @Lapp:
+    move.l 8(a6),a0
+    moveq #1,d1
+    @Lacc:
+    move.b d1,AppFlag
+    move.l a0,procdesc
+  end;
+  pd:=procdesc;
   tpasize:=align(sizeof(pd^) + pd^.p_tlen + pd^.p_dlen + pd^.p_blen + stklen, sizeof(pointer));
 
   if gemdos_mshrink(0, pd, tpasize) < 0 then

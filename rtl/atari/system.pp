@@ -63,6 +63,7 @@ var
     argc: LongInt;
     argv: PPChar;
     envp: PPChar;
+    AppFlag: Boolean;			{ Application or Accessory				}
 
 
     {$if defined(FPUSOFT)}
