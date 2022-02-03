@@ -2405,11 +2405,11 @@ begin
     ParamFatal('[20210919141030] linklib options not supported');
 
   Imp:=CreateImportStatement;
-  Imp.NameSpaceImport:=aLibAlias;
+  Imp.NameSpaceImport:=TJSString(aLibAlias);
   LibModuleName:=aLibName;
   if ExtractFileExt(LibModuleName)='' then
     LibModuleName:=LibModuleName+'.js';
-  Imp.ModuleName:=LibModuleName;
+  Imp.ModuleName:=TJSString(LibModuleName);
   // pas.$imports.libalias:=libalias
   // LHS
   pePas:=TJSPrimaryExpressionIdent.Create(0,0,'');
