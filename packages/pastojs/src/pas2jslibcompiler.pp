@@ -15,8 +15,7 @@
 }
 unit pas2jslibcompiler;
 
-{$mode objfpc}
-{$H+}
+{$mode objfpc}{$H+}
 
 {$IFDEF darwin}
 {$DEFINE UseCDecl}
@@ -79,6 +78,9 @@ Type
     Function ReadFile(aFilename: string; var aSource: string): boolean; virtual;
     Function ReadDirectory(Dir: TPas2jsCachedDirectory): boolean; virtual;
     procedure GetFileSrcAttr(AFilename: string; var AAttr: TPas2jsFileSrcAttr);
+    {$IFDEF DebugLib}
+    procedure LibDbgLog(Msg: string);
+    {$ENDIF}
   Public
     Constructor Create; override;
     procedure CheckUnitAlias(var UseUnitName: string); override;
@@ -123,21 +125,6 @@ implementation
 
 { TLibraryPas2JSCompiler }
 
-function TLibraryPas2JSCompiler.ReadDirectory(Dir: TPas2jsCachedDirectory
-  ): boolean;
-begin
-  Result:=false; // return false to call the default TPas2jsCachedDirectory.DoReadDir
-  if Assigned(OnReadDir) then
-    Result:=OnReadDir(FOnReadDirData,Dir,PAnsiChar(Dir.Path));
-end;
-
-procedure TLibraryPas2JSCompiler.GetFileSrcAttr(AFilename: string; var AAttr: TPas2jsFileSrcAttr);
-begin
-  AAttr.AllowSrcMap := True;
-  if Assigned(OnGetFileSrcAttr) then
-    OnGetFileSrcAttr(FOnGetFileSrcAttrData, PAnsiChar(AFilename), Length(AFileName), @AAttr);
-end;
-
 function TLibraryPas2JSCompiler.GetLogEncoding: String;
 begin
   Result := Log.Encoding;
@@ -150,11 +137,9 @@ end;
 
 function TLibraryPas2JSCompiler.DoWriteJSFile(const DestFilename,
   MapFilename: String; aWriter: TPas2JSMapper): Boolean;
-
-Var
+var
   WithUTF8BOM: Boolean;
   ms: TMemoryStream;
-
 begin
   Result:=Assigned(OnWriteJSCallBack);
   if Result then
@@ -164,6 +149,9 @@ begin
       try
         WithUTF8BOM:=(Log.Encoding='') or (Log.Encoding='utf8');
         aWriter.SaveJSToStream(WithUTF8BOM,ExtractFilename(MapFilename),ms);
+        {$IFDEF DebugLib}
+        LibDbgLog('DoWriteJSFile: DestFile="'+DestFilename+'" Map="'+MapFilename+'" '+IntToStr(ms.Position));
+        {$ENDIF}
         OnWriteJSCallBack(OnWriteJSData,PAnsiChar(DestFileName),Length(DestFileName),PAnsiChar(ms.Memory),ms.Position);
       except
         Result:=False;
@@ -210,10 +198,13 @@ begin
   try
     if ReadBufferLen=0 then
       ReadBufferLen:=DefaultReadBufferSize;
-    SetLength(Buf,ReadBufferLen);
+    SetLength(Buf{%H-},ReadBufferLen);
     S:=TStringStream.Create(''{$IF FPC_FULLVERSION>=30101},CP_ACP{$ENDIF});
     Repeat
       BytesRead:=ReadBufferLen;
+      {$IFDEF DebugLib}
+      LibDbgLog('ReadFile File="'+aFilename+'" BufferLen='+IntToStr(ReadBufferLen));
+      {$ENDIF}
       FOnReadPasFile(OnReadPasData,PAnsiChar(aFileName),Length(aFileName),@Buf[0],BytesRead);
       If BytesRead>0 then
         S.Write(Buf[0],BytesRead);
@@ -226,6 +217,54 @@ begin
     S.Free;
   end;
 end;
+
+function TLibraryPas2JSCompiler.ReadDirectory(Dir: TPas2jsCachedDirectory
+  ): boolean;
+begin
+  Result:=false; // return false to call the default TPas2jsCachedDirectory.DoReadDir
+  if not Assigned(OnReadDir) then exit;
+  {$IFDEF DebugLib}
+  LibDbgLog('ReadDirectory Dir="'+Dir.Path+'"...');
+  {$ENDIF}
+  Result:=OnReadDir(FOnReadDirData,Dir,PAnsiChar(Dir.Path));
+  {$IFDEF DebugLib}
+  LibDbgLog('ReadDirectory Dir="'+Dir.Path+'" '+IntToStr(Dir.Count));
+  {$ENDIF}
+end;
+
+procedure TLibraryPas2JSCompiler.GetFileSrcAttr(AFilename: string; var AAttr: TPas2jsFileSrcAttr);
+begin
+  AAttr.AllowSrcMap := True;
+  if Assigned(OnGetFileSrcAttr) then
+    begin
+    {$IFDEF DebugLib}
+    LibDbgLog('GetFileSrcAttr: File="'+AFilename+'"...');
+    {$ENDIF}
+    OnGetFileSrcAttr(FOnGetFileSrcAttrData, PAnsiChar(AFilename), Length(AFileName), @AAttr);
+    end;
+end;
+
+{$IFDEF DebugLib}
+procedure TLibraryPas2JSCompiler.LibDbgLog(Msg: string);
+const
+  LogFilename = 'pas2jslib-log.txt';
+var
+  s: TFileStream;
+begin
+  if Msg='' then exit;
+  Msg:=Msg+sLineBreak;
+  if FileExists(LogFilename) then
+    s:=TFileStream.Create(LogFilename,fmOpenWrite or fmShareDenyNone)
+  else
+    s:=TFileStream.Create(LogFilename,fmCreate or fmShareDenyNone);
+  try
+    s.Seek(0,soEnd);
+    s.Write(Msg[1],length(Msg));
+  finally
+    s.Free;
+  end;
+end;
+{$ENDIF}
 
 constructor TLibraryPas2JSCompiler.Create;
 begin
@@ -243,6 +282,9 @@ procedure TLibraryPas2JSCompiler.CheckUnitAlias(var UseUnitName: string);
 var
   UnitNameLen, UnitNameMaxLen: Integer;
   s: String;
+  {$IFDEF DebugLib}
+  OldUnitName: string;
+  {$ENDIF}
 begin
   inherited CheckUnitAlias(UseUnitName);
   UnitNameLen:=length(UseUnitName);
@@ -250,8 +292,18 @@ begin
     begin
     UnitNameMaxLen:=Max(UnitNameLen,255);
     s:=UseUnitName+StringOfChar(#0,UnitNameMaxLen-UnitNameLen);
+    {$IFDEF DebugLib}
+    OldUnitName:=UseUnitName;
+    LibDbgLog('CheckUnitAlias "'+UseUnitName+'"...');
+    {$ENDIF}
     if OnUnitAlias(OnUnitAliasData,Pointer(s),UnitNameMaxLen) then
+      begin
       UseUnitName:=PAnsiChar(s);
+      {$IFDEF DebugLib}
+      if UseUnitName<>OldUnitName then
+        LibDbgLog('CheckUnitAlias New="'+UseUnitName+'"');
+      {$ENDIF}
+      end;
     end;
 end;
 
@@ -275,12 +327,18 @@ begin
   Result:=False;
   C:=ACompilerExe;
   W:=AWorkingDir;
+  {$IFDEF DebugLib}
+  LibDbgLog('LibraryRun Exe="'+C+'" WorkDir="'+W+'"');
+  {$ENDIF}
   CmdLine:=TStringList.Create;
   try
     PP:=CommandLine;
     While (PP^<>Nil) do
       begin
       CmdLine.Add(pp^);
+      {$IFDEF DebugLib}
+      LibDbgLog('LibraryRun Param['+IntToStr(CmdLine.Count-1)+']="'+CmdLine[CmdLine.Count-1]+'"');
+      {$ENDIF}
       Inc(PP);
       end;
     try
@@ -290,12 +348,18 @@ begin
         begin
         LastError:=Format('Compiler exited with exit code %d',[ExitCode]);
         LastErrorClass:='';
+        {$IFDEF DebugLib}
+        LibDbgLog('LibraryRun Error "'+LastError+'"');
+        {$ENDIF}
         end;
     except
       On E : Exception do
         begin
         LastError:=E.Message;
         LastErrorClass:=E.ClassName;
+        {$IFDEF DebugLib}
+        LibDbgLog('LibraryRun Exception '+LastErrorClass+' "'+LastError+'"');
+        {$ENDIF}
         end;
     end;
   finally
