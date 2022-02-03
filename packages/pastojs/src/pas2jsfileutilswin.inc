@@ -114,7 +114,7 @@ begin
 
   //writeln('StrLen(PCmdLineW) = ',CmdLen);
 
-  SetLength(CmdLineW, CmdLen);
+  SetLength(CmdLineW{%H-}, CmdLen);
   Move(PCmdLineW^, CmdLineW[1], CmdLen * SizeOf(WChar));
 
 
@@ -246,7 +246,7 @@ begin
   if not (DriveNr = 0) then
   begin
     res := GetCurrentDirectoryW(0, nil);
-    SetLength(SavedDir, res);
+    SetLength(SavedDir{%H-}, res);
     res:=Windows.GetCurrentDirectoryW(res, @SavedDir[1]);
     SetLength(SavedDir,res);
 
@@ -259,7 +259,7 @@ begin
     end;
   end;
   res := GetCurrentDirectoryW(0, nil);
-  SetLength(w, res);
+  SetLength(w{%H-}, res);
   res := GetCurrentDirectoryW(res, @w[1]);
   SetLength(w, res);
   Dir:=UTF16ToUTF8(w);
@@ -391,7 +391,7 @@ begin
   // Exception.Create('[GetCurrentDirWide] The concept of the current directory doesn''t exist in Windows CE');
   {$else}
   res:=GetCurrentDirectoryW(0, nil);
-  SetLength(w, res);
+  SetLength(w{%H-}, res);
   res:=Windows.GetCurrentDirectoryW(res, @w[1]);
   SetLength(w, res);
   Result:=UTF16ToUTF8(w);
@@ -598,7 +598,7 @@ begin
   // this will null-terminate
   if UTF16WordCnt>0 then
   begin
-    setlength(UTF16Str, UTF16WordCnt);
+    setlength(UTF16Str{%H-}, UTF16WordCnt);
     MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, Pointer(s), length(s), @UTF16Str[1], UTF16WordCnt);
     Result:=UTF16ToUTF8(UTF16Str);
   end;

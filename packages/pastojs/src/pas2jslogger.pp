@@ -368,7 +368,7 @@ begin
   // var
   end else if Element is TJSVarDeclaration then
   begin
-    Result:=TJSVarDeclaration(Element).Name;
+    Result:=String(TJSVarDeclaration(Element).Name);
     if TJSVarDeclaration(Element).Init<>nil then
       Result+='='+DbgString(TJSVarDeclaration(Element).Init,Indent+2);
 
