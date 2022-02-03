@@ -34,22 +34,28 @@ type
 
   tmipsaddnode = class(tcgaddnode)
   private
+{$ifdef cpu32bit}
     procedure cmp64_lt(left_reg, right_reg: TRegister64;unsigned:boolean);
     procedure cmp64_le(left_reg, right_reg: TRegister64;unsigned:boolean);
-    procedure second_generic_cmp32(unsigned,is_smallset: boolean);
     procedure second_mul64bit;
+{$endif cpu32bit}
+    procedure second_generic_cmp32(unsigned,is_smallset: boolean);
   protected
     procedure second_addfloat; override;
     procedure second_cmpfloat; override;
     procedure second_cmpboolean; override;
     procedure second_cmpsmallset; override;
+{$ifdef cpu32bit}
     procedure second_add64bit; override;
     procedure second_cmp64bit; override;
+{$endif cpu32bit}
     procedure second_cmpordinal; override;
     procedure second_addordinal; override;
+{$ifdef cpu32bit}
   public
     function use_generic_mul32to64: boolean; override;
     function use_generic_mul64bit: boolean; override;
+{$endif cpu32bit}
   end;
 
 implementation
@@ -107,6 +113,7 @@ begin
 end;
 
 
+{$ifdef cpu32bit}
 procedure tmipsaddnode.second_add64bit;
 begin
   if (nodetype=muln) then
@@ -114,11 +121,13 @@ begin
   else
     inherited second_add64bit;
 end;
+{$endif cpu32bit}
 
 
 const
   cmpops: array[boolean] of TOpCmp = (OC_LT,OC_B);
 
+{$ifdef cpu32bit}
 procedure tmipsaddnode.cmp64_lt(left_reg, right_reg: TRegister64;unsigned: boolean);
 begin
   cg.a_cmp_reg_reg_label(current_asmdata.CurrAsmList,OS_INT,cmpops[unsigned],right_reg.reghi,left_reg.reghi,location.truelabel);
@@ -217,6 +226,7 @@ begin
       end;
   end;
 end;
+{$endif cpu32bit}
 
 
 procedure tmipsaddnode.second_addfloat;
@@ -343,6 +353,7 @@ procedure tmipsaddnode.second_addordinal;
 var
   unsigned: boolean;
 begin
+{$ifdef cpu32bit}
   unsigned:=not(is_signed(left.resultdef)) or
             not(is_signed(right.resultdef));
   if (nodetype=muln) and is_64bit(resultdef) then
@@ -357,9 +368,11 @@ begin
       current_asmdata.CurrAsmList.Concat(taicpu.op_reg(A_MFHI,location.register64.reghi));
     end
   else
+{$endif cpu32bit}
     inherited second_addordinal;
 end;
 
+{$ifdef cpu32bit}
 procedure tmipsaddnode.second_mul64bit;
 var
   list: TAsmList;
@@ -442,7 +455,7 @@ begin
   result:=needoverflowcheck or
     (not (CPUMIPS_HAS_ISA32R2 in cpu_capabilities[current_settings.cputype]));
 end;
-
+{$endif cpu32bit}
 
 begin
   caddnode := tmipsaddnode;
