@@ -85,6 +85,8 @@ type
         d_fname :           String[12];
     end;
 
+    LongIntFunc = Function: LongInt;
+
 (* ++++++++++++++++++++++++++++++++++++++++ *)
 (*                  BIOS                    *)
 (* ++++++++++++++++++++++++++++++++++++++++ *)
@@ -145,7 +147,7 @@ function Kbdvbase: PKBDVECS; syscall 14 34;
 function Kbrate(initial, speed: smallint): smallint; syscall 14 35;
 procedure Prtblk(var defptr: TPBDEF); syscall 14 36;
 procedure vsync; syscall 14 37;
-function Supexec(codeptr: TLongIntFunc): LongInt; syscall 14 38;
+function Supexec(codeptr: LongIntFunc): LongInt; syscall 14 38;
 procedure Puntaes; syscall 14 39;
 function Floprate(drive, seekrate: smallint): smallint; syscall 14 41;
 function DMAread(sector: LongInt; count: smallint; buffer: Pointer; devno: smallint): LongInt; syscall 14 42;
