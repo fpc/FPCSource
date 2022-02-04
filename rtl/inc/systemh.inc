@@ -269,6 +269,19 @@ Type
   {$endif}
 {$endif CPUMIPS32}
 
+{$if defined(CPUMIPS64) or defined(CPUMIPS64EL)}
+  {$define DEFAULT_DOUBLE}
+
+  {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
+
+  {$define SUPPORT_SINGLE}
+  {$define SUPPORT_DOUBLE}
+
+  {$define FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
+
+  ValReal = Double;
+{$endif CPUMIPS64}
+
 
 {$ifdef CPUARM}
   {$define DEFAULT_DOUBLE}
