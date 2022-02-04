@@ -481,6 +481,9 @@ begin
     OS_32,
     OS_S32:
       Op := A_SW;
+    OS_64,
+    OS_S64:
+      Op := A_SD;
     else
       InternalError(2002122100);
   end;
