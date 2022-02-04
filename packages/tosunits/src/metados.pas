@@ -18,27 +18,27 @@ interface
 
 type
 {* Available from MetaDOS version 2.30 *}
-	PMETAINFO2 = ^TMETAINFO2;
-	TMETAINFO2 = record
-		version: word;
-		magic: longint;
-		log2phys: Pointer;
-	end;
+  PMETAINFO2 = ^TMETAINFO2;
+  TMETAINFO2 = record
+    version: word;
+    magic: longint;
+    log2phys: Pointer;
+  end;
 
 {* Structure used by Metainit() *}
-	PMETAINFO = ^TMETAINFO;
-	TMETAINFO = record
-		drivemap:		LongInt;
-		version:		Pchar;
-		reserved:		LongInt;
-	    info: PMETAINFO2;	{* Available from MetaDOS version 2.30 *}
-	end;
+  PMETAINFO = ^TMETAINFO;
+  TMETAINFO = record
+    drivemap:   LongInt;
+    version:    Pchar;
+    reserved:   LongInt;
+    info:  PMETAINFO2; {* Available from MetaDOS version 2.30 *}
+  end;
 
-	PMETA_DRVINFO = ^TMETA_DRVINFO;
-	TMETA_DRVINFO = record
-		name: PChar;
-		reserved:		array[0..2] of LongInt;
-	end;
+  PMETA_DRVINFO = ^TMETA_DRVINFO;
+  TMETA_DRVINFO = record
+    name: PChar;
+    reserved:   array[0..2] of LongInt;
+  end;
 
 
 procedure xbios_Metainit(var buffer: TMETAINFO); syscall 14 48;
