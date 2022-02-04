@@ -25203,6 +25203,19 @@ var
       Prepend(Path,CreateGlobalTypePath(ClassOrRec,AContext));
   end;
 
+  procedure PrependClassOrRecNameFullPath(var Path: string; ClassOrRec: TPasMembersType);
+  begin
+    while True do
+    begin
+      PrependClassOrRecName(Path, ClassOrRec);
+
+      if ClassOrRec.Parent.ClassType=TPasClassType then
+        ClassOrRec := ClassOrRec.Parent as TPasClassType
+      else
+        Break;
+    end;
+  end;
+
   function NeedsWithExpr: boolean;
   var
     Parent: TPasElement;
@@ -25420,6 +25433,8 @@ begin
     begin
     // an external class -> use the literal
     Result:=TPasClassType(El).ExternalName;
+    if El.Parent is TPasMembersType then
+      PrependClassOrRecNameFullPath(Result,TPasMembersType(El.Parent));
     exit;
     end
   else if NeedsWithExpr then
@@ -25489,7 +25504,7 @@ begin
 
         if Full then
           begin
-          PrependClassOrRecName(Result,TPasMembersType(ParentEl));
+          PrependClassOrRecNameFullPath(Result,TPasMembersType(ParentEl));
           break;
           end;
 
@@ -25554,7 +25569,7 @@ begin
           end
         else if (ParentEl.ClassType=TPasClassType) and TPasClassType(ParentEl).IsExternal then
           begin
-          Prepend(Result,TPasClassType(ParentEl).ExternalName);
+          PrependClassOrRecName(Result,TPasClassType(ParentEl));
           break;
           end
         else if coShortRefGlobals in Options then

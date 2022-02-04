@@ -650,6 +650,7 @@ type
     Procedure TestExternalClass_ForInJSObject;
     Procedure TestExternalClass_ForInJSArray;
     Procedure TestExternalClass_IncompatibleArgDuplicateIdentifier;
+    Procedure TestExternalClass_NestedConstructor;
 
     // class interfaces
     Procedure TestClassInterface_Corba;
@@ -19523,6 +19524,73 @@ begin
   SetExpectedPasResolverError('Incompatible type arg no. 1: Got "unit3.TJSBufferSource", expected "unit2.TJSBufferSource"',
     nIncompatibleTypeArgNo);
   ConvertUnit;
+end;
+
+procedure TTestModule.TestExternalClass_NestedConstructor;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSObject = class external name ''Object''',
+  '    type TBird = class external name ''Bird''',
+  '      type TWing = class external name ''Wing''',
+  '        constructor New;',
+  '        constructor Create(w: word = 3);',
+  '      end;',
+  '    end;',
+  '  end;',
+  'var',
+  '  w: TJSObject.TBird.TWing;',
+  'begin',
+  '  w:=tjsobject.tbird.twing.new;',
+  '  w:=tjsobject.tbird.twing.new();',
+  '  w:=tjsobject.tbird.twing.create;',
+  '  w:=tjsobject.tbird.twing.create(4);',
+  '  with tjsobject do begin',
+  '    w:=tbird.twing.new;',
+  '    w:=tbird.twing.new();',
+  '    w:=tbird.twing.create;',
+  '    w:=tbird.twing.create(11);',
+  '  end;',
+  '  with tjsobject.tbird do begin',
+  '    w:=twing.new;',
+  '    w:=twing.new();',
+  '    w:=twing.create;',
+  '    w:=twing.create(21);',
+  '  end;',
+  '  with tjsobject.tbird.twing do begin',
+  '    w:=new;',
+  '    w:=new();',
+  '    w:=create;',
+  '    w:=create(31);',
+  '  end;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestExternalClass_NestedConstructor',
+    LinesToStr([ // statements
+    'this.w = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.w = new Object.Bird.Wing();',
+    '$mod.w = new Object.Bird.Wing();',
+    '$mod.w = new Object.Bird.Wing.Create();',
+    '$mod.w = new Object.Bird.Wing.Create(4);',
+    '$mod.w = new Object.Bird.Wing();',
+    '$mod.w = new Object.Bird.Wing();',
+    '$mod.w = new Object.Bird.Wing.Create();',
+    '$mod.w = new Object.Bird.Wing.Create(11);',
+    'var $with = Object.Bird;',
+    '$mod.w = new Object.Bird.Wing();',
+    '$mod.w = new Object.Bird.Wing();',
+    '$mod.w = new Object.Bird.Wing.Create();',
+    '$mod.w = new Object.Bird.Wing.Create(21);',
+    'var $with1 = Object.Bird.Wing;',
+    '$mod.w = new $with1();',
+    '$mod.w = new $with1();',
+    '$mod.w = new Object.Bird.Wing.Create();',
+    '$mod.w = new Object.Bird.Wing.Create(31);',
+    '']));
 end;
 
 procedure TTestModule.TestClassInterface_Corba;
