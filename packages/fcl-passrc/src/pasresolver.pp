@@ -5801,6 +5801,7 @@ begin
         OlderEl:=OlderIdentifier.Element;
         if (Identifier.Kind=pikNamespace)
             or (OlderIdentifier.Kind=pikNamespace) then
+          // namespace cannot clash
         else if (Identifier.Kind=pikSimple)
             or (OlderIdentifier.Kind=pikSimple) then
           RaiseMsg(20190818141630,nDuplicateIdentifier,sDuplicateIdentifier,
