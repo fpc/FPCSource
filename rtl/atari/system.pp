@@ -133,9 +133,11 @@ var
 {*****************************************************************************
                          System Dependent Exit code
 *****************************************************************************}
+procedure haltproc(e:longint); cdecl; external name '_haltproc';
+
 Procedure system_exit;
 begin
-  gemdos_pterm(ExitCode);
+  haltproc(ExitCode);
 end;
 
 {*****************************************************************************
