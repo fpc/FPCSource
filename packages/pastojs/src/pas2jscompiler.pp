@@ -3054,7 +3054,7 @@ procedure TPas2jsCompiler.Terminate(TheExitCode: integer);
 begin
   ExitCode:=TheExitCode;
   if Log<>nil then Log.Flush;
-  raise ECompilerTerminate.Create('');
+  raise ECompilerTerminate.Create('TPas2jsCompiler.Terminate');
 end;
 
 function TPas2jsCompiler.GetShowDebug: boolean;
@@ -5246,7 +5246,7 @@ begin
       if Filename='' then
       begin
         Log.LogMsg(nCustomJSFileNotFound,[InsertFilenames[i]]);
-        raise EFileNotFoundError.Create('');
+        Terminate(ExitCodeFileNotFound);
       end;
       aFile:=LoadFile(Filename);
       if aFile.Source='' then continue;
@@ -5272,7 +5272,7 @@ begin
       if Filename='' then
       begin
         Log.LogMsg(nCustomJSFileNotFound,[AppendFilenames[i]]);
-        raise EFileNotFoundError.Create('');
+        Terminate(ExitCodeFileNotFound);
       end;
       aFile:=LoadFile(Filename);
       if aFile.Source='' then continue;
