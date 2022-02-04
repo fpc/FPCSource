@@ -368,28 +368,28 @@ implementation
 function Dsp_LoadProg(const filename: String; ability: smallint; buffer: Pointer): smallint;
 var s: array[0..255] of char;
 begin
-  StrPCopy(s, filename);
+  s := filename;
   Dsp_LoadProg := xbios_Dsp_LoadProg(s, ability, buffer);
 end;
 
 function Dsp_LodToBinary(const filename: String; codeptr: Pointer): LongInt;
 var s: array[0..255] of char;
 begin
-  StrPCopy(s, filename);
+  s := filename;
   Dsp_LodToBinary := xbios_Dsp_LodToBinary(s, codeptr);
 end;
 
 procedure cconws(const str: String);
 var s: array[0..255] of char;
 begin
-  StrPCopy(s, str);
+  s := str;
   gemdos_cconws(s);
 end;
 
 function pexec(mode: word; const name: String; cmdline: String; env: pchar): longint;
 var s: array[0..255] of char;
 begin
-  StrPCopy(s, name);
+  s := name;
   pexec := gemdos_pexec(mode, s, @cmdline[0], env);
 end;
 
@@ -398,12 +398,12 @@ var s: array[0..255] of char;
     dta: DTAPtr;
     temp: String[12];
 begin
-  StrPCopy(s, filename);
+  s := filename;
   fsfirst := gemdos_fsfirst(s, attr);
   if (fsfirst = 0) then
     begin
       dta := Fgetdta;
-      temp := StrPas(@dta^.d_fname[0]);
+      temp := PChar(@dta^.d_fname[0]);
       dta^.d_fname := temp;
     end;
 end;
@@ -416,7 +416,7 @@ begin
   if (fsnext = 0) then
     begin
       dta := Fgetdta;
-      temp := StrPas(@dta^.d_fname[0]);
+      temp := PChar(@dta^.d_fname[0]);
       dta^.d_fname := temp;
     end;
 end;
@@ -425,43 +425,43 @@ function frename(const oldname, newname: String): longint;
 var s1: array[0..255] of char;
     s2: array[0..255] of char;
 begin
-  StrPCopy(s1, oldname);
-  StrPCopy(s2, newname);
+  s1 := oldname;
+  s2 := newname;
   frename := gemdos_frename(0, s1, s2);
 end;
 
 function fopen(const fname: String; mode: smallint): longint;
 var s: array[0..255] of char;
 begin
-  StrPCopy(s, fname);
+  s := fname;
   fopen := gemdos_fopen(s, mode);
 end;
 
 function fdelete(const fname: String): smallint;
 var s: array[0..255] of char;
 begin
-  StrPCopy(s, fname);
+  s := fname;
   fdelete := gemdos_fdelete(s);
 end;
 
 function fcreate(const fname: String; attr: smallint): smallint;
 var s: array[0..255] of char;
 begin
-  StrPCopy(s, fname);
+  s := fname;
   fcreate := gemdos_fcreate(s, attr);
 end;
 
 function fattrib(const filename: String; wflag: smallint; attrib: smallint): smallint;
 var s: array[0..255] of char;
 begin
-  StrPCopy(s, filename);
+  s := filename;
   fattrib := gemdos_fattrib(s, wflag, attrib);
 end;
 
 function dsetpath(const path: String): smallint;
 var s: array[0..255] of char;
 begin
-  StrPCopy(s, path);
+  s := path;
   dsetpath := gemdos_dsetpath(s);
 end;
 
@@ -470,34 +470,34 @@ var s: array[0..255] of char;
 begin
   Dgetpath := gemdos_dgetpath(s, driveno);
   if (Dgetpath = 0) then
-    path := StrPas(s);
+    path := PChar(@s[0]);
 end;
 
 function ddelete(const path: String): longint;
 var s: array[0..255] of char;
 begin
-  StrPCopy(s, path);
+  s := path;
   Ddelete := gemdos_ddelete(s);
 end;
 
 function dcreate(const path: String): longint;
 var s: array[0..255] of char;
 begin
-  StrPCopy(s, path);
+  s := path;
   Dcreate := gemdos_dcreate(s);
 end;
 
 function Dpathconf(const name: String; n: smallint): LongInt;
 var s: array[0..255] of char;
 begin
-  StrPCopy(s, name);
+  s := name;
   Dpathconf := gemdos_dpathconf(s, n);
 end;
 
 function Dopendir(const name: String; flag: smallint): LongInt;
 var s: array[0..255] of char;
 begin
-  StrPCopy(s, name);
+  s := name;
   Dopendir := gemdos_dopendir(s, flag);
 end;
 
@@ -506,13 +506,13 @@ var s: array[0..255] of char;
 begin
   Dreaddir := gemdos_dreaddir(buflen, dir, s);
   if (dreaddir = 0) then
-    buf := StrPas(s);
+    buf := PChar(@s[0]);
 end;
 
 function Fxattr(flag: smallint; const name: String; var buf: TXATTR): LongInt;
 var s: array[0..255] of char;
 begin
-  StrPCopy(s, name);
+  s := name;
   Fxattr := gemdos_fxattr(flag, s, buf);
 end;
 
@@ -520,8 +520,8 @@ function Flink(const oldname: String; const newname: String): LongInt;
 var s1: array[0..255] of char;
     s2: array[0..255] of char;
 begin
-  StrPCopy(s1, oldname);
-  StrPCopy(s2, newname);
+  s1 := oldname;
+  s2 := newname;
   flink := gemdos_flink(s1, s2);
 end;
 
@@ -529,8 +529,8 @@ function Fsymlink(const oldname: String; const newname: String): LongInt;
 var s1: array[0..255] of char;
     s2: array[0..255] of char;
 begin
-  StrPCopy(s1, oldname);
-  StrPCopy(s2, newname);
+  s1:=oldname;
+  s2:=newname;
   fsymlink := gemdos_fsymlink(s1, s2);
 end;
 
@@ -538,32 +538,32 @@ function Freadlink(size: smallint; var buf: String; const name: String): LongInt
 var s1: array[0..255] of char;
     s2: array[0..255] of char;
 begin
-  StrPCopy(s1, name);
+  s1 := name;
   if (size > 256) then
     size := 256;
   freadlink := gemdos_freadlink(256, s2, s1);
   if (freadlink = 0) then
-     buf := StrPas(s2);
+     buf := PChar(@s2[0]);
 end;
 
 function Dcntl(cmd: smallint; const name: String; arg: LongInt): LongInt;
 var s: array[0..255] of char;
 begin
-  StrPCopy(s, name);
+  s := name;
   Dcntl := gemdos_dcntl(cmd, s, arg);
 end;
 
 function Fchown(const name: String; uid, gid: smallint): LongInt;
 var s: array[0..255] of char;
 begin
-  StrPCopy(s, name);
+  s := name;
   Fchown := gemdos_fchown(s, uid, gid);
 end;
 
 function Fchmod(const name: String; mode: smallint): LongInt;
 var s: array[0..255] of char;
 begin
-  StrPCopy(s, name);
+  s := name;
   Fchmod := gemdos_fchmod(s, mode);
 end;
 
