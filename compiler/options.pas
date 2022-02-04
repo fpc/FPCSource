@@ -4171,10 +4171,17 @@ procedure read_arguments(cmd:TCmdStr);
 
       {$ifdef mipsel}
         def_system_macro('CPUMIPS');
-        def_system_macro('CPUMIPS32');
         def_system_macro('CPUMIPSEL');
+      {$ifdef mips64el}
+        def_system_macro('CPUMIPS64');
+        def_system_macro('CPUMIPSEL64');
+        def_system_macro('CPUMIPS64EL');
+        def_system_macro('CPU64');
+      {$else}
+        def_system_macro('CPUMIPS32');
         def_system_macro('CPUMIPSEL32');
         def_system_macro('CPU32');
+      {$endif}
         def_system_macro('FPC_HAS_TYPE_DOUBLE');
         def_system_macro('FPC_HAS_TYPE_SINGLE');
         def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
@@ -4190,10 +4197,17 @@ procedure read_arguments(cmd:TCmdStr);
 
       {$ifdef mipseb}
         def_system_macro('CPUMIPS');
-        def_system_macro('CPUMIPS32');
         def_system_macro('CPUMIPSEB');
+      {$ifdef mips64}
+        def_system_macro('CPUMIPS64');
+        def_system_macro('CPUMIPSEB64');
+        def_system_macro('CPUMIPS64EB');
+        def_system_macro('CPU64');
+      {$else}
+        def_system_macro('CPUMIPS32');
         def_system_macro('CPUMIPSEB32');
         def_system_macro('CPU32');
+      {$endif}
         def_system_macro('FPC_HAS_TYPE_DOUBLE');
         def_system_macro('FPC_HAS_TYPE_SINGLE');
         def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
