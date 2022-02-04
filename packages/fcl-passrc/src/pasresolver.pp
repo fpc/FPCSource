@@ -29397,19 +29397,26 @@ var
 begin
   Result:=nil;
   if El=nil then exit;
-  // find El in El.Parent members
-  Parent:=El.Parent;
-  if Parent=nil then exit;
-  C:=Parent.ClassType;
-  if C.InheritsFrom(TPasDeclarations) then
-    Members:=TPasDeclarations(Parent).Declarations
-  else if C.InheritsFrom(TPasMembersType) then
-    Members:=TPasMembersType(Parent).Members
+
+  if (El.CustomData is TPasClassScope) and Assigned(TPasClassScope(El.CustomData).SpecializedFromItem) then
+    Result := GetAttributeCallsEl(TPasClassScope(El.CustomData).SpecializedFromItem.GenericEl)
   else
-    exit;
-  i:=Members.IndexOf(El);
-  if i<0 then exit;
-  Result:=GetAttributeCalls(Members,i);
+  begin
+    // find El in El.Parent members
+    Parent:=El.Parent;
+    if Parent=nil then exit;
+    C:=Parent.ClassType;
+    if C.InheritsFrom(TPasDeclarations) then
+      Members:=TPasDeclarations(Parent).Declarations
+    else if C.InheritsFrom(TPasMembersType) then
+      Members:=TPasMembersType(Parent).Members
+    else
+      exit;
+
+    i:=Members.IndexOf(El);
+    if i<0 then exit;
+    Result:=GetAttributeCalls(Members,i);
+  end;
 end;
 
 function TPasResolver.GetAttributeCalls(Members: TFPList; Index: integer
@@ -29460,6 +29467,11 @@ begin
         AddAttributesInFront(Members,Index);
         break;
         end;
+      if CurEl.CustomData is TPasClassScope then
+        if Assigned(TPasClassScope(CurEl.CustomData).SpecializedFromItem) then
+          AddAttributesInFront(Members,Index)
+        else
+          break;
     until false;
 end;
 

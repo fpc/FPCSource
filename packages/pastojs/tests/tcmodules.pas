@@ -871,6 +871,7 @@ type
     Procedure TestAttributes_Members;
     Procedure TestAttributes_Types;
     Procedure TestAttributes_HelperConstructor_Fail;
+    Procedure TestAttributes_InterfacesList;
 
     // Assertions, checks
     procedure TestAssert;
@@ -32388,6 +32389,101 @@ begin
   'begin',
   '  if typeinfo(TMyInt)=nil then ;']);
   ConvertProgram;
+end;
+
+procedure TTestModule.TestAttributes_InterfacesList;
+begin
+  WithTypeInfo:=true;
+  StartProgram(false);
+  Add([
+  '{$mode Delphi}',
+  'type',
+  '  TObject = class',
+  '    constructor Create;',
+  '  end;',
+  '  IInterface = interface end;',
+  '  TCustomAttribute = class',
+  '  end;',
+  '  Red = class(TCustomAttribute);',
+  '  Blue = class(TCustomAttribute);',
+  '  [Red]',
+  '  IBird<T> = interface',
+  '    procedure Fly;',
+  '  end;',
+  '  [Blue]',
+  '  IEagle = interface(IBird<Word>)',
+  '    procedure Dive;',
+  '  end;',
+  '  TAnt = class(TObject, IEagle)',
+  '    procedure Fly; virtual; abstract;',
+  '    procedure Dive; virtual; abstract;',
+  '  end;',
+  'constructor TObject.Create;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestAttributes_InterfacesList',
+    LinesToStr([ // statements
+    '$mod.$rtti.$Interface("IBird<System.Word>");',
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Create = function () {',
+    '    return this;',
+    '  };',
+    '});',
+    'rtl.createInterface(',
+    '  this,',
+    '  "IInterface",',
+    '  "{B92D5841-698D-3153-90C5-000000000000}",',
+    '  [],',
+    '  null,',
+    '  function () {',
+    '    this.$kind = "com";',
+    '  }',
+    ');',
+    'rtl.createClass(this, "TCustomAttribute", this.TObject, function () {',
+    '});',
+    'rtl.createClass(this, "Red", this.TCustomAttribute, function () {',
+    '});',
+    'rtl.createClass(this, "Blue", this.TCustomAttribute, function () {',
+    '});',
+    'rtl.createInterface(',
+    '  this,',
+    '  "IBird$G1",',
+    '  "{14691591-6648-3574-B8C8-FAAD81DAC421}",',
+    '  ["Fly"],',
+    '  this.IInterface,',
+    '  function () {',
+    '    var $r = this.$rtti;',
+    '    $r.addMethod("Fly", 0, []);',
+    '    $r.attr = [$mod.Red, "Create"];',
+    '  },',
+    '  "IBird<System.Word>"',
+    ');',
+    'rtl.createInterface(',
+    '  this,',
+    '  "IEagle",',
+    '  "{5F4202AE-F2BE-37FD-8A88-1A2F926F1117}",',
+    '  ["Dive"],',
+    '  this.IBird$G1,',
+    '  function () {',
+    '    var $r = this.$rtti;',
+    '    $r.addMethod("Dive", 0, []);',
+    '    $r.attr = [$mod.Blue, "Create"];',
+    '  }',
+    ');',
+    'rtl.createClass(this, "TAnt", this.TObject, function () {',
+    '  rtl.addIntf(this, $mod.IEagle);',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+
 end;
 
 procedure TTestModule.TestAssert;
