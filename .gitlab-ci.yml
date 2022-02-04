@@ -3,7 +3,10 @@
 # the FPC specific parts are partly from:
 # https://gitlab.com/alb42/testconversion2/-/blob/main/.gitlab-ci.yml
 
-image: registry.gitlab.com/freepascal.org/fpc/source/debian-buster-x86_64
+.linux_runners:
+  image: registry.gitlab.com/freepascal.org/fpc/source/debian-buster-x86_64
+  tags:
+    - linux
 
 stages:
   - compilercycle
@@ -11,12 +14,16 @@ stages:
 
 compiler-fullcycle-job:
   stage: compilercycle
+  extends:
+    - .linux_runners
   script:
     - cd compiler
     - make fullcycle -j 4 "OPT=-Oodfa"
 
-build-and-test-job:
+build-and-test-job-linux:
   stage: buildandtest
+  extends:
+    - .linux_runners
   script:
     - make -j 4 all OS_TARGET=linux CPU_TARGET=x86_64 FPMAKEOPT="-T 4" "OPT=-Oodfa"
     - FPC_SRC=$(pwd)
