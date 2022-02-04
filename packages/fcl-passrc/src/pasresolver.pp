@@ -13502,8 +13502,13 @@ begin
         begin
         if (LeftResolved.IdentEl is TPasType)
             or (not (rrfReadable in LeftResolved.Flags)) then
+          begin
+          { $IFDEF VerbosePasResolver}
+          writeln('TPasResolver.ComputeBinaryExprRes as-operator: left=',GetResolverResultDbg(LeftResolved),' right=',GetResolverResultDbg(RightResolved));
+          { $ENDIF}
           RaiseIncompatibleTypeRes(20180204124711,nOperatorIsNotOverloadedAOpB,
             [OpcodeStrings[Bin.OpCode]],LeftResolved,RightResolved,Bin);
+          end;
         if RightResolved.IdentEl=nil then
           RaiseXExpectedButYFound(20170216152630,'class',GetElementTypeName(RightResolved.LoTypeEl),Bin.right);
         if not (RightResolved.IdentEl is TPasType) then

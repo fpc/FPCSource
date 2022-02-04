@@ -6232,6 +6232,7 @@ begin
     // await(T;promise):T
     end;
   ComputeElement(Param,ResolvedEl,[]);
+  ResolvedEl.IdentEl:=nil;
   Include(ResolvedEl.Flags,rrfReadable);
   if Proc=nil then ;
 end;

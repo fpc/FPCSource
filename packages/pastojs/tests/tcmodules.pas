@@ -909,6 +909,7 @@ type
     Procedure TestAsync_Inherited;
     Procedure TestAsync_ClassInterface;
     Procedure TestAsync_ClassInterface_AsyncMissmatchFail;
+    Procedure TestAWait_ClassAs;
 
     // Library
     Procedure TestLibrary_Empty;
@@ -33994,6 +33995,67 @@ begin
   '  ']);
   SetExpectedPasResolverError('procedure type modifier "async" mismatch',nXModifierMismatchY);
   ConvertProgram;
+end;
+
+procedure TTestModule.TestAWait_ClassAs;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSPromise = class external name ''Promise''',
+  '  end;',
+  '  TObject = class',
+  '    function Run: TObject; async;',
+  '  end;',
+  '  TBird = class',
+  '    function Fly: TBird; async;',
+  '  end;',
+  'function TObject.Run: TObject; async;',
+  'begin',
+  'end;',
+  'function TBird.Fly: TBird;', // async modifier not needed in impl
+  'var o: TObject;',
+  'begin',
+  '  o:=await(TObject,Run);',
+  '  o:=await(TObject,Fly);',
+  '  o:=await(TBird,Fly);',
+  '  o:=await(TObject,inherited Run);',
+  '  o:=await(TObject,inherited Run) as TBird;',
+  'end;',
+  'begin',
+  '  ']);
+  ConvertProgram;
+  CheckSource('TestAWait_ClassAs',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Run = async function () {',
+    '    var Result = null;',
+    '    return Result;',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TBird", this.TObject, function () {',
+    '  this.Fly = async function () {',
+    '    var Result = null;',
+    '    var o = null;',
+    '    o = await this.Run();',
+    '    o = await this.Fly();',
+    '    o = await this.Fly();',
+    '    o = await $mod.TObject.Run.call(this);',
+    '    o = rtl.as(await $mod.TObject.Run.call(this), $mod.TBird);',
+    '    return Result;',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([
+    '']));
+  CheckResolverUnexpectedHints();
+
 end;
 
 procedure TTestModule.TestLibrary_Empty;
