@@ -133,7 +133,7 @@ var
 {*****************************************************************************
                          System Dependent Exit code
 *****************************************************************************}
-procedure haltproc(e:longint); cdecl; external name '_haltproc';
+procedure haltproc(e:longint); cdecl; external name 'haltproc';
 
 Procedure system_exit;
 begin
