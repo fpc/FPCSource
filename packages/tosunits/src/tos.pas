@@ -24,18 +24,18 @@ interface
 uses gemdos, xbios, bios, sysutils;
 
 const
-	FO_READ		= 0;
-	FO_WRITE	= 1;
-	FO_RW		= 2;
+    FO_READ     = 0;
+    FO_WRITE    = 1;
+    FO_RW       = 2;
 
-	FA_RDONLY	= $1;
-	FA_HIDDEN	= $2;
-	FA_SYSTEM	= $4;
-	FA_LABEL	= $8;
-	FA_DIREC	= $10;
-	FA_ARCH		= $20;
-	FA_SYMLINK	= $40;
-	FA_ATTRIB	= $17;
+    FA_RDONLY   = $1;
+    FA_HIDDEN   = $2;
+    FA_SYSTEM   = $4;
+    FA_LABEL    = $8;
+    FA_DIREC    = $10;
+    FA_ARCH     = $20;
+    FA_SYMLINK  = $40;
+    FA_ATTRIB   = $17;
 
 type
     DOSTIME = TDOSTIME;
@@ -64,23 +64,23 @@ type
     IORECORDPtr = ^IORECORD;
     KEYTAB = TKEYTAB;
     KEYTABPtr = ^KEYTAB;
-	KBDVECS = TKBDVECS;
-	KBDVECSPtr = ^KBDVECS;
-	PBDEF = TPBDEF;
-	PBDEFPtr = ^PBDEF;
-	DSPBLOCK = TDSPBLOCK;
-	DSPBLOCKPtr = ^DSPBLOCK;
+    KBDVECS = TKBDVECS;
+    KBDVECSPtr = ^KBDVECS;
+    PBDEF = TPBDEF;
+    PBDEFPtr = ^PBDEF;
+    DSPBLOCK = TDSPBLOCK;
+    DSPBLOCKPtr = ^DSPBLOCK;
 
-	{* same as TDTA in gemdos; except that d_fname is String *}
-	DTAPtr = ^DTA;
-	DTA = record
-		d_reserved :		Array[1..21] of Byte;
-		d_attrib :			Byte;
-		d_time :			word;
-		d_date :			word;
-		d_length :			LongInt;
-		d_fname :			String[12];
-	end;
+    {* same as TDTA in gemdos; except that d_fname is String *}
+    DTAPtr = ^DTA;
+    DTA = record
+        d_reserved :        Array[1..21] of Byte;
+        d_attrib :          Byte;
+        d_time :            word;
+        d_date :            word;
+        d_length :          LongInt;
+        d_fname :           String[12];
+    end;
 
 (* ++++++++++++++++++++++++++++++++++++++++ *)
 (*                  BIOS                    *)
