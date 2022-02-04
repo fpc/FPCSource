@@ -24,7 +24,7 @@ unit tos;
 
 interface
 
-uses gemdos, xbios, bios, sysutils;
+uses gemdos, xbios, bios;
 
 const
     FO_READ     = 0;
