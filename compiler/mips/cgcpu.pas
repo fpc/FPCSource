@@ -1597,12 +1597,14 @@ begin
     if Count > 0 then
     begin
       tmpreg1 := GetIntRegister(list, OS_INT);
-      for count2 := 1 to Count do
+      count2:=1;
+      while count2 <= Count do
       begin
         list.concat(taicpu.op_reg_ref(A_LW, tmpreg1, src));
         list.concat(taicpu.op_reg_ref(A_SW, tmpreg1, dst));
         Inc(src.offset, 4);
         Inc(dst.offset, 4);
+	Inc(count2);
       end;
       len := len mod 4;
     end;
@@ -1674,12 +1676,14 @@ begin
     begin
       { unrolled loop }
       tmpreg1 := GetIntRegister(list, OS_INT);
-      for i := 1 to len do
+      i:=1;
+      while i <= len do
       begin
         list.concat(taicpu.op_reg_ref(A_LBU, tmpreg1, src));
         list.concat(taicpu.op_reg_ref(A_SB, tmpreg1, dst));
         Inc(src.offset);
         Inc(dst.offset);
+	Inc(i);
       end;
     end;
   end;
