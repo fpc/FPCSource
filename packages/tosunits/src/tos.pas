@@ -17,6 +17,9 @@
     consider using the gemdos/bios/xbios units instead.
 }
 
+{$MODE FPC}
+{$LONGSTRINGS OFF} { this unit always uses shortstrings }
+{$PACKRECORDS 2}
 unit tos;
 
 interface
