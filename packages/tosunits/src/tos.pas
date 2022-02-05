@@ -18,13 +18,14 @@
 }
 
 {$MODE FPC}
+{$MODESWITCH OUT+}
 {$LONGSTRINGS OFF} { this unit always uses shortstrings }
 {$PACKRECORDS 2}
 unit tos;
 
 interface
 
-uses gemdos, xbios, bios;
+uses gemdos, xbios, bios, metados;
 
 const
     FO_READ     = 0;
@@ -85,7 +86,13 @@ type
         d_fname :           String[12];
     end;
 
-    LongIntFunc = Function: LongInt;
+    LongIntFunc = xbios.TLongIntFunc;
+
+    METAINFO = metados.TMETAINFO;
+
+{ TOS program need this exported }
+var
+    basepage: PPD; external name '__base';
 
 (* ++++++++++++++++++++++++++++++++++++++++ *)
 (*                  BIOS                    *)
@@ -343,7 +350,7 @@ function Dclosedir(dir: LongInt): LongInt; syscall 1 299;
 function Fxattr(flag: smallint; const name: String; var buf: TXATTR): LongInt;
 function Flink(const oldname: String; const newname: String): LongInt;
 function Fsymlink(const oldname: String; const newname: String): LongInt;
-function Freadlink(size: smallint; var buf: String; const name: String): LongInt;
+function Freadlink(size: smallint; out buf: String; const name: String): LongInt;
 function Dcntl(cmd: smallint; const name: String; arg: LongInt): LongInt;
 function Fchown(const name: String; uid, gid: smallint): LongInt;
 function Fchmod(const name: String; mode: smallint): LongInt;
@@ -536,7 +543,7 @@ begin
   fsymlink := gemdos_fsymlink(s1, s2);
 end;
 
-function Freadlink(size: smallint; var buf: String; const name: String): LongInt;
+function Freadlink(size: smallint; out buf: String; const name: String): LongInt;
 var s1: array[0..255] of char;
     s2: array[0..255] of char;
 begin
