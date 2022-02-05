@@ -145,12 +145,12 @@ function form_button(fo_btree: PAESOBJECT; fo_bobject, fo_bclicks: smallint;
 function graf_rubbox(gr_rx, gr_ry, gr_rminwidth, gr_rminheight: smallint;
         out gr_rlastwidth, gr_rlastheight: smallint): smallint;
 function graf_rubberbox(gr_rx, gr_ry, gr_rminwidth, gr_rminheight: smallint;
-        out gr_rlastwidth, gr_rlastheight: smallint): smallint; external;
+        out gr_rlastwidth, gr_rlastheight: smallint): smallint; external name 'graf_rubberbox';
 function graf_dragbox(gr_dwidth, gr_dheight, gr_dstartx, gr_dstarty,
                       gr_dboundx, gr_dboundy, gr_dboundw, gr_dboundh: smallint;
               out gr_dfinishx, gr_dfinishy: smallint): smallint;
 function graf_mbox(gr_mwidth, gr_mheight, gr_msourcex, gr_msourcey, gr_mdestx, gr_mdesty: smallint): smallint;
-function graf_movebox(gr_mwidth, gr_mheight, gr_msourcex, gr_msourcey, gr_mdestx, gr_mdesty: smallint): smallint; external;
+function graf_movebox(gr_mwidth, gr_mheight, gr_msourcex, gr_msourcey, gr_mdestx, gr_mdesty: smallint): smallint; external name 'graf_movebox';
 function graf_growbox(gr_gstx, gr_gsty, gr_gstwidth, gr_gstheight,
                       gr_gfinx, gr_gfiny, gr_gfinwidth, gr_gfinheight :smallint): smallint;
 function graf_shrinkbox(gr_sfinx, gr_sfiny, gr_sfinwidth, gr_sfinheight,
@@ -1202,7 +1202,7 @@ end;
 
 
 function graf_rubbox(gr_rx, gr_ry, gr_rminwidth, gr_rminheight: smallint;
-        out gr_rlastwidth, gr_rlastheight: smallint): smallint; alias: 'AES_$$_GRAF_RUBBERBOX$SMALLINT$SMALLINT$SMALLINT$SMALLINT$SMALLINT$SMALLINT$$SMALLINT';
+        out gr_rlastwidth, gr_rlastheight: smallint): smallint; alias: 'graf_rubberbox';
 begin
   _intin[0]:=gr_rx;
   _intin[1]:=gr_ry;
@@ -1232,7 +1232,7 @@ begin
   gr_dfinishy:=_intout[2];
 end;
 
-function graf_mbox(gr_mwidth, gr_mheight, gr_msourcex, gr_msourcey, gr_mdestx, gr_mdesty: smallint): smallint; alias: 'AES_$$_GRAF_MOVEBOX$SMALLINT$SMALLINT$SMALLINT$SMALLINT$SMALLINT$SMALLINT$$SMALLINT';
+function graf_mbox(gr_mwidth, gr_mheight, gr_msourcex, gr_msourcey, gr_mdestx, gr_mdesty: smallint): smallint; alias: 'graf_movebox';
 begin
   _intin[0]:=gr_mwidth;
   _intin[1]:=gr_mheight;
