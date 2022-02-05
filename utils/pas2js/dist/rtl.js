@@ -1,5 +1,4 @@
-﻿var pas = {};
-pas.$libimports = {};
+﻿var pas = { $libimports: {}};
 
 var rtl = {
 
