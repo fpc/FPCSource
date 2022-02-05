@@ -41,6 +41,9 @@ implementation
 
 {$i gemdos.inc}
 
+var
+  basepage: PPD; external name '__base';
+
 procedure Error2DosError(errno: longint);
 begin
   case errno of
@@ -382,18 +385,62 @@ begin
 end;
 
 function EnvCount: Longint;
+var
+  hp : pchar;
 begin
   EnvCount:=0;
+  hp:=basepage^.p_env;
+  If (Hp<>Nil) then
+    while hp^<>#0 do
+      begin
+      Inc(EnvCount);
+      hp:=hp+strlen(hp)+1;
+      end;
 end;
 
 function EnvStr(Index: LongInt): String;
+var
+  hp : pchar;
 begin
   EnvStr:='';
+  hp:=basepage^.p_env;
+  If (Hp<>Nil) then
+    begin
+      while (hp^<>#0) and (Index>1) do
+        begin
+          Dec(Index);
+          hp:=hp+strlen(hp)+1;
+        end;
+    If (hp^<>#0) then
+      begin
+        EnvStr:=hp;
+      end;
+    end;
 end;
 
 function GetEnv(envvar : String): String;
+  var
+    hp : pchar;
+    i : longint;
+    upperenv, str : RawByteString;
 begin
-  GetEnv:='';
+   GetEnv:='';
+   hp:=basepage^.p_env;
+   if (hp=nil) then
+      exit;
+   upperenv:=upcase(envvar);
+   while hp^<>#0 do
+     begin
+        str:=hp;
+        i:=pos('=',str);
+        if upcase(copy(str,1,i-1))=upperenv then
+          begin
+             GetEnv:=copy(str,i+1,length(str)-i);
+             break;
+          end;
+        { next string entry}
+        hp:=hp+strlen(hp)+1;
+     end;
 end;
 
 
