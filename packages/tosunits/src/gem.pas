@@ -164,8 +164,16 @@ const
 
 
 type
-    AESPB = TAESPB;
-    AESPBPtr = ^AESPB;
+  control_ARRAY	= ARRAY[0..4] of smallint;
+  AESPBPtr = ^AESPB;
+  AESPB = record
+    control: ^control_ARRAY;
+    global: PAESGlobal;
+    intin: PAESIntIn;
+    intout: PAESIntOut;
+    addrin: PAESAddrIn;
+    addrout: PAESAddrOut;
+  end;
     AESOBJECT = TAESOBJECT;
     AESOBJECTPtr = ^TAESOBJECT;
     VDIPB = TVDIPB;
@@ -232,7 +240,7 @@ var Gem_pb: AES_block; external name 'aes_global';
  *)
 
 var
-    AES_pb: TAESPB; external name 'aespb';
+    AES_pb: AESPB; external name 'aespb';
     VDI_pb: TVDIPB; external name 'vdipb';
 
 {*
