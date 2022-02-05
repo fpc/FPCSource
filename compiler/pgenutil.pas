@@ -1588,7 +1588,7 @@ uses
             i : longint;
           begin
             result:=nil;
-            while assigned(def) and (def.typ in [recorddef,objectdef]) do
+            while assigned(def) do
               begin
                 if (df_generic in def.defoptions) and (def=genericdef) then
                   begin
