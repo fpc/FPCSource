@@ -222,6 +222,7 @@ implementation
          orgname : TIDString;
          hdef : tdef;
          sym : tsym;
+         flags : thccflags;
          dummysymoptions : tsymoptions;
          deprecatedmsg : pshortstring;
          storetokenpos,filepos : tfileposinfo;
@@ -341,7 +342,11 @@ implementation
                          skip_initialiser:=true;
                        end;
                       { add default calling convention }
-                      handle_calling_convention(hdef,hcc_default_actions_intf);
+                      if hdef.typ=procvardef then
+                        flags:=hcc_default_actions_intf
+                      else
+                        flags:=hcc_default_actions_intf_struct;
+                      handle_calling_convention(hdef,flags);
                     end;
                    { Parse the initialiser }
                    if not skip_initialiser then
@@ -698,6 +703,7 @@ implementation
          defpos,storetokenpos : tfileposinfo;
          old_block_type : tblock_type;
          old_checkforwarddefs: TFPObjectList;
+         flags : thccflags;
          setdummysym,
          first,
          isgeneric,
@@ -1074,7 +1080,11 @@ implementation
                            if current_scanner.replay_stack_depth=0 then
                              hdef.register_def;
                          end;
-                       handle_calling_convention(hdef,hcc_default_actions_intf);
+                       if hdef.typ=procvardef then
+                         flags:=hcc_default_actions_intf
+                       else
+                         flags:=hcc_default_actions_intf_struct;
+                       handle_calling_convention(hdef,flags);
                        if (hdef.typ=procvardef) and (po_is_function_ref in tprocvardef(hdef).procoptions) then
                          begin
                            if (po_is_block in tprocvardef(hdef).procoptions) and

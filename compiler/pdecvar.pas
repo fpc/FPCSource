@@ -1345,6 +1345,7 @@ implementation
          vs   : tabstractvarsym;
          hdef : tdef;
          i    : longint;
+         flags : thccflags;
          first,
          isgeneric,
          semicoloneaten,
@@ -1557,7 +1558,11 @@ implementation
                        end;
                    end;
                  { Add calling convention for procvar }
-                 handle_calling_convention(hdef,hcc_default_actions_intf);
+                 if hdef.typ=procvardef then
+                   flags:=hcc_default_actions_intf
+                 else
+                   flags:=hcc_default_actions_intf_struct;
+                 handle_calling_convention(hdef,flags);
                  { Handling of Delphi typed const = initialized vars }
                  if (token=_EQ) and
                     not(m_tp7 in current_settings.modeswitches) and

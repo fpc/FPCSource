@@ -1659,6 +1659,7 @@ uses
         tsrsym : ttypesym;
         psym,
         srsym : tsym;
+        flags : thccflags;
         paramdef1,
         paramdef2,
         def : tdef;
@@ -2020,7 +2021,11 @@ uses
                         parse_proctype_directives(tprocvardef(result));
                       if po_is_function_ref in tprocvardef(result).procoptions then
                         adjust_funcref(result,srsym,nil);
-                      handle_calling_convention(result,hcc_default_actions_intf);
+                      if result.typ=procvardef then
+                        flags:=hcc_default_actions_intf
+                      else
+                        flags:=hcc_default_actions_intf_struct;
+                      handle_calling_convention(result,flags);
                       if not hintsprocessed and (replaydepth>current_scanner.replay_stack_depth) then
                         begin
                           try_consume_hintdirective(ttypesym(srsym).symoptions,ttypesym(srsym).deprecatedmsg);
