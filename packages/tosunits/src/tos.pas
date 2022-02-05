@@ -229,6 +229,16 @@ function buffptr(bptr: Pointer): LongInt; syscall 14 141;
 
 procedure VsetMask(ormask, andmask: LongInt; overlay: smallint); syscall 14 150;
 
+procedure Metainit(var buffer: TMETAINFO); syscall 14 48;
+function Metaopen(drive: smallint; var buffer: TMETA_DRVINFO): LongInt; syscall 14 49;
+function Metaclose(drive: smallint): LongInt; syscall 14 50;
+function Metaread(drive: smallint; buffer: Pointer; blockno: LongInt; count: smallint): LongInt; syscall 14 51;
+function Metawrite(drive: smallint; buffer: Pointer; blockno: LongInt; count: smallint): LongInt; syscall 14 52;
+function Metaseek(drive: smallint; dummy, offset: longint): LongInt; syscall 14 53;
+function Metastatus(drive: smallint; buffer: Pointer): LongInt; syscall 14 54;
+function Metaioctl(drive: smallint; magic: LongInt; opcode: smallint; buffer: Pointer): LongInt; syscall 14 55;
+
+
 (* ++++++++++++++++++++++++++++++++++++++++ *)
 (*                  GEMDOS                  *)
 (* ++++++++++++++++++++++++++++++++++++++++ *)
@@ -367,6 +377,7 @@ procedure Salert(str: Pchar); syscall 1 316;
 function Tmalarm(time: longint): LongInt; syscall 1 317;
 { function Psigintr(vec, sig: smallint): LongInt; syscall 1 318; }
 function Suptime(var uptime: longint; var loadaverage: longint): LongInt; syscall 1 319;
+
 
 (* ++++++++++++++++++++++++++++++++++++++++ *)
 (*              IMPLEMENTATION              *)
