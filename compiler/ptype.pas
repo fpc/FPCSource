@@ -1562,13 +1562,14 @@ implementation
         end;
 
 
-        function procvar_dec(genericdef:tstoreddef;genericlist:tfphashobjectlist;doregister:boolean):tdef;
+        function procvar_dec(genericdef:tstoreddef;genericlist:tfphashobjectlist;sym:tsym;doregister:boolean):tdef;
           var
             is_func:boolean;
             pd:tprocvardef;
             old_current_genericdef,
             old_current_specializedef: tstoreddef;
             old_parse_generic: boolean;
+            olddef : tdef;
           begin
             old_current_genericdef:=current_genericdef;
             old_current_specializedef:=current_specializedef;
@@ -1580,6 +1581,13 @@ implementation
             is_func:=(token=_FUNCTION);
             consume(token);
             pd:=cprocvardef.create(normal_function_level,doregister);
+
+            if assigned(sym) then
+              begin
+                pd.typesym:=sym;
+                olddef:=ttypesym(sym).typedef;
+                ttypesym(sym).typedef:=pd;
+              end;
 
             { usage of specialized type inside its generic template }
             if assigned(genericdef) then
@@ -1639,6 +1647,12 @@ implementation
             parse_generic:=old_parse_generic;
             current_genericdef:=old_current_genericdef;
             current_specializedef:=old_current_specializedef;
+
+            if assigned(sym) then
+              begin
+                pd.typesym:=nil;
+                ttypesym(sym).typedef:=olddef;
+              end;
 
             result:=pd;
           end;
@@ -1952,7 +1966,7 @@ implementation
             _PROCEDURE,
             _FUNCTION:
               begin
-                def:=procvar_dec(genericdef,genericlist,true);
+                def:=procvar_dec(genericdef,genericlist,nil,true);
 {$ifdef jvm}
                 jvm_create_procvar_class(name,def);
 {$endif}
@@ -1982,7 +1996,7 @@ implementation
                           consume(_TO);
                           { don't register the def as a non-cblock function
                             reference will be converted to an interface }
-                          def:=procvar_dec(genericdef,genericlist,false);
+                          def:=procvar_dec(genericdef,genericlist,newsym,false);
                           { could be errordef in case of a syntax error }
                           if assigned(def) and
                              (def.typ=procvardef) then
