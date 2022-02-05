@@ -152,6 +152,9 @@ interface
     { used to test compatibility between two pprocvardefs (JM)               }
     function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef;checkincompatibleuniv: boolean):tequaltype;
 
+    { Checks if an funcref interface can be assigned to the other }
+    function funcref_equal(def1,def2:tobjectdef):tequaltype;
+
     { Parentdef is the definition of a method defined in a parent class or interface }
     { Childdef is the definition of a method defined in a child class, interface or  }
     { a class implementing an interface with parentdef.                              }
@@ -2487,14 +2490,14 @@ implementation
       end;
 
 
-    function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef;checkincompatibleuniv: boolean):tequaltype;
+    function proc_to_procvar_equal_internal(def1:tabstractprocdef;def2:tabstractprocdef;checkincompatibleuniv,ignoreself: boolean):tequaltype;
       var
         eq: tequaltype;
         po_comp: tprocoptions;
         pa_comp: tcompare_paras_options;
         captured : tfplist;
       begin
-         proc_to_procvar_equal:=te_incompatible;
+         proc_to_procvar_equal_internal:=te_incompatible;
          if not(assigned(def1)) or not(assigned(def2)) then
            exit;
          { check for method pointer and local procedure pointer:
@@ -2537,7 +2540,7 @@ implementation
          pa_comp:=[cpo_ignoreframepointer];
          if is_block(def2) then
            include(pa_comp,cpo_ignorehidden);
-         if po_anonymous in def1.procoptions then
+         if (po_anonymous in def1.procoptions) or ignoreself then
            include(pa_comp,cpo_ignoreself);
          if checkincompatibleuniv then
            include(pa_comp,cpo_warn_incompatible_univ);
@@ -2617,8 +2620,33 @@ implementation
                       end;
                   end;
               end;
-            proc_to_procvar_equal:=eq;
+            proc_to_procvar_equal_internal:=eq;
           end;
+      end;
+
+
+    function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef;checkincompatibleuniv: boolean):tequaltype;
+      begin
+        result:=proc_to_procvar_equal_internal(def1,def2,checkincompatibleuniv,false);
+      end;
+
+
+    function funcref_equal(def1,def2:tobjectdef):tequaltype;
+      var
+        invoke1,
+        invoke2 : tprocdef;
+      begin
+        if not is_funcref(def1) then
+          internalerror(2022010714);
+        if not is_funcref(def2) then
+          internalerror(2022010715);
+        invoke1:=get_invoke_procdef(def1);
+        invoke2:=get_invoke_procdef(def2);
+        result:=proc_to_procvar_equal_internal(invoke1,invoke2,false,true);
+        { as long as the two methods are considered convertible we consider the
+          two function references as equal }
+        if result>te_convert_operator then
+          result:=te_equal;
       end;
 
 
