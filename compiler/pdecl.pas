@@ -886,9 +886,6 @@ implementation
               { update the definition of the type }
               if assigned(hdef) then
                 begin
-                  if df_generic in hdef.defoptions then
-                    { flag parent symtables that they now contain a generic }
-                    hdef.owner.includeoption(sto_has_generic);
                   if assigned(hdef.typesym) then
                     begin
                       istyperenaming:=true;
@@ -1154,6 +1151,10 @@ implementation
                 attributes to this def }
               if not istyperenaming or isunique then
                 trtti_attribute_list.bind(rtti_attrs_def,tstoreddef(hdef).rtti_attribute_list);
+
+              if df_generic in hdef.defoptions then
+                { flag parent symtables that they now contain a generic }
+                hdef.owner.includeoption(sto_has_generic);
             end;
 
            if isgeneric and (not(hdef.typ in [objectdef,recorddef,arraydef,procvardef])
