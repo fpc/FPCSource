@@ -260,12 +260,15 @@ interface
           { the variable is not living at entry of the scope, so it does not need to be initialized if it is a reg. var
             (not written to ppu, because not important and would change interface crc) }
           noregvarinitneeded : boolean;
+          { not stored in PPU! }
+          capture_sym : tsym;
           constructor create(st:tsymtyp;const n : TSymStr;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
           function globalasmsym: boolean;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
+          function is_captured:boolean;
       end;
 
       tlocalvarsym = class(tabstractnormalvarsym)
@@ -2124,6 +2127,12 @@ implementation
       begin
          inherited ppuwrite(ppufile);
          ppufile.putderef(defaultconstsymderef);
+      end;
+
+
+    function tabstractnormalvarsym.is_captured:boolean;
+      begin
+        result:=assigned(capture_sym);
       end;
 
 
