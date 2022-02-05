@@ -479,7 +479,7 @@ interface
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
              'mips','arm', 'powerpc64', 'avr', 'mipsel','jvm', 'i8086',
              'aarch64', 'wasm32', 'sparc64', 'riscv32', 'riscv64', 'xtensa',
-             'z80');
+             'z80', 'mips64', 'mips64el');
 
        abiinfo : array[tabi] of tabiinfo = (
          (name: 'DEFAULT'; supported: true),
@@ -1123,7 +1123,7 @@ begin
   default_target(system_avr_embedded);
 {$endif avr}
 
-{$ifdef mips}
+{$ifdef mips32}
 {$ifdef mipsel}
   {$ifdef cpumipsel}
     default_target(source_info.system);
@@ -1133,7 +1133,7 @@ begin
 {$else mipsel}
   default_target(system_mipseb_linux);
 {$endif mipsel}
-{$endif mips}
+{$endif mips32}
 
 {$ifdef jvm}
   default_target(system_jvm_java32);
@@ -1204,6 +1204,13 @@ begin
   {$endif ndef default_target_set}
 {$endif xtensa}
 
+{$ifdef mips64}
+  default_target(system_mips64_linux);
+{$endif mips64}
+
+{$ifdef mips64el}
+  default_target(system_mips64el_linux);
+{$endif mips64el}
 end;
 
 

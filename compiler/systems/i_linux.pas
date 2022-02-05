@@ -964,7 +964,7 @@ unit i_linux;
 
        system_mipseb_linux_info : tsysteminfo =
           (
-            system       : system_mipseb_LINUX;
+            system       : system_mipseb_linux;
             name         : 'Linux for MIPSEB';
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
@@ -1034,7 +1034,7 @@ unit i_linux;
 
        system_mipsel_linux_info : tsysteminfo =
           (
-            system       : system_mipsel_LINUX;
+            system       : system_mipsel_linux;
             name         : 'Linux for MIPSEL';
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
@@ -1075,6 +1075,146 @@ unit i_linux;
             ar           : ar_gnu_ar;
             res          : res_elf;
             dbg          : dbg_stabs;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
+                constalignmin   : 0;
+                constalignmax   : 8;
+                varalignmin     : 0;
+                varalignmax     : 8;
+                localalignmin   : 4;
+                localalignmax   : 8;
+                recordalignmin  : 0;
+                recordalignmax  : 8;
+                maxCrecordalign : 8
+              );
+            first_parm_offset : 0;
+            stacksize    : 32*1024*1024;
+            stackalign   : 8;
+            abi : abi_default;
+            llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:32-i16:16:32-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-n32-S64';
+          );
+
+       system_mips64_linux_info : tsysteminfo =
+          (
+            system       : system_mips64_linux;
+            name         : 'Linux for MIPS64';
+            shortname    : 'Linux';
+            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
+                            tf_requires_proper_alignment,tf_library_needs_pic,
+                            tf_pic_uses_got,tf_safecall_exceptions,
+                            tf_smartlink_sections,tf_has_winlike_resources,tf_supports_hidden_symbols];
+            cpu          : cpu_mips64;
+            unit_env     : 'LINUXUNITS';
+            extradefines : 'UNIX;HASUNIX';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+//            p_ext_support : false;
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : ld_none;
+            linkextern   : ld_linux;
+            ar           : ar_gnu_ar;
+            res          : res_elf;
+            dbg          : dbg_stabs;
+            script       : script_unix;
+            endian       : endian_big;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
+                constalignmin   : 0;
+                constalignmax   : 8;
+                varalignmin     : 0;
+                varalignmax     : 8;
+                localalignmin   : 4;
+                localalignmax   : 8;
+                recordalignmin  : 0;
+                recordalignmax  : 8;
+                maxCrecordalign : 8
+              );
+            first_parm_offset : 0;
+            stacksize    : 32*1024*1024;
+            stackalign   : 8;
+            abi : abi_default;
+            llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:32-i16:16:32-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-n32-S64';
+          );
+
+       system_mips64el_linux_info : tsysteminfo =
+          (
+            system       : system_mips64el_linux;
+            name         : 'Linux for MIPS64EL';
+            shortname    : 'Linux';
+            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
+                            tf_requires_proper_alignment,tf_library_needs_pic,
+                            tf_pic_uses_got,tf_safecall_exceptions,
+                            tf_smartlink_sections,tf_has_winlike_resources,tf_supports_hidden_symbols];
+            cpu          : cpu_mips64el;
+            unit_env     : 'LINUXUNITS';
+            extradefines : 'UNIX;HASUNIX';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+//            p_ext_support : false;
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : ld_none;
+            linkextern   : ld_linux;
+            ar           : ar_gnu_ar;
+            res          : res_elf;
+            dbg          : dbg_dwarf4;
             script       : script_unix;
             endian       : endian_little;
             alignment    :
@@ -1394,5 +1534,15 @@ initialization
     set_source_info(system_xtensa_linux_info);
   {$endif linux}
 {$endif CPUXTENSA}
+{$ifdef CPUMIPS64EB}
+  {$ifdef linux}
+    set_source_info(system_mips64_linux_info);
+  {$endif linux}
+{$endif CPUMIPS64EB}
+{$ifdef CPUMIPS64EL}
+  {$ifdef linux}
+    set_source_info(system_mips64el_linux_info);
+  {$endif linux}
+{$endif CPUMIPS64EL}
 end.
 

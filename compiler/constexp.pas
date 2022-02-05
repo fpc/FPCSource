@@ -26,6 +26,9 @@ unit constexp;
 
 interface
 
+  uses
+    sfpux80;
+
 type  Tconstexprint=record
         overflow:boolean;
         case signed:boolean of
@@ -36,6 +39,8 @@ type  Tconstexprint=record
       end;
 
       errorproc=procedure (i:longint);
+
+      TConstExprFloat = float128;
 
 {"Uses verbose" gives a dependency on cpuinfo through globals. This leads
  build trouble when compiling the directory utils, since the cpu directory

@@ -56,7 +56,9 @@
              cpu_riscv32,                  { 19 }
              cpu_riscv64,                  { 20 }
              cpu_xtensa,                   { 21 }
-             cpu_z80                       { 22 }
+             cpu_z80,                      { 22 }
+             cpu_mips64,                   { 23 }
+             cpu_mips64el                  { 24 }
        );
 
        tasmmode= (asmmode_none
@@ -205,7 +207,9 @@
              system_m68k_sinclairql,    { 113 }
              system_wasm32_wasi,        { 114 }
              system_aarch64_freebsd,    { 115 }
-             system_aarch64_embedded    { 116 }
+             system_aarch64_embedded,   { 116 }
+             system_mips64_linux,       { 117 }
+             system_mips64el_linux      { 118 }
        );
 
      type
