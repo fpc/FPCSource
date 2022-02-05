@@ -1580,6 +1580,73 @@ uses
             end;
           end;
 
+        function find_in_hierarchy(def:tdef;generictypelist:tfphashobjectlist):tdef;
+          var
+            paramdef1,
+            paramdef2 : tdef;
+            allequal : boolean;
+            i : longint;
+          begin
+            result:=nil;
+            while assigned(def) and (def.typ in [recorddef,objectdef]) do
+              begin
+                if (df_generic in def.defoptions) and (def=genericdef) then
+                  begin
+                    result:=def;
+                    break;
+                  end;
+                { the following happens when a routine with its parent struct
+                  as parameter is specialized as a parameter or result of a
+                  generic function }
+                if (df_specialization in def.defoptions) and (tstoreddef(def).genericdef=genericdef) then
+                  begin
+                    if tstoreddef(def).genericparas.count=generictypelist.count then
+                      begin
+                        allequal:=true;
+                        for i:=0 to generictypelist.count-1 do
+                          begin
+                            if tsym(generictypelist[i]).typ<>tsym(tstoreddef(def).genericparas[i]).typ then
+                              begin
+                                allequal:=false;
+                                break;
+                              end;
+                            if tsym(generictypelist[i]).typ=constsym then
+                              paramdef1:=tconstsym(generictypelist[i]).constdef
+                            else
+                              paramdef1:=ttypesym(generictypelist[i]).typedef;
+                            if tsym(tstoreddef(def).genericparas[i]).typ=constsym then
+                              paramdef2:=tconstsym(tstoreddef(def).genericparas[i]).constdef
+                            else
+                              paramdef2:=ttypesym(tstoreddef(def).genericparas[i]).typedef;
+                            if not equal_defs(paramdef1,paramdef2) then
+                              begin
+                                allequal:=false;
+                                break;
+                              end;
+                            if (tsym(generictypelist[i]).typ=constsym) and
+                                (
+                                  (tconstsym(generictypelist[i]).consttyp<>tconstsym(tstoreddef(def).genericparas[i]).consttyp) or
+                                  not same_constvalue(tconstsym(generictypelist[i]).consttyp,tconstsym(generictypelist[i]).value,tconstsym(tstoreddef(def).genericparas[i]).value)
+                                ) then
+                                begin
+                                  allequal:=false;
+                                  break;
+                                end;
+                          end;
+                        if allequal then
+                          begin
+                            result:=def;
+                            break;
+                          end;
+                      end;
+                  end;
+                if assigned(def.owner) then
+                  def:=tstoreddef(def.owner.defowner)
+                else
+                  def:=nil;
+              end;
+          end;
+
       var
         finalspecializename,
         ufinalspecializename : tidstring;
@@ -1688,60 +1755,12 @@ uses
         if not assigned(result) then
           begin
             def:=current_genericdef;
-            while assigned(def) and (def.typ in [recorddef,objectdef]) do
-              begin
-                if (df_generic in def.defoptions) and (def=genericdef) then
-                  begin
-                    result:=def;
-                    break;
-                  end;
-                { the following happens when a routine with its parent struct
-                  as parameter is specialized as a parameter or result of a
-                  generic function }
-                if (df_specialization in def.defoptions) and (tstoreddef(def).genericdef=genericdef) then
-                  begin
-                    if tstoreddef(def).genericparas.count=generictypelist.count then
-                      begin
-                        allequal:=true;
-                        for i:=0 to generictypelist.count-1 do
-                          begin
-                            if tsym(generictypelist[i]).typ<>tsym(tstoreddef(def).genericparas[i]).typ then
-                              begin
-                                allequal:=false;
-                                break;
-                              end;
-                            if tsym(generictypelist[i]).typ=constsym then
-                              paramdef1:=tconstsym(generictypelist[i]).constdef
-                            else
-                              paramdef1:=ttypesym(generictypelist[i]).typedef;
-                            if tsym(tstoreddef(def).genericparas[i]).typ=constsym then
-                              paramdef2:=tconstsym(tstoreddef(def).genericparas[i]).constdef
-                            else
-                              paramdef2:=ttypesym(tstoreddef(def).genericparas[i]).typedef;
-                            if not equal_defs(paramdef1,paramdef2) then
-                              begin
-                                allequal:=false;
-                                break;
-                              end;
-                            if (tsym(generictypelist[i]).typ=constsym) and
-                                (
-                                  (tconstsym(generictypelist[i]).consttyp<>tconstsym(tstoreddef(def).genericparas[i]).consttyp) or
-                                  not same_constvalue(tconstsym(generictypelist[i]).consttyp,tconstsym(generictypelist[i]).value,tconstsym(tstoreddef(def).genericparas[i]).value)
-                                ) then
-                                begin
-                                  allequal:=false;
-                                  break;
-                                end;
-                          end;
-                        if allequal then
-                          begin
-                            result:=def;
-                            break;
-                          end;
-                      end;
-                  end;
-                def:=tstoreddef(def.owner.defowner);
-              end;
+            if def=genericdef then
+              result:=def
+            else if assigned(current_genericdef) then
+              result:=find_in_hierarchy(current_genericdef,generictypelist);
+            if not assigned(result) and assigned(current_specializedef) then
+              result:=find_in_hierarchy(current_specializedef,generictypelist);
           end;
 
         { decide in which symtable to put the specialization }
