@@ -3310,7 +3310,7 @@ implementation
                        ) or
                        (
                         assigned(contextobjdef) and
-                        (contextobjdef.owner.symtabletype in [globalsymtable,staticsymtable,ObjectSymtable,recordsymtable]) and
+                        (contextobjdef.owner.symtabletype in [globalsymtable,staticsymtable,ObjectSymtable,recordsymtable,localsymtable]) and
                         (contextobjdef.owner.iscurrentunit) and
                         def_is_related(contextobjdef,symownerdef)
                        ) or
