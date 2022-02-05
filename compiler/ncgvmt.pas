@@ -1229,11 +1229,14 @@ implementation
 {$if defined(cpuhighleveltarget)}
         usehighlevelwrapper:=true;
 {$else defined(cpuhighleveltarget)}
-{$if defined(powerpc64)}
-        if cs_create_pic in current_settings.moduleswitches then
+        { on PPC systems that use a TOC the linker needs to be able to insert
+          an instruction to restore the TOC register after every branch
+          between code fragments that use a different TOC (which has to be
+          executed when that "branch" returns). So we can't use tail call
+          branches to routines potentially using a different TOC there }
+        if target_info.system in systems_ppc_toc then
           usehighlevelwrapper:=true
         else
-{$endif defined(powerpc64)}
           usehighlevelwrapper:=false;
 {$endif defined(cpuhighleveltarget)}
         for i:=0 to _class.ImplementedInterfaces.count-1 do
