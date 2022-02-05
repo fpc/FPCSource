@@ -337,10 +337,6 @@ begin
     reference_reset_base(tmpref, reg, 0, ctempposinvalid, sizeof(pint), []);
     a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, tempreg);
 
-    { save TOC pointer in stackframe }
-    reference_reset_base(tmpref, NR_STACK_POINTER_REG, get_rtoc_offset, ctempposinvalid, 8, []);
-    a_load_reg_ref(list, OS_ADDR, OS_ADDR, NR_RTOC, tmpref);
-
     { move actual function pointer to CTR register }
     list.concat(taicpu.op_reg(A_MTCTR, tempreg));
 
@@ -1268,6 +1264,13 @@ begin
       list.concat(taicpu.op_reg_reg_reg(A_STDUX, NR_R1, NR_R1, NR_R0));
     end;
   end;
+
+  { save current RTOC for restoration after calls if necessary }
+  if pi_do_call in current_procinfo.flags then
+    begin
+      reference_reset_base(href,NR_STACK_POINTER_REG,get_rtoc_offset,ctempposinvalid,target_info.stackalign,[]);
+      a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_RTOC,href);
+    end;
 
   { CR register not used by FPC atm }
 
