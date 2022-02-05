@@ -2764,6 +2764,13 @@ implementation
             exit;
           end;
 
+        if is_funcref(realself) and is_funcref(otherdef) then
+          begin
+            result:=(funcref_equal(tobjectdef(realself),tobjectdef(otherdef))>=te_equal);
+            if result then
+              exit;
+          end;
+
         { Objective-C protocols and Java interfaces can use multiple
            inheritance }
         if (realself.objecttype in [odt_objcprotocol,odt_interfacejava]) then
