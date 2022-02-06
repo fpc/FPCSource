@@ -80,7 +80,7 @@ uses
   nobj,ncon,ncal,
   { parser }
   scanner,
-  pbase,pexpr,pdecsub,ptype,psub,pparautl,pdecl;
+  pbase,pexpr,pdecsub,ptype,psub,pparautl,pdecl,procdefutil;
 
   type
     tdeftypeset = set of tdeftyp;
@@ -2018,7 +2018,9 @@ uses
                         end;
                       if replaydepth>current_scanner.replay_stack_depth then
                         parse_proctype_directives(tprocvardef(result));
-                      handle_calling_convention(tprocvardef(result),hcc_default_actions_intf);
+                      if po_is_function_ref in tprocvardef(result).procoptions then
+                        adjust_funcref(result,srsym,nil);
+                      handle_calling_convention(result,hcc_default_actions_intf);
                       if not hintsprocessed and (replaydepth>current_scanner.replay_stack_depth) then
                         begin
                           try_consume_hintdirective(ttypesym(srsym).symoptions,ttypesym(srsym).deprecatedmsg);
