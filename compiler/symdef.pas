@@ -787,6 +787,8 @@ interface
           procendtai   : tai;
           skpara: pointer;
           personality: tprocdef;
+          was_anonymous,
+          has_capturer,
           forwarddef,
           interfacedef : boolean;
           hasforward  : boolean;
@@ -839,6 +841,10 @@ interface
          procedure SetHasInliningInfo(AValue: boolean);
          function Getis_implemented: boolean;
          procedure Setis_implemented(AValue: boolean);
+         function getwas_anonymous:boolean;
+         procedure setwas_anonymous(avalue:boolean);
+         function gethas_capturer:boolean;
+         procedure sethas_capturer(avalue:boolean);
          function Getcapturedsyms:tfplist;
          function getparentfpsym: tsym;
        public
@@ -974,6 +980,10 @@ interface
           property is_implemented: boolean read Getis_implemented write Setis_implemented;
           { valid if the procdef captures any symbols from outer scopes }
           property capturedsyms:tfplist read Getcapturedsyms;
+          { true if this procdef was originally an anonymous function }
+          property was_anonymous:boolean read getwas_anonymous write setwas_anonymous;
+          { true if the procdef has a capturer for anonymous functions }
+          property has_capturer:boolean read gethas_capturer write sethas_capturer;
        end;
        tprocdefclass = class of tprocdef;
 
@@ -6149,6 +6159,34 @@ implementation
         if not assigned(implprocdefinfo) then
           internalerror(2020062101);
         implprocdefinfo^.is_implemented:=AValue;
+      end;
+
+
+    function tprocdef.getwas_anonymous:boolean;
+      begin
+        result:=assigned(implprocdefinfo) and implprocdefinfo^.was_anonymous;
+      end;
+
+
+    procedure tprocdef.setwas_anonymous(avalue:boolean);
+      begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2022020502);
+        implprocdefinfo^.was_anonymous:=avalue;
+      end;
+
+
+    function tprocdef.gethas_capturer:boolean;
+      begin
+        result:=assigned(implprocdefinfo) and implprocdefinfo^.has_capturer;
+      end;
+
+
+    procedure tprocdef.sethas_capturer(avalue:boolean);
+      begin
+        if not assigned(implprocdefinfo) then
+          internalerror(2022020503);
+        implprocdefinfo^.has_capturer:=avalue;
       end;
 
 
