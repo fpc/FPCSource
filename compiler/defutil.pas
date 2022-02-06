@@ -385,6 +385,9 @@ interface
     { returns true if def is a function reference }
     function is_funcref(def:tdef):boolean;
 
+    { returns true if def is an invokable interface }
+    function is_invokable(def:tdef):boolean;
+
     { returns true if def is a C "block" }
     function is_block(def: tdef): boolean;
 
@@ -1900,6 +1903,12 @@ implementation
     function is_funcref(def:tdef):boolean;
       begin
         result:=(def.typ=objectdef) and (oo_is_funcref in tobjectdef(def).objectoptions);
+      end;
+
+
+    function is_invokable(def:tdef):boolean;
+      begin
+        result:=(def.typ=objectdef) and (oo_is_invokable in tobjectdef(def).objectoptions);
       end;
 
 
