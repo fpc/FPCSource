@@ -65,6 +65,7 @@ implementation
        { parser }
        scanner,
        pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj,pgenutil,pparautl,
+       procdefutil,
 {$ifdef jvm}
        pjvm,
 {$endif}
@@ -687,12 +688,14 @@ implementation
          typename,orgtypename,
          gentypename,genorgtypename : TIDString;
          newtype  : ttypesym;
+         dummysym,
          sym      : tsym;
          hdef,
          hdef2    : tdef;
          defpos,storetokenpos : tfileposinfo;
          old_block_type : tblock_type;
          old_checkforwarddefs: TFPObjectList;
+         setdummysym,
          first,
          isgeneric,
          isunique,
@@ -719,6 +722,7 @@ implementation
          repeat
            defpos:=current_tokenpos;
            istyperenaming:=false;
+           setdummysym:=false;
            generictypelist:=nil;
            localgenerictokenbuf:=nil;
 
@@ -946,13 +950,20 @@ implementation
               if isgeneric and assigned(sym) and
                   not (m_delphi in current_settings.modeswitches) and
                   (ttypesym(sym).typedef.typ=undefineddef) then
-                { don't free the undefineddef as the defids rely on the count
-                  of the defs in the def list of the module}
-                ttypesym(sym).typedef:=hdef;
+                begin
+                  { don't free the undefineddef as the defids rely on the count
+                    of the defs in the def list of the module}
+                  ttypesym(sym).typedef:=hdef;
+                  setdummysym:=true;
+                end;
               newtype.typedef:=hdef;
               { ensure that the type is registered when no specialization is
                 currently done }
-              if current_scanner.replay_stack_depth=0 then
+              if (current_scanner.replay_stack_depth=0) and
+                  (
+                    (hdef.typ<>procvardef) or
+                    not (po_is_function_ref in tprocdef(hdef).procoptions)
+                  ) then
                 hdef.register_def;
               { KAZ: handle TGUID declaration in system unit }
               if (cs_compilesystem in current_settings.moduleswitches) and
@@ -1049,21 +1060,22 @@ implementation
                        parse_proctype_directives(tprocvardef(hdef));
                        if po_is_function_ref in tprocvardef(hdef).procoptions then
                          begin
-                           { these always support everything, no "of object" or
-                             "is_nested" is allowed }
-                           if is_nested_pd(tprocvardef(hdef)) or
-                              is_methodpointer(hdef) then
-                             cgmessage(type_e_function_reference_kind)
+                           if not (m_function_references in current_settings.modeswitches) and
+                               not (po_is_block in tprocvardef(hdef).procoptions) then
+                             messagepos(storetokenpos,sym_e_error_in_type_def)
                            else
                              begin
-                               { this message is only temporary; once Delphi style anonymous functions
-                                 are supported, this check is no longer required }
-                               if not (po_is_block in tprocvardef(hdef).procoptions) then
-                                 comment(v_error,'Function references are not yet supported, only C blocks (add "cblock;" at the end)');
+                               if setdummysym then
+                                 dummysym:=sym
+                               else
+                                 dummysym:=nil;
+                               adjust_funcref(hdef,newtype,dummysym);
                              end;
+                           if current_scanner.replay_stack_depth=0 then
+                             hdef.register_def;
                          end;
-                       handle_calling_convention(tprocvardef(hdef),hcc_default_actions_intf);
-                       if po_is_function_ref in tprocvardef(hdef).procoptions then
+                       handle_calling_convention(hdef,hcc_default_actions_intf);
+                       if (hdef.typ=procvardef) and (po_is_function_ref in tprocvardef(hdef).procoptions) then
                          begin
                            if (po_is_block in tprocvardef(hdef).procoptions) and
                               not (tprocvardef(hdef).proccalloption in [pocall_cdecl,pocall_mwpascal]) then

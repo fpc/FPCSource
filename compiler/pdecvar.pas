@@ -60,7 +60,7 @@ implementation
 {$if defined(i386) or defined(i8086)}
        symcpu,
 {$endif}
-       fmodule,htypechk,
+       fmodule,htypechk,procdefutil,
        { pass 1 }
        node,pass_1,aasmbase,aasmdata,
        ncon,nset,ncnv,nld,nutils,
@@ -1351,6 +1351,7 @@ implementation
          deprecatedmsg   : pshortstring;
          old_block_type  : tblock_type;
          sectionname : ansistring;
+         typepos,
          tmp_filepos,
          old_current_filepos     : tfileposinfo;
       begin
@@ -1432,6 +1433,7 @@ implementation
              { read variable type def }
              block_type:=bt_var_type;
              consume(_COLON);
+             typepos:=current_tokenpos;
 
 {$ifdef gpc_mode}
              if (m_gpc in current_settings.modeswitches) and
@@ -1488,9 +1490,32 @@ implementation
                 (symtablestack.top.symtabletype<>parasymtable) then
                begin
                  { Add calling convention for procvar }
-                 if (hdef.typ=procvardef) and
+                 if (
+                      (hdef.typ=procvardef) or
+                      is_funcref(hdef)
+                    ) and
                     (hdef.typesym=nil) then
-                   handle_calling_convention(tprocvardef(hdef),hcc_default_actions_intf);
+                   begin
+                     if po_is_function_ref in tprocvardef(hdef).procoptions then
+                       begin
+                         if not (m_function_references in current_settings.modeswitches) and
+                             not (po_is_block in tprocvardef(hdef).procoptions) then
+                           messagepos(typepos,sym_e_error_in_type_def)
+                         else
+                           begin
+                             if adjust_funcref(hdef,nil,nil) then
+                               { the def was changed, so update it }
+                               for i:=0 to sc.count-1 do
+                                 begin
+                                   vs:=tabstractvarsym(sc[i]);
+                                   vs.vardef:=hdef;
+                                 end;
+                             if current_scanner.replay_stack_depth=0 then
+                               hdef.register_def;
+                           end;
+                       end;
+                     handle_calling_convention(hdef,hcc_default_actions_intf);
+                   end;
                  read_default_value(sc);
                  hasdefaultvalue:=true;
                end
@@ -1502,13 +1527,34 @@ implementation
 
              { Support calling convention for procvars after semicolon }
              if not(hasdefaultvalue) and
-                (hdef.typ=procvardef) and
+                (
+                  (hdef.typ=procvardef) or
+                  is_funcref(hdef)
+                ) and
                 (hdef.typesym=nil) then
                begin
                  { Parse procvar directives after ; }
                  maybe_parse_proc_directives(hdef);
+                 if po_is_function_ref in tprocvardef(hdef).procoptions then
+                   begin
+                     if not (m_function_references in current_settings.modeswitches) and
+                         not (po_is_block in tprocvardef(hdef).procoptions) then
+                       messagepos(typepos,sym_e_error_in_type_def)
+                     else
+                       begin
+                         if adjust_funcref(hdef,nil,nil) then
+                           { the def was changed, so update it }
+                           for i:=0 to sc.count-1 do
+                             begin
+                               vs:=tabstractvarsym(sc[i]);
+                               vs.vardef:=hdef;
+                             end;
+                         if current_scanner.replay_stack_depth=0 then
+                           hdef.register_def;
+                       end;
+                   end;
                  { Add calling convention for procvar }
-                 handle_calling_convention(tprocvardef(hdef),hcc_default_actions_intf);
+                 handle_calling_convention(hdef,hcc_default_actions_intf);
                  { Handling of Delphi typed const = initialized vars }
                  if (token=_EQ) and
                     not(m_tp7 in current_settings.modeswitches) and

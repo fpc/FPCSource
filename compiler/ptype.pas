@@ -84,7 +84,7 @@ implementation
        nset,ncnv,ncon,nld,
        { parser }
        scanner,
-       pbase,pexpr,pdecsub,pdecvar,pdecobj,pdecl,pgenutil,pparautl
+       pbase,pexpr,pdecsub,pdecvar,pdecobj,pdecl,pgenutil,pparautl,procdefutil
 {$ifdef jvm}
        ,pjvm
 {$endif}
@@ -1976,15 +1976,19 @@ implementation
                     end;
                   _REFERENCE:
                     begin
-                      if m_blocks in current_settings.modeswitches then
+                      if current_settings.modeswitches*[m_blocks,m_function_references]<>[] then
                         begin
                           consume(_REFERENCE);
                           consume(_TO);
-                          def:=procvar_dec(genericdef,genericlist,true);
+                          { don't register the def as a non-cblock function
+                            reference will be converted to an interface }
+                          def:=procvar_dec(genericdef,genericlist,false);
                           { could be errordef in case of a syntax error }
                           if assigned(def) and
                              (def.typ=procvardef) then
-                            include(tprocvardef(def).procoptions,po_is_function_ref);
+                            begin
+                              include(tprocvardef(def).procoptions,po_is_function_ref);
+                            end;
                         end
                       else
                         expr_type;

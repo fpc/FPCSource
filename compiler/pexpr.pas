@@ -2785,7 +2785,14 @@ implementation
           else
             begin
               { is this a procedure variable ? }
-              if assigned(p1.resultdef) and
+              if is_invokable(p1.resultdef) and
+                  (token=_LKLAMMER) then
+                begin
+                  if not searchsym_in_class(tobjectdef(p1.resultdef),tobjectdef(p1.resultdef),method_name_funcref_invoke_find,srsym,srsymtable,[]) then
+                    internalerror(2021040202);
+                  do_proc_call(srsym,srsymtable,tabstractrecorddef(p1.resultdef),false,again,p1,[],nil);
+                end
+              else if assigned(p1.resultdef) and
                  (p1.resultdef.typ=procvardef) then
                 begin
                   { Typenode for typecasting or expecting a procvar }
