@@ -1357,6 +1357,8 @@ interface
     }
     procedure get_tabledef(prefix:tinternaltypeprefix;countdef,elementdef:tdef;count:longint;packrecords:shortint;out recdef:trecorddef;out arrdef:tarraydef);
 
+    function fileinfo_of_typesym_in_def(def:tdef;sym:tsym;out filepos:tfileposinfo):boolean;
+
 implementation
 
     uses
@@ -1382,6 +1384,59 @@ implementation
 {****************************************************************************
                                   Helpers
 ****************************************************************************}
+
+
+    function fileinfo_of_typesym_in_def(def:tdef;sym:tsym;out filepos:tfileposinfo):boolean;
+      var
+        gst : tgetsymtable;
+        st : tsymtable;
+        i : longint;
+        srsym : tsym;
+      begin
+        result:=false;
+        if sym.typ<>typesym then
+          exit;
+        for gst:=low(tgetsymtable) to high(tgetsymtable) do
+          begin
+            st:=def.getsymtable(gst);
+            if not assigned(st) then
+              continue;
+            for i:=0 to st.symlist.count-1 do
+              begin
+                srsym:=tsym(st.symlist[i]);
+                case srsym.typ of
+                  fieldvarsym,
+                  paravarsym:
+                    if tabstractvarsym(srsym).vardef.typesym=sym then
+                      begin
+                        filepos:=srsym.fileinfo;
+                        result:=true;
+                        break;
+                      end;
+                  typesym:
+                    begin
+                      result:=fileinfo_of_typesym_in_def(ttypesym(srsym).typedef,sym,filepos);
+                      if result then
+                        break;
+                    end
+                  else
+                    ;
+                end;
+              end;
+            if result then
+              break;
+          end;
+        { for this we would need the position of the result declaration :/ }
+        {if not result and
+            (def.typ in [procdef,procvardef]) and
+            assigned(tabstractprocdef(def).returndef) and
+            (tabstractprocdef(def).returndef.typesym=sym) then
+          begin
+
+            result:=true;
+          end;}
+      end;
+
 
     function getansistringcodepage:tstringencoding; inline;
       begin
