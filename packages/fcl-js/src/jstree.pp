@@ -1014,7 +1014,7 @@ Type
     function GetNamedExports: TJSExportNameElements;
   Public
     Destructor Destroy; override;
-    Property IsDefault : Boolean Read FIsDefault Write FIsDefault;
+    Property IsDefault : Boolean Read FIsDefault Write FIsDefault; // write *
     Property Declaration : TJSElement Read FDeclaration Write FDeclaration;
     Property NameSpaceExport : TJSString Read FNameSpaceExport Write FNameSpaceExport;
     Property ModuleName : TJSString Read FModuleName Write FModuleName;

@@ -282,6 +282,7 @@ type
     procedure UseVariable(El: TPasVariable; Access: TResolvedRefAccess;
       UseFull: boolean); virtual;
     procedure UseResourcestring(El: TPasResString); virtual;
+    procedure UseExportSymbol(El: TPasExportSymbol); virtual;
     procedure UseArgument(El: TPasArgument; Access: TResolvedRefAccess); virtual;
     procedure UseResultElement(El: TPasResultElement; Access: TResolvedRefAccess); virtual;
     // create hints for a unit, program or library
@@ -1467,6 +1468,8 @@ begin
       end
     else if C=TPasAttributes then
       // attributes are never used directly
+    else if C=TPasExportSymbol then
+      UseExportSymbol(TPasExportSymbol(Decl))
     else
       RaiseNotSupported(20170306165213,Decl);
     end;
@@ -2620,6 +2623,24 @@ procedure TPasAnalyzer.UseResourcestring(El: TPasResString);
 begin
   if not MarkElementAsUsed(El) then exit;
   UseExpr(El.Expr);
+end;
+
+procedure TPasAnalyzer.UseExportSymbol(El: TPasExportSymbol);
+var
+  Ref: TResolvedReference;
+  Decl: TPasElement;
+begin
+  if not MarkElementAsUsed(El) then exit;
+  if El.CustomData is TResolvedReference then
+    begin
+    Ref:=TResolvedReference(El.CustomData);
+    Decl:=Ref.Declaration;
+    if Decl<>nil then
+      UseElement(Decl,Ref.Access,false);
+    end;
+  UseExpr(El.NameExpr);
+  UseExpr(El.ExportName);
+  UseExpr(El.ExportIndex);
 end;
 
 procedure TPasAnalyzer.UseArgument(El: TPasArgument; Access: TResolvedRefAccess

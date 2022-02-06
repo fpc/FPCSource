@@ -2097,6 +2097,7 @@ type
     Function CreateImplementationSection(El: TPasModule; IntfContext: TInterfaceSectionContext): TJSFunctionDeclarationStatement; virtual;
     Procedure CreateInitSection(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext); virtual;
     Procedure CreateExportsSection(El: TPasLibrary; Src: TJSSourceElements; AContext: TConvertContext); virtual;
+    Function AddLibraryRun(El: TPasLibrary; ModuleName: string; Src: TJSSourceElements; AContext: TConvertContext): TJSCallExpression; virtual;
     Procedure AddHeaderStatement(JS: TJSElement; PosEl: TPasElement; aContext: TConvertContext); virtual;
     Procedure AddImplHeaderStatement(JS: TJSElement; PosEl: TPasElement; aContext: TConvertContext); virtual;
     function AddDelayedInits(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext): boolean; virtual;
@@ -8207,7 +8208,10 @@ Library:
         <initialization>
         };
     });
-  export1 = pas.unit1.func1;
+  rtl.run('library');
+  var li = pas['library'];
+  export const func1 = pas.unit1.func1;
+  export const var1 = li.var1;
 
 Unit without implementation:
  rtl.module('<unitname>',
@@ -8337,7 +8341,6 @@ begin
       if Assigned(Lib.LibrarySection) then
         AddToSourceElements(Src,ConvertDeclarations(Lib.LibrarySection,IntfContext));
       HasImplCode:=AddDelayedInits(Lib,Src,IntfContext);
-      CreateExportsSection(Lib,Src,IntfContext);
       CreateInitSection(Lib,Src,IntfContext);
       end
     else
@@ -8387,6 +8390,14 @@ begin
 
     if (ModScope<>nil) and (coStoreImplJS in Options) then
       StoreImplJSLocals(ModScope,IntfContext);
+
+    if El is TPasLibrary then
+      begin // library
+      Lib:=TPasLibrary(El);
+      AddLibraryRun(Lib,ModuleName,OuterSrc,AContext);
+      CreateExportsSection(Lib,OuterSrc,AContext);
+      end;
+
     ok:=true;
   finally
     IntfContext.Free;
@@ -18094,6 +18105,24 @@ begin
       ExpNameJS.Alias:=TJSString(Decl.Name);
       end;
     end;
+end;
+
+function TPasToJSConverter.AddLibraryRun(El: TPasLibrary; ModuleName: string;
+  Src: TJSSourceElements; AContext: TConvertContext): TJSCallExpression;
+var
+  Call: TJSCallExpression;
+begin
+  if AContext=nil then ;
+
+  // add rtl.run('library');
+  Call:=CreateCallExpression(El);
+  AddToSourceElements(Src,Call);
+  Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),'run']);
+
+  // add module name parameter
+  Call.AddArg(CreateLiteralString(El,ModuleName));
+
+  Result:=Call;
 end;
 
 procedure TPasToJSConverter.AddHeaderStatement(JS: TJSElement;

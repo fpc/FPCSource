@@ -179,6 +179,7 @@ type
     function GetDottedIdentifier(El: TJSElement): string;
     procedure CheckSource(Msg,Statements: String; InitStatements: string = '';
       ImplStatements: string = ''); virtual;
+    procedure CheckFullSource(Msg,ExpectedSrc: String); virtual;
     procedure CheckDiff(Msg, Expected, Actual: string); virtual;
     procedure CheckUnit(Filename, ExpectedSrc: string); virtual;
     procedure CheckHint(MsgType: TMessageType; MsgNumber: integer;
@@ -919,9 +920,9 @@ type
     Procedure TestLibrary_Export_Index_Fail;
     Procedure TestLibrary_ExportVar;
     Procedure TestLibrary_ExportUnitFunc;
-    // todo: test fail on export overloaded function
     // ToDo: test delayed specialization init
     // ToDo: analyzer
+    // ToDo: shortrefoptimization
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -1989,7 +1990,7 @@ var
   InitFunction: TJSFunctionDeclarationStatement;
   InitAssign: TJSSimpleAssignStatement;
   InitName: String;
-  LastNode: TJSElement;
+  LastNode, FirstNode: TJSElement;
   Arg: TJSArrayLiteralElement;
   IsProg, IsLib: Boolean;
 begin
@@ -2020,10 +2021,12 @@ begin
   {$ENDIF}
 
   // rtl.module(...
-  AssertEquals('jsmodule has one statement - the call',1,JSModule.Statements.Count);
-  AssertNotNull('register module call',JSModule.Statements.Nodes[0].Node);
-  AssertEquals('register module call',TJSCallExpression,JSModule.Statements.Nodes[0].Node.ClassType);
-  FJSRegModuleCall:=JSModule.Statements.Nodes[0].Node as TJSCallExpression;
+  if JSModule.Statements.Count<1 then
+    AssertEquals('jsmodule has at least one statement - the call',1,JSModule.Statements.Count);
+  FirstNode:=JSModule.Statements.Nodes[0].Node;
+  AssertNotNull('register module call',FirstNode);
+  AssertEquals('register module call',TJSCallExpression,FirstNode.ClassType);
+  FJSRegModuleCall:=FirstNode as TJSCallExpression;
   AssertNotNull('register module rtl.module expr',JSRegModuleCall.Expr);
   AssertNotNull('register module rtl.module args',JSRegModuleCall.Args);
   AssertEquals('rtl.module args',TJSArguments,JSRegModuleCall.Args.ClassType);
@@ -2037,11 +2040,17 @@ begin
   ModuleNameExpr:=Arg.Expr as TJSLiteral;
   AssertEquals('module name param is string',ord(jstString),ord(ModuleNameExpr.Value.ValueType));
   if IsProg then
-    AssertEquals('module name','program',String(ModuleNameExpr.Value.AsString))
+    begin
+    AssertEquals('module name','program',String(ModuleNameExpr.Value.AsString));
+    AssertEquals('jsmodule has one statement - the call',1,JSModule.Statements.Count);
+    end
   else if IsLib then
     AssertEquals('module name','library',String(ModuleNameExpr.Value.AsString))
   else
+    begin
     AssertEquals('module name',Module.Name,String(ModuleNameExpr.Value.AsString));
+    AssertEquals('jsmodule has one statement - the call',1,JSModule.Statements.Count);
+    end;
 
   // main uses section
   if JSModuleCallArgs.Elements.Count<2 then
@@ -2184,6 +2193,14 @@ begin
   //writeln('TCustomTestModule.CheckSource ExpectedIntf="',ExpectedSrc,'"');
   //writeln('TTestModule.CheckSource InitStatements="',Trim(InitStatements),'"');
   //writeln('TCustomTestModule.CheckSource ',ActualSrc);
+  CheckDiff(Msg,ExpectedSrc,ActualSrc);
+end;
+
+procedure TCustomTestModule.CheckFullSource(Msg, ExpectedSrc: String);
+var
+  ActualSrc: String;
+begin
+  ActualSrc:=JSToStr(JSModule);
   CheckDiff(Msg,ExpectedSrc,ActualSrc);
 end;
 
@@ -34134,10 +34151,14 @@ begin
   Add([
   '']);
   ConvertLibrary;
-  CheckSource('TestLibrary_Empty',
+  CheckFullSource('TestLibrary_Empty',
     LinesToStr([ // statements
-    '']),
-    LinesToStr([
+    'rtl.module("library", [], function () {',
+    '  var $mod = this;',
+    '  $mod.$main = function () {',
+    '  };',
+    '});',
+    'rtl.run("library");',
     '']));
   CheckResolverUnexpectedHints();
 end;
@@ -34155,13 +34176,17 @@ begin
   '  test1.run name ''Test1Run'';',
   '']);
   ConvertLibrary;
-  CheckSource('TestLibrary_ExportFunc',
+  CheckFullSource('TestLibrary_ExportFunc',
     LinesToStr([ // statements
-    'this.Run = function (w) {',
-    '};',
-    'export { this.Run as Run, this.Run as Foo, this.Run as Test1Run };',
-    '']),
-    LinesToStr([
+    'rtl.module("library", [], function () {',
+    '  var $mod = this;',
+    '  this.Run = function (w) {',
+    '  };',
+    '  $mod.$main = function () {',
+    '  };',
+    '});',
+    'rtl.run("library");',
+    'export { pas.library.Run as Run, pas.library.Run as Foo, pas.library.Run as Test1Run };',
     '']));
   CheckResolverUnexpectedHints();
 end;
@@ -34207,12 +34232,16 @@ begin
   '  Wing;',
   '']);
   ConvertLibrary;
-  CheckSource('TestLibrary_ExportVar',
+  CheckFullSource('TestLibrary_ExportVar',
     LinesToStr([ // statements
-    'this.Wing = 0;',
-    'export { this.Wing as Wing };',
-    '']),
-    LinesToStr([
+    'rtl.module("library", [], function () {',
+    '  var $mod = this;',
+    '  this.Wing = 0;',
+    '  $mod.$main = function () {',
+    '  };',
+    '});',
+    'rtl.run("library");',
+    'export { pas.library.Wing as Wing };',
     '']));
   CheckResolverUnexpectedHints();
 end;
@@ -34244,11 +34273,15 @@ begin
   '  TAnt.Crawl;',
   '']);
   ConvertLibrary;
-  CheckSource('TestLibrary_ExportUnitFunc',
+  CheckFullSource('TestLibrary_ExportUnitFunc',
     LinesToStr([ // statements
+    'rtl.module("library", ["system", "Unit1"], function () {',
+    '  var $mod = this;',
+    '  $mod.$main = function () {',
+    '  };',
+    '});',
+    'rtl.run("library");',
     'export { pas.Unit1.Fly as Fly, pas.Unit1.TAnt.Crawl as Crawl };',
-    '']),
-    LinesToStr([
     '']));
   CheckResolverUnexpectedHints();
 end;
