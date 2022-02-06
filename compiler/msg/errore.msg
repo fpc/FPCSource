@@ -2104,7 +2104,7 @@ type_w_array_size_does_not_match_size_of_constant_string=04130_W_The length of t
 #
 # Symtable
 #
-# 05098 is the last used one
+# 05099 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -2422,6 +2422,9 @@ sym_e_generic_type_param_decl=05097_E_Generic type parameter declared as "$1"
 % is found between a declaration and the definition.
 sym_e_type_must_be_rec_or_object=05098_E_Record or object type expected
 % The variable or expression isn't of the type \var{record} or \var{object}.
+sym_e_symbol_no_capture=05099_E_Symbol "$1" can not be captured
+% The specified symbol can not be captured to be used in a function reference.
+% For example \var{var} or \var{out} parameters can not be captured in that way.
 % \end{description}
 #
 # Codegenerator
