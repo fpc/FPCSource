@@ -5,7 +5,7 @@ unit tctsparser;
 interface
 
 uses
-  Classes, SysUtils, testregistry, tcparser, jsscanner, jsbase, jstree, jstoken, jsparser;
+  Classes, SysUtils, testregistry, tcparser, jsscanner, jsbase, jstree, jstoken;
 
 Type
 
@@ -21,6 +21,7 @@ Type
     Procedure TestDeclareModuleIdentifier;
     Procedure TestDeclareNamespace;
     Procedure TestDeclareGlobal;
+    Procedure TestDeclareUniqueConst;
     Procedure TestDeclareFunction;
     Procedure TestDeclareFunctionOptionalArg;
     Procedure TestDeclareFunctionSpreadArg;
@@ -54,7 +55,14 @@ Type
     Procedure TestDeclareTypeArrowFunctionShort;
     Procedure TestDeclareTypeArrowFunctionTwoArgs;
     Procedure TestDeclareTypeArrowFunctionArgsCommaEnd;
+    procedure TestDeclareTypeGenericConstraint;
+    procedure TestDeclareTypeTypeImport;
+    procedure TestDeclareTypeTypeOfImport;
+    procedure TestDeclareTypeTypeOfDefault;
+    procedure TestDeclareTypeReadonly;
+    procedure TestDeclareArgTypeInferred;
     Procedure TestDeclareEnum;
+    Procedure TestDeclareEnumKeywordElement;
     Procedure TestDeclareConstEnum;
     Procedure TestDeclareConstEnumAssigned;
     procedure TestDeclareInterfaceEmpty;
@@ -72,6 +80,7 @@ Type
     procedure TestDeclateInterfaceGenericProperty;
     procedure TestDeclateInterfaceGeneric;
     procedure TestDeclareInterfaceExtendsGeneric;
+    Procedure TestDeclareInterfaceHidden;
     procedure TestDeclareClassEmpty;
     procedure TestDeclareAbstractClassEmpty;
     procedure TestDeclareClassIndexSignature;
@@ -79,9 +88,13 @@ Type
     procedure TestDeclareClassExtendsGeneric;
     procedure TestDeclareClassGeneric;
     procedure TestDeclareClassStaticFunction;
+    procedure TestDeclareClassStaticFunctionUntypedArg;
     procedure TestDeclareClassStaticReadonlyProperty;
     procedure TestDeclareClassReadonlyProperty;
+    procedure TestDeclareClassGenericFunctionProperty;
     procedure TestDeclareClassImplements;
+    procedure TestDeclareClassExtendsFunctionCall;
+    Procedure TestDeclareClassStaticReadOnly;
     procedure TestDeclareInterfaceIndexSignature;
     procedure TestDeclareInterfaceFixedStringProperty;
     procedure TestDeclareInterfaceFixedBooleanProperty;
@@ -96,6 +109,7 @@ Type
     procedure TestExportAbstractClass;
     procedure TestExportClassConstructor;
     procedure TestExportInterface;
+    procedure TestExportInterfaceDefault;
     procedure TestExportInterfaceIndexSignature;
     procedure TestExportInterfaceIndexSignatureOptional;
     procedure TestExportImportStatement;
@@ -107,8 +121,9 @@ Type
     procedure TestExportTypeArrowFunctionArgsComma;
     procedure TestDeclareExportInterfaceDestructuredFunctionProperty;
     procedure TestExportEnum;
-    procedure TestExportObjectUNion;
+    procedure TestExportObjectUnion;
     Procedure TestExportNoSemicolon;
+    Procedure TestExportAsKeyWord;
     procedure TestNamespaceInterfaceFUnction;
   end;
 
@@ -177,6 +192,17 @@ begin
   AssertEquals('Name','',N.Name);
   AssertEquals('Global',True,N.IsGlobal);
   CheckMembers(N.Members,0,0,0,0,0,0,0);
+end;
+
+procedure TTestTypeScriptParser.TestDeclareUniqueConst;
+
+Var
+  V : TJSVarDeclaration;
+
+begin
+  StartTS('const A : unique symbol');
+  V:=TJSVarDeclaration(CheckClass('Var',TJSVarDeclaration,GetFirstVar));
+  AssertEquals('Unique ',True,V.IsUnique);
 end;
 
 procedure TTestTypeScriptParser.TestDeclareFunction;
@@ -260,7 +286,7 @@ begin
   AssertNotNull('Have type def',T.TypeDef);
   AssertEquals('Correct type def class',TJSTypeReference,T.TypeDef.ClassType);
   AssertEquals('Correct name def class','b',TJSTypeReference(T.TypeDef).Name);
-  AssertEquals('Correct name def class',False,TJSTypeReference(T.TypeDef).IsTypeOf);
+  AssertEquals('Correct IsTypeOf',False,TJSTypeReference(T.TypeDef).IsTypeOf);
 end;
 
 procedure TTestTypeScriptParser.TestDeclareTypeAliasDotted;
@@ -274,7 +300,7 @@ begin
   AssertNotNull('Have type def',T.TypeDef);
   AssertEquals('Correct type def class',TJSTypeReference,T.TypeDef.ClassType);
   AssertEquals('Correct name def class','b.c',TJSTypeReference(T.TypeDef).Name);
-  AssertEquals('Correct name def class',False,TJSTypeReference(T.TypeDef).IsTypeOf);
+  AssertEquals('Correct isTypeOf',False,TJSTypeReference(T.TypeDef).IsTypeOf);
 end;
 
 procedure TTestTypeScriptParser.TestDeclareTypeTypeQuery;
@@ -331,10 +357,10 @@ begin
   AssertEquals('Correct number of elements',2,U.TypeCount);
   AssertEquals('Correct type of element 0',TJSFixedValueReference, U.Types[0].ClassType);
   R:=U.Types[0] as TJSFixedValueReference;
-//  AssertEquals('Name type 0','string',R.Name);
+  AssertEquals('Name type 0','string',R.FixedValue.Value.AsString);
   AssertEquals('Correct type of element 0',TJSFixedValueReference, U.Types[1].ClassType);
   R:=U.Types[1] as TJSFixedValueReference;
-//  AssertEquals('Name type 1','number',R.Name);
+  AssertEquals('Name type 1','number',R.FixedValue.Value.AsString);
 end;
 
 procedure TTestTypeScriptParser.TestDeclareTypeUnionAllowEmpty;
@@ -363,7 +389,6 @@ end;
 procedure TTestTypeScriptParser.TestDeclareUnionTuple;
 Var
   T : TJSTypeDeclaration;
-  U : TJSUnionTypeDef;
 begin
   StartTS('declare type Color = string | [number, number, number, number] | ColorObject;');
   T:=GetFirstType;
@@ -374,7 +399,6 @@ procedure TTestTypeScriptParser.TestDeclareUnionIntersectionType;
 Var
   T : TJSTypeDeclaration;
   U : TJSUnionTypeDef;
-  R : TJSTypeReference;
 
 begin
   StartTs('declare type MyType = number | (string | number) ;');
@@ -619,8 +643,6 @@ procedure TTestTypeScriptParser.TestDeclareTypeGenericNestedTwice;
 
 Var
   T : TJSTypeDeclaration;
-  G : TJSGenericTypeRef;
-  R : TJSTypeReference;
 
 begin
   StartTS('type a = A<Q<B<C<D>>>>;');
@@ -876,6 +898,23 @@ begin
   AssertEquals('Member 2','green',ET.Names[2]);
 end;
 
+procedure TTestTypeScriptParser.TestDeclareEnumKeywordElement;
+Var
+  E : TJSEnumDeclaration;
+  ET : TJSEnumTypeDef;
+
+begin
+  StartTS('enum Colors {delete,new,green};');
+  E:=GetFirstEnum;
+  AssertEquals('Name','Colors',E.Name);
+  ET:=TJSEnumTypeDef(CheckClass(E.EnumDef,TJSEnumTypeDef,'Have enum definition'));
+  AssertEquals('Member count',3,ET.NameCount);
+  AssertEquals('Member 0','delete',ET.Names[0]);
+  AssertEquals('Member 1','new',ET.Names[1]);
+  AssertEquals('Member 2','green',ET.Names[2]);
+
+end;
+
 procedure TTestTypeScriptParser.TestDeclareConstEnum;
 Var
   Stat : TJSEnumStatement;
@@ -1003,7 +1042,7 @@ begin
   AssertEquals('Member count',1,Decl.ElementCount);
   Prop:=TJSPropertyDeclaration(CheckClass('Property class',TJSPropertyDeclaration,Decl.Elements[0]));
   AssertEquals('Property name','name',Prop.Name);
-  AssertEquals('Property optional',False,Prop.Optional);
+  AssertEquals('Property optional',koDefault,Prop.Optional);
   R:=TJSTypeReference(CheckClass('Property type',TJSTypeReference,Prop.ElementType));
   AssertEquals('Property type name','string',R.Name);
 end;
@@ -1023,7 +1062,7 @@ begin
   AssertEquals('Member count',1,Decl.ElementCount);
   Prop:=TJSPropertyDeclaration(CheckClass('Property class',TJSPropertyDeclaration,Decl.Elements[0]));
   AssertEquals('Property name','name',Prop.Name);
-  AssertEquals('Property optional',True,Prop.Optional);
+  AssertEquals('Property optional',koOptional,Prop.Optional);
   R:=TJSTypeReference(CheckClass('Property type',TJSTypeReference,Prop.ElementType));
   AssertEquals('Property type name','string',R.Name);
 end;
@@ -1044,7 +1083,7 @@ begin
   AssertEquals('Member count',1,Decl.ElementCount);
   Prop:=TJSPropertyDeclaration(CheckClass('Property class',TJSPropertyDeclaration,Decl.Elements[0]));
   AssertEquals('Property name','name',Prop.Name);
-  AssertEquals('Property optional',False,Prop.Optional);
+  AssertEquals('Property optional',koDefault,Prop.Optional);
   R:=TJSTypeReference(CheckClass('Property type',TJSTypeReference,Prop.ElementType));
   AssertEquals('Property type name','any',R.Name);
 end;
@@ -1065,7 +1104,7 @@ begin
   AssertEquals('Member count',1,Decl.ElementCount);
   Prop:=TJSPropertyDeclaration(CheckClass('Property class',TJSPropertyDeclaration,Decl.Elements[0]));
   AssertEquals('Property name','name',Prop.Name);
-  AssertEquals('Property optional',True,Prop.Optional);
+  AssertEquals('Property optional',koOptional,Prop.Optional);
   R:=TJSTypeReference(CheckClass('Property type',TJSTypeReference,Prop.ElementType));
   AssertEquals('Property type name','any',R.Name);
 end;
@@ -1086,7 +1125,7 @@ begin
   AssertEquals('Member count',1,Decl.ElementCount);
   M:=TJSMethodDeclaration(CheckClass('Method class',TJSMethodDeclaration,Decl.Elements[0]));
   AssertEquals('Method name','text',M.Name);
-  AssertEquals('Method optional',False,M.Optional);
+  AssertEquals('Method optional',koDefault,M.Optional);
   AssertNotNull('Have function def',M.FuncDef);
   R:=TJSTypeReference(CheckClass('Result type',TJSTypeReference,M.FuncDef.ResultType));
   AssertEquals('Property type name','string',R.Name);
@@ -1107,7 +1146,7 @@ begin
   AssertEquals('Member count',1,Decl.ElementCount);
   M:=TJSMethodDeclaration(CheckClass('Method class',TJSMethodDeclaration,Decl.Elements[0]));
   AssertEquals('Method name','text',M.Name);
-  AssertEquals('Method optional',False,M.Optional);
+  AssertEquals('Method optional',koDefault,M.Optional);
   AssertNotNull('Have function def',M.FuncDef);
   R:=TJSTypeReference(CheckClass('Result type',TJSTypeReference,M.FuncDef.ResultType));
   AssertEquals('Property type name','any',R.Name);
@@ -1128,7 +1167,7 @@ begin
   AssertEquals('Member count',1,Decl.ElementCount);
   M:=TJSMethodDeclaration(CheckClass('Method class',TJSMethodDeclaration,Decl.Elements[0]));
   AssertEquals('Method name','',M.Name);
-  AssertEquals('Method optional',False,M.Optional);
+  AssertEquals('Method optional',koDefault,M.Optional);
   AssertNotNull('Have function def',M.FuncDef);
   R:=TJSTypeReference(CheckClass('Result type',TJSTypeReference,M.FuncDef.ResultType));
   AssertEquals('Property type name','JQuery',R.Name);
@@ -1149,7 +1188,7 @@ begin
   AssertEquals('Member count',1,Decl.ElementCount);
   M:=TJSMethodDeclaration(CheckClass('Method class',TJSMethodDeclaration,Decl.Elements[0]));
   AssertEquals('Method name','text',M.Name);
-  AssertEquals('Method optional',False,M.Optional);
+  AssertEquals('Method optional',koDefault,M.Optional);
   AssertNotNull('Have function def',M.FuncDef);
   R:=TJSTypeReference(CheckClass('Result type',TJSTypeReference,M.FuncDef.ResultType));
   AssertEquals('Property type name','this',R.Name);
@@ -1173,7 +1212,7 @@ begin
   AssertEquals('Count elements',2,Decl.ElementCount);
   Prop:=TJSPropertyDeclaration(CheckClass('Property class',TJSPropertyDeclaration,Decl.Elements[0]));
   AssertEquals('Property name','dayComponent',Prop.Name);
-  AssertEquals('Property optional',True,Prop.Optional);
+  AssertEquals('Property optional',koOptional,Prop.Optional);
   U:=TJSUnionTypeDef(CheckClass('Property type',TJSUnionTypeDef,Prop.ElementType));
   G:=TJSGenericTypeRef(CheckClass('Union 1',TJSGenericTypeRef,U.Types[0]));
   R:=TJSTypeReference(CheckClass('Generic base type',TJSTypeReference,G.BaseType));
@@ -1208,18 +1247,30 @@ procedure TTestTypeScriptParser.TestDeclareInterfaceExtendsGeneric;
 Var
   Decl : TJSInterfaceDeclaration;
   R : TJSTypeReference;
-  Lit : TJSLiteral;
 
 begin
   StartTS('interface Empty <TItem> extends ParentEmpty<Titem> {};');
   Decl:=TJSInterfaceDeclaration(CheckClass(GetFirstInterface,TJSInterfaceDeclaration,'Interface'));
-  AssertNotNull('Have declaration');
+  AssertNotNull('Have declaration',Decl);
   AssertEquals('Name','Empty',Decl.Name);
   AssertNotNull('Extends',Decl.Extends);
   AssertEquals('Type param count',1,Decl.TypeParams.Count);
   R:=TJSTypeReference(CheckClass('Type param 1',TJSTypeReference,Decl.TypeParams.Nodes[0].Node));
   AssertEquals('Type param Name','TItem',R.Name);
   AssertEquals('Extends count',1,Decl.Extends.Count);
+end;
+
+procedure TTestTypeScriptParser.TestDeclareInterfaceHidden;
+Var
+  Decl : TJSInterfaceDeclaration;
+begin
+  StartTS('interface JQuery extends JQuerySlickInitials {'#10+
+          '   hidden: ''mozHidden'' | ''webkitHidden'' | ''hidden'';'#10+
+          '}');
+  Decl:=TJSInterfaceDeclaration(CheckClass(GetFirstInterface,TJSInterfaceDeclaration,'Interface'));
+  AssertNotNull('Have declaration',Decl);
+  AssertEquals('Name','JQuery',Decl.Name);
+  AssertNotNull('Extends',Decl.Extends);
 end;
 
 procedure TTestTypeScriptParser.TestDeclareClassEmpty;
@@ -1328,6 +1379,17 @@ begin
   AssertEquals('Function count',1,Decl.Members.Functions.Count);
 end;
 
+procedure TTestTypeScriptParser.TestDeclareClassStaticFunctionUntypedArg;
+Var
+  Decl : TJSClassDeclaration;
+begin
+  StartTS('declare class JQuery { private soso(a) ; };');
+  Decl:=TJSAmbientClassDeclaration(CheckClass('Class',TJSAmbientClassDeclaration,GetFirstClass(True)));
+  AssertNotNull('Have declaration');
+  AssertEquals('Name','JQuery',Decl.Name);
+  AssertEquals('Function count',1,Decl.Members.Functions.Count);
+end;
+
 procedure TTestTypeScriptParser.TestDeclareClassStaticReadonlyProperty;
 Var
   Decl : TJSClassDeclaration;
@@ -1359,6 +1421,14 @@ begin
   AssertFalse('Prop Static',Prop.IsStatic);
 end;
 
+procedure TTestTypeScriptParser.TestDeclareClassGenericFunctionProperty;
+begin
+  StartTS('declare class changeRequestInterceptor {'#10+
+          ' getRequest: <T>(request: T, entity: Entity, index: number) => T;'#10+
+          '}');
+  GetFirstClass(True);
+end;
+
 procedure TTestTypeScriptParser.TestDeclareClassImplements;
 Var
   Decl : TJSClassDeclaration;
@@ -1373,6 +1443,40 @@ begin
   AssertTrue('Prop readonly',Prop.IsReadOnly);
   AssertFalse('Prop Static',Prop.IsStatic);
 end;
+
+procedure TTestTypeScriptParser.TestDeclareClassExtendsFunctionCall;
+
+Var
+  Decl: TJSAmbientClassDeclaration;
+  E : TJSTypeFuncCall;
+
+begin
+   StartTS('declare class TextArea extends Component.extend(TextSupport) {}');
+   Decl:=TJSAmbientClassDeclaration(CheckClass('Class',TJSAmbientClassDeclaration,GetFirstClass(True)));
+   AssertNotNull('Have declaration',Decl);
+   AssertEquals('Name','TextArea',Decl.Name);
+   E:=TJSTypeFuncCall(CheckClass('Extends',TJSTypeFuncCall,Decl.Extends));
+   AssertEquals('Function name','Component.extend',E.Name);
+end;
+
+procedure TTestTypeScriptParser.TestDeclareClassStaticReadOnly;
+
+Var
+  Decl: TJSAmbientClassDeclaration;
+  E : TJSClassConstDeclaration;
+
+begin
+   StartTS('declare class A { static readonly B = 1 }');
+   Decl:=TJSAmbientClassDeclaration(CheckClass('Class',TJSAmbientClassDeclaration,GetFirstClass(True)));
+   AssertNotNull('Have declaration',Decl);
+   AssertEquals('Name','A',Decl.Name);
+   AssertEquals('member count',1,Decl.ClassDef.ElementCount);
+   AssertEquals('Member name','B',Decl.ClassDef.Elements[0].Name);
+   E:=TJSClassConstDeclaration(CheckClass('Member class',TJSClassConstDeclaration,Decl.ClassDef.Elements[0]));
+   AssertNotNull(E);
+end;
+
+
 
 procedure TTestTypeScriptParser.TestDeclareInterfaceIndexSignature;
 Var
@@ -1499,6 +1603,79 @@ begin
   GetStatements;
 end;
 
+procedure TTestTypeScriptParser.TestDeclareTypeGenericConstraint;
+
+Var
+  Decl : TJSTypeDeclaration;
+
+begin
+  StartTs('type ValueMap<T extends BaseType, Datum> = { [key: string]: number | string | boolean | null | ValueFn<T, Datum, number | string | boolean | null> };');
+  Decl:=GetFirstType;
+  AssertNotNull(Decl);
+end;
+
+procedure TTestTypeScriptParser.TestDeclareTypeTypeImport;
+
+Var
+  Decl : TJSImportTypeRef;
+
+begin
+  StartTS('  type AppChannel = import(''main'').AppChannel;');
+  Decl:=TJSImportTypeRef(CheckClass('First',TJSImportTypeRef,GetFirstType.TypeDef));
+  AssertEquals('Name','AppChannel',Decl.Name);
+  AssertEquals('File','main',Decl.fileName);
+end;
+
+procedure TTestTypeScriptParser.TestDeclareTypeTypeOfImport;
+
+Var
+  Decl : TJSImportTypeRef;
+
+begin
+  StartTS('  type AppChannel = typeof import(''main'').AppChannel;');
+  Decl:=TJSImportTypeRef(CheckClass('First',TJSImportTypeRef,GetFirstType.TypeDef));
+  AssertEquals('Name','AppChannel',Decl.Name);
+  AssertEquals('File','main',Decl.fileName);
+  AssertEquals('File',True,Decl.IsTypeOf);
+end;
+
+procedure TTestTypeScriptParser.TestDeclareTypeTypeOfDefault;
+Var
+  Decl : TJSImportTypeRef;
+
+begin
+  StartTS('  type AppChannel = typeof import(''main'').default;');
+  Decl:=TJSImportTypeRef(CheckClass('First',TJSImportTypeRef,GetFirstType.TypeDef));
+  AssertEquals('Name','default',Decl.Name);
+  AssertEquals('File','main',Decl.fileName);
+  AssertEquals('File',True,Decl.IsTypeOf);
+end;
+
+procedure TTestTypeScriptParser.TestDeclareTypeReadonly;
+Var
+  Decl : TJSFunctionStatement;
+  Def : TJSFuncDef;
+  R : TJSTypeReference;
+
+begin
+  StartTS('declare function markdownTable(table: readonly string): string;');
+  Decl:=GetFirstFunction;
+  AssertNotNull('Have decl',Decl.AFunction);
+  Def:=Decl.AFunction;
+  AssertEquals('Params',1,Def.TypedParams.Count);
+  R:=TJSTypeReference(CheckClass('Arg type',TJSTypeReference,Def.TypedParams.Types[0]));
+  AssertTrue('Read only',R.IsReadonly);
+end;
+
+procedure TTestTypeScriptParser.TestDeclareArgTypeInferred;
+Var
+  Decl : TJSTypeDeclaration;
+begin
+  StartTS('type A = (args: infer B) => C;');
+  Decl:=GetFirstType;
+  AssertNotNull(Decl);
+end;
+
 procedure TTestTypeScriptParser.TestExportNamespacedClass;
 
 Var
@@ -1553,6 +1730,15 @@ Var
   Decl : TJSInterfaceDeclaration;
 begin
   StartTS('export interface Color { R,G,B : string; } ;');
+  Decl:=TJSInterfaceDeclaration(CheckClass('Interface',TJSInterfaceDeclaration,GetFirstInterface));
+  AssertEquals('Interface name','Color',Decl.Name);
+end;
+
+procedure TTestTypeScriptParser.TestExportInterfaceDefault;
+Var
+  Decl : TJSInterfaceDeclaration;
+begin
+  StartTS('export default  interface Color { R,G,B : string; } ;');
   Decl:=TJSInterfaceDeclaration(CheckClass('Interface',TJSInterfaceDeclaration,GetFirstInterface));
   AssertEquals('Interface name','Color',Decl.Name);
 end;
@@ -1661,7 +1847,6 @@ end;
 procedure TTestTypeScriptParser.TestExportTypeArrowFunctionArgsComma;
 Var
   S : TJSExportStatement;
-  T:TJSTypeDeclaration;
 
 begin
   StartTS('export type ConnectionRequestCb = ('#10+
@@ -1670,7 +1855,7 @@ begin
           '      reject: ConnectionRequestRejectFn,'#10+
           '  ) => void;');
   S:=TJSExportStatement(CheckClass('First statement',TJSExportStatement,GetFirstStatement));
-  T:=TJSTypeDeclaration(CheckClass('Decl',TJSTypeDeclaration,S.Declaration));
+  CheckClass('Decl',TJSTypeDeclaration,S.Declaration);
 end;
 
 procedure TTestTypeScriptParser.TestExportEnum;
@@ -1691,7 +1876,7 @@ begin
   AssertEquals('Member 2','green',ET.Names[2]);
 end;
 
-procedure TTestTypeScriptParser.TestExportObjectUNion;
+procedure TTestTypeScriptParser.TestExportObjectUnion;
 
 begin
   StartTs('export type VisitorIdentifier = { id: string } | { user_id: string };'#10+
@@ -1705,6 +1890,12 @@ procedure TTestTypeScriptParser.TestExportNoSemicolon;
 begin
   StartTs('export function intlReducer(state: IntlState | undefined, action: IntlAction): IntlState'#10+
           'export function updateIntl (opts: IntlState): IntlAction');
+  AssertNotNull(GetStatements);
+end;
+
+procedure TTestTypeScriptParser.TestExportAsKeyWord;
+begin
+  StartTs('export { del as delete };');
   AssertNotNull(GetStatements);
 end;
 

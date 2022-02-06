@@ -105,6 +105,13 @@ begin
           AddUnit('fpcunitreport');
           AddUnit('testutils');
         end;
+    T:=P.Targets.AddUnit('junittestreport.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('fpcunit');
+          AddUnit('fpcunitreport');
+          AddUnit('testutils');
+        end;
     T:=P.Targets.AddUnit('consoletestrunner.pas');
       with T.Dependencies do
         begin

@@ -5,7 +5,7 @@ unit tcjsontocode;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, fpjsontopas;
+  Classes, SysUtils, fpcunit, testregistry, fpjsontopas;
 
 type
 
@@ -1495,13 +1495,8 @@ begin
 end;
 
 procedure TTestGenCode.AssertSaveArray(AElementType, AJSONtype: String; IsDelphi: Boolean = False);
-
-Var
-  DN : String;
-
 begin
   AssertUnitHeader;
-  DN:=GetDataName(IsDelphi);
   AssertArrayType('Ta',AElementType);
   AssertArraySaver('Ta',AElementType,IsDelphi);
   AssertType;
@@ -1603,9 +1598,6 @@ end;
 
 
 procedure TTestGenCode.TestLoadDelphiIntegerProperty;
-
-Var
-  S : String;
 
 begin
   Gen.Options:=[jpoGenerateLoad,jpoDelphiJSON];

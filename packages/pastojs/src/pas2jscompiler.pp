@@ -2405,11 +2405,11 @@ begin
     ParamFatal('[20210919141030] linklib options not supported');
 
   Imp:=CreateImportStatement;
-  Imp.NameSpaceImport:=aLibAlias;
+  Imp.NameSpaceImport:=TJSString(aLibAlias);
   LibModuleName:=aLibName;
   if ExtractFileExt(LibModuleName)='' then
     LibModuleName:=LibModuleName+'.js';
-  Imp.ModuleName:=LibModuleName;
+  Imp.ModuleName:=TJSString(LibModuleName);
   // pas.$imports.libalias:=libalias
   // LHS
   pePas:=TJSPrimaryExpressionIdent.Create(0,0,'');
@@ -2815,7 +2815,10 @@ begin
       if Assigned(PostProcessorSupport) then
         PostProcessorSupport.CallPostProcessors(aFile.JSFilename,aFileWriter);
 
-      MapFilename:=aFileWriter.DestFilename+'.map';
+      if SrcMapEnable then
+        MapFilename:=aFileWriter.DestFilename+'.map'
+      else
+        MapFilename:='';
 
       CheckOutputDir(aFileWriter.DestFileName);
 
@@ -3051,7 +3054,7 @@ procedure TPas2jsCompiler.Terminate(TheExitCode: integer);
 begin
   ExitCode:=TheExitCode;
   if Log<>nil then Log.Flush;
-  raise ECompilerTerminate.Create('');
+  raise ECompilerTerminate.Create('TPas2jsCompiler.Terminate');
 end;
 
 function TPas2jsCompiler.GetShowDebug: boolean;
@@ -5243,7 +5246,7 @@ begin
       if Filename='' then
       begin
         Log.LogMsg(nCustomJSFileNotFound,[InsertFilenames[i]]);
-        raise EFileNotFoundError.Create('');
+        Terminate(ExitCodeFileNotFound);
       end;
       aFile:=LoadFile(Filename);
       if aFile.Source='' then continue;
@@ -5269,7 +5272,7 @@ begin
       if Filename='' then
       begin
         Log.LogMsg(nCustomJSFileNotFound,[AppendFilenames[i]]);
-        raise EFileNotFoundError.Create('');
+        Terminate(ExitCodeFileNotFound);
       end;
       aFile:=LoadFile(Filename);
       if aFile.Source='' then continue;

@@ -12,12 +12,13 @@
 
  **********************************************************************}
 
+{$PACKRECORDS 2}
 unit gemdos;
 
 interface
 
 { The API description of this file is based on the information available
-  online at: http://toshyp.atari.org }
+  online at: https://freemint.github.io/tos.hyp/en/index.html }
 
 const
     E_OK        = 0;       // OK. No error has arisen
@@ -85,6 +86,50 @@ const
     MXALLOC_PROT_WORLD_READ  = (4 shl 4);
 
     MXALLOC_NO_FREE          = (1 shl 14);
+
+// as used by pexec
+const
+    PE_LOADGO           = 0;          {* load & go *}
+    PE_LOAD             = 3;          {* just load *}
+    PE_GO               = 4;          {* just go *}
+    PE_CBASEPAGE        = 5;          {* just create basepage *}
+    PE_GO_FREE          = 6;          {* just go, then free *}
+    PE_CBASEPAGE_FLAGS  = 7;          {* create basepage defining the program flags *}
+    {* MiNT/MagiC *}
+    PE_ASYNC_LOADGO     = 100;        {* load and asynchronously go *}
+    PE_INIT             = 101;        {* Inherits path- and file-handles (MagiC) *}
+    PE_TERM             = 102;        {* The process will be deleted (MagiC) *}
+    PE_ASYNC_GO         = 104;        {* asynchronously go *}
+    PE_ASYNC_GO_FREE    = 106;        {* asynchronously go and free *}
+    PE_XBASE            = 107;        {* As Mode 7, but in place of a command line the process name will be passed. (MagiC) *}
+    PE_EXACC            = 108;        {* Used internally by MagiC for starting an ACC *}
+    PE_OVERLAY          = 200;        {* load and overlay   *}
+    PE_OVERLAY_GO       = 204;        {* overlay and go *}
+    PE_OVERLAY_GO_FREE  = 206;        {* overlay, go and free *}
+    PE_PTRACE           = $8000;      {* activate tracing *}
+
+// Sconfig - Modes
+    SC_GETCONF   = 0;                 {* KAOS 1.2 *}
+    SC_SETCONF   = 1;                 {* KAOS 1.2 *}
+    SC_DOSVARS   = 2;                 {* KAOS 1.4 *}
+    SC_MOWNER    = 3;                 {* MagiC 3.00 *}
+    SC_WBACK     = 4;                 {* MagiC 4.01 *}
+    SC_INTMAVAIL = 5;                 {* MagiC 4.01 *}
+    SC_INTGARBC  = 6;                 {* MagiC 4.01 *}
+
+// Sconfig Bits
+    SCB_PTHCK   = $001;               {* KAOS 1.2 *}
+    SCB_DSKCH   = $002;               {* KAOS 1.2 *}
+    SCB_BREAK   = $004;               {* KAOS 1.2 *}
+    SCB_NCTLC   = $008;               {* KAOS 1.2 *}
+    SCB_NFAST   = $010;               {* KAOS 1.2 *}
+    SCB_CMPTB   = $020;               {* KAOS 1.4 *}
+    SCB_NSMRT   = $040;               {* KAOS 1.4 *}
+    SCB_NGRSH   = $080;               {* KAOS 1.4 *}
+    SCB_NHALT   = $100;               {* KAOS 1.4 *}
+    SCB_RESVD   = $200;               {* KAOS 1.4 *}
+    SCB_PULLM   = $400;               {* KAOS 1.4 *}
+    SCB_FLPAR   = $800;               {* MagiC 3.0 *}
 
 type
     PDTA = ^TDTA;
@@ -169,46 +214,156 @@ function gemdos_maddalt(start: pointer; size: longint): longint; syscall 1 20;
 function gemdos_srealloc(len: longint): longint; syscall 1 21;
 
 function gemdos_dgetdrv: smallint; syscall 1 25;
-procedure gemdos_setdta(buf: PDTA); syscall 1 26;
+procedure gemdos_fsetdta(buf: PDTA); syscall 1 26;
 
 function gemdos_super(stack: pointer): longint; syscall 1 32;
 
-function gemdos_tgetdate: longint; syscall 1 42;
-function gemdos_tsetdate(date: word): smallint; syscall 1 43;
-function gemdos_tgettime: longint; syscall 1 44;
-function gemdos_tsettime(time: word): smallint; syscall 1 45;
+function gemdos_tgetdate: word; syscall 1 42;
+function gemdos_tsetdate(date: word): word; syscall 1 43;
+function gemdos_tgettime: word; syscall 1 44;
+function gemdos_tsettime(time: word): word; syscall 1 45;
 
-function gemdos_getdta: PDTA; syscall 1 47;
+function gemdos_fgetdta: PDTA; syscall 1 47;
 function gemdos_sversion: smallint; syscall 1 48;
+procedure gemdos_ptermres(keepcnt: longint; returncode: smallint); syscall 1 49;
+function gemdos_sconfig(mode: smallint; flags: longint): longint; syscall 1 51;
 
-function gemdos_dfree(buf: PDISKINFO; driveno: smallint): smallint; syscall 1 54;
+function gemdos_dfree(var buf: TDISKINFO; driveno: smallint): smallint; syscall 1 54;
 
 function gemdos_dcreate(const path: pchar): longint; syscall 1 57;
 function gemdos_ddelete(const path: pchar): longint; syscall 1 58;
-function gemdos_dsetpath(path: pchar): smallint; syscall 1 59;
-function gemdos_fcreate(fname: pchar; attr: smallint): smallint; syscall 1 60;
-function gemdos_fopen(fname: pchar; mode: smallint): longint; syscall 1 61;
+function gemdos_dsetpath(const path: pchar): smallint; syscall 1 59;
+function gemdos_fcreate(const fname: pchar; attr: smallint): smallint; syscall 1 60;
+function gemdos_fopen(const fname: pchar; mode: smallint): longint; syscall 1 61;
 function gemdos_fclose(handle: smallint): smallint; syscall 1 62;
 function gemdos_fread(handle: smallint; count: longint; buf: pointer): longint; syscall 1 63;
 function gemdos_fwrite(handle: smallint; count: longint; buf: pointer): longint; syscall 1 64;
-function gemdos_fdelete(fname: pchar): smallint; syscall 1 65;
+function gemdos_fdelete(const fname: pchar): smallint; syscall 1 65;
 function gemdos_fseek(offset: longint; handle: smallint; seekmode: smallint): longint; syscall 1 66;
-function gemdos_fattrib(filename: pchar; wflag: smallint; attrib: smallint): smallint; syscall 1 67;
+function gemdos_fattrib(const filename: pchar; wflag: smallint; attrib: smallint): smallint; syscall 1 67;
 function gemdos_mxalloc(amount: longint; mode: smallint): pointer; syscall 1 68;
 function gemdos_fdup(handle: smallint): smallint; syscall 1 69;
 function gemdos_fforce(stdh: smallint; nonstdh: smallint): smallint; syscall 1 70;
 function gemdos_dgetpath(path: pchar; driveno: smallint): smallint; syscall 1 71;
 function gemdos_malloc(number: dword): pointer; syscall 1 72;
-function gemdos_free(block: pointer): dword; syscall 1 73;
+function gemdos_mfree(block: pointer): dword; syscall 1 73;
 function gemdos_mshrink(zero: word; block: pointer; newsiz: longint): longint; syscall 1 74;
 function gemdos_pexec(mode: word; name: pchar; cmdline: pchar; env: pchar): longint; syscall 1 75;
 procedure gemdos_pterm(returncode: smallint); syscall 1 76;
 
-function gemdos_fsfirst(filename: pchar; attr: smallint): longint; syscall 1 78;
+function gemdos_fsfirst(const filename: pchar; attr: smallint): longint; syscall 1 78;
 function gemdos_fsnext: smallint; syscall 1 79;
 
-function gemdos_frename(zero: word; oldname: pchar; newname: pchar): longint; syscall 1 86;
+function gemdos_frename(zero: word; const oldname: pchar; const newname: pchar): longint; syscall 1 86;
 procedure gemdos_fdatime(timeptr: PDOSTIME; handle: smallint; wflag: smallint); syscall 1 87;
+
+function gemdos_Flock(handle, mode: smallint; start, length: LongInt): LongInt; syscall 1 92;
+
+{ MiNT extensions }
+
+type
+    PMSGTYPE = ^TMSGTYPE;
+    TMSGTYPE = record
+        msg1:              LongInt;
+        msg2:              LongInt;
+        pid:               SmallInt;
+    end;
+
+    PXATTR = ^TXATTR;
+    TXATTR = record
+        mode:              Word;
+        index:             LongInt;
+        dev:               Word;
+        rdev:              Word;
+        nlink:             Word;
+        uid:               Word;
+        gid:               Word;
+        size:              LongInt;
+        blksize:           LongInt;
+        nblocks:           LongInt;
+        mtime:             Word;
+        mdate:             Word;
+        atime:             Word;
+        adate:             Word;
+        ctime:             Word;
+        cdate:             Word;
+        attr:              Word;
+        reserved2:         Word;
+        reserved3:         Array[0..1] of LongInt;
+    end;
+
+    PSIGACTION = ^TSIGACTION;
+    TSIGACTION = record
+        sa_handler:        Pointer;
+        sa_mask:           LongInt;
+        sa_flags:          Integer;
+    end;
+
+function gemdos_Syield: smallint; syscall 1 255;
+function gemdos_Fpipe(var usrh: ARRAY of smallint): smallint; syscall 1 256;
+function gemdos_Ffchown(fd, uid, gid: smallint): longint; syscall 1 257;
+function gemdos_Ffchmod(fd: smallint; mode: word): longint; syscall 1 258;
+function gemdos_Fsync(fd: smallint): longint; syscall 1 259;
+function gemdos_Fcntl(f: smallint; arg: LongInt; cmd: smallint): smallint; syscall 1 260;
+function gemdos_Finstat(f: smallint): LongInt; syscall 1 261;
+function gemdos_Foutstat(f: smallint): LongInt; syscall 1 262;
+function gemdos_Fgetchar(f, mode: smallint): LongInt; syscall 1 263;
+function gemdos_Fputchar(f: smallint; c: LongInt; mode: smallint): LongInt; syscall 1 264;
+function gemdos_Pwait: LongInt; syscall 1 265;
+function gemdos_Pnice(delta : smallint): smallint; syscall 1 266;
+function gemdos_Pgetpid: smallint; syscall 1 267;
+function gemdos_Pgetppid: smallint; syscall 1 268;
+function gemdos_Pgetpgrp: smallint; syscall 1 269;
+function gemdos_Psetpgrp(pid, newgrp: smallint): smallint; syscall 1 270;
+function gemdos_Pgetuid: smallint; syscall 1 271;
+function gemdos_Psetuid(id: smallint): smallint; syscall 1 272;
+function gemdos_Pkill(pid, sig: smallint): smallint; syscall 1 273;
+function gemdos_Psignal(sig: smallint; handler: Pointer): Pointer; syscall 1 274;
+function gemdos_Pvfork: smallint; syscall 1 275;
+function gemdos_Pgetgid: smallint; syscall 1 276;
+function gemdos_Psetgid(id : smallint): smallint; syscall 1 277;
+function gemdos_Psigblock(mask: LongInt): LongInt; syscall 1 278;
+function gemdos_Psigsetmask(mask: LongInt): LongInt; syscall 1 279;
+function gemdos_Pusrval(arg: LongInt): LongInt; syscall 1 280;
+function gemdos_Pdomain(newdom: smallint): smallint; syscall 1 281;
+procedure gemdos_Psigreturn; syscall 1 282;
+function gemdos_Pfork: smallint; syscall 1 283;
+function gemdos_Pwait3(flag: smallint; var rusage: ARRAY of LongInt): LongInt; syscall 1 284;
+function gemdos_Fselect(timeout: Word; var rfds, wfds, xfds: LongInt): smallint; syscall 1 285;
+function gemdos_Prusage(var r: ARRAY of LongInt): LongInt; syscall 1 286;
+function gemdos_Psetlimit(lim: smallint; value: LongInt): LongInt; syscall 1 287;
+function gemdos_Talarm(secs: LongInt): LongInt; syscall 1 288;
+procedure gemdos_Pause; syscall 1 289;
+function gemdos_Sysconf(n: smallint): LongInt; syscall 1 290;
+function gemdos_Psigpending: LongInt; syscall 1 291;
+function gemdos_Dpathconf(const name: PChar; n: smallint): LongInt; syscall 1 292;
+function gemdos_Pmsg(mode: smallint; mbox: LongInt; var msg: TMSGTYPE): LongInt; syscall 1 293;
+function gemdos_Fmidipipe(pid, inp, outp: smallint): LongInt; syscall 1 294;
+function gemdos_Prenice(pid, delta: smallint): smallint; syscall 1 295;
+function gemdos_Dopendir(const name: PChar; flag: smallint): LongInt; syscall 1 296;
+function gemdos_Dreaddir(buflen: smallint; dir: LongInt; buf: Pchar): LongInt; syscall 1 297;
+function gemdos_Drewinddir(dir: LongInt): LongInt; syscall 1 298;
+function gemdos_Dclosedir(dir: LongInt): LongInt; syscall 1 299;
+function gemdos_Fxattr(flag: smallint; const name: Pchar; var buf: TXATTR): LongInt; syscall 1 300;
+function gemdos_Flink(const oldname: PChar; const newname: Pchar): LongInt; syscall 1 301;
+function gemdos_Fsymlink(const oldname: PChar; const newname: Pchar): LongInt; syscall 1 302;
+function gemdos_Freadlink(size: smallint; buf: Pchar; const name: Pchar): LongInt; syscall 1 303;
+function gemdos_Dcntl(cmd: smallint; const name: pchar; arg: LongInt): LongInt; syscall 1 304;
+function gemdos_Fchown(const name: Pchar; uid, gid: smallint): LongInt; syscall 1 305;
+function gemdos_Fchmod(const name: Pchar; mode: smallint): LongInt; syscall 1 306;
+function gemdos_Pumask(mode: Word): LongInt; syscall 1 307;
+function gemdos_Psemaphore(mode: smallint; id, timeout: LongInt): LongInt; syscall 1 308;
+function gemdos_Dlock(mode, drive: smallint): LongInt; syscall 1 309;
+procedure gemdos_Psigpause(mask: LongInt); syscall 1 310;
+function gemdos_Psigaction(sig: smallint; act, oact: PSIGACTION): LongInt; syscall 1 311;
+function gemdos_Pgeteuid: smallint; syscall 1 312;
+function gemdos_Pgetegid: smallint; syscall 1 313;
+function gemdos_Pwaitpid(pid, flag: smallint; var rusage: ARRAY of LongInt): LongInt; syscall 1 314;
+function gemdos_Dgetcwd(path: Pchar; drv, size: smallint): LongInt; syscall 1 315;
+procedure gemdos_Salert(str: Pchar); syscall 1 316;
+function gemdos_Tmalarm(time: longint): LongInt; syscall 1 317;
+{ function gemdos_Psigintr(vec, sig: smallint): LongInt; syscall 1 318; }
+function gemdos_Suptime(var uptime: longint; var loadaverage: longint): LongInt; syscall 1 319;
 
 implementation
 

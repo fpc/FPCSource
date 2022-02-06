@@ -27,5 +27,5 @@ end;
 
 procedure SysOSFree(p: pointer; size: ptruint);
 begin
-  gemdos_free(p);
+  gemdos_mfree(p);
 end;

@@ -92,7 +92,8 @@ Type
     FResponseStatusCode: Integer;
     FResponseStatusText: String;
     FServerHTTPVersion: String;
-    FSocket : TInetSocket;
+    FUnixSocketPath: String;
+    FSocket : TSocketStream;
     FBuffer : Ansistring;
     FTerminated: Boolean;
     FUserName: String;
@@ -180,6 +181,8 @@ Type
   Public
     Constructor Create(AOwner: TComponent); override;
     Destructor Destroy; override;
+    // Disk path to the unix socket file
+    Property UnixSocketPath : String Read FUnixSocketPath Write FUnixSocketPath;
     // Add header Aheader with value AValue to HTTPHeaders, replacing exiting values
     Class Procedure AddHeader(HTTPHeaders : TStrings; Const AHeader,AValue : String);
     // Index of header AHeader in httpheaders.
@@ -300,7 +303,7 @@ Type
     Property Terminated : Boolean Read FTerminated;
   Protected
     // Socket
-    Property Socket : TInetSocket read FSocket;
+    Property Socket : TSocketStream read FSocket;
     // Timeouts
     Property IOTimeout : Integer read FIOTimeout write SetIOTimeout;
     Property ConnectTimeout : Integer read FConnectTimeout write SetConnectTimeout;
@@ -661,6 +664,9 @@ procedure TFPCustomHTTPClient.ConnectToServer(const AHost: String;
 
 Var
   G : TSocketHandler;
+  {$ifdef Unix}
+  IsUnixSocketConnection: Boolean = False;
+  {$endif}
 
 
 begin
@@ -672,13 +678,30 @@ begin
     else
       Aport:=80;
   G:=GetSocketHandler(UseSSL);    
+  {$ifdef Unix}
+  IsUnixSocketConnection := UnixSocketPath <> '';
+  if IsUnixSocketConnection then
+    FSocket:=TUnixSocket.Create(UnixSocketPath)
+  else
+    begin
+      G:=GetSocketHandler(UseSSL);
+      FSocket:=TInetSocket.Create(AHost,APort,G);
+    end;
+  {$else}
+  G:=GetSocketHandler(UseSSL);
   FSocket:=TInetSocket.Create(AHost,APort,G);
+  {$endif}  
   try
     if FIOTimeout<>0 then
       FSocket.IOTimeout:=FIOTimeout;
     if FConnectTimeout<>0 then
       FSocket.ConnectTimeout:=FConnectTimeout;
-    FSocket.Connect;
+    {$ifdef Unix}
+    if not IsUnixSocketConnection then
+      (FSocket as TInetSocket).Connect;
+    {$else}
+      (FSocket as TInetSocket).Connect;
+    {$endif}
   except
     FreeAndNil(FSocket);
     Raise;

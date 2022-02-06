@@ -8,9 +8,16 @@ if [ $# -eq 0 ]; then
   PPC=ppcjvm
 else
   PPC="$1"
-  if [ $# -eq 2 ]; then
+  if [ $# -ge 2 ]; then
     RTLDIR="$2"
   fi
+  if [ $# -ge 3 ]; then
+    TEST_JVM_OPT="$3"
+  fi
+fi
+
+if [ -n "${TEST_JVM_OPT:-}" ] ; then
+  PPC="$PPC $TEST_JVM_OPT"
 fi
 
 rm -rf org
@@ -193,3 +200,10 @@ $PPC -O2 -g -B -Sa tw29585
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tw29585
 $PPC -O2 -g -B -Sa tstring
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tstring
+
+set +e
+# Arriving here means that all is OK
+# Do some cleaning in that case
+echo "No problem detected in testing jvm using PPC=\"$PPC\" and RTLDIR=\"$RTLDIR\""
+rm -Rf *.class
+rm -Rf org

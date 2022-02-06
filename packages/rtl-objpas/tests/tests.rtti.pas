@@ -80,6 +80,8 @@ type
 
     procedure TestMakeNativeInt;
 
+    procedure TestMakeFromArray;
+
     procedure TestMakeGenericNil;
     procedure TestMakeGenericLongInt;
     procedure TestMakeGenericString;
@@ -104,6 +106,9 @@ type
 {$ifdef fpc}
     procedure TestInterfaceRaw;
 {$endif}
+
+    procedure TestArray;
+    procedure TestDynArray;
 
     procedure TestProcVar;
     procedure TestMethod;
@@ -246,6 +251,7 @@ type
 
   TArrayOfLongintDyn = array of LongInt;
   TArrayOfLongintStatic = array[0..3] of LongInt;
+  TArrayOfLongint2DStatic = array[0..3, 2..4] of LongInt;
 
   TTestRecord = record
     Value1: LongInt;
@@ -836,6 +842,54 @@ begin
   Check(PPointer(v.GetReferenceToRawData)^ = Pointer(o));
   Check(v.AsObject = o);
   o.Free;
+end;
+
+procedure TTestCase1.TestMakeFromArray;
+var
+  arr, subarr: array of TValue;
+  v, varr: TValue;
+  ti: PTypeInfo;
+  i: LongInt;
+begin
+  SetLength(arr, 3 * 4);
+  for i := 0 to High(arr) do
+    TValue.{$ifdef fpc}specialize{$endif} Make<LongInt>(i + 1, arr[i]);
+
+  ti := PTypeInfo(TypeInfo(LongInt));
+
+  v := TValue.FromArray(TypeInfo(TArrayOfLongintDyn), arr);
+  Check(not v.IsEmpty, 'Array is empty');
+  Check(v.IsArray, 'Value is not an array');
+  CheckEquals(Length(arr), v.GetArrayLength, 'Array length does not match');
+  for i := 0 to High(arr) do begin
+    varr := v.GetArrayElement(i);
+    Check(varr.TypeInfo = ti, 'Type info of array element does not match');
+    Check(varr.IsOrdinal, 'Array element is not an ordinal');
+    Check(varr.AsInteger = arr[i].AsInteger, 'Value of array element does not match');
+  end;
+
+  subarr := Copy(arr, 0, 4);
+  v := TValue.FromArray(TypeInfo(TArrayOfLongintStatic), subarr);
+  Check(not v.IsEmpty, 'Array is empty');
+  Check(v.IsArray, 'Value is not an array');
+  CheckEquals(Length(subarr), v.GetArrayLength, 'Array length does not match');
+  for i := 0 to High(subarr) do begin
+    varr := v.GetArrayElement(i);
+    Check(varr.TypeInfo = ti, 'Type info of array element does not match');
+    Check(varr.IsOrdinal, 'Array element is not an ordinal');
+    Check(varr.AsInteger = subarr[i].AsInteger, 'Value of array element does not match');
+  end;
+
+  v := TValue.FromArray(TypeInfo(TArrayOfLongint2DStatic), arr);
+  Check(not v.IsEmpty, 'Array is empty');
+  Check(v.IsArray, 'Value is not an array');
+  CheckEquals(Length(arr), v.GetArrayLength, 'Array length does not match');
+  for i := 0 to High(arr) do begin
+    varr := v.GetArrayElement(i);
+    Check(varr.TypeInfo = ti, 'Type info of array element does not match');
+    Check(varr.IsOrdinal, 'Array element is not an ordinal');
+    Check(varr.AsInteger = arr[i].AsInteger, 'Value of array element does not match');
+  end;
 end;
 
 procedure TTestCase1.TestMakeGenericNil;
@@ -2674,6 +2728,104 @@ begin
   end;
 end;
 {$endif}
+
+procedure TTestCase1.TestArray;
+var
+  context: TRttiContext;
+  t, el: TRttiType;
+  a: TRttiArrayType;
+  o: TRttiOrdinalType;
+begin
+  context := TRttiContext.Create;
+  try
+    t := context.GetType(PTypeInfo(TypeInfo(TArrayOfLongintStatic)));
+    Check(t is TRttiArrayType, 'Type is not a TRttiArrayType');
+
+    a := TRttiArrayType(t);
+    CheckEquals(1, a.DimensionCount, 'Dimension count does not match');
+    CheckEquals(4, a.TotalElementCount, 'Total element count does not match');
+
+    el := a.ElementType;
+    Check(el is TRttiOrdinalType, 'Element type is not a TRttiOrdinalType');
+    Check(el = context.GetType(PTypeInfo(TypeInfo(LongInt))), 'Element type is not a LongInt');
+
+    t := a.Dimensions[0];
+    {$ifdef fpc}
+    Check(t is TRttiOrdinalType, 'Index type is not a TRttiOrdinalType');
+
+    o := TRttiOrdinalType(t);
+    { Currently this is a full type :/ }
+    {CheckEquals(0, o.MinValue, 'Minimum value of 1st dimension does not match');
+    CheckEquals(3, o.MaxValue, 'Maximum value of 1st dimension does not match');}
+    {$else}
+    Check(t = Nil, 'Index type is not Nil');
+    {$endif}
+
+    t := context.GetType(PTypeInfo(TypeInfo(TArrayOfLongint2DStatic)));
+    Check(t is TRttiArrayType, 'Type is not a TRttiArrayType');
+
+    a := TRttiArrayType(t);
+    CheckEquals(2, a.DimensionCount, 'Dimension count does not match');
+    CheckEquals(4 * 3, a.TotalElementCount, 'Total element count does not match');
+
+    el := a.ElementType;
+    Check(el is TRttiOrdinalType, 'Element type is not a TRttiOrdinalType');
+    Check(el = context.GetType(PTypeInfo(TypeInfo(LongInt))), 'Element type is not a LongInt');
+
+    t := a.Dimensions[0];
+    {$ifdef fpc}
+    Check(t is TRttiOrdinalType, 'Index type is not a TRttiOrdinalType');
+
+    o := TRttiOrdinalType(t);
+    { Currently this is a full type :/ }
+    {CheckEquals(0, o.MinValue, 'Minimum value of 1st dimension does not match');
+    CheckEquals(3, o.MaxValue, 'Maximum value of 1st dimension does not match');}
+    {$else}
+    Check(t = Nil, 'Index type is not Nil');
+    {$endif}
+
+    t := a.Dimensions[1];
+    {$ifdef fpc}
+    Check(t is TRttiOrdinalType, 'Index type is not a TRttiOrdinalType');
+
+    o := TRttiOrdinalType(t);
+    { Currently this is a full type :/ }
+    {CheckEquals(2, o.MinValue, 'Minimum value of 1st dimension does not match');
+    CheckEquals(4, o.MaxValue, 'Maximum value of 1st dimension does not match');}
+    {$else}
+    Check(t = Nil, 'Index type is not Nil');
+    {$endif}
+  finally
+    context.Free;
+  end;
+end;
+
+procedure TTestCase1.TestDynArray;
+var
+  context: TRttiContext;
+  t, el: TRttiType;
+  a: TRttiDynamicArrayType;
+begin
+  context := TRttiContext.Create;
+  try
+    t := context.GetType(PTypeInfo(TypeInfo(TArrayOfLongintDyn)));
+    Check(t is TRttiDynamicArrayType, 'Type is not a TRttiDynamicArrayType');
+
+    a := TRttiDynamicArrayType(t);
+
+    CheckEquals('tests.rtti', LowerCase(a.DeclaringUnitName), 'Unit type does not match for dynamic array');
+    CheckEquals(a.ElementSize, SizeUInt(SizeOf(LongInt)), 'Element size does not match for dynamic array');
+
+    el := a.ElementType;
+    Check(el is TRttiOrdinalType, 'Element type is not a TRttiOrdinalType');
+
+    Check(el = context.GetType(PTypeInfo(TypeInfo(LongInt))), 'Element type is not a LongInt');
+
+    { ToDo: check OLE type }
+  finally
+    context.Free;
+  end;
+end;
 
 procedure TTestCase1.TestProcVar;
 var

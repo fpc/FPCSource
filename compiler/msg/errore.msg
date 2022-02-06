@@ -445,7 +445,7 @@ scan_e_unexpected_endif=02108_E_$ENDIF directive found without a matching $IF(N)
 #
 # Parser
 #
-# 03355 is the last used one
+# 03361 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1632,6 +1632,9 @@ parser_e_location_regpair_only_consecutive=03359_E_Only consecutive registers ar
 % MorphOS syscall specific: only consecutive (f.e.: d1-d2) registers are supported for 64bit register pairs
 parser_e_constructurs_cannot_take_type_parameters=03360_E_Constructors cannot take type parameters
 % The use of type parameters in constructors is not allowed.
+parser_e_raise_with_noreturn_not_allowed=03361_E_Raise in subroutines declared as noreturn is not allowed
+% \var{noreturn} tells the compiler that the activation scope of the subroutine is never left. This includes exceptions
+% goto or any other mean. While the compiler cannot detect all such cases some are trivial and the compiler gives an error.
 %
 % \end{description}
 %
@@ -3705,7 +3708,7 @@ package_e_duplicate_package=13003_E_Duplicate package $1
 % a second time.
 package_e_unit_deny_package=13004_E_Unit $1 can not be part of a package
 % The unit can not be part of a package because the DenyPackageUnit directive is enabled for the unit.
-package_n_implicit_unit_import=13005_N_Unit $1 is implicitely imported into package $2
+package_n_implicit_unit_import=13005_N_Unit $1 is implicitly imported into package $2
 % The unit was not specified as part of the \var{contains} section and is also not included in one of the
 % required packages. Add the unit to the \var{contains} section to increase compatibility with other packages.
 package_f_cant_create_pcp=13006_F_Failed to create PCP file $2 for package $1
@@ -3781,7 +3784,7 @@ package_u_ppl_filename=13029_U_PPL filename $1
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2021 by Florian Klaempfl and others
+Copyright (c) 1993-2022 by Florian Klaempfl and others
 ]
 
 #
@@ -4324,6 +4327,7 @@ A*2We_Use external resources (Darwin)
 P*2We_Use external resources (Darwin)
 p*2We_Use external resources (Darwin)
 3*2WF_Specify full-screen type application (EMX, OS/2)
+6*2WF<x>_Set TOS program flags to <x> (Atari)
 3*2WG_Specify graphic type application (EMX, OS/2, Windows)
 4*2WG_Specify graphic type application (Windows)
 A*2WG_Specify graphic type application (Windows)
@@ -4361,12 +4365,16 @@ x*2Wp<x>_Specify the controller type; see fpc -i or fpc -iu for possible values
 4*2WP<x>_Minimum iOS deployment version: 8.0, 8.0.2, ... (iphonesim)
 a*2WP<x>_Minimum iOS deployment version: 7.0, 7.1.2, ... (Darwin)
 A*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (Darwin)
+x*2WP<x>_Esp8266-rtos-sdk or esp-idf version number: 3.3, 3.4 (esp8266) or 4.2, 4.3 (esp32)
 3*2WR_Generate relocation code (Windows)
 4*2WR_Generate relocation code (Windows)
 A*2WR_Generate relocation code (Windows)
 8*2Wt<x>_Set the target executable format
 8*3Wtcom_Create a DOS .COM file (requires tiny memory model)
 8*3Wtexe_Create a DOS .EXE file (default)
+6*2Wt<x>_Set the target executable format (Atari)
+6*3Wttos_Create TOS executable file (default)
+6*3Wtmint_Create a MiNT executable file
 P*2WT_Specify MPW tool type application (Classic Mac OS)
 6*2WQ<x>_Set executable metadata format (Sinclair QL)
 6*3WQqhdr_Set metadata to QDOS File Header style (default)

@@ -45,6 +45,7 @@ uses
       { checks whether the type needs special methodptr-like handling, when stored
         in a LOC_REGISTER location. This applies to the following types:
           - method pointers
+          - 8-byte records
           - nested proc ptrs
         When stored in a LOC_REGISTER tlocation, these types use both register
         and registerhi with the following sizes:
@@ -301,15 +302,16 @@ implementation
 
   function thlcgwasm.is_methodptr_like_type(d:tdef): boolean;
     var
-      is_methodptr, is_nestedprocptr: Boolean;
+      is_8byterecord, is_methodptr, is_nestedprocptr: Boolean;
     begin
+      is_8byterecord:=(d.typ=recorddef) and (d.size=8);
       is_methodptr:=(d.typ=procvardef)
         and (po_methodpointer in tprocvardef(d).procoptions)
         and not(po_addressonly in tprocvardef(d).procoptions);
       is_nestedprocptr:=(d.typ=procvardef)
         and is_nested_pd(tprocvardef(d))
         and not(po_addressonly in tprocvardef(d).procoptions);
-      result:=is_methodptr or is_nestedprocptr;
+      result:=is_8byterecord or is_methodptr or is_nestedprocptr;
     end;
 
   constructor thlcgwasm.create;

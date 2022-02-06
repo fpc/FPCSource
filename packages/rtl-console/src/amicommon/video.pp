@@ -178,7 +178,8 @@ var
   videoDefaultFlags: PtrUInt;
 begin
   videoDefaultFlags:=VIDEO_WFLG_DEFAULTS;
-  if GetVar('FPC_VIDEO_SIMPLEREFRESH',@envBuf,sizeof(envBuf),0) > -1 then
+  if (GetVar('FPC_VIDEO_SIMPLEREFRESH',@envBuf,sizeof(envBuf),0) > -1) or
+     FPC_VIDEO_FULLSCREEN then
     videoDefaultFlags:=videoDefaultFlags and not WFLG_SMART_REFRESH;
   if FPC_VIDEO_FULLSCREEN then
   begin
@@ -199,7 +200,7 @@ begin
       WA_Activate   , 1,
       WA_Borderless , 1,
       WA_BackDrop   , 1,
-      WA_FLAGS      , VIDEO_WFLG_DEFAULTS or WFLG_BORDERLESS,
+      WA_FLAGS      , videoDefaultFlags,
       WA_IDCMP      , VIDEO_IDCMP_DEFAULTS,
       TAG_END, TAG_END
     ]);
@@ -216,7 +217,7 @@ begin
       WA_MaxHeight  , 32768,
       WA_Title      , PtrUInt(PChar('FPC Video Window Output')),
       WA_Activate   , 1,
-      WA_FLAGS      , (VIDEO_WFLG_DEFAULTS or
+      WA_FLAGS      , (videoDefaultFlags or
                        WFLG_DRAGBAR       or WFLG_DEPTHGADGET   or WFLG_SIZEGADGET or
                        WFLG_SIZEBBOTTOM   or WFLG_CLOSEGADGET),
       WA_IDCMP      , VIDEO_IDCMP_DEFAULTS,
@@ -445,6 +446,7 @@ begin
       if (msg <> nil) then ReplyMsg(msg);
     until msg = nil;
     ModifyIDCMP(videoWindow,0);
+    VideoWindow^.UserPort:=nil;
     Permit();
     CloseWindow(videoWindow);
     VideoWindow := nil;
@@ -570,6 +572,7 @@ var
   LocalRP: PRastPort;
   sY, sX: LongInt;
   BufStartOfs: LongInt;
+  BufLineDiff: Longint;
   {$ifdef VideoSpeedTest}
   NumChanged: Integer;
   t,ta: Double;
@@ -613,12 +616,13 @@ begin
 
   if Smallforce then
   begin
-    BufStartOfs:=y1 * ScreenWidth + x1;
-    VBuf:=@VideoBuf^[BufStartOfs];
-    OldVBuf:=@OldVideoBuf^[BufStartOfs];
     {$ifdef VideoSpeedTest}
     t := now();
     {$endif}
+    BufStartOfs:=Y1 * ScreenWidth + X1;
+    BufLineDiff:=ScreenWidth-(X2-X1+1);
+    VBuf:=@VideoBuf^[BufStartOfs];
+    OldVBuf:=@OldVideoBuf^[BufStartOfs];
     sY := videoWindow^.borderTop + Y1 * VideoFontHeight;
     for CounterY := Y1 to Y2 do
     begin
@@ -638,6 +642,8 @@ begin
         Inc(OldVBuf);
         sX := sX + 8;
       end;
+      Inc(VBuf,BufLineDiff);
+      Inc(OldVBuf,BufLineDiff);
       sY := sY + VideoFontHeight;
     end;
     {$ifdef VideoSpeedTest}

@@ -1304,6 +1304,7 @@ begin
   else if C=TPasGenericTemplateType then
     begin
     if ScopeModule=nil then
+      // Note: filer can write generics, the converter cannot
       RaiseNotSupported(20190817110226,El);
     end
   else

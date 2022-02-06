@@ -745,8 +745,10 @@ var
   td: PTypeData;
   i, c, argcount, stackcount, idx, argidx: SizeInt;
   stackargs: array of SizeInt;
+  orgresinparam: Boolean;
 begin
   fResultInParam := ReturnResultInParam(fResultType);
+  orgresinparam := fResultInParam;
 
   genofs := 0;
   stackofs := 0;
@@ -776,9 +778,13 @@ begin
     else
       c := stackcount - 1;
     for i := 0 to c do begin
-      if argidx = fResultIdx then
+      if (argidx = fResultIdx) and orgresinparam then
         Inc(argidx);
-      if pfResult in fArgs[i].ParamFlags then begin
+      if pass = 0 then
+        idx := i
+      else
+        idx := stackargs[c - i];
+      if pfResult in fArgs[idx].ParamFlags then begin
         fResultIdx := argidx;
         fResultInParam := True;
       end;
@@ -787,10 +793,6 @@ begin
         Inc(stackcount);
         Continue;
       end;
-      if pass = 0 then
-        idx := i
-      else
-        idx := stackargs[c - i];
       if pass = 0 then
         fArgInfos[argidx].ArgType := TArgType.GenReg
       else

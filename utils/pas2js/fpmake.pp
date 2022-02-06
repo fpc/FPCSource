@@ -43,6 +43,7 @@ begin
     PT:=P.Targets.AddProgram('compileserver.pp');
     PT.Dependencies.AddUnit('httpcompiler');
     PT:=P.Targets.AddProgram('webidl2pas.pp');
+    PT:=P.Targets.AddProgram('dts2pas.pp');
     end;
 end;
 

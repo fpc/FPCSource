@@ -68,6 +68,7 @@ type
     procedure TestPCU_CheckVersionMain;
     procedure TestPCU_CheckVersionMain2;
     procedure TestPCU_CheckVersionSystem;
+    procedure TestPCU_RecordGeneric_TValueInference; // ToDo
   end;
 
 function LinesToList(const Lines: array of string): TStringList;
@@ -603,7 +604,7 @@ begin
     '    rtl.checkVersion('+IntToStr((VersionMajor*100+VersionMinor)*100+VersionRelease)+');',
     '  };',
     '});',
-    '//# sourceMappingURL=test1.js.map']);
+    '']);
   if not CheckSrcDiff(ExpectedSrc,aFile.Source,s) then
     Fail('TTestCLI_Precompile.TestPCU_CheckVersionMain src diff: '+s);
 end;
@@ -634,7 +635,7 @@ begin
     '    pas.system.Writeln();',
     '  };',
     '});',
-    '//# sourceMappingURL=test1.js.map']);
+    '']);
   if not CheckSrcDiff(ExpectedSrc,aFile.Source,s) then
     Fail('TTestCLI_Precompile.TestPCU_CheckVersionMain src diff: '+s);
 end;
@@ -662,9 +663,62 @@ begin
     '  rtl.checkVersion('+VerStr+');',
     '  var $mod = this;',
     '});',
-    '//# sourceMappingURL=system.js.map']);
+    '']);
   if not CheckSrcDiff(ExpectedSrc,aFile.Source,s) then
     Fail('TTestCLI_Precompile.TestPCU_CheckVersionMain src diff: '+s);
+end;
+
+procedure TTestCLI_Precompile.TestPCU_RecordGeneric_TValueInference;
+begin
+  exit;
+
+  AddUnit('src/system.pp',[
+  'type',
+  '  integer = longint;',
+  '  TObject = class',
+  '  end;',
+  ''],['']);
+  AddUnit('src/typinfo.pas',[
+  '{$modeswitch externalclass}',
+  'type',
+  '  TTypeInfo = class external name ''rtl.tTypeInfo''',
+  '  end;',
+  '  TTypeInfoInteger = class external name ''rtl.tTypeInfoInteger''(TTypeInfo)',
+  '  end;',
+  '  PTypeInfo = Pointer;',
+  ''],[
+  '']);
+  AddUnit('src/unit1.pas',[
+  '{$modeswitch AdvancedRecords}',
+  'uses typinfo;',
+  'type',
+  '  TValue = record',
+  '  private',
+  '    FTypeInfo: TTypeInfo;',
+  '    FData: JSValue;',
+  '  public',
+  '    generic class function From<T>(const Value: T): TValue; static;',
+  '    class procedure Make(ABuffer: JSValue; ATypeInfo: PTypeInfo; var Result: TValue); overload; static;',
+  '  end;',
+  ''],[
+  'generic class function TValue.From<T>(const Value: T): TValue;',
+  'begin',
+  '  if Value=3 then ;',
+  //'  Make(Value, TypeInfo(T), Result);',
+  'end;',
+  'class procedure TValue.Make(ABuffer: JSValue; ATypeInfo: PTypeInfo; var Result: TValue);',
+  'begin',
+  //'  Result.FData := ABuffer;',
+  //'  Result.FTypeInfo := ATypeInfo;',
+  'end;',
+  '']);
+  AddFile('test1.pas',[
+  '{$mode Delphi}',
+  'uses unit1;',
+  'begin',
+  '  TValue.From<longint>(1234);',
+  'end.']);
+  CheckPrecompile('test1.pas','src');
 end;
 
 Initialization

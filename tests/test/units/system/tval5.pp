@@ -1,8 +1,5 @@
 {$mode objfpc}
 
-uses
-  sysutils;
-
 procedure testcard;
 const
   h = 1;
@@ -13,9 +10,6 @@ var
   s: shortstring;
   b, b2: byte;
   ch, ch2: char;
-{$ifdef cpu64}
-  caught: boolean;
-{$endif cpu64}
 begin
   s:='$0fffffff';
   for b := low(hexch) to high(hexch) do
@@ -44,20 +38,8 @@ begin
       for b := low(hexch) to high(hexch) do
         begin
           s[length(s)]:=hexch[b];
-{$ifdef cpu64}
-{$r+}
-          try
-            caught:=false;
-{$endif cpu64}
-            val(s,c,l);
-{$ifdef cpu64}
-          except on e : exception do
-            caught:=true;
-          end;
-          if not caught then
-{$else cpu64}
+          val(s,c,l);
           if (l=0) then
-{$endif}
             halt(b2+32+h);
         end;
     end;
@@ -84,20 +66,8 @@ begin
   for ch := '6' to '9' do
     begin
       s[length(s)]:=ch;
-{$ifdef cpu64}
-{$r+}
-      try
-        caught:=false;
-{$endif cpu64}
-          val(s,c,l);
-{$ifdef cpu64}
-      except on e : exception do
-        caught:=true;
-      end;
-      if not caught then
-{$else cpu64}
+      val(s,c,l);
       if (l=0) then
-{$endif cpu64}
         halt(ord(ch)-ord('0')+b+54+h);
     end;
 
@@ -109,20 +79,8 @@ begin
       for ch := '0' to '9' do
         begin
           s[length(s)]:=ch;
-{$ifdef cpu64}
-{$r+}
-          try
-            caught:=false;
-{$endif cpu64}
-            val(s,c,l);
-{$ifdef cpu64}
-          except on e : exception do
-            caught:=true;
-          end;
-          if not caught then
-{$else cpu64}
+          val(s,c,l);
           if (l=0) then
-{$endif cpu64}
             halt(ord(ch2)-ord('1')+65+h);
         end;
     end;

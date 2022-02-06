@@ -1468,7 +1468,7 @@ begin
 end;
 
 
-Function fpc_Val_UInt_UnicodeStr (Const S : UnicodeString; out Code : ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_UNICODESTR']; compilerproc;
+Function fpc_Val_UInt_UnicodeStr ({$ifndef VER3_2}DestSize: SizeInt;{$endif VER3_2} Const S : UnicodeString; out Code : ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_UNICODESTR']; compilerproc;
 Var
   SS: ShortString;
 begin

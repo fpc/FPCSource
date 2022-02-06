@@ -349,6 +349,8 @@ begin
       LogRequest(AMethod,AURL,ARequest);
     try
       Result:=DoHTTPMethod(AMethod,AURL,ARequest);
+      if Assigned(Result) and Assigned(Result.FStream) then
+        Result.FStream.Position:=0;
     except
       if (P=PMin) then
         Raise;

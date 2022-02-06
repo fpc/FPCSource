@@ -1651,8 +1651,8 @@ implementation
                 u8bit,u16bit,u32bit,u64bit:
                   begin
                     suffix := get_val_int_func(destpara.resultdef) + '_';
-                    { we also need a destsize para in the case of sint }
-                    if suffix = 'sint_' then
+                    { we also need a destsize para in the case of sint or uint }
+                    if (suffix = 'sint_') or (suffix = 'uint_') then
                       sizepara := ccallparanode.create(cordconstnode.create
                         (destpara.resultdef.size,s32inttype,true),nil);
                   end;
@@ -3201,7 +3201,7 @@ implementation
                   if is_shortstring(left.resultdef) then
                     resultdef:=u8inttype
                   else
-                    resultdef:=ossinttype;
+                    resultdef:=sizesinttype;
                 end;
 
               in_typeinfo_x:

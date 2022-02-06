@@ -35,6 +35,73 @@ unit i_embed;
        systems;
 
     const
+       system_aarch64_embedded_info : tsysteminfo =
+          (
+            system       : system_aarch64_embedded;
+            name         : 'Embedded';
+            shortname    : 'embedded';
+            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_requires_proper_alignment,
+                            tf_smartlink_sections,tf_init_final_units_by_calls];
+            cpu          : cpu_aarch64;
+            unit_env     : '';
+            extradefines : '';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : ld_none;
+            linkextern   : ld_embedded;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            dbg          : dbg_dwarf2;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 8;
+                loopalign       : 8;
+                jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
+                constalignmin   : 0;
+                constalignmax   : 8;
+                varalignmin     : 0;
+                varalignmax     : 8;
+                localalignmin   : 8;
+                localalignmax   : 8;
+                recordalignmin  : 0;
+                recordalignmax  : 8;
+                maxCrecordalign : 8
+              );
+            first_parm_offset : 8;
+            stacksize    : 262144;
+            stackalign   : 16;
+            abi : abi_default;
+            llvmdatalayout : 'e-m:e-i8:8:32-i16:16:32-i64:64-i128:128-n32:64-S128';
+          );
+
        system_arm_embedded_info : tsysteminfo =
           (
             system       : system_arm_embedded;
@@ -858,6 +925,11 @@ unit i_embed;
  implementation
 
 initialization
+{$ifdef cpuaarch64}
+  {$ifdef embedded}
+    set_source_info(system_aarch64_embedded_info);
+  {$endif embedded}
+{$endif cpuaarch64}
 {$ifdef CPUARM}
   {$ifdef embedded}
     set_source_info(system_arm_embedded_info);

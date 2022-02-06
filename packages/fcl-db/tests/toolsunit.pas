@@ -577,6 +577,9 @@ begin
       testValues[ftDateTime,i] := testDateValues[i] + ' ' + testTimeValues[i]
     else
       testValues[ftDateTime,i] := testDateValues[i];
+    testValues[ftShortInt,i] := IntToStr(testShortIntValues[i]);
+    testValues[ftByte,i] := IntToStr(testByteValues[i]);
+    testValues[ftExtended,i] := FloatToStr(testFloatValues[i]);
     end;
 
   if dbconnectorname = '' then raise Exception.Create('There is no db connector specified');

@@ -635,7 +635,7 @@ begin
     '  };',
     '});',
     'rtl.run();',
-    '//# sourceMappingURL=test1.js.map',
+    '',
     '']),
     aFile.Source);
 end;

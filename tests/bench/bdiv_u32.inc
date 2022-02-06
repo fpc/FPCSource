@@ -223,6 +223,56 @@ type
       function TestTitle: shortstring; override;
   end;
 
+  { TUInt32Bit3ModCmpTest }
+
+  TUInt32Bit3ModCmpTest = class(TUInt32ModCmpTest)
+    protected
+      function GetDivisor: Cardinal; override;
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+  end;
+
+  { TUInt32Bit10ModCmpTest }
+
+  TUInt32Bit10ModCmpTest = class(TUInt32ModCmpTest)
+    protected
+      function GetDivisor: Cardinal; override;
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+  end;
+
+  { TUInt32Bit100ModCmpTest }
+
+  TUInt32Bit100ModCmpTest = class(TUInt32ModCmpTest)
+    protected
+      function GetDivisor: Cardinal; override;
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+  end;
+
+  { TUInt32Bit400ModCmpTest }
+
+  TUInt32Bit400ModCmpTest = class(TUInt32ModCmpTest)
+    protected
+      function GetDivisor: Cardinal; override;
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+  end;
+
+  { TUInt32Bit1000ModCmpTest }
+
+  TUInt32Bit1000ModCmpTest = class(TUInt32ModCmpTest)
+    protected
+      function GetDivisor: Cardinal; override;
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+  end;
+
 
 { TUInt32Bit1Test }
 
@@ -856,6 +906,160 @@ procedure TUInt32Bit3600000ModTest.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator mod 3600000;
+
+    FResultArray[Index] := Answer;
+  end;
+
+{ TUInt32Bit3ModCmpTest }
+
+function TUInt32Bit3ModCmpTest.TestTitle: shortstring;
+  begin
+    Result := 'Unsigned 32-bit (n mod 3) = 0';
+  end;
+
+function TUInt32Bit3ModCmpTest.GetDivisor: Cardinal;
+  begin
+    Result := 3;
+  end;
+
+procedure TUInt32Bit3ModCmpTest.DoTestIteration(Iteration: Integer);
+  var
+    Numerator: Cardinal; Answer: Boolean;
+    Index, X: Integer;
+  begin
+    Index := Iteration and $FF;
+    case Index of
+      254:
+        Numerator := 4294967294;
+      255:
+        Numerator := 4294967295;
+      else
+        Numerator := Cardinal(Index);
+    end;
+
+    FInputArray[Index] := Numerator;
+    for X := 0 to INTERNAL_LOOPS - 1 do
+      Answer := (Numerator mod 3) = 0;
+
+    FResultArray[Index] := Answer;
+  end;
+
+{ TUInt32Bit10ModCmpTest }
+
+function TUInt32Bit10ModCmpTest.TestTitle: shortstring;
+  begin
+    Result := 'Unsigned 32-bit (n mod 10) = 0';
+  end;
+
+function TUInt32Bit10ModCmpTest.GetDivisor: Cardinal;
+  begin
+    Result := 10;
+  end;
+
+procedure TUInt32Bit10ModCmpTest.DoTestIteration(Iteration: Integer);
+  var
+    Numerator: Cardinal; Answer: Boolean;
+    Index, X: Integer;
+  begin
+    Index := Iteration and $FF;
+    case Index of
+      254:
+        Numerator := 4294967294;
+      255:
+        Numerator := 4294967295;
+      else
+        Numerator := Cardinal(Index);
+    end;
+
+    FInputArray[Index] := Numerator;
+    for X := 0 to INTERNAL_LOOPS - 1 do
+      Answer := (Numerator mod 10) = 0;
+
+    FResultArray[Index] := Answer;
+  end;
+
+{ TUInt32Bit100ModCmpTest }
+
+function TUInt32Bit100ModCmpTest.TestTitle: shortstring;
+  begin
+    Result := 'Unsigned 32-bit (n mod 100) = 0';
+  end;
+
+function TUInt32Bit100ModCmpTest.GetDivisor: Cardinal;
+  begin
+    Result := 100;
+  end;
+
+procedure TUInt32Bit100ModCmpTest.DoTestIteration(Iteration: Integer);
+  var
+    Numerator: Cardinal; Answer: Boolean;
+    Index, X: Integer;
+  begin
+    Index := Iteration and $FF;
+    case Index of
+      254:
+        Numerator := 4294967294;
+      255:
+        Numerator := 4294967295;
+      else
+        Numerator := Cardinal(Index);
+    end;
+
+    FInputArray[Index] := Numerator;
+    for X := 0 to INTERNAL_LOOPS - 1 do
+      Answer := (Numerator mod 100) = 0;
+
+    FResultArray[Index] := Answer;
+  end;
+
+{ TUInt32Bit400ModCmpTest }
+
+function TUInt32Bit400ModCmpTest.TestTitle: shortstring;
+  begin
+    Result := 'Unsigned 32-bit (n mod 400) = 0';
+  end;
+
+function TUInt32Bit400ModCmpTest.GetDivisor: Cardinal;
+  begin
+    Result := 400;
+  end;
+
+procedure TUInt32Bit400ModCmpTest.DoTestIteration(Iteration: Integer);
+  var
+    Numerator: Cardinal; Answer: Boolean;
+    Index, X: Integer;
+  begin
+    Index := Iteration and $FF;
+    Numerator := FU32_1000Input[Index and $F];
+    FInputArray[Index] := Numerator;
+    for X := 0 to INTERNAL_LOOPS - 1 do
+      Answer := (Numerator mod 400) = 0;
+
+    FResultArray[Index] := Answer;
+  end;
+
+{ TUInt32Bit1000ModCmpTest }
+
+function TUInt32Bit1000ModCmpTest.TestTitle: shortstring;
+  begin
+    Result := 'Unsigned 32-bit (n mod 1,000) = 0';
+  end;
+
+function TUInt32Bit1000ModCmpTest.GetDivisor: Cardinal;
+  begin
+    Result := 1000;
+  end;
+
+procedure TUInt32Bit1000ModCmpTest.DoTestIteration(Iteration: Integer);
+  var
+    Numerator: Cardinal; Answer: Boolean;
+    Index, X: Integer;
+  begin
+    Index := Iteration and $FF;
+    Numerator := FU32_1000Input[Index and $F];
+    FInputArray[Index] := Numerator;
+    for X := 0 to INTERNAL_LOOPS - 1 do
+      Answer := (Numerator mod 1000) = 0;
 
     FResultArray[Index] := Answer;
   end;

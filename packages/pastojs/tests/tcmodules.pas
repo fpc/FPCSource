@@ -650,6 +650,7 @@ type
     Procedure TestExternalClass_ForInJSObject;
     Procedure TestExternalClass_ForInJSArray;
     Procedure TestExternalClass_IncompatibleArgDuplicateIdentifier;
+    Procedure TestExternalClass_NestedConstructor;
 
     // class interfaces
     Procedure TestClassInterface_Corba;
@@ -871,6 +872,7 @@ type
     Procedure TestAttributes_Members;
     Procedure TestAttributes_Types;
     Procedure TestAttributes_HelperConstructor_Fail;
+    Procedure TestAttributes_InterfacesList;
 
     // Assertions, checks
     procedure TestAssert;
@@ -908,13 +910,16 @@ type
     Procedure TestAsync_Inherited;
     Procedure TestAsync_ClassInterface;
     Procedure TestAsync_ClassInterface_AsyncMissmatchFail;
+    Procedure TestAWait_ClassAs;
 
     // Library
     Procedure TestLibrary_Empty;
     Procedure TestLibrary_ExportFunc;
+    Procedure TestLibrary_ExportFuncOverloadedFail;
     Procedure TestLibrary_Export_Index_Fail;
     Procedure TestLibrary_ExportVar;
     Procedure TestLibrary_ExportUnitFunc;
+    // todo: test fail on export overloaded function
     // ToDo: test delayed specialization init
     // ToDo: analyzer
   end;
@@ -8161,24 +8166,35 @@ procedure TTestModule.TestString_SetLength;
 begin
   StartProgram(false);
   Add([
-  'procedure DoIt(var s: string);',
+  'procedure Fly(var s: string);',
+  'begin',
+  '  SetLength(s,1);',
+  'end;',
+  'procedure Run(var s: unicodestring);',
   'begin',
   '  SetLength(s,2);',
   'end;',
   'var s: string;',
+  '  u: unicodestring;',
   'begin',
   '  SetLength(s,3);',
+  '  SetLength(u,4);',
   '']);
   ConvertProgram;
   CheckSource('TestString_SetLength',
     LinesToStr([ // statements
-    'this.DoIt = function (s) {',
+    'this.Fly = function (s) {',
+    '  s.set(rtl.strSetLength(s.get(), 1));',
+    '};',
+    'this.Run = function (s) {',
     '  s.set(rtl.strSetLength(s.get(), 2));',
     '};',
     'this.s = "";',
+    'this.u = "";',
     '']),
     LinesToStr([ // this.$main
-    '$mod.s = rtl.strSetLength($mod.s, 3);'
+    '$mod.s = rtl.strSetLength($mod.s, 3);',
+    '$mod.u = rtl.strSetLength($mod.u, 4);'
     ]));
 end;
 
@@ -19510,6 +19526,73 @@ begin
   SetExpectedPasResolverError('Incompatible type arg no. 1: Got "unit3.TJSBufferSource", expected "unit2.TJSBufferSource"',
     nIncompatibleTypeArgNo);
   ConvertUnit;
+end;
+
+procedure TTestModule.TestExternalClass_NestedConstructor;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSObject = class external name ''Object''',
+  '    type TBird = class external name ''Bird''',
+  '      type TWing = class external name ''Wing''',
+  '        constructor New;',
+  '        constructor Create(w: word = 3);',
+  '      end;',
+  '    end;',
+  '  end;',
+  'var',
+  '  w: TJSObject.TBird.TWing;',
+  'begin',
+  '  w:=tjsobject.tbird.twing.new;',
+  '  w:=tjsobject.tbird.twing.new();',
+  '  w:=tjsobject.tbird.twing.create;',
+  '  w:=tjsobject.tbird.twing.create(4);',
+  '  with tjsobject do begin',
+  '    w:=tbird.twing.new;',
+  '    w:=tbird.twing.new();',
+  '    w:=tbird.twing.create;',
+  '    w:=tbird.twing.create(11);',
+  '  end;',
+  '  with tjsobject.tbird do begin',
+  '    w:=twing.new;',
+  '    w:=twing.new();',
+  '    w:=twing.create;',
+  '    w:=twing.create(21);',
+  '  end;',
+  '  with tjsobject.tbird.twing do begin',
+  '    w:=new;',
+  '    w:=new();',
+  '    w:=create;',
+  '    w:=create(31);',
+  '  end;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestExternalClass_NestedConstructor',
+    LinesToStr([ // statements
+    'this.w = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.w = new Object.Bird.Wing();',
+    '$mod.w = new Object.Bird.Wing();',
+    '$mod.w = new Object.Bird.Wing.Create();',
+    '$mod.w = new Object.Bird.Wing.Create(4);',
+    '$mod.w = new Object.Bird.Wing();',
+    '$mod.w = new Object.Bird.Wing();',
+    '$mod.w = new Object.Bird.Wing.Create();',
+    '$mod.w = new Object.Bird.Wing.Create(11);',
+    'var $with = Object.Bird;',
+    '$mod.w = new Object.Bird.Wing();',
+    '$mod.w = new Object.Bird.Wing();',
+    '$mod.w = new Object.Bird.Wing.Create();',
+    '$mod.w = new Object.Bird.Wing.Create(21);',
+    'var $with1 = Object.Bird.Wing;',
+    '$mod.w = new $with1();',
+    '$mod.w = new $with1();',
+    '$mod.w = new Object.Bird.Wing.Create();',
+    '$mod.w = new Object.Bird.Wing.Create(31);',
+    '']));
 end;
 
 procedure TTestModule.TestClassInterface_Corba;
@@ -32379,6 +32462,101 @@ begin
   ConvertProgram;
 end;
 
+procedure TTestModule.TestAttributes_InterfacesList;
+begin
+  WithTypeInfo:=true;
+  StartProgram(false);
+  Add([
+  '{$mode Delphi}',
+  'type',
+  '  TObject = class',
+  '    constructor Create;',
+  '  end;',
+  '  IInterface = interface end;',
+  '  TCustomAttribute = class',
+  '  end;',
+  '  Red = class(TCustomAttribute);',
+  '  Blue = class(TCustomAttribute);',
+  '  [Red]',
+  '  IBird<T> = interface',
+  '    procedure Fly;',
+  '  end;',
+  '  [Blue]',
+  '  IEagle = interface(IBird<Word>)',
+  '    procedure Dive;',
+  '  end;',
+  '  TAnt = class(TObject, IEagle)',
+  '    procedure Fly; virtual; abstract;',
+  '    procedure Dive; virtual; abstract;',
+  '  end;',
+  'constructor TObject.Create;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestAttributes_InterfacesList',
+    LinesToStr([ // statements
+    '$mod.$rtti.$Interface("IBird<System.Word>");',
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Create = function () {',
+    '    return this;',
+    '  };',
+    '});',
+    'rtl.createInterface(',
+    '  this,',
+    '  "IInterface",',
+    '  "{B92D5841-698D-3153-90C5-000000000000}",',
+    '  [],',
+    '  null,',
+    '  function () {',
+    '    this.$kind = "com";',
+    '  }',
+    ');',
+    'rtl.createClass(this, "TCustomAttribute", this.TObject, function () {',
+    '});',
+    'rtl.createClass(this, "Red", this.TCustomAttribute, function () {',
+    '});',
+    'rtl.createClass(this, "Blue", this.TCustomAttribute, function () {',
+    '});',
+    'rtl.createInterface(',
+    '  this,',
+    '  "IBird$G1",',
+    '  "{14691591-6648-3574-B8C8-FAAD81DAC421}",',
+    '  ["Fly"],',
+    '  this.IInterface,',
+    '  function () {',
+    '    var $r = this.$rtti;',
+    '    $r.addMethod("Fly", 0, []);',
+    '    $r.attr = [$mod.Red, "Create"];',
+    '  },',
+    '  "IBird<System.Word>"',
+    ');',
+    'rtl.createInterface(',
+    '  this,',
+    '  "IEagle",',
+    '  "{5F4202AE-F2BE-37FD-8A88-1A2F926F1117}",',
+    '  ["Dive"],',
+    '  this.IBird$G1,',
+    '  function () {',
+    '    var $r = this.$rtti;',
+    '    $r.addMethod("Dive", 0, []);',
+    '    $r.attr = [$mod.Blue, "Create"];',
+    '  }',
+    ');',
+    'rtl.createClass(this, "TAnt", this.TObject, function () {',
+    '  rtl.addIntf(this, $mod.IEagle);',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+
+end;
+
 procedure TTestModule.TestAssert;
 begin
   StartProgram(false);
@@ -33889,6 +34067,67 @@ begin
   ConvertProgram;
 end;
 
+procedure TTestModule.TestAWait_ClassAs;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSPromise = class external name ''Promise''',
+  '  end;',
+  '  TObject = class',
+  '    function Run: TObject; async;',
+  '  end;',
+  '  TBird = class',
+  '    function Fly: TBird; async;',
+  '  end;',
+  'function TObject.Run: TObject; async;',
+  'begin',
+  'end;',
+  'function TBird.Fly: TBird;', // async modifier not needed in impl
+  'var o: TObject;',
+  'begin',
+  '  o:=await(TObject,Run);',
+  '  o:=await(TObject,Fly);',
+  '  o:=await(TBird,Fly);',
+  '  o:=await(TObject,inherited Run);',
+  '  o:=await(TObject,inherited Run) as TBird;',
+  'end;',
+  'begin',
+  '  ']);
+  ConvertProgram;
+  CheckSource('TestAWait_ClassAs',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Run = async function () {',
+    '    var Result = null;',
+    '    return Result;',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TBird", this.TObject, function () {',
+    '  this.Fly = async function () {',
+    '    var Result = null;',
+    '    var o = null;',
+    '    o = await this.Run();',
+    '    o = await this.Fly();',
+    '    o = await this.Fly();',
+    '    o = await $mod.TObject.Run.call(this);',
+    '    o = rtl.as(await $mod.TObject.Run.call(this), $mod.TBird);',
+    '    return Result;',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([
+    '']));
+  CheckResolverUnexpectedHints();
+
+end;
+
 procedure TTestModule.TestLibrary_Empty;
 begin
   StartLibrary(false);
@@ -33927,6 +34166,24 @@ begin
   CheckResolverUnexpectedHints();
 end;
 
+procedure TTestModule.TestLibrary_ExportFuncOverloadedFail;
+begin
+  StartLibrary(false);
+  Add([
+  'procedure Run(w: word); overload;',
+  'begin',
+  'end;',
+  'procedure Run(s: string); overload;',
+  'begin',
+  'end;',
+  'exports',
+  '  Run;',
+  '']);
+  SetExpectedPasResolverError(sCantDetermineWhichOverloadedFunctionToCall,
+                              nCantDetermineWhichOverloadedFunctionToCall);
+  ConvertLibrary;
+end;
+
 procedure TTestModule.TestLibrary_Export_Index_Fail;
 begin
   StartLibrary(false);
@@ -33962,7 +34219,38 @@ end;
 
 procedure TTestModule.TestLibrary_ExportUnitFunc;
 begin
+  AddModuleWithIntfImplSrc('Unit1.pas',
+    LinesToStr([
+    'type',
+    '  TAnt = class',
+    '    class function Crawl: word; static;',
+    '  end;',
+    'function Fly: word;',
+    '']),
+    LinesToStr([
+    'function Fly: word;',
+    'begin',
+    'end;',
+    'class function TAnt.Crawl: word;',
+    'begin',
+    'end;',
+    '']));
 
+  StartLibrary(true,[supTObject]);
+  Add([
+  'uses unit1;',
+  'exports',
+  '  Fly;',
+  '  TAnt.Crawl;',
+  '']);
+  ConvertLibrary;
+  CheckSource('TestLibrary_ExportUnitFunc',
+    LinesToStr([ // statements
+    'export { pas.Unit1.Fly as Fly, pas.Unit1.TAnt.Crawl as Crawl };',
+    '']),
+    LinesToStr([
+    '']));
+  CheckResolverUnexpectedHints();
 end;
 
 Initialization

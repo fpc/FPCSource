@@ -83,7 +83,11 @@ type
 {$endif}
 
   ffi_abi = (
+{$if defined(CPUX86_64) and not defined(WIN64)}
+    FFI_FIRST_ABI = 1,
+{$else}
     FFI_FIRST_ABI,
+{$endif}
 {$if not defined(CPUMIPS) and not defined(CPUX86_64) and not defined(CPUPOWERPC) and not defined(CPUSPARCGEN)}
     FFI_SYSV,
 {$endif}
@@ -103,6 +107,7 @@ type
     FFI_UNIX64,
   {$endif}
     FFI_WIN64,
+    FFI_GNUW64,
 {$endif}
 {$if defined(CPUI386)}
   {$ifdef WIN32}
@@ -117,6 +122,9 @@ type
   {$endif}
     FFI_PASCAL,
     FFI_REGISTER,
+  {$ifndef WIN32}
+    FFI_MS_CDECL,
+  {$endif}
 {$endif}
 {$if defined(CPUSPARC32)}
     FFI_V8,

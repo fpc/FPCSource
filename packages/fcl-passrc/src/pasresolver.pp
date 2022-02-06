@@ -5801,6 +5801,7 @@ begin
         OlderEl:=OlderIdentifier.Element;
         if (Identifier.Kind=pikNamespace)
             or (OlderIdentifier.Kind=pikNamespace) then
+          // namespace cannot clash
         else if (Identifier.Kind=pikSimple)
             or (OlderIdentifier.Kind=pikSimple) then
           RaiseMsg(20190818141630,nDuplicateIdentifier,sDuplicateIdentifier,
@@ -9240,11 +9241,10 @@ procedure TPasResolver.FinishExportSymbol(El: TPasExportSymbol);
 
 var
   Expr: TPasExpr;
-  DeclEl: TPasElement;
+  DeclEl, DuplicateEl: TPasElement;
   FindData: TPRFindData;
   Ref: TResolvedReference;
   ResolvedEl: TPasResolverResult;
-  Section: TPasSection;
   Scope: TPasIdentifierScope;
   ScopeIdent: TPasIdentifier;
 begin
@@ -9256,7 +9256,15 @@ begin
     DeclEl:=ResolvedEl.IdentEl;
     if DeclEl=nil then
       RaiseMsg(20210103012907,nXExpectedButYFound,sXExpectedButYFound,['symbol',GetTypeDescription(ResolvedEl)],Expr);
-    if not (DeclEl.Parent is TPasSection) then
+    if DeclEl.Parent=nil then
+      RaiseMsg(20220206142147,nSymbolCannotBeExportedFromALibrary,
+        sSymbolCannotBeExportedFromALibrary,[],El);
+    if DeclEl.Parent is TPasSection then
+      // global
+    else if (DeclEl.Parent is TPasMembersType) and (DeclEl is TPasProcedure)
+        and (TPasProcedure(DeclEl).IsStatic) then
+      // static proc
+    else
       RaiseMsg(20210103012908,nXExpectedButYFound,sXExpectedButYFound,['global symbol',GetElementTypeName(DeclEl)],Expr);
     end
   else
@@ -9271,16 +9279,25 @@ begin
     CheckFoundElement(FindData,Ref);
     end;
 
-  if DeclEl is TPasProcedure then
+  if DeclEl.Parent.CustomData is TPasIdentifierScope then
     begin
-    Section:=DeclEl.Parent as TPasSection;
-    Scope:=Section.CustomData as TPasIdentifierScope;
+    Scope:=DeclEl.Parent.CustomData as TPasIdentifierScope;
     ScopeIdent:=Scope.FindLocalIdentifier(DeclEl.Name);
     if (ScopeIdent=nil) then
       RaiseNotYetImplemented(20210106103001,El,GetObjPath(DeclEl));
     if ScopeIdent.NextSameIdentifier<>nil then
-      RaiseMsg(20210106103320,nCantDetermineWhichOverloadedFunctionToCall,
-        sCantDetermineWhichOverloadedFunctionToCall,[],El);
+      if DeclEl is TPasProcedure then
+        RaiseMsg(20210106103320,nCantDetermineWhichOverloadedFunctionToCall,
+          sCantDetermineWhichOverloadedFunctionToCall,[],El)
+      else
+        begin
+        if ScopeIdent.Element=DeclEl then
+          DuplicateEl:=ScopeIdent.NextSameIdentifier.Element
+        else
+          DuplicateEl:=ScopeIdent.Element;
+        RaiseMsg(20220206141619,nDuplicateIdentifier,
+          sDuplicateIdentifier,[DuplicateEl.Name,GetElementSourcePosStr(DuplicateEl)],El);
+        end;
     end;
 
   // check index and name
@@ -13501,8 +13518,13 @@ begin
         begin
         if (LeftResolved.IdentEl is TPasType)
             or (not (rrfReadable in LeftResolved.Flags)) then
+          begin
+          { $IFDEF VerbosePasResolver}
+          writeln('TPasResolver.ComputeBinaryExprRes as-operator: left=',GetResolverResultDbg(LeftResolved),' right=',GetResolverResultDbg(RightResolved));
+          { $ENDIF}
           RaiseIncompatibleTypeRes(20180204124711,nOperatorIsNotOverloadedAOpB,
             [OpcodeStrings[Bin.OpCode]],LeftResolved,RightResolved,Bin);
+          end;
         if RightResolved.IdentEl=nil then
           RaiseXExpectedButYFound(20170216152630,'class',GetElementTypeName(RightResolved.LoTypeEl),Bin.right);
         if not (RightResolved.IdentEl is TPasType) then
@@ -17667,7 +17689,7 @@ begin
     SpecializeProcedureType(TPasProcedureType(GenEl),TPasProcedureType(SpecEl),nil);
     end
   else if C=TPasExportSymbol then
-    RaiseMsg(20210101234958,nSymbolCannotExportedFromALibrary,sSymbolCannotExportedFromALibrary,[],GenEl)
+    RaiseMsg(20210101234958,nSymbolCannotBeExportedFromALibrary,sSymbolCannotBeExportedFromALibrary,[],GenEl)
   else
     RaiseNotYetImplemented(20190728151215,GenEl);
 end;
@@ -29396,19 +29418,26 @@ var
 begin
   Result:=nil;
   if El=nil then exit;
-  // find El in El.Parent members
-  Parent:=El.Parent;
-  if Parent=nil then exit;
-  C:=Parent.ClassType;
-  if C.InheritsFrom(TPasDeclarations) then
-    Members:=TPasDeclarations(Parent).Declarations
-  else if C.InheritsFrom(TPasMembersType) then
-    Members:=TPasMembersType(Parent).Members
+
+  if (El.CustomData is TPasClassScope) and Assigned(TPasClassScope(El.CustomData).SpecializedFromItem) then
+    Result := GetAttributeCallsEl(TPasClassScope(El.CustomData).SpecializedFromItem.GenericEl)
   else
-    exit;
-  i:=Members.IndexOf(El);
-  if i<0 then exit;
-  Result:=GetAttributeCalls(Members,i);
+  begin
+    // find El in El.Parent members
+    Parent:=El.Parent;
+    if Parent=nil then exit;
+    C:=Parent.ClassType;
+    if C.InheritsFrom(TPasDeclarations) then
+      Members:=TPasDeclarations(Parent).Declarations
+    else if C.InheritsFrom(TPasMembersType) then
+      Members:=TPasMembersType(Parent).Members
+    else
+      exit;
+
+    i:=Members.IndexOf(El);
+    if i<0 then exit;
+    Result:=GetAttributeCalls(Members,i);
+  end;
 end;
 
 function TPasResolver.GetAttributeCalls(Members: TFPList; Index: integer
@@ -29459,6 +29488,11 @@ begin
         AddAttributesInFront(Members,Index);
         break;
         end;
+      if CurEl.CustomData is TPasClassScope then
+        if Assigned(TPasClassScope(CurEl.CustomData).SpecializedFromItem) then
+          AddAttributesInFront(Members,Index)
+        else
+          break;
     until false;
 end;
 

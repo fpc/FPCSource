@@ -74,12 +74,7 @@ Type
   TCustomExtDirectModule = Class(TJSONRPCDispatchModule)
   private
     FAPIPath: String;
-    FCORSAllowCredentials: Boolean;
-    FCORSAllowedOrigins: String;
-    FCORSEmptyDomainToOrigin: Boolean;
-    FCORSMaxAge: Integer;
     FDispatcher: TCustomExtDirectDispatcher;
-    FHandleCors: Boolean;
     FNameSpace: String;
     FOptions: TJSONRPCDispatchOptions;
     FRequest: TRequest;
@@ -125,12 +120,10 @@ Type
 
 implementation
 
-{$ifdef extdebug}
-uses dbugintf;
-{$endif}
 
-Resourcestring
-  SErrInvalidPath = 'Invalid path';
+uses {$ifdef extdebug}dbugintf,{$endif} fprpcstrings;
+
+
 
 { TCustomExtDirectDispatcher }
 
@@ -249,7 +242,7 @@ procedure TCustomExtDirectModule.HandleRequest(ARequest: TRequest;
 
 Var
   Disp : TCustomExtDirectDispatcher;
-  Req,res : TJSONData;
+  res : TJSONData;
   R : String;
 
 begin

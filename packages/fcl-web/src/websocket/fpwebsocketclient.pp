@@ -393,8 +393,7 @@ begin
   Move(Hash,B[0],Length(B));
   k:=EncodeBytesBase64(B);
   Result:=SameText(K,FHandshakeResponse.Accept)
-          and SameText(FHandshakeResponse.Upgrade,'websocket')
-          and SameText(FHandshakeResponse.Version,FHandShake.Version);
+          and SameText(FHandshakeResponse.Upgrade,'websocket');
 end;
 
 Function TCustomWebsocketClient.ReadHandShakeResponse : Boolean;

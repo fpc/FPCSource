@@ -61,9 +61,9 @@ unit i_atari;
             Cprefix      : '_';
             newline      : #13#10;
             dirsep       : '/'; { ... the underlying tools (binutils/vlink/vasm) prefer Unix paths }
-            assem        : as_m68k_as_aout;
-            assemextern  : as_m68k_as_aout;
-            link         : ld_atari;
+            assem        : as_m68k_vasm;
+            assemextern  : as_m68k_vasm;
+            link         : ld_none;
             linkextern   : ld_atari;
             ar           : ar_gnu_ar;
             res          : res_ext;

@@ -377,7 +377,7 @@ interface
         procedure append_entry(tag : tdwarf_tag;has_children : boolean;data : array of const);
         procedure append_block1(attr: tdwarf_attribute; size: aint);
         procedure append_labelentry(attr : tdwarf_attribute;sym : tasmsymbol);
-        procedure append_labelentry_addr_ref(attr : tdwarf_attribute;sym : tasmsymbol); virtual;
+        procedure append_labelentry_addr_ref(sym : tasmsymbol); virtual;
         procedure append_labelentry_ref(attr : tdwarf_attribute;sym : tasmsymbol);
         procedure append_labelentry_dataptr_abs(attr : tdwarf_attribute;sym : tasmsymbol);
         procedure append_labelentry_dataptr_rel(attr : tdwarf_attribute;sym,endsym : tasmsymbol);
@@ -462,7 +462,7 @@ interface
       TDebugInfoDwarf3 = class(TDebugInfoDwarf2)
       private
       protected
-        procedure append_labelentry_addr_ref(attr : tdwarf_attribute;sym : tasmsymbol); override;
+        procedure append_labelentry_addr_ref(sym : tasmsymbol); override;
         procedure appenddef_array(list:TAsmList;def:tarraydef); override;
         procedure appenddef_string(list:TAsmList;def:tstringdef);override;
         procedure appenddef_file(list:TAsmList;def:tfiledef); override;
@@ -1336,7 +1336,7 @@ implementation
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(aitconst_ptr_unaligned,sym));
       end;
 
-    procedure TDebugInfoDwarf.append_labelentry_addr_ref(attr : tdwarf_attribute;sym : tasmsymbol);
+    procedure TDebugInfoDwarf.append_labelentry_addr_ref(sym : tasmsymbol);
       begin
         AddConstToAbbrev(ord(DW_FORM_ref_addr));
 {$ifdef i8086}
@@ -1351,10 +1351,13 @@ implementation
       begin
         AddConstToAbbrev(ord(attr));
         if not(tf_dwarf_only_local_labels in target_info.flags) then
-          append_labelentry_addr_ref(attr, sym)
+          append_labelentry_addr_ref(sym)
         else
           begin
-            AddConstToAbbrev(ord(DW_FORM_ref4));
+            if use_64bit_headers then
+              AddConstToAbbrev(ord(DW_FORM_ref8))
+            else
+              AddConstToAbbrev(ord(DW_FORM_ref4));
             current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetreltype,current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'debug_info0',AB_LOCAL,AT_METADATA,voidpointertype),sym));
           end;
       end;
@@ -4238,7 +4241,7 @@ implementation
                               TDebugInfoDwarf3
 ****************************************************************************}
 
-    procedure TDebugInfoDwarf3.append_labelentry_addr_ref(attr : tdwarf_attribute;sym : tasmsymbol);
+    procedure TDebugInfoDwarf3.append_labelentry_addr_ref(sym : tasmsymbol);
       begin
         AddConstToAbbrev(ord(DW_FORM_ref_addr));
         { Since Dwarf 3 the length of a DW_FORM_ref_addr entry is not dependent on the pointer size of the

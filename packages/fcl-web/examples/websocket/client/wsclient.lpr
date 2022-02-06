@@ -6,7 +6,7 @@ uses
   {$IFDEF UNIX}
   cthreads,
   {$ENDIF}
-  Classes, jsonparser, fpJSON,SysUtils, StrUtils, CustApp, uriparser, httpprotocol, fphttpclient;
+  Classes, jsonparser, fpJSON,SysUtils, StrUtils, CustApp, uriparser, httpprotocol, fpwebsocketclient, fpwebsocket;
 
 type
 

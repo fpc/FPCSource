@@ -957,10 +957,12 @@ type
     function Read(var Buffer; Count: Longint): Longint; virtual; overload;
     function Read(var Buffer: TBytes; Count: Longint): Longint; overload;
     function Read( Buffer : TBytes; aOffset, Count: Longint): Longint; overload;
+    function Read64( Buffer : TBytes; aOffset, Count: Int64): Int64; overload;
 
     function Write(const Buffer: TBytes; Offset, Count: Longint): Longint; overload;
     function Write(const Buffer: TBytes; Count: Longint): Longint; overload;
     function Write(const Buffer; Count: Longint): Longint; virtual; overload;
+    function Write64(const Buffer: TBytes; Offset, Count: Int64): Int64;
 
     function Seek(Offset: Longint; Origin: Word): Longint; virtual; overload;
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; virtual; overload;
@@ -999,7 +1001,7 @@ type
     function ReadData(var Buffer: TExtended80Rec): NativeInt; overload;
     function ReadData(var Buffer: TExtended80Rec; Count: NativeInt): NativeInt; overload;
 {$ENDIF}
-    procedure ReadBuffer(var Buffer; Count: Longint);
+    procedure ReadBuffer(var Buffer; Count: NativeInt);
     procedure ReadBuffer(var Buffer: TBytes; Count: NativeInt); overload;
     procedure ReadBuffer(var Buffer: TBytes; Offset, Count: NativeInt); overload;
 
@@ -1035,7 +1037,7 @@ type
     procedure ReadBufferData(var Buffer: TExtended80Rec); overload;
     procedure ReadBufferData(var Buffer: TExtended80Rec; Count: NativeInt); overload;
 {$ENDIF}
-    procedure WriteBuffer(const Buffer; Count: Longint);
+    procedure WriteBuffer(const Buffer; Count: NativeInt);
     procedure WriteBuffer(const Buffer: TBytes; Count: NativeInt); overload;
     procedure WriteBuffer(const Buffer: TBytes; Offset, Count: NativeInt); overload;
 

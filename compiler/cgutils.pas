@@ -218,6 +218,12 @@ unit cgutils;
     procedure calc_divconst_magic_signed(N: byte; d: aInt; out magic_m: aInt; out magic_s: byte);
     procedure calc_divconst_magic_unsigned(N: byte; d: aWord; out magic_m: aWord; out magic_add: boolean; out magic_shift: byte);
 
+    { Functions for calculating the multiplicative inverse, or reciprocal, of
+      a divisor mod 2^N.  That is, a number r such that dr = 1 (mod 2^N).
+
+      WARNING: d must not be a power of 2 (including 2^0 = 1) }
+    procedure calc_mul_inverse(N: byte; d: aWord; out reciprocal: aWord; out shift: Byte);
+
 implementation
 
 uses
@@ -490,6 +496,67 @@ uses
         until not ((p<(2*N)) and ((q1<delta) or ((q1=delta) and (r1=0))));
         magic_m:=(q2+1) and mask;        { resulting magic number }
         magic_shift:=p-N;     { resulting shift }
+      end;
+
+
+    procedure calc_mul_inverse(N: byte; d: aWord; out reciprocal: aWord; out shift: Byte);
+      var
+        mask, oldr, newd, swap_r, swap_d, q: aWord;
+      begin
+        { WARNING: d must not be a power of 2 (including 2^0 = 1) }
+{$push}
+{$warnings off }
+        if N=(SizeOf(aWord) * 8) then
+          newd:=0
+        else
+          newd:=aWord(1) shl N; { Used later }
+        mask:=newd-1;
+        oldr:=mask;
+{$pop}
+
+        { Trim off powers of 2 so d is an odd number }
+{$if defined(cpu64bitalu)}
+        shift:=BsfQWord(d);
+{$elseif defined(cpu32bitalu)}
+        shift:=BsfDWord(d);
+{$elseif defined(cpu16bitalu)}
+        shift:=BsfWord(d);
+{$elseif defined(cpu8bitalu)}
+        shift:=BsfByte(d);
+{$else}
+{$error ALU not defined}
+{$endif}
+        if shift = 255 then
+          { This is a divide by zero that should have been caught earlier }
+          InternalError(2021091001);
+
+        d := d shr shift;
+
+        { Calculate reciprocal using the Extended Euclidean Algorithm as
+          described on page 244 of Hacker's Delight, Second Edition.
+
+          x1 = oldr
+          x2 = reciprocal
+          x3 = swap_r
+
+          v1 = newd
+          v2 = d
+          v3 = swap_d
+        }
+        newd:=newd-d; { -d }
+        reciprocal:=1;
+
+        repeat
+          q := newd div d;
+
+          swap_d:=(newd-(q*d)) and mask;
+          newd:=d;
+          d:=swap_d;
+
+          swap_r:=(oldr-(q*reciprocal)) and mask;
+          oldr:=reciprocal;
+          reciprocal:=swap_r;
+        until d<=1;
       end;
 {$pop}
 

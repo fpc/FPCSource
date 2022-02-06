@@ -5478,7 +5478,7 @@ implementation
     begin
       pd:=search_system_proc('fpc_stackcheck');
       paraloc1.init;
-      { The parameter to fpc_stackcheck is loaded seperately via
+      { The parameter to fpc_stackcheck is loaded separately via
         gen_stack_check_size_para() }
       paramanager.getcgtempparaloc(list,pd,1,paraloc1);
       paramanager.freecgpara(list,paraloc1);

@@ -87,7 +87,9 @@ const
     { 19 } 'riscv32',
     { 20 } 'riscv64',
     { 21 } 'xtensa',
-    { 22 } 'z80'
+    { 22 } 'z80',
+    { 23 } 'mips64',
+    { 24 } 'mips64el'
     );
 
   CpuHasController : array[tsystemcpu] of boolean =
@@ -114,7 +116,9 @@ const
     { 19 } false {'riscv32'},
     { 20 } false {'riscv64'},
     { 21 } true  {'xtensa'},
-    { 22 } true  {'z80'}
+    { 22 } true  {'z80'},
+    { 23 } false {'mips64'},
+    { 24 } false {'mips64el'}
     );
 
 { List of all supported system-cpu couples }
@@ -235,7 +239,10 @@ const
   { 112 } 'AmstradCPC-Z80',
   { 113 } 'SinclairQL-m68k',
   { 114 } 'WASI-WASM32',
-  { 115 } 'FreeBSD-AArch64'
+  { 115 } 'FreeBSD-AArch64',
+  { 116 } 'Embedded-aarch64',
+  { 117 } 'Linux-MIPS64',
+  { 118 } 'Linux-MIPS64el'
   );
 
 const
@@ -2426,7 +2433,8 @@ const
          'm_array_operators',     { use Delphi compatible array operators instead of custom ones ("+") }
          'm_multi_helpers',       { helpers can appear in multiple scopes simultaneously }
          'm_array2dynarray',      { regular arrays can be implicitly converted to dynamic arrays }
-         'm_prefixed_attributes'  { enable attributes that are defined before the type they belong to }
+         'm_prefixed_attributes', { enable attributes that are defined before the type they belong to }
+         'm_underscoreisseparator'{ _ can be used as separator to group digits in numbers }
        );
        { optimizer }
        optimizerswitchname : array[toptimizerswitch] of string[50] =

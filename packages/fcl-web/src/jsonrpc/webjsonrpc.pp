@@ -147,9 +147,9 @@ type
 
 implementation
 
-{$ifdef debugjsonrpc}
-uses dbugintf;
-{$endif}
+
+uses {$ifdef debugjsonrpc}dbugintf,{$endif} fprpcstrings;
+
 
 Const
   SApplicationJSON = 'application/json';
@@ -270,10 +270,13 @@ end;
 function TCustomJSONRPCModule.IsAPIRequest(ARequest: TRequest): Boolean;
 begin
   Result:=False;
-  if (asURL in APIRequestSources) then
-    Result:=SameText(aRequest.GetNextPathInfo,APIRequestName);
-  if (asQuery in APIRequestSources) then
-    Result:=Result or (aRequest.QueryFields.Values[APIRequestName]<>'');
+  if APIRequestName<>'' then
+    begin
+    if (asURL in APIRequestSources) then
+      Result:=SameText(aRequest.GetNextPathInfo,APIRequestName);
+    if (asQuery in APIRequestSources) then
+      Result:=Result or (aRequest.QueryFields.Values[APIRequestName]<>'');
+    end;
 end;
 
 
@@ -292,6 +295,7 @@ begin
   FOptions := DefaultDispatchOptions+[jdoSearchRegistry];
   APIRequestSources := DefaultAPIRequestSources;
   APICreateOptions:=[caoFullParams];
+  APIRequestName:='API';
 end;
 
 Function TCustomJSONRPCModule.GetAPI(aDisp : TCustomJSONRPCDispatcher; ARequest: TRequest) : TJSONStringType;

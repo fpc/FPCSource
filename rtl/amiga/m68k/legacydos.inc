@@ -228,18 +228,48 @@ begin
   NextDosEntry:=dlist;
 end;
 
-// Very first dirty version of MatchFirst/Next/End)
-//TODO: pattern detection, for now only simple "*" or "#?" or full name  (without patterns) is supported
+{ helper function used by MatchFirst, all input is expected to be lowercase }
+function NameMatchesPattern(pattern: AnsiString; filename: AnsiString): boolean;
+var
+  ofs: longint;
+begin
+  NameMatchesPattern:=(pattern = '*') or (pattern = '#?') or (pattern = filename);
+  if not NameMatchesPattern then
+  begin
+    { handle the simple case of #?.<ext> and *.<ext>, which is one of the most often used }
+    ofs:=Pos('#?',pattern);
+    if (ofs = 1) then
+    begin
+      Delete(pattern,1,length('#?'));
+      ofs:=Pos(pattern,filename);
+      NameMatchesPattern:=(ofs > 0) and ((ofs - 1) = length(filename) - length(pattern));
+      if NameMatchesPattern then
+        exit;
+    end;
+    ofs:=Pos('*',pattern);
+    if (ofs = 1) then
+    begin
+      Delete(pattern,1,length('*'));
+      ofs:=Pos(pattern,filename);
+      NameMatchesPattern:=(ofs > 0) and ((ofs - 1) = length(filename) - length(pattern));
+      if NameMatchesPattern then
+        exit;
+    end;
+  end;
+end;
+
 function MatchFirst(pat   : PChar;
                     anchor: PAnchorPath): LongInt; public name '_fpc_amiga_matchfirst';
 var
+  fib_area: array[1..sizeof(TFileInfoBlock) + sizeof(longint)] of byte;
+  fib: pfileinfoblock;
   p: PChar;
   len: LongInt;
   Path,FileN: AnsiString;
   LastSeparatorPos: Integer;
   i: Integer;
+  newLock: boolean;
   DirLock: BPTR;
-  ib: TFileInfoBlock;
   Res: LongInt;
   NChain: PAChain;
 begin
@@ -271,9 +301,17 @@ begin
 
   // if no path is given use the current working dir, or try to lock the dir
   if Path = '' then
-    DirLock := CurrentDir(0)
+  begin
+    newLock := False;
+    DirLock := CurrentDir(0);
+    if DirLock <> 0 then
+      UnLock(CurrentDir(DirLock));
+  end
   else
+  begin
+    newLock := True;
     DirLock := Lock(PChar(Path), ACCESS_READ);
+  end;
   //
   // no dirlock found -> dir not found
   if DirLock = 0 then
@@ -281,22 +319,26 @@ begin
     MatchFirst := -1;
     Exit;
   end;
+
+  fib:=align(@fib_area[1],sizeof(longint));
   // examine the dir to get the fib for ExNext
-  if Examine(DirLock, @ib) = 0 then
+  if Examine(DirLock, fib) = 0 then
   begin
     MatchFirst := -1;
+    if newLock then
+      UnLock(DirLock);
     Exit;
   end;
   // we search here directly what we need to find
   //  guess it's not meant that way but works
   repeat
     // get next dir entry
-    Res := ExNext(DirLock, @ib);
+    Res := ExNext(DirLock, fib);
     // nothing nore found -> exit
     if Res = 0 then
       break;
     // include some nifty pattern compare here? later maybe!
-    if (FileN = '*') or (FileN = '#?') or (FileN = lowercase(AnsiString(ib.fib_FileName))) then
+    if NameMatchesPattern(FileN, lowercase(AnsiString(fib^.fib_FileName))) then
     begin
       // Match found
       // new chain
@@ -316,7 +358,7 @@ begin
         NChain^.an_Parent := Pointer(Anchor);
       end;
       // copy the fileinfoblock into the chain
-      Move(ib, NChain^.an_Info, SizeOf(TFileInfoBlock));
+      Move(fib^, NChain^.an_Info, SizeOf(TFileInfoBlock));
     end;
   until Res = 0; // useless... we jump out earlier
   //
@@ -330,7 +372,8 @@ begin
     // most importantly set the return code
     MatchFirst := 0;
   end;
-  Unlock(DirLock);
+  if newLock then
+    Unlock(DirLock);
 end;
 
 function MatchNext(anchor: PAnchorPath): LongInt; public name '_fpc_amiga_matchnext';

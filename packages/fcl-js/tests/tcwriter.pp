@@ -1843,9 +1843,9 @@ begin
   FD:=TJSFunctionDeclarationStatement.Create(0,0);
   FD.AFunction:=TJSFuncDef.Create;
   FD.AFunction.Name:='a';
-  FD.AFunction.Params.Add('b');
-  FD.AFunction.Params.Add('c');
-  FD.AFunction.Params.Add('d');
+  FD.AFunction.TypedParams.AddParam('b');
+  FD.AFunction.TypedParams.AddParam('c');
+  FD.AFunction.TypedParams.AddParam('d');
 
   AssertWrite('Empty function, 3 params',
      'function a(b, c, d) {'+sLineBreak
@@ -1862,9 +1862,9 @@ begin
   FD:=TJSFunctionDeclarationStatement.Create(0,0);
   FD.AFunction:=TJSFuncDef.Create;
   FD.AFunction.Name:='a';
-  FD.AFunction.Params.Add('b');
-  FD.AFunction.Params.Add('c');
-  FD.AFunction.Params.Add('d');
+  FD.AFunction.TypedParams.AddParam('b');
+  FD.AFunction.TypedParams.AddParam('c');
+  FD.AFunction.TypedParams.AddParam('d');
   AssertWrite('Empty function, 3 params, compact','function a(b,c,d) {}',FD);
 end;
 
@@ -1923,7 +1923,7 @@ begin
   FD.AFunction:=TJSFuncDef.Create;
   FD.AFunction.Name:='a';
   FD.AFunction.Body:=TJSFunctionBody.Create(0,0);
-  FD.AFunction.Params.Add('b');
+  FD.AFunction.TypedParams.AddParam('b');
   R:=TJSReturnStatement.Create(0,0);
   R.Expr:=CreateIdent('b');
   L:=TJSStatementList.Create(0,0);
@@ -1958,7 +1958,7 @@ begin
   FD.AFunction:=TJSFuncDef.Create;
   FD.AFunction.Name:='a';
   FD.AFunction.Body:=TJSFunctionBody.Create(0,0);
-  FD.AFunction.Params.Add('b');
+  FD.AFunction.TypedParams.AddParam('b');
   R:=TJSReturnStatement.Create(0,0);
   R.Expr:=CreateIdent('b');
   L:=TJSStatementList.Create(0,0);

@@ -39,6 +39,36 @@ type
       function TestTitle: shortstring; override;
   end;
 
+  { TSInt32Bit3ModCmpTest }
+
+  TSInt32Bit3ModCmpTest = class(TSInt32ModCmpTest)
+    protected
+      function GetDivisor: Integer; override;
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+  end;
+
+  { TSInt32Bit10ModCmpTest }
+
+  TSInt32Bit10ModCmpTest = class(TSInt32ModCmpTest)
+    protected
+      function GetDivisor: Integer; override;
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+  end;
+
+  { TSInt32Bit100ModCmpTest }
+
+  TSInt32Bit100ModCmpTest = class(TSInt32ModCmpTest)
+    protected
+      function GetDivisor: Integer; override;
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+  end;
+
 { TSInt32Bit1Test }
 
 function TSInt32Bit1Test.TestTitle: shortstring;
@@ -204,5 +234,131 @@ procedure TSInt32Bit100ModTest.DoTestIteration(Iteration: Integer);
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator mod 100;
       
+    FResultArray[Index] := Answer;
+  end;
+
+{ TSInt32Bit3ModCmpTest }
+
+function TSInt32Bit3ModCmpTest.TestTitle: shortstring;
+  begin
+    Result := 'Signed 32-bit (n mod 3) = 0';
+  end;
+
+function TSInt32Bit3ModCmpTest.GetDivisor: Integer;
+  begin
+    Result := 3;
+  end;
+
+procedure TSInt32Bit3ModCmpTest.DoTestIteration(Iteration: Integer);
+  var
+    Numerator: Integer; Answer: Boolean;
+    Index, X: Integer;
+  begin
+    Index := Iteration and $FF;
+    case Index of
+      0:
+        Numerator := -2147483648;
+      1:
+        Numerator := -2147483600;
+      2:
+        Numerator := -2147483599;
+      253:
+        Numerator := 2147483599;
+      254:
+        Numerator := 2147483600;
+      255:
+        Numerator := 2147483647;
+      else
+        Numerator := Index - 128;
+    end;
+
+    FInputArray[Index] := Numerator;
+    for X := 0 to INTERNAL_LOOPS - 1 do
+      Answer := (Numerator mod 3) = 0;
+
+    FResultArray[Index] := Answer;
+  end;
+
+{ TSInt32Bit10ModCmpTest }
+
+function TSInt32Bit10ModCmpTest.TestTitle: shortstring;
+  begin
+    Result := 'Signed 32-bit (n mod 10) = 0';
+  end;
+
+function TSInt32Bit10ModCmpTest.GetDivisor: Integer;
+  begin
+    Result := 10;
+  end;
+
+procedure TSInt32Bit10ModCmpTest.DoTestIteration(Iteration: Integer);
+  var
+    Numerator: Integer; Answer: Boolean;
+    Index, X: Integer;
+  begin
+    Index := Iteration and $FF;
+    case Index of
+      0:
+        Numerator := -2147483648;
+      1:
+        Numerator := -2147483600;
+      2:
+        Numerator := -2147483599;
+      253:
+        Numerator := 2147483599;
+      254:
+        Numerator := 2147483600;
+      255:
+        Numerator := 2147483647;
+      else
+        Numerator := Index - 128;
+    end;
+
+    FInputArray[Index] := Numerator;
+    for X := 0 to INTERNAL_LOOPS - 1 do
+      Answer := (Numerator mod 10) = 0;
+
+    FResultArray[Index] := Answer;
+  end;
+
+{ TSInt32Bit100ModCmpTest }
+
+function TSInt32Bit100ModCmpTest.TestTitle: shortstring;
+  begin
+    Result := 'Signed 32-bit (n mod 100) = 0';
+  end;
+
+function TSInt32Bit100ModCmpTest.GetDivisor: Integer;
+  begin
+    Result := 100;
+  end;
+
+procedure TSInt32Bit100ModCmpTest.DoTestIteration(Iteration: Integer);
+  var
+    Numerator: Integer; Answer: Boolean;
+    Index, X: Integer;
+  begin
+    Index := Iteration and $FF;
+    case Index of
+      0:
+        Numerator := -2147483648;
+      1:
+        Numerator := -2147483600;
+      2:
+        Numerator := -2147483599;
+      253:
+        Numerator := 2147483599;
+      254:
+        Numerator := 2147483600;
+      255:
+        Numerator := 2147483647;
+      else
+        Numerator := Index - 128;
+    end;
+
+    FInputArray[Index] := Numerator;
+    for X := 0 to INTERNAL_LOOPS - 1 do
+      Answer := (Numerator mod 100) = 0;
+
     FResultArray[Index] := Answer;
   end;

@@ -159,10 +159,68 @@ unit optutils;
       end;
 
 
+    type
+      PBreakContinueStackNode = ^TBreakContinueStackNode;
+      TBreakContinueStackNode = record
+        { successor node for a break statement in the current loop }
+        brk,
+        { successor node for a continue statement in the current loop }
+        cont : tnode;
+        next : PBreakContinueStackNode;
+      end;
+
+      { implements a stack to track successor nodes for break and continue
+        statements }
+      TBreakContinueStack = object
+        top: PBreakContinueStackNode;
+        constructor Init;
+        destructor Done;
+        procedure Push(brk,cont : tnode);
+        procedure Pop;
+      end;
+
+    const
+      NullBreakContinueStackNode : TBreakContinueStackNode = (brk: nil; cont: nil; next: nil);
+
+
+    constructor TBreakContinueStack.Init;
+      begin
+        top:=@NullBreakContinueStackNode;
+      end;
+
+
+    destructor TBreakContinueStack.Done;
+      begin
+        while top<>@NullBreakContinueStackNode do
+          Pop;
+      end;
+
+
+    procedure TBreakContinueStack.Push(brk,cont : tnode);
+      var
+        n : PBreakContinueStackNode;
+      begin
+        new(n);
+        n^.brk:=brk;
+        n^.cont:=cont;
+        n^.next:=top;
+        top:=n;
+      end;
+
+
+    procedure TBreakContinueStack.Pop;
+      var
+        n : PBreakContinueStackNode;
+      begin
+        n:=top;
+        top:=n^.next;
+        Dispose(n);
+      end;
+
+
     procedure SetNodeSucessors(p,last : tnode);
       var
-        Continuestack : TFPList;
-        Breakstack : TFPList;
+        BreakContinueStack : TBreakContinueStack;
         Exitsuccessor: TNode;
       { sets the successor nodes of a node tree block
         returns the first node of the tree if it's a controll flow node }
@@ -216,8 +274,7 @@ unit optutils;
               end;
             forn:
               begin
-                Breakstack.Add(succ);
-                Continuestack.Add(p);
+                BreakContinueStack.Push(succ,p);
                 result:=p;
                 { the successor of the last node of the for body is the dummy loop iteration node
                   it allows the dfa to inject needed life information into the loop }
@@ -225,23 +282,21 @@ unit optutils;
 
                 DoSet(tfornode(p).t2,tfornode(p).loopiteration);
                 p.successor:=succ;
-                Breakstack.Delete(Breakstack.Count-1);
-                Continuestack.Delete(Continuestack.Count-1);
+                BreakContinueStack.Pop;
               end;
             breakn:
               begin
                 result:=p;
-                p.successor:=tnode(Breakstack.Last);
+                p.successor:=BreakContinueStack.top^.brk;
               end;
             continuen:
               begin
                 result:=p;
-                p.successor:=tnode(Continuestack.Last);
+                p.successor:=BreakContinueStack.top^.cont;
               end;
             whilerepeatn:
               begin
-                Breakstack.Add(succ);
-                Continuestack.Add(p);
+                BreakContinueStack.Push(succ,p);
                 result:=p;
                 { the successor of the last node of the while/repeat body is the while node itself }
                 DoSet(twhilerepeatnode(p).right,p);
@@ -257,8 +312,7 @@ unit optutils;
                       p.successor:=nil;
                   end;
 
-                Breakstack.Delete(Breakstack.Count-1);
-                Continuestack.Delete(Continuestack.Count-1);
+                BreakContinueStack.Pop;
               end;
             ifn:
               begin
@@ -342,45 +396,40 @@ unit optutils;
         end;
 
       begin
-        Breakstack:=TFPList.Create;
-        Continuestack:=TFPList.Create;
+        BreakContinueStack.Init;
         Exitsuccessor:=nil;
         DoSet(p,last);
-        Continuestack.Free;
-        Breakstack.Free;
+        BreakContinueStack.Done;
       end;
 
-    var
-      defsum : TDFASet;
 
     function adddef(var n: tnode; arg: pointer): foreachnoderesult;
+      var
+        defsum : PDFASet absolute arg;
       begin
         if assigned(n.optinfo) then
           begin
-            DFASetIncludeSet(defsum,n.optinfo^.def);
+            DFASetIncludeSet(defsum^,n.optinfo^.def);
             { for nodes itself do not necessarily expose the definition of the counter as
               the counter might be undefined after the for loop, so include here the counter
               explicitly }
             if (n.nodetype=forn) and assigned(tfornode(n).left.optinfo) then
-              DFASetInclude(defsum,tfornode(n).left.optinfo^.index);
+              DFASetInclude(defsum^,tfornode(n).left.optinfo^.index);
           end;
         Result:=fen_false;
       end;
 
 
     procedure CalcDefSum(p : tnode);
+      var
+        defsum : PDFASet;
       begin
         p.allocoptinfo;
-        if not assigned(p.optinfo^.defsum) then
-          begin
-            defsum:=nil;
-            foreachnodestatic(pm_postprocess,p,@adddef,nil);
-            p.optinfo^.defsum:=defsum;
-          end;
+        defsum:=@p.optinfo^.defsum;
+        if not assigned(defsum^) then
+            foreachnodestatic(pm_postprocess,p,@adddef,defsum);
       end;
 
-    var
-      usesum : TDFASet;
 
     function SetExecutionWeight(var n: tnode; arg: pointer): foreachnoderesult;
       var
@@ -429,22 +478,23 @@ unit optutils;
 
 
     function adduse(var n: tnode; arg: pointer): foreachnoderesult;
+      var
+        usesum : PDFASet absolute arg;
       begin
         if assigned(n.optinfo) then
-          DFASetIncludeSet(usesum,n.optinfo^.use);
+          DFASetIncludeSet(usesum^,n.optinfo^.use);
         Result:=fen_false;
       end;
 
 
     procedure CalcUseSum(p : tnode);
+      var
+        usesum : PDFASet;
       begin
         p.allocoptinfo;
-        if not assigned(p.optinfo^.usesum) then
-          begin
-            usesum:=nil;
-            foreachnodestatic(pm_postprocess,p,@adduse,nil);
-            p.optinfo^.usesum:=usesum;
-          end;
+        usesum:=@p.optinfo^.usesum;
+        if not assigned(usesum^) then
+            foreachnodestatic(pm_postprocess,p,@adduse,usesum);
       end;
 
 

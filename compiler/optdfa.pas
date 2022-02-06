@@ -185,7 +185,7 @@ unit optdfa;
         { update life entry of a node with l, set changed if this changes
           life info for the node
         }
-        procedure updatelifeinfo(n : tnode;l : TDFASet);
+        procedure updatelifeinfo(n : tnode;const l : TDFASet);
           var
             b : boolean;
           begin
@@ -675,12 +675,6 @@ unit optdfa;
         inherited destroy;
       end;
 
-    var
-      { we have to pass the address of SearchNode in a call inside of SearchNode:
-        @SearchNode does not work because the compiler thinks we take the address of the result
-        so store the address from outside }
-      SearchNodeProcPointer : function(var n: tnode; arg: pointer): foreachnoderesult;
-
     type
       { helper structure to be able to pass more than one variable to the iterator function }
       TSearchNodeInfo = record
@@ -775,8 +769,8 @@ unit optdfa;
             begin
               { take care of short boolean evaluation: if the expression to be search is found in left,
                 we do not need to search right }
-              if foreachnodestatic(pm_postprocess,taddnode(n).left,SearchNodeProcPointer,arg) or
-                foreachnodestatic(pm_postprocess,taddnode(n).right,SearchNodeProcPointer,arg) then
+              if foreachnodestatic(pm_postprocess,taddnode(n).left,@optdfa.SearchNode,arg) or
+                foreachnodestatic(pm_postprocess,taddnode(n).right,@optdfa.SearchNode,arg) then
                 result:=fen_norecurse_true
               else
                 result:=fen_norecurse_false;
@@ -809,8 +803,8 @@ unit optdfa;
                       { don't warn about the method pointer }
                       AddFilepos(hpt.fileinfo);
 
-                      if not(foreachnodestatic(pm_postprocess,tcallnode(n).left,SearchNodeProcPointer,arg)) then
-                        foreachnodestatic(pm_postprocess,tcallnode(n).right,SearchNodeProcPointer,arg);
+                      if not(foreachnodestatic(pm_postprocess,tcallnode(n).left,@optdfa.SearchNode,arg)) then
+                        foreachnodestatic(pm_postprocess,tcallnode(n).right,@optdfa.SearchNode,arg);
                       result:=fen_norecurse_true
                     end;
                  end;
@@ -1005,6 +999,4 @@ unit optdfa;
       end;
 
 
-begin
-  SearchNodeProcPointer:=@SearchNode;
 end.

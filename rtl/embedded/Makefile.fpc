@@ -68,6 +68,12 @@ CPU_UNITS=
 SYSINIT_UNITS=
 CPU_SPECIFIC_COMMON_UNITS=
 
+ifeq ($(ARCH),aarch64)
+CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
+CPU_UNITS=raspi3 mmio mailbox raspiuart gpio
+CPU_UNITS_DEFINED=1
+endif
+
 ifeq ($(ARCH),arm)
 CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 ifeq ($(SUBARCH),armv7m)
@@ -236,6 +242,11 @@ endif
 ifeq ($(CPU_UNITS_DEFINED),)
 $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNITS_DEFINED=1 if you know what you are doing)
 endif
+endif
+
+ifeq ($(ARCH),wasm32)
+CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts
+# lineinfo
 endif
 
 # Paths
@@ -448,4 +459,21 @@ sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 avrsim$(PPUEXT): $(ARCH)/avrsim.pp heapmgr$(PPUEXT) consoleio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(ARCH)/avrsim.pp
+
+# ARM specific units
+
+raspi2$(PPUEXT): $(ARCH)/raspi2.pp consoleio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(ARCH)/raspi2.pp
+
+# AARCH64 specific units
+
+raspi3$(PPUEXT): $(ARCH)/raspi3.pp consoleio$(PPUEXT) mmio$(PPUEXT) mailbox$(PPUEXT) raspiuart$(PPUEXT) gpio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(ARCH)/raspi3.pp
+
+raspiuart$(PPUEXT): $(ARCH)/raspiuart.pp mmio$(PPUEXT) mailbox$(PPUEXT) gpio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(ARCH)/raspiuart.pp
+
+mailbox$(PPUEXT): $(ARCH)/mailbox.pp mmio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(ARCH)/mailbox.pp
+
 

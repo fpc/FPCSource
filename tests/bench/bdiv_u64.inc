@@ -144,6 +144,46 @@ type
       function TestTitle: shortstring; override;
   end;
 
+  { TUInt64Bit3ModCmpTest }
+
+  TUInt64Bit3ModCmpTest = class(TUInt64ModCmpTest)
+    protected
+      function GetDivisor: QWord; override;
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+  end;
+
+  { TUInt64Bit10ModCmpTest }
+
+  TUInt64Bit10ModCmpTest = class(TUInt64ModCmpTest)
+    protected
+      function GetDivisor: QWord; override;
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+  end;
+
+  { TUInt64Bit100ModCmpTest }
+
+  TUInt64Bit100ModCmpTest = class(TUInt64ModCmpTest)
+    protected
+      function GetDivisor: QWord; override;
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+  end;
+
+  { TUInt64Bit1000000000ModCmpTest }
+
+  TUInt64Bit1000000000ModCmpTest = class(TUInt64ModCmpTest)
+    protected
+      function GetDivisor: QWord; override;
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+  end;
+
 { TUInt64Bit1Test }
 
 function TUInt64Bit1Test.TestTitle: shortstring;
@@ -627,5 +667,133 @@ procedure TUInt64Bit1000000000ModTest.DoTestIteration(Iteration: Integer);
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator mod 1000000000;
       
+    FResultArray[Index] := Answer;
+  end;
+
+{ TUInt64Bit3ModCmpTest }
+
+function TUInt64Bit3ModCmpTest.TestTitle: shortstring;
+  begin
+    Result := 'Unsigned 64-bit (n mod 3) = 0';
+  end;
+
+function TUInt64Bit3ModCmpTest.GetDivisor: QWord;
+  begin
+    Result := 3;
+  end;
+
+procedure TUInt64Bit3ModCmpTest.DoTestIteration(Iteration: Integer);
+  var
+    Numerator: QWord; Answer: Boolean;
+    Index, X: Integer;
+  begin
+    Index := Iteration and $FF;
+    case Index of
+      254:
+        Numerator := QWord($FFFFFFFFFFFFFFFE);
+      255:
+        Numerator := QWord($FFFFFFFFFFFFFFFF);
+      else
+        Numerator := QWord(Index);
+    end;
+
+    FInputArray[Index] := Numerator;
+    for X := 0 to INTERNAL_LOOPS - 1 do
+      Answer := (Numerator mod 3) = 0;
+
+    FResultArray[Index] := Answer;
+  end;
+
+{ TUInt64Bit10ModCmpTest }
+
+function TUInt64Bit10ModCmpTest.TestTitle: shortstring;
+  begin
+    Result := 'Unsigned 64-bit (n mod 10) = 0';
+  end;
+
+function TUInt64Bit10ModCmpTest.GetDivisor: QWord;
+  begin
+    Result := 10;
+  end;
+
+procedure TUInt64Bit10ModCmpTest.DoTestIteration(Iteration: Integer);
+  var
+    Numerator: QWord; Answer: Boolean;
+    Index, X: Integer;
+  begin
+    Index := Iteration and $FF;
+    case Index of
+      254:
+        Numerator := QWord($FFFFFFFFFFFFFFFE);
+      255:
+        Numerator := QWord($FFFFFFFFFFFFFFFF);
+      else
+        Numerator := QWord(Index);
+    end;
+
+    FInputArray[Index] := Numerator;
+    for X := 0 to INTERNAL_LOOPS - 1 do
+      Answer := (Numerator mod 10) = 0;
+
+    FResultArray[Index] := Answer;
+  end;
+
+{ TUInt64Bit100ModCmpTest }
+
+function TUInt64Bit100ModCmpTest.TestTitle: shortstring;
+  begin
+    Result := 'Unsigned 64-bit (n mod 100) = 0';
+  end;
+
+function TUInt64Bit100ModCmpTest.GetDivisor: QWord;
+  begin
+    Result := 100;
+  end;
+
+procedure TUInt64Bit100ModCmpTest.DoTestIteration(Iteration: Integer);
+  var
+    Numerator: QWord; Answer: Boolean;
+    Index, X: Integer;
+  begin
+    Index := Iteration and $FF;
+    case Index of
+      254:
+        Numerator := QWord($FFFFFFFFFFFFFFFE);
+      255:
+        Numerator := QWord($FFFFFFFFFFFFFFFF);
+      else
+        Numerator := QWord(Index);
+    end;
+
+    FInputArray[Index] := Numerator;
+    for X := 0 to INTERNAL_LOOPS - 1 do
+      Answer := (Numerator mod 100) = 0;
+
+    FResultArray[Index] := Answer;
+  end;
+
+{ TUInt64Bit1000000000ModCmpTest }
+
+function TUInt64Bit1000000000ModCmpTest.TestTitle: shortstring;
+  begin
+    Result := 'Unsigned 64-bit (n mod 1,000,000,000) = 0';
+  end;
+
+function TUInt64Bit1000000000ModCmpTest.GetDivisor: QWord;
+  begin
+    Result := 1000000000;
+  end;
+
+procedure TUInt64Bit1000000000ModCmpTest.DoTestIteration(Iteration: Integer);
+  var
+    Numerator: QWord; Answer: Boolean;
+    Index, X: Integer;
+  begin
+    Index := Iteration and $FF;
+    Numerator := FU64_1000000000Input[Index and $F];
+    FInputArray[Index] := Numerator;
+    for X := 0 to INTERNAL_LOOPS - 1 do
+      Answer := (Numerator mod 1000000000) = 0;
+
     FResultArray[Index] := Answer;
   end;

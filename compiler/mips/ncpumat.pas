@@ -37,9 +37,11 @@ type
   end;
 
   tMIPSELshlshrnode = class(tcgshlshrnode)
+{$ifdef cpu32bit}
     procedure second_64bit;override;
     { everything will be handled in pass_2 }
     function first_shlshr64bitint: tnode; override;
+{$endif cpu32bit}
   end;
 
   tMIPSELnotnode = class(tcgnotnode)
@@ -156,6 +158,7 @@ end;
                              TMIPSelSHLRSHRNODE
 *****************************************************************************}
 
+{$ifdef cpu32bit}
 function TMIPSELShlShrNode.first_shlshr64bitint: TNode;
 begin
   { 64bit without constants need a helper }
@@ -231,7 +234,7 @@ begin
       end;
   end;
 end;
-
+{$endif cpu32bit}
 
 {*****************************************************************************
                                TMIPSelNOTNODE
@@ -252,6 +255,7 @@ begin
           location_reset(location,LOC_FLAGS,OS_NO);
           location.resflags.reg2:=NR_R0;
           location.resflags.cond:=OC_EQ;
+{$ifdef cpu32bit}
           if is_64bit(resultdef) then
             begin
               tmpreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
@@ -260,6 +264,7 @@ begin
               location.resflags.reg1:=tmpreg;
             end
           else
+{$endif cpu32bit}
             location.resflags.reg1:=left.location.register;
         end;
         else

@@ -110,6 +110,7 @@ type
     function GetTypeInfo: PTypeInfo; inline;
     function GetTypeKind: TTypeKind; inline;
     function GetIsEmpty: boolean; inline;
+    procedure Init; inline;
   public
     class function Empty: TValue; static;
     class procedure Make(ABuffer: pointer; ATypeInfo: PTypeInfo; out result: TValue); static;
@@ -123,6 +124,7 @@ type
     generic class function FromOpenArray<T>(constref aValue: array of T): TValue; static; inline;
 {$endif}
     class function FromOrdinal(aTypeInfo: PTypeInfo; aValue: Int64): TValue; static; {inline;}
+    class function FromArray(aArrayTypeInfo: PTypeInfo; const aValues: array of TValue): TValue; static;
     function IsArray: boolean; inline;
     function IsOpenArray: Boolean; inline;
     function AsString: string; inline;
@@ -156,7 +158,10 @@ type
     function GetReferenceToRawData: Pointer;
     procedure ExtractRawData(ABuffer: Pointer);
     procedure ExtractRawDataNoCopy(ABuffer: Pointer);
-    class operator := (const AValue: String): TValue; inline;
+    class operator := (const AValue: ShortString): TValue; inline;
+    class operator := (const AValue: AnsiString): TValue; inline;
+    class operator := (const AValue: UnicodeString): TValue; inline;
+    class operator := (const AValue: WideString): TValue; inline;
     class operator := (AValue: LongInt): TValue; inline;
     class operator := (AValue: Single): TValue; inline;
     class operator := (AValue: Double): TValue; inline;
@@ -250,6 +255,7 @@ type
     property IsRecord: boolean read GetIsRecord;
     property IsSet: boolean read GetIsSet;
     property BaseType: TRttiType read GetBaseType;
+    property Handle: PTypeInfo read FTypeInfo;
     property AsInstance: TRttiInstanceType read GetAsInstance;
     property TypeKind: TTypeKind read GetTypeKind;
     property TypeSize: integer read GetTypeSize;
@@ -308,6 +314,32 @@ type
     function GetReferredType: TRttiType;
   public
     property ReferredType: TRttiType read GetReferredType;
+  end;
+
+  TRttiArrayType = class(TRttiType)
+  private
+    function GetDimensionCount: SizeUInt; inline;
+    function GetDimension(aIndex: SizeInt): TRttiType; inline;
+    function GetElementType: TRttiType; inline;
+    function GetTotalElementCount: SizeInt; inline;
+  public
+    property DimensionCount: SizeUInt read GetDimensionCount;
+    property Dimensions[Index: SizeInt]: TRttiType read GetDimension;
+    property ElementType: TRttiType read GetElementType;
+    property TotalElementCount: SizeInt read GetTotalElementCount;
+  end;
+
+  TRttiDynamicArrayType = class(TRttiType)
+  private
+    function GetDeclaringUnitName: String; inline;
+    function GetElementSize: SizeUInt; inline;
+    function GetElementType: TRttiType; inline;
+    function GetOleAutoVarType: TVarType; inline;
+  public
+    property DeclaringUnitName: String read GetDeclaringUnitName;
+    property ElementSize: SizeUInt read GetElementSize;
+    property ElementType: TRttiType read GetElementType;
+    property OleAutoVarType: TVarType read GetOleAutoVarType;
   end;
 
   { TRttiMember }
@@ -772,6 +804,8 @@ type
 resourcestring
   SErrUnableToGetValueForType = 'Unable to get value for type %s';
   SErrUnableToSetValueForType = 'Unable to set value for type %s';
+  SErrDimensionOutOfRange     = 'Dimension index %d is out of range [0, %d[';
+  SErrLengthOfArrayMismatch   = 'Length of static array does not match: Got %d, but expected %d';
   SErrInvalidTypecast         = 'Invalid class typecast';
   SErrRttiObjectNoHandle      = 'RTTI object instance has no valid handle property';
   SErrRttiObjectAlreadyRegistered = 'A RTTI object with handle 0x%x is already registered';
@@ -1272,6 +1306,8 @@ begin
           tkClass   : Result := TRttiInstanceType.Create(ATypeInfo);
           tkInterface: Result := TRttiRefCountedInterfaceType.Create(ATypeInfo);
           tkInterfaceRaw: Result := TRttiRawInterfaceType.Create(ATypeInfo);
+          tkArray: Result := TRttiArrayType.Create(ATypeInfo);
+          tkDynArray: Result := TRttiDynamicArrayType.Create(ATypeInfo);
           tkInt64,
           tkQWord: Result := TRttiInt64Type.Create(ATypeInfo);
           tkInteger,
@@ -1487,15 +1523,21 @@ end;
 
 { TValue }
 
+procedure TValue.Init;
+begin
+  { resets the whole variant part; FValueData is already Nil }
+{$if SizeOf(TMethod) > SizeOf(QWord)}
+  FData.FAsMethod.Code := Nil;
+  FData.FAsMethod.Data := Nil;
+{$else}
+  FData.FAsUInt64 := 0;
+{$endif}
+end;
+
 class function TValue.Empty: TValue;
 begin
+  Result.Init;
   result.FData.FTypeInfo := nil;
-{$if SizeOf(TMethod) > SizeOf(QWord)}
-  Result.FData.FAsMethod.Code := Nil;
-  Result.FData.FAsMethod.Data := Nil;
-{$else}
-  Result.FData.FAsUInt64 := 0;
-{$endif}
 end;
 
 function TValue.GetTypeDataProp: PTypeData;
@@ -1604,14 +1646,8 @@ type
 var
   td: PTypeData;
 begin
+  result.Init;
   result.FData.FTypeInfo:=ATypeInfo;
-  { resets the whole variant part; FValueData is already Nil }
-{$if SizeOf(TMethod) > SizeOf(QWord)}
-  Result.FData.FAsMethod.Code := Nil;
-  Result.FData.FAsMethod.Data := Nil;
-{$else}
-  Result.FData.FAsUInt64 := 0;
-{$endif}
   if not Assigned(ATypeInfo) then
     Exit;
   { first handle those types that need a TValueData implementation }
@@ -1809,6 +1845,30 @@ begin
 {$else}
   TValue.Make(@aValue, aTypeInfo, Result);
 {$endif}
+end;
+
+class function TValue.FromArray(aArrayTypeInfo: PTypeInfo; const aValues: array of TValue): TValue; static;
+var
+  i, sz: SizeInt;
+  data: TValueDataIntImpl;
+begin
+  Result.Init;
+  Result.FData.FTypeInfo := aArrayTypeInfo;
+  if not Assigned(aArrayTypeInfo) then
+    Exit;
+  if aArrayTypeInfo^.Kind = tkDynArray then begin
+    data := TValueDataIntImpl.CreateRef(Nil, aArrayTypeInfo, True);
+    sz := Length(aValues);
+    DynArraySetLength(data.FBuffer, aArrayTypeInfo, 1, @sz);
+    Result.FData.FValueData := data;
+  end else if aArrayTypeInfo^.Kind = tkArray then begin
+    if Result.GetArrayLength <> Length(aValues) then
+      raise ERtti.CreateFmt(SErrLengthOfArrayMismatch, [Length(aValues), Result.GetArrayLength]);
+    Result.FData.FValueData := TValueDataIntImpl.CreateCopy(Nil, Result.TypeData^.ArrayData.Size, aArrayTypeInfo, False);
+  end else
+    raise ERtti.CreateFmt(SErrTypeKindNotSupported, [aArrayTypeInfo^.Name]);
+  for i := 0 to High(aValues) do
+    Result.SetArrayElement(i, aValues[i]);
 end;
 
 function TValue.GetIsEmpty: boolean;
@@ -2312,7 +2372,22 @@ begin
     Move((@FData.FAsPointer)^, ABuffer^, DataSize);
 end;
 
-class operator TValue.:=(const AValue: String): TValue;
+class operator TValue.:=(const AValue: ShortString): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:=(const AValue: AnsiString): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:=(const AValue: UnicodeString): TValue;
+begin
+  Make(@AValue, System.TypeInfo(AValue), Result);
+end;
+
+class operator TValue.:=(const AValue: WideString): TValue;
 begin
   Make(@AValue, System.TypeInfo(AValue), Result);
 end;
@@ -2586,6 +2661,52 @@ end;
 function TRttiPointerType.GetReferredType: TRttiType;
 begin
   Result := GRttiPool.GetType(FTypeData^.RefType);
+end;
+
+{ TRttiArrayType }
+
+function TRttiArrayType.GetDimensionCount: SizeUInt;
+begin
+  Result := FTypeData^.ArrayData.DimCount;
+end;
+
+function TRttiArrayType.GetDimension(aIndex: SizeInt): TRttiType;
+begin
+  if aIndex >= FTypeData^.ArrayData.DimCount then
+    raise ERtti.CreateFmt(SErrDimensionOutOfRange, [aIndex, FTypeData^.ArrayData.DimCount]);
+  Result := GRttiPool.GetType(FTypeData^.ArrayData.Dims[Byte(aIndex)]);
+end;
+
+function TRttiArrayType.GetElementType: TRttiType;
+begin
+  Result := GRttiPool.GetType(FTypeData^.ArrayData.ElType);
+end;
+
+function TRttiArrayType.GetTotalElementCount: SizeInt;
+begin
+  Result := FTypeData^.ArrayData.ElCount;
+end;
+
+{ TRttiDynamicArrayType }
+
+function TRttiDynamicArrayType.GetDeclaringUnitName: String;
+begin
+  Result := FTypeData^.DynUnitName;
+end;
+
+function TRttiDynamicArrayType.GetElementSize: SizeUInt;
+begin
+  Result := FTypeData^.elSize;
+end;
+
+function TRttiDynamicArrayType.GetElementType: TRttiType;
+begin
+  Result := GRttiPool.GetType(FTypeData^.ElType2);
+end;
+
+function TRttiDynamicArrayType.GetOleAutoVarType: TVarType;
+begin
+  Result := Word(FTypeData^.varType);
 end;
 
 { TRttiRefCountedInterfaceType }
@@ -3057,28 +3178,33 @@ end;
 
 procedure TMethodImplementation.HandleCallback(const aArgs: specialize TArray<Pointer>; aResult: Pointer; aContext: Pointer);
 var
-  i, argidx: SizeInt;
+  i, argidx, validx: SizeInt;
   args: TValueArray;
   res: TValue;
 begin
   Assert(fArgLen = Length(aArgs), 'Length of arguments does not match');
   SetLength(args, fArgLen);
   argidx := 0;
+  validx := 0;
   i := 0;
   while i < Length(fArgs) do begin
     if pfArray in fArgs[i].ParamFlags then begin
+      Inc(validx);
       Inc(i);
       Assert((i < Length(fArgs)) and (pfHigh in fArgs[i].ParamFlags), 'Expected high parameter after open array parameter');
-      TValue.MakeOpenArray(aArgs[i - 1], SizeInt(aArgs[i]), fArgs[i].ParamType, args[argidx]);
+      TValue.MakeOpenArray(aArgs[validx - 1], SizeInt(aArgs[validx]), fArgs[i].ParamType, args[argidx]);
+      Inc(argidx);
+      Inc(validx);
     end else if not (pfHidden in fArgs[i].ParamFlags) or (pfSelf in fArgs[i].ParamFlags) then begin
       if Assigned(fArgs[i].ParamType) then
-        TValue.Make(aArgs[i], fArgs[i].ParamType, args[argidx])
+        TValue.Make(aArgs[validx], fArgs[i].ParamType, args[argidx])
       else
-        TValue.Make(@aArgs[i], TypeInfo(Pointer), args[argidx]);
+        TValue.Make(@aArgs[validx], TypeInfo(Pointer), args[argidx]);
+      Inc(argidx);
+      Inc(validx);
     end;
 
     Inc(i);
-    Inc(argidx);
   end;
 
   if Assigned(fCallbackMethod) then

@@ -833,5 +833,11 @@ begin
 {$include fcl-mustache/fpmake.pp}
 end;
 
+procedure add_wasmtime(const ADirectory: string);
+begin
+  with Installer do
+{$include wasmtime/fpmake.pp}
+end;
+
 {$include ide/fpmake.pp}
 {$include gitlab/fpmake.pp}

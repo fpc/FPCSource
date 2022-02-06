@@ -84,8 +84,8 @@ var
       tt     : longtimeformat
       am/pm  : use 12 hour clock and display am and pm accordingly
       a/p    : use 12 hour clock and display a and p accordingly
-      /      : insert date seperator
-      :      : insert time seperator
+      /      : insert date separator
+      :      : insert time separator
       "xx"   : literal text
       'xx'   : literal text
    }

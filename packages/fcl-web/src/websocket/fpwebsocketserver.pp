@@ -227,6 +227,8 @@ begin
     begin
     Connections.Add(Con);
     ConnectionHandler.HandleConnection(Con,True);
+    if Assigned(OnConnect) then
+      OnConnect(Sender, Con);
     end;
 end;
 

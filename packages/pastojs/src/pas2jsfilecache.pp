@@ -1043,7 +1043,7 @@ begin
   {$ENDIF}
   ADirectory:=ExtractFilePath(Result);
   if ADirectory=Result then
-    exit; // root directory, e.g. / under Linux or C: under Windows
+    exit; // root directory, e.g. / under Linux or C:\ under Windows
   if SearchCaseInsensitive then
     // search recursively all directory parts
     ADirectory:=IncludeTrailingPathDelimiter(FindDiskFilename(ADirectory,true));

@@ -527,7 +527,8 @@ interface
          m_array_operators,     { use Delphi compatible array operators instead of custom ones ("+") }
          m_multi_helpers,       { helpers can appear in multiple scopes simultaneously }
          m_array2dynarray,      { regular arrays can be implicitly converted to dynamic arrays }
-         m_prefixed_attributes  { enable attributes that are defined before the type they belong to }
+         m_prefixed_attributes, { enable attributes that are defined before the type they belong to }
+         m_underscoreisseparator{ _ can be used as separator to group digits in numbers }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -678,7 +679,7 @@ interface
 
        cstylearrayofconst = [pocall_cdecl,pocall_cppdecl,pocall_mwpascal,pocall_sysv_abi_cdecl,pocall_ms_abi_cdecl];
 
-       modeswitchstr : array[tmodeswitch] of string[18] = ('',
+       modeswitchstr : array[tmodeswitch] of string[21] = ('',
          '','','','','','','',
          {$ifdef gpc_mode}'',{$endif}
          { more specific }
@@ -719,7 +720,8 @@ interface
          'ARRAYOPERATORS',
          'MULTIHELPERS',
          'ARRAYTODYNARRAY',
-         'PREFIXEDATTRIBUTES'
+         'PREFIXEDATTRIBUTES',
+         'UNDERSCOREISSEPARATOR'
          );
 
 

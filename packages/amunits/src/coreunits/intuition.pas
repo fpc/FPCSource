@@ -4413,6 +4413,8 @@ begin
       WA_SizeBRight: NewWindow^.Flags := NewWindow^.Flags or WFLG_SIZEBRIGHT;
       WA_SizeGadget: NewWindow^.Flags := NewWindow^.Flags or WFLG_SIZEGADGET;
       WA_SmartRefresh: NewWindow^.Flags := NewWindow^.Flags or WFLG_SMART_REFRESH;
+      WA_Activate: NewWindow^.Flags := NewWindow^.Flags or WFLG_ACTIVATE;
+      WA_Borderless: NewWindow^.Flags := NewWindow^.Flags or WFLG_BORDERLESS;
       WA_SuperBitMap: NewWindow^.BitMap := Pointer(TagList^.ti_Data);
       WA_Title: NewWindow^.Title := PChar(TagList^.ti_Data);
       WA_Top: NewWindow^.TopEdge := TagList^.ti_Data;

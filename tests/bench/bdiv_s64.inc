@@ -207,6 +207,36 @@ type
       function TestTitle: shortstring; override;
   end;
 
+  { TSInt64Bit3ModCmpTest }
+
+  TSInt64Bit3ModCmpTest = class(TSInt64ModCmpTest)
+    protected
+      function GetDivisor: Int64; override;
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+  end;
+
+  { TSInt64Bit10000ModCmpTest }
+
+  TSInt64Bit10000ModCmpTest = class(TSInt64ModCmpTest)
+    protected
+      function GetDivisor: Int64; override;
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+  end;
+
+  { TSInt64Bit86400000ModCmpTest }
+
+  TSInt64Bit86400000ModCmpTest = class(TSInt64ModCmpTest)
+    protected
+      function GetDivisor: Int64; override;
+      procedure DoTestIteration(Iteration: Integer); override;
+    public
+      function TestTitle: shortstring; override;
+  end;
+
 { TSInt64Bit1Test }
 
 function TSInt64Bit1Test.TestTitle: shortstring;
@@ -768,5 +798,99 @@ procedure TSInt64Bit86400000ModTest.DoTestIteration(Iteration: Integer);
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator mod 86400000;
       
+    FResultArray[Index] := Answer;
+  end;
+
+{ TSInt64Bit3ModCmpTest }
+
+function TSInt64Bit3ModCmpTest.TestTitle: shortstring;
+  begin
+    Result := 'Signed 64-bit (n mod 3) = 0';
+  end;
+
+function TSInt64Bit3ModCmpTest.GetDivisor: Int64;
+  begin
+    Result := 3;
+  end;
+
+procedure TSInt64Bit3ModCmpTest.DoTestIteration(Iteration: Integer);
+  var
+    Numerator: Int64; Answer: Boolean;
+    Index, X: Integer;
+  begin
+    Index := Iteration and $FF;
+    case Index of
+      0:
+        Numerator := Int64($8000000000000000);
+      1:
+        Numerator := Int64($8000000000000006);
+      2:
+        Numerator := Int64($8000000000000007);
+      253:
+        Numerator := Int64($7FFFFFFFFFFFFFF9);
+      254:
+        Numerator := Int64($7FFFFFFFFFFFFFFA);
+      255:
+        Numerator := Int64($7FFFFFFFFFFFFFFF);
+      else
+        Numerator := Index - 128;
+    end;
+
+    FInputArray[Index] := Numerator;
+    for X := 0 to INTERNAL_LOOPS - 1 do
+      Answer := (Numerator mod 3) = 0;
+
+    FResultArray[Index] := Answer;
+  end;
+
+{ TSInt64Bit10000ModCmpTest }
+
+function TSInt64Bit10000ModCmpTest.TestTitle: shortstring;
+  begin
+    Result := 'Signed 64-bit (n mod 10,000) = 0 (Currency)';
+  end;
+
+function TSInt64Bit10000ModCmpTest.GetDivisor: Int64;
+  begin
+    Result := 10000;
+  end;
+
+procedure TSInt64Bit10000ModCmpTest.DoTestIteration(Iteration: Integer);
+  var
+    Numerator: Int64; Answer: Boolean;
+    Index, X: Integer;
+  begin
+    Index := Iteration and $FF;
+    Numerator := FS64_10000Input[Index and $F];
+    FInputArray[Index] := Numerator;
+    for X := 0 to INTERNAL_LOOPS - 1 do
+      Answer := (Numerator mod 10000) = 0;
+
+    FResultArray[Index] := Answer;
+  end;
+
+{ TSInt64Bit86400000ModCmpTest }
+
+function TSInt64Bit86400000ModCmpTest.TestTitle: shortstring;
+  begin
+    Result := 'Signed 64-bit (n mod 86,400,000) = 0';
+  end;
+
+function TSInt64Bit86400000ModCmpTest.GetDivisor: Int64;
+  begin
+    Result := 86400000;
+  end;
+
+procedure TSInt64Bit86400000ModCmpTest.DoTestIteration(Iteration: Integer);
+  var
+    Numerator: Int64; Answer: Boolean;
+    Index, X: Integer;
+  begin
+    Index := Iteration and $FF;
+    Numerator := FS64_86400000Input[Index and $F];
+    FInputArray[Index] := Numerator;
+    for X := 0 to INTERNAL_LOOPS - 1 do
+      Answer := (Numerator mod 86400000) = 0;
+
     FResultArray[Index] := Answer;
   end;

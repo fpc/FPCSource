@@ -780,28 +780,25 @@ implementation
 
     function align_aword(v:aword;a:longword):aword;
       begin
-        if a<=1 then
-          result:=v
-        else
-          result:=((v+a-1) div a) * a;
+        if a>0 then
+          a:=a-1;
+        result:=(v+a) and aword(not aword(a));
       end;
 
 
     function align_qword(v:qword;a:longword):qword;
       begin
-        if a<=1 then
-          result:=v
-        else
-          result:=((v+a-1) div a) * a;
+        if a>0 then
+          a:=a-1;
+        result:=(v+a) and qword(not qword(a));
       end;
 
 
     function align_objsecofs(v:TObjSectionOfs;a:longword):TObjSectionOfs;
       begin
-        if a<=1 then
-          result:=v
-        else
-          result:=((v+a-1) div a) * a;
+        if a>0 then
+          a:=a-1;
+        result:=(v+a) and TObjSectionOfs(not TObjSectionOfs(a));
       end;
 
 
@@ -989,6 +986,8 @@ implementation
 {$endif i8086}
         { Setting the secoptions allocates Data if needed }
         secoptions:=Aoptions;
+        if (Aalign and (Aalign-1))<>0 then
+          internalerror(2022010401); { alignment is not a power of two }
         secalign:=Aalign;
         secsymidx:=0;
         { relocation }

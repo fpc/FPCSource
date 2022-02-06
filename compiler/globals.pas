@@ -55,7 +55,7 @@ interface
           m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring,
           m_out,m_default_para,m_duplicate_names,m_hintdirective,
           m_property,m_default_inline,m_except,m_advanced_records,
-          m_array_operators,m_prefixed_attributes];
+          m_array_operators,m_prefixed_attributes,m_underscoreisseparator];
        delphiunicodemodeswitches = delphimodeswitches + [m_systemcodepage,m_default_unicodestring];
        fpcmodeswitches =
          [m_fpc,m_string_pchar,m_nested_comment,m_repeat_forward,
@@ -306,7 +306,7 @@ interface
        exepath       : TPathStr;
        { Path to unicode charmap/collation binaries }
        unicodepath   : TPathStr;
-       { path for searching units, different paths can be seperated by ; }
+       { path for searching units, different paths can be separated by ; }
        librarysearchpath,
        unitsearchpath,
        objectsearchpath,
@@ -416,6 +416,10 @@ interface
        palmos_applicationid : string[4] = 'FPCA';
 {$endif defined(m68k) or defined(arm)}
 {$if defined(m68k)}
+       { Atari Specific }
+       ataritos_exe_flags: dword = 7;
+       ataritos_exe_format: string = 'ataritos';
+
        { Sinclair QL specific }
        sinclairql_metadata_format: string[4] = 'QHDR';
        sinclairql_vlink_experimental: boolean = true; { temporary }
@@ -537,10 +541,17 @@ interface
         fputype : fpu_none;
   {$endif avr}
   {$ifdef mips}
+  {$ifdef mips64}
+        cputype : cpu_mips3;
+        optimizecputype : cpu_mips3;
+        asmcputype : cpu_none;
+        fputype : fpu_mips3;
+  {$else mips64}
         cputype : cpu_mips2;
         optimizecputype : cpu_mips2;
         asmcputype : cpu_none;
         fputype : fpu_mips2;
+  {$endif mips64}
   {$endif mips}
   {$ifdef jvm}
         cputype : cpu_none;

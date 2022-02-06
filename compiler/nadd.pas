@@ -2516,6 +2516,7 @@ implementation
                    the result also unsigned. This is compatible with Delphi (PFV) }
                  if is_signed(ld) or
                     is_signed(rd) or
+                    (([m_iso,m_extpas]*current_settings.modeswitches)<>[]) or
 {$if defined(cpu16bitalu)}
                     (m_tp7 in current_settings.modeswitches) or
 {$endif}

@@ -311,7 +311,8 @@ interface
                            system_powerpc64_embedded,system_avr_embedded,
                            system_jvm_java32,system_mipseb_embedded,system_mipsel_embedded,
                            system_i8086_embedded,system_riscv32_embedded,system_riscv64_embedded,
-                           system_xtensa_embedded,system_z80_embedded,system_wasm32_embedded];
+                           system_xtensa_embedded,system_z80_embedded,system_wasm32_embedded,
+                           system_aarch64_embedded];
 
        { all FreeRTOS systems }
        systems_freertos = [system_xtensa_freertos,system_arm_freertos];
@@ -390,7 +391,7 @@ interface
 
        systems_internal_sysinit = [system_i386_win32,system_x86_64_win64,
                                    system_i386_linux,system_powerpc64_linux,system_sparc64_linux,system_x86_64_linux,
-                                   system_xtensa_linux,
+                                   system_xtensa_linux,system_mips64_linux,system_mips64el_linux,
                                    system_m68k_atari,system_m68k_palmos,system_m68k_sinclairql,
                                    system_i386_haiku,system_x86_64_haiku,
                                    system_i386_openbsd,system_x86_64_openbsd,
@@ -447,6 +448,16 @@ interface
          on the caller side rather than on the callee side }
        systems_caller_copy_addr_value_para = [system_aarch64_ios,system_aarch64_darwin,system_aarch64_linux,system_aarch64_win64,system_aarch64_freebsd];
 
+       { all PPC systems that use a TOC register to address globals }
+       { TODO: not used by Darwin, but don't know about others (JM) }
+       systems_ppc_toc = [
+         system_powerpc_linux,
+         system_powerpc64_linux,
+         system_powerpc_aix,
+         system_powerpc64_aix,
+         system_powerpc_macosclassic
+       ];
+
        { pointer checking (requires special code in FPC_CHECKPOINTER,
          and can never work for libc-based targets or any other program
          linking to an external library)
@@ -468,7 +479,7 @@ interface
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
              'mips','arm', 'powerpc64', 'avr', 'mipsel','jvm', 'i8086',
              'aarch64', 'wasm32', 'sparc64', 'riscv32', 'riscv64', 'xtensa',
-             'z80');
+             'z80', 'mips64', 'mips64el');
 
        abiinfo : array[tabi] of tabiinfo = (
          (name: 'DEFAULT'; supported: true),
@@ -1112,7 +1123,7 @@ begin
   default_target(system_avr_embedded);
 {$endif avr}
 
-{$ifdef mips}
+{$ifdef mips32}
 {$ifdef mipsel}
   {$ifdef cpumipsel}
     default_target(source_info.system);
@@ -1122,7 +1133,7 @@ begin
 {$else mipsel}
   default_target(system_mipseb_linux);
 {$endif mipsel}
-{$endif mips}
+{$endif mips32}
 
 {$ifdef jvm}
   default_target(system_jvm_java32);
@@ -1159,6 +1170,10 @@ begin
       default_target(system_aarch64_linux);
       {$define default_target_set}
     {$endif}
+    {$ifdef embedded}
+      {$define default_target_set}
+      default_target(system_aarch64_embedded);
+    {$endif}
   {$endif cpuaarch64}
 {$endif aarch64}
 
@@ -1189,6 +1204,13 @@ begin
   {$endif ndef default_target_set}
 {$endif xtensa}
 
+{$ifdef mips64}
+  default_target(system_mips64_linux);
+{$endif mips64}
+
+{$ifdef mips64el}
+  default_target(system_mips64el_linux);
+{$endif mips64el}
 end;
 
 

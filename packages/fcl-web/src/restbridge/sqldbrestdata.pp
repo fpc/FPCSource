@@ -129,6 +129,8 @@ begin
     roPut : DoHandlePut;
     roPost : DoHandlePost;
     roDelete : DoHandleDelete;
+  else
+    ;
   end;
 end;
 
@@ -402,22 +404,22 @@ begin
       rftInteger : P.AsInteger:=D.AsInteger;
       rftLargeInt : P.AsLargeInt:=D.AsInt64;
       rftFloat : P.AsFloat:=D.AsFloat;
-      rftDate : P.AsDateTime:=ScanDateTime(GetString(rpDateFormat),D.AsString);
-      rftTime : P.AsDateTime:=ScanDateTime(GetString(rpTimeFormat),D.AsString);
-      rftDateTime : P.AsDateTime:=ScanDateTime(GetString(rpDateTimeFormat),D.AsString);
-      rftString : P.AsString:=D.AsString;
+      rftDate : P.AsDateTime:=ScanDateTime(GetString(rpDateFormat),S);
+      rftTime : P.AsDateTime:=ScanDateTime(GetString(rpTimeFormat),S);
+      rftDateTime : P.AsDateTime:=ScanDateTime(GetString(rpDateTimeFormat),S);
+      rftString : P.AsString:=S;
       rftBoolean : P.AsBoolean:=D.AsBoolean;
       rftBlob :
 {$IFNDEF VER3_0}
-         P.AsBlob:=BytesOf(DecodeStringBase64(D.AsString));
+         P.AsBlob:=BytesOf(DecodeStringBase64(S));
 {$ELSE}
-         P.AsBlob:=DecodeStringBase64(D.AsString);
+         P.AsBlob:=DecodeStringBase64(S);
 {$ENDIF}
     else
-      P.AsString:=D.AsString;
+      P.AsString:=S;
     end
   else
-    P.AsString:=D.AsString;
+    P.AsString:=S;
 end;
 
 function TSQLDBRestDBHandler.FindFieldForParam(aOperation: TRestOperation;

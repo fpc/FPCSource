@@ -2605,7 +2605,7 @@ begin
     for i := 0 to Depth - 1 do
       if MyBM^.Planes[i] <> nil then
         FreeRaster(MyBM^.Planes[i], Width, Height);
-    FreeMem(MyBM, SizeOf(TBitMap));
+    ExecFreeMem(MyBM, SizeOf(TBitMap));
   end;
 end;
 

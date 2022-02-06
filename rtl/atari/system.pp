@@ -21,7 +21,7 @@ interface
 {$define FPC_IS_SYSTEM}
 {$define FPC_STDOUT_TRUE_ALIAS}
 {$define FPC_ANSI_TEXTFILEREC}
-{$define FPC_ATARI_USE_TINYHEAP}
+{.$define FPC_ATARI_USE_TINYHEAP}
 
 {$ifdef FPC_ATARI_USE_TINYHEAP}
 {$define HAS_MEMORYMANAGER}
@@ -56,7 +56,7 @@ const
     UnusedHandle    = $ffff;
     StdInputHandle  = 0;
     StdOutputHandle = 1;
-    StdErrorHandle  = $ffff;
+    StdErrorHandle  = 2;
 
 var
     args: PChar;
@@ -119,7 +119,7 @@ var
   procedure SysInitParamsAndEnv;
   begin
     // [0] index contains the args length...
-    args:=@basepage^.p_cmdlin[1];
+    args:=@basepage^.p_cmdlin[0];
     GenerateArgs;
   end;
 
@@ -133,9 +133,11 @@ var
 {*****************************************************************************
                          System Dependent Exit code
 *****************************************************************************}
+procedure haltproc(e:longint); cdecl; external name 'haltproc';
+
 Procedure system_exit;
 begin
-  gemdos_pterm(ExitCode);
+  haltproc(ExitCode);
 end;
 
 {*****************************************************************************

@@ -45,6 +45,8 @@ begin
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('jsminifier.pp');
       T.ResourceStrings:=true;
+    T:=P.Targets.AddUnit('tstopas.pp');
+      T.ResourceStrings:=true;
 {$ifndef ALLPACKAGES}
     Run;
     end;

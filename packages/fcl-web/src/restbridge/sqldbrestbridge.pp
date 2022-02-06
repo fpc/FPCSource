@@ -1194,6 +1194,8 @@ begin
       roPut : R:=FBeforePut;
       roPost : R:=FBeforePost;
       roDelete : R:=FBeforeDelete;
+    else
+      R:=Nil;
     end
   else
     Case IO.Operation of
@@ -1201,6 +1203,8 @@ begin
       roPut : R:=FAfterPut;
       roPost : R:=FAfterPost;
       roDelete : R:=FAfterDelete;
+    else
+      R:=Nil;
     end;
   If Assigned(R) then
     R(Self,IO.Connection,IO.Resource)
@@ -1375,6 +1379,8 @@ begin
       rftDate : FFormat.AsString:=FStrings.GetRestString(rpDateFormat);
       rftDateTime : FFormat.AsString:=FStrings.GetRestString(rpDatetimeFormat);
       rftTime : FFormat.AsString:=FStrings.GetRestString(rpTimeFormat);
+    else
+      ;
     end;
     for O in TRestFieldOption do
       FOptions[O].AsBoolean:=O in F.Options;
@@ -1743,6 +1749,7 @@ begin
   finally
     IO.SetConn(Nil,Nil);
     DoneSQLConnection(aConnection,Conn,Tr);
+    H.Free;
   end;
 end;
 

@@ -2851,6 +2851,286 @@ implementation
 
   {$maxfpuregisters 0}
 
+
+    function factor_handle_sym(srsym:tsym;srsymtable:tsymtable;var again:boolean;getaddr:boolean;unit_found:boolean;flags:texprflags;var spezcontext:tspecializationcontext):tnode;
+      var
+        hdef : tdef;
+        pd : tprocdef;
+        callflags : tcallnodeflags;
+        tmpgetaddr : boolean;
+      begin
+        hdef:=nil;
+        result:=nil;
+        case srsym.typ of
+          absolutevarsym :
+            begin
+              if (tabsolutevarsym(srsym).abstyp=tovar) then
+                begin
+                  result:=nil;
+                  propaccesslist_to_node(result,nil,tabsolutevarsym(srsym).ref);
+                  result:=ctypeconvnode.create(result,tabsolutevarsym(srsym).vardef);
+                  include(result.flags,nf_absolute);
+                end
+              else
+                result:=cloadnode.create(srsym,srsymtable);
+            end;
+
+          staticvarsym,
+          localvarsym,
+          paravarsym,
+          fieldvarsym :
+            begin
+              { check if we are reading a field of an object/class/   }
+              { record. is_member_read() will deal with withsymtables }
+              { if needed.                                            }
+              result:=nil;
+              if is_member_read(srsym,srsymtable,result,hdef) then
+                begin
+                  { if the field was originally found in an     }
+                  { objectsymtable, it means it's part of self  }
+                  { if only method from which it was called is  }
+                  { not class static                            }
+                  if (srsymtable.symtabletype in [ObjectSymtable,recordsymtable]) then
+                    { if we are accessing a owner procsym from the nested }
+                    { class we need to call it as a class member          }
+                    if assigned(current_structdef) and
+                        (((current_structdef<>hdef) and is_owned_by(current_structdef,hdef)) or
+                         (sp_static in srsym.symoptions)) then
+                      if srsymtable.symtabletype=recordsymtable then
+                        result:=ctypenode.create(hdef)
+                      else
+                        result:=cloadvmtaddrnode.create(ctypenode.create(hdef))
+                    else
+                      begin
+                        if assigned(current_procinfo) then
+                          begin
+                            pd:=current_procinfo.get_normal_proc.procdef;
+                            if assigned(pd) and pd.no_self_node then
+                              result:=cloadvmtaddrnode.create(ctypenode.create(pd.struct))
+                            else
+                              result:=load_self_node;
+                          end
+                        else
+                          result:=load_self_node;
+                      end;
+                  { now, if the field itself is part of an objectsymtab }
+                  { (it can be even if it was found in a withsymtable,  }
+                  {  e.g., "with classinstance do field := 5"), then    }
+                  { let do_member_read handle it                        }
+                  if (srsym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
+                    do_member_read(tabstractrecorddef(hdef),getaddr,srsym,result,again,[],nil)
+                  else
+                    { otherwise it's a regular record subscript }
+                    result:=csubscriptnode.create(srsym,result);
+                end
+              else
+                { regular non-field load }
+                result:=cloadnode.create(srsym,srsymtable);
+            end;
+
+          syssym :
+            begin
+              result:=statement_syssym(tsyssym(srsym).number);
+            end;
+
+          typesym :
+            begin
+              hdef:=ttypesym(srsym).typedef;
+              if not assigned(hdef) then
+               begin
+                 again:=false;
+               end
+              else
+               begin
+                 if (m_delphi in current_settings.modeswitches) and
+                     (sp_generic_dummy in srsym.symoptions) and
+                     (token in [_LT,_LSHARPBRACKET]) then
+                   begin
+                     if block_type in [bt_type,bt_const_type,bt_var_type] then
+                       begin
+                         if not handle_specialize_inline_specialization(srsym,srsymtable,spezcontext) or (srsym.typ=procsym) then
+                           begin
+                             spezcontext.free;
+                             result:=cerrornode.create;
+                             if try_to_consume(_LKLAMMER) then
+                              begin
+                                parse_paras(false,false,_RKLAMMER);
+                                consume(_RKLAMMER);
+                              end;
+                           end
+                         else
+                           begin
+                             if srsym.typ<>typesym then
+                               internalerror(2015071705);
+                             hdef:=ttypesym(srsym).typedef;
+                             result:=handle_factor_typenode(hdef,getaddr,again,srsym,ef_type_only in flags);
+                           end;
+                       end
+                     else
+                       result:=cspecializenode.create(nil,getaddr,srsym)
+                   end
+                 else
+                   begin
+                     { We need to know if this unit uses Variants }
+                     if ((hdef=cvarianttype) or (hdef=colevarianttype)) and
+                        not(cs_compilesystem in current_settings.moduleswitches) then
+                       include(current_module.moduleflags,mf_uses_variants);
+                     result:=handle_factor_typenode(hdef,getaddr,again,srsym,ef_type_only in flags);
+                   end;
+               end;
+            end;
+
+          enumsym :
+            begin
+              result:=genenumnode(tenumsym(srsym));
+            end;
+
+          constsym :
+            begin
+              if tconstsym(srsym).consttyp=constresourcestring then
+                begin
+                  result:=cloadnode.create(srsym,srsymtable);
+                  do_typecheckpass(result);
+                  result.resultdef:=getansistringdef;
+                end
+              else
+                result:=genconstsymtree(tconstsym(srsym));
+            end;
+
+          procsym :
+            begin
+              result:=nil;
+              if (m_delphi in current_settings.modeswitches) and
+                  (sp_generic_dummy in srsym.symoptions) and
+                  (token in [_LT,_LSHARPBRACKET]) then
+                begin
+                  result:=cspecializenode.create(nil,getaddr,srsym)
+                end
+              { check if it's a method/class method }
+              else if is_member_read(srsym,srsymtable,result,hdef) then
+                begin
+                  { if we are accessing a owner procsym from the nested }
+                  { class we need to call it as a class member          }
+                  if (srsymtable.symtabletype in [ObjectSymtable,recordsymtable]) and
+                    assigned(current_structdef) and (current_structdef<>hdef) and is_owned_by(current_structdef,hdef) then
+                    result:=cloadvmtaddrnode.create(ctypenode.create(hdef));
+                  { not srsymtable.symtabletype since that can be }
+                  { withsymtable as well                          }
+                  if (srsym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
+                    begin
+                      do_member_read(tabstractrecorddef(hdef),getaddr,srsym,result,again,[],spezcontext);
+                      spezcontext:=nil;
+                    end
+                  else
+                    { no procsyms in records (yet) }
+                    internalerror(2007012006);
+                end
+              else
+                begin
+                  { regular procedure/function call }
+                  if not unit_found then
+                    callflags:=[]
+                  else
+                    callflags:=[cnf_unit_specified];
+                  { TP7 uglyness: @proc^ is parsed as (@proc)^,
+                    but @notproc^ is parsed as @(notproc^) }
+                  if m_tp_procvar in current_settings.modeswitches then
+                    tmpgetaddr:=getaddr and not(token in [_POINT,_LECKKLAMMER])
+                  else
+                    tmpgetaddr:=getaddr and not(token in [_CARET,_POINT,_LECKKLAMMER]);
+                  do_proc_call(srsym,srsymtable,nil,tmpgetaddr,
+                               again,result,callflags,spezcontext);
+                  spezcontext:=nil;
+                end;
+            end;
+
+          propertysym :
+            begin
+              result:=nil;
+              { property of a class/object? }
+              if is_member_read(srsym,srsymtable,result,hdef) then
+                begin
+                  if (srsymtable.symtabletype in [ObjectSymtable,recordsymtable]) then
+                    { if we are accessing a owner procsym from the nested }
+                    { class or from a static class method we need to call }
+                    { it as a class member                                }
+                    if (assigned(current_structdef) and (current_structdef<>hdef) and is_owned_by(current_structdef,hdef)) or
+                       (assigned(current_procinfo) and current_procinfo.get_normal_proc.procdef.no_self_node) then
+                      begin
+                        result:=ctypenode.create(hdef);
+                        if not is_record(hdef) then
+                          result:=cloadvmtaddrnode.create(result);
+                      end
+                    else
+                      result:=load_self_node;
+                  { not srsymtable.symtabletype since that can be }
+                  { withsymtable as well                          }
+                  if (srsym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
+                    do_member_read(tabstractrecorddef(hdef),getaddr,srsym,result,again,[],nil)
+                  else
+                    { no propertysyms in records (yet) }
+                    internalerror(2009111510);
+                end
+              else
+              { no method pointer }
+                begin
+                  handle_propertysym(tpropertysym(srsym),srsymtable,result);
+                end;
+            end;
+
+          labelsym :
+            begin
+              { Support @label }
+              if getaddr then
+                begin
+                  if srsym.owner<>current_procinfo.procdef.localst then
+                    CGMessage(parser_e_label_outside_proc);
+                  result:=cloadnode.create(srsym,srsym.owner)
+                end
+              else
+                begin
+                  consume(_COLON);
+                  if tlabelsym(srsym).defined then
+                    Message(sym_e_label_already_defined);
+                  if symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
+                    begin
+                      include(current_procinfo.flags,pi_has_interproclabel);
+                      if (current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
+                        Message(sym_e_interprocgoto_into_init_final_code_not_allowed);
+                    end;
+                  tlabelsym(srsym).defined:=true;
+                  result:=clabelnode.create(nil,tlabelsym(srsym));
+                  tlabelsym(srsym).code:=result;
+                end;
+            end;
+
+          undefinedsym :
+            begin
+              result:=cnothingnode.Create;
+              result.resultdef:=cundefineddef.create(true);
+              { clean up previously created dummy symbol }
+              srsym.free;
+            end;
+
+          errorsym :
+            begin
+              result:=cerrornode.create;
+              if try_to_consume(_LKLAMMER) then
+               begin
+                 parse_paras(false,false,_RKLAMMER);
+                 consume(_RKLAMMER);
+               end;
+            end;
+
+          else
+            begin
+              result:=cerrornode.create;
+              Message(parser_e_illegal_expression);
+            end;
+        end; { end case }
+      end;
+
+
     function factor(getaddr:boolean;flags:texprflags) : tnode;
 
          {---------------------------------------------
@@ -2878,16 +3158,14 @@ implementation
            srsym: tsym;
            srsymtable: TSymtable;
            hdef: tdef;
-           pd: tprocdef;
            orgstoredpattern,
            storedpattern: string;
-           callflags: tcallnodeflags;
            t : ttoken;
            consumeid,
            wasgenericdummy,
            allowspecialize,
            isspecialize,
-           unit_found, tmpgetaddr: boolean;
+           unit_found : boolean;
            dummypos,
            tokenpos: tfileposinfo;
            spezcontext : tspecializationcontext;
@@ -3181,273 +3459,7 @@ implementation
             end;
 
             begin
-              case srsym.typ of
-                absolutevarsym :
-                  begin
-                    if (tabsolutevarsym(srsym).abstyp=tovar) then
-                      begin
-                        p1:=nil;
-                        propaccesslist_to_node(p1,nil,tabsolutevarsym(srsym).ref);
-                        p1:=ctypeconvnode.create(p1,tabsolutevarsym(srsym).vardef);
-                        include(p1.flags,nf_absolute);
-                      end
-                    else
-                      p1:=cloadnode.create(srsym,srsymtable);
-                  end;
-
-                staticvarsym,
-                localvarsym,
-                paravarsym,
-                fieldvarsym :
-                  begin
-                    { check if we are reading a field of an object/class/   }
-                    { record. is_member_read() will deal with withsymtables }
-                    { if needed.                                            }
-                    p1:=nil;
-                    if is_member_read(srsym,srsymtable,p1,hdef) then
-                      begin
-                        { if the field was originally found in an     }
-                        { objectsymtable, it means it's part of self  }
-                        { if only method from which it was called is  }
-                        { not class static                            }
-                        if (srsymtable.symtabletype in [ObjectSymtable,recordsymtable]) then
-                          { if we are accessing a owner procsym from the nested }
-                          { class we need to call it as a class member          }
-                          if assigned(current_structdef) and
-                              (((current_structdef<>hdef) and is_owned_by(current_structdef,hdef)) or
-                               (sp_static in srsym.symoptions)) then
-                            if srsymtable.symtabletype=recordsymtable then
-                              p1:=ctypenode.create(hdef)
-                            else
-                              p1:=cloadvmtaddrnode.create(ctypenode.create(hdef))
-                          else
-                            begin
-                              if assigned(current_procinfo) then
-                                begin
-                                  pd:=current_procinfo.get_normal_proc.procdef;
-                                  if assigned(pd) and pd.no_self_node then
-                                    p1:=cloadvmtaddrnode.create(ctypenode.create(pd.struct))
-                                  else
-                                    p1:=load_self_node;
-                                end
-                              else
-                                p1:=load_self_node;
-                            end;
-                        { now, if the field itself is part of an objectsymtab }
-                        { (it can be even if it was found in a withsymtable,  }
-                        {  e.g., "with classinstance do field := 5"), then    }
-                        { let do_member_read handle it                        }
-                        if (srsym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
-                          do_member_read(tabstractrecorddef(hdef),getaddr,srsym,p1,again,[],nil)
-                        else
-                          { otherwise it's a regular record subscript }
-                          p1:=csubscriptnode.create(srsym,p1);
-                      end
-                    else
-                      { regular non-field load }
-                      p1:=cloadnode.create(srsym,srsymtable);
-                  end;
-
-                syssym :
-                  begin
-                    p1:=statement_syssym(tsyssym(srsym).number);
-                  end;
-
-                typesym :
-                  begin
-                    hdef:=ttypesym(srsym).typedef;
-                    if not assigned(hdef) then
-                     begin
-                       again:=false;
-                     end
-                    else
-                     begin
-                       if (m_delphi in current_settings.modeswitches) and
-                           (sp_generic_dummy in srsym.symoptions) and
-                           (token in [_LT,_LSHARPBRACKET]) then
-                         begin
-                           if block_type in [bt_type,bt_const_type,bt_var_type] then
-                             begin
-                               if not handle_specialize_inline_specialization(srsym,srsymtable,spezcontext) or (srsym.typ=procsym) then
-                                 begin
-                                   spezcontext.free;
-                                   p1:=cerrornode.create;
-                                   if try_to_consume(_LKLAMMER) then
-                                    begin
-                                      parse_paras(false,false,_RKLAMMER);
-                                      consume(_RKLAMMER);
-                                    end;
-                                 end
-                               else
-                                 begin
-                                   if srsym.typ<>typesym then
-                                     internalerror(2015071705);
-                                   hdef:=ttypesym(srsym).typedef;
-                                   p1:=handle_factor_typenode(hdef,getaddr,again,srsym,ef_type_only in flags);
-                                 end;
-                             end
-                           else
-                             p1:=cspecializenode.create(nil,getaddr,srsym)
-                         end
-                       else
-                         begin
-                           { We need to know if this unit uses Variants }
-                           if ((hdef=cvarianttype) or (hdef=colevarianttype)) and
-                              not(cs_compilesystem in current_settings.moduleswitches) then
-                             include(current_module.moduleflags,mf_uses_variants);
-                           p1:=handle_factor_typenode(hdef,getaddr,again,srsym,ef_type_only in flags);
-                         end;
-                     end;
-                  end;
-
-                enumsym :
-                  begin
-                    p1:=genenumnode(tenumsym(srsym));
-                  end;
-
-                constsym :
-                  begin
-                    if tconstsym(srsym).consttyp=constresourcestring then
-                      begin
-                        p1:=cloadnode.create(srsym,srsymtable);
-                        do_typecheckpass(p1);
-                        p1.resultdef:=getansistringdef;
-                      end
-                    else
-                      p1:=genconstsymtree(tconstsym(srsym));
-                  end;
-
-                procsym :
-                  begin
-                    p1:=nil;
-                    if (m_delphi in current_settings.modeswitches) and
-                        (sp_generic_dummy in srsym.symoptions) and
-                        (token in [_LT,_LSHARPBRACKET]) then
-                      begin
-                        p1:=cspecializenode.create(nil,getaddr,srsym)
-                      end
-                    { check if it's a method/class method }
-                    else if is_member_read(srsym,srsymtable,p1,hdef) then
-                      begin
-                        { if we are accessing a owner procsym from the nested }
-                        { class we need to call it as a class member          }
-                        if (srsymtable.symtabletype in [ObjectSymtable,recordsymtable]) and
-                          assigned(current_structdef) and (current_structdef<>hdef) and is_owned_by(current_structdef,hdef) then
-                          p1:=cloadvmtaddrnode.create(ctypenode.create(hdef));
-                        { not srsymtable.symtabletype since that can be }
-                        { withsymtable as well                          }
-                        if (srsym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
-                          begin
-                            do_member_read(tabstractrecorddef(hdef),getaddr,srsym,p1,again,[],spezcontext);
-                            spezcontext:=nil;
-                          end
-                        else
-                          { no procsyms in records (yet) }
-                          internalerror(2007012006);
-                      end
-                    else
-                      begin
-                        { regular procedure/function call }
-                        if not unit_found then
-                          callflags:=[]
-                        else
-                          callflags:=[cnf_unit_specified];
-                        { TP7 uglyness: @proc^ is parsed as (@proc)^,
-                          but @notproc^ is parsed as @(notproc^) }
-                        if m_tp_procvar in current_settings.modeswitches then
-                          tmpgetaddr:=getaddr and not(token in [_POINT,_LECKKLAMMER])
-                        else
-                          tmpgetaddr:=getaddr and not(token in [_CARET,_POINT,_LECKKLAMMER]);
-                        do_proc_call(srsym,srsymtable,nil,tmpgetaddr,
-                                     again,p1,callflags,spezcontext);
-                        spezcontext:=nil;
-                      end;
-                  end;
-
-                propertysym :
-                  begin
-                    p1:=nil;
-                    { property of a class/object? }
-                    if is_member_read(srsym,srsymtable,p1,hdef) then
-                      begin
-                        if (srsymtable.symtabletype in [ObjectSymtable,recordsymtable]) then
-                          { if we are accessing a owner procsym from the nested }
-                          { class or from a static class method we need to call }
-                          { it as a class member                                }
-                          if (assigned(current_structdef) and (current_structdef<>hdef) and is_owned_by(current_structdef,hdef)) or
-                             (assigned(current_procinfo) and current_procinfo.get_normal_proc.procdef.no_self_node) then
-                            begin
-                              p1:=ctypenode.create(hdef);
-                              if not is_record(hdef) then
-                                p1:=cloadvmtaddrnode.create(p1);
-                            end
-                          else
-                            p1:=load_self_node;
-                        { not srsymtable.symtabletype since that can be }
-                        { withsymtable as well                          }
-                        if (srsym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
-                          do_member_read(tabstractrecorddef(hdef),getaddr,srsym,p1,again,[],nil)
-                        else
-                          { no propertysyms in records (yet) }
-                          internalerror(2009111510);
-                      end
-                    else
-                    { no method pointer }
-                      begin
-                        handle_propertysym(tpropertysym(srsym),srsymtable,p1);
-                      end;
-                  end;
-
-                labelsym :
-                  begin
-                    { Support @label }
-                    if getaddr then
-                      begin
-                        if srsym.owner<>current_procinfo.procdef.localst then
-                          CGMessage(parser_e_label_outside_proc);
-                        p1:=cloadnode.create(srsym,srsym.owner)
-                      end
-                    else
-                      begin
-                        consume(_COLON);
-                        if tlabelsym(srsym).defined then
-                          Message(sym_e_label_already_defined);
-                        if symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
-                          begin
-                            include(current_procinfo.flags,pi_has_interproclabel);
-                            if (current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
-                              Message(sym_e_interprocgoto_into_init_final_code_not_allowed);
-                          end;
-                        tlabelsym(srsym).defined:=true;
-                        p1:=clabelnode.create(nil,tlabelsym(srsym));
-                        tlabelsym(srsym).code:=p1;
-                      end;
-                  end;
-
-                undefinedsym :
-                  begin
-                    p1:=cnothingnode.Create;
-                    p1.resultdef:=cundefineddef.create(true);
-                    { clean up previously created dummy symbol }
-                    srsym.free;
-                  end;
-
-                errorsym :
-                  begin
-                    p1:=cerrornode.create;
-                    if try_to_consume(_LKLAMMER) then
-                     begin
-                       parse_paras(false,false,_RKLAMMER);
-                       consume(_RKLAMMER);
-                     end;
-                  end;
-
-                else
-                  begin
-                    p1:=cerrornode.create;
-                    Message(parser_e_illegal_expression);
-                  end;
-              end; { end case }
+              p1:=factor_handle_sym(srsym,srsymtable,again,getaddr,unit_found,flags,spezcontext);
 
               if assigned(spezcontext) then
                 internalerror(2015061207);
@@ -4420,6 +4432,9 @@ implementation
         filepos : tfileposinfo;
         gendef,parseddef : tdef;
         gensym : tsym;
+        genlist : tfpobjectlist;
+        dummyagain : boolean;
+        dummyspezctxt : tspecializationcontext;
       begin
         SubExprStart:
         if pred_level=highest_precedence then
@@ -4508,6 +4523,39 @@ implementation
                        { this is a normal "<" comparison }
 
                        { potential generic types that are followed by a "<": }
+
+                       if p1.nodetype=specializen then
+                         begin
+                           genlist:=tfpobjectlist(current_module.genericdummysyms.find(tspecializenode(p1).sym.name));
+                           if assigned(genlist) and (genlist.count>0) then
+                             begin
+                               gensym:=tgenericdummyentry(genlist.last).resolvedsym;
+                               check_hints(gensym,gensym.symoptions,gensym.deprecatedmsg,p1.fileinfo);
+
+                               dummyagain:=false;
+                               dummyspezctxt:=nil;
+
+                               ptmp:=factor_handle_sym(gensym,
+                                                       gensym.owner,
+                                                       dummyagain,
+                                                       tspecializenode(p1).getaddr,
+                                                       false,
+                                                       flags,
+                                                       dummyspezctxt);
+
+                               if dummyagain then
+                                 internalerror(2022012201);
+
+                               p1.free;
+                               p1:=ptmp;
+                             end
+                           else
+                             begin
+                               identifier_not_found(tspecializenode(p1).sym.realname);
+                               p1.free;
+                               p1:=cerrornode.create;
+                             end;
+                         end;
 
                        { a) might not have their resultdef set }
                        if not assigned(p1.resultdef) then

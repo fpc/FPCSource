@@ -112,6 +112,9 @@ Type
     Destructor Destroy; override;
     Procedure CheckParams(Const Params : TJSONData);
     Function ParamByName(Const AName : String) : TJSONData;
+    // Called before execute is called.
+    Procedure SetRequestClassAndMethod(const aClassName,aMethodName : String); virtual;
+    // Actually call method.
     Function Execute(Const Params : TJSONData; AContext : TJSONRPCCallContext = Nil) : TJSONData;
     // Checked on incoming request
     Property ParamDefs : TJSONParamDefs Read FParamDefs Write SetParamDefs;
@@ -443,47 +446,10 @@ Const
   EJSONRPCInvalidParams  = -32602;
   EJSONRPCInternalError  = -32603;
 
-
-resourcestring
-  SErrDuplicateParam  = 'Duplicate JSON-RPC Parameter name';
-  SErrUnknownParamDef = 'Unknown parameter definition: "%s"';
-  SErrParams = 'Error checking JSON-RPC parameters: "%s"';
-  SErrParamsMustBeArrayorObject = 'Parameters must be passed in an object or an array.';
-  SErrParamsMustBeObject = 'Parameters must be passed in an object.';
-  SErrParamsMustBeArray  = 'Parameters must be passed in an array.';
-  SErrParamsRequiredParamNotFound = 'Required parameter "%s" not found.';
-  SErrParamsDataTypeMismatch = 'Expected parameter "%s" having type "%s", got "%s".';
-  SErrParamsNotAllowd = 'Parameter "%s" is not allowed.';
-  SErrParamsOnlyObjectsInArray = 'Array elements must be objects, got %s at position %d.';
-  SErrRequestMustBeObject = 'JSON-RPC Request must be an object.';
-  SErrNoIDProperty = 'No "id" property found in request.';
-  SErrInvalidIDProperty = 'Type of "id" property is not correct.';
-  SErrNoJSONRPCProperty = 'No "jsonrpc" property in request.';
-  SErrInvalidJSONRPCProperty = 'Type or value of "jsonrpc" property is not correct.';
-  SErrNoMethodName = 'Cannot determine method: No "%s" property found in request.';
-  SErrNoClassName  = 'Cannot determine class: No "%s" property found in request.';
-  SErrNoParams = 'Cannot determine parameters: No "%s" property found in request.';
-  SErrInvalidMethodType = 'Type of "%s" property in request is not correct.';
-  SErrInvalidClassNameType = 'Type of "%s" property in request is not correct.';
-  SErrJSON2NotAllowed = 'JSON RPC 2 calls are not allowed.';
-  SErrJSON1NotAllowed = 'JSON RPC 1 calls are not allowed.';
-  SErrNoResponse = 'No response received from non-notification method "%s".';
-  SErrResponseFromNotification = 'A response was received from a notification method "%s".';
-  SErrInvalidMethodName = 'No method "%s" was found.';
-  SErrInvalidClassMethodName = 'No class "%s" with method "%s" was found.';
-  SErrDuplicateJSONRPCClassHandlerName = 'Duplicate JSON-RPC handler for class "%s" with method "%s".';
-  SErrDuplicateJSONRPCHandlerName = 'Duplicate JSON-RPC handler for method "%s".';
-  SErrUnknownJSONRPCClassMethodHandler = 'Unknown JSON-RPC handler for class "%s", method "%s".';
-  SErrUnknownJSONRPCMethodHandler = 'Unknown JSON-RPC handler for method "%s".';
-  SErrDuplicateRPCCLassMethodHandler = 'Duplicate JSON-RPC handler for class "%s", method "%s".';
-  SErrDuplicateRPCMethodHandler = 'Duplicate JSON-RPC handler for method "%s".';
-  SErrNoDispatcher = 'No method dispatcher available to handle request.';
-
-
 implementation
 
 
-uses {$IFDEF WMDEBUG}dbugintf, {$ENDIF} fprpccodegen;
+uses {$IFDEF WMDEBUG}dbugintf, {$ENDIF} fprpccodegen, fprpcstrings;
 
 function CreateJSONErrorObject(const AMessage: String; const ACode: Integer
   ): TJSONObject;
@@ -744,6 +710,12 @@ begin
       Result:=TJSONArray(FExecParams).Items[i];
       end;
     end;
+end;
+
+procedure TCustomJSONRPCHandler.SetRequestClassAndMethod(const aClassName, aMethodName: String);
+begin
+  // Do nothing
+  if aClassName=aMethodName then;
 end;
 
 procedure TCustomJSONRPCHandler.SetParamDefs(const AValue: TJSONParamDefs);
@@ -1127,14 +1099,22 @@ function TCustomJSONRPCDispatcher.ExecuteMethod(Const AClassName,AMethodName: TJ
 Var
   H : TCustomJSONRPCHandler;
   FreeObject : TComponent;
+  aClonedID : TJSONData;
 
 begin
   H:=FindHandler(AClassName,AMethodName,AContext,FreeObject);
   If (H=Nil) then
-    if (AClassName='') then
-      Exit(CreateJSON2Error(SErrInvalidMethodName,[AMethodName],EJSONRPCMethodNotFound,ID.Clone,transactionProperty))
+    begin
+    if Assigned(ID) then
+      aClonedID:=ID.Clone
     else
-      Exit(CreateJSON2Error(SErrInvalidClassMethodName,[AClassName,AMethodName],EJSONRPCMethodNotFound,ID.Clone,transactionProperty));
+      aClonedID:=TJSONNull.Create;
+    if (AClassName='') then
+      Exit(CreateJSON2Error(SErrInvalidMethodName,[AMethodName],EJSONRPCMethodNotFound,aClonedID,transactionProperty))
+    else
+      Exit(CreateJSON2Error(SErrInvalidClassMethodName,[AClassName,AMethodName],EJSONRPCMethodNotFound,aClonedID,transactionProperty));
+    end;
+  H.SetRequestClassAndMethod(aClassName,aMethodName);
   try
     If Assigned(FOndispatchRequest) then
       FOndispatchRequest(Self,AClassName,AMethodName,Params);
@@ -1194,7 +1174,7 @@ begin
       If (Result=Nil) then
         begin
         // No response, and a response was expected.
-        if (ID<>Nil) or not (jdoNotifications in Options) then
+        if (ID<>Nil) and (jdoStrictNotifications in Options) then
           Result:=CreateJSON2Error(SErrNoResponse,[M],EJSONRPCInternalError,ID,transactionProperty);
         end
       else
@@ -1308,7 +1288,7 @@ begin
     if Not (D is TJSONString) then
       Exit(CreateJSON2Error(SErrInvalidClassNameType,[ClassNameProperty],EJSONRPCInvalidRequest,ID,transactionproperty));
     AClassName:=D.AsString;
-    If (AMethodName='') and (jdoRequireClass in options)  then
+    If (AClassName='') and (jdoRequireClass in options)  then
       Exit(CreateJSON2Error(SErrNoClassName,[ClassNameProperty],EJSONRPCInvalidRequest,ID,transactionproperty));
     end;
   // Get params, if they exist
@@ -1379,7 +1359,7 @@ end;
 
 class function TCustomJSONRPCDispatcher.ClassNameProperty: String;
 begin
-  Result:=''; // Do not localize
+  Result:='classname'; // Do not localize
 end;
 
 class function TCustomJSONRPCDispatcher.ParamsProperty: String;

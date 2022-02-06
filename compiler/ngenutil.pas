@@ -493,7 +493,7 @@ implementation
              if mf_classinits in current_module.moduleflags then
                append_struct_initfinis(current_module, potype_class_constructor, stat);
            end;
-         { units have seperate code for initilization and finalization }
+         { units have separate code for initilization and finalization }
          potype_unitfinalize: ;
          { program init/final is generated in separate procedure }
          potype_proginit: ;

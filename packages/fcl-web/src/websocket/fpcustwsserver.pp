@@ -713,7 +713,12 @@ begin
       end;
     While not Terminated do
       if Connection.CheckIncoming(10)=irClose then
+      begin
+        // answer for client about close connection
+        if not (Connection.CloseState = csClosed) then
+          Connection.Close('', CLOSE_NORMAL_CLOSURE);
         Terminate;
+      end;
   except
     Raise;
    //  on E : Exception do

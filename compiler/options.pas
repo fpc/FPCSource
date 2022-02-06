@@ -2810,6 +2810,20 @@ begin
                       end;
                     'F':
                       begin
+{$if defined(m68k)}
+                        if target_info.system in [system_m68k_atari] then
+                          begin
+                            if (length(More)>j) then
+                              begin
+                                val(Copy(More,j+1,255),ataritos_exe_flags,code);
+                                if code<>0 then
+                                  IllegalPara(opt);
+                              end
+                            else
+                              IllegalPara(opt);
+                            break;
+                          end;
+{$endif defined(m68k)}
                         if target_info.system in systems_os2 then
                           begin
                             if UnsetBool(More, j, opt, false) then
@@ -2994,6 +3008,19 @@ begin
                           end
                         else
 {$endif defined(i8086)}
+{$if defined(m68k)}
+                        if (target_info.system in [system_m68k_atari]) then
+                          begin
+                            case Upper(Copy(More,j+1,255)) of
+                              'TOS': ataritos_exe_format := 'ataritos';
+                              'MINT': ataritos_exe_format := 'aoutmint';
+                              else
+                                IllegalPara(opt);
+                            end;
+                            break;
+                          end
+                        else
+{$endif defined(m68k)}
                           IllegalPara(opt);
                       end;
                     'T':
@@ -3797,14 +3824,15 @@ begin
   else
     features:=features+target_unsup_features;
 
-{$if defined(atari) or defined(hasamiga)}
-   { enable vlink as default linker on Atari and Amiga but not for cross compilers (for now) }
-   if (target_info.system in [system_m68k_amiga,system_m68k_atari,system_powerpc_amiga]) and
+{$if defined(hasamiga)}
+   { enable vlink as default linker on Amiga but not for cross compilers (for now) }
+   if (target_info.system in [system_m68k_amiga,system_powerpc_amiga]) and
       not LinkerSetExplicitly then
      include(init_settings.globalswitches,cs_link_vlink);
 {$endif}
 {$ifdef m68k}
-   if (target_info.system in [system_m68k_sinclairql]) and
+   { always enable vlink as default linker for the Sinclair QL and Atari }
+   if (target_info.system in [system_m68k_sinclairql,system_m68k_atari]) and
       not LinkerSetExplicitly then
      include(init_settings.globalswitches,cs_link_vlink);
 {$endif m68k}
@@ -4143,8 +4171,8 @@ procedure read_arguments(cmd:TCmdStr);
 
       {$ifdef mipsel}
         def_system_macro('CPUMIPS');
-        def_system_macro('CPUMIPS32');
         def_system_macro('CPUMIPSEL');
+        def_system_macro('CPUMIPS32');
         def_system_macro('CPUMIPSEL32');
         def_system_macro('CPU32');
         def_system_macro('FPC_HAS_TYPE_DOUBLE');
@@ -4162,8 +4190,8 @@ procedure read_arguments(cmd:TCmdStr);
 
       {$ifdef mipseb}
         def_system_macro('CPUMIPS');
-        def_system_macro('CPUMIPS32');
         def_system_macro('CPUMIPSEB');
+        def_system_macro('CPUMIPS32');
         def_system_macro('CPUMIPSEB32');
         def_system_macro('CPU32');
         def_system_macro('FPC_HAS_TYPE_DOUBLE');
@@ -4174,7 +4202,40 @@ procedure read_arguments(cmd:TCmdStr);
         def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
         { See comment above for mipsel }
         def_system_macro('FPC_LOCALS_ARE_STACK_REG_RELATIVE');
-      {$endif}
+      {$endif mipseb}
+
+      {$ifdef mips64}
+        def_system_macro('CPUMIPS');
+        def_system_macro('CPUMIPS64');
+        def_system_macro('CPUMIPSEB64');
+        def_system_macro('CPUMIPS64EB');
+        def_system_macro('CPU64');
+        def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
+        def_system_macro('FPC_CURRENCY_IS_INT64');
+        def_system_macro('FPC_COMP_IS_INT64');
+        def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
+        { See comment above for mipsel }
+        def_system_macro('FPC_LOCALS_ARE_STACK_REG_RELATIVE');
+      {$endif mips64}
+
+      {$ifdef mips64el}
+        def_system_macro('CPUMIPS');
+        def_system_macro('CPUMIPS64');
+        def_system_macro('CPUMIPSEL64');
+        def_system_macro('CPUMIPS64EL');
+        def_system_macro('CPU64');
+        def_system_macro('FPC_HAS_TYPE_DOUBLE');
+        def_system_macro('FPC_HAS_TYPE_SINGLE');
+        def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
+        def_system_macro('FPC_CURRENCY_IS_INT64');
+        def_system_macro('FPC_COMP_IS_INT64');
+        def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
+        { On most systems, locals are accessed relative to base pointer,
+          but for MIPS cpu, they are accessed relative to stack pointer.
+          This needs adaptation for so low level routines,
+          like MethodPointerLocal and related objects unit functions. }
+        def_system_macro('FPC_LOCALS_ARE_STACK_REG_RELATIVE');
+      {$endif mips64el}
 
       {$ifdef i8086}
         def_system_macro('CPU86');  { Borland compatibility }
@@ -4399,7 +4460,22 @@ begin
         utilsprefix:=target_cpu_string + '-linux-android-';
     end;
 
-  { Set up default value for the heap }
+  { Set up default value for the heap on Amiga-likes (values only apply if the OSHeap allocator is used) }
+  if target_info.system in systems_amigalike then
+    begin
+      case target_info.system of
+        system_m68k_amiga:
+          heapsize:=256*1024;
+        system_powerpc_amiga,
+        system_powerpc_morphos,
+        system_arm_aros,
+        system_i386_aros,
+        system_x86_64_aros:
+          heapsize:=1024*1024;
+        else
+          heapsize:=256*1024;
+      end;
+    end;
   if target_info.system in (systems_embedded+systems_freertos+[system_z80_zxspectrum,system_z80_msxdos]) then
     begin
       case target_info.system of
@@ -4978,6 +5054,7 @@ begin
             init_settings.fputype:=fpu_68881;
           end;
       end;
+    system_m68k_atari,
     system_m68k_sinclairql:
       begin
         if not option.CPUSetExplicitly then

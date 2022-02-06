@@ -15,6 +15,11 @@
   exceptions in the constructors }
 {$IMPLICITEXCEPTIONS OFF}
 
+{ We don't want the compiler to use fastmath
+  optimization because it considers negative zeroes
+  as normal zeroes }
+{$OPTIMIZATION NOFASTMATH}
+
 { We don't want C operators to be used inside the compiler }
 {$COPERATORS OFF}
 
@@ -257,21 +262,29 @@
 
 {$ifdef mipsel}
   {$define mips}
+  {$define mips32}
 {$else not mipsel}
   { Define both mips and mipseb if mipsel is not defined
     but mips cpu is wanted. }
   {$ifdef mipseb}
     {$define mips}
+    {$define mips32}
   {$endif mipseb}
   {$ifdef mips}
     {$define mipseb}
+    {$define mips32}
   {$endif mips}
 {$endif mipsel}
+
+{$ifdef mips64}
+  {$define mips}
+  {$define mips64}
+{$endif mips64}
 
 {$ifdef mips64el}
   {$define mips}
   {$define mips64}
-{$endif mipsel}
+{$endif mips64el}
 
 {$ifdef mips}
   {$ifndef mips64}

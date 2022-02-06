@@ -69,11 +69,11 @@ begin
    begin
     if not UseVLink then
      begin
-      ExeCmd[1]:='ld $DYNLINK $OPT -d -n -o $EXE $RES';
+      ExeCmd[1]:='ld $DYNLINK $FLAGS $OPT $STRIP $MAP -d -n -o $EXE -T $RES';
      end
     else
      begin
-      ExeCmd[1]:='vlink -b ataritos $FLAGS $GCSECTIONS $OPT $STRIP $MAP -o $EXE -T $RES';
+      ExeCmd[1]:='vlink -b '+ataritos_exe_format+' $FLAGS $GCSECTIONS $OPT $STRIP $MAP -o $EXE -T $RES';
      end;
    end;
 end;
@@ -124,6 +124,69 @@ begin
     if s<>'' then
      LinkRes.Add('SEARCH_DIR("'+s+'")');
     HPath:=TCmdStrListItem(HPath.Next);
+   end;
+
+  if not UseVLink then
+   begin
+    LinkRes.Add('SECTIONS');
+    LinkRes.Add('{');
+    LinkRes.Add('  .text 0xe4:');
+    LinkRes.Add('  {');
+    LinkRes.Add('    CREATE_OBJECT_SYMBOLS');
+    LinkRes.Add('    *(.text)');
+    LinkRes.Add('    CONSTRUCTORS');
+    LinkRes.Add('    _etext = .;');
+    LinkRes.Add('    __etext = .;');
+    LinkRes.Add('  }');
+    LinkRes.Add('  .data :');
+    LinkRes.Add('  {');
+    LinkRes.Add('    *(.data)');
+    LinkRes.Add('    _edata = .;');
+    LinkRes.Add('    __edata = .;');
+    LinkRes.Add('  }');
+    LinkRes.Add('  .bss :');
+    LinkRes.Add('  {');
+    LinkRes.Add('    __bss_start = .;');
+    LinkRes.Add('    *(.bss)');
+    LinkRes.Add('    *(COMMON)');
+    LinkRes.Add('    _end = .;');
+    LinkRes.Add('    __end = .;');
+    LinkRes.Add('  }');
+    LinkRes.Add('}');
+   end;
+  if (UseVLink) and (ataritos_exe_format = 'aoutmint') then
+   begin
+	LinkRes.Add('SECTIONS {');
+	LinkRes.Add('  . = 0xe4;');
+	LinkRes.Add('  .text: {');
+	LinkRes.Add('    *(.i* i* I*)');
+	LinkRes.Add('    *(.t* t* T* .c* c* CODE*)');
+	LinkRes.Add('    *(.f* f* F*)');
+	LinkRes.Add('    _etext = .;');
+	LinkRes.Add('    __etext = .;');
+	LinkRes.Add('    . = ALIGN(4);');
+	LinkRes.Add('  }');
+	LinkRes.Add('  .data: {');
+	LinkRes.Add('    PROVIDE(_LinkerDB = . + 0x8000);');
+	LinkRes.Add('    PROVIDE(_SDA_BASE_ = . + 0x8000);');
+	LinkRes.Add('    VBCC_CONSTRUCTORS');
+	LinkRes.Add('    *(.rodata*)');
+	LinkRes.Add('    *(.d* d* D*)');
+	LinkRes.Add('    *(.sdata*)');
+	LinkRes.Add('    *(__MERGED)');
+	LinkRes.Add('    _edata = .;');
+	LinkRes.Add('    __edata = .;');
+	LinkRes.Add('    . = ALIGN(4);');
+	LinkRes.Add('  }');
+	LinkRes.Add('  .bss: {');
+	LinkRes.Add('    *(.sbss*)');
+	LinkRes.Add('    *(.scommon)');
+	LinkRes.Add('    *(.b* b* B* .u* u* U*)');
+	LinkRes.Add('    *(COMMON)');
+	LinkRes.Add('    _end = ALIGN(4);');
+	LinkRes.Add('    __end = ALIGN(4);');
+	LinkRes.Add('  }');
+	LinkRes.Add('}');;
    end;
 
   LinkRes.Add('INPUT (');
@@ -224,10 +287,16 @@ begin
   GCSectionsStr:='';
   DynLinkStr:='';
   MapStr:='';
-  FlagsStr:='-tos-flags fastload,fastram';
+  if UseVLink then
+    FlagsStr:='-tos-flags '+tostr(ataritos_exe_flags)
+  else
+    FlagsStr:='--mprg-flags '+tostr(ataritos_exe_flags);
 
-  if UseVlink and (cs_link_map in current_settings.globalswitches) then
-    MapStr:='-M'+maybequoted(ScriptFixFileName(current_module.mapfilename));
+  if (cs_link_map in current_settings.globalswitches) then
+    if UseVLink then
+      MapStr:='-M'+maybequoted(ScriptFixFileName(current_module.mapfilename))
+    else
+      MapStr:='-Map '+maybequoted(ScriptFixFileName(current_module.mapfilename));
   if (cs_link_strip in current_settings.globalswitches) then
     StripStr:='-s';
   if rlinkpath<>'' then

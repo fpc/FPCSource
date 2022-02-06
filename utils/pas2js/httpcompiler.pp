@@ -9,10 +9,12 @@ uses
   {$ifdef unix}baseunix,{$endif}
   sysutils, classes, fpjson, contnrs, syncobjs, fpmimetypes, custhttpapp, inifiles,
   fpwebproxy, webutil, fpwebfile, httproute, httpdefs, dirwatch, Pas2JSFSCompiler,
-  Pas2JSCompilerCfg;
+  Pas2JSCompilerCfg, ssockets;
 
 Const
+  HTTPCompilerVersion = '1.0';
   nErrTooManyThreads = -1;
+  nExitCodeSocketError = 1;
 
 Type
   TDirWatcher = Class;
@@ -50,7 +52,6 @@ Type
   Public
      Property Compiles[AIndex : Integer] : TCompileItem Read GetC; default;
   end;
-
 
   { TCompileThread }
 
@@ -275,6 +276,7 @@ begin
   {AllowWriteln}
   if (Msg<>'') then
     Writeln('Error: ',Msg);
+  Writeln('Version ',HTTPCompilerVersion);
   Writeln('Usage ',ExtractFileName(ParamStr(0)),' [options] ');
   Writeln('Where options is one or more of : ');
   Writeln('-A --api=location,secret Enable location management API.');
@@ -766,13 +768,22 @@ Var
   S : String;
 
 begin
-  S:=Checkoptions('shqd:ni:p:wP::cm:A:',['help','quiet','noindexpage','directory:','port:','indexpage:','watch','project::','config:','simpleserver','mimetypes:','api:']);
+  S:=Checkoptions('shqVd:ni:p:wP::cm:A:I:',['help','quiet','version','noindexpage','directory:','port:','indexpage:','watch','project::','config:','simpleserver','mimetypes:','api:','interface:']);
   if (S<>'') or HasOption('h','help') then
-    usage(S);
+    Usage(S);
+  if HasOption('V','version') then
+    begin
+    {AllowWriteln}
+    writeln(HTTPCompilerVersion);
+    {AllowWriteln-}
+    Terminate;
+    exit;
+    end;
   if HasOption('c','config') then
     ConfigFile:=GetOptionValue('c','config')
   else
     ConfigFile:='compileserver.ini';
+  Port:=3000;
   ReadConfigFile(ConfigFile);
   If not ProcessOptions then
     begin
@@ -812,7 +823,15 @@ begin
   TSimpleFileModule.RegisterDefaultRoute;
   if InterfaceAddress<>'' then
     HTTPHandler.Address:=InterfaceAddress;
-  inherited;
+  try
+    inherited DoRun;
+  except
+    on E: ESocketError do begin
+      Log(etError,E.ClassName+': '+E.Message);
+      ExitCode:=nExitCodeSocketError;
+      Terminate;
+    end;
+  end;
 end;
 
 end.

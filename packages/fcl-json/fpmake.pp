@@ -95,6 +95,11 @@ begin
       AddUnit('fpjson');
       end;
     T.ResourceStrings:=true;
+    T:=P.Targets.AddUnit('fpjsonvalue.pp');
+    with T.Dependencies do
+      begin
+      AddUnit('fpjson');
+      end;
 
 
     P.ExamplePath.Add('examples');

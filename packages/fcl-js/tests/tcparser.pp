@@ -28,6 +28,7 @@ type
     Procedure AssertEquals(Const AMessage : String; Expected, Actual : TJSToken); overload;
     Procedure AssertEquals(Const AMessage : String; Expected, Actual : TJSType); overload;
     Procedure AssertEquals(Const AMessage : String; Expected, Actual : TJSVarType); overload;
+    Procedure AssertEquals(Const AMessage : String; Expected, Actual : TKeyOptionality); overload;
     Procedure AssertIdentifier(Msg : String; El : TJSElement; Const AName : TJSString);
     procedure AssertEquals(Const AMessage : String; aExpected : AnsiString; aActual : TJSString); overload;
     Function  GetSourceElements : TJSSourceElements;
@@ -337,6 +338,16 @@ begin
   AssertEquals(AMessage,NE,NA);
 end;
 
+procedure TTestBaseJSParser.AssertEquals(const AMessage: String; Expected, Actual: TKeyOptionality);
+Var
+  NE,NA : String;
+
+begin
+  NE:=GetEnumName(TypeInfo(TKeyOptionality),Ord(Expected));
+  NA:=GetEnumName(TypeInfo(TKeyOptionality),Ord(Actual));
+  AssertEquals(AMessage,NE,NA);
+end;
+
 Procedure TTestBaseJSParser.AssertIdentifier(Msg: String; El: TJSElement;
   Const AName: TJSString);
 
@@ -375,7 +386,7 @@ Var
 begin
   E:=GetVars;
   AssertNotNull('Have statements',E);
-  Writeln('Count : ',E.Count);
+  // Writeln('Count : ',E.Count);
   If (E.Count=0) then
     Fail('Zero variables defined');
   Result:=E.Nodes[0].Node;
@@ -2088,7 +2099,7 @@ begin
   AssertFalse('Async function ',FD.AFunction.IsAsync);
   AssertEquals('Function name OK','a',FD.AFunction.Name);
   AssertNotNull('Function body assigned', FD.AFunction.Body);
-  AssertEquals('No parameters',0,FD.AFunction.Params.Count);
+  AssertEquals('No parameters',0,FD.AFunction.TypedParams.Count);
   N:=FD.AFunction.Body;
   CheckClass(N,TJSFunctionBody);
   AssertNotNull('Function body has element',TJSFunctionBody(N).A);
@@ -2116,7 +2127,7 @@ begin
   AssertTrue('Async function ',FD.AFunction.IsAsync);
   AssertEquals('Function name OK','a',FD.AFunction.Name);
   AssertNotNull('Function body assigned', FD.AFunction.Body);
-  AssertEquals('No parameters',0,FD.AFunction.Params.Count);
+  AssertEquals('No parameters',0,FD.AFunction.TypedParams.Count);
   N:=FD.AFunction.Body;
   CheckClass(N,TJSFunctionBody);
   AssertNotNull('Function body has element',TJSFunctionBody(N).A);
@@ -2143,9 +2154,9 @@ begin
   AssertNotNull('Function definition assigned',FD.AFunction);
   AssertEquals('Function name OK','a',FD.AFunction.Name);
   AssertNotNull('Function body assigned', FD.AFunction.Body);
-  AssertEquals('2 parameters',2,FD.AFunction.Params.Count);
-  AssertEquals('1st parameter','b',FD.AFunction.Params[0]);
-  AssertEquals('2nd parameter','c',FD.AFunction.Params[1]);
+  AssertEquals('2 parameters',2,FD.AFunction.TypedParams.Count);
+  AssertEquals('1st parameter','b',FD.AFunction.TypedParams[0].Name);
+  AssertEquals('2nd parameter','c',FD.AFunction.TypedParams[1].Name);
   N:=FD.AFunction.Body;
   CheckClass(N,TJSFunctionBody);
   AssertNotNull('Function body has element',TJSFunctionBody(N).A);
@@ -2160,7 +2171,6 @@ Var
   E : TJSSourceElements;
   N : TJSElement;
   FD : TJSFunctionDeclarationStatement;
-  P : TJSTypedParam;
 
 begin
   CreateParser('function a (...b,c) {}');
@@ -2173,11 +2183,11 @@ begin
   AssertNotNull('Function definition assigned',FD.AFunction);
   AssertEquals('Function name OK','a',FD.AFunction.Name);
   AssertNotNull('Function body assigned', FD.AFunction.Body);
-  AssertEquals('2 parameters',2,FD.AFunction.Params.Count);
-  AssertEquals('1st parameter','b',FD.AFunction.Params[0]);
+  AssertEquals('2 parameters',2,FD.AFunction.TypedParams.Count);
+  AssertEquals('1st parameter','b',FD.AFunction.TypedParams[0].Name);
   AssertEquals('1st parameter','b',FD.AFunction.TypedParams.Names[0]);
   AssertTrue('1st parameter spread',FD.AFunction.TypedParams.Params[0].IsSpread);
-  AssertEquals('2nd parameter','c',FD.AFunction.Params[1]);
+  AssertEquals('2nd parameter','c',FD.AFunction.TypedParams[1].Name);
   N:=FD.AFunction.Body;
   CheckClass(N,TJSFunctionBody);
   AssertNotNull('Function body has element',TJSFunctionBody(N).A);
@@ -2205,7 +2215,7 @@ begin
   AssertNotNull('Function definition assigned',FD.AFunction);
   AssertEquals('Function name OK','a',FD.AFunction.Name);
   AssertNotNull('Function body assigned', FD.AFunction.Body);
-  AssertEquals('2 parameters',0,FD.AFunction.Params.Count);
+  AssertEquals('2 parameters',0,FD.AFunction.TypedParams.Count);
   N:=FD.AFunction.Body;
   CheckClass(N,TJSFunctionBody);
   AssertNotNull('Function body has element',TJSFunctionBody(N).A);
@@ -2540,7 +2550,7 @@ begin
   AssertNotNull('Function definition assigned',FD.AFunction);
   AssertEquals('Function name OK','a',FD.AFunction.Name);
   AssertNotNull('Function body assigned', FD.AFunction.Body);
-  AssertEquals('No parameters',0,FD.AFunction.Params.Count);
+  AssertEquals('No parameters',0,FD.AFunction.TypedParams.Count);
   N:=FD.AFunction.Body;
   CheckClass(N,TJSFunctionBody);
   AssertNotNull('Function body has element',TJSFunctionBody(N).A);

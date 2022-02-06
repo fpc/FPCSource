@@ -34,6 +34,7 @@ type
 
   TTestJSScanner = class(TTestCase)
   Private
+    FNeedWhiteSpace: Boolean;
     FStream : TStream;
     FLineReader : TLineReader;
     FScanner : TJSScanner;
@@ -43,14 +44,14 @@ type
     procedure CheckTokens(ASource: String; ATokens: array of TJSToken; aVersion : TECMAVersion = ecma5);
     procedure DoTestFloat(F: Double);
     procedure DoTestFloat(F: Double; S: String);
-    procedure DoTestString(S: String);
+    procedure DoTestString(S: String; WasMultiline : Boolean = False);
     procedure TestErrorSource;
   protected
     Function CreateScanner(AInput : String; aVersion : TECMAVersion = ecma5) : TJSScanner;
     procedure FreeScanner;
     procedure SetUp; override;
     procedure TearDown; override;
-
+    Property NeedWhiteSpace : Boolean Read FNeedWhiteSpace Write FNeedWhiteSpace;
     Property Scanner : TJSScanner Read FScanner;
   published
     Procedure TestEmpty;
@@ -171,7 +172,10 @@ type
     procedure TestFloat;
     procedure TestStringError;
     procedure TestFloatError;
-
+    procedure TestMultilineString;
+    procedure TestMultilineStringError;
+    procedure TestMultilineStringError2;
+    Procedure TestNonBreakingSpace;
   end;
 
 
@@ -185,6 +189,8 @@ begin
   FScanner:=TJSScanner.Create(FLineReader,aVersion);
   FScanner.IsTypeScript:=False;
   Result:=FScanner;
+  if FNeedWhiteSpace then
+    FScanner.ReturnWhiteSpace:=True;
 end;
 
 procedure TTestJSScanner.FreeScanner;
@@ -197,6 +203,7 @@ end;
 procedure TTestJSScanner.SetUp;
 begin
   inherited SetUp;
+  FNeedWhiteSpace:=False;
 end;
 
 
@@ -998,7 +1005,7 @@ begin
 end;
 
 
-procedure TTestJSScanner.DoTestString(S: String);
+procedure TTestJSScanner.DoTestString(S: String; WasMultiline : Boolean = False);
 
 Var
   J : TJSToken;
@@ -1007,9 +1014,10 @@ begin
   try
     J:=FScanner.FetchToken;
     AssertEquals(S+' is a string',tjsString,J);
-    If (Length(S)>0) and (S[1] in ['"','''']) then
+    If (Length(S)>0) and (S[1] in ['"','''','`']) then
       S:=Copy(S,2,Length(S)-2);
     AssertEquals('Correct string is returned',S,FScanner.CurTokenString);
+    AssertEquals('Multiline ?',WasMultiline,FScanner.WasMultilineString);
   finally
     FreeScanner;
   end;
@@ -1043,6 +1051,31 @@ begin
   FErrorSource:='''A string';
   AssertException('Unterminated string',EJSScannerError,@TestErrorSource);
 end;
+
+procedure TTestJSScanner.TestMultilineString;
+
+begin
+  DoTestString('`A'#10'B`',True);
+end;
+
+procedure TTestJSScanner.TestMultilineStringError;
+begin
+  FErrorSource:='`A'#10;
+  AssertException('Unterminated string',EJSScannerError,@TestErrorSource);
+end;
+
+procedure TTestJSScanner.TestMultilineStringError2;
+begin
+  FErrorSource:='`A'#10'B';
+  AssertException('Unterminated string',EJSScannerError,@TestErrorSource);
+end;
+
+procedure TTestJSScanner.TestNonBreakingSpace;
+begin
+  NeedWhiteSpace:=True;
+  CheckToken(tjsWhiteSpace,#$C2#$A0);
+end;
+
 
 
 { TTestLineReader }

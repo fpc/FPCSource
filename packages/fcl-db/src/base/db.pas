@@ -350,14 +350,16 @@ type
     function GetAsBoolean: Boolean; virtual;
     function GetAsBytes: TBytes; virtual;
     function GetAsCurrency: Currency; virtual;
-    function GetAsLargeInt: Largeint; virtual;
     function GetAsDateTime: TDateTime; virtual;
+    function GetAsExtended: Extended; virtual;
     function GetAsFloat: Double; virtual;
+    function GetAsLargeInt: Largeint; virtual;
     function GetAsLongint: Longint; virtual;
     function GetAsLongWord: LongWord; virtual;
     function GetAsInteger: Longint; virtual;
     function GetAsVariant: variant; virtual;
     function GetOldValue: variant; virtual;
+    function GetAsSingle: Single; virtual;
     function GetAsString: string; virtual;
     function GetAsAnsiString: AnsiString; virtual;
     function GetAsUnicodeString: UnicodeString; virtual;
@@ -382,12 +384,14 @@ type
     procedure SetAsBytes(const AValue: TBytes); virtual;
     procedure SetAsCurrency(AValue: Currency); virtual;
     procedure SetAsDateTime(AValue: TDateTime); virtual;
+    procedure SetAsExtended(AValue: Extended); virtual;
     procedure SetAsFloat(AValue: Double); virtual;
+    procedure SetAsLargeInt(AValue: Largeint); virtual;
     procedure SetAsLongint(AValue: Longint); virtual;
     procedure SetAsLongWord(AValue: LongWord); virtual;
     procedure SetAsInteger(AValue: Longint); virtual;
-    procedure SetAsLargeInt(AValue: Largeint); virtual;
     procedure SetAsVariant(const AValue: variant); virtual;
+    procedure SetAsSingle(AValue: Single); virtual;
     procedure SetAsString(const AValue: string); virtual;
     procedure SetAsAnsiString(const AValue: AnsiString); virtual;
     procedure SetAsUnicodeString(const AValue: UnicodeString); virtual;
@@ -422,11 +426,13 @@ type
     property AsBytes: TBytes read GetAsBytes write SetAsBytes;
     property AsCurrency: Currency read GetAsCurrency write SetAsCurrency;
     property AsDateTime: TDateTime read GetAsDateTime write SetAsDateTime;
+    property AsExtended: Extended read GetAsExtended write SetAsExtended;
     property AsFloat: Double read GetAsFloat write SetAsFloat;
     property AsLongint: Longint read GetAsLongint write SetAsLongint;
     property AsLongWord: LongWord read GetAsLongWord write SetAsLongWord;
     property AsLargeInt: LargeInt read GetAsLargeInt write SetAsLargeInt;
     property AsInteger: Longint read GetAsInteger write SetAsInteger;
+    property AsSingle: Single read GetAsSingle write SetAsSingle;
     property AsString: string read GetAsString write SetAsString;
     property AsAnsiString: AnsiString read GetAsAnsiString write SetAsAnsiString;
     property AsUnicodeString: UnicodeString read GetAsUnicodeString write SetAsUnicodeString;
@@ -570,7 +576,7 @@ type
     FEditFormat : String;
   protected
     class procedure CheckTypeSize(AValue: Longint); override;
-    procedure RangeError(AValue, Min, Max: Double);
+    procedure RangeError(const AValue, Min, Max: Extended);
     procedure SetDisplayFormat(const AValue: string);
     procedure SetEditFormat(const AValue: string);
     function  GetAsBoolean: Boolean; override;
@@ -748,8 +754,8 @@ type
     function GetAsLargeInt: LargeInt; override;
     function GetAsLongWord: LongWord; override;
     function GetAsInteger: Longint; override;
-    function GetAsVariant: variant; override;
     function GetAsString: string; override;
+    function GetAsVariant: variant; override;
     function GetDataSize: Integer; override;
     procedure GetText(var AText: string; ADisplayText: Boolean); override;
     procedure SetAsBCD(const AValue: TBCD); override;
@@ -761,7 +767,7 @@ type
     procedure SetVarValue(const AValue: Variant); override;
   public
     constructor Create(AOwner: TComponent); override;
-    Function CheckRange(AValue : Double) : Boolean;
+    function CheckRange(AValue: Double) : Boolean;
     property Value: Double read GetAsFloat write SetAsFloat;
 
   published
@@ -778,6 +784,46 @@ type
     constructor Create(AOwner: TComponent); override;
   published
     property Currency default True;
+  end;
+
+{ TExtendedField }
+
+  TExtendedField = class(TNumericField)
+  private
+    FCurrency: Boolean;
+    FMaxValue: Extended;
+    FMinValue: Extended;
+    FPrecision: Longint;
+    procedure SetCurrency(const AValue: Boolean);
+    procedure SetPrecision(const AValue: Longint);
+  protected
+    function GetAsBCD: TBCD; override;
+    function GetAsExtended: Extended; override;
+    function GetAsFloat: Double; override;
+    function GetAsLargeInt: LargeInt; override;
+    function GetAsLongWord: LongWord; override;
+    function GetAsInteger: Longint; override;
+    function GetAsString: string; override;
+    function GetAsVariant: variant; override;
+    function GetDataSize: Integer; override;
+    procedure GetText(var AText: string; ADisplayText: Boolean); override;
+    procedure SetAsBCD(const AValue: TBCD); override;
+    procedure SetAsExtended(AValue: Extended); override;
+    procedure SetAsFloat(AValue: Double); override;
+    procedure SetAsLargeInt(AValue: LargeInt); override;
+    procedure SetAsLongWord(AValue: LongWord); override;
+    procedure SetAsInteger(AValue: Longint); override;
+    procedure SetAsString(const AValue: string); override;
+    procedure SetVarValue(const AValue: Variant); override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    function CheckRange(AValue: Extended) : Boolean;
+    property Value: Extended read GetAsExtended write SetAsExtended;
+  published
+    property Currency: Boolean read FCurrency write SetCurrency default False;
+    property MaxValue: Extended read FMaxValue write FMaxValue;
+    property MinValue: Extended read FMinValue write FMinValue;
+    property Precision: Longint read FPrecision write SetPrecision default 15;
   end;
 
 { TBooleanField }
@@ -1312,6 +1358,7 @@ type
     Function GetAsLargeInt: LargeInt;
     Function GetAsLongWord: LongWord;
     Function GetAsMemo: string;
+    Function GetAsSingle: Single;
     Function GetAsString: string;
     Function GetAsAnsiString: AnsiString;
     Function GetAsUnicodeString: UnicodeString;
@@ -1335,6 +1382,8 @@ type
     Procedure SetAsLargeInt(AValue: LargeInt);
     Procedure SetAsLongWord(AValue: LongWord);
     Procedure SetAsMemo(const AValue: string);
+    Procedure SetAsShortInt(const AValue: LongInt);
+    Procedure SetAsSingle(AValue: Single);
     Procedure SetAsSmallInt(AValue: LongInt);
     Procedure SetAsString(const AValue: string);
     Procedure SetAsAnsiString(const AValue: AnsiString);
@@ -1375,6 +1424,8 @@ type
     Property AsLargeInt : LargeInt read GetAsLargeInt write SetAsLargeInt;
     Property AsLongWord: LongWord read GetAsLongWord write SetAsLongWord;
     Property AsMemo : string read GetAsMemo write SetAsMemo;
+    Property AsShortInt : LongInt read GetAsInteger write SetAsShortInt;
+    Property AsSingle : Single read GetAsSingle write SetAsSingle;
     Property AsSmallInt : LongInt read GetAsInteger write SetAsSmallInt;
     Property AsString : string read GetAsString write SetAsString;
     Property AsAnsiString : AnsiString read GetAsAnsiString write SetAsAnsiString;
@@ -2326,7 +2377,7 @@ Const
 const
   DefaultFieldClasses : Array [TFieldType] of TFieldClass =
     (
-      { ftUnknown} Tfield,
+      { ftUnknown} TField,
       { ftString} TStringField,
       { ftSmallint} TSmallIntField,
       { ftInteger} TLongintField,
@@ -2371,7 +2422,7 @@ const
       { ftLongWord} TLongWordField,
       { ftShortint} TShortintField,
       { ftByte} TByteField,
-      { ftExtended} nil
+      { ftExtended} TExtendedField
     );
 
   dsEditModes = [dsEdit, dsInsert, dsSetKey];

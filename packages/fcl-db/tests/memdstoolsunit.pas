@@ -105,6 +105,10 @@ begin
     FieldDefs.Add('FWIDESTRING',ftWideString);
     FieldDefs.Add('FFIXEDWIDECHAR',ftFixedWideChar);
     FieldDefs.Add('FWIDEMEMO',ftWideMemo);
+    FieldDefs.Add('FLONGWORD',ftLongWord);
+    FieldDefs.Add('FSHORTINT',ftShortInt);
+    FieldDefs.Add('FBYTE',ftByte);
+    FieldDefs.Add('FEXTENDED',ftExtended);
     CreateTable;
     Open;
     for i := 0 to testValuesCount-1 do
@@ -130,6 +134,10 @@ begin
       FieldByName('FWIDESTRING').AsWideString := testValues[ftWideString, i];
       FieldByName('FFIXEDWIDECHAR').AsWideString := testValues[ftFixedWideChar, i];
       FieldByName('FWIDEMEMO').AsWideString := testValues[ftWideMemo, i];
+      FieldByName('FLONGWORD').AsLongWord := testLongWordValues[i];
+      FieldByName('FSHORTINT').AsInteger := testShortIntValues[i];
+      FieldByName('FBYTE').AsInteger := testByteValues[i];
+      FieldByName('FEXTENDED').AsExtended := testFloatValues[i];
       Post;
       end;
     Close;

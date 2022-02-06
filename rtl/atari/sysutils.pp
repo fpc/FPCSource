@@ -56,6 +56,9 @@ uses
 
 {$i gemdos.inc}
 
+var
+  basepage: PPD; external name '__base';
+
 
 
 {****************************************************************************
@@ -453,21 +456,62 @@ begin
 end;
 
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
+  var
+    hp : pchar;
+    i : longint;
+    upperenv, str : RawByteString;
 begin
-  {writeln('Unimplemented GetEnvironmentVariable');}
-  result:='';
+   result:='';
+   hp:=basepage^.p_env;
+   if (hp=nil) then
+      exit;
+   upperenv:=uppercase(envvar);
+   while hp^<>#0 do
+     begin
+        str:=hp;
+        i:=pos('=',str);
+        if uppercase(copy(str,1,i-1))=upperenv then
+          begin
+             Result:=copy(str,i+1,length(str)-i);
+             break;
+          end;
+        { next string entry}
+        hp:=hp+strlen(hp)+1;
+     end;
 end;
 
 Function GetEnvironmentVariableCount : Integer;
+var
+  hp : pchar;
 begin
-  {writeln('Unimplemented GetEnvironmentVariableCount');}
   result:=0;
+  hp:=basepage^.p_env;
+  If (Hp<>Nil) then
+    while hp^<>#0 do
+      begin
+      Inc(Result);
+      hp:=hp+strlen(hp)+1;
+      end;
 end;
 
 Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
+var
+  hp : pchar;
 begin
-  {writeln('Unimplemented GetEnvironmentString');}
   result:='';
+  hp:=basepage^.p_env;
+  If (Hp<>Nil) then
+    begin
+      while (hp^<>#0) and (Index>1) do
+        begin
+          Dec(Index);
+          hp:=hp+strlen(hp)+1;
+        end;
+    If (hp^<>#0) then
+      begin
+        Result:=hp;
+      end;
+    end;
 end;
 
 function ExecuteProcess (const Path: RawByteString; const ComLine: RawByteString;Flags:TExecuteFlags=[]):

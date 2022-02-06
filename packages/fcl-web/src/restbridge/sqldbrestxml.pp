@@ -288,6 +288,8 @@ begin
       rftTime : F[UTF8Decode(GetString(rpFieldDateFormatProp))]:=UTF8Decode(GetString(rpTimeFormat));
       rftDateTime : F[UTF8Decode(GetString(rpFieldDateFormatProp))]:=UTF8Decode(GetString(rpDateTimeFormat));
       rftString : F[UTF8Decode(GetString(rpFieldMaxLenProp))]:=UTF8Decode(IntToStr(P.DBField.Size));
+    else
+       ;
     end;
     end;
 end;
