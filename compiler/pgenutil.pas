@@ -94,7 +94,10 @@ uses
         prettynamepart : ansistring;
         module : tmodule;
       begin
-        module:=find_module_from_symtable(paramtype.owner);
+        if assigned(paramtype.owner) then
+          module:=find_module_from_symtable(paramtype.owner)
+        else
+          module:=current_module;
         if not assigned(module) then
           internalerror(2016112802);
         namepart:='_$'+hexstr(module.moduleid,8)+'$$'+paramtype.unique_id_str;
@@ -2678,7 +2681,10 @@ uses
       current_module.extendeddefs:=TFPHashObjectList.create(true);
       current_module.genericdummysyms:=tfphashobjectlist.create(true);
       symtablestack:=tdefawaresymtablestack.create;
-      hmodule:=find_module_from_symtable(genericdef.owner);
+      if not assigned(genericdef.owner) then
+        hmodule:=current_module
+      else
+        hmodule:=find_module_from_symtable(genericdef.owner);
       if hmodule=nil then
         internalerror(200705152);
       { collect all unit syms in the generic's unit as we need to establish
