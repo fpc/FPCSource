@@ -566,7 +566,8 @@ type
     oo_has_class_destructor,  { the object/class has a class destructor  }
     oo_is_enum_class,     { the class represents an enum (JVM) }
     oo_has_new_destructor,{ the object/class declares a destructor (apart from potentially inherting one from the parent) }
-    oo_is_funcref         { interface has a single Invoke method that can be directly called }
+    oo_is_funcref,        { interface has a single Invoke method that can be directly called }
+    oo_is_invokable       { interface that is invokable like a function }
   );
   tobjectoptions=set of tobjectoption;
 

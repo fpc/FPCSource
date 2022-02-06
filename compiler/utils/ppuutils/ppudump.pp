@@ -3239,7 +3239,8 @@ const
      (mask:oo_has_class_destructor; str:'HasClassDestructor'),
      (mask:oo_is_enum_class;      str:'JvmEnumClass'),
      (mask:oo_has_new_destructor; str:'HasNewDestructor'),
-     (mask:oo_is_funcref;         str:'IsFuncRef')
+     (mask:oo_is_funcref;         str:'IsFuncRef'),
+     (mask:oo_is_invokable;       str:'IsInvokable')
   );
 var
   i      : longint;
