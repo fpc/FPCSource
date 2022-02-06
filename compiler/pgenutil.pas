@@ -2775,8 +2775,10 @@ uses
         hmodule : tmodule;
       begin
         result:=true;
-        hmodule:=find_module_from_symtable(def.genericdef.owner);
-        if hmodule=nil then
+        hmodule:=nil;
+        if assigned(def.genericdef) then
+          hmodule:=find_module_from_symtable(def.genericdef.owner)
+        else if not (df_internal in def.defoptions) then
           internalerror(201202041);
         for i:=0 to def.symtable.DefList.Count-1 do
           begin
@@ -2788,7 +2790,11 @@ uses
                  continue;
                { and the body is available already (which is implicitely the
                  case if the generic routine is part of another unit) }
-               if ((hmodule=current_module) or (hmodule.state=ms_compile)) and
+               if (
+                    not assigned(hmodule) or
+                    (hmodule=current_module) or
+                    (hmodule.state=ms_compile)
+                  ) and
                   { may not be assigned in case it's a synthetic procdef that
                     still needs to be generated }
                   assigned(tprocdef(hp).genericdef) and
