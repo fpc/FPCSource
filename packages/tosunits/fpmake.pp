@@ -35,6 +35,7 @@ begin
     T:=P.Targets.AddUnit('vdi.pas');
     T:=P.Targets.AddUnit('aes.pas');
     T:=P.Targets.AddUnit('gem.pas');
+    T:=P.Targets.AddUnit('gemcommon.pas');
 
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('higem.pas');
