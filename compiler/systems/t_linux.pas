@@ -1305,17 +1305,27 @@ initialization
   RegisterExport(system_aarch64_linux,texportliblinux);
   RegisterTarget(system_aarch64_linux_info);
 {$endif aarch64}
-{$ifdef MIPS}
+{$ifdef MIPS32}
 {$ifdef MIPSEL}
   RegisterImport(system_mipsel_linux,timportliblinux);
   RegisterExport(system_mipsel_linux,texportliblinux);
   RegisterTarget(system_mipsel_linux_info);
-{$else MIPS}
+{$else MIPSEL}
   RegisterImport(system_mipseb_linux,timportliblinux);
   RegisterExport(system_mipseb_linux,texportliblinux);
   RegisterTarget(system_mipseb_linux_info);
 {$endif MIPSEL}
-{$endif MIPS}
+{$endif MIPS32}
+{$ifdef MIPS64}
+  RegisterImport(system_mips64_linux,timportliblinux);
+  RegisterExport(system_mips64_linux,texportliblinux);
+  RegisterTarget(system_mips64_linux_info);
+{$endif MIPS64}
+{$ifdef MIPS64EL}
+  RegisterImport(system_mips64el_linux,timportliblinux);
+  RegisterExport(system_mips64el_linux,texportliblinux);
+  RegisterTarget(system_mips64el_linux_info);
+{$endif MIPS64EL}
 {$ifdef riscv32}
   RegisterImport(system_riscv32_linux,timportliblinux);
   RegisterExport(system_riscv32_linux,texportliblinux);
