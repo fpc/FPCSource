@@ -4204,7 +4204,7 @@ procedure read_arguments(cmd:TCmdStr);
         def_system_macro('FPC_LOCALS_ARE_STACK_REG_RELATIVE');
       {$endif mipseb}
 
-      {$ifdef mips64}
+      {$ifdef mips64eb}
         def_system_macro('CPUMIPS');
         def_system_macro('CPUMIPS64');
         def_system_macro('CPUMIPSEB64');
@@ -4216,7 +4216,7 @@ procedure read_arguments(cmd:TCmdStr);
         def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
         { See comment above for mipsel }
         def_system_macro('FPC_LOCALS_ARE_STACK_REG_RELATIVE');
-      {$endif mips64}
+      {$endif mips64eb}
 
       {$ifdef mips64el}
         def_system_macro('CPUMIPS');

@@ -1204,9 +1204,9 @@ begin
   {$endif ndef default_target_set}
 {$endif xtensa}
 
-{$ifdef mips64}
+{$ifdef mips64eb}
   default_target(system_mips64_linux);
-{$endif mips64}
+{$endif mips64eb}
 
 {$ifdef mips64el}
   default_target(system_mips64el_linux);

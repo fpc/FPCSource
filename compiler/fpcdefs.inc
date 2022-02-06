@@ -276,10 +276,10 @@
   {$endif mips}
 {$endif mipsel}
 
-{$ifdef mips64}
+{$ifdef mips64eb}
   {$define mips}
   {$define mips64}
-{$endif mips64}
+{$endif mips64eb}
 
 {$ifdef mips64el}
   {$define mips}
