@@ -52,6 +52,7 @@ interface
         procedure add_entry_exit_code;
         procedure setup_tempgen;
         procedure OptimizeNodeTree;
+        procedure convert_captured_syms;
       protected
         procedure generate_code_exceptfilters;
       public
@@ -132,7 +133,7 @@ implementation
        globtype,tokens,verbose,comphook,constexp,
        systems,cpubase,aasmbase,aasmtai,
        { symtable }
-       symconst,symbase,symsym,symtype,symtable,defutil,defcmp,symcreat,
+       symconst,symbase,symsym,symtype,symtable,defutil,defcmp,procdefutil,symcreat,
        paramgr,
        fmodule,
        { pass 1 }
@@ -621,6 +622,8 @@ implementation
           end;
         if m_non_local_goto in current_settings.modeswitches then
           tsymtable(current_procinfo.procdef.localst).SymList.ForEachCall(@add_label_init,@newstatement);
+
+        initialize_capturer(current_procinfo,newstatement);
       end;
 
 
@@ -1733,6 +1736,30 @@ implementation
       end;
 
 
+    procedure tcgprocinfo.convert_captured_syms;
+      var
+        hpi : tcgprocinfo;
+        old_current_procinfo : tprocinfo;
+      begin
+        { do the conversion only if there haven't been any errors so far }
+        if ErrorCount<>0 then
+          exit;
+        old_current_procinfo:=current_procinfo;
+        current_procinfo:=self;
+        { process nested procedures }
+        hpi:=tcgprocinfo(get_first_nestedproc);
+        while assigned(hpi) do
+          begin
+            hpi.convert_captured_syms;
+            hpi:=tcgprocinfo(hpi.next);
+          end;
+        { convert the captured symbols for this routine }
+        if assigned(code) then
+          procdefutil.convert_captured_syms(procdef,code);
+        current_procinfo:=old_current_procinfo;
+      end;
+
+
      procedure TCGProcinfo.CreateInlineInfo;
        begin
         new(procdef.inlininginfo);
@@ -2480,6 +2507,8 @@ implementation
          { parse the code ... }
          code:=block(current_module.islibrary);
 
+         postprocess_capturer(self);
+
          if recordtokens then
            begin
              { stop token recorder for generic template }
@@ -2661,6 +2690,9 @@ implementation
                 { also generate the bodies for all previously done
                   specializations so that we might inline them }
                 generate_specialization_procs;
+                { convert all load nodes that might have been captured by a
+                  capture object }
+                tcgprocinfo(current_procinfo).convert_captured_syms;
                 tcgprocinfo(current_procinfo).generate_code_tree;
               end;
           end;
