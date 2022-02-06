@@ -2197,7 +2197,7 @@ procedure pd_syscall(pd:tabstractprocdef);
                 system_i386_aros:
                     result:='eax';
                 system_x86_64_aros:
-                    result:='rax';
+                    result:='r12';
                 system_powerpc_morphos:
                     result:='r12';
                 else
