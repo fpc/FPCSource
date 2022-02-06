@@ -1867,6 +1867,14 @@ implementation
                    doconv:=tc_char_2_string;
                    eq:=te_convert_l2
                  end
+               else if is_funcref(def_to) and
+                   is_funcref(def_from) and
+                   not (cdo_equal_check in cdoptions) then
+                 begin
+                   eq:=funcref_equal(tobjectdef(def_from),tobjectdef(def_to));
+                   if eq>=te_equal then
+                     doconv:=tc_equal;
+                 end
                else
                { specific to implicit pointer object types }
                 if is_implicit_pointer_object_type(def_to) then
