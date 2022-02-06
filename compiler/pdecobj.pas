@@ -1643,6 +1643,11 @@ implementation
             if is_objectpascal_helper(current_structdef) then
               parse_extended_type(helpertype);
 
+            if is_interface(current_objectdef) and
+                is_interface(current_objectdef.childof) and
+                (oo_is_invokable in tobjectdef(current_objectdef.childof).objectoptions) then
+              include(current_objectdef.objectoptions,oo_is_invokable);
+
             { parse optional GUID for interfaces }
             parse_guid;
 
