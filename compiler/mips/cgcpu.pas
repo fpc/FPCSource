@@ -1579,7 +1579,7 @@ begin
         list.concat(taicpu.op_reg_ref(A_SW, tmpreg1, dst));
         Inc(src.offset, 4);
         Inc(dst.offset, 4);
-	Inc(count2);
+        Inc(count2);
       end;
       len := len mod 4;
     end;
@@ -1651,7 +1651,7 @@ begin
     begin
       { unrolled loop }
       tmpreg1 := GetIntRegister(list, OS_INT);
-      i:=1;
+      i := 1;
       while i <= len do
       begin
         list.concat(taicpu.op_reg_ref(A_LBU, tmpreg1, src));
