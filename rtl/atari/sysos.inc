@@ -25,16 +25,16 @@ begin
   else
     begin
       case errno of
-        -32 : InOutRes:=1;
-        -33 : InOutRes:=2;
-        -34 : InOutRes:=3;
-        -35 : InOutRes:=4;
-        -36 : InOutRes:=5;
-        -37 : InOutRes:=8;
-        -39 : InOutRes:=8;
-        -40 : InOutRes:=9;
-        -46 : InOutRes:=15;
-        -67..-64 : InOutRes:=153;
+        EINVFN : InOutRes:=1;
+        EFILNF : InOutRes:=2;
+        EPTHNF : InOutRes:=3;
+        ENHNDL : InOutRes:=4;
+        EACCDN : InOutRes:=5;
+        EIHNDL : InOutRes:=6;
+        ENSMEM,EGSBF : InOutRes:=8;
+        EIMBA : InOutRes:=9;
+        EDRIVE : InOutRes:=15;
+        EPLFMT,EINTRN,ERANGE : InOutRes:=153;
         -15 : InOutRes:=151;
         -13 : InOutRes:=150;
       else

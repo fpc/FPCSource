@@ -19,12 +19,14 @@
 
 const
     E_OK        = 0;       // OK. No error has arisen
+    ESPIPE      = -6;      // Illegal seek
     EINVFN      = -32;     // Unknown function number
     EFILNF      = -33;     // File not found
     EPTHNF      = -34;     // Directory (folder) not found
     ENHNDL      = -35;     // No more handles available
     EACCDN      = -36;     // Access denied
     EIHNDL      = -37;     // Invalid file handle
+    EPERM       = -38;     // Permission denied
     ENSMEM      = -39;     // Insufficient memory
     EIMBA       = -40;     // Invalid memory block address
     EDRIVE      = -46;     // Invalid drive specification
