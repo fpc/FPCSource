@@ -1234,7 +1234,7 @@ implementation
           between code fragments that use a different TOC (which has to be
           executed when that "branch" returns). So we can't use tail call
           branches to routines potentially using a different TOC there }
-        if target_info.system in systems_ppc_toc then
+        if target_info.abi in abis_ppc_toc then
           usehighlevelwrapper:=true
         else
           usehighlevelwrapper:=false;

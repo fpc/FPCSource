@@ -905,9 +905,17 @@ const
               end;
           end;
 
-        { save the CR if necessary ( !!! never done currently ) }
-{       still need to find out where this has to be done for SystemV
-        a_reg_alloc(list,R_0);
+        { save current RTOC for restoration after calls if necessary }
+        if (pi_do_call in current_procinfo.flags) and
+           (target_info.abi in abis_ppc_toc) then
+          begin
+            reference_reset_base(href,NR_STACK_POINTER_REG,get_rtoc_offset,ctempposinvalid,target_info.stackalign,[]);
+            a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_RTOC,href);
+          end;
+
+        { save the CR if/when we ever start using caller-save portions of that
+          register}
+{       a_reg_alloc(list,R_0);
         list.concat(taicpu.op_reg_reg(A_MFSPR,R_0,R_CR);
         list.concat(taicpu.op_reg_ref(A_STW,scratch_register,
           new_reference(STACK_POINTER_REG,LA_CR)));
@@ -1298,6 +1306,14 @@ const
                 a_reg_dealloc(list,href.index);
               end;
           end;
+
+        { save current RTOC for restoration after calls if necessary }
+        if pi_do_call in current_procinfo.flags then
+          begin
+            reference_reset_base(href,NR_STACK_POINTER_REG,get_rtoc_offset,ctempposinvalid,target_info.stackalign,[]);
+            a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_RTOC,href);
+          end;
+
       end;
 
     procedure tcgppc.g_return_from_proc_mac(list : TAsmList;parasize : tcgint);

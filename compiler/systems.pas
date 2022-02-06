@@ -393,14 +393,9 @@ interface
          on the caller side rather than on the callee side }
        systems_caller_copy_addr_value_para = [system_aarch64_ios,system_aarch64_darwin,system_aarch64_linux];
 
-       { all PPC systems that use a TOC register to address globals }
-       { TODO: not used by Darwin, but don't know about others (JM) }
-       systems_ppc_toc = [
-         system_powerpc_linux,
-         system_powerpc64_linux,
-         system_powerpc_aix,
-         system_powerpc64_aix,
-         system_powerpc_macosclassic
+       { all PPC ABIs that use a TOC register to address globals }
+       abis_ppc_toc = [
+         abi_powerpc_sysv,abi_powerpc_aix,abi_powerpc_elfv2
        ];
 
        { pointer checking (requires special code in FPC_CHECKPOINTER,
