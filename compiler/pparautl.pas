@@ -84,12 +84,14 @@ implementation
         if not(pd.proctypeoption in [potype_constructor,potype_destructor]) and
            not is_void(pd.returndef) and
            not (df_generic in pd.defoptions) and
+           { if this was originally an anonymous function then this was already
+             done earlier }
+           not ((pd.typ=procdef) and tprocdef(pd).was_anonymous) and
            paramanager.ret_in_param(pd.returndef,pd) then
          begin
            storepos:=current_tokenpos;
            if pd.typ=procdef then
             current_tokenpos:=tprocdef(pd).fileinfo;
-
 {$if defined(i386)}
            { For left to right add it at the end to be delphi compatible.
              In the case of safecalls with safecal-exceptions support the
