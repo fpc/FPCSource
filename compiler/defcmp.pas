@@ -152,6 +152,9 @@ interface
     { used to test compatibility between two pprocvardefs (JM)               }
     function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef;checkincompatibleuniv: boolean):tequaltype;
 
+    { True if a function can be assigned to a function reference }
+    function proc_to_funcref_equal(def1:tabstractprocdef;def2:tobjectdef):tequaltype;
+
     { Checks if an funcref interface can be assigned to the other }
     function funcref_equal(def1,def2:tobjectdef):tequaltype;
 
@@ -2628,6 +2631,24 @@ implementation
     function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef;checkincompatibleuniv: boolean):tequaltype;
       begin
         result:=proc_to_procvar_equal_internal(def1,def2,checkincompatibleuniv,false);
+      end;
+
+
+    function proc_to_funcref_equal(def1:tabstractprocdef;def2:tobjectdef):tequaltype;
+      var
+        invoke : tprocdef;
+      begin
+        result:=te_incompatible;
+        if not assigned(def1) or not assigned(def2) then
+          exit;
+        if not is_invokable(def2) then
+          internalerror(2022011601);
+        invoke:=get_invoke_procdef(def2);
+        result:=proc_to_procvar_equal_internal(def1,invoke,false,true);
+        { as long as the two methods are considered convertible we consider the
+          procdef and the function reference as equal }
+        if result>te_convert_operator then
+          result:=te_equal;
       end;
 
 
