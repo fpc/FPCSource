@@ -915,9 +915,11 @@ type
     // Library
     Procedure TestLibrary_Empty;
     Procedure TestLibrary_ExportFunc;
+    Procedure TestLibrary_ExportFuncOverloadedFail;
     Procedure TestLibrary_Export_Index_Fail;
     Procedure TestLibrary_ExportVar;
     Procedure TestLibrary_ExportUnitFunc;
+    // todo: test fail on export overloaded function
     // ToDo: test delayed specialization init
     // ToDo: analyzer
   end;
@@ -34164,6 +34166,24 @@ begin
   CheckResolverUnexpectedHints();
 end;
 
+procedure TTestModule.TestLibrary_ExportFuncOverloadedFail;
+begin
+  StartLibrary(false);
+  Add([
+  'procedure Run(w: word); overload;',
+  'begin',
+  'end;',
+  'procedure Run(s: string); overload;',
+  'begin',
+  'end;',
+  'exports',
+  '  Run;',
+  '']);
+  SetExpectedPasResolverError(sCantDetermineWhichOverloadedFunctionToCall,
+                              nCantDetermineWhichOverloadedFunctionToCall);
+  ConvertLibrary;
+end;
+
 procedure TTestModule.TestLibrary_Export_Index_Fail;
 begin
   StartLibrary(false);
@@ -34199,7 +34219,38 @@ end;
 
 procedure TTestModule.TestLibrary_ExportUnitFunc;
 begin
+  AddModuleWithIntfImplSrc('Unit1.pas',
+    LinesToStr([
+    'type',
+    '  TAnt = class',
+    '    class function Crawl: word; static;',
+    '  end;',
+    'function Fly: word;',
+    '']),
+    LinesToStr([
+    'function Fly: word;',
+    'begin',
+    'end;',
+    'class function TAnt.Crawl: word;',
+    'begin',
+    'end;',
+    '']));
 
+  StartLibrary(true,[supTObject]);
+  Add([
+  'uses unit1;',
+  'exports',
+  '  Fly;',
+  '  TAnt.Crawl;',
+  '']);
+  ConvertLibrary;
+  CheckSource('TestLibrary_ExportUnitFunc',
+    LinesToStr([ // statements
+    'export { pas.Unit1.Fly as Fly, pas.Unit1.TAnt.Crawl as Crawl };',
+    '']),
+    LinesToStr([
+    '']));
+  CheckResolverUnexpectedHints();
 end;
 
 Initialization

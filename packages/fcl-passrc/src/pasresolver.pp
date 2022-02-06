@@ -9241,11 +9241,10 @@ procedure TPasResolver.FinishExportSymbol(El: TPasExportSymbol);
 
 var
   Expr: TPasExpr;
-  DeclEl: TPasElement;
+  DeclEl, DuplicateEl: TPasElement;
   FindData: TPRFindData;
   Ref: TResolvedReference;
   ResolvedEl: TPasResolverResult;
-  Section: TPasSection;
   Scope: TPasIdentifierScope;
   ScopeIdent: TPasIdentifier;
 begin
@@ -9257,7 +9256,15 @@ begin
     DeclEl:=ResolvedEl.IdentEl;
     if DeclEl=nil then
       RaiseMsg(20210103012907,nXExpectedButYFound,sXExpectedButYFound,['symbol',GetTypeDescription(ResolvedEl)],Expr);
-    if not (DeclEl.Parent is TPasSection) then
+    if DeclEl.Parent=nil then
+      RaiseMsg(20220206142147,nSymbolCannotBeExportedFromALibrary,
+        sSymbolCannotBeExportedFromALibrary,[],El);
+    if DeclEl.Parent is TPasSection then
+      // global
+    else if (DeclEl.Parent is TPasMembersType) and (DeclEl is TPasProcedure)
+        and (TPasProcedure(DeclEl).IsStatic) then
+      // static proc
+    else
       RaiseMsg(20210103012908,nXExpectedButYFound,sXExpectedButYFound,['global symbol',GetElementTypeName(DeclEl)],Expr);
     end
   else
@@ -9272,16 +9279,25 @@ begin
     CheckFoundElement(FindData,Ref);
     end;
 
-  if DeclEl is TPasProcedure then
+  if DeclEl.Parent.CustomData is TPasIdentifierScope then
     begin
-    Section:=DeclEl.Parent as TPasSection;
-    Scope:=Section.CustomData as TPasIdentifierScope;
+    Scope:=DeclEl.Parent.CustomData as TPasIdentifierScope;
     ScopeIdent:=Scope.FindLocalIdentifier(DeclEl.Name);
     if (ScopeIdent=nil) then
       RaiseNotYetImplemented(20210106103001,El,GetObjPath(DeclEl));
     if ScopeIdent.NextSameIdentifier<>nil then
-      RaiseMsg(20210106103320,nCantDetermineWhichOverloadedFunctionToCall,
-        sCantDetermineWhichOverloadedFunctionToCall,[],El);
+      if DeclEl is TPasProcedure then
+        RaiseMsg(20210106103320,nCantDetermineWhichOverloadedFunctionToCall,
+          sCantDetermineWhichOverloadedFunctionToCall,[],El)
+      else
+        begin
+        if ScopeIdent.Element=DeclEl then
+          DuplicateEl:=ScopeIdent.NextSameIdentifier.Element
+        else
+          DuplicateEl:=ScopeIdent.Element;
+        RaiseMsg(20220206141619,nDuplicateIdentifier,
+          sDuplicateIdentifier,[DuplicateEl.Name,GetElementSourcePosStr(DuplicateEl)],El);
+        end;
     end;
 
   // check index and name
@@ -17673,7 +17689,7 @@ begin
     SpecializeProcedureType(TPasProcedureType(GenEl),TPasProcedureType(SpecEl),nil);
     end
   else if C=TPasExportSymbol then
-    RaiseMsg(20210101234958,nSymbolCannotExportedFromALibrary,sSymbolCannotExportedFromALibrary,[],GenEl)
+    RaiseMsg(20210101234958,nSymbolCannotBeExportedFromALibrary,sSymbolCannotBeExportedFromALibrary,[],GenEl)
   else
     RaiseNotYetImplemented(20190728151215,GenEl);
 end;

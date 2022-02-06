@@ -509,7 +509,6 @@ const
   nDuplicateMessageIdXAtY = 4029;
   nDispatchRequiresX = 4030;
   nConstRefNotForXAsConst = 4031;
-  nSymbolCannotBeExportedFromALibrary = 4032;
 // resourcestring patterns of messages
 resourcestring
   sPasElementNotSupported = 'Pascal element not supported: %s';
@@ -543,7 +542,6 @@ resourcestring
   sDuplicateMessageIdXAtY = 'Duplicate message id "%s" at %s';
   sDispatchRequiresX = 'Dispatch requires %s';
   sConstRefNotForXAsConst = 'ConstRef not yet implemented for %s. Treating as Const';
-  sSymbolCannotBeExportedFromALibrary = 'The symbol cannot be exported from a library';
 
 const
   ExtClassBracketAccessor = '[]'; // external name '[]' marks the array param getter/setter
@@ -4932,11 +4930,21 @@ begin
   if DeclEl=nil then
     RaiseMsg(20210106223620,nSymbolCannotBeExportedFromALibrary,
       sSymbolCannotBeExportedFromALibrary,[],El);
-  if not (DeclEl.Parent is TPasSection) then
+  if DeclEl is TPasResultElement then
+    DeclEl:=DeclEl.Parent.Parent;
+
+  if DeclEl.Parent=nil then
+    RaiseMsg(20220206142534,nSymbolCannotBeExportedFromALibrary,
+      sSymbolCannotBeExportedFromALibrary,[],El);
+  if DeclEl.Parent is TPasSection then
+    // global
+  else if (DeclEl is TPasProcedure) and TPasProcedure(DeclEl).IsStatic then
+    // static proc
+  else
     RaiseMsg(20210106224436,nSymbolCannotBeExportedFromALibrary,
       sSymbolCannotBeExportedFromALibrary,[],El);
 
-  if not (DeclEl.Parent is TLibrarySection) then
+  if not (El.Parent is TLibrarySection) then
     // disable exports in units
     RaiseMsg(20211022224239,nSymbolCannotBeExportedFromALibrary,
       sSymbolCannotBeExportedFromALibrary,[],El);
