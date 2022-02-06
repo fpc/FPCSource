@@ -245,10 +245,10 @@ end;
 
 
 function do_isdevice(handle: thandle): boolean;
+var pos, newpos: longint;
 begin
-  if (handle=StdOutputHandle) or (handle=StdInputHandle) or
-     (handle=StdErrorHandle) then
-    do_isdevice:=True
-  else
-    do_isdevice:=False;
+  pos := gemdos_fseek(0, handle, SEEK_FROM_CURRENT);
+  newpos := gemdos_fseek(1, handle, SEEK_FROM_START);
+  gemdos_fseek(pos, handle, SEEK_FROM_START);
+  do_isdevice := (newpos=0) or (pos=ESPIPE);
 end;
