@@ -2183,15 +2183,15 @@ implementation
           begin
             if aInput.typ = top_ref then
             begin
-	      if aInput.ref^.base <> NR_NO then
-	      begin	      
-	        if (aInput.ref^.offset <> 0) and
+              if aInput.ref^.base <> NR_NO then
+              begin              
+                if (aInput.ref^.offset <> 0) and
                    ((aInput.ref^.offset mod tuplesize) = 0) and
                    (abs(aInput.ref^.offset) div tuplesize <= 127) then
                 begin
                   aInput.ref^.offset := aInput.ref^.offset div tuplesize;
                   EVEXTupleState := etsIsTuple;
-    	        end;  
+                    end;  
               end;
             end;
           end;
@@ -2905,35 +2905,35 @@ implementation
              NR_EAX,
              NR_XMM0,
              NR_YMM0,
-	     NR_ZMM0: index:=0;
+             NR_ZMM0: index:=0;
              NR_ECX,
              NR_XMM1,
              NR_YMM1,
-	     NR_ZMM1: index:=1;
+             NR_ZMM1: index:=1;
              NR_EDX,
              NR_XMM2,
              NR_YMM2,
-	     NR_ZMM2: index:=2;
+             NR_ZMM2: index:=2;
              NR_EBX,
              NR_XMM3,
              NR_YMM3,
-	     NR_ZMM3: index:=3;
+             NR_ZMM3: index:=3;
              NR_NO,
              NR_XMM4,
              NR_YMM4,
-	     NR_ZMM4: index:=4;
+             NR_ZMM4: index:=4;
              NR_EBP,
              NR_XMM5,
              NR_YMM5,
-	     NR_ZMM5: index:=5;
+             NR_ZMM5: index:=5;
              NR_ESI,
              NR_XMM6,
              NR_YMM6,
-	     NR_ZMM6: index:=6;
+             NR_ZMM6: index:=6;
              NR_EDI,
              NR_XMM7,
              NR_YMM7,
-	     NR_ZMM7: index:=7;
+             NR_ZMM7: index:=7;
            else
              exit;
            end;
@@ -3507,7 +3507,7 @@ implementation
        *                 generates no code in the assembler)
        * \331          - instruction not valid with REP prefix.  Hint for
        *                 disassembler only; for SSE instructions.
-       * \332	       - disassemble a rep (0xF3 byte) prefix as repe not rep.
+       * \332               - disassemble a rep (0xF3 byte) prefix as repe not rep.
        * \333          - 0xF3 prefix for SSE instructions
        * \334          - 0xF2 prefix for SSE instructions
        * \335          - Indicates 64-bit operand size with REX.W not necessary / 64-bit scalar vector operand size
@@ -3678,7 +3678,7 @@ implementation
 {$endif i386}
            objdata.writereloc(data,len,p,Reloctype);
 {$ifdef x86_64}
-	   { Computed offset is not yet correct for GOTPC relocation }
+           { Computed offset is not yet correct for GOTPC relocation }
            { RELOC_GOTPCREL, RELOC_REX_GOTPCRELX, RELOC_GOTPCRELX need special handling }
            if assigned(p) and (RelocType in [RELOC_GOTPCREL, RELOC_REX_GOTPCRELX, RELOC_GOTPCRELX]) and
               { These relocations seem to be used only for ELF
@@ -5538,14 +5538,14 @@ implementation
             // combination (attsuffix <> "AttSufNONE") and (MemRefSize is not in MemRefMultiples) is not supported =>> check opcode-definition in x86ins.dat
 
             if (AsmOp <> A_CVTSI2SD) and
-	       (AsmOp <> A_CVTSI2SS) then
-	    begin	    
+               (AsmOp <> A_CVTSI2SS) then
+            begin            
               inc(iCntOpcodeValError);
               Str(gas_needsuffix[AsmOp],hs1);
               Str(InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize,hs2);
               Message3(asmr_e_not_supported_combination_attsuffix_memrefsize_type,
                        std_op2str[AsmOp],hs1,hs2);
-	    end;	       
+            end;               
           end;
         end;
       end;
