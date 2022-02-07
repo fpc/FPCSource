@@ -378,6 +378,10 @@ unit cgcpu;
             list.concat(Taicpu.Op_reg(A_POP,S_W,NR_FS));
             list.concat(Taicpu.Op_reg(A_POP,S_W,NR_GS));
             { this restores the flags }
+
+            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+              list.concat(tai_regalloc.dealloc(NR_STACK_POINTER_REG,nil));
+
             list.concat(Taicpu.Op_none(A_IRET,S_NO));
           end
         { Routines with the poclearstack flag set use only a ret }
@@ -388,6 +392,9 @@ unit cgcpu;
            { but not on win32 }
            { and not for safecall with hidden exceptions, because the result }
            { wich contains the exception is passed in EAX }
+           if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+             list.concat(tai_regalloc.dealloc(NR_STACK_POINTER_REG,nil));
+
            if ((target_info.system <> system_i386_win32) or
                (target_info.abi=abi_old_win32_gnu)) and
               not ((current_procinfo.procdef.proccalloption = pocall_safecall) and
@@ -398,16 +405,27 @@ unit cgcpu;
            else
              list.concat(Taicpu.Op_none(A_RET,S_NO));
          end
+
         { ... also routines with parasize=0 }
         else if (parasize=0) then
-         list.concat(Taicpu.Op_none(A_RET,S_NO))
+         begin
+           if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+             list.concat(tai_regalloc.dealloc(NR_STACK_POINTER_REG,nil));
+
+           list.concat(Taicpu.Op_none(A_RET,S_NO))
+         end
         else
          begin
            { parameters are limited to 65535 bytes because ret allows only imm16 }
            if (parasize>65535) then
              CGMessage(cg_e_parasize_too_big);
+
+           if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+             list.concat(tai_regalloc.dealloc(NR_STACK_POINTER_REG,nil));
+
            list.concat(Taicpu.Op_const(A_RET,S_W,parasize));
          end;
+
       end;
 
 

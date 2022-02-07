@@ -206,12 +206,13 @@ unit cgcpu;
           is expected to be one of those directives, and not generated here. }
         suppress_endprologue:=(pi_has_unwind_info in current_procinfo.flags);
 
+        list.concat(tai_regalloc.alloc(NR_STACK_POINTER_REG,nil));
+
         { save old framepointer }
         if not nostackframe then
           begin
             { return address }
             stackmisalignment := sizeof(pint);
-            list.concat(tai_regalloc.alloc(current_procinfo.framepointer,nil));
             if current_procinfo.framepointer=NR_STACK_POINTER_REG then
               begin
                 push_regs;
@@ -219,6 +220,7 @@ unit cgcpu;
               end
             else
               begin
+                list.concat(tai_regalloc.alloc(current_procinfo.framepointer,nil));
                 { push <frame_pointer> }
                 inc(stackmisalignment,sizeof(pint));
                 push_one_reg(NR_FRAME_POINTER_REG);
@@ -426,6 +428,9 @@ unit cgcpu;
             if pi_uses_ymm in current_procinfo.flags then
               list.Concat(taicpu.op_none(A_VZEROUPPER));
           end;
+
+        if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+          list.concat(tai_regalloc.dealloc(NR_STACK_POINTER_REG,nil));
 
         list.concat(Taicpu.Op_none(A_RET,S_NO));
 
