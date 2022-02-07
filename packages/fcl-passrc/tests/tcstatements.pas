@@ -10,7 +10,7 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, pastree, pscanner, pparser,
-  tcbaseparser, testregistry;
+  tcbaseparser, TestPasUtils, testregistry;
 
 Type
   { TTestStatementParser }

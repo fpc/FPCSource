@@ -180,7 +180,7 @@ begin
   // collect markers in Pascal
   PasSrc:=TStringList.Create;
   try
-    PasSrc.Text:=Engine.Source;
+    PasSrc.Text:=ResolverEngine.Source;
     for i:=1 to PasSrc.Count do
       begin
       Line:=PasSrc[i-1];

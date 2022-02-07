@@ -37,7 +37,7 @@
         <PackageName Value="FCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="13">
+    <Units Count="15">
       <Unit0>
         <Filename Value="testpas2js.pp"/>
         <IsPartOfProject Value="True"/>
@@ -101,6 +101,16 @@
         <Filename Value="tcconverter.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit12>
+      <Unit13>
+        <Filename Value="tcpas2jsanalyzer.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="TCPas2JSAnalyzer"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="../../fcl-passrc/tests/testpasutils.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="TestPasUtils"/>
+      </Unit14>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -110,7 +120,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="../src;../../fcl-js/src;../../fcl-json/src;../../fcl-passrc/src;../../pastojs/tests"/>
+      <OtherUnitFiles Value="../src;../../fcl-js/src;../../fcl-json/src;../../fcl-passrc/src;../../pastojs/tests;../../fcl-passrc/tests"/>
       <UnitOutputDirectory Value="lib"/>
     </SearchPaths>
     <CodeGeneration>
