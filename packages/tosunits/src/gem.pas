@@ -336,21 +336,18 @@ end;
 
 
 procedure v_opnwk(const WorkIn: workin_Array; out handle: smallint; out WorkOut: workout_Array);
-var pb: TVDIPB;
 begin
   vdi.v_opnwk(@workin[0], @handle, @workout[0]);
 end;
 
 
 procedure v_opnvwk(const WorkIn: workin_Array; var handle: smallint; out WorkOut: workout_Array);
-var pb: TVDIPB;
 begin
   vdi.v_opnvwk(@workin[0], @handle, @workout[0]);
 end;
 
 
 procedure vq_extnd(handle, owflag: smallint; out WorkOut: workout_Array);
-var pb: TVDIPB;
 begin
   vdi.vq_extnd(handle, owflag, @workout[0]);
 end;
