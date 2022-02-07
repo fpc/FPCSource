@@ -34838,7 +34838,7 @@ begin
   Add([
   'var Wing: word;',
   'exports',
-  '  Wing;',
+  '  Wing, wing name ''BirdArm'';',
   '']);
   ConvertLibrary;
   CheckFullSource('TestLibrary_ExportVar',
@@ -34850,7 +34850,27 @@ begin
     '  };',
     '});',
     'rtl.run("library");',
-    'export const Wing = pas.library.Wing;',
+    'export const vars = {};',
+    'Object.defineProperties(vars, {',
+    '  Wing: {',
+    '      enumerable: true,',
+    '      get: function () {',
+    '          return pas.library.Wing;',
+    '        },',
+    '      set: function (v) {',
+    '          pas.library.Wing = v;',
+    '        }',
+    '    },',
+    '  BirdArm: {',
+    '      enumerable: true,',
+    '      get: function () {',
+    '          return pas.library.Wing;',
+    '        },',
+    '      set: function (v) {',
+    '          pas.library.Wing = v;',
+    '        }',
+    '    }',
+    '});',
     '']));
   CheckResolverUnexpectedHints();
 end;
