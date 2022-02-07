@@ -20,7 +20,7 @@
 unit TCModules;
 
 {$mode objfpc}{$H+}
-{$Optimization }
+
 interface
 
 uses
@@ -954,7 +954,6 @@ type
     Procedure TestLibrary_ExportUnitFunc;
     // ToDo: test delayed specialization init
     // ToDo: shortrefoptimization
-    // ToDo linklib
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -34794,7 +34793,9 @@ begin
     '  };',
     '});',
     'rtl.run("library");',
-    'export { pas.library.Run as Run, pas.library.Run as Foo, pas.library.Run as Test1Run };',
+    'export const Run = pas.library.Run;',
+    'export const Foo = pas.library.Run;',
+    'export const Test1Run = pas.library.Run;',
     '']));
   CheckResolverUnexpectedHints();
 end;
@@ -34849,7 +34850,7 @@ begin
     '  };',
     '});',
     'rtl.run("library");',
-    'export { pas.library.Wing as Wing };',
+    'export const Wing = pas.library.Wing;',
     '']));
   CheckResolverUnexpectedHints();
 end;
@@ -34889,7 +34890,8 @@ begin
     '  };',
     '});',
     'rtl.run("library");',
-    'export { pas.Unit1.Fly as Fly, pas.Unit1.TAnt.Crawl as Crawl };',
+    'export const Fly = pas.Unit1.Fly;',
+    'export const Crawl = pas.Unit1.TAnt.Crawl;',
     '']));
   CheckResolverUnexpectedHints();
 end;

@@ -18040,6 +18040,16 @@ end;
 
 procedure TPasToJSConverter.CreateExportsSection(El: TPasLibrary;
   Src: TJSSourceElements; AContext: TConvertContext);
+// functions:
+//   export const func1 = pas.unit1.func1;
+// variables:
+//   export const vars = {};
+//   Object.defineProperties(vars, {
+//     Var1: {
+//       get: function(){return pas.unit1.Var1;},
+//       set: function(v){pas.unit1.Var1 = v;},
+//     }
+//   });
 var
   ExportSymbols: TFPList;
   aResolver: TPas2JSResolver;
@@ -18048,20 +18058,19 @@ var
   Symb: TPasExportSymbol;
   Ref: TResolvedReference;
   NamePath: String;
+  AliasName: TJSString;
   EvalValue: TResEvalValue;
-  ExpNameJS: TJSExportNameElement;
   Decl: TPasElement;
   ResolvedEl: TPasResolverResult;
+  VarSt: TJSVariableStatement;
+  VarDecl: TJSVarDeclaration;
 begin
   ExportSymbols:=El.LibrarySection.ExportSymbols;
   if ExportSymbols.Count=0 then exit;
   aResolver:=AContext.Resolver;
 
-  ExpSt:=TJSExportStatement(CreateElement(TJSExportStatement,El));
-  AddToSourceElements(Src,ExpSt);
   for i:=0 to ExportSymbols.Count-1 do
     begin
-    ExpNameJS:=ExpSt.ExportNames.AddElement;
     Symb:=TObject(ExportSymbols[i]) as TPasExportSymbol;
 
     // name
@@ -18078,9 +18087,9 @@ begin
       Decl:=Ref.Declaration;
       end;
     NamePath:=CreateReferencePath(Decl,AContext,rpkPathAndName,true);
-    ExpNameJS.Name:=TJSString(NamePath);
 
     // alias
+    AliasName:='';
     if Symb.ExportName<>nil then
       begin
       EvalValue:=aResolver.Eval(Symb.ExportName,[refConst]);
@@ -18089,10 +18098,10 @@ begin
       case EvalValue.Kind of
       {$ifdef FPC_HAS_CPSTRING}
       revkString:
-        ExpNameJS.Alias:=TJSString(TResEvalString(EvalValue).S);
+        AliasName:=TJSString(TResEvalString(EvalValue).S);
       {$endif}
       revkUnicodeString:
-        ExpNameJS.Alias:=TResEvalUTF16(EvalValue).S;
+        AliasName:=TResEvalUTF16(EvalValue).S;
       else
         RaiseNotSupported(Symb.ExportName,AContext,20211020144404);
       end;
@@ -18102,8 +18111,19 @@ begin
       begin
       if Decl.Name='' then
         RaiseNotSupported(Symb,AContext,20211020144730);
-      ExpNameJS.Alias:=TJSString(Decl.Name);
+      AliasName:=TJSString(Decl.Name);
       end;
+
+    // "export const AliasName = NamePath;"
+    ExpSt:=TJSExportStatement(CreateElement(TJSExportStatement,Symb));
+    AddToSourceElements(Src,ExpSt);
+    VarSt:=TJSVariableStatement(CreateElement(TJSVariableStatement,Symb));
+    ExpSt.Declaration:=VarSt;
+    VarSt.VarType:=vtConst;
+    VarDecl:=TJSVarDeclaration(CreateElement(TJSVarDeclaration,Symb));
+    VarSt.VarDecl:=VarDecl;
+    VarDecl.Name:=AliasName;
+    VarDecl.Init:=CreatePrimitiveDotExpr(NamePath,Symb);
     end;
 end;
 
