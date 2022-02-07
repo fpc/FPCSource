@@ -276,10 +276,15 @@ type
 type
   PGRECT = ^TGRECT;
   TGRECT = record
-    x: smallint;   {* X-coordinate *}
-    y: smallint;   {* Y-coordinate *}
-    w: smallint;   {* Width        *}
-    h: smallint;   {* Height       *}
+    case integer of 
+     0: (x: smallint;     {* X-coordinate *}
+         y: smallint;     {* Y-coordinate *}
+         w: smallint;     {* Width        *}
+         h: smallint);    {* Height       *}
+     1: (g_x: smallint;   {* X-coordinate *}
+         g_y: smallint;   {* Y-coordinate *}
+         g_w: smallint;   {* Width        *}
+         g_h: smallint);  {* Height       *}
   end;
 
 { kinds, as used by wind_create() }
