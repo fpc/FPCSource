@@ -40,8 +40,8 @@ begin
     begin
       writeln('yes');
       asm
-       // vpxor %ymm0,%ymm0,%ymm0
-       // vaddpd %zmm0,%zmm0,%zmm0
+       vpxor %ymm0,%ymm0,%ymm0
+       vpdpbusd %zmm0,%zmm0,%zmm0
       end;
     end
   else
@@ -51,8 +51,8 @@ begin
     begin
       writeln('yes');
       asm
-        //vpxor %ymm0,%ymm0,%ymm0
-        //vaddpd %zmm0,%zmm0,%zmm0
+        vpxor %ymm0,%ymm0,%ymm0
+        vpopcntb %zmm0,%zmm0
       end;
     end
   else

@@ -253,6 +253,8 @@ unit cpu;
                     movl $0,%ecx
                     cpuid
                     movl %ebx,_ebx
+                    movl %ecx,_ecx
+                    movl %edx,_edx
                     popl %ebx
                   end;
                   _AVX2Support:=_AVXSupport and ((_ebx and $20)<>0);
