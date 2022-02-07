@@ -921,8 +921,8 @@ type
     Procedure TestLibrary_ExportVar;
     Procedure TestLibrary_ExportUnitFunc;
     // ToDo: test delayed specialization init
-    // ToDo: analyzer
     // ToDo: shortrefoptimization
+    // ToDo linklib
   end;
 
 function LinesToStr(Args: array of const): string;
