@@ -13,6 +13,7 @@
  **********************************************************************}
 
 {$PACKRECORDS 2}
+{$MODESWITCH OUT+}
 unit metados;
 
 interface
@@ -42,8 +43,8 @@ type
   end;
 
 
-procedure xbios_Metainit(var buffer: TMETAINFO); syscall 14 48;
-function xbios_Metaopen(drive: smallint; var buffer: TMETA_DRVINFO): LongInt; syscall 14 49;
+procedure xbios_Metainit(out buffer: TMETAINFO); syscall 14 48;
+function xbios_Metaopen(drive: smallint; out buffer: TMETA_DRVINFO): LongInt; syscall 14 49;
 function xbios_Metaclose(drive: smallint): LongInt; syscall 14 50;
 function xbios_Metaread(drive: smallint; buffer: Pointer; blockno: LongInt; count: smallint): LongInt; syscall 14 51;
 function xbios_Metawrite(drive: smallint; buffer: Pointer; blockno: LongInt; count: smallint): LongInt; syscall 14 52;
