@@ -56,8 +56,12 @@ type
   {$ENDIF}
 
   // Random access to CSV document. Reads entire document into memory.
+
+  { TCSVDocument }
+
   TCSVDocument = class(TCSVHandler)
   private
+    FDetectBOM: Boolean;
     FRows: TFPObjectList;
     FParser: TCSVParser;
     FBuilder: TCSVBuilder;
@@ -129,6 +133,9 @@ type
     procedure UnifyEmbeddedLineEndings;
     // Remove empty cells at end of rows from entire document
     procedure RemoveTrailingEmptyCells;
+
+    // Detect bom
+    Property DetectBOM : Boolean Read FDetectBOM Write FDetectBOM;
 
     // Properties
 
@@ -428,6 +435,7 @@ begin
   FreeAndNil(FParser);
   FParser:=TCSVParser.Create;
   FParser.AssignCSVProperties(Self);
+  FParser.DetectBOM:=Self.DetectBOM;
   with FParser do
   begin
     SetSource(AStream);
