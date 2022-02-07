@@ -2167,9 +2167,9 @@ begin
   pb.intin := @_intin;
   pb.ptsin := @_ptsin;
   // work_out[0..44] = intout[0..44];
-  pb.intout := @workout;
+  pb.intout := PVDIIntOut(workout);
   // work_out[45..56] = ptsout[0..11];
-  pb.ptsout := @workout[45];
+  pb.ptsout := PVDIPtsOut(@workout[45]);
 
   _intin[0]:=owflag;
 
