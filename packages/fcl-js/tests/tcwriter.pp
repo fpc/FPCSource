@@ -101,6 +101,7 @@ type
     Procedure TestConstDeclarationStatement;
     Procedure TestDebuggerStatement;
     Procedure TestVarListDeclarationStatement;
+    Procedure TestConstListDeclarationStatement;
     Procedure TestVarListDeclarationStatement2Vars;
     Procedure TestVarListDeclarationStatement3Vars;
     Procedure TestReturnStatement;
@@ -1056,6 +1057,23 @@ begin
   S.VarDecl:=L;
   V.Name:='a';
   AssertWrite('simple var','var a',S);
+end;
+
+procedure TTestStatementWriter.TestConstListDeclarationStatement;
+Var
+  S : TJSVariableStatement;
+  V : TJSVarDeclaration;
+  L : TJSVariableDeclarationList;
+
+begin
+  S:=TJSVariableStatement.Create(0,0);
+  L:=TJSVariableDeclarationList.Create(0,0);
+  V:=TJSVarDeclaration.Create(0,0);
+  S.VarType:=vtConst;
+  L.A:=V;
+  S.VarDecl:=L;
+  V.Name:='a';
+  AssertWrite('simple const','const a',S);
 end;
 
 procedure TTestStatementWriter.TestVarListDeclarationStatement2Vars;
