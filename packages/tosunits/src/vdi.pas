@@ -1673,7 +1673,7 @@ end;
 function vsl_width(handle, width: smallint): smallint;
 begin
   _ptsin[0]:=width;
-  _ptsin[0]:=0;
+  _ptsin[1]:=0;
 
   _contrl[0]:=16;
   _contrl[1]:=1;
