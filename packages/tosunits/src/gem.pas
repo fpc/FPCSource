@@ -468,7 +468,7 @@ function objc_find(ob_ftree: AESTreePtr;
 	ob_fstartob, ob_fdepth,
 	ob_fmx, ob_fmy: smallint): smallint;
 begin
-  objc_find:=aes.objc_find(@ob_ftree[0], ob_fstartob, ob_fdepth, ob_fmx, ob_fmx);
+  objc_find:=aes.objc_find(@ob_ftree[0], ob_fstartob, ob_fdepth, ob_fmx, ob_fmy);
 end;
 
 function objc_offset(ob_oftree: AESTreePtr;
