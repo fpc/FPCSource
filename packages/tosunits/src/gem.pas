@@ -426,7 +426,7 @@ end;
 
 function menu_tnormal(me_ntree: AESTreePtr; me_ntitle, me_nnormal: smallint): smallint;
 begin
-	menu_tnormal := aes.menu_ienable(@me_ntree[0], me_ntitle, me_nnormal);
+	menu_tnormal := aes.menu_tnormal(@me_ntree[0], me_ntitle, me_nnormal);
 end;
 
 function menu_text(me_ttree: AESTreePtr; me_titem: smallint; me_ttext: String): smallint;
