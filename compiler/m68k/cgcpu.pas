@@ -1772,6 +1772,9 @@ unit cgcpu;
          srcrefp,dstrefp : treference;
          srcref,dstref : treference;
       begin
+         if (len < 1) then
+           exit;
+
          if (len = 1) or
             ((len in [2,4]) and
              not needs_unaligned(source.alignment,lentocgsize[len]) and
