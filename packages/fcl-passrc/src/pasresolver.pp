@@ -1415,6 +1415,7 @@ type
   TPRFindGenericData = record
     Find: TPRFindData;
     TemplateCount: integer;
+    LastProc: TPasProcedure;
   end;
   PPRFindGenericData = ^TPRFindGenericData;
 
@@ -1593,6 +1594,7 @@ type
     procedure OnFindProcDeclaration(El: TPasElement; ElScope, StartScope: TPasScope;
       FindProcData: Pointer; var Abort: boolean); virtual;
     function IsSameProcContext(ProcParentA, ProcParentB: TPasElement): boolean;
+    function IsProcOverload(LastProc, CurProc: TPasProcedure): boolean;
     function FindProcSameSignature(const ProcName: string; Proc: TPasProcedure;
       Scope: TPasIdentifierScope; OnlyLocal: boolean): TPasProcedure;
   protected
@@ -5009,19 +5011,65 @@ procedure TPasResolver.OnFindFirst_GenericEl(El: TPasElement; ElScope,
 var
   Data: PPRFindGenericData absolute FindFirstGenericData;
   GenericTemplateTypes: TFPList;
+  Proc: TPasProcedure;
+  ProcScope: TPasProcedureScope;
 begin
+  Proc:=nil;
   if El is TPasGenericType then
     GenericTemplateTypes:=TPasGenericType(El).GenericTemplateTypes
   else if El is TPasProcedure then
-    GenericTemplateTypes:=GetProcTemplateTypes(TPasProcedure(El))
+    begin
+    Proc:=TPasProcedure(El);
+    ProcScope:=Proc.CustomData as TPasProcedureScope;
+    if ProcScope.DeclarationProc<>nil then
+      begin
+      // this proc has a forward declaration -> use that instead
+      Proc:=ProcScope.DeclarationProc;
+      El:=Proc;
+      end;
+
+    if (Data^.LastProc<>nil) and not IsProcOverload(Data^.LastProc,Proc) then
+      begin
+      Abort:=true;
+      exit;
+      end;
+    Data^.LastProc:=Proc;
+
+    GenericTemplateTypes:=GetProcTemplateTypes(Proc);
+    end
   else
     exit;
+
   if GenericTemplateTypes=nil then exit;
   if GenericTemplateTypes.Count<>Data^.TemplateCount then
     exit;
+
+  if Data^.Find.Found<>nil then
+    begin
+    // there was already a generic proc, but it needed params
+    if ProcNeedsParams(Proc.ProcType) then
+      begin
+      // this one needs params too
+      // -> keep the first found and continue searching
+      exit;
+      end;
+    end;
+
   Data^.Find.Found:=El;
   Data^.Find.ElScope:=ElScope;
   Data^.Find.StartScope:=StartScope;
+
+  if Proc<>nil then
+    begin
+    if (not Proc.IsOverload) and (msDelphi in ProcScope.ModeSwitches) then
+      // stop searching after this proc
+    else if ProcNeedsParams(Proc.ProcType) then
+      begin
+      // continue searching for an overload proc without params
+      exit;
+      end;
+    end;
+
   Abort:=true;
 end;
 
@@ -5069,30 +5117,6 @@ begin
       // there is already a previous proc
       PrevProc:=TPasProcedure(Data^.Found);
 
-      if msDelphi in TPasProcedureScope(Data^.LastProc.CustomData).ModeSwitches then
-        begin
-        if (not Data^.LastProc.IsOverload) or (not Proc.IsOverload) then
-          begin
-          Abort:=true;
-          exit;
-          end;
-        end
-      else
-        begin
-        // mode objfpc
-        if IsSameProcContext(Proc.Parent,Data^.LastProc.Parent) then
-          // mode objfpc: procs in same context have implicit overload
-        else
-          begin
-          // mode objfpc, different context
-          if not ProcHasGroupOverload(Data^.LastProc) then
-            begin
-            Abort:=true;
-            exit;
-            end;
-          end;
-        end;
-
       if (Data^.Distance=cExact) and (PrevProc.Parent<>Proc.Parent)
           and (PrevProc.Parent.ClassType=TPasClassType) then
         begin
@@ -5101,12 +5125,12 @@ begin
         exit;
         end;
 
-      // check if previous found proc is override of found proc
-      if IsProcOverride(Proc,PrevProc) then
+      if not IsProcOverload(Data^.LastProc,Proc) then
         begin
-        // previous found proc is override of found proc -> skip
+        Abort:=true;
         exit;
         end;
+
       end;
 
     if (msDelphi in ProcScope.ModeSwitches) and not Proc.IsOverload then
@@ -5590,6 +5614,36 @@ begin
       exit(true);
     end;
   Result:=false;
+end;
+
+function TPasResolver.IsProcOverload(LastProc, CurProc: TPasProcedure): boolean;
+begin
+  if msDelphi in TPasProcedureScope(LastProc.CustomData).ModeSwitches then
+    begin
+    if (not LastProc.IsOverload) or (not CurProc.IsOverload) then
+      exit(false);
+    end
+  else
+    begin
+    // mode objfpc
+    if IsSameProcContext(LastProc.Parent,CurProc.Parent) then
+      // mode objfpc: procs in same context have implicit overload
+    else
+      begin
+      // mode objfpc, different context
+      if not ProcHasGroupOverload(LastProc) then
+        exit(false);
+      end;
+    end;
+
+  // check if previous found proc is override of found proc
+  if IsProcOverride(CurProc,LastProc) then
+    begin
+    // previous found proc is override of found proc -> skip
+    exit(false);
+    end;
+
+  Result:=true;
 end;
 
 function TPasResolver.FindProcSameSignature(const ProcName: string;
@@ -10422,7 +10476,7 @@ begin
       if ProcNeedsParams(Proc.ProcType) and not ExprIsAddrTarget(El) then
         begin
         {$IFDEF VerbosePasResolver}
-        writeln('TPasResolver.ResolveNameExpr ',GetObjPath(El));
+        writeln('TPasResolver.ResolveNameExpr ',GetObjPath(El),' Args.Count=',Proc.ProcType.Args.Count);
         {$ENDIF}
         RaiseMsg(20170216152138,nWrongNumberOfParametersForCallTo,
           sWrongNumberOfParametersForCallTo,[Proc.Name],El);

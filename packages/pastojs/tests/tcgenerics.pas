@@ -77,11 +77,11 @@ type
     procedure TestGenProc_Infer_Widen;
     procedure TestGenProc_Infer_PassAsArg;
     procedure TestGenProc_AnonymousProc;
-    // ToDo: FuncName:= instead of Result:=
 
     // generic methods
     procedure TestGenMethod_ImplicitSpec_ObjFPC;
     procedure TestGenMethod_Delphi;
+    procedure TestGenMethod_Overload_Delphi;
 
     // generic array
     procedure TestGen_Array_OtherUnit;
@@ -2498,6 +2498,59 @@ begin
     'var $with = $mod.o;',
     '$with.Run$G1();',
     '$with.Run$G1();',
+    '']));
+end;
+
+procedure TTestGenerics.TestGenMethod_Overload_Delphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class',
+  '    procedure Run<S>; overload;',
+  '    procedure Run<T>(w: word); overload;',
+  '  end; ',
+  'procedure TObject.Run<S>;',
+  'begin',
+  'end;',
+  'procedure TObject.Run<T>(w: word);',
+  'begin',
+  'end;',
+  'var o: TObject;',
+  'begin',
+  '  o.Run<word>;',
+  '  o.Run<word>();',
+  '  o.Run<longint>(3);',
+  '  with o do begin',
+  '    Run<word>;',
+  '    Run<word>();',
+  '    Run<longint>(13);',
+  '  end;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGenMethod_Overload_Delphi',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Run$G1 = function () {',
+    '  };',
+    '  this.Run$1G1 = function (w) {',
+    '  };',
+    '});',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.o.Run$G1();',
+    '$mod.o.Run$G1();',
+    '$mod.o.Run$1G1(3);',
+    'var $with = $mod.o;',
+    '$with.Run$G1();',
+    '$with.Run$G1();',
+    '$with.Run$1G1(13);',
     '']));
 end;
 
