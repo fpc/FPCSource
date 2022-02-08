@@ -1494,11 +1494,7 @@ begin
        end;
     WF_INFO, WF_NAME:
        begin
-{$PUSH}
-{$WARN 4055 OFF} { Conversion between ordinals and pointers is not portable }
-        _intin[2]:=hi(ptruint(wi_gw1));
-        _intin[3]:=lo(ptruint(wi_gw1));
-{$POP}
+        PPointer(@_intin[2])^:=wi_gw1;
         _contrl.num_intin:=4;
        end;
   end;
@@ -1544,11 +1540,7 @@ begin
        end;
     WF_INFO, WF_NAME:
        begin
-{$PUSH}
-{$WARN 4055 OFF} { Conversion between ordinals and pointers is not portable }
-        _intin[2]:=hi(ptruint(@wi_gw1));
-        _intin[3]:=lo(ptruint(@wi_gw1));
-{$POP}
+        PPointer(@_intin[2])^:=@wi_gw1;
         _contrl.num_intin:=4;
        end;
   end;
@@ -1605,11 +1597,7 @@ function wind_set(wi_shandle: smallint; wi_sfield: smallint; ptr: Pointer): smal
 begin
   _intin[0]:=wi_shandle;
   _intin[1]:=wi_sfield;
-{$PUSH}
-{$WARN 4055 OFF} { Conversion between ordinals and pointers is not portable }
-  _intin[2]:=hi(ptruint(ptr));
-  _intin[3]:=hi(ptruint(ptr));
-{$POP}
+  PPointer(@_intin[2])^:=ptr;
   _intin[4]:=0;
   _intin[5]:=0;
 
