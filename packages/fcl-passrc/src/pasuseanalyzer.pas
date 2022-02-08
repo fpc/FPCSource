@@ -2722,7 +2722,7 @@ procedure TPasAnalyzer.UseRecordFields(El: TPasExpr);
   var
     ResolvedEl: TPasResolverResult;
   begin
-    UseElement(V,rraNone,false);
+    UseElement(V,rraRead,false);
 
     // check nested record
     Resolver.ComputeElement(V.VarType,ResolvedEl,[],V);
