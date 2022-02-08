@@ -266,15 +266,31 @@ function do_isdevice(handle:thandle):boolean;forward;
   { there is no mipsel.inc, we use mips.inc instead }
   {$i mips.inc}  { Case dependent, don't change }
   {$define SYSPROCDEFINED}
-{$else not cpumipsel}
-{$ifdef cpumips}
+{$endif cpumipsel}
+
+{$ifdef cpumipseb}
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
   {$endif}
   {$i mips.inc}  { Case dependent, don't change }
   {$define SYSPROCDEFINED}
-{$endif cpumips}
-{$endif not cpumipsel}
+{$endif cpumipseb}
+
+{$ifdef cpumips64el}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i mips64el.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpumips64el}
+
+{$ifdef cpumips64eb}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i mips64.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpumips64eb}
 
 {$ifdef cpuaarch64}
   {$ifdef SYSPROCDEFINED}
