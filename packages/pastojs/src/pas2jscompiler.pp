@@ -2805,7 +2805,7 @@ begin
     FResources.DoneUnit(aFile.isMainFile);
     EmitJavaScript(aFile,aFileWriter);
 
-    if aFile.IsMainFile and (TargetPlatform in [PlatformNodeJS,PlatformModule]) then
+    if aFile.IsMainFile and (TargetPlatform=PlatformNodeJS) then
       aFileWriter.WriteFile('rtl.run();'+LineEnding,aFile.UnitFilename);
 
     if isSingleFile or aFile.isMainFile then
