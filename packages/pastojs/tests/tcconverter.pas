@@ -394,7 +394,7 @@ begin
 
   // "var $l=1, $end=100"
   VS:=TJSVariableStatement(AssertElement('For init is var '+LoopEndVar,TJSVariableStatement,ForSt.Init));
-  VDL:=TJSVariableDeclarationList(AssertElement('For init var has comma',TJSVariableDeclarationList,VS.A));
+  VDL:=TJSVariableDeclarationList(AssertElement('For init var has comma',TJSVariableDeclarationList,VS.VarDecl));
   VD:=TJSVarDeclaration(AssertElement('var '+LoopVar,TJSVarDeclaration,VDL.A));
   AssertEquals('Correct name for '+LoopVar,LoopVar,VD.Name);
   AssertLiteral('Correct start value',VD.Init,1);
@@ -455,7 +455,7 @@ begin
 
   // "var $l=100, $end=1"
   VS:=TJSVariableStatement(AssertElement('For init is var '+LoopEndVar,TJSVariableStatement,ForSt.Init));
-  VDL:=TJSVariableDeclarationList(AssertElement('For init var has comma',TJSVariableDeclarationList,VS.A));
+  VDL:=TJSVariableDeclarationList(AssertElement('For init var has comma',TJSVariableDeclarationList,VS.VarDecl));
   VD:=TJSVarDeclaration(AssertElement('var '+LoopVar,TJSVarDeclaration,VDL.A));
   AssertEquals('Correct name for '+LoopVar,LoopVar,VD.Name);
   AssertLiteral('Correct start value',VD.Init,100);
@@ -704,7 +704,7 @@ begin
   L:=AssertListStatement('On block is always a list',I.BTrue);
   writeln('TTestStatementConverter.TestTryExceptStatementOnE ',L.A.ClassName);
   VS:=TJSVariableStatement(AssertElement('First statement in list is a var statement',TJSVariableStatement,L.A));
-  V:=TJSVarDeclaration(AssertElement('var declaration e=ExceptObject',TJSVarDeclaration,VS.A));
+  V:=TJSVarDeclaration(AssertElement('var declaration e=ExceptObject',TJSVarDeclaration,VS.VarDecl));
   AssertEquals('Variable name is identifier in On A : Ex do','e',V.Name);
   Assertidentifier('Variable init is exception object',V.Init,ExceptObjName);
   // check "b = c;"
@@ -765,7 +765,7 @@ begin
   L:=AssertListStatement('On block is always a list',I.BTrue);
   writeln('TTestStatementConverter.TestTryExceptStatementOnE ',L.A.ClassName);
   VS:=TJSVariableStatement(AssertElement('First statement in list is a var statement',TJSVariableStatement,L.A));
-  V:=TJSVarDeclaration(AssertElement('var declaration e=ExceptObject',TJSVarDeclaration,VS.A));
+  V:=TJSVarDeclaration(AssertElement('var declaration e=ExceptObject',TJSVarDeclaration,VS.VarDecl));
   AssertEquals('Variable name is identifier in On A : Ex do','e',V.Name);
   Assertidentifier('Variable init is exception object',V.Init,ExceptObjName);
   R:=TJSThrowStatement(AssertElement('On block is throw statement',TJSThrowStatement,L.B));
@@ -787,7 +787,7 @@ begin
   S.Variables.Add(V);
   L:=TJSStatementList(Convert(S,TJSStatementList));
   JV:=TJSVariableStatement(AssertElement('Variable statement',TJSVariableStatement,L.A));
-  JVD:=TJSVarDeclaration(AssertElement('Variable declaration',TJSVarDeclaration,JV.A));
+  JVD:=TJSVarDeclaration(AssertElement('Variable declaration',TJSVarDeclaration,JV.VarDecl));
   AssertEquals('Correct variable name','a',JVD.Name);
 end;
 

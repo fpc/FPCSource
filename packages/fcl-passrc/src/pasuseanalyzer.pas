@@ -285,6 +285,7 @@ type
     procedure UseExportSymbol(El: TPasExportSymbol); virtual;
     procedure UseArgument(El: TPasArgument; Access: TResolvedRefAccess); virtual;
     procedure UseResultElement(El: TPasResultElement; Access: TResolvedRefAccess); virtual;
+    procedure UseRecordFields(El: TPasExpr); virtual;
     // create hints for a unit, program or library
     procedure EmitElementHints(El: TPasElement); virtual;
     procedure EmitSectionHints(Section: TPasSection); virtual;
@@ -1760,6 +1761,8 @@ begin
           end;
         end;
       end;
+    if rrfUseFields in Ref.Flags then
+      UseRecordFields(El);
 
     if Decl is TPasUnresolvedSymbolRef then
       begin
@@ -2709,6 +2712,56 @@ begin
       RaiseNotSupported(20170308122333,El);
     end;
   UpdateAccess(IsWrite, IsRead, Usage);
+end;
+
+procedure TPasAnalyzer.UseRecordFields(El: TPasExpr);
+
+  procedure UseRec(Rec: TPasRecordType); forward;
+
+  procedure UseVar(V: TPasVariable);
+  var
+    ResolvedEl: TPasResolverResult;
+  begin
+    UseElement(V,rraNone,false);
+
+    // check nested record
+    Resolver.ComputeElement(V.VarType,ResolvedEl,[],V);
+    if ResolvedEl.LoTypeEl is TPasRecordType then
+      UseRec(TPasRecordType(ResolvedEl.LoTypeEl));
+  end;
+
+  procedure UseRec(Rec: TPasRecordType);
+  var
+    Members: TFPList;
+    i: Integer;
+    Member: TPasElement;
+    C: TClass;
+    Variant: TPasVariant;
+  begin
+    Members:=Rec.Members;
+    for i:=0 to Members.Count-1 do
+      begin
+      Member:=TPasElement(Members[i]);
+      C:=Member.ClassType;
+      if C=TPasVariable then
+        UseVar(TPasVariable(Member));
+      end;
+    if Rec.VariantEl is TPasVariable then
+      UseVar(TPasVariable(Rec.VariantEl));
+    if Rec.Variants<>nil then
+      for i:=0 to Rec.Variants.Count-1 do
+        begin
+        Variant:=TPasVariant(Rec.Variants[i]);
+        UseRec(Variant.Members);
+        end;
+  end;
+
+var
+  ResolvedEl: TPasResolverResult;
+begin
+  Resolver.ComputeElement(El,ResolvedEl,[]);
+  if ResolvedEl.LoTypeEl is TPasRecordType then
+    UseRec(TPasRecordType(ResolvedEl.LoTypeEl));
 end;
 
 procedure TPasAnalyzer.EmitElementHints(El: TPasElement);

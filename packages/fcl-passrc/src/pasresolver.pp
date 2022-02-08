@@ -1254,8 +1254,9 @@ type
     rrfNoImplicitCallWithoutParams, // a TPrimitiveExpr is not an implicit call
     rrfNewInstance, // constructor call (without it call constructor as normal method)
     rrfFreeInstance, // destructor call (without it call destructor as normal method)
-    rrfVMT, // use VMT for call
-    rrfConstInherited // parent is const and this child is too
+    rrfVMT, // use VMT for call (e.g. calling a virtual method)
+    rrfConstInherited, // parent is const and this child is too (e.g. field of a const record argument)
+    rrfUseFields // use record fields too, flag is used by pas2js
     );
   TResolvedReferenceFlags = set of TResolvedReferenceFlag;
 
@@ -1734,7 +1735,7 @@ type
       SetReferenceFlags: boolean);
     procedure ComputeArgumentExpr(const ArgResolved: TPasResolverResult;
       Access: TArgumentAccess; Expr: TPasExpr; out ExprResolved: TPasResolverResult;
-      SetReferenceFlags: boolean);
+      SetReferenceFlags: boolean); virtual;
     procedure ComputeArrayParams(Params: TParamsExpr;
       out ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
       StartEl: TPasElement);
@@ -9311,13 +9312,15 @@ var
   ParamAccess: TResolvedRefAccess;
   i: Integer;
   ArrParams: TPasExprArray;
+  Args: TFPList;
 begin
   ArrParams:=Params.Params;
+  Args:=ProcType.Args;
   for i:=0 to length(ArrParams)-1 do
     begin
     ParamAccess:=rraRead;
-    if i<ProcType.Args.Count then
-      case TPasArgument(ProcType.Args[i]).Access of
+    if i<Args.Count then
+      case TPasArgument(Args[i]).Access of
       argVar: ParamAccess:=rraVarParam;
       argOut: ParamAccess:=rraOutParam;
       end;
@@ -13519,9 +13522,9 @@ begin
         if (LeftResolved.IdentEl is TPasType)
             or (not (rrfReadable in LeftResolved.Flags)) then
           begin
-          { $IFDEF VerbosePasResolver}
+          {$IFDEF VerbosePasResolver}
           writeln('TPasResolver.ComputeBinaryExprRes as-operator: left=',GetResolverResultDbg(LeftResolved),' right=',GetResolverResultDbg(RightResolved));
-          { $ENDIF}
+          {$ENDIF}
           RaiseIncompatibleTypeRes(20180204124711,nOperatorIsNotOverloadedAOpB,
             [OpcodeStrings[Bin.OpCode]],LeftResolved,RightResolved,Bin);
           end;
@@ -21624,9 +21627,10 @@ begin
   //    ' FindData.Found=',GetObjName(FindData.Found));
   if OnlyTypeMembers then
     begin
+    // only class vars/procs allowed
+
     //writeln('TPasResolver.CheckFoundElOnStartScope ',GetObjName(FindData.Found),' ',(FindData.Found is TPasVariable)
     //    and (vmClass in TPasVariable(FindData.Found).VarModifiers));
-    // only class vars/procs allowed
     if FindData.Found.ClassType=TPasConstructor then
       // constructor: ok
     else if IsClassMethod(FindData.Found)

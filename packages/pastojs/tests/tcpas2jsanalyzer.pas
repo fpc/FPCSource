@@ -23,6 +23,7 @@ type
   protected
     procedure SetUp; override;
     procedure TearDown; override;
+    procedure ParseModule; override;
     procedure AnalyzeModule; virtual;
     procedure AnalyzeProgram; virtual;
     procedure AnalyzeUnit; virtual;
@@ -46,6 +47,7 @@ type
   TTestPas2jsAnalyzer = class(TCustomTestPas2jsAnalyzer)
   Published
     procedure TestM_ProgramLocalVar;
+    procedure TestM_PassRecordToJSValue;
   end;
 
 
@@ -63,6 +65,33 @@ begin
   'end;',
   'begin',
   '  DoIt;',
+  'end.']);
+  AnalyzeProgram;
+end;
+
+procedure TTestPas2jsAnalyzer.TestM_PassRecordToJSValue;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  {#trec_used}TRec = record',
+  '    {#x_used}x: word;',
+  '  end;',
+  '  {#tbig_used}TBig = record',
+  '    {#r_used}r: TRec;',
+  '  end;',
+  '  {#tnope_used}TNope = record',
+  '    {#a_notused}a: word;',
+  '    {#b_used}b: word;',
+  '  end;',
+  'procedure DoIt(v: JSValue);',
+  'begin',
+  'end;',
+  'var big: TBig;',
+  '  n: TNope;',
+  'begin',
+  '  DoIt(big);',
+  '  DoIt(n.b);',
   'end.']);
   AnalyzeProgram;
 end;
@@ -102,6 +131,13 @@ begin
   FreeAndNil(FAnalyzer);
   FreeAndNil(FProcAnalyzer);
   inherited TearDown;
+end;
+
+procedure TCustomTestPas2jsAnalyzer.ParseModule;
+begin
+  inherited ParseModule;
+  if SkipTests then exit;
+  CheckReferenceDirectives;
 end;
 
 procedure TCustomTestPas2jsAnalyzer.AnalyzeModule;

@@ -103,8 +103,13 @@ type
     FStreamResolver: TStreamResolver;
     FScanner: TPas2jsPasScanner;
     FSource: string;
+    procedure SetModule(const AValue: TPasModule);
   public
     destructor Destroy; override;
+    function CreateElement(AClass: TPTreeElement; const AName: String;
+      AParent: TPasElement; AVisibility: TPasMemberVisibility;
+      const ASrcPos: TPasSourcePos; TypeParams: TFPList = nil): TPasElement;
+      overload; override;
     function FindUnit(const AName, InFilename: String; NameExpr,
       InFileExpr: TPasExpr): TPasModule; override;
     procedure UsedInterfacesFinished(Section: TPasSection); override;
@@ -114,52 +119,50 @@ type
     property Scanner: TPas2jsPasScanner read FScanner write FScanner;
     property Parser: TTestPasParser read FParser write FParser;
     property Source: string read FSource write FSource;
-    property Module: TPasModule read FModule;
+    property Module: TPasModule read FModule write SetModule;
   end;
 
   { TCustomTestModule }
 
   TCustomTestModule = Class(TTestCase)
   private
-    FConverter: TPasToJSConverter;
-    FEngine: TTestEnginePasResolver;
-    FExpectedErrorClass: ExceptClass;
-    FExpectedErrorMsg: string;
-    FExpectedErrorNumber: integer;
-    FFilename: string;
-    FFileResolver: TStreamResolver;
-    FHub: TPas2JSResolverHub;
-    FJSImplementationUses: TJSArrayLiteral;
-    FJSInitBody: TJSFunctionBody;
-    FJSImplentationUses: TJSArrayLiteral;
-    FJSInterfaceUses: TJSArrayLiteral;
-    FJSModule: TJSSourceElements;
-    FJSModuleSrc: TJSSourceElements;
-    FJSSource: TStringList;
-    FModule: TPasModule;
-    FJSModuleCallArgs: TJSArguments;
-    FModules: TObjectList;// list of TTestEnginePasResolver
-    FParser: TTestPasParser;
+    FWithTypeInfo: boolean;
+    FSource: TStringList;
+    FSkipTests: boolean;
+    FScanner: TPas2jsPasScanner;
+    FResolvers: TObjectList;// list of TTestEnginePasResolver
     FPasProgram: TPasProgram;
     FPasLibrary: TPasLibrary;
-    FHintMsgs: TObjectList; // list of TTestHintMessage
-    FHintMsgsGood: TFPList; // list of TTestHintMessage marked as expected
+    FParser: TTestPasParser;
+    FModule: TPasModule;
+    FJSSource: TStringList;
     FJSRegModuleCall: TJSCallExpression;
-    FScanner: TPas2jsPasScanner;
-    FSkipTests: boolean;
-    FSource: TStringList;
+    FJSModuleSrc: TJSSourceElements;
+    FJSModuleCallArgs: TJSArguments;
+    FJSModule: TJSSourceElements;
+    FJSInterfaceUses: TJSArrayLiteral;
+    FJSInitBody: TJSFunctionBody;
+    FJSImplentationUses: TJSArrayLiteral;
+    FJSImplementationUses: TJSArrayLiteral;
+    FHub: TPas2JSResolverHub;
+    FHintMsgsGood: TFPList; // list of TTestHintMessage marked as expected
+    FHintMsgs: TObjectList; // list of TTestHintMessage
     FFirstPasStatement: TPasImplBlock;
-    FWithTypeInfo: boolean;
+    FFileResolver: TStreamResolver;
+    FFilename: string;
+    FExpectedErrorNumber: integer;
+    FExpectedErrorMsg: string;
+    FExpectedErrorClass: ExceptClass;
+    FEngine: TTestEnginePasResolver;
+    FConverter: TPasToJSConverter;
     {$IFDEF EnablePasTreeGlobalRefCount}
     FElementRefCountAtSetup: int64;
     {$ENDIF}
     procedure FreeSrcMarkers;
-    function GetModuleCount: integer;
-    function GetModules(Index: integer): TTestEnginePasResolver;
-    function GetMsgCount: integer;
-    function GetMsgs(Index: integer): TTestHintMessage;
     function GetResolverCount: integer;
     function GetResolvers(Index: integer): TTestEnginePasResolver;
+    function GetMsgCount: integer;
+    function GetMsgs(Index: integer): TTestHintMessage;
     function OnPasResolverFindUnit(const aUnitName: String): TPasModule;
     procedure OnParserLog(Sender: TObject; const Msg: String);
     procedure OnPasResolverLog(Sender: TObject; const Msg: String);
@@ -232,8 +235,6 @@ type
     function GetDefaultNamespace: string;
     property PasProgram: TPasProgram Read FPasProgram;
     property PasLibrary: TPasLibrary Read FPasLibrary;
-    property Resolvers[Index: integer]: TTestEnginePasResolver read GetResolvers;
-    property ResolverCount: integer read GetResolverCount;
     property ResolverEngine: TTestEnginePasResolver read FEngine;
     property Filename: string read FFilename;
     Property Module: TPasModule Read FModule;
@@ -259,8 +260,8 @@ type
     property FileResolver: TStreamResolver read FFileResolver;
     property Scanner: TPas2jsPasScanner read FScanner;
     property Parser: TTestPasParser read FParser;
-    property Modules[Index: integer]: TTestEnginePasResolver read GetModules;
-    property ModuleCount: integer read GetModuleCount;
+    property Resolvers[Index: integer]: TTestEnginePasResolver read GetResolvers;
+    property ResolverCount: integer read GetResolverCount;
     property MsgCount: integer read GetMsgCount;
     property Msgs[Index: integer]: TTestHintMessage read GetMsgs;
     property WithTypeInfo: boolean read FWithTypeInfo write SetWithTypeInfo;
@@ -1216,18 +1217,30 @@ end;
 
 { TTestEnginePasResolver }
 
+procedure TTestEnginePasResolver.SetModule(const AValue: TPasModule);
+begin
+  if FModule=AValue then Exit;
+  FModule:=AValue;
+end;
+
 destructor TTestEnginePasResolver.Destroy;
 begin
   FreeAndNil(FStreamResolver);
   FreeAndNil(FParser);
   FreeAndNil(FScanner);
   FreeAndNil(FStreamResolver);
-  if Module<>nil then
-    begin
-    Module.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
-    FModule:=nil;
-    end;
+  Module:=nil;
   inherited Destroy;
+end;
+
+function TTestEnginePasResolver.CreateElement(AClass: TPTreeElement;
+  const AName: String; AParent: TPasElement; AVisibility: TPasMemberVisibility;
+  const ASrcPos: TPasSourcePos; TypeParams: TFPList): TPasElement;
+begin
+  Result:=inherited CreateElement(AClass, AName, AParent, AVisibility, ASrcPos,
+    TypeParams);
+  if (FModule=nil) and AClass.InheritsFrom(TPasModule) then
+    Module:=TPasModule(Result);
 end;
 
 function TTestEnginePasResolver.FindUnit(const AName, InFilename: String;
@@ -1265,14 +1278,14 @@ begin
   LastSrcMarker:=nil;
 end;
 
-function TCustomTestModule.GetModuleCount: integer;
+function TCustomTestModule.GetResolverCount: integer;
 begin
-  Result:=FModules.Count;
+  Result:=FResolvers.Count;
 end;
 
-function TCustomTestModule.GetModules(Index: integer): TTestEnginePasResolver;
+function TCustomTestModule.GetResolvers(Index: integer): TTestEnginePasResolver;
 begin
-  Result:=TTestEnginePasResolver(FModules[Index]);
+  Result:=TTestEnginePasResolver(FResolvers[Index]);
 end;
 
 function TCustomTestModule.GetMsgCount: integer;
@@ -1283,17 +1296,6 @@ end;
 function TCustomTestModule.GetMsgs(Index: integer): TTestHintMessage;
 begin
   Result:=TTestHintMessage(FHintMsgs[Index]);
-end;
-
-function TCustomTestModule.GetResolverCount: integer;
-begin
-  Result:=FModules.Count;
-end;
-
-function TCustomTestModule.GetResolvers(Index: integer
-  ): TTestEnginePasResolver;
-begin
-  Result:=TTestEnginePasResolver(FModules[Index]);
 end;
 
 function TCustomTestModule.OnPasResolverFindUnit(const aUnitName: String
@@ -1534,7 +1536,7 @@ begin
   FElementRefCountAtSetup:=TPasElement.GlobalRefCount;
   {$ENDIF}
 
-  if FModules<>nil then
+  if FResolvers<>nil then
     begin
     writeln('TCustomTestModule.SetUp FModules<>nil');
     Halt;
@@ -1546,7 +1548,7 @@ begin
   FSource:=TStringList.Create;
 
   FHub:=TPas2JSResolverHub.Create(Self);
-  FModules:=TObjectList.Create(true);
+  FResolvers:=TObjectList.Create(true);
 
   FFilename:='test1.pp';
   FFileResolver:=TStreamResolver.Create;
@@ -1628,24 +1630,24 @@ begin
   ResolverEngine.Clear;
   FreeAndNil(FSource);
   FreeAndNil(FFileResolver);
-  if FModules<>nil then
+  if FResolvers<>nil then
     begin
-    for i:=0 to FModules.Count-1 do
+    for i:=0 to FResolvers.Count-1 do
       begin
-      CurModule:=TTestEnginePasResolver(FModules[i]).Module;
+      CurModule:=TTestEnginePasResolver(FResolvers[i]).Module;
       if CurModule=nil then continue;
       //writeln('TCustomTestModule.TearDown ReleaseUsedUnits ',CurModule.Name,' ',CurModule.RefCount,' ',CurModule.RefIds.Text);
       CurModule.ReleaseUsedUnits;
       end;
     if FModule<>nil then
       FModule.ReleaseUsedUnits;
-    for i:=0 to FModules.Count-1 do
+    for i:=0 to FResolvers.Count-1 do
       begin
-      CurModule:=TTestEnginePasResolver(FModules[i]).Module;
+      CurModule:=TTestEnginePasResolver(FResolvers[i]).Module;
       if CurModule=nil then continue;
       //writeln('TCustomTestModule.TearDown UsesReleased ',CurModule.Name,' ',CurModule.RefCount,' ',CurModule.RefIds.Text);
       end;
-    FreeAndNil(FModules);
+    FreeAndNil(FResolvers);
     ReleaseAndNil(TPasElement(FModule){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
     FEngine:=nil;
     end;
@@ -1704,7 +1706,7 @@ var
   Found: Boolean;
   Section: TPasSection;
 begin
-  // parse til exception or all modules finished
+  // parse til exception or all Resolvers finished
   while not SkipTests do
     begin
     Found:=false;
@@ -1821,7 +1823,7 @@ begin
   Result.OnFindUnit:=@OnPasResolverFindUnit;
   Result.OnLog:=@OnPasResolverLog;
   Result.Hub:=Hub;
-  FModules.Add(Result);
+  FResolvers.Add(Result);
 end;
 
 function TCustomTestModule.AddModuleWithSrc(aFilename, Src: string
@@ -3083,9 +3085,9 @@ begin
   try
     // find all markers
     Module.ForEachCall(@OnFindReference,@FoundRefs);
-    for i:=0 to ModuleCount-1 do
+    for i:=0 to ResolverCount-1 do
       begin
-      CurResolver:=Modules[i];
+      CurResolver:=Resolvers[i];
       if CurResolver.Module=Module then continue;
       //writeln('TCustomTestResolver.FindElementsAt ',CurResolver.Filename);
       CurResolver.Module.ForEachCall(@OnFindReference,@FoundRefs);

@@ -1554,6 +1554,9 @@ type
     procedure FinishPropertyParamAccess(Params: TParamsExpr; Prop: TPasProperty
       ); override;
     procedure FinishExportSymbol(El: TPasExportSymbol); override;
+    procedure ComputeArgumentExpr(const ArgResolved: TPasResolverResult;
+      Access: TArgumentAccess; Expr: TPasExpr; out
+      ExprResolved: TPasResolverResult; SetReferenceFlags: boolean); override;
     procedure FindCreatorArrayOfConst(Args: TFPList; ErrorEl: TPasElement);
     function FindProc_ArrLitToArrayOfConst(ErrorEl: TPasElement): TPasFunction; virtual;
     function FindSystemExternalClassType(const aClassName, JSName: string;
@@ -4976,6 +4979,32 @@ begin
     {$ENDIF}
     RaiseMsg(20210106223621,nSymbolCannotBeExportedFromALibrary,
       sSymbolCannotBeExportedFromALibrary,[],El);
+    end;
+end;
+
+procedure TPas2JSResolver.ComputeArgumentExpr(
+  const ArgResolved: TPasResolverResult; Access: TArgumentAccess;
+  Expr: TPasExpr; out ExprResolved: TPasResolverResult;
+  SetReferenceFlags: boolean);
+var
+  RightEl: TPasExpr;
+  Ref: TResolvedReference;
+begin
+  inherited ComputeArgumentExpr(ArgResolved, Access, Expr, ExprResolved,
+    SetReferenceFlags);
+  if SetReferenceFlags
+      and (Access in [argDefault, argConst])
+      and ((ArgResolved.BaseType=btUntyped)
+         or IsJSBaseType(ArgResolved,pbtJSValue,true{must have rrfReadable}))
+      and (ExprResolved.LoTypeEl is TPasRecordType) then
+    begin
+    // passing a record to an untyped or jsvalue parameter -> mark fields as "read" too
+    RightEl:=GetRightMostExpr(Expr);
+    if RightEl.CustomData is TResolvedReference then
+      begin
+      Ref:=TResolvedReference(RightEl.CustomData);
+      Include(Ref.Flags,rrfUseFields);
+      end;
     end;
 end;
 

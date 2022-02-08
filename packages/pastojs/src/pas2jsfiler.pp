@@ -565,7 +565,8 @@ const
     'NewInst',
     'FreeInst',
     'VMT',
-    'ConstInh'
+    'ConstInh',
+    'UseFields'
     );
 
   PCUResolverWithExprScopeFlagNames: array[TPasWithExprScopeFlag] of string = (
