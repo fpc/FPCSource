@@ -397,6 +397,10 @@ interface
     { returns the Invoke procdef of a function reference interface }
     function get_invoke_procdef(def:tobjectdef):tprocdef;
 
+    { returns whether the invokable has an Invoke overload that can be called
+      without arguments }
+    function invokable_has_argless_invoke(def:tobjectdef):boolean;
+
 implementation
 
     uses
@@ -2042,5 +2046,50 @@ implementation
         result:=tprocdef(tprocsym(sym).procdeflist[0]);
       end;
 
+
+    function invokable_has_argless_invoke(def:tobjectdef):boolean;
+      var
+        i,j : longint;
+        sym : tsym;
+        pd : tprocdef;
+        para : tparavarsym;
+        allok : boolean;
+      begin
+        result:=false;
+        repeat
+          if not is_invokable(def) then
+            internalerror(2022020701);
+          sym:=tsym(def.symtable.find(method_name_funcref_invoke_find));
+          if assigned(sym) and (sym.typ=procsym) then
+            begin
+              for i:=0 to tprocsym(sym).procdeflist.count-1 do
+                begin
+                  pd:=tprocdef(tprocsym(sym).procdeflist[i]);
+                  if (pd.paras.count=0) or
+                      (
+                        (pd.paras.count=1) and
+                        (vo_is_result in tparavarsym(pd.paras[0]).varoptions)
+                      ) then
+                    exit(true);
+                  allok:=true;
+                  for j:=0 to pd.paras.count-1 do
+                    begin
+                      para:=tparavarsym(pd.paras[j]);
+                      if vo_is_hidden_para in para.varoptions then
+                        continue;
+                      if assigned(para.defaultconstsym) then
+                        continue;
+                      allok:=false;
+                      break;
+                    end;
+                  if allok then
+                    exit(true);
+                end;
+              if not (sp_has_overloaded in sym.symoptions) then
+                break;
+            end;
+          def:=def.childof;
+        until not assigned(def);
+      end;
 
 end.
