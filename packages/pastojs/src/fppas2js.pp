@@ -2103,7 +2103,7 @@ type
     Function CreateImplementationSection(El: TPasModule; IntfContext: TInterfaceSectionContext): TJSFunctionDeclarationStatement; virtual;
     Procedure CreateInitSection(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext); virtual;
     Procedure CreateExportsSection(El: TPasLibrary; Src: TJSSourceElements; AContext: TConvertContext); virtual;
-    Function AddLibraryRun(El: TPasLibrary; ModuleName: string; Src: TJSSourceElements; AContext: TConvertContext): TJSCallExpression; virtual;
+    Function AddRTLRun(El: TPasModule; ModuleName: string; Src: TJSSourceElements; AContext: TConvertContext): TJSCallExpression; virtual;
     Procedure AddHeaderStatement(JS: TJSElement; PosEl: TPasElement; aContext: TConvertContext); virtual;
     Procedure AddImplHeaderStatement(JS: TJSElement; PosEl: TPasElement; aContext: TConvertContext); virtual;
     function AddDelayedInits(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext): boolean; virtual;
@@ -8431,11 +8431,15 @@ begin
       StoreImplJSLocals(ModScope,IntfContext);
 
     if El is TPasLibrary then
-      begin // library
+      begin
+      // library: rtl.run('library');
       Lib:=TPasLibrary(El);
-      AddLibraryRun(Lib,ModuleName,OuterSrc,AContext);
+      AddRTLRun(Lib,ModuleName,OuterSrc,AContext);
       CreateExportsSection(Lib,OuterSrc,AContext);
-      end;
+      end
+    else if (El is TPasProgram) and (Globals.TargetPlatform in [PlatformNodeJS,PlatformModule]) then
+      // program: rtl.run();
+      AddRTLRun(El,'',OuterSrc,AContext);
 
     ok:=true;
   finally
@@ -18224,7 +18228,7 @@ begin
     end;
 end;
 
-function TPasToJSConverter.AddLibraryRun(El: TPasLibrary; ModuleName: string;
+function TPasToJSConverter.AddRTLRun(El: TPasModule; ModuleName: string;
   Src: TJSSourceElements; AContext: TConvertContext): TJSCallExpression;
 var
   Call: TJSCallExpression;
@@ -18236,8 +18240,9 @@ begin
   AddToSourceElements(Src,Call);
   Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),'run']);
 
-  // add module name parameter
-  Call.AddArg(CreateLiteralString(El,ModuleName));
+  if ModuleName<>'' then
+    // add module name parameter
+    Call.AddArg(CreateLiteralString(El,ModuleName));
 
   Result:=Call;
 end;
