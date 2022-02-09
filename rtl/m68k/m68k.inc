@@ -473,10 +473,12 @@ var
 
 procedure getSpinLock; assembler; nostackframe;
 asm
+{$IFDEF CPUM68K_HAS_TAS}
   lea.l spinlock,a0
 @loop:
   tas (a0)
   bne @loop
+{$ENDIF}
 end;
 
 procedure releaseSpinLock; assembler; nostackframe;
