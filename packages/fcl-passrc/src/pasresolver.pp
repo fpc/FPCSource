@@ -2235,7 +2235,7 @@ type
     function HasExactType(const ResolvedEl: TPasResolverResult): boolean; // false if HiTypeEl was guessed, e.g. 1 guessed a btLongint
     function IndexOfGenericParam(Params: TPasExprArray): integer;
     procedure CheckUseAsType(aType: TPasElement; id: TMaxPrecInt;
-      ErrorEl: TPasElement);
+      PosEl: TPasElement);
     function CheckCallProcCompatibility(ProcType: TPasProcedureType;
       Params: TParamsExpr; RaiseOnError: boolean; SetReferenceFlags: boolean = false): integer;
     function CheckCallPropertyCompatibility(PropEl: TPasProperty;
@@ -22964,7 +22964,6 @@ begin
       [BaseTypeNames[ExprResolved.BaseType]],ErrorEl);
 
   Flags:=[];
-  CheckUseAsType(LoType,20190123113957,Expr);
   ClassRecScope:=nil;
   ExprScope:=nil;
   if LoType.ClassType=TPasClassOfType then
@@ -28424,7 +28423,7 @@ begin
 end;
 
 procedure TPasResolver.CheckUseAsType(aType: TPasElement; id: TMaxPrecInt;
-  ErrorEl: TPasElement);
+  PosEl: TPasElement);
 begin
   if aType=nil then exit;
   if aType is TPasGenericType then
@@ -28432,18 +28431,18 @@ begin
     if aType.ClassType=TPasClassType then
       begin
       if TPasClassType(aType).HelperForType<>nil then
-        RaiseHelpersCannotBeUsedAsType(id,ErrorEl);
+        RaiseHelpersCannotBeUsedAsType(id,PosEl);
       end;
     if (TPasGenericType(aType).GenericTemplateTypes<>nil)
         and (TPasGenericType(aType).GenericTemplateTypes.Count>0) then
       begin
       // ref to generic type without specialization
       if not (msDelphi in CurrentParser.CurrentModeswitches)
-          and (ErrorEl.HasParent(aType)) then
+          and (PosEl.HasParent(aType)) then
         // ObjFPC allows referring to parent without type params
       else
         RaiseMsg(id,nGenericsWithoutSpecializationAsType,sGenericsWithoutSpecializationAsType,
-            [ErrorEl.ElementTypeName],ErrorEl);
+            [PosEl.ElementTypeName],PosEl);
       end;
     end;
 end;
