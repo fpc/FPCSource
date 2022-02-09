@@ -24,6 +24,6 @@ implementation
 
 begin
   (* WARNING: has to be checked; do_open('PRN') returns a valid, negative OS handle *)
-  InitPrinter ('PRN');
+  InitPrinter ('PRN:');
   SetPrinterExit;
 end.
