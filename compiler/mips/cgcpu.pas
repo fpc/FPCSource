@@ -550,6 +550,10 @@ begin
         list.concat(taicpu.op_reg_reg_const(A_ANDI, reg2, reg1, $ff));
       OS_16:
         list.concat(taicpu.op_reg_reg_const(A_ANDI, reg2, reg1, $ffff));
+{$ifdef cpu64bitalu}
+      OS_64,
+      OS_S64,
+{$endif cpu64bitalu}
       OS_32,
       OS_S32:
         done:=false;
@@ -1237,8 +1241,12 @@ begin
   case size of
     OS_32:  asmop:=A_MULTU;
     OS_S32: asmop:=A_MULT;
+{$ifdef cpu64bitalu}
+    OS_64:  asmop:=A_DMULTU;
+    OS_S64: asmop:=A_DMULT;
+{$endif cpu64bitalu}
   else
-    InternalError(2014060802);
+    InternalError(2022020901);
   end;
   list.concat(taicpu.op_reg_reg(asmop,src1,src2));
   if (dstlo<>NR_NO) then
