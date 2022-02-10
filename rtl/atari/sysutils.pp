@@ -503,13 +503,142 @@ var
   pcmdline: ShortString;
   CommandLine: RawByteString;
   E: EOSError;
+  env, s: pchar;
+  buf, start: pchar;
+  enlen, len: SizeInt;
+  hp : pchar;
+
 begin
   tmpPath:=ToSingleByteFileSystemEncodedFileName(Path);
   pcmdline:=ToSingleByteFileSystemEncodedFileName(ComLine);
 
-  { the zero offset for cmdline is actually correct here. pexec() expects
-    pascal formatted string for cmdline, so length in first byte }
-  result:=gemdos_pexec(0,PChar(tmpPath),@pcmdline[0],nil);
+  { count up space needed for environment }
+  enlen := 0;
+  hp:=basepage^.p_env;
+  If (Hp<>Nil) then
+    while hp^<>#0 do
+      begin
+      len := strlen(hp) + 1;
+      inc(enlen, len);
+      inc(hp, len);
+      end;
+
+  { count up space needed for arguments }
+  len := strlen(PChar(tmpPath)) + 1;
+  inc(enlen, len);
+  buf := PChar(ComLine);
+  while (buf^<>#0) do                   // count nr of args
+   begin
+     while (buf^ in [' ',#9,#10]) do    // Kill separators.
+      inc(buf);
+     if buf^=#0 Then
+       break;
+     if buf^='"' Then                   // quotes argument?
+       begin
+         inc(buf);
+         start := buf;
+         while not (buf^ in [#0,'"']) do // then end of argument is end of string or next quote
+           inc(buf);
+         len := buf - start;
+         if len=0 then len := 1; (* TODO: needs to set NULL environment variable *)
+         inc(len);
+         inc(enlen, len);
+         if buf^='"' then                // skip closing quote.
+           inc(buf);
+       end
+     else
+       begin                            // else std
+         start := buf;
+         while not (buf^ in [' ',#0,#9,#10]) do
+           inc(buf);
+         len := buf - start + 1;
+         inc(enlen, len);
+       end;
+   end;
+
+  inc(enlen, 64); { filler for stuff like ARGV= and zeros }
+
+  env := gemdos_malloc(enlen);
+  if env = nil then
+    result := ENSMEM
+  else
+    begin
+      s := env;
+      { copy the environment }
+      hp:=basepage^.p_env;
+      If (Hp<>Nil) then
+        while hp^<>#0 do
+          begin
+          len := strlen(hp) + 1;
+          strcopy(s, hp);
+          inc(hp, len);
+          inc(s, len);
+          end;
+
+      { start of arguments }
+      strcopy(s, 'ARGV=');
+      inc(s, 6); { s+=sizeof("ARGV=") }
+
+      { copy argv[0] }
+      buf := PChar(tmpPath);
+      len := strlen(buf) + 1;
+      strcopy(s, buf);
+          inc(s, len);
+
+      { copy the parameters }
+          buf:=PChar(ComLine);
+          while (buf^<>#0) do
+           begin
+             while (buf^ in [' ',#9,#10]) do    // Kill separators.
+               inc(buf);
+             if buf^=#0 Then
+               break;
+             if buf^='"' Then                   // quotes argument?
+               begin
+                 inc(buf);
+                 start := buf;
+                 while not (buf^ in [#0,'"']) do // then end of argument is end of string or next quote
+                   begin
+                     s^ := buf^;
+                     inc(s);
+                     inc(buf);
+                   end;
+                 if buf = start then
+                   begin
+                     s^ := ' ';
+                     inc(s);
+                   end;
+                 if buf^='"' then                // skip closing quote.
+                   inc(buf);
+                 s^ := #0;
+                 inc(s);
+               end
+             else
+               begin
+                 start := buf;
+                 while not (buf^ in [' ',#0,#9,#10]) do
+                   begin
+                     s^ := buf^;
+                     inc(s);
+                     inc(buf);
+                   end;
+                 s^ := #0;
+                 inc(s);
+               end;
+           end;
+
+      { tie off environment }
+      s^ := #0;
+      inc(s);
+      s^ := #0;
+
+      { signal Extended Argument Passing }
+      pcmdline[0] := #127;
+      { the zero offset for cmdline is actually correct here. pexec() expects
+        pascal formatted string for cmdline, so length in first byte }
+      result:=gemdos_pexec(0,PChar(tmpPath),@pcmdline[0],env);
+      gemdos_mfree(env);
+    end;
 
   if result < 0 then begin
     if ComLine = '' then
