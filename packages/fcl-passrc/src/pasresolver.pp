@@ -1594,7 +1594,7 @@ type
     procedure OnFindProcDeclaration(El: TPasElement; ElScope, StartScope: TPasScope;
       FindProcData: Pointer; var Abort: boolean); virtual;
     function IsSameProcContext(ProcParentA, ProcParentB: TPasElement): boolean;
-    function IsProcOverload(LastProc, CurProc: TPasProcedure): boolean;
+    function IsProcOverload(LastProc, LastExactProc, CurProc: TPasProcedure): boolean;
     function FindProcSameSignature(const ProcName: string; Proc: TPasProcedure;
       Scope: TPasIdentifierScope; OnlyLocal: boolean): TPasProcedure;
   protected
@@ -5011,7 +5011,7 @@ procedure TPasResolver.OnFindFirst_GenericEl(El: TPasElement; ElScope,
 var
   Data: PPRFindGenericData absolute FindFirstGenericData;
   GenericTemplateTypes: TFPList;
-  Proc: TPasProcedure;
+  Proc, LastExactProc: TPasProcedure;
   ProcScope: TPasProcedureScope;
 begin
   Proc:=nil;
@@ -5028,10 +5028,17 @@ begin
       El:=Proc;
       end;
 
-    if (Data^.LastProc<>nil) and not IsProcOverload(Data^.LastProc,Proc) then
+    if (Data^.LastProc<>nil) then
       begin
-      Abort:=true;
-      exit;
+      if Data^.Find.Found is TPasProcedure then
+        LastExactProc:=TPasProcedure(Data^.Find.Found)
+      else
+        LastExactProc:=nil;
+      if not IsProcOverload(Data^.LastProc,LastExactProc,Proc) then
+        begin
+        Abort:=true;
+        exit;
+        end;
       end;
     Data^.LastProc:=Proc;
 
@@ -5125,7 +5132,7 @@ begin
         exit;
         end;
 
-      if not IsProcOverload(Data^.LastProc,Proc) then
+      if not IsProcOverload(Data^.LastProc,PrevProc,Proc) then
         begin
         Abort:=true;
         exit;
@@ -5616,7 +5623,8 @@ begin
   Result:=false;
 end;
 
-function TPasResolver.IsProcOverload(LastProc, CurProc: TPasProcedure): boolean;
+function TPasResolver.IsProcOverload(LastProc, LastExactProc,
+  CurProc: TPasProcedure): boolean;
 begin
   if msDelphi in TPasProcedureScope(LastProc.CustomData).ModeSwitches then
     begin
@@ -5637,7 +5645,7 @@ begin
     end;
 
   // check if previous found proc is override of found proc
-  if IsProcOverride(CurProc,LastProc) then
+  if (LastExactProc<>nil) and IsProcOverride(CurProc,LastExactProc) then
     begin
     // previous found proc is override of found proc -> skip
     exit(false);
@@ -22962,6 +22970,9 @@ begin
   else
     RaiseMsg(20190210143257,nExprTypeMustBeClassOrRecordTypeGot,sExprTypeMustBeClassOrRecordTypeGot,
       [BaseTypeNames[ExprResolved.BaseType]],ErrorEl);
+
+  if not (rrfReadable in ExprResolved.Flags) then
+    CheckUseAsType(ExprResolved.LoTypeEl,20220210140100,Expr);
 
   Flags:=[];
   ClassRecScope:=nil;
