@@ -1492,10 +1492,14 @@ implementation
             LOC_CMMREGISTER:
               cg.a_loadmm_ref_cgpara(list,locsize,l.reference,cgpara,mms_movescalar);
             { Some targets pass floats in normal registers }
+            LOC_REFERENCE,
+            LOC_CREFERENCE:
+              if use_vectorfpu(size) then
+                cg.a_loadmm_ref_cgpara(list,locsize,l.reference,cgpara,mms_movescalar)
+              else
+                cg.a_loadfpu_ref_cgpara(list,locsize,l.reference,cgpara);
             LOC_REGISTER,
             LOC_CREGISTER,
-            LOC_REFERENCE,
-            LOC_CREFERENCE,
             LOC_FPUREGISTER,
             LOC_CFPUREGISTER:
               cg.a_loadfpu_ref_cgpara(list,locsize,l.reference,cgpara);
