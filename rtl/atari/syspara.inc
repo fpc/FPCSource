@@ -25,6 +25,8 @@
 {$DEFINE STRICTLY_COMPATIBLE_WITH_STANDARD }
 {$ENDIF}
 
+var execpathstr : shortstring;
+
 { Generates correct argument array on startup }
 procedure GenerateArgs;
 var
@@ -162,6 +164,74 @@ begin
 end;
 
 
+Function FSearch(const path:RawByteString;dirlist:RawByteString):RawByteString;
+{
+  Searches for a file 'path' in the list of direcories in 'dirlist'.
+  returns an empty string if not found. Wildcards are NOT allowed.
+  If dirlist is empty, it is set to '.'
+
+This function tries to make FSearch use ansistrings, and decrease
+stringhandling overhead at the same time.
+
+}
+Var
+  mypath,
+  mydir,NewDir : RawByteString;
+  p1     : longint;
+  olddta : PDTA;
+  dta    : TDTA;
+  i,j    : longint;
+  p      : pchar;
+  tmpPath: String;
+Begin
+
+{Check for WildCards}
+  If (Pos('?',Path) <> 0) or (Pos('*',Path) <> 0) Then
+   FSearch:='' {No wildcards allowed in these things.}
+  Else
+   Begin
+     { allow slash as backslash }
+     tmpPath:=Path+#0;
+     DoDirSeparators(tmpPath);
+     DoDirSeparators(dirlist);
+     {Replace ';' with #0}
+     for p1:=1 to length(dirlist) do
+       if (dirlist[p1]=';') or (dirlist[p1]=',') then
+         dirlist[p1]:=#0;
+
+     mypath:=ToSingleByteFileSystemEncodedFileName(tmppath);
+     olddta := gemdos_getdta;
+     gemdos_setdta(@dta);
+     p:=pchar(dirlist);
+     i:=length(dirlist);
+     j:=1;
+     Repeat
+       mydir:=RawByteString(p);
+       if (length(mydir)>0) and (mydir[length(mydir)]<>DirectorySeparator) then
+          begin
+            { concatenate character without influencing code page }
+            setlength(mydir,length(mydir)+1);
+            mydir[length(mydir)]:=DirectorySeparator;
+          end;
+       NewDir:=mydir+mypath;
+       if (gemdos_fsfirst(PChar(NewDir),$07)>=0) and
+          ((dta.d_attrib and ATTRIB_DIRECTORY)=0) then
+        Begin
+          {DOS strips off an initial .\}
+          If Pos('.\',NewDir)=1 Then
+            Delete(NewDir,1,2);
+        End
+       Else
+        NewDir:='';
+       while (j<=i) and (p^<>#0) do begin inc(j); inc(p); end;
+       if p^=#0 then inc(p);
+     Until (j>=i) or (Length(NewDir) > 0);
+     gemdos_setdta(olddta);
+     FSearch:=NewDir;
+   End;
+End;
+
+
 {*****************************************************************************
                              ParamStr
 *****************************************************************************}
@@ -172,12 +242,25 @@ begin
   ParamCount := argc - 1;
 end;
 
+function fpGetEnvAtari(const envvar : ShortString): RawByteString; external name '_fpc_atari_getenv';
+
 { argument number l }
 function ParamStr(l: LongInt): string;
 var
   s1: string;
 begin
-  ParamStr := '';
-  if (l >= 0) and (l < argc) then
-    ParamStr := StrPas(argv[l]);
+  if l=0 then
+    begin
+      if (execpathstr='') and (argv[0][0]<>#0) then
+        begin
+          execpathstr := fsearch(argv[0],fpgetenvAtari('PATH'));
+          if execpathstr='' then
+            execpathstr := argv[0];
+        end;
+      paramstr := execpathstr;
+    end
+  else if (l > 0) and (l < argc) then
+    ParamStr := StrPas(argv[l])
+  else
+    ParamStr := '';
 end;
