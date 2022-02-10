@@ -449,6 +449,8 @@ end;
                               OS utility functions
 ****************************************************************************}
 
+function fpGetEnv(const envvar : ShortString): RawByteString; external name '_fpc_atari_getenv';
+
 function GetPathString: String;
 begin
   {writeln('Unimplemented GetPathString');}
@@ -456,28 +458,8 @@ begin
 end;
 
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
-  var
-    hp : pchar;
-    i : longint;
-    upperenv, str : RawByteString;
 begin
-   result:='';
-   hp:=basepage^.p_env;
-   if (hp=nil) then
-      exit;
-   upperenv:=uppercase(envvar);
-   while hp^<>#0 do
-     begin
-        str:=hp;
-        i:=pos('=',str);
-        if uppercase(copy(str,1,i-1))=upperenv then
-          begin
-             Result:=copy(str,i+1,length(str)-i);
-             break;
-          end;
-        { next string entry}
-        hp:=hp+strlen(hp)+1;
-     end;
+   GetEnvironmentVariable := fpgetenv(envvar);
 end;
 
 Function GetEnvironmentVariableCount : Integer;

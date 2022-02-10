@@ -74,7 +74,6 @@ var
 
     {$endif defined(FPUSOFT)}
 
-
   implementation
 
     {$define FPC_SYSTEM_HAS_STACKTOP}
@@ -130,6 +129,31 @@ var
     {$WARNING: randseed initial value is 24bit}
     randseed:=xbios_random;
   end;
+
+function fpGetEnv(const envvar : ShortString): RawByteString; public name '_fpc_atari_getenv';
+  var
+    hp : pchar;
+    i : longint;
+    upperenv, str : RawByteString;
+begin
+   fpGetEnv:='';
+   hp:=basepage^.p_env;
+   if (hp=nil) then
+      exit;
+   upperenv:=upcase(envvar);
+   while hp^<>#0 do
+     begin
+        str:=hp;
+        i:=pos('=',str);
+        if upcase(copy(str,1,i-1))=upperenv then
+          begin
+             fpGetEnv:=copy(str,i+1,length(str)-i);
+             break;
+          end;
+        { next string entry}
+        hp:=hp+strlen(hp)+1;
+     end;
+end;
 
 {*****************************************************************************
                          System Dependent Exit code

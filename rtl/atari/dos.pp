@@ -418,29 +418,11 @@ begin
     end;
 end;
 
+function fpGetEnv(const envvar : ShortString): RawByteString; external name '_fpc_atari_getenv';
+
 function GetEnv(envvar : String): String;
-  var
-    hp : pchar;
-    i : longint;
-    upperenv, str : RawByteString;
 begin
-   GetEnv:='';
-   hp:=basepage^.p_env;
-   if (hp=nil) then
-      exit;
-   upperenv:=upcase(envvar);
-   while hp^<>#0 do
-     begin
-        str:=hp;
-        i:=pos('=',str);
-        if upcase(copy(str,1,i-1))=upperenv then
-          begin
-             GetEnv:=copy(str,i+1,length(str)-i);
-             break;
-          end;
-        { next string entry}
-        hp:=hp+strlen(hp)+1;
-     end;
+   GetEnv := fpgetenv(envvar);
 end;
 
 
