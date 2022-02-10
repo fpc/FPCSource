@@ -864,12 +864,16 @@ begin
   _contrl[0]:=5;
   _contrl[1]:=0;
   _contrl[3]:=1;
+  _contrl[4]:=0;
   _contrl[5]:=27;
   _contrl[6]:=handle;
 
   vdi;
 
-  v_orient:=_intout[0];
+  if _contrl[4]<>0 then
+    v_orient:=_intout[0]
+  else
+    v_orient:=0;
 end;
 
 function v_copies(handle, count: smallint): smallint;
@@ -878,12 +882,16 @@ begin
   _contrl[0]:=5;
   _contrl[1]:=0;
   _contrl[3]:=1;
+  _contrl[4]:=0;
   _contrl[5]:=28;
   _contrl[6]:=handle;
 
   vdi;
 
-  v_copies:=_intout[0];
+  if _contrl[4]<>0 then
+    v_copies:=_intout[0]
+  else
+    v_copies:=0;
 end;
 
 procedure v_tray(handle, tray: smallint);
@@ -904,12 +912,16 @@ begin
   _contrl[0]:=5;
   _contrl[1]:=0;
   _contrl[3]:=1;
+  _contrl[4]:=0;
   _contrl[5]:=37;
   _contrl[6]:=handle;
 
   vdi;
 
-  v_page_size:=_intout[0];
+  if _contrl[4]<>0 then
+    v_page_size:=_intout[0]
+  else
+    v_page_size:=0;
 end;
 
 function vs_palette(handle, palette: smallint): smallint;
