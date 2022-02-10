@@ -1214,6 +1214,7 @@ var
   ClassEl: TPasClassType;
   ArrType: TPasArrayType;
   SpecType: TPasSpecializeType;
+  Rec: TPasRecordType;
 begin
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.UsePublished START ',GetObjName(El));
@@ -1285,8 +1286,9 @@ begin
   else if C=TPasRecordType then
     begin
     // published record: use all members (except generic)
-    if CanSkipGenericType(TPasRecordType(El)) then exit;
-    Members:=TPasRecordType(El).Members;
+    Rec:=TPasRecordType(El);
+    if CanSkipGenericType(Rec) then exit;
+    Members:=Rec.Members;
     for i:=0 to Members.Count-1 do
       begin
       Member:=TPasElement(Members[i]);
@@ -1294,9 +1296,17 @@ begin
         continue; // attributes are never used directly
       if IsGenericElement(Member) then
         continue;
-      // all elements, even if not used
-      UseSubEl(Member);
+      if Member.ClassType=TPasVariable then
+        // all fields, even if not used
+        UseSubEl(Member)
+      else if IsUsed(Member) then
+        // all used non fields
+        UseSubEl(Member);
       end;
+    UseSubEl(Rec.VariantEl);
+    if Rec.Variants<>nil then
+      for i:=0 to Rec.Variants.Count-1 do
+        UseSubEl(TPasVariant(Rec.Variants[i]));
     end
   else if C.InheritsFrom(TPasProcedure) then
     UseSubEl(TPasProcedure(El).ProcType)
