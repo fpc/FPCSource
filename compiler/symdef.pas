@@ -670,6 +670,9 @@ interface
                        pc_address_only,
                        { everything except for hidden parameters }
                        pc_normal_no_hidden,
+                       { everything except for the parameters (because they
+                         might be moved over to the copy) }
+                       pc_normal_no_paras,
                        { always creates a top-level function, removes all
                          special parameters (self, vmt, parentfp, ...) }
                        pc_bareproc
@@ -5793,40 +5796,43 @@ implementation
         tabstractprocdef(result).returndefderef:=returndefderef;
         pvs:=nil;
         npvs:=nil;
-        for j:=0 to parast.symlist.count-1 do
+        if copytyp<>pc_normal_no_paras then
           begin
-            case tsym(parast.symlist[j]).typ of
-              paravarsym:
-                begin
-                  pvs:=tparavarsym(parast.symlist[j]);
-                  { in case of bare proc, don't copy self, vmt or framepointer
-                    parameters }
-                  if (copytyp in [pc_bareproc,pc_normal_no_hidden]) and
-                     (([vo_is_self,vo_is_vmt,vo_is_parentfp,vo_is_result,vo_is_funcret]*pvs.varoptions)<>[]) then
-                    continue;
-                  if paraprefix='' then
-                    npvs:=cparavarsym.create(pvs.realname,pvs.paranr,pvs.varspez,
-                      pvs.vardef,pvs.varoptions)
-                  else if not(vo_is_high_para in pvs.varoptions) then
-                    npvs:=cparavarsym.create(paraprefix+pvs.realname,pvs.paranr,pvs.varspez,
-                      pvs.vardef,pvs.varoptions)
+            for j:=0 to parast.symlist.count-1 do
+              begin
+                case tsym(parast.symlist[j]).typ of
+                  paravarsym:
+                    begin
+                      pvs:=tparavarsym(parast.symlist[j]);
+                      { in case of bare proc, don't copy self, vmt or framepointer
+                        parameters }
+                      if (copytyp in [pc_bareproc,pc_normal_no_hidden]) and
+                         (([vo_is_self,vo_is_vmt,vo_is_parentfp,vo_is_result,vo_is_funcret]*pvs.varoptions)<>[]) then
+                        continue;
+                      if paraprefix='' then
+                        npvs:=cparavarsym.create(pvs.realname,pvs.paranr,pvs.varspez,
+                          pvs.vardef,pvs.varoptions)
+                      else if not(vo_is_high_para in pvs.varoptions) then
+                        npvs:=cparavarsym.create(paraprefix+pvs.realname,pvs.paranr,pvs.varspez,
+                          pvs.vardef,pvs.varoptions)
+                      else
+                        npvs:=cparavarsym.create('$high'+paraprefix+copy(pvs.name,5,length(pvs.name)),pvs.paranr,pvs.varspez,
+                          pvs.vardef,pvs.varoptions);
+                      npvs.defaultconstsym:=pvs.defaultconstsym;
+                      tabstractprocdef(result).parast.insertsym(npvs);
+                    end;
+                  constsym:
+                    begin
+                      // ignore, reuse original constym. Should also be duplicated
+                      // be safe though
+                    end;
+                  symconst.typesym:
+                    begin
+                      // reuse original, part of generic declaration
+                    end
                   else
-                    npvs:=cparavarsym.create('$high'+paraprefix+copy(pvs.name,5,length(pvs.name)),pvs.paranr,pvs.varspez,
-                      pvs.vardef,pvs.varoptions);
-                  npvs.defaultconstsym:=pvs.defaultconstsym;
-                  tabstractprocdef(result).parast.insertsym(npvs);
-                end;
-              constsym:
-                begin
-                  // ignore, reuse original constym. Should also be duplicated
-                  // be safe though
-                end;
-              symconst.typesym:
-                begin
-                  // reuse original, part of generic declaration
-                end
-              else
-                internalerror(201160604);
+                    internalerror(201160604);
+                  end;
               end;
           end;
         tabstractprocdef(result).savesize:=savesize;
