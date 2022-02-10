@@ -257,8 +257,9 @@ type
     function ElementVisited(El: TPasElement; Mode: TPAUseMode): boolean; overload;
     function ElementVisited(El: TPasElement; OtherCheck: TPAOtherCheckedEl): boolean; overload;
     procedure MarkImplScopeRef(El, RefEl: TPasElement; Access: TPSRefAccess);
-    function CanSkipGenericType(El: TPasGenericType): boolean;
-    function CanSkipGenericProc(DeclProc: TPasProcedure): boolean;
+    function IsGenericElement(El: TPasElement): boolean; virtual;
+    function CanSkipGenericType(El: TPasGenericType): boolean; virtual;
+    function CanSkipGenericProc(DeclProc: TPasProcedure): boolean; virtual;
     procedure UseElement(El: TPasElement; Access: TResolvedRefAccess;
       UseFull: boolean); virtual;
     procedure UseTypeInfo(El: TPasElement); virtual;
@@ -1032,6 +1033,19 @@ begin
     CheckImplRef;
 end;
 
+function TPasAnalyzer.IsGenericElement(El: TPasElement): boolean;
+var
+  C: TClass;
+begin
+  C:=El.ClassType;
+  if C.InheritsFrom(TPasProcedure) then
+    Result:=TPasProcedure(El).NameParts<>nil
+  else if C.InheritsFrom(TPasGenericType) then
+    Result:=TPasGenericType(El).GenericTemplateTypes<>nil
+  else
+    Result:=false;
+end;
+
 function TPasAnalyzer.CanSkipGenericType(El: TPasGenericType): boolean;
 
   procedure RaiseHalfSpecialized;
@@ -1260,7 +1274,9 @@ begin
         Member:=TPasElement(Members[i]);
         if Member.ClassType=TPasAttributes then
           continue;
-        if IsUsed(Member) then
+        if IsGenericElement(Member) then
+          continue;
+        if IsUsed(Member) then // only used elements of a class
           UseTypeInfo(Member);
         end;
       end;
@@ -1268,7 +1284,7 @@ begin
   else if C=TPasClassOfType then
   else if C=TPasRecordType then
     begin
-    // published record: use all members
+    // published record: use all members (except generic)
     if CanSkipGenericType(TPasRecordType(El)) then exit;
     Members:=TPasRecordType(El).Members;
     for i:=0 to Members.Count-1 do
@@ -1276,6 +1292,9 @@ begin
       Member:=TPasElement(Members[i]);
       if Member.ClassType=TPasAttributes then
         continue; // attributes are never used directly
+      if IsGenericElement(Member) then
+        continue;
+      // all elements, even if not used
       UseSubEl(Member);
       end;
     end
