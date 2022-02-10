@@ -274,7 +274,7 @@ type
 
 type
   PVDIContrl = ^TVDIContrl;
-  TVDIContrl = ARRAY[0..11] of smallint;
+  TVDIContrl = ARRAY[0..14] of smallint;
 
   PVDIPtsIn  = ^TVDIPtsIn;
   TVDIPtsIn  = array[0..1023] of smallint;
