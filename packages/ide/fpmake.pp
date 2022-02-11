@@ -248,6 +248,8 @@ begin
         P.Options.Add('-dNOCATCH');
         P.Options.Add('-dBrowserCol');
         P.Options.Add('-dGDB');
+        if CompilerTarget=wasm32 then
+          P.Options.Add('-dNOOPT');
         
         CompilerDir:=P.Directory +'../../compiler';
 
