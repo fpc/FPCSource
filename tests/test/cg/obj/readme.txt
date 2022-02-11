@@ -68,3 +68,4 @@ linux-aarch64 : gcc (Ubuntu/Linaro 4.8.4-2ubuntu1~14.04) 4.8.4
 linux-sparc64 : GCC: (Debian 7.3.0-10) 7.3.0
 
 wasi-wasm32 : clang version 11.0.0 (https://github.com/llvm/llvm-project 176249bd6732a8044d457092ed932768724a6f06) from WASI SDK 12
+aarch64-win64 : clang version 13.0.0 with triplet aarch64-pc-windows-gnu (to use GCC instead of MSVC name mangling)
