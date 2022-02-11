@@ -388,6 +388,15 @@ endif
 ifeq ($(PPC_TARGET),sparc64)
 override FPCOPT+= -Fu$(COMPILERDIR)/sparcgen -Fi$(COMPILERDIR)/sparcgen
 endif
+ifeq ($(PPC_TARGET),wasm32)
+override FPCOPT+= -dNOOPT
+endif
+ifeq ($(PPC_TARGET),riscv32)
+override LOCALOPT+=-Furiscv
+endif
+ifeq ($(PPC_TARGET),riscv64)
+override LOCALOPT+=-Furiscv
+endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=compunit
 endif
@@ -3787,7 +3796,7 @@ ifdef CREATESHARED
 override FPCOPT+=-Cg
 endif
 ifneq ($(filter $(OS_TARGET),dragonfly freebsd openbsd netbsd linux solaris),)
-ifneq ($(filter $(CPU_TARGET),x86_64 mips mipsel riscv64 powerpc64),)
+ifneq ($(filter $(CPU_TARGET),x86_64 mips mipsel mips64 mips64el riscv64 powerpc64),)
 override FPCOPT+=-Cg
 endif
 endif
