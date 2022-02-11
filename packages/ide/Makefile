@@ -2957,7 +2957,7 @@ ifdef CREATESHARED
 override FPCOPT+=-Cg
 endif
 ifneq ($(filter $(OS_TARGET),dragonfly freebsd openbsd netbsd linux solaris),)
-ifneq ($(filter $(CPU_TARGET),x86_64 mips mipsel riscv64 powerpc64),)
+ifneq ($(filter $(CPU_TARGET),x86_64 mips mipsel mips64 mips64el riscv64 powerpc64),)
 override FPCOPT+=-Cg
 endif
 endif
@@ -3430,7 +3430,7 @@ ifdef NOLLVM
 FPMAKE_OPT+=--NOLLVM=1
 endif
 .NOTPARALLEL:
-PPC_TARGETS=i386 m68k powerpc sparc arm x86_64 powerpc64 mips mipsel avr jvm i8086 aarch64 sparc64
+PPC_TARGETS=i386 m68k powerpc sparc arm x86_64 powerpc64 mips mipsel avr jvm i8086 aarch64 sparc64 riscv32 riscv64 xtensa wasm32 z80
 CLEAN_TARGETS=$(addsuffix _clean,$(sort $(PPC_TARGETS)))
 DISTCLEAN_TARGETS=$(addsuffix _distclean,$(sort $(PPC_TARGETS)))
 INSTALL_TARGETS=$(addsuffix _exe_install,$(sort $(PPC_TARGETS)))
