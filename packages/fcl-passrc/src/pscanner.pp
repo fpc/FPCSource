@@ -3968,14 +3968,14 @@ Var
   MName,MValue : String;
 
 begin
-  Param := UpperCase(Param);
+  // Param is already trimmed on entry.
   Index:=Pos(':=',Param);
   If (Index=0) then
     AddDefine(GetMacroName(Param))
   else
     begin
-    MValue:=Trim(Param);
-    MName:=Trim(Copy(MValue,1,Index-1));
+    MValue:=Param;
+    MName:=UpperCase(Trim(Copy(MValue,1,Index-1)));
     Delete(MValue,1,Index+1);
     AddMacro(MName,Trim(MValue));
     end;
@@ -5729,6 +5729,7 @@ begin
   while (p<=length(Result)) and (Result[p] in ['a'..'z','A'..'Z','0'..'9','_']) do
     inc(p);
   SetLength(Result,p-1);
+  Result:=UpperCase(Result);
 end;
 
 procedure TPascalScanner.SetCurMsg(MsgType: TMessageType; MsgNumber: integer;

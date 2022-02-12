@@ -274,6 +274,7 @@ type
     Procedure TestMacro1;
     procedure TestMacro2;
     procedure TestMacro3;
+    procedure TestMacro4;
     procedure TestMacroHandling;
     procedure TestIFDefined;
     procedure TestIFUnDefined;
@@ -1904,6 +1905,14 @@ begin
   FScanner.SkipComments:=True;
   FScanner.SkipWhiteSpace:=True;
   TestTokens([tkof],'{$MACRO on}{$DEFINE MM:=begin end}'#13#10'{$IFDEF MM} of {$ELSE} in {$ENDIF}');
+end;
+
+procedure TTestScanner.TestMacro4;
+begin
+  FScanner.SkipComments:=True;
+  FScanner.SkipWhiteSpace:=True;
+  TestTokens([tkIdentifier],'{$MACRO on}{$DEFINE MM:=Solo}'#13#10'MM',False);
+  AssertEquals('Token case preserved','Solo',FScanner.CurTokenString);
 end;
 
 procedure TTestScanner.TestMacroHandling;
