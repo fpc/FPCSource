@@ -377,6 +377,37 @@ begin
     end;
 end;
 
+procedure Enhanced2Legacy_Area(X1, Y1, X2, Y2: Word);
+var
+  I, IY, X, Y: Integer;
+  CodePage: TSystemCodePage;
+begin
+  if (X1>=ScreenWidth) or (Y1>=ScreenHeight) then
+    exit;
+  if X2>=ScreenWidth then
+    X2:=ScreenWidth-1;
+  if Y2>=ScreenHeight then
+    Y2:=ScreenHeight-1;
+  if (X1>X2) or (Y1>Y2) then
+    exit;
+  CodePage:=GetActiveCodePage();
+  { todo: optimize this }
+  IY := Y1*ScreenWidth+X1;
+  for Y := Y1 to Y2 do
+    begin
+      I := IY;
+      for X := X1 to X2 do
+        begin
+          with EnhancedVideoBuf[I] do
+            VideoBuf^[I]:=(Attribute shl 8) or Ord(ExtendedGraphemeCluster2LegacyChar(ExtendedGraphemeCluster,CodePage));
+          with OldEnhancedVideoBuf[I] do
+            OldVideoBuf^[I]:=(Attribute shl 8) or Ord(ExtendedGraphemeCluster2LegacyChar(ExtendedGraphemeCluster,CodePage));
+          Inc(I);
+        end;
+      Inc(IY, ScreenWidth);
+    end;
+end;
+
 procedure Legacy2Enhanced;
 var
   I: Integer;
@@ -394,6 +425,41 @@ begin
           Attribute:=Byte(OldVideoBuf^[I] shr 8);
           ExtendedGraphemeCluster:=LegacyChar2ExtendedGraphemeCluster(Chr(Byte(OldVideoBuf^[I])));
         end;
+    end;
+end;
+
+procedure Legacy2Enhanced_Area(X1, Y1, X2, Y2: Word);
+var
+  I, IY, X, Y: Integer;
+begin
+  if (X1>=ScreenWidth) or (Y1>=ScreenHeight) then
+    exit;
+  if X2>=ScreenWidth then
+    X2:=ScreenWidth-1;
+  if Y2>=ScreenHeight then
+    Y2:=ScreenHeight-1;
+  if (X1>X2) or (Y1>Y2) then
+    exit;
+  { todo: optimize this }
+  IY := Y1*ScreenWidth+X1;
+  for Y := Y1 to Y2 do
+    begin
+      I := IY;
+      for X := X1 to X2 do
+        begin
+          with EnhancedVideoBuf[I] do
+            begin
+              Attribute:=Byte(VideoBuf^[I] shr 8);
+              ExtendedGraphemeCluster:=LegacyChar2ExtendedGraphemeCluster(Chr(Byte(VideoBuf^[I])));
+            end;
+          with OldEnhancedVideoBuf[I] do
+            begin
+              Attribute:=Byte(OldVideoBuf^[I] shr 8);
+              ExtendedGraphemeCluster:=LegacyChar2ExtendedGraphemeCluster(Chr(Byte(OldVideoBuf^[I])));
+            end;
+          Inc(I);
+        end;
+      Inc(IY, ScreenWidth);
     end;
 end;
 
@@ -416,7 +482,13 @@ Procedure UpdateScreenArea (const X1, Y1, X2, Y2: Word; Force: Boolean);
 begin
   if (LockUpdateScreen<=0) then
     if Assigned(CurrentVideoDriver.UpdateScreenArea) then
-      CurrentVideoDriver.UpdateScreenArea(X1,Y1,X2,Y2,Force)
+      begin
+        if EnhancedVideoInitialized and Assigned(CurrentVideoDriver.InitDriver) then
+          Enhanced2Legacy_Area(X1,Y1,X2,Y2)
+        else if VideoInitialized and Assigned(CurrentVideoDriver.InitEnhancedDriver) then
+          Legacy2Enhanced_Area(X1,Y1,X2,Y2);
+        CurrentVideoDriver.UpdateScreenArea(X1,Y1,X2,Y2,Force);
+      end
     else
       UpdateScreen(Force);
 end;
