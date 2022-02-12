@@ -3543,7 +3543,7 @@ end;
 
 { TJSFunction }
 
-destructor TJSFunctionDeclarationStatement.Destroy;
+destructor TJSFunctionStatement.Destroy;
 begin
   FreeAndNil(FFuncDef);
   inherited Destroy;
@@ -3607,7 +3607,7 @@ Var
 begin
   FParams.Clear;
   For I:=0 to TypedParams.Count-1 do
-    FParams.Add(UTF8Encode(TypedParams.Names[i]));
+    FParams.Add({$ifdef FPC_HAS_CPSTRING}UTF8Encode(TypedParams.Names[i]){$ELSE}TypedParams.Names[i]{$ENDIF});
 end;
 
 { TJSBracketMemberExpression }
