@@ -1259,7 +1259,8 @@ begin
 
   { save current RTOC for restoration after calls if necessary }
   if (pi_do_call in current_procinfo.flags) and
-     (target_info.abi in abis_ppc_toc) then
+     (target_info.abi in abis_ppc_toc) and
+     not nostackframe then
     begin
       reference_reset_base(href,NR_STACK_POINTER_REG,get_rtoc_offset,ctempposinvalid,target_info.stackalign,[]);
       a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_RTOC,href);
