@@ -15,6 +15,9 @@
  **********************************************************************}
 unit video;
 
+{$mode objfpc}
+{$modeswitch advancedrecords}
+
 { smart callbacks: on }
 {$K+}
 
