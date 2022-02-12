@@ -15,6 +15,7 @@
  **********************************************************************}
 
 {$MODE OBJFPC}
+{$modeswitch advancedrecords}
 unit Video;
 
 {.$define VIDEODEBUG}
