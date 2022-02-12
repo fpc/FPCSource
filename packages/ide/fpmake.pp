@@ -231,6 +231,7 @@ begin
           P.OSes := AllOSes-[darwin];
 
         P.Dependencies.Add('rtl-extra');
+        P.Dependencies.Add('rtl-unicode');
         P.Dependencies.Add('fv');
         P.Dependencies.Add('chm');
         { This one is only needed if DEBUG is set }
