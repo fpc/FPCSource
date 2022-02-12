@@ -1296,12 +1296,8 @@ begin
         continue; // attributes are never used directly
       if IsGenericElement(Member) then
         continue;
-      if Member.ClassType=TPasVariable then
-        // all fields, even if not used
-        UseSubEl(Member)
-      else if IsUsed(Member) then
-        // all used non fields
-        UseSubEl(Member);
+      // all members, even if not used
+      UseSubEl(Member);
       end;
     UseSubEl(Rec.VariantEl);
     if Rec.Variants<>nil then
