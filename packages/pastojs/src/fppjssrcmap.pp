@@ -25,7 +25,7 @@ unit FPPJsSrcMap;
 interface
 
 uses
-  SysUtils, Classes, math,
+  SysUtils, math,
   jswriter, jstree, JSSrcMap, fpjson, Pas2JSUtils;
 
 type
@@ -230,7 +230,9 @@ procedure TPas2JSMapper.SaveJSToStream(WithUTF8BOM: boolean;
   const MapFilename: string; s: TFPJSStream);
 var
   MapSrc: string;
-  {$ifndef pas2js}
+  {$ifdef pas2js}
+  i: integer;
+  {$ELSE}
   bom: string;
   {$endif}
 begin
@@ -240,7 +242,7 @@ begin
     MapSrc:='';
   {$ifdef pas2js}
   if WithUTF8BOM then ;
-  for i:=0 to FBufPos-1 do
+  for i:=0 to BufferLength-1 do
     s.push(Buffer[i]);
   if MapSrc<>'' then
     s.push(MapSrc);
