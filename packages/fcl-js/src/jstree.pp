@@ -140,7 +140,6 @@ Type
     FResultType: TJSTypeDef;
     FTypedParams: TJSTypedParams;
     FGenericParams : TJSElementNodes;
-    procedure SetParams(const AValue: TStrings);
   Public
     Constructor Create;
     Destructor Destroy; override;
@@ -3574,14 +3573,6 @@ begin
 end;
 
 { TJSFuncDef }
-
-procedure TJSFuncDef.SetParams(const AValue: TStrings);
-begin
-  if FParams=AValue then exit;
-  FParams.Assign(AValue);
-  TStringList(FParams).OwnsObjects:=True;
-end;
-
 
 constructor TJSFuncDef.Create;
 begin
