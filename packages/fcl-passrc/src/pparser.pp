@@ -5482,7 +5482,7 @@ begin
         ExpectToken(tkColon);
         ResultEl.ResultType := ParseType(ResultEl,CurSourcePos);
         end
-      else if not ((Parent is TPasOperator) and (TPasOperator(Parent).OperatorType in [otInitialize,otFinalize])) then
+      else if not ((Parent is TPasOperator) and (TPasOperator(Parent).OperatorType in [otInitialize,otFinalize,otAddRef,otCopy])) then
         // Initialize operator has no result
         begin
          if (CurToken=tkColon) then

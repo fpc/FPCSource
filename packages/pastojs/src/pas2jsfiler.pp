@@ -494,7 +494,9 @@ const
     'Enumerator',
     'In',
     'Initialize',
-    'Finalize'
+    'Finalize',
+    'AddRef',
+    'Copy'
     );
 
   PCUProcedureModifierNames: array[TProcedureModifier] of string = (

@@ -1416,7 +1416,9 @@ begin
     // otInitialize has no result
     S:=GetEnumName(TypeInfo(TOperatorType),Ord(T));
     ResetParser;
-    if t in [otInitialize,otFinalize] then
+    if t in [otCopy] then
+      AddDeclaration(Format('operator %s (constref Src: Integer; var Dest : Integer)',[OperatorNames[t]]))
+    else if t in [otInitialize,otFinalize,otAddRef] then
       AddDeclaration(Format('operator %s (var a: Integer)',[OperatorNames[t]]))
     else if t in UnaryOperators then
       AddDeclaration(Format('operator %s (a: Integer) : te',[OperatorNames[t]]))
@@ -1425,7 +1427,9 @@ begin
     ParseOperator;
     AssertEquals(S+': Token based',t in [otIn],FOperator.TokenBased);
     AssertEquals(S+': Correct operator type',T,FOperator.OperatorType);
-    if t in [otInitialize,otFinalize] then
+    if t in [otCopy] then
+      AssertEquals('Correct operator name',format('%s(Integer,Integer)',[OperatorNames[t]]),FOperator.Name)
+    else if t in [otInitialize,otFinalize,otAddRef] then
       AssertEquals('Correct operator name',format('%s(Integer)',[OperatorNames[t]]),FOperator.Name)
     else if t in UnaryOperators then
       AssertEquals('Correct operator name',format('%s(Integer):te',[OperatorNames[t]]),FOperator.Name)
