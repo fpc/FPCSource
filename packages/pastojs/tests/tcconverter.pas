@@ -396,10 +396,10 @@ begin
   VS:=TJSVariableStatement(AssertElement('For init is var '+LoopEndVar,TJSVariableStatement,ForSt.Init));
   VDL:=TJSVariableDeclarationList(AssertElement('For init var has comma',TJSVariableDeclarationList,VS.VarDecl));
   VD:=TJSVarDeclaration(AssertElement('var '+LoopVar,TJSVarDeclaration,VDL.A));
-  AssertEquals('Correct name for '+LoopVar,LoopVar,VD.Name);
+  AssertEquals('Correct name for '+LoopVar,LoopVar,String(VD.Name));
   AssertLiteral('Correct start value',VD.Init,1);
   VD:=TJSVarDeclaration(AssertElement('var '+LoopEndVar,TJSVarDeclaration,VDL.B));
-  AssertEquals('Correct name for '+LoopEndVar,LoopEndVar,VD.Name);
+  AssertEquals('Correct name for '+LoopEndVar,LoopEndVar,String(VD.Name));
   AssertLiteral('Correct end value',VD.Init,100);
 
   // $l<=$end
@@ -457,10 +457,10 @@ begin
   VS:=TJSVariableStatement(AssertElement('For init is var '+LoopEndVar,TJSVariableStatement,ForSt.Init));
   VDL:=TJSVariableDeclarationList(AssertElement('For init var has comma',TJSVariableDeclarationList,VS.VarDecl));
   VD:=TJSVarDeclaration(AssertElement('var '+LoopVar,TJSVarDeclaration,VDL.A));
-  AssertEquals('Correct name for '+LoopVar,LoopVar,VD.Name);
+  AssertEquals('Correct name for '+LoopVar,LoopVar,String(VD.Name));
   AssertLiteral('Correct start value',VD.Init,100);
   VD:=TJSVarDeclaration(AssertElement('var '+LoopEndVar,TJSVarDeclaration,VDL.B));
-  AssertEquals('Correct name for '+LoopEndVar,LoopEndVar,VD.Name);
+  AssertEquals('Correct name for '+LoopEndVar,LoopEndVar,String(VD.Name));
   AssertLiteral('Correct end value',VD.Init,1);
 
   // $l>=$end
@@ -705,7 +705,7 @@ begin
   writeln('TTestStatementConverter.TestTryExceptStatementOnE ',L.A.ClassName);
   VS:=TJSVariableStatement(AssertElement('First statement in list is a var statement',TJSVariableStatement,L.A));
   V:=TJSVarDeclaration(AssertElement('var declaration e=ExceptObject',TJSVarDeclaration,VS.VarDecl));
-  AssertEquals('Variable name is identifier in On A : Ex do','e',V.Name);
+  AssertEquals('Variable name is identifier in On A : Ex do','e',String(V.Name));
   Assertidentifier('Variable init is exception object',V.Init,ExceptObjName);
   // check "b = c;"
   AssertAssignStatement('Original assignment in second statement',L.B,'b','c');
@@ -766,7 +766,7 @@ begin
   writeln('TTestStatementConverter.TestTryExceptStatementOnE ',L.A.ClassName);
   VS:=TJSVariableStatement(AssertElement('First statement in list is a var statement',TJSVariableStatement,L.A));
   V:=TJSVarDeclaration(AssertElement('var declaration e=ExceptObject',TJSVarDeclaration,VS.VarDecl));
-  AssertEquals('Variable name is identifier in On A : Ex do','e',V.Name);
+  AssertEquals('Variable name is identifier in On A : Ex do','e',String(V.Name));
   Assertidentifier('Variable init is exception object',V.Init,ExceptObjName);
   R:=TJSThrowStatement(AssertElement('On block is throw statement',TJSThrowStatement,L.B));
   Assertidentifier('R expression is original exception ',R.A,ExceptObjName);
@@ -788,7 +788,7 @@ begin
   L:=TJSStatementList(Convert(S,TJSStatementList));
   JV:=TJSVariableStatement(AssertElement('Variable statement',TJSVariableStatement,L.A));
   JVD:=TJSVarDeclaration(AssertElement('Variable declaration',TJSVarDeclaration,JV.VarDecl));
-  AssertEquals('Correct variable name','a',JVD.Name);
+  AssertEquals('Correct variable name','a',String(JVD.Name));
 end;
 
 { TTestExpressionConverter }
@@ -1232,7 +1232,7 @@ Var
 begin
   R:=TPasVariable.Create('A',Nil);
   VD:=TJSVarDeclaration(Convert(R,TJSVarDeclaration));
-  AssertEquals('Correct name, lowercased','a',VD.Name);
+  AssertEquals('Correct name, lowercased','a',String(VD.Name));
   AssertNotNull('No init',VD.Init);
 end;
 
@@ -1246,7 +1246,7 @@ begin
   R:=TPasVariable.Create('A',Nil);
   R.VarType:=TPasArrayType.Create('myarray',Nil);
   VD:=TJSVarDeclaration(Convert(R,TJSVarDeclaration));
-  AssertEquals('Correct name, lowercased','a',VD.Name);
+  AssertEquals('Correct name, lowercased','a',String(VD.Name));
   A:=TJSArrayLiteral(AssertElement('Init is array literal',TJSArrayLiteral,VD.Init));
   AssertEquals('No elements',0,A.Elements.Count);
 end;
