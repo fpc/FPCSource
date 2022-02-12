@@ -450,7 +450,7 @@ asm
   pea.l       (a2)
   moveq.l     #-2,d0
   trap        #2
-  addq.w      #2,d0
+  addq        #2,d0
   ext.l       d0
   movea.l     (a7)+,a2
 end;
