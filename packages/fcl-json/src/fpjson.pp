@@ -116,7 +116,7 @@ Type
     class procedure SetCompressedJSON(AValue: Boolean); {$IFNDEF PAS2JS}static;{$ENDIF}
   protected
     Class Procedure DoError(Const Msg : String);
-    Class Procedure DoError(Const Fmt : String; const Args : Array of {$IFDEF PAS2JS}jsvalue{$else}Const{$ENDIF});
+    Class Procedure DoError(Const Fmt : String; const Args : Array of Const);
     Function DoFindPath(Const APath : TJSONStringType; Out NotFound : TJSONStringType) : TJSONdata; virtual;
     function GetAsBoolean: Boolean; virtual; abstract;
     function GetAsFloat: TJSONFloat; virtual; abstract;
@@ -1492,7 +1492,7 @@ begin
 end;
 
 class procedure TJSONData.DoError(const Fmt: String;
-  const Args: array of {$IFDEF PAS2JS}jsvalue{$else}Const{$ENDIF});
+  const Args: array of Const);
 begin
   Raise EJSON.CreateFmt(Fmt,Args);
 end;
