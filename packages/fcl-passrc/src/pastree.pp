@@ -1176,7 +1176,7 @@ type
     otRightShift,
     otEnumerator, otIn,
     otInitialize,
-    orFinalize // Management operators
+    otFinalize // Management operators
     );
   TOperatorTypes = set of TOperatorType;
 

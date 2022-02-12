@@ -1414,18 +1414,20 @@ begin
     begin
     if OperatorNames[t]='' then continue;
     // otInitialize has no result
-    if t=otInitialize then continue;
-    writeln('TTestProcedureFunction.TestOperatorTokens ',t);
     S:=GetEnumName(TypeInfo(TOperatorType),Ord(T));
     ResetParser;
-    if t in UnaryOperators then
+    if t in [otInitialize,otFinalize] then
+      AddDeclaration(Format('operator %s (var a: Integer)',[OperatorNames[t]]))
+    else if t in UnaryOperators then
       AddDeclaration(Format('operator %s (a: Integer) : te',[OperatorNames[t]]))
     else
       AddDeclaration(Format('operator %s (a: Integer; b: integer) : te',[OperatorNames[t]]));
     ParseOperator;
     AssertEquals(S+': Token based',t in [otIn],FOperator.TokenBased);
     AssertEquals(S+': Correct operator type',T,FOperator.OperatorType);
-    if t in UnaryOperators then
+    if t in [otInitialize,otFinalize] then
+      AssertEquals('Correct operator name',format('%s(Integer)',[OperatorNames[t]]),FOperator.Name)
+    else if t in UnaryOperators then
       AssertEquals('Correct operator name',format('%s(Integer):te',[OperatorNames[t]]),FOperator.Name)
     else
       AssertEquals('Correct operator name',format('%s(Integer,Integer):te',[OperatorNames[t]]),FOperator.Name);
