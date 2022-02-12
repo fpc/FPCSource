@@ -483,7 +483,8 @@ end;
 
 procedure releaseSpinLock; assembler; nostackframe;
 asm
-  move.b #0,spinlock
+  moveq.l #0,d0
+  move.b d0,spinlock
 end;
 {$ENDIF}
 
