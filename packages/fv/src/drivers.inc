@@ -1289,10 +1289,8 @@ begin
        end;
      Event.What:=evKeyDown;
      Event.KeyCode:=keycode;
-{$ifdef ENDIAN_LITTLE}
      Event.CharCode:=chr(keycode and $ff);
      Event.ScanCode:=keycode shr 8;
-{$endif ENDIAN_LITTLE}
      Event.UnicodeChar:=key.UnicodeChar;
      Event.KeyShift:=ConvertEnhancedToLegacyShiftState(key.ShiftState);
    end

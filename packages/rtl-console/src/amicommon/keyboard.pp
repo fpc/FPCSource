@@ -470,7 +470,7 @@ begin
           KeyCode := Ord(Buff[0]);
           KeySet^.KeyCode := Ord(Buff[0]);         // if maprawkey does not work it still is 0
           KeySet^.ShiftState := LastShiftState;    // shift state set before the case
-          KeySet^.Flags := 0;
+          KeySet^.Flags := kbPhys;
           if keyup then                            // we do not need key up events up to now
           begin
             KeySet^.Flags := KeySet^.Flags or kbReleased; // kbReleased does work but make strange effects
