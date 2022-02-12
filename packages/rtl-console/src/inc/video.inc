@@ -312,7 +312,7 @@ function ExtendedGraphemeCluster2LegacyChar(const EGC: UnicodeString; CodePage: 
     var
       tmpS: RawByteString;
     begin
-      tmpS:=UTF8Encode(EGC);
+      tmpS:=System.UTF8Encode(EGC);
       System.SetCodePage(tmpS,CodePage,True);
       if Length(tmpS)=1 then
         Result:=tmpS[1]
