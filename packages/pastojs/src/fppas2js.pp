@@ -677,6 +677,7 @@ type
     pbivnMessageInt,
     pbivnMessageStr,
     pbivnLibrary, // library
+    pbivnLibraryVars, // library vars
     pbivnLocalModuleRef,
     pbivnLocalProcRef,
     pbivnLocalTypeRef,
@@ -865,6 +866,7 @@ const
     '$msgint', // pbivnMessageInt
     '$msgstr', // pbivnMessageStr
     'library', //  pbivnLibrary  pas.library
+    'vars', //  pbivnLibraryVars  vars
     '$lm', // pbivnLocalModuleRef
     '$lp', // pbivnLocalProcRef
     '$lt', // pbivnLocalTypeRef
@@ -1552,6 +1554,9 @@ type
     procedure FinishPropertyParamAccess(Params: TParamsExpr; Prop: TPasProperty
       ); override;
     procedure FinishExportSymbol(El: TPasExportSymbol); override;
+    procedure ComputeArgumentExpr(const ArgResolved: TPasResolverResult;
+      Access: TArgumentAccess; Expr: TPasExpr; out
+      ExprResolved: TPasResolverResult; SetReferenceFlags: boolean); override;
     procedure FindCreatorArrayOfConst(Args: TFPList; ErrorEl: TPasElement);
     function FindProc_ArrLitToArrayOfConst(ErrorEl: TPasElement): TPasFunction; virtual;
     function FindSystemExternalClassType(const aClassName, JSName: string;
@@ -2049,6 +2054,7 @@ type
       AContext: TConvertContext): TJSElement; virtual;
     Function CreateCallRTLFreeLoc(Setter, Getter: TJSElement; Src: TPasElement): TJSElement; virtual;
     Function CreateDotSplit(El: TPasElement; Expr: TJSElement): TJSElement; virtual;
+    Function CreateExportStatement(VarType: TJSVarType; AliasName: TJSString; InitJS: TJSElement; PosEl: TPasElement): TJSExportStatement; virtual;
     Function CreatePrecompiledJS(El: TJSElement): string; virtual;
     Procedure AddRTLVersionCheck(FuncContext: TFunctionContext; PosEl: TPasElement);
     // JS literals
@@ -2097,6 +2103,7 @@ type
     Function CreateImplementationSection(El: TPasModule; IntfContext: TInterfaceSectionContext): TJSFunctionDeclarationStatement; virtual;
     Procedure CreateInitSection(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext); virtual;
     Procedure CreateExportsSection(El: TPasLibrary; Src: TJSSourceElements; AContext: TConvertContext); virtual;
+    Function AddRTLRun(El: TPasModule; ModuleName: string; Src: TJSSourceElements; AContext: TConvertContext): TJSCallExpression; virtual;
     Procedure AddHeaderStatement(JS: TJSElement; PosEl: TPasElement; aContext: TConvertContext); virtual;
     Procedure AddImplHeaderStatement(JS: TJSElement; PosEl: TPasElement; aContext: TConvertContext); virtual;
     function AddDelayedInits(El: TPasModule; Src: TJSSourceElements; AContext: TConvertContext): boolean; virtual;
@@ -4912,6 +4919,7 @@ procedure TPas2JSResolver.FinishExportSymbol(El: TPasExportSymbol);
 var
   ResolvedEl: TPasResolverResult;
   DeclEl: TPasElement;
+  C: TClass;
   Proc: TPasProcedure;
   V: TPasVariable;
 begin
@@ -4932,6 +4940,7 @@ begin
       sSymbolCannotBeExportedFromALibrary,[],El);
   if DeclEl is TPasResultElement then
     DeclEl:=DeclEl.Parent.Parent;
+  C:=DeclEl.ClassType;
 
   if DeclEl.Parent=nil then
     RaiseMsg(20220206142534,nSymbolCannotBeExportedFromALibrary,
@@ -4949,14 +4958,14 @@ begin
     RaiseMsg(20211022224239,nSymbolCannotBeExportedFromALibrary,
       sSymbolCannotBeExportedFromALibrary,[],El);
 
-  if DeclEl is TPasProcedure then
+  if C.InheritsFrom(TPasProcedure) then
     begin
     Proc:=TPasProcedure(DeclEl);
     if Proc.IsExternal or Proc.IsAbstract then
       RaiseMsg(20211021225630,nSymbolCannotBeExportedFromALibrary,
         sSymbolCannotBeExportedFromALibrary,[],El);
     end
-  else if DeclEl is TPasVariable then
+  else if (C=TPasVariable) or (C=TPasConst) then
     begin
     V:=TPasVariable(DeclEl);
     if vmExternal in V.VarModifiers then
@@ -4964,8 +4973,39 @@ begin
         sSymbolCannotBeExportedFromALibrary,[],El);
     end
   else
+    begin
+    {$IFDEF VerbosePas2JS}
+    writeln('TPas2JSResolver.FinishExportSymbol ',GetObjPath(El));
+    {$ENDIF}
     RaiseMsg(20210106223621,nSymbolCannotBeExportedFromALibrary,
       sSymbolCannotBeExportedFromALibrary,[],El);
+    end;
+end;
+
+procedure TPas2JSResolver.ComputeArgumentExpr(
+  const ArgResolved: TPasResolverResult; Access: TArgumentAccess;
+  Expr: TPasExpr; out ExprResolved: TPasResolverResult;
+  SetReferenceFlags: boolean);
+var
+  RightEl: TPasExpr;
+  Ref: TResolvedReference;
+begin
+  inherited ComputeArgumentExpr(ArgResolved, Access, Expr, ExprResolved,
+    SetReferenceFlags);
+  if SetReferenceFlags
+      and (Access in [argDefault, argConst])
+      and ((ArgResolved.BaseType=btUntyped)
+         or IsJSBaseType(ArgResolved,pbtJSValue,true{must have rrfReadable}))
+      and (ExprResolved.LoTypeEl is TPasRecordType) then
+    begin
+    // passing a record to an untyped or jsvalue parameter -> mark fields as "read" too
+    RightEl:=GetRightMostExpr(Expr);
+    if RightEl.CustomData is TResolvedReference then
+      begin
+      Ref:=TResolvedReference(RightEl.CustomData);
+      Include(Ref.Flags,rrfUseFields);
+      end;
+    end;
 end;
 
 procedure TPas2JSResolver.FindCreatorArrayOfConst(Args: TFPList;
@@ -8207,7 +8247,10 @@ Library:
         <initialization>
         };
     });
-  export1 = pas.unit1.func1;
+  rtl.run('library');
+  var li = pas['library'];
+  export const func1 = pas.unit1.func1;
+  export const var1 = li.var1;
 
 Unit without implementation:
  rtl.module('<unitname>',
@@ -8337,7 +8380,6 @@ begin
       if Assigned(Lib.LibrarySection) then
         AddToSourceElements(Src,ConvertDeclarations(Lib.LibrarySection,IntfContext));
       HasImplCode:=AddDelayedInits(Lib,Src,IntfContext);
-      CreateExportsSection(Lib,Src,IntfContext);
       CreateInitSection(Lib,Src,IntfContext);
       end
     else
@@ -8387,6 +8429,18 @@ begin
 
     if (ModScope<>nil) and (coStoreImplJS in Options) then
       StoreImplJSLocals(ModScope,IntfContext);
+
+    if El is TPasLibrary then
+      begin
+      // library: rtl.run('library');
+      Lib:=TPasLibrary(El);
+      AddRTLRun(Lib,ModuleName,OuterSrc,AContext);
+      CreateExportsSection(Lib,OuterSrc,AContext);
+      end
+    else if (El is TPasProgram) and (Globals.TargetPlatform in [PlatformNodeJS,PlatformModule]) then
+      // program: rtl.run();
+      AddRTLRun(El,'',OuterSrc,AContext);
+
     ok:=true;
   finally
     IntfContext.Free;
@@ -18029,28 +18083,58 @@ end;
 
 procedure TPasToJSConverter.CreateExportsSection(El: TPasLibrary;
   Src: TJSSourceElements; AContext: TConvertContext);
+// functions:
+//   export const func1 = pas.unit1.func1;
+// variables:
+//   export const vars = {};
+//   Object.defineProperties(vars, {
+//     Var1: {
+//       get: function(){return pas.unit1.Var1;},
+//       set: function(v){pas.unit1.Var1 = v;},
+//     }
+//   });
+
+  procedure AddPropFunction(ObjLit: TJSObjectLiteral; AliasName, Arg1: TJSString;
+    BodyJS: TJSElement; PosEl: TPasElement);
+  var
+    Lit: TJSObjectLiteralElement;
+    FuncSt: TJSFunctionDeclarationStatement;
+  begin
+    Lit:=ObjLit.Elements.AddElement;
+    Lit.Name:=AliasName;
+    FuncSt:=CreateFunctionSt(PosEl,true,false);
+    Lit.Expr:=FuncSt;
+    if Arg1<>'' then
+      FuncSt.AFunction.TypedParams.AddParam(Arg1);
+    FuncSt.AFunction.Body.A:=BodyJS;
+  end;
+
+
 var
   ExportSymbols: TFPList;
   aResolver: TPas2JSResolver;
-  ExpSt: TJSExportStatement;
+  VarsExpSt, ExpSt: TJSExportStatement;
   i: Integer;
   Symb: TPasExportSymbol;
   Ref: TResolvedReference;
   NamePath: String;
+  AliasName: TJSString;
   EvalValue: TResEvalValue;
-  ExpNameJS: TJSExportNameElement;
   Decl: TPasElement;
   ResolvedEl: TPasResolverResult;
+  Call: TJSCallExpression;
+  VarsObjLit, VarObjLit: TJSObjectLiteral;
+  Lit, SubLit: TJSObjectLiteralElement;
+  RetSt: TJSReturnStatement;
+  AssignSt: TJSSimpleAssignStatement;
 begin
   ExportSymbols:=El.LibrarySection.ExportSymbols;
   if ExportSymbols.Count=0 then exit;
   aResolver:=AContext.Resolver;
 
-  ExpSt:=TJSExportStatement(CreateElement(TJSExportStatement,El));
-  AddToSourceElements(Src,ExpSt);
+  VarsExpSt:=nil;
   for i:=0 to ExportSymbols.Count-1 do
     begin
-    ExpNameJS:=ExpSt.ExportNames.AddElement;
     Symb:=TObject(ExportSymbols[i]) as TPasExportSymbol;
 
     // name
@@ -18067,9 +18151,9 @@ begin
       Decl:=Ref.Declaration;
       end;
     NamePath:=CreateReferencePath(Decl,AContext,rpkPathAndName,true);
-    ExpNameJS.Name:=TJSString(NamePath);
 
     // alias
+    AliasName:='';
     if Symb.ExportName<>nil then
       begin
       EvalValue:=aResolver.Eval(Symb.ExportName,[refConst]);
@@ -18078,10 +18162,10 @@ begin
       case EvalValue.Kind of
       {$ifdef FPC_HAS_CPSTRING}
       revkString:
-        ExpNameJS.Alias:=TJSString(TResEvalString(EvalValue).S);
+        AliasName:=TJSString(TResEvalString(EvalValue).S);
       {$endif}
       revkUnicodeString:
-        ExpNameJS.Alias:=TResEvalUTF16(EvalValue).S;
+        AliasName:=TResEvalUTF16(EvalValue).S;
       else
         RaiseNotSupported(Symb.ExportName,AContext,20211020144404);
       end;
@@ -18091,9 +18175,76 @@ begin
       begin
       if Decl.Name='' then
         RaiseNotSupported(Symb,AContext,20211020144730);
-      ExpNameJS.Alias:=TJSString(Decl.Name);
+      AliasName:=TJSString(Decl.Name);
+      end;
+
+    if Decl.ClassType=TPasVariable then
+      begin
+      if VarsExpSt=nil then
+        begin
+        // add "export const vars = {};"
+        VarsExpSt:=CreateExportStatement(vtConst,
+                   TJSString(GetBIName(pbivnLibraryVars)),
+                   TJSObjectLiteral(CreateElement(TJSObjectLiteral,Symb)),Symb);
+        AddToSourceElements(Src,VarsExpSt);
+
+        // add "Object.defineProperties(vars, { });"
+        Call:=CreateCallExpression(Symb);
+        AddToSourceElements(Src,Call);
+        Call.Expr:=CreatePrimitiveDotExpr('Object.defineProperties',Symb);
+        Call.AddArg(CreatePrimitiveDotExpr(GetBIName(pbivnLibraryVars),Symb));
+        VarsObjLit:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,Symb));
+        Call.AddArg(VarsObjLit);
+        end;
+      // add "Var1: {},"
+      Lit:=VarsObjLit.Elements.AddElement;
+      Lit.Name:=AliasName;
+      VarObjLit:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,Symb));
+      Lit.Expr:=VarObjLit;
+
+      // enumerable: true
+      SubLit:=VarObjLit.Elements.AddElement;
+      SubLit.Name:='enumerable';
+      SubLit.Expr:=CreateLiteralBoolean(Symb,true);
+
+      //       get: function(){return pas.unit1.Var1;},
+      RetSt:=TJSReturnStatement(CreateElement(TJSReturnStatement,Symb));
+      RetSt.Expr:=CreatePrimitiveDotExpr(NamePath,Symb);
+      AddPropFunction(VarObjLit,'get','',RetSt,Symb);
+
+      //       set: function(v){pas.unit1.Var1 = v;},
+      AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,Symb));
+      AssignSt.LHS:=CreatePrimitiveDotExpr(NamePath,Symb);
+      AssignSt.Expr:=CreatePrimitiveDotExpr(TempRefObjSetterArgName,Symb);
+      AddPropFunction(VarObjLit,'set',TJSString(TempRefObjSetterArgName),AssignSt,Symb);
+
+      end
+    else
+      begin
+      // "export const AliasName = NamePath;"
+      ExpSt:=CreateExportStatement(vtConst,AliasName,CreatePrimitiveDotExpr(NamePath,Symb),Symb);
+      AddToSourceElements(Src,ExpSt);
       end;
     end;
+end;
+
+function TPasToJSConverter.AddRTLRun(El: TPasModule; ModuleName: string;
+  Src: TJSSourceElements; AContext: TConvertContext): TJSCallExpression;
+var
+  Call: TJSCallExpression;
+begin
+  if AContext=nil then ;
+
+  // add rtl.run('library');
+  Call:=CreateCallExpression(El);
+  AddToSourceElements(Src,Call);
+  Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),'run']);
+
+  if ModuleName<>'' then
+    // add module name parameter
+    Call.AddArg(CreateLiteralString(El,ModuleName));
+
+  Result:=Call;
 end;
 
 procedure TPasToJSConverter.AddHeaderStatement(JS: TJSElement;
@@ -20036,6 +20187,23 @@ begin
   DotExpr.Name:='split';
   Call.AddArg(CreateLiteralJSString(El,''));
   Result:=Call;
+end;
+
+function TPasToJSConverter.CreateExportStatement(VarType: TJSVarType;
+  AliasName: TJSString; InitJS: TJSElement; PosEl: TPasElement
+  ): TJSExportStatement;
+var
+  VarSt: TJSVariableStatement;
+  VarDecl: TJSVarDeclaration;
+begin
+  Result:=TJSExportStatement(CreateElement(TJSExportStatement,PosEl));
+  VarSt:=TJSVariableStatement(CreateElement(TJSVariableStatement,PosEl));
+  Result.Declaration:=VarSt;
+  VarSt.VarType:=VarType;
+  VarDecl:=TJSVarDeclaration(CreateElement(TJSVarDeclaration,PosEl));
+  VarSt.VarDecl:=VarDecl;
+  VarDecl.Name:=AliasName;
+  VarDecl.Init:=InitJS;
 end;
 
 function TPasToJSConverter.CreatePrecompiledJS(El: TJSElement): string;

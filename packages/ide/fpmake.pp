@@ -248,6 +248,8 @@ begin
         P.Options.Add('-dNOCATCH');
         P.Options.Add('-dBrowserCol');
         P.Options.Add('-dGDB');
+        if CompilerTarget=wasm32 then
+          P.Options.Add('-dNOOPT');
         
         CompilerDir:=P.Directory +'../../compiler';
 
@@ -302,7 +304,7 @@ begin
         T:=P.Targets.AddProgram('fp.pas');
         if CompilerTarget<>Defaults.CPU then
           begin
-            T.SetExeName(CPUToString(CompilerTarget)+'-fp');
+            T.SetExeName(AddProgramExtension(CPUToString(CompilerTarget)+'-fp',Defaults.BuildOS));
             P.SetUnitsOutputDir(P.GetUnitsOutputDir(Defaults.BuildCPU,Defaults.BuildOS)+CPUToString(CompilerTarget));
             P.Options.Add('-dCROSSGDB');
           end;

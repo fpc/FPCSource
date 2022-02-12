@@ -16,6 +16,7 @@
 program dts2pas;
 
 {$mode objfpc}{$H+}
+{AllowWriteln}
 
 uses
   Classes, SysUtils, StrUtils, CustApp, pascodegen, tstopas;

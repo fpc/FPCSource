@@ -160,9 +160,9 @@ begin
   inherited SetUp;
   FWholeProgramOptimization:=false;
   FAnalyzerModule:=TPas2JSAnalyzer.Create;
-  FAnalyzerModule.Resolver:=Engine;
+  FAnalyzerModule.Resolver:=ResolverEngine;
   FAnalyzerProgram:=TPas2JSAnalyzer.Create;
-  FAnalyzerProgram.Resolver:=Engine;
+  FAnalyzerProgram.Resolver:=ResolverEngine;
 end;
 
 procedure TCustomTestOptimizations.TearDown;

@@ -13,6 +13,7 @@
  **********************************************************************}
 
 {$PACKRECORDS 2}
+{$MODESWITCH OUT+}
 unit gemdos;
 
 interface

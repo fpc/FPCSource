@@ -930,7 +930,13 @@ unit cgcpu;
        opsize: topsize;
        needsext: boolean;
       begin
-         if needs_unaligned(ref.alignment,fromsize) then
+         needsext:=tcgsize2size[fromsize]<tcgsize2size[tosize];
+         if needsext then
+           size:=fromsize
+         else
+           size:=tosize;
+
+         if needs_unaligned(ref.alignment,size) then
            begin
              //list.concat(tai_comment.create(strpnew('a_load_ref_reg calling unaligned')));
              a_load_ref_reg_unaligned(list,fromsize,tosize,ref,register);
@@ -940,11 +946,6 @@ unit cgcpu;
          href:=ref;
          fixref(list,href,false);
 
-         needsext:=tcgsize2size[fromsize]<tcgsize2size[tosize];
-         if needsext then
-           size:=fromsize
-         else
-           size:=tosize;
          opsize:=TCGSize2OpSize[size];
          if isaddressregister(register) and not (opsize in [S_L]) then
            hreg:=getintregister(list,OS_ADDR)
@@ -1771,6 +1772,9 @@ unit cgcpu;
          srcrefp,dstrefp : treference;
          srcref,dstref : treference;
       begin
+         if (len < 1) then
+           exit;
+
          if (len = 1) or
             ((len in [2,4]) and
              not needs_unaligned(source.alignment,lentocgsize[len]) and

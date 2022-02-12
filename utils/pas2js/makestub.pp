@@ -36,6 +36,7 @@ Type
 procedure TStubCreatorApplication.PrintUsage(S : String);
 
 begin
+  {AllowWriteln}
   if S<>'' then
     Writeln('Error : ',S);
   writeln('usage: stubcreator options');
@@ -49,6 +50,7 @@ begin
   Writeln('-H --header=filename  Add file header using contents of file "filename"');
   Writeln('-f --forwardclasses[=list]');
   Writeln('                      Generate forward definitions for list of classes. If empty, for all classes.');
+  {AllowWriteln-}
   ExitCode:=Ord(S<>'');
 end;
 

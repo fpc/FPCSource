@@ -52,6 +52,7 @@ Type
     Procedure DoHandleRequest(ARequest : TRequest; AResponse : TResponse); virtual;
   Public
     Destructor Destroy; override;
+    class function NormalizeRoute(AValue: String): String;
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse);
     Function Matches(Const APattern : String; AMethod : TRouteMethod; Options : TRouteOptions) : Boolean;
     Function MatchPattern(Const Path : String; L : TStrings; Options : TRouteOptions) : Boolean;
@@ -457,9 +458,11 @@ procedure THTTPRouter.CheckDuplicate(APattern: String; AMethod: TRouteMethod;
 Var
   I,DI : Integer;
   R : THTTPRoute;
+  aPtrn : String;
 
 begin
   DI:=-1;
+  aPtrn:=THTTPRoute.NormalizeRoute(aPattern);
   Lock;
   try
     For I:=0 to FRoutes.Count-1 do
@@ -467,7 +470,7 @@ begin
       R:=FRoutes[I];
       if R.Default then
         DI:=I;
-      if R.Matches(APattern,AMethod,FRouteOptions) then
+      if R.Matches(aPtrn,AMethod,FRouteOptions) then
         Raise EHTTPRoute.CreateFmt(EDuplicateRoute,[APattern,RouteMethodToString(AMethod)]);
       end;
   finally
@@ -866,15 +869,21 @@ end;
 
 { THTTPRoute }
 
+Class Function THTTPRoute.NormalizeRoute(AValue: String) : String;
+
+begin
+  Result:=IncludeHTTPPathDelimiter(AValue);
+  if (Length(Result)>1) and (Result[1]='/') then
+    Delete(Result,1,1);
+end;
+
 procedure THTTPRoute.SetURLPattern(AValue: String);
 
 Var
   V : String;
 
 begin
-  V:=IncludeHTTPPathDelimiter(AValue);
-  if (V<>'') and (V<>'/') and (V[1]='/') then
-    Delete(V,1,1);
+  V:=NormalizeRoute(aValue);
   if FURLPattern=V then Exit;
   FURLPattern:=V;
 end;
@@ -899,7 +908,7 @@ function THTTPRoute.Matches(const APattern: String; AMethod: TRouteMethod; Optio
 begin
   Result:=((Method=rmAll) or (AMethod=Method));
   if Result then
-    Result:=SameText(URLPattern,APattern) or ((URLPattern='') and (roEmptyMatchesAll in Options))
+    Result:=SameText(URLPattern,NormalizeRoute(APattern)) or ((URLPattern='') and (roEmptyMatchesAll in Options))
 end;
 
 Function THTTPRoute.MatchPattern(Const Path : String; L : TStrings; Options: TRouteOptions) : Boolean;

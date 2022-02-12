@@ -786,9 +786,11 @@ interface
               if is_boolean(left.resultdef) and
                  is_boolean(right.resultdef) then
                 second_opboolean
+{$ifndef cpu64bitalu}
               { 64bit operations }
               else if is_64bit(left.resultdef) then
                 second_op64bit
+{$endif cpu64bitalu}
               else
                 second_opordinal;
             end;

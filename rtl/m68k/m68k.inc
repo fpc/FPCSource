@@ -467,6 +467,26 @@ end;
 {$endif}
 
 {$IFNDEF FPC_SYSTEM_HAS_INTERLOCKEDFUNCS}
+{$IFNDEF CPUM68K_HAS_CAS}
+var
+  spinLock: byte;
+
+procedure getSpinLock; assembler; nostackframe;
+asm
+{$IFDEF CPUM68K_HAS_TAS}
+  lea.l spinlock,a0
+@loop:
+  tas (a0)
+  bne @loop
+{$ENDIF}
+end;
+
+procedure releaseSpinLock; assembler; nostackframe;
+asm
+  move.b #0,spinlock
+end;
+{$ENDIF}
+
 function InterLockedDecrement (var Target: longint) : longint;
 {$IFDEF CPUM68K_HAS_CAS}
   register; assembler;
@@ -481,12 +501,12 @@ function InterLockedDecrement (var Target: longint) : longint;
   end;
 {$ELSE}
   begin
-  {$warning FIX ME}
+    getSpinLock;
     Dec(Target);
     Result := Target;
+    releaseSpinLock;
   end;
 {$ENDIF}
-
 
 function InterLockedIncrement (var Target: longint) : longint;
 {$IFDEF CPUM68K_HAS_CAS}
@@ -502,9 +522,10 @@ function InterLockedIncrement (var Target: longint) : longint;
   end;
 {$ELSE}
   begin
-  {$warning FIX ME}
+    getSpinLock;
     Inc(Target);
     Result := Target;
+    releaseSpinLock;
   end;
 {$ENDIF}
 
@@ -520,12 +541,12 @@ function InterLockedExchange (var Target: longint;Source : longint) : longint;
   end;
 {$ELSE}
   begin
-  {$warning FIX ME}
+    getSpinLock;
     Result := Target;
     Target := Source;
+    releaseSpinLock;
   end;
 {$ENDIF}
-
 
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;
 {$IFDEF CPUM68K_HAS_CAS}
@@ -541,9 +562,10 @@ function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint
   end;
 {$ELSE}
   begin
-  {$warning FIX ME}
+    getSpinLock;
     Result := Target;
     Target := Target + Source;
+    releaseSpinLock;
   end;
 {$ENDIF}
 
@@ -558,10 +580,11 @@ function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comp
   end;
 {$ELSE}
   begin
-  {$warning FIX ME}
+    getSpinLock;
     Result := Target;
     if Target = Comperand then
       Target := NewValue;
+    releaseSpinLock;
   end;
 {$ENDIF}
 {$ENDIF FPC_SYSTEM_HAS_INTERLOCKEDFUNCS}

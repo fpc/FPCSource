@@ -3376,6 +3376,7 @@ unit cgx86;
       begin
         regsize:=0;
         stackmisalignment:=0;
+        list.concat(tai_regalloc.alloc(NR_STACK_POINTER_REG,nil));
 {$ifdef i8086}
         { Win16 callback/exported proc prologue support.
           Since callbacks can be called from different modules, DS on entry may be
@@ -3500,7 +3501,6 @@ unit cgx86;
           begin
             { return address }
             inc(stackmisalignment,sizeof(pint));
-            list.concat(tai_regalloc.alloc(current_procinfo.framepointer,nil));
             if current_procinfo.framepointer=NR_STACK_POINTER_REG then
               begin
 {$ifdef i386}
@@ -3511,6 +3511,7 @@ unit cgx86;
               end
             else
               begin
+                list.concat(tai_regalloc.alloc(current_procinfo.framepointer,nil));
 {$ifdef i8086}
                 if ((ts_x86_far_procs_push_odd_bp in current_settings.targetswitches) or
                     ((po_exports in current_procinfo.procdef.procoptions) and

@@ -20,13 +20,13 @@
 unit TCModules;
 
 {$mode objfpc}{$H+}
-{$Optimization }
+
 interface
 
 uses
   Classes, SysUtils, fpcunit, testregistry, contnrs,
   jstree, jswriter, jsbase,
-  PasTree, PScanner, PasResolver, PParser, PasResolveEval,
+  PasTree, PScanner, PasResolver, PParser, PasResolveEval, TestPasUtils,
   FPPas2Js;
 
 const
@@ -39,6 +39,13 @@ type
     mkResolverReference,
     mkDirectReference
     );
+const
+  SrcMarker: array[TSrcMarkerKind] of char = (
+    '#', // mkLabel
+    '@', // mkResolverReference
+    '='  // mkDirectReference
+    );
+type
   PSrcMarker = ^TSrcMarker;
   TSrcMarker = record
     Kind: TSrcMarkerKind;
@@ -69,6 +76,15 @@ type
     SourcePos: TPasSourcePos;
   end;
 
+  TTestResolverReferenceData = record
+    Filename: string;
+    Row: integer;
+    StartCol: integer;
+    EndCol: integer;
+    Found: TFPList; // list of TPasElement at this token
+  end;
+  PTestResolverReferenceData = ^TTestResolverReferenceData;
+
   { TTestPasParser }
 
   TTestPasParser = Class(TPasParser)
@@ -87,8 +103,13 @@ type
     FStreamResolver: TStreamResolver;
     FScanner: TPas2jsPasScanner;
     FSource: string;
+    procedure SetModule(const AValue: TPasModule);
   public
     destructor Destroy; override;
+    function CreateElement(AClass: TPTreeElement; const AName: String;
+      AParent: TPasElement; AVisibility: TPasMemberVisibility;
+      const ASrcPos: TPasSourcePos; TypeParams: TFPList = nil): TPasElement;
+      overload; override;
     function FindUnit(const AName, InFilename: String; NameExpr,
       InFileExpr: TPasExpr): TPasModule; override;
     procedure UsedInterfacesFinished(Section: TPasSection); override;
@@ -98,53 +119,56 @@ type
     property Scanner: TPas2jsPasScanner read FScanner write FScanner;
     property Parser: TTestPasParser read FParser write FParser;
     property Source: string read FSource write FSource;
-    property Module: TPasModule read FModule;
+    property Module: TPasModule read FModule write SetModule;
   end;
 
   { TCustomTestModule }
 
   TCustomTestModule = Class(TTestCase)
   private
-    FConverter: TPasToJSConverter;
-    FEngine: TTestEnginePasResolver;
-    FExpectedErrorClass: ExceptClass;
-    FExpectedErrorMsg: string;
-    FExpectedErrorNumber: integer;
-    FFilename: string;
-    FFileResolver: TStreamResolver;
-    FHub: TPas2JSResolverHub;
-    FJSImplementationUses: TJSArrayLiteral;
-    FJSInitBody: TJSFunctionBody;
-    FJSImplentationUses: TJSArrayLiteral;
-    FJSInterfaceUses: TJSArrayLiteral;
-    FJSModule: TJSSourceElements;
-    FJSModuleSrc: TJSSourceElements;
-    FJSSource: TStringList;
-    FModule: TPasModule;
-    FJSModuleCallArgs: TJSArguments;
-    FModules: TObjectList;// list of TTestEnginePasResolver
-    FParser: TTestPasParser;
+    FWithTypeInfo: boolean;
+    FSource: TStringList;
+    FSkipTests: boolean;
+    FScanner: TPas2jsPasScanner;
+    FResolvers: TObjectList;// list of TTestEnginePasResolver
     FPasProgram: TPasProgram;
     FPasLibrary: TPasLibrary;
-    FHintMsgs: TObjectList; // list of TTestHintMessage
-    FHintMsgsGood: TFPList; // list of TTestHintMessage marked as expected
+    FParser: TTestPasParser;
+    FModule: TPasModule;
+    FJSSource: TStringList;
     FJSRegModuleCall: TJSCallExpression;
-    FScanner: TPas2jsPasScanner;
-    FSkipTests: boolean;
-    FSource: TStringList;
+    FJSModuleSrc: TJSSourceElements;
+    FJSModuleCallArgs: TJSArguments;
+    FJSModule: TJSSourceElements;
+    FJSInterfaceUses: TJSArrayLiteral;
+    FJSInitBody: TJSFunctionBody;
+    FJSImplentationUses: TJSArrayLiteral;
+    FJSImplementationUses: TJSArrayLiteral;
+    FHub: TPas2JSResolverHub;
+    FHintMsgsGood: TFPList; // list of TTestHintMessage marked as expected
+    FHintMsgs: TObjectList; // list of TTestHintMessage
     FFirstPasStatement: TPasImplBlock;
-    FWithTypeInfo: boolean;
+    FFileResolver: TStreamResolver;
+    FFilename: string;
+    FExpectedErrorNumber: integer;
+    FExpectedErrorMsg: string;
+    FExpectedErrorClass: ExceptClass;
+    FEngine: TTestEnginePasResolver;
+    FConverter: TPasToJSConverter;
     {$IFDEF EnablePasTreeGlobalRefCount}
     FElementRefCountAtSetup: int64;
     {$ENDIF}
-    function GetMsgCount: integer;
-    function GetMsgs(Index: integer): TTestHintMessage;
+    procedure FreeSrcMarkers;
     function GetResolverCount: integer;
     function GetResolvers(Index: integer): TTestEnginePasResolver;
+    function GetMsgCount: integer;
+    function GetMsgs(Index: integer): TTestHintMessage;
     function OnPasResolverFindUnit(const aUnitName: String): TPasModule;
     procedure OnParserLog(Sender: TObject; const Msg: String);
     procedure OnPasResolverLog(Sender: TObject; const Msg: String);
     procedure OnScannerLog(Sender: TObject; const Msg: String);
+    procedure OnCheckElementParent(El: TPasElement; arg: pointer);
+    procedure OnFindReference(El: TPasElement; FindData: pointer);
     procedure SetWithTypeInfo(const AValue: boolean);
   protected
     procedure SetUp; override;
@@ -161,6 +185,7 @@ type
     procedure ParseLibrary; virtual;
     procedure ParseUnit; virtual;
   protected
+    FirstSrcMarker, LastSrcMarker: PSrcMarker;
     function FindModuleWithFilename(aFilename: string): TTestEnginePasResolver; virtual;
     function AddModule(aFilename: string): TTestEnginePasResolver; virtual;
     function AddModuleWithSrc(aFilename, Src: string): TTestEnginePasResolver; virtual;
@@ -179,8 +204,10 @@ type
     function GetDottedIdentifier(El: TJSElement): string;
     procedure CheckSource(Msg,Statements: String; InitStatements: string = '';
       ImplStatements: string = ''); virtual;
+    procedure CheckFullSource(Msg,ExpectedSrc: String); virtual;
     procedure CheckDiff(Msg, Expected, Actual: string); virtual;
     procedure CheckUnit(Filename, ExpectedSrc: string); virtual;
+    procedure CheckReferenceDirectives; virtual;
     procedure CheckHint(MsgType: TMessageType; MsgNumber: integer;
       Msg: string; Marker: PSrcMarker = nil); virtual;
     procedure CheckResolverUnexpectedHints(WithSourcePos: boolean = false); virtual;
@@ -189,6 +216,8 @@ type
     procedure SetExpectedPasResolverError(Msg: string; MsgNumber: integer);
     procedure SetExpectedConverterError(Msg: string; MsgNumber: integer);
     function IsErrorExpected(E: Exception): boolean;
+    procedure RaiseErrorAtSrc(Msg: string; const aFilename: string; aRow, aCol: integer);
+    procedure RaiseErrorAtSrcMarker(Msg: string; aMarker: PSrcMarker);
     procedure HandleScannerError(E: EScannerError);
     procedure HandleParserError(E: EParserError);
     procedure HandlePasResolveError(E: EPasResolve);
@@ -198,12 +227,15 @@ type
     procedure WriteSources(const aFilename: string; aRow, aCol: integer);
     function IndexOfResolver(const Filename: string): integer;
     function GetResolver(const Filename: string): TTestEnginePasResolver;
+    procedure GetSrc(Index: integer; out SrcLines: TStringList; out aFilename: string);
+    function FindElementsAt(aFilename: string; aLine, aStartCol, aEndCol: integer): TFPList;// list of TPasElement
+    function FindElementsAt(aMarker: PSrcMarker; ErrorOnNoElements: boolean = true): TFPList;// list of TPasElement
+    function FindSrcLabel(const Identifier: string): PSrcMarker;
+    function FindElementsAtSrcLabel(const Identifier: string; ErrorOnNoElements: boolean = true): TFPList;// list of TPasElement
     function GetDefaultNamespace: string;
     property PasProgram: TPasProgram Read FPasProgram;
     property PasLibrary: TPasLibrary Read FPasLibrary;
-    property Resolvers[Index: integer]: TTestEnginePasResolver read GetResolvers;
-    property ResolverCount: integer read GetResolverCount;
-    property Engine: TTestEnginePasResolver read FEngine;
+    property ResolverEngine: TTestEnginePasResolver read FEngine;
     property Filename: string read FFilename;
     Property Module: TPasModule Read FModule;
     property FirstPasStatement: TPasImplBlock read FFirstPasStatement;
@@ -228,6 +260,8 @@ type
     property FileResolver: TStreamResolver read FFileResolver;
     property Scanner: TPas2jsPasScanner read FScanner;
     property Parser: TTestPasParser read FParser;
+    property Resolvers[Index: integer]: TTestEnginePasResolver read GetResolvers;
+    property ResolverCount: integer read GetResolverCount;
     property MsgCount: integer read GetMsgCount;
     property Msgs[Index: integer]: TTestHintMessage read GetMsgs;
     property WithTypeInfo: boolean read FWithTypeInfo write SetWithTypeInfo;
@@ -919,9 +953,8 @@ type
     Procedure TestLibrary_Export_Index_Fail;
     Procedure TestLibrary_ExportVar;
     Procedure TestLibrary_ExportUnitFunc;
-    // todo: test fail on export overloaded function
     // ToDo: test delayed specialization init
-    // ToDo: analyzer
+    // ToDo: shortrefoptimization
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -1184,18 +1217,30 @@ end;
 
 { TTestEnginePasResolver }
 
+procedure TTestEnginePasResolver.SetModule(const AValue: TPasModule);
+begin
+  if FModule=AValue then Exit;
+  FModule:=AValue;
+end;
+
 destructor TTestEnginePasResolver.Destroy;
 begin
   FreeAndNil(FStreamResolver);
   FreeAndNil(FParser);
   FreeAndNil(FScanner);
   FreeAndNil(FStreamResolver);
-  if Module<>nil then
-    begin
-    Module.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
-    FModule:=nil;
-    end;
+  Module:=nil;
   inherited Destroy;
+end;
+
+function TTestEnginePasResolver.CreateElement(AClass: TPTreeElement;
+  const AName: String; AParent: TPasElement; AVisibility: TPasMemberVisibility;
+  const ASrcPos: TPasSourcePos; TypeParams: TFPList): TPasElement;
+begin
+  Result:=inherited CreateElement(AClass, AName, AParent, AVisibility, ASrcPos,
+    TypeParams);
+  if (FModule=nil) and AClass.InheritsFrom(TPasModule) then
+    Module:=TPasModule(Result);
 end;
 
 function TTestEnginePasResolver.FindUnit(const AName, InFilename: String;
@@ -1218,6 +1263,31 @@ end;
 
 { TCustomTestModule }
 
+procedure TCustomTestModule.FreeSrcMarkers;
+var
+  aMarker, Last: PSrcMarker;
+begin
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    Last:=aMarker;
+    aMarker:=aMarker^.Next;
+    Dispose(Last);
+    end;
+  FirstSrcMarker:=nil;
+  LastSrcMarker:=nil;
+end;
+
+function TCustomTestModule.GetResolverCount: integer;
+begin
+  Result:=FResolvers.Count;
+end;
+
+function TCustomTestModule.GetResolvers(Index: integer): TTestEnginePasResolver;
+begin
+  Result:=TTestEnginePasResolver(FResolvers[Index]);
+end;
+
 function TCustomTestModule.GetMsgCount: integer;
 begin
   Result:=FHintMsgs.Count;
@@ -1226,17 +1296,6 @@ end;
 function TCustomTestModule.GetMsgs(Index: integer): TTestHintMessage;
 begin
   Result:=TTestHintMessage(FHintMsgs[Index]);
-end;
-
-function TCustomTestModule.GetResolverCount: integer;
-begin
-  Result:=FModules.Count;
-end;
-
-function TCustomTestModule.GetResolvers(Index: integer
-  ): TTestEnginePasResolver;
-begin
-  Result:=TTestEnginePasResolver(FModules[Index]);
 end;
 
 function TCustomTestModule.OnPasResolverFindUnit(const aUnitName: String
@@ -1317,6 +1376,101 @@ begin
   FHintMsgs.Add(Item);
 end;
 
+procedure TCustomTestModule.OnCheckElementParent(El: TPasElement; arg: pointer);
+var
+  SubEl: TPasElement;
+  i: Integer;
+
+  procedure E(Msg: string);
+  var
+    s: String;
+  begin
+    s:='TCustomTestModule.OnCheckElementParent El='+GetTreeDbg(El)+' '+
+      ResolverEngine.GetElementSourcePosStr(El)+' '+Msg;
+    writeln('ERROR: ',s);
+    Fail(s);
+  end;
+
+begin
+  if arg=nil then ;
+  if El=nil then exit;
+  if El.Parent=El then
+    E('El.Parent=El='+GetObjName(El));
+  if El is TBinaryExpr then
+    begin
+    if (TBinaryExpr(El).left<>nil) and (TBinaryExpr(El).left.Parent<>El) then
+      E('TBinaryExpr(El).left.Parent='+GetObjName(TBinaryExpr(El).left.Parent)+'<>El');
+    if (TBinaryExpr(El).right<>nil) and (TBinaryExpr(El).right.Parent<>El) then
+      E('TBinaryExpr(El).right.Parent='+GetObjName(TBinaryExpr(El).right.Parent)+'<>El');
+    end
+  else if El is TParamsExpr then
+    begin
+    if (TParamsExpr(El).Value<>nil) and (TParamsExpr(El).Value.Parent<>El) then
+      E('TParamsExpr(El).Value.Parent='+GetObjName(TParamsExpr(El).Value.Parent)+'<>El');
+    for i:=0 to length(TParamsExpr(El).Params)-1 do
+      if TParamsExpr(El).Params[i].Parent<>El then
+        E('TParamsExpr(El).Params[i].Parent='+GetObjName(TParamsExpr(El).Params[i].Parent)+'<>El');
+    end
+  else if El is TProcedureExpr then
+    begin
+    if (TProcedureExpr(El).Proc<>nil) and (TProcedureExpr(El).Proc.Parent<>El) then
+      E('TProcedureExpr(El).Proc.Parent='+GetObjName(TProcedureExpr(El).Proc.Parent)+'<>El');
+    end
+  else if El is TPasDeclarations then
+    begin
+    for i:=0 to TPasDeclarations(El).Declarations.Count-1 do
+      begin
+      SubEl:=TPasElement(TPasDeclarations(El).Declarations[i]);
+      if SubEl.Parent<>El then
+        E('SubEl=TPasElement(TPasDeclarations(El).Declarations[i])='+GetObjName(SubEl)+' SubEl.Parent='+GetObjName(SubEl.Parent)+'<>El');
+      end;
+    end
+  else if El is TPasImplBlock then
+    begin
+    for i:=0 to TPasImplBlock(El).Elements.Count-1 do
+      begin
+      SubEl:=TPasElement(TPasImplBlock(El).Elements[i]);
+      if SubEl.Parent<>El then
+        E('TPasElement(TPasImplBlock(El).Elements[i]).Parent='+GetObjName(SubEl.Parent)+'<>El');
+      end;
+    end
+  else if El is TPasImplWithDo then
+    begin
+    for i:=0 to TPasImplWithDo(El).Expressions.Count-1 do
+      begin
+      SubEl:=TPasExpr(TPasImplWithDo(El).Expressions[i]);
+      if SubEl.Parent<>El then
+        E('TPasExpr(TPasImplWithDo(El).Expressions[i]).Parent='+GetObjName(SubEl.Parent)+'<>El');
+      end;
+    end
+  else if El is TPasProcedure then
+    begin
+    if TPasProcedure(El).ProcType.Parent<>El then
+      E('TPasProcedure(El).ProcType.Parent='+GetObjName(TPasProcedure(El).ProcType.Parent)+'<>El');
+    end
+  else if El is TPasProcedureType then
+    begin
+    for i:=0 to TPasProcedureType(El).Args.Count-1 do
+      if TPasArgument(TPasProcedureType(El).Args[i]).Parent<>El then
+        E('TPasArgument(TPasProcedureType(El).Args[i]).Parent='+GetObjName(TPasArgument(TPasProcedureType(El).Args[i]).Parent)+'<>El');
+    end;
+end;
+
+procedure TCustomTestModule.OnFindReference(El: TPasElement; FindData: pointer);
+var
+  Data: PTestResolverReferenceData absolute FindData;
+  Line, Col: integer;
+begin
+  ResolverEngine.UnmangleSourceLineNumber(El.SourceLinenumber,Line,Col);
+  //writeln('TCustomTestModule.OnFindReference ',El.SourceFilename,' Line=',Line,',Col=',Col,' ',GetObjName(El),' SearchFile=',Data^.Filename,',Line=',Data^.Row,',Col=',Data^.StartCol,'-',Data^.EndCol);
+  if (Data^.Filename=El.SourceFilename)
+  and (Data^.Row=Line)
+  and (Data^.StartCol<=Col)
+  and (Data^.EndCol>=Col)
+  then
+    Data^.Found.Add(El);
+end;
+
 procedure TCustomTestModule.SetWithTypeInfo(const AValue: boolean);
 begin
   if FWithTypeInfo=AValue then Exit;
@@ -1382,7 +1536,7 @@ begin
   FElementRefCountAtSetup:=TPasElement.GlobalRefCount;
   {$ENDIF}
 
-  if FModules<>nil then
+  if FResolvers<>nil then
     begin
     writeln('TCustomTestModule.SetUp FModules<>nil');
     Halt;
@@ -1394,7 +1548,7 @@ begin
   FSource:=TStringList.Create;
 
   FHub:=TPas2JSResolverHub.Create(Self);
-  FModules:=TObjectList.Create(true);
+  FResolvers:=TObjectList.Create(true);
 
   FFilename:='test1.pp';
   FFileResolver:=TStreamResolver.Create;
@@ -1459,6 +1613,7 @@ var
   i: Integer;
   CurModule: TPasModule;
 begin
+  FreeSrcMarkers;
   FHintMsgs.Clear;
   FHintMsgsGood.Clear;
   FSkipTests:=false;
@@ -1472,27 +1627,27 @@ begin
   FreeAndNil(FJSSource);
   FreeAndNil(FJSModule);
   FreeAndNil(FConverter);
-  Engine.Clear;
+  ResolverEngine.Clear;
   FreeAndNil(FSource);
   FreeAndNil(FFileResolver);
-  if FModules<>nil then
+  if FResolvers<>nil then
     begin
-    for i:=0 to FModules.Count-1 do
+    for i:=0 to FResolvers.Count-1 do
       begin
-      CurModule:=TTestEnginePasResolver(FModules[i]).Module;
+      CurModule:=TTestEnginePasResolver(FResolvers[i]).Module;
       if CurModule=nil then continue;
       //writeln('TCustomTestModule.TearDown ReleaseUsedUnits ',CurModule.Name,' ',CurModule.RefCount,' ',CurModule.RefIds.Text);
       CurModule.ReleaseUsedUnits;
       end;
     if FModule<>nil then
       FModule.ReleaseUsedUnits;
-    for i:=0 to FModules.Count-1 do
+    for i:=0 to FResolvers.Count-1 do
       begin
-      CurModule:=TTestEnginePasResolver(FModules[i]).Module;
+      CurModule:=TTestEnginePasResolver(FResolvers[i]).Module;
       if CurModule=nil then continue;
       //writeln('TCustomTestModule.TearDown UsesReleased ',CurModule.Name,' ',CurModule.RefCount,' ',CurModule.RefIds.Text);
       end;
-    FreeAndNil(FModules);
+    FreeAndNil(FResolvers);
     ReleaseAndNil(TPasElement(FModule){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
     FEngine:=nil;
     end;
@@ -1551,7 +1706,7 @@ var
   Found: Boolean;
   Section: TPasSection;
 begin
-  // parse til exception or all modules finished
+  // parse til exception or all Resolvers finished
   while not SkipTests do
     begin
     Found:=false;
@@ -1598,7 +1753,7 @@ begin
 
   AssertNotNull('Module resulted in Module',Module);
   AssertEquals('modulename',lowercase(ChangeFileExt(FFileName,'')),lowercase(Module.Name));
-  TAssert.AssertSame('Has resolver',Engine,Parser.Engine);
+  TAssert.AssertSame('Has resolver',ResolverEngine,Parser.Engine);
 end;
 
 procedure TCustomTestModule.ParseProgram;
@@ -1668,7 +1823,7 @@ begin
   Result.OnFindUnit:=@OnPasResolverFindUnit;
   Result.OnLog:=@OnPasResolverLog;
   Result.Hub:=Hub;
-  FModules.Add(Result);
+  FResolvers.Add(Result);
 end;
 
 function TCustomTestModule.AddModuleWithSrc(aFilename, Src: string
@@ -1989,7 +2144,7 @@ var
   InitFunction: TJSFunctionDeclarationStatement;
   InitAssign: TJSSimpleAssignStatement;
   InitName: String;
-  LastNode: TJSElement;
+  LastNode, FirstNode: TJSElement;
   Arg: TJSArrayLiteralElement;
   IsProg, IsLib: Boolean;
 begin
@@ -2003,7 +2158,7 @@ begin
     IsLib:=true;
 
   try
-    FJSModule:=FConverter.ConvertPasElement(Module,Engine) as TJSSourceElements;
+    FJSModule:=FConverter.ConvertPasElement(Module,ResolverEngine) as TJSSourceElements;
   except
     on E: Exception do
       HandleException(E);
@@ -2020,10 +2175,12 @@ begin
   {$ENDIF}
 
   // rtl.module(...
-  AssertEquals('jsmodule has one statement - the call',1,JSModule.Statements.Count);
-  AssertNotNull('register module call',JSModule.Statements.Nodes[0].Node);
-  AssertEquals('register module call',TJSCallExpression,JSModule.Statements.Nodes[0].Node.ClassType);
-  FJSRegModuleCall:=JSModule.Statements.Nodes[0].Node as TJSCallExpression;
+  if JSModule.Statements.Count<1 then
+    AssertEquals('jsmodule has at least one statement - the call',1,JSModule.Statements.Count);
+  FirstNode:=JSModule.Statements.Nodes[0].Node;
+  AssertNotNull('register module call',FirstNode);
+  AssertEquals('register module call',TJSCallExpression,FirstNode.ClassType);
+  FJSRegModuleCall:=FirstNode as TJSCallExpression;
   AssertNotNull('register module rtl.module expr',JSRegModuleCall.Expr);
   AssertNotNull('register module rtl.module args',JSRegModuleCall.Args);
   AssertEquals('rtl.module args',TJSArguments,JSRegModuleCall.Args.ClassType);
@@ -2037,11 +2194,17 @@ begin
   ModuleNameExpr:=Arg.Expr as TJSLiteral;
   AssertEquals('module name param is string',ord(jstString),ord(ModuleNameExpr.Value.ValueType));
   if IsProg then
-    AssertEquals('module name','program',String(ModuleNameExpr.Value.AsString))
+    begin
+    AssertEquals('module name','program',String(ModuleNameExpr.Value.AsString));
+    AssertEquals('jsmodule has one statement - the call',1,JSModule.Statements.Count);
+    end
   else if IsLib then
     AssertEquals('module name','library',String(ModuleNameExpr.Value.AsString))
   else
+    begin
     AssertEquals('module name',Module.Name,String(ModuleNameExpr.Value.AsString));
+    AssertEquals('jsmodule has one statement - the call',1,JSModule.Statements.Count);
+    end;
 
   // main uses section
   if JSModuleCallArgs.Elements.Count<2 then
@@ -2187,6 +2350,14 @@ begin
   CheckDiff(Msg,ExpectedSrc,ActualSrc);
 end;
 
+procedure TCustomTestModule.CheckFullSource(Msg, ExpectedSrc: String);
+var
+  ActualSrc: String;
+begin
+  ActualSrc:=JSToStr(JSModule);
+  CheckDiff(Msg,ExpectedSrc,ActualSrc);
+end;
+
 procedure TCustomTestModule.CheckDiff(Msg, Expected, Actual: string);
 // search diff, ignore changes in spaces
 var
@@ -2230,6 +2401,366 @@ begin
     aJSModule.Free;
     aConverter.Free;
   end;
+end;
+
+procedure TCustomTestModule.CheckReferenceDirectives;
+var
+  CurFilename: string;
+  LineNumber: Integer;
+  SrcLine: String;
+  CommentStartP, CommentEndP: PChar;
+
+  procedure RaiseError(Msg: string; p: PChar);
+  begin
+    RaiseErrorAtSrc(Msg,CurFilename,LineNumber,p-PChar(SrcLine)+1);
+  end;
+
+  procedure AddMarker(Marker: PSrcMarker);
+  begin
+    if LastSrcMarker<>nil then
+      LastSrcMarker^.Next:=Marker
+    else
+      FirstSrcMarker:=Marker;
+    LastSrcMarker:=Marker;
+  end;
+
+  function AddMarker(Kind: TSrcMarkerKind; const aFilename: string;
+    aLine, aStartCol, aEndCol: integer; const Identifier: string): PSrcMarker;
+  begin
+    New(Result);
+    Result^.Kind:=Kind;
+    Result^.Filename:=aFilename;
+    Result^.Row:=aLine;
+    Result^.StartCol:=aStartCol;
+    Result^.EndCol:=aEndCol;
+    Result^.Identifier:=Identifier;
+    Result^.Next:=nil;
+    //writeln('AddMarker Line="',SrcLine,'" Identifier=',Identifier,' Col=',aStartCol,'-',aEndCol,' "',copy(SrcLine,aStartCol,aEndCol-aStartCol),'"');
+    AddMarker(Result);
+  end;
+
+  function AddMarkerForTokenBehindComment(Kind: TSrcMarkerKind;
+    const Identifier: string): PSrcMarker;
+  var
+    TokenStart, p: PChar;
+  begin
+    p:=CommentEndP;
+    ReadNextPascalToken(p,TokenStart,false,false);
+    Result:=AddMarker(Kind,CurFilename,LineNumber,
+      CommentEndP-PChar(SrcLine)+1,p-PChar(SrcLine)+1,Identifier);
+  end;
+
+  function ReadIdentifier(var p: PChar): string;
+  var
+    StartP: PChar;
+  begin
+    if not (p^ in ['a'..'z','A'..'Z','_']) then
+      RaiseError('identifier expected',p);
+    StartP:=p;
+    inc(p);
+    while p^ in ['a'..'z','A'..'Z','_','0'..'9'] do inc(p);
+    Result:='';
+    SetLength(Result,p-StartP);
+    Move(StartP^,Result[1],length(Result));
+  end;
+
+  procedure AddLabel;
+  var
+    Identifier: String;
+    p: PChar;
+  begin
+    p:=CommentStartP+2;
+    Identifier:=ReadIdentifier(p);
+    //writeln('TCustomTestModule.CheckReferenceDirectives.AddLabel ',Identifier);
+    if FindSrcLabel(Identifier)<>nil then
+      RaiseError('duplicate label "'+Identifier+'"',p);
+    AddMarkerForTokenBehindComment(mkLabel,Identifier);
+  end;
+
+  procedure AddResolverReference;
+  var
+    Identifier: String;
+    p: PChar;
+  begin
+    p:=CommentStartP+2;
+    Identifier:=ReadIdentifier(p);
+    //writeln('TCustomTestModule.CheckReferenceDirectives.AddReference ',Identifier);
+    AddMarkerForTokenBehindComment(mkResolverReference,Identifier);
+  end;
+
+  procedure AddDirectReference;
+  var
+    Identifier: String;
+    p: PChar;
+  begin
+    p:=CommentStartP+2;
+    Identifier:=ReadIdentifier(p);
+    //writeln('TCustomTestModule.CheckReferenceDirectives.AddDirectReference ',Identifier);
+    AddMarkerForTokenBehindComment(mkDirectReference,Identifier);
+  end;
+
+  procedure ParseCode(SrcLines: TStringList; aFilename: string);
+  var
+    p: PChar;
+    IsDirective: Boolean;
+  begin
+    //writeln('TCustomTestModule.CheckReferenceDirectives.ParseCode File=',aFilename);
+    CurFilename:=aFilename;
+    // parse code, find all labels
+    LineNumber:=0;
+    while LineNumber<SrcLines.Count do
+      begin
+      inc(LineNumber);
+      SrcLine:=SrcLines[LineNumber-1];
+      if SrcLine='' then continue;
+      //writeln('TCustomTestModule.CheckReferenceDirectives Line=',SrcLine);
+      p:=PChar(SrcLine);
+      repeat
+        case p^ of
+          #0: if (p-PChar(SrcLine)=length(SrcLine)) then break;
+          '{':
+            begin
+            CommentStartP:=p;
+            inc(p);
+            IsDirective:=p^ in ['#','@','='];
+
+            // skip to end of comment
+            repeat
+              case p^ of
+              #0:
+                if (p-PChar(SrcLine)=length(SrcLine)) then
+                  begin
+                  // multi line comment
+                  if IsDirective then
+                    RaiseError('directive missing closing bracket',CommentStartP);
+                  repeat
+                    inc(LineNumber);
+                    if LineNumber>SrcLines.Count then exit;
+                    SrcLine:=SrcLines[LineNumber-1];
+                    //writeln('TCustomTestModule.CheckReferenceDirectives Comment Line=',SrcLine);
+                  until SrcLine<>'';
+                  p:=PChar(SrcLine);
+                  continue;
+                  end;
+              '}':
+                begin
+                inc(p);
+                break;
+                end;
+              end;
+              inc(p);
+            until false;
+
+            CommentEndP:=p;
+            case CommentStartP[1] of
+            '#': AddLabel;
+            '@': AddResolverReference;
+            '=': AddDirectReference;
+            end;
+            p:=CommentEndP;
+            continue;
+
+            end;
+          '/':
+            if p[1]='/' then
+              break; // rest of line is comment -> skip
+        end;
+        inc(p);
+      until false;
+      end;
+  end;
+
+  procedure CheckResolverReference(aMarker: PSrcMarker);
+  // check if one element at {@a} has a TResolvedReference to an element labeled {#a}
+  var
+    aLabel: PSrcMarker;
+    ReferenceElements, LabelElements: TFPList;
+    i, j, aLine, aCol: Integer;
+    El, Ref, LabelEl: TPasElement;
+  begin
+    //writeln('TCustomTestModule.CheckResolverReference searching reference: ',aMarker^.Filename,' Line=',aMarker^.Row,' Col=',aMarker^.StartCol,'-',aMarker^.EndCol,' Label="',aMarker^.Identifier,'"');
+    aLabel:=FindSrcLabel(aMarker^.Identifier);
+    if aLabel=nil then
+      RaiseErrorAtSrc('label "'+aMarker^.Identifier+'" not found',aMarker^.Filename,aMarker^.Row,aMarker^.StartCol);
+
+    LabelElements:=nil;
+    ReferenceElements:=nil;
+    try
+      LabelElements:=FindElementsAt(aLabel);
+      ReferenceElements:=FindElementsAt(aMarker);
+
+      for i:=0 to ReferenceElements.Count-1 do
+        begin
+        El:=TPasElement(ReferenceElements[i]);
+        Ref:=nil;
+        if El.CustomData is TResolvedReference then
+          Ref:=TResolvedReference(El.CustomData).Declaration
+        else if El.CustomData is TPasPropertyScope then
+          Ref:=TPasPropertyScope(El.CustomData).AncestorProp
+        else if El.CustomData is TPasSpecializeTypeData then
+          Ref:=TPasSpecializeTypeData(El.CustomData).SpecializedType;
+        if Ref<>nil then
+          for j:=0 to LabelElements.Count-1 do
+            begin
+            LabelEl:=TPasElement(LabelElements[j]);
+            if Ref=LabelEl then
+              exit; // success
+            end;
+        end;
+
+      // failure write candidates
+      for i:=0 to ReferenceElements.Count-1 do
+        begin
+        El:=TPasElement(ReferenceElements[i]);
+        write('Reference candidate for "',aMarker^.Identifier,'" at reference ',aMarker^.Filename,'(',aMarker^.Row,',',aMarker^.StartCol,'-',aMarker^.EndCol,')');
+        write(' El=',GetObjName(El));
+        if EL is TPrimitiveExpr then
+          begin
+           writeln('TCustomTestModule.CheckResolverReference ',TPrimitiveExpr(El).Value);
+          end;
+        Ref:=nil;
+        if El.CustomData is TResolvedReference then
+          Ref:=TResolvedReference(El.CustomData).Declaration
+        else if El.CustomData is TPasPropertyScope then
+          Ref:=TPasPropertyScope(El.CustomData).AncestorProp
+        else if El.CustomData is TPasSpecializeTypeData then
+          Ref:=TPasSpecializeTypeData(El.CustomData).SpecializedType;
+        if Ref<>nil then
+          begin
+          write(' Decl=',GetObjName(Ref));
+          ResolverEngine.UnmangleSourceLineNumber(Ref.SourceLinenumber,aLine,aCol);
+          write(',',Ref.SourceFilename,'(',aLine,',',aCol,')');
+          end
+        else
+          write(' has no TResolvedReference. El.CustomData=',GetObjName(El.CustomData));
+        writeln;
+        end;
+      for i:=0 to LabelElements.Count-1 do
+        begin
+        El:=TPasElement(LabelElements[i]);
+        write('Label candidate for "',aLabel^.Identifier,'" at reference ',aLabel^.Filename,'(',aLabel^.Row,',',aLabel^.StartCol,'-',aLabel^.EndCol,')');
+        write(' El=',GetObjName(El));
+        writeln;
+        end;
+
+      RaiseErrorAtSrcMarker('wrong resolved reference "'+aMarker^.Identifier+'"',aMarker);
+    finally
+      LabelElements.Free;
+      ReferenceElements.Free;
+    end;
+  end;
+
+  procedure CheckDirectReference(aMarker: PSrcMarker);
+  // check if one element at {=a} is a TPasAliasType pointing to an element labeled {#a}
+  var
+    aLabel: PSrcMarker;
+    ReferenceElements, LabelElements: TFPList;
+    i, LabelLine, LabelCol, j: Integer;
+    El, LabelEl: TPasElement;
+    DeclEl, TypeEl: TPasType;
+  begin
+    //writeln('CheckDirectReference searching pointer: ',aMarker^.Filename,' Line=',aMarker^.Row,' Col=',aMarker^.StartCol,'-',aMarker^.EndCol,' Label="',aMarker^.Identifier,'"');
+    aLabel:=FindSrcLabel(aMarker^.Identifier);
+    if aLabel=nil then
+      RaiseErrorAtSrcMarker('label "'+aMarker^.Identifier+'" not found',aMarker);
+
+    LabelElements:=nil;
+    ReferenceElements:=nil;
+    try
+      //writeln('CheckDirectReference finding elements at label ...');
+      LabelElements:=FindElementsAt(aLabel);
+      //writeln('CheckDirectReference finding elements at reference ...');
+      ReferenceElements:=FindElementsAt(aMarker);
+
+      for i:=0 to ReferenceElements.Count-1 do
+        begin
+        El:=TPasElement(ReferenceElements[i]);
+        //writeln('CheckDirectReference ',i,'/',ReferenceElements.Count,' ',GetTreeDbg(El,2));
+        if El.ClassType=TPasVariable then
+          begin
+          if TPasVariable(El).VarType=nil then
+            begin
+            //writeln('CheckDirectReference Var without Type: ',GetObjName(El),' El.Parent=',GetObjName(El.Parent));
+            AssertNotNull('TPasVariable(El='+El.Name+').VarType',TPasVariable(El).VarType);
+            end;
+          TypeEl:=TPasVariable(El).VarType;
+          for j:=0 to LabelElements.Count-1 do
+            begin
+            LabelEl:=TPasElement(LabelElements[j]);
+            if TypeEl=LabelEl then
+              exit; // success
+            end;
+          end
+        else if El is TPasAliasType then
+          begin
+          DeclEl:=TPasAliasType(El).DestType;
+          ResolverEngine.UnmangleSourceLineNumber(DeclEl.SourceLinenumber,LabelLine,LabelCol);
+          if (aLabel^.Filename=DeclEl.SourceFilename)
+          and (integer(aLabel^.Row)=LabelLine)
+          and (aLabel^.StartCol<=LabelCol)
+          and (aLabel^.EndCol>=LabelCol) then
+            exit; // success
+          end
+        else if El.ClassType=TPasArgument then
+          begin
+          TypeEl:=TPasArgument(El).ArgType;
+          for j:=0 to LabelElements.Count-1 do
+            begin
+            LabelEl:=TPasElement(LabelElements[j]);
+            if TypeEl=LabelEl then
+              exit; // success
+            end;
+          end;
+        end;
+      // failed -> show candidates
+      writeln('CheckDirectReference failed: Labels:');
+      for j:=0 to LabelElements.Count-1 do
+        begin
+        LabelEl:=TPasElement(LabelElements[j]);
+        writeln('  Label ',GetObjName(LabelEl),' at ',ResolverEngine.GetElementSourcePosStr(LabelEl));
+        end;
+      writeln('CheckDirectReference failed: References:');
+      for i:=0 to ReferenceElements.Count-1 do
+        begin
+        El:=TPasElement(ReferenceElements[i]);
+        writeln('  Reference ',GetObjName(El),' at ',ResolverEngine.GetElementSourcePosStr(El));
+        //if EL is TPasVariable then
+        //  writeln('CheckDirectReference ',GetObjPath(TPasVariable(El).VarType),' ',ResolverEngine.GetElementSourcePosStr(TPasVariable(EL).VarType));
+        end;
+      RaiseErrorAtSrcMarker('wrong direct reference "'+aMarker^.Identifier+'"',aMarker);
+    finally
+      LabelElements.Free;
+      ReferenceElements.Free;
+    end;
+  end;
+
+var
+  aMarker: PSrcMarker;
+  i: Integer;
+  SrcLines: TStringList;
+begin
+  Module.ForEachCall(@OnCheckElementParent,nil);
+  //writeln('TCustomTestModule.CheckReferenceDirectives find all markers');
+  // find all markers
+  for i:=0 to FileResolver.Streams.Count-1 do
+    begin
+    GetSrc(i,SrcLines,CurFilename);
+    ParseCode(SrcLines,CurFilename);
+    SrcLines.Free;
+    end;
+
+  //writeln('TCustomTestModule.CheckReferenceDirectives check references');
+  // check references
+  aMarker:=FirstSrcMarker;
+  while aMarker<>nil do
+    begin
+    case aMarker^.Kind of
+    mkResolverReference: CheckResolverReference(aMarker);
+    mkDirectReference: CheckDirectReference(aMarker);
+    end;
+    aMarker:=aMarker^.Next;
+    end;
+  //writeln('TCustomTestModule.CheckReferenceDirectives COMPLETE');
 end;
 
 procedure TCustomTestModule.CheckHint(MsgType: TMessageType;
@@ -2357,6 +2888,23 @@ begin
     SkipTests:=true;
 end;
 
+procedure TCustomTestModule.RaiseErrorAtSrc(Msg: string;
+  const aFilename: string; aRow, aCol: integer);
+var
+  s: String;
+begin
+  WriteSources(aFilename,aRow,aCol);
+  s:='[TCustomTestModule.RaiseErrorAtSrc] '+aFilename+'('+IntToStr(aRow)+','+IntToStr(aCol)+') Error: '+Msg;
+  writeln('ERROR: ',s);
+  Fail(s);
+end;
+
+procedure TCustomTestModule.RaiseErrorAtSrcMarker(Msg: string;
+  aMarker: PSrcMarker);
+begin
+  RaiseErrorAtSrc(Msg,aMarker^.Filename,aMarker^.Row,aMarker^.StartCol);
+end;
+
 procedure TCustomTestModule.HandleScannerError(E: EScannerError);
 begin
   if IsErrorExpected(E) then exit;
@@ -2395,7 +2943,7 @@ var
   Row, Col: integer;
 begin
   if IsErrorExpected(E) then exit;
-  Engine.UnmangleSourceLineNumber(E.PasElement.SourceLinenumber,Row,Col);
+  ResolverEngine.UnmangleSourceLineNumber(E.PasElement.SourceLinenumber,Row,Col);
   WriteSources(E.PasElement.SourceFilename,Row,Col);
   writeln('ERROR: TCustomTestModule.HandlePas2JSError '+E.ClassName+':'+E.Message
     +' '+E.PasElement.SourceFilename
@@ -2506,6 +3054,84 @@ begin
   Result:=Resolvers[i];
 end;
 
+procedure TCustomTestModule.GetSrc(Index: integer; out SrcLines: TStringList;
+  out aFilename: string);
+var
+  aStream: TStream;
+begin
+  SrcLines:=TStringList.Create;
+  aStream:=FileResolver.Streams.Objects[Index] as TStream;
+  aStream.Position:=0;
+  SrcLines.LoadFromStream(aStream);
+  aFilename:=FileResolver.Streams[Index];
+end;
+
+function TCustomTestModule.FindElementsAt(aFilename: string; aLine, aStartCol,
+  aEndCol: integer): TFPList;
+var
+  ok: Boolean;
+  FoundRefs: TTestResolverReferenceData;
+  i: Integer;
+  CurResolver: TTestEnginePasResolver;
+begin
+  //writeln('TCustomTestModule.FindElementsAt START "',aFilename,'" Line=',aLine,' Col=',aStartCol,'-',aEndCol);
+  FoundRefs:=Default(TTestResolverReferenceData);
+  FoundRefs.Filename:=aFilename;
+  FoundRefs.Row:=aLine;
+  FoundRefs.StartCol:=aStartCol;
+  FoundRefs.EndCol:=aEndCol;
+  FoundRefs.Found:=TFPList.Create;
+  ok:=false;
+  try
+    // find all markers
+    Module.ForEachCall(@OnFindReference,@FoundRefs);
+    for i:=0 to ResolverCount-1 do
+      begin
+      CurResolver:=Resolvers[i];
+      if CurResolver.Module=Module then continue;
+      //writeln('TCustomTestResolver.FindElementsAt ',CurResolver.Filename);
+      CurResolver.Module.ForEachCall(@OnFindReference,@FoundRefs);
+      end;
+    ok:=true;
+  finally
+    if not ok then
+      FreeAndNil(FoundRefs.Found);
+  end;
+  Result:=FoundRefs.Found;
+  FoundRefs.Found:=nil;
+end;
+
+function TCustomTestModule.FindElementsAt(aMarker: PSrcMarker;
+  ErrorOnNoElements: boolean): TFPList;
+begin
+  Result:=FindElementsAt(aMarker^.Filename,aMarker^.Row,aMarker^.StartCol,aMarker^.EndCol);
+  if ErrorOnNoElements and ((Result=nil) or (Result.Count=0)) then
+    RaiseErrorAtSrcMarker('marker '+SrcMarker[aMarker^.Kind]+aMarker^.Identifier+' has no elements',aMarker);
+end;
+
+function TCustomTestModule.FindSrcLabel(const Identifier: string): PSrcMarker;
+begin
+  Result:=FirstSrcMarker;
+  while Result<>nil do
+    begin
+    if (Result^.Kind=mkLabel)
+    and (CompareText(Result^.Identifier,Identifier)=0) then
+      exit;
+    Result:=Result^.Next;
+    end;
+end;
+
+function TCustomTestModule.FindElementsAtSrcLabel(const Identifier: string;
+  ErrorOnNoElements: boolean): TFPList;
+var
+  SrcLabel: PSrcMarker;
+begin
+  SrcLabel:=FindSrcLabel(Identifier);
+  if SrcLabel=nil then
+    Fail('missing label "'+Identifier+'"');
+  Result:=FindElementsAt(SrcLabel,ErrorOnNoElements);
+end;
+
 function TCustomTestModule.GetDefaultNamespace: string;
 var
   C: TClass;
@@ -2514,7 +3140,7 @@ begin
   if FModule=nil then exit;
   C:=FModule.ClassType;
   if (C=TPasProgram) or (C=TPasLibrary) or (C=TPasPackage) then
-    Result:=Engine.DefaultNameSpace;
+    Result:=ResolverEngine.DefaultNameSpace;
 end;
 
 constructor TCustomTestModule.Create;
@@ -34134,10 +34760,14 @@ begin
   Add([
   '']);
   ConvertLibrary;
-  CheckSource('TestLibrary_Empty',
+  CheckFullSource('TestLibrary_Empty',
     LinesToStr([ // statements
-    '']),
-    LinesToStr([
+    'rtl.module("library", [], function () {',
+    '  var $mod = this;',
+    '  $mod.$main = function () {',
+    '  };',
+    '});',
+    'rtl.run("library");',
     '']));
   CheckResolverUnexpectedHints();
 end;
@@ -34155,13 +34785,19 @@ begin
   '  test1.run name ''Test1Run'';',
   '']);
   ConvertLibrary;
-  CheckSource('TestLibrary_ExportFunc',
+  CheckFullSource('TestLibrary_ExportFunc',
     LinesToStr([ // statements
-    'this.Run = function (w) {',
-    '};',
-    'export { this.Run as Run, this.Run as Foo, this.Run as Test1Run };',
-    '']),
-    LinesToStr([
+    'rtl.module("library", [], function () {',
+    '  var $mod = this;',
+    '  this.Run = function (w) {',
+    '  };',
+    '  $mod.$main = function () {',
+    '  };',
+    '});',
+    'rtl.run("library");',
+    'export const Run = pas.library.Run;',
+    'export const Foo = pas.library.Run;',
+    'export const Test1Run = pas.library.Run;',
     '']));
   CheckResolverUnexpectedHints();
 end;
@@ -34204,15 +34840,39 @@ begin
   Add([
   'var Wing: word;',
   'exports',
-  '  Wing;',
+  '  Wing, wing name ''BirdArm'';',
   '']);
   ConvertLibrary;
-  CheckSource('TestLibrary_ExportVar',
+  CheckFullSource('TestLibrary_ExportVar',
     LinesToStr([ // statements
-    'this.Wing = 0;',
-    'export { this.Wing as Wing };',
-    '']),
-    LinesToStr([
+    'rtl.module("library", [], function () {',
+    '  var $mod = this;',
+    '  this.Wing = 0;',
+    '  $mod.$main = function () {',
+    '  };',
+    '});',
+    'rtl.run("library");',
+    'export const vars = {};',
+    'Object.defineProperties(vars, {',
+    '  Wing: {',
+    '      enumerable: true,',
+    '      get: function () {',
+    '          return pas.library.Wing;',
+    '        },',
+    '      set: function (v) {',
+    '          pas.library.Wing = v;',
+    '        }',
+    '    },',
+    '  BirdArm: {',
+    '      enumerable: true,',
+    '      get: function () {',
+    '          return pas.library.Wing;',
+    '        },',
+    '      set: function (v) {',
+    '          pas.library.Wing = v;',
+    '        }',
+    '    }',
+    '});',
     '']));
   CheckResolverUnexpectedHints();
 end;
@@ -34244,11 +34904,16 @@ begin
   '  TAnt.Crawl;',
   '']);
   ConvertLibrary;
-  CheckSource('TestLibrary_ExportUnitFunc',
+  CheckFullSource('TestLibrary_ExportUnitFunc',
     LinesToStr([ // statements
-    'export { pas.Unit1.Fly as Fly, pas.Unit1.TAnt.Crawl as Crawl };',
-    '']),
-    LinesToStr([
+    'rtl.module("library", ["system", "Unit1"], function () {',
+    '  var $mod = this;',
+    '  $mod.$main = function () {',
+    '  };',
+    '});',
+    'rtl.run("library");',
+    'export const Fly = pas.Unit1.Fly;',
+    'export const Crawl = pas.Unit1.TAnt.Crawl;',
     '']));
   CheckResolverUnexpectedHints();
 end;

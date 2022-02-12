@@ -365,7 +365,8 @@ implementation
             while paralen>0 do
               begin
                 paraloc:=hp.paraloc[side].add_location;
-                { We can allocate at maximum 32 bits per register }
+{$ifndef cpu64bitalu}
+                { We can allocate at maximum 32 bits per register on mips32 }
                 if (paracgsize in [OS_64,OS_S64]) or
                    ((paracgsize in [OS_F32,OS_F64]) and
                      not(can_use_float)) then
@@ -374,6 +375,7 @@ implementation
                     paraloc^.def:=u32inttype;
                   end
                 else
+{$endif cpu64bitalu}
                   begin
                     paraloc^.size:=paracgsize;
                     paraloc^.def:=locdef;

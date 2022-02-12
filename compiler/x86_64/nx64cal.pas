@@ -61,11 +61,11 @@ implementation
                 begin
                   current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('AROS SysCall')));
 
-                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_RAX);
-                  get_syscall_call_ref(tmpref,NR_RAX);
+                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_R12);
+                  get_syscall_call_ref(tmpref,NR_R12);
 
                   current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,tmpref));
-                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_RAX);
+                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R12);
                   exit;
                 end;
               internalerror(2016120101);

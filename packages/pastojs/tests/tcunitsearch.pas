@@ -137,6 +137,7 @@ type
   TTestCLI_UnitSearch = class(TCustomTestCLI)
   protected
     procedure CheckLinklibProgramSrc(Msg,Header: string);
+    procedure CheckFullSource(Msg, Filename, ExpectedSrc: string);
   published
     procedure TestUS_CreateRelativePath;
 
@@ -146,6 +147,7 @@ type
     procedure TestUS_Program_FU;
     procedure TestUS_Program_FU_o;
     procedure TestUS_Program_FE_o;
+    procedure TestUS_PlatformModule_Program;
 
     // include files
     procedure TestUS_IncludeSameDir;
@@ -625,6 +627,8 @@ var
   aFile: TCLIFile;
 begin
   aFile:=FindFile('test1.js');
+  if aFile=nil then
+    Fail(Msg+' file not found test1.js');
   CheckDiff(Msg,
     LinesToStr([
     #$EF#$BB#$BF+Header,
@@ -638,6 +642,17 @@ begin
     '',
     '']),
     aFile.Source);
+end;
+
+procedure TTestCLI_UnitSearch.CheckFullSource(Msg, Filename, ExpectedSrc: string
+  );
+var
+  aFile: TCLIFile;
+begin
+  aFile:=FindFile(Filename);
+  if aFile=nil then
+    Fail(Msg+' file not found "'+Filename+'"');
+  CheckDiff(Msg,ExpectedSrc,aFile.Source);
 end;
 
 procedure TTestCLI_UnitSearch.TestUS_CreateRelativePath;
@@ -746,6 +761,25 @@ begin
   Compile(['test1.pas','-FElib','-ofoo.js']);
   AssertNotNull('lib/system.js not found',FindFile('lib/system.js'));
   AssertNotNull('foo.js not found',FindFile('foo.js'));
+end;
+
+procedure TTestCLI_UnitSearch.TestUS_PlatformModule_Program;
+begin
+  AddUnit('system.pp',[''],['']);
+  AddFile('test1.pas',[
+    'begin',
+    'end.']);
+  Compile(['-Tmodule','-va','test1.pas']);
+  CheckFullSource('TestUS_PlatformModule_Library','test1.js',
+    LinesToStr([
+    #$EF#$BB#$BF+'rtl.module("program",["system"],function () {',
+    '  "use strict";',
+    '  var $mod = this;',
+    '  $mod.$main = function () {',
+    '  };',
+    '});',
+    'rtl.run();',
+    '']));
 end;
 
 procedure TTestCLI_UnitSearch.TestUS_IncludeSameDir;

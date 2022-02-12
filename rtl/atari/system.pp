@@ -63,6 +63,7 @@ var
     argc: LongInt;
     argv: PPChar;
     envp: PPChar;
+    AppFlag: Boolean;			{ Application or Accessory				}
 
 
     {$if defined(FPUSOFT)}
@@ -144,14 +145,51 @@ end;
                          SystemUnit Initialization
 *****************************************************************************}
 
+Procedure ConsoleRead(var t:TextRec);
+var
+  dosResult: longint;
+Begin
+  dosResult:=gemdos_fread(t.Handle,t.BufSize,t.Bufptr);
+  t.BufPos:=0;
+  { Reading from console on TOS does not include the terminating CR/LF }
+  if (dosResult >= 0) then
+    begin
+      t.BufEnd := dosResult;
+      if (dosResult>=1) and (t.Bufptr^[dosResult-1] = #10) then
+        begin end
+      else
+      if (t.BufEnd < t.BufSize) then
+        begin
+          t.BufPtr^[t.BufEnd] := #13;
+          inc(t.BufEnd);
+        end;
+      if (t.BufEnd < t.BufSize) then
+        begin
+          t.BufPtr^[t.BufEnd] := #10;
+          inc(t.BufEnd);
+        end;
+    end
+  else
+    Error2InOutRes(dosResult);
+End;
+
+procedure myOpenStdIO(var f:text;mode:longint;hdl:thandle);
+begin
+  OpenStdIO(f, mode, hdl);
+  if (InOutRes=0) and (Mode=fmInput) and Do_Isdevice(hdl) then
+  begin
+    TextRec(f).InOutFunc:=@ConsoleRead;
+  end;
+end;
+
 procedure SysInitStdIO;
 begin
-  OpenStdIO(Input,fmInput,StdInputHandle);
-  OpenStdIO(Output,fmOutput,StdOutputHandle);
-  OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
+  myOpenStdIO(Input,fmInput,StdInputHandle);
+  myOpenStdIO(Output,fmOutput,StdOutputHandle);
+  myOpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
 {$ifndef FPC_STDOUT_TRUE_ALIAS}
-  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
-  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+  myOpenStdIO(StdOut,fmOutput,StdOutputHandle);
+  myOpenStdIO(StdErr,fmOutput,StdErrorHandle);
 {$endif FPC_STDOUT_TRUE_ALIAS}
 end;
 

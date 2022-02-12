@@ -305,22 +305,6 @@ begin
 end;
 
 
-function get_rtoc_offset: longint;
-begin
-  result:=0;
-  case target_info.abi of
-    abi_powerpc_aix,
-    abi_powerpc_darwin:
-      result:=LA_RTOC_AIX;
-    abi_powerpc_elfv1:
-      result:=LA_RTOC_SYSV;
-    abi_powerpc_elfv2:
-      result:=LA_RTOC_ELFV2;
-    else
-      internalerror(2015021001);
-  end;
-end;
-
 { calling a procedure by address }
 
 procedure tcgppc.a_call_reg(list: TAsmList; reg: tregister);
@@ -330,40 +314,44 @@ var
 begin
   if (target_info.abi<>abi_powerpc_sysv) then
     inherited a_call_reg(list,reg)
-  else if (not (cs_opt_size in current_settings.optimizerswitches)) then begin
-    tempreg := getintregister(list, OS_INT);
-    { load actual function entry (reg contains the reference to the function descriptor)
-    into tempreg }
-    reference_reset_base(tmpref, reg, 0, ctempposinvalid, sizeof(pint), []);
-    a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, tempreg);
+  else
+    begin
+      if (not (cs_opt_size in current_settings.optimizerswitches)) then
+        begin
+          tempreg := getintregister(list, OS_INT);
+          { load actual function entry (reg contains the reference to the function descriptor)
+          into tempreg }
+          reference_reset_base(tmpref, reg, 0, ctempposinvalid, sizeof(pint), []);
+          a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, tempreg);
 
-    { move actual function pointer to CTR register }
-    list.concat(taicpu.op_reg(A_MTCTR, tempreg));
+          { move actual function pointer to CTR register }
+          list.concat(taicpu.op_reg(A_MTCTR, tempreg));
 
-    { load new TOC pointer from function descriptor into RTOC register }
-    reference_reset_base(tmpref, reg, tcgsize2size[OS_ADDR], ctempposinvalid, 8, []);
+          { load new TOC pointer from function descriptor into RTOC register }
+          reference_reset_base(tmpref, reg, tcgsize2size[OS_ADDR], ctempposinvalid, 8, []);
+          a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, NR_RTOC);
+
+          { load new environment pointer from function descriptor into R11 register }
+          reference_reset_base(tmpref, reg, 2*tcgsize2size[OS_ADDR], ctempposinvalid, 8, []);
+          a_reg_alloc(list, NR_R11);
+          a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, NR_R11);
+          { call function }
+          list.concat(taicpu.op_none(A_BCTRL));
+          a_reg_dealloc(list, NR_R11);
+        end
+    else
+      begin
+        { call ptrgl helper routine which expects the pointer to the function descriptor
+        in R11 }
+        a_reg_alloc(list, NR_R11);
+        a_load_reg_reg(list, OS_ADDR, OS_ADDR, reg, NR_R11);
+        a_call_name_direct(list, A_BL, '.ptrgl', false, false, false);
+        a_reg_dealloc(list, NR_R11);
+      end;
+    { we need to load the old RTOC from stackframe because we changed it}
+    reference_reset_base(tmpref, NR_STACK_POINTER_REG, get_rtoc_offset, ctempposinvalid, 8, []);
     a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, NR_RTOC);
-
-    { load new environment pointer from function descriptor into R11 register }
-    reference_reset_base(tmpref, reg, 2*tcgsize2size[OS_ADDR], ctempposinvalid, 8, []);
-    a_reg_alloc(list, NR_R11);
-    a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, NR_R11);
-    { call function }
-    list.concat(taicpu.op_none(A_BCTRL));
-    a_reg_dealloc(list, NR_R11);
-  end else begin
-    { call ptrgl helper routine which expects the pointer to the function descriptor
-    in R11 }
-    a_reg_alloc(list, NR_R11);
-    a_load_reg_reg(list, OS_ADDR, OS_ADDR, reg, NR_R11);
-    a_call_name_direct(list, A_BL, '.ptrgl', false, false, false);
-    a_reg_dealloc(list, NR_R11);
   end;
-
-  { we need to load the old RTOC from stackframe because we changed it}
-  reference_reset_base(tmpref, NR_STACK_POINTER_REG, get_rtoc_offset, ctempposinvalid, 8, []);
-  a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, NR_RTOC);
-
   include(current_procinfo.flags, pi_do_call);
 end;
 
@@ -1270,7 +1258,8 @@ begin
   end;
 
   { save current RTOC for restoration after calls if necessary }
-  if pi_do_call in current_procinfo.flags then
+  if (pi_do_call in current_procinfo.flags) and
+     (target_info.abi in abis_ppc_toc) then
     begin
       reference_reset_base(href,NR_STACK_POINTER_REG,get_rtoc_offset,ctempposinvalid,target_info.stackalign,[]);
       a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_RTOC,href);

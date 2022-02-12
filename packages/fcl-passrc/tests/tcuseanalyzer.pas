@@ -10,7 +10,8 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, PasTree, PScanner, PasResolver, tcbaseparser,
-  testregistry, strutils, tcresolver, PasUseAnalyzer, PasResolveEval;
+  testregistry, strutils, tcresolver, PasUseAnalyzer,
+  PasResolveEval;
 
 type
 
@@ -280,7 +281,9 @@ begin
   aMarker:=FirstSrcMarker;
   while aMarker<>nil do
     begin
+    {$IFDEF VerbosePasAnalyzer}
     writeln('TCustomTestUseAnalyzer.CheckUsedMarkers ',aMarker^.Identifier,' Line=',aMarker^.Row,' StartCol=',aMarker^.StartCol,' EndCol=',aMarker^.EndCol);
+    {$ENDIF}
     p:=RPos('_',aMarker^.Identifier);
     if p>1 then
       begin
@@ -303,7 +306,9 @@ begin
         for i:=0 to Elements.Count-1 do
           begin
           El:=TPasElement(Elements[i]);
+          {$IFDEF VerbosePasAnalyzer}
           writeln('TCustomTestUseAnalyzer.CheckUsedMarkers ',aMarker^.Identifier,' ',i,'/',Elements.Count,' El=',GetObjName(El),' ',GetObjName(El.CustomData));
+          {$ENDIF}
           case ExpectedUsed of
           uUsed,uNotUsed:
             if Analyzer.IsUsed(El) then

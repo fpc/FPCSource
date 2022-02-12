@@ -221,7 +221,7 @@ function declocked(var l : longint) : boolean;assembler;nostackframe;
   {$else CPUAARCH64_HAS_LSE}
   .LDecLockedLoop:
     ldxr   w1,[x0]
-    sub    w1,w1,#1
+    subs   w1,w1,#1
     stxr   w2,w1,[x0]
     cbnz   w2,.LDecLockedLoop
     cset   w0, eq
@@ -293,7 +293,7 @@ function InterLockedDecrement (var Target: longint) : longint; assembler; nostac
   {$else CPUAARCH64_HAS_LSE}
   .LInterDecLockedLoop:
     ldxr   w1,[x0]
-    sub    w1,w1,#1
+    subs   w1,w1,#1
     stxr   w2,w1,[x0]
     cbnz   w2,.LInterDecLockedLoop
     mov    w0,w1

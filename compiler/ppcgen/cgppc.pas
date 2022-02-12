@@ -89,6 +89,8 @@ unit cgppc;
         procedure a_jmp(list: TAsmList; op: tasmop;
                         c: tasmcondflag; crval: longint; l: tasmlabel);
 
+        function get_rtoc_offset: longint;
+
         function save_lr_in_prologue: boolean;
 
         function load_got_symbol(list : TAsmList; const symbol : string; const flags: tindsymflags) : tregister;
@@ -122,7 +124,6 @@ unit cgppc;
     TOpCmp2AsmCond: Array[topcmp] of TAsmCondFlag = (C_NONE,C_EQ,C_GT,
                          C_LT,C_GE,C_LE,C_NE,C_LE,C_LT,C_GE,C_GT);
     TocSecBaseName = 'toc_table';
-
 
 {$ifdef extdebug}
      function ref2string(const ref : treference) : string;
@@ -473,9 +474,6 @@ unit cgppc;
             { no need to allocate/free R0, is already allocated by call node
               because it's a volatile register }
             reg:=NR_R0;
-            { save current TOC }
-            reference_reset_base(tmpref,NR_STACK_POINTER_REG,LA_RTOC_AIX,ctempposinvalid,sizeof(pint),[]);
-            a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_RTOC,tmpref);
           end;
         list.concat(taicpu.op_reg(A_MTCTR,reg));
         if target_info.system in systems_aix then
@@ -488,9 +486,6 @@ unit cgppc;
           end
         else if target_info.abi=abi_powerpc_elfv2 then
           begin
-            { save current TOC }
-            reference_reset_base(tmpref,NR_STACK_POINTER_REG,LA_RTOC_ELFV2,ctempposinvalid,sizeof(pint),[]);
-            a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_RTOC,tmpref);
             { functions must be called via R12 for this ABI }
             if reg<>NR_R12 then
               begin
@@ -499,17 +494,13 @@ unit cgppc;
               end;
           end;
         list.concat(taicpu.op_none(A_BCTRL));
-        if (target_info.system in systems_aix) or
-           (target_info.abi=abi_powerpc_elfv2) then
+        if target_info.abi in abis_ppc_toc then
           begin
             if (target_info.abi=abi_powerpc_elfv2) and
                (reg<>NR_R12) then
               ungetcpuregister(list,NR_R12);
             { restore our TOC }
-            if target_info.system in systems_aix then
-              toc_offset:=LA_RTOC_AIX
-            else
-              toc_offset:=LA_RTOC_ELFV2;
+            toc_offset:=get_rtoc_offset;
             reference_reset_base(tmpref,NR_STACK_POINTER_REG,toc_offset,ctempposinvalid,sizeof(pint),[]);
             a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,NR_RTOC);
           end;
@@ -741,6 +732,23 @@ unit cgppc;
        create_cond_norm(c,crval,p.condition);
      p.is_jmp := true;
      list.concat(p)
+   end;
+
+ function tcgppcgen.get_rtoc_offset: longint;
+   begin
+     case target_info.abi of
+       abi_powerpc_aix:
+         result:=LA_RTOC_AIX;
+{$ifdef powerpc64}
+       { no TOC on Linux/ppc32 }
+       abi_powerpc_elfv1:
+         result:=LA_RTOC_SYSV;
+{$endif}
+       abi_powerpc_elfv2:
+         result:=LA_RTOC_ELFV2;
+       else
+         internalerror(2015021001);
+     end;
    end;
 
 

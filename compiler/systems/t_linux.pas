@@ -1316,11 +1316,11 @@ initialization
   RegisterTarget(system_mipseb_linux_info);
 {$endif MIPSEL}
 {$endif MIPS32}
-{$ifdef MIPS64}
+{$ifdef MIPS64EB}
   RegisterImport(system_mips64_linux,timportliblinux);
   RegisterExport(system_mips64_linux,texportliblinux);
   RegisterTarget(system_mips64_linux_info);
-{$endif MIPS64}
+{$endif MIPS64EB}
 {$ifdef MIPS64EL}
   RegisterImport(system_mips64el_linux,timportliblinux);
   RegisterExport(system_mips64el_linux,texportliblinux);

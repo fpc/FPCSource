@@ -228,6 +228,8 @@ unit cpu;
               movl $0,%ecx
               cpuid
               movl %ebx,_ebx
+              movl %ecx,_ecx
+              movl %edx,_edx
             end ['rax','rbx','rcx','rdx'];
             _AVX2Support:=_AVXSupport and ((_ebx and $20)<>0);
             _AVX512FSupport:=(_ebx and $10000)<>0;

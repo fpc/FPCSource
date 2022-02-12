@@ -257,8 +257,9 @@ type
     function ElementVisited(El: TPasElement; Mode: TPAUseMode): boolean; overload;
     function ElementVisited(El: TPasElement; OtherCheck: TPAOtherCheckedEl): boolean; overload;
     procedure MarkImplScopeRef(El, RefEl: TPasElement; Access: TPSRefAccess);
-    function CanSkipGenericType(El: TPasGenericType): boolean;
-    function CanSkipGenericProc(DeclProc: TPasProcedure): boolean;
+    function IsGenericElement(El: TPasElement): boolean; virtual;
+    function CanSkipGenericType(El: TPasGenericType): boolean; virtual;
+    function CanSkipGenericProc(DeclProc: TPasProcedure): boolean; virtual;
     procedure UseElement(El: TPasElement; Access: TResolvedRefAccess;
       UseFull: boolean); virtual;
     procedure UseTypeInfo(El: TPasElement); virtual;
@@ -282,8 +283,10 @@ type
     procedure UseVariable(El: TPasVariable; Access: TResolvedRefAccess;
       UseFull: boolean); virtual;
     procedure UseResourcestring(El: TPasResString); virtual;
+    procedure UseExportSymbol(El: TPasExportSymbol); virtual;
     procedure UseArgument(El: TPasArgument; Access: TResolvedRefAccess); virtual;
     procedure UseResultElement(El: TPasResultElement; Access: TResolvedRefAccess); virtual;
+    procedure UseRecordFields(El: TPasExpr); virtual;
     // create hints for a unit, program or library
     procedure EmitElementHints(El: TPasElement); virtual;
     procedure EmitSectionHints(Section: TPasSection); virtual;
@@ -1030,6 +1033,19 @@ begin
     CheckImplRef;
 end;
 
+function TPasAnalyzer.IsGenericElement(El: TPasElement): boolean;
+var
+  C: TClass;
+begin
+  C:=El.ClassType;
+  if C.InheritsFrom(TPasProcedure) then
+    Result:=TPasProcedure(El).NameParts<>nil
+  else if C.InheritsFrom(TPasGenericType) then
+    Result:=TPasGenericType(El).GenericTemplateTypes<>nil
+  else
+    Result:=false;
+end;
+
 function TPasAnalyzer.CanSkipGenericType(El: TPasGenericType): boolean;
 
   procedure RaiseHalfSpecialized;
@@ -1198,6 +1214,7 @@ var
   ClassEl: TPasClassType;
   ArrType: TPasArrayType;
   SpecType: TPasSpecializeType;
+  Rec: TPasRecordType;
 begin
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.UsePublished START ',GetObjName(El));
@@ -1258,7 +1275,9 @@ begin
         Member:=TPasElement(Members[i]);
         if Member.ClassType=TPasAttributes then
           continue;
-        if IsUsed(Member) then
+        if IsGenericElement(Member) then
+          continue;
+        if IsUsed(Member) then // only used elements of a class
           UseTypeInfo(Member);
         end;
       end;
@@ -1266,16 +1285,28 @@ begin
   else if C=TPasClassOfType then
   else if C=TPasRecordType then
     begin
-    // published record: use all members
-    if CanSkipGenericType(TPasRecordType(El)) then exit;
-    Members:=TPasRecordType(El).Members;
+    // published record: use all members (except generic)
+    Rec:=TPasRecordType(El);
+    if CanSkipGenericType(Rec) then exit;
+    Members:=Rec.Members;
     for i:=0 to Members.Count-1 do
       begin
       Member:=TPasElement(Members[i]);
       if Member.ClassType=TPasAttributes then
         continue; // attributes are never used directly
-      UseSubEl(Member);
+      if IsGenericElement(Member) then
+        continue;
+      if Member.ClassType=TPasVariable then
+        // all fields, even if not used
+        UseSubEl(Member)
+      else if IsUsed(Member) then
+        // all used non fields
+        UseSubEl(Member);
       end;
+    UseSubEl(Rec.VariantEl);
+    if Rec.Variants<>nil then
+      for i:=0 to Rec.Variants.Count-1 do
+        UseSubEl(TPasVariant(Rec.Variants[i]));
     end
   else if C.InheritsFrom(TPasProcedure) then
     UseSubEl(TPasProcedure(El).ProcType)
@@ -1467,6 +1498,8 @@ begin
       end
     else if C=TPasAttributes then
       // attributes are never used directly
+    else if C=TPasExportSymbol then
+      UseExportSymbol(TPasExportSymbol(Decl))
     else
       RaiseNotSupported(20170306165213,Decl);
     end;
@@ -1757,6 +1790,8 @@ begin
           end;
         end;
       end;
+    if rrfUseFields in Ref.Flags then
+      UseRecordFields(El);
 
     if Decl is TPasUnresolvedSymbolRef then
       begin
@@ -2622,6 +2657,24 @@ begin
   UseExpr(El.Expr);
 end;
 
+procedure TPasAnalyzer.UseExportSymbol(El: TPasExportSymbol);
+var
+  Ref: TResolvedReference;
+  Decl: TPasElement;
+begin
+  if not MarkElementAsUsed(El) then exit;
+  if El.CustomData is TResolvedReference then
+    begin
+    Ref:=TResolvedReference(El.CustomData);
+    Decl:=Ref.Declaration;
+    if Decl<>nil then
+      UseElement(Decl,Ref.Access,false);
+    end;
+  UseExpr(El.NameExpr);
+  UseExpr(El.ExportName);
+  UseExpr(El.ExportIndex);
+end;
+
 procedure TPasAnalyzer.UseArgument(El: TPasArgument; Access: TResolvedRefAccess
   );
 var
@@ -2688,6 +2741,56 @@ begin
       RaiseNotSupported(20170308122333,El);
     end;
   UpdateAccess(IsWrite, IsRead, Usage);
+end;
+
+procedure TPasAnalyzer.UseRecordFields(El: TPasExpr);
+
+  procedure UseRec(Rec: TPasRecordType); forward;
+
+  procedure UseVar(V: TPasVariable);
+  var
+    ResolvedEl: TPasResolverResult;
+  begin
+    UseElement(V,rraRead,false);
+
+    // check nested record
+    Resolver.ComputeElement(V.VarType,ResolvedEl,[],V);
+    if ResolvedEl.LoTypeEl is TPasRecordType then
+      UseRec(TPasRecordType(ResolvedEl.LoTypeEl));
+  end;
+
+  procedure UseRec(Rec: TPasRecordType);
+  var
+    Members: TFPList;
+    i: Integer;
+    Member: TPasElement;
+    C: TClass;
+    Variant: TPasVariant;
+  begin
+    Members:=Rec.Members;
+    for i:=0 to Members.Count-1 do
+      begin
+      Member:=TPasElement(Members[i]);
+      C:=Member.ClassType;
+      if C=TPasVariable then
+        UseVar(TPasVariable(Member));
+      end;
+    if Rec.VariantEl is TPasVariable then
+      UseVar(TPasVariable(Rec.VariantEl));
+    if Rec.Variants<>nil then
+      for i:=0 to Rec.Variants.Count-1 do
+        begin
+        Variant:=TPasVariant(Rec.Variants[i]);
+        UseRec(Variant.Members);
+        end;
+  end;
+
+var
+  ResolvedEl: TPasResolverResult;
+begin
+  Resolver.ComputeElement(El,ResolvedEl,[]);
+  if ResolvedEl.LoTypeEl is TPasRecordType then
+    UseRec(TPasRecordType(ResolvedEl.LoTypeEl));
 end;
 
 procedure TPasAnalyzer.EmitElementHints(El: TPasElement);

@@ -81,7 +81,7 @@ const
       ( system: system_powerpc_morphos; procoption: po_syscall_legacy ),
       ( system: system_arm_aros;        procoption: po_syscall_baselast ),
       ( system: system_i386_aros;       procoption: po_syscall_baselast ),
-      ( system: system_x86_64_aros;     procoption: po_syscall_baselast ));
+      ( system: system_x86_64_aros;     procoption: po_syscall_basereg ));
 
 var
   default_syscall_convention: tprocoption = po_none;

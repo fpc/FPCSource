@@ -58,6 +58,33 @@ implementation
           list.Concat(tai_import_name.create(proc.mangledname,proc.import_name^));
         end;
 
+      procedure InsertUnitInfo(list : TAsmList;cur_unit: tused_unit);
+        var
+          i: Integer;
+          def  : tdef;
+          proc : tprocdef;
+        begin
+          if (cur_unit.u.moduleflags * [mf_init,mf_finalize])<>[] then
+            begin
+              if mf_init in cur_unit.u.moduleflags then
+                list.Concat(tai_functype.create(make_mangledname('INIT$',cur_unit.u.globalsymtable,''),TWasmFuncType.Create([],[])));
+              if mf_finalize in cur_unit.u.moduleflags then
+                list.Concat(tai_functype.create(make_mangledname('FINALIZE$',cur_unit.u.globalsymtable,''),TWasmFuncType.Create([],[])));
+            end;
+          for i:=0 to cur_unit.u.deflist.Count-1 do
+            begin
+              def:=tdef(cur_unit.u.deflist[i]);
+              if assigned(def) and (tdef(def).typ = procdef) then
+                begin
+                  proc := tprocdef(def);
+                  if (po_external in proc.procoptions) and (po_has_importdll in proc.procoptions) then
+                    WriteImportDll(list,proc)
+                  else if not proc.owner.iscurrentunit or (po_external in proc.procoptions) then
+                    thlcgwasm(hlcg).g_procdef(list,proc);
+                end;
+            end;
+        end;
+
     var
       i    : integer;
       def  : tdef;
@@ -94,25 +121,13 @@ implementation
       cur_unit:=tused_unit(usedunits.First);
       while assigned(cur_unit) do
         begin
-          if (cur_unit.u.moduleflags * [mf_init,mf_finalize])<>[] then
-            begin
-              if mf_init in cur_unit.u.moduleflags then
-                list.Concat(tai_functype.create(make_mangledname('INIT$',cur_unit.u.globalsymtable,''),TWasmFuncType.Create([],[])));
-              if mf_finalize in cur_unit.u.moduleflags then
-                list.Concat(tai_functype.create(make_mangledname('FINALIZE$',cur_unit.u.globalsymtable,''),TWasmFuncType.Create([],[])));
-            end;
-          for i:=0 to cur_unit.u.deflist.Count-1 do
-            begin
-              def:=tdef(cur_unit.u.deflist[i]);
-              if assigned(def) and (tdef(def).typ = procdef) then
-                begin
-                  proc := tprocdef(def);
-                  if (po_external in proc.procoptions) and (po_has_importdll in proc.procoptions) then
-                    WriteImportDll(list,proc)
-                  else if not proc.owner.iscurrentunit or (po_external in proc.procoptions) then
-                    thlcgwasm(hlcg).g_procdef(list,proc);
-                end;
-            end;
+          InsertUnitInfo(list,cur_unit);
+          cur_unit:=tused_unit(cur_unit.Next);
+        end;
+      cur_unit:=tused_unit(current_module.used_units.First);
+      while assigned(cur_unit) do
+        begin
+          InsertUnitInfo(list,cur_unit);
           cur_unit:=tused_unit(cur_unit.Next);
         end;
     end;

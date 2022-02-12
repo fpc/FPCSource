@@ -677,7 +677,6 @@ begin
       Aport:=443
     else
       Aport:=80;
-  G:=GetSocketHandler(UseSSL);    
   {$ifdef Unix}
   IsUnixSocketConnection := UnixSocketPath <> '';
   if IsUnixSocketConnection then

@@ -20,7 +20,7 @@ interface
 uses
   Classes, SysUtils, contnrs, strutils, fpcunit, testregistry,
   PasTree, PScanner, PParser, PasResolver, PasResolveEval,
-  tcbaseparser;
+  tcbaseparser, TestPasUtils;
 
 type
   TSrcMarkerKind = (
@@ -568,6 +568,7 @@ type
     Procedure TestClass_MethodInvalidOverload;
     Procedure TestClass_MethodOverride;
     Procedure TestClass_MethodOverride2;
+    Procedure TestClass_MethodOverrideAndOverload;
     Procedure TestClass_MethodOverrideFixCase;
     Procedure TestClass_MethodOverrideSameResultType;
     Procedure TestClass_MethodOverrideDiffResultTypeFail;
@@ -9641,6 +9642,36 @@ begin
   Add('  {#V}{=B}v: TClassB;');
   Add('begin');
   Add('  {@V}v.{@B_ProcA}ProcA;');
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_MethodOverrideAndOverload;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class',
+  '  public',
+  '    procedure Fly(b: boolean); virtual; abstract; overload;',
+  '    procedure Fly(c: word); virtual; abstract; overload;',
+  '  end;',
+  '  TBird = class(TObject)',
+  '  public',
+  '    procedure Fly(b: boolean); override; overload;',
+  '    procedure Fly(c: word); override; overload;',
+  '  end;',
+  'procedure TBird.Fly(b: boolean);',
+  'begin end;',
+  'procedure TBird.Fly(c: word);',
+  'begin end;',
+  'var',
+  '  b: TBird;',
+  'begin',
+  '  b.Fly(true);',
+  '  b.Fly(1);',
+  'end.',
+  '']);
   ParseProgram;
 end;
 

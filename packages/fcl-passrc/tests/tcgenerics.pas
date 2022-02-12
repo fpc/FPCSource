@@ -43,6 +43,7 @@ Type
 
     // generic method
     Procedure TestGenericMethod_Program;
+    Procedure TestGenericMethod_OverloadDelphi;
   end;
 
 implementation
@@ -380,6 +381,35 @@ begin
   'end;',
   'begin',
   '  TObject.specialize GetIt<word>(2);',
+  '']);
+  ParseModule;
+end;
+
+procedure TTestGenerics.TestGenericMethod_OverloadDelphi;
+begin
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class',
+  '    procedure Fly<S>; overload;',
+  '    procedure Fly<T>(val: T); overload;',
+  '  end;',
+  'procedure TObject.Fly<S>;',
+  'begin',
+  'end;',
+  'procedure TObject.Fly<T>(val: word);',
+  'begin',
+  'end;',
+  'var o : TObject;',
+  'begin',
+  '  o.Fly<word>;',
+  '  o.Fly<word>();',
+  '  o.Fly<longint>(3);',
+  '  with o do begin',
+  '    Fly<word>;',
+  '    Fly<word>();',
+  '    Fly<longint>(13);',
+  '  end;',
   '']);
   ParseModule;
 end;

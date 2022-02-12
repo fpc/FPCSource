@@ -109,6 +109,7 @@ begin
     fields[fieldct] := 0;
     for i := high(statln) downto low(statln) do
       begin
+{$push}{$R-} {$Q-}
         case statln[i] of
           '-': magnitude := -1;
           '0'..'9': begin
@@ -116,6 +117,7 @@ begin
                                + (magnitude * (ord(statln[i]) - ord('0')));
             magnitude := magnitude * 10;
           end;
+{$pop}
           ' ': begin
             magnitude := 1;
             fieldct := fieldct + 1;

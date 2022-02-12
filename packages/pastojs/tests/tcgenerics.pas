@@ -27,13 +27,13 @@ type
     Procedure TestGen_ClassEmpty;
     Procedure TestGen_Class_EmptyMethod;
     Procedure TestGen_Class_TList;
-    Procedure TestGen_Class_TCustomList; // ToDo: with Self do Result:=Method()
+    Procedure TestGen_Class_TCustomList;
     Procedure TestGen_ClassAncestor;
     Procedure TestGen_Class_TypeInfo;
-    Procedure TestGen_Class_TypeOverload; // ToDo TBird, TBird<T>, TBird<S,T>
+    Procedure TestGen_Class_TypeOverload;
     Procedure TestGen_Class_ClassProperty;
     Procedure TestGen_Class_ClassProc;
-    //Procedure TestGen_Record_ReferGenClass_DelphiFail; TBird<T> = class x:TBird; end;
+    Procedure TestGen_Class_ReferGenClass_DelphiFail;
     Procedure TestGen_Class_ClassConstructor;
     Procedure TestGen_Class_TypeCastSpecializesWarn;
     Procedure TestGen_Class_TypeCastSpecializesJSValueNoWarn;
@@ -77,11 +77,11 @@ type
     procedure TestGenProc_Infer_Widen;
     procedure TestGenProc_Infer_PassAsArg;
     procedure TestGenProc_AnonymousProc;
-    // ToDo: FuncName:= instead of Result:=
 
     // generic methods
     procedure TestGenMethod_ImplicitSpec_ObjFPC;
     procedure TestGenMethod_Delphi;
+    procedure TestGenMethod_Overload_Delphi;
 
     // generic array
     procedure TestGen_Array_OtherUnit;
@@ -92,6 +92,8 @@ type
     procedure TestGen_ProcType_ProcLocal;
     procedure TestGen_ProcType_Local_RTTI_Fail;
     procedure TestGen_ProcType_ParamUnitImpl;
+    // procedure TestGen_ProcType_TemplateCountOverload_ObjFPC; ObjFPC does not support that in FPC
+    procedure TestGen_ProcType_TemplateCountOverload_Delphi;
   end;
 
 implementation
@@ -574,7 +576,7 @@ begin
   'begin',
   '  Result:=PrepareAddingItem;',
   '  Result:=Self.PrepareAddingItem;',
-  //'  with Self do Result:=PrepareAddingItem;',
+  '  with Self do Result:=PrepareAddingItem;',
   'end;',
   'var l: TWordList;',
   'begin',
@@ -597,6 +599,7 @@ begin
     'rtl.createClass(this, "TList$G1", this.TCustomList$G2, function () {',
     '  this.Add = function () {',
     '    var Result = 0;',
+    '    Result = this.PrepareAddingItem();',
     '    Result = this.PrepareAddingItem();',
     '    Result = this.PrepareAddingItem();',
     '    return Result;',
@@ -688,8 +691,6 @@ end;
 
 procedure TTestGenerics.TestGen_Class_TypeOverload;
 begin
-  exit;// ToDo
-
   StartProgram(false);
   Add([
   '{$mode delphi}',
@@ -714,6 +715,14 @@ begin
     '  this.$final = function () {',
     '  };',
     '});',
+    'rtl.createClass(this, "TBird$G1", this.TObject, function () {',
+    '  this.$init = function () {',
+    '    $mod.TObject.$init.call(this);',
+    '    this.m = 0;',
+    '  };',
+    '}, "TBird<System.Word>");',
+    'this.b = null;',
+    'this.e = null;',
     '']),
     LinesToStr([ // $mod.$main
     '']));
@@ -818,6 +827,24 @@ begin
     '']),
     LinesToStr([ // $mod.$main
     '']));
+end;
+
+procedure TTestGenerics.TestGen_Class_ReferGenClass_DelphiFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TPoint<T> = class',
+  '    var x: TPoint;', // alowed in objfpc, forbidden in delphi
+  '  end;',
+  'var p: specialize TPoint<word>;',
+  'begin',
+  '']);
+  SetExpectedPasResolverError('Generics without specialization cannot be used as a type for a variable',
+     nGenericsWithoutSpecializationAsType);
+  ConvertProgram;
 end;
 
 procedure TTestGenerics.TestGen_Class_ClassConstructor;
@@ -2501,6 +2528,59 @@ begin
     '']));
 end;
 
+procedure TTestGenerics.TestGenMethod_Overload_Delphi;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class',
+  '    procedure Run<S>; overload;',
+  '    procedure Run<T>(w: word); overload;',
+  '  end; ',
+  'procedure TObject.Run<S>;',
+  'begin',
+  'end;',
+  'procedure TObject.Run<T>(w: word);',
+  'begin',
+  'end;',
+  'var o: TObject;',
+  'begin',
+  '  o.Run<word>;',
+  '  o.Run<word>();',
+  '  o.Run<longint>(3);',
+  '  with o do begin',
+  '    Run<word>;',
+  '    Run<word>();',
+  '    Run<longint>(13);',
+  '  end;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestGenMethod_Overload_Delphi',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Run$G1 = function () {',
+    '  };',
+    '  this.Run$1G1 = function (w) {',
+    '  };',
+    '});',
+    'this.o = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.o.Run$G1();',
+    '$mod.o.Run$G1();',
+    '$mod.o.Run$1G1(3);',
+    'var $with = $mod.o;',
+    '$with.Run$G1();',
+    '$with.Run$G1();',
+    '$with.Run$1G1(13);',
+    '']));
+end;
+
 procedure TTestGenerics.TestGen_Array_OtherUnit;
 begin
   WithTypeInfo:=true;
@@ -2809,6 +2889,50 @@ begin
     '};',
     '']),
     LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestGenerics.TestGen_ProcType_TemplateCountOverload_Delphi;
+begin
+  WithTypeInfo:=true;
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TProc<T> = procedure(a, b: T);',
+  '  TProc<S,T> = procedure(a: S; b: T);',
+  'var',
+  '  p: TProc<word>;',
+  '  q: TProc<char,boolean>;',
+  'procedure Run(x,y: word);',
+  'begin',
+  'end;',
+  'procedure Fly(x: char; y: boolean);',
+  'begin',
+  'end;',
+  'begin',
+  '  p:=Run;',
+  '  q:=Fly;',
+  'end.']);
+  ConvertProgram;
+  CheckSource('TestGen_ProcType_TemplateCountOverload_Delphi',
+    LinesToStr([ // statements
+    'this.$rtti.$ProcVar("TProc<System.Word>", {',
+    '  procsig: rtl.newTIProcSig([["a", rtl.word], ["b", rtl.word]])',
+    '});',
+    'this.p = null;',
+    'this.$rtti.$ProcVar("TProc<System.Char,System.Boolean>", {',
+    '  procsig: rtl.newTIProcSig([["a", rtl.char], ["b", rtl.boolean]])',
+    '});',
+    'this.q = null;',
+    'this.Run = function (x, y) {',
+    '};',
+    'this.Fly = function (x, y) {',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.p = $mod.Run;',
+    '$mod.q = $mod.Fly;',
     '']));
 end;
 

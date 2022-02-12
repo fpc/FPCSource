@@ -75,6 +75,20 @@ endif
 ifeq ($(PPC_TARGET),sparc64)
 override FPCOPT+= -Fu$(COMPILERDIR)/sparcgen -Fi$(COMPILERDIR)/sparcgen
 endif
+# wasm32 specific
+ifeq ($(PPC_TARGET),wasm32)
+override FPCOPT+= -dNOOPT
+endif
+# RiscV32 specific
+ifeq ($(PPC_TARGET),riscv32)
+override LOCALOPT+=-Furiscv
+endif
+# RiscV64 specific
+ifeq ($(PPC_TARGET),riscv64)
+override LOCALOPT+=-Furiscv
+endif
+
+
 
 
 [rules]

@@ -370,7 +370,7 @@ begin
   FInitialFlags:=TPCUInitialFlags.Create;
   FAnalyzer:=TPas2JSAnalyzer.Create;
   FCheckedElements:=TPasAnalyzerKeySet.Create(@CompareCheckedElementPairs,@CompareElWithCheckedElementPair);
-  Analyzer.Resolver:=Engine;
+  Analyzer.Resolver:=ResolverEngine;
   Analyzer.Options:=Analyzer.Options+[paoImplReferences];
   Converter.OnIsElementUsed:=@OnConverterIsElementUsed;
   Converter.OnIsTypeInfoUsed:=@OnConverterIsTypeInfoUsed;
@@ -433,7 +433,7 @@ begin
     try
       PCUWriter.OnGetSrc:=@OnFilerGetSrc;
       PCUWriter.OnIsElementUsed:=@OnConverterIsElementUsed;
-      PCUWriter.WritePCU(Engine,Converter,InitialFlags,ms,false);
+      PCUWriter.WritePCU(ResolverEngine,Converter,InitialFlags,ms,false);
     except
       on E: Exception do
       begin
@@ -457,7 +457,7 @@ begin
       RestScanner:=TPas2jsPasScanner.Create(RestFileResolver);
       InitScanner(RestScanner);
       RestResolver:=TTestEnginePasResolver.Create;
-      RestResolver.Filename:=Engine.Filename;
+      RestResolver.Filename:=ResolverEngine.Filename;
       RestResolver.AddObjFPCBuiltInIdentifiers(btAllJSBaseTypes,bfAllJSBaseProcs);
       RestResolver.OnFindUnit:=@OnRestResolverFindUnit;
       RestParser:=TPasParser.Create(RestScanner,RestFileResolver,RestResolver);
@@ -493,7 +493,7 @@ begin
       end;
     end;
     // check parser+resolver+analyzer
-    CheckRestoredResolver(Engine,RestResolver,[]);
+    CheckRestoredResolver(ResolverEngine,RestResolver,[]);
 
     // convert using the precompiled procs
     RestConverter:=CreateConverter;
@@ -1059,7 +1059,7 @@ begin
     if Orig.ModeSwitches<>Rest.ModeSwitches then
       Fail(Path+'.ModeSwitches');
 
-    if Engine.ProcCanBePrecompiled(DeclProc) then
+    if ResolverEngine.ProcCanBePrecompiled(DeclProc) then
       begin
       CheckRestoredScopeRefs(Path+'.References',Orig.References,Rest.References,Flags);
       end;
@@ -2041,7 +2041,7 @@ begin
   // Body
   if Orig.Body<>nil then
     begin
-    if not Engine.ProcCanBePrecompiled(DeclProc) then
+    if not ResolverEngine.ProcCanBePrecompiled(DeclProc) then
       begin
       // generic body
       if OrigScope.ImplJS<>nil then

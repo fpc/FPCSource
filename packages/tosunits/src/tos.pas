@@ -18,13 +18,14 @@
 }
 
 {$MODE FPC}
+{$MODESWITCH OUT+}
 {$LONGSTRINGS OFF} { this unit always uses shortstrings }
 {$PACKRECORDS 2}
 unit tos;
 
 interface
 
-uses gemdos, xbios, bios;
+uses gemdos, xbios, bios, metados;
 
 const
     FO_READ     = 0;
@@ -85,11 +86,19 @@ type
         d_fname :           String[12];
     end;
 
+    LongIntFunc = xbios.TLongIntFunc;
+
+    METAINFO = metados.TMETAINFO;
+
+{ TOS program need this exported }
+var
+    basepage: PPD; external name '__base';
+
 (* ++++++++++++++++++++++++++++++++++++++++ *)
 (*                  BIOS                    *)
 (* ++++++++++++++++++++++++++++++++++++++++ *)
 
-procedure Getmpb(var p_mpb: TMPB); syscall 13 0;
+procedure Getmpb(out p_mpb: TMPB); syscall 13 0;
 function Bconstat(dev: smallint): smallint; syscall 13 1;
 function Bconin(dev: smallint): LongInt; syscall 13 2;
 procedure Bconout(dev, c: smallint); syscall 13 3;
@@ -145,7 +154,7 @@ function Kbdvbase: PKBDVECS; syscall 14 34;
 function Kbrate(initial, speed: smallint): smallint; syscall 14 35;
 procedure Prtblk(var defptr: TPBDEF); syscall 14 36;
 procedure vsync; syscall 14 37;
-function Supexec(codeptr: TLongIntFunc): LongInt; syscall 14 38;
+function Supexec(codeptr: LongIntFunc): LongInt; syscall 14 38;
 procedure Puntaes; syscall 14 39;
 function Floprate(drive, seekrate: smallint): smallint; syscall 14 41;
 function DMAread(sector: LongInt; count: smallint; buffer: Pointer; devno: smallint): LongInt; syscall 14 42;
@@ -168,19 +177,19 @@ function mon_type: smallint; syscall 14 89;
 procedure VsetSync(flag: smallint); syscall 14 90;
 function VgetSize(mode: smallint): LongInt; syscall 14 91;
 procedure VsetRGB(index, count: smallint; xrgbArray: Array of TRGB); syscall 14 93;
-procedure VgetRGB(index, count: smallint; var xrgbArray: Array of TRGB); syscall 14 94;
+procedure VgetRGB(index, count: smallint; out xrgbArray: Array of TRGB); syscall 14 94;
 function Validmode(mode: smallint): smallint; syscall 14 95;
 procedure Dsp_DoBlock(data_in: Pointer; size_in: LongInt; data_out: Pointer; size_out: LongInt); syscall 14 96;
 procedure Dsp_BlkHandShake(data_in: Pointer; size_in: LongInt; data_out: Pointer; size_out: LongInt); syscall 14 97;
 procedure Dsp_BlkUnpacked(data_in: Pointer; size_in: LongInt; data_out: Pointer; size_out: LongInt); syscall 14 98;
-procedure Dsp_InStream(data_in: Pointer; block_size, num_blocks: LongInt; var blocks_done: LongInt); syscall 14 99;
-procedure Dsp_OutStream(data_out: Pointer; block_size, num_blocks: LongInt; var blocks_done: LongInt); syscall 14 100;
-procedure Dsp_IOStream(data_in, data_out: Pointer; block_insize, block_outsize, num_blocks: LongInt;var blocks_done: LongInt); syscall 14 101;
+procedure Dsp_InStream(data_in: Pointer; block_size, num_blocks: LongInt; out blocks_done: LongInt); syscall 14 99;
+procedure Dsp_OutStream(data_out: Pointer; block_size, num_blocks: LongInt; out blocks_done: LongInt); syscall 14 100;
+procedure Dsp_IOStream(data_in, data_out: Pointer; block_insize, block_outsize, num_blocks: LongInt; out blocks_done: LongInt); syscall 14 101;
 procedure Dsp_RemoveInterrupts(mask: smallint); syscall 14 102;
 function Dsp_GetWordSize: smallint; syscall 14 103;
 function Dsp_Lock: smallint; syscall 14 104;
 procedure Dsp_Unlock; syscall 14 105;
-procedure Dsp_Available(var xavailable, yavailable: LongInt); syscall 14 106;
+procedure Dsp_Available(out xavailable, yavailable: LongInt); syscall 14 106;
 function Dsp_Reserve(xreserve, yreserve: LongInt): smallint; syscall 14 107;
 function Dsp_LoadProg(const filename: String; ability: smallint; buffer: Pointer): smallint;
 procedure Dsp_ExecProg(codeptr: Pointer; codesize: LongInt; ability: smallint); syscall 14 109;
@@ -219,6 +228,16 @@ function sndstatus(res: smallint): LongInt; syscall 14 140;
 function buffptr(bptr: Pointer): LongInt; syscall 14 141;
 
 procedure VsetMask(ormask, andmask: LongInt; overlay: smallint); syscall 14 150;
+
+procedure Metainit(out buffer: TMETAINFO); syscall 14 48;
+function Metaopen(drive: smallint; out buffer: TMETA_DRVINFO): LongInt; syscall 14 49;
+function Metaclose(drive: smallint): LongInt; syscall 14 50;
+function Metaread(drive: smallint; buffer: Pointer; blockno: LongInt; count: smallint): LongInt; syscall 14 51;
+function Metawrite(drive: smallint; buffer: Pointer; blockno: LongInt; count: smallint): LongInt; syscall 14 52;
+function Metaseek(drive: smallint; dummy, offset: longint): LongInt; syscall 14 53;
+function Metastatus(drive: smallint; buffer: Pointer): LongInt; syscall 14 54;
+function Metaioctl(drive: smallint; magic: LongInt; opcode: smallint; buffer: Pointer): LongInt; syscall 14 55;
+
 
 (* ++++++++++++++++++++++++++++++++++++++++ *)
 (*                  GEMDOS                  *)
@@ -261,7 +280,7 @@ function sversion: smallint; syscall 1 48;
 procedure ptermres(keepcnt: longint; returncode: smallint); syscall 1 49;
 function sconfig(mode: smallint; flags: longint): longint; syscall 1 51;
 
-function dfree(var buf: TDISKINFO; driveno: smallint): smallint; syscall 1 54;
+function dfree(out buf: TDISKINFO; driveno: smallint): smallint; syscall 1 54;
 
 function dcreate(const path: String): longint;
 function ddelete(const path: String): longint;
@@ -277,7 +296,7 @@ function fattrib(const filename: String; wflag: smallint; attrib: smallint): sma
 function mxalloc(amount: longint; mode: smallint): pointer; syscall 1 68;
 function fdup(handle: smallint): smallint; syscall 1 69;
 function fforce(stdh: smallint; nonstdh: smallint): smallint; syscall 1 70;
-function dgetpath(var path: String; driveno: smallint): smallint;
+function dgetpath(out path: String; driveno: smallint): smallint;
 function malloc(number: dword): pointer; syscall 1 72;
 function free(block: pointer): dword; syscall 1 73;
 function mfree(block: pointer): dword; syscall 1 73;
@@ -294,7 +313,7 @@ procedure fdatime(timeptr: PDOSTIME; handle: smallint; wflag: smallint); syscall
 function Flock(handle, mode: smallint; start, length: LongInt): LongInt; syscall 1 92;
 
 function Syield: smallint; syscall 1 255;
-function Fpipe(var usrh: ARRAY of smallint): smallint; syscall 1 256;
+function Fpipe(out usrh: ARRAY of smallint): smallint; syscall 1 256;
 function Ffchown(fd, uid, gid: smallint): longint; syscall 1 257;
 function Ffchmod(fd: smallint; mode: word): longint; syscall 1 258;
 function Fsync(fd: smallint): longint; syscall 1 259;
@@ -322,9 +341,9 @@ function Pusrval(arg: LongInt): LongInt; syscall 1 280;
 function Pdomain(newdom: smallint): smallint; syscall 1 281;
 procedure Psigreturn; syscall 1 282;
 function Pfork: smallint; syscall 1 283;
-function Pwait3(flag: smallint; var rusage: ARRAY of LongInt): LongInt; syscall 1 284;
-function Fselect(timeout: Word; var rfds, wfds, xfds: LongInt): smallint; syscall 1 285;
-function Prusage(var r: ARRAY of LongInt): LongInt; syscall 1 286;
+function Pwait3(flag: smallint; out rusage: ARRAY of LongInt): LongInt; syscall 1 284;
+function Fselect(timeout: Word; out rfds, wfds, xfds: LongInt): smallint; syscall 1 285;
+function Prusage(out r: ARRAY of LongInt): LongInt; syscall 1 286;
 function Psetlimit(lim: smallint; value: LongInt): LongInt; syscall 1 287;
 function Talarm(secs: LongInt): LongInt; syscall 1 288;
 procedure Pause; syscall 1 289;
@@ -335,13 +354,13 @@ function Pmsg(mode: smallint; mbox: LongInt; var msg: TMSGTYPE): LongInt; syscal
 function Fmidipipe(pid, inp, outp: smallint): LongInt; syscall 1 294;
 function Prenice(pid, delta: smallint): smallint; syscall 1 295;
 function Dopendir(const name: String; flag: smallint): LongInt;
-function Dreaddir(buflen: smallint; dir: LongInt; var buf: String): LongInt;
+function Dreaddir(buflen: smallint; dir: LongInt; out buf: String): LongInt;
 function Drewinddir(dir: LongInt): LongInt; syscall 1 298;
 function Dclosedir(dir: LongInt): LongInt; syscall 1 299;
-function Fxattr(flag: smallint; const name: String; var buf: TXATTR): LongInt;
+function Fxattr(flag: smallint; const name: String; out buf: TXATTR): LongInt;
 function Flink(const oldname: String; const newname: String): LongInt;
 function Fsymlink(const oldname: String; const newname: String): LongInt;
-function Freadlink(size: smallint; var buf: String; const name: String): LongInt;
+function Freadlink(size: smallint; out buf: String; const name: String): LongInt;
 function Dcntl(cmd: smallint; const name: String; arg: LongInt): LongInt;
 function Fchown(const name: String; uid, gid: smallint): LongInt;
 function Fchmod(const name: String; mode: smallint): LongInt;
@@ -352,12 +371,13 @@ procedure Psigpause(mask: LongInt); syscall 1 310;
 function Psigaction(sig: smallint; act, oact: PSIGACTION): LongInt; syscall 1 311;
 function Pgeteuid: smallint; syscall 1 312;
 function Pgetegid: smallint; syscall 1 313;
-function Pwaitpid(pid, flag: smallint; var rusage: ARRAY of LongInt): LongInt; syscall 1 314;
+function Pwaitpid(pid, flag: smallint; out rusage: ARRAY of LongInt): LongInt; syscall 1 314;
 function Dgetcwd(path: Pchar; drv, size: smallint): LongInt; syscall 1 315;
 procedure Salert(str: Pchar); syscall 1 316;
 function Tmalarm(time: longint): LongInt; syscall 1 317;
 { function Psigintr(vec, sig: smallint): LongInt; syscall 1 318; }
-function Suptime(var uptime: longint; var loadaverage: longint): LongInt; syscall 1 319;
+function Suptime(out uptime: longint; out loadaverage: longint): LongInt; syscall 1 319;
+
 
 (* ++++++++++++++++++++++++++++++++++++++++ *)
 (*              IMPLEMENTATION              *)
@@ -465,7 +485,7 @@ begin
   dsetpath := gemdos_dsetpath(s);
 end;
 
-function dgetpath(var path: String; driveno: smallint): smallint;
+function dgetpath(out path: String; driveno: smallint): smallint;
 var s: array[0..255] of char;
 begin
   Dgetpath := gemdos_dgetpath(s, driveno);
@@ -501,7 +521,7 @@ begin
   Dopendir := gemdos_dopendir(s, flag);
 end;
 
-function Dreaddir(buflen: smallint; dir: LongInt; var buf: String): LongInt;
+function Dreaddir(buflen: smallint; dir: LongInt; out buf: String): LongInt;
 var s: array[0..255] of char;
 begin
   Dreaddir := gemdos_dreaddir(buflen, dir, s);
@@ -509,7 +529,7 @@ begin
     buf := PChar(@s[0]);
 end;
 
-function Fxattr(flag: smallint; const name: String; var buf: TXATTR): LongInt;
+function Fxattr(flag: smallint; const name: String; out buf: TXATTR): LongInt;
 var s: array[0..255] of char;
 begin
   s := name;
@@ -534,7 +554,7 @@ begin
   fsymlink := gemdos_fsymlink(s1, s2);
 end;
 
-function Freadlink(size: smallint; var buf: String; const name: String): LongInt;
+function Freadlink(size: smallint; out buf: String; const name: String): LongInt;
 var s1: array[0..255] of char;
     s2: array[0..255] of char;
 begin

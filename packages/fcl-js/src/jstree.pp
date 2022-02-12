@@ -1000,8 +1000,10 @@ Type
   end;
 
   { TJSExportStatement - e.g. 'export Declaration' }
-  // 'export * as NameSpaceExport from ModuleName' NameSpaceExport and ModuleName are optional
-  // 'export { ExportNames[1], ExportNames[2], ... } from ModuleName' ModuleName is optional
+  // export [default] Declaration
+  // export [default] NameSpaceExport [from ModuleName]
+  // export [default] * [from ModuleName]
+  // export { ExportNames[1], ExportNames[2], ... } [from ModuleName]
 
   TJSExportStatement = class(TJSStatement)
   Private
@@ -1014,9 +1016,9 @@ Type
     function GetNamedExports: TJSExportNameElements;
   Public
     Destructor Destroy; override;
-    Property IsDefault : Boolean Read FIsDefault Write FIsDefault;
+    Property IsDefault : Boolean Read FIsDefault Write FIsDefault; // write "default"
     Property Declaration : TJSElement Read FDeclaration Write FDeclaration;
-    Property NameSpaceExport : TJSString Read FNameSpaceExport Write FNameSpaceExport;
+    Property NameSpaceExport : TJSString Read FNameSpaceExport Write FNameSpaceExport;// can be '*'
     Property ModuleName : TJSString Read FModuleName Write FModuleName;
     Property HaveExportNames : Boolean Read GetHaveNamedExports;
     Property ExportNames : TJSExportNameElements Read GetNamedExports;
