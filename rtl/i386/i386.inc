@@ -1184,8 +1184,6 @@ end;
 function cpudeclocked(var l : longint) : boolean;assembler;nostackframe;
 
   asm
-     { this check should be done because a lock takes a lot }
-     { of time!                                             }
      lock
      decl       (%eax)
      setzb      %al
