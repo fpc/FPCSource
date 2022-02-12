@@ -1175,7 +1175,8 @@ type
     otLogicalAnd, otLogicalNot, otLogicalXor,
     otRightShift,
     otEnumerator, otIn,
-    otInitialize // Management operator
+    otInitialize,
+    orFinalize // Management operators
     );
   TOperatorTypes = set of TOperatorType;
 
@@ -1764,13 +1765,13 @@ const
            '>',':=','<>','<=','>=','**',
            '><','Inc','Dec','mod','-','+','Or','div',
            'shl','or','and','xor','and','not','xor',
-           'shr','enumerator','in','');
+           'shr','enumerator','in','','');
   OperatorNames : Array[TOperatorType] of string
        =  ('','implicit','explicit','multiply','add','subtract','divide','lessthan','equal',
            'greaterthan','assign','notequal','lessthanorequal','greaterthanorequal','power',
            'symmetricaldifference','inc','dec','modulus','negative','positive','bitwiseor','intdivide',
            'leftshift','logicalor','bitwiseand','bitwisexor','logicaland','logicalnot','logicalxor',
-           'rightshift','enumerator','in','initialize');
+           'rightshift','enumerator','in','initialize','finalize');
 
   AssignKindNames : Array[TAssignKind] of string = (':=','+=','-=','*=','/=' );
 

@@ -3977,6 +3977,8 @@ begin
     MValue:=Param;
     MName:=UpperCase(Trim(Copy(MValue,1,Index-1)));
     Delete(MValue,1,Index+1);
+    if SameText(MName,'TGenericStringBuilder') then
+        Writeln('TGenericStringBuilder = ',MValue);
     AddMacro(MName,Trim(MValue));
     end;
 end;
