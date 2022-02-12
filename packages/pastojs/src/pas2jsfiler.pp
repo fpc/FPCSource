@@ -493,7 +493,8 @@ const
     'RightShift',
     'Enumerator',
     'In',
-    'Initialize'
+    'Initialize',
+    'Finalize'
     );
 
   PCUProcedureModifierNames: array[TProcedureModifier] of string = (
