@@ -228,8 +228,8 @@ resourcestring
   sIllegalQualifier = 'illegal qualifier "%s"';
   sSyntaxErrorExpectedButFound = 'Syntax error, "%s" expected but "%s" found';
   sWrongNumberOfParametersForCallTo = 'Wrong number of parameters specified for call to "%s"';
-  sIncompatibleTypeArgNo = 'Incompatible type arg no. %s: Got "%s", expected "%s"';
-  sIncompatibleTypeArgNoVarParamMustMatchExactly = 'Incompatible type arg no. %s: Got "%s", expected "%s". Var param must match exactly.';
+  sIncompatibleTypeArgNo = 'Incompatible type for arg no. %s: Got "%s", expected "%s"';
+  sIncompatibleTypeArgNoVarParamMustMatchExactly = 'Incompatible type for arg no. %s: Got "%s", expected "%s". Var param must match exactly.';
   sVariableIdentifierExpected = 'Variable identifier expected';
   sDuplicateIdentifier = 'Duplicate identifier "%s" at %s';
   sXExpectedButYFound = '%s expected, but %s found';

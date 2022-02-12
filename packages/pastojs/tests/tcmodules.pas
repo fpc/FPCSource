@@ -19272,7 +19272,7 @@ begin
   Add('class function TMyB.NewInstance(fnname: longint; const paramarray): TMyB;');
   Add('begin end;');
   Add('begin');
-  SetExpectedPasResolverError('Incompatible type arg no. 1: Got "Longint", expected "String"',
+  SetExpectedPasResolverError('Incompatible type for arg no. 1: Got "Longint", expected "String"',
     nIncompatibleTypeArgNo);
   ConvertProgram;
 end;
@@ -19291,7 +19291,7 @@ begin
   Add('class function TMyB.NewInstance(fnname: string; const paramarray: string): TMyB;');
   Add('begin end;');
   Add('begin');
-  SetExpectedPasResolverError('Incompatible type arg no. 2: Got "type", expected "untyped"',
+  SetExpectedPasResolverError('Incompatible type for arg no. 2: Got "type", expected "untyped"',
     nIncompatibleTypeArgNo);
   ConvertProgram;
 end;
@@ -20149,7 +20149,7 @@ begin
   '  DoIt(s);',
   'end;',
   '']);
-  SetExpectedPasResolverError('Incompatible type arg no. 1: Got "unit3.TJSBufferSource", expected "unit2.TJSBufferSource"',
+  SetExpectedPasResolverError('Incompatible type for arg no. 1: Got "unit3.TJSBufferSource", expected "unit2.TJSBufferSource"',
     nIncompatibleTypeArgNo);
   ConvertUnit;
 end;
@@ -28826,7 +28826,7 @@ begin
   'begin',
   '  inc(p,1);',
   '']);
-  SetExpectedPasResolverError('Incompatible type arg no. 1: Got "Pointer", expected "integer"',
+  SetExpectedPasResolverError('Incompatible type for arg no. 1: Got "Pointer", expected "integer"',
     nIncompatibleTypeArgNo);
   ConvertProgram;
 end;
@@ -34162,7 +34162,7 @@ begin
   'end;',
   'begin',
   '']);
-  SetExpectedPasResolverError('Incompatible type arg no. 2: Got "Longint", expected "TJSPromise"',nIncompatibleTypeArgNo);
+  SetExpectedPasResolverError('Incompatible type for arg no. 2: Got "Longint", expected "TJSPromise"',nIncompatibleTypeArgNo);
   ConvertProgram;
 end;
 
@@ -34184,7 +34184,7 @@ begin
   'end;',
   'begin',
   '']);
-  SetExpectedPasResolverError('Incompatible type arg no. 2: Got "TObject", expected "TBird"',nIncompatibleTypeArgNo);
+  SetExpectedPasResolverError('Incompatible type for arg no. 2: Got "TObject", expected "TBird"',nIncompatibleTypeArgNo);
   ConvertProgram;
 end;
 
