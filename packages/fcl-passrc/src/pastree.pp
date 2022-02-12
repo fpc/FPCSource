@@ -5301,6 +5301,7 @@ begin
       S.Add(GetOperatorDeclaration(Full));
     ProcType.GetArguments(S);
     If Assigned((Proctype as TPasFunctionType).ResultEl) then
+      if Assigned(TPasFunctionType(ProcType).ResultEl.ResultType) then
       With TPasFunctionType(ProcType).ResultEl.ResultType do
         begin
         T:=' : ';
