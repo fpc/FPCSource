@@ -336,7 +336,10 @@ begin
    For I:=1 to Length(S) do { 0 terminated }
      begin
      thehash:=thehash shl 4;
+{$push}
+{$R-}{$Q-}
      inc(theHash,Ord(S[i]));
+{$pop}
      g:=thehash and LongWord($f shl 28);
      if g<>0 then
        begin
