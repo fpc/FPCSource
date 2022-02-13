@@ -9,7 +9,7 @@ units=system uuchar objpas strings iso7185 extpas dos \
       wintypes winprocs win31 ports dynlibs sortbase \
       sysconst rtlconsts sysutils math types typinfo fgl \
       classes charset cpu getopts cpall unicodenumtable \
-      unicodedata character
+      unicodedata character ctypes
 implicitunits=\
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
       cp437 cp646 cp737 cp775 cp850 cp852 cp855 cp856 cp857 cp860 cp861 cp862 \
@@ -218,3 +218,10 @@ unicodenumtable$(PPUEXT) : $(OBJPASDIR)/unicodenumtable.pas objpas$(PPUEXT) syst
 
 unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas unicodenumtable$(PPUEXT) objpas$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodedata.pas
+
+#
+# Other system-dependent RTL Units
+#
+ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)
+        $(COMPILER) $(INC)/ctypes.pp $(REDIR)
+	$(EXECPPAS)
