@@ -315,8 +315,12 @@ TYPE
       FUNCTION GetPos: Longint;                                      Virtual;
       FUNCTION GetSize: Longint;                                     Virtual;
       FUNCTION ReadStr: PString;
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
       FUNCTION ReadRawByteString: RawByteString;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
       FUNCTION ReadUnicodeString: UnicodeString;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
       PROCEDURE Open (OpenMode: Word);                               Virtual;
       PROCEDURE Close;                                               Virtual;
       PROCEDURE Reset;
@@ -325,8 +329,12 @@ TYPE
       PROCEDURE Put (P: PObject);
       PROCEDURE StrWrite (P: PChar);
       PROCEDURE WriteStr (P: PString);
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
       PROCEDURE WriteRawByteString (Const S: RawByteString);
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
       PROCEDURE WriteUnicodeString (Const S: UnicodeString);
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
       PROCEDURE Seek (Pos: LongInt);                                 Virtual;
       PROCEDURE Error (Code, Info: Integer);                         Virtual;
       PROCEDURE Read (Var Buf; Count: LongInt);                      Virtual;
@@ -492,6 +500,7 @@ TYPE
    END;
    PStringCollection = ^TStringCollection;
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 {---------------------------------------------------------------------------}
 {    TRawByteStringCollection OBJECT - RAW BYTE STRING COLLECTION OBJECT    }
 {---------------------------------------------------------------------------}
@@ -504,7 +513,9 @@ TYPE
       PROCEDURE AtInsert (Index: Sw_Integer; const Item: RawByteString);
    END;
    PRawByteStringCollection = ^TRawByteStringCollection;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
 {---------------------------------------------------------------------------}
 {    TUnicodeStringCollection OBJECT - RAW BYTE STRING COLLECTION OBJECT    }
 {---------------------------------------------------------------------------}
@@ -517,6 +528,7 @@ TYPE
       PROCEDURE AtInsert (Index: Sw_Integer; const Item: UnicodeString);
    END;
    PUnicodeStringCollection = ^TUnicodeStringCollection;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
 
 {---------------------------------------------------------------------------}
 {             TStrCollection OBJECT - STRING COLLECTION OBJECT              }
@@ -1255,21 +1267,32 @@ BEGIN
    End Else ReadStr := Nil;
 END;
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 {--TStream------------------------------------------------------------------}
 {  ReadRawByteString                                                        }
 {---------------------------------------------------------------------------}
 FUNCTION TStream.ReadRawByteString: RawByteString;
-VAR CP: TSystemCodePage; L: LongInt;
+VAR
+{$ifdef FPC_HAS_CPSTRING}
+  CP: TSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
+  L: LongInt;
 BEGIN
+{$ifdef FPC_HAS_CPSTRING}
   Read(CP, SizeOf(CP));
+{$endif FPC_HAS_CPSTRING}
   Read(L, SizeOf(L));
    If (L <= 0) Then ReadRawByteString := '' Else Begin
      SetLength(ReadRawByteString, L);
+{$ifdef FPC_HAS_CPSTRING}
      SetCodePage(ReadRawByteString, CP, False);
+{$endif FPC_HAS_CPSTRING}
      Read(ReadRawByteString[1], L);
    End;
 END;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
 {--TStream------------------------------------------------------------------}
 {  ReadUnicodeString                                                        }
 {---------------------------------------------------------------------------}
@@ -1283,6 +1306,7 @@ BEGIN
      ReadUnicodeString := S;
    End;
 END;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
 
 {--TStream------------------------------------------------------------------}
 {  GetPos -> Platforms DOS/DPMI/WIN/OS2 - Checked 10May96 LdB               }
@@ -1400,20 +1424,29 @@ BEGIN
      Else Write(Empty, 1);                            { Write empty string }
 END;
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 {--TStream------------------------------------------------------------------}
 {  WriteRawByteString                                                       }
 {---------------------------------------------------------------------------}
 PROCEDURE TStream.WriteRawByteString (Const S: RawByteString);
-VAR CP: TSystemCodePage; L: LongInt;
+VAR
+{$ifdef FPC_HAS_CPSTRING}
+  CP: TSystemCodePage;
+{$endif FPC_HAS_CPSTRING}
+  L: LongInt;
 BEGIN
+{$ifdef FPC_HAS_CPSTRING}
    CP := StringCodePage(S);
-   L := Length(S);
    Write(CP, SizeOf(CP));
+{$endif FPC_HAS_CPSTRING}
+   L := Length(S);
    Write(L, SizeOf(L));
    if L > 0 then
      Write((@S[1])^, L);
 END;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
 {--TStream------------------------------------------------------------------}
 {  WriteUnicodeString                                                       }
 {---------------------------------------------------------------------------}
@@ -1426,6 +1459,7 @@ BEGIN
    if L > 0 then
      Write(SU[1], L);
 END;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
 
 {--TStream------------------------------------------------------------------}
 {  Open -> Platforms DOS/DPMI/WIN/OS2 - Checked 10May96 LdB                 }
@@ -2578,6 +2612,7 @@ BEGIN
    S.WriteStr(Item);                                  { Write string }
 END;
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                  TRawByteStringCollection OBJECT METHODS                  }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -2641,7 +2676,9 @@ BEGIN
    RawByteString(TmpRef) := Item;
    TCollection.AtInsert(Index, Pointer(Item));
 END;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                  TUnicodeStringCollection OBJECT METHODS                  }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -2705,6 +2742,7 @@ BEGIN
    UnicodeString(TmpRef) := Item;
    TCollection.AtInsert(Index, Pointer(Item));
 END;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                       TStrCollection OBJECT METHODS                       }
