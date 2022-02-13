@@ -334,15 +334,11 @@ begin
             str(my,sy);
             win_info:='Spinning... X:'+sx+' Y:'+sy;
             wind_set(win_h, WF_INFO, hi(ptruint(@win_info)), lo(ptruint(@win_info)), 0, 0);
-
+            wind_get(win_h, WF_WORKXYWH, @msg_buf[4], @msg_buf[5], @msg_buf[6], @msg_buf[7]);
             msg_buf[0]:=WM_REDRAW;
             msg_buf[1]:=appl_h;
             msg_buf[2]:=0;
             msg_buf[3]:=win_h;
-            msg_buf[4]:=0;
-            msg_buf[5]:=0;
-            msg_buf[6]:=0;
-            msg_buf[7]:=0;
             appl_write(appl_h, sizeof(msg_buf), @msg_buf);
           end;
       end;
