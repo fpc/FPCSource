@@ -8,7 +8,7 @@ loaders=prt0s prt0m prt0c prt0l prt0h
 units=system uuchar objpas strings iso7185 extpas dos \
       wintypes winprocs win31 ports dynlibs sortbase \
       sysconst rtlconst sysutils math types typinfo fgl \
-      classes charset cpu
+      classes charset cpu getopts
 
 
 [require]
@@ -189,6 +189,10 @@ sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) system$(PPUEXT)
 #
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp sysutils$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(PROCINC)/cpu.pp
+	$(EXECPPAS)
+
+getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
+        $(COMPILER) $(INC)/getopts.pp $(REDIR)
 	$(EXECPPAS)
 
 charset$(PPUEXT) : $(INC)/charset.pp objpas$(PPUEXT) system$(PPUEXT)
