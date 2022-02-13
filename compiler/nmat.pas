@@ -511,7 +511,7 @@ implementation
 
         { when currency is used set the result of the
           parameters to s64bit, so they are not converted }
-        if is_currency(resultdef) then
+        if nf_is_currency in flags then
           begin
             left.resultdef:=s64inttype;
             right.resultdef:=s64inttype;
