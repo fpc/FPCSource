@@ -8,7 +8,7 @@ loaders=prt0s prt0m prt0c prt0l prt0h
 units=system uuchar objpas strings iso7185 extpas dos \
       wintypes winprocs win31 ports dynlibs sortbase \
       sysconst rtlconst sysutils math types typinfo fgl \
-      classes
+      classes charset
 
 
 [require]
@@ -183,3 +183,10 @@ rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp $(OBJPASDIR)/rtlconst.inc objpas$(P
 
 sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $<
+
+#
+# Other system-independent RTL Units
+#
+charset$(PPUEXT) : $(INC)/charset.pp objpas$(PPUEXT) system$(PPUEXT)
+	$(COMPILER) $(INC)/charset.pp
+	$(EXECPPAS)
