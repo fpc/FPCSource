@@ -2571,7 +2571,7 @@ END;
 {                  TUnicodeStringCollection OBJECT METHODS                  }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 
-{--TRawByteStringCollection-------------------------------------------------}
+{--TUnicodeStringCollection-------------------------------------------------}
 {  GetItem -> Platforms DOS/DPMI/WIN/OS2 - Checked 22May96 LdB              }
 {---------------------------------------------------------------------------}
 FUNCTION TUnicodeStringCollection.GetItem (Var S: TStream): Pointer;
@@ -2580,7 +2580,7 @@ BEGIN
    UnicodeString(GetItem) := S.ReadUnicodeString;            { Get new item }
 END;
 
-{--TRawByteStringCollection-------------------------------------------------}
+{--TUnicodeStringCollection-------------------------------------------------}
 {  Compare -> Platforms DOS/DPMI/WIN/OS2 - Checked 21Aug97 LdB              }
 {---------------------------------------------------------------------------}
 FUNCTION TUnicodeStringCollection.Compare (Key1, Key2: Pointer): Sw_Integer;
@@ -2604,7 +2604,7 @@ BEGIN
      Else Compare := 1;                               { String1 > String2 }
 END;
 
-{--TRawByteStringCollection-------------------------------------------------}
+{--TUnicodeStringCollection-------------------------------------------------}
 {  FreeItem -> Platforms DOS/DPMI/WIN/OS2 - Checked 22May96 LdB             }
 {---------------------------------------------------------------------------}
 PROCEDURE TUnicodeStringCollection.FreeItem (Item: Pointer);
@@ -2612,7 +2612,7 @@ BEGIN
    UnicodeString(Item):='';                                  { Dispose item }
 END;
 
-{--TRawByteStringCollection-------------------------------------------------}
+{--TUnicodeStringCollection-------------------------------------------------}
 {  PutItem -> Platforms DOS/DPMI/WIN/OS2 - Checked 22May96 LdB              }
 {---------------------------------------------------------------------------}
 PROCEDURE TUnicodeStringCollection.PutItem (Var S: TStream; Item: Pointer);
@@ -2620,7 +2620,7 @@ BEGIN
    S.WriteUnicodeString(UnicodeString(Item));                { Write string }
 END;
 
-{--TRawByteStringCollection-------------------------------------------------}
+{--TUnicodeStringCollection-------------------------------------------------}
 {  AtInsert                                                                 }
 {---------------------------------------------------------------------------}
 PROCEDURE TUnicodeStringCollection.AtInsert (Index: Sw_Integer; const Item: UnicodeString);
