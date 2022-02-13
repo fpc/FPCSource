@@ -961,6 +961,8 @@ begin
   _contrl[6]:=handle;
 
   vdi;
+
+  vs_mute:=_intout[0];
 end;
 
 procedure vt_resolution(handle, xres, yres: smallint;
@@ -1941,8 +1943,6 @@ end;
 
 function vsm_choice(handle: smallint; out choice: smallint): smallint;
 begin
-  _intin[0]:=choice;
-
   _contrl[0]:=30;
   _contrl[1]:=0;
   _contrl[3]:=0;
@@ -2305,6 +2305,8 @@ begin
   char_height:=_ptsout[1];
   cell_width:=_ptsout[2];
   cell_height:=_ptsout[3];
+
+  vst_point:=_intout[0];
 end;
 
 procedure vsl_ends(handle, beg_style, end_style: smallint);
@@ -2930,8 +2932,7 @@ begin
   advy:=PLongint(@_intout[4])^;
   xoff:=PLongint(@_intout[6])^;
   yoff:=PLongint(@_intout[8])^;
-  if (bitmap <> nil) then
-    bitmap:=PPointer(@_intout[10])^;
+  bitmap:=PPointer(@_intout[10])^;
 end;
 
 

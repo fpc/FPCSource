@@ -432,6 +432,7 @@ end;
 function menu_text(me_ttree: AESTreePtr; me_titem: smallint; me_ttext: String): smallint;
 var s: aesstr;
 begin
+  s:=me_ttext;
   menu_text:=aes.menu_text(@me_ttree[0], me_titem, @s);
 end;
 
@@ -442,7 +443,7 @@ end;
 
 function menu_istart(me_flag: smallint; me_tree: AESTreePtr; me_imenu, me_item: smallint): smallint; overload;
 begin
-  menu_istart:=aes.menu_istart(me_flag, @me_tree[0], me_item, me_item);
+  menu_istart:=aes.menu_istart(me_flag, @me_tree[0], me_imenu, me_item);
 end;
 
 

@@ -508,9 +508,9 @@ function appl_search(ap_smode: smallint; out ap_sname: String; out ap_stype, ap_
 var s: aesstr;
 begin
   _intin[0]:=ap_smode;
-  s:=ap_sname;
   _addrin[0]:=@s[0];
   appl_search:=crys_if(18);
+  ap_sname:=PChar(@s[0]);
   ap_stype:=_intout[1];
   ap_sid:=_intout[2];
 end;
