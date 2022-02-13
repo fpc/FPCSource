@@ -441,8 +441,13 @@ function TInternalLinkerZXSpectrum.postprocessexecutable(const fn: string): bool
 
     if Found then
       begin
+        Message1(exec_t_using_util,FoundBin);
         exitcode:=RequotedExecuteProcess(foundbin,' '+fn);
         result:=exitcode<>0;
+      end
+    else
+      begin
+        Message1(exec_e_util_not_found,utilexe);
       end;
   end;
 
