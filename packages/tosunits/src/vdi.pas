@@ -20,7 +20,7 @@ unit vdi;
 
 interface
 
-uses gemcommon;
+uses gemcmmn;
 
 { The API description of this file is based on the information available
   online at: https://freemint.github.io/tos.hyp/en/index.html }
@@ -28,9 +28,9 @@ uses gemcommon;
 {$I vditypes.inc}
 
 type
-   ARRAY_8 = gemcommon.ARRAY_8;
-   PMFORM = gemcommon.PMFORM;
-   TMFORM = gemcommon.TMFORM;
+   ARRAY_8 = gemcmmn.ARRAY_8;
+   PMFORM = gemcmmn.PMFORM;
+   TMFORM = gemcmmn.TMFORM;
 
 procedure vdi;
 procedure vdi(pb: PVDIPB);

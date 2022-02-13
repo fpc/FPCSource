@@ -21,7 +21,7 @@
 {$MODESWITCH OUT+}
 {$PACKRECORDS 2}
 
-unit gemcommon;
+unit gemcmmn;
 
 interface
 

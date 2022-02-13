@@ -25,7 +25,7 @@ unit gem;
 
 interface
 
-uses aes, vdi, gemcommon;
+uses aes, vdi, gemcmmn;
 
 const
         LWhite          = DWHITE;
