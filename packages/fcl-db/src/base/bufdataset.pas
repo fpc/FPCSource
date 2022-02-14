@@ -1645,6 +1645,7 @@ begin
                  ftBCD,
                  ftFmtBCD   : F1.AsBCD:=F2.AsBCD;
                  ftExtended : F1.AsExtended:=F2.AsExtended;
+                 ftSingle   : F1.AsSingle:=F2.AsSingle;
             else
               if (F1.DataType in UseStreams) then
                 begin
@@ -2539,8 +2540,9 @@ begin
       ftOraClob,
       ftWideMemo : result := sizeof(TBufBlobField);
     ftExtended   : Result := sizeof(Extended);
+    ftSingle     : Result := sizeof(Single);
   else
-    DatabaseErrorFmt(SUnsupportedFieldType,[Fieldtypenames[FieldDef.DataType]]);
+    DatabaseErrorFmt(SUnsupportedFieldType,[FieldTypeNames[FieldDef.DataType]]);
   end;
 {$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
   result:=Align(result,4);

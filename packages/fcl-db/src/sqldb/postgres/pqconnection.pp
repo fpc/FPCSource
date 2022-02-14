@@ -877,7 +877,8 @@ const TypeStrings : array[TFieldType] of string =
       'Unknown',   // ftLongWord
       'Unknown',   // ftShortint
       'Unknown',   // ftByte
-      'Unknown'    // ftExtended
+      'Unknown',   // ftExtended
+      'real'       // ftSingle
     );
 
 

@@ -392,9 +392,11 @@ var
   PVal, Buf, PStrLenOrInd: pointer;
   I, Size: integer;
   IntVal: clong;
+  UIntVal: culong;
   LargeVal: clonglong;
   StrVal: ansistring;
   WideStrVal: widestring;
+  SingleVal: cfloat;
   FloatVal: cdouble;
   DateVal: SQL_DATE_STRUCT;
   TimeVal: SQL_TIME_STRUCT;
@@ -428,7 +430,7 @@ begin
     StrLenOrInd:=0;
 
     case AParams[ParamIndex].DataType of
-      ftInteger, ftSmallInt, ftWord, ftAutoInc:
+      ftInteger, ftSmallInt, ftWord, ftAutoInc, ftShortInt, ftByte:
         begin
           IntVal:=AParams[ParamIndex].AsInteger;
           PVal:=@IntVal;
@@ -436,6 +438,15 @@ begin
           CType:=SQL_C_LONG;
           SqlType:=SQL_INTEGER;
           ColumnSize:=10;
+        end;
+      ftLongWord:
+        begin
+          UIntVal:=AParams[ParamIndex].AsLongWord;
+          PVal:=@UIntVal;
+          Size:=SizeOf(UIntVal);
+          CType:=SQL_C_ULONG;
+          SqlType:=SQL_INTEGER;
+          ColumnSize:=9;
         end;
       ftLargeInt:
         begin
@@ -485,6 +496,15 @@ begin
             ftMemo, ftWideMemo: SqlType:=SQL_WLONGVARCHAR;
             else        SqlType:=SQL_WVARCHAR;
           end;
+        end;
+      ftSingle:
+        begin
+          SingleVal:=AParams[ParamIndex].AsSingle;
+          PVal:=@SingleVal;
+          Size:=SizeOf(SingleVal);
+          CType:=SQL_C_FLOAT;
+          SqlType:=SQL_REAL;
+          ColumnSize:=7;
         end;
       ftFloat:
         begin

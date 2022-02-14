@@ -92,7 +92,7 @@ const
       '',
       'string',             // ftFixedChar
       'string.uni',         // ftWideString
-      'i8',
+      'i8',                 // ftLargeint
       '',
       '',
       '',
@@ -112,7 +112,8 @@ const
       'ui4',                // ftLongWord
       'i1',                 // ftShortint
       'ui1',                // ftByte
-      ''                    // ftExtended
+      '',                   // ftExtended
+      'r4'                  // ftSingle
     );
 
 resourcestring

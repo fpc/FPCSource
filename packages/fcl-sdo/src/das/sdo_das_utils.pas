@@ -59,14 +59,17 @@ const
 {$IFEND }
 {$IF Declared(ftLongWord)}
     , StringType, StringType, StringType, StringType 
-    //ftLongWord, ftShortint, ftByte, ftExtended, 
-    {$IFNDEF FPC}
-    , StringType, StringType, StringType,
-    // ftConnection, ftParams, ftStream,
-    StringType, StringType, StringType
-    //ftTimeStampOffset, ftObject, ftSingle
+    // ftLongWord, ftShortint, ftByte, ftExtended 
+    {$IFDEF FPC}
+    {$IF Declared(ftSingle)}
+    , StringType
+    {$IFEND}
+    // ftSingle
+    {$ELSE}
+    , StringType, StringType, StringType, StringType, StringType, StringType
+    // ftConnection, ftParams, ftStream, ftTimeStampOffset, ftObject, ftSingle
     {$ENDIF}
-{$IFEND }
+{$IFEND}
   );
 
 type

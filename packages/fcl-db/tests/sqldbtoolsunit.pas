@@ -133,7 +133,8 @@ const
       {ftLongWord} '',
       {ftShortint} '',
       {ftByte} '',
-      {ftExtended} ''
+      {ftExtended} '',
+      {ftSingle} ''
     );
 
   // names as returned by ODBC SQLGetInfo(..., SQL_DBMS_NAME, ...) and GetConnectionInfo(citServerType)

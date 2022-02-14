@@ -2401,12 +2401,6 @@ begin
   FValidChars := [DefaultFormatSettings.DecimalSeparator, '+', '-', '0'..'9', 'E', 'e'];
 end;
 
-procedure TExtendedField.SetCurrency(const AValue: Boolean);
-begin
-  if FCurrency=AValue then Exit;
-  FCurrency:=AValue;
-end;
-
 procedure TExtendedField.SetPrecision(const AValue: Longint);
 begin
   if (AValue = -1) or (AValue > 1) then
@@ -2425,11 +2419,8 @@ begin
 end;
 
 function TExtendedField.GetAsExtended: Extended;
-var e: Extended;
 begin
-  if GetData(@e) then
-    Result := e
-  else
+  if not GetData(@Result) then
     Result := 0.0;
 end;
 
@@ -2560,6 +2551,173 @@ begin
 end;
 
 function TExtendedField.CheckRange(AValue: Extended) : Boolean;
+begin
+  if (FMinValue<>0) or (FMaxValue<>0) then
+    Result := (AValue>=FMinValue) and (AValue<=FMaxValue)
+  else
+    Result := True;
+end;
+
+{ TSingleField }
+
+constructor TSingleField.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  SetDataType(ftSingle);
+  FPrecision:=7;
+  FValidChars := [DefaultFormatSettings.DecimalSeparator, '+', '-', '0'..'9', 'E', 'e'];
+end;
+
+procedure TSingleField.SetPrecision(const AValue: Longint);
+begin
+  if (AValue = -1) or (AValue > 1) then
+    FPrecision := AValue
+  else
+    FPrecision := 2;
+end;
+
+function TSingleField.GetAsBCD: TBCD;
+var f: Single;
+begin
+  if GetData(@f) then
+    Result := DoubleToBCD(f)
+  else
+    Result := NullBCD;
+end;
+
+function TSingleField.GetAsSingle: Single;
+begin
+  if not GetData(@Result) then
+    Result := 0.0;
+end;
+
+function TSingleField.GetAsFloat: Double;
+begin
+  Result := GetAsSingle;
+end;
+
+function TSingleField.GetAsLargeInt: LargeInt;
+begin
+  Result := Round(GetAsSingle);
+end;
+
+function TSingleField.GetAsLongWord: LongWord;
+begin
+  Result := Round(GetAsSingle);
+end;
+
+function TSingleField.GetAsInteger: Longint;
+begin
+  Result := Round(GetAsSingle);
+end;
+
+function TSingleField.GetAsString: string;
+var f: Single;
+begin
+  if GetData(@f) then
+    Result := FloatToStr(f)
+  else
+    Result := '';
+end;
+
+function TSingleField.GetAsVariant: Variant;
+var f: Single;
+begin
+  if GetData(@f) then
+    Result := f
+  else
+    Result := Null;
+end;
+
+function TSingleField.GetDataSize: Integer;
+begin
+  Result:=SizeOf(Single);
+end;
+
+procedure TSingleField.GetText(var AText: string; ADisplayText: Boolean);
+var
+  Fmt: string;
+  f: Single;
+  Digits: integer;
+  ff: TFloatFormat;
+begin
+  AText:='';
+  if not GetData(@f) then Exit;
+  if ADisplayText or (FEditFormat = '') then
+    Fmt := FDisplayFormat
+  else
+    Fmt := FEditFormat;
+
+  Digits := 0;
+  if not FCurrency then
+    ff := ffGeneral
+  else
+    begin
+    Digits := DefaultFormatSettings.CurrencyDecimals;
+    if ADisplayText then
+      ff := ffCurrency
+    else
+      ff := ffFixed;
+    end;
+
+  if Fmt<>'' then
+    AText := FormatFloat(Fmt, f)
+  else
+    AText := FloatToStrF(f, ff, FPrecision, Digits);
+end;
+
+procedure TSingleField.SetAsBCD(const AValue: TBCD);
+begin
+  SetAsSingle(BCDToDouble(AValue));
+end;
+
+procedure TSingleField.SetAsSingle(AValue: Single);
+begin
+  if CheckRange(AValue) then
+    SetData(@AValue)
+  else
+    RangeError(AValue,FMinValue,FMaxValue);
+end;
+
+procedure TSingleField.SetAsFloat(AValue: Double);
+begin
+  SetAsSingle(AValue);
+end;
+
+procedure TSingleField.SetAsLargeInt(AValue: LargeInt);
+begin
+  SetAsSingle(AValue);
+end;
+
+procedure TSingleField.SetAsLongWord(AValue: LongWord);
+begin
+  SetAsSingle(AValue);
+end;
+
+procedure TSingleField.SetAsInteger(AValue: Longint);
+begin
+  SetAsSingle(AValue);
+end;
+
+procedure TSingleField.SetAsString(const AValue: string);
+var f: Single;
+begin
+  if AValue='' then
+    Clear
+  else
+    begin
+    if not TryStrToFloat(AValue, f) then
+      DatabaseErrorFmt(SNotAFloat, [AValue]);
+    SetAsSingle(f);
+    end;
+end;
+
+procedure TSingleField.SetVarValue(const AValue: Variant);
+begin
+  SetAsSingle(AValue);
+end;
+
+function TSingleField.CheckRange(AValue: Single) : Boolean;
 begin
   if (FMinValue<>0) or (FMaxValue<>0) then
     Result := (AValue>=FMinValue) and (AValue<=FMaxValue)

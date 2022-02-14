@@ -824,7 +824,7 @@ end;
 
 Procedure TParam.SetAsSingle(AValue: Single);
 begin
-  FDataType:=ftFloat; // we doesn't have ftSingle ATM
+  FDataType:=ftSingle;
   Value:=AValue;
 end;
 
@@ -883,14 +883,14 @@ begin
   if FDataType = ftUnknown then
     case VarType(Value) of
       varBoolean  : FDataType:=ftBoolean;
-      varSmallint,
-      varShortInt,
-      varByte     : FDataType:=ftSmallInt;
+      varShortInt : FDataType:=ftShortInt;
+      varByte     : FDataType:=ftByte;
+      varSmallint : FDataType:=ftSmallInt;
       varWord,
       varInteger  : FDataType:=ftInteger;
       varCurrency : FDataType:=ftCurrency;
       varLongWord : FDataType:=ftLongWord;
-      varSingle,
+      varSingle   : FDataType:=ftSingle;
       varDouble   : FDataType:=ftFloat;
       varDate     : FDataType:=ftDateTime;
       varString,
@@ -1022,6 +1022,8 @@ begin
       ftFmtBCD   : Field.AsBCD:=AsFMTBCD;
       ftFixedWideChar,
       ftWideString: Field.AsWideString:=AsWideString;
+      ftExtended : Field.AsExtended:=Value;
+      ftSingle   : Field.AsSingle:=AsSingle;
     else
       If not (DataType in [ftCursor, ftArray, ftDataset,ftReference]) then
         DatabaseErrorFmt(SBadParamFieldType, [Name], DataSet);
@@ -1066,6 +1068,8 @@ begin
       ftFmtBCD   : AsFMTBCD:=Field.AsBCD;
       ftFixedWideChar,
       ftWideString: AsWideString:=Field.AsWideString;
+      ftExtended : Value:=Field.AsExtended;
+      ftSingle   : AsSingle:=Field.AsSingle;
     else
       If not (DataType in [ftCursor, ftArray, ftDataset,ftReference]) then
         DatabaseErrorFmt(SBadParamFieldType, [Name], DataSet);
@@ -1166,6 +1170,9 @@ begin
         end;
       end;
     ftFmtBCD   : PBCD(Buffer)^:=AsFMTBCD;
+    ftShortInt : PShortInt(Buffer)^:=AsShortInt;
+    ftByte     : PByte(Buffer)^:=AsByte;
+    ftSingle   : PSingle(Buffer)^:=AsSingle;
   else
     If not (DataType in [ftCursor, ftArray, ftDataset,ftReference]) then
       DatabaseErrorFmt(SBadParamFieldType, [Name], DataSet);
@@ -1207,6 +1214,9 @@ begin
     ftReference,
     ftCursor   : Result:=0;
     ftFmtBCD   : Result:=SizeOf(TBCD);
+    ftShortInt : Result:=SizeOf(ShortInt);
+    ftByte     : Result:=SizeOf(Byte);
+    ftSingle   : Result:=SizeOf(Single);
   else
     DatabaseErrorFmt(SBadParamFieldType,[Name],DataSet);
   end;
@@ -1290,6 +1300,9 @@ begin
     ftOraBlob,
     ftOraClob  : SetBlobData(Buffer, StrLen(PChar(Buffer)));
     ftFmtBCD   : AsFMTBCD:=PBCD(Buffer)^;
+    ftShortInt : AsShortInt:=PShortInt(Buffer)^;
+    ftByte     : AsByte:=PByte(Buffer)^;
+    ftSingle   : AsSingle:=PSingle(Buffer)^;
   else
     DatabaseErrorFmt(SBadParamFieldType,[Name],DataSet);
   end;
