@@ -440,11 +440,29 @@ begin
     list.concat(taicpu.op_reg_reg_const(A_ADDIU, reg, NR_R0, a))
   else if (a>=0) and (a <= 65535) then
     list.concat(taicpu.op_reg_reg_const(A_ORI, reg, NR_R0, a))
+{$ifdef mips32}
   else
+{$else}
+  else if (a>=0) and (a <= high(dword)) then
+{$endif}
     begin
       list.concat(taicpu.op_reg_const(A_LUI, reg, aint(a) shr 16));
       if (a and aint($FFFF))<>0 then
         list.concat(taicpu.op_reg_reg_const(A_ORI,reg,reg,a and aint($FFFF)));
+{$ifdef mips64}
+    end
+  else
+    begin
+      list.concat(taicpu.op_reg_const(A_LUI, reg, aint(a) shr 48));
+      if ((a shr 32) and aint($FFFF))<>0 then
+        list.concat(taicpu.op_reg_reg_const(A_ORI,reg,reg,(a shr 32) and aint($FFFF)));
+      list.concat(taicpu.op_reg_const(A_SLL, reg, 16));
+      if ((a shr 16) and aint($FFFF))<>0 then
+        list.concat(taicpu.op_reg_reg_const(A_ORI,reg,reg,(a shr 16) and aint($FFFF)));
+      list.concat(taicpu.op_reg_const(A_SLL, reg, 16));
+      if (a and aint($FFFF))<>0 then
+        list.concat(taicpu.op_reg_reg_const(A_ORI,reg,reg,a  and aint($FFFF)));
+{$endif mips64}
     end;
 end;
 
