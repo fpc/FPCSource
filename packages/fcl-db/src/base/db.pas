@@ -111,7 +111,8 @@ type
     ftWideString, ftLargeint, ftADT, ftArray, ftReference,
     ftDataSet, ftOraBlob, ftOraClob, ftVariant, ftInterface,
     ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd, ftFixedWideChar, ftWideMemo,
-    ftOraTimeStamp, ftOraInterval, ftLongWord, ftShortint, ftByte, ftExtended);
+    ftOraTimeStamp, ftOraInterval, ftLongWord, ftShortint, ftByte, ftExtended,
+    ftSingle);
 
 { Part of DBCommon, but temporarily defined here (bug 8206) }
 
@@ -794,7 +795,6 @@ type
     FMaxValue: Extended;
     FMinValue: Extended;
     FPrecision: Longint;
-    procedure SetCurrency(const AValue: Boolean);
     procedure SetPrecision(const AValue: Longint);
   protected
     function GetAsBCD: TBCD; override;
@@ -820,10 +820,49 @@ type
     function CheckRange(AValue: Extended) : Boolean;
     property Value: Extended read GetAsExtended write SetAsExtended;
   published
-    property Currency: Boolean read FCurrency write SetCurrency default False;
+    property Currency: Boolean read FCurrency write FCurrency default False;
     property MaxValue: Extended read FMaxValue write FMaxValue;
     property MinValue: Extended read FMinValue write FMinValue;
     property Precision: Longint read FPrecision write SetPrecision default 15;
+  end;
+
+{ TSingleField }
+
+  TSingleField = class(TNumericField)
+  private
+    FCurrency: Boolean;
+    FMaxValue: Single;
+    FMinValue: Single;
+    FPrecision: Longint;
+    procedure SetPrecision(const AValue: Longint);
+  protected
+    function GetAsBCD: TBCD; override;
+    function GetAsSingle: Single; override;
+    function GetAsFloat: Double; override;
+    function GetAsLargeInt: LargeInt; override;
+    function GetAsLongWord: LongWord; override;
+    function GetAsInteger: Longint; override;
+    function GetAsString: string; override;
+    function GetAsVariant: variant; override;
+    function GetDataSize: Integer; override;
+    procedure GetText(var AText: string; ADisplayText: Boolean); override;
+    procedure SetAsBCD(const AValue: TBCD); override;
+    procedure SetAsSingle(AValue: Single); override;
+    procedure SetAsFloat(AValue: Double); override;
+    procedure SetAsLargeInt(AValue: LargeInt); override;
+    procedure SetAsLongWord(AValue: LongWord); override;
+    procedure SetAsInteger(AValue: Longint); override;
+    procedure SetAsString(const AValue: string); override;
+    procedure SetVarValue(const AValue: Variant); override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    function CheckRange(AValue: Single) : Boolean;
+    property Value: Single read GetAsSingle write SetAsSingle;
+  published
+    property Currency: Boolean read FCurrency write FCurrency default False;
+    property MaxValue: Single read FMaxValue write FMaxValue;
+    property MinValue: Single read FMinValue write FMinValue;
+    property Precision: Longint read FPrecision write SetPrecision default 7;
   end;
 
 { TBooleanField }
@@ -2318,12 +2357,13 @@ const
       {ftLongWord} varLongWord,
       {ftShortint} varShortint,
       {ftByte} varByte,
-      {ftExtended} varDouble
+      {ftExtended} varDouble,
+      {ftSingle} varSingle
     );
 
 
 Const
-  Fieldtypenames : Array [TFieldType] of String[15] =
+  FieldTypeNames : Array [TFieldType] of String[15] =
     (
       {ftUnknown} 'Unknown',
       {ftString} 'String',
@@ -2370,7 +2410,8 @@ Const
       {ftLongWord} 'LongWord',
       {ftShortint} 'Shortint',
       {ftByte} 'Byte',
-      {ftExtended} 'Extended'
+      {ftExtended} 'Extended',
+      {ftSingle} 'Single'
     );
 
 
@@ -2422,7 +2463,8 @@ const
       { ftLongWord} TLongWordField,
       { ftShortint} TShortintField,
       { ftByte} TByteField,
-      { ftExtended} TExtendedField
+      { ftExtended} TExtendedField,
+      { ftSingle} TSingleField
     );
 
   dsEditModes = [dsEdit, dsInsert, dsSetKey];

@@ -213,13 +213,17 @@ begin
       case P.DataType of
         ftInteger,
         ftAutoInc,
-        ftSmallint: checkerror(sqlite3_bind_int(fstatement,I,P.AsInteger));
-        ftWord:     checkerror(sqlite3_bind_int(fstatement,I,P.AsWord));
-        ftBoolean:  checkerror(sqlite3_bind_int(fstatement,I,ord(P.AsBoolean)));
-        ftLargeint: checkerror(sqlite3_bind_int64(fstatement,I,P.AsLargeint));
+        ftSmallint,
+        ftWord,
+        ftShortInt,
+        ftByte    : checkerror(sqlite3_bind_int(fstatement,I,P.AsInteger));
+        ftBoolean : checkerror(sqlite3_bind_int(fstatement,I,ord(P.AsBoolean)));
+        ftLargeint,
+        ftLongWord: checkerror(sqlite3_bind_int64(fstatement,I,P.AsLargeint));
         ftBcd,
         ftFloat,
-        ftCurrency: checkerror(sqlite3_bind_double(fstatement, I, P.AsFloat));
+        ftCurrency,
+        ftSingle  : checkerror(sqlite3_bind_double(fstatement, I, P.AsFloat));
         ftDateTime,
         ftDate,
         ftTime:     checkerror(sqlite3_bind_double(fstatement, I, P.AsFloat - JulianEpoch));

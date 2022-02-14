@@ -1227,7 +1227,8 @@ Const
      rftString, rftLargeInt, rftUnknown, rftUnknown, rftUnknown,              // ftWideString, ftLargeint, ftADT, ftArray, ftReference,
      rftUnknown, rftBlob, rftBlob, rftUnknown, rftUnknown,                    // ftDataSet, ftOraBlob, ftOraClob, ftVariant, ftInterface,
      rftUnknown, rftString, rftDateTime, rftFloat, rftString, rftString,      // ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd, ftFixedWideChar, ftWideMemo
-     rftDateTime, rftDateTime, rftInteger, rftInteger, rftInteger, rftFloat   // ftOraTimeStamp, ftOraInterval, ftLongWord, ftShortint, ftByte, ftExtended
+     rftDateTime, rftDateTime, rftInteger, rftInteger, rftInteger, rftFloat,  // ftOraTimeStamp, ftOraInterval, ftLongWord, ftShortint, ftByte, ftExtended
+     rftFloat                                                                 // Single
      );
 
 begin

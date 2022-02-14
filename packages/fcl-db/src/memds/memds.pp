@@ -490,6 +490,7 @@ begin
   ftShortInt: Result := SizeOf(ShortInt);
   ftByte:     Result := SizeOf(Byte);
   ftExtended: Result := SizeOf(Extended);
+  ftSingle  : Result := SizeOf(Single);
  else
   RaiseError(SErrFieldTypeNotSupported,[FD.Name]);
  end;
@@ -1184,6 +1185,7 @@ begin
                   ftDateTime : F1.AsDateTime:=F2.AsDateTime;
                   ftLongWord : F1.AsLongWord:=F2.AsLongWord;
                   ftExtended : F1.AsExtended:=F2.AsExtended;
+                  ftSingle   : F1.AsSingle:=F2.AsSingle;
                   else         F1.AsString:=F2.AsString;
                 end;
               end;

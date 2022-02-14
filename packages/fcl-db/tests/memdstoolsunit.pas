@@ -109,6 +109,7 @@ begin
     FieldDefs.Add('FSHORTINT',ftShortInt);
     FieldDefs.Add('FBYTE',ftByte);
     FieldDefs.Add('FEXTENDED',ftExtended);
+    FieldDefs.Add('FSINGLE',ftSingle);
     CreateTable;
     Open;
     for i := 0 to testValuesCount-1 do
@@ -138,6 +139,7 @@ begin
       FieldByName('FSHORTINT').AsInteger := testShortIntValues[i];
       FieldByName('FBYTE').AsInteger := testByteValues[i];
       FieldByName('FEXTENDED').AsExtended := testFloatValues[i];
+      FieldByName('FSINGLE').AsSingle := testSingleValues[i];
       Post;
       end;
     Close;

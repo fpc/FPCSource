@@ -92,13 +92,13 @@ const
   // Alphabetically sorted for quick review:
   DBaseVIIUnsupported=[ftADT,ftArray,ftBCD,ftBytes,ftCurrency,ftCursor,ftDataSet,
     ftFixedWideChar,
-    ftFMTBcd,ftFmtMemo,ftGraphic,ftGuid,ftIDispatch,ftInterface,ftOraBlob,
-    ftOraClob,ftParadoxOle,ftReference,ftTime,ftTimeStamp,ftTypedBinary,
+    ftFMTBcd,ftFmtMemo,ftGraphic,ftGuid,ftIDispatch,ftInterface,ftLongWord,
+    ftOraBlob,ftOraClob,ftParadoxOle,ftReference,ftTime,ftTimeStamp,ftTypedBinary,
     ftUnknown,ftVarBytes,ftVariant,ftWidememo,ftWideString];
   FoxProUnsupported=  [ftADT,ftArray,      ftBytes,           ftCursor,ftDataSet,
     ftFixedWideChar,
-    ftFMTBcd,ftFmtMemo,ftGraphic,ftGuid,ftIDispatch,ftInterface,ftOraBlob,
-    ftOraClob,ftParadoxOle,ftReference,ftTime,ftTimeStamp,ftTypedBinary,
+    ftFMTBcd,ftFmtMemo,ftGraphic,ftGuid,ftIDispatch,ftInterface,ftLongWord,
+    ftOraBlob,ftOraClob,ftParadoxOle,ftReference,ftTime,ftTimeStamp,ftTypedBinary,
     ftUnknown,ftVarBytes,ftVariant,ftWideMemo,ftWideString];
 begin
   result:=true;

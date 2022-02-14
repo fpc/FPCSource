@@ -1925,6 +1925,7 @@ begin
     ftBcd      : Result := CurrToStr(Param.AsCurrency, FSQLFormatSettings);
     ftFloat    : Result := FloatToStr(Param.AsFloat, FSQLFormatSettings);
     ftFMTBcd   : Result := StringReplace(Param.AsString, DefaultFormatSettings.DecimalSeparator, FSQLFormatSettings.DecimalSeparator, []);
+    ftSingle   : Result := FloatToStr(Param.AsSingle, FSQLFormatSettings);
   else
     Result := Param.AsString;
   end; {case}

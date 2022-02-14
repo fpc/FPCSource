@@ -196,8 +196,9 @@ Const
     {ftOraInterval} 0,
     {ftLongWord} 10,
     {ftShortint} 4,
-    {ftByte} 1,
-    {ftExtended} 20
+    {ftByte} 3,
+    {ftExtended} 20,
+    {ftSingle} 8
     );
 
   Function CalcLbool: integer;

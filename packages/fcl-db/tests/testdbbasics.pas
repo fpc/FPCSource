@@ -51,6 +51,7 @@ type
     procedure TestSupportByteFields;
     procedure TestSupportShortIntFields;
     procedure TestSupportExtendedFields;
+    procedure TestSupportSingleFields;
 
     procedure TestBlobBlobType; //bug 26064
 
@@ -2738,23 +2739,34 @@ begin
 end;
 
 procedure TTestDBBasics.TestSupportBooleanFieldDisplayValue;
-var i          : byte;
-    ds         : TDataset;
-    Fld        : TField;
-    BoolFld : TBooleanField absolute Fld;
+var
+  ds      : TDataset;
+  Fld     : TField;
+  BoolFld : TBooleanField absolute Fld;
 begin
   TestFieldDefinition(ftBoolean,2,ds,Fld);
   CheckEquals(TBooleanField,Fld.ClassType,'Correct class');
   BoolFld.DisplayValues:='+';
-  ds.Edit;
-  Fld.AsBoolean:=True;
-  CheckEquals('+',Fld.DisplayText,'Correct true');
-  Fld.AsBoolean:=False;
-  CheckEquals('',Fld.DisplayText,'Correct false');
-  Fld.AsString:='+';
-  CheckEquals(true,Fld.AsBoolean,'Correct true');
-  Fld.AsString:='';
-  CheckEquals(False,Fld.AsBoolean,'Correct False');
+  if ds.IsUniDirectional then
+    begin
+    CheckEquals('+',Fld.DisplayText,'Correct true'); // 1st record
+    ds.Next;
+    CheckEquals('',Fld.DisplayText,'Correct false'); // 2nd record
+    end
+  else
+    begin
+    ds.Edit;
+    Fld.AsBoolean:=True;
+    CheckEquals('+',Fld.DisplayText,'Correct true');
+    Fld.AsBoolean:=False;
+    CheckEquals('',Fld.DisplayText,'Correct false');
+    Fld.AsString:='+';
+    CheckEquals(true,Fld.AsBoolean,'Correct true');
+    Fld.AsString:='';
+    CheckEquals(False,Fld.AsBoolean,'Correct False');
+    BoolFld.DisplayValues:=';-';
+    CheckEquals('-',Fld.DisplayText,'Correct false');
+    end;
 end;
 
 procedure TTestDBBasics.TestSupportFloatFields;
@@ -2953,6 +2965,11 @@ end;
 procedure TTestDBBasics.TestSupportExtendedFields;
 begin
   TestFieldDefinition(ftExtended, SizeOf(Extended));
+end;
+
+procedure TTestDBBasics.TestSupportSingleFields;
+begin
+  TestFieldDefinition(ftSingle, SizeOf(Single));
 end;
 
 procedure TTestDBBasics.TestBlobBlobType;
