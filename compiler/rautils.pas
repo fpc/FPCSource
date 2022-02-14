@@ -862,6 +862,16 @@ Begin
                 setvarsize(tabstractvarsym(sym));
                 size_set_from_absolute:=true;
                 sym:=plist^.sym;
+                { Check if address can be resolved, but only if not an array }
+                if (tabsolutevarsym(sym).abstyp=toaddr) and not
+                  (assigned(plist^.next) and (plist^.next^.sltype=sl_vec)) then
+                  begin
+                    initref;
+                    opr.ref.offset:=tabsolutevarsym(sym).addroffset;
+                    hasvar:=true;
+                    Result:=true;
+                    exit;
+                  end;
                 { resolve the chain of array indexes (if there are any) }
                 harrdef:=nil;
                 while assigned(plist^.next) do
