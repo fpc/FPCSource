@@ -10,10 +10,13 @@
  **********************************************************************}
 
 {$APPTYPE GUI}
+{$MODESWITCH OUT+}
+{$WARN 3124 OFF}
+{$WARN 4055 OFF}
 program gemcube;
 
 uses
-  aes, vdi, xbios;
+  aes, vdi;
 
 type
   tvertex = record
@@ -118,7 +121,7 @@ begin
   divfp:=(int64(a) shl 16) div b;
 end;
 
-procedure rotate_vertex(const v: tvertex; var vr: tvertex; xa, ya, za: longint);
+procedure rotate_vertex(const v: tvertex; out vr: tvertex; xa, ya, za: longint);
 var
   x,y,z: longint;
   s,c: longint;
@@ -141,7 +144,7 @@ begin
   vr.y:=mulfp(sin(xa),z)   + mulfp(cos(xa),y);
 end;
 
-procedure perspective_vertex(const v: tvertex; zc: longint; var xr,yr: longint);
+procedure perspective_vertex(const v: tvertex; zc: longint; out xr,yr: longint);
 var
   rzc: longint;
 begin
@@ -185,8 +188,7 @@ var
 begin
   handle:=graf_handle(@dummy,@dummy,@dummy,@dummy);
 
-  work_in[0]:=2+xbios_getrez();
-  for i:=1 to 9 do work_in[i]:=1;
+  for i:=0 to 9 do work_in[i]:=1;
   work_in[10]:=2;
 
   v_opnvwk(@work_in, @handle, @work_out);
@@ -197,6 +199,11 @@ begin
   vs_clip(handle,1,@xyarray);
 
   open_vwk:=handle;
+end;
+
+function wind_get_grect(wh, what: smallint; rect: PGRECT): boolean;
+begin
+   wind_get_grect:=wind_get(wh, what, @rect^.x, @rect^.y, @rect^.w, @rect^.h)<>0;
 end;
 
 function open_win: smallint;
@@ -211,7 +218,7 @@ begin
   win_info:='Spinning...';
   wind_set(handle, WF_INFO, hi(ptruint(@win_info)), lo(ptruint(@win_info)), 0, 0);
 
-  wind_get(0, WF_WORKXYWH, @dim.x, @dim.y, @dim.w, @dim.h);
+  wind_get_grect(0, WF_WORKXYWH, @dim);
 
   dim.x:=dim.x + (dim.w div 20);
   dim.y:=dim.y + (dim.h div 20);
@@ -229,7 +236,7 @@ var
 begin
   if rect = nil then
     begin
-      wind_get(0, WF_WORKXYWH, @fsrect.x, @fsrect.y, @fsrect.w, @fsrect.h);
+      wind_get_grect(0, WF_WORKXYWH, @fsrect);
       rect:=@fsrect;
     end;
 
@@ -244,6 +251,14 @@ begin
     min:=b;
 end;
 
+function max(a, b: smallint): smallint;
+begin
+  if a > b then
+    max:=a
+  else
+    max:=b;
+end;
+
 procedure draw_line(x1,y1,x2,y2: smallint);
 var
   xyarray: array[0..7] of smallint;
@@ -253,6 +268,23 @@ begin
   xyarray[2]:=x2;
   xyarray[3]:=y2;
   v_pline(vdi_h,2,@xyarray);
+end;
+
+function rc_intersect(p1: PGRECT; p2: PGRECT): boolean;
+var
+  tx, ty, tw, th: smallint;
+begin
+  tw:=min(p2^.x+p2^.w, p1^.x+p1^.w);
+  th:=min(p2^.y+p2^.h, p1^.y+p1^.h);
+  tx:=max(p2^.x, p1^.x);
+  ty:=max(p2^.y, p1^.y);
+
+  p2^.x:=tx;
+  p2^.y:=ty;
+  p2^.w:=tw-tx;
+  p2^.h:=th-ty;
+
+  rc_intersect:=(tw > tx) and (th > ty);
 end;
 
 procedure wind_redraw(wh: smallint; rect: PGRECT);
@@ -265,44 +297,52 @@ var
   scale: longint;
 begin
   wind_update(BEG_UPDATE);
-
-  wind_get(win_h,WF_WORKXYWH,@wrect.x,@wrect.y,@wrect.w,@wrect.h);
-
-  scale:=(min(wrect.h,wrect.w) div 5) shl 16;
-  cx:=wrect.x + wrect.w div 2;
-  cy:=wrect.y + wrect.h div 2;
-  for i:=low(cube) to high(cube) do
-    begin
-      rotate_vertex(cube[i],vr,-my,-mx,0);
-      perspective_vertex(vr,3 shl 16,vx,vy);
-      rcube[i].x:=cx + sarlongint(mulfp(vx,scale),16);
-      rcube[i].y:=cy + sarlongint(mulfp(vy,scale),16);
-    end;
-
-  xyarray[0]:=wrect.x;
-  xyarray[1]:=wrect.y;
-  xyarray[2]:=wrect.x+wrect.w-1;
-  xyarray[3]:=wrect.y+wrect.h-1;
-
   v_hide_c(vdi_h);
-  vsf_color(vdi_h,WHITE);
-  v_bar(vdi_h,@xyarray);
 
-  vsl_color(vdi_h,RED);
-  for i:=low(faces) to high(faces) do
+  wind_get_grect(wh,WF_FIRSTXYWH,@wrect);
+  while (wrect.w<>0) and (wrect.h<>0) do
     begin
-      if (faces[i].edge and 1) > 0 then
-        draw_line(rcube[faces[i].v1].x,rcube[faces[i].v1].y,
-                  rcube[faces[i].v2].x,rcube[faces[i].v2].y);
-      if (faces[i].edge and 2) > 0 then
-        draw_line(rcube[faces[i].v2].x,rcube[faces[i].v2].y,
-                  rcube[faces[i].v3].x,rcube[faces[i].v3].y);
-      if (faces[i].edge and 4) > 0 then
-        draw_line(rcube[faces[i].v3].x,rcube[faces[i].v3].y,
-                  rcube[faces[i].v1].x,rcube[faces[i].v1].y);
+      if rc_intersect(rect,@wrect) then
+        begin
+          xyarray[0]:=wrect.x;
+          xyarray[1]:=wrect.y;
+          xyarray[2]:=wrect.x+wrect.w-1;
+          xyarray[3]:=wrect.y+wrect.h-1;
+          vs_clip(vdi_h, 1, @xyarray);
+
+          vsf_color(vdi_h,WHITE);
+          v_bar(vdi_h,@xyarray);
+
+          wind_get_grect(win_h,WF_WORKXYWH,@wrect);
+          scale:=(min(wrect.h,wrect.w) div 5) shl 16;
+          cx:=wrect.x + wrect.w div 2;
+          cy:=wrect.y + wrect.h div 2;
+          for i:=low(cube) to high(cube) do
+            begin
+              rotate_vertex(cube[i],vr,-my,-mx,0);
+              perspective_vertex(vr,3 shl 16,vx,vy);
+              rcube[i].x:=cx + sarlongint(mulfp(vx,scale),16);
+              rcube[i].y:=cy + sarlongint(mulfp(vy,scale),16);
+            end;
+
+          vsl_color(vdi_h,RED);
+          for i:=low(faces) to high(faces) do
+            begin
+              if (faces[i].edge and 1) > 0 then
+                draw_line(rcube[faces[i].v1].x,rcube[faces[i].v1].y,
+                          rcube[faces[i].v2].x,rcube[faces[i].v2].y);
+              if (faces[i].edge and 2) > 0 then
+                draw_line(rcube[faces[i].v2].x,rcube[faces[i].v2].y,
+                          rcube[faces[i].v3].x,rcube[faces[i].v3].y);
+              if (faces[i].edge and 4) > 0 then
+                draw_line(rcube[faces[i].v3].x,rcube[faces[i].v3].y,
+                          rcube[faces[i].v1].x,rcube[faces[i].v1].y);
+            end;
+        end;
+      wind_get_grect(wh,WF_NEXTXYWH,@wrect);
     end;
 
-  v_show_c(vdi_h,1);
+  v_show_c(vdi_h,0);
   wind_update(END_UPDATE);
 end;
 
@@ -314,6 +354,7 @@ var
   dummy: smallint;
   e: smallint;
 begin
+  graf_mouse(ARROW, nil);
   repeat
     dummy:=0;
     e:=evnt_multi(MU_TIMER or MU_MESAG,dummy,dummy,dummy,
@@ -334,7 +375,7 @@ begin
             str(my,sy);
             win_info:='Spinning... X:'+sx+' Y:'+sy;
             wind_set(win_h, WF_INFO, hi(ptruint(@win_info)), lo(ptruint(@win_info)), 0, 0);
-            wind_get(win_h, WF_WORKXYWH, @msg_buf[4], @msg_buf[5], @msg_buf[6], @msg_buf[7]);
+            wind_get_grect(win_h, WF_WORKXYWH, PGRECT(@msg_buf[4]));
             msg_buf[0]:=WM_REDRAW;
             msg_buf[1]:=appl_h;
             msg_buf[2]:=0;
@@ -353,6 +394,8 @@ begin
           wind_set_grect(win_h,PGRECT(@msg_buf[4]));
         WM_FULLED:
           wind_set_grect(win_h,nil);
+        WM_TOPPED,WM_NEWTOP:
+          wind_set(win_h,WF_TOP,0,0,0,0);
       end;
   until false;
 end;

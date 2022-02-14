@@ -10,10 +10,13 @@
  **********************************************************************}
 
 {$APPTYPE GUI}
+{$MODESWITCH OUT+}
+{$WARN 3124 OFF}
+{$WARN 4055 OFF}
 program gemwin;
 
 uses
-  aes, vdi, xbios;
+  aes, vdi;
 
 var
   win_h: smallint;
@@ -33,13 +36,17 @@ var
 begin
   handle:=graf_handle(@dummy,@dummy,@dummy,@dummy);
 
-  work_in[0]:=2+xbios_getrez();
-  for i:=1 to 9 do work_in[i]:=1;
+  for i:=0 to 9 do work_in[i]:=1;
   work_in[10]:=2;
 
   v_opnvwk(@work_in, @handle, @work_out);
 
   open_vwk:=handle;
+end;
+
+function wind_get_grect(wh, what: smallint; rect: PGRECT): boolean;
+begin
+   wind_get_grect:=wind_get(wh, what, @rect^.x, @rect^.y, @rect^.w, @rect^.h)<>0;
 end;
 
 function open_win: smallint;
@@ -54,7 +61,7 @@ begin
   win_info:='Move me and resize me...';
   wind_set(handle, WF_INFO, hi(ptruint(win_info)), lo(ptruint(win_info)), 0, 0);
 
-  wind_get(0, WF_WORKXYWH, @dim.x, @dim.y, @dim.w, @dim.h);
+  wind_get_grect(0, WF_WORKXYWH, @dim);
 
   dim.x:=dim.x + (dim.w div 20);
   dim.y:=dim.y + (dim.h div 20);
@@ -72,7 +79,7 @@ var
 begin
   if rect = nil then
     begin
-      wind_get(0, WF_WORKXYWH, @fsrect.x, @fsrect.y, @fsrect.w, @fsrect.h);
+      wind_get_grect(0, WF_WORKXYWH, @fsrect);
       rect:=@fsrect;
     end;
 
@@ -120,19 +127,24 @@ begin
   wind_update(BEG_UPDATE);
   v_hide_c(vdi_h);
 
-  wind_get(wh,WF_WORKXYWH,@wrect.x,@wrect.y,@wrect.w,@wrect.h);
-  if rc_intersect(rect,@wrect) then
+  wind_get_grect(wh,WF_FIRSTXYWH,@wrect);
+  while (wrect.w<>0) and (wrect.h<>0) do
     begin
-      xyarray[0]:=wrect.x;
-      xyarray[1]:=wrect.y;
-      xyarray[2]:=wrect.x+wrect.w-1;
-      xyarray[3]:=wrect.y+wrect.h-1;
+      if rc_intersect(rect,@wrect) then
+        begin
+          xyarray[0]:=wrect.x;
+          xyarray[1]:=wrect.y;
+          xyarray[2]:=wrect.x+wrect.w-1;
+          xyarray[3]:=wrect.y+wrect.h-1;
+          vs_clip(vdi_h, 1, @xyarray);
 
-      vsf_color(vdi_h,WHITE);
-      v_bar(vdi_h,@xyarray);
+          vsf_color(vdi_h,WHITE);
+          v_bar(vdi_h,@xyarray);
+        end;
+      wind_get_grect(wh,WF_NEXTXYWH,@wrect);
     end;
 
-  v_show_c(vdi_h,1);
+  v_show_c(vdi_h,0);
   wind_update(END_UPDATE);
 end;
 
@@ -140,6 +152,7 @@ procedure event_loop;
 var
   msg_buf: array[0..7] of smallint;
 begin
+  graf_mouse(ARROW, nil);
   repeat
     evnt_mesag(@msg_buf);
     case msg_buf[0] of
@@ -152,6 +165,8 @@ begin
         wind_set_grect(win_h,PGRECT(@msg_buf[4]));
       WM_FULLED:
         wind_set_grect(win_h,nil);
+      WM_TOPPED,WM_NEWTOP:
+        wind_set(win_h,WF_TOP,0,0,0,0);
     end;
   until false;
 end;
