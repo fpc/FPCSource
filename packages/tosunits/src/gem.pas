@@ -257,35 +257,35 @@ function menu_istart(me_flag: smallint; me_tree: AESTreePtr; me_imenu, me_item: 
 function objc_add(ob_atree: AESTreePtr;	ob_aparent, ob_achild: smallint): smallint; overload;
 function objc_delete(ob_dltree: AESTreePtr; ob_dlobject: smallint): smallint; overload;
 function objc_draw(ob_drtree: AESTreePtr;
-	ob_drstartob, ob_drdepth,
-	ob_drxclip, ob_dryclip,
-	ob_drwclip, ob_drhclip: smallint): smallint; overload;
+                   ob_drstartob, ob_drdepth,
+                   ob_drxclip, ob_dryclip,
+                   ob_drwclip, ob_drhclip: smallint): smallint; overload;
 function objc_find(ob_ftree: AESTreePtr;
-	ob_fstartob, ob_fdepth,
-	ob_fmx, ob_fmy: smallint): smallint; overload;
+                   ob_fstartob, ob_fdepth,
+                   ob_fmx, ob_fmy: smallint): smallint; overload;
 function objc_offset(ob_oftree: AESTreePtr;
-	ob_ofobject: smallint;
-	out ob_ofxoff, ob_ofyoff: smallint): smallint; overload;
+                     ob_ofobject: smallint;
+                     out ob_ofxoff, ob_ofyoff: smallint): smallint; overload;
 function objc_order(ob_ortree: AESTreePtr;
-	ob_orobject, ob_ornewpos: smallint): smallint; overload;
+                    ob_orobject, ob_ornewpos: smallint): smallint; overload;
 function objc_edit(ob_edtree: AESTreePtr;
-	ob_edobject, ob_edchar: smallint;
-	var ob_edidx: smallint;
-	ob_edkind: smallint): smallint; overload;
+                   ob_edobject, ob_edchar: smallint;
+                   var ob_edidx: smallint;
+                   ob_edkind: smallint): smallint; overload;
 function objc_change(ob_ctree: AESTreePtr;
-	ob_cobject, ob_cresvd,
-	ob_xclip, ob_yclip,
-	ob_wclip, ob_hclip,
-	ob_cnewstate,
-	ob_credraw: smallint): smallint; overload;
+                     ob_cobject, ob_cresvd,
+                     ob_xclip, ob_yclip,
+                     ob_wclip, ob_hclip,
+                     ob_cnewstate,
+                     ob_credraw: smallint): smallint; overload;
 
 function form_do(fo_dotree: AESTreePtr;	fo_dostartob: smallint): smallint; overload;
 function form_center(fo_ctree: AESTreePtr; out fo_cx, fo_cy, fo_cw, fo_ch: smallint): smallint; overload;
 function form_keybd(fo_ktree: AESTreePtr;
-	fo_kobject, fo_kobnext, fo_kchar: smallint;
-	out fo_knxtobject, fo_knxtchar: smallint): smallint; overload;
+                    fo_kobject, fo_kobnext, fo_kchar: smallint;
+                    out fo_knxtobject, fo_knxtchar: smallint): smallint; overload;
 function form_button(fo_btree: AESTreePtr; fo_bobject, fo_bclicks: smallint;
-	out fo_bnxtobj: smallint): smallint; overload;
+                     out fo_bnxtobj: smallint): smallint; overload;
 
 function rsrc_obfix(re_obtree: AESTreePtr; re_oobject: smallint): smallint; overload;
 
@@ -411,22 +411,22 @@ end;
 
 function menu_bar(me_btree: AESTreePtr; me_bshow: smallint): smallint;
 begin
-	menu_bar := aes.menu_bar(@me_btree[0], me_bshow);
+  menu_bar := aes.menu_bar(@me_btree[0], me_bshow);
 end;
 
 function menu_icheck(me_ctree: AESTreePtr; me_citem, me_ccheck: smallint): smallint;
 begin
-	menu_icheck := aes.menu_icheck(@me_ctree[0], me_citem, me_ccheck);
+  menu_icheck := aes.menu_icheck(@me_ctree[0], me_citem, me_ccheck);
 end;
 
 function menu_ienable(me_etree: AESTreePtr; me_eitem, me_eenable: smallint): smallint;
 begin
-	menu_ienable := aes.menu_ienable(@me_etree[0], me_eitem, me_eenable);
+  menu_ienable := aes.menu_ienable(@me_etree[0], me_eitem, me_eenable);
 end;
 
 function menu_tnormal(me_ntree: AESTreePtr; me_ntitle, me_nnormal: smallint): smallint;
 begin
-	menu_tnormal := aes.menu_tnormal(@me_ntree[0], me_ntitle, me_nnormal);
+  menu_tnormal := aes.menu_tnormal(@me_ntree[0], me_ntitle, me_nnormal);
 end;
 
 function menu_text(me_ttree: AESTreePtr; me_titem: smallint; me_ttext: String): smallint;
@@ -457,47 +457,47 @@ begin
 end;
 
 function objc_draw(ob_drtree: AESTreePtr;
-	ob_drstartob, ob_drdepth,
-	ob_drxclip, ob_dryclip,
-	ob_drwclip, ob_drhclip: smallint): smallint;
+                   ob_drstartob, ob_drdepth,
+                   ob_drxclip, ob_dryclip,
+                   ob_drwclip, ob_drhclip: smallint): smallint;
 begin
   objc_draw:=aes.objc_draw(@ob_drtree[0], ob_drstartob, ob_drdepth, ob_drxclip, ob_dryclip, ob_drwclip, ob_drhclip);
 end;
 
 function objc_find(ob_ftree: AESTreePtr;
-	ob_fstartob, ob_fdepth,
-	ob_fmx, ob_fmy: smallint): smallint;
+                   ob_fstartob, ob_fdepth,
+                   ob_fmx, ob_fmy: smallint): smallint;
 begin
   objc_find:=aes.objc_find(@ob_ftree[0], ob_fstartob, ob_fdepth, ob_fmx, ob_fmy);
 end;
 
 function objc_offset(ob_oftree: AESTreePtr;
-	ob_ofobject: smallint;
-	out ob_ofxoff, ob_ofyoff: smallint): smallint;
+                     ob_ofobject: smallint;
+                     out ob_ofxoff, ob_ofyoff: smallint): smallint;
 begin
   objc_offset:=aes.objc_offset(@ob_oftree[0], ob_ofobject, ob_ofxoff, ob_ofyoff);
 end;
 
 function objc_order(ob_ortree: AESTreePtr;
-	ob_orobject, ob_ornewpos: smallint): smallint;
+                    ob_orobject, ob_ornewpos: smallint): smallint;
 begin
   objc_order:=aes.objc_order(@ob_ortree[0], ob_orobject, ob_ornewpos);
 end;
 
 function objc_edit(ob_edtree: AESTreePtr;
-	ob_edobject, ob_edchar: smallint;
-	var ob_edidx: smallint;
-	ob_edkind: smallint): smallint;
+                   ob_edobject, ob_edchar: smallint;
+                   var ob_edidx: smallint;
+                   ob_edkind: smallint): smallint;
 begin
   objc_edit:=aes.objc_edit(@ob_edtree[0], ob_edobject, ob_edchar, ob_edidx, ob_edkind);
 end;
 
 function objc_change(ob_ctree: AESTreePtr;
-	ob_cobject, ob_cresvd,
-	ob_xclip, ob_yclip,
-	ob_wclip, ob_hclip,
-	ob_cnewstate,
-	ob_credraw: smallint): smallint;
+                     ob_cobject, ob_cresvd,
+                     ob_xclip, ob_yclip,
+                     ob_wclip, ob_hclip,
+                     ob_cnewstate,
+                     ob_credraw: smallint): smallint;
 begin
   objc_change:=aes.objc_change(@ob_ctree[0], ob_cobject, ob_cresvd, ob_xclip, ob_yclip, ob_wclip, ob_hclip, ob_cnewstate, ob_credraw);
 end;
@@ -513,14 +513,14 @@ begin
 end;
 
 function form_keybd(fo_ktree: AESTreePtr;
-	fo_kobject, fo_kobnext, fo_kchar: smallint;
-	out fo_knxtobject, fo_knxtchar: smallint): smallint;
+                    fo_kobject, fo_kobnext, fo_kchar: smallint;
+                    out fo_knxtobject, fo_knxtchar: smallint): smallint;
 begin
   form_keybd:=aes.form_keybd(@fo_ktree[0], fo_kobject, fo_kobnext, fo_kchar, fo_knxtobject, fo_knxtchar);
 end;
 
 function form_button(fo_btree: AESTreePtr; fo_bobject, fo_bclicks: smallint;
-	out fo_bnxtobj: smallint): smallint;
+                     out fo_bnxtobj: smallint): smallint;
 begin
   form_button:=aes.form_button(@fo_btree[0], fo_bobject, fo_bclicks, fo_bnxtobj);
 end;
