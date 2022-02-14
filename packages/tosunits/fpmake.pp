@@ -37,6 +37,7 @@ begin
     T:=P.Targets.AddUnit('gem.pas');
     T:=P.Targets.AddUnit('gemcmmn.pas');
     T:=P.Targets.AddUnit('nf_ops.pas');
+    T:=P.Targets.AddUnit('metados.pas');
 
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('higem.pas');
