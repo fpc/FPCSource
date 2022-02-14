@@ -771,6 +771,23 @@ implementation
               end;
           end;
 {$endif i8086}
+{$ifdef m68k}
+        if target_info.system in [system_m68k_atari] then
+          case NewAppType of
+            app_cui:
+              begin
+                targetinfos[target_info.system]^.exeext:='.ttp';
+                target_info.exeext:='.ttp';
+              end;
+            app_gui:
+              begin
+                targetinfos[target_info.system]^.exeext:='.prg';
+                target_info.exeext:='.prg';
+              end;
+            else
+              ;
+          end;
+{$endif m68k}
         if apptype in [app_cui,app_com] then
           undef_system_macro('CONSOLE');
         apptype:=NewAppType;

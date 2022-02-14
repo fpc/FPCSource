@@ -308,8 +308,6 @@ begin
     end;
 
   ExeName:=current_module.exefilename;
-  if apptype = app_gui then
-    Replace(ExeName,target_info.exeext,'.prg');
 
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
