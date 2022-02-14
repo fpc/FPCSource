@@ -1174,7 +1174,7 @@ Type
   Public
     Destructor Destroy; override;
     Procedure ClearNodes;
-    Function GetEnumerator : TElementNodeEnumerator;
+    Function GetEnumerator : TElementNodeEnumerator; reintroduce;
     Function AddNode(aIsAmbient : Boolean = False; aIsExport : Boolean = False) : TJSElementNode;
     Function AddNode(aEl : TJSElement; aIsAmbient : Boolean = False; aIsExport : Boolean = False) : TJSElementNode;
     Function InsertNode(Index: integer) : TJSElementNode;
