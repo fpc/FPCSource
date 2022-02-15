@@ -861,7 +861,6 @@ Begin
               begin
                 setvarsize(tabstractvarsym(sym));
                 size_set_from_absolute:=true;
-                sym:=plist^.sym;
                 { Check if address can be resolved, but only if not an array }
                 if (tabsolutevarsym(sym).abstyp=toaddr) and not
                   (assigned(plist^.next) and (plist^.next^.sltype=sl_vec)) then
@@ -873,6 +872,7 @@ Begin
                     exit;
                   end;
                 { resolve the chain of array indexes (if there are any) }
+                sym:=plist^.sym;
                 harrdef:=nil;
                 while assigned(plist^.next) do
                   begin
