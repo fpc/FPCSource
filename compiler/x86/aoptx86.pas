@@ -4912,6 +4912,7 @@ unit aoptx86;
         ref: Integer;
         saveref: treference;
         Multiple: TCGInt;
+        Adjacent: Boolean;
       begin
         Result:=false;
 
@@ -5062,7 +5063,8 @@ unit aoptx86;
                 taicpu(hp1).oper[ref]^.ref^:=saveref;
               end;
 
-            if RegInInstruction(DestinationReg, hp1) or
+            Adjacent := RegInInstruction(taicpu(p).oper[1]^.reg, hp1);
+            if Adjacent or
               { Check further ahead (up to 2 instructions ahead for -O2) }
               GetNextInstructionUsingReg(hp1,hp1,taicpu(p).oper[1]^.reg) then
               begin
@@ -5076,13 +5078,18 @@ unit aoptx86;
                   (taicpu(hp1).oper[0]^.ref^.segment = NR_NO) and
                   (taicpu(hp1).oper[0]^.ref^.symbol = nil) and
                   (
+                    { If p and hp1 are adjacent, RegModifiedBetween always returns False, so avoid
+                      calling it (since it calls GetNextInstruction) }
+                    Adjacent or
                     (
-                      (taicpu(p).oper[0]^.ref^.base = NR_NO) or { Don't call RegModifiedBetween unnecessarily }
-                      not(RegModifiedBetween(taicpu(p).oper[0]^.ref^.base,p,hp1))
-                    ) and (
-                      (taicpu(p).oper[0]^.ref^.index = taicpu(p).oper[0]^.ref^.base) or { Don't call RegModifiedBetween unnecessarily }
-                      (taicpu(p).oper[0]^.ref^.index = NR_NO) or
-                      not(RegModifiedBetween(taicpu(p).oper[0]^.ref^.index,p,hp1))
+                      (
+                        (taicpu(p).oper[0]^.ref^.base = NR_NO) or { Don't call RegModifiedBetween unnecessarily }
+                        not(RegModifiedBetween(taicpu(p).oper[0]^.ref^.base,p,hp1))
+                      ) and (
+                        (taicpu(p).oper[0]^.ref^.index = taicpu(p).oper[0]^.ref^.base) or { Don't call RegModifiedBetween unnecessarily }
+                        (taicpu(p).oper[0]^.ref^.index = NR_NO) or
+                        not(RegModifiedBetween(taicpu(p).oper[0]^.ref^.index,p,hp1))
+                      )
                     )
                   ) then
                   begin
@@ -5112,7 +5119,11 @@ unit aoptx86;
                           (taicpu(p).oper[0]^.ref^.scalefactor <= 1) and
                           (
                             (taicpu(p).oper[0]^.ref^.base = taicpu(p).oper[0]^.ref^.index) and
-                            not(RegUsedBetween(taicpu(p).oper[0]^.ref^.index, p, hp1))
+                            (
+                              { RegUsedBetween always returns False if p and hp1 are adjacent }
+                              Adjacent or
+                              not(RegUsedBetween(taicpu(p).oper[0]^.ref^.index, p, hp1))
+                            )
                           )
                         )
                       ) and (
