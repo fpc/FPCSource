@@ -280,8 +280,17 @@ implementation
          if def_from.typ=objectdef then
            def_from:=find_real_class_definition(tobjectdef(def_from),false);
          if def_to.typ=objectdef then
-           def_to:=find_real_class_definition(tobjectdef(def_to),false);
-
+           begin
+             { Emit error when trying to typecast a object/class type to
+               another object type, because this treats a VMT
+               like an ordinary object/class instance, allowing
+               to access instance fields, which is wrong PM }
+             def_to:=find_real_class_definition(tobjectdef(def_to),false);
+             if (def_from.typ=classrefdef) and (fromtreetype=loadvmtaddrn) and (cdo_explicit in cdoptions)
+                { for jvm everything is a java class ... }
+                and (tobjectdef(def_to).objecttype <> odt_javaclass) then
+               comment(V_Error,'Explicit typecast object/class definition to objectdef/class definition');
+           end;
          { same def? then we've an exact match }
          if def_from=def_to then
           begin
