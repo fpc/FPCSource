@@ -85,14 +85,14 @@ type
     destructor Destroy; override;
 
     function DefineFloatVariable(AVarName: string; AValue: PDouble): TExprWord;
-    function DefineIntegerVariable(AVarName: string; AValue: PInteger): TExprWord;
+    function DefineIntegerVariable(AVarName: string; AValue: PInteger; AIsNull: PBoolean = nil): TExprWord;
 //    procedure DefineSmallIntVariable(AVarName: string; AValue: PSmallInt);
 {$ifdef SUPPORT_INT64}
     function DefineLargeIntVariable(AVarName: string; AValue: PLargeInt): TExprWord;
 {$endif}
     function DefineDateTimeVariable(AVarName: string; AValue: PDateTimeRec): TExprWord;
     function DefineBooleanVariable(AVarName: string; AValue: PBoolean): TExprWord;
-    function DefineStringVariable(AVarName: string; AValue: PPChar): TExprWord;
+    function DefineStringVariable(AVarName: string; AValue: PPChar; AIsNull: PBoolean = nil): TExprWord;
     function DefineFunction(AFunctName, AShortName, ADescription, ATypeSpec: string;
         AMinFunctionArg: Integer; AResultType: TExpressionType; AFuncAddress: TExprFunc): TExprWord;
     procedure Evaluate(AnExpression: string);
@@ -265,6 +265,8 @@ begin
       Args[0] := ExprWord.AsPointer;
       // store length as second parameter
       Args[1] := PChar(ExprWord.LenAsPointer);
+      // and NULL indicator as third parameter
+      Args[2] := PChar(ExprWord.IsNullAsPointer);
     end;
   end;
 end;
@@ -501,6 +503,7 @@ begin
             etLargeInt:ExprWord := TLargeIntConstant.Create(PInt64(FExpResult)^);
 {$endif}
             etString:  ExprWord := TStringConstant.Create(FExpResult);
+            etUnknown: ExprWord := TNullConstant.Create;
             else raise EParserException.CreateFmt('No support for resulttype %d. Please fix the TDBF code.',[ResultType]);
           end;
 
@@ -778,6 +781,8 @@ begin
 end;
 
 procedure TCustomExpressionParser.ParseString(AnExpression: string; DestCollection: TExprCollection);
+const
+  NullWord='NULL';
 var
   isConstant: Boolean;
   I, I1, I2, Len, DecSep: Integer;
@@ -971,6 +976,13 @@ begin
       DestCollection.Add(TempWord);
       FConstantsList.Add(TempWord);
     end
+    else if UpCase(W) = NullWord then
+    begin
+      // NULL
+      TempWord := TNullConstant.Create;
+      DestCollection.Add(TempWord);
+      FConstantsList.Add(TempWord);
+    end
     else if Length(W) > 0 then
       if FWordsList.Search(PChar(W), I) then
       begin
@@ -1132,9 +1144,9 @@ begin
   FWordsList.Add(Result);
 end;
 
-function TCustomExpressionParser.DefineIntegerVariable(AVarName: string; AValue: PInteger): TExprWord;
+function TCustomExpressionParser.DefineIntegerVariable(AVarName: string; AValue: PInteger; AIsNull: PBoolean): TExprWord;
 begin
-  Result := TIntegerVariable.Create(AVarName, AValue);
+  Result := TIntegerVariable.Create(AVarName, AValue, AIsNull);
   FWordsList.Add(Result);
 end;
 
@@ -1166,9 +1178,9 @@ begin
   FWordsList.Add(Result);
 end;
 
-function TCustomExpressionParser.DefineStringVariable(AVarName: string; AValue: PPChar): TExprWord;
+function TCustomExpressionParser.DefineStringVariable(AVarName: string; AValue: PPChar; AIsNull: PBoolean): TExprWord;
 begin
-  Result := TStringVariable.Create(AVarName, AValue);
+  Result := TStringVariable.Create(AVarName, AValue, AIsNull);
   FWordsList.Add(Result);
 end;
 
@@ -1864,6 +1876,12 @@ begin
     Res.MemoryPos^^ := Char(AnsiStrComp(Args[0], Args[1]) >= 0);
 end;
 
+procedure Func_SU_EQ(Param: PExpressionRec);
+begin
+  with Param^ do
+    Res.MemoryPos^^ := Char(PBoolean(Args[0]+StrLen(Args[0])+1)^);
+end;
+
 procedure Func_FF_EQ(Param: PExpressionRec);
 begin
   with Param^ do
@@ -1940,6 +1958,11 @@ procedure Func_II_EQ(Param: PExpressionRec);
 begin
   with Param^ do
     Res.MemoryPos^^ := Char(PInteger(Args[0])^  =  PInteger(Args[1])^);
+end;
+procedure Func_IU_EQ(Param: PExpressionRec);
+begin
+  with Param^ do
+    Res.MemoryPos^^ := Char(PBoolean(Args[0]+8)^);
 end;
 
 procedure Func_II_NEQ(Param: PExpressionRec);
@@ -2294,6 +2317,7 @@ initialization
     Add(TFunction.CreateOper('>=','FI', etBoolean, Func_FI_GTE, 80));
     Add(TFunction.CreateOper('<>','FI', etBoolean, Func_FI_NEQ, 80));
     Add(TFunction.CreateOper('=', 'II', etBoolean, Func_II_EQ , 80));
+    Add(TFunction.CreateOper('=', 'IU', etBoolean, Func_IU_EQ , 80));
     Add(TFunction.CreateOper('<', 'II', etBoolean, Func_II_LT , 80));
     Add(TFunction.CreateOper('>', 'II', etBoolean, Func_II_GT , 80));
     Add(TFunction.CreateOper('<=','II', etBoolean, Func_II_LTE, 80));
@@ -2337,6 +2361,7 @@ initialization
     Add(TFunction.CreateOper('>=','IL', etBoolean, Func_IL_GTE, 80));
     Add(TFunction.CreateOper('<>','IL', etBoolean, Func_IL_NEQ, 80));
 {$endif}
+    Add(TFunction.CreateOper('=', 'SU', etBoolean, Func_SU_EQ , 80));
 
     Add(TFunction.CreateOper('NOT', 'B',  etBoolean, Func_NOT, 85));
     Add(TFunction.CreateOper('AND', 'BB', etBoolean, Func_AND, 90));
