@@ -2317,7 +2317,7 @@ implementation
                  end;
                { procvar.<something> can never mean anything so always
                  try to call it in case it returns a record/object/... }
-               maybe_call_procvar(p1,false);
+               maybe_call_procvar(p1,is_invokable(p1.resultdef) and not is_funcref(p1.resultdef));
 
                if (p1.nodetype=ordconstn) and
                    not is_boolean(p1.resultdef) and
