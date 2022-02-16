@@ -96,6 +96,7 @@ procedure tlinkerwasi.SetDefaultInfo;
 begin
   with Info do
     begin
+      ExeCmd[1] := 'wasm-ld $SONAME $GCSECTIONS $MAP -o $EXE';
       DllCmd[1] := 'wasm-ld $SONAME $GCSECTIONS $MAP -o $EXE';
     end;
 end;
@@ -132,7 +133,7 @@ begin
     GCSectionsStr:='';
 
   SoNameStr:='';
-  SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
+  SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
 
   tmp := TCmdStrListItem(ObjectFiles.First);
