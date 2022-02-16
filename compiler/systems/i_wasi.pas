@@ -80,7 +80,7 @@ unit i_wasi;
             assem        : as_wasm32_wasm;
             assemextern  : as_wasm32_llvm_mc;
             link         : ld_none;
-            linkextern   : ld_wasi; // there's no linker, only object files for WASM
+            linkextern   : ld_wasi;
             ar           : ar_none;
             res          : res_none;
             dbg          : dbg_dwarf2;
