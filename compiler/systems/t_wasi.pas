@@ -95,7 +95,6 @@ end;
 procedure tlinkerwasi.SetDefaultInfo;
 begin
   Info.DllCmd[1] := 'wasm-ld $SONAME $GCSECTIONS $MAP -o $EXE';
-  //Info.DllCmd[2] := 'wasmtool --exportrename $INPUT $EXE';
 end;
 
 procedure tlinkerwasi.InitSysInitUnitName;
