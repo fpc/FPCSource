@@ -2579,6 +2579,7 @@ end;
 destructor TCustomBucketList.Destroy;
 begin
   Clear;
+  SetLength(FBuckets,0);
   inherited Destroy;
 end;
 
@@ -2593,7 +2594,6 @@ begin
     for J:=B.Count-1 downto 0 do
       DeleteItem(I,J);
     end;
-  SetLength(FBuckets,0);
 end;
 
 Function TCustomBucketList.Add(AItem, AData: Pointer): Pointer;
