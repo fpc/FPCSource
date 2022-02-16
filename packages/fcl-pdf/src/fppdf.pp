@@ -1276,7 +1276,6 @@ type
   TTTFFriendClass = class(TTFFileInfo)
   end;
 
-
 const
   cInchToMM = 25.4;
   cInchToCM = 2.54;
@@ -1519,9 +1518,13 @@ procedure TXMPStream.Write(const AStream: TStream);
 
   procedure Add(const Tag, Value: string);
   begin
-    WriteString('<'+Tag+'>', AStream);
+    WriteString('<', AStream);
+    WriteString(Tag, AStream);
+    WriteString('>', AStream);
     WriteString(Value, AStream);
-    WriteString('</'+Tag+'>'+CRLF, AStream);
+    WriteString('</', AStream);
+    WriteString(Tag, AStream);
+    WriteString('>'+CRLF, AStream);
   end;
 
   function DateToISO8601Date(t: TDateTime): string;
@@ -2930,14 +2933,13 @@ begin
 end;
 
 class procedure TPDFObject.WriteString(const AValue: RawByteString; AStream: TStream);
-
-Var
-  L : Integer;
+var
+  L: SizeInt;
 
 begin
   L:=Length(AValue);
   if L>0 then
-    AStream.Write(AValue[1],L);
+    AStream.WriteBuffer(AValue[1],L);
 end;
 
 // Font=Name-Size:x:y
@@ -3416,10 +3418,11 @@ begin
       WriteString('/Length1', AStream)
     else
     begin
+      WriteString('/', AStream);
       if FMustEscape then
-        WriteString('/'+ConvertCharsToHex, AStream)
+        WriteString(ConvertCharsToHex, AStream)
       else
-        WriteString('/'+FName, AStream);
+        WriteString(FName, AStream);
     end;
 end;
 
@@ -3469,10 +3472,14 @@ end;
 
 procedure TPDFString.Write(const AStream: TStream);
 var
-  s: AnsiString;
+  s: RawByteString;
 begin
-  s := Utf8ToAnsi(FValue);
-  WriteString('('+s+')', AStream);
+  // TPDFText uses hardcoded WinAnsiEncoding (=win-1252), we have to convert to 1252 as well and not to ansi (that is not always 1252)
+  s := FValue;
+  SetCodePage(s, 1252);
+  WriteString('(', AStream);
+  WriteString(s, AStream);
+  WriteString(')', AStream);
 end;
 
 constructor TPDFString.Create(Const ADocument : TPDFDocument; const AValue: string);
@@ -3526,7 +3533,10 @@ begin
     else
       s:=fValue;
   end;
-  WriteString('('+s+')', AStream);
+
+  WriteString('(', AStream);
+  WriteString(s, AStream);
+  WriteString(')', AStream);
 end;
 
 
@@ -3543,7 +3553,9 @@ end;
 
 procedure TPDFUTF8String.Write(const AStream: TStream);
 begin
-  WriteString('<'+RemapedText+'>', AStream);
+  WriteString('<', AStream);
+  WriteString(RemapedText, AStream);
+  WriteString('>', AStream);
 end;
 
 constructor TPDFUTF8String.Create(const ADocument: TPDFDocument; const AValue: UTF8String; const AFontIndex: integer);
@@ -3557,9 +3569,10 @@ end;
 
 procedure TPDFFreeFormString.Write(const AStream: TStream);
 var
-  s: AnsiString;
+  s: RawByteString;
 begin
-  s := Utf8ToAnsi(FValue);
+  s := FValue;
+  SetCodePage(s, 1252);
   WriteString(s, AStream);
 end;
 
