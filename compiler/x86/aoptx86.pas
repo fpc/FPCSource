@@ -10335,6 +10335,15 @@ unit aoptx86;
                         jCC   xxx
                         <several movs>
                      xxx:
+
+                   Also spot:
+                        Jcc   xxx
+                        <several movs>
+                        jmp   xxx
+
+                   Change to:
+                        <several cmovs with inverted condition>
+                        jmp   xxx
                  }
                  l:=0;
                  while assigned(hp1) and
@@ -10349,7 +10358,12 @@ unit aoptx86;
                  if assigned(hp1) then
                    begin
                       TransferUsedRegs(TmpUsedRegs);
-                      if FindLabel(tasmlabel(symbol),hp1) then
+                      if (
+                          MatchInstruction(hp1, A_JMP, []) and
+                          (JumpTargetOp(taicpu(hp1))^.typ=top_ref) and
+                          (JumpTargetOp(taicpu(hp1))^.ref^.symbol=symbol)
+                        ) or
+                        FindLabel(tasmlabel(symbol),hp1) then
                         begin
                           if (l<=4) and (l>0) then
                             begin
@@ -10385,6 +10399,14 @@ unit aoptx86;
                                       hp2 := tai(hp2.Next);
                                       Continue;
                                     end;
+                                  ait_instruction:
+                                    begin
+                                      if taicpu(hp2).opcode<>A_JMP then
+                                        InternalError(2018062912);
+
+                                      { This is the Jcc @Lbl; <several movs>; JMP @Lbl variant }
+                                      Break;
+                                    end
                                   else
                                     begin
                                       { Might be a comment or temporary allocation entry }
@@ -10406,15 +10428,21 @@ unit aoptx86;
                               { Remove the original jump }
                               RemoveInstruction(p); { Note, the choice to not use RemoveCurrentp is deliberate }
 
-                              UpdateUsedRegs(tai(hp2.next));
-                              GetNextInstruction(hp2, p); { Instruction after the label }
+                              if hp2.typ=ait_instruction then
+                                begin
+                                  p:=hp2;
+                                  Result:=True;
+                                end
+                              else
+                                begin
+                                  UpdateUsedRegs(tai(hp2.next));
+                                  Result:=GetNextInstruction(hp2, p); { Instruction after the label }
 
-                              { Remove the label if this is its final reference }
-                              if (tasmlabel(symbol).getrefs=0) then
-                                StripLabelFast(hp1);
+                                  { Remove the label if this is its final reference }
+                                  if (tasmlabel(symbol).getrefs=0) then
+                                    StripLabelFast(hp1);
+                                end;
 
-                              if Assigned(p) then
-                                result:=true;
                               exit;
                             end;
                         end
