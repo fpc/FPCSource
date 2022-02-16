@@ -94,7 +94,10 @@ end;
 
 procedure tlinkerwasi.SetDefaultInfo;
 begin
-  Info.DllCmd[1] := 'wasm-ld $SONAME $GCSECTIONS $MAP -o $EXE';
+  with Info do
+    begin
+      DllCmd[1] := 'wasm-ld $SONAME $GCSECTIONS $MAP -o $EXE';
+    end;
 end;
 
 procedure tlinkerwasi.InitSysInitUnitName;
