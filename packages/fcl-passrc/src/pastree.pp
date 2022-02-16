@@ -1806,6 +1806,7 @@ procedure ReleaseProcNameParts(var NameParts: TProcedureNameParts);
 
 function dbgs(const s: TProcTypeModifiers): string; overload;
 function WritePasElTree(Expr: TPasExpr; FollowPrefix: string = ''): string;
+function GetPasElementDesc(El: TPasElement): string;
 
 {$IFDEF HasPTDumpStack}
 procedure PTDumpStack;
@@ -1989,6 +1990,12 @@ begin
     end
   else
     Result:=C.ClassName+' Kind=';
+end;
+
+function GetPasElementDesc(El: TPasElement): string;
+begin
+  if El=nil then exit('nil');
+  Result:=El.Name+':'+El.ClassName+'['+El.SourceFilename+','+IntToStr(El.SourceLinenumber)+']';
 end;
 
 Function IndentStrings(S : TStrings; indent : Integer) : string;

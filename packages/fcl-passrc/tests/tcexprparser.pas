@@ -5,7 +5,7 @@ unit tcexprparser;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry, tcbaseparser, TestPasUtils, pastree;
+  Classes, SysUtils, fpcunit, testregistry, tcbaseparser, pastree, PScanner;
 
 type
 

@@ -5,8 +5,7 @@ unit tcbaseparser;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, pastree, pscanner, pparser, TestPasUtils,
-  testregistry;
+  Classes, SysUtils, fpcunit, pastree, pscanner, pparser, testregistry;
 
 const
   DefaultMainFilename = 'afile.pp';

@@ -20,7 +20,7 @@ interface
 uses
   Classes, SysUtils, contnrs, strutils, fpcunit, testregistry,
   PasTree, PScanner, PParser, PasResolver, PasResolveEval,
-  tcbaseparser, TestPasUtils;
+  tcbaseparser;
 
 type
   TSrcMarkerKind = (

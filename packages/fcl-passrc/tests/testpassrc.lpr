@@ -7,7 +7,7 @@ uses
   Classes, consoletestrunner, tcscanner,  tctypeparser, tcstatements,
   tcbaseparser, tcmoduleparser, tconstparser, tcvarparser, tcclasstype,
   tcexprparser, tcprocfunc, tcpassrcutil, tcresolver,
-  tcuseanalyzer, pasresolveeval, tcresolvegenerics, tcgenerics, TestPasUtils;
+  tcuseanalyzer, pasresolveeval, tcresolvegenerics, tcgenerics;
 
 type
 

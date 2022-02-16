@@ -26,8 +26,7 @@ interface
 uses
   Classes, SysUtils, fpcunit, testregistry, contnrs,
   jstree, jswriter, jsbase,
-  PasTree, PScanner, PasResolver, PParser, PasResolveEval, TestPasUtils,
-  FPPas2Js;
+  PasTree, PScanner, PasResolver, PParser, PasResolveEval, FPPas2Js;
 
 const
   // default parser+scanner options

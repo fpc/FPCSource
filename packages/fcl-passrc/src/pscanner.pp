@@ -1251,6 +1251,7 @@ function FilenameIsWinAbsolute(const TheFilename: string): boolean;
 function FilenameIsUnixAbsolute(const TheFilename: string): boolean;
 function IsNamedToken(Const AToken : String; Out T : TToken) : Boolean;
 Function ExtractFilenameOnly(Const AFileName : String) : String;
+function ExtractFileUnitName(aFilename: string): string;
 
 procedure CreateMsgArgs(var MsgArgs: TMessageArgs; Args: array of const);
 function SafeFormat(const Fmt: string; Args: array of const): string;
@@ -1272,6 +1273,22 @@ begin
   Result:=ChangeFileExt(ExtractFileName(aFileName),'');
 end;
 
+function ExtractFileUnitName(aFilename: string): string;
+var
+  p: Integer;
+begin
+  Result:=ExtractFileName(aFilename);
+  if Result='' then exit;
+  for p:=length(Result) downto 1 do
+    case Result[p] of
+    '/','\': exit;
+    '.':
+      begin
+      Delete(Result,p,length(Result));
+      exit;
+      end;
+    end;
+end;
 
 Procedure SortTokenInfo;
 

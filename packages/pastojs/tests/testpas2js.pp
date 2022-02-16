@@ -23,7 +23,7 @@ uses
   {$ENDIF}
   Classes, consoletestrunner, tcconverter, TCModules, TCSrcMap,
   TCFiler, TCUnitSearch, TCOptimizations, TCGenerics, TCPrecompile, 
-  TCPas2JSAnalyzer, TestPasUtils;
+  TCPas2JSAnalyzer;
 
 type
 
