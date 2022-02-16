@@ -11,5 +11,3 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 **********************************************************************}
-
-{$I ../mips64/cpuh.inc}
