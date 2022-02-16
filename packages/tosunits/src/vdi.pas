@@ -2941,7 +2941,7 @@ var len: longint;
 begin
   len:=string_to_vdi(str, @_intin[0]);
   _ptsin[0]:=x;
-  _ptsin[0]:=y;
+  _ptsin[1]:=y;
   _contrl[0]:=241;
   _contrl[1]:=1;
   _contrl[3]:=len;
