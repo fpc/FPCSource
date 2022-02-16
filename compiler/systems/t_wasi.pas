@@ -184,8 +184,14 @@ var
   tmp : TCmdStrListItem;
   tempFileName : ansistring;
 begin
-  //Result := true;
-  //Result:=inherited MakeSharedLibrary;
+  Result:=false;
+  if not(cs_link_nolink in current_settings.globalswitches) then
+    Message1(exec_i_linking,current_module.sharedlibfilename);
+
+  { Create some replacements }
+  mapstr:='';
+  if (cs_link_map in current_settings.globalswitches) then
+    mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.sharedlibfilename,'.map'));
   if (cs_link_smart in current_settings.globalswitches) and
      create_smartlink_sections then
    GCSectionsStr:='--gc-sections'
@@ -194,7 +200,7 @@ begin
 
   SoNameStr:='';
   SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
+  Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
 
   tmp := TCmdStrListItem(ObjectFiles.First);
   while Assigned(tmp) do begin
@@ -218,7 +224,7 @@ begin
   //Replace(cmdstr,'$INIT',InitStr);
   //Replace(cmdstr,'$FINI',FiniStr);
   Replace(cmdstr,'$SONAME',SoNameStr);
-  //Replace(cmdstr,'$MAP',mapstr);
+  Replace(cmdstr,'$MAP',mapstr);
   //Replace(cmdstr,'$LTO',ltostr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   writeln(utilsprefix+binstr,' ',cmdstr);
