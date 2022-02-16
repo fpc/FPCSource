@@ -166,11 +166,6 @@ begin
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
 
-  //SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
-  //Replace(cmdstr,'$INPUT',current_module.objfilename );
-  //Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
-  //DoExec(FindUtil(utilsprefix+binstr),cmdstr,false,false);
-
   MakeExecutable:=success;
 end;
 
@@ -232,11 +227,6 @@ begin
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   writeln(utilsprefix+binstr,' ',cmdstr);
   success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
-
-  //SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
-  //Replace(cmdstr,'$INPUT',current_module.objfilename );
-  //Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
-  //DoExec(FindUtil(utilsprefix+binstr),cmdstr,false,false);
 
   MakeSharedLibrary:=success;
 end;
