@@ -103,7 +103,10 @@ end;
 
 procedure tlinkerwasi.InitSysInitUnitName;
 begin
-  sysinitunit:='si_prc';
+  if current_module.islibrary then
+    sysinitunit:='si_dll'
+  else
+    sysinitunit:='si_prc';
 end;
 
 function tlinkerwasi.MakeExecutable:boolean;

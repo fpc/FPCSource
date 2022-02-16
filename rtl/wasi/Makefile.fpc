@@ -28,7 +28,7 @@ COMMON=$(RTL)/common
 PROCINC=../$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
-SYSINIT_UNITS=si_prc
+SYSINIT_UNITS=si_prc si_dll
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
@@ -81,6 +81,9 @@ extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 # $(SYSINIT_UNITS) Units
 #
 si_prc$(PPUEXT) : si_prc.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $<
+
+si_dll$(PPUEXT) : si_dll.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
 
 #

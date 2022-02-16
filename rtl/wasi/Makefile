@@ -359,7 +359,7 @@ COMMON=$(RTL)/common
 PROCINC=../$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
-SYSINIT_UNITS=si_prc
+SYSINIT_UNITS=si_prc si_dll
 OBJPASDIR=$(RTL)/objpas
 ifdef EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dEXCEPTIONS_IN_SYSTEM
@@ -2698,6 +2698,8 @@ iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
 extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 si_prc$(PPUEXT) : si_prc.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+si_dll$(PPUEXT) : si_dll.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 wasiapi$(PPUEXT) : wasiapi.pp wasiinc/wasitypes.inc wasiinc/wasiprocs.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $< -Fiwasiinc
