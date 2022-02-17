@@ -272,14 +272,19 @@ type
   end;
 
 
+  { TPDFString }
+
   TPDFString = class(TPDFAbstractString)
   private
     FValue: AnsiString;
+    FCPValue : RawByteString;
+    function GetCPValue: RAwByteString;
   protected
     procedure Write(const AStream: TStream); override;
   public
-    constructor Create(Const ADocument : TPDFDocument; const AValue: AnsiString); overload;
-    property    Value: AnsiString read FValue;
+    constructor Create(Const ADocument : TPDFDocument; const AValue: String); overload;
+    property Value: AnsiString read FValue;
+    property CPValue : RAwByteString Read GetCPValue;
   end;
 
   TPDFUTF16String = class(TPDFAbstractString)
@@ -3470,13 +3475,22 @@ end;
 
 { TPDFString }
 
+function TPDFString.GetCPValue: RAwByteString;
+begin
+  if FCPValue='' then
+    begin
+    FCPValue:=Value;
+    SetCodePage(FCPValue, 1252);
+    end;
+  Result:=FCPValue;
+end;
+
 procedure TPDFString.Write(const AStream: TStream);
 var
   s: RawByteString;
 begin
   // TPDFText uses hardcoded WinAnsiEncoding (=win-1252), we have to convert to 1252 as well and not to ansi (that is not always 1252)
-  s := FValue;
-  SetCodePage(s, 1252);
+  s :=CPValue;
   WriteString('(', AStream);
   WriteString(s, AStream);
   WriteString(')', AStream);
@@ -3759,14 +3773,17 @@ var
   i: integer;
   lWidth: double;
   lFontName: string;
+  CPV : RawByteString;
+
 begin
   lFontName := Document.Fonts[Font.FontIndex].Name;
   if not Document.IsStandardPDFFont(lFontName) then
     raise EPDF.CreateFmt(rsErrUnknownStdFont, [lFontName]);
 
   lWidth := 0;
-  for i := 1 to Length(FString.Value) do
-    lWidth := lWidth + Document.GetStdFontCharWidthsArray(lFontName)[Ord(FString.Value[i])];
+  CPV:=FString.CPValue;
+  for i := 1 to Length(CPV) do
+    lWidth := lWidth + Document.GetStdFontCharWidthsArray(lFontName)[Ord(CPV[i])];
   Result := lWidth * Font.PointSize / 1540;
 end;
 
