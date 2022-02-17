@@ -202,11 +202,8 @@ Type
     Procedure DoParse(aParent : TMustacheElement; Const aTemplate, aStart, aStop : TMustacheString); virtual;
     // Called to get the template of a partial. The template is parsed, and the result added to the partials list.
     Function GetPartial(const aName : TMustacheString) : TMustacheString; virtual;
-    // Auxuliary functions for the peculiar whitespace handling of Mustache specs...
-    function EndsOnWhiteSpace(aElement: TMustacheElement): Boolean; virtual;
-    function GetEndingWhiteSpace(aElement: TMustacheElement): TMustacheString; virtual;
+    // Extract new start/stop tag markers
     procedure ExtractStartStop(const aName: TMustacheString; out aStart, aStop: TMustacheString); virtual;
-    procedure TrimEndingWhiteSpace(aElement: TMustacheElement); virtual;
   Public
     // Create a new parser.
     Constructor Create(aTemplate : TMustacheString = '';aStart: TMustacheString='';aStop: TMustacheString = ''); virtual;
@@ -961,55 +958,6 @@ begin
   DoParse(aParent,FTemplate,StartTag, StopTag);
 end;
 
-function TMustacheParser.EndsOnWhiteSpace(aElement: TMustacheElement): Boolean;
-
-Var
-  I : Integer;
-  S : TMustacheString;
-
-begin
-  // if on standalone line, the entire line must be removed, see specs comments.standalone
-  Result:=(aElement.ElementType=metText);
-  s:=aElement.Data;
-  I:=Length(S);
-  While Result and (I>0) do
-     begin
-     if S[i] in [#13,#10] then
-       Break;
-     Result:=(S[I]=' ');
-     Dec(i);
-     end;
-  Result:=Result and ((I>0) or (aElement.Position=1));
-end;
-
-function TMustacheParser.GetEndingWhiteSpace(aElement: TMustacheElement): TMustacheString;
-
-Var
-  S : TMustacheString;
-  I : Integer;
-
-begin
-  s:=aElement.Data;
-  I:=Length(S);
-  While (I>0) and (S[I]=' ') do
-     Dec(i);
-  Result:=Copy(S,I+1);
-end;
-
-procedure TMustacheParser.TrimEndingWhiteSpace(aElement: TMustacheElement);
-
-Var
-  I : Integer;
-  S : TMustacheString;
-
-begin
-  s:=aElement.Data;
-  I:=Length(S);
-  While (I>0) and (S[I]=' ') do
-     Dec(i);
-  aElement.Data:=Copy(S,1,I);
-end;
-
 Function TMustacheParser.CreateDefault(aParent : TMustacheElement; aPosition : Integer;Const aName : String) : TMustacheElement;
 
 begin
@@ -1025,42 +973,74 @@ Var
   aLen,clStop, lStart,lStop, NewPos, Current, Total : Integer;
   aName,cStart,cStop,R : TMustacheString;
   C: TMustacheChar;
-  IsWhiteSpace : Boolean;
-  Partial,WhiteSpaceEl : TMustacheELement;
+  IsStandalone: Boolean;
+  PartialPrefix: TMustacheString;
+  Partial : TMustacheELement;
 
-  Function CheckWhiteSpace : Boolean;
-
+  // check if the current tag is a tag that can occur standalone on a line
+  // if so, the whole line will be removed as per the specs
+  function IsStandaloneTag: Boolean;
   begin
-    WhiteSpaceEl:=Nil;
-    With CurrParent do
-      begin
-      Result:=(ChildCount=0) or EndsOnWhiteSpace(Children[ChildCount-1]);
-      if Result and (ChildCount>0) then
-         WhiteSpaceEl:=Children[ChildCount-1];
-      end;
+    Result := (NewPos + lStart <= Total) and
+      (aTemplate[NewPos + lStart] in ['=','#','!','^','>','/']);
   end;
 
-  Procedure FinishWhiteSpace(Full : Boolean = true);
-  Var
-    I : Integer;
+  function IsPartialTag: Boolean;
   begin
-    I:=NewPos;
-    While IsWhiteSpace and (I+clStop<=Total) do
-      begin
-      C:=aTemplate[I+clStop];
-      if (C in [#13,#10]) then
-        Break;
-      isWhiteSpace:=aTemplate[I+clStop]=' ';
-      I:=I+1;
-      end;
-    if isWhiteSpace then
-      begin
-      While (I<=Total) and (aTemplate[I+clStop] in [#13,#10]) do
-        Inc(I);
-      NewPos:=I;
-      if Assigned(WhiteSpaceEl) and full then
-        TrimEndingWhiteSpace(WhiteSpaceEl);
-      end;
+    Result := (NewPos + lStart <= Total) and (aTemplate[NewPos + lStart] = '>');
+  end;
+
+  // check if the current tag occurs standalone on a line
+  function CheckStandalone: Boolean;
+
+    function LeftOnlyWhiteSpace: Boolean;
+    var
+      I: Integer;
+    begin
+      I := NewPos - 1;
+      while (I >= 1) and (aTemplate[I] = ' ') do
+         Dec(I);
+      Result := (I < 1) or (aTemplate[I] = #10);
+    end;
+
+    function RightOnlyWhiteSpace: Boolean;
+    var
+      I: Integer;
+    begin
+      I := Pos(cStop, aTemplate, NewPos + lStart);
+      if I = 0 then
+        Exit(False);
+      Inc(I, lStop);
+      while (I <= Total) and (aTemplate[I] = ' ') do
+         Inc(I);
+      Result := (I > Total) or (aTemplate[I] = #10) or
+        (Copy(aTemplate, I, 2) = #13#10);
+    end;
+
+  begin
+    Result := IsStandaloneTag and LeftOnlyWhiteSpace and RightOnlyWhiteSpace;
+  end;
+
+  function WhiteSpaceRightPos(const S: TMustacheString): Integer;
+  var
+    I: Integer;
+  begin
+    I := Length(S);
+    while (I > 0) and (S[I] = ' ') do
+      Dec(I);
+
+    Result := I + 1;
+  end;
+
+  procedure SkipRestOfLine;
+  var
+    EndOfLine: Integer;
+  begin
+    EndOfLine := Pos(#10, aTemplate, Current);
+    if EndOfLine = 0 then
+      Current := Total + 1
+    else
+      Current := EndOfLine + 1;
   end;
 
 begin
@@ -1073,15 +1053,24 @@ begin
   Total:=Length(aTemplate);
   While (Current<=Total) do
     begin
-    C:=Template[Current];
+    PartialPrefix := '';
     NewPos:=Pos(cStart,aTemplate,Current);
+    IsStandalone := CheckStandalone;
     if NewPos=0 then
       NewPos:=Total+1;
     // Stash what we have till now.
     if NewPos>Current then
       begin
       R:=Copy(aTemplate,Current,NewPos-Current);
-      CreateElement(metText,currParent,Current).SetData(R);
+      if IsStandalone then
+        if IsPartialTag then
+          // keep R intact; copy trailing whitespace to PartialPrefix
+          PartialPrefix := Copy(R, WhiteSpaceRightPos(R))
+        else
+          // remove trailing whitespace from R
+          R := Copy(R, 1, WhiteSpaceRightPos(R) - 1);
+      if R <> '' then
+        CreateElement(metText,currParent,Current).SetData(R);
       Current:=NewPos;
       end;
     if Current<Total then
@@ -1100,14 +1089,9 @@ begin
       case C of
         '=' :
           begin
-          IsWhiteSpace:=CheckWhiteSpace;
-          if IsWhiteSpace then
-            FinishWhiteSpace;
           ExtractStartStop(aName,cStart,cStop);
           lStart:=Length(cStart);
           lStop:=Length(cStop);
-          //R:=Copy(aTemplate,newPos+clStop);
-          //Writeln(R);
           end;
         '{' :
           begin
@@ -1122,31 +1106,21 @@ begin
           end;
         '#' :
           begin
-          IsWhiteSpace:=CheckWhiteSpace;
           CurrParent:=CreateElement(metSection,currParent,Current);
           CurrParent.SetData(aName);
-          if IsWhiteSpace then
-            FinishWhiteSpace;
           end;
         '!' :
           begin
-          IsWhiteSpace:=CheckWhiteSpace;
           CreateElement(metComment,currParent,Current).SetData(aName);
-          if IsWhiteSpace then
-            FinishWhiteSpace;
           end;
         '^' :
           begin
-          IsWhiteSpace:=CheckWhiteSpace;
           CurrParent:=CreateElement(metInvertedSection,currParent,Current);
           CurrParent.SetData(aName);
-          if IsWhiteSpace then
-            FinishWhiteSpace;
           end;
         '>' :
           begin
           // Find or create compiled partial;
-          IsWhiteSpace:=CheckWhiteSpace;
           aName:=Trim(aName);
           if not Assigned(Partials) then
             Raise EMustache.Create(SErrNoPartials);
@@ -1162,28 +1136,24 @@ begin
             begin
             AddChild(Partial);
             Data:=aName;
-            if isWhitespace and assigned(WhiteSpaceEl) then
-              Prefix:=GetEndingWhiteSpace(WhiteSpaceEl);
+            Prefix := PartialPrefix;
             end;
-          if IsWhiteSpace then
-            FinishWhiteSpace(False);
           end;
         '/' :
           begin
-          IsWhiteSpace:=CheckWhiteSpace;
           if Not (CurrParent.ElementType in [metSection,metInvertedSection]) then
             Raise EMustache.CreateFmt(SErrNoSectionToClose,[aName,Current])
           else if (CurrParent.Data<>Trim(aName)) then
             Raise EMustache.CreateFmt(SErrSectionClose,[currParent.Data,CurrParent.Position,aName,Current])
           else
             currParent:=currParent.Parent;
-          if IsWhiteSpace then
-            FinishWhiteSpace;
           end
       else
         CreateDefault(CurrParent,Current,aName);
       end;
       Current:=NewPos+clStop;
+      if IsStandalone then
+        SkipRestOfLine;
       end;
     end;
   if CurrParent<>aParent then
