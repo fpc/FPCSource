@@ -225,7 +225,6 @@ begin
   Replace(cmdstr,'$MAP',mapstr);
   //Replace(cmdstr,'$LTO',ltostr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
-  writeln(utilsprefix+binstr,' ',cmdstr);
   success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
 
   MakeSharedLibrary:=success;
