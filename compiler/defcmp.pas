@@ -59,8 +59,9 @@ interface
           cdo_allow_variant,
           cdo_parameter,
           cdo_warn_incompatible_univ,
-          cdo_strict_undefined_check,  // undefined defs are incompatible to everything except other undefined defs
-          cdo_equal_check              // this call is only to check equality -> shortcut some expensive checks
+          cdo_strict_undefined_check,    // undefined defs are incompatible to everything except other undefined defs
+          cdo_equal_check,               // this call is only to check equality -> shortcut some expensive checks
+          cdo_strict_genconstraint_check // check that generic constraints match (used for forward declarations)
        );
        tcompare_defs_options = set of tcompare_defs_option;
 
@@ -183,6 +184,18 @@ implementation
       defutil,symutil;
 
 
+    function same_genconstraint_interfaces(intffrom,intfto:tobject):boolean;
+      begin
+        result:=equal_defs(tdef(intffrom),tdef(intfto));
+      end;
+
+
+    function same_objectdef_implementedinterfaces(intffrom,intfto:tobject):boolean;
+      begin
+        result:=equal_defs(TImplementedInterface(intffrom).IntfDef,TImplementedInterface(intfto).IntfDef);
+      end;
+
+
     function compare_defs_ext(def_from,def_to : tdef;
                               fromtreetype : tnodetype;
                               var doconv : tconverttype;
@@ -220,6 +233,27 @@ implementation
           (tc_not_possible,tc_int_2_int,tc_int_2_int,tc_int_2_bool),
           (tc_not_possible,tc_bool_2_int,tc_bool_2_int,tc_bool_2_bool));
 
+      type
+        tsame_interface_func = function(intffrom,intfto:tobject):boolean;
+
+      function same_interface_lists(listfrom,listto:tfpobjectlist;checkfunc:tsame_interface_func):boolean;
+        var
+          i : longint;
+        begin
+          result:=false;
+          if assigned(listfrom) xor assigned(listto) then
+            exit;
+          if not assigned(listfrom) and not assigned(listto) then
+            exit(true);
+          if listfrom.count<>listto.count then
+            exit;
+          for i:=0 to listfrom.count-1 do
+            if not checkfunc(tdef(listfrom[i]),tdef(listto[i])) then
+              exit;
+          result:=true;
+        end;
+
+
       var
          subeq,eq : tequaltype;
          hd1,hd2 : tdef;
@@ -230,6 +264,7 @@ implementation
          i : longint;
          diff : boolean;
          symfrom,symto : tsym;
+         genconstrfrom,genconstrto : tgenericconstraintdata;
       begin
          eq:=te_incompatible;
          doconv:=tc_not_possible;
@@ -287,6 +322,18 @@ implementation
              if (def_from.typ=undefineddef) or
                  (def_to.typ=undefineddef) then
                begin
+                 { for strict checks with genconstraints pure undefineddefs are
+                   not compatible with constrained defs }
+                 if (cdo_strict_genconstraint_check in cdoptions) and
+                     (
+                       assigned(tstoreddef(def_from).genconstraintdata) or
+                       assigned(tstoreddef(def_to).genconstraintdata)
+                     ) then
+                   begin
+                     doconv:=tc_not_possible;
+                     compare_defs_ext:=te_incompatible;
+                     exit;
+                   end;
                  doconv:=tc_equal;
                  compare_defs_ext:=te_exact;
                  exit;
@@ -310,6 +357,44 @@ implementation
                      doconv:=tc_not_possible;
                      compare_defs_ext:=te_incompatible;
                      exit;
+                   end;
+
+                 { for a strict check of the generic constraints the constraints
+                   of both parts need to match }
+                 if cdo_strict_genconstraint_check in cdoptions then
+                   begin
+                     genconstrfrom:=tstoreddef(def_from).genconstraintdata;
+                     genconstrto:=tstoreddef(def_to).genconstraintdata;
+                     if (
+                         { both parts need to be constraints }
+                         not assigned(genconstrfrom) or
+                         not assigned(genconstrto)
+                       ) or (
+                         { same type of def required }
+                         def_from.typ<>def_to.typ
+                       ) or (
+                         { for objectdefs same object type as well as parent required }
+                         (def_from.typ=objectdef) and
+                         (
+                           (tobjectdef(def_from).objecttype<>tobjectdef(def_to).objecttype) or
+                           not equal_defs(tobjectdef(def_from).childof,tobjectdef(def_to).childof)
+                         )
+                       ) or (
+                         { the flags need to match }
+                         genconstrfrom.flags<>genconstrto.flags
+                       ) or
+                       { the interfaces of the constraints need to match }
+                       not same_interface_lists(genconstrfrom.interfaces,genconstrto.interfaces,@same_genconstraint_interfaces) or
+                       (
+                         { for objectdefs the implemented interfaces need to match }
+                         (def_from.typ=objectdef) and not
+                         same_interface_lists(tobjectdef(def_from).implementedinterfaces,tobjectdef(def_to).implementedinterfaces,@same_objectdef_implementedinterfaces)
+                       ) then
+                       begin
+                         doconv:=tc_not_possible;
+                         compare_defs_ext:=te_incompatible;
+                         exit;
+                       end;
                    end;
 
                  { maybe we are in generic type declaration/implementation.
