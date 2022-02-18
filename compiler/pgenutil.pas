@@ -55,6 +55,7 @@ uses
 
     procedure generate_specialization_procs;
     procedure maybe_add_pending_specialization(def:tdef);
+    function determine_generic_def(const name:tidstring):tstoreddef;
 
     procedure specialization_init(genericdef:tdef;var state:tspecializationstate);
     procedure specialization_done(var state:tspecializationstate);
@@ -2068,5 +2069,53 @@ uses
         if tstoreddef(def).is_specialization and (hmodule=current_module) then
           current_module.pendingspecializations.add(def.typename,def);
       end;
+
+
+    function determine_generic_def(const name:tidstring):tstoreddef;
+      var
+        hashedid : THashedIDString;
+        pd : tprocdef;
+        sym : tsym;
+      begin
+        result:=nil;
+        { check whether this is a declaration of a type inside a
+          specialization }
+        if assigned(current_structdef) and
+            (df_specialization in current_structdef.defoptions) then
+          begin
+            if not assigned(current_structdef.genericdef) or
+                not (current_structdef.genericdef.typ in [recorddef,objectdef]) then
+              internalerror(2011052301);
+            hashedid.id:=name;
+            { we could be inside a method of the specialization
+              instead of its declaration, so check that first (as
+              local nested types aren't allowed we don't need to
+              walk the symtablestack to find the localsymtable) }
+            if symtablestack.top.symtabletype=localsymtable then
+              begin
+                { we are in a method }
+                if not assigned(symtablestack.top.defowner) or
+                    (symtablestack.top.defowner.typ<>procdef) then
+                  internalerror(2011120701);
+                pd:=tprocdef(symtablestack.top.defowner);
+                if not assigned(pd.genericdef) or (pd.genericdef.typ<>procdef) then
+                  internalerror(2011120702);
+                sym:=tsym(tprocdef(pd.genericdef).localst.findwithhash(hashedid));
+              end
+            else
+              sym:=nil;
+            if not assigned(sym) or not (sym.typ=typesym) then
+              begin
+                { now search in the declaration of the generic }
+                sym:=tsym(tabstractrecorddef(current_structdef.genericdef).symtable.findwithhash(hashedid));
+                if not assigned(sym) or not (sym.typ=typesym) then
+                  internalerror(2011052302);
+              end;
+            { use the corresponding type in the generic's symtable as
+              genericdef for the specialized type }
+            result:=tstoreddef(ttypesym(sym).typedef);
+          end;
+      end;
+
 
 end.
