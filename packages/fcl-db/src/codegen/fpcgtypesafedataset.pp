@@ -128,6 +128,7 @@ Type
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
     Class Function NeedsSQL: Boolean; override;
+    Class Function NeedsFieldDefs : Boolean; override;
     Property SafeOpts : TGenTypeSafeDatasetOptions Read GetSafeOpts;
   end;
 
@@ -814,6 +815,12 @@ begin
 end;
 
 class function TDDTypeSafeDatasetCodeGenerator.NeedsSQL: Boolean;
+begin
+  Result:=True;
+end;
+
+Class Function TDDTypeSafeDatasetCodeGenerator.NeedsFieldDefs : Boolean; 
+
 begin
   Result:=True;
 end;
