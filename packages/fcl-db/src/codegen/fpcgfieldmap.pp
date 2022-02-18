@@ -51,6 +51,7 @@ Type
     procedure CreateFieldMapImplementation(Strings: TStrings; const ObjectClassName, MapClassName: String);
     Property FieldMapOpts : TGenFieldMapOptions Read Getopt;
   Public
+    Class function NeedsFieldDefs: Boolean; override;
     procedure CreateFieldMapDeclaration(Strings: TStrings; const ObjectClassName,MapClassName, MapAncestorName: String);
   end;
 
@@ -214,6 +215,11 @@ begin
       EndMethod(Strings,S);
     end;
     end;
+end;
+
+class function TDDBaseFieldMapCodeGenerator.NeedsFieldDefs: Boolean;
+begin
+  Result:=True;
 end;
 
 procedure TDDBaseFieldMapCodeGenerator.WriteFillMethod(Strings: TStrings; const ObjectClassName, MapClassName: String);
