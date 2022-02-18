@@ -47,7 +47,7 @@ interface
     procedure property_dec;
     procedure resourcestring_dec(out had_generic:boolean);
     procedure parse_rttiattributes(var rtti_attrs_def:trtti_attribute_list);
-    function parse_forward_declaration(sym:tsym;gentypename,genorgtypename:tidstring;generictypelist:tfphashobjectlist;out newtype:ttypesym):tdef;
+    function parse_forward_declaration(sym:tsym;gentypename,genorgtypename:tidstring;genericdef:tdef;generictypelist:tfphashobjectlist;out newtype:ttypesym):tdef;
 
 implementation
 
@@ -567,7 +567,7 @@ implementation
       end;
 
 
-    function parse_forward_declaration(sym:tsym;gentypename,genorgtypename:tidstring;generictypelist:tfphashobjectlist;out newtype:ttypesym):tdef;
+    function parse_forward_declaration(sym:tsym;gentypename,genorgtypename:tidstring;genericdef:tdef;generictypelist:tfphashobjectlist;out newtype:ttypesym):tdef;
       var
         wasforward : boolean;
         objecttype : tobjecttyp;
@@ -610,9 +610,12 @@ implementation
                internalerror(200811072);
            end;
            consume(token);
-           { determine the generic def in case we are in a nested type
-             of a specialization }
-           gendef:=determine_generic_def(gentypename);
+           if assigned(genericdef) then
+             gendef:=tstoreddef(genericdef)
+           else
+             { determine the generic def in case we are in a nested type
+               of a specialization }
+             gendef:=determine_generic_def(gentypename);
            { we can ignore the result, the definition is modified }
            object_dec(objecttype,genorgtypename,newtype,gendef,generictypelist,tobjectdef(ttypesym(sym).typedef),ht_none);
            if wasforward and
@@ -752,14 +755,6 @@ implementation
                generictypelist:=parse_generic_parameters(true);
                consume(_RSHARPBRACKET);
 
-               { we are not freeing the type parameters, so register them }
-               for i:=0 to generictypelist.count-1 do
-                 begin
-                    tstoredsym(generictypelist[i]).register_sym;
-                    if tstoredsym(generictypelist[i]).typ=typesym then
-                      tstoreddef(ttypesym(generictypelist[i]).typedef).register_def;
-                 end;
-
                str(generictypelist.Count,s);
                gentypename:=typename+'$'+s;
                genorgtypename:=orgtypename+'$'+s;
@@ -805,12 +800,23 @@ implementation
                    (sp_generic_dummy in sym.symoptions)
                  ) then
                begin
-                 hdef:=parse_forward_declaration(sym,gentypename,genorgtypename,generictypelist,newtype);
+                 hdef:=parse_forward_declaration(sym,gentypename,genorgtypename,nil,generictypelist,newtype);
                end;
             end;
            { no old type reused ? Then insert this new type }
            if not assigned(newtype) then
             begin
+              if isgeneric then
+                begin
+                  { we are not freeing the type parameters, so register them }
+                  for i:=0 to generictypelist.count-1 do
+                    begin
+                       tstoredsym(generictypelist[i]).register_sym;
+                       if tstoredsym(generictypelist[i]).typ=typesym then
+                         tstoreddef(ttypesym(generictypelist[i]).typedef).register_def;
+                    end;
+                end;
+
               { insert the new type first with an errordef, so that
                 referencing the type before it's really set it
                 will give an error (PFV) }
@@ -1137,6 +1143,16 @@ implementation
                tstoreddef(hdef).generictokenbuf:=localgenerictokenbuf;
                { Generic is never a type renaming }
                hdef.typesym:=newtype;
+               { reusing a forward declared type also reuses the type parameters,
+                 so free them if they haven't been used }
+               for i:=0 to generictypelist.count-1 do
+                 begin
+                   if (tstoredsym(generictypelist[i]).typ=typesym) and
+                       not ttypesym(generictypelist[i]).typedef.is_registered then
+                     ttypesym(generictypelist[i]).typedef.free;
+                   if not tstoredsym(generictypelist[i]).is_registered then
+                     tstoredsym(generictypelist[i]).free;
+                 end;
                generictypelist.free;
              end;
 

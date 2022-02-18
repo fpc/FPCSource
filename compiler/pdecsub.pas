@@ -1152,7 +1152,7 @@ implementation
                      if tsym(genericparams[i]).typ=typesym then
                        tstoreddef(ttypesym(genericparams[i]).typedef).register_def;
                   end;
-                insert_generic_parameter_types(pd,nil,genericparams);
+                insert_generic_parameter_types(pd,nil,genericparams,false);
                 { the list is no longer required }
                 genericparams.free;
                 genericparams:=nil;
@@ -1199,7 +1199,7 @@ implementation
               end;
           end
         else if assigned(genericdef) then
-          insert_generic_parameter_types(pd,tstoreddef(genericdef),generictypelist);
+          insert_generic_parameter_types(pd,tstoreddef(genericdef),generictypelist,false);
 
         { methods inherit df_generic or df_specialization from the objectdef }
         if assigned(pd.struct) and

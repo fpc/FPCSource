@@ -145,6 +145,7 @@ interface
         checkforwarddefs,
         deflist,
         symlist       : TFPObjectList;
+        forwardgenericdefs : TFPHashObjectList; { contains a list of specializations of a forward declared generic (the key) }
         ptrdefs       : THashSet; { list of pointerdefs created in this module so we can reuse them (not saved/restored) }
         arraydefs     : THashSet; { list of single-element-arraydefs created in this module so we can reuse them (not saved/restored) }
         procaddrdefs  : THashSet; { list of procvardefs created when getting the address of a procdef (not saved/restored) }
@@ -612,6 +613,7 @@ implementation
         ansistrdef:=nil;
         wpoinfo:=nil;
         checkforwarddefs:=TFPObjectList.Create(false);
+        forwardgenericdefs:=TFPHashObjectList.Create(true);
         extendeddefs:=TFPHashObjectList.Create(true);
         genericdummysyms:=tfphashobjectlist.create(true);
         pendingspecializations:=tfphashobjectlist.create(false);
@@ -754,6 +756,7 @@ implementation
         ansistrdef:=nil;
         wpoinfo.free;
         checkforwarddefs.free;
+        forwardgenericdefs.free;
         globalsymtable.free;
         localsymtable.free;
         globalmacrosymtable.free;
@@ -835,6 +838,8 @@ implementation
         wpoinfo:=nil;
         checkforwarddefs.free;
         checkforwarddefs:=TFPObjectList.Create(false);
+        forwardgenericdefs.free;
+        forwardgenericdefs:=TFPHashObjectList.Create(true);
         publicasmsyms.free;
         publicasmsyms:=TFPHashObjectList.Create(true);
         externasmsyms.free;

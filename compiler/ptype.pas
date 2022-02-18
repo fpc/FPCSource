@@ -229,6 +229,10 @@ implementation
                   if not(m_fpc in current_settings.modeswitches) and
                      (oo_is_forward in tobjectdef(def).objectoptions) then
                     MessagePos1(def.typesym.fileinfo,type_e_type_is_not_completly_defined,def.typename);
+                  { generate specializations for generic forwarddefs }
+                  if not (oo_is_forward in tobjectdef(def).objectoptions) and
+                      tstoreddef(def).is_generic then
+                    generate_specializations_for_forwarddef(def);
                  end;
               else
                 internalerror(200811071);
@@ -1037,7 +1041,7 @@ implementation
              (df_generic in old_current_structdef.defoptions) then
            include(current_structdef.defoptions,df_generic);
 
-         insert_generic_parameter_types(current_structdef,genericdef,genericlist);
+         insert_generic_parameter_types(current_structdef,genericdef,genericlist,false);
          { when we are parsing a generic already then this is a generic as
            well }
          if old_parse_generic then
@@ -1412,7 +1416,7 @@ implementation
            else if assigned(genericlist) then
              current_genericdef:=arrdef;
            symtablestack.push(arrdef.symtable);
-           insert_generic_parameter_types(arrdef,genericdef,genericlist);
+           insert_generic_parameter_types(arrdef,genericdef,genericlist,false);
            { there are two possibilties for the following to be true:
              * the array declaration itself is generic
              * the array is declared inside a generic
@@ -1586,7 +1590,7 @@ implementation
             else if assigned(genericlist) then
               current_genericdef:=pd;
             symtablestack.push(pd.parast);
-            insert_generic_parameter_types(pd,genericdef,genericlist);
+            insert_generic_parameter_types(pd,genericdef,genericlist,false);
             { there are two possibilties for the following to be true:
               * the procvar declaration itself is generic
               * the procvar is declared inside a generic

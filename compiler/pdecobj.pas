@@ -1450,7 +1450,7 @@ implementation
         { reuse forward objectdef? }
         if assigned(fd) then
           begin
-            if fd.objecttype<>objecttype then
+            if (fd.objecttype<>objecttype) or ((fd.is_generic or fd.is_specialization) xor assigned(genericlist)) then
               begin
                 Message(parser_e_forward_mismatch);
                 { recover }
@@ -1567,6 +1567,19 @@ implementation
             { add to the list of definitions to check that the forward
               is resolved. this is required for delphi mode }
             current_module.checkforwarddefs.add(current_structdef);
+
+            symtablestack.push(current_structdef.symtable);
+            insert_generic_parameter_types(current_structdef,genericdef,genericlist,false);
+            { when we are parsing a generic already then this is a generic as
+              well }
+            if old_parse_generic then
+              include(current_structdef.defoptions,df_generic);
+            parse_generic:=(df_generic in current_structdef.defoptions);
+
+            { *don't* add the strict private symbol for non-Delphi modes for
+              forward defs }
+
+            symtablestack.pop(current_structdef.symtable);
           end
         else
           begin
@@ -1586,7 +1599,7 @@ implementation
               parse_object_options;
 
             symtablestack.push(current_structdef.symtable);
-            insert_generic_parameter_types(current_structdef,genericdef,genericlist);
+            insert_generic_parameter_types(current_structdef,genericdef,genericlist,assigned(fd));
             { when we are parsing a generic already then this is a generic as
               well }
             if old_parse_generic then

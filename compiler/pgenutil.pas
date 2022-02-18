@@ -45,7 +45,7 @@ uses
     function check_generic_constraints(genericdef:tstoreddef;paramlist:tfpobjectlist;poslist:tfplist):boolean;
     function parse_generic_parameters(allowconstraints:boolean):tfphashobjectlist;
     function parse_generic_specialization_types(paramlist:tfpobjectlist;poslist:tfplist;out prettyname,specializename:ansistring):boolean;
-    procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:tfphashobjectlist);
+    procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:tfphashobjectlist;isfwd:boolean);
     procedure maybe_insert_generic_rename_symbol(const name:tidstring;genericlist:tfphashobjectlist);
     function generate_generic_name(const name:tidstring;const specializename:ansistring;const owner_hierarchy:string):tidstring;
     procedure split_generic_name(const name:tidstring;out nongeneric:string;out count:longint);
@@ -54,6 +54,7 @@ uses
     function could_be_generic(const name:tidstring):boolean;inline;
 
     procedure generate_specialization_procs;
+    procedure generate_specializations_for_forwarddef(def:tdef);
     procedure maybe_add_pending_specialization(def:tdef);
     function determine_generic_def(const name:tidstring):tstoreddef;
 
@@ -74,7 +75,7 @@ uses
   node,nobj,ncon,
   { parser }
   scanner,
-  pbase,pexpr,pdecsub,ptype,psub,pparautl;
+  pbase,pexpr,pdecsub,ptype,psub,pparautl,pdecl;
 
   type
     tdeftypeset = set of tdeftyp;
@@ -239,6 +240,30 @@ uses
               hmodule.waitingunits.add(current_module);
           end;
       end;
+
+
+    procedure add_forward_generic_def(def:tdef;context:tspecializationcontext);
+      var
+        list : tfpobjectlist;
+        fwdcontext : tspecializationcontext;
+      begin
+        if not is_implicit_pointer_object_type(def) then
+          internalerror(2020070301);
+        if not (oo_is_forward in tobjectdef(def).objectoptions) then
+          internalerror(2020070302);
+        if not assigned(tobjectdef(def).genericdef) then
+          internalerror(2020070303);
+        list:=tfpobjectlist(current_module.forwardgenericdefs.find(tobjectdef(def).genericdef.fulltypename));
+        if not assigned(list) then
+          begin
+            list:=tfpobjectlist.create(true);
+            current_module.forwardgenericdefs.add(tobjectdef(def).genericdef.fulltypename,list);
+          end;
+        fwdcontext:=context.getcopy;
+        fwdcontext.forwarddef:=def;
+        list.add(fwdcontext);
+      end;
+
 
     function check_generic_constraints(genericdef:tstoreddef;paramlist:tfpobjectlist;poslist:tfplist):boolean;
       var
@@ -654,6 +679,10 @@ uses
                 (
                   not assigned(genericdef.typesym) or
                   (genericdef.typesym.typ<>typesym)
+                ) and
+                (
+                  (genericdef.typ<>objectdef) or
+                  not (oo_is_forward in tobjectdef(genericdef).objectoptions)
                 )
               ) or
               (
@@ -702,8 +731,12 @@ uses
           begin
             if genericdef.typ=procdef then
               genname:=tprocdef(genericdef).procsym.realname
+            else if assigned(genericdef.typesym) then
+              genname:=ttypesym(genericdef.typesym).realname
+            else if (genericdef.typ=objectdef) and (oo_is_forward in tobjectdef(genericdef).objectoptions) then
+              genname:=tobjectdef(genericdef).objrealname^
             else
-              genname:=ttypesym(genericdef.typesym).realname;
+              internalerror(2020071201);
           end
         else
           genname:=symname;
@@ -870,6 +903,7 @@ uses
         specializest : tsymtable;
         hashedid : thashedidstring;
         tempst : tglobalsymtable;
+        tsrsym : ttypesym;
         psym,
         srsym : tsym;
         paramdef1,
@@ -1024,7 +1058,11 @@ uses
           end;
 
         { decide in which symtable to put the specialization }
-        if parse_generic and not assigned(result) then
+        if assigned(context.forwarddef) then
+          begin
+            specializest:=context.forwarddef.owner;
+          end
+        else if parse_generic and not assigned(result) then
           begin
             srsymtable:=symtablestack.top;
             if (srsymtable.symtabletype in [localsymtable,parasymtable]) and tstoreddef(srsymtable.defowner).is_specialization then
@@ -1071,7 +1109,7 @@ uses
           begin
             hashedid.id:=ufinalspecializename;
 
-            if specializest.symtabletype=objectsymtable then
+            if (specializest.symtabletype=objectsymtable) and not assigned(context.forwarddef) then
               begin
                 { search also in parent classes }
                 if not assigned(current_genericdef) or (current_genericdef.typ<>objectdef) then
@@ -1082,7 +1120,15 @@ uses
             else
               srsym:=tsym(specializest.findwithhash(hashedid));
 
-            if assigned(srsym) then
+            if assigned(context.forwarddef) then
+              begin
+                { just do a few sanity checks }
+                if not assigned(srsym) or not (srsym.typ=typesym) then
+                  internalerror(2020070306);
+                if ttypesym(srsym).typedef<>context.forwarddef then
+                  internalerror(2020070307);
+              end
+            else if assigned(srsym) then
               begin
                 retrieve_genericdef_or_procsym(srsym,result,psym);
               end
@@ -1147,8 +1193,8 @@ uses
                 else
                   srsym:=ctypesym.create(finalspecializename,generrordef);
                 { insert the symbol only if we don't know already that we have
-                  a procsym to add it to }
-                if not assigned(psym) then
+                  a procsym to add it to and we aren't dealing with a forwarddef }
+                if not assigned(psym) and not assigned(context.forwarddef) then
                   specializest.insert(srsym);
 
                 { specializations are declarations as such it is the wisest to
@@ -1199,10 +1245,20 @@ uses
                 else
                   begin
                     current_scanner.startreplaytokens(genericdef.generictokenbuf,hmodule.change_endian);
-                    hadtypetoken:=false;
-                    read_named_type(result,srsym,genericdef,generictypelist,false,hadtypetoken);
-                    ttypesym(srsym).typedef:=result;
-                    result.typesym:=srsym;
+                    if assigned(context.forwarddef) then
+                      begin
+                        tsrsym:=nil;
+                        result:=parse_forward_declaration(context.forwarddef.typesym,ufinalspecializename,finalspecializename,genericdef,generictypelist,tsrsym);
+                        srsym:=tsrsym;
+                      end
+                    else
+                      begin
+                        hadtypetoken:=false;
+                        read_named_type(result,srsym,genericdef,generictypelist,false,hadtypetoken);
+                        ttypesym(srsym).typedef:=result;
+                        result.typesym:=srsym;
+                      end;
+
 
                     if _prettyname<>'' then
                       ttypesym(result.typesym).fprettyname:=_prettyname
@@ -1231,7 +1287,10 @@ uses
                             consume(_SEMICOLON);
                         end;
 
-                      build_vmt(tobjectdef(result));
+                      if oo_is_forward in tobjectdef(result).objectoptions then
+                        add_forward_generic_def(result,context)
+                      else
+                        build_vmt(tobjectdef(result));
                     end;
                   { handle params, calling convention, etc }
                   procvardef:
@@ -1624,13 +1683,17 @@ uses
       end;
 
 
-    procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:tfphashobjectlist);
+    procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:tfphashobjectlist;isfwd:boolean);
       var
         i : longint;
-        generictype : tstoredsym;
+        generictype,
+        fwdparam : tstoredsym;
         generictypedef : tdef;
         sym : tsym;
         st : tsymtable;
+        fwdok : boolean;
+        conv : tconverttype;
+        op : tprocdef;
       begin
         def.genericdef:=genericdef;
         if not assigned(genericlist) then
@@ -1649,6 +1712,57 @@ uses
           else
             internalerror(201101020);
         end;
+
+        { if we have a forwarddef we check whether the generic parameters are
+          equal and otherwise ignore the list }
+        if isfwd then
+          begin
+            fwdok:=true;
+            if (genericlist.count>0) and
+                (
+                  not assigned(def.genericparas)
+                  or (def.genericparas.count<>genericlist.count)
+                ) then
+              fwdok:=false
+            else
+              begin
+                for i:=0 to genericlist.count-1 do
+                  begin
+                    if def.genericparas.nameofindex(i)<>genericlist.nameofindex(i) then
+                      begin
+                        fwdok:=false;
+                        break;
+                      end;
+                    generictype:=tstoredsym(genericlist[i]);
+                    fwdparam:=tstoredsym(def.genericparas[i]);
+                    op:=nil;
+                    conv:=tc_equal;
+                    if generictype.typ<>fwdparam.typ then
+                      fwdok:=false
+                    else if (generictype.typ=typesym) then
+                      begin
+                        if compare_defs_ext(ttypesym(generictype).typedef,ttypesym(fwdparam).typedef,nothingn,conv,op,[cdo_strict_genconstraint_check])<te_exact then
+                          fwdok:=false;
+                      end
+                    else if (generictype.typ=constsym) then
+                      begin
+                        if (tconstsym(generictype).consttyp<>tconstsym(fwdparam).consttyp) or
+                            (compare_defs_ext(tconstsym(generictype).constdef,tconstsym(fwdparam).constdef,nothingn,conv,op,[cdo_strict_genconstraint_check])<te_exact) then
+                          fwdok:=false;
+                      end
+                    else
+                      internalerror(2020070101);
+
+                    if not fwdok then
+                      break;
+                  end;
+              end;
+
+            if not fwdok then
+              Message(parser_e_forward_mismatch);
+
+            exit;
+          end;
 
         if (genericlist.count>0) and not assigned(def.genericparas) then
           def.genericparas:=tfphashobjectlist.create(false);
@@ -2052,6 +2166,29 @@ uses
 
         readdlist.free;
         list.free;
+      end;
+
+
+    procedure generate_specializations_for_forwarddef(def:tdef);
+      var
+        list : tfpobjectlist;
+        idx,
+        i : longint;
+        context : tspecializationcontext;
+      begin
+        if not tstoreddef(def).is_generic then
+          internalerror(2020070304);
+        idx:=current_module.forwardgenericdefs.findindexof(def.fulltypename);
+        if idx<0 then
+          exit;
+        list:=tfpobjectlist(current_module.forwardgenericdefs.items[idx]);
+        if not assigned(list) then
+          internalerror(2020070305);
+        for i:=0 to list.count-1 do begin
+          context:=tspecializationcontext(list[i]);
+          generate_specialization_phase2(context,tstoreddef(def),false,'');
+        end;
+        current_module.forwardgenericdefs.delete(idx);
       end;
 
 

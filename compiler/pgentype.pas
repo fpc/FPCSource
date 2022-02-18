@@ -49,6 +49,7 @@ type
     genname : string;
     sym : tsym;
     symtable : tsymtable;
+    forwarddef : tdef;
     constructor create;
     destructor destroy;override;
     function getcopy:tspecializationcontext;
@@ -95,6 +96,7 @@ begin
   result.genname:=genname;
   result.sym:=sym;
   result.symtable:=symtable;
+  result.forwarddef:=forwarddef;
 end;
 
 end.
