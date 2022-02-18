@@ -1607,7 +1607,7 @@ implementation
             parse_generic:=(df_generic in current_structdef.defoptions);
 
             { in non-Delphi modes we need a strict private symbol without type
-              count and type parameters in the name to simply resolving }
+              count and type parameters in the name to simplify resolving }
             maybe_insert_generic_rename_symbol(n,genericlist);
 
             { parse list of parent classes }

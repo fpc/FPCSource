@@ -786,7 +786,7 @@ implementation
 
            { is the type already defined? -- must be in the current symtable,
              not in a nested symtable or one higher up the stack -> don't
-             use searchsym & frinds! }
+             use searchsym & friends! }
            sym:=tsym(symtablestack.top.find(gentypename));
            newtype:=nil;
            { found a symbol with this name? }
