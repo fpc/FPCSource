@@ -10,12 +10,14 @@ uses
 Type
 
   { TGenFieldMapOptions }
-  TFieldMapOption = (fmoPublicFields,fmoRequireFields);
+  TFieldMapOption = (fmoPublicFields,fmoRequireFields,fmoLoadObject);
   TFieldMapOptions = Set of TFieldMapOption;
 
   TGenFieldMapOptions = Class(TClassCodeGeneratorOptions)
   Private
     FOptions: TFieldMapOptions;
+    FMapClassName : String;
+    FMapAncestorClassName : String;
   Protected
     function GetMapAncestorName: String; virtual;
     function GetMapName: String; virtual;
@@ -26,11 +28,14 @@ Type
     Procedure Assign(ASource: TPersistent); override;
     Property MapAncestorName : String Read GetMapAncestorName Write SetMapAncestorName;
     Property MapClassName : String Read GetMapName Write SetMapClassName;
+    Property AncestorClass;
   Published
     Property FieldMapOptions : TFieldMapOptions Read FOptions Write FOptions;
   end;
 
   { TDDDBFieldMapCodeGenerator }
+
+  { TDDBaseFieldMapCodeGenerator }
 
   TDDBaseFieldMapCodeGenerator = Class(TDDClassCodeGenerator)
   private
@@ -40,7 +45,8 @@ Type
     Function GetInterfaceUsesClause : string; override;
     Function CreateOptions : TCodeGeneratorOptions; override;
     // New methods
-    procedure DoCreateFieldMapDeclaration(Strings: TStrings; const ObjectClassName,MapClassName, MapAncestorName: String);
+    procedure WriteFillMethod(Strings: TStrings; const ObjectClassName, MapClassName: String); virtual;
+    procedure DoCreateFieldMapDeclaration(Strings: TStrings; const ObjectClassName,MapClassName, MapAncestorName: String); virtual;
     procedure WriteMapInitFields(Strings: TStrings; const ObjectClassName,   MapClassName: String); virtual;
     procedure CreateFieldMapImplementation(Strings: TStrings; const ObjectClassName, MapClassName: String);
     Property FieldMapOpts : TGenFieldMapOptions Read Getopt;
@@ -48,8 +54,20 @@ Type
     procedure CreateFieldMapDeclaration(Strings: TStrings; const ObjectClassName,MapClassName, MapAncestorName: String);
   end;
 
+  { TGenFieldMapCodeGenOptions }
+
+  TGenFieldMapCodeGenOptions = class(TGenFieldMapOptions)
+  Public
+    constructor create; override;
+  Published
+    Property AncestorClass;
+    Property MapClassName;
+    Property MapAncestorName;
+  end;
+
   TDDDBFieldMapCodeGenerator = Class(TDDBaseFieldMapCodeGenerator)
   Protected
+    Function CreateOptions : TCodeGeneratorOptions; override;
     Procedure DoGenerateInterface(Strings: TStrings); override;
     Procedure DoGenerateImplementation(Strings: TStrings); override;
   Public
@@ -57,6 +75,16 @@ Type
   end;
 
 implementation
+
+uses typinfo;
+
+{ TGenFieldMapCodeGenOptions }
+
+constructor TGenFieldMapCodeGenOptions.create;
+begin
+  inherited create;
+  FieldMapOptions:=[fmoLoadObject]
+end;
 
 { TDDDBFieldMapCodeGenerator }
 
@@ -76,7 +104,7 @@ procedure TDDDBFieldMapCodeGenerator.DoGenerateInterface(Strings: TStrings);
 begin
   inherited DoGenerateInterface(Strings);
   AddLn(Strings,'Type');
-  CreatefieldMapDeclaration(Strings,'',GetOpt.MapClassName,GetOpt.MapAncestorName);
+  CreatefieldMapDeclaration(Strings,GetOpt.ObjectClassName,GetOpt.MapClassName,GetOpt.MapAncestorName);
 end;
 
 procedure TDDDBFieldMapCodeGenerator.DoGenerateImplementation(Strings: TStrings
@@ -85,6 +113,13 @@ begin
   inherited DoGenerateImplementation(Strings);
   With FieldMapOpts do
     CreateFieldMapImplementation(Strings,ObjectClassName,MapClassName);
+end;
+
+Function TDDDBFieldMapCodeGenerator.CreateOptions : TCodeGeneratorOptions; 
+
+begin
+  Result:=TGenFieldMapCodeGenOptions.Create
+
 end;
 
 function TDDBaseFieldMapCodeGenerator.CreateOptions: TCodeGeneratorOptions;
@@ -117,6 +152,11 @@ begin
   IncIndent;
   Try
     AddLn(Strings,'Procedure InitFields; Override;');
+    if fmoLoadObject in  FieldMapOpts.FieldMapOptions then
+      begin
+      AddLn(Strings,'Procedure Fill(aObject: %s); virtual;',[ObjectClassName]);
+      AddLn(Strings,'Procedure LoadObject(aObject: TObject); override;');
+      end;
     if fmoPublicFields in  FieldMapOpts.FieldMapOptions then
       For I:=0 to Fields.Count-1 do
         begin
@@ -160,6 +200,84 @@ begin
   Finally
     EndMethod(Strings,S);
   end;
+  if fmoLoadObject in FieldMapOpts.FieldMapOptions then
+    begin
+    WriteFillMethod(Strings, ObjectClassName, MapClassName);
+    S:=Format('Procedure %s.LoadObject(aObject: TObject);',[MapClassName]);
+    BeginMethod(Strings,S);
+    Try
+      Addln(Strings,'begin');
+      IncIndent;
+      AddLn(Strings,'Fill(aObject as %s);',[ObjectClassName]);
+      DecIndent;
+    finally
+      EndMethod(Strings,S);
+    end;
+    end;
+end;
+
+procedure TDDBaseFieldMapCodeGenerator.WriteFillMethod(Strings: TStrings; const ObjectClassName, MapClassName: String);
+
+Const
+  SAddLoadCode = '// Add code to load property %s (of type %s) from field %s';
+
+  SupportedPropTypes =  [ptBoolean, // Boolean
+                         ptShortString, ptAnsiString, ptUtf8String, // Ansistring
+                         ptWord,ptByte,ptLongint,ptCardinal,ptSmallInt,ptShortInt, // Integer
+                         ptCurrency, // Currency
+                         ptDateTime // DateTime
+                         ];
+
+Var
+  S,Fmt : String;
+  F : TFieldPropDef;
+  I : Integer;
+
+begin
+  S:=Format('Procedure %s.Fill(aObject: %s);',[MapClassName,ObjectClassName]);
+  BeginMethod(Strings,S);
+  Try
+    Addln(Strings,'begin');
+    IncIndent;
+    Fmt:='%s:=GetFromField(Self.F%s,%s);';
+    Addln(Strings,'With aObject do');
+    IncIndent;
+    Addln(Strings,'begin');
+    For I:=0 to Fields.Count-1 Do
+      begin
+      F:=Fields[i];
+      If F.PropertyType in SupportedPropTypes then
+        AddLn(Strings,Fmt,[F.PropertyName,F.PropertyName,F.PropertyName])
+      else if F.PropertyType in [ptWideString, ptUnicodeString] then
+        begin
+        AddLn(Strings,'If Assigned(Self.F%s) then',[F.PropertyName]);
+        incIndent;
+        AddLn(Strings,'%s:=F%s.AsUnicodeString;',[F.PropertyName,F.PropertyName]);
+        DecIndent;
+        end
+      else if F.PropertyType in [ptSingle,ptDouble,ptExtended,ptComp] then
+        begin
+        AddLn(Strings,'If Assigned(Self.F%s) then',[F.PropertyName]);
+        incIndent;
+        AddLn(Strings,'%s:=Self.F%s.AsFloat;',[F.PropertyName,F.PropertyName]);
+        DecIndent;
+        end
+      else if F.PropertyType in [ptInt64,ptQWord] then
+        begin
+        AddLn(Strings,'If Assigned(Self.F%s) then',[F.PropertyName]);
+        incIndent;
+        AddLn(Strings,'%s:=Self.F%s.AsLargeInt;',[F.PropertyName,F.PropertyName]);
+        DecIndent;
+        end
+      else
+        AddLn(Strings,SAddLoadCode,[F.PropertyName,GetEnumName(TypeInfo(TPropType),Ord(F.PropertyType)), F.FieldName]);
+      end;
+    Addln(Strings,'end;');
+    DecIndent;
+  Finally
+    DecIndent;
+    EndMethod(Strings,S);
+  end;
 end;
 
 procedure TDDBaseFieldMapCodeGenerator.WriteMapInitFields(Strings: TStrings;
@@ -193,27 +311,33 @@ end;
 
 function TGenFieldMapOptions.GetMapAncestorName: String;
 begin
-  Result:=AncestorClass;
+  Result:=FMapAncestorClassName;
+  if Result='' then 
+    Result:='TFieldMap';
 end;
 
 function TGenFieldMapOptions.GetMapName: String;
 begin
-  Result:=ObjectClassName;
+  Result:=FMapClassName;
+  if Result='' then
+    Result:=ObjectClassName+'Map';
 end;
 
 procedure TGenFieldMapOptions.SetMapAncestorName(const AValue: String);
 begin
-  AncestorClass:=AValue;
+  FMapAncestorClassName:=AValue;
 end;
 
 procedure TGenFieldMapOptions.SetMapClassName(const AValue: String);
 begin
-  ObjectClassName:=AValue;
+  FMapClassName:=AValue;
 end;
 
 constructor TGenFieldMapOptions.Create;
 begin
   inherited Create;
+  AncestorClass:='TObject';
+  ObjectClassName:='TMyObject';
   MapClassName:='TMyObjectMap';
   MapAncestorName:='TFieldMap';
 end;
@@ -229,13 +353,13 @@ begin
     O:=ASource as TGenFieldMapOptions;
     MapClassName:=O.MapClassName;
     MapAncestorName:=O.MapAncestorName;
-    Options:=O.Options;
+    FieldMapOptions:=O.FieldMapOptions;
     end;
   inherited Assign(ASource);
 end;
 
 Initialization
-  RegisterCodeGenerator('FieldMap','TFieldMap descendent.',TDDDBFieldMapCodeGenerator);
+  RegisterCodeGenerator('FieldMap','Object and TFieldMap descendent.',TDDDBFieldMapCodeGenerator);
 
 Finalization
   UnRegisterCodeGenerator(TDDDBFieldMapCodeGenerator);
