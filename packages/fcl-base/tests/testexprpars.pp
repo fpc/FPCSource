@@ -731,7 +731,7 @@ type
     FBoolValue : Boolean;
     FTest33 : TFPExprIdentifierDef;
     FIdentifiers : TStrings;
-    procedure AddIdentifier(Sender: TObject; const aIdentifier: String);
+    procedure AddIdentifier(Sender: TObject; const aIdentifier: String; var aIdent : TFPExprIdentifierDef);
     procedure DoGetBooleanVar(var Res: TFPExpressionResult; ConstRef AName: ShortString);
     procedure DoGetBooleanVarWrong(var Res: TFPExpressionResult; ConstRef AName: ShortString);
     procedure TestAccess(Skip: TResultType);
@@ -4997,8 +4997,9 @@ begin
   Res.ResBoolean:=FBoolValue;
 end;
 
-procedure TTestParserVariables.AddIdentifier(Sender: TObject; const aIdentifier: String);
+procedure TTestParserVariables.AddIdentifier(Sender: TObject; const aIdentifier: String; var aIdent : TFPExprIdentifierDef);
 begin
+  aIdent:=Nil;
   AssertNotNull('Have identifier list',FIdentifiers);
   FIdentifiers.Add(aIdentifier);
 end;

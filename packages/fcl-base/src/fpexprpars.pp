@@ -715,7 +715,7 @@ Type
   end;
 
   { TFPExpressionParser }
-  TIdentifierEvent = Procedure (Sender : TObject; Const aIdentifier : String) of object;
+  TIdentifierEvent = Procedure (Sender : TObject; Const aIdentifier : String; var aIdent : TFPExprIdentifierDef) of object;
   TFPExpressionParser = class(TComponent)
   private
     FBuiltIns: TBuiltInCategories;
@@ -740,7 +740,7 @@ Type
     procedure CheckNodes(var Left, Right: TFPExprNode);
     procedure SetBuiltIns(const AValue: TBuiltInCategories);
     procedure SetIdentifiers(const AValue: TFPExprIdentifierDefs);
-    procedure AddIdentifierToStrings(Sender : TObject; Const aIdentifier : String);
+    procedure AddIdentifierToStrings(Sender : TObject; Const aIdentifier : String; var ID : TFPExprIdentifierDef);
   Protected
     procedure ParserError(Msg: String);
     procedure SetExpression(const AValue: String); virtual;
@@ -1599,8 +1599,9 @@ begin
   FIdentifiers.Assign(AValue)
 end;
 
-procedure TFPExpressionParser.AddIdentifierToStrings(Sender: TObject; const aIdentifier: String);
+procedure TFPExpressionParser.AddIdentifierToStrings(Sender: TObject; const aIdentifier: String; var ID : TFPExprIdentifierDef);
 begin
+  ID:=Nil;
   If Assigned(FExtractIdentifiers) then
     FExtractIdentifiers.Add(aIdentifier);
 end;
@@ -2060,12 +2061,15 @@ begin
         begin
         if Assigned(FOnExtractIdentifier) then
           begin
-          if not Assigned(FUnknownIdentifier) then
-            FUnknownIdentifier:=TFPExprIdentifierDef.Create(Nil);
-          ID:=FUnknownIdentifier;
           // Call only once in case of stringlist.
           If Not (Assigned(FExtractIdentifiers) and (FExtractIdentifiers.IndexOf(S)<>-1)) then
-            FOnExtractIdentifier(Self,S);
+            FOnExtractIdentifier(Self,S,ID);
+          if (ID=Nil) then
+            begin
+            if not Assigned(FUnknownIdentifier) then
+              FUnknownIdentifier:=TFPExprIdentifierDef.Create(Nil);
+            ID:=FUnknownIdentifier;
+            end;
           end
         else
           ParserError(Format(SErrUnknownIdentifier,[S]))
