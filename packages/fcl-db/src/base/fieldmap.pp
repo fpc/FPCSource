@@ -3,7 +3,7 @@ unit fieldmap;
 {$H+}
 interface
 
-uses SysUtils,Classes, db;
+uses SysUtils,Classes, fmtBCD, db;
 
 { ---------------------------------------------------------------------
   TFieldMap
@@ -28,11 +28,19 @@ type
     Destructor Destroy; override;
     Procedure InitFields; virtual; abstract;
     Procedure LoadObject(AObject : TObject); virtual;
+    Function GetFromField(F : TField; ADefault : TBCD) : TBCD; overload;
     Function GetFromField(F : TField; ADefault : Integer) : Integer; overload;
     Function GetFromField(F : TField; ADefault : String) : String; overload;
     Function GetFromField(F : TField; ADefault : Boolean) : Boolean; overload;
-    Function GetFromField(F : TField; ADefault : TDateTime) : TDateTime; overload;
+    Function GetFromDateTimeField(F : TField; ADefault : TDateTime) : TDateTime; overload;
+    Function GetFromField(F : TField; ADefault : Double) : Double; overload;
+    Function GetFromField(F : TField; ADefault : Single) : Single; overload;
+    Function GetFromField(F : TField; ADefault : Int64) : Int64; overload;
+    Function GetFromField(F : TField; ADefault : LongWord) : LongWord; overload;
     Function GetFromField(F : TField; ADefault : Currency) : Currency; overload;
+    Function GetFromField(F : TField; ADefault : UnicodeString) : UnicodeString; overload;
+    Function GetFromField(F : TField; ADefault : WideString) : WideString; overload;
+    Function GetFromField(F : TField; ADefault : TBytes) : TBytes; overload;
     Property Dataset : TDataset Read FDataset;
     Property FreeDataset : Boolean Read FFreeDataset Write FFreeDataset;
   end;
@@ -493,6 +501,14 @@ begin
     Raise EFieldMap.CreateFmt(SErrNoObjectToLoad,[ClassName]);
 end;
 
+function TFieldMap.GetFromField(F: TField; ADefault: TBCD): TBCD;
+begin
+  If Assigned(F) then
+      Result:=F.AsBCD
+    else
+      Result:=ADefault;
+end;
+
 function TFieldMap.FieldByName(FN: String): TField;
 begin
   Result:=FDataset.FieldByName(FN)
@@ -542,10 +558,45 @@ begin
     Result:=ADefault;
 end;
 
-function TFieldMap.GetFromField(F: TField; ADefault: TDateTime): TDateTime;
+function TFieldMap.GetFromDateTimeField(F: TField; ADefault: TDateTime): TDateTime;
 begin
   If Assigned(F) then
     Result:=F.AsDateTime
+  else
+    Result:=ADefault;
+end;
+
+function TFieldMap.GetFromField(F: TField; ADefault: Double): Double;
+begin
+  If Assigned(F) then
+    if F.DataType in [ftDate,ftDateTime,ftTime,ftTimeStamp] then
+      Result:=F.AsDateTime
+    else
+      Result:=F.AsFloat
+  else
+    Result:=ADefault;
+end;
+
+function TFieldMap.GetFromField(F: TField; ADefault: Single): Single;
+begin
+  If Assigned(F) then
+    Result:=F.AsSingle
+  else
+    Result:=ADefault;
+end;
+
+function TFieldMap.GetFromField(F: TField; ADefault: Int64): Int64;
+begin
+  If Assigned(F) then
+    Result:=F.AsLargeInt
+  else
+    Result:=ADefault;
+end;
+
+function TFieldMap.GetFromField(F: TField; ADefault: LongWord): LongWord;
+begin
+  If Assigned(F) then
+    Result:=F.AsLongWord
   else
     Result:=ADefault;
 end;
@@ -554,6 +605,30 @@ function TFieldMap.GetFromField(F: TField; ADefault: Currency): Currency;
 begin
   If Assigned(F) then
     Result:=F.AsCurrency
+  else
+    Result:=ADefault;
+end;
+
+function TFieldMap.GetFromField(F: TField; ADefault: UnicodeString): UnicodeString;
+begin
+  If Assigned(F) then
+    Result:=F.AsUnicodeString
+  else
+    Result:=ADefault;
+end;
+
+function TFieldMap.GetFromField(F: TField; ADefault: WideString): WideString;
+begin
+  If Assigned(F) then
+    Result:=F.AsWideString
+  else
+    Result:=ADefault;
+end;
+
+function TFieldMap.GetFromField(F: TField; ADefault: TBytes): TBytes;
+begin
+  If Assigned(F) then
+    Result:=F.AsBytes
   else
     Result:=ADefault;
 end;
