@@ -57,6 +57,9 @@ type
     procedure TestSectionErrNotStarted;
     procedure TestTextSection;
     procedure TestPartial;
+    procedure TestParametricPartial;
+    procedure TestParametricPartialWithBlock;
+    procedure TestBlock;
   end;
 
   { TTestMustacheOutput }
@@ -175,7 +178,7 @@ procedure TTestMustacheElement.TestTextElementPrefix;
 begin
   Fel:=TMustacheTextElement.Create(metText,Nil,0);
   El.Data:='me'#10'you';
-  El.Render(Nil,Output,'  ');
+  El.Render(Nil,Output,Nil,'  ');
   AssertEquals('Correct output 1','me'#10'  you',Output.Data);
 end;
 
@@ -183,7 +186,7 @@ procedure TTestMustacheElement.TestTextElementPrefixNotLast;
 begin
   Fel:=TMustacheTextElement.Create(metText,Nil,0);
   El.Data:='me'#10'you'#10;
-  El.Render(Nil,Output,'  ');
+  El.Render(Nil,Output,Nil,'  ');
   AssertEquals('Correct output 2','me'#10'  you'#10'  ',Output.Data);
 end;
 
@@ -192,7 +195,7 @@ procedure TTestMustacheElement.TestTextElementPrefixLast;
 begin
   Fel:=TMustacheTextElement.Create(metText,Nil,0);
   El.Data:='me'#10'you'#10;
-  El.Render(Nil,Output,'  ',True);
+  El.Render(Nil,Output,Nil,'  ',True);
   AssertEquals('Correct output 2','me'#10'  you'#10,Output.Data);
 end;
 
@@ -447,7 +450,7 @@ begin
   Sel:=TMustacheTextElement.Create(metText,Fel,0);
   Sel.Data:='f'#10;
   Fel.AddChild(Sel);
-  Fel.Render(Context,Output,'  ');
+  Fel.Render(Context,Output,Nil,'  ');
   AssertEquals('Correct output','a'#10'  bd'#10'  ef'#10,Output.Data);
 end;
 
@@ -721,6 +724,54 @@ begin
   AssertElement(el.Partial,0,metText,'bcd',TMustacheTextElement);
 end;
 
+procedure TTestMustacheParser.TestParametricPartial;
+var
+  El: TMustachePartialElement;
+begin
+  AddPartial('part','bcd');
+  Template:='a{{<part}}{{/part}}e';
+  CallParser;
+  AssertResultCount(3);
+  AssertElement(0,metText,'a',TMustacheTextElement);
+  El:=AssertElement(1,metParametricPartial,'part',TMustachePartialElement) as TMustachePartialElement;
+  AssertElement(2,metText,'e',TMustacheTextElement);
+  AssertEquals('Correct parametric partial','part',El.Partial.Data);
+  AssertEquals('Correct parametric partial',1,El.Partial.ChildCount);
+  AssertElement(El.Partial,0,metText,'bcd',TMustacheTextElement);
+end;
+
+procedure TTestMustacheParser.TestParametricPartialWithBlock;
+var
+  El: TMustachePartialElement;
+  ElBlock: TMustacheBlockElement;
+begin
+  AddPartial('part','bcd');
+  Template:='a{{<part}}{{$x}}y{{/x}}{{/part}}e';
+  CallParser;
+  AssertResultCount(3);
+  AssertElement(0,metText,'a',TMustacheTextElement);
+  El:=AssertElement(1,metParametricPartial,'part',TMustachePartialElement) as TMustachePartialElement;
+  AssertElement(2,metText,'e',TMustacheTextElement);
+  AssertEquals('Correct parametric partial','part',El.Partial.Data);
+  AssertEquals('Correct parametric partial',1,El.Partial.ChildCount);
+  AssertElement(El.Partial,0,metText,'bcd',TMustacheTextElement);
+  AssertEquals('elements in parametric partial',1,El.ChildCount);
+  ElBlock:=AssertElement(El,0,metBlock,'x',TMustacheBlockElement) as TMustacheBlockElement;
+  AssertEquals('elements in block',1,ElBlock.ChildCount);
+  AssertElement(ElBlock,0,metText,'y',TMustacheTextElement);
+end;
+
+procedure TTestMustacheParser.TestBlock;
+var
+  El: TMustacheBlockElement;
+begin
+  Template:='{{$a}}bbb{{/a}}';
+  CallParser;
+  AssertResultCount(1);
+  El:=AssertElement(0,metBlock,'a',TMustacheBlockElement) as TMustacheBlockElement;
+  AssertEquals('No elements in block',1,El.ChildCount);
+  AssertElement(El,0,metText,'bbb');
+end;
 
 initialization
   RegisterTests([TTestMustacheParser,TTestMustacheOutput,TTestMustacheElement]);

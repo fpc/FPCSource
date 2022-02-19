@@ -36,7 +36,7 @@ Type
     Procedure SetData(const aValue : TMustacheString) ; override;
   Public
     Destructor Destroy; override;
-    Procedure Render(aContext : TMustacheContext; aOutput : TMustacheOutput; const aPrefix : String = ''; aLast : Boolean = False); override;
+    Procedure Render(aContext : TMustacheContext; aOutput : TMustacheOutput; aBlockOverrides : TMustacheBlockOverrideList; const aPrefix : String = ''; aLast : Boolean = False); override;
     Property Node : TFPExprNode Read FNode;
   end;
 
@@ -126,7 +126,8 @@ begin
 end;
 
 procedure TMustacheExprElement.Render(aContext: TMustacheContext;
-  aOutput: TMustacheOutput; const aPrefix: String; aLast: Boolean);
+  aOutput: TMustacheOutput; aBlockOverrides : TMustacheBlockOverrideList;
+  const aPrefix: String; aLast: Boolean);
 
 Var
   Res : TFPExpressionResult;

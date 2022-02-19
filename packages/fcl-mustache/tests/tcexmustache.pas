@@ -171,7 +171,7 @@ end;
 procedure TTestExMustacheParser.TestRenderSimple;
 begin
   TestSimple;
-  ParseResult.Children[0].Render(Nil,Output,'',False);
+  ParseResult.Children[0].Render(Nil,Output,Nil,'',False);
   AssertEquals('Correct result','3',Output.Data);
 end;
 
@@ -189,7 +189,7 @@ begin
   FExpr.Identifiers.AddVariable('age',rtInteger,@GetVar);
   Template:='{{#data}}{{{name}}}:{{[age>11]}} {{/data}}';
   CallParser;
-  ParseResult.Render(FContext,Output,'',False);
+  ParseResult.Render(FContext,Output,Nil,'',False);
   AssertEquals('Correct result','me:False you:True he:True ',Output.Data);
 end;
 

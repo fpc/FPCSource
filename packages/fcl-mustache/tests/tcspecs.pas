@@ -43,6 +43,7 @@ Type
     Procedure TestInverted;
     Procedure TestPartials;
     Procedure TestSections;
+    Procedure TestInheritance;
   end;
 
 
@@ -179,6 +180,11 @@ end;
 procedure TTestMustacheSpecs.TestSections;
 begin
   DoTest('sections');
+end;
+
+procedure TTestMustacheSpecs.TestInheritance;
+begin
+  DoTest('inheritance');
 end;
 
 begin
