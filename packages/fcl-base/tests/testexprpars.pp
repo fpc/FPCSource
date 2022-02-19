@@ -730,6 +730,8 @@ type
     FEventName: String;
     FBoolValue : Boolean;
     FTest33 : TFPExprIdentifierDef;
+    FIdentifiers : TStrings;
+    procedure AddIdentifier(Sender: TObject; const aIdentifier: String);
     procedure DoGetBooleanVar(var Res: TFPExpressionResult; ConstRef AName: ShortString);
     procedure DoGetBooleanVarWrong(var Res: TFPExpressionResult; ConstRef AName: ShortString);
     procedure TestAccess(Skip: TResultType);
@@ -780,6 +782,10 @@ type
     procedure TestVariable34;
     procedure TestVariable35;
     procedure TestVariable36;
+    Procedure TestGetIdentifierNames;
+    Procedure TestGetIdentifierNamesCallback;
+    Procedure TestGetIdentifierNamesDouble;
+    Procedure TestGetIdentifierNamesDoubleCallback;
   end;
 
   { TTestParserFunctions }
@@ -4686,6 +4692,70 @@ begin
   AssertCurrencyResult(1.23);
 end;
 
+procedure TTestParserVariables.TestGetIdentifierNames;
+
+Var
+  L : TStringList;
+
+begin
+  L:=TStringList.Create;
+  try
+    L.Sorted:=true;
+    FP.ExtractIdentifierNames('a+b',L);
+    AssertEquals('Element count',2,L.Count);
+    AssertEquals('First element','a',L[0]);
+    AssertEquals('second element','b',L[1]);
+  finally
+    L.Free;
+  end;
+end;
+
+procedure TTestParserVariables.TestGetIdentifierNamesCallback;
+
+begin
+  FIdentifiers:=TStringList.Create;
+  try
+    TStringList(FIdentifiers).Sorted:=true;
+    FP.ExtractIdentifierNames('a+b',@AddIdentifier);
+    AssertEquals('Element count',2,FIdentifiers.Count);
+    AssertEquals('First element','a',FIdentifiers[0]);
+    AssertEquals('second element','b',FIdentifiers[1]);
+  Finally
+    FreeAndNil(FIdentifiers);
+  end;
+end;
+
+procedure TTestParserVariables.TestGetIdentifierNamesDouble;
+Var
+  L : TStringList;
+
+begin
+  L:=TStringList.Create;
+  try
+    L.Sorted:=true;
+    FP.ExtractIdentifierNames('a+(b*a)',L);
+    AssertEquals('Element count',2,L.Count);
+    AssertEquals('First element','a',L[0]);
+    AssertEquals('second element','b',L[1]);
+  finally
+    L.Free;
+  end;
+end;
+
+procedure TTestParserVariables.TestGetIdentifierNamesDoubleCallback;
+begin
+  FIdentifiers:=TStringList.Create;
+  try
+    FP.ExtractIdentifierNames('a+(b*a)',@AddIdentifier);
+    AssertEquals('Element count',3,FIdentifiers.Count);
+    AssertEquals('First element','a',FIdentifiers[0]);
+    AssertEquals('second element','b',FIdentifiers[1]);
+    AssertEquals('third element','a',FIdentifiers[2]);
+  Finally
+    FreeAndNil(FIdentifiers);
+  end;
+end;
+
 procedure TTestParserVariables.TestVariable12;
 
 Var
@@ -4925,6 +4995,12 @@ procedure TTestParserVariables.DoGetBooleanVar(var Res: TFPExpressionResult;
 begin
   FEventName:=AName;
   Res.ResBoolean:=FBoolValue;
+end;
+
+procedure TTestParserVariables.AddIdentifier(Sender: TObject; const aIdentifier: String);
+begin
+  AssertNotNull('Have identifier list',FIdentifiers);
+  FIdentifiers.Add(aIdentifier);
 end;
 
 procedure TTestParserVariables.TestVariable31;
