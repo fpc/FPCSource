@@ -977,14 +977,6 @@ Var
   PartialPrefix: TMustacheString;
   Partial : TMustacheELement;
 
-  // check if the current tag is a tag that can occur standalone on a line
-  // if so, the whole line will be removed as per the specs
-  function IsStandaloneTag: Boolean;
-  begin
-    Result := (NewPos + lStart <= Total) and
-      (aTemplate[NewPos + lStart] in ['=','#','!','^','>','/']);
-  end;
-
   function IsPartialTag: Boolean;
   begin
     Result := (NewPos + lStart <= Total) and (aTemplate[NewPos + lStart] = '>');
@@ -992,33 +984,40 @@ Var
 
   // check if the current tag occurs standalone on a line
   function CheckStandalone: Boolean;
-
-    function LeftOnlyWhiteSpace: Boolean;
-    var
-      I: Integer;
-    begin
-      I := NewPos - 1;
-      while (I >= 1) and (aTemplate[I] = ' ') do
-         Dec(I);
-      Result := (I < 1) or (aTemplate[I] = #10);
-    end;
-
-    function RightOnlyWhiteSpace: Boolean;
-    var
-      I: Integer;
-    begin
-      I := Pos(cStop, aTemplate, NewPos + lStart);
-      if I = 0 then
-        Exit(False);
-      Inc(I, lStop);
-      while (I <= Total) and (aTemplate[I] = ' ') do
-         Inc(I);
-      Result := (I > Total) or (aTemplate[I] = #10) or
-        (Copy(aTemplate, I, 2) = #13#10);
-    end;
-
+  var
+    I,
+    pStop: Integer;
   begin
-    Result := IsStandaloneTag and LeftOnlyWhiteSpace and RightOnlyWhiteSpace;
+    // a tag is considered standalone if it is on a line that consists of:
+    // - zero or more spaces
+    // - one or more non-variable tags
+    // - zero or more spaces
+
+    // get start of current line
+    I := NewPos;
+    while (I > 1) and (aTemplate[I - 1] <> #10) do
+      Dec(I);
+
+    // skip zero or more spaces
+    while (I <= Total) and (aTemplate[I] = ' ') do
+      Inc(I);
+
+    // skip one or more non-variable tags
+    repeat
+      pStop := Pos(cStop, aTemplate, I + lStart + 1);
+      if (Copy(aTemplate, I, lStart) = cStart) and (pStop > 0)
+        and (aTemplate[I + lStart] in ['=','#','!','^','>','/']) then
+        I := pStop + lStop
+      else
+        Break;
+    until False;
+
+    // skip zero or more spaces
+    while (I <= Total) and (aTemplate[I] = ' ') do
+      Inc(I);
+
+    // now end of line must be reached if tag is standalone
+    Result := (I > Total) or (aTemplate[I] = #10) or (Copy(aTemplate, I, 2) = #13#10);
   end;
 
   function WhiteSpaceRightPos(const S: TMustacheString): Integer;
@@ -1030,6 +1029,11 @@ Var
       Dec(I);
 
     Result := I + 1;
+  end;
+
+  function CurrentIsWhitespace: Boolean;
+  begin
+    Result := (Current <= Total) and (aTemplate[Current] in [' ',#13,#10]);
   end;
 
   procedure SkipRestOfLine;
@@ -1152,7 +1156,7 @@ begin
         CreateDefault(CurrParent,Current,aName);
       end;
       Current:=NewPos+clStop;
-      if IsStandalone then
+      if IsStandalone and CurrentIsWhitespace then
         SkipRestOfLine;
       end;
     end;
