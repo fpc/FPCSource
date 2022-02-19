@@ -4904,6 +4904,14 @@ implementation
             not valid_for_addr(para.left,false)) then
           exit(true);
 
+        { insert value parameters directly if they are complex instead
+          of inserting a reference to the temp.
+          - this keeps the node tree simpler
+          - alignment is propagated }
+        if (para.parasym.varspez=vs_value) and
+          complexpara then
+          exit(true);
+
         result:=false;
       end;
 
