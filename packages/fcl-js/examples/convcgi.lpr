@@ -22,7 +22,17 @@ uses
   {$IFDEF USEHTTPAPP} fphttpapp{$ELSE} fpcgi {$ENDIF},
   httpdefs, httproute;
 
-Procedure CreateJSONFileList(aDir : String; aFileName : string);
+function GetBoolVal(R : TRequest; aName : String) : boolean;
+
+Var
+  S : String;
+
+begin
+  S:=R.QueryFields.Values[aName];
+  Result:=(S='1') or (S='true') or (S='t');
+end;
+
+Procedure CreateJSONFileList(aDir : String; aFileName : string; aTextFileName : String = '' );
 
 Var
   L,O : TStrings;
@@ -37,6 +47,8 @@ begin
     O:=TstringList.Create;
     GetDeclarationFileNames(aDir,aDir,L);
     TstringList(l).Sort;
+    if aTextFileName<>'' then
+      L.SaveToFile(aTextFileName);
     O.Add('var dtsfiles = [');
     for I:=0 to L.Count-1 do
       begin
@@ -69,7 +81,7 @@ begin
       FN:=ExtractRelativePath(S.BaseDir,aFilename)
     else
       FN:=aFileName;
-    cgUtils.ConvertFile(S.BaseDir,FN,'',[],aPas,Nil);
+    cgUtils.ConvertFile(S.BaseDir,FN,'','','',False,[],aPas,Nil);
     for aLine in aPas do
       writeln(aLine);
   Finally
@@ -81,17 +93,25 @@ procedure DoList(ARequest: TRequest; AResponse: TResponse);
 Var
   S : TSettings;
   aList : TStrings;
+  isRaw : Boolean;
 
 begin
   S:=GetSettings;
   aList:=TstringList.Create;
   try
-    if Not FileExists(S.cachefile) then
-      CreateJSONFileList(S.BaseDir,S.cachefile);
-    aList.LoadFromFile(S.cachefile);
+    IsRaw:=GetBoolVal(aRequest,'raw');
+    if Not (FileExists(S.cachefile) and FileExists(S.rawcachefile)) then
+      CreateJSONFileList(S.BaseDir,S.cachefile,S.rawcachefile);
+    if isRaw then
+      aList.LoadFromFile(S.rawcachefile)
+    else
+      aList.LoadFromFile(S.cachefile);
     aResponse.Content:=aList.text;
     aResponse.ContentLength:=Length(aResponse.Content);
-    aResponse.ContentType:='application/javascript';
+    if IsRaw then
+      aResponse.ContentType:='text/text'
+    else
+      aResponse.ContentType:='application/javascript';
     aResponse.SendResponse;
   finally
     aList.Free;
@@ -102,15 +122,14 @@ function GetRequestOptions(ARequest: TRequest) : TConversionOptions;
 
 Var
   T : TConversionOption;
-  S,N : String;
+  N : String;
 
 begin
   Result:=[];
   For T in TConversionOption do
     begin
     N:=GetEnumName(TypeInfo(TConversionOption),Ord(T));
-    S:=aRequest.QueryFields.Values[N];
-    if (S='1') or (S='true') then
+    if GetBoolVal(aRequest,N) then
       Include(Result,T);
     end;
 end;
@@ -120,8 +139,9 @@ procedure DoConvertFile(ARequest: TRequest; AResponse: TResponse);
 Var
   S : TSettings;
   aPas,aLog : TStrings;
-  aFileName,aUnitName,aOutput : string;
+  aliases,aExtraUnits,aFileName,aUnitName,aOutput : string;
   Opts : TConversionOptions;
+  skipweb : boolean;
 
 begin
   S:=GetSettings;
@@ -131,9 +151,12 @@ begin
     Opts:=GetRequestOptions(aRequest);
     aFileName:=aRequest.QueryFields.Values['file'];
     aUnitName:=aRequest.QueryFields.Values['unit'];
-    if aRequest.QueryFields.Values['prependlog']='1' then
+    aExtraUnits:=aRequest.QueryFields.Values['extraunits'];
+    aliases:=aRequest.QueryFields.Values['aliases'];
+    skipweb:=GetBoolVal(aRequest,'skipweb');
+    if GetBoolVal(aRequest,'prependlog') then
       aLog:=TStringList.Create;
-    cgUtils.ConvertFile(S.BaseDir,aFileName,aUnitName,Opts,aPas,aLog);
+    cgUtils.ConvertFile(S.BaseDir,aFileName,aUnitName,aliases,aExtraUnits,skipweb,Opts,aPas,aLog);
     if Assigned(aLog) then
       aOutput:='(* // Conversion log:'+sLineBreak+aLog.Text+sLineBreak+'*)'+sLineBreak
     else
@@ -154,12 +177,15 @@ begin
     begin
     if ParamCount=2 then
       CreateJSONFileList(Paramstr(1),ParamStr(2))
+    else if ParamCount=3 then
+      CreateJSONFileList(Paramstr(1),ParamStr(2),ParamStr(3))
     else if ParamCount=1 then
       ConvertFile(Paramstr(1));
     end
   else
     begin
     HTTPRouter.RegisterRoute('list',rmGet,@DoList);
+
     HTTPRouter.RegisterRoute('convert',rmAll,@DoConvertFile);
     {$IFDEF USEHTTPAPP}
     Application.Port:=8080;

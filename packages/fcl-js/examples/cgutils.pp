@@ -21,12 +21,13 @@ unit cgutils;
 interface
 
 uses
-  Classes, SysUtils, pascodegen, tstopas;
+  Classes, SysUtils, pascodegen, tstopas, strutils;
 
 Type
    TSettings = record
      basedir : string;
      cachefile : string;
+     rawcachefile : string;
    end;
 
    { TLoggingConverter }
@@ -41,7 +42,7 @@ Type
    end;
 
 Procedure GetDeclarationFileNames(const BaseDir,aDir : String; aList: TStrings);
-Procedure ConvertFile(Const BaseDir,aFileName,aUnitName : String; aOptions : TConversionOptions; aPascal,aLog : TStrings);
+Procedure ConvertFile(Const BaseDir,aFileName,aUnitName,aliases,extraunits : String; Skipweb : Boolean; aOptions : TConversionOptions; aPascal,aLog : TStrings);
 Function GetOutputUnitName(Const aFileName,aUnitName : String) : string;
 Function GetInputFileName(Const BaseDir,aFileName : String) : string;
 Function GetSettings : TSettings;
@@ -50,21 +51,32 @@ implementation
 
 uses inifiles;
 
-Function GetSettings : TSettings;
+function GetSettings: TSettings;
 
 begin
   Result.BaseDir:=ExtractFilePath(ParamStr(0));
   Result.CacheFile:=GetTempDir(True)+'definitelytypedcache.lst';
+  Result.RawCacheFile:=GetTempDir(True)+'definitelytypedrawcache.lst';
   With TIniFile.Create(GetAppConfigFile(True)) do
     try
       Result.BaseDir:=ReadString('Settings','BaseDir',Result.BaseDir);
       Result.cachefile:=ReadString('Settings','CacheDir',Result.CacheFile);
+      Result.rawcachefile:=ReadString('Settings','RawCacheFile',Result.RawCacheFile);
+    finally
+      Free;
+    end;
+  With TStringList.Create do
+    try
+      Add(Result.BaseDir);
+      Add(Result.cachefile);
+      Add(Result.rawcachefile);
+      SaveToFile('/tmp/settings.txt');
     finally
       Free;
     end;
 end;
 
-Procedure GetDeclarationFileNames(Const BaseDir,aDir : String; aList: TStrings);
+procedure GetDeclarationFileNames(const BaseDir, aDir: String; aList: TStrings);
 
 Var
   Info : TSearchRec;
@@ -97,7 +109,7 @@ begin
       end;
 end;
 
-Function GetInputFileName(Const BaseDir,aFileName : String) : string;
+function GetInputFileName(const BaseDir, aFileName: String): string;
 
 Var
   BD,FN : String;
@@ -119,7 +131,7 @@ begin
   Result:=FN;
 end;
 
-Function GetOutputUnitName(Const aFileName,aUnitName : String) : string;
+function GetOutputUnitName(const aFileName, aUnitName: String): string;
 
 Var
   UN : String;
@@ -180,11 +192,12 @@ begin
     end;
 end;
 
-Procedure ConvertFile(Const BaseDir,aFileName,aUnitName : String; aOptions : TConversionOptions; aPascal,aLog : TStrings);
+procedure ConvertFile(const BaseDir, aFileName, aUnitName, aliases, extraunits: String; Skipweb: Boolean;
+  aOptions: TConversionOptions; aPascal, aLog: TStrings);
 
 Var
   L : TLoggingConverter;
-  UN,Fn : String;
+  S,UN,Fn : String;
 
 begin
   FN:=GetInputFileName(BaseDir,aFileName);
@@ -195,8 +208,12 @@ begin
     L.InputFileName:=FN;
     L.OutputUnitName:=UN;
     L.Logs:=aLog;
+    L.ExtraUnits:=extraunits;
+    for S in SplitString(Aliases,', ') do
+      L.TypeAliases.Add(S);
     AddJSAliases(L.TypeAliases);
-    AddWebAliases(L.TypeAliases);
+    if not SkipWeb then
+      AddWebAliases(L.TypeAliases);
     L.Execute;
     aPascal.Assign(L.Source);
   finally
