@@ -680,6 +680,7 @@ interface
           { this constructor is made private on purpose }
           { because sections should be created via new_section() }
           constructor Create(Asectype:TAsmSectiontype;const Aname:string;Aalign:longint;Asecorder:TasmSectionorder=secorder_default);
+          constructor Create_proc(Asectype:TAsmSectiontype;const Aname:string;Aalign:longint;Asecorder:TasmSectionorder=secorder_default);
 {$pop}
        end;
 
@@ -1060,6 +1061,7 @@ interface
 
     procedure maybe_new_object_file(list:TAsmList);
     function new_section(list:TAsmList;Asectype:TAsmSectiontype;const Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default) : tai_section;
+    function new_proc_section(list:TAsmList;Asectype:TAsmSectiontype;const Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default) : tai_section;
 
     function ppuloadai(ppufile:tcompilerppufile):tai;
     procedure ppuwriteai(ppufile:tcompilerppufile;n:tai);
@@ -1093,6 +1095,16 @@ implementation
     function new_section(list:TAsmList;Asectype:TAsmSectiontype;const Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default) : tai_section;
       begin
         Result:=tai_section.create(Asectype,Aname,Aalign,Asecorder);
+        list.concat(Result);
+        inc(list.section_count);
+        list.concat(cai_align.create(Aalign));
+      end;
+
+
+    function new_proc_section(list:TAsmList;Asectype:TAsmSectiontype;
+      const Aname:string;Aalign:byte;Asecorder:TasmSectionorder):tai_section;
+      begin
+        Result:=tai_section.Create_proc(Asectype,Aname,Aalign,Asecorder);
         list.concat(Result);
         inc(list.section_count);
         list.concat(cai_align.create(Aalign));
@@ -1316,6 +1328,15 @@ implementation
         TObjData.sectiontype2progbitsandflags(sectype,secprogbits,secflags);
         name:=stringdup(Aname);
         sec:=nil;
+      end;
+
+    constructor tai_section.Create_proc(Asectype:TAsmSectiontype;
+      const Aname:string;Aalign:longint;Asecorder:TasmSectionorder);
+      begin
+        Create(Asectype,Aname,Aalign,Asecorder);
+        secprogbits:=SPB_PROGBITS;
+        exclude(secflags,SF_W);
+        include(secflags,SF_X);
       end;
 
 

@@ -5497,7 +5497,10 @@ implementation
         alt:=al_pure_assembler;
       { add the procedure to the al_procedures }
       maybe_new_object_file(current_asmdata.asmlists[alt]);
-      new_section(current_asmdata.asmlists[alt],sec_code,lower(pd.mangledname),getprocalign);
+      if pd.section<>'' then
+        new_proc_section(current_asmdata.asmlists[alt],sec_user,lower(pd.section),getprocalign)
+      else
+        new_section(current_asmdata.asmlists[alt],sec_code,lower(pd.mangledname),getprocalign);
       current_asmdata.asmlists[alt].concatlist(code);
       { save local data (casetable) also in the same file }
       if assigned(data) and

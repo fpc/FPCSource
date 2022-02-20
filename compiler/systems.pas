@@ -318,7 +318,7 @@ interface
        systems_freertos = [system_xtensa_freertos,system_arm_freertos];
 
        { all systems that allow section directive }
-       systems_allow_section = systems_embedded;
+       systems_allow_section = systems_embedded+systems_freertos;
 
        { systems that uses dotted function names as descriptors }
        systems_dotted_function_names = [system_powerpc64_linux]+systems_aix;
