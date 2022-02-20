@@ -4892,9 +4892,12 @@ unit aoptx86;
         Multiple: TCGInt;
       begin
         Result:=false;
-        { removes seg register prefixes from LEA operations, as they
-          don't do anything}
-        taicpu(p).oper[0]^.ref^.Segment:=NR_NO;
+
+        { play save and throw an error if LEA uses a seg register prefix,
+          this is most likely an error somewhere else }
+        if taicpu(p).oper[0]^.ref^.Segment<>NR_NO then
+          internalerror(2022022001);
+
         { changes "lea (%reg1), %reg2" into "mov %reg1, %reg2" }
         if (taicpu(p).oper[0]^.ref^.base <> NR_NO) and
            (taicpu(p).oper[0]^.ref^.index = NR_NO) and
