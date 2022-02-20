@@ -19,7 +19,10 @@ program dts2pas;
 {AllowWriteln}
 
 uses
-  Classes, SysUtils, StrUtils, CustApp, pascodegen, tstopas;
+  TypInfo,Classes, SysUtils, StrUtils, CustApp, pascodegen, tstopas;
+
+Const
+  DefaultOptions = [coInterfaceAsClass];
 
 type
   { TParseTSApplication }
@@ -31,11 +34,13 @@ type
     FLinks,
     FUnits,
     FAliases : TStringArray;
+    FOptions : TConversionOptions;
 
     procedure AddAliases(Converter: TTypescriptToPas; aAlias: String);
     procedure AddWebAliases(S: Tstrings);
     procedure AddJSAliases(S: Tstrings);
     procedure DoLog(Sender: TObject; LogType: TCodegenLogType; const Msg: String);
+    function GetOptions(aOptions: String): TConversionOptions;
     function ParseFile(const aInputFileName, aOutputFileName, aUnitName: string): Boolean;
   protected
     procedure DoRun; override;
@@ -47,6 +52,27 @@ type
 
 { TParseTSApplication }
 
+
+function TParseTSApplication.GetOptions(aOptions : String) : TConversionOptions;
+
+Var
+  T : TConversionOption;
+  S : TStringArray;
+  N : String;
+
+begin
+  Result:=[];
+  S:=SplitString(aOptions,', ');
+  For T in TConversionOption do
+    begin
+    N:=GetEnumName(TypeInfo(TConversionOption),Ord(T));
+    if IndexText(N,S)<>-1 then
+      Include(Result,T);
+    end;
+end;
+
+
+
 procedure TParseTSApplication.DoRun;
 
 var
@@ -55,7 +81,7 @@ var
 
 begin
   Terminate;
-  ErrorMsg:=CheckOptions('hi:o:a:wx:u:vl:', ['help','input:','output:','alias:','web','extra-units:','unitname:','verbose','link:']);
+  ErrorMsg:=CheckOptions('hi:o:a:wx:u:vl:s:', ['help','input:','output:','alias:','web','extra-units:','unitname:','verbose','link:','setting']);
   if (ErrorMsg<>'') or HasOption('h','help') then
     begin
     Usage(ErrorMsg);
@@ -73,6 +99,8 @@ begin
       OutputFile:=ChangeFileExt(ChangeFileExt(InputFile,''),'.pp')
     else
       OutputFile:=ChangeFileExt(InputFile,'.pp');
+  if HasOption('s','setting') then
+    FOptions:=GetOptions(GetOptionValue('s','setting'));
   aUnitName:=GetOptionValue('u','unitname');
   if aUnitName='' then
     aUnitName:=ChangeFileExt(ExtractFileName(outputFile),'');
@@ -142,7 +170,7 @@ begin
       For S in Flinks do
         Converter.LinkStatements.Add(S);
       Converter.Verbose:=FVerbose;
-      Converter.Options:=Converter.Options+[coInterfaceAsClass];
+      Converter.Options:=FOptions;
       Converter.ExtraUnits:=U;
       Converter.InputFileName:=aInputFileName;
       Converter.OutputFileName:=aOutputFileName;
@@ -163,6 +191,7 @@ constructor TParseTSApplication.Create(TheOwner: TComponent);
 begin
   inherited Create(TheOwner);
   StopOnException:=True;
+  FOptions:=DefaultOptions;
 end;
 
 destructor TParseTSApplication.Destroy;
@@ -222,6 +251,11 @@ end;
 
 
 procedure TParseTSApplication.Usage(Msg: string);
+
+Var
+  S : String;
+  CO : TConversionOption;
+
 begin
   if Msg<>'' then
     Writeln('Error : ',Msg);
@@ -235,6 +269,14 @@ begin
   Writeln('-i --input=FILENAME   Parse .d.ts file FILENAME');
   Writeln('-l --link=FILENAME    add {$linklib FILENAME} statement. (option can be specified multiple times)');
   Writeln('-o --output=FILENAME  Output unit in file FILENAME');
+  Writeln('-s --setting=SETTINGS Set options. SETTINGS is a comma-separated list of the following names:');
+  for CO in TConversionOption do
+    begin
+    S:=GetEnumName(TypeInfo(TConversionOption),Ord(CO));
+    if CO in DefaultOptions then S:=S+' (*)';
+    Writeln('                      ',S);
+    end;
+  Writeln('                      Names marked with (*) are set in the default.');
   Writeln('-u --unit=NAME        Set output unitname');
   Writeln('-w --web              Add web unit to uses, define type aliases for web unit');
   Writeln('-x --extra-units=UNITLIST   Add units (comma-separated list of unit names) to uses clause.');
