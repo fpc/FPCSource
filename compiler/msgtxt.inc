@@ -2056,9 +2056,10 @@ const msgtxt : array[0..000372,1..240] of char=(
   '**2Xt_Link with static libraries (-static is passed to linker)'#010+
   '**2Xu_Generate executable in UF2 forma','t  (embedded targets only)'#010+
   '**2Xv_Generate table for Virtual Entry calls'#010+
-  '**2XV_Use VLink as external linker       (default on Amiga, MorphOS)'#010+
+  '**2XV_Use VLink as external linker       (default on Amiga, Atari, Sin'+
+  'clair QL)'#010+
   '**2XX_Try to smartlink units             (defines FPC_LINK_SMART)'#010+
   '**1*_'#010+
-  '**1?_Show this help'#010+
-  '**1h_Sh','ows this help without waiting'
+  '**1?_Show this h','elp'#010+
+  '**1h_Shows this help without waiting'
 );
