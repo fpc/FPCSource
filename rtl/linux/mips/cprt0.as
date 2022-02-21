@@ -161,7 +161,6 @@ hlt:
         b hlt
         .end _haltproc
         .size _haltproc,.-_haltproc
-
 /* Define a symbol for the first piece of initialized data.  */
  .data
  .globl __data_start
@@ -179,3 +178,9 @@ __data_start:
         .comm operatingsystem_parameter_argc,4
         .comm operatingsystem_parameter_argv,4
 
+/* Also define _IO_stdin_used as it is used to */
+/*   distinguish different libc version */
+ .section .rodata
+ .globl _IO_stdin_used
+_IO_stdin_used:
+ .long 0x20001
