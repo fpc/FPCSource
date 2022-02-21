@@ -69,12 +69,12 @@ begin
    begin
     if not UseVLink then
      begin
-      ExeCmd[1]:='ld $OPT $GCSECTIONS -o $EXE $RES';
+      ExeCmd[1]:='ld $OPT $GCSECTIONS $MAP -o $EXE $RES';
       ExeCmd[2]:='strip --strip-unneeded --remove-section .comment $EXE';
      end
     else
      begin
-      ExeCmd[1]:='vlink -b elf32amiga $OPT $STRIP $GCSECTIONS -o $EXE -T $RES';
+      ExeCmd[1]:='vlink -b elf32amiga $OPT $STRIP $GCSECTIONS $MAP -o $EXE -T $RES';
      end;
    end;
 end;
@@ -212,25 +212,31 @@ var
   success : boolean;
   GCSectionsStr: string;
   StripStr: string[40];
+  MapStr: string;
 begin
   StripStr:='';
   GCSectionsStr:='';
+  MapStr:='';
 
   if not(cs_link_nolink in current_settings.globalswitches) then
-   Message1(exec_i_linking,current_module.exefilename);
+    Message1(exec_i_linking,current_module.exefilename);
 
   if UseVLink then
-   begin
-    if (cs_link_strip in current_settings.globalswitches) then
-     StripStr:='-s -P __abox__';
-    if create_smartlink_sections then
-     GCSectionsStr:='-gc-all -sc -sd';
-   end
+    begin
+      if (cs_link_strip in current_settings.globalswitches) then
+        StripStr:='-s -P __abox__';
+      if (cs_link_map in current_settings.globalswitches) then
+        MapStr:='-M'+Unix2AmigaPath(maybequoted(ScriptFixFilename(current_module.mapfilename)));
+      if create_smartlink_sections then
+        GCSectionsStr:='-gc-all -sc -sd';
+    end
   else
-   begin
-    if create_smartlink_sections then
-     GCSectionsStr:='--gc-sections -e _start';
-   end;
+    begin
+      if (cs_link_map in current_settings.globalswitches) then
+        MapStr:='-Map '+maybequoted(ScriptFixFileName(current_module.mapfilename));
+      if create_smartlink_sections then
+        GCSectionsStr:='--gc-sections -e _start';
+    end;
 
 { Write used files and libraries }
   WriteResponseFile(false);
@@ -238,19 +244,19 @@ begin
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
+  Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
+  Replace(cmdstr,'$MAP',MapStr);
   if UseVLink then
-   begin
-    Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename))));
-    Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
-    Replace(cmdstr,'$STRIP',StripStr);
-    Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
-   end
+    begin
+      Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename))));
+      Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
+      Replace(cmdstr,'$STRIP',StripStr);
+    end
   else
-   begin
-    Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename)));
-    Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
-    Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
-   end;
+    begin
+      Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename)));
+      Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
+    end;
   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
 { Stripping Enabled? }
@@ -258,21 +264,20 @@ begin
   { __abox__ symbol, which is required to be present in current MorphOS }
   { executables. }
   if not UseVLink then
-   begin
-    if success and (cs_link_strip in current_settings.globalswitches) then
-     begin
-      SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
-      Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
-      success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
-     end;
-   end;
+    begin
+      if success and (cs_link_strip in current_settings.globalswitches) then
+        begin
+          SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
+          Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
+          success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
+        end;
+    end;
 
 { Remove ReponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
-   DeleteFile(outputexedir+Info.ResName);
+    DeleteFile(outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
-
 end;
 
 
