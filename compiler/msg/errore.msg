@@ -4406,7 +4406,7 @@ F*2Xp<x>_First search for the compiler binary in the directory <x>
 **2Xt_Link with static libraries (-static is passed to linker)
 **2Xu_Generate executable in UF2 format  (embedded targets only)
 **2Xv_Generate table for Virtual Entry calls
-**2XV_Use VLink as external linker       (default on Amiga, MorphOS)
+**2XV_Use VLink as external linker       (default on Amiga, Atari, Sinclair QL)
 **2XX_Try to smartlink units             (defines FPC_LINK_SMART)
 **1*_
 **1?_Show this help
