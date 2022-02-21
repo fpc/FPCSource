@@ -592,6 +592,7 @@ implementation
 
 
       var
+        hp: taddnode;
         t,vl,lefttarget,righttarget: tnode;
         lt,rt,nt : tnodetype;
         hdef,
@@ -1486,6 +1487,26 @@ implementation
                   begin
                     Result:=SwapLeftWithRightRight;
                     exit;
+                  end;
+
+                {
+                  reorder string expressions with parentheses:
+                  (s1+(s2+(s3+s4...))) into s1+s2+s3+s4 ...
+                  so fpc_*_concat_multi can be used efficiently
+                }
+                hp:=self;
+                while (hp.right.nodetype=hp.nodetype) and (hp.resultdef.typ=stringdef) and
+                  (compare_defs(hp.resultdef,hp.right.resultdef,nothingn)=te_exact) and
+                  (compare_defs(hp.resultdef,hp.left.resultdef,nothingn)=te_exact) and
+                  (compare_defs(hp.resultdef,taddnode(hp.right).left.resultdef,nothingn)=te_exact) and
+                  (compare_defs(hp.resultdef,taddnode(hp.right).right.resultdef,nothingn)=te_exact) do
+                  begin
+                    t:=hp.left;
+                    hp.left:=hp.right;
+                    hp.right:=taddnode(hp.left).right;
+                    taddnode(hp.left).right:=taddnode(hp.left).left;
+                    taddnode(hp.left).left:=t;
+                    hp:=taddnode(hp.left);
                   end;
               end;
 
