@@ -5497,8 +5497,13 @@ implementation
         alt:=al_pure_assembler;
       { add the procedure to the al_procedures }
       maybe_new_object_file(current_asmdata.asmlists[alt]);
+{$ifdef symansistr}
       if pd.section<>'' then
         new_proc_section(current_asmdata.asmlists[alt],sec_user,lower(pd.section),getprocalign)
+{$else symansistr}
+      if assigned(pd.section) then
+        new_proc_section(current_asmdata.asmlists[alt],sec_user,lower(pd.section^),getprocalign)
+{$endif symansistr}
       else
         new_section(current_asmdata.asmlists[alt],sec_code,lower(pd.mangledname),getprocalign);
       current_asmdata.asmlists[alt].concatlist(code);

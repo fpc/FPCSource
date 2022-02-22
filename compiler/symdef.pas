@@ -695,7 +695,6 @@ interface
           { number of user visible parameters }
           maxparacount,
           minparacount    : byte;
-          section : ansistring;
           constructor create(dt:tdeftyp;level:byte;doregister:boolean);
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
           destructor destroy;override;
@@ -866,6 +865,11 @@ interface
           visibility   : tvisibility;
 {$ifndef DISABLE_FAST_OVERLOAD_PATCH}
           seenmarker : pointer; // used for filtering in tcandidate
+{$endif}
+{$ifdef symansistr}
+         section: ansistring;
+{$else symansistr}
+         section: pshortstring;
 {$endif}
           constructor create(level:byte;doregister:boolean);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
