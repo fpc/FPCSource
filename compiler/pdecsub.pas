@@ -2421,7 +2421,7 @@ begin
   if pd.typ<>procdef then
     internalerror(2021032801);
   if not (target_info.system in systems_allow_section) then
-    Comment(V_Error,'Directive section not allowed for this target.');
+    Message(parser_e_section_directive_not_allowed_for_target);
 {$ifdef symansistr}
   tprocdef(pd).section:=get_stringconst;
 {$else symansistr}
