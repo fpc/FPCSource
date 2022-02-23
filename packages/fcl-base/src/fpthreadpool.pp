@@ -135,6 +135,9 @@ Type
          procedure TerminatedSet; override;
          procedure DoSetTask(AValue: TThreadPoolTask); virtual;
        Public
+         {$IF FPC_FULLVERSION<30300}
+         procedure Terminate;
+         {$ENDIF}
          Procedure FreeTask;
          Property Task : TThreadPoolTask Read FTask Write SetTask;
        end;
@@ -308,6 +311,7 @@ Procedure DoLog(Const Fmt : String; Const Args : Array of const);
 begin
   DoLog(Format(Fmt,Args))
 end;
+
 {$ENDIF}
 
 { TFPCustomSimpleThreadPool.TAbstractThreadList }
@@ -316,7 +320,6 @@ constructor TFPCustomSimpleThreadPool.TAbstractThreadList.CreateList(aPool: TFPC
 begin
   FPool:=aPool;
 end;
-
 
 { TFPCustomSimpleThreadPool.TAutoCheckQueueThread }
 
@@ -557,6 +560,14 @@ begin
   FTask:=AValue;
 end;
 
+{$IF FPC_FULLVERSION<30300}
+procedure TFPCustomSimpleThreadPool.TAbstractTaskThread.Terminate;
+begin
+  inherited Terminate;
+  TerminatedSet;
+end;
+{$ENDIF}
+
 procedure TFPCustomSimpleThreadPool.TAbstractTaskThread.FreeTask;
 begin
   FreeAndNil(FTask);
@@ -566,7 +577,6 @@ procedure TFPCustomSimpleThreadPool.TAbstractTaskThread.TerminatedSet;
 begin
   if Assigned(FTask) then
     FTask.Terminate;
-  inherited TerminatedSet;
 end;
 
 { TThreadPoolTask }
@@ -610,7 +620,6 @@ procedure TThreadPoolTask.Execute;
 
 Var
   RunOK : Boolean;
-  S : String;
 
 begin
   RunOK:=False;
@@ -795,11 +804,9 @@ function TFPCustomSimpleThreadPool.DoAddTask(aTask: TThreadPoolTask) : Boolean;
 
 Var
   T : TAbstractTaskThread;
-  WaitStart : TDateTime;
   TimeOut : Boolean;
 
 begin
-  WaitStart:=0;
   Result:=False;
   TimeOut:=False;
   Repeat
