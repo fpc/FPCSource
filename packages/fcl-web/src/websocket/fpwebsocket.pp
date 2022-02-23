@@ -181,6 +181,7 @@ type
     Procedure WriteBuffer (aBytes : TBytes);
     function ReadLn : String;
     function PeerIP: string;
+    function PeerPort: word;
   end;
 
   { TWSSocketHelper }
@@ -192,6 +193,7 @@ type
     Constructor Create (aSocket : TSocketStream);
     Function CanRead(aTimeOut: Integer) : Boolean;
     function PeerIP: string; virtual;
+    function PeerPort: word; virtual;
     function ReadLn : String; virtual;
     function ReadBytes (var aBytes : TBytes; aCount : Integer) : Integer; virtual;
     Procedure ReadBuffer (aBytes : TBytes); virtual;
@@ -309,6 +311,7 @@ type
     FCloseState : TCloseState;
     FOptions: TWSOptions;
     Function GetPeerIP : String;
+    Function GetPeerPort : word;
   protected
     procedure AllocateConnectionID; virtual;
     Procedure SetCloseState(aValue : TCloseState); virtual;
@@ -369,6 +372,8 @@ type
     Property OutgoingFrameMask : Integer Read FOutgoingFrameMask Write FOutgoingFrameMask;
     // Peer IP address
     property PeerIP: string read GetPeerIP;
+    // Peer IP port
+    property PeerPort: word read GetPeerPort;
     // Transport in use by this connection
     property Transport: IWSTransport read GetTransport;
     // User data to associate with this connection.
@@ -611,6 +616,20 @@ begin
   Result:= SocketAddrToString(FSocket.RemoteAddress);
 end;
 
+function TWSSocketHelper.PeerPort: word;
+
+  Function SocketAddrToPort(ASocketAddr: TSockAddr): word;
+  begin
+    if ASocketAddr.sa_family = AF_INET then
+      Result := ASocketAddr.sin_port
+    else // no ipv6 support yet
+      Result := 0;
+  end;
+
+begin
+  Result:=SocketAddrToPort(FSocket.RemoteAddress);
+end;
+
 function TWSSocketHelper.ReadLn: String;
 
 Var
@@ -640,11 +659,12 @@ var
   buf: TBytes;
   aPos, toRead: QWord;
 begin
+  if aCount=0 then exit(0);
   aPos := 0;
   SetLength(aBytes, aCount);
   repeat
     SetLength(buf, aCount);
-    Result := FSocket.ReadData(buf, aCount - aPos);
+    Result := FSocket.Read(buf[0], aCount - aPos);
     if Result <= 0 then
       break;
     SetLength(buf, Result);
@@ -657,17 +677,20 @@ end;
 
 procedure TWSSocketHelper.ReadBuffer(aBytes: TBytes);
 begin
-  FSocket.ReadBuffer(aBytes,Length(ABytes));
+  if Length(ABytes)=0 then exit;
+  FSocket.ReadBuffer(aBytes[0],Length(ABytes));
 end;
 
 function TWSSocketHelper.WriteBytes(aBytes: TBytes; aCount: Integer): Integer;
 begin
-  Result:=FSocket.WriteData(aBytes,aCount);
+  if aCount=0 then exit(0);
+  Result:=FSocket.Write(aBytes[0],aCount);
 end;
 
 procedure TWSSocketHelper.WriteBuffer(aBytes: TBytes);
 begin
-  FSocket.WriteBuffer(aBytes,0,Length(aBytes));
+  if Length(aBytes)=0 then exit;
+  FSocket.WriteBuffer(aBytes[0],Length(aBytes));
 end;
 
 { TWSMessage }
@@ -794,8 +817,9 @@ begin
   Encoder:=Nil;
   OutStream:=TStringStream.Create('');
   try
-    Encoder:=TBase64EncodingStream.create(OutStream);
-    Encoder.WriteBuffer(aBytes,0,Length(aBytes));
+    Encoder:=TBase64EncodingStream.Create(OutStream);
+    if Length(aBytes)>0 then
+      Encoder.WriteBuffer(aBytes[0],Length(aBytes));
     Encoder.Flush;
     Result:=OutStream.DataString;
   finally
@@ -1206,6 +1230,17 @@ begin
     Result:=''
 end;
 
+function TWSConnection.GetPeerPort: word;
+Var
+  S : IWSTransport;
+begin
+  S:=Transport;
+  if Assigned(S) then
+    Result:=S.PeerPort
+  else
+    Result:=0
+end;
+
 procedure TWSConnection.AllocateConnectionID;
 begin
   if Assigned(IDAllocator) then
@@ -1221,7 +1256,7 @@ end;
 procedure TWSConnection.SetCloseState(aValue: TCloseState);
 begin
   FCloseState:=aValue;
-  if (FCloseState=csClosed) and autoDisconnect then
+  if (FCloseState=csClosed) and AutoDisconnect then
     Disconnect;
 end;
 
@@ -1544,6 +1579,8 @@ end;
 procedure TWSConnection.Disconnect;
 begin
   DoDisconnect;
+  if Assigned(FOnDisconnect) then
+    FOnDisconnect(Self);
 end;
 
 procedure TWSConnection.Close(aData: TBytes);
