@@ -85,8 +85,6 @@ Type
     Property WebsocketClient : TCustomWebsocketClient Read GetClient;
   end;
 
-  { TCustomWSClientConnection }
-
   { TCustomWebsocketClient }
 
   TCustomWebsocketClient = Class(TComponent)
@@ -129,7 +127,7 @@ Type
   Protected
     Procedure CheckInactive;
     Procedure Loaded; override;
-    function CreateClientConnection(aTransport : TWSClientTRansport): TWebSocketClientConnection; virtual;
+    function CreateClientConnection(aTransport : TWSClientTransport): TWebSocketClientConnection; virtual;
     procedure MessageReceived(Sender: TObject; const aMessage : TWSMessage);
     Procedure ControlReceived(Sender: TObject; aType : TFrameType; const aData: TBytes);virtual;
     function CheckHandShakeResponse(aHeaders: TStrings): Boolean; virtual;
@@ -137,8 +135,8 @@ Type
     function CreateHandshakeResponse(aHeaders: TStrings): TWSHandShakeResponse; virtual;
     procedure SendHandShakeRequest; virtual;
     function ReadHandShakeResponse: Boolean; virtual;
-    Function DoHandShake : Boolean;
-    Property Transport : TWSClientTRansport Read FTransport;
+    Function DoHandShake: Boolean;
+    Property Transport: TWSClientTransport Read FTransport;
   Public
     Property Connection: TWebSocketClientConnection Read FConnection;
   Public
@@ -262,13 +260,13 @@ end;
 function TCustomWebsocketClient.CreateClientConnection(aTransport: TWSClientTRansport): TWebsocketClientConnection;
 
 begin
-  Result:=TWebsocketClientConnection.Create(Self,aTransport,FOptions);
+  Result:=TWebSocketClientConnection.Create(Self,aTransport,FOptions);
 end;
 
 procedure TCustomWebsocketClient.ConnectionDisconnected(Sender : TObject);
 
 begin
-  Factive:=False;
+  FActive:=False;
   If Assigned(MessagePump) then
     MessagePump.RemoveClient(FConnection);
   If Assigned(OnDisconnect) then
@@ -380,7 +378,7 @@ Function TCustomWebsocketClient.CheckHandShakeResponse(aHeaders : TStrings) : Bo
 
 Var
   K : String;
-  hash : TSHA1Digest;
+  {%H-}hash : TSHA1Digest;
   B : TBytes;
 
 begin
@@ -390,7 +388,7 @@ begin
   k := Trim(FHandshake.Key) + SSecWebSocketGUID;
   hash:=sha1.SHA1String(k);
   SetLength(B,SizeOf(hash));
-  Move(Hash,B[0],Length(B));
+  Move(hash[0],B[0],SizeOf(hash));
   k:=EncodeBytesBase64(B);
   Result:=SameText(K,FHandshakeResponse.Accept)
           and SameText(FHandshakeResponse.Upgrade,'websocket');
@@ -462,6 +460,9 @@ begin
     MessagePump.RemoveClient(Connection);
   FreeAndNil(FConnection);
   FActive:=False;
+  If Assigned(OnDisconnect) then
+    OnDisconnect(FConnection);
+  // ConnectionDisconnected(Self);
 end;
 
 procedure TCustomWebsocketClient.SetActive(const Value: Boolean);
