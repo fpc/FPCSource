@@ -1,7 +1,7 @@
 {
     Copyright (c) 1998-2002 by Peter Vreman
 
-    This unit implements support information structures for MS-DOS
+    This unit implements support information structures for MSX-DOS
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,17 +18,9 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ****************************************************************************
 }
-{ This unit implements support information structures for go32v2. }
 unit i_msxdos;
 
 {$i fpcdefs.inc}
-
-{$ifdef go32v2}
-  { As wlib uses a different Dos-Extender, long-command line
-    encoding for DJGPP does not work here.
-    Put all inside a script file instead }
-  {$define USE_SCRIPTED_WLIB}
-{$endif}
 
   interface
 
