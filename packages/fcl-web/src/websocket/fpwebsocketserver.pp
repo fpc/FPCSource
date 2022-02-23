@@ -34,6 +34,7 @@ type
     FActive: Boolean;
     FAfterSocketHandlerCreated: TWSSocketHandlerCreatedEvent;
     FCertificateData: TCertificateData;
+    FHost: String;
     FMessageWaitTime: Cardinal;
     FOnAcceptIdle: TAcceptIdleEvent;
     FOnGetSocketHandler: TWSGetSocketHandlerEvent;
@@ -44,6 +45,7 @@ type
     FUseSSL: Boolean;
     procedure SetAcceptIdleTimeout(AValue: Cardinal);
     procedure SetCertificateData(AValue: TCertificateData);
+    procedure SetHost(const AValue: String);
     procedure SetPort(AValue: Word);
     procedure SetQueueSize(AValue: Word);
     procedure SetUseSSL(AValue: Boolean);
@@ -80,6 +82,7 @@ type
     Property MessageWaitTime;
     Property Options;
     Property Port: Word Read FPort Write SetPort default 8080;
+    Property Host: String Read FHost Write SetHost; // default '0.0.0.0'
     Property Resource;
     Property WebSocketVersion;
     property OnConnect;
@@ -110,7 +113,7 @@ type
 implementation
 
 uses
-  sslsockets, sockets;
+  sslsockets;
 
 Type
   { TAcceptThread }
@@ -227,8 +230,9 @@ begin
     begin
     Connections.Add(Con);
     ConnectionHandler.HandleConnection(Con,True);
+
     if Assigned(OnConnect) then
-      OnConnect(Sender, Con);
+      OnConnect(Self,Con);
     end;
 end;
 
@@ -270,6 +274,13 @@ begin
   FCertificateData.Assign(AValue);
 end;
 
+procedure TWebSocketServer.SetHost(const AValue: String);
+begin
+  if FHost=AValue then Exit;
+  CheckInactive;
+  FHost:=AValue;
+end;
+
 function TWebSocketServer.GetActive: Boolean;
 begin
   Result:=Assigned(FServer);
@@ -291,9 +302,6 @@ begin
     AcceptIdleTimeout:=DefaultAcceptTimeout;
 end;
 
-
-
-
 procedure TWebSocketServer.FreeServerSocket;
 begin
   FreeAndNil(FServer);
@@ -303,7 +311,7 @@ end;
 procedure TWebSocketServer.CreateServerSocket;
 
 begin
-  FServer:=TInetServer.Create(FPort);
+  FServer:=TInetServer.Create(FHost,FPort);
   FServer.OnCreateClientSocketHandler:=@DoCreateClientHandler;
   FServer.MaxConnections:=-1;
   FServer.OnConnectQuery:=@DoAllowConnect;
@@ -368,6 +376,7 @@ end;
 constructor TWebSocketServer.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  FHost:='0.0.0.0';
   FPort:=8080;
   FQueueSize:=5;
   FMessageWaitTime:=DefaultWaitTime;
