@@ -153,7 +153,7 @@ unit aoptx86;
         procedure RemoveLastDeallocForFuncRes(p : tai);
 
         function DoArithCombineOpt(var p : tai) : Boolean;
-        function DoMovCmpMemOpt(var p : tai; const hp1: tai; UpdateTmpUsedRegs: Boolean) : Boolean;
+        function DoMovCmpMemOpt(var p : tai; const hp1: tai) : Boolean;
         function DoSETccLblRETOpt(var p: tai; const hp_label: tai_label) : Boolean;
 
         function PrePeepholeOptSxx(var p : tai) : boolean;
@@ -4632,7 +4632,7 @@ unit aoptx86;
                 Exit;
               end;
 
-            if DoMovCmpMemOpt(p, hp1, True) then
+            if DoMovCmpMemOpt(p, hp1) then
               begin
                 Result := True;
                 Exit;
@@ -6244,12 +6244,11 @@ unit aoptx86;
       end;
 
 
-    function TX86AsmOptimizer.DoMovCmpMemOpt(var p : tai; const hp1: tai; UpdateTmpUsedRegs: Boolean) : Boolean;
+    function TX86AsmOptimizer.DoMovCmpMemOpt(var p : tai; const hp1: tai) : Boolean;
+      var
+        hp2: tai;
       begin
         Result := False;
-        if UpdateTmpUsedRegs then
-          TransferUsedRegs(TmpUsedRegs);
-
         if MatchOpType(taicpu(p),top_ref,top_reg) and
           { The x86 assemblers have difficulty comparing values against absolute addresses }
           (taicpu(p).oper[0]^.ref^.refaddr <> addr_full) and
@@ -6267,6 +6266,7 @@ unit aoptx86;
           begin
             { change
                 mov      mem, %reg
+                ...
                 cmp/test x,   %reg / test %reg,%reg
                 (reg deallocated)
 
@@ -6274,6 +6274,7 @@ unit aoptx86;
 
                 cmp/test x,   mem  / cmp  0,   mem
             }
+            TransferUsedRegs(TmpUsedRegs);
             UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
             if not RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs) then
               begin
@@ -6289,7 +6290,22 @@ unit aoptx86;
                   end;
                 taicpu(hp1).loadref(1, taicpu(p).oper[0]^.ref^);
                 DebugMsg(SPeepholeOptimization + 'MOV/CMP -> CMP (memory check)', p);
-                RemoveCurrentP(p, hp1);
+
+                RemoveCurrentP(p);
+
+                if (p <> hp1) then
+                  begin
+                    { Correctly update TmpUsedRegs if p and hp1 aren't adjacent }
+                    hp2 := p;
+                    repeat
+                      UpdateUsedRegs(TmpUsedRegs, tai(hp2.Next));
+                    until not GetNextInstruction(hp2, hp2) or (hp2 = hp1);
+                  end;
+
+                { Make sure the flags are allocated across the CMP instruction }
+                if not RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) then
+                  AllocRegBetween(NR_DEFAULTFLAGS, hp1, hp1, TmpUsedRegs);
+
                 Result := True;
                 Exit;
               end;
@@ -9313,7 +9329,7 @@ unit aoptx86;
           Exit;
 
         if MatchInstruction(hp1, A_CMP, A_TEST, [taicpu(p).opsize])
-          and DoMovCmpMemOpt(p, hp1, True) then
+          and DoMovCmpMemOpt(p, hp1) then
           begin
             Result := True;
             Exit;
