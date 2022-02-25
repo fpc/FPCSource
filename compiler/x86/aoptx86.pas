@@ -988,27 +988,48 @@ unit aoptx86;
         { change information for xmm movsd are not correct }
         ((taicpu(p1).opcode<>A_MOVSD) or (taicpu(p1).ops=0)) then
         begin
-          case getsupreg(reg) of
-            { RS_EAX = RS_RAX on x86-64 }
-            RS_EAX:
-              result:=([Ch_REAX,Ch_RRAX,Ch_WEAX,Ch_WRAX,Ch_RWEAX,Ch_RWRAX,Ch_MEAX,Ch_MRAX]*insprop[taicpu(p1).opcode].Ch)<>[];
-            RS_ECX:
-              result:=([Ch_RECX,Ch_RRCX,Ch_WECX,Ch_WRCX,Ch_RWECX,Ch_RWRCX,Ch_MECX,Ch_MRCX]*insprop[taicpu(p1).opcode].Ch)<>[];
-            RS_EDX:
-              result:=([Ch_REDX,Ch_RRDX,Ch_WEDX,Ch_WRDX,Ch_RWEDX,Ch_RWRDX,Ch_MEDX,Ch_MRDX]*insprop[taicpu(p1).opcode].Ch)<>[];
-            RS_EBX:
-              result:=([Ch_REBX,Ch_RRBX,Ch_WEBX,Ch_WRBX,Ch_RWEBX,Ch_RWRBX,Ch_MEBX,Ch_MRBX]*insprop[taicpu(p1).opcode].Ch)<>[];
-            RS_ESP:
-              result:=([Ch_RESP,Ch_RRSP,Ch_WESP,Ch_WRSP,Ch_RWESP,Ch_RWRSP,Ch_MESP,Ch_MRSP]*insprop[taicpu(p1).opcode].Ch)<>[];
-            RS_EBP:
-              result:=([Ch_REBP,Ch_RRBP,Ch_WEBP,Ch_WRBP,Ch_RWEBP,Ch_RWRBP,Ch_MEBP,Ch_MRBP]*insprop[taicpu(p1).opcode].Ch)<>[];
-            RS_ESI:
-              result:=([Ch_RESI,Ch_RRSI,Ch_WESI,Ch_WRSI,Ch_RWESI,Ch_RWRSI,Ch_MESI,Ch_MRSI,Ch_RMemEDI]*insprop[taicpu(p1).opcode].Ch)<>[];
-            RS_EDI:
-              result:=([Ch_REDI,Ch_RRDI,Ch_WEDI,Ch_WRDI,Ch_RWEDI,Ch_RWRDI,Ch_MEDI,Ch_MRDI,Ch_WMemEDI]*insprop[taicpu(p1).opcode].Ch)<>[];
+          { Handle instructions that behave differently depending on the size and operand count }
+          case taicpu(p1).opcode of
+            A_MUL, A_DIV, A_IDIV:
+              if taicpu(p1).opsize = S_B then
+                Result := (getsupreg(Reg) = RS_EAX)
+              else
+                Result := (getsupreg(Reg) in [RS_EAX, RS_EDX]);
+
+            A_IMUL:
+              if taicpu(p1).ops = 1 then
+                begin
+                  if taicpu(p1).opsize = S_B then
+                    Result := (getsupreg(Reg) = RS_EAX)
+                  else
+                    Result := (getsupreg(Reg) in [RS_EAX, RS_EDX]);
+                end;
+              { If ops are greater than 1, call inherited method }
+
             else
-              ;
+              case getsupreg(reg) of
+                { RS_EAX = RS_RAX on x86-64 }
+                RS_EAX:
+                  result:=([Ch_REAX,Ch_RRAX,Ch_WEAX,Ch_WRAX,Ch_RWEAX,Ch_RWRAX,Ch_MEAX,Ch_MRAX]*insprop[taicpu(p1).opcode].Ch)<>[];
+                RS_ECX:
+                  result:=([Ch_RECX,Ch_RRCX,Ch_WECX,Ch_WRCX,Ch_RWECX,Ch_RWRCX,Ch_MECX,Ch_MRCX]*insprop[taicpu(p1).opcode].Ch)<>[];
+                RS_EDX:
+                  result:=([Ch_REDX,Ch_RRDX,Ch_WEDX,Ch_WRDX,Ch_RWEDX,Ch_RWRDX,Ch_MEDX,Ch_MRDX]*insprop[taicpu(p1).opcode].Ch)<>[];
+                RS_EBX:
+                  result:=([Ch_REBX,Ch_RRBX,Ch_WEBX,Ch_WRBX,Ch_RWEBX,Ch_RWRBX,Ch_MEBX,Ch_MRBX]*insprop[taicpu(p1).opcode].Ch)<>[];
+                RS_ESP:
+                  result:=([Ch_RESP,Ch_RRSP,Ch_WESP,Ch_WRSP,Ch_RWESP,Ch_RWRSP,Ch_MESP,Ch_MRSP]*insprop[taicpu(p1).opcode].Ch)<>[];
+                RS_EBP:
+                  result:=([Ch_REBP,Ch_RRBP,Ch_WEBP,Ch_WRBP,Ch_RWEBP,Ch_RWRBP,Ch_MEBP,Ch_MRBP]*insprop[taicpu(p1).opcode].Ch)<>[];
+                RS_ESI:
+                  result:=([Ch_RESI,Ch_RRSI,Ch_WESI,Ch_WRSI,Ch_RWESI,Ch_RWRSI,Ch_MESI,Ch_MRSI,Ch_RMemEDI]*insprop[taicpu(p1).opcode].Ch)<>[];
+                RS_EDI:
+                  result:=([Ch_REDI,Ch_RRDI,Ch_WEDI,Ch_WRDI,Ch_RWEDI,Ch_RWRDI,Ch_MEDI,Ch_MRDI,Ch_WMemEDI]*insprop[taicpu(p1).opcode].Ch)<>[];
+                else
+                  ;
+              end;
           end;
+
           if result then
             exit;
         end
@@ -1140,8 +1161,24 @@ unit aoptx86;
               Result := (taicpu(p1).ops=3) and (taicpu(p1).oper[2]^.typ=top_reg) and RegInOp(reg,taicpu(p1).oper[2]^);
               exit;
             end;
+          A_MUL, A_DIV, A_IDIV:
+            begin
+              if taicpu(p1).opsize = S_B then
+                Result := (getsupreg(Reg) = RS_EAX)
+              else
+                Result := (getsupreg(Reg) in [RS_EAX, RS_EDX]);
+            end;
           A_IMUL:
-            Result := (taicpu(p1).oper[taicpu(p1).ops-1]^.typ=top_reg) and RegInOp(reg,taicpu(p1).oper[taicpu(p1).ops-1]^);
+            begin
+              if taicpu(p1).ops = 1 then
+                begin
+                  Result := (getsupreg(Reg) in [RS_EAX, RS_EDX]);
+                end
+              else
+                Result := (taicpu(p1).oper[taicpu(p1).ops-1]^.typ=top_reg) and RegInOp(reg,taicpu(p1).oper[taicpu(p1).ops-1]^);
+
+              Exit;
+            end;
           else
             ;
         end;
