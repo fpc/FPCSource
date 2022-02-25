@@ -1194,18 +1194,27 @@ implementation
                   Message(parser_e_type_var_const_only_in_records_and_classes);
                 consume(_TYPE);
                 object_member_blocktype:=bt_type;
+                { expect at least one type declaration }
+                if token<>_ID then
+                  consume(_ID);
               end;
             _VAR :
               begin
                 check_unbound_attributes;
                 rtti_attrs_def := nil;
                 parse_var(false);
+                { expect at least one var declaration }
+                if token<>_ID then
+                  consume(_ID);
               end;
             _CONST:
               begin
                 check_unbound_attributes;
                 rtti_attrs_def := nil;
-                parse_const
+                parse_const;
+                { expect at least one constant declaration }
+                if token<>_ID then
+                  consume(_ID);
               end;
             _THREADVAR :
               begin
@@ -1217,6 +1226,9 @@ implementation
                     is_classdef:=true;
                   end;
                 parse_var(true);
+                { expect at least one threadvar declaration }
+                if token<>_ID then
+                  consume(_ID);
               end;
             _ID :
               begin
