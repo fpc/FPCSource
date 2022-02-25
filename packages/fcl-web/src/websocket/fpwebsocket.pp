@@ -164,8 +164,6 @@ type
 
 {$INTERFACES CORBA}
 
-  { TWSTransport }
-
   { IWSTransport }
 
   IWSTransport = Interface
@@ -1635,7 +1633,7 @@ begin
   else if ReadMessage then
     Result:=irOK
   else
-    Result:=irClose
+    Result:=irClose;
 end;
 
 constructor TWSClientConnection.Create(aOwner: TComponent; aTransport: TWSClientTransport; aOptions : TWSOptions);

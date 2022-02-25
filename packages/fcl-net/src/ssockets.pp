@@ -856,7 +856,10 @@ begin
   Result:=Nil;
   NewSocket:=Accept;
   if (NewSocket<0) then
-    Raise ESocketError.Create(seAcceptFailed,[Socket,SocketError]);
+    if not FAccepting then
+      exit
+    else
+      Raise ESocketError.Create(seAcceptFailed,[Socket,SocketError]);
   If FAccepting and DoConnectQuery(NewSocket) Then
     Result:=SockToStream(NewSocket)
   else
