@@ -835,11 +835,13 @@ implementation
           setdef:
             result:=R_INTREGISTER;
           procvardef:
+{$ifndef LLVM}
             { getaddressregister cannot handle if multiple registers
               are required for a single element }
             if is_methodpointer(def) then
               result:=R_INTREGISTER
             else
+{$endif LLVM}
               result:=R_ADDRESSREGISTER;
           stringdef,
           pointerdef,
