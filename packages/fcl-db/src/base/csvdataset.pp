@@ -177,6 +177,7 @@ begin
     FreeAndNil(FOPtions);
   FreeAndNil(Fline);
   FreeAndNil(FParser);
+  FreeAndNil(FBuilder);
   inherited Destroy;
 end;
 
