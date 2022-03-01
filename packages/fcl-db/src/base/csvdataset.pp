@@ -20,7 +20,7 @@ unit csvdataset;
 interface
 
 uses
-  Classes, SysUtils, bufdataset, csvreadwrite, db, sqldb;
+  Classes, SysUtils, bufdataset, csvreadwrite, db;
 
 Type
 
