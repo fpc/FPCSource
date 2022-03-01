@@ -52,7 +52,6 @@ interface
 
        tcgcallnode = class(tcallnode)
        private
-
           procedure handle_return_value;
           procedure release_unused_return_value;
           procedure copy_back_paras;
