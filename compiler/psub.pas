@@ -3143,7 +3143,14 @@ implementation
          { add implementations for synthetic method declarations added by
            the compiler (not for unit/program init functions, their localst
            is the staticst -> would duplicate the work done in pmodules) }
-         if current_procinfo.procdef.localst.symtabletype=localsymtable then
+         if (current_procinfo.procdef.localst.symtabletype=localsymtable) and
+           { we cannot call add_synthetic_method_implementations as it throws an internalerror if
+             the token is a string/char. As this is a syntax error and compilation will abort anyways,
+             skipping the call does not matter
+           }
+           (token<>_CSTRING) and
+           (token<>_CWCHAR) and
+           (token<>_CWSTRING) then
            add_synthetic_method_implementations(current_procinfo.procdef.localst);
 
          { check for incomplete class definitions, this is only required
