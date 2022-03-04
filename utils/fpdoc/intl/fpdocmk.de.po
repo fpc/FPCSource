@@ -18,33 +18,33 @@ msgstr ""
 
 #: fpdocmk:stitle
 msgid "FPDocMK - Makefile.fpc processor for Free Pascal Documentation Tool"
-msgstr "FPDocMK - Makefile.fpc-Prozessor für das "
+msgstr "FPDocMK - Makefile.fpc-Prozessor fÃ¼r das "
 "Free-Pascal-Dokumentationswerkzeug"
 
 #: fpdocmk:scopyright
 msgid "(c) 2003 Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org"
-msgstr "(c) 2003 Areca Systems GmbH / Sebastian Günther, sg@freepascal.org"
+msgstr "(c) 2003 Areca Systems GmbH / Sebastian GÃ¼nther, sg@freepascal.org"
 
 #: fpdocmk:scmdlinehelp
 msgid "See documentation for usage."
-msgstr "Lesen Sie die Dokumentation für Infos zur Benutzung."
+msgstr "Lesen Sie die Dokumentation fÃ¼r Infos zur Benutzung."
 
 #: fpdocmk:scmdlineinvalidoption
 msgid "Ignoring unknown option \"%s\""
-msgstr "Ignoriere unbekannte Option »%s«"
+msgstr "Ignoriere unbekannte Option Â»%sÂ«"
 
 #: fpdocmk:scmdlineinvalidformat
 msgid "Invalid format \"%s\" specified"
-msgstr "Ungültiges Format »%s« gewählt"
+msgstr "UngÃ¼ltiges Format Â»%sÂ« gewÃ¤hlt"
 
 #: fpdocmk:scmdlineoutputoptionmissing
 msgid "Need an output path or filename, please specify one with --output=<filename>"
-msgstr "Benötige einen Ausgabepfad oder -dateinamen; "
+msgstr "BenÃ¶tige einen Ausgabepfad oder -dateinamen; "
 "bitte geben Sie mit --output=<dateiname> einen an."
 
 #: fpdocmk:sneedpackagename
 msgid "No package name specified. Please specify one using the --package option."
-msgstr "Kein Paketname gewählt. Bitte geben Sie mit der Option --package "
+msgstr "Kein Paketname gewÃ¤hlt. Bitte geben Sie mit der Option --package "
 "einen an."
 
 #: fpdocmk:sdone

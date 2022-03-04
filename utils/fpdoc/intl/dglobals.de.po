@@ -1,6 +1,6 @@
 #: dglobals:sdocpackagetitle
 msgid "Reference for package '%s'"
-msgstr "Referenz für Paket '%s'"
+msgstr "Referenz fÃ¼r Paket '%s'"
 
 #: dglobals:sdocprograms
 msgid "Programs"
@@ -12,7 +12,7 @@ msgstr "Units"
 
 #: dglobals:sdocunittitle
 msgid "Reference for unit '%s'"
-msgstr "Referenz für Unit '%s'"
+msgstr "Referenz fÃ¼r Unit '%s'"
 
 #: dglobals:sdocinterfacesection
 msgid "Interface section"
@@ -60,11 +60,11 @@ msgstr "Variablen"
 
 #: dglobals:sdocunitoverview
 msgid "Overview of unit '%s'"
-msgstr "Überblick über Unit '%s'"
+msgstr "Ãœberblick Ã¼ber Unit '%s'"
 
 #: dglobals:sdocoverview
 msgid "Overview"
-msgstr "Überblick"
+msgstr "Ãœberblick"
 
 #: dglobals:sdocsearch
 msgid "Search"
@@ -104,11 +104,11 @@ msgstr "Bemerkung:   "
 
 #: dglobals:sdocmethodoverview
 msgid "Method overview"
-msgstr "Überblick über die Methoden"
+msgstr "Ãœberblick Ã¼ber die Methoden"
 
 #: dglobals:sdocpropertyoverview
 msgid "Property overview"
-msgstr "Überblick über die Eigenschaften"
+msgstr "Ãœberblick Ã¼ber die Eigenschaften"
 
 #: dglobals:sdocpage
 msgid "Page"
@@ -152,11 +152,11 @@ msgstr "Wert"
 
 #: dglobals:sdocexplanation
 msgid "Explanation"
-msgstr "Erklärung"
+msgstr "ErklÃ¤rung"
 
 #: dglobals:sdocvaluesforenum
 msgid "Enumeration values for type %s"
-msgstr "Aufzählungswerte für Typ %s"
+msgstr "AufzÃ¤hlungswerte fÃ¼r Typ %s"
 
 #: dglobals.sdocup
 msgid "Up"
@@ -164,7 +164,7 @@ msgstr "Hoch"
 
 #: dglobals.sdocnext
 msgid "Next"
-msgstr "Nächste"
+msgstr "NÃ¤chste"
 
 #: dglobals.sdocprevious
 msgid "Previous"

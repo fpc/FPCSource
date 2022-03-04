@@ -1,10 +1,10 @@
 #: makeskel:stitle
 msgid "MakeSkel - FPDoc skeleton XML description file generator"
-msgstr "MakeSkel - Skelett-Generator für FPDoc-XML-Beschreibungsdateien"
+msgstr "MakeSkel - Skelett-Generator fÃ¼r FPDoc-XML-Beschreibungsdateien"
 
 #: makeskel:scopyright
 msgid "(c) 2000 - 2003 Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org"
-msgstr "(c) 2000 - 2003 Areca Systems GmbH / Sebastian Günther, sg@freepascal.org"
+msgstr "(c) 2000 - 2003 Areca Systems GmbH / Sebastian GÃ¼nther, sg@freepascal.org"
 
 #: makeskel:scmdlinehelp
 msgid "See documentation for usage."
