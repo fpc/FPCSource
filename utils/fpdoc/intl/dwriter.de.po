@@ -4,23 +4,23 @@ msgstr "Beim Schreiben der Datei \"%s\" ist ein Fehler aufgetrete: %s"
 
 #: dwriter:serrinvalidshortdescr
 msgid "Invalid short description"
-msgstr "Ungültige Kurzbeschreibung"
+msgstr "UngÃ¼ltige Kurzbeschreibung"
 
 #: dwriter:serrinvaliddescr
 msgid "Invalid description (illegal XML element: \"%s\")"
-msgstr "Ungültige Beschreibung (illegales XML-Element: \"%s\")"
+msgstr "UngÃ¼ltige Beschreibung (illegales XML-Element: \"%s\")"
 
 #: dwriter:serrinvalidparacontent
 msgid "Invalid paragraph content"
-msgstr "Ungültiger Absatzinhalt (in <p>-Element)"
+msgstr "UngÃ¼ltiger Absatzinhalt (in <p>-Element)"
 
 #: dwriter:serrinvalidelementinlist
 msgid "Invalid element in list - only \"li\" allowed"
-msgstr "Ungültiges Element in Liste - nur \"li\" ist erlaubt"
+msgstr "UngÃ¼ltiges Element in Liste - nur \"li\" ist erlaubt"
 
 #: dwriter:serrinvalidlistcontent
 msgid "Invalid list content"
-msgstr "Ungültiger Listeninhalt"
+msgstr "UngÃ¼ltiger Listeninhalt"
 
 #: dwriter:serrlistisempty
 msgid "List is empty - need at least one \"li\" element"
@@ -28,11 +28,11 @@ msgstr "Liste ist leer - brauche mindestens ein \"li\"-Element"
 
 #: dwriter:serrinvalidremarkcontent
 msgid "Invalid <remark> content (illegal XML element: \"%s\")"
-msgstr "Ungültiger <remark>-Inhalt (illegales XML-Element: \"%s\")"
+msgstr "UngÃ¼ltiger <remark>-Inhalt (illegales XML-Element: \"%s\")"
 
 #: dwriter:serrinvaliddefinitiontermcontent
 msgid "Invalid content in definition term"
-msgstr "Ungültiger Inhalt in Definitionsterm"
+msgstr "UngÃ¼ltiger Inhalt in Definitionsterm"
 
 #: dwriter:serrdefinitionentrymissing
 msgid "Definition entry after definition term is missing"
@@ -40,11 +40,11 @@ msgstr "Definitionseintrag nach Definitionsterm fehlt"
 
 #: dwriter:serrtableinvalidbordervalue
 msgid "Invalid \"border\" value for <table>"
-msgstr "Ungültiger \"border\"-Wert für <table>"
+msgstr "UngÃ¼ltiger \"border\"-Wert fÃ¼r <table>"
 
 #: dwriter:serrinvalidtablecontent
 msgid "Invalid table content"
-msgstr "Ungültiger Tabelleninhalt"
+msgstr "UngÃ¼ltiger Tabelleninhalt"
 
 #: dwriter:serrtablerowempty
 msgid "Table row is empty (no \"td\" elements found)"
@@ -52,7 +52,7 @@ msgstr "Tabellenzeile ist leer (keine \"td\"-Elemente gefunden)"
 
 #: dwriter:serrinvalidcontentbeforesectiontitle
 msgid "Invalid content before section title"
-msgstr "Ungültiger Inhalt vor Abschnittstitel"
+msgstr "UngÃ¼ltiger Inhalt vor Abschnittstitel"
 
 #: dwriter:serrsectiontitleexpected
 msgid "Section title (\"title\" element) expected"
@@ -76,5 +76,5 @@ msgstr "Warnung: Ziel-ID von <printshort> ist unbekannt: \"%s\""
 
 #: dwriter:serrunknownlink
 msgid "Could not resolve link to \"%s\""
-msgstr "Konnte Link auf \"%s\" nicht auflösen"
+msgstr "Konnte Link auf \"%s\" nicht auflÃ¶sen"
 

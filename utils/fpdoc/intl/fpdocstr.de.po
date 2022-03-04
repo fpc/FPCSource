@@ -50,11 +50,11 @@ msgstr "Alias-Typ"
 
 #: fpdocstr:sptreetypealiastype
 msgid "\"type\" alias type"
-msgstr "Alias-Typ »type«"
+msgstr "Alias-Typ Â»typeÂ«"
 
 #: fpdocstr:sptreeclassoftype
 msgid "\"class of\" type"
-msgstr "»class-of«-Typ"
+msgstr "Â»class-ofÂ«-Typ"
 
 #: fpdocstr:sptreerangetype
 msgid "Range type"
@@ -66,11 +66,11 @@ msgstr "Array-Typ"
 
 #: fpdocstr:sptreeenumvalue
 msgid "Enumeration value"
-msgstr "Aufzählungswert"
+msgstr "AufzÃ¤hlungswert"
 
 #: fpdocstr:sptreeenumtype
 msgid "Enumeration type"
-msgstr "Aufzählungstyp"
+msgstr "AufzÃ¤hlungstyp"
 
 #: fpdocstr:sptreesettype
 msgid "Set type"
@@ -118,7 +118,7 @@ msgstr "Eigenschaft"
 
 #: fpdocstr:sptreeoverloadedprocedure
 msgid "Overloaded procedure"
-msgstr "Überladene Prozedur"
+msgstr "Ãœberladene Prozedur"
 
 #: fpdocstr:sptreeprocedure
 msgid "Procedure"
@@ -138,7 +138,7 @@ msgstr "Destruktor"
 
 #: fpdocstr:sdocpackagetitle
 msgid "Reference for package '%s'"
-msgstr "Referenz für das Paket »%s«"
+msgstr "Referenz fÃ¼r das Paket Â»%sÂ«"
 
 #: fpdocstr:sdocprograms
 msgid "Programs"
@@ -150,7 +150,7 @@ msgstr "Units"
 
 #: fpdocdef:sdocunittitle
 msgid "Reference for unit '%s'"
-msgstr "Referenz für Unit »%s«"
+msgstr "Referenz fÃ¼r Unit Â»%sÂ«"
 
 #: fpdocdef:sdocinterfacesection
 msgid "Interface section"
@@ -166,7 +166,7 @@ msgstr "Verwendete Units"
 
 #: fpdocdef:sdocusedunitsbyunitxy
 msgid "Used units by unit '%s'"
-msgstr "Von Unit »%s« verwendete Units"
+msgstr "Von Unit Â»%sÂ« verwendete Units"
 
 #: fpdocdef:sdocconststypesvars
 msgid "Constants, types and variables"
@@ -198,7 +198,7 @@ msgstr "Variablen"
 
 #: fpdocdef:sdocoverview
 msgid "Overview"
-msgstr "Überblick"
+msgstr "Ãœberblick"
 
 #: fpdocdef:sdocsearch
 msgid "Search"
@@ -234,11 +234,11 @@ msgstr "Bemerkung:   "
 
 #: fpdocstr:sdocmethodoverview
 msgid "Method overview"
-msgstr "Überblick über die Methoden"
+msgstr "Ãœberblick Ã¼ber die Methoden"
 
 #: fpdocstr:sdocpropertyoverview
 msgid "Property overview"
-msgstr "Überblick über die Eigenschaften"
+msgstr "Ãœberblick Ã¼ber die Eigenschaften"
 
 #: fpdocstr:sdocpage
 msgid "Page"
