@@ -1,17 +1,7 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2004 by Karoly Balogh for Genesi S.a.r.l.
+    Copyright (c) 2022 by the Free Pascal Compiler development team
 
-    Heavily based on the Commodore Amiga/m68k RTL by Nils Sjoholm and
-    Carl Eric Codere
-
-    MorphOS port was done on a free Pegasos II/G4 machine
-    provided by Genesi S.a.r.l. <www.genesi.lu>
-    
-    This unit is based on the MorphOS one and is adapted for Nintendo DS
-    simply by stripping out all stuff inside funcs and procs. 
-    Copyright (c) 2006 by Francesco Lombardi
-    
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -29,8 +19,8 @@ interface
 
 type
   SearchRec = Packed Record
-	AnchorPtr : Pointer;    { Pointer to the Anchorpath structure }
-	Fill: Array[1..15] of Byte; {future use}
+    AnchorPtr : Pointer;    { Pointer to the Anchorpath structure }
+    Fill: Array[1..15] of Byte; {future use}
     {End of replacement for fill}
     Attr : BYTE;        {attribute of found file}
     Time : LongInt;     {last modify date of found file}
@@ -42,31 +32,9 @@ type
 
 implementation
 
+{$define HAS_GETMSCOUNT}
+
 {$I dos.inc}
-
-{******************************************************************************
-                           --- Internal routines ---
-******************************************************************************}
-
-function dosLock(const name: String; accessmode: Longint) : LongInt;
-begin
-  result := -1;
-end;
-
-function IsLeapYear(Source : Word) : Boolean;
-begin
-  result := false;
-end;
-
-function dosSetProtection(const name: string; mask:longint): Boolean;
-begin
-  result := false;
-end;
-
-function dosSetFileDate(name: string): Boolean;
-begin
-  result := false;
-end;
 
 
 {******************************************************************************
@@ -78,50 +46,12 @@ begin
   result := 0;
 end;
 
-procedure NewList ();
-begin
-end;
-
-function CreateExtIO (size: Longint): integer;
-begin
-  result := -1;
-end;
-
-procedure DeleteExtIO ();
-begin
-end;
-
-function Createport(name : PChar; pri : longint): integer;
-begin
-  result := -1;
-end;
-
-procedure DeletePort ();
-begin
-end;
-
-
-function Create_Timer(theUnit : longint) : integer;
-begin
-  result := -1;
-end;
-
-Procedure Delete_Timer();
-begin
-end;
-
-function set_new_time(secs, micro : longint): longint;
-begin
-  result := -1;
-end;
-
-function get_sys_time(): longint;
-begin
-  result := -1;
-end;
-
 procedure GetDate(Var Year, Month, MDay, WDay: Word);
 begin
+  Year := 0;
+  Month := 0;
+  MDay := 0;
+  WDay := 0;
 end;
 
 procedure SetDate(Year, Month, Day: Word);
@@ -130,14 +60,20 @@ end;
 
 procedure GetTime(Var Hour, Minute, Second, Sec100: Word);
 begin
+  Hour := 0;
+  Minute := 0;
+  Second := 0;
+  Sec100 := 0;
 end;
-
 
 Procedure SetTime(Hour, Minute, Second, Sec100: Word);
 begin
 end;
 
-
+function GetMsCount: int64;
+begin
+  result := 0;
+end;
 
 {******************************************************************************
                                --- Exec ---
@@ -157,7 +93,6 @@ Begin
 end;
 
 
-
 Function DiskSize(Drive: Byte): int64;
 Begin
   result := -1;
@@ -166,15 +101,19 @@ end;
 
 procedure FindFirst(const Path: PathStr; Attr: Word; Var f: SearchRec);
 begin
+  DosError:=18;
 end;
 
 
 procedure FindNext(Var f: SearchRec);
 begin
+  DosError:=18;
 end;
+
 
 procedure FindClose(Var f: SearchRec);
 begin
+  DosError:=18;
 end;
 
 
@@ -212,11 +151,6 @@ end;
                              --- Environment ---
 ******************************************************************************}
 
-function getpathstring: string;
-begin
-  result := '';
-end;
-
 
 function EnvCount: Longint;
 begin
@@ -229,35 +163,10 @@ begin
   result := '';
 end;
 
-
-
 function GetEnv(envvar : String): String;
 begin
   result := '';
 end;
 
 
-procedure AddDevice(str : String);
-begin
-end;
-
-function MakeDeviceName(str : pchar): string;
-begin
-  result := '';
-end;
-
-function IsInDeviceList(str : string): boolean;
-begin
-  result := false;
-end;
-
-procedure ReadInDevices;
-begin
-end;
-
-begin
-//  DosError:=0;
-//  numberofdevices := 0;
-//  StrOfPaths := '';
-//  ReadInDevices;
 end.
