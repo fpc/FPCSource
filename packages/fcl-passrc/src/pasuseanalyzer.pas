@@ -2410,8 +2410,12 @@ begin
       end
     else if Mode=paumElement then
       continue
-    else if IsModuleInternal(Member) then
+    else if Member.Visibility in [visPrivate,visStrictPrivate] then
       // private or strict private
+      continue
+    else if (Member.Visibility in [visProtected,visStrictProtected])
+        and IsModuleInternal(El) then
+      // protected or strict protected and
       continue
     else if (Mode=paumAllPasUsable) and FirstTime then
       begin
@@ -2657,6 +2661,8 @@ procedure TPasAnalyzer.UseExportSymbol(El: TPasExportSymbol);
 var
   Ref: TResolvedReference;
   Decl: TPasElement;
+  ProcType: TPasProcedureType;
+  aType: TPasType;
 begin
   if not MarkElementAsUsed(El) then exit;
   if El.CustomData is TResolvedReference then
@@ -2664,7 +2670,23 @@ begin
     Ref:=TResolvedReference(El.CustomData);
     Decl:=Ref.Declaration;
     if Decl<>nil then
-      UseElement(Decl,Ref.Access,false);
+      begin
+      UseElement(Decl,Ref.Access,true);
+      if Decl is TPasProcedure then
+        begin
+        ProcType:=TPasProcedure(Decl).ProcType;
+        if ProcType is TPasFunctionType then
+          begin
+          aType:=TPasFunctionType(ProcType).ResultEl.ResultType;
+          UseType(aType,paumAllPasUsable);
+          end;
+        end
+      else if Decl is TPasVariable then
+        begin
+        aType:=TPasVariable(Decl).VarType;
+        UseType(aType,paumAllPasUsable);
+        end;
+      end;
     end;
   UseExpr(El.NameExpr);
   UseExpr(El.ExportName);
@@ -3276,11 +3298,18 @@ begin
 end;
 
 function TPasAnalyzer.IsModuleInternal(El: TPasElement): boolean;
+var
+  C: TClass;
 begin
   if El=nil then
     exit(true);
-  if El.ClassType=TInterfaceSection then
-    exit(false);
+  C:=El.ClassType;
+  if C=TInterfaceSection then
+    exit(false)
+  else if C=TImplementationSection then
+    exit(true)
+  else if (C=TProgramSection) or (C=TLibrarySection) then
+    exit(true);
   if IsExport(El) then exit(false);
   case El.Visibility of
   visPrivate,visStrictPrivate: exit(true);

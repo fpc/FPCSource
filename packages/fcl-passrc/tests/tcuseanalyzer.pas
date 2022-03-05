@@ -152,6 +152,7 @@ type
     procedure TestWP_UnitFinalization;
     procedure TestWP_CallInherited;
     procedure TestWP_ProgramPublicDeclarations;
+    procedure TestWP_LibraryDeclarations;
     procedure TestWP_ClassOverride;
     procedure TestWP_ClassDefaultProperty;
     procedure TestWP_BeforeConstruction;
@@ -2648,6 +2649,39 @@ begin
   Add('procedure {#DoPublic_used}DoPublic; public; begin end;');
   Add('procedure {#DoPrivate_notused}DoPrivate; begin end;');
   Add('begin');
+  AnalyzeWholeProgram;
+end;
+
+procedure TTestUseAnalyzer.TestWP_LibraryDeclarations;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  {#TObject_used}TObject = class',
+  '  end;',
+  '  {#TBird_used}TBird = class',
+  '  private',
+  '    procedure {#TBirdRun_notused}Run;',
+  '  protected',
+  '    procedure {#TBirdTweet_notused}Tweet;',
+  '  public',
+  '    procedure {#TBirdFly_used}Fly;',
+  '  end;',
+  'procedure TBird.Run;',
+  'begin',
+  'end;',
+  'procedure TBird.Tweet;',
+  'begin',
+  'end;',
+  'procedure TBird.Fly;',
+  'begin',
+  'end;',
+  'function {#GetBird_used}GetBird: TBird;',
+  'begin',
+  'end;',
+  'exports',
+  '  GetBird;',
+  'begin']);
   AnalyzeWholeProgram;
 end;
 
