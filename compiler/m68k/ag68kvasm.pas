@@ -68,15 +68,17 @@ unit ag68kvasm;
         case atype of
           sec_code, sec_fpc, sec_init, sec_fini:
             result:='acrx';
-          { map sec_rodata as read-write, otherwise the linker (vlink) complains if it
-            has to write into the relocations in a rodata section. (KB) }
-          sec_data, sec_rodata:
+          sec_data:
             result:='adrw';
+          sec_rodata,
           sec_rodata_norel:
+            { map sec_rodata and sec_nodata_norel as read-write, otherwise the linker
+              (vlink) complains if it has to write into the relocations in a rodata,
+              and if it has to merge rodata and data sections on Amiga/Atari. (KB) }
             case target_info.system of
-              { stop vlink from complaining when it merges ro sections into rw ones (KB) }
-              system_m68k_atari: result:='adrw';
-              system_m68k_amiga: result:='adrw';
+              system_m68k_atari,
+              system_m68k_amiga:
+                result:='adrw';
             else
               result:='adr';
             end;
@@ -99,6 +101,7 @@ unit ag68kvasm;
           { a.out doesn't support named sections, lets use ELF for interoperability }
           system_m68k_amiga,
           system_m68k_atari,
+          system_m68k_embedded,
           system_m68k_sinclairql: objtype:='-Felf';
         else
           internalerror(2016052601);
@@ -133,7 +136,7 @@ unit ag68kvasm;
          idtxt  : 'VASM';
          asmbin : 'vasmm68k_std';
          asmcmd:  '-quiet -elfregs -gas $OTYPE $ARCH -o $OBJ $EXTRAOPT $ASM';
-         supported_targets : [system_m68k_amiga,system_m68k_atari,system_m68k_sinclairql];
+         supported_targets : [system_m68k_amiga,system_m68k_atari,system_m68k_sinclairql,system_m68k_embedded];
          flags : [af_needar,af_smartlink_sections];
          labelprefix : '.L';
          labelmaxlen : -1;
