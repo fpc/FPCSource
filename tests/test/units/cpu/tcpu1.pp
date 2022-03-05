@@ -57,6 +57,28 @@ begin
     end
   else
     writeln('no');
+  write('AVX512VBMI support: ');
+  if AVX512VBMISupport then
+    begin
+      writeln('yes');
+      asm
+       vpxor %ymm0,%ymm0,%ymm0
+       vpermi2b %zmm0,%zmm0,%zmm0
+      end;
+    end
+  else
+    writeln('no');
+  write('AVX512VBMI2 support: ');
+  if AVX512VBMI2Support then
+    begin
+      writeln('yes');
+      asm
+        vpxor %ymm0,%ymm0,%ymm0
+        vpexpandw %zmm0,%zmm0
+      end;
+    end
+  else
+    writeln('no');
   write('FMA support: ');
   if FMASupport then
     begin
