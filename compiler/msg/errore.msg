@@ -4275,6 +4275,7 @@ x*2Tfreertos_FreeRTOS
 x*2Tlinux_Linux
 # z80 targets
 Z*2Tembedded_Embedded
+Z*2Tamstradcpcp_Amstrad CPC
 Z*2Tmsxdos_MSX-DOS
 Z*2Tzxspectrum_ZX Spectrum
 # wasm32 targets

@@ -44,6 +44,9 @@ implementation
     {$ifndef NOTARGETMSXDOS}
       ,t_msxdos
     {$endif}
+    {$ifndef NOTARGETAMSTRADCPC}
+      ,t_amstradcpc
+    {$endif}
 
 {**************************************
              Assemblers
