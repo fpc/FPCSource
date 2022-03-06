@@ -717,6 +717,7 @@ const
                   begin
                     Message(asmr_e_syn_constant);
                     l := 0;
+                    Consume(AS_ID);
                   End else
                   begin
                     hs:='';
