@@ -445,7 +445,7 @@ scan_e_unexpected_endif=02108_E_$ENDIF directive found without a matching $IF(N)
 #
 # Parser
 #
-# 03362 is the last used one
+# 03363 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1637,6 +1637,8 @@ parser_e_raise_with_noreturn_not_allowed=03361_E_Raise in subroutines declared a
 % goto or any other mean. While the compiler cannot detect all such cases some are trivial and the compiler gives an error.
 parser_e_section_directive_not_allowed_for_target=03362_E_Directive section not allowed for this target
 % Only some targets (e.g. Embedded and FreeRTOS) support the section directive.
+parser_e_absolute_sym_cannot_reference_itself=03363_E_Absolute variable cannot reference itself
+% Declarations like \var{var i: Integer absolute i;} are not allowed
 %
 % \end{description}
 %
