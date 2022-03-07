@@ -737,7 +737,7 @@ execlean :
 	-$(DEL) $(EXENAME) $(TEMPWPONAME1) $(TEMPWPONAME2) $(ALL_G_COMPILERS)
 	-$(DEL) fpcmade.generate_g_compilers
 
-$(CLEAN_ALLTARGETS):
+$(CLEAN_TARGETS):
         -$(DELTREE) $(addprefix $(subst _clean,,$@),/units)
         -$(DELTREE) $(addprefix $(subst _clean,,$@),/bin)
         -$(DEL) $(addprefix $(subst _clean,,$@)/,*$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT))
