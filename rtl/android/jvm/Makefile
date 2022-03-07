@@ -1562,28 +1562,31 @@ ifneq ($(filter sparc64,$(shell uname -a)),)
 ifeq ($(BINUTILSPREFIX),)
 GCCLIBDIR:=$(shell dirname `gcc -m32 -print-libgcc-file-name`)
 else
+CROSSGCCOPT=-m32
+endif
+endif
+endif
 ifneq ($(filter $(CPU_TARGET),mips64 mipsel64),)
 ifeq ($(BINUTILSPREFIX),)
 GCCLIBDIR:=$(shell dirname `gcc -mabi=64 -print-libgcc-file-name`)
 else
 CROSSGCCOPT=-mabi=64
 endif
-else
+endif
 ifneq ($(filter $(CPU_TARGET),mips mipsel),)
 ifeq ($(BINUTILSPREFIX),)
 GCCLIBDIR:=$(shell dirname `gcc -mabi=32 -print-libgcc-file-name`)
 else
 CROSSGCCOPT=-mabi=32
 endif
-else
+endif
 ifeq ($(BINUTILSPREFIX),)
+ifeq ($(GCCLIBDIR),)
 GCCLIBDIR:=$(shell dirname `gcc -m32 -print-libgcc-file-name`)
+endif
 else
+ifeq ($(CROSSGCCOPT),)
 CROSSGCCOPT=-m32
-endif
-endif
-endif
-endif
 endif
 endif
 endif
@@ -1595,16 +1598,16 @@ else
 ifneq ($(filter $(FPCFPMAKE_CPU_TARGET),aarch64 powerpc64 riscv64 sparc64 x86_64),)
 FPCMAKE_CROSSGCCOPT=-m64
 else
-ifneq ($(filter $(FPCFPMAKE_CPU_OPT),mips64 mips64el),)
+ifneq ($(filter $(FPCFPMAKE_CPU_TARGET),mips64 mips64el),)
 FPCMAKE_CROSSGCCOPT=-mabi=64
 else
-ifneq ($(filter $(FPCFPMAKE_CPU_OPT),mips mipsel),)
+ifneq ($(filter $(FPCFPMAKE_CPU_TARGET),mips mipsel),)
 FPCMAKE_CROSSGCCOPT=-mabi=32
 else
-ifeq ($(FPCFPMAKE_CPU_OPT),riscv64)
+ifeq ($(FPCFPMAKE_CPU_TARGET),riscv64)
 FPCMAKE_CROSSGCCOPT=-mabi=lp64
 else
-ifeq ($(FPCFPMAKE_CPU_OPT),riscv32)
+ifeq ($(FPCFPMAKE_CPU_TARGET),riscv32)
 FPCMAKE_CROSSGCCOPT=-mabi=ilp32
 else
 FPCMAKE_CROSSGCCOPT=-m32
