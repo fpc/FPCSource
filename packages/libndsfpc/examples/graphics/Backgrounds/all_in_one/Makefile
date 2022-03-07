@@ -2553,11 +2553,11 @@ endif
 endif
 ifeq ($(BINUTILSPREFIX),)
 ifeq ($(GCCLIBDIR),)
-GCCLIBDIR:=$(shell dirname `gcc -m32 -print-libgcc-file-name`)
+GCCLIBDIR:=$(shell dirname `gcc -print-libgcc-file-name`)
 endif
 else
 ifeq ($(CROSSGCCOPT),)
-CROSSGCCOPT=-m32
+CROSSGCCOPT=-g
 endif
 endif
 endif
