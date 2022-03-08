@@ -261,6 +261,8 @@ var
 begin
   CheckIndex(CurIndex);
   CheckIndex(NewIndex);
+  if (CurIndex=NewIndex) then 
+    exit;
   Temp := FList^[CurIndex];
   if NewIndex > CurIndex then
     System.Move(FList^[CurIndex+1], FList^[CurIndex], (NewIndex - CurIndex) * SizeOf(Pointer))
