@@ -1486,6 +1486,8 @@ Var
   Obj : TObject;
   Str : String;
 begin
+  if (CurIndex=NewIndex) then 
+    Exit;
   BeginUpdate;
   Try
     Obj:=Objects[CurIndex];
@@ -1495,7 +1497,7 @@ begin
     InsertObject(NewIndex,Str,Obj);
   finally
     EndUpdate;
-    end;
+  end;
 end;
 
 function TStrings.Pop: string;
