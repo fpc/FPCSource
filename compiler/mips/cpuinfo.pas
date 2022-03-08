@@ -245,7 +245,7 @@ const
 
    level1optimizerswitches = genericlevel1optimizerswitches;
    level2optimizerswitches = level1optimizerswitches + [{$ifndef llvm}cs_opt_regvar,{$endif}cs_opt_stackframe,cs_opt_nodecse];
-   level3optimizerswitches = level2optimizerswitches + [cs_opt_loopunroll];
+   level3optimizerswitches = level2optimizerswitches;
    level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [];
 
 function SetMipsABIType(const s : string) : boolean;
