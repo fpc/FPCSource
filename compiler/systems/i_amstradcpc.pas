@@ -31,8 +31,8 @@ unit i_amstradcpc;
        system_z80_amstradcpc_info : tsysteminfo =
           (
             system       : system_z80_amstradcpc;
-            name         : 'AMSTRADCPC';
-            shortname    : 'CPC';
+            name         : 'Amstrad CPC';
+            shortname    : 'amstradcpc';
             flags        : [
                             tf_under_development,
 {$ifdef Z80_SMARTLINK_SECTIONS}
