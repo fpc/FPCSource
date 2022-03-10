@@ -266,8 +266,13 @@ type
     PayLoad : TBytes;
     Sequences : TFrameSequences;
     IsText : Boolean;
+    // Use these only when IsText is true (PayLoad contains valid UTF-8).
+    // You may use try to use them when IsText is false, but there is no guarantee they will give correct results.
+    // Return Payload as a UTF8 string
     Property AsString : UTF8String Read GetAsString;
+    // Return Payload as a UTF8 string
     Property AsUTF8String : UTF8String Read GetAsString;
+    // Return Payload (assumed to contain valid UTF8) as a UTF16 string
     Property AsUnicodeString : UnicodeString Read GetAsUnicodeString;
   end;
 
