@@ -2097,11 +2097,10 @@ unit aoptx86;
                    )
                   ) and not(OpsEqual(taicpu(hp1).oper[1]^,taicpu(hp1).oper[0]^)) then
                   { change
-                             movapX    reg,reg2
-                             addsX/subsX/... reg3, reg2
-                             movapX    reg2,reg
+                             movapX    reg,reg1
+                             vcomisX   reg1,reg1
                     to
-                             addsX/subsX/... reg3,reg
+                             vcomisX   reg,reg
                   }
                   begin
                     TransferUsedRegs(TmpUsedRegs);
@@ -2112,9 +2111,9 @@ unit aoptx86;
                               debug_op2str(taicpu(p).opcode)+' '+
                               debug_op2str(taicpu(hp1).opcode)+') done',p);
                         if OpsEqual(taicpu(p).oper[1]^,taicpu(hp1).oper[0]^) then
-                          taicpu(hp1).loadoper(0, taicpu(p).oper[1]^);
+                          taicpu(hp1).loadoper(0, taicpu(p).oper[0]^);
                         if OpsEqual(taicpu(p).oper[1]^,taicpu(hp1).oper[1]^) then
-                          taicpu(hp1).loadoper(1, taicpu(p).oper[1]^);
+                          taicpu(hp1).loadoper(1, taicpu(p).oper[0]^);
                         RemoveCurrentP(p, nil);
                         result:=true;
                         exit;
