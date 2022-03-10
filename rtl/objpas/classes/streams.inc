@@ -589,6 +589,11 @@ begin
   FileClose(FHandle);
 end;
 
+function TFileStream.Flush : Boolean;
+begin
+  Result:=FileFlush(Handle);
+end;
+
 {****************************************************************************}
 {*                             TCustomMemoryStream                          *}
 {****************************************************************************}
