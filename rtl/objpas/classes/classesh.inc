@@ -1187,6 +1187,7 @@ type
     constructor Create(const AFileName: string; Mode: Word);
     constructor Create(const AFileName: string; Mode: Word; Rights: Cardinal);
     destructor Destroy; override;
+    Function Flush : Boolean;
     property FileName : String Read FFilename;
   end;
 
