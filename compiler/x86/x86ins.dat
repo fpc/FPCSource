@@ -1208,17 +1208,17 @@ void                  \325\1\x6F                      386
 void                  \324\1\x6F                      186
 
 [PACKSSDW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\x6B\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x6B\110              WILLAMETTE,SSE2,SM
 
 [PACKSSWB]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\x63\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x63\110              WILLAMETTE,SSE2,SM
 
 [PACKUSWB]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\x67\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x67\110              WILLAMETTE,SSE2,SM
 
@@ -1247,12 +1247,12 @@ mmxreg,mmxrm          \2\x0F\xED\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xED\110              WILLAMETTE,SSE2,SM
 
 [PADDUSB]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xDC\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xDC\110              WILLAMETTE,SSE2,SM
 
 [PADDUSW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xDD\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xDD\110              WILLAMETTE,SSE2,SM
 
@@ -1272,40 +1272,40 @@ mmxreg,mmxrm          \2\x0F\xDF\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xDF\110              WILLAMETTE,SSE2,SM
 
 [PAVEB]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\x50\110                  PENT,MMX,SM,CYRIX
 
 [PAVGUSB]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\x0F\110\01\xBF           PENT,3DNOW,SM
 
 [PCMPEQB]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\x74\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x74\110              WILLAMETTE,SSE2,SM
 
 [PCMPEQD]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\x76\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x76\110              WILLAMETTE,SSE2,SM
 
 [PCMPEQW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\x75\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x75\110              WILLAMETTE,SSE2,SM
 
 [PCMPGTB]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\x64\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x64\110              WILLAMETTE,SSE2,SM
 
 [PCMPGTD]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\x66\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x66\110              WILLAMETTE,SSE2,SM
 
 [PCMPGTW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\x65\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x65\110              WILLAMETTE,SSE2,SM
 
@@ -1386,7 +1386,7 @@ mmxreg,mmxrm          \2\x0F\x0F\110\01\x0D           PENT,3DNOW,SM
 mmxreg,mem            \2\x0F\x5E\110                  PENT,MMX,SM,CYRIX
 
 [PMADDWD]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xF5\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xF5\110              WILLAMETTE,SM,SSE2
 
@@ -1407,12 +1407,12 @@ mmxreg,mmxrm          \2\x0F\x0F\110\1\xB7            PENT,3DNOW,SM
 mmxreg,mmxrm          \2\x0F\x59\110                  PENT,MMX,SM,CYRIX
 
 [PMULHW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xE5\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xE5\110              WILLAMETTE,SSE2,SM
 
 [PMULLW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xD5\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xD5\110              WILLAMETTE,SSE2,SM
 
@@ -1488,132 +1488,132 @@ mem                   \2\x0F\x0D\200                  PENT,3DNOW,SM
 mem                   \2\x0F\x0D\201                  PENT,3DNOW,SM
 
 [PSLLD]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xF2\110                  PENT,MMX,SM
 mmxreg,imm            \2\x0F\x72\206\25               PENT,MMX,SB,AR1
 xmmreg,xmmrm          \361\2\x0F\xF2\110              WILLAMETTE,SSE2,SM
 xmmreg,imm            \361\2\x0F\x72\206\25           WILLAMETTE,SSE2,SB,AR1
 
 [PSLLDQ]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,imm            \361\2\x0F\x73\207\25           WILLAMETTE,SSE2,SB,AR1
 
 [PSLLQ]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xF3\110                  PENT,MMX,SM
 mmxreg,imm            \2\x0F\x73\206\25               PENT,MMX,SB,AR1
 xmmreg,xmmrm          \361\2\x0F\xF3\110              WILLAMETTE,SSE2,SM
 xmmreg,imm            \361\2\x0F\x73\206\25           WILLAMETTE,SSE2,SB,AR1
 
 [PSLLW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xF1\110                  PENT,MMX,SM
 mmxreg,imm            \2\x0F\x71\206\25               PENT,MMX,SB,AR1
 xmmreg,xmmrm          \361\2\x0F\xF1\110              WILLAMETTE,SSE2,SM
 xmmreg,imm            \361\2\x0F\x71\206\25           WILLAMETTE,SSE2,SB,AR1
 
 [PSRAD]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xE2\110                  PENT,MMX,SM
 mmxreg,imm            \2\x0F\x72\204\25               PENT,MMX,SB,AR1
 xmmreg,xmmrm          \361\2\x0F\xE2\110              WILLAMETTE,SSE2,SM
 xmmreg,imm            \361\2\x0F\x72\204\25           WILLAMETTE,SSE2,SB,AR1
 
 [PSRAW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xE1\110                  PENT,MMX,SM
 mmxreg,imm            \2\x0F\x71\204\25               PENT,MMX,SB,AR1
 xmmreg,xmmrm          \361\2\x0F\xE1\110              WILLAMETTE,SSE2,SM
 xmmreg,imm            \361\2\x0F\x71\204\25           WILLAMETTE,SSE2,SB,AR1
 
 [PSRLD]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xD2\110                  PENT,MMX,SM
 mmxreg,imm            \2\x0F\x72\202\25               PENT,MMX,SB,AR1
 xmmreg,xmmrm          \361\2\x0F\xD2\110              WILLAMETTE,SSE2,SM
 xmmreg,imm            \361\2\x0F\x72\202\25           WILLAMETTE,SSE2,SB,AR1
 
 [PSRLQ]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xD3\110                  PENT,MMX,SM
 mmxreg,imm            \2\x0F\x73\202\25               PENT,MMX,SB,AR1
 xmmreg,xmmrm          \361\2\x0F\xD3\110              WILLAMETTE,SSE2,SM
 xmmreg,imm            \361\2\x0F\x73\202\25           WILLAMETTE,SSE2,SB,AR1
 
 [PSRLW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xD1\110                  PENT,MMX,SM
 mmxreg,imm            \2\x0F\x71\202\25               PENT,MMX,SB,AR1
 xmmreg,xmmrm          \361\2\x0F\xD1\110              WILLAMETTE,SSE2,SM
 xmmreg,imm            \361\2\x0F\x71\202\25           WILLAMETTE,SSE2,SB,AR1
 
 [PSUBB]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xF8\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xF8\110              WILLAMETTE,SSE2,SM
 
 [PSUBD]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xFA\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xFA\110              WILLAMETTE,SSE2,SM
 
 [PSUBSB]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xE8\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xE8\110              WILLAMETTE,SSE2,SM
 
 [PSUBSIW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mem            \2\x0F\x55\110                  PENT,MMX,SM,CYRIX
 mmxreg,mmxreg         \2\x0F\x55\110                  PENT,MMX,CYRIX
 
 [PSUBSW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xE9\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xE9\110              WILLAMETTE,SSE2,SM
 
 [PSUBUSB]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xD8\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xD8\110              WILLAMETTE,SSE2,SM
 
 [PSUBUSW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xD9\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xD9\110              WILLAMETTE,SSE2,SM
 
 [PSUBW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xF9\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xF9\110              WILLAMETTE,SSE2,SM
 
 [PUNPCKHBW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\x68\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x68\110              WILLAMETTE,SSE2,SM
 
 [PUNPCKHDQ]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\x6A\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x6A\110              WILLAMETTE,SSE2,SM
 
 [PUNPCKHWD]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\x69\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x69\110              WILLAMETTE,SSE2,SM
 
 [PUNPCKLBW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\x60\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x60\110              WILLAMETTE,SSE2,SM
 
 [PUNPCKLDQ]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\x62\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x62\110              WILLAMETTE,SSE2,SM
 
 [PUNPCKLWD]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\x61\110                  PENT,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\x61\110              WILLAMETTE,SSE2,SM
 
