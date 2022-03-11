@@ -92,6 +92,8 @@ type
     property OnDisconnect;
     property OnControlReceived;
     Property ThreadMode;
+    Property OnError;
+    Property OnConnectionHandshake;
     // use SSL ?
     Property UseSSL : Boolean Read FUseSSL Write SetUseSSL;
     // Properties to use when doing SSL handshake
