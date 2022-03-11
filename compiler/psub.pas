@@ -155,9 +155,9 @@ implementation
        optdeadstore,
        optloadmodifystore,
        optutils
-{$if defined(arm)}
+{$if defined(arm) or defined(m68k)}
        ,cpuinfo
-{$endif arm}
+{$endif defined(arm) or defined(m68k)}
        {$ifndef NOOPT}
        ,aopt
        {$endif}
@@ -1102,6 +1102,12 @@ implementation
                 not(cs_generate_stackframes in current_settings.localswitches) and
                 not(cs_profile in current_settings.moduleswitches) and
                 not(po_assembler in procdef.procoptions) and
+{$if defined(m68k)}
+                { do not optimize away the frame pointer, if the CPU has no long
+                  displacement support, this fixes optimizations on the plain 68000
+                  until some shortcomings of the CG itself can be addressed. (KB) }
+                (CPUM68K_HAS_BASEDISP in cpu_capabilities[current_settings.cputype]) and
+{$endif defined(m68k)}
 {$if defined(aarch64)}
                { on aarch64, it must be a leaf subroutine }
                 not(pi_do_call in flags) and
