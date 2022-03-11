@@ -415,12 +415,228 @@ unit cgcpu;
 
 
      procedure tcgavr.a_op_const_reg_reg_internal(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src,srchi,dst,dsthi: tregister);
+
+       procedure shiftLoop(const bitstoshift, bytestart: integer);
+         var
+           l1: TAsmLabel;
+           i: integer;
+           countreg: TRegister;
+           oldexecutionweight: LongInt;
+         begin
+           current_asmdata.getjumplabel(l1);
+           countreg:=getintregister(list,OS_8);
+           a_load_const_reg(list,OS_8,bitstoshift,countreg);
+           cg.a_label(list,l1);
+           oldexecutionweight:=executionweight;
+           executionweight:=executionweight*bitstoshift;
+           if op=OP_SHL then
+             list.concat(taicpu.op_reg(A_LSL,GetOffsetReg64(dst,dsthi,bytestart)))
+           else
+             list.concat(taicpu.op_reg(A_LSR,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-1-bytestart)));
+
+           if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
+             begin
+               for i:=2+bytestart to tcgsize2size[size] do
+                 if op=OP_SHL then
+                   list.concat(taicpu.op_reg(A_ROL,GetOffsetReg64(dst,dsthi,i-1)))
+                 else
+                   list.concat(taicpu.op_reg(A_ROR,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-i)));
+             end;
+           list.concat(taicpu.op_reg(A_DEC,countreg));
+           a_jmp_flags(list,F_NE,l1);
+           executionweight:=oldexecutionweight;
+           { keep registers alive }
+           a_reg_sync(list,countreg);
+         end;
+
+       procedure shiftSequence(const bitstoshift, bytestart: integer);
+         var
+           i, j: integer;
+         begin
+           { Unroll shift loop over non-moved bytes }
+           for j:=1 to bitstoshift do
+           begin
+             if op=OP_SHL then
+               list.concat(taicpu.op_reg(A_LSL,
+               GetOffsetReg64(dst,dsthi,bytestart)))
+             else
+               list.concat(taicpu.op_reg(A_LSR,
+                 GetOffsetReg64(dst,dsthi,tcgsize2size[size]-bytestart-1)));
+
+             if tcgsize2size[size]-bytestart > 1 then
+               for i:=2 to tcgsize2size[size]-bytestart do
+                 if op=OP_SHL then
+                   list.concat(taicpu.op_reg(A_ROL,
+                     GetOffsetReg64(dst,dsthi,bytestart+i-1)))
+                 else
+                   list.concat(taicpu.op_reg(A_ROR,
+                     GetOffsetReg64(dst,dsthi,tcgsize2size[size]-bytestart-i)));
+           end;
+         end;
+
+       procedure fastshift4(const bytestart: integer);
+         var
+           j, mask, sign, stopindex: integer;
+         begin
+           if op=OP_SHL then
+             begin
+               mask:=$F0;
+               j:=tcgsize2size[size]-1;
+               sign:=-1;  // Start at MSB
+               stopindex:=-bytestart;
+             end
+           else
+             begin
+               mask:=$0F;
+               j:=0;
+               sign:=1;  // Start at LSB
+               stopindex:=tcgsize2size[size]-bytestart-1;
+             end;
+
+           list.concat(taicpu.op_reg(A_SWAP,
+             GetOffsetReg64(dst,dsthi,j)));
+           list.concat(taicpu.op_reg_const(A_ANDI,
+             GetOffsetReg64(dst,dsthi,j),
+             mask));
+
+           while sign*j<stopindex do
+             begin
+               list.concat(taicpu.op_reg(A_SWAP,
+                 GetOffsetReg64(dst,dsthi,j+sign)));
+
+               list.concat(taicpu.op_reg_reg(A_EOR,
+                 GetOffsetReg64(dst,dsthi,j),
+                 GetOffsetReg64(dst,dsthi,j+sign)));
+
+               list.concat(taicpu.op_reg_const(A_ANDI,
+                 GetOffsetReg64(dst,dsthi,j+sign),
+                 mask));
+
+               list.concat(taicpu.op_reg_reg(A_EOR,
+                 GetOffsetReg64(dst,dsthi,j),
+                 GetOffsetReg64(dst,dsthi,j+sign)));
+               j:=j+sign;
+             end
+         end;
+
+       procedure fastshift6(const bytestart: integer);
+         var
+           i, j, k, mask, sign: integer;
+           asmop: TAsmOp;
+         begin
+           { 8 bit value can just wrap around through carry flag. }
+           if tcgsize2size[size]-bytestart = 1 then
+             begin
+               if op=OP_SHL then
+                 begin
+                   mask:=$C0;
+                   asmop:=A_ROR;
+                   i:=bytestart;
+                 end
+               else
+                 begin
+                   mask:=$03;
+                   asmop:=A_ROL;
+                   i:=tcgsize2size[size]-bytestart-1;
+                 end;
+
+               list.concat(taicpu.op_reg(asmop,
+                 GetOffsetReg64(dst,dsthi,i)));
+               list.concat(taicpu.op_reg(asmop,
+                 GetOffsetReg64(dst,dsthi,i)));
+               list.concat(taicpu.op_reg(asmop,
+                 GetOffsetReg64(dst,dsthi,i)));
+               list.concat(taicpu.op_reg_const(A_ANDI,
+                 GetOffsetReg64(dst,dsthi,i),
+                 mask));
+             end
+           else  { > 8 bit }
+             begin
+               if op=OP_SHL then
+                 begin
+                   asmop:=A_ROR;
+                   k:=tcgsize2size[size]-1;
+                   sign:=-1;
+                 end
+               else
+                 begin
+                   asmop:=A_ROL;
+                   k:=0;
+                   sign:=1;
+                 end;
+               list.concat(taicpu.op_reg(A_CLR,GetDefaultTmpReg));
+
+               for j:=0 to 1 do
+                 begin
+                   for i:=0 to tcgsize2size[size]-bytestart-1 do
+                     list.concat(taicpu.op_reg(asmop,
+                       GetOffsetReg64(dst,dsthi,k+sign*i)));
+
+                   list.concat(taicpu.op_reg(asmop,GetDefaultTmpReg));
+                 end;
+
+               { Sort bytes into correct order. }
+               for i:=0 to tcgsize2size[size]-bytestart-2 do
+                 list.concat(taicpu.op_reg_reg(A_MOV,
+                   GetOffsetReg64(dst,dsthi,k+sign*i),
+                   GetOffsetReg64(dst,dsthi,k+sign*(i+1))));
+
+               list.concat(taicpu.op_reg_reg(A_MOV,
+                 GetOffsetReg64(dst,dsthi,k+sign*(tcgsize2size[size]-bytestart-1)),
+                 GetDefaultTmpReg));
+             end;
+         end;
+
+       procedure fastshift7(const bytestart: integer);
+         var
+           i, j: integer;
+         begin
+           if op=OP_SHL then
+             list.concat(taicpu.op_reg(A_ROR,
+               GetOffsetReg64(dst,dsthi,tcgsize2size[size]-1)))
+           else
+             list.concat(taicpu.op_reg(A_ROL,
+               GetOffsetReg64(dst,dsthi,0)));
+
+           if (tcgsize2size[size]-bytestart > 1) then
+             for j:=0 to tcgsize2size[size]-bytestart-2 do
+               begin
+                 if op=OP_SHL then
+                   begin
+                     list.concat(taicpu.op_reg_reg(A_MOV,
+                       GetOffsetReg64(dst,dsthi,tcgsize2size[size]-1-j),
+                       GetOffsetReg64(dst,dsthi,tcgsize2size[size]-2-j)));
+                     list.concat(taicpu.op_reg(A_ROR,
+                       GetOffsetReg64(dst,dsthi,tcgsize2size[size]-1-j)));
+                   end
+                 else
+                   begin
+                     list.concat(taicpu.op_reg_reg(A_MOV,
+                       GetOffsetReg64(dst,dsthi,j),
+                       GetOffsetReg64(dst,dsthi,1+j)));
+                     list.concat(taicpu.op_reg(A_ROL,
+                       GetOffsetReg64(dst,dsthi,j)));
+                   end;
+               end;
+
+           if op=OP_SHL then
+             begin
+               list.concat(taicpu.op_reg(A_CLR,
+                 GetOffsetReg64(dst,dsthi,bytestart)));
+               list.concat(taicpu.op_reg(A_ROR,
+                 GetOffsetReg64(dst,dsthi,bytestart)));
+             end
+           else
+             begin
+               list.concat(taicpu.op_reg(A_CLR,
+                 GetOffsetReg64(dst,dsthi,tcgsize2size[size]-bytestart-1)));
+               list.concat(taicpu.op_reg(A_ROL,
+                 GetOffsetReg64(dst,dsthi,tcgsize2size[size]-bytestart-1)));
+             end;
+         end;
+
        var
-         countreg: TRegister;
-         b, b2, i, j: byte;
-         s1, s2, t1: integer;
-         l1: TAsmLabel;
-         oldexecutionweight: LongInt;
+         b, b2, i: byte;
        begin
          if (op in [OP_MUL,OP_IMUL]) and (size in [OS_16,OS_S16]) and (a in [2,4,8]) then
            begin
@@ -434,7 +650,6 @@ unit cgcpu;
                  a:=a shr 1;
                end;
            end
-
          else if (op in [OP_SHL,OP_SHR]) and
            { a=0 get eliminated later by tcg.optimize_op_const }
            (a>0)  then
@@ -466,62 +681,34 @@ unit cgcpu;
              { remaining bit shifts }
              if b2 > 0 then
                begin
-                 { Cost of loop }
-                 s1:=3+tcgsize2size[size]-b;
-                 t1:=b2*(tcgsize2size[size]-b+3);
-                 { Cost of loop unrolling,t2=s2 }
-                 s2:=b2*(tcgsize2size[size]-b);
-
-                 if ((cs_opt_size in current_settings.optimizerswitches) and (s1<s2)) or
-                    (((s2-s1)-t1/s2)>0) then
+                 { A shift loop construct will always involve more instructions
+                   and/or take more cycles than the alternatives
+                   in the following cases. }
+                 if not(cs_opt_size in current_settings.optimizerswitches) or
+                   (tcgsize2size[size]-b=1) then
                    begin
-                     { Shift non-moved bytes in loop }
-                     current_asmdata.getjumplabel(l1);
-                     countreg:=getintregister(list,OS_8);
-                     a_load_const_reg(list,OS_8,b2,countreg);
-                     cg.a_label(list,l1);
-                     oldexecutionweight:=executionweight;
-                     executionweight:=executionweight*b2;
-                     if op=OP_SHL then
-                       list.concat(taicpu.op_reg(A_LSL,GetOffsetReg64(dst,dsthi,b)))
-                     else
-                       list.concat(taicpu.op_reg(A_LSR,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-1-b)));
-
-                     if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
-                       begin
-                         for i:=2+b to tcgsize2size[size] do
-                           if op=OP_SHL then
-                             list.concat(taicpu.op_reg(A_ROL,GetOffsetReg64(dst,dsthi,i-1)))
-                           else
-                             list.concat(taicpu.op_reg(A_ROR,GetOffsetReg64(dst,dsthi,tcgsize2size[size]-i)));
-                       end;
-                     list.concat(taicpu.op_reg(A_DEC,countreg));
-                     a_jmp_flags(list,F_NE,l1);
-                     executionweight:=oldexecutionweight;
-                     { keep registers alive }
-                     a_reg_sync(list,countreg);
-                   end
-                 else
-                   begin
-                     { Unroll shift loop over non-moved bytes }
-                     for j:=1 to b2 do
-                     begin
-                       if op=OP_SHL then
-                         list.concat(taicpu.op_reg(A_LSL,
-                         GetOffsetReg64(dst,dsthi,b)))
-                       else
-                         list.concat(taicpu.op_reg(A_LSR,
-                           GetOffsetReg64(dst,dsthi,tcgsize2size[size]-b-1)));
-
-                       if not(size in [OS_8,OS_S8]) then
-                         for i:=2 to tcgsize2size[size]-b do
-                           if op=OP_SHL then
-                             list.concat(taicpu.op_reg(A_ROL,
-                               GetOffsetReg64(dst,dsthi,b+i-1)))
-                           else
-                             list.concat(taicpu.op_reg(A_ROR,
-                               GetOffsetReg64(dst,dsthi,tcgsize2size[size]-b-i)));
+                     case b2 of
+                       1,2,3: shiftSequence(b2, b);
+                       4: fastshift4(b);
+                       5:
+                         begin
+                           fastshift4(b);
+                           shiftSequence(1,b);
+                         end;
+                       6: fastshift6(b);
+                       7: fastshift7(b);
+                     otherwise
+                       Internalerror(2022031101);
                      end;
+                   end
+                 else   { cs_opt_size or multi-byte shift }
+                   begin
+                     { Check if shift loop size is smaller than
+                       a straight shift sequence. }
+                     if (tcgsize2size[size]-b)*(b2-1) > 3 then
+                       shiftLoop(b2,b)
+                     else
+                       shiftSequence(b2,b);
                    end;
                end;
 
@@ -536,6 +723,7 @@ unit cgcpu;
          else
            inherited a_op_const_reg_reg(list,op,size,a,src,dst);
        end;
+
 
      procedure tcgavr.a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister; setflags: boolean; var ovloc: tlocation);
        var
