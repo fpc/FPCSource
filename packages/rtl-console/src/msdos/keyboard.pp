@@ -41,6 +41,10 @@ begin
       if regs.ax<>$1200 then
         keyboard_type:=$10;
     end;
+  regs.ax:=$6601;
+  msdos(regs);
+  if (regs.flags and fCarry) = 0 then
+     CurrentLegacy2EnhancedKeyEventTranslationCodePage:=regs.bx;
 end;
 
 
