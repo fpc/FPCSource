@@ -2099,11 +2099,12 @@ unit cgcpu;
             { Copy registers to temp }
             { NOTE: virtual registers allocated here won't be translated --> no higher-level stuff. }
             href:=current_procinfo.save_regs_ref;
-            if (href.offset<low(smallint)) and (current_settings.cputype in cpu_coldfire+[cpu_mc68000]) then
+            if (abs(current_procinfo.save_regs_ref.offset)>abs(low(smallint))) and
+               not (CPUM68K_HAS_BASEDISP in cpu_capabilities[current_settings.cputype]) then
               begin
-                list.concat(taicpu.op_reg_reg(A_MOVE,S_L,href.base,NR_A0));
-                list.concat(taicpu.op_const_reg(A_ADDA,S_L,href.offset,NR_A0));
-                reference_reset_base(href,NR_A0,0,ctempposinvalid,sizeof(pint),[]);
+                href.offset:=0;
+                //list.concat(tai_comment.create(strpnew('g_save_registers: large offset')));
+                list.concat(taicpu.op_const_reg(A_SUBA,S_L,-current_procinfo.save_regs_ref.offset,href.base));
               end;
 
             if size > 0 then
@@ -2120,6 +2121,12 @@ unit cgcpu;
                   list.concat(taicpu.op_reg_ref(A_FMOVE,fpuregopsize,hfreg,href))
                 else
                   list.concat(taicpu.op_regset_ref(A_FMOVEM,fpuregopsize,[],[],fpuregs,href));
+              end;
+
+            if (abs(current_procinfo.save_regs_ref.offset)>abs(low(smallint))) and
+               not (CPUM68K_HAS_BASEDISP in cpu_capabilities[current_settings.cputype]) then
+              begin
+                list.concat(taicpu.op_const_reg(A_ADDA,S_L,-current_procinfo.save_regs_ref.offset,href.base));
               end;
           end;
       end;
@@ -2193,11 +2200,12 @@ unit cgcpu;
 
         { Restore registers from temp }
         href:=current_procinfo.save_regs_ref;
-        if (href.offset<low(smallint)) and (current_settings.cputype in cpu_coldfire+[cpu_mc68000]) then
+        if (abs(current_procinfo.save_regs_ref.offset)>abs(low(smallint))) and
+           not (CPUM68K_HAS_BASEDISP in cpu_capabilities[current_settings.cputype]) then
           begin
-            list.concat(taicpu.op_reg_reg(A_MOVE,S_L,href.base,NR_A0));
-            list.concat(taicpu.op_const_reg(A_ADDA,S_L,href.offset,NR_A0));
-            reference_reset_base(href,NR_A0,0,ctempposinvalid,sizeof(pint),[]);
+            href.offset:=0;
+            //list.concat(tai_comment.create(strpnew('g_restore_registers: large offset')));
+            list.concat(taicpu.op_const_reg(A_SUBA,S_L,-current_procinfo.save_regs_ref.offset,href.base));
           end;
 
         if size > 0 then
@@ -2214,6 +2222,12 @@ unit cgcpu;
               list.concat(taicpu.op_ref_reg(A_FMOVE,fpuregopsize,href,hfreg))
             else
               list.concat(taicpu.op_ref_regset(A_FMOVEM,fpuregopsize,href,[],[],fpuregs));
+          end;
+
+        if (abs(current_procinfo.save_regs_ref.offset)>abs(low(smallint))) and
+           not (CPUM68K_HAS_BASEDISP in cpu_capabilities[current_settings.cputype]) then
+          begin
+            list.concat(taicpu.op_const_reg(A_ADDA,S_L,-current_procinfo.save_regs_ref.offset,href.base));
           end;
 
         tg.UnGetTemp(list,current_procinfo.save_regs_ref);
