@@ -2031,14 +2031,22 @@ implementation
 
 
     procedure tfieldvarsym.ppuwrite(ppufile:tcompilerppufile);
+      var
+        oldintfcrc: Boolean;
       begin
          inherited ppuwrite(ppufile);
          ppufile.putasizeint(fieldoffset);
+
+         oldintfcrc:=ppufile.do_crc;
+         ppufile.do_crc:=False;
          if visibility<>vis_hidden then
            { no reason to store an offset of -1 for all hidden fields }
            ppufile.putasizeint(dwarfoffset)
          else if dwarfoffset>-1 then
            Internalerror(2022030601);
+         ppufile.do_crc:=oldintfcrc;
+
+
          if (vo_has_mangledname in varoptions) then
            ppufile.putstring(externalname^);
          writeentry(ppufile,ibfieldvarsym);
