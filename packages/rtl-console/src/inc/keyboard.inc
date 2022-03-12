@@ -13,6 +13,7 @@
 
 var
   PendingKeyEvent : TKeyEvent;
+  CurrentLegacy2EnhancedKeyEventTranslationCodePage: TSystemCodePage;
 
 procedure PutKeyEvent(KeyEvent: TKeyEvent);
 begin
@@ -64,6 +65,7 @@ procedure InitKeyboard;
 begin
   If Not KeyboardInitialized then
     begin
+    CurrentLegacy2EnhancedKeyEventTranslationCodePage := 437;
     If Assigned(CurrentKeyBoardDriver.InitDriver) Then
       CurrentKeyBoardDriver.InitDriver();
     KeyboardInitialized:=True;
@@ -224,6 +226,8 @@ function ConvertToEnhancedKeyEvent(KeyEvent: TKeyEvent): TEnhancedKeyEvent;
 var
   TranslatedKeyEvent: TKeyEvent;
   ShiftState: Byte;
+  tmpS: RawByteString;
+  tmpUS: UnicodeString;
 begin
   ConvertToEnhancedKeyEvent:=NilEnhancedKeyEvent;
   if KeyEvent=0 then
@@ -264,12 +268,21 @@ begin
       ConvertToEnhancedKeyEvent.VirtualScanCode:=TranslatedKeyEvent and $ffff;
   end;
   { todo: set ConvertToEnhancedKeyEvent.Flags }
-  if (ConvertToEnhancedKeyEvent.UnicodeChar=WideChar(0)) and
-     (ConvertToEnhancedKeyEvent.AsciiChar>=#0) and
-     (ConvertToEnhancedKeyEvent.AsciiChar<=#127) then
-    ConvertToEnhancedKeyEvent.UnicodeChar:=WideChar(ConvertToEnhancedKeyEvent.AsciiChar);
-  { todo: maybe also convert extended ASCII (>=#128) codes to Unicode as well
-    (according to the console code page) }
+  if (ConvertToEnhancedKeyEvent.UnicodeChar=WideChar(0)) then
+    begin
+      if (ConvertToEnhancedKeyEvent.AsciiChar>=#0) and
+         (ConvertToEnhancedKeyEvent.AsciiChar<=#127) then
+        ConvertToEnhancedKeyEvent.UnicodeChar:=WideChar(ConvertToEnhancedKeyEvent.AsciiChar)
+      else
+        begin
+          SetLength(tmpS, 1);
+          tmpS[1]:=ConvertToEnhancedKeyEvent.AsciiChar;
+          System.SetCodePage(tmpS,CurrentLegacy2EnhancedKeyEventTranslationCodePage,False);
+          tmpUS:=tmpS;
+          if Length(tmpUS) = 1 then
+            ConvertToEnhancedKeyEvent.UnicodeChar := tmpUS[1];
+        end;
+    end;
 end;
 
 function DefaultGetEnhancedKeyEvent: TEnhancedKeyEvent;
