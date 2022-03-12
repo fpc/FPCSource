@@ -53,7 +53,7 @@ begin
   intr($16,regs);
   if (regs.al=$e0) and (regs.ah<>0) then
    regs.al:=0;
-  SysGetKeyEvent:=(kbPhys shl 24) or regs.ax or ((mem[$40:$17] and $f) shl 16);
+  SysGetKeyEvent:=(kbPhys shl 24) or regs.ax or (longint(mem[$40:$17] and $f) shl 16);
 end;
 
 
@@ -67,7 +67,7 @@ begin
    exit(0);
   if (regs.al=$e0) and (regs.ah<>0) then
    regs.al:=0;
-  SysPollKeyEvent:=(kbPhys shl 24) or regs.ax or ((mem[$40:$17] and $f) shl 16);
+  SysPollKeyEvent:=(kbPhys shl 24) or regs.ax or (longint(mem[$40:$17] and $f) shl 16);
 end;
 
 
