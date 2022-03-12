@@ -25,6 +25,24 @@ uses
 
 {$i keyboard.inc}
 
+var
+  keyboard_type: byte;  { 0=83/84-key keyboard, $10=101/102+ keyboard }
+
+
+procedure SysInitKeyboard;
+var
+  regs: trealregs;
+begin
+  keyboard_type:=0;
+  if (Mem[$40:$96] and $10)<>0 then
+    begin
+      regs.ax:=$1200;
+      realintr($16,regs);
+      if regs.ax<>$1200 then
+        keyboard_type:=$10;
+    end;
+end;
+
 
 function SysGetShiftState: Byte;
 begin
@@ -39,7 +57,7 @@ function SysGetKeyEvent: TKeyEvent;
 var
   regs : trealregs;
 begin
-  regs.ah:=$10;
+  regs.ah:=keyboard_type;
   realintr($16,regs);
   if (regs.al=$e0) and (regs.ah<>0) then
    regs.al:=0;
@@ -51,7 +69,7 @@ function SysPollKeyEvent: TKeyEvent;
 var
   regs : trealregs;
 begin
-  regs.ah:=$11;
+  regs.ah:=keyboard_type+1;
   realintr($16,regs);
   if (regs.realflags and zeroflag<>0) then
    exit(0);
@@ -63,7 +81,7 @@ end;
 
 Const
   SysKeyboardDriver : TKeyboardDriver = (
-    InitDriver : Nil;
+    InitDriver : @SysInitKeyboard;
     DoneDriver : Nil;
     GetKeyevent : @SysGetKeyEvent;
     PollKeyEvent : @SysPollKeyEvent;
