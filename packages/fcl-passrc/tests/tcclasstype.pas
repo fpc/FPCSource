@@ -93,6 +93,7 @@ type
     procedure TestNoVarFields;
     procedure TestVarClassFunction;
     procedure TestClassVarClassFunction;
+    procedure TestClassVarVarField;
     Procedure TestTwoFieldsVisibility;
     Procedure TestConstProtectedEnd;
     Procedure TestTypeProtectedEnd;
@@ -865,6 +866,35 @@ begin
   AssertMemberName('b',Members[0]);
   AssertMemberType(TPasClassFunction,Members[0]);
   AssertVisibility(visPublic,Members[0]);
+end;
+
+procedure TTestClassType.TestClassVarVarField;
+begin
+  StartVisibility(visPublic);
+  FDecl.Add('class var');
+  AddMember('a : integer');
+  FDecl.Add('var');
+  AddMember('b : integer');
+  FDecl.Add('class var');
+  AddMember('c : integer');
+  ParseClass;
+  AssertEquals('member count',3,TheClass.members.Count);
+  AssertNotNull('Have field',Field1);
+
+  AssertMemberName('a',Members[0]);
+  AssertMemberType(TPasVariable,Members[0]);
+  AssertTrue('first field is class var',vmClass in TPasVariable(Members[0]).VarModifiers);
+  AssertVisibility(visPublic,Members[0]);
+
+  AssertMemberName('b',Members[1]);
+  AssertMemberType(TPasVariable,Members[1]);
+  AssertFalse('second field is var',vmClass in TPasVariable(Members[1]).VarModifiers);
+  AssertVisibility(visPublic,Members[1]);
+
+  AssertMemberName('c',Members[2]);
+  AssertMemberType(TPasVariable,Members[2]);
+  AssertTrue('third field is class var',vmClass in TPasVariable(Members[2]).VarModifiers);
+  AssertVisibility(visPublic,Members[2]);
 end;
 
 procedure TTestClassType.TestTwoFieldsVisibility;

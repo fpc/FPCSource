@@ -7743,6 +7743,7 @@ begin
   LastToken:=CurToken;
   while (CurToken<>tkEnd) do
     begin
+    haveClass:=LastToken=tkclass;
     //writeln('TPasParser.ParseClassMembers LastToken=',LastToken,' CurToken=',CurToken,' haveClass=',haveClass,' CurSection=',CurSection);
     case CurToken of
     tkType:
@@ -7776,18 +7777,17 @@ begin
       CurSection:=stNone;
       end;
     tkVar:
-      if not (CurSection in [stVar,stClassVar]) then
-        begin
-        if (AType.ObjKind in okWithFields)
-        or (haveClass and (AType.ObjKind in okAllHelpers)) then
-          // ok
-        else
-          ParseExc(nParserXNotAllowedInY,SParserXNotAllowedInY,['VAR',ObjKindNames[AType.ObjKind]]);
-        if LastToken=tkClass then
-          CurSection:=stClassVar
-        else
-          CurSection:=stVar;
-        end;
+      begin
+      if (AType.ObjKind in okWithFields)
+      or (haveClass and (AType.ObjKind in okAllHelpers)) then
+        // ok
+      else
+        ParseExc(nParserXNotAllowedInY,SParserXNotAllowedInY,['VAR',ObjKindNames[AType.ObjKind]]);
+      if haveClass then
+        CurSection:=stClassVar
+      else
+        CurSection:=stVar;
+      end;
     tkIdentifier:
       if CheckVisibility(CurTokenString,CurVisibility,(AType.ObjKind=okObjcProtocol)) then
         CurSection:=stNone
@@ -7806,17 +7806,15 @@ begin
           begin
           if not (AType.ObjKind in okWithFields) then
             ParseExc(nParserNoFieldsAllowed,SParserNoFieldsAllowedInX,[ObjKindNames[AType.ObjKind]]);
-          ParseClassFields(AType,CurVisibility,CurSection=stClassVar);
+          ParseClassFields(AType,CurVisibility,false);
           if Curtoken=tkEnd then // case Ta = Class x : String end;
             UngetToken;
-          HaveClass:=False;
           end;
         stClassVar:
           begin
           if not (AType.ObjKind in okWithClassFields) then
             ParseExc(nParserNoFieldsAllowed,SParserNoFieldsAllowedInX,[ObjKindNames[AType.ObjKind]]);
-          ParseClassFields(AType,CurVisibility,CurSection=stClassVar);
-          HaveClass:=False;
+          ParseClassFields(AType,CurVisibility,true);
           end;
         else
           Raise Exception.Create('Internal error 201704251415');
@@ -7841,7 +7839,6 @@ begin
           ParseExc(nParserXNotAllowedInY,SParserXNotAllowedInY,['destructor',ObjKindNames[AType.ObjKind]]);
       end;
       ProcessMethod(AType,HaveClass,CurVisibility,false);
-      haveClass:=False;
       end;
     tkProcedure,tkFunction:
       begin
@@ -7870,7 +7867,6 @@ begin
         end
       else
         ProcessMethod(AType,HaveClass,CurVisibility,false);
-      haveClass:=False;
       end;
     tkgeneric:
       begin
@@ -7908,7 +7904,6 @@ begin
       end;
 
       SaveComments;
-      HaveClass:=True;
       curSection:=stNone;
       end;
     tkProperty:
@@ -7920,7 +7915,6 @@ begin
       PropEl:=ParseProperty(AType,CurtokenString,CurVisibility,HaveClass);
       AType.Members.Add(PropEl);
       Engine.FinishScope(stDeclaration,PropEl);
-      HaveClass:=False;
       end;
     tkSquaredBraceOpen:
       if msPrefixedAttributes in CurrentModeswitches then
