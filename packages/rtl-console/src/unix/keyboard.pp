@@ -100,12 +100,16 @@ const KbShiftUp    = $f0;
       KbShiftDown  = $f3;
       KbShiftHome  = $f4;
       KbShiftEnd   = $f5;
-      KbCtrlShiftUp    = $f6;
-      KbCtrlShiftDown  = $f7;
-      KbCtrlShiftRight = $f8;
-      KbCtrlShiftLeft  = $f9;
-      KbCtrlShiftHome  = $fa;
-      KbCtrlShiftEnd   = $fb;
+      KbShiftPgUp  = $f6;
+      KbShiftPgDn  = $f7;
+      KbCtrlShiftUp    = $f8;
+      KbCtrlShiftDown  = $f9;
+      KbCtrlShiftRight = $fa;
+      KbCtrlShiftLeft  = $fb;
+      KbCtrlShiftHome  = $fc;
+      KbCtrlShiftEnd   = $fd;
+      KbCtrlShiftPgUp  = $fe;
+      KbCtrlShiftPgDn  = $ff;
 
       double_esc_hack_enabled : boolean = false;
 
@@ -886,7 +890,7 @@ type  key_sequence=packed record
         st:string[7];
       end;
 
-const key_sequences:array[0..298] of key_sequence=(
+const key_sequences:array[0..302] of key_sequence=(
        (char:0;scan:kbAltA;shift:[essAlt];st:#27'A'),
        (char:0;scan:kbAltA;shift:[essAlt];st:#27'a'),
        (char:0;scan:kbAltB;shift:[essAlt];st:#27'B'),
@@ -1166,6 +1170,8 @@ const key_sequences:array[0..298] of key_sequence=(
        (char:0;scan:kbShiftDown;shift:[essShift];st:#27'[1;2B'),  {xterm}
        (char:0;scan:kbShiftRight;shift:[essShift];st:#27'[1;2C'), {xterm}
        (char:0;scan:kbShiftLeft;shift:[essShift];st:#27'[1;2D'),  {xterm}
+       (char:0;scan:kbShiftPgUp;shift:[essShift];st:#27'[5;2~'),  {fpterm, xterm-compatible sequence (but xterm uses shift+pgup/pgdn for scrollback)}
+       (char:0;scan:kbShiftPgDn;shift:[essShift];st:#27'[6;2~'),  {fpterm, xterm-compatible sequence (but xterm uses shift+pgup/pgdn for scrollback)}
        (char:0;scan:kbShiftUp;shift:[essShift];st:#27'[a'),       {rxvt}
        (char:0;scan:kbShiftDown;shift:[essShift];st:#27'[b'),     {rxvt}
        (char:0;scan:kbShiftRight;shift:[essShift];st:#27'[c'),    {rxvt}
@@ -1181,6 +1187,8 @@ const key_sequences:array[0..298] of key_sequence=(
        (char:0;scan:KbCtrlShiftLeft;shift:[essCtrl,essShift];st:#27'[1;6D'),  {xterm, xfce4}
        (char:0;scan:KbCtrlShiftHome;shift:[essCtrl,essShift];st:#27'[1;6H'),  {xterm}
        (char:0;scan:KbCtrlShiftEnd;shift:[essCtrl,essShift];st:#27'[1;6F'),   {xterm}
+       (char:0;scan:kbCtrlShiftPgUp;shift:[essCtrl,essShift];st:#27'[5;6~'),  {fpterm, xterm-compatible sequence (but xterm uses shift+pgup/pgdn for scrollback)}
+       (char:0;scan:kbCtrlShiftPgDn;shift:[essCtrl,essShift];st:#27'[6;6~'),  {fpterm, xterm-compatible sequence (but xterm uses shift+pgup/pgdn for scrollback)}
 
        (char:0;scan:kbCtrlPgDn;shift:[essCtrl];st:#27'[6;5~'),    {xterm}
        (char:0;scan:kbCtrlPgUp;shift:[essCtrl];st:#27'[5;5~'),    {xterm}
@@ -1748,10 +1756,10 @@ const
    (kbAltHome,kbAltUp,kbAltPgUp,kbNoKey,kbAltLeft,
     kbCenter,kbAltRight,kbAltGrayPlus,kbAltEnd,
     kbAltDown,kbAltPgDn,kbAltIns,kbAltDel);
-  ShiftArrow : array [kbShiftUp..kbShiftEnd] of byte =
-   (kbUp,kbLeft,kbRight,kbDown,kbHome,kbEnd);
-  CtrlShiftArrow : array [kbCtrlShiftUp..kbCtrlShiftEnd] of byte =
-   (kbCtrlUp,kbCtrlDown,kbCtrlRight,kbCtrlLeft,kbCtrlHome,kbCtrlEnd);
+  ShiftArrow : array [kbShiftUp..kbShiftPgDn] of byte =
+   (kbUp,kbLeft,kbRight,kbDown,kbHome,kbEnd,kbPgUp,kbPgDn);
+  CtrlShiftArrow : array [kbCtrlShiftUp..kbCtrlShiftPgDn] of byte =
+   (kbCtrlUp,kbCtrlDown,kbCtrlRight,kbCtrlLeft,kbCtrlHome,kbCtrlEnd,kbCtrlPgUp,kbCtrlPgDn);
 
 var
   MyScan:byte;
@@ -1813,9 +1821,9 @@ begin {main}
             kbF11..KbF12 : { sF11-sF12 }
               MyScan:=MyScan+kbShiftF11-kbF11;
           end;
-        if myscan in [kbShiftUp..kbCtrlShiftEnd] then
+        if myscan in [kbShiftUp..kbCtrlShiftPgDn] then
           begin
-            if myscan <= kbShiftEnd then
+            if myscan <= kbShiftPgDn then
             begin
                myscan:=ShiftArrow[myscan];
                Include(sstate, essShift);
