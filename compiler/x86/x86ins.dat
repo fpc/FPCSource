@@ -2540,32 +2540,32 @@ void                  \3\x0F\xAE\xF8                  KATMAI
 ;
 
 [MASKMOVQ]
-(Ch_All)
+(Ch_Rop1, Ch_Rop2, Ch_WMemEDI)
 mmxreg,mmxreg         \2\x0F\xF7\110                  KATMAI,MMX
 
 [MOVNTQ]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 mem,mmxreg            \2\x0F\xE7\101                  KATMAI,MMX,SM
 
 [PAVGB]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xE0\110                  KATMAI,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xE0\110              WILLAMETTE,SSE2,SM
 
 [PAVGW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xE3\110                  KATMAI,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xE3\110              WILLAMETTE,SSE2,SM
 
 [PEXTRW]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 reg32,mmxreg,imm      \2\x0F\xC5\110\22               KATMAI,MMX,SB,AR2
 reg32,xmmreg,imm      \361\2\x0F\xC5\110\26           SSE41
 mem32,xmmreg,imm      \361\3\x0F\x3A\x15\101\26       SSE41
 
 
 [PINSRW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 ; PINSRW is documented as using a reg32, but it's really using only 16 bit
 ; -- accept either, but be truthful in disassembly
 mmxreg,reg16,imm      \2\x0F\xC4\110\22               KATMAI,MMX,SB,AR2
@@ -2578,42 +2578,42 @@ xmmreg,mem,imm        \361\2\x0F\xC4\110\26           WILLAMETTE,SSE2,SB,AR2
 xmmreg,mem16,imm      \361\2\x0F\xC4\110\26           WILLAMETTE,SSE2,SB,AR2,ND
 
 [PMAXSW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xEE\110                  KATMAI,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xEE\110              WILLAMETTE,SSE2,SM
 
 [PMAXUB]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xDE\110                  KATMAI,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xDE\110              WILLAMETTE,SSE2,SM
 
 [PMINSW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xEA\110                  KATMAI,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xEA\110              WILLAMETTE,SSE2,SM
 
 [PMINUB]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xDA\110                  KATMAI,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xDA\110              WILLAMETTE,SSE2,SM
 
 [PMOVMSKB]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 reg32,mmxreg          \2\x0F\xD7\110                  KATMAI,MMX
 reg32,xmmreg          \361\2\x0F\xD7\110              WILLAMETTE,SSE2
 
 [PMULHUW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xE4\110                  KATMAI,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xE4\110              WILLAMETTE,SSE2,SM
 
 [PSADBW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \2\x0F\xF6\110                  KATMAI,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xF6\110              WILLAMETTE,SSE2,SM
 
 [PSHUFW]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 mmxreg,mmxrm,imm      \2\x0F\x70\110\22               KATMAI,MMX,SM2,SB,AR2
 
 ;
