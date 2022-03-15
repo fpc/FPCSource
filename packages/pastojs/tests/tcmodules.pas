@@ -323,6 +323,7 @@ type
     Procedure TestStringConst;
     Procedure TestStringConst_InvalidUTF16;
     Procedure TestStringConstSurrogate;
+    Procedure TestStringConst_Multiline;
     Procedure TestString_Length;
     Procedure TestString_Compare;
     Procedure TestString_SetLength;
@@ -8727,6 +8728,36 @@ begin
     ]),
     LinesToStr([
     '$mod.s="😊";'
+    ]));
+end;
+
+procedure TTestModule.TestStringConst_Multiline;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch multilinestrings}',
+  'const',
+  '  a = ``;',
+  '  b = `',
+  'line`;',
+  '  c = `Single`;',
+  '  d = ````;',
+  '  e = `abc``xyz`;',
+  '  f = `first''line',
+  '       second''line`#10;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestStringConst_Multiline',
+    LinesToStr([
+    'this.a = "";',
+    'this.b = "\nline";',
+    'this.c = "Single";',
+    'this.d = "`";',
+    'this.e = "abc`xyz";',
+    'this.f = "first''line\n       second''line\n";',
+    '']),
+    LinesToStr([
     ]));
 end;
 

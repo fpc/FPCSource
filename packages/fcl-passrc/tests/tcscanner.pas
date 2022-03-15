@@ -119,6 +119,7 @@ type
     Procedure TestMultilineStringCR;
     Procedure TestMultilineStringCRLF;
     Procedure TestMultilineStringPlatform;
+    Procedure TestMultilineStringDoubleBackticks;
     Procedure TestMultilineLineEndingDirective;
     Procedure TestMultilineTrimLeftDirective;
     procedure TestMultilineStringTrimAll;
@@ -732,7 +733,7 @@ const
 
 begin
   Scanner.CurrentModeSwitches:=[msMultiLineStrings];
-  Scanner.MultilineLineFeedStyle:=elSource;
+  Scanner.MultilineStringsEOLStyle:=elSource;
   DoTestToken(pscanner.tkString,'`AB'#13#10'CD`');
   AssertEquals('Correct lineending',S,TestTokenString);
 end;
@@ -744,7 +745,7 @@ const
 
 begin
   Scanner.CurrentModeSwitches:=[msMultiLineStrings];
-  Scanner.MultilineLineFeedStyle:=elLF;
+  Scanner.MultilineStringsEOLStyle:=elLF;
   DoTestToken(pscanner.tkString,'`AB'#13#10'CD`');
   AssertEquals('Correct lineending',S,TestTokenString);
 end;
@@ -755,7 +756,7 @@ const
 
 begin
   Scanner.CurrentModeSwitches:=[msMultiLineStrings];
-  Scanner.MultilineLineFeedStyle:=elCR;
+  Scanner.MultilineStringsEOLStyle:=elCR;
   DoTestToken(pscanner.tkString,'`AB'#10'CD`');
   AssertEquals('Correct lineending',S,TestTokenString);
 end;
@@ -766,7 +767,7 @@ const
 
 begin
   Scanner.CurrentModeSwitches:=[msMultiLineStrings];
-  Scanner.MultilineLineFeedStyle:=elCRLF;
+  Scanner.MultilineStringsEOLStyle:=elCRLF;
   DoTestToken(pscanner.tkString,'`AB'#10'CD`');
   AssertEquals('Correct lineending',S,TestTokenString);
 end;
@@ -778,38 +779,50 @@ const
 
 begin
   Scanner.CurrentModeSwitches:=[msMultiLineStrings];
-  Scanner.MultilineLineFeedStyle:=elPlatform;
+  Scanner.MultilineStringsEOLStyle:=elPlatform;
   DoTestToken(pscanner.tkString,'`AB'#13#10'CD`');
+  AssertEquals('Correct lineending',S,TestTokenString);
+end;
+
+procedure TTestScanner.TestMultilineStringDoubleBackticks;
+
+const
+  S = '''AB`CD''';
+
+begin
+  Scanner.CurrentModeSwitches:=[msMultiLineStrings];
+  Scanner.MultilineStringsEOLStyle:=elSource;
+  DoTestToken(pscanner.tkString,'`AB``CD`');
   AssertEquals('Correct lineending',S,TestTokenString);
 end;
 
 procedure TTestScanner.TestMultilineLineEndingDirective;
 begin
-  AssertTrue('Default platform', FSCanner.MultilineLineFeedStyle=elPlatform);
+  AssertTrue('Default platform', FScanner.MultilineStringsEOLStyle=elPlatform);
   TestTokens([tkComment],'{$MULTILINESTRINGLINEENDING CR}');
-  AssertTrue('CR', FSCanner.MultilineLineFeedStyle=elCR);
+  AssertTrue('CR', FScanner.MultilineStringsEOLStyle=elCR);
   TestTokens([tkComment],'{$MULTILINESTRINGLINEENDING LF}');
-  AssertTrue('LF', FSCanner.MultilineLineFeedStyle=elLF);
+  AssertTrue('LF', FScanner.MultilineStringsEOLStyle=elLF);
   TestTokens([tkComment],'{$MULTILINESTRINGLINEENDING CRLF}');
-  AssertTrue('CRLF', FSCanner.MultilineLineFeedStyle=elCRLF);
+  AssertTrue('CRLF', FScanner.MultilineStringsEOLStyle=elCRLF);
   TestTokens([tkComment],'{$MULTILINESTRINGLINEENDING SOURCE}');
-  AssertTrue('SOURCE', FSCanner.MultilineLineFeedStyle=elSOURCE);
+  AssertTrue('SOURCE', FScanner.MultilineStringsEOLStyle=elSOURCE);
   TestTokens([tkComment],'{$MULTILINESTRINGLINEENDING PLATFORM}');
-  AssertTrue('Platform', FSCanner.MultilineLineFeedStyle=elPlatform);
+  AssertTrue('Platform', FScanner.MultilineStringsEOLStyle=elPlatform);
 
 end;
 
 procedure TTestScanner.TestMultilineTrimLeftDirective;
 begin
-  AssertTrue('Default', FSCanner.MultilineLineTrimLeft=0);
+  AssertTrue('Default', FScanner.MultilineStringsTrimLeft=0);
   TestTokens([tkComment],'{$MULTILINESTRINGTRIMLEFT 1}');
-  AssertTrue('1', FSCanner.MultilineLineTrimLeft=1);
+  AssertTrue('1', FScanner.MultilineStringsTrimLeft=1);
   TestTokens([tkComment],'{$MULTILINESTRINGTRIMLEFT 2}');
-  AssertTrue('2', FSCanner.MultilineLineTrimLeft=2);
+  AssertTrue('2', FScanner.MultilineStringsTrimLeft=2);
   TestTokens([tkComment],'{$MULTILINESTRINGTRIMLEFT ALL}');
-  AssertTrue('ALL', FSCanner.MultilineLineTrimLeft=-2);
+  AssertTrue('ALL', FScanner.MultilineStringsTrimLeft=-2);
   TestTokens([tkComment],'{$MULTILINESTRINGTRIMLEFT AUTO}');
-  AssertTrue('AUTO', FSCanner.MultilineLineTrimLeft=-1);
+  AssertTrue('AUTO', FScanner.MultilineStringsTrimLeft=-1);
 end;
 
 procedure TTestScanner.TestMultilineStringTrimAll;
@@ -818,9 +831,9 @@ const
    S = '''AB'#10'CD''';
 
 begin
-  SCanner.MultilineLineTrimLeft:=-2;
+  SCanner.MultilineStringsTrimLeft:=-2;
   Scanner.CurrentModeSwitches:=[msMultiLineStrings];
-  Scanner.MultilineLineFeedStyle:=elLF;
+  Scanner.MultilineStringsEOLStyle:=elLF;
   DoTestToken(pscanner.tkString,'`AB'#13#10'    CD`');
   AssertEquals('Correct trim',S,TestTokenString);
 
@@ -831,9 +844,9 @@ const
    S = '''AB'#10' CD''';
 
 begin
-  SCanner.MultilineLineTrimLeft:=-1;
+  SCanner.MultilineStringsTrimLeft:=-1;
   Scanner.CurrentModeSwitches:=[msMultiLineStrings];
-  Scanner.MultilineLineFeedStyle:=elLF;
+  Scanner.MultilineStringsEOLStyle:=elLF;
   Scanner.SkipWhiteSpace:=True;
   DoTestToken(pscanner.tkString,' `AB'#13#10'   CD`');
   AssertEquals('Correct trim',S,TestTokenString);
@@ -846,9 +859,9 @@ const
   S2 = '''AB'#10'CD''';
 
 begin
-  SCanner.MultilineLineTrimLeft:=2;
+  SCanner.MultilineStringsTrimLeft:=2;
   Scanner.CurrentModeSwitches:=[msMultiLineStrings];
-  Scanner.MultilineLineFeedStyle:=elLF;
+  Scanner.MultilineStringsEOLStyle:=elLF;
   Scanner.SkipWhiteSpace:=True;
   DoTestToken(pscanner.tkString,' `AB'#13#10'   CD`');
   AssertEquals('Correct trim',S,TestTokenString);
@@ -1685,25 +1698,25 @@ end;
 procedure TTestScanner.TestDefine0;
 begin
   TestTokens([tkComment],'{$DEFINE NEVER}');
-  AssertTrue('Define not defined', FSCanner.Defines.IndexOf('NEVER')<>-1);
+  AssertTrue('Define not defined', FScanner.Defines.IndexOf('NEVER')<>-1);
 end;
 
 procedure TTestScanner.TestDefine0Spaces;
 begin
   TestTokens([tkComment],'{$DEFINE  NEVER}');
-  AssertTrue('Define not defined',FSCanner.Defines.IndexOf('NEVER')<>-1);
+  AssertTrue('Define not defined',FScanner.Defines.IndexOf('NEVER')<>-1);
 end;
 
 procedure TTestScanner.TestDefine0Spaces2;
 begin
   TestTokens([tkComment],'{$DEFINE NEVER }');
-  AssertTrue('Define not defined',FSCanner.Defines.IndexOf('NEVER')<>-1);
+  AssertTrue('Define not defined',FScanner.Defines.IndexOf('NEVER')<>-1);
 end;
 
 procedure TTestScanner.TestDefine01;
 begin
   TestTokens([tkComment],'(*$DEFINE NEVER*)');
-  AssertTrue('Define not defined',FSCanner.Defines.IndexOf('NEVER')<>-1);
+  AssertTrue('Define not defined',FScanner.Defines.IndexOf('NEVER')<>-1);
 end;
 
 procedure TTestScanner.TestDefine1;
@@ -1714,26 +1727,26 @@ end;
 procedure TTestScanner.TestDefine2;
 
 begin
-  FSCanner.Defines.Add('ALWAYS');
+  FScanner.Defines.Add('ALWAYS');
   TestTokens([tkComment,tkWhitespace,tkOf,tkWhitespace,tkcomment],'{$IFDEF ALWAYS comment} of {$ENDIF}');
 end;
 
 procedure TTestScanner.TestDefine21;
 begin
-  FSCanner.Defines.Add('ALWAYS');
+  FScanner.Defines.Add('ALWAYS');
   TestTokens([tkComment,tkWhitespace,tkOf,tkWhitespace,tkcomment],'(*$IFDEF ALWAYS*) of (*$ENDIF*)');
 end;
 
 procedure TTestScanner.TestDefine22;
 begin
-  FSCanner.Defines.Add('ALWAYS');
+  FScanner.Defines.Add('ALWAYS');
   // No whitespace. Test border of *)
   TestTokens([tkComment,tkOf,tkWhitespace,tkcomment],'(*$IFDEF ALWAYS*)of (*$ENDIF*)');
 end;
 
 procedure TTestScanner.TestDefine3;
 begin
-  FSCanner.Defines.Add('ALWAYS');
+  FScanner.Defines.Add('ALWAYS');
   TestTokens([tkComment,tkWhitespace,tkOf,tkWhitespace,tkcomment],'{$IFDEF ALWAYS} of {$ELSE} in {$ENDIF}');
 end;
 
@@ -1751,14 +1764,14 @@ end;
 procedure TTestScanner.TestDefine6;
 
 begin
-  FSCanner.Defines.Add('ALWAYS');
+  FScanner.Defines.Add('ALWAYS');
   FScanner.SkipComments:=True;
   TestTokens([tkWhitespace,tkOf,tkWhitespace],'{$IFDEF ALWAYS} of {$ENDIF}');
 end;
 
 procedure TTestScanner.TestDefine7;
 begin
-  FSCanner.Defines.Add('ALWAYS');
+  FScanner.Defines.Add('ALWAYS');
   FScanner.SkipComments:=True;
   TestTokens([tkWhitespace,tkOf,tkWhitespace],'{$IFDEF ALWAYS} of {$ELSE} in {$ENDIF}');
 end;
@@ -1778,14 +1791,14 @@ end;
 procedure TTestScanner.TestDefine10;
 
 begin
-  FSCanner.Defines.Add('ALWAYS');
+  FScanner.Defines.Add('ALWAYS');
   FScanner.SkipComments:=True;
   TestTokens([tkWhitespace,tkOf,tkWhitespace],'{$IFDEF ALWAYS} of {$ENDIF}');
 end;
 
 procedure TTestScanner.TestDefine11;
 begin
-  FSCanner.Defines.Add('ALWAYS');
+  FScanner.Defines.Add('ALWAYS');
   FScanner.SkipComments:=True;
   FScanner.SkipWhiteSpace:=True;
   TestTokens([tkOf],'{$IFDEF ALWAYS} of {$ELSE} in {$ENDIF}');
@@ -1874,14 +1887,14 @@ begin
   FResolver.AddStream('myinclude.inc',TStringStream.Create('if true then'#10'else'));
   FScanner.SkipWhiteSpace:=True;
   FScanner.SkipComments:=True;
-  FScanner.MultilineLineFeedStyle:=elCRLF;
+  FScanner.MultilineStringsEOLStyle:=elCRLF;
   TestTokens([tkString],'{$INCLUDESTRING myinclude.inc}',False,False);
   AssertEquals('Correct string','''if true then'#13#10'else''',TestTokenString)
 end;
 
 procedure TTestScanner.TestUnDefine1;
 begin
-  FSCanner.Defines.Add('ALWAYS');
+  FScanner.Defines.Add('ALWAYS');
   TestTokens([tkComment],'{$UNDEF ALWAYS}');
   AssertEquals('No more define',-1,FScanner.Defines.INdexOf('ALWAYS'));
 end;
