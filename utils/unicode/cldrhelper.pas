@@ -247,6 +247,15 @@ type
   end;
   TSettingRecArray = array of TSettingRec;
 
+  TCldrCollationRuleKind = (Unknown, ReorderSequence, Import);
+  TCldrCollationRule = record
+    Kind    : TCldrCollationRuleKind;
+    Reorder : TReorderSequence;
+    Import  : TCldrImport;
+  end;
+  PCldrCollationRule = ^TCldrCollationRule;
+  TCldrCollationRuleArray = array of TCldrCollationRule;
+
   TCldrCollation = class;
 
   TCldrParserMode = (HeaderParsing, FullParsing);
@@ -263,7 +272,7 @@ type
     FMode : TCldrParserMode;
     FNormalization : Boolean;
     FParent: TCldrCollation;
-    FRules: TReorderSequenceArray;
+    FRules: TCldrCollationRuleArray;
     FSettings : TSettingRecArray;
     FStrength : TComparisonStrength;
     FTypeName: string;
@@ -280,7 +289,7 @@ type
     property Alt : string read FAlt write FAlt;
     property Base : string read FBase write FBase;
     property Backwards : Boolean read FBackwards write FBackwards;
-    property Rules : TReorderSequenceArray read FRules write FRules;
+    property Rules : TCldrCollationRuleArray read FRules write FRules;
     property ChangedFields : TCollationFields read FChangedFields write FChangedFields;
     property Imports : TCldrImportList read FImports;
     property Settings : TSettingRecArray read FSettings write FSettings;
@@ -381,6 +390,7 @@ type
     const AData        : PReorderUnit;
     const ADataLen     : Integer;
     const ADataWeigths : TUCA_LineRecArray;
+    const AUnifiedIdeographs : TCodePointRecArray;
       out AResult      : TUCA_LineRecArray
   ) : Integer;
   function FindCollationDefaultItemName(ACollation : TCldrCollation) : string;
@@ -394,7 +404,8 @@ type
     ABinaryNativeEndianStream,
     ABinaryOtherEndianStream  : TStream;
     ARootChars                : TOrderedCharacters;
-    ARootWeigths              : TUCA_LineRecArray
+    ARootWeigths              : TUCA_LineRecArray;
+    AUnifiedIdeographs        : TCodePointRecArray
   );
 
   procedure GenerateUCA_CLDR_Head(
@@ -1272,12 +1283,14 @@ begin
   Result := r;
 end;
 
+{$DEFINE UNI_BUILD_TIME}
 {$include weight_derivation.inc}
 
 function InternalComputeWeigths(
   const AData        : PReorderUnit;
   const ADataLen     : Integer;
   const ADataWeigths : TUCA_LineRecArray;
+  const AUnifiedIdeographs : TCodePointRecArray;
     out AResult      : TUCA_LineRecArray
 ) : Integer;
 
@@ -1401,7 +1414,7 @@ var
             //end;
           end;
           SetLength(tmpWeight,2);
-          DeriveWeight(AList[k][ki],@tmpWeight[0]);
+          DeriveWeight(AList[k][ki],@tmpWeight[0],AUnifiedIdeographs);
           EnsureResultLength(2);
           kres[kral].Weights[0] := tmpWeight[0].Weights[0];
           kres[kral].Weights[1] := tmpWeight[0].Weights[1];
@@ -1415,7 +1428,7 @@ var
         Continue;// ??????????????
       end;
       SetLength(tmpWeight,2);
-      DeriveWeight(AList[k][0],@tmpWeight[0]);
+      DeriveWeight(AList[k][0],@tmpWeight[0],AUnifiedIdeographs);
       EnsureResultLength(2);
       kres[kral].Weights[0] := tmpWeight[0].Weights[0];
       kres[kral].Weights[1] := tmpWeight[0].Weights[1];
@@ -1588,6 +1601,7 @@ function ComputeWeigths(
   const AData        : PReorderUnit;
   const ADataLen     : Integer;
   const ADataWeigths : TUCA_LineRecArray;
+  const AUnifiedIdeographs : TCodePointRecArray;
     out AResult      : TUCA_LineRecArray
 ) : Integer;
 var
@@ -1608,7 +1622,7 @@ begin
   end;
   if (Length(locData) <> actualLength) then
     SetLength(locData,actualLength);
-  Result := InternalComputeWeigths(@locData[0],actualLength,ADataWeigths,AResult);
+  Result := InternalComputeWeigths(@locData[0],actualLength,ADataWeigths,AUnifiedIdeographs,AResult);
 
   p := AData;
   for i := 0 to actualLength-1 do begin
@@ -2663,19 +2677,21 @@ var
   locRep : TCldrCollationRepository;
   locCollation : TCldrCollation;
   locType : TCldrCollationItem;
-  locRules : TReorderSequenceArray;
-begin
+  locRules : TCldrCollationRuleArray;
+  locRule : PCldrCollationRule;
+begin 
   Result := False;
   if not Assigned(AVisitFunc) then
     exit;
-  if (ACollationType.Imports.Count > 0) then begin
-    if (ACollationType.Parent = nil) then
-      raise ECldrException.Create(sRepositoryNotSet);
-    locRep := ACollationType.Parent.Repository;
-    if (locRep = nil) then
-      raise ECldrException.Create(sLoaderNotSet);
-    for i := 0 to ACollationType.Imports.Count-1 do begin
-      locImport := ACollationType.Imports[i];
+  locRules := ACollationType.Rules;
+  for i := Low(locRules) to High(locRules) do begin
+    locRule := @locRules[i];
+    if (locRule^.Kind = TCldrCollationRuleKind.ReorderSequence) then begin  
+      if not AVisitFunc(@locRule^.Reorder,ACollationType,ACustomData) then
+        exit;
+    end else if (locRule^.Kind = TCldrCollationRuleKind.Import) then begin  
+      locImport := locRule^.Import;
+      locRep := ACollationType.Parent.Repository;
       locCollation := locRep.Load(locImport.Source,TCldrParserMode.FullParsing);
       locType := locCollation.Find(locImport.TypeName);
       if (locType = nil) then begin
@@ -2685,11 +2701,6 @@ begin
       if not ForEachRule(locType,AVisitFunc,ACustomData) then
         exit;
     end;
-  end;
-  locRules := ACollationType.Rules;
-  for i := Low(locRules) to High(locRules) do begin
-    if not AVisitFunc(@locRules[i],ACollationType,ACustomData) then
-      exit;
   end;
   Result := True;
 end;
@@ -2717,7 +2728,8 @@ procedure GenerateCdlrCollation(
   ABinaryNativeEndianStream,
   ABinaryOtherEndianStream  : TStream;
   ARootChars                : TOrderedCharacters;
-  ARootWeigths              : TUCA_LineRecArray
+  ARootWeigths              : TUCA_LineRecArray;
+  AUnifiedIdeographs        : TCodePointRecArray
 );
 
   procedure AddLine(const ALine : ansistring; ADestStream : TStream);
@@ -2754,7 +2766,7 @@ begin
   locUcaBook.Version := ACollation.Version;
   locUcaBook.Backwards[1] := locItem.Backwards;
   locUcaBook.VariableWeight := locItem.VariableWeight;
-  ComputeWeigths(@locSequence.Data[0],locSequence.ActualLength,ARootWeigths,locUcaBook.Lines);
+  ComputeWeigths(@locSequence.Data[0],locSequence.ActualLength,ARootWeigths,AUnifiedIdeographs,locUcaBook.Lines);
   for i := 0 to Length(locUcaBook.Lines) - 1 do
     locUcaBook.Lines[i].Stored := True;
   locHasProps := (Length(locUcaBook.Lines) > 0);

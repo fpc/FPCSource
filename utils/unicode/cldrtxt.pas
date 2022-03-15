@@ -585,7 +585,7 @@ var
       DiscardState();
       exit;
     end;
-    if specialChararter and (s = '&') then begin
+    if specialChararter and CharInSet(s[1],['&','[']) then begin
       RestoreState();
       exit;
     end;

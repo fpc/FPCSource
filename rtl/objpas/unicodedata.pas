@@ -291,7 +291,8 @@ type
     procedure SetWhiteSpace(AValue : Boolean);
     function GetHangulSyllable : Boolean;inline;
     procedure SetHangulSyllable(AValue : Boolean);
-    function GetNumericValue: Double;inline;
+    function GetNumericValue: Double;inline; 
+    function GetUnifiedIdeograph : Boolean;inline;
   public
     CategoryData    : Byte;
   public
@@ -303,7 +304,8 @@ type
   public
     property Category : Byte read GetCategory write SetCategory;
     property WhiteSpace : Boolean read GetWhiteSpace write SetWhiteSpace;
-    property HangulSyllable : Boolean read GetHangulSyllable write SetHangulSyllable;
+    property HangulSyllable : Boolean read GetHangulSyllable write SetHangulSyllable; 
+    property UnifiedIdeograph : Boolean read GetUnifiedIdeograph;
     property NumericValue : Double read GetNumericValue;
   end;
 
@@ -2219,6 +2221,11 @@ begin
   Result := UC_NUMERIC_ARRAY[NumericIndex];
 end;
 
+function TUC_Prop.GetUnifiedIdeograph : Boolean;
+begin
+  Result := IsBitON(CategoryData,2);
+end;
+
 procedure TUC_Prop.SetCategory(AValue: Byte);
 begin
   CategoryData := Byte(CategoryData or Byte(AValue shl 3));
@@ -2415,8 +2422,8 @@ begin
     Result := nil;
 end;
 
+{$UNDEF UNI_BUILD_TIME}
 {$include weight_derivation.inc}
-
 function CompareSortKey(const A : TUCASortKey; const B : array of Word) : Integer;
 var
   bb : TUCASortKey;
@@ -2790,7 +2797,7 @@ var
     pp := locHistory[locHistoryTop].pp;
     ppLevel := locHistory[locHistoryTop].ppLevel;
     removedCharIndexLength := locHistory[locHistoryTop].removedCharIndexLength;
-    ps := psBase + i;
+    ps := psBase + (i-1);
     Dec(locHistoryTop);
   end;
 

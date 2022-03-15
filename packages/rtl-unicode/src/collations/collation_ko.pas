@@ -51,7 +51,7 @@ const
   BACKWARDS_1 = False;
   BACKWARDS_2 = False;
   BACKWARDS_3 = False;
-  PROP_COUNT  = 119249;
+  PROP_COUNT  = 119393;
   NO_STRING_NORMALIZATION = False;
   COMPARISON_STRENGTH = 3;
 
@@ -154,12 +154,11 @@ var
     Version            : 
       (
         Ord('$'),Ord('R'),Ord('e'),Ord('v'),Ord('i'),Ord('s'),Ord('i'),Ord('o'),
-        Ord('n'),Ord(':'),Ord(' '),Ord('1'),Ord('1'),Ord('9'),Ord('1'),Ord('4'),
-        Ord(' '),Ord('$'),
+        Ord('n'),Ord('$'),
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
       );
     CollationName      : 
       (
