@@ -177,14 +177,20 @@ type
 
   { TPropRec }
 
-  TPropRec = packed record
+  TPropRec = packed record 
+  private
+    const FLAG_WHITE_SPACE       = 0;
+    const FLAG_HANGUL_SYLLABLE   = 1;
+    const FLAG_UNIFIED_IDEOGRAPH = 2;
   private
     function GetCategory : TUnicodeCategory;inline;
     procedure SetCategory(AValue : TUnicodeCategory);
     function GetWhiteSpace : Boolean;inline;
-    procedure SetWhiteSpace(AValue : Boolean);
+    procedure SetWhiteSpace(AValue : Boolean);  
     function GetHangulSyllable : Boolean;inline;
     procedure SetHangulSyllable(AValue : Boolean);
+    function GetUnifiedIdeograph : Boolean;inline;
+    procedure SetUnifiedIdeograph(AValue : Boolean);
   public
     CategoryData    : Byte;
 
@@ -198,6 +204,7 @@ type
     property Category : TUnicodeCategory read GetCategory write SetCategory;
     property WhiteSpace : Boolean read GetWhiteSpace write SetWhiteSpace;
     property HangulSyllable : Boolean read GetHangulSyllable write SetHangulSyllable;
+    property UnifiedIdeograph : Boolean read GetUnifiedIdeograph write SetUnifiedIdeograph;
   end;
   TPropRecArray = array of TPropRec;
 
@@ -523,13 +530,14 @@ const
   );
 
   procedure Parse_UnicodeData(
-          ADataAStream   : TMemoryStream;
-    var   APropList      : TPropRecArray;
-    var   ANumericTable  : TNumericValueArray;
-    var   ADataLineList  : TDataLineRecArray;
-    var   ADecomposition : TDecompositionArray;
-    const AHangulList    : TCodePointRecArray;
-    const AWhiteSpaces   : TCodePointRecArray
+          ADataAStream       : TMemoryStream;
+    var   APropList          : TPropRecArray;
+    var   ANumericTable      : TNumericValueArray;
+    var   ADataLineList      : TDataLineRecArray;
+    var   ADecomposition     : TDecompositionArray;
+    const AHangulList        : TCodePointRecArray;
+    const AWhiteSpaces       : TCodePointRecArray;
+    const AUnifiedIdeographs : TCodePointRecArray
   );
   procedure MakeDecomposition(
     const ARawData : TDecompositionArray;
@@ -586,6 +594,10 @@ const
   function IsWhiteSpace(
     const ACodePoint   : TUnicodeCodePoint;
     const AWhiteSpaces : TCodePointRecArray
+  ) : Boolean;inline;
+  function IsIncluded(
+    const ACodePoint : TUnicodeCodePoint;
+    const AList      : TCodePointRecArray
   ) : Boolean;
 
   function GetPropID(
@@ -1092,6 +1104,32 @@ begin
     Result := StrToInt('$' + s);
 end;
 
+function IsIncluded(
+  const ACodePoint : TUnicodeCodePoint;
+  const AList      : TCodePointRecArray
+) : Boolean;
+var
+  i : Integer;
+  p : ^TCodePointRec;
+begin       
+  Result := False;
+  p := @AList[Low(AList)];
+  for i := Low(AList) to High(AList) do begin
+    if (p^.LineType = 0) then begin
+      if (p^.CodePoint = ACodePoint) then begin
+        Result := True;
+        break;
+      end;
+    end else begin
+      if (ACodePoint >= p^.StartCodePoint) and (ACodePoint <= p^.EndCodePoint) then begin
+        Result := True;
+        break;
+      end;
+    end;
+    Inc(p);
+  end;
+end;
+
 {function IsWhiteSpace(const ACodePoint : TUnicodeCodePoint) : Boolean;
 begin
   case ACodePoint of
@@ -1115,22 +1153,8 @@ function IsWhiteSpace(
   const ACodePoint   : TUnicodeCodePoint;
   const AWhiteSpaces : TCodePointRecArray
 ) : Boolean;
-var
-  i : Integer;
-  p : ^TCodePointRec;
 begin
-  p := @AWhiteSpaces[Low(AWhiteSpaces)];
-  for i := Low(AWhiteSpaces) to High(AWhiteSpaces) do begin
-    if (p^.LineType = 0) then begin
-      if (p^.CodePoint = ACodePoint) then
-        exit(True);
-    end else begin
-      if (ACodePoint >= p^.StartCodePoint) and (ACodePoint <= p^.EndCodePoint) then
-        exit(True);
-    end;
-    Inc(p);
-  end;
-  Result := False;
+  Result := IsIncluded(ACodePoint,AWhiteSpaces);
 end;
 
 function NormalizeBlockName(const AName : string) : string;
@@ -1561,7 +1585,8 @@ begin
          (AProp.NumericIndex = p^.NumericIndex) and
          (AProp.SimpleUpperCase = p^.SimpleUpperCase) and
          (AProp.SimpleLowerCase = p^.SimpleLowerCase) and
-         (AProp.WhiteSpace = p^.WhiteSpace) and
+         (AProp.WhiteSpace = p^.WhiteSpace) and            
+         (AProp.UnifiedIdeograph = p^.UnifiedIdeograph) and
          //
          (AProp.DecompositionID =  p^.DecompositionID) and
          (*   ( (AProp.DecompositionID = -1 ) and (p^.DecompositionID = -1) ) or
@@ -1620,13 +1645,14 @@ begin
 end;
 
 procedure Parse_UnicodeData(
-        ADataAStream   : TMemoryStream;
-  var   APropList      : TPropRecArray;
-  var   ANumericTable  : TNumericValueArray;
-  var   ADataLineList  : TDataLineRecArray;
-  var   ADecomposition : TDecompositionArray;
-  const AHangulList    : TCodePointRecArray;
-  const AWhiteSpaces   : TCodePointRecArray
+        ADataAStream       : TMemoryStream;
+  var   APropList          : TPropRecArray;
+  var   ANumericTable      : TNumericValueArray;
+  var   ADataLineList      : TDataLineRecArray;
+  var   ADecomposition     : TDecompositionArray;
+  const AHangulList        : TCodePointRecArray;
+  const AWhiteSpaces       : TCodePointRecArray;
+  const AUnifiedIdeographs : TCodePointRecArray
 );
 const
   LINE_LENGTH        = 1024;
@@ -1785,6 +1811,7 @@ var
     NextToken();//Simple_Title_Case_Mapping
     locProp.WhiteSpace := IsWhiteSpace(locCP,AWhiteSpaces);
     locProp.HangulSyllable := IsHangulSyllable(locCP,AHangulList);
+    locProp.UnifiedIdeograph := IsIncluded(locCP,AUnifiedIdeographs);
     k := IndexOf(locProp,APropList,actualPropLen);
     if (k = -1) then begin
       k := actualPropLen;
@@ -3978,6 +4005,11 @@ begin
   Result := TUnicodeCategory((CategoryData and Byte($F8)) shr 3);
 end;
 
+function TPropRec.GetUnifiedIdeograph : Boolean;
+begin
+  Result := IsBitON(CategoryData,FLAG_UNIFIED_IDEOGRAPH);
+end;
+
 procedure TPropRec.SetCategory(AValue: TUnicodeCategory);
 var
   b : Byte;
@@ -3990,22 +4022,27 @@ end;
 
 function TPropRec.GetWhiteSpace: Boolean;
 begin
-  Result := IsBitON(CategoryData,0);
+  Result := IsBitON(CategoryData,FLAG_WHITE_SPACE);
+end;
+
+procedure TPropRec.SetUnifiedIdeograph(AValue : Boolean);
+begin
+  SetBit(CategoryData,FLAG_UNIFIED_IDEOGRAPH,AValue);
 end;
 
 procedure TPropRec.SetWhiteSpace(AValue: Boolean);
 begin
-  SetBit(CategoryData,0,AValue);
+  SetBit(CategoryData,FLAG_WHITE_SPACE,AValue);
 end;
 
 function TPropRec.GetHangulSyllable: Boolean;
 begin
-  Result := IsBitON(CategoryData,1);
+  Result := IsBitON(CategoryData,FLAG_HANGUL_SYLLABLE);
 end;
 
 procedure TPropRec.SetHangulSyllable(AValue: Boolean);
 begin
-   SetBit(CategoryData,1,AValue);
+   SetBit(CategoryData,FLAG_HANGUL_SYLLABLE,AValue);
 end;
 
 { TUCA_PropItemRec }

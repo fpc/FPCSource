@@ -58,6 +58,12 @@ const
     '     - allkeys.txt this is the file allkeys_CLDR.txt renamed to allkeys.txt' + sLineBreak +
     '  These files are in the core.zip file of the CLDR release files. The CLDR''version used should be synchronized the' + sLineBreak +
     '  version of the Unicode version used, for example for Uniocde 7 it will be CLDR 26.' + sLineBreak +
+    '     - UCA_Rules_SHORT.txt ' + sLineBreak +
+    '     - allkeys.txt this is the file allkeys_CLDR.txt renamed to allkeys.txt' + sLineBreak + 
+    '     - PropList.txt ' + sLineBreak +
+    '  These files are in the core.zip file of the CLDR release files, except the PropList.txt which' + sLineBreak +
+    '  is from the UCA. The CLDR''version used should be synchronized the' + sLineBreak +
+    '  version of the Unicode version used, for example for Uniocde 14.0.0 it will be CLDR 40.' + sLineBreak +
     '  The CLDR files are provided by the Unicode Consortium at http://cldr.unicode.org/index/downloads';
 
 
@@ -120,7 +126,9 @@ begin
 end;
 
 procedure Main;
-var
+var  
+  propList : TPropListLineRecArray;
+  unifiedIdeographCodePoints : TCodePointRecArray;
   orderedChars : TOrderedCharacters;
   settings : TSettingRecArray;
   ucaBook : TUCA_DataBook;
@@ -200,10 +208,16 @@ begin
 {$endif WINCE_TEST}
   if not(
        FileExists(dataPath+SROOT_RULES_FILE) and
-       FileExists(dataPath+'allkeys.txt')
+       FileExists(dataPath+'allkeys.txt') and
+       FileExists(dataPath+'PropList.txt')
      )
   then begin
-    WriteLn(Format('File not found : %s or %s.',[dataPath+SROOT_RULES_FILE,dataPath+'allkeys.txt']));
+    WriteLn(
+      Format(
+        'File not found : %s or %s or %s.',
+        [dataPath+SROOT_RULES_FILE,dataPath+'allkeys.txt',dataPath+'PropList.txt']
+      )
+    );
     Halt(1);
   end;
 
@@ -251,6 +265,18 @@ begin
       WriteLn(Format('Parsing Collation Item "%s" ...',[s]));
       collationItem := repository.LoadType(collationFileName,collationTypeName,collationTypeAlt);
 
+      stream := TMemoryStream.Create();
+
+      s := dataPath + 'PropList.txt';
+      WriteLn('Load file PropList.txt ...', DateTimeToStr(Now));
+      stream.Clear();
+      stream.LoadFromFile(s);
+      stream.Position := 0;
+      propList := nil;
+      ParseProps(stream,propList);
+      stream.Clear();
+      unifiedIdeographCodePoints := FindCodePointsByProperty('Unified_Ideograph',propList);
+
       s := dataPath + SROOT_RULES_FILE;
       WriteLn;
       WriteLn('Parsing ',QuotedStr(s),'  ...');
@@ -261,7 +287,7 @@ begin
       WriteLn('File parsed, ',orderedChars.ActualLength,' characters.');
 
       WriteLn('Loading CLDR root''s key table ...');
-      stream := TMemoryStream.Create();
+      stream.Clear();
       s := dataPath + 'allkeys.txt';
       stream.LoadFromFile(s);
       FillChar(ucaBook,SizeOf(ucaBook),#0);
@@ -284,7 +310,7 @@ begin
       GenerateCdlrCollation(
         collation,collationTypeName,s,stream,streamNE,streamOE,
         binaryStreamNE,binaryStreamOE,
-        orderedChars,ucaBook.Lines
+        orderedChars,ucaBook.Lines,unifiedIdeographCodePoints
       );
       stream.SaveToFile(outputPath+s);
       if (streamNE.Size > 0) then begin

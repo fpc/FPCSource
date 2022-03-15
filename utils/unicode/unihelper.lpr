@@ -71,7 +71,8 @@ var
   ucaBook : TUCA_DataBook;
   ucaPropBook : PUCA_PropBook;
   propList : TPropListLineRecArray;
-  whiteSpaceCodePoints : TCodePointRecArray;
+  whiteSpaceCodePoints : TCodePointRecArray; 
+  unifiedIdeographCodePoints : TCodePointRecArray;
   props : TPropRecArray;
   numericTable : TNumericValueArray;
   decomposition : TDecompositionArray;
@@ -155,6 +156,8 @@ begin
     writeln('  White_Space Length = ',Length(whiteSpaceCodePoints));
     for i := Low(whiteSpaceCodePoints) to High(whiteSpaceCodePoints) do
       WriteLn('      ',DumpCodePoint(whiteSpaceCodePoints[i]):12,' , IsWhiteSpace = ',IsWhiteSpace(whiteSpaceCodePoints[i].CodePoint,whiteSpaceCodePoints));
+    unifiedIdeographCodePoints := FindCodePointsByProperty('Unified_Ideograph',propList); 
+    writeln('  Unified_Ideograph Length = ',Length(unifiedIdeographCodePoints));
 
     WriteLn('Load file UnicodeData.txt ...', DateTimeToStr(Now));
     stream.LoadFromFile(dataPath + 'UnicodeData.txt');
@@ -162,7 +165,10 @@ begin
     WriteLn('Parse file ...', DateTimeToStr(Now));
     data := nil;
     props := nil;
-    Parse_UnicodeData(stream,props,numericTable,data,decomposition,hangulSyllables,whiteSpaceCodePoints);
+    Parse_UnicodeData(
+      stream,props,numericTable,data,decomposition,hangulSyllables,
+      whiteSpaceCodePoints,unifiedIdeographCodePoints
+    );
     WriteLn('Decomposition building ...');
     MakeDecomposition(decomposition,decompositionBook);
 

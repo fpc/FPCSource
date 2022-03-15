@@ -162,6 +162,17 @@ implementation
 uses
   typinfo;
 
+
+function ComputeWeigths(
+  const AData        : PReorderUnit;
+  const ADataLen     : Integer;
+  const ADataWeigths : TUCA_LineRecArray;
+    out AResult      : TUCA_LineRecArray
+) : Integer;
+begin
+  Result := cldrhelper.ComputeWeigths(AData,ADataLen,ADataWeigths,[],AResult);
+end;
+
 function inner_do_exec_test(
         ATest               : TProcedure;
   const APropagateException : Boolean
@@ -1565,7 +1576,8 @@ begin
     WriteLn('    -- test 1 - ok',sLineBreak);
 
   // --- test 2
-  sequence := sequenceClean.Clone();
+  sequence := sequenceClean.Clone();  
+  statement.Clear();
   SetLength(statement.Reset,0);
   SetLength(statement.Elements,1);
   statement.Elements[0] := TReorderUnit.From([Ord('a'),Ord('d'),Ord('a')],TReorderWeigthKind.Deletion,0);
@@ -5594,7 +5606,7 @@ const
     '			<cr><![CDATA[' + UNICODE_LINE_BREAK +
     '				[import xy-u-co-private-two]' + UNICODE_LINE_BREAK +
     '				[import xy-u-co-one]' + UNICODE_LINE_BREAK +
-    '				[import xy]' + UNICODE_LINE_BREAK +
+    '				[import xy-u-co-standard]' + UNICODE_LINE_BREAK +
     '				[suppressContractions [qh]]' + UNICODE_LINE_BREAK +
     '				&w<u<v' + UNICODE_LINE_BREAK +
     '			]]></cr>' + UNICODE_LINE_BREAK +
@@ -5874,20 +5886,22 @@ begin
         'abc.Imports[2]'
       );
     Check((typ.ChangedFields = []), 'ChangedFields');
-    Check(Length(typ.Rules)=2,'Length(abc.Rules)=2');
-    Check(Length(typ.Rules[0].Elements)=2,'Length(typ.Rules[0].Elements)=2');
-    Check(typ.Rules[0].Elements[0].WeigthKind=TReorderWeigthKind.Deletion,'typ.Rules[0].Elements[0].WeigthKind=TReorderWeigthKind.Deletion');
-    Check(Length(typ.Rules[0].Elements[0].Characters)=1,'Length(typ.Rules[0].Elements[0].Characters)=1');
-    Check(typ.Rules[0].Elements[0].Characters[0]=Ord('h'),'typ.Rules[0].Elements[0].Characters[0]=h');
-    Check(typ.Rules[0].Elements[1].Characters[0]=Ord('q'),'typ.Rules[0].Elements[1].Characters[0]=q');
+    Check(Length(typ.Rules)=5,'Length(abc.Rules)=5');
+    Check((typ.Rules[3].Kind=TCldrCollationRuleKind.ReorderSequence),'typ.Rules[3].Kind=ReorderSequence');
+    Check(Length(typ.Rules[3].Reorder.Elements)=2,'Length(typ.Rules[3].Elements)=2');
+    Check(typ.Rules[3].Reorder.Elements[0].WeigthKind=TReorderWeigthKind.Deletion,'typ.Rules[3].Elements[0].WeigthKind=TReorderWeigthKind.Deletion');
+    Check(Length(typ.Rules[3].Reorder.Elements[0].Characters)=1,'Length(typ.Rules[3].Elements[0].Characters)=1');
+    Check(typ.Rules[3].Reorder.Elements[0].Characters[0]=Ord('h'),'typ.Rules[3].Elements[0].Characters[0]=h');
+    Check(typ.Rules[3].Reorder.Elements[1].Characters[0]=Ord('q'),'typ.Rules[3].Elements[1].Characters[0]=q');
     WriteLn('  - Step 5 ok');
 
     typ := col.Find('one');
     Check(Length(typ.Rules)>0, 'one.Rules <> nil');
     Clear(locStatement);
     Check(ParseSingleStatement('&h<z<b',locStatement));
-    Check((locStatement.Kind = TStatementKind.Sequence));
-    CheckEqual(locStatement.ReorderSequence,typ.Rules[0]);
+    Check((locStatement.Kind = TStatementKind.Sequence));  
+    Check(typ.Rules[0].Kind=TCldrCollationRuleKind.ReorderSequence);
+    CheckEqual(locStatement.ReorderSequence,typ.Rules[0].Reorder);
     WriteLn('  - Step 6 ok');
 
     typ := col.Find('private-two');
@@ -5901,8 +5915,10 @@ begin
         Length(locStatementList)
       ) = c
     );
-    for i := 0 to c-1 do
-      CheckEqual(locStatementList[i],typ.Rules[i]);
+    for i := 0 to c-1 do begin                 
+      Check(typ.Rules[i].Kind=TCldrCollationRuleKind.ReorderSequence);
+      CheckEqual(locStatementList[i],typ.Rules[i].Reorder);
+    end;
     WriteLn('  - Step 7 ok');
 
     typ := col.Find('standard');
@@ -5913,8 +5929,9 @@ begin
     Check(Length(typ.Rules)>0, 'standard.Rules <> nil');
     Clear(locStatement);
     Check(ParseSingleStatement('&d<c<b<a',locStatement));
-    Check((locStatement.Kind = TStatementKind.Sequence));
-    CheckEqual(locStatement.ReorderSequence,typ.Rules[0]);
+    Check((locStatement.Kind = TStatementKind.Sequence));  
+    Check(typ.Rules[0].Kind=TCldrCollationRuleKind.ReorderSequence);
+    CheckEqual(locStatement.ReorderSequence,typ.Rules[0].Reorder);
     WriteLn('  - Step 8 ok');
   finally
     rep.Free();
@@ -5971,9 +5988,12 @@ begin
         @locStatementList[0],
         Length(locStatementList)
       ) = c
-    );
-    for i := 0 to c-1 do
-      CheckEqual(locStatementList[i],typ.Rules[i]);
+    ); 
+    Check((typ.Rules[0].Kind=TCldrCollationRuleKind.Import),'typ.Rules[0].Kind=Import');
+    for i := 0 to c-1 do begin
+      Check((typ.Rules[i+1{Import}].Kind=TCldrCollationRuleKind.ReorderSequence),'typ.Rules[i+1{Import}].Kind=ReorderSequence');
+      CheckEqual(locStatementList[i],typ.Rules[i+1{Import}].Reorder);
+    end;
     WriteLn('  - Step 2 ok');
 
   finally
@@ -5988,7 +6008,7 @@ var
   rep : TCldrCollationRepository;
   col : TCldrCollation;
   typ, xtyp : TCldrCollationItem;
-  c, i : Integer;
+  c, i, k : Integer;
   locData : TReorderSequenceArrayRec;
 begin
   rep := TCldrCollationRepository.Create(PrepareRepositoryLoader());
@@ -5999,16 +6019,19 @@ begin
     typ := col.Find('one');
     locData.ActualLengh := 0;
     Check(ForEachRule(typ,@CopyVisitorFunc,@locData), 'ForEachRule(one) - 1');
-    Check(locData.ActualLengh = 1, 'ForEachRule(one) - 2');
-    CheckEqual(locData.Data[0],typ.Rules[0]);
+    Check(locData.ActualLengh = 1, 'ForEachRule(one) - 2');  
+    Check((typ.Rules[0].Kind=TCldrCollationRuleKind.ReorderSequence),'typ.Rules[0].Kind=ReorderSequence');
+    CheckEqual(locData.Data[0],typ.Rules[0].Reorder);
     WriteLn('  - Step 1 ok');
 
     typ := col.Find('private-two');
     locData.ActualLengh := 0;
     Check(ForEachRule(typ,@CopyVisitorFunc,@locData), 'ForEachRule(private-two) - 1');
     Check(locData.ActualLengh = 2, 'ForEachRule(private-two) - 2');
-    for i := 0 to locData.ActualLengh-1 do
-      CheckEqual(locData.Data[i],typ.Rules[i]);
+    for i := 0 to locData.ActualLengh-1 do begin
+      Check((typ.Rules[i].Kind=TCldrCollationRuleKind.ReorderSequence),'typ.Rules[i].Kind=ReorderSequence');
+      CheckEqual(locData.Data[i],typ.Rules[i].Reorder);
+    end;
     WriteLn('  - Step 2 ok');
 
     typ := col.Find('abc');
@@ -6021,20 +6044,29 @@ begin
     );
     xtyp := col.Find('private-two');
     c := 0;
-    for i := 0 to Length(xtyp.Rules)-1 do
-      CheckEqual(locData.Data[c+i],xtyp.Rules[i]);
+    for i := 0 to Length(xtyp.Rules)-1 do begin
+      Check((xtyp.Rules[i].Kind=TCldrCollationRuleKind.ReorderSequence),'xtyp.Rules[i].Kind=ReorderSequence');
+      CheckEqual(locData.Data[c+i],xtyp.Rules[i].Reorder);
+    end;
     c := c+Length(xtyp.Rules);
     xtyp := col.Find('one');
-    for i := 0 to Length(xtyp.Rules)-1 do
-      CheckEqual(locData.Data[c+i],xtyp.Rules[i]);
+    for i := 0 to Length(xtyp.Rules)-1 do begin 
+      Check((xtyp.Rules[i].Kind=TCldrCollationRuleKind.ReorderSequence),'xtyp.Rules[i].Kind=ReorderSequence');
+      CheckEqual(locData.Data[c+i],xtyp.Rules[i].Reorder);
+    end;
     c := c+Length(xtyp.Rules);
     xtyp := col.Find('standard');
-    for i := 0 to Length(xtyp.Rules)-1 do
-      CheckEqual(locData.Data[c+i],xtyp.Rules[i]);
+    for i := 0 to Length(xtyp.Rules)-1 do begin
+      Check((xtyp.Rules[i].Kind=TCldrCollationRuleKind.ReorderSequence),'xtyp.Rules[i].Kind=ReorderSequence');
+      CheckEqual(locData.Data[c+i],xtyp.Rules[i].Reorder);
+    end;
+    k := 3{import statemnts};
     c := c+Length(xtyp.Rules);
-    for i := 0 to Length(typ.Rules)-1 do
-      CheckEqual(locData.Data[c+i],typ.Rules[i]);
-    WriteLn('  - Step 2 ok');
+    for i := k to Length(typ.Rules)-1 do begin
+      Check((typ.Rules[i].Kind=TCldrCollationRuleKind.ReorderSequence),'typ.Rules[i].Kind=ReorderSequence');
+      CheckEqual(locData.Data[c+(i-k)],typ.Rules[i].Reorder);
+    end;
+    WriteLn('  - Step 3 ok');
   finally
     rep.Free();
   end;
@@ -6048,7 +6080,7 @@ var
   col, xcol : TCldrCollation;
   typ, xtyp : TCldrCollationItem;
   locData : TReorderSequenceArrayRec;
-  c, i : Integer;
+  c, i, k : Integer;
 begin
   rep := TCldrCollationRepository.Create(PrepareRepositoryLoader());
   try
@@ -6065,11 +6097,16 @@ begin
     Check(xtyp <> nil);
     Check(Length(xtyp.Rules)=1);
     c := 0;
-    for i := 0 to Length(xtyp.Rules)-1 do
-      CheckEqual(locData.Data[c+i],xtyp.Rules[i]);
+    for i := 0 to Length(xtyp.Rules)-1 do begin
+      Check((xtyp.Rules[i].Kind=TCldrCollationRuleKind.ReorderSequence),'xtyp.Rules[i].Kind=ReorderSequence');
+      CheckEqual(locData.Data[c+i],xtyp.Rules[i].Reorder);
+    end;
+    k := 1 {imports};
     c := c+Length(xtyp.Rules);
-    for i := 0 to Length(typ.Rules)-1 do
-      CheckEqual(locData.Data[c+i],typ.Rules[i]);
+    for i := k to Length(typ.Rules)-1 do begin
+      Check((typ.Rules[i].Kind=TCldrCollationRuleKind.ReorderSequence),'typ.Rules[i].Kind=ReorderSequence');
+      CheckEqual(locData.Data[c+i-k],typ.Rules[i].Reorder);
+    end;
     WriteLn('  - Step 1 ok');
 
   finally
