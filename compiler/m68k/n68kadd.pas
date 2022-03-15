@@ -456,6 +456,14 @@ implementation
             exit;
           end;
 
+        if (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) and
+           isaddressregister(right.location.register) and
+           (nodetype in [muln,andn,orn,xorn]) then
+          begin
+            //list.concat(tai_comment.create(strpnew('second_addordinal: move addr to data')));
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(def_cgsize(right.resultdef)),false);
+          end;
+
         if isaddressregister(left.location.register) and (nodetype in [addn,subn]) then
            location.register := cg.getaddressregister(current_asmdata.CurrAsmList)
         else
