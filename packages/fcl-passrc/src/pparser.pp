@@ -817,7 +817,7 @@ begin
         inc(Src);
       end;
     end;
-  '''','#':  // string constant
+  '''','#','`':  // string constant
     while true do
       case Src^ of
       #0: break;
@@ -830,7 +830,15 @@ begin
       '''':
         begin
         inc(Src);
-        while not (Src^ in ['''',#0]) do
+        while not (Src^ in ['''',#0,#10,#13]) do
+          inc(Src);
+        if Src^='''' then
+          inc(Src);
+        end;
+      '`':
+        begin
+        inc(Src);
+        while not (Src^ in ['`',#0]) do
           inc(Src);
         if Src^='''' then
           inc(Src);
