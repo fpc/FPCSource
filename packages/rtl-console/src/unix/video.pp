@@ -377,12 +377,12 @@ begin
           if TerminalSupportsBold and (ofg and 8<>0) then
             attr2ansi:=attr2ansi+'22;';
           Str(Fg,tmpS);
-          attr2ansi:=attr2ansi+'38:5:'+tmpS+';';
+          attr2ansi:=attr2ansi+'38;5;'+tmpS+';';
         end;
       if Bg<>OBg then
         begin
           Str(Bg,tmpS);
-          attr2ansi:=attr2ansi+'48:5:'+tmpS+';';
+          attr2ansi:=attr2ansi+'48;5;'+tmpS+';';
         end;
     end
   else
