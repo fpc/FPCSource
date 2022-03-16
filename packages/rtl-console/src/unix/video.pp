@@ -970,8 +970,8 @@ begin
     if cur_term_strings=@term_codes_beos then
     begin
       TerminalSupportsBold := false;
-      TerminalSupportsHighIntensityColors := false;      
-    end;  
+      TerminalSupportsHighIntensityColors := false;
+    end;
     if cur_term_strings=@term_codes_freebsd then
       console:=ttyFreeBSD;
 {$ifdef linux}
