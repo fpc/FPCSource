@@ -975,10 +975,10 @@ begin
      if Console<>ttylinux then
       begin
    {$endif}
+        SendEscapeSeqNdx(enter_ca_mode);
         SendEscapeSeqNdx(cursor_home);
         SendEscapeSeqNdx(cursor_normal);
         SendEscapeSeqNdx(cursor_visible_underline);
-        SendEscapeSeqNdx(enter_ca_mode);
         SetCursorType(crUnderLine);
         If Console=ttyFreeBSD Then
           SendEscapeSeqNdx(exit_am_mode);
@@ -1026,11 +1026,11 @@ begin
   else
    begin
 {$endif}
-     SendEscapeSeqNdx(exit_ca_mode);
      SendEscapeSeqNdx(cursor_home);
      SendEscapeSeqNdx(cursor_normal);
      SendEscapeSeqNdx(cursor_visible_underline);
      SendEscapeSeq(#27'[H');
+     SendEscapeSeqNdx(exit_ca_mode);
      if cur_term_strings=@term_codes_linux then
        begin
          {Executed in case ttylinux is false (i.e. no vcsa), but
