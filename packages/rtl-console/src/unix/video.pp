@@ -365,15 +365,8 @@ end;
 
 const  ansitbl:array[0..7] of char='04261537';
 
-function attr2ansi(attr,oattr:byte):string;
-
-var OFg,OBg,Fg,Bg:byte;
-
+function attr2ansi(Fg,Bg,OFg,OBg:byte):string;
 begin
-  Fg:=Attr and $f;
-  Bg:=Attr shr 4;
-  OFg:=OAttr and $f;
-  OBg:=OAttr shr 4;
   attr2ansi:=#27'[';
   if TerminalSupportsBold then
     if fg and 8<>0 then
@@ -480,7 +473,7 @@ var
   begin
     if c=LastAttr then
      exit;
-    OutData(Attr2Ansi(c,LastAttr));
+    OutData(Attr2Ansi(c and $f, c shr 4,LastAttr and $f,LastAttr shr 4));
     LastAttr:=c;
   end;
 
