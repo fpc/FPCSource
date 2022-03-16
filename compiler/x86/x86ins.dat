@@ -3006,11 +3006,11 @@ xmmreg,xmmrm            \361\2\x0F\x57\110        WILLAMETTE,SSE2,SM
 ; Prescott New Instructions (SSE3)
 ;
 [ADDSUBPD]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm            \361\2\x0F\xD0\110        PRESCOTT,SSE3,SM
 
 [ADDSUBPS]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm            \334\2\x0F\xD0\110        PRESCOTT,SSE3,SM
 
 [HADDPD]
@@ -3030,7 +3030,7 @@ xmmreg,xmmrm            \361\2\x0F\x7D\110        PRESCOTT,SSE3,SM
 xmmreg,xmmrm            \334\2\x0F\x7D\110        PRESCOTT,SSE3,SM
 
 [LDDQU]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,mem              \334\2\x0F\xF0\110        PRESCOTT,SSE3
 
 [MOVDDUP]
@@ -3038,11 +3038,11 @@ xmmreg,mem              \334\2\x0F\xF0\110        PRESCOTT,SSE3
 xmmreg,xmmrm            \334\2\x0F\x12\110        PRESCOTT,SSE3
 
 [MOVSHDUP]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm            \333\2\x0F\x16\110        PRESCOTT,SSE3,SM
 
 [MOVSLDUP]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm            \333\2\x0F\x12\110        PRESCOTT,SSE3,SM
 
 ;
@@ -3178,7 +3178,7 @@ void                  \326\1\x99                      X86_64
 void                  \326\1\x98                      X86_64
 
 [CMPXCHG16B,cmpxchg16bX]
-(Ch_All)
+(Ch_RWRAX, Ch_RWRDX, Ch_WZeroFlag, Ch_RWOp1)
 mem                   \326\2\x0F\xC7\201              X86_64
 
 ;
