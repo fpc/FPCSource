@@ -366,45 +366,65 @@ end;
 const  ansitbl:array[0..7] of char='04261537';
 
 function attr2ansi(Fg,Bg,OFg,OBg:byte):string;
+var
+  tmpS: string;
 begin
   attr2ansi:=#27'[';
-  if TerminalSupportsBold then
-    if fg and 8<>0 then
-      begin
-        {Enable bold if not yet on.}
-        if ofg and 8=0 then
-          attr2ansi:=attr2ansi+'1;';
-      end
-    else
-      {Disable bold if on.}
-      if ofg and 8<>0 then
-        attr2ansi:=attr2ansi+'22;';
-  if bg and 8<>0 then
+  if (Fg > 15) or (Bg > 15) then
     begin
-      {Enable bold if not yet on.}
-      if obg and 8=0 then
-        attr2ansi:=attr2ansi+'5;';
+      if Fg<>OFg then
+        begin
+          if TerminalSupportsBold and (ofg and 8<>0) then
+            attr2ansi:=attr2ansi+'22;';
+          Str(Fg,tmpS);
+          attr2ansi:=attr2ansi+'38:5:'+tmpS+';';
+        end;
+      if Bg<>OBg then
+        begin
+          Str(Bg,tmpS);
+          attr2ansi:=attr2ansi+'48:5:'+tmpS+';';
+        end;
     end
   else
-    {Disable bold if on.}
-    if obg and 8<>0 then
-      attr2ansi:=attr2ansi+'25;';
-
-  if TerminalSupportsHighIntensityColors then
-  begin
-    if fg and 15<>ofg and 15 then
-      if fg and 8<>0 then
-        attr2ansi:=attr2ansi+'9'+ansitbl[fg and 7]+';'
+    begin
+      if TerminalSupportsBold then
+        if fg and 8<>0 then
+          begin
+            {Enable bold if not yet on.}
+            if ofg and 8=0 then
+              attr2ansi:=attr2ansi+'1;';
+          end
+        else
+          {Disable bold if on.}
+          if ofg and 8<>0 then
+            attr2ansi:=attr2ansi+'22;';
+      if bg and 8<>0 then
+        begin
+          {Enable bold if not yet on.}
+          if obg and 8=0 then
+            attr2ansi:=attr2ansi+'5;';
+        end
       else
-        attr2ansi:=attr2ansi+'3'+ansitbl[fg and 7]+';';
-  end
-  else
-  begin
-    if fg and 7<>ofg and 7 then
-      attr2ansi:=attr2ansi+'3'+ansitbl[fg and 7]+';';
-  end;
-  if bg and 7<>obg and 7 then
-     attr2ansi:=attr2ansi+'4'+ansitbl[bg and 7]+';';
+        {Disable bold if on.}
+        if obg and 8<>0 then
+          attr2ansi:=attr2ansi+'25;';
+
+      if TerminalSupportsHighIntensityColors then
+      begin
+        if fg and 15<>ofg and 15 then
+          if fg and 8<>0 then
+            attr2ansi:=attr2ansi+'9'+ansitbl[fg and 7]+';'
+          else
+            attr2ansi:=attr2ansi+'3'+ansitbl[fg and 7]+';';
+      end
+      else
+      begin
+        if fg and 7<>ofg and 7 then
+          attr2ansi:=attr2ansi+'3'+ansitbl[fg and 7]+';';
+      end;
+      if bg and 7<>obg and 7 then
+         attr2ansi:=attr2ansi+'4'+ansitbl[bg and 7]+';';
+    end;
 
   if attr2ansi[length(attr2ansi)]=';' then
     attr2ansi[length(attr2ansi)]:='m'
