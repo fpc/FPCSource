@@ -422,9 +422,9 @@ var
   spaces,
   eol,
   x,y,
-  LastX,LastY,
-  SpaceAttr,
-  LastAttr : longint;
+  LastX,LastY : longint;
+  SpaceFg, SpaceBg,
+  LastFg, LastBg : byte;
   LastLineWidth : Longint;
   p,pold   : penhancedvideocell;
   LastCharWasDoubleWidth: Boolean;
@@ -469,19 +469,20 @@ var
     end;
   end;
 
-  procedure OutClr(c:byte);
+  procedure OutClr(Fg,Bg:byte);
   begin
-    if c=LastAttr then
+    if (Fg=LastFg) and (Bg=LastBg) then
      exit;
-    OutData(Attr2Ansi(c and $f, c shr 4,LastAttr and $f,LastAttr shr 4));
-    LastAttr:=c;
+    OutData(Attr2Ansi(Fg,Bg,LastFg,LastBg));
+    LastFg:=Fg;
+    LastBg:=Bg;
   end;
 
   procedure OutSpaces;
   begin
     if (Spaces=0) then
      exit;
-    OutClr(SpaceAttr);
+    OutClr(SpaceFg,SpaceBg);
     OutData(Space(Spaces));
     LastX:=x;
     LastY:=y;
@@ -518,12 +519,14 @@ begin
 { init Attr, X,Y and set autowrap off }
   SendEscapeSeq(#27'[0;40;37m'#27'[?7l'{#27'[H'} );
 //  1.0.x: SendEscapeSeq(#27'[m'{#27'[H'});
-  LastAttr:=7;
+  LastFg:=7;
+  LastBg:=0;
   LastX:=-1;
   LastY:=-1;
   for y:=1 to ScreenHeight do
    begin
-     SpaceAttr:=0;
+     SpaceFg:=0;
+     SpaceBg:=0;
      Spaces:=0;
      LastLineWidth:=ScreenWidth;
      If (y=ScreenHeight) And (Console=ttyFreeBSD) {And :am: is on} Then
@@ -560,13 +563,17 @@ begin
                if chattr.ExtendedGraphemeCluster=' ' then
                 begin
                   if Spaces=0 then
-                   SpaceAttr:=chattr.Attribute;
-                  if (chattr.Attribute and $f0)=(spaceattr and $f0) then
-                   chattr.Attribute:=SpaceAttr
+                   begin
+                     SpaceFg:=chattr.ForegroundColor;
+                     SpaceBg:=chattr.BackgroundColor;
+                   end;
+                  if chattr.BackgroundColor=SpaceBg then
+                   chattr.ForegroundColor:=SpaceFg
                   else
                    begin
                      OutSpaces;
-                     SpaceAttr:=chattr.Attribute;
+                     SpaceFg:=chattr.ForegroundColor;
+                     SpaceBg:=chattr.BackgroundColor;
                    end;
                   inc(Spaces);
                 end
@@ -579,8 +586,8 @@ begin
                       Chattr.Attr:= $ff xor Chattr.Attr;
                       ChAttr.ch:=chr(ord(chattr.ch)+ord('A')-1);
                     end;}
-                  if LastAttr<>chattr.Attribute then
-                   OutClr(chattr.Attribute);
+                  if (LastFg<>chattr.ForegroundColor) or (LastBg<>chattr.BackgroundColor) then
+                   OutClr(chattr.ForegroundColor,chattr.BackgroundColor);
                   OutData(transform(chattr.ExtendedGraphemeCluster));
                   if CurCharWidth=2 then
                    begin
@@ -615,8 +622,8 @@ begin
     OutData(#8);
     {Output last char}
     chattr:=p[1];
-    if LastAttr<>chattr.Attribute then
-     OutClr(chattr.Attribute);
+    if (LastFg<>chattr.ForegroundColor) or (LastBg<>chattr.BackgroundColor) then
+     OutClr(chattr.ForegroundColor,chattr.BackgroundColor);
     OutData(transform(chattr.ExtendedGraphemeCluster));
     inc(LastX);
 //    OutData(XY2Ansi(ScreenWidth-1,ScreenHeight,LastX,LastY));
@@ -624,8 +631,8 @@ begin
     OutData(#8+#27+'[1@');
 
     chattr:=p^;
-    if LastAttr<>chattr.Attribute then
-     OutClr(chattr.Attribute);
+    if (LastFg<>chattr.ForegroundColor) or (LastBg<>chattr.BackgroundColor) then
+     OutClr(chattr.ForegroundColor,chattr.BackgroundColor);
     OutData(transform(chattr.ExtendedGraphemeCluster));
     inc(LastX);
    end;
