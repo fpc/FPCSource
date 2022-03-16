@@ -23,17 +23,40 @@ const
 
 operator = (const a,b : TEnhancedVideoCell) res: Boolean;
 begin
-  res:=(a.Attribute=b.Attribute) and (a.ExtendedGraphemeCluster = b.ExtendedGraphemeCluster);
+  res:=(a.FForegroundColor=b.FForegroundColor) and
+       (a.FBackgroundColor=b.FBackgroundColor) and
+       (a.ExtendedGraphemeCluster = b.ExtendedGraphemeCluster);
 end;
 
 function TEnhancedVideoCell.GetAttribute: Byte;
 begin
-  GetAttribute := Byte(FAttributes);
+  GetAttribute := (FForegroundColor and $0F) or Byte(FBackgroundColor shl 4);
 end;
 
 procedure TEnhancedVideoCell.SetAttribute(Attr: Byte);
 begin
-  FAttributes := (FAttributes and $FF00) or Attr;
+  FForegroundColor := Attr and $0F;
+  FBackgroundColor := Attr shr 4;
+end;
+
+function TEnhancedVideoCell.GetForegroundColor: Byte;
+begin
+  GetForegroundColor := FForegroundColor;
+end;
+
+procedure TEnhancedVideoCell.SetForegroundColor(AForegroundColor: Byte);
+begin
+  FForegroundColor := AForegroundColor;
+end;
+
+function TEnhancedVideoCell.GetBackgroundColor: Byte;
+begin
+  GetBackgroundColor := FBackgroundColor;
+end;
+
+procedure TEnhancedVideoCell.SetBackgroundColor(ABackgroundColor: Byte);
+begin
+  FBackgroundColor := ABackgroundColor;
 end;
 
 function TEnhancedVideoCell.GetExtendedGraphemeCluster: UnicodeString;
@@ -69,6 +92,8 @@ end;
 class operator TEnhancedVideoCell.Initialize(var evc: TEnhancedVideoCell);
 begin
   evc.FAttributes := 0;
+  evc.ForegroundColor := 0;
+  evc.BackgroundColor := 0;
 end;
 
 class operator TEnhancedVideoCell.Finalize(var evc: TEnhancedVideoCell);

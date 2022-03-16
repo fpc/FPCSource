@@ -38,12 +38,20 @@ type
     procedure SetExtendedGraphemeCluster(const AExtendedGraphemeCluster: UnicodeString);
     function GetAttribute: Byte;
     procedure SetAttribute(Attr: Byte);
+    function GetForegroundColor: Byte;
+    procedure SetForegroundColor(AForegroundColor: Byte);
+    function GetBackgroundColor: Byte;
+    procedure SetBackgroundColor(ABackgroundColor: Byte);
   public
     property ExtendedGraphemeCluster: UnicodeString read GetExtendedGraphemeCluster write SetExtendedGraphemeCluster;
     property Attribute: Byte read GetAttribute write SetAttribute;
+    property ForegroundColor: Byte read GetForegroundColor write SetForegroundColor;
+    property BackgroundColor: Byte read GetBackgroundColor write SetBackgroundColor;
 
   private
     FAttributes: Word;
+    FForegroundColor : Byte;
+    FBackgroundColor : Byte;
     case integer of
       0: (EGC_SingleChar: WideChar);
       1: (EGC_WideStr: Pointer);
