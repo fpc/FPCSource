@@ -22,7 +22,9 @@
 {$mode objfpc}{$H+}
 program pas2jni;
 
-uses SysUtils, Classes, writer, ppuparser;
+uses
+  {$IFDEF UNIX}cthreads,{$ENDIF}
+  SysUtils, Classes, writer, ppuparser;
 
 var
   w: TWriter;
