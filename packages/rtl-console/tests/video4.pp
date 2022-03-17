@@ -45,11 +45,33 @@ begin
     TextOut(46, 14, 'bold underline negative', [evaBold, evaUnderlined, evaInverse]);
     TextOut(40, 16, 'bold blink negative', [evaBold, evaBlinkSlow, evaInverse]);
     TextOut(46, 18, 'bold underline blink negative', [evaBold, evaUnderlined, evaBlinkSlow, evaInverse]);
+
+    TextOut(10, 24, 'Press space to continue', []);
     UpdateScreen(False);
 
     k := GetKeyEvent;
     k := TranslateKeyEvent(k);
-  until GetKeyEventChar(k) = 'q';
+  until GetKeyEventChar(k) = ' ';
+  ClearScreen;
+  repeat
+    TextOut( 1,  4, 'vanilla', []);
+    TextOut( 6,  6, 'bold', [evaBold]);
+    TextOut( 1,  8, 'faint', [evaFaint]);
+    TextOut( 6, 10, 'italicized', [evaItalicized]);
+    TextOut( 1, 12, 'underlined', [evaUnderlined]);
+    TextOut( 6, 14, 'slowly blinking', [evaBlinkSlow]);
+    TextOut( 1, 16, 'rapidly blinking', [evaBlinkFast]);
+    TextOut( 6, 18, 'inverse', [evaInverse]);
+    TextOut(40,  4, 'invisible', [evaInvisible]);
+    TextOut(46,  6, 'crossed out', [evaCrossedOut]);
+    TextOut(40,  8, 'doubly underlined', [evaDoublyUnderlined]);
+
+    TextOut(10, 24, 'Press space to continue', []);
+    UpdateScreen(False);
+
+    k := GetKeyEvent;
+    k := TranslateKeyEvent(k);
+  until GetKeyEventChar(k) = ' ';
   DoneEnhancedVideo;
   DoneKeyboard;
 end.
