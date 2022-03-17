@@ -28,6 +28,33 @@ type
   TVideoBuf = array[0..{$ifdef CPU16}16382{$else}32759{$endif}] of TVideoCell;
   PVideoBuf = ^TVideoBuf;
 
+  TEnhancedVideoAttribute = (
+    { Bold or increased intensity, VT100, xterm }
+    evaBold,
+    { Faint, decreased intensity or second color, ECMA-48 2nd, xterm }
+    evaFaint,
+    { Italicized, ECMA-48 2nd, xterm }
+    evaItalicized,
+    { Singly underlined, VT100, xterm }
+    evaUnderlined,
+    { Slowly blinking (less than 150 per minute), EMCA 48 2nd, VT100, xterm }
+    evaBlinkSlow,
+    { Rapidly blinking (150 per minute or more), ECMA-48 2nd }
+    evaBlinkFast,
+    { Inverse (negative image), VT100, xterm }
+    evaInverse,
+    { Concealed characters, ECMA-48 2nd, VT300, xterm }
+    evaInvisible,
+    { Crossed-out (characters still legible but marked as to be deleted), ECMA-48 3rd, xterm }
+    evaCrossedOut,
+    { Doubly underlined, ECMA-48 3d }
+    evaDoublyUnderlined
+  );
+{$push}
+{$packset 2}
+  TEnhancedVideoAttributes = set of TEnhancedVideoAttribute;
+{$pop}
+
   TEnhancedVideoCell = record
   private
     class operator Initialize(var evc: TEnhancedVideoCell);
@@ -38,6 +65,8 @@ type
     procedure SetExtendedGraphemeCluster(const AExtendedGraphemeCluster: UnicodeString);
     function GetAttribute: Byte;
     procedure SetAttribute(Attr: Byte);
+    function GetEnhancedVideoAttributes: TEnhancedVideoAttributes;
+    procedure SetEnhancedVideoAttributes(AEnhancedVideoAttributes: TEnhancedVideoAttributes);
     function GetForegroundColor: Byte;
     procedure SetForegroundColor(AForegroundColor: Byte);
     function GetBackgroundColor: Byte;
@@ -45,11 +74,12 @@ type
   public
     property ExtendedGraphemeCluster: UnicodeString read GetExtendedGraphemeCluster write SetExtendedGraphemeCluster;
     property Attribute: Byte read GetAttribute write SetAttribute;
+    property EnhancedVideoAttributes: TEnhancedVideoAttributes read GetEnhancedVideoAttributes write SetEnhancedVideoAttributes;
     property ForegroundColor: Byte read GetForegroundColor write SetForegroundColor;
     property BackgroundColor: Byte read GetBackgroundColor write SetBackgroundColor;
 
   private
-    FAttributes: Word;
+    FInternalAttributes: Word;
     FForegroundColor : Byte;
     FBackgroundColor : Byte;
     case integer of
