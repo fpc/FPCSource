@@ -365,11 +365,37 @@ end;
 
 const  ansitbl:array[0..7] of char='04261537';
 
-function attr2ansi(Fg,Bg,OFg,OBg:byte):string;
+function attr2ansi(Fg,Bg:byte;Attr:TEnhancedVideoAttributes;OFg,OBg:byte;OAttr:TEnhancedVideoAttributes):string;
+const
+  AttrOnOffStr: array [TEnhancedVideoAttribute, Boolean] of string = (
+    ('22;','1;'),
+    ('22;','2;'),
+    ('23;','3;'),
+    ('24;','4;'),
+    ('25;','5;'),
+    ('25;','6;'),
+    ('27;','7;'),
+    ('28;','8;'),
+    ('29;','9;'),
+    ('24;','21;'));
 var
   tmpS: string;
+  A: TEnhancedVideoAttribute;
 begin
   attr2ansi:=#27'[';
+
+  if Attr<>OAttr then
+  begin
+    { turn off old attributes first }
+    for A := Low(TEnhancedVideoAttribute) to High(TEnhancedVideoAttribute) do
+      if (not (A in Attr)) and (A in OAttr) then
+        attr2ansi:=attr2ansi+AttrOnOffStr[A,False];
+    { then, turn on new attributes }
+    for A := Low(TEnhancedVideoAttribute) to High(TEnhancedVideoAttribute) do
+      if (A in Attr) and (not (A in OAttr)) then
+        attr2ansi:=attr2ansi+AttrOnOffStr[A,True];
+  end;
+
   if (Fg > 15) or (Bg > 15) then
     begin
       if Fg<>OFg then
@@ -443,8 +469,10 @@ var
   eol,
   x,y,
   LastX,LastY : longint;
-  SpaceFg, SpaceBg,
+  SpaceFg, SpaceBg : byte;
+  SpaceAttr: TEnhancedVideoAttributes;
   LastFg, LastBg : byte;
+  LastAttr: TEnhancedVideoAttributes;
   LastLineWidth : Longint;
   p,pold   : penhancedvideocell;
   LastCharWasDoubleWidth: Boolean;
@@ -489,20 +517,21 @@ var
     end;
   end;
 
-  procedure OutClr(Fg,Bg:byte);
+  procedure OutClr(Fg,Bg:byte;Attr:TEnhancedVideoAttributes);
   begin
-    if (Fg=LastFg) and (Bg=LastBg) then
+    if (Fg=LastFg) and (Bg=LastBg) and (Attr=LastAttr) then
      exit;
-    OutData(Attr2Ansi(Fg,Bg,LastFg,LastBg));
+    OutData(Attr2Ansi(Fg,Bg,Attr,LastFg,LastBg,LastAttr));
     LastFg:=Fg;
     LastBg:=Bg;
+    LastAttr:=Attr;
   end;
 
   procedure OutSpaces;
   begin
     if (Spaces=0) then
      exit;
-    OutClr(SpaceFg,SpaceBg);
+    OutClr(SpaceFg,SpaceBg,SpaceAttr);
     OutData(Space(Spaces));
     LastX:=x;
     LastY:=y;
@@ -541,12 +570,14 @@ begin
 //  1.0.x: SendEscapeSeq(#27'[m'{#27'[H'});
   LastFg:=7;
   LastBg:=0;
+  LastAttr:=[];
   LastX:=-1;
   LastY:=-1;
   for y:=1 to ScreenHeight do
    begin
      SpaceFg:=0;
      SpaceBg:=0;
+     SpaceAttr:=[];
      Spaces:=0;
      LastLineWidth:=ScreenWidth;
      If (y=ScreenHeight) And (Console=ttyFreeBSD) {And :am: is on} Then
@@ -586,14 +617,16 @@ begin
                    begin
                      SpaceFg:=chattr.ForegroundColor;
                      SpaceBg:=chattr.BackgroundColor;
+                     SpaceAttr:=chattr.EnhancedVideoAttributes;
                    end;
-                  if chattr.BackgroundColor=SpaceBg then
+                  if (chattr.BackgroundColor=SpaceBg) and (chattr.EnhancedVideoAttributes=SpaceAttr) then
                    chattr.ForegroundColor:=SpaceFg
                   else
                    begin
                      OutSpaces;
                      SpaceFg:=chattr.ForegroundColor;
                      SpaceBg:=chattr.BackgroundColor;
+                     SpaceAttr:=chattr.EnhancedVideoAttributes;
                    end;
                   inc(Spaces);
                 end
@@ -606,8 +639,8 @@ begin
                       Chattr.Attr:= $ff xor Chattr.Attr;
                       ChAttr.ch:=chr(ord(chattr.ch)+ord('A')-1);
                     end;}
-                  if (LastFg<>chattr.ForegroundColor) or (LastBg<>chattr.BackgroundColor) then
-                   OutClr(chattr.ForegroundColor,chattr.BackgroundColor);
+                  if (LastFg<>chattr.ForegroundColor) or (LastBg<>chattr.BackgroundColor) or (LastAttr<>chattr.EnhancedVideoAttributes) then
+                   OutClr(chattr.ForegroundColor,chattr.BackgroundColor,chattr.EnhancedVideoAttributes);
                   OutData(transform(chattr.ExtendedGraphemeCluster));
                   if CurCharWidth=2 then
                    begin
@@ -642,8 +675,8 @@ begin
     OutData(#8);
     {Output last char}
     chattr:=p[1];
-    if (LastFg<>chattr.ForegroundColor) or (LastBg<>chattr.BackgroundColor) then
-     OutClr(chattr.ForegroundColor,chattr.BackgroundColor);
+    if (LastFg<>chattr.ForegroundColor) or (LastBg<>chattr.BackgroundColor) or (LastAttr<>chattr.EnhancedVideoAttributes) then
+     OutClr(chattr.ForegroundColor,chattr.BackgroundColor,chattr.EnhancedVideoAttributes);
     OutData(transform(chattr.ExtendedGraphemeCluster));
     inc(LastX);
 //    OutData(XY2Ansi(ScreenWidth-1,ScreenHeight,LastX,LastY));
@@ -651,8 +684,8 @@ begin
     OutData(#8+#27+'[1@');
 
     chattr:=p^;
-    if (LastFg<>chattr.ForegroundColor) or (LastBg<>chattr.BackgroundColor) then
-     OutClr(chattr.ForegroundColor,chattr.BackgroundColor);
+    if (LastFg<>chattr.ForegroundColor) or (LastBg<>chattr.BackgroundColor) or (LastAttr<>chattr.EnhancedVideoAttributes) then
+     OutClr(chattr.ForegroundColor,chattr.BackgroundColor,chattr.EnhancedVideoAttributes);
     OutData(transform(chattr.ExtendedGraphemeCluster));
     inc(LastX);
    end;
