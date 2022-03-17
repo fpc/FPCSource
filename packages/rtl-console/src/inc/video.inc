@@ -30,14 +30,70 @@ begin
 end;
 
 function TEnhancedVideoCell.GetAttribute: Byte;
+var
+  EVA: TEnhancedVideoAttributes;
+  Fg,Bg,Attr: Byte;
+  tmpB: Byte;
 begin
-  GetAttribute := (FForegroundColor and $0F) or Byte(FBackgroundColor shl 4);
+  EVA := EnhancedVideoAttributes;
+  Fg := FForegroundColor and $0F;
+  Bg := FBackgroundColor and $0F;
+  if ScreenColor then
+  begin
+    { display underlined as cyan }
+    if (EVA*[evaUnderlined,evaDoublyUnderlined])<>[] then
+      Fg := 3;
+    { display italicized as green }
+    if evaItalicized in EVA then
+      Fg := 2;
+    if evaInverse in EVA then
+    begin
+      tmpB := Fg;
+      Fg := Bg;
+      Bg := tmpB;
+    end;
+    if evaFaint in EVA then
+      Fg := 8;
+    if evaBold in EVA then
+      Fg := Fg or 8;
+    if evaInvisible in EVA then
+      Fg := Bg;
+  end
+  else
+  begin
+    if evaInverse in EVA then
+    begin
+      tmpB := Fg;
+      Fg := Bg;
+      Bg := tmpB;
+    end;
+    { foreground color 1 is underline on MDA }
+    if (EVA*[evaUnderlined,evaDoublyUnderlined])<>[] then
+      Fg := (Fg and 8) + 1;
+    if evaBold in EVA then
+      Fg := Fg or 8;
+    if evaInvisible in EVA then
+    begin
+      { on MDA white on white background doesn't work as invisible, only black
+        on black is possible }
+      Fg := 0;
+      Bg := 0;
+    end;
+  end;
+  Attr := (Fg and $0F) or Byte((Bg and $07) shl 4);
+  if (EVA*[evaBlinkSlow,evaBlinkFast])<>[] then
+    Attr := Attr or $80;
+  GetAttribute := Attr;
 end;
 
 procedure TEnhancedVideoCell.SetAttribute(Attr: Byte);
 begin
   FForegroundColor := Attr and $0F;
-  FBackgroundColor := Attr shr 4;
+  FBackgroundColor := (Attr shr 4) and $07;
+  if (Attr and $80) <> 0 then
+    EnhancedVideoAttributes := [evaBlinkSlow]
+  else
+    EnhancedVideoAttributes := [];
 end;
 
 function TEnhancedVideoCell.GetEnhancedVideoAttributes: TEnhancedVideoAttributes;
