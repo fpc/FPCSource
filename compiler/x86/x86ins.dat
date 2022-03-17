@@ -3185,11 +3185,11 @@ mem                   \326\2\x0F\xC7\201              X86_64
 ; SSE4a (AMD Barcelona CPUs, n/a on Intel)
 ;
 [MOVNTSS]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 mem,xmmreg              \336\333\2\x0F\x2B\101                   SSE4,SD
 
 [MOVNTSD]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 mem,xmmreg              \337\334\325\2\x0F\x2B\101                SSE4 ;,SQ
 
 [INSERTQ]
@@ -3211,62 +3211,62 @@ reg32|64,regmem         \321\333\2\x0F\xBD\110                386,SM,SSE4
 ;**********SSSE3****************************************************************
 ;*******************************************************************************
 [PABSB]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \331\3\x0F\x38\x1C\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x1C\110                   SSSE3,SM
 
 [PABSW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \331\3\x0F\x38\x1D\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x1D\110                   SSSE3,SM
 
 [PABSD]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \331\3\x0F\x38\x1E\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x1E\110                   SSSE3,SM
 
 [PALIGNR]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm,imm      \331\3\x0F\x3A\x0F\110\26                SSSE3,MMX,SM2,SB,AR2
 xmmreg,xmmrm,imm      \361\3\x0F\x3A\x0F\110\26                SSSE3,SM2,SB,AR2
 
 [PHADDW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \331\3\x0F\x38\x01\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x01\110                   SSSE3,SM
 
 [PHADDD]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \331\3\x0F\x38\x02\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x02\110                   SSSE3,SM
 
 [PHADDSW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \331\3\x0F\x38\x03\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x03\110                   SSSE3,SM
 
 [PHSUBW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \331\3\x0F\x38\x05\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x05\110                   SSSE3,SM
 
 [PHSUBD]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \331\3\x0F\x38\x06\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x06\110                   SSSE3,SM
 
 [PHSUBSW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \331\3\x0F\x38\x07\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x07\110                   SSSE3,SM
 
 [PMADDUBSW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \331\3\x0F\x38\x04\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x04\110                   SSSE3,SM
 
 [PMULHRSW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \331\3\x0F\x38\x0B\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x0B\110                   SSSE3,SM
 
