@@ -162,7 +162,7 @@ end;
 function GetProgDir: string;
 var
   s1: string;
-  alock: LongInt;
+  alock: BPTR;
   counter: Byte;
 begin
   GetProgDir := '';

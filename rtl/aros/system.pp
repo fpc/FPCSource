@@ -90,7 +90,7 @@ implementation
 type
     PWBArg = ^TWBArg;
     TWBArg = record
-        wa_Lock         : LongInt;      { a lock descriptor }
+        wa_Lock         : BPTR;      { a lock descriptor }
         wa_Name         : PChar;       { a string relative to that lock }
     end;
 
