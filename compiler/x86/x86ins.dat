@@ -2558,7 +2558,7 @@ mmxreg,mmxrm          \2\x0F\xE3\110                  KATMAI,MMX,SM
 xmmreg,xmmrm          \361\2\x0F\xE3\110              WILLAMETTE,SSE2,SM
 
 [PEXTRW]
-(Ch_Wop2, Ch_Rop1)
+(Ch_Wop3, Ch_Rop2)
 reg32,mmxreg,imm      \2\x0F\xC5\110\22               KATMAI,MMX,SB,AR2
 reg32,xmmreg,imm      \361\2\x0F\xC5\110\26           SSE41
 mem32,xmmreg,imm      \361\3\x0F\x3A\x15\101\26       SSE41
@@ -3271,22 +3271,22 @@ mmxreg,mmxrm          \331\3\x0F\x38\x0B\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x0B\110                   SSSE3,SM
 
 [PSHUFB]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \331\3\x0F\x38\x00\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x00\110                   SSSE3,SM
 
 [PSIGNB]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \331\3\x0F\x38\x08\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x08\110                   SSSE3,SM
 
 [PSIGNW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \331\3\x0F\x38\x09\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x09\110                   SSSE3,SM
 
 [PSIGND]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 mmxreg,mmxrm          \331\3\x0F\x38\x0A\110                   SSSE3,MMX,SM
 xmmreg,xmmrm          \361\3\x0F\x38\x0A\110                   SSSE3,SM
 
@@ -3294,188 +3294,188 @@ xmmreg,xmmrm          \361\3\x0F\x38\x0A\110                   SSSE3,SM
 ;**********SSE4.1***************************************************************
 ;*******************************************************************************
 [BLENDPS]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm,imm      \361\3\x0F\x3A\x0C\110\26                SSE41,SM2,SB,AR2
 
 [BLENDPD]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm,imm      \361\3\x0F\x3A\x0D\110\26                SSE41,SM2,SB,AR2
 
 [BLENDVPS]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1, Ch_RXMM0)
 xmmreg,xmmrm          \361\3\x0F\x38\x14\110                   SSE41,SM
 
 [BLENDVPD]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1, Ch_RXMM0)
 xmmreg,xmmrm          \361\3\x0F\x38\x15\110                   SSE41,SM
 
 [DPPS]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm,imm      \361\3\x0F\x3A\x40\110\26                SSE41,SM2,SB,AR2
 
 [DPPD]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm,imm      \361\3\x0F\x3A\x41\110\26                SSE41,SM2,SB,AR2
 
 [EXTRACTPS]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2)
 mem,xmmreg,imm       \361\325\3\x0F\x3A\x17\101\26    SSE41,SB,AR2
 reg32|64,xmmreg,imm  \361\3\x0F\x3A\x17\101\26    SSE41,SB,AR2
 
 [INSERTPS]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm,imm     \361\3\x0F\x3A\x21\110\26            SSE41,SM2,SB,AR2
 
 [MOVNTDQA]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,mem           \361\3\x0F\x38\x2A\110               SSE41,SM
 
 [MPSADBW]
-(Ch_All)
+(Ch_Mop3, Ch_Rop2)
 xmmreg,xmmrm,imm     \361\3\x0F\x3A\x42\110\26            SSE41,SM2,SB,AR2
 
 [PACKUSDW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm         \361\3\x0F\x38\x2B\110               SSE41,SM
 
 [PBLENDVB]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1, Ch_RXMM0)
 xmmreg,xmmrm         \361\3\x0F\x38\x10\110               SSE41,SM
 
 [PBLENDW]
-(Ch_All)
+(Ch_Mop3, Ch_Rop2)
 xmmreg,xmmrm,imm     \361\3\x0F\x3A\x0E\110\26            SSE41,SM2,SB,AR2
 
 [PCMPEQQ]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm         \361\3\x0F\x38\x29\110               SSE41,SM
 
 [PEXTRB]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2)
 reg32|64,xmmreg,imm   \361\3\x0F\x3A\x14\101\26                SSE41,SB,AR2
 mem8,xmmreg,imm       \361\3\x0F\x3A\x14\101\26            SSE41,SB,AR2
 
 ;PEXTRW - Look is prev. implementation
 
 [PEXTRD]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2)
 reg32,xmmreg,imm      \361\3\x0F\x3A\x16\101\26            SSE41,SB,AR2
 mem32,xmmreg,imm      \361\3\x0F\x3A\x16\101\26            SSE41,SB,AR2
 
 [PEXTRQ]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2)
 reg64,xmmreg,imm      \361\326\3\x0F\x3A\x16\101\26        SSE41,X86_64,SB,AR2
 mem64,xmmreg,imm      \361\326\3\x0F\x3A\x16\101\26        SSE41,X86_64,SB,AR2
 
 [PHMINPOSUW]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm          \361\3\x0F\x38\x41\110               SSE41,SM
 
 [PINSRB]
-(Ch_All)
+(Ch_Mop3, Ch_Rop2)
 xmmreg,reg32|64,imm   \361\3\x0F\x3A\x20\110\26            SSE41,SB,AR2
 xmmreg,mem8,imm       \361\3\x0F\x3A\x20\110\26            SSE41,SB,AR2
 
 [PINSRD]
-(Ch_All)
+(Ch_Mop3, Ch_Rop2)
 xmmreg,reg32,imm      \361\3\x0F\x3A\x22\110\26            SSE41,SB,AR2
 xmmreg,mem32,imm      \361\3\x0F\x3A\x22\110\26            SSE41,SB,AR2
 
 [PINSRQ]
-(Ch_All)
+(Ch_Mop3, Ch_Rop2)
 xmmreg,reg64,imm      \361\326\3\x0F\x3A\x22\110\26        SSE41,X86_64,SB,AR2
 xmmreg,mem64,imm      \361\326\3\x0F\x3A\x22\110\26        SSE41,X86_64,SB,AR2
 
 [PMAXSB]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm          \361\3\x0F\x38\x3C\110               SSE41,SM
 
 [PMAXSD]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm          \361\3\x0F\x38\x3D\110               SSE41,SM
 
 [PMAXUD]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm          \361\3\x0F\x38\x3F\110               SSE41,SM
 
 [PMAXUW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm          \361\3\x0F\x38\x3E\110               SSE41,SM
 
 [PMINSB]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm          \361\3\x0F\x38\x38\110               SSE41,SM
 
 [PMINSD]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm          \361\3\x0F\x38\x39\110               SSE41,SM
 
 [PMINUW]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm          \361\3\x0F\x38\x3A\110               SSE41,SM
 
 [PMINUD]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm          \361\3\x0F\x38\x3B\110               SSE41,SM
 
 [PMOVSXBW]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm          \361\3\x0F\x38\x20\110               SSE41,SM
 
 [PMOVSXBD]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm          \361\3\x0F\x38\x21\110               SSE41,SM
 
 [PMOVSXBQ]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm          \361\3\x0F\x38\x22\110               SSE41,SM
 
 [PMOVSXWD]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm          \361\3\x0F\x38\x23\110               SSE41,SM
 
 [PMOVSXWQ]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm          \361\3\x0F\x38\x24\110               SSE41,SM
 
 [PMOVSXDQ]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm          \361\3\x0F\x38\x25\110               SSE41,SM
 
 [PMOVZXBW]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm          \361\3\x0F\x38\x30\110               SSE41,SM
 
 [PMOVZXBD]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm          \361\3\x0F\x38\x31\110               SSE41,SM
 
 [PMOVZXBQ]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm          \361\3\x0F\x38\x32\110               SSE41,SM
 
 [PMOVZXWD]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm          \361\3\x0F\x38\x33\110               SSE41,SM
 
 [PMOVZXWQ]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm          \361\3\x0F\x38\x34\110               SSE41,SM
 
 [PMOVZXDQ]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 xmmreg,xmmrm          \361\3\x0F\x38\x35\110               SSE41,SM
 
 [PMULDQ]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm          \361\3\x0F\x38\x28\110               SSE41,SM
 
 [PMULLD]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm          \361\3\x0F\x38\x40\110               SSE41,SM
 
 [PTEST]
-(Ch_All)
+(Ch_Rop2, Ch_Rop1, Ch_WZeroFlag, Ch_WCarryFlag)
 xmmreg,xmmrm          \361\3\x0F\x38\x17\110               SSE41,SM
 
 [ROUNDPS]
