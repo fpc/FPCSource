@@ -249,7 +249,7 @@ end;
 function FileCreate(const FileName: RawByteString) : THandle;
 var
   SystemFileName: RawByteString;
-  dosResult: LongInt;
+  dosResult: THandle;
 begin
   dosResult:=-1;
 
