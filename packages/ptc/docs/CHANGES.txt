@@ -1,3 +1,7 @@
+next
+ - added PTCKEY_LESS, which represents the <> key (the 102th key on
+   international PC keyboards)
+
 0.99.16
  - added and implemented SetMousePos in unit ptcmouse
  - applied patch by Nicolas QSO <nicolas@qso.com.ar> that fixes the handling of

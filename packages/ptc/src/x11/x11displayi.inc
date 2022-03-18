@@ -566,12 +566,16 @@ begin
   end;
 
   key := nil;
-  case sym_modded shr 8 of
-    0: key := TPTCKeyEvent.Create(FNormalKeys[sym_modded and $FF], uni, modkeys, press);
-    $FF: key := TPTCKeyEvent.Create(FFunctionKeys[sym_modded and $FF], uni, modkeys, press);
-    else
-      key := TPTCKeyEvent.Create(PTCKEY_UNDEFINED, uni, modkeys, press);
-  end;
+  { handle the <> key by checking sym, instead of sym_modded }
+  if sym = XK_less then
+    key := TPTCKeyEvent.Create(PTCKEY_LESS, uni, modkeys, press)
+  else
+    case sym_modded shr 8 of
+      0: key := TPTCKeyEvent.Create(FNormalKeys[sym_modded and $FF], uni, modkeys, press);
+      $FF: key := TPTCKeyEvent.Create(FFunctionKeys[sym_modded and $FF], uni, modkeys, press);
+      else
+        key := TPTCKeyEvent.Create(PTCKEY_UNDEFINED, uni, modkeys, press);
+    end;
   if (not eaten_by_im) or (pmkDeadKey in modkeys) then
     FEventQueue.AddEvent(key);
 end;

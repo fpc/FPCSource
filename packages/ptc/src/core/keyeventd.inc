@@ -192,6 +192,7 @@ const
   PTCKEY_MINUS        = $BD;
   PTCKEY_BACKQUOTE    = $C0;
   PTCKEY_QUOTE        = $DE;
+  PTCKEY_LESS         = $E2;
   PTCKEY_COMMAND      = $100;
   PTCKEY_F13          = $101;
   PTCKEY_F14          = $102;
