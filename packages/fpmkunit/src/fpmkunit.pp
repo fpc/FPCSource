@@ -1239,6 +1239,7 @@ Type
     FOnFinishCopy: TNotifyEvent;
 
     FCachedlibcPath: string;
+    GCCLibWarningIssued : boolean;
 {$ifndef NO_THREADING}
     FGeneralCriticalSection: TRTLCriticalSection;
 {$endif NO_THREADING}
@@ -7237,7 +7238,11 @@ begin
         begin
           s:=GetDefaultLibGCCDir(Defaults.CPU, Defaults.OS,ErrS);
           if s='' then
-            Log(vlWarning, SWarngcclibpath +' '+ErrS)
+            begin
+              if (ErrS<>'') and not (GCCLibWarningIssued) then
+                Log(vlWarning, SWarngcclibpath +' '+ErrS);
+             GCCLibWarningIssued:=True;
+           end
           else
             begin
 {$ifndef NO_THREADING}
