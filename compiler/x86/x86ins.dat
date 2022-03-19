@@ -3506,23 +3506,23 @@ reg64,rm8              \334\326\3\x0F\x38\xF0\110              SSE42,X86_64
 reg64,rm64             \334\326\3\x0F\x38\xF1\110              SSE42,X86_64
 
 [PCMPESTRI]
-(Ch_All)
+(Ch_Rop3, Ch_Rop2, Ch_REAX, Ch_REDX, Ch_WECX)
 xmmreg,xmmrm,imm       \361\3\x0F\x3A\x61\110\26               SSE42,SM2,SB,AR2
 
 [PCMPESTRM]
-(Ch_All)
+(Ch_Rop3, Ch_Rop2, Ch_REAX, Ch_REDX, Ch_WXMM0)
 xmmreg,xmmrm,imm       \361\3\x0F\x3A\x60\110\26               SSE42,SM2,SB,AR2
 
 [PCMPISTRI]
-(Ch_All)
+(Ch_Rop3, Ch_Rop2, Ch_WECX)
 xmmreg,xmmrm,imm       \361\3\x0F\x3A\x63\110\26               SSE42,SM2,SB,AR2
 
 [PCMPISTRM]
-(Ch_All)
+(Ch_Rop3, Ch_Rop2, Ch_WXMM0)
 xmmreg,xmmrm,imm       \361\3\x0F\x3A\x62\110\26               SSE42,SM2,SB,AR2
 
 [PCMPGTQ]
-(Ch_All)
+(Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm           \361\3\x0F\x38\x37\110                  SSE42,SM
 
 [POPCNT,popcntX]
