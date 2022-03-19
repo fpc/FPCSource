@@ -219,7 +219,7 @@ type
   TAppWindowDropZoneMsg = record
     adzm_RastPort: PRastPort; // RastPort to render into.
     adzm_DropZoneBox: TIBox;  // Limit your rendering to this area.
-    adzm_ID: LongWord;        // \ These come from straight
+    adzm_ID: IPTR;            // \ These come from straight
     adzm_UserData: IPTR;      // / from AddAppWindowDropZoneA().
     adzm_Action: LongInt;     // See below for a list of actions.
   end;

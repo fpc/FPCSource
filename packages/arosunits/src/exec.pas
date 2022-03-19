@@ -1084,16 +1084,19 @@ type
     ex_EClockFrequency,         // (readable)
     ex_CacheControl,            // Private to CacheControl calls
     ex_TaskID: ULONG;           // Next available task ID
-    ex_Reserved1: array[0..4] of ULONG;
+    ex_Reserved1: array[0..4] of IPTR;
     ex_MMULock: Pointer;        // private
-    ex_Reserved2: array[0..1] of ULONG;
+    ex_Reserved2: array[0..1] of IPTR;
     ex_DebugFlags: ULONG;
     { The following list and data element are used
       exec's low memory handler...}
-    ex_MemHandlers   : tMinList; // The handler list
+    ex_MemHandlers   : TMinList; // The handler list
     ex_MemHandler    : Pointer;  // Private! handler pointer
 //***** Additional AROS fields **********************************
     DebugArosBase    : PArosSupportBase;
+    {$ifdef CPU64}
+    lb_TaskResBase: PLibrary;
+    {$endif}
   end;
 
 { ***** Bit defines for AttnFlags (see above) ***************************** }

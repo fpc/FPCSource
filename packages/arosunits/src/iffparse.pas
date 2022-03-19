@@ -31,7 +31,7 @@ const
 Type
        PIFFHandle = ^TIFFHandle;
        TIFFHandle = record
-        iff_Stream,
+        iff_Stream  : PtrUInt;
         iff_Flags   : LongWord;
         iff_Depth   : LongInt;      {  Depth of context stack.  }
         {  There are private fields hiding here.  }

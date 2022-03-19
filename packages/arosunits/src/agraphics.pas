@@ -764,7 +764,7 @@ type
     xln_Name: PChar;
     xln_Subsystem: Byte;     // see below
     xln_Subtype: Byte;       // SS_GRAPHICS
-    xln_Library : Longint;
+    xln_Library : APTR;
     xln_Init : Pointer;
   end;
 

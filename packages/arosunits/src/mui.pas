@@ -151,7 +151,7 @@ const
 // Black box specification structures for images, pens, frames
 type
   TMUI_PenSpec = record
-    ps_buf: array[0..31] of char;
+    buf: array[0..31] of char;
   end;
   PMUI_PenSpec = ^TMUI_PenSpec;
 
@@ -1697,7 +1697,55 @@ type
     mad_Flags: LongWord;                  // see definitions below
     mad_Flags2: LongWord;
     // 40 bytes up to here
-    // The following data is private
+    // offset 40
+    mad_HorizWeight: Word;          // weight values for layout. default 100
+    mad_VertWeight: Word;
+    // offset 44
+    // ?
+    // offset 48
+    mad_IDCMP: LongWord;            // IDCMP flags this listens to (for HandleInput)
+    // offset 52
+    mad_BackgroundSpec: STRPTR;
+    // offset 56
+    mad_FontPreset: IPTR;           // MUIV_Font_xxx or pointer to struct TextFont
+    // offset 76
+    mad_FrameTitle: STRPTR;         // for groups. Req. mad_Frame > 0
+    // Inner values at offset 88 in MUI:
+    mad_InnerLeft: ShortInt;         //* frame or hardcoded
+    mad_InnerTop: ShortInt;
+    mad_InnerRight: ShortInt;
+    mad_InnerBottom: ShortInt;
+    // offset 94
+    mad_FrameOBSOLETE: ShortInt;     //* frame setting -- private
+    // offset 95
+    mad_InputMode: ShortInt;         // how to react to events
+    // offset 96
+    mad_ControlChar: Char;           // key shortcut
+    mad_TitleHeightAdd: ShortInt;    // frame title height = mad_TitleBelow + mad_TitleBaseline
+    mad_TitleHeightBelow: ShortInt;  // height below frame
+    mad_TitleHeightAbove: ShortInt;  // height above frame
+// 100
+// ?
+    mad_Frame: IPTR;
+    mad_HardHeight: SmallInt;        // if harcoded dim (see flags)
+    mad_HardWidth: SmallInt;         // if harcoded dim (see flags)
+    mad_HardWidthTxt: STRPTR;
+    mad_HardHeightTxt: STRPTR;
+    // TODO: move SelBack in RenderInfo as it's common for all objects
+    mad_SelBack: APTR;               //* selected state background
+    mad_ShortHelp: STRPTR;           // bubble help
+    // there's an event handler at 114
+    mad_ehn: TMUI_EventHandlerNode;
+    mad_Timer: TMUI_InputHandlerNode;   // MUIA_Timer
+    mad_Timeval: LongWord;              // just to trigger notifications
+    mad_ccn: TMUI_EventHandlerNode;     // gross hack for control char
+    mad_ContextMenu: APTR;              // menu strip
+    mad_ClickX: LongInt;                // x position of the initial SELECTDOWN click
+    mad_ClickY: LongInt;                // y position of the intiial SELECTDOWN click
+    mad_ContextZMenu: APTR;
+    mad_hiehn: TMUI_EventHandlerNode;   // Eventhandler to simulate MUIM_HandleInput
+
+    mad_DisableCount: LongInt;          // counts number of disables
   end;
   PMUI_AreaData = ^TMUI_AreaData;
 
@@ -1822,11 +1870,26 @@ type
     lm_Type: PtrUInt;      // type of message (see defines below)
     lm_Children: PMinList;  // list of this groups children, traverse with NextObject()
     lm_MinMax: TMUI_MinMax; // results for MUILM_MINMAX
+    {$ifdef CPU64}
+    pad1: LongWord;
+    {$endif}
     lm_Layout: record       // size (and result) for MUILM_LAYOUT
-       Width: PtrInt;
+       Width: LongInt;
+       {$ifdef CPU64}
+       pad2: LongWord;
+       {$endif}
        Height: LongInt;
+       {$ifdef CPU64}
+       pad3: LongWord;
+       {$endif}
        priv5: LongWord;
+       {$ifdef CPU64}
+       pad4: LongWord;
+       {$endif}
        priv6: LongWord;
+       {$ifdef CPU64}
+       pad5: LongWord;
+       {$endif}
     end;
   end;
   PMUI_LayoutMsg = ^TMUI_LayoutMsg;

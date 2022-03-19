@@ -62,7 +62,7 @@ type
     dfh_DF: TNode;
     dfh_FileID: Word;
     dfh_Revision: Word;
-    dfh_Segment: Longint;
+    dfh_Segment: BPTR;
     dfh_Name: array [0..MAXFONTNAME-1] of Char;
     dfh_TF: TTextFont;
   end;

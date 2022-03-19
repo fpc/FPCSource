@@ -624,17 +624,21 @@ type
   PFileHandle = ^TFileHandle;
   TFileHandle = record
     fh_Flags: ULONG;   { EXEC message        }
+    {$ifdef CPU64}
+    fh_Port: ULONG;   { Reply port for the packet }
+    {$else}
     fh_Port: PMsgPort;   { Reply port for the packet }
+    {$endif}
     fh_Type: PMsgPort;   { Port to do PutMsg() to Address is negative if a plain file }
 
     fh_Buf: BPTR;
     fh_Pos: LongInt;
     fh_End: LongInt;
 
-    fh_Func1: LongInt;
-    fh_Func2: LongInt;
-    fh_Func3: LongInt;
-    fh_Arg1:  LongInt;
+    fh_Func1: PtrInt;
+    fh_Func2: PtrInt;
+    fh_Func3: PtrInt;
+    fh_Arg1:  PtrInt;
     fh_Arg2: APTR;
     fh_Size: ULONG; // Size of buffered io buffer
     fh_Buf2: BPTR;  // Always the same as fh_Buf
@@ -649,27 +653,27 @@ type
     case SmallInt of
     0 : (
       dp_Action : LongInt;
-      dp_Status : LongInt;
-      dp_Status2 : LongInt;
-      dp_BufAddr : LongInt;
+      dp_Status : PtrInt;
+      dp_Status2 : PtrInt;
+      dp_BufAddr : PtrInt;
     );
     1 : (
       dp_Type : LongInt;      { See ACTION_... below and
                               * 'R' means Read, 'W' means Write to the
                               * file system }
-      dp_Res1 : LongInt;      { For file system calls this is the result
+      dp_Res1 : PtrInt;       { For file system calls this is the result
                               * that would have been returned by the
                               * function, e.g. Write ('W') returns actual
                               * length written }
-      dp_Res2 : LongInt;      { For file system calls this is what would
+      dp_Res2 : PtrInt;       { For file system calls this is what would
                               * have been returned by IoErr() }
-      dp_Arg1 : LongInt;
-      dp_Arg2 : LongInt;
-      dp_Arg3 : LongInt;
-      dp_Arg4 : LongInt;
-      dp_Arg5 : LongInt;
-      dp_Arg6 : LongInt;
-      dp_Arg7 : LongInt;
+      dp_Arg1 : PtrInt;
+      dp_Arg2 : PtrInt;
+      dp_Arg3 : PtrInt;
+      dp_Arg4 : PtrInt;
+      dp_Arg5 : PtrInt;
+      dp_Arg6 : PtrInt;
+      dp_Arg7 : PtrInt;
     );
   end;
 
@@ -1071,7 +1075,7 @@ type
     de_BufMemType: IPTR;     // type of mem to allocate for buffers
     de_MaxTransfer: IPTR;    // Max number of bytes to transfer at a time
     de_Mask: IPTR;           // Address Mask to block out certain memory
-    de_BootPri: LongInt;     // Boot priority for autoboot
+    de_BootPri: PtrInt;      // Boot priority for autoboot
     de_DosType: IPTR;        // ASCII (HEX) string showing filesystem type
     de_Baud: IPTR;           // Baud rate for serial handler
     de_Control: IPTR;        // Control SmallInt for handler/filesystem
@@ -1175,7 +1179,7 @@ type
             nr_pad: array[0..2] of Byte; // PRIVATE
          end );
     end;
-    nr_Reserved: array[0..3] of LongWord; // PRIVATE! Set to 0 for now.
+    nr_Reserved: array[0..3] of PtrUInt;  // PRIVATE! Set to 0 for now.
     nr_MsgCount: LongWord;                // Number of unreplied messages.
     nr_Handler: PMsgPort;                 // Filesystem task/device. Used by EndNotify()
     end;
@@ -1187,7 +1191,7 @@ type
     nm_Code: Word;               // Code: NOTIFY_CODE
     nm_NReq: PNotifyRequest;     // The notify structure that was passed to StartNotify(). Read-Only
     nm_DoNotTouch,               // like it says!  For use by handlers
-    nm_DoNotTouch2 : LongWord;   // dito
+    nm_DoNotTouch2 : PtrUInt;    // dito
    end;
 
 
@@ -1499,9 +1503,9 @@ type
     dl_Root: PRootNode;      // Pointer to RootNode, described below }
 
     dl_GV: APTR;             // Pointer to BCPL global vector       }
-    dl_A2: LongInt;          // Private register dump of DOS        }
-    dl_A5: LongInt;
-    dl_A6: LongInt;
+    dl_A2: PtrInt;           // Private register dump of DOS        }
+    dl_A5: PtrInt;
+    dl_A6: PtrInt;
 
     dl_Errors: PErrorString;    // pointer to array of error msgs
     dl_TimeReq: PTimeRequest;   // private pointer to timer request
