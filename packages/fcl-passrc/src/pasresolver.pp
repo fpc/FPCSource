@@ -12106,7 +12106,7 @@ begin
     else if p.Name<>'' then
       begin
       if CurName<>'' then
-        CurName:=p.Name+'__'+CurName
+        RaiseMsg(20220320132732,nCannotNestAnonymousX,sCannotNestAnonymousX,[GetElementTypeName(El)],El)
       else
         CurName:=p.Name;
       end;
