@@ -2330,11 +2330,13 @@ begin
     ok:=true;
   finally
     if not ok then
+      begin
       if Result<>nil then
         begin
         Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
         Result:=nil;
         end;
+      end;
   end;
 end;
 
@@ -2358,27 +2360,36 @@ end;
 function TPasParser.ParseVarType(Parent : TPasElement = Nil): TPasType;
 var
   NamePos: TPasSourcePos;
+  ok: Boolean;
 begin
-  NextToken;
-  case CurToken of
-    tkProcedure:
-      begin
-        Result := TPasProcedureType(CreateElement(TPasProcedureType, '', Parent));
-        ParseProcedureOrFunction(Result, TPasProcedureType(Result), ptProcedure, True);
-        if CurToken = tkSemicolon then
-          UngetToken;        // Unget semicolon
-      end;
-    tkFunction:
-      begin
-        Result := CreateFunctionType('', 'Result', Parent, False, CurSourcePos);
-        ParseProcedureOrFunction(Result, TPasFunctionType(Result), ptFunction, True);
-        if CurToken = tkSemicolon then
-          UngetToken;        // Unget semicolon
-      end;
-  else
-    NamePos:=CurSourcePos;
-    UngetToken;
-    Result := ParseType(Parent,NamePos);
+  Result:=nil;
+  ok:=false;
+  try
+    NextToken;
+    case CurToken of
+      tkProcedure:
+        begin
+          Result := TPasProcedureType(CreateElement(TPasProcedureType, '', Parent));
+          ParseProcedureOrFunction(Result, TPasProcedureType(Result), ptProcedure, True);
+          if CurToken = tkSemicolon then
+            UngetToken;        // Unget semicolon
+        end;
+      tkFunction:
+        begin
+          Result := CreateFunctionType('', 'Result', Parent, False, CurSourcePos);
+          ParseProcedureOrFunction(Result, TPasFunctionType(Result), ptFunction, True);
+          if CurToken = tkSemicolon then
+            UngetToken;        // Unget semicolon
+        end;
+    else
+      NamePos:=CurSourcePos;
+      UngetToken;
+      Result := ParseType(Parent,NamePos);
+    end;
+    ok:=true;
+  finally
+    if (not ok) and (Result<>nil) then
+      Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
   end;
 end;
 

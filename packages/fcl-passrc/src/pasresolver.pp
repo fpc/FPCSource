@@ -12082,6 +12082,8 @@ begin
   CurName:='';
   p:=El.Parent;
   repeat
+    if p=nil then
+      RaiseNotYetImplemented(20220320165553,El);
     if (p is TPasDeclarations) or (p is TPasMembersType) then
       begin
       if CurName='' then
@@ -12563,6 +12565,7 @@ procedure TPasResolver.AddProcedureType(El: TPasProcedureType;
   TypeParams: TFPList);
 var
   Scope: TPasProcTypeScope;
+  C: TClass;
 begin
   if El.Name<>'' then
     begin
@@ -12602,6 +12605,11 @@ begin
     else
       begin
       // anonymous procedure type, e.g. "var p: procedure;"
+      C:=El.Parent.ClassType;
+      if C.InheritsFrom(TPasVariable) then
+        // ok
+      else
+        RaiseMsg(20220320165827,nCannotNestAnonymousX,sCannotNestAnonymousX,[GetElementTypeName(El)],El);
       DeanonymizeType(El);
       end;
     end;
@@ -21244,6 +21252,7 @@ begin
       RaiseMsg(20171018121900,nCantFindUnitX,sCantFindUnitX,[AName],El)
     else
       RaiseNotYetImplemented(20160922163544,El);
+
     Result:=El;
   finally
     if Result=nil then
