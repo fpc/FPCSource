@@ -1665,6 +1665,7 @@ type
     procedure AccessExpr(Expr: TPasExpr; Access: TResolvedRefAccess);
     function MarkArrayExpr(Expr: TParamsExpr; ArrayType: TPasArrayType): boolean; virtual;
     procedure MarkArrayExprRecursive(Expr: TPasExpr; ArrType: TPasArrayType); virtual;
+    procedure DeanonymizeType(El: TPasType); virtual;
     procedure FinishModule(CurModule: TPasModule); virtual;
     procedure FinishUsesClause; virtual;
     procedure FinishSection(Section: TPasSection); virtual;
@@ -6303,82 +6304,15 @@ begin
 end;
 
 procedure TPasResolver.FinishSubElementType(Parent: TPasElement; El: TPasType);
-
-  procedure InsertInFront(NewParent: TPasElement; List: TFPList
-    {$IFDEF CheckPasTreeRefCount};const aId: string{$ENDIF});
-  var
-    i: Integer;
-    p, Prev: TPasElement;
-  begin
-    p:=El.Parent;
-    if NewParent=p.Parent then
-      begin
-      // e.g. m,n:array of longint; -> insert n$a in front of m
-      i:=List.Count-1;
-      while (i>=0) and (List[i]<>Pointer(p)) do
-        dec(i);
-      if P is TPasVariable then
-        begin
-        while (i>0) do
-          begin
-          Prev:=TPasElement(List[i-1]);
-          if (Prev.ClassType=P.ClassType) and (TPasVariable(Prev).VarType=TPasVariable(P).VarType) then
-            dec(i) // e.g. m,n: array of longint
-          else
-            break;
-          end;
-        end;
-      if i<0 then
-        List.Add(El)
-      else
-        List.Insert(i,El);
-      end
-    else
-      begin
-      List.Add(El);
-      end;
-    El.AddRef{$IFDEF CheckPasTreeRefCount}(aID){$ENDIF};
-    El.Parent:=NewParent;
-  end;
-
 var
-  Decl: TPasDeclarations;
   EnumScope: TPasEnumTypeScope;
-  p: TPasElement;
-  MembersType: TPasMembersType;
 begin
   EmitTypeHints(Parent,El);
   if (El.Name<>'') or (AnonymousElTypePostfix='') then exit;
-  if Parent.Name='' then
-    RaiseMsg(20170415165455,nCannotNestAnonymousX,sCannotNestAnonymousX,[GetElementTypeName(El)],El);
   if El.Parent<>Parent then
-    RaiseNotYetImplemented(20190215085011,Parent);
-  // give anonymous sub type a name
-  El.Name:=Parent.Name+AnonymousElTypePostfix;
-  {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.FinishSubElementType parent="',GetObjName(Parent),'" named anonymous type "',GetObjName(El),'"');
-  {$ENDIF}
+    RaiseNotYetImplemented(20220320123426,Parent,GetElementTypeName(El));
+  DeanonymizeType(El);
 
-  p:=Parent.Parent;
-  repeat
-    if p is TPasDeclarations then
-      begin
-      Decl:=TPasDeclarations(p);
-      InsertInFront(Decl,Decl.Declarations{$IFDEF CheckPasTreeRefCount},'TPasDeclarations.Declarations'{$ENDIF});
-      Decl.Types.Add(El);
-      break;
-      end
-    else if p is TPasMembersType then
-      begin
-      MembersType:=TPasMembersType(p);
-      InsertInFront(MembersType,MembersType.Members{$IFDEF CheckPasTreeRefCount},'TPasMembersType.Members'{$ENDIF});
-      break;
-      end
-    else
-      p:=p.Parent;
-    if p=nil then
-      RaiseMsg(20170416094735,nCannotNestAnonymousX,sCannotNestAnonymousX,[GetElementTypeName(El)],El);
-  until false;
   if (El.ClassType=TPasEnumType) and (Parent.ClassType=TPasSetType) then
     begin
     // anonymous enumtype
@@ -7408,9 +7342,7 @@ begin
   else if El.Name<>'' then
     begin
     // finished proc type, e.g. type TProcedure = procedure;
-    end
-  else
-    RaiseNotYetImplemented(20160922163411,El.Parent,'anonymous procedure type');
+    end;
 end;
 
 procedure TPasResolver.FinishMethodDeclHeader(Proc: TPasProcedure);
@@ -12097,6 +12029,91 @@ begin
   Traverse(Expr,ArrType,0);
 end;
 
+procedure TPasResolver.DeanonymizeType(El: TPasType);
+
+  procedure InsertInFront(NewParent: TPasElement; List: TFPList
+    {$IFDEF CheckPasTreeRefCount};const aId: string{$ENDIF});
+  var
+    i: Integer;
+    p, Prev: TPasElement;
+  begin
+    p:=El.Parent;
+    if NewParent=p.Parent then
+      begin
+      // e.g. m,n:array of longint; -> insert n$a in front of m
+      i:=List.Count-1;
+      while (i>=0) and (List[i]<>Pointer(p)) do
+        dec(i);
+      if P is TPasVariable then
+        begin
+        while (i>0) do
+          begin
+          Prev:=TPasElement(List[i-1]);
+          if (Prev.ClassType=P.ClassType) and (TPasVariable(Prev).VarType=TPasVariable(P).VarType) then
+            dec(i) // e.g. m,n: array of longint
+          else
+            break;
+          end;
+        end;
+      if i<0 then
+        List.Add(El)
+      else
+        List.Insert(i,El);
+      end
+    else
+      begin
+      List.Add(El);
+      end;
+    El.AddRef{$IFDEF CheckPasTreeRefCount}(aID){$ENDIF};
+    El.Parent:=NewParent;
+  end;
+
+var
+  Decl: TPasDeclarations;
+  p: TPasElement;
+  MembersType: TPasMembersType;
+  CurName: String;
+begin
+  if (AnonymousElTypePostfix='') then
+    exit;
+  if (El.Name<>'') then
+    RaiseNotYetImplemented(20220320121923,El);
+
+  CurName:='';
+  p:=El.Parent;
+  repeat
+    if (p is TPasDeclarations) or (p is TPasMembersType) then
+      begin
+      if CurName='' then
+        RaiseMsg(20220320122946,nCannotNestAnonymousX,sCannotNestAnonymousX,[GetElementTypeName(El)],El);
+      El.Name:=CurName+AnonymousElTypePostfix;
+      {$IFDEF VerbosePasResolver}
+      writeln('TPasResolver.DeanonymizeType named anonymous type "',GetObjPath(El),'"');
+      {$ENDIF}
+      if p is TPasDeclarations then
+        begin
+        Decl:=TPasDeclarations(p);
+        InsertInFront(Decl,Decl.Declarations{$IFDEF CheckPasTreeRefCount},'TPasDeclarations.Declarations'{$ENDIF});
+        Decl.Types.Add(El);
+        end
+      else if p is TPasMembersType then
+        begin
+        MembersType:=TPasMembersType(p);
+        InsertInFront(MembersType,MembersType.Members{$IFDEF CheckPasTreeRefCount},'TPasMembersType.Members'{$ENDIF});
+        end;
+      break;
+      end
+    else if p.Name<>'' then
+      begin
+      if CurName<>'' then
+        CurName:=p.Name+'__'+CurName
+      else
+        CurName:=p.Name;
+      end;
+    p:=p.Parent;
+  until false;
+end;
+
 procedure TPasResolver.CheckPointerCycle(El: TPasPointerType);
 var
   C: TClass;
@@ -12547,7 +12564,8 @@ procedure TPasResolver.AddProcedureType(El: TPasProcedureType;
 var
   Scope: TPasProcTypeScope;
 begin
-  if El.Name<>'' then begin
+  if El.Name<>'' then
+    begin
     {$IFDEF VerbosePasResolver}
     writeln('TPasResolver.AddProcedureType ',GetObjName(El),' Parent=',GetObjName(El.Parent));
     {$ENDIF}
@@ -12571,8 +12589,24 @@ begin
       Scope:=TPasProcTypeScope(PushScope(El,ScopeClass_ProcType));
       AddGenericTemplateIdentifiers(TypeParams,Scope);
       end;
-  end else if TypeParams<>nil then
-    RaiseNotYetImplemented(20190813193745,El);
+    end
+  else
+    begin
+    // no name
+    if TypeParams<>nil then
+      RaiseNotYetImplemented(20190813193745,El);
+    if El.Parent=nil then
+      RaiseNotYetImplemented(20220320122040,El);
+    if El.Parent is TPasProcedure then
+      // proctype of procedure has no name -> normal
+    else
+      begin
+      // anonymous procedure type, e.g. "var p: procedure;"
+      writeln('AAA1 TPasResolver.AddProcedureType ',GetObjPath(El));
+      DeanonymizeType(El);
+      writeln('AAA2 TPasResolver.AddProcedureType ',GetObjPath(El));
+      end;
+    end;
 end;
 
 procedure TPasResolver.AddProcedure(El: TPasProcedure; TypeParams: TFPList);

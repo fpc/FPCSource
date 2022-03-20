@@ -1163,7 +1163,7 @@ begin
 
   TPasFunctionType(Result).ResultEl :=
     TPasResultElement(CreateElement(TPasResultElement, AResultName, ResultParent,
-    visDefault, ASrcPos, TypeParams));
+                                    visDefault, ASrcPos, TypeParams));
 end;
 
 function TPasTreeContainer.FindElementFor(const AName: String;
