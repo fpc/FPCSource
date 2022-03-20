@@ -892,6 +892,9 @@ type
 
     // anonymous procedure type
     Procedure TestProcTypeAnonymous_FunctionFunctionFail;
+    Procedure TestProcTypeAnonymous_ResultTypeFail;
+    Procedure TestProcTypeAnonymous_ArgumentFail;
+    Procedure TestProcTypeAnonymous_PropertyFail;
 
     // pointer
     Procedure TestPointer;
@@ -16533,6 +16536,44 @@ begin
   'begin']);
   CheckResolverException('Cannot nest anonymous functional type',
     nCannotNestAnonymousX);
+end;
+
+procedure TTestResolver.TestProcTypeAnonymous_ResultTypeFail;
+begin
+  StartProgram(false);
+  Add([
+  'function Fly: procedure;',
+  'begin',
+  'end;',
+  'begin']);
+  CheckResolverException('Cannot nest anonymous procedural type',
+    nCannotNestAnonymousX);
+end;
+
+procedure TTestResolver.TestProcTypeAnonymous_ArgumentFail;
+begin
+  StartProgram(false);
+  Add([
+  'procedure Fly(p: procedure);',
+  'begin',
+  'end;',
+  'begin']);
+  CheckResolverException('Cannot nest anonymous procedural type',
+    nCannotNestAnonymousX);
+end;
+
+procedure TTestResolver.TestProcTypeAnonymous_PropertyFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    FProc: procedure;',
+  '    property Proc: procedure read FProc;',
+  '  end;',
+  'begin']);
+  CheckParserException('Expected ";" at token "Identifier read" in file afile.pp at line 5 column 30',
+    nParserExpectTokenError);
 end;
 
 procedure TTestResolver.TestPointer;
