@@ -12602,9 +12602,7 @@ begin
     else
       begin
       // anonymous procedure type, e.g. "var p: procedure;"
-      writeln('AAA1 TPasResolver.AddProcedureType ',GetObjPath(El));
       DeanonymizeType(El);
-      writeln('AAA2 TPasResolver.AddProcedureType ',GetObjPath(El));
       end;
     end;
 end;
