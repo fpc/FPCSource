@@ -891,7 +891,7 @@ type
     Procedure TestProcType_PassProcToUntyped;
 
     // anonymous procedure type
-    Procedure TestProcTypeAnonymous_FunctionFunctionFail; // ToDo
+    Procedure TestProcTypeAnonymous_FunctionFunctionFail;
 
     // pointer
     Procedure TestPointer;
@@ -16526,15 +16526,13 @@ end;
 
 procedure TTestResolver.TestProcTypeAnonymous_FunctionFunctionFail;
 begin
-  exit;
-
   StartProgram(false);
   Add([
   'var',
   '  f: function:function:longint;',
   'begin']);
-  CheckParserException('Expected "Identifier or file"',
-    nParserExpectTokenError);
+  CheckResolverException('Cannot nest anonymous functional type',
+    nCannotNestAnonymousX);
 end;
 
 procedure TTestResolver.TestPointer;
