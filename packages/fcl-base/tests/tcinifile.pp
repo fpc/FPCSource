@@ -79,6 +79,16 @@ begin
   AssertEquals('No string match, default',false,Ini.ReadBool('a','b',false));
   Ini.SetBoolStringValues(true,['t','true']);
   AssertEquals('No string match, default',false,Ini.ReadBool('a','b',false));
+  Ini.SetBoolStringValues(true,[]);
+  Ini.SetBoolStringValues(False,[]);
+  Ini.Options:=Ini.Options+[ifoWriteStringBoolean];
+  Ini.WriteString('a','b','true');
+  AssertEquals('ifoWriteStringBoolean, true string ',True,Ini.ReadBool('a','b',false));
+  Ini.WriteString('a','b','false');
+  AssertEquals('ifoWriteStringBoolean, false string',false,Ini.ReadBool('a','b',true));
+  Ini.WriteString('a','b','soso');
+  AssertEquals('ifoWriteStringBoolean, No string match, default',True,Ini.ReadBool('a','b',true));
+
 end;
 
 procedure TTestIniFile.SetUp;

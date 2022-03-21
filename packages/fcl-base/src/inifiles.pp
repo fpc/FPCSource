@@ -134,14 +134,15 @@ type
     property Items[Index: integer]: TIniFileSection read GetItem; default;
   end;
 
-  TIniFileOption = (ifoStripComments,    // Strip comments when reading file
-                    ifoStripInvalid,     // Strip invalid lines when reading file.
-                    ifoEscapeLineFeeds, // Escape linefeeds when reading file.
-                    ifoCaseSensitive,   // Use Case sensitive section/key names
-                    ifoStripQuotes,     // Strip quotes when reading string values.
+  TIniFileOption = (ifoStripComments,        // Strip comments when reading file
+                    ifoStripInvalid,         // Strip invalid lines when reading file.
+                    ifoEscapeLineFeeds,      // Escape linefeeds when reading file.
+                    ifoCaseSensitive,        // Use Case sensitive section/key names
+                    ifoStripQuotes,          // Strip quotes when reading string values.
                     ifoFormatSettingsActive, // Use format settings when writing date/float etc.
-                    ifoWriteStringBoolean // Write booleans as string
+                    ifoStringBoolean         // Read/Write booleans as string
                     );
+
   TIniFileOptions = Set of TIniFileOption;
 
   TSectionValuesOption = (svoIncludeComments,svoIncludeInvalid, svoIncludeQuotes);
@@ -260,6 +261,9 @@ type
     procedure Rename(const AFileName: string; Reload: Boolean);
     procedure SetStrings(List: TStrings);
   end;
+
+Const
+  ifoWriteStringBoolean = ifoStringBoolean;
 
 implementation
 
@@ -720,6 +724,13 @@ begin
       if IndexOfString(FBoolTrueStrings,S)>=0 then
         Result:=True
       else if IndexOfString(FBoolFalseStrings,S)>=0 then
+        Result:=False
+      end
+    else if (ifoWriteStringBoolean in FOptions) then
+      begin
+      if SameText(s,'true') then
+        Result:=True
+      else if SameText(s,'false') then
         Result:=False
       end
     else
