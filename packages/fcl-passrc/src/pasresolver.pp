@@ -12254,10 +12254,23 @@ end;
 procedure TPasResolver.AddRecordType(El: TPasRecordType; TypeParams: TFPList);
 var
   Scope: TPasRecordScope;
+  C: TClass;
 begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.AddRecordType ',GetObjName(El),' Parent=',GetObjName(El.Parent));
   {$ENDIF}
+  if (El.Name='') then
+    begin
+    // anonymous record
+    C:=El.Parent.ClassType;
+    if (C=TPasVariable)
+        or (C=TPasConst)
+        or (C=TPasVariant) then
+      // ok
+    else
+      RaiseMsg(20220321224331,nCannotNestAnonymousX,sCannotNestAnonymousX,['record'],El);
+    end;
+
   if TypeParams<>nil then
     begin
     El.SetGenericTemplates(TypeParams);

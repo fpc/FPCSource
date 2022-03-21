@@ -538,6 +538,17 @@ type
     Procedure TestAdvRecord_InFunctionFail;
     Procedure TestAdvRecord_SubClass;
 
+    // anonymous record
+    Procedure TestRecordAnonym_ResultTypeFail;
+    Procedure TestRecordAnonym_ArgumentFail;
+    Procedure TestRecordAnonym_Advanced_ConstFail;
+    Procedure TestRecordAnonym_Advanced_MethodFail;
+    Procedure TestRecordAnonym_Advanced_TypeFail;
+    Procedure TestRecordAnonym_Advanced_PropertyFail;
+    Procedure TestRecordAnonym_Var;
+    Procedure TestRecordAnonym_Nested;
+    Procedure TestRecordAnonym_Advanced_Visibility;
+
     // class
     Procedure TestClass;
     Procedure TestClassDefaultInheritance;
@@ -891,6 +902,7 @@ type
     Procedure TestProcType_PassProcToUntyped;
 
     // anonymous procedure type
+    Procedure TestProcTypeAnonymous_Var;
     Procedure TestProcTypeAnonymous_FunctionFunctionFail;
     Procedure TestProcTypeAnonymous_ResultTypeFail;
     Procedure TestProcTypeAnonymous_ArgumentFail;
@@ -9125,6 +9137,144 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolver.TestRecordAnonym_ResultTypeFail;
+begin
+  StartProgram(false);
+  Add([
+  'function Fly: record',
+  '    x: word;',
+  '  end;',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException('Cannot nest anonymous record',nCannotNestAnonymousX);
+end;
+
+procedure TTestResolver.TestRecordAnonym_ArgumentFail;
+begin
+  StartProgram(false);
+  Add([
+  'procedure Fly(const r: record',
+  '    x: word;',
+  '  end);',
+  'begin',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException('Cannot nest anonymous record',nCannotNestAnonymousX);
+end;
+
+procedure TTestResolver.TestRecordAnonym_Advanced_ConstFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch AdvancedRecords}',
+  'var',
+  '  r: record',
+  '    const c = 3;',
+  '    var x: word;',
+  '  end;',
+  'begin',
+  '']);
+  CheckParserException(SErrRecordConstantsNotAllowed,nErrRecordConstantsNotAllowed);
+end;
+
+procedure TTestResolver.TestRecordAnonym_Advanced_MethodFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch AdvancedRecords}',
+  'var',
+  '  r: record',
+  '    procedure Fly;',
+  '  end;',
+  'begin',
+  '']);
+  CheckParserException(SErrRecordMethodsNotAllowed,nErrRecordMethodsNotAllowed);
+end;
+
+procedure TTestResolver.TestRecordAnonym_Advanced_TypeFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch AdvancedRecords}',
+  'var',
+  '  r: record',
+  '    type TFlag = word;',
+  '  end;',
+  'begin',
+  '']);
+  CheckParserException(SErrRecordTypesNotAllowed,nErrRecordTypesNotAllowed);
+end;
+
+procedure TTestResolver.TestRecordAnonym_Advanced_PropertyFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch AdvancedRecords}',
+  'var',
+  '  r: record',
+  '    FSize: word;',
+  '    property Size: word read FSize;',
+  '  end;',
+  'begin',
+  '']);
+  CheckParserException(SErrRecordPropertiesNotAllowed,nErrRecordPropertiesNotAllowed);
+end;
+
+procedure TTestResolver.TestRecordAnonym_Var;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  r: record',
+  '    x: word;',
+  '  end;',
+  'begin',
+  '  r.x:=3;',
+  '  r.x:=r.x + 4;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestRecordAnonym_Nested;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  r: record',
+  '    p: record',
+  '      x: word;',
+  '    end;',
+  '  end;',
+  'begin',
+  '  r.p.x:=3;',
+  '  r.p.x:=r.p.x + 4;',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestRecordAnonym_Advanced_Visibility;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch AdvancedRecords}',
+  'var',
+  '  r: record',
+  '    private',
+  '      Size: word;',
+  '    public',
+  '      Color: word;',
+  '  end;',
+  'begin',
+  '  r.Size:=3;',
+  '  r.Size:=r.Size+4;',
+  '  r.Color:=r.Color+5;',
+  '']);
+  ParseProgram;
+end;
+
 procedure TTestResolver.TestClass;
 begin
   StartProgram(false);
@@ -16525,6 +16675,16 @@ begin
     end;
     aMarker:=aMarker^.Next;
     end;
+end;
+
+procedure TTestResolver.TestProcTypeAnonymous_Var;
+begin
+  StartProgram(false);
+  Add([
+  'var',
+  '  f: function: word;',
+  'begin']);
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestProcTypeAnonymous_FunctionFunctionFail;
