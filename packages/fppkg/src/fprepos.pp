@@ -453,8 +453,8 @@ class procedure TFPCustomPackagesStructure.RegisterPackagesStructureClass(
 begin
   if not Assigned(FRegisteredPackagesStructureClasses) then
     FRegisteredPackagesStructureClasses := TFPObjectList.Create(False);
-  if FRegisteredPackagesStructureClasses.IndexOf(TObject(APackagesStructureClass)) = -1 then
-    FRegisteredPackagesStructureClasses.Add(TObject(APackagesStructureClass));
+  if FRegisteredPackagesStructureClasses.IndexOf(TObject(Pointer(APackagesStructureClass))) = -1 then
+    FRegisteredPackagesStructureClasses.Add(TObject(Pointer(APackagesStructureClass)));
 end;
 
 class function TFPCustomPackagesStructure.GetPackagesStructureForRepositoryOptionSection(
@@ -468,7 +468,7 @@ begin
     begin
       for i := 0 to FRegisteredPackagesStructureClasses.Count -1 do
         begin
-          PackageStructureClass := TFPCustomPackagesStructureClass(FRegisteredPackagesStructureClasses.Items[I]);
+          PackageStructureClass := TFPCustomPackagesStructureClass(Pointer(FRegisteredPackagesStructureClasses.Items[I]));
           if PackageStructureClass.GetRepositoryOptionSectionClass = ARepositoryOptionSection.ClassType then
             begin
               Result := PackageStructureClass;

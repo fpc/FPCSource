@@ -59,6 +59,8 @@ type
     Procedure LoadFromDataset(ADataset : TDataset);
   end;
   
+  TDBCollectionItemClass = Class of TDBCollectionItem;
+
   { TDBCollection }
 
   TDBCollection = Class(TCollection)
@@ -68,6 +70,8 @@ type
   Public
     Procedure LoadFromDataset(Dataset : TDataset);
   end;
+
+  TDBCollectionClass = Class of TDBCollection;
 
 implementation
 
@@ -186,7 +190,7 @@ Var
   M : TFieldMap;
 
 begin
-  M:=TDBCollectionItem(ItemClass).FieldMapClass.Create(Dataset);
+  M:=TDBCollectionItemClass(ItemClass).FieldMapClass.Create(Dataset);
   Try
     DoLoadFromFieldMap(M);
   finally

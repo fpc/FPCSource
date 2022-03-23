@@ -528,7 +528,7 @@ begin
   I:=DaemonClasses.IndexOf(DN);
   If (I=-1) then
     I:=DaemonClasses.Add(DN);
-  DaemonClasses.Objects[I]:=TObject(AClass);
+  DaemonClasses.Objects[I]:=TObject(Pointer(AClass));
 end;
 
 Procedure CreateDaemonApplication;
@@ -1119,7 +1119,7 @@ begin
     If (J=-1) then
       DaemonError(SErrUnknownDaemonClass,[D.DaemonClassName])
     else
-      D.FDaemonClass:=TCustomDaemonClass(DaemonClasses.Objects[J]);
+      D.FDaemonClass:=TCustomDaemonClass(Pointer(DaemonClasses.Objects[J]));
     end;
 
 end;
