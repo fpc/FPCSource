@@ -34,7 +34,6 @@ interface
     aasmbase, aasmdata,
     cgbase, cgutils,
     symconst,symtype,symdef,
-    parabase,
     hlcg2ll;
 
   type
@@ -44,8 +43,6 @@ interface
       procedure a_bit_set_reg_ref(list: TAsmList; doset: boolean; fromsize, tosize: tdef; bitnumber: tregister; const ref: treference); override;
       procedure a_bit_set_const_ref(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; const ref: treference); override;
       procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
-
-      procedure a_loadaddr_ref_cgpara(list: TAsmList; fromsize: tdef; const r: treference; const cgpara: TCGPara);override;
 
       procedure gen_load_loc_function_result(list: TAsmList; vardef: tdef; const l: tlocation);override;
     end;
@@ -59,7 +56,7 @@ implementation
     defutil,
     hlcgobj,
     cpuinfo, cgobj, cpubase, cgcpu,
-    paramgr, procinfo;
+    parabase, procinfo;
 
 
 
@@ -244,20 +241,6 @@ implementation
       List.concat(Tai_symbol_end.Createname(labelname));
     end;
 
-  procedure thlcgcpu.a_loadaddr_ref_cgpara(list: TAsmList; fromsize: tdef; const r: treference; const cgpara: TCGPara);
-    begin
-       cgpara.check_simple_location;
-       if cgpara.location^.loc in [LOC_CREGISTER,LOC_REGISTER] then
-         begin
-           paramanager.allocparaloc(list,cgpara.location);
-           a_loadaddr_ref_reg(list,fromsize,cgpara.location^.def,r,cgpara.location^.register)
-         end
-       else
-         begin
-           paramanager.alloccgpara(list,cgpara);
-           cg.a_loadaddr_ref_cgpara(list,r,cgpara);
-         end;
-    end;
 
   procedure thlcgcpu.gen_load_loc_function_result(list: TAsmList; vardef: tdef; const l: tlocation);
     var

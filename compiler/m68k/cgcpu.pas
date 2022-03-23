@@ -413,9 +413,11 @@ unit cgcpu;
       var
         tmpref : treference;
       begin
+        { 68k always passes arguments on the stack }
         if use_push(cgpara) then
           begin
             //list.concat(tai_comment.create(strpnew('a_loadaddr_ref_cgpara: PEA')));
+            cgpara.check_simple_location;
             tmpref:=r;
             fixref(list,tmpref,false);
             list.concat(taicpu.op_ref(A_PEA,S_NO,tmpref));
