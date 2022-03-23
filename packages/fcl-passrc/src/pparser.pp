@@ -7379,7 +7379,7 @@ begin
         for i:=OldCount to ARec.Members.Count-1 do
           begin
           CurEl:=TPasElement(ARec.Members[i]);
-          if CurEl.ClassType=TPasAttributes then continue;
+          if CurEl.ClassType<>TPasVariable then continue;
           if isClass then
             With TPasVariable(CurEl) do
               VarModifiers:=VarModifiers + [vmClass];
@@ -7457,14 +7457,11 @@ begin
         for i:=OldCount to ARec.Members.Count-1 do
           begin
           CurEl:=TPasElement(ARec.Members[i]);
-          if CurEl.ClassType=TPasAttributes then continue;
-          if CurEl.ClassType=TPasVariable then
-            begin
-            if isClass then
-              With TPasVariable(CurEl) do
-                VarModifiers:=VarModifiers + [vmClass];
-            Engine.FinishScope(stDeclaration,TPasVariable(CurEl));
-            end;
+          if CurEl.ClassType<>TPasVariable then continue;
+          if isClass then
+            With TPasVariable(CurEl) do
+              VarModifiers:=VarModifiers + [vmClass];
+          Engine.FinishScope(stDeclaration,TPasVariable(CurEl));
           end;
         end;
       tkSquaredBraceOpen:
@@ -7610,43 +7607,37 @@ procedure TPasParser.ParseClassFields(AType: TPasClassType;
   const AVisibility: TPasMemberVisibility; IsClassField: Boolean);
 
 Var
-  VarList: TFPList;
   Element: TPasElement;
-  I : Integer;
+  I , OldCount: Integer;
   isStatic : Boolean;
   VarEl: TPasVariable;
+  Members: TFPList;
 
 begin
-  VarList := TFPList.Create;
-  try
-    ParseInlineVarDecl(AType, VarList, AVisibility, False);
-    if CurToken=tkSemicolon then
-      begin
-      NextToken;
-      isStatic:=CurTokenIsIdentifier('static');
-      if isStatic then
-        ExpectToken(tkSemicolon)
-      else
-        UngetToken;
-      end;
-    for i := 0 to VarList.Count - 1 do
-      begin
-      Element := TPasElement(VarList[i]);
-      Element.Visibility := AVisibility;
-      AType.Members.Add(Element);
-      if (Element is TPasVariable) then
-        begin
-        VarEl:=TPasVariable(Element);
-        if IsClassField then
-          Include(VarEl.VarModifiers,vmClass);
-        if isStatic then
-          Include(VarEl.VarModifiers,vmStatic);
-        Engine.FinishScope(stDeclaration,VarEl);
-        end;
-      end;
-  finally
-    VarList.Free;
-  end;
+  Members:=AType.Members;
+  OldCount:=Members.Count;
+  ParseInlineVarDecl(AType, Members, AVisibility, False);
+  if CurToken=tkSemicolon then
+    begin
+    NextToken;
+    isStatic:=CurTokenIsIdentifier('static');
+    if isStatic then
+      ExpectToken(tkSemicolon)
+    else
+      UngetToken;
+    end;
+  for i := OldCount to Members.Count - 1 do
+    begin
+    Element := TPasElement(Members[i]);
+    Element.Visibility := AVisibility;
+    if Element.ClassType<>TPasVariable then continue;
+    VarEl:=TPasVariable(Element);
+    if IsClassField then
+      Include(VarEl.VarModifiers,vmClass);
+    if isStatic then
+      Include(VarEl.VarModifiers,vmStatic);
+    Engine.FinishScope(stDeclaration,VarEl);
+    end;
 end;
 
 procedure TPasParser.ParseMembersLocalTypes(AType: TPasMembersType;
