@@ -7303,7 +7303,6 @@ var
   end;
 
   Function CheckSection : Boolean;
-
   begin
     // Advanced records can have empty sections.
     { Use Case:
@@ -7459,10 +7458,13 @@ begin
           begin
           CurEl:=TPasElement(ARec.Members[i]);
           if CurEl.ClassType=TPasAttributes then continue;
-          if isClass then
-            With TPasVariable(CurEl) do
-              VarModifiers:=VarModifiers + [vmClass];
-          Engine.FinishScope(stDeclaration,TPasVariable(CurEl));
+          if CurEl.ClassType=TPasVariable then
+            begin
+            if isClass then
+              With TPasVariable(CurEl) do
+                VarModifiers:=VarModifiers + [vmClass];
+            Engine.FinishScope(stDeclaration,TPasVariable(CurEl));
+            end;
           end;
         end;
       tkSquaredBraceOpen:

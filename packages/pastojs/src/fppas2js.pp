@@ -1529,6 +1529,7 @@ type
   protected
     procedure AddType(El: TPasType); override;
     procedure AddRecordType(El: TPasRecordType; TypeParams: TFPList); override;
+    procedure AddRecordVariant(El: TPasVariant); override;
     procedure AddClassType(El: TPasClassType; TypeParams: TFPList); override;
     procedure AddEnumType(El: TPasEnumType); override;
     procedure ResolveImplAsm(El: TPasImplAsmStatement); override;
@@ -3941,6 +3942,11 @@ begin
   if El.Parent is TProcedureBody then
     // local record
     AddElevatedLocal(El);
+end;
+
+procedure TPas2JSResolver.AddRecordVariant(El: TPasVariant);
+begin
+  RaiseMsg(20220323145350,nNotSupportedX,sNotSupportedX,['variant record'],El);
 end;
 
 procedure TPas2JSResolver.AddClassType(El: TPasClassType; TypeParams: TFPList);
@@ -27166,7 +27172,7 @@ begin
   aResolver:=AContext.Resolver;
   if not aResolver.IsFullySpecialized(El) then exit;
   {$IFDEF VerbosePas2JS}
-  writeln('TPasToJSConverter.ConvertRecordType ',GetObjName(El));
+  writeln('TPasToJSConverter.ConvertRecordType ',GetObjPath(El));
   {$ENDIF}
   FuncContext:=nil;
   NewFields:=nil;
