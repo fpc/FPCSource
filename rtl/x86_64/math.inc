@@ -72,7 +72,7 @@ const
     procedure SetMXCSR(w : dword);
       begin
         defaultmxcsr:=w;
-        asm
+        asm        
           ldmxcsr w
         end;
       end;
