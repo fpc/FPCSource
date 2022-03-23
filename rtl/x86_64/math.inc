@@ -72,8 +72,12 @@ const
     procedure SetMXCSR(w : dword);
       begin
         defaultmxcsr:=w;
-        asm        
+        asm
+{$ifdef FPUX86_HAS_AVXUNIT}
+          vldmxcsr w
+{$else FPUX86_HAS_AVXUNIT}
           ldmxcsr w
+{$endif FPUX86_HAS_AVXUNIT}
         end;
       end;
 
@@ -82,7 +86,11 @@ const
       var
         _w : dword;
       asm
+{$ifdef FPUX86_HAS_AVXUNIT}
+        vstmxcsr _w
+{$else FPUX86_HAS_AVXUNIT}
         stmxcsr _w
+{$endif FPUX86_HAS_AVXUNIT}
         movl    _w,%eax
       end;
 
