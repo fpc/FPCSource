@@ -52,7 +52,7 @@ procedure RegisterClassAlias(AClass: TPersistentClass; const Alias: string);
       else
         i := ClassAliasList.IndexOf(Alias);
       if I = -1 then
-        ClassAliasList.AddObject( Alias, TObject(AClass) );
+        ClassAliasList.AddObject( Alias, TObject(Pointer(AClass)) );
     finally
       ClassList.UnlockList;
     end;
@@ -110,7 +110,7 @@ begin
        I := ClassAliasList.Indexof(AClassName);
        if I >= 0 then  //found
           Begin
-          Result := TPersistentClass(ClassAliasList.Objects[i]);
+          Result := TPersistentClass(Pointer(ClassAliasList.Objects[i]));
           exit;
           end;
        end;
