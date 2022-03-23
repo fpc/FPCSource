@@ -3168,7 +3168,9 @@ implementation
                                    (nf_internal in flags)
                                  ))
                                 )
-                               ) then
+                               ) or ((((resultdef.typ=objectdef) and (left.resultdef.typ=classrefdef))
+                                     or ((left.resultdef.typ=objectdef) and (resultdef.typ=classrefdef)))
+                                     and not (nf_internal in flags)) then
                            CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename)
                          else
                            begin
