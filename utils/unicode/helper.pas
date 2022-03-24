@@ -2185,16 +2185,16 @@ function UInt24ToStr(const AValue : UInt24; const AEndian : TEndianKind): string
 begin
   if (AEndian = ekBig) then
     Result := Format(
-                '(byte2 : $%s; byte1 : $%s; byte0 : $%s;)',
-                [ IntToHex(AValue.byte2,2), IntToHex(AValue.byte1,2),
-                  IntToHex(AValue.byte0,2)
+                '(c:$%s;b:$%s;a:$%s;)',
+                [ IntToHex(AValue.byte2,1), IntToHex(AValue.byte1,1),
+                  IntToHex(AValue.byte0,1)
                 ]
               )
   else
     Result := Format(
-                '(byte0 : $%s; byte1 : $%s; byte2 : $%s;)',
-                [ IntToHex(AValue.byte0,2), IntToHex(AValue.byte1,2),
-                  IntToHex(AValue.byte2,2)
+                '(a:$%s;b:$%s;c:$%s;)',
+                [ IntToHex(AValue.byte0,1), IntToHex(AValue.byte1,1),
+                  IntToHex(AValue.byte2,1)
                 ]
               );
 end;
@@ -2221,26 +2221,27 @@ begin
   AddLine('');
   AddLine('const');
   AddLine('  UC_PROP_REC_COUNT = ' + IntToStr(Length(APropList)) + ';');
-  AddLine('  UC_PROP_ARRAY : array[0..(UC_PROP_REC_COUNT-1)] of TUC_Prop = (');
+  AddLine('  UC_PROP_ARRAY : array[0..(UC_PROP_REC_COUNT-1)] of TUC_Prop = (');   
+  locLine := '';
   p := @APropList[0];
-  for i := Low(APropList) to High(APropList) - 1 do begin
-    locLine := '    (CategoryData : ' + IntToStr(p^.CategoryData) + ';' +
-               ' CCC : ' + IntToStr(p^.CCC) + ';' +
-               ' NumericIndex : ' + IntToStr(p^.NumericIndex) + ';' +
-               ' SimpleUpperCase : ' + UInt24ToStr(p^.SimpleUpperCase,AEndian) + ';' +
-               ' SimpleLowerCase : ' + UInt24ToStr(p^.SimpleLowerCase,AEndian) + ';' +
-               ' DecompositionID : ' + IntToStr(p^.DecompositionID) + '),';
-    AddLine(locLine);
+  for i := Low(APropList) to High(APropList) do begin //locLine := '    (CD:' + IntToStr(p^.CategoryData) + ';' +
+    locLine := locLine + '(C:' + IntToStr(p^.CategoryData) + ';' +
+                          'C3:' + IntToStr(p^.CCC) + ';' +
+                          'N:' + IntToStr(p^.NumericIndex) + ';' +
+                          'UC:' + UInt24ToStr(p^.SimpleUpperCase,AEndian) + ';' +
+                          'LC:' + UInt24ToStr(p^.SimpleLowerCase,AEndian) + ';' +
+                          'D:' + IntToStr(p^.DecompositionID) + ')';
+    if (i < High(APropList)) then
+      locLine := locLine + ',';
+    if (((i+1) mod 2) = 0) then begin
+      locLine := '    ' + locLine;
+      AddLine(locLine);
+      locLine := '';
+    end;
     Inc(p);
   end;
-  locLine := //'    (Category : TUnicodeCategory.' + GetEnumName(pti,Ord(p^.Category)) + ';' +
-             '    (CategoryData : ' + IntToStr(p^.CategoryData) + ';' +
-             ' CCC : ' + IntToStr(p^.CCC) + ';' +
-             ' NumericIndex : ' + IntToStr(p^.NumericIndex) + ';' +
-             ' SimpleUpperCase : ' + UInt24ToStr(p^.SimpleUpperCase,AEndian) + ';' +
-             ' SimpleLowerCase : ' + UInt24ToStr(p^.SimpleLowerCase,AEndian) + ';' +
-             ' DecompositionID : ' + IntToStr(p^.DecompositionID) + ')';
-  AddLine(locLine);
+  if (locLine <> '') then
+    AddLine( '    ' + locLine);
   AddLine('  );' + sLineBreak);
 end;
 
@@ -2320,8 +2321,8 @@ begin
   AddLine('  UC_DEC_BOOK_DATA_LENGTH = ' + IntToStr(Length(ABook.CodePoints)) + ';');
   AddLine('type');
   AddLine('  TDecompositionIndexRec = packed record');
-  AddLine('    StartPosition : Word;');
-  AddLine('    Length        : Byte;');
+  AddLine('    S : Word; //StartPosition');
+  AddLine('    L : Byte; //Length');
   AddLine('  end;');
   AddLine('  TDecompositionBookRec = packed record');
   AddLine('    Index      : array[0..(UC_DEC_BOOK_INDEX_LENGTH-1)] of TDecompositionIndexRec;');
@@ -2334,18 +2335,18 @@ begin
   k := 0;
   locLine := '      ';
   for i := Low(ABook.Index) to High(ABook.Index) - 1 do begin
-    locLine := locLine + '(StartPosition : ' + IntToStr(p^.StartPosition) + ';' +
-               ' Length : ' + IntToStr(p^.Length)  + '), ';
+    locLine := locLine + '(S:' + IntToStr(p^.StartPosition) + ';' +
+               'L:' + IntToStr(p^.Length)  + '),';
     k := k + 1;
-    if (k >= 2) then begin
+    if (k >= 9) then begin
       AddLine(locLine);
       locLine := '      ';
       k := 0;
     end;
     Inc(p);
   end;
-  locLine := locLine + '(StartPosition : ' + IntToStr(p^.StartPosition) + ';' +
-             ' Length : ' + IntToStr(p^.Length)  + ')';
+  locLine := locLine + '(S:' + IntToStr(p^.StartPosition) + ';' +
+             'L:' + IntToStr(p^.Length)  + ')';
   AddLine(locLine);
   AddLine('    ); // Index END');
 
@@ -3402,13 +3403,19 @@ begin
     for j := Low(TucaBmpSecondTableItem) to High(TucaBmpSecondTableItem) do begin
       value := ASecondTable[i][j];
       locLine := locLine + UInt24ToStr(value,ENDIAN_NATIVE) + ',';
-      if (((j+1) mod 2) = 0) then begin
-        if (i = c) and (j = 255) then
+      if (((j+1) mod 7) = 0) then begin
+        if (i = c) and (j = High(TucaBmpSecondTableItem)) then
           Delete(locLine,Length(locLine),1);
         locLine := '    ' + locLine;
         AddLine(ANativeEndianStream,locLine);
         locLine := '';
       end;
+    end;  
+    if (locLine <> '') then begin
+      if (i = c) then
+        Delete(locLine,Length(locLine),1);
+      locLine := '    ' + locLine;
+      AddLine(ANativeEndianStream,locLine);
     end;
   end;
   AddLine(ANativeEndianStream,'  );' + sLineBreak);
@@ -3421,13 +3428,19 @@ begin
     for j := Low(TucaBmpSecondTableItem) to High(TucaBmpSecondTableItem) do begin
       value := ASecondTable[i][j];
       locLine := locLine + UInt24ToStr(value,ENDIAN_NON_NATIVE) + ',';
-      if (((j+1) mod 2) = 0) then begin
-        if (i = c) and (j = 255) then
+      if (((j+1) mod 7) = 0) then begin
+        if (i = c) and (j = High(TucaBmpSecondTableItem)) then
           Delete(locLine,Length(locLine),1);
         locLine := '    ' + locLine;
         AddLine(ANonNativeEndianStream,locLine);
         locLine := '';
       end;
+    end; 
+    if (locLine <> '') then begin
+      if (i = c) then
+        Delete(locLine,Length(locLine),1);
+      locLine := '    ' + locLine;
+      AddLine(ANonNativeEndianStream,locLine);
     end;
   end;
   AddLine(ANonNativeEndianStream,'  );' + sLineBreak);
@@ -3552,13 +3565,19 @@ begin
     for j := Low(TucaOBmpSecondTableItem) to High(TucaOBmpSecondTableItem) do begin
       value := ASecondTable[i][j];
       locLine := locLine + UInt24ToStr(value,ENDIAN_NATIVE) + ',';
-      if (((j+1) mod 2) = 0) then begin
+      if (((j+1) mod 7) = 0) then begin
         if (i = c) and (j = High(TucaOBmpSecondTableItem)) then
           Delete(locLine,Length(locLine),1);
         locLine := '    ' + locLine;
         AddLine(ANativeEndianStream,locLine);
         locLine := '';
       end;
+    end;
+    if (locLine <> '') then begin
+      if (i = c) then
+        Delete(locLine,Length(locLine),1);
+      locLine := '    ' + locLine;
+      AddLine(ANativeEndianStream,locLine);
     end;
   end;
   AddLine(ANativeEndianStream,'  );' + sLineBreak);
@@ -3570,13 +3589,19 @@ begin
     for j := Low(TucaOBmpSecondTableItem) to High(TucaOBmpSecondTableItem) do begin
       value := ASecondTable[i][j];
       locLine := locLine + UInt24ToStr(value,ENDIAN_NON_NATIVE) + ',';
-      if (((j+1) mod 2) = 0) then begin
+      if (((j+1) mod 7) = 0) then begin
         if (i = c) and (j = High(TucaOBmpSecondTableItem)) then
           Delete(locLine,Length(locLine),1);
         locLine := '    ' + locLine;
         AddLine(ANonNativeEndianStream,locLine);
         locLine := '';
       end;
+    end;
+    if (locLine <> '') then begin
+      if (i = c) then
+        Delete(locLine,Length(locLine),1);
+      locLine := '    ' + locLine;
+      AddLine(ANonNativeEndianStream,locLine);
     end;
   end;
   AddLine(ANonNativeEndianStream,'  );' + sLineBreak);
@@ -3779,7 +3804,7 @@ begin
   locLine := '';
   for i := Low(AFirstTable) to High(AFirstTable) - 1 do begin
     locLine := locLine + IntToStr(AFirstTable[i]) + ',';
-    if (((i+1) mod 16) = 0) then begin
+    if (((i+1) mod 20) = 0) then begin
       locLine := '    ' + locLine;
       AddLine(locLine);
       locLine := '';
@@ -3834,7 +3859,7 @@ begin
   locLine := '';
   for i := Low(AFirstTable) to High(AFirstTable) - 1 do begin
     locLine := locLine + IntToStr(AFirstTable[i]) + ',';
-    if (((i+1) mod 16) = 0) then begin
+    if (((i+1) mod 20) = 0) then begin
       locLine := '    ' + locLine;
       AddLine(locLine);
       locLine := '';
