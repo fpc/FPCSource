@@ -187,7 +187,22 @@
              system_aarch64_android,    { 100 }
              system_x86_64_android,     { 101 }
              system_x86_64_haiku,       { 102 }
-             system_aarch64_darwin      { 111 (in trunk) }
+             trunk_only_system_xtensa_embedded,    { 103 }
+             trunk_only_system_xtensa_freertos,    { 104 }
+             trunk_only_system_xtensa_linux,       { 105 }
+             trunk_only_system_arm_freertos,       { 106 }
+             trunk_only_system_aarch64_win64,      { 107 }
+             trunk_only_system_z80_embedded,       { 108 }
+             trunk_only_system_z80_zxspectrum,     { 109 }
+             trunk_only_system_z80_msxdos,         { 110 }
+             system_aarch64_darwin,                { 111 }
+             trunk_only_system_z80_amstradcpc,     { 112 }
+             trunk_only_system_m68k_sinclairql,    { 113 }
+             trunk_only_system_wasm32_wasi,        { 114 }
+             trunk_only_system_aarch64_freebsd,    { 115 }
+             trunk_only_system_aarch64_embedded,   { 116 }
+             trunk_only_system_mips64_linux,       { 117 }
+             trunk_only_system_mips64el_linux      { 118 }
        );
 
      type
