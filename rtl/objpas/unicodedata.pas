@@ -221,10 +221,14 @@ type
   TUInt24Rec = packed record
   public
   {$ifdef ENDIAN_LITTLE}
-    byte0, byte1, byte2 : Byte;
+    a, b, c : Byte;
   {$else ENDIAN_LITTLE}
-    byte2, byte1, byte0 : Byte;
+    c, b, a : Byte;
   {$endif ENDIAN_LITTLE}
+  public
+    property byte0 : Byte read a write a;
+    property byte1 : Byte read b write b;
+    property byte2 : Byte read c write c;
   public
     class operator Implicit(a : TUInt24Rec) : Cardinal;{$ifdef USE_INLINE}inline;{$ENDIF}
     class operator Implicit(a : TUInt24Rec) : LongInt;{$ifdef USE_INLINE}inline;{$ENDIF}
@@ -268,9 +272,9 @@ type
 const
   ZERO_UINT24 : UInt24 =
   {$ifdef ENDIAN_LITTLE}
-    (byte0 : 0; byte1 : 0; byte2 : 0;);
+    (a : 0; b : 0; c : 0;);
   {$else ENDIAN_LITTLE}
-    (byte2 : 0; byte1 : 0; byte0 : 0;);
+    (c : 0; b : 0; a : 0;);
   {$endif ENDIAN_LITTLE}
 
 type
@@ -293,14 +297,19 @@ type
     procedure SetHangulSyllable(AValue : Boolean);
     function GetNumericValue: Double;inline; 
     function GetUnifiedIdeograph : Boolean;inline;
+  public //Shortned names
+    C  : Byte;      //CategoryData
+    C3 : Byte;      //Canonical Combining Class
+    N  : Byte;      //NumericIndex
+    UC : UInt24;    //SimpleUpperCase
+    LC : UInt24;    //SimpleLowerCase
+    D  : SmallInt;  //DecompositionID
   public
-    CategoryData    : Byte;
-  public
-    CCC             : Byte;
-    NumericIndex    : Byte;
-    SimpleUpperCase : UInt24;
-    SimpleLowerCase : UInt24;
-    DecompositionID : SmallInt;
+    property CategoryData : Byte read C write C;
+    property NumericIndex    : Byte read N write N;
+    property SimpleUpperCase : UInt24 read UC write UC;
+    property SimpleLowerCase : UInt24 read LC write LC;
+    property DecompositionID : SmallInt read D write D;
   public
     property Category : Byte read GetCategory write SetCategory;
     property WhiteSpace : Boolean read GetWhiteSpace write SetWhiteSpace;
@@ -621,8 +630,6 @@ resourcestring
   SCollationNotFound = 'Collation not found : "%s".';
 
 implementation
-uses
-  unicodenumtable;
 
 type
 
@@ -1857,8 +1864,8 @@ var
     pu : ^UInt24;
   begin
     pdecIdx := @(UC_DEC_BOOK_DATA.Index[AIndex]);
-    pu := @(UC_DEC_BOOK_DATA.CodePoints[pdecIdx^.StartPosition]);
-    kc := pdecIdx^.Length;
+    pu := @(UC_DEC_BOOK_DATA.CodePoints[pdecIdx^.S]);
+    kc := pdecIdx^.L;
     Inc(pu,kc);
     for k := 1 to kc do begin
       Dec(pu);
@@ -1982,8 +1989,8 @@ begin
       end;
       pu := GetProps(p[0],p[1]);
     end;
-    if (pu^.CCC > 0) then begin
-      cccp := pu^.CCC;
+    if (pu^.C3 > 0) then begin
+      cccp := pu^.C3;
       if locIsSurrogateP then
         q := p + 2
       else
@@ -2000,7 +2007,7 @@ begin
         end;
         pu := GetProps(q[0],q[1]);
       end;
-      cccq := pu^.CCC;
+      cccq := pu^.C3;
       if (cccq > 0) and (cccp > cccq) then begin
         Swap();
         if (i > 1) then begin
@@ -2213,7 +2220,7 @@ end;
 
 function TUC_Prop.GetCategory: Byte;
 begin
-  Result := Byte((CategoryData and Byte($F8)) shr 3);
+  Result := Byte((C and Byte($F8)) shr 3);
 end;
 
 function TUC_Prop.GetNumericValue: Double;
@@ -2223,32 +2230,32 @@ end;
 
 function TUC_Prop.GetUnifiedIdeograph : Boolean;
 begin
-  Result := IsBitON(CategoryData,2);
+  Result := IsBitON(C,2);
 end;
 
 procedure TUC_Prop.SetCategory(AValue: Byte);
 begin
-  CategoryData := Byte(CategoryData or Byte(AValue shl 3));
+  C := Byte(C or Byte(AValue shl 3));
 end;
 
 function TUC_Prop.GetWhiteSpace: Boolean;
 begin
-  Result := IsBitON(CategoryData,0);
+  Result := IsBitON(C,0);
 end;
 
 procedure TUC_Prop.SetWhiteSpace(AValue: Boolean);
 begin
-  SetBit(CategoryData,0,AValue);
+  SetBit(C,0,AValue);
 end;
 
 function TUC_Prop.GetHangulSyllable: Boolean;
 begin
-  Result := IsBitON(CategoryData,1);
+  Result := IsBitON(C,1);
 end;
 
 procedure TUC_Prop.SetHangulSyllable(AValue: Boolean);
 begin
-   SetBit(CategoryData,1,AValue);
+   SetBit(C,1,AValue);
 end;
 
 { TUCA_DataBook }
@@ -2834,9 +2841,9 @@ var
     end else begin
       puk := GetProps(Word(pk^));
     end;
-    if (puk^.CCC = 0) or (lastUnblockedNonstarterCCC >= puk^.CCC) then
+    if (puk^.C3 = 0) or (lastUnblockedNonstarterCCC >= puk^.C3) then
       exit(False);
-    lastUnblockedNonstarterCCC := puk^.CCC;
+    lastUnblockedNonstarterCCC := puk^.C3;
     Result := True;
   end;
 
@@ -3030,9 +3037,9 @@ var
   begin
     Result := False;
     puk := GetProps(cp);
-    if (puk^.CCC = 0) then
+    if (puk^.C3 = 0) then
       exit;
-    lastUnblockedNonstarterCCC := puk^.CCC;
+    lastUnblockedNonstarterCCC := puk^.C3;
     if surrogateState then
       kk := i + 2
     else
@@ -3784,9 +3791,9 @@ var
     end else begin
       puk := GetProps(Word(pk^));
     end;
-    if (puk^.CCC = 0) or (ctx^.lastUnblockedNonstarterCCC >= puk^.CCC) then
+    if (puk^.C3 = 0) or (ctx^.lastUnblockedNonstarterCCC >= puk^.C3) then
       exit(False);
-    ctx^.lastUnblockedNonstarterCCC := puk^.CCC;
+    ctx^.lastUnblockedNonstarterCCC := puk^.C3;
     Result := True;
   end;
 
@@ -3971,9 +3978,9 @@ var
   begin
     Result := False;
     puk := GetProps(ctx^.cp);
-    if (puk^.CCC = 0) then
+    if (puk^.C3 = 0) then
       exit;
-    ctx^.lastUnblockedNonstarterCCC := puk^.CCC;
+    ctx^.lastUnblockedNonstarterCCC := puk^.C3;
     if ctx^.surrogateState then
       kk := ctx^.i + 2
     else

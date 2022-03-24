@@ -305,13 +305,14 @@ begin
     binStreamNE.Clear();
     binStreamOE.Clear();
     WriteLn('Source generation ...', DateTimeToStr(Now));
+    GenerateNumericTable(stream,numericTable,False);
     WriteLn('BMP Tables sources ...', DateTimeToStr(Now));
       Generate3lvlBmpTables(stream,lvl3table1,lvl3table2,lvl3table3);
     WriteLn('Properties Table sources ...', DateTimeToStr(Now));
-      tmpStream.Clear();
+      {tmpStream.Clear();
       GenerateNumericTable(tmpStream,numericTable,True);
       tmpStream.SaveToFile(outputPath + 'unicodenumtable.pas');
-      tmpStream.Clear();
+      tmpStream.Clear();}
       GeneratePropTable(binStreamNE,props,ENDIAN_NATIVE);
       GeneratePropTable(binStreamOE,props,ENDIAN_NON_NATIVE);
 //-------------------------------------------
