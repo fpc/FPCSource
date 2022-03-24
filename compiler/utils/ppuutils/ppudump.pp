@@ -215,14 +215,6 @@ const
   { 100 } 'Android-AArch64',
   { 101 } 'Android-x86-64',
   { 102 } 'Haiku-x86-64',
-  { 103 } 'Embedded-Xtensa',
-  { 104 } 'FreeRTos-Xtensa',
-  { 105 } 'Linux-Xtensa',
-  { 106 } 'FreeRTos-arm',
-  { 107 } 'Win64-AArch64',
-  { 108 } 'Embedded-Z80',
-  { 109 } 'ZXSpectrum-Z80',
-  { 110 } 'MSX-DOS-Z80',
   { 111 } 'Darwin-AArch64'
   );
 
