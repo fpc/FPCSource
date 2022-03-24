@@ -13,7 +13,7 @@ units=system uuchar baseunix unixtype ctypes objpas macpas iso7185 extpas string
       types charset cpall typinfo sortbase classes fgl math \
       cpu mmx getopts heaptrc lineinfo lnfodwrf \
       rtlconsts syscall unix unixutil termio initc \
-      character fpwidestring unicodedata unicodenumtable \
+      character fpwidestring unicodedata \
       cmem \
       dynlibs cwstring unixcp \
       softfpu sfpux80 ufloatx80 sfpu128 ufloat128
@@ -250,10 +250,7 @@ character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) objpas$(PPUEXT)
 fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp charset$(PPUEXT) unixcp$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fpwidestring.pp
 
-unicodenumtable$(PPUEXT) : $(OBJPASDIR)/unicodenumtable.pas system$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodenumtable.pas
-
-unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas unicodenumtable$(PPUEXT) system$(PPUEXT)
+unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodedata.pas
 
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) math$(PPUEXT)

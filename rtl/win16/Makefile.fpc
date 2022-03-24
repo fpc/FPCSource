@@ -8,7 +8,7 @@ loaders=prt0s prt0m prt0c prt0l prt0h
 units=system uuchar objpas strings iso7185 extpas dos \
       wintypes winprocs win31 ports dynlibs sortbase \
       sysconst rtlconsts sysutils math types typinfo fgl \
-      classes charset cpu getopts cpall unicodenumtable \
+      classes charset cpu getopts cpall \
       unicodedata character ctypes
 implicitunits=\
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
@@ -213,10 +213,7 @@ cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) objpas$(PPUEXT) rtlconsts$(PPUEXT) unicodedata$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/character.pas
 
-unicodenumtable$(PPUEXT) : $(OBJPASDIR)/unicodenumtable.pas objpas$(PPUEXT) system$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodenumtable.pas
-
-unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas unicodenumtable$(PPUEXT) objpas$(PPUEXT) system$(PPUEXT)
+unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas objpas$(PPUEXT) system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodedata.pas
 
 #

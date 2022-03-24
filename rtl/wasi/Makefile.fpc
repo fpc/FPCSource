@@ -7,7 +7,7 @@ main=rtl
 loaders=
 units=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils \
       sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts \
-      charset cpall character unicodedata unicodenumtable fpwidestring \
+      charset cpall character unicodedata fpwidestring \
       classes uuchar dos extpas fpintres heaptrc wasiutil
 
 [require]
@@ -165,10 +165,7 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) objpas$(PPUEXT) rtlconsts$(PPUEXT) unicodedata$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
 
-unicodenumtable$(PPUEXT) : $(OBJPASDIR)/unicodenumtable.pas $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $< -Fi$(OBJPASDIR)
-
-unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas unicodenumtable$(PPUEXT) objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $< -Fi$(OBJPASDIR)
 
 sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

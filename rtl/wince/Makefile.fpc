@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) uuchar fpintres ctypes objpas macpas iso7185 extpas strings 
       typinfo types sortbase fgl classes \
       math fpwidestring \
       charset cpall getopts \
-      unicodedata  unicodenumtable character \
+      unicodedata character \
       cmem sharemem \
       softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 #    initc  signals \
@@ -248,9 +248,6 @@ fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp unicodedata$(PPUEXT) charset
 
 unicodedata$(PPUEXT): $(OBJPASDIR)/unicodedata.pas
         $(COMPILER) $(OBJPASDIR)/unicodedata.pas
-
-unicodenumtable$(PPUEXT): $(OBJPASDIR)/unicodenumtable.pas
-        $(COMPILER) $(OBJPASDIR)/unicodenumtable.pas
 
 character$(PPUEXT): $(OBJPASDIR)/character.pas
         $(COMPILER) $(OBJPASDIR)/character.pas

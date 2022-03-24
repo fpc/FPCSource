@@ -11,7 +11,7 @@ units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings \
       sortbase sysutils \
       classes math typinfo ctypes \
       charset cpall getopts \
-      character fpwidestring unicodedata unicodenumtable \
+      character fpwidestring unicodedata \
       types rtlconsts sysconst lineinfo fgl
 #      dos \
 #      exec timer doslib utility hardware inputevent graphics layers \
@@ -199,10 +199,7 @@ character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) objpas$(PPUEXT)
 fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp charset$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fpwidestring.pp
 
-unicodenumtable$(PPUEXT) : $(OBJPASDIR)/unicodenumtable.pas system$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodenumtable.pas
-
-unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas unicodenumtable$(PPUEXT) system$(PPUEXT)
+unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodedata.pas
 
 

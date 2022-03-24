@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) uuchar ctypes objpas macpas iso7185 extpas strings \
       charset cpall cpu mmx getopts heaptrc lineinfo lnfodwrf dynlibs \
       types rtlconst sysconst \
       so32dll fpwidestring character \
-      unicodedata unicodenumtable \
+      unicodedata \
       softfpu sfpux80 ufloatx80 sfpu128 ufloat128
 rsts=math typinfo pmhelp classes sysconst
 implicitunits=exeinfo \
@@ -217,10 +217,7 @@ lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) 
 
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 
-unicodenumtable$(PPUEXT) : $(OBJPASDIR)/unicodenumtable.pas $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodenumtable.pas
-
-unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas unicodenumtable$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodedata.pas
 
 character$(PPUEXT) : $(OBJPASDIR)/character.pas sysutils$(PPUEXT) rtlconst$(PPUEXT) unicodedata$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

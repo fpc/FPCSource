@@ -9,7 +9,7 @@ main=rtl
 # macpas and iso7185 units rely on sysutils unit, not yet handled here
 # extpas unit relies on dos unit, not yet handled
 units=system uuchar objpas sysconst sysutils math rtlconsts \
-      character fpwidestring unicodedata unicodenumtable fgl \
+      character fpwidestring unicodedata fgl \
       dos iso7185 extpas typinfo types sortbase classes macpas buildrtl
 implicitunits=ctypes strings symbian
 
@@ -126,10 +126,7 @@ character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) objpas$(PPUEXT)
 fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp charset$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fpwidestring.pp
 
-unicodenumtable$(PPUEXT) : $(OBJPASDIR)/unicodenumtable.pas system$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodenumtable.pas
-
-unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas unicodenumtable$(PPUEXT) system$(PPUEXT)
+unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas system$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodedata.pas
 
 sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

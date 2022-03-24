@@ -10,7 +10,7 @@ loaders=prt0 prt1
 units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings \
       ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls so32dll \
       pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi \
-      dos unicodedata unicodenumtable character sortbase \
+      dos unicodedata character sortbase \
       sysutils classes fgl math typinfo \
       charset cpall cpu mmx getopts heaptrc lnfodwrf lineinfo dynlibs \
       types rtlconst sysconst \
@@ -262,10 +262,7 @@ cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 ctypes$(PPUEXT) : $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
 
-unicodenumtable$(PPUEXT): $(OBJPASDIR)/unicodenumtable.pas $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
-
-unicodedata$(PPUEXT): $(OBJPASDIR)/unicodedata.pas unicodenumtable$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+unicodedata$(PPUEXT): $(OBJPASDIR)/unicodedata.pas $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
 
 character$(PPUEXT): $(OBJPASDIR)/character.pas unicodedata$(PPUEXT) sysutils$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
