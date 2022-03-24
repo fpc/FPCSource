@@ -2632,9 +2632,9 @@ endif
 ifndef CROSSBOOTSTRAP
 ifneq ($(BINUTILSPREFIX),)
 override FPCOPT+=-XP$(BINUTILSPREFIX)
-ifneq ($(RLINKPATH),)
-override FPCOPT+=-Xr$(RLINKPATH)
 endif
+ifneq ($(BINUTILSPREFIX),)
+override FPCOPT+=-Xr$(RLINKPATH)
 endif
 endif
 ifndef CROSSCOMPILE
@@ -2716,19 +2716,6 @@ else
 ifdef COMPILER_TARGETDIR
 override COMPILER_UNITTARGETDIR=$(COMPILER_TARGETDIR)
 override UNITTARGETDIRPREFIX=$(TARGETDIRPREFIX)
-endif
-endif
-ifdef SYSROOTPATH
-override FPCOPT+=-XR$(SYSROOTPATH)
-else
-ifeq ($(OS_TARGET),$(OS_SOURCE))
-ifneq ($(findstring $(OS_TARGET),darwin),)
-ifneq ($(findstring $(CPU_TARGET),aarch64),)
-ifneq ($(wildcard /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk),)
-override FPCOPT+=-XR/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
-endif
-endif
-endif
 endif
 endif
 ifdef CREATESHARED
@@ -3242,5 +3229,13 @@ charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 	$(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
+fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp charset$(PPUEXT) system$(PPUEXT)
+	$(COMPILER) $(OBJPASDIR)/fpwidestring.pp
+character$(PPUEXT): $(OBJPASDIR)/character.pas sysutils$(PPUEXT) objpas$(PPUEXT) rtlconst$(PPUEXT) unicodedata$(PPUEXT) system$(PPUEXT)
+	$(COMPILER) $(OBJPASDIR)/character.pas
+unicodedata$(PPUEXT) : $(OBJPASDIR)/unicodedata.pas system$(PPUEXT)
+	$(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/unicodedata.pas
+sortbase$(PPUEXT) : $(INC)/sortbase.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 msmouse$(PPUEXT) : msmouse.pp system$(PPUEXT)
 ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)

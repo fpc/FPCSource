@@ -262,8 +262,6 @@ cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 ctypes$(PPUEXT) : $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
 
-unicodenumtable$(PPUEXT): $(OBJPASDIR)/unicodenumtable.pas $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $<
 
 unicodedata$(PPUEXT): $(OBJPASDIR)/unicodedata.pas unicodenumtable$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<

@@ -9,7 +9,6 @@ units=system uuchar objpas strings iso7185 extpas dos \
       wintypes winprocs win31 ports dynlibs \
       sysconst rtlconst sysutils math types typinfo fgl classes
 
-
 [require]
 nortl=y
 [install]

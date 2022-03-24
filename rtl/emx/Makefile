@@ -2633,9 +2633,9 @@ endif
 ifndef CROSSBOOTSTRAP
 ifneq ($(BINUTILSPREFIX),)
 override FPCOPT+=-XP$(BINUTILSPREFIX)
-ifneq ($(RLINKPATH),)
-override FPCOPT+=-Xr$(RLINKPATH)
 endif
+ifneq ($(BINUTILSPREFIX),)
+override FPCOPT+=-Xr$(RLINKPATH)
 endif
 endif
 ifndef CROSSCOMPILE
@@ -2717,19 +2717,6 @@ else
 ifdef COMPILER_TARGETDIR
 override COMPILER_UNITTARGETDIR=$(COMPILER_TARGETDIR)
 override UNITTARGETDIRPREFIX=$(TARGETDIRPREFIX)
-endif
-endif
-ifdef SYSROOTPATH
-override FPCOPT+=-XR$(SYSROOTPATH)
-else
-ifeq ($(OS_TARGET),$(OS_SOURCE))
-ifneq ($(findstring $(OS_TARGET),darwin),)
-ifneq ($(findstring $(CPU_TARGET),aarch64),)
-ifneq ($(wildcard /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk),)
-override FPCOPT+=-XR/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
-endif
-endif
-endif
 endif
 endif
 ifdef CREATESHARED
@@ -3288,8 +3275,6 @@ charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 	$(COMPILER) -Fi$(RTL)/charmaps $<
 ctypes$(PPUEXT) : $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-unicodenumtable$(PPUEXT): $(OBJPASDIR)/unicodenumtable.pas $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 unicodedata$(PPUEXT): $(OBJPASDIR)/unicodedata.pas unicodenumtable$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
