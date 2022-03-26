@@ -169,7 +169,7 @@ Const
   Num   = ['0'..'9'];
   AlNum = Alpha+Num;
   AlNumIden = Alpha+Num+['-'];
-  WhiteSpace = [' ',#8];
+  WhiteSpace = [' ',#9];
   WhiteSpaceEx = WhiteSpace+[#0];
 
 
