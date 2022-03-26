@@ -1,0 +1,21 @@
+
+.rangeProgress {
+    background-color: blue;
+}
+
+.rangeProgress:hover {
+    color: red;
+}
+
+.rangeProgress::boot {
+    color: green;
+}
+
+input:enabled:read-write:-webkit-any(:focus,:hover)::-webkit-clear-button {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.box {
+    color: red;
+}
