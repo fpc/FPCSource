@@ -196,6 +196,12 @@ begin
 {$include fcl-xml/fpmake.pp}
 end;
 
+procedure add_fcl_css(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-css/fpmake.pp}
+end;
+
 procedure add_fftw(const ADirectory: string);
 begin
   with Installer do

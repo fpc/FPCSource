@@ -354,7 +354,7 @@ Const
 
 implementation
 
-uses SysUtils, Classes, rtlConsts, fpjson;
+uses SysUtils, Classes, rtlConsts;
 
 Const
   sIndent = '  ';

@@ -149,4 +149,5 @@
   add_mustache(ADirectory+IncludeTrailingPathDelimiter('fcl-mustache'));
   add_wasmtime(ADirectory+IncludeTrailingPathDelimiter('wasmtime'));
   add_gitlab(ADirectory+IncludeTrailingPathDelimiter('gitlab'));
+  add_fcl_css(ADirectory+IncludeTrailingPathDelimiter('fcl-css'));
   
