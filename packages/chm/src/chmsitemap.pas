@@ -409,6 +409,9 @@ begin
   FSiteMapBodyTags := [smbtNone];
   FHTMLParser:=nil;
   FItems := TChmSiteMapItems.Create(Self, nil);  ;
+  BackgroundColor:=-1;
+  ForegroundColor:=-1;
+  ExWindowStyles:=-1;
 end;
 
 destructor TChmSiteMap.Destroy;

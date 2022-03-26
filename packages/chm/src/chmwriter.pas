@@ -1180,7 +1180,7 @@ begin
    FIDXHdrStream.setsize(4096);
    FIDXHdrStream.position:=0;
    FIDXHdrStream.write(idxhdrmagic[1],4);     //  0 Magic
-   FIDXHdrStream.writedword(ntole(1));        //  4 Unknown timestamp/checksum
+   FIDXHdrStream.writedword(ntole(0));        //  4 Unknown timestamp/checksum
    FIDXHdrStream.writedword(ntole(1));        //  8 1 (unknown)
    FIDXHdrStream.writedword(ntole(FNrTopics));        //  C Number of topic nodes including the contents & index files
    FIDXHdrStream.writedword(ntole(0));        // 10 0 (unknown)
@@ -1189,7 +1189,7 @@ begin
    if assigned(ftocsm) and (ftocsm.ImageList<>'') then
      FIDXHdrStream.writedwordLE(addstring(ftocsm.ImageList))
    else
-     FIDXHdrStream.writedwordLE(0);
+     FIDXHdrStream.writedwordLE(-1);
 
    // 18 0 (unknown)
    FIDXHdrStream.writedwordLE(0);
@@ -1204,25 +1204,25 @@ begin
    if assigned(ftocsm) then
      FIDXHdrStream.writedwordLE(ftocsm.Backgroundcolor)
    else
-     FIDXHdrStream.writedwordLE(0);
+     FIDXHdrStream.writedwordLE(-1);
 
    // 24 The value of the Foreground param of the "text/site properties" object of the sitemap contents
    if assigned(ftocsm) then
      FIDXHdrStream.writedwordLE(ftocsm.Foregroundcolor)
    else
-     FIDXHdrStream.writedwordLE(0);
+     FIDXHdrStream.writedwordLE(-1);
 
    // 28 Offset in the #STRINGS file of the Font param of the "text/site properties" object of the sitemap contents (0/-1 = none)
    if assigned(ftocsm) and (ftocsm.Font<>'') then
      FIDXHdrStream.writedwordLE(addstring(ftocsm.font))
    else
-     FIDXHdrStream.writedwordLE(0);
+     FIDXHdrStream.writedwordLE(-1);
 
    // 2C The value of the Window Styles param of the "text/site properties" object of the sitemap contents
    if assigned(ftocsm) then
      FIDXHdrStream.writedwordLE(FTocsm.WindowStyles)
    else
-     FIDXHdrStream.writedwordLE(0);
+     FIDXHdrStream.writedwordLE(-1);
 
    // 30 The value of the EXWindow Styles param of the "text/site properties" object of the sitemap contents
    if assigned(ftocsm) then
@@ -1231,7 +1231,7 @@ begin
      FIDXHdrStream.writedwordLE(0);
 
    // 34 Unknown. Often -1. Sometimes 0.
-   FIDXHdrStream.writedwordLE(0);
+   FIDXHdrStream.writedwordLE(-1);
 
    // 38 Offset in the #STRINGS file of the FrameName param of the "text/site properties" object of the sitemap contents (0/-1 = none)
    if assigned(ftocsm) and (ftocsm.framename<>'') then
@@ -1243,9 +1243,9 @@ begin
    if assigned(ftocsm) and (ftocsm.windowname<>'') then
      FIDXHdrStream.writedwordLE(addstring(FTocsm.windowname))
    else
-     FIDXHdrStream.writedwordLE(0);
+     FIDXHdrStream.writedwordLE(-1);
    FIDXHdrStream.writedword(ntole(0));        // 40 Number of information types.
-   FIDXHdrStream.writedword(ntole(0));        // 44 Unknown. Often 1. Also 0, 3.
+   FIDXHdrStream.writedword(ntole(1));        // 44 Unknown. Often 1. Also 0, 3.
    FIDXHdrStream.writedword(ntole(fmergefiles.count));        // 48 Number of files in the [MERGE FILES] list.
 
    // 4C Unknown. Often 0. Non-zero mostly in files with some files in the merge files list.
