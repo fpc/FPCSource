@@ -88,9 +88,9 @@ uses
 { * Followings are implemented in the system unit! * }
 function PathConv(path: shortstring): shortstring; external name 'PATHCONV';
 function PathConv(path: RawByteString): RawByteString; external name 'PATHCONVRBS';
-procedure AddToList(var l: Pointer; h: LongInt); external name 'ADDTOLIST';
-function RemoveFromList(var l: Pointer; h: LongInt): boolean; external name 'REMOVEFROMLIST';
-function CheckInList(var l: Pointer; h: LongInt): pointer; external name 'CHECKINLIST';
+procedure AddToList(var l: Pointer; h: THandle); external name 'ADDTOLIST';
+function RemoveFromList(var l: Pointer; h: THandle): boolean; external name 'REMOVEFROMLIST';
+function CheckInList(var l: Pointer; h: THandle): pointer; external name 'CHECKINLIST';
 
 var
   ASYS_FileList: Pointer; external name 'ASYS_FILELIST';
@@ -176,7 +176,7 @@ end;
 function FileOpen(const FileName: rawbytestring; Mode: Integer): THandle;
 var
   SystemFileName: RawByteString;
-  dosResult: LongInt;
+  dosResult: THandle;
 begin
   SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
   {$WARNING FIX ME! To do: FileOpen Access Modes}
