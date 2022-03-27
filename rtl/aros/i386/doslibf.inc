@@ -13,8 +13,8 @@
 
  **********************************************************************}
 
-function Open(name: PChar; accessMode: longint): Cardinal; syscall AOS_DOSBase 5;
-function dosClose(_file: Cardinal): LongBool;  syscall AOS_DOSBase 6;
+function Open(name: PChar; accessMode: longint): BPTR; syscall AOS_DOSBase 5;
+function dosClose(_file: BPTR): LongBool;  syscall AOS_DOSBase 6;
 function dosRead(_file: BPTR; buffer: Pointer; length: longint): longint; syscall AOS_DOSBase 7;
 function dosWrite(_file: BPTR; buffer: Pointer; length: longint): longint;  syscall AOS_DOSBase 8;
 function dosInput: BPTR; syscall AOS_DOSBase 9;
