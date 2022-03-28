@@ -6938,55 +6938,55 @@ mem                   \2\x0F\x0D\202                                      PREFET
 
 
 [KADDB]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \361\362\364\370\1\x4A\75\120             AVX512
 
 [KADDD]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \361\362\363\364\370\1\x4A\75\120         AVX512
 
 [KADDQ]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \362\363\364\370\1\x4A\75\120             AVX512
 
 [KADDW]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \362\364\370\1\x4A\75\120                 AVX512
 
 [KANDB]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \361\362\364\370\1\x41\75\120             AVX512
 
 [KANDD]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \361\362\363\364\370\1\x41\75\120         AVX512
 
 [KANDNB]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \361\362\364\370\1\x42\75\120             AVX512
 
 [KANDND]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \361\362\363\364\370\1\x42\75\120         AVX512
 
 [KANDNQ]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \362\363\364\370\1\x42\75\120             AVX512
 
 [KANDNW]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \362\364\370\1\x42\75\120                 AVX512
 
 [KANDQ]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \362\363\364\370\1\x41\75\120             AVX512
 
 [KANDW]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \362\364\370\1\x41\75\120                 AVX512
 
 [KMOVB]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 kreg,kreg                                 \361\362\370\1\x90\110                    AVX512
 kreg,mem8                                 \361\362\370\1\x90\110                    AVX512
 kreg,reg32                                \361\362\370\1\x92\110                    AVX512
@@ -6994,7 +6994,7 @@ mem8,kreg                                 \361\362\370\1\x91\101                
 reg32,kreg                                \361\362\370\1\x93\110                    AVX512
 
 [KMOVD]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 kreg,kreg                                 \361\362\363\370\1\x90\110                AVX512
 kreg,mem32                                \361\362\363\370\1\x90\110                AVX512
 kreg,reg32                                \334\362\370\1\x92\110                    AVX512
@@ -7002,7 +7002,7 @@ mem32,kreg                                \361\362\363\370\1\x91\101            
 reg32,kreg                                \334\362\370\1\x93\110                    AVX512
 
 [KMOVQ]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 kreg,kreg                                 \362\363\370\1\x90\110                    AVX512
 kreg,mem64                                \362\363\370\1\x90\110                    AVX512
 kreg,reg64                                \334\362\363\370\1\x92\110                AVX512
@@ -7010,7 +7010,7 @@ mem64,kreg                                \362\363\370\1\x91\101                
 reg64,kreg                                \334\362\363\370\1\x93\110                AVX512
 
 [KMOVW]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 kreg,kreg                                 \362\370\1\x90\110                        AVX512
 kreg,mem16                                \362\370\1\x90\110                        AVX512
 kreg,reg32                                \362\370\1\x92\110                        AVX512
@@ -7018,143 +7018,143 @@ mem16,kreg                                \362\370\1\x91\101                    
 reg32,kreg                                \362\370\1\x93\110                        AVX512
 
 [KNOTB]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 kreg,kreg                                 \361\362\370\1\x44\110                    AVX512
 
 [KNOTD]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 kreg,kreg                                 \361\362\363\370\1\x44\110                AVX512
 
 [KNOTQ]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 kreg,kreg                                 \362\363\370\1\x44\110                    AVX512
 
 [KNOTW]
-(Ch_All)
+(Ch_Wop2, Ch_Rop1)
 kreg,kreg                                 \362\370\1\x44\110                        AVX512
 
 [KORB]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \361\362\364\370\1\x45\75\120             AVX512
 
 [KORD]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \361\362\363\364\370\1\x45\75\120         AVX512
 
 [KORQ]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \362\363\364\370\1\x45\75\120             AVX512
 
 [KORTESTB]
-(Ch_All)
+(Ch_Rop2, Ch_Rop1, Ch_WZeroFlag, Ch_WCarryFlag)
 kreg,kreg                                 \361\362\370\1\x98\110                    AVX512
 
 [KORTESTD]
-(Ch_All)
+(Ch_Rop2, Ch_Rop1, Ch_WZeroFlag, Ch_WCarryFlag)
 kreg,kreg                                 \361\362\363\370\1\x98\110                AVX512
 
 [KORTESTQ]
-(Ch_All)
+(Ch_Rop2, Ch_Rop1, Ch_WZeroFlag, Ch_WCarryFlag)
 kreg,kreg                                 \362\363\370\1\x98\110                    AVX512
 
 [KORTESTW]
-(Ch_All)
+(Ch_Rop2, Ch_Rop1, Ch_WZeroFlag, Ch_WCarryFlag)
 kreg,kreg                                 \362\370\1\x98\110                        AVX512
 
 [KORW]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \362\364\370\1\x45\75\120                 AVX512
 
 [KSHIFTLB]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2)
 kreg,kreg,imm8                            \361\362\372\1\x32\110\26                 AVX512
 
 [KSHIFTLD]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2)
 kreg,kreg,imm8                            \361\362\372\1\x33\110\26                 AVX512
 
 [KSHIFTLQ]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2)
 kreg,kreg,imm8                            \361\362\363\372\1\x33\110\26             AVX512
 
 [KSHIFTLW]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2)
 kreg,kreg,imm8                            \361\362\363\372\1\x32\110\26             AVX512
 
 [KSHIFTRB]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2)
 kreg,kreg,imm8                            \361\362\372\1\x30\110\26                 AVX512
 
 [KSHIFTRD]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2)
 kreg,kreg,imm8                            \361\362\372\1\x31\110\26                 AVX512
 
 [KSHIFTRQ]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2)
 kreg,kreg,imm8                            \361\362\363\372\1\x31\110\26             AVX512
 
 [KSHIFTRW]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2)
 kreg,kreg,imm8                            \361\362\363\372\1\x30\110\26             AVX512
 
 [KTESTB]
-(Ch_All)
+(Ch_Rop2, Ch_Rop1, Ch_WZeroFlag, Ch_WCarryFlag)
 kreg,kreg                                 \361\362\370\1\x99\110                    AVX512
 
 [KTESTD]
-(Ch_All)
+(Ch_Rop2, Ch_Rop1, Ch_WZeroFlag, Ch_WCarryFlag)
 kreg,kreg                                 \361\362\363\370\1\x99\110                AVX512
 
 [KTESTQ]
-(Ch_All)
+(Ch_Rop2, Ch_Rop1, Ch_WZeroFlag, Ch_WCarryFlag)
 kreg,kreg                                 \362\363\370\1\x99\110                    AVX512
 
 [KTESTW]
-(Ch_All)
+(Ch_Rop2, Ch_Rop1, Ch_WZeroFlag, Ch_WCarryFlag)
 kreg,kreg                                 \362\370\1\x99\110                        AVX512
 
 [KUNPCKBW]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \361\362\364\370\1\x4B\75\120             AVX512
 
 [KUNPCKDQ]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \362\363\364\370\1\x4B\75\120             AVX512
 
 [KUNPCKWD]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \362\364\370\1\x4B\75\120                 AVX512
 
 [KXNORB]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \361\362\364\370\1\x46\75\120             AVX512
 
 [KXNORD]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \361\362\363\364\370\1\x46\75\120         AVX512
 
 [KXNORQ]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \362\363\364\370\1\x46\75\120             AVX512
 
 [KXNORW]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \362\364\370\1\x46\75\120                 AVX512
 
 [KXORB]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \361\362\364\370\1\x47\75\120             AVX512
 
 [KXORD]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \361\362\363\364\370\1\x47\75\120         AVX512
 
 [KXORQ]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \362\363\364\370\1\x47\75\120             AVX512
 
 [KXORW]
-(Ch_All)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 kreg,kreg,kreg                            \362\364\370\1\x47\75\120                 AVX512
 
 
