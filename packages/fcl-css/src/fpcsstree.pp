@@ -580,6 +580,7 @@ end;
 
 procedure TCSSDeclarationElement.AddKey(aKey: TCSSElement);
 begin
+  if aKey=Nil then exit;
   if Not Assigned(FKeys) then
     FKeys:=TCSSElementList.Create(True);
   FKeys.Add(aKey);
