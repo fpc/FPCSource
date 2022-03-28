@@ -235,7 +235,7 @@ Type
   Public
     Destructor Destroy; override;
     Procedure AddChild(aChild : TCSSElement); virtual;
-    Property Children[aIndex : Integer] : TCSSElement Read GetChild;
+    Property Children[aIndex : Integer] : TCSSElement Read GetChild; default;
     Property ChildCount : Integer Read GetChildCount;
   end;
 

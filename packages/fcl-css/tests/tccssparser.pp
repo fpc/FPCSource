@@ -47,6 +47,8 @@ type
     Function CheckDeclaration(aRule : TCSSRuleElement; aIndex : Integer; const AKey : String) : TCSSDeclarationElement;
     Function CheckSelector(aRule : TCSSRuleElement; aIndex : Integer) : TCSSElement;
     Function CheckSelector(aRule : TCSSRuleElement; aIndex : Integer; const aName : String) : TCSSElement;
+    function CheckList(aList: TCSSListElement; aIndex: Integer): TCSSElement;
+    function CheckList(aList: TCSSListElement; aIndex: Integer; const aName: String): TCSSElement;
     function CheckLiteral(Msg: String; aEl: TCSSelement; aValue: String) : TCSSStringElement; overload;
     function CheckLiteral(Msg: String; aEl: TCSSelement; aValue: Integer) : TCSSIntegerElement;  overload;
     function CheckLiteral(Msg: String; aEl: TCSSelement; aValue: Integer; AUnits : TCSSUnits) : TCSSIntegerElement;  overload;
@@ -70,6 +72,8 @@ type
     procedure TestDoublePrefixedEmptyRule;
     procedure TestDoubleMixedPrefixedEmptyRule;
     procedure TestAttributePrefixedEmptyRule;
+    procedure TestPseudoPrefixedEmptyRule;
+    procedure TestPseudoFunctionEmptyRule;
     procedure TestFuncPrefixedEmptyRule;
     procedure TestQueryPrefixedEmptyRule;
     Procedure TestCommaPrefixedEmptyRule;
@@ -88,6 +92,7 @@ type
     Procedure TestOneEmptyDeclaration;
     Procedure TestImportAtKeyWord;
     Procedure TestMediaPrint;
+    Procedure TestSupportsFunction;
   end;
 
   { TTestCSSFilesParser }
@@ -355,16 +360,19 @@ procedure TTestCSSParser.TestDoublePrefixedEmptyRule;
 var
   R : TCSSRuleElement;
   sel: TCSSIdentifierElement;
+  List : TCSSListElement;
 
 begin
   ParseRule('a b { }');
   R:=TCSSRuleElement(CheckClass('Rule',TCSSRuleElement,FirstRule));
   AssertEquals('No rule children',0,R.ChildCount);
-  AssertEquals('selector count',2,R.SelectorCount);
-  sel:=TCSSIdentifierElement(CheckClass('Selector', TCSSIdentifierElement,R.Selectors[0]));
-  AssertEquals('Sel name','a',Sel.Value);
-  sel:=TCSSIdentifierElement(CheckClass('Selector', TCSSIdentifierElement,R.Selectors[1]));
-  AssertEquals('Sel name','b',Sel.Value);
+  AssertEquals('selector count',1,R.SelectorCount);
+  List:=TCSSListElement(CheckClass('Selector', TCSSListElement,R.Selectors[0]));
+  AssertEquals('selector list count',2,List.ChildCount);
+  sel:=TCSSIdentifierElement(CheckClass('Selector', TCSSIdentifierElement,List[0]));
+  AssertEquals('Sel 1 name','a',Sel.Value);
+  sel:=TCSSIdentifierElement(CheckClass('Selector', TCSSIdentifierElement,List[1]));
+  AssertEquals('Sel 2 name','b',Sel.Value);
 end;
 
 procedure TTestCSSParser.TestDoubleMixedPrefixedEmptyRule;
@@ -372,17 +380,19 @@ procedure TTestCSSParser.TestDoubleMixedPrefixedEmptyRule;
 var
   R : TCSSRuleElement;
   sel: TCSSIdentifierElement;
-  sel2: TCSSClassNameElement;
+  List : TCSSListElement;
 
 begin
   ParseRule('a .b { }');
   R:=TCSSRuleElement(CheckClass('Rule',TCSSRuleElement,FirstRule));
   AssertEquals('No rule children',0,R.ChildCount);
-  AssertEquals('selector count',2,R.SelectorCount);
-  sel:=TCSSIdentifierElement(CheckClass('Selector', TCSSIdentifierElement,R.Selectors[0]));
-  AssertEquals('Sel name','a',Sel.Value);
-  sel2:=TCSSClassNameElement(CheckClass('Selector', TCSSClassNameElement,R.Selectors[1]));
-  AssertEquals('Sel name','.b',Sel2.Value);
+  AssertEquals('selector count',1,R.SelectorCount);
+  List:=TCSSListElement(CheckClass('Selector', TCSSListElement,R.Selectors[0]));
+  AssertEquals('selector list count',2,List.ChildCount);
+  sel:=TCSSIdentifierElement(CheckClass('Selector', TCSSIdentifierElement,List[0]));
+  AssertEquals('Sel 1 name','a',Sel.Value);
+  sel:=TCSSClassNameElement(CheckClass('Selector', TCSSClassNameElement,List[1]));
+  AssertEquals('Sel 2 name','.b',Sel.Value);
 end;
 
 procedure TTestCSSParser.TestAttributePrefixedEmptyRule;
@@ -405,20 +415,53 @@ begin
   AssertEquals('Binary op',boEquals,Bin.Operation);
 end;
 
+procedure TTestCSSParser.TestPseudoPrefixedEmptyRule;
+var
+  R : TCSSRuleElement;
+  Sel : TCSSClassNameElement;
+
+begin
+  ParseRule(':a { }');
+  R:=TCSSRuleElement(CheckClass('Rule',TCSSRuleElement,FirstRule));
+  AssertEquals('No rule children',0,R.ChildCount);
+  AssertEquals('selector count',1,R.SelectorCount);
+  sel:=TCSSClassNameElement(CheckClass('Selector', TCSSClassNameElement,R.Selectors[0]));
+  AssertEquals('Pseudo name',':a',sel.Value);
+end;
+
+procedure TTestCSSParser.TestPseudoFunctionEmptyRule;
+var
+  R : TCSSRuleElement;
+  Sel : TCSSCallElement;
+  Id : TCSSIdentifierElement;
+
+begin
+  ParseRule(':a(b) { }');
+  R:=TCSSRuleElement(CheckClass('Rule',TCSSRuleElement,FirstRule));
+  AssertEquals('No rule children',0,R.ChildCount);
+  AssertEquals('selector count',1,R.SelectorCount);
+  sel:=TCSSCallElement(CheckClass('Selector', TCSSCallElement,R.Selectors[0]));
+  AssertEquals('Pseudo name',':a',sel.Name);
+  AssertEquals('argument count',1,Sel.ChildCount);
+  Id:=TCSSIdentifierElement(CheckClass('Argument 1',TCSSIdentifierElement,Sel[0]));
+  AssertEquals('Argument name','b',id.Name);
+end;
+
 procedure TTestCSSParser.TestFuncPrefixedEmptyRule;
 
 var
   R : TCSSRuleElement;
-  sel: TCSSArrayElement;
+  List : TCSSListElement;
 
 begin
   R:=ParseRule('input:enabled:read-write:-webkit-any(:focus,:hover)::-webkit-clear-button {  }');
   AssertEquals('No rule children',0,R.ChildCount);
-  AssertEquals('selector count',5,R.SelectorCount);
-  CheckSelector(R,0,'input');
-  CheckSelector(R,1,':enabled');
-  CheckSelector(R,2,':read-write');
-  CheckSelector(R,4,'::-webkit-clear-button');
+  AssertEquals('selector count',1,R.SelectorCount);
+  List:=TCSSListElement(CheckClass('List',TCSSListElement,R.Selectors[0]));
+  CheckList(List,0,'input');
+  CheckList(List,1,':enabled');
+  CheckList(List,2,':read-write');
+  CheckList(List,4,'::-webkit-clear-button');
 end;
 
 procedure TTestCSSParser.TestQueryPrefixedEmptyRule;
@@ -630,6 +673,19 @@ begin
   ParseRule('@media print { *, *:before {} }');
 end;
 
+procedure TTestCSSParser.TestSupportsFunction;
+begin
+  ParseRule('@supports ((position: -webkit-sticky) or (position: sticky)) {'+ sLineBreak+
+'  .sticky-top { '+ sLineBreak+
+'    position: -webkit-sticky; '+ sLineBreak+
+'    position: sticky; '+ sLineBreak+
+'    top: 0; '+ sLineBreak+
+'    z-index: 1020; '+ sLineBreak+
+'  } '+ sLineBreak+
+'} '
+);
+end;
+
 
 { TTestBaseCSSParser }
 
@@ -768,8 +824,24 @@ begin
     AssertEquals('Selector '+IntToStr(aIndex)+'name',aName,TCSSStringElement(Result).Value)
   else
     Fail('Selector '+IntToStr(aIndex)+' has no known type')
+end;
 
+function TTestBaseCSSParser.CheckList(aList: TCSSListElement; aIndex: Integer): TCSSElement;
+begin
+  AssertTrue('Have list index '+IntToStr(aIndex),aIndex<aList.ChildCount);
+  Result:=aList[aIndex];
+  AssertNotNull('Have element non-nil',Result);
+end;
 
+function TTestBaseCSSParser.CheckList(aList: TCSSListElement; aIndex: Integer; const aName: String): TCSSElement;
+begin
+  Result:=CheckList(aList,aIndex);
+  if Result is TCSSIdentifierElement then
+    AssertEquals('List element '+IntToStr(aIndex)+'name',aName,TCSSIdentifierElement(Result).Name)
+  else if Result is TCSSStringElement then
+    AssertEquals('List element '+IntToStr(aIndex)+'name',aName,TCSSStringElement(Result).Value)
+  else
+    Fail('List element '+IntToStr(aIndex)+' has no known type')
 end;
 
 function TTestBaseCSSParser.CheckLiteral(Msg: String; aEl: TCSSelement; aValue: String): TCSSStringElement;

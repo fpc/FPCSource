@@ -3,8 +3,7 @@ program testcss;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, consoletestrunner, tccssScanner,
-tccssparser, tccsstree;
+  Classes, consoletestrunner, tccssScanner, tccssparser, tccsstree;
 
 type
 

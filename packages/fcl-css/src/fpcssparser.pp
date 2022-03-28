@@ -14,7 +14,7 @@
  **********************************************************************}
 unit fpCSSParser;
 
-{$mode ObjFPC}{$H+}
+{ $mode ObjFPC}{$H+}
 
 { $DEFINE debugparser}
 
@@ -283,7 +283,7 @@ function TCSSParser.ParseExpression: TCSSElement;
 
 Const
   RuleTokens =
-       [ctkIDENTIFIER,ctkCLASSNAME,ctkHASH,ctkINTEGER,
+       [ctkIDENTIFIER,ctkCLASSNAME,ctkHASH,ctkINTEGER, ctkPSEUDO,ctkPSEUDOFUNCTION,
         ctkDOUBLECOLON,ctkSTAR,ctkTILDE,ctkCOLON,ctkLBRACKET];
 
 begin
@@ -503,12 +503,12 @@ end;
 function TCSSParser.ParsePseudo: TCSSElement;
 
 Var
-  aPseudo : TCSSIdentifierElement;
+  aPseudo : TCSSClassNameElement;
   aValue : string;
 
 begin
   aValue:=CurrentTokenString;
-  aPseudo:=TCSSIdentifierElement(CreateElement(TCSSIdentifierElement));
+  aPseudo:=TCSSClassNameElement(CreateElement(TCSSClassNameElement));
   try
     Consume(ctkPseudo);
     aPseudo.Value:=aValue;
@@ -624,7 +624,7 @@ Const
   TermSeps = [ctkEquals,ctkPlus,ctkMinus,ctkAnd,ctkLT,ctkDIV,
               ctkStar,ctkTilde,ctkColon, ctkDoubleColon,
               ctkSquared,ctkGT];
-
+  ListTerms = [ctkEOF,ctkLBRACE,ctkATKEYWORD,ctkComma];
 
   function DoBinary(var aLeft : TCSSElement) : TCSSElement;
   var
@@ -644,24 +644,31 @@ Const
     end;
   end;
 
+Var
+  List : TCSSListElement;
+  aFactor : TCSSelement;
+
 begin
-  Result:=Nil;
-  if not AllowRules then
-    Result:=ParseComponentValue
-  else
-    Case CurrentToken of
-      ctkLBRACE : Result:=ParseRule();
-      ctkATKEYWORD : Result:=ParseRule(True);
-    else
-      Result:=ParseComponentValue;
-    end;
-  If Not Assigned(Result) then
-    exit;
+  List:=TCSSListElement(CreateElement(TCSSListElement));
   try
-    While CurrentToken in TermSeps do
-      Result:=DoBinary(Result);
+    aFactor:=Nil;
+    if AllowRules and (CurrentToken in [ctkLBRACE,ctkATKEYWORD]) then
+      aFactor:=ParseRule(CurrentToken=ctkATKEYWORD)
+    else
+      aFactor:=ParseComponentValue;
+    While Assigned(aFactor) do
+      begin
+      While CurrentToken in TermSeps do
+        aFactor:=DoBinary(aFactor);
+      List.AddChild(aFactor);
+      if (CurrentToken in ListTerms) then
+        aFactor:=Nil
+      else
+        aFactor:=ParseComponentValue
+      end;
+    Result:=GetAppendElement(List);
   except
-    Result.Free;
+    List.Free;
     Raise;
   end;
 end;
@@ -796,6 +803,7 @@ begin
     L:=Length(aName);
     if (L>0) and (aName[L]='(') then
       aName:=Copy(aName,1,L-1);
+    aCall.Name:=aName;
     if CurrentToken=ctkPSEUDOFUNCTION then
       Consume(ctkPSEUDOFUNCTION)
     else
