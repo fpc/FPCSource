@@ -418,14 +418,14 @@ end;
 procedure TTestCSSParser.TestPseudoPrefixedEmptyRule;
 var
   R : TCSSRuleElement;
-  Sel : TCSSClassNameElement;
+  Sel : TCSSPseudoClassElement;
 
 begin
   ParseRule(':a { }');
   R:=TCSSRuleElement(CheckClass('Rule',TCSSRuleElement,FirstRule));
   AssertEquals('No rule children',0,R.ChildCount);
   AssertEquals('selector count',1,R.SelectorCount);
-  sel:=TCSSClassNameElement(CheckClass('Selector', TCSSClassNameElement,R.Selectors[0]));
+  sel:=TCSSPseudoClassElement(CheckClass('Selector', TCSSPseudoClassElement,R.Selectors[0]));
   AssertEquals('Pseudo name',':a',sel.Value);
 end;
 

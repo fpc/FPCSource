@@ -111,12 +111,13 @@ Type
 
   { TCSSScanner }
 
+  TCSSScannerOption = (csoExtendedIdentifiers,csoReturnComments,csoReturnWhiteSpace);
+  TCSSScannerOptions = set of TCSSScannerOption;
 
   TCSSScanner = class
   private
     FDisablePseudo: Boolean;
-    FReturnComments: Boolean;
-    FReturnWhiteSpace: Boolean;
+    FOptions: TCSSScannerOptions;
     FSourceFile: TLineReader;
     FSourceFilename: UTF8String;
     FCurRow: Integer;
@@ -138,7 +139,12 @@ Type
     Function DoUnicodeRange : TCSSTOKEN;
     function FetchLine: Boolean;
     function GetCurColumn: Integer;
+    function GetReturnComments: Boolean;
+    function GetReturnWhiteSpace: Boolean;
     function ReadUnicodeEscape: WideChar;
+    procedure SetReturnComments(AValue: Boolean);
+    procedure SetReturnWhiteSpace(AValue: Boolean);
+    class function UnknownCharToStr(C: Char): String;
   protected
     procedure DoError(const Msg: UTF8String; Args: array of const); overload;
     procedure DoError(const Msg: UTF8String); overload;
@@ -149,8 +155,9 @@ Type
     destructor Destroy; override;
     procedure OpenFile(const AFilename: UTF8String);
     Function FetchToken: TCSSToken;
-    Property ReturnComments : Boolean Read FReturnComments Write FReturnComments;
-    Property ReturnWhiteSpace : Boolean Read FReturnWhiteSpace Write FReturnWhiteSpace;
+    Property ReturnComments : Boolean Read GetReturnComments Write SetReturnComments;
+    Property ReturnWhiteSpace : Boolean Read GetReturnWhiteSpace Write SetReturnWhiteSpace;
+    Property Options : TCSSScannerOptions Read FOptions Write FOptions;
     property SourceFile: TLineReader read FSourceFile;
     property CurFilename: UTF8String read FSourceFilename;
     property CurLine: UTF8String read FCurLine;
@@ -358,6 +365,22 @@ begin
   Result:=WideChar(StrToInt('$'+S));
 end;
 
+procedure TCSSScanner.SetReturnComments(AValue: Boolean);
+begin
+  if AValue then
+    Include(FOptions,csoReturnComments)
+  else
+    Exclude(FOptions,csoReturnComments)
+end;
+
+procedure TCSSScanner.SetReturnWhiteSpace(AValue: Boolean);
+begin
+  if AValue then
+    Include(FOptions,csoReturnWhiteSpace)
+  else
+    Exclude(FOptions,csoReturnWhiteSpace)
+end;
+
 
 function TCSSScanner.DoStringLiteral: TCSSToken;
 
@@ -421,26 +444,33 @@ function TCSSScanner.DoNumericLiteral :TCSSToken;
 Var
   TokenStart : PChar;
   Len : Integer;
+  isEscape : Boolean;
 
 begin
   Result := ctkINTEGER;
+  isEscape:=TokenStr[0]='\';
+  if IsEscape then
+    Inc(TokenStr);
   TokenStart := TokenStr;
   while true do
     begin
     Inc(TokenStr);
     case TokenStr[0] of
       '.':
-        begin
-          Result := ctkFLOAT;
-          if TokenStr[1] in ['0'..'9'] then
+        if IsEscape then
+          Break
+        else
           begin
-            Inc(TokenStr);
-            repeat
+            Result := ctkFLOAT;
+            if TokenStr[1] in ['0'..'9'] then
+            begin
               Inc(TokenStr);
-            until not (TokenStr[0] in ['0'..'9']);
+              repeat
+                Inc(TokenStr);
+              until not (TokenStr[0] in ['0'..'9']);
+            end;
+            break;
           end;
-          break;
-        end;
       '0'..'9': ;
       else
         break;
@@ -450,6 +480,12 @@ begin
   Setlength(FCurTokenString, Len);
   if (Len>0) then
   Move(TokenStart^,FCurTokenString[1],Len);
+  if IsEscape then
+    begin
+    result:=ctkString;
+    FCurTokenString:=Char(StrToInt(FCurTokenString));
+    end;
+
 end;
 
 function TCSSScanner.DoHash :TCSSToken;
@@ -525,12 +561,23 @@ begin
 
 end;
 
+Class Function TCSSScanner.UnknownCharToStr(C: Char) : String;
+
+begin
+  if C=#0 then
+    Result:='EOF'
+  else if (C in WhiteSpace) then
+    Result:='#'+IntToStr(Ord(C))
+  else
+    Result:='"'+C+'"';
+end;
+
 function TCSSScanner.DoIdentifierLike : TCSSToken;
 
 Var
   TokenStart:PChar;
-  Len : Integer;
-  IsAt, IsPseudo, IsFunc : Boolean;
+  Len,oLen : Integer;
+  IsEscape,IsAt, IsPseudo, IsFunc : Boolean;
 
 
 begin
@@ -544,20 +591,33 @@ begin
       IsPseudo:=True;
       Inc(TokenStr);
       end;
-  repeat
-    Inc(TokenStr);
-    //If (TokenStr[0]='\') and (TokenStr[1]='u') then
-  until not (TokenStr[0] in ['A'..'Z', 'a'..'z', '0'..'9', '_','-','$']);
-  if not IsAt then
-    begin
-    IsFunc:=TokenStr[0]='(';
-    if IsFunc then
-      Inc(TokenStr);
-    end;
-  Len:=(TokenStr-TokenStart);
-  SetLength(FCurTokenString,Len);
-  if Len > 0 then
-    Move(TokenStart^,FCurTokenString[1],Len);
+  Repeat
+    if not (TokenStr[0]='\') then
+      repeat
+        Inc(TokenStr);
+        //If (TokenStr[0]='\') and (TokenStr[1]='u') then
+      until not (TokenStr[0] in ['A'..'Z', 'a'..'z', '0'..'9', '_','-','$']);
+    IsEscape:=TokenStr[0]='\';
+    if IsEscape then
+      begin
+      if ((TokenStr[0] in WhiteSpace) or (TokenStr[0]=#0))  then
+        DoError(SErrUnknownCharacter ,[UnknownCharToStr(TokenStr[0])])
+      end
+    else if not IsAt then
+      begin
+      IsFunc:=TokenStr[0]='(';
+      if IsFunc then
+        Inc(TokenStr);
+      end;
+    Len:=(TokenStr-TokenStart);
+    oLen:=Length(FCurTokenString);
+    SetLength(FCurTokenString,Olen+Len);
+    if Len > 0 then
+      Move(TokenStart^,FCurTokenString[Olen+1],Len);
+     if IsEscape then
+       Inc(TokenStr);
+     TokenStart := TokenStr;
+  until Not IsEscape;
   // Some specials
   if (CurTokenString[1]='.') and not IsFunc then
     Result:=ctkCLASSNAME
@@ -643,23 +703,27 @@ begin
        Result:=DoHash;
     '\':
        begin
-       if TokenStr[0] in ['0'..'9'] then
+       if TokenStr[1] in ['0'..'9'] then
          Result:=DoNumericLiteral
        else
          begin
-         Inc(TokenStr);
-         if TokenStr[0]=#0 then
-           Result:=ctkEOF
+         if (TokenStr[1] in WhiteSpace) or (TokenStr[1]=#0) then
+           DoError(SErrUnknownCharacter ,[UnknownCharToStr(TokenStr[1])])
          else
-           CharToken(ctkSTRING);
+           Result:=DoIdentifierLike
          end;
        end;
     '0'..'9':
        Result:=DoNumericLiteral;
     '&': CharToken(ctkAnd);
-    '{': CharToken(ctkLBRACE);
+    '{': CharToken( ctkLBRACE);
     '}': CharToken(ctkRBRACE);
-    '*': CharToken(ctkSTAR);
+    '*': if Not (csoExtendedIdentifiers in Options) then
+           CharToken(ctkSTAR)
+         else if TokenStr[1] in AlNumIden then
+           Result:=DoIdentifierLike
+         else
+           CharToken(ctkSTAR);
     '^': CharToken(ctkSQUARED);
     ',': CharToken(ctkCOMMA);
     '~': CharToken(ctkTILDE);
@@ -745,6 +809,16 @@ begin
     Result:=0
   else
     Result := TokenStr - PChar(CurLine);
+end;
+
+function TCSSScanner.GetReturnComments: Boolean;
+begin
+  Result:=(csoReturnComments in FOptions);
+end;
+
+function TCSSScanner.GetReturnWhiteSpace: Boolean;
+begin
+  Result:=(csoReturnWhiteSpace in FOptions);
 end;
 
 { TStreamLineReader }

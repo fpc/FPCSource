@@ -73,9 +73,11 @@ type
     Procedure TestComment2;
     Procedure TestComment3;
     Procedure TestID1;
-    Procedure TestID2;
-    Procedure TestID3;
-    Procedure TestID4;
+    Procedure TestIDUnderscore;
+    Procedure TestIDMinus;
+    Procedure TestIDMinusMinus;
+    Procedure TestIDEscape;
+    Procedure TestIDEscapeStart;
     procedure TestPSEUDO;
     procedure TestPSEUDO2;
     procedure TestPSEUDOMinus;
@@ -296,19 +298,29 @@ begin
   CheckToken(ctkIDENTIFIER,'anid');
 end;
 
-procedure TTestCSSScanner.TestID2;
+procedure TTestCSSScanner.TestIDUnderscore;
 begin
   CheckToken(ctkIDENTIFIER,'_anid');
 end;
 
-procedure TTestCSSScanner.TestID3;
+procedure TTestCSSScanner.TestIDMinus;
 begin
   CheckToken(ctkIDENTIFIER,'-anid');
 end;
 
-procedure TTestCSSScanner.TestID4;
+procedure TTestCSSScanner.TestIDMinusMinus;
 begin
   CheckToken(ctkIDENTIFIER,'--anid');
+end;
+
+procedure TTestCSSScanner.TestIDEscape;
+begin
+  CheckToken(ctkIDENTIFIER,'an\(id');
+end;
+
+procedure TTestCSSScanner.TestIDEscapeStart;
+begin
+  CheckToken(ctkIDENTIFIER,'\(anid');
 end;
 
 

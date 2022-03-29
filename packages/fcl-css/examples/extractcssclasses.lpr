@@ -17,7 +17,7 @@ program extractcssclasses;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, SysUtils, CustApp, fpcssutils, fpcsstree;
+  Classes, SysUtils, CustApp, fpcssScanner, fpcssutils, fpcsstree;
 
 type
 
@@ -52,6 +52,8 @@ begin
     L.Options:=L.Options-[soTrailingLineBreak];
     if (aOutput<>'') and FileExists(aOutput) then
       L.LoadFromFile(aOutput);
+    if HasOption('x','extended') then
+      Util.ExtraScannerOptions:=[csoExtendedIdentifiers];
     Util.ExtractClassNames(aFileName,L);
     if aOutput='' then
       begin
@@ -69,8 +71,8 @@ end;
 procedure TCSSClassNamesApplication.DoRun;
 
 Const
-  Opts = 'ho::';
-  LongOpts : Array of string = ('help','output::');
+  Opts = 'ho::x';
+  LongOpts : Array of string = ('help','output::','extended');
 
 var
   FN, FNOutput : String;
@@ -112,6 +114,7 @@ begin
   Writeln('where options is one or more of:');
   Writeln('-h --help           This help message');
   Writeln('-o --output=FILE    Write class names to this file.');
+  Writeln('-x --extended       Allow non-standard identifiers.');
   exitCode:=Ord(aError<>'');
 end;
 

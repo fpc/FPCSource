@@ -16,7 +16,7 @@ unit fpCSSParser;
 
 { $mode ObjFPC}{$H+}
 
-{ $DEFINE debugparser}
+{$DEFINE debugparser}
 
 interface
 
@@ -37,6 +37,7 @@ Type
     FPeekToken : TCSSToken;
     FPeekTokenString : UTF8String;
     FFreeScanner : Boolean;
+    FRuleLevel : Integer;
     function CreateElement(aClass: TCSSElementClass): TCSSElement;
     class function GetAppendElement(aList: TCSSListElement): TCSSElement;
     function GetAtEOF: Boolean;
@@ -72,7 +73,7 @@ Type
     Property CurrentLine : Integer Read GetCurLine;
     Property CurrentPos : Integer Read GetCurPos;
   Public
-    Constructor Create(AInput: TStream);
+    Constructor Create(AInput: TStream; ExtraScannerOptions : TCSSScannerOptions = []);
     Constructor Create(AScanner : TCSSScanner); virtual;
     Destructor Destroy; override;
     Function Parse : TCSSElement;
@@ -194,10 +195,11 @@ begin
     Result:=0;
 end;
 
-constructor TCSSParser.Create(AInput: TStream);
+constructor TCSSParser.Create(AInput: TStream; ExtraScannerOptions : TCSSScannerOptions = []);
 begin
   FInput:=AInput;
   Create(TCSSScanner.Create(FInput));
+  FScanner.Options:=FScanner.Options+ExtraScannerOptions;
   FFreeScanner:=True;
 end;
 
@@ -237,9 +239,16 @@ Var
   Term : TCSSTokens;
   aLast : TCSSToken;
   aList : TCSSListElement;
+  {$ifdef debugparser}
+  aAt : String;
+  {$endif}
 
 begin
-//  Writeln('Parse rule. IsAt:',IsAt);
+  Inc(FRuleLevel);
+{$ifdef debugparser}
+  aAt:=Format(' Level %d at (%d:%d)',[FRuleLevel,CurrentLine,CurrentPos]);
+  Writeln('Parse @ rule');
+{$endif}
   Term:=[ctkLBRACE,ctkEOF,ctkSEMICOLON];
   aRule:=TCSSAtRuleElement(CreateElement(TCSSAtRuleElement));
   TCSSAtRuleElement(aRule).AtKeyWord:=CurrentTokenString;
@@ -266,6 +275,8 @@ begin
       Consume(ctkRBRACE);
       end;
     Result:=aRule;
+{$ifdef debugparser}  Writeln('Done Parse @ rule ',aAt); {$endif}
+    Inc(FRuleLevel);
   except
     aRule.Free;
     Raise;
@@ -503,12 +514,12 @@ end;
 function TCSSParser.ParsePseudo: TCSSElement;
 
 Var
-  aPseudo : TCSSClassNameElement;
+  aPseudo : TCSSPseudoClassElement;
   aValue : string;
 
 begin
   aValue:=CurrentTokenString;
-  aPseudo:=TCSSClassNameElement(CreateElement(TCSSClassNameElement));
+  aPseudo:=TCSSPseudoClassElement(CreateElement(TCSSPseudoClassElement));
   try
     Consume(ctkPseudo);
     aPseudo.Value:=aValue;
@@ -522,25 +533,33 @@ end;
 function TCSSParser.ParseRuleBody(aRule: TCSSRuleElement; aIsAt: Boolean = false): integer;
 
 Var
-  aDecl : TCSSDeclarationElement;
+  aDecl : TCSSElement;
+
+  Function CheckColon : Boolean;
+  begin
+    Result:=(aDecl is TCSSDeclarationElement);
+    if Result then
+      Result:=TCSSDeclarationElement(aDecl).Colon;
+  end;
 
 begin
   if not (CurrentToken in [ctkRBRACE,ctkSEMICOLON]) then
     begin
-    aDecl:=ParseDeclaration(aIsAt) as TCSSDeclarationElement;
-    if Assigned(aDecl) then
-      aRule.AddChild(aDecl);
+    aDecl:=ParseDeclaration(aIsAt);
+    aRule.AddChild(aDecl);
     end;
   While Not (CurrentToken in [ctkEOF,ctkRBRACE]) do
     begin
-    if aDecl.Colon then
+    if CheckColon then
       While CurrentToken=ctkSEMICOLON do
         Consume(ctkSEMICOLON);
     if Not (CurrentToken in [ctkEOF,ctkRBRACE]) then
       begin
-      aDecl:=ParseDeclaration(aIsAt);
-      if Assigned(aDecl) then
-        aRule.AddChild(aDecl);
+      if CurrentToken=ctkATKEYWORD then
+        aDecl:=ParseAtRule
+      else
+        aDecl:=ParseDeclaration(aIsAt);
+      aRule.AddChild(aDecl);
       end;
     end;
   Result:=aRule.ChildCount;
@@ -554,9 +573,16 @@ Var
   Term : TCSSTokens;
   aLast : TCSSToken;
   aList: TCSSListElement;
+{$IFDEF debugparser}
+  aAt : String;
+{$ENDIF}
 
 begin
-//  Writeln('Parse rule. IsAt:',IsAt);
+  Inc(FRuleLevel);
+{$IFDEF debugparser}
+  aAt:=Format(' Level %d at (%d:%d)',[FRuleLevel,CurrentLine,CurrentPos]);
+  Writeln('Parse rule. IsAt: ',IsAt,aAt);
+{$ENDIF}
   Term:=[ctkLBRACE,ctkEOF,ctkSEMICOLON];
   if IsAt then
     begin
@@ -585,10 +611,13 @@ begin
       begin
       Consume(ctkLBrace);
       ParseRuleBody(aRule,IsAt);
-      // Writeln('Parsed rule');
       Consume(ctkRBRACE);
       end;
     Result:=aRule;
+    {$IFDEF debugparser}
+    Writeln('Rule started at ',aAt,' done');
+    {$endif}
+    Dec(FRuleLevel);
   except
     aRule.Free;
     Raise;

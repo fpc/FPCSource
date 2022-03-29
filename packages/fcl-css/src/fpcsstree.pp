@@ -206,20 +206,19 @@ Type
   { TCSSClassNameElement }
 
   TCSSClassNameElement = Class(TCSSIdentifierElement)
+  Protected
+    function GetAsString(aFormat : Boolean; const aIndent : String): UTF8String; override;
   Public
     Class function CSSType : TCSSType; override;
   end;
 
   { TCSSPseudoClassElement }
 
-  TCSSPseudoClassElement = Class(TCSSElement)
-  private
-    FElement: TCSSElement;
-    procedure SetElement(AValue: TCSSElement);
+  TCSSPseudoClassElement = Class(TCSSIdentifierElement)
+  Protected
+    function GetAsString(aFormat : Boolean; const aIndent : String): UTF8String; override;
   Public
     Class function CSSType : TCSSType; override;
-    Destructor Destroy; override;
-    Property Element : TCSSElement Read FElement Write SetElement;
   end;
 
 
@@ -341,7 +340,10 @@ Type
 
 
 
+// Convert unicode codepoints to \0000 notation
 Function StringToCSSString(S : UTF8String) : UTF8String;
+// Escapes non-identifier characters C to \C
+Function StringToIdentifier(S : UTF8String) : UTF8String;
 
 Const
   CSSUnitNames : Array[TCSSUnits] of string =
@@ -427,6 +429,32 @@ begin
     end;
   SetLength(Result,iOut);
   Result:='"'+Result+'"';
+end;
+
+function StringToIdentifier(S: UTF8String): UTF8String;
+
+Var
+  iIn,iOut : Integer;
+  C : Char;
+
+begin
+  Result:='';
+  SetLength(Result,2*Length(S));
+  iIn:=1;
+  iOut:=0;
+  While iIn<=Length(S) do
+    begin
+    C:=S[iIn];
+    If Not (C in ['a'..'z','A'..'Z','_','-']) then
+      begin
+      inc(iOut);
+      Result[iOut]:='\';
+      end;
+    inc(iOut);
+    Result[iOut]:=C;
+    Inc(iIn);
+    end;
+  SetLength(Result,iOut);
 end;
 
 { TCSSListElement }
@@ -720,22 +748,22 @@ end;
 
 { TCSSPseudoClassElement }
 
-procedure TCSSPseudoClassElement.SetElement(AValue: TCSSElement);
+function TCSSPseudoClassElement.GetAsString(aFormat: Boolean; const aIndent: String): UTF8String;
+
+Var
+  I : Integer;
+
 begin
-  if FElement=AValue then Exit;
-  FreeAndNil(FElement);
-  FElement:=AValue;
+  I:=1;
+  if (Length(Value)>2) and (Value[2]=':') then
+    I:=2;
+  Writeln('Value ',Value, ' -> ',I);
+  Result:=Copy(Value,1,I)+StringToIdentifier(Copy(Value,I+1,Length(Value)-I));
 end;
 
 class function TCSSPseudoClassElement.CSSType: TCSSType;
 begin
   Result:=csstPSEUDOCLASS;
-end;
-
-destructor TCSSPseudoClassElement.Destroy;
-begin
-  Element:=Nil;
-  inherited Destroy;
 end;
 
 { TCSSChildrenElement }
@@ -870,6 +898,11 @@ end;
 
 { TCSSClassNameElement }
 
+function TCSSClassNameElement.GetAsString(aFormat: Boolean; const aIndent: String): UTF8String;
+begin
+  Result:=Copy(Value,1,1)+StringToIdentifier(Copy(Value,2,Length(Value)-1));
+end;
+
 class function TCSSClassNameElement.CSSType: TCSSType;
 begin
   Result:=csstCLASSNAME;
@@ -884,7 +917,7 @@ end;
 
 function TCSSIdentifierElement.GetAsString(aFormat : Boolean; const aIndent : String): UTF8String;
 begin
-  Result:=Value;
+  Result:=StringToIdentifier(Value);
 end;
 
 class function TCSSIdentifierElement.CSSType: TCSSType;

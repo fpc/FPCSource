@@ -396,9 +396,9 @@ end;
 
 procedure TCSSTreeAsStringTest.TestPSEUDOCLASS;
 begin
-  TCSSClassNameElement(CreateElement(TCSSClassNameElement)).Value:=':abc';
+  TCSSPseudoClassElement(CreateElement(TCSSPseudoClassElement)).Value:=':abc';
   AssertEquals('Value',':abc',Element.AsString);
-  TCSSClassNameElement(CreateElement(TCSSClassNameElement)).Value:='::abc';
+  TCSSPseudoClassElement(CreateElement(TCSSPseudoClassElement)).Value:='::abc';
   AssertEquals('Value','::abc',Element.AsString);
 end;
 
