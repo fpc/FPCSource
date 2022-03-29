@@ -16,7 +16,7 @@ unit fpCSSParser;
 
 { $mode ObjFPC}{$H+}
 
-{$DEFINE debugparser}
+{ $DEFINE debugparser}
 
 interface
 
