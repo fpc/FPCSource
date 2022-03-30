@@ -1120,7 +1120,7 @@ endif
 ifndef EXCLUDE_80BIT_TARGETS
 FULL_TARGETS=$(filter-out $(PPC_TARGET),$(CYCLETARGETS))
 else
-FULL_TARGETS=$(filter-out i8086,$(filter-out i386,$(filter-out $(PPC_TARGET),$(CYCLETARGETS))))
+FULL_TARGETS=$(filter-out x86_64,$(filter-out i8086,$(filter-out i386,$(filter-out $(PPC_TARGET),$(CYCLETARGETS)))))
 endif
 
 full: fullcycle
