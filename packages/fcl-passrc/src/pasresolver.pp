@@ -2101,6 +2101,9 @@ type
     procedure IterateElements(const aName: string;
       const OnIterateElement: TIterateScopeElement; Data: Pointer;
       var Abort: boolean); virtual;
+    procedure IterateGlobalElements(const aName: string;
+      const OnIterateElement: TIterateScopeElement; Data: Pointer;
+      var Abort: boolean); virtual;
     procedure CheckFoundElement(const FindData: TPRFindData;
       Ref: TResolvedReference); virtual;
     procedure CheckFoundElementVisibility(const FindData: TPRFindData;
@@ -21675,6 +21678,36 @@ begin
     if Abort then
       exit;
     if Scope is TPasSubExprScope then break;
+    end;
+end;
+
+procedure TPasResolver.IterateGlobalElements(const aName: string;
+  const OnIterateElement: TIterateScopeElement; Data: Pointer;
+  var Abort: boolean);
+var
+  i: Integer;
+  Scope: TPasScope;
+  C: TClass;
+begin
+  i:=0;
+  while i<FScopeCount do
+    begin
+    Scope:=Scopes[i];
+    C:=Scope.ClassType;
+    if (C.InheritsFrom(TPasDefaultScope))
+        or (C.InheritsFrom(TPasModuleScope))
+        or (C.InheritsFrom(TPasSectionScope)) then
+      inc(i)
+    else
+      break;
+    end;
+  while i>0 do
+    begin
+    dec(i);
+    Scope:=Scopes[i];
+    Scope.IterateElements(AName,Scope,OnIterateElement,Data,Abort);
+    if Abort then
+      exit;
     end;
 end;
 
