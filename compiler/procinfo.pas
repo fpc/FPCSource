@@ -57,7 +57,6 @@ unit procinfo;
           nestedprocs : tlinkedlist;
           { required alignment for this stackframe }
           fstackalignment : longint;
-          procedure addnestedproc(child: tprocinfo);
        public
           { pointer to parent in nested procedures }
           parent : tprocinfo;
@@ -179,6 +178,7 @@ unit procinfo;
           function get_first_nestedproc: tprocinfo;
           function has_nestedprocs: boolean;
           function get_normal_proc: tprocinfo;
+          procedure addnestedproc(child: tprocinfo);
 
           procedure add_local_ref_sym(sym:tsym);
           procedure export_local_ref_syms;
