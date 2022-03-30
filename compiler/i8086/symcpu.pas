@@ -110,7 +110,7 @@ type
 
   tcpuprocvardef = class(ti86procvardef)
     constructor create(level:byte;doregister:boolean);override;
-    function getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp;const paraprefix:string):tstoreddef;override;
+    function getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp;const paraprefix:string;doregister:boolean):tstoreddef;override;
     function address_type:tdef;override;
     function ofs_address_type:tdef;override;
     function size:asizeint;override;
@@ -134,7 +134,7 @@ type
     procedure Setinterfacedef(AValue: boolean);override;
    public
     constructor create(level:byte;doregister:boolean);override;
-    function getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp;const paraprefix:string):tstoreddef;override;
+    function getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp;const paraprefix:string;doregister:boolean):tstoreddef;override;
     function address_type:tdef;override;
     function ofs_address_type:tdef;override;
     function size:asizeint;override;
@@ -357,7 +357,7 @@ implementation
     end;
 
 
-  function tcpuprocdef.getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp;const paraprefix:string):tstoreddef;
+  function tcpuprocdef.getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp;const paraprefix:string;doregister:boolean):tstoreddef;
     begin
       result:=inherited;
       handle_procdef_copyas(self,is_far,copytyp,tabstractprocdef(result));
@@ -448,7 +448,7 @@ implementation
     end;
 
 
-  function tcpuprocvardef.getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp;const paraprefix:string):tstoreddef;
+  function tcpuprocvardef.getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp;const paraprefix:string;doregister:boolean):tstoreddef;
     begin
       result:=inherited;
       handle_procdef_copyas(self,is_far,copytyp,tabstractprocdef(result));

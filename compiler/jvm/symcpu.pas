@@ -336,7 +336,7 @@ implementation
                           proc_add_definition will give an error }
                       end;
                     { add method with the correct visibility }
-                    pd:=tprocdef(parentpd.getcopyas(procdef,pc_normal_no_hidden,''));
+                    pd:=tprocdef(parentpd.getcopyas(procdef,pc_normal_no_hidden,'',true));
                     { get rid of the import accessorname for inherited virtual class methods,
                       it has to be regenerated rather than amended }
                     if [po_classmethod,po_virtualmethod]<=pd.procoptions then
@@ -396,7 +396,7 @@ implementation
           begin
             { getter/setter could have parameters in case of indexed access
               -> copy original procdef }
-            pd:=tprocdef(orgaccesspd.getcopyas(procdef,pc_normal_no_hidden,''));
+            pd:=tprocdef(orgaccesspd.getcopyas(procdef,pc_normal_no_hidden,'',true));
             exclude(pd.procoptions,po_abstractmethod);
             exclude(pd.procoptions,po_overridingmethod);
             { can only construct the artificial accessorname now, because it requires

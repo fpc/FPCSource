@@ -370,7 +370,7 @@ implementation
 
         { add a method to call the procvar using unwrapped arguments, which
           then wraps them and calls through to JLRMethod.invoke }
-        methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_bareproc,''));
+        methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_bareproc,'',true));
         finish_copied_procdef(methoddef,'invoke',pvclass.symtable,pvclass);
         methoddef.synthetickind:=tsk_jvm_procvar_invoke;
         methoddef.calcparas;
@@ -403,7 +403,7 @@ implementation
             { add a method prototype matching the procvar (like the invoke
               in the procvarclass itself) }
             symtablestack.push(pvintf.symtable);
-            methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_bareproc,''));
+            methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_bareproc,'',true));
             finish_copied_procdef(methoddef,name+'Callback',pvintf.symtable,pvintf);
             { can't be final/static/private/protected, and must be virtual
               since it's an interface method }
@@ -467,7 +467,7 @@ implementation
         { wrapper is part of the same symtable as the original procdef }
         symtablestack.push(pd.owner);
         { get a copy of the virtual class method }
-        wrapperpd:=tprocdef(pd.getcopyas(procdef,pc_normal_no_hidden,''));
+        wrapperpd:=tprocdef(pd.getcopyas(procdef,pc_normal_no_hidden,'',true));
         { this one is not virtual nor override }
         exclude(wrapperpd.procoptions,po_virtualmethod);
         exclude(wrapperpd.procoptions,po_overridingmethod);
@@ -498,7 +498,7 @@ implementation
         wrapperpd.synthetickind:=tsk_jvm_virtual_clmethod;
         wrapperpd.skpara:=pd;
         { also create procvar type that we can use in the implementation }
-        wrapperpv:=tcpuprocvardef(pd.getcopyas(procvardef,pc_normal_no_hidden,''));
+        wrapperpv:=tcpuprocvardef(pd.getcopyas(procvardef,pc_normal_no_hidden,'',true));
         handle_calling_convention(wrapperpv,hcc_default_actions_intf);
         { no use in creating a callback wrapper here, this procvar type isn't
           for public consumption }
@@ -526,7 +526,7 @@ implementation
         { wrapper is part of the same symtable as the original procdef }
         symtablestack.push(pd.owner);
         { get a copy of the constructor }
-        wrapperpd:=tprocdef(pd.getcopyas(procdef,pc_bareproc,''));
+        wrapperpd:=tprocdef(pd.getcopyas(procdef,pc_bareproc,'',true));
         { this one is a class method rather than a constructor }
         include(wrapperpd.procoptions,po_classmethod);
         wrapperpd.proctypeoption:=potype_function;
