@@ -946,7 +946,7 @@ type
     Procedure TestAWait_Result;
     Procedure TestAWait_ResultPromiseMissingTypeFail; // await(AsyncCallResultPromise) needs T
     Procedure TestAsync_AnonymousProc;
-    Procedure TestAsync_AnonymousProc_PassAsyncAsArg; // ToDo
+    Procedure TestAsync_AnonymousProc_PromiseViaDotContext;
     Procedure TestAsync_ProcType;
     Procedure TestAsync_ProcTypeAsyncModMismatchFail;
     Procedure TestAsync_Inherited;
@@ -34715,7 +34715,7 @@ begin
   '  end;',
   '  Func:=function(c:double):word async assembler asm',
   '  end;',
-  '  ']);
+  '']);
   ConvertProgram;
   CheckSource('TestAsync_AnonymousProc',
     LinesToStr([ // statements
@@ -34737,10 +34737,8 @@ begin
   CheckResolverUnexpectedHints();
 end;
 
-procedure TTestModule.TestAsync_AnonymousProc_PassAsyncAsArg;
+procedure TTestModule.TestAsync_AnonymousProc_PromiseViaDotContext;
 begin
-  exit;
-
   StartProgram(false);
   Add([
   '{$mode objfpc}',
@@ -34748,37 +34746,49 @@ begin
   'type',
   '  TJSPromise = class external name ''Promise''',
   '  end;',
-  'type',
-  '  TFunc = reference to function(x: double): word; async;',
+  '  TObject = class',
+  '  public',
+  '    procedure Fly(Prom: TJSPromise);',
+  '  end;',
+  '  TFunc = reference to procedure(Bird: TObject);',
+  'procedure TObject.Fly(Prom: TJSPromise);',
+  'begin',
+  'end;',
   'function Crawl: jsvalue; async;',
   'begin',
   'end;',
+  'procedure Add(Func: TFunc);',
   'begin',
-  '  function(c:double):word async begin',
-  '    Result:=await(Crawl(c));',
-  '  end;',
-  '  Func:=function(c:double):word async assembler asm',
-  '  end;',
-  '  ']);
+  'end;',
+  'begin',
+  '  Add(procedure(Bird: TObject)',
+  '    begin',
+  '      Bird.Fly(Crawl());',
+  '    end);',
+  '']);
   ConvertProgram;
-  CheckSource('TestAsync_AnonymousProc',
+  CheckSource('TestAsync_AnonymousProc_PromiseViaDotContext',
     LinesToStr([ // statements
-    'this.Crawl = async function (d) {',
-    '  var Result = 0;',
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Fly = function (Prom) {',
+    '  };',
+    '});',
+    'this.Crawl = async function () {',
+    '  var Result = undefined;',
     '  return Result;',
     '};',
-    'this.Func = null;',
+    'this.Add = function (Func) {',
+    '};',
     '']),
     LinesToStr([
-    '$mod.Func = async function (c) {',
-    '  var Result = 0;',
-    '  Result = await $mod.Crawl(c);',
-    '  return Result;',
-    '};',
-    '$mod.Func = async function (c) {',
-    '};',
+    '$mod.Add(function (Bird) {',
+    '  Bird.Fly($mod.Crawl());',
+    '});',
     '']));
-  CheckResolverUnexpectedHints();
 end;
 
 procedure TTestModule.TestAsync_ProcType;
