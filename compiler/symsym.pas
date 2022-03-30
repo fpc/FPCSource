@@ -138,6 +138,7 @@ interface
 
           function find_procdef_with_comparer(comparer:tprocdefcomparer;arg:tobject):tprocdef;
           class function compare_procvardef(pd:tprocdef;arg:tobject):tequaltype;static;
+          class function compare_funcrefdef(pd:tprocdef;arg:tobject):tequaltype;static;
        public
           constructor create(const n : TSymStr);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
@@ -158,6 +159,7 @@ interface
           function find_procdef_bytype_and_para(pt:Tproctypeoption;para:TFPObjectList;retdef:tdef;cpoptions:tcompare_paras_options):Tprocdef;
           function find_procdef_byoptions(ops:tprocoptions): Tprocdef;
           function find_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
+          function find_procdef_byfuncrefdef(d:tobjectdef):tprocdef;
           function find_procdef_assignment_operator(fromdef,todef:tdef;var besteq:tequaltype;isexplicit:boolean):Tprocdef;
           function find_procdef_enumerator_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
           procedure add_generic_overload(sym:tprocsym);
@@ -1300,9 +1302,23 @@ implementation
       end;
 
 
+    class function Tprocsym.compare_funcrefdef(pd:tprocdef;arg:tobject):tequaltype;
+      begin
+        result:=proc_to_funcref_equal(pd,tobjectdef(arg));
+      end;
+
+
     function Tprocsym.Find_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
       begin
         result:=find_procdef_with_comparer(@compare_procvardef,d);
+      end;
+
+
+    function Tprocsym.Find_procdef_byfuncrefdef(d:tobjectdef):Tprocdef;
+      begin
+        if not is_invokable(d) then
+          internalerror(2022033001);
+        result:=find_procdef_with_comparer(@compare_funcrefdef,d);
       end;
 
 
