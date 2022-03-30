@@ -2171,7 +2171,7 @@ procedure pd_syscall(pd:tabstractprocdef);
                   include(pd.procoptions,get_default_syscall);
               end;
           else
-            internalerror(2019050526);
+            Message(parser_e_syscall_format_not_support);
         end;
       end;
 
