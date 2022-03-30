@@ -139,6 +139,7 @@ type
     coKeepNotUsedPrivates, // -O-
     coKeepNotUsedDeclarationsWPO, // -O-
     coShortRefGlobals, // -O2
+    coObfuscateLocalIdentifiers, // -O2
     // source map
     coSourceMapCreate,
     coSourceMapInclude,
@@ -163,10 +164,11 @@ const
   DefaultResourceMode = rmHTML;
 
   coShowAll = [coShowErrors..coShowDebug];
-  coAllOptimizations = [coEnumValuesAsNumbers..coShortRefGlobals];
+  coAllOptimizations = [coEnumValuesAsNumbers..coObfuscateLocalIdentifiers];
   coO0 = [coKeepNotUsedPrivates,coKeepNotUsedDeclarationsWPO];
   coO1 = [coEnumValuesAsNumbers];
-  coO2 = coO1+[coShortRefGlobals];
+  coO2 = coO1+[coShortRefGlobals
+    {$IFDEF EnableObfuscateIdentifiers},coObfuscateLocalIdentifiers{$ENDIF}];
 
   p2jscoCaption: array[TP2jsCompilerOption] of string = (
     // only used by experts or programs parsing the pas2js output, no need for resourcestrings
@@ -200,6 +202,7 @@ const
     'Keep not used private declarations',
     'Keep not used declarations (WPO)',
     'Create short local variables for globals',
+    'Obfuscate local identifiers',
     'Create source map',
     'Include Pascal sources in source map',
     'Do not shorten filenames in source map',
@@ -1066,6 +1069,8 @@ begin
     Include(Result,fppas2js.coEnumNumbers);
   if (coShortRefGlobals in Compiler.Options) or IsUnitReadFromPCU then
     Include(Result,fppas2js.coShortRefGlobals);
+  if coObfuscateLocalIdentifiers in Compiler.Options then
+    Include(Result,fppas2js.coObfuscateLocalIdentifiers);
 
   if coLowerCase in Compiler.Options then
     Include(Result,fppas2js.coLowerCase)
@@ -3827,6 +3832,7 @@ begin
      'removenotusedprivates': SetOption(coKeepNotUsedPrivates,not Enable);
      'removenotuseddeclarations': SetOption(coKeepNotUsedDeclarationsWPO,not Enable);
      'shortrefglobals': SetOption(coShortRefGlobals,Enable);
+     'obfuscatelocalidentifiers': SetOption(coObfuscateLocalIdentifiers,Enable);
     else
       Log.LogMsgIgnoreFilter(nUnknownOptimizationOption,[QuoteStr(aValue)]);
     end;
@@ -4833,6 +4839,9 @@ begin
   w('      -OoRemoveNotUsedDeclarations[-]: Default enabled for programs with -Jc');
   w('      -OoRemoveNotUsedPublished[-] : Default is disabled');
   w('      -OoShortRefGlobals[-]: Insert JS local var for types, modules and static functions. Default enabled in -O2');
+  {$IFDEF EnableObfuscateIdentifiers}
+  w('      -OoObfuscateLocalIdentifiers[-]: Use auto generated names for private and local Pascal identifiers. Default enabled in -O2');
+  {$ENDIF}
   w('  -P<x>  : Set target processor. Case insensitive:');
   w('    -Pecmascript5: default');
   w('    -Pecmascript6');

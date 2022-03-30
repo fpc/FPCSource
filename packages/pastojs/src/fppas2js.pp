@@ -1417,7 +1417,8 @@ type
     coRTLVersionCheckMain, // insert rtl version check into main
     coRTLVersionCheckSystem, // insert rtl version check into system unit init
     coRTLVersionCheckUnit, // insert rtl version check into every unit init
-    coShortRefGlobals // use short local variables for global identifiers
+    coShortRefGlobals, // use short local variables for global identifiers
+    coObfuscateLocalIdentifiers // use auto generated names for private and local Pascal identifiers
     );
   TPasToJsConverterOptions = set of TPasToJsConverterOption;
 const
@@ -3014,6 +3015,8 @@ begin
     HandleBoolean(coUseStrict,true);
   'jsshortrefglobals':
     HandleBoolean(coShortRefGlobals,true);
+  'jsobfuscatelocalidentifiers':
+    HandleBoolean(coObfuscateLocalIdentifiers,true);
   else
     DoLog(mtWarning,nWarnIllegalCompilerDirectiveX,sWarnIllegalCompilerDirectiveX,['optimization '+OptName]);
   end;
