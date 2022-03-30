@@ -75,7 +75,10 @@ type
     procedure TestOptShortRefGlobals_SameUnit_RecordType;
     procedure TestOptShortRefGlobals_Unit_InitNoImpl;
 
-    // Whole Program Optimization
+    // Obfuscate Identifiers
+    procedure TestObfuscateLocalIdentifiers_Program; // ToDo
+
+    // Whole Program Optimization - omit not used elements
     procedure TestWPO_OmitLocalVar;
     procedure TestWPO_OmitLocalProc;
     procedure TestWPO_OmitLocalProcForward;
@@ -1592,6 +1595,67 @@ begin
     LinesToStr([
     '$lm = pas.UnitA;',
     '$lp = $lm.Run;',
+    '']));
+end;
+
+procedure TTestOptimizations.TestObfuscateLocalIdentifiers_Program;
+begin
+  exit;
+
+  StartProgram(true,[supTObject]);
+  Add([
+  '{$optimization JSObfuscateLocalIdentifiers}',
+  'uses unita;',
+  'type',
+  '  TEagle = class(TBird)',
+  '    class function Run(w: word = 5): word; override;',
+  '  end;',
+  'class function TEagle.Run(w: word): word;',
+  'begin',
+  'end;',
+  'var',
+  '  e: TEagle;',
+  '  r: TRec;',
+  '  c: TColors;',
+  'begin',
+  '  e:=TEagle.Create;',
+  '  b:=TBird.Create;',
+  '  e.c:=e.c+1;',
+  '  r.x:=TBird.c;',
+  '  r.x:=b.c;',
+  '  r.x:=e.Run;',
+  '  r.x:=e.Run();',
+  '  r.x:=e.Run(4);',
+  '  c:=cRedBlue;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestOptShortRefGlobals_Program',
+    LinesToStr([
+    'var $lt = null;',
+    'var $lm = pas.UnitA;',
+    'var $lt1 = $lm.TBird;',
+    'var $lt2 = $lm.TRec;',
+    'rtl.createClass(this, "TEagle", $lt1, function () {',
+    '  $lt = this;',
+    '  this.Run = function (w) {',
+    '    var Result = 0;',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.e = null;',
+    'this.r = $lt2.$new();',
+    'this.c = {};',
+    '']),
+    LinesToStr([
+    '$mod.e = $lt.$create("Create");',
+    '$lm.b = $lt1.$create("Create");',
+    '$lt1.c = $mod.e.c + 1;',
+    '$mod.r.x = $lt1.c;',
+    '$mod.r.x = $lm.b.c;',
+    '$mod.r.x = $mod.e.$class.Run(5);',
+    '$mod.r.x = $mod.e.$class.Run(5);',
+    '$mod.r.x = $mod.e.$class.Run(4);',
+    '$mod.c = rtl.refSet($lm.cRedBlue);',
     '']));
 end;
 

@@ -946,6 +946,7 @@ type
     Procedure TestAWait_Result;
     Procedure TestAWait_ResultPromiseMissingTypeFail; // await(AsyncCallResultPromise) needs T
     Procedure TestAsync_AnonymousProc;
+    Procedure TestAsync_AnonymousProc_PassAsyncAsArg; // ToDo
     Procedure TestAsync_ProcType;
     Procedure TestAsync_ProcTypeAsyncModMismatchFail;
     Procedure TestAsync_Inherited;
@@ -34710,6 +34711,50 @@ begin
   'var Func: TFunc;',
   'begin',
   '  Func:=function(c:double):word async begin',
+  '    Result:=await(Crawl(c));',
+  '  end;',
+  '  Func:=function(c:double):word async assembler asm',
+  '  end;',
+  '  ']);
+  ConvertProgram;
+  CheckSource('TestAsync_AnonymousProc',
+    LinesToStr([ // statements
+    'this.Crawl = async function (d) {',
+    '  var Result = 0;',
+    '  return Result;',
+    '};',
+    'this.Func = null;',
+    '']),
+    LinesToStr([
+    '$mod.Func = async function (c) {',
+    '  var Result = 0;',
+    '  Result = await $mod.Crawl(c);',
+    '  return Result;',
+    '};',
+    '$mod.Func = async function (c) {',
+    '};',
+    '']));
+  CheckResolverUnexpectedHints();
+end;
+
+procedure TTestModule.TestAsync_AnonymousProc_PassAsyncAsArg;
+begin
+  exit;
+
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSPromise = class external name ''Promise''',
+  '  end;',
+  'type',
+  '  TFunc = reference to function(x: double): word; async;',
+  'function Crawl: jsvalue; async;',
+  'begin',
+  'end;',
+  'begin',
+  '  function(c:double):word async begin',
   '    Result:=await(Crawl(c));',
   '  end;',
   '  Func:=function(c:double):word async assembler asm',
