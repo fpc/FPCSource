@@ -128,11 +128,16 @@ interface
        { tprocsym }
 
        tprocsym = class(tstoredsym)
+       protected type
+          tprocdefcomparer = function(pd:tprocdef;arg:tobject):tequaltype;
        protected
           FProcdefList   : TFPObjectList;
           FProcdefDerefList : TFPList;
           fgenprocsymovlds : tfpobjectlist;
           fgenprocsymovldsderefs : tfplist;
+
+          function find_procdef_with_comparer(comparer:tprocdefcomparer;arg:tobject):tprocdef;
+          class function compare_procvardef(pd:tprocdef;arg:tobject):tequaltype;static;
        public
           constructor create(const n : TSymStr);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
@@ -1229,7 +1234,7 @@ implementation
           end;
       end;
 
-    function Tprocsym.Find_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
+    function Tprocsym.find_procdef_with_comparer(comparer:tprocdefcomparer;arg:tobject):tprocdef;
       var
         i  : longint;
         bestpd,
@@ -1249,7 +1254,7 @@ implementation
           for i:=0 to ps.ProcdefList.Count-1 do
             begin
               pd:=tprocdef(ps.ProcdefList[i]);
-              eq:=proc_to_procvar_equal(pd,d,false);
+              eq:=comparer(pd,arg);
               if eq>=te_convert_l1 then
                 begin
                   { multiple procvars with the same equal level }
@@ -1286,6 +1291,18 @@ implementation
         until (besteq>=te_equal) or
               not assigned(ps);
         result:=bestpd;
+      end;
+
+
+    class function Tprocsym.compare_procvardef(pd:tprocdef;arg:tobject):tequaltype;
+      begin
+        result:=proc_to_procvar_equal(pd,tprocvardef(arg),false);
+      end;
+
+
+    function Tprocsym.Find_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
+      begin
+        result:=find_procdef_with_comparer(@compare_procvardef,d);
       end;
 
 
