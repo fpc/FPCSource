@@ -11807,7 +11807,9 @@ begin
   'begin',
   '  if TJSArray.isArray(65) then ;',
   '  aObj:=TJSArray(a).concat(a);',
-  '  o:=TJSObject(a);']);
+  '  o:=TJSObject(a);',
+  '  aObj:=TJSArray([''bird'',''ant'']);',
+  '']);
   ConvertProgram;
   CheckSource('TestExternalClass_TypeCastArrayToExternalClass',
     LinesToStr([ // statements
@@ -11819,6 +11821,7 @@ begin
     'if (Array.isArray(65)) ;',
     '$mod.aObj = $mod.a.concat($mod.a);',
     '$mod.o = $mod.a;',
+    '$mod.aObj = ["bird", "ant"];',
     '']));
 end;
 

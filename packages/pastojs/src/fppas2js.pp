@@ -6575,6 +6575,12 @@ begin
               // TJSString(aString)
               exit(cExact);
             end
+          else if (FromResolved.BaseType=btArrayLit) then
+            begin
+            if IsExternalClass_Name(ToClass,'Array') then
+              // TJSArray([...])
+              exit(cExact);
+            end
           else if (FromResolved.BaseType=btContext) then
             begin
             FromTypeEl:=FromResolved.LoTypeEl;
@@ -11912,6 +11918,45 @@ var
     Elements.AddElement.Expr:=LeftJS;
   end;
 
+  function ConvertJSArrayLit(Param: TPasExpr; const ParamResolved: TPasResolverResult): TJSElement;
+  var
+    ParamExpr: TParamsExpr;
+    ArrayType: TPasArrayType;
+    i: Integer;
+    JS: TJSElement;
+    SubParam: TPasExpr;
+    ArrLit: TJSArrayLiteral;
+  begin
+    Result:=nil;
+    if not (Param is TParamsExpr) then exit;
+    ParamExpr:=TParamsExpr(Param);
+    if ParamExpr.Kind<>pekSet then exit;
+    ArrayType:=aResolver.IsArrayExpr(ParamExpr);
+    if ArrayType<>nil then
+      begin
+      Result:=CreateArrayInit(ArrayType,Param,Param,AContext);
+      exit;
+      end
+    else if ParamResolved.BaseType=btArrayLit then
+      begin
+        ArrLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,Param));
+        try
+          for i:=0 to length(ParamExpr.Params)-1 do
+            begin
+            SubParam:=ParamExpr.Params[i];
+            JS:=ConvertExpression(SubParam,AContext);
+            ArrLit.AddElement(JS);
+            end;
+          Result:=ArrLit;
+        finally
+          if Result=nil then
+            ArrLit.Free;
+        end;
+      end
+    else
+      RaiseNotSupported(El,AContext,20220331114026);
+  end;
+
 var
   Decl: TPasElement;
   Ref: TResolvedReference;
@@ -12092,20 +12137,28 @@ begin
         Result:=CreatePrimitiveDotExpr(ArgName,El);
         exit;
         end
-      else if (C=TPasClassType)
-          and aResolver.IsExternalClass_Name(TPasClassType(Decl),'Function') then
+      else if (C=TPasClassType) then
         begin
-        // TJSFunction(param)
-        if (Param is TPasExpr) and (TPasExpr(Param).OpCode=eopAddress) then
+        if aResolver.IsExternalClass_Name(TPasClassType(Decl),'Function') then
           begin
-          aResolver.ComputeElement(TUnaryExpr(Param).Operand,ValueResolved,[rcNoImplicitProc]);
-          if (ValueResolved.BaseType=btProc)
-              and (ValueResolved.IdentEl is TPasProcedure) then
+          // TJSFunction(param)
+          if (Param is TPasExpr) and (TPasExpr(Param).OpCode=eopAddress) then
             begin
-            // TJSFunction(@procname)  -> procname
-            Result:=CreateReferencePathExpr(TPasProcedure(ValueResolved.IdentEl),AContext);
-            exit;
+            aResolver.ComputeElement(TUnaryExpr(Param).Operand,ValueResolved,[rcNoImplicitProc]);
+            if (ValueResolved.BaseType=btProc)
+                and (ValueResolved.IdentEl is TPasProcedure) then
+              begin
+              // TJSFunction(@procname)  -> procname
+              Result:=CreateReferencePathExpr(TPasProcedure(ValueResolved.IdentEl),AContext);
+              exit;
+              end;
             end;
+          end
+        else if aResolver.IsExternalClass_Name(TPasClassType(Decl),'Array') then
+          begin
+          // TJSArray(param)
+          Result:=ConvertJSArrayLit(Param,ParamResolved);
+          if Result<>nil then exit;
           end;
         end;
 
@@ -12942,6 +12995,7 @@ begin
       end;
     end;
 
+  // create set literal
   if length(El.Params)=0 then
     Result:=TJSObjectLiteral(CreateElement(TJSObjectLiteral,El))
   else
