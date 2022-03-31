@@ -21,10 +21,9 @@ var
   BSS_START: record end; external name '__bss_start';
   _etext: pointer; external name '_etext';
 
-{ as we do not call these procedures directly, calling conventions do not matter and
-  even if we did, we use c calling conventions anyways }
-procedure __libc_csu_init; external name '__libc_csu_init';
-procedure __libc_csu_fini; external name '__libc_csu_fini';
+procedure ini_dummy;
+  begin
+  end;
 
 procedure libc_start_main(main: TProcedure; argc: ptruint; argv: ppchar; init, fini, rtld_fini: TProcedure; stack_end: pointer); cdecl; external name '__libc_start_main';
 procedure libc_exit(code: ptruint); cdecl; external name 'exit';
@@ -49,7 +48,7 @@ procedure _FPC_rv_enter(at_exit: TProcedure; sp: pptruint);
     monstartup(@_FPC_rv_enter,@_etext);
     atexit(@_mcleanup);
 
-    libc_start_main(@PascalMain, argc, argv, @__libc_csu_init, @__libc_csu_fini, at_exit, sp);
+    libc_start_main(@PascalMain, argc, argv, @ini_dummy, @ini_dummy, at_exit, sp);
   end;
 
 
