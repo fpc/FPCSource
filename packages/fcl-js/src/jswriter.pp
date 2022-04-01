@@ -590,13 +590,12 @@ begin
   While I<=L do
     begin
     c:=S[I];
-    if (c in [#0..#31,'"','''','/','\'])
+    if (c in [#0..#31,'"','''','\'])
         or (c>=#$ff00) or ((c>=#$D800) and (c<=#$DFFF)) then
       begin
       R:=R+Copy(S,J,I-J);
       Case c of
         '\' : R:=R+'\\';
-        '/' : R:=R+'\/';
         '"' : if Quote=jseqSingle then R:=R+'"' else R:=R+'\"';
         '''': if Quote=jseqDouble then R:=R+'''' else R:=R+'\''';
         #0..#7,#11,#14..#31: R:=R+'\x'+TJSString(hexStr(ord(c),2));
