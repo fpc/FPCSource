@@ -2638,7 +2638,7 @@ Var
 begin
   L:=TJSLiteral.Create(0,0,'');
   L.Value.AsString:='ab/cd';
-  AssertWrite('ab/cd','"ab\/cd"',L);
+  AssertWrite('ab/cd','"ab/cd"',L);
 end;
 
 Procedure TTestLiteralWriter.TestStringsBack;
