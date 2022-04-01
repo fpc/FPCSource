@@ -274,12 +274,12 @@ implementation
             if UseAVX then
               case location.size of
                 OS_F32:
-                  if is_signed(left.resultdef) then
+                  if torddef(left.resultdef).ordtype in [s32bit,s64bit] then
                     op:=A_VCVTSI2SS
                   else
                     op:=A_VCVTUSI2SS;
                 OS_F64:
-                  if is_signed(left.resultdef) then
+                  if torddef(left.resultdef).ordtype in [s32bit,s64bit] then
                     op:=A_VCVTSI2SD
                   else
                     op:=A_VCVTUSI2SD;
