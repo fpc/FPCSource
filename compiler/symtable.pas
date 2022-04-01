@@ -3368,8 +3368,8 @@ implementation
       begin
         if sym.typ=procsym then
           begin
-            { A procsym is visible, when there is at least one of the procdefs visible }
             result:=false;
+            { A procsym is visible, when there is at least one of the procdefs visible }
             for i:=0 to tprocsym(sym).ProcdefList.Count-1 do
               begin
                 pd:=tprocdef(tprocsym(sym).ProcdefList[i]);
@@ -3379,6 +3379,16 @@ implementation
                     result:=true;
                     exit;
                   end;
+              end;
+            { check dummy sym visbility by following associated procsyms }
+            if tprocsym(sym).could_be_implicitly_specialized then
+              begin
+                for i:=0 to tprocsym(sym).genprocsymovlds.count-1 do
+                  if is_visible_for_object(tsym(tprocsym(sym).genprocsymovlds[i]),contextobjdef) then
+                    begin
+                      result:=true;
+                      exit;
+                    end;
               end;
             if (tprocsym(sym).procdeflist.count=0) and (sp_generic_dummy in tprocsym(sym).symoptions) then
               result:=is_visible_for_object(sym.owner,sym.visibility,contextobjdef);

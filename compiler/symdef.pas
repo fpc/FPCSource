@@ -721,6 +721,8 @@ interface
           procedure declared_far;virtual;
           procedure declared_near;virtual;
           function generate_safecall_wrapper: boolean; virtual;
+          { returns true if the def is a generic param of the procdef }
+          function is_generic_param(def:tdef): boolean;
        private
           procedure count_para(p:TObject;arg:pointer);
           procedure insert_para(p:TObject;arg:pointer);
@@ -991,6 +993,10 @@ interface
           function alignment : shortint;override;
           function  needs_inittable : boolean;override;
           function  getvardef:longint;override;
+          { returns the default char type def for the string }
+          function get_default_char_type: tdef;
+          { returns the default string type }
+          function get_default_string_type: tdef;
        end;
        tstringdefclass = class of tstringdef;
 
@@ -2732,6 +2738,39 @@ implementation
           varUndefined,varUndefined,varString,varOleStr,varUString);
       begin
         result:=vardef[stringtype];
+      end;
+
+
+    function tstringdef.get_default_char_type: tdef;
+      begin
+        case stringtype of
+          st_shortstring,
+          st_longstring,
+          st_ansistring:
+            result:=cansichartype;
+          st_unicodestring,
+          st_widestring:
+            result:=cwidechartype;
+        end;
+      end;
+
+
+    function tstringdef.get_default_string_type: tdef;
+      begin
+        case stringtype of
+          st_shortstring:
+            result:=cshortstringtype;
+          { st_longstring is currently not supported but 
+            when it is this case will need to be supplied }
+          st_longstring:
+            internalerror(2021040801);
+          st_ansistring:
+            result:=cansistringtype;
+          st_widestring:
+            result:=cwidestringtype;
+          st_unicodestring:
+            result:=cunicodestringtype;
+        end
       end;
 
 
@@ -5971,6 +6010,17 @@ implementation
 {$else SUPPORT_SAFECALL}
         result:=false;
 {$endif}
+      end;
+
+
+    function tabstractprocdef.is_generic_param(def:tdef): boolean;
+      begin
+        if def.typ=undefineddef then
+          result:=def.owner=self.parast
+        else if def.typ=objectdef then
+          result:=(def.owner=self.parast) and (tstoreddef(def).genconstraintdata<>nil)
+        else
+          result:=false;
       end;
 
 

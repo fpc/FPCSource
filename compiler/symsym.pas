@@ -156,6 +156,7 @@ interface
           function find_procdef_assignment_operator(fromdef,todef:tdef;var besteq:tequaltype;isexplicit:boolean):Tprocdef;
           function find_procdef_enumerator_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
           procedure add_generic_overload(sym:tprocsym);
+          function could_be_implicitly_specialized:boolean;inline;
           property ProcdefList:TFPObjectList read FProcdefList;
           { only valid if sp_generic_dummy is set and either an overload was
             added using add_generic_overload or this was loaded from a ppu }
@@ -1098,7 +1099,6 @@ implementation
           end;
       end;
 
-
     function Tprocsym.Find_procdef_bytype(pt:Tproctypeoption):Tprocdef;
       var
         i  : longint;
@@ -1476,6 +1476,13 @@ implementation
         genprocsymovlds.add(sym);
       end;
 
+
+    function tprocsym.could_be_implicitly_specialized:boolean;
+      begin
+        result:=(m_implicit_function_specialization in current_settings.modeswitches) and 
+                (sp_generic_dummy in symoptions) and
+                assigned(genprocsymovlds);          
+      end;
 
 {****************************************************************************
                                   TERRORSYM
@@ -1862,7 +1869,7 @@ implementation
                   (varregable <> vr_none)) or
                  (not refpara and
                   not(varregable in [vr_none,vr_addr])))
-{$if not defined(powerpc) and not defined(powerpc64) and not defined(aarch64)}
+{$if not defined(powerpc) and not defined(powerpc64)}
                 and ((vardef.typ <> recorddef) or
                      (varregable = vr_addr) or
                      tabstractrecordsymtable(tabstractrecorddef(vardef).symtable).has_single_field(tempdef) or

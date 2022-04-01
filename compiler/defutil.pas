@@ -821,7 +821,10 @@ implementation
     function is_array_of_const(p : tdef) : boolean;
       begin
          result:=(p.typ=arraydef) and
-                 (ado_IsArrayOfConst in tarraydef(p).arrayoptions);
+                 (ado_IsArrayOfConst in tarraydef(p).arrayoptions) and
+                 { consider it an array-of-const in the strict sense only if it
+                   isn't an array constructor }
+                 not (ado_IsConstructor in tarraydef(p).arrayoptions);
       end;
 
     function is_conststring_array(p: tdef): boolean;

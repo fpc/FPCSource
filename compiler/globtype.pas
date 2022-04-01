@@ -528,7 +528,8 @@ interface
          m_multi_helpers,       { helpers can appear in multiple scopes simultaneously }
          m_array2dynarray,      { regular arrays can be implicitly converted to dynamic arrays }
          m_prefixed_attributes, { enable attributes that are defined before the type they belong to }
-         m_underscoreisseparator{ _ can be used as separator to group digits in numbers }
+         m_underscoreisseparator,{ _ can be used as separator to group digits in numbers }
+         m_implicit_function_specialization    { attempt to specialize generic function by inferring types from parameters }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -679,7 +680,7 @@ interface
 
        cstylearrayofconst = [pocall_cdecl,pocall_cppdecl,pocall_mwpascal,pocall_sysv_abi_cdecl,pocall_ms_abi_cdecl];
 
-       modeswitchstr : array[tmodeswitch] of string[21] = ('',
+       modeswitchstr : array[tmodeswitch] of string[30] = ('',
          '','','','','','','',
          {$ifdef gpc_mode}'',{$endif}
          { more specific }
@@ -721,7 +722,8 @@ interface
          'MULTIHELPERS',
          'ARRAYTODYNARRAY',
          'PREFIXEDATTRIBUTES',
-         'UNDERSCOREISSEPARATOR'
+         'UNDERSCOREISSEPARATOR',
+         'IMPLICITFUNCTIONSPECIALIZATION'
          );
 
 

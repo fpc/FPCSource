@@ -80,12 +80,12 @@ interface
         FParaNode   : tnode;
         FParaLength : smallint;
         FAllowVariant : boolean;
+        FParaAnonSyms : tfplist;
         procedure collect_overloads_in_struct(structdef:tabstractrecorddef;ProcdefOverloadList:TFPObjectList;searchhelpers,anoninherited:boolean;spezcontext:tspecializationcontext);
         procedure collect_overloads_in_units(ProcdefOverloadList:TFPObjectList; objcidcall,explicitunit: boolean;spezcontext:tspecializationcontext);
         procedure create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited:boolean;spezcontext:tspecializationcontext);
         procedure calc_distance(st_root:tsymtable;objcidcall: boolean);
         function  proc_add(st:tsymtable;pd:tprocdef;objcidcall: boolean):pcandidate;
-        function  maybe_specialize(var pd:tprocdef;spezcontext:tspecializationcontext):boolean;
       public
         constructor create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited:boolean;spezcontext:tspecializationcontext);
         constructor create_operator(op:ttoken;ppn:tnode);
@@ -98,6 +98,10 @@ interface
         function  choose_best(var bestpd:tabstractprocdef; singlevariant: boolean):integer;
         procedure find_wrong_para;
         property  Count:integer read FProcCnt;
+        { list of symbols for anonymous types required for implicit specializations;
+          these should be handed over to the picked procdef, otherwise they'll be
+          freed by tcallcandidates }
+        property para_anon_syms:tfplist read FParaAnonSyms;
       end;
 
     type
@@ -2205,8 +2209,17 @@ implementation
         hp : pcandidate;
         psym : tprocsym;
         i : longint;
+        sym : tsym;
       begin
         FIgnoredCandidateProcs.free;
+        { free any symbols for anonymous parameter types that we're used for
+          specialization when no specialization was picked }
+        if assigned(FParaAnonSyms) then
+          begin
+            for i := 0 to FParaAnonSyms.count-1 do
+              tsym(FParaAnonSyms[i]).free;
+            FParaAnonSyms.free;
+          end;
         hp:=FCandidateProcs;
         while assigned(hp) do
          begin
@@ -2245,10 +2258,14 @@ implementation
           { add all definitions }
           result:=false;
           foundanything:=false;
+          { try to specialize the procsym }
+          if srsym.could_be_implicitly_specialized and
+            try_implicit_specialization(srsym,FParaNode,ProcdefOverloadList,FParaAnonSyms,tsym(FProcsym),result) then
+            foundanything:=true;
           for j:=0 to srsym.ProcdefList.Count-1 do
             begin
               pd:=tprocdef(srsym.ProcdefList[j]);
-              if not maybe_specialize(pd,spezcontext) then
+              if not finalize_specialization(pd,spezcontext) then
                 continue;
               if (po_ignore_for_overload_resolution in pd.procoptions) then
                 begin
@@ -2467,14 +2484,19 @@ implementation
                 srsym:=tsym(srsymtable.FindWithHash(hashedid));
                 if assigned(srsym) and
                    (srsym.typ=procsym) and
-                   (tprocsym(srsym).procdeflist.count>0) then
+                   (
+                     (tprocsym(srsym).procdeflist.count>0) or 
+                     (sp_generic_dummy in srsym.symoptions)
+                   ) then
                   begin
                     { add all definitions }
                     hasoverload:=false;
+                    if tprocsym(srsym).could_be_implicitly_specialized then
+                      try_implicit_specialization(srsym,FParaNode,ProcdefOverloadList,FParaAnonSyms,tsym(FProcsym),hasoverload);
                     for j:=0 to tprocsym(srsym).ProcdefList.Count-1 do
                       begin
                         pd:=tprocdef(tprocsym(srsym).ProcdefList[j]);
-                        if not maybe_specialize(pd,spezcontext) then
+                        if not finalize_specialization(pd,spezcontext) then
                           continue;
                         if (po_ignore_for_overload_resolution in pd.procoptions) then
                           begin
@@ -2783,33 +2805,6 @@ implementation
          end;
       end;
 
-
-    function tcallcandidates.maybe_specialize(var pd:tprocdef;spezcontext:tspecializationcontext):boolean;
-      var
-        def : tdef;
-      begin
-        result:=false;
-        if assigned(spezcontext) then
-          begin
-            if not (df_generic in pd.defoptions) then
-              internalerror(2015060301);
-            { check whether the given parameters are compatible
-              to the def's constraints }
-            if not check_generic_constraints(pd,spezcontext.paramlist,spezcontext.poslist) then
-              exit;
-            def:=generate_specialization_phase2(spezcontext,pd,false,'');
-            case def.typ of
-              errordef:
-                { do nothing }
-                ;
-              procdef:
-                pd:=tprocdef(def);
-              else
-                internalerror(2015070303);
-            end;
-          end;
-        result:=true;
-      end;
 
     procedure tcallcandidates.list(all:boolean);
       var
@@ -3331,6 +3326,15 @@ implementation
                                      res:=-1
                                    else
                                     res:=0;
+                                   { if a specialization is better than a non-specialization then
+                                     the non-generic always wins }
+                                   if m_implicit_function_specialization in current_settings.modeswitches then
+                                     begin
+                                       if (currpd^.data.is_specialization and not bestpd^.data.is_specialization) then
+                                         res:=-1
+                                       else if (not currpd^.data.is_specialization and bestpd^.data.is_specialization) then
+                                         res:=1;
+                                     end;
                                  end;
                               end;
                            end;
@@ -3611,6 +3615,13 @@ implementation
         if (compare_paras(pd^.data.paras,bestpd^.data.paras,cp_value_equal_const,cpoptions)>=te_equal) and
           (not(po_objc in bestpd^.data.procoptions) or (bestpd^.data.messageinf.str^=pd^.data.messageinf.str^)) then
           compare_by_old_sortout_check := 1; // bestpd was sorted out before patch
+
+        { for implicit specializations non-generics should take precedence so
+          when comparing a specialization to a non-specialization mark as undecided
+          and it will be re-evaluated in is_better_candidate }
+        if (m_implicit_function_specialization in current_settings.modeswitches)
+          and (pd^.data.is_specialization <> bestpd^.data.is_specialization) then
+          compare_by_old_sortout_check:=0;
      end;
 
     function decide_restart(pd,bestpd:pcandidate) : boolean;

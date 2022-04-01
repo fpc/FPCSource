@@ -33,6 +33,8 @@ uses
   globtype,
   { parser }
   pgentype,
+  { node }
+  node,
   { symtable }
   symtype,symdef,symbase;
 
@@ -52,10 +54,12 @@ uses
     procedure add_generic_dummysym(sym:tsym);
     function resolve_generic_dummysym(const name:tidstring):tsym;
     function could_be_generic(const name:tidstring):boolean;inline;
+    function try_implicit_specialization(sym:tsym;para:tnode;pdoverloadlist:tfpobjectlist;var unnamed_syms:tfplist;var first_procsym:tsym;var hasoverload:boolean):boolean;
+    function finalize_specialization(var pd:tprocdef;spezcontext:tspecializationcontext):boolean;
 
     procedure generate_specialization_procs;
     procedure generate_specializations_for_forwarddef(def:tdef);
-    procedure maybe_add_pending_specialization(def:tdef);
+    procedure maybe_add_pending_specialization(def:tdef;unnamed_syms:tfplist);
     function determine_generic_def(const name:tidstring):tstoreddef;
 
     procedure specialization_init(genericdef:tdef;var state:tspecializationstate);
@@ -72,7 +76,8 @@ uses
   symconst,symsym,symtable,defcmp,defutil,procinfo,
   { modules }
   fmodule,
-  node,nobj,ncon,
+  { node }
+  nobj,ncon,ncal,
   { parser }
   scanner,
   pbase,pexpr,pdecsub,ptype,psub,pparautl,pdecl;
@@ -82,6 +87,37 @@ uses
   const
     tgeneric_param_const_types : tdeftypeset = [orddef,stringdef,floatdef,setdef,pointerdef,enumdef];
     tgeneric_param_nodes : tnodetypeset = [typen,ordconstn,stringconstn,realconstn,setconstn,niln];
+
+    procedure make_prettystring(paramtype:tdef;first:boolean;constprettyname:ansistring;var prettyname,specializename:ansistring);
+      var
+        namepart : string;
+        prettynamepart : ansistring;
+        module : tmodule;
+      begin
+        module:=find_module_from_symtable(paramtype.owner);
+        if not assigned(module) then
+          internalerror(2016112802);
+        namepart:='_$'+hexstr(module.moduleid,8)+'$$'+paramtype.unique_id_str;
+        { we use the full name of the type to uniquely identify it }
+        if (symtablestack.top.symtabletype=parasymtable) and
+            (symtablestack.top.defowner.typ=procdef) and
+            (paramtype.owner=symtablestack.top) then
+          begin
+            { special handling for specializations inside generic function declarations }
+            prettynamepart:=tdef(symtablestack.top.defowner).fullownerhierarchyname(true)+tprocdef(symtablestack.top.defowner).procsym.prettyname;
+          end
+        else
+          begin
+            prettynamepart:=paramtype.fullownerhierarchyname(true);
+          end;
+        specializename:=specializename+namepart;
+        if not first then
+          prettyname:=prettyname+',';
+        if constprettyname<>'' then
+          prettyname:=prettyname+constprettyname
+        else
+          prettyname:=prettyname+prettynamepart+paramtype.typesym.prettyname;
+      end;
 
     function get_generic_param_def(sym:tsym):tdef;
       begin
@@ -497,14 +533,13 @@ uses
         parampos : pfileposinfo;
         tmpparampos : tfileposinfo;
         namepart : string;
-        prettynamepart : ansistring;
         module : tmodule;
         constprettyname : string;
         validparam : boolean;
       begin
         result:=true;
         prettyname:='';
-        prettynamepart:='';
+        constprettyname:='';
         if paramlist=nil then
           internalerror(2012061401);
         { set the block type to type, so that the parsed type are returned as
@@ -571,34 +606,7 @@ uses
                             constprettyname:='';
                             paramlist.Add(typeparam.resultdef.typesym);
                           end;
-                        module:=find_module_from_symtable(typeparam.resultdef.owner);
-                        if not assigned(module) then
-                          internalerror(2016112802);
-                        namepart:='_$'+hexstr(module.moduleid,8)+'$$'+typeparam.resultdef.unique_id_str;
-                        if constprettyname<>'' then
-                          namepart:=namepart+'$$'+constprettyname;
-                        { we use the full name of the type to uniquely identify it }
-                        if typeparam.nodetype=typen then
-                          begin
-                            if (symtablestack.top.symtabletype=parasymtable) and
-                                (symtablestack.top.defowner.typ=procdef) and
-                                (typeparam.resultdef.owner=symtablestack.top) then
-                              begin
-                                { special handling for specializations inside generic function declarations }
-                                prettynamepart:=tdef(symtablestack.top.defowner).fullownerhierarchyname(true)+tprocdef(symtablestack.top.defowner).procsym.prettyname;
-                              end
-                            else
-                              begin
-                                prettynamepart:=typeparam.resultdef.fullownerhierarchyname(true);
-                              end;
-                          end;
-                        specializename:=specializename+namepart;
-                        if not first then
-                          prettyname:=prettyname+',';
-                        if constprettyname<>'' then
-                          prettyname:=prettyname+constprettyname
-                        else
-                          prettyname:=prettyname+prettynamepart+typeparam.resultdef.typesym.prettyname;
+                        make_prettystring(typeparam.resultdef,first,constprettyname,prettyname,specializename);
                       end;
                   end
                 else
@@ -635,6 +643,633 @@ uses
         generate_specialization(tt,parse_class_parent,_prettyname,nil,'',dummypos);
       end;
 
+
+    function finalize_specialization(var pd:tprocdef;spezcontext:tspecializationcontext):boolean;
+      var
+        def : tdef;
+      begin
+        result:=false;
+        if assigned(spezcontext) then
+          begin
+            if not (df_generic in pd.defoptions) then
+              internalerror(2015060301);
+            { check whether the given parameters are compatible
+              to the def's constraints }
+            if not check_generic_constraints(pd,spezcontext.paramlist,spezcontext.poslist) then
+              exit;
+            def:=generate_specialization_phase2(spezcontext,pd,false,'');
+            case def.typ of
+              errordef:
+                { do nothing }
+                ;
+              procdef:
+                pd:=tprocdef(def);
+              else
+                internalerror(2015070303);
+            end;
+          end;
+        result:=true;
+      end;
+
+
+    procedure transfer_unnamed_symbols(owner:tsymtable;unnamed_syms:tfplist);
+      var
+        i : integer;
+        sym : tsym;
+      begin
+        for i:=0 to unnamed_syms.count-1 do
+          begin
+            sym:=tsym(unnamed_syms[i]);
+            sym.ChangeOwnerAndName(owner.symlist,sym.realname);
+          end;
+        unnamed_syms.clear;
+      end;
+
+
+    function try_implicit_specialization(sym:tsym;para:tnode;pdoverloadlist:tfpobjectlist;var unnamed_syms:tfplist;var first_procsym:tsym;var hasoverload:boolean):boolean;
+
+      { hash key for generic parameter lookups }
+      function generic_param_hash(def:tdef):string;inline;
+        begin
+          result:=def.typename;
+        end;
+
+      { returns true if the def a literal array such as [1,2,3] and not a shortstring }
+      function is_array_literal(def:tdef):boolean;
+        begin
+          result:=(def.typ=arraydef) and not is_conststring_array(def);
+        end;
+
+      { makes the specialization context from the generic proc def and generic params }
+      procedure generate_implicit_specialization(out context:tspecializationcontext;genericdef:tprocdef;genericparams:tfphashlist);
+        var
+          parsedpos:tfileposinfo;
+          poslist:tfplist;
+          i: longint;
+          paramtype: ttypesym;
+          parampos : pfileposinfo;
+          tmpparampos : tfileposinfo;
+          paramname: string;
+        begin
+          context:=tspecializationcontext.create;
+          fillchar(parsedpos,sizeof(parsedpos),0);
+          poslist:=context.poslist;
+          tmpparampos:=current_filepos;
+          if genericparams.count<>genericdef.genericparas.count then
+            internalerror(2021020901);
+          for i:=0 to genericparams.count-1 do
+            begin
+              paramname:=generic_param_hash(ttypesym(genericdef.genericparas[i]).typedef);
+              paramtype:=ttypesym(genericparams.find(paramname));
+              if not assigned(paramtype) then
+                internalerror(2021020902);
+              new(parampos);
+              parampos^:=tmpparampos;
+              poslist.add(parampos);
+              context.paramlist.Add(paramtype);
+              make_prettystring(paramtype.typedef,i=0,'',context.prettyname,context.specializename);
+            end;
+          context.genname:=genericdef.procsym.realname;
+        end;
+
+      { specialization context parameter lists require a typesym so we need
+        to generate a placeholder for unnamed constant types like
+        short strings, open arrays, function pointers etc... }
+      function create_unnamed_typesym(def:tdef):tsym;
+        var
+          newtype: tsym;
+        begin
+          newtype:=nil;
+          if is_conststring_array(def) then
+            begin
+              { for constant strings we need to respect various modeswitches }
+              if (cs_refcountedstrings in current_settings.localswitches) then
+                begin
+                  if m_default_unicodestring in current_settings.modeswitches then
+                    newtype:=cunicodestringtype.typesym
+                  else
+                    newtype:=cansistringtype.typesym;
+                end
+              else
+                newtype:=cshortstringtype.typesym;
+            end
+          else if def.typ=stringdef then
+            newtype:=tstringdef(def).get_default_string_type.typesym
+          else
+            begin
+              newtype:=ctypesym.create(def.fullownerhierarchyname(false)+typName[def.typ]+'$'+def.unique_id_str,def);
+              newtype.owner:=def.owner;
+            end;
+          if not assigned(newtype) then
+            internalerror(2021020904);
+          result:=newtype;
+        end;
+
+      { searches for the generic param in specializations }
+      function find_param_in_specialization(owner:tprocdef;genericparam:ttypesym;def:tstoreddef):boolean;
+        var
+          parasym: ttypesym;
+          k, i: integer;
+        begin
+          result:=false;
+          for i:=0 to def.genericparas.count-1 do
+            begin
+              parasym:=ttypesym(def.genericparas[i]);
+              { the generic param must have a named typesym }
+              if not assigned(parasym.typedef.typesym) then
+                internalerror(2021020907);
+              { recurse into inline specialization }
+              if tstoreddef(parasym.typedef).is_specialization then
+                begin
+                  result:=find_param_in_specialization(owner,genericparam,tstoreddef(parasym.typedef));
+                  if result then
+                    exit;
+                end
+              else if (genericparam=parasym.typedef.typesym) and owner.is_generic_param(parasym.typedef) then
+                exit(true);
+            end;
+        end;
+
+      { searches for the generic param in arrays }
+      function find_param_in_array(owner:tprocdef;genericparam:ttypesym;def:tarraydef):boolean;
+        var
+          elementdef:tstoreddef;
+        begin
+          elementdef:=tstoreddef(def.elementdef);
+          { recurse into multi-dimensional array }
+          if elementdef.typ=arraydef then
+            result:=find_param_in_array(owner,genericparam,tarraydef(elementdef))
+          { something went wrong during parsing and the element is invalid }
+          else if elementdef.typ=errordef then
+            result:=false
+          else
+            begin
+              { the element must have a named typesym }
+              if not assigned(elementdef.typesym) then
+                internalerror(2021020906);
+              result:=(genericparam=elementdef.typesym) and owner.is_generic_param(elementdef);
+            end;
+        end;
+
+      { tests if the generic param is used in the parameter list }
+      function is_generic_param_used(owner:tprocdef;genericparam:ttypesym;paras:tfplist):boolean;
+        var
+          paravar:tparavarsym;
+          i: integer;
+        begin
+          result:=false;
+          for i:=0 to paras.count-1 do
+            begin
+              paravar:=tparavarsym(paras[i]);
+
+              { handle array types by using element types (for example: array of T) }
+              if paravar.vardef.typ=arraydef then
+                result:=find_param_in_array(owner,genericparam,tarraydef(paravar.vardef))
+              { for specializations check search in generic params }
+              else if tstoreddef(paravar.vardef).is_specialization then
+                result:=find_param_in_specialization(owner,genericparam,tstoreddef(paravar.vardef))
+              { something went wrong during parsing and the parameter is invalid }
+              else if paravar.vardef.typ=errordef then
+                exit(false)
+              else
+                begin
+                  if not assigned(paravar.vardef.typesym) then
+                    internalerror(2021020905);
+                  result:=(genericparam=paravar.vardef.typesym) and owner.is_generic_param(paravar.vardef)
+                end;
+
+              { exit if we find a used parameter }
+              if result then
+                exit;
+            end;
+        end;
+
+      { handle generic specializations by using generic params from caller
+        to specialize the target. for example "TRec<Integer>" can use "Integer"
+        to specialize "TRec<T>" with "Integer" for "T". }
+      procedure handle_specializations(genericparams:tfphashlist;target_def,caller_def:tstoreddef);
+        var
+          i,
+          index : integer;
+          key : string;
+          target_param,
+          caller_param : ttypesym;
+        begin
+          { the target and the caller must the same generic def 
+            with the same set of generic parameters }
+          if target_def.genericdef<>caller_def.genericdef then
+            internalerror(2021020909);
+
+          for i:=0 to target_def.genericparas.count-1 do
+            begin
+              target_param:=ttypesym(target_def.genericparas[i]);
+              caller_param:=ttypesym(caller_def.genericparas[i]);
+
+              { reject generics with constants }
+              if (target_param.typ=constsym) or (caller_param.typ=constsym) then
+                exit;
+
+              key:=generic_param_hash(target_param.typedef);
+
+              { the generic param is already used }
+              index:=genericparams.findindexof(key);
+              if index>=0 then
+                continue;
+
+              { add the type to the generic params }
+              genericparams.add(key,caller_param);
+            end;
+        end;
+
+      { specialize arrays by using element types but arrays may be multi-dimensional 
+        so we need to examine the caller/target pairs recursively in order to
+        verify the dimensionality is equal }
+      function handle_arrays(owner:tprocdef;target_def,caller_def:tarraydef;out target_element,caller_element:tdef):boolean;
+        begin
+          { the target and the caller are both arrays and the target is a 
+            specialization so we can recurse into the targets element def }
+          if is_array_literal(target_def.elementdef) and 
+            is_array_literal(caller_def.elementdef) and 
+            target_def.is_specialization then
+            result:=handle_arrays(owner,tarraydef(target_def.elementdef),tarraydef(caller_def.elementdef),target_element,caller_element)
+          else
+            begin
+              { the caller is an array which means the dimensionality is unbalanced
+                and thus the arrays are compatible }
+              if is_array_literal(caller_def.elementdef) then
+                exit(false);
+              { if the element is a generic param then return this type
+                along with the caller element type at the same level }
+              result:=owner.is_generic_param(target_def.elementdef);
+              if result then
+                begin
+                  target_element:=target_def.elementdef;
+                  caller_element:=caller_def.elementdef;
+                end;
+            end;
+        end;
+
+      { handle procvars by using the parameters from the caller to specialize
+        the parameters of the target generic procedure specialization. for example:
+
+          type generic TProc<S> = procedure(value: S);
+          generic procedure Run<T>(proc: specialize TProc<T>);
+          procedure DoCallback(value: integer);
+          Run(@DoCallback);
+
+        will specialize as Run<integer> because the signature
+        of DoCallback() matches TProc<S> so we can specialize "S"
+        with "integer", as they are both parameter #1
+      }
+
+      function handle_procvars(genericparams:tfphashlist;callerparams:tfplist;target_def:tdef;caller_def:tdef):boolean;
+        var
+          i,j : integer;
+          paravar : tparavarsym;
+          target_proc,
+          caller_proc : tprocvardef;
+          target_proc_para,
+          caller_proc_para : tparavarsym;
+          newparams : tfphashlist;
+          key : string;
+          index : integer;
+          valid_params : integer;
+        begin
+          result := false;
+
+          target_proc:=tprocvardef(target_def);
+          caller_proc:=tprocvardef(caller_def);
+
+          { parameter count must match exactly
+            currently default values are not considered }
+          if target_proc.paras.count<>caller_proc.paras.count then
+            exit;
+
+          { reject generics with constants }
+          for i:=0 to target_proc.genericdef.genericparas.count-1 do
+            if tsym(target_proc.genericdef.genericparas[i]).typ=constsym then
+              exit;
+
+          newparams:=tfphashlist.create;
+          valid_params:=0;
+
+          for i:=0 to target_proc.paras.count-1 do
+            begin
+              target_proc_para:=tparavarsym(target_proc.paras[i]);
+              caller_proc_para:=tparavarsym(caller_proc.paras[i]);
+
+              { the parameters are not compatible }
+              if compare_defs(caller_proc_para.vardef,target_proc_para.vardef,nothingn)=te_incompatible then
+                begin
+                  newparams.free;
+                  exit(false);
+                end;
+
+              if sp_generic_para in target_proc_para.vardef.typesym.symoptions then
+                begin
+                  paravar:=tparavarsym(tprocvardef(target_proc.genericdef).paras[i]);
+
+                  { find the generic param name in the generic def parameters }
+                  j:=target_proc.genericdef.genericparas.findindexof(paravar.vardef.typesym.name);
+
+                  target_def:=tparavarsym(target_proc.paras[j]).vardef;
+                  caller_def:=caller_proc_para.vardef;
+
+                  if not assigned(caller_def.typesym) then
+                    internalerror(2021020908);
+
+                  key:=generic_param_hash(target_def);
+
+                  { the generic param must not already be used }
+                  index:=genericparams.findindexof(key);
+                  if index<0 then
+                    begin
+                      { add the type to the list }
+                      index:=newparams.findindexof(key);
+                      if index<0 then
+                        newparams.add(key,caller_def.typesym);
+                    end;
+                end;
+
+              inc(valid_params);
+            end;
+
+          { if the count of valid params matches the target then
+            transfer the temporary params to the actual params }
+          result:=valid_params=target_proc.paras.count;
+          if result then
+            for i := 0 to newparams.count-1 do
+              genericparams.add(newparams.nameofindex(i),newparams[i]);
+
+          newparams.free;
+        end;
+
+      { compare generic parameters <T> with call node parameters. }
+      function is_possible_specialization(callerparams:tfplist;genericdef:tprocdef;out unnamed_syms:tfplist;out genericparams:tfphashlist):boolean;
+        var
+          i,j,
+          count : integer;
+          paravar : tparavarsym;
+          target_def,
+          caller_def : tdef;
+          target_key : string;
+          index : integer;
+          paras : tfplist;
+          target_element,
+          caller_element : tdef;
+          required_param_count : integer;
+          adef : tarraydef;
+        begin
+          result:=false;
+          paras:=nil;
+          genericparams:=nil;
+          required_param_count:=0;
+          unnamed_syms:=nil;
+
+          { first perform a check to reject generics with constants }
+          for i:=0 to genericdef.genericparas.count-1 do
+            if tsym(genericdef.genericparas[i]).typ=constsym then
+              exit;
+
+          { build list of visible target function parameters }
+          paras:=tfplist.create;
+          for i:=0 to genericdef.paras.count-1 do
+            begin
+              paravar:=tparavarsym(genericdef.paras[i]);
+              { ignore hidden parameters }
+              if vo_is_hidden_para in paravar.varoptions then
+                continue;
+              paras.add(paravar);
+
+              { const non-default parameters are required }
+              if not assigned(paravar.defaultconstsym) then
+                inc(required_param_count);
+            end;
+
+          { not enough parameters were supplied }
+          if callerparams.count<required_param_count then
+            begin
+              paras.free;
+              exit;
+            end;
+
+          { check to make sure the generic parameters are all used 
+            at least once in the  caller parameters. }
+          count:=0;
+          for i:=0 to genericdef.genericparas.count-1 do
+            if is_generic_param_used(genericdef,ttypesym(genericdef.genericparas[i]),paras) then
+              inc(count);
+
+          if count<genericdef.genericparas.count then
+            begin
+              paras.free;
+              exit;
+            end;
+
+          genericparams:=tfphashlist.create;
+          for i:=0 to callerparams.count-1 do
+            begin
+              caller_def:=ttypesym(callerparams[i]).typedef;
+
+              { caller parameter exceeded the possible parameters }
+              if i=paras.count then
+                begin
+                  genericparams.free;
+                  paras.free;
+                  exit;
+                end;
+
+              target_def:=tparavarsym(paras[i]).vardef;
+              target_key:='';
+
+              { strings are compatible with "array of T" so we 
+                need to use the element type for specialization }
+              if is_stringlike(caller_def) and
+                is_array_literal(target_def) and
+                genericdef.is_generic_param(tarraydef(target_def).elementdef) then
+                begin
+                  target_def:=tarraydef(target_def).elementdef;
+                  target_key:=generic_param_hash(target_def);
+                  caller_def:=tstringdef(caller_def).get_default_char_type;
+                end
+              { non-uniform array constructors (i.e. array of const) are not compatible 
+                with normal arrays like "array of T" so we reject them }
+              else if is_array_literal(target_def) and
+                (caller_def.typ=arraydef) and 
+                (ado_IsConstructor in tarraydef(caller_def).arrayoptions) and
+                (ado_IsArrayOfConst in tarraydef(caller_def).arrayoptions) then
+                begin
+                  continue;
+                end
+              { handle generic arrays }
+              else if is_array_literal(caller_def) and
+                is_array_literal(target_def) and
+                handle_arrays(genericdef,tarraydef(target_def),tarraydef(caller_def),target_element,caller_element) then
+                begin
+                  target_def:=target_element;
+                  caller_def:=caller_element;
+                  target_key:=generic_param_hash(target_def);
+                end
+              { handle generic procvars }
+              else if (caller_def.typ=procvardef) and 
+                (target_def.typ=procvardef) and 
+                tprocvardef(target_def).is_specialization and
+                handle_procvars(genericparams,callerparams,target_def,caller_def) then
+                begin
+                  continue;
+                end
+              { handle specialized objects by taking the base class as the type to specialize }    
+              else if is_class_or_object(caller_def) and 
+                is_class_or_object(target_def) and
+                genericdef.is_generic_param(target_def) then
+                begin
+                  target_key:=generic_param_hash(target_def);
+                  target_def:=tobjectdef(target_def).childof;
+                end
+              { handle generic specializations }
+              else if tstoreddef(caller_def).is_specialization and 
+                tstoreddef(target_def).is_specialization and
+                (tstoreddef(caller_def).genericdef=tstoreddef(target_def).genericdef) then
+                begin
+                  handle_specializations(genericparams,tstoreddef(target_def),tstoreddef(caller_def));
+                  continue;
+                end
+              { handle all other generic params }
+              else if target_def.typ=undefineddef then
+                target_key:=generic_param_hash(target_def);
+
+              { the param doesn't have a generic key which means we don't need to consider it }
+              if target_key='' then
+                continue;
+
+              { the generic param is already used }
+              index:=genericparams.findindexof(target_key);
+              if index>=0 then
+                continue;
+
+              { the caller type may not have a typesym so we need to create an unnamed one }
+              if not assigned(caller_def.typesym) then
+                begin
+                  sym:=create_unnamed_typesym(caller_def);
+                  { add the unnamed sym to the list but only it was allocated manually }
+                  if sym.owner=caller_def.owner then
+                    begin
+                      if not assigned(unnamed_syms) then
+                        unnamed_syms:=tfplist.create;
+                      unnamed_syms.add(sym);
+                    end;
+                  genericparams.add(target_key,sym);
+                end
+              else
+                genericparams.add(target_key,caller_def.typesym);
+            end;
+
+          { if the parameter counts match then the specialization is possible }
+          result:=genericparams.count=genericdef.genericparas.count;
+
+          { cleanup }
+          paras.free;
+          if not result then
+            genericparams.free;
+        end;
+
+      { make an ordered list of parameters from the caller }
+      function make_param_list(dummysym:tsym;para:tnode;var unnamed_syms:tfplist):tfplist;
+        var
+          pt : tcallparanode;
+          paradef : tdef;
+          sym : tsym;
+          i : integer;
+        begin
+          result:=tfplist.create;
+          pt:=tcallparanode(para);
+          while assigned(pt) do
+            begin
+              paradef:=pt.paravalue.resultdef;
+              { unnamed parameter types can not be specialized }
+              if not assigned(paradef.typesym) then
+                begin
+                  sym:=create_unnamed_typesym(paradef);
+                  result.insert(0,sym);
+                  { add the unnamed sym to the list but only if it was allocated manually }
+                  if sym.owner=paradef.owner then
+                    begin
+                      if not assigned(unnamed_syms) then
+                        unnamed_syms:=tfplist.create;
+                      unnamed_syms.add(sym);
+                    end;
+                end
+              else
+                result.insert(0,paradef.typesym);
+              pt:=tcallparanode(pt.nextpara);
+            end;
+        end;
+
+      var
+        i,j,k : integer;
+        srsym : tprocsym;
+        callerparams : tfplist;
+        pd : tprocdef;
+        dummysym : tprocsym;
+        genericparams : tfphashlist;
+        spezcontext : tspecializationcontext;
+        pd_unnamed_syms : tfplist;
+      begin
+        result:=false;
+        spezcontext:=nil;
+        genericparams:=nil;
+        dummysym:=tprocsym(sym);
+        callerparams:=make_param_list(dummysym,para,unnamed_syms);
+
+        { failed to build the parameter list }
+        if not assigned(callerparams) then
+          exit;
+
+        for i:=0 to dummysym.genprocsymovlds.count-1 do
+          begin
+            srsym:=tprocsym(dummysym.genprocsymovlds[i]);
+            for j:=0 to srsym.ProcdefList.Count-1 do
+              begin
+                pd:=tprocdef(srsym.ProcdefList[j]);
+                if is_possible_specialization(callerparams,pd,pd_unnamed_syms,genericparams) then
+                  begin
+                    generate_implicit_specialization(spezcontext,pd,genericparams);
+                    genericparams.free;
+                    { finalize the specialization so it can be added to the list of overloads }
+                    if not finalize_specialization(pd,spezcontext) then
+                      begin
+                        spezcontext.free;
+                        continue;
+                      end;
+                    { handle unnamed syms used by the specialization }
+                    if pd_unnamed_syms<>nil then
+                      begin
+                        transfer_unnamed_symbols(pd.owner,pd_unnamed_syms);
+                        pd_unnamed_syms.free;
+                      end;
+                    pdoverloadlist.add(pd);
+                    spezcontext.free;
+                    if po_overload in pd.procoptions then
+                      hasoverload:=true;
+                    { store first procsym found }
+                    if not assigned(first_procsym) then
+                      first_procsym:=srsym;
+                    result:=true;
+                  end
+                else
+                  begin
+                    { the specialization was not chosen so clean up any unnamed syms }
+                    if pd_unnamed_syms<>nil then
+                      begin
+                        for k:=0 to pd_unnamed_syms.count-1 do
+                          tsym(pd_unnamed_syms[k]).free;
+                        pd_unnamed_syms.free;
+                      end;
+                  end;
+              end;
+          end;
+        callerparams.free;
+      end;
 
     function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef):tdef;
       var
@@ -850,9 +1485,6 @@ uses
             st : TSymtable;
             i : longint;
           begin
-            { since commit 48986 deflist might have NIL entries }
-            if not assigned(def) then
-              exit;
             case def.typ of
               procdef:
                 tprocdef(def).forwarddef:=false;
@@ -2192,13 +2824,17 @@ uses
       end;
 
 
-    procedure maybe_add_pending_specialization(def:tdef);
+    procedure maybe_add_pending_specialization(def:tdef;unnamed_syms: tfplist);
       var
         hmodule : tmodule;
         st : tsymtable;
+        i : integer;
       begin
         if parse_generic then
           exit;
+        { transfer ownership of any unnamed syms to be the specialization }
+        if unnamed_syms<>nil then
+          transfer_unnamed_symbols(tprocdef(def).parast,unnamed_syms);
         st:=def.owner;
         while st.symtabletype in [localsymtable] do
           st:=st.defowner.owner;
