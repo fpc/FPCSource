@@ -184,7 +184,7 @@ begin
         S:=' '
       else
         S:='';
-      writeln(GetEnumName(TypeInfo(TCSSTOKEN),Ord(aToken)),' -> S : >',S,'<');
+      // writeln(GetEnumName(TypeInfo(TCSSTOKEN),Ord(aToken)),' -> S : >',S,'<');
       if S<>'' then
         aOutput.WriteBuffer(S[1],length(S));
       aPreviousToken:=aToken;
