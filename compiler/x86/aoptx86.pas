@@ -218,6 +218,11 @@ unit aoptx86;
 
     function RefsEqual(const r1, r2: treference): boolean;
 
+    { Note that Result is set to True if the references COULD overlap but the
+      compiler cannot be sure (e.g. "(%reg1)" and "4(%reg2)" with a range of 4
+      might still overlap because %reg2 could be equal to %reg1-4 }
+    function RefsMightOverlap(const r1, r2: treference; const Range: asizeint): boolean;
+
     function MatchReference(const ref : treference;base,index : TRegister) : Boolean;
 
     { returns true, if ref is a reference using only the registers passed as base and index
@@ -359,6 +364,26 @@ unit aoptx86;
           (r1.index = r2.index) and (r1.scalefactor = r2.scalefactor) and
           (r1.offset = r2.offset) and
           (r1.volatility + r2.volatility = []);
+      end;
+
+
+    function RefsMightOverlap(const r1, r2: treference; const Range: asizeint): boolean;
+      begin
+        if (r1.symbol<>r2.symbol) then
+          { If the index registers are different, there's a chance one could
+            be set so it equals the other symbol }
+          Exit((r1.index<>r2.index) or (r1.scalefactor<>r2.scalefactor));
+
+        if (r1.symbol=r2.symbol) and (r1.refaddr = r2.refaddr) and
+          (r1.relsymbol = r2.relsymbol) and
+          (r1.segment = r2.segment) and (r1.base = r2.base) and
+          (r1.index = r2.index) and (r1.scalefactor = r2.scalefactor) and
+          (r1.volatility + r2.volatility = []) then
+          { In this case, it all depends on the offsets }
+          Exit(abs(r1.offset - r2.offset) < Range);
+
+        { There's a chance things MIGHT overlap, so take no chances }
+        Result := True;
       end;
 
 
@@ -3218,6 +3243,8 @@ unit aoptx86;
                                 Change to:
                                   movdqu x(mem1), %xmmreg
                                   movdqu %xmmreg, y(mem2)
+
+                                ...but only as long as the memory blocks don't overlap
                               }
                               SourceRef := taicpu(p).oper[0]^.ref^;
                               TargetRef := taicpu(hp1).oper[1]^.ref^;
@@ -3243,7 +3270,8 @@ unit aoptx86;
                                       MovUnaligned := A_MOVDQU;
                                     end;
 
-                                  if RefsEqual(SourceRef, taicpu(hp2).oper[0]^.ref^) then
+                                  if RefsEqual(SourceRef, taicpu(hp2).oper[0]^.ref^) and
+                                    not RefsMightOverlap(taicpu(p).oper[0]^.ref^, TargetRef, 16) then
                                     begin
                                       UpdateUsedRegs(TmpUsedRegs, tai(hp2.Next));
                                       Inc(TargetRef.offset, 8);
@@ -3302,7 +3330,8 @@ unit aoptx86;
                                         begin
                                           UpdateUsedRegs(TmpUsedRegs, tai(hp2.Next));
                                           Dec(TargetRef.offset, 8); { Only 8, not 16, as it wasn't incremented unlike SourceRef }
-                                          if GetNextInstruction(hp2, hp3) and
+                                          if not RefsMightOverlap(SourceRef, TargetRef, 16) and
+                                            GetNextInstruction(hp2, hp3) and
                                             MatchInstruction(hp3, A_MOV, [taicpu(p).opsize]) and
                                             MatchOpType(taicpu(hp3), top_reg, top_ref) and
                                             (taicpu(hp2).oper[1]^.reg = taicpu(hp3).oper[0]^.reg) and
@@ -7232,7 +7261,8 @@ unit aoptx86;
               { Reuse the register in the first block move }
               CurrentReg := newreg(R_MMREGISTER, getsupreg(taicpu(p).oper[1]^.reg), R_SUBMMY);
 
-              if RefsEqual(SourceRef, taicpu(hp2).oper[0]^.ref^) then
+              if RefsEqual(SourceRef, taicpu(hp2).oper[0]^.ref^) and
+                not RefsMightOverlap(taicpu(p).oper[0]^.ref^, TargetRef, 32) then
                 begin
                   UpdateUsedRegs(TmpUsedRegs, tai(hp2.Next));
                   Inc(TargetRef.offset, 16);
@@ -7296,7 +7326,8 @@ unit aoptx86;
                     begin
                       UpdateUsedRegs(TmpUsedRegs, tai(hp2.Next));
                       Dec(TargetRef.offset, 16); { Only 16, not 32, as it wasn't incremented unlike SourceRef }
-                      if GetNextInstruction(hp2, hp3) and
+                      if not RefsMightOverlap(SourceRef, TargetRef, 32) and
+                        GetNextInstruction(hp2, hp3) and
                         MatchInstruction(hp3, A_MOV, [taicpu(p).opsize]) and
                         MatchOpType(taicpu(hp3), top_reg, top_ref) and
                         (taicpu(hp2).oper[1]^.reg = taicpu(hp3).oper[0]^.reg) and
