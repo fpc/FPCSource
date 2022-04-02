@@ -328,7 +328,9 @@ implementation
             begin
               if p.constdef=nil then
                 internalerror(200403232);
-              p1:=cordconstnode.create(p.value.valueord,p.constdef,true);
+              { no range checking; if it has a fixed type, the necessary value
+                truncation was already performed at the declaration time }
+              p1:=cordconstnode.create(p.value.valueord,p.constdef,false);
             end;
           conststring :
             begin
