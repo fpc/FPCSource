@@ -445,7 +445,7 @@ begin
   While iIn<=Length(S) do
     begin
     C:=S[iIn];
-    If Not (C in ['a'..'z','A'..'Z','_','-']) then
+    If Not (C in ['a'..'z','A'..'Z','_','-','0'..'9']) then
       begin
       inc(iOut);
       Result[iOut]:='\';
