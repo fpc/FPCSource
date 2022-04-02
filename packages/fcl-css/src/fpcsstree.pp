@@ -757,7 +757,6 @@ begin
   I:=1;
   if (Length(Value)>2) and (Value[2]=':') then
     I:=2;
-  Writeln('Value ',Value, ' -> ',I);
   Result:=Copy(Value,1,I)+StringToIdentifier(Copy(Value,I+1,Length(Value)-I));
 end;
 
