@@ -51,6 +51,18 @@ __entry:
         illegal
         .size _start,.-_start
 
+        .weak __libc_csu_init
+        .type   __libc_csu_init,@function
+__libc_csu_init:
+        rts
+        .size __libc_csu_init,.-__libc_csu_init
+
+        .weak __libc_csu_fini
+        .type   __libc_csu_fini,@function
+__libc_csu_fini:
+        rts
+        .size __libc_csu_fini,.-__libc_csu_fini
+
 #       Used by System_exit procedure
         .globl  _haltproc
         .type   _haltproc,@function
