@@ -564,6 +564,7 @@ Unit racpugas;
         case actopcode of
           A_CSEL,A_CSINC,A_CSINV,A_CSNEG,A_CSET,A_CSETM,
           A_CINC,A_CINV,A_CNEG,A_CCMN,A_CCMP,
+          A_FCCMP,A_FCCMPE,
           A_B:
             begin
               { search for condition, conditions are always 2 chars }
