@@ -1121,17 +1121,26 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
 
     procedure tasmlisttypedconstbuilder.tc_emit_enumdef(def: tenumdef; var node: tnode);
+      var
+        equal: boolean;
       begin
         if node.nodetype=ordconstn then
           begin
-            if equal_defs(node.resultdef,def) or
+            equal:=equal_defs(node.resultdef,def);
+            if equal or
                is_subequal(node.resultdef,def) then
               begin
-                adaptrange(def,tordconstnode(node).value,false,false,cs_check_range in current_settings.localswitches);
-                case longint(node.resultdef.size) of
+                { if equal, the necessary range checking has already been
+                  performed; needed for handling hacks like
+                    const x = tenum(255); }
+                if not equal then
+                  adaptrange(def,tordconstnode(node).value,false,false,cs_check_range in current_settings.localswitches);
+                case node.resultdef.size of
                   1 : ftcb.emit_tai(Tai_const.Create_8bit(Byte(tordconstnode(node).value.svalue)),def);
                   2 : ftcb.emit_tai(Tai_const.Create_16bit(Word(tordconstnode(node).value.svalue)),def);
                   4 : ftcb.emit_tai(Tai_const.Create_32bit(Longint(tordconstnode(node).value.svalue)),def);
+                  else
+                    internalerror(2022040301);
                 end;
               end
             else
