@@ -997,8 +997,9 @@ begin
     begin
     Result := nil;
     AppendText(CreateWarning(Parent), '<NIL>');
-    end;
-  if Element.InheritsFrom(TPasUnresolvedTypeRef) then
+    exit;
+    end
+  else if Element.InheritsFrom(TPasUnresolvedTypeRef) then
     begin
     s := ResolveLinkID(Element.Name);
     if Length(s) = 0 then
