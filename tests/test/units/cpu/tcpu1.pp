@@ -4,6 +4,17 @@ uses
   cpu;
 
 begin
+  write('AES support: ');
+  if AESSupport then
+    begin
+      writeln('yes');
+      asm
+        pxor %xmm0,%xmm0
+        aesenc %xmm0,%xmm0
+      end;
+    end
+  else
+    writeln('no');
   write('AVX support: ');
   if AVXSupport then
     begin
@@ -75,6 +86,17 @@ begin
       asm
         vpxor %ymm0,%ymm0,%ymm0
         vpexpandw %zmm0,%zmm0
+      end;
+    end
+  else
+    writeln('no');
+  write('VAES support: ');
+  if VAESSupport then
+    begin
+      writeln('yes');
+      asm
+        vpxor %ymm0,%ymm0,%ymm0
+        vaesenc %ymm0,%ymm0,%ymm0
       end;
     end
   else
