@@ -76,7 +76,7 @@ var
   ErrorMsg: String;
 begin
   // quick check parameters
-  ErrorMsg:=CheckOptions('hc:s:m:', ['help','config:','save-config:','max-requests:']);
+  ErrorMsg:=CheckOptions('hc:s:m:p:', ['help','config:','save-config:','max-requests:','port:']);
   if ErrorMsg<>'' then begin
     ShowException(Exception.Create(ErrorMsg));
     Terminate;
@@ -90,6 +90,8 @@ begin
     Exit;
   end;
   Port:=3000;
+  if HasOption('p','port') then
+    Port:=StrToIntDef(GetOptionValue('p','port'),Port);
   if HasOption('x','xml-only') then
     FDisp:=TXMLSQLDBRestDispatcher.Create(Self)
   else
@@ -148,6 +150,7 @@ begin
   Writeln('-h --help             this message');
   Writeln('-c --config=File      Read config from .ini file');
   Writeln('-m --max-requests=N   Server at most N requests, then quit.');
+  Writeln('-p --port=N           TCP/IP Port to listen on (default 3000)');
   Writeln('-s --saveconfig=File  Write config to .ini file (ignored when -c or --config is used)');
   Writeln('-x --xml-only         Only allow XML requests)');
 end;
