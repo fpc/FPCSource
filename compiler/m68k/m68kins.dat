@@ -364,12 +364,12 @@ Dx                                                                    $4900,$000
 
 [FABS]
 Dx,FPx                                                                $f000,$4018    2 SBWL               m68881,cf_fpu
-<cf-ea-float>,FPx                                                     $f000,$4018    2 CFANY              cf_fpu
+<cf-ea-float>,FPx                                                     $f200,$4018    2 CFANY              cf_fpu
 <ea-mem-fpuimm>,FPx                                                   $f000,$4018    2 ANY                m68881
 FPx,FPx                                                               $f000,$0018    2 FX                 m68881
-FPx,FPx                                                               $f000,$0018    2 FD                 cf_fpu
+FPx,FPx                                                               $f200,$0018    2 FD                 cf_fpu
 FPx                                                                   $f000,$0018    2 FX                 m68881
-FPx                                                                   $f000,$0018    2 FD                 cf_fpu
+FPx                                                                   $f200,$0018    2 FD                 cf_fpu
 
 [FSABS]
 Dx,FPx                                                                $f200,$4058    2 SBWL               m68040up,cf_fpu
@@ -397,10 +397,10 @@ FPx                                                                   $f000,$001
 
 [FADD]
 Dx,FPx                                                                $f000,$4022    2 SBWL               m68881,cf_fpu
-<cf-ea-float>,FPx                                                     $f000,$4022    2 CFANY              cf_fpu
+<cf-ea-float>,FPx                                                     $f200,$4022    2 CFANY              cf_fpu
 <ea-mem-fpuimm>,FPx                                                   $f000,$4022    2 ANY                m68881
 FPx,FPx                                                               $f000,$0022    2 FX                 m68881
-FPx,FPx                                                               $f000,$0022    2 FD                 cf_fpu
+FPx,FPx                                                               $f200,$0022    2 FD                 cf_fpu
 
 [FSADD]
 Dx,FPx                                                                $f200,$4062    2 SBWL               m68040up
@@ -532,10 +532,10 @@ FPx                                                                   $f000,$000
 
 [FCMP]
 Dx,FPx                                                                $f000,$4038    2 SBWL               m68881,cf_fpu
-<cf-ea-float>,FPx                                                     $f000,$4038    2 CFANY              cf_fpu
+<cf-ea-float>,FPx                                                     $f200,$4038    2 CFANY              cf_fpu
 <ea-mem-fpuimm>,FPx                                                   $f000,$4038    2 ANY                m68881
 FPx,FPx                                                               $f000,$0038    2 FX                 m68881
-FPx,FPx                                                               $f000,$0038    2 FD                 cf_fpu
+FPx,FPx                                                               $f200,$0038    2 FD                 cf_fpu
 
 [FCOS]
 Dx,FPx                                                                $f000,$401d    2 SBWL               m68881
@@ -647,10 +647,10 @@ Dx,<dest>                                                             $f048,$001
 
 [FDIV]
 Dx,FPx                                                                $f000,$4020    2 SBWL               m68881,cf_fpu
-<cf-ea-float>,FPx                                                     $f000,$4020    2 CFANY              cf_fpu
+<cf-ea-float>,FPx                                                     $f200,$4020    2 CFANY              cf_fpu
 <ea-mem-fpuimm>,FPx                                                   $f000,$4020    2 ANY                m68881
 FPx,FPx                                                               $f000,$0020    2 FX                 m68881
-FPx,FPx                                                               $f000,$0020    2 FD                 cf_fpu
+FPx,FPx                                                               $f200,$0020    2 FD                 cf_fpu
 
 [FSDIV]
 Dx,FPx                                                                $f200,$4060    2 SBWL               m68040up,cf_fpu
@@ -692,21 +692,21 @@ FPx                                                                   $f000,$001
 
 [FINT]
 Dx,FPx                                                                $f000,$4001    2 SBWL               m68881,cf_fpu
-<cf-ea-float>,FPx                                                     $f000,$4001    2 CFANY              cf_fpu
+<cf-ea-float>,FPx                                                     $f200,$4001    2 CFANY              cf_fpu
 <ea-mem-fpuimm>,FPx                                                   $f000,$4001    2 ANY                m68881
 FPx,FPx                                                               $f000,$0001    2 FX                 m68881
-FPx,FPx                                                               $f000,$0001    2 FD                 cf_fpu
+FPx,FPx                                                               $f200,$0001    2 FD                 cf_fpu
 FPx                                                                   $f000,$0001    2 FX                 m68881
-FPx                                                                   $f000,$0001    2 FD                 cf_fpu
+FPx                                                                   $f200,$0001    2 FD                 cf_fpu
 
 [FINTRZ]
 Dx,FPx                                                                $f000,$4003    2 SBWL               m68881,cf_fpu
-<cf-ea-float>,FPx                                                     $f000,$4003    2 CFANY              cf_fpu
+<cf-ea-float>,FPx                                                     $f200,$4003    2 CFANY              cf_fpu
 <ea-mem-fpuimm>,FPx                                                   $f000,$4003    2 ANY                m68881
 FPx,FPx                                                               $f000,$0003    2 FX                 m68881
-FPx,FPx                                                               $f000,$0003    2 FD                 cf_fpu
+FPx,FPx                                                               $f200,$0003    2 FD                 cf_fpu
 FPx                                                                   $f000,$0003    2 FX                 m68881
-FPx                                                                   $f000,$0003    2 FD                 cf_fpu
+FPx                                                                   $f200,$0003    2 FD                 cf_fpu
 
 [FJF]
 <dest>                                                                $f080,$0000    1 WL                 gnu_as,m68881,cf_fpu
@@ -835,19 +835,19 @@ FPx,FPx                                                               $f000,$002
 
 [FMOVE]
 FPx,FPx                                                               $f000,$0000    2 FX                 m68881
-FPx,FPx                                                               $f000,$0000    2 FD                 cf_fpu
+FPx,FPx                                                               $f200,$0000    2 FD                 cf_fpu
 Dx,FPx                                                                $f000,$4000    2 SBWL               m68881,cf_fpu
-<cf-ea-float>,FPx                                                     $f000,$4000    2 CFANY              cf_fpu
+<cf-ea-float>,FPx                                                     $f200,$4000    2 CFANY              cf_fpu
 <ea-mem-fpuimm>,FPx                                                   $f000,$4000    2 ANY                m68881
 FPx,Dx                                                                $f000,$6000    2 SBWL               m68881,cf_fpu
 FPx,<ea-mem-alter-kf>                                                 $f000,$6000    2 FP                 m68881
-FPx,<cf-ea-mem-alter>                                                 $f000,$6000    2 CFANY              cf_fpu
+FPx,<cf-ea-mem-alter>                                                 $f200,$6000    2 CFANY              cf_fpu
 FPx,<ea-mem-alter>                                                    $f000,$6000    2 ANY                m68881
 Ax,FPIAR                                                              $f000,$8000    2 L                  m68881,cf_fpu
-<cf-ea-data-float>,FPspec                                             $f000,$8000    2 L                  cf_fpu
+<cf-ea-data-float>,FPspec                                             $f200,$8000    2 L                  cf_fpu
 <ea-data>,FPspec                                                      $f000,$8000    2 L                  m68881
 FPIAR,Ax                                                              $f000,$a000    2 L                  m68881,cf_fpu
-FPspec,<cf-ea-data-alter>                                             $f000,$a000    2 L                  cf_fpu
+FPspec,<cf-ea-data-alter>                                             $f200,$a000    2 L                  cf_fpu
 FPspec,<ea-data-alter>                                                $f000,$a000    2 L                  m68881
 
 [FSMOVE]
@@ -869,16 +869,16 @@ Dx,FPx                                                                $f200,$404
 
 [FMOVEM]
 FPx-FPx,-(Ax)                                                         $f000,$e000    2 FX                 m68881
-FPx-FPx,<cf-ea-movem>                                                 $f000,$f000    2 FD                 cf_fpu
+FPx-FPx,<cf-ea-movem>                                                 $f200,$f000    2 FD                 cf_fpu
 FPx-FPx,<ea-control-alter>                                            $f000,$f000    2 FX                 m68881
 #immregs,-(Ax)                                                        $f000,$e000    2 FX                 m68881
-#immregs,<cf-ea-movem>                                                $f000,$f000    2 FD                 cf_fpu
+#immregs,<cf-ea-movem>                                                $f200,$f000    2 FD                 cf_fpu
 #immregs,<ea-control-alter>                                           $f000,$f000    2 FX                 m68881
 Dx,-(Ax)                                                              $f000,$e800    2 FX                 m68881
 Dx,<ea-control-alter>                                                 $f000,$f800    2 FX                 m68881
-<cf-ea-fmovem-src>,FPx-FPx                                            $f000,$d000    2 FD                 cf_fpu
+<cf-ea-fmovem-src>,FPx-FPx                                            $f200,$d000    2 FD                 cf_fpu
 <ea-mem-restore>,FPx-FPx                                              $f000,$d000    2 FX                 m68881
-<cf-ea-fmovem-src>,#immregs                                           $f000,$d000    2 FD                 cf_fpu
+<cf-ea-fmovem-src>,#immregs                                           $f200,$d000    2 FD                 cf_fpu
 <ea-mem-restore>,#immregs                                             $f000,$d000    2 FX                 m68881
 <ea-mem-restore>,Dx                                                   $f000,$d800    2 FX                 m68881
 FPspec,Dx                                                             $f000,$a000    2 L                  m68881
@@ -911,10 +911,10 @@ Ax,FPIAR                                                              $f000,$800
 
 [FMUL]
 Dx,FPx                                                                $f000,$4023    2 SBWL               m68881,cf_fpu
-<cf-ea-float>,FPx                                                     $f000,$4023    2 CFANY              cf_fpu
+<cf-ea-float>,FPx                                                     $f200,$4023    2 CFANY              cf_fpu
 <ea-mem-fpuimm>,FPx                                                   $f000,$4023    2 ANY                m68881
 FPx,FPx                                                               $f000,$0023    2 FX                 m68881
-FPx,FPx                                                               $f000,$0023    2 FD                 cf_fpu
+FPx,FPx                                                               $f200,$0023    2 FD                 cf_fpu
 
 [FSMUL]
 Dx,FPx                                                                $f200,$4063    2 SBWL               m68040up,cf_fpu
@@ -932,12 +932,12 @@ FPx,FPx                                                               $f200,$006
 
 [FNEG]
 Dx,FPx                                                                $f000,$401a    2 SBWL               m68881,cf_fpu
-<cf-ea-float>,FPx                                                     $f000,$401a    2 CFANY              cf_fpu
+<cf-ea-float>,FPx                                                     $f200,$401a    2 CFANY              cf_fpu
 <ea-mem-fpuimm>,FPx                                                   $f000,$401a    2 ANY                m68881
 FPx,FPx                                                               $f000,$001a    2 FX                 m68881
-FPx,FPx                                                               $f000,$001a    2 FD                 cf_fpu
+FPx,FPx                                                               $f200,$001a    2 FD                 cf_fpu
 FPx                                                                   $f000,$001a    2 FX                 m68881
-FPx                                                                   $f000,$001a    2 FD                 cf_fpu
+FPx                                                                   $f200,$001a    2 FD                 cf_fpu
 
 [FSNEG]
 Dx,FPx                                                                $f200,$405a    2 SBWL               m68040up,cf_fpu
@@ -966,11 +966,11 @@ Dx,FPx                                                                $f000,$402
 FPx,FPx                                                               $f000,$0025    2 FX                 m68881
 
 [FRESTORE]
-<cf-ea-fmovem-src>                                                    $f140,$0000    1 UNS                cf_fpu
+<cf-ea-fmovem-src>                                                    $f340,$0000    1 UNS                cf_fpu
 <ea-mem-restore>                                                      $f140,$0000    1 UNS                m68881
 
 [FSAVE]
-<cf-ea-movem>                                                         $f100,$0000    1 UNS                cf_fpu
+<cf-ea-movem>                                                         $f300,$0000    1 UNS                cf_fpu
 <ea-mem-save>                                                         $f100,$0000    1 UNS                m68881
 
 [FSCALE]
@@ -1103,12 +1103,12 @@ FPx                                                                   $f000,$000
 
 [FSQRT]
 Dx,FPx                                                                $f000,$4004    2 SBWL               m68881,cf_fpu
-<cf-ea-float>,FPx                                                     $f000,$4004    2 CFANY              cf_fpu
+<cf-ea-float>,FPx                                                     $f200,$4004    2 CFANY              cf_fpu
 <ea-mem-fpuimm>,FPx                                                   $f000,$4004    2 ANY                m68881
 FPx,FPx                                                               $f000,$0004    2 FX                 m68881
-FPx,FPx                                                               $f000,$0004    2 FD                 cf_fpu
+FPx,FPx                                                               $f200,$0004    2 FD                 cf_fpu
 FPx                                                                   $f000,$0004    2 FX                 m68881
-FPx                                                                   $f000,$0004    2 FD                 cf_fpu
+FPx                                                                   $f200,$0004    2 FD                 cf_fpu
 
 [FSSQRT]
 Dx,FPx                                                                $f200,$4041    2 SBWL               m68040up,cf_fpu
@@ -1130,10 +1130,10 @@ FPx                                                                   $f200,$004
 
 [FSUB]
 Dx,FPx                                                                $f000,$4028    2 SBWL               m68881,cf_fpu
-<cf-ea-float>,FPx                                                     $f000,$4028    2 CFANY              cf_fpu
+<cf-ea-float>,FPx                                                     $f200,$4028    2 CFANY              cf_fpu
 <ea-mem-fpuimm>,FPx                                                   $f000,$4028    2 ANY                m68881
 FPx,FPx                                                               $f000,$0028    2 FX                 m68881
-FPx,FPx                                                               $f000,$0028    2 FD                 cf_fpu
+FPx,FPx                                                               $f200,$0028    2 FD                 cf_fpu
 
 [FSSUB]
 Dx,FPx                                                                $f200,$4068    2 SBWL               m68040up,cf_fpu
@@ -1295,10 +1295,10 @@ void                                                                  $f07c,$001
 
 [FTST]
 Dx                                                                    $f000,$403a    2 SBWL               m68881,cf_fpu
-<cf-ea-float>                                                         $f000,$403a    2 CFANY              cf_fpu
+<cf-ea-float>                                                         $f200,$403a    2 CFANY              cf_fpu
 <ea-mem-fpuimm>                                                       $f000,$403a    2 ANY                m68881
 FPx                                                                   $f000,$003a    2 FX                 m68881
-FPx                                                                   $f000,$003a    2 FD                 cf_fpu
+FPx                                                                   $f200,$003a    2 FD                 cf_fpu
 
 [FTWOTOX]
 Dx,FPx                                                                $f000,$4011    2 SBWL               m68881
@@ -1576,13 +1576,17 @@ Rx,<ea-mem-alter>                                                     $0e00,$080
 Dx-Ax,-(Ax)                                                           $4880,$0000    2 WL                 gnu_as,m68000up
 Dx-Ax,<cf-ea-movem>                                                   $4880,$0000    2 CFWL               gnu_as,m68000up,cf
 Dx-Ax,<ea-control-alter>                                              $4880,$0000    2 WL                 gnu_as,m68000up
+Dx-Ax,<ea-control>                                                    $4880,$0000    2 WL                 gnu_as
 <cf-ea-movem>,Dx-Ax                                                   $4c80,$0000    2 CFWL               gnu_as,m68000up,cf
 <ea-mem-restore>,Dx-Ax                                                $4c80,$0000    2 WL                 gnu_as,m68000up
+<ea-mem-restore>,Dx-Ax                                                $4c80,$0000    2 WL                 gnu_as
 #immregs,-(Ax)                                                        $4880,$0000    2 WL                 gnu_as,m68000up
 #immregs,<cf-ea-movem>                                                $4880,$0000    2 CFWL               gnu_as,m68000up,cf
 #immregs,<ea-control-alter>                                           $4880,$0000    2 WL                 gnu_as,m68000up
+#immregs,<ea-control>                                                 $4880,$0000    2 WL                 gnu_as
 <cf-ea-movem>,#immregs                                                $4c80,$0000    2 CFWL               gnu_as,m68000up,cf
 <ea-mem-restore>,#immregs                                             $4c80,$0000    2 WL                 gnu_as,m68000up
+<ea-mem-restore>,#immregs                                             $4c80,$0000    2 WL                 gnu_as
 
 [MULS]
 <cf-ea-data-alter>,Dx                                                 $c1c0,$0000    1 W                  m68000up,cf
@@ -1764,7 +1768,7 @@ void                                                                  $f510,$000
 (Ax)                                                                  $f500,$0000    1 UNS                m68040up
 
 [PFLUSHR]
-<ea-mem>                                                              $f000,$a000    2 UNS                m68851
+<ea-mem>                                                              $f000,$a000    2 Q                  m68851
 
 [PFLUSHS]
 #immq,#immq                                                           $f000,$3410    2 UNS                m68851
@@ -1807,11 +1811,11 @@ FC,<ea-control-alter>                                                 $f000,$200
 RP_030,<ea-control-alter>                                             $f000,$4200    2 Q                  m68030,m68851
 RP_851,<ea-control-alter>                                             $f000,$4200    2 Q                  m68851
 TC,<ea-control-alter>                                                 $f000,$4200    2 L                  m68030,m68851
-TC,<ea-any>                                                           $f000,$4200    2 L                  m68851
-<ea-control-alter>,<ea-any>                                           $f000,$4200    2 W                  m68851
-M1_B,<ea-any>                                                         $f000,$4200    2 B                  m68851
-BAD,<ea-any>                                                          $f000,$7200    2 W                  m68851
-BAC,<ea-any>                                                          $f000,$7600    2 W                  m68851
+TC,<ea-alter>                                                         $f000,$4200    2 L                  m68851
+<ea-control-alter>,<ea-alter>                                         $f000,$4200    2 W                  m68851
+M1_B,<ea-alter>                                                       $f000,$4200    2 B                  m68851
+BAD,<ea-alter>                                                        $f000,$7200    2 W                  m68851
+BAC,<ea-alter>                                                        $f000,$7600    2 W                  m68851
 PSR,<ea-control-alter>                                                $f000,$6200    2 W                  m68030,m68851
 PCSR,<ea-alter>                                                       $f000,$6200    2 W                  m68851
 TT,<ea-control-alter>                                                 $f000,$0200    2 L                  m68030

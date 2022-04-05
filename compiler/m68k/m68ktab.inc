@@ -1786,7 +1786,7 @@
     optypes : ([OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_PC_DISP16],[OT_FPUREG],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$4018);
+    code    : ($f200,$4018);
     support : [OS_CF_FPU];
     sizes   : [OPS_BYTE, OPS_WORD, OPS_LONG, OPS_SINGLE, OPS_DOUBLE, OPS_COLDFIRE];
   ),
@@ -1816,7 +1816,7 @@
     optypes : ([OT_FPUREG],[OT_FPUREG],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$0018);
+    code    : ($f200,$0018);
     support : [OS_CF_FPU];
     sizes   : [OPS_DOUBLE];
   ),
@@ -1836,7 +1836,7 @@
     optypes : ([OT_FPUREG],[],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$0018);
+    code    : ($f200,$0018);
     support : [OS_CF_FPU];
     sizes   : [OPS_DOUBLE];
   ),
@@ -2036,7 +2036,7 @@
     optypes : ([OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_PC_DISP16],[OT_FPUREG],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$4022);
+    code    : ($f200,$4022);
     support : [OS_CF_FPU];
     sizes   : [OPS_BYTE, OPS_WORD, OPS_LONG, OPS_SINGLE, OPS_DOUBLE, OPS_COLDFIRE];
   ),
@@ -2066,7 +2066,7 @@
     optypes : ([OT_FPUREG],[OT_FPUREG],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$0022);
+    code    : ($f200,$0022);
     support : [OS_CF_FPU];
     sizes   : [OPS_DOUBLE];
   ),
@@ -2626,7 +2626,7 @@
     optypes : ([OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_PC_DISP16],[OT_FPUREG],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$4038);
+    code    : ($f200,$4038);
     support : [OS_CF_FPU];
     sizes   : [OPS_BYTE, OPS_WORD, OPS_LONG, OPS_SINGLE, OPS_DOUBLE, OPS_COLDFIRE];
   ),
@@ -2656,7 +2656,7 @@
     optypes : ([OT_FPUREG],[OT_FPUREG],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$0038);
+    code    : ($f200,$0038);
     support : [OS_CF_FPU];
     sizes   : [OPS_DOUBLE];
   ),
@@ -3076,7 +3076,7 @@
     optypes : ([OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_PC_DISP16],[OT_FPUREG],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$4020);
+    code    : ($f200,$4020);
     support : [OS_CF_FPU];
     sizes   : [OPS_BYTE, OPS_WORD, OPS_LONG, OPS_SINGLE, OPS_DOUBLE, OPS_COLDFIRE];
   ),
@@ -3106,7 +3106,7 @@
     optypes : ([OT_FPUREG],[OT_FPUREG],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$0020);
+    code    : ($f200,$0020);
     support : [OS_CF_FPU];
     sizes   : [OPS_DOUBLE];
   ),
@@ -3386,7 +3386,7 @@
     optypes : ([OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_PC_DISP16],[OT_FPUREG],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$4001);
+    code    : ($f200,$4001);
     support : [OS_CF_FPU];
     sizes   : [OPS_BYTE, OPS_WORD, OPS_LONG, OPS_SINGLE, OPS_DOUBLE, OPS_COLDFIRE];
   ),
@@ -3416,7 +3416,7 @@
     optypes : ([OT_FPUREG],[OT_FPUREG],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$0001);
+    code    : ($f200,$0001);
     support : [OS_CF_FPU];
     sizes   : [OPS_DOUBLE];
   ),
@@ -3436,7 +3436,7 @@
     optypes : ([OT_FPUREG],[],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$0001);
+    code    : ($f200,$0001);
     support : [OS_CF_FPU];
     sizes   : [OPS_DOUBLE];
   ),
@@ -3456,7 +3456,7 @@
     optypes : ([OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_PC_DISP16],[OT_FPUREG],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$4003);
+    code    : ($f200,$4003);
     support : [OS_CF_FPU];
     sizes   : [OPS_BYTE, OPS_WORD, OPS_LONG, OPS_SINGLE, OPS_DOUBLE, OPS_COLDFIRE];
   ),
@@ -3486,7 +3486,7 @@
     optypes : ([OT_FPUREG],[OT_FPUREG],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$0003);
+    code    : ($f200,$0003);
     support : [OS_CF_FPU];
     sizes   : [OPS_DOUBLE];
   ),
@@ -3506,7 +3506,7 @@
     optypes : ([OT_FPUREG],[],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$0003);
+    code    : ($f200,$0003);
     support : [OS_CF_FPU];
     sizes   : [OPS_DOUBLE];
   ),
@@ -4036,7 +4036,7 @@
     optypes : ([OT_FPUREG],[OT_FPUREG],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$0000);
+    code    : ($f200,$0000);
     support : [OS_CF_FPU];
     sizes   : [OPS_DOUBLE];
   ),
@@ -4056,7 +4056,7 @@
     optypes : ([OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_PC_DISP16],[OT_FPUREG],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$4000);
+    code    : ($f200,$4000);
     support : [OS_CF_FPU];
     sizes   : [OPS_BYTE, OPS_WORD, OPS_LONG, OPS_SINGLE, OPS_DOUBLE, OPS_COLDFIRE];
   ),
@@ -4096,7 +4096,7 @@
     optypes : ([OT_FPUREG],[OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$6000);
+    code    : ($f200,$6000);
     support : [OS_CF_FPU];
     sizes   : [OPS_BYTE, OPS_WORD, OPS_LONG, OPS_SINGLE, OPS_DOUBLE, OPS_COLDFIRE];
   ),
@@ -4126,7 +4126,7 @@
     optypes : ([OT_DATA, OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_PC_DISP16],[OT_SPECIALREG],[],[],[],[]);
     opflags : ([],[OF_SPECREG, OF_SPECREG_FPU],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$8000);
+    code    : ($f200,$8000);
     support : [OS_CF_FPU];
     sizes   : [OPS_LONG];
   ),
@@ -4156,7 +4156,7 @@
     optypes : ([OT_SPECIALREG],[OT_DATA, OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16],[],[],[],[]);
     opflags : ([OF_SPECREG, OF_SPECREG_FPU],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$a000);
+    code    : ($f200,$a000);
     support : [OS_CF_FPU];
     sizes   : [OPS_LONG];
   ),
@@ -4296,7 +4296,7 @@
     optypes : ([OT_FPUREG_LIST],[OT_ADDR_INDIR, OT_ADDR_DISP16],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$f000);
+    code    : ($f200,$f000);
     support : [OS_CF_FPU];
     sizes   : [OPS_DOUBLE];
   ),
@@ -4326,7 +4326,7 @@
     optypes : ([OT_IMMEDIATE],[OT_ADDR_INDIR, OT_ADDR_DISP16],[],[],[],[]);
     opflags : ([OF_NOSIZE],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$f000);
+    code    : ($f200,$f000);
     support : [OS_CF_FPU];
     sizes   : [OPS_DOUBLE];
   ),
@@ -4366,7 +4366,7 @@
     optypes : ([OT_ADDR_INDIR, OT_ADDR_DISP16, OT_PC_DISP16],[OT_FPUREG_LIST],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$d000);
+    code    : ($f200,$d000);
     support : [OS_CF_FPU];
     sizes   : [OPS_DOUBLE];
   ),
@@ -4386,7 +4386,7 @@
     optypes : ([OT_ADDR_INDIR, OT_ADDR_DISP16, OT_PC_DISP16],[OT_IMMEDIATE],[],[],[],[]);
     opflags : ([],[OF_NOSIZE],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$d000);
+    code    : ($f200,$d000);
     support : [OS_CF_FPU];
     sizes   : [OPS_DOUBLE];
   ),
@@ -4676,7 +4676,7 @@
     optypes : ([OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_PC_DISP16],[OT_FPUREG],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$4023);
+    code    : ($f200,$4023);
     support : [OS_CF_FPU];
     sizes   : [OPS_BYTE, OPS_WORD, OPS_LONG, OPS_SINGLE, OPS_DOUBLE, OPS_COLDFIRE];
   ),
@@ -4706,7 +4706,7 @@
     optypes : ([OT_FPUREG],[OT_FPUREG],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$0023);
+    code    : ($f200,$0023);
     support : [OS_CF_FPU];
     sizes   : [OPS_DOUBLE];
   ),
@@ -4826,7 +4826,7 @@
     optypes : ([OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_PC_DISP16],[OT_FPUREG],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$401a);
+    code    : ($f200,$401a);
     support : [OS_CF_FPU];
     sizes   : [OPS_BYTE, OPS_WORD, OPS_LONG, OPS_SINGLE, OPS_DOUBLE, OPS_COLDFIRE];
   ),
@@ -4856,7 +4856,7 @@
     optypes : ([OT_FPUREG],[OT_FPUREG],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$001a);
+    code    : ($f200,$001a);
     support : [OS_CF_FPU];
     sizes   : [OPS_DOUBLE];
   ),
@@ -4876,7 +4876,7 @@
     optypes : ([OT_FPUREG],[],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$001a);
+    code    : ($f200,$001a);
     support : [OS_CF_FPU];
     sizes   : [OPS_DOUBLE];
   ),
@@ -5066,7 +5066,7 @@
     optypes : ([OT_ADDR_INDIR, OT_ADDR_DISP16, OT_PC_DISP16],[],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 1;
-    code    : ($f140,$0000);
+    code    : ($f340,$0000);
     support : [OS_CF_FPU];
     sizes   : [OPS_UNSIZED];
   ),
@@ -5086,7 +5086,7 @@
     optypes : ([OT_ADDR_INDIR, OT_ADDR_DISP16],[],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 1;
-    code    : ($f100,$0000);
+    code    : ($f300,$0000);
     support : [OS_CF_FPU];
     sizes   : [OPS_UNSIZED];
   ),
@@ -5636,7 +5636,7 @@
     optypes : ([OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_PC_DISP16],[OT_FPUREG],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$4004);
+    code    : ($f200,$4004);
     support : [OS_CF_FPU];
     sizes   : [OPS_BYTE, OPS_WORD, OPS_LONG, OPS_SINGLE, OPS_DOUBLE, OPS_COLDFIRE];
   ),
@@ -5666,7 +5666,7 @@
     optypes : ([OT_FPUREG],[OT_FPUREG],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$0004);
+    code    : ($f200,$0004);
     support : [OS_CF_FPU];
     sizes   : [OPS_DOUBLE];
   ),
@@ -5686,7 +5686,7 @@
     optypes : ([OT_FPUREG],[],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$0004);
+    code    : ($f200,$0004);
     support : [OS_CF_FPU];
     sizes   : [OPS_DOUBLE];
   ),
@@ -5846,7 +5846,7 @@
     optypes : ([OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_PC_DISP16],[OT_FPUREG],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$4028);
+    code    : ($f200,$4028);
     support : [OS_CF_FPU];
     sizes   : [OPS_BYTE, OPS_WORD, OPS_LONG, OPS_SINGLE, OPS_DOUBLE, OPS_COLDFIRE];
   ),
@@ -5876,7 +5876,7 @@
     optypes : ([OT_FPUREG],[OT_FPUREG],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$0028);
+    code    : ($f200,$0028);
     support : [OS_CF_FPU];
     sizes   : [OPS_DOUBLE];
   ),
@@ -6736,7 +6736,7 @@
     optypes : ([OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_PC_DISP16],[],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$403a);
+    code    : ($f200,$403a);
     support : [OS_CF_FPU];
     sizes   : [OPS_BYTE, OPS_WORD, OPS_LONG, OPS_SINGLE, OPS_DOUBLE, OPS_COLDFIRE];
   ),
@@ -6766,7 +6766,7 @@
     optypes : ([OT_FPUREG],[],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
-    code    : ($f000,$003a);
+    code    : ($f200,$003a);
     support : [OS_CF_FPU];
     sizes   : [OPS_DOUBLE];
   ),
@@ -8303,6 +8303,16 @@
   (
     opcode  : A_MOVM;
     ops     : 2;
+    optypes : ([OT_REG_LIST],[OT_ADDR_INDIR, OT_ADDR_DISP16, OT_ADDR_IDX_DISP8, OT_ABS_SHORT, OT_ABS_LONG, OT_PC_DISP16, OT_PC_IDX_DISP8],[],[],[],[]);
+    opflags : ([],[],[],[],[],[]);
+    codelen : 2;
+    code    : ($4880,$0000);
+    support : [OS_GNU_AS];
+    sizes   : [OPS_WORD, OPS_LONG];
+  ),
+  (
+    opcode  : A_MOVM;
+    ops     : 2;
     optypes : ([OT_ADDR_INDIR, OT_ADDR_DISP16],[OT_REG_LIST],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
@@ -8318,6 +8328,16 @@
     codelen : 2;
     code    : ($4c80,$0000);
     support : [OS_GNU_AS, OS_M68000UP];
+    sizes   : [OPS_WORD, OPS_LONG];
+  ),
+  (
+    opcode  : A_MOVM;
+    ops     : 2;
+    optypes : ([OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_DISP16, OT_ADDR_IDX_DISP8, OT_ABS_SHORT, OT_ABS_LONG],[OT_REG_LIST],[],[],[],[]);
+    opflags : ([],[],[],[],[],[]);
+    codelen : 2;
+    code    : ($4c80,$0000);
+    support : [OS_GNU_AS];
     sizes   : [OPS_WORD, OPS_LONG];
   ),
   (
@@ -8353,6 +8373,16 @@
   (
     opcode  : A_MOVM;
     ops     : 2;
+    optypes : ([OT_IMMEDIATE],[OT_ADDR_INDIR, OT_ADDR_DISP16, OT_ADDR_IDX_DISP8, OT_ABS_SHORT, OT_ABS_LONG, OT_PC_DISP16, OT_PC_IDX_DISP8],[],[],[],[]);
+    opflags : ([OF_NOSIZE],[],[],[],[],[]);
+    codelen : 2;
+    code    : ($4880,$0000);
+    support : [OS_GNU_AS];
+    sizes   : [OPS_WORD, OPS_LONG];
+  ),
+  (
+    opcode  : A_MOVM;
+    ops     : 2;
     optypes : ([OT_ADDR_INDIR, OT_ADDR_DISP16],[OT_IMMEDIATE],[],[],[],[]);
     opflags : ([],[OF_NOSIZE],[],[],[],[]);
     codelen : 2;
@@ -8368,6 +8398,16 @@
     codelen : 2;
     code    : ($4c80,$0000);
     support : [OS_GNU_AS, OS_M68000UP];
+    sizes   : [OPS_WORD, OPS_LONG];
+  ),
+  (
+    opcode  : A_MOVM;
+    ops     : 2;
+    optypes : ([OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_DISP16, OT_ADDR_IDX_DISP8, OT_ABS_SHORT, OT_ABS_LONG],[OT_IMMEDIATE],[],[],[],[]);
+    opflags : ([],[OF_NOSIZE],[],[],[],[]);
+    codelen : 2;
+    code    : ($4c80,$0000);
+    support : [OS_GNU_AS];
     sizes   : [OPS_WORD, OPS_LONG];
   ),
   (
@@ -9188,7 +9228,7 @@
     codelen : 2;
     code    : ($f000,$a000);
     support : [OS_M68851];
-    sizes   : [OPS_UNSIZED];
+    sizes   : [OPS_QUAD];
   ),
   (
     opcode  : A_PFLUSHS;
@@ -9493,7 +9533,7 @@
   (
     opcode  : A_PMOVE;
     ops     : 2;
-    optypes : ([OT_SPECIALREG],[OT_DATA, OT_ADDR, OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_ADDR_IDX_DISP8, OT_ABS_SHORT, OT_ABS_LONG, OT_PC_DISP16, OT_PC_IDX_DISP8, OT_IMMEDIATE],[],[],[],[]);
+    optypes : ([OT_SPECIALREG],[OT_DATA, OT_ADDR, OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_ADDR_IDX_DISP8, OT_ABS_SHORT, OT_ABS_LONG],[],[],[],[]);
     opflags : ([OF_SPECREG],[],[],[],[],[]);
     codelen : 2;
     code    : ($f000,$4200);
@@ -9503,7 +9543,7 @@
   (
     opcode  : A_PMOVE;
     ops     : 2;
-    optypes : ([OT_ADDR_INDIR, OT_ADDR_DISP16, OT_ADDR_IDX_DISP8, OT_ABS_SHORT, OT_ABS_LONG],[OT_DATA, OT_ADDR, OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_ADDR_IDX_DISP8, OT_ABS_SHORT, OT_ABS_LONG, OT_PC_DISP16, OT_PC_IDX_DISP8, OT_IMMEDIATE],[],[],[],[]);
+    optypes : ([OT_ADDR_INDIR, OT_ADDR_DISP16, OT_ADDR_IDX_DISP8, OT_ABS_SHORT, OT_ABS_LONG],[OT_DATA, OT_ADDR, OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_ADDR_IDX_DISP8, OT_ABS_SHORT, OT_ABS_LONG],[],[],[],[]);
     opflags : ([],[],[],[],[],[]);
     codelen : 2;
     code    : ($f000,$4200);
@@ -9513,7 +9553,7 @@
   (
     opcode  : A_PMOVE;
     ops     : 2;
-    optypes : ([OT_SPECIALREG],[OT_DATA, OT_ADDR, OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_ADDR_IDX_DISP8, OT_ABS_SHORT, OT_ABS_LONG, OT_PC_DISP16, OT_PC_IDX_DISP8, OT_IMMEDIATE],[],[],[],[]);
+    optypes : ([OT_SPECIALREG],[OT_DATA, OT_ADDR, OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_ADDR_IDX_DISP8, OT_ABS_SHORT, OT_ABS_LONG],[],[],[],[]);
     opflags : ([OF_SPECREG],[],[],[],[],[]);
     codelen : 2;
     code    : ($f000,$4200);
@@ -9523,7 +9563,7 @@
   (
     opcode  : A_PMOVE;
     ops     : 2;
-    optypes : ([OT_SPECIALREG],[OT_DATA, OT_ADDR, OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_ADDR_IDX_DISP8, OT_ABS_SHORT, OT_ABS_LONG, OT_PC_DISP16, OT_PC_IDX_DISP8, OT_IMMEDIATE],[],[],[],[]);
+    optypes : ([OT_SPECIALREG],[OT_DATA, OT_ADDR, OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_ADDR_IDX_DISP8, OT_ABS_SHORT, OT_ABS_LONG],[],[],[],[]);
     opflags : ([OF_SPECREG],[],[],[],[],[]);
     codelen : 2;
     code    : ($f000,$7200);
@@ -9533,7 +9573,7 @@
   (
     opcode  : A_PMOVE;
     ops     : 2;
-    optypes : ([OT_SPECIALREG],[OT_DATA, OT_ADDR, OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_ADDR_IDX_DISP8, OT_ABS_SHORT, OT_ABS_LONG, OT_PC_DISP16, OT_PC_IDX_DISP8, OT_IMMEDIATE],[],[],[],[]);
+    optypes : ([OT_SPECIALREG],[OT_DATA, OT_ADDR, OT_ADDR_INDIR, OT_ADDR_INDIR_POSTINC, OT_ADDR_INDIR_PREDEC, OT_ADDR_DISP16, OT_ADDR_IDX_DISP8, OT_ABS_SHORT, OT_ABS_LONG],[],[],[],[]);
     opflags : ([OF_SPECREG],[],[],[],[],[]);
     codelen : 2;
     code    : ($f000,$7600);
