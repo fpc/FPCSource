@@ -425,13 +425,13 @@ implementation
         wordfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(u16inttype,x86pt_far);
         longintfarpointertype:=tcpupointerdefclass(cpointerdef).createx86(s32inttype,x86pt_far);
   {$endif i8086}
-        x86_m64type:=carraydef.create(0,1,s32inttype);
-        x86_m128type:=carraydef.create(0,3,s32inttype);
-        x86_m128dtype:=carraydef.create(0,1,s32inttype);
-        x86_m128itype:=carraydef.create(0,3,s32inttype);
-        x86_m256type:=carraydef.create(0,7,s32inttype);
-        x86_m256dtype:=carraydef.create(0,3,s32inttype);
-        x86_m256itype:=carraydef.create(0,7,s32inttype);
+        x86_m64type:=carraydef.create_vector(0,1,s32inttype);
+        x86_m128type:=carraydef.create_vector(0,3,s32inttype);
+        x86_m128dtype:=carraydef.create_vector(0,1,s32inttype);
+        x86_m128itype:=carraydef.create_vector(0,3,s32inttype);
+        x86_m256type:=carraydef.create_vector(0,7,s32inttype);
+        x86_m256dtype:=carraydef.create_vector(0,3,s32inttype);
+        x86_m256itype:=carraydef.create_vector(0,7,s32inttype);
 
         tarraydef(x86_m64type).elementdef:=s32floattype;
         tarraydef(x86_m128type).elementdef:=s32floattype;
