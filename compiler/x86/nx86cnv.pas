@@ -245,7 +245,6 @@ implementation
 
 
     function tx86typeconvnode.first_int_to_real : tnode;
-
       begin
         first_int_to_real:=nil;
         if (left.resultdef.size<4) then
@@ -262,7 +261,6 @@ implementation
 
 
     procedure tx86typeconvnode.second_int_to_real;
-
       var
          leftref,
          href : treference;
