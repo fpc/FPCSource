@@ -1204,24 +1204,26 @@ unit scandir;
 
     begin
       if switchesstatestackpos < 1 then
-        Message(scan_e_too_many_pop);
-
-      Dec(switchesstatestackpos);
-      recordpendinglocalfullswitch(switchesstatestack[switchesstatestackpos].localsw);
-      recordpendingverbosityfullswitch(switchesstatestack[switchesstatestackpos].verbosity);
-      recordpendingalignmentfullswitch(switchesstatestack[switchesstatestackpos].alignment);
-      recordpendingpackenum(switchesstatestack[switchesstatestackpos].packenum);
-      recordpendingpackrecords(switchesstatestack[switchesstatestackpos].packrecords);
-      recordpendingsetalloc(switchesstatestack[switchesstatestackpos].setalloc);
-      pendingstate.nextmessagerecord:=switchesstatestack[switchesstatestackpos].pmessage;
-      { Reset verbosity and forget previous pmeesage }
-      RestoreLocalVerbosity(nil);
-      current_settings.pmessage:=nil;
-      { Do not yet activate these changes, as otherwise
-        you get problem idf you put a $pop just right after
-        a addition for instance fro which you explicitly truned the overflow check
-        out by using $Q- after a $push PM 2012-08-29 }
-      // flushpendingswitchesstate;
+        Message(scan_e_too_many_pop)
+      else
+        begin
+          Dec(switchesstatestackpos);
+          recordpendinglocalfullswitch(switchesstatestack[switchesstatestackpos].localsw);
+          recordpendingverbosityfullswitch(switchesstatestack[switchesstatestackpos].verbosity);
+          recordpendingalignmentfullswitch(switchesstatestack[switchesstatestackpos].alignment);
+          recordpendingpackenum(switchesstatestack[switchesstatestackpos].packenum);
+          recordpendingpackrecords(switchesstatestack[switchesstatestackpos].packrecords);
+          recordpendingsetalloc(switchesstatestack[switchesstatestackpos].setalloc);
+          pendingstate.nextmessagerecord:=switchesstatestack[switchesstatestackpos].pmessage;
+          { Reset verbosity and forget previous pmeesage }
+          RestoreLocalVerbosity(nil);
+          current_settings.pmessage:=nil;
+          { Do not yet activate these changes, as otherwise
+            you get problem idf you put a $pop just right after
+            a addition for instance fro which you explicitly truned the overflow check
+            out by using $Q- after a $push PM 2012-08-29 }
+          // flushpendingswitchesstate;
+        end;
     end;
 
     procedure dir_pointermath;
