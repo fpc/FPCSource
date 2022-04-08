@@ -266,6 +266,7 @@ var
     for I:=1 to Length(Result) do
     if Result[I] in AllowDirectorySeparators then
       Result[i]:='/';
+    Result:=maybequoted(Result);
   end;
 
 begin
