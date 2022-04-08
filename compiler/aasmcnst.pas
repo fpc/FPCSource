@@ -352,6 +352,7 @@ type
      procedure emit_dynarray_offset(const ll:tasmlabofs;const arrlength:asizeint;const arrdef:tdef);virtual;
      { starts a dynamic array constant so that its data can be emitted directly afterwards }
      function begin_dynarray_const(arrdef:tdef;var startlab:tasmlabel;out arrlengthloc:ttypedconstplaceholder):tasmlabofs;virtual;
+     { ends a dynamic array constant by updating the count field; the arrlengthloc will be freed }
      function end_dynarray_const(arrdef:tdef;arrlength:asizeint;arrlengthloc:ttypedconstplaceholder):tdef;virtual;
 
      { emit a shortstring constant, and return its def }
@@ -1761,6 +1762,7 @@ implementation
      begin
        { we emit the high value, not the count }
        arrlengthloc.replace(tai_const.Create_sizeint(arrlength-1),sizesinttype);
+       arrlengthloc.free;
        result:=end_anonymous_record;
      end;
 
