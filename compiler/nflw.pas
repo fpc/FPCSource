@@ -937,6 +937,8 @@ implementation
               end
             else
               begin
+                if is_array_constructor(expr.resultdef) then
+                  tarrayconstructornode(expr).force_type(hloopvar.resultdef);
                 // search for operator first
                 pd:=search_enumerator_operator(expr.resultdef, hloopvar.resultdef);
                 // if there is no operator then search for class/object enumerator method
