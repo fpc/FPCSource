@@ -1631,6 +1631,13 @@ Implementation
                              break;
                            end;
                      end;
+                   asd_weak_definition:
+                     begin
+                       if tai_directive(hp).name='' then
+                         Internalerror(2022040901);
+                       objsym:=ObjData.symbolref(tai_directive(hp).name);
+                       objsym.bind:=AB_WEAK;
+                     end;
 {$ifdef OMFOBJSUPPORT}
                    asd_omf_linnum_line:
                      { ignore for now, but should be added}
@@ -1787,6 +1794,9 @@ Implementation
                      { ignore for now, but should be added}
                      ;
                    asd_code:
+                     { ignore for now, but should be added}
+                     ;
+                  asd_weak_definition:
                      { ignore for now, but should be added}
                      ;
 {$ifdef OMFOBJSUPPORT}
