@@ -53,7 +53,7 @@ implementation
       aasmtai,cpubase,llvmbase,aasmllvm,
       aasmcnst,nllvmtcon,
       symbase,symtable,defutil,
-      llvmtype,llvmdef,
+      llvminfo,llvmtype,llvmdef,
       objcasm;
 
   class procedure tllvmnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint; _typ:Tasmsymtype);
@@ -257,7 +257,8 @@ implementation
   class procedure tllvmnodeutils.GenerateObjCImageInfo;
     var
       llvmmoduleflags,
-       objcmoduleflag: tai_llvmbasemetadatanode;
+      objcmoduleflag,
+      dwarfversionflag: tai_llvmbasemetadatanode;
       objcabiversion: longint;
     begin
       llvmmoduleflags:=tai_llvmnamedmetadatanode.create('llvm.module.flags');
@@ -299,6 +300,37 @@ implementation
       objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(0)));
       llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
       current_asmdata.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
+
+      { debug information }
+      if (([cs_debuginfo,cs_lineinfo]*current_settings.moduleswitches)<>[]) and
+         (target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) then
+        begin
+          { the debug info version is the version of the debug info metadata
+            format }
+          dwarfversionflag:=tai_llvmunnamedmetadatanode.create;
+          dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(2)));
+          dwarfversionflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Debug Info Version')));
+          dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(llvm_debuginfo_metadata_format[current_settings.llvmversion])));
+          llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(dwarfversionflag));
+          current_asmdata.AsmLists[al_rotypedconsts].Concat(dwarfversionflag);
+
+          { dwarf version }
+          dwarfversionflag:=tai_llvmunnamedmetadatanode.create;
+          dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(2)));
+          dwarfversionflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Dwarf Version')));
+          case target_dbg.id of
+            dbg_dwarf2:
+              dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(2)));
+            dbg_dwarf3:
+              dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(3)));
+            dbg_dwarf4:
+              dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(4)));
+            else
+              internalerror(2022022012);
+          end;
+          llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(dwarfversionflag));
+          current_asmdata.AsmLists[al_rotypedconsts].Concat(dwarfversionflag);
+        end;
     end;
 
 

@@ -73,6 +73,19 @@ Const
      '11.0'
    );
 
+   llvm_debuginfo_metadata_format : array[tllvmversion] of byte = (
+     0,
+     3,
+     3,
+     3,
+     3,
+     3,
+     3,
+     3,
+     3,
+     3
+   );
+
    llvmversion_properties: array[tllvmversion] of tllvmversionflags =
      (
        { invalid         } [],

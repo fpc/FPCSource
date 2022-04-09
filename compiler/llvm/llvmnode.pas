@@ -41,6 +41,7 @@ implementation
     nllvmmat,nllvmmem,nllvmset,nllvmtcon,nllvmutil,
     llvmpara,llvmpi,
     symllvm,
-    llvmcfi;
+    llvmcfi,
+    dbgllvm;
 
 end.
