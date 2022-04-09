@@ -52,6 +52,24 @@ procedure libc_start_main; external name '__libc_start_main';
 
 procedure _FPC_libc_haltproc(e:longint); forward;
 
+procedure ___libc_csu_init; external name '__libc_csu_init';
+
+{$if FPC_FULLVERSION>30202}
+procedure __libc_csu_init; public name '__libc_csu_init'; assembler;
+  asm
+    .weak __libc_csu_init
+  end;
+{$endif FPC_FULLVERSION>30202}
+
+procedure ___libc_csu_fini; external name '__libc_csu_fini';
+
+{$if FPC_FULLVERSION>30202}
+procedure __libc_csu_fini; public name '__libc_csu_fini'; assembler;
+  asm
+    .weak __libc_csu_fini
+  end;
+{$endif FPC_FULLVERSION>30202}
+
 procedure main_stub; assembler; nostackframe;
   asm
     { save return address }
@@ -155,8 +173,8 @@ procedure _FPC_libc_start; assembler; nostackframe; public name '_start';
     pushq %rsp
 
     { Pass address of our own entry points to .fini and .init.  }
-    movq ini_dummy@GOTPCREL(%rip), %r8
-    movq ini_dummy@GOTPCREL(%rip), %rcx
+    movq ___libc_csu_fini@GOTPCREL(%rip), %r8
+    movq ___libc_csu_init@GOTPCREL(%rip), %rcx
 
     movq main_stub@GOTPCREL(%rip), %rdi
 
