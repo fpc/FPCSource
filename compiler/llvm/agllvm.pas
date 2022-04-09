@@ -95,7 +95,6 @@ interface
         procedure WriteInstruction(hp : tai);
        protected
         owner: TLLVMAssember;
-        fstr: TSymStr;
 
         function getopcodestr(hp: taillvm): TSymStr;
         function getopstr(const o:toper; refwithalign: boolean) : TSymStr;
@@ -331,8 +330,6 @@ implementation
      begin
        tmpinline:=1;
        tmpasmblock:=false;
-       owner.writer.AsmWrite(fstr);
-       fstr:='';
        owner.writer.AsmWrite('(');
        for i:=0 to paras.count-1 do
          begin
@@ -375,8 +372,6 @@ implementation
                  tmpinline:=1;
                  tmpasmblock:=false;
                  hp:=para^.ai;
-                 owner.writer.AsmWrite(fstr);
-                 fstr:='';
                  owner.WriteTai(false,false,para^.def=llvm_metadatatype,tmpinline,tmpasmblock,hp);
                end;
              { empty records }
