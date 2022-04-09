@@ -27,7 +27,7 @@ interface
 
     uses
       globtype,verbose,cclasses,
-      aasmbase,aasmtai,aasmdata,aasmsym,
+      aasmbase,aasmtai,aasmdata,aasmsym,aasmcnst,
       cpubase,cgbase,cgutils,
       symtype,symdef,symsym,
       llvmbase;
@@ -36,8 +36,10 @@ interface
       { taillvm }
       taillvm = class(tai_cpu_abstract_sym)
         llvmopcode: tllvmop;
+        metadata: tai;
 
         constructor create_llvm(op: tllvmop);
+        destructor Destroy; override;
 
         { e.g. unreachable }
         constructor op_none(op : tllvmop);
@@ -143,6 +145,8 @@ interface
         procedure loadasmlist(opidx: longint; _asmlist: tasmlist);
         procedure loadcallingconvention(opidx: longint; calloption: tproccalloption);
 
+        procedure addinsmetadata(insmeta: tai);
+
         procedure landingpad_add_clause(op: tllvmop; def: tdef; kind: TAsmSymbol);
 
         { register spilling code }
@@ -193,10 +197,13 @@ interface
       alignment: shortint;
       flags: taillvmdeclflags;
       secname: TSymStr;
+      metadata: tai;
+
       constructor createdecl(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
       constructor createdef(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
       constructor createtls(_namesym: tasmsymbol; _def: tdef; _alignment: shortint);
       procedure setsecname(const name: TSymStr);
+      procedure addinsmetadata(insmeta: tai);
       destructor destroy; override;
     end;
 
@@ -223,7 +230,7 @@ implementation
 uses
   cutils, strings,
   symconst,
-  aasmcnst,aasmcpu;
+  aasmcpu;
 
     { taillvmprocdecl }
 
@@ -262,9 +269,23 @@ uses
         secname:=name;
       end;
 
+    procedure taillvmdecl.addinsmetadata(insmeta: tai);
+      begin
+        insmeta.next:=metadata;
+        metadata:=insmeta;
+      end;
+
 
     destructor taillvmdecl.destroy;
+      var
+        hp: tai;
       begin
+        while assigned(metadata) do
+          begin
+            hp:=tai(metadata.next);
+            metadata.free;
+            metadata:=hp;
+          end;
         initdata.free;
         inherited destroy;
       end;
@@ -307,6 +328,20 @@ uses
         create(a_none);
         llvmopcode:=op;
         typ:=ait_llvmins;
+      end;
+
+
+    destructor taillvm.Destroy;
+      var
+        hp: tai;
+      begin
+        while assigned(metadata) do
+          begin
+            hp:=tai(metadata.next);
+            metadata.free;
+            metadata:=hp;
+          end;
+        inherited;
       end;
 
 
@@ -506,6 +541,12 @@ uses
            callingconvention:=calloption;
            typ:=top_callingconvention;
          end;
+      end;
+
+    procedure taillvm.addinsmetadata(insmeta: tai);
+      begin
+        insmeta.next:=metadata;
+        metadata:=insmeta;
       end;
 
 

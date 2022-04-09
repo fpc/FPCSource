@@ -108,11 +108,12 @@ interface
     tai_llvmmetadatareferenceoperand = class(tai_simple)
      strict private
       fid: ansistring;
-      fvalue: tai_llvmbasemetadatanode;
+      fvalue: tai_llvmmetadatareftypedconst;
      public
-      constructor create(const anID: ansistring; aValue: tai_llvmbasemetadatanode);
+      constructor createreferenceto(const anID: ansistring; aValue: tai_llvmbasemetadatanode);
+      destructor destroy; override;
       property id: ansistring read fid;
-      property value: tai_llvmbasemetadatanode read fvalue;
+      property value: tai_llvmmetadatareftypedconst read fvalue;
     end;
 
 
@@ -269,11 +270,17 @@ implementation
     end;
 
 
-  constructor tai_llvmmetadatareferenceoperand.create(const anID: ansistring; aValue: tai_llvmbasemetadatanode);
+  constructor tai_llvmmetadatareferenceoperand.createreferenceto(const anID: ansistring; aValue: tai_llvmbasemetadatanode);
     begin
       inherited create(ait_llvmmetadatarefoperand);
       fid:=anID;
-      fvalue:=aValue;
+      fvalue:=tai_llvmmetadatareftypedconst.create(aValue);
+    end;
+
+  destructor tai_llvmmetadatareferenceoperand.destroy;
+    begin
+      fvalue.free;
+      inherited;
     end;
 
   /////////////////////////////////////////////////

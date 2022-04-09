@@ -543,6 +543,7 @@ implementation
 
   procedure TLLVMInstrWriter.WriteInstruction(hp: tai);
     var
+      metatai: tai;
       op: tllvmop;
       tmpstr,
       sep: TSymStr;
@@ -767,6 +768,14 @@ implementation
         end;
       if op=la_alloca then
         owner.writer.AsmWrite(getreferencealignstring(taillvm(hp).oper[0]^.ref^));
+      metatai:=taillvm(hp).metadata;
+      while assigned(metatai) do
+        begin
+          owner.writer.AsmWrite(sep);
+          sep:=', ';
+          writetaioper(metatai);
+          metatai:=tai(metatai.next);
+        end;
       if nested then
         owner.writer.AsmWrite(')')
       else if owner.fdecllevel=0 then
