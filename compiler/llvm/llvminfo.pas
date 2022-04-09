@@ -54,7 +54,8 @@ type
      llvmflag_constrained_fptrunc_fpext,    { supports constrained fptrunc and fpext intrinsics }
      llvmflag_constrained_fptoi_itofp,      { supports constrained fptosi/fptoui/uitofp/sitofp instrinsics }
      llvmflag_generic_constrained_si64tofp, { supports sitofp for 64 bit signed integers on all targets }
-     llvmflag_null_pointer_valid_new        { new syntax for the null pointer valid attribute: null_pointer_is_valid }
+     llvmflag_null_pointer_valid_new,       { new syntax for the null pointer valid attribute: null_pointer_is_valid }
+     llvmflag_array_datalocation            { arrays debug info supports a dataLocation attribute to specify how to obtain the array data based on the array variable }
    );
    tllvmversionflags = set of tllvmversionflag;
 
@@ -83,7 +84,7 @@ Const
        { llvmver_xc_11   } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid],
        { llvmver_9_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_constrained_fptrunc_fpext],
        { llvmver_10_0    } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp],
-       { llvmver_11_0    } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp]
+       { llvmver_11_0    } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation]
      );
 
    { Supported optimizations, only used for information }
