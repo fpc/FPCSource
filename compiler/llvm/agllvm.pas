@@ -99,6 +99,7 @@ interface
 
         function getopcodestr(hp: taillvm): TSymStr;
         function getopstr(const o:toper; refwithalign: boolean) : TSymStr;
+        procedure writetaioper(ai: tai);
         procedure writeparas(const paras: tfplist);
         procedure WriteAsmRegisterAllocationClobbers(list: tasmlist);
       end;
@@ -437,8 +438,6 @@ implementation
    function TLLVMInstrWriter.getopstr(const o:toper; refwithalign: boolean) : TSymStr;
      var
        hp: tai;
-       tmpinline: cardinal;
-       tmpasmblock: boolean;
      begin
        case o.typ of
          top_reg:
@@ -493,12 +492,7 @@ implementation
            begin
              if assigned(o.ai) then
                begin
-                 tmpinline:=1;
-                 tmpasmblock:=false;
-                 hp:=o.ai;
-                 owner.writer.AsmWrite(fstr);
-                 fstr:='';
-                 owner.WriteTai(false,false,false,tmpinline,tmpasmblock,hp);
+                 writetaioper(o.ai);
                end;
              result:='';
            end;
@@ -515,6 +509,16 @@ implementation
          else
            internalerror(2013060227);
        end;
+     end;
+
+   procedure TLLVMInstrWriter.writetaioper(ai: tai);
+     var
+       tmpinline: cardinal;
+       tmpasmblock: boolean;
+     begin
+       tmpinline:=1;
+       tmpasmblock:=false;
+       owner.WriteTai(false,false,false,tmpinline,tmpasmblock,ai);
      end;
 
 
