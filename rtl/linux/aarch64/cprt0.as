@@ -7,6 +7,18 @@
 	.text
 	.align 2
 
+	.globl __libc_csu_init
+	.type __libc_csu_init,#function
+	.weak __libc_csu_init
+__libc_csu_init:
+	ret
+
+	.globl __libc_csu_fini
+	.type __libc_csu_fini,#function
+	.weak __libc_csu_fini
+__libc_csu_fini:
+	ret
+
 	.globl _start
 	.type  _start,#function
 _start:
