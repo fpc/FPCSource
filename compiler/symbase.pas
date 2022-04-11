@@ -173,7 +173,7 @@ implementation
         if length(FId)>maxidlen then
           SetLength(FId,maxidlen);
 {$endif}
-        FHash:=FPHash(s);
+        FHash:=FPHash(FId);
       end;
 
 
