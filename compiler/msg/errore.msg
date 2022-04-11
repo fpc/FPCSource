@@ -3219,7 +3219,7 @@ link_e_undefined_symbol=09222_E_Undefined symbol: $1
 #
 # Unit loading
 #
-# 10068 is the last used one
+# 10069 is the last used one
 #
 # BeginOfTeX
 % \section{Unit loading messages.}
@@ -3446,6 +3446,9 @@ unit_u_ppu_llvm_mismatch=10067_U_Skipping unit, PPU and compiler have to be both
 % and vice versa.
 unit_u_ppu_invalid_wasm_exceptions_mode=10068_U_PPU is compiled for another WebAssembly exceptions mode
 % This unit file was compiled for a different WebAssembly exceptions mode.
+unit_u_ppu_symansistr_mismatch=10069_U_Skipping unit, PPU and compiler have to be both compiled with or without SYMANSISTR support
+% Units compiled by a compiler built with -dSYMANSISTR cannot be used with a regular compiler built without,
+% and vice versa.
 % \end{description}
 # EndOfTeX
 

@@ -356,6 +356,11 @@ var
               exit;
             end;
 {$endif}
+          if {$ifdef symansistr}not{$endif}(mf_symansistr in moduleflags) then
+            begin
+              Message(unit_u_ppu_symansistr_mismatch,@queuecomment);
+              exit;
+            end;
           if {$ifdef llvm}not{$endif}(mf_llvm in moduleflags) then
             begin
               Message(unit_u_ppu_llvm_mismatch,@queuecomment);
