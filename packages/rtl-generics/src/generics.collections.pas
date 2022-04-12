@@ -358,6 +358,7 @@ type
       constructor Create(AQueue: TQueue<T>);
     end;
   protected
+    function PrepareAddingItem: SizeInt; override;
     function GetPtrEnumerator: TEnumerator<PT>; override;
   protected
     // bug #24287 - workaround for generics type name conflict (Identifier not found)
@@ -374,6 +375,7 @@ type
     function GetEnumerator: TEnumerator; reintroduce;
   private
     FLow: SizeInt;
+    procedure MoveToFront;
   protected
     procedure SetCapacity(AValue: SizeInt); override;
     function DoRemove(AIndex: SizeInt; ACollectionNotification: TCollectionNotification): T; override;
@@ -2006,6 +2008,34 @@ end;
 
 { TQueue<T> }
 
+function TQueue<T>.PrepareAddingItem: SizeInt;
+begin
+  repeat
+    result := FLength;
+    if result <= High(FItems) then
+    begin
+      FLength := result + 1;
+      exit;
+    end;
+
+    if SizeUint(FLow) >= 4 + SizeUint(result) div 4 then
+      // If the empty space at the beginning is comparable to queue size, convert
+      //
+      // .......QQQQQQQQQ
+      //        ↑FLow    ↑FLength=length(FItems)
+      //
+      // to
+      //
+      // QQQQQQQQQ.......
+      // ↑FLow=0
+      //
+      // and retry the shortcut above.
+      MoveToFront
+    else
+      exit(inherited);
+  until false;
+end;
+
 function TQueue<T>.GetPtrEnumerator: TEnumerator<PT>;
 begin
   Result := TPointersenumerator.Create(Self);
@@ -2037,6 +2067,21 @@ begin
   Notify(Result, ACollectionNotification);
 end;
 
+procedure TQueue<T>.MoveToFront;
+var
+  i: SizeInt;
+begin
+  if FLength > FLow then
+    if IsManagedType(T) then
+      for i := 0 to FLength - FLow - 1 do
+        FItems[i] := FItems[FLow + i]
+    else
+      Move(FItems[FLow], FItems[0], (FLength - FLow) * SizeOf(T));
+
+  FLength := FLength - FLow;
+  FLow := 0;
+end;
+
 procedure TQueue<T>.SetCapacity(AValue: SizeInt);
 begin
   if AValue < Count then
@@ -2045,15 +2090,8 @@ begin
   if AValue = FLength then
     Exit;
 
-  if (Count > 0) and (FLow > 0) then
-  begin
-    Move(FItems[FLow], FItems[0], Count * SizeOf(T));
-    FillChar(FItems[Count], (FLength - Count) * SizeOf(T), #0);
-  end;
-
+  MoveToFront;
   SetLength(FItems, AValue);
-  FLength := Count;
-  FLow := 0;
 end;
 
 function TQueue<T>.GetCount: SizeInt;
