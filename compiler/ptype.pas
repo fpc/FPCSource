@@ -1068,7 +1068,10 @@ implementation
            begin
              consume(_ID);
              alignment:=get_intconst.svalue;
-             if not(alignment in [1,2,4,8,16,32,64]) then
+             { "(alignment and not $7F) = 0" means it's between 0 and 127, and
+               PopCnt = 1 for powers of 2 }
+             if ((alignment and not $7F) <> 0) or (PopCnt(Byte(alignment))<>1) then
+               message(scanner_e_illegal_alignment_directive)
              else
                recst.recordalignment:=shortint(alignment);
            end;
