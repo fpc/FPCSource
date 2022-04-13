@@ -654,23 +654,35 @@ implementation
     function taddrnode.simplify(forinline : boolean) : tnode;
       var
         hsym : tfieldvarsym;
+        hp : tnode;
+        fieldoffset : asizeint;
       begin
         result:=nil;
-        if ((left.nodetype=subscriptn) and
-          (tsubscriptnode(left).left.nodetype=derefn) and
-          (tsubscriptnode(left).left.resultdef.typ=recorddef) and
-          (tderefnode(tsubscriptnode(left).left).left.nodetype=niln)) or
-          ((left.nodetype=subscriptn) and
-          (tsubscriptnode(left).left.nodetype=typeconvn) and
-          (tsubscriptnode(left).left.resultdef.typ=recorddef) and
-          (ttypeconvnode(tsubscriptnode(left).left).left.nodetype=derefn) and
-          (tderefnode(ttypeconvnode(tsubscriptnode(left).left).left).left.nodetype=niln)) then
+        if left.nodetype<>subscriptn then
+          exit;
+        hp:=left;
+        fieldoffset:=0;
+        while hp.nodetype=subscriptn do
           begin
-            hsym:=tsubscriptnode(left).vs;
+            hsym:=tsubscriptnode(hp).vs;
             if tabstractrecordsymtable(hsym.owner).is_packed then
-              result:=cpointerconstnode.create(hsym.fieldoffset div 8,resultdef)
+              inc(fieldoffset,hsym.fieldoffset div 8)
             else
-              result:=cpointerconstnode.create(hsym.fieldoffset,resultdef);
+              inc(fieldoffset,hsym.fieldoffset);
+            hp:=tsubscriptnode(hp).left;
+          end;
+        if ((hp.nodetype=derefn) and
+          (hp.resultdef.typ=recorddef) and
+          (tderefnode(hp).left.nodetype=niln)) or
+          ((hp.nodetype=typeconvn) and
+          (hp.resultdef.typ=recorddef) and
+          (ttypeconvnode(hp).left.nodetype=derefn) and
+          (tderefnode(ttypeconvnode(hp).left).left.nodetype=niln)) then
+          begin
+            if tabstractrecordsymtable(hsym.owner).is_packed then
+              result:=cpointerconstnode.create(fieldoffset,resultdef)
+            else
+              result:=cpointerconstnode.create(fieldoffset,resultdef);
           end;
       end;
 
