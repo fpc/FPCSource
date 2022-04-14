@@ -662,7 +662,8 @@ implementation
           exit;
         hp:=left;
         fieldoffset:=0;
-        while hp.nodetype=subscriptn do
+        while (hp.nodetype=subscriptn) and (tsubscriptnode(hp).left.resultdef.typ in [recorddef,objectdef]) and
+          not(is_implicit_pointer_object_type(tsubscriptnode(hp).left.resultdef)) do
           begin
             hsym:=tsubscriptnode(hp).vs;
             if tabstractrecordsymtable(hsym.owner).is_packed then
@@ -671,11 +672,11 @@ implementation
               inc(fieldoffset,hsym.fieldoffset);
             hp:=tsubscriptnode(hp).left;
           end;
+        if not(hp.resultdef.typ in [recorddef,objectdef]) or is_implicit_pointer_object_type(hp.resultdef) then
+          exit;
         if ((hp.nodetype=derefn) and
-          (hp.resultdef.typ=recorddef) and
           (tderefnode(hp).left.nodetype=niln)) or
           ((hp.nodetype=typeconvn) and
-          (hp.resultdef.typ=recorddef) and
           (ttypeconvnode(hp).left.nodetype=derefn) and
           (tderefnode(ttypeconvnode(hp).left).left.nodetype=niln)) then
           begin
