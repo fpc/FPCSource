@@ -7518,109 +7518,140 @@ unit aoptx86;
              GetNextInstruction(p_jump, p_jump);
            end;
 
-         {
-           Try to optimise the following:
-             cmp       $x,###  ($x and $y can be registers or constants)
-             je        @lbl1   (only reference)
- 	     cmp       $y,###  (### are identical)
-           @Lbl:
-             sete      %reg1
-
-           Change to:
-             cmp       $x,###
-             sete      %reg2   (allocate new %reg2)
-             cmp       $y,###
-             sete      %reg1
-             orb       %reg2,%reg1
-             (dealloc %reg2)
-
-           This adds an instruction (so don't perform under -Os), but it removes
-           a conditional branch.
-         }
-         if not (cs_opt_size in current_settings.optimizerswitches) and
-           (
+         if (
+             { Don't call GetNextInstruction again if we already have it }
              (hp1 = p_jump) or
              GetNextInstruction(p, hp1)
            ) and
            MatchInstruction(hp1, A_Jcc, []) and
            IsJumpToLabel(taicpu(hp1)) and
-           (taicpu(hp1).condition in [C_E, C_Z]) and
-           GetNextInstruction(hp1, hp2) and
-           MatchInstruction(hp2, A_CMP, A_TEST, [taicpu(p).opsize]) and
-           MatchOperand(taicpu(p).oper[1]^, taicpu(hp2).oper[1]^) and
-           { The first operand of CMP instructions can only be a register or
-             immediate anyway, so no need to check }
-           GetNextInstruction(hp2, p_label) and
-           (
-             (p_label.typ = ait_label) or
-             (
-               { Sometimes there's a zero-distance jump before the label, so deal with it here
-                 to potentially cut down on the iterations of Pass 1 }
-               MatchInstruction(p_label, A_Jcc, []) and
-               IsJumpToLabel(taicpu(p_label)) and
-               { Use p_dist to hold the jump briefly }
-               SetAndTest(p_label, p_dist) and
-               GetNextInstruction(p_dist, p_label) and
-               (p_label.typ = ait_label) and
-               (tai_label(p_label).labsym.getrefs >= 2) and
-               (JumpTargetOp(taicpu(p_dist))^.ref^.symbol = tai_label(p_label).labsym) and
-               { We might as well collapse the jump now }
-               CollapseZeroDistJump(p_dist, tai_label(p_label).labsym)
-             )
-           ) and
-           (tai_label(p_label).labsym.getrefs = 1) and
-           (JumpTargetOp(taicpu(hp1))^.ref^.symbol = tai_label(p_label).labsym) and
-           GetNextInstruction(p_label, p_dist) and
-           MatchInstruction(p_dist, A_SETcc, []) and
-           (taicpu(p_dist).condition in [C_E, C_Z]) and
-           (taicpu(p_dist).oper[0]^.typ = top_reg) and
-           { Get the instruction after the SETcc instruction so we can
-             allocate a new register over the entire range }
-           GetNextInstruction(p_dist, hp1_dist) then
+           (taicpu(hp1).condition in [C_E, C_Z, C_NE, C_NZ]) and
+           GetNextInstruction(hp1, hp2) then
            begin
-             TransferUsedRegs(TmpUsedRegs);
-             UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
-             UpdateUsedRegs(TmpUsedRegs, tai(hp2.Next));
-             UpdateUsedRegs(TmpUsedRegs, tai(p_label.Next));
-//             UpdateUsedRegs(TmpUsedRegs, tai(p_dist.Next));
+             {
+                 cmp       x, y    (or "cmp y, x")
+                 je        @lbl
+                 mov       x, y
+               @lbl:
+                 (x and y can be constants, registers or references)
 
-             { RegUsedAfterInstruction modifies TmpUsedRegs }
-             if not RegUsedAfterInstruction(NR_DEFAULTFLAGS, p_dist, TmpUsedRegs) then
+               Change to:
+                 mov       x, y    (x and y will always be equal in the end)
+               @lbl:               (may beceome a dead label)
+
+
+               Also:
+                 cmp       x, y    (or "cmp y, x")
+                 jne       @lbl
+                 mov       x, y
+               @lbl:
+                 (x and y can be constants, registers or references)
+
+               Change to:
+                 Absolutely nothing! (Except @lbl if it's still live)
+             }
+             if MatchInstruction(hp2, A_MOV, [taicpu(p).opsize]) and
+               (
+                 (
+                   MatchOperand(taicpu(p).oper[0]^, taicpu(hp2).oper[0]^) and
+                   MatchOperand(taicpu(p).oper[1]^, taicpu(hp2).oper[1]^)
+                 ) or (
+                   MatchOperand(taicpu(p).oper[0]^, taicpu(hp2).oper[1]^) and
+                   MatchOperand(taicpu(p).oper[1]^, taicpu(hp2).oper[0]^)
+                 )
+               ) and
+               GetNextInstruction(hp2, hp1_label) and
+               SkipAligns(hp1_label, hp1_label) and
+               (hp1_label.typ = ait_label) and
+               (tai_label(hp1_label).labsym = taicpu(hp1).oper[0]^.ref^.symbol) then
                begin
-                 { Register can appear in p if it's not used afterwards, so only
-                   allocate between hp1 and hp1_dist }
-                 NewReg := GetIntRegisterBetween(R_SUBL, TmpUsedRegs, hp1, p_dist);
-                 if NewReg <> NR_NO then
+                 tai_label(hp1_label).labsym.DecRefs;
+                 if (taicpu(hp1).condition in [C_NE, C_NZ]) then
                    begin
-                     DebugMsg(SPeepholeOptimization + 'CMP/JE/CMP/@Lbl/SETE -> CMP/SETE/CMP/SETE/OR, removing conditional branch', p);
+                     DebugMsg(SPeepholeOptimization + 'CMP/JNE/MOV/@Lbl -> NOP, since the MOV is only executed if the operands are equal (CmpJneMov2Nop)', p);
+                     RemoveInstruction(hp2);
+                     hp2 := hp1_label; { So RemoveCurrentp below can be set to something valid }
+                   end
+                 else
+                   DebugMsg(SPeepholeOptimization + 'CMP/JE/MOV/@Lbl -> MOV, since the MOV is only executed if the operands aren''t equal (CmpJeMov2Mov)', p);
 
-                     { Change the jump instruction into a SETcc instruction }
-                     taicpu(hp1).opcode := A_SETcc;
-                     taicpu(hp1).opsize := S_B;
-                     taicpu(hp1).loadreg(0, NewReg);
+                 RemoveInstruction(hp1);
+                 RemoveCurrentp(p, hp2);
+                 Result := True;
+                 Exit;
+               end;
 
-                     { This is now a dead label }
-                     tai_label(p_label).labsym.decrefs;
+             {
+               Try to optimise the following:
+                 cmp       $x,###  ($x and $y can be registers or constants)
+                 je        @lbl1   (only reference)
+                 cmp       $y,###  (### are identical)
+               @Lbl:
+                 sete      %reg1
 
-                     { Prefer adding before the next instruction so the FLAGS
-                       register is deallocated first  }
-                     hp2 := taicpu.op_reg_reg(A_OR, S_B, NewReg, taicpu(p_dist).oper[0]^.reg);
-                     taicpu(hp2).fileinfo := taicpu(p_dist).fileinfo;
+               Change to:
+                 cmp       $x,###
+                 sete      %reg2   (allocate new %reg2)
+                 cmp       $y,###
+                 sete      %reg1
+                 orb       %reg2,%reg1
+                 (dealloc %reg2)
 
-                     AsmL.InsertBefore(
-                       hp2,
-                       hp1_dist
-                     );
+               This adds an instruction (so don't perform under -Os), but it removes
+               a conditional branch.
+             }
+             if not (cs_opt_size in current_settings.optimizerswitches) and
+               MatchInstruction(hp2, A_CMP, A_TEST, [taicpu(p).opsize]) and
+               MatchOperand(taicpu(p).oper[1]^, taicpu(hp2).oper[1]^) and
+               { The first operand of CMP instructions can only be a register or
+                 immediate anyway, so no need to check }
+               GetNextInstruction(hp2, p_label) and
+               (p_label.typ = ait_label) and
+               (tai_label(p_label).labsym.getrefs = 1) and
+               (JumpTargetOp(taicpu(hp1))^.ref^.symbol = tai_label(p_label).labsym) and
+               GetNextInstruction(p_label, p_dist) and
+               MatchInstruction(p_dist, A_SETcc, []) and
+               (taicpu(p_dist).condition in [C_E, C_Z]) and
+               (taicpu(p_dist).oper[0]^.typ = top_reg) then
+               begin
+                 TransferUsedRegs(TmpUsedRegs);
+                 UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
+                 UpdateUsedRegs(TmpUsedRegs, tai(hp2.Next));
+                 UpdateUsedRegs(TmpUsedRegs, tai(p_label.Next));
+                 UpdateUsedRegs(TmpUsedRegs, tai(p_dist.Next));
 
-                     { Make sure the new register is in use over the new instruction
-                       (long-winded, but things work best when the FLAGS register
-                       is not allocated here) }
-                     AllocRegBetween(NewReg, p_dist, hp2, TmpUsedRegs);
+                 if not RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) and
+                   { Get the instruction after the SETcc instruction so we can
+                     allocate a new register over the entire range }
+                   GetNextInstruction(p_dist, hp1_dist) then
+                   begin
+                     { Register can appear in p if it's not used afterwards, so only
+                       allocate between hp1 and hp1_dist }
+                     NewReg := GetIntRegisterBetween(R_SUBL, TmpUsedRegs, hp1, hp1_dist);
+                     if NewReg <> NR_NO then
+                       begin
+                         DebugMsg(SPeepholeOptimization + 'CMP/JE/CMP/@Lbl/SETE -> CMP/SETE/CMP/SETE/OR, removing conditional branch', p);
 
-                     Result := True;
-                     { Don't exit yet, as p wasn't changed and hp1, while
-                       modified, is still intact and might be optimised by the
-                       SETcc optimisation below }
+                         { Change the jump instruction into a SETcc instruction }
+                         taicpu(hp1).opcode := A_SETcc;
+                         taicpu(hp1).opsize := S_B;
+                         taicpu(hp1).loadreg(0, NewReg);
+
+                         { This is now a dead label }
+                         tai_label(p_label).labsym.decrefs;
+
+                         { Prefer adding before the next instruction so the FLAGS
+                           register is deallicated first  }
+                         AsmL.InsertBefore(
+                           taicpu.op_reg_reg(A_OR, S_B, NewReg, taicpu(p_dist).oper[0]^.reg),
+                           hp1_dist
+                         );
+
+                         Result := True;
+                         { Don't exit yet, as p wasn't changed and hp1, while
+                           modified, is still intact and might be optimised by the
+                           SETcc optimisation below }
+                       end;
                    end;
                end;
            end;
@@ -8733,8 +8764,8 @@ unit aoptx86;
       { The instruction can be safely moved }
       asml.Remove(hp1);
 
-      { Try to insert before the FLAGS register is allocated, so "mov $0,%reg"
-        can be optimised into "xor %reg,%reg" later }
+      { Try to insert after the last instructions where the FLAGS register is not
+        yet in use, so "mov $0,%reg" can be optimised into "xor %reg,%reg" later }
       if SetAndTest(FindRegAllocBackward(NR_DEFAULTFLAGS, tai(p.Previous)), hp2) then
         asml.InsertBefore(hp1, hp2)
 
@@ -8750,9 +8781,9 @@ unit aoptx86;
         asml.InsertAfter(hp1, hp2)
       else
         { Note, if p.Previous is nil (even if it should logically never be the
-          case), FindRegAllocBackward immediately exits with False and so we
-          safely land here (we can't just pass p because FindRegAllocBackward
-          immediately exits on an instruction). [Kit] }
+        case), FindRegAllocBackward immediately exits with False and so we
+        safely land here (we can't just pass p because FindRegAllocBackward
+        immediately exits on an instruction). [Kit] }
         asml.InsertBefore(hp1, p);
 
       DebugMsg(SPeepholeOptimization + 'Swapped ' + debug_op2str(taicpu(p).opcode) + ' and ' + debug_op2str(taicpu(hp1).opcode) + ' instructions to improve optimisation potential', hp1);
