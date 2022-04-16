@@ -40,7 +40,6 @@ interface
      public
       class procedure InsertObjectInfo; override;
       class procedure RegisterUsedAsmSym(sym: TAsmSymbol; def: tdef; compileronly: boolean); override;
-      class procedure GenerateObjCImageInfo; override;
       class procedure RegisterModuleInitFunction(pd: tprocdef); override;
       class procedure RegisterModuleFiniFunction(pd: tprocdef); override;
     end;
@@ -205,11 +204,89 @@ implementation
 
 
   class procedure tllvmnodeutils.InsertObjectInfo;
+    var
+      llvmmoduleflags,
+      objcmoduleflag,
+      dwarfversionflag: tai_llvmbasemetadatanode;
+      objcabiversion: longint;
     begin
-      inherited;
+      llvmmoduleflags:=tai_llvmnamedmetadatanode.create('llvm.module.flags');
+      current_asmdata.AsmLists[al_rotypedconsts].Concat(llvmmoduleflags);
 
-      { insert newly created defs in the implementation rather than interface symtable
-        (the interface symtable is sealed at this point) }
+      if (m_objectivec1 in current_settings.modeswitches) then
+        begin
+          { Objective-C ABI version }
+          if not(target_info.system in [system_powerpc_darwin,system_powerpc64_darwin,system_i386_darwin,system_x86_64_darwin]) or
+             (CompareVersionStrings(MacOSXVersionMin,'10.5')>=0) then
+            objcabiversion:=2
+          else
+            objcabiversion:=1;
+          objcmoduleflag:=tai_llvmunnamedmetadatanode.create;
+          objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
+          objcmoduleflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Objective-C Version')));
+          objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(objcabiversion)));
+          llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
+          current_asmdata.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
+
+          { image info version }
+          objcmoduleflag:=tai_llvmunnamedmetadatanode.create;
+          objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
+          objcmoduleflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Objective-C Image Info Version')));
+          objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(0)));
+          llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
+          current_asmdata.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
+
+          { image info section }
+          objcmoduleflag:=tai_llvmunnamedmetadatanode.create;
+          objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
+          objcmoduleflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Objective-C Image Info Section')));
+          objcmoduleflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create(objc_section_name(sec_objc_image_info))));
+          llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
+          current_asmdata.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
+
+          { garbage collection }
+          objcmoduleflag:=tai_llvmunnamedmetadatanode.create;
+          objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
+          objcmoduleflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Objective-C Garbage Collection')));
+          objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(0)));
+          llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
+          current_asmdata.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
+
+          { insert newly created defs in the implementation rather than interface symtable
+          (the interface symtable is sealed at this point) }
+        end;
+
+      { debug information }
+      if (([cs_debuginfo,cs_lineinfo]*current_settings.moduleswitches)<>[]) and
+         (target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) then
+        begin
+          { the debug info version is the version of the debug info metadata
+            format }
+          dwarfversionflag:=tai_llvmunnamedmetadatanode.create;
+          dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(2)));
+          dwarfversionflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Debug Info Version')));
+          dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(llvm_debuginfo_metadata_format[current_settings.llvmversion])));
+          llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(dwarfversionflag));
+          current_asmdata.AsmLists[al_rotypedconsts].Concat(dwarfversionflag);
+
+          { dwarf version }
+          dwarfversionflag:=tai_llvmunnamedmetadatanode.create;
+          dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(2)));
+          dwarfversionflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Dwarf Version')));
+          case target_dbg.id of
+            dbg_dwarf2:
+              dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(2)));
+            dbg_dwarf3:
+              dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(3)));
+            dbg_dwarf4:
+              dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(4)));
+            else
+              internalerror(2022022012);
+          end;
+          llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(dwarfversionflag));
+          current_asmdata.AsmLists[al_rotypedconsts].Concat(dwarfversionflag);
+        end;
+
       symtablestack.push(current_module.localsymtable);
 
       { add the llvm.compiler.used array }
@@ -250,86 +327,6 @@ implementation
           if not assigned(last) or
              (last.sym<>sym) then
           current_module.llvmusedsyms.Add(TTypedAsmSym.Create(sym,def))
-        end;
-    end;
-
-
-  class procedure tllvmnodeutils.GenerateObjCImageInfo;
-    var
-      llvmmoduleflags,
-      objcmoduleflag,
-      dwarfversionflag: tai_llvmbasemetadatanode;
-      objcabiversion: longint;
-    begin
-      llvmmoduleflags:=tai_llvmnamedmetadatanode.create('llvm.module.flags');
-      current_asmdata.AsmLists[al_rotypedconsts].Concat(llvmmoduleflags);
-
-      { Objective-C ABI version }
-      if not(target_info.system in [system_powerpc_darwin,system_powerpc64_darwin,system_i386_darwin,system_x86_64_darwin]) or
-         (CompareVersionStrings(MacOSXVersionMin,'10.5')>=0) then
-        objcabiversion:=2
-      else
-        objcabiversion:=1;
-      objcmoduleflag:=tai_llvmunnamedmetadatanode.create;
-      objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
-      objcmoduleflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Objective-C Version')));
-      objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(objcabiversion)));
-      llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
-      current_asmdata.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
-
-      { image info version }
-      objcmoduleflag:=tai_llvmunnamedmetadatanode.create;
-      objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
-      objcmoduleflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Objective-C Image Info Version')));
-      objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(0)));
-      llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
-      current_asmdata.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
-
-      { image info section }
-      objcmoduleflag:=tai_llvmunnamedmetadatanode.create;
-      objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
-      objcmoduleflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Objective-C Image Info Section')));
-      objcmoduleflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create(objc_section_name(sec_objc_image_info))));
-      llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
-      current_asmdata.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
-
-      { garbage collection }
-      objcmoduleflag:=tai_llvmunnamedmetadatanode.create;
-      objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
-      objcmoduleflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Objective-C Garbage Collection')));
-      objcmoduleflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(0)));
-      llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(objcmoduleflag));
-      current_asmdata.AsmLists[al_rotypedconsts].Concat(objcmoduleflag);
-
-      { debug information }
-      if (([cs_debuginfo,cs_lineinfo]*current_settings.moduleswitches)<>[]) and
-         (target_dbg.id in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) then
-        begin
-          { the debug info version is the version of the debug info metadata
-            format }
-          dwarfversionflag:=tai_llvmunnamedmetadatanode.create;
-          dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(2)));
-          dwarfversionflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Debug Info Version')));
-          dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(llvm_debuginfo_metadata_format[current_settings.llvmversion])));
-          llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(dwarfversionflag));
-          current_asmdata.AsmLists[al_rotypedconsts].Concat(dwarfversionflag);
-
-          { dwarf version }
-          dwarfversionflag:=tai_llvmunnamedmetadatanode.create;
-          dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(2)));
-          dwarfversionflag.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create('Dwarf Version')));
-          case target_dbg.id of
-            dbg_dwarf2:
-              dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(2)));
-            dbg_dwarf3:
-              dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(3)));
-            dbg_dwarf4:
-              dwarfversionflag.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(4)));
-            else
-              internalerror(2022022012);
-          end;
-          llvmmoduleflags.addvalue(llvm_getmetadatareftypedconst(dwarfversionflag));
-          current_asmdata.AsmLists[al_rotypedconsts].Concat(dwarfversionflag);
         end;
     end;
 

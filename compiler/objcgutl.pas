@@ -1898,8 +1898,6 @@ procedure MaybeGenerateObjectiveCImageInfo(globalst, localst: tsymtable);
   begin
     if (m_objectivec1 in current_settings.modeswitches) then
       begin
-        cnodeutils.GenerateObjCImageInfo;
-
         { generate rtti for all obj-c classes, protocols and categories
           defined in this module. }
         if not(target_info.system in systems_objc_nfabi) then
