@@ -39,7 +39,7 @@ unit i_embed;
           (
             system       : system_aarch64_embedded;
             name         : 'Embedded';
-            shortname    : 'embedded';
+            shortname    : 'Embedded';
             flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_requires_proper_alignment,
                             tf_smartlink_sections,tf_init_final_units_by_calls];
             cpu          : cpu_aarch64;
@@ -106,7 +106,7 @@ unit i_embed;
           (
             system       : system_arm_embedded;
             name         : 'Embedded';
-            shortname    : 'embedded';
+            shortname    : 'Embedded';
             flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_requires_proper_alignment,
                             tf_smartlink_sections,tf_init_final_units_by_calls];
             cpu          : cpu_arm;
@@ -173,7 +173,7 @@ unit i_embed;
           (
             system       : system_avr_embedded;
             name         : 'Embedded';
-            shortname    : 'embedded';
+            shortname    : 'Embedded';
             flags        : [tf_needs_symbol_size,tf_files_case_sensitive,
                             tf_smartlink_sections,tf_init_final_units_by_calls];
             cpu          : cpu_avr;
@@ -240,7 +240,7 @@ unit i_embed;
           (
             system       : system_mipsel_embedded;
             name         : 'Embedded';
-            shortname    : 'embedded';
+            shortname    : 'Embedded';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_smartlink_sections];
             cpu          : cpu_mipsel;
@@ -307,7 +307,7 @@ unit i_embed;
           (
             system       : system_i386_embedded;
             name         : 'Embedded';
-            shortname    : 'embedded';
+            shortname    : 'Embedded';
             flags        : [tf_needs_symbol_size,tf_files_case_sensitive,
                             tf_smartlink_sections];
             cpu          : cpu_i386;
@@ -374,7 +374,7 @@ unit i_embed;
           (
             system       : system_x86_64_embedded;
             name         : 'Embedded';
-            shortname    : 'embedded';
+            shortname    : 'Embedded';
             flags        : [tf_needs_symbol_size,tf_files_case_sensitive,
                             tf_smartlink_sections];
             cpu          : cpu_x86_64;
@@ -441,7 +441,7 @@ unit i_embed;
           (
             system       : system_i8086_embedded;
             name         : 'Embedded';
-            shortname    : 'embedded';
+            shortname    : 'Embedded';
             flags        : [tf_use_8_3,
 {$ifdef I8086_SMARTLINK_SECTIONS}
                             tf_smartlink_sections,
@@ -519,7 +519,7 @@ unit i_embed;
           (
             system       : system_m68k_embedded;
             name         : 'Embedded';
-            shortname    : 'embedded';
+            shortname    : 'Embedded';
             flags        : [tf_under_development,tf_needs_symbol_size,tf_files_case_sensitive,tf_requires_proper_alignment,
                             tf_smartlink_sections];
             cpu          : cpu_m68k;
@@ -586,7 +586,7 @@ unit i_embed;
           (
             system       : system_riscv32_embedded;
             name         : 'Embedded';
-            shortname    : 'embedded';
+            shortname    : 'Embedded';
             flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_requires_proper_alignment,
                             tf_smartlink_sections];
             cpu          : cpu_riscv32;
@@ -653,7 +653,7 @@ unit i_embed;
           (
             system       : system_riscv64_embedded;
             name         : 'Embedded';
-            shortname    : 'embedded';
+            shortname    : 'Embedded';
             flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_requires_proper_alignment,
                             tf_smartlink_sections];
             cpu          : cpu_riscv64;
@@ -720,7 +720,7 @@ unit i_embed;
           (
             system       : system_xtensa_embedded;
             name         : 'Embedded';
-            shortname    : 'embedded';
+            shortname    : 'Embedded';
             flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_requires_proper_alignment,
                             tf_smartlink_sections,tf_init_final_units_by_calls];
             cpu          : cpu_xtensa;
@@ -787,7 +787,7 @@ unit i_embed;
           (
             system       : system_z80_embedded;
             name         : 'Embedded';
-            shortname    : 'embedded';
+            shortname    : 'Embedded';
             flags        : [tf_needs_symbol_size,tf_files_case_sensitive,
                             tf_smartlink_library,
                             tf_no_objectfiles_when_smartlinking];
@@ -855,7 +855,7 @@ unit i_embed;
           (
             system       : system_wasm32_embedded;
             name         : 'Embedded';
-            shortname    : 'embedded';
+            shortname    : 'Embedded';
             flags        : [tf_under_development,tf_needs_symbol_size,tf_needs_symbol_type,
                             tf_files_case_sensitive,tf_no_generic_stackcheck,
                             tf_smartlink_sections,
