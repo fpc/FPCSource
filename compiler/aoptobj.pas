@@ -405,7 +405,7 @@ Unit AoptObj;
         { Strips a label and any aligns that appear before it (if hp points to
           them rather than the label).  Only call this procedure on a label that
           you already know is no longer referenced }
-        procedure StripLabelFast(hp: tai); {$ifdef USEINLINE}inline;{$endif USEINLINE}
+        procedure StripLabelFast(hp: tai);
 
         { Checks and removes "jmp @@lbl; @lbl". Returns True if the jump was removed }
         function CollapseZeroDistJump(var p: tai; ThisLabel: TAsmLabel): Boolean;
@@ -1928,7 +1928,7 @@ Unit AoptObj;
     { Strips a label and any aligns that appear before it (if hp points to
       them rather than the label).  Only call this procedure on a label that
       you already know is no longer referenced }
-    procedure TAOptObj.StripLabelFast(hp: tai); {$ifdef USEINLINE}inline;{$endif USEINLINE}
+    procedure TAOptObj.StripLabelFast(hp: tai);
       var
         tmp: tai;
       begin
