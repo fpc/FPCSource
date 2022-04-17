@@ -57,6 +57,26 @@ _start:
  /* and continue in libc-start, in glibc.  */
     b      __libc_start_main
 
+	.balign 4
+.globl	__libc_csu_init
+	.type	__libc_csu_init,@function
+/* strangly enough using weak breaks things */
+/*    .weak __libc_csu_init                 */
+__libc_csu_init:
+	blr
+.Le0:
+	.size	__libc_csu_init, .Le0 - __libc_csu_init
+
+	.balign 4
+.globl	__libc_csu_fini
+	.type	__libc_csu_fini,@function
+/* strangly enough using weak breaks things */
+/*    .weak __libc_csu_fini */
+__libc_csu_fini:
+	blr
+.Le1:
+	.size	__libc_csu_fini, .Le1 - __libc_csu_fini
+
     .globl  main_stub
     .type   main_stub, @function
 main_stub:
