@@ -32,7 +32,7 @@ unit aoptx86;
   interface
 
     uses
-      globtype,
+      globtype,cclasses,
       cpubase,
       aasmtai,aasmcpu,
       cgbase,cgutils,
@@ -40,7 +40,8 @@ unit aoptx86;
 
     type
       TOptsToCheck = (
-        aoc_MovAnd2Mov_3
+        aoc_MovAnd2Mov_3,
+        aoc_ForceNewIteration
       );
 
       TX86AsmOptimizer = class(TAsmOptimizer)
@@ -57,7 +58,7 @@ unit aoptx86;
         { This version of GetNextInstructionUsingReg will look across conditional jumps,
           potentially allowing further optimisation (although it might need to know if
           it crossed a conditional jump. }
-        function GetNextInstructionUsingRegCond(Current: tai; out Next: tai; reg: TRegister; var CrossJump: Boolean): Boolean;
+        function GetNextInstructionUsingRegCond(Current: tai; out Next: tai; reg: TRegister; var JumpTracking: TLinkedList; var CrossJump: Boolean): Boolean;
 
         {
           In comparison with GetNextInstructionUsingReg, GetNextInstructionUsingRegTrackingUse tracks
@@ -255,6 +256,33 @@ unit aoptx86;
 {$endif DEBUG_AOPTCPU}
       LIST_STEP_SIZE = 4;
 
+    type
+      TJumpTrackingItem = class(TLinkedListItem)
+      private
+        FSymbol: TAsmSymbol;
+        FRefs: LongInt;
+      public
+        constructor Create(ASymbol: TAsmSymbol);
+        procedure IncRefs; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+        property Symbol: TAsmSymbol read FSymbol;
+        property Refs: LongInt read FRefs;
+      end;
+
+
+    constructor TJumpTrackingItem.Create(ASymbol: TAsmSymbol);
+      begin
+        inherited Create;
+        FSymbol := ASymbol;
+        FRefs := 0;
+      end;
+
+
+    procedure TJumpTrackingItem.IncRefs; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+      begin
+        Inc(FRefs);
+      end;
+
+
     function MatchInstruction(const instr: tai; const op: TAsmOp; const opsize: topsizes): boolean;
       begin
         result :=
@@ -448,23 +476,198 @@ unit aoptx86;
     end;
 
 
-  function TX86AsmOptimizer.GetNextInstructionUsingRegCond(Current: tai; out Next: tai; reg: TRegister; var CrossJump: Boolean): Boolean;
+  function TX86AsmOptimizer.GetNextInstructionUsingRegCond(Current: tai; out Next: tai; reg: TRegister; var JumpTracking: TLinkedList; var CrossJump: Boolean): Boolean;
+
+    procedure TrackJump(Symbol: TAsmSymbol);
+      var
+        Search: TJumpTrackingItem;
+      begin
+        { See if an entry already exists in our jump tracking list
+          (faster to search backwards due to the higher chance of
+          matching destinations) }
+        Search := TJumpTrackingItem(JumpTracking.Last);
+
+        while Assigned(Search) do
+          begin
+            if Search.Symbol = Symbol then
+              begin
+                { Found it - remove it so it can be pushed to the front }
+                JumpTracking.Remove(Search);
+                Break;
+              end;
+
+            Search := TJumpTrackingItem(Search.Previous);
+          end;
+
+        if not Assigned(Search) then
+          Search := TJumpTrackingItem.Create(JumpTargetOp(taicpu(Next))^.ref^.symbol);
+
+        JumpTracking.Concat(Search);
+        Search.IncRefs;
+      end;
+
+    function LabelAccountedFor(Symbol: TAsmSymbol): Boolean;
+      var
+        Search: TJumpTrackingItem;
+      begin
+        Result := False;
+
+        { See if this label appears in the tracking list }
+        Search := TJumpTrackingItem(JumpTracking.Last);
+        while Assigned(Search) do
+          begin
+            if Search.Symbol = Symbol then
+              begin
+                { Found it - let's see what we can discover }
+                if Search.Symbol.getrefs = Search.Refs then
+                  begin
+                    { Success - all the references are accounted for }
+                    JumpTracking.Remove(Search);
+                    Search.Free;
+
+                    { It is logically impossible for CrossJump to be false here
+                      because we must have run into a conditional jump for
+                      this label at some point }
+                    if not CrossJump then
+                      InternalError(2022041710);
+
+                    if JumpTracking.First = nil then
+                      { Tracking list is now empty - no more cross jumps }
+                      CrossJump := False;
+
+                    Result := True;
+                    Exit;
+                  end;
+
+                { If the references don't match, it's possible to enter
+                  this label through other means, so drop out }
+                Exit;
+              end;
+
+            Search := TJumpTrackingItem(Search.Previous);
+          end;
+      end;
+
+    var
+      Next_Label: tai;
     begin
       { Note, CrossJump keeps its input value if a conditional jump is not found - it doesn't get set to False }
       Next := Current;
       repeat
         Result := GetNextInstruction(Next,Next);
-        if Result and (Next.typ=ait_instruction) and is_calljmp(taicpu(Next).opcode) then
+        if not Result then
+          Break;
+
+        if Next.typ = ait_align then
+          Result := SkipAligns(Next, Next);
+
+        if (Next.typ=ait_instruction) and is_calljmp(taicpu(Next).opcode) then
           if is_calljmpuncondret(taicpu(Next).opcode) then
             begin
+              if (taicpu(Next).opcode = A_JMP) and
+                { Remove dead code now to save time }
+                RemoveDeadCodeAfterJump(taicpu(Next)) then
+                { A jump was removed, but not the current instruction, and
+                  Result doesn't necessarily translate into an optimisation
+                  routine's Result, so use the "Force New Iteration" flag so
+                  mark a new pass }
+                Include(OptsToCheck, aoc_ForceNewIteration);
+
+              if not Assigned(JumpTracking) then
+                begin
+                  { Cross-label optimisations often causes other optimisations
+                    to perform worse because they're not given the chance to
+                    optimise locally.  In this case, don't do the cross-label
+                    optimisations yet, but flag them as a potential possibility
+                    for the next iteration of Pass 1 }
+                  if not NotFirstIteration then
+                    Include(OptsToCheck, aoc_ForceNewIteration);
+                end
+              else if IsJumpToLabel(taicpu(Next)) and
+                GetNextInstruction(Next, Next_Label) and
+                SkipAligns(Next_Label, Next_Label) then
+                begin
+
+                  { If we have JMP .lbl, and the label after it has all of its
+                    references tracked, then this is probably an if-else style of
+                    block and we can keep tracking.  If the label for this jump
+                    then appears later and is fully tracked, then it's the end
+                    of the if-else blocks and the code paths converge (thus
+                    marking the end of the cross-jump) }
+
+                  if (Next_Label.typ = ait_label) then
+                    begin
+                      if LabelAccountedFor(tai_label(Next_Label).labsym) then
+                        begin
+                          TrackJump(JumpTargetOp(taicpu(Next))^.ref^.symbol);
+                          Next := Next_Label;
+
+                          { CrossJump gets set to false by LabelAccountedFor if the
+                            list is completely emptied (as it indicates that all
+                            code paths have converged).  We could avoid this nuance
+                            by moving the TrackJump call to before the
+                            LabelAccountedFor call, but this is slower in situations
+                            where LabelAccountedFor would return False due to the
+                            creation of a new object that is not used and destroyed
+                            soon after. }
+                          CrossJump := True;
+                          Continue;
+                        end;
+                    end
+                  else if (Next_Label.typ <> ait_marker) then
+                    { We just did a RemoveDeadCodeAfterJump, so either we find
+                      a label, the end of the procedure or some kind of marker}
+                    InternalError(2022041720);
+                end;
+
               Result := False;
               Exit;
             end
           else
-            CrossJump := True;
+            begin
+              if not Assigned(JumpTracking) then
+                begin
+                  { Cross-label optimisations often causes other optimisations
+                    to perform worse because they're not given the chance to
+                    optimise locally.  In this case, don't do the cross-label
+                    optimisations yet, but flag them as a potential possibility
+                    for the next iteration of Pass 1 }
+                  if not NotFirstIteration then
+                    Include(OptsToCheck, aoc_ForceNewIteration);
+                end
+              else if IsJumpToLabel(taicpu(Next)) then
+                TrackJump(JumpTargetOp(taicpu(Next))^.ref^.symbol)
+              else
+                { Conditional jumps should always be a jump to label }
+                InternalError(2022041701);
+
+              CrossJump := True;
+              Continue;
+            end;
+
+        if Next.typ = ait_label then
+          begin
+            if not Assigned(JumpTracking) then
+              begin
+                { Cross-label optimisations often causes other optimisations
+                  to perform worse because they're not given the chance to
+                  optimise locally.  In this case, don't do the cross-label
+                  optimisations yet, but flag them as a potential possibility
+                  for the next iteration of Pass 1 }
+                if not NotFirstIteration then
+                  Include(OptsToCheck, aoc_ForceNewIteration);
+
+              end
+            else if LabelAccountedFor(tai_label(Next).labsym) then
+              Continue;
+
+            { If we reach here, we're at a label that hasn't been seen before
+              (or JumpTracking was nil) }
+            Break;
+          end;
       until not Result or
             not (cs_opt_level3 in current_settings.optimizerswitches) or
-            (Next.typ <> ait_instruction) or
+            not (Next.typ in [ait_label, ait_instruction]) or
             RegInInstruction(reg,Next);
     end;
 
@@ -2553,7 +2756,7 @@ unit aoptx86;
         SourceRef, TargetRef: TReference;
         MovAligned, MovUnaligned: TAsmOp;
         ThisRef: TReference;
-
+        JumpTracking: TLinkedList;
       begin
         Result:=false;
 
@@ -3674,7 +3877,12 @@ unit aoptx86;
             TransferUsedRegs(TmpUsedRegs);
             UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
 
-            while GetNextInstructionUsingRegCond(hp3,hp2,ActiveReg,CrossJump) and
+            if NotFirstIteration then
+              JumpTracking := TLinkedList.Create
+            else
+              JumpTracking := nil;
+
+            while GetNextInstructionUsingRegCond(hp3,hp2,ActiveReg,JumpTracking,CrossJump) and
               { GetNextInstructionUsingRegCond only searches one instruction ahead unless -O3 is specified }
               (hp2.typ=ait_instruction) do
               begin
@@ -3690,6 +3898,7 @@ unit aoptx86;
                             DebugMsg(SPeepholeOptimization + 'Mov2Nop 3c done',p);
                             RemoveCurrentp(p, hp1);
                             Result := True;
+                            JumpTracking.Free;
                             Exit;
                           end;
                         { Can't go any further }
@@ -3756,6 +3965,7 @@ unit aoptx86;
                                       DebugMsg(SPeepholeOptimization + 'MovMov2NopNop 6b done',p);
                                       RemoveCurrentP(p, hp1);
                                       Result:=true;
+                                      JumpTracking.Free;
                                       Exit;
                                     end;
                                 end
@@ -3778,6 +3988,7 @@ unit aoptx86;
                                       DebugMsg(SPeepholeOptimization + 'MovMov2Mov 6 done',p);
                                       RemoveCurrentP(p, hp1);
                                       Result:=true;
+                                      JumpTracking.Free;
                                       Exit;
                                     end;
 
@@ -3887,6 +4098,7 @@ unit aoptx86;
                         RemoveInstruction(hp2);
 
                         Result := True;
+                        JumpTracking.Free;
                         Exit;
                       end;
                   else
@@ -3921,6 +4133,8 @@ unit aoptx86;
                                 { We can remove the original MOV }
                                 DebugMsg(SPeepholeOptimization + 'Mov2Nop 3b done',p);
                                 RemoveCurrentp(p, hp1);
+                                JumpTracking.Free;
+                                Result := True;
                                 Exit;
                               end;
 
@@ -3937,6 +4151,8 @@ unit aoptx86;
                 { Break out of the while loop under normal circumstances }
                 Break;
               end;
+
+            JumpTracking.Free;
 
           end;
 

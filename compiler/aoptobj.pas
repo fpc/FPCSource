@@ -420,6 +420,9 @@ Unit AoptObj;
           each instruction. Useful for debugging the InstructionLoadsFromReg and
           other similar functions. }
         procedure Debug_InsertInstrRegisterDependencyInfo; virtual;
+      protected
+        { Set to True if this is the second time that Pass 1 is being run }
+        NotFirstIteration: Boolean;
       private
         procedure DebugMsg(const s: string; p: tai);
       End;
@@ -2492,6 +2495,7 @@ Unit AoptObj;
         else
           MaxCount := MaxPasses[1];
 
+        NotFirstIteration := False;
         repeat
           stoploop:=true;
           p := StartPoint;
@@ -2545,6 +2549,9 @@ Unit AoptObj;
             end;
 
           Inc(PassCount);
+
+          if not stoploop then
+            NotFirstIteration := True;
 
         until stoploop or (PassCount >= MaxCount);
       end;
