@@ -2831,7 +2831,7 @@ unit cgx86;
 {$endif i8086}
       if (cs_mmx in current_settings.localswitches) and
          not(pi_uses_fpu in current_procinfo.flags) and
-         ((len=8) or (len=16) or (len=24) or (len=32)) then
+         ({$ifdef i386}(len=8) or {$endif i386}(len=16) or (len=24) or (len=32)) then
         cm:=copy_mmx
       else
         if len>helpsize then
