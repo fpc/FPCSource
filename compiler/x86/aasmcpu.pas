@@ -4891,6 +4891,7 @@ implementation
                   result:=taicpu.op_reg_ref(A_MOVSD,S_NO,r,tmpref);
                 R_SUBMMS:
                   result:=taicpu.op_reg_ref(A_MOVSS,S_NO,r,tmpref);
+                R_SUBMMX,
                 R_SUBQ,
                 R_SUBMMWHOLE:
                   result:=taicpu.op_reg_ref(A_MOVQ,S_NO,r,tmpref);
