@@ -1189,7 +1189,7 @@ begin
    if assigned(ftocsm) and (ftocsm.ImageList<>'') then
      FIDXHdrStream.writedwordLE(addstring(ftocsm.ImageList))
    else
-     FIDXHdrStream.writedwordLE(-1);
+     FIDXHdrStream.writedwordLE($FFFFFFFF);
 
    // 18 0 (unknown)
    FIDXHdrStream.writedwordLE(0);
@@ -1204,25 +1204,25 @@ begin
    if assigned(ftocsm) then
      FIDXHdrStream.writedwordLE(ftocsm.Backgroundcolor)
    else
-     FIDXHdrStream.writedwordLE(-1);
+     FIDXHdrStream.writedwordLE($FFFFFFFF);
 
    // 24 The value of the Foreground param of the "text/site properties" object of the sitemap contents
    if assigned(ftocsm) then
      FIDXHdrStream.writedwordLE(ftocsm.Foregroundcolor)
    else
-     FIDXHdrStream.writedwordLE(-1);
+     FIDXHdrStream.writedwordLE($FFFFFFFF);
 
    // 28 Offset in the #STRINGS file of the Font param of the "text/site properties" object of the sitemap contents (0/-1 = none)
    if assigned(ftocsm) and (ftocsm.Font<>'') then
      FIDXHdrStream.writedwordLE(addstring(ftocsm.font))
    else
-     FIDXHdrStream.writedwordLE(-1);
+     FIDXHdrStream.writedwordLE($FFFFFFFF);
 
    // 2C The value of the Window Styles param of the "text/site properties" object of the sitemap contents
    if assigned(ftocsm) then
      FIDXHdrStream.writedwordLE(FTocsm.WindowStyles)
    else
-     FIDXHdrStream.writedwordLE(-1);
+     FIDXHdrStream.writedwordLE($FFFFFFFF);
 
    // 30 The value of the EXWindow Styles param of the "text/site properties" object of the sitemap contents
    if assigned(ftocsm) then
@@ -1231,7 +1231,7 @@ begin
      FIDXHdrStream.writedwordLE(0);
 
    // 34 Unknown. Often -1. Sometimes 0.
-   FIDXHdrStream.writedwordLE(-1);
+   FIDXHdrStream.writedwordLE($FFFFFFFF);
 
    // 38 Offset in the #STRINGS file of the FrameName param of the "text/site properties" object of the sitemap contents (0/-1 = none)
    if assigned(ftocsm) and (ftocsm.framename<>'') then
@@ -1243,7 +1243,7 @@ begin
    if assigned(ftocsm) and (ftocsm.windowname<>'') then
      FIDXHdrStream.writedwordLE(addstring(FTocsm.windowname))
    else
-     FIDXHdrStream.writedwordLE(-1);
+     FIDXHdrStream.writedwordLE($FFFFFFFF);
    FIDXHdrStream.writedword(ntole(0));        // 40 Number of information types.
    FIDXHdrStream.writedword(ntole(1));        // 44 Unknown. Often 1. Also 0, 3.
    FIDXHdrStream.writedword(ntole(fmergefiles.count));        // 48 Number of files in the [MERGE FILES] list.
