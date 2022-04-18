@@ -91,11 +91,11 @@ const
 // SSL and Crypto DLL arrays must have the same length and contain
 // matched pairs of DLL filenames. Place newer versions at the beginning.
 {$IF DEFINED(WIN64)}
-  SSL_DLL_Names:    array[1..3] of string = ('libssl-1_1-x64',    'ssleay32', 'libssl32');
-  Crypto_DLL_Names: array[1..3] of string = ('libcrypto-1_1-x64', 'libeay32', 'libeay32');
+  SSL_DLL_Names:    array[1..4] of string = ('libssl-3-x64',    'libssl-1_1-x64',    'ssleay32', 'libssl32');
+  Crypto_DLL_Names: array[1..4] of string = ('libcrypto-3-x64', 'libcrypto-1_1-x64', 'libeay32', 'libeay32');
 {$ELSEIF DEFINED(WINDOWS)}
-  SSL_DLL_Names:    array[1..3] of string = ('libssl-1_1',    'ssleay32', 'libssl32');
-  Crypto_DLL_Names: array[1..3] of string = ('libcrypto-1_1', 'libeay32', 'libeay32');
+  SSL_DLL_Names:    array[1..4] of string = ('libssl-3',    'libssl-1_1',    'ssleay32', 'libssl32');
+  Crypto_DLL_Names: array[1..4] of string = ('libcrypto-3', 'libcrypto-1_1', 'libeay32', 'libeay32');
 {$ELSEIF DEFINED(OS2GCC)}
   SSL_DLL_Names:    array[1..2] of string = ('kssl10',   'kssl');
   Crypto_DLL_Names: array[1..2] of string = ('kcrypt10', 'kcrypto');
@@ -108,7 +108,7 @@ const
   { ADD NEW ONES WHEN THEY APPEAR!
     Always make .so/dylib first, then versions, in descending order!
     Add "." .before the version, first is always just "" }
-  DLLVersions: array[1..19] of string = ('', '.1.1', '.11', '.10', '.1.0.6', '.1.0.5', '.1.0.4', '.1.0.3',
+  DLLVersions: array[1..20] of string = ('', '.3', '.1.1', '.11', '.10', '.1.0.6', '.1.0.5', '.1.0.4', '.1.0.3',
                                         '.1.0.2', '.1.0.1','.1.0.0','.0.9.8',
                                         '.0.9.7', '.0.9.6', '.0.9.5', '.0.9.4',
                                         '.0.9.3', '.0.9.2', '.0.9.1');
