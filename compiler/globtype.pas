@@ -837,13 +837,17 @@ interface
       plongint   = ^longint;
       plongintarray = plongint;
 
+      tfileposline = longint;
+      tfileposcolumn = word;
+      tfileposfileindex = word;
+      tfileposmoduleindex = word;
       pfileposinfo = ^tfileposinfo;
       tfileposinfo = record
         { if types of column or fileindex are changed, modify tcompilerppufile.putposinfo }
-        line      : longint;
-        column    : word;
-        fileindex : word;
-        moduleindex : word;
+        line      : tfileposline;
+        column    : tfileposcolumn;
+        fileindex : tfileposfileindex;
+        moduleindex : tfileposmoduleindex;
       end;
 
   {$ifndef xFPC}
