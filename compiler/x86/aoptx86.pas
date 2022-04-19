@@ -128,7 +128,7 @@ unit aoptx86;
 
 
         { Returns true if the given MOV instruction can be safely converted to CMOV }
-        class function CanBeCMOV(p : tai) : boolean; static;
+        class function CanBeCMOV(p, cond_p: tai) : boolean; static;
 
         { Like UpdateUsedRegs, but ignores deallocations }
         class procedure UpdateIntRegsNoDealloc(var AUsedRegs: TAllUsedRegs; p: Tai); static;
@@ -11274,23 +11274,52 @@ unit aoptx86;
       end;
 
 
-    class function TX86AsmOptimizer.CanBeCMOV(p : tai) : boolean;
+    class function TX86AsmOptimizer.CanBeCMOV(p, cond_p: tai) : boolean;
       begin
-         CanBeCMOV:=assigned(p) and
-           MatchInstruction(p,A_MOV,[S_W,S_L,S_Q]) and
-           (taicpu(p).oper[1]^.typ = top_reg) and
-           (
-             (taicpu(p).oper[0]^.typ = top_reg) or
-             { allow references, but only pure symbols or got rel. addressing with RIP as based,
-               it is not expected that this can cause a seg. violation }
-             (
-               (taicpu(p).oper[0]^.typ = top_ref) and
-               { TODO: Can we detect which references become constants at this
-                 stage so we don't have to do a blanket ban? }
-               (taicpu(p).oper[0]^.ref^.refaddr <> addr_full) and
-               IsRefSafe(taicpu(p).oper[0]^.ref)
-             )
-           );
+        Result := assigned(p) and
+          MatchInstruction(p,A_MOV,[S_W,S_L,S_Q]) and
+          (taicpu(p).oper[1]^.typ = top_reg) and
+          (
+            (taicpu(p).oper[0]^.typ = top_reg) or
+            { allow references, but only pure symbols or got rel. addressing with RIP as based,
+              it is not expected that this can cause a seg. violation }
+            (
+              (taicpu(p).oper[0]^.typ = top_ref) and
+              { TODO: Can we detect which references become constants at this
+                stage so we don't have to do a blanket ban? }
+              (taicpu(p).oper[0]^.ref^.refaddr <> addr_full) and
+              (
+                IsRefSafe(taicpu(p).oper[0]^.ref) or
+                (
+                  { If the reference also appears in the condition, then we know it's safe, otherwise
+                    any kind of access violation would have occurred already }
+                  Assigned(cond_p) and
+                  { Make sure the sizes match too so we're reading and writing the same number of bytes }
+                  (cond_p.typ = ait_instruction) and
+                  (taicpu(cond_p).opsize = taicpu(p).opsize) and
+                  { Just consider 2-operand comparison instructions for now to be safe }
+                  (taicpu(cond_p).ops = 2) and
+                  (
+                    ((taicpu(cond_p).oper[1]^.typ = top_ref) and RefsEqual(taicpu(cond_p).oper[1]^.ref^, taicpu(p).oper[0]^.ref^)) or
+                    (
+                      (taicpu(cond_p).oper[0]^.typ = top_ref) and
+                      { Don't risk identical registers but different offsets, as we may have constructs
+                        such as buffer streams with things like length fields that indicate whether
+                        any more data follows.  And there are probably some contrived examples where
+                        writing to offsets behind the one being read also lead to access violations }
+                      RefsEqual(taicpu(cond_p).oper[0]^.ref^, taicpu(p).oper[0]^.ref^) and
+                      (
+                        { Check that we're not modifying a register that appears in the reference }
+                        (InsProp[taicpu(cond_p).opcode].Ch * [Ch_Mop2, Ch_RWop2, Ch_Wop2] = []) or
+                        (taicpu(cond_p).oper[1]^.typ <> top_reg) or
+                        not RegInRef(taicpu(cond_p).oper[1]^.reg, taicpu(cond_p).oper[0]^.ref^)
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          );
       end;
 
 
@@ -11881,7 +11910,7 @@ unit aoptx86;
                            ait_instruction:
                              if MatchInstruction(hp1, A_MOV, [S_W, S_L{$ifdef x86_64}, S_Q{$endif x86_64}]) then
                                begin
-                                 if CanBeCMOV(hp1) then
+                                 if CanBeCMOV(hp1, hp_prev) then
                                    Inc(l)
                                  else if not (cs_opt_size in current_settings.optimizerswitches) and
                                    { CMOV with constants grows the code size }
@@ -12085,7 +12114,7 @@ unit aoptx86;
                                 ait_instruction:
                                   if MatchInstruction(hp1, A_MOV, [S_W, S_L{$ifdef x86_64}, S_Q{$endif x86_64}]) then
                                     begin
-                                      if CanBeCMOV(hp1) then
+                                      if CanBeCMOV(hp1, hp_prev) then
                                         Inc(l)
                                       else if not (cs_opt_size in current_settings.optimizerswitches)
                                         { CMOV with constants grows the code size }
