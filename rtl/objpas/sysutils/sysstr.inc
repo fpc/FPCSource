@@ -921,7 +921,7 @@ end;
 
 function IntToHex(Value: Int8): string;
 begin
-  Result:=IntToHex(Value, 2*SizeOf(Int8));
+  Result:=IntToHex(LongInt(Value) and $ff, 2*SizeOf(Int8));
 end;
 
 function IntToHex(Value: UInt8): string;
@@ -931,7 +931,7 @@ end;
 
 function IntToHex(Value: Int16): string;
 begin
-  Result:=IntToHex(Value, 2*SizeOf(Int16));
+  Result:=IntToHex(LongInt(Value) and $ffff, 2*SizeOf(Int16));
 end;
 
 function IntToHex(Value: UInt16): string;
