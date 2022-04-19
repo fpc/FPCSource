@@ -85,6 +85,7 @@ uses
                 A_MOVSXD,
                 A_MOVZX:
                   Result:=OptPass1Movx(p);
+                A_MOVDQA,
                 A_MOVAPD,
                 A_MOVAPS,
                 A_MOVUPD,
