@@ -179,6 +179,7 @@ unit procinfo;
           function has_nestedprocs: boolean;
           function get_normal_proc: tprocinfo;
           procedure addnestedproc(child: tprocinfo);
+          function find_nestedproc_by_pd(pd:tprocdef):tprocinfo;
 
           procedure add_local_ref_sym(sym:tsym);
           procedure export_local_ref_syms;
@@ -284,6 +285,22 @@ implementation
         if nestedprocs=nil then
           nestedprocs:=TLinkedList.Create;
         nestedprocs.insert(child);
+      end;
+
+    function tprocinfo.find_nestedproc_by_pd(pd:tprocdef):tprocinfo;
+      var
+        pi : tprocinfo;
+      begin
+        if not assigned(nestedprocs) then
+          exit(nil);
+        pi:=tprocinfo(nestedprocs.first);
+        while assigned(pi) do
+          begin
+            if pi.procdef=pd then
+              exit(pi);
+            pi:=tprocinfo(pi.next);
+          end;
+        result:=nil;
       end;
 
     procedure tprocinfo.updatestackalignment(alignment: longint);
