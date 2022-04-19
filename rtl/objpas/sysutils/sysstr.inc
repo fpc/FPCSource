@@ -943,7 +943,7 @@ end;
 
 function IntToHex(Value: UInt32): string;
 begin
-  Result:=IntToHex(Value, 2*SizeOf(UInt32));
+  Result:=IntToHex(LongInt(Value), 2*SizeOf(UInt32));
 end;
 
 function IntToHex(Value: Int64): string;
