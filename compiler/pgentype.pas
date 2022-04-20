@@ -65,13 +65,9 @@ begin
 end;
 
 destructor tspecializationcontext.destroy;
-var
-  i : longint;
 begin
   paramlist.free;
-  for i:=0 to poslist.count-1 do
-    dispose(pfileposinfo(poslist[i]));
-  poslist.free;
+  tfplist.FreeAndNilDisposing(poslist,TypeInfo(tfileposinfo));
   inherited destroy;
 end;
 

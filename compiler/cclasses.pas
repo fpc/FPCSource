@@ -116,6 +116,9 @@ type
 
     { FreeAndNil the list, and its items as TObjects. }
     class procedure FreeAndNilObjects(var Lst: TFPList); static;
+
+    { FreeAndNil the list, and dispose() its items. 'ItemType' is TypeInfo() of items. }
+    class procedure FreeAndNilDisposing(var Lst: TFPList; ItemType: Pointer); static;
   end;
 
 
@@ -1054,6 +1057,26 @@ begin
   Lp := Lst.FList;
   for I := 0 to Lst.Count-1 do
     TObject(Lp[I]).Free;
+  Lst.Free;
+  Lst := nil;
+end;
+
+procedure fpc_finalize(data, typeinfo: pointer); external;
+
+class procedure TFPList.FreeAndNilDisposing(var Lst: TFPList; ItemType: Pointer);
+var
+  Lp: PPointer;
+  I: SizeInt;
+begin
+  if not Assigned(Lst) then
+    exit;
+  Lp := Lst.FList;
+  for I := 0 to Lst.Count-1 do
+    if Assigned(Lp[I]) then
+      begin
+        fpc_finalize(Lp[I],ItemType);
+        FreeMem(Lp[I]);
+      end;
   Lst.Free;
   Lst := nil;
 end;

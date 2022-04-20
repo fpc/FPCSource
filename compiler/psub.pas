@@ -684,15 +684,8 @@ implementation
 ****************************************************************************}
 
      destructor tcgprocinfo.destroy;
-       var
-         i : longint;
        begin
-         if assigned(tempinfo_flags_map) then
-           begin
-             for i:=0 to tempinfo_flags_map.count-1 do
-               dispose(ptempinfo_flags_entry(tempinfo_flags_map[i]));
-             tempinfo_flags_map.free;
-           end;
+         TFPList.FreeAndNilDisposing(tempinfo_flags_map,TypeInfo(ttempinfo_flags_entry));
          code.free;
          inherited destroy;
        end;
