@@ -146,7 +146,7 @@ unit aoptx86;
         class function IsShrMovZFoldable(shr_size, movz_size: topsize; Shift: TCGInt): Boolean; static;
         procedure RemoveLastDeallocForFuncRes(p : tai);
 
-        function DoSubAddOpt(var p : tai) : Boolean;
+        function DoArithCombineOpt(var p : tai) : Boolean;
         function DoMovCmpMemOpt(var p : tai; const hp1: tai; UpdateTmpUsedRegs: Boolean) : Boolean;
         function DoSETccLblRETOpt(var p: tai; const hp_label: tai_label) : Boolean;
 
@@ -5422,9 +5422,13 @@ unit aoptx86;
                         Asml.InsertAfter(p, hp1);
                         p := hp1;
                         Result := True;
+                        Exit;
                       end;
                   end;
               end;
+
+            if DoArithCombineOpt(p) then
+              Result:=true;
           end;
       end;
 
@@ -5859,53 +5863,109 @@ unit aoptx86;
       end;
 
 
-    function TX86AsmOptimizer.DoSubAddOpt(var p: tai): Boolean;
+    function TX86AsmOptimizer.DoArithCombineOpt(var p: tai): Boolean;
       var
         hp1 : tai;
+        SubInstr: Boolean;
+        ThisConst: TCGInt;
+
+      const
+        OverflowMin: array[S_B..S_Q] of TCGInt = (-128, -32768, -2147483648, -2147483648);
+         { Note: 64-bit-sized arithmetic instructions can only take signed 32-bit immediates }
+        OverflowMax: array[S_B..S_Q] of TCGInt = ( 255,  65535,   $FFFFFFFF,  2147483647);
       begin
-        DoSubAddOpt := False;
+        Result := False;
 
         if taicpu(p).oper[0]^.typ <> top_const then
           { Should have been confirmed before calling }
           InternalError(2021102601);
 
+        SubInstr := (taicpu(p).opcode = A_SUB);
+
         if GetLastInstruction(p, hp1) and
            (hp1.typ = ait_instruction) and
            (taicpu(hp1).opsize = taicpu(p).opsize) then
-          case taicpu(hp1).opcode Of
-            A_DEC:
-              if MatchOperand(taicpu(hp1).oper[0]^,taicpu(p).oper[1]^) then
-                begin
-                  taicpu(p).loadConst(0,taicpu(p).oper[0]^.val+1);
-                  RemoveInstruction(hp1);
-                end;
-             A_SUB:
-               if (taicpu(hp1).oper[0]^.typ = top_const) and
-                 MatchOperand(taicpu(hp1).oper[1]^,taicpu(p).oper[1]^) then
-                 begin
-                   taicpu(p).loadConst(0,taicpu(p).oper[0]^.val+taicpu(hp1).oper[0]^.val);
-                   RemoveInstruction(hp1);
-                 end;
-             A_ADD:
-               begin
+          begin
+            if not (taicpu(p).opsize in [S_B, S_W, S_L{$ifdef x86_64}, S_Q{$endif x86_64}]) then
+              { Bad size }
+              InternalError(2022042001);
+
+            case taicpu(hp1).opcode Of
+              A_INC:
+                if MatchOperand(taicpu(hp1).oper[0]^,taicpu(p).oper[1]^) then
+                  begin
+                    if SubInstr then
+                      ThisConst := taicpu(p).oper[0]^.val - 1
+                    else
+                      ThisConst := taicpu(p).oper[0]^.val + 1;
+                  end
+                else
+                  Exit;
+              A_DEC:
+                if MatchOperand(taicpu(hp1).oper[0]^,taicpu(p).oper[1]^) then
+                  begin
+                    if SubInstr then
+                      ThisConst := taicpu(p).oper[0]^.val + 1
+                    else
+                      ThisConst := taicpu(p).oper[0]^.val - 1;
+                  end
+                else
+                  Exit;
+              A_SUB:
                  if (taicpu(hp1).oper[0]^.typ = top_const) and
                    MatchOperand(taicpu(hp1).oper[1]^,taicpu(p).oper[1]^) then
                    begin
-                     taicpu(p).loadConst(0,taicpu(p).oper[0]^.val-taicpu(hp1).oper[0]^.val);
-                     RemoveInstruction(hp1);
-                     if (taicpu(p).oper[0]^.val = 0) then
-                       begin
-                         hp1 := tai(p.next);
-                         RemoveInstruction(p); { Note, the choice to not use RemoveCurrentp is deliberate }
-                         if not GetLastInstruction(hp1, p) then
-                           p := hp1;
-                         DoSubAddOpt := True;
-                       end
-                   end;
-               end;
-             else
-               ;
-           end;
+                     if SubInstr then
+                       ThisConst := taicpu(p).oper[0]^.val + taicpu(hp1).oper[0]^.val
+                     else
+                       ThisConst := taicpu(p).oper[0]^.val - taicpu(hp1).oper[0]^.val;
+                   end
+                 else
+                   Exit;
+              A_ADD:
+                 if (taicpu(hp1).oper[0]^.typ = top_const) and
+                   MatchOperand(taicpu(hp1).oper[1]^,taicpu(p).oper[1]^) then
+                   begin
+                     if SubInstr then
+                       ThisConst := taicpu(p).oper[0]^.val - taicpu(hp1).oper[0]^.val
+                     else
+                       ThisConst := taicpu(p).oper[0]^.val + taicpu(hp1).oper[0]^.val;
+                   end
+                 else
+                   Exit;
+              else
+                Exit;
+            end;
+
+            { Check that the values are in range }
+            if (ThisConst < OverflowMin[taicpu(p).opsize]) or (ThisConst > OverflowMax[taicpu(p).opsize]) then
+              { Overflow; abort }
+              Exit;
+
+            RemoveInstruction(hp1);
+            if (ThisConst = 0) then
+              begin
+                DebugMsg(SPeepholeOptimization + 'Arithmetic combine: ' +
+                  debug_op2str(taicpu(hp1).opcode) + ' $' + debug_tostr(taicpu(hp1).oper[0]^.val) + ',' + debug_operstr(taicpu(hp1).oper[1]^) + '; ' +
+                  debug_op2str(taicpu(p).opcode) + ' $' + debug_tostr(taicpu(p).oper[0]^.val) + ',' + debug_operstr(taicpu(p).oper[1]^) + ' cancel out (NOP)', p);
+
+                hp1 := tai(p.next);
+                RemoveInstruction(p); { Note, the choice to not use RemoveCurrentp is deliberate }
+                if not GetLastInstruction(hp1, p) then
+                  p := hp1;
+              end
+            else
+              begin
+                DebugMsg(SPeepholeOptimization + 'Arithmetic combine: ' +
+                  debug_op2str(taicpu(hp1).opcode) + ' $' + debug_tostr(taicpu(hp1).oper[0]^.val) + ',' + debug_operstr(taicpu(hp1).oper[1]^) + '; ' +
+                  debug_op2str(taicpu(p).opcode) + ' $' + debug_tostr(taicpu(p).oper[0]^.val) + ',' + debug_operstr(taicpu(p).oper[1]^) + ' -> ' +
+                  debug_op2str(taicpu(p).opcode) + ' $' + debug_tostr(ThisConst) + ' ' + debug_operstr(taicpu(p).oper[1]^), p);
+
+                taicpu(p).loadconst(0, ThisConst);
+              end;
+
+            Result := True;
+          end;
       end;
 
 
@@ -6398,7 +6458,7 @@ unit aoptx86;
                   end;
               end;
 {$endif i386}
-            if DoSubAddOpt(p) then
+            if DoArithCombineOpt(p) then
               Result:=true;
           end;
       end;
