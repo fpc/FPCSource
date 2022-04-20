@@ -104,6 +104,8 @@ type
     function LoadField(cursor:TSQLCursor; FieldDef:TFieldDef; buffer:pointer; out CreateBlob : boolean):boolean; override;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
     procedure FreeFldBuffers(cursor:TSQLCursor); override;
+    procedure CheckResult(LastReturnCode:SQLRETURN; HandleType:SQLSMALLINT; AHandle: SQLHANDLE; ErrorMsg: string; const FmtArgs:array of const);
+    procedure CheckResult(LastReturnCode:SQLRETURN; HandleType:SQLSMALLINT; AHandle: SQLHANDLE; ErrorMsg: string);
     // - UpdateIndexDefs
     procedure UpdateIndexDefs(IndexDefs:TIndexDefs; TableName:string); override;
     // - Schema info
@@ -177,7 +179,7 @@ begin
   end;
 end;
 
-procedure ODBCCheckResult(LastReturnCode:SQLRETURN; HandleType:SQLSMALLINT; AHandle: SQLHANDLE; ErrorMsg: string; const FmtArgs:array of const);
+procedure ODBCCheckResult(LastReturnCode:SQLRETURN; HandleType:SQLSMALLINT; AHandle: SQLHANDLE; const ConnectionCodePage: TSystemCodePage; ErrorMsg: string; const FmtArgs:array of const);
 
   // check return value from SQLGetDiagField/Rec function itself
   procedure CheckSQLGetDiagResult(const Res:SQLRETURN);
@@ -196,7 +198,8 @@ var
   NativeError, NativeError1: SQLINTEGER;
   TextLength:SQLSMALLINT;
   Res:SQLRETURN;
-  SqlState, SQLState1, MessageText, TotalMessage: string;
+  SqlState, SQLState1, TotalMessage: string;
+  MessageText: RawByteString;
   RecNumber:SQLSMALLINT;
 begin
   // check result
@@ -226,6 +229,11 @@ begin
         SetLength(MessageText,TextLength); // note: ansistrings of Length>0 are always terminated by a #0 character, so this is safe
         // actual call
         Res:=SQLGetDiagRec(HandleType,AHandle,RecNumber,@(SqlState[1]),NativeError,@(MessageText[1]),Length(MessageText)+1,TextLength);
+
+        // MessageText is received in ANSI - convert to DefaultSystemCodePage
+        SetCodePage(MessageText, ConnectionCodePage, False);
+        SetCodePage(MessageText, DefaultSystemCodePage, True);
+
         CheckSQLGetDiagResult(Res);
       end;
       // add to TotalMessage
@@ -248,12 +256,17 @@ begin
   raise EODBCException.CreateFmt(TotalMessage, [], nil, NativeError1, SQLState1);
 end;
 
-procedure ODBCCheckResult(LastReturnCode:SQLRETURN; HandleType:SQLSMALLINT; AHandle: SQLHANDLE; ErrorMsg: string);
+{ TODBCConnection }
+
+procedure TODBCConnection.CheckResult(LastReturnCode:SQLRETURN; HandleType:SQLSMALLINT; AHandle: SQLHANDLE; ErrorMsg: string; const FmtArgs:array of const);
 begin
-  ODBCCheckResult(LastReturnCode, HandleType, AHandle, ErrorMsg, []);
+  ODBCCheckResult(LastReturnCode,HandleType,AHandle,CodePage,ErrorMsg,FmtArgs);
 end;
 
-{ TODBCConnection }
+procedure TODBCConnection.CheckResult(LastReturnCode:SQLRETURN; HandleType:SQLSMALLINT; AHandle: SQLHANDLE; ErrorMsg: string);
+begin
+  CheckResult(LastReturnCode, HandleType, AHandle, ErrorMsg, []);
+end;
 
 // Creates a connection string using the current value of the fields
 function TODBCConnection.CreateConnectionString: string;
@@ -605,7 +618,7 @@ begin
        PStrLenOrInd:=nil;
     ODBCCursor.FParamBuf[i]:=Buf;
 
-    ODBCCheckResult(
+    CheckResult(
          SQLBindParameter(ODBCCursor.FSTMTHandle, // StatementHandle
                           i+1,                    // ParameterNumber
                           SQL_PARAM_INPUT,        // InputOutputType
@@ -622,7 +635,7 @@ begin
     // required by MSSQL:
     if CType = SQL_C_NUMERIC then
     begin
-      ODBCCheckResult(
+      CheckResult(
         SQLGetStmtAttr(ODBCCursor.FSTMTHandle, SQL_ATTR_APP_PARAM_DESC, @APD, 0, nil),
         SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get parameter descriptor.'
       );
@@ -677,7 +690,7 @@ begin
   end;
 
   // allocate connection handle
-  ODBCCheckResult(
+  CheckResult(
     SQLAllocHandle(SQL_HANDLE_DBC,Environment.FENVHandle,FDBCHandle),
     SQL_HANDLE_ENV,Environment.FENVHandle,'Could not allocate ODBC Connection handle.'
   );
@@ -686,7 +699,7 @@ begin
     // connect
     ConnectionString:=CreateConnectionString;
     SetLength(OutConnectionString,BufferLength-1); // allocate completed connection string buffer (using the ansistring #0 trick)
-    ODBCCheckResult(
+    CheckResult(
       SQLDriverConnect(FDBCHandle,               // the ODBC connection handle
                        nil,                      // no parent window (would be required for prompts)
                        PChar(ConnectionString),  // the connection string
@@ -700,7 +713,7 @@ begin
   except
     on E:Exception do begin
       // free connection handle
-      ODBCCheckResult(
+      CheckResult(
         SQLFreeHandle(SQL_HANDLE_DBC,FDBCHandle),
         SQL_HANDLE_DBC,FDBCHandle,'Could not free ODBC Connection handle.'
       );
@@ -738,7 +751,7 @@ begin
   inherited DoInternalDisconnect;
 
   // disconnect
-  ODBCCheckResult(
+  CheckResult(
     SQLDisconnect(FDBCHandle),
     SQL_HANDLE_DBC,FDBCHandle,'Could not disconnect.'
   );
@@ -746,7 +759,7 @@ begin
   // deallocate connection handle
   Res:=SQLFreeHandle(SQL_HANDLE_DBC, FDBCHandle);
   if Res=SQL_ERROR then
-    ODBCCheckResult(Res,SQL_HANDLE_DBC,FDBCHandle,'Could not free ODBC Connection handle.');
+    CheckResult(Res,SQL_HANDLE_DBC,FDBCHandle,'Could not free ODBC Connection handle.');
 end;
 
 function TODBCConnection.AllocateCursorHandle: TSQLCursor;
@@ -772,7 +785,7 @@ begin
   ODBCCursor:=cursor as TODBCCursor;
 
   // allocate statement handle
-  ODBCCheckResult(
+  CheckResult(
     SQLAllocHandle(SQL_HANDLE_STMT, FDBCHandle, ODBCCursor.FSTMTHandle),
     SQL_HANDLE_DBC, FDBCHandle, 'Could not allocate ODBC Statement handle.'
   );
@@ -795,7 +808,7 @@ begin
   if not (ODBCCursor.FSchemaType in [stTables, stSysTables, stColumns, stProcedures, stIndexes]) then
     begin
       wbuf := buf;
-      ODBCCheckResult(
+      CheckResult(
         SQLPrepareW(ODBCCursor.FSTMTHandle, PWideChar(wbuf), Length(wbuf)),
         SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not prepare statement.'
       );
@@ -814,7 +827,7 @@ begin
       // deallocate statement handle
       Res:=SQLFreeHandle(SQL_HANDLE_STMT, FSTMTHandle);
       if Res=SQL_ERROR then
-        ODBCCheckResult(Res,SQL_HANDLE_STMT, FSTMTHandle, 'Could not free ODBC Statement handle.');
+        CheckResult(Res,SQL_HANDLE_STMT, FSTMTHandle, 'Could not free ODBC Statement handle.');
       FSTMTHandle:=SQL_NULL_HSTMT;
       FPrepared := False;
     end;
@@ -835,7 +848,7 @@ begin
   else
     AutoCommit := SQL_AUTOCOMMIT_OFF;
 
-  ODBCCheckResult(
+  CheckResult(
     SQLSetConnectAttr(FDBCHandle, SQL_ATTR_AUTOCOMMIT, SQLPOINTER(AutoCommit), SQL_IS_UINTEGER),
     SQL_HANDLE_DBC,FDBCHandle,'Could not start transaction!'
   );
@@ -845,7 +858,7 @@ end;
 
 function TODBCConnection.Commit(trans: TSQLHandle): boolean;
 begin
-  ODBCCheckResult(
+  CheckResult(
     SQLEndTran(SQL_HANDLE_DBC, FDBCHandle, SQL_COMMIT),
     SQL_HANDLE_DBC, FDBCHandle, 'Could not commit!'
   );
@@ -854,7 +867,7 @@ end;
 
 function TODBCConnection.Rollback(trans: TSQLHandle): boolean;
 begin
-  ODBCCheckResult(
+  CheckResult(
     SQLEndTran(SQL_HANDLE_DBC, FDBCHandle, SQL_ROLLBACK),
     SQL_HANDLE_DBC, FDBCHandle, 'Could not rollback!'
   );
@@ -895,7 +908,7 @@ begin
       else          Res:=SQLExecute(ODBCCursor.FSTMTHandle); //SQL_NO_DATA returns searched update or delete statement that does not affect any rows
     end; {case}
 
-    if (Res<>SQL_NO_DATA) then ODBCCheckResult( Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.' );
+    if (Res<>SQL_NO_DATA) then CheckResult( Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.' );
 
     if ODBCSuccess(SQLNumResultCols(ODBCCursor.FSTMTHandle, ColumnCount)) then
       ODBCCursor.FSelectable:=ColumnCount>0
@@ -957,7 +970,7 @@ begin
   ODBCCursor:=cursor as TODBCCursor;
 
   // get number of columns in result set
-  ODBCCheckResult(
+  CheckResult(
     SQLNumResultCols(ODBCCursor.FSTMTHandle, ColumnCount),
     SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not determine number of columns in result set.'
   );
@@ -968,7 +981,7 @@ begin
     SetLength(ColName,ColNameDefaultLength); // also garantuees uniqueness
 
     // call with default column name buffer
-    ODBCCheckResult(
+    CheckResult(
       SQLDescribeCol(ODBCCursor.FSTMTHandle, // statement handle
                      i,                      // column number, is 1-based (Note: column 0 is the bookmark column in ODBC)
                      @(ColName[1]),          // default buffer
@@ -987,7 +1000,7 @@ begin
     if ColNameLength>ColNameDefaultLength then
     begin
       // request column name with buffer that is long enough
-      ODBCCheckResult(
+      CheckResult(
         SQLColAttribute(ODBCCursor.FSTMTHandle, // statement handle
                         i,                      // column number
                         SQL_DESC_NAME,          // the column name or alias
@@ -1081,7 +1094,7 @@ begin
     // only one column per table can have identity attr.
     if (FieldType in [ftInteger,ftLargeInt]) and (AutoIncAttr=SQL_FALSE) then
     begin
-      ODBCCheckResult(
+      CheckResult(
         SQLColAttribute(ODBCCursor.FSTMTHandle,     // statement handle
                         i,                          // column number
                         SQL_DESC_AUTO_UNIQUE_VALUE, // FieldIdentifier
@@ -1098,7 +1111,7 @@ begin
     if FieldType in [ftFloat] then
     begin
       FixedPrecScale:=0;
-      ODBCCheckResult(
+      CheckResult(
         SQLColAttribute(ODBCCursor.FSTMTHandle,
                         i,
                         SQL_DESC_FIXED_PREC_SCALE,
@@ -1115,7 +1128,7 @@ begin
     if FieldType in [ftSmallint] then
     begin
       Unsigned:=0;
-      ODBCCheckResult(
+      CheckResult(
         SQLColAttribute(ODBCCursor.FSTMTHandle,
                         i,
                         SQL_DESC_UNSIGNED,
@@ -1132,7 +1145,7 @@ begin
     end;
 
     Updatable:=0;
-    ODBCCheckResult(
+    CheckResult(
       SQLColAttribute(ODBCCursor.FSTMTHandle,
                       i,
                       SQL_DESC_UPDATABLE,
@@ -1147,7 +1160,7 @@ begin
     begin
       SetLength(TypeName,TypeNameDefaultLength); // also garantuees uniqueness
 
-      ODBCCheckResult(
+      CheckResult(
         SQLColAttribute(ODBCCursor.FSTMTHandle,  // statement handle
                         i,                       // column number
                         SQL_DESC_TYPE_NAME,      // FieldIdentifier indicating the datasource dependent data type name (useful for diagnostics)
@@ -1164,7 +1177,7 @@ begin
       if TypeNameLength>TypeNameDefaultLength then
       begin
         // request column name with buffer that is long enough
-        ODBCCheckResult(
+        CheckResult(
           SQLColAttribute(ODBCCursor.FSTMTHandle, // statement handle
                         i,                        // column number
                         SQL_DESC_TYPE_NAME,       // FieldIdentifier indicating the datasource dependent data type name (useful for diagnostics)
@@ -1197,7 +1210,7 @@ begin
   // fetch new row
   Res:=SQLFetch(ODBCCursor.FSTMTHandle);
   if Res<>SQL_NO_DATA then
-    ODBCCheckResult(Res,SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not fetch new row from result set.');
+    CheckResult(Res,SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not fetch new row from result set.');
 
   // result is true if a new row was available
   Result:=Res<>SQL_NO_DATA;
@@ -1326,7 +1339,7 @@ begin
   else
     raise EODBCException.CreateFmt('Tried to load field of unsupported field type %s',[Fieldtypenames[FieldDef.DataType]]);
   end;
-  ODBCCheckResult(Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get field data for field "%s" (index %d).',[FieldDef.Name, FieldDef.Index+1]);
+  CheckResult(Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get field data for field "%s" (index %d).',[FieldDef.Name, FieldDef.Index+1]);
   Result:=StrLenOrInd<>SQL_NULL_DATA; // Result indicates whether the value is non-null
 
   //writeln(Format('Field.Size: %d; StrLenOrInd: %d',[FieldDef.Size, StrLenOrInd]));
@@ -1347,7 +1360,7 @@ begin
   StrLenOrInd:=0;
   Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_BINARY, @BlobBuffer, 0, @StrLenOrInd);
   if Res<>SQL_NO_DATA then
-    ODBCCheckResult(Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get field data for field "%s" (index %d).',[FieldDef.Name, FieldDef.Index+1]);
+    CheckResult(Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get field data for field "%s" (index %d).',[FieldDef.Name, FieldDef.Index+1]);
   // Read the data if not NULL
   if StrLenOrInd<>SQL_NULL_DATA then
   begin
@@ -1362,7 +1375,7 @@ begin
       // get blob data
       if BlobBufferSize>0 then begin
         Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_BINARY, ABlobBuf^.BlobBuffer^.Buffer, BlobBufferSize, @StrLenOrInd);
-        ODBCCheckResult(Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not load blob data for field "%s" (index %d).',[FieldDef.Name, FieldDef.Index+1]);
+        CheckResult(Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not load blob data for field "%s" (index %d).',[FieldDef.Name, FieldDef.Index+1]);
       end;
     end else begin
       // Size is not known on beforehand; read data in chuncks; write to a TMemoryStream (which implements O(n) writing)
@@ -1377,7 +1390,7 @@ begin
         // Retrieve data in parts
         repeat
           Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_BINARY, BlobBuffer, BlobBufferSize, @StrLenOrInd);
-          ODBCCheckResult(Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not load (partial) blob data for field "%s" (index %d).',[FieldDef.Name, FieldDef.Index+1]);
+          CheckResult(Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not load (partial) blob data for field "%s" (index %d).',[FieldDef.Name, FieldDef.Index+1]);
           // Append data in buffer to memorystream
           if (StrLenOrInd=SQL_NO_TOTAL) or (StrLenOrInd>BlobBufferSize) then
             BytesRead:=BlobBufferSize
@@ -1410,7 +1423,7 @@ begin
   ODBCCursor:=cursor as TODBCCursor;
 
   if ODBCCursor.FSTMTHandle <> SQL_NULL_HSTMT then
-    ODBCCheckResult(
+    CheckResult(
       SQLFreeStmt(ODBCCursor.FSTMTHandle, SQL_CLOSE),
       SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not close ODBC statement cursor.'
     );
@@ -1443,7 +1456,7 @@ begin
 
   // allocate statement handle
   StmtHandle := SQL_NULL_HANDLE;
-  ODBCCheckResult(
+  CheckResult(
     SQLAllocHandle(SQL_HANDLE_STMT, FDBCHandle, StmtHandle),
     SQL_HANDLE_DBC, FDBCHandle, 'Could not allocate ODBC Statement handle.'
   );
@@ -1452,7 +1465,7 @@ begin
     // Disabled: only works if we can specify a SchemaName and, if supported by the data source, a CatalogName
     //           otherwise SQLPrimaryKeys returns error HY0009 (Invalid use of null pointer)
     // set the SQL_ATTR_METADATA_ID so parameters to Catalog functions are considered as identifiers (e.g. case-insensitive)
-    //ODBCCheckResult(
+    //CheckResult(
     //  SQLSetStmtAttr(StmtHandle, SQL_ATTR_METADATA_ID, SQLPOINTER(SQL_TRUE), SQL_IS_UINTEGER),
     //  SQL_HANDLE_STMT, StmtHandle, 'Could not set SQL_ATTR_METADATA_ID statement attribute to SQL_TRUE.'
     //);
@@ -1463,7 +1476,7 @@ begin
     SetLength(IndexName,DEFAULT_NAME_LEN);
 
     // Fetch primary key info using SQLPrimaryKeys
-    ODBCCheckResult(
+    CheckResult(
       SQLPrimaryKeys(
         StmtHandle,
         nil, 0, // any catalog
@@ -1477,9 +1490,9 @@ begin
     KeyName:='';
     try
       // bind result columns; the column numbers are documented in the reference for SQLStatistics
-      ODBCCheckResult(SQLBindCol(StmtHandle,  4, SQL_C_CHAR  , @ColName[1], Length(ColName)+1, @ColNameIndOrLen), SQL_HANDLE_STMT, StmtHandle, 'Could not bind primary key metadata column COLUMN_NAME.');
-      ODBCCheckResult(SQLBindCol(StmtHandle,  5, SQL_C_SSHORT, @OrdinalPos, 0, @OrdinalPosIndOrLen), SQL_HANDLE_STMT, StmtHandle, 'Could not bind primary key metadata column KEY_SEQ.');
-      ODBCCheckResult(SQLBindCol(StmtHandle,  6, SQL_C_CHAR  , @PKName [1], Length(PKName )+1, @PKNameIndOrLen ), SQL_HANDLE_STMT, StmtHandle, 'Could not bind primary key metadata column PK_NAME.');
+      CheckResult(SQLBindCol(StmtHandle,  4, SQL_C_CHAR  , @ColName[1], Length(ColName)+1, @ColNameIndOrLen), SQL_HANDLE_STMT, StmtHandle, 'Could not bind primary key metadata column COLUMN_NAME.');
+      CheckResult(SQLBindCol(StmtHandle,  5, SQL_C_SSHORT, @OrdinalPos, 0, @OrdinalPosIndOrLen), SQL_HANDLE_STMT, StmtHandle, 'Could not bind primary key metadata column KEY_SEQ.');
+      CheckResult(SQLBindCol(StmtHandle,  6, SQL_C_CHAR  , @PKName [1], Length(PKName )+1, @PKNameIndOrLen ), SQL_HANDLE_STMT, StmtHandle, 'Could not bind primary key metadata column PK_NAME.');
 
       // fetch result
       repeat
@@ -1502,19 +1515,19 @@ begin
             IndexDef.Fields:=IndexDef.Fields+';'+PChar(@ColName[1]); // NB ; is the separator to be used for IndexDef.Fields
           end;
         end else begin
-          ODBCCheckResult(Res, SQL_HANDLE_STMT, StmtHandle, 'Could not fetch primary key metadata row.');
+          CheckResult(Res, SQL_HANDLE_STMT, StmtHandle, 'Could not fetch primary key metadata row.');
         end;
       until false;
     finally
       // unbind columns & close cursor
-      ODBCCheckResult(SQLFreeStmt(StmtHandle, SQL_UNBIND), SQL_HANDLE_STMT, StmtHandle, 'Could not unbind columns.');
-      ODBCCheckResult(SQLFreeStmt(StmtHandle, SQL_CLOSE),  SQL_HANDLE_STMT, StmtHandle, 'Could not close cursor.');
+      CheckResult(SQLFreeStmt(StmtHandle, SQL_UNBIND), SQL_HANDLE_STMT, StmtHandle, 'Could not unbind columns.');
+      CheckResult(SQLFreeStmt(StmtHandle, SQL_CLOSE),  SQL_HANDLE_STMT, StmtHandle, 'Could not close cursor.');
     end;
 
     //WriteLn('KeyName: ',KeyName,'; KeyFields: ',KeyFields);
 
     // use SQLStatistics to get index information
-    ODBCCheckResult(
+    CheckResult(
       SQLStatistics(
         StmtHandle,
         nil, 0, // catalog unknown; request for all catalogs
@@ -1528,12 +1541,12 @@ begin
 
     try
       // bind result columns; the column numbers are documented in the reference for SQLStatistics
-      ODBCCheckResult(SQLBindCol(StmtHandle,  4, SQL_C_SSHORT, @NonUnique , 0, @NonUniqueIndOrLen ), SQL_HANDLE_STMT, StmtHandle, 'Could not bind index metadata column NON_UNIQUE.');
-      ODBCCheckResult(SQLBindCol(StmtHandle,  6, SQL_C_CHAR  , @IndexName[1], Length(IndexName)+1, @IndexNameIndOrLen), SQL_HANDLE_STMT, StmtHandle, 'Could not bind index metadata column INDEX_NAME.');
-      ODBCCheckResult(SQLBindCol(StmtHandle,  7, SQL_C_SSHORT, @_Type     , 0, @_TypeIndOrLen     ), SQL_HANDLE_STMT, StmtHandle, 'Could not bind index metadata column TYPE.');
-      ODBCCheckResult(SQLBindCol(StmtHandle,  8, SQL_C_SSHORT, @OrdinalPos, 0, @OrdinalPosIndOrLen), SQL_HANDLE_STMT, StmtHandle, 'Could not bind index metadata column ORDINAL_POSITION.');
-      ODBCCheckResult(SQLBindCol(StmtHandle,  9, SQL_C_CHAR  , @ColName  [1], Length(ColName  )+1, @ColNameIndOrLen  ), SQL_HANDLE_STMT, StmtHandle, 'Could not bind index metadata column COLUMN_NAME.');
-      ODBCCheckResult(SQLBindCol(StmtHandle, 10, SQL_C_CHAR  , @AscOrDesc , 1, @AscOrDescIndOrLen ), SQL_HANDLE_STMT, StmtHandle, 'Could not bind index metadata column ASC_OR_DESC.');
+      CheckResult(SQLBindCol(StmtHandle,  4, SQL_C_SSHORT, @NonUnique , 0, @NonUniqueIndOrLen ), SQL_HANDLE_STMT, StmtHandle, 'Could not bind index metadata column NON_UNIQUE.');
+      CheckResult(SQLBindCol(StmtHandle,  6, SQL_C_CHAR  , @IndexName[1], Length(IndexName)+1, @IndexNameIndOrLen), SQL_HANDLE_STMT, StmtHandle, 'Could not bind index metadata column INDEX_NAME.');
+      CheckResult(SQLBindCol(StmtHandle,  7, SQL_C_SSHORT, @_Type     , 0, @_TypeIndOrLen     ), SQL_HANDLE_STMT, StmtHandle, 'Could not bind index metadata column TYPE.');
+      CheckResult(SQLBindCol(StmtHandle,  8, SQL_C_SSHORT, @OrdinalPos, 0, @OrdinalPosIndOrLen), SQL_HANDLE_STMT, StmtHandle, 'Could not bind index metadata column ORDINAL_POSITION.');
+      CheckResult(SQLBindCol(StmtHandle,  9, SQL_C_CHAR  , @ColName  [1], Length(ColName  )+1, @ColNameIndOrLen  ), SQL_HANDLE_STMT, StmtHandle, 'Could not bind index metadata column COLUMN_NAME.');
+      CheckResult(SQLBindCol(StmtHandle, 10, SQL_C_CHAR  , @AscOrDesc , 1, @AscOrDescIndOrLen ), SQL_HANDLE_STMT, StmtHandle, 'Could not bind index metadata column ASC_OR_DESC.');
 
       // clear index defs
       IndexDef:=nil;
@@ -1571,13 +1584,13 @@ begin
               IndexDef.Fields:=IndexDef.Fields+';'+PChar(@ColName[1]); // NB ; is the separator to be used for IndexDef.Fields
           end;
         end else begin
-          ODBCCheckResult(Res, SQL_HANDLE_STMT, StmtHandle, 'Could not fetch index metadata row.');
+          CheckResult(Res, SQL_HANDLE_STMT, StmtHandle, 'Could not fetch index metadata row.');
         end;
       until false;
     finally
       // unbind columns & close cursor
-      ODBCCheckResult(SQLFreeStmt(StmtHandle, SQL_UNBIND), SQL_HANDLE_STMT, StmtHandle, 'Could not unbind columns.');
-      ODBCCheckResult(SQLFreeStmt(StmtHandle, SQL_CLOSE),  SQL_HANDLE_STMT, StmtHandle, 'Could not close cursor.');
+      CheckResult(SQLFreeStmt(StmtHandle, SQL_UNBIND), SQL_HANDLE_STMT, StmtHandle, 'Could not unbind columns.');
+      CheckResult(SQLFreeStmt(StmtHandle, SQL_CLOSE),  SQL_HANDLE_STMT, StmtHandle, 'Could not close cursor.');
     end;
 
   finally
@@ -1585,7 +1598,7 @@ begin
       // Free the statement handle
       Res:=SQLFreeHandle(SQL_HANDLE_STMT, StmtHandle);
       if Res=SQL_ERROR then
-        ODBCCheckResult(Res, SQL_HANDLE_STMT, STMTHandle, 'Could not free ODBC Statement handle.');
+        CheckResult(Res, SQL_HANDLE_STMT, STMTHandle, 'Could not free ODBC Statement handle.');
     end;
   end;
 end;
@@ -1644,7 +1657,7 @@ begin
   // set odbc version
   ODBCCheckResult(
     SQLSetEnvAttr(FENVHandle, SQL_ATTR_ODBC_VERSION, SQLPOINTER(SQL_OV_ODBC3), 0),
-    SQL_HANDLE_ENV, FENVHandle,'Could not set ODBC version to 3.'
+    SQL_HANDLE_ENV, FENVHandle, TEncoding.ANSI.CodePage, 'Could not set ODBC version to 3.', []
   );
 end;
 
@@ -1657,7 +1670,7 @@ begin
     begin
     Res:=SQLFreeHandle(SQL_HANDLE_ENV, FENVHandle);
     if Res=SQL_ERROR then
-      ODBCCheckResult(Res,SQL_HANDLE_ENV, FENVHandle, 'Could not free ODBC Environment handle.');
+      ODBCCheckResult(Res,SQL_HANDLE_ENV, FENVHandle, TEncoding.ANSI.CodePage, 'Could not free ODBC Environment handle.', []);
     end;
 
   // free odbc if not used by any TODBCEnvironment object anymore
