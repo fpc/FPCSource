@@ -1208,22 +1208,6 @@ implementation
           exit;
         defnumberlist.Add(def);
 
-        { Write methods and only in the scope of their parent objectdefs.  }
-        if (def.owner.symtabletype in [objectsymtable,recordsymtable]) then
-          begin
-            { this code can also work for nested procdefs, but is not yet
-              activated for those because there is no clear advantage yet to
-              limiting the scope of nested procedures to that of their parent,
-              and it makes it impossible to set breakpoints in them by
-              referring to their name.  }
-            st:=def.owner;
-            while assigned(st.defowner) and
-                  (tdef(st.defowner).typ=procdef) do
-              st:=tprocdef(st.defowner).owner;
-            if assigned(st) and
-               (tdef(st.defowner).dbg_state<>dbg_state_writing) then
-              exit;
-          end;
         { we have to attach the debug info to the definition instruction of the
           proc }
         prologfileinfo:=nil;
