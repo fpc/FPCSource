@@ -268,13 +268,13 @@ type
        platform }
      function aggregate_kind(def: tdef): ttypedconstkind; virtual;
      { finalize the asmlist: add the necessary symbols etc }
-     procedure finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); virtual;
+     procedure finalize_asmlist(asmsym: tasmsymbol; sym: tsym; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); virtual;
      procedure finalize_asmlist_add_indirect_sym(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); virtual;
      { prepare finalization (common for the default and overridden versions }
      procedure finalize_asmlist_prepare(const options: ttcasmlistoptions; var alignment: shortint);
 
      { functionality of the above for vectorized dead strippable sections }
-     procedure finalize_vectorized_dead_strip_asmlist(def: tdef; const basename, itemname: TSymStr; st: tsymtable; alignment: shortint; options: ttcasmlistoptions); virtual;
+     procedure finalize_vectorized_dead_strip_asmlist(sym: tsym; def: tdef; const basename, itemname: TSymStr; st: tsymtable; alignment: shortint; options: ttcasmlistoptions); virtual;
 
      { called by the public emit_tai() routines to actually add the typed
        constant data; the public ones also take care of adding extra padding
@@ -456,8 +456,10 @@ type
        This asmlist will be freed when the builder is destroyed, so add its
        contents to another list first. This property should only be accessed
        once all data has been added. }
-     function get_final_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: longint): tasmlist;
-     function get_final_asmlist_vectorized_dead_strip(def: tdef; const basename, itemname: TSymStr; st: TSymtable; alignment: longint): tasmlist;
+     function get_final_asmlist(asmsym: tasmsymbol; sym: tsym; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: longint): tasmlist;
+     { same as above, passes nil as sym }
+     function get_final_asmlist(asmsym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: longint): tasmlist; inline;
+     function get_final_asmlist_vectorized_dead_strip(sym: tsym; def: tdef; const basename, itemname: TSymStr; st: TSymtable; alignment: longint): tasmlist;
 
      { returns the offset of the string data relative to ansi/unicode/widestring
        constant labels. On most platforms, this is 0 (with the header at a
@@ -505,7 +507,7 @@ type
     protected
      procedure mark_anon_aggregate_alignment; override;
      procedure insert_marked_aggregate_alignment(def: tdef); override;
-     procedure finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); override;
+     procedure finalize_asmlist(asmsym: tasmsymbol; sym: tsym; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); override;
     public
      { set the default value for caggregateinformation (= tlowlevelaggregateinformation) }
      class constructor classcreate;
@@ -971,7 +973,7 @@ implementation
      end;
 
 
-   procedure ttai_typedconstbuilder.finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
+   procedure ttai_typedconstbuilder.finalize_asmlist(asmsym: tasmsymbol; sym: tsym; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
      var
        prelist: tasmlist;
      begin
@@ -1008,26 +1010,26 @@ implementation
                 add extra ".reference" statement for their symbols (gcc/clang
                 don't either) }
               if not(section in [low(TObjCAsmSectionType)..high(TObjCAsmSectionType)]) then
-                prelist.concat(tai_directive.Create(asd_reference,sym.name))
+                prelist.concat(tai_directive.Create(asd_reference,asmsym.name))
              end
            else if section<>sec_fpc then
              internalerror(2015101402);
          end;
 
        if not(tcalo_is_lab in options) then
-         if sym.bind=AB_LOCAL then
-           prelist.concat(tai_symbol.Create(sym,0))
+         if asmsym.bind=AB_LOCAL then
+           prelist.concat(tai_symbol.Create(asmsym,0))
          else
-           prelist.concat(tai_symbol.Create_Global(sym,0))
+           prelist.concat(tai_symbol.Create_Global(asmsym,0))
        else
-         prelist.concat(tai_label.Create(tasmlabel(sym)));
+         prelist.concat(tai_label.Create(tasmlabel(asmsym)));
 
        if tcalo_weak in options then
-         prelist.concat(tai_directive.Create(asd_weak_definition,sym.name));
+         prelist.concat(tai_directive.Create(asd_weak_definition,asmsym.name));
        { insert the symbol information before the data }
        fasmlist.insertlist(prelist);
        { end of the symbol }
-       fasmlist.concat(tai_symbol_end.Createname(sym.name));
+       fasmlist.concat(tai_symbol_end.Createname(asmsym.name));
        { free the temporary list }
        prelist.free;
      end;
@@ -1066,9 +1068,9 @@ implementation
      end;
 
 
-   procedure ttai_typedconstbuilder.finalize_vectorized_dead_strip_asmlist(def: tdef; const basename, itemname: TSymStr; st: tsymtable; alignment: shortint; options: ttcasmlistoptions);
+   procedure ttai_typedconstbuilder.finalize_vectorized_dead_strip_asmlist(sym: tsym; def: tdef; const basename, itemname: TSymStr; st: tsymtable; alignment: shortint; options: ttcasmlistoptions);
      var
-       sym: tasmsymbol;
+       asmsym: tasmsymbol;
        secname: TSymStr;
        sectype: TAsmSectiontype;
        asmtype : TAsmsymtype;
@@ -1076,7 +1078,7 @@ implementation
        dsopts : ttcdeadstripsectionsymboloptions;
      begin
        fvectorized_finalize_called:=true;
-       sym:=nil;
+       asmsym:=nil;
        customsecname:=get_vectorized_dead_strip_custom_section_name(basename,st,options,secname);
        if customsecname then
          sectype:=sec_user
@@ -1092,7 +1094,7 @@ implementation
            { the start and end names are predefined }
            if itemname<>'' then
              internalerror(2015110801);
-           sym:=get_vectorized_dead_strip_section_symbol_start(basename,st,dsopts);
+           asmsym:=get_vectorized_dead_strip_section_symbol_start(basename,st,dsopts);
            if not customsecname then
              secname:=make_mangledname(basename,st,'1_START');
          end
@@ -1101,7 +1103,7 @@ implementation
            { the start and end names are predefined }
            if itemname<>'' then
              internalerror(2015110802);
-           sym:=get_vectorized_dead_strip_section_symbol_end(basename,st,dsopts);
+           asmsym:=get_vectorized_dead_strip_section_symbol_end(basename,st,dsopts);
            if not customsecname then
              secname:=make_mangledname(basename,st,'3_END');
          end
@@ -1111,14 +1113,14 @@ implementation
              asmtype:=AT_DATA_FORCEINDIRECT
            else
              asmtype:=AT_DATA;
-           sym:=current_asmdata.DefineAsmSymbol(make_mangledname(basename,st,itemname),AB_GLOBAL,asmtype,def);
+           asmsym:=current_asmdata.DefineAsmSymbol(make_mangledname(basename,st,itemname),AB_GLOBAL,asmtype,def);
            if tcalo_is_public_asm in options then
-             current_module.add_public_asmsym(sym);
+             current_module.add_public_asmsym(asmsym);
            if not customsecname then
              secname:=make_mangledname(basename,st,'2_'+itemname);
            exclude(options,tcalo_vectorized_dead_strip_item);
          end;
-       add_link_ordered_symbol(sym,secname);
+       add_link_ordered_symbol(asmsym,secname);
        if is_smartlink_vectorized_dead_strip then
          options:=options+[tcalo_new_section,tcalo_make_dead_strippable]
        else
@@ -1129,7 +1131,7 @@ implementation
            if tcalo_vectorized_dead_strip_start in options then
              include(options,tcalo_new_section);
          end;
-       finalize_asmlist(sym,def,sectype,secname,alignment,options);
+       finalize_asmlist(asmsym,sym,def,sectype,secname,alignment,options);
      end;
 
 
@@ -1140,23 +1142,30 @@ implementation
      end;
 
 
-   function ttai_typedconstbuilder.get_final_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: longint): tasmlist;
+   function ttai_typedconstbuilder.get_final_asmlist(asmsym: tasmsymbol; sym: tsym; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: longint): tasmlist;
      begin
        if not fasmlist_finalized then
          begin
-           finalize_asmlist(sym,def,section,secname,alignment,foptions);
-           finalize_asmlist_add_indirect_sym(sym,def,section,secname,alignment,foptions);
+           finalize_asmlist(asmsym,sym,def,section,secname,alignment,foptions);
+           finalize_asmlist_add_indirect_sym(asmsym,def,section,secname,alignment,foptions);
            fasmlist_finalized:=true;
          end;
        result:=fasmlist;
      end;
 
 
-   function ttai_typedconstbuilder.get_final_asmlist_vectorized_dead_strip(def: tdef; const basename, itemname: TSymStr; st: TSymtable; alignment: longint): tasmlist;
+
+   function ttai_typedconstbuilder.get_final_asmlist(asmsym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: longint): tasmlist; inline;
+     begin
+       result:=get_final_asmlist(asmsym,nil,def,section,secname,alignment);
+     end;
+
+
+   function ttai_typedconstbuilder.get_final_asmlist_vectorized_dead_strip(sym: tsym; def: tdef; const basename, itemname: TSymStr; st: TSymtable; alignment: longint): tasmlist;
      begin
        if not fasmlist_finalized then
          begin
-           finalize_vectorized_dead_strip_asmlist(def,basename,itemname,st,alignment,foptions);
+           finalize_vectorized_dead_strip_asmlist(sym,def,basename,itemname,st,alignment,foptions);
            fasmlist_finalized:=true;
          end;
        result:=fasmlist;
@@ -2228,7 +2237,6 @@ implementation
        result:=fqueue_offset<>low(fqueue_offset)
      end;
 
-
    {****************************************************************************
                          tlowleveltypedconstplaceholder
    ****************************************************************************}
@@ -2301,7 +2309,7 @@ implementation
        info.anonrecmarker:=nil;
      end;
 
-   procedure ttai_lowleveltypedconstbuilder.finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
+   procedure ttai_lowleveltypedconstbuilder.finalize_asmlist(asmsym: tasmsymbol; sym: tsym; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
      begin
        inherited;
        { The darwin/ppc64 assembler or linker seems to have trouble       }
@@ -2315,7 +2323,7 @@ implementation
        { otherwise the end label won't be moved with the rest             }
        if (tcalo_vectorized_dead_strip_end in options) and
           (target_info.system in (systems_darwin+systems_aix)) then
-         fasmlist.concat(Tai_const.create_sym(sym));
+         fasmlist.concat(Tai_const.create_sym(asmsym));
      end;
 
 

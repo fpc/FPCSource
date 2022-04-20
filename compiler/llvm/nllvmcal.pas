@@ -125,7 +125,7 @@ implementation
            asmsym:=current_asmdata.RefAsmSymbol(overrideprocnamedef.mangledname,AT_FUNCTION);
            if not asmsym.declared then
              begin
-               current_asmdata.AsmLists[al_imports].Concat(taillvmdecl.createdecl(asmsym,overrideprocnamedef,nil,sec_code,overrideprocnamedef.alignment));
+               current_asmdata.AsmLists[al_imports].Concat(taillvmdecl.createdecl(asmsym,symtableprocentry,overrideprocnamedef,nil,sec_code,overrideprocnamedef.alignment));
              end;
           end;
       end;

@@ -1215,7 +1215,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               sec:=sec_data;
             secname:=asmsym.Name;
           end;
-        reslist:=ftcb.get_final_asmlist(asmsym,fsym.vardef,sec,secname,fsym.vardef.alignment);
+        reslist:=ftcb.get_final_asmlist(asmsym,fsym,fsym.vardef,sec,secname,fsym.vardef.alignment);
         if addstabx then
           begin
             { see same code in ncgutil.insertbssdata }

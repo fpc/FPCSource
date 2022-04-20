@@ -89,7 +89,7 @@ interface
         procedure insert_typedconst_typeconversion(toplevellist: tasmlist; p: tai_abstracttypedconst);
         procedure insert_tai_typeconversions(toplevellist: tasmlist; p: tai);
         procedure insert_asmlist_typeconversions(toplevellist, list: tasmlist);
-        procedure maybe_insert_extern_sym_decl(toplevellist: tasmlist; sym: tasmsymbol; def: tdef);
+        procedure maybe_insert_extern_sym_decl(toplevellist: tasmlist; asmsym: tasmsymbol; def: tdef);
         procedure update_asmlist_alias_types(list: tasmlist);
 
       public
@@ -499,7 +499,7 @@ implementation
       end;
 
 
-    procedure TLLVMTypeInfo.maybe_insert_extern_sym_decl(toplevellist: tasmlist; sym: tasmsymbol; def: tdef);
+    procedure TLLVMTypeInfo.maybe_insert_extern_sym_decl(toplevellist: tasmlist; asmsym: tasmsymbol; def: tdef);
       var
         sec: tasmsectiontype;
         i: longint;
@@ -512,14 +512,14 @@ implementation
           We also do it for all other external symbol references (e.g.
           references to symbols declared in other units), because then this
           handling is centralised in one place. }
-        if not(sym.declared) then
+        if not(asmsym.declared) then
           begin
             if def.typ=procdef then
               sec:=sec_code
             else
               sec:=sec_data;
-            toplevellist.Concat(taillvmdecl.createdecl(sym,def,nil,sec,def.alignment));
-            record_asmsym_def(sym,def,true);
+            toplevellist.Concat(taillvmdecl.createdecl(asmsym,nil,def,nil,sec,def.alignment));
+            record_asmsym_def(asmsym,def,true);
           end;
       end;
 

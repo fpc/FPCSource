@@ -73,7 +73,7 @@ interface
       flast_added_tai: tai;
       fqueued_tai_opidx: longint;
 
-      procedure finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); override;
+      procedure finalize_asmlist(asmsym: tasmsymbol; sym: tsym; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); override;
       { outerai: the ai that should become fqueued_tai in case it's still nil,
           or that should be filled in the fqueued_tai_opidx of the current
           fqueued_tai if it's not nil
@@ -181,7 +181,7 @@ implementation
     end;
 
 
-  procedure tllvmtai_typedconstbuilder.finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
+  procedure tllvmtai_typedconstbuilder.finalize_asmlist(asmsym: tasmsymbol; sym: tsym; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
     var
       newasmlist: tasmlist;
       decl: taillvmdecl;
@@ -192,7 +192,7 @@ implementation
         def:=foverriding_def;
       { llvm declaration with as initialisation data all the elements from the
         original asmlist }
-      decl:=taillvmdecl.createdef(sym,def,fasmlist,section,alignment);
+      decl:=taillvmdecl.createdef(asmsym,sym,def,fasmlist,section,alignment);
       if fappendingdef then
         include(decl.flags,ldf_appending);
       if section=sec_user then
@@ -214,9 +214,9 @@ implementation
           why it's done like this, but this is how Clang does it) }
         if (target_info.system in systems_darwin) and
            (section in [low(TObjCAsmSectionType)..high(TObjCAsmSectionType)]) then
-          cnodeutils.RegisterUsedAsmSym(sym,def,false)
+          cnodeutils.RegisterUsedAsmSym(asmsym,def,false)
         else
-          cnodeutils.RegisterUsedAsmSym(sym,def,true);
+          cnodeutils.RegisterUsedAsmSym(asmsym,def,true);
       newasmlist.concat(decl);
       fasmlist:=newasmlist;
     end;

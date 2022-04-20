@@ -192,6 +192,8 @@ interface
       { initialisation data, if any }
       initdata: tasmlist;
       namesym: tasmsymbol;
+      { associated Pascal symbol (if any), mainly for debug info generation }
+      sym: tsym;
       def: tdef;
       sec: TAsmSectiontype;
       alignment: shortint;
@@ -199,9 +201,9 @@ interface
       secname: TSymStr;
       metadata: tai;
 
-      constructor createdecl(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
-      constructor createdef(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
-      constructor createtls(_namesym: tasmsymbol; _def: tdef; _alignment: shortint);
+      constructor createdecl(_namesym: tasmsymbol; _sym: tsym; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
+      constructor createdef(_namesym: tasmsymbol; _sym: tsym; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
+      constructor createtls(_namesym: tasmsymbol; _sym: tsym; _def: tdef; _alignment: shortint);
       procedure setsecname(const name: TSymStr);
       procedure addinsmetadata(insmeta: tai);
       destructor destroy; override;
@@ -234,11 +236,12 @@ uses
 
     { taillvmprocdecl }
 
-    constructor taillvmdecl.createdecl(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
+    constructor taillvmdecl.createdecl(_namesym: tasmsymbol; _sym: tsym; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
       begin
         inherited create;
         typ:=ait_llvmdecl;
         namesym:=_namesym;
+        sym:=_sym;
         def:=_def;
         initdata:=_initdata;
         sec:=_sec;
@@ -248,16 +251,16 @@ uses
       end;
 
 
-    constructor taillvmdecl.createdef(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
+    constructor taillvmdecl.createdef(_namesym: tasmsymbol; _sym: tsym; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
       begin
-        createdecl(_namesym,_def,_initdata,_sec,_alignment);
+        createdecl(_namesym,_sym,_def,_initdata,_sec,_alignment);
         include(flags,ldf_definition);
       end;
 
 
-    constructor taillvmdecl.createtls(_namesym: tasmsymbol; _def: tdef; _alignment: shortint);
+    constructor taillvmdecl.createtls(_namesym: tasmsymbol; _sym: tsym; _def: tdef; _alignment: shortint);
       begin
-        createdef(_namesym,_def,nil,sec_data,_alignment);
+        createdef(_namesym,_sym,_def,nil,sec_data,_alignment);
         include(flags,ldf_tls);
       end;
 

@@ -1436,7 +1436,7 @@ implementation
             list.concat(taillvmalias.create(asmsym,item.str,current_procinfo.procdef,asmsym.bind));
           item:=TCmdStrListItem(item.next);
         end;
-      list.concat(taillvmdecl.createdef(asmsym,current_procinfo.procdef,nil,sec_code,current_procinfo.procdef.alignment));
+      list.concat(taillvmdecl.createdef(asmsym,current_procinfo.procdef.procsym,current_procinfo.procdef,nil,sec_code,current_procinfo.procdef.alignment));
       current_procinfo.procdef.procstarttai:=tai(list.last);
     end;
 

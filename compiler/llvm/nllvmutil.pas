@@ -67,11 +67,11 @@ implementation
       else
         asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_LOCAL,_typ,sym.vardef);
       if not(vo_is_thread_var in sym.varoptions) then
-        list.concat(taillvmdecl.createdef(asmsym,sym.vardef,nil,sec_data,varalign))
+        list.concat(taillvmdecl.createdef(asmsym,sym,sym.vardef,nil,sec_data,varalign))
       else if tf_section_threadvars in target_info.flags then
-        list.concat(taillvmdecl.createtls(asmsym,sym.vardef,varalign))
+        list.concat(taillvmdecl.createtls(asmsym,sym,sym.vardef,varalign))
       else
-        list.concat(taillvmdecl.createdef(asmsym,
+        list.concat(taillvmdecl.createdef(asmsym,sym,
           get_threadvar_record(sym.vardef,field1,field2),
           nil,sec_data,varalign));
     end;
