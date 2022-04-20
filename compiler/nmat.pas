@@ -775,6 +775,15 @@ implementation
               begin
                 result:=left;
                 left:=nil;
+              end
+            { optimize "a shl n1 shl n2" and "a shr n1 shr n2" }
+            else if (nodetype=left.nodetype) and is_constintnode(tshlshrnode(left).right) and
+              { do not overflow the variable being shifted }
+              (tordconstnode(right).value+tordconstnode(tshlshrnode(left).right).value<tshlshrnode(left).left.resultdef.size*8) then
+              begin
+                result:=left;
+                left:=nil;
+                tordconstnode(tshlshrnode(result).right).value:=tordconstnode(tshlshrnode(result).right).value+tordconstnode(right).value;
               end;
           end
         else if is_constintnode(left) then
