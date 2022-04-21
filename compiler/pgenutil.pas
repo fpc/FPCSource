@@ -945,6 +945,11 @@ uses
           if target_proc.paras.count<>caller_proc.paras.count then
             exit;
 
+          { a mixture of functions and procedures is not allowed }
+          if (not assigned(target_proc.returndef) or is_void(target_proc.returndef)) xor
+              (not assigned(caller_proc.returndef) or is_void(caller_proc.returndef)) then
+            exit;
+
           { reject generics with constants }
           for i:=0 to target_proc.genericdef.genericparas.count-1 do
             if tsym(target_proc.genericdef.genericparas[i]).typ=constsym then
