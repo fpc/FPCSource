@@ -924,15 +924,36 @@ uses
 
       function handle_procvars(genericparams:tfphashlist;callerparams:tfplist;target_def:tdef;caller_def:tdef):boolean;
         var
+          newparams : tfphashlist;
+
+        procedure handle_generic_param(targetparadef,callerparadef:tdef);
+          var
+            key : string;
+            index : integer;
+          begin
+            if not assigned(callerparadef.typesym) then
+              internalerror(2021020908);
+
+            key:=generic_param_hash(targetparadef);
+
+            { the generic param must not already be used }
+            index:=genericparams.findindexof(key);
+            if index<0 then
+              begin
+                { add the type to the list }
+                index:=newparams.findindexof(key);
+                if index<0 then
+                  newparams.add(key,callerparadef.typesym);
+              end;
+          end;
+
+        var
           i,j : integer;
           paravar : tparavarsym;
           target_proc,
           caller_proc : tprocvardef;
           target_proc_para,
           caller_proc_para : tparavarsym;
-          newparams : tfphashlist;
-          key : string;
-          index : integer;
           valid_params : integer;
         begin
           result := false;
@@ -977,26 +998,25 @@ uses
                   { find the generic param name in the generic def parameters }
                   j:=target_proc.genericdef.genericparas.findindexof(paravar.vardef.typesym.name);
 
-                  target_def:=ttypesym(target_proc.genericparas[j]).typedef;
-                  caller_def:=caller_proc_para.vardef;
-
-                  if not assigned(caller_def.typesym) then
-                    internalerror(2021020908);
-
-                  key:=generic_param_hash(target_def);
-
-                  { the generic param must not already be used }
-                  index:=genericparams.findindexof(key);
-                  if index<0 then
-                    begin
-                      { add the type to the list }
-                      index:=newparams.findindexof(key);
-                      if index<0 then
-                        newparams.add(key,caller_def.typesym);
-                    end;
+                  handle_generic_param(ttypesym(target_proc.genericparas[j]).typedef,caller_proc_para.vardef);
                 end;
 
               inc(valid_params);
+            end;
+
+          if assigned(target_proc.returndef) and not is_void(target_proc.returndef) then
+            begin
+              { or check for exact? }
+              if compare_defs(caller_proc.returndef,target_proc.returndef,nothingn)<te_equal then
+                begin
+                  newparams.free;
+                  exit(false);
+                end;
+
+              if sp_generic_para in target_proc.returndef.typesym.symoptions then
+                begin
+                  handle_generic_param(target_proc.returndef,caller_proc.returndef);
+                end;
             end;
 
           { if the count of valid params matches the target then
