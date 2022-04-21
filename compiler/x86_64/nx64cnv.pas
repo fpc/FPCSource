@@ -118,6 +118,7 @@ implementation
                    case left.location.loc of
                      LOC_REGISTER :
                        begin
+                         cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                          emit_const_reg(A_BT,S_Q,63,left.location.register);
                          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,S_Q,left.location.register,location.register));
                        end;
@@ -126,6 +127,7 @@ implementation
                          href:=left.location.reference;
                          tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
                          inc(href.offset,4);
+                         cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                          emit_const_ref(A_BT,S_L,31,href);
                          dec(href.offset,4);
                          current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,S_Q,href,location.register));
@@ -135,6 +137,7 @@ implementation
                    end;
 
                    cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NC,l2);
+                   cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                    new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,const_align(sizeof(pint)));
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
                    reference_reset_symbol(href,l1,0,4,[]);

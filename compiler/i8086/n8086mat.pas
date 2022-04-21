@@ -157,10 +157,12 @@ implementation
                       end
                     else
                       begin
-                        { a jump, but less operations }
+                        { a jump, but fewer operations }
+                        cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                         emit_reg_reg(A_TEST,S_W,hreg1,hreg1);
                         current_asmdata.getjumplabel(hl);
                         cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NS,hl);
+                        cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                         if power=1 then
                           emit_reg(A_INC,S_W,hreg1)
                         else
@@ -256,10 +258,12 @@ implementation
                     d:=tordconstnode(right).value.svalue;
                     if d>=$8000 then
                       begin
+                        cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                         emit_const_reg(A_CMP,S_W,aint(d),hreg1);
                         location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                         emit_const_reg(A_MOV,S_W,0,location.register);
                         emit_const_reg(A_SBB,S_W,-1,location.register);
+                        cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                       end
                     else
                       begin

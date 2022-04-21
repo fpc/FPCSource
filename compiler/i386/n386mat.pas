@@ -88,9 +88,11 @@ implementation
               exit;
             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
             hreg1:=left.location.register;
+            cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
             emit_reg_reg(A_TEST,S_L,hreg1,hreg1);
             current_asmdata.getjumplabel(hl);
             cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NS,hl);
+            cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
             if power=1 then
               emit_reg(A_INC,S_L,hreg1)
             else
@@ -194,8 +196,10 @@ implementation
             { so we've to do some tricks here                           }
             current_asmdata.getjumplabel(l2);
             current_asmdata.getjumplabel(l3);
+            cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
             emit_const_reg(A_TEST,S_B,32,NR_CL);
             cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,l2);
+            cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
             if nodetype=shln then
               begin
                 emit_reg_reg(A_SHL,S_L,NR_CL,hreg64lo);

@@ -341,14 +341,18 @@ interface
             tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,left.location.reference);
             href:=left.location.reference;
             inc(href.offset,4);
+            cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
             emit_const_ref(A_CMP,S_L,aint(hi(right.location.value64)),href);
             firstjmp64bitcmp;
+            cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
             if assigned(hlab) then
               cg.a_jmp_always(current_asmdata.CurrAsmList,hlab)
             else
               begin
+                cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                 emit_const_ref(A_CMP,S_L,aint(lo(right.location.value64)),left.location.reference);
                 secondjmp64bitcmp;
+                cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               end;
             location_freetemp(current_asmdata.CurrAsmList,left.location);
             exit;
@@ -372,10 +376,12 @@ interface
           LOC_REGISTER,
           LOC_CREGISTER :
             begin
+              cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               emit_reg_reg(A_CMP,S_L,right.location.register64.reghi,left.location.register64.reghi);
               firstjmp64bitcmp;
               emit_reg_reg(A_CMP,S_L,right.location.register64.reglo,left.location.register64.reglo);
               secondjmp64bitcmp;
+              cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
             end;
           LOC_CREFERENCE,
           LOC_REFERENCE :
@@ -383,22 +389,28 @@ interface
               tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,right.location.reference);
               href:=right.location.reference;
               inc(href.offset,4);
+              cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               emit_ref_reg(A_CMP,S_L,href,left.location.register64.reghi);
               firstjmp64bitcmp;
               emit_ref_reg(A_CMP,S_L,right.location.reference,left.location.register64.reglo);
               secondjmp64bitcmp;
+              cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               location_freetemp(current_asmdata.CurrAsmList,right.location);
             end;
           LOC_CONSTANT :
             begin
+              cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_L,aint(hi(right.location.value64)),left.location.register64.reghi));
               firstjmp64bitcmp;
+              cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               if assigned(hlab) then
                 cg.a_jmp_always(current_asmdata.CurrAsmList,hlab)
               else
                 begin
+                  cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                   current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_L,aint(lo(right.location.value64)),left.location.register64.reglo));
                   secondjmp64bitcmp;
+                  cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                 end;
             end;
         else

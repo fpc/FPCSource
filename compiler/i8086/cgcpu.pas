@@ -2026,8 +2026,8 @@ unit cgcpu;
             else
               list.concat(taicpu.op_const_reg(A_CMP,S_W,longint(a and $ffff),reg));
             gen_cmp32_jmp2(list, cmp_op, hl_skip, l);
-            a_label(list,hl_skip);
             cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+            a_label(list,hl_skip);
           end
         else
           inherited a_cmp_const_reg_label(list, size, cmp_op, a, reg, l);
@@ -2051,8 +2051,8 @@ unit cgcpu;
             dec(tmpref.offset,2);
             list.concat(taicpu.op_const_ref(A_CMP,S_W,longint(a and $ffff),tmpref));
             gen_cmp32_jmp2(list, cmp_op, hl_skip, l);
-            a_label(list,hl_skip);
             cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+            a_label(list,hl_skip);
           end
         else
           inherited a_cmp_const_ref_label(list, size, cmp_op, a, ref, l);
@@ -2073,8 +2073,8 @@ unit cgcpu;
             gen_cmp32_jmp1(list, cmp_op, hl_skip, l);
             list.concat(taicpu.op_reg_reg(A_CMP,S_W,reg1,reg2));
             gen_cmp32_jmp2(list, cmp_op, hl_skip, l);
-            a_label(list,hl_skip);
             cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+            a_label(list,hl_skip);
           end
         else
           inherited a_cmp_reg_reg_label(list, size, cmp_op, reg1, reg2, l);
@@ -2099,8 +2099,8 @@ unit cgcpu;
             dec(tmpref.offset,2);
             list.concat(taicpu.op_ref_reg(A_CMP,S_W,tmpref,reg));
             gen_cmp32_jmp2(list, cmp_op, hl_skip, l);
-            a_label(list,hl_skip);
             cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+            a_label(list,hl_skip);
           end
         else
           inherited a_cmp_ref_reg_label(list, size, cmp_op, ref, reg, l);
@@ -2125,8 +2125,8 @@ unit cgcpu;
             dec(tmpref.offset,2);
             list.concat(taicpu.op_reg_ref(A_CMP,S_W,reg,tmpref));
             gen_cmp32_jmp2(list, cmp_op, hl_skip, l);
-            a_label(list,hl_skip);
             cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+            a_label(list,hl_skip);
           end
         else
           inherited a_cmp_reg_ref_label(list, size, cmp_op, reg, ref, l);
