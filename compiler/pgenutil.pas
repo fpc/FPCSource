@@ -759,6 +759,8 @@ uses
             begin
               newtype:=ctypesym.create(def.fullownerhierarchyname(false)+typName[def.typ]+'$'+def.unique_id_str,def);
               newtype.owner:=def.owner;
+              { ensure that there's no warning }
+              newtype.refs:=1;
             end;
           if not assigned(newtype) then
             internalerror(2021020904);
