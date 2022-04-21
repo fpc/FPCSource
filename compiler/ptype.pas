@@ -471,6 +471,21 @@ implementation
 
 
     procedure single_type(out def:tdef;options:TSingleTypeOptions);
+
+       function handle_dummysym(sym:tsym):tdef;
+         begin
+           sym:=resolve_generic_dummysym(sym.name);
+           if assigned(sym) and
+               not (sp_generic_dummy in sym.symoptions) and
+               (sym.typ=typesym) then
+             result:=ttypesym(sym).typedef
+           else
+             begin
+               Message(parser_e_no_generics_as_types);
+               result:=generrordef;
+             end;
+         end;
+
        var
          t2 : tdef;
          isspecialize,
@@ -611,16 +626,7 @@ implementation
                   )
                 then
               begin
-                srsym:=resolve_generic_dummysym(srsym.name);
-                if assigned(srsym) and
-                    not (sp_generic_dummy in srsym.symoptions) and
-                    (srsym.typ=typesym) then
-                  def:=ttypesym(srsym).typedef
-                else
-                  begin
-                    Message(parser_e_no_generics_as_types);
-                    def:=generrordef;
-                  end;
+                def:=handle_dummysym(srsym);
               end
             else if (def.typ=undefineddef) and
                 (sp_generic_dummy in srsym.symoptions) then
@@ -631,16 +637,7 @@ implementation
                   begin
                     if m_delphi in current_settings.modeswitches then
                       begin
-                        srsym:=resolve_generic_dummysym(srsym.name);
-                        if assigned(srsym) and
-                            not (sp_generic_dummy in srsym.symoptions) and
-                            (srsym.typ=typesym) then
-                          def:=ttypesym(srsym).typedef
-                        else
-                          begin
-                            Message(parser_e_no_generics_as_types);
-                            def:=generrordef;
-                          end;
+                        def:=handle_dummysym(srsym);
                       end
                     else
                       def:=current_genericdef;
