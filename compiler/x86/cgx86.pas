@@ -2548,8 +2548,10 @@ unit cgx86;
             exit;
           end;
 {$endif x86_64}
+        cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
         list.concat(taicpu.op_const_ref(A_CMP,TCgSize2OpSize[size],a,tmpref));
         a_jmp_cond(list,cmp_op,l);
+        cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
       end;
 
 
@@ -2559,8 +2561,10 @@ unit cgx86;
       begin
         check_register_size(size,reg1);
         check_register_size(size,reg2);
+        cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
         list.concat(taicpu.op_reg_reg(A_CMP,TCgSize2OpSize[size],reg1,reg2));
         a_jmp_cond(list,cmp_op,l);
+        cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
       end;
 
 
@@ -2571,8 +2575,10 @@ unit cgx86;
         tmpref:=ref;
         make_simple_ref(list,tmpref);
         check_register_size(size,reg);
+        cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
         list.concat(taicpu.op_ref_reg(A_CMP,TCgSize2OpSize[size],tmpref,reg));
         a_jmp_cond(list,cmp_op,l);
+        cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
       end;
 
 
@@ -2583,8 +2589,10 @@ unit cgx86;
         tmpref:=ref;
         make_simple_ref(list,tmpref);
         check_register_size(size,reg);
+        cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
         list.concat(taicpu.op_reg_ref(A_CMP,TCgSize2OpSize[size],reg,tmpref));
         a_jmp_cond(list,cmp_op,l);
+        cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
       end;
 
 

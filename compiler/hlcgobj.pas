@@ -4433,6 +4433,9 @@ implementation
                    LOC_CREGISTER,LOC_REGISTER,LOC_CREFERENCE,LOC_REFERENCE :
                      begin
                        a_cmp_const_loc_label(list,p.resultdef,OC_NE,0,p.location,truelabel);
+{$ifdef x86} { x86 always uses the flags in some way for conditional jumps }
+                       a_reg_dealloc(list,NR_DEFAULTFLAGS);
+{$endif x86}
                        a_jmp_always(list,falselabel);
                      end;
                    LOC_JUMP:

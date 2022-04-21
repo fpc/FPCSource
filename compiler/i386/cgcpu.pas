@@ -477,8 +477,10 @@ unit cgcpu;
              current_asmdata.getjumplabel(again);
              current_asmdata.getjumplabel(ok);
              a_label(list,again);
+             cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
              list.concat(Taicpu.op_const_reg(A_CMP,S_L,winstackpagesize,NR_EDI));
              a_jmp_cond(list,OC_B,ok);
+             cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
              list.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize-4,NR_ESP));
              list.concat(Taicpu.op_reg(A_PUSH,S_L,NR_EDI));
              list.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize,NR_EDI));
@@ -708,8 +710,10 @@ unit cgcpu;
               { so we've to do some tricks here                           }
               current_asmdata.getjumplabel(l1);
               current_asmdata.getjumplabel(l2);
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
               list.Concat(taicpu.op_const_reg(A_TEST,S_B,32,NR_CL));
               cg.a_jmp_flags(list,F_E,l1);
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
               tmpreg:=cg.getintregister(list,OS_32);
               case op of
                 OP_SHL:
@@ -841,8 +845,10 @@ unit cgcpu;
               { so we've to do some tricks here                           }
               current_asmdata.getjumplabel(l1);
               current_asmdata.getjumplabel(l2);
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
               list.Concat(taicpu.op_const_reg(A_TEST,S_B,32,NR_CL));
               cg.a_jmp_flags(list,F_E,l1);
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
               case op of
                 OP_SHL:
                   begin

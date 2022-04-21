@@ -281,6 +281,7 @@ interface
                      tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,left.location.reference);
                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_32,left.location.reference,hreg);
                      inc(left.location.reference.offset,4);
+                     cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                      cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.reference,hreg);
                    end
                  else
@@ -291,6 +292,7 @@ interface
                      tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,left.location.reference);
                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,left.location.reference,hreg);
                      inc(left.location.reference.offset,2);
+                     cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                      cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.reference,hreg);
                      inc(left.location.reference.offset,2);
                      cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.reference,hreg);
@@ -303,11 +305,15 @@ interface
                      tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,left.location.reference);
                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,left.location.reference,hreg);
                      inc(left.location.reference.offset,2);
+                     cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                      cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.reference,hreg);
                    end
                  else
 {$endif}
-                   emit_const_ref(A_CMP, TCGSize2Opsize[opsize], 0, left.location.reference);
+                   begin
+                     cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                     emit_const_ref(A_CMP, TCGSize2Opsize[opsize], 0, left.location.reference);
+                   end;
                  location_reset(location,LOC_FLAGS,OS_NO);
                  location.resflags:=F_E;
                end;
@@ -323,6 +329,7 @@ interface
                  if is_64bit(resultdef) then
                    begin
                      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+                     cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                      emit_reg_reg(A_OR,S_L,left.location.register64.reghi,left.location.register64.reglo);
                    end
                  else
@@ -330,6 +337,7 @@ interface
                  if is_64bit(resultdef) then
                    begin
                      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+                     cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                      emit_reg_reg(A_OR,S_W,cg.GetNextReg(left.location.register64.reghi),left.location.register64.reghi);
                      emit_reg_reg(A_OR,S_W,cg.GetNextReg(left.location.register64.reglo),left.location.register64.reglo);
                      emit_reg_reg(A_OR,S_W,left.location.register64.reghi,left.location.register64.reglo);
@@ -337,12 +345,14 @@ interface
                  else if is_32bit(resultdef) then
                    begin
                      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+                     cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                      emit_reg_reg(A_OR,S_L,cg.GetNextReg(left.location.register),left.location.register);
                    end
                  else
 {$endif}
                    begin
                      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
+                     cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                      emit_reg_reg(A_TEST,TCGSize2Opsize[opsize],left.location.register,left.location.register);
                    end;
                  location_reset(location,LOC_FLAGS,OS_NO);
@@ -667,15 +677,18 @@ interface
                           peephole optimizer. [Kit] }
                         emit_reg_reg(A_XOR,opsize,location.register,location.register);
 
-                        cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                         if (cgsize in [OS_64,OS_S64]) then { Cannot use 64-bit constants in CMP }
                           begin
                             hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
                             emit_const_reg(A_MOV,opsize,aint(d),hreg2);
+                            cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                             emit_reg_reg(A_CMP,opsize,hreg2,hreg1);
                           end
                         else
-                          emit_const_reg(A_CMP,opsize,aint(d),hreg1);
+                          begin
+                            cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+                            emit_const_reg(A_CMP,opsize,aint(d),hreg1);
+                          end;
                         { NOTE: SBB and SETAE are both 3 bytes long without the REX prefix,
                           both use an ALU for their execution and take a single cycle to
                           run. The only difference is that SETAE does not modify the flags,

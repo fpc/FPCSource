@@ -597,6 +597,8 @@ implementation
             { "x in [y..z]" expression                               }
             adjustment := 0;
 
+            cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+
             for i:=1 to numparts do
              if setparts[i].range then
               { use fact that a <= x <= b <=> cardinal(x-a) <= cardinal(b-a) }
@@ -622,6 +624,7 @@ implementation
                     { (this will never overflow since we check at the     }
                     { beginning whether stop-start <> 255)                }
                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_B,setparts[i].stop-setparts[i].start+1,pleftreg,l);
+                    cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                   end
                 else
                   { if setparts[i].start = 0 and setparts[i].stop = 255,  }
@@ -663,6 +666,7 @@ implementation
              begin
                if left.location.loc=LOC_CONSTANT then
                 begin
+                  cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                   location.resflags:=F_NE;
                   case right.location.loc of
                     LOC_REGISTER,
@@ -698,6 +702,7 @@ implementation
                   emit_const_reg(A_MOV,S_W,1,hreg);
                   emit_reg_reg(A_SHL,S_W,NR_CL,hreg);
 
+                  cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                   case right.location.loc of
                     LOC_REGISTER,
                     LOC_CREGISTER :
@@ -722,6 +727,7 @@ implementation
                     hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,u32inttype,true);
                   hreg:=left.location.register;
 
+                  cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                   case right.location.loc of
                     LOC_REGISTER,
                     LOC_CREGISTER :
@@ -762,15 +768,18 @@ implementation
                     left.location.size := OS_16;
                   cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_16,left.location,NR_CX);
                   cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_BE,15,NR_CX,l);
+                  cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                   { set the zero flag }
                   current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_TEST,S_B,0,NR_AL));
                   cg.a_jmp_always(current_asmdata.CurrAsmList,l2);
+                  cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
 
                   hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_16);
                   cg.a_label(current_asmdata.CurrAsmList,l);
                   emit_const_reg(A_MOV,S_W,1,hreg);
                   emit_reg_reg(A_SHL,S_W,NR_CL,hreg);
                   cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_CX);
+                  cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                   emit_const_reg(A_TEST,S_W,right.location.value,hreg);
 
                   cg.a_label(current_asmdata.CurrAsmList,l2);
@@ -794,6 +803,7 @@ implementation
                           hreg:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,opsize);
                           cg.a_load_reg_reg(current_asmdata.CurrAsmList,left.location.size,opsize,left.location.register,hreg);
                           cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_BE,31,hreg,l);
+                          cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                           { reset carry flag }
                           current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLC,S_NO));
                           cg.a_jmp_always(current_asmdata.CurrAsmList,l2);
@@ -806,6 +816,7 @@ implementation
                        end;
                      else
                        begin
+                          cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                           emit_const_ref(A_CMP,TCGSize2OpSize[orgopsize],31,left.location.reference);
                           cg.a_jmp_flags(current_asmdata.CurrAsmList,F_BE,l);
                           { reset carry flag }
@@ -837,10 +848,12 @@ implementation
                     LOC_REFERENCE,LOC_CREFERENCE:
                       begin
                         inc(right.location.reference.offset,(left.location.value-setbase) shr 3);
+                        cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                         emit_const_ref(A_TEST,S_B,1 shl ((left.location.value-setbase) and 7),right.location.reference);
                       end;
                     LOC_REGISTER,LOC_CREGISTER:
                       begin
+                        cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                         emit_const_reg(A_TEST,TCGSize2OpSize[right.location.size],1 shl (left.location.value-setbase),right.location.register);
                       end;
                     else
@@ -893,21 +906,27 @@ implementation
                     { BE will be false for negative values }
                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_BE,tsetdef(right.resultdef).setmax-tsetdef(right.resultdef).setbase,pleftreg,l);
                     { set the zero flag }
+                    cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                     current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_TEST,S_B,0,NR_AL));
                     cg.a_jmp_always(current_asmdata.CurrAsmList,l2);
 
                     cg.a_label(current_asmdata.CurrAsmList,l);
+                    cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
 
                     emit_const_reg(A_MOV,S_W,1,pleftreg);
                     emit_reg_reg(A_SHL,S_W,NR_CL,pleftreg);
                     cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_CX);
                     case right.location.loc of
                       LOC_REGISTER, LOC_CREGISTER :
-                        emit_reg_reg(A_TEST,S_W,pleftreg,right.location.register);
+                        begin
+                          cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+                          emit_reg_reg(A_TEST,S_W,pleftreg,right.location.register);
+                        end;
                       LOC_CREFERENCE, LOC_REFERENCE :
                         begin
                           if not use_small then
                             add_extra_offset(extra_offset_reg,right.location.reference);
+                          cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                           emit_reg_ref(A_TEST,S_W,pleftreg,right.location.reference);
                         end;
                     else
@@ -926,11 +945,15 @@ implementation
                       cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_CX);
                       case right.location.loc of
                         LOC_REGISTER, LOC_CREGISTER :
-                          emit_reg_reg(A_TEST,S_W,pleftreg,right.location.register);
+                          begin
+                            cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+                            emit_reg_reg(A_TEST,S_W,pleftreg,right.location.register);
+                          end;
                         LOC_CREFERENCE, LOC_REFERENCE :
                           begin
                             if not use_small then
                               add_extra_offset(extra_offset_reg,right.location.reference);
+                            cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                             emit_reg_ref(A_TEST,S_W,pleftreg,right.location.reference);
                           end;
                       else
@@ -961,6 +984,7 @@ implementation
 
                     { BE will be false for negative values }
                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_BE,tsetdef(right.resultdef).setmax-tsetdef(right.resultdef).setbase,pleftreg,l);
+                    cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                     { reset carry flag }
                     current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLC,S_NO));
                     cg.a_jmp_always(current_asmdata.CurrAsmList,l2);
@@ -984,6 +1008,7 @@ implementation
                    end
                   else
                    begin
+                      cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                       case right.location.loc of
                         LOC_REGISTER, LOC_CREGISTER :
                           emit_reg_reg(A_BT,S_L,pleftreg,right.location.register);

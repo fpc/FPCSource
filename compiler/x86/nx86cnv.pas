@@ -351,6 +351,7 @@ implementation
             location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
             if (left.location.loc=LOC_REGISTER) and (torddef(left.resultdef).ordtype=u64bit) then
               begin
+                cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                 if use_bt then
                   begin
     {$if defined(cpu64bitalu)}
@@ -413,17 +414,18 @@ implementation
                      constant to save space. }
                    current_asmdata.getglobaldatalabel(l1);
                    current_asmdata.getjumplabel(l2);
-    
                    if not(signtested) then
                      begin
                        if use_bt then
                          begin
            {$if defined(cpu64bitalu) or defined(cpu32bitalu)}
                            inc(leftref.offset,4);
+                           cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                            emit_const_ref(A_BT,S_L,31,leftref);
                            dec(leftref.offset,4);
            {$elseif defined(cpu16bitalu)}
                            inc(leftref.offset,6);
+                           cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                            emit_const_ref(A_BT,S_W,15,leftref);
                            dec(leftref.offset,6);
            {$endif}
@@ -434,6 +436,7 @@ implementation
                            { reading a byte, instead of word is faster on a true }
                            { 8088, because of the 8-bit data bus }
                            inc(leftref.offset,7);
+                           cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                            emit_const_ref(A_TEST,S_B,aint($80),leftref);
                            dec(leftref.offset,7);
            {$else i8086}
@@ -447,9 +450,11 @@ implementation
                      cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NC,l2)
                    else
                      cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,l2);
+                   cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                    new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,const_align(sizeof(pint)));
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
                    { I got this constant from a test program (FK) }
+                   { It's actually the bit representation of 2^64 as a Single [Kit] }
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($5f800000));
                    reference_reset_symbol(href,l1,0,4,[]);
                    tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
