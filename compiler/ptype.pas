@@ -213,6 +213,16 @@ implementation
                               fileinfo:=srsym.fileinfo;
                             MessagePos(fileinfo,parser_e_no_generics_as_types);
                           end;
+                        hpd:=tabstractpointerdef(def).pointeddef;
+                        while assigned(hpd) and (hpd.typ=pointerdef) do
+                          begin
+                            if def=hpd then
+                              begin
+                                MessagePos(def.typesym.fileinfo,parser_e_cyclic_pointertypes_are_not_allowed);
+                                break;
+                              end;
+                            hpd:=tabstractpointerdef(hpd).pointeddef;
+                          end;
                       end
                      else
                       begin
