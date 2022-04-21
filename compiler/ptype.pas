@@ -644,8 +644,7 @@ implementation
                   end
                 else
                   begin
-                    Message(parser_e_no_generics_as_types);
-                    def:=generrordef;
+                    def:=handle_dummysym(srsym);
                   end;
               end
             else if is_classhelper(def) and
