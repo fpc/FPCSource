@@ -2441,6 +2441,7 @@ implementation
         srsym      : tsym;
         checkstack : psymtablestackitem;
         hashedid   : THashedIDString;
+        foundanything,
         hasoverload : boolean;
       begin
         { we search all overloaded operator definitions in the symtablestack. The found
@@ -2491,8 +2492,9 @@ implementation
                   begin
                     { add all definitions }
                     hasoverload:=false;
+                    foundanything:=false;
                     if tprocsym(srsym).could_be_implicitly_specialized then
-                      try_implicit_specialization(srsym,FParaNode,ProcdefOverloadList,FParaAnonSyms,tsym(FProcsym),hasoverload);
+                      foundanything:=try_implicit_specialization(srsym,FParaNode,ProcdefOverloadList,FParaAnonSyms,tsym(FProcsym),hasoverload);
                     for j:=0 to tprocsym(srsym).ProcdefList.Count-1 do
                       begin
                         pd:=tprocdef(tprocsym(srsym).ProcdefList[j]);
@@ -2509,10 +2511,12 @@ implementation
                         if po_overload in pd.procoptions then
                           hasoverload:=true;
                         ProcdefOverloadList.Add(pd);
+                        foundanything:=true;
                       end;
                     { when there is no explicit overload we stop searching,
                       except for Objective-C methods called via id }
-                    if not hasoverload and
+                    if foundanything and
+                       not hasoverload and
                        not objcidcall then
                       break;
                   end;
