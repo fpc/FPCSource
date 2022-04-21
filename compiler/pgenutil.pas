@@ -1004,12 +1004,39 @@ uses
           newparams.free;
         end;
 
+      function maybe_inherited_specialization(givendef,desireddef:tstoreddef;out basedef:tstoreddef):boolean;
+        begin
+          result:=false;
+          basedef:=nil;
+          if givendef.typ<>objectdef then
+            begin
+              result:=givendef.is_specialization and (givendef.genericdef=desireddef.genericdef);
+              if result then
+                basedef:=givendef;
+            end
+          else
+            begin
+              while assigned(givendef) do
+                begin
+                  if givendef.is_specialization and (givendef.genericdef=desireddef.genericdef) then
+                    begin
+                      basedef:=givendef;
+                      result:=true;
+                      break;
+                    end;
+
+                  givendef:=tobjectdef(givendef).childof;
+                end;
+            end;
+        end;
+
       { compare generic parameters <T> with call node parameters. }
       function is_possible_specialization(callerparams:tfplist;genericdef:tprocdef;out unnamed_syms:tfplist;out genericparams:tfphashlist):boolean;
         var
           i,j,
           count : integer;
           paravar : tparavarsym;
+          base_def : tstoreddef;
           target_def,
           caller_def : tdef;
           target_key : string;
@@ -1127,11 +1154,10 @@ uses
                   target_def:=tobjectdef(target_def).childof;
                 end
               { handle generic specializations }
-              else if tstoreddef(caller_def).is_specialization and 
-                tstoreddef(target_def).is_specialization and
-                (tstoreddef(caller_def).genericdef=tstoreddef(target_def).genericdef) then
+              else if tstoreddef(target_def).is_specialization and
+                maybe_inherited_specialization(tstoreddef(caller_def),tstoreddef(target_def),base_def) then
                 begin
-                  handle_specializations(genericparams,tstoreddef(target_def),tstoreddef(caller_def));
+                  handle_specializations(genericparams,tstoreddef(target_def),base_def);
                   continue;
                 end
               { handle all other generic params }
