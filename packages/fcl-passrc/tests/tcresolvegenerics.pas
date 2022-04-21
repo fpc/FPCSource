@@ -158,6 +158,7 @@ type
     procedure TestGenProc_TypeParamWithDefaultParamDelphiFail;
     procedure TestGenProc_ParamSpecWithT;
     procedure TestGenProc_ParamSpecWithTNestedType;
+    procedure TestGenProc_ProcType_Anonymous;
     // ToDo: NestedResultAssign
 
     // generic function infer types
@@ -173,7 +174,8 @@ type
     procedure TestGenProc_Infer_ArrayOfT;
     procedure TestGenProc_Infer_PassAsArgDelphi;
     procedure TestGenProc_Infer_PassAsArgObjFPC;
-    // ToDo procedure TestGenProc_Infer_ProcType;
+    procedure TestGenProc_Infer_ProcType; // ToDo
+    // ToDo procedure TestGenProc_Infer_TArray;
 
     // generic methods
     procedure TestGenMethod_VirtualFail;
@@ -2581,6 +2583,32 @@ begin
   ParseProgram;
 end;
 
+procedure TTestResolveGenerics.TestGenProc_ProcType_Anonymous;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  '{$ModeSwitch implicitfunctionspecialization}',
+  'type generic TFunc<T> = function(Arg: T): T;',
+  'generic function Fly<T>(aFunc: specialize TFunc<T>; Ant: T): T;',
+  'begin',
+  '  Result:=aFunc(Ant);',
+  'end;',
+  'function Jump(Arg: word): word;',
+  'begin',
+  'end;',
+  'procedure Test;',
+  'var StrFunc: specialize TFunc<string>;',
+  'begin',
+  '  specialize Fly<string>(StrFunc,''foo'');',
+  '  specialize Fly<word>(@Jump,3);',
+  'end;',
+  'begin',
+  '  specialize Fly<word>(@Jump,5);',
+  '']);
+  ParseProgram;
+end;
+
 procedure TTestResolveGenerics.TestGenProc_Infer_NeedExplicitFail;
 begin
   StartProgram(false);
@@ -2809,6 +2837,32 @@ begin
   'begin',
   '  Run(specialize Run<word>(5));',
   '  Run(Run(6));',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolveGenerics.TestGenProc_Infer_ProcType;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode objfpc}',
+  '{$ModeSwitch implicitfunctionspecialization}',
+  'type generic TFunc<T> = function(Arg: T): T;',
+  'function Jump(w: word): word;',
+  'begin',
+  'end;',
+  'generic function Fly<T>(aFunc: specialize TFunc<T>; Ant: T): T;',
+  'begin',
+  '  Result:=aFunc(Ant);',
+  'end;',
+  'procedure Test;',
+  'var StrFunc: specialize TFunc<string>;',
+  'begin',
+//  '  Fly(StrFunc,''foo'');',
+//  '  Fly(@Jump,4);',
+  'end;',
+  'begin',
+//  '  Fly(@Jump,6);',
   '']);
   ParseProgram;
 end;

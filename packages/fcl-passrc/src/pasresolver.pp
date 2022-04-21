@@ -24180,8 +24180,8 @@ function TPasResolver.CheckProcTypeCompatibility(Proc1,
 var
   ProcArgs1, ProcArgs2: TFPList;
   i: Integer;
-  Result1Resolved, Result2Resolved: TPasResolverResult;
   ExpectedArg, ActualArg: TPasArgument;
+  ResultType1, ResultType2: TPasType;
 begin
   Result:=false;
   if Proc1.ClassType<>Proc2.ClassType then
@@ -24276,16 +24276,16 @@ begin
     end;
   if Proc1 is TPasFunctionType then
     begin
-    ComputeResultElement(TPasFunctionType(Proc1).ResultEl,Result1Resolved,[]);
-    ComputeResultElement(TPasFunctionType(Proc2).ResultEl,Result2Resolved,[]);
-    if (Result1Resolved.BaseType<>Result2Resolved.BaseType)
-        or not IsSameType(Result1Resolved.HiTypeEl,Result2Resolved.HiTypeEl,prraSimple) then
+    ResultType1:=TPasFunctionType(Proc1).ResultEl.ResultType;
+    ResultType2:=TPasFunctionType(Proc2).ResultEl.ResultType;
+    if CheckElTypeCompatibility(ResultType1,ResultType2,prraSimple)>cGenericExact then
       begin
       if RaiseOnIncompatible then
-        RaiseIncompatibleTypeRes(20170402112648,nResultTypeMismatchExpectedButFound,
-          [],Result1Resolved,Result2Resolved,ErrorEl);
+        RaiseIncompatibleType(20170402112648,nResultTypeMismatchExpectedButFound,
+          [],ResultType1,ResultType2,ErrorEl);
       exit;
       end;
+
     if Proc1.IsAsync<>Proc2.IsAsync then
       RaiseMsg(20200524112519,nXModifierMismatchY,sXModifierMismatchY,['procedure type','async'],ErrorEl);
     end;
@@ -24719,6 +24719,7 @@ begin
   Result:=-1;
 
   Handled:=false;
+  // let descendant check first
   Result:=CheckAssignCompatibilityCustom(LHS,RHS,ErrorEl,RaiseOnIncompatible,Handled);
   if Handled and (Result>=cExact) and (Result<cIncompatible) then
     exit;
