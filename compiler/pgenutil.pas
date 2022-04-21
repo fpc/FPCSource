@@ -972,7 +972,7 @@ uses
                   { find the generic param name in the generic def parameters }
                   j:=target_proc.genericdef.genericparas.findindexof(paravar.vardef.typesym.name);
 
-                  target_def:=tparavarsym(target_proc.paras[j]).vardef;
+                  target_def:=ttypesym(target_proc.genericparas[j]).typedef;
                   caller_def:=caller_proc_para.vardef;
 
                   if not assigned(caller_def.typesym) then
