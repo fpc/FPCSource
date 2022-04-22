@@ -445,7 +445,7 @@ scan_e_unexpected_endif=02108_E_$ENDIF directive found without a matching $IF(N)
 #
 # Parser
 #
-# 03365 is the last used one
+# 03364 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1642,13 +1642,6 @@ parser_e_syscall_format_not_support=03364_E_Syntax of syscall directive not supp
 % On a certain target, not all syntax variants of the syscall directive make sense and thus those making
 % no sense are not supported
 % Declarations like \var{var i: Integer absolute i;} are not allowed
-parser_e_cyclic_pointertypes_are_not_allowed=03365_E_Cyclic definitions of pointers are not allowed
-% Pointers may not be defined cyclic like:
-% \begin{verbatim}
-% type
-%  tp1 = ^tp2;
-%  tp2 = ^tp1;
-% \end{verbatim}
 %
 % \end{description}
 %

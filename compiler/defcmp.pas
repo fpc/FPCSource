@@ -1584,60 +1584,79 @@ implementation
                           eq:=te_equal
                        end
                      else
-                      { same types }
-                      if equal_defs(tpointerdef(def_from).pointeddef,tpointerdef(def_to).pointeddef) then
                        begin
-                         eq:=te_equal
-                       end
-                     else
-                      { child class pointer can be assigned to anchestor pointers }
-                      if (
-                          (tpointerdef(def_from).pointeddef.typ=objectdef) and
-                          (tpointerdef(def_to).pointeddef.typ=objectdef) and
-                          def_is_related(tobjectdef(tpointerdef(def_from).pointeddef),
-                            tobjectdef(tpointerdef(def_to).pointeddef))
-                         ) then
-                       begin
-                         doconv:=tc_equal;
-                         eq:=te_convert_l1;
-                       end
-                     else
-                      { all pointers can be assigned to void-pointer }
-                      if is_void(tpointerdef(def_to).pointeddef) then
-                       begin
-                         doconv:=tc_equal;
-                         { give pwidechar,pchar a penalty so it prefers
-                           conversion to ansistring }
-                         if is_pchar(def_from) or
-                            is_pwidechar(def_from) then
-                           eq:=te_convert_l2
+                         { avoid crash/stack overflow on recursive pointer definitions, see tests/webtbf/tw39634.pp }
+                         hd1:=tabstractpointerdef(def_from).pointeddef;
+                         hd2:=tabstractpointerdef(def_to).pointeddef;
+                         while assigned(hd1) and (hd1.typ=pointerdef) and
+                           assigned(hd2) and (hd2.typ=pointerdef) do
+                           begin
+                             if hd1=hd2 then
+                               break;
+                             if (hd1=def_from) and (hd2=def_to) then
+                               begin
+                                 eq:=te_incompatible;
+                                 break;
+                               end;
+                             hd1:=tabstractpointerdef(hd1).pointeddef;
+                             hd2:=tabstractpointerdef(hd2).pointeddef;
+                           end;
+
+                         { same types }
+                         if not((hd1=def_from) and (hd2=def_to)) and equal_defs(tpointerdef(def_from).pointeddef,tpointerdef(def_to).pointeddef) then
+                           begin
+                             eq:=te_equal
+                           end
                          else
-                           eq:=te_convert_l1;
-                       end
-                     else
-                      { all pointers can be assigned from void-pointer }
-                      if is_void(tpointerdef(def_from).pointeddef) or
-                      { all pointers can be assigned from void-pointer or formaldef pointer, check
-                        tw3777.pp if you change this }
-                        (tpointerdef(def_from).pointeddef.typ=formaldef) then
-                       begin
-                         doconv:=tc_equal;
-                         { give pwidechar a penalty so it prefers
-                           conversion to pchar }
-                         if is_pwidechar(def_to) then
-                           eq:=te_convert_l2
+                          { child class pointer can be assigned to anchestor pointers }
+                          if (
+                              (tpointerdef(def_from).pointeddef.typ=objectdef) and
+                              (tpointerdef(def_to).pointeddef.typ=objectdef) and
+                              def_is_related(tobjectdef(tpointerdef(def_from).pointeddef),
+                                tobjectdef(tpointerdef(def_to).pointeddef))
+                             ) then
+                           begin
+                             doconv:=tc_equal;
+                             eq:=te_convert_l1;
+                           end
                          else
-                           eq:=te_convert_l1;
-                       end
-                     { id = generic class instance. metaclasses are also
-                       class instances themselves.  }
-                     else if ((def_from=objc_idtype) and
-                              (def_to=objc_metaclasstype)) or
-                             ((def_to=objc_idtype) and
-                              (def_from=objc_metaclasstype)) then
-                       begin
-                         doconv:=tc_equal;
-                         eq:=te_convert_l2;
+                          { all pointers can be assigned to void-pointer }
+                          if is_void(tpointerdef(def_to).pointeddef) then
+                           begin
+                             doconv:=tc_equal;
+                             { give pwidechar,pchar a penalty so it prefers
+                               conversion to ansistring }
+                             if is_pchar(def_from) or
+                                is_pwidechar(def_from) then
+                               eq:=te_convert_l2
+                             else
+                               eq:=te_convert_l1;
+                           end
+                         else
+                          { all pointers can be assigned from void-pointer }
+                          if is_void(tpointerdef(def_from).pointeddef) or
+                          { all pointers can be assigned from void-pointer or formaldef pointer, check
+                            tw3777.pp if you change this }
+                            (tpointerdef(def_from).pointeddef.typ=formaldef) then
+                           begin
+                             doconv:=tc_equal;
+                             { give pwidechar a penalty so it prefers
+                               conversion to pchar }
+                             if is_pwidechar(def_to) then
+                               eq:=te_convert_l2
+                             else
+                               eq:=te_convert_l1;
+                           end
+                         { id = generic class instance. metaclasses are also
+                           class instances themselves.  }
+                         else if ((def_from=objc_idtype) and
+                                  (def_to=objc_metaclasstype)) or
+                                 ((def_to=objc_idtype) and
+                                  (def_from=objc_metaclasstype)) then
+                           begin
+                             doconv:=tc_equal;
+                             eq:=te_convert_l2;
+                           end;
                        end;
                    end;
                  procvardef :
