@@ -6829,52 +6829,71 @@ unit aoptx86;
            { The first operand of CMP instructions can only be a register or
              immediate anyway, so no need to check }
            GetNextInstruction(hp2, p_label) and
-           (p_label.typ = ait_label) and
+           (
+             (p_label.typ = ait_label) or
+             (
+               { Sometimes there's a zero-distance jump before the label, so deal with it here
+                 to potentially cut down on the iterations of Pass 1 }
+               MatchInstruction(p_label, A_Jcc, []) and
+               IsJumpToLabel(taicpu(p_label)) and
+               { Use p_dist to hold the jump briefly }
+               SetAndTest(p_label, p_dist) and
+               GetNextInstruction(p_dist, p_label) and
+               (p_label.typ = ait_label) and
+               (tai_label(p_label).labsym.getrefs >= 2) and
+               (JumpTargetOp(taicpu(p_dist))^.ref^.symbol = tai_label(p_label).labsym) and
+               { We might as well collapse the jump now }
+               CollapseZeroDistJump(p_dist, tai_label(p_label).labsym)
+             )
+           ) and
            (tai_label(p_label).labsym.getrefs = 1) and
            (JumpTargetOp(taicpu(hp1))^.ref^.symbol = tai_label(p_label).labsym) and
            GetNextInstruction(p_label, p_dist) and
            MatchInstruction(p_dist, A_SETcc, []) and
            (taicpu(p_dist).condition in [C_E, C_Z]) and
-           (taicpu(p_dist).oper[0]^.typ = top_reg) then
+           (taicpu(p_dist).oper[0]^.typ = top_reg) and
+           { Get the instruction after the SETcc instruction so we can
+             allocate a new register over the entire range }
+           GetNextInstruction(p_dist, hp1_dist) then
            begin
              TransferUsedRegs(TmpUsedRegs);
              UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
              UpdateUsedRegs(TmpUsedRegs, tai(hp2.Next));
              UpdateUsedRegs(TmpUsedRegs, tai(p_label.Next));
-             UpdateUsedRegs(TmpUsedRegs, tai(p_dist.Next));
+//             UpdateUsedRegs(TmpUsedRegs, tai(p_dist.Next));
 
-             if not RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) and
-               { Get the instruction after the SETcc instruction so we can
-                 allocate a new register over the entire range }
-               GetNextInstruction(p_dist, hp1_dist) then
+             { Register can appear in p if it's not used afterwards, so only
+               allocate between hp1 and hp1_dist }
+             NewReg := GetIntRegisterBetween(R_SUBL, TmpUsedRegs, hp1, hp1_dist);
+             if (NewReg <> NR_NO) and
+               { RegUsedAfterInstruction modifies TmpUsedRegs }
+               not RegUsedAfterInstruction(NR_DEFAULTFLAGS, p_dist, TmpUsedRegs) then
                begin
-                 { Register can appear in p if it's not used afterwards, so only
-                   allocate between hp1 and hp1_dist }
-                 NewReg := GetIntRegisterBetween(R_SUBL, TmpUsedRegs, hp1, hp1_dist);
-                 if NewReg <> NR_NO then
-                   begin
-                     DebugMsg(SPeepholeOptimization + 'CMP/JE/CMP/@Lbl/SETE -> CMP/SETE/CMP/SETE/OR, removing conditional branch', p);
+                 DebugMsg(SPeepholeOptimization + 'CMP/JE/CMP/@Lbl/SETE -> CMP/SETE/CMP/SETE/OR, removing conditional branch', p);
 
-                     { Change the jump instruction into a SETcc instruction }
-                     taicpu(hp1).opcode := A_SETcc;
-                     taicpu(hp1).opsize := S_B;
-                     taicpu(hp1).loadreg(0, NewReg);
+                 { Change the jump instruction into a SETcc instruction }
+                 taicpu(hp1).opcode := A_SETcc;
+                 taicpu(hp1).opsize := S_B;
+                 taicpu(hp1).loadreg(0, NewReg);
 
-                     { This is now a dead label }
-                     tai_label(p_label).labsym.decrefs;
+                 { This is now a dead label }
+                 tai_label(p_label).labsym.decrefs;
 
-                     { Prefer adding before the next instruction so the FLAGS
-                       register is deallicated first  }
-                     AsmL.InsertBefore(
-                       taicpu.op_reg_reg(A_OR, S_B, NewReg, taicpu(p_dist).oper[0]^.reg),
-                       hp1_dist
-                     );
+                 hp2 := taicpu.op_reg_reg(A_OR, S_B, NewReg, taicpu(p_dist).oper[0]^.reg);
 
-                     Result := True;
-                     { Don't exit yet, as p wasn't changed and hp1, while
-                       modified, is still intact and might be optimised by the
-                       SETcc optimisation below }
-                   end;
+                 { Try to add the instruction right after the flags get deallocated, since
+                   the flags may become allocated again before the next instruction
+                   (reuse p_dist, not hp1, since that needs to remain as the
+                   instruction immediately after p) }
+                 if SetAndTest(FindRegDealloc(NR_DEFAULTFLAGS, tai(p_dist.Next)), p_dist) then
+                   AsmL.InsertAfter(hp2, p_dist)
+                 else
+                   AsmL.InsertBefore(hp2, hp1_dist);
+
+                 Result := True;
+                 { Don't exit yet, as p wasn't changed and hp1, while
+                   modified, is still intact and might be optimised by the
+                   SETcc optimisation below }
                end;
            end;
 
