@@ -29,7 +29,7 @@ type
     public
     type PNode=^TNode;
          TLMapIterator = specialize TMapIterator<TKey, TValue, TPair, TNode>;
-    var FNode:PNode;
+    var FNode, FNext:PNode; // FNext is for MoveNext only, which has different semantics than Next in that it starts in the state 'before first'.
     type PValue=^TValue;
     function GetData:TPair;inline;
     function GetKey:TKey;inline;
@@ -235,8 +235,13 @@ begin
 end;
 
 function TMap.GetEnumerator: TIterator;
+var
+  setn: TMSet.PNode;
 begin
   result:=titerator.create;
+  setn := FSet.NMin;
+  result.FNode := setn; // for Next/Prev
+  result.FNext := setn; // for MoveNext
 end;
 
 function TMapIterator.GetData:TPair;inline;
@@ -265,24 +270,28 @@ begin
 end;
 
 function TMapIterator.MoveNext: boolean;
-var temp:PNode;
+var
+  n, child: PNode;
 begin
-  if(FNode=nil) then exit(false);
-  if(FNode^.Right<>nil) then begin
-    temp:=FNode^.Right;
-    while(temp^.Left<>nil) do temp:=temp^.Left;
+  n := FNext;
+  result := n <> nil;
+  if not result then exit;
+
+  FNode := n;
+  child := n^.Right;
+  if child <> nil then begin
+    repeat
+      n := child;
+      child := n^.Left;
+    until child = nil;
   end
   else begin
-    temp:=FNode;
-    while(true) do begin
-      if(temp^.Parent=nil) then begin temp:=temp^.Parent; break; end;
-      if(temp^.Parent^.Left=temp) then begin temp:=temp^.Parent; break; end;
-      temp:=temp^.Parent;
-    end;
+    repeat
+      child := n;
+      n := n^.Parent;
+    until (n = nil) or (child = n^.Left);
   end;
-  if (temp = nil) then exit(false);
-  FNode:=temp;
-  MoveNext:=true;
+  FNext := n;
 end;
 
 function TMapIterator.Next:boolean;inline;
