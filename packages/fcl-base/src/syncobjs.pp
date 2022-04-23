@@ -67,7 +67,9 @@ type
       FManualReset: Boolean;
    public
       constructor Create(EventAttributes : PSecurityAttributes;
-        AManualReset,InitialState : Boolean;const Name : string);
+        AManualReset,InitialState : Boolean;const Name : string;
+        UseComWait:boolean=false);
+      constructor Create(UseComWait : Boolean=false);
       destructor destroy; override;
       procedure ResetEvent;
       procedure SetEvent;
@@ -153,13 +155,20 @@ begin
 end;
 
 constructor TEventObject.Create(EventAttributes : PSecurityAttributes;
-  AManualReset,InitialState : Boolean;const Name : string);
+  AManualReset,InitialState : Boolean;const Name : string;UseComWait:boolean=false);
 
 begin
   FHandle := BasicEventCreate(EventAttributes, AManualReset, InitialState, Name);
   if (FHandle=Nil) then
     Raise ESyncObjectException.CreateFmt(SErrEventCreateFailed,[Name]);
   FManualReset:=AManualReset;
+end;
+
+
+constructor TEventObject.Create(UseComWait : Boolean=false);
+// cmompatibility shortcut constructor, Com waiting not implemented yet
+begin
+ Create(nil,True,false,'',UseComWait);
 end;
 
 destructor TEventObject.destroy;
