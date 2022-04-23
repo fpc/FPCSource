@@ -3881,6 +3881,14 @@ implementation
                 { add reference to corresponding procsym; may not be the one
                   originally found/passed to the constructor because of overloads }
                 addsymref(tprocdef(procdefinition).procsym,procdefinition);
+
+                { ensure that the generic is considered as used as for an
+                  implicit specialization must only be called after the final
+                  overload was picked }
+                if assigned(tprocdef(procdefinition).genericdef) and
+                    assigned(tprocdef(tprocdef(procdefinition).genericdef).procsym) and
+                    (tprocdef(tprocdef(procdefinition).genericdef).procsym.refs=0) then
+                  addsymref(tprocdef(tprocdef(procdefinition).genericdef).procsym);
               end;
 
             { add needed default parameters }
