@@ -3873,14 +3873,15 @@ implementation
                  end; { end of procedure to call determination }
              end;
 
-            { check for hints (deprecated etc) }
             if procdefinition.typ = procdef then
-              check_hints(tprocdef(procdefinition).procsym,tprocdef(procdefinition).symoptions,tprocdef(procdefinition).deprecatedmsg);
+              begin
+                { check for hints (deprecated etc) }
+                check_hints(tprocdef(procdefinition).procsym,tprocdef(procdefinition).symoptions,tprocdef(procdefinition).deprecatedmsg);
 
-            { add reference to corresponding procsym; may not be the one
-              originally found/passed to the constructor because of overloads }
-            if procdefinition.typ = procdef then
-              addsymref(tprocdef(procdefinition).procsym,procdefinition);
+                { add reference to corresponding procsym; may not be the one
+                  originally found/passed to the constructor because of overloads }
+                addsymref(tprocdef(procdefinition).procsym,procdefinition);
+              end;
 
             { add needed default parameters }
             if (paralength<procdefinition.maxparacount) then
