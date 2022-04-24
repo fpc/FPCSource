@@ -117,8 +117,17 @@ Implementation
       i : Longint;
     begin
       result:=false;
-      If (p1.typ = ait_instruction) and (taicpu(p1).opcode in [A_MUL,A_MULS,A_FMUL,A_FMULS,A_FMULSU]) and
+      if p1.typ <> ait_instruction then
+        exit;
+      If (taicpu(p1).opcode in [A_MUL,A_MULS,A_FMUL,A_FMULS,A_FMULSU]) and
               ((getsupreg(reg)=RS_R0) or (getsupreg(reg)=RS_R1)) then
+        begin
+          Result:=true;
+          exit;
+        end;
+
+      If (taicpu(p1).opcode=A_MOVW) and
+        (TRegister(ord(taicpu(p1).oper[0]^.reg)+1)=reg) then
         begin
           Result:=true;
           exit;
