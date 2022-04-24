@@ -229,7 +229,7 @@ Implementation
             top_reg:
               Result := (p.oper[i]^.reg = reg) or
                 { MOVW }
-                ((i=1) and (p.opcode=A_MOVW) and (getsupreg(p.oper[0]^.reg)+1=getsupreg(reg)));
+                ((i=1) and (p.opcode=A_MOVW) and (getsupreg(p.oper[i]^.reg)+1=getsupreg(reg)));
             top_ref:
               Result :=
                 (p.oper[i]^.ref^.base = reg) or
@@ -1205,14 +1205,8 @@ Implementation
         begin
           DebugMsg('Peephole MovMov2Movw performed', p);
 
-          alloc:=FindRegAllocBackward(taicpu(hp1).oper[0]^.reg,tai(hp1.Previous));
-          if assigned(alloc) then
-            begin
-              asml.Remove(alloc);
-              asml.InsertBefore(alloc,p);
-              { proper book keeping of currently used registers }
-              IncludeRegInUsedRegs(taicpu(hp1).oper[0]^.reg,UsedRegs);
-            end;
+          AllocRegBetween(taicpu(hp1).oper[0]^.reg,p,hp1,UsedRegs);
+          AllocRegBetween(taicpu(hp1).oper[1]^.reg,p,hp1,UsedRegs);
 
           taicpu(p).opcode:=A_MOVW;
           asml.remove(hp1);
