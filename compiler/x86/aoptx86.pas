@@ -7920,11 +7920,16 @@ unit aoptx86;
       { The instruction can be safely moved }
       asml.Remove(hp1);
 
-      { Try to insert after the last instructions where the FLAGS register is not yet in use }
-      if not GetLastInstruction(p, hp2) then
-        asml.InsertBefore(hp1, p)
+      { Try to insert before the FLAGS register is allocated, so "mov $0,%reg"
+        can be optimised into "xor %reg,%reg" later }
+      if SetAndTest(FindRegAllocBackward(NR_DEFAULTFLAGS, tai(p.Previous)), hp2) then
+        asml.InsertBefore(hp1, hp2)
       else
-        asml.InsertAfter(hp1, hp2);
+        { Note, if p.Previous is nil (even if it should logically never be the
+          case), FindRegAllocBackward immediately exits with False and so we
+          safely land here (we can't just pass p because FindRegAllocBackward
+          immediately exits on an instruction). [Kit] }
+        asml.InsertBefore(hp1, p);
 
       DebugMsg(SPeepholeOptimization + 'Swapped ' + debug_op2str(taicpu(p).opcode) + ' and ' + debug_op2str(taicpu(hp1).opcode) + ' instructions to improve optimisation potential', hp1);
 
