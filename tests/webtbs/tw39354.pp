@@ -15,7 +15,7 @@ begin
     writeln(Pair.Key);
     inc(count);
   end;
-  if count=0 then
+  if count<>2 then
     halt(1);
   Map.Free;
 end. 
