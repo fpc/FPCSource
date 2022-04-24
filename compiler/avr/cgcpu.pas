@@ -697,7 +697,7 @@ unit cgcpu;
                          end;
                        6: fastshift6(b);
                        7: fastshift7(b);
-                     otherwise
+                     else
                        Internalerror(2022031101);
                      end;
                    end
