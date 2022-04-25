@@ -353,14 +353,14 @@ type
   // DTM_REMOVEDTOBJECT, DTM_CLEARSELECTED, DTM_COPY, DTM_ABORTPRINT
   PdtGeneral = ^TdtGeneral;
   TdtGeneral = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     dtg_GInfo: PGadgetInfo;
   end;
 
   // DTM_SELECT
   PdtSelect = ^TdtSelect;
   TdtSelect = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     dts_GInfo: PGadgetInfo;
     dts_Select: TRectangle;
   end;
@@ -368,7 +368,7 @@ type
   // DTM_FRAMEBOX
   PdtFrameBox = ^TdtFrameBox;
   TdtFrameBox = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     dtf_GInfo: PGadgetInfo;
     dtf_ContentsInfo: PFrameInfo;
     dtf_FrameInfo: PFrameInfo;    // Input
@@ -379,7 +379,7 @@ type
   // DTM_GOTO
   PdtGoto = ^TdtGoto;
   TdtGoto = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     dtg_GInfo: PGadgetInfo;
     dtg_NodeName: STRPTR;   // Node to goto
     dtg_AttrList: PTagItem; // Additional attributes
@@ -388,7 +388,7 @@ type
   // DTM_TRIGGER
   PdtTrigger = ^TdtTrigger;
   TdtTrigger = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     dtt_GInfo: PGadgetInfo;
     dtt_Function: LongWord;
     dtt_Data: APTR;
@@ -437,7 +437,7 @@ type
   // DTM_DRAW
   PdtDraw = ^TdtDraw;
   TdtDraw = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     dtd_RPort: PRastPort;
     dtd_Left: LongInt;
     dtd_Top: LongInt;
@@ -451,14 +451,14 @@ type
   // DTM_RELEASERAWINFO
   PdtReleaseDrawInfo = ^TdtReleaseDrawInfo;
   TdtReleaseDrawInfo = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     dtr_Handle: APTR; // Handle as returned by DTM_OBTAINDRAWINFO
   end;
 
   // DTM_WRITE
   PdtWrite = ^TdtWrite;
   TdtWrite = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     dtw_GInfo: PGadgetInfo; // Gadget information
     dtw_FileHandle: BPTR;   // File handle to write to
     dtw_Mode: LongWord;
@@ -589,7 +589,7 @@ const
 type
   PpdtBlitPixelArray = ^TpdtBlitPixelArray;
   TpdtBlitPixelArray = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     pbpa_PixelData: APTR;
     pbpa_PixelFormat: LongWord;
     pbpa_PixelArrayMod: LongWord;
@@ -601,7 +601,7 @@ type
 
   PpdtScale = ^TpdtScale;
   TpdtScale = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     ps_NewWidth: LongWord;
     ps_NewHeight: LongWord;
     ps_Flags: LongWord;
@@ -810,7 +810,7 @@ const
 type
   PadtFrame = ^TadtFrame;
   TadtFrame = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     alf_TimeStamp: LongWord;
     alf_Frame: LongWord;
     alf_Duration: LongWord;
@@ -824,7 +824,7 @@ type
 
   PadtNewFormatFrame = ^TadtNewFormatFrame;
   TadtNewFormatFrame = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     alf_TimeStamp: LongWord;
     alf_Frame: LongWord;
     alf_Duration: LongWord;
@@ -842,7 +842,7 @@ type
 
   PadtStart = ^tadtStart;
   TadtStart = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     asa_Frame: LongWord;
   end;
 

@@ -580,7 +580,7 @@ const
 
 type
   TMUI_BoopsiQuery = record
-    mbq_MethodID: PtrUInt;          // always MUIM_BoopsiQuery
+    mbq_MethodID: LongWord;          // always MUIM_BoopsiQuery
     mbq_Screen: PScreen;             // obsolete, use mbq_RenderInfo
     mbq_Flags: LongWord;             // read only, see below
     mbq_MinWidth: LongInt;           // write only, fill in min width
@@ -631,33 +631,33 @@ const
 
 type
   TMUIP_CallHook = record
-    MethodID: PtrUInt; // MUIM_CallHook
+    MethodID: LongWord; // MUIM_CallHook
     Hook: PHook;
     param1: IPTR;   // more might follow
   end;
   PMUIP_CallHook = ^TMUIP_CallHook;
 
   TMUIP_Export = record
-    MethodID : PtrUInt; // MUIM_Export
+    MethodID : LongWord; // MUIM_Export
     dataspace : PObject_;
   end;
   PMUIP_Export = ^TMUIP_Export;
 
   TMUIP_FindUData = record
-    MethodID : PtrUInt; // MUIM_FindUData
+    MethodID : LongWord; // MUIM_FindUData
     udata: IPTR;
   end;
   PMUIP_FindUData = ^TMUIP_FindUData;
 
   TMUIP_GetConfigItem = record
-    MethodID: PtrUInt; // MUIM_GetConfigItem
+    MethodID: LongWord; // MUIM_GetConfigItem
     id: LongWord;
     storage: PIPTR;
   end;
   PMUIP_GetConfigItem = ^TMUIP_GetConfigItem;
 
   TMUIP_GetUData = record
-    MethodID: PtrUInt; // MUIM_GetUData
+    MethodID: LongWord; // MUIM_GetUData
     udata: LongWord;
     attr: LongWord;
     storage: PIPTR;
@@ -665,26 +665,26 @@ type
   PMUIP_GetUData = ^TMUIP_GetUData;
 
   TMUIP_Import = record
-    MethodID : PtrUInt; // MUIM_Import
+    MethodID : LongWord; // MUIM_Import
     dataspace : PObject_;
   end;
   PMUIP_Import = ^TMUIP_Import;
 
   TMUIP_KillNotify = record
-    MethodID : PtrUInt; // MUIM_KillNotify
+    MethodID : LongWord; // MUIM_KillNotify
     TrigAttr : LongWord;
   end;
   PMUIP_KillNotify = ^TMUIP_KillNotify;
 
   TMUIP_KillNotifyObj = record
-    MethodID: PtrUInt; // MUIM_KillNotifyObj
+    MethodID: LongWord; // MUIM_KillNotifyObj
     TrigAttr: LongWord;
     dest: PObject_;
   end;
   PMUIP_KillNotifyObj = ^TMUIP_KillNotifyObj;
 
   TMUIP_MultiSet = record
-    MethodID: PtrUInt; // MUIM_MultiSet
+    MethodID: LongWord; // MUIM_MultiSet
     attr: LongWord;
     val: IPTR;
     obj: APTR;          // more might follow
@@ -692,14 +692,14 @@ type
   PMUIP_MultiSet = ^TMUIP_MultiSet;
 
   TMUIP_NoNotifySet = record
-    MethodID: PtrUInt; // MUIM_NoNotifySet
+    MethodID: LongWord; // MUIM_NoNotifySet
     attr: LongWord;
     val: IPTR;          // more might follow
   end;
   PMUIP_NoNotifySet = ^TMUIP_NoNotifySet;
 
   TMUIP_Notify = record
-    MethodID: PtrUInt; // MUIM_Notify
+    MethodID: LongWord; // MUIM_Notify
     TrigAttr: LongWord;
     TrigVal: IPTR;
     DestObj: APTR;
@@ -708,14 +708,14 @@ type
   PMUIP_Notify = ^TMUIP_Notify;
 
   TMUIP_Set = record
-    MethodID: PtrUInt; // MUIM_Set
+    MethodID: LongWord; // MUIM_Set
     attr: LongWord;
     val: IPTR;
   end;
   PMUIP_Set = ^TMUIP_Set;
 
   TMUIP_SetAsString = record
-    MethodID: PtrUInt; // MUIM_SetAsString
+    MethodID: LongWord; // MUIM_SetAsString
     attr: LongWord;
     format: PChar;
     val: IPTR;
@@ -723,7 +723,7 @@ type
   PMUIP_SetAsString = ^TMUIP_SetAsString;
 
   TMUIP_SetUData = record
-    MethodID: PtrUInt; // MUIM_SetUData
+    MethodID: LongWord; // MUIM_SetUData
     udata: IPTR;
     attr: LongWord;
     val: IPTR;
@@ -731,7 +731,7 @@ type
   PMUIP_SetUData = ^TMUIP_SetUData;
 
   TMUIP_SetUDataOnce = record
-    MethodID : PtrUInt; // MUIM_SetUDataOnce
+    MethodID : LongWord; // MUIM_SetUDataOnce
     udata: IPTR;
     attr: LongWord;
     val: IPTR;
@@ -739,27 +739,27 @@ type
   PMUIP_SetUDataOnce = ^TMUIP_SetUDataOnce;
 
   TMUIP_WriteLong = record
-    MethodID: PtrUInt; // MUIM_WriteLong
+    MethodID: LongWord; // MUIM_WriteLong
     val: LongWord;
     memory: PLongWord;
   end;
   PMUIP_WriteLong = ^TMUIP_WriteLong;
 
   TMUIP_WriteString = record
-    MethodID: PtrUInt; // MUIM_WriteString
+    MethodID: LongWord; // MUIM_WriteString
     str: PChar;
     memory: PChar;
   end;
   PMUIP_WriteString = ^TMUIP_WriteString;
 
   TMUIP_ConnectParent = record
-    MethodID: PtrUInt; // MUIM_ConnectParent
+    MethodID: LongWord; // MUIM_ConnectParent
     parent: PObject_;
   end;
   PMUIP_ConnectParent = ^TMUIP_ConnectParent;
 
   TMUIP_DisconnectParent = record
-    MethodID: PtrUInt; // MUIM_DisconnectParent
+    MethodID: LongWord; // MUIM_DisconnectParent
   end;
   PMUIP_DisconnectParent = ^TMUIP_DisconnectParent;
 
@@ -794,44 +794,44 @@ const
    MUIM_Family_GetChild = MUIB_MUI or $42c556; // V20
 type
   TMUIP_Family_AddHead = record
-    MethodID: PtrUInt; // MUIM_Family_AddHead
+    MethodID: LongWord; // MUIM_Family_AddHead
     obj: PObject_;
   end;
   PMUIP_Family_AddHead = ^TMUIP_Family_AddHead;
 
   TMUIP_Family_AddTail = record
-    MethodID: PtrUInt; // MUIM_Family_AddTail
+    MethodID: LongWord; // MUIM_Family_AddTail
     obj: PObject_;
   end;
   PMUIP_Family_AddTail = ^TMUIP_Family_AddTail;
 
   TMUIP_Family_Insert = record
-    MethodID: PtrUInt; // MUIM_Family_Insert
+    MethodID: LongWord; // MUIM_Family_Insert
     obj: PObject_;
     pred: PObject_;
   end;
   PMUIP_Family_Insert = ^TMUIP_Family_Insert;
 
   TMUIP_Family_Remove = record
-    MethodID : PtrUInt; // MUIM_Family_Remove
+    MethodID : LongWord; // MUIM_Family_Remove
     obj : PObject_;
   end;
   PMUIP_Family_Remove = ^TMUIP_Family_Remove;
 
   TMUIP_Family_Sort = record
-    MethodID : PtrUInt; // MUIM_Family_Sort
+    MethodID : LongWord; // MUIM_Family_Sort
     obj : array[0..0] of PObject_;
   end;
   PMUIP_Family_Sort = ^TMUIP_Family_Sort;
 
   TMUIP_Family_Transfer = record
-    MethodID: PtrUInt; // MUIM_Family_Transfer
+    MethodID: LongWord; // MUIM_Family_Transfer
     family: PObject_;
   end;
   PMUIP_Family_Transfer = ^TMUIP_Family_Transfer;
 
   TMUIP_Family_GetChild = record
-    MethodID: PtrUInt; // MUIM_Family_GetChild
+    MethodID: LongWord; // MUIM_Family_GetChild
     nr: LongInt;        // MUIV_Family_GetChild_* or Number
     ref: PObject_;
   end;
@@ -887,72 +887,72 @@ const
 
 type
   TMUIP_Application_AboutMUI = record
-    MethodID: PtrUInt;  // MUIM_Application_AboutMUI
+    MethodID: LongWord;  // MUIM_Application_AboutMUI
     refwindow: PObject_;
   end;
   PMUIP_Application_AboutMUI = ^TMUIP_Application_AboutMUI;
 
   TMUIP_Application_AddInputHandler = record
-    MethodID: PtrUInt;  // MUIM_Application_AddInputHandler
+    MethodID: LongWord;  // MUIM_Application_AddInputHandler
     ihnode: PMUI_InputHandlerNode;
   end;
   PMUIP_Application_AddInputHandler = ^TMUIP_Application_AddInputHandler;
 
   TMUIP_Application_CheckRefresh = record
-    MethodID: PtrUInt;  // MUIM_Application_CheckRefresh
+    MethodID: LongWord;  // MUIM_Application_CheckRefresh
   end;
   PMUIP_Application_CheckRefresh = ^TMUIP_Application_CheckRefresh;
 
   TMUIP_Application_GetMenuCheck = record
-    MethodID: PtrUInt;  // MUIM_Application_GetMenuCheck
+    MethodID: LongWord;  // MUIM_Application_GetMenuCheck
     MenuID: LongWord;
   end;
   PMUIP_Application_GetMenuCheck = ^TMUIP_Application_GetMenuCheck;
 
   TMUIP_Application_GetMenuState = record
-    MethodID: PtrUInt;  // MUIM_Application_GetMenuState
+    MethodID: LongWord;  // MUIM_Application_GetMenuState
     MenuID: LongWord;
   end;
   PMUIP_Application_GetMenuState = ^TMUIP_Application_GetMenuState;
 
   TMUIP_Application_Input = record
-    MethodID: PtrUInt;  // MUIM_Application_Input
+    MethodID: LongWord;  // MUIM_Application_Input
     signal: PLongWord;
   end;
   PMUIP_Application_Input = ^TMUIP_Application_Input;
 
   TMUIP_Application_InputBuffered = record
-    MethodID: PtrUInt;  // MUIM_Application_InputBuffered
+    MethodID: LongWord;  // MUIM_Application_InputBuffered
   end;
   PMUIP_Application_InputBuffered = ^TMUIP_Application_InputBuffered;
 
   TMUIP_Application_Load = record
-    MethodID: PtrUInt;  // MUIM_Application_Load
+    MethodID: LongWord;  // MUIM_Application_Load
     name: STRPTR;
   end;
   PMUIP_Application_Load = ^TMUIP_Application_Load;
 
   TMUIP_Application_NewInput = record
-    MethodID: PtrUInt;  // MUIM_Application_NewInput
+    MethodID: LongWord;  // MUIM_Application_NewInput
     signal: PLongWord;
   end;
   PMUIP_Application_NewInput = ^TMUIP_Application_NewInput;
 
   TMUIP_Application_OpenConfigWindow = record
-    MethodID: PtrUInt;  // MUIM_Application_OpenConfigWindow
+    MethodID: LongWord;  // MUIM_Application_OpenConfigWindow
     flags: LongWord;
   end;
   PMUIP_Application_OpenConfigWindow = ^TMUIP_Application_OpenConfigWindow;
 
   TMUIP_Application_PushMethod = record
-    MethodID: PtrUInt;  // MUIM_Application_PushMethod
+    MethodID: LongWord;  // MUIM_Application_PushMethod
     dest: PObject_;
     count: LongInt; // more elements may follow
   end;
   PMUIP_Application_PushMethod = ^TMUIP_Application_PushMethod;
 
   TMUIP_Application_UnpushMethod = record
-    MethodID: PtrUInt;  // MUIM_Application_UnpushMethod
+    MethodID: LongWord;  // MUIM_Application_UnpushMethod
     dest: PObject_;
     NewMethodID: IPTR;
     method: LongWord;
@@ -960,45 +960,45 @@ type
   PMUIP_Application_UnpushMethod = ^TMUIP_Application_UnpushMethod;
 
   TMUIP_Application_RemInputHandler = record
-    MethodID: PtrUInt;   // MUIM_Application_RemInputHandler
+    MethodID: LongWord;   // MUIM_Application_RemInputHandler
     ihnode: PMUI_InputHandlerNode;
   end;
   PMUIP_Application_RemInputHandler = ^TMUIP_Application_RemInputHandler;
 
   TMUIP_Application_ReturnID = record
-    MethodID: PtrUInt;  // MUIM_Application_ReturnID
+    MethodID: LongWord;  // MUIM_Application_ReturnID
     retid: LongWord;
   end;
   PMUIP_Application_ReturnID = ^TMUIP_Application_ReturnID;
 
   TMUIP_Application_Save = record
-    MethodID: PtrUInt;  // MUIM_Application_Save
+    MethodID: LongWord;  // MUIM_Application_Save
     name: STRPTR;
   end;
 
   TMUIP_Application_SetConfigItem = record
-    MethodID: PtrUInt;  // MUIM_Application_SetConfigItem
+    MethodID: LongWord;  // MUIM_Application_SetConfigItem
     item: LongWord;
     data: APTR;
   end;
   PMUIP_Application_SetConfigItem = ^TMUIP_Application_SetConfigItem;
 
   TMUIP_Application_SetMenuCheck = record
-    MethodID: PtrUInt;  // MUIM_Application_SetMenuCheck
+    MethodID: LongWord;  // MUIM_Application_SetMenuCheck
     MenuID: LongWord;
     stat: LongInt;
   end;
   PMUIP_Application_SetMenuCheck = ^TMUIP_Application_SetMenuCheck;
 
   TMUIP_Application_SetMenuState = record
-    MethodID : PtrUInt;  // MUIM_Application_SetMenuState
+    MethodID : LongWord;  // MUIM_Application_SetMenuState
     MenuID : LongWord;
     stat : LongInt;
   end;
   PMUIP_Application_SetMenuState = ^TMUIP_Application_SetMenuState;
 
   TMUIP_Application_ShowHelp = record
-    MethodID: PtrUInt;  // MUIM_Application_ShowHelp
+    MethodID: LongWord;  // MUIM_Application_ShowHelp
     window: PObject_;
     name: PChar;
     node: PChar;
@@ -1117,71 +1117,71 @@ const
 
 type
   TMUIP_Window_ActionIconify = record
-    MethodID: PtrUInt;  // MUIM_Window_ActionIconify
+    MethodID: LongWord;  // MUIM_Window_ActionIconify
   end;
   PMUIP_Window_ActionIconify = ^TMUIP_Window_ActionIconify;
 
   TMUIP_Window_AddEventHandler = record
-    MethodID: PtrUInt;  // MUIM_Window_AddEventHandler
+    MethodID: LongWord;  // MUIM_Window_AddEventHandler
     ehnode: PMUI_EventHandlerNode;
   end;
   PMUIP_Window_AddEventHandler = ^TMUIP_Window_AddEventHandler;
 
   TMUIP_Window_Cleanup = record
-    MethodID: PtrUInt;  // MUIM_Window_Cleanup
+    MethodID: LongWord;  // MUIM_Window_Cleanup
   end;
   PMUIP_Window_Cleanup = ^TMUIP_Window_Cleanup;
 
   TMUIP_Window_RemEventHandler = record
-    MethodID: PtrUInt; // MUIM_Window_RemEventHandler
+    MethodID: LongWord; // MUIM_Window_RemEventHandler
     ehnode: PMUI_EventHandlerNode;
   end;
   PMUIP_Window_RemEventHandler = ^TMUIP_Window_RemEventHandler;
 
   TMUIP_Window_ScreenToBack = record
-    MethodID: PtrUInt; // MUIM_Window_ScreenToBack
+    MethodID: LongWord; // MUIM_Window_ScreenToBack
   end;
   PMUIP_Window_ScreenToBack = ^TMUIP_Window_ScreenToBack;
 
   TMUIP_Window_ScreenToFront = record
-    MethodID: PtrUInt; // MUIM_Window_ScreenToFront
+    MethodID: LongWord; // MUIM_Window_ScreenToFront
   end;
   PMUIP_Window_ScreenToFront = ^TMUIP_Window_ScreenToFront;
 
   TMUIP_Window_Setup = record
-    MethodID: PtrUInt; // MUIM_Window_Setup
+    MethodID: LongWord; // MUIM_Window_Setup
   end;
   PMUIP_Window_Setup = ^TMUIP_Window_Setup;
 
   TMUIP_Window_Snapshot = record
-    MethodID: PtrUInt;  // MUIM_Window_Snapshot
+    MethodID: LongWord;  // MUIM_Window_Snapshot
     flags: LongInt;
   end;
   PMUIP_Window_Snapshot = ^TMUIP_Window_Snapshot;
 
   TMUIP_Window_ToBack = record
-    MethodID: PtrUInt;  // MUIM_Window_ToBack
+    MethodID: LongWord;  // MUIM_Window_ToBack
   end;
   PMUIP_Window_ToBack = ^TMUIP_Window_ToBack;
 
   TMUIP_Window_ToFront = record
-    MethodID: PtrUInt;  // MUIM_Window_ToFront
+    MethodID: LongWord;  // MUIM_Window_ToFront
   end;
   PMUIP_Window_ToFront = ^TMUIP_Window_ToFront;
 
   TMUIP_Window_AddControlCharHandler = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     ccnode: PMUI_EventHandlerNode;
   end;
   PMUIP_Window_AddControlCharHandler = ^TMUIP_Window_AddControlCharHandler;
 
   TMUIP_Window_AllocGadgetID = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
   end;
   PMUIP_Window_AllocGadgetID = ^TMUIP_Window_AllocGadgetID;
 
   TMUIP_Window_DrawBackground = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     left: LongInt;
     top: LongInt;
     width: LongInt;
@@ -1193,7 +1193,7 @@ type
   PMUIP_Window_DrawBackground = ^TMUIP_Window_DrawBackground;
 
   TMUIP_Window_DragObject = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     obj: PObject_;
     touchx: LongInt;
     touchy: LongInt;
@@ -1202,25 +1202,25 @@ type
   PMUIP_Window_DragObject = ^TMUIP_Window_DragObject;
 
   TMUIP_Window_FreeGadgetID = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     gadgetid: LongInt;
   end;
   PMUIP_Window_FreeGadgetID = ^TMUIP_Window_FreeGadgetID;
 
   TMUIP_Window_RecalcDisplay = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     originator: PObject_;
   end;
   PMUIP_Window_RecalcDisplay = ^TMUIP_Window_RecalcDisplay;
 
   TMUIP_Window_RemControlCharHandler = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     ccnode: PMUI_EventHandlerNode;
   end;
   PMUIP_Window_RemControlCharHandler = ^TMUIP_Window_RemControlCharHandler;
 
   TMUIP_Window_UpdateMenu = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
   end;
 
 {$ifdef MUI_OBSOLETE}
@@ -1232,28 +1232,28 @@ const
   MUIM_Window_SetMenuState  = MUIB_MUI or $422b5e; // V4
 type
   TMUIP_Window_GetMenuCheck = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     MenuID: LongWord;
   end;
 
   TMUIP_Window_GetMenuState = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     MenuID: LongWord;
   end;
 
   TMUIP_Window_SetCycleChain = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     obj: array[0..0] of PObject_;
   end;
 
   TMUIP_Window_SetMenuCheck = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     MenuID: LongWord;
     stat: LongInt;
   end;
 
   TMUIP_Window_SetMenuState = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     MenuID: LongWord;
     stat: LongInt;
   end;
@@ -1400,31 +1400,31 @@ type
   PMUI_MinMax = ^TMUI_MinMax;
 
   TMUIP_AskMinMax = record
-    MethodID: PtrUInt;  // MUIM_AskMinMax
+    MethodID: LongWord;  // MUIM_AskMinMax
     MinMaxInfo: PMUI_MinMax;
   end;
   PMUIP_AskMinMax = ^TMUIP_AskMinMax;
 
   TMUIP_Cleanup = record
-    MethodID: PtrUInt;  // MUIM_Cleanup
+    MethodID: LongWord;  // MUIM_Cleanup
   end;
   PMUIP_Cleanup = ^TMUIP_Cleanup;
 
   TMUIP_ContextMenuBuild = record
-    MethodID: PtrUInt;  // MUIM_ContextMenuBuild
+    MethodID: LongWord;  // MUIM_ContextMenuBuild
     mx: LongInt;
     my: LongInt;
   end;
   PMUIP_ContextMenuBuild = ^TMUIP_ContextMenuBuild;
 
   TMUIP_ContextMenuChoice = record
-    MethodID: PtrUInt;  // MUIM_ContextMenuChoice
+    MethodID: LongWord;  // MUIM_ContextMenuChoice
     item: PObject_;
   end;
   PMUIP_ContextMenuChoice = ^TMUIP_ContextMenuChoice;
 
   TMUIP_CreateBubble = record
-    MethodID: PtrUInt;  // MUIM_CreateBubble
+    MethodID: LongWord;  // MUIM_CreateBubble
     x: LongInt;
     y: LongInt;
     txt : PChar;
@@ -1433,7 +1433,7 @@ type
   PMUIP_CreateBubble = ^TMUIP_CreateBubble;
 
   TMUIP_CreateDragImage = record
-    MethodID: PtrUInt;  // MUIM_CreateDragImage
+    MethodID: LongWord;  // MUIM_CreateDragImage
     touchx: LongInt;
     touchy: LongInt;
     flags: LongWord;
@@ -1441,14 +1441,14 @@ type
   PMUIP_CreateDragImage = ^TMUIP_CreateDragImage;
 
   TMUIP_CreateShortHelp = record
-    MethodID: PtrUInt;  // MUIM_CreateShortHelp
+    MethodID: LongWord;  // MUIM_CreateShortHelp
     mx: LongInt;
     my: LongInt;
   end;
   PMUIP_CreateShortHelp = ^TMUIP_CreateShortHelp;
 
   TMUIP_CustomBackfill = record
-    MethodID: PtrUInt;  // MUIM_CustomBackfill
+    MethodID: LongWord;  // MUIM_CustomBackfill
     left: LongInt;
     top: LongInt;
     right: LongInt;
@@ -1459,25 +1459,25 @@ type
   PMUIP_CustomBackfill = ^TMUIP_CustomBackfill;
 
   TMUIP_DeleteBubble = record
-    MethodID: PtrUInt;  // MUIM_DeleteBubble
+    MethodID: LongWord;  // MUIM_DeleteBubble
     bubble: APTR;
   end;
   PMUIP_DeleteBubble = ^TMUIP_DeleteBubble;
 
   TMUIP_DeleteDragImage = record
-    MethodID: PtrUInt;  // MUIM_DeleteDragImage
+    MethodID: LongWord;  // MUIM_DeleteDragImage
     di: PMUI_DragImage;
   end;
   PMUIP_DeleteDragImage = ^TMUIP_DeleteDragImage;
 
   TMUIP_DeleteShortHelp = record
-    MethodID: PtrUInt;  // MUIM_DeleteShortHelp
+    MethodID: LongWord;  // MUIM_DeleteShortHelp
     help: STRPTR;
   end;
   PMUIP_DeleteShortHelp = ^TMUIP_DeleteShortHelp;
 
   TMUIP_DoDrag = record
-    MethodID: PtrUInt;  // MUIM_DoDrag
+    MethodID: LongWord;  // MUIM_DoDrag
     touchx: LongInt;
     touchy: LongInt;
     flags: LongWord;
@@ -1485,19 +1485,19 @@ type
   PMUIP_DoDrag = ^TMUIP_DoDrag;
 
   TMUIP_UnknownDropDestination = record
-    MethodID: PtrUInt;  // MUIM_UnknownDropDestination
+    MethodID: LongWord;  // MUIM_UnknownDropDestination
     imsg: PIntuiMessage;
   end;
   PMUIP_UnknownDropDestination = ^TMUIP_UnknownDropDestination;
 
   TMUIP_DragBegin = record
-    MethodID: PtrUInt;  // MUIM_DragBegin
+    MethodID: LongWord;  // MUIM_DragBegin
     obj: PObject_;
   end;
   PMUIP_DragBegin = ^TMUIP_DragBegin;
 
   TMUIP_DragDrop = record
-    MethodID: PtrUInt;  // MUIM_DragDrop
+    MethodID: LongWord;  // MUIM_DragDrop
     obj: PObject_;
     x: LongInt;
     y: LongInt;
@@ -1505,19 +1505,19 @@ type
   PMUIP_DragDrop = ^TMUIP_DragDrop;
 
   TMUIP_DragFinish = record
-    MethodID: PtrUInt;  // MUIM_DragFinish
+    MethodID: LongWord;  // MUIM_DragFinish
     obj: PObject_;
   end;
   PMUIP_DragFinish = ^TMUIP_DragFinish;
 
   TMUIP_DragQuery = record
-    MethodID: PtrUInt;  // MUIM_DragQuery
+    MethodID: LongWord;  // MUIM_DragQuery
     obj: PObject_;
   end;
   PMUIP_DragQuery = ^TMUIP_DragQuery;
 
   TMUIP_DragReport = record
-    MethodID: PtrUInt;  // MUIM_DragReport
+    MethodID: LongWord;  // MUIM_DragReport
     obj: PObject_;
     x: LongInt;
     y: LongInt;
@@ -1526,13 +1526,13 @@ type
   PMUIP_DragReport = ^TMUIP_DragReport;
 
   TMUIP_Draw = record
-    MethodID: PtrUInt;  // MUIM_Draw
+    MethodID: LongWord;  // MUIM_Draw
     flags: LongWord;
   end;
   PMUIP_Draw = ^TMUIP_Draw;
 
   TMUIP_DrawBackground = record
-    MethodID: PtrUInt;  // MUIM_DrawBackground
+    MethodID: LongWord;  // MUIM_DrawBackground
     left: LongInt;
     top: LongInt;
     width: LongInt;
@@ -1544,7 +1544,7 @@ type
   PMUIP_DrawBackground = ^TMUIP_DrawBackground;
 
   TMUIP_DrawBackgroundBuffered = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     rp: PRastPort;
     left: LongInt;
     top: LongInt;
@@ -1557,52 +1557,52 @@ type
   PMUIP_DrawBackgroundBuffered = ^TMUIP_DrawBackgroundBuffered;
 
   TMUIP_GoActive = record
-    MethodID: PtrUInt;  // MUIM_GoActive
+    MethodID: LongWord;  // MUIM_GoActive
   end;
   PMUIP_GoActive = ^TMUIP_GoActive;
 
   TMUIP_GoInactive = record
-    MethodID: PtrUInt;  // MUIM_GoInactive
+    MethodID: LongWord;  // MUIM_GoInactive
   end;
   PMUIP_GoInactive = ^TMUIP_GoInactive;
 
   TMUIP_HandleEvent = record
-    MethodID: PtrUInt;  // MUIM_HandleEvent
+    MethodID: LongWord;  // MUIM_HandleEvent
     imsg: PIntuiMessage;
     muikey: LongInt;
   end;
   PMUIP_HandleEvent = ^TMUIP_HandleEvent;
 
   TMUIP_HandleInput = record
-    MethodID: PtrUInt;  // MUIM_HandleInput
+    MethodID: LongWord;  // MUIM_HandleInput
     imsg: PIntuiMessage;
     muikey: LongInt;
   end;
   PMUIP_HandleInput = ^TMUIP_HandleInput;
 
   TMUIP_Hide = record
-    MethodID: PtrUInt;  // MUIM_Hide
+    MethodID: LongWord;  // MUIM_Hide
   end;
   PMUIP_Hide = ^TMUIP_Hide;
 
   TMUIP_Setup = record
-    MethodID: PtrUInt;  // MUIM_Setup
+    MethodID: LongWord;  // MUIM_Setup
     RenderInfo: PMUI_RenderInfo;
   end;
   PMUIP_Setup = ^TMUIP_Setup;
 
   TMUIP_Show = record
-    MethodID: PtrUInt;  // MUIM_Show
+    MethodID: LongWord;  // MUIM_Show
   end;
   PMUIP_Show = ^TMUIP_Show;
 
   TMUIP_Layout = record
-    MethodID: PtrUInt;  // MUIM_Layout
+    MethodID: LongWord;  // MUIM_Layout
   end;
   PMUIP_Layout = ^TMUIP_Layout;
 
   TMUIP_DrawParentBackground = record
-    MethodID: PtrUInt;  // MUIM_DrawParentBackground
+    MethodID: LongWord;  // MUIM_DrawParentBackground
     left: LongInt;
     top: LongInt;
     width: LongInt;
@@ -1799,41 +1799,41 @@ const
 
 type
   TMUIP_Group_AddHead = record
-    MethodID: PtrUInt;  // MUIM_Group_AddHead
+    MethodID: LongWord;  // MUIM_Group_AddHead
     obj: PObject_;
   end;
   PMUIP_Group_AddHead = ^TMUIP_Group_AddHead;
 
   TMUIP_Group_AddTail = record
-    MethodID : PtrUInt;  // MUIM_Group_AddTail
+    MethodID : LongWord;  // MUIM_Group_AddTail
     obj: PObject_;
   end;
   PMUIP_Group_AddTail = ^TMUIP_Group_AddTail;
 
   TMUIP_Group_ExitChange = record
-    MethodID : PtrUInt;  // MUIM_Group_ExitChange
+    MethodID : LongWord;  // MUIM_Group_ExitChange
   end;
   PMUIP_Group_ExitChange = ^TMUIP_Group_ExitChange;
 
   TMUIP_Group_InitChange = record
-    MethodID: PtrUInt;  // MUIM_Group_InitChange
+    MethodID: LongWord;  // MUIM_Group_InitChange
   end;
   PMUIP_Group_InitChange = ^TMUIP_Group_InitChange;
 
   TMUIP_Group_Sort = record
-    MethodID: PtrUInt;  // MUIM_Group_Sort
+    MethodID: LongWord;  // MUIM_Group_Sort
     obj: array[0..0] of PObject_;
   end;
   PMUIP_Group_Sort = ^TMUIP_Group_Sort;
 
   TMUIP_Group_Remove = record
-    MethodID : PtrUInt;  // MUIM_Group_Remove
+    MethodID : LongWord;  // MUIM_Group_Remove
     obj: PObject_;
   end;
   PMUIP_Group_Remove = ^TMUIP_Group_Remove;
 
   TMUIP_Group_DoMethodNoForward = record
-    MethodID: PtrUInt;  // MUIM_Group_DoMethodNoForward
+    MethodID: LongWord;  // MUIM_Group_DoMethodNoForward
     DoMethodID: LongWord;
   end; // msg stuff follows
   PMUIP_Group_DoMethodNoForward = ^TMUIP_Group_DoMethodNoForward;
@@ -1867,7 +1867,7 @@ const
 type
   // This is the message you get if your custom layout hook is called
   TMUI_LayoutMsg = record
-    lm_Type: PtrUInt;      // type of message (see defines below)
+    lm_Type: LongWord;      // type of message (see defines below)
     lm_Children: PMinList;  // list of this groups children, traverse with NextObject()
     lm_MinMax: TMUI_MinMax; // results for MUILM_MINMAX
     lm_Layout: record       // size (and result) for MUILM_LAYOUT
@@ -1950,19 +1950,19 @@ const
 
 type
   TMUIP_Numeric_Decrease = record
-    MethodID: PtrUInt;  // MUIM_Numeric_Decrease
+    MethodID: LongWord;  // MUIM_Numeric_Decrease
     amount: LongInt;
   end;
   PMUIP_Numeric_Decrease = ^TMUIP_Numeric_Decrease;
 
   TMUIP_Numeric_Increase = record
-    MethodID: PtrUInt;  // MUIM_Numeric_Increase
+    MethodID: LongWord;  // MUIM_Numeric_Increase
     amount: LongInt;
   end;
   PMUIP_Numeric_Increase = ^TMUIP_Numeric_Increase;
 
   TMUIP_Numeric_ScaleToValue = record
-    MethodID: PtrUInt;  // MUIM_Numeric_ScaleToValue
+    MethodID: LongWord;  // MUIM_Numeric_ScaleToValue
     scalemin: LongInt;
     scalemax: LongInt;
     scale: LongInt;
@@ -1970,25 +1970,25 @@ type
   PMUIP_Numeric_ScaleToValue = ^TMUIP_Numeric_ScaleToValue;
 
   TMUIP_Numeric_SetDefault = record
-    MethodID: PtrUInt;  // MUIM_Numeric_SetDefault
+    MethodID: LongWord;  // MUIM_Numeric_SetDefault
   end;
   PMUIP_Numeric_SetDefault = ^TMUIP_Numeric_SetDefault;
 
   TMUIP_Numeric_Stringify = record
-    MethodID: PtrUInt;  // MUIM_Numeric_Stringify
+    MethodID: LongWord;  // MUIM_Numeric_Stringify
     value: LongInt;
   end;
   PMUIP_Numeric_Stringify = ^TMUIP_Numeric_Stringify;
 
   TMUIP_Numeric_ValueToScale = record
-    MethodID: PtrUInt;  // MUIM_Numeric_ValueToScale
+    MethodID: LongWord;  // MUIM_Numeric_ValueToScale
     scalemin: LongInt;
     scalemax: LongInt;
   end;
   PMUIP_Numeric_ValueToScale = ^TMUIP_Numeric_ValueToScale;
 
   TMUIP_Numeric_ValueToScaleExt = record
-    MethodID: PtrUInt;  // MUIM_Numeric_ValueToScaleExt
+    MethodID: LongWord;  // MUIM_Numeric_ValueToScaleExt
     value: LongInt;
     scalemin: LongInt;
     scalemax: LongInt;
@@ -2079,18 +2079,18 @@ const
 
 type
   TMUIP_String_ClearSelected = record
-    MethodID: PtrUInt;  // MUIM_String_ClearSelected
+    MethodID: LongWord;  // MUIM_String_ClearSelected
   end;
   PMUIP_String_ClearSelected = ^TMUIP_String_ClearSelected;
 
   TMUIP_String_FileNameStart = record
-    MethodID: PtrUInt;  // MUIM_String_FileNameStart
+    MethodID: LongWord;  // MUIM_String_FileNameStart
     buffer: STRPTR;
     pos: LongInt;
   end;
 
   TMUIP_String_Insert = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     text: STRPTR;  // MUIM_String_Insert
     pos: LongInt;
   end;
@@ -2133,13 +2133,13 @@ const
 
 type
   TMUIP_Prop_Decrease = record
-    MethodID: PtrUInt;  // MUIM_Prop_Decrease
+    MethodID: LongWord;  // MUIM_Prop_Decrease
     amount: LongInt;
   end;
   PMUIP_Prop_Decrease = ^TMUIP_Prop_Decrease;
 
   TMUIP_Prop_Increase = record
-    MethodID: PtrUInt; // MUIM_Prop_Increase
+    MethodID: LongWord; // MUIM_Prop_Increase
     amount: LongInt;
   end;
   PMUIP_Prop_Increase = ^TMUIP_Prop_Increase;
@@ -2262,7 +2262,7 @@ const
 
 type
   TMUIP_Dataspace_Add = record
-    MethodID: PtrUInt;  // MUIM_Dataspace_Add
+    MethodID: LongWord;  // MUIM_Dataspace_Add
     data: APTR;
     len: LongInt;
     id: LongWord;
@@ -2270,36 +2270,36 @@ type
   PMUIP_Dataspace_Add = ^TMUIP_Dataspace_Add;
 
   TMUIP_Dataspace_Clear = record
-    MethodID: PtrUInt;  // MUIM_Dataspace_Clear
+    MethodID: LongWord;  // MUIM_Dataspace_Clear
   end;
   PMUIP_Dataspace_Clear = ^TMUIP_Dataspace_Clear;
 
   TMUIP_Dataspace_Find = record
-    MethodID: PtrUInt;  // MUIM_Dataspace_Find
+    MethodID: LongWord;  // MUIM_Dataspace_Find
     id: LongWord;
   end;
   PMUIP_Dataspace_Find = ^TMUIP_Dataspace_Find;
 
   TMUIP_Dataspace_Merge = record
-    MethodID: PtrUInt;  // MUIM_Dataspace_Merge
+    MethodID: LongWord;  // MUIM_Dataspace_Merge
     dataspace: PObject_;
   end;
   PMUIP_Dataspace_Merge = ^TMUIP_Dataspace_Merge;
 
   TMUIP_Dataspace_ReadIFF = record
-    MethodID: PtrUInt;  // MUIM_Dataspace_ReadIFF
+    MethodID: LongWord;  // MUIM_Dataspace_ReadIFF
     Handle: PIFFHandle;
   end;
   PMUIP_Dataspace_ReadIFF = ^TMUIP_Dataspace_ReadIFF;
 
   TMUIP_Dataspace_Remove = record
-    MethodID: PtrUInt;  // MUIM_Dataspace_Remove
+    MethodID: LongWord;  // MUIM_Dataspace_Remove
     id: LongWord;
   end;
   PMUIP_Dataspace_Remove = ^TMUIP_Dataspace_Remove;
 
   TMUIP_Dataspace_WriteIFF = record
-    MethodID: PtrUInt;  // MUIM_Dataspace_WriteIFF
+    MethodID: LongWord;  // MUIM_Dataspace_WriteIFF
     handle: PIFFHandle;
     type_: LongWord;
     id: LongWord;
@@ -2377,27 +2377,27 @@ const
 
 type
   TMUIP_Semaphore_Attempt = record
-    MethodID: PtrUInt;  // MUIM_Semaphore_Attempt
+    MethodID: LongWord;  // MUIM_Semaphore_Attempt
   end;
   PMUIP_Semaphore_Attempt = ^TMUIP_Semaphore_Attempt;
 
   TMUIP_Semaphore_AttemptShared = record
-    MethodID: PtrUInt;  // MUIM_Semaphore_AttemptShared
+    MethodID: LongWord;  // MUIM_Semaphore_AttemptShared
   end;
   PMUIP_Semaphore_AttemptShared = ^TMUIP_Semaphore_AttemptShared;
 
   TMUIP_Semaphore_Obtain = record
-    MethodID: PtrUInt;  // MUIM_Semaphore_Obtain
+    MethodID: LongWord;  // MUIM_Semaphore_Obtain
   end;
   PMUIP_Semaphore_Obtain = ^TMUIP_Semaphore_Obtain;
 
   TMUIP_Semaphore_ObtainShared = record
-    MethodID: PtrUInt;  // MUIM_Semaphore_ObtainShared
+    MethodID: LongWord;  // MUIM_Semaphore_ObtainShared
   end;
   PMUIP_Semaphore_ObtainShared = ^TMUIP_Semaphore_ObtainShared;
 
   TMUIP_Semaphore_Release = record
-    MethodID: PtrUInt;  // MUIM_Semaphore_Release
+    MethodID: LongWord;  // MUIM_Semaphore_Release
   end;
   PMUIP_Semaphore_Release = ^TMUIP_Semaphore_Release;
 
@@ -2515,12 +2515,12 @@ const
 
 type
   TMUIP_List_Clear = record
-    MethodID: PtrUInt;  // MUIM_List_Clear
+    MethodID: LongWord;  // MUIM_List_Clear
   end;
   PMUIP_List_Clear = ^TMUIP_List_Clear;
 
   TMUIP_List_Compare = record
-    MethodID: PtrUInt;  // MUIM_List_Compare
+    MethodID: LongWord;  // MUIM_List_Compare
     entry1: APTR;
     entry2: APTR;
     sort_type1: LongInt;
@@ -2529,41 +2529,41 @@ type
   PMUIP_List_Compare = ^TMUIP_List_Compare;
 
   TMUIP_List_Construct = record
-    MethodID: PtrUInt;  // MUIM_List_Construct
+    MethodID: LongWord;  // MUIM_List_Construct
     entry: APTR;
     pool: APTR;
   end;
   PMUIP_List_Construct = ^TMUIP_List_Construct;
 
   TMUIP_List_CreateImage = record
-    MethodID: PtrUInt;  // MUIM_List_CreateImage
+    MethodID: LongWord;  // MUIM_List_CreateImage
     obj: PObject_;
     flags: LongWord;
   end;
   PMUIP_List_CreateImage = ^TMUIP_List_CreateImage;
 
   TMUIP_List_DeleteImage = record
-    MethodID: PtrUInt;  // MUIM_List_DeleteImage
+    MethodID: LongWord;  // MUIM_List_DeleteImage
     listimg: APTR;
   end;
   PMUIP_List_DeleteImage = ^TMUIP_List_DeleteImage;
 
   TMUIP_List_Exchange = record
-    MethodID: PtrUInt;  // MUIM_List_Exchange
+    MethodID: LongWord;  // MUIM_List_Exchange
     pos1: LongInt;
     pos2: LongInt;
   end;
   PMUIP_List_Exchange = ^TMUIP_List_Exchange;
 
   TMUIP_List_GetEntry = record
-    MethodID: PtrUInt;  // MUIM_List_GetEntry
+    MethodID: LongWord;  // MUIM_List_GetEntry
     pos: LongInt;
     entry: PAPTR;
   end;
   PMUIP_List_GetEntry = ^TMUIP_List_GetEntry;
 
   TMUIP_List_Insert = record
-    MethodID: PtrUInt;  // MUIM_List_Insert
+    MethodID: LongWord;  // MUIM_List_Insert
     entries: PAPTR;
     count: LongInt;
     pos: LongInt;
@@ -2571,45 +2571,45 @@ type
   PMUIP_List_Insert = ^TMUIP_List_Insert;
 
   TMUIP_List_InsertSingle = record
-    MethodID: PtrUInt;  // MUIM_List_InsertSingle
+    MethodID: LongWord;  // MUIM_List_InsertSingle
     entry: APTR;
     pos: LongInt;
   end;
   PMUIP_List_InsertSingle = ^TMUIP_List_InsertSingle;
 
   TMUIP_List_Jump = record
-    MethodID: PtrUInt;  // MUIM_List_Jump
+    MethodID: LongWord;  // MUIM_List_Jump
     pos: LongInt;
   end;
   PMUIP_List_Jump = ^TMUIP_List_Jump;
 
   TMUIP_List_Move = record
-    MethodID: PtrUInt;  // MUIM_List_Move
+    MethodID: LongWord;  // MUIM_List_Move
     from: LongInt;
     too: LongInt;
   end;
   PMUIP_List_Move = ^TMUIP_List_Move;
 
   TMUIP_List_NextSelected = record
-    MethodID: PtrUInt;  // MUIM_List_NextSelected
+    MethodID: LongWord;  // MUIM_List_NextSelected
     pos: PLongInt;
   end;
   PMUIP_List_NextSelected = ^TMUIP_List_NextSelected;
 
   TMUIP_List_Redraw = record
-    MethodID: PtrUInt;  // MUIM_List_Redraw
+    MethodID: LongWord;  // MUIM_List_Redraw
     pos: LongInt;
   end;
   PMUIP_List_Redraw = ^TMUIP_List_Redraw;
 
   TMUIP_List_Remove = record
-    MethodID: PtrUInt;  // MUIM_List_Remove
+    MethodID: LongWord;  // MUIM_List_Remove
     pos: LongInt;
   end;
   PMUIP_List_Remove = ^TMUIP_List_Remove;
 
   TMUIP_List_Select = record
-    MethodID: PtrUInt;  // MUIM_List_Select
+    MethodID: LongWord;  // MUIM_List_Select
     pos: LongInt;
     seltype: LongInt;
     state: PLongInt;
@@ -2617,12 +2617,12 @@ type
   PMUIP_List_Select = ^TMUIP_List_Select;
 
   TMUIP_List_Sort = record
-    MethodID: PtrUInt;  // MUIM_List_Sort
+    MethodID: LongWord;  // MUIM_List_Sort
   end;
   PMUIP_List_Sort = ^TMUIP_List_Sort;
 
   TMUIP_List_TestPos = record
-    MethodID: PtrUInt;  // MUIM_List_TestPos
+    MethodID: LongWord;  // MUIM_List_TestPos
     x: LongInt;
     y: LongInt;
     res: PMUI_List_TestPos_Result;
@@ -2739,7 +2739,7 @@ const
 
 type
   TMUIP_Floattext_Append = record
-    MethodID: PtrUInt;  // MUIM_Floattext_Append
+    MethodID: LongWord;  // MUIM_Floattext_Append
     Text: CONST_STRPTR;
   end;
   PMUIP_Floattext_Append = ^TMUIP_Floattext_Append;
@@ -2766,13 +2766,13 @@ const
 
 type
   TMUIP_Popstring_Close = record
-    MethodID: PtrUInt;  // MUIM_Popstring_Close
+    MethodID: LongWord;  // MUIM_Popstring_Close
     result: LongInt;
   end;
   PMUIP_Popstring_Close = ^TMUIP_Popstring_Close;
 
   TMUIP_Popstring_Open = record
-    MethodID: PtrUInt;  // MUIM_Popstring_Open
+    MethodID: LongWord;  // MUIM_Popstring_Open
   end;
   PMUIP_Popstring_Open = ^TMUIP_Popstring_Open;
 
@@ -2900,13 +2900,13 @@ const
 
 type
   TMUIP_Settingsgroup_ConfigToGadgets = record
-    MethodID: PtrUInt;  // MUIM_Settingsgroup_ConfigToGadgets
+    MethodID: LongWord;  // MUIM_Settingsgroup_ConfigToGadgets
     configdata: PObject_;
   end;
   PMUIP_Settingsgroup_ConfigToGadgets = ^TMUIP_Settingsgroup_ConfigToGadgets;
 
   TMUIP_Settingsgroup_GadgetsToConfig = record
-    MethodID: PtrUInt;  // MUIM_Settingsgroup_GadgetsToConfig
+    MethodID: LongWord;  // MUIM_Settingsgroup_GadgetsToConfig
     configdata: PObject_;
   end;
   PMUIP_Settingsgroup_GadgetsToConfig = ^TMUIP_Settingsgroup_GadgetsToConfig;
@@ -2955,66 +2955,66 @@ const
 
 type
   TMUIP_Configdata_GetString = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     id: LongWord;
   end;
   PMUIP_Configdata_GetString = ^TMUIP_Configdata_GetString;
 
   TMUIP_Configdata_GetULong = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     id: LongWord;
   end;
   PMUIP_Configdata_GetULong = ^TMUIP_Configdata_GetULong;
 
   TMUIP_Configdata_SetULong = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     id: LongWord;
     val: LongWord;
   end;
   PMUIP_Configdata_SetULong = ^TMUIP_Configdata_SetULong;
 
   TMUIP_Configdata_SetImspec = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     id: LongWord;
     imspec: CONST_STRPTR;
   end;
   PMUIP_Configdata_SetImspec = ^TMUIP_Configdata_SetImspec;
 
   TMUIP_Configdata_SetFramespec = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     id: LongWord;
     framespec: CONST_STRPTR;
   end;
   PMUIP_Configdata_SetFramespec = ^TMUIP_Configdata_SetFramespec;
 
   TMUIP_Configdata_SetFont = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     id: LongWord;
     font: CONST_STRPTR;
   end;
   PMUIP_Configdata_SetFont = ^TMUIP_Configdata_SetFont;
 
   TMUIP_Configdata_Save = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     filename: CONST_STRPTR;
   end;
   PMUIP_Configdata_Save = ^TMUIP_Configdata_Save;
 
   TMUIP_Configdata_Load = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     filename: CONST_STRPTR;
   end;
   PMUIP_Configdata_Load = ^TMUIP_Configdata_Load;
 
   TMUIP_Configdata_SetPenspec = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     id: LongWord;
     penspec: CONST_STRPTR;
   end;
   PMUIP_Configdata_SetPenspec = ^TMUIP_Configdata_SetPenspec;
 
   TMUIP_Configdata_SetString = record
-    MethodID: PtrUInt;
+    MethodID: LongWord;
     id: LongWord;
     Newstring: CONST_STRPTR;
   end;
@@ -3268,19 +3268,19 @@ const
 
 type
   TMUIP_Pendisplay_SetColormap = record
-    MethodID: PtrUInt;  // MUIM_Pendisplay_SetColormap
+    MethodID: LongWord;  // MUIM_Pendisplay_SetColormap
     colormap: LongInt;
   end;
   PMUIP_Pendisplay_SetColormap = ^TMUIP_Pendisplay_SetColormap;
 
   TMUIP_Pendisplay_SetMUIPen = record
-    MethodID: PtrUInt;  // MUIM_Pendisplay_SetMUIPen
+    MethodID: LongWord;  // MUIM_Pendisplay_SetMUIPen
     muipen: LongInt;
   end;
   PMUIP_Pendisplay_SetMUIPen = ^TMUIP_Pendisplay_SetMUIPen;
 
   TMUIP_Pendisplay_SetRGB = record
-    MethodID: PtrUInt;  // MUIM_Pendisplay_SetRGB
+    MethodID: LongWord;  // MUIM_Pendisplay_SetRGB
     red: LongWord;
     green: LongWord;
     blue: LongWord;
@@ -3403,7 +3403,7 @@ const
 
 type
   TMUIP_Dirlist_ReRead = record
-    MethodID : PtrUInt;  // MUIM_Dirlist_ReRead
+    MethodID : LongWord;  // MUIM_Dirlist_ReRead
   end;
 
 // Attributes
@@ -3527,22 +3527,22 @@ const
 
 type
   TMUIP_Process_Kill = record
-    MethodID : PtrUInt;
+    MethodID : LongWord;
     maxdelay: LongInt;
   end;
 
   TMUIP_Process_Launch = record
-    MethodID : PtrUInt;
+    MethodID : LongWord;
   end;
 
   TMUIP_Process_Process = record
-    MethodID : PtrUInt;
+    MethodID : LongWord;
     kill: PLongWord;
     proc: PObject_;
   end;
 
   TMUIP_Process_Signal = record
-    MethodID : PtrUInt;
+    MethodID : LongWord;
     sigs: LongWord;
   end;
 
@@ -3569,7 +3569,7 @@ const
 
 type
   TMUIP_Pixmap_DrawSection = record // private
-    MethodID: PtrUInt;  // MUIM_Pixmap_DrawSection
+    MethodID: LongWord;  // MUIM_Pixmap_DrawSection
     sx: LongInt;
     sy: LongInt;
     sw: LongInt;
