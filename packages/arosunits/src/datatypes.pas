@@ -289,10 +289,13 @@ const
 
 type
   PDTMethod = ^TDTMethod;
-  TDTMethod = record
+  TDTMethod = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     dtm_Label: STRPTR;
     dtm_Command: STRPTR;
     dtm_Method: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
 const
@@ -352,46 +355,61 @@ const
 type
   // DTM_REMOVEDTOBJECT, DTM_CLEARSELECTED, DTM_COPY, DTM_ABORTPRINT
   PdtGeneral = ^TdtGeneral;
-  TdtGeneral = record
+  TdtGeneral = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     dtg_GInfo: PGadgetInfo;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
   // DTM_SELECT
   PdtSelect = ^TdtSelect;
-  TdtSelect = record
+  TdtSelect = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     dts_GInfo: PGadgetInfo;
     dts_Select: TRectangle;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
   // DTM_FRAMEBOX
   PdtFrameBox = ^TdtFrameBox;
-  TdtFrameBox = record
+  TdtFrameBox = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     dtf_GInfo: PGadgetInfo;
     dtf_ContentsInfo: PFrameInfo;
     dtf_FrameInfo: PFrameInfo;    // Input
     dtf_SizeFrameInfo: LongWord;  // Output
     dtf_FrameFlags: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
   // DTM_GOTO
   PdtGoto = ^TdtGoto;
-  TdtGoto = record
+  TdtGoto = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     dtg_GInfo: PGadgetInfo;
     dtg_NodeName: STRPTR;   // Node to goto
     dtg_AttrList: PTagItem; // Additional attributes
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
   // DTM_TRIGGER
   PdtTrigger = ^TdtTrigger;
-  TdtTrigger = record
+  TdtTrigger = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     dtt_GInfo: PGadgetInfo;
     dtt_Function: LongWord;
     dtt_Data: APTR;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
 const
@@ -436,7 +454,8 @@ const
 type
   // DTM_DRAW
   PdtDraw = ^TdtDraw;
-  TdtDraw = record
+  TdtDraw = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     dtd_RPort: PRastPort;
     dtd_Left: LongInt;
@@ -446,23 +465,31 @@ type
     dtd_TopHoriz: LongInt;
     dtd_TopVert: LongInt;
     dtd_AttrList: PTagItem; // Additional attributes
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
   // DTM_RELEASERAWINFO
   PdtReleaseDrawInfo = ^TdtReleaseDrawInfo;
-  TdtReleaseDrawInfo = record
+  TdtReleaseDrawInfo = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     dtr_Handle: APTR; // Handle as returned by DTM_OBTAINDRAWINFO
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
   // DTM_WRITE
   PdtWrite = ^TdtWrite;
-  TdtWrite = record
+  TdtWrite = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     dtw_GInfo: PGadgetInfo; // Gadget information
     dtw_FileHandle: BPTR;   // File handle to write to
     dtw_Mode: LongWord;
     dtw_AttrList: PTagItem; // Additional attributes
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
 const
@@ -588,7 +615,8 @@ const
 
 type
   PpdtBlitPixelArray = ^TpdtBlitPixelArray;
-  TpdtBlitPixelArray = record
+  TpdtBlitPixelArray = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     pbpa_PixelData: APTR;
     pbpa_PixelFormat: LongWord;
@@ -597,14 +625,19 @@ type
     pbpa_Top: LongWord;
     pbpa_Width: LongWord;
     pbpa_Height: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
   PpdtScale = ^TpdtScale;
-  TpdtScale = record
+  TpdtScale = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     ps_NewWidth: LongWord;
     ps_NewHeight: LongWord;
     ps_Flags: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
 const
@@ -809,7 +842,8 @@ const
 
 type
   PadtFrame = ^TadtFrame;
-  TadtFrame = record
+  TadtFrame = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     alf_TimeStamp: LongWord;
     alf_Frame: LongWord;
@@ -820,10 +854,13 @@ type
     alf_SampleLength: LongWord;
     alf_Period: LongWord;
     alf_UserData: APTR;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
   PadtNewFormatFrame = ^TadtNewFormatFrame;
-  TadtNewFormatFrame = record
+  TadtNewFormatFrame = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     alf_TimeStamp: LongWord;
     alf_Frame: LongWord;
@@ -838,12 +875,17 @@ type
     alf_LeftSample: PShortInt;
     alf_RightSample: PShortInt;
     alf_SamplesPerSec: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
   PadtStart = ^tadtStart;
-  TadtStart = record
+  TadtStart = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     asa_Frame: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
 function SDTM_ISSTEREO(SampleType: LongWord): Boolean; inline;

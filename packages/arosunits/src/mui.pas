@@ -630,136 +630,193 @@ const
   MUIM_DisconnectParent = MUIB_Notify or 1; // Zune V1
 
 type
-  TMUIP_CallHook = record
+  TMUIP_CallHook = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord; // MUIM_CallHook
     Hook: PHook;
     param1: IPTR;   // more might follow
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_CallHook = ^TMUIP_CallHook;
 
-  TMUIP_Export = record
+  TMUIP_Export = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID : LongWord; // MUIM_Export
     dataspace : PObject_;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Export = ^TMUIP_Export;
 
-  TMUIP_FindUData = record
+  TMUIP_FindUData = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID : LongWord; // MUIM_FindUData
     udata: IPTR;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_FindUData = ^TMUIP_FindUData;
 
-  TMUIP_GetConfigItem = record
+  TMUIP_GetConfigItem = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord; // MUIM_GetConfigItem
     id: LongWord;
     storage: PIPTR;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_GetConfigItem = ^TMUIP_GetConfigItem;
 
-  TMUIP_GetUData = record
+  TMUIP_GetUData = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord; // MUIM_GetUData
     udata: LongWord;
     attr: LongWord;
     storage: PIPTR;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_GetUData = ^TMUIP_GetUData;
 
-  TMUIP_Import = record
+  TMUIP_Import = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID : LongWord; // MUIM_Import
     dataspace : PObject_;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Import = ^TMUIP_Import;
 
-  TMUIP_KillNotify = record
+  TMUIP_KillNotify = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID : LongWord; // MUIM_KillNotify
     TrigAttr : LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_KillNotify = ^TMUIP_KillNotify;
 
-  TMUIP_KillNotifyObj = record
+  TMUIP_KillNotifyObj = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord; // MUIM_KillNotifyObj
     TrigAttr: LongWord;
     dest: PObject_;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_KillNotifyObj = ^TMUIP_KillNotifyObj;
 
-  TMUIP_MultiSet = record
+  TMUIP_MultiSet = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord; // MUIM_MultiSet
     attr: LongWord;
     val: IPTR;
     obj: APTR;          // more might follow
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_MultiSet = ^TMUIP_MultiSet;
 
-  TMUIP_NoNotifySet = record
+  TMUIP_NoNotifySet = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord; // MUIM_NoNotifySet
     attr: LongWord;
     val: IPTR;          // more might follow
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_NoNotifySet = ^TMUIP_NoNotifySet;
 
-  TMUIP_Notify = record
+  TMUIP_Notify = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord; // MUIM_Notify
     TrigAttr: LongWord;
     TrigVal: IPTR;
     DestObj: APTR;
     FollowParams: LongWord; // more might follow
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Notify = ^TMUIP_Notify;
 
-  TMUIP_Set = record
+  TMUIP_Set = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord; // MUIM_Set
     attr: LongWord;
     val: IPTR;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Set = ^TMUIP_Set;
 
-  TMUIP_SetAsString = record
+  TMUIP_SetAsString = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord; // MUIM_SetAsString
     attr: LongWord;
     format: PChar;
     val: IPTR;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_SetAsString = ^TMUIP_SetAsString;
 
-  TMUIP_SetUData = record
+  TMUIP_SetUData = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord; // MUIM_SetUData
     udata: IPTR;
     attr: LongWord;
     val: IPTR;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_SetUData = ^TMUIP_SetUData;
 
-  TMUIP_SetUDataOnce = record
+  TMUIP_SetUDataOnce = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID : LongWord; // MUIM_SetUDataOnce
     udata: IPTR;
     attr: LongWord;
     val: IPTR;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_SetUDataOnce = ^TMUIP_SetUDataOnce;
 
-  TMUIP_WriteLong = record
+  TMUIP_WriteLong = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord; // MUIM_WriteLong
     val: LongWord;
     memory: PLongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_WriteLong = ^TMUIP_WriteLong;
 
-  TMUIP_WriteString = record
+  TMUIP_WriteString = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord; // MUIM_WriteString
     str: PChar;
     memory: PChar;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_WriteString = ^TMUIP_WriteString;
 
-  TMUIP_ConnectParent = record
+  TMUIP_ConnectParent = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord; // MUIM_ConnectParent
     parent: PObject_;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_ConnectParent = ^TMUIP_ConnectParent;
 
-  TMUIP_DisconnectParent = record
+  TMUIP_DisconnectParent = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord; // MUIM_DisconnectParent
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_DisconnectParent = ^TMUIP_DisconnectParent;
 
@@ -793,47 +850,68 @@ const
    MUIM_Family_Transfer = MUIB_MUI or $42c14a; // V8
    MUIM_Family_GetChild = MUIB_MUI or $42c556; // V20
 type
-  TMUIP_Family_AddHead = record
+  TMUIP_Family_AddHead = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord; // MUIM_Family_AddHead
     obj: PObject_;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Family_AddHead = ^TMUIP_Family_AddHead;
 
-  TMUIP_Family_AddTail = record
+  TMUIP_Family_AddTail = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord; // MUIM_Family_AddTail
     obj: PObject_;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Family_AddTail = ^TMUIP_Family_AddTail;
 
-  TMUIP_Family_Insert = record
+  TMUIP_Family_Insert = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord; // MUIM_Family_Insert
     obj: PObject_;
     pred: PObject_;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Family_Insert = ^TMUIP_Family_Insert;
 
-  TMUIP_Family_Remove = record
+  TMUIP_Family_Remove = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID : LongWord; // MUIM_Family_Remove
     obj : PObject_;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Family_Remove = ^TMUIP_Family_Remove;
 
-  TMUIP_Family_Sort = record
+  TMUIP_Family_Sort = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID : LongWord; // MUIM_Family_Sort
     obj : array[0..0] of PObject_;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Family_Sort = ^TMUIP_Family_Sort;
 
-  TMUIP_Family_Transfer = record
+  TMUIP_Family_Transfer = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord; // MUIM_Family_Transfer
     family: PObject_;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Family_Transfer = ^TMUIP_Family_Transfer;
 
-  TMUIP_Family_GetChild = record
+  TMUIP_Family_GetChild = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord; // MUIM_Family_GetChild
     nr: LongInt;        // MUIV_Family_GetChild_* or Number
     ref: PObject_;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Family_GetChild = ^TMUIP_Family_GetChild;
 
@@ -886,123 +964,180 @@ const
   MUIM_Application_UpdateMenus      = MUIB_Application or $00000004; // Zune 20070712
 
 type
-  TMUIP_Application_AboutMUI = record
+  TMUIP_Application_AboutMUI = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Application_AboutMUI
     refwindow: PObject_;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Application_AboutMUI = ^TMUIP_Application_AboutMUI;
 
-  TMUIP_Application_AddInputHandler = record
+  TMUIP_Application_AddInputHandler = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Application_AddInputHandler
     ihnode: PMUI_InputHandlerNode;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Application_AddInputHandler = ^TMUIP_Application_AddInputHandler;
 
-  TMUIP_Application_CheckRefresh = record
+  TMUIP_Application_CheckRefresh = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Application_CheckRefresh
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Application_CheckRefresh = ^TMUIP_Application_CheckRefresh;
 
-  TMUIP_Application_GetMenuCheck = record
+  TMUIP_Application_GetMenuCheck = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Application_GetMenuCheck
     MenuID: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Application_GetMenuCheck = ^TMUIP_Application_GetMenuCheck;
 
-  TMUIP_Application_GetMenuState = record
+  TMUIP_Application_GetMenuState = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Application_GetMenuState
     MenuID: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Application_GetMenuState = ^TMUIP_Application_GetMenuState;
 
-  TMUIP_Application_Input = record
+  TMUIP_Application_Input = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Application_Input
     signal: PLongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Application_Input = ^TMUIP_Application_Input;
 
-  TMUIP_Application_InputBuffered = record
+  TMUIP_Application_InputBuffered = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Application_InputBuffered
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Application_InputBuffered = ^TMUIP_Application_InputBuffered;
 
-  TMUIP_Application_Load = record
+  TMUIP_Application_Load = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Application_Load
     name: STRPTR;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Application_Load = ^TMUIP_Application_Load;
 
-  TMUIP_Application_NewInput = record
+  TMUIP_Application_NewInput = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Application_NewInput
     signal: PLongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Application_NewInput = ^TMUIP_Application_NewInput;
 
-  TMUIP_Application_OpenConfigWindow = record
+  TMUIP_Application_OpenConfigWindow = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Application_OpenConfigWindow
     flags: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Application_OpenConfigWindow = ^TMUIP_Application_OpenConfigWindow;
 
-  TMUIP_Application_PushMethod = record
+  TMUIP_Application_PushMethod = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Application_PushMethod
     dest: PObject_;
     count: LongInt; // more elements may follow
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Application_PushMethod = ^TMUIP_Application_PushMethod;
 
-  TMUIP_Application_UnpushMethod = record
+  TMUIP_Application_UnpushMethod = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Application_UnpushMethod
     dest: PObject_;
     NewMethodID: IPTR;
     method: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Application_UnpushMethod = ^TMUIP_Application_UnpushMethod;
 
-  TMUIP_Application_RemInputHandler = record
+  TMUIP_Application_RemInputHandler = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;   // MUIM_Application_RemInputHandler
     ihnode: PMUI_InputHandlerNode;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Application_RemInputHandler = ^TMUIP_Application_RemInputHandler;
 
-  TMUIP_Application_ReturnID = record
+  TMUIP_Application_ReturnID = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Application_ReturnID
     retid: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Application_ReturnID = ^TMUIP_Application_ReturnID;
 
-  TMUIP_Application_Save = record
+  TMUIP_Application_Save = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Application_Save
     name: STRPTR;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
-  TMUIP_Application_SetConfigItem = record
+  TMUIP_Application_SetConfigItem = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Application_SetConfigItem
     item: LongWord;
     data: APTR;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Application_SetConfigItem = ^TMUIP_Application_SetConfigItem;
 
-  TMUIP_Application_SetMenuCheck = record
+  TMUIP_Application_SetMenuCheck = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Application_SetMenuCheck
     MenuID: LongWord;
     stat: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Application_SetMenuCheck = ^TMUIP_Application_SetMenuCheck;
 
-  TMUIP_Application_SetMenuState = record
+  TMUIP_Application_SetMenuState = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID : LongWord;  // MUIM_Application_SetMenuState
     MenuID : LongWord;
     stat : LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Application_SetMenuState = ^TMUIP_Application_SetMenuState;
 
-  TMUIP_Application_ShowHelp = record
+  TMUIP_Application_ShowHelp = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Application_ShowHelp
     window: PObject_;
     name: PChar;
     node: PChar;
     line: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Application_ShowHelp = ^TMUIP_Application_ShowHelp;
 
@@ -1116,71 +1251,108 @@ const
   MUIM_Window_FreeGadgetID    = MUIB_Window or $4; // Zune: V1 - free the GadgetID for BOOPSI gadgets
 
 type
-  TMUIP_Window_ActionIconify = record
+  TMUIP_Window_ActionIconify = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Window_ActionIconify
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Window_ActionIconify = ^TMUIP_Window_ActionIconify;
 
-  TMUIP_Window_AddEventHandler = record
+  TMUIP_Window_AddEventHandler = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Window_AddEventHandler
     ehnode: PMUI_EventHandlerNode;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Window_AddEventHandler = ^TMUIP_Window_AddEventHandler;
 
-  TMUIP_Window_Cleanup = record
+  TMUIP_Window_Cleanup = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Window_Cleanup
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Window_Cleanup = ^TMUIP_Window_Cleanup;
 
-  TMUIP_Window_RemEventHandler = record
+  TMUIP_Window_RemEventHandler = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord; // MUIM_Window_RemEventHandler
     ehnode: PMUI_EventHandlerNode;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Window_RemEventHandler = ^TMUIP_Window_RemEventHandler;
 
-  TMUIP_Window_ScreenToBack = record
+  TMUIP_Window_ScreenToBack = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord; // MUIM_Window_ScreenToBack
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Window_ScreenToBack = ^TMUIP_Window_ScreenToBack;
 
-  TMUIP_Window_ScreenToFront = record
+  TMUIP_Window_ScreenToFront = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord; // MUIM_Window_ScreenToFront
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Window_ScreenToFront = ^TMUIP_Window_ScreenToFront;
 
-  TMUIP_Window_Setup = record
+  TMUIP_Window_Setup = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord; // MUIM_Window_Setup
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Window_Setup = ^TMUIP_Window_Setup;
 
-  TMUIP_Window_Snapshot = record
+  TMUIP_Window_Snapshot = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Window_Snapshot
     flags: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Window_Snapshot = ^TMUIP_Window_Snapshot;
 
-  TMUIP_Window_ToBack = record
+  TMUIP_Window_ToBack = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Window_ToBack
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Window_ToBack = ^TMUIP_Window_ToBack;
 
-  TMUIP_Window_ToFront = record
+  TMUIP_Window_ToFront = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Window_ToFront
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Window_ToFront = ^TMUIP_Window_ToFront;
 
-  TMUIP_Window_AddControlCharHandler = record
+  TMUIP_Window_AddControlCharHandler = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     ccnode: PMUI_EventHandlerNode;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Window_AddControlCharHandler = ^TMUIP_Window_AddControlCharHandler;
 
-  TMUIP_Window_AllocGadgetID = record
+  TMUIP_Window_AllocGadgetID = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Window_AllocGadgetID = ^TMUIP_Window_AllocGadgetID;
 
-  TMUIP_Window_DrawBackground = record
+  TMUIP_Window_DrawBackground = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     left: LongInt;
     top: LongInt;
@@ -1189,38 +1361,55 @@ type
     xoffset: LongInt;
     yoffset: LongInt;
     flags: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Window_DrawBackground = ^TMUIP_Window_DrawBackground;
 
-  TMUIP_Window_DragObject = record
+  TMUIP_Window_DragObject = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     obj: PObject_;
     touchx: LongInt;
     touchy: LongInt;
     flags: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Window_DragObject = ^TMUIP_Window_DragObject;
 
-  TMUIP_Window_FreeGadgetID = record
+  TMUIP_Window_FreeGadgetID = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     gadgetid: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Window_FreeGadgetID = ^TMUIP_Window_FreeGadgetID;
 
-  TMUIP_Window_RecalcDisplay = record
+  TMUIP_Window_RecalcDisplay = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     originator: PObject_;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Window_RecalcDisplay = ^TMUIP_Window_RecalcDisplay;
 
-  TMUIP_Window_RemControlCharHandler = record
+  TMUIP_Window_RemControlCharHandler = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     ccnode: PMUI_EventHandlerNode;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Window_RemControlCharHandler = ^TMUIP_Window_RemControlCharHandler;
 
-  TMUIP_Window_UpdateMenu = record
+  TMUIP_Window_UpdateMenu = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
 {$ifdef MUI_OBSOLETE}
@@ -1231,31 +1420,46 @@ const
   MUIM_Window_SetMenuCheck  = MUIB_MUI or $422243; // V4
   MUIM_Window_SetMenuState  = MUIB_MUI or $422b5e; // V4
 type
-  TMUIP_Window_GetMenuCheck = record
+  TMUIP_Window_GetMenuCheck = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     MenuID: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
-  TMUIP_Window_GetMenuState = record
+  TMUIP_Window_GetMenuState = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     MenuID: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
-  TMUIP_Window_SetCycleChain = record
+  TMUIP_Window_SetCycleChain = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     obj: array[0..0] of PObject_;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
-  TMUIP_Window_SetMenuCheck = record
+  TMUIP_Window_SetMenuCheck = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     MenuID: LongWord;
     stat: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
-  TMUIP_Window_SetMenuState = record
+  TMUIP_Window_SetMenuState = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     MenuID: LongWord;
     stat: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 {$endif}
 
@@ -1399,55 +1603,77 @@ type
   end;
   PMUI_MinMax = ^TMUI_MinMax;
 
-  TMUIP_AskMinMax = record
+  TMUIP_AskMinMax = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_AskMinMax
     MinMaxInfo: PMUI_MinMax;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_AskMinMax = ^TMUIP_AskMinMax;
 
-  TMUIP_Cleanup = record
+  TMUIP_Cleanup = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Cleanup
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Cleanup = ^TMUIP_Cleanup;
 
-  TMUIP_ContextMenuBuild = record
+  TMUIP_ContextMenuBuild = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_ContextMenuBuild
     mx: LongInt;
     my: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_ContextMenuBuild = ^TMUIP_ContextMenuBuild;
 
-  TMUIP_ContextMenuChoice = record
+  TMUIP_ContextMenuChoice = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_ContextMenuChoice
     item: PObject_;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_ContextMenuChoice = ^TMUIP_ContextMenuChoice;
 
-  TMUIP_CreateBubble = record
+  TMUIP_CreateBubble = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_CreateBubble
     x: LongInt;
     y: LongInt;
     txt : PChar;
     flags: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_CreateBubble = ^TMUIP_CreateBubble;
 
-  TMUIP_CreateDragImage = record
+  TMUIP_CreateDragImage = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_CreateDragImage
     touchx: LongInt;
     touchy: LongInt;
     flags: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_CreateDragImage = ^TMUIP_CreateDragImage;
 
-  TMUIP_CreateShortHelp = record
+  TMUIP_CreateShortHelp = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_CreateShortHelp
     mx: LongInt;
     my: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_CreateShortHelp = ^TMUIP_CreateShortHelp;
 
-  TMUIP_CustomBackfill = record
+  TMUIP_CustomBackfill = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_CustomBackfill
     left: LongInt;
     top: LongInt;
@@ -1455,83 +1681,119 @@ type
     bottom: LongInt;
     xoffset: LongInt;
     yoffset: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_CustomBackfill = ^TMUIP_CustomBackfill;
 
-  TMUIP_DeleteBubble = record
+  TMUIP_DeleteBubble = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_DeleteBubble
     bubble: APTR;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_DeleteBubble = ^TMUIP_DeleteBubble;
 
-  TMUIP_DeleteDragImage = record
+  TMUIP_DeleteDragImage = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_DeleteDragImage
     di: PMUI_DragImage;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_DeleteDragImage = ^TMUIP_DeleteDragImage;
 
-  TMUIP_DeleteShortHelp = record
+  TMUIP_DeleteShortHelp = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_DeleteShortHelp
     help: STRPTR;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_DeleteShortHelp = ^TMUIP_DeleteShortHelp;
 
-  TMUIP_DoDrag = record
+  TMUIP_DoDrag = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_DoDrag
     touchx: LongInt;
     touchy: LongInt;
     flags: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_DoDrag = ^TMUIP_DoDrag;
 
-  TMUIP_UnknownDropDestination = record
+  TMUIP_UnknownDropDestination = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_UnknownDropDestination
     imsg: PIntuiMessage;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_UnknownDropDestination = ^TMUIP_UnknownDropDestination;
 
-  TMUIP_DragBegin = record
+  TMUIP_DragBegin = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_DragBegin
     obj: PObject_;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_DragBegin = ^TMUIP_DragBegin;
 
-  TMUIP_DragDrop = record
+  TMUIP_DragDrop = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_DragDrop
     obj: PObject_;
     x: LongInt;
     y: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_DragDrop = ^TMUIP_DragDrop;
 
-  TMUIP_DragFinish = record
+  TMUIP_DragFinish = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_DragFinish
     obj: PObject_;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_DragFinish = ^TMUIP_DragFinish;
 
-  TMUIP_DragQuery = record
+  TMUIP_DragQuery = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_DragQuery
     obj: PObject_;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_DragQuery = ^TMUIP_DragQuery;
 
-  TMUIP_DragReport = record
+  TMUIP_DragReport = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_DragReport
     obj: PObject_;
     x: LongInt;
     y: LongInt;
     update: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_DragReport = ^TMUIP_DragReport;
 
-  TMUIP_Draw = record
+  TMUIP_Draw = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Draw
     flags: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Draw = ^TMUIP_Draw;
 
-  TMUIP_DrawBackground = record
+  TMUIP_DrawBackground = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_DrawBackground
     left: LongInt;
     top: LongInt;
@@ -1540,10 +1802,13 @@ type
     xoffset: LongInt;
     yoffset: LongInt;
     flags: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_DrawBackground = ^TMUIP_DrawBackground;
 
-  TMUIP_DrawBackgroundBuffered = record
+  TMUIP_DrawBackgroundBuffered = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     rp: PRastPort;
     left: LongInt;
@@ -1553,55 +1818,82 @@ type
     xoffset: LongInt;
     yoffset: LongInt;
     flags: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_DrawBackgroundBuffered = ^TMUIP_DrawBackgroundBuffered;
 
-  TMUIP_GoActive = record
+  TMUIP_GoActive = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_GoActive
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_GoActive = ^TMUIP_GoActive;
 
-  TMUIP_GoInactive = record
+  TMUIP_GoInactive = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_GoInactive
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_GoInactive = ^TMUIP_GoInactive;
 
-  TMUIP_HandleEvent = record
+  TMUIP_HandleEvent = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_HandleEvent
     imsg: PIntuiMessage;
     muikey: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_HandleEvent = ^TMUIP_HandleEvent;
 
-  TMUIP_HandleInput = record
+  TMUIP_HandleInput = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_HandleInput
     imsg: PIntuiMessage;
     muikey: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_HandleInput = ^TMUIP_HandleInput;
 
-  TMUIP_Hide = record
+  TMUIP_Hide = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Hide
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Hide = ^TMUIP_Hide;
 
-  TMUIP_Setup = record
+  TMUIP_Setup = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Setup
     RenderInfo: PMUI_RenderInfo;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Setup = ^TMUIP_Setup;
 
-  TMUIP_Show = record
+  TMUIP_Show = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Show
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Show = ^TMUIP_Show;
 
-  TMUIP_Layout = record
+  TMUIP_Layout = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Layout
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Layout = ^TMUIP_Layout;
 
-  TMUIP_DrawParentBackground = record
+  TMUIP_DrawParentBackground = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_DrawParentBackground
     left: LongInt;
     top: LongInt;
@@ -1610,6 +1902,8 @@ type
     xoffset: LongInt;
     yoffset: LongInt;
     flags: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_DrawParentBackground = ^TMUIP_DrawParentBackground;
 
@@ -1798,43 +2092,65 @@ const
   MUIM_Group_DoMethodNoForward = MUIB_Group or $0;
 
 type
-  TMUIP_Group_AddHead = record
+  TMUIP_Group_AddHead = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Group_AddHead
     obj: PObject_;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Group_AddHead = ^TMUIP_Group_AddHead;
 
-  TMUIP_Group_AddTail = record
+  TMUIP_Group_AddTail = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID : LongWord;  // MUIM_Group_AddTail
     obj: PObject_;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Group_AddTail = ^TMUIP_Group_AddTail;
 
-  TMUIP_Group_ExitChange = record
+  TMUIP_Group_ExitChange = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID : LongWord;  // MUIM_Group_ExitChange
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Group_ExitChange = ^TMUIP_Group_ExitChange;
 
-  TMUIP_Group_InitChange = record
+
+  TMUIP_Group_InitChange = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Group_InitChange
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Group_InitChange = ^TMUIP_Group_InitChange;
 
-  TMUIP_Group_Sort = record
+  TMUIP_Group_Sort = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Group_Sort
     obj: array[0..0] of PObject_;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Group_Sort = ^TMUIP_Group_Sort;
 
-  TMUIP_Group_Remove = record
+  TMUIP_Group_Remove = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID : LongWord;  // MUIM_Group_Remove
     obj: PObject_;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Group_Remove = ^TMUIP_Group_Remove;
 
-  TMUIP_Group_DoMethodNoForward = record
+  TMUIP_Group_DoMethodNoForward = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Group_DoMethodNoForward
     DoMethodID: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end; // msg stuff follows
   PMUIP_Group_DoMethodNoForward = ^TMUIP_Group_DoMethodNoForward;
 
@@ -1866,7 +2182,8 @@ const
 
 type
   // This is the message you get if your custom layout hook is called
-  TMUI_LayoutMsg = record
+  TMUI_LayoutMsg = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     lm_Type: LongWord;      // type of message (see defines below)
     lm_Children: PMinList;  // list of this groups children, traverse with NextObject()
     lm_MinMax: TMUI_MinMax; // results for MUILM_MINMAX
@@ -1875,7 +2192,10 @@ type
        Height: LongInt;
        priv5: LongWord;
        priv6: LongWord;
+       pad_align: record end; // properly pad previous field if applicable
     end;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUI_LayoutMsg = ^TMUI_LayoutMsg;
 
@@ -1949,49 +2269,70 @@ const
   MUIM_Numeric_ValueToScaleExt = MUIB_Numeric or $0; // ZUNE only
 
 type
-  TMUIP_Numeric_Decrease = record
+  TMUIP_Numeric_Decrease = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Numeric_Decrease
     amount: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Numeric_Decrease = ^TMUIP_Numeric_Decrease;
 
-  TMUIP_Numeric_Increase = record
+  TMUIP_Numeric_Increase = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Numeric_Increase
     amount: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Numeric_Increase = ^TMUIP_Numeric_Increase;
 
-  TMUIP_Numeric_ScaleToValue = record
+  TMUIP_Numeric_ScaleToValue = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Numeric_ScaleToValue
     scalemin: LongInt;
     scalemax: LongInt;
     scale: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Numeric_ScaleToValue = ^TMUIP_Numeric_ScaleToValue;
 
-  TMUIP_Numeric_SetDefault = record
+  TMUIP_Numeric_SetDefault = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Numeric_SetDefault
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Numeric_SetDefault = ^TMUIP_Numeric_SetDefault;
 
-  TMUIP_Numeric_Stringify = record
+  TMUIP_Numeric_Stringify = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Numeric_Stringify
     value: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Numeric_Stringify = ^TMUIP_Numeric_Stringify;
 
-  TMUIP_Numeric_ValueToScale = record
+  TMUIP_Numeric_ValueToScale = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Numeric_ValueToScale
     scalemin: LongInt;
     scalemax: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Numeric_ValueToScale = ^TMUIP_Numeric_ValueToScale;
 
-  TMUIP_Numeric_ValueToScaleExt = record
+  TMUIP_Numeric_ValueToScaleExt = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Numeric_ValueToScaleExt
     value: LongInt;
     scalemin: LongInt;
     scalemax: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Numeric_ValueToScaleExt = ^TMUIP_Numeric_ValueToScaleExt;
 
@@ -2078,21 +2419,30 @@ const
   MUIR_String_FileNameStart_Volume = $ffffffff; // Zune
 
 type
-  TMUIP_String_ClearSelected = record
+  TMUIP_String_ClearSelected = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_String_ClearSelected
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_String_ClearSelected = ^TMUIP_String_ClearSelected;
 
-  TMUIP_String_FileNameStart = record
+  TMUIP_String_FileNameStart = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_String_FileNameStart
     buffer: STRPTR;
     pos: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
-  TMUIP_String_Insert = record
+  TMUIP_String_Insert = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     text: STRPTR;  // MUIM_String_Insert
     pos: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
 // *********************************************************************
@@ -2132,15 +2482,21 @@ const
   MUIM_Prop_Increase = MUIB_MUI or $42cac0; // V16
 
 type
-  TMUIP_Prop_Decrease = record
+  TMUIP_Prop_Decrease = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Prop_Decrease
     amount: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Prop_Decrease = ^TMUIP_Prop_Decrease;
 
-  TMUIP_Prop_Increase = record
+  TMUIP_Prop_Increase = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord; // MUIM_Prop_Increase
     amount: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Prop_Increase = ^TMUIP_Prop_Increase;
 
@@ -2261,48 +2617,69 @@ const
   MUIM_Dataspace_WriteIFF = MUIB_MUI or $425e8e; // V11
 
 type
-  TMUIP_Dataspace_Add = record
+  TMUIP_Dataspace_Add = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Dataspace_Add
     data: APTR;
     len: LongInt;
     id: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Dataspace_Add = ^TMUIP_Dataspace_Add;
 
-  TMUIP_Dataspace_Clear = record
+  TMUIP_Dataspace_Clear = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Dataspace_Clear
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Dataspace_Clear = ^TMUIP_Dataspace_Clear;
 
-  TMUIP_Dataspace_Find = record
+  TMUIP_Dataspace_Find = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Dataspace_Find
     id: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Dataspace_Find = ^TMUIP_Dataspace_Find;
 
-  TMUIP_Dataspace_Merge = record
+  TMUIP_Dataspace_Merge = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Dataspace_Merge
     dataspace: PObject_;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Dataspace_Merge = ^TMUIP_Dataspace_Merge;
 
-  TMUIP_Dataspace_ReadIFF = record
+  TMUIP_Dataspace_ReadIFF = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Dataspace_ReadIFF
     Handle: PIFFHandle;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Dataspace_ReadIFF = ^TMUIP_Dataspace_ReadIFF;
 
-  TMUIP_Dataspace_Remove = record
+  TMUIP_Dataspace_Remove = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Dataspace_Remove
     id: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Dataspace_Remove = ^TMUIP_Dataspace_Remove;
 
-  TMUIP_Dataspace_WriteIFF = record
+  TMUIP_Dataspace_WriteIFF = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Dataspace_WriteIFF
     handle: PIFFHandle;
     type_: LongWord;
     id: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Dataspace_WriteIFF = ^TMUIP_Dataspace_WriteIFF;
 
@@ -2376,28 +2753,43 @@ const
   MUIM_Semaphore_Release       = MUIB_MUI or $421f2d; // V11
 
 type
-  TMUIP_Semaphore_Attempt = record
+  TMUIP_Semaphore_Attempt = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Semaphore_Attempt
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Semaphore_Attempt = ^TMUIP_Semaphore_Attempt;
 
-  TMUIP_Semaphore_AttemptShared = record
+  TMUIP_Semaphore_AttemptShared = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Semaphore_AttemptShared
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Semaphore_AttemptShared = ^TMUIP_Semaphore_AttemptShared;
 
-  TMUIP_Semaphore_Obtain = record
+  TMUIP_Semaphore_Obtain = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Semaphore_Obtain
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Semaphore_Obtain = ^TMUIP_Semaphore_Obtain;
 
-  TMUIP_Semaphore_ObtainShared = record
+  TMUIP_Semaphore_ObtainShared = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Semaphore_ObtainShared
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Semaphore_ObtainShared = ^TMUIP_Semaphore_ObtainShared;
 
-  TMUIP_Semaphore_Release = record
+  TMUIP_Semaphore_Release = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Semaphore_Release
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Semaphore_Release = ^TMUIP_Semaphore_Release;
 
@@ -2514,118 +2906,169 @@ const
   MUIM_List_TestPos      = MUIB_MUI or $425f48; // V11
 
 type
-  TMUIP_List_Clear = record
+  TMUIP_List_Clear = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_List_Clear
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_List_Clear = ^TMUIP_List_Clear;
 
-  TMUIP_List_Compare = record
+  TMUIP_List_Compare = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_List_Compare
     entry1: APTR;
     entry2: APTR;
     sort_type1: LongInt;
     sort_type2: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_List_Compare = ^TMUIP_List_Compare;
 
-  TMUIP_List_Construct = record
+  TMUIP_List_Construct = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_List_Construct
     entry: APTR;
     pool: APTR;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_List_Construct = ^TMUIP_List_Construct;
 
-  TMUIP_List_CreateImage = record
+  TMUIP_List_CreateImage = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_List_CreateImage
     obj: PObject_;
     flags: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_List_CreateImage = ^TMUIP_List_CreateImage;
 
-  TMUIP_List_DeleteImage = record
+  TMUIP_List_DeleteImage = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_List_DeleteImage
     listimg: APTR;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_List_DeleteImage = ^TMUIP_List_DeleteImage;
 
-  TMUIP_List_Exchange = record
+  TMUIP_List_Exchange = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_List_Exchange
     pos1: LongInt;
     pos2: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_List_Exchange = ^TMUIP_List_Exchange;
 
-  TMUIP_List_GetEntry = record
+  TMUIP_List_GetEntry = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_List_GetEntry
     pos: LongInt;
     entry: PAPTR;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_List_GetEntry = ^TMUIP_List_GetEntry;
 
-  TMUIP_List_Insert = record
+  TMUIP_List_Insert = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_List_Insert
     entries: PAPTR;
     count: LongInt;
     pos: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_List_Insert = ^TMUIP_List_Insert;
 
-  TMUIP_List_InsertSingle = record
+  TMUIP_List_InsertSingle = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_List_InsertSingle
     entry: APTR;
     pos: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_List_InsertSingle = ^TMUIP_List_InsertSingle;
 
-  TMUIP_List_Jump = record
+  TMUIP_List_Jump = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_List_Jump
     pos: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_List_Jump = ^TMUIP_List_Jump;
 
-  TMUIP_List_Move = record
+  TMUIP_List_Move = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_List_Move
     from: LongInt;
     too: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_List_Move = ^TMUIP_List_Move;
 
-  TMUIP_List_NextSelected = record
+  TMUIP_List_NextSelected = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_List_NextSelected
     pos: PLongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_List_NextSelected = ^TMUIP_List_NextSelected;
 
-  TMUIP_List_Redraw = record
+  TMUIP_List_Redraw = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_List_Redraw
     pos: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_List_Redraw = ^TMUIP_List_Redraw;
 
-  TMUIP_List_Remove = record
+  TMUIP_List_Remove = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_List_Remove
     pos: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_List_Remove = ^TMUIP_List_Remove;
 
-  TMUIP_List_Select = record
+  TMUIP_List_Select = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_List_Select
     pos: LongInt;
     seltype: LongInt;
     state: PLongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_List_Select = ^TMUIP_List_Select;
 
-  TMUIP_List_Sort = record
+  TMUIP_List_Sort = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_List_Sort
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_List_Sort = ^TMUIP_List_Sort;
 
-  TMUIP_List_TestPos = record
+  TMUIP_List_TestPos = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_List_TestPos
     x: LongInt;
     y: LongInt;
     res: PMUI_List_TestPos_Result;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_List_TestPos = ^TMUIP_List_TestPos;
 
@@ -2738,9 +3181,12 @@ const
   MUIM_Floattext_Append = MUIB_MUI or $42a221; // V20
 
 type
-  TMUIP_Floattext_Append = record
+  TMUIP_Floattext_Append = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Floattext_Append
     Text: CONST_STRPTR;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Floattext_Append = ^TMUIP_Floattext_Append;
 
@@ -2765,14 +3211,20 @@ const
   MUIM_Popstring_Open  = MUIB_MUI or $4258ba; // V7
 
 type
-  TMUIP_Popstring_Close = record
+  TMUIP_Popstring_Close = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Popstring_Close
     result: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Popstring_Close = ^TMUIP_Popstring_Close;
 
-  TMUIP_Popstring_Open = record
+  TMUIP_Popstring_Open = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Popstring_Open
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Popstring_Open = ^TMUIP_Popstring_Open;
 
@@ -2899,15 +3351,21 @@ const
   MUIM_Settingsgroup_GadgetsToConfig = MUIB_MUI or $425242; // V11
 
 type
-  TMUIP_Settingsgroup_ConfigToGadgets = record
+  TMUIP_Settingsgroup_ConfigToGadgets = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Settingsgroup_ConfigToGadgets
     configdata: PObject_;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Settingsgroup_ConfigToGadgets = ^TMUIP_Settingsgroup_ConfigToGadgets;
 
-  TMUIP_Settingsgroup_GadgetsToConfig = record
+  TMUIP_Settingsgroup_GadgetsToConfig = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Settingsgroup_GadgetsToConfig
     configdata: PObject_;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Settingsgroup_GadgetsToConfig = ^TMUIP_Settingsgroup_GadgetsToConfig;
 
@@ -2954,69 +3412,99 @@ const
   MUIM_Configdata_SetString    = MUIB_Configdata or $00000009;
 
 type
-  TMUIP_Configdata_GetString = record
+  TMUIP_Configdata_GetString = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     id: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Configdata_GetString = ^TMUIP_Configdata_GetString;
 
-  TMUIP_Configdata_GetULong = record
+  TMUIP_Configdata_GetULong = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     id: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Configdata_GetULong = ^TMUIP_Configdata_GetULong;
 
-  TMUIP_Configdata_SetULong = record
+  TMUIP_Configdata_SetULong = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     id: LongWord;
     val: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Configdata_SetULong = ^TMUIP_Configdata_SetULong;
 
-  TMUIP_Configdata_SetImspec = record
+  TMUIP_Configdata_SetImspec = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     id: LongWord;
     imspec: CONST_STRPTR;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Configdata_SetImspec = ^TMUIP_Configdata_SetImspec;
 
-  TMUIP_Configdata_SetFramespec = record
+  TMUIP_Configdata_SetFramespec = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     id: LongWord;
     framespec: CONST_STRPTR;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Configdata_SetFramespec = ^TMUIP_Configdata_SetFramespec;
 
-  TMUIP_Configdata_SetFont = record
+  TMUIP_Configdata_SetFont = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     id: LongWord;
     font: CONST_STRPTR;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Configdata_SetFont = ^TMUIP_Configdata_SetFont;
 
-  TMUIP_Configdata_Save = record
+  TMUIP_Configdata_Save = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     filename: CONST_STRPTR;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Configdata_Save = ^TMUIP_Configdata_Save;
 
-  TMUIP_Configdata_Load = record
+  TMUIP_Configdata_Load = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     filename: CONST_STRPTR;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Configdata_Load = ^TMUIP_Configdata_Load;
 
-  TMUIP_Configdata_SetPenspec = record
+  TMUIP_Configdata_SetPenspec = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     id: LongWord;
     penspec: CONST_STRPTR;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Configdata_SetPenspec = ^TMUIP_Configdata_SetPenspec;
 
-  TMUIP_Configdata_SetString = record
+  TMUIP_Configdata_SetString = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;
     id: LongWord;
     Newstring: CONST_STRPTR;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Configdata_SetString = ^TMUIP_Configdata_SetString;
 
@@ -3267,23 +3755,32 @@ const
   MUIM_Pendisplay_SetRGB      = MUIB_MUI or $42c131; // V13
 
 type
-  TMUIP_Pendisplay_SetColormap = record
+  TMUIP_Pendisplay_SetColormap = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Pendisplay_SetColormap
     colormap: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Pendisplay_SetColormap = ^TMUIP_Pendisplay_SetColormap;
 
-  TMUIP_Pendisplay_SetMUIPen = record
+  TMUIP_Pendisplay_SetMUIPen = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Pendisplay_SetMUIPen
     muipen: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Pendisplay_SetMUIPen = ^TMUIP_Pendisplay_SetMUIPen;
 
-  TMUIP_Pendisplay_SetRGB = record
+  TMUIP_Pendisplay_SetRGB = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Pendisplay_SetRGB
     red: LongWord;
     green: LongWord;
     blue: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
   PMUIP_Pendisplay_SetRGB = ^TMUIP_Pendisplay_SetRGB;
 
@@ -3402,8 +3899,11 @@ const
   MUIM_Dirlist_ReRead = MUIB_MUI or $422d71; // V4
 
 type
-  TMUIP_Dirlist_ReRead = record
+  TMUIP_Dirlist_ReRead = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID : LongWord;  // MUIM_Dirlist_ReRead
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
 // Attributes
@@ -3526,24 +4026,36 @@ const
   MUIM_Process_Signal  = MUIB_MUI or $42e791; // V20
 
 type
-  TMUIP_Process_Kill = record
+  TMUIP_Process_Kill = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID : LongWord;
     maxdelay: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
-  TMUIP_Process_Launch = record
+  TMUIP_Process_Launch = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID : LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
-  TMUIP_Process_Process = record
+  TMUIP_Process_Process = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID : LongWord;
     kill: PLongWord;
     proc: PObject_;
-  end;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
+  end; 
 
-  TMUIP_Process_Signal = record
+  TMUIP_Process_Signal = record  // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID : LongWord;
     sigs: LongWord;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
 // Attributes
@@ -3568,7 +4080,8 @@ const
   MUIM_Pixmap_DrawSection = MUIB_MUI or $42ce0f; // private, V20
 
 type
-  TMUIP_Pixmap_DrawSection = record // private
+  TMUIP_Pixmap_DrawSection = record  // private // record with stacked fields
+    {$PUSH}{$IF DEFINED(CPU32)}{$CODEALIGN RECORDMIN=4}{$ELSEIF DEFINED(CPU64)}{$CODEALIGN RECORDMIN=8}{$ENDIF}
     MethodID: LongWord;  // MUIM_Pixmap_DrawSection
     sx: LongInt;
     sy: LongInt;
@@ -3577,6 +4090,8 @@ type
     mri: PMUI_RenderInfo;
     dx: LongInt;
     dy: LongInt;
+    pad_align: record end; // properly pad previous field if applicable
+    {$POP}
   end;
 
 // Attributes
