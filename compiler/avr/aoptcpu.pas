@@ -30,7 +30,7 @@ Unit aoptcpu;
 
 Interface
 
-uses cpubase,cgbase,aasmtai,aopt,AoptObj,aoptcpub;
+uses cpubase,cgbase,aasmtai,aopt,AoptObj, cclasses,aoptcpub;
 
 Type
   TCpuAsmOptimizer = class(TAsmOptimizer)
@@ -46,7 +46,7 @@ Type
 
     { uses the same constructor as TAopObj }
     function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
-    procedure PeepHoleOptPass2;override;
+    function PeepHoleOptPass2Cpu(var p: tai): boolean; override;
   private
     function OptPass1ADD(var p : tai) : boolean;
     function OptPass1ANDI(var p : tai) : boolean;
@@ -62,6 +62,8 @@ Type
     function OptPass1SBR(var p : tai) : boolean;
     function OptPass1STS(var p : tai) : boolean;
     function OptPass1SUB(var p : tai) : boolean;
+
+    function OptPass2MOV(var p : tai) : boolean;
   End;
 
 Implementation
@@ -752,6 +754,45 @@ Implementation
     end;
 
 
+  function TCpuAsmOptimizer.OptPass2MOV(var p: tai): boolean;
+    var
+      hp1: tai;
+    begin
+      result:=false;
+      { fold
+        mov reg2,reg0
+        mov reg3,reg1
+        to
+        movw reg2,reg0
+      }
+      if (CPUAVR_HAS_MOVW in cpu_capabilities[current_settings.cputype]) and
+         (taicpu(p).ops=2) and
+         (taicpu(p).oper[0]^.typ = top_reg) and
+         (taicpu(p).oper[1]^.typ = top_reg) and
+         getnextinstruction(p,hp1) and
+         (hp1.typ = ait_instruction) and
+         (taicpu(hp1).opcode = A_MOV) and
+         (taicpu(hp1).ops=2) and
+         (taicpu(hp1).oper[0]^.typ = top_reg) and
+         (taicpu(hp1).oper[1]^.typ = top_reg) and
+         (getsupreg(taicpu(hp1).oper[0]^.reg)=getsupreg(taicpu(p).oper[0]^.reg)+1) and
+         ((getsupreg(taicpu(p).oper[0]^.reg) mod 2)=0) and
+         ((getsupreg(taicpu(p).oper[1]^.reg) mod 2)=0) and
+         (getsupreg(taicpu(hp1).oper[1]^.reg)=getsupreg(taicpu(p).oper[1]^.reg)+1) then
+        begin
+          DebugMsg('Peephole MovMov2Movw performed', p);
+
+          AllocRegBetween(taicpu(hp1).oper[0]^.reg,p,hp1,UsedRegs);
+          AllocRegBetween(taicpu(hp1).oper[1]^.reg,p,hp1,UsedRegs);
+
+          taicpu(p).opcode:=A_MOVW;
+          asml.remove(hp1);
+          hp1.free;
+          result:=true;
+        end
+    end;
+
+
   function TCpuAsmOptimizer.OptPass1CLR(var p : tai) : boolean;
     var
       hp1: tai;
@@ -1182,37 +1223,6 @@ Implementation
           asml.remove(hp2);
           hp2.free;
         end
-      { fold
-        mov reg2,reg0
-        mov reg3,reg1
-        to
-        movw reg2,reg0
-      }
-      else if (CPUAVR_HAS_MOVW in cpu_capabilities[current_settings.cputype]) and
-         (taicpu(p).ops=2) and
-         (taicpu(p).oper[0]^.typ = top_reg) and
-         (taicpu(p).oper[1]^.typ = top_reg) and
-         getnextinstruction(p,hp1) and
-         (hp1.typ = ait_instruction) and
-         (taicpu(hp1).opcode = A_MOV) and
-         (taicpu(hp1).ops=2) and
-         (taicpu(hp1).oper[0]^.typ = top_reg) and
-         (taicpu(hp1).oper[1]^.typ = top_reg) and
-         (getsupreg(taicpu(hp1).oper[0]^.reg)=getsupreg(taicpu(p).oper[0]^.reg)+1) and
-         ((getsupreg(taicpu(p).oper[0]^.reg) mod 2)=0) and
-         ((getsupreg(taicpu(p).oper[1]^.reg) mod 2)=0) and
-         (getsupreg(taicpu(hp1).oper[1]^.reg)=getsupreg(taicpu(p).oper[1]^.reg)+1) then
-        begin
-          DebugMsg('Peephole MovMov2Movw performed', p);
-
-          AllocRegBetween(taicpu(hp1).oper[0]^.reg,p,hp1,UsedRegs);
-          AllocRegBetween(taicpu(hp1).oper[1]^.reg,p,hp1,UsedRegs);
-
-          taicpu(p).opcode:=A_MOVW;
-          asml.remove(hp1);
-          hp1.free;
-          result:=true;
-        end
       {
         This removes the first mov from
         mov rX,...
@@ -1373,9 +1383,20 @@ Implementation
     end;
 
 
-  procedure TCpuAsmOptimizer.PeepHoleOptPass2;
+  function TCpuAsmOptimizer.PeepHoleOptPass2Cpu(var p: tai): boolean;
     begin
+      result := false;
+      case p.typ of
+        ait_instruction:
+          begin
+            case taicpu(p).opcode of
+              A_MOV:
+                Result:=OptPass2MOV(p);
+            end;
+          end;
+      end;
     end;
+
 
 begin
   casmoptimizer:=TCpuAsmOptimizer;
