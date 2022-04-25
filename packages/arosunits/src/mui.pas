@@ -1870,26 +1870,11 @@ type
     lm_Type: PtrUInt;      // type of message (see defines below)
     lm_Children: PMinList;  // list of this groups children, traverse with NextObject()
     lm_MinMax: TMUI_MinMax; // results for MUILM_MINMAX
-    {$ifdef CPU64}
-    pad1: LongWord;
-    {$endif}
     lm_Layout: record       // size (and result) for MUILM_LAYOUT
        Width: LongInt;
-       {$ifdef CPU64}
-       pad2: LongWord;
-       {$endif}
        Height: LongInt;
-       {$ifdef CPU64}
-       pad3: LongWord;
-       {$endif}
        priv5: LongWord;
-       {$ifdef CPU64}
-       pad4: LongWord;
-       {$endif}
        priv6: LongWord;
-       {$ifdef CPU64}
-       pad5: LongWord;
-       {$endif}
     end;
   end;
   PMUI_LayoutMsg = ^TMUI_LayoutMsg;

@@ -373,9 +373,6 @@ type
     dtf_ContentsInfo: PFrameInfo;
     dtf_FrameInfo: PFrameInfo;    // Input
     dtf_SizeFrameInfo: LongWord;  // Output
-    {$ifdef CPU64}
-    pad: LongWord;
-    {$endif}
     dtf_FrameFlags: LongWord;
   end;
 
@@ -443,29 +440,11 @@ type
     MethodID: PtrUInt;
     dtd_RPort: PRastPort;
     dtd_Left: LongInt;
-    {$ifdef CPU64}
-    pad1: LongWord;
-    {$endif}
     dtd_Top: LongInt;
-    {$ifdef CPU64}
-    pad2: LongWord;
-    {$endif}
     dtd_Width: LongInt;
-    {$ifdef CPU64}
-    pad3: LongWord;
-    {$endif}
     dtd_Height: LongInt;
-    {$ifdef CPU64}
-    pad4: LongWord;
-    {$endif}
     dtd_TopHoriz: LongInt;
-    {$ifdef CPU64}
-    pad5: LongWord;
-    {$endif}
     dtd_TopVert: LongInt;
-    {$ifdef CPU64}
-    pad6: LongWord;
-    {$endif}
     dtd_AttrList: PTagItem; // Additional attributes
   end;
 
@@ -833,28 +812,13 @@ type
   TadtFrame = record
     MethodID: PtrUInt;
     alf_TimeStamp: LongWord;
-    {$ifdef CPU64}
-    pad1: LongWord;
-    {$endif}
     alf_Frame: LongWord;
-    {$ifdef CPU64}
-    pad2: LongWord;
-    {$endif}
     alf_Duration: LongWord;
-    {$ifdef CPU64}
-    pad3: LongWord;
-    {$endif}
     alf_BitMap: PBitMap;
     alf_CMap: PColorMap;
     alf_Sample: PShortInt;
     alf_SampleLength: LongWord;
-    {$ifdef CPU64}
-    pad4: LongWord;
-    {$endif}
     alf_Period: LongWord;
-    {$ifdef CPU64}
-    pad5: LongWord;
-    {$endif}
     alf_UserData: APTR;
   end;
 
@@ -880,9 +844,6 @@ type
   TadtStart = record
     MethodID: PtrUInt;
     asa_Frame: LongWord;
-    {$ifdef CPU64}
-    pad1: LongWord;
-    {$endif}
   end;
 
 function SDTM_ISSTEREO(SampleType: LongWord): Boolean; inline;
