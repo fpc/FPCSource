@@ -23,8 +23,8 @@ Procedure RaiseLastOSError;overload;
 Procedure RaiseLastOSError(LastError: Integer);overload;
 procedure CheckOSError(LastError: Integer);platform;{$ifdef SYSTEMINLINE}inline;{$endif}
 
-Function GetEnvironmentVariable(Const EnvVar : AnsiString) : AnsiString;
-Function GetEnvironmentVariable(Const EnvVar : UnicodeString) : UnicodeString;
+Function GetEnvironmentVariable(Const EnvVar : AnsiString) : AnsiString; overload;
+Function GetEnvironmentVariable(Const EnvVar : UnicodeString) : UnicodeString; overload;
 Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 Function GetEnvironmentVariableCount : Integer;
 {$IFDEF HAS_SLEEP}
