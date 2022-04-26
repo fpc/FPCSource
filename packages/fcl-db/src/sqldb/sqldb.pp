@@ -387,6 +387,8 @@ type
     Function GetPrepared : Boolean;
     Procedure CheckUnprepare;
     Procedure CheckPrepare;
+    Function HasParams : Boolean;
+    Function HasMacros : Boolean; 
   Protected
     Function CreateDataLink : TDataLink; virtual;
     procedure OnChangeSQL(Sender : TObject); virtual;
@@ -411,8 +413,8 @@ type
     Property Database : TSQLConnection Read FDatabase Write SetDatabase;
     Property Transaction : TSQLTransaction Read FTransaction Write SetTransaction;
     Property SQL : TStrings Read FSQL Write SetSQL;
-    Property Params : TParams Read FParams Write SetParams;
-    Property Macros : TParams Read FMacros Write SetMacros;
+    Property Params : TParams Read FParams Write SetParams stored HasParams;
+    Property Macros : TParams Read FMacros Write SetMacros stored HasMacros;
     property MacroChar: Char read FMacroChar write SetMacroChar default DefaultMacroChar;
     Property DataSource : TDataSource Read GetDataSource Write SetDataSource;
     Property ParseSQL : Boolean Read FParseSQL Write FParseSQL;
@@ -517,6 +519,7 @@ type
     function GetSQLTransaction: TSQLTransaction;
     function GetStatementType : TStatementType;
     function IsMacrosStored: Boolean;
+    Function HasParams : Boolean;
     Function NeedLastInsertID: TField;
     procedure SetMacroChar(AValue: Char);
     procedure SetOptions(AValue: TSQLQueryOptions);
@@ -638,7 +641,7 @@ type
     property DeleteSQL : TStringList read FDeleteSQL write SetDeleteSQL;
     property RefreshSQL : TStringList read FRefreshSQL write SetRefreshSQL;
     Property Options : TSQLQueryOptions Read FOptions Write SetOptions default [];
-    property Params : TParams read GetParams Write SetParams;
+    property Params : TParams read GetParams Write SetParams stored HasParams;
     Property ParamCheck : Boolean Read GetParamCheck Write SetParamCheck default true;
     property Macros : TParams read GetMacros Write SetMacros stored IsMacrosStored;
     Property MacroCheck : Boolean Read GetMacroCheck Write SetMacroCheck default false;
@@ -1101,6 +1104,16 @@ begin
   Result:=TSQLDBParams.Create(Nil);
 end;
 
+  Function TCustomSQLStatement.HasParams : Boolean;
+  begin
+    Result:=Params.Count>0;
+  end;
+  
+  Function TCustomSQLStatement.HasMacros : Boolean; 
+
+begin
+  Result:=Macros.Count>0;
+end;
 function TCustomSQLStatement.LogEvent(EventType: TDBEventType): Boolean;
 begin
   Result:=Assigned(Database) and Database.LogEvent(EventType);
@@ -3434,9 +3447,15 @@ begin
     Result:=stUnknown;
 end;
 
+
 function TCustomSQLQuery.IsMacrosStored: Boolean;
 begin
   Result := Macros.Count > 0;
+end;
+
+function TCustomSQLQuery.HasParams: Boolean;
+begin
+  Result := Params.Count > 0;
 end;
 
 procedure TCustomSQLQuery.SetParamCheck(AValue: Boolean);
