@@ -93,7 +93,7 @@ interface
         function def_meta_node(def: tdef): tai_llvmspecialisedmetadatanode;
         function def_meta_ref(def: tdef): tai_simpletypedconst;
         function file_getmetanode(moduleindex: tfileposmoduleindex; fileindex: tfileposfileindex): tai_llvmspecialisedmetadatanode;
-        function filepos_getmetanode(const filepos: tfileposinfo; const functionfileindex: tfileposfileindex; const functionscope: tai_llvmspecialisedmetadatanode): tai_llvmspecialisedmetadatanode;
+        function filepos_getmetanode(const filepos: tfileposinfo; const functionfileindex: tfileposfileindex; const functionscope: tai_llvmspecialisedmetadatanode; nolineinfo: boolean): tai_llvmspecialisedmetadatanode;
         function get_def_metatai(def:tdef): PLLVMMetaDefHashSetItem;
 
         procedure appenddef_array_internal(list: TAsmList; fordef: tdef; eledef: tdef; lowrange, highrange: asizeint);
@@ -201,7 +201,7 @@ implementation
       cpubase,cpuinfo,paramgr,
       fmodule,
       defutil,symtable,symcpu,ppu,
-      llvminfo,aasmllvm
+      llvminfo,llvmbase,aasmllvm
       ;
 
 {
@@ -533,7 +533,7 @@ implementation
       end;
 
 
-    function TDebugInfoLLVM.filepos_getmetanode(const filepos: tfileposinfo; const functionfileindex: tfileposfileindex; const functionscope: tai_llvmspecialisedmetadatanode): tai_llvmspecialisedmetadatanode;
+    function TDebugInfoLLVM.filepos_getmetanode(const filepos: tfileposinfo; const functionfileindex: tfileposfileindex; const functionscope: tai_llvmspecialisedmetadatanode; nolineinfo: boolean): tai_llvmspecialisedmetadatanode;
       var
         item: PHashSetItem;
         filemeta,
@@ -572,14 +572,22 @@ implementation
         else
           locationscopemeta:=functionscope;
         locationkey.scope:=locationscopemeta;
-        locationkey.line:=filepos.line;
+        if not nolineinfo then
+          locationkey.line:=filepos.line
+        else
+          locationkey.line:=0;
         locationkey.column:=filepos.column;
         item:=flocationmeta.FindOrAdd(@locationkey,sizeof(locationkey));
         if not assigned(item^.Data) then
           begin
             result:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DILocation);
-            result.addqword('line',filepos.line);
-            result.addqword('column',filepos.column);
+            if not nolineinfo then
+              begin
+                result.addqword('line',filepos.line);
+                result.addqword('column',filepos.column);
+              end
+            else
+              result.addqword('line',0);
             result.addmetadatarefto('scope',locationscopemeta);
             current_asmdata.AsmLists[al_dwarf_line].concat(result);
             item^.Data:=result;
@@ -781,8 +789,8 @@ implementation
         power: longint;
         flags: TLLVMDIFlags;
       begin
-        if is_dynamic_array(def) and
-           not(llvmflag_array_datalocation in llvmversion_properties[current_settings.llvmversion]) then
+        if is_dynamic_array(def) { and
+           not(llvmflag_array_datalocation in llvmversion_properties[current_settings.llvmversion]) } then
           begin
             dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType));
             dinode.addqword('tag',ord(DW_TAG_pointer_type));
@@ -2444,12 +2452,13 @@ implementation
             end;
 
             if (hp.typ=ait_llvmins) and
-               (nolineinfolevel=0) then
+               ((nolineinfolevel=0) or
+                (taillvm(hp).llvmopcode=la_call)) then
               begin
-                { file changed ? (must be before line info) }
+                { valid file -> add info }
                 if (tailineinfo(hp).fileinfo.fileindex<>0) then
                   begin
-                    positionmeta:=filepos_getmetanode(tailineinfo(hp).fileinfo,procdeffileindex,functionscope);
+                    positionmeta:=filepos_getmetanode(tailineinfo(hp).fileinfo,procdeffileindex,functionscope,nolineinfolevel<>0);
                     if assigned(positionmeta) then
                       taillvm(hp).addinsmetadata(tai_llvmmetadatareferenceoperand.createreferenceto('dbg',positionmeta));
                   end;
