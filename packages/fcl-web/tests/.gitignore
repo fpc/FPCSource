@@ -1,0 +1,6 @@
+*.compiled
+fpcunithpack
+testcgiapp
+testfpweb
+cgigateway
+lib
