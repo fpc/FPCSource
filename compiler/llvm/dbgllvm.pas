@@ -253,6 +253,21 @@ implementation
     }
       );
 
+      TLLVMDISPFlags = (
+        DISPFlagVirtual = 1,
+        DISPFlagPureVirtual = 2,
+        DISPFlagLocalToUnit = 1 shl 2,
+        DISPFlagDefinition = 1 shl 3,
+        DISPFlagOptimized = 1 shl 4,
+        DISPFlagPure = 1 shl 5,
+        DISPFlagElemental = 1 shl 6,
+        DISPFlagRecursive = 1 shl 7,
+        DISPFlagMainSubprogram = 1 shl 8,
+        DISPFlagDeleted = 1 shl 9,
+        DISPFlagObjCDirect = 1 shl 11
+      );
+
+
 {$pop}
 
     TLLVMLocationAtom = (
