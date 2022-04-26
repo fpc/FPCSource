@@ -1,4 +1,5 @@
 {
+   This unit is part of the Free Vision package
 
    (Still unused) skeleton for Colorsel replacement, based on mostly the 
      use by the fpmopts.inc file, to be added on as details emerge.

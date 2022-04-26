@@ -1,3 +1,30 @@
+(*
+  HPACK: Header Compression for HTTP/2 (rfc7541)
+  ----------------------------------------------
+  Pascal implementation of HTTP/2 headers send and receive process.
+
+  Code based in Twitter's HPACK for java https://github.com/twitter/hpack
+
+  History:
+
+  2016.04.21 - Initial development by Jose Mejuto
+
+  Package source files
+
+    uhpackapi.pas (this file)
+    uhpack.pas
+    uhpacktables.pas
+    rfc7541.txt (rfc based on)
+
+  License:
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+*)
 unit uhpackimp;
 
 {$mode objfpc}{$H+}
