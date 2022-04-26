@@ -54,7 +54,7 @@ type
 implementation
 
 uses
-  basenenc, sha256, fpjwasha256, sha512, fpjwasha512, fpjwasha384, fpjwaes256, fpecc, fppem;
+  basenenc, fpsha256, fpjwasha256, fpsha512, fpjwasha512, fpjwasha384, fpjwaes256, fpecc, fppem;
 
 { TMyJWT }
 
@@ -100,7 +100,7 @@ begin
   P1:=FJWT.JOSE.AsEncodedString;
   P2:=FJWT.Claims.AsEncodedString;
   B:=TEncoding.UTF8.GetAnsiBytes(P1+'.'+P2);
-  if not TSHA256.HMAC(FKey.AsPointer,FKey.Length,PByte(B),Length(B),aDigest) then
+  if not TSHA256.HMAC(FKey.AsPointer,FKey.Length,PByte(B),Length(B),aDigest{%H-}) then
     Fail('Could not HMAC');
   Sign:=Base64URL.Encode(@aDigest[0],Length(aDigest),False);
 //  Writeln('Signed: ',P1+'.'+P2+'.'+Sign);
@@ -137,7 +137,7 @@ begin
   P1:=FJWT.JOSE.AsEncodedString;
   P2:=FJWT.Claims.AsEncodedString;
   B:=TEncoding.UTF8.GetAnsiBytes(P1+'.'+P2);
-  if not TSHA512.HMAC(FKey.AsPointer,FKey.Length,PByte(B),Length(B),aDigest) then
+  if not TSHA512.HMAC(FKey.AsPointer,FKey.Length,PByte(B),Length(B),aDigest{%H-}) then
     Fail('Could not HMAC');
   Sign:=Base64URL.Encode(@aDigest[0],Length(aDigest),False);
 //  Writeln('Signed: ',P1+'.'+P2+'.'+Sign);
