@@ -518,7 +518,7 @@ type
     function GetSQLConnection: TSQLConnection;
     function GetSQLTransaction: TSQLTransaction;
     function GetStatementType : TStatementType;
-    function IsMacrosStored: Boolean;
+    function HasMacros: Boolean;
     Function HasParams : Boolean;
     Function NeedLastInsertID: TField;
     procedure SetMacroChar(AValue: Char);
@@ -643,7 +643,7 @@ type
     Property Options : TSQLQueryOptions Read FOptions Write SetOptions default [];
     property Params : TParams read GetParams Write SetParams stored HasParams;
     Property ParamCheck : Boolean Read GetParamCheck Write SetParamCheck default true;
-    property Macros : TParams read GetMacros Write SetMacros stored IsMacrosStored;
+    property Macros : TParams read GetMacros Write SetMacros stored HasMacros;
     Property MacroCheck : Boolean Read GetMacroCheck Write SetMacroCheck default false;
     Property MacroChar : Char Read GetMacroChar Write SetMacroChar default DefaultMacroChar;
     property ParseSQL : Boolean read GetParseSQL write SetParseSQL default true;
@@ -3448,7 +3448,7 @@ begin
 end;
 
 
-function TCustomSQLQuery.IsMacrosStored: Boolean;
+function TCustomSQLQuery.HasMacros: Boolean;
 begin
   Result := Macros.Count > 0;
 end;
