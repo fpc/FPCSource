@@ -49,6 +49,8 @@ begin
     T.Dependencies.AddUnit('fphashutils');
     T.Dependencies.AddUnit('fpecc');
     T.Dependencies.AddUnit('fpsha256');
+    T:=P.Targets.AddUnit('src/fptlsbigint.pas');
+    T:=P.Targets.AddUnit('src/fprsa.pas');
     T:=P.Targets.AddUnit('src/onetimepass.pp');
     
     T:=P.Targets.AddExampleunit('examples/demosha256.pp');
