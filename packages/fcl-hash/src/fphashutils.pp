@@ -31,8 +31,9 @@ Function BytesFromVar(aLocation : Pointer; aSize : Integer) : TBytes;
 Procedure BytesToVar(const aBytes : TBytes; out aLocation; aSize : Integer);
 Procedure BytesToVar(const aBytes : TBytes; Out aLocation : Pointer);
 
-Procedure HexStrToBytes(Const aHexStr : AnsiString; out aBytes : TBytes); overload;
-Function HexStrToBytes(Const aHexStr : AnsiString) : TBytes; overload;
+Procedure HexStrToBytes(Const aHexStr : String; out aBytes : TBytes); overload;
+Function HexStrToBytes(Const aHexStr : String) : TBytes; overload;
+Function HexStrToString(Const aHexStr : String) : String; overload;
 
 Function BytesToHexStr(Const aSource : AnsiString) : Ansistring; overload;
 Procedure BytesToHexStr(out aHexStr : AnsiString;Const aSource : AnsiString); overload;
@@ -56,7 +57,7 @@ var
 
 implementation
 
-Procedure BytesFromVar(out aBytes : TBytes; aLocation : Pointer; aSize : Integer);
+procedure BytesFromVar(out aBytes: TBytes; aLocation: Pointer; aSize: Integer);
 
 begin
   aBytes:=[];
@@ -65,13 +66,13 @@ begin
     Move(aLocation^,aBytes[0],aSize);
 end;
 
-Function BytesFromVar(aLocation : Pointer; aSize : Integer) : TBytes;
+function BytesFromVar(aLocation: Pointer; aSize: Integer): TBytes;
 
 begin
   BytesFromVar(Result,aLocation,aSize);
 end;
 
-Procedure BytesToVar(const aBytes : TBytes; out aLocation; aSize : Integer);
+procedure BytesToVar(const aBytes: TBytes; out aLocation; aSize: Integer);
 
 begin
   if aSize>Length(aBytes) then
@@ -79,20 +80,33 @@ begin
   Move(aBytes[0],aLocation,aSize);
 end;
 
-Procedure BytesToVar(const aBytes : TBytes; out aLocation : Pointer);
+procedure BytesToVar(const aBytes: TBytes; out aLocation: Pointer);
 
 begin
   BytesToVar(aBytes,aLocation,Length(aBytes));
 end;
 
-Function HexStrToBytes(Const aHexStr : AnsiString) : TBytes;
+function HexStrToBytes(const aHexStr: String): TBytes;
 
 begin
   Result:=[];
-  HexStrToBytes(ahexStr,Result);
+  HexStrToBytes(aHexStr,Result);
 end;
 
-Procedure HexStrToBytes(Const aHexStr : AnsiString; out aBytes : TBytes);
+function HexStrToString(const aHexStr: String): String;
+var
+  aBytes: TBytes;
+  l: SizeInt;
+begin
+  aBytes:=[];
+  HexStrToBytes(aHexStr,aBytes);
+  l:=length(aBytes);
+  if l=0 then exit;
+  SetLength(Result,l);
+  Move(aBytes[0],Result[1],l);
+end;
+
+procedure HexStrToBytes(const aHexStr: String; out aBytes: TBytes);
 
 const
   Convert: array['0'..'f'] of SmallInt =
@@ -122,13 +136,13 @@ begin
   end;
 end;
 
-Function BytesToHexStr(Const aSource : AnsiString) : Ansistring;
+function BytesToHexStr(const aSource: AnsiString): Ansistring;
 
 begin
   BytesToHexStr(Result,aSource);
 end;
 
-Procedure BytesToHexStr(out aHexStr : AnsiString; Const aSource : AnsiString);
+procedure BytesToHexStr(out aHexStr: AnsiString; const aSource: AnsiString);
 
 begin
   BytesToHexStr(aHexStr,PByte(PChar(aSource)),Length(aSource))
@@ -161,7 +175,7 @@ begin
     end;
 end;
 
-Procedure BytesToHexStr(out aHexStr: AnsiString; aBytes: TBytes);
+procedure BytesToHexStr(out aHexStr: AnsiString; aBytes: TBytes);
 
 begin
   BytesToHexStr(aHexStr,PByte(aBytes),Length(aBytes));
@@ -173,7 +187,7 @@ begin
   BytesToHexStr(Result,aBytes);
 end;
 
-Procedure BytesToHexStrAppend(aBytes : TBytes;var aHexStr : AnsiString);
+procedure BytesToHexStrAppend(aBytes: TBytes; var aHexStr: AnsiString);
 
 begin
   aHexStr:=aHexStr+BytesToHexStr(aBytes);
@@ -318,7 +332,8 @@ begin
   SetLength(Dest,DestSize);
 end;
 
-Function BytesEncodeBase64(Source: Tbytes; const IsURL, MultiLines, Padding: Boolean) : AnsiString;
+function BytesEncodeBase64(Source: Tbytes; const IsURL, MultiLines,
+  Padding: Boolean): AnsiString;
 
 begin
   BytesEncodeBase64(Source,Result,IsURL, MultiLines, Padding);
