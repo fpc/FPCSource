@@ -881,40 +881,57 @@ end;
 function StringToJSONString(const S: TJSONStringType; Strict : Boolean = False): TJSONStringType;
 
 Var
-  I,J,L : Integer;
+  I,J,L, cnt : Integer;
   C : Char;
+  fs:TMemoryStream;
+
+  procedure W(const ss:string); inline;
+  begin
+    fs.Write(ss[1],length(ss));
+  end;
 
 begin
-  I:=1;
-  J:=1;
-  Result:='';
-  L:=Length(S);
-  While I<=L do
-    begin
-    C:=S[I];
-    if (C in ['"','/','\',#0..#31]) then
+  fs:=TMemoryStream.Create;
+  try
+    I:=1;
+    J:=1;
+    fs.Size:=0;
+    Result:='';
+    L:=Length(S);
+    While I<=L do
       begin
-      Result:=Result+Copy(S,J,I-J);
-      Case C of
-        '\' : Result:=Result+'\\';
-        '/' : if Strict then
-                Result:=Result+'\/'
-              else
-                Result:=Result+'/';
-        '"' : Result:=Result+'\"';
-        #8  : Result:=Result+'\b';
-        #9  : Result:=Result+'\t';
-        #10 : Result:=Result+'\n';
-        #12 : Result:=Result+'\f';
-        #13 : Result:=Result+'\r';
-      else
-        Result:=Result+'\u'+HexStr(Ord(C),4);
+      C:=S[I];
+      if (C in ['"','/','\',#0..#31]) then
+        begin
+          fs.Write(S[J],I-J); // Result:=Result+Copy(S,J,I-J);
+          Case C of
+            '\' : W('\\'); //Result:=Result+'\\';
+            '/' : if Strict then
+                    W('\/') //Result:=Result+'\/'
+                  else
+                    W('/');//Result:=Result+'/';
+            '"' : W('\"');//Result:=Result+'\"';
+            #8  : W('\b');//Result:=Result+'\b';
+            #9  : W('\t');//Result:=Result+'\t';
+            #10 : W('\n');//Result:=Result+'\n';
+            #12 : W('\f');//Result:=Result+'\f';
+            #13 : W('\r');//Result:=Result+'\r';
+          else
+            W('\u'+HexStr(Ord(C),4)); //Result:=Result+'\u'+HexStr(Ord(C),4);
+          end;
+        J:=I+1;
+        end;
+      Inc(I);
       end;
-      J:=I+1;
-      end;
-    Inc(I);
-    end;
-  Result:=Result+Copy(S,J,I-1);
+    //Result:=Result+Copy(S,J,I-1);
+    cnt:=L-J+1; //
+    if cnt>0 then
+      fs.Write(S[J],cnt);
+    fs.Position:=0;
+    setstring(Result,Pchar(fs.Memory),fs.Size);
+  finally
+    fs.Free;
+  end;
 end;
 
 function JSONStringToString(const S: TJSONStringType): TJSONStringType;
