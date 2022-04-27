@@ -9669,7 +9669,7 @@ type
 
   procedure set_fDsrHold(var a : COMSTAT; __fDsrHold : DWORD);
     begin
-       a.flag0:=b(a.flag0 and not bm_COMSTAT_fDsrHold) or ((__fDsrHold shl bp_COMSTAT_fDsrHold) and bm_COMSTAT_fDsrHold);
+       a.flag0:=(a.flag0 and not bm_COMSTAT_fDsrHold) or ((__fDsrHold shl bp_COMSTAT_fDsrHold) and bm_COMSTAT_fDsrHold);
     end;
 
   function fRlsdHold(var a : COMSTAT) : DWORD;
