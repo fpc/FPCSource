@@ -44,11 +44,14 @@ const
   ASN_ecdsa_with_SHA384 = '1.2.840.10045.4.3.3';
   ASN_ecdsa_with_SHA224 = '1.2.840.10045.4.3.1';
 
+  ASN_MaxOIDSize = 1000;
+
 //------------------------------------------------------------------------------
 // ASN
 //------------------------------------------------------------------------------
 procedure ASNEncodeOID(const Value: Int64; var Result: AnsiString);
-function ASNDecodeOID(var Start: Integer; const S: AnsiString): Int64;
+function ASNDecodeOID(var Start: Integer; const S: AnsiString): Int64; overload;
+function ASNDecodeOID(var Buffer: PByte; BufferEnd: PByte): Int64; overload;
 function ASNGetEncodedLen(const Len: Integer): Integer;
 procedure ASNEncodeLen(const Len: Integer; var Buffer: TBytes);
 function ASNReadLen(const Buffer: TBytes; var Offset: Int32): Int32;
@@ -59,7 +62,8 @@ procedure ASNObject(const Data: Ansistring; const ASNType: Integer; var Buffer: 
 // Encodes an MIB OID Ansistring to binary form
 procedure MibToId(Mib: Ansistring; var Result: AnsiString);
 // Decodes MIB OID from binary form to Ansistring form.
-procedure IdToMib(const Id: Ansistring; var Result: Ansistring);
+procedure IdToMib(const Id: Ansistring; var Result: Ansistring); overload;
+function IdToMib(Buffer, BufferEnd: PByte): string; overload;
 procedure ASNDebug(const Buffer: TBytes; var Output: TBytes);
 procedure ASNParse(const Buffer: TBytes; List: TStrings);
 procedure PemToDER(const PEM: AnsiString; const BeginTag, EndTag: Ansistring; Out DER: TBytes); overload;
@@ -67,6 +71,9 @@ procedure PemToDER(PEM: TBytes; const BeginTag, EndTag: Ansistring; Out DER: TBy
 procedure ASNParsePemSection(const PEM: TBytes; List: TStrings; const BeginTag, EndTag: Ansistring);
 procedure ASNParsePemSection(const PEM: AnsiString; List: TStrings; const BeginTag, EndTag: Ansistring);
 
+function ASNFetch(const Buffer: TBytes; var Offset: Int32; Out ASNType, ASNSize: Int32): Boolean; overload;
+function ASNFetch(var Buffer: PByte; BufferEnd: PByte; Out ASNType, ASNSize: Int32): Boolean; overload;
+function ASNFetchOID(var Buffer: PByte; BufferEnd: PByte; out OID: String): Boolean; overload;
 
 implementation
 
@@ -109,6 +116,22 @@ begin
     x := Ord(S[Start]);
     Inc(Start);
     Result := (Result shl 7) + (x and $7F);
+  until (x and $80) = 0;
+end;
+
+function ASNDecodeOID(var Buffer: PByte; BufferEnd: PByte): Int64;
+var
+  x: Byte;
+begin
+  Result := 0;
+  repeat
+    if Buffer>=BufferEnd then
+      exit(-1);
+    x := Buffer^;
+    Inc(Buffer);
+    Result := (Result shl 7) + (x and $7F);
+    if Result>high(dword) then
+      exit(-1);
   until (x and $80) = 0;
 end;
 
@@ -161,6 +184,11 @@ begin
   if Result < $80 then
     Exit;
   Len := Result and $7F;
+  if (Len>4) or (Offset+Len >= length(Buffer)) then
+  begin
+    Offset:=length(Buffer)+1;
+    exit;
+  end;
   Result := 0;
   while Len > 0 do
   begin
@@ -526,8 +554,26 @@ begin
   end;
 end;
 
-// Convert ASN.1 DER encoded buffer to human readable form for debugging
+function IdToMib(Buffer, BufferEnd: PByte): string;
+var
+  x: Int64;
+begin
+  Result:='';
+  while Buffer<BufferEnd do
+  begin
+    x := ASNDecodeOID(Buffer, BufferEnd);
+    if x<0 then
+      raise Exception.Create('20220427114808');
+    if Result='' then
+    begin
+      Result:=IntToStr(x div 40);
+      x := x mod 40;
+    end;
+    Result:=Result+'.'+IntToStr(x);
+  end;
+end;
 
+// Convert ASN.1 DER encoded buffer to human readable form for debugging
 procedure ASNDebug(const Buffer: TBytes; var Output: TBytes);
 
 const
@@ -637,7 +683,7 @@ var
 begin
   Result := False;
   Len := Length(Buffer);
-  if Offset > Len then
+  if Offset+2 > Len then
     Exit;
   ASNType := Buffer[Offset];
   Inc(Offset);
@@ -645,6 +691,57 @@ begin
   if (Offset + ASNSize) > Len then
     Exit;
   Result := True;
+end;
+
+function ASNFetch(var Buffer: PByte; BufferEnd: PByte; out ASNType,
+  ASNSize: Int32): Boolean;
+var
+  Len: byte;
+begin
+  Result:=false;
+  if Buffer>=BufferEnd then exit;
+  ASNType := Buffer^;
+  inc(Buffer);
+  if Buffer>=BufferEnd then exit;
+  ASNSize := Buffer^;
+  Inc(Buffer);
+  if ASNSize < $80 then
+    Exit(true);
+  Len := ASNSize and $7F;
+  if (Len>4) or ((BufferEnd-Buffer)<Len) then
+    exit;
+  ASNSize := 0;
+  while Len > 0 do
+  begin
+    ASNSize := ASNSize*256 + Buffer^;
+    Inc(Buffer);
+    Dec(Len);
+  end;
+  Result:=true;
+end;
+
+function ASNFetchOID(var Buffer: PByte; BufferEnd: PByte; out OID: String): Boolean;
+var
+  ASNType, ASNSize: Int32;
+  OIDEnd: PByte;
+begin
+  OID:='';
+  Result := ASNFetch(Buffer, BufferEnd, ASNType, ASNSize);
+  if not Result then
+    Exit;
+  Result := ASNType = ASN1_OBJID;
+  if not Result then
+    Exit;
+  if ASNSize=0 then
+    Exit;
+  if ASNSize>ASN_MaxOIDSize then
+    Exit;
+  if (BufferEnd-Buffer)<ASNSize then
+    Exit;
+  OIDEnd:=Buffer+ASNSize;
+  OID:=IdToMib(Buffer, OIDEnd);
+  Buffer:=OIDEnd;
+  Result := OID<>'';
 end;
 
 // Beginning with the @Start position, decode the ASN.1 item of the next element in @Buffer. Type of item is stored in @ASNType
@@ -786,7 +883,7 @@ end;
 procedure ASNParsePemSection(const PEM: AnsiString; List: TStrings; const BeginTag, EndTag: AnsiString);
 
 var
-  BufferSection,res: TBytes;
+  BufferSection: TBytes;
 //  S : AnsiString;
 
 begin
