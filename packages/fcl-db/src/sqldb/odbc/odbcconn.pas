@@ -505,10 +505,11 @@ begin
           ColumnSize:=Size; //The defined or maximum column size in characters of the column or parameter
           BufferLength:=Size;
           CType:=SQL_C_WCHAR;
-          case AParams[ParamIndex].DataType of
-            ftFixedChar, ftFixedWideChar: SqlType:=SQL_WVARCHAR;
-            else SqlType:=SQL_WLONGVARCHAR;
-          end;
+          if (AParams[ParamIndex].DataType in [ftMemo, ftWideMemo])
+          or (Length(WideStrVal)>2000) then // long texts (more than 2000 unicode characters) must be bound as SQL_WLONGVARCHAR
+            SqlType:=SQL_WLONGVARCHAR
+          else
+            SqlType:=SQL_WVARCHAR;
         end;
       ftSingle:
         begin
