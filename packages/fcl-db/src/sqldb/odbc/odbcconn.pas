@@ -506,8 +506,8 @@ begin
           BufferLength:=Size;
           CType:=SQL_C_WCHAR;
           case AParams[ParamIndex].DataType of
-            ftMemo, ftWideMemo: SqlType:=SQL_WLONGVARCHAR;
-            else        SqlType:=SQL_WVARCHAR;
+            ftFixedChar, ftFixedWideChar: SqlType:=SQL_WVARCHAR;
+            else SqlType:=SQL_WLONGVARCHAR;
           end;
         end;
       ftSingle:
