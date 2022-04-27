@@ -858,7 +858,7 @@ Const
      bp_DCB_fRtsControl = 12;
      bm_DCB_fAbortOnError = $4000;
      bp_DCB_fAbortOnError = 14;
-     bm_DCB_fDummy2 = $FFFF8000;
+     bm_DCB_fDummy2 = dword($FFFF8000);
      bp_DCB_fDummy2 = 15;
   function fBinary(var a : DCB) : DWORD;
   procedure set_fBinary(var a : DCB; __fBinary : DWORD);
@@ -9519,7 +9519,7 @@ type
 
   procedure set_fBinary(var a : DCB; __fBinary : DWORD);
     begin
-       a.flags:=a.flags or ((__fBinary shl bp_DCB_fBinary) and bm_DCB_fBinary);
+       a.flags:=(a.flags and not bm_DCB_fBinary) or ((__fBinary shl bp_DCB_fBinary) and bm_DCB_fBinary);
     end;
 
   function fParity(var a : DCB) : DWORD;
@@ -9529,7 +9529,7 @@ type
 
   procedure set_fParity(var a : DCB; __fParity : DWORD);
     begin
-       a.flags:=a.flags or ((__fParity shl bp_DCB_fParity) and bm_DCB_fParity);
+       a.flags:=(a.flags and not bm_DCB_fParity) or ((__fParity shl bp_DCB_fParity) and bm_DCB_fParity);
     end;
 
   function fOutxCtsFlow(var a : DCB) : DWORD;
@@ -9539,7 +9539,7 @@ type
 
   procedure set_fOutxCtsFlow(var a : DCB; __fOutxCtsFlow : DWORD);
     begin
-       a.flags:=a.flags or ((__fOutxCtsFlow shl bp_DCB_fOutxCtsFlow) and bm_DCB_fOutxCtsFlow);
+       a.flags:=(a.flags and not bm_DCB_fOutxCtsFlow) or ((__fOutxCtsFlow shl bp_DCB_fOutxCtsFlow) and bm_DCB_fOutxCtsFlow);
     end;
 
   function fOutxDsrFlow(var a : DCB) : DWORD;
@@ -9549,7 +9549,7 @@ type
 
   procedure set_fOutxDsrFlow(var a : DCB; __fOutxDsrFlow : DWORD);
     begin
-       a.flags:=a.flags or ((__fOutxDsrFlow shl bp_DCB_fOutxDsrFlow) and bm_DCB_fOutxDsrFlow);
+       a.flags:=(a.flags and not bm_DCB_fOutxDsrFlow) or ((__fOutxDsrFlow shl bp_DCB_fOutxDsrFlow) and bm_DCB_fOutxDsrFlow);
     end;
 
   function fDtrControl(var a : DCB) : DWORD;
@@ -9559,7 +9559,7 @@ type
 
   procedure set_fDtrControl(var a : DCB; __fDtrControl : DWORD);
     begin
-       a.flags:=a.flags or ((__fDtrControl shl bp_DCB_fDtrControl) and bm_DCB_fDtrControl);
+       a.flags:=(a.flags and not bm_DCB_fDtrControl) or ((__fDtrControl shl bp_DCB_fDtrControl) and bm_DCB_fDtrControl);
     end;
 
   function fDsrSensitivity(var a : DCB) : DWORD;
@@ -9569,7 +9569,7 @@ type
 
   procedure set_fDsrSensitivity(var a : DCB; __fDsrSensitivity : DWORD);
     begin
-       a.flags:=a.flags or ((__fDsrSensitivity shl bp_DCB_fDsrSensitivity) and bm_DCB_fDsrSensitivity);
+       a.flags:=(a.flags and not bm_DCB_fDsrSensitivity) or ((__fDsrSensitivity shl bp_DCB_fDsrSensitivity) and bm_DCB_fDsrSensitivity);
     end;
 
   function fTXContinueOnXoff(var a : DCB) : DWORD;
@@ -9579,7 +9579,7 @@ type
 
   procedure set_fTXContinueOnXoff(var a : DCB; __fTXContinueOnXoff : DWORD);
     begin
-       a.flags:=a.flags or ((__fTXContinueOnXoff shl bp_DCB_fTXContinueOnXoff) and bm_DCB_fTXContinueOnXoff);
+       a.flags:=(a.flags and not bm_DCB_fTXContinueOnXoff) or ((__fTXContinueOnXoff shl bp_DCB_fTXContinueOnXoff) and bm_DCB_fTXContinueOnXoff);
     end;
 
   function fOutX(var a : DCB) : DWORD;
@@ -9589,7 +9589,7 @@ type
 
   procedure set_fOutX(var a : DCB; __fOutX : DWORD);
     begin
-       a.flags:=a.flags or ((__fOutX shl bp_DCB_fOutX) and bm_DCB_fOutX);
+       a.flags:=(a.flags and not bm_DCB_fOutX) or ((__fOutX shl bp_DCB_fOutX) and bm_DCB_fOutX);
     end;
 
   function fInX(var a : DCB) : DWORD;
@@ -9599,7 +9599,7 @@ type
 
   procedure set_fInX(var a : DCB; __fInX : DWORD);
     begin
-       a.flags:=a.flags or ((__fInX shl bp_DCB_fInX) and bm_DCB_fInX);
+       a.flags:=(a.flags and not bm_DCB_fInX) or ((__fInX shl bp_DCB_fInX) and bm_DCB_fInX);
     end;
 
   function fErrorChar(var a : DCB) : DWORD;
@@ -9609,7 +9609,7 @@ type
 
   procedure set_fErrorChar(var a : DCB; __fErrorChar : DWORD);
     begin
-       a.flags:=a.flags or ((__fErrorChar shl bp_DCB_fErrorChar) and bm_DCB_fErrorChar);
+       a.flags:=(a.flags and not bm_DCB_fErrorChar) or ((__fErrorChar shl bp_DCB_fErrorChar) and bm_DCB_fErrorChar);
     end;
 
   function fNull(var a : DCB) : DWORD;
@@ -9619,7 +9619,7 @@ type
 
   procedure set_fNull(var a : DCB; __fNull : DWORD);
     begin
-       a.flags:=a.flags or ((__fNull shl bp_DCB_fNull) and bm_DCB_fNull);
+       a.flags:=(a.flags and not bm_DCB_fNull) or ((__fNull shl bp_DCB_fNull) and bm_DCB_fNull);
     end;
 
   function fRtsControl(var a : DCB) : DWORD;
@@ -9629,7 +9629,7 @@ type
 
   procedure set_fRtsControl(var a : DCB; __fRtsControl : DWORD);
     begin
-       a.flags:=a.flags or ((__fRtsControl shl bp_DCB_fRtsControl) and bm_DCB_fRtsControl);
+       a.flags:=(a.flags and not bm_DCB_fRtsControl) or ((__fRtsControl shl bp_DCB_fRtsControl) and bm_DCB_fRtsControl);
     end;
 
   function fAbortOnError(var a : DCB) : DWORD;
@@ -9639,7 +9639,7 @@ type
 
   procedure set_fAbortOnError(var a : DCB; __fAbortOnError : DWORD);
     begin
-       a.flags:=a.flags or ((__fAbortOnError shl bp_DCB_fAbortOnError) and bm_DCB_fAbortOnError);
+       a.flags:=(a.flags and not bm_DCB_fAbortOnError) or ((__fAbortOnError shl bp_DCB_fAbortOnError) and bm_DCB_fAbortOnError);
     end;
 
   function fDummy2(var a : DCB) : DWORD;
@@ -9649,7 +9649,7 @@ type
 
   procedure set_fDummy2(var a : DCB; __fDummy2 : DWORD);
     begin
-       a.flags:=a.flags or ((__fDummy2 shl bp_DCB_fDummy2) and bm_DCB_fDummy2);
+       a.flags:=(a.flags and dword(not bm_DCB_fDummy2)) or dword((__fDummy2 shl bp_DCB_fDummy2) and bm_DCB_fDummy2);
     end;
 
   function fCtsHold(var a : COMSTAT) : DWORD;
@@ -9659,7 +9659,7 @@ type
 
   procedure set_fCtsHold(var a : COMSTAT; __fCtsHold : DWORD);
     begin
-       a.flag0:=a.flag0 or ((__fCtsHold shl bp_COMSTAT_fCtsHold) and bm_COMSTAT_fCtsHold);
+       a.flag0:=(a.flag0 and not bm_COMSTAT_fCtsHold) or ((__fCtsHold shl bp_COMSTAT_fCtsHold) and bm_COMSTAT_fCtsHold);
     end;
 
   function fDsrHold(var a : COMSTAT) : DWORD;
@@ -9669,7 +9669,7 @@ type
 
   procedure set_fDsrHold(var a : COMSTAT; __fDsrHold : DWORD);
     begin
-       a.flag0:=a.flag0 or ((__fDsrHold shl bp_COMSTAT_fDsrHold) and bm_COMSTAT_fDsrHold);
+       a.flag0:=b(a.flag0 and not bm_COMSTAT_fDsrHold) or ((__fDsrHold shl bp_COMSTAT_fDsrHold) and bm_COMSTAT_fDsrHold);
     end;
 
   function fRlsdHold(var a : COMSTAT) : DWORD;
@@ -9679,7 +9679,7 @@ type
 
   procedure set_fRlsdHold(var a : COMSTAT; __fRlsdHold : DWORD);
     begin
-       a.flag0:=a.flag0 or ((__fRlsdHold shl bp_COMSTAT_fRlsdHold) and bm_COMSTAT_fRlsdHold);
+       a.flag0:=(a.flag0 and not bm_COMSTAT_fRlsdHold) or ((__fRlsdHold shl bp_COMSTAT_fRlsdHold) and bm_COMSTAT_fRlsdHold);
     end;
 
   function fXoffHold(var a : COMSTAT) : DWORD;
@@ -9689,7 +9689,7 @@ type
 
   procedure set_fXoffHold(var a : COMSTAT; __fXoffHold : DWORD);
     begin
-       a.flag0:=a.flag0 or ((__fXoffHold shl bp_COMSTAT_fXoffHold) and bm_COMSTAT_fXoffHold);
+       a.flag0:=(a.flag0 and not bm_COMSTAT_fXoffHold) or ((__fXoffHold shl bp_COMSTAT_fXoffHold) and bm_COMSTAT_fXoffHold);
     end;
 
   function fXoffSent(var a : COMSTAT) : DWORD;
@@ -9699,7 +9699,7 @@ type
 
   procedure set_fXoffSent(var a : COMSTAT; __fXoffSent : DWORD);
     begin
-       a.flag0:=a.flag0 or ((__fXoffSent shl bp_COMSTAT_fXoffSent) and bm_COMSTAT_fXoffSent);
+       a.flag0:=(a.flag0 and not bm_COMSTAT_fXoffSent) or ((__fXoffSent shl bp_COMSTAT_fXoffSent) and bm_COMSTAT_fXoffSent);
     end;
 
   function fEof(var a : COMSTAT) : DWORD;
@@ -9709,7 +9709,7 @@ type
 
   procedure set_fEof(var a : COMSTAT; __fEof : DWORD);
     begin
-       a.flag0:=a.flag0 or ((__fEof shl bp_COMSTAT_fEof) and bm_COMSTAT_fEof);
+       a.flag0:=(a.flag0 and not bm_COMSTAT_fEof) or ((__fEof shl bp_COMSTAT_fEof) and bm_COMSTAT_fEof);
     end;
 
   function fTxim(var a : COMSTAT) : DWORD;
@@ -9719,7 +9719,7 @@ type
 
   procedure set_fTxim(var a : COMSTAT; __fTxim : DWORD);
     begin
-       a.flag0:=a.flag0 or ((__fTxim shl bp_COMSTAT_fTxim) and bm_COMSTAT_fTxim);
+       a.flag0:=(a.flag0 and not bm_COMSTAT_fTxim) or ((__fTxim shl bp_COMSTAT_fTxim) and bm_COMSTAT_fTxim);
     end;
 
   function fReserved(var a : COMSTAT) : DWORD;
@@ -9729,7 +9729,7 @@ type
 
   procedure set_fReserved(var a : COMSTAT; __fReserved : DWORD);
     begin
-       a.flag0:=a.flag0 or ((__fReserved shl bp_COMSTAT_fReserved) and bm_COMSTAT_fReserved);
+       a.flag0:=(a.flag0 and not bm_COMSTAT_fReserved) or ((__fReserved shl bp_COMSTAT_fReserved) and bm_COMSTAT_fReserved);
     end;
 
   function bAppReturnCode(var a : DDEACK) : word;
@@ -9739,7 +9739,7 @@ type
 
   procedure set_bAppReturnCode(var a : DDEACK; __bAppReturnCode : word);
     begin
-       a.flag0:=a.flag0 or ((__bAppReturnCode shl bp_DDEACK_bAppReturnCode) and bm_DDEACK_bAppReturnCode);
+       a.flag0:=(a.flag0 and not bm_DDEACK_bAppReturnCode) or ((__bAppReturnCode shl bp_DDEACK_bAppReturnCode) and bm_DDEACK_bAppReturnCode);
     end;
 
   function reserved(var a : DDEACK) : word;
@@ -9749,7 +9749,7 @@ type
 
   procedure set_reserved(var a : DDEACK; __reserved : word);
     begin
-       a.flag0:=a.flag0 or ((__reserved shl bp_DDEACK_reserved) and bm_DDEACK_reserved);
+       a.flag0:=(a.flag0 and not bm_DDEACK_reserved) or ((__reserved shl bp_DDEACK_reserved) and bm_DDEACK_reserved);
     end;
 
   function fBusy(var a : DDEACK) : word;
@@ -9759,7 +9759,7 @@ type
 
   procedure set_fBusy(var a : DDEACK; __fBusy : word);
     begin
-       a.flag0:=a.flag0 or ((__fBusy shl bp_DDEACK_fBusy) and bm_DDEACK_fBusy);
+       a.flag0:=(a.flag0 and not bm_DDEACK_fBusy) or ((__fBusy shl bp_DDEACK_fBusy) and bm_DDEACK_fBusy);
     end;
 
   function fAck(var a : DDEACK) : word;
@@ -9769,7 +9769,7 @@ type
 
   procedure set_fAck(var a : DDEACK; __fAck : word);
     begin
-       a.flag0:=a.flag0 or ((__fAck shl bp_DDEACK_fAck) and bm_DDEACK_fAck);
+       a.flag0:=(a.flag0 and not bm_DDEACK_fAck) or ((__fAck shl bp_DDEACK_fAck) and bm_DDEACK_fAck);
     end;
 
   function reserved(var a : DDEADVISE) : word;
@@ -9779,7 +9779,7 @@ type
 
   procedure set_reserved(var a : DDEADVISE; __reserved : word);
     begin
-       a.flag0:=a.flag0 or ((__reserved shl bp_DDEADVISE_reserved) and bm_DDEADVISE_reserved);
+       a.flag0:=(a.flag0 and not bm_DDEADVISE_reserved) or ((__reserved shl bp_DDEADVISE_reserved) and bm_DDEADVISE_reserved);
     end;
 
   function fDeferUpd(var a : DDEADVISE) : word;
@@ -9789,7 +9789,7 @@ type
 
   procedure set_fDeferUpd(var a : DDEADVISE; __fDeferUpd : word);
     begin
-       a.flag0:=a.flag0 or ((__fDeferUpd shl bp_DDEADVISE_fDeferUpd) and bm_DDEADVISE_fDeferUpd);
+       a.flag0:=(a.flag0 and not bm_DDEADVISE_fDeferUpd) or ((__fDeferUpd shl bp_DDEADVISE_fDeferUpd) and bm_DDEADVISE_fDeferUpd);
     end;
 
   function fAckReq(var a : DDEADVISE) : word;
@@ -9799,7 +9799,7 @@ type
 
   procedure set_fAckReq(var a : DDEADVISE; __fAckReq : word);
     begin
-       a.flag0:=a.flag0 or ((__fAckReq shl bp_DDEADVISE_fAckReq) and bm_DDEADVISE_fAckReq);
+       a.flag0:=(a.flag0 and not bm_DDEADVISE_fAckReq) or ((__fAckReq shl bp_DDEADVISE_fAckReq) and bm_DDEADVISE_fAckReq);
     end;
 
   function unused(var a : DDEDATA) : word;
@@ -9809,7 +9809,7 @@ type
 
   procedure set_unused(var a : DDEDATA; __unused : word);
     begin
-       a.flag0:=a.flag0 or ((__unused shl bp_DDEDATA_unused) and bm_DDEDATA_unused);
+       a.flag0:=(a.flag0 and not bm_DDEDATA_unused) or ((__unused shl bp_DDEDATA_unused) and bm_DDEDATA_unused);
     end;
 
   function fResponse(var a : DDEDATA) : word;
@@ -9819,7 +9819,7 @@ type
 
   procedure set_fResponse(var a : DDEDATA; __fResponse : word);
     begin
-       a.flag0:=a.flag0 or ((__fResponse shl bp_DDEDATA_fResponse) and bm_DDEDATA_fResponse);
+       a.flag0:=(a.flag0 and not bm_DDEDATA_fResponse) or ((__fResponse shl bp_DDEDATA_fResponse) and bm_DDEDATA_fResponse);
     end;
 
   function fRelease(var a : DDEDATA) : word;
@@ -9829,7 +9829,7 @@ type
 
   procedure set_fRelease(var a : DDEDATA; __fRelease : word);
     begin
-       a.flag0:=a.flag0 or ((__fRelease shl bp_DDEDATA_fRelease) and bm_DDEDATA_fRelease);
+       a.flag0:=(a.flag0 and not bm_DDEDATA_fRelease) or ((__fRelease shl bp_DDEDATA_fRelease) and bm_DDEDATA_fRelease);
     end;
 
   function reserved(var a : DDEDATA) : word;
@@ -9839,7 +9839,7 @@ type
 
   procedure set_reserved(var a : DDEDATA; __reserved : word);
     begin
-       a.flag0:=a.flag0 or ((__reserved shl bp_DDEDATA_reserved) and bm_DDEDATA_reserved);
+       a.flag0:=(a.flag0 and not bm_DDEDATA_reserved) or ((__reserved shl bp_DDEDATA_reserved) and bm_DDEDATA_reserved);
     end;
 
   function fAckReq(var a : DDEDATA) : word;
@@ -9849,7 +9849,7 @@ type
 
   procedure set_fAckReq(var a : DDEDATA; __fAckReq : word);
     begin
-       a.flag0:=a.flag0 or ((__fAckReq shl bp_DDEDATA_fAckReq) and bm_DDEDATA_fAckReq);
+       a.flag0:=(a.flag0 and not bm_DDEDATA_fAckReq) or ((__fAckReq shl bp_DDEDATA_fAckReq) and bm_DDEDATA_fAckReq);
     end;
 
   function unused(var a : DDELN) : word;
@@ -9859,7 +9859,7 @@ type
 
   procedure set_unused(var a : DDELN; __unused : word);
     begin
-       a.flag0:=a.flag0 or ((__unused shl bp_DDELN_unused) and bm_DDELN_unused);
+       a.flag0:=(a.flag0 and not bm_DDELN_unused) or ((__unused shl bp_DDELN_unused) and bm_DDELN_unused);
     end;
 
   function fRelease(var a : DDELN) : word;
@@ -9869,7 +9869,7 @@ type
 
   procedure set_fRelease(var a : DDELN; __fRelease : word);
     begin
-       a.flag0:=a.flag0 or ((__fRelease shl bp_DDELN_fRelease) and bm_DDELN_fRelease);
+       a.flag0:=(a.flag0 and not bm_DDELN_fRelease) or ((__fRelease shl bp_DDELN_fRelease) and bm_DDELN_fRelease);
     end;
 
   function fDeferUpd(var a : DDELN) : word;
@@ -9879,7 +9879,7 @@ type
 
   procedure set_fDeferUpd(var a : DDELN; __fDeferUpd : word);
     begin
-       a.flag0:=a.flag0 or ((__fDeferUpd shl bp_DDELN_fDeferUpd) and bm_DDELN_fDeferUpd);
+       a.flag0:=(a.flag0 and not bm_DDELN_fDeferUpd) or ((__fDeferUpd shl bp_DDELN_fDeferUpd) and bm_DDELN_fDeferUpd);
     end;
 
   function fAckReq(var a : DDELN) : word;
@@ -9889,7 +9889,7 @@ type
 
   procedure set_fAckReq(var a : DDELN; __fAckReq : word);
     begin
-       a.flag0:=a.flag0 or ((__fAckReq shl bp_DDELN_fAckReq) and bm_DDELN_fAckReq);
+       a.flag0:=(a.flag0 and not bm_DDELN_fAckReq) or ((__fAckReq shl bp_DDELN_fAckReq) and bm_DDELN_fAckReq);
     end;
 
   function unused(var a : DDEPOKE) : word;
@@ -9899,7 +9899,7 @@ type
 
   procedure set_unused(var a : DDEPOKE; __unused : word);
     begin
-       a.flag0:=a.flag0 or ((__unused shl bp_DDEPOKE_unused) and bm_DDEPOKE_unused);
+       a.flag0:=(a.flag0 and not bm_DDEPOKE_unused) or ((__unused shl bp_DDEPOKE_unused) and bm_DDEPOKE_unused);
     end;
 
   function fRelease(var a : DDEPOKE) : word;
@@ -9909,7 +9909,7 @@ type
 
   procedure set_fRelease(var a : DDEPOKE; __fRelease : word);
     begin
-       a.flag0:=a.flag0 or ((__fRelease shl bp_DDEPOKE_fRelease) and bm_DDEPOKE_fRelease);
+       a.flag0:=(a.flag0 and not bm_DDEPOKE_fRelease) or ((__fRelease shl bp_DDEPOKE_fRelease) and bm_DDEPOKE_fRelease);
     end;
 
   function fReserved(var a : DDEPOKE) : word;
@@ -9919,7 +9919,7 @@ type
 
   procedure set_fReserved(var a : DDEPOKE; __fReserved : word);
     begin
-       a.flag0:=a.flag0 or ((__fReserved shl bp_DDEPOKE_fReserved) and bm_DDEPOKE_fReserved);
+       a.flag0:=(a.flag0 and not bm_DDEPOKE_fReserved) or ((__fReserved shl bp_DDEPOKE_fReserved) and bm_DDEPOKE_fReserved);
     end;
 
   function unused(var a : DDEUP) : word;
@@ -9929,7 +9929,7 @@ type
 
   procedure set_unused(var a : DDEUP; __unused : word);
     begin
-       a.flag0:=a.flag0 or ((__unused shl bp_DDEUP_unused) and bm_DDEUP_unused);
+       a.flag0:=(a.flag0 and not bm_DDEUP_unused) or ((__unused shl bp_DDEUP_unused) and bm_DDEUP_unused);
     end;
 
   function fAck(var a : DDEUP) : word;
@@ -9939,7 +9939,7 @@ type
 
   procedure set_fAck(var a : DDEUP; __fAck : word);
     begin
-       a.flag0:=a.flag0 or ((__fAck shl bp_DDEUP_fAck) and bm_DDEUP_fAck);
+       a.flag0:=(a.flag0 and not bm_DDEUP_fAck) or ((__fAck shl bp_DDEUP_fAck) and bm_DDEUP_fAck);
     end;
 
   function fRelease(var a : DDEUP) : word;
@@ -9949,7 +9949,7 @@ type
 
   procedure set_fRelease(var a : DDEUP; __fRelease : word);
     begin
-       a.flag0:=a.flag0 or ((__fRelease shl bp_DDEUP_fRelease) and bm_DDEUP_fRelease);
+       a.flag0:=(a.flag0 and not bm_DDEUP_fRelease) or ((__fRelease shl bp_DDEUP_fRelease) and bm_DDEUP_fRelease);
     end;
 
   function fReserved(var a : DDEUP) : word;
@@ -9959,7 +9959,7 @@ type
 
   procedure set_fReserved(var a : DDEUP; __fReserved : word);
     begin
-       a.flag0:=a.flag0 or ((__fReserved shl bp_DDEUP_fReserved) and bm_DDEUP_fReserved);
+       a.flag0:=(a.flag0 and not bm_DDEUP_fReserved) or ((__fReserved shl bp_DDEUP_fReserved) and bm_DDEUP_fReserved);
     end;
 
   function fAckReq(var a : DDEUP) : word;
@@ -9969,7 +9969,7 @@ type
 
   procedure set_fAckReq(var a : DDEUP; __fAckReq : word);
     begin
-       a.flag0:=a.flag0 or ((__fAckReq shl bp_DDEUP_fAckReq) and bm_DDEUP_fAckReq);
+       a.flag0:=(a.flag0 and not bm_DDEUP_fAckReq) or ((__fAckReq shl bp_DDEUP_fAckReq) and bm_DDEUP_fAckReq);
     end;
 
   {$i typshrd.inc}
