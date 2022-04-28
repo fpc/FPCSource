@@ -5,7 +5,7 @@ unit utestpem;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry, fpasn, fppem;
+  Classes, SysUtils, fpcunit, testregistry, fpasn, fppem, fprsa;
 
 Type
 
@@ -14,12 +14,12 @@ Type
   TTestPEM = Class(TTestCase)
   Published
     Procedure TestLoad;
+    Procedure TestRSA_RS256Verify;
   end;
 
 implementation
 
 uses basenenc, fphashutils, fpecc;
-
 
 { TTestPEM }
 Const
@@ -55,7 +55,7 @@ begin
   try
     Res:=FileExists(PrivateKeyFile) and PemIsECDSA(PrivateKeyFile, List);
     if Res then
-       PemLoadPublicKey64FromList(List, PrivateKey, PublicKey, PublicKeyX64, PublicKeyY64);
+      PemLoadPublicKey64FromList(List, PrivateKey, PublicKey, PublicKeyX64, PublicKeyY64);
     AssertEquals('Private key',resprivatekey,BytesToHexStr(BytesFromVar(@PrivateKey,Sizeof(PrivateKey))));
     AssertEquals('Public  key',respublickey,BytesToHexStr(BytesFromVar(@PublicKey,Sizeof(PublicKey))));
     AssertEquals('X',resX,PublicKeyX64);
@@ -69,6 +69,12 @@ begin
   finally
     List.Free;
   end;
+end;
+
+procedure TTestPEM.TestRSA_RS256Verify;
+begin
+  if not fprsa.TestRS256Verify then
+    Fail('TestRS256Verify');
 end;
 
 initialization
