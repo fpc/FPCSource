@@ -335,7 +335,7 @@ begin
     begin
       Line:=sl[i];
       if not PemLineIsBase64(Line) then
-        exit;
+        raise Exception.Create('20220428220523');
       TxtBase64:=TxtBase64+Line;
     end;
     Result:=basenenc.Base64.Decode(TxtBase64,True);

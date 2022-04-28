@@ -13,7 +13,7 @@ interface
 
 uses SysUtils;
 
-{ $DEFINE BIGINT_DEBUG}         // Enable debug output/functions for BitInt unit
+{$DEFINE BIGINT_DEBUG}         // Enable debug output/functions for BitInt unit
 
 const
   // Maintain a number of precomputed variables when doing reduction
@@ -43,9 +43,6 @@ type
   PBISignedLongComponent = ^TBISignedLongComponent;
   TBISignedLongComponent = Int64; // A signed double precision component
 
-  PBIComponents = ^TBIComponents;
-  TBIComponents = array[0..(MaxInt div SizeOf(TBIComponent))-1] of TBIComponent;
-
 type
   PPBigInt = ^PBigInt;
   PBigInt = ^TBigInt;
@@ -57,8 +54,6 @@ type
     Components: PBIComponent;  // A ptr to the actual component data
     procedure ToString(out S: AnsiString);
   end;
-  PBigInts = ^TBigInts;
-  TBigInts = array[0..(MaxInt div SizeOf(PBigInt)) - 1] of PBigInt;
 
   {Maintains the state of the cache, and a number of variables used in reduction}
   PBigIntContext = ^TBigIntContext;
@@ -80,12 +75,12 @@ procedure BIInitialize(out Context: TBigIntContext);
 procedure BITerminate(var Context: TBigIntContext);
 procedure BIPermanent(BI: PBigInt);
 procedure BIDepermanent(BI: PBigInt);
-procedure BIRelease(var Context: TBigIntContext; BI:PBigInt);
+procedure BIRelease(var Context: TBigIntContext; BI: PBigInt);
 
 function BICopy(BI: PBigInt): PBigInt;
 function BIClone(var Context: TBigIntContext; const BI: TBigInt): PBigInt;
 
-procedure BIExport(var Context: TBigIntContext; BI: PBigInt; Data: PByte; Size: Integer);
+procedure BIExport(var Context: TBigIntContext; BI: PBigInt; Data: PByte; Size: Integer; Release: boolean = true);
 function BIImport(var Context: TBigIntContext; Data: PByte; const Size: Integer): PBigInt; overload;
 function BIImport(var Context: TBigIntContext; const Data: TBytes): PBigInt; overload;
 function BIImport(var Context: TBigIntContext; const Data: AnsiString): PBigInt; overload;
@@ -142,23 +137,19 @@ end;
 {Perform a sanity check on bi}
 function BICheck(const BI: TBigInt): Boolean; inline;
 begin
-{$IFDEF BIGINT_DEBUG}
+  {$IFDEF BIGINT_DEBUG}
   if BI.References <= 0 then
   begin
-    XLog(tlDebug, 'TLS', 'BICheck - Zero or negative References in TBigInt');
-    Result := False;
-    Exit;
+    writeln('BICheck - Zero or negative References in TBigInt');
+    raise Exception.Create('20220428201452');
   end;
   if BI.Next <> nil then
   begin
-    XLog(tlDebug, 'TLS', 'BICheck - Attempt to use a TBigInt from the free list');
-    Result := False;
-    Exit;
+    writeln('BICheck - Attempt to use a TBigInt from the free list');
+    raise Exception.Create('20220428201508');
   end;
+  {$ENDIF}
   Result:=True;
-{$ELSE}
-  Result:=True;
-{$ENDIF}
 end;
 
 // Delete any leading 0's (and allow for 0)
@@ -166,14 +157,11 @@ procedure BITrim(BI: PBigInt);
 begin
   if not BICheck(BI^) then
     Exit;
-  while (PBIComponents(BI^.Components)^[BI^.Size-1] = 0) and (BI^.Size > 1) do
+  while (BI^.Components[BI^.Size-1] = 0) and (BI^.Size > 1) do
     Dec(BI^.Size);
 end;
 
-procedure BIAddComponents(var Context: TBigIntContext; BI: PBigInt; N: Integer);
-var
-  OldComponents: PBIComponent;
-  OldMaxComponents: Int32;
+procedure BIResizeComponents(BI: PBigInt; N: Integer);
 begin
   if N > BI^.MaxComponents then
   begin
@@ -181,7 +169,7 @@ begin
     ReAllocMem(BI^.Components, BI^.MaxComponents*BIGINT_COMP_BYTE_SIZE);
   end;
   if N > BI^.Size then
-    FillChar(PBIComponents(BI^.Components)^[BI^.Size], (N-BI^.Size)*BIGINT_COMP_BYTE_SIZE, 0);
+    FillByte(BI^.Components[BI^.Size], (N-BI^.Size)*BIGINT_COMP_BYTE_SIZE, 0);
   BI^.Size := N;
 end;
 
@@ -190,21 +178,18 @@ begin
   if Context.FreeList <> nil then
   begin
     Result := Context.FreeList;
+    if Result^.References <> 0 then
+      raise Exception.Create('20220428200026');
     Context.FreeList := Result^.Next;
     Dec(Context.FreeCount);
-    if Result^.References <> 0 then
-    begin
-      Result := nil;
-      Exit;
-    end;
-    BIAddComponents(Context, Result, Size);
+    BIResizeComponents(Result, Size);
   end else
   begin
     Result := AllocMem(SizeOf(TBigint));
     Result^.Components := AllocMem((Size*2)*BIGINT_COMP_BYTE_SIZE);
     Result^.MaxComponents := Size*2; // Allow space to expand
+    Result^.Size := Size;
   end;
-  Result^.Size := Size;
   Result^.References := 1;
   Result^.Next := nil;
   Inc(Context.ActiveCount);
@@ -218,7 +203,7 @@ var
 begin
   I := BIGINT_COMP_BIT_SIZE-1;
   Shift:=BIGINT_COMP_RADIX div 2;
-  Test:=PBIComponents(BIExp^.Components)^[BIExp^.Size - 1]; {Assume no leading zeroes}
+  Test:=BIExp^.Components[BIExp^.Size - 1]; {Assume no leading zeroes}
   if not BICheck(BIExp^) then
   begin
     Result:=-1;
@@ -242,12 +227,12 @@ var
   NumShifts: Integer;
   Shift, Test: TBIComponent;
 begin
-  Test := PBIComponents(BIExp^.Components)^[Offset div BIGINT_COMP_BIT_SIZE];
+  Test := BIExp^.Components[Offset div BIGINT_COMP_BIT_SIZE];
   NumShifts := Offset mod BIGINT_COMP_BIT_SIZE;
   if not BICheck(BIExp^) then
   begin
-   Result := False;
-   Exit;
+    Result := False;
+    Exit;
   end;
   Shift := 1 shl NumShifts;
   Result := (Test and Shift) <> 0;
@@ -274,7 +259,7 @@ begin
   A := BIA^.Components;
   FillChar(R^, (N+1) * BIGINT_COMP_BYTE_SIZE, 0);
   repeat
-    Tmp := R^ + TBILongComponent(PBIComponents(A)^[J]) * B + Carry; // Avoid overflow
+    Tmp := R^ + TBILongComponent(A[J]) * B + Carry; // Avoid overflow
     R^ := Tmp; // Downsize
     Inc(R);
     Carry := Tmp shr BIGINT_COMP_BIT_SIZE;
@@ -285,7 +270,7 @@ begin
   BITrim(Result);
 end;
 
-function BIIntDivide(var Context: TBigIntContext; BIR: PBigInt; Denom: TBIComponent): PBigInt;
+function BIIntDivide(BIR: PBigInt; Denom: TBIComponent): PBigInt;
 var
   I: Integer;
   R: TBILongComponent;
@@ -298,8 +283,8 @@ begin
   I := BIR^.Size-1;
   R := 0;
   repeat
-    R := (R shl BIGINT_COMP_BIT_SIZE) + PBIComponents(BIR^.Components)^[I];
-    PBIComponents(BIR^.Components)^[I] := R div Denom;
+    R := (R shl BIGINT_COMP_BIT_SIZE) + BIR^.Components[I];
+    BIR^.Components[I] := R div Denom;
     R := R mod Denom;
     Dec(I);
   until I < 0;
@@ -320,10 +305,10 @@ begin
   end;
   I := BIR^.Size-NumShifts;
   X := BIR^.Components;
-  Y := @PBIComponents(BIR^.Components)^[NumShifts];
+  Y := @BIR^.Components[NumShifts];
   if I <= 0 then // Have we completely right shifted?
   begin
-    PBIComponents(BIR^.Components)^[0]:=0; {Return 0}
+    BIR^.Components[0]:=0; {Return 0}
     BIR^.Size:=1;
     Result:=BIR;
     Exit;
@@ -339,7 +324,7 @@ begin
 end;
 
 // Take each component and shift it up (in terms of components)
-function BICompLeftShift(var Context: TBigIntContext; BIR: PBigInt; NumShifts: Integer): PBigInt;
+function BICompLeftShift(BIR: PBigInt; NumShifts: Integer): PBigInt;
 var
  I: Integer;
  X: PBIComponent;
@@ -356,16 +341,16 @@ begin
     Result:=BIR;
     Exit;
   end;
-  BIAddComponents(Context, BIR, BIR^.Size+NumShifts);
-  X := @(PBIComponents(BIR^.Components)^[I + NumShifts]);
-  Y := @(PBIComponents(BIR^.Components)^[I]);
+  BIResizeComponents(BIR, BIR^.Size+NumShifts);
+  X := @(BIR^.Components[I + NumShifts]);
+  Y := @(BIR^.Components[I]);
   repeat
     X^ := Y^;
     Dec(X);
     Dec(Y);
     Dec(I);
   until I < 0;
-  FillChar(BIR^.Components^, NumShifts*BIGINT_COMP_BYTE_SIZE, 0); // Zero least significant components
+  FillByte(BIR^.Components^, NumShifts*BIGINT_COMP_BYTE_SIZE, 0); // Zero least significant components
   Result := BIR;
 end;
 
@@ -390,7 +375,7 @@ begin
   SR := BIR^.Components;
   SA := BIA^.Components;
   SB := BIB^.Components;
-  FillChar(BIR^.Components^, (N+T) * BIGINT_COMP_BYTE_SIZE, 0);
+  FillByte(BIR^.Components^, (N+T) * BIGINT_COMP_BYTE_SIZE, 0);
   repeat
     Carry := 0;
     RIndex := I;
@@ -403,13 +388,13 @@ begin
     repeat
       if (InnerPartial > 0) and (RIndex >= InnerPartial) then
         Break;
-      Tmp := PBIComponents(SR)^[RIndex] + TBILongComponent(PBIComponents(SA)^[J]) * PBIComponents(SB)^[I] + Carry; // Avoid overflow
-      PBIComponents(SR)^[RIndex] := Tmp; // Downsize
+      Tmp := SR[RIndex] + TBILongComponent(SA[J]) * SB[I] + Carry; // Avoid overflow
+      SR[RIndex] := Tmp; // Downsize
       Inc(RIndex);
       Carry := Tmp shr BIGINT_COMP_BIT_SIZE;
       Inc(J);
     until J >= N;
-    PBIComponents(SR)^[RIndex] := Carry;
+    SR[RIndex] := Carry;
     Inc(I);
   until I >= T;
   BIRelease(Context,BIA);
@@ -435,32 +420,32 @@ begin
   X := BI^.Components;
   FillChar(W^,BIR^.Size * BIGINT_COMP_BYTE_SIZE,0);
   repeat
-    Tmp := PBIComponents(W)^[2*I] + TBILongComponent(PBIComponents(X)^[I]) * PBIComponents(X)^[I]; // Avoid overflow
-    PBIComponents(W)^[2 * I] := Tmp;
+    Tmp := W[2*I] + TBILongComponent(X[I]) * X[I]; // Avoid overflow
+    W[2 * I] := Tmp;
     Carry := Tmp shr BIGINT_COMP_BIT_SIZE;
     J := I+1;
     while J < T do
     begin
       C := 0;
-      XX := TBILongComponent(PBIComponents(X)^[I]) * PBIComponents(X)^[J]; // Avoid overflow
+      XX := TBILongComponent(X[I]) * X[J]; // Avoid overflow
       if BIGINT_COMP_MAX-XX < XX then
         C := 1;
       Tmp := XX shl 1;
-      if BIGINT_COMP_MAX-Tmp < PBIComponents(W)^[I + J] then
+      if BIGINT_COMP_MAX-Tmp < W[I + J] then
         C := 1;
-      Tmp := Tmp + PBIComponents(W)^[I + J];
+      Tmp := Tmp + W[I + J];
       if BIGINT_COMP_MAX-Tmp < Carry then
         C := 1;
       Tmp := Tmp + Carry;
-      PBIComponents(W)^[I + J] := Tmp;
+      W[I + J] := Tmp;
       Carry := Tmp shr BIGINT_COMP_BIT_SIZE;
       if C > 0 then
         Carry := Carry + BIGINT_COMP_RADIX;
       Inc(J);
     end;
-    Tmp := PBIComponents(W)^[I+T]+Carry;
-    PBIComponents(W)^[I+T] := Tmp;
-    PBIComponents(W)^[I+T+1] := Tmp shr BIGINT_COMP_BIT_SIZE;
+    Tmp := W[I+T]+Carry;
+    W[I+T] := Tmp;
+    W[I+T+1] := Tmp shr BIGINT_COMP_BIT_SIZE;
     Inc(I);
   until I >= T;
   BIRelease(Context, BI);
@@ -495,44 +480,49 @@ begin
     Inc(I);
   end;
   Context.G := AllocMem(K*SizeOf(PBigInt));
-  PBigInts(Context.G)^[0] := BIClone(Context, G1^);
-  BIPermanent(PBigInts(Context.G)^[0]);
-  G2 := BIResidue(Context, BISquare(Context, PBigInts(Context.G)^[0])); {g^2}
+  Context.G[0] := BIClone(Context, G1^);
+  BIPermanent(Context.G[0]);
+  G2 := BIResidue(Context, BISquare(Context, Context.G[0])); {g^2}
   for I := 1 to K-1 do
   begin
-    PBigInts(Context.G)^[I] := BIResidue(Context, BIMultiply(Context, PBigInts(Context.G)^[I-1], BICopy(G2)));
-    BIPermanent(PBigInts(Context.G)^[I]);
+    Context.G[I] := BIResidue(Context, BIMultiply(Context, Context.G[I-1], BICopy(G2)));
+    BIPermanent(Context.G[I]);
   end;
   BIRelease(Context, G2);
   Context.Window := K;
 end;
 
 procedure BIInitialize(out Context: TBigIntContext);
+var
+  BIRadix: PBigInt;
 begin
   Context:=Default(TBigIntContext);
-  Context.BIRadix := BIAllocate(Context, 2);
-  PBIComponents(Context.BIRadix^.Components)^[0] := 0;
-  PBIComponents(Context.BIRadix^.Components)^[1] := 1;
-  BIPermanent(Context.BIRadix);
+  BIRadix:=BIAllocate(Context, 2);
+  Context.BIRadix := BIRadix;
+  BIRadix^.Components[0] := 0;
+  BIRadix^.Components[1] := 1;
+  BIPermanent(BIRadix);
 end;
 
 // Close the bigint context and free any resources
 procedure BITerminate(var Context: TBigIntContext);
 
 Var
-  BI,BN : PBigInt;
+  BI,BNext : PBigInt;
 
 begin
-  FreeMem(Context.BIRadix);
+  BIRelease(Context, Context.BIRadix);
+  Context.BIRadix := nil;
   BI:=Context.FreeList;
   While BI<>Nil do
     begin
-    BN:=BI^.Next;
+    BNext:=BI^.Next;
     if BI^.Components<>Nil then
       FreeMem(BI^.Components);
     FreeMem(BI);
-    BI:=BN;
+    BI:=BNext;
     end;
+  Context.FreeList:=nil;
 end;
 
 // Make a bigint object "unfreeable" if BIFree() is called on it
@@ -541,24 +531,17 @@ begin
   if not BICheck(BI^) then
     Exit;
   if BI^.References <> 1 then
-  begin
-    //XLog(tlDebug, 'TLS', 'BIPermanent - References not equal to one');
-    //To Do //Log Error /Raise Exception
-    Exit;
-  end;
+    raise Exception.Create('20220428195735');
   BI^.References := BIGINT_PERMANENT;
 end;
 
 // Take a permanent object and make it freeable
 procedure BIDepermanent(BI: PBigInt);
 begin
-  if not BICHeck(BI^) then
+  if not BICheck(BI^) then
     Exit;
   if BI^.References <> BIGINT_PERMANENT then
-  begin
-    // XLog(tlDebug, 'TLS', 'BIDepermanent - References not equal to BIGINT_PERMANENT');
-    Exit;
-  end;
+    raise Exception.Create('20220428203636');
   BI^.References := 1;
 end;
 
@@ -576,8 +559,10 @@ begin
   Context.FreeList := BI;
   Inc(Context.FreeCount);
   Dec(Context.ActiveCount);
-//  if Context.ActiveCount < 0 then
-//    XLog(tlWarning, 'TLS', 'BIFree - ActiveCount less than zero');
+  {$IFDEF BIGINT_DEBUG}
+  if Context.ActiveCount < 0 then
+    raise Exception.Create('20220428203546');
+  {$ENDIF}
 end;
 
 {==============================================================================}
@@ -606,7 +591,8 @@ begin
   System.Move(BI.Components^, Result^.Components^, BI.Size*BIGINT_COMP_BYTE_SIZE);
 end;
 
-procedure BIExport(var Context: TBigIntContext; BI: PBigInt; Data: PByte; Size: Integer);
+procedure BIExport(var Context: TBigIntContext; BI: PBigInt; Data: PByte;
+  Size: Integer; Release: boolean);
 {Take a bigint and convert it into a byte sequence}
 {Context: The bigint session context}
 {BI: The bigint to be converted}
@@ -616,28 +602,25 @@ var
   I: Integer;
   J: Integer;
   K: Integer;
-  Mask: TBIComponent;
-  Num: Integer;
 begin
   if not BICheck(BI^) then
     Exit;
-  FillChar(Data^,Size,0);
+  FillByte(Data^,Size,0);
   K := Size-1;
   try
     for I := 0 to BI^.Size - 1 do
     begin
       for J := 0 to BIGINT_COMP_BYTE_SIZE - 1 do
       begin
-        Mask := $FF shl (J * 8);
-        Num := (PBIComponents(BI^.Components)^[I] and Mask) shr (J * 8);
-        PByteArray(Data)^[K]:=Num;
+        Data[K]:=(BI^.Components[I] shr (J * 8)) and $ff;
         Dec(K);
         if K < 0 then
           Exit;
       end;
     end;
   finally
-    BIRelease(Context,BI);
+    if Release then
+      BIRelease(Context,BI);
   end;
 end;
 
@@ -651,10 +634,10 @@ begin
   J := 0;
   Offset := 0;
   Result := BIAllocate(Context, (Size+BIGINT_COMP_BYTE_SIZE-1) div BIGINT_COMP_BYTE_SIZE);
-  FillChar(Result^.Components^, Result^.Size*BIGINT_COMP_BYTE_SIZE, 0);
+  FillByte(Result^.Components^, Result^.Size*BIGINT_COMP_BYTE_SIZE, 0);
   for I := Size-1 downto 0 do
   begin
-    PBIComponents(Result^.Components)^[Offset] := PBIComponents(Result^.Components)^[Offset] + (PByteArray(Data)^[I] shl (J * 8));
+    Result^.Components[Offset] := Result^.Components[Offset] + (TBIComponent(Data[I]) shl (J * 8));
     Inc(J);
     if J = BIGINT_COMP_BYTE_SIZE then
     begin
@@ -666,7 +649,7 @@ end;
 
 function BIImport(var Context: TBigIntContext; const Data: TBytes): PBigInt;
 begin
-  Result := BIImport(Context, PByte(Data), Length(Data));
+  Result := BIImport(Context, @Data[0], Length(Data));
 end;
 
 function BIImport(var Context: TBigIntContext; const Data: AnsiString): PBigInt; overload;
@@ -681,7 +664,7 @@ end;
 function IntToBI(var Context: TBigIntContext; I: TBIComponent): PBigInt;
 begin
   Result := BIAllocate(Context,1);
-  PBIComponents(Result^.Components)^[0] := I;
+  Result^.Components[0] := I;
 end;
 
 function BIAdd(var Context: TBigIntContext; BIA, BIB: PBigInt): PBigInt;
@@ -701,8 +684,8 @@ begin
     Exit;
   end;
   N := Max(BIA^.Size, BIB^.Size);
-  BIAddComponents(Context, BIA, N+1);
-  BIAddComponents(Context, BIB, N);
+  BIResizeComponents(BIA, N+1);
+  BIResizeComponents(BIB, N);
   PA := BIA^.Components;
   PB := BIB^.Components;
   repeat
@@ -746,7 +729,7 @@ begin
     Exit;
   end;
   N := BIA^.Size;
-  BIAddComponents(Context, BIB, N);
+  BIResizeComponents(BIB, N);
   PA := BIA^.Components;
   PB := BIB^.Components;
   repeat
@@ -780,17 +763,17 @@ function BIDivide(var Context: TBigIntContext; U, V: PBigInt; IsMod: Boolean): P
 
   function BIDivide_V1(V:PBigInt):TBIComponent; inline;
   begin // V1 for division
-    Result := PBIComponents(V^.Components)^[V^.Size-1];
+    Result := V^.Components[V^.Size-1];
   end;
 
   function BIDivide_V2(V: PBigInt): TBIComponent; inline;
   begin  // V2 for division
-    Result := PBIComponents(V^.Components)^[V^.Size-2];
+    Result := V^.Components[V^.Size-2];
   end;
 
   function BIDivide_U(TmpU: PBigInt; J: Integer): TBIComponent; inline;
   begin // U(J) for division
-    Result := PBIComponents(TmpU^.Components)^[TmpU^.Size-J-1];
+    Result := TmpU^.Components[TmpU^.Size-J-1];
   end;
 
 var
@@ -833,10 +816,10 @@ begin
       V:=BIIntMultiply(Context,V,D);
   end;
   if OrigUSize = U^.Size then
-    BIAddComponents(Context, U, OrigUSize+1); // New digit position u0
+    BIResizeComponents(U, OrigUSize+1); // New digit position u0
   repeat
     // Get a temporary short version of u
-    System.Move(PBIComponents(U^.Components)^[U^.Size-N-1-J], TmpU^.Components^, (N+1) * BIGINT_COMP_BYTE_SIZE);
+    System.Move(U^.Components[U^.Size-N-1-J], TmpU^.Components^, (N+1) * BIGINT_COMP_BYTE_SIZE);
     // Calculate q'
     if BIDivide_U(TmpU, 0) = BIDivide_V1(V) then
     begin
@@ -855,11 +838,11 @@ begin
     if QDash > 0 then
     begin // Multiply and subtract
       TmpU := BISubtract(Context, TmpU, BIIntMultiply(Context, BICopy(V), QDash), IsNegative);
-      BIAddComponents(Context, TmpU, N+1);
-      PBIComponents(Quotient^.Components)^[Quotient^.Size-J-1] := QDash;
+      BIResizeComponents(TmpU, N+1);
+      Quotient^.Components[Quotient^.Size-J-1] := QDash;
       if IsNegative then
       begin // Add back
-        Dec(PBIComponents(Quotient^.Components)^[Quotient^.Size-J-1]);
+        Dec(Quotient^.Components[Quotient^.Size-J-1]);
         TmpU := BIAdd(Context, TmpU, BICopy(V));
         // Lop off the carry
         Dec(TmpU^.Size);
@@ -867,10 +850,10 @@ begin
       end;
     end else
     begin
-      PBIComponents(Quotient^.Components)^[Quotient^.Size-J-1] := 0;
+      Quotient^.Components[Quotient^.Size-J-1] := 0;
     end;
     // Copy back to U
-    System.Move(TmpU^.Components^, PBIComponents(U^.Components)^[U^.Size-N-1-J], (N+1) * BIGINT_COMP_BYTE_SIZE);
+    System.Move(TmpU^.Components^, U^.Components[U^.Size-N-1-J], (N+1) * BIGINT_COMP_BYTE_SIZE);
     Inc(J);
   until J > M;
   BIRelease(Context, TmpU);
@@ -879,7 +862,7 @@ begin
   begin // Get the remainder
     BIRelease(Context, Quotient);;
     BITrim(U);
-    Result := BIIntDivide(Context, U, D);
+    Result := BIIntDivide(U, D);
   end else
   begin // Get the quotient
     BIRelease(Context, U);
@@ -950,7 +933,7 @@ begin
         Dec(J);
       end;
       PartExp := (PartExp-1) div 2; // Adjust for array
-      BIR := BIResidue(Context, BIMultiply(Context, BIR, PBigInts(Context.G)^[PartExp]));
+      BIR := BIResidue(Context, BIMultiply(Context, BIR, Context.G[PartExp]));
       I := L-1;
     end else
     begin // Square it
@@ -960,8 +943,8 @@ begin
   until I < 0;
   for I := 0 to Context.Window-1 do
   begin // Cleanup
-    BIDepermanent(PBigInts(Context.G)^[I]);
-    BIRelease(Context, PBigInts(Context.G)^[I]);
+    BIDepermanent(Context.G[I]);
+    BIRelease(Context, Context.G[I]);
   end;
   BIRelease(Context, BI);
   BIRelease(Context, BIExp);
@@ -1016,24 +999,17 @@ begin
     Result := -1;
     Exit;
   end;
+  // Same number of components. Compare starting from the high end and working down
   A := BIA^.Components;
   B := BIB^.Components;
-  // Same number of components. Compare starting from the high end and working down
+  for I := BIA^.Size-1 downto 0 do
+  begin
+    if A[I] > B[I] then
+      Exit(1)
+    else if A[I] < B[I] then
+      Exit(-1);
+  end;
   Result := 0;
-  I := BIA^.Size-1;
-  repeat
-    if PBIComponents(A)^[I] > PBIComponents(B)^[I] then
-    begin
-      Result := 1;
-      Exit;
-    end;
-    if PBIComponents(A)^[I] < PBIComponents(B)^[I] then
-    begin
-      Result := -1;
-      Exit;
-    end;
-    Dec(I);
-  until I < 0;
 end;
 
 // Pre-compute some of the expensive steps in reduction
@@ -1047,14 +1023,14 @@ var
   K: Integer;
 begin
   K := BIM^.Size;
-  D := BIGINT_COMP_RADIX div (TBILongComponent(PBIComponents(BIM^.Components)^[K-1]) + 1);
+  D := BIGINT_COMP_RADIX div (TBILongComponent(BIM^.Components[K-1]) + 1);
   Context.BIMod[ModOffset] := BIM;
   BIPermanent(Context.BIMod[ModOffset]);
   Context.BINormalisedMod[ModOffset] := BIIntMultiply(Context, BIM, D);
   BIPermanent(Context.BINormalisedMod[ModOffset]);
-  Context.BImu[ModOffset] := BIDivide(Context, BICompLeftShift(Context, BIClone(Context, Context.BIRadix^), K*2-1), Context.BIMod[ModOffset], False);
+  Context.BImu[ModOffset] := BIDivide(Context, BICompLeftShift(BIClone(Context, Context.BIRadix^), K*2-1), Context.BIMod[ModOffset], False);
   BIPermanent(Context.BImu[ModOffset]);
-  Context.BIbk1[ModOffset] := BICompLeftShift(Context, IntToBI(Context,1), K+1);
+  Context.BIbk1[ModOffset] := BICompLeftShift(IntToBI(Context,1), K+1);
   BIPermanent(Context.BIbk1[ModOffset]);
 end;
 
@@ -1144,7 +1120,7 @@ begin
     end;
     Result := BIRegularSquare(Context, BI);
   {$ELSE}
-    Result := BIMultiply(Context, BICopy(BI), BI)
+    Result := BIMultiply(Context, BICopy(BI), BI);
   {$ENDIF}
 end;
 
@@ -1187,7 +1163,7 @@ begin
     for J := BIGINT_COMP_NUM_NIBBLES-1 downto 0 do
     begin
       Mask := $0F shl (J*4);
-      Num := (PBIComponents(BI^.Components)^[I] and Mask) shr (J*4);
+      Num := (BI^.Components[I] and Mask) shr (J*4);
       S[K]:=Digits[Num and $F];
       inc(K);
     end;
@@ -1220,7 +1196,7 @@ begin
       Result := nil;
       Exit;
     end;
-    PBIComponents(BIR^.Components)^[Offset] := PBIComponents(BIR^.Components)^[Offset] + LongWord(Num shl (J * 4));
+    BIR^.Components[Offset] := BIR^.Components[Offset] + (LongWord(Num) shl (J * 4));
     Inc(J);
     if J = BIGINT_COMP_NUM_NIBBLES then
     begin

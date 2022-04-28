@@ -159,10 +159,9 @@ begin
   try
     ASNParse(PublicKeyDER,List);
 
-    //for i:=0 to List.Count-1 do begin
-    //  ASNParse_GetItem(List,i,ASNType,ASNSize);
-    //  writeln('X509RsaPublicKeyInitFromDER ',i,'/',List.Count,' ASNType=',hexstr(ASNType,2),' ASNSize=',ASNSize,' S="',List[i],'"');
-    //end;
+    {$IFDEF TLS_DEBUG}
+    ASNDebugList('X509RsaPublicKeyInitFromDER',List);
+    {$ENDIF}
 
     if List.Count<7 then
       raise Exception.Create('20220428180055');
@@ -186,7 +185,6 @@ begin
 
     // check null
     ASNParse_GetItem(List,3,ASNType,ASNSize);
-    writeln('X509RsaPublicKeyInitFromDER ',ASNType,' ',ASNSize);
     if ASNType<>ASN1_NULL then
       raise Exception.Create('20220428181659');
 
@@ -206,8 +204,8 @@ begin
 
     {$IFDEF TLS_DEBUG}
     writeln('X509RsaPublicKeyInitFromDER: ');
-    writeln('  Modulus=',BytesToHexStr(RSA.Modulus));
-    writeln('  Exponent=',BytesToHexStr(RSA.Exponent));
+    writeln('  Modulus=$',BytesToHexStr(RSA.Modulus));
+    writeln('  Exponent=$',BytesToHexStr(RSA.Exponent));
     {$ENDIF}
   finally
     List.Free;
@@ -330,12 +328,12 @@ begin
   if Len > Size-11 then
     Exit;
   {$IFDEF CRYPTO_DEBUG}
-    writeln('RSAEncryptSign - Len = ' + IntToStr(Len) + ' Size = ' + IntToStr(Size) + ' Padding = ' + IntToStr(Padding)); //To Do
+  writeln('RSAEncryptSign - Len = ' + IntToStr(Len) + ' Size = ' + IntToStr(Size) + ' Padding = ' + IntToStr(Padding)); //To Do
   {$ENDIF}
   if Size > RSA_MODULUS_BYTES_MAX then
     Imported := GetMem(Size)
   else
-    Imported := @Block;
+    Imported := @Block[0];
   try
     // Leading zero to ensure encryption block is less than modulus (when converted to an integer)
     Imported[0]:=0;
@@ -373,14 +371,14 @@ begin
     if Sign then
     begin
       // Sign with Private Key
-      Encrypted:=BICRT(RSA.Context,Decrypted,RSA.DP,RSA.DQ,RSA.P,RSA.Q,RSA.QInv);
+      Encrypted:=BICRT(RSA.Context,Decrypted,RSA.DP,RSA.DQ,RSA.P,RSA.Q,RSA.QInv); // this releases Decrypted
     end else
     begin
       // Encrypt with Public Key
       RSA.Context.ModOffset:=BIGINT_M_OFFSET;
-      Encrypted:=BIModPower(RSA.Context,Decrypted,RSA.E);
+      Encrypted:=BIModPower(RSA.Context,Decrypted,RSA.E); // this releases Decrypted
     end;
-    BIExport(RSA.Context,Encrypted,Output,Size);
+    BIExport(RSA.Context,Encrypted,Output,Size); // this releases Encrypted
 
     {$IFDEF CRYPTO_DEBUG}
     writeln('RSAEncryptSign - Output Size = ' + IntToStr(Size) + ' Output = ',Output,Size);
