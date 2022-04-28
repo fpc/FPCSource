@@ -16,7 +16,7 @@ Type
   protected
     procedure GetPEM_PrivateKeyRSA2048bit(out PrivatePEM, PublicPEM: string);
   Published
-    Procedure TestLoad;
+    Procedure TestECC_Load;
     Procedure TestRSA_RS256Verify;
     Procedure TestRSA_PrivatePublicPEM_NoPassphrase;
   end;
@@ -85,7 +85,7 @@ begin
     '-----END PUBLIC KEY-----' ]);
 end;
 
-procedure TTestPEM.TestLoad;
+procedure TTestPEM.TestECC_Load;
 
 Const
   // Hex encoded keys, Obtained using XMLRAD
@@ -166,19 +166,18 @@ begin
     AssertEquals('PublicRSA.ModulusLen=PrivateRSA.ModulusLen',PublicRSA.ModulusLen,PrivateRSA.ModulusLen);
     if BICompare(PublicRSA.M,PrivateRSA.M)<>0 then
       Fail('PublicRSA.M = PrivateRSA.M');
-
     if BICompare(PublicRSA.E,PrivateRSA.E)<>0 then
       Fail('PublicRSA.E = PrivateRSA.E');
 
     Original:=SecretMsg;
 
-    // encrypt
+    // encrypt with public key
     SetLength(Encrypted{%H-},PublicRSA.ModulusLen);
     EncryptedLen:=RSAEncryptSign(PublicRSA,@Original[1],length(Original),@Encrypted[1],false);
     if EncryptedLen<PublicRSA.ModulusLen then
       AssertEquals('EncryptedLen = ModulusLen',EncryptedLen,PublicRSA.ModulusLen);
 
-    // decrypt
+    // decrypt with private key
     SetLength(Decrypted{%H-},EncryptedLen);
     DecryptedLen:=RSADecryptVerify(PrivateRSA,@Encrypted[1],@Decrypted[1],EncryptedLen,false);
 
