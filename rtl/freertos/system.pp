@@ -25,14 +25,6 @@ Unit System;
 {$define FPC_IS_SYSTEM}
 {$define HAS_CMDLINE}
 
-{ currently, the avr compiler cannot compile complex procedures especially dealing with int64
-  which are probably anyways rarely used on avr
-
-  meanwhile, the avr compiler can deal with them (FK) }
-{$ifdef CPUAVR}
-{ $define EXCLUDE_COMPLEX_PROCS}
-{$endif CPUAVR}
-
 { $define USE_NOTHREADMANAGER}
 
 {$define DISABLE_NO_THREAD_MANAGER}
