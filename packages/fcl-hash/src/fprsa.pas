@@ -377,6 +377,7 @@ begin
     {$ENDIF}
 
     // Encrypt the Block
+    // Note: the RSA.M was set in RSAInitFromPublicKey
     Decrypted:=BIImport(RSA.Context,Imported,Size);
     if Sign then
     begin
