@@ -93,7 +93,7 @@ interface
         function def_meta_node(def: tdef): tai_llvmspecialisedmetadatanode;
         function def_meta_ref(def: tdef): tai_simpletypedconst;
         function file_getmetanode(moduleindex: tfileposmoduleindex; fileindex: tfileposfileindex): tai_llvmspecialisedmetadatanode;
-        function filepos_getmetanode(const filepos: tfileposinfo; const functionfileindex: tfileposfileindex; const functionscope: tai_llvmspecialisedmetadatanode; nolineinfo: boolean): tai_llvmspecialisedmetadatanode;
+        function filepos_getmetanode(const filepos: tfileposinfo; const functionfileinfo: tfileposinfo; const functionscope: tai_llvmspecialisedmetadatanode; nolineinfo: boolean): tai_llvmspecialisedmetadatanode;
         function get_def_metatai(def:tdef): PLLVMMetaDefHashSetItem;
 
         procedure appenddef_array_internal(list: TAsmList; fordef: tdef; eledef: tdef; lowrange, highrange: asizeint);
@@ -548,7 +548,7 @@ implementation
       end;
 
 
-    function TDebugInfoLLVM.filepos_getmetanode(const filepos: tfileposinfo; const functionfileindex: tfileposfileindex; const functionscope: tai_llvmspecialisedmetadatanode; nolineinfo: boolean): tai_llvmspecialisedmetadatanode;
+    function TDebugInfoLLVM.filepos_getmetanode(const filepos: tfileposinfo; const functionfileinfo: tfileposinfo; const functionscope: tai_llvmspecialisedmetadatanode; nolineinfo: boolean): tai_llvmspecialisedmetadatanode;
       var
         item: PHashSetItem;
         filemeta,
@@ -564,10 +564,15 @@ implementation
         end;
 
       begin
-        filemeta:=file_getmetanode(filepos.moduleindex,filepos.fileindex);
+        result:=nil;
+        if (filepos.fileindex<>0) then
+          filemeta:=file_getmetanode(filepos.moduleindex,filepos.fileindex)
+        else
+          filemeta:=file_getmetanode(functionfileinfo.moduleindex,functionfileinfo.fileindex);
         if not assigned(filemeta) then
           exit;
-        if filepos.fileindex<>functionfileindex then
+        if (filepos.fileindex<>0) and
+           (filepos.fileindex<>functionfileinfo.fileindex) then
           begin
             lexicalblockkey.scopemeta:=functionscope;
             lexicalblockkey.filemeta:=filemeta;
@@ -588,10 +593,15 @@ implementation
           locationscopemeta:=functionscope;
         locationkey.scope:=locationscopemeta;
         if not nolineinfo then
-          locationkey.line:=filepos.line
+          begin
+            locationkey.line:=filepos.line;
+            locationkey.column:=filepos.column;
+          end
         else
-          locationkey.line:=0;
-        locationkey.column:=filepos.column;
+          begin
+            locationkey.line:=0;
+            locationkey.column:=0;
+          end;
         item:=flocationmeta.FindOrAdd(@locationkey,sizeof(locationkey));
         if not assigned(item^.Data) then
           begin
@@ -2470,13 +2480,18 @@ implementation
                ((nolineinfolevel=0) or
                 (taillvm(hp).llvmopcode=la_call)) then
               begin
+                positionmeta:=nil;
                 { valid file -> add info }
                 if (tailineinfo(hp).fileinfo.fileindex<>0) then
                   begin
-                    positionmeta:=filepos_getmetanode(tailineinfo(hp).fileinfo,procdeffileindex,functionscope,nolineinfolevel<>0);
-                    if assigned(positionmeta) then
-                      taillvm(hp).addinsmetadata(tai_llvmmetadatareferenceoperand.createreferenceto('dbg',positionmeta));
+                    positionmeta:=filepos_getmetanode(tailineinfo(hp).fileinfo,procdeffileinfo,functionscope,nolineinfolevel<>0);
+                  end
+                else if taillvm(hp).llvmopcode=la_call then
+                  begin
+                    positionmeta:=filepos_getmetanode(tailineinfo(hp).fileinfo,procdeffileinfo,functionscope,true);
                   end;
+                if assigned(positionmeta) then
+                  taillvm(hp).addinsmetadata(tai_llvmmetadatareferenceoperand.createreferenceto('dbg',positionmeta));
               end;
             hp:=tai(hp.next);
           end;
