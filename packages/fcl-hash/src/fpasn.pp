@@ -65,6 +65,7 @@ procedure MibToId(Mib: String; var Result: String);
 procedure IdToMib(const Id: String; var Result: String); overload;
 function IdToMib(Buffer, BufferEnd: PByte): string; overload;
 procedure ASNDebug(const Buffer: TBytes; var Output: TBytes);
+procedure ASNDebugList(const Prefix: string; List: TStrings);
 procedure ASNParse(const Buffer: TBytes; List: TStrings);
 procedure ASNParse_GetItem(List: TStrings; Index: integer; out ASNType, ASNSize: integer);
 function ASNParse_GetIntBytes(List: TStrings; ListIndex: integer; ID: int64): TBytes;
@@ -809,6 +810,16 @@ begin
   end;
 end;
 
+procedure ASNDebugList(const Prefix: string; List: TStrings);
+var
+  i, ASNType, ASNSize: Integer;
+begin
+  for i:=0 to List.Count-1 do begin
+    ASNParse_GetItem(List,i,ASNType,ASNSize);
+    writeln(Prefix,' ',i,'/',List.Count,' ASNType=',hexstr(ASNType,2),' ASNSize=',ASNSize,' S="',List[i],'"');
+  end;
+end;
+
 procedure ASNParse(const Buffer: TBytes; List: TStrings);
 var
   P, EndP: PByte;
@@ -833,12 +844,23 @@ end;
 function ASNParse_GetIntBytes(List: TStrings; ListIndex: integer; ID: int64
   ): TBytes;
 var
-  ASNType, ASNSize: Integer;
+  ASNType, ASNSize, i: Integer;
+  Value: Int64;
 begin
   ASNParse_GetItem(List,ListIndex,ASNType,ASNSize);
   if ASNType<>ASN1_INT then
     raise Exception.Create(IntToStr(Id));
-  Result:=HexStrToBytes(List[ListIndex]);
+  if ASNSize<8 then
+  begin
+    SetLength(Result,ASNSize);
+    Value:=StrToInt64Def(List[ListIndex],0);
+    for i:=ASNSize-1 downto 0 do
+    begin
+      Result[i]:=Value and $ff;
+      Value:=Value shr 8;
+    end;
+  end else
+    Result:=HexStrToBytes(List[ListIndex]);
   if length(Result)<1 then
     raise Exception.Create(IntToStr(Id));
 end;
