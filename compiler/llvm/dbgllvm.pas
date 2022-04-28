@@ -844,6 +844,13 @@ implementation
               exit;
           end;
 
+        if is_array_of_const(def) then
+          begin
+            { no idea about the size, generate an array of 1 element -- although it could be empty }
+            appenddef_array_internal(list,def,def.elementdef,0,1);
+            exit;
+          end;
+
         if is_special_array(def)
            and not((llvmflag_array_datalocation in llvmversion_properties[current_settings.llvmversion]) and
                    is_dynamic_array(def)) then
