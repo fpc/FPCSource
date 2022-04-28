@@ -45,7 +45,7 @@ Procedure BytesToHexStrAppend(aBytes : TBytes;var aHexStr : AnsiString);
 procedure BytesEncodeBase64(Source: Tbytes; out Dest: AnsiString; const IsURL, MultiLines, Padding: Boolean);
 Function BytesEncodeBase64(Source: Tbytes; const IsURL, MultiLines, Padding: Boolean) : AnsiString;
 
-function CryptoGetRandomBytes(Buffer: PByte; const Count: Integer): Boolean;
+function CryptoGetRandomBytes(Buffer: PByte; const Count: Integer; ZeroBytesAllowed: boolean = true): Boolean;
 Function ExtractBetween(const ASource,aStart,aEnd : String) : String;
 
 Type
@@ -345,6 +345,7 @@ type
   TLecuyer = record
     rs1, rs2, rs3: UInt32;
     SeedCount: UInt32;
+    ZeroBytesAllowed: boolean;
     procedure Seed;
     function Next: UInt32;
   end;
@@ -372,26 +373,36 @@ end;
 
 function TLecuyer.Next: UInt32;
 begin
-  if SeedCount and $FFFF = 0 then // reseed after 256KB of output
-    Seed
-  else
-    Inc(SeedCount);
-  Result := rs1;
-  rs1 := ((Result and -2) shl 12) xor (((Result shl 13) xor Result) shr 19);
-  Result := rs2;
-  rs2 := ((Result and -8) shl 4) xor (((Result shl 2) xor Result) shr 25);
-  Result := rs3;
-  rs3 := ((Result and -16) shl 17) xor (((Result shl 3) xor Result) shr 11);
-  Result := rs1 xor rs2 xor result;
+  repeat
+    if SeedCount and $FFFF = 0 then // reseed after 256KB of output
+      Seed
+    else
+      Inc(SeedCount);
+    Result := rs1;
+    rs1 := ((Result and -2) shl 12) xor (((Result shl 13) xor Result) shr 19);
+    Result := rs2;
+    rs2 := ((Result and -8) shl 4) xor (((Result shl 2) xor Result) shr 25);
+    Result := rs3;
+    rs3 := ((Result and -16) shl 17) xor (((Result shl 3) xor Result) shr 11);
+    Result := rs1 xor rs2 xor Result;
+    if ZeroBytesAllowed then exit;
+    if ((Result and $ff)<>0)
+        and ((Result and $ff00)<>0)
+        and ((Result and $ff0000)<>0)
+        and ((Result and $ff000000)<>0) then
+      exit;
+  until false;
 end;
 
-function CryptoGetRandomBytes(Buffer: PByte; const Count: Integer): Boolean;
+function CryptoGetRandomBytes(Buffer: PByte; const Count: Integer;
+  ZeroBytesAllowed: boolean): Boolean;
 var
   I, Remainder, Rounds: Integer;
   Lecuyer: TLecuyer;
   R: UInt32;
 begin
   Result := True;
+  Lecuyer.ZeroBytesAllowed:=ZeroBytesAllowed;
   Lecuyer.Seed;
   Rounds := Count div SizeOf(UInt32);
   for I := 0 to Rounds-1 do
@@ -418,7 +429,6 @@ begin
   P2:=Pos(aEnd,ASource,P1);
   if P2<=0 then exit;
   Result:=Copy(aSource,P1,P2-P1);
-
 end;
 
 function IntGetRandomNumber(aBytes : PByte; aCount: Integer): Boolean;

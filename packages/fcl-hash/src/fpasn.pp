@@ -852,7 +852,7 @@ begin
     raise Exception.Create(IntToStr(Id));
   if ASNSize<8 then
   begin
-    SetLength(Result,ASNSize);
+    SetLength(Result{%H-},ASNSize);
     Value:=StrToInt64Def(List[ListIndex],0);
     for i:=ASNSize-1 downto 0 do
     begin

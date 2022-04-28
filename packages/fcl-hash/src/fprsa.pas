@@ -6,6 +6,8 @@ unit fprsa;
 
 interface
 
+{off $DEFINE CRYPTO_DEBUG}
+
 uses
   sysutils, Classes, fpTLSBigInt, fphashutils, fpasn;
 
@@ -317,6 +319,9 @@ var
   Decrypted: PBigInt;
   Encrypted: PBigInt;
   Block: array[0..RSA_MODULUS_BYTES_MAX-1] of Byte;
+  {$IFDEF CRYPTO_DEBUG}
+  i: integer;
+  {$ENDIF}
 begin
   Result := -1;
   if Input = nil then
@@ -352,8 +357,13 @@ begin
       Imported[1]:=2;
 
       // Pad with random non-zero bytes
-      if not CryptoGetRandomBytes(@Imported[2], Padding) then
+      if not CryptoGetRandomBytes(@Imported[2], Padding, false) then
         Exit;
+      {$IFDEF CRYPTO_DEBUG}
+      for i:=0 to Padding-1 do
+        if Imported[2+i]=0 then
+          raise Exception.Create('20220429000653');
+      {$ENDIF}
     end;
 
     // Trailing zero after padding bytes
@@ -363,7 +373,7 @@ begin
     System.Move(Input^,Imported[3 + Padding],Len);
 
     {$IFDEF CRYPTO_DEBUG}
-    writeln('RSAEncryptSign - Imported Size = ' + IntToStr(Size) + ' Imported = ',Imported,Size);
+    writeln('RSAEncryptSign - Imported Size = ' + IntToStr(Size) + ' Len = ',Len);
     {$ENDIF}
 
     // Encrypt the Block
@@ -381,7 +391,7 @@ begin
     BIExport(RSA.Context,Encrypted,Output,Size); // this releases Encrypted
 
     {$IFDEF CRYPTO_DEBUG}
-    writeln('RSAEncryptSign - Output Size = ' + IntToStr(Size) + ' Output = ',Output,Size);
+    writeln('RSAEncryptSign - Output Size = ' + IntToStr(Size) + ' Len = ',Len);
     {$ENDIF}
 
     // Return Result
@@ -425,23 +435,38 @@ begin
     // Decrypt with Private Key
     Decrypted := BICRT(RSA.Context,Encrypted,RSA.DP,RSA.DQ,RSA.P,RSA.Q,RSA.QInv);
   end;
-  Exported := @Block;
+  Exported := @Block[0];
   if Size > RSA_MODULUS_BYTES_MAX then
   begin
     Exported := GetMem(Size);
     if Exported = nil then
+    begin
+      {$IFDEF CRYPTO_DEBUG}
+      writeln('RSADecryptVerify GetMem failed');
+      {$ENDIF}
       Exit;
+    end;
   end;
   try
     BIExport(RSA.Context, Decrypted, Exported, Size);
     if Exported[Count] <> 0 then
+    begin
+      {$IFDEF CRYPTO_DEBUG}
+      writeln('RSADecryptVerify leading zero missing');
+      {$ENDIF}
       Exit; // Check Leading Zero
+    end;
     Inc(Count);
     if Verify then
     begin
       // Check Block Type 1
       if Exported[Count] <> 1 then
+      begin
+        {$IFDEF CRYPTO_DEBUG}
+        writeln('RSADecryptVerify Verify Blockt Type<>1');
+        {$ENDIF}
         Exit;
+      end;
       Inc(Count);
       while (Exported[Count] = $FF) and (Count < Size) do
       begin
@@ -453,7 +478,12 @@ begin
     begin
       // Check Block Type 2
       if Exported[Count] <> 2 then
+      begin
+        {$IFDEF CRYPTO_DEBUG}
+        writeln('RSADecryptVerify Decrypt Blockt Type<>2');
+        {$ENDIF}
         Exit;
+      end;
       Inc(Count);
       while (Exported[Count] <> 0) and (Count < Size) do
       begin
@@ -464,13 +494,26 @@ begin
     end;
     // Check trailing zero byte and padding size
     if (Count = Size) or (Padding < 8) then
+    begin
+      {$IFDEF CRYPTO_DEBUG}
+      writeln('RSADecryptVerify invalid padding');
+      {$ENDIF}
       Exit;
+    end;
     if Exported[Count] <> 0 then
+    begin
+      {$IFDEF CRYPTO_DEBUG}
+      writeln('RSADecryptVerify after padding zero missing');
+      {$ENDIF}
       Exit;
+    end;
     Inc(Count);
     Result := Size-Count;
     if Len < Result then
     begin
+      {$IFDEF CRYPTO_DEBUG}
+      writeln('RSADecryptVerify Output too small');
+      {$ENDIF}
       Result := -1;
       Exit;
     end;
@@ -526,7 +569,7 @@ begin
       Exit;
     if not ASNFetchOID(DataP, DataEnd, OID) then  // OID: Algorithm
       Exit;
-    if not ASNFetch(DataP, DataEnd, ASNType, ASNSize) then  // ASN1_NULL OctetString: Digest
+    if not ASNFetch(DataP, DataEnd, ASNType, ASNSize) then  // ASN1_NULL
       Exit;
     if ASNType = ASN1_NULL then
     begin
