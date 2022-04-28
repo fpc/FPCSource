@@ -123,7 +123,7 @@ Var
 begin
   Len:=Length(aHexStr);
   aBytes:=[];
-  SetLength(aBytes, Len div 2);
+  SetLength(aBytes, (Len+1) div 2);
   if Len=0 then Exit;
   P := PAnsiChar(aHexStr);
   PResult := PByte(aBytes);
@@ -160,9 +160,9 @@ var
 
 begin
   aHexStr:='';
-  SetLength(aHexStr,aSize*2);
   if aSize=0 then
     exit;
+  SetLength(aHexStr,aSize*2);
   PB:=aBytes;
   PC:=PChar(aHexStr);
   for I:=0 to aSize-1 do
@@ -385,9 +385,7 @@ begin
   Result := rs1 xor rs2 xor result;
 end;
 
-
 function CryptoGetRandomBytes(Buffer: PByte; const Count: Integer): Boolean;
-
 var
   I, Remainder, Rounds: Integer;
   Lecuyer: TLecuyer;
@@ -402,8 +400,8 @@ begin
   if Remainder > 0 then
   begin
     R := Lecuyer.Next;
-    Move(R, PByteArray(Buffer)[Rounds*SizeOf(UInt32)], Remainder);
-    R:=R+R;// Silence compiler warning
+    Move(R, Buffer[Rounds*SizeOf(UInt32)], Remainder);
+    R:=R-R;// Silence compiler warning
   end;
 end;
 
