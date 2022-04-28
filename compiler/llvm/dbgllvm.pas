@@ -1216,6 +1216,7 @@ implementation
         st             : tsymtable;
         prologfileinfo : pfileposinfo;
         vmtoffset      : pint;
+        dispflags      : TSymStr;
         in_currentunit : boolean;
 
       begin
@@ -1273,7 +1274,9 @@ implementation
         try_add_file_metaref(dinode,def.fileinfo,true);
         if assigned(prologfileinfo) then
           dinode.addint64('scopeLine',prologfileinfo^.line);
-        dinode.addenum('spFlags',getdispflags(in_currentunit));
+        dispflags:=getdispflags(in_currentunit);
+        if dispflags<>'' then
+          dinode.addenum('spFlags',dispflags);
         dinode.addmetadatarefto('unit',fcunode);
         ditypenode:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DISubroutineType);
         ditypenode.addmetadatarefto('types',getabstractprocdeftypes(list,def));
