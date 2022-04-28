@@ -7,7 +7,10 @@ unit fprsa;
 interface
 
 uses
-  sysutils, fpTLSBigInt, fphashutils, fpasn;
+  sysutils, Classes, fpTLSBigInt, fphashutils, fpasn;
+
+const
+  RSAPublicKeyOID = '1.2.840.113549.1.1.1';
 
 type
   TRSA = record
@@ -23,17 +26,56 @@ type
     Context: TBigIntContext;
   end;
 
-procedure RSACreate(var RSA: TRSA);
+  TX509RSAPrivateKey = record
+    Version: integer;
+    Modulus,
+    PublicExponent,
+    PrivateExponent,
+    Prime1,
+    Prime2,
+    Exponent1,
+    Exponent2,
+    Coefficient: TBytes;
+  end;
+
+  TX509RSAPublicKey = record
+    Modulus: TBytes;
+    Exponent: TBytes;
+  end;
+
+procedure RSACreate(out RSA: TRSA);
 procedure RSAFree(var RSA: TRSA);
+
 procedure RsaPublicKeyToHexa(const Modulus, Exponent: String; var PublicKeyHexa: String);
 procedure RsaPublicKeyFromHexa(const PublicKeyHexa: String; out Modulus, Exponent: String);
-{$IFDEF TLS}
-procedure RSAInitFromPrivateKey(var RSA: TRSA; const RSAPrivateKey: TX509RSAPrivateKey);
-procedure RSAInitFromPublicKey(var RSA: TRSA; const RSAPublicKey: TX509RSAPublicKey); overload;
-{$ENDIF}
 procedure RsaInitFromPublicKey(var RSA: TRSA; const Modulus, Exponent: String); overload;
+procedure RSAInitFromPublicKey(var RSA: TRSA; const RSAPublicKey: TX509RSAPublicKey); overload;
+procedure RSAInitFromPublicKeyDER(var RSA: TRSA; const PublicKeyDER: TBytes);
+procedure X509RsaPublicKeyInitFromDER(out RSA: TX509RSAPublicKey; const PublicKeyDER: TBytes);
+
+procedure RSAInitFromX509PrivateKey(var RSA: TRSA; const RSAPrivateKey: TX509RSAPrivateKey);
+procedure RSAInitFromPrivateKeyDER(var RSA: TRSA; const PrivateKeyDER: TBytes);
+procedure X509RsaPrivateKeyInitFromDER(out RSA: TX509RSAPrivateKey; const PrivateKeyDER: TBytes);
+
+{ Perform PKCS1.5 Encryption or Signing
+  Context: The RSA context containing Private and/or Public keys
+  Input: The data to be encrypted
+  Len: The size of the input data in bytes (Must be <= Modulus length - 11 to
+       make the padding at least 8 bytes as recommended by RFC2313)
+  Output: The buffer for the encrypted result (Must always be Modulus length)
+  Sign: If true then sign instead of encrypting
+  Return: The number of bytes encrypted or -1 on error }
 function RSAEncryptSign(var RSA: TRSA; const Input: PByte; Len: Integer; Output: PByte; Sign: Boolean): Integer;
+
+{ Perform PKCS1.5 Decryption or Verification
+  Context: The RSA context containing Private and/or Public keys
+  Input: The data to be decrypted (Must always be Modulus length)
+  Output: The buffer for the decrypted result
+  Len: The size of the output buffer in bytes
+  Verify: If true then verify instead of decrypting
+  Return: The number of bytes decrypted or -1 on error }
 function RSADecryptVerify(var RSA: TRSA; const Input: PByte; Output: PByte; Len: Integer; Verify: Boolean): Integer;
+
 function RS256VerifyFromPublicKeyHexa(const PublicKeyHexa, SignatureBaseHash, Signature: String): Boolean;
 function TestRS256Verify: Boolean;
 
@@ -42,8 +84,9 @@ implementation
 const
   RSA_MODULUS_BYTES_MAX = 512; // 4096 bit maximum
 
-procedure RSACreate(var RSA: TRSA);
+procedure RSACreate(out RSA: TRSA);
 begin
+  RSA:=Default(TRSA);
   BIInitialize(RSA.Context);
 end;
 
@@ -83,17 +126,192 @@ begin
   BIPermanent(RSA.E);
 end;
 
+procedure RSAInitFromPublicKey(var RSA: TRSA;
+  const RSAPublicKey: TX509RSAPublicKey);
+begin
+  if RSAPublicKey.Modulus = nil then
+    Exit;
+  if RSAPublicKey.Exponent = nil then
+    Exit;
+  RSA.ModulusLen := length(RSAPublicKey.Modulus);
+  RSA.M := BIImport(RSA.Context, RSAPublicKey.Modulus);
+  BISetMod(RSA.Context, RSA.M, BIGINT_M_OFFSET);
+  RSA.E := BIImport(RSA.Context, RSAPublicKey.Exponent);
+  BIPermanent(RSA.E);
+end;
+
+procedure RSAInitFromPublicKeyDER(var RSA: TRSA; const PublicKeyDER: TBytes);
+var
+  X508PublicKey: TX509RSAPublicKey;
+begin
+  X509RsaPublicKeyInitFromDER(X508PublicKey,PublicKeyDER);
+  RSAInitFromPublicKey(RSA,X508PublicKey);
+end;
+
+procedure X509RsaPublicKeyInitFromDER(out RSA: TX509RSAPublicKey;
+  const PublicKeyDER: TBytes);
+var
+  ASNType, ASNSize: integer;
+  List: TStringList;
+begin
+  RSA:=Default(TX509RSAPublicKey);
+  List:=TStringList.Create;
+  try
+    ASNParse(PublicKeyDER,List);
+
+    //for i:=0 to List.Count-1 do begin
+    //  ASNParse_GetItem(List,i,ASNType,ASNSize);
+    //  writeln('X509RsaPublicKeyInitFromDER ',i,'/',List.Count,' ASNType=',hexstr(ASNType,2),' ASNSize=',ASNSize,' S="',List[i],'"');
+    //end;
+
+    if List.Count<7 then
+      raise Exception.Create('20220428180055');
+
+    // check sequence
+    ASNParse_GetItem(List,0,ASNType,ASNSize);
+    if ASNType<>ASN1_SEQ then
+      raise Exception.Create('20220428180058');
+
+    // check sequence
+    ASNParse_GetItem(List,1,ASNType,ASNSize);
+    if ASNType<>ASN1_SEQ then
+      raise Exception.Create('20220428183025');
+
+    // check algorithm OID
+    ASNParse_GetItem(List,2,ASNType,ASNSize);
+    if ASNType<>ASN1_OBJID then
+      raise Exception.Create('20220428180512');
+    if List[2]<>RSAPublicKeyOID then
+      raise Exception.Create('20220428181542');
+
+    // check null
+    ASNParse_GetItem(List,3,ASNType,ASNSize);
+    writeln('X509RsaPublicKeyInitFromDER ',ASNType,' ',ASNSize);
+    if ASNType<>ASN1_NULL then
+      raise Exception.Create('20220428181659');
+
+    // check optional algorithm params
+    ASNParse_GetItem(List,4,ASNType,ASNSize);
+    if ASNType<>ASN1_BITSTR then
+      raise Exception.Create('20220428181913');
+
+    // check sequence
+    ASNParse_GetItem(List,5,ASNType,ASNSize);
+    if ASNType<>ASN1_SEQ then
+      raise Exception.Create('20220428181933');
+
+    // public key
+    RSA.Modulus:=ASNParse_GetIntBytes(List,6,20220428182235);
+    RSA.Exponent:=ASNParse_GetIntBytes(List,7,20220428182241);
+
+    {$IFDEF TLS_DEBUG}
+    writeln('X509RsaPublicKeyInitFromDER: ');
+    writeln('  Modulus=',BytesToHexStr(RSA.Modulus));
+    writeln('  Exponent=',BytesToHexStr(RSA.Exponent));
+    {$ENDIF}
+  finally
+    List.Free;
+  end;
+end;
+
+procedure RSAInitFromX509PrivateKey(var RSA: TRSA;
+  const RSAPrivateKey: TX509RSAPrivateKey);
+begin
+  if RSAPrivateKey.PrivateExponent = nil then
+    Exit;
+  if RSAPrivateKey.Prime1 = nil then
+    Exit;
+  if RSAPrivateKey.Prime2 = nil then
+    Exit;
+  if RSAPrivateKey.Exponent1 = nil then
+    Exit;
+  if RSAPrivateKey.Exponent2 = nil then
+    Exit;
+  if RSAPrivateKey.Coefficient = nil then
+    Exit;
+  if RSAPrivateKey.Modulus = nil then
+    Exit;
+  if RSAPrivateKey.PublicExponent = nil then
+    Exit;
+  RSA.ModulusLen := length(RSAPrivateKey.Modulus);
+  RSA.M := BIImport(RSA.Context, RSAPrivateKey.Modulus);
+  BISetMod(RSA.Context, RSA.M, BIGINT_M_OFFSET);
+  RSA.E := BIImport(RSA.Context, RSAPrivateKey.PublicExponent);
+  BIPermanent(RSA.E);
+  RSA.D := BIImport(RSA.Context, RSAPrivateKey.PrivateExponent);
+  BIPermanent(RSA.D);
+  RSA.P := BIImport(RSA.Context, RSAPrivateKey.Prime1);
+  RSA.Q := BIImport(RSA.Context, RSAPrivateKey.Prime2);
+  RSA.DP := BIImport(RSA.Context, RSAPrivateKey.Exponent1);
+  RSA.DQ := BIImport(RSA.Context, RSAPrivateKey.Exponent2);
+  RSA.QInv := BIImport(RSA.Context, RSAPrivateKey.Coefficient);
+  BIPermanent(RSA.DP);
+  BIPermanent(RSA.DQ);
+  BIPermanent(RSA.QInv);
+  BISetMod(RSA.Context, RSA.P, BIGINT_P_OFFSET);
+  BISetMod(RSA.Context, RSA.Q, BIGINT_Q_OFFSET);
+end;
+
+procedure RSAInitFromPrivateKeyDER(var RSA: TRSA; const PrivateKeyDER: TBytes);
+var
+  X509RSA: TX509RSAPrivateKey;
+begin
+  X509RsaPrivateKeyInitFromDER(X509RSA,PrivateKeyDER);
+  RSAInitFromX509PrivateKey(RSA,X509RSA);
+end;
+
+procedure X509RsaPrivateKeyInitFromDER(out RSA: TX509RSAPrivateKey; const PrivateKeyDER: TBytes);
+var
+  List: TStringList;
+  ASNType, ASNSize: integer;
+begin
+  RSA:=Default(TX509RSAPrivateKey);
+  List:=TStringList.Create;
+  try
+    ASNParse(PrivateKeyDER,List);
+    if List.Count<10 then
+      raise Exception.Create('20220428161533');
+
+    // check sequence
+    ASNParse_GetItem(List,0,ASNType,ASNSize);
+    if ASNType<>ASN1_SEQ then
+      raise Exception.Create('20220428161631');
+
+    // version
+    ASNParse_GetItem(List,1,ASNType,ASNSize);
+    if ASNType<>ASN1_INT then
+      raise Exception.Create('20220428161716');
+    RSA.Version:=StrToIntDef(List[1],0);
+
+    RSA.Modulus:=ASNParse_GetIntBytes(List,2,20220428173827);
+    RSA.PublicExponent:=ASNParse_GetIntBytes(List,3,20220428173840);
+    RSA.PrivateExponent:=ASNParse_GetIntBytes(List,4,20220428173852);
+    RSA.Prime1:=ASNParse_GetIntBytes(List,5,20220428173906);
+    RSA.Prime2:=ASNParse_GetIntBytes(List,6,20220428173915);
+    RSA.Exponent1:=ASNParse_GetIntBytes(List,7,20220428173923);
+    RSA.Exponent2:=ASNParse_GetIntBytes(List,8,20220428173930);
+    RSA.Coefficient:=ASNParse_GetIntBytes(List,9,20220428173939);
+
+    {$IFDEF TLS_DEBUG}
+    with RSA do begin
+      writeln('RsaInitFromPrivateKey ');
+      writeln('   Modulus=',BytesToHexStr(Modulus));
+      writeln('   PublicExponent=',BytesToHexStr(PublicExponent));
+      writeln('   PrivateExponent=',BytesToHexStr(PrivateExponent));
+      writeln('   Prime1=',BytesToHexStr(Prime1));
+      writeln('   Prime2=',BytesToHexStr(Prime2));
+      writeln('   Exponent1=',BytesToHexStr(Exponent1));
+      writeln('   Exponent2=',BytesToHexStr(Exponent2));
+      writeln('   Coefficient=',BytesToHexStr(Coefficient));
+    end;
+    {$ENDIF}
+  finally
+    List.Free;
+  end;
+end;
+
 function RSAEncryptSign(var RSA: TRSA; const Input: PByte; Len: Integer;
   Output: PByte; Sign: Boolean): Integer;
-{ Perform PKCS1.5 Encryption or Signing
-  Context: The RSA context containing Private and/or Public keys
-  Input: The data to be encrypted
-  Len: The size of the input data in bytes (Must be <= Modulus length - 11 to
-       make the padding at least 8 bytes as recommended by RFC2313)
-  Output: The buffer for the encrypted result (Must always be Modulus length)
-  Sign: If true then sign instead of encrypting
-  Return: The number of bytes encrypted or -1 on error
-}
 var
   Size: Integer;
   Padding: Integer;
@@ -178,13 +396,6 @@ end;
 
 function RSADecryptVerify(var RSA: TRSA; const Input: PByte; Output: PByte;
   Len: Integer; Verify: Boolean): Integer;
-// Perform PKCS1.5 Decryption or Verification
-// Context: The RSA context containing Private and/or Public keys
-// @Input: The data to be decrypted (Must always be Modulus length)
-// @Output: The buffer for the decrypted result
-// Len: The size of the output buffer in bytes
-// Verify: If true then verify instead of decrypting
-// Return: The number of bytes decrypted or -1 on error
 var
   Size: Integer;
   Count: Integer;

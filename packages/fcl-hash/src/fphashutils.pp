@@ -102,7 +102,7 @@ begin
   HexStrToBytes(aHexStr,aBytes);
   l:=length(aBytes);
   if l=0 then exit;
-  SetLength(Result,l);
+  SetLength(Result{%H-},l);
   Move(aBytes[0],Result[1],l);
 end;
 
