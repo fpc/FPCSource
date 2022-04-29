@@ -77,10 +77,10 @@ interface
     (* !0 = !{ type1 value1, ... } *)
     tai_llvmunnamedmetadatanode = class(tai_llvmbasemetadatanode)
      strict private class var
-      snextid: TSuperRegister;
-      class function getnextid: TSuperRegister;
+      snextid: cardinal;
+      class function getnextid: cardinal;
      strict protected
-      fnameval: TSuperRegister;
+      fnameval: cardinal;
      public
       constructor create; reintroduce;
       function getname: ansistring; override;
@@ -230,7 +230,7 @@ implementation
     end;
 
 
-  class function tai_llvmunnamedmetadatanode.getnextid: TSuperRegister;
+  class function tai_llvmunnamedmetadatanode.getnextid: cardinal;
     begin
       result:=snextid;
       inc(snextid);
