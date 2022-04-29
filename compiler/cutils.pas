@@ -467,7 +467,7 @@ implementation
           minalign  : Minimum alignment of this structure, 0 = undefined
           maxalign  : Maximum alignment of this structure, 0 = undefined }
         if (minalign>0) and
-           (varalign<minalign) then
+           (varalign<=minalign) then
          used_align:=minalign
         else
          begin
