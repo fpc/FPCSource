@@ -2,6 +2,7 @@ unit fpasn;
 
 {$mode ObjFPC}{$H+}
 {$modeswitch advancedrecords}
+
 interface
 
 uses

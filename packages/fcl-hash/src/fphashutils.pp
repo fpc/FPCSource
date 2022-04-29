@@ -19,10 +19,6 @@ unit fphashutils;
 {$mode ObjFPC}{$H+}
 {$modeswitch advancedrecords}
 
-{$IF defined(CPUi386) or defined(CPUx86_64) }
-  {$define HasRDTSCP}
-{$ENDIF}
-
 interface
 
 uses
@@ -436,39 +432,20 @@ begin
   Result:=Copy(aSource,P1,P2-P1);
 end;
 
-{$IFDEF HasRDTSCP}
-function RDTSCP: Int64; assembler; nostackframe;
-asm
-  RDTSCP
-end;
-{$ENDIF}
-
 function IntGetRandomNumber(aBytes : PByte; aCount: Integer): Boolean;
 
 Var
   i: Integer;
   P : PByte;
-  {$IFDEF HasRDTSCP}
-  {%H-}i64: int64;
-  j: integer;
-  {$ENDIF}
 begin
+  Randomize;
   P:=aBytes;
   i:=0;
   while i<aCount do
     begin
-    {$IFDEF HasRDTSCP}
-    i64:=RDTSCP;
-    j:=aCount-i;
-    if j>8 then j:=8;
-    system.move(i64,P^,j);
-    inc(p,j);
-    inc(i,j);
-    {$ELSE}
     P^:=Random(256);
     Inc(P);
     inc(i);
-    {$ENDIF}
     end;
   Result:=True;
 end;
