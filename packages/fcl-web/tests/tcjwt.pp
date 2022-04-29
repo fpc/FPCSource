@@ -38,6 +38,7 @@ type
     function CreateUnsignedInput(JOSEAlg, ClaimsIssuer: string): string;
     Property JWT : TJWT Read FJWT;
     Property Key : TJWTKey Read FKey;
+    procedure TestVerifyRSAPem(SignerClass: TJWTSignerRSAClass); virtual;
   published
     procedure TestSignNone;
     procedure TestVerifyNone;
@@ -50,6 +51,8 @@ type
     procedure TestVerifyES256;
     procedure TestVerifyES256Pem;
     procedure TestVerifyRS256Pem;
+    procedure TestVerifyRS384Pem;
+    procedure TestVerifyRS512Pem;
   end;
 
 implementation
@@ -280,6 +283,52 @@ begin
 end;
 
 procedure TTestJWT.TestVerifyRS256Pem;
+begin
+  TestVerifyRSAPem(TJWTSignerRS256);
+end;
+
+procedure TTestJWT.TestVerifyRS384Pem;
+begin
+  TestVerifyRSAPem(TJWTSignerRS384);
+end;
+
+procedure TTestJWT.TestVerifyRS512Pem;
+begin
+  TestVerifyRSAPem(TJWTSignerRS512);
+end;
+
+procedure TTestJWT.SetUp;
+begin
+  Inherited;
+  FKey:=TJWTKey.Create('mysecretkey');
+  FJWT:=TMyJWT.Create;
+  FJWT.JOSE.alg:='none';
+  FJWT.JOSE.typ:='JWT';
+  FJWT.Claims.sub:='1234567890';
+  FJWT.Claims.iat:=1516239022;
+  (FJWT.Claims as TMyClaims).Name:='John Doe';
+end;
+
+procedure TTestJWT.TearDown;
+begin
+  FreeAndNil(FJWT);
+  FreeAndNil(FVerifyResult);
+  Inherited;
+end;
+
+function TTestJWT.CreateUnsignedInput(JOSEAlg, ClaimsIssuer: string): string;
+var
+  IssuedAt, Expire: Int64;
+  Header, Claims: String;
+begin
+  IssuedAt:=DateTimeToUnix(Now-1);
+  Expire:=IssuedAt+1000000;
+  Header:='{"typ":"JWT","alg":"'+JOSEAlg+'"}';
+  Claims:='{"iat":'+IntToStr(IssuedAt)+',"exp":'+IntToStr(Expire)+',"iss":"'+ClaimsIssuer+'"}';
+  Result:=Base64URL.Encode(Header,false)+'.'+Base64URL.Encode(Claims,false);
+end;
+
+procedure TTestJWT.TestVerifyRSAPem(SignerClass: TJWTSignerRSAClass);
 const
   // generated with
   //   openssl genrsa -out private.pem 2048
@@ -313,10 +362,10 @@ const
     '-----END RSA PRIVATE KEY-----'#10;
 var
   aInput: String;
-  Signer: TJWTSignerRS256;
+  Signer: TJWTSignerRSA;
 begin
   // header
-  jwt.JOSE.alg:='RS256';
+  jwt.JOSE.alg:=SignerClass.AlgorithmName;
 
   // claims
   jwt.Claims.exp:=DateTimeToUnix(Now+10);
@@ -325,7 +374,7 @@ begin
   // load private key from pem
   FKey.AsBytes:=PemToDER(APrivateKeyPem,_BEGIN_RSA_PRIVATE_KEY,_END_RSA_PRIVATE_KEY);
 
-  Signer:=TJWTSignerRS256.Create;
+  Signer:=TJWTSignerRSA(SignerClass.Create);
   try
     aInput:=Signer.AppendSignature(JWT,Key);
   finally
@@ -337,42 +386,11 @@ begin
   AssertEquals('Correct class',TMyJWT,FVerifyResult.ClassType);
   AssertNotNull('Have result.claims',FVerifyResult.Claims);
   AssertEquals('Correct claims class',TMyClaims,FVerifyResult.Claims.ClassType);
-  AssertEquals('Have correct algorithm','RS256',FVerifyResult.JOSE.Alg);
+  AssertEquals('Have correct algorithm',SignerClass.AlgorithmName,FVerifyResult.JOSE.Alg);
   AssertEquals('Have correct typ','JWT',FVerifyResult.JOSE.typ);
   AssertEquals('Have correct sub','1234567890',FVerifyResult.Claims.sub);
   AssertEquals('Have correct name','John Doe',(TMyJWT(FVerifyResult).Claims as TMyClaims).Name);
   AssertEquals('Have correct admin',False,(TMyJWT(FVerifyResult).Claims as TMyClaims).Admin);
-end;
-
-procedure TTestJWT.SetUp;
-begin
-  Inherited;
-  FKey:=TJWTKey.Create('mysecretkey');
-  FJWT:=TMyJWT.Create;
-  FJWT.JOSE.alg:='none';
-  FJWT.JOSE.typ:='JWT';
-  FJWT.Claims.sub:='1234567890';
-  FJWT.Claims.iat:=1516239022;
-  (FJWT.Claims as TMyClaims).Name:='John Doe';
-end;
-
-procedure TTestJWT.TearDown;
-begin
-  FreeAndNil(FJWT);
-  FreeAndNil(FVerifyResult);
-  Inherited;
-end;
-
-function TTestJWT.CreateUnsignedInput(JOSEAlg, ClaimsIssuer: string): string;
-var
-  IssuedAt, Expire: Int64;
-  Header, Claims: String;
-begin
-  IssuedAt:=DateTimeToUnix(Now-1);
-  Expire:=IssuedAt+1000000;
-  Header:='{"typ":"JWT","alg":"'+JOSEAlg+'"}';
-  Claims:='{"iat":'+IntToStr(IssuedAt)+',"exp":'+IntToStr(Expire)+',"iss":"'+ClaimsIssuer+'"}';
-  Result:=Base64URL.Encode(Header,false)+'.'+Base64URL.Encode(Claims,false);
 end;
 
 initialization
