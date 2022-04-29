@@ -1,11 +1,19 @@
 {$Q-} { this is necessary to avoid an overflow error below }
 {$mode objfpc}
+{$ifdef CPUAVR}
+{$else CPUAVR}
+{$define HASSYSUTILS}
+{$define HASFLOATS}
+{$endif CPUAVR}
+
+{$ifdef HASSYSUTILS}
 uses
    sysutils
 {$ifdef go32v2}
    ,dpmiexcp
 {$endif go32v2}
    ;
+{$endif HASSYSUTILS}
 type
    tqwordrec = packed record
 {$ifndef ENDIAN_BIG}
@@ -16,7 +24,7 @@ type
    end;
 
 const
-{$ifdef CPUI8086}
+{$if defined(CPUI8086) or defined(CPUAVR)}
   NumIterations = 100;
 {$else not CPUI8086}
 {$ifdef CPU68K}
@@ -592,7 +600,9 @@ procedure testtypecastqword;
      l1,l2 : longint;
      d1,d2 : dword;
      q1,q2 : qword;
+{$ifdef HASFLOATS}
      r1,r2 : double;
+{$endif HASFLOATS}
 
   begin
      { shortint }
@@ -685,6 +695,7 @@ procedure testtypecastqword;
      if d1<>d2 then
        do_error(2013);
 
+{$ifdef HASFLOATS}
      // a constant which can't be loaded with fild
      q1:=$80000000;
      q1:=q1 shl 32;
@@ -695,6 +706,7 @@ procedure testtypecastqword;
      q1:=q1+1;
      if q1<>double(d2)*d2*2.0+1 then
        do_error(2014);
+{$endif HASFLOATS}
   end;
 
 procedure testioqword;
@@ -776,6 +788,7 @@ procedure teststringqword;
      if s<>'1234000054321' then
        do_error(2204);
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
      { testing str: ansistring }
      // more complex tests
      q1:=4321;
@@ -810,6 +823,7 @@ procedure teststringqword;
        do_error(2210);
      if q1<>q2 then
        do_error(2211);
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
      s:='18446744073709551616';
      val(s,q2,code);
      if code=0 then
@@ -934,6 +948,7 @@ procedure testreqword;
      q0,q1,q2,q3 : qword;
 
   begin
+{$ifdef HASSYSUTILS}
      q0:=0;
      assignqword($ffffffff,$ffffffff,q1);
      q2:=1;
@@ -1019,7 +1034,7 @@ procedure testreqword;
      except
        do_error(2512);
      end;
-
+{$endif HASSYSUTILS}
   end;
 
 procedure testintqword;
@@ -1068,7 +1083,9 @@ procedure testcritical;
   var
      a : array[0..10,0..10,0..10] of qword;
      i,j,k : longint;
+{$ifdef HASFLOATS}
      d1,d2 : extended;
+{$endif HASFLOATS}
      q1,q2 : qword;
      i1,i2 : int64;
 
@@ -1088,6 +1105,7 @@ procedure testcritical;
        do_error(2702);
      if (a[i,j,k] shl (i-i))<>a[i,j,k] then
        do_error(2703);
+{$ifdef HASFLOATS}
      q1:=10;
      q2:=100;
      i1:=1000;
@@ -1096,6 +1114,7 @@ procedure testcritical;
      d2:=i1/i2;
      if (d1<>d2) then
        do_error(2704);
+{$endif HASFLOATS}
   end;
 
 var
