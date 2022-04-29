@@ -66,7 +66,7 @@ var
 
   ASYS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
   ASYS_fileSemaphore: Pointer; { mutex semaphore for filelist access arbitration }
-  ASYS_origDir  : LongInt; { original directory on startup }
+  ASYS_origDir  : PtrInt; { original directory on startup }
   AOS_wbMsg    : Pointer;
   AOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
   AOS_ConHandle: THandle;
@@ -116,7 +116,7 @@ procedure haltproc(e:longint); cdecl; external name '_haltproc';
 
 procedure System_exit;
 var
-  oldDirLock: LongInt;
+  oldDirLock: PtrInt;
 begin
   if Killed then
     Exit;
