@@ -130,6 +130,7 @@ Type
   TClaimsClass = Class of TClaims;
 
   { TJWT }
+
   TJWT = Class;
 
   TJWTClass = Class of TJWT;
@@ -470,7 +471,7 @@ constructor TJWT.Create;
 begin
   Inherited;
   FJOSE:=CreateJOSE;
-  FClaims:=CreateCLaims;
+  FClaims:=CreateClaims;
 end;
 
 destructor TJWT.Destroy;
@@ -525,7 +526,6 @@ begin
 end;
 
 procedure TBaseJWT.SetAsEncodedString(AValue: String);
-
 begin
   AsString:=DecodeString(AValue);
 end;
@@ -574,8 +574,8 @@ begin
       Case P^.PropType^.Kind of
         tkInteger : SetOrdProp(Self,P,D.Value.AsInteger);
         tkChar :
-            if D.Value.AsString<>'' then
-              SetOrdProp(Self,P,Ord(D.Value.AsString[1]));
+          if D.Value.AsString<>'' then
+            SetOrdProp(Self,P,Ord(D.Value.AsString[1]));
         tkEnumeration :
           if (D.Value.JSONType=jtNumber) and (TJSONNumber(D.Value).NumberType=ntInteger) then
             SetOrdProp(Self,P,D.Value.AsInteger)
@@ -584,9 +584,9 @@ begin
         tkFloat :
           SetFloatProp(Self,P,D.Value.AsFloat);
         tkSString,tkLString,tkAString :
-            SetStrProp(Self,P,D.Value.AsString);
+          SetStrProp(Self,P,D.Value.AsString);
         tkWChar, tkUString,tkWString,tkUChar:
-            SetWideStrProp(Self,P,D.Value.AsString);
+          SetWideStrProp(Self,P,D.Value.AsString);
         tkBool :
           SetOrdProp(Self,P,Ord(D.Value.AsBoolean));
         tkInt64,tkQWord:
@@ -605,7 +605,6 @@ procedure TBaseJWT.DoSaveToJSON(JSON: TJSONObject; All: Boolean);
 
 
 Var
-  D : TJSONEnum;
   P : PPropinfo;
   PL : PPropList;
   I,VI,Count : Integer;
@@ -709,7 +708,7 @@ end;
 
 class function TBaseJWT.Base64URLToBase64(AValue: string): string;
 var
-  i,l: integer;
+  l: integer;
 begin
   Result := StringsReplace(AValue, ['-', '_'], ['+', '/'], [rfReplaceAll]);
   l := length(Result) mod 4;

@@ -4,7 +4,7 @@ program testfpweb;
 
 uses
   Classes, consoletestrunner, tchttproute, tcjwt, jsonparser,
-  fpjwasha256, fpjwasha512, fpjwasha384, fpjwaes256;
+  fpjwasha256, fpjwasha512, fpjwasha384, fpjwaes256, fpjwarsa;
 
 type
 
@@ -19,6 +19,7 @@ var
   Application: TMyTestRunner;
 
 begin
+  Randomize;
   DefaultFormat:=fPlain;
   DefaultRunAllTests:=True;
   Application := TMyTestRunner.Create(nil);
