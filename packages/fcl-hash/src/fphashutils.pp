@@ -366,7 +366,7 @@ begin
     rs1 := VLI[0];
     rs2 := VLI[1];
     rs3 := VLI[2];
-  Until ((RS1>1) and (rs2>7) and (RS3>15)) or (I>100);
+  Until ((rs1>1) and (rs2>7) and (rs3>15)) or (I>100);
   if I>100 then
     Raise EHashUtil.Create('Cannot seed Lecuyer: no suitable random bytes');
   SeedCount := 1;
@@ -438,7 +438,6 @@ Var
   i: Integer;
   P : PByte;
 begin
-  Randomize;
   P:=aBytes;
   i:=0;
   while i<aCount do
