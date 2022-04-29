@@ -900,7 +900,7 @@ implementation
             subrangenode.addint64('lowerBound',tarraydef(nesteddef).lowrange);
             list.concat(subrangenode);
             arrayrangenode.addvalue(llvm_getmetadatareftypedconst(subrangenode));
-            nesteddef:=def.elementdef;
+            nesteddef:=tarraydef(nesteddef).elementdef;
           end;
         { the array definition }
         dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType));
