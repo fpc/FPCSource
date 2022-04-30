@@ -1214,7 +1214,6 @@ implementation
         fileref        : tai_simpletypedconst;
         procdeftai     : tai;
         st             : tsymtable;
-        prologfileinfo : pfileposinfo;
         vmtoffset      : pint;
         dispflags      : TSymStr;
         in_currentunit : boolean;
@@ -1259,7 +1258,6 @@ implementation
 
         { we have to attach the debug info to the definition instruction of the
           proc }
-        prologfileinfo:=nil;
         procdeftai:=nil;
         if in_currentunit then
           begin
@@ -2445,8 +2443,9 @@ implementation
         hp: tai;
         functionscope,
         positionmeta: tai_llvmspecialisedmetadatanode;
-        procdeffileindex: tfileposfileindex;
+        procdeffileinfo: tfileposinfo;
         nolineinfolevel : longint;
+        firstline: boolean;
       begin
         ensuremetainit;
         hp:=tai(list.first);
@@ -2458,15 +2457,16 @@ implementation
            end;
         if not assigned(hp) then
           exit;
-        procdeffileindex:=tprocdef(taillvmdecl(hp).def).fileinfo.fileindex;
+        procdeffileinfo:=tprocdef(taillvmdecl(hp).def).fileinfo;
         { might trigger for certain kinds of internally generated code }
-        if procdeffileindex=0 then
+        if procdeffileinfo.fileindex=0 then
           exit;
 
         functionscope:=def_meta_node(taillvmdecl(hp).def);
 
         nolineinfolevel:=0;
         hp:=tai(hp.next);
+        firstline:=true;
         while assigned(hp) do
           begin
             case hp.typ of
@@ -2493,8 +2493,16 @@ implementation
                 { valid file -> add info }
                 if (tailineinfo(hp).fileinfo.fileindex<>0) then
                   begin
+                    if firstline and
+                       (nolineinfolevel=0) then
+                      begin
+                        functionscope.addint64('scopeLine',tailineinfo(hp).fileinfo.line);
+                        firstline:=false;
+                      end;
                     positionmeta:=filepos_getmetanode(tailineinfo(hp).fileinfo,procdeffileinfo,functionscope,nolineinfolevel<>0);
                   end
+                { LLVM requires line info for call instructions that may
+                  potentially be inlined }
                 else if taillvm(hp).llvmopcode=la_call then
                   begin
                     positionmeta:=filepos_getmetanode(tailineinfo(hp).fileinfo,procdeffileinfo,functionscope,true);
