@@ -2120,6 +2120,7 @@ implementation
         lang: tdwarf_source_language;
         objcruntimeversion: longint;
       begin
+        ensuremetainit;
         if (ds_dwarf_cpp in current_settings.debugswitches) then
           lang:=DW_LANG_C_plus_plus
         else
