@@ -22,7 +22,7 @@ begin
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'http://ptcpas.sourceforge.net/';
     P.Description := 'A free, portable framebuffer library.';
-    p.OSes:=[linux,win32,win64,go32v2,macosx];
+    p.OSes:=[linux,win32,win64,go32v2,macosx,openbsd];
 
     P.SourcePath.Add('src');
     P.SourcePath.Add('src/ptcwrapper');
