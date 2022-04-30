@@ -117,7 +117,7 @@ implementation
         if assigned(current_procinfo) then
           begin
             oldfileinfo:=current_filepos;
-            current_filepos:=current_procinfo.procdef.fileinfo;
+            current_filepos:=current_procinfo.entrypos;
           end
         else
           { avoid uninitialised warning later }
