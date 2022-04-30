@@ -269,7 +269,6 @@ begin
     S.Free;
   end;
   FKey:=TJWTKey.Create(@aPrivateKey,SizeOf(TEccPrivateKey));
-  writeln('AAA1 TTestJWT.TestVerifyES256Pem ');
   FVerifyResult:=TMyJWT.ValidateJWT(aInput,FKey);
   AssertNotNull('Have result',FVerifyResult);
   AssertEquals('Correct class',TMyJWT,FVerifyResult.ClassType);
@@ -360,6 +359,16 @@ const
     'dtOAmxMASvsqud3XIM5fO5m3Jpl1phiGhCw4nvVLcYzVWxYY+oWoeCSyECgu5tmT'#10+
     'Fo8vn4EEXCkEAA2YPiEuVcrcYsWkLivCTC19lJDfUNMmpwSdiGz/tDU='#10+
     '-----END RSA PRIVATE KEY-----'#10;
+  APublicKeyPem =
+    '-----BEGIN PUBLIC KEY-----'#10+
+    'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvkRfGW8psCZ3G4+hBA6W'#10+
+    '/CR/FHhBLB3k3QLypamPbRFlFBxLtOK2NblBybY22vUiMLZbb5x8OoOj/IhOrJAl'#10+
+    'TqhtbTWLy/0K3qbG09vLm8V40kEK8/p0STrp3UmsxHNkccj9MRSKk7pOyEvxSCY6'#10+
+    'K5JGK1VTsMuDCS7DCYk6Vqr3zjX7qedF1PVM+Z5t0B+f//kt3oBETNlic4IooEpG'#10+
+    '/PN2GUQ0oZpa16DDtfgGu7wT3X3QEZFWLJYQTvGc82NpachBIUvqNdIt1npbK38M'#10+
+    'XU4IPHVrSN/HdK2nQPSMLdKnTV+Eh/HcxpfjBjarg+VjgDqlmqJ9bkosOVn35vsg'#10+
+    '8wIDAQAB'#10+
+    '-----END PUBLIC KEY-----';
 var
   aInput: String;
   Signer: TJWTSignerRSA;
@@ -374,6 +383,7 @@ begin
   // load private key from pem
   FKey.AsBytes:=PemToDER(APrivateKeyPem,_BEGIN_RSA_PRIVATE_KEY,_END_RSA_PRIVATE_KEY);
 
+  // sign
   Signer:=TJWTSignerRSA(SignerClass.Create);
   try
     aInput:=Signer.AppendSignature(JWT,Key);
@@ -381,6 +391,10 @@ begin
     Signer.Free;
   end;
 
+  // load public key from pem
+  FKey.AsBytes:=PemToDER(APublicKeyPem,_BEGIN_PUBLIC_KEY,_END_PUBLIC_KEY);
+
+  // verify
   FVerifyResult:=TMyJWT.ValidateJWT(aInput,FKey);
   AssertNotNull('Have result',FVerifyResult);
   AssertEquals('Correct class',TMyJWT,FVerifyResult.ClassType);

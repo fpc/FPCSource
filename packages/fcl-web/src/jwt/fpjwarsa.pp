@@ -109,7 +109,7 @@ begin
   try
     RSAInitFromPrivateKeyDER(RSA,aKey.AsBytes);
     SetLength(aSignature{%H-},RSA.ModulusLen);
-    if RSAEncryptSign(RSA,@Hash[0],length(Hash),@aSignature[0],false)<RSA.ModulusLen then
+    if RSAEncryptSign(RSA,@Hash[0],length(Hash),@aSignature[0],true)<RSA.ModulusLen then
       raise Exception.Create('20220429223334');
     Result:=Base64URL.Encode(@aSignature[0],Length(aSignature),False);
   finally
@@ -135,9 +135,9 @@ begin
   // decrypt hash
   RSACreate(RSA);
   try
-    RSAInitFromPrivateKeyDER(RSA,aKey.AsBytes);
+    RSAInitFromPublicKeyDER(RSA,aKey.AsBytes);
     SetLength(DecryptedHash{%H-},length(EncryptedHash));
-    HashLen:=RSADecryptVerify(RSA,@EncryptedHash[0],@DecryptedHash[0],length(DecryptedHash),false);
+    HashLen:=RSADecryptVerify(RSA,@EncryptedHash[0],@DecryptedHash[0],length(DecryptedHash),true);
     if HashLen<=0 then exit;
     SetLength(DecryptedHash,HashLen);
   finally
