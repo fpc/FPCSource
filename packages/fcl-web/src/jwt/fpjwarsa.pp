@@ -14,9 +14,9 @@ Type
   TJWTSignerRSA = Class(TJWTSigner)
   Public
     Class function AlgorithmName : String; override;
-    function ComputeHash(const Value: TBytes): TBytes; virtual; abstract;
-    Function CreateSignature(aJWT : TJWT; aKey : TJWTKey) : String; override;
-    Function Verify(const aJWT : String; aKey : TJWTKey) : Boolean; override; overload;
+    function ComputeASNHash(const Value: TBytes): TBytes; virtual; abstract;
+    Function CreateSignature(aJWT : TJWT; aPrivateKey : TJWTKey) : String; override;
+    Function Verify(const aJWT : String; aPublicKey : TJWTKey) : Boolean; override; overload;
   end;
   TJWTSignerRSAClass = class of TJWTSignerRSA;
 
@@ -25,7 +25,7 @@ Type
   TJWTSignerRS256 = class(TJWTSignerRSA)
   public
     class function AlgorithmName : String; override;
-    function ComputeHash(const Value: TBytes): TBytes; override;
+    function ComputeASNHash(const Value: TBytes): TBytes; override;
   end;
 
   { TJWTSignerRS384 }
@@ -33,7 +33,7 @@ Type
   TJWTSignerRS384 = class(TJWTSignerRSA)
   public
     class function AlgorithmName : String; override;
-    function ComputeHash(const Value: TBytes): TBytes; override;
+    function ComputeASNHash(const Value: TBytes): TBytes; override;
   end;
 
   { TJWTSignerRS512 }
@@ -41,7 +41,7 @@ Type
   TJWTSignerRS512 = class(TJWTSignerRSA)
   public
     class function AlgorithmName : String; override;
-    function ComputeHash(const Value: TBytes): TBytes; override;
+    function ComputeASNHash(const Value: TBytes): TBytes; override;
   end;
 
 implementation
@@ -53,10 +53,11 @@ begin
   Result:='RS512';
 end;
 
-function TJWTSignerRS512.ComputeHash(const Value: TBytes): TBytes;
+function TJWTSignerRS512.ComputeASNHash(const Value: TBytes): TBytes;
 begin
   Result:=nil;
   TSHA512.DigestBytes(Value,Result);
+  Result:=Concat(EncodeDigestInfoSHA(RSADigestInfoSHA512,length(Result)),Result);
 end;
 
 { TJWTSignerRS384 }
@@ -66,10 +67,11 @@ begin
   Result:='RS384';
 end;
 
-function TJWTSignerRS384.ComputeHash(const Value: TBytes): TBytes;
+function TJWTSignerRS384.ComputeASNHash(const Value: TBytes): TBytes;
 begin
   Result:=nil;
   TSHA384.DigestBytes(Value,Result);
+  Result:=Concat(EncodeDigestInfoSHA(RSADigestInfoSHA384,length(Result)),Result);
 end;
 
 { TJWTSignerRS256 }
@@ -79,10 +81,11 @@ begin
   Result:='RS256';
 end;
 
-function TJWTSignerRS256.ComputeHash(const Value: TBytes): TBytes;
+function TJWTSignerRS256.ComputeASNHash(const Value: TBytes): TBytes;
 begin
   Result:=nil;
   TSHA256.DigestBytes(Value,Result);
+  Result:=Concat(EncodeDigestInfoSHA(RSADigestInfoSHA256,length(Result)),Result);
 end;
 
 { TJWTSignerRSA }
@@ -93,9 +96,9 @@ begin
   Result:='RSA';
 end;
 
-function TJWTSignerRSA.CreateSignature(aJWT: TJWT; aKey: TJWTKey): String;
+function TJWTSignerRSA.CreateSignature(aJWT: TJWT; aPrivateKey: TJWTKey): String;
 var
-  aSignInput, Hash, aSignature: TBytes;
+  aSignInput, ASNHash, aSignature: TBytes;
   RSA: TRSA;
 begin
   Result:='';
@@ -103,13 +106,13 @@ begin
   aSignInput:=GetSignInput(aJWT);
   if length(aSignInput)=0 then
     raise Exception.Create('20220430010854: missing SignInput');
-  Hash:=ComputeHash(aSignInput);
+  ASNHash:=ComputeASNHash(aSignInput);
 
   RSACreate(RSA);
   try
-    RSAInitFromPrivateKeyDER(RSA,aKey.AsBytes);
+    RSAInitFromPrivateKeyDER(RSA,aPrivateKey.AsBytes);
     SetLength(aSignature{%H-},RSA.ModulusLen);
-    if RSAEncryptSign(RSA,@Hash[0],length(Hash),@aSignature[0],true)<RSA.ModulusLen then
+    if RSAEncryptSign(RSA,@ASNHash[0],length(ASNHash),@aSignature[0],true)<RSA.ModulusLen then
       raise Exception.Create('20220429223334');
     Result:=Base64URL.Encode(@aSignature[0],Length(aSignature),False);
   finally
@@ -117,7 +120,7 @@ begin
   end;
 end;
 
-function TJWTSignerRSA.Verify(const aJWT: String; aKey: TJWTKey): Boolean;
+function TJWTSignerRSA.Verify(const aJWT: String; aPublicKey: TJWTKey): Boolean;
 var
   aHeader, theClaims, aSignature, aInput: String;
   InputBytes, EncryptedHash, DecryptedHash, ActualHash: TBytes;
@@ -135,7 +138,7 @@ begin
   // decrypt hash
   RSACreate(RSA);
   try
-    RSAInitFromPublicKeyDER(RSA,aKey.AsBytes);
+    RSAInitFromPublicKeyDER(RSA,aPublicKey.AsBytes);
     SetLength(DecryptedHash{%H-},length(EncryptedHash));
     HashLen:=RSADecryptVerify(RSA,@EncryptedHash[0],@DecryptedHash[0],length(DecryptedHash),true);
     if HashLen<=0 then exit;
@@ -148,7 +151,7 @@ begin
   aInput:=aHeader+'.'+theClaims;
   SetLength(InputBytes{%H-},length(aInput));
   Move(aInput[1],InputBytes[0],length(aInput));
-  ActualHash:=ComputeHash(InputBytes);
+  ActualHash:=ComputeASNHash(InputBytes);
 
   // check decrypted hash and actual hash fit
   Result:=(length(DecryptedHash)=length(ActualHash))

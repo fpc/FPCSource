@@ -14,6 +14,17 @@ uses
 const
   RSAPublicKeyOID = '1.2.840.113549.1.1.1';
 
+  RSADigestInfoSHA256 = 1;
+  RSADigestInfoSHA384 = 2;
+  RSADigestInfoSHA512 = 3;
+  RSADigestInfoSHA224 = 4;
+  RSADigestInfoSHA512_224 = 5;
+  RSADigestInfoSHA512_256 = 6;
+  RSADigestInfoSHA3_224 = 7;
+  RSADigestInfoSHA3_256 = 8;
+  RSADigestInfoSHA3_384 = 9;
+  RSADigestInfoSHA3_512 = 10;
+
 type
   TRSA = record
     M: PBigInt;             // Modulus
@@ -80,6 +91,8 @@ function RSADecryptVerify(var RSA: TRSA; const Input: PByte; Output: PByte; Len:
 
 function RS256VerifyFromPublicKeyHexa(const PublicKeyHexa, SignatureBaseHash, Signature: String): Boolean;
 function TestRS256Verify: Boolean;
+
+function EncodeDigestInfoSHA(SHAType, len: byte): TBytes;
 
 implementation
 
@@ -330,7 +343,7 @@ begin
     Exit;
   Size := RSA.ModulusLen;
   Padding := Size-Len-3;
-  if Len > Size-11 then
+  if Len > Size-8-3 then
     Exit;
   {$IFDEF CRYPTO_DEBUG}
   writeln('RSAEncryptSign - Len = ' + IntToStr(Len) + ' Size = ' + IntToStr(Size) + ' Padding = ' + IntToStr(Padding)); //To Do
@@ -640,6 +653,17 @@ begin
   Hash:=HexStrToString(_Hash);
   Signature:=HexStrToString(_Signature);
   Result := RsaVerify(Modulus, Exponent, Hash, Signature);
+end;
+
+function EncodeDigestInfoSHA(SHAType, len: byte): TBytes;
+begin
+  Result:= [
+    ASN1_SEQ, 17 + len,
+      ASN1_SEQ, 13,
+        ASN1_OBJID, 9, 2*40 + 16, $86, $48, 1, 101, 3, 4, 2, SHAType,
+        ASN1_NULL, 0,
+      ASN1_OCTSTR, len
+    ];
 end;
 
 end.
