@@ -1249,31 +1249,29 @@ implementation
           exit;
         defnumberlist.Add(def);
 
-        { we have to attach the debug info to the definition instruction of the
-          proc }
-        prologfileinfo:=nil;
-        procdeftai:=def.procstarttai;
-        if in_currentunit then
-          begin
-            if not assigned(procdeftai) or
-               (procdeftai.typ<>ait_llvmdecl) or
-               (taillvmdecl(procdeftai).def<>def) then
-              internalerror(2022022010);
-          end;
-
         def.dbg_state:=dbg_state_writing;
-
         { difference compared to other kinds of defs: the DISubProgram gets
           created directly in get_def_metatai because a typedef for a
           DISubProgram does not make sense and is not supported by LLVM ->
           don't set the implementation of the metadata def here and just use
           the regular node }
         dinode:=def_meta_node(def);
-        taillvmdecl(procdeftai).addinsmetadata(tai_llvmmetadatareferenceoperand.createreferenceto('dbg',dinode));
+
+        { we have to attach the debug info to the definition instruction of the
+          proc }
+        prologfileinfo:=nil;
+        procdeftai:=nil;
+        if in_currentunit then
+          begin
+            procdeftai:=def.procstarttai;
+            if (procdeftai.typ<>ait_llvmdecl) or
+               (taillvmdecl(procdeftai).def<>def) then
+              internalerror(2022022010);
+            taillvmdecl(procdeftai).addinsmetadata(tai_llvmmetadatareferenceoperand.createreferenceto('dbg',dinode));
+          end;
+
         dinode.addstring('name',symdebugname(def.procsym));
         try_add_file_metaref(dinode,def.fileinfo,true);
-        if assigned(prologfileinfo) then
-          dinode.addint64('scopeLine',prologfileinfo^.line);
         dispflags:=getdispflags(in_currentunit);
         if dispflags<>'' then
           dinode.addenum('spFlags',dispflags);
