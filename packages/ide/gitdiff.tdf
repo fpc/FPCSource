@@ -1,0 +1,26 @@
+[Main]
+Title="GIT diff"
+Size=(56,15)
+CommandLine="diff %filename%"
+Default="filename"
+
+[filename]
+Type=InputLine
+Origin=(2,3)
+Size=(52,1)
+Value=$EDNAME
+
+[label1]
+Type=Label
+Origin=(2,2)
+Size=(52,1)
+Text="~F~ile(s) to diff"
+Link="filename"
+
+[b]
+Type=CheckBox
+Name="~I~gnore space changes"
+Origin=(2,7)
+Size=(25,1)
+Default=On
+On="-b"

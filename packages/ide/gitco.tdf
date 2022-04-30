@@ -1,0 +1,32 @@
+[Main]
+Title="GIT Commit"
+Size=(56,15)
+CommandLine="commit -F %msglog% %filename%"
+Default="filename"
+
+[filename]
+Type=InputLine
+Origin=(2,3)
+Size=(52,1)
+Value=$EDNAME
+
+[label1]
+Type=Label
+Origin=(2,2)
+Size=(52,1)
+Text="~F~ile(s) to commit"
+Link="filename"
+
+[msglog]
+Type=Memo
+Origin=(2,6)
+Size=(52,6)
+FileName=gitci.log
+Value=
+
+[label2]
+Type=Label
+Origin=(2,5)
+Size=(52,1)
+Text="Enter log ~M~essage for commit"
+Link="msglog"
