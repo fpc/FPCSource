@@ -29,13 +29,13 @@ begin
     P.OSes:=[go32v2,win32,win64,linux,freebsd,openbsd,darwin,msdos];
 
     P.Dependencies.Add('sdl',[i386,powerpc],[win32,linux,freebsd,darwin]);
-    P.Dependencies.Add('ptc',[win32,win64,linux,darwin,openbsd]);
+    P.Dependencies.Add('ptc',[win32,win64,linux,darwin,openbsd,freebsd]);
 
     // Dependencies for ptc, due to fpcmake bug:
-    P.Dependencies.Add('fcl-base',[win32,win64,linux,openbsd,darwin]);
+    P.Dependencies.Add('fcl-base',[win32,win64,linux,openbsd,freebsd,darwin]);
     P.Dependencies.Add('x11',[freebsd,openbsd,linux]); // ptc only depends on bsd and linux on x11
-    P.Dependencies.Add('hermes',[win32,win64,linux,openbsd,darwin]);
-    P.Dependencies.Add('opengl',[win32,win64,linux,openbsd]);
+    P.Dependencies.Add('hermes',[win32,win64,linux,openbsd,freebsd,darwin]);
+    P.Dependencies.Add('opengl',[win32,win64,linux,openbsd,freebsd]);
 
     P.SourcePath.Add('src');
     P.SourcePath.Add('src/ptcgraph');
@@ -117,7 +117,7 @@ begin
         begin
           AddUnit('graph');
         end;
-    T:=P.Targets.AddUnit('ptcgraph.pp',[win32,win64,linux,openbsd,darwin]);
+    T:=P.Targets.AddUnit('ptcgraph.pp',[win32,win64,linux,openbsd,freebsd,darwin]);
       with T.Dependencies do
         begin
           AddInclude('graphh.inc');
@@ -129,12 +129,12 @@ begin
           AddInclude('fills.inc');
           AddInclude('gtext.inc');
         end;
-    T:=P.Targets.AddUnit('ptccrt.pp',[win32,win64,linux,openbsd,darwin]);
+    T:=P.Targets.AddUnit('ptccrt.pp',[win32,win64,linux,openbsd,freebsd,darwin]);
       with T.Dependencies do
         begin
           AddUnit('ptcgraph');
         end;
-    T:=P.Targets.AddUnit('ptcmouse.pp',[win32,win64,linux,openbsd,darwin]);
+    T:=P.Targets.AddUnit('ptcmouse.pp',[win32,win64,linux,openbsd,freebsd,darwin]);
       with T.Dependencies do
         begin
           AddUnit('ptcgraph');
