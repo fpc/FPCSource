@@ -9,7 +9,7 @@ interface
 {off $DEFINE CRYPTO_DEBUG}
 
 uses
-  sysutils, Classes, fpTLSBigInt, fphashutils, fpasn;
+  sysutils, Classes, fpTLSBigInt, fphashutils, fpasn, basenenc;
 
 const
   RSAPublicKeyOID = '1.2.840.113549.1.1.1';
@@ -39,21 +39,33 @@ type
     Context: TBigIntContext;
   end;
 
+  { TX509RSAPrivateKey }
+
   TX509RSAPrivateKey = record
     Version: integer;
-    Modulus,
-    PublicExponent,
-    PrivateExponent,
-    Prime1,
-    Prime2,
-    Exponent1,
-    Exponent2,
-    Coefficient: TBytes;
+    Modulus,             // m or n
+    PublicExponent,      // e
+    PrivateExponent,     // d
+    Prime1,              // p
+    Prime2,              // q
+    Exponent1,           // dp
+    Exponent2,           // dq
+    Coefficient: TBytes; // qi
+    procedure InitWithHexStrings(const n, e, d, p, q, dp, dq, qi: string);
+    procedure InitWithBase64UrlEncoded(const n, e, d, p, q, dp, dq, qi: string);
+    procedure WriteASN(ms: TMemoryStream);
+    function AsDER: TBytes;
   end;
 
+  { TX509RSAPublicKey }
+
   TX509RSAPublicKey = record
-    Modulus: TBytes;
-    Exponent: TBytes;
+    Modulus: TBytes; // m or n
+    Exponent: TBytes; // e
+    procedure InitWithHexStrings(const n, e: string);
+    procedure InitWithBase64UrlEncoded(const n, e: string);
+    procedure WriteASN(ms: TMemoryStream);
+    function AsDER: TBytes;
   end;
 
 procedure RSACreate(out RSA: TRSA);
@@ -664,6 +676,117 @@ begin
         ASN1_NULL, 0,
       ASN1_OCTSTR, len
     ];
+end;
+
+{ TX509RSAPrivateKey }
+
+procedure TX509RSAPrivateKey.InitWithHexStrings(const n, e, d, p, q, dp, dq, qi: string
+  );
+begin
+  Version:=0;
+  Modulus:=HexStrToBytes(n);
+  PublicExponent:=HexStrToBytes(e);
+  PrivateExponent:=HexStrToBytes(d);
+  Prime1:=HexStrToBytes(p);
+  Prime2:=HexStrToBytes(q);
+  Exponent1:=HexStrToBytes(dp);
+  Exponent2:=HexStrToBytes(dq);
+  Coefficient:=HexStrToBytes(qi);
+end;
+
+procedure TX509RSAPrivateKey.InitWithBase64UrlEncoded(const n, e, d, p, q, dp,
+  dq, qi: string);
+begin
+  Version:=0;
+  Modulus:=Base64URL.Decode(n,false);
+  PublicExponent:=Base64URL.Decode(e,false);
+  PrivateExponent:=Base64URL.Decode(d,false);
+  Prime1:=Base64URL.Decode(p,false);
+  Prime2:=Base64URL.Decode(q,false);
+  Exponent1:=Base64URL.Decode(dp,false);
+  Exponent2:=Base64URL.Decode(dq,false);
+  Coefficient:=Base64URL.Decode(qi,false);
+end;
+
+procedure TX509RSAPrivateKey.WriteASN(ms: TMemoryStream);
+var
+  SeqBegin: Int64;
+begin
+  SeqBegin:=ASNWriteSequenceBegin(ms);
+  ASNWriteInt(Version,ms);
+  ASNWriteBigInt(Modulus,ms);
+  ASNWriteBigInt(PublicExponent,ms);
+  ASNWriteBigInt(PrivateExponent,ms);
+  ASNWriteBigInt(Prime1,ms);
+  ASNWriteBigInt(Prime2,ms);
+  ASNWriteBigInt(Exponent1,ms);
+  ASNWriteBigInt(Exponent2,ms);
+  ASNWriteBigInt(Coefficient,ms);
+  ASNWriteSequenceEnd(SeqBegin,ms);
+end;
+
+function TX509RSAPrivateKey.AsDER: TBytes;
+var
+  ms: TMemoryStream;
+begin
+  Result:=[];
+  ms:=TMemoryStream.Create;
+  try
+    WriteASN(ms);
+    SetLength(Result,ms.Size);
+    Move(ms.Memory^,Result[0],ms.Size);
+  finally
+    ms.Free;
+  end;
+end;
+
+{ TX509RSAPublicKey }
+
+procedure TX509RSAPublicKey.InitWithHexStrings(const n, e: string);
+begin
+  Modulus:=HexStrToBytes(n);
+  Exponent:=HexStrToBytes(e);
+end;
+
+procedure TX509RSAPublicKey.InitWithBase64UrlEncoded(const n, e: string);
+begin
+  Modulus:=Base64URL.Decode(n,false);
+  Exponent:=Base64URL.Decode(e,false);
+end;
+
+procedure TX509RSAPublicKey.WriteASN(ms: TMemoryStream);
+var
+  SeqBegin, AlgoSeqBegin, RSASeqBegin, BitStrBegin: Int64;
+begin
+  SeqBegin:=ASNWriteSequenceBegin(ms);
+  AlgoSeqBegin:=ASNWriteSequenceBegin(ms);
+  ASNWriteObjID(RSAPublicKeyOID,ms);
+  ASNWriteNull(ms);
+  ASNWriteSequenceEnd(AlgoSeqBegin,ms);
+
+  BitStrBegin:=ASNWriteBitStrBegin(ms);
+  RSASeqBegin:=ASNWriteSequenceBegin(ms);
+  ASNWriteBigInt(Modulus,ms);
+  ASNWriteBigInt(Exponent,ms);
+  ASNWriteSequenceEnd(RSASeqBegin,ms);
+  ASNWriteBitStrEnd(BitStrBegin,ms);
+
+  ASNWriteSequenceEnd(SeqBegin,ms);
+end;
+
+function TX509RSAPublicKey.AsDER: TBytes;
+var
+  ms: TMemoryStream;
+begin
+  Result:=[];
+  ms:=TMemoryStream.Create;
+  try
+    WriteASN(ms);
+    SetLength(Result,ms.Size);
+    Move(ms.Memory^,Result[0],ms.Size);
+  finally
+    ms.Free;
+  end;
 end;
 
 end.
