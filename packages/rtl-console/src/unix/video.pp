@@ -231,6 +231,76 @@ begin
   end;
 end;
 
+function Unicode2DecSpecialGraphics(Ch: WideChar): Char;
+begin
+  case Ch of
+    #$25C6:
+      Result := #$60;
+    #$2592,#$2591,#$2593,#$2584,#$2580:
+      Result := #$61;
+    #$2409:
+      Result := #$62;
+    #$240C:
+      Result := #$63;
+    #$240D:
+      Result := #$64;
+    #$240A:
+      Result := #$65;
+    #$00B0:
+      Result := #$66;
+    #$00B1:
+      Result := #$67;
+    #$2424:
+      Result := #$68;
+    #$240B:
+      Result := #$69;
+    #$2518,#$255B,#$255C,#$255D:
+      Result := #$6A;
+    #$2510,#$2556,#$2555,#$2557:
+      Result := #$6B;
+    #$250C,#$2553,#$2552,#$2554:
+      Result := #$6C;
+    #$2514,#$2558,#$2559,#$255A:
+      Result := #$6D;
+    #$253C,#$256C,#$256B,#$256A:
+      Result := #$6E;
+    #$23BA:
+      Result := #$6F;
+    #$23BB:
+      Result := #$70;
+    #$2500,#$2550:
+      Result := #$71;
+    #$23BC:
+      Result := #$72;
+    #$23BD:
+      Result := #$73;
+    #$251C,#$255E,#$255F,#$2560:
+      Result := #$74;
+    #$2524,#$2561,#$2562,#$2563:
+      Result := #$75;
+    #$2534,#$2569,#$2567,#$2568:
+      Result := #$76;
+    #$252C,#$2566,#$2564,#$2565:
+      Result := #$77;
+    #$2502,#$2551:
+      Result := #$78;
+    #$2264:
+      Result := #$79;
+    #$2265:
+      Result := #$7A;
+    #$03A0:
+      Result := #$7B;
+    #$2260:
+      Result := #$7C;
+    #$00A3:
+      Result := #$7D;
+    #$00B7:
+      Result := #$7E;
+    else
+      Result := #0;
+  end;
+end;
+
 function convert_vga_to_acs(ch:char):word;
 
 {Ch contains a character in the VGA character set (i.e. codepage 437).
@@ -479,10 +549,27 @@ var
   CurCharWidth: Integer;
 
   function transform(const hstr:UnicodeString):RawByteString;
+  var
+    DecSpecialGraphicsCharacter: Char;
   begin
-    result:=Utf8Encode(hstr);
-    if external_codepage<>CP_UTF8 then
-      SetCodePage(result,external_codepage,True);
+    if external_codepage=CP_UTF8 then
+      result:=Utf8Encode(hstr)
+    else
+      begin
+        DecSpecialGraphicsCharacter:=#0;
+        if (Length(hstr)=1) and (ACSIn<>'') and (ACSOut<>'') then
+          DecSpecialGraphicsCharacter:=Unicode2DecSpecialGraphics(hstr[1]);
+        if DecSpecialGraphicsCharacter<>#0 then
+        begin
+          result:=ACSIn+DecSpecialGraphicsCharacter+ACSOut;
+          SetCodePage(result,external_codepage,False);
+        end
+        else
+        begin
+          result:=Utf8Encode(hstr);
+          SetCodePage(result,external_codepage,True);
+        end;
+      end;
   end;
 
   procedure outdata(hstr:rawbytestring);
