@@ -568,6 +568,29 @@ var
         begin
           result:=Utf8Encode(hstr);
           SetCodePage(result,external_codepage,True);
+          if (result='?') and (hstr<>'?') then
+          begin
+            { Character is missing in the external codepage. }
+            { Try some replacements. }
+            if Length(hstr)=1 then
+              begin
+                case hstr[1] of
+                  #$2195:
+                    result:='|';
+                  #$2191,#$25B2:
+                    result:='^';
+                  #$2193,#$25BC:
+                    result:='v';
+                  #$2192,#$25BA:
+                    result:='>';
+                  #$2190,#$25C4:
+                    result:='<';
+                  #$25A0:
+                    result:='*';
+                end;
+                SetCodePage(result,external_codepage,False);
+              end;
+          end;
         end;
       end;
   end;
