@@ -49,7 +49,7 @@ unit rgcpu;
 
     uses
       verbose, cutils,
-      globals,
+      globtype, globals,
       cgobj,
       procinfo,
       cpuinfo;
@@ -120,18 +120,38 @@ unit rgcpu;
       var
         tmpref   : treference;
         helplist : TAsmList;
+        ofs : asizeint;
       begin
         if (abs(spilltemp.offset)>63) or (CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype]) then
           begin
             helplist:=TAsmList.create;
+            ofs:=spilltemp.offset;
 
-            helplist.concat(taicpu.op_reg_const(A_LDI,NR_R26,lo(word(spilltemp.offset))));
-            helplist.concat(taicpu.op_reg_const(A_LDI,NR_R27,hi(word(spilltemp.offset))));
-            helplist.concat(taicpu.op_reg_reg(A_ADD,NR_R26,spilltemp.base));
-            helplist.concat(taicpu.op_reg_reg(A_ADC,NR_R27,cg.GetNextReg(spilltemp.base)));
+            helplist.concat(tai_regalloc.alloc(NR_R26,nil));
+            helplist.concat(tai_regalloc.alloc(NR_R27,nil));
+            if (CPUAVR_HAS_ADIW in cpu_capabilities[current_settings.cputype]) and (ofs>0) and (ofs<=126) then
+              begin
+                { this might be converted into movw }
+                helplist.concat(taicpu.op_reg_reg(A_MOV,NR_R26,spilltemp.base));
+                helplist.concat(taicpu.op_reg_reg(A_MOV,NR_R27,cg.GetNextReg(spilltemp.base)));
+                while ofs>0 do
+                  begin
+                    helplist.concat(taicpu.op_reg_const(A_ADIW,NR_R26,min(63,ofs)));
+                    dec(ofs,min(63,ofs));
+                  end;
+              end
+            else
+              begin
+                helplist.concat(taicpu.op_reg_const(A_LDI,NR_R26,lo(word(spilltemp.offset))));
+                helplist.concat(taicpu.op_reg_const(A_LDI,NR_R27,hi(word(spilltemp.offset))));
+                helplist.concat(taicpu.op_reg_reg(A_ADD,NR_R26,spilltemp.base));
+                helplist.concat(taicpu.op_reg_reg(A_ADC,NR_R27,cg.GetNextReg(spilltemp.base)));
+              end;
 
             reference_reset_base(tmpref,NR_R26,0,spilltemp.temppos,1,[]);
             helplist.concat(spilling_create_store(tempreg,tmpref));
+            helplist.concat(tai_regalloc.dealloc(NR_R26,nil));
+            helplist.concat(tai_regalloc.dealloc(NR_R27,nil));
             list.insertlistafter(pos,helplist);
             helplist.free;
           end
