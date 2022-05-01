@@ -139,7 +139,7 @@ interface
 
         function symdebugname(sym:tsym): TSymStr;
         function symname(sym: tsym; manglename: boolean): TSymStr; virtual;
-        procedure append_visibility(vis: tvisibility);
+        function visibilitydiflag(vis: tvisibility): TSymStr;
 
         procedure enum_membersyms_callback(p:TObject;arg:pointer);
 
@@ -224,6 +224,7 @@ implementation
         DIFlagFwdDecl = 1 shl 2,
         DIFlagAppleBlock = 1 shl 3,
         DIFlagReservedBit4 = 1 shl 4,
+        { virtual inheritance at the C++ struct level, not at method level; use the SPFlag for that virtual methods) }
         DIFlagVirtual = 1 shl 5,
         DIFlagArtificial = 1 shl 6,
         DIFlagExplicit = 1 shl 7,
@@ -241,10 +242,15 @@ implementation
         DIFlagIntroducedVirtual = 1 shl 19,
         DIFlagBitField = 1 shl 20,
         DIFlagNoReturn = 1 shl 21,
+        { at the type level, DWARF 5 DW_CC_pass_by_value }
         DIFlagTypePassByValue = 1 shl 22,
+        { at the type level, DWARF 5 DW_CC_pass_by_reference }
         DIFlagTypePassByReference = 1 shl 23,
         DIFlagEnumClass = 1 shl 24,
-        DIFlagThunk = 1 shl 25
+        DIFlagThunk = 1 shl 25,
+
+        { moved to DISPFlags in LLVM 8.0 }
+        DIFlagMainSubprogram_Deprecated = 1 shl 21
     { introduced/renamed after LLVM 7.0, but nothing we need right now
         ,
         DIFlagNonTrivial,
@@ -908,7 +914,7 @@ implementation
         dinode.addmetadatarefto('baseType',def_meta_node(nesteddef));
         dinode.addmetadatarefto('elements',arrayrangenode);
         if is_vector(def) then
-          dinode.addqword('flags',ord(TLLVMDIFlags.DIFlagVector));
+          dinode.addenum('flags','DIFlagVector');
         if not is_dynamic_array(def) then
           dinode.addqword('size',def.size*8)
         else
@@ -1182,15 +1188,18 @@ implementation
 
     procedure TDebugInfoLLVM.appendprocdef(list:TAsmList; def:tprocdef);
 
-      function getdispflags(is_definition: boolean): TSymStr;
+      function getdispflags(is_definition, is_virtual: boolean): TSymStr;
         begin
           result:='';
           if is_definition then
-            result:='DISPFlagDefinition';
+            begin
+              result:='DISPFlagDefinition';
+              if not((po_global in def.procoptions) and
+                     (def.parast.symtablelevel<=normal_function_level)) then
+                result:=result+'|DISPFlagLocalToUnit';
+            end;
 
-          if (([po_abstractmethod, po_virtualmethod, po_overridingmethod]*def.procoptions)<>[]) and
-             not is_objc_class_or_protocol(def.struct) and
-             not is_objectpascal_helper(def.struct) then
+          if is_virtual then
             begin
               if result<>'' then
                 result:=result+'|';
@@ -1203,9 +1212,21 @@ implementation
             begin
               { this one will always be a definition, so no need to check
                 whether result is empty }
-              if def.proctypeoption=potype_proginit then
+              if (llvmflag_DISPFlagMainSubprogram in llvmversion_properties[current_settings.llvmversion]) and
+                 (def.proctypeoption=potype_proginit) then
                 result:=result+'|DISPFlagMainSubprogram';
             end;
+        end;
+
+      function getdiflags(is_definition: boolean): TSymStr;
+        begin
+          if not(llvmflag_DISPFlagMainSubprogram in llvmversion_properties[current_settings.llvmversion]) and
+             (def.proctypeoption=potype_proginit) then
+            result:='DIFlagMainSubprogram'
+          else if def.owner.symtabletype in [objectsymtable,recordsymtable] then
+            result:=visibilitydiflag(def.visibility)
+          else
+            result:='';
         end;
 
       var
@@ -1215,8 +1236,9 @@ implementation
         procdeftai     : tai;
         st             : tsymtable;
         vmtoffset      : pint;
-        dispflags      : TSymStr;
-        in_currentunit : boolean;
+        flags      : TSymStr;
+        in_currentunit,
+        is_virtual     : boolean;
 
       begin
         { only write debug info for procedures defined in the current module,
@@ -1255,6 +1277,7 @@ implementation
           don't set the implementation of the metadata def here and just use
           the regular node }
         dinode:=def_meta_node(def);
+        list.concat(dinode);
 
         { we have to attach the debug info to the definition instruction of the
           proc }
@@ -1270,20 +1293,39 @@ implementation
 
         dinode.addstring('name',symdebugname(def.procsym));
         try_add_file_metaref(dinode,def.fileinfo,true);
-        dispflags:=getdispflags(in_currentunit);
-        if dispflags<>'' then
-          dinode.addenum('spFlags',dispflags);
-        dinode.addmetadatarefto('unit',fcunode);
-        ditypenode:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DISubroutineType);
-        ditypenode.addmetadatarefto('types',getabstractprocdeftypes(list,def));
-        list.concat(ditypenode);
-        dinode.addmetadatarefto('type',ditypenode);
-        list.concat(dinode);
         if not(cs_debuginfo in current_settings.moduleswitches) then
           begin
             def.dbg_state:=dbg_state_written;
             exit;
           end;
+
+        is_virtual:=
+          (([po_abstractmethod, po_virtualmethod, po_overridingmethod]*def.procoptions)<>[]) and
+          not is_objc_class_or_protocol(def.struct) and
+          not is_objectpascal_helper(def.struct);
+        flags:=getdispflags(in_currentunit,is_virtual);
+        if flags<>'' then
+          dinode.addenum('spFlags',flags);
+        if is_virtual then
+          begin
+            { the sizeof(pint) is a bit iffy, since vmtmethodoffset() calculates
+              using a combination of voidcodepointer.size, voidpointer.size, and
+              sizeof(pint). But that's what the debugger will use }
+            dinode.addint64('virtualIndex',tobjectdef(def.owner.defowner).vmtmethodoffset(def.extnumber) div sizeof(pint));
+{$ifdef extdebug}
+            if (tobjectdef(def.owner.defowner).vmtmethodoffset(def.extnumber) mod sizeof(pint))<>0 then
+              internalerror(2022043001);
+{$endif}
+          end;
+        flags:=getdiflags(in_currentunit);
+        if flags<>'' then
+          dinode.addenum('flags',flags);
+
+        dinode.addmetadatarefto('unit',fcunode);
+        ditypenode:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DISubroutineType);
+        ditypenode.addmetadatarefto('types',getabstractprocdeftypes(list,def));
+        list.concat(ditypenode);
+        dinode.addmetadatarefto('type',ditypenode);
 
 (*
         if assigned(def.parast) then
@@ -2417,24 +2459,22 @@ implementation
       end;
 
 
-    procedure TDebugInfoLLVM.append_visibility(vis: tvisibility);
+    function TDebugInfoLLVM.visibilitydiflag(vis: tvisibility): TSymStr;
       begin
-(*
         case vis of
           vis_hidden,
           vis_private,
           vis_strictprivate:
-            append_attribute(DW_AT_accessibility,DW_FORM_data1,[ord(DW_ACCESS_private)]);
+            result:='DIFlagPrivate';
           vis_protected,
           vis_strictprotected:
-            append_attribute(DW_AT_accessibility,DW_FORM_data1,[ord(DW_ACCESS_protected)]);
+            result:='DIFlagProtected';
           vis_published,
           vis_public:
-            { default };
+            result:='DIFlagPublic';
           vis_none:
-            internalerror(2019050720);
+            internalerror(2022050101);
         end;
-*)
       end;
 
 
