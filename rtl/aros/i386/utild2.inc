@@ -45,8 +45,8 @@ type
   PHook = ^THook;
   THook = record
     h_MinNode : TMinNode;
-    h_Entry   : Cardinal;
-    h_SubEntry: Cardinal;
+    h_Entry   : PtrUInt;
+    h_SubEntry: PtrUInt;
     h_Data    : Pointer;
   end;
 

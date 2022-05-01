@@ -49,7 +49,7 @@ type
   PTagItem = ^TTagItem;
   TTagItem = record
     ti_Tag : Tag;
-    ti_Data: Cardinal;
+    ti_Data: PtrUInt;
   end;
 
 
