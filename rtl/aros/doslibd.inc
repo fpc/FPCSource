@@ -390,8 +390,8 @@ type  // Checked OK 04.08.2011 ALB
     fh_Arg2       : PtrInt;    // SIPTR
 
     { *** V39+ *** }
-    fh_Size       : DWord;
-    fh_Buf2       : BPTR;
+    fh_BufSize    : DWord;
+    fh_OrigBuf    : BPTR;
   end;
 
 (*   OBSOLETE *************************
@@ -674,8 +674,8 @@ type  // Checked TODO 04.08.2011 ALB
     dvi_StackSize: LongInt;
     dvi_Priority : LongInt;
     dvi_Startup  : BPTR;
-    dvi_NoAROS1  : BPTR; { BPTR }
-    dvi_NoAROS2  : BPTR; { BPTR }
+    dvi_SegList  : BPTR; { BPTR }
+    dvi_GlobalVec: BPTR; { BPTR } // aka dvi_GlobVec
     dvi_Name     : BSTR; { BSTR }
     // missing Aros Extension... DosListAROSExt;
   end;
