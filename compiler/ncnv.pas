@@ -2969,8 +2969,15 @@ implementation
 
                    (not(n.nodetype in [modn,divn]) or (not(gotminus1)))
                   ) or
-                  ((((n.nodetype=andn) and wasoriginallysmallerint(tbinarynode(n).left)) or
-                    ((n.nodetype=andn) and wasoriginallysmallerint(tbinarynode(n).right))));
+                  (
+                    (n.nodetype=andn) and
+                    (
+                      { Right node is more likely to be a constant, so check
+                        this one first }
+                      wasoriginallysmallerint(tbinarynode(n).right) or
+                      wasoriginallysmallerint(tbinarynode(n).left)
+                    )
+                  );
               end;
             else
               result:=false;
@@ -3001,9 +3008,13 @@ implementation
 
           dword1:=dword1+((dword2+dword3) shr 2);
 
-          while we can remove an extension on the addition, we cannot remove it from the shr
+          while we can remove an extension on the outermost addition, we cannot
+          remove it from the shr
         }
-        if (n.nodetype=shrn) and (level<>0) then
+        { Don't downsize into a division operation either, as the numerator can
+          be much larger than the result and non-linear properties prevent
+          accurate truncation; fixes #39646 [Kit] }
+        if (n.nodetype in [shrn,divn,modn]) and (level<>0) then
           begin
             inserttypeconv_internal(n,todef);
             exit;
