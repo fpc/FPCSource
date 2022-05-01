@@ -498,7 +498,7 @@ type  // Checked OK 05.08.2011 ALB
     mh_First     : PMemChunk;
     mh_Lower     : Pointer;
     mh_Upper     : Pointer;
-    mh_Free      : DWord;
+    mh_Free      : PtrUInt;
   end;
 
 type  // Checked OK 05.08.2011 ALB
@@ -509,7 +509,7 @@ type  // Checked OK 05.08.2011 ALB
       0 : (meu_Reqs: DWord);
       1 : (meu_Addr: Pointer)
     end;
-    me_Length: DWord;
+    me_Length: PtrUInt;
   end;
 
 type  // Checked OK 05.08.2011 ALB
@@ -547,7 +547,7 @@ const  // Checked OK 05.08.2011 ALB
 type  // Checked OK 05.08.2011 ALB
   PMemHandlerData = ^TMemHandlerData;
   TMemHandlerData = record
-    memh_RequestSize : DWord;
+    memh_RequestSize : PtrUInt;
     memh_RequestFlags: DWord;
     memh_Flags       : DWord;
   end;

@@ -18,8 +18,8 @@ var
 
 procedure Forbid; syscall AOS_ExecBase 22;
 procedure Permit; syscall AOS_ExecBase 23;
-function execAllocMem(byteSize: Cardinal; requirements: Cardinal): Pointer; syscall LocalExecBase 33;
-procedure execFreeMem(memoryBlock: Pointer; byteSize: Cardinal); syscall LocalExecBase 35;
+function execAllocMem(byteSize: PtrUInt; requirements: Cardinal): Pointer; syscall LocalExecBase 33;
+procedure execFreeMem(memoryBlock: Pointer; byteSize: PtrUInt); syscall LocalExecBase 35;
 function FindTask(name: PChar): PTask; syscall LocalExecBase 49;
 function SetSignal(newSignals: Cardinal; signalSet : Cardinal): Cardinal; syscall LocalExecBase 51;
 function Wait(SignalSet: LongWord): LongWord; syscall AOS_ExecBase 53;
@@ -44,12 +44,12 @@ function AttemptSemaphore(SigSem: PSignalSemaphore): LongWord; syscall AOS_ExecB
 function CreateMsgPort: PMsgPort; syscall AOS_ExecBase 111;
 procedure DeleteMsgPort(Port: PMsgPort); syscall AOS_ExecBase 112;
 procedure ObtainSemaphoreShared(SigSem: PSignalSemaphore); syscall AOS_ExecBase 113;
-function AllocVec(ByteSize: DWord; Requirements: DWord): Pointer; syscall AOS_ExecBase 114;
+function AllocVec(ByteSize: PtrUInt; Requirements: DWord): Pointer; syscall AOS_ExecBase 114;
 procedure FreeVec(MemoryBlock: Pointer); syscall AOS_ExecBase 115;
-function CreatePool(requirements: Cardinal; puddleSize: Cardinal; threshSize: Cardinal): Pointer; syscall LocalExecBase 116;
+function CreatePool(requirements: Cardinal; puddleSize: PtrUInt; threshSize: PtrUInt): Pointer; syscall LocalExecBase 116;
 procedure DeletePool(poolHeader: Pointer); syscall LocalExecBase 117;
-function AllocPooled(poolHeader: Pointer; memSize: Cardinal): Pointer; syscall LocalExecBase 118;
-function FreePooled(poolHeader: Pointer; memory: Pointer; memSize: Cardinal): Pointer; syscall LocalExecBase 119;
+function AllocPooled(poolHeader: Pointer; memSize: PtrUInt): Pointer; syscall LocalExecBase 118;
+function FreePooled(poolHeader: Pointer; memory: Pointer; memSize: PtrUInt): Pointer; syscall LocalExecBase 119;
 procedure StackSwap(NewStack: PStackSwapStruct); syscall AOS_ExecBase 122;
 function NewStackSwap(NewStack: PStackSwapStruct; Function_: Pointer; Args: PStackSwapArgs): Pointer; syscall AOS_ExecBase 134;
 procedure RawPutChar(c: Char); syscall AOS_ExecBase 86;
