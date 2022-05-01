@@ -58,6 +58,16 @@ procedure ASNEncodeLen(const Len: Integer; var Buffer: TBytes);
 function ASNReadLen(var Buffer: PByte; BufferEnd: PByte): Int32;
 procedure ASNEncodeInt(Value: Int64; var Result: TBytes);
 procedure ASNEncodeUInt(Value: Integer; var Result: TBytes);
+
+procedure ASNWriteNull(s: TStream);
+procedure ASNWriteInt(Value: Int64; s: TStream);
+procedure ASNWriteBigInt(Value: TBytes; s: TStream);
+procedure ASNWriteObjID(const ObjID: string; s: TStream);
+function ASNWriteSequenceBegin(s: TMemoryStream): int64;
+procedure ASNWriteSequenceEnd(SeqBegin: int64; s: TMemoryStream);
+function ASNWriteBitStrBegin(s: TMemoryStream): int64;
+procedure ASNWriteBitStrEnd(BitStrBegin: int64; s: TMemoryStream);
+
 // Encodes ASN.1 object to binary form
 procedure ASNObject(const Data: String; const ASNType: Integer; var Buffer: TBytes);
 // Encodes an MIB OID String to binary form
@@ -65,12 +75,12 @@ procedure MibToId(Mib: String; var Result: String);
 // Decodes MIB OID from binary form to String form.
 procedure IdToMib(const Id: String; var Result: String); overload;
 function IdToMib(Buffer, BufferEnd: PByte): string; overload;
+
 procedure ASNDebug(const Buffer: TBytes; var Output: TBytes);
 procedure ASNDebugList(const Prefix: string; List: TStrings);
 procedure ASNParse(const Buffer: TBytes; List: TStrings);
 procedure ASNParse_GetItem(List: TStrings; Index: integer; out ASNType, ASNSize: integer);
 function ASNParse_GetIntBytes(List: TStrings; ListIndex: integer; ID: int64): TBytes;
-
 function ASNFetch(var Buffer: PByte; BufferEnd: PByte; Out ASNType, ASNSize: Int32): Boolean; overload;
 function ASNFetchOID(var Buffer: PByte; BufferEnd: PByte; out OID: String): Boolean; overload;
 
@@ -247,11 +257,115 @@ begin
     Result:=Concat(Result,[Ord(S[y])]);
 end;
 
-Procedure AppendStringToBuffer(var Buffer: TBytes; const aString : String);
+procedure ASNWriteNull(s: TStream);
+begin
+  s.WriteByte(ASN1_NULL);
+  s.WriteByte(0);
+end;
 
+procedure ASNWriteInt(Value: Int64; s: TStream);
+var
+  aBytes, aLen: TBytes;
+begin
+  aBytes:=[];
+  ASNEncodeInt(Value,aBytes);
+  aLen:=[];
+  ASNEncodeLen(length(aBytes),aLen);
+  s.WriteByte(ASN1_INT);
+  s.Write(aLen[0],length(aLen));
+  s.Write(aBytes[0],length(aBytes));
+end;
+
+procedure ASNWriteBigInt(Value: TBytes; s: TStream);
+var
+  EndIndex: SizeInt;
+  aLen: TBytes;
+  StartIndex: Integer;
+begin
+  EndIndex:=length(Value);
+  if EndIndex=0 then
+    raise Exception.Create('20220501115642');
+  StartIndex:=0;
+  while (StartIndex<EndIndex) and (Value[StartIndex]=0) do
+    inc(StartIndex);
+  if StartIndex=EndIndex then
+  begin
+    ASNWriteInt(0,s);
+    exit;
+  end;
+  if Value[StartIndex]>=$80 then
+    dec(StartIndex);
+  aLen:=[];
+  ASNEncodeLen(EndIndex-StartIndex,aLen);
+  s.WriteByte(ASN1_INT);
+  s.Write(aLen[0],length(aLen));
+  if StartIndex<0 then
+  begin
+    s.WriteByte(0);
+    StartIndex:=0;
+  end;
+  s.Write(Value[StartIndex],EndIndex-StartIndex);
+end;
+
+procedure ASNWriteObjID(const ObjID: string; s: TStream);
+var
+  Mib: string;
+  aLen: TBytes;
+begin
+  Mib:='';
+  MibToId(ObjID,Mib);
+  aLen:=[];
+  ASNEncodeLen(length(Mib),aLen);
+
+  s.WriteByte(ASN1_OBJID);
+  s.Write(aLen[0],length(aLen));
+  s.Write(Mib[1],length(Mib));
+end;
+
+function ASNWriteSequenceBegin(s: TMemoryStream): int64;
+begin
+  s.WriteByte(ASN1_SEQ);
+  s.WriteByte(0);
+  Result:=s.Position;
+end;
+
+procedure ASNWriteSequenceEnd(SeqBegin: int64; s: TMemoryStream);
+var
+  SeqLen: Int64;
+  aLen: TBytes;
+  l: SizeInt;
+  p: PByte;
+begin
+  SeqLen:=s.Position-SeqBegin;
+  aLen:=[];
+  ASNEncodeLen(SeqLen,aLen);
+  l:=length(aLen);
+  if l>1 then
+  begin
+    s.Write(aLen[1],l-1);
+    p:=PByte(s.Memory);
+    System.Move(p[SeqBegin],p[SeqBegin+l-1],SeqLen);
+    System.Move(aLen[0],p[SeqBegin-1],l);
+  end else
+    PByte(s.Memory)[SeqBegin-1]:=aLen[0];
+end;
+
+function ASNWriteBitStrBegin(s: TMemoryStream): int64;
+begin
+  s.WriteByte(ASN1_BITSTR);
+  s.WriteByte(0); // length
+  Result:=s.Position;
+  s.WriteByte(0); // trailing bit length
+end;
+
+procedure ASNWriteBitStrEnd(BitStrBegin: int64; s: TMemoryStream);
+begin
+  ASNWriteSequenceEnd(BitStrBegin,s);
+end;
+
+Procedure AppendStringToBuffer(var Buffer: TBytes; const aString : String);
 Var
   Buflen,sLen : integer;
-
 begin
   bufLen:=Length(Buffer);
   sLen:=Length(aString);
@@ -261,8 +375,6 @@ begin
 end;
 
 procedure ASNObject(const Data: String; const ASNType: Integer; var Buffer: TBytes);
-
-
 begin
   Buffer:=Concat(Buffer,[ASNType]);
   ASNEncodeLen(Length(Data), Buffer);
@@ -304,19 +416,17 @@ begin
   end;
 end;
 
-// @Result[256]
 procedure MibToId(Mib: String; var Result: String);
 
   function WalkInt(var S: String): Integer;
   var
     P : Integer;
-
   begin
     P:=Pos('.',S);
     If P=0 then
       P:=Length(S)+1;
     Result:=StrToIntDef(Copy(S,1,P-1),0);
-    S:=Copy(S,Pos('.',S)+1,Length(S));
+    S:=Copy(S,P+1,Length(S));
   end;
 
 var
@@ -332,7 +442,6 @@ begin
   end;
 end;
 
-// @Result[256]
 procedure IdToMib(const Id: String; var Result: String);
 var
   x, y, Index: Integer;
@@ -455,7 +564,9 @@ begin
         begin
           BufToString(S);
           if S[1] = Char(#00) then
+          begin
             Delete(S,1,1);
+          end;
           AppendStringToBuffer(Output, '$');
           OutputHexa(Output, S);
         end;
@@ -498,7 +609,7 @@ begin
       end;
     ASN1_BITSTR:
       begin
-        AppendStringToBuffer(Output, ' BITSTR: ');
+        AppendStringToBuffer(Output, ' BITSTR: len='+IntToStr(ASNSize)+' TrailBits='+IntToStr(Ord(Buffer^))+' ');
         Inc(Buffer); // this is the Trailing Length in bits
         Dec(ASNSize);
         OldBuffer:=Buffer;
@@ -584,21 +695,23 @@ var
   ASNSize, ASNType, n: Integer;
   Indent: Integer;
   IndentList: Array of Integer;
-  p, EndP: PByte;
+  StartP, p, EndP: PByte;
 
 begin
   if length(Buffer)=0 then exit;
   IndentList:=[];
   Indent:=0;
-  p:=@Buffer[0];
-  EndP:=p+length(Buffer);
+  StartP:=@Buffer[0];
+  p:=StartP;
+  EndP:=StartP+length(Buffer);
   while p<EndP do
   begin
+    //writeln('ASNDebug p=',p-StartP,' Type=',hexstr(p^,2),' Indent=',length(IndentList));
     // check if any sequence/set has ended and unindent
     for n := Length(IndentList)-1 downto 0 do
     begin
       ASNSize := IndentList[n];
-      if EndP-p >= ASNSize then
+      if p-StartP >= ASNSize then
       begin
         Delete(IndentList,n,1);
         Dec(Indent, 2);
@@ -610,7 +723,7 @@ begin
     begin
       // sequence/set -> indent
       Inc(Indent, 2);
-      IndentList:=Concat(IndentList,[ASNSize+integer(EndP-p)]);
+      IndentList:=Concat(IndentList,[ASNSize+integer(p-StartP)]);
     end;
     AppendStringToBuffer(Output, #13#10);
   end;
