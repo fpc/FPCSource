@@ -376,18 +376,18 @@ type  // Checked OK 04.08.2011 ALB
   TFileHandle = record
     // The next three are used with packet-based filesystems
     fh_Flags      : DWord;
-    fh_Interactive: PMsgPort;  // packet reply port // alias -> fh_Port
+    fh_Interactive: LongInt;   // packet reply port // alias -> fh_Port
     fh_Type       : PMsgPort;  // port to send packets to
 
     fh_Buf        : BPTR;
     fh_Pos        : LongInt;
     fh_End        : LongInt;
 
-    fh_Func1      : LongInt;
-    fh_Func2      : LongInt;
-    fh_Func3      : Pointer;
-    fh_Arg1       : PtrInt;
-    fh_Arg2       : Pointer;
+    fh_Func1      : PtrInt;    // SIPTR
+    fh_Func2      : PtrInt;    // SIPTR
+    fh_Func3      : PtrInt;    // SIPTR
+    fh_Arg1       : PtrInt;    // SIPTR
+    fh_Arg2       : PtrInt;    // SIPTR
 
     { *** V39+ *** }
     fh_Size       : DWord;
@@ -620,7 +620,7 @@ type  // Checked TODO 04.08.2011 ALB
     dl_VolumeDate: TDateStamp;
     dl_LockList  : BPTR;      { BPTR }
     dl_DiskType  : LongInt;
-    dl_unused    : LongInt;
+    dl_unused    : BPTR;
     // Padding Bytes?
     dl_Name      : BSTR;      { BSTR }
    // Missing DosListAROSExt
@@ -1322,7 +1322,7 @@ type  // Checked OK 04.08.2011 ALB
   TNotifyRequest = record
     nr_Name    : PChar;
     nr_FullName: PChar;
-    nr_UserData: Cardinal;
+    nr_UserData: PtrUInt;
     nr_Flags   : Cardinal;
     nr_stuff : record
       case Byte of
@@ -1335,7 +1335,7 @@ type  // Checked OK 04.08.2011 ALB
               nr_pad      : array[0..2] of Byte;
             end );
     end;
-    nr_Reserved: array[0..3] of Cardinal;
+    nr_Reserved: array[0..3] of PtrUInt;
     nr_MsgCount: Cardinal;
     nr_Handler : PMsgPort;
   end;
