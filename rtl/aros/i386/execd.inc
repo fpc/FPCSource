@@ -1599,9 +1599,9 @@ type  // Checked OK 05.08.2011 ALB
     ex_EClockFrequency  : DWord;
     ex_CacheControl     : DWord;
     ex_TaskID           : DWord;
-    ex_Reserved1         : Array[0..4] Of DWord;
+    ex_Reserved1         : Array[0..4] Of PtrUInt;
     ex_MMULock           : Pointer;
-    ex_Reserved2         : Array[0..1] Of DWord;
+    ex_Reserved2         : Array[0..1] Of PtrUInt;
     ex_DebugFlags        : DWord;    { * Exec Debug Flags..*private* * }
 
     ex_MemHandlers       : TMinList;
