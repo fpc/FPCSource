@@ -5,7 +5,8 @@ unit tcjwt;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry, DateUtils, fpjwt, fpjwarsa;
+  Classes, SysUtils, fpcunit, testregistry, DateUtils, fprsa, fphashutils,
+  fpjwt, fpjwarsa;
 
 type
 
@@ -35,7 +36,6 @@ type
   protected
     procedure SetUp; override;
     procedure TearDown; override;
-    function CreateUnsignedInput(JOSEAlg, ClaimsIssuer: string): string;
     Property JWT : TJWT Read FJWT;
     Property Key : TJWTKey Read FKey;
     procedure TestVerifyRSAPem(SignerClass: TJWTSignerRSAClass); virtual;
@@ -53,6 +53,7 @@ type
     procedure TestVerifyRS256Pem;
     procedure TestVerifyRS384Pem;
     procedure TestVerifyRS512Pem;
+    procedure TestVerifyRS256_rfc7515;
   end;
 
 implementation
@@ -296,6 +297,105 @@ begin
   TestVerifyRSAPem(TJWTSignerRS512);
 end;
 
+procedure TTestJWT.TestVerifyRS256_rfc7515;
+const
+  // values from RFC 7515
+  HeaderJSON = '{"alg":"RS256"}';
+  HeaderExpected = 'eyJhbGciOiJSUzI1NiJ9';
+
+  PayloadJSON = '{"iss":"joe",'#13#10+
+                ' "exp":1300819380,'#13#10+
+                ' "http://example.com/is_root":true}';
+  PayloadExpected = 'eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ';
+
+  SignInputExpected: TBytes =
+    (101, 121, 74, 104, 98, 71, 99, 105, 79, 105, 74, 83, 85, 122, 73,
+     49, 78, 105, 74, 57, 46, 101, 121, 74, 112, 99, 51, 77, 105, 79, 105,
+     74, 113, 98, 50, 85, 105, 76, 65, 48, 75, 73, 67, 74, 108, 101, 72,
+     65, 105, 79, 106, 69, 122, 77, 68, 65, 52, 77, 84, 107, 122, 79, 68,
+     65, 115, 68, 81, 111, 103, 73, 109, 104, 48, 100, 72, 65, 54, 76,
+     121, 57, 108, 101, 71, 70, 116, 99, 71, 120, 108, 76, 109, 78, 118,
+     98, 83, 57, 112, 99, 49, 57, 121, 98, 50, 57, 48, 73, 106, 112, 48,
+     99, 110, 86, 108, 102, 81);
+
+  RSA_n = 'ofgWCuLjybRlzo0tZWJjNiuSfb4p4fAkd_wWJcyQoTbji9k0l8W26mPddx'+
+          'HmfHQp-Vaw-4qPCJrcS2mJPMEzP1Pt0Bm4d4QlL-yRT-SFd2lZS-pCgNMs'+
+          'D1W_YpRPEwOWvG6b32690r2jZ47soMZo9wGzjb_7OMg0LOL-bSf63kpaSH'+
+          'SXndS5z5rexMdbBYUsLA9e-KXBdQOS-UTo7WTBEMa2R2CapHg665xsmtdV'+
+          'MTBQY4uDZlxvb3qCo5ZwKh9kG4LT6_I5IhlJH7aGhyxXFvUK-DWNmoudF8'+
+          'NAco9_h9iaGNj8q2ethFkMLs91kzk2PAcDTW9gb54h4FRWyuXpoQ';
+  RSA_e = 'AQAB';
+  RSA_d = 'Eq5xpGnNCivDflJsRQBXHx1hdR1k6Ulwe2JZD50LpXyWPEAeP88vLNO97I'+
+          'jlA7_GQ5sLKMgvfTeXZx9SE-7YwVol2NXOoAJe46sui395IW_GO-pWJ1O0'+
+          'BkTGoVEn2bKVRUCgu-GjBVaYLU6f3l9kJfFNS3E0QbVdxzubSu3Mkqzjkn'+
+          '439X0M_V51gfpRLI9JYanrC4D4qAdGcopV_0ZHHzQlBjudU2QvXt4ehNYT'+
+          'CBr6XCLQUShb1juUO1ZdiYoFaFQT5Tw8bGUl_x_jTj3ccPDVZFD9pIuhLh'+
+          'BOneufuBiB4cS98l2SR_RQyGWSeWjnczT0QU91p1DhOVRuOopznQ';
+  RSA_p = '4BzEEOtIpmVdVEZNCqS7baC4crd0pqnRH_5IB3jw3bcxGn6QLvnEtfdUdi'+
+          'YrqBdss1l58BQ3KhooKeQTa9AB0Hw_Py5PJdTJNPY8cQn7ouZ2KKDcmnPG'+
+          'BY5t7yLc1QlQ5xHdwW1VhvKn-nXqhJTBgIPgtldC-KDV5z-y2XDwGUc';
+  RSA_q = 'uQPEfgmVtjL0Uyyx88GZFF1fOunH3-7cepKmtH4pxhtCoHqpWmT8YAmZxa'+
+          'ewHgHAjLYsp1ZSe7zFYHj7C6ul7TjeLQeZD_YwD66t62wDmpe_HlB-TnBA'+
+          '-njbglfIsRLtXlnDzQkv5dTltRJ11BKBBypeeF6689rjcJIDEz9RWdc';
+  RSA_dp = 'BwKfV3Akq5_MFZDFZCnW-wzl-CCo83WoZvnLQwCTeDv8uzluRSnm71I3Q'+
+          'CLdhrqE2e9YkxvuxdBfpT_PI7Yz-FOKnu1R6HsJeDCjn12Sk3vmAktV2zb'+
+          '34MCdy7cpdTh_YVr7tss2u6vneTwrA86rZtu5Mbr1C1XsmvkxHQAdYo0';
+  RSA_dq = 'h_96-mK1R_7glhsum81dZxjTnYynPbZpHziZjeeHcXYsXaaMwkOlODsWa'+
+          '7I9xXDoRwbKgB719rrmI2oKr6N3Do9U0ajaHF-NKJnwgjMd2w9cjz3_-ky'+
+          'NlxAr2v4IKhGNpmM5iIgOS1VZnOZ68m6_pbLBSp3nssTdlqvd0tIiTHU';
+  RSA_qi = 'IYd7DHOhrWvxkwPQsRM2tOgrjbcrfvtQJipd-DlcxyVuuM9sQLdgjVk2o'+
+          'y26F0EmpScGLq2MowX7fhd_QJQ3ydy5cY7YIBi87w93IKLEdfnbJtoOPLU'+
+          'W0ITrJReOgo1cq9SbsxYawBgfp_gh6A5603k2-ZQwVK0JKSHuLFkuQ3U';
+
+  Signature ='cC4hiUPoj9Eetdgtv3hF80EGrhuB__dzERat0XF9g2VtQgr9PJbu3XOiZj5RZmh7'+
+             'AAuHIm4Bh-0Qc_lF5YKt_O8W2Fp5jujGbds9uJdbF9CUAr7t1dnZcAcQjbKBYNX4'+
+             'BAynRFdiuB--f_nZLgrnbyTyWzO75vRK5h6xBArLIARNPvkSjtQBMHlb1L07Qe7K'+
+             '0GarZRmB_eSN9383LcOLn6_dO--xi12jzDwusC-eOkHWEsqtFZESc6BfI7noOPqv'+
+             'hJ1phCnvWh6IeYI2w9QOYEUipUTI8np6LbgGY9Fs98rqVt5AXLIhWkWywlVmtVrB'+
+             'p0igcN_IoypGlUPQGe77Rw';
+
+var
+  HeaderEncoded, PayloadEncoded, SignInput, aInput: String;
+  X509RSAPrivateKey: TX509RSAPrivateKey;
+  X509RSAPublicKey: TX509RSAPublicKey;
+  RSA: TRSA;
+begin
+  HeaderEncoded:=Base64URL.Encode(HeaderJSON,false);
+  AssertEquals('Header',HeaderExpected,HeaderEncoded);
+
+  PayloadEncoded:=Base64URL.Encode(PayloadJSON,false);
+  AssertEquals('Payload',PayloadExpected,PayloadEncoded);
+
+  SignInput:=HeaderEncoded+'.'+PayloadEncoded;
+  if (length(SignInput)<>length(SignInputExpected))
+      or not CompareMem(@SignInput[1],@SignInputExpected[0],length(SignInput)) then
+    Fail('SignInput');
+
+  X509RSAPrivateKey.InitWithBase64UrlEncoded(RSA_n,RSA_e,RSA_d,RSA_p,RSA_q,RSA_dp,RSA_dq,RSA_qi);
+  X509RSAPublicKey.InitWithBase64UrlEncoded(RSA_n,RSA_e);
+
+  RSACreate(RSA);
+  try
+    RSAInitFromPublicKey(RSA,X509RSAPublicKey);
+    FKey.AsBytes:=X509RSAPublicKey.AsDER;
+
+    aInput:=SignInput+'.'+Signature;
+    // verify
+    FVerifyResult:=TMyJWT.ValidateJWT(aInput,FKey);
+    AssertNotNull('Have result',FVerifyResult);
+    AssertEquals('Correct class',TMyJWT,FVerifyResult.ClassType);
+    AssertNotNull('Have result.claims',FVerifyResult.Claims);
+    AssertEquals('Correct claims class',TMyClaims,FVerifyResult.Claims.ClassType);
+    AssertEquals('Have correct algorithm','RS256',FVerifyResult.JOSE.Alg);
+    AssertEquals('Have correct typ','',FVerifyResult.JOSE.typ);
+    AssertEquals('Have correct iss','joe',FVerifyResult.Claims.iss);
+    AssertEquals('Have correct exp',1300819380,FVerifyResult.Claims.exp);
+
+  finally
+    RSAFree(RSA);
+  end;
+end;
+
 procedure TTestJWT.SetUp;
 begin
   Inherited;
@@ -313,18 +413,6 @@ begin
   FreeAndNil(FJWT);
   FreeAndNil(FVerifyResult);
   Inherited;
-end;
-
-function TTestJWT.CreateUnsignedInput(JOSEAlg, ClaimsIssuer: string): string;
-var
-  IssuedAt, Expire: Int64;
-  Header, Claims: String;
-begin
-  IssuedAt:=DateTimeToUnix(Now-1);
-  Expire:=IssuedAt+1000000;
-  Header:='{"typ":"JWT","alg":"'+JOSEAlg+'"}';
-  Claims:='{"iat":'+IntToStr(IssuedAt)+',"exp":'+IntToStr(Expire)+',"iss":"'+ClaimsIssuer+'"}';
-  Result:=Base64URL.Encode(Header,false)+'.'+Base64URL.Encode(Claims,false);
 end;
 
 procedure TTestJWT.TestVerifyRSAPem(SignerClass: TJWTSignerRSAClass);
@@ -372,6 +460,9 @@ const
 var
   aInput: String;
   Signer: TJWTSignerRSA;
+  NewDER: TBytes;
+  RSAPublic: TX509RSAPublicKey;
+  RSAPrivate: TX509RSAPrivateKey;
 begin
   // header
   jwt.JOSE.alg:=SignerClass.AlgorithmName;
@@ -382,6 +473,11 @@ begin
 
   // load private key from pem
   FKey.AsBytes:=PemToDER(APrivateKeyPem,_BEGIN_RSA_PRIVATE_KEY,_END_RSA_PRIVATE_KEY);
+  X509RsaPrivateKeyInitFromDER(RSAPrivate,FKey.AsBytes);
+  NewDER:=RSAPrivate.AsDER;
+  if (length(FKey.AsBytes)<>length(NewDER)) or
+      not CompareMem(@FKey.AsBytes[0],@NewDER[0],length(NewDER)) then
+    Fail('TX509RSAPrivateKey.AsDER');
 
   // sign
   Signer:=TJWTSignerRSA(SignerClass.Create);
@@ -393,6 +489,11 @@ begin
 
   // load public key from pem
   FKey.AsBytes:=PemToDER(APublicKeyPem,_BEGIN_PUBLIC_KEY,_END_PUBLIC_KEY);
+  X509RsaPublicKeyInitFromDER(RSAPublic,FKey.AsBytes);
+  NewDER:=RSAPublic.AsDER;
+  if (length(FKey.AsBytes)<>length(NewDER)) or
+      not CompareMem(@FKey.AsBytes[0],@NewDER[0],length(NewDER)) then
+    Fail('TX509RSAPublicKey.AsDER');
 
   // verify
   FVerifyResult:=TMyJWT.ValidateJWT(aInput,FKey);
