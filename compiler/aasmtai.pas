@@ -388,6 +388,16 @@ interface
         mark_AsmBlockStart,mark_AsmBlockEnd,
         mark_NoLineInfoStart,mark_NoLineInfoEnd,mark_BlockStart,
         mark_Position
+{$ifdef avr}
+        { spilling on avr destroys the flags as it might use adiw/add/adc, so in case
+          the flags are allocated during spilling, this marker must be translated into
+          a push of the flags when assembler post processing is carried out }
+        ,mark_may_store_flags_with_r26
+        { spilling on avr destroys the flags as it might use adiw/add/adc, so in case
+          the flags are allocated during spilling, this marker must be translated into
+          a pop of the flags when assembler post processing is carried out }
+        ,mark_may_restore_flags_with_r26
+{$endif avr}
       );
 
       TRegAllocType = (ra_alloc,ra_dealloc,ra_sync,ra_resize,ra_markused);

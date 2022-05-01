@@ -399,10 +399,11 @@ implementation
     function finalizeavrcode(list : TAsmList) : Boolean;
       var
         CurrOffset : longint;
-        curtai, firstinstruction: tai;
+        curtai, firstinstruction, hp: tai;
         again : boolean;
         l : tasmlabel;
-        inasmblock : Boolean;
+        inasmblock, flagsallocated: Boolean;
+        href: treference;
 
       procedure remove_instruction;
         var
@@ -467,6 +468,7 @@ implementation
             curtai:=tai(list.first);
             inasmblock:=false;
             firstinstruction:=nil;
+            flagsallocated:=false;
             while assigned(curtai) do
               begin
                 case curtai.typ of
@@ -557,12 +559,59 @@ implementation
                           end;
                       end;
                     end;
+                  ait_regalloc:
+                    case tai_regalloc(curtai).ratype of
+                      ra_alloc:
+                        if (tai_regalloc(curtai).reg=NR_DEFAULTFLAGS) then
+                          begin
+                            { there are still douple allocations/deallocations in the cg, so
+                              this ie cannot be enabled
+                              if flagsallocated then
+                                Internalerror(2022050101);
+                            }
+                            flagsallocated:=true;
+                          end;
+                      ra_dealloc:
+                        if (tai_regalloc(curtai).reg=NR_DEFAULTFLAGS) then
+                          begin
+                            { there are still douple allocations/deallocations in the cg, so
+                              this ie cannot be enabled
+                              if not(flagsallocated) then
+                                Internalerror(2022050102);
+                            }
+                            flagsallocated:=false;
+                          end;
+                    end;
                   ait_marker:
                     case tai_marker(curtai).Kind of
                       mark_AsmBlockStart:
                         inasmblock:=true;
                       mark_AsmBlockEnd:
                         inasmblock:=false;
+                      mark_may_store_flags_with_r26:
+                        begin
+                          if flagsallocated then
+                            begin
+                              hp:=taicpu.op_reg_const(A_IN,NR_R26,63);
+                              list.insertafter(hp,curtai);
+                              list.insertafter(taicpu.op_reg(A_PUSH,NR_R26),hp);
+                              list.Remove(curtai);
+                              curtai.Free;
+                              curtai:=hp;
+                            end;
+                        end;
+                      mark_may_restore_flags_with_r26:
+                        begin
+                          if flagsallocated then
+                            begin
+                              hp:=taicpu.op_reg(A_POP,NR_R26);
+                              list.insertafter(hp,curtai);
+                              list.insertafter(taicpu.op_const_reg(A_OUT,63,NR_R26),hp);
+                              list.Remove(curtai);
+                              curtai.Free;
+                              curtai:=hp;
+                            end;
+                        end;
                     end;
                 end;
                 curtai:=tai(curtai.next);

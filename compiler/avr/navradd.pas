@@ -135,6 +135,8 @@ interface
         var
           i : byte;
         begin
+          cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+
           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,tmpreg1,tmpreg2));
           for i:=2 to tcgsize2size[left.location.size] do
             begin
@@ -202,6 +204,8 @@ interface
             if (left.location.loc=LOC_CONSTANT) and (left.location.value<>0) then
               hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
           end;
+
+        cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
 
         if (not unsigned) and
           (right.location.loc=LOC_CONSTANT) and
