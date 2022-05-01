@@ -625,7 +625,7 @@ type
   TFileHandle = record
     fh_Flags: ULONG;   { EXEC message        }
     {$ifdef CPU64}
-    fh_Port: ULONG;   { Reply port for the packet }
+    fh_Port: LongInt;   { Reply port for the packet }
     {$else}
     fh_Port: PMsgPort;   { Reply port for the packet }
     {$endif}
@@ -639,7 +639,7 @@ type
     fh_Func2: PtrInt;
     fh_Func3: PtrInt;
     fh_Arg1:  PtrInt;
-    fh_Arg2: APTR;
+    fh_Arg2: PtrInt;
     fh_Size: ULONG; // Size of buffered io buffer
     fh_Buf2: BPTR;  // Always the same as fh_Buf
   end;
