@@ -1,3 +1,4 @@
+{ %norun }
 { %skiptarget=android }
 
 program test;
