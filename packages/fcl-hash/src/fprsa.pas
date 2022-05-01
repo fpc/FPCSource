@@ -35,7 +35,8 @@ type
     DP: PBigInt;            // d mod (p-1)
     DQ: PBigInt;            // d mod (q-1)
     QInv: PBigInt;          // q^-1 mod p
-    ModulusLen: Integer;
+    ModulusLen: Integer; // in bytes
+    ModulusBits: Integer; // in bits
     Context: TBigIntContext;
   end;
 
@@ -83,22 +84,22 @@ procedure RSAInitFromPrivateKeyDER(var RSA: TRSA; const PrivateKeyDER: TBytes);
 procedure X509RsaPrivateKeyInitFromDER(out RSA: TX509RSAPrivateKey; const PrivateKeyDER: TBytes);
 
 { Perform PKCS1.5 Encryption or Signing
-  Context: The RSA context containing Private and/or Public keys
+  RSA: The RSA context containing Private and/or Public keys
   Input: The data to be encrypted
   Len: The size of the input data in bytes (Must be <= Modulus length - 11 to
        make the padding at least 8 bytes as recommended by RFC2313)
   Output: The buffer for the encrypted result (Must always be Modulus length)
   Sign: If true then sign instead of encrypting
-  Return: The number of bytes encrypted or -1 on error }
+  Result: The number of bytes encrypted or -1 on error }
 function RSAEncryptSign(var RSA: TRSA; const Input: PByte; Len: Integer; Output: PByte; Sign: Boolean): Integer;
 
 { Perform PKCS1.5 Decryption or Verification
-  Context: The RSA context containing Private and/or Public keys
+  RSA: The RSA context containing Private and/or Public keys
   Input: The data to be decrypted (Must always be Modulus length)
   Output: The buffer for the decrypted result
   Len: The size of the output buffer in bytes
   Verify: If true then verify instead of decrypting
-  Return: The number of bytes decrypted or -1 on error }
+  Result: The number of bytes decrypted or -1 on error }
 function RSADecryptVerify(var RSA: TRSA; const Input: PByte; Output: PByte; Len: Integer; Verify: Boolean): Integer;
 
 function RS256VerifyFromPublicKeyHexa(const PublicKeyHexa, SignatureBaseHash, Signature: String): Boolean;
@@ -106,14 +107,41 @@ function TestRS256Verify: Boolean;
 
 function EncodeDigestInfoSHA(SHAType, len: byte): TBytes;
 
-// integer <-> octetstring
-function I2OSP(c: DWord; Len: integer): string;
-function OSP2I(const Octet: string): DWord;
+const
+  RSA_PSS_SaltLen_HashLen = -1;
+  RSA_PSS_SaltLen_Max = -2;
+type
+  TRSAHashFunction = procedure(Input: PByte; InLen: Integer; Output: PByte);
+
+  { TRSAHashFuncInfo }
+
+  TRSAHashFuncInfo = record
+    Func: TRSAHashFunction;
+    DigestLen: Word;
+    procedure InitSHA1;
+    procedure InitSHA256;
+  end;
+  PRSAHashFuncInfo = ^TRSAHashFuncInfo;
+
+{ Perform PSASSA-PSS using MGF1 and a hash function
+  RSA: The RSA context containing the private key
+  Input: The data to be signed
+  Len: The size of the input data in bytes (Must be <= Modulus length - 11 to
+  Output: The buffer for the encrypted result (Must always be RSA.ModulusLen)
+  Result: The number of bytes encrypted or -1 on error }
+function RSASSA_PSS_SIGN(var RSA: TRSA; Input: PByte; Len: Integer;
+  HashFunc: PRSAHashFuncInfo; Output: PByte; SaltLen: integer = RSA_PSS_SaltLen_HashLen): Integer;
+
+procedure EMSA_PSS_ENCODE(Input: PByte; InLen: Integer; HashFunc: PRSAHashFuncInfo;
+  Output: PByte; OutLen: integer; ModBits: integer; SaltLen: integer = RSA_PSS_SaltLen_HashLen);
+
+// integer to octetstring
+function I2OSP(c: DWord; Len: integer): string; overload;
+procedure I2OSP(c: DWord; Dest: PByte; Len: integer); overload;
 
 // MGF1 (Mask Generating Function 1) of PKCS1 (Public Key Cryptography Standard #1)
-type
-  THashFunction = function(const s: string): string; // string to hash digest
-function MGF1(const InputStr: string; Len: integer; HashFunc: THashFunction): string;
+function MGF1(const InputStr: string; HashFunc: PRSAHashFuncInfo; Len: integer): string; overload;
+procedure MGF1(Input: PByte; InLen: Integer; HashFunc: PRSAHashFuncInfo; Output: PByte; OutLen: integer); overload;
 function MGF1SHA1(const InputStr: string; Len: integer): string;
 function MGF1SHA256(const InputStr: string; Len: integer): string;
 
@@ -159,6 +187,7 @@ procedure RsaInitFromPublicKey(var RSA: TRSA; const Modulus, Exponent: String);
 begin
   RSA.ModulusLen := length(Modulus);
   RSA.M := BIImport(RSA.Context, Modulus);
+  RSA.ModulusBits :=  BIBitCount(RSA.M);
   BISetMod(RSA.Context, RSA.M, BIGINT_M_OFFSET);
   RSA.E := BIImport(RSA.Context, Exponent);
   BIPermanent(RSA.E);
@@ -173,6 +202,7 @@ begin
     Exit;
   RSA.ModulusLen := length(RSAPublicKey.Modulus);
   RSA.M := BIImport(RSA.Context, RSAPublicKey.Modulus);
+  RSA.ModulusBits := BIBitCount(RSA.M);
   BISetMod(RSA.Context, RSA.M, BIGINT_M_OFFSET);
   RSA.E := BIImport(RSA.Context, RSAPublicKey.Exponent);
   BIPermanent(RSA.E);
@@ -189,7 +219,7 @@ end;
 procedure X509RsaPublicKeyInitFromDER(out RSA: TX509RSAPublicKey;
   const PublicKeyDER: TBytes);
 var
-  ASNType, ASNSize: integer;
+  ASNType, ASNSize, i: integer;
   List: TStringList;
 begin
   RSA:=Default(TX509RSAPublicKey);
@@ -201,7 +231,7 @@ begin
     ASNDebugList('X509RsaPublicKeyInitFromDER',List);
     {$ENDIF}
 
-    if List.Count<7 then
+    if List.Count<6 then
       raise Exception.Create('20220428180055');
 
     // check sequence
@@ -221,24 +251,29 @@ begin
     if List[2]<>RSAPublicKeyOID then
       raise Exception.Create('20220428181542');
 
-    // check null
-    ASNParse_GetItem(List,3,ASNType,ASNSize);
-    if ASNType<>ASN1_NULL then
-      raise Exception.Create('20220428181659');
+    // check optional null
+    i:=3;
+    ASNParse_GetItem(List,i,ASNType,ASNSize);
+    if ASNType=ASN1_NULL then
+      inc(i);
 
-    // check optional algorithm params
-    ASNParse_GetItem(List,4,ASNType,ASNSize);
+    // check algorithm params
+    ASNParse_GetItem(List,i,ASNType,ASNSize);
     if ASNType<>ASN1_BITSTR then
       raise Exception.Create('20220428181913');
+    inc(i);
+
+    if i+2>List.Count then
+      raise Exception.Create('20220428180055');
 
     // check sequence
-    ASNParse_GetItem(List,5,ASNType,ASNSize);
+    ASNParse_GetItem(List,i,ASNType,ASNSize);
     if ASNType<>ASN1_SEQ then
       raise Exception.Create('20220428181933');
 
     // public key
-    RSA.Modulus:=ASNParse_GetIntBytes(List,6,20220428182235);
-    RSA.Exponent:=ASNParse_GetIntBytes(List,7,20220428182241);
+    RSA.Modulus:=ASNParse_GetIntBytes(List,i+1,20220428182235);
+    RSA.Exponent:=ASNParse_GetIntBytes(List,i+2,20220428182241);
 
     {$IFDEF TLS_DEBUG}
     writeln('X509RsaPublicKeyInitFromDER: ');
@@ -271,6 +306,7 @@ begin
     Exit;
   RSA.ModulusLen := length(RSAPrivateKey.Modulus);
   RSA.M := BIImport(RSA.Context, RSAPrivateKey.Modulus);
+  RSA.ModulusBits := BIBitCount(RSA.M);
   BISetMod(RSA.Context, RSA.M, BIGINT_M_OFFSET);
   RSA.E := BIImport(RSA.Context, RSAPrivateKey.PublicExponent);
   BIPermanent(RSA.E);
@@ -689,78 +725,199 @@ begin
     ];
 end;
 
-function I2OSP(c: DWord; Len: integer): string;
+function RSASSA_PSS_SIGN(var RSA: TRSA; Input: PByte; Len: Integer;
+  HashFunc: PRSAHashFuncInfo; Output: PByte; SaltLen: integer): Integer;
 var
-  i: DWord;
+  EncodedMsg: TBytes;
+  ModBits: Integer;
 begin
-  if Len>4 then
-    raise Exception.Create('20220501190110');
+  Result:=-1;
+
+  ModBits:=(RSA.ModulusBits-1) and 7;
+  if ModBits=0 then
+    raise Exception.Create('20220502000942 RSA n too small');
+
+  SetLength(EncodedMsg{%H-},RSA.ModulusLen);
+  EMSA_PSS_ENCODE(Input,Len, HashFunc, @EncodedMsg[0], length(EncodedMsg), ModBits, SaltLen);
+
+  raise Exception.Create('20220502000942 implement me');
+
+  //Result:=RSASP1(RSA,EncodedMsg,Output);
+end;
+
+procedure EMSA_PSS_ENCODE(Input: PByte; InLen: Integer;
+  HashFunc: PRSAHashFuncInfo; Output: PByte; OutLen: integer; ModBits: integer;
+  SaltLen: integer);
+// RFC 3447 9.1.1  Encoding operation
+var
+  ZeroesHashSalt, H, DB, DBMask, MaskedDB: TBytes;
+  MsgHashP, SaltP: PByte;
+  Padding, HashLen, i: Integer;
+begin
+  HashLen:=HashFunc^.DigestLen;
+
+  if SaltLen = RSA_PSS_SaltLen_HashLen then
+    SaltLen:=HashLen
+  else if SaltLen = RSA_PSS_SaltLen_Max then
+    SaltLen:=OutLen-HashLen-2
+  else if SaltLen < RSA_PSS_SaltLen_Max then
+    raise Exception.Create('20220501233610');
+
+  // check OutLen
+  if HashLen + SaltLen + 2 > OutLen then
+    raise Exception.Create('20220501221837');
+
+  // ZeroesHashSalt := 8 zeroes + InputHash + Salt
+  SetLength(ZeroesHashSalt{%H-},8+HashLen+SaltLen);
+  FillByte(ZeroesHashSalt[0],8,0);
+  MsgHashP:=@ZeroesHashSalt[8];
+  HashFunc^.Func(Input,InLen,MsgHashP);
+  SaltP:=MsgHashP+HashLen;
+  if SaltLen>0 then
+    if not CryptoGetRandomBytes(SaltP,SaltLen) then
+      raise Exception.Create('20220501222748');
+
+  // hash ZeroesHashSalt
+  SetLength(H{%H-},HashLen);
+  HashFunc^.Func(@ZeroesHashSalt[0],length(ZeroesHashSalt),@H[0]);
+
+  // DB := padding zeroes + #1 + Salt
+  SetLength(DB{%H-},OutLen-HashLen-1);
+  Padding:=length(DB)-SaltLen-1;
+  if Padding>0 then
+    FillByte(DB[0],Padding,0);
+  DB[Padding]:=1;
+  System.Move(SaltP^,DB[Padding+1],SaltLen);
+
+  // dbMask := MGF(H, OutLen - HashLen - 1)
+  SetLength(DBMask{%H-},length(DB));
+  MGF1(@H[0],HashLen,HashFunc,@DBMask[0],length(DB));
+
+  // MaskedDB := DB xor DBMask
+  SetLength(MaskedDB{%H-},length(DB));
+  for i:=0 to length(DB) do
+    MaskedDB[i]:=DB[i] xor DBMask[i];
+
+  // set the leftmost bits of leftmost byte to zero
+  if ModBits>0 then
+    MaskedDB[0] := MaskedDB[0] and ($ff shr (8-ModBits));
+
+  System.Move(MaskedDB[0],Output^,length(MaskedDB));
+  inc(Output,length(MaskedDB));
+  System.Move(H[0],Output^,length(H));
+  inc(Output,length(H));
+  Output^:=$bc;
+end;
+
+function I2OSP(c: DWord; Len: integer): string;
+begin
   SetLength(Result{%H-},Len);
-  for i:=Len downto 1 do
+  I2OSP(c,@Result[1],Len);
+end;
+
+procedure I2OSP(c: DWord; Dest: PByte; Len: integer);
+var
+  i: Integer;
+begin
+  for i:=Len-1 downto 0 do
   begin
-    Result[i]:=chr(c and $ff);
+    Dest[i]:=c and $ff;
     c:=c shr 8;
   end;
   if c>0 then
     raise Exception.Create('20220501190124');
 end;
 
-function OSP2I(const Octet: string): DWord;
-var
-  i: Integer;
+function MGF1(const InputStr: string; HashFunc: PRSAHashFuncInfo; Len: integer): string;
 begin
-  Result:=0;
-  if length(Octet)>4 then
-    raise Exception.Create('20220501190308');
-  for i:=1 to length(Octet) do
-    Result:=Result shl 8 + ord(Octet[i]);
+  SetLength(Result{%H-},Len);
+  if Len=0 then exit;
+  MGF1(PByte(PChar(InputStr)){InputStr might be empty!},length(InputStr), HashFunc, @Result[1], Len);
 end;
 
-function MGF1(const InputStr: string; Len: integer; HashFunc: THashFunction
-  ): string;
+procedure MGF1(Input: PByte; InLen: Integer; HashFunc: PRSAHashFuncInfo;
+  Output: PByte; OutLen: integer);
 var
+  p, CounterP, InpP: PByte;
+  i, r: Integer;
+  HashLen: Word;
+  InputCounted, Tmp: TBytes;
   Counter: DWord;
 begin
   Counter:=0;
-  Result:='';
-  while length(Result)<Len do
+  HashLen:=HashFunc^.DigestLen;
+  SetLength(InputCounted{%H-},InLen+4);
+  InpP:=@InputCounted[0];
+  if InLen>0 then
+    System.Move(Input^,InpP^,InLen);
+  CounterP:=InpP+InLen;
+  p:=Output;
+  for i:=1 to (OutLen div HashLen) do
   begin
-    Result:=Result+HashFunc(InputStr+I2OSP(Counter,4));
+    I2OSP(Counter,CounterP,4);
+    HashFunc^.Func(InpP,InLen+4,p);
+    inc(p,HashLen);
     inc(Counter);
   end;
-  SetLength(Result,Len);
-end;
-
-function SHA1StrToDigest(const InputStr: string): string;
-var
-  Digest: TSHA1Digest;
-begin
-  Digest:=SHA1String(InputStr);
-  SetLength(Result{%H-},length(Digest));
-  System.Move(Digest[0],Result[1],length(Digest));
-  if Digest[0]=0 then ;
+  r:=OutLen mod HashLen;
+  if r>0 then
+  begin
+    I2OSP(Counter,CounterP,4);
+    SetLength(Tmp{%H-},HashLen);
+    HashFunc^.Func(InpP,InLen+4,@Tmp[0]);
+    System.Move(Tmp[0],p^,r);
+  end;
 end;
 
 function MGF1SHA1(const InputStr: string; Len: integer): string;
+var
+  HashFunc: TRSAHashFuncInfo;
 begin
-  Result:=MGF1(InputStr,Len,@SHA1StrToDigest);
+  HashFunc.InitSHA1;
+  Result:=MGF1(InputStr,@HashFunc,Len);
 end;
 
-function SHA256StrToDigest(const InputStr: string): string;
+function MGF1SHA256(const InputStr: string; Len: integer): string;
+var
+  HashFunc: TRSAHashFuncInfo;
+begin
+  HashFunc.InitSHA256;
+  Result:=MGF1(InputStr,@HashFunc,Len);
+end;
+
+procedure HashFuncSHA1(Input: PByte; InLen: Integer; Output: PByte);
+var
+  Context: TSHA1Context;
+  Digest: TSHA1Digest;
+begin
+  SHA1Init(Context);
+  SHA1Update(Context,Input^,InLen);
+  SHA1Final(Context,Digest);
+  System.Move(Digest[0],Output^,SizeOf(Digest));
+end;
+
+procedure HashFuncSHA256(Input: PByte; InLen: Integer; Output: PByte);
 var
   SHA256: TSHA256;
 begin
   SHA256.Init;
-  SHA256.Update(@InputStr[1],length(InputStr));
+  SHA256.Update(Input,InLen);
   SHA256.Final;
-
-  SetLength(Result{%H-},length(SHA256.Digest));
-  System.Move(SHA256.Digest[0],Result[1],length(SHA256.Digest));
+  System.Move(SHA256.Digest[0],Output^,SHA256_DIGEST_SIZE);
 end;
 
-function MGF1SHA256(const InputStr: string; Len: integer): string;
+{ TRSAHashFuncInfo }
+
+procedure TRSAHashFuncInfo.InitSHA1;
 begin
-  Result:=MGF1(InputStr,Len,@SHA256StrToDigest);
+  Func:=@HashFuncSHA1;
+  DigestLen:=SizeOf(TSHA1Digest);
+end;
+
+procedure TRSAHashFuncInfo.InitSHA256;
+begin
+  Func:=@HashFuncSHA256;
+  DigestLen:=SHA256_DIGEST_SIZE;
 end;
 
 { TX509RSAPrivateKey }

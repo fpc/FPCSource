@@ -85,6 +85,7 @@ function BIImport(var Context: TBigIntContext; Data: PByte; const Size: Integer)
 function BIImport(var Context: TBigIntContext; const Data: TBytes): PBigInt; overload;
 function BIImport(var Context: TBigIntContext; const Data: AnsiString): PBigInt; overload;
 function IntToBI(var Context: TBigIntContext; I: TBIComponent): PBigInt;
+function BIBitCount(BI: PBigInt): integer;
 
 function BIAdd(var Context: TBigIntContext; BIA, BIB: PBigInt): PBigInt;
 function BISubtract(var Context: TBigIntContext; BIA, BIB: PBigInt;out IsNegative: Boolean): PBigInt;
@@ -665,6 +666,25 @@ function IntToBI(var Context: TBigIntContext; I: TBIComponent): PBigInt;
 begin
   Result := BIAllocate(Context,1);
   Result^.Components[0] := I;
+end;
+
+function BIBitCount(BI: PBigInt): integer;
+var
+  i: Integer;
+  c: TBIComponent;
+begin
+  i:=BI^.Size-1;
+  while (i>=0) and (BI^.Components[i]=0) do
+    dec(i);
+  if i<0 then
+    exit(0);
+  Result:=i*BIGINT_COMP_BIT_SIZE;
+  c:=BI^.Components[i];
+  while (c>0) do
+  begin
+    inc(Result);
+    c:=c shr 1;
+  end;
 end;
 
 function BIAdd(var Context: TBigIntContext; BIA, BIB: PBigInt): PBigInt;
