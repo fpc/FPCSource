@@ -169,6 +169,9 @@ Implementation
         ((TRegister(ord(taicpu(p1).oper[0]^.reg)+1)=reg) or (TRegister(ord(taicpu(p1).oper[1]^.reg)+1)=reg) or
          (taicpu(p1).oper[0]^.reg=reg) or (taicpu(p1).oper[1]^.reg=reg)) then
         Result:=true
+      else if (p1.typ = ait_instruction) and (taicpu(p1).opcode=A_ADIW) and
+        ((TRegister(ord(taicpu(p1).oper[0]^.reg)+1)=reg) or (taicpu(p1).oper[0]^.reg=reg)) then
+        Result:=true
       else
         Result:=inherited RegInInstruction(Reg, p1);
     end;
@@ -231,7 +234,9 @@ Implementation
             top_reg:
               Result := (p.oper[i]^.reg = reg) or
                 { MOVW }
-                ((i=1) and (p.opcode=A_MOVW) and (getsupreg(p.oper[i]^.reg)+1=getsupreg(reg)));
+                ((i=1) and (p.opcode=A_MOVW) and (getsupreg(p.oper[i]^.reg)+1=getsupreg(reg))) or
+                { ADIW }
+                ((i=0) and (p.opcode=A_ADIW) and (getsupreg(p.oper[i]^.reg)+1=getsupreg(reg)));
             top_ref:
               Result :=
                 (p.oper[i]^.ref^.base = reg) or

@@ -133,6 +133,13 @@ Implementation
           exit;
         end;
 
+      If (taicpu(p1).opcode=A_ADIW) and
+        (TRegister(ord(taicpu(p1).oper[0]^.reg)+1)=reg) then
+        begin
+          Result:=true;
+          exit;
+        end;
+
       for i:=0 to taicpu(p1).ops-1 do
         if (taicpu(p1).oper[i]^.typ=top_reg) and (taicpu(p1).oper[i]^.reg=Reg) and (taicpu(p1).spilling_get_operation_type(i) in [operand_write,operand_readwrite]) then
           begin
