@@ -27,7 +27,7 @@ interface
 
     uses
       globtype,verbose,cclasses,
-      aasmbase,aasmtai,aasmdata,aasmsym,aasmcnst,
+      aasmbase,aasmtai,aasmdata,aasmdef,aasmsym,aasmcnst,
       cpubase,cgbase,cgutils,
       symtype,symdef,symsym,
       llvmbase;
@@ -226,6 +226,10 @@ interface
         top_tai    : (ai: tai);
     end;
 
+
+    TLLVMAsmData = class(TAsmDataDef)
+     fnextmetaid: cardinal;
+    end;
 
 implementation
 
@@ -1258,4 +1262,6 @@ uses
         loadparas(1,paras);
       end;
 
+begin
+  casmdata:=TLLVMAsmData;
 end.

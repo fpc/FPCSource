@@ -76,8 +76,7 @@ interface
 
     (* !0 = !{ type1 value1, ... } *)
     tai_llvmunnamedmetadatanode = class(tai_llvmbasemetadatanode)
-     strict private class var
-      snextid: cardinal;
+     strict private
       class function getnextid: cardinal;
      strict protected
       fnameval: cardinal;
@@ -194,7 +193,8 @@ implementation
     verbose,globals,cutils,
     fmodule,
     symdef,
-    dbgdwarfconst;
+    dbgdwarfconst,
+    aasmdata,aasmllvm;
 
   function llvm_getmetadatareftypedconst(metadata: tai_llvmbasemetadatanode): tai_simpletypedconst;
     begin
@@ -232,8 +232,8 @@ implementation
 
   class function tai_llvmunnamedmetadatanode.getnextid: cardinal;
     begin
-      result:=snextid;
-      inc(snextid);
+      result:=tllvmasmdata(current_asmdata).fnextmetaid;
+      inc(tllvmasmdata(current_asmdata).fnextmetaid);
     end;
 
 
