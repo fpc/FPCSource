@@ -1213,7 +1213,7 @@ begin
   else if current_settings.controllertype = ct_esp32 then
     begin
       if idf_version>=40400 then
-        cmdstr:=cmdstr+'$IDF_PATH/components/esp_system/ld/esp32/sections.ld.in'
+        cmdstr:=cmdstr+'-I $IDF_PATH/components/esp_system/ld $IDF_PATH/components/esp_system/ld/esp32/memory.ld.in'
       else
         cmdstr:=cmdstr+'$IDF_PATH/components/esp32/ld/esp32.ld';
     end
@@ -1252,7 +1252,7 @@ begin
   if (current_settings.controllertype = ct_esp32) then
     begin
      if idf_version>=40400 then
-       cmdstr:=cmdstr+' --input $IDF_PATH/components/esp_system/esp32/ld/sections.ld.in'
+       cmdstr:=cmdstr+' --input $IDF_PATH/components/esp_system/ld/esp32/sections.ld.in'
      else
        cmdstr:=cmdstr+' --input $IDF_PATH/components/esp32/ld/esp32.project.ld.in';
     end
