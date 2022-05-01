@@ -640,8 +640,8 @@ type
     fh_Func3: PtrInt;
     fh_Arg1:  PtrInt;
     fh_Arg2: PtrInt;
-    fh_Size: ULONG; // Size of buffered io buffer
-    fh_Buf2: BPTR;  // Always the same as fh_Buf
+    fh_BufSize: ULONG; // Size of buffered io buffer
+    fh_OrigBuf: BPTR;  // Always the same as fh_Buf
   end;
 
 { This is the extension to EXEC Messages used by DOS }
@@ -865,12 +865,8 @@ type
     dvi_StackSize: LongInt;
     dvi_Priority: LongInt;
     dvi_Startup: BPTR;
-{$ifdef aros}
-    dvi_NoAROS4: array[0..1] of BPTR;
-{$else}
     dvi_SegList: BPTR;
-    dvi_GlobVec: BSTR;
-{$endif}
+    dvi_GlobalVec: BSTR;
     dvi_Name: BSTR;
   end;
 
