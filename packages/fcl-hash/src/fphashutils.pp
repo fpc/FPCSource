@@ -43,10 +43,11 @@ Procedure BytesToHexStr(out aHexStr : AnsiString; aBytes : TBytes); overload;
 Function BytesToHexStr(aBytes : TBytes) : AnsiString; overload;
 Procedure BytesToHexStrAppend(aBytes : TBytes;var aHexStr : AnsiString);
 
-procedure BytesEncodeBase64(Source: Tbytes; out Dest: AnsiString; const IsURL, MultiLines, Padding: Boolean);
+Procedure BytesEncodeBase64(Source: Tbytes; out Dest: AnsiString; const IsURL, MultiLines, Padding: Boolean);
 Function BytesEncodeBase64(Source: Tbytes; const IsURL, MultiLines, Padding: Boolean) : AnsiString;
+Function BytesToStr(const aBytes: TBytes): string; overload;
 
-function CryptoGetRandomBytes(Buffer: PByte; const Count: Integer; ZeroBytesAllowed: boolean = true): Boolean;
+Function CryptoGetRandomBytes(Buffer: PByte; const Count: Integer; ZeroBytesAllowed: boolean = true): Boolean;
 Function ExtractBetween(const ASource,aStart,aEnd : String) : String;
 
 Type
@@ -338,6 +339,13 @@ function BytesEncodeBase64(Source: Tbytes; const IsURL, MultiLines,
 
 begin
   BytesEncodeBase64(Source,Result,IsURL, MultiLines, Padding);
+end;
+
+function BytesToStr(const aBytes: TBytes): string;
+begin
+  SetLength(Result,length(aBytes));
+  if aBytes=nil then exit;
+  Move(aBytes[0],Result[1],length(aBytes));
 end;
 
 type
