@@ -26,7 +26,7 @@ begin
     P.Email := '';
     P.Description := 'LibNettle is the interface to GNU nettle, a C library that implements gryptography';
     P.NeedLibC:= false;
-    P.OSes := [freebsd,darwin,iphonesim,ios,linux,win32,aix];
+    P.OSes := [linux,win32];
 
     P.SourcePath.Add('src');
 

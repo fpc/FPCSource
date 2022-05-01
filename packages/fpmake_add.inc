@@ -43,6 +43,7 @@
   add_gdbm(ADirectory+IncludeTrailingPathDelimiter('gdbm'));
   add_ggi(ADirectory+IncludeTrailingPathDelimiter('ggi'));
   add_gmp(ADirectory+IncludeTrailingPathDelimiter('gmp'));
+  add_libnettle(ADirectory+IncludeTrailingPathDelimiter('libnettle'));
   add_gnome1(ADirectory+IncludeTrailingPathDelimiter('gnome1'));
   add_graph(ADirectory+IncludeTrailingPathDelimiter('graph'));
   add_gtk1(ADirectory+IncludeTrailingPathDelimiter('gtk1'));

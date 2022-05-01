@@ -250,6 +250,12 @@ begin
 {$include gmp/fpmake.pp}
 end;
 
+procedure add_libnettle(const ADirectory: string);
+begin
+  with Installer do
+{$include libnettle/fpmake.pp}
+end;
+
 procedure add_gnome1(const ADirectory: string);
 begin
   with Installer do
