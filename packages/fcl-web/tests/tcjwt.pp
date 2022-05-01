@@ -28,6 +28,7 @@ type
   end;
 
   { TTestJWT }
+
   TTestJWT= class(TTestCase)
   private
     FJWT: TJWT;
@@ -42,18 +43,28 @@ type
   published
     procedure TestSignNone;
     procedure TestVerifyNone;
+
+    // SHA
     procedure TestSignSHA256;
     procedure TestVerifySHA256;
     procedure TestSignSHA512;
     procedure TestVerifySHA512;
     procedure TestSignSHA384;
     procedure TestVerifySHA384;
+
+    // ES
     procedure TestVerifyES256;
     procedure TestVerifyES256Pem;
+
+    // RSA
     procedure TestVerifyRS256Pem;
     procedure TestVerifyRS384Pem;
     procedure TestVerifyRS512Pem;
     procedure TestVerifyRS256_rfc7515;
+    procedure TestI2OSP;
+    procedure TestOSP2I;
+    procedure TestMGF1SHA1;
+    procedure TestMGF1SHA256;
   end;
 
 implementation
@@ -236,7 +247,6 @@ begin
   AssertEquals('Have correct sub','1234567890',FVerifyResult.Claims.sub);
   AssertEquals('Have correct name','John Doe',(TMyJWT(FVerifyResult).Claims as TMyClaims).Name);
   AssertEquals('Have correct admin',true,(TMyJWT(FVerifyResult).Claims as TMyClaims).Admin);
-
 end;
 
 procedure TTestJWT.TestVerifyES256Pem;
@@ -394,6 +404,82 @@ begin
   finally
     RSAFree(RSA);
   end;
+end;
+
+procedure TTestJWT.TestI2OSP;
+
+  procedure t(c: DWord; Len: integer; const Expected: string);
+  var
+    Actual: String;
+  begin
+    Actual:=I2OSP(c,Len);
+    if Actual<>Expected then
+      Fail('I2OSP('+IntToStr(c)+','+IntToStr(Len)+') expected "'+StringToHex(Expected)+'", but got "'+StringToHex(Actual)+'"');
+  end;
+
+begin
+  t(0,0,'');
+  t(0,1,#0);
+  t(1,1,#1);
+  t(1,2,#0#1);
+  t(258,2,#1#2);
+  t($10203,3,#1#2#3);
+  t($1020304,4,#1#2#3#4);
+  t($ffffffff,4,#255#255#255#255);
+end;
+
+procedure TTestJWT.TestOSP2I;
+
+  procedure t(const Octet: string; const Expected: DWord);
+  var
+    Actual: DWord;
+  begin
+    Actual:=OSP2I(Octet);
+    if Actual<>Expected then
+      Fail('OSP2I('+StringToHex(Octet)+') expected "'+HexStr(Expected,8)+'", but got "'+HexStr(Actual,8)+'"');
+  end;
+
+begin
+  t('',0);
+  t(#0,0);
+  t(#0#0,0);
+  t(#0#0#0,0);
+  t(#0#0#0#0,0);
+  t(#1#0#0#0,$1000000);
+  t(#255#255#255#255,$ffffffff);
+end;
+
+procedure TTestJWT.TestMGF1SHA1;
+
+  procedure t(const InputStr: string; Len: integer; const ExpectedHex: String);
+  var
+    ActualHex: string;
+  begin
+    ActualHex:=StringToHex(MGF1SHA1(InputStr,Len));
+    if ActualHex<>ExpectedHex then
+      Fail('MGF1SHA1('+StringToHex(InputStr)+','+IntToStr(Len)+') expected "'+ExpectedHex+'", but got "'+ActualHex+'"');
+  end;
+
+begin
+  t('foo',3,'1AC907');
+  t('foo',5,'1AC9075CD4');
+  t('bar',5,'BC0C655E01');
+  t('bar',50,'BC0C655E016BC2931D85A2E675181ADCEF7F581F76DF2739DA74FAAC41627BE2F7F415C89E983FD0CE80CED9878641CB4876');
+end;
+
+procedure TTestJWT.TestMGF1SHA256;
+
+  procedure t(const InputStr: string; Len: integer; const ExpectedHex: String);
+  var
+    ActualHex: string;
+  begin
+    ActualHex:=StringToHex(MGF1SHA256(InputStr,Len));
+    if ActualHex<>ExpectedHex then
+      Fail('MGF1SHA256('+StringToHex(InputStr)+','+IntToStr(Len)+') expected "'+ExpectedHex+'", but got "'+ActualHex+'"');
+  end;
+
+begin
+  t('bar',50,'382576A7841021CC28FC4C0948753FB8312090CEA942EA4C4E735D10DC724B155F9F6069F289D61DACA0CB814502EF04EAE1');
 end;
 
 procedure TTestJWT.SetUp;

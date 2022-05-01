@@ -42,6 +42,7 @@ Procedure BytesToHexStr(out aHexStr : AnsiString; aBytes : PByte; aSize : Intege
 Procedure BytesToHexStr(out aHexStr : AnsiString; aBytes : TBytes); overload;
 Function BytesToHexStr(aBytes : TBytes) : AnsiString; overload;
 Procedure BytesToHexStrAppend(aBytes : TBytes;var aHexStr : AnsiString);
+Function StringToHex(const s: string): string; overload;
 
 Procedure BytesEncodeBase64(Source: Tbytes; out Dest: AnsiString; const IsURL, MultiLines, Padding: Boolean);
 Function BytesEncodeBase64(Source: Tbytes; const IsURL, MultiLines, Padding: Boolean) : AnsiString;
@@ -58,6 +59,9 @@ var
 
 
 implementation
+
+Const
+  HexDigits: Array[0..15] of AnsiChar = ('0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F');
 
 procedure BytesFromVar(out aBytes: TBytes; aLocation: Pointer; aSize: Integer);
 
@@ -151,10 +155,6 @@ begin
 end;
 
 procedure BytesToHexStr(out aHexStr : AnsiString; aBytes : PByte; aSize : Integer);
-
-Const
-  Digits: Array[0..15] of AnsiChar = ('0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F');
-
 var
   I: Integer;
   PB : Pbyte;
@@ -169,9 +169,9 @@ begin
   PC:=PChar(aHexStr);
   for I:=0 to aSize-1 do
     begin
-    PC^:=Digits[(PB^ shr 4) and $0f];
+    PC^:=HexDigits[PB^ shr 4];
     Inc(PC);
-    PC^:=Digits[PB^ and $0f];
+    PC^:=HexDigits[PB^ and $f];
     Inc(PC);
     Inc(PB);
     end;
@@ -193,6 +193,12 @@ procedure BytesToHexStrAppend(aBytes: TBytes; var aHexStr: AnsiString);
 
 begin
   aHexStr:=aHexStr+BytesToHexStr(aBytes);
+end;
+
+function StringToHex(const s: string): string;
+begin
+  if s='' then exit;
+  BytesToHexStr(Result,@s[1],length(s));
 end;
 
 function GetBase64EncodedSize(const SourceSize: Int32; const MultiLines: Boolean): Int32;

@@ -9,7 +9,7 @@ interface
 {off $DEFINE CRYPTO_DEBUG}
 
 uses
-  sysutils, Classes, fpTLSBigInt, fphashutils, fpasn, basenenc;
+  sysutils, Classes, sha1, fpsha256, fpTLSBigInt, fphashutils, fpasn, basenenc;
 
 const
   RSAPublicKeyOID = '1.2.840.113549.1.1.1';
@@ -105,6 +105,17 @@ function RS256VerifyFromPublicKeyHexa(const PublicKeyHexa, SignatureBaseHash, Si
 function TestRS256Verify: Boolean;
 
 function EncodeDigestInfoSHA(SHAType, len: byte): TBytes;
+
+// integer <-> octetstring
+function I2OSP(c: DWord; Len: integer): string;
+function OSP2I(const Octet: string): DWord;
+
+// MGF1 (Mask Generating Function 1) of PKCS1 (Public Key Cryptography Standard #1)
+type
+  THashFunction = function(const s: string): string; // string to hash digest
+function MGF1(const InputStr: string; Len: integer; HashFunc: THashFunction): string;
+function MGF1SHA1(const InputStr: string; Len: integer): string;
+function MGF1SHA256(const InputStr: string; Len: integer): string;
 
 implementation
 
@@ -676,6 +687,80 @@ begin
         ASN1_NULL, 0,
       ASN1_OCTSTR, len
     ];
+end;
+
+function I2OSP(c: DWord; Len: integer): string;
+var
+  i: DWord;
+begin
+  if Len>4 then
+    raise Exception.Create('20220501190110');
+  SetLength(Result{%H-},Len);
+  for i:=Len downto 1 do
+  begin
+    Result[i]:=chr(c and $ff);
+    c:=c shr 8;
+  end;
+  if c>0 then
+    raise Exception.Create('20220501190124');
+end;
+
+function OSP2I(const Octet: string): DWord;
+var
+  i: Integer;
+begin
+  Result:=0;
+  if length(Octet)>4 then
+    raise Exception.Create('20220501190308');
+  for i:=1 to length(Octet) do
+    Result:=Result shl 8 + ord(Octet[i]);
+end;
+
+function MGF1(const InputStr: string; Len: integer; HashFunc: THashFunction
+  ): string;
+var
+  Counter: DWord;
+begin
+  Counter:=0;
+  Result:='';
+  while length(Result)<Len do
+  begin
+    Result:=Result+HashFunc(InputStr+I2OSP(Counter,4));
+    inc(Counter);
+  end;
+  SetLength(Result,Len);
+end;
+
+function SHA1StrToDigest(const InputStr: string): string;
+var
+  Digest: TSHA1Digest;
+begin
+  Digest:=SHA1String(InputStr);
+  SetLength(Result{%H-},length(Digest));
+  System.Move(Digest[0],Result[1],length(Digest));
+  if Digest[0]=0 then ;
+end;
+
+function MGF1SHA1(const InputStr: string; Len: integer): string;
+begin
+  Result:=MGF1(InputStr,Len,@SHA1StrToDigest);
+end;
+
+function SHA256StrToDigest(const InputStr: string): string;
+var
+  SHA256: TSHA256;
+begin
+  SHA256.Init;
+  SHA256.Update(@InputStr[1],length(InputStr));
+  SHA256.Final;
+
+  SetLength(Result{%H-},length(SHA256.Digest));
+  System.Move(SHA256.Digest[0],Result[1],length(SHA256.Digest));
+end;
+
+function MGF1SHA256(const InputStr: string; Len: integer): string;
+begin
+  Result:=MGF1(InputStr,Len,@SHA256StrToDigest);
 end;
 
 { TX509RSAPrivateKey }
