@@ -652,9 +652,9 @@ const
             coalescealign   : 0;
             coalescealignskipmax: 0;
             constalignmin   : 0;
-            constalignmax   : 16;
+            constalignmax   : 32;
             varalignmin     : 0;
-            varalignmax     : 16;
+            varalignmax     : 32;
             localalignmin   : 4;
             localalignmax   : 16;
             recordalignmin  : 0;
