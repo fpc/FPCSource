@@ -441,7 +441,7 @@ procedure testmulqword;
        do_error(1805);
 
      { now test the multiplication procedure with random bit patterns }
-     writeln('Doing some random multiplications, takes a few seconds');
+     writeln('Doing some random multiplications (',NumIterations,' iterations), takes a few seconds');
      writeln('........................................ 100%');
      for i:=1 to NumIterations do
        begin
@@ -513,7 +513,7 @@ procedure testdivqword;
        do_error(1904);
 
      { now test the division procedure with random bit patterns }
-     writeln('Doing some random divisions, takes a few seconds');
+     writeln('Doing some random divisions (',NumIterations,' iterations), takes a few seconds');
      writeln('.................... 100%');
      for i:=1 to NumIterations do
        begin
