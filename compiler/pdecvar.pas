@@ -265,7 +265,7 @@ implementation
               else
                 handle_calling_convention(pd,hcc_default_actions_intf_struct);
               sym:=cprocsym.create(prefix+lower(p.realname));
-              symtablestack.top.insert(sym);
+              symtablestack.top.insertsym(sym);
               pd.procsym:=sym;
               include(pd.procoptions,po_dispid);
               include(pd.procoptions,po_global);
@@ -326,7 +326,7 @@ implementation
                   { add an extra parameter, a placeholder of the value to set }
                   inc(paranr);
                   hparavs:=cparavarsym.create('$value',10*paranr,vs_value,p.propdef,[]);
-                  writepd.parast.insert(hparavs);
+                  writepd.parast.insertsym(hparavs);
 
                   writepd.proctypeoption:=potype_propsetter;
                   writepd.dispid:=hdispid;
@@ -384,7 +384,7 @@ implementation
          p.default:=longint($80000000);
          if is_classproperty then
            include(p.symoptions, sp_static);
-         symtablestack.top.insert(p);
+         symtablestack.top.insertsym(p);
          consume(_ID);
          { property parameters ? }
          if try_to_consume(_LECKKLAMMER) then
@@ -411,7 +411,7 @@ implementation
                 repeat
                   inc(paranr);
                   hreadparavs:=cparavarsym.create(orgpattern,10*paranr,varspez,generrordef,[]);
-                  p.parast.insert(hreadparavs);
+                  p.parast.insertsym(hreadparavs);
                   sc.add(hreadparavs);
                   consume(_ID);
                 until not try_to_consume(_COMMA);
@@ -566,7 +566,7 @@ implementation
                         writeprocdef.returndef:=voidtype;
                         inc(paranr);
                         hparavs:=cparavarsym.create('$value',10*paranr,vs_value,p.propdef,[]);
-                        writeprocdef.parast.insert(hparavs);
+                        writeprocdef.parast.insertsym(hparavs);
                         { Insert hidden parameters }
                         if not assigned(astruct) then
                           handle_calling_convention(writeprocdef,hcc_default_actions_intf)
@@ -655,7 +655,7 @@ implementation
                                  if ppo_indexed in p.propoptions then
                                    begin
                                      hparavs:=cparavarsym.create('$index',10,vs_value,p.indexdef,[]);
-                                     storedprocdef.parast.insert(hparavs);
+                                     storedprocdef.parast.insertsym(hparavs);
                                    end;
 
                                  { Insert hidden parameters }
@@ -1135,7 +1135,7 @@ implementation
               begin
                 tcsym:=cstaticvarsym.create('$default'+vs.realname,vs_const,vs.vardef,[]);
                 include(tcsym.symoptions,sp_internal);
-                symtablestack.top.insert(tcsym);
+                symtablestack.top.insertsym(tcsym);
                 templist:=tasmlist.create;
                 read_typed_const(templist,tcsym,false);
                 { in case of a generic routine, this initialisation value is not
@@ -1337,8 +1337,8 @@ implementation
           if assigned(abssym) then
             begin
               st:=vs.owner;
-              vs.owner.Delete(vs);
-              st.insert(abssym);
+              vs.owner.Deletesym(vs);
+              st.insertsym(abssym);
               sc[0]:=abssym;
             end;
         end;
@@ -1424,11 +1424,11 @@ implementation
                        { ensure correct error position }
                        old_current_filepos:=current_filepos;
                        current_filepos:=tmp_filepos;
-                       symtablestack.top.insert(vs);
+                       symtablestack.top.insertsym(vs);
                        current_filepos:=old_current_filepos;
                      end
                    else
-                     symtablestack.top.insert(vs);
+                     symtablestack.top.insertsym(vs);
                  end;
              until not try_to_consume(_COMMA);
 
@@ -1705,7 +1705,7 @@ implementation
                  begin
                    vs.register_sym;
                    sc.add(vs);
-                   recst.insert(vs);
+                   recst.insertsym(vs);
                    had_generic:=false;
                  end
                else
@@ -1910,7 +1910,7 @@ implementation
                   consume(_COLON);
                   fieldvs:=cfieldvarsym.create(sorg,vs_value,generrordef,[]);
                   variantdesc^^.variantselector:=fieldvs;
-                  symtablestack.top.insert(fieldvs);
+                  symtablestack.top.insertsym(fieldvs);
                 end;
               read_anon_type(casetype,true);
               block_type:=bt_var;

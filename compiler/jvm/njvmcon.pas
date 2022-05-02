@@ -452,7 +452,7 @@ implementation
         csym:=cconstsym.create_ptr('_$setconst'+tostr(current_module.symlist.count),constset,ps,resultdef);
         csym.visibility:=vis_private;
         include(csym.symoptions,sp_internal);
-        current_module.localsymtable.insert(csym);
+        current_module.localsymtable.insertsym(csym);
         { generate assignment of the constant to the typed constant symbol }
         ssym:=jvm_add_typed_const_initializer(csym);
         result:=current_asmdata.RefAsmSymbol(ssym.mangledname,AT_DATA);

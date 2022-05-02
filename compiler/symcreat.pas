@@ -1203,7 +1203,7 @@ implementation
       else
         begin
           ps:=cprocsym.create(realname);
-          newparentst.insert(ps);
+          newparentst.insertsym(ps);
         end;
       pd.procsym:=ps;
       pd.struct:=newstruct;
@@ -1275,7 +1275,7 @@ implementation
           result:=cfieldvarsym.create(symrealname,vs_value,fieldvardef,[]);
           if nestedvarsst.symlist.count=0 then
             include(tfieldvarsym(result).varoptions,vo_is_first_field);
-          nestedvarsst.insert(result);
+          nestedvarsst.insertsym(result);
           trecordsymtable(nestedvarsst).addfield(tfieldvarsym(result),vis_public);
 
           { add initialization with original value if it's a parameter }
@@ -1341,7 +1341,7 @@ implementation
             routine; ignore duplicates, because this will also check the
             parasymtable and we want to override parameters with our local
             versions }
-          pd.localst.insert(aliassym,false);
+          pd.localst.insertsym(aliassym,false);
         end;
     end;
 
@@ -1380,7 +1380,7 @@ implementation
         since a subscriptn requires something to subscript and
         there is nothing in this case (class+field name will be
         encoded in the mangled symbol name) }
-      recst.insert(hstaticvs);
+      recst.insertsym(hstaticvs);
       { only set the staticvarsym's basename (= field name, without any
         mangling), because generating the fully mangled name right now can
         result in a wrong string in case the field's type is a forward
@@ -1395,9 +1395,9 @@ implementation
 {$else jvm}
       include(hstaticvs.symoptions,sp_internal);
       if df_generic in tdef(recst.defowner).defoptions then
-        tabstractrecordsymtable(recst).insert(hstaticvs)
+        tabstractrecordsymtable(recst).insertsym(hstaticvs)
       else
-        tdef(tabstractrecordsymtable(recst).defowner).get_top_level_symtable(false).insert(hstaticvs);
+        tdef(tabstractrecordsymtable(recst).defowner).get_top_level_symtable(false).insertsym(hstaticvs);
 {$endif jvm}
       { generate the symbol for the access }
       sl:=tpropaccesslist.create;
@@ -1409,7 +1409,7 @@ implementation
         is_visible_for_object), which means that the load will fail if this
         symbol is e.g. "strict private" while the property is public }
       tmp:=cabsolutevarsym.create_ref('$'+static_name,fieldvs.vardef,sl);
-      recst.insert(tmp);
+      recst.insertsym(tmp);
       result:=hstaticvs;
     end;
 
@@ -1487,7 +1487,7 @@ implementation
           ps.register_sym;
           { the RTTI always references this symbol }
           inc(ps.refs);
-          current_module.localsymtable.insert(ps);
+          current_module.localsymtable.insertsym(ps);
           pd:=cprocdef.create(normal_function_level,true);
           { always register the def }
           pd.register_def;

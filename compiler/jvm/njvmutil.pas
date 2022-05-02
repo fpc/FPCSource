@@ -214,7 +214,7 @@ implementation
           vs:=cstaticvarsym.create(sym.realname+'$threadvar',sym.varspez,
             jvmgetthreadvardef(sym.vardef),
             sym.varoptions - [vo_is_thread_var]);
-          sym.owner.insert(vs);
+          sym.owner.insertsym(vs);
           { make sure that the new sym does not get allocated (we will allocate
             it when encountering the original sym, because only then we know
             that it's a threadvar) }
@@ -496,7 +496,7 @@ implementation
         begin
           { add the args parameter }
           pvs:=cparavarsym.create('$args',1,vs_const,search_system_type('TJSTRINGARRAY').typedef,[]);
-          tprocdef(pd).parast.insert(pvs);
+          tprocdef(pd).parast.insertsym(pvs);
           tprocdef(pd).calcparas;
         end;
     end;

@@ -1880,7 +1880,7 @@ uses
                 { insert the symbol only if we don't know already that we have
                   a procsym to add it to and we aren't dealing with a forwarddef }
                 if not assigned(psym) and not assigned(context.forwarddef) then
-                  specializest.insert(srsym);
+                  specializest.insertsym(srsym);
 
                 { specializations are declarations as such it is the wisest to
                   declare set the blocktype to "type"; otherwise we'll
@@ -2472,7 +2472,7 @@ uses
                   internalerror(2019021602);
                 { type parameters need to be added as strict private }
                 sym.visibility:=vis_strictprivate;
-                st.insert(sym);
+                st.insertsym(sym);
                 include(sym.symoptions,sp_generic_para);
               end
             else
@@ -2489,7 +2489,7 @@ uses
                         generictypedef.changeowner(st);
                       end;
                   end;
-                st.insert(generictype);
+                st.insertsym(generictype);
                 include(generictype.symoptions,sp_generic_para);
               end;
             def.genericparas.add(genericlist.nameofindex(i),generictype);
@@ -2526,7 +2526,7 @@ uses
             { the symbol should be only visible to the generic class
               itself }
             gensym.visibility:=vis_strictprivate;
-            symtablestack.top.insert(gensym);
+            symtablestack.top.insertsym(gensym);
           end;
       end;
 

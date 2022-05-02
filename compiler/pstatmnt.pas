@@ -994,7 +994,7 @@ implementation
                             end;
                           excepTSymtable:=tstt_excepTSymtable.create;
                           excepTSymtable.defowner:=current_procinfo.procdef;
-                          excepTSymtable.insert(sym);
+                          excepTSymtable.insertsym(sym);
                           symtablestack.push(excepTSymtable);
                        end
                      else

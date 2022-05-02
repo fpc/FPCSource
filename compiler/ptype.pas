@@ -1758,9 +1758,9 @@ implementation
                           Message(parser_w_enumeration_out_of_range)
                         else
                           Message(parser_e_enumeration_out_of_range);
-                      tenumsymtable(aktenumdef.symtable).insert(cenumsym.create(s,aktenumdef,longint(l.svalue)));
+                      tenumsymtable(aktenumdef.symtable).insertsym(cenumsym.create(s,aktenumdef,longint(l.svalue)));
                       if not (cs_scopedenums in current_settings.localswitches) then
-                        tstoredsymtable(aktenumdef.owner).insert(cenumsym.create(s,aktenumdef,longint(l.svalue)));
+                        tstoredsymtable(aktenumdef.owner).insertsym(cenumsym.create(s,aktenumdef,longint(l.svalue)));
                       current_tokenpos:=storepos;
                     end;
                 until not try_to_consume(_COMMA);

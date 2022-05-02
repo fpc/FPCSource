@@ -416,7 +416,7 @@ implementation
            (sym.owner<>owner)  then
           begin
             ps:=cprocsym.create(accessorname);
-            obj.symtable.insert(ps);
+            obj.symtable.insertsym(ps);
           end
         else
           ps:=tprocsym(sym);
@@ -444,7 +444,7 @@ implementation
               begin
                 { parameter with value to set }
                 pvs:=cparavarsym.create('__fpc_newval__',10,vs_const,propdef,[]);
-                pd.parast.insert(pvs);
+                pd.parast.insertsym(pvs);
               end;
             if (ppo_hasparameters in propoptions) and
                not assigned(orgaccesspd) then
@@ -477,7 +477,7 @@ implementation
         tmpaccesslist:=callthroughprop.propaccesslist[accesstyp];
         callthroughprop.propaccesslist[accesstyp]:=propaccesslist[accesstyp];
         propaccesslist[accesstyp]:=tmpaccesslist;
-        owner.insert(callthroughprop);
+        owner.insertsym(callthroughprop);
 
         pd.skpara:=callthroughprop;
         { needs to be exported }

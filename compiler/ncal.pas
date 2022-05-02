@@ -588,7 +588,7 @@ implementation
           internaltypeprefixName[itp_vardisp_calldesc]+current_module.modulename^+'$'+tostr(current_module.localsymtable.SymList.count),
           vs_const,tcb.end_anonymous_record,[vo_is_public,vo_is_typed_const]);
         calldescsym.varstate:=vs_initialised;
-        current_module.localsymtable.insert(calldescsym);
+        current_module.localsymtable.insertsym(calldescsym);
         current_asmdata.AsmLists[al_typedconsts].concatList(
           tcb.get_final_asmlist(
             current_asmdata.DefineAsmSymbol(calldescsym.mangledname,AB_GLOBAL,AT_DATA,calldescsym.vardef),

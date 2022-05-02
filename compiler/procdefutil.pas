@@ -81,7 +81,7 @@ implementation
       include(result.procoptions,po_hascallingconvention);
       handle_calling_convention(result,hcc_default_actions_impl);
       sym:=cprocsym.create(basesymname+result.unique_id_str);
-      st.insert(sym);
+      st.insertsym(sym);
 
       result.procsym:=sym;
       proc_add_definition(result);

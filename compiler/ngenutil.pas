@@ -1666,11 +1666,11 @@ implementation
           (target_info.system in (systems_darwin+[system_powerpc_macosclassic]+systems_aix)) then
          begin
            pvs:=cparavarsym.create('ARGC',1,vs_const,s32inttype,[]);
-           tprocdef(pd).parast.insert(pvs);
+           tprocdef(pd).parast.insertsym(pvs);
            pvs:=cparavarsym.create('ARGV',2,vs_const,cpointerdef.getreusable(charpointertype),[]);
-           tprocdef(pd).parast.insert(pvs);
+           tprocdef(pd).parast.insertsym(pvs);
            pvs:=cparavarsym.create('ARGP',3,vs_const,cpointerdef.getreusable(charpointertype),[]);
-           tprocdef(pd).parast.insert(pvs);
+           tprocdef(pd).parast.insertsym(pvs);
            tprocdef(pd).calcparas;
          end
        { package stub for Windows is a DLLMain }
@@ -1678,11 +1678,11 @@ implementation
            (target_info.system in systems_all_windows+systems_nativent) then
          begin
            pvs:=cparavarsym.create('HINSTANCE',1,vs_const,uinttype,[]);
-           tprocdef(pd).parast.insert(pvs);
+           tprocdef(pd).parast.insertsym(pvs);
            pvs:=cparavarsym.create('DLLREASON',2,vs_const,u32inttype,[]);
-           tprocdef(pd).parast.insert(pvs);
+           tprocdef(pd).parast.insertsym(pvs);
            pvs:=cparavarsym.create('DLLPARAM',3,vs_const,voidpointertype,[]);
-           tprocdef(pd).parast.insert(pvs);
+           tprocdef(pd).parast.insertsym(pvs);
            tprocdef(pd).returndef:=bool32type;
            insert_funcret_para(tprocdef(pd));
            tprocdef(pd).calcparas;

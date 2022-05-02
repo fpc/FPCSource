@@ -112,8 +112,8 @@ interface
           function  getcopy:TSymtable;
           procedure clear;virtual;
           function  checkduplicate(var s:THashedIDString;sym:TSymEntry):boolean;virtual;
-          procedure insert(sym:TSymEntry;checkdup:boolean=true);virtual;
-          procedure Delete(sym:TSymEntry);virtual;
+          procedure insertsym(sym:TSymEntry;checkdup:boolean=true);virtual;
+          procedure Deletesym(sym:TSymEntry);virtual;
           function  Find(const s:TIDString) : TSymEntry;
           function  FindWithHash(const s:THashedIDString) : TSymEntry;virtual;
           procedure insertdef(def:TDefEntry);virtual;
@@ -344,7 +344,7 @@ implementation
       end;
 
 
-    procedure TSymtable.insert(sym:TSymEntry;checkdup:boolean=true);
+    procedure TSymtable.insertsym(sym:TSymEntry;checkdup:boolean=true);
       var
         hashedid : THashedIDString;
       begin
@@ -368,7 +368,7 @@ implementation
       end;
 
 
-    procedure TSymtable.Delete(sym:TSymEntry);
+    procedure TSymtable.Deletesym(sym:TSymEntry);
       begin
         if sym.Owner<>self then
           internalerror(200611121);

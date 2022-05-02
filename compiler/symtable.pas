@@ -55,8 +55,8 @@ interface
           procedure writesyms(ppufile:tcompilerppufile);
        public
           constructor create(const s:string);
-          procedure insert(sym:TSymEntry;checkdup:boolean=true);override;
-          procedure delete(sym:TSymEntry);override;
+          procedure insertsym(sym:TSymEntry;checkdup:boolean=true);override;
+          procedure deletesym(sym:TSymEntry);override;
           { load/write }
           procedure ppuload(ppufile:tcompilerppufile);virtual;
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;
@@ -291,7 +291,7 @@ interface
 
        tenumsymtable = class(tabstractsubsymtable)
        public
-          procedure insert(sym: TSymEntry; checkdup: boolean = true); override;
+          procedure insertsym(sym: TSymEntry; checkdup: boolean = true); override;
           constructor create(adefowner:tdef);
        end;
 
@@ -506,16 +506,16 @@ implementation
       end;
 
 
-    procedure tstoredsymtable.insert(sym:TSymEntry;checkdup:boolean=true);
+    procedure tstoredsymtable.insertsym(sym:TSymEntry;checkdup:boolean=true);
       begin
-        inherited insert(sym,checkdup);
+        inherited insertsym(sym,checkdup);
         init_final_check_done:=false;
       end;
 
 
-    procedure tstoredsymtable.delete(sym:TSymEntry);
+    procedure tstoredsymtable.deletesym(sym:TSymEntry);
       begin
-        inherited delete(sym);
+        inherited deletesym(sym);
         init_final_check_done:=false;
       end;
 
@@ -635,7 +635,7 @@ implementation
            end;
            if assigned(sym) then
              tstoredsym(sym).ppuload_subentries(ppufile);
-           Insert(sym,false);
+           InsertSym(sym,false);
          until false;
       end;
 
@@ -1885,7 +1885,7 @@ implementation
 
             { add to this record symtable, checking for duplicate names }
 //            unionst.SymList.List.List^[i].Data:=nil;
-            insert(sym);
+            insertsym(sym);
             varalign:=tfieldvarsym(sym).vardef.alignment;
             if varalign=0 then
               varalign:=size_2_align(tfieldvarsym(sym).getsize);
@@ -2635,7 +2635,7 @@ implementation
         n,ns:string;
         oldsym:TSymEntry;
       begin
-        insert(sym);
+        insertsym(sym);
         n:=sym.realname;
         p:=pos('.',n);
         ns:='';
@@ -2648,7 +2648,7 @@ implementation
             system.delete(n,1,p);
             oldsym:=findnamespace(upper(ns));
             if not assigned(oldsym) then
-              insert(cnamespacesym.create(ns));
+              insertsym(cnamespacesym.create(ns));
             p:=pos('.',n);
           end;
       end;
@@ -2847,7 +2847,7 @@ implementation
                           TEnumSymtable
 ****************************************************************************}
 
-    procedure tenumsymtable.insert(sym: TSymEntry; checkdup: boolean);
+    procedure tenumsymtable.insertsym(sym: TSymEntry; checkdup: boolean);
       var
         value: longint;
         def: tenumdef;
@@ -2877,7 +2877,7 @@ implementation
                   def.setmax(value);
               end;
           end;
-        inherited insert(sym, checkdup);
+        inherited insertsym(sym, checkdup);
       end;
 
     constructor tenumsymtable.create(adefowner: tdef);
@@ -4705,9 +4705,9 @@ implementation
            begin
              mac:=tmacro.create(s);
              if assigned(current_module) then
-               current_module.localmacrosymtable.insert(mac)
+               current_module.localmacrosymtable.insertsym(mac)
              else
-               initialmacrosymtable.insert(mac);
+               initialmacrosymtable.insertsym(mac);
            end;
          Message1(parser_c_macro_defined,mac.name);
          mac.defined:=true;
@@ -4727,9 +4727,9 @@ implementation
            begin
              mac:=tmacro.create(s);
              if assigned(current_module) then
-               current_module.localmacrosymtable.insert(mac)
+               current_module.localmacrosymtable.insertsym(mac)
              else
-               initialmacrosymtable.insert(mac);
+               initialmacrosymtable.insertsym(mac);
            end
          else
            begin
@@ -4759,9 +4759,9 @@ implementation
              mac:=tmacro.create(s);
              mac.is_compiler_var:=true;
              if assigned(current_module) then
-               current_module.localmacrosymtable.insert(mac)
+               current_module.localmacrosymtable.insertsym(mac)
              else
-               initialmacrosymtable.insert(mac);
+               initialmacrosymtable.insertsym(mac);
            end
          else
            begin

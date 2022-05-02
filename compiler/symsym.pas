@@ -1633,12 +1633,12 @@ implementation
             if assigned(readprocdef) then
               begin
                 hparavs:=cparavarsym.create(orig.RealName,orig.paranr,orig.varspez,orig.vardef,[]);
-                readprocdef.parast.insert(hparavs);
+                readprocdef.parast.insertsym(hparavs);
               end;
             if assigned(writeprocdef) then
               begin
                 hparavs:=cparavarsym.create(orig.RealName,orig.paranr,orig.varspez,orig.vardef,[]);
-                writeprocdef.parast.insert(hparavs);
+                writeprocdef.parast.insertsym(hparavs);
               end;
           end;
       end;
@@ -1652,12 +1652,12 @@ implementation
         if assigned(readprocdef) then
           begin
             hparavs:=cparavarsym.create('$index',10*paranr,vs_value,indexdef,[]);
-            readprocdef.parast.insert(hparavs);
+            readprocdef.parast.insertsym(hparavs);
           end;
         if assigned(writeprocdef) then
           begin
             hparavs:=cparavarsym.create('$index',10*paranr,vs_value,indexdef,[]);
-            writeprocdef.parast.insert(hparavs);
+            writeprocdef.parast.insertsym(hparavs);
           end;
       end;
 

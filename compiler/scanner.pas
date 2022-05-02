@@ -2309,7 +2309,7 @@ type
           begin
             mac:=tmacro.create(hs);
             mac.defined:=true;
-            current_module.localmacrosymtable.insert(mac);
+            current_module.localmacrosymtable.insertsym(mac);
           end
         else
           begin
@@ -2419,7 +2419,7 @@ type
             mac:=tmacro.create(hs);
             mac.defined:=true;
             mac.is_compiler_var:=true;
-            current_module.localmacrosymtable.insert(mac);
+            current_module.localmacrosymtable.insertsym(mac);
           end
         else
           begin
@@ -2495,7 +2495,7 @@ type
           begin
              mac:=tmacro.create(hs);
              mac.defined:=false;
-             current_module.localmacrosymtable.insert(mac);
+             current_module.localmacrosymtable.insertsym(mac);
           end
         else
           begin

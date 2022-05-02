@@ -247,7 +247,7 @@ implementation
                if assigned(defaultvalue) then
                  begin
                    include(defaultvalue.symoptions,sp_internal);
-                   pd.parast.insert(defaultvalue);
+                   pd.parast.insertsym(defaultvalue);
                    { check whether the default value is of the correct
                      type }
                    if compare_defs_ext(defaultvalue.constdef,hdef,nodetype,doconv,convpd,[])<=te_convert_operator then
@@ -324,7 +324,7 @@ implementation
           repeat
             inc(paranr);
             vs:=cparavarsym.create(orgpattern,paranr*10,varspez,generrordef,[]);
-            currparast.insert(vs);
+            currparast.insertsym(vs);
             if assigned(vs.owner) then
              sc.add(vs)
             else
@@ -1112,7 +1112,7 @@ implementation
                   aprocsym:=cprocsym.create(orgsp);
                 if addgendummy then
                   include(aprocsym.symoptions,sp_generic_dummy);
-                symtablestack.top.insert(aprocsym);
+                symtablestack.top.insertsym(aprocsym);
               end;
           end;
 
@@ -1175,9 +1175,9 @@ implementation
                       allowed, so we create a procsym as dummy }
                     dummysym:=cprocsym.create(orgspnongen);
                     if assigned(astruct) then
-                      astruct.symtable.insert(dummysym)
+                      astruct.symtable.insertsym(dummysym)
                     else
-                      symtablestack.top.insert(dummysym);
+                      symtablestack.top.insertsym(dummysym);
                   end
                 else if (dummysym.typ<>procsym) and
                     (
@@ -2277,7 +2277,7 @@ begin
         if vo_has_explicit_paraloc in vo then
           if not paramanager.parseparaloc(vs,po_syscall_to_regname) then
             internalerror(2016120301);
-        pd.parast.insert(vs);
+        pd.parast.insertsym(vs);
       end
     else
       Message(parser_e_32bitint_or_pointer_variable_expected);

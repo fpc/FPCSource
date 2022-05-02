@@ -1100,7 +1100,7 @@ implementation
             if not assigned(sym) then
               begin
                 ps:=cprocsym.create('Create');
-                obj.symtable.insert(ps);
+                obj.symtable.insertsym(ps);
               end;
             { determine symtable level }
             topowner:=obj;

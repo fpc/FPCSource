@@ -175,7 +175,7 @@ implementation
       descriptordef:=search_named_unit_globaltype('BLOCKRTL','FPC_BLOCK_DESCRIPTOR_SIMPLE',true).typedef;
       { create new static variable }
       descriptor:=cstaticvarsym.create(name,vs_value,descriptordef,[]);
-      symtablestack.top.insert(descriptor);
+      symtablestack.top.insertsym(descriptor);
       include(descriptor.symoptions,sp_internal);
       { create typed constant for the descriptor }
       str_parse_typedconst(current_asmdata.AsmLists[al_const],
@@ -227,7 +227,7 @@ implementation
         begin
           { alias for the type to invoke the procvar, used in the symcreat
             handling of tsk_block_invoke_procvar }
-          result.localst.insert(ctypesym.create('__FPC_BLOCK_INVOKE_PV_TYPE',orgpv));
+          result.localst.insertsym(ctypesym.create('__FPC_BLOCK_INVOKE_PV_TYPE',orgpv));
           result.synthetickind:=tsk_block_invoke_procvar;
         end;
     end;
@@ -255,7 +255,7 @@ implementation
         vs_value,
         blockliteraldef,[]);
       include(result.symoptions,sp_internal);
-      symtablestack.top.insert(result);
+      symtablestack.top.insertsym(result);
       { initialise it }
       str_parse_typedconst(current_asmdata.AsmLists[al_const],
         '(base: (isa        : @'+blockisasym.realname+

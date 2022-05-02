@@ -346,8 +346,8 @@ implementation
                                   exit_procinfo.nestedexitlabel.used:=true;
 
                                   exit_procinfo.nestedexitlabel.jumpbuf:=clocalvarsym.create('LABEL$_'+exit_procinfo.nestedexitlabel.name,vs_value,rec_jmp_buf,[]);
-                                  exit_procinfo.procdef.localst.insert(exit_procinfo.nestedexitlabel);
-                                  exit_procinfo.procdef.localst.insert(exit_procinfo.nestedexitlabel.jumpbuf);
+                                  exit_procinfo.procdef.localst.insertsym(exit_procinfo.nestedexitlabel);
+                                  exit_procinfo.procdef.localst.insertsym(exit_procinfo.nestedexitlabel.jumpbuf);
                                 end;
 
                               statement_syssym:=cgotonode.create(exit_procinfo.nestedexitlabel);

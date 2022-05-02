@@ -256,7 +256,7 @@ implementation
                        sym.symoptions:=sym.symoptions+dummysymoptions;
                        sym.deprecatedmsg:=deprecatedmsg;
                        sym.visibility:=symtablestack.top.currentvisibility;
-                       symtablestack.top.insert(sym);
+                       symtablestack.top.insertsym(sym);
                        sym.register_sym;
 {$ifdef jvm}
                        { for the JVM target, some constants need to be
@@ -305,14 +305,14 @@ implementation
                                constant data correctly for error recovery }
                        check_allowed_for_var_or_const(hdef,false);
                        sym:=cfieldvarsym.create(orgname,varspez,hdef,[]);
-                       symtablestack.top.insert(sym);
+                       symtablestack.top.insertsym(sym);
                        sym:=make_field_static(symtablestack.top,tfieldvarsym(sym));
                      end
                    else
                      begin
                        sym:=cstaticvarsym.create(orgname,varspez,hdef,[]);
                        sym.visibility:=symtablestack.top.currentvisibility;
-                       symtablestack.top.insert(sym);
+                       symtablestack.top.insertsym(sym);
                      end;
                    sym.register_sym;
                    current_tokenpos:=storetokenpos;
@@ -396,18 +396,18 @@ implementation
                     labelsym:=clabelsym.create(pattern);
                   end;
 
-                symtablestack.top.insert(labelsym);
+                symtablestack.top.insertsym(labelsym);
                 if m_non_local_goto in current_settings.modeswitches then
                   begin
                     if symtablestack.top.symtabletype=localsymtable then
                       begin
                         labelsym.jumpbuf:=clocalvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[]);
-                        symtablestack.top.insert(labelsym.jumpbuf);
+                        symtablestack.top.insertsym(labelsym.jumpbuf);
                       end
                     else
                       begin
                         labelsym.jumpbuf:=cstaticvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[]);
-                        symtablestack.top.insert(labelsym.jumpbuf);
+                        symtablestack.top.insertsym(labelsym.jumpbuf);
                         cnodeutils.insertbssdata(tstaticvarsym(labelsym.jumpbuf));
                       end;
                     include(labelsym.jumpbuf.symoptions,sp_internal);
@@ -836,7 +836,7 @@ implementation
                       Include(sym.symoptions,sp_generic_dummy);
                       ttypesym(sym).typedef.typesym:=sym;
                       sym.visibility:=symtablestack.top.currentvisibility;
-                      symtablestack.top.insert(sym);
+                      symtablestack.top.insertsym(sym);
                       ttypesym(sym).typedef.owner:=sym.owner;
                     end
                   else
@@ -875,7 +875,7 @@ implementation
                 begin
                   newtype:=ctypesym.create(genorgtypename,hdef);
                   newtype.visibility:=symtablestack.top.currentvisibility;
-                  symtablestack.top.insert(newtype);
+                  symtablestack.top.insertsym(newtype);
                 end;
               current_tokenpos:=defpos;
               current_tokenpos:=storetokenpos;
@@ -1315,7 +1315,7 @@ implementation
                      begin
                        sym.symoptions:=sym.symoptions+dummysymoptions;
                        sym.deprecatedmsg:=deprecatedmsg;
-                       symtablestack.top.insert(sym);
+                       symtablestack.top.insertsym(sym);
                      end
                    else
                      stringdispose(deprecatedmsg);

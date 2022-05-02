@@ -5099,7 +5099,7 @@ implementation
             { avoid hints about unused types (these may only be used for
               typed constant data) }
             ts.increfcount;
-            where.insert(ts);
+            where.insertsym(ts);
           end;
         symtablestack:=oldsymtablestack;
         { don't create RTTI for internal types, these are not exported }
@@ -5122,7 +5122,7 @@ implementation
         else
           pname:=@optionalname;
         sym:=cfieldvarsym.create(pname^,vs_value,def,[]);
-        symtable.insert(sym);
+        symtable.insertsym(sym);
         trecordsymtable(symtable).addfield(sym,vis_hidden);
         result:=sym;
       end;
@@ -5799,7 +5799,7 @@ implementation
                     npvs:=cparavarsym.create('$high'+paraprefix+copy(pvs.name,5,length(pvs.name)),pvs.paranr,pvs.varspez,
                       pvs.vardef,pvs.varoptions);
                   npvs.defaultconstsym:=pvs.defaultconstsym;
-                  tabstractprocdef(result).parast.insert(npvs);
+                  tabstractprocdef(result).parast.insertsym(npvs);
                 end;
               constsym:
                 begin
@@ -7852,7 +7852,7 @@ implementation
                    in the implementation, and they cannot be merged since only
                    the once in the interface must be saved to the ppu/visible
                    from other units }
-            st.insert(psym,false);
+            st.insertsym(psym,false);
           end
         else if (psym.typ<>procsym) then
           internalerror(2009111501);
@@ -7974,7 +7974,7 @@ implementation
                end;
              vmt_field:=cfieldvarsym.create('_vptr$'+objname^,vs_value,voidpointertype,[]);
              hidesym(vmt_field);
-             tObjectSymtable(symtable).insert(vmt_field);
+             tObjectSymtable(symtable).insertsym(vmt_field);
              tObjectSymtable(symtable).addfield(tfieldvarsym(vmt_field),vis_hidden);
              include(objectoptions,oo_has_vmt);
           end;
