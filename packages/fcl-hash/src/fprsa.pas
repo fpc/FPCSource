@@ -729,20 +729,26 @@ function RSASSA_PSS_SIGN(var RSA: TRSA; Input: PByte; Len: Integer;
   HashFunc: PRSAHashFuncInfo; Output: PByte; SaltLen: integer): Integer;
 var
   EncodedMsg: TBytes;
-  ModBits: Integer;
+  ModBits, Size: Integer;
+  EncodedBI, Encrypted: PBigInt;
 begin
   Result:=-1;
 
+  Size:=RSA.ModulusLen;
   ModBits:=(RSA.ModulusBits-1) and 7;
   if ModBits=0 then
     raise Exception.Create('20220502000942 RSA n too small');
 
-  SetLength(EncodedMsg{%H-},RSA.ModulusLen);
+  SetLength(EncodedMsg{%H-},Size);
   EMSA_PSS_ENCODE(Input,Len, HashFunc, @EncodedMsg[0], length(EncodedMsg), ModBits, SaltLen);
 
-  raise Exception.Create('20220502000942 implement me');
+  EncodedBI:=BIImport(RSA.Context,EncodedMsg);
+  // Sign with Private Key
+  Encrypted:=BICRT(RSA.Context,EncodedBI,RSA.DP,RSA.DQ,RSA.P,RSA.Q,RSA.QInv); // this releases EncodedBI
 
-  //Result:=RSASP1(RSA,EncodedMsg,Output);
+  BIExport(RSA.Context,Encrypted,Output,Size); // this releases Encrypted
+
+  Result:=Size;
 end;
 
 procedure EMSA_PSS_ENCODE(Input: PByte; InLen: Integer;
