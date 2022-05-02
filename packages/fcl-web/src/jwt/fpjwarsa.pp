@@ -164,23 +164,26 @@ begin
   Result:=false;
   if aJWT='' then exit;
 
-  if not GetParts(aJWT,aHeader,theClaims,aSignature) then exit;
-  if aSignature='' then exit;
-
-  aSignInput:=aHeader+'.'+theClaims;
-  EncryptedHash:=Base64URL.Decode(aSignature);
-  GetHashFunc(HashFunc);
-
-  // verify hash
-  RSACreate(RSA);
   try
-    RSAInitFromPublicKeyDER(RSA,aPublicKey.AsBytes);
-    if length(EncryptedHash)<>RSA.ModulusLen then
-      exit;
-    r:=RSASSA_PSS_Verify(RSA,@aSignInput[1],length(aSignInput),@HashFunc,@EncryptedHash[0]);
-    Result:=r=0;
-  finally
-    RSAFree(RSA);
+    if not GetParts(aJWT,aHeader,theClaims,aSignature) then exit;
+    if aSignature='' then exit;
+
+    aSignInput:=aHeader+'.'+theClaims;
+    EncryptedHash:=Base64URL.Decode(aSignature);
+    GetHashFunc(HashFunc);
+
+    // verify hash
+    RSACreate(RSA);
+    try
+      RSAInitFromPublicKeyDER(RSA,aPublicKey.AsBytes);
+      if length(EncryptedHash)<>RSA.ModulusLen then
+        exit;
+      r:=RSASSA_PSS_Verify(RSA,@aSignInput[1],length(aSignInput),@HashFunc,@EncryptedHash[0]);
+      Result:=r=0;
+    finally
+      RSAFree(RSA);
+    end;
+  except
   end;
 end;
 
@@ -268,32 +271,35 @@ begin
   Result:=false;
   if aJWT='' then exit;
 
-  if not GetParts(aJWT,aHeader,theClaims,aSignature) then exit;
-  if aSignature='' then exit;
-
-  EncryptedHash:=Base64URL.Decode(aSignature);
-
-  // decrypt hash
-  RSACreate(RSA);
   try
-    RSAInitFromPublicKeyDER(RSA,aPublicKey.AsBytes);
-    SetLength(DecryptedHash{%H-},length(EncryptedHash));
-    HashLen:=RSADecryptVerify(RSA,@EncryptedHash[0],@DecryptedHash[0],length(DecryptedHash),true);
-    if HashLen<=0 then exit;
-    SetLength(DecryptedHash,HashLen);
-  finally
-    RSAFree(RSA);
+    if not GetParts(aJWT,aHeader,theClaims,aSignature) then exit;
+    if aSignature='' then exit;
+
+    EncryptedHash:=Base64URL.Decode(aSignature);
+
+    // decrypt hash
+    RSACreate(RSA);
+    try
+      RSAInitFromPublicKeyDER(RSA,aPublicKey.AsBytes);
+      SetLength(DecryptedHash{%H-},length(EncryptedHash));
+      HashLen:=RSADecryptVerify(RSA,@EncryptedHash[0],@DecryptedHash[0],length(DecryptedHash),true);
+      if HashLen<=0 then exit;
+      SetLength(DecryptedHash,HashLen);
+    finally
+      RSAFree(RSA);
+    end;
+
+    // hash of header.claims
+    aInput:=aHeader+'.'+theClaims;
+    SetLength(InputBytes{%H-},length(aInput));
+    Move(aInput[1],InputBytes[0],length(aInput));
+    ActualHash:=ComputeASNHash(InputBytes);
+
+    // check decrypted hash and actual hash fit
+    Result:=(length(DecryptedHash)=length(ActualHash))
+      and CompareMem(@DecryptedHash[0],@ActualHash[0],length(DecryptedHash));
+  except
   end;
-
-  // hash of header.claims
-  aInput:=aHeader+'.'+theClaims;
-  SetLength(InputBytes{%H-},length(aInput));
-  Move(aInput[1],InputBytes[0],length(aInput));
-  ActualHash:=ComputeASNHash(InputBytes);
-
-  // check decrypted hash and actual hash fit
-  Result:=(length(DecryptedHash)=length(ActualHash))
-    and CompareMem(@DecryptedHash[0],@ActualHash[0],length(DecryptedHash));
 end;
 
 initialization
