@@ -39,7 +39,8 @@ type
     procedure TearDown; override;
     Property JWT : TJWT Read FJWT;
     Property Key : TJWTKey Read FKey;
-    procedure TestVerifyRSAPem(SignerClass: TJWTSignerRSAClass); virtual;
+    procedure GetTestPEM(out aPrivateKeyPEM, aPublicKeyPEM: string);
+    procedure TestVerifyRSAPem(SignerClass: TJWTSignerClass); virtual;
   published
     procedure TestSignNone;
     procedure TestVerifyNone;
@@ -64,7 +65,10 @@ type
     procedure TestI2OSP;
     procedure TestMGF1SHA1;
     procedure TestMGF1SHA256;
-    procedure TestVerifyPS256; // ToDo
+    procedure TestVerifyPS256;
+    procedure TestVerifyPS256Pem;
+    procedure TestVerifyPS384Pem;
+    procedure TestVerifyPS512Pem;
   end;
 
 implementation
@@ -463,9 +467,78 @@ begin
 end;
 
 procedure TTestJWT.TestVerifyPS256;
+const
+  HeaderJSON = '{"alg":"PS256"}';
+  HeaderExpected = 'eyJhbGciOiJQUzI1NiJ9';
+
+  PayloadJSON = 'In our village, folks say God crumbles up the old moon into stars.';
+  PayloadExpected = 'SW4gb3VyIHZpbGxhZ2UsIGZvbGtzIHNheSBHb2QgY3J1bWJsZXMgdXAgdGhlIG9sZCBtb29uIGludG8gc3RhcnMu';
+
+  RSA_n = 'ofgWCuLjybRlzo0tZWJjNiuSfb4p4fAkd_wWJcyQoTbji9k0l8W26mPddx'+
+          'HmfHQp-Vaw-4qPCJrcS2mJPMEzP1Pt0Bm4d4QlL-yRT-SFd2lZS-pCgNMs'+
+          'D1W_YpRPEwOWvG6b32690r2jZ47soMZo9wGzjb_7OMg0LOL-bSf63kpaSH'+
+          'SXndS5z5rexMdbBYUsLA9e-KXBdQOS-UTo7WTBEMa2R2CapHg665xsmtdV'+
+          'MTBQY4uDZlxvb3qCo5ZwKh9kG4LT6_I5IhlJH7aGhyxXFvUK-DWNmoudF8'+
+          'NAco9_h9iaGNj8q2ethFkMLs91kzk2PAcDTW9gb54h4FRWyuXpoQ';
+  RSA_e = 'AQAB';
+
+  SignatureEncoded =
+     'TRWhwRo5dMv9-8OzrInfJTwmUGYgjLfHk8lqF072ND-FmLWEBnUTOpY8oJXp'
+    +'8FdWw2SalbdOeNlrtlJjwk4XK8Ql2iJ_2qMCtxsvLPhKBOqFoAF4aBvTOEDV'
+    +'JDxf0DaBSiydEEtfTVV2iwBcjWabu5J2XieR5y7QZQtuHsn7T3qKBvCcCejN'
+    +'3Y2oqAT3qMHvu1fTms1r_91wBn_K7Wjd9UkZ1n02qQcUHJznR_OF2BgN7_KW'
+    +'IDAF9ZS9keoju2NPpPelO4yxa2XUPnehY3G7dHKoCxUEQR4d2Xc5voqDASTV'
+    +'CDqQS4PVOZdvT3Ein6-SanAlCwbWBbkvT8g6-5PImQ';
+var
+  X509RSAPublicKey: TX509RSAPublicKey;
+  RSA: TRSA;
+  HeaderEncoded, PayloadEncoded, SignInput: String;
+  r: Int64;
+  Signature: TBytes;
 begin
   // RSASSA-PSS using SHA-256 and MGF1 with SHA-256
 
+  HeaderEncoded:=Base64URL.Encode(HeaderJSON,false);
+  AssertEquals('Header',HeaderExpected,HeaderEncoded);
+
+  PayloadEncoded:=Base64URL.Encode(PayloadJSON,false);
+  AssertEquals('Payload',PayloadExpected,PayloadEncoded);
+
+  SignInput:=HeaderEncoded+'.'+PayloadEncoded;
+
+  // load public key
+  X509RSAPublicKey.InitWithBase64UrlEncoded(RSA_n,RSA_e);
+
+  RSACreate(RSA);
+  try
+    RSAInitFromPublicKey(RSA,X509RSAPublicKey);
+    AssertEquals('RSA.ModulusLen',256,RSA.ModulusLen);
+    AssertEquals('RSA.ModulusBits',2048,RSA.ModulusBits);
+
+    Signature:=Base64URL.Decode(SignatureEncoded,false);
+    AssertEquals('length(Signature)',RSA.ModulusLen,length(Signature));
+
+    r:=RSASSA_PS256_Verify(RSA,@SignInput[1],length(SignInput),@Signature[0]);
+    AssertEquals('RSASSA_PS256_Verify',0,r);
+
+  finally
+    RSAFree(RSA);
+  end;
+end;
+
+procedure TTestJWT.TestVerifyPS256Pem;
+begin
+  TestVerifyRSAPem(TJWTSignerPS256);
+end;
+
+procedure TTestJWT.TestVerifyPS384Pem;
+begin
+  TestVerifyRSAPem(TJWTSignerPS384);
+end;
+
+procedure TTestJWT.TestVerifyPS512Pem;
+begin
+  TestVerifyRSAPem(TJWTSignerPS512);
 end;
 
 procedure TTestJWT.SetUp;
@@ -487,11 +560,11 @@ begin
   Inherited;
 end;
 
-procedure TTestJWT.TestVerifyRSAPem(SignerClass: TJWTSignerRSAClass);
+procedure TTestJWT.GetTestPEM(out aPrivateKeyPEM, aPublicKeyPEM: string);
 const
   // generated with
   //   openssl genrsa -out private.pem 2048
-  APrivateKeyPem =
+  PrivateKeyPem =
     '-----BEGIN RSA PRIVATE KEY-----'#10+
     'MIIEpQIBAAKCAQEAvkRfGW8psCZ3G4+hBA6W/CR/FHhBLB3k3QLypamPbRFlFBxL'#10+
     'tOK2NblBybY22vUiMLZbb5x8OoOj/IhOrJAlTqhtbTWLy/0K3qbG09vLm8V40kEK'#10+
@@ -519,7 +592,7 @@ const
     'dtOAmxMASvsqud3XIM5fO5m3Jpl1phiGhCw4nvVLcYzVWxYY+oWoeCSyECgu5tmT'#10+
     'Fo8vn4EEXCkEAA2YPiEuVcrcYsWkLivCTC19lJDfUNMmpwSdiGz/tDU='#10+
     '-----END RSA PRIVATE KEY-----'#10;
-  APublicKeyPem =
+  PublicKeyPem =
     '-----BEGIN PUBLIC KEY-----'#10+
     'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvkRfGW8psCZ3G4+hBA6W'#10+
     '/CR/FHhBLB3k3QLypamPbRFlFBxLtOK2NblBybY22vUiMLZbb5x8OoOj/IhOrJAl'#10+
@@ -529,13 +602,21 @@ const
     'XU4IPHVrSN/HdK2nQPSMLdKnTV+Eh/HcxpfjBjarg+VjgDqlmqJ9bkosOVn35vsg'#10+
     '8wIDAQAB'#10+
     '-----END PUBLIC KEY-----';
+begin
+  aPrivateKeyPEM:=PrivateKeyPem;
+  aPublicKeyPEM:=PublicKeyPem;
+end;
+
+procedure TTestJWT.TestVerifyRSAPem(SignerClass: TJWTSignerClass);
 var
-  aInput: String;
-  Signer: TJWTSignerRSA;
+  aInput, aPrivateKeyPEM, aPublicKeyPEM: String;
+  Signer: TJWTSigner;
   NewDER: TBytes;
   RSAPublic: TX509RSAPublicKey;
   RSAPrivate: TX509RSAPrivateKey;
 begin
+  GetTestPEM(aPrivateKeyPEM, aPublicKeyPEM);
+
   // header
   jwt.JOSE.alg:=SignerClass.AlgorithmName;
 
@@ -552,7 +633,7 @@ begin
     Fail('TX509RSAPrivateKey.AsDER');
 
   // sign
-  Signer:=TJWTSignerRSA(SignerClass.Create);
+  Signer:=TJWTSigner(SignerClass.Create);
   try
     aInput:=Signer.AppendSignature(JWT,Key);
   finally

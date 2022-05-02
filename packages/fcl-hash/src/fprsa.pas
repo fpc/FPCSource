@@ -9,7 +9,7 @@ interface
 {off $DEFINE CRYPTO_DEBUG}
 
 uses
-  sysutils, Classes, sha1, fpsha256, fpTLSBigInt, fphashutils, fpasn, basenenc;
+  sysutils, Classes, sha1, fpsha512, fpsha256, fpTLSBigInt, fphashutils, fpasn, basenenc;
 
 const
   RSAPublicKeyOID = '1.2.840.113549.1.1.1';
@@ -121,15 +121,17 @@ type
   TRSAHashFuncInfo = record
     Func: TRSAHashFunction;
     DigestLen: Word;
-    procedure InitSHA1;
-    procedure InitSHA256;
+    procedure UseSHA1;
+    procedure UseSHA256;
+    procedure UseSHA384;
+    procedure UseSHA512;
   end;
   PRSAHashFuncInfo = ^TRSAHashFuncInfo;
 
 { Perform PSASSA-PSS signing using MGF1 and a hash function
   RSA: The RSA context containing the private key
   Input: The data to be signed
-  Len: The size of the input data in bytes (Must be <= Modulus length - HashLen - SaltLen - 2)
+  Len: The size of the input data in bytes
   Output: The buffer for the signature result (Must always be RSA.ModulusLen)
   SaltLen: length in bytes of the random number Salt, can be RSA_PSS_SaltLen_HashLen or RSA_PSS_SaltLen_Max
   Result: The number of bytes of the signature or on error -1 or exception }
@@ -141,16 +143,26 @@ function RSASSA_PSS_Sign(var RSA: TRSA; Input: PByte; Len: Integer;
 { Perform PSASSA-PSS verification using MGF1 and a hash function
   RSA: The RSA context containing the public key
   Input: The data to be verified
-  Len: The size of the input data in bytes (Must be <= Modulus length - HashLen - SaltLen - 2)
+  Len: The size of the input data in bytes
   Signature: The buffer for the encrypted result (Must always be RSA.ModulusLen)
   SaltLen: length in bytes of the random number Salt,
        can be RSA_PSS_SaltLen_HashLen, RSA_PSS_SaltLen_Auto or RSA_PSS_SaltLen_Max
   Result: 0 on success or an error number }
+function RSASSA_PS256_Verify(var RSA: TRSA; Input: PByte; Len: Integer;
+  Signature: PByte; SaltLen: integer = RSA_PSS_SaltLen_Auto): int64;
 function RSASSA_PSS_Verify(var RSA: TRSA; Input: PByte; Len: Integer;
-  HashFunc: PRSAHashFuncInfo; Signature: PByte; SaltLen: integer = RSA_PSS_SaltLen_HashLen): int64;
+  HashFunc: PRSAHashFuncInfo; Signature: PByte; SaltLen: integer = RSA_PSS_SaltLen_Auto): int64;
 
+{ Perform EMSA_PSS_Encode
+  Input: The data to be verified
+  Len: The size of the input data in bytes
+  Output: The buffer for the encoded hash result
+       (length = (RSA.ModulusBits-1+7) div 8 -> can be one less than RSA.ModulusLen)
+  ModBits: RSA.ModulusBits-1
+  SaltLen: length in bytes of the random number Salt, can be RSA_PSS_SaltLen_HashLen or RSA_PSS_SaltLen_Max
+  Result: 0 on success or an error number }
 function EMSA_PSS_Encode(Input: PByte; InLen: Integer; HashFunc: PRSAHashFuncInfo;
-  Output: PByte; OutLen: integer; ModBits: integer; SaltLen: integer = RSA_PSS_SaltLen_HashLen): int64;
+  Output: PByte; ModBits: DWord; SaltLen: integer = RSA_PSS_SaltLen_HashLen): int64;
 function EMSA_PSS_Verify(Msg: PByte; MsgLen: DWord;
   EncodedMsg: PByte; EncodedBits: DWord; HashFunc: PRSAHashFuncInfo;
   SaltLen: integer = RSA_PSS_SaltLen_HashLen): int64;
@@ -750,36 +762,47 @@ function RSASSA_PS256_Sign(var RSA: TRSA; Input: PByte; Len: Integer;
 var
   HashFunc: TRSAHashFuncInfo;
 begin
-  HashFunc.InitSHA256;
+  HashFunc.UseSHA256;
   Result:=RSASSA_PSS_Sign(RSA,Input,Len,@HashFunc,Output,SaltLen);
 end;
 
 function RSASSA_PSS_Sign(var RSA: TRSA; Input: PByte; Len: Integer;
   HashFunc: PRSAHashFuncInfo; Output: PByte; SaltLen: integer): Integer;
+// RFC 3447 Signature generation operation
 var
   EncodedMsg: TBytes;
-  ModBits, Size: Integer;
   EncodedBI, Encrypted: PBigInt;
+  EncodedLen, ModBits: DWord;
+  r: Int64;
 begin
   Result:=-1;
 
-  Size:=RSA.ModulusLen;
-  if ((RSA.ModulusBits+7) div 8)<>Size then
+  if ((RSA.ModulusBits+7) div 8)<>RSA.ModulusLen then
     raise Exception.Create('20220502000942 RSA n has leading zeroes');
-  ModBits:=(RSA.ModulusBits-1) and 7;
-  if ModBits=0 then
-    ; //dec(Size); ToDo
 
-  SetLength(EncodedMsg{%H-},Size);
-  EMSA_PSS_Encode(Input,Len, HashFunc, @EncodedMsg[0], length(EncodedMsg), ModBits, SaltLen);
+  ModBits:=RSA.ModulusBits-1;
+  EncodedLen:=(ModBits+7) div 8; // can be one less than RSA.ModulusLen
+  SetLength(EncodedMsg{%H-},EncodedLen);
+  r:=EMSA_PSS_Encode(Input,Len, HashFunc, @EncodedMsg[0], ModBits, SaltLen);
+  if r<>0 then
+    raise Exception.Create(IntToStr(r));
 
   EncodedBI:=BIImport(RSA.Context,EncodedMsg);
   // Sign with Private Key
   Encrypted:=BICRT(RSA.Context,EncodedBI,RSA.DP,RSA.DQ,RSA.P,RSA.Q,RSA.QInv); // this releases EncodedBI
 
-  BIExport(RSA.Context,Encrypted,Output,Size); // this releases Encrypted
+  BIExport(RSA.Context,Encrypted,Output,RSA.ModulusLen); // this releases Encrypted
 
-  Result:=Size;
+  Result:=RSA.ModulusLen;
+end;
+
+function RSASSA_PS256_Verify(var RSA: TRSA; Input: PByte; Len: Integer;
+  Signature: PByte; SaltLen: integer): int64;
+var
+  HashFunc: TRSAHashFuncInfo;
+begin
+  HashFunc.UseSHA256;
+  Result:=RSASSA_PSS_Verify(RSA,Input,Len,@HashFunc,Signature,SaltLen);
 end;
 
 function RSASSA_PSS_Verify(var RSA: TRSA; Input: PByte; Len: Integer;
@@ -796,7 +819,7 @@ begin
   // "1. Length checking: If the length of the signature S is not k octets, error"
   Size:=RSA.ModulusLen;
   if ((RSA.ModulusBits+7) div 8)<>Size then
-    // RSA n has leading zeroes
+    // RSA.n has leading zeroes
     exit(20220502214238);
 
   // 2. using RSAVP1 verification primitive with public key
@@ -826,30 +849,40 @@ begin
 end;
 
 function EMSA_PSS_Encode(Input: PByte; InLen: Integer;
-  HashFunc: PRSAHashFuncInfo; Output: PByte; OutLen: integer; ModBits: integer;
-  SaltLen: integer): int64;
+  HashFunc: PRSAHashFuncInfo; Output: PByte; ModBits: DWord; SaltLen: integer
+  ): int64;
 // RFC 3447 9.1.1 Encoding operation
 var
   ZeroesHashSalt, H, DB, DBMask, MaskedDB: TBytes;
   MsgHashP, SaltP: PByte;
-  Padding, HashLen, i: Integer;
+  Padding, HashLen, i, EncodedLen, DBLen: DWord;
 begin
   Result:=0;
 
   HashLen:=HashFunc^.DigestLen;
+  EncodedLen:=(ModBits+7) div 8;
 
   if SaltLen = RSA_PSS_SaltLen_HashLen then
     SaltLen:=HashLen
   else if SaltLen = RSA_PSS_SaltLen_Max then
-    SaltLen:=OutLen-HashLen-2
+    SaltLen:=EncodedLen-HashLen-2
   else if SaltLen < 0 then
     exit(20220501233610);
 
-  // check OutLen
-  if HashLen + SaltLen + 2 > OutLen then
+  // "2.  Let mHash = Hash(M), an octet string of length hLen."
+  // Note: directly into ZeroesHashSalt
+
+  // "3.  If emLen < hLen + sLen + 2, error"
+  if EncodedLen < HashLen + SaltLen + 2 then
     exit(20220501221837);
 
-  // ZeroesHashSalt := 8 zeroes + InputHash + Salt
+  // "4.  Generate a random octet string salt of length sLen; if sLen = 0,
+  //      then salt is the empty string."
+  // Note: directly into ZeroesHashSalt
+
+  // "5.  Let M' = (0x)00 00 00 00 00 00 00 00 || mHash || salt;
+  //      M' is an octet string of length 8 + hLen + sLen with eight
+  //      initial zero octets."
   SetLength(ZeroesHashSalt{%H-},8+HashLen+SaltLen);
   FillByte(ZeroesHashSalt[0],8,0);
   MsgHashP:=@ZeroesHashSalt[8];
@@ -859,35 +892,42 @@ begin
     if not CryptoGetRandomBytes(SaltP,SaltLen) then
       exit(20220501222748);
 
-  // hash ZeroesHashSalt
+  // "6.  Let H = Hash(M'), an octet string of length hLen."
   SetLength(H{%H-},HashLen);
   HashFunc^.Func(@ZeroesHashSalt[0],length(ZeroesHashSalt),@H[0]);
 
-  // DB := padding zeroes + #1 + Salt
-  SetLength(DB{%H-},OutLen-HashLen-1);
-  Padding:=length(DB)-SaltLen-1;
+  // "7.  Generate an octet string PS consisting of emLen - sLen - hLen - 2
+  //      zero octets.  The length of PS may be 0."
+  // Note: directly in DB
+
+  // "8.  Let DB = PS || 0x01 || salt;
+  //      DB is an octet string of length emLen - hLen - 1."
+  DBLen:=EncodedLen-HashLen-1;
+  SetLength(DB{%H-},DBLen); // -1 for the trailing $bc
+  Padding:=length(DB)-SaltLen-1; // -1 for the $01 separator
   if Padding>0 then
     FillByte(DB[0],Padding,0);
-  DB[Padding]:=1;
+  DB[Padding]:=$01;
   System.Move(SaltP^,DB[Padding+1],SaltLen);
 
-  // dbMask := MGF(H, OutLen - HashLen - 1)
-  SetLength(DBMask{%H-},length(DB));
-  MGF1(@H[0],HashLen,HashFunc,@DBMask[0],length(DB));
+  // "9.  Let dbMask = MGF(H, emLen - hLen - 1)."
+  SetLength(DBMask{%H-},DBLen);
+  MGF1(@H[0],HashLen,HashFunc,@DBMask[0],DBLen);
 
-  // MaskedDB := DB xor DBMask
-  SetLength(MaskedDB{%H-},length(DB));
-  for i:=0 to length(DB) do
+  // "10. Let maskedDB = DB xor dbMask."
+  SetLength(MaskedDB{%H-},DBLen);
+  for i:=0 to DBLen-1 do
     MaskedDB[i]:=DB[i] xor DBMask[i];
 
-  // set the leftmost bits of leftmost byte to zero
-  if ModBits>0 then
-    MaskedDB[0] := MaskedDB[0] and ($ff shr (8-ModBits));
+  // "11. Set the leftmost 8emLen - emBits bits of the leftmost octet in maskedDB to zero."
+  if (ModBits and 7)>0 then
+    MaskedDB[0] := MaskedDB[0] and ($ff shr (8-(ModBits and 7)));
 
-  System.Move(MaskedDB[0],Output^,length(MaskedDB));
-  inc(Output,length(MaskedDB));
-  System.Move(H[0],Output^,length(H));
-  inc(Output,length(H));
+  // "12. Let EM = maskedDB || H || 0xbc."
+  System.Move(MaskedDB[0],Output^,DBLen);
+  inc(Output,DBLen);
+  System.Move(H[0],Output^,HashLen);
+  inc(Output,HashLen);
   Output^:=$bc;
 end;
 
@@ -898,7 +938,7 @@ var
   HashLen: Word;
   EncodedLen, DBLen, i, Padding: DWord;
   MaskedDB, HashP, SaltP: PByte;
-  Hash, DBMask, Msg2, Hash2, DB: TBytes;
+  MsgHash, DBMask, Msg2, Hash2, DB: TBytes;
 begin
   Result:=0;
 
@@ -917,9 +957,9 @@ begin
   else if SaltLen < RSA_PSS_SaltLen_Max then
     exit(20220502205808);
 
-  // "2. Let mHash = Hash(M), an octet string of length hLen."
-  SetLength(Hash{%H-},HashLen);
-  HashFunc^.Func(Msg,MsgLen,@Hash[0]);
+  // "2. Let mHash = MsgHash(M), an octet string of length hLen."
+  SetLength(MsgHash{%H-},HashLen);
+  HashFunc^.Func(Msg,MsgLen,@MsgHash[0]);
 
   // "3.  If emLen < hLen + sLen + 2, error."
   if SaltLen = RSA_PSS_SaltLen_Auto then
@@ -986,7 +1026,7 @@ begin
   //       initial zero octets.
   SetLength(Msg2{%H-},8 + HashLen + SaltLen);
   FillByte(Msg2[0],8,0);
-  System.Move(Hash[0],Msg2[8],HashLen);
+  System.Move(MsgHash[0],Msg2[8],HashLen);
   System.Move(SaltP^,Msg2[8+HashLen],SaltLen);
 
   // "13. Let H' = Hash(M'), an octet string of length hLen."
@@ -994,7 +1034,7 @@ begin
   HashFunc^.Func(@Msg2[0],length(Msg2),@Hash2[0]);
 
   // "14. If H = H', output consistent. Otherwise, output inconsistent."
-  if not CompareMem(@Hash[0],@Hash2[0],HashLen) then
+  if not CompareMem(HashP,@Hash2[0],HashLen) then
     exit(20220502212747);
 end;
 
@@ -1062,7 +1102,7 @@ function MGF1SHA1(const InputStr: string; Len: integer): string;
 var
   HashFunc: TRSAHashFuncInfo;
 begin
-  HashFunc.InitSHA1;
+  HashFunc.UseSHA1;
   Result:=MGF1(InputStr,@HashFunc,Len);
 end;
 
@@ -1070,7 +1110,7 @@ function MGF1SHA256(const InputStr: string; Len: integer): string;
 var
   HashFunc: TRSAHashFuncInfo;
 begin
-  HashFunc.InitSHA256;
+  HashFunc.UseSHA256;
   Result:=MGF1(InputStr,@HashFunc,Len);
 end;
 
@@ -1095,18 +1135,50 @@ begin
   System.Move(SHA256.Digest[0],Output^,SHA256_DIGEST_SIZE);
 end;
 
+procedure HashFuncSHA384(Input: PByte; InLen: Integer; Output: PByte);
+var
+  SHA384: TSHA384;
+begin
+  SHA384.Init;
+  SHA384.Update(Input,InLen);
+  SHA384.Final;
+  System.Move(SHA384.Digest[0],Output^,SHA384_DIGEST_SIZE);
+end;
+
+procedure HashFuncSHA512(Input: PByte; InLen: Integer; Output: PByte);
+var
+  SHA512: TSHA512;
+begin
+  SHA512.Init;
+  SHA512.Update(Input,InLen);
+  SHA512.Final;
+  System.Move(SHA512.Digest[0],Output^,SHA512_DIGEST_SIZE);
+end;
+
 { TRSAHashFuncInfo }
 
-procedure TRSAHashFuncInfo.InitSHA1;
+procedure TRSAHashFuncInfo.UseSHA1;
 begin
   Func:=@HashFuncSHA1;
   DigestLen:=SizeOf(TSHA1Digest);
 end;
 
-procedure TRSAHashFuncInfo.InitSHA256;
+procedure TRSAHashFuncInfo.UseSHA256;
 begin
   Func:=@HashFuncSHA256;
   DigestLen:=SHA256_DIGEST_SIZE;
+end;
+
+procedure TRSAHashFuncInfo.UseSHA384;
+begin
+  Func:=@HashFuncSHA384;
+  DigestLen:=SHA384_DIGEST_SIZE;
+end;
+
+procedure TRSAHashFuncInfo.UseSHA512;
+begin
+  Func:=@HashFuncSHA512;
+  DigestLen:=SHA512_DIGEST_SIZE;
 end;
 
 { TX509RSAPrivateKey }
