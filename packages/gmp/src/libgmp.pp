@@ -46,8 +46,17 @@ const
 {$else}
 {$ifdef windows}
   GMPlibraryFileName = GMPExternal_library+'.dll';
+{$else}  
+{$ifdef darwin}
+  // macOS
+  GMPlibraryFileName = GMPExternal_library+'.dylib';
+{$else}  
+  // Generic unix
+  GMPlibraryFileName = GMPExternal_library+'.so';
 {$endif}
 {$endif}
+{$endif}
+
 { Pointers to basic pascal types, inserted by h2pas conversion program.}
 Type
   PLongint  = ^Longint;
