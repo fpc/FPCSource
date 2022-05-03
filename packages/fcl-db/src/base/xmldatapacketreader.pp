@@ -306,8 +306,7 @@ end;
 procedure TXMLDatapacketReader.InitLoadRecords;
 
 var ChangeLogStr : String;
-    C, StartC    : PChar;
-    cp           : integer;
+    I, StartI, cp: integer;
     ps           : string;
 
 begin
@@ -320,17 +319,13 @@ begin
     ChangeLogStr:='';
   ps := '';
   cp := 0;
-  if ChangeLogStr='' then
-    Exit;
-
-  C := PChar(ChangeLogStr);
-  StartC := C;
-  repeat
-    if (C^ in [' ',#0]) then
+  StartI := 1;
+  if ChangeLogStr<>'' then
+  for I := 1 to Length(ChangeLogStr)+1 do
+    begin
+    if (I>Length(ChangeLogStr)) or (ChangeLogStr[I] in [' ',#0]) then
       begin
-      SetLength(ps, C-StartC);
-      if Length(ps)>0 then
-        Move(StartC^, ps[1], C-StartC);
+      ps := Copy(ChangeLogStr, StartI, I-StartI);
       case (cp mod 3) of
         0 : begin
             SetLength(FChangeLog,length(FChangeLog)+1);
@@ -347,10 +342,9 @@ begin
             end;
       end; {case}
       inc(cp);
-      StartC := C+1;
+      StartI := I+1;
       end;
-    Inc(C);
-  until C^=#0;
+    end;
 end;
 
 procedure TXMLDatapacketReader.RestoreRecord;
