@@ -873,7 +873,7 @@ begin
   // Note: directly into ZeroesHashSalt
 
   // "3.  If emLen < hLen + sLen + 2, error"
-  if EncodedLen < HashLen + SaltLen + 2 then
+  if EncodedLen < HashLen + DWord(SaltLen) + 2 then
     exit(20220501221837);
 
   // "4.  Generate a random octet string salt of length sLen; if sLen = 0,
@@ -883,7 +883,7 @@ begin
   // "5.  Let M' = (0x)00 00 00 00 00 00 00 00 || mHash || salt;
   //      M' is an octet string of length 8 + hLen + sLen with eight
   //      initial zero octets."
-  SetLength(ZeroesHashSalt{%H-},8+HashLen+SaltLen);
+  SetLength(ZeroesHashSalt{%H-},8+HashLen+DWord(SaltLen));
   FillByte(ZeroesHashSalt[0],8,0);
   MsgHashP:=@ZeroesHashSalt[8];
   HashFunc^.Func(Input,InLen,MsgHashP);
@@ -935,8 +935,7 @@ function EMSA_PSS_Verify(Msg: PByte; MsgLen: DWord; EncodedMsg: PByte;
   EncodedBits: DWord; HashFunc: PRSAHashFuncInfo; SaltLen: integer): int64;
 // RFC 3447 9.1.2 Verification operation
 var
-  HashLen: Word;
-  EncodedLen, DBLen, i, Padding: DWord;
+  HashLen, EncodedLen, DBLen, i, Padding: DWord;
   MaskedDB, HashP, SaltP: PByte;
   MsgHash, DBMask, Msg2, Hash2, DB: TBytes;
 begin
@@ -966,7 +965,7 @@ begin
   begin
     if EncodedLen < HashLen + 2 then
       exit(20220502222313);
-  end else if EncodedLen < HashLen + SaltLen + 2 then
+  end else if EncodedLen < HashLen + DWord(SaltLen) + 2 then
     exit(20220502205834);
 
   // "4. If the rightmost octet of EM does not have hexadecimal value 0xbc, error."
@@ -1024,7 +1023,7 @@ begin
   // "12.  Let M' = (0x)00 00 00 00 00 00 00 00 || mHash || salt ;
   //       M' is an octet string of length 8 + hLen + sLen with eight
   //       initial zero octets.
-  SetLength(Msg2{%H-},8 + HashLen + SaltLen);
+  SetLength(Msg2{%H-},8 + HashLen + DWord(SaltLen));
   FillByte(Msg2[0],8,0);
   System.Move(MsgHash[0],Msg2[8],HashLen);
   System.Move(SaltP^,Msg2[8+HashLen],SaltLen);
