@@ -57,6 +57,7 @@ type
 
     procedure TestStringLargerThen8192;
     procedure TestInsertLargeStrFields; // bug 9600
+    procedure TestMSSQLLargeStrings;
     procedure TestLargeRecordSize;
     procedure TestNullValues;
     procedure TestAggregates;
@@ -460,6 +461,80 @@ begin
       end;
     Close;
     end;
+end;
+
+procedure TTestFieldTypes.TestMSSQLLargeStrings;
+var
+  Q: TSQLQuery;
+  S, L: string;
+  I: Integer;
+begin
+  if SQLServerType<>ssMSSQL then
+  begin
+    WriteLn('TestMSSQLLargeStrings is suitable only for MSSQL');
+    Exit;
+  end;
+  Q := TSQLQuery.Create(nil);
+  try
+    Q.SQLConnection := TSQLDBConnector(DBConnector).Connection;
+    Q.Transaction := TSQLDBConnector(DBConnector).Transaction;
+
+    Q.SQL.Text := 'CREATE TABLE [dbo].[NVARCHARMAX]([Longtext] [nvarchar](max) NULL, [Shorttext] [nvarchar](127) NULL)';
+    Q.ExecSQL;
+
+    // build a short text
+    Q.SQL.Text := 'INSERT INTO [dbo].[NVARCHARMAX] ([Longtext], [Shorttext]) VALUES (:longtext, :shorttext)';
+    S := '0123456789';
+    // insert the short text into DB
+    Q.Params[0].AsString := S;
+    Q.Params[1].AsString := S;
+    Q.ExecSQL;
+
+    // build a long text with exactly 2000 characters (the maximum for SQL_WVARCHAR)
+    L := '';
+    for I := 1 to 200 do
+      L := L + S;
+    Write('Length(L) = ', Length(L));
+
+    // insert the long text into DB
+    Q.SQL.Text := 'INSERT INTO [dbo].[NVARCHARMAX] ([Longtext], [Shorttext]) VALUES (:longtext, :shorttext)';
+    Q.Params[0].AsString := L;
+    Q.Params[1].AsString := S;
+    Q.ExecSQL;
+    WriteLn('. OK');
+
+    // check L in WHERE
+    Q.SQL.Text := 'SELECT [Shorttext] FROM [dbo].[NVARCHARMAX] WHERE [Shorttext]=:shorttext';
+    Q.Params[0].AsString := L;
+    Q.Open;
+    AssertEquals(True, Q.EOF); // L not found
+    Q.Close;
+    Q.Params[0].AsString := S;
+    Q.Open;
+    AssertEquals(S, Q.Fields[0].AsString);
+    Q.Close;
+
+    // build a long text with exactly 2001 characters (1 character above the maximum for SQL_WVARCHAR)
+    Q.SQL.Text := 'INSERT INTO [dbo].[NVARCHARMAX] ([Longtext], [Shorttext]) VALUES (:longtext, :shorttext)';
+    L := L + '1';
+    Write('Length(L) = ', Length(L));
+    Q.Params[0].AsString := L;
+    Q.Params[1].AsString := S;
+    Q.ExecSQL;
+    WriteLn('. OK');
+
+    // check L in WHERE
+    Q.SQL.Text := 'SELECT [Longtext] FROM [dbo].[NVARCHARMAX] WHERE [Longtext]=convert(nvarchar(max), :longtext)';
+    Q.Params[0].AsString := L;
+    Q.Open;
+    AssertEquals(L, Q.Fields[0].AsString);
+    Q.Close;
+
+    Q.SQL.Text := 'DROP TABLE [dbo].[NVARCHARMAX]';
+    Q.ExecSQL;
+  finally
+    Q.Free;
+  end;
 end;
 
 procedure TTestFieldTypes.TestUnlVarChar;
