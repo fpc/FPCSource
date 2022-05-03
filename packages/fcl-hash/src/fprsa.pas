@@ -821,11 +821,12 @@ function EMSA_PSS_Encode(Input: PByte; InLen: Integer;
 var
   ZeroesHashSalt, H, DB, DBMask, MaskedDB: TBytes;
   MsgHashP, SaltP: PByte;
-  Padding, HashLen, i: Integer;
+  Padding, HashLen, i, EncodedLen,DBLen : Integer;
 begin
   Result:=0;
 
   HashLen:=HashFunc^.DigestLen;
+  EncodedLen:=(ModBits+7) div 8;
 
   if SaltLen = RSA_PSS_SaltLen_HashLen then
     SaltLen:=HashLen
@@ -834,12 +835,21 @@ begin
   else if SaltLen < 0 then
     exit(20220501233610);
 
-  // check OutLen
-  if HashLen + SaltLen + 2 > OutLen then
+  // "2.  Let mHash = Hash(M), an octet string of length hLen."
+  // Note: directly into ZeroesHashSalt
+
+  // "3.  If emLen < hLen + sLen + 2, error"
+  if EncodedLen < HashLen + DWord(SaltLen) + 2 then
     exit(20220501221837);
 
-  // ZeroesHashSalt := 8 zeroes + InputHash + Salt
-  SetLength(ZeroesHashSalt{%H-},8+HashLen+SaltLen);
+  // "4.  Generate a random octet string salt of length sLen; if sLen = 0,
+  //      then salt is the empty string."
+  // Note: directly into ZeroesHashSalt
+
+  // "5.  Let M' = (0x)00 00 00 00 00 00 00 00 || mHash || salt;
+  //      M' is an octet string of length 8 + hLen + sLen with eight
+  //      initial zero octets."
+  SetLength(ZeroesHashSalt{%H-},8+HashLen+DWord(SaltLen));
   FillByte(ZeroesHashSalt[0],8,0);
   MsgHashP:=@ZeroesHashSalt[8];
   HashFunc^.Func(Input,InLen,MsgHashP);
@@ -884,8 +894,7 @@ function EMSA_PSS_Verify(Msg: PByte; MsgLen: DWord; EncodedMsg: PByte;
   EncodedBits: DWord; HashFunc: PRSAHashFuncInfo; SaltLen: integer): int64;
 // RFC 3447 9.1.2 Verification operation
 var
-  HashLen: Word;
-  EncodedLen, DBLen, i, Padding: DWord;
+  HashLen, EncodedLen, DBLen, i, Padding: DWord;
   MaskedDB, HashP, SaltP: PByte;
   Hash, DBMask, Msg2, Hash2, DB: TBytes;
 begin
@@ -915,7 +924,7 @@ begin
   begin
     if EncodedLen < HashLen + 2 then
       exit(20220502222313);
-  end else if EncodedLen < HashLen + SaltLen + 2 then
+  end else if EncodedLen < HashLen + DWord(SaltLen) + 2 then
     exit(20220502205834);
 
   // "4. If the rightmost octet of EM does not have hexadecimal value 0xbc, error."
@@ -973,7 +982,7 @@ begin
   // "12.  Let M' = (0x)00 00 00 00 00 00 00 00 || mHash || salt ;
   //       M' is an octet string of length 8 + hLen + sLen with eight
   //       initial zero octets.
-  SetLength(Msg2{%H-},8 + HashLen + SaltLen);
+  SetLength(Msg2{%H-},8 + HashLen + DWord(SaltLen));
   FillByte(Msg2[0],8,0);
   System.Move(Hash[0],Msg2[8],HashLen);
   System.Move(SaltP^,Msg2[8+HashLen],SaltLen);

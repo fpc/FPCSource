@@ -8,14 +8,17 @@
 {$h+}
 {$MODESWITCH advancedrecords}
 {$R-}
+{$Q-}
 
 unit fpTLSBigInt;
+
+{$WARN 6058 off : Call to subroutine "$1" marked as inline is not inlined}
 
 interface
 
 uses SysUtils;
 
-{ $DEFINE BIGINT_DEBUG}         // Enable debug output/functions for BitInt unit
+{off $DEFINE BIGINT_DEBUG}         // Enable debug output/functions for BitInt unit
 
 const
   // Maintain a number of precomputed variables when doing reduction
@@ -108,7 +111,10 @@ function BISquare(var Context: TBigIntContext; BI: PBigInt): PBigInt; inline;
 
 function BICRT(var Context: TBigIntContext; BI, DP, DQ, P, Q, QInv: PBigInt): PBigInt;
 
-procedure BItoString(BI: PBigInt; out S: AnsiString);
+// Convert a bigint to a string of hex characters @Result[BI.Size*2]
+function BIToString(BI: PBigInt): AnsiString; overload;
+function BIToDbgString(BI: PBigInt): AnsiString; overload;
+procedure BIToString(BI: PBigInt; out S: AnsiString); overload;
 function StringToBI(var Context: TBigIntContext; const Value: AnsiString): PBigInt;
 
 implementation
@@ -260,10 +266,10 @@ begin
   Result := BIAllocate(Context, N + 1);
   R := Result^.Components;
   A := BIA^.Components;
-  FillChar(R^, (N+1) * BIGINT_COMP_BYTE_SIZE, 0);
+  FillByte(R^, (N+1) * BIGINT_COMP_BYTE_SIZE, 0);
   repeat
-    Tmp := R^ + TBILongComponent(A[J]) * B + Carry; // Avoid overflow
-    R^ := Tmp; // Downsize
+    Tmp := TBILongComponent(R^) + TBILongComponent(A[J]) * B + Carry; // Avoid overflow
+    R^ := DWord(Tmp and $ffffffff); // Downsize
     Inc(R);
     Carry := Tmp shr BIGINT_COMP_BIT_SIZE;
     Inc(J);
@@ -287,7 +293,7 @@ begin
   R := 0;
   repeat
     R := (R shl BIGINT_COMP_BIT_SIZE) + BIR^.Components[I];
-    BIR^.Components[I] := R div Denom;
+    BIR^.Components[I] := DWord((R div Denom) and $ffffffff);
     R := R mod Denom;
     Dec(I);
   until I < 0;
@@ -391,8 +397,8 @@ begin
     repeat
       if (InnerPartial > 0) and (RIndex >= InnerPartial) then
         Break;
-      Tmp := SR[RIndex] + TBILongComponent(SA[J]) * SB[I] + Carry; // Avoid overflow
-      SR[RIndex] := Tmp; // Downsize
+      Tmp := TBILongComponent(SR[RIndex]) + TBILongComponent(SA[J]) * SB[I] + Carry; // Avoid overflow
+      SR[RIndex] := TBIComponent(Tmp and $ffffffff); // Downsize
       Inc(RIndex);
       Carry := Tmp shr BIGINT_COMP_BIT_SIZE;
       Inc(J);
@@ -424,7 +430,7 @@ begin
   FillChar(W^,BIR^.Size * BIGINT_COMP_BYTE_SIZE,0);
   repeat
     Tmp := W[2*I] + TBILongComponent(X[I]) * X[I]; // Avoid overflow
-    W[2 * I] := Tmp;
+    W[2 * I] := DWord(Tmp and $ffffffff);
     Carry := Tmp shr BIGINT_COMP_BIT_SIZE;
     J := I+1;
     while J < T do
@@ -440,14 +446,14 @@ begin
       if BIGINT_COMP_MAX-Tmp < Carry then
         C := 1;
       Tmp := Tmp + Carry;
-      W[I + J] := Tmp;
+      W[I + J] := DWord(Tmp and $ffffffff);
       Carry := Tmp shr BIGINT_COMP_BIT_SIZE;
       if C > 0 then
         Carry := Carry + BIGINT_COMP_RADIX;
       Inc(J);
     end;
     Tmp := W[I+T]+Carry;
-    W[I+T] := Tmp;
+    W[I+T] := DWord(Tmp and $ffffffff);
     W[I+T+1] := Tmp shr BIGINT_COMP_BIT_SIZE;
     Inc(I);
   until I >= T;
@@ -658,7 +664,7 @@ end;
 function BIImport(var Context: TBigIntContext; const Data: AnsiString): PBigInt; overload;
 
 begin
-  Result:=BIImport(Context,TEncoding.UTF8.GetAnsiBytes(Data));
+  Result:=BIImport(Context,@Data[1],length(Data));
 end;
 
 
@@ -783,7 +789,7 @@ end;
 // @IsMod: Determines if this is a normal division (False) or a reduction (True)}
 function BIDivide(var Context: TBigIntContext; U, V: PBigInt; IsMod: Boolean): PBigInt;
 
-  function BIDivide_V1(V:PBigInt):TBIComponent; inline;
+  function BIDivide_V1(V: PBigInt): TBIComponent; inline;
   begin // V1 for division
     Result := V^.Components[V^.Size-1];
   end;
@@ -828,7 +834,7 @@ begin
   TmpU := BIAllocate(Context, N+1);
   BITrim(V); // Make sure we have no leading 0's
   D := BIGINT_COMP_RADIX div (TBILongComponent(BIDivide_V1(V)) + 1);
-  FillChar(Quotient^.Components^, Quotient^.Size * BIGINT_COMP_BYTE_SIZE, 0);
+  FillByte(Quotient^.Components^, Quotient^.Size * BIGINT_COMP_BYTE_SIZE, 0);
   if D > 1 then
   begin // Normalize
     U := BIIntMultiply(Context,U,D);
@@ -852,8 +858,11 @@ begin
       if (V^.Size > 1) and (BIDivide_V2(V) > 0) then
       begin
         // We are implementing the following: if (V2*q_dash > (((U(0)*COMP_RADIX + U(1) - q_dash*V1)*COMP_RADIX) + U(2))) ...
-        Inner := BIGINT_COMP_RADIX * BIDivide_U(TmpU, 0) + BIDivide_U(TmpU, 1) - TBILongComponent(QDash) * BIDivide_V1(V); {Avoid overflow}
-        if (TBILongComponent(BIDivide_V2(V)) * QDash) > (TBILongComponent(Inner) * BIGINT_COMP_RADIX + BIDivide_U(TmpU, 2)) then {Avoid overflow}
+        Inner := (BIGINT_COMP_RADIX * BIDivide_U(TmpU, 0) + BIDivide_U(TmpU, 1)
+                  - TBILongComponent(QDash) * BIDivide_V1(V))
+                  and $ffffffff; {Avoid overflow}
+        if (TBILongComponent(BIDivide_V2(V)) * QDash) >
+            (TBILongComponent(Inner) * BIGINT_COMP_RADIX + BIDivide_U(TmpU, 2)) then {Avoid overflow}
           Dec(QDash);
       end;
     end;
@@ -882,7 +891,7 @@ begin
   BIRelease(Context, V);
   if IsMod then
   begin // Get the remainder
-    BIRelease(Context, Quotient);;
+    BIRelease(Context, Quotient);
     BITrim(U);
     Result := BIIntDivide(U, D);
   end else
@@ -1165,31 +1174,46 @@ begin
   Result := BIAdd(Context, M2, BIMultiply(Context, Q, H));
 end;
 
-// Convert a bigint to a string of hex characters
-// @Result[BI.Size*2]
-procedure BItoString(BI: PBigInt; out S: AnsiString);
+function BIToString(BI: PBigInt): AnsiString;
 const
   Digits: Array[0..15] of char = ('0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F');
 var
   I,J,K: Integer;
   Num: TBIComponent;
-  Mask: TBIComponent;
 begin
-  S:='';
+  Result:='';
   if BI = nil then
     Exit;
-  SetLength(S,BI^.Size*BIGINT_COMP_NUM_NIBBLES);
+  SetLength(Result,BI^.Size*BIGINT_COMP_NUM_NIBBLES);
   K:=1;
   for I := BI^.Size-1 downto 0 do
   begin
     for J := BIGINT_COMP_NUM_NIBBLES-1 downto 0 do
     begin
-      Mask := $0F shl (J*4);
-      Num := (BI^.Components[I] and Mask) shr (J*4);
-      S[K]:=Digits[Num and $F];
+      Num := (BI^.Components[I] shr (J*4)) and $F;
+      Result[K]:=Digits[Num];
       inc(K);
     end;
   end;
+end;
+
+function BIToDbgString(BI: PBigInt): AnsiString;
+var
+  Num, I, J: Integer;
+begin
+  Result:='';
+  if BI=nil then
+    exit;
+  Num:=0;
+  for I := BI^.Size-1 downto 0 do
+    for J := BIGINT_COMP_NUM_NIBBLES-1 downto 0 do
+      inc(Num, (BI^.Components[I] shr (J*4)) and $F);
+  Result:='{'+IntToStr(Num)+'}'+BIToString(BI);
+end;
+
+procedure BIToString(BI: PBigInt; out S: AnsiString);
+begin
+  S:=BIToString(BI);
 end;
 
 // Convert a string of hex characters to a bigint
