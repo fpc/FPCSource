@@ -717,6 +717,7 @@ procedure testioqword;
      i : longint;
 
   begin
+{$if not(defined(CPUAVR))}
      assignqword($ffffffff,$a0a0a0a0,q1);
      assign(t,'testi642.tmp');
      rewrite(t);
@@ -745,6 +746,7 @@ procedure testioqword;
             end;
        end;
     erase(t);
+{$endif not(defined(CPUAVR))}
   end;
 
 procedure teststringqword;
