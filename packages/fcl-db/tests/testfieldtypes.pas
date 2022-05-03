@@ -470,10 +470,7 @@ var
   I: Integer;
 begin
   if SQLServerType<>ssMSSQL then
-  begin
-    WriteLn('TestMSSQLLargeStrings is suitable only for MSSQL');
-    Exit;
-  end;
+    Ignore('TestMSSQLLargeStrings is suitable only for MSSQL');
   Q := TSQLQuery.Create(nil);
   try
     Q.SQLConnection := TSQLDBConnector(DBConnector).Connection;
