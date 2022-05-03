@@ -349,7 +349,7 @@ end;
 
 function BytesToStr(const aBytes: TBytes): string;
 begin
-  SetLength(Result,length(aBytes));
+  SetLength(Result{%H-},length(aBytes));
   if aBytes=nil then exit;
   Move(aBytes[0],Result[1],length(aBytes));
 end;
