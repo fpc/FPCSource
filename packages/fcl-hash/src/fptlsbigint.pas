@@ -7,6 +7,8 @@
 {$MODE OBJFPC}
 {$h+}
 {$MODESWITCH advancedrecords}
+{$R-}
+
 unit fpTLSBigInt;
 
 interface

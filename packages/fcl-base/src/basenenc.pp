@@ -247,7 +247,7 @@ begin
     while (lBits>=8) do
       begin
       Dec(lBits,8);
-      pDest^:=Reg shr lBits;
+      pDest^:=byte(Reg shr lBits);
       inc(pDest);
       end;
     inc(pSrc);
