@@ -13,7 +13,7 @@ interface
 
 uses SysUtils;
 
-{$DEFINE BIGINT_DEBUG}         // Enable debug output/functions for BitInt unit
+{ $DEFINE BIGINT_DEBUG}         // Enable debug output/functions for BitInt unit
 
 const
   // Maintain a number of precomputed variables when doing reduction
