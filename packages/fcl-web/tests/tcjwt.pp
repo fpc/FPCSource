@@ -40,7 +40,6 @@ type
     Property JWT : TJWT Read FJWT;
     Property Key : TJWTKey Read FKey;
     procedure GetTestPEM(out aPrivateKeyPEM, aPublicKeyPEM: string);
-    procedure GetPEM_PrivateKeyRSA2048bitEncryptedDES3(out aPrivateKeyPEM, aPassPhrase, aPublicKeyPEM: string);
     procedure TestVerifyRSAPem(SignerClass: TJWTSignerClass); virtual;
   published
     procedure TestSignNone;
@@ -606,59 +605,6 @@ const
 begin
   aPrivateKeyPEM:=PrivateKeyPem;
   aPublicKeyPEM:=PublicKeyPem;
-end;
-
-procedure TTestJWT.GetPEM_PrivateKeyRSA2048bitEncryptedDES3(out aPrivateKeyPEM,
-  aPassPhrase, aPublicKeyPEM: string);
-begin
-  // generated with
-  //   openssl genrsa -des3 -out private.pem 2048
-  aPrivateKeyPEM:=
-    '-----BEGIN RSA PRIVATE KEY-----'#10+
-    'Proc-Type: 4,ENCRYPTED'#10+
-    'DEK-Info: DES-EDE3-CBC,2951FE4DFF4DA350'#10+
-    ''#10+
-    'QIql1Ab/W9yaNw9ZrzRgCTHn1ox1Atxjr9R1tNKPM2punS5xooS3cTN/6671D8KU'#10+
-    '+lN9Kf2kmhKOp6xGQmE1Up0bY4GddoAmfzETR972ZoZ0THLUe1BhuVUJjMvUcrL2'#10+
-    'EafIoybcYcPEmtjoYbrdiLtwRhtHzWgezkDhkXVGstjSii3a8AUEeJuBQOVp5Zw5'#10+
-    'WtVWhUdse9GdF+RYCQMqgj86B2MuR/bL3e1HORG1YJrLmMjpVxdt1tMEog2tXsS4'#10+
-    '36+LjUqguePvX76CnkjowjXMSeKc6Bh0bDO7uUQDKgY1jHeclRVMwIJd0If7rTG5'#10+
-    'foiBDiT02RwPmYNHViJqHO58wc026V4IvELTspPZqoICEdvMt/UGO6ThUPcCyHpr'#10+
-    'tGWU+lKMKE2/k8O0bF8pRek6Sx3eoLUzRzEA7k1hSkkngqwqLmDNVMwc2O4PPdPS'#10+
-    'DIvecAWhM+hTINq8n/XwXem6RIRFMQ4ok2dHoAmu6NzSkMSNmUTWALkQXSDqIgpi'#10+
-    'bpNUOkBuZOzyCAsktxKdGRj26xHogJ4ctIVR/XirvEH8ixOr58Vb/GVJ5WwOmT6X'#10+
-    'tWxWVeVWgfxhV1CxWAJTUEBx+OfAzz9Vcv40c+QD4ZAzxLFLjAT38/jO4gp2KCrl'#10+
-    'YVKPoNReGDWj3h1nIm9/XbRPhtUd3okBJRDAQS6AhyJr0XRp1WDuhPrqUsTitFWG'#10+
-    'cqHAMMrtwkGaWDinx+NUdvJG7inCmT9VDbQQUERlb3xhufQgM77JUVNsd/UM8Knx'#10+
-    '3kX6FQuY4CsIzZmbW18YBVM8zWboMobNYoyr9qZCfP41W06M7tncW1A1q/Ac2xBZ'#10+
-    'AqPa4P4pdHEBEozBBEHG/NeDI4Gsu6H8U2NfeBk1sxsijtVXq8EM6ssBpckNsEJy'#10+
-    'aI7ElwJuRYK05UksWyYYY5Q0NYcne8Wxqcqdh0+QJmtBvWMcmXfCQ5PBxdlLrroW'#10+
-    '6pw9wYYngQBvpY49ksgG1syB5+2Srd0AFljcRZGYLfIWeCR8SvS8m3FGKVU7kaTz'#10+
-    '7cjsEThQzonuxF/+3ov16KcUYYjJcgNMekwReR9CLMg8khLt/DRegJ98sJEqEO94'#10+
-    '4t4HBNw2WDvlI+aYu8SkSWZ9f9wp6G6XstSuNMQTKV+fh2BXzgKFI9yk0ROHz9bD'#10+
-    'uHk1nbJKQ2h9k8Ve88WBXEAzN3keTSDLpUnvmkxmOZEoSXR+DGgsMTeC+QW6x/7G'#10+
-    'UNxYNWdSPoMQnhwfF3sXYMnOVxWmKm7rHM//kXcFQ9/NXAwY7E7b0OB9vvc5Bcw/'#10+
-    '4bSf4KwBtyhIub9UMiiEZbS+/g1ICMuw0dSd6QcGFEnVCOrx84mf9RpNmkR+wEum'#10+
-    '32RBZY0KmzIoqRkGNLgfImgyH+nXAjPRUrHlPpQ+nCAmVLdHFgTF8iu2QyoAypwy'#10+
-    'WuyZlOg1bDbTcO5nqliX59Tw8iU+PpU4U303GND3C6WpZVkZDUIRVP8sNP6v6stG'#10+
-    'SQFCmKshlOolBIvL2eF+MWYbpRznQ6k5SchO7k3yuLDMtFuLRTk6l0xgLYrM9DUO'#10+
-    '/Tf5sKIivecMLDzMprV4RvNdLnZsqDZBt4tfSuzWFPNcd2kURzTL6B1Mv09gTMpr'#10+
-    '-----END RSA PRIVATE KEY-----';
-
-  aPassPhrase:='testfprsa';
-
-  // public key extracted with
-  //   openssl rsa -in private.pem -outform PEM -pubout -out public.pem
-  aPublicKeyPEM:=
-    '-----BEGIN PUBLIC KEY-----'#10+
-    'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxMrTKa5P0NlPvX/iSBmH'#10+
-    'fyhZQ+9vH/UooubCIJbAq+EbG9HrdccJMd52AQQV1jGX9jQAJTYxb7GSBTWAs4Th'#10+
-    'FLlPxz5Nn43QxKs4mAaPlpg0X3A4PO4SDrWnqFo8cUnr8IZZWBpGePzM8Rr/KuRr'#10+
-    'IQSWAM7CMvTzmvdgT7IwQBuYjOz6YM0KIThFDuGBbnfSLGKx+3+WnoMihp2jYWLj'#10+
-    'jq7MHbXXnDPstCNARGWvb2Nwhrl339PZMColD8cE4FjKoPUE9qR1ndSys/mIGxW2'#10+
-    'YQgjmpBmvxYm3TCqBHo8E384XV+3+Ys0su2OjWRPyjqyiZ7Dt0dSFEW6SvrE/LuH'#10+
-    'hwIDAQAB'#10+
-    '-----END PUBLIC KEY-----';
 end;
 
 procedure TTestJWT.TestVerifyRSAPem(SignerClass: TJWTSignerClass);
