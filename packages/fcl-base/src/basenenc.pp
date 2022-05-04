@@ -97,7 +97,35 @@ Function Base64 : TAlphabetEncoder;
 Function Base64URL : TAlphabetEncoder;
 Function GetStandardEncoder(aEncoder : TStandardEncoder): TAlphabetEncoder;
 
+Function GetRawStringBytes(S : String) : TBytes;
+Function GetRawStringFromBytes(B : TBytes) : RawByteString;
+
 implementation
+
+Function GetRawStringFromBytes(B : TBytes) : RawByteString;
+
+Var
+  L : Integer;
+
+begin
+  L:=Length(B);
+  SetLength(Result,L);
+  If L>0 then
+    Move(B[0],Result[1],L);
+end;
+
+Function GetRawStringBytes(S : String) : TBytes;
+
+Var
+  L : Integer;
+
+begin
+  L:=Length(S);
+  SetLength(Result,L);
+  If L>0 then
+    Move(S[1],Result[0],L);
+end;
+
 
 Function TAlphabetEncoder.Encode(aBuffer : TBytes; doPad : Boolean = True) : AnsiString;
 
@@ -109,7 +137,7 @@ end;
 function TAlphabetEncoder.Encode(Const aBuffer: AnsiString; doPad : Boolean = True): AnsiString;
 
 begin
-  Result:=Encode(TEncoding.UTF8.GetAnsiBytes(aBuffer),DoPad);
+  Result:=Encode(GetRawBytesFromString(aBuffer),DoPad);
 end;
 
 
