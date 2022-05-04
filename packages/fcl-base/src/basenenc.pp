@@ -137,7 +137,7 @@ end;
 function TAlphabetEncoder.Encode(Const aBuffer: AnsiString; doPad : Boolean = True): AnsiString;
 
 begin
-  Result:=Encode(GetRawBytesFromString(aBuffer),DoPad);
+  Result:=Encode(GetRawStringBytes(aBuffer),DoPad);
 end;
 
 
