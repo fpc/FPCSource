@@ -767,7 +767,7 @@ begin
     BufToString(S2);
     if S2[1] = Char(#00) then
       Delete(S2,1,1);
-    BytesToHexStr(S,TEncoding.UTF8.GetAnsiBytes(S2));
+    BytesToHexStr(S,GetRawStringBytes(S2));
   end;
   ASNParseAdd(List, S, ASNType, ASNSize);
 end;

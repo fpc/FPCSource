@@ -59,7 +59,7 @@ begin
   PemLoadPublicKey64FromList(List,PrivateKey,PublicKey,PublicKeyX64,PublicKeyY64);
   // Thumbprint
   S:='{"crv":"P-256","kty":"EC","x":"' + PublicKeyX64 + '","y":"' + PublicKeyY64 + '"}';
-  TSHA256.DigestBase64(TEncoding.UTF8.GetAnsiBytes(S),True,ThumbPrint);
+  TSHA256.DigestBase64(GetRawStringBytes(S),True,ThumbPrint);
 end;
 
 procedure PemLoadPublicKey64FromList(List: TStrings; out PrivateKey: TEccPrivateKey; out PublicKey: TEccPublicKey; out PublicKeyX64, PublicKeyY64: AnsiString);
@@ -346,12 +346,12 @@ end;
 
 procedure PemToDER(PEM: TBytes; const BeginTag, EndTag: String; out DER: TBytes);
 begin
-  DER:=PemToDER(TEncoding.UTF8.GetAnsiString(PEM),BeginTag,EndTag);
+  DER:=PemToDER(GetRawStringFromBytes(PEM),BeginTag,EndTag);
 end;
 
 procedure ASNParsePemSection(const PEM: TBytes; List: TStrings; const BeginTag, EndTag: String);
 begin
-  ASNParsePemSection(TEncoding.UTF8.GetAnsiString(PEM),List,BeginTag,EndTag);
+  ASNParsePemSection(GetRawStringFromBytes(PEM),List,BeginTag,EndTag);
 end;
 
 procedure ASNParsePemSection(const PEM: String; List: TStrings; const BeginTag, EndTag: String);
