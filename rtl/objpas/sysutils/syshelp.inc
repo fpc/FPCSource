@@ -311,8 +311,15 @@ end;
 
 
 class function TStringHelper.IsNullOrWhiteSpace(const AValue: string): Boolean;
+const
+  LWhiteSpace = [#0..' '];
+var
+  I: SizeInt;
 begin
-  Result:=system.Length(SysUtils.Trim(AValue))=0;
+  for I:=1 to System.Length(AValue) do
+    if not (AValue[I] in LWhiteSpace) then
+      exit(False);
+  Result:=True;
 end;
 
 
