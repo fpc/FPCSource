@@ -100,6 +100,7 @@ unit rgcpu;
         if (abs(spilltemp.offset)>63) or (CPUAVR_16_REGS in cpu_capabilities[current_settings.cputype]) then
           begin
             helplist:=TAsmList.create;
+            ofs:=spilltemp.offset;
 
             helplist.concat(tai_regalloc.alloc(NR_R26,nil));
             helplist.concat(tai_regalloc.alloc(NR_R27,nil));
