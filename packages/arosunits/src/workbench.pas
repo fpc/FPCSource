@@ -155,11 +155,7 @@ type
     am_Message: TMessage;             // Standard message structure.
     am_type: Word;              // Message type.
     am_UserData: IPTR;               // Application specific.
-    {$IFDEF AROS_ABIv1}
     am_ID: IPTR;               // Application definable ID.
-    {$ELSE}
-    am_ID: LongWord;              // Application definable ID.
-    {$ENDIF}
     am_NumArgs: LongInt;               // # of elements in arglist.
     am_ArgList: PWBArgList;           // The arguements themselves.
     am_Version: Word;              // Will be AM_VERSION.
