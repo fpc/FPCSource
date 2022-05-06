@@ -1917,6 +1917,9 @@ type
   elf_ptr_t             = APTR;
   elf_uintptr_t         = IPTR;
   elf_intptr_t          = SIPTR;
+  {$IFDEF CPU64}
+  {$DEFINE ELF_64BIT}
+  {$ENDIF}
   {$ENDIF}
 
 
