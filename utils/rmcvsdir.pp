@@ -67,6 +67,8 @@ procedure searchcvsdir(const dirname : string);
                    deltree(dirname+'/CVS')
                  else if rec.name='.svn' then
                    deltree(dirname+'/.svn')
+                 else if rec.name='.git' then
+                   deltree(dirname+'/.git')
                  else
                    if (rec.name<>'.') and (rec.name<>'..') then
                      searchcvsdir(dirname+'/'+rec.name)
