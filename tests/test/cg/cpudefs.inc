@@ -13,3 +13,8 @@
     {$hugecode on}
   {$endif}
 {$endif}
+
+{$ifdef cpuavr}
+{$else cpuavr}
+{$define cpuhasfloats}
+{$endif cpuavr}
