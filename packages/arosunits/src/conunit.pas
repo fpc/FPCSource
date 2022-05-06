@@ -40,7 +40,7 @@ const
 
 
 type
-  {$PACKRECORDS 2}
+  {$PACKRECORDS C}
   PConUnit = ^TConUnit;
   TConUnit = record
     cu_MP: TMsgPort;
