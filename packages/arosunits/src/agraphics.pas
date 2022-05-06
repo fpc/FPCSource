@@ -629,16 +629,12 @@ type
     TxBaseline: Word;      // text baseline
     TxSpacing: SmallInt;   // text spacing (per character)
     RP_User: APTR;
-    {$ifdef AROS_ABIv0}
-    longreserved: array[0..1] of IPTR;
-    wordreserved: array[0..6] of Word; // used to be a node
-    reserved: array[0..7] of Byte;     // for future use
-    {$endif}
-    {$ifdef AROS_ABIv1}
+    // 30 bytes (on 32-bit architectures) of private space follow.
+    // On 64-bit architectures this space is doubled.
+    // Do not touch.
     RP_Extra: APTR;
     longreserved: array[0..5] of IPTR;
     reserved: array[0..1] of Byte;
-    {$endif}
   end;
 
 const
