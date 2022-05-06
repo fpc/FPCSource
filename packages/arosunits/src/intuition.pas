@@ -1159,20 +1159,18 @@ type
     dri_CheckMark: PImage; // pointer to scaled checkmark image Will be nil if DRI_VERSION < 2
     dri_AmigaKey: PImage;  // pointer to scaled Amiga-key image Will be NULL if DRI_VERSION < 2
 
-
-    {$ifdef AROS_ABIv1}
+    // The following fields are compatible with AmigaOS4.
+    // Present if dri_version >= 3.
     dri_Screen: PScreen;
     dri_Prefs: APTR;
-    dri_Reserved: array[0..2] of IPTR; // avoid recompilation ;^)
-    {$else}
-    dri_Reserved: array[0..4] of IPTR; // avoid recompilation ;^)
-    {$endif}
+
+    dri_Reserved: array[0..2] of IPTR;
   end;
 
 const
 
   // If you find dri_Version >= DRI_VERSION, you know this structure has at least the fields defined in this version of the include file
-  DRI_VERSION = 2;
+  DRI_VERSION = 3;
   // dri_Flags
   DRIF_NEWLOOK     = 1 shl 0; // specified SA_Pens, full treatment
   DRIF_DIRECTCOLOR = 1 shl 1;
