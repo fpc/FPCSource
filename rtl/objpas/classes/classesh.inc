@@ -102,7 +102,8 @@ type
     ssLeft, ssRight, ssMiddle, ssDouble,
     // Extra additions
     ssMeta, ssSuper, ssHyper, ssAltGr, ssCaps, ssNum,
-    ssScroll,ssTriple,ssQuad,ssExtra1,ssExtra2);
+    ssScroll,ssTriple,ssQuad,ssExtra1,ssExtra2,
+    ssTouch, ssPen, ssHorizontal);
 
 {$packset 1}
   TShiftState = set of TShiftStateEnum;
@@ -151,6 +152,9 @@ type
 
 
 Const
+  // Delphi compatibility
+  ssCommand = ssMeta;
+  
   SGUIDObserved = '{663C603C-3F3C-4CC5-823C-AC8079F979E5}';
   SGUIDObserver = '{BC7376EA-199C-4C2A-8684-F4805F0691CA}';
 
