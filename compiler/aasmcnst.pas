@@ -1061,6 +1061,9 @@ implementation
              sec_rodata,
              indsecname,
              ptrdef.alignment));
+
+           symind.increfs;
+
            indtcb.free;
            if not (target_info.system in systems_indirect_var_imports) then
              current_module.add_public_asmsym(symind.name,AB_INDIRECT,AT_DATA);
@@ -1470,6 +1473,7 @@ implementation
              so we keep the difference depending on whether the original was
              allocated via getstatic/getlocal/getglobal datalabel) }
            startlab:=tasmlabel.create(current_asmdata.AsmSymbolDict,startlab.name+'$strlab',startlab.bind,startlab.typ);
+           startlab.increfs;
          end;
        { sanity check }
        if result.ofs<>string_symofs then
@@ -1738,6 +1742,7 @@ implementation
                { allocate a separate label for the start of the data (see
                  emit_string_const_common() for explanation) }
                startlab:=tasmlabel.create(current_asmdata.AsmSymbolDict,startlab.name+'$strlab',startlab.bind,startlab.typ);
+               startlab.increfs;
              end
            else
              internalerror(2015031502);
@@ -1802,6 +1807,7 @@ implementation
              so we keep the difference depending on whether the original was
              allocated via getstatic/getlocal/getglobal datalabel) }
            startlab:=tasmlabel.create(current_asmdata.AsmSymbolDict,startlab.name+'$dynarrlab',startlab.bind,startlab.typ);
+           startlab.increfs;
          end;
        { sanity check }
        if result.ofs<>dynarray_symofs then
@@ -1945,6 +1951,8 @@ implementation
            strtcb.free;
 
            entry^.Data:=strlab;
+           { Make sure strlab has a reference }
+           strlab.increfs;
          end
        else
          strlab:=tasmlabel(entry^.Data);

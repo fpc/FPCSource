@@ -163,6 +163,10 @@ procedure objcreatestringpoolentryintern(p: pchar; len: longint; pooltype: tcons
         { create new entry }
         current_asmdata.getlabel(strlab,alt_data);
         entry^.Data:=strlab;
+
+        { Make sure strlab has a reference }
+        strlab.increfs;
+
         getmem(pc,entry^.keylength+1);
         move(entry^.key^,pc^,entry^.keylength);
         pc[entry^.keylength]:=#0;

@@ -225,8 +225,6 @@ interface
        TAsmSymbolClass = class of TAsmSymbol;
 
        TAsmLabel = class(TAsmSymbol)
-       protected
-         function getname:TSymStr;override;
          {$push}{$warnings off}
          { new visibility section to let "warnings off" take effect }
        protected
@@ -421,13 +419,6 @@ implementation
           else
             internalerror(2006053101);
         end;
-      end;
-
-
-    function TAsmLabel.getname:TSymStr;
-      begin
-        getname:=inherited getname;
-        increfs;
       end;
 
 
