@@ -290,12 +290,33 @@ begin
       Addunit('fpimgcmn');
       AddUnit('fpqrcodegen');
       end;
+    // qoi  
+    T:=P.Targets.AddUnit('qoicomn.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+          AddUnit('fpimgcmn');
+        end;
+    T:=P.Targets.AddUnit('fpreadqoi.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+          AddUnit('qoicomn');
+        end;
+    T:=P.Targets.AddUnit('fpwriteqoi.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+          AddUnit('qoicomn');
+        end;
+      
 
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('drawing.pp');
     T:=P.Targets.AddExampleProgram('imgconv.pp');
     T:=P.Targets.AddExampleProgram('createbarcode.lpr');
-
+    T:=P.Targets.AddExampleProgram('wrpngf.pas');
+    T:=P.Targets.AddExampleProgram('wrqoif.pas');
 {$ifndef ALLPACKAGES}
     Run;
     end;
