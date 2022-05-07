@@ -5841,6 +5841,7 @@ CONST
 // end_r_commctrl
 
 TYPE
+         PHTREEITEM          = ^HTREEITEM;
          HTREEITEM           = ^TREEITEM;
 
 CONST
@@ -6145,7 +6146,7 @@ CONST
          TVM_GETITEMRECT                = (TV_FIRST + 4);
 
 // Macro 160
-Function TreeView_GetItemRect( hwnd : hwnd; hitem: HTREEITEM; code : WPARAM; prc : pRECT):BOOL;inline;
+Function TreeView_GetItemRect( hwnd : hwnd; hitem: HTREEITEM;  prc : pRECT;code : WPARAM):BOOL;inline;
 Function TreeView_GetItemRect( hwnd : hwnd; hitem: HTREEITEM; var prc : TRECT;code : Bool):BOOL;inline;
 
 CONST
@@ -11823,9 +11824,9 @@ end;
 // #define TreeView_GetItemRect(hwnd, hitem, prc, code) \
 //     (*(HTREEITEM *)prc = (hitem), (BOOL)SNDMSG((hwnd), TVM_GETITEMRECT, (WPARAM)(code), (LPARAM)(RECT *)(prc)))
 
-Function TreeView_GetItemRect( hwnd : hwnd; hitem: HTREEITEM; code : WPARAM; prc : pRECT):BOOL;inline;
+Function TreeView_GetItemRect( hwnd : hwnd; hitem: HTREEITEM;  prc : pRECT; code : WPARAM):BOOL;inline;
 Begin
- HTREEITEM(prc):=HITEM;
+ PHTREEITEM(prc)^:=HITEM;
  Result:=Bool(SendMessage((hwnd), TVM_GETITEMRECT, code, LPARAM(prc)));
 end;
 
