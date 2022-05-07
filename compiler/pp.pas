@@ -87,9 +87,9 @@ program pp;
 
 {$i fpcdefs.inc}
 
-{ Require at least 2.6.0 }
-{$if FPC_FULLVERSION<20600}
-  {$fatal At least FPC 2.6.0 is required to compile the compiler}
+{ Require at least 3.2.0 }
+{$if FPC_FULLVERSION<30200}
+  {$fatal At least FPC 3.2.0 is required to compile the compiler}
 {$endif}
 
 { exactly one target CPU must be defined }
