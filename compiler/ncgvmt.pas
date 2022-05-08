@@ -695,11 +695,11 @@ implementation
            Interface tables
 **************************************}
 
-    function CreateWrapperName(_class : tobjectdef;AImplIntf : TImplementedInterface;i : longint;pd : tprocdef) : string;
+    function CreateWrapperName(_class : tobjectdef;AImplIntf : TImplementedInterface;i : longint;pd : tprocdef) : TSymStr;
       var
         realintfdef: tobjectdef;
         tmpstr : AnsiString;
-        hs : string;
+        hs : TSymStr;
         crc : DWord;
       begin
         realintfdef:=AImplIntf.IntfDef;

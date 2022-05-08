@@ -1441,7 +1441,7 @@ implementation
         old_current_specializedef: tstoreddef;
         old_parse_generic: boolean;
         list: TFPObjectList;
-        s: String;
+        s: TSymStr;
         st: TSymtable;
         olddef: tdef;
       begin

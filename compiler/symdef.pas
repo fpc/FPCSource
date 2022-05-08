@@ -1689,11 +1689,11 @@ implementation
 
     procedure tdefawaresymtablestack.add_helpers_and_generics(st:tsymtable;addgenerics:boolean);
       var
-        i: integer;
-        s: string;
+        s: TSymStr;
         list: TFPObjectList;
         def: tdef;
         sym : tsym;
+        i: integer;
       begin
         { search the symtable from first to last; the helper to use will be the
           last one in the list }

@@ -3264,7 +3264,7 @@ implementation
         ditem : TDirIndexItem;
         fitem : TFileIndexItem;
         flist : TFPList;
-        dbgname : String;
+        dbgname : TSymStr;
       begin
         if not (target_info.system in systems_wasm) then
           begin

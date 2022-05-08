@@ -1282,7 +1282,7 @@ implementation
 
   class procedure tnodeutils.InsertThreadvars;
     var
-      s : string;
+      s : TSymStr;
       tcb: ttai_typedconstbuilder;
       sym: tasmsymbol;
       tabledef: trecorddef;

@@ -324,7 +324,7 @@ interface
     function  FullTypeName(def,otherdef:tdef):string;
     function generate_nested_name(symtable:tsymtable;const delimiter:string):string;
     { def is the extended type of a helper }
-    function generate_objectpascal_helper_key(def:tdef):string;
+    function generate_objectpascal_helper_key(def:tdef):TSymStr;
     procedure incompatibletypes(def1,def2:tdef);
     procedure hidesym(sym:TSymEntry);
     procedure duplicatesym(var hashedid: THashedIDString; dupsym, origsym:TSymEntry; warn: boolean);
@@ -2950,7 +2950,7 @@ implementation
       end;
 
 
-    function generate_objectpascal_helper_key(def:tdef):string;
+    function generate_objectpascal_helper_key(def:tdef):TSymStr;
       begin
         if not assigned(def) then
           internalerror(2013020501);
@@ -4303,7 +4303,7 @@ implementation
 
     function get_objectpascal_helpers(pd : tdef):TFPObjectList;
       var
-        s : string;
+        s : TSymStr;
         st : tsymtable;
       begin
         result:=nil;

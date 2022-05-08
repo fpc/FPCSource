@@ -679,7 +679,7 @@ implementation
       end;
 
 
-    function create_main_proc(const name:string;potype:tproctypeoption;st:TSymtable):tcgprocinfo;
+    function create_main_proc(const name:TSymStr;potype:tproctypeoption;st:TSymtable):tcgprocinfo;
       var
         ps  : tprocsym;
         pd  : tprocdef;
