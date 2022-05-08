@@ -760,7 +760,9 @@ type
     et_Result1: DWord;     // First result
     et_Result2: Pointer;      // Result data pointer (AllocVec)
     et_TaskMsgPort: TMsgPort;
+{$IFDEF AROS_ABIv0}
     et_Compatibility: array[0..3] of Pointer;   // Reserve this space for compiled software to access iet_startup and iet_acpd
+{$ENDIF}
     et_MemPool: Pointer;              // Task's private memory pool
 {$ifdef aros}
     et_Reserved: array[0..0] of PtrUInt; // MorphOS Private
