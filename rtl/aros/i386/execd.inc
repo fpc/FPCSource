@@ -694,6 +694,7 @@ const
 
 
 type
+{$ifdef AROS_MORPHOS_COMPATIBLE}
   PETask = ^TETask;
   TETask = record
     Message  : TMessage;
@@ -748,7 +749,29 @@ type
       * never assume a size of this structure
       * }
   end;
-
+{$else}
+  TETask = record
+    et_Message: TMessage;
+    et_Parent: PTask;       // Pointer to parent task
+    et_UniqueID: DWord;
+    et_Children: TMinList; // List of children
+    et_TrapAlloc: Word;
+    et_TrapAble: Word;
+    et_Result1: DWord;     // First result
+    et_Result2: Pointer;      // Result data pointer (AllocVec)
+    et_TaskMsgPort: TMsgPort;
+    et_Compatibility: array[0..3] of Pointer;   // Reserve this space for compiled software to access iet_startup and iet_acpd
+    et_MemPool: Pointer;              // Task's private memory pool
+{$ifdef aros}
+    et_Reserved: array[0..0] of PtrUInt; // MorphOS Private
+    et_TaskStorage: Pointer;          // Task Storage Slots
+{$else}
+    et_Reserved: array[0..1] of PtrUInt; // MorphOS Private
+{$endif}
+    et_RegFrame: Pointer;
+    // Internal fields follow
+  end;
+{$endif}
 
 type
   PTaskInitExtension = ^TTaskInitExtension;
