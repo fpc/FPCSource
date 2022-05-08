@@ -1544,15 +1544,17 @@ implementation
              s:=tprocdef(st.defowner).procsym.name;
              s:=s+tprocdef(st.defowner).mangledprocparanames(Length(s));
              if prefix<>'' then
-               prefix:=s+'_'+prefix
+               begin
+                 if length(prefix)>(maxidlen-length(s)-1) then
+                   begin
+                     hash:=0;
+                     hash:=UpdateFnv64(hash,prefix[1],length(prefix));
+                     prefix:='$H'+Base64Mangle(hash);
+                   end;
+                 prefix:=s+'_'+prefix
+               end
              else
                prefix:=s;
-             if length(prefix)>100 then
-               begin
-                 hash:=0;
-                 hash:=UpdateFnv64(hash,prefix[1],length(prefix));
-                 prefix:='$H'+Base64Mangle(hash);
-               end;
              st:=st.defowner.owner;
            end;
           { object/classes symtable, nested type definitions in classes require the while loop }
@@ -1560,6 +1562,12 @@ implementation
            begin
              if not (st.defowner.typ in [objectdef,recorddef]) then
               internalerror(200204174);
+             if length(prefix)>(maxidlen-length(tabstractrecorddef(st.defowner).objname^)-3) then
+               begin
+                 hash:=0;
+                 hash:=UpdateFnv64(hash,prefix[1],length(prefix));
+                 prefix:='$H'+Base64Mangle(hash);
+               end;
              prefix:=tabstractrecorddef(st.defowner).objname^+'_$_'+prefix;
              st:=st.defowner.owner;
            end;
@@ -1596,6 +1604,12 @@ implementation
           result:=result+'$_$'+prefix;
         if suffix<>'' then
           result:=result+'_$$_'+suffix;
+        if length(result)>(maxidlen-1) then
+          begin
+            hash:=0;
+            hash:=UpdateFnv64(hash,result[1],length(result));
+            result:=copy(result,1,maxidlen-(high(Base64OfUint64String)-low(Base64OfUint64String)+1)-2)+'$H'+Base64Mangle(hash);
+          end;
         { the Darwin assembler assumes that all symbols starting with 'L' are local }
         { Further, the Mac OS X 10.5 linker does not consider symbols which do not  }
         { start with '_' as regular symbols (it does not generate N_GSYM entries    }

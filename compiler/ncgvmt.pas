@@ -707,11 +707,11 @@ implementation
           realintfdef:=realintfdef.childof;
 
         tmpstr:=_class.objname^+'_$_'+make_mangledname('',realintfdef.owner,'')+'_$$_'+realintfdef.objname^+'_$_'+tostr(i)+'_$_'+pd.mangledname;
-        if length(tmpstr)>100 then
+        if length(tmpstr)>50 then
           begin
             crc:=0;
-            crc:=UpdateCrc32(crc,tmpstr[101],length(tmpstr)-100);
-            hs:=copy(tmpstr,1,100)+'$CRC'+hexstr(crc,8);
+            crc:=UpdateCrc32(crc,tmpstr[51],length(tmpstr)-50);
+            hs:=copy(tmpstr,1,50)+'$CRC'+hexstr(crc,8);
           end
         else
           hs:=tmpstr;
