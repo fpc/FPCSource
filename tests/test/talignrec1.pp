@@ -1,5 +1,4 @@
 { %OPT=-O2 }
-{ %CPU=i386,x86_64 }
 program talignrec1;
 
 { Tests to see if constants and local variables of an aligned array type are correctly positioned in memory }
@@ -25,6 +24,16 @@ var
   SecondEntry: TAlignedRecord;  
   ThirdEntry: TAlignedRecord;  
 begin
+{ not all targets do a 32 byte alignment of variables or constants properly, if they don't, just halt with 0 }
+{$if defined(CPUX86_64) or defined(CPUAARCH64) or defined(CPUI386) or defined(CPUARM)}
+{$if defined(linux) or defined(darwin) or defined(win32) or defined(win64)}
+{$else}
+  halt(0);
+{$endif}
+{$else}
+  halt(0);
+{$endif}
+
   if (UIntPtr(@TestConst) mod $20) <> 0 then
     begin
       WriteLn('FAIL: TestConst is not on a 32-byte boundary (address = $', HexStr(@TestConst), ')');
