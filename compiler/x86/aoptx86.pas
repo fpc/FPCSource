@@ -6862,12 +6862,8 @@ unit aoptx86;
              UpdateUsedRegs(TmpUsedRegs, tai(p_label.Next));
 //             UpdateUsedRegs(TmpUsedRegs, tai(p_dist.Next));
 
-             { Register can appear in p if it's not used afterwards, so only
-               allocate between hp1 and hp1_dist }
-             NewReg := GetIntRegisterBetween(R_SUBL, TmpUsedRegs, hp1, hp1_dist);
-             if (NewReg <> NR_NO) and
-               { RegUsedAfterInstruction modifies TmpUsedRegs }
-               not RegUsedAfterInstruction(NR_DEFAULTFLAGS, p_dist, TmpUsedRegs) then
+             { RegUsedAfterInstruction modifies TmpUsedRegs }
+             if not RegUsedAfterInstruction(NR_DEFAULTFLAGS, p_dist, TmpUsedRegs) then
                begin
                  { Register can appear in p if it's not used afterwards, so only
                    allocate between hp1 and hp1_dist }
@@ -6876,13 +6872,13 @@ unit aoptx86;
                    begin
                      DebugMsg(SPeepholeOptimization + 'CMP/JE/CMP/@Lbl/SETE -> CMP/SETE/CMP/SETE/OR, removing conditional branch', p);
 
-                 { Change the jump instruction into a SETcc instruction }
-                 taicpu(hp1).opcode := A_SETcc;
-                 taicpu(hp1).opsize := S_B;
-                 taicpu(hp1).loadreg(0, NewReg);
+                     { Change the jump instruction into a SETcc instruction }
+                     taicpu(hp1).opcode := A_SETcc;
+                     taicpu(hp1).opsize := S_B;
+                     taicpu(hp1).loadreg(0, NewReg);
 
-                 { This is now a dead label }
-                 tai_label(p_label).labsym.decrefs;
+                     { This is now a dead label }
+                     tai_label(p_label).labsym.decrefs;
 
                      { Prefer adding before the next instruction so the FLAGS
                        register is deallocated first  }
