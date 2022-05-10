@@ -1531,11 +1531,17 @@ type
 
   PArosSupportBase = ^TArosSupportBase;
   TArosSupportBase = record
+{$IFDEF AROS_ABIv0}
     StdOut: Pointer;
+{$ELSE}
+    _pad: PtrUInt;
+{$ENDIF}
     kPrintfPtr: Pointer;
     rkPrintfPtr: Pointer;
     vkPrintfPtr: Pointer;
+{$IFDEF AROS_ABIv0}
     DebugConfig: Pointer;
+{$ENDIF}
   end;
 
 { * exec include

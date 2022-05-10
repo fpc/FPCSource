@@ -998,11 +998,17 @@ const
 type
   PArosSupportBase = ^TArosSupportBase;
   TArosSupportBase = record
+{$IFDEF AROS_ABIv0}
     StdOut: Pointer;
+{$ELSE}
+    _pad: IPTR;
+{$ENDIF}
     kPrintfPtr: Pointer;
     rkPrintfPtr: Pointer;
     vkPrintfPtr: Pointer;
+{$IFDEF AROS_ABIv0}
     DebugConfig: Pointer;
+{$ENDIF}
   end;
 
   PExecBase = ^TExecBase;
