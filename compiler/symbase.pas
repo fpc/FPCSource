@@ -362,10 +362,8 @@ implementation
            are renamed to an unique (and for users unaccessible) name }
          if sym.realname[1]='$' then
            sym.ChangeOwnerAndName(SymList,Copy(sym.realname,2,maxidlen+1))
-{$ifdef symansistr}
          else if length(sym.realname)>maxidlen then
            sym.ChangeOwnerAndName(SymList,Upper(Copy(sym.realname,1,maxidlen)))
-{$endif}
          else
            sym.ChangeOwnerAndName(SymList,Upper(sym.realname));
          sym.Owner:=self;
