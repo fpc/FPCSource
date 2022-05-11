@@ -1188,45 +1188,73 @@ implementation
 
     procedure TDebugInfoLLVM.appendprocdef(list:TAsmList; def:tprocdef);
 
-      function getdispflags(is_definition, is_virtual: boolean): TSymStr;
+      procedure adddispflags(dinode: tai_llvmspecialisedmetadatanode; is_definition, is_virtual: boolean);
+        var
+          dispflags: TSymStr;
         begin
-          result:='';
+          if llvmflag_NoDISPFlags in llvmversion_properties[current_settings.llvmversion] then
+            begin
+              dinode.addboolean('isDefinition',is_definition);
+              if is_definition then
+                begin
+                  dinode.addboolean('isLocal: ',
+                    not((po_global in def.procoptions) and
+                     (def.parast.symtablelevel<=normal_function_level))
+                  );
+                end;
+              if is_virtual then
+                begin
+                  if not(po_abstractmethod in def.procoptions) then
+                    dinode.addenum('virtuality','DW_VIRTUALITY_virtual')
+                  else
+                    dinode.addenum('virtuality','DW_VIRTUALITY_pure_virtual');
+                end;
+              exit;
+            end;
+
+          dispflags:='';
           if is_definition then
             begin
-              result:='DISPFlagDefinition';
+              dispflags:='DISPFlagDefinition';
               if not((po_global in def.procoptions) and
                      (def.parast.symtablelevel<=normal_function_level)) then
-                result:=result+'|DISPFlagLocalToUnit';
+                dispflags:=dispflags+'|DISPFlagLocalToUnit';
             end;
 
           if is_virtual then
             begin
-              if result<>'' then
-                result:=result+'|';
+              if dispflags<>'' then
+                dispflags:=dispflags+'|';
               if not(po_abstractmethod in def.procoptions) then
-                result:=result+'DISPFlagVirtual'
+                dispflags:=dispflags+'DISPFlagVirtual'
               else
-                result:=result+'DISPFlagPureVirtual';
+                dispflags:=dispflags+'DISPFlagPureVirtual';
             end
           else
             begin
               { this one will always be a definition, so no need to check
                 whether result is empty }
-              if (llvmflag_DISPFlagMainSubprogram in llvmversion_properties[current_settings.llvmversion]) and
+              if not(llvmflag_NoDISPFlagMainSubprogram in llvmversion_properties[current_settings.llvmversion]) and
                  (def.proctypeoption=potype_proginit) then
-                result:=result+'|DISPFlagMainSubprogram';
+                dispflags:=dispflags+'|DISPFlagMainSubprogram';
             end;
+          if dispflags<>'' then
+            dinode.addenum('spFlags',dispflags);
         end;
 
-      function getdiflags(is_definition: boolean): TSymStr;
+      procedure adddiflags(dinode: tai_llvmspecialisedmetadatanode; is_definition: boolean);
+        var
+          diflags: TSymStr;
         begin
-          if not(llvmflag_DISPFlagMainSubprogram in llvmversion_properties[current_settings.llvmversion]) and
+          if (llvmflag_NoDISPFlagMainSubprogram in llvmversion_properties[current_settings.llvmversion]) and
              (def.proctypeoption=potype_proginit) then
-            result:='DIFlagMainSubprogram'
+            diflags:='DIFlagMainSubprogram'
           else if def.owner.symtabletype in [objectsymtable,recordsymtable] then
-            result:=visibilitydiflag(def.visibility)
+            diflags:=visibilitydiflag(def.visibility)
           else
-            result:='';
+            diflags:='';
+          if diflags<>'' then
+            dinode.addenum('flags',diflags);
         end;
 
       var
@@ -1303,9 +1331,7 @@ implementation
           (([po_abstractmethod, po_virtualmethod, po_overridingmethod]*def.procoptions)<>[]) and
           not is_objc_class_or_protocol(def.struct) and
           not is_objectpascal_helper(def.struct);
-        flags:=getdispflags(in_currentunit,is_virtual);
-        if flags<>'' then
-          dinode.addenum('spFlags',flags);
+        adddispflags(dinode,in_currentunit,is_virtual);
         if is_virtual then
           begin
             { the sizeof(pint) is a bit iffy, since vmtmethodoffset() calculates
@@ -1317,9 +1343,7 @@ implementation
               internalerror(2022043001);
 {$endif}
           end;
-        flags:=getdiflags(in_currentunit);
-        if flags<>'' then
-          dinode.addenum('flags',flags);
+        adddiflags(dinode,in_currentunit);
 
         dinode.addmetadatarefto('unit',fcunode);
         ditypenode:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DISubroutineType);

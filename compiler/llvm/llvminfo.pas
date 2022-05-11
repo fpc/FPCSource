@@ -56,7 +56,8 @@ type
      llvmflag_generic_constrained_si64tofp, { supports sitofp for 64 bit signed integers on all targets }
      llvmflag_null_pointer_valid_new,       { new syntax for the null pointer valid attribute: null_pointer_is_valid }
      llvmflag_array_datalocation,           { arrays debug info supports a dataLocation attribute to specify how to obtain the array data based on the array variable }
-     llvmflag_DISPFlagMainSubprogram        { MainSubprogram got moved from DIFlags to DISPFlags }
+     llvmflag_NoDISPFlags,                  { no DI sub program flags, but separate fields }
+     llvmflag_NoDISPFlagMainSubprogram      { MainSubprogram still in DIFlags instead of DISPFlags }
    );
    tllvmversionflags = set of tllvmversionflag;
 
@@ -90,15 +91,15 @@ Const
    llvmversion_properties: array[tllvmversion] of tllvmversionflags =
      (
        { invalid         } [],
-       { llvmver_xc_10_0 } [],
-       { llvmver_xc_10_1 } [],
-       { llvmver_7_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid],
-       { llvmver_7_1     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid],
-       { llvmver_8_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid],
-       { llvmver_xc_11   } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid],
-       { llvmver_9_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_constrained_fptrunc_fpext,llvmflag_DISPFlagMainSubprogram],
-       { llvmver_10_0    } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_DISPFlagMainSubprogram],
-       { llvmver_11_0    } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation,llvmflag_DISPFlagMainSubprogram]
+       { llvmver_xc_10_0 } [llvmflag_NoDISPFlags],
+       { llvmver_xc_10_1 } [llvmflag_NoDISPFlags],
+       { llvmver_7_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_NoDISPFlags],
+       { llvmver_7_1     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_NoDISPFlags],
+       { llvmver_8_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_NoDISPFlagMainSubprogram],
+       { llvmver_xc_11   } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_NoDISPFlagMainSubprogram],
+       { llvmver_9_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_constrained_fptrunc_fpext],
+       { llvmver_10_0    } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp],
+       { llvmver_11_0    } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation]
      );
 
    { Supported optimizations, only used for information }
