@@ -86,6 +86,7 @@ const
   LFalse: LongInt = 0;
 
 // spinlock
+{$ifndef AROS_ABIv11}
 {$ifdef AROS_ABIv1}
 {$ifdef AROSPLATFORM_SMP}
 type
@@ -106,6 +107,7 @@ type
     2: (_skip: packed array[0..7] of byte; s_Owner: Pointer);  // skip block and lock because that occupies most space
     3: (pad_align: packed array[0..128-1] of byte);            // ensure 128 byte record size
   end;
+{$endif}
 {$endif}
 {$endif}
 
@@ -640,12 +642,14 @@ type
     mp_SigBit: Byte;     { signal bit number    }
     mp_SigTask: Pointer;   { task to be signalled (TaskPtr) }
     mp_MsgList: TList;     { message linked list  }
+{$ifndef AROS_ABIv11}
 {$ifdef AROS_ABIv1}
 {$ifdef AROSPLATFORM_SMP}
 {$ifdef AROSEXEC_SMP}
     mp_SpinLock: TSpinLock;
 {$else}
     mp_Pad: TSpinlock;
+{$endif}
 {$endif}
 {$endif}
 {$endif}
@@ -872,12 +876,14 @@ type
   TSemaphoreRequest = record
     sr_Link: TMinNode;
     sr_Waiter: PTask;
+{$ifndef AROS_ABIv11}
 {$ifdef AROS_ABIv1}
 {$ifdef AROSPLATFORM_SMP}
 {$ifdef AROSEXEC_SMP}
     sr_SpinLock: TSpinLock;
 {$else}
     sr_pad: TSpinLock;
+{$endif}
 {$endif}
 {$endif}
 {$endif}
