@@ -4565,6 +4565,20 @@ implementation
       end;
 
 
+     function node_reset_pass1_write(var n: tnode; arg: pointer): foreachnoderesult;
+       begin
+         Result := fen_false;
+         n.flags := n.flags - [nf_pass1_done,nf_write,nf_modify];
+         if n.nodetype = assignn then
+           begin
+             { Force re-evaluation of assignments so nf_modify and nf_write
+               flags are correctly set. }
+             n.resultdef := nil;
+             Result := fen_true;
+           end;
+       end;
+
+
      function tinlinenode.getaddsub_for_incdec : tnode;
        var
          hp,hpp,resultnode  : tnode;
@@ -4613,8 +4627,6 @@ implementation
            end;
 
          resultnode := hp.getcopy;
-         { get varstates right }
-         node_reset_flags(resultnode,[nf_pass1_done,nf_modify]);
 
          { avoid type errors from the addn/subn }
          if not is_integer(resultnode.resultdef) then
@@ -4666,15 +4678,13 @@ implementation
          { avoid any possible warnings }
          inserttypeconv_internal(hpp,resultnode.resultdef);
 
-         { get varstates right }
-         node_reset_flags(hpp,[nf_pass1_done,nf_modify,nf_write]);
+         { force pass 1, so copied trees get first pass'ed as well and flags like
+           nf_call_unique get set right }
+         foreachnodestatic(hpp,@node_reset_pass1_write,nil);
          do_typecheckpass(hpp);
 
          addstatement(newstatement,cassignmentnode.create(resultnode,hpp));
 
-         { force pass 1, so copied trees get first pass'ed as well and flags like nf_write, nf_call_unique
-           get set right }
-         node_reset_flags(newstatement.statement,[nf_pass1_done]);
          { firstpass it }
          firstpass(tnode(newstatement.left));
 
