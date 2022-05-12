@@ -638,6 +638,13 @@ type
     mp_SigBit: Byte;     { signal bit number    }
     mp_SigTask: Pointer;   { task to be signalled (TaskPtr) }
     mp_MsgList: TList;     { message linked list  }
+{$ifdef AROSPLATFORM_SMP}
+{$ifdef AROSEXEC_SMP}
+    mp_SpinLock: TSpinLock;
+{$else}
+    mp_Pad: TSpinlock;
+{$endif}
+{$endif}
   end;
 
 //****** Message *****************************************************
@@ -861,6 +868,13 @@ type
   TSemaphoreRequest = record
     sr_Link: TMinNode;
     sr_Waiter: PTask;
+{$ifdef AROSPLATFORM_SMP}
+{$ifdef AROSEXEC_SMP}
+    sr_SpinLock: TSpinLock;
+{$else}
+    sr_pad: TSpinLock;
+{$endif}
+{$endif}
   end;
 
 // The actual semaphore itself

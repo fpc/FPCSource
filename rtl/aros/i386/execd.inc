@@ -604,6 +604,13 @@ type  // Checked OK 05.08.2011 ALB
     mp_SigBit : Byte;
     mp_SigTask: Pointer;
     mp_MsgList: TEList;
+{$ifdef AROSPLATFORM_SMP}
+{$ifdef AROSEXEC_SMP}
+    mp_SpinLock: TSpinLock;
+{$else}
+    mp_pad: TSpinLock;
+{$endif}
+{$endif}
   end;
 
 
@@ -1093,6 +1100,13 @@ type
   TSemaphoreRequest = record
     sr_Link  : TMinNode;
     sr_Waiter: PTask;
+{$ifdef AROSPLATFORM_SMP}
+{$ifdef AROSEXEC_SMP}
+    sr_SpinLock: TSpinLock;
+{$else}
+    sr_pad: TSpinLock;
+{$endif}
+{$endif}
   end;
 
 type
