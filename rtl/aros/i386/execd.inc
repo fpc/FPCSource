@@ -29,6 +29,7 @@
   * }
 
 
+{$ifdef AROS_ABIv1}
 {$ifdef AROSPLATFORM_SMP}
 type
   TSpinLock =
@@ -48,6 +49,7 @@ type
     2: (_skip: packed array[0..7] of byte; s_Owner: Pointer);  // skip block and lock because that occupies most space
     3: (pad_align: packed array[0..128-1] of byte);            // ensure 128 byte record size
   end;
+{$endif}
 {$endif}
 
 
@@ -604,11 +606,13 @@ type  // Checked OK 05.08.2011 ALB
     mp_SigBit : Byte;
     mp_SigTask: Pointer;
     mp_MsgList: TEList;
+{$ifdef AROS_ABIv1}
 {$ifdef AROSPLATFORM_SMP}
 {$ifdef AROSEXEC_SMP}
     mp_SpinLock: TSpinLock;
 {$else}
     mp_pad: TSpinLock;
+{$endif}
 {$endif}
 {$endif}
   end;
@@ -1100,11 +1104,13 @@ type
   TSemaphoreRequest = record
     sr_Link  : TMinNode;
     sr_Waiter: PTask;
+{$ifdef AROS_ABIv1}
 {$ifdef AROSPLATFORM_SMP}
 {$ifdef AROSEXEC_SMP}
     sr_SpinLock: TSpinLock;
 {$else}
     sr_pad: TSpinLock;
+{$endif}
 {$endif}
 {$endif}
   end;
