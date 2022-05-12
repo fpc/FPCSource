@@ -652,6 +652,10 @@ type
 {$endif}
 {$endif}
 {$endif}
+{$else}
+{$ifndef CPUM68K}
+    mp_Private: array[0..1] of IPTR; // Private extension field
+{$endif}
 {$endif}
   end;
 

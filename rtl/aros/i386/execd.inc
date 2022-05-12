@@ -618,6 +618,10 @@ type  // Checked OK 05.08.2011 ALB
 {$endif}
 {$endif}
 {$endif}
+{$else}
+{$ifndef CPUM68K}
+    mp_Private: array[0..1] of PtrUInt;
+{$endif}
 {$endif}
   end;
 
