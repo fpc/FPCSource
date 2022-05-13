@@ -86,7 +86,34 @@ interface
       // bulk memory operations
       'memory.copy 0,0', 'memory.fill 0',
       // exceptions
-      'try','catch','catch_all','delegate','throw','rethrow','end_try'
+      'try','catch','catch_all','delegate','throw','rethrow','end_try',
+      // atomic memory accesses - load/store
+      'i32.atomic.load8_u', 'i32.atomic.load16_u', 'i32.atomic.load',
+      'i64.atomic.load8_u', 'i64.atomic.load16_u', 'i64.atomic.load32_u',
+      'i64.atomic.load', 'i32.atomic.store8', 'i32.atomic.store16',
+      'i32.atomic.store', 'i64.atomic.store8', 'i64.atomic.store16',
+      'i64.atomic.store32', 'i64.atomic.store',
+      // atomic memory accesses - read-modify-write
+      'i32.atomic.rmw8.add_u', 'i32.atomic.rmw16.add_u', 'i32.atomic.rmw.add',
+      'i64.atomic.rmw8.add_u', 'i64.atomic.rmw16.add_u', 'i64.atomic.rmw32.add_u',
+      'i64.atomic.rmw.add', 'i32.atomic.rmw8.sub_u', 'i32.atomic.rmw16.sub_u',
+      'i32.atomic.rmw.sub', 'i64.atomic.rmw8.sub_u', 'i64.atomic.rmw16.sub_u',
+      'i64.atomic.rmw32.sub_u', 'i64.atomic.rmw.sub', 'i32.atomic.rmw8.and_u',
+      'i32.atomic.rmw16.and_u', 'i32.atomic.rmw.and', 'i64.atomic.rmw8.and_u',
+      'i64.atomic.rmw16.and_u', 'i64.atomic.rmw32.and_u', 'i64.atomic.rmw.and',
+      'i32.atomic.rmw8.or_u', 'i32.atomic.rmw16.or_u', 'i32.atomic.rmw.or',
+      'i64.atomic.rmw8.or_u', 'i64.atomic.rmw16.or_u', 'i64.atomic.rmw32.or_u',
+      'i64.atomic.rmw.or', 'i32.atomic.rmw8.xor_u', 'i32.atomic.rmw16.xor_u',
+      'i32.atomic.rmw.xor', 'i64.atomic.rmw8.xor_u', 'i64.atomic.rmw16.xor_u',
+      'i64.atomic.rmw32.xor_u', 'i64.atomic.rmw.xor', 'i32.atomic.rmw8.xchg_u',
+      'i32.atomic.rmw16.xchg_u', 'i32.atomic.rmw.xchg', 'i64.atomic.rmw8.xchg_u',
+      'i64.atomic.rmw16.xchg_u', 'i64.atomic.rmw32.xchg_u', 'i64.atomic.rmw.xchg',
+      // atomic memory accesses - compare exchange
+      'i32.atomic.rmw8.cmpxchg_u', 'i32.atomic.rmw16.cmpxchg_u', 'i32.atomic.rmw.cmpxchg',
+      'i64.atomic.rmw8.cmpxchg_u', 'i64.atomic.rmw16.cmpxchg_u', 'i64.atomic.rmw32.cmpxchg_u',
+      'i64.atomic.rmw.cmpxchg',
+      // atomic memory accesses - wait and notify operators
+      'memory.atomic.wait32', 'memory.atomic.wait64', 'memory.atomic.notify', 'atomic.fence'
     );
 
     gas_wasm_basic_type_str : array [TWasmBasicType] of string = ('i32','i64','f32','f64');
