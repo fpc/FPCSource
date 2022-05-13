@@ -247,7 +247,7 @@ implementation
          id     : as_wasm32_llvm_mc;
          idtxt  : 'LLVM-MC';
          asmbin : 'llvm-mc';
-         asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory --filetype=obj -o $OBJ $EXTRAOPT $ASM';
+         asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory,+atomics --filetype=obj -o $OBJ $EXTRAOPT $ASM';
          supported_targets : [system_wasm32_embedded,system_wasm32_wasi];
          flags : [af_smartlink_sections];
          labelprefix : '.L';
