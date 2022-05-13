@@ -544,7 +544,8 @@ uses
             result:=2;
           a_memory_copy:
             result:=4;
-          a_memory_fill:
+          a_memory_fill,
+          a_atomic_fence:
             result:=3;
           a_i32_const:
             begin
@@ -888,6 +889,12 @@ uses
             begin
               WriteByte($FC);
               WriteUleb(11);
+              WriteByte($00);
+            end;
+          a_atomic_fence:
+            begin
+              WriteByte($FE);
+              WriteByte($03);
               WriteByte($00);
             end;
           a_i32_eqz:
