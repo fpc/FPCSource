@@ -51,6 +51,7 @@ interface
         procedure second_memory_copy;
         procedure second_unreachable;
         procedure second_throw_fpcexception;
+        procedure second_atomic_fence;
       protected
         function first_sqr_real: tnode; override;
       public
@@ -396,6 +397,13 @@ implementation
       end;
 
 
+    procedure twasminlinenode.second_atomic_fence;
+      begin
+        location_reset(location,LOC_VOID,OS_NO);
+        current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_atomic_fence));
+      end;
+
+
     function twasminlinenode.first_sqr_real: tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
@@ -437,6 +445,11 @@ implementation
               CheckParameters(3);
               resultdef:=voidtype;
             end;
+          in_wasm32_atomic_fence:
+            begin
+              CheckParameters(0);
+              resultdef:=voidtype;
+            end;
           else
             Result:=inherited pass_typecheck_cpu;
         end;
@@ -453,7 +466,8 @@ implementation
           in_wasm32_memory_fill,
           in_wasm32_memory_copy,
           in_wasm32_unreachable,
-          in_wasm32_throw_fpcexception:
+          in_wasm32_throw_fpcexception,
+          in_wasm32_atomic_fence:
             expectloc:=LOC_VOID;
           else
             Result:=inherited first_cpu;
@@ -476,6 +490,8 @@ implementation
             second_unreachable;
           in_wasm32_throw_fpcexception:
             second_throw_fpcexception;
+          in_wasm32_atomic_fence:
+            second_atomic_fence;
           else
             inherited pass_generate_code_cpu;
         end;

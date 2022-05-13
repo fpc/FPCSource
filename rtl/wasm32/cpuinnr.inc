@@ -18,3 +18,4 @@
   fpc_in_wasm32_throw_fpcexception = fpc_in_cpu_first+3;
   fpc_in_wasm32_memory_copy = fpc_in_cpu_first+4;
   fpc_in_wasm32_memory_fill = fpc_in_cpu_first+5;
+  fpc_in_wasm32_atomic_fence = fpc_in_cpu_first+6;

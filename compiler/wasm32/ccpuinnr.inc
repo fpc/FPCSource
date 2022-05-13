@@ -17,5 +17,6 @@
   in_wasm32_unreachable = in_cpu_first+2,
   in_wasm32_throw_fpcexception = in_cpu_first+3,
   in_wasm32_memory_copy = in_cpu_first+4,
-  in_wasm32_memory_fill = in_cpu_first+5
+  in_wasm32_memory_fill = in_cpu_first+5,
+  in_wasm32_atomic_fence = in_cpu_first+6
 
