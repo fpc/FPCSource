@@ -32,30 +32,33 @@ interface
     aasmtai,aasmcnst,
     symtype;
 
+{$push}{$ScopedEnums on}
   type
     tspecialisedmetadatanodekind = (
-      smeta_DIFile,
-      smeta_DIBasicType,
-      smeta_DISubroutineType,
-      smeta_DIDerivedType,
-      smeta_DICompositeType,
-      smeta_DISubrange,
-      smeta_DIEnumerator,
-      smeta_DITemplateTypeParameter,
-      smeta_DITemplateValueParameter,
-      smeta_DINamespace,
-      smeta_DIGlobalVariable,
-      smeta_DISubprogram,
-      smeta_DILexicalBlock,
-      smeta_DILexicalBlockFile,
-      smeta_DILocation,
-      smeta_DILocalVariable,
-      smeta_DIExpression,
-      smeta_DIObjCProperty,
-      smeta_DIImportedEntity,
-      smeta_DIMacro,
-      smeta_DIMacroFile
+      DICompileUnit,
+      DIFile,
+      DIBasicType,
+      DISubroutineType,
+      DIDerivedType,
+      DICompositeType,
+      DISubrange,
+      DIEnumerator,
+      DITemplateTypeParameter,
+      DITemplateValueParameter,
+      DINamespace,
+      DIGlobalVariable,
+      DISubprogram,
+      DILexicalBlock,
+      DILexicalBlockFile,
+      DILocation,
+      DILocalVariable,
+      DIExpression,
+      DIObjCProperty,
+      DIImportedEntity,
+      DIMacro,
+      DIMacroFile
     );
+{$pop}
 
 //   represented by a tai_simpletypedconst() with inside a metadata struct,
 //   or as a metadata register (for parameters)
@@ -68,6 +71,7 @@ interface
       procedure addvalue(val: tai_abstracttypedconst); override;
       property name: ansistring read getname;
       constructor create; reintroduce;
+      class function isspecialised: boolean; virtual;
     end;
 
     (* !0 = !{ type1 value1, ... } *)
@@ -91,6 +95,7 @@ interface
       constructor create(const aName: ansistring);
     end;
 
+    { reference to a metadata node inside an expression, i.e., !X }
     tai_llvmmetadatareftypedconst = class(tai_simple)
      strict private
       fval: tai_llvmbasemetadatanode;
@@ -110,11 +115,62 @@ interface
       property value: tai_llvmbasemetadatanode read fvalue;
     end;
 
-    { !name = !kindname(field1: value1, ...) }
-    tai_llvmspecialisedmetadatanode = class(tai_llvmunnamedmetadatanode)
-      { identifies name and fieldnames }
-      kind: tspecialisedmetadatanodekind;
+
+    tllvmspecialmetaitemkind = (
+      lsmik_boolean,
+      lsmik_int64,
+      lsmik_qword,
+      lsmik_metadataref,
+      lsmik_string,
+      { difference with string: not quoted }
+      lsmik_enum
+    );
+    tllvmspecialisedmetaitem = class(tai_simpletypedconst)
+     private
+      fitemkind: tllvmspecialmetaitemkind;
+      fitemname: TSymStr;
+     public
+      constructor createboolean(const aitemname: TSymStr; boolval: boolean);
+      constructor createint64(const aitemname: TSymStr; intval: int64);
+      constructor createqword(const aitemname: TSymStr; qwval: qword);
+      constructor createmetadataref(const aitemname: TSymStr; aival: tai_llvmmetadatareftypedconst);
+      constructor createstring(const aitemname: TSymStr; const stringval: TSymStr);
+      constructor createenum(const aitemname: TSymStr; const enumval: TSymStr);
+
+      property itemname: TSymStr read fitemname;
+      property itemkind: tllvmspecialmetaitemkind read fitemkind;
     end;
+    tllvmspecialisedmetaitems = array of tllvmspecialisedmetaitem;
+
+     { !name = !kindname(field1: value1, ...) }
+    tai_llvmspecialisedmetadatanode = class(tai_llvmunnamedmetadatanode)
+     strict private
+      { identifies name and fieldnames }
+      fkind: tspecialisedmetadatanodekind;
+      fnritems: longint;
+      { adds the item, appropriating its contents (so don't destroy the original
+        afterwards) }
+      procedure addemplaceitem(const item: tllvmspecialisedmetaitem);
+     public
+      constructor create(aKind: tspecialisedmetadatanodekind);
+      procedure addvalue(val: tai_abstracttypedconst); override; deprecated 'use addboolean/addinteger/addmetadataref/addstring/addenum';
+      procedure addboolean(const aitemname: TSymStr; boolval: boolean);
+      procedure addint64(const aitemname: TSymStr; intval: int64);
+      procedure addqword(const aitemname: TSymStr; qwval: qword);
+      procedure addmetadatarefto(const aitemname: TSymStr; aival: tai_llvmbasemetadatanode);
+      procedure addstring(const aitemname: TSymStr; const stringval: TSymStr);
+      procedure addenum(const aitemname: TSymStr; const enumval: TSymStr);
+      property kind: tspecialisedmetadatanodekind read fkind;
+
+      function IsDistinct: boolean;
+      class function isspecialised: boolean; override;
+    end;
+
+    {$push}
+    {$scopedenums on}
+    { not clear what the difference is between LineTablesOnly and DebugDirectivesOnly }
+    tllvmdebugemissionkind = (NoDebug, FullDebug, LineTablesOnly, DebugDirectivesOnly);
+    {$pop}
 
     tllvmmetadata = class
      strict private
@@ -134,9 +190,10 @@ interface
 implementation
 
   uses
-    verbose,globals,
+    verbose,globals,cutils,
     fmodule,
-    symdef;
+    symdef,
+    dbgdwarfconst;
 
   function llvm_getmetadatareftypedconst(metadata: tai_llvmbasemetadatanode): tai_simpletypedconst;
     begin
@@ -151,6 +208,9 @@ implementation
         result:='fpexcept.ignore'
     end;
 
+
+  /////////////////////////////////////////////////
+
   procedure tai_llvmbasemetadatanode.addvalue(val: tai_abstracttypedconst);
     begin
       { bypass string merging attempts, as we add tai_strings directly here }
@@ -161,6 +221,11 @@ implementation
     begin
       inherited create(tck_array, llvm_metadatatype);
       typ:=ait_llvmmetadatanode;
+    end;
+
+  class function tai_llvmbasemetadatanode.isspecialised: boolean;
+    begin
+      result:=false;
     end;
 
 
@@ -209,6 +274,152 @@ implementation
       inherited create(ait_llvmmetadatarefoperand);
       fid:=anID;
       fvalue:=aValue;
+    end;
+
+  /////////////////////////////////////////////////
+
+  constructor tllvmspecialisedmetaitem.createboolean(const aitemname: TSymStr; boolval: boolean);
+    begin
+      fitemname:=aitemname;
+      fitemkind:=lsmik_boolean;
+      inherited create(llvmbool1type,tai_const.Create_8bit(ord(boolval)));
+    end;
+
+  constructor tllvmspecialisedmetaitem.createint64(const aitemname: TSymStr; intval: int64);
+    begin
+      fitemname:=aitemname;
+      fitemkind:=lsmik_int64;
+      inherited create(llvmbool1type,tai_const.Create_64bit(intval));
+    end;
+
+  constructor tllvmspecialisedmetaitem.createqword(const aitemname: TSymStr; qwval: qword);
+    begin
+      fitemname:=aitemname;
+      fitemkind:=lsmik_qword;
+      inherited create(llvmbool1type,tai_const.Create_64bit(int64(qwval)));
+    end;
+
+  constructor tllvmspecialisedmetaitem.createmetadataref(const aitemname: TSymStr; aival: tai_llvmmetadatareftypedconst);
+    begin
+      fitemname:=aitemname;
+      fitemkind:=lsmik_metadataref;
+      inherited create(llvm_metadatatype,aival);
+    end;
+
+  constructor tllvmspecialisedmetaitem.createstring(const aitemname: TSymStr; const stringval: TSymStr);
+    begin
+      fitemname:=aitemname;
+      fitemkind:=lsmik_string;
+      inherited create(charpointertype,tai_string.Create(stringval));
+    end;
+
+  constructor tllvmspecialisedmetaitem.createenum(const aitemname: TSymStr; const enumval: TSymStr);
+    begin
+      fitemname:=aitemname;
+      fitemkind:=lsmik_enum;
+      inherited create(charpointertype,tai_string.Create(enumval));
+    end;
+
+  constructor tai_llvmspecialisedmetadatanode.create(aKind: tspecialisedmetadatanodekind);
+    begin
+      inherited create;
+      fkind:=aKind;
+    end;
+
+  procedure tai_llvmspecialisedmetadatanode.addemplaceitem(const item: tllvmspecialisedmetaitem);
+    begin
+      inherited addvalue(item);
+    end;
+
+  procedure tai_llvmspecialisedmetadatanode.addvalue(val: tai_abstracttypedconst);
+    begin
+      internalerror(2021121601);
+    end;
+
+  procedure tai_llvmspecialisedmetadatanode.addboolean(const aitemname: TSymStr; boolval: boolean);
+    var
+      item: tllvmspecialisedmetaitem;
+    begin
+      item:=tllvmspecialisedmetaitem.createboolean(aitemname, boolval);
+      addemplaceitem(item);
+    end;
+
+  procedure tai_llvmspecialisedmetadatanode.addint64(const aitemname: TSymStr; intval: int64);
+    var
+      item: tllvmspecialisedmetaitem;
+    begin
+      item:=tllvmspecialisedmetaitem.createint64(aitemname, intval);
+      addemplaceitem(item);
+    end;
+
+  procedure tai_llvmspecialisedmetadatanode.addqword(const aitemname: TSymStr; qwval: qword);
+    var
+      item: tllvmspecialisedmetaitem;
+    begin
+      item:=tllvmspecialisedmetaitem.createqword(aitemname, qwval);
+      addemplaceitem(item);
+    end;
+
+  procedure tai_llvmspecialisedmetadatanode.addmetadatarefto(const aitemname: TSymStr; aival: tai_llvmbasemetadatanode);
+    var
+      item: tllvmspecialisedmetaitem;
+    begin
+      if assigned(aival) then
+        item:=tllvmspecialisedmetaitem.createmetadataref(aitemname, tai_llvmmetadatareftypedconst.create(aival))
+      else
+        item:=tllvmspecialisedmetaitem.createmetadataref(aitemname, nil);
+      addemplaceitem(item);
+    end;
+
+  procedure tai_llvmspecialisedmetadatanode.addstring(const aitemname: TSymStr; const stringval: TSymStr);
+    var
+      item: tllvmspecialisedmetaitem;
+    begin
+      item:=tllvmspecialisedmetaitem.createstring(aitemname, stringval);
+      addemplaceitem(item);
+    end;
+
+  procedure tai_llvmspecialisedmetadatanode.addenum(const aitemname: TSymStr; const enumval: TSymStr);
+    var
+      item: tllvmspecialisedmetaitem;
+    begin
+      item:=tllvmspecialisedmetaitem.createenum(aitemname, enumval);
+      addemplaceitem(item);
+    end;
+
+  function tai_llvmspecialisedmetadatanode.IsDistinct: boolean;
+    begin
+      case fkind of
+        tspecialisedmetadatanodekind.DICompileUnit,
+        tspecialisedmetadatanodekind.DISubprogram,
+        tspecialisedmetadatanodekind.DICompositeType,
+        tspecialisedmetadatanodekind.DILexicalBlock,
+        tspecialisedmetadatanodekind.DIMacro:
+          result:=true;
+        tspecialisedmetadatanodekind.DIFile,
+        tspecialisedmetadatanodekind.DIBasicType,
+        tspecialisedmetadatanodekind.DIDerivedType,
+        tspecialisedmetadatanodekind.DISubrange,
+        tspecialisedmetadatanodekind.DIEnumerator,
+        tspecialisedmetadatanodekind.DITemplateTypeParameter,
+        tspecialisedmetadatanodekind.DITemplateValueParameter,
+        tspecialisedmetadatanodekind.DINamespace,
+        tspecialisedmetadatanodekind.DIGlobalVariable,
+        tspecialisedmetadatanodekind.DILexicalBlockFile,
+        tspecialisedmetadatanodekind.DILocation,
+        tspecialisedmetadatanodekind.DILocalVariable,
+        tspecialisedmetadatanodekind.DIExpression,
+        tspecialisedmetadatanodekind.DIObjCProperty,
+        tspecialisedmetadatanodekind.DIImportedEntity,
+        tspecialisedmetadatanodekind.DISubroutineType,
+        tspecialisedmetadatanodekind.DIMacroFile:
+          result:=false;
+      end;
+    end;
+
+  class function tai_llvmspecialisedmetadatanode.isspecialised: boolean;
+    begin
+      result:=true;
     end;
 
 
