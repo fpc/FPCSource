@@ -601,6 +601,7 @@ interface
           { extra len so the string can contain an \0 }
           len : longint;
           constructor Create(const _str : string);
+          constructor Create(const _str : ansistring);
           constructor Create_pchar(_str : pchar;length : longint);
           destructor Destroy;override;
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
@@ -2401,8 +2402,21 @@ implementation
           typ:=ait_string;
           len:=length(_str);
           getmem(str,len+1);
-          move(_str[1],str^,len);
+          if len>0 then
+            move(_str[1],str^,len);
           str[len]:=#0;
+       end;
+
+
+     constructor tai_string.Create(const _str: ansistring);
+       begin
+         inherited Create;
+         typ:=ait_string;
+         len:=length(_str);
+         getmem(str,len+1);
+         if len>0 then
+           move(_str[1],str^,len);
+         str[len]:=#0;
        end;
 
 
