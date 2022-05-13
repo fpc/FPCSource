@@ -746,8 +746,8 @@ function PrivilegedServiceAuditAlarm(SubsystemName, ServiceName: PChar; ClientTo
 function PrivilegedServiceAuditAlarmA(SubsystemName, ServiceName: LPCSTR; ClientToken: THandle; var Privileges: TPrivilegeSet; AccessGranted: BOOL): BOOL; external 'advapi32' name 'PrivilegedServiceAuditAlarmA';
 function PrivilegedServiceAuditAlarmW(SubsystemName, ServiceName: LPWSTR; ClientToken: THandle; var Privileges: TPrivilegeSet; AccessGranted: BOOL): BOOL; external 'advapi32' name 'PrivilegedServiceAuditAlarmW';
 //function PtInRect(const lprc: TRect; pt: TPoint): BOOL; external 'user32' name 'PtInRect';
-function QueryPerformanceCounter(var lpPerformanceCount: TLargeInteger): BOOL; external 'kernel32' name 'QueryPerformanceCounter';
-function QueryPerformanceFrequency(var lpFrequency: TLargeInteger): BOOL; external 'kernel32' name 'QueryPerformanceFrequency';
+function QueryPerformanceCounter(out lpPerformanceCount: TLargeInteger): BOOL; external 'kernel32' name 'QueryPerformanceCounter';
+function QueryPerformanceFrequency(out lpFrequency: TLargeInteger): BOOL; external 'kernel32' name 'QueryPerformanceFrequency';
 //function QueryRecoveryAgents(p1: PChar; var p2: Pointer; var p3: TRecoveryAgentInformation): DWORD;external 'kernel32' name 'QueryRecoveryAgentsA';
 //function QueryRecoveryAgentsA(p1: LPCSTR; var p2: Pointer; var p3: TRecoveryAgentInformationA): DWORD;external 'kernel32' name 'QueryRecoveryAgentsA';
 //function QueryRecoveryAgentsW(p1: LPWSTR; var p2: Pointer; var p3: TRecoveryAgentInformationW): DWORD;external 'kernel32' name 'QueryRecoveryAgentsW';

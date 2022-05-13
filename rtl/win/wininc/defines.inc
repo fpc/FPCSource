@@ -1691,6 +1691,7 @@
      EXCEPTION_IN_PAGE_ERROR = $c0000006;
      EXCEPTION_ILLEGAL_INSTRUCTION = $c000001d;
      EXCEPTION_POSSIBLE_DEADLOCK = $c0000194;
+     EXCEPTION_SET_THREADNAME = $406D1388; {special exception for passing a threads name to debugger}
   { GetFileType  }
      FILE_TYPE_UNKNOWN = 0;
      FILE_TYPE_DISK = 1;
