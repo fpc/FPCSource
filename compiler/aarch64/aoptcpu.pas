@@ -518,6 +518,7 @@ Implementation
   function TCpuAsmOptimizer.OptPass1Mov(var p : tai): boolean;
     var
       hp1: tai;
+      so: tshifterop;
     begin
      Result:=false;
      if MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^) and
@@ -528,6 +529,26 @@ Implementation
          Result:=true;
        end
 
+
+     else if GetNextInstruction(p, hp1) and
+       (taicpu(p).ops=2) and
+       (taicpu(hp1).ops=3) and
+       MatchInstruction(hp1,[A_ADD,A_SUB],[taicpu(p).condition], [PF_None,PF_S]) and
+       (getsubreg(taicpu(p).oper[0]^.reg)=R_SUBD) and
+       (getsubreg(taicpu(hp1).oper[2]^.reg)=R_SUBQ) and
+       (getsupreg(taicpu(p).oper[0]^.reg)=getsupreg(taicpu(hp1).oper[2]^.reg)) and
+       RegEndOfLife(taicpu(hp1).oper[2]^.reg,taicpu(hp1)) then
+       begin
+         DebugMsg(SPeepholeOptimization + 'MovOp2AddUtxw 1 done', p);
+         shifterop_reset(so);
+         so.shiftmode:=SM_UXTW;
+         taicpu(hp1).ops:=4;
+         taicpu(hp1).loadreg(2,taicpu(p).oper[1]^.reg);
+         taicpu(hp1).loadshifterop(3,so);
+         RemoveCurrentP(p);
+         Result:=true;
+         exit;
+       end
      {
        optimize
        mov rX, yyyy
@@ -540,7 +561,7 @@ Implementation
          else if (taicpu(p).ops = 2) and
            (tai(hp1).typ = ait_instruction) and
            RedundantMovProcess(p,hp1) then
-           Result:=true;
+           Result:=true
        end;
     end;
 
