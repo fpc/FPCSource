@@ -835,6 +835,7 @@ implementation
           which is not possible here since we need the parasym rather than the def }
         if is_open_array(def) then
           begin
+            (*
             if llvmflag_array_datalocation in llvmversion_properties[current_settings.llvmversion] then
               begin
                 dinode:=def_meta_impl(def);
@@ -842,7 +843,7 @@ implementation
                 if not assigned(dinode) then
                   internalerror(2021112002);
               end
-            else
+            else *)
               begin
                 { no idea about the size, generate an array of 1 element -- although it could be empty }
                 appenddef_array_internal(list,def,def.elementdef,0,1);
