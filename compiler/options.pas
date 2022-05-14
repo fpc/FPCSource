@@ -4688,7 +4688,10 @@ begin
   { default to clang }
   if (option.paratargetasm=as_none) then
     begin
-      option.paratargetasm:=as_clang_llvm;
+      if not(target_info.system in systems_darwin) then
+        option.paratargetasm:=as_clang_llvm
+      else
+        option.paratargetasm:=as_clang_llvm_darwin;
     end;
 {$endif llvm}
   { maybe override assembler }
@@ -4740,7 +4743,10 @@ begin
    begin
      Message(option_switch_bin_to_src_assembler);
 {$ifdef llvm}
-     set_target_asm(as_clang_llvm);
+     if not(target_info.system in systems_darwin) then
+       set_target_asm(as_clang_llvm)
+     else
+       set_target_asm(as_clang_llvm_darwin);
 {$else}
      set_target_asm(target_info.assemextern);
 {$endif}

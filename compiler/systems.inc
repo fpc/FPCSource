@@ -274,6 +274,7 @@
              ,as_wasm32_llvm_mc        { WebAssembly code assembled by llvm-mc (llvm machine code playground) }
              ,as_arm_vasm
              ,as_wasm32_wasm
+             ,as_clang_llvm_darwin
        );
 
        tlink = (ld_none,

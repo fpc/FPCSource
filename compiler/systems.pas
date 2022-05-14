@@ -84,7 +84,7 @@ interface
        pasminfo = ^tasminfo;
        tasminfo = record
           id          : tasm;
-          idtxt       : string[12];
+          idtxt       : string[17];
           asmbin      : string[16];
           asmcmd      : string[121];
           supported_targets : set of tsystem;
