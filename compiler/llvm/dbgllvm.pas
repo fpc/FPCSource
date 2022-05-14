@@ -1198,7 +1198,7 @@ implementation
               dinode.addboolean('isDefinition',is_definition);
               if is_definition then
                 begin
-                  dinode.addboolean('isLocal: ',
+                  dinode.addboolean('isLocal',
                     not((po_global in def.procoptions) and
                      (def.parast.symtablelevel<=normal_function_level))
                   );
