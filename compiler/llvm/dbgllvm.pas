@@ -153,45 +153,6 @@ interface
         procedure insertlineinfo(list:TAsmList);override;
         function  dwarf_version: Word; virtual; abstract;
       end;
-(*
-      { TDebugInfoDwarf2 }
-
-      TDebugInfoDwarf2 = class(TDebugInfoDwarf)
-      private
-      protected
-        procedure appenddef_set_intern(list:TAsmList;def:tsetdef; force_tag_set: boolean);
-        procedure append_object_struct(def: tobjectdef; const createlabel: boolean; const objectname: PShortString);
-
-        procedure appenddef_file(list:TAsmList;def:tfiledef); override;
-        procedure appenddef_formal(list:TAsmList;def:tformaldef); override;
-        procedure appenddef_object(list:TAsmList;def:tobjectdef); override;
-        procedure appenddef_set(list:TAsmList;def:tsetdef); override;
-        procedure appenddef_undefined(list:TAsmList;def:tundefineddef); override;
-        procedure appenddef_variant(list:TAsmList;def:tvariantdef); override;
-      public
-        function  dwarf_version: Word; override;
-      end;
-
-      { TDebugInfoDwarf3 }
-
-      TDebugInfoDwarf3 = class(TDebugInfoDwarf2)
-      private
-      protected
-        procedure append_labelentry_addr_ref(attr : tdwarf_attribute;sym : tasmsymbol); override;
-        procedure appenddef_array(list:TAsmList;def:tarraydef); override;
-        procedure appenddef_string(list:TAsmList;def:tstringdef);override;
-        procedure appenddef_file(list:TAsmList;def:tfiledef); override;
-        procedure appenddef_formal(list:TAsmList;def:tformaldef); override;
-        procedure appenddef_object(list:TAsmList;def:tobjectdef); override;
-        procedure appenddef_set(list:TAsmList;def: tsetdef); override;
-        procedure appenddef_undefined(list:TAsmList;def:tundefineddef); override;
-        procedure appenddef_variant(list:TAsmList;def:tvariantdef); override;
-
-        function symdebugname(sym:tsym): String; override;
-      public
-        function  dwarf_version: Word; override;
-      end;
-*)
 
 implementation
 
@@ -204,15 +165,6 @@ implementation
       llvminfo,llvmbase,aasmllvm
       ;
 
-{
-      TFileIndexItem = class(TFPHashObject)
-      private
-        ffilemeta: tai_llvmspecialisedmetadatanode;
-      public
-        constructor Create(AList:TFPHashObjectList; inputfile: TInputFile);
-        property filemeta: tai_llvmspecialisedmetadatanode read ffilemeta;
-      end;
-}
 {$push}
 {$scopedenums on}
     type
@@ -430,8 +382,8 @@ implementation
         fretainedtypes:=nil;
         fcunode:=nil;
 
-        ffilemeta:=thashset.Create(100,true,false);
-        flocationmeta:=thashset.Create(1000,true,false);
+        ffilemeta:=thashset.Create(10000,true,false);
+        flocationmeta:=thashset.Create(10000,true,false);
         flexicalblockfilemeta:=thashset.Create(100,true,false);
         fdefmeta:=TLLVMMetaDefHashSet.Create(10000,true,false);
 
@@ -490,6 +442,8 @@ implementation
       end;
 
     procedure TDebugInfoLLVM.resetfornewmodule;
+      var
+        i: longint;
       begin
         { for LLVM, we need to generate the procdef type info (or at least
           temporary references to it) already during the generation of the line
@@ -503,7 +457,14 @@ implementation
         ffilemeta.Clear;
         flocationmeta.Clear;
         flexicalblockfilemeta.Clear;
-        fdefmeta.Clear;
+        fdefmeta.free;
+        { one item per def, plus some extra space in case of nested types,
+          externally used types etc (it will grow further if necessary) }
+        i:=current_module.localsymtable.DefList.count*4;
+        if assigned(current_module.globalsymtable) then
+          inc(i,current_module.globalsymtable.DefList.count*2);
+        fdefmeta:=TLLVMMetaDefHashSet.Create(i,true,false);
+
         defnumberlist.Clear;
         deftowritelist.Clear;
         fcunode:=nil;
@@ -952,7 +913,6 @@ implementation
 
 //        def.symtable.symList.ForEachCall(@enum_membersyms_callback,dinode);
         write_symtable_procdefs(current_asmdata.asmlists[al_dwarf_info],def.symtable);
-//        finish_children;
       end;
 
 
@@ -2256,119 +2216,15 @@ implementation
         dbgname: string;
 *)
         vardatatype: ttypesym;
-(*
-        bind: tasmsymbind;
-*)
-
       begin
-(*
-        // FIXME
-        include(current_module.moduleflags,mf_has_dwarf_debuginfo);
         storefilepos:=current_filepos;
         current_filepos:=current_module.mainfilepos;
 
-        if assigned(fdefmeta) then
-          internalerror(2015100301);
-        { one item per def, plus some extra space in case of nested types,
-          externally used types etc (it will grow further if necessary) }
-        i:=current_module.localsymtable.DefList.count*4;
-        if assigned(current_module.globalsymtable) then
-          inc(i,current_module.globalsymtable.DefList.count*2);
-        fdefmeta:=TLLVMMetaDefHashSet.Create(i,true,false);
-
-        defnumberlist:=TFPObjectList.create(false);
-        deftowritelist:=TFPObjectList.create(false);
-
-        { not exported (FK)
-            FILEREC
-            TEXTREC
-        }
-*)
         vardatatype:=try_search_system_type('TVARDATA');
         if assigned(vardatatype) then
           vardatadef:=trecorddef(vardatatype.typedef);
+
 (*
-        current_asmdata.getlabel(lenstartlabel,alt_dbgfile);
-        { size }
-        if use_64bit_headers then
-          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit_unaligned(longint($FFFFFFFF)));
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetreltype,
-          lenstartlabel,current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'edebug_info0',AB_LOCAL,AT_METADATA,voidpointertype)));
-
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_label.create(lenstartlabel));
-        { version }
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit_unaligned(dwarf_version));
-        { abbrev table (=relative from section start)}
-        if not(tf_dwarf_relative_addresses in target_info.flags) then
-          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(offsetabstype,
-            current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'debug_abbrev0',AB_LOCAL,AT_METADATA,voidpointertype)))
-        else
-          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetreltype,
-            current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'debug_abbrevsection0',AB_LOCAL,AT_METADATA,voidpointertype),
-            current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'debug_abbrev0',AB_LOCAL,AT_METADATA,voidpointertype)));
-
-        { address size }
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(sizeof(pint)));
-
-        { first manadatory compilation unit TAG }
-        append_entry(DW_TAG_compile_unit,true,[
-          DW_AT_name,DW_FORM_string,relative_dwarf_path(current_module.sourcefiles.get_file(1).path+current_module.sourcefiles.get_file(1).name)+#0,
-          DW_AT_producer,DW_FORM_string,'Free Pascal '+full_version_string+' '+date_string+#0,
-          DW_AT_comp_dir,DW_FORM_string,BSToSlash(FixPath(GetCurrentDir,false))+#0,
-          DW_AT_language,DW_FORM_data1,lang,
-          DW_AT_identifier_case,DW_FORM_data1,DW_ID_case_insensitive]);
-
-{$ifdef i8086}
-        case current_settings.x86memorymodel of
-          mm_tiny,
-          mm_small:
-            append_attribute(DW_AT_WATCOM_memory_model,DW_FORM_data1,[DW_WATCOM_MEMORY_MODEL_small]);
-          mm_medium:
-            append_attribute(DW_AT_WATCOM_memory_model,DW_FORM_data1,[DW_WATCOM_MEMORY_MODEL_medium]);
-          mm_compact:
-            append_attribute(DW_AT_WATCOM_memory_model,DW_FORM_data1,[DW_WATCOM_MEMORY_MODEL_compact]);
-          mm_large:
-            append_attribute(DW_AT_WATCOM_memory_model,DW_FORM_data1,[DW_WATCOM_MEMORY_MODEL_large]);
-          mm_huge:
-            append_attribute(DW_AT_WATCOM_memory_model,DW_FORM_data1,[DW_WATCOM_MEMORY_MODEL_huge]);
-        end;
-{$endif i8086}
-
-        { reference to line info section }
-        if not(tf_dwarf_relative_addresses in target_info.flags) then
-          append_labelentry_dataptr_abs(DW_AT_stmt_list,current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'debug_line0',AB_LOCAL,AT_METADATA,voidpointertype))
-        else
-          append_labelentry_dataptr_rel(DW_AT_stmt_list,
-            current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'debug_linesection0',AB_LOCAL,AT_METADATA,voidpointertype),
-            current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'debug_line0',AB_LOCAL,AT_METADATA,voidpointertype));
-
-        if (m_objectivec1 in current_settings.modeswitches) then
-          append_attribute(DW_AT_APPLE_major_runtime_vers,DW_FORM_data1,[1]);
-
-        if target_info.system in systems_wasm then
-          begin
-            append_attribute(DW_AT_low_pc,DW_FORM_data4,[0]);
-            { todo: append DW_AT_ranges }
-          end
-        else
-          begin
-            dbgname:=make_mangledname('DEBUGSTART',current_module.localsymtable,'');
-            if (target_info.system in systems_darwin) then
-              begin
-                bind:=AB_LOCAL;
-                dbgname:='L'+dbgname;
-              end
-            else
-              bind:=AB_GLOBAL;
-            append_labelentry(DW_AT_low_pc,current_asmdata.DefineAsmSymbol(dbgname,bind,AT_METADATA,voidpointertype));
-            dbgname:=make_mangledname('DEBUGEND',current_module.localsymtable,'');
-            if (target_info.system in systems_darwin) then
-              dbgname:='L'+dbgname;
-            append_labelentry(DW_AT_high_pc,current_asmdata.DefineAsmSymbol(dbgname,bind,AT_METADATA,voidpointertype));
-          end;
-
-        finish_entry;
-
         { write all global/local variables. This will flag all required tdefs  }
         if assigned(current_module.globalsymtable) then
           write_symtable_syms(current_asmdata.asmlists[al_dwarf_info],current_module.globalsymtable);
@@ -2395,55 +2251,17 @@ implementation
 
         { write defs not written yet }
         write_remaining_defs_to_write(current_asmdata.asmlists[al_dwarf_info]);
-  (*
-        { close compilation unit entry }
-        finish_children;
 
-        { end of debug info table }
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.createname(target_asm.labelprefix+'edebug_info0',AT_METADATA,0,voidpointertype));
-
-        { end of abbrev table }
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_8bit(0));
-
-        if not(target_info.system in systems_darwin) then
-          begin
-            { end of aranges table }
-{$ifdef i8086}
-            { 32-bit offset }
-            current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.Create_32bit_unaligned(0));
-            { 16-bit segment }
-            current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.Create_16bit_unaligned(0));
-            { 32-bit length }
-            current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.Create_32bit_unaligned(0));
-{$else i8086}
-            { offset }
-            current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.Create_aint(0));
-            { length }
-            current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.Create_aint(0));
-{$endif i8086}
-            current_asmdata.asmlists[al_dwarf_aranges].concat(tai_symbol.createname(target_asm.labelprefix+'earanges0',AT_METADATA,0,voidpointertype));
-          end;
-*)
-
-        { reset all def debug states }
+        { reset all def debug states for LLVMTypeInfo (which also uses this
+          field, to track for which types type info has been inserted already }
         for i:=0 to defnumberlist.count-1 do
           begin
             def := tdef(defnumberlist[i]);
             if assigned(def) then
               def.dbg_state:=dbg_state_unused;
           end;
-(*
-        fdefmeta.free;
-        fdefmeta:=nil;
-
-        defnumberlist.free;
-        defnumberlist:=nil;
-        deftowritelist.free;
-        deftowritelist:=nil;
 
         current_filepos:=storefilepos;
-*)
-
       end;
 
 
