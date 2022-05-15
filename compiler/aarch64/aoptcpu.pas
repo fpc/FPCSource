@@ -531,11 +531,9 @@ Implementation
 
 
      else if GetNextInstruction(p, hp1) and
-       (taicpu(p).ops=2) and
-       { Faster to get it out of the way than go through MatchInstruction }
-       (hp1.typ=ait_instruction) and
-       (taicpu(hp1).ops=3) and
        MatchInstruction(hp1,[A_ADD,A_SUB],[taicpu(p).condition], [PF_None,PF_S]) and
+       (taicpu(p).ops=2) and
+       (taicpu(hp1).ops=3) and
        (getsubreg(taicpu(p).oper[0]^.reg)=R_SUBD) and
        (getsubreg(taicpu(hp1).oper[2]^.reg)=R_SUBQ) and
        (getsupreg(taicpu(p).oper[0]^.reg)=getsupreg(taicpu(hp1).oper[2]^.reg)) and
