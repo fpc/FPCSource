@@ -1674,9 +1674,9 @@ unit cpupara;
                   continue;
                 end;
 
-            { on win64, if a record has only one field and that field is a
+            { on vectorcall, if a record has only one field and that field is a
               single or double, it has to be handled like a single/double }
-            if use_ms_abi and
+            if (p.proccalloption=pocall_vectorcall) and
                ((paradef.typ=recorddef) {or
                is_object(paradef)}) and
                tabstractrecordsymtable(tabstractrecorddef(paradef).symtable).has_single_field(fdef) and
