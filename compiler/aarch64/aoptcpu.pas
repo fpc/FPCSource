@@ -59,6 +59,7 @@ Interface
         function OptPass1FData(var p: tai): Boolean;
         function OptPass1STP(var p: tai): boolean;
         function OptPass1Mov(var p: tai): boolean;
+        function OptPass1MOVZ(var p: tai): boolean;
         function OptPass1FMov(var p: tai): Boolean;
 
         function OptPass2LDRSTR(var p: tai): boolean;
@@ -530,11 +531,13 @@ Implementation
        end
 
 
-     else if GetNextInstruction(p, hp1) and
-       MatchInstruction(hp1,[A_ADD,A_SUB],[taicpu(p).condition], [PF_None,PF_S]) and
-       (taicpu(p).ops=2) and
-       (taicpu(hp1).ops=3) and
+     else if (taicpu(p).ops=2) and
        (getsubreg(taicpu(p).oper[0]^.reg)=R_SUBD) and
+       GetNextInstruction(p, hp1) and
+       { Faster to get it out of the way than go through MatchInstruction }
+       (hp1.typ=ait_instruction) and
+       (taicpu(hp1).ops=3) and
+       MatchInstruction(hp1,[A_ADD,A_SUB],[taicpu(p).condition], [PF_None,PF_S]) and
        (getsubreg(taicpu(hp1).oper[2]^.reg)=R_SUBQ) and
        (getsupreg(taicpu(p).oper[0]^.reg)=getsupreg(taicpu(hp1).oper[2]^.reg)) and
        RegEndOfLife(taicpu(hp1).oper[2]^.reg,taicpu(hp1)) then
@@ -563,6 +566,50 @@ Implementation
            RedundantMovProcess(p,hp1) then
            Result:=true
        end;
+    end;
+
+
+  function TCpuAsmOptimizer.OptPass1MOVZ(var p: tai): boolean;
+    var
+      hp1: tai;
+      ZeroReg: TRegister;
+    begin
+      Result := False;
+      hp1 := nil;
+      if (taicpu(p).oppostfix = PF_None) and (taicpu(p).condition = C_None) then
+        begin
+          if
+            { Check next instruction first so hp1 gets set to something, then
+              if it remains nil, we know for sure that there's no valid next
+              instruction. }
+            not GetNextInstruction(p, hp1) or
+            { MOVZ and MOVK/MOVN instructions undergo macro-fusion. }
+            not MatchInstruction(hp1, [A_MOVK, A_MOVN], [C_None], [PF_None]) or
+            (taicpu(hp1).oper[0]^.reg <> taicpu(p).oper[0]^.reg) then
+            begin
+              if (taicpu(p).oper[1]^.val = 0) then
+                begin
+                  { Change;
+                      movz reg,#0
+                      (no movk or movn)
+                    To:
+                      mov  reg,xzr (or wzr)
+
+                    Easier to perform other optimisations with registers
+                  }
+                  DebugMsg(SPeepholeOptimization + 'Movz0ToMovZeroReg', p);
+
+                  { Make sure the zero register is the correct size }
+                  ZeroReg := taicpu(p).oper[0]^.reg;
+                  setsupreg(ZeroReg, RS_XZR);
+
+                  taicpu(p).opcode := A_MOV;
+                  taicpu(p).loadreg(1, ZeroReg);
+                  Result := True;
+                  Exit;
+                end;
+            end;
+        end;
     end;
 
 
@@ -910,6 +957,8 @@ Implementation
               Result:=OptPass1STR(p);
             A_MOV:
               Result:=OptPass1Mov(p);
+            A_MOVZ:
+              Result:=OptPass1MOVZ(p);
             A_STP:
               Result:=OptPass1STP(p);
             A_LSR,
