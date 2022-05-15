@@ -326,54 +326,54 @@ const
    The first word in the comment at the right is the data type used;
    "bool" means a boolean value stored in an int'.  }
         IPV6_ADDRFORM         = 1;
-        IPV6_PKTINFO             = 2;
-        IPV6_HOPOPTS             = 3;
-        IPV6_DSTOPTS             = 4;
-        IPV6_RTHDR          = 5;
-        IPV6_RXSRCRT             = IPV6_RTHDR;
+        IPV6_PKTINFO          = 50;
+        IPV6_HOPOPTS          = 54;
+        IPV6_DSTOPTS          = 59;
+        IPV6_RTHDR            = 57;
+        IPV6_RXSRCRT          = IPV6_RTHDR;
         //this may be an old name, I couldn't find it in my include files but
         //I found it with google.  It may have been depreciated because I only
         //saw it in earlier files.
-        IPV6_PKTOPTIONS         = 6;
-        IPV6_CHECKSUM            = 7;
-        IPV6_HOPLIMIT            = 8;
+        IPV6_PKTOPTIONS       = 6;
+        IPV6_CHECKSUM         = 7;
+        IPV6_HOPLIMIT         = 52;
 
-        SCM_SRCRT                = IPV6_RXSRCRT;
+        SCM_SRCRT             = IPV6_RXSRCRT;
 
-        IPV6_NEXTHOP         = 9;
-        IPV6_AUTHHDR         = 10;
-        IPV6_UNICAST_HOPS        = 16;
+        IPV6_NEXTHOP          = 9;
+        IPV6_AUTHHDR          = 10;
+        IPV6_UNICAST_HOPS     = 16;
         IPV6_MULTICAST_IF     = 17;
-        IPV6_MULTICAST_HOPS     = 18;
-        IPV6_MULTICAST_LOOP      = 19;
-        IPV6_JOIN_GROUP             = 20;
-        IPV6_LEAVE_GROUP     = 21;
+        IPV6_MULTICAST_HOPS   = 18;
+        IPV6_MULTICAST_LOOP   = 19;
+        IPV6_JOIN_GROUP       = 20;
+        IPV6_LEAVE_GROUP      = 21;
         IPV6_ROUTER_ALERT     = 22;
         IPV6_MTU_DISCOVER     = 23;
-        IPV6_MTU         = 24;
-        IPV6_RECVERR         = 25;
-        IPV6_V6ONLY         = 26;
+        IPV6_MTU              = 24;
+        IPV6_RECVERR          = 25;
+        IPV6_V6ONLY           = 26;
         IPV6_JOIN_ANYCAST     = 27;
-        IPV6_LEAVE_ANYCAST     = 28;
+        IPV6_LEAVE_ANYCAST    = 28;
         IPV6_IPSEC_POLICY     = 34;
-        IPV6_XFRM_POLICY     = 35;
+        IPV6_XFRM_POLICY      = 35;
 
 { Obsolete synonyms for the above.  }
-        IPV6_ADD_MEMBERSHIP     = IPV6_JOIN_GROUP;
-        IPV6_DROP_MEMBERSHIP     = IPV6_LEAVE_GROUP;
+        IPV6_ADD_MEMBERSHIP    = IPV6_JOIN_GROUP;
+        IPV6_DROP_MEMBERSHIP   = IPV6_LEAVE_GROUP;
         IPV6_RXHOPOPTS         = IPV6_HOPOPTS;
-        IPV6_RXDSTOPTS           = IPV6_DSTOPTS;
+        IPV6_RXDSTOPTS         = IPV6_DSTOPTS;
 
 { IPV6_MTU_DISCOVER values.  }
         IPV6_PMTUDISC_DONT     = 0;    { Never send DF frames.  }
-        IPV6_PMTUDISC_WANT      = 1;    { Use per route hints.  }
-        IPV6_PMTUDISC_DO     = 2;    { Always DF.  }
+        IPV6_PMTUDISC_WANT     = 1;    { Use per route hints.  }
+        IPV6_PMTUDISC_DO       = 2;    { Always DF.  }
 
 { Routing header options for IPv6.  }
-        IPV6_RTHDR_LOOSE         = 0;   { Hop doesn't need to be neighbour. }
-        IPV6_RTHDR_STRICT     = 1;    { Hop must be a neighbour.  }
+        IPV6_RTHDR_LOOSE       = 0;   { Hop doesn't need to be neighbour. }
+        IPV6_RTHDR_STRICT      = 1;    { Hop must be a neighbour.  }
 
-        IPV6_RTHDR_TYPE_0        = 0;    { IPv6 Routing header type 0.  }
+        IPV6_RTHDR_TYPE_0      = 0;    { IPv6 Routing header type 0.  }
         
   { Flags for send, recv etc. }
   MSG_OOB                = $00000001;              { Process out-of-band data}
