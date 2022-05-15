@@ -44,6 +44,7 @@ Type
     function CanDoJumpOpts: Boolean; override;
 
     { uses the same constructor as TAopObj }
+    function PrePeepHoleOptsCpu(var p: tai): Boolean; override;
     function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
     function PeepHoleOptPass2Cpu(var p: tai): boolean; override;
     Function RegInInstruction(Reg: TRegister; p1: tai): Boolean;override;
@@ -2276,6 +2277,22 @@ Implementation
                 hp1 := p;
                 Continue;
               end;
+        end;
+    end;
+
+
+  function TCpuAsmOptimizer.PrePeepHoleOptsCpu(var p: tai): Boolean;
+    begin
+      result := false;
+      if p.typ=ait_instruction then
+        begin
+          case taicpu(p).opcode of
+            A_SBFX,
+            A_UBFX:
+              Result:=OptPreSBFXUBFX(p);
+            else
+              ;
+          end;
         end;
     end;
 

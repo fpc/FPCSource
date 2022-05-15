@@ -45,10 +45,13 @@ Type
     function RedundantMovProcess(var p: tai; var hp1: tai): boolean;
     function GetNextInstructionUsingReg(Current: tai; out Next: tai; const reg: TRegister): Boolean;
 
+    function OptPreSBFXUBFX(var p: tai): Boolean;
+
     function OptPass1UXTB(var p: tai): Boolean;
     function OptPass1UXTH(var p: tai): Boolean;
     function OptPass1SXTB(var p: tai): Boolean;
     function OptPass1SXTH(var p: tai): Boolean;
+
 
     function OptPass1LDR(var p: tai): Boolean; virtual;
     function OptPass1STR(var p: tai): Boolean; virtual;
@@ -1067,6 +1070,44 @@ Implementation
       else if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
            RemoveSuperfluousMove(p, hp1, 'UxthMov2Data') then
         Result:=true;
+    end;
+
+
+  function TARMAsmOptimizer.OptPreSBFXUBFX(var p: tai): Boolean;
+    begin
+      Result := False;
+      { Convert:
+          s/ubfx reg1,reg2,#0,#64 (or #32 for 32-bit registers)
+        To:
+          mov    reg1,reg2
+      }
+      if (taicpu(p).oper[2]^.val = 0) and
+{$ifdef AARCH64}
+        (
+          (
+            (getsubreg(taicpu(p).oper[0]^.reg) = R_SUBQ) and
+            (taicpu(p).oper[3]^.val = 64)
+          ) or
+          (
+            (getsubreg(taicpu(p).oper[0]^.reg) = R_SUBD) and
+            (taicpu(p).oper[3]^.val = 32)
+          )
+        )
+{$else AARCH64}
+        (taicpu(p).oper[3]^.val = 32)
+{$endif AARCH64}
+        then
+        begin
+          DebugMsg(SPeepholeOptimization + 'SBFX or UBFX -> MOV (full bitfield extract)', p);
+          taicpu(p).opcode := A_MOV;
+          taicpu(p).ops := 2;
+          taicpu(p).clearop(2);
+          taicpu(p).clearop(3);
+
+          Result := True;
+          Exit;
+        end;
+
     end;
 
 

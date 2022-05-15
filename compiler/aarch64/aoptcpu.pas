@@ -40,6 +40,7 @@ Interface
     Type
       TCpuAsmOptimizer = class(TARMAsmOptimizer)
         { uses the same constructor as TAopObj }
+        function PrePeepHoleOptsCpu(var p: tai): boolean; override;
         function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
         function PeepHoleOptPass2Cpu(var p: tai): boolean; override;
         function PostPeepHoleOptsCpu(var p: tai): boolean; override;
@@ -941,6 +942,22 @@ Implementation
           p:=hp2;
           DebugMsg(SPeepholeOptimization + 'CMPB.E/NE2CBNZ/CBZ done', p);
           Result:=true;
+        end;
+    end;
+
+
+  function TCpuAsmOptimizer.PrePeepHoleOptsCpu(var p: tai): boolean;
+    begin
+      result := false;
+      if p.typ=ait_instruction then
+        begin
+          case taicpu(p).opcode of
+            A_SBFX,
+            A_UBFX:
+              Result:=OptPreSBFXUBFX(p);
+            else
+              ;
+          end;
         end;
     end;
 
