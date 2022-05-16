@@ -77,7 +77,7 @@ unit i_linux;
             linkextern   : ld_linux;
             ar           : ar_gnu_ar;
             res          : res_elf;
-            dbg          : dbg_dwarf2;
+            dbg          : dbg_dwarf4;
             script       : script_unix;
             endian       : endian_little;
             alignment    :
@@ -215,7 +215,7 @@ unit i_linux;
             linkextern   : ld_linux;
             ar           : ar_gnu_ar;
             res          : res_elf;
-            dbg          : dbg_stabs;
+            dbg          : dbg_dwarf3;
             script       : script_unix;
             endian       : endian_big;
             alignment    :
@@ -428,7 +428,7 @@ unit i_linux;
             linkextern   : ld_linux;
             ar           : ar_gnu_ar;
             res          : res_elf;
-            dbg          : dbg_dwarf2;
+            dbg          : dbg_dwarf4;
             script       : script_unix;
             endian       : endian_little;
             alignment    :
@@ -568,7 +568,7 @@ unit i_linux;
             linkextern   : ld_linux;
             ar           : ar_gnu_ar;
             res          : res_elf;
-            dbg          : dbg_dwarf2;
+            dbg          : dbg_dwarf4;
             script       : script_unix;
             endian       : endian_big;
             alignment    :
@@ -1074,7 +1074,7 @@ unit i_linux;
             linkextern   : ld_linux;
             ar           : ar_gnu_ar;
             res          : res_elf;
-            dbg          : dbg_stabs;
+            dbg          : dbg_dwarf3;
             script       : script_unix;
             endian       : endian_little;
             alignment    :
