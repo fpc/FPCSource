@@ -511,7 +511,7 @@ Implementation
                                   { This MOV is exactly the same as the first one.
                                     Since none of the registers have changed value
                                     at this point, we can remove it. }
-                                  DebugMsg('Peephole Optimization: RedundantMovProcess 3a done', next_hp);
+                                  DebugMsg(SPeepholeOptimization + 'RedundantMovProcess 3a done', next_hp);
 
                                   if (next_hp = hp1) then
                                     { Don't let hp1 become a dangling pointer }
@@ -554,7 +554,7 @@ Implementation
                             then
                             begin
                               { Instruction will become mov r1,r1 }
-                              DebugMsg('Peephole Optimization: Mov2None 2 done', next_hp);
+                              DebugMsg(SPeepholeOptimization + 'Mov2None 2 done', next_hp);
 
                               { Allocate r1 between the instructions; not doing
                                 so may cause problems when removing superfluous
@@ -577,7 +577,7 @@ Implementation
                           if not MatchOperand(taicpu(next_hp).oper[0]^, taicpu(p).oper[1]^.reg) then
 {$endif AARCH64}
                             begin
-                              DebugMsg('Peephole Optimization: ' + std_regname(taicpu(p).oper[0]^.reg) + ' = ' + std_regname(taicpu(p).oper[1]^.reg) + ' (MovMov2Mov 2)', next_hp);
+                              DebugMsg(SPeepholeOptimization + std_regname(taicpu(p).oper[0]^.reg) + ' = ' + std_regname(taicpu(p).oper[1]^.reg) + ' (MovMov2Mov 2)', next_hp);
                               taicpu(next_hp).oper[1]^.reg := taicpu(p).oper[1]^.reg;
                               AllocRegBetween(taicpu(p).oper[1]^.reg, p, next_hp, UsedRegs);
 
@@ -593,7 +593,7 @@ Implementation
                                 RegInUsedRegs(taicpu(p).oper[0]^.reg, UsedRegs) and
                                 not RegUsedAfterInstruction(taicpu(p).oper[0]^.reg, next_hp, TmpUsedRegs) then
                                 begin
-                                  DebugMsg('Peephole Optimization: RedundantMovProcess 2c done', p);
+                                  DebugMsg(SPeepholeOptimization + 'RedundantMovProcess 2c done', p);
                                   RemoveCurrentP(p);
                                   Result := True;
                                   Exit;
