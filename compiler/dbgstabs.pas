@@ -1436,6 +1436,7 @@ implementation
 
             // RBRAC
             ss:=tostr(STABS_N_RBRAC)+',0,0,'+stabsendlabel.name;
+            stabsendlabel.increfs;
             if not(af_stabs_use_function_absolute_addresses in target_asm.flags) then
               ss:=ss+'-'+mangledname;
             result.concat(Tai_stab.Create_ansistr(stab_stabn,ss));
@@ -1802,6 +1803,8 @@ implementation
                           list.insertbefore(Tai_stab.Create_str(stabsdir,'"'+BsToSlash(FixPath(getcurrentdir,false)+FixPath(infile.path,false))+FixFileName(infile.name)+'",'+tostr(stabs_n_includefile)+
                                             ',0,0,'+hlabel.name),hp);
                         list.insertbefore(tai_label.create(hlabel),hp);
+                        hlabel.increfs;
+
                         { force new line info }
                         lastfileinfo.line:=-1;
                       end;
@@ -1817,6 +1820,7 @@ implementation
                         list.insertbefore(Tai_stab.Create_str(stab_stabn,tostr(stabs_n_textline)+',0,'+tostr(currfileinfo.line)+','+
                                           hlabel.name+' - '+{$IFDEF POWERPC64}'.'+{$ENDIF POWERPC64}currfuncname^),hp);
                         list.insertbefore(tai_label.create(hlabel),hp);
+                        hlabel.increfs;
                       end
                      else
                       list.insertbefore(Tai_stab.Create_str(stab_stabd,tostr(stabs_n_textline)+',0,'+tostr(currfileinfo.line)),hp);
@@ -1849,6 +1853,7 @@ implementation
           base_stabs_str(stabs_n_sourcefile,'0','0',hlabel.name)));
         current_asmdata.asmlists[al_start].concat(Tai_stab.Create_str(stabsdir,'"'+BsToSlash(FixPath(infile.path,false))+FixFileName(infile.name)+'",'+
           base_stabs_str(stabs_n_sourcefile,'0','0',hlabel.name)));
+        hlabel.increfs;
         current_asmdata.asmlists[al_start].concat(tai_label.create(hlabel));
         { for darwin, you need a "module marker" too to work around      }
         { either some assembler or gdb bug (radar 4386531 according to a }
@@ -1862,6 +1867,7 @@ implementation
           current_asmdata.asmlists[al_end].concat(tai_symbol.Createname_global(make_mangledname('DEBUGEND',current_module.localsymtable,''),AT_METADATA,0,voidpointertype));
         current_asmdata.asmlists[al_end].concat(Tai_stab.Create_str(stabsdir,'"",'+base_stabs_str(stabs_n_sourcefile,'0','0',hlabel.name)));
         current_asmdata.asmlists[al_end].concat(tai_label.create(hlabel));
+        hlabel.increfs;
       end;
 
 
