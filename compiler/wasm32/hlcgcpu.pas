@@ -2139,12 +2139,10 @@ implementation
       else
         a_load_const_stack(list,maxdef,tcgint(int64(hto-lto)),R_INTREGISTER);
 
-      a_reg_alloc(list, NR_DEFAULTFLAGS);
       a_cmp_stack_stack(list,maxdef,OC_A);
 
       current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
       thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
-      a_reg_dealloc(list, NR_DEFAULTFLAGS);
 
       g_call_system_proc(list,'fpc_rangeerror',[],nil).resetiftemp;
 
