@@ -5963,6 +5963,7 @@ begin
       begin
       Log(vlError,SErrInstaller);
       Log(vlError,E.Message);
+      DumpExceptionBacktrace(stderr);
       Result:=False;
       end;
   end;
