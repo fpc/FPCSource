@@ -59,6 +59,19 @@ implementation
 {$I wasitypes.inc}
 {$I wasiprocs.inc}
 
+function WasiAlloc (aLength : Longint) : Pointer; [public, alias: 'wasiAlloc'];
+
+begin
+  Result:=GetMem(aLength);
+end;
+
+procedure WasiFree (aMem : pointer); [public, alias: 'wasiFree'];
+
+begin
+  FreeMem(aMem);
+end;
+
+
 function ConvertToFdRelativePath(path: RawByteString; out fd: LongInt; out relfd_path: RawByteString): Word; forward;
 
 function fpc_wasi_path_readlink_ansistring(
