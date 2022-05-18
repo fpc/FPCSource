@@ -15,7 +15,7 @@ Type
   private
     function GetWebFS: TPas2JSWebFS;
   Protected
-    function DoWriteJSFile(const DestFilename: String; aWriter: TPas2JSMapper): Boolean; override;
+    function DoWriteJSFile(const DestFilename, DestMapFile: String; aWriter: TPas2JSMapper): Boolean; override;
     function CreateSetOfCompilerFiles(keyType: TKeyCompareType): TPasAnalyzerKeySet; override;
     function CreateFS : TPas2JSFS; override;
   Public
@@ -62,7 +62,7 @@ begin
   Result:=TPas2JSWebFS(FS)
 end;
 
-function TPas2JSWebcompiler.DoWriteJSFile(const DestFilename: String; aWriter: TPas2JSMapper): Boolean;
+function TPas2JSWebcompiler.DoWriteJSFile(const DestFilename, DestMapFile: String; aWriter: TPas2JSMapper): Boolean;
 
 Var
   S : String;

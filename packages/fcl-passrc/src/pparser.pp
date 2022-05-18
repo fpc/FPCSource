@@ -509,8 +509,10 @@ Function IsHintToken(T : String; Out AHint : TPasMemberHint) : boolean;
 Function IsProcModifier(S : String; Out PM : TProcedureModifier) : Boolean;
 Function IsCallingConvention(S : String; out CC : TCallingConvention) : Boolean;
 Function TokenToAssignKind( tk : TToken) : TAssignKind;
+{$ifndef pas2js}
 procedure ReadNextPascalToken(var Position: PChar; out TokenStart: PChar;
   NestedComments: boolean; SkipDirectives: boolean);
+{$endif}
 
 implementation
 
@@ -678,6 +680,7 @@ begin
   end;
 end;
 
+{$ifndef pas2js}
 procedure ReadNextPascalToken(var Position: PChar; out TokenStart: PChar;
   NestedComments: boolean; SkipDirectives: boolean);
 const
@@ -943,6 +946,7 @@ begin
   end;
   Position:=Src;
 end;
+{$endif}
 
 function ParseSource(AEngine: TPasTreeContainer;
   const FPCCommandLine, OSTarget, CPUTarget: String): TPasModule;
