@@ -120,6 +120,7 @@ interface
           function typecheck_elem_2_openarray : tnode; virtual;
           function typecheck_arrayconstructor_to_dynarray : tnode; virtual;
           function typecheck_arrayconstructor_to_array : tnode; virtual;
+          function typecheck_anonproc_2_funcref : tnode; virtual;
        private
           function _typecheck_int_to_int : tnode;
           function _typecheck_cord_to_pointer : tnode;
@@ -153,6 +154,7 @@ interface
           function _typecheck_elem_2_openarray : tnode;
           function _typecheck_arrayconstructor_to_dynarray : tnode;
           function _typecheck_arrayconstructor_to_array : tnode;
+          function _typecheck_anonproc_to_funcref : tnode;
        protected
           function first_int_to_int : tnode;virtual;
           function first_cstring_to_pchar : tnode;virtual;
@@ -325,7 +327,7 @@ implementation
       ncon,ncal,nset,nadd,nmem,nmat,nbas,nutils,ninl,nflw,
       psub,
       cgbase,procinfo,
-      htypechk,blockutl,pparautl,pass_1,cpuinfo;
+      htypechk,blockutl,pparautl,procdefutil,pass_1,cpuinfo;
 
 
 {*****************************************************************************
@@ -2344,6 +2346,12 @@ implementation
       end;
 
 
+    function ttypeconvnode._typecheck_anonproc_to_funcref : tnode;
+      begin
+        result:=typecheck_anonproc_2_funcref;
+      end;
+
+
     function ttypeconvnode.target_specific_general_typeconv: boolean;
       begin
         result:=false;
@@ -2639,6 +2647,30 @@ implementation
       end;
 
 
+    function ttypeconvnode.typecheck_anonproc_2_funcref : tnode;
+      var
+        capturer : tsym;
+        intfdef : tdef;
+        ldnode : tnode;
+      begin
+        intfdef:=capturer_add_anonymous_proc(current_procinfo,tprocdef(left.resultdef),capturer);
+        if assigned(intfdef) then
+          begin
+            if assigned(capturer) then
+              ldnode:=cloadnode.create(capturer,capturer.owner)
+            else
+              ldnode:=cnilnode.create;
+            result:=ctypeconvnode.create_internal(
+                      ctypeconvnode.create_internal(
+                        ldnode,
+                        intfdef),
+                      totypedef);
+          end
+        else
+          result:=cerrornode.create;
+      end;
+
+
     function ttypeconvnode.typecheck_call_helper(c : tconverttype) : tnode;
       const
          resultdefconvert : array[tconverttype] of pointer = (
@@ -2684,7 +2716,8 @@ implementation
           { array_2_dynarray} @ttypeconvnode._typecheck_array_2_dynarray,
           { elem_2_openarray } @ttypeconvnode._typecheck_elem_2_openarray,
           { arrayconstructor_2_dynarray } @ttypeconvnode._typecheck_arrayconstructor_to_dynarray,
-          { arrayconstructor_2_array } @ttypeconvnode._typecheck_arrayconstructor_to_array
+          { arrayconstructor_2_array } @ttypeconvnode._typecheck_arrayconstructor_to_array,
+          { anonproc_2_funcref } @ttypeconvnode._typecheck_anonproc_to_funcref
          );
       type
          tprocedureofobject = function : tnode of object;
@@ -4392,7 +4425,8 @@ implementation
            nil,
            @ttypeconvnode._first_nothing,
            @ttypeconvnode._first_nothing,
-           @ttypeconvnode._first_nothing
+           @ttypeconvnode._first_nothing,
+           nil
          );
       type
          tprocedureofobject = function : tnode of object;
@@ -4673,7 +4707,8 @@ implementation
            @ttypeconvnode._second_nothing,  { array_2_dynarray }
            @ttypeconvnode._second_elem_to_openarray,  { elem_2_openarray }
            @ttypeconvnode._second_nothing,  { arrayconstructor_2_dynarray }
-           @ttypeconvnode._second_nothing   { arrayconstructor_2_array }
+           @ttypeconvnode._second_nothing,  { arrayconstructor_2_array }
+           @ttypeconvnode._second_nothing   { anonproc_2_funcref }
          );
       type
          tprocedureofobject = procedure of object;

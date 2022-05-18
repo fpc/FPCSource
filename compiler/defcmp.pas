@@ -108,7 +108,8 @@ interface
           tc_array_2_dynarray,
           tc_elem_2_openarray,
           tc_arrayconstructor_2_dynarray,
-          tc_arrayconstructor_2_array
+          tc_arrayconstructor_2_array,
+          tc_anonproc_2_funcref
        );
 
     function compare_defs_ext(def_from,def_to : tdef;
@@ -201,6 +202,9 @@ implementation
       begin
         result:=equal_defs(TImplementedInterface(intffrom).IntfDef,TImplementedInterface(intfto).IntfDef);
       end;
+
+
+    function proc_to_funcref_conv(def1:tabstractprocdef;def2:tobjectdef):tequaltype;forward;
 
 
     function compare_defs_ext(def_from,def_to : tdef;
@@ -1868,6 +1872,20 @@ implementation
                    eq:=te_convert_l2
                  end
                else if is_funcref(def_to) and
+                   (def_from.typ=procdef) and
+                   (po_anonymous in tprocdef(def_from).procoptions) then
+                 begin
+                   subeq:=proc_to_funcref_conv(tprocdef(def_from),tobjectdef(def_to));
+                   if subeq>te_incompatible then
+                     begin
+                       doconv:=tc_anonproc_2_funcref;
+                       if subeq>te_convert_l5 then
+                         eq:=pred(subeq)
+                       else
+                         eq:=subeq;
+                     end;
+                 end
+               else if is_funcref(def_to) and
                    is_funcref(def_from) and
                    not (cdo_equal_check in cdoptions) then
                  begin
@@ -2507,6 +2525,7 @@ implementation
         po_comp: tprocoptions;
         pa_comp: tcompare_paras_options;
         captured : tfplist;
+        dstisfuncref : boolean;
       begin
          proc_to_procvar_equal_internal:=te_incompatible;
          if not(assigned(def1)) or not(assigned(def2)) then
@@ -2590,19 +2609,27 @@ implementation
                     if def1.typ<>procdef then
                       internalerror(2021052602);
                     captured:=tprocdef(def1).capturedsyms;
+                    { a function reference can capture anything, but they're
+                      rather expensive, so cheaper overloads are preferred }
+                    dstisfuncref:=assigned(def2.owner) and
+                        assigned(def2.owner.defowner) and
+                        is_funcref(tdef(def2.owner.defowner));
                     { if no symbol was captured an anonymous function is
-                      compatible to all three types of function pointers, but we
+                      compatible to all four types of function pointers, but we
                       might need to generate its code differently (e.g. get rid
                       of parentfp parameter for global functions); the order for
                       this is:
                         - procedure variable
                         - method variable
+                        - function reference
                         - nested procvar }
                     if not assigned(captured) or (captured.count=0) then
                       begin
                         if po_methodpointer in def2.procoptions then
                           eq:=te_convert_l2
                         else if po_delphi_nested_cc in def2.procoptions then
+                          eq:=te_convert_l4
+                        else if dstisfuncref then
                           eq:=te_convert_l3
                         else
                           eq:=te_convert_l1
@@ -2611,21 +2638,27 @@ implementation
                       compatible to normal function pointers; the order for this
                       is:
                         - method variable
+                        - function reference
                         - nested function }
                     else if (captured.count=1) and (vo_is_self in tabstractvarsym(pcapturedsyminfo(captured[0])^.sym).varoptions) then
                       begin
                         if po_methodpointer in def2.procoptions then
                           eq:=te_convert_l1
                         else if po_delphi_nested_cc in def2.procoptions then
+                          eq:=te_convert_l3
+                        else if dstisfuncref then
                           eq:=te_convert_l2
                         else
                           eq:=te_incompatible;
                       end
-                    { otherwise it's compatible to nested function pointers only }
+                    { otherwise it's compatible to nested function pointers and
+                      function references }
                     else
                       begin
-                        if po_delphi_nested_cc in def2.procoptions then
+                        if dstisfuncref then
                           eq:=te_convert_l1
+                        else if po_delphi_nested_cc in def2.procoptions then
+                          eq:=te_convert_l2
                         else
                           eq:=te_incompatible;
                       end;
@@ -2642,7 +2675,7 @@ implementation
       end;
 
 
-    function proc_to_funcref_equal(def1:tabstractprocdef;def2:tobjectdef):tequaltype;
+    function proc_to_funcref_conv(def1:tabstractprocdef;def2:tobjectdef):tequaltype;
       var
         invoke : tprocdef;
       begin
@@ -2653,6 +2686,12 @@ implementation
           internalerror(2022011601);
         invoke:=get_invoke_procdef(def2);
         result:=proc_to_procvar_equal_internal(def1,invoke,false,true);
+      end;
+
+
+    function proc_to_funcref_equal(def1:tabstractprocdef;def2:tobjectdef):tequaltype;
+      begin
+        result:=proc_to_funcref_conv(def1,def2);
         { as long as the two methods are considered convertible we consider the
           procdef and the function reference as equal }
         if result>te_convert_operator then
