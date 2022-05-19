@@ -551,26 +551,28 @@ begin
   AsTag := PtrUInt(Value);
 end;
 
-{ Do *NOT* change this to nostackframe! }
-{ The compiler will build a stackframe with link/unlk. So that will actually correct
-  the stackpointer for both Pascal/StdCall and Cdecl functions, so the stackpointer
-  will be correct on exit. It also needs no manual RTS. The argument push order is
-  also correct for both. (KB) }
-procedure HookEntry; assembler;
+{ The stackframe will be managed by link/unlk. So that will actually correct the
+  stackpointer for both Pascal/StdCall and Cdecl functions, so the stackpointer
+  will be correct on exit. It needs no manual RTS. The argument push order
+  is also correct for both. (KB) }
+procedure HookEntry; assembler; nostackframe;
 asm
+  link a5,#0
   move.l a1,-(a7)    // Msg
   move.l a2,-(a7)    // Obj
   move.l a0,-(a7)    // PHook
   move.l 12(a0),a0   // h_SubEntry = Offset 12
   jsr (a0)           // Call the SubEntry
+  unlk a5
 end;
 
 { This is to be used with when the subentry function uses FPC's register calling
   convention, also see the comments above HookEntry. It is advised to actually
   declare Hook functions with cdecl instead of using this function, especially
   when writing code which is platform independent. (KB) }
-procedure HookEntryPas; assembler;
+procedure HookEntryPas; assembler; nostackframe;
 asm
+  link a5,#0
   move.l a2,-(a7)
   move.l a1,-(a7)    // Msg
   move.l a2,a1       // Obj
@@ -578,6 +580,7 @@ asm
   move.l 12(a0),a2   // h_SubEntry = Offset 12
   jsr (a2)           // Call the SubEntry
   move.l (a7)+,a2
+  unlk a5
 end;
 
 initialization
