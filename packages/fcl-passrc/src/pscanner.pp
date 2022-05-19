@@ -1256,8 +1256,10 @@ function ExtractFileUnitName(aFilename: string): string;
 procedure CreateMsgArgs(var MsgArgs: TMessageArgs; Args: array of const);
 function SafeFormat(const Fmt: string; Args: array of const): string;
 
+{$IFNDEF Pas2js}
 procedure ReadNextPascalToken(var Position: PChar; out TokenStart: PChar;
   NestedComments: boolean; SkipDirectives: boolean);
+{$ENDIF}
 
 implementation
 
@@ -1441,6 +1443,7 @@ begin
   end;
 end;
 
+{$IFNDEF Pas2js}
 procedure ReadNextPascalToken(var Position: PChar; out TokenStart: PChar;
   NestedComments: boolean; SkipDirectives: boolean);
 const
@@ -1706,6 +1709,7 @@ begin
   end;
   Position:=Src;
 end;
+{$ENDIF}
 
 type
   TIncludeStackItem = class
