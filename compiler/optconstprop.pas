@@ -214,12 +214,14 @@ unit optconstprop;
                     result:=false;
                     exit;
                   end;
+                { inc/dec might have a side effect, so stop here for now }
+                result:=false;
+                exit;
               end
             else if might_have_sideeffects(n) then
               exit(false);
 
-            replaceBasicAssign(tunarynode(n).left, arg, tree_modified);
-            result:=false;
+            result:=replaceBasicAssign(tunarynode(n).left, arg, tree_modified);
           end
         else if n.nodetype=calln then
           begin
