@@ -804,7 +804,10 @@ Function GetJSONStringParserHandler: TJSONStringParserHandler;
 
 implementation
 
-Uses typinfo,sysconst;
+Uses typinfo;
+
+const
+  HexDigits = '01234567890ABCDEF';
 
 {$IFNDEF Pas2js}
 const
