@@ -19,3 +19,52 @@
   fpc_in_wasm32_memory_copy = fpc_in_cpu_first+4;
   fpc_in_wasm32_memory_fill = fpc_in_cpu_first+5;
   fpc_in_wasm32_atomic_fence = fpc_in_cpu_first+6;
+
+  fpc_in_wasm32_i32_atomic_rmw8_add_u  = fpc_in_cpu_first+7;
+  fpc_in_wasm32_i32_atomic_rmw16_add_u = fpc_in_cpu_first+8;
+  fpc_in_wasm32_i32_atomic_rmw_add     = fpc_in_cpu_first+9;
+  fpc_in_wasm32_i64_atomic_rmw8_add_u  = fpc_in_cpu_first+10;
+  fpc_in_wasm32_i64_atomic_rmw16_add_u = fpc_in_cpu_first+11;
+  fpc_in_wasm32_i64_atomic_rmw32_add_u = fpc_in_cpu_first+12;
+  fpc_in_wasm32_i64_atomic_rmw_add     = fpc_in_cpu_first+13;
+
+  fpc_in_wasm32_i32_atomic_rmw8_sub_u  = fpc_in_cpu_first+14;
+  fpc_in_wasm32_i32_atomic_rmw16_sub_u = fpc_in_cpu_first+15;
+  fpc_in_wasm32_i32_atomic_rmw_sub     = fpc_in_cpu_first+16;
+  fpc_in_wasm32_i64_atomic_rmw8_sub_u  = fpc_in_cpu_first+17;
+  fpc_in_wasm32_i64_atomic_rmw16_sub_u = fpc_in_cpu_first+18;
+  fpc_in_wasm32_i64_atomic_rmw32_sub_u = fpc_in_cpu_first+19;
+  fpc_in_wasm32_i64_atomic_rmw_sub     = fpc_in_cpu_first+20;
+
+  fpc_in_wasm32_i32_atomic_rmw8_and_u  = fpc_in_cpu_first+21;
+  fpc_in_wasm32_i32_atomic_rmw16_and_u = fpc_in_cpu_first+22;
+  fpc_in_wasm32_i32_atomic_rmw_and     = fpc_in_cpu_first+23;
+  fpc_in_wasm32_i64_atomic_rmw8_and_u  = fpc_in_cpu_first+24;
+  fpc_in_wasm32_i64_atomic_rmw16_and_u = fpc_in_cpu_first+25;
+  fpc_in_wasm32_i64_atomic_rmw32_and_u = fpc_in_cpu_first+26;
+  fpc_in_wasm32_i64_atomic_rmw_and     = fpc_in_cpu_first+27;
+
+  fpc_in_wasm32_i32_atomic_rmw8_or_u  = fpc_in_cpu_first+28;
+  fpc_in_wasm32_i32_atomic_rmw16_or_u = fpc_in_cpu_first+29;
+  fpc_in_wasm32_i32_atomic_rmw_or     = fpc_in_cpu_first+30;
+  fpc_in_wasm32_i64_atomic_rmw8_or_u  = fpc_in_cpu_first+31;
+  fpc_in_wasm32_i64_atomic_rmw16_or_u = fpc_in_cpu_first+32;
+  fpc_in_wasm32_i64_atomic_rmw32_or_u = fpc_in_cpu_first+33;
+  fpc_in_wasm32_i64_atomic_rmw_or     = fpc_in_cpu_first+34;
+
+  fpc_in_wasm32_i32_atomic_rmw8_xor_u  = fpc_in_cpu_first+35;
+  fpc_in_wasm32_i32_atomic_rmw16_xor_u = fpc_in_cpu_first+36;
+  fpc_in_wasm32_i32_atomic_rmw_xor     = fpc_in_cpu_first+37;
+  fpc_in_wasm32_i64_atomic_rmw8_xor_u  = fpc_in_cpu_first+38;
+  fpc_in_wasm32_i64_atomic_rmw16_xor_u = fpc_in_cpu_first+39;
+  fpc_in_wasm32_i64_atomic_rmw32_xor_u = fpc_in_cpu_first+40;
+  fpc_in_wasm32_i64_atomic_rmw_xor     = fpc_in_cpu_first+41;
+
+  fpc_in_wasm32_i32_atomic_rmw8_xchg_u  = fpc_in_cpu_first+42;
+  fpc_in_wasm32_i32_atomic_rmw16_xchg_u = fpc_in_cpu_first+43;
+  fpc_in_wasm32_i32_atomic_rmw_xchg     = fpc_in_cpu_first+44;
+  fpc_in_wasm32_i64_atomic_rmw8_xchg_u  = fpc_in_cpu_first+45;
+  fpc_in_wasm32_i64_atomic_rmw16_xchg_u = fpc_in_cpu_first+46;
+  fpc_in_wasm32_i64_atomic_rmw32_xchg_u = fpc_in_cpu_first+47;
+  fpc_in_wasm32_i64_atomic_rmw_xchg     = fpc_in_cpu_first+48;
+
