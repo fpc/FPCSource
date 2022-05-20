@@ -73,3 +73,11 @@ function fpc_wasm32_i64_atomic_rmw16_xchg_u(Dest: PWord; x: Word): qword;[intern
 function fpc_wasm32_i64_atomic_rmw32_xchg_u(Dest: PLongWord; x: LongWord): qword;[internproc:fpc_in_wasm32_i64_atomic_rmw_xchg];
 function fpc_wasm32_i64_atomic_rmw_xchg(Dest: PQWord; x: QWord): QWord;[internproc:fpc_in_wasm32_i64_atomic_rmw_xchg];
 
+function fpc_wasm32_i32_atomic_rmw8_cmpxchg_u(Dest: PByte; Expected, Replacement: LongWord): LongWord;[internproc:fpc_in_wasm32_i32_atomic_rmw8_cmpxchg_u];
+function fpc_wasm32_i32_atomic_rmw16_cmpxchg_u(Dest: PWord; Expected, Replacement: LongWord): LongWord;[internproc:fpc_in_wasm32_i32_atomic_rmw16_cmpxchg_u];
+function fpc_wasm32_i32_atomic_rmw_cmpxchg_u(Dest: PLongWord; Expected, Replacement: LongWord): LongWord;[internproc:fpc_in_wasm32_i32_atomic_rmw_cmpxchg];
+function fpc_wasm32_i64_atomic_rmw8_cmpxchg_u(Dest: PByte; Expected, Replacement: QWord): QWord;[internproc:fpc_in_wasm32_i64_atomic_rmw8_cmpxchg_u];
+function fpc_wasm32_i64_atomic_rmw16_cmpxchg_u(Dest: PWord; Expected, Replacement: QWord): QWord;[internproc:fpc_in_wasm32_i64_atomic_rmw16_cmpxchg_u];
+function fpc_wasm32_i64_atomic_rmw32_cmpxchg_u(Dest: PWord; Expected, Replacement: QWord): QWord;[internproc:fpc_in_wasm32_i64_atomic_rmw32_cmpxchg_u];
+function fpc_wasm32_i64_atomic_rmw_cmpxchg_u(Dest: PLongWord; Expected, Replacement: QWord): QWord;[internproc:fpc_in_wasm32_i64_atomic_rmw_cmpxchg];
+

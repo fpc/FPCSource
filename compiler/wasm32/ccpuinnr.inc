@@ -66,5 +66,13 @@
   in_wasm32_i64_atomic_rmw8_xchg_u  = in_cpu_first+45,
   in_wasm32_i64_atomic_rmw16_xchg_u = in_cpu_first+46,
   in_wasm32_i64_atomic_rmw32_xchg_u = in_cpu_first+47,
-  in_wasm32_i64_atomic_rmw_xchg     = in_cpu_first+48
+  in_wasm32_i64_atomic_rmw_xchg     = in_cpu_first+48,
+
+  in_wasm32_i32_atomic_rmw8_cmpxchg_u  = in_cpu_first+49,
+  in_wasm32_i32_atomic_rmw16_cmpxchg_u = in_cpu_first+50,
+  in_wasm32_i32_atomic_rmw_cmpxchg     = in_cpu_first+51,
+  in_wasm32_i64_atomic_rmw8_cmpxchg_u  = in_cpu_first+52,
+  in_wasm32_i64_atomic_rmw16_cmpxchg_u = in_cpu_first+53,
+  in_wasm32_i64_atomic_rmw32_cmpxchg_u = in_cpu_first+54,
+  in_wasm32_i64_atomic_rmw_cmpxchg     = in_cpu_first+55
 

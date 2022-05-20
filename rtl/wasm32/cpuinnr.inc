@@ -68,3 +68,11 @@
   fpc_in_wasm32_i64_atomic_rmw32_xchg_u = fpc_in_cpu_first+47;
   fpc_in_wasm32_i64_atomic_rmw_xchg     = fpc_in_cpu_first+48;
 
+  fpc_in_wasm32_i32_atomic_rmw8_cmpxchg_u  = fpc_in_cpu_first+49;
+  fpc_in_wasm32_i32_atomic_rmw16_cmpxchg_u = fpc_in_cpu_first+50;
+  fpc_in_wasm32_i32_atomic_rmw_cmpxchg     = fpc_in_cpu_first+51;
+  fpc_in_wasm32_i64_atomic_rmw8_cmpxchg_u  = fpc_in_cpu_first+52;
+  fpc_in_wasm32_i64_atomic_rmw16_cmpxchg_u = fpc_in_cpu_first+53;
+  fpc_in_wasm32_i64_atomic_rmw32_cmpxchg_u = fpc_in_cpu_first+54;
+  fpc_in_wasm32_i64_atomic_rmw_cmpxchg     = fpc_in_cpu_first+55;
+
