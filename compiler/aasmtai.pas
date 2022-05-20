@@ -3632,7 +3632,9 @@ implementation
         stackslot:=_stackslot;
         desc:=stringdup(_desc);
         startlab:=_startlab;
+        startlab.increfs;
         stoplab:=_stoplab;
+        stoplab.increfs;
       end;
 
 
