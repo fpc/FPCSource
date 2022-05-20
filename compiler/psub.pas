@@ -1221,6 +1221,12 @@ implementation
            include(flags,pi_dfaavailable);
            RedoDFA:=false;
 
+           if cs_opt_constant_propagate in current_settings.optimizerswitches then
+             do_optconstpropagate(code);
+
+           if RedoDFA then
+             dfabuilder.redodfainfo(code);
+
            if (cs_opt_loopstrength in current_settings.optimizerswitches)
              { our induction variable strength reduction doesn't like
                for loops with more than one entry }

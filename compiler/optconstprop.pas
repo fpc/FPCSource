@@ -55,9 +55,11 @@ unit optconstprop;
   implementation
 
     uses
+      globtype,
       pass_1,procinfo,compinnr,
       symsym, symconst,
-      nutils, nbas, ncnv, nld, nflw, ncal, ninl;
+      nutils, nbas, ncnv, nld, nflw, ncal, ninl,
+      optbase, optutils;
 
     function check_written(var n: tnode; arg: pointer): foreachnoderesult;
       begin
@@ -71,7 +73,8 @@ unit optconstprop;
       end;
 
 
-    { propagates the constant assignment passed in arg into n }
+    { propagates the constant assignment passed in arg into n, it returns true if
+      the search can continue with the next statement }
     function replaceBasicAssign(var n: tnode; arg: tnode; var tree_modified: boolean): boolean;
       var
         st2, oldnode: tnode;
@@ -131,6 +134,20 @@ unit optconstprop;
             if result then
               replaceBasicAssign(tfornode(n).t1, arg, tree_modified2);
             tree_modified:=tree_modified or tree_modified2;
+            if pi_dfaavailable in current_procinfo.flags then
+              begin
+                CalcDefSum(tfornode(n).t2);
+                { the constant can propagete if is is not the counter variable ... }
+                if not(tassignmentnode(arg).left.isequal(tfornode(n).left)) and
+                { if it is a temprefn or its address is not taken in case of loadn }
+                  ((tassignmentnode(arg).left.nodetype=temprefn) or not(tabstractvarsym(tloadnode(tassignmentnode(arg).left).symtableentry).addr_taken)) and
+                  { and no definition in the loop? }
+                  not(DFASetIn(tfornode(n).t2.optinfo^.defsum,tassignmentnode(arg).left.optinfo^.index)) then
+                  begin
+                    replaceBasicAssign(tfornode(n).t2, arg, tree_modified3);
+                    tree_modified:=tree_modified or tree_modified3;
+                  end;
+              end;
             { after a for node we cannot continue with our simple approach }
             result:=false;
           end
@@ -317,6 +334,11 @@ unit optconstprop;
                         is_constenumnode(a.right) or
                         is_conststringnode(a.right)) then
                       begin
+{$ifdef DEBUG_CONSTPROP}
+                        writeln('******************************* propagating ***********************************');
+                        printnode(a);
+                        writeln('*******************************************************************************');
+{$endif DEBUG_CONSTPROP}
                         st2:=tstatementnode(tstatementnode(st).right);
                         old:=@tstatementnode(st).right;
                         while assigned(st2) do
