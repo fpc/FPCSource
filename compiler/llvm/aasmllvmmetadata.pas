@@ -199,7 +199,10 @@ implementation
 
   function llvm_getmetadatareftypedconst(metadata: tai_llvmbasemetadatanode): tai_simpletypedconst;
     begin
-      result:=tai_simpletypedconst.create(llvm_metadatatype, tai_llvmmetadatareftypedconst.create(metadata));
+      if assigned(metadata) then
+        result:=tai_simpletypedconst.create(llvm_metadatatype, tai_llvmmetadatareftypedconst.create(metadata))
+      else
+        result:=nil
     end;
 
   function llvm_constrainedexceptmodestring: ansistring;

@@ -366,7 +366,10 @@ implementation
 
     function TDebugInfoLLVM.def_meta_node(def: tdef): tai_llvmspecialisedmetadatanode;
       begin
-        result:=tai_llvmspecialisedmetadatanode(get_def_metatai(def)^.HashSetItem.Data);
+        if not is_void(def) then
+          result:=tai_llvmspecialisedmetadatanode(get_def_metatai(def)^.HashSetItem.Data)
+        else
+          result:=nil;
       end;
 
     function TDebugInfoLLVM.def_meta_ref(def: tdef): tai_simpletypedconst;
@@ -626,6 +629,10 @@ implementation
         ordtype: tordtype;
         dinode: tai_llvmspecialisedmetadatanode;
       begin
+        { nothing, must be referenced as "null" in the using declaration }
+        if is_void(def) then
+          exit;
+
         ordtype:=def.ordtype;
         if ordtype=customint then
           ordtype:=range_to_basetype(def.low,def.high);
@@ -657,8 +664,7 @@ implementation
             end;
           uvoid :
             begin
-              { nothing, must be referenced as "null" in the using declaration }
-              internalerror(2021111501);
+              { checked above }
             end;
           uchar,
           uwidechar :
@@ -1108,6 +1114,9 @@ implementation
         impldinode: tai_llvmspecialisedmetadatanode;
       begin
         if def.typ=procdef then
+          exit;
+
+        if is_void(def) then
           exit;
 
         refdinode:=def_meta_node(def);
