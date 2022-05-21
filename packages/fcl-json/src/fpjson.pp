@@ -804,7 +804,7 @@ implementation
 Uses typinfo;
 
 const
-  HexDigits = '01234567890ABCDEF';
+  HexDigits: array[0..15] of char = '0123456789ABCDEF';
 
 Resourcestring
   SErrCannotConvertFromNull = 'Cannot convert data from Null value';
