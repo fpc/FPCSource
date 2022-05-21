@@ -132,24 +132,30 @@ unit optconstprop;
           begin
             result:=replaceBasicAssign(tfornode(n).right, arg, tree_modified);
             if result then
-              replaceBasicAssign(tfornode(n).t1, arg, tree_modified2);
-            tree_modified:=tree_modified or tree_modified2;
-            if pi_dfaavailable in current_procinfo.flags then
               begin
-                CalcDefSum(tfornode(n).t2);
-                { the constant can propagete if is is not the counter variable ... }
-                if not(tassignmentnode(arg).left.isequal(tfornode(n).left)) and
-                { if it is a temprefn or its address is not taken in case of loadn }
-                  ((tassignmentnode(arg).left.nodetype=temprefn) or not(tabstractvarsym(tloadnode(tassignmentnode(arg).left).symtableentry).addr_taken)) and
-                  { and no definition in the loop? }
-                  not(DFASetIn(tfornode(n).t2.optinfo^.defsum,tassignmentnode(arg).left.optinfo^.index)) then
+                { play safe and set the result which is check below }
+                result:=replaceBasicAssign(tfornode(n).t1, arg, tree_modified2);
+                tree_modified:=tree_modified or tree_modified2;
+                if result and (pi_dfaavailable in current_procinfo.flags) then
                   begin
-                    replaceBasicAssign(tfornode(n).t2, arg, tree_modified3);
-                    tree_modified:=tree_modified or tree_modified3;
-                  end;
+                    CalcDefSum(tfornode(n).t2);
+                    { the constant can propagete if is is not the counter variable ... }
+                    if not(tassignmentnode(arg).left.isequal(tfornode(n).left)) and
+                    { if it is a temprefn or its address is not taken in case of loadn }
+                      ((tassignmentnode(arg).left.nodetype=temprefn) or not(tabstractvarsym(tloadnode(tassignmentnode(arg).left).symtableentry).addr_taken)) and
+                      { and no definition in the loop? }
+                      not(DFASetIn(tfornode(n).t2.optinfo^.defsum,tassignmentnode(arg).left.optinfo^.index)) then
+                      begin
+                        replaceBasicAssign(tfornode(n).t2, arg, tree_modified3);
+                        tree_modified:=tree_modified or tree_modified3;
+                        result:=false;
+                      end
+                    else
+                      result:=false;
+                  end
+                else
+                  result:=false;
               end;
-            { after a for node we cannot continue with our simple approach }
-            result:=false;
           end
         else if n.nodetype=blockn then
           begin
