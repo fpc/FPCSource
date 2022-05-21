@@ -71,11 +71,6 @@
     <SearchPaths>
       <OtherUnitFiles Value="../src"/>
     </SearchPaths>
-    <Parsing>
-      <SyntaxOptions>
-        <UseAnsiStrings Value="False"/>
-      </SyntaxOptions>
-    </Parsing>
     <Linking>
       <Debugging>
         <UseHeaptrc Value="True"/>

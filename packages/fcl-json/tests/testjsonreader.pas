@@ -1,6 +1,7 @@
 unit testjsonreader;
 
 {$mode objfpc}
+{$codepage UTF8}
 
 interface
 
@@ -38,10 +39,6 @@ type
     Property List : TStrings Read GetList;
   end;
 
-  { TTestParser }
-
-  { TTestReader }
-
   { TBaseTestReader }
 
   TBaseTestReader = class(TTestJSON)
@@ -78,6 +75,8 @@ type
     procedure TestGarbageOK;
     procedure TestGarbageFail;
   end;
+
+  { TTestReader }
 
   TTestReader = Class(TBaseTestReader)
   Private
