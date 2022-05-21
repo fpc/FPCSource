@@ -177,6 +177,7 @@ type
     procedure TestCreateBoolean;
     procedure TestCreateObject;
     procedure TestCreateJSONString;
+    procedure TestCreateJSONStringSpecialChars;
     procedure TestCreateJSONObject;
     procedure TestCreateNilPointer;
     procedure TestCreatePointer;
@@ -2389,6 +2390,37 @@ begin
     TestItemCount(J,1);
     TestJSONType(J[0],jtString);
     TestJSON(J,'["'+S+'"]');
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
+procedure TTestArray.TestCreateJSONStringSpecialChars;
+const
+  S: array[0..7] of string = (
+    'A'#1,
+    'B'#9,
+    'C'#10,
+    'D'#12,
+    'E'#13,
+    'F'#10#13,
+    'G"Foo"',
+    'H\J');
+Var
+  J : TJSONArray;
+  i: Integer;
+
+begin
+  J:=TJSonArray.Create;
+  try
+    for i:=0 to high(S) do
+      J.Add(S[i]);
+    TestItemCount(J,length(S));
+    for i:=0 to high(S) do
+      begin
+      TestJSONType(J[i],jtString);
+      end;
+    TestJSON(J,'["A\u0001", "B\t", "C\n", "D\f", "E\r", "F\n\r", "G\"Foo\"", "H\\J"]');
   finally
     FreeAndNil(J);
   end;

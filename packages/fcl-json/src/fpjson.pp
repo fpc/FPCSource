@@ -803,6 +803,9 @@ implementation
 
 Uses typinfo,sysconst;
 
+const
+  HexDigits: array[0..15] of char = '0123456789ABCDEF';
+
 Resourcestring
   SErrCannotConvertFromNull = 'Cannot convert data from Null value';
   SErrCannotConvertToNull = 'Cannot convert data to Null value';
