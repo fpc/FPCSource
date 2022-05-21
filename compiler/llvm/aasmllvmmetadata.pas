@@ -47,6 +47,7 @@ interface
       DITemplateValueParameter,
       DINamespace,
       DIGlobalVariable,
+      DIGlobalVariableExpression,
       DISubprogram,
       DILexicalBlock,
       DILexicalBlockFile,
@@ -399,6 +400,7 @@ implementation
       case fkind of
         tspecialisedmetadatanodekind.DICompileUnit,
         tspecialisedmetadatanodekind.DISubprogram,
+        tspecialisedmetadatanodekind.DIGlobalVariable,
         tspecialisedmetadatanodekind.DICompositeType,
         tspecialisedmetadatanodekind.DILexicalBlock,
         tspecialisedmetadatanodekind.DIMacro:
@@ -411,7 +413,7 @@ implementation
         tspecialisedmetadatanodekind.DITemplateTypeParameter,
         tspecialisedmetadatanodekind.DITemplateValueParameter,
         tspecialisedmetadatanodekind.DINamespace,
-        tspecialisedmetadatanodekind.DIGlobalVariable,
+        tspecialisedmetadatanodekind.DIGlobalVariableExpression,
         tspecialisedmetadatanodekind.DILexicalBlockFile,
         tspecialisedmetadatanodekind.DILocation,
         tspecialisedmetadatanodekind.DILocalVariable,
