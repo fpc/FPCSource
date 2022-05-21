@@ -35,7 +35,7 @@ interface
     uses
       cclasses,globtype,
       cgbase,
-      aasmbase,aasmtai,aasmdata,aasmcnst,aasmllvmmetadata,
+      aasmbase,aasmtai,aasmdata,aasmcnst,aasmllvm,aasmllvmmetadata,
       symbase,symconst,symtype,symdef,symsym,
       finput,
       DbgBase, dbgdwarfconst;
@@ -75,6 +75,8 @@ interface
         flocationmeta: THashSet;
         { lookup table for scope,file -> LLVMMeta info (DILexicalBlockFile, for include files) }
         flexicalblockfilemeta: THashSet;
+        { lookup table for tsym -> taillvmdecl }
+        fsymdecl: THashSet;
 
         fcunode: tai_llvmspecialisedmetadatanode;
         fenums: tai_llvmunnamedmetadatanode;
@@ -95,6 +97,9 @@ interface
         function file_getmetanode(moduleindex: tfileposmoduleindex; fileindex: tfileposfileindex): tai_llvmspecialisedmetadatanode;
         function filepos_getmetanode(const filepos: tfileposinfo; const functionfileinfo: tfileposinfo; const functionscope: tai_llvmspecialisedmetadatanode; nolineinfo: boolean): tai_llvmspecialisedmetadatanode;
         function get_def_metatai(def:tdef): PLLVMMetaDefHashSetItem;
+
+        procedure sym_set_decl(sym: tsym; decl: tai);
+        function sym_get_decl(sym: tsym): taillvmdecl;
 
         procedure appenddef_array_internal(list: TAsmList; fordef: tdef; eledef: tdef; lowrange, highrange: asizeint);
         function getabstractprocdeftypes(list: TAsmList; def:tabstractprocdef): tai_llvmbasemetadatanode;
@@ -145,6 +150,8 @@ interface
 
         procedure ensuremetainit;
         procedure resetfornewmodule;
+
+        procedure collectglobalsyms;
       public
         constructor Create;override;
         destructor Destroy;override;
@@ -162,7 +169,7 @@ implementation
       cpubase,cpuinfo,paramgr,
       fmodule,
       defutil,symtable,symcpu,ppu,
-      llvminfo,llvmbase,aasmllvm
+      llvminfo,llvmbase
       ;
 
 {$push}
@@ -298,6 +305,26 @@ implementation
           end;
       end;
 
+    procedure TDebugInfoLLVM.sym_set_decl(sym: tsym; decl: tai);
+      var
+        entry: PHashSetItem;
+      begin
+        entry:=fsymdecl.FindOrAdd(@sym,sizeof(sym));
+        if assigned(entry^.Data) then
+          internalerror(2022051701);
+        entry^.Data:=decl;
+      end;
+
+    function TDebugInfoLLVM.sym_get_decl(sym: tsym): taillvmdecl;
+      var
+        entry: PHashSetItem;
+      begin
+        result:=nil;
+        entry:=fsymdecl.Find(@sym,sizeof(sym));
+        if assigned(entry) then
+          result:=taillvmdecl(entry^.Data);
+      end;
+
     procedure TDebugInfoLLVM.appenddef_array_internal(list: TAsmList; fordef: tdef; eledef: tdef; lowrange, highrange: asizeint);
       var
         dinode,
@@ -389,6 +416,7 @@ implementation
         flocationmeta:=thashset.Create(10000,true,false);
         flexicalblockfilemeta:=thashset.Create(100,true,false);
         fdefmeta:=TLLVMMetaDefHashSet.Create(10000,true,false);
+        fsymdecl:=thashset.create(10000,true,false);
 
         defnumberlist:=TFPObjectList.create(false);
         deftowritelist:=TFPObjectList.create(false);
@@ -408,6 +436,8 @@ implementation
         flexicalblockfilemeta:=nil;
         fdefmeta.free;
         fdefmeta:=nil;
+        fsymdecl.free;
+        fsymdecl:=nil;
         defnumberlist.free;
         defnumberlist:=nil;
         deftowritelist.free;
@@ -461,6 +491,7 @@ implementation
         flocationmeta.Clear;
         flexicalblockfilemeta.Clear;
         fdefmeta.free;
+        fsymdecl.Clear;
         { one item per def, plus some extra space in case of nested types,
           externally used types etc (it will grow further if necessary) }
         i:=current_module.localsymtable.DefList.count*4;
@@ -475,6 +506,25 @@ implementation
         fretainedtypes:=nil;
       end;
 
+    procedure TDebugInfoLLVM.collectglobalsyms;
+      var
+        i: TAsmListType;
+        hp: tai;
+      begin
+        for i in globaldataasmlisttypes do
+          begin
+            if not assigned(current_asmdata.AsmLists[i]) then
+              continue;
+            hp:=tai(current_asmdata.AsmLists[i].First);
+            while assigned(hp) do
+              begin
+                if (hp.typ=ait_llvmdecl) and
+                   assigned(taillvmdecl(hp).sym) then
+                     sym_set_decl(taillvmdecl(hp).sym,hp);
+                hp:=tai(hp.next);
+              end;
+          end;
+      end;
 
     function TDebugInfoLLVM.file_getmetanode(moduleindex: tfileposmoduleindex; fileindex: tfileposfileindex): tai_llvmspecialisedmetadatanode;
       var
@@ -2233,13 +2283,14 @@ implementation
         if assigned(vardatatype) then
           vardatadef:=trecorddef(vardatatype.typedef);
 
-(*
+        collectglobalsyms;
+
         { write all global/local variables. This will flag all required tdefs  }
         if assigned(current_module.globalsymtable) then
           write_symtable_syms(current_asmdata.asmlists[al_dwarf_info],current_module.globalsymtable);
         if assigned(current_module.localsymtable) then
           write_symtable_syms(current_asmdata.asmlists[al_dwarf_info],current_module.localsymtable);
-*)
+
         { write all procedures and methods. This will flag all required tdefs }
         if assigned(current_module.globalsymtable) then
           write_symtable_procdefs(current_asmdata.asmlists[al_dwarf_info],current_module.globalsymtable);

@@ -76,10 +76,20 @@ interface
         al_objc_pools,
         al_end
       );
+    {$push}{$j-}
+    const
+      globaldataasmlisttypes: array[1..5] of TAsmListType = (
+        al_globals,
+        al_const,
+        al_typedconsts,
+        al_rotypedconsts,
+        al_threadvars
+      );
+    {$pop}
 
       { Type of constant 'pools'. Mostly for string types, but usable for
         floating point and large set constants, too. }
-      
+    type
       TConstPoolType = (
          sp_invalid,
          sp_conststr,
