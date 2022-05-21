@@ -2153,10 +2153,15 @@ implementation
 
     function TDebugInfoLLVM.symdebugname(sym: tsym): TSymStr;
     begin
-      result:=sym.RealName;
-      if (result<>'') and
-         (result[1]='$') then
-        delete(result,1,1);
+      if ds_dwarf_cpp in current_settings.debugswitches then
+        begin
+          result:=sym.RealName;
+          if (result<>'') and
+             (result[1]='$') then
+            delete(result,1,1);
+        end
+      else
+        result:=sym.name
     end;
 
 
