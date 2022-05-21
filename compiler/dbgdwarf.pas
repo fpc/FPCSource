@@ -2955,9 +2955,20 @@ implementation
         if assigned(accesslist.procdef) then
           begin
             memberdef := accesslist.procdef;
-            memberowner := memberdef.owner;
-            dwarfoffset := (accesslist.procdef as tcpuprocdef).dwarfoffset;
-            memberdef_or_sym := memberdef;
+            // Debuginfo for procdefs is only written for members of an odt_helper
+            // or odt_class. (So, among others, not for interfaces.)
+            // It is not possible to reference something that is not there, so
+            // omit te reference.
+            if Assigned(memberdef.owner.defowner) and (memberdef.owner.defowner.typ=objectdef) and
+               (tobjectdef(memberdef.owner.defowner).objecttype in [odt_helper, odt_class]) then
+              begin
+                if Assigned(tprocdef(memberdef).localst) then
+                  begin
+                    memberowner := memberdef.owner;
+                    dwarfoffset := (accesslist.procdef as tcpuprocdef).dwarfoffset;
+                    memberdef_or_sym := memberdef;
+                  end;
+              end;
           end
         // Note that the returned 'dwarfoffset' is not used and not a dwarf-offset
         else if get_symlist_sym_offset(accesslist.firstsym, membersym, dwarfoffset) then
