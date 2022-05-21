@@ -1705,20 +1705,21 @@ const
   symopts=ord(high(tsymoption)) - ord(low(tsymoption));
   { sp_none = 0 corresponds to nothing }
   symopt : array[1..symopts] of tsymopt=(
-     (mask:sp_static;             str:'Static'),
-     (mask:sp_hint_deprecated;    str:'Hint Deprecated'),
-     (mask:sp_hint_platform;      str:'Hint Platform'),
-     (mask:sp_hint_library;       str:'Hint Library'),
-     (mask:sp_hint_unimplemented; str:'Hint Unimplemented'),
-     (mask:sp_hint_experimental;  str:'Hint Experimental'),
-     (mask:sp_has_overloaded;     str:'Has overloaded'),
-     (mask:sp_internal;           str:'Internal'),
-     (mask:sp_implicitrename;     str:'Implicit Rename'),
-     (mask:sp_generic_para;       str:'Generic Parameter'),
-     (mask:sp_has_deprecated_msg; str:'Has Deprecated Message'),
-     (mask:sp_generic_dummy;      str:'Generic Dummy'),
-     (mask:sp_explicitrename;     str:'Explicit Rename'),
-     (mask:sp_generic_const;      str:'Generic Constant Parameter')
+     (mask:sp_static;              str:'Static'),
+     (mask:sp_hint_deprecated;     str:'Hint Deprecated'),
+     (mask:sp_hint_platform;       str:'Hint Platform'),
+     (mask:sp_hint_library;        str:'Hint Library'),
+     (mask:sp_hint_unimplemented;  str:'Hint Unimplemented'),
+     (mask:sp_hint_experimental;   str:'Hint Experimental'),
+     (mask:sp_has_overloaded;      str:'Has overloaded'),
+     (mask:sp_internal;            str:'Internal'),
+     (mask:sp_implicitrename;      str:'Implicit Rename'),
+     (mask:sp_generic_para;        str:'Generic Parameter'),
+     (mask:sp_has_deprecated_msg;  str:'Has Deprecated Message'),
+     (mask:sp_generic_dummy;       str:'Generic Dummy'),
+     (mask:sp_explicitrename;      str:'Explicit Rename'),
+     (mask:sp_generic_const;       str:'Generic Constant Parameter'),
+     (mask:sp_generic_unnamed_type;str:'Generic Unnamed Type')
   );
 var
   symoptions : tsymoptions;

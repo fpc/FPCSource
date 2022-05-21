@@ -758,6 +758,7 @@ uses
           else
             begin
               newtype:=ctypesym.create(def.fullownerhierarchyname(false)+typName[def.typ]+'$'+def.unique_id_str,def);
+              include(newtype.symoptions,sp_generic_unnamed_type);
               newtype.owner:=def.owner;
               { ensure that there's no warning }
               newtype.refs:=1;

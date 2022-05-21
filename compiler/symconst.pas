@@ -214,7 +214,9 @@ type
                               "overridden" with a completely different symbol }
     sp_explicitrename,      { this is used to keep track of type renames created
                               by the user }
-    sp_generic_const
+    sp_generic_const,
+    sp_generic_unnamed_type { type symbol created for an anonymous type during
+                              an implicit function specialization }
   );
   tsymoptions=set of tsymoption;
 
