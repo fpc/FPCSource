@@ -1457,7 +1457,7 @@ implementation
                       writer.AsmWrite(', align ');
                       writer.AsmWrite(tostr(taillvmdecl(hp).alignment));
                     end;
-                  InstrWriter.WriterInstructionMetadata(' ',taillvmdecl(hp).metadata);
+                  InstrWriter.WriterInstructionMetadata(', ',taillvmdecl(hp).metadata);
                   writer.AsmLn;
                 end;
             end;
