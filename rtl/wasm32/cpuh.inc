@@ -81,3 +81,6 @@ function fpc_wasm32_i64_atomic_rmw16_cmpxchg_u(Dest: PWord; Expected, Replacemen
 function fpc_wasm32_i64_atomic_rmw32_cmpxchg_u(Dest: PWord; Expected, Replacement: QWord): QWord;[internproc:fpc_in_wasm32_i64_atomic_rmw32_cmpxchg_u];
 function fpc_wasm32_i64_atomic_rmw_cmpxchg_u(Dest: PLongWord; Expected, Replacement: QWord): QWord;[internproc:fpc_in_wasm32_i64_atomic_rmw_cmpxchg];
 
+function fpc_wasm32_memory_atomic_wait32(Dest: PLongWord; Expected: LongWord; Timeout: Int64): LongInt;[internproc:fpc_in_wasm32_memory_atomic_wait32];
+function fpc_wasm32_memory_atomic_wait64(Dest: PQWord; Expected: QWord; Timeout: Int64): LongInt;[internproc:fpc_in_wasm32_memory_atomic_wait64];
+

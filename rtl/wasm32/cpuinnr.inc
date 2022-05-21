@@ -76,3 +76,7 @@
   fpc_in_wasm32_i64_atomic_rmw32_cmpxchg_u = fpc_in_cpu_first+54;
   fpc_in_wasm32_i64_atomic_rmw_cmpxchg     = fpc_in_cpu_first+55;
 
+  fpc_in_wasm32_memory_atomic_wait32 = fpc_in_cpu_first+56;
+  fpc_in_wasm32_memory_atomic_wait64 = fpc_in_cpu_first+57;
+  fpc_in_wasm32_memory_atomic_notify = fpc_in_cpu_first+58;
+

@@ -583,6 +583,12 @@ implementation
               CheckParameters(3);
               resultdef:=u64inttype;
             end;
+          in_wasm32_memory_atomic_wait32,
+          in_wasm32_memory_atomic_wait64:
+            begin
+              CheckParameters(3);
+              resultdef:=s32inttype;
+            end;
           else
             Result:=inherited pass_typecheck_cpu;
         end;
@@ -650,7 +656,9 @@ implementation
           in_wasm32_i64_atomic_rmw8_cmpxchg_u,
           in_wasm32_i64_atomic_rmw16_cmpxchg_u,
           in_wasm32_i64_atomic_rmw32_cmpxchg_u,
-          in_wasm32_i64_atomic_rmw_cmpxchg:
+          in_wasm32_i64_atomic_rmw_cmpxchg,
+          in_wasm32_memory_atomic_wait32,
+          in_wasm32_memory_atomic_wait64:
             expectloc:=LOC_REGISTER;
           else
             Result:=inherited first_cpu;
@@ -773,6 +781,10 @@ implementation
             second_atomic_rmw_x_y_z(a_i64_atomic_rmw32_cmpxchg_u);
           in_wasm32_i64_atomic_rmw_cmpxchg:
             second_atomic_rmw_x_y_z(a_i64_atomic_rmw_cmpxchg);
+          in_wasm32_memory_atomic_wait32:
+            second_atomic_rmw_x_y_z(a_memory_atomic_wait32);
+          in_wasm32_memory_atomic_wait64:
+            second_atomic_rmw_x_y_z(a_memory_atomic_wait64);
           else
             inherited pass_generate_code_cpu;
         end;

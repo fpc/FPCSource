@@ -74,5 +74,9 @@
   in_wasm32_i64_atomic_rmw8_cmpxchg_u  = in_cpu_first+52,
   in_wasm32_i64_atomic_rmw16_cmpxchg_u = in_cpu_first+53,
   in_wasm32_i64_atomic_rmw32_cmpxchg_u = in_cpu_first+54,
-  in_wasm32_i64_atomic_rmw_cmpxchg     = in_cpu_first+55
+  in_wasm32_i64_atomic_rmw_cmpxchg     = in_cpu_first+55,
+
+  in_wasm32_memory_atomic_wait32 = in_cpu_first+56,
+  in_wasm32_memory_atomic_wait64 = in_cpu_first+57,
+  in_wasm32_memory_atomic_notify = in_cpu_first+58
 
