@@ -2672,7 +2672,7 @@ implementation
           the debug info for this structure) so that properties are able to
           reference this field
           When the ds_dwarf_properties is not provided, the compiler creates
-          'fake' properties, thoug. In that case the offset is invalid and should
+          'fake' properties, though. In that case the offset is invalid and should
           not be stored }
           set_sym_dwarf_offset(sym, DwarfOffset);
 
