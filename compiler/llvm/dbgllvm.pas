@@ -2276,6 +2276,7 @@ implementation
 *)
         vardatatype: ttypesym;
       begin
+        ensuremetainit;
         storefilepos:=current_filepos;
         current_filepos:=current_module.mainfilepos;
 
