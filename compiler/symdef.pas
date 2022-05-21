@@ -2465,7 +2465,7 @@ implementation
              { sym must be either a type or const }
              if not (sym.typ in [symconst.typesym,symconst.constsym]) then
                internalerror(2014050903);
-             if sym.owner.defowner<>self then
+             if (sym.owner.defowner<>self) or (sp_generic_unnamed_type in sym.symoptions) then
                exit(false);
              if (sym.typ=symconst.constsym) and (sp_generic_const in sym.symoptions) then
                exit(false);
@@ -2506,7 +2506,7 @@ implementation
                { sym must be either a type or const }
                if not (sym.typ in [symconst.typesym,symconst.constsym]) then
                  internalerror(2014050904);
-               if sym.owner.defowner<>self then
+               if (sym.owner.defowner<>self) or (sp_generic_unnamed_type in sym.symoptions) then
                  exit(true);
                if (sym.typ=symconst.constsym) and (sp_generic_const in sym.symoptions) then
                  exit(true);
