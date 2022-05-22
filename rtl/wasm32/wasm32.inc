@@ -73,71 +73,119 @@ function Sptr : pointer;
 
 function InterLockedDecrement (var Target: longint) : longint;
   begin
+{$ifdef FPC_WASM_THREADS}
+{$push}{$R-,Q-}
+    Result:=fpc_wasm32_i32_atomic_rmw_sub(@Target,1)-1;
+{$pop}
+{$else FPC_WASM_THREADS}
     dec(Target);
     Result:=Target;
+{$endif FPC_WASM_THREADS}
   end;
 
 
 function InterLockedIncrement (var Target: longint) : longint;
   begin
+{$ifdef FPC_WASM_THREADS}
+{$push}{$R-,Q-}
+    Result:=fpc_wasm32_i32_atomic_rmw_add(@Target,1)+1;
+{$pop}
+{$else FPC_WASM_THREADS}
     inc(Target);
     Result:=Target;
+{$endif FPC_WASM_THREADS}
   end;
 
 
 function InterLockedExchange (var Target: longint;Source : longint) : longint;
   begin
+{$ifdef FPC_WASM_THREADS}
+    Result:=LongInt(fpc_wasm32_i32_atomic_rmw_xchg(@Target,LongWord(Source)));
+{$else FPC_WASM_THREADS}
     Result:=Target;
     Target:=Source;
+{$endif FPC_WASM_THREADS}
   end;
 
 
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
   begin
+{$ifdef FPC_WASM_THREADS}
+    Result:=LongInt(fpc_wasm32_i32_atomic_rmw_cmpxchg_u(@Target,LongWord(Comperand),LongWord(NewValue)));
+{$else FPC_WASM_THREADS}
     Result:=Target;
     if Target=Comperand then
       Target:=NewValue;
+{$endif FPC_WASM_THREADS}
   end;
 
 
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;
   begin
+{$ifdef FPC_WASM_THREADS}
+    Result:=LongInt(fpc_wasm32_i32_atomic_rmw_add(@Target,LongWord(Source)));
+{$else FPC_WASM_THREADS}
     Result:=Target;
     inc(Target,Source);
+{$endif FPC_WASM_THREADS}
   end;
 
 
 function InterLockedDecrement (var Target: smallint) : smallint;
   begin
+{$ifdef FPC_WASM_THREADS}
+{$push}{$R-,Q-}
+    Result:=smallint(fpc_wasm32_i32_atomic_rmw16_sub_u(@Target,1)-1);
+{$pop}
+{$else FPC_WASM_THREADS}
     dec(Target);
     Result:=Target;
+{$endif FPC_WASM_THREADS}
   end;
 
 
 function InterLockedIncrement (var Target: smallint) : smallint;
   begin
+{$ifdef FPC_WASM_THREADS}
+{$push}{$R-,Q-}
+    Result:=smallint(fpc_wasm32_i32_atomic_rmw16_add_u(@Target,1)+1);
+{$pop}
+{$else FPC_WASM_THREADS}
     inc(Target);
     Result:=Target;
+{$endif FPC_WASM_THREADS}
   end;
 
 
 function InterLockedExchange (var Target: smallint;Source : smallint) : smallint;
   begin
+{$ifdef FPC_WASM_THREADS}
+    Result:=SmallInt(fpc_wasm32_i32_atomic_rmw16_xchg_u(@Target,Word(Source)));
+{$else FPC_WASM_THREADS}
     Result:=Target;
     Target:=Source;
+{$endif FPC_WASM_THREADS}
   end;
 
 
 function InterlockedCompareExchange(var Target: smallint; NewValue: smallint; Comperand: smallint): smallint;
   begin
+{$ifdef FPC_WASM_THREADS}
+    Result:=SmallInt(fpc_wasm32_i32_atomic_rmw16_cmpxchg_u(@Target,Word(Comperand),Word(NewValue)));
+{$else FPC_WASM_THREADS}
     Result:=Target;
     if Target=Comperand then
       Target:=NewValue;
+{$endif FPC_WASM_THREADS}
   end;
 
 
 function InterLockedExchangeAdd (var Target: smallint;Source : smallint) : smallint;
   begin
+{$ifdef FPC_WASM_THREADS}
+    Result:=SmallInt(fpc_wasm32_i32_atomic_rmw16_add_u(@Target,Word(Source)));
+{$else FPC_WASM_THREADS}
     Result:=Target;
     inc(Target,Source);
+{$endif FPC_WASM_THREADS}
   end;
