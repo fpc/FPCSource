@@ -635,6 +635,7 @@ type
     Procedure TestNestedClass_Alias;
     Procedure TestNestedClass_Record;
     Procedure TestNestedClass_Class;
+    Procedure TestNestedClass_CallInherited;
 
     // external class
     Procedure TestExternalClass_Var;
@@ -18168,7 +18169,6 @@ end;
 
 procedure TTestModule.TestNestedClass_Class;
 begin
-  WithTypeInfo:=true;
   StartProgram(false);
   Add([
   'type',
@@ -18251,6 +18251,72 @@ begin
     '$mod.b.Create();',
     '$mod.b = $mod.TBird.TLeg.$create("Create");',
     '$mod.b = $mod.b.Create$1(3);',
+    '']));
+end;
+
+procedure TTestModule.TestNestedClass_CallInherited;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class end;',
+  '  TBird = class',
+  '  type',
+  '    TWing = class',
+  '      function Fly(w: word = 17): word; virtual;',
+  '    end;',
+  '  end;',
+  '  TEagle = class(TBird)',
+  '  type',
+  '    TEagleWing = class(TWing)',
+  '      function Fly(w: word): word; override;',
+  '    end;',
+  '  end;',
+  'function TBird.TWing.Fly(w: word): word;',
+  'begin',
+  'end;',
+  'function TEagle.TEagleWing.Fly(w: word): word;',
+  'begin',
+  '  inherited;',
+  '  inherited Fly;',
+  '  inherited Fly(3);',
+  '  Result:=inherited Fly;',
+  '  Result:=inherited Fly(4);',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestNestedClass_CallInherited',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TBird", this.TObject, function () {',
+    '  rtl.createClass(this, "TWing", $mod.TObject, function () {',
+    '    this.Fly = function (w) {',
+    '      var Result = 0;',
+    '      return Result;',
+    '    };',
+    '  }, "TBird.TWing");',
+    '});',
+    'rtl.createClass(this, "TEagle", this.TBird, function () {',
+    '  rtl.createClass(this, "TEagleWing", this.TWing, function () {',
+    '    this.Fly = function (w) {',
+    '      var Result = 0;',
+    '      $mod.TBird.TWing.Fly.apply(this, arguments);',
+    '      $mod.TBird.TWing.Fly.call(this, 17);',
+    '      $mod.TBird.TWing.Fly.call(this, 3);',
+    '      Result = $mod.TBird.TWing.Fly.call(this, 17);',
+    '      Result = $mod.TBird.TWing.Fly.call(this, 4);',
+    '      return Result;',
+    '    };',
+    '  }, "TEagle.TEagleWing");',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
     '']));
 end;
 
