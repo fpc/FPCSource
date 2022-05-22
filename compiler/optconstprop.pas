@@ -50,7 +50,7 @@ unit optconstprop;
 
       will not result in any constant propagation.
     }
-    function do_optconstpropagate(var rootnode : tnode) : tnode;
+    function do_optconstpropagate(var rootnode : tnode;var changed: boolean) : tnode;
 
   implementation
 
@@ -136,7 +136,9 @@ unit optconstprop;
                 { play safe and set the result which is check below }
                 result:=replaceBasicAssign(tfornode(n).t1, arg, tree_modified2);
                 tree_modified:=tree_modified or tree_modified2;
-                if result and (pi_dfaavailable in current_procinfo.flags) then
+                if result and (pi_dfaavailable in current_procinfo.flags) and
+                  { play safe }
+                  assigned(tfornode(n).t2.optinfo) and assigned(tassignmentnode(arg).left.optinfo) then
                   begin
                     CalcDefSum(tfornode(n).t2);
                     { the constant can propagete if is is not the counter variable ... }
@@ -146,9 +148,8 @@ unit optconstprop;
                       { and no definition in the loop? }
                       not(DFASetIn(tfornode(n).t2.optinfo^.defsum,tassignmentnode(arg).left.optinfo^.index)) then
                       begin
-                        replaceBasicAssign(tfornode(n).t2, arg, tree_modified3);
+                        result:=replaceBasicAssign(tfornode(n).t2, arg, tree_modified3);
                         tree_modified:=tree_modified or tree_modified3;
-                        result:=false;
                       end
                     else
                       result:=false;
@@ -383,22 +384,15 @@ unit optconstprop;
       end;
 
 
-    function do_optconstpropagate(var rootnode: tnode): tnode;
-      var
-        changed: boolean;
-        runsimplify : Boolean;
+    function do_optconstpropagate(var rootnode: tnode;var changed: boolean): tnode;
       begin
 {$ifdef DEBUG_CONSTPROP}
         writeln('************************ before constant propagation ***************************');
         printnode(rootnode);
 {$endif DEBUG_CONSTPROP}
-        runsimplify:=false;
-        repeat
-          changed:=false;
-          foreachnodestatic(pm_postandagain, rootnode, @propagate, @changed);
-          runsimplify:=runsimplify or changed;
-        until changed=false;
-        if runsimplify then
+        changed:=false;
+        foreachnodestatic(pm_postandagain, rootnode, @propagate, @changed);
+        if changed then
           doinlinesimplify(rootnode);
 {$ifdef DEBUG_CONSTPROP}
         writeln('************************ after constant propagation ***************************');
