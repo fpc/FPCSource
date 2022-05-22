@@ -1314,7 +1314,6 @@ function CONSOLE_REAL_OUTPUT_HANDLE : HANDLE;
   function AttachConsole(dwProcessId:DWORD):BOOL;stdcall;external 'kernel32' name 'AttachConsole';
   function ATTACH_PARENT_PROCESS : DWORD;    
 
-
   function GetConsoleDisplayMode(lpModeFlags:LPDWORD):BOOL;stdcall;external 'kernel32' name 'GetConsoleDisplayMode';
   function SetConsoleDisplayMode(hConsoleOutput:HANDLE; dwFlags:DWORD; lpNewScreenBufferDimensions:PCOORD):BOOL;stdcall;external 'kernel32' name 'SetConsoleDisplayMode';
   function GetConsoleWindow:HWND;stdcall;external 'kernel32' name 'GetConsoleWindow';
@@ -1331,6 +1330,10 @@ function CONSOLE_REAL_OUTPUT_HANDLE : HANDLE;
   function RealChildWindowFromPoint(Parent : HWND; Pt : TPOINT): HWND; stdcall; external 'user32.dll' name 'RealChildWindowFromPoint';
   function GetGuiResources(ProcessHandle : THANDLE; ResourceType : DWORD): DWORD; stdcall; external 'user32.dll' name 'GetGuiResources';
   function SendInput(InputsCount : UINT; InputsPtr : PINPUT; Size : WINT) : UINT; stdcall; external 'user32.dll' name 'SendInput';
+
+  // only in widechar variant.
+  function GetDateFormatEx(LocaleName : pwidechar;Flags : DWORD;Date : PSYSTEMTIME; Format : pwidechar; DateBuffer : pwidechar; BufferLen  : longint; Calendar : pwidechar) : BOOL; stdcall; external 'kernel32';
+
 {$endif read_interface}
 
 
