@@ -387,6 +387,7 @@ type
     Procedure TestProc_ConstOrder;
     Procedure TestProc_DuplicateConst;
     Procedure TestProc_LocalVarAbsolute;
+    Procedure TestProc_ResultAbsolute;
     Procedure TestProc_LocalVarInit;
     Procedure TestProc_ReservedWords;
     Procedure TestProc_ConstRefWord;
@@ -5522,6 +5523,59 @@ begin
     '  if (p.Index === p.Index) p.Index = p.Index;',
     '};'
     ]),
+    LinesToStr([
+    ]));
+end;
+
+procedure TTestModule.TestProc_ResultAbsolute;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    Index: longint;',
+  '    function DoAbs: pointer;',
+  '  end;',
+  'function TObject.DoAbs: pointer;',
+  'var',
+  '  o: TObject absolute Result;',
+  'begin',
+  '  if o.Index<o.Index then o.Index:=o.Index;',
+  'end;',
+  'function DoIt: jsvalue;',
+  'var',
+  '  d: double absolute Result;',
+  '  s: string absolute Result;',
+  '  o: TObject absolute Result;',
+  'begin',
+  '  if d=d then d:=d;',
+  '  if s=s then s:=s;',
+  '  if o.Index<o.Index then o.Index:=o.Index;',
+  'end;',
+  'begin']);
+  ConvertProgram;
+  CheckSource('TestProc_ResultAbsolute',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.Index = 0;',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.DoAbs = function () {',
+    '    var Result = null;',
+    '    if (Result.Index < Result.Index) Result.Index = Result.Index;',
+    '    return Result;',
+    '  };',
+    '});',
+    'this.DoIt = function () {',
+    '  var Result = undefined;',
+    '  if (Result === Result) Result = Result;',
+    '  if (Result === Result) Result = Result;',
+    '  if (Result.Index < Result.Index) Result.Index = Result.Index;',
+    '  return Result;',
+    '};',
+    '']),
     LinesToStr([
     ]));
 end;

@@ -7919,7 +7919,8 @@ begin
     C:=ResolvedAbs.IdentEl.ClassType;
     if (C=TPasVariable)
         or (C=TPasArgument)
-        or ((C=TPasConst) and (TPasConst(ResolvedAbs.IdentEl).VarType<>nil)) then
+        or ((C=TPasConst) and (TPasConst(ResolvedAbs.IdentEl).VarType<>nil))
+        or (C=TPasResultElement) then
     else
       RaiseMsg(20171225235203,nVariableIdentifierExpected,sVariableIdentifierExpected,[],El.AbsoluteExpr);
     if not (rrfReadable in ResolvedAbs.Flags) then

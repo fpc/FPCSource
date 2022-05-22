@@ -4449,7 +4449,8 @@ begin
       begin
       // local var
       if (AbsIdent.Parent is TProcedureBody)
-          or (AbsIdent is TPasArgument) then
+          or (AbsIdent is TPasArgument)
+          or (AbsIdent is TPasResultElement) then
         // ok
       else
         begin
