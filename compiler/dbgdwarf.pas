@@ -2971,7 +2971,11 @@ implementation
               end;
           end
         // Note that the returned 'dwarfoffset' is not used and not a dwarf-offset
-        else if get_symlist_sym_offset(accesslist.firstsym, membersym, dwarfoffset) then
+        else if get_symlist_sym_offset(accesslist.firstsym, membersym, dwarfoffset) and
+        // Debuginfo for static members is not written
+        // It is not possible to reference something that is not there, so
+        // omit te reference.
+                not (sp_static in membersym.symoptions) then
           begin
             memberowner := membersym.owner;
             if (membersym.typ <> fieldvarsym) then
