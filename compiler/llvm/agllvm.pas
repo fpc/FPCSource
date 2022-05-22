@@ -350,9 +350,9 @@ implementation
            owner.writer.AsmWrite(llvmencodetypename(para^.def));
            if para^.valueext<>lve_none then
              owner.writer.AsmWrite(llvmvalueextension2str[para^.valueext]);
-           if para^.byval then
+           if lcp_byval in para^.flags then
              owner.writer.AsmWrite(llvmparatypeattr(' byval',para^.def,true));
-           if para^.sret then
+           if lcp_sret in para^.flags then
              owner.writer.AsmWrite(llvmparatypeattr(' sret',para^.def,true));
            if asmblock and
               (llvmflag_opaque_ptr_transition in llvmversion_properties[current_settings.llvmversion]) and

@@ -209,14 +209,16 @@ interface
       destructor destroy; override;
     end;
 
+    tllvmcallparaflag = (lcp_byval, lcp_sret);
+    tllvmcallparaflags = set of tllvmcallparaflag;
+
     { parameter to an llvm call instruction }
     pllvmcallpara = ^tllvmcallpara;
     tllvmcallpara = record
       def: tdef;
       alignment: shortint;
       valueext: tllvmvalueextension;
-      byval,
-      sret: boolean;
+      flags: tllvmcallparaflags;
       case typ: toptype of
         top_none: ();
         top_reg: (register: tregister);

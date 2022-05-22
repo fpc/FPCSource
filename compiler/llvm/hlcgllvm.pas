@@ -476,21 +476,21 @@ implementation
         while assigned(paraloc) do
           begin
             new(callpara);
+            callpara^.flags:=[];
             callpara^.def:=paraloc^.def;
             { if the paraloc doesn't contain the value itself, it's a byval
               parameter }
             if paraloc^.retvalloc then
               begin
-                callpara^.sret:=true;
-                callpara^.byval:=false;
+                include(callpara^.flags,lcp_sret);
               end
             else
               begin
-                callpara^.sret:=false;
-                callpara^.byval:=not paraloc^.llvmvalueloc;
+                if not paraloc^.llvmvalueloc then
+                  include(callpara^.flags,lcp_byval);
               end;
             if firstparaloc and
-               callpara^.byval then
+               (lcp_byval in callpara^.flags) then
               callpara^.alignment:=paras[i]^.Alignment
             else
               callpara^.alignment:=std_param_align;

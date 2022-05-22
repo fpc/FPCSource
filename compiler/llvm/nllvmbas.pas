@@ -89,8 +89,7 @@ interface
             if (sym.typ=paravarsym) and
                paramanager.push_addr_param(sym.varspez,sym.vardef,current_procinfo.procdef.proccalloption) then
               callpara^.def:=cpointerdef.getreusable(callpara^.def);
-            callpara^.sret:=false;
-            callpara^.byval:=false;
+            callpara^.flags:=[];
             callpara^.valueext:=lve_none;
             callpara^.typ:=top_reg;
             { address must be a temp register }
