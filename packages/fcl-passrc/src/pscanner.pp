@@ -2625,7 +2625,7 @@ begin
           Log(mtError,nErrInvalidCharacter,SErrInvalidCharacter,['#0'])
         else if Src[p]=c then
           break
-        else (c='''') and (Src[p] in [#10,#13]) then
+        else if (c='''') and (Src[p] in [#10,#13]) then
           Log(mtError,nErrInvalidCharacter,SErrInvalidCharacter,['#'+IntToStr(ord(Src[p]))])
         else
           inc(p);
@@ -3773,9 +3773,11 @@ function TPascalScanner.DoFetchMultilineTextToken:TToken;
 // works similar to DoFetchTextToken, except changes indentation
 
 var
-  StartPos,OldLength     : Integer;
-  TokenStart    : {$ifdef UsePChar}PChar{$else}integer{$endif};
-  {$ifndef UsePChar}
+  StartPos: Integer;
+  TokenStart: {$ifdef UsePChar}PChar{$else}integer{$endif};
+  {$ifdef UsePChar}
+  OldLength: integer;
+  {$else}
   s: String;
   l: integer;
   {$endif}
@@ -3848,13 +3850,13 @@ var
 
 begin
   Result:=tkEOF;
-  OldLength:=0;
   FCurTokenString := '';
   {$ifndef UsePChar}
   s:=FCurLine;
   l:=length(s);
   StartPos:=FTokenPos;
   {$ELSE}
+  OldLength:=0;
   StartPos:=FTokenPos-PChar(FCurLine);
   {$endif}
   Apostroph:='''';
