@@ -882,70 +882,96 @@ begin
 end;
 
 function StringToJSONString(const S: TJSONStringType; Strict : Boolean = False): TJSONStringType;
+{$IFDEF Pas2js}
+begin
+  Result:=TJSJSON.stringify(S);
+  if Strict then
+    Result:=TJSString(Result).replaceAll('/','\\\/');
+end;
+{$ELSE}
+var
+  ResultPos: PChar;
 
-Var
-  rp,ra,sp,sn,litStart : SizeInt;
-  outerResult : TJSONStringType absolute result;
-
-  procedure W(Ws: PChar; NWs: SizeInt);
+  procedure W(p: PChar; Count: SizeInt);
   begin
-    if ra-rp<NWs then
-      begin
-        // rp+NWs are the strict minimum to allocate;
-        // the rest is a speculation based on the remaining S tail (sn-sp) and the previously allocated value (ra).
-        ra:=rp+NWs+(sn-sp)+8+SizeInt(SizeUint(ra+(sn-sp)) div 4);
-        SetLength(outerResult,ra);
-      end;
-    Move(Ws^,PChar(pointer(outerResult))[rp],NWS*sizeof(char));
-    rp:=rp+NWs;
+    Move(p^,ResultPos^,Count);
+    inc(ResultPos,Count);
   end;
 
 var
   hex : array[0..5] of char;
   C : Char;
+  i, ResultLen, SLen: SizeInt;
+  SPos, SEnd, SLastPos: PChar;
 
 begin
-  rp:=0;
-  ra:=0;
-  result:='';
-  sp:=0;
-  sn:=length(S);
-  litStart:=0;
-  hex:='\u00';
-  While sp<sn do
-    begin
-      C:=PChar(pointer(S))[sp];
-      if (C in ['"','/','\',#0..#31]) then
-        begin
-          W(PChar(pointer(S))+litStart,sp-litStart);
-          Case C of
-            '\' : W('\\',2);
-            '/' : if Strict then
-                    W('\/',2)
-                  else
-                    W('/',1);
-            '"' : W('\"',2);
-            #8  : W('\b',2);
-            #9  : W('\t',2);
-            #10 : W('\n',2);
-            #12 : W('\f',2);
-            #13 : W('\r',2);
+  SLen:=length(S);
+  if SLen=0 then exit('');
+
+  ResultLen:=0;
+  for i:=1 to SLen do
+  begin
+    case S[i] of
+    '/' : if Strict then
+            inc(ResultLen,2)
           else
-            begin
-              hex[4]:=hexdigits[(ord(C) shr 4)];
-              hex[5]:=hexdigits[(ord(C) and $F)];
-              W(@hex[0],6);
-            end;
-          end;
-          litStart:=sp+1;
-        end;
-      Inc(sp);
+            inc(ResultLen);
+    '\',
+    '"',
+    #8,
+    #9,
+    #10,
+    #12,
+    #13 : inc(ResultLen,2);
+    #0..#7,#11,#14..#31: inc(ResultLen,6);
+    else
+      inc(ResultLen);
     end;
-  if litStart=0 then
-    exit(S); // Optimization of the unchanged string case.
-  W(PChar(pointer(S))+litStart,sp-litStart);
-  SetLength(result,rp);
+  end;
+  if ResultLen=SLen then
+    exit(S);
+
+  SetLength(Result,ResultLen);
+  ResultPos:=PChar(Result);
+
+  hex:='\u00';
+  SPos:=PChar(S);
+  SEnd:=SPos+SLen;
+  SLastPos:=SPos;
+  While SPos<SEnd do
+  begin
+    C:=SPos^;
+    if (C in ['"','/','\',#0..#31]) then
+      begin
+        if SPos>SLastPos then
+          W(SLastPos,SPos-SLastPos);
+        Case C of
+          '\' : W('\\',2);
+          '/' : if Strict then
+                  W('\/',2)
+                else
+                  W('/',1);
+          '"' : W('\"',2);
+          #8  : W('\b',2);
+          #9  : W('\t',2);
+          #10 : W('\n',2);
+          #12 : W('\f',2);
+          #13 : W('\r',2);
+        else
+          begin
+            hex[4]:=hexdigits[(ord(C) shr 4)];
+            hex[5]:=hexdigits[(ord(C) and $F)];
+            W(@hex[0],6);
+          end;
+        end;
+        SLastPos:=SPos+1;
+      end;
+    Inc(SPos);
+  end;
+  if SPos>SLastPos then
+    W(SLastPos,SPos-SLastPos);
 end;
+{$ENDIF}
 
 function JSONStringToString(const S: TJSONStringType): TJSONStringType;
 
