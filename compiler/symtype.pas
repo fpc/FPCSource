@@ -122,9 +122,6 @@ interface
 ************************************************}
 
       { this object is the base for all symbol objects }
-
-      { tsym }
-
       tsym = class(TSymEntry)
       protected
        function registered : boolean;
