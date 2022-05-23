@@ -224,10 +224,10 @@ unit cgx86;
       begin
 {$ifdef x86_64}
         { The stack pointer and base pointer will be aligned to 16-byte boundaries if the machine code is well-behaved }
-        if (ref.base = NR_RSP) or (ref.base = NR_RBP) then
+        if (ref.base = NR_STACK_POINTER_REG) or (ref.base = current_procinfo.framepointer) then
           begin
-            if (ref.index = NR_NO) and ((ref.offset mod 16) = 0) then
-              Result := 16
+            if (ref.index = NR_NO) and ((ref.offset mod target_info.stackalign) = 0) then
+              Result := target_info.stackalign
             else
               Result := ref.alignment;
           end
