@@ -67,7 +67,6 @@ interface
 
     var
       msg : pmessage;
-      paraprintnodetree : byte;
 
     type
       tmsgqueueevent = procedure(const s:TMsgStr;v,w:longint) of object;
