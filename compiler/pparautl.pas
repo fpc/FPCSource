@@ -286,8 +286,12 @@ implementation
                       vsp:=vs_var;
                     hdef:=selfdef;
                   end;
-                vs:=cparavarsym.create('$self',paranr_self,vsp,hdef,[vo_is_self,vo_is_hidden_para]);
-                pd.parast.insertsym(vs);
+                vs:=tparavarsym(pd.parast.find('self'));
+                if not assigned(vs) or (vs.typ<>paravarsym) or (vs.vardef<>hdef) then
+                  begin
+                    vs:=cparavarsym.create('$self',paranr_self,vsp,hdef,[vo_is_self,vo_is_hidden_para]);
+                    pd.parast.insertsym(vs);
+                  end;
 
                 current_tokenpos:=storepos;
               end;
