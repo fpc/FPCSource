@@ -401,9 +401,7 @@ implementation
             end;
           pointerdef :
             begin
-              if def=llvm_metadatatype then
-                encodedstr:=encodedstr+'metadata'
-              else if is_voidpointer(def) then
+              if is_voidpointer(def) then
                 encodedstr:=encodedstr+'i8*'
               else
                 begin
@@ -617,7 +615,13 @@ implementation
               else
                 internalerror(2013100601);
             end;
-          undefineddef,
+          undefineddef:
+            begin
+              if def=llvm_metadatatype then
+                encodedstr:=encodedstr+'metadata'
+              else
+                internalerror(2022052301);
+            end;
           errordef :
             internalerror(2013100604);
         else
