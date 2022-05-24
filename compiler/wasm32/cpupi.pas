@@ -180,7 +180,7 @@ implementation
 
     class procedure twasmexceptionstatehandler_nativeexceptions.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
       begin
-        internalerror(2021100503);
+        Message1(parser_f_unsupported_feature,'nested exception');
       end;
 
     class procedure twasmexceptionstatehandler_nativeexceptions.begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister);
@@ -263,7 +263,7 @@ implementation
 
     class procedure twasmexceptionstatehandler_bfexceptions.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
       begin
-        internalerror(2021100502);
+        Message1(parser_f_unsupported_feature,'nested exception');
       end;
 
     class procedure twasmexceptionstatehandler_bfexceptions.begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister);
@@ -471,7 +471,7 @@ implementation
                           if (cblock=nil) or
                              (cblock.blockstart.opcode<>a_if) or
                              assigned(cblock.elseinstr) then
-                            internalerror(2021102302);
+                            Message1(parser_f_unsupported_feature,'misplaced a_else');
                           cblock.elseinstr:=lastinstr;
                         end;
 
@@ -482,14 +482,14 @@ implementation
                         begin
                           dec(cur_nesting_depth);
                           if cur_nesting_depth<0 then
-                            internalerror(2021102001);
+                            Message1(parser_f_unsupported_feature,'negative nesting level');
                           cblock:=twasmblockitem(blockstack.GetLast);
                           if (cblock=nil) or
                              ((cblock.blockstart.opcode=a_block) and (lastinstr.opcode<>a_end_block)) or
                              ((cblock.blockstart.opcode=a_loop) and (lastinstr.opcode<>a_end_loop)) or
                              ((cblock.blockstart.opcode=a_if) and (lastinstr.opcode<>a_end_if)) or
                              ((cblock.blockstart.opcode=a_try) and (lastinstr.opcode<>a_end_try)) then
-                            internalerror(2021102301);
+                            Message1(parser_f_unsupported_feature,'incompatible nesting level');
                           cblock.free;
                         end;
 
@@ -518,7 +518,7 @@ implementation
               hp:=tai(hp.Next);
             end;
           if cur_nesting_depth<>0 then
-            internalerror(2021102002);
+            Message1(parser_f_unsupported_feature,'unbalanced nesting level');
           blockstack.free;
         end;
 
@@ -526,6 +526,7 @@ implementation
         var
           hp: tai;
           instr: taicpu;
+          hlabel: tasmsymbol;
           cur_nesting_depth: longint;
         begin
           cur_nesting_depth:=0;
@@ -549,22 +550,22 @@ implementation
                       begin
                         dec(cur_nesting_depth);
                         if cur_nesting_depth<0 then
-                          internalerror(2021102003);
+                          Message1(parser_f_unsupported_feature,'negative nesting level');
                       end;
 
                     a_br,
                     a_br_if:
                       begin
                         if instr.ops<>1 then
-                          internalerror(2021102004);
+                          Message1(parser_f_unsupported_feature,'a_br or a_br_if with wrong operand count');
                         if instr.oper[0]^.typ=top_ref then
                           begin
                             if not assigned(instr.oper[0]^.ref^.symbol) then
-                              internalerror(2021102005);
+                              Message1(parser_f_unsupported_feature,'a_br or a_br_if with wrong ref operand');
                             if (instr.oper[0]^.ref^.base<>NR_NO) or
                                (instr.oper[0]^.ref^.index<>NR_NO) or
                                (instr.oper[0]^.ref^.offset<>0) then
-                              internalerror(2021102006);
+                              Message1(parser_f_unsupported_feature,'a_br or a_br_if with wrong ref type');
                             if (instr.oper[0]^.ref^.symbol.nestingdepth<>-1) and
                                (cur_nesting_depth>=instr.oper[0]^.ref^.symbol.nestingdepth) then
                               instr.loadconst(0,cur_nesting_depth-instr.oper[0]^.ref^.symbol.nestingdepth)
@@ -573,6 +574,8 @@ implementation
 {$ifndef EXTDEBUG}
                                 internalerror(2021102007);
 {$endif EXTDEBUG}
+                                hlabel:=tasmsymbol(instr.oper[0]^.ref^.symbol);
+                                asmlist.insertafter(tai_comment.create(strpnew('Unable to find destination of label '+hlabel.name)),hp);
                               end;
                           end;
                       end;
@@ -584,7 +587,7 @@ implementation
               hp:=tai(hp.Next);
             end;
           if cur_nesting_depth<>0 then
-            internalerror(2021102008);
+            Message1(parser_f_unsupported_feature,'unbalanced nesting level');
         end;
 
       procedure resolve_labels(asmlist: TAsmList);

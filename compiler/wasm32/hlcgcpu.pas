@@ -1791,7 +1791,12 @@ implementation
       else if l=current_procinfo.CurrExitLabel then
         list.concat(taicpu.op_sym(a_br,l))
       else
-        Internalerror(2019091806); // unexpected jump
+        begin
+{$ifndef EXTDEBUG}
+          Internalerror(2019091806); // unexpected jump
+{$endif EXTDEBUG}
+          list.concat(tai_comment.create(strpnew('Unable to find destination of label '+l.name)));
+        end;
     end;
 
   procedure thlcgwasm.a_loadfpu_ref_ref(list: TAsmList; fromsize, tosize: tdef; const ref1, ref2: treference);
