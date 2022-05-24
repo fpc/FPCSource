@@ -1734,9 +1734,11 @@ implementation
               current_asmdata.getjumplabel(lab);
               { can be optimized by removing duplicate xor'ing to convert dst from
                 signed to unsigned quadrant }
+              list.concat(taicpu.op_none(a_block));
               a_cmp_reg_reg_label(list,size,OC_B,dst,src1,lab);
               a_cmp_reg_reg_label(list,size,OC_B,dst,src2,lab);
               a_op_const_stack(list,OP_XOR,s32inttype,1);
+              list.concat(taicpu.op_none(a_end_block));
               a_label(list,lab);
             end;
           a_load_stack_reg(list,s32inttype,ovloc.register);
