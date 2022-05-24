@@ -78,5 +78,20 @@
 
   in_wasm32_memory_atomic_wait32 = in_cpu_first+56,
   in_wasm32_memory_atomic_wait64 = in_cpu_first+57,
-  in_wasm32_memory_atomic_notify = in_cpu_first+58
+  in_wasm32_memory_atomic_notify = in_cpu_first+58,
+
+  in_i32_atomic_load8_u  = in_cpu_first+59,
+  in_i32_atomic_load16_u = in_cpu_first+60,
+  in_i32_atomic_load     = in_cpu_first+61,
+  in_i64_atomic_load8_u  = in_cpu_first+62,
+  in_i64_atomic_load16_u = in_cpu_first+63,
+  in_i64_atomic_load32_u = in_cpu_first+64,
+  in_i64_atomic_load     = in_cpu_first+65,
+  in_i32_atomic_store8   = in_cpu_first+66,
+  in_i32_atomic_store16  = in_cpu_first+67,
+  in_i32_atomic_store    = in_cpu_first+68,
+  in_i64_atomic_store8   = in_cpu_first+69,
+  in_i64_atomic_store16  = in_cpu_first+70,
+  in_i64_atomic_store32  = in_cpu_first+71,
+  in_i64_atomic_store    = in_cpu_first+72
 

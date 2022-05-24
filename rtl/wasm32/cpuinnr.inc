@@ -80,3 +80,18 @@
   fpc_in_wasm32_memory_atomic_wait64 = fpc_in_cpu_first+57;
   fpc_in_wasm32_memory_atomic_notify = fpc_in_cpu_first+58;
 
+  fpc_in_i32_atomic_load8_u  = fpc_in_cpu_first+59;
+  fpc_in_i32_atomic_load16_u = fpc_in_cpu_first+60;
+  fpc_in_i32_atomic_load     = fpc_in_cpu_first+61;
+  fpc_in_i64_atomic_load8_u  = fpc_in_cpu_first+62;
+  fpc_in_i64_atomic_load16_u = fpc_in_cpu_first+63;
+  fpc_in_i64_atomic_load32_u = fpc_in_cpu_first+64;
+  fpc_in_i64_atomic_load     = fpc_in_cpu_first+65;
+  fpc_in_i32_atomic_store8   = fpc_in_cpu_first+66;
+  fpc_in_i32_atomic_store16  = fpc_in_cpu_first+67;
+  fpc_in_i32_atomic_store    = fpc_in_cpu_first+68;
+  fpc_in_i64_atomic_store8   = fpc_in_cpu_first+69;
+  fpc_in_i64_atomic_store16  = fpc_in_cpu_first+70;
+  fpc_in_i64_atomic_store32  = fpc_in_cpu_first+71;
+  fpc_in_i64_atomic_store    = fpc_in_cpu_first+72;
+
