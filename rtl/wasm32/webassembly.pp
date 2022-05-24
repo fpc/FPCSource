@@ -73,6 +73,15 @@ function AtomicExchange(var Mem: UInt32; Data: UInt32): UInt32; inline;
 function AtomicExchange(var Mem: Int64; Data: Int64): Int64; inline;
 function AtomicExchange(var Mem: UInt64; Data: UInt64): UInt64; inline;
 
+function AtomicCompareExchange(var Mem: Int8; Compare, Data: Int8): Int8; inline;
+function AtomicCompareExchange(var Mem: UInt8; Compare, Data: UInt8): UInt8; inline;
+function AtomicCompareExchange(var Mem: Int16; Compare, Data: Int16): Int16; inline;
+function AtomicCompareExchange(var Mem: UInt16; Compare, Data: UInt16): UInt16; inline;
+function AtomicCompareExchange(var Mem: Int32; Compare, Data: Int32): Int32; inline;
+function AtomicCompareExchange(var Mem: UInt32; Compare, Data: UInt32): UInt32; inline;
+function AtomicCompareExchange(var Mem: Int64; Compare, Data: Int64): Int64; inline;
+function AtomicCompareExchange(var Mem: UInt64; Compare, Data: UInt64): UInt64; inline;
+
 implementation
 
 {$I cpuh.inc}
@@ -320,6 +329,46 @@ end;
 function AtomicExchange(var Mem: UInt64; Data: UInt64): UInt64; inline;
 begin
   AtomicExchange:=fpc_wasm32_i64_atomic_rmw_xchg(@Mem,Data);
+end;
+
+function AtomicCompareExchange(var Mem: Int8; Compare, Data: Int8): Int8; inline;
+begin
+  AtomicCompareExchange:=Int8(fpc_wasm32_i32_atomic_rmw8_cmpxchg_u(@Mem,Byte(Compare),Byte(Data)));
+end;
+
+function AtomicCompareExchange(var Mem: UInt8; Compare, Data: UInt8): UInt8; inline;
+begin
+  AtomicCompareExchange:=UInt8(fpc_wasm32_i32_atomic_rmw8_cmpxchg_u(@Mem,Compare,Data));
+end;
+
+function AtomicCompareExchange(var Mem: Int16; Compare, Data: Int16): Int16; inline;
+begin
+  AtomicCompareExchange:=Int16(fpc_wasm32_i32_atomic_rmw16_cmpxchg_u(@Mem,Word(Compare),Word(Data)));
+end;
+
+function AtomicCompareExchange(var Mem: UInt16; Compare, Data: UInt16): UInt16; inline;
+begin
+  AtomicCompareExchange:=UInt16(fpc_wasm32_i32_atomic_rmw16_cmpxchg_u(@Mem,Compare,Data));
+end;
+
+function AtomicCompareExchange(var Mem: Int32; Compare, Data: Int32): Int32; inline;
+begin
+  AtomicCompareExchange:=Int32(fpc_wasm32_i32_atomic_rmw_cmpxchg_u(@Mem,LongWord(Compare),LongWord(Data)));
+end;
+
+function AtomicCompareExchange(var Mem: UInt32; Compare, Data: UInt32): UInt32; inline;
+begin
+  AtomicCompareExchange:=fpc_wasm32_i32_atomic_rmw_cmpxchg_u(@Mem,Compare,Data);
+end;
+
+function AtomicCompareExchange(var Mem: Int64; Compare, Data: Int64): Int64; inline;
+begin
+  AtomicCompareExchange:=Int64(fpc_wasm32_i64_atomic_rmw_cmpxchg_u(@Mem,QWord(Compare),QWord(Data)));
+end;
+
+function AtomicCompareExchange(var Mem: UInt64; Compare, Data: UInt64): UInt64; inline;
+begin
+  AtomicCompareExchange:=fpc_wasm32_i64_atomic_rmw_cmpxchg_u(@Mem,Compare,Data);
 end;
 
 end.
