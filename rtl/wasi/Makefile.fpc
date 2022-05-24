@@ -8,7 +8,7 @@ loaders=
 units=system $(SYSINIT_UNITS) objpas wasiapi ctypes strings sysconst sysutils \
       sortbase math rtlconsts types typinfo fgl macpas iso7185 getopts \
       charset cpall character unicodedata fpwidestring \
-      classes uuchar dos extpas fpintres heaptrc wasiutil
+      classes uuchar dos extpas fpintres heaptrc wasiutil webassembly
 
 [require]
 nortl=y
@@ -89,6 +89,9 @@ si_dll$(PPUEXT) : si_dll.pp $(SYSTEMUNIT)$(PPUEXT)
 #
 # Other $(SYSTEMUNIT)-dependent RTL Units
 #
+
+webassembly$(PPUEXT) : $(PROCINC)/webassembly.pp $(SYSTEMUNIT)$(PPUEXT) $(PROCINC)/cpuh.inc $(PROCINC)/cpuinnr.inc
+        $(COMPILER) $<
 
 wasiapi$(PPUEXT) : wasiapi.pp wasiinc/wasitypes.inc wasiinc/wasiprocs.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $< -Fiwasiinc
