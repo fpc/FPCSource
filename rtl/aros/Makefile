@@ -3222,6 +3222,9 @@ ifneq ($(filter $(CPU_TARGET),x86_64 mips mipsel mips64 mips64el riscv64 powerpc
 override FPCOPT+=-Cg
 endif
 endif
+ifneq ($(filter $(CPU_TARGET),z80),)
+override FPCOPT+=-CX -XX
+endif
 ifdef LINKSHARED
 endif
 ifdef GCCLIBDIR
