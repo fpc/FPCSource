@@ -64,6 +64,15 @@ function AtomicXor(var Mem: UInt32; Data: UInt32): UInt32; inline;
 function AtomicXor(var Mem: Int64; Data: Int64): Int64; inline;
 function AtomicXor(var Mem: UInt64; Data: UInt64): UInt64; inline;
 
+function AtomicExchange(var Mem: Int8; Data: Int8): Int8; inline;
+function AtomicExchange(var Mem: UInt8; Data: UInt8): UInt8; inline;
+function AtomicExchange(var Mem: Int16; Data: Int16): Int16; inline;
+function AtomicExchange(var Mem: UInt16; Data: UInt16): UInt16; inline;
+function AtomicExchange(var Mem: Int32; Data: Int32): Int32; inline;
+function AtomicExchange(var Mem: UInt32; Data: UInt32): UInt32; inline;
+function AtomicExchange(var Mem: Int64; Data: Int64): Int64; inline;
+function AtomicExchange(var Mem: UInt64; Data: UInt64): UInt64; inline;
+
 implementation
 
 {$I cpuh.inc}
@@ -271,6 +280,46 @@ end;
 function AtomicXor(var Mem: UInt64; Data: UInt64): UInt64; inline;
 begin
   AtomicXor:=fpc_wasm32_i64_atomic_rmw_xor(@Mem,Data);
+end;
+
+function AtomicExchange(var Mem: Int8; Data: Int8): Int8; inline;
+begin
+  AtomicExchange:=Int8(fpc_wasm32_i32_atomic_rmw8_xchg_u(@Mem,Byte(Data)));
+end;
+
+function AtomicExchange(var Mem: UInt8; Data: UInt8): UInt8; inline;
+begin
+  AtomicExchange:=UInt8(fpc_wasm32_i32_atomic_rmw8_xchg_u(@Mem,Data));
+end;
+
+function AtomicExchange(var Mem: Int16; Data: Int16): Int16; inline;
+begin
+  AtomicExchange:=Int16(fpc_wasm32_i32_atomic_rmw16_xchg_u(@Mem,Word(Data)));
+end;
+
+function AtomicExchange(var Mem: UInt16; Data: UInt16): UInt16; inline;
+begin
+  AtomicExchange:=UInt16(fpc_wasm32_i32_atomic_rmw16_xchg_u(@Mem,Data));
+end;
+
+function AtomicExchange(var Mem: Int32; Data: Int32): Int32; inline;
+begin
+  AtomicExchange:=Int32(fpc_wasm32_i32_atomic_rmw_xchg(@Mem,LongWord(Data)));
+end;
+
+function AtomicExchange(var Mem: UInt32; Data: UInt32): UInt32; inline;
+begin
+  AtomicExchange:=fpc_wasm32_i32_atomic_rmw_xchg(@Mem,Data);
+end;
+
+function AtomicExchange(var Mem: Int64; Data: Int64): Int64; inline;
+begin
+  AtomicExchange:=Int64(fpc_wasm32_i64_atomic_rmw_xchg(@Mem,QWord(Data)));
+end;
+
+function AtomicExchange(var Mem: UInt64; Data: UInt64): UInt64; inline;
+begin
+  AtomicExchange:=fpc_wasm32_i64_atomic_rmw_xchg(@Mem,Data);
 end;
 
 end.
