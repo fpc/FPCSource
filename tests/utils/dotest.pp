@@ -1042,13 +1042,16 @@ begin
      if is_wasi then
        begin
          i:=pos('##WASI-EXITCODE: ',s);
-         delete(s,1,i+17-1);
-         val(s,ExecuteResult,code);
-        if code>1 then
-           val(copy(s,1,code-1),ExecuteResult,code);
-         if code=0 then
-           CheckTestExitCode:=true;
-         break;
+         if i>0 then
+           begin
+             delete(s,1,i+17-1);
+             val(s,ExecuteResult,code);
+             if code>1 then
+               val(copy(s,1,code-1),ExecuteResult,code);
+             if code=0 then
+               CheckTestExitCode:=true;
+             break;
+           end;
        end
      else
        begin
