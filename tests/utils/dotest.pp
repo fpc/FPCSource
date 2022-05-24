@@ -1024,6 +1024,7 @@ var
   t : text;
   s : string;
   i,code : integer;
+  is_wasi :boolean;
 begin
   CheckTestExitCode:=false;
   { open logfile }
@@ -1033,18 +1034,34 @@ begin
   {$I+}
   if ioresult<>0 then
    exit;
+  GetCompilerTarget;
+  is_wasi:=(CompilerTarget='wasi');
   while not eof(t) do
    begin
      readln(t,s);
-     i:=pos('TestExitCode: ',s);
-     if i>0 then
-      begin
-        delete(s,1,i+14-1);
-        val(s,ExecuteResult,code);
-        if code=0 then
-          CheckTestExitCode:=true;
-        break;
-      end;
+     if is_wasi then
+       begin
+         i:=pos('##WASI-EXITCODE: ',s);
+         delete(s,1,i+17-1);
+         val(s,ExecuteResult,code);
+        if code>1 then
+           val(copy(s,1,code-1),ExecuteResult,code);
+         if code=0 then
+           CheckTestExitCode:=true;
+         break;
+       end
+     else
+       begin
+         i:=pos('TestExitCode: ',s);
+         if i>0 then
+           begin
+             delete(s,1,i+14-1);
+             val(s,ExecuteResult,code);
+             if code=0 then
+               CheckTestExitCode:=true;
+             break;
+           end;
+       end;
    end;
   close(t);
 end;
@@ -1325,6 +1342,11 @@ begin
       {$I-}
        ChDir(OldDir);
       {$I+}
+      GetCompilerTarget;
+      if (CompilerTarget='wasi') then
+       begin
+         CheckTestExitCode(FullEXELogFile);
+       end;
     end
   else if RemoteAddr<>'' then
     begin

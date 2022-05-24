@@ -146,6 +146,11 @@ End;
 
 procedure System_exit;
 begin
+  if ExitCode>=126 then
+    begin
+      writeln(stderr,'##WASI-EXITCODE: ',ExitCode,' -> 125##');
+      ExitCode:=125;
+    end;
   __wasi_proc_exit(ExitCode);
 End;
 
