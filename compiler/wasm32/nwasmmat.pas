@@ -157,9 +157,11 @@ implementation
              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
              hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_AND,resultdef,left.location.register,tmpreg);
              current_asmdata.getjumplabel(lab);
+             current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
              hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,-1,tmpreg,lab);
              hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_overflow',[],nil);
              hlcg.a_label(current_asmdata.CurrAsmList,lab);
+             current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
            end;
       end;
 
