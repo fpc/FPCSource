@@ -110,10 +110,10 @@ function AtomicCompareExchange(var Mem: UInt32; Compare, Data: UInt32): UInt32; 
 function AtomicCompareExchange(var Mem: Int64; Compare, Data: Int64): Int64; inline;
 function AtomicCompareExchange(var Mem: UInt64; Compare, Data: UInt64): UInt64; inline;
 
-function AtomicWait(constref Mem: Int32; Compare: Int32; TimeoutNanoseconds: Int64): Int32;
-function AtomicWait(constref Mem: UInt32; Compare: UInt32; TimeoutNanoseconds: Int64): Int32;
-function AtomicWait(constref Mem: Int64; Compare: Int64; TimeoutNanoseconds: Int64): Int32;
-function AtomicWait(constref Mem: UInt64; Compare: UInt64; TimeoutNanoseconds: Int64): Int32;
+function AtomicWait(constref Mem: Int32; Compare: Int32; TimeoutNanoseconds: Int64): Int32; inline;
+function AtomicWait(constref Mem: UInt32; Compare: UInt32; TimeoutNanoseconds: Int64): Int32; inline;
+function AtomicWait(constref Mem: Int64; Compare: Int64; TimeoutNanoseconds: Int64): Int32; inline;
+function AtomicWait(constref Mem: UInt64; Compare: UInt64; TimeoutNanoseconds: Int64): Int32; inline;
 
 function AtomicNotify(constref Mem: Int32; Count: UInt32): UInt32; inline;
 function AtomicNotify(constref Mem: UInt32; Count: UInt32): UInt32; inline;
@@ -489,22 +489,22 @@ begin
   AtomicCompareExchange:=fpc_wasm32_i64_atomic_rmw_cmpxchg_u(@Mem,Compare,Data);
 end;
 
-function AtomicWait(constref Mem: Int32; Compare: Int32; TimeoutNanoseconds: Int64): Int32;
+function AtomicWait(constref Mem: Int32; Compare: Int32; TimeoutNanoseconds: Int64): Int32; inline;
 begin
   AtomicWait:=fpc_wasm32_memory_atomic_wait32(@Mem,LongWord(Compare),TimeoutNanoseconds);
 end;
 
-function AtomicWait(constref Mem: UInt32; Compare: UInt32; TimeoutNanoseconds: Int64): Int32;
+function AtomicWait(constref Mem: UInt32; Compare: UInt32; TimeoutNanoseconds: Int64): Int32; inline;
 begin
   AtomicWait:=fpc_wasm32_memory_atomic_wait32(@Mem,Compare,TimeoutNanoseconds);
 end;
 
-function AtomicWait(constref Mem: Int64; Compare: Int64; TimeoutNanoseconds: Int64): Int32;
+function AtomicWait(constref Mem: Int64; Compare: Int64; TimeoutNanoseconds: Int64): Int32; inline;
 begin
   AtomicWait:=fpc_wasm32_memory_atomic_wait64(@Mem,QWord(Compare),TimeoutNanoseconds);
 end;
 
-function AtomicWait(constref Mem: UInt64; Compare: UInt64; TimeoutNanoseconds: Int64): Int32;
+function AtomicWait(constref Mem: UInt64; Compare: UInt64; TimeoutNanoseconds: Int64): Int32; inline;
 begin
   AtomicWait:=fpc_wasm32_memory_atomic_wait64(@Mem,Compare,TimeoutNanoseconds);
 end;
