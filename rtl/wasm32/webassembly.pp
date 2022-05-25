@@ -15,6 +15,8 @@
 
 unit WebAssembly;
 
+{$mode objfpc}
+
 interface
 
 procedure AtomicFence; inline;
@@ -27,6 +29,15 @@ function AtomicLoad(constref Mem: Int32): Int32; inline;
 function AtomicLoad(constref Mem: UInt32): UInt32; inline;
 function AtomicLoad(constref Mem: Int64): Int64; inline;
 function AtomicLoad(constref Mem: UInt64): UInt64; inline;
+
+procedure AtomicStore(out Mem: Int8; Data: Int8); inline;
+procedure AtomicStore(out Mem: UInt8; Data: UInt8); inline;
+procedure AtomicStore(out Mem: Int16; Data: Int16); inline;
+procedure AtomicStore(out Mem: UInt16; Data: UInt16); inline;
+procedure AtomicStore(out Mem: Int32; Data: Int32); inline;
+procedure AtomicStore(out Mem: UInt32; Data: UInt32); inline;
+procedure AtomicStore(out Mem: Int64; Data: Int64); inline;
+procedure AtomicStore(out Mem: UInt64; Data: UInt64); inline;
 
 function AtomicAdd(var Mem: Int8; Data: Int8): Int8; inline;
 function AtomicAdd(var Mem: UInt8; Data: UInt8): UInt8; inline;
@@ -138,6 +149,46 @@ end;
 function AtomicLoad(constref Mem: UInt64): UInt64; inline;
 begin
   AtomicLoad:=UInt64(fpc_wasm32_i64_atomic_load(@Mem));
+end;
+
+procedure AtomicStore(out Mem: Int8; Data: Int8); inline;
+begin
+  fpc_wasm32_i32_atomic_store8(@Mem,Byte(Data));
+end;
+
+procedure AtomicStore(out Mem: UInt8; Data: UInt8); inline;
+begin
+  fpc_wasm32_i32_atomic_store8(@Mem,Data);
+end;
+
+procedure AtomicStore(out Mem: Int16; Data: Int16); inline;
+begin
+  fpc_wasm32_i32_atomic_store16(@Mem,Word(Data));
+end;
+
+procedure AtomicStore(out Mem: UInt16; Data: UInt16); inline;
+begin
+  fpc_wasm32_i32_atomic_store16(@Mem,Data);
+end;
+
+procedure AtomicStore(out Mem: Int32; Data: Int32); inline;
+begin
+  fpc_wasm32_i32_atomic_store(@Mem,LongWord(Data));
+end;
+
+procedure AtomicStore(out Mem: UInt32; Data: UInt32); inline;
+begin
+  fpc_wasm32_i32_atomic_store(@Mem,Data);
+end;
+
+procedure AtomicStore(out Mem: Int64; Data: Int64); inline;
+begin
+  fpc_wasm32_i64_atomic_store(@Mem,QWord(Data));
+end;
+
+procedure AtomicStore(out Mem: UInt64; Data: UInt64); inline;
+begin
+  fpc_wasm32_i64_atomic_store(@Mem,Data);
 end;
 
 function AtomicAdd(var Mem: Int8; Data: Int8): Int8; inline;

@@ -3031,7 +3031,7 @@ si_prc$(PPUEXT) : si_prc.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 si_dll$(PPUEXT) : si_dll.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
-webassembly$(PPUEXT) : $(PROCINC)/webassembly.pp $(SYSTEMUNIT)$(PPUEXT) $(PROCINC)/cpuh.inc $(PROCINC)/cpuinnr.inc
+webassembly$(PPUEXT) : $(PROCINC)/webassembly.pp $(SYSTEMUNIT)$(PPUEXT) $(PROCINC)/cpuh.inc $(PROCINC)/cpuinnr.inc objpas$(PPUEXT)
 	$(COMPILER) $<
 wasiapi$(PPUEXT) : wasiapi.pp wasiinc/wasitypes.inc wasiinc/wasiprocs.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $< -Fiwasiinc
