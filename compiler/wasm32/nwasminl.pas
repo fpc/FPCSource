@@ -53,6 +53,7 @@ interface
         procedure second_throw_fpcexception;
         procedure second_atomic_fence;
         procedure second_atomic_load(op: TAsmOp);
+        procedure second_atomic_store(op: TAsmOp);
         procedure second_atomic_rmw_x_y(op: TAsmOp);
         procedure second_atomic_rmw_x_y_z(op: TAsmOp);
       protected
@@ -420,6 +421,32 @@ implementation
         thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
       end;
 
+    procedure twasminlinenode.second_atomic_store(op: TAsmOp);
+      begin
+        location_reset(location,LOC_VOID,OS_NO);
+
+        secondpass(tcallparanode(tcallparanode(left).right).left);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,
+          tcallparanode(tcallparanode(left).right).left.location,
+          tcallparanode(tcallparanode(left).right).left.resultdef,
+          tcallparanode(tcallparanode(left).right).left.resultdef,false);
+        thlcgwasm(hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,
+          tcallparanode(tcallparanode(left).right).left.resultdef,
+          tcallparanode(tcallparanode(left).right).left.location.register);
+
+        secondpass(tcallparanode(left).left);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,
+          tcallparanode(left).left.location,
+          tcallparanode(left).left.resultdef,
+          tcallparanode(left).left.resultdef,false);
+        thlcgwasm(hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,
+          tcallparanode(left).left.resultdef,
+          tcallparanode(left).left.location.register);
+
+        current_asmdata.CurrAsmList.Concat(taicpu.op_const(op,0));
+        thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,2);
+      end;
+
 
     procedure twasminlinenode.second_atomic_rmw_x_y(op: TAsmOp);
       begin
@@ -625,6 +652,17 @@ implementation
               CheckParameters(1);
               resultdef:=u64inttype;
             end;
+          in_i32_atomic_store8,
+          in_i32_atomic_store16,
+          in_i32_atomic_store,
+          in_i64_atomic_store8,
+          in_i64_atomic_store16,
+          in_i64_atomic_store32,
+          in_i64_atomic_store:
+            begin
+              CheckParameters(2);
+              resultdef:=voidtype;
+            end;
           else
             Result:=inherited pass_typecheck_cpu;
         end;
@@ -642,7 +680,14 @@ implementation
           in_wasm32_memory_copy,
           in_wasm32_unreachable,
           in_wasm32_throw_fpcexception,
-          in_wasm32_atomic_fence:
+          in_wasm32_atomic_fence,
+          in_i32_atomic_store8,
+          in_i32_atomic_store16,
+          in_i32_atomic_store,
+          in_i64_atomic_store8,
+          in_i64_atomic_store16,
+          in_i64_atomic_store32,
+          in_i64_atomic_store:
             expectloc:=LOC_VOID;
           in_wasm32_i32_atomic_rmw8_add_u,
           in_wasm32_i32_atomic_rmw16_add_u,
@@ -845,6 +890,20 @@ implementation
             second_atomic_load(a_i64_atomic_load32_u);
           in_i64_atomic_load:
             second_atomic_load(a_i64_atomic_load);
+          in_i32_atomic_store8:
+            second_atomic_store(a_i32_atomic_store8);
+          in_i32_atomic_store16:
+            second_atomic_store(a_i32_atomic_store16);
+          in_i32_atomic_store:
+            second_atomic_store(a_i32_atomic_store);
+          in_i64_atomic_store8:
+            second_atomic_store(a_i64_atomic_store8);
+          in_i64_atomic_store16:
+            second_atomic_store(a_i64_atomic_store16);
+          in_i64_atomic_store32:
+            second_atomic_store(a_i64_atomic_store32);
+          in_i64_atomic_store:
+            second_atomic_store(a_i64_atomic_store);
           else
             inherited pass_generate_code_cpu;
         end;

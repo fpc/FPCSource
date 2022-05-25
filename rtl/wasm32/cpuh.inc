@@ -93,3 +93,11 @@ function fpc_wasm32_i64_atomic_load16_u(Address: Pointer): QWord;[internproc:fpc
 function fpc_wasm32_i64_atomic_load32_u(Address: Pointer): QWord;[internproc:fpc_in_i64_atomic_load32_u];
 function fpc_wasm32_i64_atomic_load(Address: Pointer): QWord;[internproc:fpc_in_i64_atomic_load];
 
+procedure fpc_wasm32_i32_atomic_store8(Dest: PByte; x: LongWord);[internproc:fpc_in_i32_atomic_store8];
+procedure fpc_wasm32_i32_atomic_store16(Dest: PWord; x: LongWord);[internproc:fpc_in_i32_atomic_store16];
+procedure fpc_wasm32_i32_atomic_store(Dest: PLongWord; x: LongWord);[internproc:fpc_in_i32_atomic_store];
+procedure fpc_wasm32_i64_atomic_store8(Dest: PByte; x: QWord);[internproc:fpc_in_i64_atomic_store8];
+procedure fpc_wasm32_i64_atomic_store16(Dest: PWord; x: QWord);[internproc:fpc_in_i64_atomic_store16];
+procedure fpc_wasm32_i64_atomic_store32(Dest: PLongWord; x: QWord);[internproc:fpc_in_i64_atomic_store32];
+procedure fpc_wasm32_i64_atomic_store(Dest: PQWord; x: QWord);[internproc:fpc_in_i64_atomic_store];
+
