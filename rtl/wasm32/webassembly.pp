@@ -19,6 +19,15 @@ interface
 
 procedure AtomicFence; inline;
 
+function AtomicLoad(constref Mem: Int8): Int8; inline;
+function AtomicLoad(constref Mem: UInt8): UInt8; inline;
+function AtomicLoad(constref Mem: Int16): Int16; inline;
+function AtomicLoad(constref Mem: UInt16): UInt16; inline;
+function AtomicLoad(constref Mem: Int32): Int32; inline;
+function AtomicLoad(constref Mem: UInt32): UInt32; inline;
+function AtomicLoad(constref Mem: Int64): Int64; inline;
+function AtomicLoad(constref Mem: UInt64): UInt64; inline;
+
 function AtomicAdd(var Mem: Int8; Data: Int8): Int8; inline;
 function AtomicAdd(var Mem: UInt8; Data: UInt8): UInt8; inline;
 function AtomicAdd(var Mem: Int16; Data: Int16): Int16; inline;
@@ -89,6 +98,46 @@ implementation
 procedure AtomicFence; inline;
 begin
   fpc_wasm32_atomic_fence;
+end;
+
+function AtomicLoad(constref Mem: Int8): Int8; inline;
+begin
+  AtomicLoad:=Int8(fpc_wasm32_i32_atomic_load8_u(@Mem));
+end;
+
+function AtomicLoad(constref Mem: UInt8): UInt8; inline;
+begin
+  AtomicLoad:=UInt8(fpc_wasm32_i32_atomic_load8_u(@Mem));
+end;
+
+function AtomicLoad(constref Mem: Int16): Int16; inline;
+begin
+  AtomicLoad:=Int16(fpc_wasm32_i32_atomic_load16_u(@Mem));
+end;
+
+function AtomicLoad(constref Mem: UInt16): UInt16; inline;
+begin
+  AtomicLoad:=UInt16(fpc_wasm32_i32_atomic_load16_u(@Mem));
+end;
+
+function AtomicLoad(constref Mem: Int32): Int32; inline;
+begin
+  AtomicLoad:=Int32(fpc_wasm32_i32_atomic_load(@Mem));
+end;
+
+function AtomicLoad(constref Mem: UInt32): UInt32; inline;
+begin
+  AtomicLoad:=UInt32(fpc_wasm32_i32_atomic_load(@Mem));
+end;
+
+function AtomicLoad(constref Mem: Int64): Int64; inline;
+begin
+  AtomicLoad:=Int64(fpc_wasm32_i64_atomic_load(@Mem));
+end;
+
+function AtomicLoad(constref Mem: UInt64): UInt64; inline;
+begin
+  AtomicLoad:=UInt64(fpc_wasm32_i64_atomic_load(@Mem));
 end;
 
 function AtomicAdd(var Mem: Int8; Data: Int8): Int8; inline;
