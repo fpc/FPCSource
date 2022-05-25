@@ -2949,7 +2949,7 @@ asmr_e_a64_regset_too_large=07147_E_Too many registers in register set.
 #
 # Assembler/binary writers
 #
-# 08036 is the last used one
+# 08037 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Too many assembler files
 % With smartlinking enabled, there are too many assembler
@@ -3007,6 +3007,7 @@ asmw_e_brxx_out_of_range=08033_E_Asm: conditional branch destination is out of r
 asmw_e_illegal_use_of_rip=08034_E_Asm: RIP cannot be used as index register or with another register in a reference
 asmw_e_seh_invalid_data_size=08035_F_Illegal function size for SEH function
 asmw_e_illegal_use_of_sp=08036_E_Asm: ESP/RSP cannot be used as index register
+asmw_e_illegal_unset_index=08037_E_Wasm32 symbol $1 without index value error
 #
 # Executing linker/assembler
 #
@@ -3949,6 +3950,7 @@ P*2Aas_Assemble using GNU AS
 S*2Aas_Assemble using GNU AS
 s*2Aas_Assemble using GNU AS
 v*2Aas_Assemble using GNU AS
+W*2Aomf using internal object writer for wasm32
 W*2Abinaryen_Assemble using GNU AS for wasm32 (wasm-as)
 W*2Allvm-mc_Assemble using llvm-mc
 W*2Awabt_Assemble using wasa
