@@ -2134,6 +2134,18 @@ implementation
               if tmpeq<>te_incompatible then
                 eq:=tmpeq;
             end;
+          objectdef :
+            begin
+              tmpeq:=te_incompatible;
+              { in tp/macpas mode proc -> funcref is allowed }
+              if ((m_tp_procvar in current_settings.modeswitches) or
+                  (m_mac_procvar in current_settings.modeswitches)) and
+                 (p.left.nodetype=calln) and
+                 is_invokable(def_to) then
+                tmpeq:=proc_to_funcref_equal(tprocdef(tcallnode(p.left).procdefinition),tobjectdef(def_to));
+              if tmpeq<>te_incompatible then
+                eq:=tmpeq;
+            end;
           arraydef :
             begin
               { an arrayconstructor of proccalls may have to be converted to

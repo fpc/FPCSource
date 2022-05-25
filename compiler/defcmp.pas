@@ -109,7 +109,8 @@ interface
           tc_elem_2_openarray,
           tc_arrayconstructor_2_dynarray,
           tc_arrayconstructor_2_array,
-          tc_anonproc_2_funcref
+          tc_anonproc_2_funcref,
+          tc_procvar_2_funcref
        );
 
     function compare_defs_ext(def_from,def_to : tdef;
@@ -1956,6 +1957,19 @@ implementation
                        eq:=te_convert_l1;
                        doconv:=tc_equal;
                      end
+                   else if is_funcref(def_to) and
+                     (def_from.typ in [procdef,procvardef]) then
+                     begin
+                       subeq:=proc_to_funcref_conv(tabstractprocdef(def_from),tobjectdef(def_to));
+                       if subeq>te_incompatible then
+                         begin
+                           doconv:=tc_procvar_2_funcref;
+                           if subeq>te_convert_l5 then
+                             eq:=pred(subeq)
+                           else
+                             eq:=subeq;
+                         end;
+                     end
                    else if (def_from.typ=variantdef) and is_interfacecom_or_dispinterface(def_to) then
                      begin
                      { corbainterfaces not accepted, until we have
@@ -2534,37 +2548,45 @@ implementation
              a) anything but procvars can be assigned to blocks
              b) depending on their captured symbols anonymous functions can be
                 assigned to global, method or nested procvars
-             c) if one is a procedure of object, the other also has to be one
+             c) anything can be assigned to function references
+             d) if one is a procedure of object, the other also has to be one
                 ("object static procedure" is equal to procedure as well)
                 (except for block)
-             d) if one is a pure address, the other also has to be one
+             e) if one is a pure address, the other also has to be one
                 except if def1 is a global proc and def2 is a nested procdef
                 (global procedures can be converted into nested procvars)
-             e) if def1 is a nested procedure, then def2 has to be a nested
+             f) if def1 is a nested procedure, then def2 has to be a nested
                 procvar and def1 has to have the po_delphi_nested_cc option
                 or does not use parentfp
-             f) if def1 is a procvar, def1 and def2 both have to be nested or
+             g) if def1 is a procvar, def1 and def2 both have to be nested or
                 non-nested (we don't allow assignments from non-nested to
                 nested procvars to make sure that we can still implement
                 nested procvars using trampolines -- e.g., this would be
                 necessary for LLVM or CIL as long as they do not have support
                 for Delphi-style frame pointer parameter passing) }
          if is_block(def2) or                                                           { a) }
-            (po_anonymous in def1.procoptions) then                                     { b) }
+            (po_anonymous in def1.procoptions) or                                       { b) }
+            (
+              (po_is_function_ref in def2.procoptions) and
+              (
+                (def1.typ<>procdef) or
+                not (po_delphi_nested_cc in def1.procoptions)
+              )                                                                         { c) }
+            ) then
            { can't explicitly check against procvars here, because
              def1 may already be a procvar due to a proc_to_procvar;
              this is checked in the type conversion node itself -> ok }
          else if
-            ((def1.is_methodpointer and not (po_staticmethod in def1.procoptions))<> { c) }
+            ((def1.is_methodpointer and not (po_staticmethod in def1.procoptions))<> { d) }
              (def2.is_methodpointer and not (po_staticmethod in def2.procoptions))) or
-            ((def1.is_addressonly<>def2.is_addressonly) and         { d) }
+            ((def1.is_addressonly<>def2.is_addressonly) and         { e) }
              (is_nested_pd(def1) or
               not is_nested_pd(def2))) or
-            ((def1.typ=procdef) and                                 { e) }
+            ((def1.typ=procdef) and                                 { f) }
              is_nested_pd(def1) and
              (not(po_delphi_nested_cc in def1.procoptions) or
               not is_nested_pd(def2))) or
-            ((def1.typ=procvardef) and                              { f) }
+            ((def1.typ=procvardef) and                              { g) }
              (is_nested_pd(def1)<>is_nested_pd(def2))) then
            exit;
          pa_comp:=[cpo_ignoreframepointer];

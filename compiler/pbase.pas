@@ -51,6 +51,9 @@ interface
        { special for handling procedure vars }
        getprocvardef : tprocvardef = nil;
 
+       { special for function reference vars }
+       getfuncrefdef : tobjectdef = nil;
+
     var
        { for operators }
        optoken : ttoken;

@@ -121,6 +121,7 @@ interface
           function typecheck_arrayconstructor_to_dynarray : tnode; virtual;
           function typecheck_arrayconstructor_to_array : tnode; virtual;
           function typecheck_anonproc_2_funcref : tnode; virtual;
+          function typecheck_procvar_2_funcref : tnode; virtual;
        private
           function _typecheck_int_to_int : tnode;
           function _typecheck_cord_to_pointer : tnode;
@@ -155,6 +156,7 @@ interface
           function _typecheck_arrayconstructor_to_dynarray : tnode;
           function _typecheck_arrayconstructor_to_array : tnode;
           function _typecheck_anonproc_to_funcref : tnode;
+          function _typecheck_procvar_to_funcref : tnode;
        protected
           function first_int_to_int : tnode;virtual;
           function first_cstring_to_pchar : tnode;virtual;
@@ -2346,6 +2348,12 @@ implementation
       end;
 
 
+    function ttypeconvnode._typecheck_procvar_to_funcref : tnode;
+      begin
+        result:=typecheck_procvar_2_funcref;
+      end;
+
+
     function ttypeconvnode._typecheck_anonproc_to_funcref : tnode;
       begin
         result:=typecheck_anonproc_2_funcref;
@@ -2647,6 +2655,62 @@ implementation
       end;
 
 
+    function ttypeconvnode.typecheck_procvar_2_funcref : tnode;
+      var
+        capturer : tsym;
+        intfdef : tdef;
+        ld,blck,hp : tnode;
+        stmt : tstatementnode;
+      begin
+        result:=nil;
+
+        if not(m_tp_procvar in current_settings.modeswitches) and
+           is_invokable(resultdef) and
+           (left.nodetype=typeconvn) and
+           (ttypeconvnode(left).convtype=tc_proc_2_procvar) and
+           is_methodpointer(left.resultdef) and
+           (po_classmethod in tprocvardef(left.resultdef).procoptions) and
+           not(po_staticmethod in tprocvardef(left.resultdef).procoptions) and
+           (proc_to_funcref_equal(tprocdef(ttypeconvnode(left).left.resultdef),tobjectdef(resultdef))>=te_convert_l1) then
+          begin
+            hp:=left;
+            left:=ttypeconvnode(left).left;
+            if (left.nodetype=loadn) and
+               not assigned(tloadnode(left).left) then
+              tloadnode(left).set_mp(cloadvmtaddrnode.create(ctypenode.create(tdef(tloadnode(left).symtable.defowner))));
+            left:=ctypeconvnode.create_proc_to_procvar(left);
+            ttypeconvnode(left).totypedef:=resultdef;
+            typecheckpass(left);
+            ttypeconvnode(hp).left:=nil;
+            hp.free;
+          end;
+
+        intfdef:=capturer_add_procvar_or_proc(current_procinfo,left,capturer,hp);
+        if assigned(intfdef) then
+          begin
+            if assigned(capturer) then
+              ld:=cloadnode.create(capturer,capturer.owner)
+            else
+              ld:=cnilnode.create;
+            result:=ctypeconvnode.create_internal(
+                      ctypeconvnode.create_internal(
+                        ld,
+                        intfdef),
+                      totypedef);
+            if assigned(hp) then
+              begin
+                blck:=internalstatements(stmt);
+                addstatement(stmt,cassignmentnode.create(hp,left));
+                left:=nil;
+                addstatement(stmt,result);
+                result:=blck;
+              end;
+          end;
+        if not assigned(result) then
+          result:=cerrornode.create;
+      end;
+
+
     function ttypeconvnode.typecheck_anonproc_2_funcref : tnode;
       var
         capturer : tsym;
@@ -2717,7 +2781,8 @@ implementation
           { elem_2_openarray } @ttypeconvnode._typecheck_elem_2_openarray,
           { arrayconstructor_2_dynarray } @ttypeconvnode._typecheck_arrayconstructor_to_dynarray,
           { arrayconstructor_2_array } @ttypeconvnode._typecheck_arrayconstructor_to_array,
-          { anonproc_2_funcref } @ttypeconvnode._typecheck_anonproc_to_funcref
+          { anonproc_2_funcref } @ttypeconvnode._typecheck_anonproc_to_funcref,
+          { procvar_2_funcref } @ttypeconvnode._typecheck_procvar_to_funcref
          );
       type
          tprocedureofobject = function : tnode of object;
@@ -2893,7 +2958,10 @@ implementation
                     use an extra check for them.}
                   if (left.nodetype=calln) and
                      (tcallnode(left).required_para_count=0) and
-                     (resultdef.typ=procvardef) and
+                     (
+                       (resultdef.typ=procvardef) or
+                       is_invokable(resultdef)
+                     ) and
                      (
                       (m_tp_procvar in current_settings.modeswitches) or
                       (m_mac_procvar in current_settings.modeswitches)
@@ -2909,8 +2977,16 @@ implementation
                       end
                      else
                       begin
-                        convtype:=tc_proc_2_procvar;
-                        currprocdef:=Tprocsym(Tcallnode(left).symtableprocentry).Find_procdef_byprocvardef(Tprocvardef(resultdef));
+                        if resultdef.typ=procvardef then
+                          begin
+                            convtype:=tc_proc_2_procvar;
+                            currprocdef:=Tprocsym(Tcallnode(left).symtableprocentry).Find_procdef_byprocvardef(Tprocvardef(resultdef));
+                          end
+                        else
+                          begin
+                            convtype:=tc_procvar_2_funcref;
+                            currprocdef:=tprocsym(tcallnode(left).symtableprocentry).find_procdef_byfuncrefdef(tobjectdef(resultdef));
+                          end;
                         hp:=cloadnode.create_procvar(tprocsym(tcallnode(left).symtableprocentry),
                             tprocdef(currprocdef),tcallnode(left).symtableproc);
                         if (tcallnode(left).symtableprocentry.owner.symtabletype=ObjectSymtable) then
@@ -2933,7 +3009,15 @@ implementation
                      { Now check if the procedure we are going to assign to
                        the procvar, is compatible with the procvar's type }
                      if not(nf_explicit in flags) and
-                        (proc_to_procvar_equal(currprocdef,tprocvardef(resultdef),false)=te_incompatible) then
+                        (
+                          (
+                            (resultdef.typ=procvardef) and
+                            (proc_to_procvar_equal(currprocdef,tprocvardef(resultdef),false)=te_incompatible)
+                          ) or (
+                            is_invokable(resultdef) and
+                            (proc_to_funcref_equal(currprocdef,tobjectdef(resultdef))=te_incompatible)
+                          )
+                        ) then
                        IncompatibleTypes(left.resultdef,resultdef)
                      else
                        result:=typecheck_call_helper(convtype);
@@ -4426,6 +4510,7 @@ implementation
            @ttypeconvnode._first_nothing,
            @ttypeconvnode._first_nothing,
            @ttypeconvnode._first_nothing,
+           nil,
            nil
          );
       type
@@ -4708,7 +4793,8 @@ implementation
            @ttypeconvnode._second_elem_to_openarray,  { elem_2_openarray }
            @ttypeconvnode._second_nothing,  { arrayconstructor_2_dynarray }
            @ttypeconvnode._second_nothing,  { arrayconstructor_2_array }
-           @ttypeconvnode._second_nothing   { anonproc_2_funcref }
+           @ttypeconvnode._second_nothing,  { anonproc_2_funcref }
+           @ttypeconvnode._second_nothing   { procvar_2_funcref }
          );
       type
          tprocedureofobject = procedure of object;

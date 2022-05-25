@@ -42,6 +42,7 @@ function adjust_funcref(var def:tdef;sym,dummysym:tsym):boolean;
 
 function get_or_create_capturer(pd:tprocdef):tsym;
 function capturer_add_anonymous_proc(owner:tprocinfo;pd:tprocdef;out capturer:tsym):tobjectdef;
+function capturer_add_procvar_or_proc(owner:tprocinfo;n:tnode;out capturer:tsym;out capturen:tnode):tobjectdef;
 procedure initialize_capturer(ctx:tprocinfo;var stmt:tstatementnode);
 procedure postprocess_capturer(ctx:tprocinfo);
 procedure convert_captured_syms(pd:tprocdef;tree:tnode);
@@ -653,6 +654,417 @@ implementation
             end;
         end;
       symstodo.free;
+    end;
+
+
+  function retrieve_sym_for_filepos(var n:tnode;arg:pointer):foreachnoderesult;
+    var
+      sym : ^tsym absolute arg;
+    begin
+      if assigned(sym^) then
+        exit(fen_norecurse_true);
+      result:=fen_false;
+      if not (n.resultdef.typ in [procdef,procvardef]) then
+        exit;
+      if n.nodetype=loadn then
+        begin
+          sym^:=tloadnode(n).symtableentry;
+          result:=fen_norecurse_true;
+        end
+      else if n.nodetype=subscriptn then
+        begin
+          sym^:=tsubscriptnode(n).vs;
+          result:=fen_norecurse_true;
+        end;
+    end;
+
+
+  function collect_syms_to_capture(var n:tnode;arg:pointer):foreachnoderesult;
+    var
+      pd : tprocdef absolute arg;
+      sym : tsym;
+    begin
+      result:=fen_false;
+      if n.nodetype<>loadn then
+        exit;
+      sym:=tsym(tloadnode(n).symtableentry);
+      if not (sym.owner.symtabletype in [parasymtable,localsymtable]) then
+        exit;
+      if sym.owner.symtablelevel>normal_function_level then begin
+        pd.add_captured_sym(sym,n.fileinfo);
+        result:=fen_true;
+      end;
+    end;
+
+
+  type
+    tselfinfo=record
+      selfsym:tsym;
+      ignore:tsym;
+    end;
+    pselfinfo=^tselfinfo;
+
+
+  function find_self_sym(var n:tnode;arg:pointer):foreachnoderesult;
+    var
+      info : pselfinfo absolute arg;
+    begin
+      result:=fen_false;
+      if assigned(info^.selfsym) then
+        exit(fen_norecurse_true);
+      if n.nodetype<>loadn then
+        exit;
+      if tloadnode(n).symtableentry.typ<>paravarsym then
+        exit;
+      if tloadnode(n).symtableentry=info^.ignore then
+        exit;
+      if vo_is_self in tparavarsym(tloadnode(n).symtableentry).varoptions then
+        begin
+          info^.selfsym:=tparavarsym(tloadnode(n).symtableentry);
+          result:=fen_norecurse_true;
+        end;
+    end;
+
+
+  function find_outermost_loaded_sym(var n:tnode;arg:pointer):foreachnoderesult;
+    var
+      sym : ^tsym absolute arg;
+    begin
+      if assigned(sym^) then
+        exit(fen_norecurse_true);
+      result:=fen_false;
+      if n.nodetype<>loadn then
+        exit;
+      sym^:=tloadnode(n).symtableentry;
+      result:=fen_norecurse_true;
+    end;
+
+
+  function find_procdef(var n:tnode;arg:pointer):foreachnoderesult;
+    var
+      pd : ^tprocdef absolute arg;
+    begin
+      if assigned(pd^) then
+        exit(fen_norecurse_true);
+      result:=fen_false;
+      if n.resultdef.typ<>procdef then
+        exit;
+      pd^:=tprocdef(n.resultdef);
+      result:=fen_norecurse_true;
+    end;
+
+
+  function capturer_add_procvar_or_proc(owner:tprocinfo;n:tnode;out capturer:tsym;out capturen:tnode):tobjectdef;
+
+    function create_paras(pd:tprocdef):tcallparanode;
+      var
+        para : tparavarsym;
+        i : longint;
+      begin
+        result:=nil;
+        for i:=0 to pd.paras.count-1 do
+          begin
+            para:=tparavarsym(pd.paras[i]);
+            if vo_is_hidden_para in para.varoptions then
+              continue;
+            result:=ccallparanode.create(cloadnode.create(para,pd.parast),result);
+          end;
+      end;
+
+      function find_nested_procinfo(pd:tprocdef):tcgprocinfo;
+        var
+          tmp,
+          res : tprocinfo;
+        begin
+          tmp:=owner;
+          while assigned(tmp) and (tmp.procdef.parast.symtablelevel>=normal_function_level) do
+            begin
+              res:=tmp.find_nestedproc_by_pd(pd);
+              if assigned(res) then
+                exit(tcgprocinfo(res));
+              tmp:=tmp.parent;
+            end;
+          result:=nil;
+        end;
+
+      procedure swap_symtable(var st1,st2:tsymtable);
+        var
+          st : tsymtable;
+          owner : tdefentry;
+          level : byte;
+        begin
+          { first swap the symtables themselves }
+          st:=st1;
+          st1:=st2;
+          st2:=st;
+          { then swap the symtables' owners }
+          owner:=st1.defowner;
+          st1.defowner:=st2.defowner;
+          st2.defowner:=owner;
+          { and finally the symtable level }
+          level:=st1.symtablelevel;
+          st1.symtablelevel:=st2.symtablelevel;
+          st2.symtablelevel:=level;
+        end;
+
+      procedure print_procinfo(pi:tcgprocinfo);
+        begin
+          { Print the node to tree.log }
+          if paraprintnodetree <> 0 then
+            pi.printproc('after parsing');
+
+{$ifdef DEBUG_NODE_XML}
+          { Methods of generic classes don't get any code generated, so output
+            the node tree here }
+          if (df_generic in procdef.defoptions) then
+            pi.XMLPrintProc(True);
+{$endif DEBUG_NODE_XML}
+        end;
+
+    var
+      ps : tprocsym;
+      pd : tprocdef;
+      pinested,
+      pi : tcgprocinfo;
+      sym,
+      fpsym,
+      selfsym : tsym;
+      invokename : tsymstr;
+      capturedef : tobjectdef;
+      capturesyms : tfplist;
+      captured : pcapturedsyminfo;
+      implintf : TImplementedInterface;
+      i : longint;
+      stmt : tstatementnode;
+      n1 : tnode;
+      fieldsym : tfieldvarsym;
+      selfinfo : tselfinfo;
+    begin
+      if not (n.resultdef.typ in [procdef,procvardef]) then
+        internalerror(2022022101);
+
+      capturer:=nil;
+      capturen:=nil;
+
+      { determine a unique name for the variable, field for function of the
+        node we're trying to load }
+
+      sym:=nil;
+      if not foreachnodestatic(pm_preprocess,n,@find_outermost_loaded_sym,@sym) then
+        internalerror(2022022102);
+
+      result:=funcref_intf_for_proc(tabstractprocdef(n.resultdef),fileinfo_to_suffix(sym.fileinfo));
+
+      if df_generic in owner.procdef.defoptions then
+        begin
+          { only check whether we can capture the symbol }
+          if not can_be_captured(sym) then
+            MessagePos1(n.fileinfo,sym_e_symbol_no_capture,sym.realname);
+          exit;
+        end;
+
+      if (sym.typ=procsym) and (sym.owner.symtabletype=localsymtable) then
+        begin
+          { this is assigning a nested function, so retrieve the correct procdef
+            so that we can then retrieve the procinfo for it }
+          if n.resultdef.typ=procdef then
+            pd:=tprocdef(n.resultdef)
+          else
+            begin
+              pd:=nil;
+              if not foreachnodestatic(pm_preprocess,n,@find_procdef,@pd) then
+                internalerror(2022041801);
+              if not assigned(pd) then
+                internalerror(2022041802);
+            end;
+          pinested:=find_nested_procinfo(pd);
+          if not assigned(pinested) then
+            internalerror(2022041803);
+          if pinested.parent<>owner then
+            begin
+              { we need to capture this into the owner of the nested function
+                instead }
+              owner:=pinested;
+              capturer:=get_or_create_capturer(pinested.procdef);
+              if not assigned(capturer) then
+                internalerror(2022041804);
+            end;
+        end
+      else
+        pinested:=nil;
+
+      if not assigned(capturer) then
+        capturer:=get_or_create_capturer(owner.procdef);
+
+      if not (capturer.typ in [localvarsym,staticvarsym]) then
+        internalerror(2022022103);
+      capturedef:=tobjectdef(tabstractvarsym(capturer).vardef);
+      if not is_class(capturedef) then
+        internalerror(2022022104);
+      implintf:=find_implemented_interface(capturedef,result);
+      if assigned(implintf) then
+        begin
+          { this is already captured into a method of the capturer, so nothing
+            further to do }
+          exit;
+        end;
+      implintf:=capturedef.register_implemented_interface(result,true);
+
+      invokename:=method_name_funcref_invoke_decl+'$'+fileinfo_to_suffix(sym.fileinfo);
+
+      ps:=cprocsym.create(invokename);
+      pd:=tprocdef(tabstractprocdef(n.resultdef).getcopyas(procdef,pc_normal,'',false));
+      pd.aliasnames.clear;
+
+      pd.procsym:=ps;
+      pd.struct:=capturedef;
+      pd.changeowner(capturedef.symtable);
+      pd.parast.symtablelevel:=normal_function_level;
+      pd.localst.symtablelevel:=normal_function_level;
+      { reset procoptions }
+      pd.procoptions:=[];
+      { to simplify some checks }
+      pd.was_anonymous:=true;
+      ps.ProcdefList.Add(pd);
+      pd.forwarddef:=false;
+      { set procinfo and current_procinfo.procdef }
+      pi:=tcgprocinfo(cprocinfo.create(nil));
+      pi.procdef:=pd;
+      if not assigned(pinested) then
+        begin
+          insert_funcret_local(pd);
+          { we always do a call, namely to the provided function }
+          include(pi.flags,pi_do_call);
+        end
+      else
+        begin
+          { the original nested function now calls the method }
+          include(pinested.flags,pi_do_call);
+          { swap the para and local symtables of the nested and new routine }
+          swap_symtable(pinested.procdef.parast,pd.parast);
+          swap_symtable(pinested.procdef.localst,pd.localst);
+          { fix function return symbol }
+          pd.funcretsym:=pinested.procdef.funcretsym;
+          pinested.procdef.funcretsym:=nil;
+          insert_funcret_local(pinested.procdef);
+        end;
+      capturedef.symtable.insertsym(ps);
+      owner.addnestedproc(pi);
+
+      { remove self and parentfp parameter if any as that will be replaced by
+        the capturer }
+      selfsym:=nil;
+      fpsym:=nil;
+      for i:=0 to pd.parast.symlist.count-1 do
+        begin
+          sym:=tsym(pd.parast.symlist[i]);
+          if sym.typ<>paravarsym then
+            continue;
+          if vo_is_self in tparavarsym(sym).varoptions then
+            selfsym:=sym
+          else if vo_is_parentfp in tparavarsym(sym).varoptions then
+            fpsym:=sym;
+          if assigned(selfsym) and assigned(fpsym) then
+            break;
+        end;
+      if assigned(selfsym) then
+        pd.parast.deletesym(selfsym);
+      if assigned(fpsym) then
+        pd.parast.deletesym(fpsym);
+      pd.calcparas;
+      if assigned(pinested) then
+        pinested.procdef.calcparas;
+
+      insert_self_and_vmt_para(pd);
+
+      if assigned(pinested) then
+        begin
+          { when we're assigning a nested function to a function reference we
+            move the code of the nested function to the newly created capturer
+            method (including the captured symbols) and have the original nested
+            function simply call that function-turned-method }
+          pi.code:=pinested.code;
+          pinested.code:=internalstatements(stmt);
+        end
+      else
+        pi.code:=internalstatements(stmt);
+
+      selfinfo.selfsym:=nil;
+      selfinfo.ignore:=nil;
+
+      fieldsym:=nil;
+      if assigned(pinested) then
+        begin
+          n1:=ccallnode.create(create_paras(pd),ps,capturedef.symtable,cloadnode.create(capturer,capturer.owner),[],nil);
+        end
+      else if n.resultdef.typ=procvardef then
+        begin
+          { store the procvar in a field so that it won't be changed if the
+            procvar itself is changed }
+          fieldsym:=cfieldvarsym.create('$'+fileinfo_to_suffix(n.fileinfo),vs_value,n.resultdef,[]);
+          fieldsym.fileinfo:=n.fileinfo;
+          capturedef.symtable.insertsym(fieldsym);
+          tabstractrecordsymtable(capturedef.symtable).addfield(fieldsym,vis_public);
+
+          capturen:=csubscriptnode.create(fieldsym,cloadnode.create(capturer,capturer.owner));
+
+          selfsym:=tsym(pd.parast.find('self'));
+          if not assigned(selfsym) then
+            internalerror(2022052301);
+          selfinfo.ignore:=selfsym;
+          n1:=ccallnode.create_procvar(create_paras(pd),csubscriptnode.create(fieldsym,cloadnode.create(selfsym,selfsym.owner)));
+        end
+      else
+        begin
+          if n.nodetype<>loadn then
+            internalerror(2022032401);
+          if tloadnode(n).symtableentry.typ<>procsym then
+            internalerror(2022032402);
+          n1:=ccallnode.create(create_paras(pd),tprocsym(tloadnode(n).symtableentry),tloadnode(n).symtable,tloadnode(n).left,[],nil);
+          tloadnode(n).left:=nil;
+        end;
+      if assigned(pd.returndef) and not is_void(pd.returndef) then
+        n1:=cassignmentnode.create(
+                    cloadnode.create(pd.funcretsym,pd.localst),
+                    n1
+                  );
+      addstatement(stmt,n1);
+      pd.aliasnames.insert(pd.mangledname);
+
+      if assigned(pinested) then
+        begin
+          { transfer all captured syms }
+          capturesyms:=pinested.procdef.capturedsyms;
+          if assigned(capturesyms) then
+            begin
+              for i:=0 to capturesyms.count-1 do
+                begin
+                  captured:=pcapturedsyminfo(capturesyms[i]);
+                  pi.add_captured_sym(captured^.sym,captured^.fileinfo);
+                end;
+              capturesyms.clear;
+            end;
+          { the original nested function now needs to capture only the capturer }
+          pinested.procdef.add_captured_sym(capturer,n.fileinfo);
+        end
+      { does this need to capture Self? }
+      else if not foreachnodestatic(pm_postprocess,n,@find_self_sym,@selfinfo) then
+        begin
+          { does this need some other local variable or parameter? }
+          foreachnodestatic(pm_postprocess,n,@collect_syms_to_capture,@pd)
+        end
+      else if not assigned(fieldsym) then
+        { this isn't a procdef that was captured into a field, so capture the
+          self }
+        pd.add_captured_sym(selfinfo.selfsym,n.fileinfo);
+
+      print_procinfo(pi);
+      if assigned(pinested) then
+        print_procinfo(pinested);
+
+      implintf.AddMapping(upcase(result.objrealname^+'.')+method_name_funcref_invoke_find,upcase(invokename));
+
+      capture_captured_syms(pd,owner,capturedef);
     end;
 
 
