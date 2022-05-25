@@ -115,6 +115,11 @@ function AtomicWait(constref Mem: UInt32; Compare: UInt32; TimeoutNanoseconds: I
 function AtomicWait(constref Mem: Int64; Compare: Int64; TimeoutNanoseconds: Int64): Int32;
 function AtomicWait(constref Mem: UInt64; Compare: UInt64; TimeoutNanoseconds: Int64): Int32;
 
+function AtomicNotify(constref Mem: Int32; Count: UInt32): UInt32; inline;
+function AtomicNotify(constref Mem: UInt32; Count: UInt32): UInt32; inline;
+function AtomicNotify(constref Mem: Int64; Count: UInt32): UInt32; inline;
+function AtomicNotify(constref Mem: UInt64; Count: UInt32): UInt32; inline;
+
 implementation
 
 {$I cpuh.inc}
@@ -502,6 +507,26 @@ end;
 function AtomicWait(constref Mem: UInt64; Compare: UInt64; TimeoutNanoseconds: Int64): Int32;
 begin
   AtomicWait:=fpc_wasm32_memory_atomic_wait64(@Mem,Compare,TimeoutNanoseconds);
+end;
+
+function AtomicNotify(constref Mem: Int32; Count: UInt32): UInt32; inline;
+begin
+  AtomicNotify:=fpc_wasm32_memory_atomic_notify(@Mem,Count);
+end;
+
+function AtomicNotify(constref Mem: UInt32; Count: UInt32): UInt32; inline;
+begin
+  AtomicNotify:=fpc_wasm32_memory_atomic_notify(@Mem,Count);
+end;
+
+function AtomicNotify(constref Mem: Int64; Count: UInt32): UInt32; inline;
+begin
+  AtomicNotify:=fpc_wasm32_memory_atomic_notify(@Mem,Count);
+end;
+
+function AtomicNotify(constref Mem: UInt64; Count: UInt32): UInt32; inline;
+begin
+  AtomicNotify:=fpc_wasm32_memory_atomic_notify(@Mem,Count);
 end;
 
 end.
