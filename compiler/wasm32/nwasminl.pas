@@ -52,6 +52,7 @@ interface
         procedure second_unreachable;
         procedure second_throw_fpcexception;
         procedure second_atomic_fence;
+        procedure second_atomic_load(op: TAsmOp);
         procedure second_atomic_rmw_x_y(op: TAsmOp);
         procedure second_atomic_rmw_x_y_z(op: TAsmOp);
       protected
@@ -405,6 +406,21 @@ implementation
       end;
 
 
+    procedure twasminlinenode.second_atomic_load(op: TAsmOp);
+      begin
+        secondpass(left);
+
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+        thlcgwasm(hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,left.resultdef,left.location.register);
+
+        current_asmdata.CurrAsmList.Concat(taicpu.op_const(op,0));
+
+        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+        location.register:=hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
+        thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+      end;
+
+
     procedure twasminlinenode.second_atomic_rmw_x_y(op: TAsmOp);
       begin
         secondpass(tcallparanode(tcallparanode(left).right).left);
@@ -594,6 +610,21 @@ implementation
               CheckParameters(2);
               resultdef:=u32inttype;
             end;
+          in_i32_atomic_load8_u,
+          in_i32_atomic_load16_u,
+          in_i32_atomic_load:
+            begin
+              CheckParameters(1);
+              resultdef:=u32inttype;
+            end;
+          in_i64_atomic_load8_u,
+          in_i64_atomic_load16_u,
+          in_i64_atomic_load32_u,
+          in_i64_atomic_load:
+            begin
+              CheckParameters(1);
+              resultdef:=u64inttype;
+            end;
           else
             Result:=inherited pass_typecheck_cpu;
         end;
@@ -664,7 +695,14 @@ implementation
           in_wasm32_i64_atomic_rmw_cmpxchg,
           in_wasm32_memory_atomic_wait32,
           in_wasm32_memory_atomic_wait64,
-          in_wasm32_memory_atomic_notify:
+          in_wasm32_memory_atomic_notify,
+          in_i32_atomic_load8_u,
+          in_i32_atomic_load16_u,
+          in_i32_atomic_load,
+          in_i64_atomic_load8_u,
+          in_i64_atomic_load16_u,
+          in_i64_atomic_load32_u,
+          in_i64_atomic_load:
             expectloc:=LOC_REGISTER;
           else
             Result:=inherited first_cpu;
@@ -793,6 +831,20 @@ implementation
             second_atomic_rmw_x_y_z(a_memory_atomic_wait64);
           in_wasm32_memory_atomic_notify:
             second_atomic_rmw_x_y(a_memory_atomic_notify);
+          in_i32_atomic_load8_u:
+            second_atomic_load(a_i32_atomic_load8_u);
+          in_i32_atomic_load16_u:
+            second_atomic_load(a_i32_atomic_load16_u);
+          in_i32_atomic_load:
+            second_atomic_load(a_i32_atomic_load);
+          in_i64_atomic_load8_u:
+            second_atomic_load(a_i64_atomic_load8_u);
+          in_i64_atomic_load16_u:
+            second_atomic_load(a_i64_atomic_load16_u);
+          in_i64_atomic_load32_u:
+            second_atomic_load(a_i64_atomic_load32_u);
+          in_i64_atomic_load:
+            second_atomic_load(a_i64_atomic_load);
           else
             inherited pass_generate_code_cpu;
         end;
