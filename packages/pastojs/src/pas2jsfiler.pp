@@ -201,11 +201,15 @@ const
     'ISOLikeProgramsPara',
     'ISOLikeMod',
     'ArrayOperators',
-    'ExternalClass',
-    'PrefixedAttributes',
-    'OmitRTTI',
     'MultiHelpers',
+    'Array2DynArrays',
+    'PrefixedAttributes',
+    'UnderscoreIsSepararor',
     'ImplicitFunctionSpecialization',
+    'FunctionReferences',
+    'AnonymousFunctions',
+    'ExternalClass',
+    'OmitRTTI',
     'MultilineStrings'
     ); // Dont forget to update ModeSwitchToInt !
 

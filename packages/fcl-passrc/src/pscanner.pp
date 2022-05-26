@@ -251,6 +251,7 @@ type
     );
   TTokens = set of TToken;
 
+  // for the fpc counterparts see fpc/compiler/globtype.pas
   TModeSwitch = (
     msNone,
     { generic }
@@ -296,12 +297,17 @@ type
     msISOLikeProgramsPara, { program parameters as it required by an ISO compatible compiler }
     msISOLikeMod,          { mod operation as it is required by an iso compatible compiler }
     msArrayOperators,      { use Delphi compatible array operators instead of custom ones ("+") }
-    msExternalClass,       { Allow external class definitions }
-    msPrefixedAttributes,  { Allow attributes, disable proc modifier [] }
-    msOmitRTTI,            { treat class section 'published' as 'public' and typeinfo does not work on symbols declared with this switch }
     msMultiHelpers,        { off=only one helper per type, on=all }
+    msArray2DynArray,      { regular arrays can be implicitly converted to dynamic arrays }
+    msPrefixedAttributes,  { Allow attributes, disable proc modifier [] }
+    msUnderscoreIsSeparator, { _ can be used as separator to group digits in numbers }
     msImplicitFunctionSpec,{ implicit function specialization }
-    msMultiLineStrings     { Multiline strings }
+    msFunctionReferences,  { enable Delphi-style function references }
+    msAnonymousFunctions,  { enable Delphi-style anonymous functions }
+
+    msExternalClass,       { pas2js: Allow external class definitions }
+    msOmitRTTI,            { pas2js: treat class section 'published' as 'public' and typeinfo does not work on symbols declared with this switch }
+    msMultiLineStrings     { pas2js: Multiline strings }
     );
   TModeSwitches = Set of TModeSwitch;
 
@@ -1121,11 +1127,15 @@ const
     'ISOPROGRAMPARAS',
     'ISOMOD',
     'ARRAYOPERATORS',
-    'EXTERNALCLASS',
-    'PREFIXEDATTRIBUTES',
-    'OMITRTTI',
     'MULTIHELPERS',
+    'ARRAY2DYNARRAYS',
+    'PREFIXEDATTRIBUTES',
+    'UNDERSCOREISSEPARARTOR',
     'IMPLICITFUNCTIONSPECIALIZATION',
+    'FUNCTIONREFERENCES',
+    'ANONYMOUSFUNCTIONS',
+    'EXTERNALCLASS',
+    'OMITRTTI',
     'MULTILINESTRINGS'
     );
 
@@ -1213,7 +1223,8 @@ const
      msPointer2Procedure,msAutoDeref,msTPProcVar,msInitFinal,msDefaultAnsistring,
      msOut,msDefaultPara,msDuplicateNames,msHintDirective,
      msProperty,msDefaultInline,msExcept,msAdvancedRecords,msTypeHelpers,
-     msPrefixedAttributes,msArrayOperators,msImplicitFunctionSpec
+     msPrefixedAttributes,msArrayOperators,msImplicitFunctionSpec,
+     msFunctionReferences,msAnonymousFunctions
      ];
 
   DelphiUnicodeModeSwitches = delphimodeswitches + [msSystemCodePage,msDefaultUnicodestring];
