@@ -969,7 +969,7 @@ implementation
               if (current_scanner.replay_stack_depth=0) and
                   (
                     (hdef.typ<>procvardef) or
-                    not (po_is_function_ref in tprocdef(hdef).procoptions)
+                    not (po_is_function_ref in tabstractprocdef(hdef).procoptions)
                   ) then
                 hdef.register_def;
               { KAZ: handle TGUID declaration in system unit }
