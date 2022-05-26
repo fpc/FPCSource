@@ -3950,14 +3950,14 @@ P*2Aas_Assemble using GNU AS
 S*2Aas_Assemble using GNU AS
 s*2Aas_Assemble using GNU AS
 v*2Aas_Assemble using GNU AS
-W*2Awasm_Assemble using the internal object writer for wasm32
-W*2Abinaryen_Assemble using GNU AS for wasm32 (wasm-as)
+W*2Awasm_Assemble using the internal object writer for wasm32 (experimental)
+W*2Abinaryen_Assemble using GNU AS for wasm32 (wasm-as) (experimental)
 W*2Allvm-mc-10_Assemble using llvm-mc-10
 W*2Allvm-mc-11_Assemble using llvm-mc-11
 W*2Allvm-mc-12_Assemble using llvm-mc-12
 W*2Allvm-mc-13_Assemble using llvm-mc-13
 W*2Allvm-mc_Assemble using llvm-mc (version 14 or later)
-W*2Awabt_Assemble using wasa
+W*2Awabt_Assemble using wasa (experimental)
 x*2Aas_Assemble using GNU AS
 Z*2Asdcc-sdasz80_Assemble using SDCC-SDASZ80
 Z*2Avasm_Assemble using Vasm
@@ -4020,7 +4020,7 @@ J*3CTlowercaseprocstart_  Lowercase the first character of procedure/function/me
 A*3CTthumbinterworking_ Generate Thumb interworking-safe code if possible
 W*3CTnoexceptions_        Disable the exception support. Raising an exception will abort the program.
 W*3CTbfexceptions_        Enable the branchful exception support for WebAssembly
-W*3CTjsexceptions_        Enable the JavaScript-based exception support for WebAssembly
+W*3CTjsexceptions_        Enable the JavaScript-based exception support for WebAssembly (experimental)
 W*3CTwasmexceptions_      Enable the native WebAssembly exceptions support
 J*2Cv_Var/out parameter copy-out checking
 A*2CV<x>_Set section threadvar model to <x>
