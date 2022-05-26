@@ -7,7 +7,7 @@
 {$modeswitch cblocks}
 
 type
-  treadabilityHandler = reference to procedure (l :longint); cdecl;
+  treadabilityHandler = reference to procedure (l :longint); cdecl; cblock;
 
 procedure setReadabilityHandler(ahandler: treadabilityHandler);
   begin
