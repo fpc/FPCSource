@@ -5,6 +5,6 @@
 PROGRAM TestHeap;
 
 uses
-  erroru;
+  erroru,cmem;
 
-{$I heap.inc}
+{$i theap.inc}
