@@ -1577,6 +1577,7 @@ implementation
 
             current_genericdef:=nil;
             current_specializedef:=nil;
+            olddef:=nil;
 
             is_func:=(token=_FUNCTION);
             consume(token);

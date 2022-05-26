@@ -728,6 +728,7 @@ implementation
          hdef:=nil;
          first:=true;
          had_generic:=false;
+         storetokenpos:=Default(tfileposinfo);
          repeat
            defpos:=current_tokenpos;
            istyperenaming:=false;

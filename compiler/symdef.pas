@@ -6763,6 +6763,7 @@ implementation
         include(pno,pno_showhidden);
 {$endif EXTDEBUG}
         s:='';
+        rn:='';
         if proctypeoption=potype_operator then
           begin
             for t:=NOTOKEN to last_overloaded do
