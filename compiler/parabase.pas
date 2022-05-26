@@ -41,8 +41,8 @@ unit parabase;
        PCGParaLocation = ^TCGParaLocation;
        TCGParaLocation = record
          Next : PCGParaLocation;
-         Size : TCGSize; { size of this location }
          Def  : tdef;
+         Size : TCGSize; { size of this location }
          Loc  : TCGLoc;
 {$ifdef llvm}
          { The following fields are used to determine the name and handling of
