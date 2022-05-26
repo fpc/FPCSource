@@ -3950,7 +3950,7 @@ P*2Aas_Assemble using GNU AS
 S*2Aas_Assemble using GNU AS
 s*2Aas_Assemble using GNU AS
 v*2Aas_Assemble using GNU AS
-W*2Aomf using internal object writer for wasm32
+W*2Awasm using internal object writer for wasm32
 W*2Abinaryen_Assemble using GNU AS for wasm32 (wasm-as)
 W*2Allvm-mc_Assemble using llvm-mc
 W*2Awabt_Assemble using wasa

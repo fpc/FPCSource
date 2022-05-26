@@ -1768,7 +1768,7 @@ implementation
        as_wasm32_wasm_info : tasminfo =
           (
             id     : as_wasm32_wasm;
-            idtxt  : 'OMF';
+            idtxt  : 'WASM';
             asmbin : '';
             asmcmd : '';
             supported_targets : [system_wasm32_embedded,system_wasm32_wasi];
