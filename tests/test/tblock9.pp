@@ -1,5 +1,5 @@
 { %FAIL }
-{ %OS=darwin,iphonesim,ios}
+{ %TARGET=darwin,iphonesim,ios}
 
 program tblock9;
 
