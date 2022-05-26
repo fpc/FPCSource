@@ -325,20 +325,23 @@ implementation
                    current_tokenpos:=storetokenpos;
                    skip_initialiser:=false;
                    { Anonymous proctype definitions can have proc directives }
-                   if (hdef.typ=procvardef) and
-                      (hdef.typesym=nil) then
+                   if (
+                         (hdef.typ=procvardef) or
+                         is_funcref(hdef)
+                       ) and
+                       (hdef.typesym=nil) then
                     begin
                       { Either "procedure; stdcall" or "procedure stdcall" }
                       expect_directive:=try_to_consume(_SEMICOLON);
                       if check_proc_directive(true) then
-                        parse_proctype_directives(tprocvardef(hdef))
+                        parse_proctype_directives(hdef)
                       else if expect_directive then
                        begin
                          Message(parser_e_proc_directive_expected);
                          skip_initialiser:=true;
                        end;
                       { add default calling convention }
-                      handle_calling_convention(tabstractprocdef(hdef),hcc_default_actions_intf);
+                      handle_calling_convention(hdef,hcc_default_actions_intf);
                     end;
                    { Parse the initialiser }
                    if not skip_initialiser then
@@ -1087,8 +1090,22 @@ implementation
                   end;
                 objectdef :
                   begin
-                    try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
-                    consume(_SEMICOLON);
+                    if is_funcref(hdef) then
+                      begin
+                        if not check_proc_directive(true) then
+                          begin
+                            try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
+                            consume(_SEMICOLON);
+                          end;
+                        parse_proctype_directives(hdef);
+                        if try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg) then
+                          consume(_SEMICOLON);
+                      end
+                    else
+                      begin
+                        try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
+                        consume(_SEMICOLON);
+                      end;
 
                     { change a forward and external class declaration into
                       formal external definition, so the compiler does not

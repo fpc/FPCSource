@@ -889,11 +889,14 @@ implementation
        begin
          result:=false;
          { Process procvar directives before = and ; }
-         if (def.typ=procvardef) and
+         if (
+              (def.typ=procvardef) or
+              is_funcref(def)
+            ) and
             (def.typesym=nil) and
             check_proc_directive(true) then
            begin
-              parse_proctype_directives(tprocvardef(def));
+              parse_proctype_directives(def);
               result:=true;
            end;
        end;
