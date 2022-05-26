@@ -275,8 +275,8 @@ implementation
                 begin
                   callpara:=pllvmcallpara(p.oper[opidx]^.paras[paraidx]);
                   record_def(callpara^.def);
-                  if callpara^.typ=top_tai then
-                    collect_tai_info(deftypelist,callpara^.ai);
+                  if callpara^.val.typ=top_tai then
+                    collect_tai_info(deftypelist,callpara^.val.ai);
                 end;
             else
               ;
@@ -372,16 +372,15 @@ implementation
                       for paraidx:=0 to p.oper[i]^.paras.count-1 do
                         begin
                           callpara:=pllvmcallpara(p.oper[i]^.paras[paraidx]);
-                          case callpara^.typ of
+                          case callpara^.val.typ of
                             top_tai:
-                              insert_tai_typeconversions(toplevellist,callpara^.ai);
+                              insert_tai_typeconversions(toplevellist,callpara^.val.ai);
                             top_ref:
                               begin
-                                cnv:=check_insert_bitcast(toplevellist,callpara^.sym,callpara^.def);
+                                cnv:=check_insert_bitcast(toplevellist,callpara^.val.sym,callpara^.def);
                                 if assigned(cnv) then
                                   begin
-                                    callpara^.typ:=top_tai;
-                                    callpara^.ai:=cnv;
+                                    callpara^.loadtai(cnv);
                                   end;
                               end;
                             else

@@ -135,10 +135,10 @@ implementation
                   for paracnt:=0 to paras.count-1 do
                     begin
                       callpara:=pllvmcallpara(paras[paracnt]);
-                      if (callpara^.typ=top_reg) and
-                         (getregtype(callpara^.register)=regtype) then
+                      if (callpara^.val.typ=top_reg) and
+                         (getregtype(callpara^.val.register)=regtype) then
                         begin
-                          result:=addreginfo(regs,r,callpara^.register,operand_read) or result;
+                          result:=addreginfo(regs,r,callpara^.val.register,operand_read) or result;
                           break
                         end;
                     end;
@@ -162,9 +162,9 @@ implementation
                 for paracnt:=0 to paras.count-1 do
                   begin
                     callpara:=pllvmcallpara(paras[paracnt]);
-                    if (callpara^.typ=top_reg) and
-                       (getregtype(callpara^.register)=regtype) then
-                      try_replace_reg(regs, callpara^.register,true);
+                    if (callpara^.val.typ=top_reg) and
+                       (getregtype(callpara^.val.register)=regtype) then
+                      try_replace_reg(regs, callpara^.val.register,true);
                   end;
               end;
             else
@@ -247,9 +247,9 @@ implementation
                   for paracnt:=0 to taillvm(supstart).oper[i]^.paras.count-1 do
                     begin
                       callpara:=pllvmcallpara(taillvm(supstart).oper[i]^.paras[paracnt]);
-                      if (callpara^.typ=top_reg) and
-                         (getregtype(callpara^.register)=regtype) and
-                         (getsupreg(callpara^.register)=supreg) then
+                      if (callpara^.val.typ=top_reg) and
+                         (getregtype(callpara^.val.register)=regtype) and
+                         (getsupreg(callpara^.val.register)=supreg) then
                         begin
                           def:=callpara^.def;
                           break

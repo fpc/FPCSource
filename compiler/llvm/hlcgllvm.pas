@@ -226,7 +226,7 @@ implementation
         begin
           cgpara.check_simple_location;
           location^.llvmvalueloc:=true;
-          location^.llvmloc.loc:=LOC_CREFERENCE;
+          location^.llvmloc.loc:=LOC_REFERENCE;
           location^.llvmloc.sym:=initialref.symbol;
           exit;
         end;
@@ -475,8 +475,7 @@ implementation
         firstparaloc:=true;
         while assigned(paraloc) do
           begin
-            new(callpara);
-            callpara^.flags:=[];
+            new(callpara,init(paraloc^.def,std_param_align,lve_none,[]));
             callpara^.def:=paraloc^.def;
             { if the paraloc doesn't contain the value itself, it's a byval
               parameter }
@@ -491,20 +490,20 @@ implementation
               end;
             if firstparaloc and
                (lcp_byval in callpara^.flags) then
-              callpara^.alignment:=paras[i]^.Alignment
-            else
-              callpara^.alignment:=std_param_align;
+              callpara^.alignment:=paras[i]^.Alignment;
             llvmextractvalueextinfo(paras[i]^.def, callpara^.def, callpara^.valueext);
             case paraloc^.llvmloc.loc of
               LOC_CONSTANT:
                 begin
-                  callpara^.typ:=top_const;
-                  callpara^.value:=paraloc^.llvmloc.value;
+                  callpara^.loadconst(paraloc^.llvmloc.value);
+                end;
+              LOC_REFERENCE:
+                begin
+                  callpara^.loadsym(paraloc^.llvmloc.sym);
                 end;
               LOC_CREFERENCE:
                 begin
-                  callpara^.typ:=top_ref;
-                  callpara^.sym:=paraloc^.llvmloc.sym;
+                  callpara^.loadlocalsym(paraloc^.llvmloc.localsym);
                 end
               else
                 begin
@@ -515,18 +514,16 @@ implementation
                           internalerror(2014012307)
                         else
                           begin
-                            callpara^.typ:=top_reg;
                             reference_reset_base(href, cpointerdef.getreusable(callpara^.def), paraloc^.reference.index, paraloc^.reference.offset, ctempposinvalid, paraloc^.def.alignment, []);
                             res:=getregisterfordef(list, paraloc^.def);
                             load_ref_anyreg(callpara^.def, href, res);
+                            callpara^.loadreg(res);
                           end;
-                        callpara^.register:=res
                       end;
                     LOC_REGISTER,
                     LOC_FPUREGISTER,
                     LOC_MMREGISTER:
                       begin
-                        callpara^.typ:=top_reg;
                         { undo explicit value extension }
                         if callpara^.valueext<>lve_none then
                           begin
@@ -534,12 +531,12 @@ implementation
                             a_load_reg_reg(list, paraloc^.def, callpara^.def, paraloc^.register, res);
                             paraloc^.register:=res;
                           end;
-                        callpara^.register:=paraloc^.register
+                        callpara^.loadreg(paraloc^.register);
                       end;
                     { empty records }
                     LOC_VOID:
                       begin
-                        callpara^.typ:=top_undef;
+                        callpara^.loadundef;
                       end
                     else
                       internalerror(2014010605);

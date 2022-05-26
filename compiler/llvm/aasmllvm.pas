@@ -212,13 +212,7 @@ interface
     tllvmcallparaflag = (lcp_byval, lcp_sret);
     tllvmcallparaflags = set of tllvmcallparaflag;
 
-    { parameter to an llvm call instruction }
-    pllvmcallpara = ^tllvmcallpara;
-    tllvmcallpara = record
-      def: tdef;
-      alignment: shortint;
-      valueext: tllvmvalueextension;
-      flags: tllvmcallparaflags;
+    tllvmcallparaval = record
       case typ: toptype of
         top_none: ();
         top_reg: (register: tregister);
@@ -228,17 +222,38 @@ interface
         top_tai    : (ai: tai);
     end;
 
+    { parameter to an llvm call instruction }
+    pllvmcallpara = ^tllvmcallpara;
+    tllvmcallpara = object
+      def: tdef;
+      alignment: shortint;
+      valueext: tllvmvalueextension;
+      flags: tllvmcallparaflags;
+      val: tllvmcallparaval;
+
+      constructor initwithcopy(_other: pllvmcallpara);
+      constructor init(_def: tdef; _alignment: shortint; _valueext: tllvmvalueextension; _flags: tllvmcallparaflags);
+      destructor done;
+      procedure clearpara;
+      procedure loadreg(reg: tregister);
+      procedure loadsym(sym: TAsmSymbol);
+      procedure loadconst(value: int64);
+      procedure loadtai(ai: tai);
+      procedure loadlocalsym(localsym: tsym);
+      procedure loadundef;
+    end;
 
     TLLVMAsmData = class(TAsmDataDef)
      fnextmetaid: cardinal;
     end;
 
+
 implementation
 
-uses
-  cutils, strings,
-  symconst,
-  aasmcpu;
+    uses
+      cutils, strings,
+      symconst,
+      aasmcpu;
 
     { taillvmprocdecl }
 
@@ -365,12 +380,11 @@ uses
             oper[opidx]^.paras:=tfplist.create;
             for i:=0 to o.paras.count-1 do
               begin
-                new(callpara);
-                callpara^:=pllvmcallpara(o.paras[i])^;
+                new(callpara,initwithcopy(pllvmcallpara(o.paras[i])));
                 oper[opidx]^.paras.add(callpara);
-                if (callpara^.typ = top_reg) and
+                if (callpara^.val.typ = top_reg) and
                    assigned(add_reg_instruction_hook) then
-                  add_reg_instruction_hook(self,callpara^.register);
+                  add_reg_instruction_hook(self,callpara^.val.register);
               end;
           end;
       end;
@@ -387,13 +401,7 @@ uses
               for i:=0 to oper[opidx]^.paras.count-1 do
                 begin
                   callpara:=pllvmcallpara(oper[opidx]^.paras[i]);
-                  case callpara^.typ of
-                    top_tai:
-                      callpara^.ai.free;
-                    else
-                      ;
-                  end;
-                  dispose(callpara);
+                  dispose(callpara,done);
                 end;
               oper[opidx]^.paras.free;
             end;
@@ -520,9 +528,9 @@ uses
             for i:=0 to _paras.count-1 do
               begin
                 callpara:=pllvmcallpara(_paras[i]);
-                if (callpara^.typ=top_reg) and
+                if (callpara^.val.typ=top_reg) and
                    assigned(add_reg_instruction_hook) then
-                  add_reg_instruction_hook(self,callpara^.register);
+                  add_reg_instruction_hook(self,callpara^.val.register);
               end;
             typ:=top_para;
           end;
@@ -1263,6 +1271,89 @@ uses
         loadasmlist(0,asmlist);
         loadparas(1,paras);
       end;
+
+
+    { tllvmcallpara }
+
+    constructor tllvmcallpara.initwithcopy(_other: pllvmcallpara);
+      begin
+        self:=_other^;
+      end;
+
+
+    constructor tllvmcallpara.init(_def: tdef; _alignment: shortint; _valueext: tllvmvalueextension; _flags: tllvmcallparaflags);
+      begin
+        def:=_def;
+        alignment:=_alignment;
+        valueext:=_valueext;
+        flags:=_flags;
+        val.typ:=top_none;
+      end;
+
+
+    destructor tllvmcallpara.done;
+      begin
+        clearpara;
+      end;
+
+
+    procedure tllvmcallpara.clearpara;
+      begin
+        case val.typ of
+          top_tai:
+            val.ai.free;
+          else
+            ;
+        end;
+        val.typ:=top_none;
+      end;
+
+
+    procedure tllvmcallpara.loadreg(reg: tregister);
+      begin
+        clearpara;
+        val.typ:=top_reg;
+        val.register:=reg;
+      end;
+
+
+    procedure tllvmcallpara.loadsym(sym: TAsmSymbol);
+      begin
+        clearpara;
+        val.typ:=top_ref;
+        val.sym:=sym;
+      end;
+
+
+    procedure tllvmcallpara.loadconst(value: int64);
+      begin
+        clearpara;
+        val.typ:=top_const;
+        val.value:=value;
+      end;
+
+
+    procedure tllvmcallpara.loadtai(ai: tai);
+      begin
+        clearpara;
+        val.typ:=top_tai;
+        val.ai:=ai;
+      end;
+
+
+    procedure tllvmcallpara.loadlocalsym(localsym: tsym);
+      begin
+        clearpara;
+        val.typ:=top_local;
+        val.localsym:=localsym;
+      end;
+
+    procedure tllvmcallpara.loadundef;
+      begin
+        clearpara;
+        val.typ:=top_undef
+      end;
+
 
 begin
   casmdata:=TLLVMAsmData;

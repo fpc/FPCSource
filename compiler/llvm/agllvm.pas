@@ -366,27 +366,27 @@ implementation
                owner.writer.AsmWrite(' align ');
                owner.writer.AsmWrite(tostr(abs(para^.alignment)));
              end;
-           case para^.typ of
+           case para^.val.typ of
              top_reg:
                begin
                  owner.writer.AsmWrite(' ');
-                 owner.writer.AsmWrite(getregisterstring(para^.register));
+                 owner.writer.AsmWrite(getregisterstring(para^.val.register));
                end;
              top_ref:
                begin
                  owner.writer.AsmWrite(' ');
-                 owner.writer.AsmWrite(llvmasmsymname(para^.sym));
+                 owner.writer.AsmWrite(llvmasmsymname(para^.val.sym));
                end;
              top_const:
                begin
                  owner.writer.AsmWrite(' ');
-                 owner.writer.AsmWrite(tostr(para^.value));
+                 owner.writer.AsmWrite(tostr(para^.val.value));
                end;
              top_tai:
                begin
                  tmpinline:=1;
                  tmpasmblock:=false;
-                 hp:=para^.ai;
+                 hp:=para^.val.ai;
                  if para^.def<>llvm_metadatatype then
                    metadatakind:=mk_none
                  else
