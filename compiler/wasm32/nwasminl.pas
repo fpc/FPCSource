@@ -39,12 +39,14 @@ interface
         function first_sqrt_real:tnode;override;
         function first_trunc_real:tnode;override;
         function first_round_real:tnode;override;
+        function first_popcnt:tnode;override;
         procedure second_abs_real;override;
         procedure second_int_real;override;
         procedure second_sqrt_real;override;
         procedure second_trunc_real;override;
         procedure second_round_real;override;
         procedure second_high; override;
+        procedure second_popcnt;override;
         procedure second_memory_size;
         procedure second_memory_grow;
         procedure second_memory_fill;
@@ -109,6 +111,13 @@ implementation
 
 
     function twasminlinenode.first_round_real: tnode;
+      begin
+        expectloc:=LOC_REGISTER;
+        result:=nil;
+      end;
+
+
+    function twasminlinenode.first_popcnt: tnode;
       begin
         expectloc:=LOC_REGISTER;
         result:=nil;
@@ -284,6 +293,24 @@ implementation
 {$endif}
           location.register := hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
 
+        thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+      end;
+
+
+    procedure twasminlinenode.second_popcnt;
+      begin
+        secondpass(left);
+
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+        thlcgwasm(hlcg).a_load_reg_stack(current_asmdata.CurrAsmList,left.resultdef,left.location.register);
+
+        if is_64bit(left.resultdef) then
+          current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_popcnt))
+        else
+          current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i32_popcnt));
+
+        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+        location.register:=hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
         thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
       end;
 
