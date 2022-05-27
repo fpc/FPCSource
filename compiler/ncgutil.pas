@@ -980,10 +980,10 @@ implementation
                               if isaddr then
                                 begin
                                   ptrdef:=cpointerdef.getreusable(vs.vardef);
-                                  tg.GetLocal(list,ptrdef.size,ptrdef,vs.initialloc.reference)
+                                  hlcg.GetLocal(list,vs,ptrdef.size,ptrdef.alignment,ptrdef,vs.initialloc.reference)
                                 end
                               else
-                                tg.GetLocal(list,vs.getsize,tparavarsym(vs).paraloc[calleeside].alignment,vs.vardef,vs.initialloc.reference);
+                                hlcg.GetLocal(list,vs,vs.getsize,tparavarsym(vs).paraloc[calleeside].alignment,vs.vardef,vs.initialloc.reference);
                             end;
                         end;
                     end;
@@ -1029,7 +1029,7 @@ implementation
                   else
                     begin
                       vs.initialloc.loc:=LOC_REFERENCE;
-                      tg.GetLocal(list,vs.getsize,vs.vardef,vs.initialloc.reference);
+                      hlcg.GetLocal(list,vs,vs.getsize,vs.vardef.alignment,vs.vardef,vs.initialloc.reference);
                     end;
                   hlcg.varsym_set_localloc(list,vs);
                 end;

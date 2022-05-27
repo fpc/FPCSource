@@ -52,6 +52,9 @@ uses
       procedure allocallcpuregisters(list: TAsmList); override;
       procedure deallocallcpuregisters(list: TAsmList); override;
 
+      procedure recordnewsymloc(list: TAsmList; sym: tsym; def: tdef; const ref: treference); override;
+
+     public
       procedure a_bit_test_reg_reg_reg(list: TAsmList; bitnumbersize, valuesize, destsize: tdef; bitnumber, value, destreg: tregister); override;
       procedure a_bit_set_reg_reg(list: TAsmList; doset: boolean; bitnumbersize, destsize: tdef; bitnumber, dest: tregister); override;
 
@@ -381,6 +384,42 @@ implementation
   procedure thlcgllvm.deallocallcpuregisters(list: TAsmList);
     begin
       { don't do anything }
+    end;
+
+
+  procedure thlcgllvm.recordnewsymloc(list: TAsmList; sym: tsym; def: tdef; const ref: treference);
+    var
+      varmetapara,
+      symmetadatapara,
+      exprmetapara: tcgpara;
+      pd: tprocdef;
+    begin
+      if assigned(sym) and
+         (sym.visibility<>vis_hidden) and
+         (cs_debuginfo in current_settings.moduleswitches) then
+        begin
+          pd:=search_system_proc('llvm_dbg_addr');
+          varmetapara.init;
+          symmetadatapara.init;
+          exprmetapara.init;
+          paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,varmetapara);
+          paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,symmetadatapara);
+          paramanager.getcgtempparaloc(current_asmdata.CurrAsmList,pd,1,exprmetapara);
+          { the local location of the var/para }
+          varmetapara.Location^.def:=cpointerdef.getreusable(def);
+          varmetapara.Location^.register:=ref.base;
+          { the variable/para metadata }
+          symmetadatapara.Location^.llvmloc.loc:=LOC_CREFERENCE;
+          symmetadatapara.Location^.llvmloc.localsym:=sym;
+          { dummy for the expression metadata }
+          exprmetapara.Location^.llvmloc.loc:=LOC_CONSTANT;
+          exprmetapara.Location^.llvmloc.value:=0;
+          g_call_system_proc(list,pd,[@varmetapara,@symmetadatapara,@exprmetapara],nil).resetiftemp;
+
+          varmetapara.done;
+          symmetadatapara.done;
+          exprmetapara.done;
+        end;
     end;
 
 

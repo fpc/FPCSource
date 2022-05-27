@@ -638,6 +638,11 @@ unit hlcgobj;
           procedure gen_load_para_value(list:TAsmList);virtual;
           { helpers called by gen_load_para_value }
           procedure g_copyvalueparas(p:TObject;arg:pointer);virtual;
+
+          { allocate a local temp to serve as storage for a para/localsym }
+          procedure getlocal(list: TAsmList; sym: tsym; size: asizeint; alignment: shortint; def: tdef; out ref : treference);
+          { the symbol is stored at this location from now on }
+          procedure recordnewsymloc(list: TAsmList; sym: tsym; def: tdef; const ref: treference); virtual;
          protected
           procedure gen_loadfpu_loc_cgpara(list: TAsmList; size: tdef; const l: tlocation;const cgpara: tcgpara;locintsize: longint);virtual;
           procedure init_paras(p:TObject;arg:pointer);
@@ -5206,7 +5211,7 @@ implementation
               l:=tparavarsym(p).getsize;
               localcopyloc.loc:=LOC_REFERENCE;
               localcopyloc.size:=int_cgsize(l);
-              tg.GetLocal(list,l,tparavarsym(p).vardef,localcopyloc.reference);
+              getlocal(list,tparavarsym(p),l,tparavarsym(p).vardef.alignment,tparavarsym(p).vardef,localcopyloc.reference);
               { Copy data }
               if is_shortstring(tparavarsym(p).vardef) then
                 begin
@@ -5236,6 +5241,19 @@ implementation
             end;
         end;
     end;
+
+
+  procedure thlcgobj.getlocal(list: TAsmList; sym: tsym; size: asizeint; alignment: shortint; def: tdef; out ref: treference);
+    begin
+      tg.getlocal(list,size,alignment,def,ref);
+      recordnewsymloc(list,sym,def,ref);
+    end;
+
+  procedure thlcgobj.recordnewsymloc(list: TAsmList; sym: tsym; def: tdef; const ref: treference);
+    begin
+      // do nothing
+    end;
+
 
   procedure thlcgobj.gen_loadfpu_loc_cgpara(list: TAsmList; size: tdef; const l: tlocation; const cgpara: tcgpara; locintsize: longint);
     var
