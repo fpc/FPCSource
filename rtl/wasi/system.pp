@@ -71,6 +71,8 @@ begin
   FreeMem(aMem);
 end;
 
+exports 
+  WasiAlloc,WasiFree;
 
 function ConvertToFdRelativePath(path: RawByteString; out fd: LongInt; out relfd_path: RawByteString): Word; forward;
 
