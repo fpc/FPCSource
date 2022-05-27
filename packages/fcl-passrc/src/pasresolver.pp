@@ -21396,6 +21396,9 @@ begin
             and not IsFullySpecialized(TPasGenericType(CurScopeEl)) then
           RaiseMsg(20200217131215,nGenericsWithoutSpecializationAsType,
             sGenericsWithoutSpecializationAsType,['reference'],ErrorEl);
+        if (CurScopeEl is TPasClassType) and TPasClassType(CurScopeEl).IsForward then
+          RaiseMsg(20220527113900,nIdentifierNotFound,
+            sIdentifierNotFound,[CurName],ErrorEl);
         CurScope:=PushDotScope(TPasType(CurScopeEl));
         if CurScope=nil then
           RaiseMsg(20190122122529,nIllegalQualifierAfter,sIllegalQualifierAfter,

@@ -562,6 +562,7 @@ type
     Procedure TestClassForwardDelphiFail;
     Procedure TestClassForwardObjFPCProgram;
     Procedure TestClassForwardObjFPCUnit;
+    Procedure TestClassForwardNestedTypeFail;
     Procedure TestClass_Method;
     Procedure TestClass_ConstructorMissingDotFail;
     Procedure TestClass_MethodImplDuplicateFail;
@@ -9517,6 +9518,23 @@ begin
   '  end;',
   '']);
   ParseUnit;
+end;
+
+procedure TTestResolver.TestClassForwardNestedTypeFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TBird = class;',
+  '  TProc = procedure(a: TBird.TEnum);',
+  '  TBird = class',
+  '  type TEnum = (red,blue);',
+  '  end;',
+  'begin',
+  '']);
+  CheckResolverException('identifier not found "TEnum"',nIdentifierNotFound);
 end;
 
 procedure TTestResolver.TestClass_Method;
