@@ -84,7 +84,7 @@ interface
       // additional memory
       'memory.grow 0', 'memory.size 0',
       // bulk memory operations
-      'memory.copy 0,0', 'memory.fill 0',
+      'memory.copy 0,0', 'memory.fill 0', 'memory.init', 'data.drop',
       // exceptions
       'try','catch','catch_all','delegate','throw','rethrow','end_try',
       // atomic memory accesses - load/store
