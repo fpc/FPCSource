@@ -391,7 +391,9 @@ implementation
                    metadatakind:=mk_none
                  else
                    metadatakind:=mk_normal;
+                 inc(owner.fdecllevel);
                  owner.WriteTai(false,false,metadatakind,tmpinline,tmpasmblock,hp);
+                 dec(owner.fdecllevel);
                end;
              { empty records }
              top_undef:
