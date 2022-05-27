@@ -334,6 +334,7 @@ implementation
 
       symowner.insertsym(sym);
       symowner.insertdef(result);
+      addsymref(sym);
     end;
 
 
@@ -446,6 +447,7 @@ implementation
           typesym.fileinfo:=pd.fileinfo;
           st.insertdef(def);
           st.insertsym(typesym);
+          addsymref(typesym);
 
           if df_generic in pd.defoptions then
             include(def.defoptions,df_generic);
