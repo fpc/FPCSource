@@ -513,7 +513,12 @@ implementation
                 end;
           end;
 
-        list.concat(taicpu.op_reg_reg(A_JALR,NR_X0,NR_RETURN_ADDRESS_REG));
+        if po_interrupt in current_procinfo.procdef.procoptions then
+          begin
+            list.concat(Taicpu.Op_none(A_MRET));
+          end
+        else
+          list.concat(taicpu.op_reg_reg(A_JALR,NR_X0,NR_RETURN_ADDRESS_REG));
       end;
 
 
