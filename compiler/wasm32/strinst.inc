@@ -71,6 +71,8 @@
         'memory.copy', 'memory.fill', 'memory.init', 'data.drop',
         // reference instructions
         'ref.null', 'ref.is_null', 'ref.func',
+        // table instructions
+        'table.get', 'table.set', 'table.size', 'table.grow', 'table.fill', 'table.copy', 'table.init', 'elem.drop',
         // exceptions
         'try','catch','catch_all','delegate','throw','rethrow','end',
         // atomic memory accesses - load/store

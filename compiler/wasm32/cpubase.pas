@@ -88,6 +88,8 @@ uses
       a_memory_copy, a_memory_fill, a_memory_init, a_data_drop,
       // reference instructions
       a_ref_null, a_ref_is_null, a_ref_func,
+      // table instructions
+      a_table_get, a_table_set, a_table_size, a_table_grow, a_table_fill, a_table_copy, a_table_init, a_elem_drop,
       // exceptions
       a_try,a_catch,a_catch_all,a_delegate,a_throw,a_rethrow,a_end_try,
       // atomic memory accesses - load/store
