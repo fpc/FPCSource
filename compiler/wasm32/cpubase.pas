@@ -560,6 +560,12 @@ uses
             result:=$7D;
           wbt_f64:
             result:=$7C;
+          wbt_funcref:
+            result:=$70;
+          wbt_externref:
+            result:=$6F;
+          wbt_v128:
+            result:=$7B;
         end;
       end;
 
