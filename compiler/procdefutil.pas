@@ -818,7 +818,7 @@ implementation
 {$ifdef DEBUG_NODE_XML}
           { Methods of generic classes don't get any code generated, so output
             the node tree here }
-          if (df_generic in procdef.defoptions) then
+          if (df_generic in pi.procdef.defoptions) then
             pi.XMLPrintProc(True);
 {$endif DEBUG_NODE_XML}
         end;
