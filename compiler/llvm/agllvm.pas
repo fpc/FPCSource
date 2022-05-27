@@ -347,6 +347,11 @@ implementation
            if i<>0 then
              owner.writer.AsmWrite(', ');
            para:=pllvmcallpara(paras[i]);
+           if (lcp_metadata in para^.flags) and
+              (para^.def<>llvm_metadatatype) then
+             begin
+               owner.writer.AsmWrite('metadata ')
+             end;
            owner.writer.AsmWrite(llvmencodetypename(para^.def));
            if para^.valueext<>lve_none then
              owner.writer.AsmWrite(llvmvalueextension2str[para^.valueext]);

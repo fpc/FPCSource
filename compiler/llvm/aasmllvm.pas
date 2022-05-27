@@ -209,7 +209,7 @@ interface
       destructor destroy; override;
     end;
 
-    tllvmcallparaflag = (lcp_byval, lcp_sret);
+    tllvmcallparaflag = (lcp_byval, lcp_sret, lcp_metadata);
     tllvmcallparaflags = set of tllvmcallparaflag;
 
     tllvmcallparaval = record

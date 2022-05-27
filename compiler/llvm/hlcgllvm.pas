@@ -476,6 +476,8 @@ implementation
         while assigned(paraloc) do
           begin
             new(callpara,init(paraloc^.def,std_param_align,lve_none,[]));
+            if paras[i]^.def=llvm_metadatatype then
+              include(callpara^.flags,lcp_metadata);
             callpara^.def:=paraloc^.def;
             { if the paraloc doesn't contain the value itself, it's a byval
               parameter }
