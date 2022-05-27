@@ -1271,8 +1271,11 @@ implementation
               else
                 first:=false;
               specialised_element:=tllvmspecialisedmetaitem(element);
-              writer.AsmWrite(specialised_element.itemname);
-              writer.AsmWrite(': ');
+              if specialised_element.itemname<>'' then
+                begin
+                  writer.AsmWrite(specialised_element.itemname);
+                  writer.AsmWrite(': ');
+                end;
               case specialised_element.itemkind of
                 lsmik_boolean:
                   metadatakind:=mk_specialised_bool;
