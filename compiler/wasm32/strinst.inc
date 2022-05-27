@@ -69,6 +69,8 @@
         'grow_memory', 'current_memory',
         // bulk memory operations
         'memory.copy', 'memory.fill', 'memory.init', 'data.drop',
+        // reference instructions
+        'ref.null', 'ref.is_null', 'ref.func',
         // exceptions
         'try','catch','catch_all','delegate','throw','rethrow','end',
         // atomic memory accesses - load/store

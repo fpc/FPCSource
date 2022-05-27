@@ -86,6 +86,8 @@ uses
       a_memory_grow, a_memory_size,
       // bulk memory operations
       a_memory_copy, a_memory_fill, a_memory_init, a_data_drop,
+      // reference instructions
+      a_ref_null, a_ref_is_null, a_ref_func,
       // exceptions
       a_try,a_catch,a_catch_all,a_delegate,a_throw,a_rethrow,a_end_try,
       // atomic memory accesses - load/store
