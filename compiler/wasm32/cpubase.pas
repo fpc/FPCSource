@@ -121,7 +121,14 @@ uses
       a_memory_atomic_wait32, a_memory_atomic_wait64, a_memory_atomic_notify, a_atomic_fence
       );
 
-      TWasmBasicType = (wbt_i32, wbt_i64, wbt_f32, wbt_f64);
+      TWasmBasicType = (
+        { number types }
+        wbt_i32, wbt_i64, wbt_f32, wbt_f64,
+        { reference types }
+        wbt_funcref, wbt_externref,
+        { vector types }
+        wbt_v128
+      );
       TWasmResultType = array of TWasmBasicType;
 
       { TWasmFuncType }
