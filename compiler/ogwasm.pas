@@ -1497,6 +1497,8 @@ implementation
                           WriteByte(FWasmSections[wsiGlobal],$00);
                           WriteByte(FWasmSections[wsiGlobal],$0B);  { end }
                         end;
+                      else
+                        internalerror(2022052801);
                     end;
                   end;
               end;
