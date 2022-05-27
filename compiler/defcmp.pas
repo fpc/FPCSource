@@ -2662,7 +2662,8 @@ implementation
                         - method variable
                         - function reference
                         - nested function }
-                    else if (captured.count=1) and (vo_is_self in tabstractvarsym(pcapturedsyminfo(captured[0])^.sym).varoptions) then
+                    else if (captured.count=1) and (tsym(pcapturedsyminfo(captured[0])^.sym).typ in [localvarsym,paravarsym]) and
+                         (vo_is_self in tabstractvarsym(pcapturedsyminfo(captured[0])^.sym).varoptions) then
                       begin
                         if po_methodpointer in def2.procoptions then
                           eq:=te_convert_l1
