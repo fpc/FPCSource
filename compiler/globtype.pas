@@ -320,7 +320,10 @@ interface
          ts_wasm_js_exceptions,
          { native WebAssembly exceptions support:
            https://github.com/WebAssembly/exception-handling/blob/master/proposals/exception-handling/Exceptions.md }
-         ts_wasm_native_exceptions
+         ts_wasm_native_exceptions,
+         { support multithreading via the WebAssembly threading proposal:
+           https://github.com/WebAssembly/threads/blob/master/proposals/threads/Overview.md }
+         ts_wasm_threads
        );
        ttargetswitches = set of ttargetswitch;
 
@@ -454,7 +457,8 @@ interface
          (name: 'NOEXCEPTIONS';        hasvalue: false; isglobal: true ; define: 'FPC_WASM_NO_EXCEPTIONS'),
          (name: 'BFEXCEPTIONS';        hasvalue: false; isglobal: true ; define: 'FPC_WASM_BRANCHFUL_EXCEPTIONS'),
          (name: 'JSEXCEPTIONS';        hasvalue: false; isglobal: true ; define: 'FPC_WASM_JS_EXCEPTIONS'),
-         (name: 'WASMEXCEPTIONS';      hasvalue: false; isglobal: true ; define: 'FPC_WASM_NATIVE_EXCEPTIONS')
+         (name: 'WASMEXCEPTIONS';      hasvalue: false; isglobal: true ; define: 'FPC_WASM_NATIVE_EXCEPTIONS'),
+         (name: 'WASMTHREADS';         hasvalue: false; isglobal: true ; define: 'FPC_WASM_THREADS')
        );
 
        { switches being applied to all CPUs at the given level }
