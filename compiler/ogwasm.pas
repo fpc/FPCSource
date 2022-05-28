@@ -169,7 +169,7 @@ interface
 implementation
 
     uses
-      verbose,version;
+      verbose,version,globals;
 
     procedure WriteUleb5(d: tdynamicarray; v: uint64);
       var
@@ -1655,6 +1655,19 @@ implementation
         Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
         Writer.write(WasmVersion,SizeOf(WasmVersion));
 
+        if ts_wasm_threads in current_settings.targetswitches then
+          begin
+            WriteUleb(FWasmCustomSections[wcstTargetFeatures],4);
+            WriteUleb(FWasmCustomSections[wcstTargetFeatures],$2B);
+            WriteName(FWasmCustomSections[wcstTargetFeatures],'atomics');
+            WriteUleb(FWasmCustomSections[wcstTargetFeatures],$2B);
+            WriteName(FWasmCustomSections[wcstTargetFeatures],'bulk-memory');
+            WriteUleb(FWasmCustomSections[wcstTargetFeatures],$2B);
+            WriteName(FWasmCustomSections[wcstTargetFeatures],'mutable-globals');
+            WriteUleb(FWasmCustomSections[wcstTargetFeatures],$2B);
+            WriteName(FWasmCustomSections[wcstTargetFeatures],'sign-ext');
+          end;
+
         { Write the producers section:
           https://github.com/WebAssembly/tool-conventions/blob/main/ProducersSection.md }
         WriteUleb(FWasmCustomSections[wcstProducers],2);
@@ -1722,6 +1735,11 @@ implementation
           end;
         WriteWasmCustomSection(wcstProducers);
         Inc(section_nr);
+        if ts_wasm_threads in current_settings.targetswitches then
+          begin
+            WriteWasmCustomSection(wcstTargetFeatures);
+            Inc(section_nr);
+          end;
 
         result:=true;
       end;
