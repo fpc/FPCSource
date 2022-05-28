@@ -56,6 +56,7 @@ unit itcpugas;
         { m-extension }
         'mul','mulh','mulhsu','mulhu',
         'div','divu','rem','remu',
+
 {$ifdef RISCV64}
         { 64-bit }
         'mulw',

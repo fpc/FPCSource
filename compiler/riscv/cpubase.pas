@@ -1,7 +1,7 @@
 {
     Copyright (c) 1998-2002 by Florian Klaempfl
 
-    Contains the base types for the RiscV64
+    Contains the base types for the Risc-V32
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,26 +19,30 @@
 
  ****************************************************************************
 }
-{ This Unit contains the base types for the RiscV64
+{ This Unit contains the base types for the Risc-V32
 }
 unit cpubase;
 
-{$I fpcdefs.inc}
+{$i fpcdefs.inc}
 
 interface
 
 uses
-  strings, globtype,
-  cutils, cclasses, aasmbase, cpuinfo, cgbase;
+  strings,globtype,
+  cutils,cclasses,aasmbase,cpuinfo,cgbase;
 
 {*****************************************************************************
                                 Assembler Opcodes
 *****************************************************************************}
 
-type
+    type
       TAsmOp=(A_None,
         { Pseudo instructions }
-        A_NOP,A_CALL,
+        A_NOP,A_CALL,A_LA,A_LLA,A_LGA,A_LI,A_MV,A_NOT,A_NEG,A_NEGW,
+        A_SEXT_B,A_SEXT_H,A_ZEXT_B,A_ZEXT_H,A_SEQZ,A_SNEG,A_SLTZ,A_SGTZ,
+        A_FMV_S,A_FABS_S,A_FNEG_S,A_FMV_D,A_FABS_D,A_FNEG_D,
+        A_BEQZ,A_BNEZ,A_BLEZ,A_BGEZ,A_BLTZ,A_BGTZ,A_GT,A_BLE,
+        A_BGTU,A_BLEU,A_J,A_JR,A_RET,A_TAIL,
         { normal opcodes }
         A_LUI,A_AUIPC,A_JAL,A_JALR,
         A_Bxx,A_LB,A_LH,A_LW,A_LBU,A_LHU,
@@ -51,24 +55,33 @@ type
         A_FENCE,A_FENCE_I,
         A_ECALL,A_EBREAK,
         A_CSRRW,A_CSRRS,A_CSRRC,A_CSRRWI,A_CSRRSI,A_CSRRCI,
+
+{$ifdef RISCV64}
         { 64-bit }
         A_ADDIW,A_SLLIW,A_SRLIW,A_SRAIW,
         A_ADDW,A_SLLW,A_SRLW,A_SUBW,A_SRAW,
         A_LD,A_SD,A_LWU,
+{$endif RISCV64}
 
         { M-extension }
         A_MUL,A_MULH,A_MULHSU,A_MULHU,
         A_DIV,A_DIVU,A_REM,A_REMU,
+
+{$ifdef RISCV64}
         { 64-bit }
         A_MULW,
         A_DIVW,A_DIVUW,A_REMW,A_REMUW,
+{$endif RISCV64}
 
         { A-extension }
         A_LR_W,A_SC_W,A_AMOSWAP_W,A_AMOADD_W,A_AMOXOR_W,A_AMOAND_W,
         A_AMOOR_W,A_AMOMIN_W,A_AMOMAX_W,A_AMOMINU_W,A_AMOMAXU_W,
+
+{$ifdef RISCV64}
         { 64-bit }
         A_LR_D,A_SC_D,A_AMOSWAP_D,A_AMOADD_D,A_AMOXOR_D,A_AMOAND_D,
         A_AMOOR_D,A_AMOMIN_D,A_AMOMAX_D,A_AMOMINU_D,A_AMOMAXU_D,
+{$endif RISCV64}
 
         { F-extension }
         A_FLW,A_FSW,
@@ -81,9 +94,12 @@ type
         A_FMV_S_X,
         A_FRCSR,A_FRRM,A_FRFLAGS,A_FSCSR,A_FSRM,
         A_FSFLAGS,A_FSRMI,A_FSFLAGSI,
+
+{$ifdef RISCV64}
         { 64-bit }
         A_FCVT_L_S,A_FCVT_LU_S,
         A_FCVT_S_L,A_FCVT_S_LU,
+{$endif RISCV64}
 
         { D-extension }
         A_FLD,A_FSD,
@@ -94,34 +110,42 @@ type
         A_FEQ_D,A_FLT_D,A_FLE_D,A_FCLASS_D,
         A_FCVT_D_S,A_FCVT_S_D,
         A_FCVT_W_D,A_FCVT_WU_D,A_FCVT_D_W,A_FCVT_D_WU,
+
+{$ifdef RISCV64}
         { 64-bit }
         A_FCVT_L_D,A_FCVT_LU_D,A_FMV_X_D,
         A_FCVT_D_L,A_FCVT_D_LU,A_FMV_D_X,
+{$endif RISCV64}
 
         { Machine mode }
         A_MRET,A_HRET,A_SRET,A_URET,
         A_WFI,
 
         { Supervisor }
-        A_SFENCE_VM
-        );
+        A_SFENCE_VM,
 
-  TAsmOps = set of TAsmOp;
+        { pseudo instructions for accessiong control and status registers }
+        A_RDINSTRET,A_RDCYCLE,A_RDTIME,A_CSRR,A_CSRW,A_CSRS,A_CSRC,A_CSRWI,
+        A_CSRSI,A_CSRCI
+      );
 
-  {# This should define the array of instructions as string }
-  op2strtable = array[tasmop] of string[8];
+      TAsmOps = set of TAsmOp;
 
-const
-  {# First value of opcode enumeration }
-  firstop = low(tasmop);
-  {# Last value of opcode enumeration  }
-  lastop = high(tasmop);
+      {# This should define the array of instructions as string }
+      op2strtable=array[tasmop] of string[8];
 
-  {*****************************************************************************
-                                    Registers
-  *****************************************************************************}
+    Const
+      {# First value of opcode enumeration }
+      firstop = low(tasmop);
+      {# Last value of opcode enumeration  }
+      lastop  = high(tasmop);
 
-type
+
+{*****************************************************************************
+                                  Registers
+*****************************************************************************}
+
+    type
       { Number of registers used for indexing in tables }
       tregisterindex=0..{$i rrv32nor.inc}-1;
 
@@ -162,6 +186,37 @@ type
       );
 
 {*****************************************************************************
+                                Conditions
+*****************************************************************************}
+
+    type
+      TAsmCond = (C_None { unconditional jumps },
+        C_LT,C_LTU,C_GE,C_GEU,C_NE,C_EQ);
+
+      TAsmConds = set of TAsmCond;
+
+    const
+      cond2str: Array[TAsmCond] of string[4] = ({cf_none}'',
+        { conditions when not using ctr decrement etc}
+        'lt','ltu','ge','geu','ne','eq');
+
+      uppercond2str: Array[TAsmCond] of string[4] = ({cf_none}'',
+        { conditions when not using ctr decrement etc}
+        'LT','LTU','GE','GEU','NE','EQ');
+
+
+{*****************************************************************************
+                                   Flags
+*****************************************************************************}
+
+    type
+      TResFlagsEnum = (F_EQ,F_NE,F_LT,F_LTU,F_GE,F_GEU);
+
+{*****************************************************************************
+                                Reference
+*****************************************************************************}
+
+{*****************************************************************************
                                 Operands
 *****************************************************************************}
     type
@@ -182,73 +237,50 @@ type
       roundingmode2str : array[TRoundingMode] of string[3] = ('',
         'rne','rtz','rdn','rup','rmm');
 
+
+
 {*****************************************************************************
-                                Conditions
+                                 Constants
 *****************************************************************************}
-
-    type
-      TAsmCond = (C_None { unconditional jumps },
-        C_LT,C_LTU,C_GE,C_GEU,C_NE,C_EQ);
-
-      TAsmConds = set of TAsmCond;
 
     const
-      cond2str: Array[TAsmCond] of string[4] = ({cf_none}'',
-        { conditions when not using ctr decrement etc}
-        'lt','ltu','ge','geu','ne','eq');
-
-      uppercond2str: Array[TAsmCond] of string[4] = ({cf_none}'',
-        { conditions when not using ctr decrement etc}
-        'LT','LTU','GE','GEU','NE','EQ');
-
-  {*****************************************************************************
-                                     Flags
-  *****************************************************************************}
-
-type
-      TResFlagsEnum = (F_EQ,F_NE,F_LT,F_LTU,F_GE,F_GEU);
-
-{*****************************************************************************
-                              Reference
-*****************************************************************************}
-
-  {*****************************************************************************
-                                  Operand Sizes
-  *****************************************************************************}
-
-  {*****************************************************************************
-                                   Constants
-  *****************************************************************************}
-
-const
-  max_operands = 5;
+      max_operands = 5;
 
   {*****************************************************************************
                             Default generic sizes
   *****************************************************************************}
 
   {# Defines the default address size for a processor, }
+{$ifdef RISCV64}
   OS_ADDR = OS_64;
   {# the natural int size for a processor,
      has to match osuinttype/ossinttype as initialized in psystem }
   OS_INT = OS_64;
   OS_SINT = OS_S64;
+{$endif RISCV64}
+{$ifdef RISCV32}
+  OS_ADDR = OS_32;
+  {# the natural int size for a processor,
+     has to match osuinttype/ossinttype as initialized in psystem }
+  OS_INT = OS_32;
+  OS_SINT = OS_S32;
+{$endif RISCV64}
   {# the maximum float size for a processor,           }
   OS_FLOAT = OS_F64;
   {# the size of a vector register for a processor     }
   OS_VECTOR = OS_M128;
 
-  {*****************************************************************************
-                                 GDB Information
-  *****************************************************************************}
+{*****************************************************************************
+                               GDB Information
+*****************************************************************************}
 
-  stab_regindex: array[tregisterindex] of shortint = (
-{$I rrv32sta.inc}
-    );
+      stab_regindex : array[tregisterindex] of shortint = (
+        {$i rrv32sta.inc}
+      );
 
-  {*****************************************************************************
-                            Generic Register names
-  *****************************************************************************}
+{*****************************************************************************
+                          Generic Register names
+*****************************************************************************}
 
       {# Stack pointer register }
       NR_STACK_POINTER_REG = NR_X2;
@@ -286,23 +318,24 @@ const
       NR_DEFAULTFLAGS = NR_NO;
       RS_DEFAULTFLAGS = RS_NO;
 
-  {*****************************************************************************
-                         GCC /ABI linking information
-  *****************************************************************************}
 
-  {# Registers which must be saved when calling a routine declared as
-     cppdecl, cdecl, stdcall, safecall, palmossyscall. The registers
-     saved should be the ones as defined in the target ABI and / or GCC.
+{*****************************************************************************
+                       GCC /ABI linking information
+*****************************************************************************}
 
-     This value can be deduced from CALLED_USED_REGISTERS array in the
-     GCC source.
-  }
-  saved_standard_registers: array[0..12] of tsuperregister = (
+      {# Registers which must be saved when calling a routine declared as
+         cppdecl, cdecl, stdcall, safecall, palmossyscall. The registers
+         saved should be the ones as defined in the target ABI and / or GCC.
+
+         This value can be deduced from CALLED_USED_REGISTERS array in the
+         GCC source.
+      }
+      saved_standard_registers : array[0..12] of tsuperregister = (
         RS_X2,
         RS_X8,RS_X9,
         RS_X18,RS_X19,
         RS_X20,RS_X21,RS_X22,RS_X23,RS_X24,RS_X25,RS_X26,RS_X27
-    );
+      );
 
       { this is only for the generic code which is not used for this architecture }
       saved_address_registers : array[0..0] of tsuperregister = (RS_INVALID);
@@ -315,7 +348,12 @@ const
          The value of this constant is equal to the constant
          PARM_BOUNDARY / BITS_PER_UNIT in the GCC source.
       }
-      std_param_align = 8;  { for 32-bit version only }
+{$ifdef RISCV64}	  
+      std_param_align = 8;
+{$endif RISCV64}
+{$ifdef RISCV32}
+      std_param_align = 4;
+{$endif RISCV32}
 
 
 {*****************************************************************************
@@ -324,9 +362,9 @@ const
 
       maxfpuregs = 8;
 
-  {*****************************************************************************
-                                    Helpers
-  *****************************************************************************}
+{*****************************************************************************
+                                  Helpers
+*****************************************************************************}
 
     function is_imm12(value: tcgint): boolean;
     function is_lui_imm(value: tcgint): boolean;
@@ -411,7 +449,7 @@ implementation
       begin
         case getregtype(reg) of
           R_INTREGISTER :
-            result:=OS_64;
+            result:=OS_INT;
           R_MMREGISTER:
             result:=OS_M128;
           R_FPUREGISTER:
@@ -493,4 +531,3 @@ implementation
       end;
 
 end.
-
