@@ -539,6 +539,14 @@ uses
           a_end_try,
           a_catch_all:
             result:=1;
+          a_i32_trunc_sat_f32_s,
+          a_i32_trunc_sat_f32_u,
+          a_i32_trunc_sat_f64_s,
+          a_i32_trunc_sat_f64_u,
+          a_i64_trunc_sat_f32_s,
+          a_i64_trunc_sat_f32_u,
+          a_i64_trunc_sat_f64_s,
+          a_i64_trunc_sat_f64_u,
           a_memory_size,
           a_memory_grow:
             result:=2;
@@ -1909,6 +1917,46 @@ uses
                   else
                     internalerror(2022052809);
                 end;
+            end;
+          a_i32_trunc_sat_f32_s:
+            begin
+              WriteByte($FC);
+              WriteByte($00);
+            end;
+          a_i32_trunc_sat_f32_u:
+            begin
+              WriteByte($FC);
+              WriteByte($01);
+            end;
+          a_i32_trunc_sat_f64_s:
+            begin
+              WriteByte($FC);
+              WriteByte($02);
+            end;
+          a_i32_trunc_sat_f64_u:
+            begin
+              WriteByte($FC);
+              WriteByte($03);
+            end;
+          a_i64_trunc_sat_f32_s:
+            begin
+              WriteByte($FC);
+              WriteByte($04);
+            end;
+          a_i64_trunc_sat_f32_u:
+            begin
+              WriteByte($FC);
+              WriteByte($05);
+            end;
+          a_i64_trunc_sat_f64_s:
+            begin
+              WriteByte($FC);
+              WriteByte($06);
+            end;
+          a_i64_trunc_sat_f64_u:
+            begin
+              WriteByte($FC);
+              WriteByte($07);
             end;
           else
             internalerror(2021092624);

@@ -73,6 +73,15 @@
         'ref.null', 'ref.is_null', 'ref.func',
         // table instructions
         'table.get', 'table.set', 'table.size', 'table.grow', 'table.fill', 'table.copy', 'table.init', 'elem.drop',
+        // saturating truncation instructions
+        'i32.trunc_sat_f32_s',
+        'i32.trunc_sat_f32_u',
+        'i32.trunc_sat_f64_s',
+        'i32.trunc_sat_f64_u',
+        'i64.trunc_sat_f32_s',
+        'i64.trunc_sat_f32_u',
+        'i64.trunc_sat_f64_s',
+        'i64.trunc_sat_f64_u',
         // exceptions
         'try','catch','catch_all','delegate','throw','rethrow','end',
         // atomic memory accesses - load/store

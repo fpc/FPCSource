@@ -90,6 +90,15 @@ uses
       a_ref_null, a_ref_is_null, a_ref_func,
       // table instructions
       a_table_get, a_table_set, a_table_size, a_table_grow, a_table_fill, a_table_copy, a_table_init, a_elem_drop,
+      // saturating truncation instructions
+      a_i32_trunc_sat_f32_s,
+      a_i32_trunc_sat_f32_u,
+      a_i32_trunc_sat_f64_s,
+      a_i32_trunc_sat_f64_u,
+      a_i64_trunc_sat_f32_s,
+      a_i64_trunc_sat_f32_u,
+      a_i64_trunc_sat_f64_s,
+      a_i64_trunc_sat_f64_u,
       // exceptions
       a_try,a_catch,a_catch_all,a_delegate,a_throw,a_rethrow,a_end_try,
       // atomic memory accesses - load/store
