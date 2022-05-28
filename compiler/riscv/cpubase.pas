@@ -60,7 +60,7 @@ uses
         { 64-bit }
         A_ADDIW,A_SLLIW,A_SRLIW,A_SRAIW,
         A_ADDW,A_SLLW,A_SRLW,A_SUBW,A_SRAW,
-        A_LD,A_SD,A_LWU,
+        A_LD,A_SD,A_LWU,A_SEXT_W,A_ZEXT_W,
 {$endif RISCV64}
 
         { M-extension }
