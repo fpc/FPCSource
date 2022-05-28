@@ -1400,7 +1400,7 @@ begin
           Add('  flash      (rx)   : ORIGIN = 0x'+IntToHex(flashbase,6)+', LENGTH = 0x'+IntToHex(flashsize,6));
           Add('  ram        (rw!x) : ORIGIN = 0x'+IntToHex(srambase,6)+', LENGTH = 0x'+IntToHex(sramsize,6));
           Add('}');
-          Add('_stack_top = 0x' + IntToHex(srambase+sramsize-1,4) + ';');
+          Add('_stack_top = 0x' + IntToHex(srambase+sramsize,4) + ';');
         end;
       Add('SECTIONS');
       Add('{');
