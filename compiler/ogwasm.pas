@@ -169,7 +169,7 @@ interface
 implementation
 
     uses
-      verbose;
+      verbose,version;
 
     procedure WriteUleb5(d: tdynamicarray; v: uint64);
       var
@@ -1655,6 +1655,18 @@ implementation
         Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
         Writer.write(WasmVersion,SizeOf(WasmVersion));
 
+        { Write the producers section:
+          https://github.com/WebAssembly/tool-conventions/blob/main/ProducersSection.md }
+        WriteUleb(FWasmCustomSections[wcstProducers],2);
+        WriteName(FWasmCustomSections[wcstProducers],'language');
+        WriteUleb(FWasmCustomSections[wcstProducers],1);
+        WriteName(FWasmCustomSections[wcstProducers],'Pascal');
+        WriteName(FWasmCustomSections[wcstProducers],'');
+        WriteName(FWasmCustomSections[wcstProducers],'processed-by');
+        WriteUleb(FWasmCustomSections[wcstProducers],1);
+        WriteName(FWasmCustomSections[wcstProducers],'Free Pascal Compiler (FPC)');
+        WriteName(FWasmCustomSections[wcstProducers],full_version_string+' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname);
+
         code_section_nr:=-1;
         data_section_nr:=-1;
         section_nr:=0;
@@ -1708,6 +1720,8 @@ implementation
             WriteWasmCustomSection(wcstRelocData);
             Inc(section_nr);
           end;
+        WriteWasmCustomSection(wcstProducers);
+        Inc(section_nr);
 
         result:=true;
       end;
