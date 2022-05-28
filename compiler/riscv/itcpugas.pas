@@ -107,7 +107,11 @@ unit itcpugas;
         'wfi',
 
         { Supervisor mode }
-        'sfence.vm'
+        'sfence.vm',
+
+        { pseudo instructions for accessiong control and status registers }
+        'rdinstret','rdcycle','rdtime','csrr','csrw','csrs','csrc','csrwi',
+        'csrsi','csrci'
         );
 
     function gas_regnum_search(const s: string): Tregister;

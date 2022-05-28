@@ -88,7 +88,11 @@ uses
         A_WFI,
 
         { Supervisor }
-        A_SFENCE_VM
+        A_SFENCE_VM,
+
+        { pseudo instructions for accessiong control and status registers }
+        A_RDINSTRET,A_RDCYCLE,A_RDTIME,A_CSRR,A_CSRW,A_CSRS,A_CSRC,A_CSRWI,
+        A_CSRSI,A_CSRCI
         );
 
       TAsmOps = set of TAsmOp;
