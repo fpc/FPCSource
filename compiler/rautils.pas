@@ -1413,7 +1413,7 @@ var
 begin
   i:=pos('.',s);
   { allow unit.identifier }
-  if i>0 then
+  if i>1 then
     begin
       searchsym(Copy(s,1,i-1),srsym,srsymtable);
       if assigned(srsym) then
