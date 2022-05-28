@@ -150,6 +150,11 @@ begin
 
   cmdstr := cmdstr + ' --no-entry';
 
+  if ts_wasm_threads in current_settings.targetswitches then
+    begin
+      cmdstr := cmdstr + ' --import-memory --shared-memory --initial-memory=16777216 --max-memory=16777216 -z stack-size=5242880 --global-base=1024';
+    end;
+
   if (cs_link_strip in current_settings.globalswitches) then
    begin
      { only remove non global symbols and debugging info for a library }
