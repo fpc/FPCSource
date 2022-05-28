@@ -256,6 +256,9 @@ implementation
                  hp:=ttypeconvnode(hp).left;
                  realdef:=hp.resultdef;
                end;
+             { could become an errordef in case of errors }
+             if realdef.typ<>orddef then
+               exit;
              if is_constintnode(left) then
                with torddef(realdef) do
                  case nodetype of
