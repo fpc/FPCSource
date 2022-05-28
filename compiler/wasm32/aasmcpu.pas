@@ -884,6 +884,30 @@ uses
                     internalerror(2021092710);
                 end;
             end;
+          a_memory_init:
+            begin
+              if ops<>1 then
+                internalerror(2022052802);
+              with oper[0]^ do
+                case typ of
+                  top_const:
+                    result:=3+UlebSize(val);
+                  else
+                    internalerror(2022052803);
+                end;
+            end;
+          a_data_drop:
+            begin
+              if ops<>1 then
+                internalerror(2022052804);
+              with oper[0]^ do
+                case typ of
+                  top_const:
+                    result:=2+UlebSize(val);
+                  else
+                    internalerror(2022052805);
+                end;
+            end;
           else
             internalerror(2021092623);
         end;
@@ -1855,6 +1879,35 @@ uses
                     end;
                   else
                     internalerror(2021092710);
+                end;
+            end;
+          a_memory_init:
+            begin
+              WriteByte($FC);
+              WriteByte($08);
+              if ops<>1 then
+                internalerror(2022052806);
+              with oper[0]^ do
+                case typ of
+                  top_const:
+                    WriteUleb(val);
+                  else
+                    internalerror(2022052807);
+                end;
+              WriteByte($00);
+            end;
+          a_data_drop:
+            begin
+              WriteByte($FC);
+              WriteByte($09);
+              if ops<>1 then
+                internalerror(2022052808);
+              with oper[0]^ do
+                case typ of
+                  top_const:
+                    WriteUleb(val);
+                  else
+                    internalerror(2022052809);
                 end;
             end;
           else
