@@ -1133,6 +1133,7 @@ begin
       {$IFDEF DEBUG_AMIEVENT}
       SysDebugLn('AmiEvent: WaitFor Early Destroy');
       {$ENDIF}
+      ReleaseSemaphore(@AmiEvent^.Sem);
       Exit;
     end;
     if AmiEvent^.IsSet then
@@ -1143,6 +1144,7 @@ begin
       {$IFDEF DEBUG_AMIEVENT}
       SysDebugLn('AmiEvent: WaitFor Early Signaled');
       {$ENDIF}
+      ReleaseSemaphore(@AmiEvent^.Sem);
       Exit;
     end;
     // signal not set, so we add this call to the waiterlist
