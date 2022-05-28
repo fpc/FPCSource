@@ -1561,7 +1561,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                     selfdef:=tclassrefdef(selfdef).pointeddef;
                     ftcb.emit_tai(Tai_const.Create_sym(
                       current_asmdata.RefAsmSymbol(tobjectdef(selfdef).vmt_mangledname,AT_DATA)),
-                      def);
+                      voidpointertype);
                   end
                 else
                   Message(parser_e_no_procvarobj_const);
