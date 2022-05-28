@@ -106,6 +106,8 @@ interface
       procedure emit_dynarray_offset(const ll: tasmlabofs; const arrlength: asizeint; const arrdef: tarraydef; const arrconstdatadef: trecorddef); override;
       procedure queue_init(todef: tdef); override;
       procedure queue_vecn(def: tdef; const index: tconstexprint); override;
+      procedure queue_pointeraddn(def: tpointerdef; const index: tconstexprint); override;
+      procedure queue_pointersubn(def: tpointerdef; const index: tconstexprint); override;
       procedure queue_subscriptn(def: tabstractrecorddef; vs: tfieldvarsym); override;
       procedure queue_typeconvn(fromdef, todef: tdef); override;
       procedure queue_emit_staticvar(vs: tstaticvarsym); override;
@@ -668,6 +670,28 @@ implementation
       end;
       aityped:=wrap_with_type(ai,cpointerdef.getreusable(eledef));
       update_queued_tai(cpointerdef.getreusable(eledef),aityped,ai,1);
+    end;
+
+
+  procedure tllvmtai_typedconstbuilder.queue_pointeraddn(def: tpointerdef; const index: tconstexprint);
+    begin
+      queue_pointersubn(def, -index);
+    end;
+
+
+  procedure tllvmtai_typedconstbuilder.queue_pointersubn(def: tpointerdef; const index: tconstexprint);
+    var
+      ai: taillvm;
+      aityped: tai;
+    begin
+      { update range checking info }
+      inherited;
+      if index.svalue<>low(int64) then
+        ai:=taillvm.getelementptr_reg_tai_size_const(NR_NO,nil,ptrsinttype,-index.svalue,false)
+      else
+        ai:=taillvm.getelementptr_reg_tai_size_const(NR_NO,nil,ptrsinttype,index.svalue,false);
+      aityped:=wrap_with_type(ai,def);
+      update_queued_tai(def,aityped,ai,1);
     end;
 
 

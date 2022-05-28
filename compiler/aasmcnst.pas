@@ -428,10 +428,10 @@ type
      function queue_subscriptn_multiple_by_name(def: tabstractrecorddef; const fields: array of TIDString): tdef;
      { queue a type conversion operation }
      procedure queue_typeconvn(fromdef, todef: tdef); virtual;
-     { queue a add operation }
-     procedure queue_addn(def: tdef; const index: tconstexprint); virtual;
-     { queue a sub operation }
-     procedure queue_subn(def: tdef; const index: tconstexprint); virtual;
+     { queue a pointer add operation }
+     procedure queue_pointeraddn(def: tpointerdef; const index: tconstexprint); virtual;
+     { queue a pointer sub operation }
+     procedure queue_pointersubn(def: tpointerdef; const index: tconstexprint); virtual;
      { finalise the queue (so a new one can be created) and flush the
         previously queued operations, applying them in reverse order on a...}
      { ... procdef }
@@ -2107,15 +2107,15 @@ implementation
      end;
 
 
-   procedure ttai_typedconstbuilder.queue_addn(def: tdef; const index: tconstexprint);
+   procedure ttai_typedconstbuilder.queue_pointeraddn(def: tpointerdef; const index: tconstexprint);
      begin
-       inc(fqueue_offset,def.size*int64(index));
+       inc(fqueue_offset,def.pointeddef.size*int64(index));
      end;
 
 
-   procedure ttai_typedconstbuilder.queue_subn(def: tdef; const index: tconstexprint);
+   procedure ttai_typedconstbuilder.queue_pointersubn(def: tpointerdef; const index: tconstexprint);
      begin
-       dec(fqueue_offset,def.size*int64(index));
+       dec(fqueue_offset,def.pointeddef.size*int64(index));
      end;
 
 
