@@ -100,6 +100,9 @@ interface
       TDwarfHashSetItem = record
         HashSetItem: THashSetItem;
         lab, ref_lab: tasmsymbol;
+        { Label for the structure-part of types that contain a structure.
+          (objects, records and such) For types encoded with an implicit
+          reference, struct_lab differs from lab }
         struct_lab: tasmsymbol;
       end;
       PDwarfHashSetItem = ^TDwarfHashSetItem;
@@ -180,6 +183,7 @@ interface
         property use_64bit_headers: Boolean read _use_64bit_headers write set_use_64bit_headers;
 
         function get_def_dwarf_labs(def:tdef): PDwarfHashSetItem;
+        function need_struct_def_lab(def:tdef): Boolean;
 
         procedure append_to_al_dwarf_info(Item:TLinkedListItem; size: integer; list: TAsmList = nil);
         procedure append_realconst_to_al_dwarf_info(Item: tai_realconst; list: TAsmList = nil);
@@ -265,12 +269,11 @@ interface
       private
       protected
         procedure appenddef_set_intern(list:TAsmList;def:tsetdef; force_tag_set: boolean);
-        procedure append_object_struct(def: tobjectdef; const createlabel: boolean; const objectname: PShortString);
+        procedure append_object_struct(def: tobjectdef; const objectname: PShortString);
 
         procedure appenddef_file(list:TAsmList;def:tfiledef); override;
         procedure appenddef_formal(list:TAsmList;def:tformaldef); override;
         procedure appenddef_object(list:TAsmList;def:tobjectdef); override;
-        procedure appenddef_record(list: TAsmList; def: trecorddef); override;
         procedure appenddef_set(list:TAsmList;def:tsetdef); override;
         procedure appenddef_undefined(list:TAsmList;def:tundefineddef); override;
         procedure appenddef_variant(list:TAsmList;def:tvariantdef); override;
@@ -707,7 +710,7 @@ implementation
             result^.HashSetItem.Data:=self;
             { A record needs a label also, so it is possible to reference fields /
               methods in a property. }
-            needstructdeflab:=is_implicit_pointer_object_type(def) or is_record(def);
+            needstructdeflab:=need_struct_def_lab(def);
             if not(tf_dwarf_only_local_labels in target_info.flags) then
               begin
                 if (ds_dwarf_dbg_info_written in def.defstates) then
@@ -717,7 +720,9 @@ implementation
                     result^.lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBG',def.owner,symname(def.typesym, true)),AT_METADATA);
                     result^.ref_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBGREF',def.owner,symname(def.typesym, true)),AT_METADATA);
                     if needstructdeflab then
-                      result^.struct_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBG2',def.owner,symname(def.typesym, true)),AT_METADATA);
+                      result^.struct_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBG2',def.owner,symname(def.typesym, true)),AT_METADATA)
+                    else
+                      result^.struct_lab:=result^.lab;
                     def.dbg_state:=dbg_state_written;
                   end
                 else
@@ -731,7 +736,9 @@ implementation
                         result^.lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBG',def.owner,symname(def.typesym, true)),AB_GLOBAL,AT_METADATA,voidpointertype);
                         result^.ref_lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBGREF',def.owner,symname(def.typesym, true)),AB_GLOBAL,AT_METADATA,voidpointertype);
                         if needstructdeflab then
-                          result^.struct_lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBG2',def.owner,symname(def.typesym, true)),AB_GLOBAL,AT_METADATA,voidpointertype);
+                          result^.struct_lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBG2',def.owner,symname(def.typesym, true)),AB_GLOBAL,AT_METADATA,voidpointertype)
+                        else
+                          result^.struct_lab:=result^.lab;
                         include(def.defstates,ds_dwarf_dbg_info_written);
                       end
                     else
@@ -741,7 +748,9 @@ implementation
                         current_asmdata.getglobaldatalabel(TAsmLabel(pointer(result^.lab)));
                         current_asmdata.getglobaldatalabel(TAsmLabel(pointer(result^.ref_lab)));
                         if needstructdeflab then
-                          current_asmdata.getglobaldatalabel(TAsmLabel(pointer(result^.struct_lab)));
+                          current_asmdata.getglobaldatalabel(TAsmLabel(pointer(result^.struct_lab)))
+                        else
+                          result^.struct_lab:=result^.lab;
                       end;
                   end;
               end
@@ -753,13 +762,27 @@ implementation
                 current_asmdata.getaddrlabel(TAsmLabel(pointer(result^.lab)));
                 current_asmdata.getaddrlabel(TAsmLabel(pointer(result^.ref_lab)));
                 if needstructdeflab then
-                  current_asmdata.getaddrlabel(TAsmLabel(pointer(result^.struct_lab)));
+                  current_asmdata.getaddrlabel(TAsmLabel(pointer(result^.struct_lab)))
+                else
+                  result^.struct_lab:=result^.lab;
               end;
             if def.dbg_state=dbg_state_used then
               deftowritelist.Add(def);
             defnumberlist.Add(def);
           end;
       end;
+
+    function TDebugInfoDwarf.need_struct_def_lab(def:tdef): Boolean;
+    begin
+      Result := (def.typ=objectdef) and
+         (tobjectdef(def).objecttype in [
+           odt_interfacecom,
+           odt_interfacecorba,
+           odt_dispinterface,
+           odt_helper,
+           odt_class,
+           odt_objcclass]);
+    end;
 
     function TDebugInfoDwarf.is_fbreg(reg: tregister): boolean;
       begin
@@ -1907,6 +1930,7 @@ implementation
           else
             internalerror(2013082001);
         end;
+        ResetDwarfOffset;
 
         { On Darwin, dwarf info is not linked in the final binary,
           but kept in the individual object files. This allows for
@@ -4012,11 +4036,13 @@ implementation
         finish_entry;
       end;
 
-    procedure TDebugInfoDwarf2.append_object_struct(def: tobjectdef; const createlabel: boolean; const objectname: PShortString);
+    procedure TDebugInfoDwarf2.append_object_struct(def: tobjectdef; const objectname: PShortString);
 
       var
         lab: TAsmSymbol;
+        createlabel: boolean;
       begin
+        createlabel := need_struct_def_lab(def);
         if createlabel then
           begin
             lab := def_dwarf_class_struct_lab(def);
@@ -4051,10 +4077,7 @@ implementation
             append_const_to_al_dwarf_info(tai_const.create_uleb128bit(0));
             if (def.childof.dbg_state=dbg_state_unused) then
               def.childof.dbg_state:=dbg_state_used;
-            if is_implicit_pointer_object_type(def) then
-              append_labelentry_ref(DW_AT_type,def_dwarf_class_struct_lab(def.childof))
-            else
-              append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.childof));
+            append_labelentry_ref(DW_AT_type,def_dwarf_class_struct_lab(def.childof));
             finish_entry;
           end;
         if (oo_has_vmt in def.objectoptions) and
@@ -4096,7 +4119,7 @@ implementation
         case def.objecttype of
           odt_cppclass,
           odt_object:
-            append_object_struct(def,false,def.objname);
+            append_object_struct(def,def.objname);
           odt_interfacecom,
           odt_interfacecorba,
           odt_dispinterface,
@@ -4108,14 +4131,14 @@ implementation
               append_labelentry_ref(DW_AT_type,def_dwarf_class_struct_lab(def));
               finish_entry;
 
-              append_object_struct(def,true,def.objname);
+              append_object_struct(def,def.objname);
             end;
           odt_objcclass:
             { Objective-C class: same as regular class, except for
                 a) Apple-specific tag that identifies it as an Objective-C class
                 b) use extname^ instead of objname
             }
-            append_object_struct(def,true,def.objextname);
+            append_object_struct(def,def.objextname);
           odt_objcprotocol:
             begin
               append_entry(DW_TAG_pointer_type,false,[]);
@@ -4127,20 +4150,6 @@ implementation
         end;
       end;
 
-    procedure TDebugInfoDwarf2.appenddef_record(list: TAsmList; def: trecorddef);
-      var
-        lab: TAsmSymbol;
-      begin
-        lab := def_dwarf_class_struct_lab(def);
-        if not(tf_dwarf_only_local_labels in target_info.flags) then
-          current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create_global(lab,0))
-        else
-          current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(lab,0));
-
-        ResetDwarfOffset;
-
-        inherited appenddef_record(list, def);
-      end;
 
     procedure TDebugInfoDwarf2.appenddef_set_intern(list:TAsmList;def: tsetdef; force_tag_set: boolean);
       var
@@ -4580,7 +4589,7 @@ implementation
               append_labelentry_ref(DW_AT_type,def_dwarf_class_struct_lab(def));
               finish_entry;
 
-              append_object_struct(def,true,def.objrealname);
+              append_object_struct(def,def.objrealname);
               Exit;
             end;
         else
