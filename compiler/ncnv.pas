@@ -480,7 +480,10 @@ implementation
         procedure do_set(pos : longint);
           begin
             if (pos and not $ff)<>0 then
-             Message(parser_e_illegal_set_expr);
+              begin
+                Message(parser_e_illegal_set_expr);
+                exit;
+              end;
             if pos>constsethi then
              constsethi:=pos;
             if pos<constsetlo then
