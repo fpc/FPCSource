@@ -883,7 +883,7 @@ implementation
                   something like file position however as this might be inside
                   an include file that's included multiple times }
                 str(checkstack^.symtable.symlist.count,orgsp);
-                orgsp:='_$Anonymous$'+orgsp;
+                orgsp:='__FPCINTERNAL__Anonymous_'+orgsp;
                 sp:=upper(orgsp);
                 spnongen:=sp;
                 orgspnongen:=orgsp;

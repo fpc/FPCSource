@@ -915,7 +915,7 @@ implementation
         end;
       implintf:=capturedef.register_implemented_interface(result,true);
 
-      invokename:=method_name_funcref_invoke_decl+'$'+fileinfo_to_suffix(sym.fileinfo);
+      invokename:=method_name_funcref_invoke_decl+'__FPCINTERNAL__'+fileinfo_to_suffix(sym.fileinfo);
 
       ps:=cprocsym.create(invokename);
       pd:=tprocdef(tabstractprocdef(n.resultdef).getcopyas(procdef,pc_normal,'',false));
@@ -1130,7 +1130,7 @@ implementation
         end;
       implintf:=capturedef.register_implemented_interface(result,true);
 
-      invokename:=method_name_funcref_invoke_decl+'$'+fileinfo_to_suffix(pd.fileinfo);
+      invokename:=method_name_funcref_invoke_decl+'__FPCINTERNAL__'+fileinfo_to_suffix(pd.fileinfo);
       if po_anonymous in pd.procoptions then
         begin
           { turn the anonymous function into a method of the capturer }
@@ -1140,6 +1140,7 @@ implementation
           exclude(pd.procoptions,po_delphi_nested_cc);
           pd.was_anonymous:=true;
           pd.procsym.ChangeOwnerAndName(capturedef.symtable,upcase(invokename));
+          pd.procsym.realname:=invokename;
           pd.parast.symtablelevel:=normal_function_level;
           pd.localst.symtablelevel:=normal_function_level;
           { retrieve framepointer and self parameters if any }
