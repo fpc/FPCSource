@@ -7,4 +7,4 @@ PROGRAM TestHeap;
 uses
   erroru;
 
-{$I heap.inc}
+{$I theap.inc}
