@@ -1679,7 +1679,7 @@ implementation
          hdef,casetype : tdef;
          { maxsize contains the max. size of a variant }
          { startvarrec contains the start of the variant part of a record }
-         maxsize, startvarrecsize : longint;
+         maxsize, startvarrecsize : asizeint;
          usedalign,
          maxalignment,startvarrecalign,
          maxpadalign, startpadalign: shortint;
