@@ -313,7 +313,7 @@ implementation
       oldsymtablestack:=symtablestack;
       symtablestack:=nil;
 
-      invokedef:=tprocdef(pd.getcopyas(procdef,pc_normal,'',false));
+      invokedef:=tprocdef(pd.getcopyas(procdef,pc_normal_no_hidden,'',false));
       invokedef.struct:=result;
       invokedef.visibility:=vis_public;
       invokedef.procsym:=cprocsym.create(method_name_funcref_invoke_decl);
@@ -329,7 +329,6 @@ implementation
       result.symtable.insertsym(invokedef.procsym);
       result.symtable.insertdef(invokedef);
 
-      handle_calling_convention(invokedef,hcc_default_actions_intf_struct);
       proc_add_definition(invokedef);
       invokedef.calcparas;
       include(result.objectoptions,oo_has_virtual);
@@ -337,6 +336,8 @@ implementation
       symowner.insertsym(sym);
       symowner.insertdef(result);
       addsymref(sym);
+
+      build_vmt(result);
     end;
 
 
