@@ -317,6 +317,8 @@ implementation
       invokedef.struct:=result;
       invokedef.visibility:=vis_public;
       invokedef.procsym:=cprocsym.create(method_name_funcref_invoke_decl);
+      invokedef.parast.symtablelevel:=normal_function_level;
+      invokedef.localst.symtablelevel:=normal_function_level;
       include(invokedef.procoptions,po_virtualmethod);
       exclude(invokedef.procoptions,po_staticmethod);
       exclude(invokedef.procoptions,po_classmethod);
