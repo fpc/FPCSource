@@ -945,7 +945,13 @@ implementation
         if is_vector(def) then
           dinode.addenum('flags','DIFlagVector');
         if not is_dynamic_array(def) then
-          dinode.addqword('size',def.size*8)
+          if def.size<(qword(1) shl 61) then
+            dinode.addqword('size',def.size*8)
+          else
+            { LLVM internally "only" supports sizes up to 1 shl 61, because they
+              store all sizes in bits in a qword; the rationale is that there
+              is no hardware supporting a full 64 bit address space either }
+            dinode.addqword('size',qword(1) shl 61)
         else
           begin
             exprnode:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIExpression);
@@ -974,7 +980,13 @@ implementation
         dinode.addint64('tag',ord(DW_TAG_structure_type));
         if (name<>'') then
           dinode.addstring('name',name);
-        dinode.addqword('size',def.size*8);
+        if def.size<(qword(1) shl 61) then
+          dinode.addqword('size',def.size*8)
+        else
+          { LLVM internally "only" supports sizes up to 1 shl 61, because they
+            store all sizes in bits in a qword; the rationale is that there
+            is no hardware supporting a full 64 bit address space either }
+          dinode.addqword('size',qword(1) shl 61);
 
         list.concat(dinode);
 
