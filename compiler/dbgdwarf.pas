@@ -2975,6 +2975,7 @@ implementation
         memberowner:=nil;
         membersym:=nil;
         memberdef:=nil;
+        memberdef_or_sym:=nil; // To get rid off warning.
         dwarfoffset:=0; // To get rid off warning.
         if assigned(accesslist.procdef) then
           begin
