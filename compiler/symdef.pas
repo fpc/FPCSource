@@ -4469,7 +4469,9 @@ implementation
             result:=0;
             exit;
           end;
-        if (highrange>0) and (lowrange<0) then
+        { check whether the range might be larger than high(asizeint). Has
+          to include 0..high(sizeint), since that's high(sizeint)+1 elements }
+        if (highrange>=0) and (lowrange<=0) then
           begin
             qhigh:=highrange;
             if lowrange=low(asizeint) then
