@@ -2964,7 +2964,6 @@ implementation
       { Append reference to the underlying field or method for read/write/stored access }
       procedure append_reference_to_access_member(attr : tdwarf_attribute; accesslist: tpropaccesslist);
       var
-        labs: PDwarfHashSetItem;
         anchorlabel: TAsmSymbol;
         memberowner: TSymtable;
         membersym: tabstractvarsym;
@@ -2976,6 +2975,7 @@ implementation
         memberowner:=nil;
         membersym:=nil;
         memberdef:=nil;
+        dwarfoffset:=0; // To get rid off warning.
         if assigned(accesslist.procdef) then
           begin
             memberdef := accesslist.procdef;
@@ -3934,7 +3934,6 @@ implementation
     procedure TDebugInfoDwarf.set_pending_dwarf_offset(def_or_sym: tobject;dwarf_offset: integer);
       var
         tci: TPendingOffsetConst;
-        prior_tci: TPendingOffsetConst;
         hsi: PHashSetItem;
       begin
         if (ds_dwarf_properties in current_settings.debugswitches) then
@@ -3947,7 +3946,6 @@ implementation
                   begin
                     tci.tc.symofs := dwarf_offset;
                     tci.tc.value := dwarf_offset;
-                    prior_tci := tci;
                     tci := tci.next;
                   end;
                 PendingOffsets.Remove(hsi);
@@ -3982,7 +3980,6 @@ implementation
       var
         tci: TPendingOffsetConst;
         tc: tai_const;
-        found: boolean;
         hsi: PHashSetItem;
       begin
         AddConstToAbbrev(ord(attr));
