@@ -1988,7 +1988,10 @@ implementation
                    }
                    else if (not(target_info.system in systems_jvm) and
                        ((def_from.typ=enumdef) or
-                        (def_from.typ=orddef))) and
+                        (
+                          (def_from.typ=orddef) and
+                          not is_void(def_from)
+                        ))) and
                       (m_delphi in current_settings.modeswitches) and
                       (cdo_explicit in cdoptions) then
                      begin
