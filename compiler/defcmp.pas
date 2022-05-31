@@ -2683,6 +2683,14 @@ implementation
                         else
                           eq:=te_incompatible;
                       end;
+                  end
+                else if assigned(def2.owner) and
+                    assigned(def2.owner.defowner) and
+                    is_funcref(tdef(def2.owner.defowner)) then
+                  begin
+                    { consider assignment to a funcref a bit more expensive
+                      then assigning it to a normal proc or method variable }
+                    eq:=te_convert_l2;
                   end;
               end;
             proc_to_procvar_equal_internal:=eq;

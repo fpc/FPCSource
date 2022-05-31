@@ -2142,7 +2142,7 @@ implementation
                   (m_mac_procvar in current_settings.modeswitches)) and
                  (p.left.nodetype=calln) and
                  is_invokable(def_to) then
-                tmpeq:=proc_to_funcref_equal(tprocdef(tcallnode(p.left).procdefinition),tobjectdef(def_to));
+                tmpeq:=proc_to_funcref_conv(tprocdef(tcallnode(p.left).procdefinition),tobjectdef(def_to));
               if tmpeq<>te_incompatible then
                 eq:=tmpeq;
             end;
