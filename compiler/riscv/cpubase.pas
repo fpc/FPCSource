@@ -145,6 +145,7 @@ uses
                                   Registers
 *****************************************************************************}
 
+{$ifdef riscv32}
     type
       { Number of registers used for indexing in tables }
       tregisterindex=0..{$i rrv32nor.inc}-1;
@@ -184,6 +185,49 @@ uses
       regdwarf_table : array[tregisterindex] of shortint = (
         {$i rrv32dwa.inc}
       );
+{$endif riscv32}
+
+{$ifdef riscv64}
+    type
+      { Number of registers used for indexing in tables }
+      tregisterindex=0..{$i rrv64nor.inc}-1;
+
+    const
+      maxvarregs = 32-6; { 32 int registers - r0 - stackpointer - r2 - 3 scratch registers }
+      maxfpuvarregs = 28; { 32 fpuregisters - some scratch registers (minimally 2) }
+      { Available Superregisters }
+      {$i rrv64sup.inc}
+
+      { No Subregisters }
+      R_SUBWHOLE=R_SUBNONE;
+
+      { Available Registers }
+      {$i rrv64con.inc}
+
+      { Integer Super registers first and last }
+      first_int_imreg = $20;
+
+      { Float Super register first and last }
+      first_fpu_imreg     = $20;
+
+      { MM Super register first and last }
+      first_mm_imreg     = $20;
+
+{ TODO: Calculate bsstart}
+      regnumber_count_bsstart = 64;
+
+      regnumber_table : array[tregisterindex] of tregister = (
+        {$i rrv64num.inc}
+      );
+
+      regstabs_table : array[tregisterindex] of shortint = (
+        {$i rrv64sta.inc}
+      );
+
+      regdwarf_table : array[tregisterindex] of shortint = (
+        {$i rrv64dwa.inc}
+      );
+{$endif riscv32}
 
 {*****************************************************************************
                                 Conditions
@@ -274,9 +318,17 @@ uses
                                GDB Information
 *****************************************************************************}
 
+{$ifdef riscv32}
       stab_regindex : array[tregisterindex] of shortint = (
         {$i rrv32sta.inc}
       );
+{$endif riscv32}
+
+{$ifdef riscv64}
+      stab_regindex : array[tregisterindex] of shortint = (
+        {$i rrv64sta.inc}
+      );
+{$endif riscv64}
 
 {*****************************************************************************
                           Generic Register names
@@ -394,6 +446,7 @@ implementation
     uses
       rgbase,verbose;
 
+{$ifdef riscv32}
     const
       std_regname_table : TRegNameTable = (
         {$i rrv32std.inc}
@@ -406,7 +459,22 @@ implementation
       std_regname_index : array[tregisterindex] of tregisterindex = (
         {$i rrv32sri.inc}
       );
+{$endif riscv32}
 
+{$ifdef riscv64}
+    const
+      std_regname_table : TRegNameTable = (
+        {$i rrv64std.inc}
+      );
+
+      regnumber_index : array[tregisterindex] of tregisterindex = (
+        {$i rrv64rni.inc}
+      );
+
+      std_regname_index : array[tregisterindex] of tregisterindex = (
+        {$i rrv64sri.inc}
+      );
+{$endif riscv64}
 
 {*****************************************************************************
                                   Helpers

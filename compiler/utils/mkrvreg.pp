@@ -24,6 +24,8 @@ var s : string;
     line : longint;
     regcount:byte;
     regcount_bsstart:byte;
+  	riscv64 : boolean;
+    fileprefix : string;
     names,
     regtypes,
     subtypes,
@@ -149,13 +151,13 @@ begin
 end;
 
 
-procedure read_spreg_file;
+procedure read_rvreg_file;
 
 var infile:text;
 
 begin
    { open dat file }
-   assign(infile,'rv32reg.dat');
+   assign(infile,'rvreg.dat');
    reset(infile);
    while not(eof(infile)) do
      begin
@@ -215,15 +217,15 @@ var
 
 begin
   { create inc files }
-  openinc(confile,'rrv32con.inc');
-  openinc(supfile,'rrv32sup.inc');
-  openinc(numfile,'rrv32num.inc');
-  openinc(stdfile,'rrv32std.inc');
-  openinc(stabfile,'rrv32sta.inc');
-  openinc(dwarffile,'rrv32dwa.inc');
-  openinc(norfile,'rrv32nor.inc');
-  openinc(rnifile,'rrv32rni.inc');
-  openinc(srifile,'rrv32sri.inc');
+  openinc(confile,'rrv'+fileprefix+'con.inc');
+  openinc(supfile,'rrv'+fileprefix+'sup.inc');
+  openinc(numfile,'rrv'+fileprefix+'num.inc');
+  openinc(stdfile,'rrv'+fileprefix+'std.inc');
+  openinc(stabfile,'rrv'+fileprefix+'sta.inc');
+  openinc(dwarffile,'rrv'+fileprefix+'dwa.inc');
+  openinc(norfile,'rrv'+fileprefix+'nor.inc');
+  openinc(rnifile,'rrv'+fileprefix+'rni.inc');
+  openinc(srifile,'rrv'+fileprefix+'sri.inc');
   first:=true;
   for i:=0 to regcount-1 do
     begin
@@ -266,7 +268,19 @@ begin
    writeln('Register Table Converter Version ',Version);
    line:=0;
    regcount:=0;
-   read_spreg_file;
+   riscv64:=paramstr(1)='riscv64';
+   fileprefix:='';
+   if riscv64 then
+     begin
+       fileprefix:='64';
+       writeln('Processing for CPU Risc-V 64');
+     end
+   else
+     begin
+       fileprefix:='32';
+       writeln('Processing for CPU Risc-V 32');
+     end;  
+   read_rvreg_file;
    regcount_bsstart:=1;
    while 2*regcount_bsstart<regcount do
      regcount_bsstart:=regcount_bsstart*2;

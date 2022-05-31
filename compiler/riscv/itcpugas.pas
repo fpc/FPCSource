@@ -130,6 +130,7 @@ unit itcpugas;
       cutils,verbose, systems,
       rgbase;
 
+{$ifdef riscv32}
     const
       gas_regname_table : TRegNameTable = (
         {$i rrv32std.inc}
@@ -138,7 +139,18 @@ unit itcpugas;
       gas_regname_index : array[tregisterindex] of tregisterindex = (
         {$i rrv32sri.inc}
       );
+{$endif riscv32}
 
+{$ifdef riscv64}
+    const
+      gas_regname_table : TRegNameTable = (
+        {$i rrv64std.inc}
+      );
+
+      gas_regname_index : array[tregisterindex] of tregisterindex = (
+        {$i rrv64sri.inc}
+      );
+{$endif riscv64}
 
     function findreg_by_gasname(const s:string):tregisterindex;
       var
