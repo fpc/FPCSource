@@ -895,6 +895,12 @@ implementation
                 internalerror(2022041804);
             end;
         end
+      else if (n.resultdef.typ=procvardef) and
+          (po_delphi_nested_cc in tprocvardef(n.resultdef).procoptions) then
+        begin
+          MessagePos(n.fileinfo,type_e_nested_procvar_to_funcref);
+          exit;
+        end
       else
         pinested:=nil;
 
