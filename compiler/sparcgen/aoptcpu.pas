@@ -48,6 +48,9 @@ unit aoptcpu;
   Implementation
 
   uses
+{$ifdef DEBUG_AOPTCPU}
+    cutils,
+{$endif  DEBUG_AOPTCPU}
     globtype,globals,aasmcpu;
 
   function MatchInstruction(const instr: tai; const op: TAsmOp): boolean;
