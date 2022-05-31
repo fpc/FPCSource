@@ -787,6 +787,7 @@ implementation
            (vo_is_funcret in tabstractnormalvarsym(p).varoptions)
           )
          ) and
+         not (vo_is_parentfp in tabstractnormalvarsym(p).varoptions) and
          not assigned(tabstractnormalvarsym(p).defaultconstsym);
     end;
 
