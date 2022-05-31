@@ -1131,6 +1131,7 @@ implementation
                                   listtoinsert.Concat(hp2);
                                   taicpu(curtai).oper[curop]^.ref^.symboldata:=hp;
                                   taicpu(curtai).oper[curop]^.ref^.symbol:=l;
+                                  l.increfs;
                                   curdatatai:=hp;
                                 end;
 
