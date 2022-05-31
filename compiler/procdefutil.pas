@@ -860,14 +860,6 @@ implementation
 
       result:=funcref_intf_for_proc(tabstractprocdef(n.resultdef),fileinfo_to_suffix(sym.fileinfo));
 
-      if df_generic in owner.procdef.defoptions then
-        begin
-          { only check whether we can capture the symbol }
-          if not can_be_captured(sym) then
-            MessagePos1(n.fileinfo,sym_e_symbol_no_capture,sym.realname);
-          exit;
-        end;
-
       if (sym.typ=procsym) and (sym.owner.symtabletype=localsymtable) then
         begin
           { this is assigning a nested function, so retrieve the correct procdef
@@ -882,17 +874,29 @@ implementation
               if not assigned(pd) then
                 internalerror(2022041802);
             end;
-          pinested:=find_nested_procinfo(pd);
-          if not assigned(pinested) then
-            internalerror(2022041803);
-          if pinested.parent<>owner then
+          { check whether all captured symbols can indeed be captured }
+          capturesyms:=pd.capturedsyms;
+          if assigned(capturesyms) then
+            for i:=0 to capturesyms.count-1 do
+              begin
+                captured:=pcapturedsyminfo(capturesyms[i]);
+                if not can_be_captured(captured^.sym) then
+                  MessagePos1(captured^.fileinfo,sym_e_symbol_no_capture,captured^.sym.realname);
+              end;
+          if not (df_generic in owner.procdef.defoptions) then
             begin
-              { we need to capture this into the owner of the nested function
-                instead }
-              owner:=pinested;
-              capturer:=get_or_create_capturer(pinested.procdef);
-              if not assigned(capturer) then
-                internalerror(2022041804);
+              pinested:=find_nested_procinfo(pd);
+              if not assigned(pinested) then
+                internalerror(2022041803);
+              if pinested.parent<>owner then
+                begin
+                  { we need to capture this into the owner of the nested function
+                    instead }
+                  owner:=pinested;
+                  capturer:=get_or_create_capturer(pinested.procdef);
+                  if not assigned(capturer) then
+                    internalerror(2022041804);
+                end;
             end;
         end
       else if (n.resultdef.typ=procvardef) and
@@ -903,6 +907,9 @@ implementation
         end
       else
         pinested:=nil;
+
+      if df_generic in owner.procdef.defoptions then
+        exit;
 
       if not assigned(capturer) then
         capturer:=get_or_create_capturer(owner.procdef);
