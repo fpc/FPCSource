@@ -2551,7 +2551,8 @@ implementation
              a) anything but procvars can be assigned to blocks
              b) depending on their captured symbols anonymous functions can be
                 assigned to global, method or nested procvars
-             c) anything can be assigned to function references
+             c) anything can be assigned to function references except for
+                nested procvars (this is checked in the type conversion)
              d) if one is a procedure of object, the other also has to be one
                 ("object static procedure" is equal to procedure as well)
                 (except for block)
@@ -2569,13 +2570,7 @@ implementation
                 for Delphi-style frame pointer parameter passing) }
          if is_block(def2) or                                                           { a) }
             (po_anonymous in def1.procoptions) or                                       { b) }
-            (
-              (po_is_function_ref in def2.procoptions) and
-              (
-                (def1.typ<>procdef) or
-                not (po_delphi_nested_cc in def1.procoptions)
-              )                                                                         { c) }
-            ) then
+            (po_is_function_ref in def2.procoptions) then                               { c) }
            { can't explicitly check against procvars here, because
              def1 may already be a procvar due to a proc_to_procvar;
              this is checked in the type conversion node itself -> ok }
