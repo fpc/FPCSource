@@ -157,6 +157,9 @@ interface
     { True if a function can be assigned to a function reference }
     function proc_to_funcref_equal(def1:tabstractprocdef;def2:tobjectdef):tequaltype;
 
+    { returns the equality between a function and a function reference }
+    function proc_to_funcref_conv(def1:tabstractprocdef;def2:tobjectdef):tequaltype;
+
     { Checks if an funcref interface can be assigned to the other }
     function funcref_equal(def1,def2:tobjectdef):tequaltype;
 
@@ -203,9 +206,6 @@ implementation
       begin
         result:=equal_defs(TImplementedInterface(intffrom).IntfDef,TImplementedInterface(intfto).IntfDef);
       end;
-
-
-    function proc_to_funcref_conv(def1:tabstractprocdef;def2:tobjectdef):tequaltype;forward;
 
 
     function compare_defs_ext(def_from,def_to : tdef;
