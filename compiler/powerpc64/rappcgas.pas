@@ -198,7 +198,10 @@ begin
               { replace global symbol reference with TOC entry name
                 for AIX }
               if target_info.system in systems_aix then
-                tcgppcgen(cg).get_aix_toc_sym(nil,oper.opr.ref.symbol.name,asmsym2indsymflags(oper.opr.ref.symbol),oper.opr.ref,true);
+                begin
+                  oper.opr.ref.symbol.increfs;
+                  tcgppcgen(cg).get_aix_toc_sym(nil,oper.opr.ref.symbol.name,asmsym2indsymflags(oper.opr.ref.symbol),oper.opr.ref,true);
+                end;
               oper.opr.ref.refaddr:=addr_pic_no_got;
             end;
           Consume_RParen;

@@ -813,17 +813,19 @@ unit cgppc;
               TPPCAsmData(current_asmdata).DirectTOCEntries:=TPPCAsmData(current_asmdata).DirectTOCEntries+1;
               new_section(current_asmdata.AsmLists[al_picdata],sec_toc,'',sizeof(pint));
               ref.symbol:=current_asmdata.DefineAsmSymbol(nlsymname,AB_LOCAL,AT_DATA,voidpointertype);
+	      ref.symbol.increfs;
               current_asmdata.asmlists[al_picdata].concat(tai_symbol.create(ref.symbol,0));
               { do not assign the result of these statements to ref.symbol: the
                 access must be done via the LC..symname symbol; these are just
                 to define the symbol that's being accessed as either weak or
                 not }
               if not(is_weak in flags) then
-                current_asmdata.RefAsmSymbol(symname,AT_DATA)
+                sym:=current_asmdata.RefAsmSymbol(symname,AT_DATA)
               else if is_data in flags then
-                current_asmdata.WeakRefAsmSymbol(symname,AT_DATA)
+                sym:=current_asmdata.WeakRefAsmSymbol(symname,AT_DATA)
               else
-                current_asmdata.WeakRefAsmSymbol('.'+symname,AT_DATA);
+                sym:=current_asmdata.WeakRefAsmSymbol('.'+symname,AT_DATA);
+              sym.increfs;
               newsymname:=ApplyAsmSymbolRestrictions(symname);
               current_asmdata.asmlists[al_picdata].concat(tai_directive.Create(asd_toc_entry,newsymname+'[TC],'+newsymname));
             end;
@@ -840,11 +842,13 @@ unit cgppc;
                     table of addresses }
                   get_aix_toc_sym(list,'tocsubtable'+tostr(tocnr),[is_data],tmpref,true);
                   sym:=tmpref.symbol;
+		  sym.increfs;
                   { base address for this batch of toc table entries that we'll
                     put in a data block instead }
                   new_section(current_asmdata.AsmLists[al_indirectpicdata],sec_rodata,'',sizeof(pint));
                   sym:=current_asmdata.DefineAsmSymbol('tocsubtable'+tostr(tocnr),AB_LOCAL,AT_DATA,voidpointertype);
                   current_asmdata.asmlists[al_indirectpicdata].concat(tai_symbol.create(sym,0));
+		  sym.increfs;
                 end;
               { add the reference to the actual symbol inside the tocsubtable }
               if not(is_weak in flags) then
@@ -855,10 +859,12 @@ unit cgppc;
                 current_asmdata.WeakRefAsmSymbol('.'+symname,AT_DATA);
               tocsym:=TTOCAsmSymbol(current_asmdata.DefineAsmSymbolByClass(TTOCAsmSymbol,nlsymname,AB_LOCAL,AT_DATA,voidpointertype));
               ref.symbol:=tocsym;
+	      tocsym.increfs;
               tocsym.ftocsecnr:=tocnr;
               current_asmdata.asmlists[al_indirectpicdata].concat(tai_symbol.create(tocsym,0));
               newsymname:=ApplyAsmSymbolRestrictions(symname);
               sym:=current_asmdata.RefAsmSymbol(newsymname,AT_DATA);
+	      sym.increfs;
               current_asmdata.asmlists[al_indirectpicdata].concat(tai_const.Create_sym(sym));
             end;
           { first load the address of the table from the TOC }
