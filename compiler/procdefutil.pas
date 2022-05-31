@@ -850,6 +850,7 @@ implementation
 
       capturer:=nil;
       capturen:=nil;
+      pinested:=nil;
 
       { determine a unique name for the variable, field for function of the
         node we're trying to load }
