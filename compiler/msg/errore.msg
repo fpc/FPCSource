@@ -1647,7 +1647,7 @@ parser_e_syscall_format_not_support=03364_E_Syntax of syscall directive not supp
 %
 # Type Checking
 #
-# 04128 is the last used one
+# 04131 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -2099,6 +2099,10 @@ type_e_cant_read_write_type_in_iso_mode=04129_E_Can't read or write variables of
 % file of type text, which doesn't support that variable's type in the selected language mode (iso mode).
 type_w_array_size_does_not_match_size_of_constant_string=04130_W_The length of the constant string (length is $1) must be equal to the number of array elements ($2 elements)
 % ISO Pascal requires that string constants have the same length as the array to which them they are assigned.
+type_e_nested_procvar_to_funcref=04131_E_A nested function variable can not be assigned to a function reference.
+% Function references can live beyond the scope of the function they're contained in while
+% nested functions assigned to nested function variables can't. Due to this discrepancy
+% in design assigning a nested function variable to a function reference is forbidden.
 %
 % \end{description}
 #
