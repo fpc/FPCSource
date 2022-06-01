@@ -14,6 +14,9 @@
  **********************************************************************}
 
 {$mode objfpc}
+{$modeswitch FUNCTIONREFERENCES}
+{$define FPC_HAS_REFERENCE_PROCEDURE}
+{$endif}
 
 { determine the type of the resource/form file }
 {$define Win16Res}

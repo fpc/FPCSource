@@ -15,6 +15,9 @@
  **********************************************************************}
 
 {$mode objfpc}
+{$modeswitch FUNCTIONREFERENCES}
+{$define FPC_HAS_REFERENCE_PROCEDURE}
+{$endif}
 
 unit Classes;
 

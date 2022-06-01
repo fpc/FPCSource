@@ -305,9 +305,11 @@ procedure ExecuteThreadQueueEntry(aEntry: TThread.PThreadQueueEntry);
 begin
   if Assigned(aEntry^.Method) then
     aEntry^.Method()
-  // enable once closures are supported
-  {else
-    aEntry^.ThreadProc();}
+{$ifdef FPC_HAS_REFERENCE_PROCEDURE}
+  else
+    if Assigned(aEntry^.ThreadProc) then
+      aEntry^.ThreadProc
+{$endif}
 end;
 
 
@@ -448,10 +450,73 @@ class procedure TThread.Synchronize(AThread: TThread; AMethod: TThreadMethod);
   end;
 
 
+{$ifdef FPC_HAS_REFERENCE_PROCEDURE}
+class procedure TThread.Synchronize(AThread: TThread; AProcedure: TThreadProcedure);
+  var
+    syncentry: PThreadQueueEntry;
+    thread: TThread;
+  begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
+    if Assigned(AThread) and (AThread.ThreadID = GetCurrentThreadID) then
+{$else}
+    if Assigned(AThread) then
+{$endif}
+      thread := AThread
+    else if Assigned(CurrentThreadVar) then
+      thread := CurrentThreadVar
+    else begin
+      thread := Nil;
+      { use a local synchronize event }
+      New(syncentry);
+      FillChar(syncentry^, SizeOf(TThreadQueueEntry), 0);
+{$ifdef FPC_HAS_FEATURE_THREADING}
+      syncentry^.ThreadID := GetCurrentThreadID;
+      syncentry^.SyncEvent := RtlEventCreate;
+{$else}
+      syncentry^.ThreadID := 0{GetCurrentThreadID};
+      syncentry^.SyncEvent := nil{RtlEventCreate};
+{$endif}
+    end;
+
+    if Assigned(thread) then begin
+      { the Synchronize event is instantiated on demand }
+      thread.InitSynchronizeEvent;
+
+      syncentry := thread.FSynchronizeEntry;
+    end;
+
+    syncentry^.Exception := Nil;
+    syncentry^.ThreadProc := AProcedure;
+    try
+      ThreadQueueAppend(syncentry, False);
+    finally
+      syncentry^.ThreadProc := Nil;
+      syncentry^.Next := Nil;
+
+      if not Assigned(thread) then begin
+        { clean up again }
+{$ifdef FPC_HAS_FEATURE_THREADING}
+        RtlEventDestroy(syncentry^.SyncEvent);
+{$endif}
+        Dispose(syncentry);
+      end;
+    end;
+  end;
+{$endif}
+
+
 procedure TThread.Synchronize(AMethod: TThreadMethod);
   begin
     TThread.Synchronize(self,AMethod);
   end;
+
+
+{$ifdef FPC_HAS_REFERENCE_PROCEDURE}
+procedure TThread.Synchronize(AProcedure: TThreadProcedure);
+  begin
+    TThread.Synchronize(self,AProcedure);
+  end;
+{$endif}
 
 Function PopThreadQueueHead : TThread.PThreadQueueEntry;
 
@@ -550,12 +615,24 @@ begin
   Queue(Self, aMethod);
 end;
 
+{$ifdef FPC_HAS_REFERENCE_PROCEDURE}
+procedure TThread.Queue(aProcedure: TThreadProcedure);
+begin
+  Queue(Self, aProcedure);
+end;
+{$endif}
 
 class procedure TThread.Queue(aThread: TThread; aMethod: TThreadMethod); static;
 begin
   InternalQueue(aThread, aMethod, False);
 end;
 
+{$ifdef FPC_HAS_REFERENCE_PROCEDURE}
+class procedure TThread.Queue(aThread: TThread; aProcedure: TThreadProcedure); static;
+begin
+  InternalQueue(aThread, aProcedure, False);
+end;
+{$endif}
 
 class procedure TThread.InternalQueue(aThread: TThread; aMethod: TThreadMethod; aQueueIfMain: Boolean); static;
 var
@@ -575,6 +652,25 @@ begin
   ThreadQueueAppend(queueentry, aQueueIfMain);
 end;
 
+{$ifdef FPC_HAS_REFERENCE_PROCEDURE}
+class procedure TThread.InternalQueue(aThread: TThread; aProcedure: TThreadProcedure; aQueueIfMain: Boolean); static;
+var
+  queueentry: PThreadQueueEntry;
+begin
+  New(queueentry);
+  FillChar(queueentry^, SizeOf(TThreadQueueEntry), 0);
+  queueentry^.Thread := aThread;
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  queueentry^.ThreadID := GetCurrentThreadID;
+{$else}
+  queueentry^.ThreadID := 0{GetCurrentThreadID};
+{$endif}
+  queueentry^.ThreadProc := aProcedure;
+
+  { the queueentry is freed by CheckSynchronize (or by RemoveQueuedEvents) }
+  ThreadQueueAppend(queueentry, aQueueIfMain);
+end;
+{$endif}
 
 procedure TThread.ForceQueue(aMethod: TThreadMethod);
 begin

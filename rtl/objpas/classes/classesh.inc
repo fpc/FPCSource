@@ -1848,6 +1848,9 @@ type
   EThreadDestroyCalled = class(EThread);
   TSynchronizeProcVar = procedure;
   TThreadMethod = procedure of object;
+{$ifdef FPC_HAS_REFERENCE_PROCEDURE}
+  TThreadProcedure = reference to procedure;
+{$endif}
 
   TThreadReportStatus = Procedure(Const status : String) of Object;
 
@@ -1870,8 +1873,9 @@ type
     PThreadQueueEntry = ^TThreadQueueEntry;
     TThreadQueueEntry = record
       Method: TThreadMethod;
-      // uncomment once closures are supported
-      //ThreadProc: TThreadProcedure;
+{$ifdef FPC_HAS_REFERENCE_PROCEDURE}
+      ThreadProc: TThreadProcedure;
+{$endif}
       Thread: TThread;
       ThreadID: TThreadID;
       Exception: TObject;
@@ -1901,6 +1905,9 @@ type
     class function GetCurrentThread: TThread; static;
     class function GetIsSingleProcessor: Boolean; static; inline;
     class procedure InternalQueue(aThread: TThread; aMethod: TThreadMethod; aQueueIfMain: Boolean); static;
+{$ifdef FPC_HAS_REFERENCE_PROCEDURE}
+    class procedure InternalQueue(aThread: TThread; aProcedure: TThreadProcedure; aQueueIfMain: Boolean); static;
+{$endif}
     procedure CallOnTerminate;
     function GetPriority: TThreadPriority;
     procedure SetPriority(Value: TThreadPriority);
@@ -1918,7 +1925,13 @@ type
     procedure TerminatedSet; virtual;
     procedure Execute; virtual; abstract;
     procedure Synchronize(AMethod: TThreadMethod);
+{$ifdef FPC_HAS_REFERENCE_PROCEDURE}
+    procedure Synchronize(AProcedure : TThreadProcedure);
+{$endif}
     procedure Queue(aMethod: TThreadMethod);
+{$ifdef FPC_HAS_REFERENCE_PROCEDURE}
+    procedure Queue(aProcedure: TThreadProcedure);
+{$endif}
     procedure ForceQueue(aMethod: TThreadMethod); inline;
     property ReturnValue: Integer read FReturnValue write FReturnValue;
     property Terminated: Boolean read FTerminated;
@@ -1961,7 +1974,13 @@ type
     class procedure SetReturnValue(aValue: Integer); static;
     class function CheckTerminated: Boolean; static;
     class procedure Synchronize(AThread: TThread; AMethod: TThreadMethod);
+    {$ifdef FPC_HAS_REFERENCE_PROCEDURE}
+    class procedure Synchronize(AThread: TThread; AProcedure : TThreadProcedure);
+    {$endif}
     class procedure Queue(aThread: TThread; aMethod: TThreadMethod); static;
+    {$ifdef FPC_HAS_REFERENCE_PROCEDURE}
+    class procedure Queue(aThread: TThread; AProcedure : TThreadProcedure); static;
+    {$endif}
     class procedure ForceQueue(aThread: TThread; aMethod: TThreadMethod); inline; static;
     class procedure RemoveQueuedEvents(aThread: TThread; aMethod: TThreadMethod); static;
     class procedure RemoveQueuedEvents(aMethod: TThreadMethod); static;
