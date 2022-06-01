@@ -717,12 +717,12 @@ unit rarvgas;
     function trvgasreader.is_register(const s: string): boolean;
       type
         treg2str = record
-          name : string[3];
+          name : string[4];
           reg : tregister;
         end;
 
       const
-        extraregs : array[0..31] of treg2str = (
+        extraregs : array[0..32] of treg2str = (
           (name: 'A0'; reg : NR_X10),
           (name: 'A1'; reg : NR_X11),
           (name: 'A2'; reg : NR_X12),
@@ -731,6 +731,7 @@ unit rarvgas;
           (name: 'A5'; reg : NR_X15),
           (name: 'A6'; reg : NR_X16),
           (name: 'A7'; reg : NR_X17),
+          (name: 'ZERO'; reg : NR_X0),
           (name: 'RA'; reg : NR_X1),
           (name: 'SP'; reg : NR_X2),
           (name: 'GP'; reg : NR_X3),
