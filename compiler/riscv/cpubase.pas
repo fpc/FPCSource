@@ -125,7 +125,7 @@ uses
         A_SFENCE_VM,
 
         { pseudo instructions for accessiong control and status registers }
-        A_RDINSTRET,A_RDCYCLE,A_RDTIME,A_CSRR,A_CSRW,A_CSRS,A_CSRC,A_CSRWI,
+        A_RDINSTRET,A_RDINSTRETH,A_RDCYCLE,A_RDCYCLEH,A_RDTIME,A_RDTIMEH,A_CSRR,A_CSRW,A_CSRS,A_CSRC,A_CSRWI,
         A_CSRSI,A_CSRCI
       );
 

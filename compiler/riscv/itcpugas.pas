@@ -116,7 +116,7 @@ unit itcpugas;
         'sfence.vm',
 
         { pseudo instructions for accessiong control and status registers }
-        'rdinstret','rdcycle','rdtime','csrr','csrw','csrs','csrc','csrwi',
+        'rdinstret','rdinstreth','rdcycle','rdcycleh','rdtime','rdtimeh','csrr','csrw','csrs','csrc','csrwi',
         'csrsi','csrci'
         );
 
