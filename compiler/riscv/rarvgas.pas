@@ -764,9 +764,9 @@ unit rarvgas;
       begin
         result:=inherited is_register(s);
         { reg found?
-          possible aliases are always 2 char
+          possible aliases are always 2 to 4 chars
         }
-        if result or (not (length(s) in [2,3])) then
+        if result or (not (length(s) in [2..4])) then
           exit;
         for i:=low(extraregs) to high(extraregs) do
           begin
