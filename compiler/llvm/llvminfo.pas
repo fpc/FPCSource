@@ -46,7 +46,8 @@ Type
        llvmver_10_0,
        llvmver_11_0,
        llvmver_11_1,
-       llvmver_12_0
+       llvmver_12_0,
+       llvmver_13_0
       );
 
 type
@@ -77,11 +78,13 @@ Const
      '10.0',
      '11.0',
      '11.1',
-     '12.0'
+     '12.0',
+     '13.0'
    );
 
    llvm_debuginfo_metadata_format : array[tllvmversion] of byte = (
      0,
+     3,
      3,
      3,
      3,
@@ -108,6 +111,7 @@ Const
        { llvmver_10_0    } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp],
        { llvmver_11_0    } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation],
        { llvmver_11_1    } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation],
+       { llvmver_12_0    } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation,llvmflag_para_attr_type],
        { llvmver_12_0    } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation,llvmflag_para_attr_type]
      );
 
