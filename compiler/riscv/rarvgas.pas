@@ -30,7 +30,6 @@ unit rarvgas;
       cpubase;
 
     type
-
       trvgasreader = class(tattreader)
         actmemoryordering: TMemoryOrdering;
         function is_register(const s: string): boolean; override;
@@ -714,68 +713,23 @@ unit rarvgas;
         instr.Ops:=operandnum;
       end;
 
+
     function trvgasreader.is_register(const s: string): boolean;
-      type
-        treg2str = record
-          name : string[4];
-          reg : tregister;
-        end;
-
-      const
-        extraregs : array[0..32] of treg2str = (
-          (name: 'A0'; reg : NR_X10),
-          (name: 'A1'; reg : NR_X11),
-          (name: 'A2'; reg : NR_X12),
-          (name: 'A3'; reg : NR_X13),
-          (name: 'A4'; reg : NR_X14),
-          (name: 'A5'; reg : NR_X15),
-          (name: 'A6'; reg : NR_X16),
-          (name: 'A7'; reg : NR_X17),
-          (name: 'ZERO'; reg : NR_X0),
-          (name: 'RA'; reg : NR_X1),
-          (name: 'SP'; reg : NR_X2),
-          (name: 'GP'; reg : NR_X3),
-          (name: 'TP'; reg : NR_X4),
-          (name: 'T0'; reg : NR_X5),
-          (name: 'T1'; reg : NR_X6),
-          (name: 'T2'; reg : NR_X7),
-          (name: 'S0'; reg : NR_X8),
-          (name: 'FP'; reg : NR_X8),
-          (name: 'S1'; reg : NR_X9),
-          (name: 'S2'; reg : NR_X18),
-          (name: 'S3'; reg : NR_X19),
-          (name: 'S4'; reg : NR_X20),
-          (name: 'S5'; reg : NR_X21),
-          (name: 'S6'; reg : NR_X22),
-          (name: 'S7'; reg : NR_X23),
-          (name: 'S8'; reg : NR_X24),
-          (name: 'S9'; reg : NR_X25),
-          (name: 'S10';reg : NR_X26),
-          (name: 'S11';reg : NR_X27),
-          (name: 'T3'; reg : NR_X28),
-          (name: 'T4'; reg : NR_X29),
-          (name: 'T5'; reg : NR_X30),
-          (name: 'T6'; reg : NR_X31)
-          );
-
       var
-        i : longint;
-
+        reg: TRegister;
       begin
         result:=inherited is_register(s);
         { reg found?
           possible aliases are always 2 to 4 chars
         }
-        if result or (not (length(s) in [2..4])) then
-          exit;
-        for i:=low(extraregs) to high(extraregs) do
+        if not(result) then
           begin
-            if s=extraregs[i].name then
+            reg:=is_extra_reg(s);
+            if reg<>NR_NO then
               begin
-                actasmregister:=extraregs[i].reg;
+                actasmregister:=reg;
                 result:=true;
                 actasmtoken:=AS_REGISTER;
-                exit;
               end;
           end;
       end;

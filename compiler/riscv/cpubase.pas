@@ -441,6 +441,8 @@ uses
     { Checks if Subset is a subset of c (e.g. "less than" is a subset of "less than or equal" }
     function condition_in(const Subset, c: TAsmCond): Boolean;
 
+    function is_extra_reg(const s : string) : tregister;
+
 implementation
 
     uses
@@ -597,5 +599,69 @@ implementation
               Result := False;
           end;
       end;
+
+
+    function is_extra_reg(const s: string): tregister;
+      type
+        treg2str = record
+          name : string[4];
+          reg : tregister;
+        end;
+
+      const
+        extraregs : array[0..32] of treg2str = (
+          (name: 'A0'; reg : NR_X10),
+          (name: 'A1'; reg : NR_X11),
+          (name: 'A2'; reg : NR_X12),
+          (name: 'A3'; reg : NR_X13),
+          (name: 'A4'; reg : NR_X14),
+          (name: 'A5'; reg : NR_X15),
+          (name: 'A6'; reg : NR_X16),
+          (name: 'A7'; reg : NR_X17),
+          (name: 'ZERO'; reg : NR_X0),
+          (name: 'RA'; reg : NR_X1),
+          (name: 'SP'; reg : NR_X2),
+          (name: 'GP'; reg : NR_X3),
+          (name: 'TP'; reg : NR_X4),
+          (name: 'T0'; reg : NR_X5),
+          (name: 'T1'; reg : NR_X6),
+          (name: 'T2'; reg : NR_X7),
+          (name: 'S0'; reg : NR_X8),
+          (name: 'FP'; reg : NR_X8),
+          (name: 'S1'; reg : NR_X9),
+          (name: 'S2'; reg : NR_X18),
+          (name: 'S3'; reg : NR_X19),
+          (name: 'S4'; reg : NR_X20),
+          (name: 'S5'; reg : NR_X21),
+          (name: 'S6'; reg : NR_X22),
+          (name: 'S7'; reg : NR_X23),
+          (name: 'S8'; reg : NR_X24),
+          (name: 'S9'; reg : NR_X25),
+          (name: 'S10';reg : NR_X26),
+          (name: 'S11';reg : NR_X27),
+          (name: 'T3'; reg : NR_X28),
+          (name: 'T4'; reg : NR_X29),
+          (name: 'T5'; reg : NR_X30),
+          (name: 'T6'; reg : NR_X31)
+          );
+
+      var
+        i : longint;
+    begin
+      result:=NR_NO;
+      { reg found?
+        possible aliases are always 2 to 4 chars
+      }
+      if not (length(s) in [2..4]) then
+        exit;
+      for i:=low(extraregs) to high(extraregs) do
+        begin
+          if s=extraregs[i].name then
+            begin
+              result:=extraregs[i].reg;
+              exit;
+            end;
+        end;
+    end;
 
 end.

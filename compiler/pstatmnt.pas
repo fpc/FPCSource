@@ -1116,6 +1116,11 @@ implementation
                     reg:=std_regnum_search(lower(pattern))
                   else
                     reg:=NR_NO;
+                  { is_extra_reg is not exported on all architectures from cpubase }
+{$if defined(RISCV)}
+                  if (reg=NR_NO) and (token=_CSTRING) then
+                    reg:=is_extra_reg(upper(cstringpattern));
+{$endif defined(RISCV)}
                   if reg<>NR_NO then
                     begin
                       if not(po_assembler in current_procinfo.procdef.procoptions) and assigned(hl) then
