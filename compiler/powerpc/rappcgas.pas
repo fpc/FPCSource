@@ -186,7 +186,7 @@ Unit rappcgas;
                        for AIX }
                      if target_info.system in systems_aix then
                        begin
-                         opr.ref.symbol.increfs;
+                         oper.opr.ref.symbol.increfs;
                          tcgppcgen(cg).get_aix_toc_sym(nil,oper.opr.ref.symbol.name,asmsym2indsymflags(oper.opr.ref.symbol),oper.opr.ref,true);
                        end;
                      oper.opr.ref.refaddr:=addr_pic_no_got;
