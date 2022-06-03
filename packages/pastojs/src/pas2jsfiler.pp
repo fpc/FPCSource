@@ -529,7 +529,8 @@ const
 
   PCUProcedureScopeFlagNames: array[TPasProcedureScopeFlag] of string = (
     'GrpOverload',
-    'Specialized'
+    'Specialized',
+    'OverrideOverload'
     );
 
   PCUForLoopType: array[TLoopType] of string = (

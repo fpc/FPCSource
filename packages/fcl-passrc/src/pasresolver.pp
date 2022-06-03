@@ -1067,7 +1067,8 @@ type
 
   TPasProcedureScopeFlag = (
     ppsfIsGroupOverload, // mode objfpc: one overload is enough for all procs in same scope
-    ppsfIsSpecialized
+    ppsfIsSpecialized,
+    ppsfIsOverrideOverload
     );
   TPasProcedureScopeFlags = set of TPasProcedureScopeFlag;
 
@@ -2392,6 +2393,7 @@ type
     function ProcHasSelf(El: TPasProcedure): boolean; // returns false for local procs
     procedure CreateProcSelfArg(Proc: TPasProcedure); virtual;
     function IsProcOverride(AncestorProc, DescendantProc: TPasProcedure): boolean;
+    function IsProcOverload(Proc: TPasProcedure): boolean;
     function GetTopLvlProc(El: TPasElement): TPasProcedure;
     function GetParentProc(El: TPasElement; GetDeclProc: boolean): TPasProcedure;
     function GetRangeLength(RangeExpr: TPasExpr): TMaxPrecInt;
@@ -5073,7 +5075,7 @@ begin
 
   if Proc<>nil then
     begin
-    if (not Proc.IsOverload) and (msDelphi in ProcScope.ModeSwitches) then
+    if (msDelphi in ProcScope.ModeSwitches) and (not IsProcOverload(Proc)) then
       // stop searching after this proc
     else if ProcNeedsParams(Proc.ProcType) then
       begin
@@ -5145,7 +5147,7 @@ begin
 
       end;
 
-    if (msDelphi in ProcScope.ModeSwitches) and not Proc.IsOverload then
+    if (msDelphi in ProcScope.ModeSwitches) and not IsProcOverload(Proc) then
       Abort:=true; // stop searching after this proc
 
     CandidateFound:=true;
@@ -5380,7 +5382,7 @@ procedure TPasResolver.OnFindProc(El: TPasElement; ElScope,
   StartScope: TPasScope; FindProcData: Pointer; var Abort: boolean);
 var
   Data: PFindProcData absolute FindProcData;
-  Proc: TPasProcedure;
+  Proc, DataProc: TPasProcedure;
   Store, SameScope: Boolean;
   ProcScope: TPasProcedureScope;
   CurResolver: TPasResolver;
@@ -5394,6 +5396,7 @@ var
 
 begin
   //writeln('TPasResolver.OnFindProc START ',El.Name,':',GetElementTypeName(El),' itself=',El=Data^.Proc);
+  DataProc:=Data^.Proc;
   if not (El is TPasProcedure) then
     begin
     // identifier is not a proc
@@ -5410,38 +5413,38 @@ begin
     Abort:=true;
     if (El.CustomData is TResElDataBuiltInProc) then
       begin
-      if Data^.FoundOverloadModifier or Data^.Proc.IsOverload then
+      if Data^.FoundOverloadModifier or IsProcOverload(DataProc) then
         exit; // no hint
       end;
     case Data^.Kind of
     fpkProc:
       // proc hides a non proc
-      if (Data^.Proc.GetModule=El.GetModule) then
+      if (DataProc.GetModule=El.GetModule) then
         // forbidden within same module
         RaiseMsg(20170216151649,nDuplicateIdentifier,sDuplicateIdentifier,
-          [El.Name,GetElementSourcePosStr(El)],Data^.Proc.ProcType)
+          [El.Name,GetElementSourcePosStr(El)],DataProc.ProcType)
       else
         begin
         // give a hint
-        if Data^.Proc.Parent is TPasMembersType then
+        if DataProc.Parent is TPasMembersType then
           begin
           if El.Visibility=visStrictPrivate then
-          else if (El.Visibility=visPrivate) and (El.GetModule<>Data^.Proc.GetModule) then
+          else if (El.Visibility=visPrivate) and (El.GetModule<>DataProc.GetModule) then
           else
             LogMsg(20171118205344,mtHint,nFunctionHidesIdentifier_NonProc,sFunctionHidesIdentifier,
-              [GetElementSourcePosStr(El)],Data^.Proc.ProcType);
+              [GetElementSourcePosStr(El)],DataProc.ProcType);
           end;
         end;
     fpkMethod:
       // method hides a non proc
       begin
-      ProcScope:=TPasProcedureScope(Data^.Proc.CustomData);
+      ProcScope:=TPasProcedureScope(DataProc.CustomData);
       CurResolver:=ProcScope.Owner as TPasResolver;
       if msDelphi in CurResolver.CurrentParser.CurrentModeswitches then
         // ok in delphi
       else
         RaiseMsg(20171118232543,nDuplicateIdentifier,sDuplicateIdentifier,
-          [El.Name,GetElementSourcePosStr(El)],Data^.Proc.ProcType);
+          [El.Name,GetElementSourcePosStr(El)],DataProc.ProcType);
       end;
     end;
     exit;
@@ -5449,7 +5452,7 @@ begin
 
   // identifier is a proc
   Proc:=TPasProcedure(El);
-  if El=Data^.Proc then
+  if El=DataProc then
     begin
     // found itself -> this is normal when searching for overloads
     CountProcInSameScope;
@@ -5459,32 +5462,32 @@ begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.OnFindProc ',GetTreeDbg(El,2));
   {$ENDIF}
-  Store:=CheckProcOverloadCompatibility(Data^.Proc,Proc);
+  Store:=CheckProcOverloadCompatibility(DataProc,Proc);
   case Data^.Kind of
   fpkProc:
-    SameScope:=Data^.Proc.GetModule=Proc.GetModule;
+    SameScope:=DataProc.GetModule=Proc.GetModule;
   fpkMethod:
-    SameScope:=Data^.Proc.Parent=Proc.Parent;
+    SameScope:=DataProc.Parent=Proc.Parent;
   else
     // use OnFindProcDeclaration instead
-    RaiseNotYetImplemented(20191010123525,Data^.Proc);
+    RaiseNotYetImplemented(20191010123525,DataProc);
   end;
   if SameScope then
     begin
     // same scope
     if (msObjfpc in CurrentParser.CurrentModeswitches) then
       begin
-        if ProcHasGroupOverload(Data^.Proc) then
+        if ProcHasGroupOverload(DataProc) then
           Include(TPasProcedureScope(Proc.CustomData).Flags,ppsfIsGroupOverload)
         else if ProcHasGroupOverload(Proc) then
-          Include(TPasProcedureScope(Data^.Proc.CustomData).Flags,ppsfIsGroupOverload);
+          Include(TPasProcedureScope(DataProc.CustomData).Flags,ppsfIsGroupOverload);
       end;
     if Store then
       begin
       // same scope, same signature
       // Note: forward declaration was already handled in FinishProcedureHeader
       RaiseMsg(20171118221821,nDuplicateIdentifier,sDuplicateIdentifier,
-                [Proc.Name,GetElementSourcePosStr(Proc)],Data^.Proc.ProcType);
+                [Proc.Name,GetElementSourcePosStr(Proc)],DataProc.ProcType);
       end
     else
       begin
@@ -5492,12 +5495,20 @@ begin
       if (msDelphi in CurrentParser.CurrentModeswitches) then
         begin
         // Delphi does not allow different procs without 'overload' in a scope
-        if not Proc.IsOverload then
+        if not IsProcOverload(Proc) then
           RaiseMsg(20171118222112,nPreviousDeclMissesOverload,sPreviousDeclMissesOverload,
-            [Proc.Name,GetElementSourcePosStr(Proc)],Data^.Proc.ProcType)
-        else if not Data^.Proc.IsOverload then
-          RaiseMsg(20171118222147,nOverloadedProcMissesOverload,sOverloadedProcMissesOverload,
-            [GetElementSourcePosStr(Proc)],Data^.Proc.ProcType);
+            [Proc.Name,GetElementSourcePosStr(Proc)],DataProc.ProcType)
+        else if (not DataProc.IsOverload) then
+          begin
+          // Note: the OverriddenProc might not yet be set
+          if DataProc.IsOverride
+              or ((TPasProcedureScope(DataProc.CustomData).OverriddenProc<>nil)
+                and (ppsfIsOverrideOverload in TPasProcedureScope(DataProc.CustomData).Flags)) then
+            // is override or inherited override
+          else
+            RaiseMsg(20171118222147,nOverloadedProcMissesOverload,sOverloadedProcMissesOverload,
+              [GetElementSourcePosStr(Proc)],DataProc.ProcType);
+          end;
         end
       else
         begin
@@ -5509,29 +5520,29 @@ begin
   else
     begin
     // different scopes
-    if Data^.Proc.IsOverride then
-    else if Data^.Proc.IsReintroduced then
+    if DataProc.IsOverride then
+    else if DataProc.IsReintroduced then
     else
       begin
       if Store
           or ((Data^.FoundInSameScope=1) // missing 'overload' hints only for the first proc in a scope
-             and not ProcHasGroupOverload(Data^.Proc)) then
+             and not ProcHasGroupOverload(DataProc)) then
         begin
         if (Data^.Kind=fpkMethod) and (Proc.IsVirtual or Proc.IsOverride) then
           // give a hint, that method hides a virtual method in ancestor
           LogMsg(20170216151712,mtWarning,nMethodHidesMethodOfBaseType,
             sMethodHidesMethodOfBaseType,
-            [Data^.Proc.Name,Proc.Parent.Name,GetElementSourcePosStr(Proc)],Data^.Proc.ProcType)
+            [DataProc.Name,Proc.Parent.Name,GetElementSourcePosStr(Proc)],DataProc.ProcType)
         else
           begin
           // Delphi/FPC do not give a message when hiding a non virtual method
           // -> emit Hint with other message id
-          if (Data^.Proc.Parent is TPasMembersType) then
+          if (DataProc.Parent is TPasMembersType) then
             begin
             ProcScope:=Proc.CustomData as TPasProcedureScope;
             if (Proc.Visibility=visStrictPrivate)
                 or ((Proc.Visibility=visPrivate)
-                  and (Proc.GetModule<>Data^.Proc.GetModule)) then
+                  and (Proc.GetModule<>DataProc.GetModule)) then
               // a private method is hidden by definition -> no hint
             else if (Proc.Visibility=visPublished) then
               // a published can hide (used for overloading rtti) -> no hint
@@ -5541,21 +5552,21 @@ begin
               // -> do not give a hint for hiding this useless method
               // Note: if this happens in the same unit, the body was not yet parsed
             else if (Proc is TPasConstructor)
-                and (Data^.Proc.ClassType=Proc.ClassType) then
+                and (DataProc.ClassType=Proc.ClassType) then
               // do not give a hint for hiding a constructor
             else if Store then
               begin
               // method hides ancestor method with same signature
               LogMsg(20190316152656,mtHint,
                 nMethodHidesNonVirtualMethodExactly,sMethodHidesNonVirtualMethodExactly,
-                [GetElementSourcePosStr(Proc)],Data^.Proc.ProcType);
+                [GetElementSourcePosStr(Proc)],DataProc.ProcType);
               end
             else
               begin
-              //writeln('TPasResolver.OnFindProc Proc=',Proc.PathName,' Data^.Proc=',Data^.Proc.PathName,' ',Proc.Visibility);
+              //writeln('TPasResolver.OnFindProc Proc=',Proc.PathName,' DataProc=',DataProc.PathName,' ',Proc.Visibility);
               LogMsg(20171118214523,mtHint,
                 nFunctionHidesIdentifier_NonVirtualMethod,sFunctionHidesIdentifier,
-                [GetElementSourcePosStr(Proc)],Data^.Proc.ProcType);
+                [GetElementSourcePosStr(Proc)],DataProc.ProcType);
               end;
             end;
           end;
@@ -5633,7 +5644,7 @@ function TPasResolver.IsProcOverload(LastProc, LastExactProc,
 begin
   if msDelphi in TPasProcedureScope(LastProc.CustomData).ModeSwitches then
     begin
-    if (not LastProc.IsOverload) or (not CurProc.IsOverload) then
+    if (not IsProcOverload(LastProc)) or (not IsProcOverload(CurProc)) then
       exit(false);
     end
   else
@@ -7477,6 +7488,9 @@ begin
         for i:=length(TPasClassScope(ClassOrRecScope).AbstractProcs)-1 downto 0 do
           if TPasClassScope(ClassOrRecScope).AbstractProcs[i]=OverloadProc then
             Delete(TPasClassScope(ClassOrRecScope).AbstractProcs,i,1);
+      // check inherited "overload"
+      if IsProcOverload(OverloadProc) then
+        Include(ProcScope.Flags,ppsfIsOverrideOverload);
       end;
     end;
   // add abstract
@@ -15575,7 +15589,7 @@ begin
           if Proc.ProcType.Args.Count=0 then
             exit(TPasConstructor(El));
           end;
-        if Proc.IsOverload then
+        if IsProcOverload(Proc) then
           HasOverload:=true;
         Identifier:=Identifier.NextSameIdentifier;
         end;
@@ -29766,6 +29780,21 @@ begin
     if AncestorProc=OverriddenProc then exit(true);
     Proc:=OverriddenProc;
   until Proc=nil;
+end;
+
+function TPasResolver.IsProcOverload(Proc: TPasProcedure): boolean;
+var
+  ProcScope: TPasProcedureScope;
+begin
+  if Proc.IsOverload then
+    exit(true)
+  else if Proc.IsOverride and (Proc.CustomData is TPasProcedureScope) then
+    begin
+    ProcScope:=TPasProcedureScope(Proc.CustomData);
+    if ppsfIsOverrideOverload in ProcScope.Flags then
+      exit(true);
+    end;
+  Result:=false;
 end;
 
 function TPasResolver.GetTopLvlProc(El: TPasElement): TPasProcedure;
