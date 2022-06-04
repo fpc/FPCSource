@@ -232,6 +232,7 @@ const
   FeatureListPlaceholder = '$FEATURELIST';
   ModeSwitchListPlaceholder = '$MODESWITCHES';
   CodeGenerationBackendPlaceholder = '$CODEGENERATIONBACKEND';
+  LLVMVersionPlaceholder = '$LLVMVERSIONS';
 
   procedure SplitLine (var OrigString: TCmdStr; const Placeholder: TCmdStr;
                                                  out RemainderString: TCmdStr);
@@ -730,6 +731,51 @@ const
       WriteLn(xmloutput,'    <codegeneratorbackend>',cgbackend2str[cgbackend],'</codegeneratorbackend>');
     end;
 
+  procedure ListLLVMVersions (OrigString: TCmdStr);
+{$ifdef LLVM}
+    var
+      llvmversion : tllvmversion;
+{$endif LLVM}
+    begin
+{$ifdef LLVM}
+      SplitLine (OrigString, LLVMVersionPlaceholder, HS3);
+      for llvmversion:=low(llvmversion) to high(llvmversion) do
+       begin
+        hs1:=llvmversionstr[llvmversion];
+        if hs1<>'' then
+         begin
+          if OrigString = '' then
+           Comment (V_Normal, hs1)
+          else
+           begin
+            hs:=OrigString;
+            Replace(hs,LLVMVersionPlaceholder,hs1);
+            Comment(V_Normal,hs);
+           end;
+         end;
+       end;
+{$else LLVM}
+      Comment (V_Normal, '')
+{$endif LLVM}
+    end;
+
+  procedure ListLLVMVersionsXML;
+{$ifdef LLVM}
+    var
+      llvmversion : tllvmversion;
+{$endif LLVM}
+    begin
+{$ifdef LLVM}
+      WriteLn(xmloutput,'    <llvmversions>');
+      for llvmversion:=Low(tllvmversion) to High(tllvmversion) do
+        if llvmversionstr[llvmversion]<>'' then
+          WriteLn(xmloutput,'      <llvmversion name="',llvmversionstr[llvmversion],'"/>');
+      WriteLn(xmloutput,'    </llvmversions>');
+{$endif LLVM}
+    end;
+
+
+
 begin
   if More = '' then
    begin
@@ -761,6 +807,8 @@ begin
        ListFeatures (S)
       else if pos(CodeGenerationBackendPlaceholder,s)>0 then
        ListCodeGenerationBackend (S)
+      else if pos(LLVMVersionPlaceholder,s)>0 then
+       ListLLVMVersions (s)
       else
        Comment(V_Normal,s);
      end;
@@ -783,6 +831,7 @@ begin
       ListControllerTypesXML;
       ListFeaturesXML;
       ListCodeGenerationBackendXML;
+      ListLLVMVersionsXML;
       WriteLn(xmloutput,'  </info>');
       WriteLn(xmloutput,'</fpcoutput>');
       Close(xmloutput);
@@ -800,6 +849,9 @@ begin
         'c': ListCPUInstructionSets ('');
         'f': ListFPUInstructionSets ('');
         'i': ListAsmModes ('');
+{$ifdef LLVM}
+        'l': ListLLVMVersions ('');
+{$endif LLVM}
         'm': ListModeswitches ('');
         'o': ListOptimizations ('');
         'r': ListFeatures ('');
@@ -2287,7 +2339,7 @@ begin
            'i' :
              begin
                if (More='') or
-                    (More [1] in ['a', 'b', 'c', 'f', 'i', 'm', 'o', 'r', 't', 'u', 'w', 'x']) then
+                    (More [1] in ['a', 'b', 'c', 'f', 'i', {$ifdef LLVM}'l',{$endif} 'm', 'o', 'r', 't', 'u', 'w', 'x']) then
                  WriteInfo (More)
                else
                  QuickInfo:=QuickInfo+More;

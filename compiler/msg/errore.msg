@@ -3845,6 +3845,9 @@ Supported Whole Program Optimizations:
 Code Generation Backend
   $CODEGENERATIONBACKEND
 
+Supported LLVM/Xcode versions (only available with LLVM Code Generation Backend)
+  $LLVMVERSIONS
+
 Supported Microcontroller types:$\n  $CONTROLLERTYPES$\n
 This program comes under the GNU General Public Licence
 For more information read COPYING.v2
@@ -4092,6 +4095,7 @@ A*2CV<x>_Set section threadvar model to <x>
 **2iD_Return compiler date
 **2if_Return list of supported FPU instruction sets
 **2ii_Return list of supported inline assembler modes
+L*2il_Return list of supported LLVM/Xcode versions by the LLVM backend
 **2im_Return list of supported modeswitches
 **2io_Return list of supported optimizations
 **2ir_Return list of recognized compiler and RTL features
