@@ -75,8 +75,8 @@ interface
         flocationmeta: THashSet;
         { lookup table for scope,file -> LLVMMeta info (DILexicalBlockFile, for include files) }
         flexicalblockfilemeta: THashSet;
-        { lookup table for tsym -> taillvmdecl }
-        fsymdecl: THashSet;
+        { lookup table for tstaticvarsym -> taillvmdecl }
+        fstaticvarsymdecl: THashSet;
 
         fcunode: tai_llvmspecialisedmetadatanode;
         fenums: tai_llvmunnamedmetadatanode;
@@ -101,8 +101,8 @@ interface
         function filepos_getmetanode(const filepos: tfileposinfo; const functionfileinfo: tfileposinfo; const functionscope: tai_llvmspecialisedmetadatanode; nolineinfo: boolean): tai_llvmspecialisedmetadatanode;
         function get_def_metatai(def:tdef): PLLVMMetaDefHashSetItem;
 
-        procedure sym_set_decl(sym: tsym; decl: tai);
-        function sym_get_decl(sym: tsym): taillvmdecl;
+        procedure staticvarsym_set_decl(sym: tsym; decl: taillvmdecl);
+        function staticvarsym_get_decl(sym: tsym): taillvmdecl;
 
         procedure appenddef_array_internal(list: TAsmList; fordef: tdef; eledef: tdef; lowrange, highrange: asizeint);
         function getabstractprocdeftypes(list: TAsmList; def:tabstractprocdef): tai_llvmbasemetadatanode;
@@ -310,22 +310,22 @@ implementation
           end;
       end;
 
-    procedure TDebugInfoLLVM.sym_set_decl(sym: tsym; decl: tai);
+    procedure TDebugInfoLLVM.staticvarsym_set_decl(sym: tsym; decl: taillvmdecl);
       var
         entry: PHashSetItem;
       begin
-        entry:=fsymdecl.FindOrAdd(@sym,sizeof(sym));
+        entry:=fstaticvarsymdecl.FindOrAdd(@sym,sizeof(sym));
         if assigned(entry^.Data) then
           internalerror(2022051701);
         entry^.Data:=decl;
       end;
 
-    function TDebugInfoLLVM.sym_get_decl(sym: tsym): taillvmdecl;
+    function TDebugInfoLLVM.staticvarsym_get_decl(sym: tsym): taillvmdecl;
       var
         entry: PHashSetItem;
       begin
         result:=nil;
-        entry:=fsymdecl.Find(@sym,sizeof(sym));
+        entry:=fstaticvarsymdecl.Find(@sym,sizeof(sym));
         if assigned(entry) then
           result:=taillvmdecl(entry^.Data);
       end;
@@ -423,7 +423,7 @@ implementation
         flocationmeta:=thashset.Create(10000,true,false);
         flexicalblockfilemeta:=thashset.Create(100,true,false);
         fdefmeta:=TLLVMMetaDefHashSet.Create(10000,true,false);
-        fsymdecl:=thashset.create(10000,true,false);
+        fstaticvarsymdecl:=thashset.create(10000,true,false);
 
         defnumberlist:=TFPObjectList.create(false);
         deftowritelist:=TFPObjectList.create(false);
@@ -443,8 +443,8 @@ implementation
         flexicalblockfilemeta:=nil;
         fdefmeta.free;
         fdefmeta:=nil;
-        fsymdecl.free;
-        fsymdecl:=nil;
+        fstaticvarsymdecl.free;
+        fstaticvarsymdecl:=nil;
         defnumberlist.free;
         defnumberlist:=nil;
         deftowritelist.free;
@@ -500,7 +500,7 @@ implementation
         flocationmeta.Clear;
         flexicalblockfilemeta.Clear;
         fdefmeta.free;
-        fsymdecl.Clear;
+        fstaticvarsymdecl.Clear;
         { one item per def, plus some extra space in case of nested types,
           externally used types etc (it will grow further if necessary) }
         i:=current_module.localsymtable.DefList.count*4;
@@ -531,7 +531,7 @@ implementation
               begin
                 if (hp.typ=ait_llvmdecl) and
                    assigned(taillvmdecl(hp).sym) then
-                     sym_set_decl(taillvmdecl(hp).sym,hp);
+                     staticvarsym_set_decl(taillvmdecl(hp).sym,taillvmdecl(hp));
                 hp:=tai(hp.next);
               end;
           end;
@@ -1832,7 +1832,7 @@ implementation
         dispflags: tsymstr;
         islocal: boolean;
       begin
-        decl:=sym_get_decl(sym);
+        decl:=staticvarsym_get_decl(sym);
         if not assigned(decl) then
           begin
             list.concat(tai_comment.create(strpnew('no declaration found for '+sym.mangledname)));
