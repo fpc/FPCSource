@@ -108,7 +108,7 @@ interface
         function getopcodestr(hp: taillvm): TSymStr;
         function getopstr(const o:toper; refwithalign: boolean) : TSymStr;
         procedure writetaioper(ai: tai);
-        procedure writeparas(const paras: tfplist);
+        procedure writeparas(const paras: tfplist; asmblock: boolean);
         procedure WriteAsmRegisterAllocationClobbers(list: tasmlist);
       end;
 
@@ -329,7 +329,7 @@ implementation
       end;
 
 
-   procedure TLLVMInstrWriter.writeparas(const paras: tfplist);
+   procedure TLLVMInstrWriter.writeparas(const paras: tfplist; asmblock: boolean);
 
      var
        hp: tai;
@@ -354,6 +354,10 @@ implementation
              owner.writer.AsmWrite(llvmparatypeattr(' byval',para^.def,true));
            if para^.sret then
              owner.writer.AsmWrite(llvmparatypeattr(' sret',para^.def,true));
+           if asmblock and
+              (llvmflag_opaque_ptr_transition in llvmversion_properties[current_settings.llvmversion]) and
+              (para^.def.typ=pointerdef) then
+             owner.writer.AsmWrite(llvmparatypeattr(' elementtype',para^.def,true));
            { For byval, this means "alignment on the stack" and of the passed source data.
              For other pointer parameters, this means "alignment of the passed source data" }
            if (para^.alignment<>std_param_align) or
@@ -495,7 +499,7 @@ implementation
            end;
          top_para:
            begin
-             writeparas(o.paras);
+             writeparas(o.paras,false);
              result:='';
            end;
          top_tai:
@@ -598,7 +602,7 @@ implementation
             owner.writer.AsmWrite('~{memory},~{fpsr},~{flags}');
             WriteAsmRegisterAllocationClobbers(taillvm(hp).oper[0]^.asmlist);
             owner.writer.AsmWrite('"');
-            writeparas(taillvm(hp).oper[1]^.paras);
+            writeparas(taillvm(hp).oper[1]^.paras,true);
             done:=true;
           end;
         la_load,

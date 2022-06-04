@@ -295,7 +295,10 @@ implementation
             begin
               if paradef.typ<>pointerdef then
                 internalerror(2022060310);
-              result:=result+'('+llvmencodetypename(tpointerdef(paradef).pointeddef)+')'
+              if not is_void(tpointerdef(paradef).pointeddef) then
+                result:=result+'('+llvmencodetypename(tpointerdef(paradef).pointeddef)+')'
+              else
+                result:=result+'(i8)'
             end;
         end;
     end;

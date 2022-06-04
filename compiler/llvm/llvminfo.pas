@@ -52,7 +52,8 @@ Type
        llvmver_12_0,
        llvmver_xc_13,
        llvmver_13_0,
-       llvmver_xc_13_3
+       llvmver_xc_13_3,
+       llvmver_14_0
       );
 
 type
@@ -66,7 +67,8 @@ type
      llvmflag_array_datalocation,           { arrays debug info supports a dataLocation attribute to specify how to obtain the array data based on the array variable }
      llvmflag_NoDISPFlags,                  { no DI sub program flags, but separate fields }
      llvmflag_NoDISPFlagMainSubprogram,     { MainSubprogram still in DIFlags instead of DISPFlags }
-     llvmflag_para_attr_type                { parameter attributes such as noalias and byval need to repeat the type }
+     llvmflag_para_attr_type,               { parameter attributes such as noalias and byval need to repeat the type }
+     llvmflag_opaque_ptr_transition         { initial opaque pointer introduction, needs to some elementtype attributes }
    );
    tllvmversionflags = set of tllvmversionflag;
 
@@ -89,11 +91,13 @@ Const
      '12.0',
      'Xcode-13.0',
      '13.0',
-     'Xcode-13.3'
+     'Xcode-13.3',
+     '14.0'
    );
 
    llvm_debuginfo_metadata_format : array[tllvmversion] of byte = (
      0,
+     3,
      3,
      3,
      3,
@@ -132,7 +136,8 @@ Const
        { llvmver_12_0    } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation,llvmflag_para_attr_type],
        { llvmver_xc_13_0 } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation,llvmflag_para_attr_type],
        { llvmver_13_0    } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation,llvmflag_para_attr_type],
-       { llvmver_xc_13_3 } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation,llvmflag_para_attr_type]
+       { llvmver_xc_13_3 } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation,llvmflag_para_attr_type],
+       { llvmver_xc_13_3 } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation,llvmflag_para_attr_type,llvmflag_opaque_ptr_transition]
      );
 
    { Supported optimizations, only used for information }
