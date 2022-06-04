@@ -478,16 +478,14 @@ var
   i: Integer;
 begin
   if FPackages.Count > 0 then
-  for i := 0 to FPackages.Count - 1 do
-    TPasPackage(FPackages[i]).Release{$IFDEF CheckPasTreeRefCount}('TFPDocEngine.Destroy'){$ENDIF}
-  else
-    FreeAndNil(FPackages);
+    for i := 0 to FPackages.Count - 1 do
+      TPasPackage(FPackages[i]).Release{$IFDEF CheckPasTreeRefCount}('TFPDocEngine.Destroy'){$ENDIF};
+  FreeAndNil(FPackages);
   FreeAndNil(FRootDocNode);
   FreeAndNil(FRootLinkNode);
   FreeAndNil(DescrDocNames);
   FreeAndNil(DescrDocs);
   FreeAndNil(FAlwaysVisible);
-  FreeAndNil(FPackages);
   inherited Destroy;
 end;
 
@@ -615,10 +613,9 @@ var
       if not CreateNew then
         exit;
       Module := TPasExternalModule.Create(s, HPackage);
+      HPackage.Modules.Add(Module);
       Module.InterfaceSection := TInterfaceSection.Create('', Module);
       Module.PackageName:= HPackage.Name;
-      // Module.AddRef{$IFDEF CheckPasTreeRefCount}('ReadContentFile.ResolvePackageModule'){$ENDIF};
-      HPackage.Modules.Add(Module);
     end;
     pkg:=hpackage;
     result:=Copy(AName, DotPos2 + 1, length(AName)-dotpos2);
@@ -667,7 +664,7 @@ var
 
   procedure ReadClasses;
 
-    function CreateClass(const AName: String;InheritanceStr:String): TPasClassType;
+    function CreateClass(const AName: String; const InheritanceStr:String): TPasClassType;
     var
       s: String;
       HPackage: TPasPackage;
@@ -678,12 +675,11 @@ var
       // Create node for class
       Result := TPasExternalClassType.Create(s, Module.InterfaceSection);
       Result.ObjKind := okClass;
-      // Result.AddRef{$IFDEF CheckPasTreeRefCount}('ReadContentFile.ResolveAndLinkClass'){$ENDIF};
       Module.InterfaceSection.Declarations.Add(Result);
       Module.InterfaceSection.Classes.Add(Result);
       // defer processing inheritancestr till all classes are loaded.
-      if inheritancestr<>'' then
-        InheritanceInfo.AddObject(Inheritancestr,result);
+      if InheritanceStr<>'' then
+        InheritanceInfo.AddObject(InheritanceStr,Result);
     end;
 
     procedure splitalias(var instr:string;out outstr:string);
@@ -746,10 +742,10 @@ var
             else
               begin
     //            writeln('new alias ',clname,' (',s,') ');
-                cl2.addref{$IFDEF CheckPasTreeRefCount}('ReadContentFile.CreateAliasType'){$ENDIF};
                 Result := TPasAliasType(CreateElement(TPasAliasType,s,module.interfacesection,vispublic,'',0));
                 module.interfacesection.Declarations.Add(Result);
                 TPasAliasType(Result).DestType := cl2;
+                cl2.addref{$IFDEF CheckPasTreeRefCount}('ReadContentFile.CreateAliasType'){$ENDIF};
               end
           end
     end;

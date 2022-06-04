@@ -284,7 +284,6 @@ Type
     procedure AllocatePackagePages; virtual;
     // Prefix every filename generated with the result of this.
     function GetFileBaseDir(aOutput: String): String; virtual;
-    function InterPretOption(const Cmd, Arg: String): boolean; override;
     function  ModuleHasClasses(AModule: TPasModule): Boolean;
     // Allocate pages etc.
     Procedure DoWriteDocumentation; override;
@@ -296,6 +295,7 @@ Type
     constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine); override;
     Destructor Destroy; override;
     class procedure Usage(List: TStrings); override;
+    function InterpretOption(const Cmd, Arg: String): boolean; override;
     property PageCount: Integer read GetPageCount;
     Property Allocator : TFileAllocator Read FAllocator;
     Property Module: TPasModule  Read FModule Write FModule;
@@ -862,7 +862,7 @@ begin
   List.AddStrings(['--only-pages=LIST', SUsageOnlyPages]);
 end;
 
-function TMultiFileDocWriter.InterPretOption(const Cmd, Arg: String): boolean;
+function TMultiFileDocWriter.InterpretOption(const Cmd, Arg: String): boolean;
 
 Var
   I : Integer;
