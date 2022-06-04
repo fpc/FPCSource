@@ -6039,7 +6039,7 @@ begin
     for j:=0 to length(IntfHelpers)-1 do
       AddActiveHelper(TPRHelperEntry(IntfHelpers[j]).Helper);
 
-    EmitElementHints(Section,UseUnit);
+    EmitElementHints(UseUnit,UseModule);
     end;
 
   // Add first name of dotted unitname (top level subnamespace) as identifier
