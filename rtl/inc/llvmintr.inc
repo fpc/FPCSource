@@ -116,3 +116,5 @@ function llvm_experimental_constrained_uitofp_f64_i64(val: qword; rounding, exce
 {$ifdef SUPPORT_EXTENDED}
 function llvm_experimental_constrained_uitofp_f80_i64(val: qword; rounding, exceptions: LLVMMetadata): extended; compilerproc; external name 'llvm.experimental.constrained.uitofp.x86_fp80.i64';
 {$endif}
+
+procedure llvm_dbg_addr(address, description, expression: LLVMMetadata); compilerproc; external name 'llvm.dbg.addr';

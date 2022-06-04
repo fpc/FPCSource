@@ -33,8 +33,13 @@ interface
       llvmbase;
 
     type
+      pllvmcallpara = ^tllvmcallpara;
+
       { taillvm }
       taillvm = class(tai_cpu_abstract_sym)
+       const
+        callpdopernr = 3;
+       var
         llvmopcode: tllvmop;
         metadata: tai;
 
@@ -145,6 +150,8 @@ interface
         procedure loadasmlist(opidx: longint; _asmlist: tasmlist);
         procedure loadcallingconvention(opidx: longint; calloption: tproccalloption);
 
+        function getcallpara(callparaindex: longint): pllvmcallpara;
+
         procedure addinsmetadata(insmeta: tai);
 
         procedure landingpad_add_clause(op: tllvmop; def: tdef; kind: TAsmSymbol);
@@ -220,10 +227,10 @@ interface
         top_const: (value: int64);
         top_undef :  ();
         top_tai    : (ai: tai);
+        top_local  : (localsym: tsym);
     end;
 
     { parameter to an llvm call instruction }
-    pllvmcallpara = ^tllvmcallpara;
     tllvmcallpara = object
       def: tdef;
       alignment: shortint;
@@ -558,6 +565,23 @@ implementation
            callingconvention:=calloption;
            typ:=top_callingconvention;
          end;
+      end;
+
+    function taillvm.getcallpara(callparaindex: longint): pllvmcallpara;
+      var
+        i: longint;
+      begin
+        for i:=0 to ops do
+          begin
+            if oper[i]^.typ=top_para then
+              begin
+                if callparaindex>=oper[i]^.paras.count then
+                  internalerror(2022052611);
+                result:=pllvmcallpara(oper[i]^.paras[callparaindex]);
+                exit;
+              end;
+          end;
+        internalerror(2022052612);
       end;
 
     procedure taillvm.addinsmetadata(insmeta: tai);
@@ -1204,7 +1228,7 @@ implementation
         loaddef(0,retsize);
         loadreg(1,dst);
         loadcallingconvention(2,cc);
-        loaddef(3,callpd);
+        loaddef(callpdopernr,callpd);
         loadsymbol(4,name,0);
         loadparas(5,paras);
       end;
@@ -1217,7 +1241,7 @@ implementation
         loaddef(0,retsize);
         loadreg(1,dst);
         loadcallingconvention(2,cc);
-        loaddef(3,callpd);
+        loaddef(callpdopernr,callpd);
         loadreg(4,reg);
         loadparas(5,paras);
       end;
@@ -1230,7 +1254,7 @@ implementation
         loaddef(0,retsize);
         loadreg(1,dst);
         loadcallingconvention(2,cc);
-        loaddef(3,callpd);
+        loaddef(callpdopernr,callpd);
         loadsymbol(4,name,0);
         loadparas(5,paras);
         loadsymbol(6,retlab,0);
@@ -1245,7 +1269,7 @@ implementation
         loaddef(0,retsize);
         loadreg(1,dst);
         loadcallingconvention(2,cc);
-        loaddef(3,callpd);
+        loaddef(callpdopernr,callpd);
         loadreg(4,reg);
         loadparas(5,paras);
         loadsymbol(6,retlab,0);
