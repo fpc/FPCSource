@@ -431,6 +431,7 @@ type
     Procedure TestProcOverloadObjFPCUnitWithoutOverloadMod;
     Procedure TestProcOverloadDelphiWithObjFPC;
     Procedure TestProcOverloadDelphiOverride;
+    Procedure TestProcOverloadDelphiOverrideOne;
     Procedure TestProcDuplicate;
     Procedure TestNestedProc;
     Procedure TestNestedProc_ResultString;
@@ -7082,6 +7083,45 @@ begin
   '  if 24=e.{@d}GetValue(25) then ;',
   'end;',
   'begin']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestProcOverloadDelphiOverrideOne;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class',
+  '    constructor Create(b: boolean); virtual;',
+  '  end;',
+  '  TBird = class',
+  '    // add first an overload',
+  '    constructor Create(w: word); overload;',
+  '    // and then override the previous',
+  '    constructor Create(b: boolean); override; overload;',
+  '  end;',
+  '  TEagle = class(TBird)',
+  '    constructor Create(b: boolean); override; overload;',
+  '  end;',
+  'constructor TObject.Create(b: boolean);',
+  'begin',
+  'end;',
+  'constructor TBird.Create(w: word);',
+  'begin',
+  'end;',
+  'constructor TBird.Create(b: boolean);',
+  'begin',
+  'end;',
+  'constructor TEagle.Create(b: boolean);',
+  'begin',
+  'end;',
+  'begin',
+  '  TBird.Create(false);',
+  '  TBird.Create(2);',
+  '  TEagle.Create(true);',
+  '  TEagle.Create(3);',
+  '']);
   ParseProgram;
 end;
 

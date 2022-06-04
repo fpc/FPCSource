@@ -1556,8 +1556,8 @@ type
       TFindCallElData = record
         Params: TParamsExpr;
         TemplCnt: integer;
-        Found: TPasElement; // TPasProcedure or TPasUnresolvedSymbolRef(built in proc) or TPasType (typecast)
-        LastProc: TPasProcedure;
+        Found: TPasElement; // TPasProcedure or TPasUnresolvedSymbolRef(built in proc) or TPasType (typecast), best candidate so far
+        LastProc: TPasProcedure; // last checked TPasProcedure
         ElScope, StartScope: TPasScope;
         Distance: integer; // compatibility distance
         Count: integer;
@@ -1595,7 +1595,7 @@ type
     procedure OnFindProcDeclaration(El: TPasElement; ElScope, StartScope: TPasScope;
       FindProcData: Pointer; var Abort: boolean); virtual;
     function IsSameProcContext(ProcParentA, ProcParentB: TPasElement): boolean;
-    function IsProcOverload(LastProc, LastExactProc, CurProc: TPasProcedure): boolean;
+    function IsProcOverloading(LastProc, CurProc: TPasProcedure): boolean;
     function FindProcSameSignature(const ProcName: string; Proc: TPasProcedure;
       Scope: TPasIdentifierScope; OnlyLocal: boolean): TPasProcedure;
   protected
@@ -5018,7 +5018,7 @@ procedure TPasResolver.OnFindFirst_GenericEl(El: TPasElement; ElScope,
 var
   Data: PPRFindGenericData absolute FindFirstGenericData;
   GenericTemplateTypes: TFPList;
-  Proc, LastExactProc: TPasProcedure;
+  Proc: TPasProcedure;
   ProcScope: TPasProcedureScope;
 begin
   Proc:=nil;
@@ -5037,11 +5037,7 @@ begin
 
     if (Data^.LastProc<>nil) then
       begin
-      if Data^.Find.Found is TPasProcedure then
-        LastExactProc:=TPasProcedure(Data^.Find.Found)
-      else
-        LastExactProc:=nil;
-      if not IsProcOverload(Data^.LastProc,LastExactProc,Proc) then
+      if not IsProcOverloading(Data^.LastProc,Proc) then
         begin
         Abort:=true;
         exit;
@@ -5126,10 +5122,39 @@ begin
       El:=Proc;
       end;
 
+    if (msDelphi in ProcScope.ModeSwitches) and not IsProcOverload(Proc) then
+      begin
+      Abort:=true; // stop searching after this proc
+      if Data^.LastProc<>nil then
+        exit;
+      end;
+
+    if (Data^.LastProc<>nil) then
+      begin
+      if (TPasProcedureScope(Data^.LastProc.CustomData).OverriddenProc=Proc) then
+        begin
+        // already checked the override -> skip
+        Data^.LastProc:=Proc;
+        exit;
+        end;
+      if not IsProcOverloading(Data^.LastProc,Proc) then
+        begin
+        Abort:=true;
+        exit;
+        end;
+      end;
+
     if Data^.Found is TPasProcedure then
       begin
       // there is already a previous proc
       PrevProc:=TPasProcedure(Data^.Found);
+
+      if (TPasProcedureScope(PrevProc.CustomData).OverriddenProc=Proc) then
+        begin
+        // already checked the override -> skip
+        Data^.LastProc:=Proc;
+        exit;
+        end;
 
       if (Data^.Distance=cExact) and (PrevProc.Parent<>Proc.Parent)
           and (PrevProc.Parent.ClassType=TPasClassType) then
@@ -5138,17 +5163,7 @@ begin
         Abort:=true;
         exit;
         end;
-
-      if not IsProcOverload(Data^.LastProc,PrevProc,Proc) then
-        begin
-        Abort:=true;
-        exit;
-        end;
-
       end;
-
-    if (msDelphi in ProcScope.ModeSwitches) and not IsProcOverload(Proc) then
-      Abort:=true; // stop searching after this proc
 
     CandidateFound:=true;
     if Data^.TemplCnt>0 then
@@ -5639,8 +5654,8 @@ begin
   Result:=false;
 end;
 
-function TPasResolver.IsProcOverload(LastProc, LastExactProc,
-  CurProc: TPasProcedure): boolean;
+function TPasResolver.IsProcOverloading(LastProc, CurProc: TPasProcedure
+  ): boolean;
 begin
   if msDelphi in TPasProcedureScope(LastProc.CustomData).ModeSwitches then
     begin
@@ -5658,13 +5673,6 @@ begin
       if not ProcHasGroupOverload(LastProc) then
         exit(false);
       end;
-    end;
-
-  // check if previous found proc is override of found proc
-  if (LastExactProc<>nil) and IsProcOverride(CurProc,LastExactProc) then
-    begin
-    // previous found proc is override of found proc -> skip
-    exit(false);
     end;
 
   Result:=true;
