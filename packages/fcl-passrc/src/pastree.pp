@@ -3365,9 +3365,15 @@ end;
 destructor TPasPackage.Destroy;
 var
   i: Integer;
+  aModule: TPasModule;
 begin
   for i := 0 to Modules.Count - 1 do
-    TPasModule(Modules[i]).Release{$IFDEF CheckPasTreeRefCount}('TPasPackage.Modules'){$ENDIF};
+    begin
+    aModule:=TPasModule(Modules[i]);
+    if aModule.Parent=Self then
+      aModule.Parent:=nil;
+    aModule.Release{$IFDEF CheckPasTreeRefCount}('TPasPackage.Modules'){$ENDIF};
+    end;
   FreeAndNil(Modules);
   inherited Destroy;
 end;
