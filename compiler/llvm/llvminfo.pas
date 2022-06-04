@@ -43,11 +43,16 @@ Type
        llvmver_8_0,
        llvmver_xc_11,
        llvmver_9_0,
+       llvmver_xc_11_4,
        llvmver_10_0,
+       llvmver_xc_12,
        llvmver_11_0,
        llvmver_11_1,
+       llvmver_xc_12_5,
        llvmver_12_0,
-       llvmver_13_0
+       llvmver_xc_13,
+       llvmver_13_0,
+       llvmver_xc_13_3
       );
 
 type
@@ -75,15 +80,25 @@ Const
      '8.0',
      'Xcode-11.0',
      '9.0',
+     'Xcode-11.4',
      '10.0',
+     'Xcode-12.0',
      '11.0',
      '11.1',
+     'Xcode-12.5',
      '12.0',
-     '13.0'
+     'Xcode-13.0',
+     '13.0',
+     'Xcode-13.3'
    );
 
    llvm_debuginfo_metadata_format : array[tllvmversion] of byte = (
      0,
+     3,
+     3,
+     3,
+     3,
+     3,
      3,
      3,
      3,
@@ -108,11 +123,16 @@ Const
        { llvmver_8_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_NoDISPFlagMainSubprogram],
        { llvmver_xc_11   } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_NoDISPFlagMainSubprogram],
        { llvmver_9_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_constrained_fptrunc_fpext],
+       { llvmver_xc_11_4 } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_constrained_fptrunc_fpext],
        { llvmver_10_0    } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp],
+       { llvmver_xc_12_0 } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp],
        { llvmver_11_0    } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation],
        { llvmver_11_1    } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation],
+       { llvmver_xc_12_5 } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation],
        { llvmver_12_0    } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation,llvmflag_para_attr_type],
-       { llvmver_12_0    } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation,llvmflag_para_attr_type]
+       { llvmver_xc_13_0 } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation,llvmflag_para_attr_type],
+       { llvmver_13_0    } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation,llvmflag_para_attr_type],
+       { llvmver_xc_13_3 } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid_new,llvmflag_constrained_fptrunc_fpext,llvmflag_constrained_fptoi_itofp,llvmflag_array_datalocation,llvmflag_para_attr_type]
      );
 
    { Supported optimizations, only used for information }
