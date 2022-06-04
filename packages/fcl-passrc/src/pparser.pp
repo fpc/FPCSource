@@ -5790,16 +5790,6 @@ function TPasParser.ParseProperty(Parent: TPasElement; const AName: String;
     until CurToken<>tkComma;
   end;
 
-  procedure ConsumeSemi;
-  begin
-    if (CurToken = tkSemicolon) then
-      begin
-      NextToken;
-      if IsCurTokenHint then
-        UngetToken;
-      end;
-  end;
-
 var
   isArray , ok, IsClass: Boolean;
   ObjKind: TPasObjKind;
@@ -5921,10 +5911,10 @@ begin
       while DoCheckHint(Result) do
         begin
         NextToken; // eat Hint token
-        ConsumeSemi; // Now on hint token or semicolon
+        if (CurToken = tkSemicolon) then
+          NextToken;
         end;
-//      if Result.Hints=[] then
-        UngetToken;
+      UngetToken;
       end
     else if CurToken=tkend then
       // ok

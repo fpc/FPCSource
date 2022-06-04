@@ -936,10 +936,11 @@ type
     Procedure TestResourcestringPassVarArgFail;
 
     // hints
-    Procedure TestHint_ElementHints;
+    Procedure TestHint_ElementHintModifiers;
     Procedure TestHint_ElementHintsMsg;
     Procedure TestHint_ElementHintsAlias;
     Procedure TestHint_ElementHints_WarnOff_SymbolDeprecated;
+    Procedure TestHint_ClassElementHints;
     Procedure TestHint_UsesHints;
     Procedure TestHint_Garbage;
 
@@ -17198,7 +17199,7 @@ begin
   CheckResolverException(sVariableIdentifierExpected,nVariableIdentifierExpected);
 end;
 
-procedure TTestResolver.TestHint_ElementHints;
+procedure TTestResolver.TestHint_ElementHintModifiers;
 begin
   StartProgram(false);
   Add([
@@ -17291,6 +17292,33 @@ begin
   '  if i=3 then ;']);
   ParseProgram;
   CheckResolverUnexpectedHints(true);
+end;
+
+procedure TTestResolver.TestHint_ClassElementHints;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    FWing: word experimental;',
+  '    property Wing: word read FWing; platform; experimental;',
+  '    procedure Fly; library;',
+  '  end;',
+  'procedure TObject.Fly;',
+  'begin',
+  '  if Wing=3 then ;',
+  'end;',
+  'var',
+  '  Bird: TObject;',
+  'begin',
+  '  Bird.Fly;',
+  '']);
+  ParseProgram;
+  CheckResolverHint(mtWarning,nSymbolXIsExperimental,'Symbol "FWing" is experimental');
+  CheckResolverHint(mtWarning,nSymbolXIsNotPortable,'Symbol "Wing" is not portable');
+  CheckResolverHint(mtWarning,nSymbolXIsExperimental,'Symbol "Wing" is experimental');
+  CheckResolverHint(mtWarning,nSymbolXBelongsToALibrary,'Symbol "Fly" belongs to a library');
+  CheckResolverUnexpectedHints;
 end;
 
 procedure TTestResolver.TestHint_UsesHints;
