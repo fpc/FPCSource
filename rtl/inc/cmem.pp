@@ -56,14 +56,23 @@ Function CAlloc (unitSize,UnitCount : ptruint) : pointer; cdecl; external LibNam
 
 implementation
 
+{$macro on}
+
+const
+  { poor man's max function for constants:
+    headersize = max(sizeof(ptruint),FPC_STACKALIGNMENT); }    
+  headersize = ord(sizeof(ptruint)>FPC_STACKALIGNMENT)*sizeof(ptruint)+ord(sizeof(ptruint)<=FPC_STACKALIGNMENT)*FPC_STACKALIGNMENT;
+
+{$macros off}
+
 Function CGetMem  (Size : ptruint) : Pointer;
 
 begin
-  CGetMem:=Malloc(Size+sizeof(ptruint));
+  CGetMem:=Malloc(Size+headersize);
   if (CGetMem <> nil) then
     begin
       Pptruint(CGetMem)^ := size;
-      inc(CGetMem,sizeof(ptruint));
+      inc(CGetMem,headersize);
     end;
 end;
 
@@ -71,7 +80,7 @@ Function CFreeMem (P : pointer) : ptruint;
 
 begin
   if (p <> nil) then
-    dec(p,sizeof(ptruint));
+    dec(p,headersize);
   Free(P);
   CFreeMem:=0;
 end;
@@ -83,7 +92,7 @@ begin
     exit;
   if (p <> nil) then
     begin
-      if (size <> Pptruint(p-sizeof(ptruint))^) then
+      if (size <> Pptruint(p-headersize)^) then
         runerror(204);
     end;
   CFreeMemSize:=CFreeMem(P);
@@ -92,11 +101,11 @@ end;
 Function CAllocMem(Size : ptruint) : Pointer;
 
 begin
-  CAllocMem:=calloc(Size+sizeof(ptruint),1);
+  CAllocMem:=calloc(Size+headersize,1);
   if (CAllocMem <> nil) then
     begin
       Pptruint(CAllocMem)^ := size;
-      inc(CAllocMem,sizeof(ptruint));
+      inc(CAllocMem,headersize);
     end;
 end;
 
@@ -107,25 +116,25 @@ begin
     begin
       if p<>nil then
         begin
-          dec(p,sizeof(ptruint));
+          dec(p,headersize);
           free(p);
           p:=nil;
         end;
     end
   else
     begin
-      inc(size,sizeof(ptruint));
+      inc(size,headersize);
       if p=nil then
         p:=malloc(Size)
       else
         begin
-          dec(p,sizeof(ptruint));
+          dec(p,headersize);
           p:=realloc(p,size);
         end;
       if (p <> nil) then
         begin
-          Pptruint(p)^ := size-sizeof(ptruint);
-          inc(p,sizeof(ptruint));
+          Pptruint(p)^ := size-headersize;
+          inc(p,headersize);
         end;
     end;
   CReAllocMem:=p;
@@ -134,7 +143,7 @@ end;
 Function CMemSize (p:pointer): ptruint;
 
 begin
-  CMemSize:=Pptruint(p-sizeof(ptruint))^;
+  CMemSize:=Pptruint(p-headersize)^;
 end;
 
 function CGetHeapStatus:THeapStatus;
