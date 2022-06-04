@@ -326,10 +326,10 @@ end;
 
 function TEncoding.GetByteCount(const S: UnicodeString; CharIndex, CharCount: Integer): Integer;
 begin
-  if (CharCount < 0) or (Length(S) < CharCount + CharIndex) then
-    raise EEncodingError.CreateFmt(SInvalidCount, [CharCount]);
   if (CharIndex < 1) then
     raise EEncodingError.CreateFmt(SCharacterIndexOutOfBounds, [CharIndex]);
+  if (CharCount < 0) or (Length(S) < CharCount + CharIndex) then
+    raise EEncodingError.CreateFmt(SInvalidCount, [CharCount]);
   Result := GetByteCount(@S[CharIndex], CharCount);
 end;
 
@@ -385,10 +385,10 @@ begin
     raise EEncodingError.Create(SInvalidDestinationArray);
   if (ByteIndex < 0) or (ByteLen < ByteIndex) then
     raise EEncodingError.CreateFmt(SInvalidDestinationIndex, [ByteIndex]);
-  if (CharCount < 0) or (Length(S) < CharCount + CharIndex) then
-    raise EEncodingError.CreateFmt(SInvalidCount, [CharCount]);
   if (CharIndex < 1) then
     raise EEncodingError.CreateFmt(SCharacterIndexOutOfBounds, [CharIndex]);
+  if (CharCount < 0) or (Length(S) < CharCount + CharIndex) then
+    raise EEncodingError.CreateFmt(SInvalidCount, [CharCount]);
   Result := GetBytes(@S[CharIndex], CharCount, @Bytes[ByteIndex], ByteLen - ByteIndex);
 end;
 
