@@ -123,8 +123,6 @@ implementation
                       end;
                     if (varindex<0) then
                       internalerror(2009081805);
-                    if (tfieldvarsym(variantstarts[varindex]).fieldoffset<>field.fieldoffset) then
-                      internalerror(2009081804);
 
                     { variant at the same level as a previous one }
                     variantstarts.count:=varindex+1;
