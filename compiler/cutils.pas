@@ -1642,9 +1642,7 @@ implementation
           pbuf^:=b;
           inc(pbuf);
           inc(result);
-          if (a=0) and  (result>=len) then
-            break;
-        until false;
+        until (a=0) and (result>=len);
       end;
 
 
@@ -1654,23 +1652,15 @@ implementation
         more: boolean;
         pbuf : pbyte;
       begin
-        more := true;
         result:=0;
         pbuf:=@buf;
         repeat
           b := a and $7f;
           a := SarInt64(a, 7);
-
-          if (result+1>=len) and (
-            ((a = 0) and (b and $40 = 0)) or
-            ((a = -1) and (b and $40 <> 0))
-          ) then
-            more := false
-          else
-            b := b or $80;
-          pbuf^:=b;
-          inc(pbuf);
           inc(result);
+          more:=(result<len) or (a<>-(b shr 6));
+          pbuf^:=b or byte(more) shl 7;
+          inc(pbuf);
         until not more;
       end;
 
