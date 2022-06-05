@@ -1055,6 +1055,13 @@ class function TArrayHelper<T>.BinarySearch(constref AValues: array of T; constr
 var
   imin, imax, imid: Int32;
 begin
+  if Length(AValues) = 0 then
+  begin
+    ASearchResult.CompareResult := 0;
+    ASearchResult.FoundIndex := -1;
+    ASearchResult.CandidateIndex := -1;
+    Exit(False);
+  end;
   // continually narrow search until just one element remains
   imin := AIndex;
   imax := Pred(AIndex + ACount);
@@ -1119,6 +1126,12 @@ var
   imin, imax, imid: Int32;
   LCompare: SizeInt;
 begin
+  if Length(AValues) = 0 then
+  begin
+    AFoundIndex := -1;
+    Exit(False);
+  end;
+
   // continually narrow search until just one element remains
   imin := AIndex;
   imax := Pred(AIndex + ACount);
