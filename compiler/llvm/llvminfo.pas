@@ -36,8 +36,6 @@ Type
        { Xcode versions use snapshots of LLVM and don't correspond to released
          versions of llvm (they don't ship with the llvm utilities either, but
          they do come with Clang, which can be used instead of opt/llc) }
-       llvmver_xc_10_0,
-       llvmver_xc_10_1,
        llvmver_7_0,
        llvmver_7_1,
        llvmver_8_0,
@@ -75,8 +73,6 @@ type
 Const
    llvmversionstr : array[tllvmversion] of string[14] = (
      '',
-     'Xcode-10.0',
-     'Xcode-10.1',
      '7.0',
      '7.1',
      '8.0',
@@ -112,16 +108,12 @@ Const
      3,
      3,
      3,
-     3,
-     3,
      3
    );
 
    llvmversion_properties: array[tllvmversion] of tllvmversionflags =
      (
        { invalid         } [],
-       { llvmver_xc_10_0 } [llvmflag_NoDISPFlags],
-       { llvmver_xc_10_1 } [llvmflag_NoDISPFlags],
        { llvmver_7_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_NoDISPFlags],
        { llvmver_7_1     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_NoDISPFlags],
        { llvmver_8_0     } [llvmflag_memcpy_indiv_align,llvmflag_null_pointer_valid,llvmflag_NoDISPFlagMainSubprogram],
