@@ -37,22 +37,22 @@ const
   siMilli = 1E-3;
   siCenti = 1E-2;
   siDeci  = 1E-1;
-  
+
   siDeca  = 10;
   siHecto = siDeca*10;
-  siKilo  = siHecto*10; 
-  siMega  = siKilo*1000; 
-  siGiga  = siMega*1000; 
-  siTera  = Int64(siGiga*1000); 
-  siPeta  = Int64(siTera*1000); 
+  siKilo  = siHecto*10;
+  siMega  = siKilo*1000;
+  siGiga  = siMega*1000;
+  siTera  = Int64(siGiga*1000);
+  siPeta  = Int64(siTera*1000);
   siExa   = Int64(siPeta*1000);
-  siZetta = 1E21;  
+  siZetta = 1E21;
   siYotta = 1E24;
-  
+
   // Powers of 2
   iecKibi = 1024;                 // 10
   iecMebi = iecKibi*1024;         // 20
-  iecGibi = iecMebi*1024;         // 30 
+  iecGibi = iecMebi*1024;         // 30
   iecTebi = Int64(iecGibi*1024);  // 40
   iecPebi = Int64(iecTebi*1024);  // 50
   iecExbi = Int64(iecPebi*1024);  // 60
@@ -227,6 +227,9 @@ function CelsiusToFahrenheit(const AValue: Double): Double;
 function FahrenheitToCelsius(const AValue: Double): Double;
 function CelsiusToKelvin    (const AValue: Double): Double;
 function KelvinToCelsius    (const AValue: Double): Double;
+function RankineToCelsius   (const AValue: Double): Double;
+function CelsiusToRankine   (const AValue: Double): Double;
+
 
 implementation
 
@@ -249,6 +252,17 @@ function KelvinToCelsius    (const AValue: Double): Double;
 begin
   result:=AValue-273.15;
 end;
+
+function RankineToCelsius(const AValue: Double): Double;
+begin
+  result:=(AValue*Double(5/9))-273.15;
+end;
+
+function CelsiusToRankine(const AValue: Double): Double;
+begin
+  result:=(AValue+273.15)*1.8;
+end;
+
 
 ResourceString  // Note, designations for FFU's are guesses.
 
@@ -474,9 +488,9 @@ end;
 procedure RegisterTemperature;
 begin
  tuCelsius    := RegisterConversionType(cbTemperature,txttuCelsius,1);
- tuKelvin     := RegisterConversionType(cbTemperature,txttuKelvin,1);
- tuFahrenheit := RegisterConversionType(cbTemperature,txttuFahrenheit,5/9);
- tuRankine    := RegisterConversionType(cbTemperature,txttuRankine,0.5555556);
+ tuKelvin     := RegisterConversionType(cbTemperature,txttuKelvin,@KelvinToCelsius,@CelsiusToKelvin);
+ tuFahrenheit := RegisterConversionType(cbTemperature,txttuFahrenheit,@FahrenheitToCelsius,@CelsiusToFahrenheit);
+ tuRankine    := RegisterConversionType(cbTemperature,txttuRankine,@RankineToCelsius,@CelsiusToRankine);
  tuReamur     := RegisterConversionType(cbTemperature,txttuReamur,10/8);   // Reaumur?
 end;
 

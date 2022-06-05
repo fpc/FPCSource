@@ -39,6 +39,7 @@ Type TConvType        = type Integer;
 
 Function RegisterConversionFamily(Const S : String):TConvFamily;
 Function RegisterConversionType(Fam:TConvFamily;Const S:String;Value:TConvUtilFloat):TConvType;
+Function RegisterConversionType(Fam:TConvFamily;Const S:String;const AToCommonFunc, AFromCommonFunc: TConversionProc): TConvType;
 
 function Convert ( const Measurement  : Double; const FromType, ToType  : TConvType ) :TConvUtilFloat;
 function Convert ( const Measurement  : Double; const FromType1, FromType2, ToType1, ToType2  : TConvType ) :TConvUtilFloat;
@@ -99,9 +100,11 @@ uses
   RtlConsts;
 
 Type ResourceData = record
-                      Description : String;
-                      Value       : TConvUtilFloat;
-                      Fam         : TConvFamily;
+                      Description   : String;
+                      Value         : TConvUtilFloat;
+                      ToCommonFunc  : TConversionProc;
+                      FromCommonFunc: TConversionProc;
+                      Fam           : TConvFamily;
                      end;
 
 
@@ -157,7 +160,7 @@ begin
      begin
        atypes[j]:=i;
        inc(j);
-     end;	
+     end;
 end;
 
 function ConvTypeToDescription(const AType: TConvType): string;
@@ -242,7 +245,8 @@ end;
 
 const macheps=1E-9;
 
-Function RegisterConversionType(Fam:TConvFamily;Const S:String;Value:TConvUtilFloat):TConvType;
+Function InternalRegisterConversionType(Fam:TConvFamily;Const S:String;Value:TConvUtilFloat;
+  const AToCommonFunc, AFromCommonFunc: TConversionProc):TConvType;
 
 var l1 : Longint;
 
@@ -255,8 +259,21 @@ begin
   Setlength(theunits,l1+1);
   theunits[l1].description:=s;
   theunits[l1].value:=value;
+  theunits[l1].ToCommonFunc:=AToCommonFunc;
+  theunits[l1].FromCommonFunc:=AFromCommonFunc;
   theunits[l1].fam:=fam;
   Result:=l1;
+end;
+
+Function RegisterConversionType(Fam:TConvFamily;Const S:String;Value:TConvUtilFloat):TConvType;
+begin
+  InternalRegisterConversionType(Fam,S,Value,nil,nil);
+end;
+
+function RegisterConversionType(Fam: TConvFamily; const S: String;
+  const AToCommonFunc, AFromCommonFunc: TConversionProc): TConvType;
+begin
+  InternalRegisterConversionType(Fam,S,(AToCommonFunc(1)-AToCommonFunc(0)),AToCommonFunc,AFromCommonFunc);
 end;
 
 function SearchConvert(TheType:TConvType; var r:ResourceData):Boolean;
@@ -275,6 +292,7 @@ function Convert ( const Measurement  : Double; const FromType, ToType  : TConvT
 
 var
   fromrec,torec :   resourcedata;
+  common: double;
 
 begin
   if not SearchConvert(fromtype,fromrec) then
@@ -286,7 +304,17 @@ begin
       ConvFamilyToDescription(fromrec.fam),
       ConvFamilyToDescription(torec.fam)
     ]);
-  result:=Measurement*fromrec.value/torec.value;
+  if assigned(fromrec.ToCommonFunc) or assigned(torec.FromCommonFunc) then begin
+    if assigned(fromrec.ToCommonFunc) then
+      common:=fromrec.ToCommonFunc(MeasureMent)
+    else
+      common:=Measurement*fromrec.value;
+    if assigned(torec.FromCommonFunc) then
+      result:=torec.FromCommonFunc(common)
+    else
+      result:=common/torec.value;
+  end else
+    result:=Measurement*fromrec.value/torec.value;
 end;
 
 function Convert ( const Measurement  : Double; const FromType1, FromType2, ToType1, ToType2  : TConvType ) :TConvUtilFloat;
@@ -310,6 +338,7 @@ begin
       ConvFamilyToDescription(fromrec2.fam),
       ConvFamilyToDescription(torec2.fam)
     ]);
+  //using ToCommonFunc() and FromCommonFunc makes no sense in this context
   result:=Measurement*(fromrec1.value/fromrec2.value)/(torec1.value/torec2.value);
 end;
 
@@ -338,12 +367,12 @@ begin
   FFactor:=AFactor;
 end;
 
-function TConvTypeFactor.ToCommon(const AValue: Double): Double; 
+function TConvTypeFactor.ToCommon(const AValue: Double): Double;
 begin
   result:=AValue * FFactor;
 end;
 
-function TConvTypeFactor.FromCommon(const AValue: Double): Double; 
+function TConvTypeFactor.FromCommon(const AValue: Double): Double;
 begin
   result:=AValue / FFactor;
 end;
@@ -355,12 +384,12 @@ begin
   ffromproc:=AFromProc;
 end;
 
-function TConvTypeProcs.ToCommon(const AValue: Double): Double; 
+function TConvTypeProcs.ToCommon(const AValue: Double): Double;
 begin
   result:=FTOProc(Avalue);
 end;
 
-function TConvTypeProcs.FromCommon(const AValue: Double): Double; 
+function TConvTypeProcs.FromCommon(const AValue: Double): Double;
 begin
   result:=FFromProc(Avalue);
 end;
