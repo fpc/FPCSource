@@ -1277,8 +1277,6 @@ implementation
           else
             fieldvardef:=vardef;
           result:=cfieldvarsym.create(symrealname,vs_value,fieldvardef,[]);
-          if nestedvarsst.symlist.count=0 then
-            include(tfieldvarsym(result).varoptions,vo_is_first_field);
           nestedvarsst.insertsym(result);
           trecordsymtable(nestedvarsst).addfield(tfieldvarsym(result),vis_public);
 
