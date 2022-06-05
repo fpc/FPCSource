@@ -158,10 +158,13 @@ procedure GetFormatSettings(out fmts: TFormatSettings);
   function TransformFormatStr(const s: string): string;
   var
     i, l: integer;
+    ampminstring : boolean;
     clock12:boolean;
     LastMod: string;
   begin
     clock12:=false; // should ampm get appended?
+    ampminstring:=false; // setting clock12 in the loop fails  if ampm
+                         // is before the 12h time specifiers , bug #39760
     TransformFormatStr := '';
     i := 1;
     l := Length(s);
@@ -209,6 +212,7 @@ procedure GetFormatSettings(out fmts: TFormatSettings);
                begin
                  TransformFormatStr := TransformFormatStr + 'ampm';
                  clock12:=false;
+                 ampminstring:=false;
                end;
           'r': begin
                  TransformFormatStr := TransformFormatStr + 'hh:nn:ss';
@@ -236,6 +240,8 @@ procedure GetFormatSettings(out fmts: TFormatSettings);
         TransformFormatStr := TransformFormatStr + s[i];
       inc(i);
     end;
+    if ampminstring then
+       clock12:=false;
     i:=length(TransformFormatStr);
     if clock12 and (i>0) then
       begin
