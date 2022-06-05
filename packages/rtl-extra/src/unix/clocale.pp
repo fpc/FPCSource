@@ -212,7 +212,7 @@ procedure GetFormatSettings(out fmts: TFormatSettings);
                begin
                  TransformFormatStr := TransformFormatStr + 'ampm';
                  clock12:=false;
-                 ampminstring:=false;
+                 ampminstring:=true;
                end;
           'r': begin
                  TransformFormatStr := TransformFormatStr + 'hh:nn:ss';
