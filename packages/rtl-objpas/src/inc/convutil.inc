@@ -73,6 +73,8 @@ procedure GetConvFamilies(out AFamilies: TConvFamilyArray);
 procedure GetConvTypes(const AFamily: TConvFamily; out ATypes: TConvTypeArray);
 
 function ConvTypeToFamily(const AType: TConvType): TConvFamily;
+function CompatibleConversionType(const AType: TConvType; const AFamily: TConvFamily): Boolean;
+function CompatibleConversionTypes(const AFrom, ATo: TConvType): Boolean;
 
 Type
   TConvTypeInfo = Class(Tobject)
@@ -260,6 +262,19 @@ begin
   result:=0;  // CIllegalConvFamily according to Tokyo docs.
   if AType<length(TheUnits) then
     result:=TheUnits[AType].Fam;
+end;
+
+function CompatibleConversionType(const AType: TConvType;
+  const AFamily: TConvFamily): Boolean;
+
+begin
+  result:=ConvTypeToFamily(AType)=AFamily;
+end;
+
+function CompatibleConversionTypes(const AFrom, ATo: TConvType): Boolean;
+
+begin
+  result:=ConvTypeToFamily(AFrom)=ConvTypeToFamily(ATo);
 end;
 
 Function RegisterConversionFamily(Const S:String):TConvFamily;
