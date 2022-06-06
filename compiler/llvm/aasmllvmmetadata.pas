@@ -141,7 +141,6 @@ interface
       property itemname: TSymStr read fitemname;
       property itemkind: tllvmspecialmetaitemkind read fitemkind;
     end;
-    tllvmspecialisedmetaitems = array of tllvmspecialisedmetaitem;
 
      { !name = !kindname(field1: value1, ...) }
     tai_llvmspecialisedmetadatanode = class(tai_llvmunnamedmetadatanode)
