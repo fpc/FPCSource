@@ -268,13 +268,13 @@ end;
 
 Function RegisterConversionType(Fam:TConvFamily;Const S:String;Value:TConvUtilFloat):TConvType;
 begin
-  InternalRegisterConversionType(Fam,S,Value,nil,nil);
+  result:=InternalRegisterConversionType(Fam,S,Value,nil,nil);
 end;
 
 function RegisterConversionType(Fam: TConvFamily; const S: String;
   const AToCommonFunc, AFromCommonFunc: TConversionProc): TConvType;
 begin
-  InternalRegisterConversionType(Fam,S,(AToCommonFunc(1)-AToCommonFunc(0)),AToCommonFunc,AFromCommonFunc);
+  result:=InternalRegisterConversionType(Fam,S,(AToCommonFunc(1)-AToCommonFunc(0)),AToCommonFunc,AFromCommonFunc);
 end;
 
 function SearchConvert(TheType:TConvType; var r:ResourceData):Boolean;
