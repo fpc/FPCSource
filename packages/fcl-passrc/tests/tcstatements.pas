@@ -411,8 +411,8 @@ begin
   S:=Statement as TPasImplSimple;
   AssertExpression('Doit call',S.Expr,pekBinary,TBinaryExpr);
   B:=S.Expr as TBinaryExpr;
-  TAssert.AssertSame('B.left.Parent=B',B,B.left.Parent);
-  TAssert.AssertSame('B.right.Parent=B',B,B.right.Parent);
+  TAssert.AssertSame('B.left.Parent=B',B,B.Left.Parent);
+  TAssert.AssertSame('B.right.Parent=B',B,B.Right.Parent);
   AssertExpression('Unit name',B.Left,pekIdent,'Unita');
   AssertExpression('Doit call',B.Right,pekIdent,'Doit');
 end;
@@ -430,10 +430,10 @@ begin
   AssertExpression('Doit call',S.Expr,pekBinary,TBinaryExpr);
   B:=S.Expr as TBinaryExpr;
   AssertExpression('Doit call',B.Right,pekIdent,'Doit');
-  AssertExpression('First two parts of unit name',B.left,pekBinary,TBinaryExpr);
-  B:=B.left as TBinaryExpr;
+  AssertExpression('First two parts of unit name',B.Left,pekBinary,TBinaryExpr);
+  B:=B.Left as TBinaryExpr;
   AssertExpression('Unit name part 1',B.Left,pekIdent,'Unita');
-  AssertExpression('Unit name part 2',B.right,pekIdent,'ClassB');
+  AssertExpression('Unit name part 2',B.Right,pekIdent,'ClassB');
 end;
 
 procedure TTestStatementParser.TestCallNoArgs;
@@ -479,9 +479,9 @@ var
   procedure CheckParam(Index: integer; const aParamName: string);
   begin
     AssertExpression('Parameter['+IntToStr(Index)+'] is identifier',P.Params[Index],pekIdent,aParamName);
-    AssertExpression('Parameter['+IntToStr(Index)+'] has formatting constant 1' ,P.Params[Index].format1,pekNumber,'3');
+    AssertExpression('Parameter['+IntToStr(Index)+'] has formatting constant 1' ,P.Params[Index].Format1,pekNumber,'3');
     if AddPrecision then
-      AssertExpression('Parameter['+IntToStr(Index)+'] has formatting constant 2',P.Params[Index].format2,pekNumber,'2');
+      AssertExpression('Parameter['+IntToStr(Index)+'] has formatting constant 2',P.Params[Index].Format2,pekNumber,'2');
   end;
 
 Var
@@ -939,12 +939,12 @@ begin
   AssertEquals('Up loop',False,F.Down);
   AssertExpression('Start expression',F.StartExpr,pekBinary,TBinaryExpr);
   B:=F.StartExpr as TBinaryExpr;
-  AssertExpression('Start value left',B.left,pekNumber,'1');
-  AssertExpression('Start value right',B.right,pekNumber,'1');
+  AssertExpression('Start value left',B.Left,pekNumber,'1');
+  AssertExpression('Start value right',B.Right,pekNumber,'1');
   AssertExpression('Start expression',F.StartExpr,pekBinary,TBinaryExpr);
   B:=F.EndExpr as TBinaryExpr;
-  AssertExpression('End value left',B.left,pekNumber,'5');
-  AssertExpression('End value right',B.right,pekNumber,'5');
+  AssertExpression('End value left',B.Left,pekNumber,'5');
+  AssertExpression('End value right',B.Right,pekNumber,'5');
   AssertNull('Empty body',F.Body);
 end;
 

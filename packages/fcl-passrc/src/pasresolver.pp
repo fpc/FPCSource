@@ -2535,9 +2535,9 @@ begin
     if El.ClassType=TUnaryExpr then
       Result:=Result+GetTreeDbg(TUnaryExpr(El).Operand,Indent)
     else if El.ClassType=TBinaryExpr then
-      Result:=Result+'Left={'+GetTreeDbg(TBinaryExpr(El).left,Indent)+'}'
+      Result:=Result+'Left={'+GetTreeDbg(TBinaryExpr(El).Left,Indent)+'}'
          +OpcodeStrings[TPasExpr(El).OpCode]
-         +'Right={'+GetTreeDbg(TBinaryExpr(El).right,Indent)+'}'
+         +'Right={'+GetTreeDbg(TBinaryExpr(El).Right,Indent)+'}'
     else if El.ClassType=TPrimitiveExpr then
       Result:=Result+TPrimitiveExpr(El).Value
     else if El.ClassType=TBoolConstExpr then
@@ -3099,9 +3099,9 @@ begin
     Bin:=TBinaryExpr(Expr);
     if Bin.OpCode=eopSubIdent then
       begin
-      Result:=DotExprToName(Bin.left);
+      Result:=DotExprToName(Bin.Left);
       if Result='' then exit;
-      s:=DotExprToName(Bin.right);
+      s:=DotExprToName(Bin.Right);
       if s='' then exit('');
       Result:=Result+'.'+s;
       end;
@@ -4677,11 +4677,11 @@ begin
     if not (El.Parent is TBinaryExpr) then exit;
     Bin:=TBinaryExpr(El.Parent);
     if Bin.OpCode<>eopSubIdent then exit;
-    if El=Bin.right then
+    if El=Bin.Right then
       El:=Bin
     else
       begin
-      El:=Bin.right;
+      El:=Bin.Right;
       // find left most
       repeat
         C:=El.ClassType;
@@ -4695,7 +4695,7 @@ begin
           begin
           if TBinaryExpr(El).OpCode<>eopSubIdent then
             RaiseNotYetImplemented(20170502163718,El);
-          El:=TBinaryExpr(El).left;
+          El:=TBinaryExpr(El).Left;
           end
         else if C=TParamsExpr then
           begin
@@ -4722,7 +4722,7 @@ begin
       begin
       if TBinaryExpr(Result).OpCode<>eopSubIdent then
         exit;
-      Result:=TBinaryExpr(Result).left;
+      Result:=TBinaryExpr(Result).Left;
       end
     else if C=TParamsExpr then
       begin
@@ -4748,7 +4748,7 @@ begin
       begin
       if TBinaryExpr(Result).OpCode<>eopSubIdent then
         exit;
-      Result:=TBinaryExpr(Result).right;
+      Result:=TBinaryExpr(Result).Right;
       end
     else
       exit;
@@ -4784,7 +4784,7 @@ begin
   if Parent.ClassType=TBinaryExpr then
     begin
     Bin:=TBinaryExpr(Parent);
-    if (Bin.OpCode<>eopSubIdent) or (Bin.right<>El) then
+    if (Bin.OpCode<>eopSubIdent) or (Bin.Right<>El) then
       exit;
     El:=Bin;
     Parent:=El.Parent;
@@ -4808,7 +4808,7 @@ begin
   if Parent is TBinaryExpr then
     begin
     if (TBinaryExpr(Parent).OpCode<>eopSubIdent)
-        or (TBinaryExpr(Parent).right<>El) then
+        or (TBinaryExpr(Parent).Right<>El) then
       exit;
     El:=TBinaryExpr(Parent); // continue
     Parent:=El.Parent;
@@ -4862,7 +4862,7 @@ begin
     else if C=TBinaryExpr then
       begin
       if TBinaryExpr(El).OpCode=eopSubIdent then
-        El:=TBinaryExpr(El).left
+        El:=TBinaryExpr(El).Left
       else
         exit;
       end
@@ -4890,7 +4890,7 @@ begin
     begin
     Bin:=TBinaryExpr(El);
     if Bin.OpCode=eopSubIdent then
-      El:=Bin.right
+      El:=Bin.Right
     else
       exit(nil);
     end;
@@ -4915,7 +4915,7 @@ begin
     if C=TBinaryExpr then
       begin
       if TBinaryExpr(El).OpCode=eopSubIdent then
-        El:=TBinaryExpr(El).right
+        El:=TBinaryExpr(El).Right
       else
         exit;
       end
@@ -6358,8 +6358,8 @@ var
   StartResolved, EndResolved: TPasResolverResult;
 begin
   RangeExpr:=El.RangeExpr;
-  ResolveExpr(RangeExpr.left,rraRead);
-  ResolveExpr(RangeExpr.right,rraRead);
+  ResolveExpr(RangeExpr.Left,rraRead);
+  ResolveExpr(RangeExpr.Right,rraRead);
   FinishConstRangeExpr(RangeExpr,StartResolved,EndResolved);
 end;
 
@@ -6370,8 +6370,8 @@ var
   RgValue: TResEvalValue;
   Left, Right: TPasExpr;
 begin
-  Left:=RangeExpr.left;
-  Right:=RangeExpr.right;
+  Left:=RangeExpr.Left;
+  Right:=RangeExpr.Right;
   {$IFDEF VerbosePasResEval}
   writeln('TPasResolver.FinishConstRangeExpr Left=',GetObjName(Left),' Right=',GetObjName(Right));
   {$ENDIF}
@@ -9111,7 +9111,7 @@ begin
     if NameExpr is TBinaryExpr then
       begin
       Bin:=TBinaryExpr(NameExpr);
-      ResolveExpr(Bin.left,rraRead);
+      ResolveExpr(Bin.Left,rraRead);
       ComputeElement(Bin.Left,LeftResolved,[rcType,rcSetReferenceFlags]);
       if LeftResolved.BaseType=btModule then
         begin
@@ -9142,7 +9142,7 @@ begin
       else
         RaiseMsg(20190221102049,nXExpectedButYFound,sXExpectedButYFound,
           ['module or type',GetResolverResultDescription(LeftResolved,true)],NameExpr);
-      NameExpr:=Bin.right;
+      NameExpr:=Bin.Right;
       end;
     // find attribute class
     if not IsNameExpr(NameExpr) then
@@ -9821,7 +9821,7 @@ type
         end
       else if CaseExprType.ClassType=TPasRangeType then
         begin
-        ComputeElement(TPasRangeType(CaseExprType).RangeExpr.left,ElTypeResolved,[rcConstant]);
+        ComputeElement(TPasRangeType(CaseExprType).RangeExpr.Left,ElTypeResolved,[rcConstant]);
         Result:=CreateValues(ElTypeResolved,ValueSet);
         end;
       end;
@@ -10116,16 +10116,16 @@ begin
     Access:=rraAssign
   else
     Access:=rraReadAndAssign;
-  ResolveExpr(El.left,Access);
+  ResolveExpr(El.Left,Access);
   {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.ResolveImplAssign Kind=',El.Kind,' left=',GetObjName(El.left),' right=',GetObjName(el.right));
+  writeln('TPasResolver.ResolveImplAssign Kind=',El.Kind,' left=',GetObjName(El.Left),' right=',GetObjName(el.Right));
   {$ENDIF}
   // check LHS can be assigned
-  ComputeElement(El.left,LeftResolved,[rcNoImplicitProc,rcSetReferenceFlags]);
-  CheckCanBeLHS(LeftResolved,true,GetRightMostExpr(El.left));
+  ComputeElement(El.Left,LeftResolved,[rcNoImplicitProc,rcSetReferenceFlags]);
+  CheckCanBeLHS(LeftResolved,true,GetRightMostExpr(El.Left));
 
   // compute RHS
-  ResolveExpr(El.right,rraRead);
+  ResolveExpr(El.Right,rraRead);
   Flags:=[rcSetReferenceFlags];
   if IsProcedureType(LeftResolved,true) then
     begin
@@ -10137,7 +10137,7 @@ begin
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.ResolveImplAssign Left=',GetResolverResultDbg(LeftResolved),' Flags=',dbgs(Flags));
   {$ENDIF}
-  ComputeElement(El.right,RightResolved,Flags);
+  ComputeElement(El.Right,RightResolved,Flags);
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.ResolveImplAssign Right=',GetResolverResultDbg(RightResolved));
   {$ENDIF}
@@ -10145,10 +10145,10 @@ begin
   case El.Kind of
   akDefault:
     begin
-    CheckAssignResCompatibility(LeftResolved,RightResolved,El.right,true);
-    CheckAssignExprRange(LeftResolved,El.right);
+    CheckAssignResCompatibility(LeftResolved,RightResolved,El.Right,true);
+    CheckAssignExprRange(LeftResolved,El.Right);
     if (LeftResolved.BaseType=btContext) and (LeftResolved.LoTypeEl.ClassType=TPasArrayType) then
-      MarkArrayExprRecursive(El.right,TPasArrayType(LeftResolved.LoTypeEl));
+      MarkArrayExprRecursive(El.Right,TPasArrayType(LeftResolved.LoTypeEl));
     end;
   akAdd, akMinus,akMul,akDivision:
     begin
@@ -10157,14 +10157,14 @@ begin
       if (not (rrfReadable in RightResolved.Flags))
           or not (RightResolved.BaseType in btAllInteger) then
         RaiseMsg(20170216152009,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
-          [BaseTypes[RightResolved.BaseType],BaseTypes[LeftResolved.BaseType]],El.right);
+          [BaseTypes[RightResolved.BaseType],BaseTypes[LeftResolved.BaseType]],El.Right);
       end
     else if (LeftResolved.BaseType in btAllStrings) and (El.Kind=akAdd) then
       begin
       if (not (rrfReadable in RightResolved.Flags))
           or not (RightResolved.BaseType in btAllStringAndChars) then
         RaiseMsg(20170216152012,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
-          [BaseTypes[RightResolved.BaseType],BaseTypes[LeftResolved.BaseType]],El.right);
+          [BaseTypes[RightResolved.BaseType],BaseTypes[LeftResolved.BaseType]],El.Right);
       end
     else if (LeftResolved.BaseType in btAllFloats)
         and (El.Kind in [akAdd,akMinus,akMul,akDivision]) then
@@ -10172,21 +10172,21 @@ begin
       if (not (rrfReadable in RightResolved.Flags))
           or not (RightResolved.BaseType in (btAllInteger+btAllFloats)) then
         RaiseMsg(20170216152107,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
-          [BaseTypes[RightResolved.BaseType],BaseTypes[LeftResolved.BaseType]],El.right);
+          [BaseTypes[RightResolved.BaseType],BaseTypes[LeftResolved.BaseType]],El.Right);
       end
     else if (LeftResolved.BaseType=btSet) and (El.Kind in [akAdd,akMinus,akMul]) then
       begin
       if (not (rrfReadable in RightResolved.Flags))
           or not (RightResolved.BaseType in [btSet,btArrayOrSet]) then
         RaiseMsg(20170216152110,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
-          [BaseTypeNames[RightResolved.BaseType],'set of '+BaseTypeNames[LeftResolved.SubType]],El.right);
+          [BaseTypeNames[RightResolved.BaseType],'set of '+BaseTypeNames[LeftResolved.SubType]],El.Right);
       if (LeftResolved.SubType=RightResolved.SubType)
           or ((LeftResolved.SubType in btAllInteger) and (RightResolved.SubType in btAllInteger))
           or ((LeftResolved.SubType in btAllBooleans) and (RightResolved.SubType in btAllBooleans))
       then
       else
         RaiseMsg(20170216152117,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
-          ['set of '+BaseTypeNames[RightResolved.SubType],'set of '+BaseTypeNames[LeftResolved.SubType]],El.right);
+          ['set of '+BaseTypeNames[RightResolved.SubType],'set of '+BaseTypeNames[LeftResolved.SubType]],El.Right);
       end
     else if LeftResolved.BaseType=btContext then
       begin
@@ -10204,7 +10204,7 @@ begin
     else
       RaiseIncompatibleTypeRes(20180208115707,nOperatorIsNotOverloadedAOpB,[AssignKindNames[El.Kind]],LeftResolved,RightResolved,El);
     // store const expression result
-    Value:=Eval(El.right,[]);
+    Value:=Eval(El.Right,[]);
     ReleaseEvalValue(Value);
     end;
   else
@@ -10316,10 +10316,10 @@ begin
   else
     RaiseNotYetImplemented(20170222184329,El);
 
-  if El.format1<>nil then
-    ResolveExpr(El.format1,rraRead);
-  if El.format2<>nil then
-    ResolveExpr(El.format2,rraRead);
+  if El.Format1<>nil then
+    ResolveExpr(El.Format1,rraRead);
+  if El.Format2<>nil then
+    ResolveExpr(El.Format2,rraRead);
 end;
 
 procedure TPasResolver.ResolveStatementConditionExpr(El: TPasExpr);
@@ -10426,7 +10426,7 @@ begin
       if (Access=rraAssign) and (Proc.ProcType is TPasFunctionType)
           and (El.ClassType=TPrimitiveExpr)
           and (El.Parent.ClassType=TPasImplAssign)
-          and (TPasImplAssign(El.Parent).left=El) then
+          and (TPasImplAssign(El.Parent).Left=El) then
         begin
         // e.g. funcname:=
         ProcScope:=Proc.CustomData as TPasProcedureScope;
@@ -10472,14 +10472,14 @@ begin
       if El=nil then
         RaiseInternalError(20170503002012);
       CreateReference(DeclEl,El,Access);
-      if (El.Parent is TBinaryExpr) and (TBinaryExpr(El.Parent).right=El) then
+      if (El.Parent is TBinaryExpr) and (TBinaryExpr(El.Parent).Right=El) then
         begin
         Bin:=TBinaryExpr(El.Parent);
         while Bin.OpCode=eopSubIdent do
           begin
           CreateReference(DeclEl,Bin,Access);
           if not (Bin.Parent is TBinaryExpr) then break;
-          if (TBinaryExpr(Bin.Parent).right<>Bin) then break;
+          if (TBinaryExpr(Bin.Parent).Right<>Bin) then break;
           Bin:=TBinaryExpr(Bin.Parent);
           end;
         end;
@@ -10625,7 +10625,7 @@ begin
       InhScope:=PushInheritedScope(TPasMembersType(HelperForType),false,
         AncestorScope);
       InhScope.OnlyTypeMembers:=OnlyTypeMembers;
-      ResolveExpr(El.right,Access);
+      ResolveExpr(El.Right,Access);
       PopScope;
       exit;
       end
@@ -10640,12 +10640,12 @@ begin
     end;
   // search in ancestor and its helpers
   if AncestorScope=nil then
-    RaiseMsg(20170216152151,nInheritedNeedsAncestor,sInheritedNeedsAncestor,[],El.left);
+    RaiseMsg(20170216152151,nInheritedNeedsAncestor,sInheritedNeedsAncestor,[],El.Left);
   // search call in ancestor
   AncestorClass:=TPasClassType(AncestorScope.Element);
   InhScope:=PushInheritedScope(AncestorClass,true,nil);
   InhScope.OnlyTypeMembers:=OnlyTypeMembers;
-  ResolveExpr(El.right,Access);
+  ResolveExpr(El.Right,Access);
   PopScope;
 end;
 
@@ -10656,26 +10656,26 @@ var
   Bin: TBinaryExpr;
 begin
   {$IFDEF VerbosePasResolver}
-  //writeln('TPasResolver.ResolveBinaryExpr left=',GetObjName(El.left),' right=',GetObjName(El.right),' opcode=',OpcodeStrings[El.OpCode]);
+  //writeln('TPasResolver.ResolveBinaryExpr left=',GetObjName(El.Left),' right=',GetObjName(El.Right),' opcode=',OpcodeStrings[El.OpCode]);
   {$ENDIF}
   case El.OpCode of
   eopNone:
     case El.Kind of
     pekRange:
       begin
-      ResolveExpr(El.left,rraRead);
-      if El.right=nil then exit;
-      ResolveExpr(El.right,rraRead);
+      ResolveExpr(El.Left,rraRead);
+      if El.Right=nil then exit;
+      ResolveExpr(El.Right,rraRead);
       end;
     else
-      if El.left.ClassType=TInheritedExpr then
+      if El.Left.ClassType=TInheritedExpr then
         begin
-        ResolveExpr(El.left,Access);
+        ResolveExpr(El.Left,Access);
         end
       else
         begin
         {$IFDEF VerbosePasResolver}
-        writeln('TPasResolver.ResolveBinaryExpr El.Kind=',ExprKindNames[El.Kind],' El.Left=',GetObjName(El.left),' El.Right=',GetObjName(El.right),' parent=',GetObjName(El.Parent));
+        writeln('TPasResolver.ResolveBinaryExpr El.Kind=',ExprKindNames[El.Kind],' El.Left=',GetObjName(El.Left),' El.Right=',GetObjName(El.Right),' parent=',GetObjName(El.Parent));
         {$ENDIF}
         RaiseNotYetImplemented(20160922163456,El);
         end;
@@ -10683,12 +10683,12 @@ begin
   eopAdd:
     begin
     // handle multi add
-    Left:=El.left;
+    Left:=El.Left;
     while (Left.ClassType=TBinaryExpr) do
       begin
       Bin:=TBinaryExpr(Left);
       if Bin.OpCode<>eopAdd then break;
-      Next:=TBinaryExpr(Left).left;
+      Next:=TBinaryExpr(Left).Left;
       if Next.Parent<>Left then
         RaiseNotYetImplemented(20210321201257,Left);
       Left:=Next;
@@ -10696,8 +10696,8 @@ begin
     ResolveExpr(Left,rraRead);
     repeat
       Bin:=TBinaryExpr(Left.Parent);
-      if Bin.right<>nil then
-        ResolveExpr(Bin.right,rraRead);
+      if Bin.Right<>nil then
+        ResolveExpr(Bin.Right,rraRead);
       Left:=Bin;
     until Left=El;
     end;
@@ -10724,14 +10724,14 @@ begin
   eopAs,
   eopSymmetricaldifference:
     begin
-    ResolveExpr(El.left,rraRead);
-    if El.right=nil then exit;
-    ResolveExpr(El.right,rraRead);
+    ResolveExpr(El.Left,rraRead);
+    if El.Right=nil then exit;
+    ResolveExpr(El.Right,rraRead);
     end;
   eopSubIdent:
     begin
-    ResolveExpr(El.left,rraRead);
-    if El.right=nil then exit;
+    ResolveExpr(El.Left,rraRead);
+    if El.Right=nil then exit;
     ResolveSubIdent(El,Access);
     end;
   else
@@ -10744,7 +10744,7 @@ procedure TPasResolver.ResolveSubIdent(El: TBinaryExpr;
 
   procedure ResolveRight; inline;
   begin
-    ResolveExpr(El.right,Access);
+    ResolveExpr(El.Right,Access);
     PopScope;
   end;
 
@@ -10777,7 +10777,7 @@ begin
   if El.CustomData is TResolvedReference then
     exit; // for example, when a.b has a dotted unit name
 
-  Left:=El.left;
+  Left:=El.Left;
   //writeln('TPasResolver.ResolveSubIdent Left=',GetObjName(Left));
   ComputeElement(Left,LeftResolved,[rcSetReferenceFlags]);
 
@@ -10846,7 +10846,7 @@ begin
       else
         begin
         // e.g. aPoint.X
-        AccessExpr(El.left,Access);
+        AccessExpr(El.Left,Access);
         RecordScope.OnlyTypeMembers:=false;
         end;
       ResolveRight;
@@ -10894,7 +10894,7 @@ begin
     end;
 
   {$IFDEF VerbosePasResolver}
-  writeln('TPasResolver.ResolveSubIdent left=',GetObjName(Left),' right=',GetObjName(El.right),' leftresolved=',GetResolverResultDbg(LeftResolved));
+  writeln('TPasResolver.ResolveSubIdent left=',GetObjName(Left),' right=',GetObjName(El.Right),' leftresolved=',GetResolverResultDbg(LeftResolved));
   {$ENDIF}
   RaiseMsg(20170216152157,nIllegalQualifierAfter,sIllegalQualifierAfter,
     ['.',GetResolverResultDescription(LeftResolved)],El);
@@ -10961,7 +10961,7 @@ begin
     //         /                 \
     // left = TPrimitiveExpr 'a'  right = TPrimitiveExpr 'b'
     if (Value is TBinaryExpr) and (TBinaryExpr(Value).OpCode=eopSubIdent) then
-      Value:=TBinaryExpr(Value).right;
+      Value:=TBinaryExpr(Value).Right;
     if IsNameExpr(Value) then
       begin
       ResolveBinaryExpr(TBinaryExpr(Params.Value),Access);
@@ -11414,7 +11414,7 @@ begin
     //         /                 \
     // left = TPrimitiveExpr 'a'  right = TPrimitiveExpr 'b'
     while (Value is TBinaryExpr) and (TBinaryExpr(Value).OpCode=eopSubIdent) do
-      Value:=TBinaryExpr(Value).right;
+      Value:=TBinaryExpr(Value).Right;
     if IsNameExpr(Value) then
       begin
       ResolveBinaryExpr(TBinaryExpr(Params.Value),Access);
@@ -11471,7 +11471,7 @@ begin
     if (Access=rraAssign)
         and (Proc.ProcType is TPasFunctionType)
         and (Params.Parent.ClassType=TPasImplAssign)
-        and (TPasImplAssign(Params.Parent).left=Params) then
+        and (TPasImplAssign(Params.Parent).Left=Params) then
       begin
       // e.g. funcname[]:=
       ProcScope:=Proc.CustomData as TPasProcedureScope;
@@ -11507,7 +11507,7 @@ procedure TPasResolver.ResolveArrayParamsArgs(Params: TParamsExpr;
       // -> writing the element needs reading the value
       Left:=Params.Value;
       if (Left is TBinaryExpr) and (TBinaryExpr(Left).OpCode=eopSubIdent) then
-        Left:=TBinaryExpr(Left).right;
+        Left:=TBinaryExpr(Left).Right;
       if Left.CustomData is TResolvedReference then
         begin
         Ref:=TResolvedReference(Left.CustomData);
@@ -11823,9 +11823,9 @@ begin
   if Expr.ClassType=TBinaryExpr then
     begin
     DeclEl:=nil;
-    if (TBinaryExpr(Expr).left is TPrimitiveExpr) then
+    if (TBinaryExpr(Expr).Left is TPrimitiveExpr) then
       begin
-      Prim:=TPrimitiveExpr(TBinaryExpr(Expr).left);
+      Prim:=TPrimitiveExpr(TBinaryExpr(Expr).Left);
       DeclEl:=SubResolvePrimitive(Prim);
       if not (DeclEl is TPasMembersType) then
         RaiseXExpectedButYFound(20170216151752,'class',GetElementTypeName(DeclEl),Prim);
@@ -11840,7 +11840,7 @@ begin
       PushRecordDotScope(TPasRecordType(DeclEl))
     else
       RaiseMsg(20190123145559,nIllegalQualifier,sIllegalQualifier,[OpcodeStrings[TBinaryExpr(Expr).OpCode]],Expr);
-    Expr:=TBinaryExpr(Expr).right;
+    Expr:=TBinaryExpr(Expr).Right;
     Result:=ResolveAccessor(Expr);
     PopScope;
     end
@@ -11903,7 +11903,7 @@ begin
     begin
     Bin:=TBinaryExpr(Expr);
     if Bin.OpCode in [eopSubIdent,eopNone] then
-      AccessExpr(Bin.right,Access);
+      AccessExpr(Bin.Right,Access);
     end
   else if C=TParamsExpr then
     begin
@@ -11997,8 +11997,8 @@ procedure TPasResolver.MarkArrayExprRecursive(Expr: TPasExpr;
   begin
     if IsArrayOperatorAdd(CurExpr) then
       begin
-      Traverse(TBinaryExpr(CurExpr).left,ArrayType,RgIndex);
-      Traverse(TBinaryExpr(CurExpr).right,ArrayType,RgIndex);
+      Traverse(TBinaryExpr(CurExpr).Left,ArrayType,RgIndex);
+      Traverse(TBinaryExpr(CurExpr).Right,ArrayType,RgIndex);
       end
     else if CurExpr.ClassType=TParamsExpr then
       begin
@@ -13164,16 +13164,16 @@ var
   SubBin: TBinaryExpr;
 begin
   if (Bin.OpCode=eopSubIdent)
-  or ((Bin.OpCode=eopNone) and (Bin.left is TInheritedExpr)) then
+  or ((Bin.OpCode=eopNone) and (Bin.Left is TInheritedExpr)) then
     begin
-    // Note: bin.left was already resolved via ResolveSubIdent
-    ComputeElement(Bin.right,ResolvedEl,Flags,StartEl);
+    // Note: bin.Left was already resolved via ResolveSubIdent
+    ComputeElement(Bin.Right,ResolvedEl,Flags,StartEl);
     exit;
     end;
 
   if Bin.OpCode in [eopEqual,eopNotEqual] then
     begin
-    if CheckEqualElCompatibility(Bin.left,Bin.right,nil,true,
+    if CheckEqualElCompatibility(Bin.Left,Bin.Right,nil,true,
         rcSetReferenceFlags in Flags)=cIncompatible then
       RaiseInternalError(20161007215912);
     SetResolverValueExpr(ResolvedEl,btBoolean,FBaseTypes[btBoolean],FBaseTypes[btBoolean],
@@ -13185,18 +13185,18 @@ begin
   if Bin.OpCode=eopAdd then
     begin
     // handle multi-adds without stack
-    Left:=Bin.left;
+    Left:=Bin.Left;
     while Left.ClassType=TBinaryExpr do
       begin
       SubBin:=TBinaryExpr(Left);
       if SubBin.OpCode<>eopAdd then break;
-      Left:=SubBin.left;
+      Left:=SubBin.Left;
       end;
     // Left is now left-most of multi add
     ComputeElement(Left,LeftResolved,Flags,StartEl);
     repeat
       SubBin:=TBinaryExpr(Left.Parent);
-      ComputeElement(SubBin.right,RightResolved,Flags,StartEl);
+      ComputeElement(SubBin.Right,RightResolved,Flags,StartEl);
 
       // ToDo: check operator overloading
       ComputeBinaryExprRes(SubBin,ResolvedEl,Flags,LeftResolved,RightResolved);
@@ -13206,8 +13206,8 @@ begin
     end
   else
     begin
-    ComputeElement(Bin.left,LeftResolved,Flags,StartEl);
-    ComputeElement(Bin.right,RightResolved,Flags,StartEl);
+    ComputeElement(Bin.Left,LeftResolved,Flags,StartEl);
+    ComputeElement(Bin.Right,RightResolved,Flags,StartEl);
 
     // ToDo: check operator overloading
     ComputeBinaryExprRes(Bin,ResolvedEl,Flags,LeftResolved,RightResolved);
@@ -13280,7 +13280,7 @@ begin
             if (Bin.Kind=pekRange) then
               begin
               if not (RightResolved.BaseType in btAllInteger) then
-                RaiseXExpectedButYFound(20170216152600,'integer',BaseTypeNames[RightResolved.BaseType],Bin.right);
+                RaiseXExpectedButYFound(20170216152600,'integer',BaseTypeNames[RightResolved.BaseType],Bin.Right);
               // use left type for result
               SetLeftValueExpr([rrfReadable]);
               if Bin.Parent is TPasRangeType then
@@ -13389,7 +13389,7 @@ begin
           if (Bin.Kind=pekRange) and (LeftResolved.BaseType in btAllChars) then
             begin
             if not (RightResolved.BaseType in btAllChars) then
-              RaiseXExpectedButYFound(20170216152603,'char',BaseTypeNames[RightResolved.BaseType],Bin.right);
+              RaiseXExpectedButYFound(20170216152603,'char',BaseTypeNames[RightResolved.BaseType],Bin.Right);
             SetResolverValueExpr(ResolvedEl,btRange,
               FBaseTypes[LeftResolved.BaseType],FBaseTypes[LeftResolved.BaseType],
               Bin,[rrfReadable]);
@@ -13492,7 +13492,7 @@ begin
         if (rrfReadable in LeftResolved.Flags)
             and (rrfReadable in RightResolved.Flags) then
           begin
-          CheckSetLitElCompatible(Bin.left,Bin.right,LeftResolved,RightResolved);
+          CheckSetLitElCompatible(Bin.Left,Bin.Right,LeftResolved,RightResolved);
           ResolvedEl:=LeftResolved;
           ResolvedEl.IdentEl:=nil;
           ResolvedEl.SubType:=ResolvedEl.BaseType;
@@ -13508,19 +13508,19 @@ begin
         if LeftResolved.BaseType in btArrayRangeTypes then
           begin
           if not (RightResolved.BaseType in [btSet,btArrayOrSet]) then
-            RaiseXExpectedButYFound(20170216152607,'set of '+BaseTypeNames[LeftResolved.BaseType],GetElementTypeName(LeftResolved.LoTypeEl),Bin.right);
+            RaiseXExpectedButYFound(20170216152607,'set of '+BaseTypeNames[LeftResolved.BaseType],GetElementTypeName(LeftResolved.LoTypeEl),Bin.Right);
           if LeftResolved.BaseType in btAllBooleans then
             begin
             if not (RightResolved.SubType in btAllBooleans) then
-              RaiseXExpectedButYFound(20170216152610,'set of '+BaseTypeNames[LeftResolved.BaseType],'set of '+BaseTypeNames[RightResolved.SubType],Bin.right);
+              RaiseXExpectedButYFound(20170216152610,'set of '+BaseTypeNames[LeftResolved.BaseType],'set of '+BaseTypeNames[RightResolved.SubType],Bin.Right);
             end
           else if LeftResolved.BaseType in btAllChars then
             begin
             if not (RightResolved.SubType in btAllChars) then
-              RaiseXExpectedButYFound(20170216152609,'set of '+BaseTypeNames[LeftResolved.BaseType],'set of '+BaseTypeNames[RightResolved.SubType],Bin.right);
+              RaiseXExpectedButYFound(20170216152609,'set of '+BaseTypeNames[LeftResolved.BaseType],'set of '+BaseTypeNames[RightResolved.SubType],Bin.Right);
             end
           else if not (RightResolved.SubType in btAllInteger) then
-            RaiseXExpectedButYFound(20170216152612,'set of '+BaseTypeNames[LeftResolved.BaseType],'set of '+BaseTypeNames[RightResolved.SubType],Bin.right);
+            RaiseXExpectedButYFound(20170216152612,'set of '+BaseTypeNames[LeftResolved.BaseType],'set of '+BaseTypeNames[RightResolved.SubType],Bin.Right);
           SetBaseType(btBoolean);
           exit;
           end
@@ -13528,18 +13528,18 @@ begin
             and (LeftTypeEl.ClassType=TPasEnumType) then
           begin
           if not (RightResolved.BaseType in [btSet,btArrayOrSet]) then
-            RaiseXExpectedButYFound(20170216152615,'set of '+LeftResolved.LoTypeEl.Name,GetElementTypeName(LeftResolved.LoTypeEl),Bin.right);
+            RaiseXExpectedButYFound(20170216152615,'set of '+LeftResolved.LoTypeEl.Name,GetElementTypeName(LeftResolved.LoTypeEl),Bin.Right);
           RightTypeEl:=RightResolved.LoTypeEl;
           if LeftTypeEl=RightTypeEl then
             // enum in setofenum
           else if RightResolved.LoTypeEl.ClassType=TPasRangeType then
             begin
-            ComputeElement(TPasRangeType(RightTypeEl).RangeExpr.left,ElTypeResolved,[rcConstant]);
+            ComputeElement(TPasRangeType(RightTypeEl).RangeExpr.Left,ElTypeResolved,[rcConstant]);
             if LeftTypeEl<>ElTypeResolved.LoTypeEl then
-              RaiseXExpectedButYFound(20171109215833,'set of '+LeftResolved.LoTypeEl.Name,'set of '+RightResolved.LoTypeEl.Name,Bin.right);
+              RaiseXExpectedButYFound(20171109215833,'set of '+LeftResolved.LoTypeEl.Name,'set of '+RightResolved.LoTypeEl.Name,Bin.Right);
             end
           else
-            RaiseXExpectedButYFound(20170216152618,'set of '+LeftResolved.LoTypeEl.Name,'set of '+RightResolved.LoTypeEl.Name,Bin.right);
+            RaiseXExpectedButYFound(20170216152618,'set of '+LeftResolved.LoTypeEl.Name,'set of '+RightResolved.LoTypeEl.Name,Bin.Right);
           SetBaseType(btBoolean);
           exit;
           end
@@ -13616,7 +13616,7 @@ begin
             end;
           end
         else
-          RaiseXExpectedButYFound(20170216152625,'class type',GetElementTypeName(RightResolved.LoTypeEl),Bin.right);
+          RaiseXExpectedButYFound(20170216152625,'class type',GetElementTypeName(RightResolved.LoTypeEl),Bin.Right);
         end
       else if (proClassOfIs in Options) and (LeftTypeEl is TPasClassOfType)
           and (rrfReadable in LeftResolved.Flags) then
@@ -13649,7 +13649,7 @@ begin
             end
           end
         else
-          RaiseXExpectedButYFound(20170322105252,'class type',GetElementTypeName(RightResolved.LoTypeEl),Bin.right);
+          RaiseXExpectedButYFound(20170322105252,'class type',GetElementTypeName(RightResolved.LoTypeEl),Bin.Right);
         end
       else if LeftResolved.LoTypeEl=nil then
         begin
@@ -13657,7 +13657,7 @@ begin
         writeln('TPasResolver.ComputeBinaryExprRes is-operator: left=',GetResolverResultDbg(LeftResolved),' right=',GetResolverResultDbg(RightResolved));
         {$ENDIF}
         RaiseMsg(20170216152232,nLeftSideOfIsOperatorExpectsAClassButGot,sLeftSideOfIsOperatorExpectsAClassButGot,
-                 [BaseTypeNames[LeftResolved.BaseType]],Bin.left);
+                 [BaseTypeNames[LeftResolved.BaseType]],Bin.Left);
         end
       else
         begin
@@ -13665,7 +13665,7 @@ begin
         writeln('TPasResolver.ComputeBinaryExprRes is-operator: left=',GetResolverResultDbg(LeftResolved),' right=',GetResolverResultDbg(RightResolved));
         {$ENDIF}
         RaiseMsg(20170216152234,nLeftSideOfIsOperatorExpectsAClassButGot,sLeftSideOfIsOperatorExpectsAClassButGot,
-                 [GetElementTypeName(LeftResolved.LoTypeEl)],Bin.left);
+                 [GetElementTypeName(LeftResolved.LoTypeEl)],Bin.Left);
         end;
       end;
     eopAs:
@@ -13682,11 +13682,11 @@ begin
             [OpcodeStrings[Bin.OpCode]],LeftResolved,RightResolved,Bin);
           end;
         if RightResolved.IdentEl=nil then
-          RaiseXExpectedButYFound(20170216152630,'class',GetElementTypeName(RightResolved.LoTypeEl),Bin.right);
+          RaiseXExpectedButYFound(20170216152630,'class',GetElementTypeName(RightResolved.LoTypeEl),Bin.Right);
         if not (RightResolved.IdentEl is TPasType) then
-          RaiseXExpectedButYFound(20170216152632,'class',RightResolved.IdentEl.Name,Bin.right);
+          RaiseXExpectedButYFound(20170216152632,'class',RightResolved.IdentEl.Name,Bin.Right);
         if not (RightResolved.BaseType=btContext) then
-          RaiseXExpectedButYFound(20180426195816,'class',RightResolved.IdentEl.Name,Bin.right);
+          RaiseXExpectedButYFound(20180426195816,'class',RightResolved.IdentEl.Name,Bin.Right);
         RightTypeEl:=RightResolved.LoTypeEl;
         if RightTypeEl is TPasClassType then
           begin
@@ -13730,11 +13730,11 @@ begin
           RaiseIncompatibleTypeRes(20190908191127,nOperatorIsNotOverloadedAOpB,
             [OpcodeStrings[Bin.OpCode]],LeftResolved,RightResolved,Bin);
         if RightResolved.IdentEl=nil then
-          RaiseXExpectedButYFound(20190908191202,'class',GetElementTypeName(RightResolved.LoTypeEl),Bin.right);
+          RaiseXExpectedButYFound(20190908191202,'class',GetElementTypeName(RightResolved.LoTypeEl),Bin.Right);
         if not (RightResolved.IdentEl is TPasType) then
-          RaiseXExpectedButYFound(20190908191204,'class',RightResolved.IdentEl.Name,Bin.right);
+          RaiseXExpectedButYFound(20190908191204,'class',RightResolved.IdentEl.Name,Bin.Right);
         if not (RightResolved.BaseType=btContext) then
-          RaiseXExpectedButYFound(20190908191206,'class',RightResolved.IdentEl.Name,Bin.right);
+          RaiseXExpectedButYFound(20190908191206,'class',RightResolved.IdentEl.Name,Bin.Right);
         RightTypeEl:=RightResolved.LoTypeEl;
         if RightTypeEl is TPasClassType then
           begin
@@ -15018,7 +15018,7 @@ begin
       RaiseNotYetImplemented(20161001155834,ResolvedEl.ExprEl);
   TypeEl:=ResolvedEl.LoTypeEl;
   if TypeEl is TPasRangeType then
-    ComputeElement(TPasRangeType(TypeEl).RangeExpr.left,ResolvedEl,[rcConstant])
+    ComputeElement(TPasRangeType(TypeEl).RangeExpr.Left,ResolvedEl,[rcConstant])
   else
     begin
     ResolvedEl.BaseType:=ResolvedEl.SubType;
@@ -15821,7 +15821,7 @@ begin
       else if C=TPasRangeType then
         begin
         // typecast to custom range
-        ComputeElement(TPasRangeType(Decl).RangeExpr.left,ResolvedEl,[rcConstant]);
+        ComputeElement(TPasRangeType(Decl).RangeExpr.Left,ResolvedEl,[rcConstant]);
         if ResolvedEl.BaseType=btContext then
           begin
           TypeEl:=ResolvedEl.LoTypeEl;
@@ -16572,8 +16572,8 @@ function TPasResolver.CheckGenericConstraintFitsParam(ParamType: TPasType;
     else if C=TBinaryExpr then
       begin
       Bin:=TBinaryExpr(El);
-      Result:=ElementReferencesTemplateTypes(Bin.left,GenericTemplateTypes)
-        or ElementReferencesTemplateTypes(Bin.right,GenericTemplateTypes);
+      Result:=ElementReferencesTemplateTypes(Bin.Left,GenericTemplateTypes)
+        or ElementReferencesTemplateTypes(Bin.Right,GenericTemplateTypes);
       end
     else if C=TInlineSpecializeExpr then
       begin
@@ -18478,8 +18478,8 @@ begin
   if GenEl.Elements.Count>0 then
     RaiseNotYetImplemented(20190808142935,GenEl);
   SpecEl.Kind:=GenEl.Kind;
-  SpecializeElExpr(GenEl,SpecEl,GenEl.left,SpecEl.left);
-  SpecializeElExpr(GenEl,SpecEl,GenEl.right,SpecEl.right);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.Left,SpecEl.Left);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.Right,SpecEl.Right);
 end;
 
 procedure TPasResolver.SpecializeImplSimple(GenEl, SpecEl: TPasImplSimple);
@@ -18563,8 +18563,8 @@ procedure TPasResolver.SpecializeExpr(GenEl, SpecEl: TPasExpr);
 begin
   SpecEl.Kind:=GenEl.Kind;
   SpecEl.OpCode:=GenEl.OpCode;
-  SpecializeElExpr(GenEl,SpecEl,GenEl.format1,SpecEl.format1);
-  SpecializeElExpr(GenEl,SpecEl,GenEl.format2,SpecEl.format2);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.Format1,SpecEl.Format1);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.Format2,SpecEl.Format2);
 end;
 
 procedure TPasResolver.SpecializeExprArray(GenEl, SpecEl: TPasElement;
@@ -18596,8 +18596,8 @@ end;
 procedure TPasResolver.SpecializeBinaryExpr(GenEl, SpecEl: TBinaryExpr);
 begin
   SpecializeExpr(GenEl,SpecEl);
-  SpecializeElExpr(GenEl,SpecEl,GenEl.left,SpecEl.left);
-  SpecializeElExpr(GenEl,SpecEl,GenEl.right,SpecEl.right);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.Left,SpecEl.Left);
+  SpecializeElExpr(GenEl,SpecEl,GenEl.Right,SpecEl.Right);
 end;
 
 procedure TPasResolver.SpecializeBoolConstExpr(GenEl, SpecEl: TBoolConstExpr);
@@ -19139,7 +19139,7 @@ begin
         else if LoTypeEl.ClassType=TPasRangeType then
           begin
           RgType:=TPasRangeType(LoTypeEl);
-          ComputeElement(RgType.RangeExpr.left,Param0Resolved,[]);
+          ComputeElement(RgType.RangeExpr.Left,Param0Resolved,[]);
           Result:=CheckAssignResCompatibility(Param0Resolved,Param1Resolved,Param1,RaiseOnError);
           end;
         end;
@@ -19498,7 +19498,7 @@ begin
         TypeEl:=ParamResolved.LoTypeEl;
         if TypeEl.ClassType=TPasRangeType then
           begin
-          ComputeElement(TPasRangeType(TypeEl).RangeExpr.left,ResolvedEl,[rcConstant]);
+          ComputeElement(TPasRangeType(TypeEl).RangeExpr.Left,ResolvedEl,[rcConstant]);
           if ResolvedEl.LoTypeEl.ClassType=TPasEnumType then
             exit(cExact);
           end;
@@ -19970,9 +19970,9 @@ begin
     end;
   if Result=cIncompatible then
     exit(CheckRaiseTypeArgNo(20170319220517,ArgNo,Param,ParamResolved,'boolean, integer, enum value',RaiseOnError));
-  if not CheckFormat(Param.format1,1,ParamResolved) then
+  if not CheckFormat(Param.Format1,1,ParamResolved) then
     exit(cIncompatible);
-  if not CheckFormat(Param.format2,2,ParamResolved) then
+  if not CheckFormat(Param.Format2,2,ParamResolved) then
     exit(cIncompatible);
 end;
 
@@ -23903,7 +23903,7 @@ begin
 
   Value:=Params.Value;
   if Value is TBinaryExpr then
-    Value:=TBinaryExpr(Value).right; // Note: parser guarantees that this is the rightmost
+    Value:=TBinaryExpr(Value).Right; // Note: parser guarantees that this is the rightmost
 
   // check args
   ParamCnt:=length(Params.Params);
@@ -25219,7 +25219,7 @@ begin
           RTypeEl:=RHS.LoTypeEl;
           if RTypeEl.ClassType=TPasRangeType then
             begin
-            ComputeElement(TPasRangeType(RTypeEl).RangeExpr.left,RightSubResolved,[rcConstant]);
+            ComputeElement(TPasRangeType(RTypeEl).RangeExpr.Left,RightSubResolved,[rcConstant]);
             if (RightSubResolved.BaseType=btContext)
                 and IsSameType(LTypeEl,RightSubResolved.LoTypeEl,prraAlias) then
               begin
@@ -25614,7 +25614,7 @@ begin
       LTypeEl:=LHS.LoTypeEl;
       if LTypeEl.ClassType=TPasRangeType then
         begin
-        ComputeElement(TPasRangeType(LTypeEl).RangeExpr.left,ResolvedEl,[rcConstant]);
+        ComputeElement(TPasRangeType(LTypeEl).RangeExpr.Left,ResolvedEl,[rcConstant]);
         if ResolvedEl.BaseType=btContext then
           begin
           LTypeEl:=ResolvedEl.LoTypeEl;
@@ -25641,7 +25641,7 @@ begin
         RTypeEl:=RHS.LoTypeEl;
         if RTypeEl.ClassType=TPasRangeType then
           begin
-          ComputeElement(TPasRangeType(RTypeEl).RangeExpr.left,ResolvedEl,[rcConstant]);
+          ComputeElement(TPasRangeType(RTypeEl).RangeExpr.Left,ResolvedEl,[rcConstant]);
           if ResolvedEl.BaseType=btContext then
             begin
             RTypeEl:=ResolvedEl.LoTypeEl;
@@ -26816,13 +26816,13 @@ function TPasResolver.CheckAssignCompatibilityArrayType(const LHS,
         if length(ArrType.Ranges)>0 then
           exit; // ToDo: StaticArray:=A+B
         // check a:=left
-        ComputeElement(TBinaryExpr(Expr).left,ValueResolved,ExprCompFlags);
+        ComputeElement(TBinaryExpr(Expr).Left,ValueResolved,ExprCompFlags);
         CheckRange(ArrType,RangeIndex,ValueResolved,ErrorEl);
         if Result=cIncompatible then exit;
         LeftResult:=Result;
         // check a:=right
         Result:=cIncompatible;
-        ComputeElement(TBinaryExpr(Expr).right,ValueResolved,ExprCompFlags);
+        ComputeElement(TBinaryExpr(Expr).Right,ValueResolved,ExprCompFlags);
         CheckRange(ArrType,RangeIndex,ValueResolved,ErrorEl);
         if Result=cIncompatible then exit;
         if Result<LeftResult then
@@ -28757,7 +28757,7 @@ begin
       end
     else if C=TBinaryExpr then
       begin
-      if TBinaryExpr(Parent).right<>El then exit;
+      if TBinaryExpr(Parent).Right<>El then exit;
       if TBinaryExpr(Parent).OpCode<>eopSubIdent then exit;
       end
     else if C=TParamsExpr then
@@ -28772,7 +28772,7 @@ begin
       end
     else if C=TPasImplAssign then
       begin
-      if TPasImplAssign(Parent).right<>El then exit;
+      if TPasImplAssign(Parent).Right<>El then exit;
       if (msDelphi in CurrentParser.CurrentModeswitches) then exit(true);
       exit;
       end
@@ -28795,10 +28795,10 @@ begin
   C:=P.ClassType;
   if C=TBinaryExpr then
     begin
-    if TBinaryExpr(P).right=El then
+    if TBinaryExpr(P).Right=El then
       begin
       if (TBinaryExpr(P).OpCode=eopSubIdent)
-          or ((TBinaryExpr(P).OpCode=eopNone) and (TBinaryExpr(P).left is TInheritedExpr)) then
+          or ((TBinaryExpr(P).OpCode=eopNone) and (TBinaryExpr(P).Left is TInheritedExpr)) then
         Result:=ParentNeedsExprResult(TBinaryExpr(P))
       else
         Result:=true;
@@ -28840,7 +28840,7 @@ begin
     Result:=(TPasImplForLoop(P).StartExpr=El)
          or (TPasImplForLoop(P).EndExpr=El)
   else if C=TPasImplAssign then
-    Result:=(TPasImplAssign(P).right=El)
+    Result:=(TPasImplAssign(P).Right=El)
   else if C=TPasImplRaise then
     Result:=(TPasImplRaise(P).ExceptAddr=El);
 end;
@@ -28878,7 +28878,7 @@ begin
       El:=TInlineSpecializeExpr(El).NameExpr
     else if (El.ClassType=TBinaryExpr)
         and (TBinaryExpr(El).OpCode=eopSubIdent) then
-      El:=TBinaryExpr(El).right
+      El:=TBinaryExpr(El).Right
     else
       exit;
     end;

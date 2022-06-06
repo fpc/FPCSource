@@ -240,8 +240,8 @@ begin
   ParseVar('q absolute v.w','');
   AssertVariableType('q');
   B:=AssertExpression('binary',TheVar.AbsoluteExpr,eopSubIdent);
-  AssertExpression('correct absolute expr v',B.left,pekIdent,'v');
-  AssertExpression('correct absolute expr w',B.right,pekIdent,'w');
+  AssertExpression('correct absolute expr v',B.Left,pekIdent,'v');
+  AssertExpression('correct absolute expr w',B.Right,pekIdent,'w');
 end;
 
 procedure TTestVarParser.TestSimpleVarAbsolute2Dots;
@@ -251,10 +251,10 @@ begin
   ParseVar('q absolute v.w.x','');
   AssertVariableType('q');
   B:=AssertExpression('binary',TheVar.AbsoluteExpr,eopSubIdent);
-  AssertExpression('correct absolute expr x',B.right,pekIdent,'x');
-  B:=AssertExpression('binary',B.left,eopSubIdent);
-  AssertExpression('correct absolute expr w',B.right,pekIdent,'w');
-  AssertExpression('correct absolute expr v',B.left,pekIdent,'v');
+  AssertExpression('correct absolute expr x',B.Right,pekIdent,'x');
+  B:=AssertExpression('binary',B.Left,eopSubIdent);
+  AssertExpression('correct absolute expr w',B.Right,pekIdent,'w');
+  AssertExpression('correct absolute expr v',B.Left,pekIdent,'v');
 end;
 
 procedure TTestVarParser.TestVarProcedure;

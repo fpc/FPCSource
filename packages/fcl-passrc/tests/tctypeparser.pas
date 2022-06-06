@@ -760,13 +760,13 @@ begin
   AssertEquals('argument expr type', TBinaryExpr, A.ValueExpr.ClassType);
   B:=TBinaryExpr(A.ValueExpr);
   AssertNotNull('have left expr', B.Left);
-  AssertEquals('argument left expr type', TPrimitiveExpr, B.left.ClassType);
+  AssertEquals('argument left expr type', TPrimitiveExpr, B.Left.ClassType);
   AssertEquals('argument left expr value', '1', TPrimitiveExpr(B.Left).Value);
   AssertNotNull('have right expr', B.Right);
-  AssertEquals('argument right expr type', TPrimitiveExpr, B.right.ClassType);
-  AssertEquals('argument right expr value', '2', TPrimitiveExpr(B.right).Value);
-  TAssert.AssertSame('B.left.parent=B',B,B.left.Parent);
-  TAssert.AssertSame('B.right.parent=B',B,B.right.Parent);
+  AssertEquals('argument right expr type', TPrimitiveExpr, B.Right.ClassType);
+  AssertEquals('argument right expr value', '2', TPrimitiveExpr(B.Right).Value);
+  TAssert.AssertSame('B.left.parent=B',B,B.Left.Parent);
+  TAssert.AssertSame('B.right.parent=B',B,B.Right.Parent);
 end;
 
 procedure TTestProcedureTypeParser.DoTestProcedureOneArgDefaultSet(

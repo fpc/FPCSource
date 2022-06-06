@@ -265,8 +265,8 @@ begin
   ParseConst('1 + 2');
   CheckExprNameKindClass(pekBinary,TBinaryExpr);
   B:=TBinaryExpr(TheExpr);
-  TAssert.AssertSame('B.Left.Parent=B',B,B.left.Parent);
-  TAssert.AssertSame('B.right.Parent=B',B,B.right.Parent);
+  TAssert.AssertSame('B.Left.Parent=B',B,B.Left.Parent);
+  TAssert.AssertSame('B.right.Parent=B',B,B.Right.Parent);
   AssertExpression('Left expression',B.Left,pekNumber,'1');
   AssertExpression('Right expression',B.Right,pekNumber,'2');
 end;
@@ -682,8 +682,8 @@ begin
   ParseResourcestring('''Something''+'' else''');
   CheckExprNameKindClass(pekBinary,TBinaryExpr);
   B:=TBinaryExpr(TheExpr);
-  TAssert.AssertSame('B.left.parent=B',B,B.left.Parent);
-  TAssert.AssertSame('B.right.parent=B',B,B.right.Parent);
+  TAssert.AssertSame('B.left.parent=B',B,B.Left.Parent);
+  TAssert.AssertSame('B.right.parent=B',B,B.Right.Parent);
   AssertEquals('Correct left',TPrimitiveExpr,B.Left.ClassType);
   AssertEquals('Correct right',TPrimitiveExpr,B.Right.ClassType);
   AssertEquals('Correct left expression value','''Something''',TPrimitiveExpr(B.Left).Value);
@@ -697,8 +697,8 @@ begin
   ParseResourcestring('''Something''+different');
   CheckExprNameKindClass(pekBinary,TBinaryExpr);
   B:=TBinaryExpr(TheExpr);
-  TAssert.AssertSame('B.left.parent=B',B,B.left.Parent);
-  TAssert.AssertSame('B.right.parent=B',B,B.right.Parent);
+  TAssert.AssertSame('B.left.parent=B',B,B.Left.Parent);
+  TAssert.AssertSame('B.right.parent=B',B,B.Right.Parent);
   AssertEquals('Correct left',TPrimitiveExpr,B.Left.ClassType);
   AssertEquals('Correct right',TPrimitiveExpr,B.Right.ClassType);
   AssertEquals('Correct left expression value','''Something''',TPrimitiveExpr(B.Left).Value);

@@ -2192,12 +2192,12 @@ begin
     Result:=OpcodeStrings[TUnaryExpr(Expr).OpCode]+ExprToText(TUnaryExpr(Expr).Operand)
   else if C=TBinaryExpr then
     begin
-    Result:=ExprToText(TBinaryExpr(Expr).left);
+    Result:=ExprToText(TBinaryExpr(Expr).Left);
     if OpcodeStrings[TBinaryExpr(Expr).OpCode]<>'' then
       Result:=Result+OpcodeStrings[TBinaryExpr(Expr).OpCode]
     else
       Result:=Result+' ';
-    Result:=Result+ExprToText(TBinaryExpr(Expr).right)
+    Result:=Result+ExprToText(TBinaryExpr(Expr).Right)
     end
   else if C=TParamsExpr then
     begin
@@ -2301,11 +2301,11 @@ begin
           else
             begin
             NextToken;
-            Expr.format1:=DoParseExpression(Expr);
+            Expr.Format1:=DoParseExpression(Expr);
             if (CurToken=tkColon) then
               begin
               NextToken;
-              Expr.format2:=DoParseExpression(Expr);
+              Expr.Format2:=DoParseExpression(Expr);
               end;
             end;
         if not (CurToken in [tkComma, PClose]) then
@@ -2490,7 +2490,7 @@ begin
         begin
         SrcPos:=CurTokenPos;
         Bin:=CreateBinaryExpr(AParent,Last,ParseExprOperand(AParent),eopNone,SrcPos);
-        if not Assigned(Bin.right) then
+        if not Assigned(Bin.Right) then
           begin
           Bin.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
           ParseExcExpectedIdentifier;
@@ -2628,7 +2628,7 @@ begin
             Bin:=TBinaryExpr(Expr);
             if Bin.OpCode<>eopSubIdent then
               ParseExcSyntaxError;
-            Expr:=Bin.right;
+            Expr:=Bin.Right;
             end
           else
             Bin:=nil;
@@ -2823,7 +2823,7 @@ begin
           x:=PopExp;
           if (TempOp=tkMinus) and (x.Kind=pekRange) then
             begin
-            TBinaryExpr(x).Left:=CreateUnaryExpr(x, TBinaryExpr(x).left,
+            TBinaryExpr(x).Left:=CreateUnaryExpr(x, TBinaryExpr(x).Left,
                                                  eopSubtract, SrcPos);
             ExpStack.Add(x);
             end
@@ -6625,13 +6625,13 @@ begin
               begin
               // assign statement
               El:=TPasImplAssign(CreateElement(TPasImplAssign,'',CurBlock,SrcPos));
-              TPasImplAssign(El).left:=Left;
+              TPasImplAssign(El).Left:=Left;
               Left.Parent:=El;
               Left:=nil;
               TPasImplAssign(El).Kind:=TokenToAssignKind(CurToken);
               NextToken;
               Right:=DoParseExpression(CurBlock);
-              TPasImplAssign(El).right:=Right;
+              TPasImplAssign(El).Right:=Right;
               Right.Parent:=El;
               Right:=nil;
               AddStatement(El);
@@ -7942,12 +7942,12 @@ begin
   Result.Kind:=pekBinary;
   if xleft<>nil then
     begin
-    Result.left:=xleft;
+    Result.Left:=xleft;
     xleft.Parent:=Result;
     end;
   if xright<>nil then
     begin
-    Result.right:=xright;
+    Result.Right:=xright;
     xright.Parent:=Result;
     end;
 end;

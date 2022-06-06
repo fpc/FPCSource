@@ -2543,10 +2543,10 @@ begin
     E('El.Parent=El='+GetObjName(El));
   if El is TBinaryExpr then
     begin
-    if (TBinaryExpr(El).left<>nil) and (TBinaryExpr(El).left.Parent<>El) then
-      E('TBinaryExpr(El).left.Parent='+GetObjName(TBinaryExpr(El).left.Parent)+'<>El');
-    if (TBinaryExpr(El).right<>nil) and (TBinaryExpr(El).right.Parent<>El) then
-      E('TBinaryExpr(El).right.Parent='+GetObjName(TBinaryExpr(El).right.Parent)+'<>El');
+    if (TBinaryExpr(El).Left<>nil) and (TBinaryExpr(El).Left.Parent<>El) then
+      E('TBinaryExpr(El).left.Parent='+GetObjName(TBinaryExpr(El).Left.Parent)+'<>El');
+    if (TBinaryExpr(El).Right<>nil) and (TBinaryExpr(El).Right.Parent<>El) then
+      E('TBinaryExpr(El).right.Parent='+GetObjName(TBinaryExpr(El).Right.Parent)+'<>El');
     end
   else if El is TParamsExpr then
     begin
@@ -5737,8 +5737,8 @@ begin
   El:=TPasElement(Module.InitializationSection.Elements[0]);
   AssertEquals('direct assign',TPasImplAssign,El.ClassType);
   Assign1:=TPasImplAssign(El);
-  AssertEquals('direct assign left',TPrimitiveExpr,Assign1.left.ClassType);
-  Prim1:=TPrimitiveExpr(Assign1.left);
+  AssertEquals('direct assign left',TPrimitiveExpr,Assign1.Left.ClassType);
+  Prim1:=TPrimitiveExpr(Assign1.Left);
   AssertNotNull(Prim1.CustomData);
   AssertEquals('direct assign left ref',TResolvedReference,Prim1.CustomData.ClassType);
   DeclEl:=TResolvedReference(Prim1.CustomData).Declaration;
@@ -5748,10 +5748,10 @@ begin
   El:=TPasElement(Module.InitializationSection.Elements[1]);
   AssertEquals('indirect assign',TPasImplAssign,El.ClassType);
   Assign2:=TPasImplAssign(El);
-  AssertEquals('indirect assign left',TBinaryExpr,Assign2.left.ClassType);
-  BinExp:=TBinaryExpr(Assign2.left);
-  AssertEquals('indirect assign first token',TPrimitiveExpr,BinExp.left.ClassType);
-  Prim1:=TPrimitiveExpr(BinExp.left);
+  AssertEquals('indirect assign left',TBinaryExpr,Assign2.Left.ClassType);
+  BinExp:=TBinaryExpr(Assign2.Left);
+  AssertEquals('indirect assign first token',TPrimitiveExpr,BinExp.Left.ClassType);
+  Prim1:=TPrimitiveExpr(BinExp.Left);
   AssertEquals('indirect assign first token','afile',Prim1.Value);
   AssertNotNull(Prim1.CustomData);
   AssertEquals('indirect assign unit ref resolved',TResolvedReference,Prim1.CustomData.ClassType);
@@ -5760,8 +5760,8 @@ begin
 
   AssertEquals('indirect assign dot',eopSubIdent,BinExp.OpCode);
 
-  AssertEquals('indirect assign second token',TPrimitiveExpr,BinExp.right.ClassType);
-  Prim2:=TPrimitiveExpr(BinExp.right);
+  AssertEquals('indirect assign second token',TPrimitiveExpr,BinExp.Right.ClassType);
+  Prim2:=TPrimitiveExpr(BinExp.Right);
   AssertEquals('indirect assign second token','eXitCode',Prim2.Value);
   AssertNotNull(Prim2.CustomData);
   AssertEquals('indirect assign var ref resolved',TResolvedReference,Prim2.CustomData.ClassType);
@@ -5773,10 +5773,10 @@ begin
   El:=TPasElement(Module.InitializationSection.Elements[2]);
   AssertEquals('other unit assign',TPasImplAssign,El.ClassType);
   Assign3:=TPasImplAssign(El);
-  AssertEquals('other unit assign left',TBinaryExpr,Assign3.left.ClassType);
-  BinExp:=TBinaryExpr(Assign3.left);
-  AssertEquals('othe unit assign first token',TPrimitiveExpr,BinExp.left.ClassType);
-  Prim1:=TPrimitiveExpr(BinExp.left);
+  AssertEquals('other unit assign left',TBinaryExpr,Assign3.Left.ClassType);
+  BinExp:=TBinaryExpr(Assign3.Left);
+  AssertEquals('othe unit assign first token',TPrimitiveExpr,BinExp.Left.ClassType);
+  Prim1:=TPrimitiveExpr(BinExp.Left);
   AssertEquals('other unit assign first token','System',Prim1.Value);
   AssertNotNull(Prim1.CustomData);
   AssertEquals('other unit assign unit ref resolved',TResolvedReference,Prim1.CustomData.ClassType);
@@ -5787,8 +5787,8 @@ begin
 
   AssertEquals('other unit assign dot',eopSubIdent,BinExp.OpCode);
 
-  AssertEquals('other unit assign second token',TPrimitiveExpr,BinExp.right.ClassType);
-  Prim2:=TPrimitiveExpr(BinExp.right);
+  AssertEquals('other unit assign second token',TPrimitiveExpr,BinExp.Right.ClassType);
+  Prim2:=TPrimitiveExpr(BinExp.Right);
   AssertEquals('other unit assign second token','exiTCode',Prim2.Value);
   AssertNotNull(Prim2.CustomData);
   AssertEquals('other unit assign var ref resolved',TResolvedReference,Prim2.CustomData.ClassType);

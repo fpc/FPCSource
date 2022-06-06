@@ -1544,8 +1544,8 @@ begin
   else if C=TPasImplAssign then
     // a:=b
     begin
-    UseExpr(TPasImplAssign(El).left);
-    UseExpr(TPasImplAssign(El).right);
+    UseExpr(TPasImplAssign(El).Left);
+    UseExpr(TPasImplAssign(El).Right);
     end
   else if C=TPasImplAsmStatement then
     // asm..end
@@ -1776,13 +1776,13 @@ begin
         end;
       if (Decl is TPasVariable)
           and (El.Parent is TBinaryExpr)
-          and (TBinaryExpr(El.Parent).right=El) then
+          and (TBinaryExpr(El.Parent).Right=El) then
         begin
         if ((Decl.Parent is TPasRecordType)
               or (Decl.Parent is TPasVariant)) then
           begin
           // a record member was accessed -> access the record with same Access
-          UseExprRef(El.Parent,TBinaryExpr(El.Parent).left,Access,false);
+          UseExprRef(El.Parent,TBinaryExpr(El.Parent).Left,Access,false);
           end;
         end;
       end;
@@ -1817,8 +1817,8 @@ begin
       end;
 
     end;
-  UseExpr(El.format1);
-  UseExpr(El.format2);
+  UseExpr(El.Format1);
+  UseExpr(El.Format2);
   C:=El.ClassType;
   if (C=TPrimitiveExpr)
       or (C=TBoolConstExpr)
@@ -1835,19 +1835,19 @@ begin
         begin
         Bin:=TBinaryExpr(Left);
         if Bin.OpCode<>eopAdd then break;
-        Left:=Bin.left;
+        Left:=Bin.Left;
         end;
       UseExpr(Left);
       repeat
         Bin:=TBinaryExpr(Left.Parent);
-        UseExpr(Bin.right);
+        UseExpr(Bin.Right);
         Left:=Bin;
       until Left=El;
       end
     else
       begin
-      UseExpr(Bin.left);
-      UseExpr(Bin.right);
+      UseExpr(Bin.Left);
+      UseExpr(Bin.Right);
       end;
     end
   else if C=TUnaryExpr then
@@ -1895,7 +1895,7 @@ begin
     begin
     Bin:=TBinaryExpr(Expr);
     if Bin.OpCode in [eopSubIdent,eopNone] then
-      UseExprRef(El,Bin.right,Access,UseFull);
+      UseExprRef(El,Bin.Right,Access,UseFull);
     end
   else if C=TParamsExpr then
     begin

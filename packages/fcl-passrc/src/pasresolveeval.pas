@@ -1540,7 +1540,7 @@ begin
   Result:=nil;
   if (Expr.Kind=pekBinary) and (Expr.OpCode=eopSubIdent) then
     begin
-    Result:=Eval(Expr.right,Flags);
+    Result:=Eval(Expr.Right,Flags);
     exit;
     end;
   LeftValue:=nil;
@@ -1549,24 +1549,24 @@ begin
     if Expr.OpCode=eopAdd then
       begin
       // handle multi adds without stack
-      Left:=Expr.left;
+      Left:=Expr.Left;
       while Left.ClassType=TBinaryExpr do
         begin
         SubBin:=TBinaryExpr(Left);
         if SubBin.OpCode<>eopAdd then break;
-        Left:=SubBin.left;
+        Left:=SubBin.Left;
         end;
       LeftValue:=Eval(Left,Flags);
       while LeftValue<>nil do
         begin
         SubBin:=TBinaryExpr(Left.Parent);
-        RightValue:=Eval(SubBin.right,Flags);
+        RightValue:=Eval(SubBin.Right,Flags);
         if RightValue=nil then exit;
 
         if LeftValue.Kind=revkExternal then
           begin
           if [refConst,refConstExt]*Flags=[refConst] then
-            RaiseConstantExprExp(20210321205928,Expr.left);
+            RaiseConstantExprExp(20210321205928,Expr.Left);
           Result:=LeftValue;
           LeftValue:=nil;
           exit;
@@ -1574,7 +1574,7 @@ begin
         if RightValue.Kind=revkExternal then
           begin
           if [refConst,refConstExt]*Flags=[refConst] then
-            RaiseConstantExprExp(20210321205948,Expr.right);
+            RaiseConstantExprExp(20210321205948,Expr.Right);
           Result:=RightValue;
           RightValue:=nil;
           exit;
@@ -1592,15 +1592,15 @@ begin
       exit;
       end;
 
-    LeftValue:=Eval(Expr.left,Flags);
+    LeftValue:=Eval(Expr.Left,Flags);
     if LeftValue=nil then exit;
-    RightValue:=Eval(Expr.right,Flags);
+    RightValue:=Eval(Expr.Right,Flags);
     if RightValue=nil then exit;
 
     if LeftValue.Kind=revkExternal then
       begin
       if [refConst,refConstExt]*Flags=[refConst] then
-        RaiseConstantExprExp(20181024134508,Expr.left);
+        RaiseConstantExprExp(20181024134508,Expr.Left);
       Result:=LeftValue;
       LeftValue:=nil;
       exit;
@@ -1608,7 +1608,7 @@ begin
     if RightValue.Kind=revkExternal then
       begin
       if [refConst,refConstExt]*Flags=[refConst] then
-        RaiseConstantExprExp(20181024134545,Expr.right);
+        RaiseConstantExprExp(20181024134545,Expr.Right);
       Result:=RightValue;
       RightValue:=nil;
       exit;
@@ -1784,10 +1784,10 @@ begin
   {$endif}
   revkUnicodeString:
     begin
-    LeftInt:=StringToOrd(LeftValue,Expr.left);
+    LeftInt:=StringToOrd(LeftValue,Expr.Left);
     if RightValue.Kind in revkAllStrings then
       begin
-      RightInt:=StringToOrd(RightValue,Expr.right);
+      RightInt:=StringToOrd(RightValue,Expr.Right);
       if LeftInt>RightInt then
         RaiseMsg(20170523151508,nHighRangeLimitLTLowRangeLimit,
           sHighRangeLimitLTLowRangeLimit,[],Expr.Right);
@@ -1932,7 +1932,7 @@ begin
     revkString,
     {$endif}
     revkUnicodeString:
-      Result:=EvalStringAddExpr(Expr,Expr.left,Expr.right,LeftValue,RightValue);
+      Result:=EvalStringAddExpr(Expr,Expr.Left,Expr.Right,LeftValue,RightValue);
     revkSetOfInt:
       case RightValue.Kind of
       revkSetOfInt:
@@ -3125,10 +3125,10 @@ begin
         if GetCodePage(TResEvalString(LeftValue).S)=GetCodePage(TResEvalString(RightValue).S) then
           TResEvalBool(Result).B:=TResEvalString(LeftValue).S=TResEvalString(RightValue).S
         else
-          TResEvalBool(Result).B:=GetUnicodeStr(TResEvalString(LeftValue).S,Expr.left)
-                                 =GetUnicodeStr(TResEvalString(RightValue).S,Expr.right);
+          TResEvalBool(Result).B:=GetUnicodeStr(TResEvalString(LeftValue).S,Expr.Left)
+                                 =GetUnicodeStr(TResEvalString(RightValue).S,Expr.Right);
       revkUnicodeString:
-        TResEvalBool(Result).B:=GetUnicodeStr(TResEvalString(LeftValue).S,Expr.left)
+        TResEvalBool(Result).B:=GetUnicodeStr(TResEvalString(LeftValue).S,Expr.Left)
                                =TResEvalUTF16(RightValue).S;
       else
         {$IFDEF VerbosePasResolver}
@@ -3143,7 +3143,7 @@ begin
       {$ifdef FPC_HAS_CPSTRING}
       revkString:
         TResEvalBool(Result).B:=TResEvalUTF16(LeftValue).S
-                               =GetUnicodeStr(TResEvalString(RightValue).S,Expr.right);
+                               =GetUnicodeStr(TResEvalString(RightValue).S,Expr.Right);
       {$endif}
       revkUnicodeString:
         TResEvalBool(Result).B:=TResEvalUTF16(LeftValue).S
@@ -3459,10 +3459,10 @@ begin
             TResEvalBool(Result).B:=TResEvalString(LeftValue).S >= TResEvalString(RightValue).S;
           end
         else
-          CmpUnicode(GetUnicodeStr(TResEvalString(LeftValue).S,Expr.left),
-                     GetUnicodeStr(TResEvalString(RightValue).S,Expr.right));
+          CmpUnicode(GetUnicodeStr(TResEvalString(LeftValue).S,Expr.Left),
+                     GetUnicodeStr(TResEvalString(RightValue).S,Expr.Right));
       revkUnicodeString:
-        CmpUnicode(GetUnicodeStr(TResEvalString(LeftValue).S,Expr.left),
+        CmpUnicode(GetUnicodeStr(TResEvalString(LeftValue).S,Expr.Left),
                    TResEvalUTF16(RightValue).S);
       else
         {$IFDEF VerbosePasResolver}
@@ -3477,7 +3477,7 @@ begin
       {$ifdef FPC_HAS_CPSTRING}
       revkString:
         CmpUnicode(TResEvalUTF16(LeftValue).S,
-                   GetUnicodeStr(TResEvalString(RightValue).S,Expr.right));
+                   GetUnicodeStr(TResEvalString(RightValue).S,Expr.Right));
       {$endif}
       revkUnicodeString:
         CmpUnicode(TResEvalUTF16(LeftValue).S,TResEvalUTF16(RightValue).S);
@@ -5136,14 +5136,14 @@ begin
     Format2:=-1;
     try
       ValStr:='';
-      if Param.format1<>nil then
+      if Param.Format1<>nil then
         begin
-        Format1:=EvalFormat(Param.format1,1,255);
+        Format1:=EvalFormat(Param.Format1,1,255);
         if Format1<0 then
           continue;
-        if Param.format2<>nil then
+        if Param.Format2<>nil then
           begin
-          Format2:=EvalFormat(Param.format2,0,255);
+          Format2:=EvalFormat(Param.Format2,0,255);
           if Format2<0 then
             continue;
           end;
