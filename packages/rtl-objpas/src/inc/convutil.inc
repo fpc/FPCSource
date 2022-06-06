@@ -37,6 +37,11 @@ Type TConvType        = type Integer;
      TConvUtilFloat   = double;
      EConversionError = class(EConvertError);
 
+const
+  CIllegalConvFamily = TConvFamily(0);
+  CIllegalConvType = TConvType(0);
+  GConvUnitToStrFmt: string = '%f %s';
+
 Function RegisterConversionFamily(Const S : String):TConvFamily;
 Function RegisterConversionType(Fam:TConvFamily;Const S:String;Value:TConvUtilFloat):TConvType;
 Function RegisterConversionType(Fam:TConvFamily;Const S:String;const AToCommonFunc, AFromCommonFunc: TConversionProc): TConvType;
@@ -259,7 +264,7 @@ end;
 function ConvTypeToFamily(const AType: TConvType): TConvFamily;
 
 begin
-  result:=0;  // CIllegalConvFamily according to Tokyo docs.
+  result:=CIllegalConvFamily;
   if AType<length(TheUnits) then
     result:=TheUnits[AType].Fam;
 end;
