@@ -246,6 +246,7 @@ interface
             override ppuwrite_platform instead }
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           procedure set_externalname(const s:string);virtual;
+          function bitoffset: asizeuint;
           function mangledname:TSymStr;override;
           destructor destroy;override;
 {$ifdef DEBUG_NODE_XML}
@@ -2038,6 +2039,14 @@ implementation
     procedure tfieldvarsym.set_externalname(const s: string);
       begin
         internalerror(2014033001);
+      end;
+
+
+    function tfieldvarsym.bitoffset: asizeuint;
+      begin
+        result:=fieldoffset;
+        if tabstractrecordsymtable(owner).fieldalignment<>bit_alignment then
+         result:=result*8;
       end;
 
 

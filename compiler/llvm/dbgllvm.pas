@@ -121,6 +121,7 @@ interface
         procedure appenddef_enum(list:TAsmList;def:tenumdef);override;
         procedure appenddef_array(list:TAsmList;def:tarraydef);override;
         procedure appenddef_record_named(list: TAsmList; fordef: tdef; def: trecorddef; const name: TSymStr);
+        procedure appenddef_struct_fields(list: TAsmlist; def: tabstractrecorddef; defdinode: tai_llvmspecialisedmetadatanode; initialfieldlist: tai_llvmunnamedmetadatanode; cappedsize: asizeuint);
         procedure appenddef_record(list:TAsmList;def:trecorddef);override;
         procedure appenddef_pointer(list:TAsmList;def:tpointerdef);override;
         procedure appenddef_formal(list:TAsmList;def:tformaldef); override;
@@ -158,8 +159,6 @@ interface
         function symdebugname(sym:tsym): TSymStr;
         function symname(sym: tsym; manglename: boolean): TSymStr; virtual;
         function visibilitydiflag(vis: tvisibility): TSymStr;
-
-        procedure enum_membersyms_callback(p:TObject;arg:pointer);
 
         procedure ensuremetainit;
         procedure resetfornewmodule;
@@ -485,22 +484,6 @@ implementation
         inherited Destroy;
       end;
 
-
-    procedure TDebugInfoLLVM.enum_membersyms_callback(p:TObject; arg: pointer);
-      begin
-(*
-        case tsym(p).typ of
-          fieldvarsym:
-            appendsym_fieldvar(pmembercallbackinfo(arg)^.list,pmembercallbackinfo(arg)^.structnode,tfieldvarsym(p));
-          propertysym:
-            appendsym_property(pmembercallbackinfo(arg)^.list,pmembercallbackinfo(arg)^.structnode,tpropertysym(p));
-          constsym:
-            appendsym_const_member(pmembercallbackinfo(arg)^.list,pmembercallbackinfo(arg)^.structnode,tconstsym(p),true);
-          else
-            ;
-        end;
-*)
-      end;
 
     procedure TDebugInfoLLVM.ensuremetainit;
       begin
@@ -1065,23 +1048,243 @@ implementation
     procedure TDebugInfoLLVM.appenddef_record_named(list:TAsmList; fordef: tdef; def:trecorddef; const name: TSymStr);
       var
         dinode: tai_llvmspecialisedmetadatanode;
+        cappedsize: asizeuint;
       begin
         dinode:=def_set_meta_impl(fordef,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType));
         dinode.addint64('tag',ord(DW_TAG_structure_type));
         if (name<>'') then
           dinode.addstring('name',name);
-        if def.size<(qword(1) shl 61) then
-          dinode.addqword('size',def.size*8)
+        if is_packed_record_or_object(fordef) then
+          cappedsize:=def.size
+        else if def.size<(qword(1) shl 61) then
+          cappedsize:=def.size*8
         else
           { LLVM internally "only" supports sizes up to 1 shl 61, because they
             store all sizes in bits in a qword; the rationale is that there
             is no hardware supporting a full 64 bit address space either }
-          dinode.addqword('size',qword(1) shl 61);
+          cappedsize:=qword(1) shl 61;
+        dinode.addqword('size',cappedsize);
 
         list.concat(dinode);
 
-//        def.symtable.symList.ForEachCall(@enum_membersyms_callback,dinode);
+        appenddef_struct_fields(list,def,dinode,tai_llvmunnamedmetadatanode.create,cappedsize);
         write_symtable_procdefs(current_asmdata.asmlists[al_dwarf_info],def.symtable);
+      end;
+
+
+    procedure TDebugInfoLLVM.appenddef_struct_fields(list: TAsmlist; def: tabstractrecorddef; defdinode: tai_llvmspecialisedmetadatanode; initialfieldlist: tai_llvmunnamedmetadatanode; cappedsize: asizeuint);
+
+      { returns whether we need to create a nested struct in the variant to hold
+        multiple successive fields, or whether the next field starts at the
+        same offset as the current one. I.e., it returns false for
+          case byte of
+            0: (b: byte);
+            1: (l: longint);
+          end
+
+        but true for
+
+          case byte of
+            0: (b1,b2: byte);
+          end
+
+        and
+
+          case byte of
+            0: (b1: byte;
+                case byte of 0:
+                  b2: byte;
+               )
+          end
+      }
+      function variantfieldstartsnewstruct(field: tfieldvarsym; recst: tabstractrecordsymtable; fieldidx: longint): boolean;
+        var
+          nextfield: tfieldvarsym;
+        begin
+          result:=false;
+          inc(fieldidx);
+          if fieldidx>=recst.symlist.count then
+            exit;
+          { can't have properties or procedures between to start fields of the
+            same variant }
+          if tsym(recst.symlist[fieldidx]).typ<>fieldvarsym then
+            exit;
+          nextfield:=tfieldvarsym(recst.symlist[fieldidx]);
+          if nextfield.fieldoffset=field.fieldoffset then
+            exit;
+          result:=true;
+        end;
+
+      type
+        tvariantinfo = record
+          startfield: tfieldvarsym;
+          uniondi: tai_llvmspecialisedmetadatanode;
+          variantfieldlist: tai_llvmunnamedmetadatanode;
+          curvariantstructfieldlist: tai_llvmunnamedmetadatanode;
+        end;
+        pvariantinfo = ^tvariantinfo;
+
+      function bitoffsetfromvariantstart(field: tfieldvarsym; variantinfolist: tfplist; totalbitsize: ASizeUInt): qword;
+        var
+          variantstartfield: tfieldvarsym;
+        begin
+          if not assigned(variantinfolist) then
+            begin
+              result:=field.bitoffset;
+              exit;
+            end;
+          result:=0;
+          if vo_is_first_field in field.varoptions then
+            exit;
+          variantstartfield:=pvariantinfo(variantinfolist[variantinfolist.count-1])^.startfield;
+          { variant fields always start on a byte boundary, so no need for
+            rounding/truncating }
+          result:=field.bitoffset-variantstartfield.bitoffset;
+        end;
+
+      var
+        variantinfolist: tfplist;
+        variantinfo: pvariantinfo;
+        recst: trecordsymtable;
+        scope,
+        fielddi,
+        uniondi,
+        structdi: tai_llvmspecialisedmetadatanode;
+        fieldlist: tai_llvmunnamedmetadatanode;
+        i, varindex: longint;
+        field: tfieldvarsym;
+        bitoffset: asizeuint;
+        bpackedrecst: boolean;
+      begin
+        recst:=trecordsymtable(def.symtable);
+        bpackedrecst:=recst.fieldalignment=bit_alignment;
+        scope:=defdinode;
+        variantinfolist:=nil;
+
+        fieldlist:=initialfieldlist;
+        list.concat(fieldlist);
+        defdinode.addmetadatarefto('elements',fieldlist);
+
+        for i:=0 to recst.symlist.count-1 do
+          begin
+            if (tsym(recst.symlist[i]).typ<>fieldvarsym) then
+              continue;
+
+            field:=tfieldvarsym(recst.symlist[i]);
+            { start of a new variant part? }
+            if vo_is_first_field in field.varoptions then
+              begin
+                if not assigned(variantinfolist) then
+                  begin
+                    variantinfolist:=tfplist.create;
+                  end;
+                varindex:=variantinfolist.count-1;
+                if (varindex=-1) or
+                   (pvariantinfo(variantinfolist[varindex])^.startfield.fieldoffset<field.fieldoffset) then
+                  begin
+                    { more deeply nested variant }
+                    uniondi:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType);
+                    list.concat(uniondi);
+                    fieldlist.addvalue(llvm_getmetadatareftypedconst(uniondi));
+
+                    uniondi.addenum('tag','DW_TAG_union_type');
+                    uniondi.addmetadatarefto('scope',scope);
+                    try_add_file_metaref(uniondi,field.fileinfo,false);
+                    { the size of this variant part is the total size of the
+                      record minus the start of this field; not 100% correct
+                      in case of multiple parallel nested variants, but not
+                      really important since it's all padding anyway }
+                    uniondi.addint64('size',cappedsize-min(field.bitoffset,cappedsize));
+                    fieldlist:=tai_llvmunnamedmetadatanode.create;
+                    list.concat(fieldlist);
+                    uniondi.addmetadatarefto('elements',fieldlist);
+
+                    scope:=uniondi;
+
+                    new(variantinfo);
+                    variantinfo^.startfield:=field;
+                    variantinfo^.uniondi:=uniondi;
+                    variantinfo^.variantfieldlist:=fieldlist;
+                    variantinfo^.curvariantstructfieldlist:=nil;
+
+                    variantinfolist.Add(variantinfo);
+                    inc(varindex);
+                  end
+                else
+                  begin
+                    {finalise more deeply nested variants }
+                    while (varindex>=0) and
+                          (pvariantinfo(variantinfolist[varindex])^.startfield.fieldoffset>field.fieldoffset) do
+                      begin
+                        dispose(pvariantinfo(variantinfolist[varindex]));
+                        dec(varindex);
+                      end;
+                    if (varindex<0) then
+                      internalerror(2022060610);
+                    variantinfo:=pvariantinfo(variantinfolist[varindex]);
+                    if variantinfo^.startfield.fieldoffset<>field.fieldoffset then
+                      internalerror(2022060611);
+
+                    { a variant part is always the last part -> end of previous
+                      struct, if any}
+                    variantinfo^.curvariantstructfieldlist:=nil;
+
+                    fieldlist:=variantinfo^.variantfieldlist;
+                    scope:=variantinfo^.uniondi;
+
+                    { variant at the same level as a previous one }
+                    variantinfolist.count:=varindex+1;
+                  end;
+
+                if not variantfieldstartsnewstruct(field,recst,i) then
+                  begin
+                    variantinfo^.curvariantstructfieldlist:=nil;
+                    fieldlist:=variantinfo^.variantfieldlist;
+                    scope:=variantinfo^.uniondi;
+                  end
+                else
+                  begin
+                    structdi:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType);
+                    list.concat(structdi);
+                    structdi.addenum('tag','DW_TAG_structure_type');
+                    structdi.addmetadatarefto('scope',variantinfo^.uniondi);
+                    structdi.addint64('size',cappedsize-min(field.bitoffset,cappedsize));
+                    variantinfo^.curvariantstructfieldlist:=tai_llvmunnamedmetadatanode.create;
+                    list.concat(variantinfo^.curvariantstructfieldlist);
+                    structdi.addmetadatarefto('elements',variantinfo^.curvariantstructfieldlist);
+                    fieldlist.addvalue(llvm_getmetadatareftypedconst(structdi));
+
+                    fieldlist:=variantinfo^.curvariantstructfieldlist;
+                    scope:=structdi;
+                  end;
+              end;
+
+            fielddi:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType);
+            fielddi.addenum('tag','DW_TAG_member');
+            fielddi.addstring('name',symname(field,false));
+            fielddi.addmetadatarefto('scope',scope);
+            try_add_file_metaref(fielddi,field.fileinfo,false);
+            fielddi.addmetadatarefto('baseType',def_meta_node(field.vardef));
+            if bpackedrecst and
+               is_ordinal(field.vardef) then
+              fielddi.addqword('size',field.getpackedbitsize)
+            else
+              fielddi.addqword('size',min(asizeuint(field.getsize)*8,cappedsize));
+            bitoffset:=bitoffsetfromvariantstart(field,variantinfolist,cappedsize);
+            if bitoffset<>0 then
+              fielddi.addqword('offset',bitoffset);
+
+            fieldlist.addvalue(llvm_getmetadatareftypedconst(fielddi));
+            list.concat(fielddi);
+          end;
+        if assigned(variantinfolist) then
+          begin
+            for i:=0 to variantinfolist.count-1 do
+              begin
+                dispose(pvariantinfo(variantinfolist[i]));
+              end;
+          end;
+        variantinfolist.free;
       end;
 
 
