@@ -1596,34 +1596,17 @@ implementation
       begin
         result:=0;
         repeat
-          a := a shr 7;
           inc(result);
-          if a=0 then
-            break;
-        until false;
+          a := a shr 7;
+        until a=0;
       end;
 
 
     function LengthSleb128(a: int64) : byte;
-      var
-        b: byte;
-        more: boolean;
       begin
-        more := true;
-        result:=0;
-        repeat
-          b := a and $7f;
-          a := SarInt64(a, 7);
-
-          if (
-            ((a = 0) and (b and $40 = 0)) or
-            ((a = -1) and (b and $40 <> 0))
-          ) then
-            more := false;
-          inc(result);
-          if not(more) then
-            break;
-        until false;
+        { 'a xor SarInt64(a,63)' has upper bits 0...01 where '0's symbolize sign bits of 'a' and 1 symbolizes its most significant non-sign bit.
+          'shl 1' ensures storing the sign bit. }
+        result:=LengthUleb128(qword(a xor SarInt64(a,63)) shl 1);
       end;
 
 
