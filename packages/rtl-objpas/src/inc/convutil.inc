@@ -27,7 +27,7 @@ interface
 
 {$ifndef FPUNONE}
 uses
-  sysutils;
+  sysutils, math;
 
 Type TConvType        = type Integer;
      TConvFamily      = type Integer;
@@ -46,6 +46,11 @@ function Convert ( const Measurement  : Double; const FromType1, FromType2, ToTy
 
 function ConvertFrom(const AFrom: TConvType; AValue: Double): TConvUtilFloat;
 function ConvertTo(const AValue: Double; const ATo: TConvType): TConvUtilFloat;
+
+function ConvUnitCompareValue(const AValue1: Double; const AType1: TConvType;
+  const AValue2: Double; const AType2: TConvType): TValueRelationship;
+function ConvUnitSameValue(const AValue1: Double; const AType1: TConvType;
+  const AValue2: Double; const AType2: TConvType): Boolean;
 
 function ConvFamilyToDescription(const AFamily: TConvFamily): string;
 function ConvTypeToDescription(const AType: TConvType): string;
@@ -111,6 +116,7 @@ Type ResourceData = record
 
 var TheUnits    : array of ResourceData =nil;
     TheFamilies : array of string =nil;
+
 
 function ConvFamilyToDescription(const AFamily: TConvFamily): string;
 
@@ -370,6 +376,25 @@ begin
   else
     result:=Avalue/torec.value;
 end;
+
+function ConvUnitCompareValue(const AValue1: Double; const AType1: TConvType;
+  const AValue2: Double; const AType2: TConvType): TValueRelationship;
+
+var
+  D1, D2: TConvUtilFloat;
+
+begin
+  D1:=ConvertFrom(AType1, AValue1);
+  D2:=ConvertFrom(AType2, Avalue2);
+  result:=CompareValue(D1,D2,macheps);
+end;
+
+function ConvUnitSameValue(const AValue1: Double; const AType1: TConvType;
+  const AValue2: Double; const AType2: TConvType): Boolean;
+begin
+  result:=ConvUnitCompareValue(Avalue1, AType1, AValue2, AType2)=0;
+end;
+
 
 Constructor TConvTypeInfo.Create(Const AConvFamily : TConvFamily;const ADescription:String);
 
