@@ -52,6 +52,18 @@ function ConvUnitCompareValue(const AValue1: Double; const AType1: TConvType;
 function ConvUnitSameValue(const AValue1: Double; const AType1: TConvType;
   const AValue2: Double; const AType2: TConvType): Boolean;
 
+function ConvUnitAdd(const AValue1: Double; const AType1: TConvType;
+  const AValue2: Double; const AType2, AResultType: TConvType): TConvUtilFloat;
+function ConvUnitDiff(const AValue1: Double; const AType1: TConvType;
+  const AValue2: Double; const AType2, AResultType: TConvType): TConvUtilFloat;
+
+function ConvUnitDec(const AValue: Double; const AType: TConvType;
+  const AAmount: Double; const AAmountType: TConvType): TConvUtilFloat;
+function ConvUnitDec(const AValue: Double; const AType, AAmountType: TConvType): TConvUtilFloat;
+function ConvUnitInc(const AValue: Double; const AType: TConvType;
+  const AAmount: Double; const AAmountType: TConvType): TConvUtilFloat;
+function ConvUnitInc(const AValue: Double; const AType, AAmountType: TConvType): TConvUtilFloat;
+
 function ConvFamilyToDescription(const AFamily: TConvFamily): string;
 function ConvTypeToDescription(const AType: TConvType): string;
 function  DescriptionToConvFamily(const ADescription: String; out AFamily: TConvFamily): Boolean;
@@ -117,6 +129,37 @@ Type ResourceData = record
 var TheUnits    : array of ResourceData =nil;
     TheFamilies : array of string =nil;
 
+function ConvUnitDec(const AValue: Double; const AType: TConvType;
+  const AAmount: Double; const AAmountType: TConvType): TConvUtilFloat;
+
+var
+  D1: Double;
+
+begin
+  D1:=Convert(AAmount,AAmountType,AType);
+  result:=AValue-D1;
+end;
+
+function ConvUnitDec(const AValue: Double; const AType, AAmountType: TConvType): TConvUtilFloat;
+begin
+  result:=ConvUnitDec(AValue, AType, 1.0, AAmountType);
+end;
+
+function ConvUnitInc(const AValue: Double; const AType: TConvType;
+  const AAmount: Double; const AAmountType: TConvType): TConvUtilFloat;
+
+var
+  D1: Double;
+
+begin
+  D1:=Convert(AAmount,AAmountType,AType);
+  result:=AValue+D1;
+end;
+
+function ConvUnitInc(const AValue: Double; const AType, AAmountType: TConvType): TConvUtilFloat;
+begin
+    result:=ConvUnitInc(AValue, AType, 1.0, AAmountType);
+end;
 
 function ConvFamilyToDescription(const AFamily: TConvFamily): string;
 
@@ -395,6 +438,24 @@ begin
   result:=ConvUnitCompareValue(Avalue1, AType1, AValue2, AType2)=0;
 end;
 
+
+function ConvUnitAdd(const AValue1: Double; const AType1: TConvType;
+  const AValue2: Double; const AType2, AResultType: TConvType): TConvUtilFloat;
+
+var
+  D1, D2: Double;
+
+begin
+  D1:=ConvertFrom(AType1, AValue1);
+  D2:=ConvertFrom(AType2,AValue2);
+  result:=ConvertTo(D1+D2,AResultType);
+end;
+
+function ConvUnitDiff(const AValue1: Double; const AType1: TConvType;
+  const AValue2: Double; const AType2, AResultType: TConvType): TConvUtilFloat;
+begin
+  result:=ConvUnitAdd(AVAlue1, ATYpe1, -AValue2, AType2, AResultType);
+end;
 
 Constructor TConvTypeInfo.Create(Const AConvFamily : TConvFamily;const ADescription:String);
 
