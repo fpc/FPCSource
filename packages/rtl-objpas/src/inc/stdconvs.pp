@@ -140,6 +140,10 @@ var
   tuFahrenheit,
   tuRankine,
   tuReamur,
+  tuDelisle,
+  tuNewton,
+  tuRomer,
+  tuReguloGasMark,
 
 {
 cbTime family
@@ -229,7 +233,14 @@ function CelsiusToKelvin    (const AValue: Double): Double;
 function KelvinToCelsius    (const AValue: Double): Double;
 function RankineToCelsius   (const AValue: Double): Double;
 function CelsiusToRankine   (const AValue: Double): Double;
-
+function DelisleToCelsius   (const AValue: Double): Double;
+function CelsiusToDelisle   (const AValue: Double): Double;
+function NewtonToCelsius    (const AValue: Double): Double;
+function CelsiusToNewton    (const AValue: Double): Double;
+function RomerToCelsius     (const AValue: Double): Double;
+function CelsiusToRomer     (const AValue: Double): Double;
+function ReguloGasMarkToCelsius(const AValue: Double): Double;
+function CelsiusToReguloGasMark(const AValue: Double): Double;
 
 implementation
 
@@ -261,6 +272,46 @@ end;
 function CelsiusToRankine(const AValue: Double): Double;
 begin
   result:=(AValue+273.15)*1.8;
+end;
+
+function DelisleToCelsius(const AValue: Double): Double;
+begin
+  result:=100-(Double(2/3)*AValue);
+end;
+
+function CelsiusToDelisle(const AValue: Double): Double;
+begin
+  result:=1.5*(100-AValue);
+end;
+
+function NewtonToCelsius(const AValue: Double): Double;
+begin
+  result:=Double(100/33)*AValue;
+end;
+
+function CelsiusToNewton(const AValue: Double): Double;
+begin
+  result:=0.33*AValue;
+end;
+
+function RomerToCelsius(const AValue: Double): Double;
+begin
+  result:=(AValue-7.5)*Double(40/21);
+end;
+
+function CelsiusToRomer(const AValue: Double): Double;
+begin
+  result:=AValue*Double(21/40) + 7.5;
+end;
+
+function ReguloGasMarkToCelsius(const AValue: Double): Double;
+begin
+  result:=AVAlue*Double(125/9) + 121.11;
+end;
+
+function CelsiusToReguloGasMark(const AValue: Double): Double;
+begin
+  result:=Double(9/125)*(AValue-121.11);
 end;
 
 
@@ -335,6 +386,10 @@ ResourceString  // Note, designations for FFU's are guesses.
   txttuFahrenheit          = 'degrees Fahrenheit (degF)';
   txttuRankine             = 'degrees Rankine (degR)';
   txttuReamur              = 'degrees Reamur (degReam)';
+  txttuDelisle             = 'degrees Delisle(degDe)';
+  txttuNewton              = 'degrees Newton (degN)';
+  txttuRomer               = 'degrees Romer (degRo)';
+  txttuReguloGasMark       = 'degrees ReguloGasMark (degRM)';
   txttuMilliSeconds        = 'milli seconds (ms)';
   txttuSeconds             = 'seconds (s)';
   txttuMinutes             = 'minutes (min)';
@@ -492,6 +547,10 @@ begin
  tuFahrenheit := RegisterConversionType(cbTemperature,txttuFahrenheit,@FahrenheitToCelsius,@CelsiusToFahrenheit);
  tuRankine    := RegisterConversionType(cbTemperature,txttuRankine,@RankineToCelsius,@CelsiusToRankine);
  tuReamur     := RegisterConversionType(cbTemperature,txttuReamur,10/8);   // Reaumur?
+ tuDelisle    := RegisterConversionType(cbTemperature,txttuDelisle,@DelisleToCelsius,@CelsiusToDelisle);
+ tuNewton     := RegisterConversionType(cbTemperature,txttuNewton,100/33);
+ tuRomer      := RegisterConversionType(cbTemperature,txttuRomer,@RomerToCelsius,@CelsiusToRomer);
+ tuReguloGasMark := RegisterConversionType(cbTemperature,txttuReguloGasMark,@ReguloGasMarkToCelsius,@CelsiusToReguloGasMark);
 end;
 
 Const Yearsec=365.24219879*24*3600.0;   // year in seconds;
