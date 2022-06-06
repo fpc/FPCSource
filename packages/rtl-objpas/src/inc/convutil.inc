@@ -45,6 +45,7 @@ function Convert ( const Measurement  : Double; const FromType, ToType  : TConvT
 function Convert ( const Measurement  : Double; const FromType1, FromType2, ToType1, ToType2  : TConvType ) :TConvUtilFloat;
 
 function ConvertFrom(const AFrom: TConvType; AValue: Double): TConvUtilFloat;
+function ConvertTo(const AValue: Double; const ATo: TConvType): TConvUtilFloat;
 
 function ConvFamilyToDescription(const AFamily: TConvFamily): string;
 function ConvTypeToDescription(const AType: TConvType): string;
@@ -350,7 +351,24 @@ var
 begin
   if not SearchConvert(AFrom, fromrec) then
     raise  EConversionError.CreateFmt(SConvUnknownType, [IntToStr(AFrom)]);
-  result:=fromrec.value*AValue;
+  if Assigned(fromrec.ToCommonFunc) then
+    result:=fromrec.ToCommonFunc(AValue)
+  else
+    result:=fromrec.value*AValue;
+end;
+
+function ConvertTo(const AValue: Double; const ATo: TConvType): TConvUtilFloat;
+
+var
+  torec :   resourcedata;
+
+begin
+  if not SearchConvert(ATo, torec) then
+    raise  EConversionError.CreateFmt(SConvUnknownType, [IntToStr(ATo)]);
+  if Assigned(torec.FromCommonFunc) then
+    result:=torec.FromCommonFunc(AValue)
+  else
+    result:=Avalue/torec.value;
 end;
 
 Constructor TConvTypeInfo.Create(Const AConvFamily : TConvFamily;const ADescription:String);
