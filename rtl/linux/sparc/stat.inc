@@ -108,7 +108,7 @@
       st_ctime,
       st_ctime_nsec,
       __unused4_,
-      __unused5-) : cULong);
+      __unused5_ : cULong);
   end;
 
 {$ENDIF FPC_USE_LIBC}
