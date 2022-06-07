@@ -1013,9 +1013,13 @@ begin
   FreeAndNil(FScanner);
   FreeAndNil(FFileResolver);
   FreeAndNil(FPasResolver);
+  {$IFDEF EnablePasTreeFree}
+  FPasModule:=nil;
+  {$ELSE}
   if FPasModule<>nil then
     FPasModule.ReleaseUsedUnits;
   ReleaseAndNil(TPasElement(FPasModule){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
+  {$ENDIF}
   inherited Destroy;
 end;
 

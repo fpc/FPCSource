@@ -2583,11 +2583,15 @@ end;
 procedure TPas2JSModuleScope.SetJSPromiseClass(const AValue: TPasClassType);
 begin
   if FJSPromiseClass=AValue then Exit;
+  {$IFNDEF EnablePasTreeFree}
   if FJSPromiseClass<>nil then
     FJSPromiseClass.Release{$IFDEF CheckPasTreeRefCount}('TPas2JSModuleScope.SetJSPromiseClass'){$ENDIF};
+  {$ENDIF}
   FJSPromiseClass:=AValue;
+  {$IFNDEF EnablePasTreeFree}
   if FJSPromiseClass<>nil then
     FJSPromiseClass.AddRef{$IFDEF CheckPasTreeRefCount}('TPas2JSModuleScope.SetJSPromiseClass'){$ENDIF};
+  {$ENDIF}
 end;
 
 procedure TPas2JSModuleScope.ClearStoreJSLocalVars;
@@ -4487,6 +4491,9 @@ begin
             RaiseMsg(20170322134321,nInvalidVariableModifier,
               sInvalidVariableModifier,['export name'],El.ExportName);
           El.ExportName:=TPrimitiveExpr.Create(El,pekString,''''+El.Name+'''');
+          {$IFDEF EnablePasTreeFree}
+          FOwnedElements.Add(El.ExportName);
+          {$ENDIF}
           end;
         Include(El.VarModifiers,vmExternal);
         end;
@@ -4705,6 +4712,9 @@ begin
                 sInvalidXModifierY,[Proc.ElementTypeName,'symbol name'],Proc.LibrarySymbolName);
             Proc.Modifiers:=Proc.Modifiers+[pmExternal];
             Proc.LibrarySymbolName:=TPrimitiveExpr.Create(Proc,pekString,''''+Proc.Name+'''');
+            {$IFDEF EnablePasTreeFree}
+            FOwnedElements.Add(Proc.LibrarySymbolName);
+            {$ENDIF}
             end;
 
           if Proc.Visibility=visPublished then
@@ -6436,7 +6446,11 @@ var
 begin
   inherited ClearBuiltInIdentifiers;
   for bt in TPas2jsBaseType do
+    {$IFDEF EnablePasTreeFree}
+    FJSBaseTypes[bt]:=nil;
+    {$ELSE}
     ReleaseAndNil(TPasElement(FJSBaseTypes[bt]){$IFDEF CheckPasTreeRefCount},'TPasResolver.AddCustomBaseType'{$ENDIF});
+    {$ENDIF}
   for pbp in TPas2jsBuiltInProc do
     FJSBuiltInProcs[pbp]:=nil;
 end;
@@ -7616,12 +7630,16 @@ begin
         raise EPas2JS.Create('');
         end;
     Data.CustomData:=CustomData;
+    {$IFNDEF EnablePasTreeFree}
     TPasElement(FElement).Release{$IFDEF CheckPasTreeRefCount}('TPas2JsElementData.SetElement'){$ENDIF};
+    {$ENDIF}
     end;
   FElement:=AValue;
   if FElement<>nil then
     begin
+    {$IFNDEF EnablePasTreeFree}
     TPasElement(FElement).AddRef{$IFDEF CheckPasTreeRefCount}('TPas2JsElementData.SetElement'){$ENDIF};
+    {$ENDIF}
     Data:=FElement;
     while Data.CustomData is TPasElementBase do
       Data:=TPasElementBase(Data.CustomData);
@@ -17583,7 +17601,6 @@ var
       begin
       Result:=TJSFunctionBody(CreateElement(TJSFunctionBody,PosEl));
       FuncDef.Body:=Result;
-      Result.A:=TJSSourceElements(CreateElement(TJSSourceElements, PosEl));
       end;
     if FuncContext=nil then
       FuncContext:=TFunctionContext.Create(PosEl,Result,AContext);
@@ -20038,13 +20055,13 @@ begin
     VarSt:=TJSVariableStatement(CreateElement(TJSVariableStatement,PosEl));
     Statements.A:=VarSt;
     // List
-    List:=ConvertExpression(El.StartExpr,AContext); // beware: might fail
     PosEl:=El.StartExpr;
     // List.GetEnumerator()
     if aResolver.IsHelperMethod(GetEnumeratorFunc) then
       Call:=CreateCallHelperMethod(GetEnumeratorFunc,El.StartExpr,AContext,true)
     else
       begin
+      List:=ConvertExpression(El.StartExpr,AContext); // beware: might fail
       Call:=TJSCallExpression(CreateElement(TJSCallExpression,PosEl));
       Call.Expr:=CreateDotExpression(PosEl,List,
                          CreateIdentifierExpr(GetEnumeratorFunc,AContext),true);

@@ -86,6 +86,8 @@ Type
 
   { TJSElement }
 
+  { TJSObject }
+
   TJSObject = Class(TObject);
 
 

@@ -5107,8 +5107,10 @@ begin
   if RefEl is TPasType then
     begin
     El.VarType:=TPasType(RefEl);
+    {$IFNDEF EnablePasTreeFree}
     if RefEl.Parent<>El then
       RefEl.AddRef{$IFDEF CheckPasTreeRefCount}('TPasVariable.VarType'){$ENDIF};
+    {$ENDIF}
     end
   else
     RaiseMsg(20180211121809,El,GetObjName(RefEl));
@@ -5121,8 +5123,10 @@ begin
   if RefEl is TPasType then
     begin
     El.DestType:=TPasType(RefEl);
+    {$IFNDEF EnablePasTreeFree}
     if RefEl.Parent<>El then
       RefEl.AddRef{$IFDEF CheckPasTreeRefCount}('TPasAliasType.DestType'){$ENDIF};
+    {$ENDIF}
     end
   else
     RaiseMsg(20180211121801,El,GetObjName(RefEl));
@@ -5136,8 +5140,10 @@ begin
   if RefEl is TPasType then
     begin
     El.DestType:=TPasType(RefEl);
+    {$IFNDEF EnablePasTreeFree}
     if RefEl.Parent<>El then
       RefEl.AddRef{$IFDEF CheckPasTreeRefCount}('TPasPointerType.DestType'){$ENDIF};
+    {$ENDIF}
     end
   else
     RaiseMsg(20180211121757,El,GetObjName(RefEl));
@@ -5150,8 +5156,10 @@ begin
   if RefEl is TPasType then
     begin
     El.ElType:=TPasType(RefEl);
+    {$IFNDEF EnablePasTreeFree}
     if RefEl.Name<>'' then
       RefEl.AddRef{$IFDEF CheckPasTreeRefCount}('TPasArrayType.ElType'){$ENDIF};
+    {$ENDIF}
     end
   else
     RaiseMsg(20180211121732,El,GetObjName(RefEl));
@@ -5164,8 +5172,10 @@ begin
   if RefEl is TPasType then
     begin
     El.ElType:=TPasType(RefEl);
+    {$IFNDEF EnablePasTreeFree}
     if RefEl.Parent<>El then
       RefEl.AddRef{$IFDEF CheckPasTreeRefCount}('TPasFileType.ElType'){$ENDIF};
+    {$ENDIF}
     end
   else
     RaiseMsg(20180211121726,El,GetObjName(RefEl));
@@ -5178,8 +5188,10 @@ begin
   if RefEl is TPasType then
     begin
     El.EnumType:=TPasType(RefEl);
+    {$IFNDEF EnablePasTreeFree}
     if RefEl.Parent<>El then
       RefEl.AddRef{$IFDEF CheckPasTreeRefCount}('TPasSetType.EnumType'){$ENDIF};
+    {$ENDIF}
     end
   else
     RaiseMsg(20180211121714,El,GetObjName(RefEl));
@@ -5192,8 +5204,10 @@ begin
   if RefEl is TPasRecordType then
     begin
     El.Members:=TPasRecordType(RefEl);
+    {$IFNDEF EnablePasTreeFree}
     if RefEl.Parent<>El then
       RefEl.AddRef{$IFDEF CheckPasTreeRefCount}('TPasVariant.Members'){$ENDIF};
+    {$ENDIF}
     end
   else
     RaiseMsg(20180211121657,El,GetObjName(RefEl));
@@ -5207,8 +5221,10 @@ begin
   if (RefEl is TPasType) or (RefEl.ClassType=TPasVariable) then
     begin
     El.VariantEl:=RefEl;
+    {$IFNDEF EnablePasTreeFree}
     if RefEl.Parent<>El then
       RefEl.AddRef{$IFDEF CheckPasTreeRefCount}('TPasRecordType.VariantEl'){$ENDIF};
+    {$ENDIF}
     end
   else
     RaiseMsg(20180210205031,El,GetObjName(RefEl));
@@ -5232,8 +5248,10 @@ begin
   if RefEl is TPasType then
     begin
     El.ArgType:=TPasType(RefEl);
+    {$IFNDEF EnablePasTreeFree}
     if RefEl.Parent<>El then
       RefEl.AddRef{$IFDEF CheckPasTreeRefCount}('TPasArgument.ArgType'){$ENDIF};
+    {$ENDIF}
     end
   else
     RaiseMsg(20180211121643,El,GetObjName(RefEl));
@@ -5306,8 +5324,10 @@ begin
   if RefEl is TPasType then
     begin
     El.AncestorType:=TPasType(RefEl);
+    {$IFNDEF EnablePasTreeFree}
     if RefEl.Parent<>El then
       RefEl.AddRef{$IFDEF CheckPasTreeRefCount}('TPasClassType.AncestorType'){$ENDIF};
+    {$ENDIF}
     end
   else
     RaiseMsg(20180211121632,El,GetObjName(RefEl));
@@ -5321,8 +5341,10 @@ begin
   if RefEl is TPasType then
     begin
     El.HelperForType:=TPasType(RefEl);
+    {$IFNDEF EnablePasTreeFree}
     if RefEl.Parent<>El then
       RefEl.AddRef{$IFDEF CheckPasTreeRefCount}('TPasClassType.HelperForType'){$ENDIF};
+    {$ENDIF}
     end
   else
     RaiseMsg(20180211121612,El,GetObjName(RefEl));
@@ -5336,8 +5358,10 @@ begin
   if RefEl is TPasType then
     begin
     El.ResultType:=TPasType(RefEl);
+    {$IFNDEF EnablePasTreeFree}
     if RefEl.Parent<>El then
       RefEl.AddRef{$IFDEF CheckPasTreeRefCount}('TPasResultElement.ResultType'){$ENDIF};
+    {$ENDIF}
     end
   else
     RaiseMsg(20180211121537,El,GetObjName(RefEl));
@@ -5445,8 +5469,10 @@ begin
     begin
     Scope:=El.CustomData as TPasEnumTypeScope;
     Scope.CanonicalSet:=TPasSetType(RefEl);
+    {$IFNDEF EnablePasTreeFree}
     if RefEl.Parent<>El then
       RefEl.AddRef{$IFDEF CheckPasTreeRefCount}('TPasEnumTypeScope.CanonicalSet'){$ENDIF};
+    {$ENDIF}
     end
   else
     RaiseMsg(20180316215238,Scope.Element,GetObjName(RefEl));
@@ -5492,8 +5518,10 @@ begin
   if RefEl is TPasType then
     begin
     El.TypeEl:=TPasType(RefEl);
+    {$IFNDEF EnablePasTreeFree}
     if RefEl.Parent<>El then
       RefEl.AddRef{$IFDEF CheckPasTreeRefCount}('TPasVariable.VarType'){$ENDIF};
+    {$ENDIF}
     end
   else
     RaiseMsg(20200115214455,El,GetObjName(RefEl));
@@ -6067,15 +6095,19 @@ begin
           begin
           PendingElListRef:=TPCUReaderPendingElListRef(RefItem);
           PendingElListRef.List[PendingElListRef.Index]:=Ref.Element;
+          {$IFNDEF EnablePasTreeFree}
           if PendingElListRef.AddRef{$IFDEF CheckPasTreeRefCount}<>''{$ENDIF} then
             Ref.Element.AddRef{$IFDEF CheckPasTreeRefCount}(PendingElListRef.AddRef){$ENDIF};
+          {$ENDIF}
           end
         else if RefItem is TPCUReaderPendingElArrRef then
           begin
           PendingElArrRef:=TPCUReaderPendingElArrRef(RefItem);
           PendingElArrRef.Arr[PendingElArrRef.Index]:=Ref.Element;
+          {$IFNDEF EnablePasTreeFree}
           if PendingElArrRef.AddRef{$IFDEF CheckPasTreeRefCount}<>''{$ENDIF} then
             Ref.Element.AddRef{$IFDEF CheckPasTreeRefCount}(PendingElArrRef.AddRef){$ENDIF};
+          {$ENDIF}
           end
         else if RefItem is TPCUReaderPendingElScopeRef then
           begin
@@ -6128,8 +6160,10 @@ begin
     begin
     // element was already created -> set list item immediately
     List[Index]:=Ref.Element;
+    {$IFNDEF EnablePasTreeFree}
     if AddRef{$IFDEF CheckPasTreeRefCount}<>''{$ENDIF} then
       Ref.Element.AddRef{$IFDEF CheckPasTreeRefCount}(AddRef){$ENDIF};
+    {$ENDIF}
     end
   else
     begin
@@ -6155,8 +6189,10 @@ begin
     begin
     // element was already created -> set list item immediately
     Arr[Index]:=Ref.Element;
+    {$IFNDEF EnablePasTreeFree}
     if AddRef{$IFDEF CheckPasTreeRefCount}<>''{$ENDIF} then
       Ref.Element.AddRef{$IFDEF CheckPasTreeRefCount}(AddRef){$ENDIF};
+    {$ENDIF}
     end
   else
     begin
@@ -6977,7 +7013,9 @@ begin
       if Module=nil then
         RaiseMsg(20180307231247,Use);
       Use.Module:=Module;
+      {$IFNDEF EnablePasTreeFree}
       Module.AddRef{$IFDEF CheckPasTreeRefCount}('TPasUsesUnit.Module'){$ENDIF};
+      {$ENDIF}
       if ReadInteger(UsesObj,'Id',Id,Use) then
         AddElReference(Id,Use,Use);
       end;
@@ -7229,7 +7267,9 @@ begin
   if not (Result is BaseClass) then
     begin
     s:=GetObjName(Result);
+    {$IFNDEF EnablePasTreeFree}
     Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};;
+    {$ENDIF}
     Result:=nil;
     RaiseMsg(20180211105744,Parent,PropName+' is '+s);
     end;
@@ -7358,8 +7398,10 @@ begin
     if not (SubEl is TPasType) then
       begin
       s:=GetObjName(SubEl);
+      {$IFNDEF EnablePasTreeFree}
       if SubEl<>nil then
         SubEl.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+      {$ENDIF}
       RaiseMsg(20180210150730,El,PropName+', expected type, but got '+s);
       end;
     ReadElement(SubObj,SubEl,aContext);
@@ -7567,8 +7609,10 @@ begin
     if not (El is TPasExpr) then
       begin
       s:=GetObjName(El);
+      {$IFNDEF EnablePasTreeFree}
       if El<>nil then
         El.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+      {$ENDIF}
       RaiseMsg(20180210152134,Parent,PropName+' got '+s);
       end;
     ReadElement(SubObj,El,aContext);
@@ -8096,7 +8140,9 @@ begin
     if not ok then
       if Result<>nil then
         begin
+        {$IFNDEF EnablePasTreeFree}
         Result.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+        {$ENDIF}
         Result:=nil;
         end;
   end;
@@ -8569,8 +8615,10 @@ begin
   if not (Expr is TBinaryExpr) then
     begin
     s:=GetObjName(Expr);
+    {$IFNDEF EnablePasTreeFree}
     if Expr<>nil then
       Expr.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
+    {$ENDIF}
     RaiseMsg(20180216204042,El,s);
     end;
   El.RangeExpr:=TBinaryExpr(Expr);
@@ -8987,7 +9035,9 @@ begin
     CanonicalClassOf.SourceFilename:=aClass.SourceFilename;
     CanonicalClassOf.SourceLinenumber:=aClass.SourceLinenumber;
     CanonicalClassOf.DestType:=aClass;
+    {$IFNDEF EnablePasTreeFree}
     aClass.AddRef{$IFDEF CheckPasTreeRefCount}('TPasClassScope.CanonicalClassOf'){$ENDIF};
+    {$ENDIF}
     if ReadInteger(Obj,'ClassOf',CanonicalClassOfId,CanonicalClassOf) then
       AddElReference(CanonicalClassOfId,CanonicalClassOf,CanonicalClassOf);
     end;
@@ -9411,7 +9461,11 @@ var
   GenType: TPasGenericTemplateType;
   NamePart: TProcedureNamePart;
 begin
+  {$IFDEF EnablePasTreeFree}
+  FreeProcNameParts(El.NameParts);
+  {$ELSE}
   ReleaseProcNameParts(El.NameParts);
+  {$ENDIF}
   if ReadArray(Obj,'NameParts',Arr,El) then
     begin
     if El.NameParts=nil then
@@ -9617,7 +9671,9 @@ begin
           if not (ImplEl is TPasImplBlock) then
             begin
             s:=GetObjName(ImplEl);
+            {$IFNDEF EnablePasTreeFree}
             ImplEl.Release;
+            {$ENDIF}
             RaiseMsg(20191231171840,ProcBody,s);
             end;
           ProcBody.Body:=TPasImplBlock(ImplEl);
@@ -9876,7 +9932,9 @@ begin
     if Sub is TPasImplCaseElse then
       begin
       El.ElseBranch:=TPasImplCaseElse(Sub);
+      {$IFNDEF EnablePasTreeFree}
       Sub.AddRef;
+      {$ENDIF}
       end;
     end;
 end;
@@ -9984,7 +10042,9 @@ begin
   if El.VarEl<>nil then
     begin
     El.TypeEl:=El.VarEl.VarType;
+    {$IFNDEF EnablePasTreeFree}
     El.TypeEl.AddRef{$IFDEF CheckPasTreeRefCount}('TPasVariable.VarType'){$ENDIF};
+    {$ENDIF}
     end
   else
     ReadElType(Obj,'VarType',El,@Set_ExceptOn_TypeEl,aContext);

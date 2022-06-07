@@ -532,11 +532,13 @@ begin
     FreeAndNil(FRestAnalyzer);
     RestParser.Free;
     RestScanner.Free;
+    {$IFNDEF EnablePasTreeFree}
     if (RestResolver<>nil) and (RestResolver.RootElement<>nil) then
       begin
       RestResolver.RootElement.ReleaseUsedUnits;
       RestResolver.RootElement.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
       end;
+    {$ENDIF}
     RestResolver.Free; // free parser before resolver
     RestFileResolver.Free;
 
