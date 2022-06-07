@@ -60,12 +60,6 @@ interface
 
       TDebugInfoLLVM = class(TDebugInfo)
        strict private
-       type
-         tmembercallbackinfo = record
-           structnode: tai_llvmspecialisedmetadatanode;
-           list: tasmlist;
-         end;
-         pmembercallbackinfo = ^tmembercallbackinfo;
        var
         { lookup table for def -> LLVMMeta info }
         fdefmeta: TLLVMMetaDefHashSet;
