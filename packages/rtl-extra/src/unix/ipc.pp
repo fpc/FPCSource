@@ -18,7 +18,7 @@ unit ipc;
 interface
 
 Uses
-{$ifdef FPC_USE_LIBCX}
+{$ifdef FPC_USE_LIBC}
   initc,
 {$endif}
   BaseUnix,UnixType;
