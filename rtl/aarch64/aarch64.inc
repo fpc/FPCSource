@@ -165,10 +165,7 @@ procedure fpc_cpuinit;
 function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;assembler; nostackframe;
   asm
     cbz x0, .Lcaller_addr_invalid
-    ldur x0, [x0]
-{$ifndef cpullvm}
-    cbz x0, .Lcaller_addr_invalid
-{$else cpullvm}
+{$ifdef cpullvm}
     movn w1, #0
     cmp x0, x1
     csel x0, xzr, x0, ls
@@ -177,7 +174,6 @@ function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;assembler; no
     ldur x0, [x0, #8]
    .Lcaller_addr_invalid:
   end;
-
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;assembler; nostackframe;
