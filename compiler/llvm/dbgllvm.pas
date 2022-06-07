@@ -374,7 +374,7 @@ implementation
         list.concat(arrayrangenode);
         { the array definition }
         dinode:=def_set_meta_impl(fordef,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType));
-        dinode.addqword('tag',ord(DW_TAG_array_type));
+        dinode.addenum('tag','DW_TAG_array_type');
         dinode.addmetadatarefto('baseType',def_meta_node(eledef));
         dinode.addqword('size',eledef.size*(highrange-lowrange+1)*8);
         dinode.addmetadatarefto('elements',arrayrangenode);
@@ -787,9 +787,9 @@ implementation
               { because otherwise they are interpreted wrongly when used }
               { in a bitpacked record                                    }
               if def.low<0 then
-                dinode.addqword('encoding',ord(DW_ATE_signed))
+                dinode.addenum('encoding','DW_ATE_signed')
               else
-                dinode.addqword('encoding',ord(DW_ATE_unsigned));
+                dinode.addenum('encoding','DW_ATE_unsigned');
             end;
           uvoid :
             begin
@@ -799,7 +799,7 @@ implementation
           uwidechar :
             begin
               dinode.addqword('size',def.size*8);
-              dinode.addint64('encoding',ord(DW_ATE_unsigned_char));
+              dinode.addenum('encoding','DW_ATE_unsigned_char');
             end;
           pasbool1,
           pasbool8,
@@ -812,13 +812,13 @@ implementation
           bool64bit:
             begin
               dinode.addqword('size',def.size*8);
-              dinode.addint64('encoding',ord(DW_ATE_boolean));
+              dinode.addenum('encoding','DW_ATE_boolean');
             end;
           scurrency:
             begin
               { we should use DW_ATE_signed_fixed, however it isn't supported yet by LLVM }
               dinode.addqword('size',def.size*8);
-              dinode.addint64('encoding',ord(DW_ATE_signed));
+              dinode.addenum('encoding','DW_ATE_signed');
             end;
           customint:
             internalerror(2021111502);
@@ -841,19 +841,19 @@ implementation
               dinode.addqword('size',def.size*8);
               if def.alignment<>def.size then
                 dinode.addqword('align',def.alignment*8);
-              dinode.addint64('encoding',ord(DW_ATE_float));
+              dinode.addenum('encoding','DW_ATE_float');
             end;
           s64currency:
             begin
               { we should use DW_ATE_signed_fixed, however it isn't supported yet by LLVM }
               dinode.addqword('size',def.size*8);
-              dinode.addint64('encoding',ord(DW_ATE_signed));
+              dinode.addenum('encoding','DW_ATE_signed');
             end;
           s64comp:
             begin
               { we should use DW_ATE_signed_fixed, however it isn't supported yet by LLVM }
               dinode.addqword('size',def.size*8);
-              dinode.addint64('encoding',ord(DW_ATE_signed));
+              dinode.addenum('encoding','DW_ATE_signed');
             end;
         end;
         list.concat(dinode);
@@ -869,7 +869,7 @@ implementation
         enumlist: tai_llvmunnamedmetadatanode;
       begin
         dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType));
-        dinode.addqword('tag',ord(DW_TAG_enumeration_type));
+        dinode.addenum('tag','DW_TAG_enumeration_type');
         dinode.addqword('size',def.size*8);
         dinode.addstring('identifier',def.mangledparaname);
 
@@ -920,7 +920,7 @@ implementation
            not(llvmflag_array_datalocation in llvmversion_properties[current_settings.llvmversion]) } then
           begin
             dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType));
-            dinode.addqword('tag',ord(DW_TAG_pointer_type));
+            dinode.addenum('tag','DW_TAG_pointer_type');
             dinode.addmetadatarefto('baseType',def_meta_node(def.elementdef));
             dinode.addqword('size',def.size*8);
             list.concat(dinode);
@@ -978,11 +978,11 @@ implementation
         if is_dynamic_array(def) then
           begin
             exprnode:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIExpression);
-            exprnode.addint64('',ord(DW_OP_push_object_address));
-            exprnode.addint64('',ord(DW_OP_constu));
+            exprnode.addenum('','DW_OP_push_object_address');
+            exprnode.addenum('','DW_OP_constu');
             exprnode.addint64('',ord(sizeof(pint)));
-            exprnode.addint64('',ord(DW_OP_minus));
-            exprnode.addint64('',ord(DW_OP_deref));
+            exprnode.addenum('','DW_OP_minus');
+            exprnode.addenum('','DW_OP_deref');
             list.concat(exprnode);
             subrangenode.addmetadatarefto('upperBound',exprnode);
             subrangenode.addint64('lowerBound',def.lowrange);
@@ -1007,7 +1007,7 @@ implementation
           end;
         { the array definition }
         dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType));
-        dinode.addqword('tag',ord(DW_TAG_array_type));
+        dinode.addenum('tag','DW_TAG_array_type');
         dinode.addmetadatarefto('baseType',def_meta_node(nesteddef));
         dinode.addmetadatarefto('elements',arrayrangenode);
         if is_vector(def) then
@@ -1025,7 +1025,7 @@ implementation
         else
           begin
             exprnode:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIExpression);
-            exprnode.addqword('',ord(DW_OP_LLVM_implicit_pointer));
+            exprnode.addenum('','DW_OP_LLVM_implicit_pointer');
             list.concat(exprnode);
             dinode.addmetadatarefto('dataLocation',exprnode);
           end;
@@ -1048,7 +1048,7 @@ implementation
       begin
         dinode:=def_set_meta_impl(fordef,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType));
         list.concat(dinode);
-        dinode.addint64('tag',ord(DW_TAG_structure_type));
+        dinode.addenum('tag','DW_TAG_structure_type');
         appenddef_struct_named(list,def,dinode,tai_llvmunnamedmetadatanode.create,name);
       end;
 
@@ -1304,7 +1304,7 @@ implementation
         dinode: tai_llvmspecialisedmetadatanode;
       begin
         dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType));
-        dinode.addint64('tag',ord(DW_TAG_pointer_type));
+        dinode.addenum('tag','DW_TAG_pointer_type');
         if not(is_voidpointer(def)) then
           dinode.addmetadatarefto('baseType',def_meta_node(def.pointeddef))
         else
@@ -1318,7 +1318,7 @@ implementation
         dinode: tai_llvmspecialisedmetadatanode;
       begin
         dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType));
-        dinode.addint64('tag',ord(DW_TAG_pointer_type));
+        dinode.addenum('tag','DW_TAG_pointer_type');
         dinode.addmetadatarefto('baseType',nil);
         list.concat(dinode);
       end;
@@ -1377,7 +1377,7 @@ implementation
            begin
              // Todo: dynamic length "array"
              dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType));
-             dinode.addint64('tag',ord(DW_TAG_pointer_type));
+             dinode.addenum('tag','DW_TAG_pointer_type');
              dinode.addmetadatarefto('baseType',def_meta_node(cansichartype));
              list.concat(dinode);
            end;
@@ -1386,7 +1386,7 @@ implementation
            begin
              // Todo: dynamic length "array"
              dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType));
-             dinode.addint64('tag',ord(DW_TAG_pointer_type));
+             dinode.addenum('tag','DW_TAG_pointer_type');
              dinode.addmetadatarefto('baseType',def_meta_node(cwidechartype));
              list.concat(dinode);
            end;
@@ -1401,7 +1401,7 @@ implementation
         if def.is_addressonly then
           begin
             dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType));
-            dinode.addint64('tag',ord(DW_TAG_pointer_type));
+            dinode.addenum('tag','DW_TAG_pointer_type');
             dinode.addmetadatarefto('baseType',nil);
             list.concat(dinode);
           end
@@ -1417,7 +1417,7 @@ implementation
       dinode: tai_llvmspecialisedmetadatanode;
     begin
       dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType));
-      dinode.addint64('tag',ord(DW_TAG_structure_type));
+      dinode.addenum('tag','DW_TAG_structure_type');
       if assigned(def.typesym) then
         dinode.addstring('name',symname(def.typesym, false));
       dinode.addqword('size',def.size*8);
@@ -1484,7 +1484,7 @@ implementation
           odt_objcprotocol:
             begin
               dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType));
-              dinode.addint64('tag',ord(DW_TAG_pointer_type));
+              dinode.addenum('tag','DW_TAG_pointer_type');
               dinode.addmetadatarefto('baseType',nil);
             end;
           else
@@ -1508,7 +1508,7 @@ implementation
         dinode: tai_llvmspecialisedmetadatanode;
       begin
         dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType));
-        dinode.addint64('tag',ord(DW_TAG_pointer_type));
+        dinode.addenum('tag','DW_TAG_pointer_type');
         dinode.addmetadatarefto('baseType',nil);
         list.concat(dinode);
       end;
@@ -1519,7 +1519,7 @@ implementation
         dinode: tai_llvmspecialisedmetadatanode;
       begin
         dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType));
-        dinode.addint64('tag',ord(DW_TAG_pointer_type));
+        dinode.addenum('tag','DW_TAG_pointer_type');
         dinode.addmetadatarefto('baseType',nil);
         list.concat(dinode);
       end;
@@ -1558,14 +1558,14 @@ implementation
 
             { implicit pointer }
             tempdinode:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType);
-            refdinode.addint64('tag',ord(DW_TAG_pointer_type));
+            refdinode.addenum('tag','DW_TAG_pointer_type');
             refdinode.addmetadatarefto('baseType',tempdinode);
             list.concat(refdinode);
             { typedef }
             refdinode:=tempdinode;
           end;
 
-        refdinode.addint64('tag',ord(DW_TAG_typedef));
+        refdinode.addenum('tag','DW_TAG_typedef');
         if assigned(def.typesym) and
            not(df_generic in def.defoptions) then
           begin
@@ -2628,17 +2628,15 @@ implementation
       var
         culist: tai_llvmnamedmetadatanode;
         dwarfversionflag: tai_llvmbasemetadatanode;
-        lang: tdwarf_source_language;
         objcruntimeversion: longint;
       begin
         ensuremetainit;
-        if (ds_dwarf_cpp in current_settings.debugswitches) then
-          lang:=DW_LANG_C_plus_plus
-        else
-          lang:=DW_LANG_Pascal83;
 
         { debug info header }
-        fcunode.addint64('language',ord(lang));
+        if ds_dwarf_cpp in current_settings.debugswitches then
+          fcunode.addenum('language','DW_LANG_C_plus_plus')
+        else
+          fcunode.addenum('language','DW_LANG_Pascal83');
         fcunode.addmetadatarefto('file',file_getmetanode(current_filepos.moduleindex,current_filepos.fileindex));
         fcunode.addstring('producer','Free Pascal Compiler '+full_version_string);
         fcunode.addboolean('isOptimized',cs_opt_level2 in current_settings.optimizerswitches);
