@@ -225,8 +225,15 @@ implementation
               begin
                 result:=result+'nan';
                 if fraction<>(int64(1) shl (fraction_bits-1)) then
-                  result:=result+':0x'+HexStr(fraction,fraction_hexdigits);
+                  result:=result+'(0x'+HexStr(fraction,fraction_hexdigits)+')';
               end;
+          end
+        else if (exponent=0) then
+	  begin
+            if  (fraction=0) then
+              result:=result+'0x0.0p'+tostr(-exponent_bias)
+            else
+             result:=result+'0x0.'+HexStr(fraction shl (fraction_hexdigits*4-fraction_bits),fraction_hexdigits)+'p'+tostr(-exponent_bias+1)
           end
         else
           result:=result+'0x1.'+HexStr(fraction shl (fraction_hexdigits*4-fraction_bits),fraction_hexdigits)+'p'+tostr(exponent-exponent_bias);
