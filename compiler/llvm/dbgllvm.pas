@@ -94,7 +94,7 @@ interface
 
         function def_meta_impl(def: tdef) : tai_llvmspecialisedmetadatanode;
         function def_set_meta_impl(def: tdef; meta_impl: tai_llvmspecialisedmetadatanode): tai_llvmspecialisedmetadatanode;
-        function def_meta_class_struct(def: tobjectdef) : tai_llvmbasemetadatanode;
+        function def_meta_class_struct(def: tobjectdef) : tai_llvmspecialisedmetadatanode;
         function def_meta_node(def: tdef): tai_llvmspecialisedmetadatanode;
         function def_meta_ref(def: tdef): tai_simpletypedconst;
         function file_getmetanode(moduleindex: tfileposmoduleindex; fileindex: tfileposfileindex): tai_llvmspecialisedmetadatanode;
@@ -295,7 +295,7 @@ implementation
                 result^.HashSetItem.Data:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType);
 
                 if is_implicit_pointer_object_type(def) then
-                  result^.struct_metadef:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType)
+                  result^.struct_metadef:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType)
                 else
                   result^.struct_metadef:=nil;
                 result^.implmetadef:=nil;
@@ -413,9 +413,9 @@ implementation
         result:=meta_impl;
       end;
 
-    function TDebugInfoLLVM.def_meta_class_struct(def: tobjectdef): tai_llvmbasemetadatanode;
+    function TDebugInfoLLVM.def_meta_class_struct(def: tobjectdef): tai_llvmspecialisedmetadatanode;
       begin
-        result:=tai_llvmbasemetadatanode(get_def_metatai(def)^.struct_metadef);
+        result:=tai_llvmspecialisedmetadatanode(get_def_metatai(def)^.struct_metadef);
       end;
 
     function TDebugInfoLLVM.def_meta_node(def: tdef): tai_llvmspecialisedmetadatanode;
