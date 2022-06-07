@@ -130,6 +130,7 @@ asm
 end;
 
 
+{$ifndef FPC_SYSTEM_HAS_FILLCHAR}
 {$define FPC_SYSTEM_HAS_FILLCHAR}
 procedure FillChar(var x; count : longint; value : byte); assembler; register; nostackframe;
 asm
@@ -258,7 +259,7 @@ asm
   bne      @LfillByte
 @Lquit:
 end;
-
+{$endif ndef FPC_SYSTEM_HAS_FILLCHAR}
 
 {$ifdef dummy}
 {    procedure strcopy(dstr,sstr : pointer;len : longint);[public,alias: 'STRCOPY'];}
@@ -394,6 +395,7 @@ end;
 {$endif dummy}
 
 
+{$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
 procedure move(const source;var dest;count : longint); assembler;
 { base pointer+8 = source                  }
@@ -446,6 +448,7 @@ asm
   { end fast loop mode }
   @LMOVE5:
 end;
+{$endif ndef FPC_SYSTEM_HAS_MOVE}
 
 
 {$ifdef CPUM68K_HAS_UNALIGNED}
