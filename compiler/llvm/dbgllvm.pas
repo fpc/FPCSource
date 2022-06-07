@@ -1174,6 +1174,10 @@ implementation
               continue;
 
             field:=tfieldvarsym(recst.symlist[i]);
+            if (sp_static in field.symoptions) or
+               (field.visibility=vis_hidden) then
+              exit;
+
             { start of a new variant part? }
             if vo_is_first_field in field.varoptions then
               begin
