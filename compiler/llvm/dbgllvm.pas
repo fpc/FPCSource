@@ -1013,13 +1013,15 @@ implementation
         if is_vector(def) then
           dinode.addenum('flags','DIFlagVector');
         if not is_dynamic_array(def) then
-          if def.size<(qword(1) shl 61) then
-            dinode.addqword('size',def.size*8)
-          else
+{$ifdef cpu64bitalu}
+          if def.size>=(qword(1) shl 61) then
             { LLVM internally "only" supports sizes up to 1 shl 61, because they
               store all sizes in bits in a qword; the rationale is that there
               is no hardware supporting a full 64 bit address space either }
             dinode.addqword('size',qword(1) shl 61)
+          else
+{$endif def cpu64bitalu}
+            dinode.addqword('size',def.size*8)
         else
           begin
             exprnode:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIExpression);
@@ -1061,13 +1063,15 @@ implementation
           try_add_file_metaref(structdi,def.typesym.fileinfo,false);
         if is_packed_record_or_object(def) then
           cappedsize:=tabstractrecordsymtable(def.symtable).datasize
-        else if def.size<(qword(1) shl 61) then
-          cappedsize:=tabstractrecordsymtable(def.symtable).datasize*8
-        else
+{$ifdef cpu64bitalu}
+        else if def.size>=(qword(1) shl 61) then
           { LLVM internally "only" supports sizes up to 1 shl 61, because they
             store all sizes in bits in a qword; the rationale is that there
             is no hardware supporting a full 64 bit address space either }
-          cappedsize:=qword(1) shl 61;
+          cappedsize:=qword(1) shl 61
+{$endif def cpu64bitalu}
+        else
+          cappedsize:=tabstractrecordsymtable(def.symtable).datasize*8;
         structdi.addqword('size',cappedsize);
 
         appenddef_struct_fields(list,def,structdi,initialfieldlist,cappedsize);
