@@ -121,6 +121,7 @@ interface
         procedure appenddef_enum(list:TAsmList;def:tenumdef);override;
         procedure appenddef_array(list:TAsmList;def:tarraydef);override;
         procedure appenddef_record_named(list: TAsmList; fordef: tdef; def: trecorddef; const name: TSymStr);
+        procedure appenddef_struct_named(list: TAsmList; def: tabstractrecorddef; structdi: tai_llvmspecialisedmetadatanode; initialfieldlist: tai_llvmunnamedmetadatanode; const name: TSymStr);
         procedure appenddef_struct_fields(list: TAsmlist; def: tabstractrecorddef; defdinode: tai_llvmspecialisedmetadatanode; initialfieldlist: tai_llvmunnamedmetadatanode; cappedsize: asizeuint);
         procedure appenddef_record(list:TAsmList;def:trecorddef);override;
         procedure appenddef_pointer(list:TAsmList;def:tpointerdef);override;
@@ -1048,26 +1049,34 @@ implementation
     procedure TDebugInfoLLVM.appenddef_record_named(list:TAsmList; fordef: tdef; def:trecorddef; const name: TSymStr);
       var
         dinode: tai_llvmspecialisedmetadatanode;
-        cappedsize: asizeuint;
       begin
         dinode:=def_set_meta_impl(fordef,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType));
+        list.concat(dinode);
         dinode.addint64('tag',ord(DW_TAG_structure_type));
+        appenddef_struct_named(list,def,dinode,tai_llvmunnamedmetadatanode.create,name);
+      end;
+
+
+    procedure TDebugInfoLLVM.appenddef_struct_named(list: TAsmList; def: tabstractrecorddef; structdi: tai_llvmspecialisedmetadatanode; initialfieldlist: tai_llvmunnamedmetadatanode; const name: TSymStr);
+      var
+        cappedsize: asizeuint;
+      begin
         if (name<>'') then
-          dinode.addstring('name',name);
-        if is_packed_record_or_object(fordef) then
-          cappedsize:=def.size
+          structdi.addstring('name',name);
+        if assigned(def.typesym) then
+          try_add_file_metaref(structdi,def.typesym.fileinfo,false);
+        if is_packed_record_or_object(def) then
+          cappedsize:=tabstractrecordsymtable(def.symtable).datasize
         else if def.size<(qword(1) shl 61) then
-          cappedsize:=def.size*8
+          cappedsize:=tabstractrecordsymtable(def.symtable).datasize*8
         else
           { LLVM internally "only" supports sizes up to 1 shl 61, because they
             store all sizes in bits in a qword; the rationale is that there
             is no hardware supporting a full 64 bit address space either }
           cappedsize:=qword(1) shl 61;
-        dinode.addqword('size',cappedsize);
+        structdi.addqword('size',cappedsize);
 
-        list.concat(dinode);
-
-        appenddef_struct_fields(list,def,dinode,tai_llvmunnamedmetadatanode.create,cappedsize);
+        appenddef_struct_fields(list,def,structdi,initialfieldlist,cappedsize);
         write_symtable_procdefs(current_asmdata.asmlists[al_dwarf_info],def.symtable);
       end;
 
