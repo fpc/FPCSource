@@ -1145,11 +1145,11 @@ begin
   if FResolvers<>nil then
     begin
     {$IFDEF VerbosePasResolverMem}
-    writeln('TTestResolver.TearDown FModules');
+    writeln('TTestResolver.TearDown FResolvers');
     {$ENDIF}
     {$IFNDEF EnablePasTreeFree}
-    for i:=0 to FModules.Count-1 do
-      TTestEnginePasResolver(FModules[i]).ReleaseUsedUnits;
+    for i:=0 to FResolvers.Count-1 do
+      TTestEnginePasResolver(FResolvers[i]).ReleaseUsedUnits;
     {$ENDIF}
     FResolvers.OwnsObjects:=false;
     FResolvers.Remove(ResolverEngine); // remove reference
