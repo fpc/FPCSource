@@ -1424,24 +1424,72 @@ implementation
 
     procedure TDebugInfoLLVM.appenddef_object(list: TAsmList; def: tobjectdef);
       var
-        dinode: tai_llvmspecialisedmetadatanode;
+        dinode,
+        structdi,
+        inheritancedi: tai_llvmspecialisedmetadatanode;
+        fields: tai_llvmunnamedmetadatanode;
       begin
+        inheritancedi:=nil;
+        fields:=tai_llvmunnamedmetadatanode.create;
+        if assigned(def.childof) then
+          begin
+            inheritancedi:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType);
+            list.concat(inheritancedi);
+            inheritancedi.addenum('tag','DW_TAG_inheritance');
+            if is_implicit_pointer_object_type(def) then
+              inheritancedi.addmetadatarefto('baseType',def_meta_class_struct(def.childof))
+            else
+              inheritancedi.addmetadatarefto('baseType',def_meta_node(def.childof));
+            { Pascal only has public inheritance }
+            if def.objecttype<>odt_cppclass then
+              inheritancedi.addenum('flags','DIFlagPublic');
+            fields.addvalue(llvm_getmetadatareftypedconst(inheritancedi));
+          end;
         if is_implicit_pointer_object_type(def) then
           begin
             dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType));
-            dinode.addint64('tag',ord(DW_TAG_pointer_type));
-            dinode.addmetadatarefto('baseType',nil);
+            dinode.addenum('tag','DW_TAG_pointer_type');
+
+            structdi:=def_meta_class_struct(def);
+            list.concat(structdi);
+            structdi.addenum('tag','DW_TAG_class_type');
+            appenddef_struct_named(list,def,structdi,fields,def.objname^);
+
+            { implicit pointer }
+            dinode.addmetadatarefto('baseType',structdi);
           end
-        else
-          begin
-            dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType));
-            dinode.addint64('tag',ord(DW_TAG_structure_type));
-            if assigned(def.typesym) then
-              dinode.addstring('name',symname(def.typesym, false));
-            dinode.addqword('size',def.size*8);
-          end;
-          list.concat(dinode);
-          write_symtable_procdefs(current_asmdata.asmlists[al_dwarf_info],def.symtable);
+        else case def.objecttype of
+          odt_cppclass,
+          odt_object:
+            begin
+              dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType));
+              dinode.addenum('tag','DW_TAG_class_type');
+              appenddef_struct_named(list,def,dinode,fields,def.objname^);
+            end;
+          odt_objcclass:
+            begin
+              { Objective-C class: same as regular class, except for
+                  a) Apple-specific tag that identifies it as an Objective-C class
+                  b) use extname^ instead of objname
+              }
+              dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType));
+              dinode.addenum('tag','DW_TAG_class_type');
+              dinode.addenum('runtimeLang','DW_LANG_ObjC');
+              appenddef_struct_named(list,def,dinode,fields,def.objextname^);
+            end;
+          odt_objcprotocol:
+            begin
+              dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType));
+              dinode.addint64('tag',ord(DW_TAG_pointer_type));
+              dinode.addmetadatarefto('baseType',nil);
+            end;
+          else
+            internalerror(2022060710);
+        end;
+        list.concat(dinode);
+        if assigned(inheritancedi) then
+          inheritancedi.addmetadatarefto('scope',dinode);
+        write_symtable_procdefs(current_asmdata.asmlists[al_dwarf_info],def.symtable);
       end;
 
 
