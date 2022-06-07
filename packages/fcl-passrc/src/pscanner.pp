@@ -3267,6 +3267,8 @@ end;
 
 destructor TPascalScanner.Destroy;
 begin
+  while FIncludeStack.Count>0 do
+    PopStackItem;
   FreeAndNil(FConditionEval);
   ClearMacros;
   FreeAndNil(FMacros);
@@ -3442,7 +3444,7 @@ begin
       begin
       if FIncludeStack.Count > 0 then
         begin
-        PopStackitem;
+        PopStackItem;
         Result := FCurToken;
         end
       else

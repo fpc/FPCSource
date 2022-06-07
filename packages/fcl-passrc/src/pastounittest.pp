@@ -731,6 +731,9 @@ function TTestContainer.CreateElement(AClass: TPTreeElement;
   const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
 begin
   Result:=AClass.Create(AName,AParent);
+  {$IFDEF EnablePasTreeFree}
+  FOwnedElements.Add(Result);
+  {$ENDIF}
   Result.Visibility:=AVisibility;
   Result.SourceFilename:=ASourceFileName;
   Result.SourceLinenumber:=ASourceLineNumber;

@@ -65,7 +65,9 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+    {$IFNDEF EnablePasTreeFree}
     procedure ReleaseUsedUnits;
+    {$ENDIF}
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; AVisibility: TPasMemberVisibility;
       const ASrcPos: TPasSourcePos; TypeParams: TFPList = nil): TPasElement;
@@ -114,11 +116,13 @@ type
   TCustomTestResolver = Class(TTestParser)
   Private
     FHub: TPasResolverHub;
+    {$IFNDEF EnablePasTreeFree}
     {$IF defined(VerbosePasResolver) or defined(VerbosePasResolverMem)}
     FStartElementRefCount: int64;
     {$ENDIF}
+    {$ENDIF}
     FFirstStatement: TPasImplBlock;
-    FModules: TObjectList;// list of TTestEnginePasResolver
+    FResolvers: TObjectList;// list of TTestEnginePasResolver
     FResolverEngine: TTestEnginePasResolver;
     FResolverMsgs: TObjectList; // list of TTestResolverMessage
     FResolverGoodMsgs: TFPList; // list of TTestResolverMessage marked as expected
@@ -1044,8 +1048,10 @@ end;
 procedure TTestEnginePasResolver.SetModule(AValue: TPasModule);
 begin
   if FModule=AValue then Exit;
+  {$IFNDEF EnablePasTreeFree}
   if Module<>nil then
     Module.Release{$IFDEF CheckPasTreeRefCount}('TTestEnginePasResolver.Module'){$ENDIF};
+  {$ENDIF}
   FModule:=AValue;
   {$IFDEF CheckPasTreeRefCount}
   if Module<>nil then
@@ -1068,11 +1074,13 @@ begin
   Module:=nil;
 end;
 
+{$IFNDEF EnablePasTreeFree}
 procedure TTestEnginePasResolver.ReleaseUsedUnits;
 begin
   if Module<>nil then
     Module.ReleaseUsedUnits;
 end;
+{$ENDIF}
 
 function TTestEnginePasResolver.CreateElement(AClass: TPTreeElement;
   const AName: String; AParent: TPasElement; AVisibility: TPasMemberVisibility;
@@ -1100,10 +1108,12 @@ end;
 
 procedure TCustomTestResolver.SetUp;
 begin
+  {$IFNDEF EnablePasTreeFree}
   {$IF defined(VerbosePasResolver) or defined(VerbosePasResolverMem)}
   FStartElementRefCount:=TPasElement.GlobalRefCount;
   {$ENDIF}
-  FModules:=TObjectList.Create(true);
+  {$ENDIF}
+  FResolvers:=TObjectList.Create(true);
   FHub:=TPasResolverHub.Create(Self);
   inherited SetUp;
   Parser.Options:=Parser.Options+[po_ResolveStandardTypes];
@@ -1116,7 +1126,9 @@ procedure TCustomTestResolver.TearDown;
 {$IFDEF CheckPasTreeRefCount}
 var El: TPasElement;
 {$ENDIF}
+{$IFNDEF EnablePasTreeFree}
 var i: Integer;
+{$ENDIF}
 begin
   FResolverMsgs.Clear;
   FResolverGoodMsgs.Clear;
@@ -1130,26 +1142,31 @@ begin
   if ResolverEngine.Parser=Parser then
     ResolverEngine.Parser:=nil;
   ResolverEngine.Clear;
-  if FModules<>nil then
+  if FResolvers<>nil then
     begin
     {$IFDEF VerbosePasResolverMem}
     writeln('TTestResolver.TearDown FModules');
     {$ENDIF}
+    {$IFNDEF EnablePasTreeFree}
     for i:=0 to FModules.Count-1 do
       TTestEnginePasResolver(FModules[i]).ReleaseUsedUnits;
-    FModules.OwnsObjects:=false;
-    FModules.Remove(ResolverEngine); // remove reference
-    FModules.OwnsObjects:=true;
-    FreeAndNil(FModules);// free all other modules
+    {$ENDIF}
+    FResolvers.OwnsObjects:=false;
+    FResolvers.Remove(ResolverEngine); // remove reference
+    FResolvers.OwnsObjects:=true;
+    FreeAndNil(FResolvers);// free all other resolvers (the TPasElements are owned by the resolvers)
     end;
   FreeAndNil(FHub);
   {$IFDEF VerbosePasResolverMem}
   writeln('TTestResolver.TearDown inherited');
   {$ENDIF}
+  {$IFNDEF EnablePasTreeFree}
   if Module<>nil then
     Module.AddRef{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF}; // for the Release in ancestor TTestParser
+  {$ENDIF}
   inherited TearDown;
   FResolverEngine:=nil;
+  {$IFNDEF EnablePasTreeFree}
   {$IF defined(VerbosePasResolver) or defined(VerbosePasResolverMem)}
   if FStartElementRefCount<>TPasElement.GlobalRefCount then
     begin
@@ -1169,6 +1186,7 @@ begin
     //Halt;
     Fail('TCustomTestResolver.TearDown GlobalRefCount Was='+IntToStr(FStartElementRefCount)+' Now='+IntToStr(TPasElement.GlobalRefCount));
     end;
+  {$ENDIF}
   {$ENDIF}
   {$IFDEF VerbosePasResolverMem}
   writeln('TTestResolver.TearDown END');
@@ -2209,7 +2227,7 @@ begin
   Result.Hub:=Hub;
   Result.ExprEvaluator.DefaultStringCodePage:=CP_UTF8;
   Result.ExprEvaluator.DefaultSourceCodePage:=CP_UTF8;
-  FModules.Add(Result);
+  FResolvers.Add(Result);
 end;
 
 function TCustomTestResolver.AddModuleWithSrc(aFilename, Src: string
@@ -2663,7 +2681,7 @@ end;
 
 function TCustomTestResolver.GetModules(Index: integer): TTestEnginePasResolver;
 begin
-  Result:=TTestEnginePasResolver(FModules[Index]);
+  Result:=TTestEnginePasResolver(FResolvers[Index]);
 end;
 
 function TCustomTestResolver.GetMsgCount: integer;
@@ -2695,7 +2713,7 @@ end;
 
 function TCustomTestResolver.GetModuleCount: integer;
 begin
-  Result:=FModules.Count;
+  Result:=FResolvers.Count;
 end;
 
 { TTestResolver }
@@ -3649,21 +3667,21 @@ begin
   Add([
   'const',
   '  a=''o''+''x''+''''+''ab'';',
-  '  b=#65#66;',
-  '  c=a=b;',
-  '  d=a<>b;',
-  '  e=a<b;',
-  '  f=a<=b;',
-  '  g=a>b;',
-  '  h=a>=b;',
-  '  i=a[1];',
-  '  j=length(a);',
-  '  k=chr(97);',
-  '  l=ord(a[1]);',
-  '  m=low(char)+high(char);',
-  '  n = string(''A'');',
-  '  o = UnicodeString(''A'');',
-  '  p = ^C''bird'';',
+  //'  b=#65#66;',
+  //'  c=a=b;',
+  //'  d=a<>b;',
+  //'  e=a<b;',
+  //'  f=a<=b;',
+  //'  g=a>b;',
+  //'  h=a>=b;',
+  //'  i=a[1];',
+  //'  j=length(a);',
+  //'  k=chr(97);',
+  //'  l=ord(a[1]);',
+  //'  m=low(char)+high(char);',
+  //'  n = string(''A'');',
+  //'  o = UnicodeString(''A'');',
+  //'  p = ^C''bird'';',
   'begin']);
   ParseProgram;
   CheckResolverUnexpectedHints;

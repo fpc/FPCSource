@@ -1891,7 +1891,7 @@ const
   VariableModifierNames : Array[TVariableModifier] of string
      = ('cvar', 'external', 'public', 'export', 'class', 'static');
 
-procedure FreeProcNameParts(Parent: TPasElement; var NameParts: TProcedureNameParts; Prepare: boolean);
+procedure FreeProcNameParts(var NameParts: TProcedureNameParts);
 procedure FreePasExprArray(Parent: TPasElement; var A: TPasExprArray; Prepare: boolean);
 {$IFNDEF EnablePasTreeFree}
 procedure ReleaseAndNil(var El: TPasElement {$IFDEF CheckPasTreeRefCount}; const Id: string{$ENDIF}); overload;
@@ -1913,8 +1913,7 @@ function GetPTDumpStack: string;
 
 implementation
 
-procedure FreeProcNameParts(Parent: TPasElement;
-  var NameParts: TProcedureNameParts; Prepare: boolean);
+procedure FreeProcNameParts(var NameParts: TProcedureNameParts);
 var
   i: Integer;
   p: TProcedureNamePart;
@@ -1923,15 +1922,11 @@ begin
   for i:=0 to NameParts.Count-1 do
     begin
     p:=TProcedureNamePart(NameParts[i]);
-    Parent.FreeChildList(p.Templates,Prepare);
-    if not Prepare then
-      p.Free;
+    p.Templates.Free;
+    p.Free;
     end;
-  if not Prepare then
-    begin
-    NameParts.Free;
-    NameParts:=nil;
-    end;
+  NameParts.Free;
+  NameParts:=nil;
 end;
 
 procedure FreePasExprArray(Parent: TPasElement; var A: TPasExprArray;
@@ -4631,7 +4626,9 @@ end;
 
 destructor TPasProcedure.Destroy;
 begin
-  {$IFNDEF EnablePasTreeFree}
+  {$IFDEF EnablePasTreeFree}
+  FreeProcNameParts(NameParts);
+  {$ELSE}
   ReleaseAndNil(TPasElement(PublicName){$IFDEF CheckPasTreeRefCount},'TPasProcedure.PublicName'{$ENDIF});
   ReleaseAndNil(TPasElement(LibrarySymbolName){$IFDEF CheckPasTreeRefCount},'TPasProcedure.LibrarySymbolName'{$ENDIF});
   ReleaseAndNil(TPasElement(LibraryExpr){$IFDEF CheckPasTreeRefCount},'TPasProcedure.LibraryExpr'{$ENDIF});
@@ -4653,7 +4650,7 @@ begin
   MessageExpr:=TPasExpr(FreeChild(MessageExpr,Prepare));
   ProcType:=TPasProcedureType(FreeChild(ProcType,Prepare));
   Body:=TProcedureBody(FreeChild(Body,Prepare));
-  FreeProcNameParts(Self,NameParts,Prepare);
+  //FreeProcNameParts(Self,NameParts,Prepare);
   inherited FreeChildren(Prepare);
 end;
 
@@ -5907,7 +5904,7 @@ begin
   if NameParts<>nil then
     begin
     {$IFDEF EnablePasTreeFree}
-    FreeProcNameParts(Self,NameParts,true);
+    FreeProcNameParts(NameParts);
     {$ELSE}
     ReleaseProcNameParts(NameParts);
     {$ENDIF}

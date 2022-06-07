@@ -660,11 +660,15 @@ end;
 procedure TPAOverrideList.SetElement(AValue: TPasElement);
 begin
   if FElement=AValue then Exit;
+  {$IFNDEF EnablePasTreeFree}
   if FElement<>nil then
     FElement.Release{$IFDEF CheckPasTreeRefCount}('TPAOverrideList.Element'){$ENDIF};
+  {$ENDIF}
   FElement:=AValue;
+  {$IFNDEF EnablePasTreeFree}
   if FElement<>nil then
     FElement.AddRef{$IFDEF CheckPasTreeRefCount}('TPAOverrideList.Element'){$ENDIF};
+  {$ENDIF}
 end;
 
 constructor TPAOverrideList.Create;
@@ -673,11 +677,15 @@ begin
 end;
 
 destructor TPAOverrideList.Destroy;
+{$IFNDEF EnablePasTreeFree}
 var
   i: Integer;
+{$ENDIF}
 begin
+  {$IFNDEF EnablePasTreeFree}
   for i:=0 to FOverrides.Count-1 do
     TPasElement(FOverrides[i]).Release{$IFDEF CheckPasTreeRefCount}('TPAOverrideList.Overrides'){$ENDIF};
+  {$ENDIF}
   FreeAndNil(FOverrides);
   Element:=nil;
   inherited Destroy;
@@ -686,7 +694,9 @@ end;
 procedure TPAOverrideList.Add(OverrideEl: TPasElement);
 begin
   FOverrides.Add(OverrideEl);
+  {$IFNDEF EnablePasTreeFree}
   OverrideEl.AddRef{$IFDEF CheckPasTreeRefCount}('TPAOverrideList.Overrides'){$ENDIF};
+  {$ENDIF}
 end;
 
 function TPAOverrideList.Count: integer;
@@ -699,11 +709,15 @@ end;
 procedure TPAElement.SetElement(AValue: TPasElement);
 begin
   if FElement=AValue then Exit;
+  {$IFNDEF EnablePasTreeFree}
   if FElement<>nil then
     FElement.Release{$IFDEF CheckPasTreeRefCount}('TPAElement.Element'){$ENDIF};
+  {$ENDIF}
   FElement:=AValue;
+  {$IFNDEF EnablePasTreeFree}
   if FElement<>nil then
     FElement.AddRef{$IFDEF CheckPasTreeRefCount}('TPAElement.Element'){$ENDIF};
+  {$ENDIF}
 end;
 
 destructor TPAElement.Destroy;
