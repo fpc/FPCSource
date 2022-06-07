@@ -1018,7 +1018,7 @@ implementation
             { LLVM internally "only" supports sizes up to 1 shl 61, because they
               store all sizes in bits in a qword; the rationale is that there
               is no hardware supporting a full 64 bit address space either }
-            dinode.addqword('size',qword(1) shl 61)
+            dinode.addqword('size',((qword(1) shl 61) - 1)*8)
           else
 {$endif def cpu64bitalu}
             dinode.addqword('size',def.size*8)
@@ -1068,7 +1068,7 @@ implementation
           { LLVM internally "only" supports sizes up to 1 shl 61, because they
             store all sizes in bits in a qword; the rationale is that there
             is no hardware supporting a full 64 bit address space either }
-          cappedsize:=qword(1) shl 61
+          cappedsize:=((qword(1) shl 61) - 1)*8
 {$endif def cpu64bitalu}
         else
           cappedsize:=tabstractrecordsymtable(def.symtable).datasize*8;
