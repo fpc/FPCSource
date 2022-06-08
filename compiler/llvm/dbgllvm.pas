@@ -1152,7 +1152,7 @@ implementation
       var
         variantinfolist: tfplist;
         variantinfo: pvariantinfo;
-        recst: trecordsymtable;
+        recst: tabstractrecordsymtable;
         scope,
         fielddi,
         uniondi,
@@ -1163,7 +1163,7 @@ implementation
         bitoffset: asizeuint;
         bpackedrecst: boolean;
       begin
-        recst:=trecordsymtable(def.symtable);
+        recst:=tabstractrecordsymtable(def.symtable);
         bpackedrecst:=recst.fieldalignment=bit_alignment;
         scope:=defdinode;
         variantinfolist:=nil;
