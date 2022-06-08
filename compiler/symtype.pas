@@ -933,26 +933,19 @@ implementation
                { register that the unit is needed for resolving }
                data[len]:=ord(deref_unit);
                idx:=current_module.derefidx_unit(st.moduleid);
-               data[len+1]:=idx shr 8 and $ff;
-               data[len+2]:=idx and $ff;
+               unaligned(PUint16(@data[len+1{..len+2}])^):=NtoBE(uint16(idx));
                inc(len,3);
              end;
            if s is tsym then
              begin
                data[len]:=ord(deref_symid);
-               data[len+1]:=tsym(s).symid shr 24 and $ff;
-               data[len+2]:=tsym(s).symid shr 16 and $ff;
-               data[len+3]:=tsym(s).symid shr 8 and $ff;
-               data[len+4]:=tsym(s).symid and $ff;
+               unaligned(PInt32(@data[len+1{..len+4}])^):=NtoBE(int32(tsym(s).symid));
                inc(len,5);
              end
            else
              begin
                data[len]:=ord(deref_defid);
-               data[len+1]:=tdef(s).defid shr 24 and $ff;
-               data[len+2]:=tdef(s).defid shr 16 and $ff;
-               data[len+3]:=tdef(s).defid shr 8 and $ff;
-               data[len+4]:=tdef(s).defid and $ff;
+               unaligned(PInt32(@data[len+1{..len+4}])^):=NtoBE(int32(tdef(s).defid));
                inc(len,5);
              end;
          end
@@ -1004,19 +997,19 @@ implementation
             case typ of
               deref_unit :
                 begin
-                  idx:=(data[i] shl 8) or data[i+1];
+                  idx:=BEtoN(unaligned(PUint16(@data[i{..i+1}])^));
                   inc(i,2);
                   pm:=current_module.resolve_unit(idx);
                 end;
               deref_defid :
                 begin
-                  idx:=longint((data[i] shl 24) or (data[i+1] shl 16) or (data[i+2] shl 8) or data[i+3]);
+                  idx:=BEtoN(unaligned(PInt32(@data[i{..i+3}])^));
                   inc(i,4);
                   result:=tdef(pm.deflist[idx]);
                 end;
               deref_symid :
                 begin
-                  idx:=longint((data[i] shl 24) or (data[i+1] shl 16) or (data[i+2] shl 8) or data[i+3]);
+                  idx:=BEtoN(unaligned(PInt32(@data[i{..i+3}])^));
                   inc(i,4);
                   result:=tsym(pm.symlist[idx]);
                 end;

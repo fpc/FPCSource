@@ -433,8 +433,7 @@ implementation
                     store_at:=2*pb^[h.bucket_x];
                     pb^[store_at]:=length_of_string;
                     Move(N[1],pb^[store_at+1],length_of_string);
-                    pb^[store_at+1+length_of_string]:=Byte(PageNum);
-                    pb^[store_at+1+length_of_string+1]:=Byte(PageNum shr 8);
+                    unaligned(PUint16(@pb^[store_at+1+length_of_string{..store_at+1+length_of_string+1}])^):=NtoLE(uint16(PageNum));
                     Inc(pb^[freespace],space_required div 2);
                     if pb^[freespace]=0 then
                       pb^[freespace]:=255;
@@ -525,8 +524,7 @@ implementation
                   end;
                 SetLength(name,length_of_string);
                 Move(block^[ofs+1],name[1],length_of_string);
-                PageNum:=block^[ofs+1+length_of_string]+
-                         block^[ofs+1+length_of_string+1] shl 8;
+                PageNum:=LEtoN(unaligned(PUint16(@block^[ofs+1+length_of_string{..ofs+1+length_of_string+1}])^));
                 TOmfLibDictionaryEntry.create(LibSymbols,name,PageNum);
               end;
         end;

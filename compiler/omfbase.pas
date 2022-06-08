@@ -1389,13 +1389,12 @@ implementation
 
   function TOmfRawRecord.GetRecordLength: Word;
     begin
-      Result:=RawData[-2] or (RawData[-1] shl 8);
+      Result:=LEtoN(unaligned(PUint16(@RawData[-2{..-1}])^));
     end;
 
   procedure TOmfRawRecord.SetRecordLength(AValue: Word);
     begin
-      RawData[-2]:=Byte(AValue);
-      RawData[-1]:=Byte(AValue shr 8);
+      unaligned(PUint16(@RawData[-2{..-1}])^):=NtoLE(uint16(AValue));
     end;
 
   function TOmfRawRecord.ReadStringAt(Offset: Integer; out s: string): Integer;
@@ -1628,8 +1627,7 @@ implementation
           OrdinalIdx:=ModuleNameLenIdx+1+ModuleNameLen;
           if (OrdinalIdx+1)>Length(ComentRecord.CommentString) then
             internalerror(2019061625);
-          Ordinal:=Ord(ComentRecord.CommentString[OrdinalIdx]) or
-                   (Word(Ord(ComentRecord.CommentString[OrdinalIdx+1])) shl 8);
+          Ordinal:=LEtoN(unaligned(PUint16(@ComentRecord.CommentString[OrdinalIdx{..OrdinalIdx+1}])^));
         end
       else
         begin
@@ -1698,8 +1696,7 @@ implementation
           ExportOrdinalIdx:=InternalNameLenIdx+1+InternalNameLen;
           if (ExportOrdinalIdx+1)>Length(ComentRecord.CommentString) then
             internalerror(2019061606);
-          ExportOrdinal:=Ord(ComentRecord.CommentString[ExportOrdinalIdx]) or
-                         (Word(Ord(ComentRecord.CommentString[ExportOrdinalIdx+1])) shl 8);
+          ExportOrdinal:=LEtoN(unaligned(PUint16(@ComentRecord.CommentString[ExportOrdinalIdx{..ExportOrdinalIdx+1}])^));
         end
       else
         ExportOrdinal:=0;
@@ -1821,7 +1818,7 @@ implementation
           inc(MinLen,3);
           if RawRecord.RecordLength<MinLen then
             internalerror(2015040317);
-          FrameNumber:=RawRecord.RawData[1]+(RawRecord.RawData[2] shl 8);
+          FrameNumber:=LEtoN(unaligned(PUint16(@RawRecord.RawData[1{..2}])^));
           Offset:=RawRecord.RawData[3];
           NextOfs:=4;
         end
@@ -1832,10 +1829,7 @@ implementation
         end;
       if Is32Bit then
         begin
-          SegmentLength:=RawRecord.RawData[NextOfs]+
-            (RawRecord.RawData[NextOfs+1] shl 8)+
-            (RawRecord.RawData[NextOfs+2] shl 16)+
-            (RawRecord.RawData[NextOfs+3] shl 24);
+          SegmentLength:=LEtoN(unaligned(PUint32(@RawRecord.RawData[NextOfs{..NextOfs+3}])^));
           if Big then
             if SegmentLength=0 then
               SegmentLength:=4294967296
@@ -1845,7 +1839,7 @@ implementation
         end
       else
         begin
-          SegmentLength:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8);
+          SegmentLength:=LEtoN(unaligned(PUint16(@RawRecord.RawData[NextOfs{..NextOfs+1}])^));
           if Big then
             if SegmentLength=0 then
               SegmentLength:=65536
@@ -1882,23 +1876,18 @@ implementation
       NextOfs:=1;
       if Alignment=saAbsolute then
         begin
-          RawRecord.RawData[1]:=Byte(FrameNumber);
-          RawRecord.RawData[2]:=Byte(FrameNumber shr 8);
+          unaligned(PUint16(@RawRecord.RawData[1{..2}])^):=NtoLE(uint16(FrameNumber));
           RawRecord.RawData[3]:=Offset;
           NextOfs:=4;
         end;
       if Is32Bit then
         begin
-          RawRecord.RawData[NextOfs]:=Byte(SegmentLength);
-          RawRecord.RawData[NextOfs+1]:=Byte(SegmentLength shr 8);
-          RawRecord.RawData[NextOfs+2]:=Byte(SegmentLength shr 16);
-          RawRecord.RawData[NextOfs+3]:=Byte(SegmentLength shr 24);
+          unaligned(PUint32(@RawRecord.RawData[NextOfs{..NextOfs+3}])^):=NtoLE(uint32(SegmentLength));
           Inc(NextOfs,4);
         end
       else
         begin
-          RawRecord.RawData[NextOfs]:=Byte(SegmentLength);
-          RawRecord.RawData[NextOfs+1]:=Byte(SegmentLength shr 8);
+          unaligned(PUint16(@RawRecord.RawData[NextOfs{..NextOfs+1}])^):=NtoLE(uint16(SegmentLength));
           Inc(NextOfs,2);
         end;
       NextOfs:=RawRecord.WriteIndexedRef(NextOfs,SegmentNameIndex);
@@ -1991,7 +1980,7 @@ implementation
         begin
           if (NextOfs+1)>=RawRecord.RecordLength then
             internalerror(2015041401);
-          BaseFrame:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8);
+          BaseFrame:=LEtoN(unaligned(PUint16(@RawRecord.RawData[NextOfs{..NextOfs+1}])^));
           Inc(NextOfs,2);
         end
       else
@@ -2004,15 +1993,14 @@ implementation
             begin
               if (NextOfs+3)>=RawRecord.RecordLength then
                 internalerror(2015041405);
-              PublicOffset:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8)+
-                (RawRecord.RawData[NextOfs+2] shl 16)+(RawRecord.RawData[NextOfs+3] shl 24);
+              PublicOffset:=LEtoN(unaligned(PUint32(@RawRecord.RawData[NextOfs{..NextOfs+3}])^));
               Inc(NextOfs,4);
             end
           else
             begin
               if (NextOfs+1)>=RawRecord.RecordLength then
                 internalerror(2015041407);
-              PublicOffset:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8);
+              PublicOffset:=LEtoN(unaligned(PUint16(@RawRecord.RawData[NextOfs{..NextOfs+1}])^));
               Inc(NextOfs,2);
             end;
           NextOfs:=RawRecord.ReadIndexedRef(NextOfs,TypeIndex);
@@ -2049,8 +2037,7 @@ implementation
       NextOfs:=RawRecord.WriteIndexedRef(NextOfs,BaseSegmentIndex);
       if BaseSegmentIndex=0 then
         begin
-          RawRecord.RawData[NextOfs]:=Byte(BaseFrame);
-          RawRecord.RawData[NextOfs+1]:=Byte(BaseFrame shr 8);
+          unaligned(PUint16(@RawRecord.RawData[NextOfs{..NextOfs+1}])^):=NtoLE(uint16(BaseFrame));
           Inc(NextOfs,2);
         end;
 
@@ -2071,18 +2058,14 @@ implementation
           NextOfs:=RawRecord.WriteStringAt(NextOfs,PubName.Name);
           if Is32Bit then
             begin
-              RawRecord.RawData[NextOfs]:=Byte(PubName.PublicOffset);
-              RawRecord.RawData[NextOfs+1]:=Byte(PubName.PublicOffset shr 8);
-              RawRecord.RawData[NextOfs+2]:=Byte(PubName.PublicOffset shr 16);
-              RawRecord.RawData[NextOfs+3]:=Byte(PubName.PublicOffset shr 24);
+              unaligned(PUint32(@RawRecord.RawData[NextOfs{..NextOfs+3}])^):=NtoLE(uint32(PubName.PublicOffset));
               Inc(NextOfs,4);
             end
           else
             begin
               if PubName.PublicOffset>$ffff then
                 internalerror(2015041403);
-              RawRecord.RawData[NextOfs]:=Byte(PubName.PublicOffset);
-              RawRecord.RawData[NextOfs+1]:=Byte(PubName.PublicOffset shr 8);
+              unaligned(PUint16(@RawRecord.RawData[NextOfs{..NextOfs+1}])^):=NtoLE(uint16(PubName.PublicOffset));
               Inc(NextOfs,2);
             end;
           NextOfs:=RawRecord.WriteIndexedRef(NextOfs,PubName.TypeIndex);
@@ -2232,18 +2215,14 @@ implementation
                     begin
                       if (NextOfs+3)>=RawRecord.RecordLength then
                         internalerror(2015040504);
-                      TargetDisplacement := RawRecord.RawData[NextOfs]+
-                                           (RawRecord.RawData[NextOfs+1] shl 8)+
-                                           (RawRecord.RawData[NextOfs+2] shl 16)+
-                                           (RawRecord.RawData[NextOfs+3] shl 24);
+                      TargetDisplacement := LEtoN(unaligned(PUint32(@RawRecord.RawData[NextOfs{..NextOfs+3}])^));
                       Inc(NextOfs,4);
                     end
                   else
                     begin
                       if (NextOfs+1)>=RawRecord.RecordLength then
                         internalerror(2015040508);
-                      TargetDisplacement := RawRecord.RawData[NextOfs]+
-                                           (RawRecord.RawData[NextOfs+1] shl 8);
+                      TargetDisplacement := LEtoN(unaligned(PUint16(@RawRecord.RawData[NextOfs{..NextOfs+1}])^));
                       Inc(NextOfs,2);
                     end;
                 end;
@@ -2253,21 +2232,20 @@ implementation
               { physical start address }
               if (NextOfs+1)>=RawRecord.RecordLength then
                 internalerror(2015040320);
-              PhysFrameNumber:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8);
+              PhysFrameNumber:=LEtoN(unaligned(PUint16(@RawRecord.RawData[NextOfs{..NextOfs+1}])^));
               Inc(NextOfs,2);
               if Is32Bit then
                 begin
                   if (NextOfs+3)>=RawRecord.RecordLength then
                     internalerror(2015040321);
-                  PhysOffset:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8)+
-                    (RawRecord.RawData[NextOfs+2] shl 16)+(RawRecord.RawData[NextOfs+3] shl 24);
+                  PhysOffset:=LEtoN(unaligned(PUint32(@RawRecord.RawData[NextOfs{..NextOfs+3}])^));
                   Inc(NextOfs,4);
                 end
               else
                 begin
                   if (NextOfs+1)>=RawRecord.RecordLength then
                     internalerror(2015040322);
-                  PhysOffset:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8);
+                  PhysOffset:=LEtoN(unaligned(PUint16(@RawRecord.RawData[NextOfs{..NextOfs+1}])^));
                   Inc(NextOfs,2);
                 end;
             end;
@@ -2307,18 +2285,14 @@ implementation
                 begin
                   if Is32Bit then
                     begin
-                      RawRecord.RawData[NextOfs]:=Byte(TargetDisplacement);
-                      RawRecord.RawData[NextOfs+1]:=Byte(TargetDisplacement shr 8);
-                      RawRecord.RawData[NextOfs+2]:=Byte(TargetDisplacement shr 16);
-                      RawRecord.RawData[NextOfs+3]:=Byte(TargetDisplacement shr 24);
+                      unaligned(PUint32(@RawRecord.RawData[NextOfs{..NextOfs+3}])^):=NtoLE(uint32(TargetDisplacement));
                       Inc(NextOfs,4);
                     end
                   else
                     begin
                       if TargetDisplacement>$ffff then
                         internalerror(2015040502);
-                      RawRecord.RawData[NextOfs]:=Byte(TargetDisplacement);
-                      RawRecord.RawData[NextOfs+1]:=Byte(TargetDisplacement shr 8);
+                      unaligned(PUint16(@RawRecord.RawData[NextOfs{..NextOfs+1}])^):=NtoLE(uint16(TargetDisplacement));
                       Inc(NextOfs,2);
                     end;
                 end;
@@ -2326,23 +2300,18 @@ implementation
           else
             begin
               { physical start address }
-              RawRecord.RawData[NextOfs]:=Byte(PhysFrameNumber);
-              RawRecord.RawData[NextOfs+1]:=Byte(PhysFrameNumber shr 8);
+              unaligned(PUint16(@RawRecord.RawData[NextOfs{..NextOfs+1}])^):=NtoLE(uint16(PhysFrameNumber));
               Inc(NextOfs,2);
               if Is32Bit then
                 begin
-                  RawRecord.RawData[NextOfs]:=Byte(PhysOffset);
-                  RawRecord.RawData[NextOfs+1]:=Byte(PhysOffset shr 8);
-                  RawRecord.RawData[NextOfs+2]:=Byte(PhysOffset shr 16);
-                  RawRecord.RawData[NextOfs+3]:=Byte(PhysOffset shr 24);
+                  unaligned(PUint32(@RawRecord.RawData[NextOfs{..NextOfs+3}])^):=NtoLE(uint32(PhysOffset));
                   Inc(NextOfs,4);
                 end
               else
                 begin
                   if PhysOffset>$ffff then
                     internalerror(2015040506);
-                  RawRecord.RawData[NextOfs]:=Byte(PhysOffset);
-                  RawRecord.RawData[NextOfs+1]:=Byte(PhysOffset shr 8);
+                  unaligned(PUint16(@RawRecord.RawData[NextOfs{..NextOfs+1}])^):=NtoLE(uint16(PhysOffset));
                   Inc(NextOfs,2);
                 end;
             end;
@@ -2455,16 +2424,11 @@ implementation
         RecordSize:=4;
       while (NextOfs+RecordSize)<RawRecord.RecordLength do
         begin
-          LineNumber:=RawRecord.RawData[NextOfs]+
-                     (RawRecord.RawData[NextOfs+1] shl 8);
+          LineNumber:=LEtoN(unaligned(PUint16(@RawRecord.RawData[NextOfs{..NextOfs+1}])^));
           if Is32Bit then
-            Offset:=RawRecord.RawData[NextOfs+2]+
-                   (RawRecord.RawData[NextOfs+3] shl 8)+
-                   (RawRecord.RawData[NextOfs+4] shl 16)+
-                   (RawRecord.RawData[NextOfs+5] shl 24)
+            Offset:=LEtoN(unaligned(PUint32(@RawRecord.RawData[NextOfs+2{..NextOfs+5}])^))
           else
-            Offset:=RawRecord.RawData[NextOfs+2]+
-                   (RawRecord.RawData[NextOfs+3] shl 8);
+            Offset:=LEtoN(unaligned(PUint16(@RawRecord.RawData[NextOfs+2{..NextOfs+3}])^));
           LineNumberList.Add(TOmfSubRecord_LINNUM_MsLink_Entry.Create(LineNumber,Offset));
           Inc(NextOfs,RecordSize);
         end;
@@ -2493,23 +2457,18 @@ implementation
       for I:=NextIndex to LastIncludedIndex do
         with LineNumberList.Items[I] do
           begin
-            RawRecord.RawData[NextOfs]:=byte(LineNumber);
-            RawRecord.RawData[NextOfs+1]:=byte(LineNumber shr 8);
+            unaligned(PUint16(@RawRecord.RawData[NextOfs{..NextOfs+1}])^):=NtoLE(uint16(LineNumber));
             Inc(NextOfs,2);
             if Is32Bit then
               begin
-                RawRecord.RawData[NextOfs]:=byte(Offset);
-                RawRecord.RawData[NextOfs+1]:=byte(Offset shr 8);
-                RawRecord.RawData[NextOfs+2]:=byte(Offset shr 16);
-                RawRecord.RawData[NextOfs+3]:=byte(Offset shr 24);
+                unaligned(PUint32(@RawRecord.RawData[NextOfs{..NextOfs+3}])^):=NtoLE(uint32(Offset));
                 Inc(NextOfs,4);
               end
             else
               begin
                 if Offset>High(Word) then
                   internalerror(2018050901);
-                RawRecord.RawData[NextOfs]:=byte(Offset);
-                RawRecord.RawData[NextOfs+1]:=byte(Offset shr 8);
+                unaligned(PUint16(@RawRecord.RawData[NextOfs{..NextOfs+1}])^):=NtoLE(uint16(Offset));
                 Inc(NextOfs,2);
               end;
           end;
@@ -2680,7 +2639,7 @@ implementation
       if (Offset+2)>=RawRecord.RecordLength then
         internalerror(2015040509);
       { unlike other fields in the OMF format, this one is big endian }
-      Locat:=(RawRecord.RawData[Offset] shl 8) or RawRecord.RawData[Offset+1];
+      Locat:=BEtoN(unaligned(PUint16(@RawRecord.RawData[Offset{..Offset+1}])^));
       FixData:=RawRecord.RawData[Offset+2];
       Inc(Offset,3);
       if (Locat and $8000)=0 then
@@ -2719,18 +2678,14 @@ implementation
             begin
               if (Offset+3)>=RawRecord.RecordLength then
                 internalerror(2015040510);
-              TargetDisplacement := RawRecord.RawData[Offset]+
-                                   (RawRecord.RawData[Offset+1] shl 8)+
-                                   (RawRecord.RawData[Offset+2] shl 16)+
-                                   (RawRecord.RawData[Offset+3] shl 24);
+              TargetDisplacement := LEtoN(unaligned(PUint32(@RawRecord.RawData[Offset{..Offset+3}])^));
               Inc(Offset,4);
             end
           else
             begin
               if (Offset+1)>=RawRecord.RecordLength then
                 internalerror(2015040511);
-              TargetDisplacement := RawRecord.RawData[Offset]+
-                                   (RawRecord.RawData[Offset+1] shl 8);
+              TargetDisplacement := LEtoN(unaligned(PUint16(@RawRecord.RawData[Offset{..Offset+1}])^));
               Inc(Offset,2);
             end;
         end;
@@ -2746,8 +2701,7 @@ implementation
         internalerror(2015040505);
       Locat:=$8000+(Ord(Mode) shl 14)+(Ord(LocationType) shl 10)+DataRecordOffset;
       { unlike other fields in the OMF format, this one is big endian }
-      RawRecord.RawData[Offset]:=Byte(Locat shr 8);
-      RawRecord.RawData[Offset+1]:=Byte(Locat);
+      unaligned(PUint16(@RawRecord.RawData[Offset{..Offset+1}])^):=NtoBE(uint16(Locat));
       Inc(Offset, 2);
       FixData:=(Ord(FrameDeterminedByThread) shl 7)+(Ord(TargetDeterminedByThread) shl 3);
       if FrameDeterminedByThread then
@@ -2772,18 +2726,14 @@ implementation
         begin
           if Is32Bit then
             begin
-              RawRecord.RawData[Offset]:=Byte(TargetDisplacement);
-              RawRecord.RawData[Offset+1]:=Byte(TargetDisplacement shr 8);
-              RawRecord.RawData[Offset+2]:=Byte(TargetDisplacement shr 16);
-              RawRecord.RawData[Offset+3]:=Byte(TargetDisplacement shr 24);
+              unaligned(PUint32(@RawRecord.RawData[Offset{..Offset+3}])^):=NtoLE(uint32(TargetDisplacement));
               Inc(Offset,4);
             end
           else
             begin
               if TargetDisplacement>$ffff then
                 internalerror(2015040507);
-              RawRecord.RawData[Offset]:=Byte(TargetDisplacement);
-              RawRecord.RawData[Offset+1]:=Byte(TargetDisplacement shr 8);
+              unaligned(PUint16(@RawRecord.RawData[Offset{..Offset+1}])^):=NtoLE(uint16(TargetDisplacement));
               Inc(Offset,2);
             end;
         end;
@@ -2840,12 +2790,8 @@ implementation
         internalerror(2015040314);
       { this will also range check PageSize and will ensure that RecordLength>=13 }
       PageSize:=RawRecord.RecordLength+3;
-      DictionaryOffset:=RawRecord.RawData[0]+
-                       (RawRecord.RawData[1] shl 8)+
-                       (RawRecord.RawData[2] shl 16)+
-                       (RawRecord.RawData[3] shl 24);
-      DictionarySizeInBlocks:=RawRecord.RawData[4]+
-                             (RawRecord.RawData[5] shl 8);
+      DictionaryOffset:=LEtoN(unaligned(PUint32(@RawRecord.RawData[0{..3}])^));
+      DictionarySizeInBlocks:=LEtoN(unaligned(PUint16(@RawRecord.RawData[4{..5}])^));
       Flags:=RawRecord.RawData[6];
     end;
 
@@ -2855,12 +2801,8 @@ implementation
       FillChar(RawRecord.RawData,SizeOf(RawRecord.RawData),0);
       RawRecord.RecordType:=RT_LIBHEAD;
       RawRecord.RecordLength:=PageSize-3;
-      RawRecord.RawData[0]:=Byte(DictionaryOffset);
-      RawRecord.RawData[1]:=Byte(DictionaryOffset shr 8);
-      RawRecord.RawData[2]:=Byte(DictionaryOffset shr 16);
-      RawRecord.RawData[3]:=Byte(DictionaryOffset shr 24);
-      RawRecord.RawData[4]:=Byte(DictionarySizeInBlocks);
-      RawRecord.RawData[5]:=Byte(DictionarySizeInBlocks shr 8);
+      unaligned(PUint32(@RawRecord.RawData[0{..3}])^):=NtoLE(uint32(DictionaryOffset));
+      unaligned(PUint16(@RawRecord.RawData[4{..5}])^):=NtoLE(uint16(DictionarySizeInBlocks));
       RawRecord.RawData[6]:=Flags;
       { the LIBHEAD record contains no checksum byte, so no need to call
         RawRecord.CalculateChecksumByte }

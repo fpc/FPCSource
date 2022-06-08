@@ -1375,18 +1375,14 @@ implementation
               NextOfs:=RawRecord.WriteIndexedRef(0,SegIndex);
               if Is32BitLEDATA then
                 begin
-                  RawRecord.RawData[NextOfs]:=Byte(ChunkStart);
-                  RawRecord.RawData[NextOfs+1]:=Byte(ChunkStart shr 8);
-                  RawRecord.RawData[NextOfs+2]:=Byte(ChunkStart shr 16);
-                  RawRecord.RawData[NextOfs+3]:=Byte(ChunkStart shr 24);
+                  unaligned(PUint32(@RawRecord.RawData[NextOfs{..NextOfs+3}])^):=NtoLE(uint32(ChunkStart));
                   Inc(NextOfs,4);
                 end
               else
                 begin
                   if ChunkStart>$ffff then
                     internalerror(2018052201);
-                  RawRecord.RawData[NextOfs]:=Byte(ChunkStart);
-                  RawRecord.RawData[NextOfs+1]:=Byte(ChunkStart shr 8);
+                  unaligned(PUint16(@RawRecord.RawData[NextOfs{..NextOfs+1}])^):=NtoLE(uint16(ChunkStart));
                   Inc(NextOfs,2);
                 end;
               sec.data.read(RawRecord.RawData[NextOfs], ChunkLen);
@@ -2102,18 +2098,14 @@ implementation
                 begin
                   if (NextOfs+3)>=RawRec.RecordLength then
                     internalerror(2015040512);
-                  EnumeratedDataOffset := RawRec.RawData[NextOfs]+
-                                         (RawRec.RawData[NextOfs+1] shl 8)+
-                                         (RawRec.RawData[NextOfs+2] shl 16)+
-                                         (RawRec.RawData[NextOfs+3] shl 24);
+                  EnumeratedDataOffset := LEtoN(unaligned(PUint32(@RawRec.RawData[NextOfs{..NextOfs+3}])^));
                   Inc(NextOfs,4);
                 end
               else
                 begin
                   if (NextOfs+1)>=RawRec.RecordLength then
                     internalerror(2015040513);
-                  EnumeratedDataOffset := RawRec.RawData[NextOfs]+
-                                         (RawRec.RawData[NextOfs+1] shl 8);
+                  EnumeratedDataOffset := LEtoN(unaligned(PUint16(@RawRec.RawData[NextOfs{..NextOfs+1}])^));
                   Inc(NextOfs,2);
                 end;
               BlockLength:=RawRec.RecordLength-NextOfs-1;
@@ -2754,41 +2746,26 @@ implementation
 
         HeaderBytes[$00]:=$4D;  { 'M' }
         HeaderBytes[$01]:=$5A;  { 'Z' }
-        HeaderBytes[$02]:=Byte(BytesInLastBlock);
-        HeaderBytes[$03]:=Byte(BytesInLastBlock shr 8);
-        HeaderBytes[$04]:=Byte(BlocksInFile);
-        HeaderBytes[$05]:=Byte(BlocksInFile shr 8);
-        HeaderBytes[$06]:=Byte(NumRelocs);
-        HeaderBytes[$07]:=Byte(NumRelocs shr 8);
-        HeaderBytes[$08]:=Byte(HeaderParagraphs);
-        HeaderBytes[$09]:=Byte(HeaderParagraphs shr 8);
-        HeaderBytes[$0A]:=Byte(MinExtraParagraphs);
-        HeaderBytes[$0B]:=Byte(MinExtraParagraphs shr 8);
-        HeaderBytes[$0C]:=Byte(MaxExtraParagraphs);
-        HeaderBytes[$0D]:=Byte(MaxExtraParagraphs shr 8);
-        HeaderBytes[$0E]:=Byte(InitialSS);
-        HeaderBytes[$0F]:=Byte(InitialSS shr 8);
-        HeaderBytes[$10]:=Byte(InitialSP);
-        HeaderBytes[$11]:=Byte(InitialSP shr 8);
-        HeaderBytes[$12]:=Byte(Checksum);
-        HeaderBytes[$13]:=Byte(Checksum shr 8);
-        HeaderBytes[$14]:=Byte(InitialIP);
-        HeaderBytes[$15]:=Byte(InitialIP shr 8);
-        HeaderBytes[$16]:=Byte(InitialCS);
-        HeaderBytes[$17]:=Byte(InitialCS shr 8);
-        HeaderBytes[$18]:=Byte(RelocTableOffset);
-        HeaderBytes[$19]:=Byte(RelocTableOffset shr 8);
-        HeaderBytes[$1A]:=Byte(OverlayNumber);
-        HeaderBytes[$1B]:=Byte(OverlayNumber shr 8);
+        unaligned(PUint16(@HeaderBytes[$02{..$03}])^):=NtoLE(uint16(BytesInLastBlock));
+        unaligned(PUint16(@HeaderBytes[$04{..$05}])^):=NtoLE(uint16(BlocksInFile));
+        unaligned(PUint16(@HeaderBytes[$06{..$07}])^):=NtoLE(uint16(NumRelocs));
+        unaligned(PUint16(@HeaderBytes[$08{..$09}])^):=NtoLE(uint16(HeaderParagraphs));
+        unaligned(PUint16(@HeaderBytes[$0A{..$0B}])^):=NtoLE(uint16(MinExtraParagraphs));
+        unaligned(PUint16(@HeaderBytes[$0C{..$0D}])^):=NtoLE(uint16(MaxExtraParagraphs));
+        unaligned(PUint16(@HeaderBytes[$0E{..$0F}])^):=NtoLE(uint16(InitialSS));
+        unaligned(PUint16(@HeaderBytes[$10{..$11}])^):=NtoLE(uint16(InitialSP));
+        unaligned(PUint16(@HeaderBytes[$12{..$13}])^):=NtoLE(uint16(Checksum));
+        unaligned(PUint16(@HeaderBytes[$14{..$15}])^):=NtoLE(uint16(InitialIP));
+        unaligned(PUint16(@HeaderBytes[$16{..$17}])^):=NtoLE(uint16(InitialCS));
+        unaligned(PUint16(@HeaderBytes[$18{..$19}])^):=NtoLE(uint16(RelocTableOffset));
+        unaligned(PUint16(@HeaderBytes[$1A{..$1B}])^):=NtoLE(uint16(OverlayNumber));
         aWriter.write(HeaderBytes[0],$1C);
         aWriter.write(ExtraHeaderData[0],Length(ExtraHeaderData));
         for i:=0 to NumRelocs-1 do
           with Relocations[i] do
             begin
-              RelocBytes[0]:=Byte(offset);
-              RelocBytes[1]:=Byte(offset shr 8);
-              RelocBytes[2]:=Byte(segment);
-              RelocBytes[3]:=Byte(segment shr 8);
+              unaligned(PUint16(@RelocBytes[0{..1}])^):=NtoLE(uint16(offset));
+              unaligned(PUint16(@RelocBytes[2{..3}])^):=NtoLE(uint16(segment));
               aWriter.write(RelocBytes[0],4);
             end;
         { pad with zeros until the end of header (paragraph aligned) }
@@ -3826,66 +3803,35 @@ cleanup:
         HeaderBytes[$01]:=$45;  { 'E' }
         HeaderBytes[$02]:=Byte(LinkerVersion);
         HeaderBytes[$03]:=Byte(LinkerRevision);
-        HeaderBytes[$04]:=Byte(EntryTableOffset);
-        HeaderBytes[$05]:=Byte(EntryTableOffset shr 8);
-        HeaderBytes[$06]:=Byte(EntryTableLength);
-        HeaderBytes[$07]:=Byte(EntryTableLength shr 8);
-        HeaderBytes[$08]:=Byte(Reserved);
-        HeaderBytes[$09]:=Byte(Reserved shr 8);
-        HeaderBytes[$0A]:=Byte(Reserved shr 16);
-        HeaderBytes[$0B]:=Byte(Reserved shr 24);
-        HeaderBytes[$0C]:=Byte(Word(Flags));
-        HeaderBytes[$0D]:=Byte(Word(Flags) shr 8);
-        HeaderBytes[$0E]:=Byte(AutoDataSegmentNumber);
-        HeaderBytes[$0F]:=Byte(AutoDataSegmentNumber shr 8);
-        HeaderBytes[$10]:=Byte(InitialLocalHeapSize);
-        HeaderBytes[$11]:=Byte(InitialLocalHeapSize shr 8);
-        HeaderBytes[$12]:=Byte(InitialStackSize);
-        HeaderBytes[$13]:=Byte(InitialStackSize shr 8);
-        HeaderBytes[$14]:=Byte(InitialIP);
-        HeaderBytes[$15]:=Byte(InitialIP shr 8);
-        HeaderBytes[$16]:=Byte(InitialCS);
-        HeaderBytes[$17]:=Byte(InitialCS shr 8);
-        HeaderBytes[$18]:=Byte(InitialSP);
-        HeaderBytes[$19]:=Byte(InitialSP shr 8);
-        HeaderBytes[$1A]:=Byte(InitialSS);
-        HeaderBytes[$1B]:=Byte(InitialSS shr 8);
-        HeaderBytes[$1C]:=Byte(SegmentTableEntriesCount);
-        HeaderBytes[$1D]:=Byte(SegmentTableEntriesCount shr 8);
-        HeaderBytes[$1E]:=Byte(ModuleReferenceTableEntriesCount);
-        HeaderBytes[$1F]:=Byte(ModuleReferenceTableEntriesCount shr 8);
-        HeaderBytes[$20]:=Byte(NonresidentNameTableLength);
-        HeaderBytes[$21]:=Byte(NonresidentNameTableLength shr 8);
-        HeaderBytes[$22]:=Byte(SegmentTableStart);
-        HeaderBytes[$23]:=Byte(SegmentTableStart shr 8);
-        HeaderBytes[$24]:=Byte(ResourceTableStart);
-        HeaderBytes[$25]:=Byte(ResourceTableStart shr 8);
-        HeaderBytes[$26]:=Byte(ResidentNameTableStart);
-        HeaderBytes[$27]:=Byte(ResidentNameTableStart shr 8);
-        HeaderBytes[$28]:=Byte(ModuleReferenceTableStart);
-        HeaderBytes[$29]:=Byte(ModuleReferenceTableStart shr 8);
-        HeaderBytes[$2A]:=Byte(ImportedNameTableStart);
-        HeaderBytes[$2B]:=Byte(ImportedNameTableStart shr 8);
-        HeaderBytes[$2C]:=Byte(NonresidentNameTableStart);
-        HeaderBytes[$2D]:=Byte(NonresidentNameTableStart shr 8);
-        HeaderBytes[$2E]:=Byte(NonresidentNameTableStart shr 16);
-        HeaderBytes[$2F]:=Byte(NonresidentNameTableStart shr 24);
-        HeaderBytes[$30]:=Byte(MovableEntryPointsCount);
-        HeaderBytes[$31]:=Byte(MovableEntryPointsCount shr 8);
-        HeaderBytes[$32]:=Byte(LogicalSectorAlignmentShiftCount);
-        HeaderBytes[$33]:=Byte(LogicalSectorAlignmentShiftCount shr 8);
-        HeaderBytes[$34]:=Byte(ResourceSegmentsCount);
-        HeaderBytes[$35]:=Byte(ResourceSegmentsCount shr 8);
+        unaligned(PUint16(@HeaderBytes[$04{..$05}])^):=NtoLE(uint16(EntryTableOffset));
+        unaligned(PUint16(@HeaderBytes[$06{..$07}])^):=NtoLE(uint16(EntryTableLength));
+        unaligned(PUint32(@HeaderBytes[$08{..$0B}])^):=NtoLE(uint32(Reserved));
+        unaligned(PUint16(@HeaderBytes[$0C{..$0D}])^):=NtoLE(uint16(Flags));
+        unaligned(PUint16(@HeaderBytes[$0E{..$0F}])^):=NtoLE(uint16(AutoDataSegmentNumber));
+        unaligned(PUint16(@HeaderBytes[$10{..$11}])^):=NtoLE(uint16(InitialLocalHeapSize));
+        unaligned(PUint16(@HeaderBytes[$12{..$13}])^):=NtoLE(uint16(InitialStackSize));
+        unaligned(PUint16(@HeaderBytes[$14{..$15}])^):=NtoLE(uint16(InitialIP));
+        unaligned(PUint16(@HeaderBytes[$16{..$17}])^):=NtoLE(uint16(InitialCS));
+        unaligned(PUint16(@HeaderBytes[$18{..$19}])^):=NtoLE(uint16(InitialSP));
+        unaligned(PUint16(@HeaderBytes[$1A{..$1B}])^):=NtoLE(uint16(InitialSS));
+        unaligned(PUint16(@HeaderBytes[$1C{..$1D}])^):=NtoLE(uint16(SegmentTableEntriesCount));
+        unaligned(PUint16(@HeaderBytes[$1E{..$1F}])^):=NtoLE(uint16(ModuleReferenceTableEntriesCount));
+        unaligned(PUint16(@HeaderBytes[$20{..$21}])^):=NtoLE(uint16(NonresidentNameTableLength));
+        unaligned(PUint16(@HeaderBytes[$22{..$23}])^):=NtoLE(uint16(SegmentTableStart));
+        unaligned(PUint16(@HeaderBytes[$24{..$25}])^):=NtoLE(uint16(ResourceTableStart));
+        unaligned(PUint16(@HeaderBytes[$26{..$27}])^):=NtoLE(uint16(ResidentNameTableStart));
+        unaligned(PUint16(@HeaderBytes[$28{..$29}])^):=NtoLE(uint16(ModuleReferenceTableStart));
+        unaligned(PUint16(@HeaderBytes[$2A{..$2B}])^):=NtoLE(uint16(ImportedNameTableStart));
+        unaligned(PUint32(@HeaderBytes[$2C{..$2F}])^):=NtoLE(uint32(NonresidentNameTableStart));
+        unaligned(PUint16(@HeaderBytes[$30{..$31}])^):=NtoLE(uint16(MovableEntryPointsCount));
+        unaligned(PUint16(@HeaderBytes[$32{..$33}])^):=NtoLE(uint16(LogicalSectorAlignmentShiftCount));
+        unaligned(PUint16(@HeaderBytes[$34{..$35}])^):=NtoLE(uint16(ResourceSegmentsCount));
         HeaderBytes[$36]:=Byte(Ord(TargetOS));
         HeaderBytes[$37]:=Byte(AdditionalFlags);
-        HeaderBytes[$38]:=Byte(GangLoadAreaStart);
-        HeaderBytes[$39]:=Byte(GangLoadAreaStart shr 8);
-        HeaderBytes[$3A]:=Byte(GangLoadAreaLength);
-        HeaderBytes[$3B]:=Byte(GangLoadAreaLength shr 8);
-        HeaderBytes[$3C]:=Byte(Reserved2);
-        HeaderBytes[$3D]:=Byte(Reserved2 shr 8);
-        HeaderBytes[$3E]:=Byte(ExpectedWindowsVersion);
-        HeaderBytes[$3F]:=Byte(ExpectedWindowsVersion shr 8);
+        unaligned(PUint16(@HeaderBytes[$38{..$39}])^):=NtoLE(uint16(GangLoadAreaStart));
+        unaligned(PUint16(@HeaderBytes[$3A{..$3B}])^):=NtoLE(uint16(GangLoadAreaLength));
+        unaligned(PUint16(@HeaderBytes[$3C{..$3D}])^):=NtoLE(uint16(Reserved2));
+        unaligned(PUint16(@HeaderBytes[$3E{..$3F}])^):=NtoLE(uint16(ExpectedWindowsVersion));
 
         aWriter.write(HeaderBytes[0],$40);
       end;
@@ -3910,8 +3856,7 @@ cleanup:
           var
             AlignShiftBytes: array [0..1] of Byte;
           begin
-            AlignShiftBytes[0]:=Byte(ResourceDataAlignmentShiftCount);
-            AlignShiftBytes[1]:=Byte(ResourceDataAlignmentShiftCount shr 8);
+            unaligned(PUint16(@AlignShiftBytes[0{..1}])^):=NtoLE(uint16(ResourceDataAlignmentShiftCount));
             aWriter.write(AlignShiftBytes[0],2);
           end;
 
@@ -3975,8 +3920,7 @@ cleanup:
               internalerror(2019080801);
             aWriter.write(slen,1);
             aWriter.write(rn.Name[1],slen);
-            OrdNrBuf[0]:=Byte(rn.OrdinalNr);
-            OrdNrBuf[1]:=Byte(rn.OrdinalNr shr 8);
+            unaligned(PUint16(@OrdNrBuf[0{..1}])^):=NtoLE(uint16(rn.OrdinalNr));
             aWriter.write(OrdNrBuf[0],2);
           end;
         { end of table mark }
@@ -4011,8 +3955,7 @@ cleanup:
             ImpTblEntry:=TNewExeImportedNameTableEntry(imptbl.Find(TNewExeModuleReferenceTableEntry(Items[i]).Name));
             if not Assigned(ImpTblEntry) then
               internalerror(2019080903);
-            buf[2*i]:=Byte(ImpTblEntry.TableOffset);
-            buf[2*i+1]:=Byte(ImpTblEntry.TableOffset shr 8);
+            unaligned(PUint16(@buf[2*i{..2*i+1}])^):=NtoLE(uint16(ImpTblEntry.TableOffset));
           end;
         aWriter.write(buf[0],Length(buf));
       end;
@@ -4202,8 +4145,7 @@ cleanup:
                       buf[1]:=$CD;  { INT 3Fh instruction }
                       buf[2]:=$3F;
                       buf[3]:=Byte(cp.Segment);
-                      buf[4]:=Byte(cp.Offset);
-                      buf[5]:=Byte(cp.Offset shr 8);
+                      unaligned(PUint16(@buf[4{..5}])^):=NtoLE(uint16(cp.Offset));
                       aWriter.write(buf[0],6);
                     end;
                 end
@@ -4216,8 +4158,7 @@ cleanup:
                     begin
                       cp:=Items[i];
                       buf[0]:=cp.FlagsByte;
-                      buf[1]:=Byte(cp.Offset);
-                      buf[2]:=Byte(cp.Offset shr 8);
+                      unaligned(PUint16(@buf[1{..2}])^):=NtoLE(uint16(cp.Offset));
                       aWriter.write(buf[0],3);
                     end;
                 end;
@@ -4246,8 +4187,7 @@ cleanup:
       begin
         dest[0]:=Ord(AddressType);
         dest[1]:=Ord(RelocationType) or (Ord(IsAdditive) shl 2);
-        dest[2]:=Byte(Offset);
-        dest[3]:=Byte(Offset shr 8);
+        unaligned(PUint16(@dest[2{..3}])^):=NtoLE(uint16(Offset));
         case RelocationType of
           nertInternalRef:
             begin
@@ -4256,38 +4196,30 @@ cleanup:
                   begin
                     dest[4]:=Byte(InternalRefFixedSegmentNumber);
                     dest[5]:=0;
-                    dest[6]:=Byte(InternalRefFixedSegmentOffset);
-                    dest[7]:=Byte(InternalRefFixedSegmentOffset shr 8);
+                    unaligned(PUint16(@dest[6{..7}])^):=NtoLE(uint16(InternalRefFixedSegmentOffset));
                   end;
                 neirstMovable:
                   begin
                     dest[4]:=$FF;
                     dest[5]:=0;
-                    dest[6]:=Byte(InternalRefMovableSegmentEntryTableIndex);
-                    dest[7]:=Byte(InternalRefMovableSegmentEntryTableIndex shr 8);
+                    unaligned(PUint16(@dest[6{..7}])^):=NtoLE(uint16(InternalRefMovableSegmentEntryTableIndex));
                   end;
               end;
             end;
           nertImportName:
             begin
-              dest[4]:=Byte(ImportModuleIndex);
-              dest[5]:=Byte(ImportModuleIndex shr 8);
-              dest[6]:=Byte(ImportNameIndex);
-              dest[7]:=Byte(ImportNameIndex shr 8);
+              unaligned(PUint16(@dest[4{..5}])^):=NtoLE(uint16(ImportModuleIndex));
+              unaligned(PUint16(@dest[6{..7}])^):=NtoLE(uint16(ImportNameIndex));
             end;
           nertImportOrdinal:
             begin
-              dest[4]:=Byte(ImportModuleIndex);
-              dest[5]:=Byte(ImportModuleIndex shr 8);
-              dest[6]:=Byte(ImportOrdinal);
-              dest[7]:=Byte(ImportOrdinal shr 8);
+              unaligned(PUint16(@dest[4{..5}])^):=NtoLE(uint16(ImportModuleIndex));
+              unaligned(PUint16(@dest[6{..7}])^):=NtoLE(uint16(ImportOrdinal));
             end;
           nertOsFixup:
             begin
-              dest[4]:=Byte(Ord(OsFixupType));
-              dest[5]:=Byte(Ord(OsFixupType) shr 8);
-              dest[6]:=0;
-              dest[7]:=0;
+              unaligned(PUint16(@dest[4{..5}])^):=NtoLE(uint16(Ord(OsFixupType)));
+              unaligned(PUint16(@dest[6{..7}])^):=0;
             end;
         end;
       end;
@@ -4339,8 +4271,7 @@ cleanup:
         i: Integer;
       begin
         SetLength(buf,Size);
-        buf[0]:=Byte(Count);
-        buf[1]:=Byte(Count shr 8);
+        unaligned(PUint16(@buf[0])^):=NtoLE(uint16(Count));
         p:=@(buf[2]);
         for i:=0 to Count-1 do
           begin
@@ -4389,14 +4320,10 @@ cleanup:
       var
         SegmentHeaderBytes: array [0..7] of Byte;
       begin
-        SegmentHeaderBytes[0]:=Byte(DataPosSectors);
-        SegmentHeaderBytes[1]:=Byte(DataPosSectors shr 8);
-        SegmentHeaderBytes[2]:=Byte(SizeInFile);
-        SegmentHeaderBytes[3]:=Byte(SizeInFile shr 8);
-        SegmentHeaderBytes[4]:=Byte(Word(NewExeSegmentFlags));
-        SegmentHeaderBytes[5]:=Byte(Word(NewExeSegmentFlags) shr 8);
-        SegmentHeaderBytes[6]:=Byte(MinAllocSize);
-        SegmentHeaderBytes[7]:=Byte(MinAllocSize shr 8);
+        unaligned(PUint16(@SegmentHeaderBytes[0{..1}])^):=NtoLE(uint16(DataPosSectors));
+        unaligned(PUint16(@SegmentHeaderBytes[2{..3}])^):=NtoLE(uint16(SizeInFile));
+        unaligned(PUint16(@SegmentHeaderBytes[4{..5}])^):=NtoLE(uint16(NewExeSegmentFlags));
+        unaligned(PUint16(@SegmentHeaderBytes[6{..7}])^):=NtoLE(uint16(MinAllocSize));
 
         aWriter.write(SegmentHeaderBytes[0],8);
       end;
