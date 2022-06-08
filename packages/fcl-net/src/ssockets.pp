@@ -1289,7 +1289,7 @@ var
 begin
   locTimeVal := PTimeVal(ATimeVPtr);
   locFDS := PFDSet(AFDSPtr);
-  locTimeVal^.tv_usec := 0;
+  locTimeVal^.tv_usec := (FConnectTimeout mod 1000) * 1000;
   locTimeVal^.tv_sec := FConnectTimeout div 1000;
   Res:=-1;
   {$ifdef unix}
