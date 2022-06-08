@@ -2708,13 +2708,7 @@ implementation
       var
         storefilepos  : tfileposinfo;
         i : longint;
-(*
-        lenstartlabel,arangestartlabel: tasmlabel;
-*)
         def: tdef;
-(*
-        dbgname: string;
-*)
         vardatatype: ttypesym;
       begin
         ensuremetainit;
