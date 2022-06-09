@@ -4866,9 +4866,9 @@ begin
         HandleDefine(Param);
       'GOTO':
         DoBoolDirective(bsGoto);
-      'DIRECTIVEFIELD':
+      'DISPATCHFIELD':
         HandleDispatchField(Param,vsDispatchField);
-      'DIRECTIVESTRFIELD':
+      'DISPATCHSTRFIELD':
         HandleDispatchField(Param,vsDispatchStrField);
       'ERROR':
         HandleError(Param);

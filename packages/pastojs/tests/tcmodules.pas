@@ -17465,10 +17465,10 @@ begin
   StartProgram(false);
   Add([
   'type',
+  '  {$DispatchField DispInt}',
+  '  {$DispatchStrField DispStr}',
   '  TObject = class',
-  '    {$DispatchField DispInt}',
   '    procedure Dispatch(var Msg); virtual; abstract;',
-  '    {$DispatchStrField DispStr}',
   '    procedure DispatchStr(var Msg); virtual; abstract;',
   '  end;',
   '  THopMsg = record',
@@ -17490,6 +17490,7 @@ begin
   'begin',
   '']);
   ConvertProgram;
+  CheckResolverUnexpectedHints(true);
   CheckSource('TestClass_Message',
     LinesToStr([ // statements
     'rtl.createClass(this, "TObject", null, function () {',
@@ -17556,7 +17557,6 @@ begin
   Add([
   'type',
   '  TObject = class',
-  '    {$dispatchfield Msg}',
   '    procedure Dispatch(var Msg); virtual; abstract;',
   '  end;',
   '  TFlyMsg = record',

@@ -7090,6 +7090,7 @@ begin
     end;
     ClassScope:=ClassScope.AncestorScope as TPas2JSClassScope;
     end;
+
   if FieldName='' then exit;
 
   // there is a Dispatch(str) method with a directive -> check field
