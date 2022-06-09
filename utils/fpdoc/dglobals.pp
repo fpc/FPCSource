@@ -474,12 +474,7 @@ begin
 end;
 
 destructor TFPDocEngine.Destroy;
-var
-  i: Integer;
 begin
-  if FPackages.Count > 0 then
-    for i := 0 to FPackages.Count - 1 do
-      TPasPackage(FPackages[i]).Release{$IFDEF CheckPasTreeRefCount}('TFPDocEngine.Destroy'){$ENDIF};
   FreeAndNil(FPackages);
   FreeAndNil(FRootDocNode);
   FreeAndNil(FRootLinkNode);
@@ -567,14 +562,14 @@ var
     end;
   end;
 
-  function ResolvePackageModule(AName:String;out pkg:TPasPackage;out module:TPasModule;createnew:boolean):String;
+  function ResolvePackageModule(AName: String; out pkg: TPasPackage; out Module: TPasModule; CreateNew: boolean): String;
   var
     DotPos, DotPos2, i: Integer;
     s: String;
     HPackage: TPasPackage;
 
   begin
-    pkg:=nil; module:=nil; result:='';
+    pkg:=nil; Module:=nil; result:='';
 
     // Find or create package
     DotPos := Pos('.', AName);
@@ -595,7 +590,7 @@ var
       FPackages.Add(HPackage);
     end;
 
-    // Find or create module
+    // Find or create Module
     DotPos2 := DotPos;
     repeat
       Inc(DotPos2);
@@ -613,8 +608,10 @@ var
       if not CreateNew then
         exit;
       Module := TPasExternalModule.Create(s, HPackage);
+      FOwnedElements.Add(Module);
       HPackage.Modules.Add(Module);
       Module.InterfaceSection := TInterfaceSection.Create('', Module);
+      FOwnedElements.Add(Module.InterfaceSection);
       Module.PackageName:= HPackage.Name;
     end;
     pkg:=hpackage;
@@ -674,6 +671,7 @@ var
       s:= ResolvePackageModule(AName,HPackage,Module,True);
       // Create node for class
       Result := TPasExternalClassType.Create(s, Module.InterfaceSection);
+      FOwnedElements.Add(Result);
       Result.ObjKind := okClass;
       Module.InterfaceSection.Declarations.Add(Result);
       Module.InterfaceSection.Classes.Add(Result);
@@ -703,7 +701,6 @@ var
      result:=TPasClassType(ResolveClassType(clname)); 
      if assigned(result) and not (cls=result) then  // save from tobject=implicit tobject
        begin
-         result.addref{$IFDEF CheckPasTreeRefCount}('ReadContentFile.ResolveAndLinkClass'){$ENDIF};
          if IsClass then
            begin
              cls.ancestortype:=result;
@@ -745,7 +742,6 @@ var
                 Result := TPasAliasType(CreateElement(TPasAliasType,s,module.interfacesection,vispublic,'',0));
                 module.interfacesection.Declarations.Add(Result);
                 TPasAliasType(Result).DestType := cl2;
-                cl2.addref{$IFDEF CheckPasTreeRefCount}('ReadContentFile.CreateAliasType'){$ENDIF};
               end
           end
     end;
@@ -838,6 +834,7 @@ var
             else
               raise Exception.Create('Invalid member type: ' + s[2]);
           end;
+          FOwnedElements.Add(Member);
           CurClass.Members.Add(Member);
         end;
       end;
@@ -1016,6 +1013,7 @@ function TFPDocEngine.CreateElement(AClass: TPTreeElement; const AName: String;
   const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
 begin
   Result := AClass.Create(AName, AParent);
+  FOwnedElements.Add(Result);
   Result.Visibility := AVisibility;
   if AClass.InheritsFrom(TPasModule) then
     CurModule := TPasModule(Result);
