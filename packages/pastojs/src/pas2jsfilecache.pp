@@ -1509,6 +1509,7 @@ begin
   FFiles.FreeItems;
   FreeAndNil(FDirectoryCache);
   FreeAndNil(FFiles);
+  FreeAndNil(FResourcePaths);
   FreeAndNil(FIncludePaths);
   FreeAndNil(FForeignUnitPaths);
   FreeAndNil(FUnitPaths);
