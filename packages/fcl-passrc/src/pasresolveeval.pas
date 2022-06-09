@@ -5658,15 +5658,7 @@ end;
 procedure TResolveData.SetElement(AValue: TPasElement);
 begin
   if FElement=AValue then Exit;
-  {$IFNDEF EnablePasTreeFree}
-  if Element<>nil then
-    Element.Release{$IFDEF CheckPasTreeRefCount}(ClassName+'.SetElement'){$ENDIF};
-  {$ENDIF}
   FElement:=AValue;
-  {$IFNDEF EnablePasTreeFree}
-  if Element<>nil then
-    Element.AddRef{$IFDEF CheckPasTreeRefCount}(ClassName+'.SetElement'){$ENDIF};
-  {$ENDIF}
 end;
 
 constructor TResolveData.Create;

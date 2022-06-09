@@ -3211,15 +3211,7 @@ end;
 { TPRSpecializedItem }
 
 destructor TPRSpecializedItem.Destroy;
-{$IFNDEF EnablePasTreeFree}
-var
-  i: Integer;
-{$ENDIF}
 begin
-  {$IFNDEF EnablePasTreeFree}
-  for i:=0 to length(SpecializedConstraints)-1 do
-    SpecializedConstraints[i].Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
-  {$ENDIF}
   SetLength(SpecializedConstraints,0);
   inherited Destroy;
 end;
@@ -3229,30 +3221,14 @@ end;
 procedure TPRSpecializedTypeItem.SetSpecializedType(AValue: TPasGenericType);
 begin
   if FSpecializedType=AValue then Exit;
-  {$IFNDEF EnablePasTreeFree}
-  if FSpecializedType<>nil then
-    FSpecializedType.Release{$IFDEF CheckPasTreeRefCount}('TPRSpecializedTypeItem.SpecializedType'){$ENDIF};
-  {$ENDIF}
   FSpecializedEl:=AValue;
   FSpecializedType:=AValue;
-  {$IFNDEF EnablePasTreeFree}
-  if FSpecializedType<>nil then
-    FSpecializedType.AddRef{$IFDEF CheckPasTreeRefCount}('TPRSpecializedTypeItem.SpecializedType'){$ENDIF};
-  {$ENDIF}
 end;
 
 destructor TPRSpecializedTypeItem.Destroy;
-{$IFNDEF EnablePasTreeFree}
-var
-  i: Integer;
-{$ENDIF}
 begin
   if ImplProcs<>nil then
     begin
-    {$IFNDEF EnablePasTreeFree}
-    for i:=0 to ImplProcs.Count-1 do
-      TPasElement(ImplProcs[i]).Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
-    {$ENDIF}
     ImplProcs.Free;
     ImplProcs:=nil;
     end;
@@ -3268,25 +3244,14 @@ procedure TPRSpecializedProcItem.SetSpecializedProc(const AValue: TPasProcedure
   );
 begin
   if FSpecializedProc=AValue then Exit;
-  {$IFNDEF EnablePasTreeFree}
-  if FSpecializedProc<>nil then
-    FSpecializedProc.Release{$IFDEF CheckPasTreeRefCount}('TPRSpecializedProcItem.SpecializedProc'){$ENDIF};
-  {$ENDIF}
   FSpecializedEl:=AValue;
   FSpecializedProc:=AValue;
-  {$IFNDEF EnablePasTreeFree}
-  if FSpecializedProc<>nil then
-    FSpecializedProc.AddRef{$IFDEF CheckPasTreeRefCount}('TPRSpecializedProcItem.SpecializedProc'){$ENDIF};
-  {$ENDIF}
 end;
 
 destructor TPRSpecializedProcItem.Destroy;
 begin
   if ImplProc<>nil then
     begin
-    {$IFNDEF EnablePasTreeFree}
-    ImplProc.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
-    {$ENDIF}
     ImplProc:=nil;
     end;
   SpecializedProc:=nil;
@@ -3527,11 +3492,7 @@ end;
 
 destructor TResElDataBuiltInProc.Destroy;
 begin
-  {$IFDEF EnablePasTreeFree}
   Proc:=nil;
-  {$ELSE}
-  ReleaseAndNil(TPasElement(Proc){$IFDEF CheckPasTreeRefCount},'TResElDataBuiltInProc.Proc'{$ENDIF});
-  {$ENDIF}
   inherited Destroy;
 end;
 
@@ -3567,15 +3528,7 @@ end;
 procedure TPasScopeReference.SetElement(const AValue: TPasElement);
 begin
   if FElement=AValue then Exit;
-  {$IFNDEF EnablePasTreeFree}
-  if FElement<>nil then
-    FElement.Release{$IFDEF CheckPasTreeRefCount}('TPasScopeReference.SetElement'){$ENDIF};
-  {$ENDIF}
   FElement:=AValue;
-  {$IFNDEF EnablePasTreeFree}
-  if FElement<>nil then
-    FElement.AddRef{$IFDEF CheckPasTreeRefCount}('TPasScopeReference.SetElement'){$ENDIF};
-  {$ENDIF}
 end;
 
 destructor TPasScopeReference.Destroy;
@@ -3759,11 +3712,7 @@ begin
   {$IFDEF VerbosePasResolverMem}
   writeln('TPasEnumTypeScope.Destroy START ',ClassName);
   {$ENDIF}
-  {$IFDEF EnablePasTreeFree}
   CanonicalSet:=nil;
-  {$ELSE}
-  ReleaseAndNil(TPasElement(CanonicalSet){$IFDEF CheckPasTreeRefCount},'TPasEnumTypeScope.CanonicalSet'{$ENDIF});
-  {$ENDIF}
   inherited Destroy;
   {$IFDEF VerbosePasResolverMem}
   writeln('TPasEnumTypeScope.Destroy END ',ClassName);
@@ -3905,11 +3854,7 @@ begin
   FreeAndNil(GroupScope);
   NestedMembersScope:=nil; // NestedMembersScope is auto freed
   inherited Destroy;
-  {$IFDEF EnablePasTreeFree}
   SelfArg:=nil;
-  {$ELSE}
-  ReleaseAndNil(TPasElement(SelfArg){$IFDEF CheckPasTreeRefCount},'TPasProcedureScope.SelfArg'{$ENDIF});
-  {$ENDIF}
   {$IFDEF VerbosePasResolverMem}
   writeln('TPasProcedureScope.Destroy END ',ClassName);
   {$ENDIF}
@@ -3952,15 +3897,7 @@ begin
       end;
     FreeAndNil(Interfaces);
     end;
-  {$IFDEF EnablePasTreeFree}
   CanonicalClassOf:=nil;
-  {$ELSE}
-  if CanonicalClassOf<>nil then
-    begin
-    CanonicalClassOf.Parent:=nil;
-    ReleaseAndNil(TPasElement(CanonicalClassOf){$IFDEF CheckPasTreeRefCount},'TPasClassScope.CanonicalClassOf'{$ENDIF});
-    end;
-  {$ENDIF}
   inherited Destroy;
 end;
 
@@ -3969,15 +3906,7 @@ end;
 procedure TPasIdentifier.SetElement(AValue: TPasElement);
 begin
   if FElement=AValue then Exit;
-  {$IFNDEF EnablePasTreeFree}
-  if Element<>nil then
-    Element.Release{$IFDEF CheckPasTreeRefCount}('TPasIdentifier.SetElement'){$ENDIF};
-  {$ENDIF}
   FElement:=AValue;
-  {$IFNDEF EnablePasTreeFree}
-  if Element<>nil then
-    Element.AddRef{$IFDEF CheckPasTreeRefCount}('TPasIdentifier.SetElement'){$ENDIF};
-  {$ENDIF}
 end;
 
 destructor TPasIdentifier.Destroy;
@@ -3997,15 +3926,7 @@ end;
 procedure EPasResolve.SetPasElement(AValue: TPasElement);
 begin
   if FPasElement=AValue then Exit;
-  {$IFNDEF EnablePasTreeFree}
-  if FPasElement<>nil then
-    PasElement.Release{$IFDEF CheckPasTreeRefCount}('EPasResolve.SetPasElement'){$ENDIF};
-  {$ENDIF}
   FPasElement:=AValue;
-  {$IFNDEF EnablePasTreeFree}
-  if PasElement<>nil then
-    PasElement.AddRef{$IFDEF CheckPasTreeRefCount}('EPasResolve.SetPasElement'){$ENDIF};
-  {$ENDIF}
 end;
 
 destructor EPasResolve.Destroy;
@@ -4025,15 +3946,7 @@ end;
 procedure TResolvedReference.SetDeclaration(AValue: TPasElement);
 begin
   if FDeclaration=AValue then Exit;
-  {$IFNDEF EnablePasTreeFree}
-  if Declaration<>nil then
-    Declaration.Release{$IFDEF CheckPasTreeRefCount}('TResolvedReference.SetDeclaration'){$ENDIF};
-  {$ENDIF}
   FDeclaration:=AValue;
-  {$IFNDEF EnablePasTreeFree}
-  if Declaration<>nil then
-    Declaration.AddRef{$IFDEF CheckPasTreeRefCount}('TResolvedReference.SetDeclaration'){$ENDIF};
-  {$ENDIF}
 end;
 
 destructor TResolvedReference.Destroy;
@@ -4072,15 +3985,7 @@ end;
 procedure TPasModuleDotScope.SetModule(AValue: TPasModule);
 begin
   if FModule=AValue then Exit;
-  {$IFNDEF EnablePasTreeFree}
-  if Module<>nil then
-    Module.Release{$IFDEF CheckPasTreeRefCount}('TPasModuleDotScope.SetModule'){$ENDIF};
-  {$ENDIF}
   FModule:=AValue;
-  {$IFNDEF EnablePasTreeFree}
-  if Module<>nil then
-    Module.AddRef{$IFDEF CheckPasTreeRefCount}('TPasModuleDotScope.SetModule'){$ENDIF};
-  {$ENDIF}
 end;
 
 destructor TPasModuleDotScope.Destroy;
@@ -4253,88 +4158,40 @@ end;
 procedure TPasModuleScope.SetAssertClass(const AValue: TPasClassType);
 begin
   if FAssertClass=AValue then Exit;
-  {$IFNDEF EnablePasTreeFree}
-  if FAssertClass<>nil then
-    FAssertClass.Release{$IFDEF CheckPasTreeRefCount}('TPasModuleScope.SetAssertClass'){$ENDIF};
-  {$ENDIF}
   FAssertClass:=AValue;
-  {$IFNDEF EnablePasTreeFree}
-  if FAssertClass<>nil then
-    FAssertClass.AddRef{$IFDEF CheckPasTreeRefCount}('TPasModuleScope.SetAssertClass'){$ENDIF};
-  {$ENDIF}
 end;
 
 procedure TPasModuleScope.SetAssertDefConstructor(const AValue: TPasConstructor
   );
 begin
   if FAssertDefConstructor=AValue then Exit;
-  {$IFNDEF EnablePasTreeFree}
-  if FAssertDefConstructor<>nil then
-    FAssertDefConstructor.Release{$IFDEF CheckPasTreeRefCount}('TPasModuleScope.SetAssertDefConstructor'){$ENDIF};
-  {$ENDIF}
   FAssertDefConstructor:=AValue;
-  {$IFNDEF EnablePasTreeFree}
-  if FAssertDefConstructor<>nil then
-    FAssertDefConstructor.AddRef{$IFDEF CheckPasTreeRefCount}('TPasModuleScope.SetAssertDefConstructor'){$ENDIF};
-  {$ENDIF}
 end;
 
 procedure TPasModuleScope.SetAssertMsgConstructor(const AValue: TPasConstructor
   );
 begin
   if FAssertMsgConstructor=AValue then Exit;
-  {$IFNDEF EnablePasTreeFree}
-  if FAssertMsgConstructor<>nil then
-    FAssertMsgConstructor.Release{$IFDEF CheckPasTreeRefCount}('TPasModuleScope.SetAssertMsgConstructor'){$ENDIF};
-  {$ENDIF}
   FAssertMsgConstructor:=AValue;
-  {$IFNDEF EnablePasTreeFree}
-  if FAssertMsgConstructor<>nil then
-    FAssertMsgConstructor.AddRef{$IFDEF CheckPasTreeRefCount}('TPasModuleScope.SetAssertMsgConstructor'){$ENDIF};
-  {$ENDIF}
 end;
 
 procedure TPasModuleScope.SetRangeErrorClass(const AValue: TPasClassType);
 begin
   if FRangeErrorClass=AValue then Exit;
-  {$IFNDEF EnablePasTreeFree}
-  if FRangeErrorClass<>nil then
-    FRangeErrorClass.Release{$IFDEF CheckPasTreeRefCount}('TPasModuleScope.SetRangeErrorClass'){$ENDIF};
-  {$ENDIF}
   FRangeErrorClass:=AValue;
-  {$IFNDEF EnablePasTreeFree}
-  if FRangeErrorClass<>nil then
-    FRangeErrorClass.AddRef{$IFDEF CheckPasTreeRefCount}('TPasModuleScope.SetRangeErrorClass'){$ENDIF};
-  {$ENDIF}
 end;
 
 procedure TPasModuleScope.SetRangeErrorConstructor(const AValue: TPasConstructor
   );
 begin
   if FRangeErrorConstructor=AValue then Exit;
-  {$IFNDEF EnablePasTreeFree}
-  if FRangeErrorConstructor<>nil then
-    FRangeErrorConstructor.Release{$IFDEF CheckPasTreeRefCount}('TPasModuleScope.SetRangeErrorConstructor'){$ENDIF};
-  {$ENDIF}
   FRangeErrorConstructor:=AValue;
-  {$IFNDEF EnablePasTreeFree}
-  if FRangeErrorConstructor<>nil then
-    FRangeErrorConstructor.AddRef{$IFDEF CheckPasTreeRefCount}('TPasModuleScope.SetRangeErrorConstructor'){$ENDIF};
-  {$ENDIF}
 end;
 
 procedure TPasModuleScope.SetSystemTVarRec(const AValue: TPasRecordType);
 begin
   if FSystemTVarRec=AValue then Exit;
-  {$IFNDEF EnablePasTreeFree}
-  if FSystemTVarRec<>nil then
-    FSystemTVarRec.Release{$IFDEF CheckPasTreeRefCount}('TPasModuleScope.SetSystemTVarRec'){$ENDIF};
-  {$ENDIF}
   FSystemTVarRec:=AValue;
-  {$IFNDEF EnablePasTreeFree}
-  if FSystemTVarRec<>nil then
-    FSystemTVarRec.AddRef{$IFDEF CheckPasTreeRefCount}('TPasModuleScope.SetSystemTVarRec'){$ENDIF};
-  {$ENDIF}
 end;
 
 constructor TPasModuleScope.Create;
@@ -6205,9 +6062,6 @@ procedure TPasResolver.FinishTypeSectionEl(El: TPasType);
   var
     Abort: boolean;
     Data: TPRFindData;
-    {$IFNDEF EnablePasTreeFree}
-    OldDestType: TPasType;
-    {$ENDIF}
   begin
     Abort:=false;
     Data:=Default(TPRFindData);
@@ -6230,14 +6084,7 @@ procedure TPasResolver.FinishTypeSectionEl(El: TPasType);
         RaiseXExpectedButYFound(20170216151548,'class',GetElementTypeName(Data.Found),ErrorEl);
       end;
     // replace unresolved
-    {$IFNDEF EnablePasTreeFree}
-    OldDestType:=DestType;
-    {$ENDIF}
     DestType:=TPasType(Data.Found);
-    {$IFNDEF EnablePasTreeFree}
-    DestType.AddRef{$IFDEF CheckPasTreeRefCount}(RefId){$ENDIF};
-    OldDestType.Release{$IFDEF CheckPasTreeRefCount}(RefId){$ENDIF};
-    {$ENDIF}
     CheckUseAsType(DestType,20190123100649,El);
     // check cycles
     if Decl is TPasPointerType then
@@ -6423,14 +6270,7 @@ begin
       begin
       // When a TPasEnumType is created a CanonicalSet is created.
       // Release the autocreated CanonicalSet and use the parent.
-      {$IFNDEF EnablePasTreeFree}
-      if EnumScope.CanonicalSet<>nil then
-        EnumScope.CanonicalSet.Release{$IFDEF CheckPasTreeRefCount}('TPasEnumTypeScope.CanonicalSet'){$ENDIF};
-      {$ENDIF}
       EnumScope.CanonicalSet:=TPasSetType(Parent);
-      {$IFNDEF EnablePasTreeFree}
-      Parent.AddRef{$IFDEF CheckPasTreeRefCount}('TPasEnumTypeScope.CanonicalSet'){$ENDIF};
-      {$ENDIF}
       end;
     end;
 end;
@@ -6683,12 +6523,7 @@ var
 begin
   TypeEl:=ResolveAliasType(El.DestType);
   if TypeEl is TUnresolvedPendingRef then
-    begin
-    {$IFNDEF EnablePasTreeFree}
-    TypeEl.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
-    {$ENDIF}
     exit;
-    end;
   if (TypeEl is TPasClassType) and (TPasClassType(TypeEl).ObjKind=okClass) then exit;
   RaiseMsg(20170216151602,nIncompatibleTypesGotExpected,sIncompatibleTypesGotExpected,
     [El.DestType.Name,'class'],El);
@@ -6700,12 +6535,7 @@ var
 begin
   TypeEl:=ResolveAliasType(El.DestType);
   if TypeEl is TUnresolvedPendingRef then
-    begin
-    {$IFNDEF EnablePasTreeFree}
-    TypeEl.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
-    {$ENDIF}
     exit;
-    end;
   if El.DestType.Parent=El then
     RaiseMsg(20180429094237,nNotYetImplemented,sNotYetImplemented,['pointer of anonymous type'], El.DestType);
   CheckUseAsType(El.DestType,20190123095118,El);
@@ -7691,9 +7521,6 @@ begin
     begin
     // add 'Self'
     ImplProcScope.SelfArg:=SelfArg;
-    {$IFNDEF EnablePasTreeFree}
-    SelfArg.AddRef{$IFDEF CheckPasTreeRefCount}('TPasProcedureScope.SelfArg'){$ENDIF};
-    {$ENDIF}
     {$IFDEF CheckPasTreeRefCount}SelfArg.RefIds.Add('TPasProcedureScope.SelfArg');{$ENDIF}
     AddIdentifier(ImplProcScope,'Self',SelfArg,pikSimple);
     end;
@@ -9065,9 +8892,6 @@ begin
     ClassScope.CanonicalClassOf:=CanonicalSelf;
     {$IFDEF CheckPasTreeRefCount}CanonicalSelf.RefIds.Add('TPasClassScope.CanonicalClassOf');{$ENDIF}
     CanonicalSelf.DestType:=aClass;
-    {$IFNDEF EnablePasTreeFree}
-    aClass.AddRef{$IFDEF CheckPasTreeRefCount}('TPasAliasType.DestType'){$ENDIF};
-    {$ENDIF}
     CanonicalSelf.Visibility:=visStrictPrivate;
     CanonicalSelf.SourceFilename:=aClass.SourceFilename;
     CanonicalSelf.SourceLinenumber:=aClass.SourceLinenumber;
@@ -11329,9 +11153,6 @@ begin
         // check if params fit the implicit specialized function, e.g. Run()
         CheckCallProcCompatibility(TPasProcedure(FoundEl).ProcType,Params,true);
       finally
-        {$IFNDEF EnablePasTreeFree}
-        ReleaseElementList(InferenceParams{$IFDEF CheckPasTreeRefCount},RefIdInferenceParamsExpr{$ENDIF});
-        {$ENDIF}
         FreeAndNil(InferenceParams);
       end;
       end
@@ -12184,9 +12005,6 @@ procedure TPasResolver.DeanonymizeType(El: TPasType);
       begin
       List.Add(El);
       end;
-    {$IFNDEF EnablePasTreeFree}
-    El.AddRef{$IFDEF CheckPasTreeRefCount}(aID){$ENDIF};
-    {$ENDIF}
     {$IFDEF VerbosePasResolver}
     if El.Parent<>NewParent then writeln('TPasResolver.DeanonymizeType.InsertInFront OldParent=',GetObjName(El.Parent),' -> ',GetObjPath(NewParent));
     {$ENDIF}
@@ -12632,18 +12450,12 @@ begin
     begin
     // set of anonymous enumtype, e.g. "set of ()"
     CanonicalSet:=TPasSetType(El.Parent);
-    {$IFNDEF EnablePasTreeFree}
-    CanonicalSet.AddRef{$IFDEF CheckPasTreeRefCount}('TPasEnumTypeScope.CanonicalSet'){$ENDIF};
-    {$ENDIF}
     end
   else
     begin
     CanonicalSet:=TPasSetType(CreateOwnedElement(TPasSetType,'',El));
     {$IFDEF CheckPasTreeRefCount}CanonicalSet.RefIds.Add('TPasEnumTypeScope.CanonicalSet'){$ENDIF};
     CanonicalSet.EnumType:=El;
-    {$IFNDEF EnablePasTreeFree}
-    El.AddRef{$IFDEF CheckPasTreeRefCount}('TPasSetType.EnumType'){$ENDIF};
-    {$ENDIF}
     end;
   EnumScope.CanonicalSet:=CanonicalSet;
 end;
@@ -16389,9 +16201,6 @@ type
           // template type inferred first time
           InferenceParams[i].InferType:=ParamHiType;
           InferenceParams[i].IsVarOut:=NeedVar;
-          {$IFNDEF EnablePasTreeFree}
-          ParamHiType.AddRef{$IFDEF CheckPasTreeRefCount}(RefIdInferenceParamsExpr){$ENDIF};
-          {$ENDIF}
           exit;
           end;
 
@@ -16424,14 +16233,8 @@ type
             // second is var/out, and do not match
             RaiseInferTypeMismatch(20191006220402,ArgType,ErrorPos);
           // first can be widened to fit
-          {$IFNDEF EnablePasTreeFree}
-          InferenceParams[i].InferType.Release{$IFDEF CheckPasTreeRefCount}(RefIdInferenceParamsExpr){$ENDIF};
-          {$ENDIF}
           InferenceParams[i].InferType:=ParamHiType;
           InferenceParams[i].IsVarOut:=NeedVar;
-          {$IFNDEF EnablePasTreeFree}
-          ParamHiType.AddRef{$IFDEF CheckPasTreeRefCount}(RefIdInferenceParamsExpr){$ENDIF};
-          {$ENDIF}
           exit;
           end
         else if InferenceParams[i].IsVarOut then
@@ -16499,14 +16302,8 @@ type
           end;
         if NewBaseType<>btNone then
           begin
-          {$IFNDEF EnablePasTreeFree}
-          InferenceParams[i].InferType.Release{$IFDEF CheckPasTreeRefCount}(RefIdInferenceParamsExpr){$ENDIF};
-          {$ENDIF}
           InferenceParams[i].InferType:=BaseTypes[NewBaseType];
           InferenceParams[i].IsVarOut:=NeedVar;
-          {$IFNDEF EnablePasTreeFree}
-          BaseTypes[NewBaseType].AddRef{$IFDEF CheckPasTreeRefCount}(RefIdInferenceParamsExpr){$ENDIF};
-          {$ENDIF}
           exit;
           end;
 
@@ -16597,40 +16394,32 @@ begin
     RaiseNotYetImplemented(20191006183021,Params);
 
   IsDelphi:=msDelphi in CurrentParser.CurrentModeswitches;
-  try
-    SetLength(InferenceTypes{%H-},TemplTypes.Count);
-    for i:=0 to TemplTypes.Count-1 do
-      InferenceTypes[i]:=Default(TInferredType);
 
-    // first infer from var/out args exact types
-    for i:=0 to ProcArgs.Count-1 do
-      InferParam(i,true,ParamsExprs,ProcArgs,InferenceTypes,TemplTypes,IsDelphi);
+  SetLength(InferenceTypes{%H-},TemplTypes.Count);
+  for i:=0 to TemplTypes.Count-1 do
+    InferenceTypes[i]:=Default(TInferredType);
 
-    // then infer from the other args
-    for i:=0 to ProcArgs.Count-1 do
-      InferParam(i,false,ParamsExprs,ProcArgs,InferenceTypes,TemplTypes,IsDelphi);
+  // first infer from var/out args exact types
+  for i:=0 to ProcArgs.Count-1 do
+    InferParam(i,true,ParamsExprs,ProcArgs,InferenceTypes,TemplTypes,IsDelphi);
 
-    // check that all types are inferred
-    for i:=0 to TemplTypes.Count-1 do
-      if InferenceTypes[i].InferType=nil then
-        RaiseMsg(20191006175104,nCouldNotInferTypeArgXForMethodY,
-          sCouldNotInferTypeArgXForMethodY,
-          [TPasGenericTemplateType(TemplTypes[i]).Name,TargetProc.Name],Params);
+  // then infer from the other args
+  for i:=0 to ProcArgs.Count-1 do
+    InferParam(i,false,ParamsExprs,ProcArgs,InferenceTypes,TemplTypes,IsDelphi);
 
-    Result:=TFPList.Create;
-    for i:=0 to length(InferenceTypes)-1 do
-      begin
-      Result.Add(InferenceTypes[i].InferType);
-      InferenceTypes[i].InferType:=nil;
-      end;
-  finally
-    {$IFNDEF EnablePasTreeFree}
-    if Result=nil then
-      for i:=0 to length(InferenceTypes)-1 do
-        if InferenceTypes[i].InferType<>nil then
-          InferenceTypes[i].InferType.Release{$IFDEF CheckPasTreeRefCount}(RefIdInferenceParamsExpr){$ENDIF};
-    {$ENDIF}
-  end;
+  // check that all types are inferred
+  for i:=0 to TemplTypes.Count-1 do
+    if InferenceTypes[i].InferType=nil then
+      RaiseMsg(20191006175104,nCouldNotInferTypeArgXForMethodY,
+        sCouldNotInferTypeArgXForMethodY,
+        [TPasGenericTemplateType(TemplTypes[i]).Name,TargetProc.Name],Params);
+
+  Result:=TFPList.Create;
+  for i:=0 to length(InferenceTypes)-1 do
+    begin
+    Result.Add(InferenceTypes[i].InferType);
+    InferenceTypes[i].InferType:=nil;
+    end;
 end;
 
 function TPasResolver.CheckGenericConstraintFitsParam(ParamType: TPasType;
@@ -17190,13 +16979,7 @@ begin
     begin
     InsertBehind(TPasMembersType(NewParent).Members);
     {$IFDEF CheckPasTreeRefCount}NewEl.RefIds.Add('TPasMembersType.Members');{$ENDIF}
-    end
-  else
-    {$IFDEF EnablePasTreeFree}
-    ;
-    {$ELSE}
-    NewEl.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF}; // fix refcount
-    {$ENDIF}
+    end;
 
   if GenScope.GenericStep>=psgsInterfaceParsed then
     SpecializeGenericIntf(Result);
@@ -17655,9 +17438,6 @@ procedure TPasResolver.SpecializeGenImplProc(GenDeclProc,
       RaiseNotYetImplemented(20191017122900,GenDeclProc);
       end;
     ParentElList.Insert(i+1,SpecImplProc);
-    {$IFNDEF EnablePasTreeFree}
-    SpecImplProc.AddRef{$IFDEF CheckPasTreeRefCount}('TPasDeclarations.Children'){$ENDIF};
-    {$ENDIF}
   end;
 
 var
@@ -18049,9 +17829,6 @@ begin
     // reference
     GenElType:=SpecializeTypeRef(GenEl,SpecEl,GenElType);
     SpecElType:=GenElType;
-    {$IFNDEF EnablePasTreeFree}
-    SpecElType.AddRef{$IFDEF CheckPasTreeRefCount}('ResolveTypeReference'){$ENDIF};
-    {$ENDIF}
     exit;
     end;
   // e.g. anonymous type
@@ -18104,9 +17881,6 @@ begin
   SpecImplAlias:=TObject(SpecEl.Elements[i]) as TPasImplElement;
   if SpecImplAlias.ClassType<>GenImplAlias.ClassType then
     RaiseNotYetImplemented(20190808231616,GenImplAlias,GetObjName(SpecImplAlias));
-  {$IFNDEF EnablePasTreeFree}
-  SpecImplAlias.AddRef{$IFDEF CheckPasTreeRefCount}(RefId){$ENDIF};
-  {$ENDIF}
 end;
 
 procedure TPasResolver.SpecializeElList(GenEl, SpecEl: TPasElement;
@@ -18128,9 +17902,6 @@ begin
         RaiseNotYetImplemented(20190812025715,GenEl,IntToStr(i)+' GenListItem='+GetObjName(GenListItem));
       // reference
       Ref:=SpecializeTypeRef(GenEl,SpecEl,TpasType(GenListItem));
-      {$IFNDEF EnablePasTreeFree}
-      Ref.AddRef{$IFDEF CheckPasTreeRefCount}(RefId){$ENDIF};
-      {$ENDIF}
       SpecList.Add(Ref);
       continue;
       end;
@@ -18168,9 +17939,6 @@ begin
         RaiseNotYetImplemented(20190914102957,GenEl,IntToStr(i)+' GenListItem='+GetObjName(GenListItem));
       // reference
       Ref:=SpecializeTypeRef(GenEl,SpecEl,TPasType(GenListItem));
-      {$IFNDEF EnablePasTreeFree}
-      Ref.AddRef{$IFDEF CheckPasTreeRefCount}(RefId){$ENDIF};
-      {$ENDIF}
       SpecList[i]:=Ref;
       continue;
       end;
@@ -18453,9 +18221,6 @@ begin
   if not (Ref is TPasGenericType) then
     RaiseNotYetImplemented(20190812022359,GenEl,GetObjName(Ref));
   SpecEl.DestType:=TPasGenericType(Ref);
-  {$IFNDEF EnablePasTreeFree}
-  SpecEl.DestType.AddRef{$IFDEF CheckPasTreeRefCount}('ResolveTypeReference'){$ENDIF};
-  {$ENDIF}
 
   SpecializeElExpr(GenEl,SpecEl,GenEl.Expr,SpecEl.Expr);
   SpecializeElList(GenEl,SpecEl,GenEl.Params,SpecEl.Params,true
@@ -18670,9 +18435,6 @@ begin
     if GenVar.VarType<>GenEl.TypeEl then
       RaiseNotYetImplemented(20190808232601,GenEl);
     SpecEl.TypeEl:=SpecEl.VarEl.VarType;
-    {$IFNDEF EnablePasTreeFree}
-    SpecEl.TypeEl.AddRef{$IFDEF CheckPasTreeRefCount}('TPasVariable.VarType'){$ENDIF};
-    {$ENDIF}
     end
   else
     SpecializeElType(GenEl,SpecEl,GenEl.TypeEl,SpecEl.TypeEl);
@@ -21330,126 +21092,117 @@ begin
   El:=CreateOwnedElement(AClass,AName,AParent);
   {$IFDEF CheckPasTreeRefCount}El.RefIds.Add('CreateElement');{$ENDIF}
   FLastElement:=El;
-  try
-    El.Visibility:=AVisibility;
-    El.SourceFilename:=ASrcPos.FileName;
-    El.SourceLinenumber:=SrcY;
-    if FRootElement=nil then
-      begin
-      RootElement:=El as TPasModule;
-      if FStep=prsInit then
-        FStep:=prsParsing;
-      end
-    else if (AParent is TPasSection) and (TPasSection(AParent).Declarations.Count=0) then
-      begin
-      // first element of section
-      SectionScope:=TPasSectionScope(AParent.CustomData);
-      SectionScope.BoolSwitches:=CurrentParser.Scanner.CurrentBoolSwitches;
-      SectionScope.ModeSwitches:=CurrentParser.Scanner.CurrentModeSwitches;
-      end;
+  El.Visibility:=AVisibility;
+  El.SourceFilename:=ASrcPos.FileName;
+  El.SourceLinenumber:=SrcY;
+  if FRootElement=nil then
+    begin
+    RootElement:=El as TPasModule;
+    if FStep=prsInit then
+      FStep:=prsParsing;
+    end
+  else if (AParent is TPasSection) and (TPasSection(AParent).Declarations.Count=0) then
+    begin
+    // first element of section
+    SectionScope:=TPasSectionScope(AParent.CustomData);
+    SectionScope.BoolSwitches:=CurrentParser.Scanner.CurrentBoolSwitches;
+    SectionScope.ModeSwitches:=CurrentParser.Scanner.CurrentModeSwitches;
+    end;
 
-    if IsElementSkipped(El) then exit;
+  if IsElementSkipped(El) then exit;
 
-    // create scope
-    if AClass.InheritsFrom(TPasExpr) then
-      // resolved when finished
-    else if (AClass=TPasVariable)
-        or (AClass=TPasConst) then
-      AddVariable(TPasVariable(El))
-    else if AClass=TPasResString then
-      AddResourceString(TPasResString(El))
-    else if (AClass=TPasProperty) then
-      AddProperty(TPasProperty(El))
-    else if AClass=TPasArgument then
-      AddArgument(TPasArgument(El))
-    else if AClass=TPasEnumType then
-      AddEnumType(TPasEnumType(El))
-    else if AClass=TPasEnumValue then
-      AddEnumValue(TPasEnumValue(El))
-    else if (AClass=TUnresolvedPendingRef) then
-    else if (AClass=TPasAliasType)
-        or (AClass=TPasTypeAliasType)
-        or (AClass=TPasClassOfType)
-        or (AClass=TPasPointerType)
-        or (AClass=TPasSetType)
-        or (AClass=TPasRangeType)
-        or (AClass=TPasSpecializeType) then
-      AddType(TPasType(El))
-    else if AClass=TPasArrayType then
-      AddArrayType(TPasArrayType(El),TypeParams)
-    else if (AClass=TPasProcedureType)
-        or (AClass=TPasFunctionType) then
-      AddProcedureType(TPasProcedureType(El),TypeParams)
-    else if AClass=TPasGenericTemplateType then
-      AddGenericTemplateType(TPasGenericTemplateType(El))
-    else if AClass=TPasStringType then
-      begin
-      AddType(TPasType(El));
-      {$ifdef FPC_HAS_CPSTRING}
-      if BaseTypes[btShortString]=nil then
-      {$endif}
-        RaiseMsg(20170419203043,nIllegalQualifier,sIllegalQualifier,['['],El);
-      end
-    else if AClass=TPasRecordType then
-      AddRecordType(TPasRecordType(El),TypeParams)
-    else if AClass=TPasVariant then
-      AddRecordVariant(TPasVariant(El))
-    else if AClass=TPasClassType then
-      AddClassType(TPasClassType(El),TypeParams)
-    else if AClass.InheritsFrom(TPasProcedure) then
-      AddProcedure(TPasProcedure(El),TypeParams)
-    else if AClass=TPasResultElement then
-      AddFunctionResult(TPasResultElement(El))
-    else if AClass=TProcedureBody then
-      AddProcedureBody(TProcedureBody(El))
-    else if AClass=TPasMethodResolution then
-    else if AClass=TPasImplExceptOn then
-      AddExceptOn(TPasImplExceptOn(El))
-    else if AClass=TPasImplWithDo then
-      AddWithDo(TPasImplWithDo(El))
-    else if AClass=TPasImplLabelMark then
-    else if AClass=TPasOverloadedProc then
-    else if (AClass=TInterfaceSection)
-        or (AClass=TImplementationSection)
-        or (AClass=TProgramSection)
-        or (AClass=TLibrarySection) then
-      AddSection(TPasSection(El))
-    else if (AClass=TPasModule)
-        or (AClass=TPasProgram)
-        or (AClass=TPasLibrary) then
-      AddModule(TPasModule(El))
-    else if AClass=TPasUsesUnit then
-    else if AClass=TInitializationSection then
-      AddInitialFinalizationSection(TInitializationSection(El))
-    else if AClass=TFinalizationSection then
-      AddInitialFinalizationSection(TFinalizationSection(El))
-    else if AClass=TPasImplCommand then
-    else if AClass.InheritsFrom(TPasImplBlock) then
-      // resolved when finished
-    else if AClass=TPasAttributes then
-    else if AClass=TPasExportSymbol then
-      AddExportSymbol(TPasExportSymbol(El))
-    else if AClass=TPasUnresolvedUnitRef then
-      RaiseMsg(20171018121900,nCantFindUnitX,sCantFindUnitX,[AName],El)
-    else
-      RaiseNotYetImplemented(20160922163544,El);
+  // create scope
+  if AClass.InheritsFrom(TPasExpr) then
+    // resolved when finished
+  else if (AClass=TPasVariable)
+      or (AClass=TPasConst) then
+    AddVariable(TPasVariable(El))
+  else if AClass=TPasResString then
+    AddResourceString(TPasResString(El))
+  else if (AClass=TPasProperty) then
+    AddProperty(TPasProperty(El))
+  else if AClass=TPasArgument then
+    AddArgument(TPasArgument(El))
+  else if AClass=TPasEnumType then
+    AddEnumType(TPasEnumType(El))
+  else if AClass=TPasEnumValue then
+    AddEnumValue(TPasEnumValue(El))
+  else if (AClass=TUnresolvedPendingRef) then
+  else if (AClass=TPasAliasType)
+      or (AClass=TPasTypeAliasType)
+      or (AClass=TPasClassOfType)
+      or (AClass=TPasPointerType)
+      or (AClass=TPasSetType)
+      or (AClass=TPasRangeType)
+      or (AClass=TPasSpecializeType) then
+    AddType(TPasType(El))
+  else if AClass=TPasArrayType then
+    AddArrayType(TPasArrayType(El),TypeParams)
+  else if (AClass=TPasProcedureType)
+      or (AClass=TPasFunctionType) then
+    AddProcedureType(TPasProcedureType(El),TypeParams)
+  else if AClass=TPasGenericTemplateType then
+    AddGenericTemplateType(TPasGenericTemplateType(El))
+  else if AClass=TPasStringType then
+    begin
+    AddType(TPasType(El));
+    {$ifdef FPC_HAS_CPSTRING}
+    if BaseTypes[btShortString]=nil then
+    {$endif}
+      RaiseMsg(20170419203043,nIllegalQualifier,sIllegalQualifier,['['],El);
+    end
+  else if AClass=TPasRecordType then
+    AddRecordType(TPasRecordType(El),TypeParams)
+  else if AClass=TPasVariant then
+    AddRecordVariant(TPasVariant(El))
+  else if AClass=TPasClassType then
+    AddClassType(TPasClassType(El),TypeParams)
+  else if AClass.InheritsFrom(TPasProcedure) then
+    AddProcedure(TPasProcedure(El),TypeParams)
+  else if AClass=TPasResultElement then
+    AddFunctionResult(TPasResultElement(El))
+  else if AClass=TProcedureBody then
+    AddProcedureBody(TProcedureBody(El))
+  else if AClass=TPasMethodResolution then
+  else if AClass=TPasImplExceptOn then
+    AddExceptOn(TPasImplExceptOn(El))
+  else if AClass=TPasImplWithDo then
+    AddWithDo(TPasImplWithDo(El))
+  else if AClass=TPasImplLabelMark then
+  else if AClass=TPasOverloadedProc then
+  else if (AClass=TInterfaceSection)
+      or (AClass=TImplementationSection)
+      or (AClass=TProgramSection)
+      or (AClass=TLibrarySection) then
+    AddSection(TPasSection(El))
+  else if (AClass=TPasModule)
+      or (AClass=TPasProgram)
+      or (AClass=TPasLibrary) then
+    AddModule(TPasModule(El))
+  else if AClass=TPasUsesUnit then
+  else if AClass=TInitializationSection then
+    AddInitialFinalizationSection(TInitializationSection(El))
+  else if AClass=TFinalizationSection then
+    AddInitialFinalizationSection(TFinalizationSection(El))
+  else if AClass=TPasImplCommand then
+  else if AClass.InheritsFrom(TPasImplBlock) then
+    // resolved when finished
+  else if AClass=TPasAttributes then
+  else if AClass=TPasExportSymbol then
+    AddExportSymbol(TPasExportSymbol(El))
+  else if AClass=TPasUnresolvedUnitRef then
+    RaiseMsg(20171018121900,nCantFindUnitX,sCantFindUnitX,[AName],El)
+  else
+    RaiseNotYetImplemented(20160922163544,El);
 
-    Result:=El;
-  finally
-    {$IFNDEF EnablePasTreeFree}
-    if Result=nil then
-      El.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
-    {$ENDIF}
-  end;
+  Result:=El;
 end;
 
 function TPasResolver.CreateOwnedElement(AClass: TPTreeElement;
   const AName: String; AParent: TPasElement): TPasElement;
 begin
   Result:=AClass.Create(AName,AParent);
-  {$IFDEF EnablePasTreeFree}
   FOwnedElements.Add(Result);
-  {$ENDIF}
 end;
 
 function TPasResolver.FindModule(const AName: String; NameExpr,
@@ -22274,9 +22027,6 @@ begin
     OldType := TPasTypeAliasType(NewType);
     NewType := aClass;
     TPasTypeAliasType(OldType).DestType:=nil; // clear reference
-    {$IFNDEF EnablePasTreeFree}
-    OldType.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
-    {$ENDIF}
 
     // set ancestor
     aClass.AncestorType := DestType;
@@ -22529,11 +22279,7 @@ var
 begin
   ClearResolveDataList(lkBuiltIn);
   for bt in TResolverBaseType do
-    {$IFDEF EnablePasTreeFree}
     FBaseTypes[bt]:=nil;
-    {$ELSE}
-    ReleaseAndNil(TPasElement(FBaseTypes[bt]){$IFDEF CheckPasTreeRefCount},'TPasResolver.AddBaseType'{$ENDIF});
-    {$ENDIF}
   for bp in TResolverBuiltInProc do
     FBuiltInProcs[bp]:=nil;
 end;
@@ -29891,9 +29637,6 @@ begin
       {$IFDEF CheckPasTreeRefCount}SelfArg.RefIds.Add('TPasProcedureScope.SelfArg');{$ENDIF}
       SelfArg.Access:=argConst;
       SelfArg.ArgType:=TPasClassScope(ClassOrRecScope).CanonicalClassOf;
-      {$IFNDEF EnablePasTreeFree}
-      SelfArg.ArgType.AddRef{$IFDEF CheckPasTreeRefCount}('TPasArgument.ArgType'){$ENDIF};
-      {$ENDIF}
       end
     else
       RaiseInternalError(20190106121745);
@@ -29918,9 +29661,6 @@ begin
     else
       SelfArg.Access:=argVar;
     SelfArg.ArgType:=SelfType;
-    {$IFNDEF EnablePasTreeFree}
-    SelfType.AddRef{$IFDEF CheckPasTreeRefCount}('TPasArgument.ArgType'){$ENDIF};
-    {$ENDIF}
     end;
 end;
 

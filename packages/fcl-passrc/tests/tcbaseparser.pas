@@ -121,9 +121,7 @@ function TTestEngine.CreateElement(AClass: TPTreeElement; const AName: String;
 begin
   //writeln('TTestEngine.CreateElement ',AName,' ',AClass.ClassName);
   Result := AClass.Create(AName, AParent);
-  {$IFDEF EnablePasTreeFree}
   FOwnedElements.Add(Result);
-  {$ENDIF}
   {$IFDEF CheckPasTreeRefCount}Result.RefIds.Add('CreateElement');{$ENDIF}
   Result.Visibility := AVisibility;
   Result.SourceFilename := ASourceFilename;
@@ -203,11 +201,7 @@ begin
   {$IFDEF VerbosePasResolverMem}
   writeln('TTestParser.CleanupParser FModule');
   {$ENDIF}
-  {$IFDEF EnablePasTreeFree}
   FModule:=nil;
-  {$ELSE}
-  ReleaseAndNil(TPasElement(FModule){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
-  {$ENDIF}
   {$IFDEF VerbosePasResolverMem}
   writeln('TTestParser.CleanupParser FSource');
   {$ENDIF}

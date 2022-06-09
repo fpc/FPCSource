@@ -65,9 +65,6 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    {$IFNDEF EnablePasTreeFree}
-    procedure ReleaseUsedUnits;
-    {$ENDIF}
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; AVisibility: TPasMemberVisibility;
       const ASrcPos: TPasSourcePos; TypeParams: TFPList = nil): TPasElement;
@@ -116,11 +113,6 @@ type
   TCustomTestResolver = Class(TTestParser)
   Private
     FHub: TPasResolverHub;
-    {$IFNDEF EnablePasTreeFree}
-    {$IF defined(VerbosePasResolver) or defined(VerbosePasResolverMem)}
-    FStartElementRefCount: int64;
-    {$ENDIF}
-    {$ENDIF}
     FFirstStatement: TPasImplBlock;
     FResolvers: TObjectList;// list of TTestEnginePasResolver
     FResolverEngine: TTestEnginePasResolver;
@@ -1048,10 +1040,6 @@ end;
 procedure TTestEnginePasResolver.SetModule(AValue: TPasModule);
 begin
   if FModule=AValue then Exit;
-  {$IFNDEF EnablePasTreeFree}
-  if Module<>nil then
-    Module.Release{$IFDEF CheckPasTreeRefCount}('TTestEnginePasResolver.Module'){$ENDIF};
-  {$ENDIF}
   FModule:=AValue;
   {$IFDEF CheckPasTreeRefCount}
   if Module<>nil then
@@ -1073,14 +1061,6 @@ begin
   inherited Destroy;
   Module:=nil;
 end;
-
-{$IFNDEF EnablePasTreeFree}
-procedure TTestEnginePasResolver.ReleaseUsedUnits;
-begin
-  if Module<>nil then
-    Module.ReleaseUsedUnits;
-end;
-{$ENDIF}
 
 function TTestEnginePasResolver.CreateElement(AClass: TPTreeElement;
   const AName: String; AParent: TPasElement; AVisibility: TPasMemberVisibility;
@@ -1108,11 +1088,6 @@ end;
 
 procedure TCustomTestResolver.SetUp;
 begin
-  {$IFNDEF EnablePasTreeFree}
-  {$IF defined(VerbosePasResolver) or defined(VerbosePasResolverMem)}
-  FStartElementRefCount:=TPasElement.GlobalRefCount;
-  {$ENDIF}
-  {$ENDIF}
   FResolvers:=TObjectList.Create(true);
   FHub:=TPasResolverHub.Create(Self);
   inherited SetUp;
@@ -1123,12 +1098,6 @@ begin
 end;
 
 procedure TCustomTestResolver.TearDown;
-{$IFDEF CheckPasTreeRefCount}
-var El: TPasElement;
-{$ENDIF}
-{$IFNDEF EnablePasTreeFree}
-var i: Integer;
-{$ENDIF}
 begin
   FResolverMsgs.Clear;
   FResolverGoodMsgs.Clear;
@@ -1147,10 +1116,6 @@ begin
     {$IFDEF VerbosePasResolverMem}
     writeln('TTestResolver.TearDown FResolvers');
     {$ENDIF}
-    {$IFNDEF EnablePasTreeFree}
-    for i:=0 to FResolvers.Count-1 do
-      TTestEnginePasResolver(FResolvers[i]).ReleaseUsedUnits;
-    {$ENDIF}
     FResolvers.OwnsObjects:=false;
     FResolvers.Remove(ResolverEngine); // remove reference
     FResolvers.OwnsObjects:=true;
@@ -1160,34 +1125,8 @@ begin
   {$IFDEF VerbosePasResolverMem}
   writeln('TTestResolver.TearDown inherited');
   {$ENDIF}
-  {$IFNDEF EnablePasTreeFree}
-  if Module<>nil then
-    Module.AddRef{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF}; // for the Release in ancestor TTestParser
-  {$ENDIF}
   inherited TearDown;
   FResolverEngine:=nil;
-  {$IFNDEF EnablePasTreeFree}
-  {$IF defined(VerbosePasResolver) or defined(VerbosePasResolverMem)}
-  if FStartElementRefCount<>TPasElement.GlobalRefCount then
-    begin
-    writeln('TCustomTestResolver.TearDown GlobalRefCount Was='+IntToStr(FStartElementRefCount)+' Now='+IntToStr(TPasElement.GlobalRefCount));
-    {$IFDEF CheckPasTreeRefCount}
-    El:=TPasElement.FirstRefEl;
-    if El=nil then
-      writeln('  TPasElement.FirstRefEl=nil');
-    while El<>nil do
-      begin
-      writeln('  ',GetObjName(El),' RefIds.Count=',El.RefIds.Count,':');
-      for i:=0 to El.RefIds.Count-1 do
-        writeln('    ',El.RefIds[i]);
-      El:=El.NextRefEl;
-      end;
-    {$ENDIF}
-    //Halt;
-    Fail('TCustomTestResolver.TearDown GlobalRefCount Was='+IntToStr(FStartElementRefCount)+' Now='+IntToStr(TPasElement.GlobalRefCount));
-    end;
-  {$ENDIF}
-  {$ENDIF}
   {$IFDEF VerbosePasResolverMem}
   writeln('TTestResolver.TearDown END');
   {$ENDIF}

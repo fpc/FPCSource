@@ -81,9 +81,7 @@ function TSrcContainer.CreateElement(AClass: TPTreeElement;
   const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
 begin
   Result:=AClass.Create(AName,AParent);
-  {$IFDEF EnablePasTreeFree}
   FOwnedElements.Add(Result);
-  {$ENDIF}
   Result.Visibility:=AVisibility;
   Result.SourceFilename:=ASourceFileName;
   Result.SourceLinenumber:=ASourceLineNumber;
@@ -118,11 +116,7 @@ begin
   FreeAndNil(FScanner);
   FreeAndNil(FContainer);
   FreeAndNil(FResolver);
-  {$IFDEF EnablePasTreeFree}
   FModule:=nil;
-  {$ELSE}
-  FreeAndNil(FModule);
-  {$ENDIF}
 end;
 
 procedure TPasSrcAnalysis.CheckParser;
