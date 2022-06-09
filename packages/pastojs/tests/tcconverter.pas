@@ -35,6 +35,8 @@ type
     FConverter: TPasToJSConverter;
     FRes: TJSElement;
     FSource: TPasElement;
+    FOwnedElements: TFPList;
+    procedure OnAddEl(El: TPasElement; Arg: pointer);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -42,6 +44,10 @@ type
     Procedure TryConvert;
     Function Convert(AElement : TPasElement; AClass : TJSElementClass) : TJSElement;
     Property Converter : TPasToJSConverter Read FConverter;
+    Procedure AddEl(El: TPasElement);
+    Procedure AddElWithChildren(El: TPasElement);
+    Function CreateElement(aClass: TPTreeElement; aParent: TPasElement = nil): TPasElement;
+    Function CreatePrimitiveExpr(aParent: TPasElement; Kind: TPasExprKind; const Value: string): TPrimitiveExpr;
     Property TheSource : TPasElement Read FSource Write FSource;
     Property TheResult : TJSElement Read FRes Write FRes;
   Public
@@ -55,12 +61,17 @@ type
     Class Procedure AssertEmptyBlockStatement(Const Msg: String; El: TJSElement);
     class Function AssertListStatement(Const Msg: String; El: TJSElement) : TJSStatementList;
     class Function AssertElement(Const Msg: String; AClass : TJSElementClass; El: TJSElement) : TJSElement;
-    Class Function CreateLiteral(AValue : String) : TPasExpr;
-    Class Function CreateLiteral(AValue : Double) : TPasExpr;
-    Class Function CreateIdent(AName : String) : TPrimitiveExpr;
-    Class Function CreateAssignStatement(LHS: String = 'a';RHS : String = 'b'): TPasImplAssign;
-    Class Function CreateFunctionCall(AName : String; Params : Array of String) : TParamsExpr;
-    Class Function CreateCondition: TPasExpr;
+    Function CreateLiteral(AValue : String) : TPasExpr;
+    Function CreateLiteral(AValue : Double) : TPasExpr;
+    Function CreateIdent(AName : String) : TPrimitiveExpr;
+    Function CreateAssignStatement(LHS: String = 'a';RHS : String = 'b'): TPasImplAssign;
+    Function CreateParamsExpr(Kind: TPasExprKind; aParent: TPasElement = nil) : TParamsExpr;
+    Function CreateFunctionCall(AName : String; Params : Array of String) : TParamsExpr;
+    Function CreateCondition: TPasExpr;
+    Function CreateVariable(aName: String; aParent: TPasElement = nil) : TPasVariable;
+    Function CreateBinary(AOpCode: TExprOpCode; aParent: TPasElement = nil) : TBinaryExpr;
+    Function CreateBoolConstExpr(Value: boolean): TBoolConstExpr;
+    Function CreateUnaryExpr(AOpCode: TExprOpCode): TUnaryExpr;
   end;
 
   { TTestTestConverter }
@@ -156,7 +167,7 @@ Var
   E : TJSThrowStatement;
 
 begin
-  R:=TPasImplRaise.Create('',Nil);
+  R:=TPasImplRaise(CreateElement(TPasImplRaise));
   R.ExceptObject:=CreateIdent('e');
   E:=TJSThrowStatement(Convert(R,TJSThrowStatement));
   AssertIdentifier('Raise exception object',E.A,'e');
@@ -184,7 +195,7 @@ Var
 
 begin
   // If a then ;
-  R:=TPasImplIfElse.Create('',Nil);
+  R:=TPasImplIfElse(CreateElement(TPasImplIfElse));
   R.ConditionExpr:=CreateCondition;
   E:=TJSIfStatement(Convert(R,TJSIfStatement));
   AssertNull('If branch is empty',E.BTrue);
@@ -200,7 +211,7 @@ Var
 
 begin
   // If a then a:=b;
-  R:=TPasImplIfElse.Create('',Nil);
+  R:=TPasImplIfElse(CreateElement(TPasImplIfElse));
   R.ConditionExpr:=CreateCondition;
   R.IfBranch:=CreateAssignStatement;
   E:=TJSIfStatement(Convert(R,TJSIfStatement));
@@ -216,7 +227,7 @@ Var
 
 begin
   // If a then a:=b else a:=e;
-  R:=TPasImplIfElse.Create('',Nil);
+  R:=TPasImplIfElse(CreateElement(TPasImplIfElse));
   R.ConditionExpr:=CreateCondition;
   R.IfBranch:=CreateAssignStatement;
   R.ElseBranch:=CreateAssignStatement('a','e');
@@ -233,7 +244,7 @@ Var
 
 begin
   // While a do ;
-  R:=TPasImplWhileDo.Create('',Nil);
+  R:=TPasImplWhileDo(CreateElement(TPasImplWhileDo));
   R.ConditionExpr:=CreateCondition;
   E:=TJSWhileStatement(Convert(R,TJSWhileStatement));
   AssertIdentifier('Conditional expression',E.Cond,'a');
@@ -247,7 +258,7 @@ Var
 
 begin
   // While a do b:=c;
-  R:=TPasImplWhileDo.Create('',Nil);
+  R:=TPasImplWhileDo(CreateElement(TPasImplWhileDo));
   R.Body:=CreateAssignStatement('b','c');
   R.ConditionExpr:=CreateCondition;
   E:=TJSWhileStatement(Convert(R,TJSWhileStatement));
@@ -263,7 +274,7 @@ Var
   C : TJSCallExpression;
 
 begin
-  R:=TPasImplSimple.Create('',Nil);
+  R:=TPasImplSimple(CreateElement(TPasImplSimple));
   R.Expr:=CreateFunctionCall('a',['b']);
   E:=TJSExpressionStatement(Convert(R,TJSExpressionStatement));
   AssertNotNull('Have call node',E.A);
@@ -280,7 +291,7 @@ Var
 
 begin
   // Repeat until a;
-  R:=TPasImplRepeatUntil.Create('',Nil);
+  R:=TPasImplRepeatUntil(CreateElement(TPasImplRepeatUntil));
   R.ConditionExpr:=CreateCondition;
   E:=TJSDoWhileStatement(Convert(R,TJSDoWhileStatement));
   AssertNotNull('Have condition',E.Cond);
@@ -299,9 +310,9 @@ Var
 
 begin
   // Repeat b:=c; until a;
-  R:=TPasImplRepeatUntil.Create('',Nil);
+  R:=TPasImplRepeatUntil(CreateElement(TPasImplRepeatUntil));
   R.ConditionExpr:=CreateCondition;
-  R.AddAssign(CreateIdent('b'),CreateIdent('c'));
+  AddEl(R.AddAssign(CreateIdent('b'),CreateIdent('c')));
   E:=TJSDoWhileStatement(Convert(R,TJSDoWhileStatement));
   AssertNotNull('Have condition',E.Cond);
   AssertEquals('Correct condition class',TJSUnaryNotExpression,E.Cond.ClassType);
@@ -322,10 +333,10 @@ Var
 
 begin
   // Repeat b:=c; d:=e; until a;
-  R:=TPasImplRepeatUntil.Create('',Nil);
+  R:=TPasImplRepeatUntil(CreateElement(TPasImplRepeatUntil));
   R.ConditionExpr:=CreateCondition;
-  R.AddAssign(CreateIdent('b'),CreateIdent('c'));
-  R.AddAssign(CreateIdent('d'),CreateIdent('e'));
+  AddEl(R.AddAssign(CreateIdent('b'),CreateIdent('c')));
+  AddEl(R.AddAssign(CreateIdent('d'),CreateIdent('e')));
   E:=TJSDoWhileStatement(Convert(R,TJSDoWhileStatement));
   AssertNotNull('Have condition',E.Cond);
   AssertEquals('Correct condition class',TJSUnaryNotExpression,E.Cond.ClassType);
@@ -344,11 +355,11 @@ Var
 
 begin
   // Repeat b:=c; d:=e; f:=g; until a;
-  R:=TPasImplRepeatUntil.Create('',Nil);
+  R:=TPasImplRepeatUntil(CreateElement(TPasImplRepeatUntil));
   R.ConditionExpr:=CreateCondition;
-  R.AddAssign(CreateIdent('b'),CreateIdent('c'));
-  R.AddAssign(CreateIdent('d'),CreateIdent('e'));
-  R.AddAssign(CreateIdent('f'),CreateIdent('g'));
+  AddEl(R.AddAssign(CreateIdent('b'),CreateIdent('c')));
+  AddEl(R.AddAssign(CreateIdent('d'),CreateIdent('e')));
+  AddEl(R.AddAssign(CreateIdent('f'),CreateIdent('g')));
   E:=TJSDoWhileStatement(Convert(R,TJSDoWhileStatement));
   AssertNotNull('Have condition',E.Cond);
   AssertEquals('Correct condition class',TJSUnaryNotExpression,E.Cond.ClassType);
@@ -377,8 +388,8 @@ Var
 
 begin
   // For I:=1 to 100 do a:=b;
-  F:=TPasImplForLoop.Create('',Nil);
-  F.Variable:=TPasVariable.Create('I',F);
+  F:=TPasImplForLoop(CreateElement(TPasImplForLoop));
+  F.Variable:=CreateVariable('I',F);
   F.VariableName:=CreateIdent('I');
   F.StartExpr:=CreateLiteral(1);
   F.EndExpr:=CreateLiteral(100);
@@ -437,8 +448,8 @@ Var
 
 begin
   // For I:=100 downto 1 do a:=b;
-  F:=TPasImplForLoop.Create('',Nil);
-  F.Variable:=TPasVariable.Create('I',F);
+  F:=TPasImplForLoop(CreateElement(TPasImplForLoop));
+  F.Variable:=CreateVariable('I',F);
   F.VariableName:=CreateIdent('I');
   F.StartExpr:=CreateLiteral(100);
   F.EndExpr:=CreateLiteral(1);
@@ -489,7 +500,7 @@ Var
 
 begin
   // begin end;
-  R:=TPasImplBeginBlock.Create('',Nil);
+  R:=TPasImplBeginBlock(CreateElement(TPasImplBeginBlock));
   Convert(R,TJSEmptyBlockStatement);
 end;
 
@@ -501,8 +512,8 @@ Var
 
 begin
   // begin a:=bend;
-  R:=TPasImplBeginBlock.Create('',Nil);
-  R.AddAssign(CreateIdent('a'),CreateIdent('b'));
+  R:=TPasImplBeginBlock(CreateElement(TPasImplBeginBlock));
+  AddEl(R.AddAssign(CreateIdent('a'),CreateIdent('b')));
   L:=TJSStatementList(Convert(R,TJSStatementList));
   AssertNull('No second statement',L.B);
   AssertAssignStatement('First List statement is assignment',L.A,'a','b');
@@ -516,9 +527,9 @@ Var
 
 begin
   // begin a:=b; c:=d; end;
-  R:=TPasImplBeginBlock.Create('',Nil);
-  R.AddAssign(CreateIdent('a'),CreateIdent('b'));
-  R.AddAssign(CreateIdent('c'),CreateIdent('d'));
+  R:=TPasImplBeginBlock(CreateElement(TPasImplBeginBlock));
+  AddEl(R.AddAssign(CreateIdent('a'),CreateIdent('b')));
+  AddEl(R.AddAssign(CreateIdent('c'),CreateIdent('d')));
   L:=TJSStatementList(Convert(R,TJSStatementList));
   AssertAssignStatement('First List statement is assignment',L.A,'a','b');
   AssertAssignStatement('Second List statement is assignment',L.B,'c','d');
@@ -531,10 +542,10 @@ Var
 
 begin
   // begin a:=b; c:=d; end;
-  R:=TPasImplBeginBlock.Create('',Nil);
-  R.AddAssign(CreateIdent('a'),CreateIdent('b'));
-  R.AddAssign(CreateIdent('c'),CreateIdent('d'));
-  R.AddAssign(CreateIdent('e'),CreateIdent('f'));
+  R:=TPasImplBeginBlock(CreateElement(TPasImplBeginBlock));
+  AddEl(R.AddAssign(CreateIdent('a'),CreateIdent('b')));
+  AddEl(R.AddAssign(CreateIdent('c'),CreateIdent('d')));
+  AddEl(R.AddAssign(CreateIdent('e'),CreateIdent('f')));
   L:=TJSStatementList(Convert(R,TJSStatementList));
   AssertAssignStatement('First List statement is assignment',L.A,'a','b');
   L:=AssertListStatement('Second statement is again list',L.B);
@@ -549,7 +560,7 @@ Var
 
 begin
   // With A do ;
-  W:=TPasImplWithDo.Create('',NIl);
+  W:=TPasImplWithDo(CreateElement(TPasImplWithDo));
   W.Expressions.Add(CreateIdent('a'));
   El:=TJSWithStatement(Convert(W,TJSWithStatement));
   AssertIdentifier('Correct with expression',EL.A,'a');
@@ -564,7 +575,7 @@ Var
 
 begin
   // With A do b:=c;
-  W:=TPasImplWithDo.Create('',NIl);
+  W:=TPasImplWithDo(CreateElement(TPasImplWithDo));
   W.Expressions.Add(CreateIdent('a'));
   W.Body:=CreateAssignStatement('b','c');
   El:=TJSWithStatement(Convert(W,TJSWithStatement));
@@ -579,7 +590,7 @@ Var
 
 begin
   // With A,D do b:=c;
-  W:=TPasImplWithDo.Create('',NIl);
+  W:=TPasImplWithDo(CreateElement(TPasImplWithDo));
   W.Expressions.Add(CreateIdent('a'));
   W.Expressions.Add(CreateIdent('d'));
   W.Body:=CreateAssignStatement('b','c');
@@ -600,9 +611,10 @@ Var
 
 begin
   // Try a:=B finally b:=c end;
-  T:=TPasImplTry.Create('',Nil);
+  T:=TPasImplTry(CreateElement(TPasImplTry));
   T.AddElement(CreateAssignStatement('a','b'));
   F:=T.AddFinally;
+  AddEl(F);
   F.AddElement(CreateAssignStatement('b','c'));
   El:=TJSTryFinallyStatement(Convert(T,TJSTryFinallyStatement));
   L:=AssertListStatement('try..finally block is statement list',EL.Block);
@@ -631,9 +643,10 @@ begin
       b = c;
     }
   *)
-  T:=TPasImplTry.Create('',Nil);
+  T:=TPasImplTry(CreateElement(TPasImplTry));
   T.AddElement(CreateAssignStatement('a','b'));
   F:=T.AddExcept;
+  AddElWithChildren(F);
   F.AddElement(CreateAssignStatement('b','c'));
   // Convert
   El:=TJSTryCatchStatement(Convert(T,TJSTryCatchStatement));
@@ -679,10 +692,12 @@ begin
       }
     }
   *)
-  T:=TPasImplTry.Create('',Nil);
+  T:=TPasImplTry(CreateElement(TPasImplTry));
   T.AddElement(CreateAssignStatement('a','b'));
   F:=T.AddExcept;
+  AddElWithChildren(F);
   O:=F.AddExceptOn('E','Exception');
+  AddElWithChildren(O);
   O.Body:=CreateAssignStatement('b','c');
   // Convert
   El:=TJSTryCatchStatement(Convert(T,TJSTryCatchStatement));
@@ -740,11 +755,13 @@ begin
       }
     }
   *)
-  T:=TPasImplTry.Create('',Nil);
+  T:=TPasImplTry(CreateElement(TPasImplTry));
   T.AddElement(CreateAssignStatement('a','b'));
   F:=T.AddExcept;
+  AddEl(F);
   O:=F.AddExceptOn('E','Exception');
-  O.Body:=TPasImplRaise.Create('',Nil);
+  AddElWithChildren(O);
+  O.Body:=TPasImplRaise(CreateElement(TPasImplRaise));
   // Convert
   El:=TJSTryCatchStatement(Convert(T,TJSTryCatchStatement));
   // check "catch(exceptobject)"
@@ -781,8 +798,8 @@ Var
   JV : TJSVariableStatement;
   JVD : TJSVarDeclaration;
 begin
-  S:=TPasSection.Create('',Nil);
-  V:=TPasVariable.Create('A',Nil);
+  S:=TPasSection(CreateElement(TPasSection));
+  V:=CreateVariable('A',Nil);
   S.Declarations.Add(V);
   S.Variables.Add(V);
   L:=TJSStatementList(Convert(S,TJSStatementList));
@@ -793,7 +810,7 @@ end;
 
 { TTestExpressionConverter }
 
-Function TTestExpressionConverter.TestLiteralExpression(AElement: TPasElement;
+function TTestExpressionConverter.TestLiteralExpression(AElement: TPasElement;
   AClass: TJSElementClass): TJSLIteral;
 
 Var
@@ -803,10 +820,11 @@ begin
   E:=Convert(AElement,AClass);
   if not (E is TJSLiteral) then
     Fail('Do not have literal class, but: '+E.ClassName);
-  Result:=TJSLIteral(E);
+  Result:=TJSLiteral(E);
 end;
 
-Function TTestExpressionConverter.TestUnaryExpression(AElement: TPasElement; AClass: TJSElementClass): TJSUnary;
+function TTestExpressionConverter.TestUnaryExpression(AElement: TPasElement;
+  AClass: TJSElementClass): TJSUnary;
 
 Var
   E : TJSElement;
@@ -820,7 +838,7 @@ begin
   Result:=TJSUnary(E);
 end;
 
-Function TTestExpressionConverter.TestBinaryExpression(AElement: TPasElement;
+function TTestExpressionConverter.TestBinaryExpression(AElement: TPasElement;
   AClass: TJSElementClass): TJSBinary;
 
 Var
@@ -833,111 +851,111 @@ begin
   Result:=TJSBinary(E);
 end;
 
-Procedure TTestExpressionConverter.TestPrimitiveString;
+procedure TTestExpressionConverter.TestPrimitiveString;
 
 Var
   S : TPrimitiveExpr;
   E : TJSLiteral;
 
 begin
-  S:=TPrimitiveExpr.Create(Nil,pekString,'''me''');
+  S:=CreatePrimitiveExpr(Nil,pekString,'''me''');
   E:=TestLiteralExpression(S,TJSLiteral);
   AssertEquals('Correct literal type',jstString,E.Value.ValueType);
   AssertEquals('Correct literal value','me',String(E.Value.AsString));
 end;
 
-Procedure TTestExpressionConverter.TestPrimitiveNumber;
+procedure TTestExpressionConverter.TestPrimitiveNumber;
 Var
   S : TPrimitiveExpr;
   E : TJSLiteral;
 
 begin
-  S:=TPrimitiveExpr.Create(Nil,pekNumber,'1.23');
+  S:=CreatePrimitiveExpr(Nil,pekNumber,'1.23');
   E:=TestLiteralExpression(S,TJSLiteral);
   AssertEquals('Correct literal type',jstNumber,E.Value.ValueType);
   AssertEquals('Correct literal value',1.23,E.Value.AsNumber);
 end;
 
-Procedure TTestExpressionConverter.TestPrimitiveNil;
+procedure TTestExpressionConverter.TestPrimitiveNil;
 
 Var
   S : TNilExpr;
   E : TJSLiteral;
 
 begin
-  S:=TNilExpr.Create(Nil);
+  S:=TNilExpr(CreateElement(TNilExpr));
   E:=TestLiteralExpression(S,TJSLiteral);
   AssertEquals('Correct literal type',jstNull,E.Value.ValueType);
   AssertEquals('Correct literal value',True,E.Value.IsNull);
 end;
 
-Procedure TTestExpressionConverter.TestPrimitiveBoolTrue;
+procedure TTestExpressionConverter.TestPrimitiveBoolTrue;
 Var
   S : TBoolConstExpr;
   E : TJSLiteral;
 
 begin
-  S:=TBoolConstExpr.Create(Nil,pekBoolConst,True);
+  S:=CreateBoolConstExpr(True);
   E:=TestLiteralExpression(S,TJSLiteral);
   AssertEquals('Correct literal type',jstBoolean,E.Value.ValueType);
   AssertEquals('Correct literal value',True,E.Value.AsBoolean);
 end;
 
-Procedure TTestExpressionConverter.TestPrimitiveBoolFalse;
+procedure TTestExpressionConverter.TestPrimitiveBoolFalse;
 
 Var
   S : TBoolConstExpr;
   E : TJSLiteral;
 
 begin
-  S:=TBoolConstExpr.Create(Nil,pekBoolConst,False);
+  S:=CreateBoolConstExpr(False);
   E:=TestLiteralExpression(S,TJSLiteral);
   AssertEquals('Correct literal type',jstBoolean,E.Value.ValueType);
   AssertEquals('Correct literal value',False,E.Value.AsBoolean);
 end;
 
-Procedure TTestExpressionConverter.TestPrimitiveIdent;
+procedure TTestExpressionConverter.TestPrimitiveIdent;
 
 Var
   Id : TPrimitiveExpr;
   Res : TJSPrimaryExpressionIdent;
 begin
-  Id:=TPrimitiveExpr.Create(Nil,pekIdent,'a');
+  Id:=CreatePrimitiveExpr(Nil,pekIdent,'a');
   Res:=TJSPrimaryExpressionIdent(Convert(Id,TJSPrimaryExpressionIdent));
   AssertEquals('Correct identifier name','a',String(Res.Name));
 end;
 
-Procedure TTestExpressionConverter.TestUnaryMinus;
+procedure TTestExpressionConverter.TestUnaryMinus;
 Var
   U : TUnaryExpr;
   E : TJSUnaryMinusExpression;
 
 begin
-  U:=TUnaryExpr.Create(Nil,pekUnary,eopSubtract);
+  U:=CreateUnaryExpr(eopSubtract);
   U.Operand:=CreateLiteral(1.23);
   E:=TJSUnaryMinusExpression(TestUnaryExpression(U,TJSUnaryMinusExpression));
   AssertLiteral('Correct literal for minus',E.A,1.23)
 end;
 
-Procedure TTestExpressionConverter.TestUnaryPlus;
+procedure TTestExpressionConverter.TestUnaryPlus;
 Var
   U : TUnaryExpr;
   E : TJSUnaryPlusExpression;
 
 begin
-  U:=TUnaryExpr.Create(Nil,pekUnary,eopAdd);
+  U:=CreateUnaryExpr(eopAdd);
   U.Operand:=CreateLiteral(1.23);
   E:=TJSUnaryPlusExpression(TestUnaryExpression(U,TJSUnaryPlusExpression));
   AssertLiteral('Correct literal for plus',E.A,1.23)
 end;
 
-Procedure TTestExpressionConverter.TestBinaryPlus;
+procedure TTestExpressionConverter.TestBinaryPlus;
 Var
   B : TBinaryExpr;
   E : TJSAdditiveExpressionPlus;
 
 begin
-  B:=TBinaryExpr.Create(Nil,pekBinary,eopAdd);
+  B:=CreateBinary(eopAdd);
   B.left:=CreateLiteral(1.23);
   B.Right:=CreateLiteral(3.45);
   E:=TJSAdditiveExpressionPlus(TestBinaryExpression(B,TJSAdditiveExpressionPlus));
@@ -945,13 +963,13 @@ begin
   AssertLiteral('Correct right literal for addition',E.B,3.45);
 end;
 
-Procedure TTestExpressionConverter.TestBinaryMinus;
+procedure TTestExpressionConverter.TestBinaryMinus;
 Var
   B : TBinaryExpr;
   E : TJSAdditiveExpressionMinus;
 
 begin
-  B:=TBinaryExpr.Create(Nil,pekBinary,eopSubtract);
+  B:=CreateBinary(eopSubtract);
   B.left:=CreateLiteral(1.23);
   B.Right:=CreateLiteral(3.45);
   E:=TJSAdditiveExpressionMinus(TestBinaryExpression(B,TJSAdditiveExpressionMinus));
@@ -959,13 +977,13 @@ begin
   AssertLiteral('Correct right literal for subtract',E.B,3.45);
 end;
 
-Procedure TTestExpressionConverter.TestBinaryMultiply;
+procedure TTestExpressionConverter.TestBinaryMultiply;
 Var
   B : TBinaryExpr;
   E : TJSMultiplicativeExpressionMul;
 
 begin
-  B:=TBinaryExpr.Create(Nil,pekBinary,eopMultiply);
+  B:=CreateBinary(eopMultiply);
   B.left:=CreateLiteral(1.23);
   B.Right:=CreateLiteral(3.45);
   E:=TJSMultiplicativeExpressionMul(TestBinaryExpression(B,TJSMultiplicativeExpressionMul));
@@ -973,14 +991,14 @@ begin
   AssertLiteral('Correct right literal for multiplication',E.B,3.45);
 end;
 
-Procedure TTestExpressionConverter.TestBinaryDivision;
+procedure TTestExpressionConverter.TestBinaryDivision;
 
 Var
   B : TBinaryExpr;
   E : TJSMultiplicativeExpressionDiv;
 
 begin
-  B:=TBinaryExpr.Create(Nil,pekBinary,eopDivide);
+  B:=CreateBinary(eopDivide);
   B.left:=CreateLiteral(1.23);
   B.Right:=CreateLiteral(3.45);
   E:=TJSMultiplicativeExpressionDiv(TestBinaryExpression(B,TJSMultiplicativeExpressionDiv));
@@ -988,7 +1006,7 @@ begin
   AssertLiteral('Correct right literal for division',E.B,3.45);
 end;
 
-Procedure TTestExpressionConverter.TestBinaryDiv;
+procedure TTestExpressionConverter.TestBinaryDiv;
 
 Var
   B : TBinaryExpr;
@@ -996,7 +1014,7 @@ Var
   C: TJSCallExpression;
   Args: TJSArguments;
 begin
-  B:=TBinaryExpr.Create(Nil,pekBinary,eopDiv);
+  B:=CreateBinary(eopDiv);
   B.left:=CreateLiteral(1.23);
   B.Right:=CreateLiteral(3.45);
   C:=TJSCallExpression(Convert(B,TJSCallExpression));
@@ -1006,13 +1024,13 @@ begin
   AssertLiteral('Correct right literal for div',E.B,3.45);
 end;
 
-Procedure TTestExpressionConverter.TestBinaryMod;
+procedure TTestExpressionConverter.TestBinaryMod;
 Var
   B : TBinaryExpr;
   E : TJSMultiplicativeExpressionMod;
 
 begin
-  B:=TBinaryExpr.Create(Nil,pekBinary,eopMod);
+  B:=CreateBinary(eopMod);
   B.left:=CreateLiteral(1.23);
   B.Right:=CreateLiteral(3.45);
   E:=TJSMultiplicativeExpressionMod(TestBinaryExpression(B,TJSMultiplicativeExpressionMod));
@@ -1020,13 +1038,13 @@ begin
   AssertLiteral('Correct right literal for mod',E.B,3.45);
 end;
 
-Procedure TTestExpressionConverter.TestBinarySHL;
+procedure TTestExpressionConverter.TestBinarySHL;
 Var
   B : TBinaryExpr;
   E : TJSLShiftExpression;
 
 begin
-  B:=TBinaryExpr.Create(Nil,pekBinary,eopSHL);
+  B:=CreateBinary(eopSHL);
   B.left:=CreateLiteral(13);
   B.Right:=CreateLiteral(3);
   E:=TJSLShiftExpression(TestBinaryExpression(B,TJSLShiftExpression));
@@ -1034,13 +1052,13 @@ begin
   AssertLiteral('Correct right literal for shl',E.B,3);
 end;
 
-Procedure TTestExpressionConverter.TestBinarySHR;
+procedure TTestExpressionConverter.TestBinarySHR;
 Var
   B : TBinaryExpr;
   E : TJSURShiftExpression;
 
 begin
-  B:=TBinaryExpr.Create(Nil,pekBinary,eopSHR);
+  B:=CreateBinary(eopSHR);
   B.left:=CreateLiteral(13);
   B.Right:=CreateLiteral(3);
   E:=TJSURShiftExpression(TestBinaryExpression(B,TJSURShiftExpression));
@@ -1048,13 +1066,13 @@ begin
   AssertLiteral('Correct right literal for shr',E.B,3);
 end;
 
-Procedure TTestExpressionConverter.TestBinaryEqual;
+procedure TTestExpressionConverter.TestBinaryEqual;
 Var
   B : TBinaryExpr;
   E : TJSEqualityExpressionSEQ;
 
 begin
-  B:=TBinaryExpr.Create(Nil,pekBinary,eopEqual);
+  B:=CreateBinary(eopEqual);
   B.left:=CreateLiteral(13);
   B.Right:=CreateLiteral(3);
   E:=TJSEqualityExpressionSEQ(TestBinaryExpression(B,TJSEqualityExpressionSEQ));
@@ -1062,13 +1080,13 @@ begin
   AssertLiteral('Correct right literal for equal',E.B,3);
 end;
 
-Procedure TTestExpressionConverter.TestBinaryNotEqual;
+procedure TTestExpressionConverter.TestBinaryNotEqual;
 Var
   B : TBinaryExpr;
   E : TJSEqualityExpressionSNE;
 
 begin
-  B:=TBinaryExpr.Create(Nil,pekBinary,eopNotEqual);
+  B:=CreateBinary(eopNotEqual);
   B.left:=CreateLiteral(13);
   B.Right:=CreateLiteral(3);
   E:=TJSEqualityExpressionSNE(TestBinaryExpression(B,TJSEqualityExpressionSNE));
@@ -1076,14 +1094,14 @@ begin
   AssertLiteral('Correct right literal for not equal',E.B,3);
 end;
 
-Procedure TTestExpressionConverter.TestBinaryLessThan;
+procedure TTestExpressionConverter.TestBinaryLessThan;
 
 Var
   B : TBinaryExpr;
   E : TJSRelationalExpressionLT;
 
 begin
-  B:=TBinaryExpr.Create(Nil,pekBinary,eopLessThan);
+  B:=CreateBinary(eopLessThan);
   B.left:=CreateLiteral(13);
   B.Right:=CreateLiteral(3);
   E:=TJSRelationalExpressionLT(TestBinaryExpression(B,TJSRelationalExpressionLT));
@@ -1091,14 +1109,14 @@ begin
   AssertLiteral('Correct right literal for less than',E.B,3);
 end;
 
-Procedure TTestExpressionConverter.TestBinaryLessThanEqual;
+procedure TTestExpressionConverter.TestBinaryLessThanEqual;
 
 Var
   B : TBinaryExpr;
   E : TJSRelationalExpressionLE;
 
 begin
-  B:=TBinaryExpr.Create(Nil,pekBinary,eopLessThanEqual);
+  B:=CreateBinary(eopLessThanEqual);
   B.left:=CreateLiteral(13);
   B.Right:=CreateLiteral(3);
   E:=TJSRelationalExpressionLE(TestBinaryExpression(B,TJSRelationalExpressionLE));
@@ -1106,13 +1124,13 @@ begin
   AssertLiteral('Correct right literal for less than or equal',E.B,3);
 end;
 
-Procedure TTestExpressionConverter.TestBinaryGreater;
+procedure TTestExpressionConverter.TestBinaryGreater;
 Var
   B : TBinaryExpr;
   E : TJSRelationalExpressionGT;
 
 begin
-  B:=TBinaryExpr.Create(Nil,pekBinary,eopGreaterThan);
+  B:=CreateBinary(eopGreaterThan);
   B.left:=CreateLiteral(13);
   B.Right:=CreateLiteral(3);
   E:=TJSRelationalExpressionGT(TestBinaryExpression(B,TJSRelationalExpressionGT));
@@ -1120,14 +1138,14 @@ begin
   AssertLiteral('Correct right literal for greater than',E.B,3);
 end;
 
-Procedure TTestExpressionConverter.TestBinaryGreaterThanEqual;
+procedure TTestExpressionConverter.TestBinaryGreaterThanEqual;
 
 Var
   B : TBinaryExpr;
   E : TJSRelationalExpressionGE;
 
 begin
-  B:=TBinaryExpr.Create(Nil,pekBinary,eopGreaterThanEqual);
+  B:=CreateBinary(eopGreaterThanEqual);
   B.left:=CreateLiteral(13);
   B.Right:=CreateLiteral(3);
   E:=TJSRelationalExpressionGE(TestBinaryExpression(B,TJSRelationalExpressionGE));
@@ -1135,13 +1153,13 @@ begin
   AssertLiteral('Correct right literal for greater than or equal',E.B,3);
 end;
 
-Procedure TTestExpressionConverter.TestBinaryIs;
+procedure TTestExpressionConverter.TestBinaryIs;
 Var
   B : TBinaryExpr;
   E : TJSRelationalExpressionInstanceOf;
 
 begin
-  B:=TBinaryExpr.Create(Nil,pekBinary,eopIs);
+  B:=CreateBinary(eopIs);
   B.left:=CreateIdent('a');
   B.Right:=CreateIdent('b');
   E:=TJSRelationalExpressionInstanceOf(TestBinaryExpression(B,TJSRelationalExpressionInstanceOf));
@@ -1149,7 +1167,7 @@ begin
   AssertIdentifier('Correct right literal for is',E.B,'b');
 end;
 
-Procedure TTestExpressionConverter.TestCallExpressionNone;
+procedure TTestExpressionConverter.TestCallExpressionNone;
 Var
   B : TParamsExpr;
   E : TJSCallExpression;
@@ -1163,7 +1181,7 @@ begin
 //  AssertEquals('No arguments',0,E.Args.Elements.Count);
 end;
 
-Procedure TTestExpressionConverter.TestCallExpressionOne;
+procedure TTestExpressionConverter.TestCallExpressionOne;
 
 Var
   B : TParamsExpr;
@@ -1179,7 +1197,7 @@ begin
   AssertIdentifier('Argument 1 identifier',E.Args.Elements[0].Expr,'b');
 end;
 
-Procedure TTestExpressionConverter.TestCallExpressionTwo;
+procedure TTestExpressionConverter.TestCallExpressionTwo;
 Var
   B : TParamsExpr;
   E : TJSCallExpression;
@@ -1195,7 +1213,7 @@ begin
   AssertIdentifier('Argument 2 identifier',E.Args.Elements[1].Expr,'c');
 end;
 
-Procedure TTestExpressionConverter.TestMemberExpressionArrayOneDim;
+procedure TTestExpressionConverter.TestMemberExpressionArrayOneDim;
 
 Var
   B : TParamsExpr;
@@ -1203,7 +1221,7 @@ Var
 
 begin
   // a[b];
-  B:=TParamsExpr.Create(Nil,pekArrayParams,eopNone);
+  B:=CreateParamsExpr(pekArrayParams);
   B.Value:=CreateIdent('a');
   B.AddParam(CreateIdent('b'));
   E:=TJSBracketMemberExpression(Convert(B,TJSBracketMemberExpression));
@@ -1211,12 +1229,12 @@ begin
   AssertIdentifier('Correct array member name',E.Name,'b');
 end;
 
-Procedure TTestExpressionConverter.TestMemberExpressionArrayTwoDim;
+procedure TTestExpressionConverter.TestMemberExpressionArrayTwoDim;
 Var
   B : TParamsExpr;
 begin
   // a[b,c];
-  B:=TParamsExpr.Create(Nil,pekArrayParams,eopNone);
+  B:=CreateParamsExpr(pekArrayParams);
   B.Value:=CreateIdent('a');
   B.AddParam(CreateIdent('b'));
   B.AddParam(CreateIdent('c'));
@@ -1224,27 +1242,28 @@ begin
   AssertException('Pascal element not supported: TParamsExpr:TParamsExpr: Cannot convert 2-dim arrays',EPas2JS,@TryConvert);
 end;
 
-Procedure TTestExpressionConverter.TestVariable;
+procedure TTestExpressionConverter.TestVariable;
 
 Var
   VD : TJSVarDeclaration;
   R :TPasVariable;
 begin
-  R:=TPasVariable.Create('A',Nil);
+  R:=CreateVariable('A',Nil);
   VD:=TJSVarDeclaration(Convert(R,TJSVarDeclaration));
   AssertEquals('Correct name, lowercased','a',String(VD.Name));
   AssertNotNull('No init',VD.Init);
 end;
 
-Procedure TTestExpressionConverter.TestArrayVariable;
+procedure TTestExpressionConverter.TestArrayVariable;
 Var
   VD : TJSVarDeclaration;
   R :TPasVariable;
   A : TJSArrayLiteral;
 
 begin
-  R:=TPasVariable.Create('A',Nil);
+  R:=CreateVariable('A',Nil);
   R.VarType:=TPasArrayType.Create('myarray',Nil);
+  AddEl(R.VarType);
   VD:=TJSVarDeclaration(Convert(R,TJSVarDeclaration));
   AssertEquals('Correct name, lowercased','a',String(VD.Name));
   A:=TJSArrayLiteral(AssertElement('Init is array literal',TJSArrayLiteral,VD.Init));
@@ -1256,25 +1275,39 @@ begin
   AssertNotNull('Have converter',Converter);
 end;
 
+procedure TTestConverter.OnAddEl(El: TPasElement; Arg: pointer);
+begin
+  //writeln('TTestConverter.OnAddEl ',El.Name,':',El.ClassName);
+  if FOwnedElements.IndexOf(El)<0 then
+    FOwnedElements.Add(El);
+  if Arg=nil then ;
+end;
+
 procedure TTestConverter.SetUp;
 begin
+  FOwnedElements:=TFPList.Create;
   FConverter:=TPasToJSConverter.Create;
   FConverter.Globals:=TPasToJSConverterGlobals.Create(FConverter);
 end;
 
 procedure TTestConverter.TearDown;
+var
+  i: Integer;
 begin
+  for i:=0 to FOwnedElements.Count-1 do
+    TPasElement(FOwnedElements[i]).Free;
+  FreeAndNil(FOwnedElements);
+  FSource:=nil;
   FreeAndNil(FRes);
-  FreeAndNil(FSource);
   FreeAndNil(FConverter);
 end;
 
-Procedure TTestConverter.TryConvert;
+procedure TTestConverter.TryConvert;
 begin
   Convert(FAC,TJSElement);
 end;
 
-Function TTestConverter.Convert(AElement: TPasElement; AClass: TJSElementClass
+function TTestConverter.Convert(AElement: TPasElement; AClass: TJSElementClass
   ): TJSElement;
 begin
   FSource:=AElement;
@@ -1287,38 +1320,67 @@ begin
     end;
 end;
 
-Class procedure TTestConverter.AssertEquals(Const Msg: String; AExpected, AActual: TJSType);
+procedure TTestConverter.AddEl(El: TPasElement);
+begin
+  FOwnedElements.Add(El);
+end;
+
+procedure TTestConverter.AddElWithChildren(El: TPasElement);
+begin
+  El.ForEachCall(@OnAddEl,nil);
+end;
+
+function TTestConverter.CreateElement(aClass: TPTreeElement;
+  aParent: TPasElement): TPasElement;
+begin
+  Result:=aClass.Create('',aParent);
+  AddEl(Result);
+end;
+
+function TTestConverter.CreatePrimitiveExpr(aParent: TPasElement;
+  Kind: TPasExprKind; const Value: string): TPrimitiveExpr;
+begin
+  Result:=TPrimitiveExpr.Create(aParent,Kind,Value);
+  AddEl(Result);
+end;
+
+class procedure TTestConverter.AssertEquals(const Msg: String; AExpected,
+  AActual: TJSType);
 begin
   AssertEquals(Msg,GetEnumName(TypeInfo(TJSType),Ord(AExpected)),
                    GetEnumName(TypeInfo(TJSType),Ord(AActual)));
 end;
 
-Class procedure TTestConverter.AssertLiteral(Const Msg : String; Lit: TJSElement; AType: TJSType);
+class procedure TTestConverter.AssertLiteral(const Msg: String;
+  Lit: TJSElement; AType: TJSType);
 begin
   AssertNotNull(Msg+': Have instance',Lit);
   AssertEquals(Msg+': Correct class',TJSLIteral,Lit.ClassType);
   AssertEquals(Msg+': Correct value type',AType,TJSLIteral(Lit).Value.ValueType);
 end;
 
-Class procedure TTestConverter.AssertLiteral(Const Msg : String; Lit: TJSElement; AValue: Boolean);
+class procedure TTestConverter.AssertLiteral(const Msg: String;
+  Lit: TJSElement; AValue: Boolean);
 begin
   AssertLiteral(Msg,Lit,jstBoolean);
   AssertEquals(Msg+': Correct value',AValue,TJSLiteral(Lit).Value.AsBoolean);
 end;
 
-Class procedure TTestConverter.AssertLiteral(Const Msg : String; Lit: TJSElement; AValue: TJSString);
+class procedure TTestConverter.AssertLiteral(const Msg: String;
+  Lit: TJSElement; AValue: TJSString);
 begin
   AssertLiteral(Msg,Lit,jstString);
   AssertEquals(Msg+': Correct value',String(AValue),String(TJSLiteral(Lit).Value.AsString));
 end;
 
-Class procedure TTestConverter.AssertLiteral(Const Msg : String; Lit: TJSElement; AValue: TJSNumber);
+class procedure TTestConverter.AssertLiteral(const Msg: String;
+  Lit: TJSElement; AValue: TJSNumber);
 begin
   AssertLiteral(Msg,Lit,jstNumber);
   AssertEquals(Msg+': Correct value',AValue,TJSLiteral(Lit).Value.AsNumber);
 end;
 
-Class procedure TTestConverter.AssertIdentifier(Const Msg: String;
+class procedure TTestConverter.AssertIdentifier(const Msg: String;
   Ident: TJSElement; AName: String);
 begin
   AssertNotNull(Msg+': Have instance',Ident);
@@ -1326,54 +1388,90 @@ begin
   AssertEquals(Msg+': Correct name',AName,String(TJSPrimaryExpressionIdent(Ident).Name));
 end;
 
-Class Function TTestConverter.CreateLiteral(AValue: String): TPasExpr;
+function TTestConverter.CreateLiteral(AValue: String): TPasExpr;
 begin
-  Result:=TPrimitiveExpr.Create(Nil,pekString,AValue);
+  Result:=CreatePrimitiveExpr(Nil,pekString,AValue);
 end;
 
-Class Function TTestConverter.CreateLiteral(AValue: Double): TPasExpr;
+function TTestConverter.CreateLiteral(AValue: Double): TPasExpr;
 
 Var
   S : String;
 
 begin
   Str(AValue,S);
-  Result:=TPrimitiveExpr.Create(Nil,pekNumber,Trim(S));
+  Result:=CreatePrimitiveExpr(Nil,pekNumber,Trim(S));
 end;
 
-Class Function TTestConverter.CreateIdent(AName: String): TPrimitiveExpr;
+function TTestConverter.CreateIdent(AName: String): TPrimitiveExpr;
 begin
-  Result:=TPrimitiveExpr.Create(Nil,pekIdent,AName);
+  Result:=CreatePrimitiveExpr(Nil,pekIdent,AName);
 end;
 
-Class Function TTestConverter.CreateCondition : TPasExpr;
+function TTestConverter.CreateCondition: TPasExpr;
 
 begin
   Result:=CreateIdent('a');
 end;
 
-Class Function TTestConverter.CreateAssignStatement(LHS: String = 'a';RHS : String = 'b'): TPasImplAssign;
+function TTestConverter.CreateVariable(aName: String; aParent: TPasElement
+  ): TPasVariable;
+begin
+  Result:=TPasVariable.Create(aName,aParent);
+  AddEl(Result);
+end;
+
+function TTestConverter.CreateBinary(AOpCode: TExprOpCode; aParent: TPasElement
+  ): TBinaryExpr;
+begin
+  Result:=TBinaryExpr.Create(aParent,pekBinary,AOpCode);
+  AddEl(Result);
+end;
+
+function TTestConverter.CreateBoolConstExpr(Value: boolean): TBoolConstExpr;
+begin
+  Result:=TBoolConstExpr.Create(Nil,pekBoolConst,Value);
+  AddEl(Result);
+end;
+
+function TTestConverter.CreateUnaryExpr(AOpCode: TExprOpCode): TUnaryExpr;
+begin
+  Result:=TUnaryExpr.Create(Nil,pekUnary,AOpCode);
+  AddEl(Result);
+end;
+
+function TTestConverter.CreateAssignStatement(LHS: String; RHS: String
+  ): TPasImplAssign;
 
 begin
-  Result:=TPasImplAssign.Create('',Nil);
+  Result:=TPasImplAssign(CreateElement(TPasImplAssign));
   Result.left:=CreateIdent(LHS);
   Result.right:=CreateIdent(RHS);
 end;
 
-Class Function TTestConverter.CreateFunctionCall(AName: String;
-  Params: Array of String): TParamsExpr;
+function TTestConverter.CreateParamsExpr(Kind: TPasExprKind;
+  aParent: TPasElement): TParamsExpr;
+begin
+  Result:=TParamsExpr.Create(aParent,Kind);
+  AddEl(Result);
+end;
+
+function TTestConverter.CreateFunctionCall(AName: String;
+  Params: array of String): TParamsExpr;
 
 Var
   I : Integer;
 
 begin
   Result:=TParamsExpr.Create(Nil,pekFuncParams,eopNone);
+  AddEl(Result);
   Result.Value:=CreateIdent(AName);
   For I:=Low(Params) to High(Params) do
     Result.AddParam(TPasExpr(CreateIdent(Params[I])));
 end;
 
-Class Procedure TTestConverter.AssertAssignStatement(Const Msg : String; El : TJSElement;LHS: String = 'a';RHS : String = 'b');
+class procedure TTestConverter.AssertAssignStatement(const Msg: String;
+  El: TJSElement; LHS: String; RHS: String);
 
 begin
   AssertNotNull(Msg+': have statement',EL);
@@ -1383,7 +1481,7 @@ begin
   AssertIdentifier(Msg+': left hand side ('+LHS+')',TJSAssignStatement(EL).Expr,RHS);
 end;
 
-Class Procedure TTestConverter.AssertEmptyBlockStatement(Const Msg: String;
+class procedure TTestConverter.AssertEmptyBlockStatement(const Msg: String;
   El: TJSElement);
 begin
   AssertNotNull(Msg+': have statement',EL);
@@ -1391,7 +1489,7 @@ begin
     Fail(Msg+': statement is not empty block statement but is'+El.ClassName);
 end;
 
-class Function TTestConverter.AssertListStatement(Const Msg: String;
+class function TTestConverter.AssertListStatement(const Msg: String;
   El: TJSElement): TJSStatementList;
 begin
   AssertNotNull(Msg+': have statement',EL);
@@ -1400,7 +1498,7 @@ begin
   Result:=TJSStatementList(El);
 end;
 
-class Function TTestConverter.AssertElement(Const Msg: String;
+class function TTestConverter.AssertElement(const Msg: String;
   AClass: TJSElementClass; El: TJSElement): TJSElement;
 begin
   AssertNotNull(Msg+': have element',El);

@@ -1519,8 +1519,8 @@ type
     function AddExceptOn(const TypeEl: TPasType): TPasImplExceptOn;
     function AddRaise: TPasImplRaise;
     function AddLabelMark(const Id: string): TPasImplLabelMark;
-    function AddAssign(left, right: TPasExpr): TPasImplAssign;
-    function AddSimple(exp: TPasExpr): TPasImplSimple;
+    function AddAssign(Left, Right: TPasExpr): TPasImplAssign;
+    function AddSimple(Expr: TPasExpr): TPasImplSimple;
     function CloseOnSemicolon: boolean; virtual;
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
@@ -4911,6 +4911,7 @@ function TPasImplBlock.AddIfElse(const ACondition: TPasExpr): TPasImplIfElse;
 begin
   Result := TPasImplIfElse.Create('', Self);
   Result.ConditionExpr := ACondition;
+  ACondition.Parent:=Result;
   AddElement(Result);
 end;
 
@@ -4918,6 +4919,7 @@ function TPasImplBlock.AddWhileDo(const ACondition: TPasExpr): TPasImplWhileDo;
 begin
   Result := TPasImplWhileDo.Create('', Self);
   Result.ConditionExpr := ACondition;
+  ACondition.Parent:=Result;
   AddElement(Result);
 end;
 
@@ -4932,6 +4934,7 @@ function TPasImplBlock.AddCaseOf(const Expression: TPasExpr): TPasImplCaseOf;
 begin
   Result := TPasImplCaseOf.Create('', Self);
   Result.CaseExpr:= Expression;
+  Expression.Parent:=Result;
   AddElement(Result);
 end;
 
@@ -4941,7 +4944,9 @@ begin
   Result := TPasImplForLoop.Create('', Self);
   Result.Variable := AVar;
   Result.StartExpr := AStartValue;
-  Result.EndExpr:= AEndValue;
+  AStartValue.Parent := Result;
+  Result.EndExpr := AEndValue;
+  AEndValue.Parent := Result;
   AddElement(Result);
 end;
 
@@ -4951,7 +4956,9 @@ begin
   Result := TPasImplForLoop.Create('', Self);
   Result.VariableName := AVarName;
   Result.StartExpr := AStartValue;
+  AStartValue.Parent := Result;
   Result.EndExpr := AEndValue;
+  AEndValue.Parent := Result;
   if ADownto then
     Result.Looptype := ltDown;
   AddElement(Result);
@@ -4976,6 +4983,8 @@ var
 begin
   V:=TPasVariable.Create(VarName,nil);
   V.VarType:=VarType;
+  if VarType.Parent=nil then
+    VarType.Parent:=V;
   Result:=AddExceptOn(V);
 end;
 
@@ -4995,6 +5004,8 @@ function TPasImplBlock.AddExceptOn(const TypeEl: TPasType): TPasImplExceptOn;
 begin
   Result:=TPasImplExceptOn.Create('',Self);
   Result.TypeEl:=TypeEl;
+  if TypeEl.Parent=nil then
+    TypeEl.Parent:=Result;
   AddElement(Result);
 end;
 
@@ -5011,18 +5022,21 @@ begin
   AddElement(Result);
 end;
 
-function TPasImplBlock.AddAssign(left,right:TPasExpr):TPasImplAssign;
+function TPasImplBlock.AddAssign(Left,Right:TPasExpr):TPasImplAssign;
 begin
   Result:=TPasImplAssign.Create('', Self);
-  Result.Left:=left;
-  Result.Right:=right;
+  Result.Left:=Left;
+  Left.Parent:=Result;
+  Result.Right:=Right;
+  Right.Parent:=Result;
   AddElement(Result);
 end;
 
-function TPasImplBlock.AddSimple(exp:TPasExpr):TPasImplSimple;
+function TPasImplBlock.AddSimple(Expr:TPasExpr):TPasImplSimple;
 begin
   Result:=TPasImplSimple.Create('', Self);
-  Result.Expr:=exp;
+  Result.Expr:=Expr;
+  Expr.Parent:=Result;
   AddElement(Result);
 end;
 
@@ -6432,6 +6446,8 @@ end;
 procedure TPasImplWithDo.AddExpression(const Expression: TPasExpr);
 begin
   Expressions.Add(Expression);
+  if Expression.Parent=nil then
+    Expression.Parent:=Self;
 end;
 
 procedure TPasImplWithDo.ForEachCall(const aMethodCall: TOnForEachPasElement;
