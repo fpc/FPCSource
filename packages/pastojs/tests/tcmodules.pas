@@ -1645,14 +1645,7 @@ begin
       CurModule:=TTestEnginePasResolver(FResolvers[i]).Module;
       if CurModule=nil then continue;
       //writeln('TCustomTestModule.TearDown ReleaseUsedUnits ',CurModule.Name,' ',CurModule.RefCount,' ',CurModule.RefIds.Text);
-      {$IFNDEF EnablePasTreeFree}
-      CurModule.ReleaseUsedUnits;
-      {$ENDIF}
       end;
-    {$IFNDEF EnablePasTreeFree}
-    if FModule<>nil then
-      FModule.ReleaseUsedUnits;
-    {$ENDIF}
     for i:=0 to FResolvers.Count-1 do
       begin
       CurModule:=TTestEnginePasResolver(FResolvers[i]).Module;
@@ -1660,11 +1653,7 @@ begin
       //writeln('TCustomTestModule.TearDown UsesReleased ',CurModule.Name,' ',CurModule.RefCount,' ',CurModule.RefIds.Text);
       end;
     FreeAndNil(FResolvers);
-    {$IFDEF EnablePasTreeFree}
     FModule:=nil;
-    {$ELSE}
-    ReleaseAndNil(TPasElement(FModule){$IFDEF CheckPasTreeRefCount},'CreateElement'{$ENDIF});
-    {$ENDIF}
     FEngine:=nil;
     end;
   FreeAndNil(FHub);
