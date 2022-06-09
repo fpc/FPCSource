@@ -158,12 +158,21 @@ unit cpubase;
                           Default generic sizes
 *****************************************************************************}
 
+{$ifdef mips64}
+      { Defines the default address size for a processor, }
+      OS_ADDR = OS_64;
+      { the natural int size for a processor,
+        has to match osuinttype/ossinttype as initialized in psystem }
+      OS_INT = OS_64;
+      OS_SINT = OS_S64;
+{$else mips64}
       { Defines the default address size for a processor, }
       OS_ADDR = OS_32;
-      {# the natural int size for a processor,
-         has to match osuinttype/ossinttype as initialized in psystem }
+      { the natural int size for a processor,
+        has to match osuinttype/ossinttype as initialized in psystem }
       OS_INT = OS_32;
       OS_SINT = OS_S32;
+{$endif mips64}
       { the maximum float size for a processor,           }
       OS_FLOAT = OS_F64;
       { the size of a vector register for a processor     }
@@ -172,7 +181,6 @@ unit cpubase;
 {*****************************************************************************
                           Generic Register names
 *****************************************************************************}
-
 
       { PIC Code }
       NR_GP = NR_R28;
@@ -313,7 +321,7 @@ unit cpubase;
       begin
         case getregtype(reg) of
           R_INTREGISTER :
-            reg_cgsize:=OS_32;
+            reg_cgsize:=OS_INT;
           R_FPUREGISTER :
             begin
               if getsubreg(reg)=R_SUBFD then
