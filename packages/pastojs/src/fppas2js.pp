@@ -16183,6 +16183,7 @@ begin
     Result:=Call;
   finally
     FuncContext.Free;
+    DelayFuncContext.Free;
     if Result<>Call then
       Call.Free;
   end;
