@@ -4345,9 +4345,9 @@ begin
     end;
   end;
 
-  // clear
-  Scope.MsgIntToProc:=nil;
-  Scope.MsgStrToProc:=nil;
+  // clear MsgXToProc lists, they are created in ConvertClassType only for the needed procs
+  FreeAndNil(Scope.MsgIntToProc);
+  FreeAndNil(Scope.MsgStrToProc);
   //writeln('TPas2JSResolver.FinishClassType END ',GetObjName(El));
 end;
 
@@ -15926,6 +15926,7 @@ begin
       Ancestor:=nil;
       IsTObject:=(El.ObjKind=okClass) and SameText(El.Name,'TObject');
       end;
+    // clear Msg lists, they recreated only for the needed procs
     FreeAndNil(Scope.MsgIntToProc);
     FreeAndNil(Scope.MsgStrToProc);
     SpecializeDelay:=SpecializeNeedsDelay(El,AContext);
@@ -18248,8 +18249,10 @@ begin
       revkUnicodeString:
         AliasName:=TResEvalUTF16(EvalValue).S;
       else
+        ReleaseEvalValue(EvalValue);
         RaiseNotSupported(Symb.ExportName,AContext,20211020144404);
       end;
+      ReleaseEvalValue(EvalValue);
 
       end
     else
@@ -25337,6 +25340,7 @@ var
   LeftBT, RightBT: TResolverBaseType;
   Value: TResEvalValue;
   IntValue, LeftMinVal, LeftMaxVal, RightMinVal, RightMaxVal: TMaxPrecInt;
+  Lit: TJSLiteral;
 begin
   aResolver:=AssignContext.Resolver;
   LeftBT:=AssignContext.LeftResolved.BaseType;
@@ -25408,6 +25412,18 @@ begin
         IntValue:=CutToUIntDouble(IntValue);
       end;
 
+      if AssignContext.RightSide is TJSLiteral then
+        begin
+        Lit:=TJSLiteral(AssignContext.RightSide);
+        if Lit.Value.ValueType=jstNumber then
+          begin
+          Lit.Value.AsNumber:=IntValue;
+          Lit.Value.CustomValue:='';
+          exit;
+          end;
+        end;
+      if AssignContext.RightSide<>nil then
+        AssignContext.RightSide.Free;
       AssignContext.RightSide:=CreateLiteralNumber(El.right,IntValue);
       end;
   finally

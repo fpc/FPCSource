@@ -4888,7 +4888,7 @@ procedure TPasParser.ParseVarList(Parent: TPasElement; VarList: TFPList;
 // on Exception the VarList is restored, no need to Release the new elements
 
 var
-  i, OldListCount: Integer;
+  i, VarCnt: Integer;
   Value , aLibName, aExpName, AbsoluteExpr: TPasExpr;
   VarType: TPasType;
   VarEl: TPasVariable;
@@ -4903,7 +4903,7 @@ begin
   aExpName:=nil;
   AbsoluteExpr:=nil;
   AbsoluteLocString:='';
-  OldListCount:=VarList.Count;
+  VarCnt:=0;
   ok:=false;
   try
     D:=SaveComments; // This means we support only one comment per 'list'.
@@ -4923,6 +4923,7 @@ begin
       VarEl:=TPasVariable(CreateElement(TPasVariable,CurTokenString,Parent,
                                         AVisibility,CurTokenPos));
       VarList.Add(VarEl);
+      inc(VarCnt);
       NextToken;
       case CurToken of
       tkColon: break;
@@ -4933,28 +4934,28 @@ begin
     Until (CurToken=tkColon);
     OldForceCaret:=Scanner.SetForceCaret(True);
     try
-      VarType := ParseVarType(VarEl);
+      VarType := ParseVarType(VarEl); // Note: this can insert elements into VarList!
       {$IFDEF CheckPasTreeRefCount}if VarType.RefIds.IndexOf('CreateElement')>=0 then VarType.ChangeRefId('CreateElement','TPasVariable.VarType'){$ENDIF};
     finally
       Scanner.SetForceCaret(OldForceCaret);
     end;
     // read type
-    for i := OldListCount to VarList.Count - 1 do
+    for i := VarList.Count-VarCnt to VarList.Count - 1 do
       begin
       VarEl:=TPasVariable(VarList[i]);
       // Writeln(VarEl.Name, AVisibility);
       VarEl.VarType := VarType;
       //VarType.Parent := VarEl; // this is wrong for references
+      {$IFNDEF EnablePasTreeFree}
       if (i>OldListCount) then
-        {$IFNDEF EnablePasTreeFree}
         VarType.AddRef{$IFDEF CheckPasTreeRefCount}('TPasVariable.VarType'){$ENDIF};
-        {$ENDIF}
+      {$ENDIF}
       end;
 
     H:=CheckHint(Nil,False);
     If Full then
       GetVariableValueAndLocation(VarEl,Value,AbsoluteExpr,AbsoluteLocString);
-    if (VarList.Count>OldListCount+1) then
+    if VarCnt>1 then
       begin
       // multiple variables
       if Value<>nil then
@@ -4962,7 +4963,7 @@ begin
       if AbsoluteExpr<>nil then
         ParseExc(nParserOnlyOneVariableCanBeAbsolute,SParserOnlyOneVariableCanBeAbsolute);
       end;
-    TPasVariable(VarList[OldListCount]).Expr:=Value;
+    VarEl.Expr:=Value;
     Value:=nil;
 
     // Note: external members are allowed for non external classes/records too
@@ -4975,7 +4976,6 @@ begin
       NextToken;
       If Curtoken<>tkSemicolon then
         UnGetToken;
-      VarEl:=TPasVariable(VarList[OldListCount]);
       AllowedVarMods:=[];
       if ExternalStruct then
         AllowedVarMods:=[vmExternal]
@@ -4994,7 +4994,7 @@ begin
     SaveComments(D);
 
     // connect
-    for i := OldListCount to VarList.Count - 1 do
+    for i := VarList.Count-VarCnt to VarList.Count - 1 do
       begin
       VarEl:=TPasVariable(VarList[i]);
       // Writeln(VarEl.Name, AVisibility);
@@ -5031,10 +5031,10 @@ begin
       if aExpName<>nil then aExpName.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
       if AbsoluteExpr<>nil then AbsoluteExpr.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
       if Value<>nil then Value.Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
-      for i:=OldListCount to VarList.Count-1 do
+      for i:=VarList.Count-VarCnt to VarList.Count-1 do
         TPasElement(VarList[i]).Release{$IFDEF CheckPasTreeRefCount}('CreateElement'){$ENDIF};
       {$ENDIF}
-      VarList.Count:=OldListCount;
+      VarList.Count:=VarList.Count-VarCnt;
       end;
   end;
 end;
