@@ -4896,7 +4896,7 @@ begin
   if FHasShownLogo then exit;
   FHasShownLogo:=true;
   WriteVersionLine;
-  Log.LogPlain('Copyright (c) 2021 Free Pascal team.');
+  Log.LogPlain('Copyright (c) 2022 Free Pascal team.');
   if coShowInfos in Options then
     WriteEncoding;
 end;
