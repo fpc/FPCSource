@@ -5005,7 +5005,7 @@ begin
         {$IFDEF VerbosePCUFiler}
         writeln('TPCUWriter.WritePCU zip...');
         {$ENDIF}
-        Comp:=Tcompressionstream.create(cldefault,aStream);
+        Comp:=TCompressionStream.create(cldefault,aStream);
         try
           Comp.WriteDWord(TargetStream.Size);
           Comp.Write(TMemoryStream(TargetStream).Memory^,TargetStream.Size);
@@ -7232,6 +7232,9 @@ var
   Kind: TPasIdentifierKind;
 begin
   Result:=AClass.Create(AName,AParent);
+  {$IFDEF EnablePasTreeFree}
+  Resolver.AddOwnedElement(Result);
+  {$ENDIF}
   Result.SourceFilename:=SourceFilename;
   {$IFDEF CheckPasTreeRefCount}Result.RefIds.Add('CreateElement');{$ENDIF}
   if (AName<>'')

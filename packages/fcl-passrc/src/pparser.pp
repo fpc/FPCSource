@@ -203,6 +203,7 @@ type
       virtual;
     function CreateFunctionType(const AName, AResultName: String; AParent: TPasElement;
       UseParentAsResultParent: Boolean; const ASrcPos: TPasSourcePos; TypeParams: TFPList = nil): TPasFunctionType;
+    procedure AddOwnedElement(El: TPasElement); virtual;
     function FindElement(const AName: String): TPasElement; virtual; abstract;
     function FindElementFor(const AName: String; AParent: TPasElement; TypeParamCount: integer): TPasElement; virtual;
     procedure BeginScope(ScopeType: TPasScopeType; El: TPasElement); virtual;
@@ -914,6 +915,11 @@ begin
   TPasFunctionType(Result).ResultEl :=
     TPasResultElement(CreateElement(TPasResultElement, AResultName, ResultParent,
                                     visDefault, ASrcPos, TypeParams));
+end;
+
+procedure TPasTreeContainer.AddOwnedElement(El: TPasElement);
+begin
+  FOwnedElements.Add(El);
 end;
 
 function TPasTreeContainer.FindElementFor(const AName: String;
