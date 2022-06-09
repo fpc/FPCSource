@@ -874,9 +874,13 @@ end;
 destructor TPasTreeContainer.Destroy;
 var
   i: Integer;
+  El: TPasElement;
 begin
   for i:=FOwnedElements.Count-1 downto 0 do
-    TPasElement(FOwnedElements[i]).Free;
+    begin
+    El:=TPasElement(FOwnedElements[i]);
+    El.Free;
+    end;
   FreeAndNil(FOwnedElements);
   inherited Destroy;
 end;
