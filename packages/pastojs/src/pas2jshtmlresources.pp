@@ -15,7 +15,7 @@ Type
   Private
     FLinkType: string;
     FPrefix: String;
-    FResources : tstrings;
+    FResources: TStrings;
   Protected
     function GetResourceCount: Integer; override;
     function GetAsString: String; override;
@@ -59,7 +59,6 @@ Var
   S : String;
   aFormat,ResourceName : String;
 
-
 begin
   S:=GetFileAsBase64(aFileName);
   aFormat:=GetFormat(aFileName,Options);
@@ -82,7 +81,6 @@ begin
   Result:=romFile;
 end;
 
-
 class function THTMLResourceLinkHandler.OutputFileExtension: String;
 begin
   Result:='.html';
@@ -99,7 +97,6 @@ begin
   // Do no call inherited, it will clear the list
   if IsMainFile then ;
 end;
-
 
 destructor THTMLResourceLinkHandler.Destroy;
 begin

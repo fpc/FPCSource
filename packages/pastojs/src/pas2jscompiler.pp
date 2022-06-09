@@ -3049,6 +3049,7 @@ end;
 
 procedure TPas2jsCompiler.CreateResourceSupport;
 begin
+  FreeAndNil(FResources);
   Case FResourceMode of
     rmNone : FResources:=TNoResources.Create(FS);
     rmHTML : FResources:=THTMLResourceLinkHandler.Create(FS);
@@ -4315,6 +4316,7 @@ destructor TPas2jsCompiler.Destroy;
 
   procedure FreeStuff;
   begin
+    FreeAndNil(FResources);
     FreeAndNil(FImports);
     FreeAndNil(FResourceStrings);
     FreeAndNil(FNamespaces);
