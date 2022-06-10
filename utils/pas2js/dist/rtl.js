@@ -1036,7 +1036,9 @@ var rtl = {
       if (a===null){
         a=rtl.arrayRef(src); // Note: concat(a) does not clone
       } else {
-        a=a.concat(src);
+        for (var i=0; i<src.length; i++){
+          a.push(src[i]);
+        }
       }
     };
     return a;
