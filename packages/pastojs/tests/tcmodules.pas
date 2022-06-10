@@ -498,6 +498,7 @@ type
     Procedure TestArray_ConstRef;
     Procedure TestArray_Concat;
     Procedure TestArray_Concat_Append;
+    Procedure TestArray_Concat_Append_Var;
     Procedure TestArray_Copy;
     Procedure TestArray_InsertDelete;
     Procedure TestArray_DynArrayConstObjFPC;
@@ -11431,21 +11432,60 @@ begin
     'this.f = {};',
     '']),
     LinesToStr([ // $mod.$main
-    '$mod.ArrInt;',
+    '$mod.ArrInt = $mod.ArrInt;',
     '$mod.ArrInt = rtl.arrayPushN($mod.ArrInt, 2);',
     '$mod.ArrInt = rtl.arrayPushN($mod.ArrInt, 3, 4);',
-    '$mod.ArrRec;',
+    '$mod.ArrRec = $mod.ArrRec;',
     '$mod.ArrRec = rtl.arrayPush($mod.TRec, $mod.ArrRec, $mod.TRec.$clone($mod.r));',
     '$mod.ArrRec = rtl.arrayPush($mod.TRec, $mod.ArrRec, $mod.TRec.$clone($mod.r), $mod.TRec.$clone($mod.r));',
-    '$mod.ArrSet;',
+    '$mod.ArrSet = $mod.ArrSet;',
     '$mod.ArrSet = rtl.arrayPush("refSet", $mod.ArrSet, rtl.refSet($mod.f));',
     '$mod.ArrSet = rtl.arrayPush("refSet", $mod.ArrSet, rtl.refSet($mod.f), rtl.refSet($mod.f));',
-    '$mod.ArrJSValue;',
+    '$mod.ArrJSValue = $mod.ArrJSValue;',
     '$mod.ArrJSValue = rtl.arrayPushN($mod.ArrJSValue, 11);',
     '$mod.ArrJSValue = rtl.arrayPushN($mod.ArrJSValue, 12, 13);',
-    '$mod.ArrFlag;',
+    '$mod.ArrFlag = $mod.ArrFlag;',
     '$mod.ArrFlag = rtl.arrayPushN($mod.ArrFlag, $mod.TFlag.small);',
     '$mod.ArrFlag = rtl.arrayPushN($mod.ArrFlag, $mod.TFlag.small, $mod.TFlag.big);',
+    '']));
+end;
+
+procedure TTestModule.TestArray_Concat_Append_Var;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TArrInt = array of word;',
+  '',
+  'procedure Fly(a: TArrInt; var b: TArrInt);',
+  'begin',
+  '  a:=concat(a,[2]);',
+  '  b:=concat(b,[2]);',
+  'end;',
+  'var',
+  '  ArrInt: tarrint;',
+  'begin',
+  '  Fly(ArrInt,ArrInt);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestArray_Concat_Append_Var',
+    LinesToStr([ // statements
+    'this.Fly = function (a, b) {',
+    '  a = rtl.arrayPushN(a, 2);',
+    '  b.set(rtl.arrayPushN(b.get(), 2));',
+    '};',
+    'this.ArrInt = [];',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.Fly(rtl.arrayRef($mod.ArrInt), {',
+    '  p: $mod,',
+    '  get: function () {',
+    '      return this.p.ArrInt;',
+    '    },',
+    '  set: function (v) {',
+    '      this.p.ArrInt = v;',
+    '    }',
+    '});',
     '']));
 end;
 
@@ -27249,6 +27289,7 @@ begin
   '  Self[1]:=true;',
   '  Self[2]:=not Self[3];',
   '  SetLength(Self,4);',
+  '  Self:=Concat(Self,[true]);',
   'end;',
   'var',
   '  b: TArrOfBool;',
@@ -27265,6 +27306,7 @@ begin
     '    this.get()[1] = true;',
     '    this.get()[2] = !this.get()[3];',
     '    this.set(rtl.arraySetLength(this.get(), false, 4));',
+    '    this.set(rtl.arrayPushN(this.get(), true));',
     '  };',
     '});',
     'this.b = [];',

@@ -1685,7 +1685,7 @@ type
     function HasAnonymousFunctions(El: TPasImplElement): boolean;
     function GetTopLvlProcScope(El: TPasElement): TPas2JSProcedureScope;
     function ProcCanBePrecompiled(DeclProc: TPasProcedure): boolean; virtual;
-    function IsDirectlyWritable(const ExprResolved: TPasResolverResult): boolean; virtual;
+    function IsReadEqWrite(const ExprResolved: TPasResolverResult): boolean; virtual;
     function IsTObjectFreeMethod(El: TPasExpr): boolean; virtual;
     function IsExternalBracketAccessor(El: TPasElement): boolean;
     function IsExternalClassConstructor(El: TPasElement): boolean;
@@ -7417,13 +7417,14 @@ begin
   until false;
 end;
 
-function TPas2JSResolver.IsDirectlyWritable(const ExprResolved: TPasResolverResult
+function TPas2JSResolver.IsReadEqWrite(const ExprResolved: TPasResolverResult
   ): boolean;
 var
   C: TClass;
-  IdentEl, Setter: TPasElement;
+  IdentEl, Setter, Getter: TPasElement;
   Prop: TPasProperty;
 begin
+  if not (rrfReadable in ExprResolved.Flags) then exit;
   if not (rrfWritable in ExprResolved.Flags) then exit;
   Result:=false;
   IdentEl:=ExprResolved.IdentEl;
@@ -7435,16 +7436,15 @@ begin
       if (C=TPasVariable) or (C=TPasConst) or (C=TPasResultElement) then
         exit(true)
       else if (C=TPasArgument) then
-        begin
-        if TPasArgument(IdentEl).Access=argDefault then
-          exit(true);
-        end
+        exit(true)
       else if (C=TPasProperty) then
         begin
         Prop:=TPasProperty(IdentEl);
+        Getter:=GetPasPropertyGetter(Prop);
+        if not (Getter is TPasVariable) then
+          exit;
         Setter:=GetPasPropertySetter(Prop);
-        if Setter is TPasVariable then
-          exit(true);
+        Result:=Getter=Setter;
         end;
       end;
     end;
@@ -22869,10 +22869,9 @@ begin
           begin
           if (El.Kind<>akDefault) then
             aResolver.RaiseMsg(20201028212754,nIllegalQualifier,sIllegalQualifier,[AssignKindNames[El.Kind]],El);
-          if aResolver.IsDirectlyWritable(AssignContext.LeftResolved) then
+          if aResolver.IsReadEqWrite(AssignContext.LeftResolved) then
             begin
-            Result:=ConvertDirectAssignArrayStatement(El,AssignContext);
-            if Result<>nil then exit;
+            AssignContext.RightSide:=ConvertDirectAssignArrayStatement(El,AssignContext);
             end;
           end;
         end;
@@ -23213,7 +23212,6 @@ var
   LeftRef, ParamRef: TResolvedReference;
   SubParams: TParamsExpr;
   ParentContext: TConvertContext;
-  AssignSt: TJSSimpleAssignStatement;
   Call: TJSCallExpression;
   i: Integer;
   JS: TJSElement;
@@ -23254,23 +23252,19 @@ begin
             exit;
             end;
           // A:=Concat(A,[b,c])  ->  A=rtl.arrayPushN(A,b,c);
-          AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,AssignContext.PasElement));
           try
-            AssignSt.LHS:=ConvertExpression(FirstParam,ParentContext);
             Call:=CreateArrayConcat(AssignContext.LeftResolved.LoTypeEl as TPasArrayType,
-                                             El,ParentContext,true);
-            AssignSt.Expr:=Call;
+                                    El,ParentContext,true);
             Call.AddArg(ConvertExpression(FirstParam,ParentContext));
             for i:=0 to length(SubParams.Params)-1 do
               begin
               JS:=CreateArrayEl(SubParams.Params[i],ParentContext);
               Call.AddArg(JS);
               end;
-
-            Result:=AssignSt;
+            Result:=Call;
           finally
             if Result=nil then
-              AssignSt.Free;
+              Call.Free;
           end;
           end;
         end;
