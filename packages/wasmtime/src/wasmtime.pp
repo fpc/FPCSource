@@ -39,7 +39,7 @@ uses
 }
 Const
   {$IFDEF WINDOWS}
-  libwasmtime = 'libwasmtime.dll';
+  libwasmtime = 'wasmtime.dll';
   {$ELSE}
     {$IFDEF DARWIN}
       libwasmtime = 'libwasmtime.dylib';
