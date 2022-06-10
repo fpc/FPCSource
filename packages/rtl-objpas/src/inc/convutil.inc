@@ -68,9 +68,14 @@ function ConvUnitDec(const AValue: Double; const AType, AAmountType: TConvType):
 function ConvUnitInc(const AValue: Double; const AType: TConvType;
   const AAmount: Double; const AAmountType: TConvType): TConvUtilFloat;
 function ConvUnitInc(const AValue: Double; const AType, AAmountType: TConvType): TConvUtilFloat;
+function ConvUnitWithinNext(const AValue, ATest: Double; const AType: TConvType;
+  const AAmount: Double; const AAmountType: TConvType): Boolean;
+function ConvUnitWithinPrevious(const AValue, ATest: Double;
+  const AType: TConvType; const AAmount: Double; const AAmountType: TConvType): Boolean;
 
 function ConvFamilyToDescription(const AFamily: TConvFamily): string;
 function ConvTypeToDescription(const AType: TConvType): string;
+function ConvUnitToStr(const AValue: Double; const AType: TConvType): string;
 function  DescriptionToConvFamily(const ADescription: String; out AFamily: TConvFamily): Boolean;
 function  DescriptionToConvType(const ADescription: String; out AType: TConvType): Boolean; overload;
 function  DescriptionToConvType(const AFamily: TConvFamily; const ADescription: String; out AType: TConvType): Boolean; overload;
@@ -78,8 +83,13 @@ procedure GetConvFamilies(out AFamilies: TConvFamilyArray);
 procedure GetConvTypes(const AFamily: TConvFamily; out ATypes: TConvTypeArray);
 
 function ConvTypeToFamily(const AType: TConvType): TConvFamily;
+function ConvTypeToFamily(const AFrom, ATo: TConvType): TConvFamily;
 function CompatibleConversionType(const AType: TConvType; const AFamily: TConvFamily): Boolean;
 function CompatibleConversionTypes(const AFrom, ATo: TConvType): Boolean;
+
+procedure RaiseConversionError(const AText: string);
+procedure RaiseConversionError(const AText: string; const AArgs: array of const);
+procedure RaiseConversionRegError(AFamily: TConvFamily; const ADescription: string);
 
 Type
   TConvTypeInfo = Class(Tobject)
@@ -123,6 +133,8 @@ Implementation
 
 uses
   RtlConsts;
+
+const macheps=1E-9;
 
 Type ResourceData = record
                       Description   : String;
@@ -168,12 +180,44 @@ begin
     result:=ConvUnitInc(AValue, AType, 1.0, AAmountType);
 end;
 
+function ConvUnitWithinNext(const AValue, ATest: Double;
+  const AType: TConvType; const AAmount: Double; const AAmountType: TConvType): Boolean;
+
+var
+  D: Double;
+
+begin
+  D:=Convert(AAmount, AAMountType, AType);
+  //don't use InRange() since it does have an epsilon parameter
+  result:=(CompareValue(ATest,AValue,macheps)<>LessThanValue) and
+          (CompareValue(ATest,AValue+D,macheps)<>GreaterThanValue);
+end;
+
+function ConvUnitWithinPrevious(const AValue, ATest: Double;
+  const AType: TConvType; const AAmount: Double; const AAmountType: TConvType): Boolean;
+
+var
+  D: Double;
+
+begin
+  D:=Convert(AAmount, AAMountType, AType);
+  result:=(CompareValue(ATest,AValue,macheps)<>GreaterThanValue) and
+          (CompareValue(ATest,AValue-D,macheps)<>LessThanValue);
+
+end;
+
 function ConvFamilyToDescription(const AFamily: TConvFamily): string;
 
 begin
   result:='';
   if AFamily<length(TheFamilies) then
     result:=TheFamilies[AFamily];
+end;
+
+function ConvUnitToStr(const AValue: Double; const AType: TConvType): string;
+
+begin
+  result:=format(GConvUnitToStrFmt,[AValue,ConvTypeToDescription(AType)]);
 end;
 
 function  DescriptionToConvFamily(const ADescription: String; out AFamily: TConvFamily): Boolean;
@@ -269,6 +313,16 @@ begin
     result:=TheUnits[AType].Fam;
 end;
 
+function ConvTypeToFamily(const AFrom, ATo: TConvType): TConvFamily;
+
+begin
+  result:=ConvTypeToFamily(AFrom);
+  if result<>CIllegalConvFamily then begin
+    if ConvTypeToFamily(ATo)<>result then
+      result:=CIllegalConvFamily;
+  end;
+end;
+
 function CompatibleConversionType(const AType: TConvType;
   const AFamily: TConvFamily): Boolean;
 
@@ -313,7 +367,6 @@ begin
   Result:=i<Length(TheFamilies);
 end;
 
-const macheps=1E-9;
 
 Function InternalRegisterConversionType(Fam:TConvFamily;Const S:String;Value:TConvUtilFloat;
   const AToCommonFunc, AFromCommonFunc: TConversionProc):TConvType;
@@ -475,6 +528,24 @@ function ConvUnitDiff(const AValue1: Double; const AType1: TConvType;
   const AValue2: Double; const AType2, AResultType: TConvType): TConvUtilFloat;
 begin
   result:=ConvUnitAdd(AVAlue1, ATYpe1, -AValue2, AType2, AResultType);
+end;
+
+procedure RaiseConversionError(const AText: string);
+
+begin
+  Raise EConversionError.Create(AText);
+end;
+
+procedure RaiseConversionError(const AText: string; const AArgs: array of const);
+
+begin
+  Raise EConversionError.CreateFmt(AText, AArgs);
+end;
+
+procedure RaiseConversionRegError(AFamily: TConvFamily; const ADescription: string);
+
+begin
+  Raise EConversionError.CreateFmt(SConvDuplicateType,[ADescription,ConvFamilyToDescription(AFamily)]);
 end;
 
 Constructor TConvTypeInfo.Create(Const AConvFamily : TConvFamily;const ADescription:String);
