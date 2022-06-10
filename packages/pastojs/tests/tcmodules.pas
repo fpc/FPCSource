@@ -696,20 +696,21 @@ type
 
     // class interfaces
     Procedure TestClassInterface_Corba;
-    Procedure TestClassInterface_ProcExternalFail;
-    Procedure TestClassInterface_Overloads;
-    Procedure TestClassInterface_DuplicateGUIInIntfListFail;
-    Procedure TestClassInterface_DuplicateGUIInAncestorFail;
-    Procedure TestClassInterface_AncestorImpl;
-    Procedure TestClassInterface_ImplReintroduce;
-    Procedure TestClassInterface_MethodResolution;
-    Procedure TestClassInterface_AncestorMoreInterfaces;
-    Procedure TestClassInterface_MethodOverride;
+    Procedure TestClassInterface_Corba_ProcExternalFail;
+    Procedure TestClassInterface_Corba_Overloads;
+    Procedure TestClassInterface_Corba_DuplicateGUIInIntfListFail;
+    Procedure TestClassInterface_Corba_DuplicateGUIInAncestorFail;
+    Procedure TestClassInterface_Corba_AncestorImpl;
+    Procedure TestClassInterface_Corba_ImplReintroduce;
+    Procedure TestClassInterface_Corba_MethodResolution;
+    Procedure TestClassInterface_COM_AncestorMoreInterfaces;
+    Procedure TestClassInterface_Corba_MethodOverride;
     Procedure TestClassInterface_Corba_Delegation;
     Procedure TestClassInterface_Corba_DelegationStatic;
     Procedure TestClassInterface_Corba_Operators;
     Procedure TestClassInterface_Corba_Args;
     Procedure TestClassInterface_Corba_ForIn;
+    Procedure TestClassInterface_Corba_ArrayOfIntf;
     Procedure TestClassInterface_COM_AssignVar;
     Procedure TestClassInterface_COM_AssignArg;
     Procedure TestClassInterface_COM_FunctionResult;
@@ -723,11 +724,12 @@ type
     Procedure TestClassInterface_COM_Delegation;
     Procedure TestClassInterface_COM_With;
     Procedure TestClassInterface_COM_ForIn;
+    Procedure TestClassInterface_COM_ArrayOfIntf;
     Procedure TestClassInterface_COM_ArrayOfIntfFail;
     Procedure TestClassInterface_COM_RecordIntfFail;
     Procedure TestClassInterface_COM_UnitInitialization;
-    Procedure TestClassInterface_GUID;
-    Procedure TestClassInterface_GUIDProperty;
+    Procedure TestClassInterface_Corba_GUID;
+    Procedure TestClassInterface_Corba_GUIDProperty;
 
     // helpers
     Procedure TestClassHelper_ClassVar;
@@ -20653,7 +20655,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestClassInterface_ProcExternalFail;
+procedure TTestModule.TestClassInterface_Corba_ProcExternalFail;
 begin
   StartProgram(false);
   Add([
@@ -20669,7 +20671,7 @@ begin
   ConvertProgram;
 end;
 
-procedure TTestModule.TestClassInterface_Overloads;
+procedure TTestModule.TestClassInterface_Corba_Overloads;
 begin
   StartProgram(false);
   Add([
@@ -20736,7 +20738,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestClassInterface_DuplicateGUIInIntfListFail;
+procedure TTestModule.TestClassInterface_Corba_DuplicateGUIInIntfListFail;
 begin
   StartProgram(false);
   Add([
@@ -20756,7 +20758,7 @@ begin
   ConvertProgram;
 end;
 
-procedure TTestModule.TestClassInterface_DuplicateGUIInAncestorFail;
+procedure TTestModule.TestClassInterface_Corba_DuplicateGUIInAncestorFail;
 begin
   StartProgram(false);
   Add([
@@ -20776,7 +20778,7 @@ begin
   ConvertProgram;
 end;
 
-procedure TTestModule.TestClassInterface_AncestorImpl;
+procedure TTestModule.TestClassInterface_Corba_AncestorImpl;
 begin
   StartProgram(false);
   Add([
@@ -20800,7 +20802,7 @@ begin
   'begin',
   '']);
   ConvertProgram;
-  CheckSource('TestClassInterface_AncestorIntf',
+  CheckSource('TestClassInterface_Corba_AncestorImpl',
     LinesToStr([ // statements
     'rtl.createInterface(this, "IUnknown", "{B92D5841-758A-322B-BDC4-8A2800000000}", ["DoIt"], null);',
     'rtl.createInterface(this, "IBird", "{B92D5841-6264-3AE3-BF20-000000000000}", ["Fly"], null);',
@@ -20824,7 +20826,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestClassInterface_ImplReintroduce;
+procedure TTestModule.TestClassInterface_Corba_ImplReintroduce;
 begin
   StartProgram(false);
   Add([
@@ -20845,7 +20847,7 @@ begin
   'begin',
   '']);
   ConvertProgram;
-  CheckSource('TestClassInterface_ImplReintroduce',
+  CheckSource('TestClassInterface_Corba_ImplReintroduce',
     LinesToStr([ // statements
     'rtl.createInterface(this, "IBird", "{B92D5841-6264-3AE2-8594-000000000000}", ["DoIt"], null);',
     'rtl.createClass(this, "TObject", null, function () {',
@@ -20868,7 +20870,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestClassInterface_MethodResolution;
+procedure TTestModule.TestClassInterface_Corba_MethodResolution;
 begin
   StartProgram(false);
   Add([
@@ -20901,7 +20903,7 @@ begin
   '  BirdIntf.Fly(''abc'');',
   '']);
   ConvertProgram;
-  CheckSource('TestClassInterface_MethodResolution',
+  CheckSource('TestClassInterface_Corba_MethodResolution',
     LinesToStr([ // statements
     'rtl.createInterface(this, "IUnknown", "{B92D5841-758A-322B-BDD7-23D600000000}", ["Walk"], null);',
     'rtl.createInterface(this, "IBird", "{CF8A4986-80F6-396E-AE88-000B86AAE208}", ["Walk$1", "Fly"], this.IUnknown);',
@@ -20933,7 +20935,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestClassInterface_AncestorMoreInterfaces;
+procedure TTestModule.TestClassInterface_COM_AncestorMoreInterfaces;
 begin
   StartProgram(false);
   Add([
@@ -20954,7 +20956,7 @@ begin
   'begin',
   '']);
   ConvertProgram;
-  CheckSource('TestClassInterface_COM_AncestorLess',
+  CheckSource('TestClassInterface_COM_AncestorMoreInterfaces',
     LinesToStr([ // statements
     'rtl.createInterface(this, "IUnknown", "{8F2D5841-758A-322B-BDDF-21CD521DD723}", ["_AddRef", "Walk"], null);',
     'rtl.createInterface(this, "IBird", "{CCE11D4C-6504-3AEE-AE88-000B86AAE675}", [], this.IUnknown);',
@@ -20977,7 +20979,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestClassInterface_MethodOverride;
+procedure TTestModule.TestClassInterface_Corba_MethodOverride;
 begin
   StartProgram(false);
   Add([
@@ -21005,7 +21007,7 @@ begin
   'begin',
   '']);
   ConvertProgram;
-  CheckSource('TestClassInterface_MethodOverride',
+  CheckSource('TestClassInterface_Corba_MethodOverride',
     LinesToStr([ // statements
     'rtl.createInterface(this, "IUnknown", "{D6D98E5B-8A10-4FEC-856A-7BFC847FE74B}", ["Go"], null);',
     'rtl.createClass(this, "TObject", null, function () {',
@@ -21436,6 +21438,45 @@ begin
     'while ($in.MoveNext()) {',
     '  $mod.o = $in.GetCurrent();',
     '  $mod.o.Id = 3;',
+    '};',
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_Corba_ArrayOfIntf;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces corba}',
+  'type',
+  '  IUnknown = interface end;',
+  '  IBird = interface(IUnknown)',
+  '    function Fly(w: word): word;',
+  '  end;',
+  '  TBirdArray = array of IBird;',
+  'var',
+  '  i: IBird;',
+  '  a: TBirdArray;',
+  'begin',
+  '  SetLength(a,3);',
+  '  i:=a[1];',
+  '  a[2]:=i;',
+  '  for i in a do i.fly(3);',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_Corba_ArrayOfIntf',
+    LinesToStr([ // statements
+    'rtl.createInterface(this, "IUnknown", "{B92D5841-758A-322B-B800-000000000000}", [], null);',
+    'rtl.createInterface(this, "IBird", "{478D080B-C0F6-396E-AE88-000B87785B07}", ["Fly"], this.IUnknown);',
+    'this.i = null;',
+    'this.a = [];',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.a = rtl.arraySetLength($mod.a, null, 3);',
+    '$mod.i = $mod.a[1];',
+    '$mod.a[2] = $mod.i;',
+    'for (var $in = $mod.a, $l = 0, $end = rtl.length($in) - 1; $l <= $end; $l++) {',
+    '  $mod.i = $in[$l];',
+    '  $mod.i.Fly(3);',
     '};',
     '']));
 end;
@@ -22394,6 +22435,61 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestClassInterface_COM_ArrayOfIntf;
+begin
+  {$IFNDEF EnableCOMArrayOfIntf}
+  exit;
+  {$ENDIF}
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  IUnknown = interface end;',
+  '  IBird = interface(IUnknown)',
+  '    function Fly(w: word): word;',
+  '  end;',
+  '  TBirdArray = array of IBird;',
+  'procedure Run;',
+  'var',
+  '  i: IBird;',
+  '  a,b: TBirdArray;',
+  'begin',
+  //'  SetLength(a,3);',
+  '  a:=b;',
+  '  i:=a[1];',
+  '  a[2]:=i;',
+  //'  for i in a do i.fly(3);',
+  // a:=copy(b,1,2);
+  // a:=concat(b,a);
+  // insert(i,b,1);
+  // a:=[i,i];
+  'end;',
+  // ToDo: pass TBirdArray as arg
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_COM_ArrayOfIntf',
+    LinesToStr([ // statements
+    'rtl.createInterface(this, "IUnknown", "{B92D5841-758A-322B-B800-000000000000}", [], null);',
+    'rtl.createInterface(this, "IBird", "{478D080B-C0F6-396E-AE88-000B87785B07}", ["Fly"], this.IUnknown);',
+    'this.Run = function () {',
+    '  var i = null;',
+    '  var a = [];',
+    '  var b = [];',
+    '  try {',
+    '    a = rtl.arrayRef(b);',
+    '    i = rtl.setIntfL(i, a[1]);',
+    '    rtl.setIntfP(a, 2, i);',
+    '  } finally {',
+    '    rtl._Release(i);',
+    '    rtl._ReleaseArray(a,1);',
+    '  };',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
 procedure TTestModule.TestClassInterface_COM_ArrayOfIntfFail;
 begin
   StartProgram(false);
@@ -22490,7 +22586,7 @@ begin
     );
 end;
 
-procedure TTestModule.TestClassInterface_GUID;
+procedure TTestModule.TestClassInterface_Corba_GUID;
 begin
   StartProgram(false);
   Add([
@@ -22542,7 +22638,7 @@ begin
   '  if g=s then ;',
   '']);
   ConvertProgram;
-  CheckSource('TestClassInterface_GUID',
+  CheckSource('TestClassInterface_Corba_GUID',
     LinesToStr([ // statements
     'rtl.createInterface(this, "IUnknown", "{F31DB68F-3010-D355-4EBA-CDD4EF4A737C}", [], null);',
     'rtl.createClass(this, "TObject", null, function () {',
@@ -22634,7 +22730,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestClassInterface_GUIDProperty;
+procedure TTestModule.TestClassInterface_Corba_GUIDProperty;
 begin
   StartProgram(false);
   Add([

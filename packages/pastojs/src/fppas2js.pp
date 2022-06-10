@@ -585,6 +585,7 @@ type
     pbifnHelperNew,
     pbifnIntf_AddRef,
     pbifnIntf_Release,
+    pbifnIntf_ReleaseArray,
     pbifnIntfAddMap,
     pbifnIntfAsClass,
     pbifnIntfAsIntfT, // COM intfvar as intftype
@@ -775,6 +776,7 @@ const
     '$new', // helpertype.$new
     '_AddRef', // rtl._AddRef
     '_Release', // rtl._Release
+    '_ReleaseArray', // rtl._ReleaseArray
     'addIntf', // rtl.addIntf  pbifnIntfAddMap
     'intfAsClass', // rtl.intfAsClass
     'intfAsIntfT', // rtl.intfAsIntfT
@@ -2200,7 +2202,7 @@ type
     Procedure CreateFunctionTryFinally(FuncContext: TFunctionContext);
     Procedure AddFunctionFinallySt(NewEl: TJSElement; PosEl: TPasElement;
       FuncContext: TFunctionContext);
-    Procedure AddFunctionFinallyRelease(SubEl: TPasElement; FuncContext: TFunctionContext);
+    Procedure AddFunctionFinallyRelease(SubEl: TPasElement; FuncContext: TFunctionContext; IsArray: boolean = false);
     Procedure AddInFrontOfFunctionTry(NewEl: TJSElement; PosEl: TPasElement;
       FuncContext: TFunctionContext);
     Procedure AddInterfaceReleases(FuncContext: TFunctionContext; PosEl: TPasElement);
@@ -4352,7 +4354,11 @@ begin
   while ElType is TPasArrayType do
     ElType:=ResolveAliasType(TPasArrayType(ElType).ElType);
   if IsInterfaceType(ElType,citCom) then
+    {$IFDEF EnableCOMArrayOfIntf}
+    ;
+    {$ELSE}
     RaiseMsg(20180404134515,nNotSupportedX,sNotSupportedX,['array of COM-interface'],El);
+    {$ENDIF}
 end;
 
 procedure TPas2JSResolver.FinishAncestors(aClass: TPasClassType);
@@ -21386,13 +21392,17 @@ var
   Proc: TPasProcedure;
   ok, SkipAddRef: Boolean;
 begin
+  {$IFDEF VerbosePas2JS}
+  writeln('TPasToJSConverter.CreateAssignComIntfVar LeftResolved=',GetResolverResultDbg(LeftResolved),' LHS=',LHS.ClassName,' RHS=',RHS.ClassName);
+  {$ENDIF}
+
   Result:=nil;
   ok:=false;
   try
     SkipAddRef:=false;
     if IsInterfaceRef(RHS) then
       begin
-      // simplify: $ir.ref(id,expr)  ->  expr
+      // simplify RHS: $ir.ref(id,expr)  ->  expr
       RHS:=RemoveIntfRef(TJSCallExpression(RHS),AContext);
       SkipAddRef:=true;
       end;
@@ -21401,7 +21411,7 @@ begin
     Result:=Call;
     if LHS is TJSDotMemberExpression then
       begin
-      // path.name = RHS  ->  rtl.setIntfP(path,"IntfVar",RHS)
+      // path.name = RHS  ->  rtl.setIntfP(path,"name",RHS)
       Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnIntfSetIntfP)]);
       Call.AddArg(TJSDotMemberExpression(LHS).MExpr);
       TJSDotMemberExpression(LHS).MExpr:=nil;
@@ -21419,6 +21429,7 @@ begin
       Call.AddArg(TJSBracketMemberExpression(LHS).MExpr);
       TJSBracketMemberExpression(LHS).MExpr:=nil;
       Call.AddArg(TJSBracketMemberExpression(LHS).Name);
+      TJSBracketMemberExpression(LHS).Name:=nil;
       FreeAndNil(LHS);
       Call.AddArg(RHS);
       RHS:=nil;
@@ -21559,14 +21570,19 @@ begin
 end;
 
 procedure TPasToJSConverter.AddFunctionFinallyRelease(SubEl: TPasElement;
-  FuncContext: TFunctionContext);
+  FuncContext: TFunctionContext; IsArray: boolean);
 // add to finally: rtl._Release(IntfVar)
 var
   Call: TJSCallExpression;
+  FuncName: String;
 begin
   Call:=CreateCallExpression(SubEl);
   AddFunctionFinallySt(Call,SubEl,FuncContext);
-  Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnIntf_Release)]);
+  if IsArray then
+    FuncName:=GetBIName(pbifnIntf_ReleaseArray)
+  else
+    FuncName:=GetBIName(pbifnIntf_Release);
+  Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),FuncName]);
   Call.AddArg(CreateReferencePathExpr(SubEl,FuncContext));
 end;
 
@@ -21600,11 +21616,21 @@ end;
 procedure TPasToJSConverter.AddInterfaceReleases(FuncContext: TFunctionContext;
   PosEl: TPasElement);
 var
+  aResolver: TPas2JSResolver;
+
+  function IsArray(aType: TPasType): boolean;
+  begin
+    aType:=aResolver.ResolveAliasType(aType);
+    Result:=aType is TPasArrayType;
+  end;
+
+var
   i: Integer;
   P: TPasElement;
   Call: TJSCallExpression;
   VarSt: TJSVariableStatement;
 begin
+  aResolver:=FuncContext.Resolver;
   if FuncContext.IntfExprReleaseCount>0 then
     begin
     // add in front of try..finally "var $ir = rtl.createIntfRefs();"
@@ -21624,9 +21650,13 @@ begin
       // enclose body in try..finally and add release statement
       P:=TPasElement(FuncContext.IntfElReleases[i]);
       if P.ClassType=TPasVariable then
-        AddFunctionFinallyRelease(P,FuncContext)
+        begin
+        AddFunctionFinallyRelease(P,FuncContext,IsArray(TPasVariable(P).VarType));
+        end
       else if P.ClassType=TPasArgument then
         begin
+        if IsArray(TPasArgument(P).ArgType) then
+          continue;
         // add in front of try..finally "rtl._AddRef(arg);"
         Call:=CreateCallExpression(P);
         AddInFrontOfFunctionTry(Call,PosEl,FuncContext);

@@ -814,6 +814,18 @@ var rtl = {
     return intf;
   },
 
+  _ReleaseArray: function(a,dim){
+    if (!a) return null;
+    for (var i=0; i<a.length; i++){
+      if (dim<=1){
+        if (a[i]) a[i]._Release();
+      } else {
+        rtl._ReleaseArray(a[i],dim-1);
+      }
+    }
+    return null;
+  },
+
   trunc: function(a){
     return a<0 ? Math.ceil(a) : Math.floor(a);
   },
