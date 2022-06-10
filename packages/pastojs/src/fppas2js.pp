@@ -558,6 +558,7 @@ type
     pbifnArray_Equal,
     pbifnArray_Insert,
     pbifnArray_Length,
+    pbifnArray_Push,
     pbifnArray_PushN,
     pbifnArray_Reference,
     pbifnArray_SetLength,
@@ -750,6 +751,7 @@ const
     'arrayEq', // rtl.arrayEq          pbifnArray_Equal
     'arrayInsert', // rtl.arrayCopy      pbifnArray_Insert
     'length', // rtl.length    pbifnArray_Length
+    'arrayPush', // rtl.arrayPush   pbifnArray_Push
     'arrayPushN', // rtl.arrayPushN   pbifnArray_PushN
     'arrayRef', // rtl.arrayRef  pbifnArray_Reference
     'arraySetLength', // rtl.arraySetLength  pbifnArray_SetLength
@@ -2138,9 +2140,9 @@ type
       FuncContext: TFunctionContext; out DelaySrc: TJSSourceElements): TFunctionContext; virtual;
     // array
     Function CreateArrayConcat(ElTypeResolved: TPasResolverResult; PosEl: TPasElement;
-      AContext: TConvertContext): TJSCallExpression; overload; virtual;
+      AContext: TConvertContext; IsAppend: boolean = false): TJSCallExpression; overload; virtual;
     Function CreateArrayConcat(ArrayType: TPasArrayType; PosEl: TPasElement;
-      AContext: TConvertContext): TJSCallExpression; overload; virtual;
+      AContext: TConvertContext; IsAppend: boolean = false): TJSCallExpression; overload; virtual;
     Function CreateArrayInit(ArrayType: TPasArrayType; Expr: TPasExpr;
       El: TPasElement; AContext: TConvertContext): TJSElement; virtual;
     Function CreateArrayRef(El: TPasElement; ArrayExpr: TJSElement): TJSElement; virtual;
@@ -18928,9 +18930,10 @@ end;
 
 function TPasToJSConverter.CreateArrayConcat(
   ElTypeResolved: TPasResolverResult; PosEl: TPasElement;
-  AContext: TConvertContext): TJSCallExpression;
+  AContext: TConvertContext; IsAppend: boolean): TJSCallExpression;
 var
   Call: TJSCallExpression;
+  Func: TPas2JSBuiltInName;
 begin
   Result:=nil;
   Call:=CreateCallExpression(PosEl);
@@ -18938,25 +18941,33 @@ begin
     {$IFDEF VerbosePas2JS}
     writeln('TPasToJSConverter.CreateArrayConcat ElType=',GetResolverResultDbg(ElTypeResolved));
     {$ENDIF}
+    if IsAppend then
+      Func:=pbifnArray_Push
+    else
+      Func:=pbifnArray_Concat;
     if ElTypeResolved.BaseType=btContext then
       begin
       if ElTypeResolved.LoTypeEl.ClassType=TPasRecordType then
         begin
         // record: rtl.arrayConcat(RecordType,array1,array2,...)
-        Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnArray_Concat)]);
+        Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(Func)]);
         Call.AddArg(CreateReferencePathExpr(ElTypeResolved.LoTypeEl,AContext));
         end;
       end
     else if ElTypeResolved.BaseType=btSet then
       begin
       // set: rtl.arrayConcat("refSet",array1,array2,...)
-      Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnArray_Concat)]);
+      Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(Func)]);
       Call.AddArg(CreateLiteralString(PosEl,GetBIName(pbifnSet_Reference)));
       end;
     if Call.Expr=nil then
       begin
       // default: rtl.arrayConcatN(array1,array2,...)
-      Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnArray_ConcatN)]);
+      if IsAppend then
+        Func:=pbifnArray_PushN
+      else
+        Func:=pbifnArray_ConcatN;
+      Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(Func)]);
       end;
     Result:=Call;
   finally
@@ -18966,7 +18977,8 @@ begin
 end;
 
 function TPasToJSConverter.CreateArrayConcat(ArrayType: TPasArrayType;
-  PosEl: TPasElement; AContext: TConvertContext): TJSCallExpression;
+  PosEl: TPasElement; AContext: TConvertContext; IsAppend: boolean
+  ): TJSCallExpression;
 var
   ElTypeResolved: TPasResolverResult;
   aResolver: TPas2JSResolver;
@@ -18975,7 +18987,7 @@ begin
     RaiseNotSupported(PosEl,AContext,20170331001021);
   aResolver:=AContext.Resolver;
   aResolver.ComputeElement(aResolver.GetArrayElType(ArrayType),ElTypeResolved,[rcType]);
-  Result:=CreateArrayConcat(ElTypeResolved,PosEl,AContext);
+  Result:=CreateArrayConcat(ElTypeResolved,PosEl,AContext,IsAppend);
 end;
 
 function TPasToJSConverter.CreateArrayInit(ArrayType: TPasArrayType;
@@ -23197,27 +23209,24 @@ function TPasToJSConverter.ConvertDirectAssignArrayConcat(El: TPasImplAssign;
   Params: TParamsExpr; AssignContext: TAssignContext): TJSElement;
 // AnArrayVar:=Concat()
 var
-  Param1, LeftExpr, Param2: TPasExpr;
+  FirstParam, LeftExpr, SecondParam: TPasExpr;
   LeftRef, ParamRef: TResolvedReference;
   SubParams: TParamsExpr;
-  Call: TJSCallExpression;
-  DotExpr: TJSDotMemberExpression;
-  i: Integer;
   ParentContext: TConvertContext;
+  AssignSt: TJSSimpleAssignStatement;
+  Call: TJSCallExpression;
+  i: Integer;
   JS: TJSElement;
-  CondExpr: TJSConditionalExpression;
-  ArrLit: TJSArrayLiteral;
-  ok: Boolean;
 begin
   Result:=nil;
   LeftExpr:=El.Left;
   if not (LeftExpr.CustomData is TResolvedReference) then exit;
   LeftRef:=TResolvedReference(LeftExpr.CustomData);
 
-  Param1:=Params.Params[0];
-  if Param1.CustomData is TResolvedReference then
+  FirstParam:=Params.Params[0];
+  if FirstParam.CustomData is TResolvedReference then
     begin
-    ParamRef:=TResolvedReference(Param1.CustomData);
+    ParamRef:=TResolvedReference(FirstParam.CustomData);
     if LeftRef.Declaration=ParamRef.Declaration then
       begin
       {$IFDEF VerbosePas2JS}
@@ -23227,64 +23236,41 @@ begin
       if length(Params.Params)=1 then
         begin
         // A:=Concat(A)  ->  A;
-        Result:=ConvertExpression(Param1,ParentContext);
+        Result:=ConvertExpression(FirstParam,ParentContext);
         exit;
         end;
       // A:=Concat(A,...)  ->  append to array
       if length(Params.Params)=2 then
         begin
-        Param2:=Params.Params[1];
-        if (Param2.Kind=pekSet) then
+        SecondParam:=Params.Params[1];
+        if (SecondParam.Kind=pekSet) then
           begin
           // A:=Concat(A,[b,c,...])
-          SubParams:=TParamsExpr(Param2);
+          SubParams:=TParamsExpr(SecondParam);
           if length(SubParams.Params)=0 then
             begin
             // A:=Concat(A,[])  ->  A;
-            Result:=ConvertExpression(Param1,ParentContext);
+            Result:=ConvertExpression(FirstParam,ParentContext);
             exit;
             end;
-          ok:=false;
+          // A:=Concat(A,[b,c])  ->  A=rtl.arrayPushN(A,b,c);
+          AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,AssignContext.PasElement));
           try
-            if length(SubParams.Params)=1 then
-              begin
-              // A:=Concat(A,[b])  ->  A?A.push(b):[b];
-              CondExpr:=TJSConditionalExpression(CreateElement(TJSConditionalExpression,El));
-              Result:=CondExpr;
-
-              // A?
-              CondExpr.A:=ConvertExpression(Param1,ParentContext);
-
-              // A.push(b)
-              Call:=CreateCallExpression(El);
-              CondExpr.B:=Call;
-              DotExpr:=TJSDotMemberExpression(CreateElement(TJSDotMemberExpression,El));
-              Call.Expr:=DotExpr;
-              DotExpr.MExpr:=ConvertExpression(Param1,ParentContext);
-              DotExpr.Name:='push';
-
-              // [b]
-              ArrLit:=TJSArrayLiteral(CreateElement(TJSArrayLiteral,El));
-              CondExpr.C:=ArrLit;
-              ArrLit.AddElement(CreateArrayEl(SubParams.Params[0],ParentContext));
-              end
-            else
-              begin
-              // A:=Concat(A,[b,c])  ->  rtl.arrayPushN(A,b,c);
-              Call:=CreateCallExpression(El);
-              Result:=Call;
-              Call.Expr:=CreatePrimitiveDotExpr(GetBIName(pbivnRTL)+'.'+GetBIName(pbifnArray_PushN),El);
-              Call.AddArg(ConvertExpression(Param1,ParentContext));
-              end;
+            AssignSt.LHS:=ConvertExpression(FirstParam,ParentContext);
+            Call:=CreateArrayConcat(AssignContext.LeftResolved.LoTypeEl as TPasArrayType,
+                                             El,ParentContext,true);
+            AssignSt.Expr:=Call;
+            Call.AddArg(ConvertExpression(FirstParam,ParentContext));
             for i:=0 to length(SubParams.Params)-1 do
               begin
               JS:=CreateArrayEl(SubParams.Params[i],ParentContext);
               Call.AddArg(JS);
               end;
-            ok:=true;
+
+            Result:=AssignSt;
           finally
-            if not ok then
-              Result.Free;
+            if Result=nil then
+              AssignSt.Free;
           end;
           end;
         end;

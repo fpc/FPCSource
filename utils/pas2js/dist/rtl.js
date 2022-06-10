@@ -1035,6 +1035,8 @@ var rtl = {
       if (src === null) continue;
       if (a===null){
         a=rtl.arrayRef(src); // Note: concat(a) does not clone
+      } else if (a['$pas2jsrefcnt']){
+        a=a.concat(src); // clone a and append src
       } else {
         for (var i=0; i<src.length; i++){
           a.push(src[i]);
@@ -1044,13 +1046,33 @@ var rtl = {
     return a;
   },
 
-  arrayPushN: function(a){
-    if(a==null) a=[];
+  arrayPush: function(type,a){
+    if(a===null){
+      a=[];
+    } else if (a['$pas2jsrefcnt']){
+      if (type===0){
+        a=a.concat();
+      } else {
+        a=rtl.arrayCopy(type,a,0,a.length);
+      }
+    }
     for (var i=1; i<arguments.length; i++){
       a.push(arguments[i]);
     }
     return a;
-    },
+  },
+
+  arrayPushN: function(a){
+    if(a===null){
+      a=[];
+    } else if (a['$pas2jsrefcnt']){
+      a=a.concat();
+    }
+    for (var i=1; i<arguments.length; i++){
+      a.push(arguments[i]);
+    }
+    return a;
+  },
 
   arrayCopy: function(type, srcarray, index, count){
     // type: see rtl.arrayClone
