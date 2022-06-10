@@ -456,10 +456,10 @@ begin
       list.concat(taicpu.op_reg_const(A_LUI, reg, aint(a) shr 48));
       if ((a shr 32) and aint($FFFF))<>0 then
         list.concat(taicpu.op_reg_reg_const(A_ORI,reg,reg,(a shr 32) and aint($FFFF)));
-      list.concat(taicpu.op_reg_const(A_SLL, reg, 16));
+      list.concat(taicpu.op_reg_reg_const(A_SLL, reg, reg, 16));
       if ((a shr 16) and aint($FFFF))<>0 then
         list.concat(taicpu.op_reg_reg_const(A_ORI,reg,reg,(a shr 16) and aint($FFFF)));
-      list.concat(taicpu.op_reg_const(A_SLL, reg, 16));
+      list.concat(taicpu.op_reg_reg_const(A_SLL, reg, reg, 16));
       if (a and aint($FFFF))<>0 then
         list.concat(taicpu.op_reg_reg_const(A_ORI,reg,reg,a  and aint($FFFF)));
 {$endif mips64}
@@ -937,6 +937,10 @@ begin
             inc(a,32-tcgsize2size[size]*8);
             src:=dst;
           end
+{$ifdef MIPS64}
+        else if (size in [OS_64,OS_S64]) then
+          list.concat(taicpu.op_reg_reg_const(A_DSRA,dst,src,a))
+{$endif MIPS64}
         else if not (size in [OS_32,OS_S32]) then
           InternalError(2013070303);
         list.concat(taicpu.op_reg_reg_const(A_SRA,dst,src,a));
