@@ -69,7 +69,7 @@ interface
 {$BOOLEVAL OFF}
 {$EXTENDEDSYNTAX ON}
 {$LONGSTRINGS ON}
-{$OPTIMIZATION ON}
+{ OPTIMIZATION ON} // Handled by (fp)make options
 {$MODE DELPHI} // Delphi-compatible mode in FreePascal
 {$INLINE ON}
 {$DEFINE COMPAT}
@@ -6864,7 +6864,7 @@ begin
 end;
 
 {$IFDEF reRealExceptionAddr}
-{$OPTIMIZATION ON}
+{ OPTIMIZATION ON} // specified via (fp)make
 // ReturnAddr works correctly only if compiler optimization is ON
 // I placed this method at very end of unit because there are no
 // way to restore compiler optimization flag ...
