@@ -2226,6 +2226,7 @@ type
     Function ConvertAssignStatement(El: TPasImplAssign; AContext: TConvertContext): TJSElement; virtual;
     Function ConvertDirectAssignArrayStatement(El: TPasImplAssign; AssignContext: TAssignContext): TJSElement; virtual;
     Function ConvertDirectAssignArrayConcat(El: TPasImplAssign; Params: TParamsExpr; AssignContext: TAssignContext): TJSElement; virtual;
+    Function ConvertDirectAssignArrayAdd(El: TPasImplAssign; Bin: TBinaryExpr; AssignContext: TAssignContext): TJSElement; virtual;
     Function ConvertRaiseStatement(El: TPasImplRaise; AContext: TConvertContext ): TJSElement; virtual;
     Function ConvertIfStatement(El: TPasImplIfElse; AContext: TConvertContext ): TJSElement; virtual;
     Function ConvertWhileStatement(El: TPasImplWhileDo; AContext: TConvertContext): TJSElement; virtual;
@@ -23201,7 +23202,9 @@ begin
 
         end;
       end;
-    end;
+    end
+  else if (RightExpr.Kind=pekBinary) and (RightExpr.OpCode=eopAdd) then
+    Result:=ConvertDirectAssignArrayAdd(El,TBinaryExpr(RightExpr),AssignContext);
 end;
 
 function TPasToJSConverter.ConvertDirectAssignArrayConcat(El: TPasImplAssign;
@@ -23269,6 +23272,57 @@ begin
           end;
         end;
       end;
+    end;
+end;
+
+function TPasToJSConverter.ConvertDirectAssignArrayAdd(El: TPasImplAssign;
+  Bin: TBinaryExpr; AssignContext: TAssignContext): TJSElement;
+var
+  BinLeft, BinRight: TPasExpr;
+  Ref: TResolvedReference;
+  Decl: TPasElement;
+  ParentContext: TConvertContext;
+  SubParams: TParamsExpr;
+  Call: TJSCallExpression;
+  i: Integer;
+  JS: TJSElement;
+begin
+  Result:=nil;
+  BinLeft:=Bin.Left;
+  if not (BinLeft.CustomData is TResolvedReference) then
+    exit;
+  Ref:=TResolvedReference(BinLeft.CustomData);
+  Decl:=Ref.Declaration;
+  if not (El.Left.CustomData is TResolvedReference) then exit;
+  if (Decl<>TResolvedReference(El.Left.CustomData).Declaration) then
+    exit;
+  // A:=A+...
+  BinRight:=Bin.Right;
+  if BinRight.Kind=pekSet then
+    begin
+    // A:=A+[b,...]  ->  A=rtl.arrayPushN(A,b,...);
+    SubParams:=TParamsExpr(BinRight);
+    ParentContext:=AssignContext.Parent;
+    if length(SubParams.Params)=0 then
+      begin
+      // A:=Concat(A,[])  ->  A;
+      Result:=ConvertExpression(BinLeft,ParentContext);
+      exit;
+      end;
+    try
+      Call:=CreateArrayConcat(AssignContext.LeftResolved.LoTypeEl as TPasArrayType,
+                              El,ParentContext,true);
+      Call.AddArg(ConvertExpression(BinLeft,ParentContext));
+      for i:=0 to length(SubParams.Params)-1 do
+        begin
+        JS:=CreateArrayEl(SubParams.Params[i],ParentContext);
+        Call.AddArg(JS);
+        end;
+      Result:=Call;
+    finally
+      if Result=nil then
+        Call.Free;
+    end;
     end;
 end;
 

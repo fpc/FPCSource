@@ -501,6 +501,7 @@ type
     Procedure TestArray_Concat_Append_Var;
     Procedure TestArray_Copy;
     Procedure TestArray_InsertDelete;
+    Procedure TestArray_Add_Append;
     Procedure TestArray_DynArrayConstObjFPC;
     Procedure TestArray_DynArrayConstDelphi;
     Procedure TestArray_ArrayLitAsParam;
@@ -11639,6 +11640,85 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestArray_Add_Append;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch arrayoperators}',
+  'type',
+  '  integer = longint;',
+  '  TFlag = (big,small);',
+  '  TFlags = set of TFlag;',
+  '  TRec = record',
+  '    i: integer;',
+  '  end;',
+  '  TArrInt = array of integer;',
+  '  TArrRec = array of TRec;',
+  '  TArrFlag = array of TFlag;',
+  '  TArrSet = array of TFlags;',
+  '  TArrJSValue = array of jsvalue;',
+  'var',
+  '  ArrInt: tarrint;',
+  '  ArrRec: tarrrec;',
+  '  ArrFlag: tarrflag;',
+  '  ArrSet: tarrset;',
+  '  ArrJSValue: tarrjsvalue;',
+  '  r: TRec;',
+  '  f: TFlags;',
+  'begin',
+  '  // append',
+  '  arrint:=arrint+[2];',
+  '  arrint:=arrint+[3,4];',
+  '  arrrec:=arrrec+[r];',
+  '  arrrec:=arrrec+[r,r];',
+  '  arrset:=arrset+[f];',
+  '  arrset:=arrset+[f,f];',
+  '  arrjsvalue:=arrjsvalue+[11];',
+  '  arrjsvalue:=arrjsvalue+[12,13];',
+  '  arrflag:=arrflag+[small];',
+  '  arrflag:=arrflag+[small,big];',
+  '']);
+  ConvertProgram;
+  CheckSource('TestArray_Add_Append',
+    LinesToStr([ // statements
+    'this.TFlag = {',
+    '  "0": "big",',
+    '  big: 0,',
+    '  "1": "small",',
+    '  small: 1',
+    '};',
+    'rtl.recNewT(this, "TRec", function () {',
+    '  this.i = 0;',
+    '  this.$eq = function (b) {',
+    '    return this.i === b.i;',
+    '  };',
+    '  this.$assign = function (s) {',
+    '    this.i = s.i;',
+    '    return this;',
+    '  };',
+    '});',
+    'this.ArrInt = [];',
+    'this.ArrRec = [];',
+    'this.ArrFlag = [];',
+    'this.ArrSet = [];',
+    'this.ArrJSValue = [];',
+    'this.r = this.TRec.$new();',
+    'this.f = {};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '$mod.ArrInt = rtl.arrayPushN($mod.ArrInt, 2);',
+    '$mod.ArrInt = rtl.arrayPushN($mod.ArrInt, 3, 4);',
+    '$mod.ArrRec = rtl.arrayPush($mod.TRec, $mod.ArrRec, $mod.TRec.$clone($mod.r));',
+    '$mod.ArrRec = rtl.arrayPush($mod.TRec, $mod.ArrRec, $mod.TRec.$clone($mod.r), $mod.TRec.$clone($mod.r));',
+    '$mod.ArrSet = rtl.arrayPush("refSet", $mod.ArrSet, rtl.refSet($mod.f));',
+    '$mod.ArrSet = rtl.arrayPush("refSet", $mod.ArrSet, rtl.refSet($mod.f), rtl.refSet($mod.f));',
+    '$mod.ArrJSValue = rtl.arrayPushN($mod.ArrJSValue, 11);',
+    '$mod.ArrJSValue = rtl.arrayPushN($mod.ArrJSValue, 12, 13);',
+    '$mod.ArrFlag = rtl.arrayPushN($mod.ArrFlag, $mod.TFlag.small);',
+    '$mod.ArrFlag = rtl.arrayPushN($mod.ArrFlag, $mod.TFlag.small, $mod.TFlag.big);',
+    '']));
+end;
+
 procedure TTestModule.TestArray_DynArrayConstObjFPC;
 begin
   Parser.Options:=Parser.Options+[po_cassignments];
@@ -11688,9 +11768,9 @@ begin
     '$mod.Ints = rtl.arrayConcatN([1], [2]);',
     '$mod.Ints = [2];',
     '$mod.Ints = rtl.arrayConcatN([], $mod.Ints);',
-    '$mod.Ints = rtl.arrayConcatN($mod.Ints, []);',
+    '$mod.Ints = $mod.Ints;',
     '$mod.Ints = rtl.arrayConcatN($mod.Ints, $mod.OneInt);',
-    '$mod.Ints = rtl.arrayConcatN($mod.Ints, [1, 1]);',
+    '$mod.Ints = rtl.arrayPushN($mod.Ints, 1, 1);',
     '$mod.Ints = rtl.arrayConcatN([$mod.i, $mod.i], $mod.Ints);',
     '$mod.Ints = rtl.arrayConcatN(rtl.arrayConcatN([1], [$mod.i]), [3]);',
     '']));
@@ -11872,7 +11952,7 @@ begin
     LinesToStr([ // $mod.$main
     '$mod.a = [[1]];',
     '$mod.a = [$mod.i];',
-    '$mod.a = rtl.arrayConcatN($mod.a, [$mod.i]);',
+    '$mod.a = rtl.arrayPushN($mod.a, $mod.i);',
     '$mod.a = rtl.arrayConcatN([$mod.i], $mod.a);',
     '$mod.a = [rtl.arrayConcatN([1], $mod.i)];',
     '$mod.a = [rtl.arrayConcatN([1], [2])];',
@@ -11924,7 +12004,7 @@ begin
     LinesToStr([ // $mod.$main
     '$mod.a = [[1, 1]];',
     '$mod.a = [$mod.i.slice(0)];',
-    '$mod.a = rtl.arrayConcatN($mod.a, [$mod.i.slice(0)]);',
+    '$mod.a = rtl.arrayPushN($mod.a, $mod.i.slice(0));',
     '$mod.a = rtl.arrayConcatN([$mod.i.slice(0)], $mod.a);',
     '$mod.DoInt([[1, 1]]);',
     '$mod.DoInt([[1, 2], [3, 4]]);',
