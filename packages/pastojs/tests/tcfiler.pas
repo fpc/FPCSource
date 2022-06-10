@@ -2165,8 +2165,8 @@ end;
 procedure TCustomTestPrecompile.CheckRestoredImplAssign(const Path: string;
   Orig, Rest: TPasImplAssign; Flags: TPCCheckFlags);
 begin
-  CheckRestoredElement(Path+'.left',Orig.left,Rest.left,Flags);
-  CheckRestoredElement(Path+'.right',Orig.right,Rest.right,Flags);
+  CheckRestoredElement(Path+'.left',Orig.Left,Rest.Left,Flags);
+  CheckRestoredElement(Path+'.right',Orig.Right,Rest.Right,Flags);
 end;
 
 procedure TCustomTestPrecompile.CheckRestoredImplSimple(const Path: string;

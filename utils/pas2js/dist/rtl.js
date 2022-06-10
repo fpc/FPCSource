@@ -1044,6 +1044,14 @@ var rtl = {
     return a;
   },
 
+  arrayPushN: function(a){
+    if(a==null) a=[];
+    for (var i=1; i<arguments.length; i++){
+      a.push(arguments[i]);
+    }
+    return a;
+    },
+
   arrayCopy: function(type, srcarray, index, count){
     // type: see rtl.arrayClone
     // if count is missing, use srcarray.length

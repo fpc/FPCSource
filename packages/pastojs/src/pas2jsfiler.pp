@@ -4916,8 +4916,8 @@ begin
   WritePasElement(Obj,El,aContext);
   if El.Kind<>akDefault then
     Obj.Add('Kind',PCUAssignKind[El.Kind]);
-  WriteExpr(Obj,El,'Left',El.left,aContext);
-  WriteExpr(Obj,El,'Right',El.right,aContext);
+  WriteExpr(Obj,El,'Left',El.Left,aContext);
+  WriteExpr(Obj,El,'Right',El.Right,aContext);
 end;
 
 procedure TPCUWriter.WriteImplSimple(Obj: TJSONObject; El: TPasImplSimple;
@@ -9883,8 +9883,8 @@ begin
     else
       RaiseMsg(20200105200423,El,s);
     end;
-  El.left:=ReadExpr(Obj,El,'Left',aContext);
-  El.right:=ReadExpr(Obj,El,'Right',aContext);
+  El.Left:=ReadExpr(Obj,El,'Left',aContext);
+  El.Right:=ReadExpr(Obj,El,'Right',aContext);
 end;
 
 procedure TPCUReader.ReadImplSimple(Obj: TJSONObject; El: TPasImplSimple;

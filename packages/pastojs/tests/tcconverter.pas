@@ -1445,8 +1445,8 @@ function TTestConverter.CreateAssignStatement(LHS: String; RHS: String
 
 begin
   Result:=TPasImplAssign(CreateElement(TPasImplAssign));
-  Result.left:=CreateIdent(LHS);
-  Result.right:=CreateIdent(RHS);
+  Result.Left:=CreateIdent(LHS);
+  Result.Right:=CreateIdent(RHS);
 end;
 
 function TTestConverter.CreateParamsExpr(Kind: TPasExprKind;
