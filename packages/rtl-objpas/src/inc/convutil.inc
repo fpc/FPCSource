@@ -333,7 +333,9 @@ end;
 function CompatibleConversionTypes(const AFrom, ATo: TConvType): Boolean;
 
 begin
-  result:=ConvTypeToFamily(AFrom)=ConvTypeToFamily(ATo);
+ //ConvTypeToFamily returns TConvFamily(0) if the TConvType is not registerd, but 0 is a valid value for a TConvFamily
+  result:= (AFrom<length(TheUnits)) and (ATo<length(TheUnits)) and
+           (ConvTypeToFamily(AFrom)=ConvTypeToFamily(ATo));
 end;
 
 Function RegisterConversionFamily(Const S:String):TConvFamily;
