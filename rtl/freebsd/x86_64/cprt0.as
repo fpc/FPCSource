@@ -32,16 +32,21 @@
 #APP
         .ident  "FreePascal 2.6.x/2.7.x series dynlinked to libc"
 #NO_APP
-	.section	.note.ABI-tag,"a",@progbits
+	.section	.note.tag,"a",@note
 	.align 4
 	.type	abitag, @object
-	.size	abitag, 24
+	.size	abitag, 48
 abitag:
 	.long	8
 	.long	4
 	.long	1
 	.string	"FreeBSD"
 	.long	1201000
+        .long   8
+        .long   4
+        .long   1
+	.string	"FreeBSD"
+        .long   0
 .globl __progname
 	.section	.rodata
 .LC0:
