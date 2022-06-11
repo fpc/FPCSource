@@ -87,6 +87,8 @@ ResourceString
   SConvUnknownDescriptionWithPrefix = '[%s%.8x]';
   SConvUnknownFamily            = 'Unknown conversion family: "%s"';
   SConvUnknownType              = 'Unknown conversion type: "%s"';
+  SConvTooManyConvFamilies      = 'Cannot register more than %d conversion families';
+  SConvTooManyConvTypes         = 'Cannot register more than %d conversion types';
   SCustomColors                 = 'Custom colors';
   SDateEncodeError              = 'Invalid argument for date encode.';
   SDdeConvErr                   = 'DDE error - conversion was not performed ($0%x)';

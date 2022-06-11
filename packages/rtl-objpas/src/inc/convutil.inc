@@ -29,8 +29,8 @@ interface
 uses
   sysutils, math;
 
-Type TConvType        = type Integer;
-     TConvFamily      = type Integer;
+Type TConvType        = type Word;
+     TConvFamily      = type Word;
      TConvFamilyArray = array of TConvFamily;
      TConvTypeArray   = array of TConvType;
      TConversionProc  = function(const AValue: Double): Double;
@@ -38,8 +38,8 @@ Type TConvType        = type Integer;
      EConversionError = class(EConvertError);
 
 const
-  CIllegalConvFamily = TConvFamily(0);
-  CIllegalConvType = TConvType(0);
+  CIllegalConvFamily = TConvFamily(0);   // Delphi compatible but makes no sense since 0 is a valid value for a TConvFamily
+  CIllegalConvType = TConvType(0);       // Delphi compatible but makes no sense since 0 is a valid value for a TConvType
   GConvUnitToStrFmt: string = '%f %s';
 
 Function RegisterConversionFamily(Const S : String):TConvFamily;
@@ -188,7 +188,7 @@ var
 
 begin
   D:=Convert(AAmount, AAMountType, AType);
-  //don't use InRange() since it does have an epsilon parameter
+  //don't use InRange() since it does not have an epsilon parameter
   result:=(CompareValue(ATest,AValue,macheps)<>LessThanValue) and
           (CompareValue(ATest,AValue+D,macheps)<>GreaterThanValue);
 end;
@@ -209,9 +209,10 @@ end;
 function ConvFamilyToDescription(const AFamily: TConvFamily): string;
 
 begin
-  result:='';
   if AFamily<length(TheFamilies) then
-    result:=TheFamilies[AFamily];
+    result:=TheFamilies[AFamily]
+  else
+    result:=format(SConvUnknownDescriptionWithPrefix,['$',AFamily]);
 end;
 
 function ConvUnitToStr(const AValue: Double; const AType: TConvType): string;
@@ -264,12 +265,21 @@ begin
      end;
 end;
 
+//since a conversion type actually can have any (incuding an empty) description we need a function that
+//properly checks and indicates wether or not AType actually exists
+function TryConvTypeToDescription(const AType: TConvType; out S: string): Boolean;
+
+begin
+  result:=AType<length(TheUnits);
+  if result then
+    S:=TheUnits[AType].Description;
+end;
+
 function ConvTypeToDescription(const AType: TConvType): string;
 
 Begin
-  result:='';
-  if AType<length(TheUnits) then
-    result:=TheUnits[AType].Description;
+  if not TryConvTypeToDescription(AType, result) then
+    result:=format(SConvUnknownDescriptionWithPrefix,['$',AType]);
 end;
 
 function  DescriptionToConvType(const ADescription: String; out AType: TConvType): Boolean;
@@ -305,22 +315,44 @@ begin
   end;
 end;
 
+//since a conversion family actually can have any (including an empty) description we need a function that
+//properly checks and indicates wether or not AType actually exists
+function TryConvTypeToFamily(const AType: TConvType; out AFam: TConvFamily): Boolean;
+
+var
+  Fam: TConvFamily;
+
+begin
+  result:=false;
+  if AType<length(TheUnits) then begin
+    Fam:=TheUnits[AType].Fam;
+    result:=true;
+  end;
+end;
+
 function ConvTypeToFamily(const AType: TConvType): TConvFamily;
 
 begin
-  result:=CIllegalConvFamily;
-  if AType<length(TheUnits) then
-    result:=TheUnits[AType].Fam;
+  //result:=CIllegalConvFamily; //Delphi Docs says it does this, but actually it raises an exception upon error
+  if not TryConvTypeToFamily(AType, result) then
+    raise EConversionError.CreateFmt(SConvUnknownType,[format(SConvUnknownDescriptionWithPrefix,['$',AType])]);
 end;
 
 function ConvTypeToFamily(const AFrom, ATo: TConvType): TConvFamily;
 
+var
+  AFromS, AToS: String;
+  Fam1, Fam2: TConvFamily;
 begin
-  result:=ConvTypeToFamily(AFrom);
-  if result<>CIllegalConvFamily then begin
-    if ConvTypeToFamily(ATo)<>result then
-      result:=CIllegalConvFamily;
-  end;
+  // a bit convoluted but Delphi actually raises exceptions that use the descriptions of AFrom and ATo
+  AFromS:=ConvTypeToDescription(AFrom);
+  AToS:=ConvTypeToDescription(ATo);
+  if  TryConvTypeToFamily(AFrom, Fam1) and
+      TryConvTypeToFamily(ATo, Fam2) and
+      (Fam1=Fam2) then
+    result:=Fam1
+  else
+    raise EConversionError.CreateFmt(SConvIncompatibleTypes2,[AFromS, AToS]);
 end;
 
 function CompatibleConversionType(const AType: TConvType;
@@ -333,7 +365,7 @@ end;
 function CompatibleConversionTypes(const AFrom, ATo: TConvType): Boolean;
 
 begin
- //ConvTypeToFamily returns TConvFamily(0) if the TConvType is not registerd, but 0 is a valid value for a TConvFamily
+ //ConvTypeToFamily potentially raises an exception, make sure it doesn't here
   result:= (AFrom<length(TheUnits)) and (ATo<length(TheUnits)) and
            (ConvTypeToFamily(AFrom)=ConvTypeToFamily(ATo));
 end;
@@ -352,6 +384,8 @@ begin
     end
   else
     begin
+      if l=Integer(High(TConvFamily)) then
+        raise EConversionError.CreateFmt(SConvTooManyConvFamilies,[High(TConvFamily)]);
       i:=0;
       while (i<l) and (s<>TheFamilies[i]) do inc(i);
       if i=l Then
@@ -378,9 +412,9 @@ var l1 : Longint;
 begin
   If NOT CheckFamily(Fam) Then
     raise EConversionError.CreateFmt(SConvUnknownFamily, [IntToStr(Fam)]);
-  if (value+1.0)<macheps then            // not properly defined yet.
-    exit(-1);
   l1:=length(theunits);
+  if l1=Integer(High(TConvType)) then
+    raise EConversionError.CreateFmt(SConvTooManyConvTypes,[High(TConvType)]);
   Setlength(theunits,l1+1);
   theunits[l1].description:=s;
   theunits[l1].value:=value;
