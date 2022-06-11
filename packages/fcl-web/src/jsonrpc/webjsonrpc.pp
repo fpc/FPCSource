@@ -356,6 +356,8 @@ Var
   R : TJSONStringType;
 
 begin
+  // We must set SessionRequest
+  Inherited HandleRequest(aRequest,aResponse);
   if CORS.HandleRequest(aRequest,aResponse,[hcDetect,hcSend]) then
     exit;
   If (Dispatcher=Nil) then
