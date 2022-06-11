@@ -129,15 +129,15 @@ implementation
       { comparison with pointer -> no immediate, as icmp can't handle pointer
         immediates (except for nil as "null", but we don't generate that) }
       if (nodetype in [equaln,unequaln,gtn,gten,ltn,lten]) and
-         ((left.nodetype in [pointerconstn,niln]) or
-          (right.nodetype in [pointerconstn,niln])) then
+         (is_address(left.resultdef) or
+          is_address(right.resultdef)) then
         allow_constant:=false;
       inherited;
-      { pointer - pointer = integer -> make all defs pointer since we can't
+      { pointer - pointer = integer -> make all defs integer since we can't
         subtract pointers }
       if (nodetype=subn) and
-         (left.resultdef.typ=pointerdef) and
-         (right.resultdef.typ=pointerdef) then
+         is_address(left.resultdef) and
+         is_address(right.resultdef) then
         begin
           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
           hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,resultdef,true);
@@ -145,13 +145,13 @@ implementation
       { pointer +/- integer -> make defs the same since a_op_* only gets a
         single type as argument }
       else if (nodetype in [addn,subn]) and
-              ((left.resultdef.typ=pointerdef)<>(right.resultdef.typ=pointerdef)) then
+              (is_address(left.resultdef)<>is_address(right.resultdef)) then
         begin
           { the result is a pointerdef -> typecast both arguments to pointer;
             a_op_*_reg will convert them back to integer as needed }
-          if left.resultdef.typ<>pointerdef then
+          if not is_address(left.resultdef) then
             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
-          if right.resultdef.typ<>pointerdef then
+          if not is_address(right.resultdef) then
             hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,resultdef,true);
         end;
     end;
