@@ -217,6 +217,9 @@ interface
     {# Returns true if p is any pointer def }
     function is_pointer(p : tdef) : boolean;
 
+    {# Returns true p is an address: pointer, classref, ansistring, ... }
+    function is_address(p : tdef) : boolean;
+
     {# Returns true if p is a pchar def }
     function is_pchar(p : tdef) : boolean;
 
@@ -980,6 +983,20 @@ implementation
     function is_pointer(p : tdef) : boolean;
       begin
         is_pointer:=(p.typ=pointerdef);
+      end;
+
+    function is_address(p: tdef): boolean;
+      begin
+        is_address:=
+          (p.typ in [classrefdef,formaldef,undefineddef,procdef]) or
+          is_pointer(p) or
+          is_implicit_array_pointer(p) or
+          is_implicit_pointer_object_type(p) or
+          ((p.typ=procvardef) and
+           (tprocvardef(p).is_addressonly or
+            is_block(p)
+           )
+          )
       end;
 
     { true if p is a pchar def }
