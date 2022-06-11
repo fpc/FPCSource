@@ -41,7 +41,7 @@ abitag:
 	.long	4
 	.long	1
 	.string	"FreeBSD"
-	.long	900044
+	.long	1201000
 .globl __progname
 	.section	.rodata
 .LC0:
