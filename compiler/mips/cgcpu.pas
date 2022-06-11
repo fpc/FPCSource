@@ -519,7 +519,7 @@ begin
   if (TCGSize2Size[fromsize] >= TCGSize2Size[tosize]) then
     fromsize := tosize;
   if (ref.alignment<>0) and
-     (ref.alignment<tcgsize2size[fromsize]) then
+     (ref.alignment<min(tcgsize2size[fromsize],sizeof(aint))) then
      begin
        a_load_ref_reg_unaligned(list,FromSize,ToSize,ref,reg);
        exit;
@@ -1990,7 +1990,9 @@ end;
     procedure create_codegen;
       begin
         cg:=TCGMIPS.Create;
-{$ifndef mips64}
+{$ifdef mips64}
+        cg128:=tcg128.create;
+{$else mips64}
         cg64:=TCg64MPSel.Create;
 {$endif mips64}
       end;
