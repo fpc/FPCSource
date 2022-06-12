@@ -888,7 +888,7 @@ interface
           { To be able to reference the method in a property in the Dwarf debug
             info, the amount of bytes between the start of the debug info and
             the info for the method is stored }
-          dwarfoffset  : asizeint;
+          dwarfoffset  : int64;
 {$ifndef DISABLE_FAST_OVERLOAD_PATCH}
           seenmarker : pointer; // used for filtering in tcandidate
 {$endif}

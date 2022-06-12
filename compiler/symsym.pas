@@ -228,7 +228,7 @@ interface
           { To be able to reference the field in a property in the Dwarf debug
             info, the amount of bytes between the start of the debug info and
             the info for the field is stored }
-          dwarfoffset   : asizeint;
+          dwarfoffset   : int64;
 {$ifdef llvm}
           { the llvm version of the record does not support variants,   }
           { so the llvm equivalent field may not be at the exact same   }

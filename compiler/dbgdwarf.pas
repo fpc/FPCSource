@@ -149,7 +149,7 @@ interface
           structure's debug-info is kept.
           To be able to do so the current offset is kept in DwarfOffset, which is
           increased each time something is added to the al_dwarf_info-asmlist }
-        DwarfOffset: Integer;
+        DwarfOffset: Int64;
         procedure ResetDwarfOffset;
 
         procedure StartAbbrevSearch;
