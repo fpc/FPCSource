@@ -360,7 +360,7 @@ implementation
            if lcp_sret in para^.flags then
              owner.writer.AsmWrite(llvmparatypeattr(' sret',para^.def,true));
            if asmblock and
-              (llvmflag_opaque_ptr_transition in llvmversion_properties[current_settings.llvmversion]) and
+              (([llvmflag_opaque_ptr_transition,llvmflag_opaque_ptr]*llvmversion_properties[current_settings.llvmversion])<>[]) and
               (para^.def.typ=pointerdef) then
              owner.writer.AsmWrite(llvmparatypeattr(' elementtype',para^.def,true));
            { For byval, this means "alignment on the stack" and of the passed source data.
@@ -628,20 +628,7 @@ implementation
               owner.writer.AsmWrite(' (')
             else
               owner.writer.AsmWrite(' ');
-            { can't just dereference the type, because it may be an
-              implicit pointer type such as a class -> resort to string
-              manipulation... Not very clean :( }
-            tmpstr:=llvmencodetypename(taillvm(hp).spilling_get_reg_type(0));
-            if op=la_getelementptr then
-              begin
-                if tmpstr[length(tmpstr)]<>'*' then
-                  begin
-                    writeln(tmpstr);
-                    internalerror(2016071101);
-                  end
-                else
-                  setlength(tmpstr,length(tmpstr)-1);
-              end;
+            tmpstr:=llvmencodetypename(taillvm(hp).spilling_get_reg_type(0),op=la_getelementptr);
             owner.writer.AsmWrite(tmpstr);
             owner.writer.AsmWrite(',');
           end;
@@ -672,15 +659,8 @@ implementation
                 owner.writer.AsmWrite(tmpstr);
               end;
             opdone:=true;
-            tmpstr:=llvmencodetypename(taillvm(hp).oper[3]^.def);
-            if tmpstr[length(tmpstr)]<>'*' then
-              begin
-                writeln(tmpstr);
-                internalerror(2016071102);
-              end
-            else
-              setlength(tmpstr,length(tmpstr)-1);
-            owner.writer.AsmWrite(tmpstr);
+            owner.writer.AsmWrite(' ');
+            owner.writer.AsmWrite(llvmencodetypename(taillvm(hp).oper[taillvm.callpdopernr]^.def,true));
             opstart:=4;
           end;
         la_blockaddress:
@@ -1401,11 +1381,19 @@ implementation
                       WriteFunctionFlags(tprocdef(taillvmdecl(hp).def));
                       if assigned(tprocdef(taillvmdecl(hp).def).personality) then
                         begin
-                          writer.AsmWrite(' personality i8* bitcast (');
-                          writer.AsmWrite(llvmencodeproctype(tprocdef(taillvmdecl(hp).def).personality, '', lpd_procvar));
-                          writer.AsmWrite('* ');
-                          writer.AsmWrite(llvmmangledname(tprocdef(taillvmdecl(hp).def).personality.mangledname));
-                          writer.AsmWrite(' to i8*)');
+                          if not(llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) then
+                            begin
+                              writer.AsmWrite(' personality i8* bitcast (');
+                              writer.AsmWrite(llvmencodeproctype(tprocdef(taillvmdecl(hp).def).personality, '', lpd_procvar));
+                              writer.AsmWrite('* ');
+                              writer.AsmWrite(llvmmangledname(tprocdef(taillvmdecl(hp).def).personality.mangledname));
+                              writer.AsmWrite(' to i8*)');
+                            end
+                          else
+                            begin
+                              writer.AsmWrite(' personality ptr ');
+                              writer.AsmWrite(llvmmangledname(tprocdef(taillvmdecl(hp).def).personality.mangledname));
+                            end;
                         end;
                       InstrWriter.WriterInstructionMetadata(' ', taillvmdecl(hp).metadata);
                       writer.AsmWriteln(' {');

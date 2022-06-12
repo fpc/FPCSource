@@ -57,7 +57,7 @@ interface
     function llvmencodetypedecl(def: tdef): TSymStr;
 
     { same as above, but use a type name if possible (for any use) }
-    function llvmencodetypename(def: tdef): TSymStr;
+    function llvmencodetypename(def: tdef; pointedtype: boolean = false): TSymStr;
 
     { encode a procdef/procvardef into the internal format used by LLVM }
     function llvmencodeproctype(def: tabstractprocdef; const customname: TSymStr; pddecltype: tllvmprocdefdecltype): TSymStr;
@@ -354,11 +354,34 @@ implementation
   procedure llvmaddencodedabstractrecordtype(def: tabstractrecorddef; var encodedstr: TSymStr); forward;
 
   type
-    tllvmencodeflag = (lef_inaggregate, lef_noimplicitderef, lef_typedecl);
+    tllvmencodeflag = (lef_inaggregate, lef_noimplicitderef, lef_typedecl, lef_removeouterpointer);
     tllvmencodeflags = set of tllvmencodeflag;
 
     procedure llvmaddencodedtype_intern(def: tdef; const flags: tllvmencodeflags; var encodedstr: TSymStr);
+      var
+        def_is_address: boolean;
       begin
+        def_is_address:=false;
+        if ((lef_removeouterpointer in flags) or
+            (llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion])) and
+           is_address(def) and
+           (def<>llvm_metadatatype) then
+          def_is_address:=true
+        else if lef_removeouterpointer in flags then
+          internalerror(2022060813);
+        if (llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) and
+           not(lef_removeouterpointer in flags) and
+           def_is_address then
+          begin
+            if not(([lef_typedecl,lef_noimplicitderef]*flags<>[]) and
+                   is_implicit_pointer_object_type(def)) and
+               not((def.typ=procdef) and
+                   not(lef_typedecl in flags)) then
+             begin
+               encodedstr:=encodedstr+'ptr';
+               exit;
+             end;
+          end;
         case def.typ of
           stringdef :
             begin
@@ -367,15 +390,23 @@ implementation
                 st_unicodestring:
                   { the variable does not point to the header, but to a
                     null-terminated string/array with undefined bounds }
-                  encodedstr:=encodedstr+'i16*';
-                st_ansistring:
-                  encodedstr:=encodedstr+'i8*';
-                st_shortstring:
-                  { length byte followed by string bytes }
-                  if tstringdef(def).len>0 then
-                    encodedstr:=encodedstr+'['+tostr(tstringdef(def).len+1)+' x i8]'
+                  if not(lef_removeouterpointer in flags) then
+                    encodedstr:=encodedstr+'i16*'
                   else
-                    encodedstr:=encodedstr+'[0 x i8]';
+                    encodedstr:=encodedstr+'i16';
+                st_ansistring:
+                  if not(lef_removeouterpointer in flags) then
+                    encodedstr:=encodedstr+'i8*'
+                  else
+                    encodedstr:=encodedstr+'i8';
+                st_shortstring:
+                  begin
+                    { length byte followed by string bytes }
+                    if tstringdef(def).len>0 then
+                      encodedstr:=encodedstr+'['+tostr(tstringdef(def).len+1)+' x i8]'
+                    else
+                      encodedstr:=encodedstr+'[0 x i8]';
+                  end
                 else
                   internalerror(2013100201);
               end;
@@ -402,11 +433,17 @@ implementation
           pointerdef :
             begin
               if is_voidpointer(def) then
-                encodedstr:=encodedstr+'i8*'
+                begin
+                  if not(lef_removeouterpointer in flags) then
+                    encodedstr:=encodedstr+'i8*'
+                  else
+                    encodedstr:=encodedstr+'i8';
+                end
               else
                 begin
                   llvmaddencodedtype_intern(tpointerdef(def).pointeddef,[],encodedstr);
-                  encodedstr:=encodedstr+'*';
+                  if not(lef_removeouterpointer in flags) then
+                    encodedstr:=encodedstr+'*';
                 end;
             end;
           floatdef :
@@ -478,13 +515,16 @@ implementation
             begin
               if is_class(tclassrefdef(def).pointeddef) then
                 begin
-                  llvmaddencodedtype_intern(tobjectdef(tclassrefdef(def).pointeddef).vmt_def,flags,encodedstr);
-                  encodedstr:=encodedstr+'*';
+                  llvmaddencodedtype_intern(tobjectdef(tclassrefdef(def).pointeddef).vmt_def,flags-[lef_removeouterpointer],encodedstr);
+                  if not(lef_removeouterpointer in flags) then
+                    encodedstr:=encodedstr+'*';
                 end
               else if is_objcclass(tclassrefdef(def).pointeddef) then
-                llvmaddencodedtype_intern(objc_idtype,flags,encodedstr)
-              else
+                llvmaddencodedtype_intern(objc_idtype,flags-[lef_removeouterpointer],encodedstr)
+              else if not(lef_removeouterpointer in flags) then
                 encodedstr:=encodedstr+'i8*'
+              else
+                encodedstr:=encodedstr+'i8'
             end;
           setdef :
             begin
@@ -525,7 +565,8 @@ implementation
               else if is_dynamic_array(def) then
                 begin
                   llvmaddencodedtype_intern(tarraydef(def).elementdef,[lef_inaggregate],encodedstr);
-                  encodedstr:=encodedstr+'*';
+                  if not(lef_removeouterpointer in flags) then
+                    encodedstr:=encodedstr+'*';
                 end
               else if is_packed_array(def) and
                       (tarraydef(def).elementdef.typ in [enumdef,orddef]) then
@@ -553,8 +594,11 @@ implementation
                  tprocvardef(def).is_addressonly then
                 begin
                   llvmaddencodedproctype(tabstractprocdef(def),'',lpd_procvar,encodedstr);
-                  if def.typ=procvardef then
-                    encodedstr:=encodedstr+'*';
+                  if not(lef_removeouterpointer in flags) then
+                    begin
+                      if def.typ=procvardef then
+                        encodedstr:=encodedstr+'*'
+                    end
                 end
               else if not(lef_typedecl in flags) then
                 begin
@@ -562,7 +606,8 @@ implementation
                     via a pointer }
                   encodedstr:=encodedstr+llvmtypeidentifier(def);
                   { blocks are implicit pointers }
-                  if is_block(def) then
+                  if not(lef_removeouterpointer in flags) and
+                     is_block(def) then
                     encodedstr:=encodedstr+'*'
                 end
               else if is_block(def) then
@@ -590,7 +635,7 @@ implementation
                     encodedstr:=encodedstr+llvmtypeidentifier(def)
                   else
                     llvmaddencodedabstractrecordtype(tabstractrecorddef(def),encodedstr);
-                  if ([lef_typedecl,lef_noimplicitderef]*flags=[]) and
+                  if ([lef_typedecl,lef_noimplicitderef,lef_removeouterpointer]*flags=[]) and
                      is_implicit_pointer_object_type(def) then
                     encodedstr:=encodedstr+'*'
                 end;
@@ -599,16 +644,28 @@ implementation
               odt_dispinterface:
                 begin
                   { type is a pointer to a pointer to the vmt }
-                  llvmaddencodedtype_intern(tobjectdef(def).vmt_def,flags,encodedstr);
-                  if ([lef_typedecl,lef_noimplicitderef]*flags=[]) then
-                    encodedstr:=encodedstr+'**';
+                  if ([lef_typedecl,lef_noimplicitderef]*flags=[]) and
+                     (llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) then
+                    encodedstr:=encodedstr+'ptr'
+                  else
+                    begin
+                      llvmaddencodedtype_intern(tobjectdef(def).vmt_def,flags,encodedstr);
+                      if ([lef_typedecl,lef_noimplicitderef]*flags=[]) then
+                        if not(lef_removeouterpointer in flags) then
+                          encodedstr:=encodedstr+'**'
+                        else
+                          encodedstr:=encodedstr+'*'
+                    end;
                 end;
               odt_interfacecom_function,
               odt_interfacecom_property,
               odt_objcprotocol:
                 begin
                   { opaque for now }
-                  encodedstr:=encodedstr+'i8*'
+                  if not(lef_removeouterpointer in flags) then
+                    encodedstr:=encodedstr+'i8*'
+                  else
+                    encodedstr:=encodedstr+'i8'
                 end;
               odt_helper:
                 llvmaddencodedtype_intern(tobjectdef(def).extendeddef,flags,encodedstr);
@@ -630,10 +687,16 @@ implementation
       end;
 
 
-    function llvmencodetypename(def: tdef): TSymStr;
+    function llvmencodetypename(def: tdef; pointedtype: boolean = false): TSymStr;
+      var
+        flags: tllvmencodeflags;
       begin
         result:='';
-        llvmaddencodedtype_intern(def,[],result);
+        if not pointedtype then
+          flags:=[]
+        else
+          flags:=[lef_removeouterpointer];
+        llvmaddencodedtype_intern(def,flags,result);
       end;
 
 
@@ -747,7 +810,14 @@ implementation
           { implicit zero/sign extension for ABI compliance? }
           if not first then
              encodedstr:=encodedstr+', ';
-          llvmaddencodedtype_intern(usedef,[],encodedstr);
+          if (hp.vardef=llvm_metadatatype) or
+             not((llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) and
+                 ((vo_is_funcret in hp.varoptions) or
+                  paramanager.push_addr_param(hp.varspez,hp.vardef,proccalloption) or
+                  llvmbyvalparaloc(paraloc))) then
+            llvmaddencodedtype_intern(usedef,[],encodedstr)
+          else
+            encodedstr:=encodedstr+'ptr';
           { in case signextstr<>'', there should be only one paraloc -> no need
             to clear (reason: it means that the paraloc is larger than the
             original parameter) }
@@ -756,7 +826,7 @@ implementation
           { sret: hidden pointer for structured function result }
           if vo_is_funcret in hp.varoptions then
             begin
-              { "sret" is only valid for the firstparameter, while in FPC this
+              { "sret" is only valid for the first parameter, while in FPC this
                 can sometimes be second one (self comes before). In general,
                 this is not a problem: we can just leave out sret, which means
                 the result will be a bit less well optimised), but it is for
@@ -783,7 +853,8 @@ implementation
           else if not paramanager.push_addr_param(hp.varspez,hp.vardef,proccalloption) and
              llvmbyvalparaloc(paraloc) then
             begin
-              encodedstr:=encodedstr+'*';
+              if not (llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) then
+                encodedstr:=encodedstr+'*';
               if withattributes then
                 begin
                   encodedstr:=encodedstr+llvmparatypeattr(' byval',hp.vardef,false);

@@ -66,7 +66,8 @@ type
      llvmflag_NoDISPFlags,                  { no DI sub program flags, but separate fields }
      llvmflag_NoDISPFlagMainSubprogram,     { MainSubprogram still in DIFlags instead of DISPFlags }
      llvmflag_para_attr_type,               { parameter attributes such as noalias and byval need to repeat the type }
-     llvmflag_opaque_ptr_transition         { initial opaque pointer introduction, needs to some elementtype attributes }
+     llvmflag_opaque_ptr_transition,        { initial opaque pointer introduction, needs to some elementtype attributes }
+     llvmflag_opaque_ptr                    { only opaque pointers }
    );
    tllvmversionflags = set of tllvmversionflag;
 

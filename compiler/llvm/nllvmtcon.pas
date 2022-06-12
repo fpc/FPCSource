@@ -129,10 +129,10 @@ interface
 implementation
 
   uses
-    verbose,systems,fmodule,
+    verbose,systems,fmodule,globals,
     aasmdata,
     procinfo,
-    cpubase,cpuinfo,llvmbase,
+    cpubase,cpuinfo,llvmbase,llvminfo,
     symtable,llvmdef,defutil,defcmp,
     ngenutil;
 
@@ -751,6 +751,10 @@ implementation
       secondop: tllvmop;
     begin
       inherited;
+      if (llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) and
+         is_address(fromdef) and
+         is_address(todef) then
+        exit;
       { special case: procdef -> procvardef/pointerdef: must take address of
         the procdef }
       if (fromdef.typ=procdef) and

@@ -77,6 +77,14 @@ uses
 
 class function tllvmtypeconvnode.target_specific_need_equal_typeconv(fromdef, todef: tdef): boolean;
   begin
+    if (llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) and
+       is_address(fromdef) and
+       is_address(todef) then
+      begin
+        result:=false;
+        exit;
+      end;
+
     result:=
       (fromdef<>todef) and
       { two procdefs that are structurally the same but semantically different
@@ -302,7 +310,10 @@ procedure tllvmtypeconvnode.second_nothing;
   begin
     { insert LLVM-level type conversions for same-sized entities that are
       nevertheless different types }
-    if left.resultdef<>resultdef then
+    if (left.resultdef<>resultdef) and
+       (not(llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) or
+        not(is_address(left.resultdef) and
+            is_address(resultdef))) then
       begin
            { handle sometype(voidptr^) and "absolute" }
         if not is_void(left.resultdef) and

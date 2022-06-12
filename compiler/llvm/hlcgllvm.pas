@@ -1610,7 +1610,8 @@ implementation
       hreg: tregister;
     begin
       { will insert a bitcast if necessary }
-      if fromdef<>todef then
+      if (fromdef<>todef) and
+         not(llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) then
         begin
           hreg:=getregisterfordef(list,todef);
           a_load_reg_reg(list,fromdef,todef,reg,hreg);
@@ -1623,6 +1624,16 @@ implementation
     var
       hreg: tregister;
     begin
+      { the reason for the array exception is that we sometimes generate
+          getelementptr array_element_ty, arrayref, 0, 0
+        to get a pointer to the first element of the array. That expression is
+        not valid if arrayref does not point to an array. Clang does the same.
+      }
+      if (llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) and
+         (((fromdef.typ=pointerdef) and (tpointerdef(fromdef).pointeddef.typ=arraydef)) <>
+          ((todef.typ=pointerdef) and (tpointerdef(todef).pointeddef.typ=arraydef))
+         ) then
+        exit;
       hreg:=getaddressregister(list,todef);
       a_loadaddr_ref_reg_intern(list,fromdef,todef,ref,hreg,false);
       reference_reset_base(ref,todef,hreg,0,ref.temppos,ref.alignment,ref.volatility);

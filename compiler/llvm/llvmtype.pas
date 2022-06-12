@@ -103,12 +103,12 @@ interface
 implementation
 
     uses
-      sysutils,cutils,cfileutl,constexp,
+      cutils,cfileutl,constexp,
       version,globals,verbose,systems,
       cpubase,cgbase,paramgr,
       fmodule,nobj,
       defutil,defcmp,symconst,symtable,
-      llvmbase,llvmdef
+      llvminfo,llvmbase,llvmdef
       ;
 
 {****************************************************************************
@@ -135,6 +135,14 @@ implementation
         def1str, def2str: TSymStr;
       begin
         if def1=def2 then
+          exit(true);
+        { this function is only used to the pointees of pointer types, to know
+          whether the pointer types are equal. With opaque pointers, all
+          pointers are represented by "ptr" and hence by definition equal,
+          regardless of what they point to (there is one exception related to
+          arrays, but that is already handled during code generation in
+          thlcgllvm.g_ptrtypecast_ref) }
+        if (llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) then
           exit(true);
         def1str:=llvmencodetypename(def1);
         def2str:=llvmencodetypename(def2);
