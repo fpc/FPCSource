@@ -589,7 +589,7 @@ implementation
         addtype('$qwordbool',bool64type);
 {$ifdef llvm}
         addtype('$llvmbool1',llvmbool1type);
-        llvm_metadatatype:=cundefineddef.create(true);
+        llvm_metadatatype:=cformaldef.create(false);
         { if this gets renamed, also adjust agllvm so it still writes the identifier of this type as "metadata" }
         addtype('$metadata',llvm_metadatatype);
         addtype('LLVMMetadata',llvm_metadatatype);

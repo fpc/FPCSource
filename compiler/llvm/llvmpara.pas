@@ -45,6 +45,7 @@ unit llvmpara;
         architecture-specific code, or whether we will have to integrate parts
         into the various tcpuparamanager classes }
       tllvmparamanager = class(tcpuparamanager)
+        function push_addr_param(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean; override;
         procedure getcgtempparaloc(list: TAsmList; pd: tabstractprocdef; nr: longint; var cgpara: tcgpara); override;
         function param_use_paraloc(const cgpara: tcgpara): boolean; override;
         procedure createtempparaloc(list: TAsmList; calloption: tproccalloption; parasym: tparavarsym; can_use_final_stack_loc: boolean; var cgpara: TCGPara); override;
@@ -71,6 +72,17 @@ unit llvmpara;
       cgutils,tgobj,hlcgobj;
 
   { tllvmparamanager }
+
+  function tllvmparamanager.push_addr_param(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean;
+    begin
+      if def<>llvm_metadatatype then
+        begin
+          result:=inherited;
+          exit;
+        end;
+      result:=false;
+    end;
+
 
   procedure tllvmparamanager.getcgtempparaloc(list: TAsmList; pd: tabstractprocdef; nr: longint; var cgpara: tcgpara);
     begin

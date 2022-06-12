@@ -538,9 +538,12 @@ implementation
             end;
           formaldef :
             begin
-              { var/const/out x (always treated as "pass by reference" -> don't
-                add extra "*" here) }
-              encodedstr:=encodedstr+'i8';
+              if def<>llvm_metadatatype then
+                { var/const/out x (always treated as "pass by reference" -> don't
+                  add extra "*" here) }
+                encodedstr:=encodedstr+'i8'
+              else
+                encodedstr:=encodedstr+'metadata'
             end;
           arraydef :
             begin
@@ -674,10 +677,7 @@ implementation
             end;
           undefineddef:
             begin
-              if def=llvm_metadatatype then
-                encodedstr:=encodedstr+'metadata'
-              else
-                internalerror(2022052301);
+              internalerror(2022052301);
             end;
           errordef :
             internalerror(2013100604);
