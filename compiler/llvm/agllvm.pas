@@ -389,6 +389,7 @@ implementation
                end;
              top_tai:
                begin
+                 owner.writer.AsmWrite(' ');
                  tmpinline:=1;
                  tmpasmblock:=false;
                  hp:=para^.val.ai;
