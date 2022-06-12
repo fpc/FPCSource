@@ -341,7 +341,7 @@ implementation
         }
         generate_initial_instructions(list);
 
-        list.concat(cai_align.create_zeros(4));
+        list.concat(cai_align.create_zeros(sizeof(pint)));
         list.concat(tai_label.create(lenendlabel));
         lenstartlabel:=nil;
         lenendlabel:=nil;
@@ -377,7 +377,7 @@ implementation
                 end;
               DW_CFA_End_Frame :
                 begin
-                  list.concat(cai_align.create_zeros(4));
+                  list.concat(cai_align.create_zeros(sizeof(pint)));
                   list.concat(tai_label.create(lenendlabel));
                   lenstartlabel:=nil;
                   lenendlabel:=nil;
