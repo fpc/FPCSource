@@ -2975,15 +2975,17 @@ implementation
         memberowner:=nil;
         membersym:=nil;
         memberdef:=nil;
-        memberdef_or_sym:=nil; // To get rid off warning.
-        dwarfoffset:=0; // To get rid off warning.
+        { To get rid off warning. }
+        memberdef_or_sym:=nil;
+        dwarfoffset:=0;
+
         if assigned(accesslist.procdef) then
           begin
             memberdef := accesslist.procdef;
-            // Debuginfo for procdefs is only written for members of an odt_helper
-            // or odt_class. (So, among others, not for interfaces.)
-            // It is not possible to reference something that is not there, so
-            // omit te reference.
+            { Debuginfo for procdefs is only written for members of an odt_helper
+              or odt_class. (So, among others, not for interfaces.)
+              It is not possible to reference something that is not there, so
+              omit te reference. }
             if Assigned(memberdef.owner.defowner) and (memberdef.owner.defowner.typ=objectdef) and
                (tobjectdef(memberdef.owner.defowner).objecttype in [odt_helper, odt_class]) then
               begin
@@ -2995,11 +2997,11 @@ implementation
                   end;
               end;
           end
-        // Note that the returned 'dwarfoffset' is not used and not a dwarf-offset
+        { Note that the returned 'dwarfoffset' is not used and not a dwarf-offset }
         else if get_symlist_sym_offset(accesslist.firstsym, membersym, dwarfoffset) and
-        // Debuginfo for static members is not written
-        // It is not possible to reference something that is not there, so
-        // omit te reference.
+        { Debuginfo for static members is not written
+          It is not possible to reference something that is not there, so
+           omit te reference. }
                 not (sp_static in membersym.symoptions) then
           begin
             memberowner := membersym.owner;
@@ -3984,15 +3986,16 @@ implementation
         hsi: PHashSetItem;
       begin
         AddConstToAbbrev(ord(attr));
-        AddConstToAbbrev(ord(DW_FORM_ref4));    //ToDo Dwarf64!
+        { ToDo Dwarf64! }
+        AddConstToAbbrev(ord(DW_FORM_ref4));
         tc := tai_const.Create_rel_sym_offset(offsetreltype,current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'debug_info0',AB_LOCAL,AT_METADATA,voidpointertype), anchorlabel, dwarf_offset);
         if dwarf_offset = -1 then
           begin
             hsi := PendingOffsets.FindOrAdd(@def_or_sym, SizeOf(def_or_sym));
 
-            // In this case the debug-info for the referenced member has not been
-            // written yet. Add an element to hold the offset that could be filled
-            // later.
+            { In this case the debug-info for the referenced member has not been
+              written yet. Add an element to hold the offset that could be filled
+              later. }
             tci := TPendingOffsetConst.Create;
             tci.tc := tc;
             tci.next := TPendingOffsetConst(hsi^.Data);

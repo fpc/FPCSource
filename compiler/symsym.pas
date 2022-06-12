@@ -225,6 +225,9 @@ interface
           { offset in record/object, for bitpacked fields the offset is
             given in bit, else in bytes }
           fieldoffset   : asizeint;
+          { To be able to reference the field in a property in the Dwarf debug
+            info, the amount of bytes between the start of the debug info and
+            the info for the field is stored }
           dwarfoffset   : asizeint;
 {$ifdef llvm}
           { the llvm version of the record does not support variants,   }
