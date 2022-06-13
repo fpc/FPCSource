@@ -354,7 +354,7 @@ begin
       Result.HasEllipsis:=True;
       GetToken;
       end;
-    CheckCurrentToken(tkIdentifier);
+    CheckCurrentTokens([tkIdentifier,tkOther]);
     Result.Name:=CurrentTokenString;
   except
     MaybeFree(Result,aParent);
