@@ -365,7 +365,17 @@ implementation
             while paralen>0 do
               begin
                 paraloc:=hp.paraloc[side].add_location;
-{$ifndef cpu64bitalu}
+{$ifdef cpu64bitalu}
+               if paracgsize in [OS_128,OS_S128] then
+                 begin
+                   if paralen>4 then
+                     begin
+                       paraloc^.size:=OS_64;
+                       paraloc^.def:=u64inttype;
+                     end
+                 end
+               else
+{$else cpu64bitalu}
                 { We can allocate at maximum 32 bits per register on mips32 }
                 if (paracgsize in [OS_64,OS_S64]) or
                    ((paracgsize in [OS_F32,OS_F64]) and
