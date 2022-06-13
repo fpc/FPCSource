@@ -492,193 +492,192 @@ unit cpupara;
              if paralen=0 then
                internalerror(200410311);
 {$endif EXTDEBUG}
-             while paralen>0 do
-               begin
-                 paraloc:=hp.paraloc[side].add_location;
-                 case loc of
-                    LOC_REGISTER:
-                      begin
-                        if paracgsize in [OS_F32,OS_F64,OS_F80] then
-                          case paracgsize of
-                            OS_F32,
+             repeat
+               paraloc:=hp.paraloc[side].add_location;
+               case loc of
+                  LOC_REGISTER:
+                    begin
+                      if paracgsize in [OS_F32,OS_F64,OS_F80] then
+                        case paracgsize of
+                          OS_F32,
+                          OS_F64:
+                            begin
+                              paraloc^.size:=OS_32;
+                              paraloc^.def:=u32inttype;
+                            end;
+                          else
+                            internalerror(2005082901);
+                        end;
+                      { align registers for eabi }
+                      if (target_info.abi in [abi_eabi,abi_eabihf]) and
+                         firstparaloc and
+                         (paradef.alignment=8) then
+                        begin
+                          hp.paraloc[side].Alignment:=8;
+                          if (nextintreg in [RS_R1,RS_R3]) then
+                            inc(nextintreg)
+                          else if nextintreg>RS_R3 then
+                            stack_offset:=align(stack_offset,8);
+                        end;
+                      if nextintreg<=RS_R3 then
+                        begin
+                          paradeftointparaloc(paradef,paracgsize,paraloc^.def,paraloc^.size);
+                          paraloc^.loc:=LOC_REGISTER;
+                          paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
+                          inc(nextintreg);
+                        end
+                      else
+                        begin
+                          { LOC_REFERENCE always contains everything that's left as a multiple of 4 bytes}
+                          paraloc^.loc:=LOC_REFERENCE;
+                          paraloc^.def:=get_paraloc_def(paradef,paralen,firstparaloc);
+                          paraloc^.size:=def_cgsize(paraloc^.def);
+                          if (side=callerside) then
+                            paraloc^.reference.index:=NR_STACK_POINTER_REG;
+                          paraloc^.reference.offset:=stack_offset;
+                          inc(stack_offset,align(paralen,4));
+                          paralen:=0;
+                       end;
+                    end;
+                  LOC_FPUREGISTER:
+                    begin
+                      paraloc^.size:=paracgsize;
+                      paraloc^.def:=paradef;
+                      if nextfloatreg<=RS_F3 then
+                        begin
+                          paraloc^.loc:=LOC_FPUREGISTER;
+                          paraloc^.register:=newreg(R_FPUREGISTER,nextfloatreg,R_SUBWHOLE);
+                          inc(nextfloatreg);
+                        end
+                      else
+                        begin
+                          paraloc^.loc:=LOC_REFERENCE;
+                          paraloc^.reference.index:=NR_STACK_POINTER_REG;
+                          paraloc^.reference.offset:=stack_offset;
+                          case paraloc^.size of
+                            OS_F32:
+                              inc(stack_offset,4);
+                            OS_F64:
+                              inc(stack_offset,8);
+                            OS_F80:
+                              inc(stack_offset,10);
+                            OS_F128:
+                              inc(stack_offset,16);
+                            else
+                              internalerror(200403201);
+                          end;
+                        end;
+                    end;
+                  LOC_MMREGISTER:
+                    begin
+                      if assigned(hfabasedef) then
+                        begin
+                          paraloc^.def:=hfabasedef;
+                          paraloc^.size:=hfabasesize;
+                        end
+                      else
+                        begin
+                          paraloc^.size:=paracgsize;
+                          paraloc^.def:=paradef;
+                        end;
+                      if (nextmmreg<=RS_D7) or
+                         ((paraloc^.size=OS_F32) and
+                          (sparesinglereg<>NR_NO)) then
+                        begin
+                          paraloc^.loc:=LOC_MMREGISTER;
+                          case paraloc^.size of
+                            OS_F32:
+                              if sparesinglereg = NR_NO then
+                                begin
+                                  paraloc^.register:=newreg(R_MMREGISTER,nextmmreg,R_SUBFS);
+                                  sparesinglereg:=newreg(R_MMREGISTER,nextmmreg-RS_S0+RS_S1,R_SUBFS);
+                                  inc(nextmmreg);
+                                end
+                              else
+                                begin
+                                  paraloc^.register:=sparesinglereg;
+                                  sparesinglereg := NR_NO;
+                                end;
                             OS_F64:
                               begin
-                                paraloc^.size:=OS_32;
-                                paraloc^.def:=u32inttype;
+                                paraloc^.register:=newreg(R_MMREGISTER,nextmmreg,R_SUBFD);
+                                inc(nextmmreg);
                               end;
                             else
-                              internalerror(2005082901);
+                              internalerror(2012031601);
                           end;
-                        { align registers for eabi }
-                        if (target_info.abi in [abi_eabi,abi_eabihf]) and
-                           firstparaloc and
-                           (paradef.alignment=8) then
-                          begin
-                            hp.paraloc[side].Alignment:=8;
-                            if (nextintreg in [RS_R1,RS_R3]) then
-                              inc(nextintreg)
-                            else if nextintreg>RS_R3 then
-                              stack_offset:=align(stack_offset,8);
-                          end;
-                        if nextintreg<=RS_R3 then
-                          begin
-                            paradeftointparaloc(paradef,paracgsize,paraloc^.def,paraloc^.size);
-                            paraloc^.loc:=LOC_REGISTER;
-                            paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
-                            inc(nextintreg);
-                          end
-                        else
-                          begin
-                            { LOC_REFERENCE always contains everything that's left as a multiple of 4 bytes}
-                            paraloc^.loc:=LOC_REFERENCE;
-                            paraloc^.def:=get_paraloc_def(paradef,paralen,firstparaloc);
-                            paraloc^.size:=def_cgsize(paraloc^.def);
-                            if (side=callerside) then
-                              paraloc^.reference.index:=NR_STACK_POINTER_REG;
-                            paraloc^.reference.offset:=stack_offset;
-                            inc(stack_offset,align(paralen,4));
-                            paralen:=0;
-                         end;
-                      end;
-                    LOC_FPUREGISTER:
-                      begin
-                        paraloc^.size:=paracgsize;
-                        paraloc^.def:=paradef;
-                        if nextfloatreg<=RS_F3 then
-                          begin
-                            paraloc^.loc:=LOC_FPUREGISTER;
-                            paraloc^.register:=newreg(R_FPUREGISTER,nextfloatreg,R_SUBWHOLE);
-                            inc(nextfloatreg);
-                          end
-                        else
-                          begin
-                            paraloc^.loc:=LOC_REFERENCE;
+                        end
+                      else
+                        begin
+                          { once a floating point parameters has been placed
+                          on the stack we must not pass any more in vfp regs
+                          even if there is a single precision register still
+                          free}
+                          sparesinglereg := NR_NO;
+                          { LOC_REFERENCE always contains everything that's left }
+                          paraloc^.loc:=LOC_REFERENCE;
+                          paraloc^.size:=int_cgsize(paralen);
+                          if (side=callerside) then
                             paraloc^.reference.index:=NR_STACK_POINTER_REG;
-                            paraloc^.reference.offset:=stack_offset;
-                            case paraloc^.size of
-                              OS_F32:
-                                inc(stack_offset,4);
-                              OS_F64:
-                                inc(stack_offset,8);
-                              OS_F80:
-                                inc(stack_offset,10);
-                              OS_F128:
-                                inc(stack_offset,16);
-                              else
-                                internalerror(200403201);
-                            end;
-                          end;
-                      end;
-                    LOC_MMREGISTER:
-                      begin
-                        if assigned(hfabasedef) then
-                          begin
-                            paraloc^.def:=hfabasedef;
-                            paraloc^.size:=hfabasesize;
-                          end
-                        else
-                          begin
-                            paraloc^.size:=paracgsize;
-                            paraloc^.def:=paradef;
-                          end;
-                        if (nextmmreg<=RS_D7) or
-                           ((paraloc^.size=OS_F32) and
-                            (sparesinglereg<>NR_NO)) then
-                          begin
-                            paraloc^.loc:=LOC_MMREGISTER;
-                            case paraloc^.size of
-                              OS_F32:
-                                if sparesinglereg = NR_NO then 
-                                  begin     
-                                    paraloc^.register:=newreg(R_MMREGISTER,nextmmreg,R_SUBFS);
-                                    sparesinglereg:=newreg(R_MMREGISTER,nextmmreg-RS_S0+RS_S1,R_SUBFS);
-                                    inc(nextmmreg);
-                                  end
-                                else
-                                  begin
-                                    paraloc^.register:=sparesinglereg;
-                                    sparesinglereg := NR_NO;
-                                  end;
-                              OS_F64:
-                                begin
-                                  paraloc^.register:=newreg(R_MMREGISTER,nextmmreg,R_SUBFD);
-                                  inc(nextmmreg);
-                                end;
-                              else
-                                internalerror(2012031601);
-                            end;
-                          end
-                        else
-                          begin
-                            { once a floating point parameters has been placed
-                            on the stack we must not pass any more in vfp regs
-                            even if there is a single precision register still
-                            free}
-                            sparesinglereg := NR_NO;
-                            { LOC_REFERENCE always contains everything that's left }
-                            paraloc^.loc:=LOC_REFERENCE;
-                            paraloc^.size:=int_cgsize(paralen);
-                            if (side=callerside) then
-                              paraloc^.reference.index:=NR_STACK_POINTER_REG;
-                            paraloc^.reference.offset:=stack_offset;
-                            inc(stack_offset,align(paralen,4));
-                            paralen:=0;
-                         end;
-                      end;
-                    LOC_REFERENCE:
-                      begin
-                        paraloc^.size:=paracgsize;
-                        paraloc^.def:=paradef;
-                        if push_addr_param(hp.varspez,paradef,p.proccalloption) then
-                          begin
-                            paraloc^.size:=OS_ADDR;
-                            paraloc^.def:=cpointerdef.getreusable_no_free(paradef);
-                            assignintreg
-                          end
-                        else
-                          begin
-                            { align stack for eabi }
-                            if (target_info.abi in [abi_eabi,abi_eabihf]) and
-                               firstparaloc and
-                               (paradef.alignment=8) then
-                              begin
-                                stack_offset:=align(stack_offset,8);
-                                hp.paraloc[side].Alignment:=8;
-                              end;
-
-                             paraloc^.loc:=LOC_REFERENCE;
-                             paraloc^.reference.index:=NR_STACK_POINTER_REG;
-                             paraloc^.reference.offset:=stack_offset;
-                             inc(stack_offset,align(paralen,4));
-                             paralen:=0
-                          end;
-                      end;
-                    else
-                      internalerror(2002071002);
-                 end;
-                 if side=calleeside then
-                   begin
-                     if paraloc^.loc=LOC_REFERENCE then
-                       begin
-                         paraloc^.reference.index:=current_procinfo.framepointer;
-                         if current_procinfo.framepointer=NR_FRAME_POINTER_REG then
-                           begin
-                             { on non-Darwin, the framepointer contains the value
-                               of the stack pointer on entry. On Darwin, the
-                               framepointer points to the previously saved
-                               framepointer (which is followed only by the saved
-                               return address -> framepointer + 4 = stack pointer
-                               on entry }
-                             if not(target_info.system in systems_darwin) then
-                               inc(paraloc^.reference.offset,4)
-                             else
-                               inc(paraloc^.reference.offset,8);
-                           end;
+                          paraloc^.reference.offset:=stack_offset;
+                          inc(stack_offset,align(paralen,4));
+                          paralen:=0;
                        end;
-                   end;
-                 dec(paralen,tcgsize2size[paraloc^.size]);
-                 firstparaloc:=false
+                    end;
+                  LOC_REFERENCE:
+                    begin
+                      paraloc^.size:=paracgsize;
+                      paraloc^.def:=paradef;
+                      if push_addr_param(hp.varspez,paradef,p.proccalloption) then
+                        begin
+                          paraloc^.size:=OS_ADDR;
+                          paraloc^.def:=cpointerdef.getreusable_no_free(paradef);
+                          assignintreg
+                        end
+                      else
+                        begin
+                          { align stack for eabi }
+                          if (target_info.abi in [abi_eabi,abi_eabihf]) and
+                             firstparaloc and
+                             (paradef.alignment=8) then
+                            begin
+                              stack_offset:=align(stack_offset,8);
+                              hp.paraloc[side].Alignment:=8;
+                            end;
+
+                           paraloc^.loc:=LOC_REFERENCE;
+                           paraloc^.reference.index:=NR_STACK_POINTER_REG;
+                           paraloc^.reference.offset:=stack_offset;
+                           inc(stack_offset,align(paralen,4));
+                           paralen:=0
+                        end;
+                    end;
+                  else
+                    internalerror(2002071002);
                end;
+               if side=calleeside then
+                 begin
+                   if paraloc^.loc=LOC_REFERENCE then
+                     begin
+                       paraloc^.reference.index:=current_procinfo.framepointer;
+                       if current_procinfo.framepointer=NR_FRAME_POINTER_REG then
+                         begin
+                           { on non-Darwin, the framepointer contains the value
+                             of the stack pointer on entry. On Darwin, the
+                             framepointer points to the previously saved
+                             framepointer (which is followed only by the saved
+                             return address -> framepointer + 4 = stack pointer
+                             on entry }
+                           if not(target_info.system in systems_darwin) then
+                             inc(paraloc^.reference.offset,4)
+                           else
+                             inc(paraloc^.reference.offset,8);
+                         end;
+                     end;
+                 end;
+               dec(paralen,tcgsize2size[paraloc^.size]);
+               firstparaloc:=false
+             until paralen<=0;
           end;
         curintreg:=nextintreg;
         curfloatreg:=nextfloatreg;
