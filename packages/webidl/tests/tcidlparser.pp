@@ -229,6 +229,7 @@ Type
     Procedure TestSimpleDeleterFunction;
     Procedure TestAttrFunctionFunction;
     Procedure TestOptionalDefaultArgFunction;
+    Procedure TestFunction_ClampArg;
   end;
 
   { TTestDictionaryParser }
@@ -459,7 +460,6 @@ end;
 procedure TTestOperationInterfaceParser.TestSimpleGetterFunction;
 begin
   AssertEquals('Options',[foGetter],ParseFunction('getter short A()','A','short',[]).Options);
-
 end;
 
 procedure TTestOperationInterfaceParser.TestSimpleSetterFunction;
@@ -485,6 +485,16 @@ end;
 procedure TTestOperationInterfaceParser.TestOptionalDefaultArgFunction;
 begin
   ParseFunction('void A(optional short me = 0,optional short you = 0)','A','void',['short','me','short','you'])
+end;
+
+procedure TTestOperationInterfaceParser.TestFunction_ClampArg;
+var
+  F: TIDLFunctionDefinition;
+  Arg: TIDLDefinition;
+begin
+  F:=ParseFunction('void A(optional [Clamp] long long start)','A','void',['long long','start']);
+  Arg:=F.Arguments[0];
+  AssertEquals('optional arg is Clamp',true,Arg.HasSimpleAttribute('Clamp'));
 end;
 
 { TTestSerializerInterfaceParser }
@@ -800,7 +810,7 @@ end;
 
 procedure TTestFunctionCallbackParser.ParseOneOptionalArgumentWithAttrsReturnVoid;
 begin
-  ParseCallback('A','void',['[Me] optional unsigned long long','A']);
+  ParseCallback('A','void',['optional [Me] unsigned long long','A']);
   AssertTrue('is optional',Func.Argument[0].IsOptional);
   AssertEquals('Type name','unsigned long long',Func.Argument[0].ArgumentType.TypeName);
   AssertTrue('Have attribute',Func.Arguments[0].HasSimpleAttribute('Me'));
@@ -820,7 +830,7 @@ end;
 
 procedure TTestFunctionCallbackParser.ParseThreeArgumentsAttrsReturnVoid;
 begin
-  ParseCallback('A','void',['[Me] short','B','[Me] short','C','[Me] optional unsigned long long','D']);
+  ParseCallback('A','void',['[Me] short','B','[Me] short','C','optional [Me] unsigned long long','D']);
   AssertTrue('Have attribute',Func.Arguments[0].HasSimpleAttribute('Me'));
   AssertTrue('Have attribute',Func.Arguments[1].HasSimpleAttribute('Me'));
   AssertTrue('Have attribute',Func.Arguments[2].HasSimpleAttribute('Me'));

@@ -345,14 +345,14 @@ begin
   Result:=TIDLArgumentDefinition(Context.Add(aParent,TIDLArgumentDefinition,''));
   ok:=false;
   try
-    if (CurrentToken=tkSquaredBraceOpen) then
-      begin
-      Result.Attributes:=ParseAttributes;
-      getToken;
-      end;
     if CurrentToken=tkOptional then
       begin
       Result.isOptional:=True;
+      GetToken;
+      end;
+    if (CurrentToken=tkSquaredBraceOpen) then
+      begin
+      Result.Attributes:=ParseAttributes;
       GetToken;
       end;
     Result.ArgumentType:=ParseType(Result,False);
@@ -495,7 +495,7 @@ Var
   tk : TIDLToken;
 
 begin
-  tk:=getToken;
+  tk:=GetToken;
   if tk in [tkReadOnly,tkAttribute] then
     begin
     Result:=ParseAttribute(aParent);
@@ -1132,7 +1132,7 @@ begin
       if Tk=tkSquaredBraceOpen then
         begin
         Attr:=ParseAttributes;
-        tk:=getToken;
+        tk:=GetToken;
         end;
       D:=ParseType(Result.Union,False);
       D.Attributes:=Attr;
