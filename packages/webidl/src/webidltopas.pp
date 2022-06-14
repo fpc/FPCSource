@@ -715,6 +715,7 @@ function TWebIDLToPas.WritePrivateReadOnlyField(aAttr: TIDLAttributeDefinition
 
 begin
   AddLn('%s%s : %s; external name ''%s''; ',[FieldPrefix,GetName(aAttr),GetTypeName(aAttr.AttributeType),aAttr.Name]);
+  Result:=true;
 end;
 
 function TWebIDLToPas.WriteField(aAttr: TIDLAttributeDefinition): Boolean;

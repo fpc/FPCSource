@@ -5,13 +5,13 @@ unit tcidlscanner;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, webidlscanner;
+  Classes, SysUtils, fpcunit, testregistry, webidlscanner;
 
 type
 
   { TTestScanner }
 
-  TTestScanner= class(TTestCase)
+  TTestScanner = class(TTestCase)
   private
     FScanner: TWebIDLScanner;
     FVersion: TWEbIDLversion;

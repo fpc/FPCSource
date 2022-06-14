@@ -100,8 +100,6 @@ Type
     Procedure TestRecord;
   end;
 
-  { TTestInterfaceParser }
-
   { TTestBaseInterfaceParser }
 
   TTestBaseInterfaceParser = Class(TTestParser)
@@ -116,9 +114,12 @@ Type
     Property CustAttributes : String Read FCustAttributes Write FCustAttributes;
   end;
 
+  { TTestInterfaceParser }
+
   TTestInterfaceParser = Class(TTestBaseInterfaceParser)
   Published
     Procedure ParseEmpty;
+    Procedure ParseEmptyNoBrackets;
     Procedure ParseEmptyInheritance;
     Procedure ParseMixinEmpty;
     Procedure ParseMixinEmptyInheritance;
@@ -144,6 +145,7 @@ Type
     Procedure Parse;
     Procedure ParseReadOnly;
   end;
+
   { TTestConstInterfaceParser }
 
   TTestConstInterfaceParser = Class(TTestBaseInterfaceParser)
@@ -415,7 +417,7 @@ end;
 function TTestOperationInterfaceParser.ParseFunction(ADef, aName,
   aReturnType: UTF8String; aArguments: array of UTF8String): TIDLFunctionDefinition;
 Var
-  TN,Src : UTF8String;
+  TN: UTF8String;
   P,I,Idx : integer;
   Arg : TIDLArgumentDefinition;
   ID : TIDLInterfaceDefinition;
@@ -1320,6 +1322,20 @@ end;
 procedure TTestInterfaceParser.ParseEmpty;
 begin
   ParseInterface('A','',[]);
+end;
+
+procedure TTestInterfaceParser.ParseEmptyNoBrackets;
+var
+  d: TIDLInterfaceDefinition;
+begin
+  InitSource('interface A;'+sLineBreak);
+  Parser.Parse;
+  AssertEquals('Correct class',TIDLInterfaceDefinition,Definitions[0].ClassType);
+  d:=Definitions[0] as TIDLInterfaceDefinition;
+  AssertEquals('Name','A',d.Name);
+  AssertEquals('Inheritance : ','',d.ParentName);
+  AssertEquals('Member count',0,d.Members.Count);
+  AssertEquals('Mixin correct',false,d.IsMixin);
 end;
 
 procedure TTestInterfaceParser.ParseEmptyInheritance;

@@ -320,13 +320,17 @@ end;
 function TWebIDLParser.ParseAttributes: TAttributeList;
 
 
+var
+  ok: Boolean;
 begin
   Result:=TAttributeList.Create;
+  ok:=false;
   try
     ParseAttributes(Result,tkSquaredBraceClose);
-  except
-    FreeandNil(Result);
-    Raise;
+    ok:=true;
+  finally
+    if not ok then
+      FreeandNil(Result);
   end;
 end;
 
@@ -335,8 +339,11 @@ function TWebIDLParser.ParseArgument(aParent : TIDLBaseObject): TIDLArgumentDefi
 (* On Entry, we're on the argument start
   on exit, on the token after the argument definition i.e. a comma or )  *)
 
+var
+  ok: Boolean;
 begin
   Result:=TIDLArgumentDefinition(Context.Add(aParent,TIDLArgumentDefinition,''));
+  ok:=false;
   try
     if (CurrentToken=tkSquaredBraceOpen) then
       begin
@@ -356,9 +363,10 @@ begin
       end;
     CheckCurrentTokens([tkIdentifier,tkOther]);
     Result.Name:=CurrentTokenString;
-  except
-    MaybeFree(Result,aParent);
-    Raise;
+    ok:=true;
+  finally
+    if not ok then
+      MaybeFree(Result,aParent);
   end;
 end;
 
@@ -367,15 +375,19 @@ function TWebIDLParser.ParseFunction(aParent : TIDLBaseObject): TIDLFunctionDefi
 (* On Entry, we're on the function identifier, on exit, on the final ) *)
 
 
+var
+  ok: Boolean;
 begin
   Result:=TIDLFunctionDefinition(Context.Add(aParent,TIDLFunctionDefinition,CurrentTokenString));
+  ok:=false;
   try
     ExpectToken(tkEqual);
     Result.ReturnType:=ParseType(Result,True,True);
     ParseArguments(Result.Arguments);
-  except
-    MaybeFree(Result,aParent);
-    Raise;
+    ok:=true;
+  finally
+    if not ok then
+      MaybeFree(Result,aParent);
   end;
 end;
 
@@ -438,6 +450,7 @@ Const
 Var
   Opts : TFunctionOptions;
   FO : TFunctionOption;
+  ok: Boolean;
 
 begin
   Opts:=[];
@@ -454,6 +467,7 @@ begin
     GetToken;
     end;
   Result:=TIDLFunctionDefinition(Context.Add(aParent,TIDLFunctionDefinition,''));
+  ok:=false;
   try
     if (foConstructor in Opts) then
       Result.Name:='New'
@@ -466,9 +480,10 @@ begin
       end;
     ParseArguments(Result.Arguments);
     Result.Options:=Result.Options+Opts;
-  except
-    MaybeFree(Result,aParent);
-    Raise;
+    ok:=true;
+  finally
+    if not ok then
+      MaybeFree(Result,aParent);
   end;
 end;
 
@@ -499,13 +514,15 @@ function TWebIDLParser.ParseIterable(aParent: TIDLBaseObject): TIDLIterableDefin
 
 Var
   T1,T2 : TIDLTypeDefDefinition;
+  ok: Boolean;
 
 begin
   ExpectToken(tkLess);
   T1:=Nil;
   T2:=nil;
+  Result:=TIDLIterableDefinition(Context.Add(aParent,TIDLIterableDefinition,''));
+  ok:=false;
   try
-    Result:=TIDLIterableDefinition(Context.Add(aParent,TIDLIterableDefinition,''));
     T1:=ParseType(Result,True,True);
     if (CurrentToken=tkComma) then
       T2:=ParseType(Result,True,True);
@@ -519,9 +536,10 @@ begin
       Result.KeyType:=T1;
       end;
     T1:=nil;
-  except
-    MaybeFree(Result,aParent);
-    Raise;
+    ok:=true;
+  finally
+    if not ok then
+      MaybeFree(Result,aParent);
   end;
 end;
 
@@ -530,6 +548,7 @@ function TWebIDLParser.CompleteSimpleType(tk: TIDLToken; Var S: UTF8String; out
 
 begin
   Result:=tk;
+  IsNull:=false;
   S:='';
   if (Result=tkUnsigned) then
     begin
@@ -563,8 +582,11 @@ begin
 end;
 
 function TWebIDLParser.ParseMapLikeMember(aParent: TIDLBaseObject): TIDLMaplikeDefinition;
+var
+  ok: Boolean;
 begin
   Result:=TIDLMaplikeDefinition(Context.Add(aParent,TIDLMaplikeDefinition,''));
+  ok:=false;
   try
     Result.TypeName:='maplike';
     ExpectToken(tkLess);
@@ -572,32 +594,40 @@ begin
     CheckCurrentToken(tkComma);
     Result.ValueType:=ParseType(Result,True,true);
     CheckCurrentToken(tkLarger);
-  except
-    MaybeFree(Result,aParent);
-    Raise;
+    ok:=true;
+  finally
+    if not ok then
+      MaybeFree(Result,aParent);
   end;
 end;
 
 function TWebIDLParser.ParseSetLikeMember(aParent: TIDLBaseObject): TIDLSetlikeDefinition;
 (* On Entry we're on setlike. On exit, we're on the > token *)
 
+var
+  ok: Boolean;
 begin
   Result:=TIDLSetlikeDefinition(Context.Add(aParent,TIDLSetlikeDefinition,''));
+  ok:=false;
   try
     ExpectToken(tkLess);
     Result.ElementType:=ParseType(Result);
     Result.ElementType.Parent:=Result;
     CheckCurrentToken(tkLarger);
-  except
-    MaybeFree(Result,aParent);
-    Raise;
+    ok:=true;
+  finally
+    if not ok then
+      MaybeFree(Result,aParent);
   end;
 end;
 
 function TWebIDLParser.ParseRecordTypeDef(aParent: TIDLBaseObject): TIDLRecordDefinition;
 
+var
+  ok: Boolean;
 begin
   Result:=TIDLRecordDefinition(Context.Add(aParent,TIDLRecordDefinition,''));
+  ok:=false;
   try
     Result.TypeName:='record';
     ExpectToken(tkLess);
@@ -605,9 +635,10 @@ begin
     CheckCurrentToken(tkComma);
     Result.ValueType:=ParseType(Result,True,true);
     CheckCurrentToken(tkLarger);
-  except
-    MaybeFree(Result,aParent);
-    Raise;
+    ok:=true;
+  finally
+    if not ok then
+      MaybeFree(Result,aParent);
   end;
 end;
 
@@ -670,7 +701,7 @@ Const
 
 Var
   S : UTF8String;
-  isNull : Boolean;
+  isNull , ok: Boolean;
   tk : TIDLToken;
 
 begin
@@ -682,15 +713,17 @@ begin
   Tk:=CompleteSimpleType(tk,S,IsNull);
   CheckCurrentToken(tkIdentifier);
   Result:=TIDLConstDefinition(Context.Add(aParent,TIDLConstDefinition,CurrentTokenString));
+  ok:=false;
   try
     Result.TypeName:=S;
     Result.AllowNull:=isNull;
     ExpectToken(tkEqual);
     Result.ConstType:=ParseConstValue(S,false);
     Result.Value:=S;
-  except
-    MaybeFree(Result,aParent);
-    Raise;
+    ok:=true;
+  finally
+    if not ok then
+      MaybeFree(Result,aParent);
   end;
 end;
 
@@ -711,6 +744,7 @@ function TWebIDLParser.ParseAttribute(aParent : TIDLBaseObject): TIDLAttributeDe
 *)
 Var
   Options : TAttributeOptions;
+  ok: Boolean;
 
 begin
   Options:=[];
@@ -726,14 +760,16 @@ begin
     end;
   CheckCurrentToken(tkAttribute);
   Result:=TIDLAttributeDefinition(Context.Add(aParent,TIDLAttributeDefinition,''));
+  ok:=false;
   try
     Result.AttributeType:=ParseType(Result,True,True);
     CheckCurrentToken(tkIdentifier);
     Result.Name:=CurrentTokenString;
     Result.Options:=Options;
-  except
-    MaybeFree(Result,aParent);
-    Raise;
+    ok:=true;
+  finally
+    if not ok then
+      MaybeFree(Result,aParent);
   end;
 end;
 
@@ -766,6 +802,7 @@ function TWebIDLParser.ParseSerializer(aParent : TIDLBaseObject): TIDLSerializer
 
 Var
   tk : TIDLToken;
+  ok: Boolean;
 
 begin
   Result:=Nil;
@@ -773,6 +810,7 @@ begin
   if tk=tkSemiColon then
     exit;
   Result:=TIDLSerializerDefinition(Context.Add(aParent,TIDLSerializerDefinition,''));
+  ok:=false;
   try
     if tk<>tkEqual then
       begin
@@ -797,9 +835,10 @@ begin
         Result.Kind:=skSingle;
         end;
       end;
-  except
-    MaybeFree(Result,aParent);
-    Raise;
+    ok:=true;
+  finally
+    if not ok then
+      MaybeFree(Result,aParent);
   end;
 end;
 
@@ -812,7 +851,7 @@ Var
   tk : TIDLToken;
   Attrs : TAttributeList;
   M : TIDLDefinition;
-  isMixin,SemicolonSeen : Boolean;
+  isMixin,SemicolonSeen , ok: Boolean;
 
 begin
   Attrs:=nil;
@@ -821,6 +860,7 @@ begin
   if CurrentToken=tkMixin then
     ExpectToken(tkIdentifier);
   Result:=TIDLInterfaceDefinition(Context.Add(aParent,TIDLInterfaceDefinition,CurrentTokenString));
+  ok:=false;
   try
     Result.IsMixin:=IsMixin;
     tk:=GetToken;
@@ -829,6 +869,11 @@ begin
       ExpectToken(tkIdentifier);
       Result.ParentName:=CurrentTokenString;
       tk:=GetToken;
+      end;
+    if CurrentToken=tkSemiColon then
+      begin
+      // empty interface
+      exit;
       end;
     CheckCurrentToken(tkCurlyBraceOpen);
     tk:=GetToken;
@@ -896,10 +941,13 @@ begin
       CheckCurrentToken(tkSemicolon);
       tk:=GetToken;
       end;
-  except
-    FreeAndNil(Attrs);
-    MaybeFree(Result,aParent);
-    Raise;
+    ok:=true;
+  finally
+    if not ok then
+      begin
+      FreeAndNil(Attrs);
+      MaybeFree(Result,aParent);
+      end;
   end;
 end;
 
@@ -968,7 +1016,7 @@ function TWebIDLParser.ParseDictionaryMember(aParent : TIDLBaseObject): TIDLDict
 Var
   Attrs : TAttributeList;
   tk : TIDLToken;
-  isReq : Boolean;
+  isReq , ok: Boolean;
   S : UTF8String;
 
 begin
@@ -986,6 +1034,7 @@ begin
       tk:=GetToken;
     end;
   Result:=TIDLDictionaryMemberDefinition(Context.Add(aParent,TIDLDictionaryMemberDefinition,''));
+  ok:=false;
   try
     Result.Attributes:=Attrs;
     Result.IsRequired:=isReq;
@@ -1001,9 +1050,10 @@ begin
       tk:=GetToken;
       end;
     CheckCurrentToken(tkSemicolon);
-  except
-    MaybeFree(Result,aParent);
-    Raise;
+    ok:=true;
+  finally
+    if not ok then
+      MaybeFree(Result,aParent);
   end;
 end;
 
@@ -1042,17 +1092,21 @@ end;
 function TWebIDLParser.ParseSequenceTypeDef(aParent : TIDLBaseObject): TIDLSequenceTypeDefDefinition;
 (* On Entry we're on sequence. On exit, we're on the > token *)
 
+var
+  ok: Boolean;
 begin
   Result:=TIDLSequenceTypeDefDefinition(Context.Add(aParent,TIDLSequenceTypeDefDefinition,''));
+  ok:=false;
   try
     Result.TypeName:='sequence';
     ExpectToken(tkLess);
     Result.ElementType:=ParseType(Result);
     Result.ElementType.Parent:=Result;
     CheckCurrentToken(tkLarger);
-  except
-    MaybeFree(Result,aParent);
-    Raise;
+    ok:=true;
+  finally
+    if not ok then
+      MaybeFree(Result,aParent);
   end;
 end;
 
@@ -1064,10 +1118,12 @@ Var
   D : TIDLTypeDefDefinition;
   tk : TIDLToken;
   Attr : TAttributeList;
+  ok: Boolean;
 
 begin
   Attr:=Nil;
   Result:=TIDLUnionTypeDefDefinition(Context.Add(aParent,TIDLUnionTypeDefDefinition,''));
+  ok:=false;
   try
     Result.TypeName:='union';
     Repeat
@@ -1086,26 +1142,33 @@ begin
       CheckCurrentTokens([tkOr,tkBracketClose]);
       tk:=CurrentToken;
     until (tk=tkBracketClose);
-  except
-    FreeAndNil(Attr);
-    MaybeFree(Result,aParent);
-    Raise;
+    ok:=true;
+  finally
+    if not ok then
+      begin
+      FreeAndNil(Attr);
+      MaybeFree(Result,aParent);
+      end;
   end;
 end;
 
 function TWebIDLParser.ParsePromiseTypeDef(aParent: TIDLBaseObject): TIDLPromiseTypeDefDefinition;
 (* On Entry we're on promise. On exit, we're on the > token *)
 
+var
+  ok: Boolean;
 begin
   Result:=TIDLPromiseTypeDefDefinition(Context.Add(aParent,TIDLPromiseTypeDefDefinition,''));
+  ok:=false;
   try
     Result.TypeName:='Promise';
     ExpectToken(tkLess);
     Result.ReturnType:=ParseType(Result,True,true);
     CheckCurrentToken(tkLarger);
-  except
-    MaybeFree(Result,aParent);
-    Raise;
+    ok:=true;
+  finally
+    if not ok then
+      MaybeFree(Result,aParent);
   end;
 end;
 
@@ -1129,7 +1192,7 @@ Const
   ExtraTypeTokens = TypeTokens +[tkStringToken,tkVoid];
 
 Var
-  isNull : Boolean;
+  isNull , ok: Boolean;
   typeName: UTF8String;
   Allowed : TIDLTokens;
   tk : TIDLToken;
@@ -1140,6 +1203,7 @@ begin
   else
     Allowed:=TypeTokens;
   Result:=Nil;
+  ok:=false;
   try
     isNull:=False;
     if FetchFirst then
@@ -1176,9 +1240,10 @@ begin
       end;
     if Assigned(Result) then
       Result.AllowNull:=isNull;
-  Except
-    MaybeFree(Result,aParent);
-    Raise;
+    ok:=true;
+  finally
+    if not ok then
+      MaybeFree(Result,aParent);
   end;
 end;
 
@@ -1186,14 +1251,18 @@ function TWebIDLParser.ParseTypeDef(aParent : TIDLBaseObject): TIDLTypeDefDefini
 (* On Entry we're on "typedef", "or" or "<" tokens. On exit, we're on the identifier *)
 
 
+var
+  ok: Boolean;
 begin
   Result:=ParseType(aParent);
+  ok:=false;
   try
     CheckCurrentToken(tkIdentifier);
     Result.Name:=CurrentTokenString;
-  Except
-    MaybeFree(Result,aParent);
-    Raise;
+    ok:=true;
+  finally
+    if not ok then
+      MaybeFree(Result,aParent);
   end;
 end;
 
@@ -1270,10 +1339,10 @@ begin
       Result.Attributes:=Attrs;
       Attrs:=nil;
       end;
-  except
+  finally
     FreeAndNil(Attrs);
-    Raise;
   end;
+  if CurrentToken=tkSemiColon then exit;
   ExpectToken(tkSemicolon);
 end;
 
