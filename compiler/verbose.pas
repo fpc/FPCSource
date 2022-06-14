@@ -83,7 +83,7 @@ interface
     procedure RestoreLocalVerbosity(pstate : pmessagestaterecord);
     procedure FreeLocalVerbosity(var fstate : pmessagestaterecord);
 
-    function ChangeMessageVerbosity(s: string; var i: integer;state:tmsgstate): boolean;
+    function ChangeMessageVerbosity(s: ansistring; var i: integer;state:tmsgstate): boolean;
     procedure ShowStatus;
     function  ErrorCount:longint;
     procedure SetErrorFlags(const s:string);
@@ -218,9 +218,9 @@ implementation
           end;
       end;
 
-    function ChangeMessageVerbosity(s: string; var i : integer;state:tmsgstate): boolean;
+    function ChangeMessageVerbosity(s: ansistring; var i : integer;state:tmsgstate): boolean;
       var
-        tok  : string;
+        tok  : ansistring;
         msgnr, code : longint;
       begin
         { delete everything up to and including 'm' }
