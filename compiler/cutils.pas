@@ -100,6 +100,7 @@ interface
     function PadSpace(const s:string;len:longint):string;
     function PadSpace(const s:AnsiString;len:longint):AnsiString;
     function GetToken(var s:string;endchar:char):string;
+    function GetToken(var s:ansistring;endchar:char):ansistring;
     procedure uppervar(var s : string);
     function realtostr(e:extended):string;{$ifdef USEINLINE}inline;{$endif}
     function tostr(i : qword) : string;{$ifdef USEINLINE}inline;{$endif}overload;
@@ -834,6 +835,60 @@ implementation
 
 
     function GetToken(var s:string;endchar:char):string;
+      var
+        i : longint;
+        quote : char;
+      begin
+        GetToken:='';
+        s:=TrimSpace(s);
+        if (length(s)>0) and
+           (s[1] in ['''','"']) then
+         begin
+           quote:=s[1];
+           i:=1;
+           while (i<length(s)) do
+            begin
+              inc(i);
+              if s[i]=quote then
+               begin
+                 { Remove double quote }
+                 if (i<length(s)) and
+                    (s[i+1]=quote) then
+                  begin
+                    Delete(s,i,1);
+                    inc(i);
+                  end
+                 else
+                  begin
+                    GetToken:=Copy(s,2,i-2);
+                    Delete(s,1,i);
+                    exit;
+                  end;
+               end;
+            end;
+           GetToken:=s;
+           s:='';
+         end
+        else
+         begin
+           i:=pos(EndChar,s);
+           if i=0 then
+            begin
+              GetToken:=s;
+              s:='';
+              exit;
+            end
+           else
+            begin
+              GetToken:=Copy(s,1,i-1);
+              Delete(s,1,i);
+              exit;
+            end;
+         end;
+      end;
+
+
+    function GetToken(var s:ansistring;endchar:char):ansistring;
       var
         i : longint;
         quote : char;
