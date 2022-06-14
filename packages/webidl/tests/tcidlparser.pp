@@ -183,6 +183,7 @@ Type
   Published
     Procedure ParseSimpleAttribute;
     Procedure ParseSimpleAttributeWithExtendedAttrs;
+    Procedure ParseSimpleAttributeLegacyNullToEmptyString;
     Procedure ParseSimpleStaticAttribute;
     Procedure ParseSimpleStringifierAttribute;
     Procedure ParseSimpleReadonlyAttribute;
@@ -636,6 +637,11 @@ begin
   AssertTrue('Have attribute',ParseAttribute('[Me] attribute short A','A','short',[]).HasSimpleAttribute('Me'));
 end;
 
+procedure TTestAttributeInterfaceParser.ParseSimpleAttributeLegacyNullToEmptyString;
+begin
+  ParseAttribute('attribute [LegacyNullToEmptyString] DOMString A','A','DOMString',[]);
+end;
+
 procedure TTestAttributeInterfaceParser.ParseSimpleStaticAttribute;
 begin
   ParseAttribute('static attribute short A','A','short',[aoStatic]);
@@ -649,7 +655,6 @@ end;
 procedure TTestAttributeInterfaceParser.ParseSimpleReadonlyAttribute;
 begin
   ParseAttribute('readonly attribute short A','A','short',[aoReadOnly]);
-
 end;
 
 procedure TTestAttributeInterfaceParser.ParseSimpleInheritedAttribute;

@@ -207,7 +207,7 @@ end;
 procedure TWebIDLParser.CheckCurrentToken(aToken: TIDLToken);
 begin
   if (aToken<>CurrentToken) then
-    Error(SErrInvalidToken,[GetTokenName(aToken),CurrenttokenString]);
+    Error(SErrInvalidToken,[GetTokenName(aToken),CurrentTokenString]);
 end;
 
 procedure TWebIDLParser.CheckCurrentTokens(aTokens: TIDLTokens);
@@ -1190,6 +1190,7 @@ Const
   SimpleTypeTokens = PrimitiveTokens+IdentifierTokens;
   TypeTokens = PrefixTokens+SimpleTypeTokens;
   ExtraTypeTokens = TypeTokens +[tkStringToken,tkVoid];
+  LegacyDOMString = 'LegacyNullToEmptyString';
 
 Var
   isNull , ok: Boolean;
@@ -1198,10 +1199,6 @@ Var
   tk : TIDLToken;
 
 begin
-  if AllowExtraTypes then
-    Allowed:=ExtraTypeTokens
-  else
-    Allowed:=TypeTokens;
   Result:=Nil;
   ok:=false;
   try
@@ -1210,6 +1207,25 @@ begin
       tk:=GetToken
     else
       tk:=CurrentToken;
+    if tk=tkSquaredBraceOpen then
+      begin
+      // special: [LegacyNullToEmptyString] DOMString
+      ExpectToken(tkIdentifier);
+      if CurrentTokenString<>LegacyDOMString then
+        Error(SErrInvalidToken,[LegacyDOMString,CurrentTokenString]);
+      ExpectToken(tkSquaredBraceClose);
+      ExpectToken(tkDOMString);
+      Result:=TIDLTypeDefDefinition(Context.Add(aParent,TIDLTypeDefDefinition,''));
+      Result.TypeName:='DOMString';
+      Result.Attributes.Add(LegacyDOMString);
+      GetToken;
+      ok:=true;
+      exit;
+      end;
+    if AllowExtraTypes then
+      Allowed:=ExtraTypeTokens
+    else
+      Allowed:=TypeTokens;
     CheckCurrentTokens(Allowed);
     TypeName:=CurrentTokenString;
     if (tk in SimplePrefixTokens) then
@@ -1238,8 +1254,7 @@ begin
       tk:=GetToken;
       isNull:=True;
       end;
-    if Assigned(Result) then
-      Result.AllowNull:=isNull;
+    Result.AllowNull:=isNull;
     ok:=true;
   finally
     if not ok then
