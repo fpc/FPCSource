@@ -75,7 +75,7 @@ interface
       msgfilename : string = '';
 
     procedure SetRedirectFile(const fn:string);
-    function  SetVerbosity(const s:string):boolean;
+    function  SetVerbosity(const s:TCmdStr):boolean;
     procedure PrepareReport;
 
     function  CheckVerbosity(v:longint):boolean;
@@ -254,7 +254,7 @@ implementation
       end;
 
 
-    function SetVerbosity(const s:string):boolean;
+    function SetVerbosity(const s:TCmdStr):boolean;
       const
         message_verbosity:array[boolean] of tmsgstate=(ms_off_global,ms_on_global);
       var
