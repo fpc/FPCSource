@@ -465,17 +465,17 @@ implementation
             end;}
 
           if st.symtabletype=localsymtable then
-            result:=clocalvarsym.create('$'+capturer_var_name,vs_value,def,[])
+            result:=clocalvarsym.create('$'+capturer_var_name,vs_value,def,[vo_is_internal])
           else
-            result:=cstaticvarsym.create('$'+capturer_var_name,vs_value,def,[]);
+            result:=cstaticvarsym.create('$'+capturer_var_name,vs_value,def,[vo_is_internal]);
           result.fileinfo:=pd.fileinfo;
           st.insertsym(result);
           addsymref(result);
 
           if st.symtabletype=localsymtable then
-            keepalive:=clocalvarsym.create('$'+capturer_var_name+keepalive_suffix,vs_value,interface_iunknown,[])
+            keepalive:=clocalvarsym.create('$'+capturer_var_name+keepalive_suffix,vs_value,interface_iunknown,[vo_is_internal])
           else
-            keepalive:=cstaticvarsym.create('$'+capturer_var_name+keepalive_suffix,vs_value,interface_iunknown,[]);
+            keepalive:=cstaticvarsym.create('$'+capturer_var_name+keepalive_suffix,vs_value,interface_iunknown,[vo_is_internal]);
           keepalive.fileinfo:=pd.fileinfo;
           st.insertsym(keepalive);
           addsymref(keepalive);

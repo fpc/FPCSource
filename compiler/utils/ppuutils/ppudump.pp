@@ -3137,7 +3137,8 @@ const
      (mask:vo_force_finalize;  str:'ForceFinalize'),
      (mask:vo_is_default_var;  str:'DefaultIntrinsicVar'),
      (mask:vo_is_far;          str:'IsFar'),
-     (mask:vo_has_global_ref;  str:'HasGlobalRef')
+     (mask:vo_has_global_ref;  str:'HasGlobalRef'),
+     (mask:vo_is_internal;     str:'IsInternal')
   );
 type
   tvaraccessdesc=record
