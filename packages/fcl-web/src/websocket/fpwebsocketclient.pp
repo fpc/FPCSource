@@ -184,7 +184,7 @@ Type
     Property OnHandshakeResponse : TWSClientHandshakeResponseEvent Read FOnHandshakeResponse Write FOnHandshakeResponse;
     // Called when a text message is received.
     property OnMessageReceived: TWSMessageEvent read FOnMessageReceived write FOnMessageReceived;
-    // Called when a connection is disconnected. Sender is the TWebSocketClientConnection object.
+    // Called when a connection is disconnected.
     property OnDisconnect: TNotifyEvent read FOnDisconnect write FOnDisconnect;
     // Called when a connection is established
     property OnConnect: TNotifyEvent read FOnConnect write FOnConnect;
