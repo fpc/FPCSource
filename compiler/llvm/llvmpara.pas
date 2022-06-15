@@ -133,21 +133,23 @@ unit llvmpara;
         begin
           hp:=tparavarsym(paras[paranr]);
           paraloc:=hp.paraloc[side].location;
-          if assigned(paraloc) and
-             assigned(paraloc^.next) and
-             (hp.paraloc[side].def.typ in [orddef,enumdef,floatdef]) then
+          if assigned(paraloc) then
             begin
-              if not(paraloc^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) then
-                internalerror(2019011902);
-              reducetosingleregparaloc(paraloc,hp.paraloc[side].def,paraloc^.register);
-            end
-          else if paraloc^.def=llvm_metadatatype then
-            begin
-              paraloc^.Loc:=LOC_REGISTER;
-              // will be overwritten with a "register" whose superregister is an index in the LLVM metadata table
-              paraloc^.register:=NR_INVALID;
+              if assigned(paraloc^.next) and
+                 (hp.paraloc[side].def.typ in [orddef,enumdef,floatdef]) then
+                begin
+                  if not(paraloc^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) then
+                    internalerror(2019011902);
+                  reducetosingleregparaloc(paraloc,hp.paraloc[side].def,paraloc^.register);
+                end
+              else if paraloc^.def=llvm_metadatatype then
+                begin
+                  paraloc^.Loc:=LOC_REGISTER;
+                  // will be overwritten with a "register" whose superregister is an index in the LLVM metadata table
+                  paraloc^.register:=NR_INVALID;
+                end;
             end;
-        end;
+       end;
     end;
 
   procedure tllvmparamanager.createtempparaloc(list: TAsmList; calloption: tproccalloption; parasym: tparavarsym; can_use_final_stack_loc: boolean; var cgpara: TCGPara);
