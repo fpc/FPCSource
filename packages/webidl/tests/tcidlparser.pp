@@ -232,6 +232,7 @@ Type
     Procedure TestAttrFunctionFunction;
     Procedure TestOptionalDefaultArgFunction;
     Procedure TestFunction_ClampArg;
+    Procedure TestFunction_ArgNameCallback;
   end;
 
   { TTestDictionaryParser }
@@ -505,6 +506,11 @@ begin
   F:=ParseFunction('void A(optional [Clamp] long long start)','A','void',['long long','start']);
   Arg:=F.Arguments[0];
   AssertEquals('optional arg is Clamp',true,Arg.HasSimpleAttribute('Clamp'));
+end;
+
+procedure TTestOperationInterfaceParser.TestFunction_ArgNameCallback;
+begin
+  ParseFunction('void getAsString(FunctionStringCallback? callback)','getAsString','void',['FunctionStringCallback','callback']);
 end;
 
 { TTestSerializerInterfaceParser }
