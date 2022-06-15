@@ -446,6 +446,8 @@ function TWebIDLParser.ParseOperation(aParent: TIDLBaseObject): TIDLFunctionDefi
 
 Const
   Specials = [tkGetter, tkSetter, tkDeleter, tkLegacyCaller, tkConstructor];
+  OnlyGetter = [foGetter];
+  OnlySetter = [foSetter];
 
 Var
   Opts : TFunctionOptions;
@@ -474,9 +476,20 @@ begin
     else
       begin
       Result.ReturnType:=ParseType(Result,False,True);
-      CheckCurrentToken(tkIdentifier);
-      Result.Name:=CurrentTokenString;
-      GetToken;
+      case CurrentToken of
+      tkIdentifier:
+        begin
+        Result.Name:=CurrentTokenString;
+        GetToken;
+        end;
+      tkBracketOpen:
+        if (Opts=OnlyGetter) or (Opts=OnlySetter) then
+          // using default name getProperty/setProperty
+        else
+          CheckCurrentToken(tkIdentifier);
+      else
+        CheckCurrentToken(tkIdentifier);
+      end;
       end;
     ParseArguments(Result.Arguments);
     Result.Options:=Result.Options+Opts;

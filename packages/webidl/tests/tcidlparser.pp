@@ -225,6 +225,7 @@ Type
   Published
     Procedure TestSimpleFunction;
     Procedure TestSimpleGetterFunction;
+    Procedure TestSimpleGetterFunctionNoName;
     Procedure TestSimpleSetterFunction;
     Procedure TestSimpleLegacyCallerFunction;
     Procedure TestSimpleDeleterFunction;
@@ -461,6 +462,14 @@ end;
 procedure TTestOperationInterfaceParser.TestSimpleGetterFunction;
 begin
   AssertEquals('Options',[foGetter],ParseFunction('getter short A()','A','short',[]).Options);
+end;
+
+procedure TTestOperationInterfaceParser.TestSimpleGetterFunctionNoName;
+var
+  F: TIDLFunctionDefinition;
+begin
+  F:=ParseFunction('getter double (unsigned long index)','','double',['unsigned long','index']);
+  AssertEquals('Options',[foGetter],F.Options);
 end;
 
 procedure TTestOperationInterfaceParser.TestSimpleSetterFunction;
