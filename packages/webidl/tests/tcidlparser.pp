@@ -186,6 +186,7 @@ Type
     Procedure ParseSimpleAttributeLegacyNullToEmptyString;
     Procedure ParseSimpleStaticAttribute;
     Procedure ParseSimpleStringifierAttribute;
+    Procedure ParseStringifierNoAttribute;
     Procedure ParseSimpleReadonlyAttribute;
     Procedure ParseSimpleInheritedAttribute;
     Procedure ParseSimpleReadonlyInheritedAttribute;
@@ -665,6 +666,19 @@ end;
 procedure TTestAttributeInterfaceParser.ParseSimpleStringifierAttribute;
 begin
   ParseAttribute('stringifier attribute short A','A','short',[aoStringifier]);
+end;
+
+procedure TTestAttributeInterfaceParser.ParseStringifierNoAttribute;
+var
+  Id: TIDLInterfaceDefinition;
+  Def: TIDLAttributeDefinition;
+begin
+  Id:=ParseInterFace('IA','',['stringifier']);
+  AssertEquals('Correct class',TIDLAttributeDefinition,Id.Members[0].ClassType);
+  Def:=Id.Members[0] as TIDLAttributeDefinition;
+  AssertEquals('Attr name','',Def.Name);
+  AssertNull('Have type',Def.AttributeType);
+  AssertEquals('Attr options',[aoStringifier],Def.Options);
 end;
 
 procedure TTestAttributeInterfaceParser.ParseSimpleReadonlyAttribute;

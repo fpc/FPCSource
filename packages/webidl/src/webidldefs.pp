@@ -189,6 +189,7 @@ Type
   TIDLInterfaceDefinition = Class(TIDLStructuredDefinition)
   private
     FHasSerializer: Boolean;
+    FHasStringifier: Boolean;
     FIsInclude: Boolean;
     FIsMixin: Boolean;
     FParentInterface: TIDLInterfaceDefinition;
@@ -196,6 +197,7 @@ Type
     Function AsString (aFull : Boolean) : UTF8String; override;
     Property ParentInterface : TIDLInterfaceDefinition Read FParentInterface Write FParentInterface;
     Property HasSerializer : Boolean Read FHasSerializer Write FHasSerializer;
+    Property HasStringifier : Boolean Read FHasStringifier Write FHasStringifier;
     // is this a mixin definition?
     Property IsMixin : Boolean Read FIsMixin Write FIsMixin;
     Property IsInclude : Boolean Read FIsInclude Write FIsInclude;

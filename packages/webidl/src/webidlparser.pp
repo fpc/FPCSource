@@ -509,18 +509,27 @@ Var
 
 begin
   tk:=GetToken;
-  if tk in [tkReadOnly,tkAttribute] then
+  case tk of
+  tkReadOnly,tkAttribute:
     begin
     Result:=ParseAttribute(aParent);
-    With TIDLAttributeDefinition(result) do
+    With TIDLAttributeDefinition(Result) do
       Options:=Options+[aoStringifier];
-    end
+    end;
+  tkSemiColon:
+    begin
+    // stringifier;
+    Result:=TIDLAttributeDefinition(Context.Add(aParent,TIDLAttributeDefinition,''));
+    With TIDLAttributeDefinition(Result) do
+      Options:=Options+[aoStringifier];
+    end;
   else
     begin
     Result:=ParseOperation(aParent);
-    With TIDLFunctionDefinition(result) do
+    With TIDLFunctionDefinition(Result) do
       Options:=Options+[foStringifier];
     end;
+  end;
 end;
 
 function TWebIDLParser.ParseIterable(aParent: TIDLBaseObject): TIDLIterableDefinition;
@@ -936,7 +945,13 @@ begin
           Result.HasSerializer:=True;
           SemicolonSeen:=M=Nil;
           end;
-        tkStringifier : M:=ParseStringifier(Result.Members);
+        tkStringifier :
+          begin
+          M:=ParseStringifier(Result.Members);
+          Result.HasStringifier:=true;
+          if CurrentToken=tkSemiColon then
+            SemicolonSeen:=true;
+          end;
         tkIterable : ParseIterable(Result.Members);
       else
         {
