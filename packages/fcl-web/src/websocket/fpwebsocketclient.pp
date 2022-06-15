@@ -112,6 +112,7 @@ Type
     FOnControl: TWSControlEvent;
     FOnDisconnect: TNotifyEvent;
     FOnConnect: TNotifyEvent;
+    procedure FreeConnectionObjects;
     procedure SetActive(const Value: Boolean);
     procedure SetHostName(const Value: String);
     procedure SetMessagePump(AValue: TWSMessagePump);
@@ -183,7 +184,7 @@ Type
     Property OnHandshakeResponse : TWSClientHandshakeResponseEvent Read FOnHandshakeResponse Write FOnHandshakeResponse;
     // Called when a text message is received.
     property OnMessageReceived: TWSMessageEvent read FOnMessageReceived write FOnMessageReceived;
-    // Called when a connection is disconnected. Sed
+    // Called when a connection is disconnected. Sender is the TWebSocketClientConnection object.
     property OnDisconnect: TNotifyEvent read FOnDisconnect write FOnDisconnect;
     // Called when a connection is established
     property OnConnect: TNotifyEvent read FOnConnect write FOnConnect;
@@ -270,15 +271,16 @@ begin
   If Assigned(MessagePump) then
     MessagePump.RemoveClient(FConnection);
   If Assigned(OnDisconnect) then
-    OnDisconnect(FConnection);
+    OnDisconnect(Self);
+  // We cannot free the connection here, because it still needs to call it's own OnDisconnect.
 end;
 
 procedure TCustomWebsocketClient.Connect;
 begin
   If Active then
     Exit;
-  FreeAndNil(FSocket);
-  FreeAndNil(FTransport);
+  // Safety: Free any dangling objects before recreating
+  FreeConnectionObjects;
   FSocket:=TInetSocket.Create(HostName,Port,ConnectTimeout);
   FTransport:=TWSClientTransport.Create(FSocket);
   FConnection:=CreateClientConnection(FTransport);
@@ -303,6 +305,7 @@ begin
   DisConnect(False);
   FreeAndNil(FHandShake);
   FreeAndNil(FHandshakeResponse);
+  FreeConnectionObjects;
   Inherited;
 end;
 
@@ -449,6 +452,15 @@ begin
   FConnection.Send(ftPong,TEncoding.UTF8.GetAnsiBytes(aMessage));
 end;
 
+procedure TCustomWebsocketClient.FreeConnectionObjects;
+
+begin
+  FreeAndNil(FConnection);
+  FreeAndNil(FTransport);
+  FreeAndNil(FSocket);
+end;
+
+
 procedure TCustomWebsocketClient.Disconnect(SendClose : boolean = true);
 
 begin
@@ -458,11 +470,10 @@ begin
     Connection.Close('');
   if Assigned(MessagePump) then
     MessagePump.RemoveClient(Connection);
-  FreeAndNil(FConnection);
-  FActive:=False;
   If Assigned(OnDisconnect) then
-    OnDisconnect(FConnection);
-  // ConnectionDisconnected(Self);
+    OnDisconnect(Self);
+  FreeConnectionObjects;
+  FActive:=False;
 end;
 
 procedure TCustomWebsocketClient.SetActive(const Value: Boolean);
