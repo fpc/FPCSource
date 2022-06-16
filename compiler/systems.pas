@@ -386,7 +386,7 @@ interface
                                             system_aarch64_win64];
 
        { all systems for which weak linking has been tested/is supported }
-       systems_weak_linking = systems_darwin + systems_solaris + systems_linux + systems_android + systems_openbsd + systems_freebsd +
+       systems_weak_linking = systems_darwin + systems_solaris + systems_linux + systems_android + systems_bsd +
                               [system_m68k_sinclairql];
 
        systems_internal_sysinit = [system_i386_win32,system_x86_64_win64,
