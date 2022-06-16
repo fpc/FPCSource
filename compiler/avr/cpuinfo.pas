@@ -614,7 +614,7 @@ Const
  const
    cpu_capabilities : array[tcputype] of set of tcpuflags =
      ( { cpu_none      } [],
-       { cpu_avrtiny   } [CPUAVR_HAS_ADIW,CPUAVR_16_REGS,CPUAVR_2_BYTE_PC,CPUAVR_NOMEMMAPPED_REGS],
+       { cpu_avrtiny   } [CPUAVR_16_REGS,CPUAVR_2_BYTE_PC,CPUAVR_NOMEMMAPPED_REGS],
        { cpu_avr1      } [CPUAVR_2_BYTE_PC],
        { cpu_avr2      } [CPUAVR_HAS_ADIW,CPUAVR_HAS_LPMX,CPUAVR_2_BYTE_PC],
        { cpu_avr25     } [CPUAVR_HAS_ADIW,CPUAVR_HAS_MOVW,CPUAVR_HAS_LPMX,CPUAVR_2_BYTE_PC],
