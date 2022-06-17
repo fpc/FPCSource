@@ -785,7 +785,7 @@ begin
   ok:=false;
   try
     Result.AttributeType:=ParseType(Result,True,True);
-    CheckCurrentToken(tkIdentifier);
+    CheckCurrentTokens([tkIdentifier,tkRequired]);
     Result.Name:=CurrentTokenString;
     Result.Options:=Options;
     ok:=true;

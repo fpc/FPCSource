@@ -193,6 +193,7 @@ Type
     Procedure ParseSimpleReadonlyStaticAttribute;
     Procedure ParseSimpleReadonlyStringifierAttribute;
     Procedure ParseComplexReadonlyStaticAttribute;
+    Procedure ParseSimpleAttributeRequired;
     Procedure ParseIdentifierAttribute;
     Procedure Parse2IdentifierAttributes;
   end;
@@ -712,6 +713,10 @@ begin
   ParseAttribute('static readonly attribute unsigned long long A','A','unsigned long long',[aoStatic,aoReadOnly]);
 end;
 
+procedure TTestAttributeInterfaceParser.ParseSimpleAttributeRequired;
+begin
+  ParseAttribute('attribute boolean required','required','boolean',[]);
+end;
 
 procedure TTestAttributeInterfaceParser.ParseIdentifierAttribute;
 begin
