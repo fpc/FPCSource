@@ -116,6 +116,8 @@ Const
 
 Type
 
+  TWebIDLScannerSkipMode = (wisSkipNone, wisSkipIfBranch, wisSkipElseBranch, wisSkipAll);
+
   { TWebIDLScanner }
 
   TWebIDLScanner = class
@@ -127,6 +129,12 @@ Type
     FCurLine: UTF8string;
     FVersion: TWebIDLVersion;
     TokenStr: PChar;
+    // Preprocessor #IFxxx skipping data
+    FSkipMode: TWebIDLScannerSkipMode;
+    FIsSkipping: Boolean;
+    FSkipStackIndex: Integer;
+    FSkipModeStack: array[0..255] of TWebIDLScannerSkipMode;
+    FIsSkippingStack: array[0..255] of Boolean;
     function DetermineToken: TIDLToken;
     function DetermineToken2: TIDLToken;
     function FetchLine: Boolean;
@@ -140,6 +148,14 @@ Type
     procedure Error(const Msg: string; Const Args: array of Const);overload;
     function ReadString: UTF8String; virtual;
     function DoFetchToken: TIDLToken;
+    procedure HandleDirective; virtual;
+    procedure HandleIfDef; virtual;
+    procedure HandleElse; virtual;
+    procedure HandleEndIf; virtual;
+    procedure PushSkipMode; virtual;
+    function IsDefined(const aName: string): boolean; virtual;
+    procedure SkipWhitespace;
+    procedure SkipLineBreak;
   public
     constructor Create(Source: TStream); overload;
     constructor Create(const Source: UTF8String); overload;
@@ -600,100 +616,207 @@ function TWebIDLScanner.DoFetchToken: TIDLToken;
   end;
 
 begin
-  if TokenStr = nil then
-    if not FetchLine then
-      begin
-      Result := tkEOF;
-      FCurToken := Result;
-      exit;
-      end;
-  FCurTokenString := '';
-  case TokenStr[0] of
-    #0:         // Empty line
-      begin
+  repeat
+    if TokenStr = nil then
       if not FetchLine then
-        Result:=tkEOF
-      else
+        begin
+        Result := tkEOF;
+        FCurToken := Result;
+        exit;
+        end;
+    FCurTokenString := '';
+    case TokenStr[0] of
+      #0:         // Empty line
+        begin
+        if not FetchLine then
+          Result:=tkEOF
+        else
+          Result := tkWhitespace;
+        end;
+      #9, ' ':
+        begin
         Result := tkWhitespace;
-      end;
-    #9, ' ':
-      begin
-      Result := tkWhitespace;
-      repeat
-        Inc(TokenStr);
-        if TokenStr[0] = #0 then
-          if not FetchLine then
-          begin
-            FCurToken := Result;
-            exit;
-          end;
-      until not (TokenStr[0] in [#9, ' ']);
-      end;
-    '"':
-      begin
-        FCurTokenString:=ReadString;
-        Result := tkString;
-      end;
-    ',':
-      begin
-        Inc(TokenStr);
-        Result := tkComma;
-      end;
-    '0'..'9','-':
-      begin
-      Result := ReadNumber(FCurTokenString);
-      end;
-    ':': SetSingleToken(tkColon);
-    '(': SetSingleToken(tkBracketOpen);
-    ')': SetSingleToken(tkBracketClose);
-    '{': SetSingleToken(tkCurlyBraceOpen);
-    '}': SetSingleToken(tkCurlyBraceClose);
-    '[': SetSingleToken(tkSquaredBraceOpen);
-    ']': SetSingleToken(tkSquaredBraceClose);
-    '<': SetSingleToken(tkLess);
-    '=': SetSingleToken(tkEqual);
-    '>': SetSingleToken(tkLarger);
-    '?' : SetSingleToken(tkQuestionmark);
-    ';' : SetSingleToken(tkSemicolon);
-    '.' :
-       begin
-       inc(TokenStr);
-       if TokenStr[0]<>'.' then
-         begin
-         Dec(Tokenstr);// Setsingletoken advances
-         SetSingleToken(tkDot);
-         end
-       else
+        repeat
+          Inc(TokenStr);
+          if TokenStr[0] = #0 then
+            if not FetchLine then
+            begin
+              FCurToken := Result;
+              exit;
+            end;
+        until not (TokenStr[0] in [#9, ' ']);
+        end;
+      '"':
+        begin
+          FCurTokenString:=ReadString;
+          Result := tkString;
+        end;
+      ',':
+        begin
+          Inc(TokenStr);
+          Result := tkComma;
+        end;
+      '0'..'9','-':
+        begin
+        Result := ReadNumber(FCurTokenString);
+        end;
+      ':': SetSingleToken(tkColon);
+      '(': SetSingleToken(tkBracketOpen);
+      ')': SetSingleToken(tkBracketClose);
+      '{': SetSingleToken(tkCurlyBraceOpen);
+      '}': SetSingleToken(tkCurlyBraceClose);
+      '[': SetSingleToken(tkSquaredBraceOpen);
+      ']': SetSingleToken(tkSquaredBraceClose);
+      '<': SetSingleToken(tkLess);
+      '=': SetSingleToken(tkEqual);
+      '>': SetSingleToken(tkLarger);
+      '?' : SetSingleToken(tkQuestionmark);
+      ';' : SetSingleToken(tkSemicolon);
+      '.' :
          begin
          inc(TokenStr);
          if TokenStr[0]<>'.' then
-           Error(SErrInvalidEllipsis);
-         inc(TokenStr);
-         FCurTokenString:='...';
-         Result:=tkEllipsis;
+           begin
+           Dec(Tokenstr);// Setsingletoken advances
+           SetSingleToken(tkDot);
+           end
+         else
+           begin
+           inc(TokenStr);
+           if TokenStr[0]<>'.' then
+             Error(SErrInvalidEllipsis);
+           inc(TokenStr);
+           FCurTokenString:='...';
+           Result:=tkEllipsis;
+           end;
          end;
-       end;
-    '/' :
-      begin
-      FCurTokenString:=ReadComment;
-      Result:=tkComment;
-      end;
-    'a'..'z':
-      begin
-      FCurTokenString:=ReadIdent;
-      Result:=DetermineToken;
-      end;
-    'A'..'Z','_':
-      begin
-      FCurTokenString:=ReadIdent;
-      Result:=tkIdentifier;
-      Result:=DetermineToken2;
-      end;
-  else
-    Error(SErrInvalidCharacter, [CurRow,CurCOlumn,TokenStr[0]]);
-  end;
+      '/' :
+        begin
+        FCurTokenString:=ReadComment;
+        Result:=tkComment;
+        end;
+      'a'..'z':
+        begin
+        FCurTokenString:=ReadIdent;
+        Result:=DetermineToken;
+        end;
+      'A'..'Z','_':
+        begin
+        FCurTokenString:=ReadIdent;
+        Result:=DetermineToken2;
+        end;
+      '#':
+        begin
+        Result:=tkComment;
+        HandleDirective;
+        end
+    else
+      Error(SErrInvalidCharacter, [CurRow,CurColumn,TokenStr[0]]);
+    end;
+  until FSkipMode=wisSkipNone;
 
   FCurToken := Result;
+end;
+
+procedure TWebIDLScanner.HandleDirective;
+var
+  p: PChar;
+  aDirective: string;
+begin
+  inc(TokenStr);
+  p:=TokenStr;
+  while TokenStr^ in ['a'..'z','A'..'Z','_','0'..'9'] do inc(TokenStr);
+  SetString(aDirective, p, TokenStr-p);
+  SkipWhitespace;
+  case lowercase(aDirective) of
+  'ifdef': HandleIfDef;
+  'else': HandleElse;
+  'endif': HandleEndIf;
+  end;
+  SkipWhitespace;
+  SkipLineBreak;
+end;
+
+procedure TWebIDLScanner.HandleIfDef;
+var
+  StartP: PChar;
+  aName: string;
+begin
+  PushSkipMode;
+  if FIsSkipping then
+    FSkipMode := wisSkipAll
+  else
+    begin
+    StartP:=TokenStr;
+    while TokenStr^ in ['a'..'z','A'..'Z','0'..'9','_'] do
+      inc(TokenStr);
+    SetString(aName,StartP,TokenStr-StartP);
+    if IsDefined(aName) then
+      FSkipMode := wisSkipElseBranch
+    else
+      begin
+      FSkipMode := wisSkipIfBranch;
+      FIsSkipping := true;
+      end;
+    //If LogEvent(sleConditionals) then
+    //  if FSkipMode=wisSkipElseBranch then
+    //    DoLog(mtInfo,nLogIFDefAccepted,sLogIFDefAccepted,[aName])
+    //  else
+    //    DoLog(mtInfo,nLogIFDefRejected,sLogIFDefRejected,[aName]);
+    end;
+end;
+
+procedure TWebIDLScanner.HandleElse;
+begin
+  if FSkipStackIndex = 0 then
+    Error('Invalid #Else');
+  if FSkipMode = wisSkipIfBranch then
+    FIsSkipping := false
+  else if FSkipMode = wisSkipElseBranch then
+    FIsSkipping := true;
+end;
+
+procedure TWebIDLScanner.HandleEndIf;
+begin
+  if FSkipStackIndex = 0 then
+    Error('Invalid #EndIf');
+  Dec(FSkipStackIndex);
+  FSkipMode := FSkipModeStack[FSkipStackIndex];
+  FIsSkipping := FIsSkippingStack[FSkipStackIndex];
+end;
+
+procedure TWebIDLScanner.PushSkipMode;
+begin
+  if FSkipStackIndex = High(FSkipModeStack) then
+    Error('Nesting of #IFxxx too deep');
+  FSkipModeStack[FSkipStackIndex] := FSkipMode;
+  FIsSkippingStack[FSkipStackIndex] := FIsSkipping;
+  Inc(FSkipStackIndex);
+end;
+
+function TWebIDLScanner.IsDefined(const aName: string): boolean;
+begin
+  Result:=false;
+  if aName='' then ;
+end;
+
+procedure TWebIDLScanner.SkipWhitespace;
+begin
+  while TokenStr^ in [' ',#9] do
+    inc(TokenStr);
+end;
+
+procedure TWebIDLScanner.SkipLineBreak;
+begin
+  case TokenStr^ of
+  #10: inc(TokenStr);
+  #13:
+    begin
+    inc(TokenStr);
+    if TokenStr^=#10 then
+      inc(TokenStr);
+    end;
+  end;
 end;
 
 function TWebIDLScanner.GetCurColumn: Integer;

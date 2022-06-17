@@ -124,6 +124,8 @@ Type
     Procedure ParseMixinEmpty;
     Procedure ParseMixinEmptyInheritance;
     Procedure ParseCustomAttributes1;
+
+    Procedure ParseIFDEFHeader;
   end;
 
   { TTestMapLikeInterfaceParser }
@@ -1410,6 +1412,23 @@ procedure TTestInterfaceParser.ParseCustomAttributes1;
 begin
   CustAttributes:='[Constructor(DOMString type,optional WebGLContextEventInit eventInit)]';
   AssertEquals('Attributes',CustAttributes,ParseInterface('A','B',[]).Attributes.AsString(True));
+end;
+
+procedure TTestInterfaceParser.ParseIFDEFHeader;
+var
+  d: TIDLInterfaceDefinition;
+begin
+  InitSource('#ifdef Nothing'+sLineBreak
+    +'Skip This'+sLineBreak
+    +'#endif'+sLineBreak
+    +'interface A;'+sLineBreak);
+  Parser.Parse;
+  AssertEquals('Correct class',TIDLInterfaceDefinition,Definitions[0].ClassType);
+  d:=Definitions[0] as TIDLInterfaceDefinition;
+  AssertEquals('Name','A',d.Name);
+  AssertEquals('Inheritance : ','',d.ParentName);
+  AssertEquals('Member count',0,d.Members.Count);
+  AssertEquals('Mixin correct',false,d.IsMixin);
 end;
 
 procedure TTestConstInterfaceParser.ParseConstInt;
