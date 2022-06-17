@@ -1457,7 +1457,7 @@ implementation
         { slow simplifications and/or more sophisticated transformations which might make debugging harder }
         if cs_opt_level2 in current_settings.optimizerswitches then
           begin
-            if nodetype in [addn,muln] then
+            if nodetype in [addn,muln,subn] then
               begin
                 { try to fold
                             op
@@ -1470,11 +1470,27 @@ implementation
                 }
                 if (left.nodetype=nodetype) and
                   (((nodetype=addn) and ((rt=stringconstn) or is_constcharnode(right)) and ((taddnode(left).right.nodetype=stringconstn) or is_constcharnode(taddnode(left).right))) or
-                   ((nodetype in [addn,muln]) and (cs_opt_fastmath in current_settings.optimizerswitches) and (rt=realconstn) and (taddnode(left).right.nodetype=realconstn))
+                   ((nodetype in [addn,muln,subn]) and (cs_opt_fastmath in current_settings.optimizerswitches) and (rt=realconstn) and (taddnode(left).right.nodetype=realconstn))
                   ) and
                   (compare_defs(resultdef,left.resultdef,nothingn)=te_exact) then
                   begin
+                    { SwapRightWithLeftLeft moves the nodes around in way that we need to insert a minus
+                      on left.right: a-b-c becomes b-c-a so we
+                      need
+                      1) insert a minus bevor b
+                      2) make the current node an add node, see below
+                    }
+                    if nodetype=subn then
+                      begin
+                        taddnode(left).right:=cunaryminusnode.create(taddnode(left).right);
+                        do_typecheckpass(taddnode(left).right);
+                      end;
                     Result:=SwapRightWithLeftLeft;
+                    if nodetype=subn then
+                      begin
+                        Result.nodetype:=addn;
+                        do_typecheckpass(Result);
+                      end;
                     exit;
                   end;
 
