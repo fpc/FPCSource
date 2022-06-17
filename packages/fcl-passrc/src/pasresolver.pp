@@ -5059,14 +5059,15 @@ begin
         exit;
       end;
 
+    if (Data^.Found is TPasProcedure) and IsProcOverride(Proc,TPasProcedure(Data^.Found)) then
+      begin
+      // already checked the override -> skip
+      Data^.LastProc:=Proc;
+      exit;
+      end;
+
     if (Data^.LastProc<>nil) then
       begin
-      if (TPasProcedureScope(Data^.LastProc.CustomData).OverriddenProc=Proc) then
-        begin
-        // already checked the override -> skip
-        Data^.LastProc:=Proc;
-        exit;
-        end;
       if not IsProcOverloading(Data^.LastProc,Proc) then
         begin
         Abort:=true;
@@ -5079,7 +5080,7 @@ begin
       // there is already a previous proc
       PrevProc:=TPasProcedure(Data^.Found);
 
-      if (TPasProcedureScope(PrevProc.CustomData).OverriddenProc=Proc) then
+      if IsProcOverride(Proc,TPasProcedureScope(PrevProc.CustomData).OverriddenProc) then
         begin
         // already checked the override -> skip
         Data^.LastProc:=Proc;
@@ -5466,12 +5467,16 @@ begin
     begin
     // different scopes
     if DataProc.IsOverride then
+      // overrides are not overloads
     else if DataProc.IsReintroduced then
+      // reintroduce do not warn
+    else if ProcHasGroupOverload(DataProc) then
+      // overload
     else
       begin
       if Store
-          or ((Data^.FoundInSameScope=1) // missing 'overload' hints only for the first proc in a scope
-             and not ProcHasGroupOverload(DataProc)) then
+          or (Data^.FoundInSameScope=1) // missing 'overload' hints only for the first proc in a scope
+             then
         begin
         if (Data^.Kind=fpkMethod) and (Proc.IsVirtual or Proc.IsOverride) then
           // give a hint, that method hides a virtual method in ancestor
@@ -29670,6 +29675,8 @@ var
   Proc, OverriddenProc: TPasProcedure;
 begin
   Result:=false;
+  if AncestorProc=nil then exit;
+  if DescendantProc=nil then exit;
   Proc:=DescendantProc;
   if not Proc.IsOverride then exit;
   if not AncestorProc.IsOverride and not AncestorProc.IsVirtual then exit;

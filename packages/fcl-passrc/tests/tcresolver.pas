@@ -578,6 +578,7 @@ type
     Procedure TestClass_MethodOverride;
     Procedure TestClass_MethodOverride2;
     Procedure TestClass_MethodOverrideAndOverload;
+    Procedure TestClass_MethodOverrideTwiceAndOverload;
     Procedure TestClass_MethodOverrideFixCase;
     Procedure TestClass_MethodOverrideSameResultType;
     Procedure TestClass_MethodOverrideDiffResultTypeFail;
@@ -9847,6 +9848,57 @@ begin
   '  b.Fly(true);',
   '  b.Fly(1);',
   'end.',
+  '']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestClass_MethodOverrideTwiceAndOverload;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TObject = class end;',
+  '  TAnimal = class',
+  '    procedure {#a}Fly(AValue: TAnimal); overload; virtual;',
+  '  end;',
+  '  TBird = class(TAnimal)',
+  '    procedure {#b}Fly(w: word); overload; virtual;',
+  '    procedure {#c}Fly(AValue: TAnimal); overload; override;',
+  '  end;',
+  '  TEagle = class(TBird)',
+  '    procedure {#d}Fly(b: boolean); overload; virtual;',
+  '    procedure {#e}Fly(AValue: TAnimal); overload; override;',
+  '  end;',
+  'procedure TAnimal.Fly(AValue: TAnimal);',
+  'begin',
+  'end;',
+  'procedure TBird.Fly(w: word);',
+  'begin',
+  'end;',
+  'procedure TBird.Fly(AValue: TAnimal);',
+  'begin',
+  '  {@c}Fly(Self);',
+  '  {@b}Fly(3);',
+  '  inherited {@a}Fly(Self);',
+  'end;',
+  'procedure TEagle.Fly(b: boolean);',
+  'begin',
+  'end;',
+  'procedure TEagle.Fly(AValue: TAnimal);',
+  'begin',
+  '  {@e}Fly(Self);',
+  '  {@b}Fly(13);',
+  '  {@d}Fly(true);',
+  '  inherited {@c}Fly(Self);',
+  '  inherited {@b}Fly(17);',
+  'end;',
+  'var',
+  '  e: TEagle;',
+  'begin',
+  '  e.{@e}Fly(e);',
+  '  e.{@b}Fly(25);',
+  '  e.{@d}Fly(true);',
   '']);
   ParseProgram;
 end;
