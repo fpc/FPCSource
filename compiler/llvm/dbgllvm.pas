@@ -1195,9 +1195,20 @@ implementation
                   begin
                     { more deeply nested variant }
                     uniondi:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType);
-                    list.concat(uniondi);
-                    fieldlist.addvalue(llvm_getmetadatareftypedconst(uniondi));
 
+                    fielddi:=tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType);
+                    fielddi.addenum('tag','DW_TAG_member');
+                    fielddi.addmetadatarefto('scope',scope);
+                    try_add_file_metaref(fielddi,field.fileinfo,false);
+                    fielddi.addmetadatarefto('baseType',uniondi);
+                    fielddi.addint64('size',cappedsize-min(field.bitoffset,cappedsize));
+                    bitoffset:=bitoffsetfromvariantstart(field,variantinfolist,cappedsize);
+                    if bitoffset<>0 then
+                      fielddi.addqword('offset',bitoffset);
+                    list.concat(fielddi);
+                    fieldlist.addvalue(llvm_getmetadatareftypedconst(fielddi));
+
+                    list.concat(uniondi);
                     uniondi.addenum('tag','DW_TAG_union_type');
                     uniondi.addmetadatarefto('scope',scope);
                     try_add_file_metaref(uniondi,field.fileinfo,false);
