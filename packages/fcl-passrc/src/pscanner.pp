@@ -2156,7 +2156,7 @@ procedure TCondDirectiveEvaluator.ReadOperand(Skip: boolean);
 
 var
   i: TMaxPrecInt;
-  e: extended;
+  e: TMaxFloat;
   S, aName, Param: String;
   Code: integer;
   NameStartP: {$ifdef UsePChar}PChar{$else}integer{$endif};
@@ -2420,7 +2420,7 @@ var
   A, B, R: String;
   Op: TToken;
   AInt, BInt: TMaxPrecInt;
-  AFloat, BFloat: extended;
+  AFloat, BFloat: TMaxFloat;
   BPos: Integer;
 begin
   // resolve all higher or equal level operations
