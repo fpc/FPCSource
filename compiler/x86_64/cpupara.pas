@@ -1707,6 +1707,7 @@ unit cpupara;
               begin
                 getvalueparaloc(p.proccalloption,hp.varspez,paralocdef,loc);
                 paralen:=push_size(hp.varspez,paralocdef,p.proccalloption);
+                paraalign:=max(paraalign,paradef.alignment);
                 if p.proccalloption = pocall_vectorcall then
                   begin
                     { TODO: Can this set of instructions be put into 'defutil' without it relying on the argument classification? [Kit] }
