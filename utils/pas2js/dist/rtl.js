@@ -1056,7 +1056,7 @@ var rtl = {
         a=rtl.arrayCopy(type,a,0,a.length);
       }
     }
-    for (var i=1; i<arguments.length; i++){
+    for (var i=2; i<arguments.length; i++){
       a.push(arguments[i]);
     }
     return a;
