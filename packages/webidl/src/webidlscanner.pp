@@ -275,6 +275,7 @@ Type
     function DoFetchToken: TIDLToken;
     procedure HandleDirective; virtual;
     procedure HandleIfDef; virtual;
+    procedure HandleIfNDef; virtual;
     procedure HandleIf; virtual;
     procedure HandleElse; virtual;
     procedure HandleEndIf; virtual;
@@ -405,6 +406,7 @@ Resourcestring
   SErrOperandAndOperatorMismatch = 'operand and operator mismatch';
   SErrDivByZero = 'division by zero';
   SErrInvalidCharacterX = 'Invalid character ''%s''';
+  SErrUnknownDirectiveX = 'Unknown directive ''%s''';
 
 Function GetTokenName(aToken : TIDLToken) : String;
 
@@ -1537,7 +1539,7 @@ begin
     else
       Error(SErrInvalidCharacter, [CurRow,CurColumn,TokenStr[0]]);
     end;
-  until FSkipMode=wisSkipNone;
+  until not FIsSkipping;
 
   FCurToken := Result;
 end;
@@ -1554,9 +1556,12 @@ begin
   SkipWhitespace;
   case lowercase(aDirective) of
   'ifdef': HandleIfDef;
+  'ifndef': HandleIfNDef;
   'if': HandleIf;
   'else': HandleElse;
   'endif': HandleEndIf;
+  else
+    Error(SErrUnknownDirectiveX, [CurRow,CurColumn,aDirective]);
   end;
   SkipWhitespace;
   SkipLineBreak;
@@ -1577,6 +1582,35 @@ begin
       inc(TokenStr);
     SetString(aName,StartP,TokenStr-StartP);
     if IsDefined(aName) then
+      FSkipMode := wisSkipElseBranch
+    else
+      begin
+      FSkipMode := wisSkipIfBranch;
+      FIsSkipping := true;
+      end;
+    //If LogEvent(sleConditionals) then
+    //  if FSkipMode=wisSkipElseBranch then
+    //    DoLog(mtInfo,nLogIFDefAccepted,sLogIFDefAccepted,[aName])
+    //  else
+    //    DoLog(mtInfo,nLogIFDefRejected,sLogIFDefRejected,[aName]);
+    end;
+end;
+
+procedure TWebIDLScanner.HandleIfNDef;
+var
+  StartP: PChar;
+  aName: string;
+begin
+  PushSkipMode;
+  if FIsSkipping then
+    FSkipMode := wisSkipAll
+  else
+    begin
+    StartP:=TokenStr;
+    while TokenStr^ in ['a'..'z','A'..'Z','0'..'9','_'] do
+      inc(TokenStr);
+    SetString(aName,StartP,TokenStr-StartP);
+    if not IsDefined(aName) then
       FSkipMode := wisSkipElseBranch
     else
       begin

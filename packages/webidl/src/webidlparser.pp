@@ -361,7 +361,7 @@ begin
       Result.HasEllipsis:=True;
       GetToken;
       end;
-    CheckCurrentTokens([tkIdentifier,tkOther,tkCallback]);
+    CheckCurrentTokens([tkIdentifier,tkOther,tkCallback,tkInterface]);
     Result.Name:=CurrentTokenString;
     ok:=true;
   finally
@@ -785,7 +785,7 @@ begin
   ok:=false;
   try
     Result.AttributeType:=ParseType(Result,True,True);
-    CheckCurrentTokens([tkIdentifier,tkRequired,tkInterface]);
+    CheckCurrentTokens([tkIdentifier,tkRequired]);
     Result.Name:=CurrentTokenString;
     Result.Options:=Options;
     ok:=true;

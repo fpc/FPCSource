@@ -125,8 +125,9 @@ Type
     Procedure ParseMixinEmptyInheritance;
     Procedure ParseCustomAttributes1;
 
-    Procedure ParseIFDEFHeader;
-    Procedure ParseIfDefinedHeader;
+    Procedure ParseIfDefSkip;
+    Procedure ParseIfNDefUse;
+    Procedure ParseIfDefinedSkip;
   end;
 
   { TTestMapLikeInterfaceParser }
@@ -197,7 +198,6 @@ Type
     Procedure ParseSimpleReadonlyStringifierAttribute;
     Procedure ParseComplexReadonlyStaticAttribute;
     Procedure ParseSimpleAttributeRequired;
-    Procedure ParseSimpleAttributeInterface;
     Procedure ParseIdentifierAttribute;
     Procedure Parse2IdentifierAttributes;
   end;
@@ -720,11 +720,6 @@ end;
 procedure TTestAttributeInterfaceParser.ParseSimpleAttributeRequired;
 begin
   ParseAttribute('attribute boolean required','required','boolean',[]);
-end;
-
-procedure TTestAttributeInterfaceParser.ParseSimpleAttributeInterface;
-begin
-  ParseAttribute('attribute boolean interface','interface','boolean',[]);
 end;
 
 procedure TTestAttributeInterfaceParser.ParseIdentifierAttribute;
@@ -1421,7 +1416,7 @@ begin
   AssertEquals('Attributes',CustAttributes,ParseInterface('A','B',[]).Attributes.AsString(True));
 end;
 
-procedure TTestInterfaceParser.ParseIFDEFHeader;
+procedure TTestInterfaceParser.ParseIfDefSkip;
 var
   d: TIDLInterfaceDefinition;
 begin
@@ -1436,7 +1431,23 @@ begin
   AssertEquals('Member count',0,d.Members.Count);
 end;
 
-procedure TTestInterfaceParser.ParseIfDefinedHeader;
+procedure TTestInterfaceParser.ParseIfNDefUse;
+var
+  d: TIDLInterfaceDefinition;
+begin
+  InitSource('#ifndef Nothing'+sLineBreak
+    +'interface A;'+sLineBreak
+    +'#endif'+sLineBreak
+    );
+  Parser.Parse;
+  AssertEquals('Has one definition',1,Definitions.Count);
+  AssertEquals('Correct class',TIDLInterfaceDefinition,Definitions[0].ClassType);
+  d:=Definitions[0] as TIDLInterfaceDefinition;
+  AssertEquals('Name','A',d.Name);
+  AssertEquals('Member count',0,d.Members.Count);
+end;
+
+procedure TTestInterfaceParser.ParseIfDefinedSkip;
 var
   d: TIDLInterfaceDefinition;
 begin
