@@ -1634,7 +1634,8 @@ unit cpupara;
       var
         hp         : tparavarsym;
         fdef,
-        paradef    : tdef;
+        paradef,
+        paralocdef : tdef;
         paraloc    : pcgparalocation;
         subreg     : tsubregister;
         pushaddr   : boolean;
@@ -1659,6 +1660,7 @@ unit cpupara;
           begin
             hp:=tparavarsym(paras[i]);
             paradef:=hp.vardef;
+            paralocdef:=hp.vardef;
 
             { in syscalls the libbase might be set as explicit paraloc }
             if (vo_has_explicit_paraloc in hp.varoptions) then
@@ -1682,9 +1684,9 @@ unit cpupara;
                tabstractrecordsymtable(tabstractrecorddef(paradef).symtable).has_single_field(fdef) and
                (fdef.typ=floatdef) and
                (tfloatdef(fdef).floattype in [s32real,s64real]) then
-              paradef:=fdef;
+              paralocdef:=fdef;
 
-            pushaddr:=push_addr_param(hp.varspez,paradef,p.proccalloption);
+            pushaddr:=push_addr_param(hp.varspez,paralocdef,p.proccalloption);
             if pushaddr then
               begin
                 loc[0].typ:=X86_64_INTEGER_CLASS;
@@ -1692,7 +1694,8 @@ unit cpupara;
                 paracgsize:=OS_ADDR;
                 paralen:=sizeof(pint);
                 paradef:=cpointerdef.getreusable_no_free(paradef);
-                loc[0].def:=paradef;
+                paralocdef:=paradef;
+                loc[0].def:=paralocdef;
                 loc[1].def:=nil;
                 for j:=2 to high(loc) do
                   begin
@@ -1702,17 +1705,17 @@ unit cpupara;
               end
             else
               begin
-                getvalueparaloc(p.proccalloption,hp.varspez,paradef,loc);
-                paralen:=push_size(hp.varspez,paradef,p.proccalloption);
+                getvalueparaloc(p.proccalloption,hp.varspez,paralocdef,loc);
+                paralen:=push_size(hp.varspez,paralocdef,p.proccalloption);
                 if p.proccalloption = pocall_vectorcall then
                   begin
                     { TODO: Can this set of instructions be put into 'defutil' without it relying on the argument classification? [Kit] }
 
                     { The SIMD vector types have to be OS_M128 etc., not OS_128 etc.}
-                    case is_simd_vector_type_or_homogeneous_aggregate(pocall_vectorcall,paradef,vs_value) of
+                    case is_simd_vector_type_or_homogeneous_aggregate(pocall_vectorcall,paralocdef,vs_value) of
                       0:
                         { Not a vector or valid aggregate }
-                        paracgsize:=def_cgsize(paradef);
+                        paracgsize:=def_cgsize(paralocdef);
                       4:
                         paracgsize:=OS_F32;
                       8:
@@ -1728,28 +1731,28 @@ unit cpupara;
                     end;
                   end
                 else
-                  paracgsize:=def_cgsize(paradef);
+                  paracgsize:=def_cgsize(paralocdef);
               end;
 
             { cheat for now, we should copy the value to an mm reg as well (FK) }
             if varargsparas and
                use_ms_abi and
-               (paradef.typ = floatdef) then
+               (paralocdef.typ = floatdef) then
               begin
                 loc[1].typ:=X86_64_NO_CLASS;
                 if paracgsize=OS_F64 then
                   begin
                     loc[0].typ:=X86_64_INTEGER_CLASS;
                     paracgsize:=OS_64;
-                    paradef:=u64inttype;
+                    paralocdef:=u64inttype;
                   end
                 else
                   begin
                     loc[0].typ:=X86_64_INTEGERSI_CLASS;
                     paracgsize:=OS_32;
-                    paradef:=u32inttype;
+                    paralocdef:=u32inttype;
                   end;
-                loc[0].def:=paradef;
+                loc[0].def:=paralocdef;
               end;
 
             hp.paraloc[side].reset;
@@ -1789,7 +1792,7 @@ unit cpupara;
                       eightbyte of an argument, the whole argument is
                       passed on the stack. }
                     loc[low(loc)].typ:=X86_64_MEMORY_CLASS;
-                    loc[low(loc)].def:=paradef;
+                    loc[low(loc)].def:=paralocdef;
                     for locidx:=succ(low(loc)) to high(loc) do
                       loc[locidx].typ:=X86_64_NO_CLASS;
                   end;
@@ -2000,7 +2003,7 @@ unit cpupara;
               begin
                 paraloc:=hp.paraloc[side].add_location;
                 paraloc^.loc:=LOC_VOID;
-                paraloc^.def:=paradef;
+                paraloc^.def:=paralocdef;
               end;
           end;
         { Register parameters are assigned from left-to-right, but the
