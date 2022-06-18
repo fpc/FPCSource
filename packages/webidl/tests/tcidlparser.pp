@@ -126,6 +126,7 @@ Type
     Procedure ParseCustomAttributes1;
 
     Procedure ParseIFDEFHeader;
+    Procedure ParseIfDefinedHeader;
   end;
 
   { TTestMapLikeInterfaceParser }
@@ -1426,9 +1427,22 @@ begin
   AssertEquals('Correct class',TIDLInterfaceDefinition,Definitions[0].ClassType);
   d:=Definitions[0] as TIDLInterfaceDefinition;
   AssertEquals('Name','A',d.Name);
-  AssertEquals('Inheritance : ','',d.ParentName);
   AssertEquals('Member count',0,d.Members.Count);
-  AssertEquals('Mixin correct',false,d.IsMixin);
+end;
+
+procedure TTestInterfaceParser.ParseIfDefinedHeader;
+var
+  d: TIDLInterfaceDefinition;
+begin
+  InitSource('#if defined(Nothing)'+sLineBreak
+    +'Skip This'+sLineBreak
+    +'#endif'+sLineBreak
+    +'interface A;'+sLineBreak);
+  Parser.Parse;
+  AssertEquals('Correct class',TIDLInterfaceDefinition,Definitions[0].ClassType);
+  d:=Definitions[0] as TIDLInterfaceDefinition;
+  AssertEquals('Name','A',d.Name);
+  AssertEquals('Member count',0,d.Members.Count);
 end;
 
 procedure TTestConstInterfaceParser.ParseConstInt;

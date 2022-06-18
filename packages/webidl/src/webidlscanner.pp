@@ -23,8 +23,22 @@ uses SysUtils, Classes;
 
 
 type
+  EWebIDLError = class(Exception);
+
   TWebIDLVersion = (v1,v2);
 
+  TMessageType = (
+    mtFatal,
+    mtError,
+    mtWarning,
+    mtNote,
+    mtHint,
+    mtInfo,
+    mtDebug
+    );
+  TMessageTypes = set of TMessageType;
+
+  TMessageArgs = array of string;
   TIDLToken = (
     tkEOF,
     tkUnknown ,
@@ -45,8 +59,10 @@ type
     tkSquaredBraceOpen,       // '['
     tkSquaredBraceClose,      // ']'
     tkLess, // '<'
+    tkLessEqual, // '<='
     tkEqual, // '='
     tkLarger, // '>'
+    tkLargerEqual, // '>='
     tkQuestionmark, // '?'
     tkminus, // '-'
     tkIdentifier,            // Any  identifier
@@ -114,7 +130,110 @@ Const
   V1Tokens = [tkImplements];
   VersionNonTokens : Array[TWebIDLVersion] of TIDLTokens = (V2Tokens,V1Tokens);
 
+  nErrXExpectedButYFound = 1001;
+  nErrRangeCheck = 1002;
+  nErrOperandAndOperatorMismatch = 1003;
+  nErrDivByZero = 1004;
+  nErrInvalidCharacterX = 1005;
+
 Type
+  TMaxPrecInt = {$ifdef fpc}int64{$else}NativeInt{$endif};
+  TMaxFloat = double;
+
+  TDirectiveEvaluator = class;
+  TDirectiveEvalVarEvent = function(Sender: TDirectiveEvaluator; Name: String; out Value: string): boolean of object;
+  TDirectiveEvalFunctionEvent = function(Sender: TDirectiveEvaluator; Name, Param: String; out Value: string): boolean of object;
+  TDirectiveEvalLogEvent = procedure(Sender: TDirectiveEvaluator; Args : Array of const) of object;
+
+  { TDirectiveEvaluator }
+
+  TDirectiveEvaluator = class
+  private
+    FOnEvalFunction: TDirectiveEvalFunctionEvent;
+    FOnEvalVariable: TDirectiveEvalVarEvent;
+    FOnLog: TDirectiveEvalLogEvent;
+  protected
+    type
+      TDirectiveToken = (
+        dtEOF,
+        dtIdentifier,
+        dtNumberInteger,
+        dtNumberFloat,
+        dtBracketOpen,
+        dtBracketClose,
+        dtNot,
+        dtEqual,
+        dtLess,
+        dtLessEqual,
+        dtGreater,
+        dtGreaterEqual
+        );
+      TPrecedenceLevel = (
+        ceplFirst, // tkNot
+        ceplSecond, // *, /, div, mod, and, shl, shr
+        ceplThird, // +, -, or, xor
+        ceplFourth // =, <>, <, >, <=, >=
+        );
+      TStackItem = record
+        Level: TPrecedenceLevel;
+        Operathor: TDirectiveToken;
+        Operand: String;
+        OperandPos: PChar;
+      end;
+    const
+      BoolValues: array[boolean] of string = (
+        '0', // false
+        '1'  // true  Note: True is <>'0'
+        );
+      dtNames: array[TDirectiveToken] of string = (
+        'EOF',
+        'Identifier',
+        'Integer',
+        'Float',
+        '(',
+        ')',
+        '!',
+        '=',
+        '<',
+        '<=',
+        '>',
+        '>='
+        );
+  protected
+    FExpr: PChar;
+    FToken: TDirectiveToken;
+    FTokenStart: PChar;
+    FTokenEnd: PChar;
+    FStack: array of TStackItem;
+    FStackTop: Integer;
+    function IsFalse(const Value: String): boolean;
+    function IsTrue(const Value: String): boolean;
+    function IsInteger(const Value: String; out i: TMaxPrecInt): boolean;
+    function IsFloat(const Value: String; out e: TMaxFloat): boolean;
+    procedure NextToken;
+    procedure Log(aMsgType: TMessageType; aMsgNumber: integer;
+      const aMsgFmt: String; const Args: array of const; MsgPos: PChar = nil);
+    procedure LogXExpectedButTokenFound(const X: String; ErrorPos: PChar = nil);
+    procedure ReadOperand(Skip: boolean = false); // unary operators plus one operand
+    procedure ReadExpression; // binary operators
+    procedure ResolveStack(MinStackLvl: integer; Level: TPrecedenceLevel;
+      NewOperator: TDirectiveToken);
+    function GetTokenString: String;
+    function GetStringLiteralValue: String; // read value of tkString
+    procedure Push(const AnOperand: String; OperandPosition: PChar);
+  public
+    MsgLineNumber : Integer;
+    MsgPos: integer;
+    MsgNumber: integer;
+    MsgType: TMessageType;
+    MsgPattern: String; // Format parameter
+    constructor Create;
+    destructor Destroy; override;
+    function Eval(const Expr: PChar; aLineNumber: integer): boolean;
+    property OnEvalVariable: TDirectiveEvalVarEvent read FOnEvalVariable write FOnEvalVariable;
+    property OnEvalFunction: TDirectiveEvalFunctionEvent read FOnEvalFunction write FOnEvalFunction;
+    property OnLog: TDirectiveEvalLogEvent read FOnLog write FOnLog;
+  end;
 
   TWebIDLScannerSkipMode = (wisSkipNone, wisSkipIfBranch, wisSkipElseBranch, wisSkipAll);
 
@@ -122,6 +241,7 @@ Type
 
   TWebIDLScanner = class
   private
+    FEvaluator: TDirectiveEvaluator;
     FSource : TStringList;
     FCurRow: Integer;
     FCurToken: TIDLToken;
@@ -139,6 +259,11 @@ Type
     function DetermineToken2: TIDLToken;
     function FetchLine: Boolean;
     function GetCurColumn: Integer;
+    function OnEvalFunction(Sender: TDirectiveEvaluator; Name, Param: String;
+      out Value: string): boolean;
+    procedure OnEvalLog(Sender: TDirectiveEvaluator; Args: array of const);
+    function OnEvalVar(Sender: TDirectiveEvaluator; Name: String; out
+      Value: string): boolean;
     function ReadComment: UTF8String;
     function ReadIdent: UTF8String;
     function ReadNumber(var S: UTF8String): TIDLToken;
@@ -150,12 +275,14 @@ Type
     function DoFetchToken: TIDLToken;
     procedure HandleDirective; virtual;
     procedure HandleIfDef; virtual;
+    procedure HandleIf; virtual;
     procedure HandleElse; virtual;
     procedure HandleEndIf; virtual;
     procedure PushSkipMode; virtual;
     function IsDefined(const aName: string): boolean; virtual;
     procedure SkipWhitespace;
     procedure SkipLineBreak;
+    procedure Init; virtual;
   public
     constructor Create(Source: TStream); overload;
     constructor Create(const Source: UTF8String); overload;
@@ -169,7 +296,9 @@ Type
 
     property CurToken: TIDLToken read FCurToken;
     property CurTokenString: UTF8String read FCurTokenString;
-    Property Version : TWebIDLVersion Read FVersion Write FVersion;
+    property Version : TWebIDLVersion Read FVersion Write FVersion;
+
+    property Evaluator: TDirectiveEvaluator read FEvaluator;
   end;
 
 const
@@ -193,8 +322,10 @@ const
   '[',       // '['
   ']',      // ']'
   '<',
+  '<=',
   '=',
   '>',
+  '>=',
   '?',
   '-',
   '',            // Any  identifier
@@ -269,7 +400,11 @@ Resourcestring
   SErrOpenString = 'string exceeds end of line';
   SErrInvalidEllipsis = 'Invalid ellipsis token';
   SErrUnknownToken = 'Unknown token, expected number or minus : "%s"';
-//  SerrExpectedTokenButWasIdentifier = 'Invalid terminator: "%s"';
+  SErrXExpectedButYFound = '"%s" expected, but "%s" found';
+  SErrRangeCheck = 'range check failed';
+  SErrOperandAndOperatorMismatch = 'operand and operator mismatch';
+  SErrDivByZero = 'division by zero';
+  SErrInvalidCharacterX = 'Invalid character ''%s''';
 
 Function GetTokenName(aToken : TIDLToken) : String;
 
@@ -297,16 +432,705 @@ begin
     end;
 end;
 
+{ TDirectiveEvaluator }
+
+function TDirectiveEvaluator.IsFalse(const Value: String): boolean;
+begin
+  Result:=Value=BoolValues[false];
+end;
+
+function TDirectiveEvaluator.IsTrue(const Value: String): boolean;
+begin
+  Result:=Value<>BoolValues[false];
+end;
+
+function TDirectiveEvaluator.IsInteger(const Value: String; out i: TMaxPrecInt
+  ): boolean;
+var
+  Code: integer;
+begin
+  val(Value,i,Code);
+  Result:=Code=0;
+end;
+
+function TDirectiveEvaluator.IsFloat(const Value: String; out e: TMaxFloat
+  ): boolean;
+var
+  Code: integer;
+begin
+  val(Value,e,Code);
+  Result:=Code=0;
+end;
+
+procedure TDirectiveEvaluator.NextToken;
+const
+  IdentChars = ['a'..'z','A'..'Z','0'..'9','_'];
+  Digits = ['0'..'9'];
+begin
+  FTokenStart:=FTokenEnd;
+
+  // skip white space
+  repeat
+    case FTokenStart^ of
+      #0:
+        begin
+        FToken:=dtEOF;
+        FTokenEnd:=FTokenStart;
+        exit;
+        end;
+      #9,#10,#13,' ':
+        inc(FTokenStart);
+      else break;
+    end;
+  until false;
+
+  // read token
+  FTokenEnd:=FTokenStart;
+  case FTokenEnd^ of
+  'a'..'z','A'..'Z','_':
+    begin
+    inc(FTokenEnd);
+    while FTokenEnd^ in IdentChars do inc(FTokenEnd);
+    FToken:=dtIdentifier;
+    end;
+  '0'..'9':
+    begin
+    FToken:=dtNumberInteger;
+    // examples: 1, 1.2, 1.2E3, 1E-2
+    inc(FTokenEnd);
+    while FTokenEnd^ in Digits do inc(FTokenEnd);
+    if (FTokenEnd^='.') and (FTokenEnd[1]<>'.') then
+      begin
+      FToken:=dtNumberFloat;
+      inc(FTokenEnd);
+      while FTokenEnd^ in Digits do inc(FTokenEnd);
+      end;
+    if FTokenEnd^ in ['e','E'] then
+      begin
+      FToken:=dtNumberFloat;
+      inc(FTokenEnd);
+      if FTokenEnd^ in ['-','+'] then inc(FTokenEnd);
+      while FTokenEnd^ in Digits do inc(FTokenEnd);
+      end;
+    end;
+  '(':
+    begin
+    FToken:=dtBracketOpen;
+    inc(FTokenEnd);
+    end;
+  ')':
+    begin
+    FToken:=dtBracketClose;
+    inc(FTokenEnd);
+    end;
+  '=':
+    begin
+    FToken:=dtEqual;
+    inc(FTokenEnd);
+    end;
+  '!':
+    begin
+    FToken:=dtNot;
+    inc(FTokenEnd);
+    end;
+  '<':
+    begin
+    inc(FTokenEnd);
+    case FTokenEnd^ of
+    '=':
+      begin
+      FToken:=dtLessEqual;
+      inc(FTokenEnd);
+      end;
+    //'<':
+    //  begin
+    //  FToken:=tkshl;
+    //  inc(FTokenEnd);
+    //  end;
+    else
+      FToken:=dtLess;
+    end;
+    end;
+  '>':
+    begin
+    inc(FTokenEnd);
+    case FTokenEnd^ of
+    '=':
+      begin
+      FToken:=dtGreaterEqual;
+      inc(FTokenEnd);
+      end;
+    //'>':
+    //  begin
+    //  FToken:=tkshr;
+    //  inc(FTokenEnd);
+    //  end;
+    else
+      FToken:=dtGreater;
+    end;
+    end;
+  //'+':
+  //  begin
+  //  FToken:=tkPlus;
+  //  inc(FTokenEnd);
+  //  end;
+  //'-':
+  //  begin
+  //  FToken:=tkMinus;
+  //  inc(FTokenEnd);
+  //  end;
+  //'*':
+  //  begin
+  //  FToken:=tkMul;
+  //  inc(FTokenEnd);
+  //  end;
+  //'/':
+  //  begin
+  //  FToken:=tkDivision;
+  //  inc(FTokenEnd);
+  //  end;
+  //'''':
+  //  begin
+  //  FToken:=tkString;
+  //  repeat
+  //    inc(FTokenEnd);
+  //    if FTokenEnd^='''' then
+  //      begin
+  //      inc(FTokenEnd);
+  //      if FTokenEnd^<>'''' then break;
+  //      end
+  //    else if FTokenEnd^ in [#0,#10,#13] then
+  //      Log(mtError,nErrOpenString,SErrOpenString,[]);
+  //  until false;
+  //  end
+  else
+    FToken:=dtEOF;
+  end;
+end;
+
+procedure TDirectiveEvaluator.Log(aMsgType: TMessageType; aMsgNumber: integer;
+  const aMsgFmt: String; const Args: array of const; MsgPos: PChar);
+begin
+  if MsgPos=nil then
+    MsgPos:=FTokenEnd;
+  MsgType:=aMsgType;
+  MsgNumber:=aMsgNumber;
+  MsgPattern:=aMsgFmt;
+  if Assigned(OnLog) then
+    begin
+    OnLog(Self,Args);
+    if not (aMsgType in [mtError,mtFatal]) then exit;
+    end;
+  raise EWebIDLError.CreateFmt(MsgPattern+' at pos '+IntToStr(PtrInt(MsgPos-FExpr))+' line '+IntToStr(MsgLineNumber),Args);
+end;
+
+procedure TDirectiveEvaluator.LogXExpectedButTokenFound(const X: String;
+  ErrorPos: PChar);
+begin
+  Log(mtError,nErrXExpectedButYFound,SErrXExpectedButYFound,
+      [X,dtNames[FToken]],ErrorPos);
+end;
+
+procedure TDirectiveEvaluator.ReadOperand(Skip: boolean);
+{ Read operand and put it on the stack
+  Examples:
+   Variable
+   defined(Variable)
+   !Variable
+   123
+   $45
+   'Abc'
+   (expression)
+}
+var
+  i: TMaxPrecInt;
+  e: TMaxFloat;
+  S, aName, Param: String;
+  Code: integer;
+  p, NameStartP: PChar;
+  Lvl: integer;
+begin
+  {$IFDEF VerboseWebIDLScanner}
+  writeln('TDirectiveEvaluator.ReadOperand START Token[',FTokenStart-FExpr+1,']="',GetTokenString,'" ',FToken,BoolToStr(Skip,' SKIP',''));
+  {$ENDIF}
+  case FToken of
+    dtNot:
+      begin
+      // boolean not
+      NextToken;
+      ReadOperand(Skip);
+      if not Skip then
+        FStack[FStackTop].Operand:=BoolValues[IsFalse(FStack[FStackTop].Operand)];
+      end;
+    //tkMinus:
+    //  begin
+    //  // unary minus
+    //  NextToken;
+    //  ReadOperand(Skip);
+    //  if not Skip then
+    //    begin
+    //    i:=StrToInt64Def(FStack[FStackTop].Operand,0);
+    //    FStack[FStackTop].Operand:=IntToStr(-i);
+    //    end;
+    //  end;
+    //tkPlus:
+    //  begin
+    //  // unary plus
+    //  NextToken;
+    //  ReadOperand(Skip);
+    //  if not Skip then
+    //    begin
+    //    i:=StrToInt64Def(FStack[FStackTop].Operand,0);
+    //    FStack[FStackTop].Operand:=IntToStr(i);
+    //    end;
+    //  end;
+    dtNumberInteger:
+      begin
+      // integer
+      if not Skip then
+        begin
+        S:=GetTokenString;
+        val(S,i,Code);
+        if Code=0 then
+          Push(IntToStr(i),FTokenStart)
+        else
+          Log(mtError,nErrRangeCheck,sErrRangeCheck,[]);
+        end;
+      NextToken;
+      end;
+    dtNumberFloat:
+      begin
+      // float
+      if not Skip then
+        begin
+        S:=GetTokenString;
+        val(S,e,Code);
+        if Code>0 then
+          Log(mtError,nErrRangeCheck,sErrRangeCheck,[]);
+        if e=0 then ;
+        // float
+        Push(S,FTokenStart);
+        end;
+      NextToken;
+      end;
+    //tkString:
+    //  begin
+    //  // string literal
+    //  if not Skip then
+    //    Push(GetStringLiteralValue,FTokenStart{$ifdef UsePChar}-PChar(Expression)+1{$endif});
+    //  NextToken;
+    //  end;
+    dtIdentifier:
+      if Skip then
+        begin
+        aName:=GetTokenString;
+        NextToken;
+        if FToken=dtBracketOpen then
+          begin
+          // only one parameter is supported
+          NextToken;
+          if FToken=dtIdentifier then
+            NextToken;
+          if FToken<>dtBracketClose then
+            LogXExpectedButTokenFound(')');
+          NextToken;
+          end;
+        end
+      else
+        begin
+        aName:=GetTokenString;
+        p:=FTokenStart;
+        NextToken;
+        if FToken=dtBracketOpen then
+          begin
+          // function
+          NameStartP:=FTokenStart;
+          NextToken;
+          // only one parameter is supported
+          Param:='';
+          if FToken=dtIdentifier then
+            begin
+            Param:=GetTokenString;
+            NextToken;
+            end;
+          if FToken<>dtBracketClose then
+            LogXExpectedButTokenFound(')');
+          if not OnEvalFunction(Self,aName,Param,S) then
+            begin
+            FTokenStart:=NameStartP;
+            FTokenEnd:=FTokenStart+length(aName);
+            LogXExpectedButTokenFound('function');
+            end;
+          Push(S,p);
+          NextToken;
+          end
+        else
+          begin
+          // variable
+          if OnEvalVariable(Self,aName,S) then
+            Push(S,p)
+          else
+            begin
+            // variable does not exist -> evaluates to false
+            Push(BoolValues[false],p);
+            end;
+          end;
+        end;
+    dtBracketOpen:
+      begin
+      NextToken;
+      if Skip then
+        begin
+        Lvl:=1;
+        repeat
+          case FToken of
+          dtEOF:
+            LogXExpectedButTokenFound(')');
+          dtBracketOpen: inc(Lvl);
+          dtBracketClose:
+            begin
+            dec(Lvl);
+            if Lvl=0 then break;
+            end;
+          else
+            // Do nothing, satisfy compiler
+          end;
+          NextToken;
+        until false;
+        end
+      else
+        begin
+        ReadExpression;
+        if FToken<>dtBracketClose then
+          LogXExpectedButTokenFound(')');
+        end;
+      NextToken;
+      end;
+  else
+    LogXExpectedButTokenFound('identifier');
+  end;
+  {$IFDEF VerboseWebIDLScanner}
+  writeln('TDirectiveEvaluator.ReadOperand END Top=',FStackTop,' Value="',FStack[FStackTop].Operand,'" Token[',FTokenStart-FExpr+1,']="',GetTokenString,'" ',FToken);
+  {$ENDIF}
+end;
+
+procedure TDirectiveEvaluator.ReadExpression;
+// read operand operator operand ... til tkEOF or tkBracketClose
+var
+  OldStackTop: Integer;
+
+  procedure ReadBinary(Level: TPrecedenceLevel; NewOperator: TDirectiveToken);
+  begin
+    ResolveStack(OldStackTop,Level,NewOperator);
+    NextToken;
+    ReadOperand;
+  end;
+
+begin
+  OldStackTop:=FStackTop;
+  {$IFDEF VerboseWebIDLScanner}
+  writeln('TDirectiveEvaluator.ReadExpression START Top=',FStackTop,' Token[',FTokenStart-FExpr+1,']="',GetTokenString,'" ',FToken);
+  {$ENDIF}
+  ReadOperand;
+  repeat
+    {$IFDEF VerboseWebIDLScanner}
+    writeln('TDirectiveEvaluator.ReadExpression NEXT Top=',FStackTop,' Token[',FTokenStart-FExpr+1,']="',GetTokenString,'" ',FToken);
+    {$ENDIF}
+    case FToken of
+    dtEOF,dtBracketClose:
+      begin
+      ResolveStack(OldStackTop,high(TPrecedenceLevel),dtEOF);
+      exit;
+      end;
+    //tkand:
+    //  begin
+    //  ResolveStack(OldStackTop,ceplSecond,tkand);
+    //  NextToken;
+    //  if (FStackTop=OldStackTop+1) and IsFalse(FStack[FStackTop].Operand) then
+    //    begin
+    //    // false and ...
+    //    // -> skip all "and"
+    //    repeat
+    //      ReadOperand(true);
+    //      if FToken<>tkand then break;
+    //      NextToken;
+    //    until false;
+    //    FStack[FStackTop].Operathor:=tkEOF;
+    //    end
+    //  else
+    //    ReadOperand;
+    //  end;
+    //tkMul,tkDivision,tkdiv,tkmod,tkshl,tkshr:
+    //  ReadBinary(ceplSecond,FToken);
+    //tkor:
+    //  begin
+    //  ResolveStack(OldStackTop,ceplThird,tkor);
+    //  NextToken;
+    //  if (FStackTop=OldStackTop+1) and IsTrue(FStack[FStackTop].Operand) then
+    //    begin
+    //    // true or ...
+    //    // -> skip all "and" and "or"
+    //    repeat
+    //      ReadOperand(true);
+    //      if not (FToken in [tkand,tkor]) then break;
+    //      NextToken;
+    //    until false;
+    //    FStack[FStackTop].Operathor:=tkEOF;
+    //    end
+    //  else
+    //    ReadOperand;
+    //  end;
+    //tkPlus,tkMinus,tkxor:
+    //  ReadBinary(ceplThird,FToken);
+    dtEqual,dtNot,dtLess,dtLessEqual,dtGreater,dtGreaterEqual:
+      ReadBinary(ceplFourth,FToken);
+    else
+      LogXExpectedButTokenFound('operator');
+    end;
+  until false;
+end;
+
+procedure TDirectiveEvaluator.ResolveStack(MinStackLvl: integer;
+  Level: TPrecedenceLevel; NewOperator: TDirectiveToken);
+var
+  A, B, R: String;
+  Op: TDirectiveToken;
+  AInt, BInt: TMaxPrecInt;
+  AFloat, BFloat: TMaxFloat;
+  BPos: PChar;
+begin
+  // resolve all higher or equal level operations
+  // Note: the stack top contains operand B
+  //       the stack second contains operand A and the operator between A and B
+
+  //writeln('TDirectiveEvaluator.ResolveStack FStackTop=',FStackTop,' MinStackLvl=',MinStackLvl);
+  //if FStackTop>MinStackLvl+1 then
+  //  writeln('  FStack[FStackTop-1].Level=',FStack[FStackTop-1].Level,' Level=',Level);
+  while (FStackTop>MinStackLvl+1) and (FStack[FStackTop-1].Level<=Level) do
+    begin
+    // pop last operand and operator from stack
+    B:=FStack[FStackTop].Operand;
+    BPos:=FStack[FStackTop].OperandPos;
+    dec(FStackTop);
+    Op:=FStack[FStackTop].Operathor;
+    A:=FStack[FStackTop].Operand;
+    {$IFDEF VerboseWebIDLScanner}
+    writeln('  ResolveStack Top=',FStackTop,' A="',A,'" ',Op,' B="',B,'"');
+    {$ENDIF}
+    {$IFOPT R+}{$DEFINE RangeChecking}{$ENDIF}
+    {$R+}
+    try
+      case Op of
+      //tkand: // boolean and
+      //  R:=BoolValues[IsTrue(A) and IsTrue(B)];
+      //tkor: // boolean or
+      //  R:=BoolValues[IsTrue(A) or IsTrue(B)];
+      //tkxor: // boolean xor
+      //  R:=BoolValues[IsTrue(A) xor IsTrue(B)];
+      //tkMul, tkdiv, tkmod, tkshl, tkshr, tkPlus, tkMinus:
+      //  if IsInteger(A,AInt) then
+      //    begin
+      //    if IsInteger(B,BInt) then
+      //      case Op of
+      //        tkMul: R:=IntToStr(AInt*BInt);
+      //        tkdiv: R:=IntToStr(AInt div BInt);
+      //        tkmod: R:=IntToStr(AInt mod BInt);
+      //        tkshl: R:=IntToStr(AInt shl BInt);
+      //        tkshr: R:=IntToStr(AInt shr BInt);
+      //        tkPlus: R:=IntToStr(AInt+BInt);
+      //        tkMinus: R:=IntToStr(AInt-BInt);
+      //      else
+      //         Do nothing, satisfy compiler
+      //      end
+      //    else if IsExtended(B,BFloat) then
+      //      case Op of
+      //        tkMul: R:=FloatToStr(Extended(AInt)*BFloat);
+      //        tkPlus: R:=FloatToStr(Extended(AInt)+BFloat);
+      //        tkMinus: R:=FloatToStr(Extended(AInt)-BFloat);
+      //      else
+      //        LogXExpectedButTokenFound('integer',BPos);
+      //      end
+      //    else
+      //      LogXExpectedButTokenFound('integer',BPos);
+      //    end
+      //  else if IsExtended(A,AFloat) then
+      //    begin
+      //    if IsExtended(B,BFloat) then
+      //      case Op of
+      //        tkMul: R:=FloatToStr(AFloat*BFloat);
+      //        tkPlus: R:=FloatToStr(AFloat+BFloat);
+      //        tkMinus: R:=FloatToStr(AFloat-BFloat);
+      //      else
+      //        LogXExpectedButTokenFound('float',BPos);
+      //      end
+      //    else
+      //      LogXExpectedButTokenFound('float',BPos);
+      //    end
+      //  else
+      //    Log(mtError,nErrOperandAndOperatorMismatch,sErrOperandAndOperatorMismatch,[]);
+      //tkDivision:
+      //  if IsExtended(A,AFloat) then
+      //    begin
+      //    if IsExtended(B,BFloat) then
+      //      R:=FloatToStr(AFloat/BFloat)
+      //    else
+      //      LogXExpectedButTokenFound('float',BPos);
+      //    end
+      //  else
+      //    Log(mtError,nErrOperandAndOperatorMismatch,sErrOperandAndOperatorMismatch,[]);
+      dtEqual,
+      dtNot,
+      dtLess,dtLessEqual,
+      dtGreater,dtGreaterEqual:
+        begin
+        if IsInteger(A,AInt) and IsInteger(B,BInt) then
+          case Op of
+          dtEqual: R:=BoolValues[AInt=BInt];
+          dtNot: R:=BoolValues[AInt<>BInt];
+          dtLess: R:=BoolValues[AInt<BInt];
+          dtLessEqual: R:=BoolValues[AInt<=BInt];
+          dtGreater: R:=BoolValues[AInt>BInt];
+          dtGreaterEqual: R:=BoolValues[AInt>=BInt];
+          else
+          // Do nothing, satisfy compiler
+          end
+        else if IsFloat(A,AFloat) and IsFloat(B,BFloat) then
+          case Op of
+          dtEqual: R:=BoolValues[AFloat=BFloat];
+          dtNot: R:=BoolValues[AFloat<>BFloat];
+          dtLess: R:=BoolValues[AFloat<BFloat];
+          dtLessEqual: R:=BoolValues[AFloat<=BFloat];
+          dtGreater: R:=BoolValues[AFloat>BFloat];
+          dtGreaterEqual: R:=BoolValues[AFloat>=BFloat];
+          else
+          // Do nothing, satisfy compiler
+          end
+        else
+          case Op of
+          dtEqual: R:=BoolValues[A=B];
+          dtNot: R:=BoolValues[A<>B];
+          dtLess: R:=BoolValues[A<B];
+          dtLessEqual: R:=BoolValues[A<=B];
+          dtGreater: R:=BoolValues[A>B];
+          dtGreaterEqual: R:=BoolValues[A>=B];
+          else
+          // Do nothing, satisfy compiler
+          end;
+        end;
+      else
+        Log(mtError,nErrOperandAndOperatorMismatch,sErrOperandAndOperatorMismatch,[]);
+      end;
+    except
+      on E: EDivByZero do
+        Log(mtError,nErrDivByZero,sErrDivByZero,[]);
+      on E: EZeroDivide do
+        Log(mtError,nErrDivByZero,sErrDivByZero,[]);
+      on E: EMathError do
+        Log(mtError,nErrRangeCheck,sErrRangeCheck+' '+E.Message,[]);
+      on E: EInterror do
+        Log(mtError,nErrRangeCheck,sErrRangeCheck+' '+E.Message,[]);
+    end;
+    {$IFNDEF RangeChecking}{$R-}{$UNDEF RangeChecking}{$ENDIF}
+    {$IFDEF VerboseWebIDLScanner}
+    writeln('  ResolveStack Top=',FStackTop,' A="',A,'" ',Op,' B="',B,'" = "',R,'"');
+    {$ENDIF}
+    FStack[FStackTop].Operand:=R;
+    FStack[FStackTop].OperandPos:=BPos;
+    end;
+  FStack[FStackTop].Operathor:=NewOperator;
+  FStack[FStackTop].Level:=Level;
+end;
+
+function TDirectiveEvaluator.GetTokenString: String;
+begin
+  SetString(Result,FTokenStart,FTokenEnd-FTokenStart);
+end;
+
+function TDirectiveEvaluator.GetStringLiteralValue: String;
+var
+  p, StartP: PChar;
+  s: string;
+begin
+  Result:='';
+  p:=FTokenStart;
+  repeat
+    case p^ of
+    '''':
+      begin
+      inc(p);
+      StartP:=p;
+      repeat
+        case p^ of
+        #0,#10,#13: Log(mtError,nErrInvalidCharacterX,SErrInvalidCharacterX,['#0']);
+        '''': break;
+        else inc(p);
+        end;
+      until false;
+      if p>StartP then
+        begin
+        SetString(s,StartP,p-StartP);
+        Result:=Result+s;
+        end;
+      inc(p);
+      end;
+    else
+      Log(mtError,nErrInvalidCharacterX,SErrInvalidCharacterX,['#0']);
+    end;
+  until false;
+end;
+
+procedure TDirectiveEvaluator.Push(const AnOperand: String;
+  OperandPosition: PChar);
+begin
+  inc(FStackTop);
+  if FStackTop>=length(FStack) then
+    SetLength(FStack,length(FStack)*2+4);
+  with FStack[FStackTop] do
+    begin
+    Operand:=AnOperand;
+    OperandPos:=OperandPosition;
+    Operathor:=dtEOF;
+    Level:=ceplFourth;
+    end;
+end;
+
+constructor TDirectiveEvaluator.Create;
+begin
+
+end;
+
+destructor TDirectiveEvaluator.Destroy;
+begin
+  inherited Destroy;
+end;
+
+function TDirectiveEvaluator.Eval(const Expr: PChar; aLineNumber: integer
+  ): boolean;
+begin
+  {$IFDEF VerboseWebIDLScanner}
+  writeln('TDirectiveEvaluator.Eval Line=',aLineNumber,' Expr="',Expr,'"');
+  {$ENDIF}
+  MsgLineNumber:=aLineNumber;
+  fExpr:=Expr;
+  FTokenStart:=Expr;
+  FTokenEnd:=FTokenStart;
+  FStackTop:=-1;
+  NextToken;
+  ReadExpression;
+  Result:=IsTrue(FStack[0].Operand);
+end;
+
+{ TWebIDLScanner }
 
 constructor TWebIDLScanner.Create(Source: TStream);
 begin
-  FSource:=TStringList.Create;
+  Init;
   FSource.LoadFromStream(Source);
 end;
 
 constructor TWebIDLScanner.Create(const Source: UTF8String);
 begin
-  FSource:=TStringList.Create;
+  Init;
   FSource.Text:=Source;
 end;
 
@@ -318,10 +1142,10 @@ end;
 
 destructor TWebIDLScanner.Destroy;
 begin
+  FreeAndNil(FEvaluator);
   FreeAndNil(FSource);
   Inherited;
 end;
-
 
 function TWebIDLScanner.FetchToken: TIDLToken;
 
@@ -730,6 +1554,7 @@ begin
   SkipWhitespace;
   case lowercase(aDirective) of
   'ifdef': HandleIfDef;
+  'if': HandleIf;
   'else': HandleElse;
   'endif': HandleEndIf;
   end;
@@ -763,6 +1588,33 @@ begin
     //    DoLog(mtInfo,nLogIFDefAccepted,sLogIFDefAccepted,[aName])
     //  else
     //    DoLog(mtInfo,nLogIFDefRejected,sLogIFDefRejected,[aName]);
+    end;
+end;
+
+procedure TWebIDLScanner.HandleIf;
+var
+  StartP: PChar;
+begin
+  PushSkipMode;
+  if FIsSkipping then
+    FSkipMode := wisSkipAll
+  else
+    begin
+    StartP:=TokenStr;
+    while not (TokenStr^ in [#0,#10,#13]) do
+      inc(TokenStr);
+    if Evaluator.Eval(StartP,CurRow) then
+      FSkipMode := wisSkipElseBranch
+    else
+      begin
+      FSkipMode := wisSkipIfBranch;
+      FIsSkipping := true;
+      end;
+    //If LogEvent(sleConditionals) then
+    //  if FSkipMode=FSkipElseBranch then
+    //    DoLog(mtInfo,nLogIFAccepted,sLogIFAccepted,[AParam])
+    //  else
+    //    DoLog(mtInfo,nLogIFRejected,sLogIFRejected,[AParam]);
     end;
 end;
 
@@ -819,9 +1671,52 @@ begin
   end;
 end;
 
+procedure TWebIDLScanner.Init;
+begin
+  FSource:=TStringList.Create;
+  FEvaluator:=TDirectiveEvaluator.Create;
+  FEvaluator.OnLog:=@OnEvalLog;
+  FEvaluator.OnEvalVariable:=@OnEvalVar;
+  FEvaluator.OnEvalFunction:=@OnEvalFunction;
+end;
+
 function TWebIDLScanner.GetCurColumn: Integer;
 begin
   Result := TokenStr - PChar(CurLine);
+end;
+
+function TWebIDLScanner.OnEvalFunction(Sender: TDirectiveEvaluator; Name,
+  Param: String; out Value: string): boolean;
+begin
+  Result:=true;
+  if Name='defined' then
+    Value:=TDirectiveEvaluator.BoolValues[IsDefined(Param)]
+  else
+    Value:='';
+end;
+
+procedure TWebIDLScanner.OnEvalLog(Sender: TDirectiveEvaluator;
+  Args: array of const);
+var
+  Msg: String;
+begin
+  if Sender.MsgType<=mtError then
+    begin
+    Msg:=Format(Sender.MsgPattern,Args);
+    //SetCurMsg(Sender.MsgType,Sender.MsgNumber,Sender.MsgPattern,Args);
+    //Msg:=Format('%s(%d,%d) : %s',[FormatPath(FCurFileName),CurRow,CurColumn,FLastMsg]);
+    raise EWebIDLScanner.Create(Msg);
+    end
+  else
+    ; //DoLog(Sender.MsgType,Sender.MsgNumber,Sender.MsgPattern,Args,true);
+end;
+
+function TWebIDLScanner.OnEvalVar(Sender: TDirectiveEvaluator; Name: String;
+  out Value: string): boolean;
+begin
+  Result:=true;
+  Value:='';
+  if Name='' then ;
 end;
 
 
