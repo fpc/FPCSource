@@ -1261,7 +1261,7 @@ type
   end;
 
 // *BSD isn't flagged for "weak"  support in 3.2.2
-{$if defined(BSD) and defined (VER3_2)}
+{$if defined(BSD) and defined (VER3_2_2)}
   function _dladdr(Lib:pointer; info: Pdl_info): Longint; cdecl; external LibDL name 'dladdr';
 {$else}
   function _dladdr(Lib:pointer; info: Pdl_info): Longint; cdecl; weakexternal LibDL name 'dladdr';
