@@ -78,9 +78,9 @@ Type
     Procedure CheckCurrentTokens(aTokens: TIDLTokens);
     function ExpectToken(aToken: TIDLToken): TIDLToken;
     function ExpectTokens(aTokens: TIDLTokens): TIDLToken;
-    // Attributes
-    function ParseAttributes: TAttributeList;
-    procedure ParseAttributes(aList: TAttributeList; aTerminator: TIDLToken; ForSerializer: Boolean=False); virtual;
+    // Extended Attributes
+    function ParseExtAttributes: TExtAttributeList;
+    procedure ParseExtAttributes(aList: TExtAttributeList; aTerminator: TIDLToken; ForSerializer: Boolean=False); virtual;
     // Definitions
     // Type is a type without name of the type
     function ParseAttribute(aParent: TIDLBaseObject): TIDLAttributeDefinition; virtual;
@@ -233,18 +233,18 @@ end;
 // We're at the [,{,( token when we enter here
 // On exit, we're on the terminator token.
 
-procedure TWebIDLParser.ParseAttributes(aList: TAttributeList; aTerminator: TIDLToken; ForSerializer : Boolean = False);
+procedure TWebIDLParser.ParseExtAttributes(aList: TExtAttributeList; aTerminator: TIDLToken; ForSerializer : Boolean = False);
 
-  Function AddSub(aTerm : TIDLTOken) : String;
+  Function AddSub(aTerm : TIDLToken) : String;
 
   Var
-    L : TAttributeList;
+    L : TExtAttributeList;
 
   begin
     Result:=CurrentTokenString;
-    L:=TAttributeList.Create;
+    L:=TExtAttributeList.Create;
     try
-      ParseAttributes(L,aTerm,ForSerializer);
+      ParseExtAttributes(L,aTerm,ForSerializer);
       Result:=Trim(Result+L.ToLine(',')+CurrentTokenString);
     finally
       L.Free;
@@ -256,7 +256,7 @@ procedure TWebIDLParser.ParseAttributes(aList: TAttributeList; aTerminator: TIDL
   begin
     if (Current<>'') then
       Current:=Current+' ';
-    Current:=Current+aterm;
+    Current:=Current+aTerm;
   end;
 
   Procedure AddToList(Var aTerm : UTF8String);
@@ -272,7 +272,7 @@ procedure TWebIDLParser.ParseAttributes(aList: TAttributeList; aTerminator: TIDL
 
 Const
   OtherTokens = [tkNumberInteger,tkNumberFloat,tkIdentifier,tkString, {tkOther, tkMinus,}tkNegInfinity,
-                 tkDot,tkEllipsis,tkColon,tkSemicolon,tkLess,tkEqual,tkLarger,tkQuestionmark,tkByteString,
+                 tkDot,tkEllipsis,tkColon,tkSemicolon,tkLess,tkEqual,tkLarger,tkQuestionmark,tkStar,tkByteString,
                  tkDOMString,tkInfinity,tkNan,tkUSVString,tkAny,tkboolean,tkbyte,tkDouble,tkFalse,tkFloat,tkComma,
                  tkLong,tkNull,tkObject,tkOctet,tkOr,tkOptional,tkSequence,tkShort,tkTrue,tkUnsigned,tkVoid];
 
@@ -317,16 +317,15 @@ begin
   AddToList(S);
 end;
 
-function TWebIDLParser.ParseAttributes: TAttributeList;
-
+function TWebIDLParser.ParseExtAttributes: TExtAttributeList;
 
 var
   ok: Boolean;
 begin
-  Result:=TAttributeList.Create;
+  Result:=TExtAttributeList.Create;
   ok:=false;
   try
-    ParseAttributes(Result,tkSquaredBraceClose);
+    ParseExtAttributes(Result,tkSquaredBraceClose);
     ok:=true;
   finally
     if not ok then
@@ -352,7 +351,7 @@ begin
       end;
     if (CurrentToken=tkSquaredBraceOpen) then
       begin
-      Result.Attributes:=ParseAttributes;
+      Result.Attributes:=ParseExtAttributes;
       GetToken;
       end;
     Result.ArgumentType:=ParseType(Result,False);
@@ -843,12 +842,12 @@ begin
     case CurrentToken of
       tkSquaredBraceOpen :
         begin
-        ParseAttributes(Result.Identifiers,tkSquaredBraceClose,True);
+        ParseExtAttributes(Result.Identifiers,tkSquaredBraceClose,True);
         Result.Kind:=skArray;
         end;
       tkCurlyBraceOpen :
         begin
-        ParseAttributes(Result.Identifiers,tkCurlyBraceClose,True);
+        ParseExtAttributes(Result.Identifiers,tkCurlyBraceClose,True);
         Result.Kind:=skObject;
         end;
       tkIdentifier :
@@ -871,7 +870,7 @@ function TWebIDLParser.ParseInterface(aParent : TIDLBaseObject): TIDLInterfaceDe
 
 Var
   tk : TIDLToken;
-  Attrs : TAttributeList;
+  Attrs : TExtAttributeList;
   M : TIDLDefinition;
   isMixin,SemicolonSeen , ok: Boolean;
 
@@ -906,7 +905,7 @@ begin
       M:=Nil;
       if tk=tkSquaredBraceOpen then
         begin
-        Attrs:=ParseAttributes;
+        Attrs:=ParseExtAttributes;
         tk:=GetToken;
         end;
       Case tk of
@@ -1042,7 +1041,7 @@ function TWebIDLParser.ParseDictionaryMember(aParent : TIDLBaseObject): TIDLDict
   On Exit, we're on the ; }
 
 Var
-  Attrs : TAttributeList;
+  Attrs : TExtAttributeList;
   tk : TIDLToken;
   isReq , ok: Boolean;
   S : UTF8String;
@@ -1055,7 +1054,7 @@ begin
     tk:=GetToken;
   if tk=tkSquaredBraceOpen then
     begin
-    Attrs:=ParseAttributes;
+    Attrs:=ParseExtAttributes;
     tk:=GetToken;
     isReq:=(tk=tkRequired);
     if IsReq then
@@ -1145,7 +1144,7 @@ function TWebIDLParser.ParseUnionTypeDef(aParent : TIDLBaseObject): TIDLUnionTyp
 Var
   D : TIDLTypeDefDefinition;
   tk : TIDLToken;
-  Attr : TAttributeList;
+  Attr : TExtAttributeList;
   ok: Boolean;
 
 begin
@@ -1159,7 +1158,7 @@ begin
       tk:=GetToken;
       if Tk=tkSquaredBraceOpen then
         begin
-        Attr:=ParseAttributes;
+        Attr:=ParseExtAttributes;
         tk:=GetToken;
         end;
       D:=ParseType(Result.Union,False);
@@ -1352,7 +1351,7 @@ function TWebIDLParser.ParseDefinition(aParent : TIDLBaseObject): TIDLDefinition
 
 Var
   tk : TIDLToken;
-  Attrs : TAttributeList;
+  Attrs : TExtAttributeList;
 
 begin
   Result:=Nil;
@@ -1360,7 +1359,7 @@ begin
   tk:=GetToken;
   if tk=tkSquaredBraceOpen then
     begin
-    Attrs:=ParseAttributes;
+    Attrs:=ParseExtAttributes;
     tk:=GetToken;
     end;
   Try

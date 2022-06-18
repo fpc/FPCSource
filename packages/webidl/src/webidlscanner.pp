@@ -64,7 +64,8 @@ type
     tkLarger, // '>'
     tkLargerEqual, // '>='
     tkQuestionmark, // '?'
-    tkminus, // '-'
+    tkMinus, // '-'
+    tkStar, // '*'
     tkIdentifier,            // Any  identifier
     tkTrue,
     tkFalse,
@@ -329,6 +330,7 @@ const
   '>=',
   '?',
   '-',
+  '*',
   '',            // Any  identifier
   'true',
   'false',
@@ -1498,6 +1500,7 @@ begin
       '>': SetSingleToken(tkLarger);
       '?' : SetSingleToken(tkQuestionmark);
       ';' : SetSingleToken(tkSemicolon);
+      '*' : SetSingleToken(tkStar);
       '.' :
          begin
          inc(TokenStr);
@@ -1535,7 +1538,7 @@ begin
         begin
         Result:=tkComment;
         HandleDirective;
-        end
+        end;
     else
       Error(SErrInvalidCharacter, [CurRow,CurColumn,TokenStr[0]]);
     end;

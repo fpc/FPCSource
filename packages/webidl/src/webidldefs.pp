@@ -23,9 +23,9 @@ uses
 
 Type
 
-  { TAttributeList }
+  { TExtAttributeList }
 
-  TAttributeList = Class(TPersistent)
+  TExtAttributeList = Class(TPersistent)
   private
     Fattrs: TStringList;
     function GetAttrs(aIndex : Integer): UTF8String;
@@ -56,12 +56,12 @@ Type
 
   TIDLDefinition = Class(TIDLBaseObject)
   private
-    FAttributes: TAttributeList;
+    FAttributes: TExtAttributeList;
     FData: TObject;
     FName: UTF8String;
     FParent: TIDLDefinition;
-    function GetAttributes: TAttributeList;
-    procedure SetAttributes(AValue: TAttributeList);
+    function GetAttributes: TExtAttributeList;
+    procedure SetAttributes(AValue: TExtAttributeList);
   Public
     Constructor Create(aParent : TIDLDefinition;Const aName : UTF8String); virtual;
     Function Add(aClass : TIDLDefinitionClass; Const AName : UTF8String) : TIDLDefinition; override;
@@ -75,7 +75,7 @@ Type
     Property Data : TObject Read FData Write FData;
     Property Parent : TIDLDefinition Read FParent Write FParent;
     // Attributes are owned by the definition. If you set it, your list will be freed by the definition
-    Property Attributes : TAttributeList Read GetAttributes Write SetAttributes;
+    Property Attributes : TExtAttributeList Read GetAttributes Write SetAttributes;
   end;
 
   { TIDLDefinitionList }
@@ -256,15 +256,15 @@ Type
   TIDLSerializerDefinition = Class(TIDLDefinition)
   private
     FKind: TSerializerKind;
-    FIdentifiers : TAttributeList;
+    FIdentifiers : TExtAttributeList;
     FSerializerFunction: TIDLFunctionDefinition;
-    procedure SetIdentifierList(AValue: TAttributeList);
+    procedure SetIdentifierList(AValue: TExtAttributeList);
     Procedure SetSerializerFunction (aValue : TIDLFunctionDefinition);
-    function GetIdentifierList: TAttributeList;
+    function GetIdentifierList: TExtAttributeList;
   Public
     Destructor Destroy; override;
     Function HasIdentifiers : Boolean;
-    Property Identifiers : TAttributeList Read GetIdentifierList Write SetIDentifierList;
+    Property Identifiers : TExtAttributeList Read GetIdentifierList Write SetIDentifierList;
     Property SerializerFunction : TIDLFunctionDefinition Read FSerializerFunction Write SetSerializerFunction;
     Property Kind : TSerializerKind Read FKind Write FKind;
   end;
@@ -659,7 +659,7 @@ begin
     Kind:=skFunction;
 end;
 
-procedure TIDLSerializerDefinition.SetIdentifierList(AValue: TAttributeList);
+procedure TIDLSerializerDefinition.SetIdentifierList(AValue: TExtAttributeList);
 begin
   If (FIdentifiers=AValue) then
     exit;
@@ -667,11 +667,11 @@ begin
   FAttributes:=AValue;
 end;
 
-function TIDLSerializerDefinition.GetIdentifierList: TAttributeList;
+function TIDLSerializerDefinition.GetIdentifierList: TExtAttributeList;
 
 begin
   If FIdentifiers=Nil then
-    FIdentifiers:=TAttributeList.Create;
+    FIdentifiers:=TExtAttributeList.Create;
   Result:=FIdentifiers;
 end;
 
@@ -1081,41 +1081,41 @@ begin
   Result:=Assigned(FPartials) and (FPartials.Count>0);
 end;
 
-{ TAttributeList }
+{ TExtAttributeList }
 
-function TAttributeList.GetAttrs(aIndex : Integer): UTF8String;
+function TExtAttributeList.GetAttrs(aIndex : Integer): UTF8String;
 begin
   Result:=FAttrs[aIndex];
 end;
 
-function TAttributeList.GetCount: Integer;
+function TExtAttributeList.GetCount: Integer;
 begin
   Result:=FAttrs.Count;
 end;
 
-constructor TAttributeList.Create;
+constructor TExtAttributeList.Create;
 begin
   Fattrs:=TStringList.Create;
 end;
 
-destructor TAttributeList.destroy;
+destructor TExtAttributeList.destroy;
 begin
   FreeAndNil(Fattrs);
   inherited;
 end;
 
-procedure TAttributeList.Assign(aSource: TPersistent);
+procedure TExtAttributeList.Assign(aSource: TPersistent);
 begin
-  If aSource is TAttributeList then
-    Fattrs.Assign(TAttributeList(aSource).Fattrs);
+  If aSource is TExtAttributeList then
+    Fattrs.Assign(TExtAttributeList(aSource).Fattrs);
 end;
 
-procedure TAttributeList.Add(aAttribute: UTF8String);
+procedure TExtAttributeList.Add(aAttribute: UTF8String);
 begin
   FAttrs.Add(aAttribute);
 end;
 
-function TAttributeList.ToLine(ASep: String): UTF8String;
+function TExtAttributeList.ToLine(ASep: String): UTF8String;
 
 Var
   I : Integer;
@@ -1130,7 +1130,7 @@ begin
     end;
 end;
 
-function TAttributeList.AsString(Full: Boolean): UTF8String;
+function TExtAttributeList.AsString(Full: Boolean): UTF8String;
 
 begin
   Result:=ToLine(',');
@@ -1138,7 +1138,7 @@ begin
     Result:='['+Result+']';
 end;
 
-function TAttributeList.IndexOf(const aName: UTF8string): Integer;
+function TExtAttributeList.IndexOf(const aName: UTF8string): Integer;
 begin
   Result:=Fattrs.IndexOf(aName);
 end;
@@ -1228,17 +1228,17 @@ end;
 
 { TIDLDefinition }
 
-procedure TIDLDefinition.SetAttributes(AValue: TAttributeList);
+procedure TIDLDefinition.SetAttributes(AValue: TExtAttributeList);
 begin
   if FAttributes=AValue then Exit;
   FreeAndNil(FAttributes);
   FAttributes:=AValue;
 end;
 
-function TIDLDefinition.GetAttributes: TAttributeList;
+function TIDLDefinition.GetAttributes: TExtAttributeList;
 begin
   if FAttributes=Nil then
-    Fattributes:=TAttributeList.Create;
+    Fattributes:=TExtAttributeList.Create;
   Result:=Fattributes;
 end;
 

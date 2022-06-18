@@ -111,7 +111,7 @@ Type
   Public
     Function ParseInterface(AName,aInheritance : UTF8String; AMembers : Array of UTF8String) : TIDLInterfaceDefinition;
     Property isMixin : Boolean Read FisMixin Write FisMixin;
-    Property CustAttributes : String Read FCustAttributes Write FCustAttributes;
+    Property ExtAttributes : String Read FCustAttributes Write FCustAttributes;
   end;
 
   { TTestInterfaceParser }
@@ -123,7 +123,8 @@ Type
     Procedure ParseEmptyInheritance;
     Procedure ParseMixinEmpty;
     Procedure ParseMixinEmptyInheritance;
-    Procedure ParseCustomAttributes1;
+    Procedure ParseExtendedAttributes1;
+    Procedure ParseExtendedAttributes_Exposed;
 
     Procedure ParseIfDefSkip;
     Procedure ParseIfNDefUse;
@@ -1410,10 +1411,16 @@ begin
   ParseInterface('A','B',[]);
 end;
 
-procedure TTestInterfaceParser.ParseCustomAttributes1;
+procedure TTestInterfaceParser.ParseExtendedAttributes1;
 begin
-  CustAttributes:='[Constructor(DOMString type,optional WebGLContextEventInit eventInit)]';
-  AssertEquals('Attributes',CustAttributes,ParseInterface('A','B',[]).Attributes.AsString(True));
+  ExtAttributes:='[Constructor(DOMString type,optional WebGLContextEventInit eventInit)]';
+  AssertEquals('Attributes',ExtAttributes,ParseInterface('A','B',[]).Attributes.AsString(True));
+end;
+
+procedure TTestInterfaceParser.ParseExtendedAttributes_Exposed;
+begin
+  ExtAttributes:='[Exposed = *]';
+  AssertEquals('Attributes',ExtAttributes,ParseInterface('A','',[]).Attributes.AsString(True));
 end;
 
 procedure TTestInterfaceParser.ParseIfDefSkip;
