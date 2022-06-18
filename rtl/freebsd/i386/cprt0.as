@@ -24,14 +24,9 @@
 #
 # some typical values: 
 #
-# freebsd 5.4 504000
-# freebsd 6.3 (prerelease) : 603100
-# freebsd 7.0 700055
-# freebsd 8.0 800500  (-stable)
-# FreeBSD 9.0 900044
-# FreeBSD 11.0  1100122
-# FreeBSD 11.1  1101001
-# FreeBSD 12.1  1201000
+
+# FreeBSD 12.1  
+# FreeBSD 13.1  1301000
 
         .file   "cprt0.as"
         .ident  "FreePascal 2.6.x/2.7.x series dynlinked to libc"
@@ -44,7 +39,7 @@ abitag:
         .long   4
         .long   1
         .string "FreeBSD"
-        .long   900044
+        .long   1201000
         .section	.rodata.str1.1,"aMS",@progbits,1
 .LC0:
         .string ""
