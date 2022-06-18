@@ -15,7 +15,7 @@
 unit webidlparser;
 
 {$mode objfpc}{$H+}
-
+{$WARN 6060 off : }
 interface
 
 uses
@@ -1601,7 +1601,7 @@ end;
 
 function TWebIDLContext.AsString(Full: Boolean): UTF8String;
 begin
-  Result:=Definitions.AsString(';'+sLineBreak,'','','',True,True);
+  Result:=Definitions.AsString(';'+sLineBreak,'','','',Full,True);
 end;
 
 function TWebIDLContext.Add(aClass: TIDLDefinitionClass; const AName: UTF8String): TIDLDefinition;
