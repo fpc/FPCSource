@@ -57,7 +57,9 @@ type
     uc_link : PUContext;
     uc_stack : stack_t;
     uc_sigmask : sigset_t;
+    {$if sizeof(sigset_t) < 128 }
     __padding : array[1..128 - sizeof(sigset_t)] of byte;
+    {$endif}
     __pad : cULong;
     { The following field should be 16-byte-aligned. Currently the
       directive for specifying alignment is buggy, so the preceding
