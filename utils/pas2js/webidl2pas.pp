@@ -104,7 +104,6 @@ var
   I : Integer;
 
 begin
-
   Terminate;
   // quick check parameters
   ErrorMsg:=CheckOptions('hi:o:u:m:n:vx:t:ced::pw:', ['help','input:','output:','unitname:','include:','implementation:','verbose','extra:','typealiases:','constexternal','expandunionargs','dicttoclass::','optionsinheader','webidlversion:']);
@@ -133,9 +132,9 @@ begin
     else
       Raise EConvertError.CreateFmt('Invalid webidl version: %s',[A]);
     end;
-  if hasoption('n','include') then
+  if HasOption('n','include') then
     FWebIDLToPas.IncludeInterfaceCode.LoadFromFile(GetOptionValue('n','include'));
-  if hasoption('m','implementation') then
+  if HasOption('m','implementation') then
     FWebIDLToPas.IncludeImplementationCode.LoadFromFile(GetOptionValue('m','implementation'));
   FWebIDLToPas.ExtraUnits:=GetOPtionValue('x','extra');
   A:=GetOptionValue('t','typealiases');
