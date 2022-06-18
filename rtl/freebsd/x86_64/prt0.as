@@ -2,16 +2,21 @@
 #APP
 	.ident	"$FreeBSD: src/lib/csu/common/crtbrand.c,v 1.4 2003/10/17 15:43:13 peter Exp $"
 #NO_APP
-	.section	.note.ABI-tag,"a",@progbits
-	.p2align 2
+	.section	.note.tag,"a",@note
+	.align 4
 	.type	abitag, @object
-	.size	abitag, 24
+	.size	abitag, 48
 abitag:
 	.long	8
 	.long	4
 	.long	1
 	.string	"FreeBSD"
-	.long	900044
+	.long	1201000
+        .long   8
+        .long   4
+        .long   1
+	.string	"FreeBSD"
+        .long   0
 
 	.section	.rodata
 .LC0:
