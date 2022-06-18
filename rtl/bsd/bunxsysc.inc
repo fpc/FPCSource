@@ -374,38 +374,46 @@ begin
  FPutime:=do_syscall(syscall_nr_utimes,TSysParam(path),TSysParam(tvp));
 end;
 
-function __pipe_call(sysnr:TSysParam):TSysResult; {$ifdef cpui386}oldfpccall{$endif} external name 'FPC_DOSYS0';
+{$if (defined (freebsd))}
+function FPpipe(var fildes : tfildes; flags:cint):cint;
 
-{$if (defined(freebsd) or defined (dragonfly)) and (defined(CPUi386) or defined(CPUX86_64))}
-  {$define PIPE_RESULT_IN_EAX_AND_EDX}
-{$endif}
-Function FPpipe(var fildes : tfildes):cint;
-{$ifndef PIPE_RESULT_IN_EAX_AND_EDX}
 begin
-  fppipe:=do_syscall(syscall_nr_pipe,TSysParam(@fildes));
+  fppipe:=do_syscall(syscall_nr_pipe2,TSysParam(@fildes), TSysParam(flags));
 end;
 {$else}
-var
-  a, b: cInt;
-begin
-  asm
-  {$ifdef CPUi386}
-    pushl syscall_nr_pipe
-    call __pipe_call
-    movl %eax, a
-    movl %edx, b
-  {$else}
-    movq syscall_nr_pipe, %rdi
-    call __pipe_call
-    movl %eax, a
-    movl %edx, b
-  {$endif}
-  end;
+function __pipe_call(sysnr:TSysParam):TSysResult; {$ifdef cpui386}oldfpccall{$endif} external name 'FPC_DOSYS0';
 
-  fpPipe := a; // eax is in a, no matter if it worked or not
-  fildes[0] := a;
-  fildes[1] := b;
-end;
+  {$if (defined (dragonfly) and (defined(CPUi386) or defined(CPUX86_64))}
+    {$define PIPE_RESULT_IN_EAX_AND_EDX}
+  {$endif}
+  Function FPpipe(var fildes : tfildes):cint;
+  {$ifndef PIPE_RESULT_IN_EAX_AND_EDX}
+  begin
+    fppipe:=do_syscall(syscall_nr_pipe,TSysParam(@fildes));
+  end;
+  {$else}
+  var
+    a, b: cInt;
+  begin
+    asm
+    {$ifdef CPUi386}
+      pushl syscall_nr_pipe
+      call __pipe_call
+      movl %eax, a
+      movl %edx, b
+    {$else}
+      movq syscall_nr_pipe, %rdi
+      call __pipe_call
+      movl %eax, a
+      movl %edx, b
+    {$endif}
+    end;
+
+    fpPipe := a; // eax is in a, no matter if it worked or not
+    fildes[0] := a;
+    fildes[1] := b;
+  end;
+  {$endif}
 {$endif}
 
 function FPfcntl(fildes:cint;Cmd:cint;Arg:cint):cint;
@@ -498,8 +506,15 @@ Function fpLstat(path:pchar;Info:pstat):cint;
   Get all information on a link (the link itself), and return it in info.
 }
 
+const
+  AT_FDCWD=-100;
+  AT_SYMLINK_NOFOLLOW=$0200;
 begin
- fpLStat:=do_syscall(syscall_nr_lstat,TSysParam(path),TSysParam(info));
+{$ifdef freebsd}
+  fpLStat:=do_syscall(syscall_nr_fstatat,AT_FDCWD,TSysParam(path),TSysParam(Info),AT_SYMLINK_NOFOLLOW);
+{$else}
+  fpLStat:=do_syscall(syscall_nr_lstat,TSysParam(path),TSysParam(info));
+{$endif}
 end;
 
 function fpNice(N:cint):cint;

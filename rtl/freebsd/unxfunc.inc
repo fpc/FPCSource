@@ -49,8 +49,9 @@ Function AssignPipe(var pipe_in,pipe_out:cint):cint; [public, alias : 'FPC_SYSC_
 }
 var
   pip  : tfildes;
+  flags : cint;
 begin
-  assignPipe:=fppipe(pip);
+  assignPipe:=fppipe(pip, 0);
   pipe_in:=pip[0];
   pipe_out:=pip[1];
 end;
