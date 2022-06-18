@@ -1260,7 +1260,12 @@ type
     dli_saddr      : pointer;
   end;
 
+// *BSD isn't flagged for "weak"  support in 3.2.2
+{$if defined(BSD) and defined (VER3_2)}
+  function _dladdr(Lib:pointer; info: Pdl_info): Longint; cdecl; external LibDL name 'dladdr';
+{$else}
   function _dladdr(Lib:pointer; info: Pdl_info): Longint; cdecl; weakexternal LibDL name 'dladdr';
+{$endif}
 {$elseif defined(MSWINDOWS)}
   function _GetModuleFileNameA(hModule:HModule;lpFilename:PAnsiChar;nSize:cardinal):cardinal;stdcall; external 'kernel32' name 'GetModuleFileNameA';
 {$endif}
