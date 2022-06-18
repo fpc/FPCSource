@@ -2443,8 +2443,7 @@ const
        );
        { optimizer }
        optimizerswitchname : array[toptimizerswitch] of string[50] =
-        ('cs_opt_none',
-         'cs_opt_level1',
+        ('cs_opt_level1',
          'cs_opt_level2',
          'cs_opt_level3',
          'cs_opt_level4',
