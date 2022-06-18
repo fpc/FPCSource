@@ -197,6 +197,7 @@ Type
     Procedure ParseSimpleReadonlyStringifierAttribute;
     Procedure ParseComplexReadonlyStaticAttribute;
     Procedure ParseSimpleAttributeRequired;
+    Procedure ParseSimpleAttributeInterface;
     Procedure ParseIdentifierAttribute;
     Procedure Parse2IdentifierAttributes;
   end;
@@ -719,6 +720,11 @@ end;
 procedure TTestAttributeInterfaceParser.ParseSimpleAttributeRequired;
 begin
   ParseAttribute('attribute boolean required','required','boolean',[]);
+end;
+
+procedure TTestAttributeInterfaceParser.ParseSimpleAttributeInterface;
+begin
+  ParseAttribute('attribute boolean interface','interface','boolean',[]);
 end;
 
 procedure TTestAttributeInterfaceParser.ParseIdentifierAttribute;
