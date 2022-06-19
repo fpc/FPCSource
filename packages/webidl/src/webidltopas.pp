@@ -2,7 +2,7 @@
     This file is part of the Free Component Library
 
     WEBIDL to pascal code converter
-    Copyright (c) 2018 by Michael Van Canneyt michael@freepascal.org
+    Copyright (c) 2012 by Michael Van Canneyt michael@freepascal.org
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -35,17 +35,21 @@ Type
     Property PasName : String read FPasName;
   end;
 
-  TConversionOption = (
-    coDictionaryAsClass,
-    coUseNativeTypeAliases,
-    coExternalConst,
+  TBaseConversionOption = (
     coExpandUnionTypeArgs,
     coAddOptionsToHeader
     );
-  TConversionOptions = Set of TConversionOption;
+  TBaseConversionOptions = Set of TBaseConversionOption;
+const
+  BaseConversionOptionName: array[TBaseConversionOption] of string = (
+    'ExpandUnionTypeArgs',
+    'AddOptionsToHeader'
+    );
 
+type
   TBaseWebIDLToPas = Class(TPascalCodeGenerator)
   private
+    FBaseOptions: TBaseConversionOptions;
     FClassPrefix: String;
     FClassSuffix: String;
     FContext: TWebIDLContext;
@@ -54,7 +58,6 @@ Type
     FIncludeImplementationCode: TStrings;
     FIncludeInterfaceCode: TStrings;
     FInputFileName: String;
-    FOptions: TConversionOptions;
     FOutputFileName: String;
     FTypeAliases: TStrings;
     FVerbose: Boolean;
@@ -69,65 +72,64 @@ Type
     Procedure Parse; virtual;
     Procedure WritePascal; virtual;
     function CreateParser(aContext: TWebIDLContext; S: TWebIDLScanner): TWebIDLParser; virtual;
-    function CreateScanner(S: TStream): TWebIDLScanner;virtual;
+    function CreateScanner(S: TStream): TWebIDLScanner; virtual;
     Function CreateContext : TWebIDLContext; virtual;
     Function BaseUnits : String; override;
     // Auxiliary routines
-    procedure Getoptions(L: TStrings); virtual;
+    procedure GetOptions(L: TStrings; Full: boolean); virtual;
     procedure ProcessDefinitions; virtual;
-    function CreatePasName(aName: String): TPasData;virtual;
-    procedure AllocatePasNames(aList: TIDLDefinitionList; ParentName: String='');virtual;
-    Function AllocatePasName(D: TIDLDefinition; ParentName: String='') : TPasData;virtual;
-    procedure EnsureUniqueNames(ML: TIDLDefinitionList);virtual;
-    function WriteFunctionImplicitTypes(aList: TIDLDefinitionList): Integer;virtual;
-    function WriteAttributeImplicitTypes(aList: TIDLDefinitionList): Integer;virtual;
-    function WriteDictionaryMemberImplicitTypes(aList: TIDLDefinitionList): Integer;virtual;
+    function CreatePasName(aName: String): TPasData; virtual;
+    procedure AllocatePasNames(aList: TIDLDefinitionList; ParentName: String=''); virtual;
+    Function AllocatePasName(D: TIDLDefinition; ParentName: String=''): TPasData; virtual;
+    procedure EnsureUniqueNames(ML: TIDLDefinitionList); virtual;
+    function WriteFunctionImplicitTypes(aList: TIDLDefinitionList): Integer; virtual;
+    function WriteAttributeImplicitTypes(aList: TIDLDefinitionList): Integer; virtual;
+    function WriteDictionaryMemberImplicitTypes(aList: TIDLDefinitionList): Integer; virtual;
     function AddSequenceDef(ST: TIDLSequenceTypeDefDefinition): Boolean; virtual;
-    function GetName(ADef: TIDLDefinition): String;virtual;
-    function GetTypeName(Const aTypeName: String; ForTypeDef: Boolean=False): String;virtual;
-    function GetTypeName(aTypeDef: TIDLTypeDefDefinition; ForTypeDef: Boolean=False): String;virtual;
-    function CheckUnionTypeDefinition(D: TIDLDefinition): TIDLUnionTypeDefDefinition;virtual;
-    procedure AddArgumentToOverloads(aList: TFPObjectlist; AName, ATypeName: String);virtual;
-    procedure AddUnionOverloads(aList: TFPObjectlist; AName: String;  UT: TIDLUnionTypeDefDefinition);virtual;
-    procedure AddArgumentToOverloads(aList: TFPObjectlist; adef: TIDLArgumentDefinition);virtual;
-    procedure AddOverloads(aList: TFPObjectlist; adef: TIDLFunctionDefinition; aIdx: Integer);virtual;
-    function CloneNonPartialArgumentList(aList: TFPObjectlist; ADest: TFPObjectlist= Nil; AsPartial: Boolean=True): integer;virtual;
-    function GetOverloads(aDef: TIDLFunctionDefinition): TFPObjectlist;virtual;
-    function GetArguments(aList: TIDLDefinitionList; ForceBrackets: Boolean): String;virtual;
-    function HaveConsts(aList: TIDLDefinitionList): Boolean;virtual;
-    // Actual code generation routines
-    // Lists. Return the number of actually written defs.
+    function GetName(ADef: TIDLDefinition): String; virtual;
+    function GetTypeName(Const aTypeName: String; ForTypeDef: Boolean=False): String; virtual;
+    function GetTypeName(aTypeDef: TIDLTypeDefDefinition; ForTypeDef: Boolean=False): String; virtual;
+    function CheckUnionTypeDefinition(D: TIDLDefinition): TIDLUnionTypeDefDefinition; virtual;
+    procedure AddArgumentToOverloads(aList: TFPObjectlist; AName, ATypeName: String); virtual;
+    procedure AddUnionOverloads(aList: TFPObjectlist; AName: String;  UT: TIDLUnionTypeDefDefinition); virtual;
+    procedure AddArgumentToOverloads(aList: TFPObjectlist; adef: TIDLArgumentDefinition); virtual;
+    procedure AddOverloads(aList: TFPObjectlist; adef: TIDLFunctionDefinition; aIdx: Integer); virtual;
+    function CloneNonPartialArgumentList(aList: TFPObjectlist; ADest: TFPObjectlist= Nil; AsPartial: Boolean=True): integer; virtual;
+    function GetOverloads(aDef: TIDLFunctionDefinition): TFPObjectlist; virtual;
+    function GetArguments(aList: TIDLDefinitionList; ForceBrackets: Boolean): String; virtual;
+    function HaveConsts(aList: TIDLDefinitionList): Boolean; virtual;
+    // Code generation routines. Return the number of actually written defs.
     function WriteCallBackDefs(aList: TIDLDefinitionList): Integer; virtual;
-    Function WriteDictionaryDefs(aList: TIDLDefinitionList) : Integer;virtual;
-    Function WriteForwardClassDefs(aList: TIDLDefinitionList) : Integer;virtual;
-    Function WriteInterfaceDefs(aList: TIDLDefinitionList) : Integer;virtual;
-    Function WriteMethodDefs(aList: TIDLDefinitionList) : Integer;virtual;
-    Function WriteTypeDefs(aList: TIDLDefinitionList) : Integer;virtual;
-    Function WriteEnumDefs(aList: TIDLDefinitionList) : Integer;virtual;
-    function WriteConsts(aList: TIDLDefinitionList): Integer;virtual;
+    function WriteDictionaryDefs(aList: TIDLDefinitionList) : Integer; virtual;
+    function WriteForwardClassDefs(aList: TIDLDefinitionList) : Integer; virtual;
+    function WriteInterfaceDefs(aList: TIDLDefinitionList) : Integer; virtual;
+    function WriteMethodDefs(aList: TIDLDefinitionList) : Integer; virtual;
+    function WriteTypeDefs(aList: TIDLDefinitionList) : Integer; virtual;
+    function WriteEnumDefs(aList: TIDLDefinitionList) : Integer; virtual;
+    function WriteConsts(aList: TIDLDefinitionList): Integer; virtual;
     function WriteProperties(aList: TIDLDefinitionList): Integer;
-    function WritePlainFields(aList: TIDLDefinitionList): Integer;virtual;
-    function WriteDictionaryFields(aList: TIDLDefinitionList): Integer;virtual;
-    function WritePrivateReadOnlyFields(aList: TIDLDefinitionList): Integer;virtual;
-    // Actual definitions. Return true if a definition was written.
-    Function WriteForwardClassDef(D: TIDLStructuredDefinition) : Boolean;virtual;
-    function WriteFunctionTypeDefinition(aDef: TIDLFunctionDefinition): Boolean;virtual;
-    function WriteFunctionDefinition(aDef: TIDLFunctionDefinition): Boolean;virtual;
+    function WritePlainFields(aList: TIDLDefinitionList): Integer; virtual;
+    function WriteDictionaryFields(aList: TIDLDefinitionList): Integer; virtual;
+    function WritePrivateReadOnlyFields(aList: TIDLDefinitionList): Integer; virtual;
+    // Definitions. Return true if a definition was written.
+    function WriteForwardClassDef(D: TIDLStructuredDefinition) : Boolean; virtual;
+    function WriteFunctionTypeDefinition(aDef: TIDLFunctionDefinition): Boolean; virtual;
+    function WriteFunctionDefinition(aDef: TIDLFunctionDefinition): Boolean; virtual;
     function WriteTypeDef(aDef: TIDLTypeDefDefinition): Boolean; virtual;
     function WriteRecordDef(aDef: TIDLRecordDefinition): Boolean; virtual;
     function WriteEnumDef(aDef: TIDLEnumDefinition): Boolean; virtual;
-    function WriteDictionaryField(aField: TIDLDictionaryMemberDefinition): Boolean;virtual;
-    Function WritePrivateReadOnlyField(aAttr: TIDLAttributeDefinition) : Boolean;virtual;
-    Function WriteField(aAttr: TIDLAttributeDefinition) : Boolean;virtual;
-    Function WriteReadonlyProperty(aAttr: TIDLAttributeDefinition) : Boolean;virtual;
-    Function WriteConst(aConst: TIDLConstDefinition) : Boolean ;virtual;
+    function WriteDictionaryField(aField: TIDLDictionaryMemberDefinition): Boolean; virtual;
+    function WritePrivateReadOnlyField(aAttr: TIDLAttributeDefinition) : Boolean; virtual;
+    function WriteField(aAttr: TIDLAttributeDefinition) : Boolean; virtual;
+    function WriteReadonlyProperty(aAttr: TIDLAttributeDefinition) : Boolean; virtual;
+    function WriteConst(aConst: TIDLConstDefinition) : Boolean ; virtual;
     function WriteInterfaceDef(Intf: TIDLInterfaceDefinition): Boolean; virtual;
     function WriteDictionaryDef(aDict: TIDLDictionaryDefinition): Boolean; virtual;
     // Additional
-    procedure WriteAliasTypeDef(aDef: TIDLTypeDefDefinition);virtual;
-    procedure WritePromiseDef(aDef: TIDLPromiseTypeDefDefinition);virtual;
-    procedure WriteSequenceDef(aDef: TIDLSequenceTypeDefDefinition);virtual;
-    procedure WriteUnionDef(aDef: TIDLUnionTypeDefDefinition);virtual;
+    procedure WriteAliasTypeDef(aDef: TIDLTypeDefDefinition); virtual;
+    procedure WritePromiseDef(aDef: TIDLPromiseTypeDefDefinition); virtual;
+    procedure WriteSequenceDef(aDef: TIDLSequenceTypeDefDefinition); virtual;
+    procedure WriteUnionDef(aDef: TIDLUnionTypeDefDefinition); virtual;
     // Extra interface/Implementation code.
     procedure WriteImplementation; virtual;
     procedure WriteIncludeInterfaceCode; virtual;
@@ -144,17 +146,49 @@ Type
     Property FieldPrefix : String Read FFieldPrefix Write FFieldPrefix;
     Property ClassPrefix : String Read FClassPrefix Write FClassPrefix;
     Property ClassSuffix : String Read FClassSuffix Write FClassSuffix;
-    Property Options : TConversionOptions Read FOptions Write FOptions;
     Property WebIDLVersion : TWebIDLVersion Read FWebIDLVersion Write FWebIDLVersion;
     Property TypeAliases : TStrings Read FTypeAliases Write SetTypeAliases;
     Property IncludeInterfaceCode : TStrings Read FIncludeInterfaceCode Write SetIncludeInterfaceCode;
     Property IncludeImplementationCode : TStrings Read FIncludeImplementationCode Write SetIncludeImplementationCode;
     Property DictionaryClassParent : String Read FDictionaryClassParent Write FDictionaryClassParent;
+    Property BaseOptions: TBaseConversionOptions read FBaseOptions write FBaseOptions;
   end;
+
+type
+  TPas2jsConversionOption = (
+    p2jcoDictionaryAsClass,
+    p2jcoUseNativeTypeAliases,
+    p2jcoExternalConst
+    );
+  TPas2jsConversionOptions = Set of TPas2jsConversionOption;
+const
+  Pas2jsConversionOptionNames: array[TPas2jsConversionOption] of string = (
+    'DictionaryAsClass',
+    'UseNativeTypeAliases',
+    'ExternalConst'
+    );
+
+type
 
   { TWebIDLToPas2js }
 
   TWebIDLToPas2js = class(TBaseWebIDLToPas)
+  Private
+    FPas2jsOptions: TPas2jsConversionOptions;
+  Protected
+    // Auxiliary routines
+    function AllocatePasName(D: TIDLDefinition; ParentName: String=''): TPasData; override;
+    function GetTypeName(const aTypeName: String; ForTypeDef: Boolean=False
+      ): String; override;
+    // Code generation routines. Return the number of actually written defs.
+    function WriteForwardClassDefs(aList: TIDLDefinitionList): Integer;
+      override;
+    // Definitions. Return true if a definition was written.
+    function WriteConst(aConst: TIDLConstDefinition): Boolean; override;
+    function WriteDictionaryDef(aDict: TIDLDictionaryDefinition): Boolean;
+      override;
+  Public
+    Property Pas2jsOptions : TPas2jsConversionOptions Read FPas2jsOptions Write FPas2jsOptions;
   Published
     Property InputFileName;
     Property OutputFileName;
@@ -162,13 +196,14 @@ Type
     Property FieldPrefix;
     Property ClassPrefix;
     Property ClassSuffix;
-    Property Options;
     Property WebIDLVersion;
     Property TypeAliases;
     Property IncludeInterfaceCode;
     Property IncludeImplementationCode;
     Property DictionaryClassParent;
   end;
+
+type
 
   { TWebIDLToPasWasmJob }
 
@@ -180,7 +215,6 @@ Type
     Property FieldPrefix;
     Property ClassPrefix;
     Property ClassSuffix;
-    Property Options;
     Property WebIDLVersion;
     Property TypeAliases;
     Property IncludeInterfaceCode;
@@ -188,9 +222,221 @@ Type
     Property DictionaryClassParent;
   end;
 
+function BaseConversionOptionsToStr(Opts: TBaseConversionOptions): string;
+function Pas2jsConversionOptionsToStr(Opts: TPas2jsConversionOptions): string;
+
 implementation
 
 uses typinfo;
+
+function BaseConversionOptionsToStr(Opts: TBaseConversionOptions): string;
+var
+  o: TBaseConversionOption;
+begin
+  Result:='';
+  for o in Opts do
+    begin
+    if Result<>'' then Result:=Result+',';
+    Result:=Result+BaseConversionOptionName[o];
+    end;
+  Result:='['+Result+']';
+end;
+
+function Pas2jsConversionOptionsToStr(Opts: TPas2jsConversionOptions): string;
+var
+  o: TPas2jsConversionOption;
+begin
+  Result:='';
+  for o in Opts do
+    begin
+    if Result<>'' then Result:=Result+',';
+    Result:=Result+Pas2jsConversionOptionNames[o];
+    end;
+  Result:='['+Result+']';
+end;
+
+{ TWebIDLToPas2js }
+
+function TWebIDLToPas2js.AllocatePasName(D: TIDLDefinition; ParentName: String
+  ): TPasData;
+
+Var
+  CN : String;
+
+begin
+  if D Is TIDLInterfaceDefinition then
+    begin
+    CN:=ClassPrefix+D.Name+ClassSuffix;
+    Result:=CreatePasname(CN);
+    D.Data:=Result;
+    AllocatePasNames((D as TIDLInterfaceDefinition).members,D.Name);
+    end
+  else if D Is TIDLDictionaryDefinition then
+    begin
+    CN:=D.Name;
+    if p2jcoDictionaryAsClass in Pas2jsOptions then
+      CN:=ClassPrefix+CN+ClassSuffix;
+    Result:=CreatePasname(EscapeKeyWord(CN));
+    D.Data:=Result;
+    AllocatePasNames((D as TIDLDictionaryDefinition).members,D.Name);
+    end
+  else
+    begin
+    Result:=CreatePasName(D.Name);
+    D.Data:=Result;
+    if D Is TIDLFunctionDefinition then
+      AllocatePasNames((D as TIDLFunctionDefinition).Arguments,D.Name);
+    end;
+  if Verbose and (TPasData(D.Data).PasName<>D.Name) then
+    begin
+    if (ParentName<>'') then
+      ParentName:=ParentName+'.';
+    DoLog('Renamed %s to %s',[ParentName+D.Name,TPasData(D.Data).PasName]);
+    end;
+end;
+
+function TWebIDLToPas2js.GetTypeName(const aTypeName: String;
+  ForTypeDef: Boolean): String;
+
+  Function UsePascalType(Const aPascalType : string) : String;
+
+  begin
+    if (p2jcoUseNativeTypeAliases in Pas2jsOptions) and ForTypeDef then
+      Result:=StringReplace(aTypeName,' ','',[rfReplaceAll])
+    else
+      Result:=aPascalType;
+  end;
+
+Var
+  A,TN : UTF8String;
+  D : TIDLDefinition;
+
+begin
+  Case aTypeName of
+    'union': TN:='JSValue';
+    'short': TN:=UsePascalType('Integer');
+    'long': TN:=UsePascalType('Integer');
+    'long long': TN:=UsePascalType('NativeInt');
+    'unsigned short': TN:=UsePascalType('Cardinal');
+    'unrestricted float': TN:=UsePascalType('Double');
+    'unrestricted double': TN:=UsePascalType('Double');
+    'unsigned long': TN:=UsePascalType('NativeInt');
+    'unsigned long long': TN:=UsePascalType('NativeInt');
+    'octet': TN:=UsePascalType('Byte');
+    'any' : TN:=UsePascalType('JSValue');
+    'float' : TN:=UsePascalType('Double');
+    'double' : TN:=UsePascalType('Double');
+    'DOMString',
+    'USVString',
+    'ByteString' : TN:=UsePascalType('String');
+    'object' : TN:=UsePascalType('TJSObject');
+    'Error' : TN:=UsePascalType('TJSError');
+    'DOMException' : TN:=UsePascalType('TJSError');
+    'ArrayBuffer',
+    'DataView',
+    'Int8Array',
+    'Int16Array',
+    'Int32Array',
+    'Uint8Array',
+    'Uint16Array',
+    'Uint32Array',
+    'Uint8ClampedArray',
+    'Float32Array',
+    'Float64Array' : TN:='TJS'+aTypeName;
+  else
+    TN:=aTypeName;
+    D:=FContext.FindDefinition(TN);
+    if D<>Nil then
+      TN:=GetName(D)
+    else
+      begin
+      A:=FTypeAliases.Values[TN];
+      If (A<>'') then
+        TN:=A;
+      end;
+  end;
+  Result:=TN;
+end;
+
+function TWebIDLToPas2js.WriteForwardClassDefs(aList: TIDLDefinitionList
+  ): Integer;
+
+Var
+  D : TIDLDefinition;
+
+begin
+  Result:=0;
+  Comment('Forward class definitions');
+  For D in aList do
+    if D is TIDLInterfaceDefinition then
+      if WriteForwardClassDef(D as TIDLInterfaceDefinition) then
+        Inc(Result);
+  if p2jcoDictionaryAsClass in Pas2jsOptions then
+    For D in aList do
+      if D is TIDLDictionaryDefinition then
+        if WriteForwardClassDef(D as TIDLDictionaryDefinition) then
+          Inc(Result);
+end;
+
+function TWebIDLToPas2js.WriteConst(aConst: TIDLConstDefinition): Boolean;
+
+Const
+  ConstTypes : Array[TConstType] of String =
+     ('Double','NativeInt','Boolean','JSValue','JSValue','JSValue','JSValue','String','JSValue','JSValue');
+Var
+  S : String;
+
+begin
+  Result:=True;
+  // Consts cannot be strings
+  if p2jcoExternalConst in Pas2jsOptions then
+    begin
+    S:=ConstTypes[aConst.ConstType];
+    Addln('%s : %s;',[GetName(aConst),S])
+    end
+  else
+    begin
+    S:=aConst.Value;
+    if aConst.ConstType=ctInteger then
+      S:=StringReplace(S,'0x','$',[]);
+    Addln('%s = %s;',[GetName(aConst),S])
+    end;
+end;
+
+function TWebIDLToPas2js.WriteDictionaryDef(aDict: TIDLDictionaryDefinition
+  ): Boolean;
+
+Var
+  CurClassName,CurParent : String;
+  DefList : TIDLDefinitionList;
+  CurDefs: TIDLDictionaryDefinition;
+
+begin
+  Result:=True;
+  DefList:=TIDLDefinitionList.Create(Nil,False);
+  try
+    CurDefs:=aDict;
+    While CurDefs<>Nil do
+      begin
+      CurDefs.GetFullMemberList(DefList);
+      CurDefs:=CurDefs.ParentDictionary;
+      end;
+    CurClassName:=GetName(aDict);
+    CurParent:=DictionaryClassParent;
+    if CurParent='' then
+      CurParent:='TJSObject';
+    ClassHeader(CurClassName);
+    WriteDictionaryMemberImplicitTypes(DefList);
+    if (p2jcoDictionaryAsClass in Pas2jsOptions) then
+      Addln('%s = class(%s)',[CurClassName,CurParent])
+    else
+      Addln('%s = record',[CurClassName]);
+    WriteDictionaryFields(DefList);
+    AddLn('end;');
+  finally
+    DefList.Free;
+  end;
+end;
 
 { TPasData }
 
@@ -292,28 +538,8 @@ begin
 end;
 
 function TBaseWebIDLToPas.WriteConst(aConst: TIDLConstDefinition): Boolean;
-
-Const
-  ConstTypes : Array[TConstType] of String =
-     ('Double','NativeInt','Boolean','JSValue','JSValue','JSValue','JSValue','String','JSValue','JSValue');
-Var
-  S : String;
-
 begin
-  Result:=True;
-  // Consts cannot be strings
-  if coExternalConst in Options then
-    begin
-    S:=ConstTypes[aConst.ConstType];
-    Addln('%s : %s;',[GetName(aConst),S])
-    end
-  else
-    begin
-    S:=aConst.Value;
-    if aConst.ConstType=ctInteger then
-      S:=StringReplace(S,'0x','$',[]);
-    Addln('%s = %s;',[GetName(aConst),S])
-    end;
+  Result:=aConst<>nil;
 end;
 
 function TBaseWebIDLToPas.WriteConsts(aList: TIDLDefinitionList): Integer;
@@ -601,37 +827,8 @@ end;
 
 function TBaseWebIDLToPas.WriteDictionaryDef(aDict: TIDLDictionaryDefinition
   ): Boolean;
-
-Var
-  CN,CP : String;
-  ML : TIDLDefinitionList;
-  PD: TIDLDictionaryDefinition;
-
 begin
-  Result:=True;
-  ML:=TIDLDefinitionList.Create(Nil,False);
-  try
-    PD:=aDict;
-    While PD<>Nil do
-      begin
-      PD.GetFullMemberList(ML);
-      PD:=PD.ParentDictionary;
-      end;
-    CN:=GetName(aDict);
-    CP:=DictionaryClassParent;
-    if CP='' then
-      CP:='TJSObject';
-    ClassHeader(CN);
-    WriteDictionaryMemberImplicitTypes(ML);
-    if (coDictionaryAsClass in Options) then
-      Addln('%s = class(%s)',[CN,CP])
-    else
-      Addln('%s = record',[CN]);
-    WriteDictionaryFields(ML);
-    AddLn('end;');
-  finally
-    ML.Free;
-  end;
+  Result:=aDict<>nil;
 end;
 
 constructor TBaseWebIDLToPas.Create(Aowner: TComponent);
@@ -691,66 +888,9 @@ end;
 
 function TBaseWebIDLToPas.GetTypeName(const aTypeName: String; ForTypeDef: Boolean
   ): String;
-
-
-  Function UsePascalType(Const aPascalType : string) : String;
-
-  begin
-    if (coUseNativeTypeAliases in Options) and ForTypeDef then
-      Result:=StringReplace(aTypeName,' ','',[rfReplaceAll])
-    else
-      Result:=aPascalType;
-  end;
-
-Var
-  A,TN : UTF8String;
-  D : TIDLDefinition;
-
 begin
-  Case aTypeName of
-    'union': TN:='JSValue';
-    'short': TN:=UsePascalType('Integer');
-    'long': TN:=UsePascalType('Integer');
-    'long long': TN:=UsePascalType('NativeInt');
-    'unsigned short': TN:=UsePascalType('Cardinal');
-    'unrestricted float': TN:=UsePascalType('Double');
-    'unrestricted double': TN:=UsePascalType('Double');
-    'unsigned long': TN:=UsePascalType('NativeInt');
-    'unsigned long long': TN:=UsePascalType('NativeInt');
-    'octet': TN:=UsePascalType('Byte');
-    'any' : TN:=UsePascalType('JSValue');
-    'float' : TN:=UsePascalType('Double');
-    'double' : TN:=UsePascalType('Double');
-    'DOMString',
-    'USVString',
-    'ByteString' : TN:=UsePascalType('String');
-    'object' : TN:=UsePascalType('TJSObject');
-    'Error' : TN:=UsePascalType('TJSError');
-    'DOMException' : TN:=UsePascalType('TJSError');
-    'ArrayBuffer',
-    'DataView',
-    'Int8Array',
-    'Int16Array',
-    'Int32Array',
-    'Uint8Array',
-    'Uint16Array',
-    'Uint32Array',
-    'Uint8ClampedArray',
-    'Float32Array',
-    'Float64Array' : TN:='TJS'+aTypeName;
-  else
-    TN:=aTypeName;
-    D:=FContext.FindDefinition(TN);
-    if D<>Nil then
-      TN:=GetName(D)
-    else
-      begin
-      A:=FTypeAliases.Values[TN];
-      If (A<>'') then
-        TN:=A;
-      end;
-  end;
-  Result:=TN;
+  Result:=aTypeName;
+  if ForTypeDef then ;
 end;
 
 function TBaseWebIDLToPas.WritePrivateReadOnlyField(aAttr: TIDLAttributeDefinition
@@ -811,22 +951,9 @@ begin
 end;
 
 function TBaseWebIDLToPas.WriteForwardClassDefs(aList: TIDLDefinitionList): Integer;
-
-Var
-  D : TIDLDefinition;
-
 begin
   Result:=0;
-  Comment('Forward class definitions');
-  For D in aList do
-    if D is TIDLInterfaceDefinition then
-      if WriteForwardClassDef(D as TIDLInterfaceDefinition) then
-        Inc(Result);
-  if coDictionaryAsClass in Options then
-    For D in aList do
-      if D is TIDLDictionaryDefinition then
-        if WriteForwardClassDef(D as TIDLDictionaryDefinition) then
-          Inc(Result);
+  if aList=nil then ;
 end;
 
 procedure TBaseWebIDLToPas.WriteSequenceDef(aDef : TIDLSequenceTypeDefDefinition);
@@ -1131,7 +1258,7 @@ begin
   // Add current to list.
   D:=Arg.ArgumentType;
   UT:=Nil;
-  if coExpandUnionTypeArgs in Options then
+  if coExpandUnionTypeArgs in BaseOptions then
     UT:=CheckUnionTypeDefinition(D);
   if UT=Nil then
     AddArgumentToOverloads(aList,Arg)
@@ -1264,34 +1391,52 @@ begin
           Inc(Result);
 end;
 
-procedure TBaseWebIDLToPas.Getoptions(L : TStrings);
+procedure TBaseWebIDLToPas.GetOptions(L: TStrings; Full: boolean);
+
+  function CodeInfo(Src: TStrings): string;
+  begin
+    Result:='';
+    if Src.Count=0 then
+      exit;
+    Result:=Result+IntToStr(Src.Count)+' lines';
+  end;
 
 Var
   S : String;
   I : Integer;
 
 begin
-  L.Add('Automatically generated file by '+ClassName+' on '+FormatDateTime('yyyy-mm-dd hh:nn:ss',Now));
-  L.Add('');
   L.Add('Used command-line options : ');
   For I:=1 to ParamCount do
     L.Add(ParamStr(i));
   L.Add('');
-  L.Add('Command-line options translate to: ');
+  L.Add('Command-line options translated to: ');
   L.Add('');
-  S:=SetToString(PtypeInfo(TypeInfo(TConversionOptions)),Integer(OPtions),True);
-  L.Add('Options : '+S);
+  if Full then
+    begin
+    L.Add('Verbose : '+BoolToStr(Verbose,true));
+    L.Add('Converter : '+ClassName);
+    L.Add('InputFileName : '+InputFileName);
+    L.Add('OutputFileName : '+OutputFileName);
+    end;
+  L.Add('Options : '+BaseConversionOptionsToStr(BaseOptions));
   L.Add('Keyword prefix : '+KeywordPrefix);
   L.Add('Keyword suffix : '+KeywordSuffix);
   L.Add('Class prefix : '+ClassPrefix);
   L.Add('Class suffix : '+ClassSuffix);
   L.Add('Field prefix : '+FieldPrefix);
-  Str(WebIDLversion,S);
-  L.Add('WEBIDLversion : '+S);
+  Str(WebIDLVersion,S);
+  L.Add('WebIDL version : '+S);
   if TypeAliases.Count>0 then
     begin
     L.Add('Type aliases:');
     L.AddStrings(Self.TypeAliases);
+    end;
+  L.Add('Dictionary class parent : '+DictionaryClassParent);
+  if Full then
+    begin
+    L.Add('Include interface code : '+CodeInfo(IncludeInterfaceCode));
+    L.Add('Include implementation code : '+CodeInfo(IncludeImplementationCode));
     end;
 end;
 
@@ -1302,7 +1447,9 @@ Var
 begin
   L:=TStringList.Create;
   try
-    GetOptions(L);
+    L.Add('Automatically generated file by '+ClassName+' on '+FormatDateTime('yyyy-mm-dd hh:nn:ss',Now));
+    L.Add('');
+    GetOptions(L,false);
     Comment(L);
   finally
     L.Free;
@@ -1324,7 +1471,7 @@ procedure TBaseWebIDLToPas.WritePascal;
 begin
   CreateUnitClause;
   CreateHeader;
-  if coAddOptionsToHeader in Options then
+  if coAddOptionsToHeader in BaseOptions then
     AddOptionsToHeader;
   EnsureSection(csType);
   Indent;
@@ -1357,40 +1504,10 @@ begin
 end;
 
 function TBaseWebIDLToPas.AllocatePasName(D: TIDLDefinition; ParentName: String): TPasData;
-
-Var
-  CN : String;
-
 begin
-  if D Is TIDLInterfaceDefinition then
-    begin
-    CN:=ClassPrefix+D.Name+ClassSuffix;
-    Result:=CreatePasname(CN);
-    D.Data:=Result;
-    AllocatePasNames((D as TIDLInterfaceDefinition).members,D.Name);
-    end
-  else if D Is TIDLDictionaryDefinition then
-    begin
-    CN:=D.Name;
-    if coDictionaryAsClass in Options then
-      CN:=ClassPrefix+CN+ClassSuffix;
-    Result:=CreatePasname(EscapeKeyWord(CN));
-    D.Data:=Result;
-    AllocatePasNames((D as TIDLDictionaryDefinition).members,D.Name);
-    end
-  else
-    begin
-    Result:=CreatePasName(D.Name);
-    D.Data:=Result;
-    if D Is TIDLFunctionDefinition then
-      AllocatePasNames((D as TIDLFunctionDefinition).Arguments,D.Name);
-    end;
-  if Verbose and (TPasData(D.Data).PasName<>D.Name) then
-    begin
-    if (ParentName<>'') then
-      ParentName:=ParentName+'.';
-    DoLog('Renamed %s to %s',[ParentName+D.Name,TPasData(D.Data).PasName]);
-    end;
+  Result:=nil;
+  if D=nil then ;
+  if ParentName='' then ;
 end;
 
 procedure TBaseWebIDLToPas.SetTypeAliases(AValue: TStrings);
@@ -1453,35 +1570,18 @@ begin
 end;
 
 procedure TBaseWebIDLToPas.WriteOptions;
-
-  function CodeInfo(Src: TStrings): string;
-  begin
-    Result:='';
-    if Src.Count=0 then
-      exit;
-    Result:=Result+IntToStr(Src.Count)+' lines';
-  end;
-
 var
   i: Integer;
+  L: TStringList;
 begin
-  DoLog('Options of '+ClassName+':');
-  DoLog('Verbose='+BoolToStr(Verbose,true));
-  DoLog('InputFileName='+InputFileName);
-  DoLog('OutputFileName='+OutputFileName);
-  DoLog('WebIDLVersion='+GetEnumName(TypeInfo(TWebIDLVersion),ord(WebIDLVersion)));
-  DoLog('FieldPrefix='+FieldPrefix);
-  DoLog('ClassPrefix='+ClassPrefix);
-  DoLog('ClassSuffix='+ClassSuffix);
-  DoLog('DictionaryClassParent='+DictionaryClassParent);
-  if TypeAliases.Count>0 then
-    for i:=0 to TypeAliases.Count-1 do
-      DoLog('TypeAliases['+IntToStr(i)+']='+TypeAliases[i])
-  else
-    DoLog('TypeAliases=');
-  DoLog('IncludeInterfaceCode='+CodeInfo(IncludeInterfaceCode));
-  DoLog('IncludeImplementationCode='+CodeInfo(IncludeImplementationCode));
-  //Property Options : TConversionOptions Read FOptions Write FOptions;
+  L:=TStringList.Create;
+  try
+    GetOptions(L,true);
+    for i:=0 to L.Count-1 do
+      DoLog(L[i]);
+  finally
+    L.Free;
+  end;
 end;
 
 end.

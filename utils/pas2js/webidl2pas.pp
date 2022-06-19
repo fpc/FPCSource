@@ -2,7 +2,7 @@
     This file is part of the Free Component Library
 
     WEBIDL to pascal code converter program
-    Copyright (c) 2018 by Michael Van Canneyt michael@freepascal.org
+    Copyright (c) 2022 by Michael Van Canneyt michael@freepascal.org
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -38,7 +38,9 @@ type
   private
     FOutputFormat: TWebIDLToPasFormat;
     FWebIDLToPas: TBaseWebIDLToPas;
-    function Checkoption(Var O: TConversionOptions; C: TCOnversionOPtion;
+    function CheckBaseOption(C: TBaseConversionOption;
+      const AShort: Char; const aLong: String): Boolean;
+    function CheckPas2jsOption(C: TPas2jsConversionOption;
       const AShort: Char; const aLong: String): Boolean;
     procedure DoConvertLog(Sender: TObject; {%H-}LogType: TCodegenLogType; const Msg: String);
     function GetInputFileName: String;
@@ -102,13 +104,22 @@ begin
   FWebIDLToPas.OutputUnitName:=aValue;
 end;
 
-function TWebIDLToPasApplication.Checkoption(var O: TConversionOptions;
-  C: TCOnversionOPtion; const AShort: Char; const aLong: String): Boolean;
-
+function TWebIDLToPasApplication.CheckBaseOption(C: TBaseConversionOption;
+  const AShort: Char; const aLong: String): Boolean;
 begin
   Result:=HasOption(aShort,ALong);
   if Result then
-    Include(O,C);
+    FWebIDLToPas.BaseOptions:=FWebIDLToPas.BaseOptions+[C];
+end;
+
+function TWebIDLToPasApplication.CheckPas2jsOption(C: TPas2jsConversionOption;
+  const AShort: Char; const aLong: String): Boolean;
+
+begin
+  if not (FWebIDLToPas is TWebIDLToPas2js) then exit;
+  Result:=HasOption(aShort,ALong);
+  if Result then
+    TWebIDLToPas2js(FWebIDLToPas).Pas2jsOptions:=TWebIDLToPas2js(FWebIDLToPas).Pas2jsOptions+[C];
 end;
 
 procedure TWebIDLToPasApplication.DoRun;
@@ -121,7 +132,6 @@ procedure TWebIDLToPasApplication.DoRun;
 
 var
   A,ErrorMsg: String;
-  O : TConversionOptions;
   I : Integer;
   ok: Boolean;
   f: TWebIDLToPasFormat;
@@ -177,13 +187,12 @@ begin
   FWebIDLToPas.Verbose:=HasOption('v','verbose');
 
   // read other options
-  O:=[];
-  Checkoption(O,coExternalConst,'c','constexternal');
+  CheckPas2jsOption(p2jcoExternalConst,'c','constexternal');
 
-  if Checkoption(O,coDictionaryAsClass,'d','dicttoclass') then
-    FWebIDLToPas.DictionaryClassParent:=GetOptionValue('d','dicttoclass');
+  if CheckPas2jsOption(p2jcoDictionaryAsClass,'d','dicttoclass') then
+    TWebIDLToPas2js(FWebIDLToPas).DictionaryClassParent:=GetOptionValue('d','dicttoclass');
 
-  Checkoption(O,coExpandUnionTypeArgs,'e','expandunionargs');
+  CheckBaseOption(coExpandUnionTypeArgs,'e','expandunionargs');
 
   InputFileName:=GetOptionValue('i','input');
 
@@ -195,9 +204,8 @@ begin
 
   OutputFileName:=GetOptionValue('o','output');
 
-  CheckOption(O,coAddOptionsToHeader,'p','optionsinheader');
+  CheckBaseOption(coAddOptionsToHeader,'p','optionsinheader');
 
-  FWebIDLToPas.Options:=O;
   A:=GetOptionValue('t','typealiases');
   if (Copy(A,1,1)='@') then
     begin
