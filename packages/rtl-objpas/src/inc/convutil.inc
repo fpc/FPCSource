@@ -487,11 +487,14 @@ var
 
 begin
   //Apparently this procedure is not supposed to raise exceptions
-  TheFamilies[AFamily].Deleted:=True;
-  for i:=0 to Length(TheUnits)-1 do
+  if AFamily<Length(TheFamilies) then
   begin
-    if TheUnits[i].Fam=AFamily then
-      TheUnits[i].Deleted:=True;
+    TheFamilies[AFamily].Deleted:=True;
+    for i:=0 to Length(TheUnits)-1 do
+    begin
+      if TheUnits[i].Fam=AFamily then
+        TheUnits[i].Deleted:=True;
+    end;
   end;
 end;
 
