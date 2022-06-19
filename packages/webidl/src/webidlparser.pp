@@ -2,7 +2,7 @@
     This file is part of the Free Component Library
 
     WEBIDL source parser
-    Copyright (c) 2018 by Michael Van Canneyt michael@freepascal.org
+    Copyright (c) 2021 by Michael Van Canneyt michael@freepascal.org
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.

@@ -2,7 +2,7 @@
     This file is part of the Free Component Library
 
     WEBIDL to pascal code converter
-    Copyright (c) 2012 by Michael Van Canneyt michael@freepascal.org
+    Copyright (c) 2021 by Michael Van Canneyt michael@freepascal.org
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -316,55 +316,27 @@ function TWebIDLToPas2js.GetTypeName(const aTypeName: String;
       Result:=aPascalType;
   end;
 
-Var
-  A,TN : UTF8String;
-  D : TIDLDefinition;
-
 begin
   Case aTypeName of
-    'union': TN:='JSValue';
-    'short': TN:=UsePascalType('Integer');
-    'long': TN:=UsePascalType('Integer');
-    'long long': TN:=UsePascalType('NativeInt');
-    'unsigned short': TN:=UsePascalType('Cardinal');
-    'unrestricted float': TN:=UsePascalType('Double');
-    'unrestricted double': TN:=UsePascalType('Double');
-    'unsigned long': TN:=UsePascalType('NativeInt');
-    'unsigned long long': TN:=UsePascalType('NativeInt');
-    'octet': TN:=UsePascalType('Byte');
-    'any' : TN:=UsePascalType('JSValue');
-    'float' : TN:=UsePascalType('Double');
-    'double' : TN:=UsePascalType('Double');
+    'union': Result:='JSValue';
+    'short': Result:=UsePascalType('Integer');
+    'long': Result:=UsePascalType('Integer');
+    'long long': Result:=UsePascalType('NativeInt');
+    'unsigned short': Result:=UsePascalType('Cardinal');
+    'unrestricted float': Result:=UsePascalType('Double');
+    'unrestricted double': Result:=UsePascalType('Double');
+    'unsigned long': Result:=UsePascalType('NativeInt');
+    'unsigned long long': Result:=UsePascalType('NativeInt');
+    'octet': Result:=UsePascalType('Byte');
+    'any' : Result:=UsePascalType('JSValue');
+    'float' : Result:=UsePascalType('Double');
+    'double' : Result:=UsePascalType('Double');
     'DOMString',
     'USVString',
-    'ByteString' : TN:=UsePascalType('String');
-    'object' : TN:=UsePascalType('TJSObject');
-    'Error' : TN:=UsePascalType('TJSError');
-    'DOMException' : TN:=UsePascalType('TJSError');
-    'ArrayBuffer',
-    'DataView',
-    'Int8Array',
-    'Int16Array',
-    'Int32Array',
-    'Uint8Array',
-    'Uint16Array',
-    'Uint32Array',
-    'Uint8ClampedArray',
-    'Float32Array',
-    'Float64Array' : TN:='TJS'+aTypeName;
+    'ByteString' : Result:=UsePascalType('String');
   else
-    TN:=aTypeName;
-    D:=FContext.FindDefinition(TN);
-    if D<>Nil then
-      TN:=GetName(D)
-    else
-      begin
-      A:=FTypeAliases.Values[TN];
-      If (A<>'') then
-        TN:=A;
-      end;
+    Result:=inherited GetTypeName(aTypeName,ForTypeDef);
   end;
-  Result:=TN;
 end;
 
 function TWebIDLToPas2js.WriteForwardClassDefs(aList: TIDLDefinitionList
@@ -897,9 +869,63 @@ end;
 
 function TBaseWebIDLToPas.GetTypeName(const aTypeName: String; ForTypeDef: Boolean
   ): String;
+
+  function GetClassName(const aClassName: string): string;
+  begin
+    Result:=ClassPrefix+aClassName+ClassSuffix;
+  end;
+
+Var
+  A,TN : UTF8String;
+  D : TIDLDefinition;
+
 begin
-  Result:=aTypeName;
-  if ForTypeDef then ;
+  Case aTypeName of
+    'union': TN:='JSValue';
+    'short': TN:='SmallInt';
+    'long': TN:='Integer';
+    'long long': TN:='Int64';
+    'unsigned short': TN:='Word';
+    'unrestricted float': TN:='Single';
+    'unrestricted double': TN:='Double';
+    'unsigned long': TN:='LongWord';
+    'unsigned long long': TN:='QWord';
+    'octet': TN:='Byte';
+    'any' : TN:='JSValue';
+    'float' : TN:='Single';
+    'double' : TN:='Double';
+    'DOMString',
+    'USVString',
+    'ByteString' : TN:='UnicodeString';
+    'object' : TN:=GetClassName('Object');
+    'Error',
+    'DOMException' : TN:=GetClassName('Error');
+    'ArrayBuffer',
+    'DataView',
+    'Int8Array',
+    'Int16Array',
+    'Int32Array',
+    'Uint8Array',
+    'Uint16Array',
+    'Uint32Array',
+    'Uint8ClampedArray',
+    'Float32Array',
+    'Float64Array' : TN:=GetClassName(aTypeName);
+  else
+    if ForTypeDef then ;
+
+    TN:=aTypeName;
+    D:=FContext.FindDefinition(TN);
+    if D<>Nil then
+      TN:=GetName(D)
+    else
+      begin
+      A:=FTypeAliases.Values[TN];
+      If (A<>'') then
+        TN:=A;
+      end;
+  end;
+  Result:=TN;
 end;
 
 function TBaseWebIDLToPas.WritePrivateReadOnlyField(aAttr: TIDLAttributeDefinition
