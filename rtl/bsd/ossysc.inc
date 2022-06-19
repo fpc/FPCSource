@@ -138,12 +138,13 @@ begin
   Fprename:=do_syscall(syscall_nr_rename,TSysParam(old),TSysParam(newpath));
 end;
 
+{$ifdef freebsd}
 Function fpFstatat(fd: cint; path: pchar; var sb: stat; flag: cint):cint;
 
 begin
   fpFStatat:=do_syscall(syscall_nr_fstatat,fd,TSysParam(path),TSysParam(@sb),flag);
 end;
-
+{$endif}
 
 function Fpstat(const path: pchar; var buf : stat):cint; [public, alias : 'FPC_SYSC_STAT'];
 
