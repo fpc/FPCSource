@@ -1747,6 +1747,7 @@ end;
 destructor TWSServerConnection.Destroy;
 begin
   DisConnect;
+  FreeAndNil(FExtraHeaders);
   inherited;
 end;
 
