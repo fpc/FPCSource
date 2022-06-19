@@ -40,6 +40,7 @@ Type
     coAddOptionsToHeader
     );
   TBaseConversionOptions = Set of TBaseConversionOption;
+
 const
   BaseConversionOptionName: array[TBaseConversionOption] of string = (
     'ExpandUnionTypeArgs',
@@ -161,6 +162,7 @@ type
     p2jcoExternalConst
     );
   TPas2jsConversionOptions = Set of TPas2jsConversionOption;
+
 const
   Pas2jsConversionOptionNames: array[TPas2jsConversionOption] of string = (
     'DictionaryAsClass',
@@ -178,6 +180,7 @@ type
   Protected
     // Auxiliary routines
     function AllocatePasName(D: TIDLDefinition; ParentName: String=''): TPasData; override;
+    procedure GetOptions(L: TStrings; Full: boolean); override;
     function GetTypeName(const aTypeName: String; ForTypeDef: Boolean=False
       ): String; override;
     // Code generation routines. Return the number of actually written defs.
@@ -293,6 +296,12 @@ begin
       ParentName:=ParentName+'.';
     DoLog('Renamed %s to %s',[ParentName+D.Name,TPasData(D.Data).PasName]);
     end;
+end;
+
+procedure TWebIDLToPas2js.GetOptions(L: TStrings; Full: boolean);
+begin
+  inherited GetOptions(L, Full);
+  L.Add('Extended Options : '+Pas2jsConversionOptionsToStr(Pas2jsOptions));
 end;
 
 function TWebIDLToPas2js.GetTypeName(const aTypeName: String;
@@ -1419,7 +1428,6 @@ begin
     L.Add('InputFileName : '+InputFileName);
     L.Add('OutputFileName : '+OutputFileName);
     end;
-  L.Add('Options : '+BaseConversionOptionsToStr(BaseOptions));
   L.Add('Keyword prefix : '+KeywordPrefix);
   L.Add('Keyword suffix : '+KeywordSuffix);
   L.Add('Class prefix : '+ClassPrefix);
@@ -1438,6 +1446,7 @@ begin
     L.Add('Include interface code : '+CodeInfo(IncludeInterfaceCode));
     L.Add('Include implementation code : '+CodeInfo(IncludeImplementationCode));
     end;
+  L.Add('Base Options : '+BaseConversionOptionsToStr(BaseOptions));
 end;
 
 procedure TBaseWebIDLToPas.AddOptionsToHeader;
