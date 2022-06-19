@@ -122,7 +122,8 @@ end;
 
 procedure TWebsocketClientApplication.Usage(const aError : string);
 begin
-  { add your help code here }
+  if aError<>'' then
+    Writeln('Error : ',aError);
   writeln('Usage: ', ExeName, ' [options]');
   Writeln('where options is one or more of:');
   Writeln('-h  --help             this help text');
