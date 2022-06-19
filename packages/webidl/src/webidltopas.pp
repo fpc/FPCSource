@@ -726,6 +726,11 @@ Var
 begin
   Result:=True;
   N:=GetName(aAttr);
+  if aAttr.AttributeType=nil then
+    begin
+    AddLn('skipping field without type: "'+N+'"');
+    exit;
+    end;
   TN:=GetTypeName(aAttr.AttributeType);
   if TN='record' then
     TN:='TJSObject';
