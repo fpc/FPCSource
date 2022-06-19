@@ -14,6 +14,7 @@ Type
     FSrv : TWebSocketServer;
     FChat : TWebsocketChat;
     procedure DoChatLog(Sender: TObject; const Msg: String);
+    procedure Usage(const aError: string);
   Public
     constructor create(aOwner : TComponent); override;
     destructor destroy; override;
@@ -48,11 +49,40 @@ begin
 end;
 
 
+procedure TWSApp.Usage(const aError : string);
+
+begin
+  if aError<>'' then
+    Writeln('Error: ',aError);
+  Writeln('Usage ',ExtractFileName(Paramstr(0)), ' [options] ');
+  Writeln('Where options is one or more of:');
+  Writeln('-h --help             This help text');
+  Writeln('-p --port=PORT        Set port to listen on');
+  Writeln('-t --threadmode=MODE  Set the threading mode');
+  Writeln('                      MODE is one of:');
+  Writeln('                      * threaded');
+  Writeln('                      * none');
+  Writeln('                      * pool');
+  Writeln('-w --wait=TIME        Set wait time in milliseconds');
+  Writeln('-i --idle=TIME        Set idle time in milliseconds');
+  Writeln('-m --mask=MASK        Set outgoing frame mask (a 16-bit integer)');
+  ExitCode:=Ord(aError<>'');
+end;
+
 procedure TWSApp.DoRun;
 
 
+Var
+  S : String;
+
 begin
-  CheckOptions('p:t:ahw:i:m:',['port:','threadmode','accept-threaded','wait:','idle:','mask:']);
+  S:=CheckOptions('p:t:ahw:i:m:',['port:','threadmode','accept-threaded','help','wait:','idle:','mask:']);
+  if (S<>'') or HasOption('h','help') then
+    begin
+    Terminate;
+    Usage(S);
+    exit;
+    end;
   case GetOptionValue('t','threadmode') of
     'pool'   : FSrv.ThreadMode:=wtmThreadPool;
     'thread' : FSrv.ThreadMode:=wtmThread;
@@ -66,6 +96,7 @@ begin
     FSrv.MessageWaitTime:=StrToIntDef(GetOptionValue('w','wait'),DefaultWaitTime);
   if HasOption('i','idle') then
     FSrv.AcceptIdleTimeout:=StrToIntDef(GetOptionValue('i','idle'),DefaultAcceptTimeout);
+  FSrv.Port:=6060;
   FSrv.Active:=True;
   FSrv.OutgoingFrameMask:=StrToIntDef(GetOptionValue('m','mask'),0);
   if Not FSrv.ThreadedAccept then
