@@ -20,13 +20,25 @@ uses
   Classes, SysUtils, CustApp, webidlscanner, webidltopas, pascodegen, typinfo;
 
 type
+  TWebIDLToPasFormat = (
+    wifPas2js,
+    wifWasmJob
+    );
+const
+  WebIDLToPasFormatNames: array[TWebIDLToPasFormat] of string = (
+    'pas2js',
+    'wasmjob'
+    );
+
+type
 
   { TWebIDLToPasApplication }
 
   TWebIDLToPasApplication = class(TCustomApplication)
   private
-    FWebIDLToPas: TWebIDLToPas;
-    function Checkoption(Var O: TCOnversionOPtions; C: TCOnversionOPtion;
+    FOutputFormat: TWebIDLToPasFormat;
+    FWebIDLToPas: TBaseWebIDLToPas;
+    function Checkoption(Var O: TConversionOptions; C: TCOnversionOPtion;
       const AShort: Char; const aLong: String): Boolean;
     procedure DoConvertLog(Sender: TObject; {%H-}LogType: TCodegenLogType; const Msg: String);
     function GetInputFileName: String;
@@ -37,8 +49,9 @@ type
     procedure SetunitName(AValue: String);
   protected
     procedure DoRun; override;
+    procedure InitWebIDLToPas; virtual;
   Protected
-    Property WebIDLToPas : TWebIDLToPas Read FWebIDLToPas;
+    Property WebIDLToPas : TBaseWebIDLToPas Read FWebIDLToPas;
   public
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
@@ -46,6 +59,7 @@ type
     Property UnitName : String Read GetUnitName Write SetunitName;
     property InputFileName : String Read GetInputFileName Write SetinputFileName;
     property OutputFileName : String Read GetOutputFileName Write SetOutputFileName;
+    property OutputFormat: TWebIDLToPasFormat read FOutputFormat write FOutputFormat;
   end;
 
 { TWebIDLToPasApplication }
@@ -88,7 +102,8 @@ begin
   FWebIDLToPas.OutputUnitName:=aValue;
 end;
 
-Function TWebIDLToPasApplication.Checkoption(Var O : TCOnversionOPtions;C : TCOnversionOPtion; Const AShort : Char; Const aLong : String) : Boolean;
+function TWebIDLToPasApplication.Checkoption(var O: TConversionOptions;
+  C: TCOnversionOPtion; const AShort: Char; const aLong: String): Boolean;
 
 begin
   Result:=HasOption(aShort,ALong);
@@ -98,45 +113,91 @@ end;
 
 procedure TWebIDLToPasApplication.DoRun;
 
+  procedure E(const Msg: string);
+  begin
+    writeln('Error: ',Msg);
+    Halt(1);
+  end;
+
 var
   A,ErrorMsg: String;
   O : TConversionOptions;
   I : Integer;
+  ok: Boolean;
+  f: TWebIDLToPasFormat;
 
 begin
   Terminate;
   // quick check parameters
-  ErrorMsg:=CheckOptions('hi:o:u:m:n:vx:t:ced::pw:', ['help','input:','output:','unitname:','include:','implementation:','verbose','extra:','typealiases:','constexternal','expandunionargs','dicttoclass::','optionsinheader','webidlversion:']);
+  ErrorMsg:=CheckOptions('ced::hi:m:n:o:pt:u:vw:x:', [
+    'help',
+    'constexternal',
+    'dicttoclass::',
+    'expandunionargs',
+    'outputformat:',
+    'input:',
+    'implementation:',
+    'include:',
+    'output:',
+    'optionsinheader',
+    'typealiases:',
+    'unitname:',
+    'verbose',
+    'webidlversion:',
+    'extra:'
+    ]);
   if (ErrorMsg<>'') or HasOption('h','help') then
     begin
     WriteHelp(ErrorMsg);
-    Exit;
+    if ErrorMsg<>'' then
+      Halt(1)
+    else
+      Exit;
     end;
+
+  // first read outputformat and create FWebIDLToPas
+  if HasOption('f','outputformat') then
+    begin
+    A:=GetOptionValue('f','outputformat');
+    ok:=false;
+    for f in TWebIDLToPasFormat do
+      begin
+      if SameText(A,WebIDLToPasFormatNames[f]) then
+        begin
+        OutputFormat:=f;
+        ok:=true;
+        end;
+      end;
+    if not ok then
+      E('unknown outputformat "'+A+'"');
+    end;
+  InitWebIDLToPas;
+
+  // then set verbosity
+  FWebIDLToPas.Verbose:=HasOption('v','verbose');
+
+  // read other options
   O:=[];
   Checkoption(O,coExternalConst,'c','constexternal');
-  Checkoption(O,coExpandUnionTypeArgs,'e','expandunionargs');
-  CheckOption(O,coaddOptionsToheader,'p','optionsinheader');
+
   if Checkoption(O,coDictionaryAsClass,'d','dicttoclass') then
     FWebIDLToPas.DictionaryClassParent:=GetOptionValue('d','dicttoclass');
-  FWebIDLToPas.Options:=O;
+
+  Checkoption(O,coExpandUnionTypeArgs,'e','expandunionargs');
+
   InputFileName:=GetOptionValue('i','input');
-  OutputFileName:=GetOptionValue('o','output');
-  UnitName:=GetOptionValue('u','unitname');
-  FWebIDLToPas.Verbose:=HasOption('v','verbose');
-  if HasOption('w','webidlversion') then
-    begin
-    A:=GetOptionValue('w','webidlversion');
-    I:=GetEnumValue(TypeInfo(TWebIDLVersion),A);
-    if (I<>-1) then
-      FWebIDLToPas.WebIDLVersion:=TWebIDLVersion(I)
-    else
-      Raise EConvertError.CreateFmt('Invalid webidl version: %s',[A]);
-    end;
-  if HasOption('n','include') then
-    FWebIDLToPas.IncludeInterfaceCode.LoadFromFile(GetOptionValue('n','include'));
+
   if HasOption('m','implementation') then
     FWebIDLToPas.IncludeImplementationCode.LoadFromFile(GetOptionValue('m','implementation'));
-  FWebIDLToPas.ExtraUnits:=GetOPtionValue('x','extra');
+
+  if HasOption('n','include') then
+    FWebIDLToPas.IncludeInterfaceCode.LoadFromFile(GetOptionValue('n','include'));
+
+  OutputFileName:=GetOptionValue('o','output');
+
+  CheckOption(O,coAddOptionsToHeader,'p','optionsinheader');
+
+  FWebIDLToPas.Options:=O;
   A:=GetOptionValue('t','typealiases');
   if (Copy(A,1,1)='@') then
     begin
@@ -145,6 +206,8 @@ begin
     end
   else
     FWebIDLToPas.TypeAliases.CommaText:=A;
+
+  UnitName:=GetOptionValue('u','unitname');
   if UnitName='' then
     UnitName:=ChangeFileExt(ExtractFileName(InputFileName),'');
   if OutputFileName='' then
@@ -152,21 +215,43 @@ begin
     if (UnitName<>'') then
       OutputFileName:=ExtractFilePath(InputFileName)+UnitName+'.pas';
     end;
+
+  if HasOption('w','webidlversion') then
+    begin
+    A:=GetOptionValue('w','webidlversion');
+    I:=GetEnumValue(TypeInfo(TWebIDLVersion),A);
+    if (I<>-1) then
+      FWebIDLToPas.WebIDLVersion:=TWebIDLVersion(I)
+    else
+      E('Invalid webidl version: "'+A+'"');
+    end;
+
+  FWebIDLToPas.ExtraUnits:=GetOptionValue('x','extra');
+
   FWebIDLToPas.Execute;
   // stop program loop
   Terminate;
+end;
+
+procedure TWebIDLToPasApplication.InitWebIDLToPas;
+begin
+  case OutputFormat of
+  wifWasmJob:
+    FWebIDLToPas:=TWebIDLToPasWasmJob.Create(Self);
+  else
+    FWebIDLToPas:=TWebIDLToPas2js.Create(Self);
+  end;
+  FWebIDLToPas.OnLog:=@DoConvertLog;
+  FWebIDLToPas.ClassPrefix:='TJS';
+  FWebIDLToPas.ClassSuffix:='';
+  FWebIDLToPas.KeywordSuffix:='_';
+  FWebIDLToPas.KeywordPrefix:='';
 end;
 
 constructor TWebIDLToPasApplication.Create(TheOwner: TComponent);
 begin
   inherited Create(TheOwner);
   StopOnException:=True;
-  FWebIDLToPas:=TWebIDLToPas.Create(Self);
-  FWebIDLToPas.OnLog:=@DoConvertLog;
-  FWebIDLToPas.ClassPrefix:='TJS';
-  FWebIDLToPas.ClassSuffix:='';
-  FWebIDLToPas.KeywordSuffix:='_';
-  FWebIDLToPas.KeywordPrefix:='';
 end;
 
 destructor TWebIDLToPasApplication.Destroy;
@@ -184,8 +269,9 @@ begin
   Writeln(StdErr,'Where option is one or more of');
   Writeln(StdErr,'-h  --help                 this help text');
   Writeln(StdErr,'-c  --constexternal        Write consts as external const (no value)');
-  Writeln(StdErr,'-e  --expandunionargs      Add overloads for all Union typed function arguments');
   Writeln(StdErr,'-d  --dicttoclass[=Parent] Write dictionaries as classes');
+  Writeln(StdErr,'-e  --expandunionargs      Add overloads for all Union typed function arguments');
+  Writeln(StdErr,'-f  --outputformat=[pas2js|wasmjob] Output format, default ',WebIDLToPasFormatNames[OutputFormat]);
   Writeln(StdErr,'-i  --input=FileName       input webidl file');
   Writeln(StdErr,'-m  --implementation=Filename include file as implementation');
   Writeln(StdErr,'-n  --include=Filename     include file at end of interface');

@@ -1608,7 +1608,6 @@ begin
   Result:=Add(FDefinitions,aClass,AName);
 end;
 
-
 function TWebIDLContext.Add(aParent: TIDLBaseObject; aClass: TIDLDefinitionClass; const AName: UTF8String): TIDLDefinition;
 begin
   if Assigned(aParent) then
