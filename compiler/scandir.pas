@@ -1076,7 +1076,6 @@ unit scandir;
         current_scanner.skipspace;
         { Support also the ON and OFF as switch }
         hs:=current_scanner.readid;
-        writeln(hs);
         if (hs='ON') then
           current_settings.optimizerswitches:=level2optimizerswitches
         else if (hs='OFF') then
