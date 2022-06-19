@@ -188,7 +188,7 @@ const DIRBLKSIZ=1024;
 function FpGetdirentries(fd : cint; buf : pchar; nbytes : clong) : cint;
 
 begin
-  FpGetdirentries:=do_syscall(syscall_nr_getdirentries,fd,TSysParam(buf), nbytes);
+  FpGetdirentries:=do_syscall(syscall_nr_getdirentries,fd,TSysParam(buf),nbytes,TSysParam(0));
 end;
 {$endif}
 
