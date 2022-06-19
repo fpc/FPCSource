@@ -76,9 +76,18 @@ FreeBSD: same implementation as NetBSD.
 
 begin
   {$ifdef CPU64}
+    {$ifdef freebsd}
+    // newer style, no align zeroes in _syscall
     Fplseek:=do_syscall(syscall_nr___syscall,syscall_nr_lseek,TSysParam(fd),Offset,whence);
+    {$else}
+    Fplseek:=do_syscall(syscall_nr___syscall,syscall_nr_lseek,TSysParam(fd),0,Offset,whence);
+    {$endif}
   {$else}
+    {$ifdef freebsd}    
     Fplseek:=do_syscall(syscall_nr___syscall,syscall_nr_lseek,0,TSysParam(fd),
+    {$else}
+    Fplseek:=do_syscall(syscall_nr___syscall,syscall_nr_lseek,0,TSysParam(fd),0,
+    {$endif}
        {$ifdef ENDIAN_BIG}hi(offset),lo(offset){$endif}
        {$ifdef ENDIAN_LITTLE}lo(Offset),hi(offset){$endif},
        Whence);
@@ -90,11 +99,20 @@ function Fpftruncate(fd : cint; flength : off_t): cint; [public, alias : 'FPC_SY
 
 begin
  {$ifdef CPU64}
+   {$ifdef freebsd}
+   // newer style, no align zeroes in _syscall
    Fpftruncate:=Do_syscall(syscall_nr___syscall,syscall_nr_ftruncate, fd  ,flength);
+   {$else}
+   Fpftruncate:=Do_syscall(syscall_nr___syscall,syscall_nr_ftruncate, fd  ,0   ,flength);
+   {$endif}
  {$else}
+   {$ifdef freebsd}
+   // newer style, no align zeroes in _syscall
    Fpftruncate:=Do_syscall(syscall_nr___syscall,syscall_nr_ftruncate,0,fd,lo(flength),hi(flength));
+   {$else}
+   Fpftruncate:=Do_syscall(syscall_nr___syscall,syscall_nr_ftruncate,0,fd,0,lo(flength),hi(flength));
+   {$endif}
  {$endif}
-
 end;
 
 
@@ -102,9 +120,17 @@ Function Fpmmap(start:pointer;len:size_t;prot:cint;flags:cint;fd:cint;offst:off_
 
 begin
  {$ifdef CPU64}
+ {$ifdef freebsd}
   Fpmmap:=pointer(ptruint(do_syscall(TSysParam(syscall_nr_mmap),TSysParam(Start),TSysParam(Len),TSysParam(Prot),TSysParam(Flags),TSysParam(fd),TSysParam(offst))));
+ {$else}
+  Fpmmap:=pointer(ptruint(do_syscall(TSysParam(syscall_nr_mmap),TSysParam(Start),TSysParam(Len),TSysParam(Prot),TSysParam(Flags),TSysParam(fd),0,TSysParam(offst))));
+ {$endif}
 {$else}
- Fpmmap:=pointer(ptruint(do_syscall(syscall_nr_mmap,TSysParam(Start),Len,Prot,Flags,fd,
+ {$ifdef freebsd}
+  Fpmmap:=pointer(ptruint(do_syscall(syscall_nr_mmap,TSysParam(Start),Len,Prot,Flags,fd,
+ {$else}
+  Fpmmap:=pointer(ptruint(do_syscall(syscall_nr_mmap,TSysParam(Start),Len,Prot,Flags,fd,0,
+ {$endif} 
          {$ifdef FPC_BIG_ENDIAN}    hi(offst),lo(offst){$endif}
          {$ifdef FPC_LITTLE_ENDIAN} lo(offst),hi(offst){$endif}
          )));
