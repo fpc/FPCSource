@@ -549,7 +549,7 @@ end;
 procedure TCustomWSServer.DoDisconnect(Sender: TObject);
 begin
   if Assigned(OnDisconnect) then
-    OnDisconnect(Self);
+    OnDisconnect(Sender);
 end;
 
 procedure TCustomWSServer.FreeConnectionHandler;
@@ -592,14 +592,15 @@ end;
 
 procedure TCustomWSServer.RemoveConnection(AConnection: TWSServerConnection;aDoDisconnect: Boolean);
 begin
-  if aDoDisconnect then
+  if not aDoDisconnect then
+    DoDisconnect(aConnection)
+  else
     try
       aConnection.Disconnect;
     except
       on E : Exception do
        HandleError(aConnection,E);
     end;
-  DoDisconnect(aConnection);
   Connections.Remove(aConnection);
   aConnection.Free;
 end;
