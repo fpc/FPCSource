@@ -242,6 +242,7 @@ Type
 
   TWebIDLScanner = class
   private
+    FCurFile: UTF8String;
     FEvaluator: TDirectiveEvaluator;
     FSource : TStringList;
     FCurRow: Integer;
@@ -295,6 +296,7 @@ Type
     property CurLine: UTF8String read FCurLine;
     property CurRow: Integer read FCurRow;
     property CurColumn: Integer read GetCurColumn;
+    property CurFile: UTF8String read FCurFile write FCurFile;
 
     property CurToken: TIDLToken read FCurToken;
     property CurTokenString: UTF8String read FCurTokenString;
@@ -1140,8 +1142,9 @@ end;
 
 constructor TWebIDLScanner.CreateFile(const aFileName: UTF8String);
 begin
-  FSource:=TStringList.Create;
+  Init;
   FSource.LoadFromFile(aFileName);
+  FCurFile:=aFileName;
 end;
 
 destructor TWebIDLScanner.Destroy;
@@ -1354,7 +1357,8 @@ end;
 
 function TWebIDLScanner.GetErrorPos: String;
 begin
-  Result:=Format('Scanner error at line %d, pos %d: ',[CurRow,CurColumn]);
+  Result:=CurFile+'('+IntToStr(CurRow)+','+IntToStr(CurColumn)+')';
+  Result:=Format('Scanner error at %s: ',[Result]);
 end;
 
 function TWebIDLScanner.ReadComment : UTF8String;

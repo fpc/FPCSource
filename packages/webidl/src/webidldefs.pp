@@ -47,10 +47,14 @@ Type
   TIDLTypeDefDefinition = Class;
   TIDLDefinitionClass = Class of TIDLDefinition;
 
+  { TIDLBaseObject }
+
   TIDLBaseObject = Class
   Public
+    Line, Column: integer;
+    SrcFile: string;
     // The IDLBaseobject is owner of the newly created instance !
-    Function Add(aClass : TIDLDefinitionClass; Const AName : UTF8String) : TIDLDefinition; virtual; abstract;
+    Function Add(aClass : TIDLDefinitionClass; Const AName : UTF8String; const aFile: string; aLine, aCol: integer) : TIDLDefinition; virtual; abstract;
     Function AsString(Full : Boolean): UTF8String; virtual; abstract;
   end;
 
@@ -63,8 +67,8 @@ Type
     function GetAttributes: TExtAttributeList;
     procedure SetAttributes(AValue: TExtAttributeList);
   Public
-    Constructor Create(aParent : TIDLDefinition;Const aName : UTF8String); virtual;
-    Function Add(aClass : TIDLDefinitionClass; Const AName : UTF8String) : TIDLDefinition; override;
+    Constructor Create(aParent : TIDLDefinition; Const aName : UTF8String; const aFile: string; aLine, aCol: integer); virtual;
+    Function Add(aClass : TIDLDefinitionClass; Const AName : UTF8String; const aFile: string; aLine, aCol: integer) : TIDLDefinition; override;
     Destructor Destroy; override;
     // This definition extens an existing one. It will not be in the lookup list of symbols
     Function IsExtension : Boolean; virtual;
@@ -108,7 +112,7 @@ Type
     function AsString(const aSep, aStart, aEnd, aIndent: String; aFull,
       AppendSep: Boolean): UTF8String;
     Function AsString(Full : Boolean): UTF8String; override;
-    Function Add(aClass : TIDLDefinitionClass; Const AName : UTF8String) : TIDLDefinition; override;
+    Function Add(aClass : TIDLDefinitionClass; Const AName : UTF8String; const aFile: string; aLine, aCol: integer) : TIDLDefinition; override;
     Function Add(aItem : TIDLDefinition) : Integer;
     function GetEnumerator: TIDLDefinitionEnumerator;
     Property Parent : TIDLDefinition Read FParent;
@@ -170,7 +174,7 @@ Type
     Function GetFullMemberList(aList : TIDLDefinitionList) : Integer;
     Function HasMembers : Boolean;
     // Members are owned by this instance.
-    Property members : TIDLDefinitionList Read GetMembers;
+    Property Members : TIDLDefinitionList Read GetMembers;
     Property Member[Aindex : Integer] : TIDLDefinition Read GetMember; default;
     Function HasPartials : Boolean;
     // Partials are NOT owned by this instance
@@ -304,7 +308,7 @@ Type
   private
     FValues: TStrings;
   Public
-    Constructor Create(aParent : TIDLDefinition;Const aName : UTF8String); override;
+    Constructor Create(aParent : TIDLDefinition;Const aName : UTF8String; const aFile: string; aLine, aCol: integer); override;
     Destructor Destroy; override;
     Procedure AddValue(Const aValue : String);
     Property Values : TStrings Read FValues;
@@ -403,7 +407,7 @@ Type
   private
     FUnion: TIDLDefinitionList;
   Public
-    Constructor Create(aParent : TIDLDefinition;Const aName : UTF8String); override;
+    Constructor Create(aParent : TIDLDefinition;Const aName : UTF8String; const aFile: string; aLine, aCol: integer); override;
     Destructor Destroy; override;
     Function Clone (aParent : TIDLDefinition) : TIDLTypeDefDefinition; override;
     Function AsString(Full: Boolean): UTF8String; override;
@@ -594,7 +598,7 @@ begin
   if Not HasMembers then
     Result:=Result+' {'+sLineBreak+'}'
   else
-    Result:=Result+' '+members.AsString(true);
+    Result:=Result+' '+Members.AsString(true);
 
   if aFull and HasAttributes then
     Result:=Attributes.AsString(true)+' '+Result;
@@ -604,7 +608,7 @@ end;
 
 function TIDLTypeDefDefinition.Clone(aParent: TIDLDefinition): TIDLTypeDefDefinition;
 begin
-  Result:=TIDLTypeDefDefinitionClass(Self.ClassType).Create(aParent,Name);
+  Result:=TIDLTypeDefDefinitionClass(Self.ClassType).Create(aParent,Name,aParent.SrcFile,aParent.Line,aParent.Column);
   Result.TypeName:=Self.TypeName;
 end;
 
@@ -765,7 +769,7 @@ end;
 function TIDLArgumentDefinition.Clone(aType: TIDLTypeDefDefinition): TIDLArgumentDefinition;
 
 begin
-  Result:=TIDLArgumentDefinition.Create(Nil,Self.Name);
+  Result:=TIDLArgumentDefinition.Create(Nil,Name,SrcFile,Line,Column);
   if (AType=Nil) and Assigned(ArgumentType) then
     begin
     AType:=ArgumentType.Clone(Result);
@@ -862,7 +866,7 @@ begin
   if Not HasMembers then
     Result:=Result+' {'+sLineBreak+'}'
   else
-    Result:=Result+' '+members.AsString(true);
+    Result:=Result+' '+Members.AsString(true);
   if Full and HasAttributes then
     Result:=Attributes.AsString(True)+' '+Result
 end;
@@ -962,9 +966,9 @@ end;
 { TIDLUnionTypeDefDefinition }
 
 constructor TIDLUnionTypeDefDefinition.Create(aParent: TIDLDefinition;
-  const aName: UTF8String);
+  const aName: UTF8String; const aFile: string; aLine, aCol: integer);
 begin
-  inherited Create(aParent, aName);
+  inherited Create(aParent, aName, aFile, aLine, aCol);
   FUnion:=TIDLDefinitionList.Create(Self,True);
 end;
 
@@ -1001,9 +1005,9 @@ end;
 { TIDLEnumDefinition }
 
 constructor TIDLEnumDefinition.Create(aParent: TIDLDefinition;
-  const aName: UTF8String);
+  const aName: UTF8String; const aFile: string; aLine, aCol: integer);
 begin
-  inherited Create(aParent, aName);
+  inherited Create(aParent, aName, aFile, aLine, aCol);
   FValues:=TStringList.Create;
 end;
 
@@ -1208,9 +1212,9 @@ begin
 end;
 
 function TIDLDefinitionList.Add(aClass: TIDLDefinitionClass;
-  const AName: UTF8String): TIDLDefinition;
+  const AName: UTF8String; const aFile: string; aLine, aCol: integer): TIDLDefinition;
 begin
-  Result:=aClass.Create(FParent,aName);
+  Result:=aClass.Create(FParent,aName,aFile,aLine,aCol);
   FList.Add(Result);
 end;
 
@@ -1242,16 +1246,20 @@ begin
   Result:=Fattributes;
 end;
 
-constructor TIDLDefinition.Create(aParent : TIDLDefinition; const aName: UTF8String);
+constructor TIDLDefinition.Create(aParent: TIDLDefinition;
+  const aName: UTF8String; const aFile: string; aLine, aCol: integer);
 begin
   FName:=AName;
   FParent:=AParent;
+  SrcFile:=aFile;
+  Line:=aLine;
+  Column:=aCol;
 end;
 
-function TIDLDefinition.Add(aClass: TIDLDefinitionClass; const AName: UTF8String
-  ): TIDLDefinition;
+function TIDLDefinition.Add(aClass: TIDLDefinitionClass;
+  const AName: UTF8String; const aFile: string; aLine, aCol: integer): TIDLDefinition;
 begin
-  Result:=aClass.Create(Self,AName);
+  Result:=aClass.Create(Self,AName,aFile,aLine,aCol);
 end;
 
 destructor TIDLDefinition.Destroy;
