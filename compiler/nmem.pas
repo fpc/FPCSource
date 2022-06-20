@@ -652,39 +652,105 @@ implementation
 
 
     function taddrnode.simplify(forinline : boolean) : tnode;
+
+        function compatible_with_offsetof(res : tdef) : boolean;
+          begin
+            result:=(res.typ in [recorddef,objectdef]) and not (is_implicit_pointer_object_type(res))
+              or (res.typ=arraydef) and not (ado_IsDynamicArray in tarraydef(res).arrayoptions);
+          end;
+
       var
         hsym : tfieldvarsym;
         hp : tnode;
         fieldoffset : asizeint;
+        resdef : tdef;
+        index : int64;
+
       begin
         result:=nil;
-        if left.nodetype<>subscriptn then
-          exit;
         hp:=left;
         fieldoffset:=0;
-        while (hp.nodetype=subscriptn) and (tsubscriptnode(hp).left.resultdef.typ in [recorddef,objectdef]) and
-          not(is_implicit_pointer_object_type(tsubscriptnode(hp).left.resultdef)) do
-          begin
-            hsym:=tsubscriptnode(hp).vs;
-            if tabstractrecordsymtable(hsym.owner).is_packed then
-              inc(fieldoffset,hsym.fieldoffset div 8)
+
+        { Attempt to turn
+          @PSomeType(nil)^.field
+          or
+          @SomeType(nil^).fieldA.aryA[3].fieldB.aryB[5]
+          into a compile-time constant, numerically equal to the offset of the target field in 'SomeType' (and usually cast to 'PtrUint' right away). }
+
+        repeat
+          case hp.nodetype of
+            subscriptn:
+              begin
+                { Here and below, 'hp<>left' detects non-first iteration,
+                  as the first iteration handles deepest field whose type can be arbitrary: 'c' in @PType(nil)^.a.b.c. }
+                if (hp<>left) and not compatible_with_offsetof(tsubscriptnode(hp).resultdef) then
+                  exit;
+
+                hsym:=tsubscriptnode(hp).vs;
+                if tabstractrecordsymtable(hsym.owner).is_packed then
+                  begin
+                    if hsym.fieldoffset mod 8<>0 then
+                      exit;
+                    inc(fieldoffset,hsym.fieldoffset div 8);
+                  end
+                else
+                  inc(fieldoffset,hsym.fieldoffset);
+
+                hp:=tsubscriptnode(hp).left;
+              end;
+
+            vecn:
+              begin
+                if (tvecnode(hp).right.nodetype<>ordconstn) or
+                   (hp<>left) and not compatible_with_offsetof(tvecnode(hp).resultdef) then
+                  exit;
+
+                resdef:=tvecnode(hp).left.resultdef;
+                if not ((resdef.typ=arraydef) and not (ado_IsDynamicArray in tarraydef(resdef).arrayoptions)) then
+                  exit;
+
+                index:=tordconstnode(tvecnode(hp).right).value.svalue;
+                if not ((index>=tarraydef(resdef).lowrange) and (index<=tarraydef(resdef).highrange)) then
+                  exit;
+                index:=index-tarraydef(resdef).lowrange;
+
+                if ado_IsBitPacked in tarraydef(resdef).arrayoptions then
+                  begin
+                    if index*tarraydef(resdef).elepackedbitsize mod 8<>0 then
+                      exit;
+                    inc(fieldoffset,index*tarraydef(resdef).elepackedbitsize div 8);
+                  end
+                else
+                  inc(fieldoffset,index*tarraydef(resdef).elesize);
+
+                hp:=tvecnode(hp).left;
+              end;
+
+            derefn:
+              begin
+                { @PObjectType(nil)^.fields? }
+                if tderefnode(hp).left.nodetype=niln then
+                  result:=cpointerconstnode.create(fieldoffset,resultdef);
+                exit;
+              end;
+
+            typeconvn:
+              begin
+                { @ObjectType(nil^).fields? }
+                if (ttypeconvnode(hp).left.nodetype=derefn) and
+                   (tderefnode(ttypeconvnode(hp).left).left.nodetype=niln) then
+                  result:=cpointerconstnode.create(fieldoffset,resultdef);
+                exit;
+              end;
+
+            niln:
+              { @ClassType(nil).fields. }
+              exit(cpointerconstnode.create(fieldoffset,resultdef));
+
             else
-              inc(fieldoffset,hsym.fieldoffset);
-            hp:=tsubscriptnode(hp).left;
+              exit;
           end;
-        if not(hp.resultdef.typ in [recorddef,objectdef]) or is_implicit_pointer_object_type(hp.resultdef) then
-          exit;
-        if ((hp.nodetype=derefn) and
-          (tderefnode(hp).left.nodetype=niln)) or
-          ((hp.nodetype=typeconvn) and
-          (ttypeconvnode(hp).left.nodetype=derefn) and
-          (tderefnode(ttypeconvnode(hp).left).left.nodetype=niln)) then
-          begin
-            if tabstractrecordsymtable(hsym.owner).is_packed then
-              result:=cpointerconstnode.create(fieldoffset,resultdef)
-            else
-              result:=cpointerconstnode.create(fieldoffset,resultdef);
-          end;
+        until false;
       end;
 
 
