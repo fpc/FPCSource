@@ -70,10 +70,6 @@ implementation
       var
         op: TAsmOp;
       begin
-        secondpass(left);
-        if codegenerror then
-          exit;
-
         case tfloatdef(resultdef).floattype of
           s32real:
             begin
