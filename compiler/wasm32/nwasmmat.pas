@@ -46,6 +46,7 @@ interface
       end;
 
       twasmunaryminusnode = class(tcgunaryminusnode)
+        procedure second_integer;override;
         procedure second_float;override;
       end;
 
@@ -210,6 +211,30 @@ implementation
 {*****************************************************************************
                             twasmunaryminustnode
 *****************************************************************************}
+
+    procedure twasmunaryminusnode.second_integer;
+      var
+        hl: tasmlabel;
+      begin
+        secondpass(left);
+        if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+        location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+
+        if (cs_check_overflow in current_settings.localswitches) then
+          begin
+            current_asmdata.getjumplabel(hl);
+            current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
+            hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,torddef(resultdef).low.svalue,left.location.register,hl);
+            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_overflow',[],nil).resetiftemp;
+            hlcg.a_label(current_asmdata.CurrAsmList,hl);
+            current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
+          end;
+
+        hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,resultdef,left.location.register,location.register);
+      end;
+
 
     procedure twasmunaryminusnode.second_float;
       var
