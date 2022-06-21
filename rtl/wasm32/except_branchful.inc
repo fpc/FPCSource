@@ -219,7 +219,7 @@ var
   hp,_ExceptObjectStack : PExceptObject;
 begin
 {$ifdef excdebug}
-  writeln ('In PopObjectstack');
+  writeln ('In PopSecondObjectstack');
 {$endif}
   _ExceptObjectStack:=ExceptObjectStack;
   If not(assigned(_ExceptObjectStack)) or
@@ -308,6 +308,9 @@ end;
 {$ifndef FPC_SYSTEM_HAS_DONEEXCEPTION}
 procedure fpc_doneexception;[public,alias:'FPC_DONEEXCEPTION'] compilerproc;
 begin
+{$ifdef excdebug}
+  Writeln('In doneexception');
+{$endif}
   Internal_PopObjectStack.Free;
 end;
 {$endif FPC_SYSTEM_HAS_DONEEXCEPTION}
@@ -315,6 +318,9 @@ end;
 {$ifndef FPC_SYSTEM_HAS_RAISENESTED}
 procedure fpc_raise_nested;[public,alias:'FPC_RAISE_NESTED']compilerproc;
 begin
+{$ifdef excdebug}
+  Writeln('In raise_nested');
+{$endif}
   Internal_PopSecondObjectStack.Free;
   Internal_Reraise;
 end;
