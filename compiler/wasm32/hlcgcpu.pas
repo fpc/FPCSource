@@ -578,9 +578,6 @@ implementation
           end;
         OS_64,OS_S64:
           begin
-            { unsigned 64 bit division must be done via a helper }
-            if op=OP_DIV then
-              internalerror(2010120530);
             { boolean not: =0? for boolean }
             if (op=OP_NOT) and is_pasbool(size) then
               begin

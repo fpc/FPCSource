@@ -69,6 +69,7 @@ implementation
     function twasmmoddivnode.use_moddiv64bitint_helper: boolean;
       begin
         result:=
+          (nodetype=modn) and
           (left.resultdef.typ=orddef) and
           (right.resultdef.typ=orddef) and
           ((torddef(left.resultdef).ordtype=u64bit) or
