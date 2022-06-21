@@ -3227,7 +3227,7 @@ link_e_undefined_symbol=09222_E_Undefined symbol: $1
 #
 # Unit loading
 #
-# 10069 is the last used one
+# 10070 is the last used one
 #
 # BeginOfTeX
 % \section{Unit loading messages.}
@@ -3457,6 +3457,9 @@ unit_u_ppu_invalid_wasm_exceptions_mode=10068_U_PPU is compiled for another WebA
 unit_u_ppu_symansistr_mismatch=10069_U_Skipping unit, PPU and compiler have to be both compiled with or without SYMANSISTR support
 % Units compiled by a compiler built with -dSYMANSISTR cannot be used with a regular compiler built without,
 % and vice versa.
+unit_u_ppu_wasm_threads_mismatch=10070_U_PPU and program must both be compiled with or without WebAssembly multithreading support
+% The user is compiling a program with multithreading turned on, but the unit was compiled with multithreading off,
+% or vice versa.
 % \end{description}
 # EndOfTeX
 

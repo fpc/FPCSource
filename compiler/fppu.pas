@@ -355,6 +355,12 @@ var
               Message(unit_u_ppu_invalid_wasm_exceptions_mode,@queuecomment);
               exit;
             end;
+          if (mf_wasm_threads in moduleflags) <>
+             (ts_wasm_threads in current_settings.targetswitches) then
+            begin
+              Message(unit_u_ppu_wasm_threads_mismatch,@queuecomment);
+              exit;
+            end;
 {$endif}
           if {$ifdef symansistr}not{$endif}(mf_symansistr in moduleflags) then
             begin
@@ -1053,6 +1059,8 @@ var
           include(moduleflags,mf_wasm_js_exceptions);
         if ts_wasm_bf_exceptions in current_settings.targetswitches then
           include(moduleflags,mf_wasm_bf_exceptions);
+        if ts_wasm_threads in current_settings.targetswitches then
+          include(moduleflags,mf_wasm_threads);
 {$endif wasm}
 {$ifdef llvm}
         include(moduleflags,mf_llvm);

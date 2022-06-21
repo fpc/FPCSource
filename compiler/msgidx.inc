@@ -1042,6 +1042,7 @@ const
   unit_u_ppu_llvm_mismatch=10067;
   unit_u_ppu_invalid_wasm_exceptions_mode=10068;
   unit_u_ppu_symansistr_mismatch=10069;
+  unit_u_ppu_wasm_threads_mismatch=10070;
   option_usage=11000;
   option_only_one_source_support=11001;
   option_def_only_for_os2=11002;
@@ -1155,9 +1156,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 90359;
+  MsgTxtSize = 90456;
 
   MsgIdxMax : array[1..20] of longint=(
-    28,109,365,132,100,63,148,38,223,70,
+    28,109,365,132,100,63,148,38,223,71,
     65,20,30,1,1,1,1,1,1,1
   );
