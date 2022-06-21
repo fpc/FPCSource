@@ -1,7 +1,5 @@
 unit ATtiny24;
 
-{$goto on}
-
 interface
 
 var
@@ -238,14 +236,9 @@ procedure EE_RDY_ISR; external name 'EE_RDY_ISR'; // Interrupt 14 EEPROM Ready
 procedure USI_STR_ISR; external name 'USI_STR_ISR'; // Interrupt 15 USI START
 procedure USI_OVF_ISR; external name 'USI_OVF_ISR'; // Interrupt 16 USI Overflow
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   rjmp _start
+   rjmp __dtors_end
    rjmp EXT_INT0_ISR
    rjmp PCINT0_ISR
    rjmp PCINT1_ISR
@@ -262,8 +255,6 @@ label
    rjmp EE_RDY_ISR
    rjmp USI_STR_ISR
    rjmp USI_OVF_ISR
-
-   {$i start.inc}
 
    .weak EXT_INT0_ISR
    .weak PCINT0_ISR

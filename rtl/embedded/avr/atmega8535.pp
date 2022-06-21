@@ -1,7 +1,5 @@
 unit ATmega8535;
 
-{$goto on}
-
 interface
 
 var
@@ -301,14 +299,9 @@ procedure INT2_ISR; external name 'INT2_ISR'; // Interrupt 18 External Interrupt
 procedure TIMER0_COMP_ISR; external name 'TIMER0_COMP_ISR'; // Interrupt 19 TimerCounter0 Compare Match
 procedure SPM_RDY_ISR; external name 'SPM_RDY_ISR'; // Interrupt 20 Store Program Memory Read
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   rjmp _start
+   rjmp __dtors_end
    rjmp INT0_ISR
    rjmp INT1_ISR
    rjmp TIMER2_COMP_ISR
@@ -329,8 +322,6 @@ label
    rjmp INT2_ISR
    rjmp TIMER0_COMP_ISR
    rjmp SPM_RDY_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak INT1_ISR

@@ -1,7 +1,5 @@
 unit ATtiny28;
 
-{$goto on}
-
 interface
 
 var
@@ -93,21 +91,14 @@ procedure LOW_LEVEL_IO_PINS_ISR; external name 'LOW_LEVEL_IO_PINS_ISR'; // Inter
 procedure TIMER0_OVF_ISR; external name 'TIMER0_OVF_ISR'; // Interrupt 4 Timer/Counter0 Overflow
 procedure ANA_COMP_ISR; external name 'ANA_COMP_ISR'; // Interrupt 5 Analog Comparator
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   rjmp _start
+   rjmp __dtors_end
    rjmp INT0_ISR
    rjmp INT1_ISR
    rjmp LOW_LEVEL_IO_PINS_ISR
    rjmp TIMER0_OVF_ISR
    rjmp ANA_COMP_ISR
-
-   {$i start_noram.inc}
 
    .weak INT0_ISR
    .weak INT1_ISR

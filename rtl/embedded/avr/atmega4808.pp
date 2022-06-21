@@ -1,6 +1,5 @@
 unit ATmega4808;
 
-{$goto on}
 interface
 
 type
@@ -2047,14 +2046,9 @@ procedure USART2_TXC_ISR; external name 'USART2_TXC_ISR'; // Interrupt 33
 procedure PORTB_PORT_ISR; external name 'PORTB_PORT_ISR'; // Interrupt 34 
 procedure PORTE_PORT_ISR; external name 'PORTE_PORT_ISR'; // Interrupt 35 
 
-procedure _FPC_start; assembler; nostackframe;
-label
-  _start;
-asm
-  .init
-  .globl _start
-
-  jmp _start
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
+ asm
+  jmp __dtors_end
   jmp CRCSCAN_NMI_ISR
   jmp BOD_VLM_ISR
   jmp RTC_CNT_ISR
@@ -2094,8 +2088,6 @@ asm
   jmp USART2_TXC_ISR
   jmp PORTB_PORT_ISR
   jmp PORTE_PORT_ISR
-
-  {$i start.inc}
 
   .weak CRCSCAN_NMI_ISR
   .weak BOD_VLM_ISR

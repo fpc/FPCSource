@@ -1,7 +1,5 @@
 unit ATmega128;
 
-{$goto on}
-
 interface
 
 var
@@ -439,14 +437,9 @@ procedure USART1__TX_ISR; external name 'USART1__TX_ISR'; // Interrupt 32 USART1
 procedure TWI_ISR; external name 'TWI_ISR'; // Interrupt 33 2-wire Serial Interface
 procedure SPM_READY_ISR; external name 'SPM_READY_ISR'; // Interrupt 34 Store Program Memory Read
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   jmp _start
+   jmp __dtors_end
    jmp INT0_ISR
    jmp INT1_ISR
    jmp INT2_ISR
@@ -481,8 +474,6 @@ label
    jmp USART1__TX_ISR
    jmp TWI_ISR
    jmp SPM_READY_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak INT1_ISR

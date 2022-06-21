@@ -1,7 +1,5 @@
 unit ATmega1284P;
 
-{$goto on}
-
 interface
 
 var
@@ -483,14 +481,9 @@ procedure TIMER3_COMPA_ISR; external name 'TIMER3_COMPA_ISR'; // Interrupt 32 Ti
 procedure TIMER3_COMPB_ISR; external name 'TIMER3_COMPB_ISR'; // Interrupt 33 Timer/Counter3 Compare Match B
 procedure TIMER3_OVF_ISR; external name 'TIMER3_OVF_ISR'; // Interrupt 34 Timer/Counter3 Overflow
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   jmp _start
+   jmp __dtors_end
    jmp INT0_ISR
    jmp INT1_ISR
    jmp INT2_ISR
@@ -525,8 +518,6 @@ label
    jmp TIMER3_COMPA_ISR
    jmp TIMER3_COMPB_ISR
    jmp TIMER3_OVF_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak INT1_ISR

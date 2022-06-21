@@ -1,7 +1,5 @@
 unit ATtiny85;
 
-{$goto on}
-
 interface
 
 var
@@ -244,14 +242,9 @@ procedure WDT_ISR; external name 'WDT_ISR'; // Interrupt 12 Watchdog Time-out
 procedure USI_START_ISR; external name 'USI_START_ISR'; // Interrupt 13 USI START
 procedure USI_OVF_ISR; external name 'USI_OVF_ISR'; // Interrupt 14 USI Overflow
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   rjmp _start
+   rjmp __dtors_end
    rjmp INT0_ISR
    rjmp PCINT0_ISR
    rjmp TIMER1_COMPA_ISR
@@ -266,8 +259,6 @@ label
    rjmp WDT_ISR
    rjmp USI_START_ISR
    rjmp USI_OVF_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak PCINT0_ISR

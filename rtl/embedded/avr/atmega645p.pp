@@ -1,7 +1,5 @@
 unit ATmega645P;
 
-{$goto on}
-
 interface
 
 var
@@ -353,14 +351,9 @@ procedure ADC_ISR; external name 'ADC_ISR'; // Interrupt 19 ADC Conversion Compl
 procedure EE_READY_ISR; external name 'EE_READY_ISR'; // Interrupt 20 EEPROM Ready
 procedure SPM_READY_ISR; external name 'SPM_READY_ISR'; // Interrupt 21 Store Program Memory Read
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   jmp _start
+   jmp __dtors_end
    jmp INT0_ISR
    jmp PCINT0_ISR
    jmp PCINT1_ISR
@@ -382,8 +375,6 @@ label
    jmp ADC_ISR
    jmp EE_READY_ISR
    jmp SPM_READY_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak PCINT0_ISR

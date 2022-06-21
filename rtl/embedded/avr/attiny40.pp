@@ -1,7 +1,5 @@
 unit ATtiny40;
 
-{$goto on}
-
 interface
 
 var
@@ -241,14 +239,9 @@ procedure TWI_SLAVE_ISR; external name 'TWI_SLAVE_ISR'; // Interrupt 14 Two-Wire
 procedure SPI_ISR; external name 'SPI_ISR'; // Interrupt 15 Serial Peripheral Interface
 procedure QTRIP_ISR; external name 'QTRIP_ISR'; // Interrupt 16 Touch Sensing
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   rjmp _start
+   rjmp __dtors_end
    rjmp INT0_ISR
    rjmp PCINT0_ISR
    rjmp PCINT1_ISR
@@ -265,8 +258,6 @@ label
    rjmp TWI_SLAVE_ISR
    rjmp SPI_ISR
    rjmp QTRIP_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak PCINT0_ISR

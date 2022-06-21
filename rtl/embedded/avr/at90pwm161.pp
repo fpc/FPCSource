@@ -1,7 +1,5 @@
 unit AT90PWM161;
 
-{$goto on}
-
 interface
 
 var
@@ -463,14 +461,9 @@ procedure WDT_ISR; external name 'WDT_ISR'; // Interrupt 17 Watchdog Timeout Int
 procedure EE_READY_ISR; external name 'EE_READY_ISR'; // Interrupt 18 EEPROM Ready
 procedure SPM_READY_ISR; external name 'SPM_READY_ISR'; // Interrupt 19 Store Program Memory Read
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   rjmp _start
+   rjmp __dtors_end
    rjmp PSC2_CAPT_ISR
    rjmp PSC2_EC_ISR
    rjmp PSC2_EEC_ISR
@@ -490,8 +483,6 @@ label
    rjmp WDT_ISR
    rjmp EE_READY_ISR
    rjmp SPM_READY_ISR
-
-   {$i start.inc}
 
    .weak PSC2_CAPT_ISR
    .weak PSC2_EC_ISR

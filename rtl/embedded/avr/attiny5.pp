@@ -1,7 +1,5 @@
 unit ATtiny5;
 
-{$goto on}
-
 interface
 
 var
@@ -181,14 +179,9 @@ procedure WDT_ISR; external name 'WDT_ISR'; // Interrupt 8 Watchdog Time-out
 procedure VLM_ISR; external name 'VLM_ISR'; // Interrupt 9 Vcc Voltage Level Monitor
 procedure ADC_ISR; external name 'ADC_ISR'; // Interrupt 10 ADC Conversion Complete
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   rjmp _start
+   rjmp __dtors_end
    rjmp INT0_ISR
    rjmp PCINT0_ISR
    rjmp TIM0_CAPT_ISR
@@ -199,8 +192,6 @@ label
    rjmp WDT_ISR
    rjmp VLM_ISR
    rjmp ADC_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak PCINT0_ISR

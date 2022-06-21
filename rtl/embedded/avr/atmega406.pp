@@ -1,6 +1,5 @@
 unit ATmega406;
 
-{$goto on}
 interface
 
 var
@@ -423,14 +422,9 @@ procedure CCADC_ACC_ISR; external name 'CCADC_ACC_ISR'; // Interrupt 20 Coloumb 
 procedure EE_READY_ISR; external name 'EE_READY_ISR'; // Interrupt 21 EEPROM Ready
 procedure SPM_READY_ISR; external name 'SPM_READY_ISR'; // Interrupt 22 Store Program Memory Ready
 
-procedure _FPC_start; assembler; nostackframe;
-label
-  _start;
-asm
-  .init
-  .globl _start
-
-  jmp _start
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
+ asm
+  jmp __dtors_end
   jmp BPINT_ISR
   jmp INT0_ISR
   jmp INT1_ISR
@@ -453,8 +447,6 @@ asm
   jmp CCADC_ACC_ISR
   jmp EE_READY_ISR
   jmp SPM_READY_ISR
-
-  {$i start.inc}
 
   .weak BPINT_ISR
   .weak INT0_ISR

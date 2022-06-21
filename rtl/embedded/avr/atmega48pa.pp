@@ -1,7 +1,5 @@
 unit ATmega48PA;
 
-{$goto on}
-
 interface
 
 var
@@ -368,14 +366,9 @@ procedure ANALOG_COMP_ISR; external name 'ANALOG_COMP_ISR'; // Interrupt 23 Anal
 procedure TWI_ISR; external name 'TWI_ISR'; // Interrupt 24 Two-wire Serial Interface
 procedure SPM_Ready_ISR; external name 'SPM_Ready_ISR'; // Interrupt 25 Store Program Memory Read
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   rjmp _start
+   rjmp __dtors_end
    rjmp INT0_ISR
    rjmp INT1_ISR
    rjmp PCINT0_ISR
@@ -401,8 +394,6 @@ label
    rjmp ANALOG_COMP_ISR
    rjmp TWI_ISR
    rjmp SPM_Ready_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak INT1_ISR

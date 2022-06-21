@@ -1,6 +1,5 @@
 unit ATtiny104;
 
-{$goto on}
 interface
 
 var
@@ -295,14 +294,9 @@ procedure USART_RXC_ISR; external name 'USART_RXC_ISR'; // Interrupt 13 USART RX
 procedure USART_DRE_ISR; external name 'USART_DRE_ISR'; // Interrupt 14 USART Data register empty
 procedure USART_TXC_ISR; external name 'USART_TXC_ISR'; // Interrupt 15 USART Tx Complete
 
-procedure _FPC_start; assembler; nostackframe;
-label
-  _start;
-asm
-  .init
-  .globl _start
-
-  rjmp _start
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
+ asm
+  rjmp __dtors_end
   rjmp INT0_ISR
   rjmp PCINT0_ISR
   rjmp PCINT1_ISR
@@ -318,8 +312,6 @@ asm
   rjmp USART_RXC_ISR
   rjmp USART_DRE_ISR
   rjmp USART_TXC_ISR
-
-  {$i start.inc}
 
   .weak INT0_ISR
   .weak PCINT0_ISR

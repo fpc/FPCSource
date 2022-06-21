@@ -1,7 +1,5 @@
 unit ATtiny167;
 
-{$goto on}
-
 interface
 
 var
@@ -378,14 +376,9 @@ procedure ANA_COMP_ISR; external name 'ANA_COMP_ISR'; // Interrupt 17 Analog Com
 procedure USI_START_ISR; external name 'USI_START_ISR'; // Interrupt 18 USI Start
 procedure USI_OVF_ISR; external name 'USI_OVF_ISR'; // Interrupt 19 USI Overflow
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   jmp _start
+   jmp __dtors_end
    jmp INT0_ISR
    jmp INT1_ISR
    jmp PCINT0_ISR
@@ -405,8 +398,6 @@ label
    jmp ANA_COMP_ISR
    jmp USI_START_ISR
    jmp USI_OVF_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak INT1_ISR

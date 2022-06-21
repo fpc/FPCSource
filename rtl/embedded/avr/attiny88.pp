@@ -1,7 +1,5 @@
 unit ATtiny88;
 
-{$goto on}
-
 interface
 
 var
@@ -305,14 +303,9 @@ procedure EE_RDY_ISR; external name 'EE_RDY_ISR'; // Interrupt 17 EEPROM Ready
 procedure ANA_COMP_ISR; external name 'ANA_COMP_ISR'; // Interrupt 18 Analog Comparator
 procedure TWI_ISR; external name 'TWI_ISR'; // Interrupt 19 Two-wire Serial Interface
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   rjmp _start
+   rjmp __dtors_end
    rjmp INT0_ISR
    rjmp INT1_ISR
    rjmp PCINT0_ISR
@@ -332,8 +325,6 @@ label
    rjmp EE_RDY_ISR
    rjmp ANA_COMP_ISR
    rjmp TWI_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak INT1_ISR

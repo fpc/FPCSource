@@ -1,7 +1,5 @@
 unit ATtiny2313A;
 
-{$goto on}
-
 interface
 
 var
@@ -253,14 +251,9 @@ procedure WDT_OVERFLOW_ISR; external name 'WDT_OVERFLOW_ISR'; // Interrupt 18 Wa
 procedure PCINT_A_ISR; external name 'PCINT_A_ISR'; // Interrupt 19 Pin Change Interrupt Request A
 procedure PCINT_D_ISR; external name 'PCINT_D_ISR'; // Interrupt 20 Pin Change Interrupt Request D
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   rjmp _start
+   rjmp __dtors_end
    rjmp INT0_ISR
    rjmp INT1_ISR
    rjmp TIMER1_CAPT_ISR
@@ -281,8 +274,6 @@ label
    rjmp WDT_OVERFLOW_ISR
    rjmp PCINT_A_ISR
    rjmp PCINT_D_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak INT1_ISR

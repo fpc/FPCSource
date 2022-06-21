@@ -1,6 +1,5 @@
 unit ATmega32HVBrevB;
 
-{$goto on}
 interface
 
 var
@@ -437,14 +436,9 @@ procedure CCADC_ACC_ISR; external name 'CCADC_ACC_ISR'; // Interrupt 26 Coloumb 
 procedure EE_READY_ISR; external name 'EE_READY_ISR'; // Interrupt 27 EEPROM Ready
 procedure SPM_ISR; external name 'SPM_ISR'; // Interrupt 28 SPM Ready
 
-procedure _FPC_start; assembler; nostackframe;
-label
-  _start;
-asm
-  .init
-  .globl _start
-
-  jmp _start
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
+ asm
+  jmp __dtors_end
   jmp BPINT_ISR
   jmp VREGMON_ISR
   jmp INT0_ISR
@@ -473,8 +467,6 @@ asm
   jmp CCADC_ACC_ISR
   jmp EE_READY_ISR
   jmp SPM_ISR
-
-  {$i start.inc}
 
   .weak BPINT_ISR
   .weak VREGMON_ISR

@@ -1,7 +1,5 @@
 unit ATmega32U2;
 
-{$goto on}
-
 interface
 
 var
@@ -449,14 +447,9 @@ procedure ANALOG_COMP_ISR; external name 'ANALOG_COMP_ISR'; // Interrupt 26 Anal
 procedure EE_READY_ISR; external name 'EE_READY_ISR'; // Interrupt 27 EEPROM Ready
 procedure SPM_READY_ISR; external name 'SPM_READY_ISR'; // Interrupt 28 Store Program Memory Read
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   jmp _start
+   jmp __dtors_end
    jmp INT0_ISR
    jmp INT1_ISR
    jmp INT2_ISR
@@ -485,8 +478,6 @@ label
    jmp ANALOG_COMP_ISR
    jmp EE_READY_ISR
    jmp SPM_READY_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak INT1_ISR

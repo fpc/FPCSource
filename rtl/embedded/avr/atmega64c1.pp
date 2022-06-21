@@ -1,7 +1,5 @@
 unit ATmega64C1;
 
-{$goto on}
-
 interface
 
 var
@@ -546,14 +544,9 @@ procedure WDT_ISR; external name 'WDT_ISR'; // Interrupt 28 Watchdog Time-Out In
 procedure EE_READY_ISR; external name 'EE_READY_ISR'; // Interrupt 29 EEPROM Ready
 procedure SPM_READY_ISR; external name 'SPM_READY_ISR'; // Interrupt 30 Store Program Memory Read
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   jmp _start
+   jmp __dtors_end
    jmp ANACOMP0_ISR
    jmp ANACOMP1_ISR
    jmp ANACOMP2_ISR
@@ -584,8 +577,6 @@ label
    jmp WDT_ISR
    jmp EE_READY_ISR
    jmp SPM_READY_ISR
-
-   {$i start.inc}
 
    .weak ANACOMP0_ISR
    .weak ANACOMP1_ISR

@@ -1,7 +1,5 @@
 unit ATA6286;
 
-{$goto on}
-
 interface
 
 var
@@ -350,14 +348,9 @@ procedure EXCM_ISR; external name 'EXCM_ISR'; // Interrupt 24 External Input Clo
 procedure EEREADY_ISR; external name 'EEREADY_ISR'; // Interrupt 25 EEPROM Ready Interrupt
 procedure SPM_RDY_ISR; external name 'SPM_RDY_ISR'; // Interrupt 26 Store Program Memory Ready
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   rjmp _start
+   rjmp __dtors_end
    rjmp INT0_ISR
    rjmp INT1_ISR
    rjmp PCINT0_ISR
@@ -384,8 +377,6 @@ label
    rjmp EXCM_ISR
    rjmp EEREADY_ISR
    rjmp SPM_RDY_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak INT1_ISR

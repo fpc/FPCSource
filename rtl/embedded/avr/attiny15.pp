@@ -1,6 +1,5 @@
 unit ATtiny15;
 
-{$goto on}
 interface
 
 var
@@ -151,14 +150,9 @@ procedure EE_RDY_ISR; external name 'EE_RDY_ISR'; // Interrupt 6 EEPROM Ready
 procedure ANA_COMP_ISR; external name 'ANA_COMP_ISR'; // Interrupt 7 Analog Comparator
 procedure ADC_ISR; external name 'ADC_ISR'; // Interrupt 8 ADC Conversion Ready
 
-procedure _FPC_start; assembler; nostackframe;
-label
-  _start;
-asm
-  .init
-  .globl _start
-
-  rjmp _start
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
+ asm
+  rjmp __dtors_end
   rjmp INT0_ISR
   rjmp IO_PINS_ISR
   rjmp TIMER1_COMP_ISR
@@ -167,8 +161,6 @@ asm
   rjmp EE_RDY_ISR
   rjmp ANA_COMP_ISR
   rjmp ADC_ISR
-
-  {$i start_noram.inc}
 
   .weak INT0_ISR
   .weak IO_PINS_ISR

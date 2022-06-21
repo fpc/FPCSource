@@ -1,7 +1,5 @@
 unit ATmega162;
 
-{$goto on}
-
 interface
 
 var
@@ -362,14 +360,9 @@ procedure EE_RDY_ISR; external name 'EE_RDY_ISR'; // Interrupt 25 EEPROM Ready
 procedure ANA_COMP_ISR; external name 'ANA_COMP_ISR'; // Interrupt 26 Analog Comparator
 procedure SPM_RDY_ISR; external name 'SPM_RDY_ISR'; // Interrupt 27 Store Program Memory Read
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   jmp _start
+   jmp __dtors_end
    jmp INT0_ISR
    jmp INT1_ISR
    jmp INT2_ISR
@@ -397,8 +390,6 @@ label
    jmp EE_RDY_ISR
    jmp ANA_COMP_ISR
    jmp SPM_RDY_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak INT1_ISR

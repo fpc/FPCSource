@@ -1,7 +1,5 @@
 unit ATtiny861;
 
-{$goto on}
-
 interface
 
 var
@@ -290,14 +288,9 @@ procedure TIMER0_CAPT_ISR; external name 'TIMER0_CAPT_ISR'; // Interrupt 16 ADC 
 procedure TIMER1_COMPD_ISR; external name 'TIMER1_COMPD_ISR'; // Interrupt 17 Timer/Counter1 Compare Match D
 procedure FAULT_PROTECTION_ISR; external name 'FAULT_PROTECTION_ISR'; // Interrupt 18 Timer/Counter1 Fault Protection
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   rjmp _start
+   rjmp __dtors_end
    rjmp INT0_ISR
    rjmp PCINT_ISR
    rjmp TIMER1_COMPA_ISR
@@ -316,8 +309,6 @@ label
    rjmp TIMER0_CAPT_ISR
    rjmp TIMER1_COMPD_ISR
    rjmp FAULT_PROTECTION_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak PCINT_ISR

@@ -1,7 +1,5 @@
 unit AT90PWM316;
 
-{$goto on}
-
 interface
 
 var
@@ -598,14 +596,9 @@ procedure RESERVED30_ISR; external name 'RESERVED30_ISR'; // Interrupt 29
 procedure RESERVED31_ISR; external name 'RESERVED31_ISR'; // Interrupt 30 
 procedure SPM_READY_ISR; external name 'SPM_READY_ISR'; // Interrupt 31 Store Program Memory Read
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   jmp _start
+   jmp __dtors_end
    jmp PSC2_CAPT_ISR
    jmp PSC2_EC_ISR
    jmp PSC1_CAPT_ISR
@@ -637,8 +630,6 @@ label
    jmp RESERVED30_ISR
    jmp RESERVED31_ISR
    jmp SPM_READY_ISR
-
-   {$i start.inc}
 
    .weak PSC2_CAPT_ISR
    .weak PSC2_EC_ISR

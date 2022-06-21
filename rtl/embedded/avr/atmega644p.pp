@@ -1,7 +1,5 @@
 unit ATmega644P;
 
-{$goto on}
-
 interface
 
 var
@@ -436,14 +434,9 @@ procedure USART1_RX_ISR; external name 'USART1_RX_ISR'; // Interrupt 28 USART1 R
 procedure USART1_UDRE_ISR; external name 'USART1_UDRE_ISR'; // Interrupt 29 USART1 Data Register Empty
 procedure USART1_TX_ISR; external name 'USART1_TX_ISR'; // Interrupt 30 USART1 TX complete
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   jmp _start
+   jmp __dtors_end
    jmp INT0_ISR
    jmp INT1_ISR
    jmp INT2_ISR
@@ -474,8 +467,6 @@ label
    jmp USART1_RX_ISR
    jmp USART1_UDRE_ISR
    jmp USART1_TX_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak INT1_ISR

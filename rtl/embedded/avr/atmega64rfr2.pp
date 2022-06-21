@@ -1,6 +1,5 @@
 unit ATmega64RFR2;
 
-{$goto on}
 interface
 
 var
@@ -1872,14 +1871,9 @@ procedure TRX24_AMI1_ISR; external name 'TRX24_AMI1_ISR'; // Interrupt 74 Addres
 procedure TRX24_AMI2_ISR; external name 'TRX24_AMI2_ISR'; // Interrupt 75 Address match interrupt of address filter 2
 procedure TRX24_AMI3_ISR; external name 'TRX24_AMI3_ISR'; // Interrupt 76 Address match interrupt of address filter 3
 
-procedure _FPC_start; assembler; nostackframe;
-label
-  _start;
-asm
-  .init
-  .globl _start
-
-  jmp _start
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
+ asm
+  jmp __dtors_end
   jmp INT0_ISR
   jmp INT1_ISR
   jmp INT2_ISR
@@ -1950,8 +1944,6 @@ asm
   jmp TRX24_AMI1_ISR
   jmp TRX24_AMI2_ISR
   jmp TRX24_AMI3_ISR
-
-  {$i start.inc}
 
   .weak INT0_ISR
   .weak INT1_ISR

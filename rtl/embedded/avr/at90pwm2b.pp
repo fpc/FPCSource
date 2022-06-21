@@ -1,7 +1,5 @@
 unit AT90PWM2B;
 
-{$goto on}
-
 interface
 
 var
@@ -528,14 +526,9 @@ procedure RESERVED30_ISR; external name 'RESERVED30_ISR'; // Interrupt 29
 procedure RESERVED31_ISR; external name 'RESERVED31_ISR'; // Interrupt 30 
 procedure SPM_READY_ISR; external name 'SPM_READY_ISR'; // Interrupt 31 Store Program Memory Read
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   rjmp _start
+   rjmp __dtors_end
    rjmp PSC2_CAPT_ISR
    rjmp PSC2_EC_ISR
    rjmp PSC1_CAPT_ISR
@@ -567,8 +560,6 @@ label
    rjmp RESERVED30_ISR
    rjmp RESERVED31_ISR
    rjmp SPM_READY_ISR
-
-   {$i start.inc}
 
    .weak PSC2_CAPT_ISR
    .weak PSC2_EC_ISR

@@ -1,7 +1,5 @@
 unit ATmega8515;
 
-{$goto on}
-
 interface
 
 var
@@ -245,14 +243,9 @@ procedure TIMER0_COMP_ISR; external name 'TIMER0_COMP_ISR'; // Interrupt 14 Time
 procedure EE_RDY_ISR; external name 'EE_RDY_ISR'; // Interrupt 15 EEPROM Ready
 procedure SPM_RDY_ISR; external name 'SPM_RDY_ISR'; // Interrupt 16 Store Program Memory Ready
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   rjmp _start
+   rjmp __dtors_end
    rjmp INT0_ISR
    rjmp INT1_ISR
    rjmp TIMER1_CAPT_ISR
@@ -269,8 +262,6 @@ label
    rjmp TIMER0_COMP_ISR
    rjmp EE_RDY_ISR
    rjmp SPM_RDY_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak INT1_ISR

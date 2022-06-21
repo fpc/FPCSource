@@ -1,6 +1,5 @@
 unit ATtiny441;
 
-{$goto on}
 interface
 
 var
@@ -565,14 +564,9 @@ procedure USART1_UDRE_ISR; external name 'USART1_UDRE_ISR'; // Interrupt 27 USAR
 procedure USART1_TX_ISR; external name 'USART1_TX_ISR'; // Interrupt 28 USART1, Tx Complete
 procedure TWI_SLAVE_ISR; external name 'TWI_SLAVE_ISR'; // Interrupt 29 Two-wire Serial Interface
 
-procedure _FPC_start; assembler; nostackframe;
-label
-  _start;
-asm
-  .init
-  .globl _start
-
-  rjmp _start
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
+ asm
+  rjmp __dtors_end
   rjmp INT0_ISR
   rjmp PCINT0_ISR
   rjmp PCINT1_ISR
@@ -602,8 +596,6 @@ asm
   rjmp USART1_UDRE_ISR
   rjmp USART1_TX_ISR
   rjmp TWI_SLAVE_ISR
-
-  {$i start.inc}
 
   .weak INT0_ISR
   .weak PCINT0_ISR

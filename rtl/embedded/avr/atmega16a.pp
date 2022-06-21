@@ -1,7 +1,5 @@
 unit ATmega16A;
 
-{$goto on}
-
 interface
 
 var
@@ -304,14 +302,9 @@ procedure INT2_ISR; external name 'INT2_ISR'; // Interrupt 18 External Interrupt
 procedure TIMER0_COMP_ISR; external name 'TIMER0_COMP_ISR'; // Interrupt 19 Timer/Counter0 Compare Match
 procedure SPM_RDY_ISR; external name 'SPM_RDY_ISR'; // Interrupt 20 Store Program Memory Ready
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   jmp _start
+   jmp __dtors_end
    jmp INT0_ISR
    jmp INT1_ISR
    jmp TIMER2_COMP_ISR
@@ -332,8 +325,6 @@ label
    jmp INT2_ISR
    jmp TIMER0_COMP_ISR
    jmp SPM_RDY_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak INT1_ISR

@@ -1,6 +1,5 @@
 unit ATtiny212;
 
-{$goto on}
 interface
 
 type
@@ -2234,14 +2233,9 @@ procedure USART0_DRE_ISR; external name 'USART0_DRE_ISR'; // Interrupt 23
 procedure USART0_TXC_ISR; external name 'USART0_TXC_ISR'; // Interrupt 24 
 procedure NVMCTRL_EE_ISR; external name 'NVMCTRL_EE_ISR'; // Interrupt 25 
 
-procedure _FPC_start; assembler; nostackframe;
-label
-  _start;
-asm
-  .init
-  .globl _start
-
-  rjmp _start
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
+ asm
+  rjmp __dtors_end
   rjmp CRCSCAN_NMI_ISR
   rjmp BOD_VLM_ISR
   rjmp PORTA_PORT_ISR
@@ -2269,8 +2263,6 @@ asm
   rjmp USART0_DRE_ISR
   rjmp USART0_TXC_ISR
   rjmp NVMCTRL_EE_ISR
-
-  {$i start.inc}
 
   .weak CRCSCAN_NMI_ISR
   .weak BOD_VLM_ISR

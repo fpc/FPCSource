@@ -1,7 +1,5 @@
 unit ATmega32U4;
 
-{$goto on}
-
 interface
 
 var
@@ -643,14 +641,9 @@ procedure TIMER4_COMPD_ISR; external name 'TIMER4_COMPD_ISR'; // Interrupt 40 Ti
 procedure TIMER4_OVF_ISR; external name 'TIMER4_OVF_ISR'; // Interrupt 41 Timer/Counter4 Overflow
 procedure TIMER4_FPF_ISR; external name 'TIMER4_FPF_ISR'; // Interrupt 42 Timer/Counter4 Fault Protection Interrupt
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   jmp _start
+   jmp __dtors_end
    jmp INT0_ISR
    jmp INT1_ISR
    jmp INT2_ISR
@@ -693,8 +686,6 @@ label
    jmp TIMER4_COMPD_ISR
    jmp TIMER4_OVF_ISR
    jmp TIMER4_FPF_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak INT1_ISR

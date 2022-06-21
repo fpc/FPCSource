@@ -1,6 +1,5 @@
 unit ATtiny12;
 
-{$goto on}
 interface
 
 var
@@ -104,21 +103,14 @@ procedure TIMER0_OVF_ISR; external name 'TIMER0_OVF_ISR'; // Interrupt 3 Timer/C
 procedure EE_RDY_ISR; external name 'EE_RDY_ISR'; // Interrupt 4 EEPROM Ready
 procedure ANA_COMP_ISR; external name 'ANA_COMP_ISR'; // Interrupt 5 Analog Comparator
 
-procedure _FPC_start; assembler; nostackframe;
-label
-  _start;
-asm
-  .init
-  .globl _start
-
-  rjmp _start
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
+ asm
+  rjmp __dtors_end
   rjmp INT0_ISR
   rjmp IO_PINS_ISR
   rjmp TIMER0_OVF_ISR
   rjmp EE_RDY_ISR
   rjmp ANA_COMP_ISR
-
-  {$i start_noram.inc}
 
   .weak INT0_ISR
   .weak IO_PINS_ISR

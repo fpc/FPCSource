@@ -1,7 +1,5 @@
 unit ATmega3250PA;
 
-{$goto on}
-
 interface
 
 var
@@ -368,14 +366,9 @@ procedure NOT_USED_ISR; external name 'NOT_USED_ISR'; // Interrupt 22 RESERVED
 procedure PCINT2_ISR; external name 'PCINT2_ISR'; // Interrupt 23 Pin Change Interrupt Request 2
 procedure PCINT3_ISR; external name 'PCINT3_ISR'; // Interrupt 24 Pin Change Interrupt Request 3
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   jmp _start
+   jmp __dtors_end
    jmp INT0_ISR
    jmp PCINT0_ISR
    jmp PCINT1_ISR
@@ -400,8 +393,6 @@ label
    jmp NOT_USED_ISR
    jmp PCINT2_ISR
    jmp PCINT3_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak PCINT0_ISR

@@ -1,6 +1,5 @@
 unit ATmega168PB;
 
-{$goto on}
 interface
 
 var
@@ -482,14 +481,9 @@ procedure TWI_ISR; external name 'TWI_ISR'; // Interrupt 24 Two-wire Serial Inte
 procedure SPM_Ready_ISR; external name 'SPM_Ready_ISR'; // Interrupt 25 Store Program Memory Read
 procedure USART_START_ISR; external name 'USART_START_ISR'; // Interrupt 26 USART Start Edge Interrupt
 
-procedure _FPC_start; assembler; nostackframe;
-label
-  _start;
-asm
-  .init
-  .globl _start
-
-  jmp _start
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
+ asm
+  jmp __dtors_end
   jmp INT0_ISR
   jmp INT1_ISR
   jmp PCINT0_ISR
@@ -516,8 +510,6 @@ asm
   jmp TWI_ISR
   jmp SPM_Ready_ISR
   jmp USART_START_ISR
-
-  {$i start.inc}
 
   .weak INT0_ISR
   .weak INT1_ISR

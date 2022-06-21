@@ -1,7 +1,5 @@
 unit ATtiny43U;
 
-{$goto on}
-
 interface
 
 var
@@ -234,14 +232,9 @@ procedure EE_RDY_ISR; external name 'EE_RDY_ISR'; // Interrupt 13 EEPROM Ready
 procedure USI_START_ISR; external name 'USI_START_ISR'; // Interrupt 14 USI START
 procedure USI_OVF_ISR; external name 'USI_OVF_ISR'; // Interrupt 15 USI Overflow
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   rjmp _start
+   rjmp __dtors_end
    rjmp INT0_ISR
    rjmp PCINT0_ISR
    rjmp PCINT1_ISR
@@ -257,8 +250,6 @@ label
    rjmp EE_RDY_ISR
    rjmp USI_START_ISR
    rjmp USI_OVF_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak PCINT0_ISR

@@ -1,7 +1,5 @@
 unit ATmega644;
 
-{$goto on}
-
 interface
 
 var
@@ -399,14 +397,9 @@ procedure EE_READY_ISR; external name 'EE_READY_ISR'; // Interrupt 25 EEPROM Rea
 procedure TWI_ISR; external name 'TWI_ISR'; // Interrupt 26 2-wire Serial Interface
 procedure SPM_READY_ISR; external name 'SPM_READY_ISR'; // Interrupt 27 Store Program Memory Read
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   jmp _start
+   jmp __dtors_end
    jmp INT0_ISR
    jmp INT1_ISR
    jmp INT2_ISR
@@ -434,8 +427,6 @@ label
    jmp EE_READY_ISR
    jmp TWI_ISR
    jmp SPM_READY_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak INT1_ISR

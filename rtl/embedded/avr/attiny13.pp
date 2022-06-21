@@ -1,7 +1,5 @@
 unit ATtiny13;
 
-{$goto on}
-
 interface
 
 var
@@ -165,14 +163,9 @@ procedure TIM0_COMPB_ISR; external name 'TIM0_COMPB_ISR'; // Interrupt 7 Timer/C
 procedure WDT_ISR; external name 'WDT_ISR'; // Interrupt 8 Watchdog Time-out
 procedure ADC_ISR; external name 'ADC_ISR'; // Interrupt 9 ADC Conversion Complete
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   rjmp _start
+   rjmp __dtors_end
    rjmp INT0_ISR
    rjmp PCINT0_ISR
    rjmp TIM0_OVF_ISR
@@ -182,8 +175,6 @@ label
    rjmp TIM0_COMPB_ISR
    rjmp WDT_ISR
    rjmp ADC_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak PCINT0_ISR

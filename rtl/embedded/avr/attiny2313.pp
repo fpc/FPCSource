@@ -1,7 +1,5 @@
 unit ATtiny2313;
 
-{$goto on}
-
 interface
 
 var
@@ -237,14 +235,9 @@ procedure USI_OVERFLOW_ISR; external name 'USI_OVERFLOW_ISR'; // Interrupt 16 US
 procedure EEPROM_Ready_ISR; external name 'EEPROM_Ready_ISR'; // Interrupt 17 
 procedure WDT_OVERFLOW_ISR; external name 'WDT_OVERFLOW_ISR'; // Interrupt 18 Watchdog Timer Overflow
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   rjmp _start
+   rjmp __dtors_end
    rjmp INT0_ISR
    rjmp INT1_ISR
    rjmp TIMER1_CAPT_ISR
@@ -263,8 +256,6 @@ label
    rjmp USI_OVERFLOW_ISR
    rjmp EEPROM_Ready_ISR
    rjmp WDT_OVERFLOW_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak INT1_ISR

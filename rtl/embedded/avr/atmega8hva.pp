@@ -1,6 +1,5 @@
 unit ATmega8HVA;
 
-{$goto on}
 interface
 
 var
@@ -336,14 +335,9 @@ procedure CCADC_REG_CUR_ISR; external name 'CCADC_REG_CUR_ISR'; // Interrupt 18 
 procedure CCADC_ACC_ISR; external name 'CCADC_ACC_ISR'; // Interrupt 19 Coloumb Counter ADC Accumulator
 procedure EE_READY_ISR; external name 'EE_READY_ISR'; // Interrupt 20 EEPROM Ready
 
-procedure _FPC_start; assembler; nostackframe;
-label
-  _start;
-asm
-  .init
-  .globl _start
-
-  rjmp _start
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
+ asm
+  rjmp __dtors_end
   rjmp BPINT_ISR
   rjmp VREGMON_ISR
   rjmp INT0_ISR
@@ -364,8 +358,6 @@ asm
   rjmp CCADC_REG_CUR_ISR
   rjmp CCADC_ACC_ISR
   rjmp EE_READY_ISR
-
-  {$i start.inc}
 
   .weak BPINT_ISR
   .weak VREGMON_ISR

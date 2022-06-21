@@ -1,7 +1,5 @@
 unit ATmega329A;
 
-{$goto on}
-
 interface
 
 var
@@ -556,14 +554,9 @@ procedure EE_READY_ISR; external name 'EE_READY_ISR'; // Interrupt 20 EEPROM Rea
 procedure SPM_READY_ISR; external name 'SPM_READY_ISR'; // Interrupt 21 Store Program Memory Read
 procedure LCD_ISR; external name 'LCD_ISR'; // Interrupt 22 LCD Start of Frame
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   jmp _start
+   jmp __dtors_end
    jmp INT0_ISR
    jmp PCINT0_ISR
    jmp PCINT1_ISR
@@ -586,8 +579,6 @@ label
    jmp EE_READY_ISR
    jmp SPM_READY_ISR
    jmp LCD_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak PCINT0_ISR

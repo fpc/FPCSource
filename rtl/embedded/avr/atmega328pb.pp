@@ -1,6 +1,5 @@
 unit ATmega328PB;
 
-{$goto on}
 interface
 
 var
@@ -677,15 +676,9 @@ procedure TIMER4_COMPA_ISR; external name 'TIMER4_COMPA_ISR'; // Interrupt 42 Ti
 procedure TIMER4_COMPB_ISR; external name 'TIMER4_COMPB_ISR'; // Interrupt 43 Timer/Counter4 Compare Match B
 procedure TIMER4_OVF_ISR; external name 'TIMER4_OVF_ISR'; // Interrupt 44 Timer/Counter4 Overflow
 
-procedure _FPC_start; assembler; nostackframe;
-label
-  _start;
-asm
-  .init
-  .globl _start
-
-  jmp _start
-  jmp INT0_ISR
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
+ asm
+  jmp __dtors_end
   jmp INT1_ISR
   jmp PCINT0_ISR
   jmp PCINT1_ISR
@@ -729,8 +722,6 @@ asm
   jmp TIMER4_COMPA_ISR
   jmp TIMER4_COMPB_ISR
   jmp TIMER4_OVF_ISR
-
-  {$i start.inc}
 
   .weak INT0_ISR
   .weak INT1_ISR

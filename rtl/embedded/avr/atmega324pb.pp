@@ -1,6 +1,5 @@
 unit ATmega324PB;
 
-{$goto on}
 interface
 
 var
@@ -665,14 +664,9 @@ procedure USART2_TX_ISR; external name 'USART2_TX_ISR'; // Interrupt 49 USART2 T
 procedure USART2_RXS_ISR; external name 'USART2_RXS_ISR'; // Interrupt 50 USART2 RX start edge detect
 procedure USART2_START_ISR; external name 'USART2_START_ISR'; // Interrupt 50 USART2 RX start edge detect
 
-procedure _FPC_start; assembler; nostackframe;
-label
-  _start;
-asm
-  .init
-  .globl _start
-
-  jmp _start
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
+ asm
+  jmp __dtors_end
   jmp INT0_ISR
   jmp INT1_ISR
   jmp INT2_ISR
@@ -726,8 +720,6 @@ asm
   jmp USART2_TX_ISR
   jmp USART2_RXS_ISR
   jmp USART2_START_ISR
-
-  {$i start.inc}
 
   .weak INT0_ISR
   .weak INT1_ISR

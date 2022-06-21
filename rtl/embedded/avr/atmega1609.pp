@@ -1,6 +1,5 @@
 unit ATmega1609;
 
-{$goto on}
 interface
 
 type
@@ -2055,14 +2054,9 @@ procedure USART3_RXC_ISR; external name 'USART3_RXC_ISR'; // Interrupt 37
 procedure USART3_DRE_ISR; external name 'USART3_DRE_ISR'; // Interrupt 38 
 procedure USART3_TXC_ISR; external name 'USART3_TXC_ISR'; // Interrupt 39 
 
-procedure _FPC_start; assembler; nostackframe;
-label
-  _start;
-asm
-  .init
-  .globl _start
-
-  jmp _start
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
+ asm
+  jmp __dtors_end
   jmp CRCSCAN_NMI_ISR
   jmp BOD_VLM_ISR
   jmp RTC_CNT_ISR
@@ -2106,8 +2100,6 @@ asm
   jmp USART3_RXC_ISR
   jmp USART3_DRE_ISR
   jmp USART3_TXC_ISR
-
-  {$i start.inc}
 
   .weak CRCSCAN_NMI_ISR
   .weak BOD_VLM_ISR

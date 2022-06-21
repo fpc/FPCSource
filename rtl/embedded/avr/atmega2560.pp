@@ -1,7 +1,5 @@
 unit ATmega2560;
 
-{$goto on}
-
 interface
 
 var
@@ -727,14 +725,9 @@ procedure USART3__RX_ISR; external name 'USART3__RX_ISR'; // Interrupt 54 USART3
 procedure USART3__UDRE_ISR; external name 'USART3__UDRE_ISR'; // Interrupt 55 USART3 Data register Empty
 procedure USART3__TX_ISR; external name 'USART3__TX_ISR'; // Interrupt 56 USART3, Tx Complete
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   jmp _start
+   jmp __dtors_end
    jmp INT0_ISR
    jmp INT1_ISR
    jmp INT2_ISR
@@ -791,8 +784,6 @@ label
    jmp USART3__RX_ISR
    jmp USART3__UDRE_ISR
    jmp USART3__TX_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak INT1_ISR

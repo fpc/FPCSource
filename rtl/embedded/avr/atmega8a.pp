@@ -1,7 +1,5 @@
 unit ATmega8A;
 
-{$goto on}
-
 interface
 
 var
@@ -282,14 +280,9 @@ procedure ANA_COMP_ISR; external name 'ANA_COMP_ISR'; // Interrupt 16 Analog Com
 procedure TWI_ISR; external name 'TWI_ISR'; // Interrupt 17 2-wire Serial Interface
 procedure SPM_RDY_ISR; external name 'SPM_RDY_ISR'; // Interrupt 18 Store Program Memory Ready
 
-procedure _FPC_start; assembler; nostackframe;
-label
-   _start;
+procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   .init
-   .globl _start
-
-   rjmp _start
+   rjmp __dtors_end
    rjmp INT0_ISR
    rjmp INT1_ISR
    rjmp TIMER2_COMP_ISR
@@ -308,8 +301,6 @@ label
    rjmp ANA_COMP_ISR
    rjmp TWI_ISR
    rjmp SPM_RDY_ISR
-
-   {$i start.inc}
 
    .weak INT0_ISR
    .weak INT1_ISR
