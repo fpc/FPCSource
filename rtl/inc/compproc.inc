@@ -723,6 +723,9 @@ procedure fpc_Raiseexception (Obj : TObject; AnAddr : CodePointer; AFrame : Poin
 function fpc_PopObjectStack : TObject; compilerproc;
 function fpc_PopSecondObjectStack : TObject; compilerproc;
 Procedure fpc_ReRaise; compilerproc;
+{$if defined(FPC_WASM_NATIVE_EXCEPTIONS) or defined(FPC_WASM_BRANCHFUL_EXCEPTIONS)}
+Procedure fpc_ReRaise2; compilerproc;
+{$endif}
 Function fpc_Catches(Objtype : TClass) : TObject; compilerproc;
 function fpc_safecallhandler(obj: TObject): HResult; compilerproc;
 function fpc_safecallcheck(res : hresult) : hresult; compilerproc; {$ifdef CPU86} register; {$endif}

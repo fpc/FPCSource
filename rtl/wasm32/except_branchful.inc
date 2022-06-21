@@ -267,6 +267,22 @@ function Internal_PopSecondObjectStack : TObject; external name 'FPC_POPSECONDOB
 function Internal_PopObjectStack: TObject; external name 'FPC_POPOBJECTSTACK';
 procedure Internal_Reraise; external name 'FPC_RERAISE';
 
+Procedure fpc_ReRaise2;[Public, Alias : 'FPC_RERAISE2']; compilerproc;
+var
+  Newobj : PExceptObject;
+  _ExceptObjectStack : PExceptObject;
+begin
+{$ifdef excdebug}
+  writeln ('In reraise2');
+{$endif}
+  _ExceptObjectStack:=ExceptObjectStack;
+  NewObj:=AllocMem(sizeof(TExceptObject));
+  NewObj^.Next:=_ExceptObjectStack^.Next;
+  _ExceptObjectStack^.Next:=NewObj;
+
+  Internal_Reraise;
+end;
+
 Function fpc_Catches(Objtype : TClass) : TObject;[Public, Alias : 'FPC_CATCHES']; compilerproc;
 var
   _ExceptObjectStack : PExceptObject;
