@@ -1050,15 +1050,9 @@ var rtl = {
     if(a===null){
       a=[];
     } else if (a['$pas2jsrefcnt']){
-      if (type===0){
-        a=a.concat();
-      } else {
-        a=rtl.arrayCopy(type,a,0,a.length);
-      }
+      a=rtl.arrayCopy(type,a,0,a.length);
     }
-    for (var i=2; i<arguments.length; i++){
-      a.push(arguments[i]);
-    }
+    rtl.arrayClone(type,arguments,2,arguments.length-1,a,a.length);
     return a;
   },
 
