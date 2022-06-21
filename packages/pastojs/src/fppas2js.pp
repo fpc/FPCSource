@@ -18963,7 +18963,7 @@ begin
       end;
     if Call.Expr=nil then
       begin
-      // default: rtl.arrayConcatN(array1,array2,...)
+      // simple types: rtl.arrayConcatN(array1,array2,...)
       if IsAppend then
         Func:=pbifnArray_PushN
       else
