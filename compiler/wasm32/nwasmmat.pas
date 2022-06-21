@@ -209,7 +209,7 @@ implementation
       end;
 
 {*****************************************************************************
-                            twasmunaryminustnode
+                            twasmunaryminusnode
 *****************************************************************************}
 
     procedure twasmunaryminusnode.second_integer;
