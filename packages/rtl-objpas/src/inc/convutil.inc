@@ -397,8 +397,13 @@ begin
   ValueStr:=Copy(AText,1,P);
   if not TryStrToFloat(ValueStr, AValue) then
     Exit;
-  while AText[P]=#32 do Inc(P);
-  TypeStr:=Copy(AText,P,MaxInt);
+  //since there is no restriction on the description of a TConvType
+  //(it can be empty or have leading or trailing spaces)
+  //everything after the space at position P _must_ be the description
+  if P=Length(AText) then
+    TypeStr:=''
+  else
+    TypeStr:=Copy(AText,P+1,MaxInt);
   Result:=DescriptionToConvType(TypeStr, AType);
 end;
 
