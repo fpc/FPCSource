@@ -162,6 +162,7 @@ implementation
              current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
              hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,-1,tmpreg,lab);
              hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_overflow',[],nil);
+             hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
              hlcg.a_label(current_asmdata.CurrAsmList,lab);
              current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
            end;
@@ -228,6 +229,7 @@ implementation
             current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
             hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,torddef(resultdef).low.svalue,left.location.register,hl);
             hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_overflow',[],nil).resetiftemp;
+            hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
             hlcg.a_label(current_asmdata.CurrAsmList,hl);
             current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
           end;

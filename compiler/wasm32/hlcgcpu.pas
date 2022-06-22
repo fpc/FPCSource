@@ -2169,6 +2169,7 @@ implementation
       list.concat(taicpu.op_none(a_block));
       a_cmp_const_loc_label(list,s32inttype,OC_EQ,0,ovloc,hl);
       g_call_system_proc(list,'fpc_overflow',[],nil);
+      hlcg.g_maybe_checkforexceptions(current_asmdata.CurrAsmList);
       list.concat(taicpu.op_none(a_end_block));
       a_label(list,hl);
     end;
