@@ -101,6 +101,8 @@ uses
         if not assigned(module) then
           internalerror(2016112802);
         namepart:='_$'+hexstr(module.moduleid,8)+'$$'+paramtype.unique_id_str;
+        if constprettyname<>'' then
+          namepart:=namepart+'$$'+constprettyname;
         { we use the full name of the type to uniquely identify it }
         if (symtablestack.top.symtabletype=parasymtable) and
             (symtablestack.top.defowner.typ=procdef) and
