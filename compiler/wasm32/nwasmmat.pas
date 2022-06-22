@@ -30,9 +30,6 @@ interface
 
     type
       twasmmoddivnode = class(tmoddivnode)
-        protected
-          function use_moddiv64bitint_helper: boolean; override;
-        public
          procedure pass_generate_code;override;
       end;
 
@@ -67,24 +64,12 @@ implementation
                              twasmmoddivnode
 *****************************************************************************}
 
-    function twasmmoddivnode.use_moddiv64bitint_helper: boolean;
-      begin
-        result:=
-          (nodetype=modn) and
-          (left.resultdef.typ=orddef) and
-          (right.resultdef.typ=orddef) and
-          ((torddef(left.resultdef).ordtype=u64bit) or
-           (torddef(right.resultdef).ordtype=u64bit));
-      end;
-
-
     procedure twasmmoddivnode.pass_generate_code;
       var
         tmpreg: tregister;
         lab: tasmlabel;
         ovloc: tlocation;
         op: topcg;
-        isu32int: boolean;
       begin
          secondpass(left);
          secondpass(right);
@@ -103,46 +88,21 @@ implementation
           end
         else
           begin
-            { must be handled via a helper }
-            if torddef(resultdef).ordtype=u64bit then
-              internalerror(2011010416);
-            if (torddef(resultdef).ordtype<>u32bit) then
-              begin
-                isu32int:=false;
-                thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
-                thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
-              end
-            else
-              begin
-                isu32int:=true;
-                if left.location.loc=LOC_CONSTANT then
-                  thlcgwasm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,s64inttype,left.location.value,R_INTREGISTER)
-                else
-                  begin
-                    thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
-                    thlcgwasm(hlcg).resize_stack_int_val(current_asmdata.CurrAsmList,u32inttype,s64inttype,false);
-                  end;
-                if right.location.loc=LOC_CONSTANT then
-                  thlcgwasm(hlcg).a_load_const_stack(current_asmdata.CurrAsmList,s64inttype,right.location.value,R_INTREGISTER)
-                else
-                  begin
-                    thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
-                    thlcgwasm(hlcg).resize_stack_int_val(current_asmdata.CurrAsmList,u32inttype,s64inttype,false);
-                  end;
-              end;
-            if isu32int or
-               (torddef(resultdef).ordtype=s64bit) then
-              begin
+            thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
+            thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
+            case torddef(resultdef).ordtype of
+              s64bit:
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_i64_rem_s));
-                thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
-              end
-            else
-              begin
+              u64bit:
+                current_asmdata.CurrAsmList.concat(taicpu.op_none(a_i64_rem_u));
+              s32bit:
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_i32_rem_s));
-                thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
-              end;
-            if isu32int then
-              thlcgwasm(hlcg).resize_stack_int_val(current_asmdata.CurrAsmList,s64inttype,u32inttype,false);
+              u32bit:
+                current_asmdata.CurrAsmList.concat(taicpu.op_none(a_i32_rem_u));
+              else
+                internalerror(2022062201);
+            end;
+            thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
           end;
          thlcgwasm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
          if (cs_check_overflow in current_settings.localswitches) and
