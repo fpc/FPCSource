@@ -873,7 +873,9 @@ begin
     else
       begin
       Result:=GetTypeName(TIDLSequenceTypeDefDefinition(aTypeDef).ElementType,ForTypeDef);
-      Result:='T'+Result+'DynArray';
+      if Result[1]<>'T' then
+        Result:='T'+Result;
+      Result:=Result+'DynArray';
       end
     end
   else
@@ -1088,11 +1090,11 @@ begin
   Indent;
   AddLn('function GetValue(aKey: %s): %s; external name ''[]'';',[KT,VT]);
   AddLn('procedure SetValue(aKey: %s; const AValue: %s); external name ''[]'';',[KT,VT]);
-  undent;
+  Undent;
   AddLn('public');
   Indent;
   AddLn('property Values[Name: %s]: %s read GetProperties write SetProperties; default;',[KT,VT]);
-  undent;
+  Undent;
   AddLn('end;');
 end;
 
@@ -1576,7 +1578,7 @@ begin
   if D Is TIDLInterfaceDefinition then
     begin
     CN:=ClassPrefix+D.Name+ClassSuffix;
-    Result:=CreatePasname(CN,D);
+    Result:=CreatePasName(CN,D);
     D.Data:=Result;
     AllocatePasNames((D as TIDLInterfaceDefinition).Members,D.Name);
     end
@@ -1585,7 +1587,7 @@ begin
     CN:=D.Name;
     if coDictionaryAsClass in BaseOptions then
       CN:=ClassPrefix+CN+ClassSuffix;
-    Result:=CreatePasname(EscapeKeyWord(CN),D);
+    Result:=CreatePasName(EscapeKeyWord(CN),D);
     D.Data:=Result;
     AllocatePasNames((D as TIDLDictionaryDefinition).Members,D.Name);
     end
