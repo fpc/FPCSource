@@ -95,6 +95,7 @@ type
     function GetName(ADef: TIDLDefinition): String; virtual;
     function GetTypeName(Const aTypeName: String; ForTypeDef: Boolean=False): String; virtual;
     function GetTypeName(aTypeDef: TIDLTypeDefDefinition; ForTypeDef: Boolean=False): String; virtual;
+    function GetInterfaceDefHead(Intf: TIDLInterfaceDefinition): String; virtual;
     function CheckUnionTypeDefinition(D: TIDLDefinition): TIDLUnionTypeDefDefinition; virtual;
     procedure AddArgumentToOverloads(aList: TFPObjectlist; AName, ATypeName: String; PosEl: TIDLBaseObject); virtual;
     procedure AddArgumentToOverloads(aList: TFPObjectlist; aDef: TIDLArgumentDefinition); virtual;
@@ -186,6 +187,8 @@ type
     procedure GetOptions(L: TStrings; Full: boolean); override;
     function GetTypeName(const aTypeName: String; ForTypeDef: Boolean=False
       ): String; override;
+    function GetInterfaceDefHead(Intf: TIDLInterfaceDefinition): String;
+      override;
     // Code generation routines. Return the number of actually written defs.
     // ...
     // Definitions. Return true if a definition was written.
@@ -322,6 +325,8 @@ begin
     'any': Result:=JOB_JSValueTypeNames[jjvkUndefined];
   else
     Result:=inherited GetTypeName(aTypeName,ForTypeDef);
+    if (Result=aTypeName) and (LeftStr(Result,length(ClassPrefix))<>ClassPrefix) then
+      Result:=ClassPrefix+Result+ClassSuffix;
   end;
 end;
 
@@ -376,6 +381,12 @@ begin
   else
     Result:=inherited GetTypeName(aTypeName,ForTypeDef);
   end;
+end;
+
+function TWebIDLToPas2js.GetInterfaceDefHead(Intf: TIDLInterfaceDefinition
+  ): String;
+begin
+  Result:='class external name '+MakePascalString(Intf.Name,True);
 end;
 
 function TWebIDLToPas2js.WriteConst(aConst: TIDLConstDefinition): Boolean;
@@ -773,7 +784,7 @@ begin
     ClassHeader(CN);
     WriteFunctionImplicitTypes(ML);
     WriteAttributeImplicitTypes(ML);
-    Decl:=Format('%s = class external name %s ',[CN,MakePascalString(Intf.Name,True)]);
+    Decl:=CN+' = '+GetInterfaceDefHead(Intf);
     if Assigned(Intf.ParentInterface) then
       PN:=GetName(Intf.ParentInterface)
     else
@@ -895,6 +906,12 @@ begin
     end
   else
     Result:=GetTypeName(aTypeDef.TypeName,ForTypeDef);
+end;
+
+function TBaseWebIDLToPas.GetInterfaceDefHead(Intf: TIDLInterfaceDefinition
+  ): String;
+begin
+  Result:='class';
 end;
 
 function TBaseWebIDLToPas.GetTypeName(const aTypeName: String; ForTypeDef: Boolean

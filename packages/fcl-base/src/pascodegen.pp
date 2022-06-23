@@ -372,7 +372,6 @@ begin
   Result:='';
 end;
 
-
 function TPascalCodeGenerator.MakePascalString(S: String; AddQuotes: Boolean
   ): String;
 
