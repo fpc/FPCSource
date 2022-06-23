@@ -1090,7 +1090,7 @@ implementation
 
     function SanitiseXMLString(const S: ansistring): ansistring;
       var
-        X, UTF8Len, UTF8Char, CurrentChar: Integer;
+        X, UTF8Len, CurrentChar: Integer;
         needs_quoting, in_quotes, add_end_quote: Boolean;
         DoASCII: Boolean;
 
@@ -1234,96 +1234,17 @@ implementation
                         end;
                     end;
 
-                  UTF8Char := CurrentChar and $3F; { The data bits of the continuation byte }
-                  UTF8Len := 1; { This variable actually holds 1 less than the length }
+                  UTF8Len := 1;
+                  repeat
+                    inc(UTF8Len);
+                    dec(X);
+                  until (X = 0) or (UTF8Len >= 4) or (ord(Result[X]) shr 6 <> 2);
 
-                  { By setting DoASCII to true, it marks the string as 'invalid UTF-8'
-                    automatically if it reaches the beginning of the string unexpectedly }
-                  DoASCII := True;
-
-                  Dec(X);
-                  while X > 0 do
+                  if (X = 0) or (Utf8CodepointLen(@Result[X], UTF8Len, False) <> UTF8Len) then
                     begin
-                      CurrentChar := Ord(Result[X]);
-
-                      case CurrentChar of
-                        { A standard character here is invalid UTF-8 }
-                        $00..$7F:
-                          Break;
-
-                        { Another continuation byte }
-                        $80..$BF:
-                          begin
-                            UTF8Char := UTF8Char or ((CurrentChar and $3F) shl (6 * UTF8Len));
-
-                            dec(X);
-                            Inc(UTF8Len);
-                            if UTF8Len >= 4 then
-                              { Sequence too long }
-                              Break;
-                          end;
-
-                        { Lead byte for 2-byte sequences }
-                        $C2..$DF:
-                          begin
-                            if UTF8Len <> 1 then Break;
-
-                            UTF8Char := UTF8Char or ((CurrentChar and $1F) shl 6);
-
-                            { Check to see if the code is in range and not part of an 'overlong' sequence }
-                            case UTF8Char of
-                              $0080..$07FF:
-                                DoASCII := False;
-                              else
-                                { Do nothing - DoASCII is already true }
-                            end;
-                            Break;
-                          end;
-
-                        { Lead byte for 3-byte sequences }
-                        $E0..$EF:
-                          begin
-                            if UTF8Len <> 2 then Break;
-
-                            UTF8Char := UTF8Char or ((CurrentChar and $0F) shl 12);
-
-                            { Check to see if the code is in range and not part of an 'overlong' sequence }
-                            case UTF8Char of
-                              $0800..$D7FF, $E000..$FFFF: { $D800..$DFFF is reserved and hence invalid }
-                                DoASCII := False;
-                              else
-                                { Do nothing - DoASCII is already true }
-                            end;
-                            Break;
-                          end;
-
-                        { Lead byte for 4-byte sequences }
-                        $F0..$F4:
-                          begin
-                            if UTF8Len <> 3 then Break;
-
-                            UTF8Char := UTF8Char or ((CurrentChar and $07) shl 18);
-
-                            { Check to see if the code is in range and not part of an 'overlong' sequence }
-                            case UTF8Char of
-                              $010000..$10FFFF:
-                                DoASCII := False;
-                              else
-                                { Do nothing - DoASCII is already true }
-                            end;
-                            Break;
-                          end;
-
-                        { Invalid character }
-                        else
-                          Break;
-                      end;
+                      DoASCII := True;
+                      break;
                     end;
-
-                  if DoASCII then
-                    Break;
-
-                  { If all is fine, we don't need to encode any more characters }
                 end;
 
               { Invalid UTF-8 bytes and lead bytes without continuation bytes }
