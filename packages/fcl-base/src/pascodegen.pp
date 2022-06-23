@@ -26,7 +26,7 @@ Type
   TCodegenLogType = (cltInfo);
   TCodegenLogTypes = Set of TCodegenLogType;
   TCodeGeneratorLogEvent = Procedure (Sender : TObject; LogType : TCodegenLogType; Const Msg : String) of object;
-  TCodesection = (csUnknown, csConst, csType, csVar, csResourcestring, csDeclaration);
+  TCodeSection = (csUnknown, csConst, csType, csVar, csResourcestring, csDeclaration);
 
   { TPascalCodeGenerator }
 
@@ -221,14 +221,15 @@ end;
 procedure TPascalCodeGenerator.EnsureSection(aSection: TCodeSection);
 
 Const
-  SectionKeyWords : Array[TCodesection] of string
+  SectionKeyWords : Array[TCodeSection] of string
     = ('', 'Const', 'Type', 'Var', 'Resourcestring', '');
 
 begin
   If CurrentSection<>aSection then
     begin
     CurrentSection:=aSection;
-    AddLn(SectionKeyWords[CurrentSection]);
+    if SectionKeyWords[CurrentSection]<>'' then
+      AddLn(SectionKeyWords[CurrentSection]);
     end;
 end;
 
