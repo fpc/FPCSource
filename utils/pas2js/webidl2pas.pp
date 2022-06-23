@@ -189,7 +189,7 @@ begin
   // read other options
   CheckPas2jsOption(p2jcoExternalConst,'c','constexternal');
 
-  if CheckPas2jsOption(p2jcoDictionaryAsClass,'d','dicttoclass') then
+  if CheckBaseOption(coDictionaryAsClass,'d','dicttoclass') then
     TWebIDLToPas2js(FWebIDLToPas).DictionaryClassParent:=GetOptionValue('d','dicttoclass');
 
   CheckBaseOption(coExpandUnionTypeArgs,'e','expandunionargs');

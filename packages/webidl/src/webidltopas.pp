@@ -38,15 +38,17 @@ Type
   end;
 
   TBaseConversionOption = (
+    coAddOptionsToHeader,
     coExpandUnionTypeArgs,
-    coAddOptionsToHeader
+    coDictionaryAsClass
     );
   TBaseConversionOptions = Set of TBaseConversionOption;
 
 const
   BaseConversionOptionName: array[TBaseConversionOption] of string = (
+    'AddOptionsToHeader',
     'ExpandUnionTypeArgs',
-    'AddOptionsToHeader'
+    'DictionaryAsClass'
     );
 
 type
@@ -161,7 +163,6 @@ type
 
 type
   TPas2jsConversionOption = (
-    p2jcoDictionaryAsClass,
     p2jcoUseNativeTypeAliases,
     p2jcoExternalConst
     );
@@ -169,7 +170,6 @@ type
 
 const
   Pas2jsConversionOptionNames: array[TPas2jsConversionOption] of string = (
-    'DictionaryAsClass',
     'UseNativeTypeAliases',
     'ExternalConst'
     );
@@ -183,17 +183,13 @@ type
     FPas2jsOptions: TPas2jsConversionOptions;
   Protected
     // Auxiliary routines
-    function AllocatePasName(D: TIDLDefinition; ParentName: String=''): TPasData; override;
     procedure GetOptions(L: TStrings; Full: boolean); override;
     function GetTypeName(const aTypeName: String; ForTypeDef: Boolean=False
       ): String; override;
     // Code generation routines. Return the number of actually written defs.
-    function WriteForwardClassDefs(aList: TIDLDefinitionList): Integer;
-      override;
+    // ...
     // Definitions. Return true if a definition was written.
     function WriteConst(aConst: TIDLConstDefinition): Boolean; override;
-    function WriteDictionaryDef(aDict: TIDLDictionaryDefinition): Boolean;
-      override;
   Public
     Property Pas2jsOptions : TPas2jsConversionOptions Read FPas2jsOptions Write FPas2jsOptions;
   Published
@@ -247,17 +243,13 @@ type
   TWebIDLToPasWasmJob = class(TBaseWebIDLToPas)
   Protected
     // Auxiliary routines
-    function AllocatePasName(D: TIDLDefinition; ParentName: String=''): TPasData; override;
     procedure GetOptions(L: TStrings; Full: boolean); override;
     function GetTypeName(const aTypeName: String; ForTypeDef: Boolean=False
       ): String; override;
     // Code generation routines. Return the number of actually written defs.
-    function WriteForwardClassDefs(aList: TIDLDefinitionList): Integer;
-      override;
+    // ...
     // Definitions. Return true if a definition was written.
-    function WriteConst(aConst: TIDLConstDefinition): Boolean; override;
-    function WriteDictionaryDef(aDict: TIDLDictionaryDefinition): Boolean;
-      override;
+    // ...
   Public
     constructor Create(ThOwner: TComponent); override;
   Published
@@ -310,12 +302,6 @@ end;
 
 { TWebIDLToPasWasmJob }
 
-function TWebIDLToPasWasmJob.AllocatePasName(D: TIDLDefinition;
-  ParentName: String): TPasData;
-begin
-  Result:=inherited AllocatePasName(D, ParentName);
-end;
-
 procedure TWebIDLToPasWasmJob.GetOptions(L: TStrings; Full: boolean);
 begin
   inherited GetOptions(L, Full);
@@ -332,69 +318,12 @@ begin
   end;
 end;
 
-function TWebIDLToPasWasmJob.WriteForwardClassDefs(aList: TIDLDefinitionList
-  ): Integer;
-begin
-  Result:=inherited WriteForwardClassDefs(aList);
-end;
-
-function TWebIDLToPasWasmJob.WriteConst(aConst: TIDLConstDefinition): Boolean;
-begin
-  Result:=inherited WriteConst(aConst);
-end;
-
-function TWebIDLToPasWasmJob.WriteDictionaryDef(aDict: TIDLDictionaryDefinition
-  ): Boolean;
-begin
-  Result:=inherited WriteDictionaryDef(aDict);
-end;
-
 constructor TWebIDLToPasWasmJob.Create(ThOwner: TComponent);
 begin
   inherited Create(ThOwner);
 end;
 
 { TWebIDLToPas2js }
-
-function TWebIDLToPas2js.AllocatePasName(D: TIDLDefinition; ParentName: String
-  ): TPasData;
-
-Var
-  CN : String;
-  aData: TPasData;
-
-begin
-  if D Is TIDLInterfaceDefinition then
-    begin
-    CN:=ClassPrefix+D.Name+ClassSuffix;
-    Result:=CreatePasname(CN,D);
-    D.Data:=Result;
-    AllocatePasNames((D as TIDLInterfaceDefinition).Members,D.Name);
-    end
-  else if D Is TIDLDictionaryDefinition then
-    begin
-    CN:=D.Name;
-    if p2jcoDictionaryAsClass in Pas2jsOptions then
-      CN:=ClassPrefix+CN+ClassSuffix;
-    Result:=CreatePasname(EscapeKeyWord(CN),D);
-    D.Data:=Result;
-    AllocatePasNames((D as TIDLDictionaryDefinition).Members,D.Name);
-    end
-  else
-    begin
-    Result:=CreatePasName(D.Name,D);
-    D.Data:=Result;
-    if D Is TIDLFunctionDefinition then
-      AllocatePasNames((D as TIDLFunctionDefinition).Arguments,D.Name);
-    end;
-  aData:=TPasData(D.Data);
-  if Verbose and (aData.PasName<>D.Name) then
-    begin
-    if (ParentName<>'') then
-      ParentName:=ParentName+'.';
-    DoLog('Renamed %s to %s for %s',[ParentName+D.Name,aData.PasName,GetPasDataPos(aData)]);
-    end;
-end;
 
 procedure TWebIDLToPas2js.GetOptions(L: TStrings; Full: boolean);
 begin
@@ -437,26 +366,6 @@ begin
   end;
 end;
 
-function TWebIDLToPas2js.WriteForwardClassDefs(aList: TIDLDefinitionList
-  ): Integer;
-
-Var
-  D : TIDLDefinition;
-
-begin
-  Result:=0;
-  Comment('Forward class definitions');
-  For D in aList do
-    if D is TIDLInterfaceDefinition then
-      if WriteForwardClassDef(D as TIDLInterfaceDefinition) then
-        Inc(Result);
-  if p2jcoDictionaryAsClass in Pas2jsOptions then
-    For D in aList do
-      if D is TIDLDictionaryDefinition then
-        if WriteForwardClassDef(D as TIDLDictionaryDefinition) then
-          Inc(Result);
-end;
-
 function TWebIDLToPas2js.WriteConst(aConst: TIDLConstDefinition): Boolean;
 
 Const
@@ -474,47 +383,7 @@ begin
     Addln('%s : %s;',[GetName(aConst),S])
     end
   else
-    begin
-    S:=aConst.Value;
-    if aConst.ConstType=ctInteger then
-      S:=StringReplace(S,'0x','$',[]);
-    Addln('%s = %s;',[GetName(aConst),S])
-    end;
-end;
-
-function TWebIDLToPas2js.WriteDictionaryDef(aDict: TIDLDictionaryDefinition
-  ): Boolean;
-
-Var
-  CurClassName,CurParent : String;
-  DefList : TIDLDefinitionList;
-  CurDefs: TIDLDictionaryDefinition;
-
-begin
-  Result:=True;
-  DefList:=TIDLDefinitionList.Create(Nil,False);
-  try
-    CurDefs:=aDict;
-    While CurDefs<>Nil do
-      begin
-      CurDefs.GetFullMemberList(DefList);
-      CurDefs:=CurDefs.ParentDictionary;
-      end;
-    CurClassName:=GetName(aDict);
-    CurParent:=DictionaryClassParent;
-    if CurParent='' then
-      CurParent:='TJSObject';
-    ClassHeader(CurClassName);
-    WriteDictionaryMemberImplicitTypes(DefList);
-    if (p2jcoDictionaryAsClass in Pas2jsOptions) then
-      Addln('%s = class(%s)',[CurClassName,CurParent])
-    else
-      Addln('%s = record',[CurClassName]);
-    WriteDictionaryFields(DefList);
-    AddLn('end;');
-  finally
-    DefList.Free;
-  end;
+    Result:=inherited WriteConst(aConst);
 end;
 
 { TPasData }
@@ -624,8 +493,14 @@ begin
 end;
 
 function TBaseWebIDLToPas.WriteConst(aConst: TIDLConstDefinition): Boolean;
+var
+  S: UTF8String;
 begin
-  Result:=aConst<>nil;
+  Result:=true;
+  S:=aConst.Value;
+  if aConst.ConstType=ctInteger then
+    S:=StringReplace(S,'0x','$',[]);
+  Addln('%s = %s;',[GetName(aConst),S])
 end;
 
 function TBaseWebIDLToPas.WriteConsts(aList: TIDLDefinitionList): Integer;
@@ -917,8 +792,37 @@ end;
 
 function TBaseWebIDLToPas.WriteDictionaryDef(aDict: TIDLDictionaryDefinition
   ): Boolean;
+
+Var
+  CurClassName,CurParent : String;
+  DefList : TIDLDefinitionList;
+  CurDefs: TIDLDictionaryDefinition;
+
 begin
-  Result:=aDict<>nil;
+  Result:=True;
+  DefList:=TIDLDefinitionList.Create(Nil,False);
+  try
+    CurDefs:=aDict;
+    While CurDefs<>Nil do
+      begin
+      CurDefs.GetFullMemberList(DefList);
+      CurDefs:=CurDefs.ParentDictionary;
+      end;
+    CurClassName:=GetName(aDict);
+    CurParent:=DictionaryClassParent;
+    if CurParent='' then
+      CurParent:='TJSObject';
+    ClassHeader(CurClassName);
+    WriteDictionaryMemberImplicitTypes(DefList);
+    if (coDictionaryAsClass in BaseOptions) then
+      Addln('%s = class(%s)',[CurClassName,CurParent])
+    else
+      Addln('%s = record',[CurClassName]);
+    WriteDictionaryFields(DefList);
+    AddLn('end;');
+  finally
+    DefList.Free;
+  end;
 end;
 
 constructor TBaseWebIDLToPas.Create(TheOwner: TComponent);
@@ -1095,9 +999,22 @@ begin
 end;
 
 function TBaseWebIDLToPas.WriteForwardClassDefs(aList: TIDLDefinitionList): Integer;
+
+Var
+  D : TIDLDefinition;
+
 begin
   Result:=0;
-  if aList=nil then ;
+  Comment('Forward class definitions');
+  For D in aList do
+    if D is TIDLInterfaceDefinition then
+      if WriteForwardClassDef(D as TIDLInterfaceDefinition) then
+        Inc(Result);
+  if coDictionaryAsClass in BaseOptions then
+    For D in aList do
+      if D is TIDLDictionaryDefinition then
+        if WriteForwardClassDef(D as TIDLDictionaryDefinition) then
+          Inc(Result);
 end;
 
 procedure TBaseWebIDLToPas.WriteSequenceDef(aDef : TIDLSequenceTypeDefDefinition);
@@ -1650,10 +1567,42 @@ begin
 end;
 
 function TBaseWebIDLToPas.AllocatePasName(D: TIDLDefinition; ParentName: String): TPasData;
+
+Var
+  CN : String;
+  aData: TPasData;
+
 begin
-  Result:=nil;
-  if D=nil then ;
-  if ParentName='' then ;
+  if D Is TIDLInterfaceDefinition then
+    begin
+    CN:=ClassPrefix+D.Name+ClassSuffix;
+    Result:=CreatePasname(CN,D);
+    D.Data:=Result;
+    AllocatePasNames((D as TIDLInterfaceDefinition).Members,D.Name);
+    end
+  else if D Is TIDLDictionaryDefinition then
+    begin
+    CN:=D.Name;
+    if coDictionaryAsClass in BaseOptions then
+      CN:=ClassPrefix+CN+ClassSuffix;
+    Result:=CreatePasname(EscapeKeyWord(CN),D);
+    D.Data:=Result;
+    AllocatePasNames((D as TIDLDictionaryDefinition).Members,D.Name);
+    end
+  else
+    begin
+    Result:=CreatePasName(D.Name,D);
+    D.Data:=Result;
+    if D Is TIDLFunctionDefinition then
+      AllocatePasNames((D as TIDLFunctionDefinition).Arguments,D.Name);
+    end;
+  aData:=TPasData(D.Data);
+  if Verbose and (aData.PasName<>D.Name) then
+    begin
+    if (ParentName<>'') then
+      ParentName:=ParentName+'.';
+    DoLog('Renamed %s to %s for %s',[ParentName+D.Name,aData.PasName,GetPasDataPos(aData)]);
+    end;
 end;
 
 function TBaseWebIDLToPas.GetDefPos(Def: TIDLBaseObject; WithoutFile: boolean
