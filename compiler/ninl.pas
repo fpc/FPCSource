@@ -4179,7 +4179,9 @@ implementation
             end;
 
           in_slice_x:
-            internalerror(2005101502);
+            { slice can be used only in calls for open array parameters, so it has to be converted appropriatly before
+              if we get here, the array could not be passed to an open array parameter so it is an error }
+            CGMessagePos(left.fileinfo,type_e_mismatch);
 
           in_ord_x,
           in_chr_byte:
