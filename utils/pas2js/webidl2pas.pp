@@ -139,7 +139,7 @@ var
 begin
   Terminate;
   // quick check parameters
-  ErrorMsg:=CheckOptions('ced::hi:m:n:o:pt:u:vw:x:', [
+  ErrorMsg:=CheckOptions('ced::f:hi:m:n:o:pt:u:vw:x:', [
     'help',
     'constexternal',
     'dicttoclass::',
