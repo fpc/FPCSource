@@ -15,6 +15,7 @@
 {$endif}
 {$H+}
 {$ifdef CLASSESINLINE}{$inline on}{$endif}
+{$IFOPT R+}{$DEFINE RangeChecking}{$ENDIF}
 
 unit Contnrs;
 
@@ -1928,6 +1929,7 @@ end;
 
 { Default hash Function }
 
+{$IFDEF RangeChecking}{$R-}{$ENDIF}
 Function RSHash(const S: string; const TableSize: Longword): Longword;
 const
   b = 378551;
@@ -1945,6 +1947,7 @@ begin
       end;
   Result:=(Result and $7FFFFFFF) mod TableSize;
 end;
+{$IFDEF RangeChecking}{$R+}{$ENDIF}
 
 { THTNode }
 
