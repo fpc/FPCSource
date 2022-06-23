@@ -194,8 +194,6 @@ begin
   AddLn('}');
 end;
 
-
-
 constructor TPascalCodeGenerator.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
