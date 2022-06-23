@@ -251,7 +251,6 @@ end;
 
 // We're at the [,{,( token when we enter here
 // On exit, we're on the terminator token.
-
 procedure TWebIDLParser.ParseExtAttributes(aList: TExtAttributeList; aTerminator: TIDLToken; ForSerializer : Boolean = False);
 
   Function AddSub(aTerm : TIDLToken) : String;

@@ -260,6 +260,7 @@ constructor TWebIDLToPasApplication.Create(TheOwner: TComponent);
 begin
   inherited Create(TheOwner);
   StopOnException:=True;
+  ExceptionExitCode:=1;
 end;
 
 destructor TWebIDLToPasApplication.Destroy;
