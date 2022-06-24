@@ -17,7 +17,8 @@ program webidl2pas;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, SysUtils, CustApp, webidlscanner, webidltopas, pascodegen, typinfo;
+  Classes, SysUtils, CustApp, webidlscanner, webidltopas, pascodegen, typinfo,
+  webidltopas2js, webidltowasmjob;
 
 type
   TWebIDLToPasFormat = (
