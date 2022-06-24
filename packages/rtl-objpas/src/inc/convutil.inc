@@ -525,6 +525,8 @@ var l1 : Longint;
 begin
   If NOT CheckFamily(Fam) Then
     raise EConversionError.CreateFmt(SConvUnknownFamily, [IntToStr(Fam)]);
+  if IsZero(Value) then
+    raise EZeroDivide.CreateFmt(SConvFactorZero,[S]);
   l1:=length(theunits);
   if l1>0 then
     if FindConvType(Fam, S) then
