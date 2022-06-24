@@ -110,8 +110,6 @@ var
 begin
   if __wasi_clock_time_get(__WASI_CLOCKID_REALTIME,10000000,@NanoSecsPast)=__WASI_ERRNO_SUCCESS then
   begin
-    { todo: convert UTC to local time, as soon as we can get the local timezone
-      from WASI: https://github.com/WebAssembly/WASI/issues/239 }
     WasiDateToDT(NanoSecsPast,DT);
     Year:=DT.Year;
     Month:=DT.Month;
@@ -170,103 +168,20 @@ end;
 
 
 Function DTToWasiDate(DT: DateTime): UInt64;
-const
-  days_in_month: array [boolean, 1..12] of Byte =
-    ((31,28,31,30,31,30,31,31,30,31,30,31),
-     (31,29,31,30,31,30,31,31,30,31,30,31));
-  days_before_month: array [boolean, 1..12] of Word =
-    ((0,
-      0+31,
-      0+31+28,
-      0+31+28+31,
-      0+31+28+31+30,
-      0+31+28+31+30+31,
-      0+31+28+31+30+31+30,
-      0+31+28+31+30+31+30+31,
-      0+31+28+31+30+31+30+31+31,
-      0+31+28+31+30+31+30+31+31+30,
-      0+31+28+31+30+31+30+31+31+30+31,
-      0+31+28+31+30+31+30+31+31+30+31+30),
-     (0,
-      0+31,
-      0+31+29,
-      0+31+29+31,
-      0+31+29+31+30,
-      0+31+29+31+30+31,
-      0+31+29+31+30+31+30,
-      0+31+29+31+30+31+30+31,
-      0+31+29+31+30+31+30+31+31,
-      0+31+29+31+30+31+30+31+31+30,
-      0+31+29+31+30+31+30+31+31+30+31,
-      0+31+29+31+30+31+30+31+31+30+31+30));
 var
-  leap: Boolean;
-  days_in_year: LongInt;
-  y,m: LongInt;
+  res: Int64;
 begin
-  if (DT.year<1970) or (DT.month<1) or (DT.month>12) or (DT.day<1) or (DT.day>31) or
-     (DT.hour>=24) or (DT.min>=60) or (DT.sec>=60) then
-  begin
-    DTToWasiDate:=0;
-    exit;
-  end;
-  leap:=((DT.year mod 4)=0) and (((DT.year mod 100)<>0) or ((DT.year mod 400)=0));
-  if DT.day>days_in_month[leap,DT.month] then
-  begin
-    DTToWasiDate:=0;
-    exit;
-  end;
-  DTToWasiDate:=0;
-  for y:=1970 to DT.year-1 do
-    if ((y mod 4)=0) and (((y mod 100)<>0) or ((y mod 400)=0)) then
-      Inc(DTToWasiDate,366)
-    else
-      Inc(DTToWasiDate,365);
-  Inc(DTToWasiDate,days_before_month[leap,DT.month]);
-  Inc(DTToWasiDate,DT.day-1);
-  DTToWasiDate:=((((DTToWasiDate*24+DT.hour)*60+DT.min)*60)+DT.sec)*1000000000;
+  res:=WasiUtil.LocalToEpoch(DT.year,DT.month,DT.day,DT.hour,DT.min,DT.sec);
+  if res<0 then
+    DTToWasiDate:=0
+  else
+    DTToWasiDate:=res*1000000000;
 end;
 
 
 Procedure WasiDateToDt(NanoSecsPast: UInt64; Var Dt: DateTime);
-const
-  days_in_month: array [boolean, 1..12] of Byte =
-    ((31,28,31,30,31,30,31,31,30,31,30,31),
-     (31,29,31,30,31,30,31,31,30,31,30,31));
-var
-  leap: Boolean;
-  days_in_year: LongInt;
 Begin
-  { todo: convert UTC to local time, as soon as we can get the local timezone
-    from WASI: https://github.com/WebAssembly/WASI/issues/239 }
-  NanoSecsPast:=NanoSecsPast div 1000000000;
-  Dt.Sec:=NanoSecsPast mod 60;
-  NanoSecsPast:=NanoSecsPast div 60;
-  Dt.Min:=NanoSecsPast mod 60;
-  NanoSecsPast:=NanoSecsPast div 60;
-  Dt.Hour:=NanoSecsPast mod 24;
-  NanoSecsPast:=NanoSecsPast div 24;
-  Dt.Year:=1970;
-  leap:=false;
-  days_in_year:=365;
-  while NanoSecsPast>=days_in_year do
-  begin
-    Dec(NanoSecsPast,days_in_year);
-    Inc(Dt.Year);
-    leap:=((Dt.Year mod 4)=0) and (((Dt.Year mod 100)<>0) or ((Dt.Year mod 400)=0));
-    if leap then
-      days_in_year:=366
-    else
-      days_in_year:=365;
-  end;
-  Dt.Month:=1;
-  Inc(NanoSecsPast);
-  while NanoSecsPast>days_in_month[leap,Dt.Month] do
-  begin
-    Dec(NanoSecsPast,days_in_month[leap,Dt.Month]);
-    Inc(Dt.Month);
-  end;
-  Dt.Day:=Word(NanoSecsPast);
+  WasiUtil.EpochToLocal(NanoSecsPast div 1000000000,Dt.Year,Dt.Month,Dt.Day,Dt.Hour,Dt.Min,Dt.Sec);
 End;
 
 

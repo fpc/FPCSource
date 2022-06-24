@@ -44,6 +44,10 @@ function FNMatch(const Pattern,Name:rawbytestring):Boolean;
 function WasiFindFirst(const Path: RawByteString; Attr: Word; var f: TWasiSearchRec): longint;
 function WasiFindNext(var f: TWasiSearchRec): longint;
 procedure WasiFindClose(var f: TWasiSearchRec);
+Function UniversalToEpoch(year,month,day,hour,minute,second:Word):int64;
+Function LocalToEpoch(year,month,day,hour,minute,second:Word):int64;
+Procedure EpochToUniversal(epoch:int64;var year,month,day,hour,minute,second:Word);
+Procedure EpochToLocal(epoch:int64;var year,month,day,hour,minute,second:Word);
 
 implementation
 
@@ -401,5 +405,128 @@ Begin
      result:=WasiFindNext(f);
    end;
 End;
+
+
+Function UniversalToEpoch(year,month,day,hour,minute,second:Word):int64;
+const
+  days_in_month: array [boolean, 1..12] of Byte =
+    ((31,28,31,30,31,30,31,31,30,31,30,31),
+     (31,29,31,30,31,30,31,31,30,31,30,31));
+  days_before_month: array [boolean, 1..12] of Word =
+    ((0,
+      0+31,
+      0+31+28,
+      0+31+28+31,
+      0+31+28+31+30,
+      0+31+28+31+30+31,
+      0+31+28+31+30+31+30,
+      0+31+28+31+30+31+30+31,
+      0+31+28+31+30+31+30+31+31,
+      0+31+28+31+30+31+30+31+31+30,
+      0+31+28+31+30+31+30+31+31+30+31,
+      0+31+28+31+30+31+30+31+31+30+31+30),
+     (0,
+      0+31,
+      0+31+29,
+      0+31+29+31,
+      0+31+29+31+30,
+      0+31+29+31+30+31,
+      0+31+29+31+30+31+30,
+      0+31+29+31+30+31+30+31,
+      0+31+29+31+30+31+30+31+31,
+      0+31+29+31+30+31+30+31+31+30,
+      0+31+29+31+30+31+30+31+31+30+31,
+      0+31+29+31+30+31+30+31+31+30+31+30));
+var
+  leap: Boolean;
+  days_in_year: LongInt;
+  y,m: LongInt;
+begin
+  if (year<1970) or (month<1) or (month>12) or (day<1) or (day>31) or
+     (hour>=24) or (minute>=60) or (second>=60) then
+  begin
+    result:=-1;
+    exit;
+  end;
+  leap:=((year mod 4)=0) and (((year mod 100)<>0) or ((year mod 400)=0));
+  if day>days_in_month[leap,month] then
+  begin
+    result:=-1;
+    exit;
+  end;
+  result:=0;
+  for y:=1970 to year-1 do
+    if ((y mod 4)=0) and (((y mod 100)<>0) or ((y mod 400)=0)) then
+      Inc(result,366)
+    else
+      Inc(result,365);
+  Inc(result,days_before_month[leap,month]);
+  Inc(result,day-1);
+  result:=(((result*24+hour)*60+minute)*60)+second;
+end;
+
+Function LocalToEpoch(year,month,day,hour,minute,second:Word):int64;
+begin
+  { todo: convert UTC to local time, as soon as we can get the local timezone
+    from WASI: https://github.com/WebAssembly/WASI/issues/239 }
+  result:=UniversalToEpoch(year,month,day,hour,minute,second);
+end;
+
+
+Procedure EpochToUniversal(epoch:int64;var year,month,day,hour,minute,second:Word);
+const
+  days_in_month: array [boolean, 1..12] of Byte =
+    ((31,28,31,30,31,30,31,31,30,31,30,31),
+     (31,29,31,30,31,30,31,31,30,31,30,31));
+var
+  leap: Boolean;
+  days_in_year: LongInt;
+begin
+  if epoch<0 then
+  begin
+    year:=0;
+    month:=0;
+    day:=0;
+    hour:=0;
+    minute:=0;
+    second:=0;
+    exit;
+  end;
+  second:=epoch mod 60;
+  epoch:=epoch div 60;
+  minute:=epoch mod 60;
+  epoch:=epoch div 60;
+  hour:=epoch mod 24;
+  epoch:=epoch div 24;
+  year:=1970;
+  leap:=false;
+  days_in_year:=365;
+  while epoch>=days_in_year do
+  begin
+    Dec(epoch,days_in_year);
+    Inc(year);
+    leap:=((year mod 4)=0) and (((year mod 100)<>0) or ((year mod 400)=0));
+    if leap then
+      days_in_year:=366
+    else
+      days_in_year:=365;
+  end;
+  month:=1;
+  Inc(epoch);
+  while epoch>days_in_month[leap,month] do
+  begin
+    Dec(epoch,days_in_month[leap,month]);
+    Inc(month);
+  end;
+  day:=Word(epoch);
+end;
+
+
+Procedure EpochToLocal(epoch:int64;var year,month,day,hour,minute,second:Word);
+begin
+  { todo: convert UTC to local time, as soon as we can get the local timezone
+    from WASI: https://github.com/WebAssembly/WASI/issues/239 }
+  EpochToUniversal(epoch,year,month,day,hour,minute,second);
+end;
 
 end.
