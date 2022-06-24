@@ -48,6 +48,8 @@ begin
       AddUnit('webidlscanner');
       AddUnit('webidlparser');
       end;
+    T:=P.Targets.AddUnit('webidltopas2js.pp');
+    T:=P.Targets.AddUnit('webidltowasmjob.pp');
 {$ifndef ALLPACKAGES}
     Run;
     end;
