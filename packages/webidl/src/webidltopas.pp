@@ -396,7 +396,6 @@ begin
   aClassName:=GetName(Attr.Parent);
 
   case TypeName of
-  'JSValue': ReadFuncName:='ReadJSPropertyUnicode?';
   'Boolean': ReadFuncName:='ReadJSPropertyBoolean';
   'ShortInt',
   'Byte',
@@ -409,8 +408,9 @@ begin
   'Single',
   'Double': ReadFuncName:='ReadJSPropertyDouble';
   'UnicodeString': ReadFuncName:='ReadJSPropertyUnicodeString';
+  //'JSValue':
   else
-    raise EConvertError.Create('not yet implemented: getter '+Typename);
+    raise EConvertError.Create('not yet implemented: Getter '+Typename);
   end;
 
   Code:='Function '+aClassName+'.'+FuncName+': '+TypeName+';'+sLineBreak;
@@ -424,16 +424,42 @@ end;
 function TWebIDLToPasWasmJob.WritePrivateSetter(Attr: TIDLAttributeDefinition
   ): boolean;
 var
-  FuncName, TypeName: String;
+  FuncName, TypeName, aClassName, WriteFuncName, Code: String;
 begin
   if aoReadOnly in Attr.Options then
     exit(false);
 
   Result:=true;
-  FuncName:=GetterPrefix+GetName(Attr);
+  FuncName:=SetterPrefix+GetName(Attr);
   TypeName:=GetTypeName(Attr.AttributeType);
   AddLn('Procedure '+FuncName+'(const aValue: '+TypeName+');');
 
+  aClassName:=GetName(Attr.Parent);
+
+  case TypeName of
+  'Boolean': WriteFuncName:='WriteJSPropertyBoolean';
+  'ShortInt',
+  'Byte',
+  'SmallInt',
+  'Word',
+  'Integer': WriteFuncName:='WriteJSPropertyLongInt';
+  'LongWord',
+  'Int64',
+  'QWord': WriteFuncName:='WriteJSPropertyDouble';
+  'Single',
+  'Double': WriteFuncName:='WriteJSPropertyDouble';
+  'UnicodeString': WriteFuncName:='WriteJSPropertyUnicodeString';
+  //'JSValue':
+  else
+    raise EConvertError.Create('not yet implemented: Setter '+Typename);
+  end;
+
+  Code:='Procedure '+aClassName+'.'+FuncName+'(const aValue: '+TypeName+');'+sLineBreak;
+  Code:=Code+'begin'+sLineBreak;
+  Code:=Code+'  '+WriteFuncName+'('''+Attr.Name+''',aValue);'+sLineBreak;
+  Code:=Code+'end;'+sLineBreak;
+
+  FIncludeImplementationCode.Add(Code);
 end;
 
 function TWebIDLToPasWasmJob.WriteProperty(Attr: TIDLAttributeDefinition
@@ -1107,25 +1133,33 @@ Var
 
 begin
   Case aTypeName of
-    'union': TN:='JSValue';
-    'short': TN:='SmallInt';
-    'long': TN:='Integer';
-    'long long': TN:='Int64';
-    'unsigned short': TN:='Word';
-    'unrestricted float': TN:='Single';
-    'unrestricted double': TN:='Double';
-    'unsigned long': TN:='LongWord';
-    'unsigned long long': TN:='QWord';
+    'boolean': TN:='Boolean';
+
+    'byte': TN:='ShortInt';
     'octet': TN:='Byte';
+    'short': TN:='SmallInt';
+    'unsigned short': TN:='Word';
+    'long': TN:='Integer';
+    'unsigned long': TN:='LongWord';
+    'long long': TN:='Int64';
+    'unsigned long long': TN:='QWord';
+
+    'float',
+    'unrestricted float': TN:='Single';
+    'double',
+    'unrestricted double': TN:='Double';
+
+    'union',
     'any': TN:='JSValue';
-    'float': TN:='Single';
-    'double': TN:='Double';
+
     'DOMString',
     'USVString',
     'ByteString': TN:='UnicodeString';
+
     'object': TN:=GetClassName('Object');
     'Error',
     'DOMException': TN:=GetClassName('Error');
+
     'ArrayBuffer',
     'DataView',
     'Int8Array',
