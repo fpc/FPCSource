@@ -223,7 +223,6 @@ type
   end;
 
 type
-
   TJOB_JSValueKind = (
     jjvkUndefined,
     jjvkBoolean,
@@ -389,6 +388,8 @@ var
   FuncName, TypeName, aClassName, Code, ReadFuncName: String;
 begin
   Result:=true;
+  if Attr.AttributeType=nil then
+    exit;
   FuncName:=GetterPrefix+GetName(Attr);
   TypeName:=GetTypeName(Attr.AttributeType);
   AddLn('Function '+FuncName+': '+TypeName+';');
@@ -408,7 +409,7 @@ begin
   'Single',
   'Double': ReadFuncName:='ReadJSPropertyDouble';
   'UnicodeString': ReadFuncName:='ReadJSPropertyUnicodeString';
-  //'JSValue':
+  'TJOB_JSValue': ReadFuncName:='ReadJSPropertyValue';
   else
     raise EConvertError.Create('not yet implemented: Getter '+Typename);
   end;
@@ -428,6 +429,8 @@ var
 begin
   if aoReadOnly in Attr.Options then
     exit(false);
+  if Attr.AttributeType=nil then
+    exit;
 
   Result:=true;
   FuncName:=SetterPrefix+GetName(Attr);
@@ -449,7 +452,7 @@ begin
   'Single',
   'Double': WriteFuncName:='WriteJSPropertyDouble';
   'UnicodeString': WriteFuncName:='WriteJSPropertyUnicodeString';
-  //'JSValue':
+  'TJOB_JSValue': WriteFuncName:='WriteJSPropertyValue';
   else
     raise EConvertError.Create('not yet implemented: Setter '+Typename);
   end;
@@ -467,6 +470,11 @@ function TWebIDLToPasWasmJob.WriteProperty(Attr: TIDLAttributeDefinition
 var
   PropName, TypeName, Code: String;
 begin
+  if Attr.AttributeType=nil then
+    begin
+    AddLn('skipping field without type: "'+Attr.Name+'"');
+    exit;
+    end;
   PropName:=GetName(Attr);
   TypeName:=GetTypeName(Attr.AttributeType);
   Code:='Property '+PropName+': '+TypeName+' read '+GetterPrefix+PropName;
