@@ -781,7 +781,6 @@ begin
     Result.Free;
 end;
 
-
 function TWebIDLParser.ParseAttribute(aParent : TIDLBaseObject): TIDLAttributeDefinition;
 (*
   On Entry we're on readonly, inherit or attribute.

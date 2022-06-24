@@ -36,6 +36,7 @@ Type
     Constructor Create(APasName: String; const aFile: string; aLine, aCol: integer);
     Property PasName: String read FPasName;
   end;
+  TPasDataClass = class of TPasData;
 
   TBaseConversionOption = (
     coAddOptionsToHeader,
@@ -60,10 +61,13 @@ type
     FContext: TWebIDLContext;
     FDictionaryClassParent: String;
     FFieldPrefix: String;
+    FGetterPrefix: String;
     FIncludeImplementationCode: TStrings;
     FIncludeInterfaceCode: TStrings;
     FInputFileName: String;
     FOutputFileName: String;
+    FPasDataClass: TPasDataClass;
+    FSetterPrefix: String;
     FTypeAliases: TStrings;
     FVerbose: Boolean;
     FWebIDLVersion: TWebIDLVersion;
@@ -93,12 +97,12 @@ type
     function WriteDictionaryMemberImplicitTypes(aList: TIDLDefinitionList): Integer; virtual;
     function AddSequenceDef(ST: TIDLSequenceTypeDefDefinition): Boolean; virtual;
     function GetName(ADef: TIDLDefinition): String; virtual;
-    function GetTypeName(Const aTypeName: String; ForTypeDef: Boolean=False): String; virtual;
-    function GetTypeName(aTypeDef: TIDLTypeDefDefinition; ForTypeDef: Boolean=False): String; virtual;
+    function GetTypeName(Const aTypeName: String; ForTypeDef: Boolean=False): String; overload; virtual;
+    function GetTypeName(aTypeDef: TIDLTypeDefDefinition; ForTypeDef: Boolean=False): String; overload; virtual;
     function GetInterfaceDefHead(Intf: TIDLInterfaceDefinition): String; virtual;
     function CheckUnionTypeDefinition(D: TIDLDefinition): TIDLUnionTypeDefDefinition; virtual;
-    procedure AddArgumentToOverloads(aList: TFPObjectlist; AName, ATypeName: String; PosEl: TIDLBaseObject); virtual;
-    procedure AddArgumentToOverloads(aList: TFPObjectlist; aDef: TIDLArgumentDefinition); virtual;
+    procedure AddArgumentToOverloads(aList: TFPObjectlist; AName, ATypeName: String; PosEl: TIDLBaseObject); overload; virtual;
+    procedure AddArgumentToOverloads(aList: TFPObjectlist; aDef: TIDLArgumentDefinition); overload; virtual;
     procedure AddUnionOverloads(aList: TFPObjectlist; AName: String;  UT: TIDLUnionTypeDefDefinition); virtual;
     procedure AddOverloads(aList: TFPObjectlist; adef: TIDLFunctionDefinition; aIdx: Integer); virtual;
     function CloneNonPartialArgumentList(aList: TFPObjectlist; ADest: TFPObjectlist= Nil; AsPartial: Boolean=True): integer; virtual;
@@ -114,10 +118,12 @@ type
     function WriteTypeDefs(aList: TIDLDefinitionList): Integer; virtual;
     function WriteEnumDefs(aList: TIDLDefinitionList): Integer; virtual;
     function WriteConsts(aList: TIDLDefinitionList): Integer; virtual;
-    function WriteProperties(aList: TIDLDefinitionList): Integer;
+    function WriteProperties(aList: TIDLDefinitionList): Integer; virtual;
     function WritePlainFields(aList: TIDLDefinitionList): Integer; virtual;
     function WriteDictionaryFields(aList: TIDLDefinitionList): Integer; virtual;
     function WritePrivateReadOnlyFields(aList: TIDLDefinitionList): Integer; virtual;
+    function WritePrivateGetters(aList: TIDLDefinitionList): Integer; virtual;
+    function WritePrivateSetters(aList: TIDLDefinitionList): Integer; virtual;
     // Definitions. Return true if a definition was written.
     function WriteForwardClassDef(D: TIDLStructuredDefinition): Boolean; virtual;
     function WriteFunctionTypeDefinition(aDef: TIDLFunctionDefinition): Boolean; virtual;
@@ -126,9 +132,7 @@ type
     function WriteRecordDef(aDef: TIDLRecordDefinition): Boolean; virtual;
     function WriteEnumDef(aDef: TIDLEnumDefinition): Boolean; virtual;
     function WriteDictionaryField(aField: TIDLDictionaryMemberDefinition): Boolean; virtual;
-    function WritePrivateReadOnlyField(aAttr: TIDLAttributeDefinition): Boolean; virtual;
     function WriteField(aAttr: TIDLAttributeDefinition): Boolean; virtual;
-    function WriteReadonlyProperty(aAttr: TIDLAttributeDefinition): Boolean; virtual;
     function WriteConst(aConst: TIDLConstDefinition): Boolean ; virtual;
     function WriteInterfaceDef(Intf: TIDLInterfaceDefinition): Boolean; virtual;
     function WriteDictionaryDef(aDict: TIDLDictionaryDefinition): Boolean; virtual;
@@ -153,12 +157,15 @@ type
     Property FieldPrefix: String Read FFieldPrefix Write FFieldPrefix;
     Property ClassPrefix: String Read FClassPrefix Write FClassPrefix;
     Property ClassSuffix: String Read FClassSuffix Write FClassSuffix;
+    Property GetterPrefix: String read FGetterPrefix write FGetterPrefix;
+    Property SetterPrefix: String read FSetterPrefix write FSetterPrefix;
     Property WebIDLVersion: TWebIDLVersion Read FWebIDLVersion Write FWebIDLVersion;
     Property TypeAliases: TStrings Read FTypeAliases Write SetTypeAliases;
     Property IncludeInterfaceCode: TStrings Read FIncludeInterfaceCode Write SetIncludeInterfaceCode;
     Property IncludeImplementationCode: TStrings Read FIncludeImplementationCode Write SetIncludeImplementationCode;
     Property DictionaryClassParent: String Read FDictionaryClassParent Write FDictionaryClassParent;
     Property BaseOptions: TBaseConversionOptions read FBaseOptions write FBaseOptions;
+    Property PasDataClass: TPasDataClass read FPasDataClass write FPasDataClass;
   end;
 
 type
@@ -190,9 +197,13 @@ type
     function GetInterfaceDefHead(Intf: TIDLInterfaceDefinition): String;
       override;
     // Code generation routines. Return the number of actually written defs.
-    // ...
+    function WritePrivateReadOnlyFields(aList: TIDLDefinitionList): Integer;
+      override;
+    function WriteProperties(aList: TIDLDefinitionList): Integer; override;
     // Definitions. Return true if a definition was written.
     function WriteConst(aConst: TIDLConstDefinition): Boolean; override;
+    function WritePrivateReadOnlyField(aAttr: TIDLAttributeDefinition): Boolean; virtual;
+    function WriteReadonlyProperty(aAttr: TIDLAttributeDefinition): Boolean; virtual;
   Public
     constructor Create(TheOwner: TComponent); override;
     Property Pas2jsOptions: TPas2jsConversionOptions Read FPas2jsOptions Write FPas2jsOptions;
@@ -252,9 +263,13 @@ type
     function GetTypeName(const aTypeName: String; ForTypeDef: Boolean=False
       ): String; override;
     // Code generation routines. Return the number of actually written defs.
-    // ...
+    function WritePrivateGetters(aList: TIDLDefinitionList): Integer; override;
+    function WritePrivateSetters(aList: TIDLDefinitionList): Integer; override;
+    function WriteProperties(aList: TIDLDefinitionList): Integer; override;
     // Definitions. Return true if a definition was written.
-    // ...
+    function WritePrivateGetter(Attr: TIDLAttributeDefinition): boolean; virtual;
+    function WritePrivateSetter(Attr: TIDLAttributeDefinition): boolean; virtual;
+    function WriteProperty(Attr: TIDLAttributeDefinition): boolean; virtual;
   Public
     constructor Create(ThOwner: TComponent); override;
   Published
@@ -263,6 +278,8 @@ type
     Property ClassSuffix;
     Property DictionaryClassParent;
     Property FieldPrefix;
+    Property GetterPrefix;
+    Property SetterPrefix;
     Property IncludeImplementationCode;
     Property IncludeInterfaceCode;
     Property InputFileName;
@@ -330,6 +347,109 @@ begin
   end;
 end;
 
+function TWebIDLToPasWasmJob.WritePrivateGetters(aList: TIDLDefinitionList
+  ): Integer;
+var
+  D: TIDLDefinition;
+begin
+  Result:=0;
+  for D in aList do
+    if D is TIDLAttributeDefinition then
+      if WritePrivateGetter(TIDLAttributeDefinition(D)) then
+        inc(Result);
+end;
+
+function TWebIDLToPasWasmJob.WritePrivateSetters(aList: TIDLDefinitionList
+  ): Integer;
+var
+  D: TIDLDefinition;
+begin
+  Result:=0;
+  for D in aList do
+    if D is TIDLAttributeDefinition then
+      if WritePrivateSetter(TIDLAttributeDefinition(D)) then
+        inc(Result);
+end;
+
+function TWebIDLToPasWasmJob.WriteProperties(aList: TIDLDefinitionList
+  ): Integer;
+var
+  D: TIDLDefinition;
+begin
+  Result:=0;
+  for D in aList do
+    if D is TIDLAttributeDefinition then
+      if WriteProperty(TIDLAttributeDefinition(D)) then
+        inc(Result);
+end;
+
+function TWebIDLToPasWasmJob.WritePrivateGetter(Attr: TIDLAttributeDefinition
+  ): boolean;
+var
+  FuncName, TypeName, aClassName, Code, ReadFuncName: String;
+begin
+  Result:=true;
+  FuncName:=GetterPrefix+GetName(Attr);
+  TypeName:=GetTypeName(Attr.AttributeType);
+  AddLn('Function '+FuncName+': '+TypeName+';');
+
+  aClassName:=GetName(Attr.Parent);
+
+  case TypeName of
+  'JSValue': ReadFuncName:='ReadJSPropertyUnicode?';
+  'Boolean': ReadFuncName:='ReadJSPropertyBoolean';
+  'ShortInt',
+  'Byte',
+  'SmallInt',
+  'Word',
+  'Integer': ReadFuncName:='ReadJSPropertyLongInt';
+  'LongWord',
+  'Int64',
+  'QWord': ReadFuncName:='ReadJSPropertyInt64';
+  'Single',
+  'Double': ReadFuncName:='ReadJSPropertyDouble';
+  'UnicodeString': ReadFuncName:='ReadJSPropertyUnicodeString';
+  else
+    raise EConvertError.Create('not yet implemented: getter '+Typename);
+  end;
+
+  Code:='Function '+aClassName+'.'+FuncName+': '+TypeName+';'+sLineBreak;
+  Code:=Code+'begin'+sLineBreak;
+  Code:=Code+'  Result:='+ReadFuncName+'('''+Attr.Name+''');'+sLineBreak;
+  Code:=Code+'end;'+sLineBreak;
+
+  FIncludeImplementationCode.Add(Code);
+end;
+
+function TWebIDLToPasWasmJob.WritePrivateSetter(Attr: TIDLAttributeDefinition
+  ): boolean;
+var
+  FuncName, TypeName: String;
+begin
+  if aoReadOnly in Attr.Options then
+    exit(false);
+
+  Result:=true;
+  FuncName:=GetterPrefix+GetName(Attr);
+  TypeName:=GetTypeName(Attr.AttributeType);
+  AddLn('Procedure '+FuncName+'(const aValue: '+TypeName+');');
+
+end;
+
+function TWebIDLToPasWasmJob.WriteProperty(Attr: TIDLAttributeDefinition
+  ): boolean;
+var
+  PropName, TypeName, Code: String;
+begin
+  PropName:=GetName(Attr);
+  TypeName:=GetTypeName(Attr.AttributeType);
+  Code:='Property '+PropName+': '+TypeName+' read '+GetterPrefix+PropName;
+  if not (aoReadOnly in Attr.Options) then
+    Code:=Code+' write '+SetterPrefix+PropName;
+  AddLn(Code+';');
+  Result:=true;
+end;
+
 constructor TWebIDLToPasWasmJob.Create(ThOwner: TComponent);
 begin
   inherited Create(ThOwner);
@@ -389,6 +509,35 @@ begin
   Result:='class external name '+MakePascalString(Intf.Name,True);
 end;
 
+function TWebIDLToPas2js.WritePrivateReadOnlyFields(aList: TIDLDefinitionList
+  ): Integer;
+
+Var
+  D: TIDLDefinition;
+  A: TIDLAttributeDefinition absolute D;
+
+begin
+  Result:=0;
+  For D in aList do
+    if (D is TIDLAttributeDefinition) then
+      if (aoReadOnly in A.Options) then
+        if WritePrivateReadOnlyField(A) then
+          Inc(Result);
+end;
+
+function TWebIDLToPas2js.WriteProperties(aList: TIDLDefinitionList): Integer;
+Var
+  D: TIDLDefinition;
+  A: TIDLAttributeDefinition absolute D;
+begin
+  Result:=0;
+  For D in aList do
+    if (D is TIDLAttributeDefinition) then
+      if (aoReadOnly in A.Options) then
+        if WriteReadOnlyProperty(A) then
+          Inc(Result);
+end;
+
 function TWebIDLToPas2js.WriteConst(aConst: TIDLConstDefinition): Boolean;
 
 Const
@@ -407,6 +556,29 @@ begin
     end
   else
     Result:=inherited WriteConst(aConst);
+end;
+
+function TWebIDLToPas2js.WritePrivateReadOnlyField(
+  aAttr: TIDLAttributeDefinition): Boolean;
+begin
+  AddLn('%s%s: %s; external name ''%s''; ',[FieldPrefix,GetName(aAttr),GetTypeName(aAttr.AttributeType),aAttr.Name]);
+  Result:=true;
+end;
+
+function TWebIDLToPas2js.WriteReadonlyProperty(aAttr: TIDLAttributeDefinition
+  ): Boolean;
+
+Var
+  TN,N,PN: String;
+
+begin
+  Result:=True;
+  N:=GetName(aAttr);
+  PN:=N;
+  TN:=GetTypeName(aAttr.AttributeType);
+  if SameText(PN,TN) then
+    PN:='_'+PN;
+  AddLn('Property %s: %s Read %s%s; ',[PN,TN,FieldPrefix,N]);
 end;
 
 constructor TWebIDLToPas2js.Create(TheOwner: TComponent);
@@ -492,33 +664,29 @@ begin
 end;
 
 function TBaseWebIDLToPas.WritePrivateReadOnlyFields(aList: TIDLDefinitionList): Integer;
-
-Var
-  D: TIDLDefinition;
-  A: TIDLAttributeDefinition absolute D;
-
 begin
   Result:=0;
-  For D in aList do
-    if (D is TIDLAttributeDefinition) then
-      if (aoReadOnly in A.Options) then
-        if WritePrivateReadOnlyField(A) then
-          Inc(Result);
+  if aList=nil then ;
+end;
+
+function TBaseWebIDLToPas.WritePrivateGetters(aList: TIDLDefinitionList
+  ): Integer;
+begin
+  Result:=0;
+  if aList=nil then ;
+end;
+
+function TBaseWebIDLToPas.WritePrivateSetters(aList: TIDLDefinitionList
+  ): Integer;
+begin
+  Result:=0;
+  if aList=nil then ;
 end;
 
 function TBaseWebIDLToPas.WriteProperties(aList: TIDLDefinitionList): Integer;
-
-Var
-  D: TIDLDefinition;
-  A: TIDLAttributeDefinition absolute D;
-
 begin
   Result:=0;
-  For D in aList do
-    if (D is TIDLAttributeDefinition) then
-      if (aoReadOnly in A.Options) then
-        if WriteReadOnlyProperty(A) then
-          Inc(Result);
+  if aList=nil then ;
 end;
 
 function TBaseWebIDLToPas.WriteConst(aConst: TIDLConstDefinition): Boolean;
@@ -781,9 +949,12 @@ begin
     Intf.GetFullMemberList(ML);
     EnsureUniqueNames(ML);
     CN:=GetName(Intf);
+    // class comment
     ClassHeader(CN);
+    // sub types
     WriteFunctionImplicitTypes(ML);
     WriteAttributeImplicitTypes(ML);
+    // class and ancestor
     Decl:=CN+' = '+GetInterfaceDefHead(Intf);
     if Assigned(Intf.ParentInterface) then
       PN:=GetName(Intf.ParentInterface)
@@ -792,10 +963,14 @@ begin
     if PN<>'' then
       Decl:=Decl+Format(' (%s)',[PN]);
     AddLn(Decl);
+    // private section
     AddLn('Private');
     Indent;
     WritePrivateReadOnlyFields(ML);
+    WritePrivateGetters(ML);
+    WritePrivateSetters(ML);
     Undent;
+    // write public section
     AddLn('Public');
     if HaveConsts(ML) then
       begin
@@ -859,8 +1034,11 @@ begin
   FieldPrefix:='F';
   ClassPrefix:='T';
   ClassSuffix:='';
+  GetterPrefix:='Get';
+  SetterPrefix:='Set';
   FTypeAliases:=TStringList.Create;
   FPasNameList:=TFPObjectList.Create(True);
+  FPasDataClass:=TPasData;
   FAutoTypes:=TStringList.Create;
   FIncludeInterfaceCode:=TStringList.Create;
   FIncludeImplementationCode:=TStringList.Create;
@@ -912,6 +1090,7 @@ function TBaseWebIDLToPas.GetInterfaceDefHead(Intf: TIDLInterfaceDefinition
   ): String;
 begin
   Result:='class';
+  if Intf=nil then ;
 end;
 
 function TBaseWebIDLToPas.GetTypeName(const aTypeName: String; ForTypeDef: Boolean
@@ -975,14 +1154,6 @@ begin
   Result:=TN;
 end;
 
-function TBaseWebIDLToPas.WritePrivateReadOnlyField(aAttr: TIDLAttributeDefinition
-  ): Boolean;
-
-begin
-  AddLn('%s%s: %s; external name ''%s''; ',[FieldPrefix,GetName(aAttr),GetTypeName(aAttr.AttributeType),aAttr.Name]);
-  Result:=true;
-end;
-
 function TBaseWebIDLToPas.WriteField(aAttr: TIDLAttributeDefinition): Boolean;
 
 Var
@@ -1005,22 +1176,6 @@ begin
   if (N<>aAttr.Name) then
     Def:=Def+Format('external name ''%s'';',[aAttr.Name]);
   AddLn(Def);
-end;
-
-function TBaseWebIDLToPas.WriteReadonlyProperty(aAttr: TIDLAttributeDefinition
-  ): Boolean;
-
-Var
-  TN,N,PN: String;
-
-begin
-  Result:=True;
-  N:=GetName(aAttr);
-  PN:=N;
-  TN:=GetTypeName(aAttr.AttributeType);
-  if SameText(PN,TN) then
-    PN:='_'+PN;
-  AddLn('Property %s: %s Read %s%s; ',[PN,TN,FieldPrefix,N]);
 end;
 
 function TBaseWebIDLToPas.WriteForwardClassDef(D: TIDLStructuredDefinition): Boolean;
@@ -1488,12 +1643,41 @@ end;
 
 procedure TBaseWebIDLToPas.GetOptions(L: TStrings; Full: boolean);
 
+  function CountLines(const s: string): integer;
+  var
+    p: Integer;
+  begin
+    Result:=1;
+    p:=1;
+    while p<=length(s) do
+      case s[p] of
+      #10:
+        begin
+          inc(p);
+          inc(Result);
+        end;
+      #13:
+        begin
+          inc(p);
+          inc(Result);
+          if (p<=length(s)) and (s[p]=#10) then inc(p);
+        end;
+      else
+        inc(p);
+      end;
+  end;
+
   function CodeInfo(Src: TStrings): string;
+  var
+    LineCount, i: Integer;
   begin
     Result:='';
     if Src.Count=0 then
       exit;
-    Result:=Result+IntToStr(Src.Count)+' lines';
+    LineCount:=0;
+    for i:=0 to Src.Count-1 do
+      inc(LineCount,CountLines(Src[i]));
+    Result:=Result+IntToStr(Src.Count)+' chunks in '+IntToStr(LineCount)+' lines';
   end;
 
 Var
@@ -1519,6 +1703,8 @@ begin
   L.Add('Class prefix: '+ClassPrefix);
   L.Add('Class suffix: '+ClassSuffix);
   L.Add('Field prefix: '+FieldPrefix);
+  L.Add('Getter prefix: '+GetterPrefix);
+  L.Add('Setter prefix: '+SetterPrefix);
   Str(WebIDLVersion,S);
   L.Add('WebIDL version: '+S);
   if TypeAliases.Count>0 then
@@ -1589,7 +1775,7 @@ function TBaseWebIDLToPas.CreatePasName(aName: String; D: TIDLBaseObject
   ): TPasData;
 
 begin
-  Result:=TPasData.Create(EscapeKeyWord(aName),D.SrcFile,D.Line,D.Column);
+  Result:=PasDataClass.Create(EscapeKeyWord(aName),D.SrcFile,D.Line,D.Column);
   FPasNameList.Add(Result);
 end;
 
