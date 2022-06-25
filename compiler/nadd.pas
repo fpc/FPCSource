@@ -1062,8 +1062,12 @@ implementation
                         case nodetype of
                           addn:
                             begin
-                              result:=right.getcopy;
-                              exit;
+                              { -0.0+(+0.0)=+0.0 so we cannot carry out this optimization if no fastmath is passed }
+                              if not(cs_opt_fastmath in current_settings.optimizerswitches) then
+                                begin
+                                  result:=right.getcopy;
+                                  exit;
+                                end;
                             end;
                           slashn,
                           muln:
