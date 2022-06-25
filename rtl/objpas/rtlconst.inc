@@ -89,6 +89,7 @@ ResourceString
   SConvUnknownType              = 'Unknown conversion type: "%s"';
   SConvTooManyConvFamilies      = 'Cannot register more than %d conversion families';
   SConvTooManyConvTypes         = 'Cannot register more than %d conversion types';
+  SConvEmptyDescription         = 'A description cannot be empty or consist of only spaces';
   SCustomColors                 = 'Custom colors';
   SDateEncodeError              = 'Invalid argument for date encode.';
   SDdeConvErr                   = 'DDE error - conversion was not performed ($0%x)';
