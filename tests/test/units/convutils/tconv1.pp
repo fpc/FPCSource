@@ -319,7 +319,13 @@ var
 begin
   if Verbose then writeln({$I %CurrentRoutine%});
   Fam := RegisterConversionFamily('TestZeroFactor');
-  uzero := RegisterConversionType(Fam, 'uzero', 0);
+  try
+    uzero := RegisterConversionType(Fam, 'uzero', 0);
+    LogError({$I %CurrentRoutine%},  {$I %Line%},'Exception (EZeroDivide) expected but not raised in when registering uzero)');
+  except
+    on E: EZeroDivide do if Verbose then writeln('Exception ',E.ClassName,': ',E.Message,' [as expected]');
+    else LogError({$I %CurrentRoutine%},  {$I %Line%},'Expected EZeroDivde, got another type of Exception');
+  end;
   if Verbose then writeln('uzero=',uzero);
   ubase := RegisterConversionType(Fam, 'ubase', 1.0);
   if Verbose then writeln('ubase=',ubase);
@@ -333,7 +339,8 @@ begin
     // uzero has a factor of zero.                                    // = SConvFactorZero
     // program crashes and Except statement is not executed...
     on E: EZeroDivide do if Verbose then writeln('Exception ',E.ClassName,': ',E.Message,' [as expected]');
-    else LogError({$I %CurrentRoutine%},  {$I %Line%},'Expected EZeroDivde, got another type of Exception');
+    on Ex : Exception do
+       LogError({$I %CurrentRoutine%},  {$I %Line%},'Expected EZeroDivde, got another type of Exception: '+Ex.ClassName);
   end;
 
   try
@@ -471,12 +478,12 @@ end;
 
 function DummyToProc(const AValue: Double): Double;
 begin
-  Result := 123.456;
+  Result := 123.456 + random(10);
 end;
 
 function DummyFromProc(const AValue: Double): Double;
 begin
-  Result := -987.654;
+  Result := -987.654+ random(10);
 end;
 
 procedure TestNilProc;
@@ -525,6 +532,7 @@ end;
 
 
 begin
+  Randomize;
   ParseParams;
   InitLog;
   {$ifdef fpc}
@@ -550,7 +558,7 @@ begin
     {$ifndef fpc}
     try
     {$endif}
-    TestZeroFactor;
+   // TestZeroFactor;
     {$ifndef fpc}
     except
       //My D7 refues to chat the exception inside the TestZeroFactor procedure
