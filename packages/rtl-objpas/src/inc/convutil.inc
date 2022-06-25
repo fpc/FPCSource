@@ -140,7 +140,7 @@ Implementation
 uses
   RtlConsts;
 
-const 
+const
   macheps=1E-9;
   zeroRes=1E-17;
 
@@ -464,10 +464,6 @@ begin
            (not TheUnits[AFrom].Deleted) and (not TheUnits[ATo].Deleted) and
            (ConvTypeToFamily(AFrom)=ConvTypeToFamily(ATo));
 end;
-
-Const
-   SConvTooManyConvFamilies = '  SConvTooManyConvFamilies %d';
-                               SConvTooManyConvTypes = 'SConvTooManyConvTypes %d';
 
 Function RegisterConversionFamily(Const S:String):TConvFamily;
 
