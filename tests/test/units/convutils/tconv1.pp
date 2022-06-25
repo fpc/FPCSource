@@ -326,7 +326,7 @@ begin
   except
     // D7: Exception EZeroDivide uzero has a factor of zero.
     on E: EZeroDivide do if Verbose then writeln(E.ClassName,': ',E.Message,' [as expected]');
-    else LogError({$I %CurrentRoutine%},  {$I %Line%},'Expected EZeroDivde, got another type of Exception');
+    on Ex: Exception do LogError({$I %CurrentRoutine%},  {$I %Line%},'Expected EZeroDivide, got another type of Exception: '+Ex.ClassName);
   end;
   if Verbose then writeln({$I %CurrentRoutine%},' end.');
   if Verbose then writeln;
