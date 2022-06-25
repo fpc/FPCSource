@@ -30,7 +30,7 @@
   {$endif}
 {$endif}
 
-{$if (defined(darwin) and (defined(cpuarm) or defined(cpuaarch64))) or defined(iphonesim)}
+{$if defined(darwin) and (defined(cpuarm) or defined(cpuaarch64) or defined(iphonesim) or (defined(MAC_OS_X_VERSION_MIN_REQUIRED) and (MAC_OS_X_VERSION_MIN_REQUIRED >= 1060))) }
   {$define darwin_new_iostructs}
 {$endif}
 
@@ -63,7 +63,38 @@ TYPE
 
   { file characteristics services }
    stat    = record { the types are real}
-{$if defined(dragonfly)}
+{$if defined(darwin)}
+        st_dev        : dev_t;             // inode's device
+{$ifdef darwin_new_iostructs}
+        st_mode       : mode_t;            // inode protection mode
+        st_nlink      : nlink_t;           // number of hard links
+        st_ino        : ino_t;             // inode's number
+{$else not darwin_new_iostructs}
+        st_ino        : ino_t;             // inode's number
+        st_mode       : mode_t;            // inode protection mode
+        st_nlink      : nlink_t;           // number of hard links
+{$endif not darwin_new_iostructs}
+        st_uid        : uid_t;             // user ID of the file's owner
+        st_gid        : gid_t;             // group ID of the file's group
+        st_rdev       : dev_t;             // device type
+        st_atime      : time_t;            // time of last access
+        st_atimensec  : clong;             // nsec of last access
+        st_mtime      : time_t;            // time of last data modification
+        st_mtimensec  : clong;             // nsec of last data modification
+        st_ctime      : time_t;            // time of last file status change
+        st_ctimensec  : clong;             // nsec of last file status change
+{$ifdef darwin_new_iostructs}
+        st_birthtime  : time_t;            // File creation time
+        st_birthtimensec : clong;          // nsec of file creation time
+{$endif}
+        st_size       : off_t;             // file size, in bytes
+        st_blocks     : cint64;            // blocks allocated for file
+        st_blksize    : cuint32;           // optimal blocksize for I/O
+        st_flags      : cuint32;           // user defined flags for file
+        st_gen        : cuint32;           // file generation number
+        st_lspare     : cuint32;           // RESERVED: DO NOT USE!
+        st_qspare     : array[0..1] Of cint64;
+{$elseif defined(dragonfly)}
         st_ino        : ino_t;             // inode's number
         st_nlink      : nlink_t;           // number of hard links
         st_dev        : dev_t;             // inode's device
@@ -148,11 +179,6 @@ TYPE
 	st_spare      : array [0..10-1] of cuint64;
 {$else}
         st_dev        : dev_t;             // inode's device
-{$ifdef darwin_new_iostructs}
-        st_mode       : mode_t;            // inode protection mode
-        st_nlink      : nlink_t;           // number of hard links
-        st_ino        : ino_t;             // inode's number
-{$else not darwin_new_iostructs}
 {$ifdef netbsd_use_stat30}
      { order is inverted for better alignment probably }
         st_mode       : mode_t;            // inode protection mode
@@ -162,7 +188,6 @@ TYPE
         st_mode       : mode_t;            // inode protection mode
 {$endif not netbsd}
         st_nlink      : nlink_t;           // number of hard links
-{$endif not darwin_new_iostructs}
         st_uid        : uid_t;             // user ID of the file's owner
         st_gid        : gid_t;             // group ID of the file's group
         st_rdev       : dev_t;             // device type
@@ -172,10 +197,6 @@ TYPE
         st_mtimensec  : clong;             // nsec of last data modification
         st_ctime      : time_t;            // time of last file status change
         st_ctimensec  : clong;             // nsec of last file status change
-{$ifdef darwin_new_iostructs}
-        st_birthtime  : time_t;            // File creation time
-        st_birthtimensec : clong;          // nsec of file creation time
-{$endif}
 {$ifdef netbsdPowerpc}
         st_padd1              : cint;
 {$endif}

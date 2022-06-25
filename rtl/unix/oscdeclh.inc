@@ -33,9 +33,14 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
 const
 {$if (defined(linux) and defined(cpu32) and not defined(fs32bit)) or defined(aix)}
     suffix64bit = '64';
-{$else}    
+    darwinsuffix64bit = '';
+{$elseif defined(darwin_new_iostructs)}
     suffix64bit = '';
-{$endif}    
+    darwinsuffix64bit = '$INODE64';
+{$else}
+    suffix64bit = '';
+    darwinsuffix64bit = '';
+{$endif}
 
     function  FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint;cdecl; external clib name 'sigprocmask';
     function  FPSigProcMask(how:cint;const nset : sigset;var oset : sigset):cint;cdecl; external clib name 'sigprocmask';
@@ -88,7 +93,7 @@ const
     Function  FpKill       (pid : TPid; sig: cInt): cInt; cdecl; external clib name 'kill';
     function  FpUname   (var name: utsname): cint; cdecl; external clib name 'uname';
     function  FpOpendir (dirname : pchar): pdir; cdecl; external clib name 'opendir'{$ifdef aix}+suffix64bit{$endif};
-    Function  FpReaddir (var dirp : Dir) : pDirent;cdecl; external clib name 'readdir'+suffix64bit;
+    Function  FpReaddir (var dirp : Dir) : pDirent;cdecl; external clib name 'readdir'+suffix64bit+darwinsuffix64bit;
     Function  FpClosedir (var dirp : Dir): cInt; cdecl; external clib name 'closedir'{$ifdef aix}+suffix64bit{$endif};
     function  FpChdir   (path : pchar): cint; cdecl; external clib name 'chdir';
     { emulate the bunxovl version that automatically passes
@@ -106,9 +111,9 @@ const
     function  FpStat      (path: pchar; var buf : stat): cint;inline;
 {$endif FPC_IS_SYSTEM}
 {$else linux}
-    function  FpFstat   (fd : cint; var sb : stat): cint; cdecl; external clib name 'fstat'+suffix64bit;
-    Function  fpLstat   (path:pchar;Info:pstat):cint;     cdecl; external clib name 'lstat'+suffix64bit;
-    function  FpStat    (path: pchar; var buf : stat): cint; cdecl; external clib name 'stat'+suffix64bit;
+    function  FpFstat   (fd : cint; var sb : stat): cint; cdecl; external clib name 'fstat'+suffix64bit+darwinsuffix64bit;
+    Function  fpLstat   (path:pchar;Info:pstat):cint;     cdecl; external clib name 'lstat'+suffix64bit+darwinsuffix64bit;
+    function  FpStat    (path: pchar; var buf : stat): cint; cdecl; external clib name 'stat'+suffix64bit+darwinsuffix64bit;
 {$endif linux}
     function  FpAccess  (pathname : pchar; amode : cint): cint; cdecl; external clib name 'access';
     function  FpClose   (fd : cint): cint; cdecl; external clib name 'close';
