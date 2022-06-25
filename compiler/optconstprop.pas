@@ -224,13 +224,21 @@ unit optconstprop;
             if (tinlinenode(n).inlinenumber=in_dec_x) or (tinlinenode(n).inlinenumber=in_inc_x) then
               begin
                 if tnode(tassignmentnode(arg).left).isequal(tcallparanode(tinlinenode(n).left).left) and
-                   (not(assigned(tcallparanode(tinlinenode(n).left).right)) or
-                       (tcallparanode(tcallparanode(tinlinenode(n).left).right).left.nodetype=ordconstn)) then
+                  { Internal Inc/Dec flags are created through a tree transformation from
+                    a previous ConstProp pass.  Setting it prevents an infinite loop where
+                    Inc/Dec nodes are converted into an Add/Sub tree, and then converted
+                    back to Inc/Dec by the forced firstpass run }
+                  not (nf_internal in n.flags) and
+                  (
+                    not(assigned(tcallparanode(tinlinenode(n).left).right)) or
+                    (tcallparanode(tcallparanode(tinlinenode(n).left).right).left.nodetype=ordconstn)
+                  ) then
                   begin
                     { if the node just being searched is inc'ed/dec'ed then replace the inc/dec
                       by add/sub and force a second replacement pass }
                     oldnode:=n;
                     n:=tinlinenode(n).getaddsub_for_incdec;
+                    Include(n.flags, nf_internal);
                     oldnode.free;
                     tree_modified:=true;
                     { do not continue, value changed, if further const. propagations are possible, this is done
