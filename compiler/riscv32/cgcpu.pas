@@ -258,7 +258,7 @@ unit cgcpu;
       var
         r: tsuperregister;
         regs, fregs: tcpuregisterset;
-        stackcount, localsize: longint;
+        localsize: longint;
         href: treference;
       begin
         if not(nostackframe) then
@@ -271,7 +271,6 @@ unit cgcpu;
             if (pi_do_call in current_procinfo.flags) then
               regs:=regs+[RS_RETURN_ADDRESS_REG];
 
-            stackcount:=0;
             reference_reset_base(href,NR_STACK_POINTER_REG,-4,ctempposinvalid,0,[]);
             for r:=RS_X31 downto RS_X0 do
               if r in regs then
@@ -281,7 +280,7 @@ unit cgcpu;
             fregs:=rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall);
             for r:=RS_F0 to RS_F31 do
               if r in fregs then
-                dec(stackcount,8);
+                dec(href.offset,8);
 
             localsize:=current_procinfo.calc_stackframe_size+(-href.offset-4);
             if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
@@ -319,7 +318,6 @@ unit cgcpu;
                 begin
                   inc(href.offset,4);
                   list.concat(taicpu.op_reg_ref(A_LW,newreg(R_INTREGISTER,r,R_SUBWHOLE),href));
-                  inc(stackcount);
                 end;
           end;
 
