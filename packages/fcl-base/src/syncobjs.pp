@@ -61,6 +61,7 @@ type
       property Handle : TEventHandle read FHandle;
       property LastError : Integer read FLastError;
    end;
+   THandleObjectArray = array of THandleObject;
 
    TEventObject = class(THandleObject)
    private
