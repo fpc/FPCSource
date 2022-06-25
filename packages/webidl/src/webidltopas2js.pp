@@ -55,6 +55,7 @@ type
     function WriteProperties(aList: TIDLDefinitionList): Integer; override;
     // Definitions. Return true if a definition was written.
     function WriteConst(aConst: TIDLConstDefinition): Boolean; override;
+    function WriteField(aAttr: TIDLAttributeDefinition): Boolean; override;
     function WritePrivateReadOnlyField(aAttr: TIDLAttributeDefinition): Boolean; virtual;
     function WriteReadonlyProperty(aAttr: TIDLAttributeDefinition): Boolean; virtual;
   Public
@@ -193,6 +194,29 @@ begin
     end
   else
     Result:=inherited WriteConst(aConst);
+end;
+
+function TWebIDLToPas2js.WriteField(aAttr: TIDLAttributeDefinition): Boolean;
+Var
+  Def,TN,N: String;
+
+begin
+  Result:=True;
+  N:=GetName(aAttr);
+  if aAttr.AttributeType=nil then
+    begin
+    AddLn('skipping field without type: "'+N+'"');
+    exit;
+    end;
+  TN:=GetTypeName(aAttr.AttributeType);
+  if TN='record' then
+    TN:='TJSObject';
+  if SameText(N,TN) then
+    N:='_'+N;
+  Def:=Format('%s: %s;',[N,TN]);
+  if (N<>aAttr.Name) then
+    Def:=Def+Format('external name ''%s'';',[aAttr.Name]);
+  AddLn(Def);
 end;
 
 function TWebIDLToPas2js.WritePrivateReadOnlyField(

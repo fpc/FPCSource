@@ -92,9 +92,6 @@ type
     function GetDefPos(Def: TIDLBaseObject; WithoutFile: boolean = false): string; virtual;
     function GetPasDataPos(D: TPasData; WithoutFile: boolean = false): string; virtual;
     procedure EnsureUniqueNames(ML: TIDLDefinitionList); virtual;
-    function WriteFunctionImplicitTypes(aList: TIDLDefinitionList): Integer; virtual;
-    function WriteAttributeImplicitTypes(aList: TIDLDefinitionList): Integer; virtual;
-    function WriteDictionaryMemberImplicitTypes(aList: TIDLDefinitionList): Integer; virtual;
     function AddSequenceDef(ST: TIDLSequenceTypeDefDefinition): Boolean; virtual;
     function GetName(ADef: TIDLDefinition): String; virtual;
     function GetTypeName(Const aTypeName: String; ForTypeDef: Boolean=False): String; overload; virtual;
@@ -110,6 +107,10 @@ type
     function GetArguments(aList: TIDLDefinitionList; ForceBrackets: Boolean): String; virtual;
     function HaveConsts(aList: TIDLDefinitionList): Boolean; virtual;
     // Code generation routines. Return the number of actually written defs.
+    function WriteFunctionImplicitTypes(aList: TIDLDefinitionList): Integer; virtual;
+    function WriteAttributeImplicitTypes(aList: TIDLDefinitionList): Integer; virtual;
+    function WriteOtherImplicitTypes(Intf: TIDLInterfaceDefinition; aMemberList: TIDLDefinitionList): Integer; virtual;
+    function WriteDictionaryMemberImplicitTypes(aList: TIDLDefinitionList): Integer; virtual;
     function WriteCallBackDefs(aList: TIDLDefinitionList): Integer; virtual;
     function WriteDictionaryDefs(aList: TIDLDefinitionList): Integer; virtual;
     function WriteForwardClassDefs(aList: TIDLDefinitionList): Integer; virtual;
@@ -263,6 +264,82 @@ begin
       Exit(True);
 end;
 
+function TBaseWebIDLToPas.WriteFunctionImplicitTypes(aList: TIDLDefinitionList): Integer;
+
+Var
+  D,D2,D3: TIDLDefinition;
+  FD: TIDLFunctionDefinition absolute D;
+  DA: TIDLArgumentDefinition absolute D2;
+  UT: TIDLUnionTypeDefDefinition;
+
+begin
+  Result:=0;
+  for D in aList do
+    if D is TIDLFunctionDefinition then
+      if Not (foCallBack in FD.Options) then
+        begin
+        if (FD.ReturnType is TIDLSequenceTypeDefDefinition) then
+          if AddSequenceDef(FD.ReturnType as TIDLSequenceTypeDefDefinition) then
+            Inc(Result);
+        For D2 in FD.Arguments do
+          if (DA.ArgumentType is TIDLSequenceTypeDefDefinition) then
+            begin
+            if AddSequenceDef(DA.ArgumentType as TIDLSequenceTypeDefDefinition) then
+              Inc(Result);
+            end
+          else
+            begin
+            UT:=CheckUnionTypeDefinition(DA.ArgumentType);
+            if Assigned(UT) then
+              For D3 in UT.Union do
+                if (D3 is TIDLSequenceTypeDefDefinition) then
+                  if AddSequenceDef(D3 as TIDLSequenceTypeDefDefinition) then
+                    Inc(Result);
+            end;
+        end;
+  if Result>0 then
+    AddLn('');
+end;
+
+function TBaseWebIDLToPas.WriteAttributeImplicitTypes(aList: TIDLDefinitionList
+  ): Integer;
+Var
+  D: TIDLDefinition;
+  FA: TIDLAttributeDefinition absolute D;
+
+begin
+  Result:=0;
+  for D in aList do
+    if D is TIDLAttributeDefinition then
+      if (FA.AttributeType is TIDLSequenceTypeDefDefinition) then
+        if AddSequenceDef(FA.AttributeType as TIDLSequenceTypeDefDefinition) then
+          Inc(Result);
+end;
+
+function TBaseWebIDLToPas.WriteOtherImplicitTypes(
+  Intf: TIDLInterfaceDefinition; aMemberList: TIDLDefinitionList): Integer;
+begin
+  Result:=0;
+  if Intf=nil then ;
+  if aMemberList=nil then ;
+end;
+
+function TBaseWebIDLToPas.WriteDictionaryMemberImplicitTypes(
+  aList: TIDLDefinitionList): Integer;
+
+Var
+  D: TIDLDefinition;
+  FD: TIDLDictionaryMemberDefinition absolute D;
+
+begin
+  Result:=0;
+  for D in aList do
+    if D is TIDLDictionaryMemberDefinition then
+      if (FD.MemberType is TIDLSequenceTypeDefDefinition) then
+        if AddSequenceDef(FD.MemberType as TIDLSequenceTypeDefDefinition) then
+          Inc(Result);
+end;
+
 function TBaseWebIDLToPas.WritePrivateReadOnlyFields(aList: TIDLDefinitionList): Integer;
 begin
   Result:=0;
@@ -400,74 +477,6 @@ begin
     end;
 end;
 
-function TBaseWebIDLToPas.WriteFunctionImplicitTypes(aList: TIDLDefinitionList): Integer;
-
-Var
-  D,D2,D3: TIDLDefinition;
-  FD: TIDLFunctionDefinition absolute D;
-  DA: TIDLArgumentDefinition absolute D2;
-  UT: TIDLUnionTypeDefDefinition;
-
-begin
-  Result:=0;
-  for D in aList do
-    if D is TIDLFunctionDefinition then
-      if Not (foCallBack in FD.Options) then
-        begin
-        if (FD.ReturnType is TIDLSequenceTypeDefDefinition) then
-          if AddSequenceDef(FD.ReturnType as TIDLSequenceTypeDefDefinition) then
-            Inc(Result);
-        For D2 in FD.Arguments do
-          if (DA.ArgumentType is TIDLSequenceTypeDefDefinition) then
-            begin
-            if AddSequenceDef(DA.ArgumentType as TIDLSequenceTypeDefDefinition) then
-              Inc(Result);
-            end
-          else
-            begin
-            UT:=CheckUnionTypeDefinition(DA.ArgumentType);
-            if Assigned(UT) then
-              For D3 in UT.Union do
-                if (D3 is TIDLSequenceTypeDefDefinition) then
-                  if AddSequenceDef(D3 as TIDLSequenceTypeDefDefinition) then
-                    Inc(Result);
-            end;
-        end;
-  if Result>0 then
-    AddLn('');
-end;
-
-function TBaseWebIDLToPas.WriteAttributeImplicitTypes(aList: TIDLDefinitionList
-  ): Integer;
-Var
-  D: TIDLDefinition;
-  FA: TIDLAttributeDefinition absolute D;
-
-begin
-  Result:=0;
-  for D in aList do
-    if D is TIDLAttributeDefinition then
-      if (FA.AttributeType is TIDLSequenceTypeDefDefinition) then
-        if AddSequenceDef(FA.AttributeType as TIDLSequenceTypeDefDefinition) then
-          Inc(Result);
-end;
-
-function TBaseWebIDLToPas.WriteDictionaryMemberImplicitTypes(
-  aList: TIDLDefinitionList): Integer;
-
-Var
-  D: TIDLDefinition;
-  FD: TIDLDictionaryMemberDefinition absolute D;
-
-begin
-  Result:=0;
-  for D in aList do
-    if D is TIDLDictionaryMemberDefinition then
-      if (FD.MemberType is TIDLSequenceTypeDefDefinition) then
-        if AddSequenceDef(FD.MemberType as TIDLSequenceTypeDefDefinition) then
-          Inc(Result);
-end;
-
 procedure TBaseWebIDLToPas.EnsureUniqueNames(ML: TIDLDefinitionList);
 
 Var
@@ -538,7 +547,7 @@ end;
 function TBaseWebIDLToPas.WriteInterfaceDef(Intf: TIDLInterfaceDefinition): Boolean;
 
 Var
-  CN,PN: String;
+  aClassName,aParentName: String;
   Decl: String;
   ML: TIDLDefinitionList;
 
@@ -548,20 +557,21 @@ begin
   try
     Intf.GetFullMemberList(ML);
     EnsureUniqueNames(ML);
-    CN:=GetName(Intf);
+    aClassName:=GetName(Intf);
     // class comment
-    ClassHeader(CN);
+    ClassComment(aClassName);
     // sub types
     WriteFunctionImplicitTypes(ML);
     WriteAttributeImplicitTypes(ML);
+    WriteOtherImplicitTypes(Intf,ML);
     // class and ancestor
-    Decl:=CN+' = '+GetInterfaceDefHead(Intf);
+    Decl:=aClassName+' = '+GetInterfaceDefHead(Intf);
     if Assigned(Intf.ParentInterface) then
-      PN:=GetName(Intf.ParentInterface)
+      aParentName:=GetName(Intf.ParentInterface)
     else
-      PN:=GetTypeName(Intf.ParentName);
-    if PN<>'' then
-      Decl:=Decl+Format(' (%s)',[PN]);
+      aParentName:=GetTypeName(Intf.ParentName);
+    if aParentName<>'' then
+      Decl:=Decl+' ('+aParentName+')';
     AddLn(Decl);
     // private section
     AddLn('Private');
@@ -614,7 +624,7 @@ begin
     CurParent:=DictionaryClassParent;
     if CurParent='' then
       CurParent:='TJSObject';
-    ClassHeader(CurClassName);
+    ClassComment(CurClassName);
     WriteDictionaryMemberImplicitTypes(DefList);
     if (coDictionaryAsClass in BaseOptions) then
       Addln('%s = class(%s)',[CurClassName,CurParent])
@@ -730,6 +740,7 @@ begin
     'USVString',
     'ByteString': TN:='UnicodeString';
 
+    'record',
     'object': TN:=GetClassName('Object');
     'Error',
     'DOMException': TN:=GetClassName('Error');
@@ -763,27 +774,9 @@ begin
 end;
 
 function TBaseWebIDLToPas.WriteField(aAttr: TIDLAttributeDefinition): Boolean;
-
-Var
-  Def,TN,N: String;
-
 begin
-  Result:=True;
-  N:=GetName(aAttr);
-  if aAttr.AttributeType=nil then
-    begin
-    AddLn('skipping field without type: "'+N+'"');
-    exit;
-    end;
-  TN:=GetTypeName(aAttr.AttributeType);
-  if TN='record' then
-    TN:='TJSObject';
-  if SameText(N,TN) then
-    N:='_'+N;
-  Def:=Format('%s: %s;',[N,TN]);
-  if (N<>aAttr.Name) then
-    Def:=Def+Format('external name ''%s'';',[aAttr.Name]);
-  AddLn(Def);
+  Result:=false;
+  if aAttr=nil then ;
 end;
 
 function TBaseWebIDLToPas.WriteForwardClassDef(D: TIDLStructuredDefinition): Boolean;

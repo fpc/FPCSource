@@ -76,7 +76,7 @@ Type
     Procedure Comment(Const AComment : String; Curly : Boolean = False);
     Procedure Comment(Const AComment : Array of String);
     Procedure Comment(Const AComment : TStrings);
-    Procedure ClassHeader(Const AClassName: String); virtual;
+    Procedure ClassComment(Const AClassName: String); virtual;
     Procedure SimpleMethodBody(Lines: Array of string); virtual;
     procedure SaveToStream(const AStream: TStream);
     Procedure SaveToFile(Const AFileName : string);
@@ -390,7 +390,7 @@ begin
     Result:=Upcase(S[1])+Copy(S,2,Length(S)-1);
 end;
 
-procedure TPascalCodeGenerator.ClassHeader(const AClassName: String);
+procedure TPascalCodeGenerator.ClassComment(const AClassName: String);
 
 begin
   AddLn('');
