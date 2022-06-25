@@ -140,7 +140,9 @@ Implementation
 uses
   RtlConsts;
 
-const macheps=1E-9;
+const 
+  macheps=1E-9;
+  zeroRes=1E-17;
 
 Type ResourceData = record
                       Description   : String;
@@ -467,6 +469,10 @@ begin
            (ConvTypeToFamily(AFrom)=ConvTypeToFamily(ATo));
 end;
 
+Const
+   SConvTooManyConvFamilies = '  SConvTooManyConvFamilies %d';
+                               SConvTooManyConvTypes = 'SConvTooManyConvTypes %d';
+
 Function RegisterConversionFamily(Const S:String):TConvFamily;
 
 var len : Longint;
@@ -525,7 +531,7 @@ var l1 : Longint;
 begin
   If NOT CheckFamily(Fam) Then
     raise EConversionError.CreateFmt(SConvUnknownFamily, [IntToStr(Fam)]);
-  if IsZero(Value) then
+  if IsZero(Value,zeroRes) then
     raise EZeroDivide.CreateFmt(SConvFactorZero,[S]);
   l1:=length(theunits);
   if l1>0 then
@@ -590,13 +596,13 @@ begin
     if assigned(torec.FromCommonFunc) then
       result:=torec.FromCommonFunc(common)
     else begin
-      if IsZero(torec.value) then
+      if IsZero(torec.value,zeroRes) then
         raise EZeroDivide.CreateFmt(SConvFactorZero,[torec.Description]);
       result:=common/torec.value;
     end;
   end else begin
     //Note: Delphi 7 raises an EZeroDivide even if fromrec.value=0, which is a bit odd
-    if IsZero(torec.value) then
+    if IsZero(torec.value,zeroRes) then
       raise EZeroDivide.CreateFmt(SConvFactorZero,[torec.Description]);
     result:=Measurement*fromrec.value/torec.value;
   end;
@@ -624,9 +630,9 @@ begin
       ConvFamilyToDescription(torec2.fam)
     ]);
   //using ToCommonFunc() and FromCommonFunc makes no sense in this context
-  if IsZero(fromrec2.value) then
+  if IsZero(fromrec2.value,zeroRes) then
     raise EZeroDivide.CreateFmt(SConvFactorZero,[fromrec2.Description]);
-  if IsZero(torec2.value) then
+  if IsZero(torec2.value,zeroRes) then
     raise EZeroDivide.CreateFmt(SConvFactorZero,[torec2.Description]);
   result:=Measurement*(fromrec1.value/fromrec2.value)/(torec1.value/torec2.value);
 end;
@@ -657,7 +663,7 @@ begin
     result:=torec.FromCommonFunc(AValue)
   else
   begin
-    if IsZero(torec.value) then
+    if IsZero(torec.value,zeroRes) then
       raise EZeroDivide.CreateFmt(SConvFactorZero,[torec.Description]);
     result:=Avalue/torec.value;
   end;
