@@ -399,13 +399,9 @@ begin
   ValueStr:=Copy(AText,1,P);
   if not TryStrToFloat(ValueStr, AValue) then
     Exit;
-  //since there is no restriction on the description of a TConvType
-  //(it can be empty or have leading or trailing spaces)
-  //everything after the space at position P _must_ be the description
-  if P=Length(AText) then
-    TypeStr:=''
-  else
-    TypeStr:=Copy(AText,P+1,MaxInt);
+  if P=Length(AText) then //no desription found
+    Exit;
+  TypeStr:=Trim(Copy(AText,P+1,MaxInt));
   Result:=DescriptionToConvType(TypeStr, AType);
 end;
 
@@ -479,6 +475,9 @@ var len : Longint;
     fam: TConvFamily;
 
 begin
+  if Trim(S)='' then
+    //Delphi does not, but since this is non-sensical, we disallow it
+    raise EConversionError.Create(SConvEmptyDescription);
   len:=Length(TheFamilies);
   if len>0 then
     if FindFamily(S, fam) then
@@ -486,7 +485,7 @@ begin
   if len=Integer(High(TConvFamily))+1 then
     raise EConversionError.CreateFmt(SConvTooManyConvFamilies,[High(TConvFamily)]);
   SetLength(TheFamilies,len+1);
-  TheFamilies[len].Description:=S;
+  TheFamilies[len].Description:=Trim(S);
   TheFamilies[len].Deleted:=False;
   result:=len;
 end;
@@ -523,7 +522,7 @@ begin
     TheUnits[AType].Deleted:=True;
 end;
 
-Function InternalRegisterConversionType(Fam:TConvFamily;Const S:String;Value:TConvUtilFloat;
+Function InternalRegisterConversionType(Fam:TConvFamily; S:String;Value:TConvUtilFloat;
   const AToCommonFunc, AFromCommonFunc: TConversionProc):TConvType;
 
 var l1 : Longint;
@@ -531,6 +530,10 @@ var l1 : Longint;
 begin
   If NOT CheckFamily(Fam) Then
     raise EConversionError.CreateFmt(SConvUnknownFamily, [IntToStr(Fam)]);
+  S:= Trim(S);
+  //Delphi does not, but since this is non-sensical, we disallow it
+  if S='' then
+    raise EConversionError.Create(SConvEmptyDescription);
   if IsZero(Value,zeroRes) then
     raise EZeroDivide.CreateFmt(SConvFactorZero,[S]);
   l1:=length(theunits);

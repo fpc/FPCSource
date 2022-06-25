@@ -1,13 +1,13 @@
 program tconv1;
+{$ifdef windows}
 {$apptype console}
-{$ifdef fpc}
-{$mode objfpc}{$h+}
 {$endif}
+{$mode objfpc}{$h+}
 
 uses
   sysutils, classes, math,
   {$ifdef UseLocal}
-   _convutils   //local copy to test with 3.2 compiler
+   _convutils   //local copy to test with older compiler (BB)
   {$else}
   convutils
   {$endif};
@@ -47,7 +47,7 @@ var
 begin
   if TheLog.Count > 0 then
   begin
-    writeln(format('%d errors encountered',[TheLog.Count div 2]));
+    writeln(format('%d errors encountered',[ErrorCount]));
     for i := 0 to TheLog.Count-1 do
       writeln(TheLog[i]);
   end
@@ -315,45 +315,18 @@ procedure TestZeroFactor;
 var
   Fam: TConvFamily;
   uzero, ubase: TConvType;
-  D: Double;
 begin
   if Verbose then writeln({$I %CurrentRoutine%});
   Fam := RegisterConversionFamily('TestZeroFactor');
+  ubase := RegisterConversionType(Fam,'ubase',1);
   try
     uzero := RegisterConversionType(Fam, 'uzero', 0);
-    LogError({$I %CurrentRoutine%},  {$I %Line%},'Exception (EZeroDivide) expected but not raised in when registering uzero)');
+    if Verbose then writeln('uzero=',uzero);
+    LogError({$I %CurrentRoutine%},  {$I %Line%},'Exception (EZeroDivide) expected but not raised in RegisterConversionType(Fam, ''uzero'', 0)');
   except
-    on E: EZeroDivide do if Verbose then writeln('Exception ',E.ClassName,': ',E.Message,' [as expected]');
+    // D7: Exception EZeroDivide uzero has a factor of zero.
+    on E: EZeroDivide do if Verbose then writeln(E.ClassName,': ',E.Message,' [as expected]');
     else LogError({$I %CurrentRoutine%},  {$I %Line%},'Expected EZeroDivde, got another type of Exception');
-  end;
-  if Verbose then writeln('uzero=',uzero);
-  ubase := RegisterConversionType(Fam, 'ubase', 1.0);
-  if Verbose then writeln('ubase=',ubase);
-  try
-    if Verbose then write('Convert(123.0, ubase, uzero)=');
-    D := Convert(123.0, ubase, uzero);
-    if Verbose then writeln(D:10:4);
-    LogError({$I %CurrentRoutine%},  {$I %Line%},'Exception (EZeroDivide) expected but not raised in Convert(123.0, ubase, uzero)');
-  except
-    //D7: Exception EZeroDivide in module dconv.exe at 00009EE9.
-    // uzero has a factor of zero.                                    // = SConvFactorZero
-    // program crashes and Except statement is not executed...
-    on E: EZeroDivide do if Verbose then writeln('Exception ',E.ClassName,': ',E.Message,' [as expected]');
-    on Ex : Exception do
-       LogError({$I %CurrentRoutine%},  {$I %Line%},'Expected EZeroDivde, got another type of Exception: '+Ex.ClassName);
-  end;
-
-  try
-    D := Convert(123.0, uzero,ubase);
-    if Verbose then writeln('Convert(123.0, uzero,ubase)=',D:10:4);
-  except
-    //D7: Exception EZeroDivide in module dconv.exe at 00009EE9.
-    //by design we do not, since no division by zero is actually involved here, we multiply bu zero, whic AFAIC is allowed in the real world
-    on E: Exception do
-    begin
-      if Verbose then writeln('Unexpected Exception ',E.ClassName,': ',E.Message);
-      LogError({$I %CurrentRoutine%},  {$I %Line%},format('Unexpected Exception %s: %s',[E.ClassName, E.Message]));
-    end;
   end;
   if Verbose then writeln({$I %CurrentRoutine%},' end.');
   if Verbose then writeln;
@@ -391,6 +364,7 @@ begin
   try
     atype := RegisterConversionType(Fam, 'foo', -10.0);
   except
+    //raised an exception in 3.2 series
     on E: Exception do LogError({$I %CurrentRoutine%},  {$I %Line%},format('Unexpected excpetion %s: %s',[E.ClassName,E.Message]));
   end;
   if Verbose then writeln({$I %CurrentRoutine%},' end.');
@@ -399,39 +373,38 @@ end;
 
 procedure TestNoDescription;
 var
-  Fam, Fam2: TConvFamily;
-  atype, atype2: TConvType;
+  Fam: TConvFamily;
+  atype: TConvType;
 begin
   if Verbose then writeln({$I %CurrentRoutine%});
   try
     Fam := RegisterConversionFamily('');
     if Verbose then writeln('Fam=',Fam);
-    if Verbose then writeln('ConvFamilyToDescription(Fam)="',ConvFamilyToDescription(Fam),'"');
-    if DescriptionToConvFamily('',Fam2) then
-    begin
-      if Verbose then writeln('DescriptionToConvFamily('''')->',Fam)
-    end
-    else
-    begin
-      if Verbose then writeln('DescriptionToConvFamily=FALSE');
-      LogError({$I %CurrentRoutine%},  {$I %Line%},'DescriptionToConvFamily('''') returned False but expected True');
-    end;
-    atype := RegisterConversionType(Fam, '', 1.0);
-    if Verbose then writeln('atype=',atype);
-    if Verbose then writeln('ConvTypeToDescription(atype)="',ConvTypeToDescription(atype),'"');
-    if Verbose then
-    begin
-      if DescriptionToConvType('',atype2) then
-      writeln('DescriptionToConvType('''',atype2)->',atype2)
-      else
-      begin
-        writeln('DescriptionToConvType=FALSE');
-        LogError({$I %CurrentRoutine%},  {$I %Line%},'DescriptionToConvFamily('''') returned False, but expected True');
-      end;
-    end;
-
+    LogError({$I %CurrentRoutine%},  {$I %Line%},'Exception expected but not raised in RegsiterConversionFamily');
   except
-    on E: EConversionError do LogError({$I %CurrentRoutine%},  {$I %Line%},format('EConversionError: %s',[E.Message]));
+    on E: EConversionError do if Verbose then writeln('EConversionError: ',E.Message,' [as expected]');
+  end;
+  try
+    Fam := RegisterConversionFamily(' ');
+    if Verbose then writeln('Fam=',Fam);
+    LogError({$I %CurrentRoutine%},  {$I %Line%},'Exception expected but not raised in RegisterConversionFamily');
+  except
+    on E: EConversionError do if Verbose then writeln('EConversionError: ',E.Message,' [as expected]');
+  end;
+  Fam := RegisterConversionFamily('TestNoDescription');
+  try
+    atype := RegisterConversionType(Fam,'',1);
+    if Verbose then writeln('atype=',atype);
+    LogError({$I %CurrentRoutine%},  {$I %Line%},'Exception expected but not raised in RegisterConversionType');
+  except
+    on E: EConversionError do if Verbose then writeln('EConversionError: ',E.Message,' [as expected]');
+  end;
+  try
+    atype := RegisterConversionType(Fam,' ',1);
+    if Verbose then writeln('atype=',atype);
+    LogError({$I %CurrentRoutine%},  {$I %Line%},'Exception expected but not raised in RegisterConversionType');
+  except
+    on E: EConversionError do if Verbose then writeln('EConversionError: ',E.Message,' [as expected]');
   end;
   if Verbose then writeln({$I %CurrentRoutine%},' end.');
   if Verbose then writeln;
@@ -448,9 +421,8 @@ begin
   atype1 := RegisterConversionType(Fam1,'TestCompatibleConversionType_1',1.0);
   Fam2 := RegisterConversionFamily('TestCompatibleConversionType_2');
   atype2 := RegisterConversionType(Fam2,'TestCompatibleConversionType_2',1.0);
-  //D7: CompatibleConversionType(atype1, atype2)=FALSE
 
-  B := CompatibleConversionTypes(TConvType(atype1), TConvType(atype2)); {notice: the s at the end: xxxTypes, not xxxType}
+  B := CompatibleConversionTypes(atype1, atype2); {notice: the s at the end: xxxTypes, not xxxType}
   if Verbose then writeln('CompatibleConversionTypes(atype1, atype2)=',B);
   if B then
     LogError({$I %CurrentRoutine%},  {$I %Line%},'CompatibleConversionType(atype1, atype2) returned True, but expected False');
@@ -478,12 +450,12 @@ end;
 
 function DummyToProc(const AValue: Double): Double;
 begin
-  Result := 123.456 + random(10);
+  Result := AValue*2;
 end;
 
 function DummyFromProc(const AValue: Double): Double;
 begin
-  Result := -987.654+ random(10);
+  Result := AValue/2;
 end;
 
 procedure TestNilProc;
@@ -495,7 +467,7 @@ begin
   Fam := RegisterConversionFamily('TestNilProc');
   try
     if Verbose then write('RegisterConversionType(Fam, ''dummy_1'', @DummyToProc, nil)=');
-    dummy_1 := RegisterConversionType(Fam, 'dummy_1', {$ifdef fpc}@{$endif}DummyToProc, nil);
+    dummy_1 := RegisterConversionType(Fam, 'dummy_1', @DummyToProc, nil);
     if Verbose then writeln(dummy_1);
   except
     on E: Exception do
@@ -507,7 +479,7 @@ begin
   end;
   try
     if Verbose then write('RegisterConversionType(Fam, ''dummy_2'', nil, @DummyFromProc)=');
-    dummy_2 := RegisterConversionType(Fam, 'dummy_2', nil, {$ifdef fpc}@{$endif}DummyFromProc);
+    dummy_2 := RegisterConversionType(Fam, 'dummy_2', nil, @DummyFromProc);
     if Verbose then writeln(dummy_2);
     //Currently by design we raise an exception here (EZeroDivide), but not compatible with D7
     {$ifdef fpc}
@@ -517,12 +489,7 @@ begin
   except
     on E: Exception do
     begin
-      {$ifdef fpc}
-      if Verbose then writeln(E.ClassName,': ',E.Message,'[ as expected: by design but not Delphi compatible]');
-      {$else}
-      LogError({$I %CurrentRoutine%},  {$I %Line%},format('Unexpected exception raised in RegisterConversionType with nil as 4th parameter: %s: %s',[E.ClassName, E.Message]));
-      Exit;
-      {$endif}
+      if Verbose then writeln(E.ClassName,': ',E.Message,'[ as expected: by design but not Delphi compatible...]');
     end;
   end;
   //D7 raise EAccesViolations on Convert()
@@ -530,20 +497,101 @@ begin
   if Verbose then writeln;
 end;
 
+procedure TestTryStrToConvUnit;
+var
+  Fam1, Fam2: TConvFamily;
+  type_1, type_leading, type_trailing, FoundType,
+    type_leading_and_trailing: TConvType;
+  Value, ExpValue: Double;
+  FoundRes: Boolean;
+  CurRoutine: String;
+  procedure Check(Line: String; ExpRes: Boolean; ExpType: TConvType; ExpValue: Double);
+  const
+    BoolStr: array[Boolean] of string = ('False','True');
+  begin
+    if Verbose then writeln('Got ',FoundRes,', Expected ',ExpRes);
+    if (ExpRes <> FoundRes) then
+    begin
+      LogError(CurRoutine, Line ,format('Expected TryStrToConvUnit()=%s, Got %s',[BoolStr[ExpRes],BoolStr[FoundRes]]));
+    end
+    else
+    begin
+      if not ExpRes then Exit;  //if TryStrToConvUnit should fail, the returned values are undefined
+      if Verbose then writeln(format('Expected restype=%d, got restype=%d',[ExpType,FoundType]));
+      if Verbose then writeln(format('Expected Value=%1.8f, got Value=%1.8f',[ExpValue, Value]));
+      if (ExpType <> FoundType) then
+      begin
+        LogError(CurRoutine, Line, format('Expected restype=%d, got restype=%d',[ExpType,FoundType]));
+      end
+      else
+      begin
+        if not SameValue(Value, ExpValue, 1E-9) then
+          LogError(CurRoutine, Line, format('Expected Value=%1.8f, got Value=%1.8f',[ExpValue, Value]));
+      end;
+    end;
+    if Verbose then writeln;
+  end;
+begin
+  if Verbose then writeln({$I %CurrentRoutine%});
+  CurRoutine := {$I %CurrentRoutine%};
+  Fam1 := RegisterConversionFamily('TestTryStrToConvUnit_1');
+  Fam2 := RegisterConversionFamily('TestTryStrToConvUnit_2');
+  type_1 := RegisterConversionType(Fam1, 'type1',1.0);
+  type_leading := RegisterConversionType(Fam2, '  leading',1.0);
+  type_trailing:= RegisterConversionType(Fam1, 'trailing  ',1.0);
+  type_leading_and_trailing := RegisterConversionType(Fam1, '  leading and trailing  ',1);
+  DefaultFormatSettings.DecimalSeparator := '.';
+  ExpValue := 1.23;
+
+  if Verbose then writeln('TryStrToConvUnit(''1.23 type1'',Value, FoundType)');
+  FoundRes := TryStrToConvUnit('1.23 type1',Value, FoundType);
+  Check({$I %Line%}, True, type_1, ExpValue);
+
+  if Verbose then writeln('TryStrToConvUnit(''1.23  '',Value, FoundType)  //no description');
+  FoundRes := TryStrToConvUnit('1.23  ',Value, FoundType);
+  Check({$I %Line%}, False, $FFFF, 0);
+
+  if Verbose then writeln('TryStrToConvUnit(''1.23       leading'',Value, FoundType)  //leading spaces in description');
+  FoundRes := TryStrToConvUnit('1.23        leading',Value, FoundType);
+  Check({$I %Line%}, True, type_leading, ExpValue);
+
+  if Verbose then writeln('TryStrToConvUnit(''1.23 trailing      '',Value, FoundType)  //trailing spaces in description');
+  FoundRes := TryStrToConvUnit('1.23 trailing      ',Value, FoundType);
+  Check({$I %Line%}, True, type_trailing, ExpValue);
+
+  if Verbose then writeln('TryStrToConvUnit(''1.23    leading and trailing      '',Value, FoundType)  //leading and trailing spaces in description');
+  FoundRes := TryStrToConvUnit('1.23    leading and trailing      ',Value, FoundType);
+  Check({$I %Line%}, True, type_leading_and_trailing, ExpValue);
+
+  if Verbose then writeln('TryStrToConvUnit('' type1'',AValue, FoundType)');
+  FoundRes := TryStrToConvUnit(' type1',Value, FoundType);
+  Check({$I %Line%}, False, $FFFF, 0);
+
+  if Verbose then writeln('TryStrToConvUnit('' 1.23 type1'',AValue, FoundType)  //leading space before value');
+  FoundRes := TryStrToConvUnit(' 1.23 type1',Value, FoundType);
+  Check({$I %Line%}, False, $FFFF, 0);
+
+  if Verbose then writeln('TryStrToConvUnit(''1.23 nonexisting'',AValue, FoundType)');
+  FoundRes := TryStrToConvUnit('1.23 nonexisting',Value, FoundType);
+  Check({$I %Line%}, False, $FFFF, 0);
+
+  //previously caused a range check error
+  if Verbose then writeln('TryStrToConvUnit(''1.23'',AValue, FoundType)  //no description');
+  FoundRes := TryStrToConvUnit('1.23',Value, FoundType);
+  Check({$I %Line%}, False, $FFFF, 0);
+
+  if Verbose then writeln('TryStrToConvUnit('''',AValue, FoundType)  //empty string');
+  FoundRes := TryStrToConvUnit('',Value, FoundType);
+  Check({$I %Line%}, False, $FFFF, 0);
+
+  if Verbose then writeln({$I %CurrentRoutine%},' end.');
+  if Verbose then writeln;
+end;
 
 begin
-  Randomize;
   ParseParams;
   InitLog;
-  {$ifdef fpc}
-  writeln('FPC');
-  {$else}
-  writeln('Delphi');
-  {$endif}
-
   try
-
-    //{
     TestRegisterAndListFamilies;
     TestRegisterAndUnregisterFamilies;
     TestRegisterAndUnregisterConvTypes;
@@ -555,25 +603,12 @@ begin
     RegisterWithNegativeFactor;
     TestNoDescription;
     TestCompatibleConversionType;
-    {$ifndef fpc}
-    try
-    {$endif}
-   // TestZeroFactor;
-    {$ifndef fpc}
-    except
-      //My D7 refues to chat the exception inside the TestZeroFactor procedure
-      on E: EZeroDivide do if Verbose then writeln('Catched an EZeroDivide after/outside TestZeroFactor (D7?)');
-    end;
-    {$endif}
+    TestZeroFactor;
     TestNilProc;
-    //}
-
+    TestTryStrToConvUnit;
   finally
     PrintLog;
     DoneLog;
     ExitCode := ErrorCount;
   end;
 end.
-
-
-
