@@ -65,6 +65,7 @@ type
     function BaseUnits: String; override;
     // Auxiliary routines
     function ClassToPasIntfName(const CN: string): string; virtual;
+    function ComputeGUID(const Prefix: string; aList: TIDLDefinitionList): string; virtual;
     procedure GetOptions(L: TStrings; Full: boolean); override;
     function GetTypeName(const aTypeName: String; ForTypeDef: Boolean=False
       ): String; override;
@@ -115,6 +116,75 @@ begin
   if LeftStr(Result,length(ClassPrefix))=ClassPrefix then
     System.Delete(Result,1,length(ClassPrefix));
   Result:=PasInterfacePrefix+Result;
+end;
+
+function TWebIDLToPasWasmJob.ComputeGUID(const Prefix: string;
+  aList: TIDLDefinitionList): string;
+var
+  List: TStringList;
+  D: TIDLDefinition;
+  Attr: TIDLAttributeDefinition;
+  i, BytePos, BitPos, v: Integer;
+  Bytes: array[0..15] of byte;
+  GUIDSrc, aTypeName: String;
+begin
+  List:=TStringList.Create;
+  for D in aList do
+    begin
+    GUIDSrc:=D.Name;
+    if GUIDSrc='' then continue;
+    if D is TIDLAttributeDefinition then
+      begin
+      Attr:=TIDLAttributeDefinition(D);
+      if Attr.AttributeType<>nil then
+        aTypeName:=GetTypeName(Attr.AttributeType);
+        GUIDSrc:=GUIDSrc+':'+aTypeName;
+      end;
+    List.Add(GUIDSrc);
+    end;
+  List.Sort;
+  GUIDSrc:=Prefix+',';
+  for i:=0 to List.Count-1 do
+    GUIDSrc:=GUIDSrc+','+List[i];
+  List.Free;
+
+  BytePos:=0;
+  BitPos:=0;
+  {$IFDEF fpc}
+  FillByte({%H-}Bytes[0],16,0);
+  {$ENDIF}
+  for i:=1 to length(GUIDSrc) do
+    begin
+    // read 16-bit
+    v:=(Bytes[BytePos] shl 8)+Bytes[(BytePos+1) and 15];
+    // change some bits
+    v:=v+integer((ord(GUIDSrc[i]) shl (11-BitPos)));
+    // write 16 bit
+    Bytes[BytePos]:=(v shr 8) and $ff;
+    Bytes[(BytePos+1) and 15]:=v and $ff;
+    inc(BitPos,5);
+    if BitPos>7 then
+      begin
+      dec(BitPos,8);
+      BytePos:=(BytePos+1) and 15;
+      end;
+    end;
+  // set version 3
+  Bytes[6]:=(Bytes[6] and $f)+(3 shl 4);
+  // set variant 2
+  Bytes[8]:=(Bytes[8] and $3f)+(2 shl 6);
+
+  Result:='{';
+  for i:=0 to 3 do Result:=Result+HexStr(Bytes[i],2);
+  Result:=Result+'-';
+  for i:=4 to 5 do Result:=Result+HexStr(Bytes[i],2);
+  Result:=Result+'-';
+  for i:=6 to 7 do Result:=Result+HexStr(Bytes[i],2);
+  Result:=Result+'-';
+  for i:=8 to 9 do Result:=Result+HexStr(Bytes[i],2);
+  Result:=Result+'-';
+  for i:=10 to 15 do Result:=Result+HexStr(Bytes[i],2);
+  Result:=Result+'}';
 end;
 
 procedure TWebIDLToPasWasmJob.GetOptions(L: TStrings; Full: boolean);
@@ -173,7 +243,9 @@ begin
     end;
   AddLn(Decl);
 
+
   Indent;
+  AddLn('['''+ComputeGUID(Decl,aMemberList)+''']');
   WritePrivateGetters(aMemberList);
   WritePrivateSetters(aMemberList);
   WriteMethodDefs(aMemberList);
