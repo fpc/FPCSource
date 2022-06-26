@@ -566,12 +566,6 @@ begin
     WriteOtherImplicitTypes(Intf,ML);
     // class and ancestor
     Decl:=aClassName+' = '+GetInterfaceDefHead(Intf);
-    if Assigned(Intf.ParentInterface) then
-      aParentName:=GetName(Intf.ParentInterface)
-    else
-      aParentName:=GetTypeName(Intf.ParentName);
-    if aParentName<>'' then
-      Decl:=Decl+' ('+aParentName+')';
     AddLn(Decl);
     // private section
     AddLn('Private');

@@ -143,8 +143,16 @@ end;
 
 function TWebIDLToPas2js.GetInterfaceDefHead(Intf: TIDLInterfaceDefinition
   ): String;
+var
+  aParentName: String;
 begin
   Result:='class external name '+MakePascalString(Intf.Name,True);
+  if Assigned(Intf.ParentInterface) then
+    aParentName:=GetName(Intf.ParentInterface)
+  else
+    aParentName:=GetTypeName(Intf.ParentName);
+  if aParentName<>'' then
+    Result:=Result+' ('+aParentName+')';
 end;
 
 function TWebIDLToPas2js.WritePrivateReadOnlyFields(aList: TIDLDefinitionList

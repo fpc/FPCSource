@@ -64,10 +64,12 @@ type
   Protected
     function BaseUnits: String; override;
     // Auxiliary routines
+    function ClassToPasIntfName(const CN: string): string; virtual;
     procedure GetOptions(L: TStrings; Full: boolean); override;
     function GetTypeName(const aTypeName: String; ForTypeDef: Boolean=False
       ): String; override;
-    function ClassToPasIntfName(const CN: string): string; virtual;
+    function GetInterfaceDefHead(Intf: TIDLInterfaceDefinition): String;
+      override;
     function WriteOtherImplicitTypes(Intf: TIDLInterfaceDefinition; aMemberList: TIDLDefinitionList): Integer;
       override;
     // Code generation routines. Return the number of actually written defs.
@@ -107,6 +109,14 @@ begin
   Result:='SysUtils, JOB_WAsm';
 end;
 
+function TWebIDLToPasWasmJob.ClassToPasIntfName(const CN: string): string;
+begin
+  Result:=CN;
+  if LeftStr(Result,length(ClassPrefix))=ClassPrefix then
+    System.Delete(Result,1,length(ClassPrefix));
+  Result:=PasInterfacePrefix+Result;
+end;
+
 procedure TWebIDLToPasWasmJob.GetOptions(L: TStrings; Full: boolean);
 begin
   inherited GetOptions(L, Full);
@@ -125,12 +135,20 @@ begin
   end;
 end;
 
-function TWebIDLToPasWasmJob.ClassToPasIntfName(const CN: string): string;
+function TWebIDLToPasWasmJob.GetInterfaceDefHead(Intf: TIDLInterfaceDefinition
+  ): String;
+var
+  aParentName, aPasIntfName: String;
 begin
-  Result:=CN;
-  if LeftStr(Result,length(ClassPrefix))=ClassPrefix then
-    System.Delete(Result,1,length(ClassPrefix));
-  Result:=PasInterfacePrefix+Result;
+  Result:='class(';
+  if Assigned(Intf.ParentInterface) then
+    aParentName:=GetName(Intf.ParentInterface)
+  else
+    aParentName:=GetTypeName(Intf.ParentName);
+  if aParentName<>'' then
+    Result:=Result+aParentName;
+  aPasIntfName:=ClassToPasIntfName(GetName(Intf));
+  Result:=Result+','+aPasIntfName+')';
 end;
 
 function TWebIDLToPasWasmJob.WriteOtherImplicitTypes(
@@ -140,10 +158,9 @@ var
 begin
   Result:=1;
 
-  aPasIntfName:=GetName(Intf);
-  aPasIntfName:=ClassToPasIntfName(aPasIntfName);
+  // Pascal interface and ancestor
+  aPasIntfName:=ClassToPasIntfName(GetName(Intf));
 
-  // pascal interface and ancestor
   Decl:=aPasIntfName+' = interface';
   if Assigned(Intf.ParentInterface) then
     ParentName:=GetName(Intf.ParentInterface)
@@ -152,7 +169,7 @@ begin
   if ParentName<>'' then
     begin
     ParentName:=ClassToPasIntfName(ParentName);
-    Decl:=Decl+Format(' (%s)',[ParentName]);
+    Decl:=Decl+'('+ParentName+')';
     end;
   AddLn(Decl);
 
