@@ -759,6 +759,8 @@ begin
     'Uint8ClampedArray',
     'Float32Array',
     'Float64Array': TN:=GetClassName(aTypeName);
+
+    'void': TN:=aTypeName;
   else
     if ForTypeDef then ;
 
@@ -931,14 +933,17 @@ function TBaseWebIDLToPas.GetArguments(aList: TIDLDefinitionList;
 Var
   I: TIDLDefinition;
   A: TIDLArgumentDefinition absolute I;
-  Arg: string;
+  Arg, aTypeName: string;
 
 begin
   Result:='';
   For I in aList do
     begin
     Arg:=GetName(A);
-    Arg:=Arg+': '+GetTypeName(A.ArgumentType);
+    aTypeName:=GetTypeName(A.ArgumentType);
+    Arg:=Arg+': '+aTypeName;
+    if SameText(aTypeName,'UnicodeString') then
+      Arg:='const '+Arg;
     if Result<>'' then
       Result:=Result+'; ';
     Result:=Result+Arg;
@@ -1153,48 +1158,9 @@ begin
 end;
 
 function TBaseWebIDLToPas.WriteFunctionDefinition(aDef: TIDLFunctionDefinition): Boolean;
-
-Var
-  FN,RT,Suff,Args: String;
-  Overloads: TFPObjectList;
-  I: Integer;
-
 begin
-  Result:=True;
-  if not (foConstructor in aDef.Options) then
-    begin
-    FN:=GetName(aDef);
-    if FN<>aDef.Name then
-      Suff:=Format('; external name ''%s''',[aDef.Name]);
-    RT:=GetTypeName(aDef.ReturnType,False);
-    if (RT='void') then
-      RT:='';
-    end
-  else
-    FN:='New';
-  Overloads:=GetOverloads(ADef);
-  try
-    for I:=0 to aDef.Arguments.Count-1 do
-      if aDef.Argument[i].HasEllipsis then
-        Suff:='; varargs';
-    if Overloads.Count>1 then
-      Suff:=Suff+'; overload';
-    For I:=0 to Overloads.Count-1 do
-      begin
-      Args:=GetArguments(TIDLDefinitionList(Overloads[i]),False);
-      if (RT='') then
-        begin
-        if not (foConstructor in aDef.Options) then
-          AddLn('Procedure %s%s%s;',[FN,Args,Suff])
-        else
-          AddLn('constructor %s%s%s;',[FN,Args,Suff]);
-        end
-      else
-        AddLn('function %s%s: %s%s;',[FN,Args,RT,Suff])
-      end;
-  finally
-    Overloads.Free;
-  end;
+  Result:=true;
+  if aDef=nil then exit;
 end;
 
 function TBaseWebIDLToPas.WriteCallBackDefs(aList: TIDLDefinitionList): Integer;

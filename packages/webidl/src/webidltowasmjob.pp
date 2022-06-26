@@ -19,7 +19,7 @@ unit webidltowasmjob;
 interface
 
 uses
-  Classes, SysUtils, webidldefs, webidltopas;
+  Classes, SysUtils, webidldefs, webidltopas, Contnrs;
 
 type
   TJOB_JSValueKind = (
@@ -52,8 +52,9 @@ const
 type
   TPasDataWasmJob = class(TPasData)
   public
-    GetterBody: String;
+    GetterBody: String; // also used for Function body
     SetterBody: String;
+    HasFuncBody: boolean;
   end;
 
   { TWebIDLToPasWasmJob }
@@ -81,6 +82,8 @@ type
     function WriteUtilityMethods(Intf: TIDLInterfaceDefinition): Integer;
       override;
     // Definitions. Return true if a definition was written.
+    function WriteFunctionDefinition(aDef: TIDLFunctionDefinition): Boolean;
+      override;
     function WritePrivateGetter(Attr: TIDLAttributeDefinition): boolean; virtual;
     function WritePrivateSetter(Attr: TIDLAttributeDefinition): boolean; virtual;
     function WriteProperty(Attr: TIDLAttributeDefinition): boolean; virtual;
@@ -261,7 +264,7 @@ begin
   WritePrivateSetters(aMemberList);
 
   // type cast function Cast:
-  AddLn('Function Cast(Intf: IJSObject): '+aPasIntfName+';');
+  AddLn('function Cast(Intf: IJSObject): '+aPasIntfName+';');
 
   // public members
   WriteMethodDefs(aMemberList);
@@ -316,12 +319,119 @@ begin
   Result:=0;
   aClassName:=GetName(Intf);
   aPasIntfName:=GetPasIntfName(Intf);
-  AddLn('Function Cast(Intf: IJSObject): '+aPasIntfName+';');
-  Code:='Function '+aClassName+'.Cast(Intf: IJSObject): '+aPasIntfName+';'+sLineBreak;
+  AddLn('function Cast(Intf: IJSObject): '+aPasIntfName+';');
+  Code:='function '+aClassName+'.Cast(Intf: IJSObject): '+aPasIntfName+';'+sLineBreak;
   Code:=Code+'begin'+sLineBreak;
   Code:=Code+'  Result:='+aClassName+'.CreateCast(Intf);'+sLineBreak;
   Code:=Code+'end;'+sLineBreak;
   IncludeImplementationCode.Add(Code);
+end;
+
+function TWebIDLToPasWasmJob.WriteFunctionDefinition(
+  aDef: TIDLFunctionDefinition): Boolean;
+Var
+  Data: TPasDataWasmJob;
+  FN, RT, Suff, Args, ProcKind, Sig, aClassName, Code, InvokeName,
+    InvokeStr, CurName: String;
+  Overloads: TFPObjectList;
+  I: Integer;
+  AddFuncBody: Boolean;
+  ArgDefList: TIDLDefinitionList;
+  CurDef: TIDLDefinition;
+  ArgDef: TIDLArgumentDefinition absolute CurDef;
+begin
+  Result:=True;
+  Data:=aDef.Data as TPasDataWasmJob;
+  Suff:='';
+  RT:='';
+  if (foConstructor in aDef.Options) then
+    FN:='New'
+  else
+    begin
+    FN:=GetName(aDef);
+    RT:=GetTypeName(aDef.ReturnType,False);
+    case RT of
+    'Boolean': InvokeName:='InvokeJSBooleanResult';
+    'ShortInt',
+    'Byte',
+    'SmallInt',
+    'Word',
+    'Integer': InvokeName:='InvokeJSLongIntResult';
+    'LongWord',
+    'Int64',
+    'QWord': InvokeName:='InvokeJSMaxIntResult';
+    'Single',
+    'Double': InvokeName:='InvokeJSDoubleResult';
+    'UnicodeString': InvokeName:='InvokeJSUnicodeStringResult';
+    'TJOB_JSValue': InvokeName:='InvokeJSValueResult';
+    'void':
+      begin
+      RT:='';
+      InvokeName:='InvokeJSNoResult';
+      end;
+    else
+      InvokeName:='InvokeJSObjectResult';;
+      RT:=ClassToPasIntfName(RT);
+    end;
+
+    end;
+  aClassName:=GetName(aDef.Parent);
+  AddFuncBody:=not Data.HasFuncBody;
+
+  Overloads:=GetOverloads(ADef);
+  try
+    if (aDef.Arguments.Count>0)
+        and aDef.Argument[aDef.Arguments.Count-1].HasEllipsis then
+      Suff:='{; ToDo:varargs}';
+    if Overloads.Count>1 then
+      Suff:=Suff+'; overload';
+    For I:=0 to Overloads.Count-1 do
+      begin
+      ArgDefList:=TIDLDefinitionList(Overloads[i]);
+      Args:=GetArguments(ArgDefList,False);
+      if (RT='') then
+        begin
+        if not (foConstructor in aDef.Options) then
+          ProcKind:='procedure'
+        else
+          ProcKind:='constructor';
+        Sig:=FN+Args+Suff+';';
+        end
+      else
+        begin
+        ProcKind:='function';
+        Sig:=FN+Args+': '+RT+Suff+';';
+        end;
+      AddLn(ProcKind+' '+Sig);
+
+      if not AddFuncBody then continue;
+
+      InvokeStr:='';
+      if RT<>'' then
+        InvokeStr:='Result:=';
+      Args:='';
+      for CurDef in ArgDefList do
+        begin
+        if Args='' then
+          Args:=Args+',';
+        CurName:=GetName(ArgDef);
+        Args:=Args+CurName;
+        end;
+
+      InvokeStr:=InvokeStr+InvokeName+'('''+aDef.Name+''''+Args+')';
+
+      Code:=ProcKind+' '+aClassName+'.'+Sig+sLineBreak;
+      Code:=Code+'begin'+sLineBreak;
+      Code:=Code+'  '+InvokeStr+';'+sLineBreak;
+      Code:=Code+'end;'+sLineBreak;
+
+      IncludeImplementationCode.Add(Code);
+
+      end;
+    Data.HasFuncBody:=true;
+  finally
+    Overloads.Free;
+  end;
 end;
 
 function TWebIDLToPasWasmJob.WritePrivateGetter(Attr: TIDLAttributeDefinition
@@ -337,7 +447,7 @@ begin
 
   FuncName:=GetterPrefix+GetName(Attr);
   TypeName:=GetTypeName(Attr.AttributeType);
-  AddLn('Function '+FuncName+': '+TypeName+';');
+  AddLn('function '+FuncName+': '+TypeName+';');
 
   if Data.GetterBody<>'' then exit;
 
@@ -361,7 +471,7 @@ begin
     raise EConvertError.Create('not yet implemented: Getter '+Typename);
   end;
 
-  Code:='Function '+aClassName+'.'+FuncName+': '+TypeName+';'+sLineBreak;
+  Code:='function '+aClassName+'.'+FuncName+': '+TypeName+';'+sLineBreak;
   Code:=Code+'begin'+sLineBreak;
   Code:=Code+'  Result:='+ReadFuncName+'('''+Attr.Name+''');'+sLineBreak;
   Code:=Code+'end;'+sLineBreak;
