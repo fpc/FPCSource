@@ -69,6 +69,7 @@ type
     procedure GetOptions(L: TStrings; Full: boolean); override;
     function GetTypeName(const aTypeName: String; ForTypeDef: Boolean=False
       ): String; override;
+    function GetPasIntfName(Intf: TIDLDefinition): string;
     function GetInterfaceDefHead(Intf: TIDLInterfaceDefinition): String;
       override;
     function WriteOtherImplicitTypes(Intf: TIDLInterfaceDefinition; aMemberList: TIDLDefinitionList): Integer;
@@ -77,6 +78,8 @@ type
     function WritePrivateGetters(aList: TIDLDefinitionList): Integer; override;
     function WritePrivateSetters(aList: TIDLDefinitionList): Integer; override;
     function WriteProperties(aList: TIDLDefinitionList): Integer; override;
+    function WriteUtilityMethods(Intf: TIDLInterfaceDefinition): Integer;
+      override;
     // Definitions. Return true if a definition was written.
     function WritePrivateGetter(Attr: TIDLAttributeDefinition): boolean; virtual;
     function WritePrivateSetter(Attr: TIDLAttributeDefinition): boolean; virtual;
@@ -205,6 +208,11 @@ begin
   end;
 end;
 
+function TWebIDLToPasWasmJob.GetPasIntfName(Intf: TIDLDefinition): string;
+begin
+  Result:=ClassToPasIntfName(GetName(Intf));
+end;
+
 function TWebIDLToPasWasmJob.GetInterfaceDefHead(Intf: TIDLInterfaceDefinition
   ): String;
 var
@@ -217,7 +225,7 @@ begin
     aParentName:=GetTypeName(Intf.ParentName);
   if aParentName<>'' then
     Result:=Result+aParentName;
-  aPasIntfName:=ClassToPasIntfName(GetName(Intf));
+  aPasIntfName:=GetPasIntfName(Intf);
   Result:=Result+','+aPasIntfName+')';
 end;
 
@@ -229,7 +237,7 @@ begin
   Result:=1;
 
   // Pascal interface and ancestor
-  aPasIntfName:=ClassToPasIntfName(GetName(Intf));
+  aPasIntfName:=GetPasIntfName(Intf);
 
   Decl:=aPasIntfName+' = interface';
   if Assigned(Intf.ParentInterface) then
@@ -243,13 +251,22 @@ begin
     end;
   AddLn(Decl);
 
-
   Indent;
+
+  // GUID
   AddLn('['''+ComputeGUID(Decl,aMemberList)+''']');
+
+  // private members
   WritePrivateGetters(aMemberList);
   WritePrivateSetters(aMemberList);
+
+  // type cast function Cast:
+  AddLn('Function Cast(Intf: IJSObject): '+aPasIntfName+';');
+
+  // public members
   WriteMethodDefs(aMemberList);
   WriteProperties(aMemberList);
+
   Undent;
   AddLn('end;');
   AddLn('');
@@ -289,6 +306,22 @@ begin
     if D is TIDLAttributeDefinition then
       if WriteProperty(TIDLAttributeDefinition(D)) then
         inc(Result);
+end;
+
+function TWebIDLToPasWasmJob.WriteUtilityMethods(Intf: TIDLInterfaceDefinition
+  ): Integer;
+var
+  aClassName, aPasIntfName, Code: String;
+begin
+  Result:=0;
+  aClassName:=GetName(Intf);
+  aPasIntfName:=GetPasIntfName(Intf);
+  AddLn('Function Cast(Intf: IJSObject): '+aPasIntfName+';');
+  Code:='Function '+aClassName+'.Cast(Intf: IJSObject): '+aPasIntfName+';'+sLineBreak;
+  Code:=Code+'begin'+sLineBreak;
+  Code:=Code+'  Result:='+aClassName+'.CreateCast(Intf);'+sLineBreak;
+  Code:=Code+'end;'+sLineBreak;
+  IncludeImplementationCode.Add(Code);
 end;
 
 function TWebIDLToPasWasmJob.WritePrivateGetter(Attr: TIDLAttributeDefinition

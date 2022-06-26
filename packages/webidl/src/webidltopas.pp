@@ -116,6 +116,7 @@ type
     function WriteForwardClassDefs(aList: TIDLDefinitionList): Integer; virtual;
     function WriteInterfaceDefs(aList: TIDLDefinitionList): Integer; virtual;
     function WriteMethodDefs(aList: TIDLDefinitionList): Integer; virtual;
+    function WriteUtilityMethods(Intf: TIDLInterfaceDefinition): Integer; virtual;
     function WriteTypeDefs(aList: TIDLDefinitionList): Integer; virtual;
     function WriteEnumDefs(aList: TIDLDefinitionList): Integer; virtual;
     function WriteConsts(aList: TIDLDefinitionList): Integer; virtual;
@@ -460,6 +461,13 @@ begin
            Inc(Result);
 end;
 
+function TBaseWebIDLToPas.WriteUtilityMethods(Intf: TIDLInterfaceDefinition
+  ): Integer;
+begin
+  Result:=0;
+  if Intf=nil then ;
+end;
+
 function TBaseWebIDLToPas.AddSequenceDef(ST: TIDLSequenceTypeDefDefinition
   ): Boolean;
 
@@ -547,7 +555,7 @@ end;
 function TBaseWebIDLToPas.WriteInterfaceDef(Intf: TIDLInterfaceDefinition): Boolean;
 
 Var
-  aClassName,aParentName: String;
+  aClassName: String;
   Decl: String;
   ML: TIDLDefinitionList;
 
@@ -588,6 +596,7 @@ begin
     Indent;
     WritePlainFields(ML);
     WriteMethodDefs(ML);
+    WriteUtilityMethods(Intf);
     WriteProperties(ML);
     Undent;
     AddLn('end;');
