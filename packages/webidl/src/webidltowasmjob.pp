@@ -412,11 +412,13 @@ begin
       Args:='';
       for CurDef in ArgDefList do
         begin
-        if Args='' then
+        if Args<>'' then
           Args:=Args+',';
         CurName:=GetName(ArgDef);
         Args:=Args+CurName;
         end;
+      Args:=',['+Args+']';
+
 
       InvokeStr:=InvokeStr+InvokeName+'('''+aDef.Name+''''+Args+')';
 
