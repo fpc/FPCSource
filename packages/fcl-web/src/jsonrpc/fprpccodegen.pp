@@ -627,7 +627,7 @@ Var
   I : integer;
 
 begin
-  ClassHeader(aService.PasName);
+  ClassComment(aService.PasName);
   AddLn('%s = Class(TRPCCustomService)',[aService.PasName]);
   Addln('Protected');
   Indent;
@@ -661,7 +661,7 @@ Var
   I : integer;
 
 begin
-  ClassHeader(aService.PasName);
+  ClassComment(aService.PasName);
   Addln('');
   GenerateRPCClassNameImplementation(aService);
   For I:=0 to aService.Methods.Count-1 do

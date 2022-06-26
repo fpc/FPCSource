@@ -77,6 +77,7 @@ Type
     Procedure Comment(Const AComment : Array of String);
     Procedure Comment(Const AComment : TStrings);
     Procedure ClassComment(Const AClassName: String); virtual;
+    Procedure ClassHeader(Const AClassName: String); deprecated 'use ClassComment instead';
     Procedure SimpleMethodBody(Lines: Array of string); virtual;
     procedure SaveToStream(const AStream: TStream);
     Procedure SaveToFile(Const AFileName : string);
@@ -398,6 +399,11 @@ begin
   AddLn('  '+AClassName);
   AddLn('  '+StringOfChar('-',68)+'}');
   AddLn('');
+end;
+
+procedure TPascalCodeGenerator.ClassHeader(const AClassName: String);
+begin
+  ClassComment(AClassName);
 end;
 
 end.
