@@ -2667,13 +2667,13 @@ function SwapEndian(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inlin
     { is turned into "longint(AValue) shr 8", so if AValue < 0 then    }
     { the sign bits from the upper 16 bits are shifted in rather than  }
     { zeroes.                                                          }
-    Result := SmallInt(((Word(AValue) shr 8) or (Word(AValue) shl 8)) and $ffff);
+    Result := SmallInt((Word(AValue) shr 8) or (Word(AValue) shl 8));
   end;
 
 {$ifndef cpujvm}
 function SwapEndian(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
-    Result := ((AValue shr 8) or (AValue shl 8)) and $ffff;
+    Result := (AValue shr 8) or (AValue shl 8);
   end;
 {$endif}
 
