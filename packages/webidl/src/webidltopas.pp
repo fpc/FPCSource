@@ -61,6 +61,7 @@ type
     FContext: TWebIDLContext;
     FDictionaryClassParent: String;
     FFieldPrefix: String;
+    FFuncTypePrefix: String;
     FGetterPrefix: String;
     FIncludeImplementationCode: TStrings;
     FIncludeInterfaceCode: TStrings;
@@ -161,6 +162,7 @@ type
     Property ClassSuffix: String Read FClassSuffix Write FClassSuffix;
     Property GetterPrefix: String read FGetterPrefix write FGetterPrefix;
     Property SetterPrefix: String read FSetterPrefix write FSetterPrefix;
+    Property FuncTypePrefix: String read FFuncTypePrefix write FFuncTypePrefix;
     Property WebIDLVersion: TWebIDLVersion Read FWebIDLVersion Write FWebIDLVersion;
     Property TypeAliases: TStrings Read FTypeAliases Write SetTypeAliases;
     Property IncludeInterfaceCode: TStrings Read FIncludeInterfaceCode Write SetIncludeInterfaceCode;
@@ -649,6 +651,7 @@ begin
   ClassSuffix:='';
   GetterPrefix:='Get';
   SetterPrefix:='Set';
+  FuncTypePrefix:='T';
   FTypeAliases:=TStringList.Create;
   FPasNameList:=TFPObjectList.Create(True);
   FPasDataClass:=TPasData;
@@ -1355,16 +1358,17 @@ Var
   aData: TPasData;
 
 begin
+  writeln('AAA1 TBaseWebIDLToPas.AllocatePasName ',D.Name,':',D.ClassName);
+  CN:=D.Name;
   if D Is TIDLInterfaceDefinition then
     begin
-    CN:=ClassPrefix+D.Name+ClassSuffix;
+    CN:=ClassPrefix+CN+ClassSuffix;
     Result:=CreatePasName(CN,D);
     D.Data:=Result;
     AllocatePasNames((D as TIDLInterfaceDefinition).Members,D.Name);
     end
   else if D Is TIDLDictionaryDefinition then
     begin
-    CN:=D.Name;
     if coDictionaryAsClass in BaseOptions then
       CN:=ClassPrefix+CN+ClassSuffix;
     Result:=CreatePasName(EscapeKeyWord(CN),D);
@@ -1373,7 +1377,9 @@ begin
     end
   else
     begin
-    Result:=CreatePasName(D.Name,D);
+    if (D Is TIDLFunctionDefinition) and (foCallBack in TIDLFunctionDefinition(D).Options) then
+      CN:=FuncTypePrefix+CN;;
+    Result:=CreatePasName(CN,D);
     D.Data:=Result;
     if D Is TIDLFunctionDefinition then
       AllocatePasNames((D as TIDLFunctionDefinition).Arguments,D.Name);
