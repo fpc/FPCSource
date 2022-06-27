@@ -942,7 +942,7 @@ function TBaseWebIDLToPas.GetArguments(aList: TIDLDefinitionList;
   ForceBrackets: Boolean): String;
 
 Var
-  I: TIDLDefinition;
+  I, Def: TIDLDefinition;
   A: TIDLArgumentDefinition absolute I;
   Arg, aTypeName: string;
 
@@ -953,7 +953,9 @@ begin
     Arg:=GetName(A);
     aTypeName:=GetTypeName(A.ArgumentType);
     Arg:=Arg+': '+aTypeName;
-    if SameText(aTypeName,'UnicodeString') then
+    Def:=FindGlobalDef(A.ArgumentType.TypeName);
+    if (Def is TIDLFunctionDefinition)
+        or SameText(aTypeName,'UnicodeString') then
       Arg:='const '+Arg;
     if Result<>'' then
       Result:=Result+'; ';
