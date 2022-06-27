@@ -22,6 +22,89 @@ uses
   Classes, SysUtils, contnrs;
 
 Type
+  TWebIDLBaseType = (
+    wibtNone,
+    wibtVoid,
+    wibtUnion,
+    wibtAny,
+    // boolean
+    wibtBoolean,
+    // integers
+    wibtByte,
+    wibtOctet,
+    wibtShort,
+    wibtUnsignedShort,
+    wibtLong,
+    wibtUnsignedLong,
+    wibtLongLong,
+    wibtUnsignedLongLong,
+    // floats
+    wibtFloat,             // not NaN or infinity
+    wibtUnrestrictedFloat,
+    wibtDouble,            // not NaN or infinity
+    wibtUnrestrictedDouble,
+    // strings
+    wibtDOMString, // UTF-16
+    wibtUSVString, // UTF-16 without surrogates
+    wibtByteString,
+    // objects
+    wibtRecord,
+    wibtObject,
+    wibtError,
+    wibtDOMException,
+    // arrays
+    wibtArrayBuffer,
+    wibtDataView,
+    wibtInt8Array,
+    wibtInt16Array,
+    wibtInt32Array,
+    wibtUint8Array,
+    wibtUint16Array,
+    wibtUint32Array,
+    wibtUint8ClampedArray,
+    wibtFloat32Array,
+    wibtFloat64Array
+    );
+  TWebIDLBaseTypes = set of TWebIDLBaseType;
+const
+  WebIDLBaseTypeNames: array[TWebIDLBaseType] of string = (
+    '',
+    'void',
+    'union',
+    'any',
+    'boolean',
+    'byte',
+    'octet',
+    'short',
+    'unsigned short',
+    'long',
+    'unsigned long',
+    'long long',
+    'unsigned long long',
+    'float',
+    'unrestricted float',
+    'double',
+    'unrestricted double',
+    'DOMString',
+    'USVString',
+    'ByteString',
+    'record',
+    'object',
+    'Error',
+    'DOMException',
+    'ArrayBuffer',
+    'DataView',
+    'Int8Array',
+    'Int16Array',
+    'Int32Array',
+    'Uint8Array',
+    'Uint16Array',
+    'Uint32Array',
+    'Uint8ClampedArray',
+    'Float32Array',
+    'Float64Array');
+
+type
 
   { TExtAttributeList }
 
@@ -341,8 +424,6 @@ Type
     property ReturnType : TIDLTypeDefDefinition Read FReturnType Write SetReturnType;
   end;
 
-  { TIDLMapLikeDefinition }
-
   { TIDLKeyValueDefinition }
 
   TIDLKeyValueDefinition = Class(TIDLTypeDefDefinition)
@@ -357,6 +438,8 @@ Type
     property KeyType : TIDLTypeDefDefinition Read FKeyType Write SetKeyType;
     property ValueType : TIDLTypeDefDefinition Read FValueType Write SetValueType;
   end;
+
+  { TIDLMapLikeDefinition }
 
   TIDLMapLikeDefinition = Class(TIDLKeyValueDefinition)
   private
@@ -451,8 +534,17 @@ Type
     property KeyType : TIDLTypeDefDefinition Read FKeyType Write SetKeyType;
   end;
 
+function NameToWebIDLBaseType(const s: string): TWebIDLBaseType;
 
 implementation
+
+function NameToWebIDLBaseType(const s: string): TWebIDLBaseType;
+begin
+  for Result in TWebIDLBaseType do
+    if s=WebIDLBaseTypeNames[Result] then
+      exit;
+  Result:=wibtNone;
+end;
 
 { TIDLSetlikeDefinition }
 

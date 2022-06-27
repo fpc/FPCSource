@@ -25,6 +25,7 @@ Type
   EWebIDLParser = Class(Exception);
 
   { TWebIDLContext }
+
   TWebIDLVersion = webidlscanner.TWebIDLVersion;
 
   TWebIDLContext = Class (TIDLBaseObject)
