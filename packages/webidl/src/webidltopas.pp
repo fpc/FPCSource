@@ -715,38 +715,38 @@ function TBaseWebIDLToPas.GetTypeName(const aTypeName: String; ForTypeDef: Boole
   end;
 
 Var
-  A,TN: UTF8String;
+  A: UTF8String;
   D: TIDLDefinition;
 
 begin
   Case aTypeName of
-    'boolean': TN:='Boolean';
+    'boolean': Result:='Boolean';
 
-    'byte': TN:='ShortInt';
-    'octet': TN:='Byte';
-    'short': TN:='SmallInt';
-    'unsigned short': TN:='Word';
-    'long': TN:='Integer';
-    'unsigned long': TN:='LongWord';
-    'long long': TN:='Int64';
-    'unsigned long long': TN:='QWord';
+    'byte': Result:='ShortInt';
+    'octet': Result:='Byte';
+    'short': Result:='SmallInt';
+    'unsigned short': Result:='Word';
+    'long': Result:='Integer';
+    'unsigned long': Result:='LongWord';
+    'long long': Result:='Int64';
+    'unsigned long long': Result:='QWord';
 
     'float',
-    'unrestricted float': TN:='Single';
+    'unrestricted float': Result:='Single';
     'double',
-    'unrestricted double': TN:='Double';
+    'unrestricted double': Result:='Double';
 
     'union',
-    'any': TN:='JSValue';
+    'any': Result:='JSValue';
 
     'DOMString',
     'USVString',
-    'ByteString': TN:='UnicodeString';
+    'ByteString': Result:='UnicodeString';
 
     'record',
-    'object': TN:=GetClassName('Object');
+    'object': Result:=GetClassName('Object');
     'Error',
-    'DOMException': TN:=GetClassName('Error');
+    'DOMException': Result:=GetClassName('Error');
 
     'ArrayBuffer',
     'DataView',
@@ -758,24 +758,23 @@ begin
     'Uint32Array',
     'Uint8ClampedArray',
     'Float32Array',
-    'Float64Array': TN:=GetClassName(aTypeName);
+    'Float64Array': Result:=GetClassName(aTypeName);
 
-    'void': TN:=aTypeName;
+    'void': Result:=aTypeName;
   else
     if ForTypeDef then ;
 
-    TN:=aTypeName;
-    D:=FContext.FindDefinition(TN);
+    Result:=aTypeName;
+    D:=FContext.FindDefinition(Result);
     if D<>Nil then
-      TN:=GetName(D)
+      Result:=GetName(D)
     else
       begin
-      A:=FTypeAliases.Values[TN];
+      A:=FTypeAliases.Values[Result];
       If (A<>'') then
-        TN:=A;
+        Result:=A;
       end;
   end;
-  Result:=TN;
 end;
 
 function TBaseWebIDLToPas.WriteField(aAttr: TIDLAttributeDefinition): Boolean;

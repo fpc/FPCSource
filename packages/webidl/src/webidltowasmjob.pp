@@ -84,6 +84,8 @@ type
     // Definitions. Return true if a definition was written.
     function WriteFunctionDefinition(aDef: TIDLFunctionDefinition): Boolean;
       override;
+    function WriteFunctionTypeDefinition(aDef: TIDLFunctionDefinition
+      ): Boolean; override;
     function WritePrivateGetter(Attr: TIDLAttributeDefinition): boolean; virtual;
     function WritePrivateSetter(Attr: TIDLAttributeDefinition): boolean; virtual;
     function WriteProperty(Attr: TIDLAttributeDefinition): boolean; virtual;
@@ -204,6 +206,7 @@ begin
   Case aTypeName of
     'union',
     'any': Result:=JOB_JSValueTypeNames[jjvkUndefined];
+    'void': Result:=aTypeName;
   else
     Result:=inherited GetTypeName(aTypeName,ForTypeDef);
     if (Result=aTypeName) and (LeftStr(Result,length(ClassPrefix))<>ClassPrefix) then
@@ -434,6 +437,12 @@ begin
   finally
     Overloads.Free;
   end;
+end;
+
+function TWebIDLToPasWasmJob.WriteFunctionTypeDefinition(
+  aDef: TIDLFunctionDefinition): Boolean;
+begin
+  Result:=inherited WriteFunctionTypeDefinition(aDef);
 end;
 
 function TWebIDLToPasWasmJob.WritePrivateGetter(Attr: TIDLAttributeDefinition
