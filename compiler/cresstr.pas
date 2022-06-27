@@ -176,7 +176,7 @@ uses
                    end;
             }
             tcb.maybe_begin_aggregate(resstrdef);
-            tcb.emit_string_offset(namelab,length(current_module.localsymtable.name^),st_ansistring,false,charpointertype);
+            tcb.emit_string_offset(namelab,length(R.name),st_ansistring,false,charpointertype);
             tcb.emit_string_offset(valuelab,R.Len,st_ansistring,false,charpointertype);
             tcb.emit_string_offset(valuelab,R.Len,st_ansistring,false,charpointertype);
             tcb.emit_ord_const(R.hash,u32inttype);
