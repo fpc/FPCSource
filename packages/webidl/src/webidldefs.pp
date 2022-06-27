@@ -38,6 +38,7 @@ Type
     wibtUnsignedLong,
     wibtLongLong,
     wibtUnsignedLongLong,
+    wibtBigInteger,
     // floats
     wibtFloat,             // not NaN or infinity
     wibtUnrestrictedFloat,
@@ -47,9 +48,11 @@ Type
     wibtDOMString, // UTF-16
     wibtUSVString, // UTF-16 without surrogates
     wibtByteString,
+    wibtUTF8String,
     // objects
     wibtRecord,
     wibtObject,
+    wibtFunction,
     wibtError,
     wibtDOMException,
     // arrays
@@ -81,6 +84,7 @@ const
     'unsigned long',
     'long long',
     'unsigned long long',
+    'BigInteger',
     'float',
     'unrestricted float',
     'double',
@@ -88,8 +92,10 @@ const
     'DOMString',
     'USVString',
     'ByteString',
+    'UTF8String',
     'record',
     'object',
+    'Function',
     'Error',
     'DOMException',
     'ArrayBuffer',

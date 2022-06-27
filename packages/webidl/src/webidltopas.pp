@@ -1411,7 +1411,8 @@ procedure TBaseWebIDLToPas.AddJSIdentifier(D: TIDLDefinition);
 var
   Old: TIDLDefinition;
 begin
-  if D.Parent=nil then
+  if (D.Parent=nil)
+      or ((D is TIDLInterfaceDefinition) and TIDLInterfaceDefinition(D).IsMixin) then
     begin
     Old:=FindGlobalDef(D.Name);
     if Old<>nil then
@@ -1431,26 +1432,12 @@ begin
 end;
 
 procedure TBaseWebIDLToPas.ResolveTypeDef(D: TIDLDefinition);
-var
-  Def: TIDLDefinition;
-  aTypeName: String;
-  Data: TPasData;
-begin
-  if D=nil then exit;
-  //writeln('TBaseWebIDLToPas.ResolveTypeDef START ',D.Name,':',D.ClassName,' at ',GetDefPos(D));
-  if D Is TIDLInterfaceDefinition then
-    ResolveTypeDefs((D as TIDLInterfaceDefinition).Members)
-  else if D Is TIDLDictionaryDefinition then
-    ResolveTypeDefs((D as TIDLDictionaryDefinition).Members)
-  else if D Is TIDLFunctionDefinition then
-    ResolveTypeDefs((D as TIDLFunctionDefinition).Arguments)
-  else if D is TIDLAttributeDefinition then
-    ResolveTypeDef(TIDLAttributeDefinition(D).AttributeType)
-  else if D is TIDLArgumentDefinition then
-    ResolveTypeDef(TIDLArgumentDefinition(D).ArgumentType)
-  else if D is TIDLTypeDefDefinition then
-    begin
-    aTypeName:=TIDLTypeDefDefinition(D).TypeName;
+
+  procedure ResolveTypeName(const aTypeName: string);
+  var
+    Def: TIDLDefinition;
+    Data: TPasData;
+  begin
     Def:=FindGlobalDef(aTypeName);
     if Def=nil then
       begin
@@ -1464,6 +1451,50 @@ begin
         Data:=CreatePasName('',D);
       Data.Resolved:=Def;
       end;
+  end;
+
+var
+  DMD: TIDLDictionaryMemberDefinition;
+  IT: TIDLIterableDefinition;
+  SerializerD: TIDLSerializerDefinition;
+begin
+  if D=nil then exit;
+  //writeln('TBaseWebIDLToPas.ResolveTypeDef START ',D.Name,':',D.ClassName,' at ',GetDefPos(D));
+  if D Is TIDLInterfaceDefinition then
+    ResolveTypeDefs((D as TIDLInterfaceDefinition).Members)
+  else if D Is TIDLDictionaryDefinition then
+    ResolveTypeDefs((D as TIDLDictionaryDefinition).Members)
+  else if D is TIDLIncludesDefinition then
+  else if D Is TIDLFunctionDefinition then
+    ResolveTypeDefs((D as TIDLFunctionDefinition).Arguments)
+  else if D is TIDLAttributeDefinition then
+    ResolveTypeDef(TIDLAttributeDefinition(D).AttributeType)
+  else if D is TIDLArgumentDefinition then
+    ResolveTypeDef(TIDLArgumentDefinition(D).ArgumentType)
+  else if D is TIDLTypeDefDefinition then
+    ResolveTypeName(TIDLTypeDefDefinition(D).TypeName)
+  else if D is TIDLConstDefinition then
+    ResolveTypeName(TIDLConstDefinition(D).TypeName)
+  else if D is TIDLSerializerDefinition then
+    begin
+    SerializerD:=TIDLSerializerDefinition(D);
+    ResolveTypeDef(SerializerD.SerializerFunction);
+    end
+  else if D is TIDLDictionaryMemberDefinition then
+    begin
+    DMD:=TIDLDictionaryMemberDefinition(D);
+    ResolveTypeDef(DMD.MemberType);
+    ResolveTypeDef(DMD.DefaultValue);
+    end
+  else if D is TIDLEnumDefinition then
+  else if D is TIDLSetlikeDefinition then
+    ResolveTypeDef(TIDLSetlikeDefinition(D).ElementType)
+  else if D is TIDLImplementsOrIncludesDefinition then
+  else if D is TIDLIterableDefinition then
+    begin
+    IT:=TIDLIterableDefinition(D);
+    ResolveTypeDef(IT.ValueType);
+    ResolveTypeDef(IT.KeyType);
     end
   else {if Verbose then}
     writeln('TBaseWebIDLToPas.ResolveTypeDef unknown ',D.Name,':',D.ClassName,' at ',GetDefPos(D));
