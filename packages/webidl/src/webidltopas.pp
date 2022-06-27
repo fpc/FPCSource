@@ -1165,7 +1165,7 @@ begin
     RT:='';
   Args:=GetArguments(aDef.Arguments,False);
   if (RT='') then
-    AddLn('%s = Procedure %s;',[FN,Args])
+    AddLn('%s = procedure %s;',[FN,Args])
   else
     AddLn('%s = function %s: %s;',[FN,Args,RT])
 end;

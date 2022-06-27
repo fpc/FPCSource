@@ -19,7 +19,7 @@ unit webidltowasmjob;
 interface
 
 uses
-  Classes, SysUtils, webidldefs, webidltopas, Contnrs;
+  Classes, SysUtils, webidldefs, webidltopas, webidlparser, Contnrs;
 
 type
   TJOB_JSValueKind = (
@@ -441,8 +441,111 @@ end;
 
 function TWebIDLToPasWasmJob.WriteFunctionTypeDefinition(
   aDef: TIDLFunctionDefinition): Boolean;
+var
+  FN, RT, ArgName, VarSection, FetchArgs, Params, Call, Code,
+    ArgTypeName, s, aClassName, IntfName: String;
+  Data: TPasDataWasmJob;
+  Args: TIDLDefinitionList;
+  Arg: TIDLArgumentDefinition;
+  ArgNames: TStringList;
+  j, i: Integer;
 begin
   Result:=inherited WriteFunctionTypeDefinition(aDef);
+  if not Result then exit;
+  FN:=GetName(aDef);
+  RT:=GetTypeName(aDef.ReturnType,False);
+  if (RT='void') then
+    RT:='';
+  Args:=aDef.Arguments;
+
+  Data:=TPasDataWasmJob(aDef.Data);
+  if Data.HasFuncBody then exit;
+  Data.HasFuncBody:=true;
+
+  ArgNames:=TStringList.Create;
+  try
+    // create wrapper callback
+    Code:='function JOBCall'+Fn+'(const aMethod: TMethod; const H: TJOBCallbackHelper): PByte;'+sLineBreak;
+    ArgNames.Add('aMethod');
+    ArgNames.Add('h');
+    VarSection:='';
+    FetchArgs:='';
+    Params:='';
+    for i:=0 to Args.Count-1 do
+      begin
+      Arg:=Args[i] as TIDLArgumentDefinition;
+      ArgName:=GetName(Arg);
+      if ArgNames.IndexOf(ArgName)>=0 then
+        begin
+        j:=2;
+        while ArgNames.IndexOf(ArgName+IntToStr(j))>=0 do inc(j);
+        ArgName:=ArgName+IntToStr(j);
+        end;
+      ArgTypeName:=GetTypeName(Arg.ArgumentType);
+
+      // var ArgName: ArgTypeName;
+      VarSection:=VarSection+'  '+ArgName+': '+ArgTypeName+';'+sLineBreak;
+
+      // ArgName:=H.GetX;
+      case ArgTypeName of
+      'Boolean': s:='GetBoolean';
+      'ShortInt',
+      'Byte',
+      'SmallInt',
+      'Word',
+      'Integer': s:='GetLongInt';
+      'LongWord',
+      'Int64',
+      'QWord': s:='GetMaxInt';
+      'Single',
+      'Double': s:='GetDouble';
+      'UnicodeString': s:='GetString';
+      'JSValue': s:='GetValue';
+      else
+        raise EWebIDLParser.Create('not yet supported: function type arg type "'+ArgTypeName+'" at '+GetDefPos(Arg));
+        aClassName:='';
+        IntfName:='';
+        s:='GetObject('+aClassName+') as '+IntfName;
+      end;
+      FetchArgs:=FetchArgs+'  '+ArgName+':=H.'+s+';';
+
+      //
+      if Params<>'' then
+        Params:=Params+',';
+      Params:=Params+ArgName;
+
+      end;
+    if VarSection<>'' then
+      Code:=Code+'var'+sLineBreak+VarSection;
+
+    Code:=Code+'begin'+sLineBreak;
+    Code:=Code+FetchArgs+sLineBreak;
+
+    Call:=FN+'(aMethod)('+Params+')';
+    case RT of
+    '': s:='Result:=H.AllocUndefined('+Call+');';
+    'Boolean': s:='Result:=H.AllocBool('+Call+');';
+    'ShortInt',
+    'Byte',
+    'SmallInt',
+    'Word',
+    'Integer': s:='Result:=H.AllocLongint('+Call+');';
+    'LongWord',
+    'Int64',
+    'QWord',
+    'Single',
+    'Double': s:='Result:=H.AllocDouble('+Call+');';
+    'UnicodeString': s:='Result:=H.AllocString('+Call+');';
+    //'JSValue'
+    else
+      raise EWebIDLParser.Create('not yet supported: function type result type "'+RT+'" at '+GetDefPos(Arg));
+    end;
+    Code:=Code+'  '+s+sLineBreak;
+    Code:=Code+'end;'+sLineBreak;
+
+    IncludeImplementationCode.Add(Code);
+  finally
+  end;
 end;
 
 function TWebIDLToPasWasmJob.WritePrivateGetter(Attr: TIDLAttributeDefinition
@@ -479,7 +582,7 @@ begin
   'UnicodeString': ReadFuncName:='ReadJSPropertyUnicodeString';
   'TJOB_JSValue': ReadFuncName:='ReadJSPropertyValue';
   else
-    raise EConvertError.Create('not yet implemented: Getter '+Typename);
+    raise EWebIDLParser.Create('not yet implemented: Getter '+Typename);
   end;
 
   Code:='function '+aClassName+'.'+FuncName+': '+TypeName+';'+sLineBreak;
