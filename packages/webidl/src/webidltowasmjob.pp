@@ -331,10 +331,21 @@ end;
 
 function TWebIDLToPasWasmJob.WriteFunctionDefinition(
   aDef: TIDLFunctionDefinition): Boolean;
+var
+  ArgNames: TStringList;
 
   function CreateLocal(aName: string): string;
+  var
+    i: Integer;
   begin
     Result:=aName;
+    if ArgNames.IndexOf(Result)>=0 then
+      begin
+      i:=2;
+      while ArgNames.IndexOf(Result+IntToStr(i))>=0 do inc(i);
+      Result:=Result+IntToStr(i);
+      end;
+    ArgNames.Add(Result);
   end;
 
 Var
@@ -415,54 +426,62 @@ begin
 
       if not AddFuncBody then continue;
 
-      InvokeCode:='';
-      if RT<>'' then
-        InvokeCode:='Result:=';
-      VarSection:='';
-      TryCode:='';
-      FinallyCode:='';
-      Args:='';
-      for CurDef in ArgDefList do
-        begin
-        if Args<>'' then
-          Args:=Args+',';
-        ArgName:=GetName(ArgDef);
-        ArgType:=FindGlobalDef(ArgDef.ArgumentType.TypeName);
-        if (ArgType is TIDLFunctionDefinition) and (foCallBack in TIDLFunctionDefinition(ArgType).Options) then
+      ArgNames:=TStringList.Create;
+      try
+        for CurDef in ArgDefList do
+          ArgNames.Add(GetName(ArgDef));
+
+        InvokeCode:='';
+        if RT<>'' then
+          InvokeCode:='Result:=';
+        VarSection:='';
+        TryCode:='';
+        FinallyCode:='';
+        Args:='';
+        for CurDef in ArgDefList do
           begin
-          LocalName:=CreateLocal('m');
-          VarSection:=VarSection+'  '+LocalName+': TJOB_JSValueMethod;'+sLineBreak;
-          WrapperFn:='JOBCall'+GetName(TIDLFunctionDefinition(ArgType));
-          TryCode:=TryCode+'  '+LocalName+':=TJOB_JSValueMethod.Create(TMethod('+ArgName+'),@'+WrapperFn+');'+sLineBreak;
-          FinallyCode:=FinallyCode+'    '+LocalName+'.free;'+sLineBreak;
-          ArgName:=LocalName;
+          if Args<>'' then
+            Args:=Args+',';
+          ArgName:=GetName(ArgDef);
+          ArgType:=FindGlobalDef(ArgDef.ArgumentType.TypeName);
+          if (ArgType is TIDLFunctionDefinition) and (foCallBack in TIDLFunctionDefinition(ArgType).Options) then
+            begin
+            LocalName:=CreateLocal('m');
+            VarSection:=VarSection+'  '+LocalName+': TJOB_JSValueMethod;'+sLineBreak;
+            WrapperFn:='JOBCall'+GetName(TIDLFunctionDefinition(ArgType));
+            TryCode:=TryCode+'  '+LocalName+':=TJOB_JSValueMethod.Create(TMethod('+ArgName+'),@'+WrapperFn+');'+sLineBreak;
+            FinallyCode:=FinallyCode+'    '+LocalName+'.free;'+sLineBreak;
+            ArgName:=LocalName;
+            end;
+          Args:=Args+ArgName;
           end;
-        Args:=Args+ArgName;
-        end;
-      Args:=',['+Args+']';
+        Args:=',['+Args+']';
 
-      InvokeCode:=InvokeCode+InvokeName+'('''+aDef.Name+''''+Args+')';
+        InvokeCode:=InvokeCode+InvokeName+'('''+aDef.Name+''''+Args+')';
 
-      Code:=ProcKind+' '+aClassName+'.'+Sig+sLineBreak;
-      if VarSection<>'' then
-        Code:=Code+'var'+sLineBreak+VarSection;
-      Code:=Code+'begin'+sLineBreak;
-      if TryCode<>'' then
-        begin
-        Code:=Code+TryCode;
-        Code:=Code+'  try'+sLineBreak;
-        Code:=Code+'    '+InvokeCode+';'+sLineBreak;
-        Code:=Code+'  finally'+sLineBreak;
-        Code:=Code+FinallyCode;
-        Code:=Code+'  end;'+sLineBreak;
-        end
-      else
-        begin
-        Code:=Code+'  '+InvokeCode+';'+sLineBreak;
-        end;
-      Code:=Code+'end;'+sLineBreak;
+        Code:=ProcKind+' '+aClassName+'.'+Sig+sLineBreak;
+        if VarSection<>'' then
+          Code:=Code+'var'+sLineBreak+VarSection;
+        Code:=Code+'begin'+sLineBreak;
+        if TryCode<>'' then
+          begin
+          Code:=Code+TryCode;
+          Code:=Code+'  try'+sLineBreak;
+          Code:=Code+'    '+InvokeCode+';'+sLineBreak;
+          Code:=Code+'  finally'+sLineBreak;
+          Code:=Code+FinallyCode;
+          Code:=Code+'  end;'+sLineBreak;
+          end
+        else
+          begin
+          Code:=Code+'  '+InvokeCode+';'+sLineBreak;
+          end;
+        Code:=Code+'end;'+sLineBreak;
 
-      IncludeImplementationCode.Add(Code);
+        IncludeImplementationCode.Add(Code);
+      finally
+        ArgNames.Free;
+      end;
 
       end;
     Data.HasFuncBody:=true;
