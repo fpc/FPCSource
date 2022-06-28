@@ -331,15 +331,22 @@ end;
 
 function TWebIDLToPasWasmJob.WriteFunctionDefinition(
   aDef: TIDLFunctionDefinition): Boolean;
+
+  function CreateLocal(aName: string): string;
+  begin
+    Result:=aName;
+  end;
+
 Var
   Data: TPasDataWasmJob;
   FN, RT, Suff, Args, ProcKind, Sig, aClassName, Code, InvokeName,
-    InvokeStr, CurName: String;
+    InvokeCode, ArgName, TryCode, VarSection, FinallyCode, LocalName,
+    WrapperFn: String;
   Overloads: TFPObjectList;
   I: Integer;
   AddFuncBody: Boolean;
   ArgDefList: TIDLDefinitionList;
-  CurDef: TIDLDefinition;
+  CurDef, ArgType: TIDLDefinition;
   ArgDef: TIDLArgumentDefinition absolute CurDef;
 begin
   Result:=True;
@@ -408,25 +415,51 @@ begin
 
       if not AddFuncBody then continue;
 
-      InvokeStr:='';
+      InvokeCode:='';
       if RT<>'' then
-        InvokeStr:='Result:=';
+        InvokeCode:='Result:=';
+      VarSection:='';
+      TryCode:='';
+      FinallyCode:='';
       Args:='';
       for CurDef in ArgDefList do
         begin
         if Args<>'' then
           Args:=Args+',';
-        CurName:=GetName(ArgDef);
-        Args:=Args+CurName;
+        ArgName:=GetName(ArgDef);
+        ArgType:=FindGlobalDef(ArgDef.ArgumentType.TypeName);
+        if (ArgType is TIDLFunctionDefinition) and (foCallBack in TIDLFunctionDefinition(ArgType).Options) then
+          begin
+          LocalName:=CreateLocal('m');
+          VarSection:=VarSection+'  '+LocalName+': TJOB_JSValueMethod;'+sLineBreak;
+          WrapperFn:='JOBCall'+GetName(TIDLFunctionDefinition(ArgType));
+          TryCode:=TryCode+'  '+LocalName+':=TJOB_JSValueMethod.Create(TMethod('+ArgName+'),@'+WrapperFn+');'+sLineBreak;
+          FinallyCode:=FinallyCode+'    '+LocalName+'.free;'+sLineBreak;
+          ArgName:=LocalName;
+          end;
+        Args:=Args+ArgName;
         end;
       Args:=',['+Args+']';
 
-
-      InvokeStr:=InvokeStr+InvokeName+'('''+aDef.Name+''''+Args+')';
+      InvokeCode:=InvokeCode+InvokeName+'('''+aDef.Name+''''+Args+')';
 
       Code:=ProcKind+' '+aClassName+'.'+Sig+sLineBreak;
+      if VarSection<>'' then
+        Code:=Code+'var'+sLineBreak+VarSection;
       Code:=Code+'begin'+sLineBreak;
-      Code:=Code+'  '+InvokeStr+';'+sLineBreak;
+      if TryCode<>'' then
+        begin
+        Code:=Code+TryCode;
+        Code:=Code+'  try'+sLineBreak;
+        Code:=Code+'    '+InvokeCode+';'+sLineBreak;
+        Code:=Code+'  finally'+sLineBreak;
+        Code:=Code+FinallyCode;
+        Code:=Code+'  end;'+sLineBreak;
+        end
+      else
+        begin
+        Code:=Code+'  '+InvokeCode+';'+sLineBreak;
+        end;
       Code:=Code+'end;'+sLineBreak;
 
       IncludeImplementationCode.Add(Code);
