@@ -602,8 +602,9 @@ end;
 function TWebIDLToPasWasmJob.WritePrivateGetter(Attr: TIDLAttributeDefinition
   ): boolean;
 var
-  FuncName, TypeName, aClassName, Code, ReadFuncName: String;
+  FuncName, TypeName, aClassName, Code, ReadFuncName, Call: String;
   Data: TPasDataWasmJob;
+  TypeDef: TIDLDefinition;
 begin
   Result:=true;
   if Attr.AttributeType=nil then
@@ -612,11 +613,16 @@ begin
 
   FuncName:=GetterPrefix+GetName(Attr);
   TypeName:=GetTypeName(Attr.AttributeType);
+  TypeDef:=FindGlobalDef(Attr.AttributeType.TypeName);
+  if TypeDef is TIDLInterfaceDefinition then
+    TypeName:=ClassToPasIntfName(TypeName);
+
   AddLn('function '+FuncName+': '+TypeName+';');
 
   if Data.GetterBody<>'' then exit;
 
   aClassName:=GetName(Attr.Parent);
+  Call:='';
 
   case TypeName of
   'Boolean': ReadFuncName:='ReadJSPropertyBoolean';
@@ -633,12 +639,15 @@ begin
   'UnicodeString': ReadFuncName:='ReadJSPropertyUnicodeString';
   'TJOB_JSValue': ReadFuncName:='ReadJSPropertyValue';
   else
-    raise EWebIDLParser.Create('not yet implemented: Getter '+Typename);
+    Call:='ReadJSPropertyObject('+Attr.Name+','''+GetTypeName(Attr.AttributeType)+''')';
   end;
+
+  if Call='' then
+    Call:=ReadFuncName+'('''+Attr.Name+''')';
 
   Code:='function '+aClassName+'.'+FuncName+': '+TypeName+';'+sLineBreak;
   Code:=Code+'begin'+sLineBreak;
-  Code:=Code+'  Result:='+ReadFuncName+'('''+Attr.Name+''');'+sLineBreak;
+  Code:=Code+'  Result:='+Call+';'+sLineBreak;
   Code:=Code+'end;'+sLineBreak;
 
   Data.GetterBody:=Code;
@@ -648,8 +657,9 @@ end;
 function TWebIDLToPasWasmJob.WritePrivateSetter(Attr: TIDLAttributeDefinition
   ): boolean;
 var
-  FuncName, TypeName, aClassName, WriteFuncName, Code: String;
+  FuncName, TypeName, aClassName, WriteFuncName, Code, Call: String;
   Data: TPasDataWasmJob;
+  TypeDef: TIDLDefinition;
 begin
   if aoReadOnly in Attr.Options then
     exit(false);
@@ -660,11 +670,15 @@ begin
   Result:=true;
   FuncName:=SetterPrefix+GetName(Attr);
   TypeName:=GetTypeName(Attr.AttributeType);
+  TypeDef:=FindGlobalDef(Attr.AttributeType.TypeName);
+  if TypeDef is TIDLInterfaceDefinition then
+    TypeName:=ClassToPasIntfName(TypeName);
   AddLn('Procedure '+FuncName+'(const aValue: '+TypeName+');');
 
   if Data.SetterBody<>'' then exit;
 
   aClassName:=GetName(Attr.Parent);
+  Call:='';
 
   case TypeName of
   'Boolean': WriteFuncName:='WriteJSPropertyBoolean';
@@ -681,12 +695,15 @@ begin
   'UnicodeString': WriteFuncName:='WriteJSPropertyUnicodeString';
   'TJOB_JSValue': WriteFuncName:='WriteJSPropertyValue';
   else
-    raise EConvertError.Create('not yet implemented: Setter '+Typename);
+    WriteFuncName:='WriteJSPropertyObject';
   end;
+
+  if Call='' then
+    Call:=WriteFuncName+'('''+Attr.Name+''',aValue)';
 
   Code:='Procedure '+aClassName+'.'+FuncName+'(const aValue: '+TypeName+');'+sLineBreak;
   Code:=Code+'begin'+sLineBreak;
-  Code:=Code+'  '+WriteFuncName+'('''+Attr.Name+''',aValue);'+sLineBreak;
+  Code:=Code+'  '+Call+';'+sLineBreak;
   Code:=Code+'end;'+sLineBreak;
 
   Data.SetterBody:=Code;
@@ -697,6 +714,7 @@ function TWebIDLToPasWasmJob.WriteProperty(Attr: TIDLAttributeDefinition
   ): boolean;
 var
   PropName, TypeName, Code: String;
+  TypeDef: TIDLDefinition;
 begin
   if Attr.AttributeType=nil then
     begin
@@ -705,6 +723,9 @@ begin
     end;
   PropName:=GetName(Attr);
   TypeName:=GetTypeName(Attr.AttributeType);
+  TypeDef:=FindGlobalDef(Attr.AttributeType.TypeName);
+  if TypeDef is TIDLInterfaceDefinition then
+    TypeName:=ClassToPasIntfName(TypeName);
   Code:='Property '+PropName+': '+TypeName+' read '+GetterPrefix+PropName;
   if not (aoReadOnly in Attr.Options) then
     Code:=Code+' write '+SetterPrefix+PropName;
