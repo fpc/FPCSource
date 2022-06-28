@@ -266,11 +266,10 @@ begin
   WritePrivateGetters(aMemberList);
   WritePrivateSetters(aMemberList);
 
-  // type cast function Cast:
-  AddLn('function Cast(Intf: IJSObject): '+aPasIntfName+';');
-
   // public members
   WriteMethodDefs(aMemberList);
+  // type cast function Cast:
+  AddLn('function Cast(Intf: IJSObject): '+aPasIntfName+';');
   WriteProperties(aMemberList);
 
   Undent;
