@@ -1,4 +1,3 @@
-{ %fail }
 program tgeneric26;
 
 {$mode objfpc}{$H+}
