@@ -494,20 +494,29 @@ function TWebIDLToPasWasmJob.WriteFunctionTypeDefinition(
   aDef: TIDLFunctionDefinition): Boolean;
 var
   FN, RT, ArgName, VarSection, FetchArgs, Params, Call, Code,
-    ArgTypeName, s, aClassName, IntfName: String;
+    ArgTypeName, GetFunc, aClassName: String;
   Data: TPasDataWasmJob;
   Args: TIDLDefinitionList;
-  Arg: TIDLArgumentDefinition;
+  ArgDef: TIDLArgumentDefinition;
   ArgNames: TStringList;
   j, i: Integer;
+  CurDef, ReturnDef: TIDLDefinition;
 begin
-  Result:=inherited WriteFunctionTypeDefinition(aDef);
-  if not Result then exit;
+  Result:=True;
   FN:=GetName(aDef);
   RT:=GetTypeName(aDef.ReturnType,False);
   if (RT='void') then
     RT:='';
+  ReturnDef:=FindGlobalDef(aDef.ReturnType.TypeName);
+  if ReturnDef is TIDLInterfaceDefinition then
+    RT:=ClassToPasIntfName(RT);
   Args:=aDef.Arguments;
+
+  Params:=GetArguments(aDef.Arguments,False);
+  if (RT='') then
+    AddLn(FN+' = procedure '+Params+';')
+  else
+    AddLn(FN+' = function '+Params+': '+RT+';');
 
   Data:=TPasDataWasmJob(aDef.Data);
   if Data.HasFuncBody then exit;
@@ -524,43 +533,50 @@ begin
     Params:='';
     for i:=0 to Args.Count-1 do
       begin
-      Arg:=Args[i] as TIDLArgumentDefinition;
-      ArgName:=GetName(Arg);
+      ArgDef:=Args[i] as TIDLArgumentDefinition;
+      ArgName:=GetName(ArgDef);
       if ArgNames.IndexOf(ArgName)>=0 then
         begin
         j:=2;
         while ArgNames.IndexOf(ArgName+IntToStr(j))>=0 do inc(j);
         ArgName:=ArgName+IntToStr(j);
         end;
-      ArgTypeName:=GetTypeName(Arg.ArgumentType);
+      ArgTypeName:=GetTypeName(ArgDef.ArgumentType);
 
-      // var ArgName: ArgTypeName;
-      VarSection:=VarSection+'  '+ArgName+': '+ArgTypeName+';'+sLineBreak;
-
-      // ArgName:=H.GetX;
       case ArgTypeName of
-      'Boolean': s:='GetBoolean';
+      '': raise EWebIDLParser.Create('not yet supported: function type arg['+IntToStr(I)+'] type void at '+GetDefPos(ArgDef));
+      'Boolean': GetFunc:='GetBoolean';
       'ShortInt',
       'Byte',
       'SmallInt',
       'Word',
-      'Integer': s:='GetLongInt';
+      'Integer': GetFunc:='GetLongInt';
       'LongWord',
       'Int64',
-      'QWord': s:='GetMaxInt';
+      'QWord': GetFunc:='GetMaxInt';
       'Single',
-      'Double': s:='GetDouble';
-      'UnicodeString': s:='GetString';
-      'JSValue': s:='GetValue';
+      'Double': GetFunc:='GetDouble';
+      'UnicodeString': GetFunc:='GetString';
+      'TJOB_JSValue': GetFunc:='GetValue';
       else
-        raise EWebIDLParser.Create('not yet supported: function type arg type "'+ArgTypeName+'" at '+GetDefPos(Arg));
-        aClassName:='';
-        IntfName:='';
-        s:='GetObject('+aClassName+') as '+IntfName;
+        CurDef:=FindGlobalDef(ArgDef.ArgumentType.TypeName);
+        if CurDef is TIDLInterfaceDefinition then
+          begin
+          aClassName:=ArgTypeName;
+          ArgTypeName:=ClassToPasIntfName(aClassName);
+          GetFunc:='GetObject('+aClassName+') as '+ArgTypeName;
+          end
+        else
+          raise EWebIDLParser.Create('not yet supported: function type arg['+IntToStr(I)+'] type '+ArgDef.ArgumentType.TypeName+' at '+GetDefPos(ArgDef));
       end;
-      FetchArgs:=FetchArgs+'  '+ArgName+':=H.'+s+';';
 
-      //
+      // declare: var ArgName: ArgTypeName;
+      VarSection:=VarSection+'  '+ArgName+': '+ArgTypeName+';'+sLineBreak;
+
+      // get: ArgName:=H.GetX;
+      FetchArgs:=FetchArgs+'  '+ArgName+':=H.'+GetFunc+';';
+
+      // pass: ArgName
       if Params<>'' then
         Params:=Params+',';
       Params:=Params+ArgName;
@@ -574,24 +590,27 @@ begin
 
     Call:=FN+'(aMethod)('+Params+')';
     case RT of
-    '': s:='Result:=H.AllocUndefined('+Call+');';
-    'Boolean': s:='Result:=H.AllocBool('+Call+');';
+    '': GetFunc:='Result:=H.AllocUndefined('+Call+');';
+    'Boolean': GetFunc:='Result:=H.AllocBool('+Call+');';
     'ShortInt',
     'Byte',
     'SmallInt',
     'Word',
-    'Integer': s:='Result:=H.AllocLongint('+Call+');';
+    'Integer': GetFunc:='Result:=H.AllocLongint('+Call+');';
     'LongWord',
     'Int64',
     'QWord',
     'Single',
-    'Double': s:='Result:=H.AllocDouble('+Call+');';
-    'UnicodeString': s:='Result:=H.AllocString('+Call+');';
-    //'JSValue'
+    'Double': GetFunc:='Result:=H.AllocDouble('+Call+');';
+    'UnicodeString': GetFunc:='Result:=H.AllocString('+Call+');';
+    //'TJOB_JSValue': ;
     else
-      raise EWebIDLParser.Create('not yet supported: function type result type "'+RT+'" at '+GetDefPos(Arg));
+      if ReturnDef is TIDLInterfaceDefinition then
+        GetFunc:='Result:=H.AllocIntf('+Call+');'
+      else
+        raise EWebIDLParser.Create('not yet supported: function type result type "'+RT+'" at '+GetDefPos(ArgDef));
     end;
-    Code:=Code+'  '+s+sLineBreak;
+    Code:=Code+'  '+GetFunc+sLineBreak;
     Code:=Code+'end;'+sLineBreak;
 
     IncludeImplementationCode.Add(Code);
