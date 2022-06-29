@@ -74,7 +74,7 @@ interface
 {$INLINE ON}
 {$DEFINE COMPAT}
 // ======== Define options for TRegExpr engine
-{$DEFINE Unicode} // Use WideChar for characters and UnicodeString/WideString for strings
+{ $DEFINE Unicode} // Use WideChar for characters and UnicodeString/WideString for strings
 { off $DEFINE UnicodeEx} // Support Unicode >0xFFFF, e.g. emoji, e.g. "." must find 2 WideChars of 1 emoji
 {$DEFINE UseWordChars} // Use WordChars property, otherwise fixed list 'a'..'z','A'..'Z','0'..'9','_'
 {$DEFINE UseSpaceChars} // Use SpaceChars property, otherwise fixed list
