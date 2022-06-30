@@ -3108,6 +3108,59 @@ unit aoptx86;
                         DebugMsg(SPeepholeOptimization + 'MovAndTest2Test done',p);
                         taicpu(hp1).loadoper(1,taicpu(p).oper[0]^);
                         taicpu(hp1).opcode:=A_TEST;
+
+                        { Shrink the TEST instruction down to the smallest possible size }
+                        case taicpu(hp1).oper[0]^.val of
+                          0..255:
+                            if (taicpu(hp1).opsize <> S_B)
+{$ifndef x86_64}
+                              and (
+                                (taicpu(hp1).oper[1]^.typ <> top_reg) or
+                                { Cannot encode byte-sized ESI, EDI, EBP or ESP under i386 }
+                                (GetSupReg(taicpu(hp1).oper[1]^.reg) in [RS_EAX, RS_EBX, RS_ECX, RS_EDX])
+                              )
+{$endif x86_64}
+                              then
+                              begin
+                                if taicpu(hp1).opsize <> taicpu(hp2).opsize then
+                                  { Only print debug message if the TEST instruction
+                                    is a different size before and after }
+                                  DebugMsg(SPeepholeOptimization + 'test' + debug_opsize2str(taicpu(hp1).opsize) + ' -> testb to reduce instruction size (Test2Test 1a)' , p);
+
+                                taicpu(hp1).opsize := S_B;
+                                if (taicpu(hp1).oper[1]^.typ = top_reg) then
+                                  setsubreg(taicpu(hp1).oper[1]^.reg, R_SUBL);
+                              end;
+                          256..65535:
+                            if (taicpu(hp1).opsize <> S_W) then
+                              begin
+                                if taicpu(hp1).opsize <> taicpu(hp2).opsize then
+                                  { Only print debug message if the TEST instruction
+                                    is a different size before and after }
+                                  DebugMsg(SPeepholeOptimization + 'test' + debug_opsize2str(taicpu(hp1).opsize) + ' -> testw to reduce instruction size (Test2Test 1b)' , p);
+
+                                taicpu(hp1).opsize := S_W;
+                                if (taicpu(hp1).oper[1]^.typ = top_reg) then
+                                  setsubreg(taicpu(hp1).oper[1]^.reg, R_SUBW);
+                              end;
+{$ifdef x86_64}
+                          65536..$7FFFFFFF:
+                            if (taicpu(hp1).opsize <> S_L) then
+                              begin
+                                if taicpu(hp1).opsize <> taicpu(hp2).opsize then
+                                  { Only print debug message if the TEST instruction
+                                    is a different size before and after }
+                                  DebugMsg(SPeepholeOptimization + 'test' + debug_opsize2str(taicpu(hp1).opsize) + ' -> testl to reduce instruction size (Test2Test 1c)' , p);
+
+                                taicpu(hp1).opsize := S_L;
+                                if (taicpu(hp1).oper[1]^.typ = top_reg) then
+                                  setsubreg(taicpu(hp1).oper[1]^.reg, R_SUBD);
+                              end;
+{$endif x86_64}
+                          else
+                            ;
+                        end;
+
                         RemoveInstruction(hp2);
                         RemoveCurrentP(p, hp1);
                         Result:=true;
