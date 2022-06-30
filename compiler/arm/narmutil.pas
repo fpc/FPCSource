@@ -237,7 +237,10 @@ interface
               current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_THUMB_ISA_use,2))
             else
               current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_THUMB_ISA_use,1));
-            current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_ABI_VFP_args,1));
+            if target_info.abi=abi_eabihf then
+              current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_ABI_VFP_args,1))
+            else
+              current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_ABI_VFP_args,0));
             current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_ABI_FP_denormal,1));
             current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_ABI_FP_exceptions,1));
             current_asmdata.asmlists[al_start].Concat(tai_eabi_attribute.create(Tag_ABI_FP_number_model,3));
