@@ -28,7 +28,8 @@ type
     jjvkDouble,
     jjvkString,
     jjvkObject,
-    jivkMethod
+    jivkMethod,
+    jjvkDictionary
     );
   TJOB_JSValueKinds = set of TJOB_JSValueKind;
 
@@ -39,15 +40,17 @@ const
     'Double',
     'String',
     'Object',
-    'Method'
+    'Method',
+    'Dictionary'
     );
   JOB_JSValueTypeNames: array[TJOB_JSValueKind] of string = (
     'TJOB_JSValue',
-    'TJOB_JSValueBoolean',
-    'TJOB_JSValueDouble',
-    'TJOB_JSValueString',
-    'TJOB_JSValueObject',
-    'TJOB_JSValueMethod'
+    'TJOB_Boolean',
+    'TJOB_Double',
+    'TJOB_String',
+    'TJOB_Object',
+    'TJOB_Method',
+    'TJOB_Dictionary'
     );
 type
   TPasDataWasmJob = class(TPasData)
@@ -73,9 +76,13 @@ type
     function GetPasIntfName(Intf: TIDLDefinition): string;
     function GetInterfaceDefHead(Intf: TIDLInterfaceDefinition): String;
       override;
+    function GetDictionaryDefHead(const CurClassName: string;
+      Dict: TIDLDictionaryDefinition): String; override;
     function WriteOtherImplicitTypes(Intf: TIDLInterfaceDefinition; aMemberList: TIDLDefinitionList): Integer;
       override;
     // Code generation routines. Return the number of actually written defs.
+    function WriteDictionaryMemberImplicitTypes(aDict: TIDLDictionaryDefinition;
+      aList: TIDLDefinitionList): Integer; override;
     function WritePrivateGetters(aList: TIDLDefinitionList): Integer; override;
     function WritePrivateSetters(aList: TIDLDefinitionList): Integer; override;
     function WriteProperties(aList: TIDLDefinitionList): Integer; override;
@@ -235,6 +242,13 @@ begin
   Result:=Result+','+aPasIntfName+')';
 end;
 
+function TWebIDLToPasWasmJob.GetDictionaryDefHead(const CurClassName: string;
+  Dict: TIDLDictionaryDefinition): String;
+begin
+  Result:=CurClassName+'Rec = record';
+  if Dict=nil then ;
+end;
+
 function TWebIDLToPasWasmJob.WriteOtherImplicitTypes(
   Intf: TIDLInterfaceDefinition; aMemberList: TIDLDefinitionList): Integer;
 var
@@ -275,6 +289,16 @@ begin
   Undent;
   AddLn('end;');
   AddLn('');
+end;
+
+function TWebIDLToPasWasmJob.WriteDictionaryMemberImplicitTypes(
+  aDict: TIDLDictionaryDefinition; aList: TIDLDefinitionList): Integer;
+var
+  aName: String;
+begin
+  Result:=inherited WriteDictionaryMemberImplicitTypes(aDict, aList);
+  aName:=GetName(aDict);
+  AddLn(aName+' = TJOB_Dictionary;');
 end;
 
 function TWebIDLToPasWasmJob.WritePrivateGetters(aList: TIDLDefinitionList
@@ -447,9 +471,9 @@ begin
           if (ArgType is TIDLFunctionDefinition) and (foCallBack in TIDLFunctionDefinition(ArgType).Options) then
             begin
             LocalName:=CreateLocal('m');
-            VarSection:=VarSection+'  '+LocalName+': TJOB_JSValueMethod;'+sLineBreak;
+            VarSection:=VarSection+'  '+LocalName+': '+JOB_JSValueTypeNames[jivkMethod]+';'+sLineBreak;
             WrapperFn:='JOBCall'+GetName(TIDLFunctionDefinition(ArgType));
-            TryCode:=TryCode+'  '+LocalName+':=TJOB_JSValueMethod.Create(TMethod('+ArgName+'),@'+WrapperFn+');'+sLineBreak;
+            TryCode:=TryCode+'  '+LocalName+':='+JOB_JSValueTypeNames[jivkMethod]+'.Create(TMethod('+ArgName+'),@'+WrapperFn+');'+sLineBreak;
             FinallyCode:=FinallyCode+'    '+LocalName+'.free;'+sLineBreak;
             ArgName:=LocalName;
             end;
@@ -757,6 +781,7 @@ begin
   inherited Create(ThOwner);
   PasDataClass:=TPasDataWasmJob;
   FPasInterfacePrefix:='IJS';
+  BaseOptions:=BaseOptions+[coDictionaryAsClass];
 end;
 
 end.

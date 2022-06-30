@@ -105,6 +105,7 @@ type
     function GetTypeName(Const aTypeName: String; ForTypeDef: Boolean=False): String; overload; virtual;
     function GetTypeName(aTypeDef: TIDLTypeDefDefinition; ForTypeDef: Boolean=False): String; overload; virtual;
     function GetInterfaceDefHead(Intf: TIDLInterfaceDefinition): String; virtual;
+    function GetDictionaryDefHead(const CurClassName: string; Dict: TIDLDictionaryDefinition): String; virtual;
     function CheckUnionTypeDefinition(D: TIDLDefinition): TIDLUnionTypeDefDefinition; virtual;
     procedure AddArgumentToOverloads(aList: TFPObjectlist; AName, ATypeName: String; PosEl: TIDLBaseObject); overload; virtual;
     procedure AddArgumentToOverloads(aList: TFPObjectlist; aDef: TIDLArgumentDefinition); overload; virtual;
@@ -118,7 +119,7 @@ type
     function WriteFunctionImplicitTypes(aList: TIDLDefinitionList): Integer; virtual;
     function WriteAttributeImplicitTypes(aList: TIDLDefinitionList): Integer; virtual;
     function WriteOtherImplicitTypes(Intf: TIDLInterfaceDefinition; aMemberList: TIDLDefinitionList): Integer; virtual;
-    function WriteDictionaryMemberImplicitTypes(aList: TIDLDefinitionList): Integer; virtual;
+    function WriteDictionaryMemberImplicitTypes(aDict: TIDLDictionaryDefinition; aList: TIDLDefinitionList): Integer; virtual;
     function WriteCallBackDefs(aList: TIDLDefinitionList): Integer; virtual;
     function WriteDictionaryDefs(aList: TIDLDefinitionList): Integer; virtual;
     function WriteForwardClassDefs(aList: TIDLDefinitionList): Integer; virtual;
@@ -335,7 +336,7 @@ begin
 end;
 
 function TBaseWebIDLToPas.WriteDictionaryMemberImplicitTypes(
-  aList: TIDLDefinitionList): Integer;
+  aDict: TIDLDictionaryDefinition; aList: TIDLDefinitionList): Integer;
 
 Var
   D: TIDLDefinition;
@@ -343,6 +344,7 @@ Var
 
 begin
   Result:=0;
+  if aDict=nil then ;
   for D in aList do
     if D is TIDLDictionaryMemberDefinition then
       if (FD.MemberType is TIDLSequenceTypeDefDefinition) then
@@ -618,7 +620,7 @@ function TBaseWebIDLToPas.WriteDictionaryDef(aDict: TIDLDictionaryDefinition
   ): Boolean;
 
 Var
-  CurClassName,CurParent: String;
+  CurClassName, Decl: String;
   DefList: TIDLDefinitionList;
   CurDefs: TIDLDictionaryDefinition;
 
@@ -633,15 +635,11 @@ begin
       CurDefs:=CurDefs.ParentDictionary;
       end;
     CurClassName:=GetName(aDict);
-    CurParent:=DictionaryClassParent;
-    if CurParent='' then
-      CurParent:='TJSObject';
     ClassComment(CurClassName);
-    WriteDictionaryMemberImplicitTypes(DefList);
-    if (coDictionaryAsClass in BaseOptions) then
-      Addln('%s = class(%s)',[CurClassName,CurParent])
-    else
-      Addln('%s = record',[CurClassName]);
+    WriteDictionaryMemberImplicitTypes(aDict, DefList);
+    // class and ancestor
+    Decl:=GetDictionaryDefHead(CurClassName,aDict);
+    AddLn(Decl);
     WriteDictionaryFields(DefList);
     AddLn('end;');
   finally
@@ -716,6 +714,24 @@ function TBaseWebIDLToPas.GetInterfaceDefHead(Intf: TIDLInterfaceDefinition
 begin
   Result:='class';
   if Intf=nil then ;
+end;
+
+function TBaseWebIDLToPas.GetDictionaryDefHead(const CurClassName: string;
+  Dict: TIDLDictionaryDefinition): String;
+var
+  CurParent: String;
+begin
+  if Dict=nil then ;
+  if (coDictionaryAsClass in BaseOptions) then
+    begin
+    CurParent:=DictionaryClassParent;
+    if CurParent='' then
+      CurParent:='TJSObject';
+    Result:='class('+CurParent+')'
+    end
+  else
+    Result:='record';
+  Result:=CurClassName+' = '+Result;
 end;
 
 function TBaseWebIDLToPas.GetTypeName(const aTypeName: String; ForTypeDef: Boolean
@@ -955,6 +971,7 @@ begin
     Arg:=Arg+': '+aTypeName;
     Def:=FindGlobalDef(A.ArgumentType.TypeName);
     if (Def is TIDLFunctionDefinition)
+        or (Def is TIDLDictionaryDefinition)
         or SameText(aTypeName,'UnicodeString') then
       Arg:='const '+Arg;
     if Result<>'' then
