@@ -381,7 +381,7 @@ Var
   I: Integer;
   AddFuncBody: Boolean;
   ArgDefList: TIDLDefinitionList;
-  CurDef, ArgType: TIDLDefinition;
+  CurDef, ArgType, ReturnDef: TIDLDefinition;
   ArgDef: TIDLArgumentDefinition absolute CurDef;
 begin
   Result:=True;
@@ -414,8 +414,10 @@ begin
       InvokeName:='InvokeJSNoResult';
       end;
     else
-      InvokeName:='InvokeJSObjectResult';;
-      RT:=ClassToPasIntfName(RT);
+      InvokeName:='InvokeJSObjectResult';
+      ReturnDef:=FindGlobalDef(aDef.ReturnType.TypeName);
+      if ReturnDef is TIDLInterfaceDefinition then
+        RT:=ClassToPasIntfName(RT);
     end;
 
     end;
