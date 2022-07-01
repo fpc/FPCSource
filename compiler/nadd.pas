@@ -1463,6 +1463,30 @@ implementation
           begin
             if nodetype in [addn,muln,subn] then
               begin
+                { convert a+const1-const2 into a+const1+(-const2) so it is folded later on }
+                if (left.nodetype=addn) and
+                  (nodetype=subn) and
+                  (cs_opt_fastmath in current_settings.optimizerswitches) and (rt=realconstn) and (taddnode(left).right.nodetype=realconstn) and
+                  (compare_defs(resultdef,left.resultdef,nothingn)=te_exact) then
+                  begin
+                    Result:=getcopy;
+                    Result.nodetype:=addn;
+                    right:=cunaryminusnode.create(right);
+                    exit;
+                  end;
+
+                { convert a-const1+const2 into a+(-const1)+const2 so it is folded later on }
+                if (left.nodetype=subn) and
+                  (nodetype=addn) and
+                  (cs_opt_fastmath in current_settings.optimizerswitches) and (rt=realconstn) and (taddnode(left).right.nodetype=realconstn) and
+                  (compare_defs(resultdef,left.resultdef,nothingn)=te_exact) then
+                  begin
+                    Result:=getcopy;
+                    taddnode(Result).left.nodetype:=addn;
+                    taddnode(left).right:=cunaryminusnode.create(taddnode(left).right);
+                    exit;
+                  end;
+
                 { try to fold
                             op
                            /  \
