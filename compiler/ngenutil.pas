@@ -1611,7 +1611,7 @@ implementation
       tcb.emit_ord_const(byte(cs_gdb_valgrind in current_settings.globalswitches),u8inttype);
       sym:=current_asmdata.DefineAsmSymbol('__fpc_valgrind',AB_GLOBAL,AT_DATA,u8inttype);
       current_asmdata.asmlists[al_globals].concatlist(
-        tcb.get_final_asmlist(sym,ptruinttype,sec_data,'__fpc_valgrind',const_align(sizeof(pint)))
+        tcb.get_final_asmlist(sym,u8inttype,sec_data,'__fpc_valgrind',const_align(sizeof(pint)))
       );
       tcb.free;
     end;
