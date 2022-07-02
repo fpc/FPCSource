@@ -60,7 +60,10 @@ unit cgrv;
         procedure a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); override;
 
         procedure a_jmp_name(list : TAsmList;const s : string); override;
-        procedure a_jmp_always(list : TAsmList;l: tasmlabel); override;          
+        procedure a_jmp_always(list : TAsmList;l: tasmlabel); override;
+
+        procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);override;
+        procedure g_proc_exit(list : TAsmList;parasize : longint;nostackframe:boolean); override;
 
         procedure g_save_registers(list: TAsmList); override;
         procedure g_restore_registers(list: TAsmList); override;
@@ -498,6 +501,202 @@ unit cgrv;
         ai.is_jmp:=true;
         list.concat(ai);
        end;
+
+
+    procedure tcgrv.g_proc_entry(list: TAsmList; localsize: longint; nostackframe: boolean);
+      const
+{$ifdef cpu64bitalu}
+        store_int_op = A_SD;
+{$else  cpu64bitalu}
+        store_int_op = A_SW;
+{$endif cpu64bitalu}
+      var
+        regs, fregs: tcpuregisterset;
+        r: TSuperRegister;
+        href: treference;
+        stackcount, stackAdjust: longint;
+      begin
+        if not(nostackframe) then
+          begin
+            a_reg_alloc(list,NR_STACK_POINTER_REG);
+            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+              a_reg_alloc(list,NR_FRAME_POINTER_REG);
+
+            { Int registers }
+            regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
+
+            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+              regs:=regs+[RS_FRAME_POINTER_REG,RS_RETURN_ADDRESS_REG];
+
+            if (pi_do_call in current_procinfo.flags) then
+              regs:=regs+[RS_RETURN_ADDRESS_REG];
+
+            stackcount:=0;
+            for r:=RS_X0 to RS_X31 do
+              if r in regs then
+                inc(stackcount,sizeof(pint));
+
+            { Float registers }
+            fregs:=rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall);
+            for r:=RS_F0 to RS_F31 do
+              if r in fregs then
+                inc(stackcount,8);
+
+            inc(localsize,stackcount);
+            if not is_imm12(-localsize) then
+              begin
+                if not (RS_RETURN_ADDRESS_REG in regs) then
+                  begin
+                    include(regs,RS_RETURN_ADDRESS_REG);
+                    inc(localsize,sizeof(pint));
+                  end;
+              end;
+               
+            reference_reset_base(href,NR_STACK_POINTER_REG,stackcount,ctempposinvalid,0,[]);
+
+            stackAdjust:=0;
+            if stackcount>0 then
+              begin
+                list.concat(taicpu.op_reg_reg_const(A_ADDI,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,-stackcount));
+                stackAdjust:=stackcount;
+                dec(localsize,stackcount);
+              end;
+
+            for r:=RS_X0 to RS_X31 do
+              if r in regs then
+                begin
+                  dec(href.offset,sizeof(pint));
+                  list.concat(taicpu.op_reg_ref(store_int_op,newreg(R_INTREGISTER,r,R_SUBWHOLE),href));
+                end;
+
+            { Float registers }
+            for r:=RS_F0 to RS_F31 do
+              if r in fregs then
+                begin
+                  dec(href.offset,8);
+                  list.concat(taicpu.op_reg_ref(A_FSD,newreg(R_FPUREGISTER,r,R_SUBWHOLE),href));
+                end;
+
+            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+              list.concat(taicpu.op_reg_reg_const(A_ADDI,NR_FRAME_POINTER_REG,NR_STACK_POINTER_REG,stackAdjust));
+
+            if localsize>0 then
+              begin
+                localsize:=align(localsize,sizeof(pint));
+
+                if is_imm12(-localsize) then
+                  list.concat(taicpu.op_reg_reg_const(A_ADDI,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,-localsize))
+                else
+                  begin
+                    a_load_const_reg(list,OS_INT,localsize,NR_RETURN_ADDRESS_REG);
+                    list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_RETURN_ADDRESS_REG));
+                  end;
+              end;
+          end;
+      end;
+
+
+    procedure tcgrv.g_proc_exit(list: TAsmList; parasize: longint; nostackframe: boolean);
+      const
+{$ifdef cpu64bitalu}
+        load_op = A_LD;
+{$else  cpu64bitalu}
+        load_op = A_LW;
+{$endif cpu64bitalu}
+      var
+        r: tsuperregister;
+        regs, fregs: tcpuregisterset;
+        stacksize, localsize, precompensation, postcompensation: longint;
+        href: treference;
+      begin
+        if not(nostackframe) then
+          begin
+            regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
+
+            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+              regs:=regs+[RS_FRAME_POINTER_REG,RS_RETURN_ADDRESS_REG];
+
+            if (pi_do_call in current_procinfo.flags) then
+              regs:=regs+[RS_RETURN_ADDRESS_REG];
+
+            stacksize:=0;
+            for r:=RS_X31 downto RS_X0 do
+              if r in regs then
+                inc(stacksize,sizeof(pint));
+
+            { Float registers }
+            fregs:=rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall);
+            for r:=RS_F0 to RS_F31 do
+              if r in fregs then
+                inc(stacksize,8);
+
+            localsize:=current_procinfo.calc_stackframe_size+stacksize;
+            if localsize>0 then
+              begin
+                localsize:=align(localsize,sizeof(pint));
+
+                if not is_imm12(-localsize) then
+                  begin
+                    if not (RS_RETURN_ADDRESS_REG in regs) then
+                      begin
+                        include(regs,RS_RETURN_ADDRESS_REG);
+                        inc(localsize,sizeof(pint));
+                        inc(stacksize,sizeof(pint));
+                      end;
+                  end;
+              end;
+
+            if not is_imm12(localsize) then
+              begin
+                precompensation:=localsize-2032;
+                postcompensation:=localsize-precompensation;
+              end
+            else
+              begin            
+                precompensation:=0;
+                postcompensation:=localsize;
+              end;
+            
+            reference_reset_base(href,NR_STACK_POINTER_REG,postcompensation-stacksize,ctempposinvalid,0,[]);
+
+            if precompensation>0 then
+              begin
+                if is_imm12(precompensation) then
+                  list.concat(taicpu.op_reg_reg_const(A_ADDI,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,precompensation))
+                else
+                  begin
+                    { use X12 as temporary register as it is not callee-saved }
+                    a_load_const_reg(list,OS_INT,precompensation,NR_X12);
+                    list.concat(taicpu.op_reg_reg_reg(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_X12));
+                  end;
+              end;
+
+            { Float registers }
+            for r:=RS_F31 downto RS_F0 do
+              if r in fregs then
+                begin
+                  list.concat(taicpu.op_reg_ref(A_FLD,newreg(R_FPUREGISTER,r,R_SUBWHOLE),href));
+                  inc(href.offset,8);
+                end;
+
+            for r:=RS_X31 downto RS_X0 do
+              if r in regs then
+                begin
+                  list.concat(taicpu.op_reg_ref(load_op,newreg(R_INTREGISTER,r,R_SUBWHOLE),href));
+                  inc(href.offset,sizeof(pint));
+                end;
+
+            if postcompensation>0 then
+              list.concat(taicpu.op_reg_reg_const(A_ADDI,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,postcompensation));
+          end;
+
+        if po_interrupt in current_procinfo.procdef.procoptions then
+          begin
+            list.concat(Taicpu.Op_none(A_MRET));
+          end
+        else
+          list.concat(taicpu.op_reg_reg(A_JALR,NR_X0,NR_RETURN_ADDRESS_REG));
+      end;
 
 
     procedure tcgrv.g_save_registers(list: TAsmList);
