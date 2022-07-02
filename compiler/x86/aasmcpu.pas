@@ -5033,7 +5033,8 @@ implementation
           RegBCSTZMMSizeMask := 0;
           ExistsMemRef       := false;
 
-          while (insentry^.opcode=AsmOp) do
+          while (insentry<=@instab[high(instab)]) and
+                (insentry^.opcode=AsmOp) do
           begin
             MRefInfo         := msiUnknown;
 
