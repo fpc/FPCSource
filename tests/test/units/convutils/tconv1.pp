@@ -332,27 +332,6 @@ begin
   if Verbose then writeln;
 end;
 
-procedure TestRegisterTypeTwice;
-var
-  Fam: TConvFamily;
-  base, foo: TConvType;
-  D, Exp: Double;
-begin
-  if Verbose then writeln({$I %CurrentRoutine%});
-  Fam := RegisterConversionFamily('TestRegisterTypeTwice');
-  base := RegisterConversionType(Fam, 'base', 1.0);
-  foo := RegisterConversionType(Fam, 'foo', 2.0);
-  foo := RegisterConversionType(Fam, 'bar', 100);
-  Exp := 0.01;
-  D := Convert(1.0, base, foo);
-  if Verbose then writeln('D=',D:10:4,' [Expected=0.0100]');   //uses last registered conversionfactor in both fpc and D7
-  if not SameValue(D, Exp, 1E-9) then
-    LogError({$I %CurrentRoutine%},  {$I %Line%},format('Unexpected value for D, Got %.4f, expected .4f',[D,0.01]));
-  if Verbose then writeln({$I %CurrentRoutine%},' end.');
-  if Verbose then writeln;
-end;
-
-
 procedure RegisterWithNegativeFactor;
 var
   Fam: TConvFamily;
@@ -599,7 +578,6 @@ begin
     TestIllegalConvTypeToFamily2;
     TestDuplicateConvFamilyDescription;
     TestDuplicateConvTypeDescriptions;
-    TestRegisterTypeTwice;
     RegisterWithNegativeFactor;
     TestNoDescription;
     TestCompatibleConversionType;
