@@ -300,6 +300,7 @@ begin
       end;
     ParseFirstLine;
     Img.SetSize (width, height);
+    Img.UsePalette := True;
     ReadPalette;
     ReadData;
   finally
