@@ -71,6 +71,8 @@
 'fpsr',
 'tpidr_el0',
 'mpidr_el1',
+'cntfrq_el0',
+'cntpct_el0',
 'b0',
 'h0',
 's0',
