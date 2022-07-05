@@ -1146,8 +1146,8 @@ implementation
                           l:=UnicodeToUtf8(nil,0,PUnicodeChar(pw^.data),len);
                           if l<>len then
                             ReAllocMem(value_str,l);
+                          UnicodeToUtf8(value_str,l,PUnicodeChar(pw^.data),len);
                           len:=l-1;
-                          UnicodeToUtf8(value_str,PUnicodeChar(pw^.data),l);
                           donewidestring(pw);
                         end
                       else
