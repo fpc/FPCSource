@@ -2200,24 +2200,52 @@ implementation
               end;
             sl_vec:
               begin
-                if not assigned(currdef) or
-                   (currdef.typ<>arraydef) then
+                if not assigned(currdef) then
                   internalerror(2009031201);
                 { can't handle offsets with indirections yet }
                 if indirection then
                   exit;
-                if not is_packed_array(currdef) then
-                  elesize:=tarraydef(currdef).elesize
-                else
-                  begin
-                    elesize:=tarraydef(currdef).elepackedbitsize;
-                    { can't calculate the address of a non-byte aligned element }
-                    if (elesize mod 8)<>0 then
-                      exit;
-                    elesize:=elesize div 8;
-                  end;
-                inc(offset,(symlist^.value.svalue-tarraydef(currdef).lowrange)*elesize);
-                currdef:=tarraydef(currdef).elementdef;
+                case currdef.typ of
+                  arraydef:
+                    begin
+                      if not is_packed_array(currdef) then
+                        elesize:=tarraydef(currdef).elesize
+                      else
+                        begin
+                          elesize:=tarraydef(currdef).elepackedbitsize;
+                          { can't calculate the address of a non-byte aligned element }
+                          if (elesize mod 8)<>0 then
+                            exit;
+                          elesize:=elesize div 8;
+                        end;
+                      inc(offset,(symlist^.value.svalue-tarraydef(currdef).lowrange)*elesize);
+                      currdef:=tarraydef(currdef).elementdef;
+                    end;
+                  stringdef:
+                    begin
+                      case tstringdef(currdef).stringtype of
+                        st_widestring,st_unicodestring:
+                          begin
+                            inc(offset,(symlist^.value.svalue-1)*2);
+                            currdef:=cwidechartype;
+                          end;
+                        st_shortstring:
+                          begin
+                            inc(offset,symlist^.value.svalue);
+                            currdef:=cansichartype;
+                          end;
+                        st_ansistring:
+                          begin
+                            inc(offset,symlist^.value.svalue-1);
+                            currdef:=cansichartype;
+                          end;
+                        else
+                          Internalerror(2022070502);
+                      end;
+                    end;
+                  else
+                    internalerror(2022070501);
+                end;
               end;
             else
               internalerror(2009031403);
