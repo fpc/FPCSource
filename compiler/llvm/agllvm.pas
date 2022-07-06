@@ -1124,6 +1124,7 @@ implementation
                         writer.AsmWrite(' ');
                         if (tai_abstracttypedconst(p).adetyp=tck_simple) and
                            assigned(tai_simpletypedconst(p).val) and
+                           (tai_simpletypedconst(p).def<>charpointertype) and
                            (tai_simpletypedconst(p).val.typ=ait_string) then
                           begin
                             gotstring:=true;
