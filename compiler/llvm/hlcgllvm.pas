@@ -342,15 +342,28 @@ implementation
     var
       newrefsize: tdef;
       reg: tregister;
+      tmpref: treference;
     begin
       newrefsize:=llvmgetcgparadef(para,true,callerside);
       if (refsize<>newrefsize) and
          (initialref.refaddr<>addr_full) then
         begin
-          reg:=getaddressregister(list,cpointerdef.getreusable(newrefsize));
-          a_loadaddr_ref_reg(list,refsize,cpointerdef.getreusable(newrefsize),initialref,reg);
-          reference_reset_base(newref,cpointerdef.getreusable(newrefsize),reg,0,initialref.temppos,initialref.alignment,initialref.volatility);
-          refsize:=newrefsize;
+          if refsize.size>=newrefsize.size then
+            begin
+              reg:=getaddressregister(list,cpointerdef.getreusable(newrefsize));
+              a_loadaddr_ref_reg(list,refsize,cpointerdef.getreusable(newrefsize),initialref,reg);
+              reference_reset_base(newref,cpointerdef.getreusable(newrefsize),reg,0,initialref.temppos,initialref.alignment,initialref.volatility);
+              refsize:=newrefsize;
+            end
+          else
+            begin
+              tg.gethltemp(list,newrefsize,newrefsize.size,tt_normal,newref);
+              reg:=getaddressregister(list,cpointerdef.getreusable(refsize));
+              a_loadaddr_ref_reg(list,newrefsize,cpointerdef.getreusable(refsize),newref,reg);
+              reference_reset_base(tmpref,refsize,reg,0,newref.temppos,newref.alignment,initialref.volatility);
+              g_concatcopy(list,refsize,initialref,tmpref);
+              refsize:=newrefsize;
+            end;
         end
       else
         newref:=initialref;
@@ -1246,10 +1259,9 @@ implementation
     begin
       { perform small copies directly; not larger ones, because then llvm
         will try to load the entire large datastructure into registers and
-        starts spilling like crazy; too small copies must not be done via
-        llvm.memcpy either, because then you get crashes in llvm }
+        starts spilling like crazy }
       if (size.typ in [orddef,floatdef,enumdef]) or
-         (size.size<=2*sizeof(aint)) then
+         (size.size in [1,2,4,8]) then
         begin
           a_load_ref_ref(list,size,size,source,dest);
           exit;
