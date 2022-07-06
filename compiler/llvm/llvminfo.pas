@@ -67,7 +67,8 @@ type
      llvmflag_NoDISPFlagMainSubprogram,     { MainSubprogram still in DIFlags instead of DISPFlags }
      llvmflag_para_attr_type,               { parameter attributes such as noalias and byval need to repeat the type }
      llvmflag_opaque_ptr_transition,        { initial opaque pointer introduction, needs to some elementtype attributes }
-     llvmflag_opaque_ptr                    { only opaque pointers }
+     llvmflag_opaque_ptr,                   { only opaque pointers }
+     llvmflag_sanitizer_attributes          { can use attributes to exclude symbols from sanitizers }
    );
    tllvmversionflags = set of tllvmversionflag;
 

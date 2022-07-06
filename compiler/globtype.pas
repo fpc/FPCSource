@@ -199,7 +199,9 @@ interface
          { Record usage of checkpointer experimental feature }
          cs_checkpointer_called,
          { enable link time optimisation (both unit code generation and optimising the whole program/library) }
-         cs_lto
+         cs_lto,
+         { LLVM sanitizers }
+         cs_sanitize_address
        );
        tmoduleswitches = set of tmoduleswitch;
 

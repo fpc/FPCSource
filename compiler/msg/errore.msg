@@ -3996,6 +3996,7 @@ A*2CI<x>_Select instruction set on ARM: ARM or THUMB
 L*2Cl<x>_LLVM code generation options
 L*3Clflto_Enable Link-time optimisation (needed both when compiling units and programs/libraries)
 L*3Clfltonosystem_Disable LTO for the system unit (needed with at least Xcode 10.2 and earlier due to linker bugs)
+L*3Clflsanitize=address_Enable address sanitizer
 L*3Clv<x>_LLVM target version: Xcode-10.1, 7.0, 8.0, .., 10.0
 **2Cn_Omit linking stage
 P*2CN_Generate nil-pointer checks (AIX-only)

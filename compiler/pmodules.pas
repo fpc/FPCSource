@@ -328,7 +328,8 @@ implementation
            if (cs_use_heaptrc in current_settings.globalswitches) then
              AddUnit('heaptrc');
            { Valgrind requires c memory manager }
-           if (cs_gdb_valgrind in current_settings.globalswitches) then
+           if (cs_gdb_valgrind in current_settings.globalswitches) or
+              (([cs_sanitize_address]*current_settings.moduleswitches)<>[]) then
              AddUnit('cmem');
            { Lineinfo unit }
            if (cs_use_lineinfo in current_settings.globalswitches) then begin

@@ -86,6 +86,9 @@ Type
     function ParseVersionStr(out ver: longint; const compvarname, value: string): boolean;
     procedure MaybeSetIdfVersionMacro;
 {$endif}
+{$ifdef llvm}
+    procedure LLVMEnableSanitizers(sanitizers: TCmdStr);
+{$endif llvm}
     procedure VerifyTargetProcessor;
   end;
 
@@ -1358,6 +1361,24 @@ begin
   end;
 end;
 
+{$ifdef llvm}
+procedure TOption.LLVMEnableSanitizers(sanitizers: TCmdStr);
+  var
+    sanitizer: TCMdStr;
+  begin
+    sanitizer:=GetToken(sanitizers,',');
+    repeat
+       case sanitizer of
+         'address':
+           include(init_settings.moduleswitches,cs_sanitize_address);
+         else
+           IllegalPara(sanitizer);
+       end;
+       sanitizer:=GetToken(sanitizers,',');
+    until sanitizer='';
+  end;
+{$endif}
+
 {$ifdef XTENSA}
 procedure TOption.MaybeSetIdfVersionMacro;
 begin
@@ -1689,7 +1710,7 @@ begin
                             case More[l] of
                               'f':
                                 begin
-                                  More:=copy(More,l+1,length(More));
+                                  delete(More,1,l);
                                   disable:=Unsetbool(More,length(More)-1,opt,false);
                                   case More of
                                     'lto':
@@ -1711,6 +1732,11 @@ begin
                                          else
                                            exclude(init_settings.globalswitches,cs_lto_nosystem);
                                        end;
+                                    else if More.StartsWith('sanitize=') then
+                                      begin
+                                        delete(More,1,length('sanitize='));
+                                        LLVMEnableSanitizers(more);
+                                      end
                                     else
                                       begin
                                         IllegalPara(opt);

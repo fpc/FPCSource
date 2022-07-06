@@ -1053,6 +1053,8 @@ implementation
             writer.AsmWrite(' null_pointer_is_valid');
           if not(pio_fastmath in pd.implprocoptions) then
             writer.AsmWrite(' strictfp');
+          if cs_sanitize_address in current_settings.moduleswitches then
+            writer.AsmWrite(' sanitize_address');
         end;
 
       procedure WriteTypedConstData(hp: tai_abstracttypedconst; metadatakind: tmetadatakind);
@@ -1465,6 +1467,16 @@ implementation
                       writer.AsmWrite(', align ');
                       writer.AsmWrite(tostr(taillvmdecl(hp).alignment));
                     end;
+                  { address sanitizer adds a red zone after global variables,
+                    while vectorized sections like resource strings are indexed
+                    like arrays by Pascal code -> the red zones completely mess
+                    up this indexing }
+                  if (ldf_vectorized in (taillvmdecl(hp).flags)) and
+                     (cs_sanitize_address in current_settings.moduleswitches) and
+                     (llvmflag_sanitizer_attributes in llvmversion_properties[current_settings.llvmversion]) then
+                    begin
+                      writer.AsmWrite(', no_sanitize_address')
+                    end;
                   InstrWriter.WriterInstructionMetadata(', ',taillvmdecl(hp).metadata);
                   writer.AsmLn;
                 end;
@@ -1725,6 +1737,15 @@ implementation
         if (cputypestr[current_settings.cputype]<>'')
            and (target_info.system in [system_aarch64_darwin, system_aarch64_linux]) then
           optstr:=optstr+' -march='+cputypestr[current_settings.cputype];
+
+        if ([cs_sanitize_address]*current_settings.moduleswitches)<>[] then
+          begin
+            optstr:=optstr+' -fsanitize=';
+            if cs_sanitize_address in current_settings.moduleswitches then
+              begin
+                optstr:=optstr+'address';
+              end;
+          end;
 
         replace(result,'$OPT',optstr);
         inc(fnextpass);

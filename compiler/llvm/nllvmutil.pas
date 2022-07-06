@@ -37,6 +37,7 @@ interface
       class procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint; _typ:Tasmsymtype); override;
       class procedure InsertUsedList(var usedsyms: tfpobjectlist; const usedsymsname: TSymStr);
       class procedure InsertInitFiniList(var procdefs: tfplist; const initfinisymsname: TSymStr);
+      class procedure InsertAsanGlobals;
      public
       class procedure InsertObjectInfo; override;
       class procedure RegisterUsedAsmSym(sym: TAsmSymbol; def: tdef; compileronly: boolean); override;
@@ -48,7 +49,7 @@ interface
 implementation
 
     uses
-      verbose,cutils,globals,fmodule,systems,
+      verbose,cutils,globals,fmodule,systems,finput,
       aasmtai,cpubase,llvmbase,aasmllvm,
       aasmcnst,nllvmtcon,
       symbase,symtable,defutil,
@@ -101,7 +102,8 @@ implementation
     end;
 
 
-  class procedure tllvmnodeutils.InsertUsedList(var usedsyms: tfpobjectlist; const usedsymsname: TSymstr);
+    class procedure tllvmnodeutils.InsertUsedList(var usedsyms: tfpobjectlist;
+    const usedsymsname: TSymStr);
     var
       useddef: tdef;
       tcb: ttai_typedconstbuilder;
@@ -203,6 +205,80 @@ implementation
     end;
 
 
+  class procedure tllvmnodeutils.InsertAsanGlobals;
+    var
+      asanglobal,
+      asanglobals,
+      globalfileloc: tai_llvmbasemetadatanode;
+      hp: tai;
+      hpdecl: taillvmdecl;
+      sourcefile: tinputfile;
+      module: tmodule;
+      list: TAsmList;
+      asmlisttype: TAsmListType;
+    begin
+      if not(cs_sanitize_address in current_settings.moduleswitches) or
+         (llvmflag_sanitizer_attributes in llvmversion_properties[current_settings.llvmversion]) then
+        exit;
+      asanglobals:=nil;
+      module:=get_module(current_filepos.moduleindex);
+      for asmlisttype:=low(asmlisttype) to high(asmlisttype) do
+        begin
+          list:=current_asmdata.AsmLists[asmlisttype];
+          if not assigned(list) then
+            continue;
+          hp:=tai(list.first);
+          while assigned(hp) do
+            begin
+              if (hp.typ=ait_llvmdecl) and
+                 (ldf_definition in taillvmdecl(hp).flags) and
+                 (taillvmdecl(hp).def.typ<>procdef) then
+                begin
+                  if not assigned(asanglobals) then
+                    begin
+                      asanglobals:=tai_llvmnamedmetadatanode.create('llvm.asan.globals');
+                      current_asmdata.AsmLists[al_rotypedconsts].concat(asanglobals);
+                    end;
+                  hpdecl:=taillvmdecl(hp);
+
+                  globalfileloc:=tai_llvmunnamedmetadatanode.create;
+                  current_asmdata.AsmLists[al_rotypedconsts].concat(globalfileloc);
+                  if assigned(hpdecl.sym) then
+                    begin
+                      sourcefile:=get_source_file(hpdecl.sym.fileinfo.moduleindex,hpdecl.sym.fileinfo.fileindex);
+                      globalfileloc.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create(sourcefile.name)));
+                      globalfileloc.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(hpdecl.sym.fileinfo.line)));
+                      globalfileloc.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(hpdecl.sym.fileinfo.column)));
+                    end
+                  else
+                    begin
+                      sourcefile:=current_module.sourcefiles.get_file(1);
+                      globalfileloc.addvalue(tai_simpletypedconst.create(charpointertype,tai_string.Create(sourcefile.name)));
+                      globalfileloc.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
+                      globalfileloc.addvalue(tai_simpletypedconst.create(s32inttype,tai_const.Create_32bit(1)));
+                    end;
+
+                  asanglobal:=tai_llvmunnamedmetadatanode.create;
+                  current_asmdata.AsmLists[al_rotypedconsts].concat(asanglobal);
+                  asanglobal.addvalue(tai_simpletypedconst.create(cpointerdef.getreusable(hpdecl.def),tai_const.Create_sym(hpdecl.namesym)));
+                  asanglobal.addvalue(tai_simpletypedconst.create(llvm_metadatatype,llvm_getmetadatareftypedconst(globalfileloc)));
+                  if assigned(hpdecl.sym) then
+                    asanglobal.addvalue(tai_simpletypedconst.create(llvm_metadatatype,tai_string.Create(hpdecl.sym.RealName)))
+                  else
+                    asanglobal.addvalue(tai_simpletypedconst.create(llvm_metadatatype,tai_string.Create(hpdecl.namesym.Name)));
+                  { dynamic init }
+                  asanglobal.addvalue(tai_simpletypedconst.create(llvmbool1type,tai_const.Create_8bit(ord(false))));
+                  { no asan }
+                  asanglobal.addvalue(tai_simpletypedconst.create(llvmbool1type,tai_const.Create_8bit(ord((ldf_vectorized in taillvmdecl(hp).flags)))));
+
+                  asanglobals.addvalue(tai_simpletypedconst.create(llvm_metadatatype,llvm_getmetadatareftypedconst(asanglobal)));
+                end;
+              hp:=tai(hp.next);
+            end;
+        end;
+    end;
+
+
   class procedure tllvmnodeutils.InsertObjectInfo;
     var
       llvmmoduleflags,
@@ -210,6 +286,8 @@ implementation
       dwarfversionflag: tai_llvmbasemetadatanode;
       objcabiversion: longint;
     begin
+      InsertAsanGlobals;
+
       llvmmoduleflags:=tai_llvmnamedmetadatanode.create('llvm.module.flags');
       current_asmdata.AsmLists[al_rotypedconsts].Concat(llvmmoduleflags);
 
