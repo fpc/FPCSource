@@ -1121,7 +1121,6 @@ implementation
              current_module.add_public_asmsym(asmsym);
            if not customsecname then
              secname:=make_mangledname(basename,st,'2_'+itemname);
-           exclude(options,tcalo_vectorized_dead_strip_item);
          end;
        add_link_ordered_symbol(asmsym,secname);
        if is_smartlink_vectorized_dead_strip then
