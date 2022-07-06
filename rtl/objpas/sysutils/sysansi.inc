@@ -64,10 +64,11 @@ end;
 
 Function HashName(Name: PAnsiChar): LongWord;
 Var
-  thehash,g,I : LongWord;
+  thehash,g : LongWord;
+  I : SizeInt;
 begin
   thehash:=0;
-  For I:=1 to Length(Name) do { 0 terminated }
+  For I:=0 to StrLen(Name)-1 do { 0 terminated }
     begin
       thehash:=thehash shl 4;
       inc(theHash,Ord(UpCase(Name[i])));
