@@ -1134,7 +1134,7 @@ implementation
               end;
           end;
 
-{$if not defined(FPC_SOFT_FPUX80)}
+{$if sizeof(bestrealrec) = sizeof(bestreal)}
         { replace .../const by a multiplication, but only if fastmath is enabled or
           the division is done by a power of 2, do not mess with special floating point values like Inf etc.
 
@@ -1181,7 +1181,7 @@ implementation
             else
               ;
           end;
-{$endif not defined(FPC_SOFT_FPUX80)}
+{$endif sizeof(bestrealrec) = sizeof(bestreal)}
 
         { first, we handle widestrings, so we can check later for }
         { stringconstn only                                       }

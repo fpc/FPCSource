@@ -30,7 +30,11 @@ Interface
 
 Type
    bestreal = extended;
+{$ifdef FPC_HAS_TYPE_EXTENDED}
    bestrealrec = TExtended80Rec;
+{$else}
+   bestrealrec = TDoubleRec;
+{$endif}
    ts32real = single;
    ts64real = double;
    ts80real = extended;
