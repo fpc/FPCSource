@@ -57,6 +57,8 @@ const
 type
   TBaseWebIDLToPas = Class(TPascalCodeGenerator)
   private
+    FArrayPrefix: String;
+    FArraySuffix: String;
     FAutoTypes: TStrings;
     FBaseOptions: TBaseConversionOptions;
     FClassPrefix: String;
@@ -102,8 +104,10 @@ type
     procedure EnsureUniqueNames(ML: TIDLDefinitionList); virtual;
     function AddSequenceDef(ST: TIDLSequenceTypeDefDefinition): Boolean; virtual;
     function GetName(ADef: TIDLDefinition): String; virtual;
+    function GetPasClassName(const aName: string): string; overload; virtual;
     function GetTypeName(Const aTypeName: String; ForTypeDef: Boolean=False): String; overload; virtual;
     function GetTypeName(aTypeDef: TIDLTypeDefDefinition; ForTypeDef: Boolean=False): String; overload; virtual;
+    function GetSequenceTypeName(Seq: TIDLSequenceTypeDefDefinition; ForTypeDef: Boolean=False): string; virtual;
     function GetInterfaceDefHead(Intf: TIDLInterfaceDefinition): String; virtual;
     function GetDictionaryDefHead(const CurClassName: string; Dict: TIDLDictionaryDefinition): String; virtual;
     function CheckUnionTypeDefinition(D: TIDLDefinition): TIDLUnionTypeDefDefinition; virtual;
@@ -168,6 +172,8 @@ type
     Property FieldPrefix: String Read FFieldPrefix Write FFieldPrefix;
     Property ClassPrefix: String Read FClassPrefix Write FClassPrefix;
     Property ClassSuffix: String Read FClassSuffix Write FClassSuffix;
+    Property ArrayPrefix: String Read FArrayPrefix Write FArrayPrefix;
+    Property ArraySuffix: String Read FArraySuffix Write FArraySuffix;
     Property GetterPrefix: String read FGetterPrefix write FGetterPrefix;
     Property SetterPrefix: String read FSetterPrefix write FSetterPrefix;
     Property FuncTypePrefix: String read FFuncTypePrefix write FFuncTypePrefix;
@@ -261,6 +267,11 @@ begin
     Result:=TPasData(ADef.Data).PasName
   else
     Result:=ADef.Name;
+end;
+
+function TBaseWebIDLToPas.GetPasClassName(const aName: string): string;
+begin
+  Result:=ClassPrefix+aName+ClassSuffix;
 end;
 
 function TBaseWebIDLToPas.HaveConsts(aList: TIDLDefinitionList): Boolean;
@@ -654,6 +665,8 @@ begin
   FieldPrefix:='F';
   ClassPrefix:='T';
   ClassSuffix:='';
+  ArrayPrefix:='T';
+  ArraySuffix:='DynArray';
   GetterPrefix:='Get';
   SetterPrefix:='Set';
   FuncTypePrefix:='T';
@@ -698,15 +711,22 @@ begin
     if Assigned(aTypeDef.Data) then
       Result:=GetName(aTypeDef)
     else
-      begin
-      Result:=GetTypeName(TIDLSequenceTypeDefDefinition(aTypeDef).ElementType,ForTypeDef);
-      if Result[1]<>'T' then
-        Result:='T'+Result;
-      Result:=Result+'DynArray';
-      end
+      Result:=GetSequenceTypeName(TIDLSequenceTypeDefDefinition(aTypeDef),ForTypeDef);
     end
   else
     Result:=GetTypeName(aTypeDef.TypeName,ForTypeDef);
+end;
+
+function TBaseWebIDLToPas.GetSequenceTypeName(
+  Seq: TIDLSequenceTypeDefDefinition; ForTypeDef: Boolean): string;
+begin
+  writeln('TBaseWebIDLToPas.GetSequenceTypeName ',Seq.ElementType.Name,' ',Seq.ElementType.TypeName);
+  Result:=GetTypeName(Seq.ElementType,ForTypeDef);
+  if Result='' then
+    raise EConvertError.Create('sequence without name at '+GetDefPos(Seq));
+  if LeftStr(Result,length(ArrayPrefix))<>ArrayPrefix then
+    Result:=ArrayPrefix+Result;
+  Result:=Result+ArraySuffix;
 end;
 
 function TBaseWebIDLToPas.GetInterfaceDefHead(Intf: TIDLInterfaceDefinition
@@ -736,16 +756,9 @@ end;
 
 function TBaseWebIDLToPas.GetTypeName(const aTypeName: String; ForTypeDef: Boolean
   ): String;
-
-  function GetClassName(const aClassName: string): string;
-  begin
-    Result:=ClassPrefix+aClassName+ClassSuffix;
-  end;
-
 Var
   A: UTF8String;
   D: TIDLDefinition;
-
 begin
   Case aTypeName of
     'boolean': Result:='Boolean';
@@ -772,9 +785,9 @@ begin
     'ByteString': Result:='UnicodeString';
 
     'record',
-    'object': Result:=GetClassName('Object');
+    'object': Result:=GetPasClassName('Object');
     'Error',
-    'DOMException': Result:=GetClassName('Error');
+    'DOMException': Result:=GetPasClassName('Error');
 
     'ArrayBuffer',
     'DataView',
@@ -786,13 +799,14 @@ begin
     'Uint32Array',
     'Uint8ClampedArray',
     'Float32Array',
-    'Float64Array': Result:=GetClassName(aTypeName);
+    'Float64Array': Result:=GetPasClassName(aTypeName);
 
     'void': Result:=aTypeName;
   else
     if ForTypeDef then ;
 
     Result:=aTypeName;
+    writeln('BBB1 TBaseWebIDLToPas.GetTypeName ',Result);
     D:=FContext.FindDefinition(Result);
     if D<>Nil then
       Result:=GetName(D)
