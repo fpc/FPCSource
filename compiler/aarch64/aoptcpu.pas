@@ -62,6 +62,7 @@ Interface
         function OptPass1Mov(var p: tai): boolean;
         function OptPass1MOVZ(var p: tai): boolean;
         function OptPass1FMov(var p: tai): Boolean;
+        function OptPass1B(var p: tai): boolean;
         function OptPass1SXTW(var p: tai): Boolean;
 
         function OptPass2LDRSTR(var p: tai): boolean;
@@ -777,6 +778,151 @@ Implementation
     end;
 
 
+  function TCpuAsmOptimizer.OptPass1B(var p: tai): boolean;
+    var
+      hp1, hp2, hp3, hp4, hp5: tai;
+      Invert: Boolean;
+    begin
+      Result := False;
+      {
+          convert
+          b<c>  .L1
+          movz  reg,#1`
+          b     .L2
+        .L1
+          movz  reg,#0 (or mov reg,xzr)
+        .L2
+
+        into
+          cset  reg,<not(c)>
+
+        Also do the same if the constants are reversed, instead converting it to:
+          cset  reg,<c>
+      }
+
+      if (taicpu(p).condition <> C_None) and
+        (taicpu(p).oper[0]^.typ = top_ref) and
+        GetNextInstruction(p, hp1) and
+        { Check individually instead of using MatchInstruction in order to save time }
+        (hp1.typ = ait_instruction) and
+        (taicpu(hp1).condition = C_None) and
+        (taicpu(hp1).oppostfix = PF_None) and
+        (taicpu(hp1).ops = 2) and
+        (
+          (
+            (taicpu(hp1).opcode = A_MOVZ) and
+            (taicpu(hp1).oper[1]^.val in [0, 1])
+          ) or
+          (
+            (taicpu(hp1).opcode = A_MOV) and
+            (getsupreg(taicpu(hp1).oper[1]^.reg) = RS_XZR)
+          )
+        ) and
+        GetNextInstruction(hp1, hp2) and
+        MatchInstruction(hp2, A_B, [PF_None]) and
+        (taicpu(hp2).condition = C_None) and
+        (taicpu(hp2).oper[0]^.typ = top_ref) and
+        GetNextInstruction(hp2, hp3) and
+        SkipAligns(hp3, hp3) and
+        (hp3.typ = ait_label) and
+        (tasmlabel(taicpu(p).oper[0]^.ref^.symbol) = tai_label(hp3).labsym) and
+        GetNextInstruction(hp3, hp4) and
+        { As before, check individually instead of using MatchInstruction in order to save time }
+        (hp4.typ = ait_instruction) and
+        (taicpu(hp4).condition = C_None) and
+        (taicpu(hp4).oppostfix = PF_None) and
+        (taicpu(hp4).ops = 2) and
+        (taicpu(hp4).oper[0]^.reg = taicpu(hp1).oper[0]^.reg) and
+        (
+          (
+            (taicpu(hp4).opcode = A_MOVZ) and
+            (
+              (
+                { Check to confirm the following:
+                  - First mov is either "movz reg,#0" or "mov reg,xzr"
+                  - Second mov is "movz reg,#1"
+                }
+                (
+                  (taicpu(hp1).oper[1]^.typ = top_reg) { Will be the zero register } or
+                  (taicpu(hp1).oper[1]^.val = 0)
+                ) and
+                (taicpu(hp4).oper[1]^.val = 1)
+              ) or
+              (
+                { Check to confirm the following:
+                  - First mov is "movz reg,#1"
+                  - Second mov is "movz reg,#0"
+                }
+                MatchOperand(taicpu(hp1).oper[1]^, 1) and
+                (taicpu(hp4).oper[1]^.val = 0)
+              )
+            )
+          ) or
+          (
+            { Check to confirm the following:
+              - First mov is "movz reg,#1"
+              - Second mov is "mov reg,xzr"
+            }
+            (taicpu(hp4).opcode = A_MOV) and
+            (getsupreg(taicpu(hp4).oper[1]^.reg) = RS_XZR) and
+            MatchOperand(taicpu(hp1).oper[1]^, 1)
+          )
+        ) and
+        GetNextInstruction(hp4, hp5) and
+        SkipAligns(hp5, hp5) and
+        (hp5.typ = ait_label) and
+        (tasmlabel(taicpu(hp2).oper[0]^.ref^.symbol) = tai_label(hp5).labsym) then
+        begin
+          Invert := MatchOperand(taicpu(hp1).oper[1]^, 1); { if true, hp4 will be mov reg,0 in some form }
+          if Invert then
+            taicpu(p).condition := inverse_cond(taicpu(p).condition);
+
+          tai_label(hp3).labsym.DecRefs;
+
+          { If this isn't the only reference to the middle label, we can
+            still make a saving - only that the first jump and everything
+            that follows will remain. }
+          if (tai_label(hp3).labsym.getrefs = 0) then
+            begin
+              if Invert then
+                DebugMsg(SPeepholeOptimization + 'B(c)Movz1BMovz0 -> Cset(~c)',p)
+              else
+                DebugMsg(SPeepholeOptimization + 'B(c)Movz0bMovZ1 -> Cset(c)',p);
+
+              { remove jump, first label and second MOV (also catching any aligns) }
+              repeat
+                if not GetNextInstruction(hp2, hp3) then
+                  InternalError(2022070801);
+
+                RemoveInstruction(hp2);
+
+                hp2 := hp3;
+              until hp2 = hp5;
+
+              { Don't decrement reference count before the removal loop
+                above, otherwise GetNextInstruction won't stop on the
+                the label }
+              tai_label(hp5).labsym.DecRefs;
+            end
+          else
+            begin
+              if Invert then
+                DebugMsg(SPeepholeOptimization + 'B(c)Movz1BMovz0 -> Cset(~c) (partial)',p)
+              else
+                DebugMsg(SPeepholeOptimization + 'B(c)Movz0BMovz1 -> Cset(c) (partial)',p);
+            end;
+
+          taicpu(hp1).opcode := A_CSET;
+          taicpu(hp1).loadconditioncode(1, taicpu(p).condition);
+
+          RemoveCurrentP(p, hp1);
+
+          Result:=true;
+          exit;
+        end;
+    end;
+
+
   function TCpuAsmOptimizer.OptPass2LDRSTR(var p: tai): boolean;
     var
       hp1, hp1_last: tai;
@@ -1046,6 +1192,8 @@ Implementation
       if p.typ=ait_instruction then
         begin
           case taicpu(p).opcode of
+            A_B:
+              Result:=OptPass1B(p);
             A_LDR:
               Result:=OptPass1LDR(p);
             A_STR:
