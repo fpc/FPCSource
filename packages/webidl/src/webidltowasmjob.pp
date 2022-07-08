@@ -237,20 +237,18 @@ begin
     'void': Result:=aTypeName;
   else
     Def:=FindGlobalDef(aTypeName);
-    writeln('TWebIDLToPasWasmJob.GetTypeName ',aTypeName,' ',Def<>nil);
+    //writeln('TWebIDLToPasWasmJob.GetTypeName ',aTypeName,' ',Def<>nil);
     if Def is TIDLSequenceTypeDefDefinition then
       Result:=GetSequenceTypeName(TIDLSequenceTypeDefDefinition(Def))
     else
       begin
       Result:=inherited GetTypeName(aTypeName,ForTypeDef);
-      writeln('AAA1 TWebIDLToPasWasmJob.GetTypeName Result=',Result);
       if (Result=aTypeName)
       and (LeftStr(Result,length(PasInterfacePrefix))<>PasInterfacePrefix)
       and (RightStr(Result,length(PasInterfaceSuffix))<>PasInterfaceSuffix)
       then
         Result:=PasInterfacePrefix+Result+PasInterfaceSuffix;
       end;
-    writeln('AAA2 TWebIDLToPasWasmJob.GetTypeName Result=',Result);
   end;
 end;
 

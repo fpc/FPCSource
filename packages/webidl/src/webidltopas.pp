@@ -720,7 +720,7 @@ end;
 function TBaseWebIDLToPas.GetSequenceTypeName(
   Seq: TIDLSequenceTypeDefDefinition; ForTypeDef: Boolean): string;
 begin
-  writeln('TBaseWebIDLToPas.GetSequenceTypeName ',Seq.ElementType.Name,' ',Seq.ElementType.TypeName);
+  //writeln('TBaseWebIDLToPas.GetSequenceTypeName ',Seq.ElementType.Name,' ',Seq.ElementType.TypeName);
   Result:=GetTypeName(Seq.ElementType,ForTypeDef);
   if Result='' then
     raise EConvertError.Create('sequence without name at '+GetDefPos(Seq));
@@ -806,7 +806,6 @@ begin
     if ForTypeDef then ;
 
     Result:=aTypeName;
-    writeln('BBB1 TBaseWebIDLToPas.GetTypeName ',Result);
     D:=FContext.FindDefinition(Result);
     if D<>Nil then
       Result:=GetName(D)
@@ -984,8 +983,10 @@ begin
     aTypeName:=GetTypeName(A.ArgumentType);
     Arg:=Arg+': '+aTypeName;
     Def:=FindGlobalDef(A.ArgumentType.TypeName);
+    //writeln('TBaseWebIDLToPas.GetArguments Arg="',Arg,'" A.ArgumentType.TypeName=',A.ArgumentType.TypeName,' ',Def<>nil);
     if (Def is TIDLFunctionDefinition)
         or (Def is TIDLDictionaryDefinition)
+        or (A.ArgumentType.TypeName='sequence')
         or SameText(aTypeName,'UnicodeString') then
       Arg:='const '+Arg;
     if Result<>'' then
