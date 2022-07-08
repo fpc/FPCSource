@@ -404,7 +404,7 @@ Var
   Data: TPasDataWasmJob;
   FN, RT, Suff, Args, ProcKind, Sig, aClassName, Code, InvokeName,
     InvokeCode, ArgName, TryCode, VarSection, FinallyCode, LocalName,
-    WrapperFn: String;
+    WrapperFn, ArgTypeName: String;
   Overloads: TFPObjectList;
   I: Integer;
   AddFuncBody: Boolean;
@@ -494,15 +494,25 @@ begin
           if Args<>'' then
             Args:=Args+',';
           ArgName:=GetName(ArgDef);
-          ArgType:=FindGlobalDef(ArgDef.ArgumentType.TypeName);
-          if (ArgType is TIDLFunctionDefinition) and (foCallBack in TIDLFunctionDefinition(ArgType).Options) then
+          if ArgDef.ArgumentType is TIDLSequenceTypeDefDefinition then
             begin
-            LocalName:=CreateLocal('m');
-            VarSection:=VarSection+'  '+LocalName+': '+JOB_JSValueTypeNames[jivkMethod]+';'+sLineBreak;
-            WrapperFn:='JOBCall'+GetName(TIDLFunctionDefinition(ArgType));
-            TryCode:=TryCode+'  '+LocalName+':='+JOB_JSValueTypeNames[jivkMethod]+'.Create(TMethod('+ArgName+'),@'+WrapperFn+');'+sLineBreak;
-            FinallyCode:=FinallyCode+'    '+LocalName+'.free;'+sLineBreak;
-            ArgName:=LocalName;
+            ArgTypeName:=TIDLSequenceTypeDefDefinition(ArgDef.ArgumentType).ElementType.TypeName;
+            ArgType:=FindGlobalDef(ArgTypeName);
+            writeln('TWebIDLToPasWasmJob.WriteFunctionDefinition sequence of ',ArgTypeName,' Element=',ArgType<>nil);
+            raise EConvertError.Create('not yet supported: passing an array of '+ArgTypeName+' as argument at '+GetDefPos(ArgDef));
+            end
+          else
+            begin
+            ArgType:=FindGlobalDef(ArgDef.ArgumentType.TypeName);
+            if (ArgType is TIDLFunctionDefinition) and (foCallBack in TIDLFunctionDefinition(ArgType).Options) then
+              begin
+              LocalName:=CreateLocal('m');
+              VarSection:=VarSection+'  '+LocalName+': '+JOB_JSValueTypeNames[jivkMethod]+';'+sLineBreak;
+              WrapperFn:='JOBCall'+GetName(TIDLFunctionDefinition(ArgType));
+              TryCode:=TryCode+'  '+LocalName+':='+JOB_JSValueTypeNames[jivkMethod]+'.Create(TMethod('+ArgName+'),@'+WrapperFn+');'+sLineBreak;
+              FinallyCode:=FinallyCode+'    '+LocalName+'.free;'+sLineBreak;
+              ArgName:=LocalName;
+              end;
             end;
           Args:=Args+ArgName;
           end;
