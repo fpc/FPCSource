@@ -1120,6 +1120,7 @@ begin
       Add('    *(.rodata)  /* We need to include .rodata here if gcc is used */');
       Add('    *(.rodata*) /* with -fdata-sections.  */');
       Add('    *(.gnu.linkonce.d*)');
+      add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
       Add('    . = ALIGN(2);');
       Add('     _edata = . ;');
       Add('     PROVIDE (__data_end = .) ;');
