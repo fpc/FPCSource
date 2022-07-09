@@ -3143,6 +3143,14 @@ implementation
                 begin
                   new(p.oper[i]^.ref);
                   p.oper[i]^.ref^:=oper[i]^.ref^;
+                  if Assigned(p.oper[i]^.ref^.symbol) then
+                    p.oper[i]^.ref^.symbol.increfs;
+                  if Assigned(p.oper[i]^.ref^.relsymbol) then
+                    p.oper[i]^.ref^.relsymbol.increfs;
+{$ifdef jvm}
+                  if Assigned(p.oper[i]^.ref^.indexsymbol) then
+                    p.oper[i]^.ref^.indexsymbol.increfs;
+{$endif jvm}
                 end;
 {$ifdef ARM}
               top_shifterop:
