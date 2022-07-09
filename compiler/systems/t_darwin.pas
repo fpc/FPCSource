@@ -34,7 +34,7 @@ implementation
     sysutils,
     cutils,cfileutl,cclasses,
     verbose,systems,globtype,globals,
-    symconst,cscript,
+    symconst,cscript,triplet,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,symsym,symdef,
     import,export,link,comprsrc,rescmn,i_darwin,expunix,
     cgutils,cgbase,cgobj,cpuinfo,ogbase;
@@ -60,6 +60,8 @@ implementation
       function GetSysroot: TCmdStr;
       function GetLibSearchPath: TCmdStr;
       function GetLibraries: TCmdStr;
+
+      function InitSanitizersLibraryNameAndPath(const platformname: TCmdStr; out sanitizerLibraryDir, asanLibraryPath: TCmdStr): boolean;
     public
       constructor Create;override;
       procedure SetDefaultInfo;override;
@@ -128,16 +130,16 @@ implementation
              programs with problems that require Valgrind will have more
              than 60KB of data (first 4KB of address space is always invalid)
            }
-           ExeCmd[1]:='ld $PRTOBJ $TARGET $OPT $STATIC $GCSECTIONS $STRIP $MAP $LTO $ORDERSYMS -L. -o $EXE $ARCH $VERSION $SYSROOT $LIBSEARCHPATH $FILELIST $LIBRARIES';
+           ExeCmd[1]:='ld $PRTOBJ $TARGET $OPT $STATIC $GCSECTIONS $STRIP $MAP $LTO $ORDERSYMS $RPATH -L. -o $EXE $ARCH $VERSION $SYSROOT $LIBSEARCHPATH $FILELIST $LIBRARIES';
            if not(cs_gdb_valgrind in current_settings.globalswitches) then
              ExeCmd[1]:=ExeCmd[1]+' -pagezero_size 0x10000';
   {$else ndef cpu64bitaddr}
-           ExeCmd[1]:='ld $PRTOBJ $TARGET $OPT $STATIC $GCSECTIONS $STRIP $MAP $LTO $ORDERSYMS -L. -o $EXE $ARCH $VERSION $SYSROOT $LIBSEARCHPATH $FILELIST $LIBRARIES';
+           ExeCmd[1]:='ld $PRTOBJ $TARGET $OPT $STATIC $GCSECTIONS $STRIP $MAP $LTO $ORDERSYMS $RPATH -L. -o $EXE $ARCH $VERSION $SYSROOT $LIBSEARCHPATH $FILELIST $LIBRARIES';
   {$endif ndef cpu64bitaddr}
            if (apptype<>app_bundle) then
-             DllCmd[1]:='ld $PRTOBJ $TARGET $OPT $GCSECTIONS $MAP $LTO $ORDERSYMS -dynamic -dylib -L. -o $EXE $ARCH $VERSION $SYSROOT $LIBSEARCHPATH $FILELIST $LIBRARIES'
+             DllCmd[1]:='ld $PRTOBJ $TARGET $OPT $GCSECTIONS $MAP $LTO $ORDERSYMS $RPATH -dynamic -dylib -L. -o $EXE $ARCH $VERSION $SYSROOT $LIBSEARCHPATH $FILELIST $LIBRARIES'
            else
-             DllCmd[1]:='ld $PRTOBJ $TARGET $OPT $GCSECTIONS $MAP $LTO $ORDERSYMS -dynamic -bundle -L. -o $EXE $ARCH $VERSION $SYRSROOT $LIBSEARCHPATH $FILELIST $LIBRARIES';
+             DllCmd[1]:='ld $PRTOBJ $TARGET $OPT $GCSECTIONS $MAP $LTO $ORDERSYMS $RPATH -dynamic -bundle -L. -o $EXE $ARCH $VERSION $SYRSROOT $LIBSEARCHPATH $FILELIST $LIBRARIES';
            DllCmd[2]:='strip -x $EXE';
            DynamicLinker:='';
          end;
@@ -441,7 +443,56 @@ implementation
       end;
 
 
-    Function tlinkerdarwin.WriteFileList: TCmdStr;
+    function tlinkerdarwin.InitSanitizersLibraryNameAndPath(const platformname: TCmdStr; out sanitizerLibraryDir, asanLibraryPath: TCmdStr): boolean;
+      var
+        clang,
+        clangsearchdirs,
+        textline,
+        clangsearchdirspath: TCmdStr;
+        searchrec: TSearchRec;
+        searchres: longint;
+        clangsearchdirsfile: text;
+      begin
+        result:=false;
+        if (cs_sanitize_address in current_settings.moduleswitches) and
+           not(cs_link_on_target in current_settings.globalswitches) then
+          begin
+          { ask clang }
+          clang:=FindUtil('clang'+llvmutilssuffix);
+          if clang<>'' then
+            begin
+              clangsearchdirspath:=outputexedir+UniqueName('clangsearchdirs');
+              searchres:=shell(maybequoted(clang)+' -target '+targettriplet(triplet_llvm)+' -print-file-name=lib > '+clangsearchdirspath);
+              if searchres=0 then
+                begin
+                  AssignFile(clangsearchdirsfile,clangsearchdirspath);
+{$push}{$i-}
+                  reset(clangsearchdirsfile);
+{$pop}
+                  if ioresult=0 then
+                    begin
+                       readln(clangsearchdirsfile,textline);
+                       sanitizerLibraryDir:=FixFileName(textline+'/'+platformname);
+
+                       if target_info.system in systems_macosx then
+                         asanLibraryPath:=FixFileName(sanitizerLibraryDir+'/')+target_info.sharedClibprefix+'clang_rt.asan_osx_dynamic'+target_info.sharedClibext
+                       else if target_info.system in systems_ios then
+                         asanLibraryPath:=FixFileName(sanitizerLibraryDir+'/')+target_info.sharedClibprefix+'clang_rt.asan_ios_dynamic'+target_info.sharedClibext
+                       else if target_info.system in systems_iphonesym then
+                         asanLibraryPath:=FixFileName(sanitizerLibraryDir+'/')+target_info.sharedClibprefix+'clang_rt.asan_iossim_dynamic'+target_info.sharedClibext
+                       else
+                         internalerror(2022071010);
+                       result:=FileExists(asanLibraryPath,false);
+                    end;
+                end;
+              if FileExists(clangsearchdirspath,false) then
+                DeleteFile(clangsearchdirspath);
+            end;
+          end;
+      end;
+
+
+    function tlinkerdarwin.WriteFileList: TCmdStr;
     Var
       FilesList    : TScript;
       s            : TCmdStr;
@@ -481,11 +532,14 @@ implementation
       extdbgbinstr,
       extdbgcmdstr,
       ltostr,
+      asanstr,
       ordersymfile,
       linkfiles: TCmdStr;
       GCSectionsStr,
       StaticStr,
-      StripStr   : TCmdStr;
+      StripStr,
+      asanLibraryName,
+      sanitizerLibraryDir: TCmdStr;
       success : boolean;
     begin
       if not(cs_link_nolink in current_settings.globalswitches) then
@@ -519,9 +573,6 @@ implementation
           ltostr:='-lto_library '+maybequoted(utilsdirectory+'/../lib/libLTO.dylib');
         end;
 
-      { Write list of files to link }
-      linkfiles:=WriteFileList;
-
       { Write symbol order file }
       ordersymfile:=WriteSymbolOrderFile;
 
@@ -537,6 +588,19 @@ implementation
         Replace(cmdstr,'$ORDERSYMS','-order_file '+maybequoted(ordersymfile))
       else
         Replace(cmdstr,'$ORDERSYMS','');
+
+      if InitSanitizersLibraryNameAndPath('darwin',sanitizerLibraryDir,asanLibraryName) then
+        begin
+          ObjectFiles.Concat(asanLibraryName);
+          Replace(cmdstr,'$RPATH','-rpath '+sanitizerLibraryDir)
+        end
+      else
+        begin
+          Replace(cmdstr,'$RPATH','');
+        end;
+
+      { Write list of files to link }
+      linkfiles:=WriteFileList;
 
       Replace(cmdstr,'$STATIC',StaticStr);
       Replace(cmdstr,'$STRIP',StripStr);
@@ -582,7 +646,7 @@ implementation
     end;
 
 
-    Function tlinkerdarwin.MakeSharedLibrary:boolean;
+  function tlinkerdarwin.MakeSharedLibrary: boolean;
     var
       InitStr,
       FiniStr,
@@ -595,7 +659,9 @@ implementation
       extdbgbinstr,
       extdbgcmdstr,
       linkfiles,
-      GCSectionsStr : TCmdStr;
+      GCSectionsStr,
+      sanitizerLibraryDir,
+      asanLibraryName: TCmdStr;
       exportedsyms: text;
       success : boolean;
     begin
@@ -605,9 +671,6 @@ implementation
       ltostr:='';
       if not(cs_link_nolink in current_settings.globalswitches) then
        Message1(exec_i_linking,current_module.sharedlibfilename);
-
-      { Write list of files to link }
-      linkfiles:=WriteFileList;
 
       { Write symbol order file }
       ordersymfile:=WriteSymbolOrderFile;
@@ -647,6 +710,20 @@ implementation
         Replace(cmdstr,'$ORDERSYMS','-order_file '+maybequoted(ordersymfile))
       else
         Replace(cmdstr,'$ORDERSYMS','');
+      { add asan library if known }
+      if InitSanitizersLibraryNameAndPath('darwin',sanitizerLibraryDir,asanLibraryName) then
+        begin
+          ObjectFiles.Concat(asanLibraryName);
+          Replace(cmdstr,'$RPATH','-rpath '+sanitizerLibraryDir)
+        end
+      else
+        begin
+          Replace(cmdstr,'$RPATH','');
+        end;
+
+      { Write list of files to link }
+      linkfiles:=WriteFileList;
+
       Replace(cmdstr,'$PRTOBJ',GetDarwinPrtobjName(true));
       Replace(cmdstr,'$ARCH', GetLinkArch);
       Replace(cmdstr,'$VERSION',GetLinkVersion);
