@@ -10303,8 +10303,8 @@ unit aoptx86;
             hp1 := GetLabelWithSym(OrigLabel);
             if (taicpu(p).condition=C_None) and assigned(hp1) and SkipLabels(hp1,hp1) and (hp1.typ = ait_instruction) then
               begin
-                case taicpu(hp1).opcode of
-                  A_RET:
+                if taicpu(hp1).opcode = A_RET then
+                  begin
                     {
                       change
                              jmp .L1
@@ -10318,39 +10318,14 @@ unit aoptx86;
                       ConvertJumpToRET(p, hp1);
                       result:=true;
                     end;
-                  { Check any kind of direct assignment instruction }
-                  A_MOV,
-                  A_MOVD,
-                  A_MOVQ,
-                  A_MOVSX,
-{$ifdef x86_64}
-                  A_MOVSXD,
-{$endif x86_64}
-                  A_MOVZX,
-                  A_MOVAPS,
-                  A_MOVUPS,
-                  A_MOVSD,
-                  A_MOVAPD,
-                  A_MOVUPD,
-                  A_MOVDQA,
-                  A_MOVDQU,
-                  A_VMOVSS,
-                  A_VMOVAPS,
-                  A_VMOVUPS,
-                  A_VMOVSD,
-                  A_VMOVAPD,
-                  A_VMOVUPD,
-                  A_VMOVDQA,
-                  A_VMOVDQU:
-                    if ((current_settings.optimizerswitches * [cs_opt_level3, cs_opt_size]) <> [cs_opt_size]) and
-                      CheckJumpMovTransferOpt(p, hp1, 0, Count) then
-                      begin
-                        Result := True;
-                        Exit;
-                      end;
-                  else
-                    ;
-                end;
+                  end
+                else if (cs_opt_level3 in current_settings.optimizerswitches) and
+                  not (cs_opt_size in current_settings.optimizerswitches) and
+                  CheckJumpMovTransferOpt(p, hp1, 0, Count) then
+                  begin
+                    Result := True;
+                    Exit;
+                  end;
               end;
           end;
       end;
