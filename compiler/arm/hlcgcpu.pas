@@ -79,7 +79,7 @@ implementation
                 list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R0,RS_R1]));
                 { create consts entry }
                 reference_reset(tmpref,4,[]);
-                current_asmdata.getjumplabel(l);
+                current_asmdata.getlabel(l,alt_data);
                 current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
                 cg.a_label(current_procinfo.aktlocaldata,l);
                 tmpref.symboldata:=current_procinfo.aktlocaldata.last;
@@ -123,7 +123,7 @@ implementation
                 list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R0,RS_R1]));
                 { create consts entry }
                 reference_reset(tmpref,4,[]);
-                current_asmdata.getjumplabel(l);
+                current_asmdata.getlabel(l,alt_data);
                 current_procinfo.aktlocaldata.Concat(tai_align.Create(4));
                 cg.a_label(current_procinfo.aktlocaldata,l);
                 tmpref.symboldata:=current_procinfo.aktlocaldata.last;
