@@ -34,7 +34,7 @@ const
 {$if (defined(linux) and defined(cpu32) and not defined(fs32bit)) or defined(aix)}
     suffix64bit = '64';
     darwinsuffix64bit = '';
-{$elseif defined(darwin_new_iostructs)}
+{$elseif defined(darwin_new_iostructs) and (defined(cpui386) or defined(cpux86_64))}
     suffix64bit = '';
     darwinsuffix64bit = '$INODE64';
 {$else}

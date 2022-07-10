@@ -17,6 +17,9 @@ type filedesarray=array[0..1] of cint;
 
 {$if defined(darwin) and (defined(cpuarm) or defined(cpuaarch64) or defined(iphonesim) or (defined(MAC_OS_X_VERSION_MIN_REQUIRED) and (MAC_OS_X_VERSION_MIN_REQUIRED >= 1060)))}
   {$define darwin_new_iostructs}
+  {$if defined(cpui386) or defined(cpux86_64)}
+    {$defined darin_new_iostructs_suffix}
+  {$endif}
 {$endif}
 
 {$if defined(solaris) or defined(aix)}
@@ -30,7 +33,7 @@ Function fpFlock (fd,mode : longint) : cint; cdecl; external clib name 'flock';
 {$if defined(beos) or defined(solaris) }
 Function fpfStatFS(Fd:Longint; Info:pstatfs):cint; cdecl; external clib name 'fstatvfs';
 {$else beos or solaris }
-Function fpfStatFS(Fd:Longint; Info:pstatfs):cint; cdecl; external clib name 'fstatfs'{$ifdef darwin_new_iostructs}+'$INODE64'{$endif};
+Function fpfStatFS(Fd:Longint; Info:pstatfs):cint; cdecl; external clib name 'fstatfs'{$ifdef darin_new_iostructs_suffix}+'$INODE64'{$endif};
 {$endif beos or solaris }
 
 Function fpfsync (fd : cint) : cint; cdecl; external clib name 'fsync';
@@ -38,7 +41,7 @@ Function fpfsync (fd : cint) : cint; cdecl; external clib name 'fsync';
 {$if defined(beos) or defined(solaris) }
 Function fpStatFS  (Path:pchar; Info:pstatfs):cint; cdecl; external clib name 'statvfs';
 {$else beos or solaris }
-Function fpStatFS  (Path:pchar; Info:pstatfs):cint; cdecl; external clib name 'statfs'{$ifdef darwin_new_iostructs}+'$INODE64'{$endif};
+Function fpStatFS  (Path:pchar; Info:pstatfs):cint; cdecl; external clib name 'statfs'{$ifdef darin_new_iostructs_suffix}+'$INODE64'{$endif};
 {$endif beos or solaris }
 
 function pipe (var fildes: filedesarray):cint;  cdecl; external clib name 'pipe';
