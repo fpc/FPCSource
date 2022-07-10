@@ -16,7 +16,7 @@ Subject : Handling of "tar" files
 ===============================================================================================
 Author  : Stefan Heymann
           Eschenweg 3
-          72076 Tübingen
+          72076 Tï¿½bingen
           GERMANY
 
 E-Mail:   stefan@destructor.de
@@ -305,7 +305,7 @@ BEGIN
      IF SearchRec.Attr AND faDirectory = 0 THEN BEGIN
        FillChar(TimeVal, SizeOf(TimeVal), #0);
        FillChar(TimeZone, SizeOf(TimeZone), #0);      
-       Result := FileDateToDateTime (SearchRec.Time);
+       Result := SearchRec.TimeStamp;
        {$IFDEF Kylix}
        GetTimeOfDay (TimeVal, TimeZone);
        {$ELSE}
