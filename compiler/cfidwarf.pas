@@ -238,10 +238,12 @@ implementation
         inherited;
         if tf_use_psabieh in target_info.flags then
           datatype:=dt_eh_frame
-        else if cs_debuginfo in current_settings.moduleswitches then
-          datatype:=dt_debug
         else
-          datatype:=dt_none;
+          { The CFI-information is always generated, regardless of the debug
+            settings. This way the CFI-information for units is always available
+            and during linking it can be omitted or not, based on the debug
+            settings. }
+          datatype:=dt_debug;
       end;
 
 {****************************************************************************

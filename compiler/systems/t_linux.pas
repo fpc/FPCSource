@@ -715,6 +715,8 @@ begin
       add('  {');
       add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
       add('  }');
+      if not ((cs_debuginfo in current_settings.moduleswitches)) then
+        add('  /DISCARD/ : {*(.debug_frame)}');
       add('  .threadvar : { *(.threadvar .threadvar.* .gnu.linkonce.tv.*) }');
       add('}');
       { this "INSERT" means "merge into the original linker script, even if
