@@ -1559,7 +1559,7 @@ procedure TFPExpressionParser.Clear;
 begin
   FExpression:='';
   FHashList.Clear;
-  FExprNode.Free;
+  FreeAndNil(FExprNode);
 end;
 
 constructor TFPExpressionParser.Create(AOwner: TComponent);
@@ -2154,9 +2154,7 @@ begin
       ParserError(Format(SErrUnterminatedExpression,[Scanner.Pos,CurrentToken]));
     if not ExtractingIdentifiers then
       FExprNode.Check;
-    end
-  else
-    FExprNode:=Nil;
+    end;
 end;
 
 procedure TFPExpressionParser.CheckResultType(const Res: TFPExpressionResult;
