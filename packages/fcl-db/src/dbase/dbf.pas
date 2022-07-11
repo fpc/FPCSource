@@ -163,7 +163,6 @@ type
 //====================================================================
   TDbf = class(TDataSet)
   private
-    FDbfFile: TDbfFile;
     FCursor: TVirtualCursor;
     FOpenMode: TDbfOpenMode;
     FStorage: TDbfStorage;
@@ -200,6 +199,7 @@ type
     FDateTimeHandling: TDateTimeHandling;
     FTranslationMode: TDbfTranslationMode;
     FIndexDefs: TDbfIndexDefs;
+    FUseAutoInc: Boolean;
     FBeforeAutoCreate: TBeforeAutoCreateEvent;
     FOnTranslate: TTranslateEvent;
     FOnLanguageWarning: TLanguageWarningEvent;
@@ -217,6 +217,7 @@ type
     function GetPhysicalRecordCount: Integer;
     function GetKeySize: Integer;
     function GetMasterFields: string;
+    function GetNextAutoInc: Cardinal;
     function FieldDefsStored: Boolean;
     procedure SetBackLink(NewBackLink: String);
 
@@ -230,6 +231,8 @@ type
     procedure SetMasterFields(const Value: string);
     procedure SetTableLevel(const NewLevel: Integer);
     procedure SetPhysicalRecNo(const NewRecNo: Integer);
+    procedure SetNextAutoInc(ThisNextAutoInc: Cardinal);
+    procedure SetUseAutoInc(ThisUseAutoInc: Boolean);
 
     procedure MasterChanged(Sender: TObject);
     procedure MasterDisabled(Sender: TObject);
@@ -246,6 +249,8 @@ type
     procedure SetRangeBuffer(LowRange: PChar; HighRange: PChar);
 
   protected
+    FDbfFile: TDbfFile;
+
     { abstract methods }
     function  AllocRecordBuffer: TRecordBuffer; override; {virtual abstract}
     procedure ClearCalcFields(Buffer: TRecordBuffer); override;
@@ -428,6 +433,8 @@ type
     // Storage for memo file - if any - when using memory storage
     property UserMemoStream: TStream read FUserMemoStream write FUserMemoStream;
     property DisableResyncOnPost: Boolean read FDisableResyncOnPost write FDisableResyncOnPost;
+    // The value stored in the file.
+    property NextAutoInc: Cardinal read GetNextAutoInc write SetNextAutoInc;
   published
     property DateTimeHandling: TDateTimeHandling
              read FDateTimeHandling write FDateTimeHandling default dtBDETimeStamp;
@@ -448,6 +455,8 @@ type
     property TableName: string read FTableName write SetTableName;
     property TableLevel: Integer read FTableLevel write SetTableLevel;
     property Version: string read GetVersion write SetVersion stored false;
+    // Turn this off to overwrite.
+    property UseAutoInc: Boolean read FUseAutoInc write SetUseAutoInc;
     property BeforeAutoCreate: TBeforeAutoCreateEvent read FBeforeAutoCreate write FBeforeAutoCreate;
     property OnCompareRecord: TNotifyEvent read FOnCompareRecord write FOnCompareRecord;
     property OnLanguageWarning: TLanguageWarningEvent read FOnLanguageWarning write FOnLanguageWarning;
@@ -682,6 +691,7 @@ begin
   FTableLevel := 4;
   FIndexName := EmptyStr;
   FilePath := EmptyStr;
+  FUseAutoInc := True;
   FTempBuffer := nil;
   FFilterBuffer := nil;
   FIndexFile := nil;
@@ -2719,6 +2729,19 @@ begin
   DoAfterScroll;
 end;
 
+procedure TDbf.SetNextAutoInc(ThisNextAutoInc: Cardinal);
+begin
+  DbfFile.NextAutoInc := ThisNextAutoInc;
+end;
+
+procedure TDbf.SetUseAutoInc(ThisUseAutoInc: Boolean);
+begin
+  if FUseAutoInc = ThisUseAutoInc then Exit;
+
+  FUseAutoInc := ThisUseAutoInc;
+  DbfFile.UseAutoInc := FUseAutoInc;
+end;
+
 function TDbf.GetDbfFieldDefs: TDbfFieldDefs;
 begin
   if FDbfFile <> nil then
@@ -2999,6 +3022,11 @@ end;
 function TDbf.GetMasterFields: string;
 begin
   Result := FMasterLink.FieldNames;
+end;
+
+function TDbf.GetNextAutoInc: Cardinal;
+begin
+  Result := DbfFile.NextAutoInc;
 end;
 
 procedure TDbf.SetMasterFields(const Value: string);
