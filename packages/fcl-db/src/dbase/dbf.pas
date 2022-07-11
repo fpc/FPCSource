@@ -163,6 +163,7 @@ type
 //====================================================================
   TDbf = class(TDataSet)
   private
+    FDbfFile: TDbfFile;
     FCursor: TVirtualCursor;
     FOpenMode: TDbfOpenMode;
     FStorage: TDbfStorage;
@@ -249,7 +250,6 @@ type
     procedure SetRangeBuffer(LowRange: PChar; HighRange: PChar);
 
   protected
-    FDbfFile: TDbfFile;
 
     { abstract methods }
     function  AllocRecordBuffer: TRecordBuffer; override; {virtual abstract}
