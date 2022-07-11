@@ -2121,6 +2121,7 @@ implementation
           i:longint;
           rttitypesym: ttypesym;
           rttidef: trecorddef;
+          s:TIDString;
         begin
           { collect enumsyms belonging to this enum type (could be a subsection
             in case of a subrange type) }
@@ -2137,7 +2138,8 @@ implementation
             end;
           { sort the syms by enum name }
           syms.sort(@enumsym_compare_name);
-          rttitypesym:=try_search_current_module_type(internaltypeprefixName[itp_rttidef]+def.rtti_mangledname(fullrtti));
+          s:=internaltypeprefixName[itp_rttidef]+def.rtti_mangledname(fullrtti);
+          rttitypesym:=try_search_current_module_type(s);
           if not assigned(rttitypesym) or
              (ttypesym(rttitypesym).typedef.typ<>recorddef) then
             internalerror(2015071402);
@@ -2255,6 +2257,7 @@ implementation
         tcb: ttai_typedconstbuilder;
         rttilab: tasmsymbol;
         rttidef: tdef;
+        s: TIDString;
       begin
         { only write rtti of definitions from the current module }
         if not findunitsymtable(def.owner).iscurrentunit then
@@ -2270,8 +2273,9 @@ implementation
         write_child_rtti_data(def,rt);
         { write rtti data }
         tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_data_force_indirect]);
+        s:=internaltypeprefixName[itp_rttidef]+tstoreddef(def).rtti_mangledname(rt);
         tcb.begin_anonymous_record(
-          internaltypeprefixName[itp_rttidef]+tstoreddef(def).rtti_mangledname(rt),
+          s,
           defaultpacking,reqalign,
           targetinfos[target_info.system]^.alignment.recordalignmin
         );
