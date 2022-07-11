@@ -104,6 +104,8 @@ type
     // Updates _NULLFLAGS field with null or varlength flag for field
     procedure UpdateNullField(Buffer: Pointer; AFieldDef: TDbfFieldDef; Action: TUpdateNullField; WhichField: TNullFieldFlag);
     procedure WriteLockInfo(Buffer: TRecordBuffer);
+    function GetNextAutoInc: Cardinal;
+    procedure SetNextAutoInc(ThisNextAutoInc: Cardinal);
 
   public
     constructor Create;
@@ -131,7 +133,7 @@ type
     // Write dbf header as well as EOF marker at end of file if necessary
     procedure WriteHeader; override;
     // Writes autoinc value to record buffer and updates autoinc value in field header
-    procedure ApplyAutoIncToBuffer(DestBuf: TRecordBuffer);
+    procedure ApplyAutoIncToBuffer(DestBuf: TRecordBuffer); virtual;
     procedure FastPackTable;
     procedure RestructureTable(DbfFieldDefs: TDbfFieldDefs; Pack: Boolean);
     procedure Rename(DestFileName: string; NewIndexFileNames: TStrings; DeleteFiles: boolean);
@@ -179,6 +181,8 @@ type
     property ForceClose: Boolean read FForceClose;
     property CopyDateTimeAsString: Boolean read FCopyDateTimeAsString write FCopyDateTimeAsString;
     property DateTimeHandling: TDateTimeHandling read FDateTimeHandling write FDateTimeHandling;
+
+    property NextAutoInc: Cardinal read GetNextAutoInc write SetNextAutoInc;
 
     property OnIndexMissing: TDbfIndexMissingEvent read FOnIndexMissing write FOnIndexMissing;
     property OnLocaleError: TDbfLocaleErrorEvent read FOnLocaleError write FOnLocaleError;
@@ -842,7 +846,7 @@ begin
 
           //AutoInc only support in Visual Foxpro; another upgrade
           //Note: .AutoIncrementNext is really a cardinal (see the definition)
-          lFieldDescIII.AutoIncrementNext:=SwapIntLE(lFieldDef.AutoInc);
+          PCardinal(@lFieldDescIII.AutoIncrementNext)^:=SwapIntLE(lFieldDef.AutoInc);
           lFieldDescIII.AutoIncrementStep:=lFieldDef.AutoIncStep;
           // Set autoincrement flag using AutoIncStep as a marker
           if (lFieldDef.AutoIncStep<>0) then
@@ -952,6 +956,111 @@ begin
   end;
 end;
 
+function TDbfFile.GetNextAutoInc: Cardinal;
+var
+  TempFieldDef: TDbfFieldDef;
+  I, NextVal, lAutoIncOffset: Cardinal;
+begin
+  Result := 0;
+
+  if FAutoIncPresent then
+  begin
+    // if shared, reread header to find new autoinc values
+    if NeedLocks then
+    begin
+      // lock header so nobody else can use this value
+      LockPage(0, true);
+    end;
+
+    // find autoinc fields
+    for I := 0 to FFieldDefs.Count-1 do
+    begin
+      TempFieldDef := FFieldDefs.Items[I];
+      if (DbfVersion=xBaseVII) and
+        (TempFieldDef.NativeFieldType = '+') then
+      begin
+        // read current auto inc, from header or field, depending on sharing
+        lAutoIncOffset := sizeof(rDbfHdr) + sizeof(rEndFixedHdrVII) +
+          FieldDescVII_AutoIncOffset + I * sizeof(rFieldDescVII);
+        if NeedLocks then
+        begin
+          ReadBlock(@NextVal, 4, lAutoIncOffset);
+          NextVal := SwapIntLE(NextVal);
+        end else
+          NextVal := TempFieldDef.AutoInc;
+        // store to buffer, positive = high bit on, so flip it
+        Result := NextVal;
+      end
+      else //No DBaseVII
+      if (DbfVersion=xVisualFoxPro) and (TempFieldDef.NativeFieldType = 'I') and
+        (TempFieldDef.AutoIncStep<>0) then
+      begin
+        // read current auto inc from field header
+        lAutoIncOffset := SizeOf(rDbfHdr) + FieldDescIII_AutoIncOffset +
+          SizeOf(rFieldDescIII) * I;
+        if NeedLocks then
+        begin
+          ReadBlock(@NextVal, 4, lAutoIncOffset);
+          NextVal := SwapIntLE(NextVal);
+        end else
+          NextVal := TempFieldDef.AutoInc;
+        Result := NextVal;
+      end;
+    end;
+
+    // release lock if locked
+    if NeedLocks then
+      UnlockPage(0);
+  end;
+end;
+
+procedure TDbfFile.SetNextAutoInc(ThisNextAutoInc: Cardinal);
+var
+  TempFieldDef: TDbfFieldDef;
+  I, NextVal, lAutoIncOffset: Cardinal;
+begin
+  if FAutoIncPresent then
+  begin
+    // if shared, reread header to find new autoinc values
+    if NeedLocks then
+    begin
+      // lock header so nobody else can use this value
+      LockPage(0, true);
+    end;
+
+    // find autoinc fields
+    for I := 0 to FFieldDefs.Count-1 do
+    begin
+      TempFieldDef := FFieldDefs.Items[I];
+      if (DbfVersion=xBaseVII) and
+        (TempFieldDef.NativeFieldType = '+') then
+      begin
+        // read current auto inc, from header or field, depending on sharing
+        lAutoIncOffset := sizeof(rDbfHdr) + sizeof(rEndFixedHdrVII) +
+          FieldDescVII_AutoIncOffset + I * sizeof(rFieldDescVII);
+        // write new value to header buffer
+        PCardinal(FHeader+lAutoIncOffset)^ := SwapIntLE(ThisNextAutoInc);
+      end
+      else //No DBaseVII
+      if (DbfVersion=xVisualFoxPro) and (TempFieldDef.NativeFieldType = 'I') and
+        (TempFieldDef.AutoIncStep<>0) then
+      begin
+        // read current auto inc from field header
+        lAutoIncOffset := SizeOf(rDbfHdr) + FieldDescIII_AutoIncOffset +
+          SizeOf(rFieldDescIII) * I;
+        PCardinal(FHeader+lAutoIncOffset)^ := SwapIntLE(ThisNextAutoInc);
+      end;
+    end;
+
+    // write modified header (new autoinc values) to file
+    WriteHeader;
+
+    // release lock if locked
+    if NeedLocks then
+      UnlockPage(0);
+  end;
+end;
+
 function TDbfFile.HasBlob: Boolean;
 var
   I: Integer;
@@ -1027,6 +1136,7 @@ var
   TempFieldDef: TDbfFieldDef;
   lSize,lPrec,I, lColumnCount: Integer;
   lAutoInc: Cardinal;
+  lAutoIncStep: Byte;
   dataPtr: PChar;
   lNativeFieldType: Char;
   lFieldName: string;
@@ -1077,6 +1187,9 @@ begin
   try
     // Specs say there has to be at least one field, so use repeat:
     repeat
+      // clear autoinc params
+      lAutoInc := 0;
+      lAutoIncStep := 0;
       // version field info?
       if FDbfVersion = xBaseVII then
       begin
@@ -1098,8 +1211,9 @@ begin
         if (FDBFVersion=xVisualFoxPro) and ((lFieldDescIII.VisualFoxProFlags and $0C)<>0) then
         begin
           // We do not test for an I field - we could implement our own N autoincrement this way...
-          lAutoInc:=lFieldDescIII.AutoIncrementNext;
-          FAutoIncPresent:=true;
+          lAutoInc := PCardinal(@lFieldDescIII.AutoIncrementNext)^;
+          lAutoIncStep := lFieldDescIII.AutoIncrementStep;
+          FAutoIncPresent := True;
         end;
 
         // Only Visual FoxPro supports null fields, if the nullable field flag is on
@@ -1138,6 +1252,7 @@ begin
         Size := lSize;
         Precision := lPrec;
         AutoInc := lAutoInc;
+        AutoIncStep := lAutoIncStep;
         NativeFieldType := lNativeFieldType;
         IsSystemField := lIsVFPSystemField;
         if lIsVFPVarLength then
@@ -2392,7 +2507,7 @@ var
   TempFieldDef: TDbfFieldDef;
   I, NextVal, lAutoIncOffset: {LongWord} Cardinal;    {Delphi 3 does not know LongWord?}
 begin
-  if FAutoIncPresent then
+  if FAutoIncPresent and FUseAutoInc then
   begin
     // if shared, reread header to find new autoinc values
     if NeedLocks then
@@ -2426,16 +2541,24 @@ begin
         PCardinal(FHeader+lAutoIncOffset)^ := SwapIntLE(NextVal);
       end
       else //No DBaseVII
-      if (DbfVersion=xVisualFoxPro) and
+      if (DbfVersion=xVisualFoxPro) and (TempFieldDef.NativeFieldType = 'I') and
         (TempFieldDef.AutoIncStep<>0) then
       begin
         // read current auto inc from field header
-        NextVal:=TempFieldDef.AutoInc; //todo: is this correct
-        PCardinal(DestBuf+TempFieldDef.Offset)^ := SwapIntBE(NextVal); //todo: is swapintbe correct?
+        lAutoIncOffset := SizeOf(rDbfHdr) + FieldDescIII_AutoIncOffset +
+          SizeOf(rFieldDescIII) * I;
+        if NeedLocks then
+        begin
+          ReadBlock(@NextVal, 4, lAutoIncOffset);
+          NextVal := SwapIntLE(NextVal);
+        end else
+          NextVal := TempFieldDef.AutoInc;
+        PCardinal(DestBuf+TempFieldDef.Offset)^ := SwapIntLE(NextVal);
         // Increase with step size
         NextVal:=NextVal+TempFieldDef.AutoIncStep;
         // write new value back
         TempFieldDef.AutoInc:=NextVal;
+        PCardinal(FHeader+lAutoIncOffset)^ := SwapIntLE(NextVal);
       end;
     end;
 

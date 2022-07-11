@@ -79,6 +79,7 @@ type
     FBufferMaxSize: Integer;
     FBufferModified: Boolean;
     FWriteError: Boolean;
+    FUseAutoInc: Boolean;
   protected
     procedure SetHeaderOffset(NewValue: Integer); virtual;
     procedure SetRecordSize(NewValue: Integer); virtual;
@@ -160,6 +161,7 @@ type
     property Stream: TStream read FStream write SetStream;
     property BufferAhead: Boolean read FBufferAhead write SetBufferAhead;
     property WriteError: Boolean read FWriteError;
+    property UseAutoInc: Boolean read FUseAutoInc write FUseAutoInc;
   end;
 
 implementation
