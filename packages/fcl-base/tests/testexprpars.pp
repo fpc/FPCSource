@@ -579,6 +579,7 @@ type
     procedure TestSimpleBracketsLeft;
     procedure TestSimpleBracketsRight;
     procedure TestSimpleBracketsDouble;
+    procedure TestExpressionAfterClear;
   end;
 
   TTestParserBooleanOperations = Class(TTestExpressionParser)
@@ -1005,6 +1006,9 @@ type
 implementation
 
 uses typinfo;
+
+var
+  FileFormatSettings: TFormatSettings;
 
 { TTestParserAggregate }
 
@@ -3446,6 +3450,21 @@ begin
   AssertResult(42);
 end;
 
+procedure TTestParserExpressions.TestExpressionAfterClear;
+begin
+  FP.Expression:='true';
+  AssertNotNull('Have result node',FP.ExprNode);
+  AssertNodeType('Constant expression',TFPConstExpression, FP.ExprNode);
+  AssertResultType(rtBoolean);
+  AssertResult(True);
+  FP.Clear;
+  FP.Expression:='1234';
+  AssertNotNull('Have result node',FP.ExprNode);
+  AssertNodeType('Constant expression',TFPConstExpression, FP.ExprNode);
+  AssertResultType(rtInteger);
+  AssertResult(1234);
+end;
+
 //TTestParserBooleanOperations
 
 procedure TTestParserBooleanOperations.TestEqualInteger;
@@ -4457,7 +4476,7 @@ begin
   AssertEquals('One variable added',1,FP.Identifiers.Count);
   AssertSame('Result equals variable added',I,FP.Identifiers[0]);
   AssertEquals('Variable has correct resulttype',rtFloat,I.ResultType);
-  AssertEquals('Variable has correct value',FloatToStr(1.23),I.Value);
+  AssertEquals('Variable has correct value',FloatToStr(1.23, FileFormatSettings),I.Value);
 end;
 
 procedure TTestParserVariables.TestVariable5;
@@ -5950,7 +5969,7 @@ begin
   AssertSame('Result equals variable added',I,FM.Identifiers[0]);
   AssertEquals('Variable has correct category',ord(bcUser),Ord(I.Category));
   AssertEquals('Variable has correct resulttype',rtFloat,I.ResultType);
-  AssertEquals('Variable has correct value',FloatToStr(1.23),I.Value);
+  AssertEquals('Variable has correct value',FloatToStr(1.23, FileFormatSettings),I.Value);
 end;
 
 procedure TTestBuiltinsManager.TestVariable7;
@@ -5965,7 +5984,7 @@ begin
   AssertSame('Result equals variable added',I,FM.Identifiers[0]);
   AssertEquals('Variable has correct category',ord(bcUser),Ord(I.Category));
   AssertEquals('Variable has correct resulttype',rtCurrency,I.ResultType);
-  AssertEquals('Variable has correct value',CurrToStr(1.23),I.Value);
+  AssertEquals('Variable has correct value',CurrToStr(1.23, FileFormatSettings),I.Value);
 end;
 
 procedure TTestBuiltinsManager.TestVariable5;
@@ -7229,8 +7248,19 @@ begin
   AssertEquals('Destroy called for operand',4,self.FDestroyCalled)
 end;
 
-initialization
+// copy same format settings used by fpexprpars
+procedure InitFileFormatSettings;
+begin
+  FileFormatSettings := DefaultFormatSettings;
+  FileFormatSettings.DecimalSeparator := '.';
+  FileFormatSettings.DateSeparator := '-';
+  FileFormatSettings.TimeSeparator := ':';
+  FileFormatsettings.ShortDateFormat := 'yyyy-mm-dd';
+  FileFormatSettings.LongTimeFormat := 'hh:nn:ss';
+end;
 
+initialization
+  InitFileFormatSettings;
   RegisterTests('ExprPars',[TTestExpressionScanner, TTestDestroyNode,
                  TTestConstExprNode,TTestNegateExprNode,
                  TTestBinaryAndNode,TTestBinaryOrNode,TTestBinaryXOrNode,
