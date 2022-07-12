@@ -4162,32 +4162,17 @@ type
           case c of
             '_',
             '0'..'9',
-            'A'..'Z' :
-              begin
-                if i<255 then
-                 begin
-                   inc(i);
-                   orgpattern[i]:=c;
-                   pattern[i]:=c;
-                 end
-                else
-                 begin
-                   if not err then
-                     begin
-                       Message(scan_e_string_exceeds_255_chars);
-                       err:=true;
-                     end;
-                 end;
-                c:=inputpointer^;
-                inc(inputpointer);
-              end;
+            'A'..'Z',
             'a'..'z' :
               begin
                 if i<255 then
                  begin
                    inc(i);
                    orgpattern[i]:=c;
-                   pattern[i]:=chr(ord(c)-32)
+                   if c in ['a'..'z'] then
+                     pattern[i]:=chr(ord(c)-32)
+                   else
+                     pattern[i]:=c;
                  end
                 else
                  begin
