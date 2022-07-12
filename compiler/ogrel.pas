@@ -334,7 +334,7 @@ implementation
 
     procedure TRelObjData.writeReloc(Data: TRelocDataInt; len: aword; p: TObjSymbol; Reloctype: TObjRelocationType);
       var
-        bytes: array [0..1] of Byte;
+        bytes: array [0..7] of Byte;
         symaddr: QWord;
         objreloc: TRelRelocation;
       begin
@@ -373,6 +373,26 @@ implementation
               end;
           end;
         case len of
+          8:
+            begin
+              bytes[0]:=Byte(Data);
+              bytes[1]:=Byte(Data shr 8);
+              bytes[2]:=Byte(Data shr 16);
+              bytes[3]:=Byte(Data shr 24);
+              bytes[4]:=0;
+              bytes[5]:=0;
+              bytes[6]:=0;
+              bytes[7]:=0;
+              writebytes(bytes,8);
+            end;
+          4:
+            begin
+              bytes[0]:=Byte(Data);
+              bytes[1]:=Byte(Data shr 8);
+              bytes[2]:=Byte(Data shr 16);
+              bytes[3]:=Byte(Data shr 24);
+              writebytes(bytes,4);
+            end;
           2:
             begin
               bytes[0]:=Byte(Data);
