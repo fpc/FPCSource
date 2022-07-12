@@ -8161,15 +8161,14 @@ unit aoptx86;
                           reference_reset(NewRef, 1, []);
                           NewInstr := taicpu.op_ref(A_JMP, S_NO, NewRef);
 
-                          { Now actually load the correct parameter }
+                          { Now actually load the correct parameter (this also
+                            increases the reference count) }
                           NewInstr.loadsymbol(0, DestLabel, 0);
 
                           { Get instruction before original label (may not be p under -O3) }
                           if not GetLastInstruction(hp1, hp2) then
                             { Shouldn't fail here }
                             InternalError(2021040701);
-
-                          DestLabel.increfs;
 
                           AsmL.InsertAfter(NewInstr, hp2);
                           { Add new alignment field }
