@@ -429,7 +429,7 @@ implementation
 {$endif defined(arm) or defined(riscv64) or defined(powerpc)}
           '.rodata',
           '.bss',
-          '.threadvar',
+          '.tbss',
           '.pdata',
           '', { stubs }
           '__DATA,__nl_symbol_ptr',
@@ -496,14 +496,6 @@ implementation
             exit;
           end;
 
-        if atype=sec_threadvar then
-          begin
-            if (target_info.system in (systems_windows+systems_wince)) then
-              secname:='.tls'
-            else if (target_info.system in systems_linux) then
-              secname:='.tbss';
-          end;
-
         { go32v2 stub only loads .text and .data sections, and allocates space for .bss.
           Thus, data which normally goes into .rodata and .rodata_norel sections must
           end up in .data section }
@@ -560,7 +552,8 @@ implementation
     function TWasmObjData.sectionname(atype: TAsmSectiontype;
         const aname: string; aorder: TAsmSectionOrder): string;
       begin
-        if (atype=sec_fpc) or (atype=sec_threadvar) then
+        if (atype=sec_fpc) or
+           ((atype=sec_threadvar) and not (ts_wasm_threads in current_settings.targetswitches)) then
           atype:=sec_data;
         Result:=sectionname_gas(atype, aname, aorder);
       end;
