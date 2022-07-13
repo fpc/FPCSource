@@ -1250,6 +1250,7 @@ implementation
         exception_tags_count: Integer = 0;
         objsym, ObjSymAlias: TWasmObjSymbol;
         cust_sec: TWasmCustomSectionType;
+        SegmentFlags: UInt64;
       begin
         FData:=TWasmObjData(Data);
 
@@ -1316,7 +1317,11 @@ implementation
                   begin
                     WriteName(FWasmLinkingSubsections[WASM_SEGMENT_INFO],objsec.Name);
                     WriteUleb(FWasmLinkingSubsections[WASM_SEGMENT_INFO],BsrQWord(objsec.SecAlign));
-                    WriteUleb(FWasmLinkingSubsections[WASM_SEGMENT_INFO],0);  { flags }
+                    SegmentFlags:=0;
+                    if (ts_wasm_threads in current_settings.targetswitches) and
+                       (oso_threadvar in objsec.SecOptions) then
+                      SegmentFlags:=SegmentFlags or WASM_SEG_FLAG_TLS;
+                    WriteUleb(FWasmLinkingSubsections[WASM_SEGMENT_INFO],SegmentFlags);  { flags }
 
                     WriteByte(FWasmSections[wsiData],0);
                     WriteByte(FWasmSections[wsiData],$41);
