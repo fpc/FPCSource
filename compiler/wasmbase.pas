@@ -105,6 +105,7 @@ const
   WASM_SYM_EXPORTED          = $20;
   WASM_SYM_EXPLICIT_NAME     = $40;
   WASM_SYM_NO_STRIP          = $80;
+  WASM_SYM_TLS               = $100;
 
 implementation
 
