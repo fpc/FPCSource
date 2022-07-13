@@ -141,9 +141,13 @@ implementation
 
   function TLLVMMachineCodePlaygroundAssembler.sectionname(atype: TAsmSectiontype; const aname: string; aorder: TAsmSectionOrder): string;
     begin
-      if (atype=sec_fpc) or (atype=sec_threadvar) then
+      if (atype=sec_fpc) or
+         ((atype=sec_threadvar) and not (ts_wasm_threads in current_settings.targetswitches)) then
         atype:=sec_data;
-      Result:=inherited sectionname(atype, aname, aorder)+',"",@';
+      if atype=sec_threadvar then
+        Result:=inherited sectionname(atype, aname, aorder)+',"T",@'
+      else
+        Result:=inherited sectionname(atype, aname, aorder)+',"",@';
     end;
 
 

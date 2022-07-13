@@ -364,7 +364,7 @@ implementation
           begin
             if (target_info.system in (systems_windows+systems_wince)) then
               secname:='.tls'
-            else if (target_info.system in systems_linux) then
+            else if (target_info.system in (systems_linux+systems_wasm)) then
               secname:='.tbss';
           end;
 
