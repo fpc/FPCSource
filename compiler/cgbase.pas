@@ -143,6 +143,9 @@ interface
           ,addr_tpoff
           ,addr_tlsgd
 {$endif x86_64}
+{$ifdef wasm32}
+          ,addr_got_tls
+{$endif wasm32}
          );
 
 
