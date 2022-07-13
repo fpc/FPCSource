@@ -439,8 +439,24 @@ implementation
       tmpref:=ref;
       tmpref.base:=NR_NO;
       tmpref.index:=NR_NO;
-      list.Concat(taicpu.op_ref(a_i32_const, tmpref));
-      incstack(list, 1);
+      if tmpref.refaddr=addr_got_tls then
+        begin
+          tmpref.offset:=0;
+          list.Concat(taicpu.op_ref(a_global_get, tmpref));
+          incstack(list, 1);
+          if ref.offset<>0 then
+            begin
+              list.Concat(taicpu.op_const(a_i32_const,ref.offset));
+              incstack(list, 1);
+              list.Concat(taicpu.op_none(a_i32_add));
+              decstack(list, 1);
+            end;
+        end
+      else
+        begin
+          list.Concat(taicpu.op_ref(a_i32_const, tmpref));
+          incstack(list, 1);
+        end;
       if ref.base<>NR_NO then
         begin
           list.Concat(taicpu.op_reg(a_local_get,ref.base));
@@ -1024,6 +1040,8 @@ implementation
 
 
   function thlcgwasm.prepare_stack_for_ref(list: TAsmList; var ref: treference; dup: boolean): longint;
+    var
+      tmpref: treference;
     begin
       result:=0;
       { fake location that indicates the value is already on the stack? }
@@ -1037,7 +1055,26 @@ implementation
         end;
 
       // setting up memory offset
-      if assigned(ref.symbol) and (ref.base=NR_NO) and (ref.index=NR_NO) then
+      if ref.refaddr=addr_got_tls then
+        begin
+          if not assigned(ref.symbol) then
+            internalerror(2022071405);
+          if ref.base<>NR_NO then
+            internalerror(2022071406);
+          if ref.index<>NR_NO then
+            internalerror(2022071407);
+          tmpref:=ref;
+          tmpref.offset:=0;
+          list.Concat(taicpu.op_ref(a_global_get,tmpref));
+          incstack(list,1);
+          if dup then
+            begin
+              list.Concat(taicpu.op_ref(a_global_get,tmpref));
+              incstack(list,1);
+            end;
+          result:=1;
+        end
+      else if assigned(ref.symbol) and (ref.base=NR_NO) and (ref.index=NR_NO) then
         begin
           list.Concat(taicpu.op_const(a_i32_const,ref.offset));
           incstack(list,1);
@@ -2296,7 +2333,10 @@ implementation
         exit;
       opc:=loadstoreopcref(size,false,ref,finishandval);
 
-      list.concat(taicpu.op_ref(opc,ref));
+      if ref.refaddr=addr_got_tls then
+        list.concat(taicpu.op_const(opc,ref.offset))
+      else
+        list.concat(taicpu.op_ref(opc,ref));
       { avoid problems with getting the size of an open array etc }
       if wasmAlwayInMem(size) then
         size:=ptruinttype;
@@ -2319,7 +2359,10 @@ implementation
         exit;
       opc:=loadstoreopcref(size,true,ref,finishandval);
 
-      list.concat(taicpu.op_ref(opc,ref));
+      if ref.refaddr=addr_got_tls then
+        list.concat(taicpu.op_const(opc,ref.offset))
+      else
+        list.concat(taicpu.op_ref(opc,ref));
 
       { avoid problems with getting the size of an open array etc }
       if wasmAlwayInMem(size) then

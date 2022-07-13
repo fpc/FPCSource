@@ -673,10 +673,10 @@ implementation
       begin
         if assigned(asmsym) then
           begin
-            if asmsym.typ<>AT_WASM_GLOBAL then
+            if (asmsym.typ<>AT_WASM_GLOBAL) and (asmsym.typ<>AT_TLS) then
               internalerror(2021092706);
             result:=symbolref(asmsym);
-            result.typ:=AT_WASM_GLOBAL;
+            result.typ:=asmsym.typ;
           end
         else
           result:=nil;
@@ -1243,7 +1243,7 @@ implementation
         exception_tags_count: Integer = 0;
         objsym, ObjSymAlias: TWasmObjSymbol;
         cust_sec: TWasmCustomSectionType;
-        SegmentFlags: UInt64;
+        SegmentFlags, SymbolFlags: UInt64;
       begin
         FData:=TWasmObjData(Data);
 
@@ -1266,6 +1266,8 @@ implementation
                 Inc(import_globals_count)
               else
                 Inc(globals_count);
+            if (objsym.typ=AT_TLS) and (ts_wasm_threads in current_settings.targetswitches) then
+              Inc(import_globals_count);
             if IsExternalFunction(objsym) then
               Inc(import_functions_count);
             if (objsym.typ=AT_FUNCTION) and not objsym.IsAlias then
@@ -1364,6 +1366,17 @@ implementation
                   WriteByte(FWasmSections[wsiImport],$00)   { const }
                 else
                   WriteByte(FWasmSections[wsiImport],$01);  { var }
+              end
+            else if (objsym.typ=AT_TLS) and (ts_wasm_threads in current_settings.targetswitches) then
+              begin
+                objsym.GlobalIndex:=NextGlobalIndex;
+                Inc(NextGlobalIndex);
+                objsym.ExtraData:=nil;
+                WriteName(FWasmSections[wsiImport],'GOT.mem');
+                WriteName(FWasmSections[wsiImport],objsym.Name);
+                WriteByte(FWasmSections[wsiImport],$03);  { global }
+                WriteWasmBasicType(FWasmSections[wsiImport],wbt_i32);  { i32 }
+                WriteByte(FWasmSections[wsiImport],$01);  { var }
               end;
           end;
         { import functions }
@@ -1616,13 +1629,16 @@ implementation
                 Inc(FWasmSymbolTableEntriesCount);
                 WriteByte(FWasmSymbolTable,Ord(SYMTAB_DATA));
                 if objsym.bind=AB_GLOBAL then
-                  WriteUleb(FWasmSymbolTable,0)
+                  SymbolFlags:=0
                 else if objsym.bind=AB_LOCAL then
-                  WriteUleb(FWasmSymbolTable,WASM_SYM_BINDING_LOCAL)
+                  SymbolFlags:=WASM_SYM_BINDING_LOCAL
                 else if objsym.bind=AB_EXTERNAL then
-                  WriteUleb(FWasmSymbolTable,WASM_SYM_UNDEFINED)
+                  SymbolFlags:=WASM_SYM_UNDEFINED
                 else
                   internalerror(2021092506);
+                if (objsym.typ=AT_TLS) and (ts_wasm_threads in current_settings.targetswitches) then
+                  SymbolFlags:=(SymbolFlags and not WASM_SYM_BINDING_LOCAL) or WASM_SYM_TLS;
+                WriteUleb(FWasmSymbolTable,SymbolFlags);
                 WriteName(FWasmSymbolTable,objsym.Name);
                 if objsym.bind<>AB_EXTERNAL then
                   begin
