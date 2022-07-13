@@ -97,6 +97,10 @@ type
     SYMTAB_TABLE    = 5);
 
 const
+  { segment flags }
+  WASM_SEG_FLAG_STRINGS = $01;
+  WASM_SEG_FLAG_TLS     = $02;
+
   { symbol flags }
   WASM_SYM_BINDING_WEAK      = $01;
   WASM_SYM_BINDING_LOCAL     = $02;
