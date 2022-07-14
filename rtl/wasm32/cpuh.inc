@@ -101,3 +101,7 @@ procedure fpc_wasm32_i64_atomic_store16(Dest: PWord; x: QWord);[internproc:fpc_i
 procedure fpc_wasm32_i64_atomic_store32(Dest: PLongWord; x: QWord);[internproc:fpc_in_i64_atomic_store32];
 procedure fpc_wasm32_i64_atomic_store(Dest: PQWord; x: QWord);[internproc:fpc_in_i64_atomic_store];
 
+function fpc_wasm32_tls_size: SizeUInt;[internproc:fpc_in_wasm32_tls_size];
+function fpc_wasm32_tls_align: SizeUInt;[internproc:fpc_in_wasm32_tls_align];
+function fpc_wasm32_tls_base: Pointer;[internproc:fpc_in_wasm32_tls_base];
+

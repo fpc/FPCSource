@@ -93,5 +93,9 @@
   in_i64_atomic_store8   = in_cpu_first+69,
   in_i64_atomic_store16  = in_cpu_first+70,
   in_i64_atomic_store32  = in_cpu_first+71,
-  in_i64_atomic_store    = in_cpu_first+72
+  in_i64_atomic_store    = in_cpu_first+72,
+
+  in_wasm32_tls_size  = in_cpu_first+73,
+  in_wasm32_tls_align = in_cpu_first+74,
+  in_wasm32_tls_base  = in_cpu_first+75
 

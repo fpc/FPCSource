@@ -58,6 +58,7 @@ interface
         procedure second_atomic_store(op: TAsmOp);
         procedure second_atomic_rmw_x_y(op: TAsmOp);
         procedure second_atomic_rmw_x_y_z(op: TAsmOp);
+        procedure second_tls_get(const SymStr: string);
       protected
         function first_sqr_real: tnode; override;
       public
@@ -541,6 +542,17 @@ implementation
       end;
 
 
+    procedure twasminlinenode.second_tls_get(const SymStr: string);
+      begin
+        current_asmdata.CurrAsmList.Concat(taicpu.op_sym(a_global_get,current_asmdata.RefAsmSymbol(SymStr,AT_WASM_GLOBAL)));
+        thlcgwasm(hlcg).incstack(current_asmdata.CurrAsmList,1);
+
+        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+        location.register:=hlcg.getregisterfordef(current_asmdata.CurrAsmList,resultdef);
+        thlcgwasm(hlcg).a_load_stack_loc(current_asmdata.CurrAsmList,resultdef,location);
+      end;
+
+
     function twasminlinenode.first_sqr_real: tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
@@ -690,6 +702,17 @@ implementation
               CheckParameters(2);
               resultdef:=voidtype;
             end;
+          in_wasm32_tls_size,
+          in_wasm32_tls_align:
+            begin
+              CheckParameters(0);
+              resultdef:=u32inttype;
+            end;
+          in_wasm32_tls_base:
+            begin
+              CheckParameters(0);
+              resultdef:=voidpointertype;
+            end;
           else
             Result:=inherited pass_typecheck_cpu;
         end;
@@ -774,7 +797,10 @@ implementation
           in_i64_atomic_load8_u,
           in_i64_atomic_load16_u,
           in_i64_atomic_load32_u,
-          in_i64_atomic_load:
+          in_i64_atomic_load,
+          in_wasm32_tls_size,
+          in_wasm32_tls_align,
+          in_wasm32_tls_base:
             expectloc:=LOC_REGISTER;
           else
             Result:=inherited first_cpu;
@@ -931,6 +957,12 @@ implementation
             second_atomic_store(a_i64_atomic_store32);
           in_i64_atomic_store:
             second_atomic_store(a_i64_atomic_store);
+          in_wasm32_tls_size:
+            second_tls_get(TLS_SIZE_SYM);
+          in_wasm32_tls_align:
+            second_tls_get(TLS_ALIGN_SYM);
+          in_wasm32_tls_base:
+            second_tls_get(TLS_BASE_SYM);
           else
             inherited pass_generate_code_cpu;
         end;

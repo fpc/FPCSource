@@ -95,3 +95,7 @@
   fpc_in_i64_atomic_store32  = fpc_in_cpu_first+71;
   fpc_in_i64_atomic_store    = fpc_in_cpu_first+72;
 
+  fpc_in_wasm32_tls_size  = fpc_in_cpu_first+73;
+  fpc_in_wasm32_tls_align = fpc_in_cpu_first+74;
+  fpc_in_wasm32_tls_base  = fpc_in_cpu_first+75;
+
