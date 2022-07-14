@@ -350,6 +350,17 @@ uses
       STACK_POINTER_SYM = '__stack_pointer';
       { The exception tag symbol, used for FPC exceptions }
       FPC_EXCEPTION_TAG_SYM = '__FPC_exception';
+      { Immutable global variable, created by the linker, when multithreading
+        support is enabled. Contains the total size (plus padding) of all the
+        threadvars, used by the program. }
+      TLS_SIZE_SYM = '__tls_size';
+      { Immutable global variable, created by the linker, when multithreading
+        support is enabled. Contains the alignment requirement for the thread
+        local block. }
+      TLS_ALIGN_SYM = '__tls_align';
+      { Mutable global variable, created by the linker, when multithreading
+        support is enabled. }
+      TLS_BASE_SYM = '__tls_base';
 
 {*****************************************************************************
                                   Helpers
