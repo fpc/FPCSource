@@ -96,8 +96,8 @@ procedure tlinkerwasi.SetDefaultInfo;
 begin
   with Info do
     begin
-      ExeCmd[1] := 'wasm-ld $SONAME $GCSECTIONS $MAP -o $EXE';
-      DllCmd[1] := 'wasm-ld $SONAME $GCSECTIONS $MAP -o $EXE';
+      ExeCmd[1] := 'wasm-ld -m wasm32 $SONAME $GCSECTIONS $MAP -o $EXE';
+      DllCmd[1] := 'wasm-ld -m wasm32 $SONAME $GCSECTIONS $MAP -o $EXE';
     end;
 end;
 
