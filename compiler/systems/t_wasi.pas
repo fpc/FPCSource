@@ -96,8 +96,8 @@ procedure tlinkerwasi.SetDefaultInfo;
 begin
   with Info do
     begin
-      ExeCmd[1] := 'wasm-ld -m wasm32 $SONAME $GCSECTIONS $MAP -o $EXE';
-      DllCmd[1] := 'wasm-ld -m wasm32 $SONAME $GCSECTIONS $MAP -o $EXE';
+      ExeCmd[1] := 'wasm-ld -m wasm32 $SONAME $GCSECTIONS $MAP -z stack-size=$STACKSIZE -o $EXE';
+      DllCmd[1] := 'wasm-ld -m wasm32 $SONAME $GCSECTIONS $MAP -z stack-size=$STACKSIZE -o $EXE';
     end;
 end;
 
@@ -152,7 +152,7 @@ begin
 
   if ts_wasm_threads in current_settings.targetswitches then
     begin
-      cmdstr := cmdstr + ' --import-memory --shared-memory --initial-memory=16777216 --max-memory=16777216 -z stack-size=5242880 --global-base=1024';
+      cmdstr := cmdstr + ' --import-memory --shared-memory --initial-memory=16777216 --max-memory=16777216 --global-base=1024';
     end;
 
   if (cs_link_strip in current_settings.globalswitches) then
@@ -165,6 +165,7 @@ begin
   //Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   //Replace(cmdstr,'$INIT',InitStr);
   //Replace(cmdstr,'$FINI',FiniStr);
+  Replace(cmdstr,'$STACKSIZE',tostr(stacksize));
   Replace(cmdstr,'$SONAME',SoNameStr);
   Replace(cmdstr,'$MAP',mapstr);
   //Replace(cmdstr,'$LTO',ltostr);
@@ -226,6 +227,7 @@ begin
   //Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   //Replace(cmdstr,'$INIT',InitStr);
   //Replace(cmdstr,'$FINI',FiniStr);
+  Replace(cmdstr,'$STACKSIZE',tostr(stacksize));
   Replace(cmdstr,'$SONAME',SoNameStr);
   Replace(cmdstr,'$MAP',mapstr);
   //Replace(cmdstr,'$LTO',ltostr);
