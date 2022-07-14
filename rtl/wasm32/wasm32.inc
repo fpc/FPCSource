@@ -15,6 +15,10 @@
 
  **********************************************************************}
 
+{$ifdef FPC_WASM_THREADS}
+procedure fpc_wasm32_init_tls(memory: Pointer);external name '__wasm_init_tls';
+{$endif FPC_WASM_THREADS}
+
 procedure fpc_cpuinit;
   begin
   end;

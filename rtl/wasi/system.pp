@@ -18,7 +18,11 @@ unit system;
 interface
 
 {$define FPC_IS_SYSTEM}
-{$define USE_NOTHREADMANAGER}
+{$ifdef FPC_WASM_THREADS}
+  {$define DISABLE_NO_THREAD_MANAGER}
+{$else FPC_WASM_THREADS}
+  {$define USE_NOTHREADMANAGER}
+{$endif FPC_WASM_THREADS}
 
 {$I systemh.inc}
 
