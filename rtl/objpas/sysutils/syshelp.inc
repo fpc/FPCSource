@@ -564,22 +564,17 @@ end;
 function TStringHelper.EndsWith(const AValue: string; IgnoreCase: Boolean): Boolean;
 
 Var
-  L : SizeInt;
-  S : String;
-  
+  L,NS : SizeInt;
+
 begin
   L:=system.Length(AVAlue);
-  Result:=L=0;
-  if Not Result then
-    begin
-    S:=system.Copy(Self,Length-L+1,L);
-    Result:=system.Length(S)=L;
-    if Result then
-      if IgnoreCase then
-        Result:=CompareText(S,AValue)=0
-      else
-        Result:=S=AValue;
-    end;
+  NS:=System.Length(Self);
+  Result:=L<=NS;
+  if Result then
+    if IgnoreCase then
+      Result:=SameText(System.Copy(Self,NS-L+1,L),AValue)
+    else
+      Result:=CompareChar(PChar(Pointer(Self))[NS-L],PChar(Pointer(AValue))^,L)=0;
 end;
 
 
@@ -1349,21 +1344,15 @@ function TStringHelper.StartsWith(const AValue: string; IgnoreCase: Boolean
   ): Boolean;
 Var
   L : SizeInt;
-  S : String;
-  
+
 begin
   L:=System.Length(AValue);
-  Result:=L<=0;
-  if not Result then
-    begin
-    S:=System.Copy(Self,1,L);
-    Result:=(System.Length(S)=L);
-    if Result then
-      if IgnoreCase then
-        Result:=SameText(S,aValue)
-      else
-        Result:=SameStr(S,AValue);
-    end;  
+  Result:=L<=System.Length(Self);
+  if Result then
+    if IgnoreCase then
+      Result:=SameText(System.Copy(Self,1,L),AValue)
+    else
+      Result:=CompareChar(PChar(Pointer(Self))^,PChar(Pointer(AValue))^,L)=0;
 end;
 
 
