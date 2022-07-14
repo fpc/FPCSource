@@ -105,7 +105,7 @@ unit i_wasi;
                 maxCrecordalign : 16
               );
             first_parm_offset : 0;
-            stacksize   : 262144;
+            stacksize   : 65536;
             stackalign   : 4;
             abi          : abi_default;
             llvmdatalayout : 'todo';
