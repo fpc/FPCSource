@@ -905,15 +905,15 @@ unit i_embed;
                 jumpalignskipmax    : 0;
                 coalescealign   : 0;
                 coalescealignskipmax: 0;
-                constalignmin   : 0;
-                constalignmax   : 4;
+                constalignmin   : 4;
+                constalignmax   : 16;
                 varalignmin     : 4;
-                varalignmax     : 4;
+                varalignmax     : 16;
                 localalignmin   : 4;
-                localalignmax   : 4;
+                localalignmax   : 16;
                 recordalignmin  : 0;
-                recordalignmax  : 2;
-                maxCrecordalign : 4
+                recordalignmax  : 16;
+                maxCrecordalign : 16
               );
             first_parm_offset : 0;
             stacksize   : 65536;
