@@ -373,10 +373,10 @@ begin
   Result:=0;
   aClassName:=GetName(Intf);
   aPasIntfName:=GetPasIntfName(Intf);
-  AddLn('function Cast(Intf: IJSObject): '+aPasIntfName+';');
-  Code:='function '+aClassName+'.Cast(Intf: IJSObject): '+aPasIntfName+';'+sLineBreak;
+  AddLn('class function Cast(Intf: IJSObject): '+aPasIntfName+';');
+  Code:='class function '+aClassName+'.Cast(Intf: IJSObject): '+aPasIntfName+';'+sLineBreak;
   Code:=Code+'begin'+sLineBreak;
-  Code:=Code+'  Result:='+aClassName+'.CreateCast(Intf);'+sLineBreak;
+  Code:=Code+'  Result:='+aClassName+'.Cast(Intf);'+sLineBreak;
   Code:=Code+'end;'+sLineBreak;
   IncludeImplementationCode.Add(Code);
 end;
