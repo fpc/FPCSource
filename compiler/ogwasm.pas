@@ -1123,11 +1123,13 @@ implementation
                 relout:=FWasmRelocationCodeTable;
                 relcount:=@FWasmRelocationCodeTableEntriesCount;
               end
-            else
+            else if objsec.IsData then
               begin
                 relout:=FWasmRelocationDataTable;
                 relcount:=@FWasmRelocationDataTableEntriesCount;
-              end;
+              end
+            else
+              continue;
             for ri:=0 to objsec.ObjRelocations.Count-1 do
               begin
                 objrel:=TWasmObjRelocation(objsec.ObjRelocations[ri]);
@@ -1300,7 +1302,7 @@ implementation
             objsec:=TWasmObjSection(Data.ObjSectionList[i]);
             if objsec.IsCode then
               objsec.SegIdx:=-1
-            else
+            else if objsec.IsData then
               begin
                 objsec.SegIdx:=segment_count;
                 objsec.SegOfs:=cur_seg_ofs;
@@ -1634,26 +1636,33 @@ implementation
               end
             else if (objsym.typ in [AT_DATA,AT_TLS]) or ((objsym.typ=AT_NONE) and (objsym.bind=AB_EXTERNAL)) then
               begin
-                objsym.SymbolIndex:=FWasmSymbolTableEntriesCount;
-                Inc(FWasmSymbolTableEntriesCount);
-                WriteByte(FWasmSymbolTable,Ord(SYMTAB_DATA));
-                if objsym.bind=AB_GLOBAL then
-                  SymbolFlags:=0
-                else if objsym.bind=AB_LOCAL then
-                  SymbolFlags:=WASM_SYM_BINDING_LOCAL
-                else if objsym.bind=AB_EXTERNAL then
-                  SymbolFlags:=WASM_SYM_UNDEFINED
-                else
-                  internalerror(2021092506);
-                if (objsym.typ=AT_TLS) and (ts_wasm_threads in current_settings.targetswitches) then
-                  SymbolFlags:=(SymbolFlags and not WASM_SYM_BINDING_LOCAL) or WASM_SYM_TLS;
-                WriteUleb(FWasmSymbolTable,SymbolFlags);
-                WriteName(FWasmSymbolTable,objsym.Name);
-                if objsym.bind<>AB_EXTERNAL then
+                if (objsym.bind<>AB_EXTERNAL) and TWasmObjSection(objsym.objsection).IsDebug then
                   begin
-                    WriteUleb(FWasmSymbolTable,TWasmObjSection(objsym.objsection).SegIdx);
-                    WriteUleb(FWasmSymbolTable,objsym.offset);
-                    WriteUleb(FWasmSymbolTable,objsym.size);
+                    {todo: debug symbols}
+                  end
+                else
+                  begin
+                    objsym.SymbolIndex:=FWasmSymbolTableEntriesCount;
+                    Inc(FWasmSymbolTableEntriesCount);
+                    WriteByte(FWasmSymbolTable,Ord(SYMTAB_DATA));
+                    if objsym.bind=AB_GLOBAL then
+                      SymbolFlags:=0
+                    else if objsym.bind=AB_LOCAL then
+                      SymbolFlags:=WASM_SYM_BINDING_LOCAL
+                    else if objsym.bind=AB_EXTERNAL then
+                      SymbolFlags:=WASM_SYM_UNDEFINED
+                    else
+                      internalerror(2021092506);
+                    if (objsym.typ=AT_TLS) and (ts_wasm_threads in current_settings.targetswitches) then
+                      SymbolFlags:=(SymbolFlags and not WASM_SYM_BINDING_LOCAL) or WASM_SYM_TLS;
+                    WriteUleb(FWasmSymbolTable,SymbolFlags);
+                    WriteName(FWasmSymbolTable,objsym.Name);
+                    if objsym.bind<>AB_EXTERNAL then
+                      begin
+                        WriteUleb(FWasmSymbolTable,TWasmObjSection(objsym.objsection).SegIdx);
+                        WriteUleb(FWasmSymbolTable,objsym.offset);
+                        WriteUleb(FWasmSymbolTable,objsym.size);
+                      end;
                   end;
               end;
           end;
