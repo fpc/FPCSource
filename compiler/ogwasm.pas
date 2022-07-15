@@ -1237,13 +1237,43 @@ implementation
 
     function TWasmObjOutput.writeData(Data:TObjData):boolean;
       var
+        section_nr: Integer;
+
+        procedure MaybeWriteDebugSection(const sn: string; st: TWasmCustomSectionType; var debug_section_nr: Integer);
+          var
+            i: Integer;
+            objsec: TWasmObjSection;
+          begin
+            for i:=0 to Data.ObjSectionList.Count-1 do
+              begin
+                objsec:=TWasmObjSection(Data.ObjSectionList[i]);
+                if objsec.Name=sn then
+                  begin
+                    debug_section_nr:=section_nr;
+                    Inc(section_nr);
+                    if oso_Data in objsec.SecOptions then
+                      begin
+                        objsec.Data.seek(0);
+                        CopyDynamicArray(objsec.Data,FWasmCustomSections[st],objsec.Size);
+                      end
+                    else
+                      WriteZeros(FWasmCustomSections[st],objsec.Size);
+                    WriteWasmCustomSection(st);
+                  end;
+              end;
+          end;
+
+      var
         i: Integer;
         objsec: TWasmObjSection;
         segment_count: Integer = 0;
         cur_seg_ofs: qword = 0;
         types_count,
         imports_count, NextImportFunctionIndex, NextFunctionIndex,
-        section_nr, code_section_nr, data_section_nr,
+        code_section_nr, data_section_nr,
+        debug_abbrev_section_nr,debug_info_section_nr,debug_str_section_nr,
+        debug_line_section_nr,debug_frame_section_nr,debug_aranges_section_nr,
+        debug_ranges_section_nr,
         NextGlobalIndex, NextTagIndex: Integer;
         import_globals_count: Integer = 0;
         globals_count: Integer = 0;
@@ -1714,6 +1744,13 @@ implementation
 
         code_section_nr:=-1;
         data_section_nr:=-1;
+        debug_abbrev_section_nr:=-1;
+        debug_info_section_nr:=-1;
+        debug_str_section_nr:=-1;
+        debug_line_section_nr:=-1;
+        debug_frame_section_nr:=-1;
+        debug_aranges_section_nr:=-1;
+        debug_ranges_section_nr:=-1;
         section_nr:=0;
 
         WriteWasmSection(wsiType);
@@ -1751,6 +1788,14 @@ implementation
             data_section_nr:=section_nr;
             Inc(section_nr);
           end;
+
+        MaybeWriteDebugSection('.debug_abbrev',wcstDebugAbbrev,debug_abbrev_section_nr);
+        MaybeWriteDebugSection('.debug_info',wcstDebugInfo,debug_info_section_nr);
+        MaybeWriteDebugSection('.debug_str',wcstDebugStr,debug_str_section_nr);
+        MaybeWriteDebugSection('.debug_line',wcstDebugLine,debug_line_section_nr);
+        MaybeWriteDebugSection('.debug_frame',wcstDebugFrame,debug_frame_section_nr);
+        MaybeWriteDebugSection('.debug_aranges',wcstDebugAranges,debug_aranges_section_nr);
+        MaybeWriteDebugSection('.debug_ranges',wcstDebugRanges,debug_ranges_section_nr);
 
         WriteRelocationCodeTable(code_section_nr);
         if segment_count>0 then
