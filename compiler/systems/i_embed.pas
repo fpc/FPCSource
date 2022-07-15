@@ -916,8 +916,8 @@ unit i_embed;
                 maxCrecordalign : 4
               );
             first_parm_offset : 0;
-            stacksize   : 262144;
-            stackalign   : 4;
+            stacksize   : 65536;
+            stackalign   : 16;
             abi          : abi_default;
             llvmdatalayout : 'todo';
           );
