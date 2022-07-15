@@ -2155,7 +2155,7 @@ constructor TLinkerEmbedded_Wasm.Create;
 
 procedure TLinkerEmbedded_Wasm.SetDefaultInfo;
   begin
-    Info.DllCmd[1] := 'wasm-ld -m wasm32 $SONAME $GCSECTIONS -z stack-size=$STACKSIZE -o $EXE';
+    Info.DllCmd[1] := 'wasm-ld -m wasm32 $SONAME $GCSECTIONS $MAP -z stack-size=$STACKSIZE -o $EXE';
     //Info.DllCmd[2] := 'wasmtool --exportrename $INPUT $EXE';
   end;
 
@@ -2174,6 +2174,9 @@ function TLinkerEmbedded_Wasm.MakeSharedLibrary: boolean;
   begin
     //Result := true;
     //Result:=inherited MakeSharedLibrary;
+    mapstr:='';
+    if (cs_link_map in current_settings.globalswitches) then
+      mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.sharedlibfilename,'.map'));
     if (cs_link_smart in current_settings.globalswitches) and
        create_smartlink_sections then
      GCSectionsStr:='--gc-sections'
@@ -2207,7 +2210,7 @@ function TLinkerEmbedded_Wasm.MakeSharedLibrary: boolean;
     //Replace(cmdstr,'$FINI',FiniStr);
     Replace(cmdstr,'$STACKSIZE',tostr(stacksize));
     Replace(cmdstr,'$SONAME',SoNameStr);
-    //Replace(cmdstr,'$MAP',mapstr);
+    Replace(cmdstr,'$MAP',mapstr);
     //Replace(cmdstr,'$LTO',ltostr);
     Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
     writeln(utilsprefix+binstr,' ',cmdstr);
