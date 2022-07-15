@@ -156,6 +156,18 @@ implementation
       intfdef.typesym:=pvdef.typesym;
       pvdef.typesym:=nil;
 
+      intfdef.defoptions:=intfdef.defoptions+pvdef.defoptions*[df_generic,df_specialization];
+      { also inherit the general flags from the surrounding structured type or
+        function }
+      if assigned(current_structdef) then
+        begin
+          intfdef.defoptions:=intfdef.defoptions+current_structdef.defoptions*[df_generic,df_specialization];
+        end
+      else if assigned(current_procinfo) then
+        begin
+          intfdef.defoptions:=intfdef.defoptions+current_procinfo.procdef.defoptions*[df_generic,df_specialization];
+        end;
+
       if cs_generate_rtti in current_settings.localswitches then
         include(intfdef.objectoptions,oo_can_have_published);
 
@@ -178,24 +190,26 @@ implementation
       intfdef.symtable.insertsym(invokedef.procsym);
       intfdef.symtable.insertdef(invokedef);
 
-      if pvdef.is_generic or pvdef.is_specialization then
+      { we need to do this even if the def isn't a generic/specialization itself,
+        but *belongs* to one }
+      if intfdef.defoptions*[df_generic,df_specialization]<>[] then
         begin
           if assigned(pvdef.genericdef) and (pvdef.genericdef.typ<>objectdef) then
             internalerror(2021040501);
           intfdef.genericdef:=pvdef.genericdef;
-          intfdef.defoptions:=intfdef.defoptions+(pvdef.defoptions*[df_generic,df_specialization]);
           { in case of a generic we move all involved syms/defs to the interface }
           intfdef.genericparas:=pvdef.genericparas;
           pvdef.genericparas:=nil;
-          for i:=0 to intfdef.genericparas.count-1 do
-            begin
-              sym:=tsym(intfdef.genericparas[i]);
-              if sym.owner<>pvdef.parast then
-                continue;
-              sym.changeowner(intfdef.symtable);
-              if (sym.typ=typesym) and (ttypesym(sym).typedef.owner=pvdef.parast) then
-                ttypesym(sym).typedef.changeowner(intfdef.symtable);
-            end;
+          if assigned(intfdef.genericparas) then
+            for i:=0 to intfdef.genericparas.count-1 do
+              begin
+                sym:=tsym(intfdef.genericparas[i]);
+                if sym.owner<>pvdef.parast then
+                  continue;
+                sym.changeowner(intfdef.symtable);
+                if (sym.typ=typesym) and (ttypesym(sym).typedef.owner=pvdef.parast) then
+                  ttypesym(sym).typedef.changeowner(intfdef.symtable);
+              end;
         end;
 
       { now move the symtable over }
