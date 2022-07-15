@@ -2155,7 +2155,7 @@ constructor TLinkerEmbedded_Wasm.Create;
 
 procedure TLinkerEmbedded_Wasm.SetDefaultInfo;
   begin
-    Info.DllCmd[1] := 'wasm-ld $SONAME $GCSECTIONS -o $EXE';
+    Info.DllCmd[1] := 'wasm-ld $SONAME $GCSECTIONS -z stack-size=$STACKSIZE -o $EXE';
     //Info.DllCmd[2] := 'wasmtool --exportrename $INPUT $EXE';
   end;
 
@@ -2205,6 +2205,7 @@ function TLinkerEmbedded_Wasm.MakeSharedLibrary: boolean;
     //Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
     //Replace(cmdstr,'$INIT',InitStr);
     //Replace(cmdstr,'$FINI',FiniStr);
+    Replace(cmdstr,'$STACKSIZE',tostr(stacksize));
     Replace(cmdstr,'$SONAME',SoNameStr);
     //Replace(cmdstr,'$MAP',mapstr);
     //Replace(cmdstr,'$LTO',ltostr);
