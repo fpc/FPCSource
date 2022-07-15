@@ -2155,7 +2155,7 @@ constructor TLinkerEmbedded_Wasm.Create;
 
 procedure TLinkerEmbedded_Wasm.SetDefaultInfo;
   begin
-    Info.DllCmd[1] := 'wasm-ld $SONAME $GCSECTIONS -z stack-size=$STACKSIZE -o $EXE';
+    Info.DllCmd[1] := 'wasm-ld -m wasm32 $SONAME $GCSECTIONS -z stack-size=$STACKSIZE -o $EXE';
     //Info.DllCmd[2] := 'wasmtool --exportrename $INPUT $EXE';
   end;
 
