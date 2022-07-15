@@ -87,6 +87,7 @@ interface
         FileSectionOfs: qword;
         function IsCode: Boolean;
         function IsData: Boolean;
+        function IsDebug: Boolean;
       end;
 
       { TWasmObjData }
@@ -389,7 +390,15 @@ implementation
 
     function TWasmObjSection.IsData: Boolean;
       begin
-        result:=not IsCode;
+        result:=not (IsCode or IsDebug);
+      end;
+
+    function TWasmObjSection.IsDebug: Boolean;
+      const
+        DebugPrefix = '.debug';
+      begin
+        result:=(Length(Name)>=Length(DebugPrefix)) and
+          (Copy(Name,1,Length(DebugPrefix))=DebugPrefix);
       end;
 
 {****************************************************************************
