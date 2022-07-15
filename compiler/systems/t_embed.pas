@@ -2185,7 +2185,7 @@ function TLinkerEmbedded_Wasm.MakeSharedLibrary: boolean;
 
     SoNameStr:='';
     SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
-    Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
+    Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
 
     tmp := TCmdStrListItem(ObjectFiles.First);
     while Assigned(tmp) do begin
