@@ -51,7 +51,23 @@ type
     wcstRelocCode,
     wcstRelocData,
     wcstProducers,
-    wcstTargetFeatures);
+    wcstTargetFeatures,
+
+    wcstDebugFrame,
+    wcstDebugInfo,
+    wcstDebugLine,
+    wcstDebugAbbrev,
+    wcstDebugAranges,
+    wcstDebugRanges,
+    wcstDebugStr,
+
+    wcstRelocDebugFrame,
+    wcstRelocDebugInfo,
+    wcstRelocDebugLine,
+    wcstRelocDebugAbbrev,
+    wcstRelocDebugAranges,
+    wcstRelocDebugRanges,
+    wcstRelocDebugStr);
 
 const
   WasmCustomSectionName: array [TWasmCustomSectionType] of string =
@@ -59,7 +75,23 @@ const
      'reloc.CODE',
      'reloc.DATA',
      'producers',
-     'target_features');
+     'target_features',
+
+     '.debug_frame',
+     '.debug_info',
+     '.debug_line',
+     '.debug_abbrev',
+     '.debug_aranges',
+     '.debug_ranges',
+     '.debug_str',
+
+     'reloc..debug_frame',
+     'reloc..debug_info',
+     'reloc..debug_line',
+     'reloc..debug_abbrev',
+     'reloc..debug_aranges',
+     'reloc..debug_ranges',
+     'reloc..debug_str');
 
 type
   TWasmRelocationType = (
