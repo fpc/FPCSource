@@ -2172,8 +2172,10 @@ function TLinkerEmbedded_Wasm.MakeSharedLibrary: boolean;
     tmp : TCmdStrListItem;
     tempFileName : ansistring;
   begin
-    //Result := true;
-    //Result:=inherited MakeSharedLibrary;
+    Result:=false;
+    if not(cs_link_nolink in current_settings.globalswitches) then
+      Message1(exec_i_linking,current_module.sharedlibfilename);
+
     mapstr:='';
     if (cs_link_map in current_settings.globalswitches) then
       mapstr:='-Map '+maybequoted(ChangeFileExt(current_module.sharedlibfilename,'.map'));
