@@ -96,8 +96,8 @@ procedure tlinkerwasi.SetDefaultInfo;
 begin
   with Info do
     begin
-      ExeCmd[1] := 'wasm-ld -m wasm32 $SONAME $GCSECTIONS $MAP -z stack-size=$STACKSIZE -o $EXE';
-      DllCmd[1] := 'wasm-ld -m wasm32 $SONAME $GCSECTIONS $MAP -z stack-size=$STACKSIZE -o $EXE';
+      ExeCmd[1] := 'wasm-ld -m wasm32 $SONAME $GCSECTIONS $MAP -z stack-size=$STACKSIZE $OPT -o $EXE';
+      DllCmd[1] := 'wasm-ld -m wasm32 $SONAME $GCSECTIONS $MAP -z stack-size=$STACKSIZE $OPT -o $EXE';
     end;
 end;
 
@@ -161,7 +161,7 @@ begin
      cmdstr := cmdstr + ' --strip-all';
    end;
 
-  //Replace(cmdstr,'$OPT',Info.ExtraOptions);
+  Replace(cmdstr,'$OPT',Info.ExtraOptions);
   //Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   //Replace(cmdstr,'$INIT',InitStr);
   //Replace(cmdstr,'$FINI',FiniStr);
@@ -223,7 +223,7 @@ begin
      cmdstr := cmdstr + ' --strip-all';
    end;
 
-  //Replace(cmdstr,'$OPT',Info.ExtraOptions);
+  Replace(cmdstr,'$OPT',Info.ExtraOptions);
   //Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   //Replace(cmdstr,'$INIT',InitStr);
   //Replace(cmdstr,'$FINI',FiniStr);
