@@ -86,6 +86,7 @@ interface
         SegSymIdx: Integer;
         SegOfs: qword;
         FileSectionOfs: qword;
+        MainFuncSymbol: TWasmObjSymbol;
         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);override;
         function IsCode: Boolean;
         function IsData: Boolean;
@@ -171,6 +172,7 @@ interface
         procedure WriteLinkingSubsection(wlst: TWasmLinkingSubsectionType);
         procedure DoRelocations;
         procedure WriteRelocations;
+        function FindFunctionSymbol(Symbol: TWasmObjSymbol): TWasmObjSymbol;
       protected
         function writeData(Data:TObjData):boolean;override;
       public
@@ -402,6 +404,7 @@ implementation
         inherited create(AList, Aname, Aalign, Aoptions);
         SegIdx:=-1;
         SegSymIdx:=-1;
+        MainFuncSymbol:=nil;
       end;
 
     function TWasmObjSection.IsCode: Boolean;
@@ -1166,6 +1169,7 @@ implementation
         objrel: TWasmObjRelocation;
         relout: tdynamicarray;
         relcount: PInteger;
+        FuncSym: TWasmObjSymbol;
       begin
         for si:=0 to FData.ObjSectionList.Count-1 do
           begin
@@ -1293,7 +1297,15 @@ implementation
                         end
                       else if assigned(objrel.symbol) and assigned(objrel.symbol.objsection) and TWasmObjSection(objrel.symbol.objsection).IsCode then
                         begin
-                          //Writeln('todo: relocation to code: ', objrel.symbol.name);
+                          Inc(relcount^);
+                          WriteByte(relout,Ord(R_WASM_FUNCTION_OFFSET_I32));
+                          WriteUleb(relout,objrel.DataOffset+objsec.FileSectionOfs);
+                          FuncSym:=FindFunctionSymbol(TWasmObjSymbol(objrel.Symbol));
+			  if FuncSym.SymbolIndex<0 then
+                            message1(asmw_e_illegal_unset_index,FuncSym.Name)
+                          else
+                            WriteUleb(relout,FuncSym.SymbolIndex);
+                          WriteSleb(relout,objrel.Addend+objrel.symbol.address);  { addend to add to the address }
                         end
                       else
                         begin
@@ -1346,6 +1358,11 @@ implementation
                 end;
               end;
           end;
+      end;
+
+    function TWasmObjOutput.FindFunctionSymbol(Symbol: TWasmObjSymbol): TWasmObjSymbol;
+      begin
+        Result:=TWasmObjSection(Symbol.objsection).MainFuncSymbol;
       end;
 
     function TWasmObjOutput.writeData(Data:TObjData):boolean;
@@ -1425,7 +1442,10 @@ implementation
             if IsExternalFunction(objsym) then
               Inc(import_functions_count);
             if (objsym.typ=AT_FUNCTION) and not objsym.IsAlias then
-              Inc(functions_count);
+              begin
+                TWasmObjSection(objsym.objsection).MainFuncSymbol:=objsym;
+                Inc(functions_count);
+              end;
             if IsExportedFunction(objsym) then
               Inc(export_functions_count);
           end;
