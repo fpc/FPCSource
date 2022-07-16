@@ -83,8 +83,10 @@ interface
       TWasmObjSection = class(TObjSection)
       public
         SegIdx: Integer;
+        SegSymIdx: Integer;
         SegOfs: qword;
         FileSectionOfs: qword;
+        constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);override;
         function IsCode: Boolean;
         function IsData: Boolean;
         function IsDebug: Boolean;
@@ -128,6 +130,20 @@ interface
         FWasmRelocationCodeTableEntriesCount: Integer;
         FWasmRelocationDataTable: tdynamicarray;
         FWasmRelocationDataTableEntriesCount: Integer;
+        FWasmRelocationDebugFrameTable: tdynamicarray;
+        FWasmRelocationDebugFrameTableEntriesCount: Integer;
+        FWasmRelocationDebugInfoTable: tdynamicarray;
+        FWasmRelocationDebugInfoTableEntriesCount: Integer;
+        FWasmRelocationDebugLineTable: tdynamicarray;
+        FWasmRelocationDebugLineTableEntriesCount: Integer;
+        FWasmRelocationDebugAbbrevTable: tdynamicarray;
+        FWasmRelocationDebugAbbrevTableEntriesCount: Integer;
+        FWasmRelocationDebugArangesTable: tdynamicarray;
+        FWasmRelocationDebugArangesTableEntriesCount: Integer;
+        FWasmRelocationDebugRangesTable: tdynamicarray;
+        FWasmRelocationDebugRangesTableEntriesCount: Integer;
+        FWasmRelocationDebugStrTable: tdynamicarray;
+        FWasmRelocationDebugStrTableEntriesCount: Integer;
         FWasmSymbolTable: tdynamicarray;
         FWasmSymbolTableEntriesCount: Integer;
         FWasmSections: array [TWasmSectionID] of tdynamicarray;
@@ -151,6 +167,7 @@ interface
         procedure WriteSymbolTable;
         procedure WriteRelocationCodeTable(CodeSectionIndex: Integer);
         procedure WriteRelocationDataTable(DataSectionIndex: Integer);
+        procedure MaybeWriteRelocationDebugTable(cst: TWasmCustomSectionType; SectionIndex: Integer; EntriesCount: Integer; Table: tdynamicarray);
         procedure WriteLinkingSubsection(wlst: TWasmLinkingSubsectionType);
         procedure DoRelocations;
         procedure WriteRelocations;
@@ -379,6 +396,13 @@ implementation
 {****************************************************************************
                               TWasmObjSection
 ****************************************************************************}
+
+    constructor TWasmObjSection.create(AList: TFPHashObjectList; const Aname: string; Aalign: longint; Aoptions: TObjSectionOptions);
+      begin
+        inherited create(AList, Aname, Aalign, Aoptions);
+        SegIdx:=-1;
+        SegSymIdx:=-1;
+      end;
 
     function TWasmObjSection.IsCode: Boolean;
       const
@@ -613,11 +637,22 @@ implementation
                 internalerror(2021092607);
               if not assigned(p) then
                 internalerror(2021092608);
-              objreloc:=TWasmObjRelocation.CreateSymbol(CurrObjSec.Size,p,Reloctype);
-              objreloc.Addend:=Data;
-              CurrObjSec.ObjRelocations.Add(objreloc);
-              Data:=NtoLE(Data);
-              writebytes(Data,4);
+              if (p.objsection<>nil) and TWasmObjSection(p.objsection).IsDebug and
+                 (p.bind<>AB_COMMON) then
+                begin
+                  CurrObjSec.addsectionreloc(CurrObjSec.mempos+CurrObjSec.Size,CurrObjSec,RELOC_ABSOLUTE);
+                  inc(data,p.address);
+                  Data:=NtoLE(Data);
+                  writebytes(Data,4);
+                end
+              else
+                begin
+                  objreloc:=TWasmObjRelocation.CreateSymbol(CurrObjSec.Size,p,Reloctype);
+                  objreloc.Addend:=Data;
+                  CurrObjSec.ObjRelocations.Add(objreloc);
+                  Data:=NtoLE(Data);
+                  writebytes(Data,4);
+                end;
             end;
           RELOC_TYPE_INDEX_LEB:
             begin
@@ -1014,6 +1049,18 @@ implementation
         CopyDynamicArray(FWasmRelocationDataTable,FWasmCustomSections[wcstRelocData],FWasmRelocationDataTable.size);
       end;
 
+    procedure TWasmObjOutput.MaybeWriteRelocationDebugTable(cst: TWasmCustomSectionType; SectionIndex: Integer; EntriesCount: Integer; Table: tdynamicarray);
+      begin
+        if EntriesCount>0 then
+          begin
+            WriteUleb(FWasmCustomSections[cst],SectionIndex);
+            WriteUleb(FWasmCustomSections[cst],EntriesCount);
+            Table.seek(0);
+            CopyDynamicArray(Table,FWasmCustomSections[cst],Table.size);
+            WriteWasmCustomSection(cst);
+          end;
+      end;
+
     procedure TWasmObjOutput.WriteLinkingSubsection(wlst: TWasmLinkingSubsectionType);
       begin
         if FWasmLinkingSubsections[wlst].size>0 then
@@ -1072,7 +1119,12 @@ implementation
                     end;
                   RELOC_ABSOLUTE:
                     begin
-                      if not (IsExternalFunction(objrel.symbol) or (objrel.symbol.typ=AT_FUNCTION) or (objrel.symbol.bind=AB_EXTERNAL)) then
+                      if assigned(objrel.ObjSection) then
+                        begin
+                          { todo: should we do something here? }
+                          //Writeln('todo: section relocation');
+                        end
+                      else if not (IsExternalFunction(objrel.symbol) or (objrel.symbol.typ=AT_FUNCTION) or (objrel.symbol.bind=AB_EXTERNAL)) then
                         begin
                           objsec.Data.seek(objrel.DataOffset);
                           AddInt32(objsec.Data,objrel.symbol.offset+TWasmObjSection(objrel.symbol.objsection).SegOfs);
@@ -1128,6 +1180,48 @@ implementation
                 relout:=FWasmRelocationDataTable;
                 relcount:=@FWasmRelocationDataTableEntriesCount;
               end
+            else if objsec.IsDebug then
+              begin
+                case objsec.Name of
+                  '.debug_frame':
+                    begin
+                      relout:=FWasmRelocationDebugFrameTable;
+                      relcount:=@FWasmRelocationDebugFrameTableEntriesCount;
+                    end;
+                  '.debug_info':
+                    begin
+                      relout:=FWasmRelocationDebugInfoTable;
+                      relcount:=@FWasmRelocationDebugInfoTableEntriesCount;
+                    end;
+                  '.debug_line':
+                    begin
+                      relout:=FWasmRelocationDebugLineTable;
+                      relcount:=@FWasmRelocationDebugLineTableEntriesCount;
+                    end;
+                  '.debug_abbrev':
+                    begin
+                      relout:=FWasmRelocationDebugAbbrevTable;
+                      relcount:=@FWasmRelocationDebugAbbrevTableEntriesCount;
+                    end;
+                  '.debug_aranges':
+                    begin
+                      relout:=FWasmRelocationDebugArangesTable;
+                      relcount:=@FWasmRelocationDebugArangesTableEntriesCount;
+                    end;
+                  '.debug_ranges':
+                    begin
+                      relout:=FWasmRelocationDebugRangesTable;
+                      relcount:=@FWasmRelocationDebugRangesTableEntriesCount;
+                    end;
+                  '.debug_str':
+                    begin
+                      relout:=FWasmRelocationDebugStrTable;
+                      relcount:=@FWasmRelocationDebugStrTableEntriesCount;
+                    end;
+                  else
+                    internalerror(2022071601);
+                end;
+              end
             else
               continue;
             for ri:=0 to objsec.ObjRelocations.Count-1 do
@@ -1176,14 +1270,30 @@ implementation
                     end;
                   RELOC_ABSOLUTE:
                     begin
-                      if not assigned(objrel.symbol) then
-                        internalerror(2021092604);
-                      if IsExternalFunction(objrel.symbol) or (objrel.symbol.typ=AT_FUNCTION) then
+                      // todo: figure this out, why do these exist?
+                      //if assigned(objrel.symbol) and not assigned(objrel.symbol.objsection) then
+                      //  Writeln('!!! ', objrel.symbol.name);
+                      if assigned(objrel.objsection) then
+                        begin
+                          Inc(relcount^);
+                          WriteByte(relout,Ord(R_WASM_SECTION_OFFSET_I32));
+                          WriteUleb(relout,objrel.DataOffset+objsec.FileSectionOfs);
+			  if (TWasmObjSection(objrel.objsection).SegSymIdx<0) then
+                            message1(asmw_e_illegal_unset_index,objrel.objsection.name)
+                          else
+                            WriteUleb(relout,TWasmObjSection(objrel.objsection).SegSymIdx);
+                          WriteSleb(relout,objrel.Addend);  { addend to add to the address }
+                        end
+                      else if IsExternalFunction(objrel.symbol) or (objrel.symbol.typ=AT_FUNCTION) then
                         begin
                           Inc(relcount^);
                           WriteByte(relout,Ord(R_WASM_TABLE_INDEX_I32));
                           WriteUleb(relout,objrel.DataOffset+objsec.FileSectionOfs);
                           WriteUleb(relout,TWasmObjSymbol(objrel.symbol).SymbolIndex);
+                        end
+                      else if assigned(objrel.symbol) and assigned(objrel.symbol.objsection) and TWasmObjSection(objrel.symbol.objsection).IsCode then
+                        begin
+                          //Writeln('todo: relocation to code: ', objrel.symbol.name);
                         end
                       else
                         begin
@@ -1191,7 +1301,10 @@ implementation
                           WriteByte(relout,Ord(R_WASM_MEMORY_ADDR_I32));
                           WriteUleb(relout,objrel.DataOffset+objsec.FileSectionOfs);
 			  if (TWasmObjSymbol(objrel.symbol).SymbolIndex<0) then
-                            message1(asmw_e_illegal_unset_index,objrel.symbol.name)
+                            begin
+                              Writeln(objrel.symbol.objsection.Name, ' ', objrel.symbol.name, ' ', objsec.Name);
+                              message1(asmw_e_illegal_unset_index,objrel.symbol.name);
+                            end
                           else
                             WriteUleb(relout,TWasmObjSymbol(objrel.symbol).SymbolIndex);
                           WriteSleb(relout,objrel.Addend);  { addend to add to the address }
@@ -1697,23 +1810,6 @@ implementation
               end;
           end;
 
-        DoRelocations;
-
-        WriteUleb(FWasmSections[wsiCode],functions_count);
-        for i:=0 to Data.ObjSymbolList.Count-1 do
-          begin
-            objsym:=TWasmObjSymbol(Data.ObjSymbolList[i]);
-            if (objsym.typ=AT_FUNCTION) and not objsym.IsAlias then
-              WriteFunctionCode(FWasmSections[wsiCode],objsym);
-          end;
-
-        WriteRelocations;
-
-        WriteSymbolTable;
-        WriteLinkingSubsection(WASM_SYMBOL_TABLE);
-        if segment_count>0 then
-          WriteLinkingSubsection(WASM_SEGMENT_INFO);
-
         Writer.write(WasmModuleMagic,SizeOf(WasmModuleMagic));
         Writer.write(WasmVersion,SizeOf(WasmVersion));
 
@@ -1779,6 +1875,13 @@ implementation
             WriteWasmSection(wsiDataCount);
             Inc(section_nr);
           end;
+        WriteUleb(FWasmSections[wsiCode],functions_count);
+        for i:=0 to Data.ObjSymbolList.Count-1 do
+          begin
+            objsym:=TWasmObjSymbol(Data.ObjSymbolList[i]);
+            if (objsym.typ=AT_FUNCTION) and not objsym.IsAlias then
+              WriteFunctionCode(FWasmSections[wsiCode],objsym);
+          end;
         WriteWasmSection(wsiCode);
         code_section_nr:=section_nr;
         Inc(section_nr);
@@ -1797,6 +1900,63 @@ implementation
         MaybeWriteDebugSection('.debug_aranges',wcstDebugAranges,debug_aranges_section_nr);
         MaybeWriteDebugSection('.debug_ranges',wcstDebugRanges,debug_ranges_section_nr);
 
+        if debug_abbrev_section_nr<>-1 then
+          begin
+            TWasmObjSection(Data.ObjSectionList.Find('.debug_abbrev')).SegSymIdx:=FWasmSymbolTableEntriesCount;
+            Inc(FWasmSymbolTableEntriesCount);
+            WriteByte(FWasmSymbolTable,Ord(SYMTAB_SECTION));
+            WriteUleb(FWasmSymbolTable,WASM_SYM_BINDING_LOCAL);
+            WriteUleb(FWasmSymbolTable,debug_abbrev_section_nr);
+          end;
+        if debug_info_section_nr<>-1 then
+          begin
+            TWasmObjSection(Data.ObjSectionList.Find('.debug_info')).SegSymIdx:=FWasmSymbolTableEntriesCount;
+            Inc(FWasmSymbolTableEntriesCount);
+            WriteByte(FWasmSymbolTable,Ord(SYMTAB_SECTION));
+            WriteUleb(FWasmSymbolTable,WASM_SYM_BINDING_LOCAL);
+            WriteUleb(FWasmSymbolTable,debug_info_section_nr);
+          end;
+        if debug_str_section_nr<>-1 then
+          begin
+            TWasmObjSection(Data.ObjSectionList.Find('.debug_str')).SegSymIdx:=FWasmSymbolTableEntriesCount;
+            Inc(FWasmSymbolTableEntriesCount);
+            WriteByte(FWasmSymbolTable,Ord(SYMTAB_SECTION));
+            WriteUleb(FWasmSymbolTable,WASM_SYM_BINDING_LOCAL);
+            WriteUleb(FWasmSymbolTable,debug_str_section_nr);
+          end;
+        if debug_line_section_nr<>-1 then
+          begin
+            TWasmObjSection(Data.ObjSectionList.Find('.debug_line')).SegSymIdx:=FWasmSymbolTableEntriesCount;
+            Inc(FWasmSymbolTableEntriesCount);
+            WriteByte(FWasmSymbolTable,Ord(SYMTAB_SECTION));
+            WriteUleb(FWasmSymbolTable,WASM_SYM_BINDING_LOCAL);
+            WriteUleb(FWasmSymbolTable,debug_line_section_nr);
+          end;
+        if debug_frame_section_nr<>-1 then
+          begin
+            TWasmObjSection(Data.ObjSectionList.Find('.debug_frame')).SegSymIdx:=FWasmSymbolTableEntriesCount;
+            Inc(FWasmSymbolTableEntriesCount);
+            WriteByte(FWasmSymbolTable,Ord(SYMTAB_SECTION));
+            WriteUleb(FWasmSymbolTable,WASM_SYM_BINDING_LOCAL);
+            WriteUleb(FWasmSymbolTable,debug_frame_section_nr);
+          end;
+        if debug_aranges_section_nr<>-1 then
+          begin
+            TWasmObjSection(Data.ObjSectionList.Find('.debug_aranges')).SegSymIdx:=FWasmSymbolTableEntriesCount;
+            Inc(FWasmSymbolTableEntriesCount);
+            WriteByte(FWasmSymbolTable,Ord(SYMTAB_SECTION));
+            WriteUleb(FWasmSymbolTable,WASM_SYM_BINDING_LOCAL);
+            WriteUleb(FWasmSymbolTable,debug_aranges_section_nr);
+          end;
+
+        DoRelocations;
+        WriteRelocations;
+
+        WriteSymbolTable;
+        WriteLinkingSubsection(WASM_SYMBOL_TABLE);
+        if segment_count>0 then
+          WriteLinkingSubsection(WASM_SEGMENT_INFO);
+
         WriteRelocationCodeTable(code_section_nr);
         if segment_count>0 then
           WriteRelocationDataTable(data_section_nr);
@@ -1810,6 +1970,13 @@ implementation
             WriteWasmCustomSection(wcstRelocData);
             Inc(section_nr);
           end;
+        MaybeWriteRelocationDebugTable(wcstRelocDebugAbbrev,debug_abbrev_section_nr,FWasmRelocationDebugAbbrevTableEntriesCount,FWasmRelocationDebugAbbrevTable);
+        MaybeWriteRelocationDebugTable(wcstRelocDebugInfo,debug_info_section_nr,FWasmRelocationDebugInfoTableEntriesCount,FWasmRelocationDebugInfoTable);
+        MaybeWriteRelocationDebugTable(wcstRelocDebugStr,debug_str_section_nr,FWasmRelocationDebugStrTableEntriesCount,FWasmRelocationDebugStrTable);
+        MaybeWriteRelocationDebugTable(wcstRelocDebugLine,debug_line_section_nr,FWasmRelocationDebugLineTableEntriesCount,FWasmRelocationDebugLineTable);
+        MaybeWriteRelocationDebugTable(wcstRelocDebugFrame,debug_frame_section_nr,FWasmRelocationDebugFrameTableEntriesCount,FWasmRelocationDebugFrameTable);
+        MaybeWriteRelocationDebugTable(wcstRelocDebugAranges,debug_aranges_section_nr,FWasmRelocationDebugArangesTableEntriesCount,FWasmRelocationDebugArangesTable);
+        MaybeWriteRelocationDebugTable(wcstRelocDebugRanges,debug_ranges_section_nr,FWasmRelocationDebugRangesTableEntriesCount,FWasmRelocationDebugRangesTable);
         WriteWasmCustomSection(wcstProducers);
         Inc(section_nr);
         if ts_wasm_threads in current_settings.targetswitches then
@@ -1841,6 +2008,20 @@ implementation
         FWasmRelocationCodeTableEntriesCount:=0;
         FWasmRelocationDataTable:=tdynamicarray.create(SectionDataMaxGrow);
         FWasmRelocationDataTableEntriesCount:=0;
+        FWasmRelocationDebugFrameTable:=tdynamicarray.create(SectionDataMaxGrow);
+        FWasmRelocationDebugFrameTableEntriesCount:=0;
+        FWasmRelocationDebugInfoTable:=tdynamicarray.create(SectionDataMaxGrow);
+        FWasmRelocationDebugInfoTableEntriesCount:=0;
+        FWasmRelocationDebugLineTable:=tdynamicarray.create(SectionDataMaxGrow);
+        FWasmRelocationDebugLineTableEntriesCount:=0;
+        FWasmRelocationDebugAbbrevTable:=tdynamicarray.create(SectionDataMaxGrow);
+        FWasmRelocationDebugAbbrevTableEntriesCount:=0;
+        FWasmRelocationDebugArangesTable:=tdynamicarray.create(SectionDataMaxGrow);
+        FWasmRelocationDebugArangesTableEntriesCount:=0;
+        FWasmRelocationDebugRangesTable:=tdynamicarray.create(SectionDataMaxGrow);
+        FWasmRelocationDebugRangesTableEntriesCount:=0;
+        FWasmRelocationDebugStrTable:=tdynamicarray.create(SectionDataMaxGrow);
+        FWasmRelocationDebugStrTableEntriesCount:=0;
       end;
 
     destructor TWasmObjOutput.destroy;
@@ -1858,6 +2039,13 @@ implementation
         FWasmSymbolTable.Free;
         FWasmRelocationCodeTable.Free;
         FWasmRelocationDataTable.Free;
+        FWasmRelocationDebugFrameTable.Free;
+        FWasmRelocationDebugInfoTable.Free;
+        FWasmRelocationDebugLineTable.Free;
+        FWasmRelocationDebugAbbrevTable.Free;
+        FWasmRelocationDebugArangesTable.Free;
+        FWasmRelocationDebugRangesTable.Free;
+        FWasmRelocationDebugStrTable.Free;
         inherited destroy;
       end;
 
