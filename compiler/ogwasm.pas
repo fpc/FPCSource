@@ -1288,7 +1288,7 @@ implementation
                             WriteUleb(relout,TWasmObjSection(objrel.objsection).SegSymIdx);
                           WriteSleb(relout,objrel.Addend);  { addend to add to the address }
                         end
-                      else if IsExternalFunction(objrel.symbol) or (objrel.symbol.typ=AT_FUNCTION) then
+                      else if (IsExternalFunction(objrel.symbol) or (objrel.symbol.typ=AT_FUNCTION)) and not objsec.IsDebug then
                         begin
                           Inc(relcount^);
                           WriteByte(relout,Ord(R_WASM_TABLE_INDEX_I32));
