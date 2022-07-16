@@ -603,6 +603,10 @@ implementation
       begin
         if CurrObjSec=nil then
           internalerror(200403072);
+        { workaround crash, when generating debug info for threadvars, when multithreading is turned off.
+          todo: ensure the debug info for threadvars is actually correct, once we've got WebAssembly debug info working in general }
+        if (Reloctype=RELOC_DTPOFF) and not (ts_wasm_threads in current_settings.targetswitches) then
+          Reloctype:=RELOC_ABSOLUTE;
         objreloc:=nil;
         case Reloctype of
           RELOC_FUNCTION_INDEX_LEB:
