@@ -1844,6 +1844,14 @@ implementation
             WriteName(FWasmCustomSections[wcstTargetFeatures],'mutable-globals');
             WriteUleb(FWasmCustomSections[wcstTargetFeatures],$2B);
             WriteName(FWasmCustomSections[wcstTargetFeatures],'sign-ext');
+          end
+        else
+          begin
+            WriteUleb(FWasmCustomSections[wcstTargetFeatures],2);
+            WriteUleb(FWasmCustomSections[wcstTargetFeatures],$2B);
+            WriteName(FWasmCustomSections[wcstTargetFeatures],'bulk-memory');
+            WriteUleb(FWasmCustomSections[wcstTargetFeatures],$2B);
+            WriteName(FWasmCustomSections[wcstTargetFeatures],'sign-ext');
           end;
 
         { Write the producers section:
@@ -1999,11 +2007,8 @@ implementation
         MaybeWriteRelocationDebugTable(wcstRelocDebugRanges,debug_ranges_section_nr,FWasmRelocationDebugRangesTableEntriesCount,FWasmRelocationDebugRangesTable);
         WriteWasmCustomSection(wcstProducers);
         Inc(section_nr);
-        if ts_wasm_threads in current_settings.targetswitches then
-          begin
-            WriteWasmCustomSection(wcstTargetFeatures);
-            Inc(section_nr);
-          end;
+        WriteWasmCustomSection(wcstTargetFeatures);
+        Inc(section_nr);
 
         result:=true;
       end;
