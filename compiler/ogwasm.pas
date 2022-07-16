@@ -645,10 +645,13 @@ implementation
               if not assigned(p) then
                 internalerror(2021092608);
               if (p.objsection<>nil) and TWasmObjSection(p.objsection).IsDebug and
-                 (p.bind<>AB_COMMON) then
+                 (p.bind<>AB_COMMON) and (p.bind<>AB_EXTERNAL) then
                 begin
-                  CurrObjSec.addsectionreloc(CurrObjSec.mempos+CurrObjSec.Size,CurrObjSec,RELOC_ABSOLUTE);
-                  inc(data,p.address);
+                  objreloc:=TWasmObjRelocation.CreateSection(CurrObjSec.Size,p.objsection,RELOC_ABSOLUTE);
+                  objreloc.Addend:=Data+p.Address;
+                  CurrObjSec.ObjRelocations.Add(objreloc);
+                  {inc(data,p.address);}
+                  data:=0;
                   Data:=NtoLE(Data);
                   writebytes(Data,4);
                 end
