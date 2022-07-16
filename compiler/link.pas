@@ -82,6 +82,7 @@ interface
       TExternalLinker = class(TLinker)
       protected
          Function WriteSymbolOrderFile: TCmdStr;
+         Function GetSanitizersLibraryNameAndPath(const platformname, asanlibinfix: TCmdStr; out sanitizerLibraryDir, asanLibraryPath: TCmdStr): boolean;
       public
          Info : TLinkerInfo;
          Constructor Create;override;
@@ -173,7 +174,7 @@ Implementation
 {$ifdef hasUnix}
       baseunix,
 {$endif hasUnix}
-      cscript,globals,verbose,comphook,ppu,fpchash,
+      cscript,globals,verbose,comphook,ppu,fpchash,triplet,
       aasmbase,aasmcpu,
       ogmap;
 
@@ -675,6 +676,47 @@ Implementation
         symfile.WriteToDisk;
         result:=symfile.fn;
         symfile.Free;
+      end;
+
+
+    Function TExternalLinker.GetSanitizersLibraryNameAndPath(const platformname, asanlibinfix: TCmdStr; out sanitizerLibraryDir, asanLibraryPath: TCmdStr): boolean;
+      var
+        clang,
+        clangsearchdirs,
+        textline,
+        clangsearchdirspath: TCmdStr;
+        searchrec: TSearchRec;
+        searchres: longint;
+        clangsearchdirsfile: text;
+      begin
+        result:=false;
+        if (cs_sanitize_address in current_settings.moduleswitches) and
+           not(cs_link_on_target in current_settings.globalswitches) then
+          begin
+          { ask clang }
+          clang:=FindUtil('clang'+llvmutilssuffix);
+          if clang<>'' then
+            begin
+              clangsearchdirspath:=outputexedir+UniqueName('clangsearchdirs');
+              searchres:=shell(maybequoted(clang)+' -target '+targettriplet(triplet_llvm)+' -print-file-name=lib > '+maybequoted(clangsearchdirspath));
+              if searchres=0 then
+                begin
+                  AssignFile(clangsearchdirsfile,clangsearchdirspath);
+{$push}{$i-}
+                  reset(clangsearchdirsfile);
+{$pop}
+                  if ioresult=0 then
+                    begin
+                      readln(clangsearchdirsfile,textline);
+                      sanitizerLibraryDir:=FixFileName(textline+'/'+platformname);
+                      asanLibraryPath:=FixFileName(sanitizerLibraryDir+'/')+target_info.sharedClibprefix+'clang_rt.asan_'+asanlibinfix+'_dynamic'+target_info.sharedClibext;
+                      result:=FileExists(asanLibraryPath,false);
+                    end;
+                end;
+              if FileExists(clangsearchdirspath,false) then
+                DeleteFile(clangsearchdirspath);
+            end;
+          end;
       end;
 
 

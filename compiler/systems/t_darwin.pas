@@ -61,7 +61,7 @@ implementation
       function GetLibSearchPath: TCmdStr;
       function GetLibraries: TCmdStr;
 
-      function InitSanitizersLibraryNameAndPath(const platformname: TCmdStr; out sanitizerLibraryDir, asanLibraryPath: TCmdStr): boolean;
+      function GetSanitizerLibraryInfix: TCmdStr;
     public
       constructor Create;override;
       procedure SetDefaultInfo;override;
@@ -443,52 +443,16 @@ implementation
       end;
 
 
-    function tlinkerdarwin.InitSanitizersLibraryNameAndPath(const platformname: TCmdStr; out sanitizerLibraryDir, asanLibraryPath: TCmdStr): boolean;
-      var
-        clang,
-        clangsearchdirs,
-        textline,
-        clangsearchdirspath: TCmdStr;
-        searchrec: TSearchRec;
-        searchres: longint;
-        clangsearchdirsfile: text;
+    function tlinkerdarwin.GetSanitizerLibraryInfix: TCmdStr;
       begin
-        result:=false;
-        if (cs_sanitize_address in current_settings.moduleswitches) and
-           not(cs_link_on_target in current_settings.globalswitches) then
-          begin
-          { ask clang }
-          clang:=FindUtil('clang'+llvmutilssuffix);
-          if clang<>'' then
-            begin
-              clangsearchdirspath:=outputexedir+UniqueName('clangsearchdirs');
-              searchres:=shell(maybequoted(clang)+' -target '+targettriplet(triplet_llvm)+' -print-file-name=lib > '+clangsearchdirspath);
-              if searchres=0 then
-                begin
-                  AssignFile(clangsearchdirsfile,clangsearchdirspath);
-{$push}{$i-}
-                  reset(clangsearchdirsfile);
-{$pop}
-                  if ioresult=0 then
-                    begin
-                       readln(clangsearchdirsfile,textline);
-                       sanitizerLibraryDir:=FixFileName(textline+'/'+platformname);
-
-                       if target_info.system in systems_macosx then
-                         asanLibraryPath:=FixFileName(sanitizerLibraryDir+'/')+target_info.sharedClibprefix+'clang_rt.asan_osx_dynamic'+target_info.sharedClibext
-                       else if target_info.system in systems_ios then
-                         asanLibraryPath:=FixFileName(sanitizerLibraryDir+'/')+target_info.sharedClibprefix+'clang_rt.asan_ios_dynamic'+target_info.sharedClibext
-                       else if target_info.system in systems_iphonesym then
-                         asanLibraryPath:=FixFileName(sanitizerLibraryDir+'/')+target_info.sharedClibprefix+'clang_rt.asan_iossim_dynamic'+target_info.sharedClibext
-                       else
-                         internalerror(2022071010);
-                       result:=FileExists(asanLibraryPath,false);
-                    end;
-                end;
-              if FileExists(clangsearchdirspath,false) then
-                DeleteFile(clangsearchdirspath);
-            end;
-          end;
+        if target_info.system in systems_macosx then
+          result:='osx'
+        else if target_info.system in systems_ios then
+          result:='ios'
+        else if target_info.system in systems_iphonesym then
+          result:='iossim'
+        else
+          internalerror(2022071010);
       end;
 
 
@@ -589,7 +553,7 @@ implementation
       else
         Replace(cmdstr,'$ORDERSYMS','');
 
-      if InitSanitizersLibraryNameAndPath('darwin',sanitizerLibraryDir,asanLibraryName) then
+      if GetSanitizersLibraryNameAndPath('darwin',GetSanitizerLibraryInfix,sanitizerLibraryDir,asanLibraryName) then
         begin
           ObjectFiles.Concat(asanLibraryName);
           Replace(cmdstr,'$RPATH','-rpath '+sanitizerLibraryDir)
@@ -711,7 +675,7 @@ implementation
       else
         Replace(cmdstr,'$ORDERSYMS','');
       { add asan library if known }
-      if InitSanitizersLibraryNameAndPath('darwin',sanitizerLibraryDir,asanLibraryName) then
+      if GetSanitizersLibraryNameAndPath('darwin',GetSanitizerLibraryInfix,sanitizerLibraryDir,asanLibraryName) then
         begin
           ObjectFiles.Concat(asanLibraryName);
           Replace(cmdstr,'$RPATH','-rpath '+sanitizerLibraryDir)
