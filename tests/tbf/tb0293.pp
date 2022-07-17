@@ -12,4 +12,3 @@ const
 
 begin
 end.
-

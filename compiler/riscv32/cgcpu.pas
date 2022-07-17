@@ -73,13 +73,21 @@ unit cgcpu;
     procedure tcgrv32.init_register_allocators;
       begin
         inherited init_register_allocators;
-        rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
-          [RS_X10,RS_X11,RS_X12,RS_X13,RS_X14,RS_X15,RS_X16,RS_X17,
-           RS_X31,RS_X30,RS_X29,RS_X28,
-           RS_X5,RS_X6,RS_X7,
-           RS_X3,RS_X4,
-           RS_X9,RS_X27,RS_X26,RS_X25,RS_X24,RS_X23,RS_X22,
-           RS_X21,RS_X20,RS_X19,RS_X18],first_int_imreg,[]);
+        if CPURV_HAS_16REGISTERS in cpu_capabilities[current_settings.cputype] then
+          rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
+            [RS_X10,RS_X11,RS_X12,RS_X13,RS_X14,RS_X15,
+             RS_X5,RS_X6,RS_X7,
+             RS_X3,RS_X4,
+             RS_X9],first_int_imreg,[])
+        else
+          rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
+            [RS_X10,RS_X11,RS_X12,RS_X13,RS_X14,RS_X15,RS_X16,RS_X17,
+             RS_X31,RS_X30,RS_X29,RS_X28,
+             RS_X5,RS_X6,RS_X7,
+             RS_X3,RS_X4,
+             RS_X9,RS_X27,RS_X26,RS_X25,RS_X24,RS_X23,RS_X22,
+             RS_X21,RS_X20,RS_X19,RS_X18],first_int_imreg,[]);
+
         rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
           [RS_F10,RS_F11,RS_F12,RS_F13,RS_F14,RS_F15,RS_F16,RS_F17,
            RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7,

@@ -38,7 +38,8 @@ Type
        cpu_rv32imac,
        cpu_rv32ima,
        cpu_rv32im,
-       cpu_rv32i
+       cpu_rv32i,
+       cpu_rv32e
       );
 
    tfputype =
@@ -149,7 +150,8 @@ Const
      'RV32IMAC',
      'RV32IMA',
      'RV32IM',
-     'RV32I'
+     'RV32I',
+     'RV32E'
    );
 
    fputypestr : array[tfputype] of string[8] = (         
@@ -178,7 +180,8 @@ Const
    tcpuflags =
       (CPURV_HAS_MUL,
        CPURV_HAS_ATOMIC,
-       CPURV_HAS_COMPACT
+       CPURV_HAS_COMPACT,
+       CPURV_HAS_16REGISTERS
       );
 
  const
@@ -187,7 +190,8 @@ Const
        { cpu_rv32imac  } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC,CPURV_HAS_COMPACT],
        { cpu_rv32ima   } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC],
        { cpu_rv32im    } [CPURV_HAS_MUL],
-       { cpu_rv32i     } []     
+       { cpu_rv32i     } [],
+       { cpu_rv32e     } [CPURV_HAS_16REGISTERS]
      );
 
 Implementation
