@@ -3721,7 +3721,7 @@ baseunix$(PPUEXT) :  $(UNIXINC)/baseunix.pp errno.inc ptypes.inc $(UNIXINC)/ctyp
   signal.inc $(UNIXINC)/bunxh.inc sysctl$(PPUEXT) \
   $(BSDINC)/bunxsysc.inc $(BSDPROCINC)/syscallh.inc sysnr.inc \
   $(BSDINC)/ostypes.inc $(BSDINC)/osmacro.inc $(UNIXINC)/gensigset.inc \
-  $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT) sysctl$(PPUEXT)
+  $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 fpintres$(PPUEXT): $(INC)/fpintres.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
@@ -3802,15 +3802,13 @@ callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
-sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT) syscall$(PPUEXT)
-	$(COMPILER) $<
 syscall$(PPUEXT) : $(UNIXINC)/syscall.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 unixutil$(PPUEXT) : $(UNIXINC)/unixutil.pp $(INC)/textrec.inc $(INC)/filerec.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/unixutil.pp
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/sysconst.pp
-sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp unixtype$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp unixtype$(PPUEXT) syscall$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
@@ -3818,7 +3816,7 @@ variants$(PPUEXT) : $(INC)/variants.pp sysutils$(PPUEXT) sysconst$(PPUEXT) varut
 	$(COMPILER) -Fi$(INC) $(INC)/variants.pp
 cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) dynlibs$(PPUEXT)
 	$(COMPILER) $<
-bsd$(PPUEXT) : $(BSDINC)/bsd.pas unix$(PPUEXT) syscall$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+bsd$(PPUEXT) : $(BSDINC)/bsd.pas initc$(PPUEXT) unix$(PPUEXT) syscall$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 initc$(PPUEXT) : $(UNIXINC)/initc.pp ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
