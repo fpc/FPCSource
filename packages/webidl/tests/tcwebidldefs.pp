@@ -73,7 +73,7 @@ end;
 function TTestDefinition.CreateDef(aClass: TIDLDefinitionClass; WithAttrs : Boolean = False): TIDLDefinition;
 begin
   FreeAndNil(FDef);
-  FDef:=aClass.Create(Nil,'A');
+  FDef:=aClass.Create(Nil,'A','test1.webidl',1,1);
   if WithAttrs then
     FDef.Attributes.Add('Me');
   Result:=FDef;
@@ -134,12 +134,12 @@ function TTestDefinition.CreateDictionaryMember(const AName, aTypeName,
 begin
   Result:=CreateDef(TIDLDictionaryMemberDefinition,WithAttrs) as TIDLDictionaryMemberDefinition;
   Result.Name:=aName;
-  Result.MemberType:=TIDLTypeDefDefinition.Create(Result,'');
+  Result.MemberType:=TIDLTypeDefDefinition.Create(Result,'','test1.webidl',1,1);
   Result.MemberType.TypeName:=aTypeName;
   Result.IsRequired:=aRequired;
   if (aDefault<>'') then
     begin
-    Result.DefaultValue:=TIDLConstDefinition.Create(Result,'');
+    Result.DefaultValue:=TIDLConstDefinition.Create(Result,'','test1.webidl',1,1);
     Result.DefaultValue.Value:=aDefault;
     end;
 end;
@@ -163,7 +163,7 @@ function TTestDefinition.CreateSequence(const AElementName: String;
 
 begin
   Result:=CreateDef(TIDLSequenceTypeDefDefinition,WithAttrs) as TIDLSequenceTypeDefDefinition;
-  Result.ElementType:=TIDLTypeDefDefinition.Create(Result,'');
+  Result.ElementType:=TIDLTypeDefDefinition.Create(Result,'','test1.webidl',1,1);
   Result.ElementType.TypeName:=AElementName;
 end;
 
@@ -171,7 +171,7 @@ function TTestDefinition.CreatePromise(const AReturnTypeName: String;
   withAttrs: Boolean): TIDLPromiseTypeDefDefinition;
 begin
   Result:=CreateDef(TIDLPromiseTypeDefDefinition,withAttrs) as TIDLPromiseTypeDefDefinition;
-  Result.ReturnType:=TIDLTypeDefDefinition.Create(Result,'');
+  Result.ReturnType:=TIDLTypeDefDefinition.Create(Result,'','test1.webidl',1,1);
   Result.ReturnType.TypeName:=AReturnTypeName;
 end;
 
@@ -179,7 +179,7 @@ function TTestDefinition.CreateSetLike(const AElementName: String;
   withAttrs: Boolean): TIDLSetLikeDefinition;
 begin
   Result:=CreateDef(TIDLSetLikeDefinition,WithAttrs) as TIDLSetLikeDefinition;
-  Result.ElementType:=TIDLTypeDefDefinition.Create(Result,'');
+  Result.ElementType:=TIDLTypeDefDefinition.Create(Result,'','test1.webidl',1,1);
   Result.ElementType.TypeName:=AElementName;
 
 end;
@@ -188,9 +188,9 @@ function TTestDefinition.CreateMapLike(const AKeyTypeName,
   AValueTypeName: String; withAttrs: Boolean): TIDLMapLikeDefinition;
 begin
   Result:=CreateDef(TIDLMapLikeDefinition,WithAttrs) as TIDLMapLikeDefinition;
-  Result.KeyType:=TIDLTypeDefDefinition.Create(Result,'');
+  Result.KeyType:=TIDLTypeDefDefinition.Create(Result,'','test1.webidl',1,1);
   Result.KeyType.TypeName:=AKeyTypeName;
-  Result.ValueType:=TIDLTypeDefDefinition.Create(Result,'');
+  Result.ValueType:=TIDLTypeDefDefinition.Create(Result,'','test1.webidl',1,1);
   Result.ValueType.TypeName:=AValueTypeName;
 end;
 
@@ -198,9 +198,9 @@ function TTestDefinition.CreateRecord(const AKeyTypeName,
   AValueTypeName: String; withAttrs: Boolean): TIDLRecordDefinition;
 begin
   Result:=CreateDef(TIDLRecordDefinition,WithAttrs) as TIDLRecordDefinition;
-  Result.KeyType:=TIDLTypeDefDefinition.Create(Result,'');
+  Result.KeyType:=TIDLTypeDefDefinition.Create(Result,'','test1.webidl',1,1);
   Result.KeyType.TypeName:=AKeyTypeName;
-  Result.ValueType:=TIDLTypeDefDefinition.Create(Result,'');
+  Result.ValueType:=TIDLTypeDefDefinition.Create(Result,'','test1.webidl',1,1);
   Result.ValueType.TypeName:=AValueTypeName;
 end;
 
@@ -226,7 +226,7 @@ begin
   Result:=CreateDef(TIDLUnionTypeDefDefinition,WithAttrs) as TIDLUnionTypeDefDefinition;
   for S in Types do
     begin
-    T:=TIDLTypeDefDefinition.Create(Result,'');
+    T:=TIDLTypeDefDefinition.Create(Result,'','test1.webidl',1,1);
     T.TypeName:=S;
     Result.Union.Add(T);
     end;
@@ -235,7 +235,7 @@ end;
 function TTestDefinition.CreateArgument(isOptional: Boolean; DefaultValue: string; withAttrs: Boolean): TIDLArgumentDefinition;
 begin
   Result:=CreateDef(TIDLArgumentDefinition,WithAttrs) as TIDLArgumentDefinition;
-  Result.ArgumentType:=TIDLTypeDefDefinition.Create(Result,'AN');
+  Result.ArgumentType:=TIDLTypeDefDefinition.Create(Result,'AN','test1.webidl',1,1);
   Result.ArgumentType.TypeName:='short';
   Result.HasDefaultValue:=(DefaultValue<>'');
   Result.DefaultValue:=DefaultValue;
@@ -249,14 +249,14 @@ Var
 
 begin
   Result:=CreateDef(TIDLFunctionDefinition,WithAttrs) as TIDLFunctionDefinition;
-  Result.ReturnType:=TIDLTypeDefDefinition.Create(Result,'AN');
+  Result.ReturnType:=TIDLTypeDefDefinition.Create(Result,'AN','test1.webidl',1,1);
   Result.ReturnType.TypeName:='short';
   Result.Options:=Options;
   I:=0;
   While I<Length(Args)-1 do
     begin
-    Result.Arguments.Add(TIDLArgumentDefinition,args[I+1]);
-    Result.Argument[I div 2].ArgumentType:=TIDLTypeDefDefinition.Create(Result,'AN'+IntToStr(i));
+    Result.Arguments.Add(TIDLArgumentDefinition,args[I+1],'test1.webidl',1,1);
+    Result.Argument[I div 2].ArgumentType:=TIDLTypeDefDefinition.Create(Result,'AN'+IntToStr(i),'test1.webidl',1,1);
     Result.Argument[I div 2].ArgumentType.TypeName:=args[i];
 //    With Result.Argument[I div 2] do
 //      Writeln(I,': ',Name+'->',ArgumentType.TypeName);
@@ -269,7 +269,7 @@ function TTestDefinition.CreateAttribute(Options: TAttributeOptions;
 
 begin
   Result:=CreateDef(TIDLAttributeDefinition,WithAttrs) as TIDLAttributeDefinition;
-  Result.AttributeType:=TIDLTypeDefDefinition.Create(Result,'AN');
+  Result.AttributeType:=TIDLTypeDefDefinition.Create(Result,'AN','test1.webidl',1,1);
   Result.AttributeType.TypeName:='short';
   Result.Options:=Options;
 end;
