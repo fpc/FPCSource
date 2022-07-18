@@ -203,6 +203,7 @@ type
     Function AsString(Full : Boolean): UTF8String; override;
     Function Add(aClass : TIDLDefinitionClass; Const AName : UTF8String; const aFile: string; aLine, aCol: integer) : TIDLDefinition; override;
     Function Add(aItem : TIDLDefinition) : Integer;
+    Function Delete(aItem : TIDLDefinition) : boolean; // true if found and deleted
     function GetEnumerator: TIDLDefinitionEnumerator;
     Property Parent : TIDLDefinition Read FParent;
     Property Definitions[aIndex : Integer] : TIDLDefinition Read GetD;default;
@@ -283,6 +284,7 @@ type
   private
     FHasSerializer: Boolean;
     FHasStringifier: Boolean;
+    FIsForward: Boolean;
     FIsInclude: Boolean;
     FIsMixin: Boolean;
     FParentInterface: TIDLInterfaceDefinition;
@@ -294,6 +296,7 @@ type
     // is this a mixin definition?
     Property IsMixin : Boolean Read FIsMixin Write FIsMixin;
     Property IsInclude : Boolean Read FIsInclude Write FIsInclude;
+    Property IsForward: Boolean read FIsForward write FIsForward;
   end;
 
   { TIDLArgumentDefinition }
@@ -1321,6 +1324,19 @@ begin
   Result:=FList.Add(aItem);
   if (FParent<>nil) then
     aItem.Parent:=FParent;
+end;
+
+function TIDLDefinitionList.Delete(aItem: TIDLDefinition): boolean;
+var
+  i: Integer;
+begin
+  for i:=0 to FList.Count-1 do
+    if FList[i]=aItem then
+      begin
+      FList.Delete(i);
+      exit(true);
+      end;
+  Result:=false;
 end;
 
 function TIDLDefinitionList.GetEnumerator: TIDLDefinitionEnumerator;

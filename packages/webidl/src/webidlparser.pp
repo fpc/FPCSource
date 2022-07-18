@@ -889,7 +889,7 @@ end;
 
 function TWebIDLParser.ParseInterface(aParent : TIDLBaseObject): TIDLInterfaceDefinition;
 (*
-  On Entry we're on interface. On exit, we're on the } character
+  On Entry we're on interface. On exit, we're on the } character or the ; if it is an empty forward definition
 *)
 
 Var
@@ -909,16 +909,17 @@ begin
   try
     Result.IsMixin:=IsMixin;
     tk:=GetToken;
+    if tk=tkSemiColon then
+      begin
+      // empty interface
+      Result.IsForward:=true;
+      exit;
+      end;
     if tk=tkColon then
       begin
       ExpectToken(tkIdentifier);
       Result.ParentName:=CurrentTokenString;
       tk:=GetToken;
-      end;
-    if CurrentToken=tkSemiColon then
-      begin
-      // empty interface
-      exit;
       end;
     CheckCurrentToken(tkCurlyBraceOpen);
     tk:=GetToken;

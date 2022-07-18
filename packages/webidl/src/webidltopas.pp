@@ -99,6 +99,7 @@ type
     procedure AddJSIdentifier(D: TIDLDefinition); virtual;
     procedure ResolveTypeDefs(aList: TIDLDefinitionList); virtual;
     procedure ResolveTypeDef(D: TIDLDefinition); virtual;
+    procedure RemoveInterfaceForwards(aList: TIDLDefinitionList); virtual;
     function FindGlobalDef(const aName: UTF8String): TIDLDefinition; virtual;
     function GetDefPos(Def: TIDLBaseObject; WithoutFile: boolean = false): string; virtual;
     function GetPasDataPos(D: TPasData; WithoutFile: boolean = false): string; virtual;
@@ -561,7 +562,6 @@ Var
 
 var
   D: TIDLDefinition;
-
 begin
   L:=TFPObjectHashTable.Create(False);
   try
@@ -1467,7 +1467,7 @@ begin
     begin
     Old:=FindGlobalDef(D.Name);
     if Old<>nil then
-      raise EWebIDLParser.Create('Duplicate identifier '+D.Name+' at '+GetDefPos(D)+' and '+GetDefPos(Old));
+      raise EWebIDLParser.Create('Duplicate identifier '+D.Name+' at '+GetDefPos(D)+' and '+GetDefPos(Old)+' (20220718185400)');
     FGlobalDefs.Add(D.Name,D);
     end
   else
@@ -1551,6 +1551,55 @@ begin
     writeln('TBaseWebIDLToPas.ResolveTypeDef unknown ',D.Name,':',D.ClassName,' at ',GetDefPos(D));
 end;
 
+procedure TBaseWebIDLToPas.RemoveInterfaceForwards(aList: TIDLDefinitionList);
+
+Var
+  L: TFPObjectHashTable;
+
+  Procedure DeleteIntf(Def: TIDLInterfaceDefinition);
+  begin
+    writeln('DeleteIntf ',Def.Name);
+    aList.Delete(Def);
+  end;
+
+  Procedure CheckDuplicateInterfaceDef(Def: TIDLInterfaceDefinition);
+  var
+    aName: UTF8String;
+    OldDef: TIDLInterfaceDefinition;
+  begin
+    if Def.IsPartial then exit;
+    aName:=Def.Name;
+    OldDef:=TIDLInterfaceDefinition(L.Items[aName]);
+    if OldDef=nil then
+      L.add(aName,Def)
+    else
+      begin
+      if OldDef.IsForward then
+        begin
+        L.Delete(OldDef.Name);
+        DeleteIntf(OldDef);
+        L.Add(aName,Def);
+        end
+      else if Def.IsForward then
+        DeleteIntf(Def)
+      else
+        raise EConvertError.Create('Duplicate interface '+GetDefPos(Def)+' and '+GetDefPos(OldDef)+' (20220718184717)');
+      end;
+  end;
+
+var
+  i: Integer;
+begin
+  L:=TFPObjectHashTable.Create(False);
+  try
+    For i:=aList.Count-1 downto 0 do
+      if (aList[i] is TIDLInterfaceDefinition) then
+        CheckDuplicateInterfaceDef(TIDLInterfaceDefinition(aList[i]));
+  finally
+    L.Free;
+  end;
+end;
+
 function TBaseWebIDLToPas.FindGlobalDef(const aName: UTF8String
   ): TIDLDefinition;
 begin
@@ -1604,6 +1653,7 @@ end;
 procedure TBaseWebIDLToPas.ProcessDefinitions;
 
 begin
+  RemoveInterfaceForwards(FContext.Definitions);
   FContext.AppendPartials;
   FContext.AppendIncludes;
   AllocatePasNames(FContext.Definitions);
