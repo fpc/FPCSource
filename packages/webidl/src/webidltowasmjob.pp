@@ -565,7 +565,7 @@ var
 begin
   Result:=True;
   FN:=GetName(aDef);
-  RT:=GetTypeName(aDef.ReturnType,False);
+  RT:=GetResolvedTypeName(aDef.ReturnType.TypeName);
   if (RT='void') then
     RT:='';
   ReturnDef:=FindGlobalDef(aDef.ReturnType.TypeName);
@@ -600,7 +600,7 @@ begin
         while ArgNames.IndexOf(ArgName+IntToStr(j))>=0 do inc(j);
         ArgName:=ArgName+IntToStr(j);
         end;
-      ArgTypeName:=GetTypeName(ArgDef.ArgumentType);
+      ArgTypeName:=GetResolvedTypeName(ArgDef.ArgumentType.TypeName);
 
       case ArgTypeName of
       '': raise EWebIDLParser.Create('not yet supported: function type arg['+IntToStr(I)+'] type void at '+GetDefPos(ArgDef));

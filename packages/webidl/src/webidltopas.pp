@@ -108,6 +108,7 @@ type
     function GetPasClassName(const aName: string): string; overload; virtual;
     function GetTypeName(Const aTypeName: String; ForTypeDef: Boolean=False): String; overload; virtual;
     function GetTypeName(aTypeDef: TIDLTypeDefDefinition; ForTypeDef: Boolean=False): String; overload; virtual;
+    function GetResolvedTypeName(Const aTypeName: String): String; overload; virtual;
     function GetSequenceTypeName(Seq: TIDLSequenceTypeDefDefinition; ForTypeDef: Boolean=False): string; virtual;
     function GetInterfaceDefHead(Intf: TIDLInterfaceDefinition): String; virtual;
     function GetDictionaryDefHead(const CurClassName: string; Dict: TIDLDictionaryDefinition): String; virtual;
@@ -716,6 +717,17 @@ begin
     end
   else
     Result:=GetTypeName(aTypeDef.TypeName,ForTypeDef);
+end;
+
+function TBaseWebIDLToPas.GetResolvedTypeName(const aTypeName: String): String;
+var
+  aDef: TIDLDefinition;
+begin
+  aDef:=FindGlobalDef(aTypeName);
+  if aDef is TIDLTypeDefDefinition then
+    Result:=GetResolvedTypeName(TIDLTypeDefDefinition(aDef).TypeName)
+  else
+    Result:=GetTypeName(aTypeName);
 end;
 
 function TBaseWebIDLToPas.GetSequenceTypeName(
@@ -1401,7 +1413,7 @@ Var
   aData: TPasData;
 
 begin
-  writeln('BBB1 TBaseWebIDLToPas.AllocatePasName ',ParentName,'.',D.Name,':',D.ClassName);
+  //writeln('TBaseWebIDLToPas.AllocatePasName ',ParentName,'.',D.Name,':',D.ClassName);
   CN:=D.Name;
   if D Is TIDLInterfaceDefinition then
     begin
