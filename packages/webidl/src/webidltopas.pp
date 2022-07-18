@@ -1437,6 +1437,7 @@ begin
   else
     begin
     if (D is TIDLTypeDefDefinition)
+        or (D is TIDLEnumDefinition)
         or ((D Is TIDLFunctionDefinition) and (foCallBack in TIDLFunctionDefinition(D).Options)) then
       begin
       CN:=TypePrefix+CN;
