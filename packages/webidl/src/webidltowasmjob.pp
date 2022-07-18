@@ -622,7 +622,11 @@ begin
         if CurDef is TIDLInterfaceDefinition then
           GetFunc:='GetObject('+IntfToPasClassName(ArgTypeName)+') as '+ArgTypeName
         else
+          begin
+          if CurDef<>nil then
+            writeln('TWebIDLToPasWasmJob.WriteFunctionTypeDefinition CurDef=',CurDef.ClassName);
           raise EWebIDLParser.Create('not yet supported: function type arg['+IntToStr(I)+'] type '+ArgDef.ArgumentType.TypeName+' at '+GetDefPos(ArgDef));
+          end;
       end;
 
       // declare: var ArgName: ArgTypeName;
@@ -663,7 +667,11 @@ begin
       if ReturnDef is TIDLInterfaceDefinition then
         GetFunc:='Result:=H.AllocIntf('+Call+');'
       else
-        raise EWebIDLParser.Create('not yet supported: function type result type "'+RT+'" at '+GetDefPos(ArgDef));
+        begin
+        if ReturnDef<>nil then
+          writeln('TWebIDLToPasWasmJob.WriteFunctionTypeDefinition ReturnDef=',ReturnDef.ClassName);
+        raise EWebIDLParser.Create('not yet supported: function type result type "'+RT+'" at '+GetDefPos(aDef));
+        end;
     end;
     Code:=Code+'  '+GetFunc+sLineBreak;
     Code:=Code+'end;'+sLineBreak;

@@ -23,8 +23,6 @@ uses
 
 Type
 
-  { TBaseWebIDLToPas }
-
   { TPasData }
 
   TPasData = Class(TObject)
@@ -55,6 +53,9 @@ const
     );
 
 type
+
+  { TBaseWebIDLToPas }
+
   TBaseWebIDLToPas = Class(TPascalCodeGenerator)
   private
     FArrayPrefix: String;
@@ -66,7 +67,7 @@ type
     FContext: TWebIDLContext;
     FDictionaryClassParent: String;
     FFieldPrefix: String;
-    FFuncTypePrefix: String;
+    FTypePrefix: String;
     FGetterPrefix: String;
     FIncludeImplementationCode: TStrings;
     FIncludeInterfaceCode: TStrings;
@@ -176,7 +177,7 @@ type
     Property ArraySuffix: String Read FArraySuffix Write FArraySuffix;
     Property GetterPrefix: String read FGetterPrefix write FGetterPrefix;
     Property SetterPrefix: String read FSetterPrefix write FSetterPrefix;
-    Property FuncTypePrefix: String read FFuncTypePrefix write FFuncTypePrefix;
+    Property TypePrefix: String read FTypePrefix write FTypePrefix;
     Property WebIDLVersion: TWebIDLVersion Read FWebIDLVersion Write FWebIDLVersion;
     Property TypeAliases: TStrings Read FTypeAliases Write SetTypeAliases;
     Property IncludeInterfaceCode: TStrings Read FIncludeInterfaceCode Write SetIncludeInterfaceCode;
@@ -669,7 +670,7 @@ begin
   ArraySuffix:='DynArray';
   GetterPrefix:='Get';
   SetterPrefix:='Set';
-  FuncTypePrefix:='T';
+  TypePrefix:='T';
   FTypeAliases:=TStringList.Create;
   FPasNameList:=TFPObjectList.Create(True);
   FPasDataClass:=TPasData;
@@ -1400,6 +1401,7 @@ Var
   aData: TPasData;
 
 begin
+  writeln('BBB1 TBaseWebIDLToPas.AllocatePasName ',ParentName,'.',D.Name,':',D.ClassName);
   CN:=D.Name;
   if D Is TIDLInterfaceDefinition then
     begin
@@ -1422,9 +1424,10 @@ begin
     end
   else
     begin
-    if (D Is TIDLFunctionDefinition) and (foCallBack in TIDLFunctionDefinition(D).Options) then
+    if (D is TIDLTypeDefDefinition)
+        or ((D Is TIDLFunctionDefinition) and (foCallBack in TIDLFunctionDefinition(D).Options)) then
       begin
-      CN:=FuncTypePrefix+CN;
+      CN:=TypePrefix+CN;
       AddJSIdentifier(D);
       end;
     Result:=CreatePasName(CN,D);
@@ -1445,6 +1448,7 @@ procedure TBaseWebIDLToPas.AddJSIdentifier(D: TIDLDefinition);
 var
   Old: TIDLDefinition;
 begin
+  //writeln('TBaseWebIDLToPas.AddJSIdentifier ',D.Name,':',D.ClassName);
   if (D.Parent=nil)
       or ((D is TIDLInterfaceDefinition) and TIDLInterfaceDefinition(D).IsMixin) then
     begin
