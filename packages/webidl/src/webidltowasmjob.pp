@@ -87,14 +87,16 @@ type
     function WriteOtherImplicitTypes(Intf: TIDLInterfaceDefinition; aMemberList: TIDLDefinitionList): Integer;
       override;
     // Code generation routines. Return the number of actually written defs.
-    function WriteDictionaryMemberImplicitTypes(aDict: TIDLDictionaryDefinition;
-      aList: TIDLDefinitionList): Integer; override;
     function WritePrivateGetters(aList: TIDLDefinitionList): Integer; override;
     function WritePrivateSetters(aList: TIDLDefinitionList): Integer; override;
     function WriteProperties(aList: TIDLDefinitionList): Integer; override;
     function WriteUtilityMethods(Intf: TIDLInterfaceDefinition): Integer;
       override;
     // Definitions. Return true if a definition was written.
+    function WriteDictionaryField(aField: TIDLDictionaryMemberDefinition
+      ): Boolean; override;
+    function WriteForwardClassDef(D: TIDLStructuredDefinition): Boolean;
+      override;
     function WriteFunctionDefinition(aDef: TIDLFunctionDefinition): Boolean;
       override;
     function WriteFunctionTypeDefinition(aDef: TIDLFunctionDefinition
@@ -102,6 +104,7 @@ type
     function WritePrivateGetter(Attr: TIDLAttributeDefinition): boolean; virtual;
     function WritePrivateSetter(Attr: TIDLAttributeDefinition): boolean; virtual;
     function WriteProperty(Attr: TIDLAttributeDefinition): boolean; virtual;
+    function WriteRecordDef(aDef: TIDLRecordDefinition): Boolean; override;
   Public
     constructor Create(ThOwner: TComponent); override;
   Published
@@ -129,7 +132,7 @@ implementation
 
 function TWebIDLToPasWasmJob.BaseUnits: String;
 begin
-  Result:='SysUtils, JOB_WAsm';
+  Result:='SysUtils, JOB_JS';
 end;
 
 function TWebIDLToPasWasmJob.GetPasClassName(const aName: string): string;
@@ -267,6 +270,8 @@ begin
     aParentName:=GetName(Intf.ParentInterface)
   else
     aParentName:=GetTypeName(Intf.ParentName);
+  if aParentName='' then
+    aParentName:=ClassPrefix+'Object'+ClassSuffix;
   if aParentName<>'' then
     Result:=Result+aParentName;
   aPasIntfName:=GetPasIntfName(Intf);
@@ -319,16 +324,6 @@ begin
   AddLn('');
 end;
 
-function TWebIDLToPasWasmJob.WriteDictionaryMemberImplicitTypes(
-  aDict: TIDLDictionaryDefinition; aList: TIDLDefinitionList): Integer;
-var
-  aName: String;
-begin
-  Result:=inherited WriteDictionaryMemberImplicitTypes(aDict, aList);
-  aName:=GetName(aDict);
-  AddLn(aName+' = TJOB_Dictionary;');
-end;
-
 function TWebIDLToPasWasmJob.WritePrivateGetters(aList: TIDLDefinitionList
   ): Integer;
 var
@@ -379,6 +374,28 @@ begin
   Code:=Code+'  Result:='+aClassName+'.Cast(Intf);'+sLineBreak;
   Code:=Code+'end;'+sLineBreak;
   IncludeImplementationCode.Add(Code);
+end;
+
+function TWebIDLToPasWasmJob.WriteDictionaryField(
+  aField: TIDLDictionaryMemberDefinition): Boolean;
+var
+  N, TN: String;
+begin
+  Result:=True;
+  N:=GetName(aField);
+  TN:=GetTypeName(aField.MemberType);
+  if SameText(N,TN) then
+    N:='_'+N;
+  AddLn(N+': '+TN+';');
+end;
+
+function TWebIDLToPasWasmJob.WriteForwardClassDef(D: TIDLStructuredDefinition
+  ): Boolean;
+begin
+  if D is TIDLDictionaryDefinition then
+    AddLn(GetName(D)+' = '+JOB_JSValueTypeNames[jjvkDictionary]+';')
+  else
+    Result:=inherited WriteForwardClassDef(D);
 end;
 
 function TWebIDLToPasWasmJob.WriteFunctionDefinition(
@@ -801,6 +818,13 @@ begin
     Code:=Code+' write '+SetterPrefix+PropName;
   AddLn(Code+';');
   Result:=true;
+end;
+
+function TWebIDLToPasWasmJob.WriteRecordDef(aDef: TIDLRecordDefinition
+  ): Boolean;
+begin
+  Result:=true;
+  AddLn(GetName(aDef)+' = '+ClassPrefix+'Object'+ClassSuffix+';');
 end;
 
 constructor TWebIDLToPasWasmJob.Create(ThOwner: TComponent);

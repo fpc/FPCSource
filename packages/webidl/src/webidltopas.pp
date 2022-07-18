@@ -885,14 +885,14 @@ begin
     S:=S+(D as TIDLTypeDefDefinition).TypeName;
     end;
   Comment('Union of '+S);
-  AddLn('%s = JSValue; ',[GetName(aDef)])
+  AddLn(GetName(aDef)+' = '+GetTypeName('any')+';');
 end;
 
 
 procedure TBaseWebIDLToPas.WritePromiseDef(aDef: TIDLPromiseTypeDefDefinition);
 
 begin
-  AddLn('%s = TJSPromise;',[GetName(aDef)]);
+  AddLn(GetName(aDef)+' = '+ClassPrefix+'Promise'+ClassSuffix+';');
 end;
 
 procedure TBaseWebIDLToPas.WriteAliasTypeDef(aDef: TIDLTypeDefDefinition);
