@@ -1024,7 +1024,7 @@ begin
       FReason:=SwapEndian(FPayload.Data.ToWord(0));
       FPayload.DataLength := FPayload.DataLength - 2;
       if FPayload.DataLength > 0 then
-        move(FPayload.Data[2], FPayload.Data[0], FPayload.DataLength - 2);
+        move(FPayload.Data[2], FPayload.Data[0], FPayload.DataLength);
       SetLength(FPayload.Data, FPayload.DataLength);
     end;
   Result:=True;
