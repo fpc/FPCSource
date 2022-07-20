@@ -55,6 +55,13 @@ Type
   TParentApp = TCustomHTTPApplication;
 {$ENDIF}
 
+  { TMySimpleFileModule }
+
+  TMySimpleFileModule = class(TSimpleFileModule)
+  Public
+    Procedure SendFile(const AFileName: String; AResponse: TResponse); override;
+  end;
+
   THTTPApplication = Class(TParentApp)
   private
     FAPISecret : String;
@@ -68,6 +75,7 @@ Type
     FPassword : string;
     FEcho : Boolean;
     FMaxAge : Integer;
+    FCrossOriginIsolation : Boolean;
     procedure AddProxy(const aProxyDef: String);
     procedure DoEcho(ARequest: TRequest; AResponse: TResponse);
     procedure DoProxyLog(Sender: TObject; const aMethod, aLocation, aFromURL, aToURL: String);
@@ -90,6 +98,15 @@ Type
 
 Var
   Application : THTTPApplication;
+
+{ TMySimpleFileModule }
+
+procedure TMySimpleFileModule.SendFile(const AFileName: String; AResponse: TResponse);
+begin
+  AResponse.SetCustomHeader('Cross-Origin-Embedder-Policy','require-corp');
+  AResponse.SetCustomHeader('Cross-Origin-Opener-Policy','same-origin');
+  inherited SendFile(AFileName, AResponse);
+end;
 
 { THTTPApplication }
 
@@ -186,6 +203,7 @@ begin
   Writeln('-I --interface=IP     Listen on this interface address only.');
   Writeln('-m --mimetypes=file   Path of mime.types. Loaded in addition to OS known types');
   Writeln('-n --noindexpage      Do not allow index page.');
+  Writeln('-o --coi              Enable Cross-Origin Isolation headers');
   Writeln('-p --port=NNNN        TCP/IP port to listen on (default is 3000)');
   Writeln('-q --quiet            Do not write diagnostic messages');
   Writeln('-Q --quit=PWD         Register /quit URL. Send request with password variable equal to PWD to stop');
@@ -253,6 +271,7 @@ Const
   KeyBackground = 'background';
   KeyMaxAge = 'MaxAge';
   KeyAPI = 'API';
+  KeyCOI = 'CrossOriginIsolation';
 
 Var
   L : TStringList;
@@ -278,6 +297,7 @@ begin
       FEcho:=ReadBool(SConfig,KeyEcho,FEcho);
       FMaxAge:=ReadInteger(SConfig,KeyMaxAge,FMaxAge);
       FAPISecret:=ReadString(SConfig,keyAPI,'');
+      FCrossOriginIsolation:=ReadBool(SConfig,KeyCOI,FCrossOriginIsolation);
       L:=TstringList.Create;
       ReadSectionValues(SProxy,L,[]);
       For I:=0 to L.Count-1 do
@@ -327,6 +347,7 @@ begin
     InterfaceAddress:=GetOptionValue('I','interface');
   FMaxAge:=StrToIntDef(GetOptionValue('a','max-age'),FMaxAge);
   FBackground:=HasOption('b','background');
+  FCrossOriginIsolation:=hasOption('o','coi');
 end;
 
 procedure THTTPApplication.Writeinfo;
@@ -352,7 +373,7 @@ Var
 
 begin
   FMaxAge:=31557600;
-  S:=Checkoptions('hqd:ni:p:sH:m:x:c:beQ:a:A:',['help','quiet','noindexpage','directory:','port:','indexpage:','ssl','hostname:','mimetypes:','proxy:','config:','background','echo','quit:','max-age:','api:']);
+  S:=Checkoptions('hqd:ni:p:sH:m:x:c:beQ:a:A:o',['help','quiet','noindexpage','directory:','port:','indexpage:','ssl','hostname:','mimetypes:','proxy:','config:','background','echo','quit:','max-age:','api:','coi']);
   if (S<>'') or HasOption('h','help') then
     usage(S);
   if HasOption('c','config') then
@@ -385,6 +406,8 @@ begin
     BaseDir:=IncludeTrailingPathDelimiter(BaseDir);
   if FAPISecret<>'' then
     TFPWebFileLocationAPIModule.RegisterFileLocationAPI(ExtractWord(1,FAPISecret,[',']),ExtractWord(2,FAPISecret,[',']));
+  if FCrossOriginIsolation then  
+    TSimpleFileModule.DefaultSimpleFileModuleClass:=TMySimpleFileModule;
   TSimpleFileModule.RegisterDefaultRoute;
   TSimpleFileModule.BaseDir:=BaseDir;
   TSimpleFileModule.OnLog:=@Log;
