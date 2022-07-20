@@ -690,7 +690,7 @@ unit cgrv;
               list.concat(taicpu.op_reg_reg_const(A_ADDI,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,postcompensation));
           end;
 
-        if po_interrupt in current_procinfo.procdef.procoptions then
+        if (target_info.system in (systems_freertos+systems_embedded)) and (po_interrupt in current_procinfo.procdef.procoptions) then
           begin
             list.concat(Taicpu.Op_none(A_MRET));
           end
