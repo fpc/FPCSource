@@ -150,6 +150,7 @@ type
   PEVP_MD = SslPtr;
   PBIO_METHOD = SslPtr;
   PBIO = SslPtr;
+  PPBIO = PSslPtr;
 {  EVP_PKEY = SslPtr;}
   PRSA = SslPtr;
   PASN1_UTCTIME = SslPtr;
@@ -1416,6 +1417,10 @@ var
   function BIO_new_PKCS7(_out:PBIO; p7:PPKCS7):PBIO;
   procedure ERR_load_PKCS7_strings;
 
+  // SMIME functions
+  function SMIME_write_PKCS7(_out: PBIO; p7: PPKCS7; data: PBIO; flags: longint): longint;
+  function SMIME_read_PKCS7(_in: PBIO; bcont: PPBIO): PPKCS7;
+
   // BN functions
   function BN_new:PBIGNUM;
   function BN_secure_new:PBIGNUM;
@@ -2115,7 +2120,9 @@ var
   _PKCS7_add1_attrib_digest : function(si:PPKCS7_SIGNER_INFO; md:Pbyte; mdlen:longint):longint;cdecl;
   _BIO_new_PKCS7 : function(_out:PBIO; p7:PPKCS7):PBIO;cdecl;
   _ERR_load_PKCS7_strings : procedure;cdecl;
-
+  // SMIME
+  _SMIME_write_PKCS7: function(_out: PBIO; p7: PPKCS7; data: PBIO; flags: longint): longint; cdecl;
+  _SMIME_read_PKCS7: function(_in: PBIO; bcont: PPBIO): PPKCS7; cdecl;
   // BN
   _BN_new : function():PBIGNUM; cdecl;
   _BN_secure_new : function():PBIGNUM; cdecl;
@@ -4419,6 +4426,23 @@ begin
     _ERR_load_PKCS7_strings
 end;
 
+// SMIME
+function SMIME_write_PKCS7(_out: PBIO; p7: PPKCS7; data: PBIO; flags: longint): longint;
+begin
+  if InitSSLInterface and Assigned(_SMIME_write_PKCS7) then
+    Result := _SMIME_write_PKCS7(_out, p7, data, flags)
+  else
+    Result := -1;
+end;
+
+function SMIME_read_PKCS7(_in: PBIO; bcont: PPBIO): PPKCS7;
+begin
+  if InitSSLInterface and Assigned(_SMIME_read_PKCS7) then
+    Result := _SMIME_read_PKCS7(_in, bcont)
+  else
+    Result := nil;
+end;
+
 // BN
 
 function BN_new: PBIGNUM;
@@ -5126,7 +5150,9 @@ begin
   _PKCS7_add1_attrib_digest:=GetProcAddr(SSLUtilHandle,'PKCS7_add1_attrib_digest');
   _BIO_new_PKCS7:=GetProcAddr(SSLUtilHandle,'BIO_new_PKCS7');
   _ERR_load_PKCS7_strings:=GetProcAddr(SSLUtilHandle,'ERR_load_PKCS7_strings');
-
+  // SMIME
+  _SMIME_write_PKCS7 := GetProcAddr(SSLUtilHandle, 'SMIME_write_PKCS7');
+  _SMIME_read_PKCS7 := GetProcAddr(SSLUtilHandle, 'SMIME_read_PKCS7');
   // BN
   _BN_new:=GetProcAddr(SSLUtilHandle,'BN_new');
   _BN_secure_new:=GetProcAddr(SSLUtilHandle,'BN_secure_new');
@@ -5284,7 +5310,9 @@ begin
   _PKCS7_add1_attrib_digest:=nil;
   _BIO_new_PKCS7:=nil;
   _ERR_load_PKCS7_strings:=nil;
-
+  // SMIME
+  _SMIME_write_PKCS7 := nil;
+  _SMIME_read_PKCS7 := nil;
   // BN
   _BN_new:=nil;
   _BN_secure_new:=nil;
