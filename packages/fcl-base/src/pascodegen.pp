@@ -65,8 +65,8 @@ Type
     Procedure CreateUnitClause; virtual;
     Procedure Indent;
     Procedure Undent;
-    Function IsKeyWord (Const S : String) : Boolean;
-    Function EscapeKeyWord(Const S : String; ForceAmpersand : Boolean = false) : String;
+    Function IsKeyWord (Const S : String) : Boolean; virtual;
+    Function EscapeKeyWord(Const S : String; ForceAmpersand : Boolean = false) : String; virtual;
     Function MakePascalString(S: String; AddQuotes: Boolean=False): String;
     Function PrettyPrint(Const S: string): String;
     Procedure AddLn(Const Aline: string);
