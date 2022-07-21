@@ -1795,10 +1795,6 @@ begin
     for i:=0 to List.Count-1 do
       begin
       Top:=TTopologicalIntf(List[i]);
-      //case Top.Intf.Name of
-      //'EventTarget','AbortSignal':
-      //  writeln('AAA1 TWebIDLContext.GetInterfacesTopologically ',Top.Intf.Name,' parent=',Top.Intf.ParentName,' found=',Top.Parent<>nil,' level=',Top.Level,' srcpos=',Top.SrcPos);
-      //end;
       Result.Add(Top.Intf);
       end;
   finally

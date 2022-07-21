@@ -368,8 +368,8 @@ begin
   Result:=0;
   aClassName:=GetName(Intf);
   aPasIntfName:=GetPasIntfName(Intf);
-  AddLn('class function Cast(Intf: IJSObject): '+aPasIntfName+';');
-  Code:='class function '+aClassName+'.Cast(Intf: IJSObject): '+aPasIntfName+';'+sLineBreak;
+  AddLn('function Cast(Intf: IJSObject): '+aPasIntfName+';');
+  Code:='function '+aClassName+'.Cast(Intf: IJSObject): '+aPasIntfName+';'+sLineBreak;
   Code:=Code+'begin'+sLineBreak;
   Code:=Code+'  Result:='+aClassName+'.Cast(Intf);'+sLineBreak;
   Code:=Code+'end;'+sLineBreak;
@@ -431,6 +431,12 @@ Var
 begin
   Result:=True;
   Data:=aDef.Data as TPasDataWasmJob;
+  if Data.PasName='' then
+    begin
+    writeln('Note: skipping Getter of '+aDef.Parent.Name+' at '+GetDefPos(aDef));
+    exit(false);
+    end;
+
   Suff:='';
   RT:='';
   if (foConstructor in aDef.Options) then
