@@ -1376,7 +1376,6 @@ begin
 end;
 
 procedure TBaseWebIDLToPas.WritePascal;
-
 begin
   CreateUnitClause;
   CreateHeader;
@@ -1389,7 +1388,7 @@ begin
   WriteTypeDefs(Context.Definitions);
   WriteCallbackDefs(Context.Definitions);
   WriteDictionaryDefs(Context.Definitions);
-  WriteInterfaceDefs(Context.Definitions);
+  WriteInterfaceDefs(Context.GetInterfacesTopologically);
   Undent;
   WriteIncludeInterfaceCode;
   Addln('');

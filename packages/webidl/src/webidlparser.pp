@@ -45,7 +45,9 @@ Type
     Destructor Destroy; override;
     Procedure AppendPartials; virtual;
     Procedure AppendIncludes; virtual;
+    Function GetInterfacesTopologically: TIDLDefinitionList; virtual;
     Procedure ResolveTypes; virtual;
+    function GetDefPos(Def: TIDLBaseObject; WithoutFile: boolean = false): string; virtual;
     function IndexOfDefinition(const AName: String): Integer;
     Function FindDefinition(const AName : String) : TIDLDefinition;
     Function AsString(Full: Boolean): UTF8String; override;
@@ -129,6 +131,9 @@ Type
     Property Version : TWebIDLVersion Read FVersion Write SetVersion;
   end;
 
+procedure MergeSort(List: TFPList; const OnCompare: TListSortCompare); overload;
+procedure MergeSort(List: TFPList; StartIndex, EndIndex: integer; const OnCompare: TListSortCompare); overload;
+
 implementation
 
 Resourcestring
@@ -140,6 +145,98 @@ Resourcestring
   SErrDictionaryNotFound = 'Dictionary %s not found';
   SErrInterfaceNotFound = 'Interface %s not found';
   SErrInterfaceNotFoundfor = 'Included Interface %s not found for %s';
+
+procedure MergeSort(List: TFPList; const OnCompare: TListSortCompare);
+begin
+  if List=nil then exit;
+  MergeSort(List,0,List.Count-1,OnCompare);
+end;
+
+procedure MergeSort(List: TFPList; StartIndex, EndIndex: integer;
+  const OnCompare: TListSortCompare);
+// sort so that for each i is OnCompare(List[i],List[i+1])<=0
+var
+  MergeList: PPointer;
+
+  procedure SmallSort(StartPos, EndPos: PtrInt);
+  // use insertion sort for small lists
+  var
+    i: PtrInt;
+    Best: PtrInt;
+    j: PtrInt;
+    Item: Pointer;
+  begin
+    for i:=StartPos to EndPos-1 do begin
+      Best:=i;
+      for j:=i+1 to EndPos do
+        if OnCompare(List[Best],List[j])>0 then
+          Best:=j;
+      if Best>i then begin
+        Item:=List[i];
+        List[i]:=List[Best];
+        List[Best]:=Item;
+      end;
+    end;
+  end;
+
+  procedure Merge(Pos1, Pos2, Pos3: PtrInt);
+  // merge two sorted arrays
+  // the first array ranges Pos1..Pos2-1, the second ranges Pos2..Pos3
+  var Src1Pos,Src2Pos,DestPos,cmp,a:PtrInt;
+  begin
+    while (Pos3>=Pos2) and (OnCompare(List[Pos2-1],List[Pos3])<=0) do
+      dec(Pos3);
+    if (Pos1>=Pos2) or (Pos2>Pos3) then exit;
+    Src1Pos:=Pos2-1;
+    Src2Pos:=Pos3;
+    DestPos:=Pos3;
+    while (Src2Pos>=Pos2) and (Src1Pos>=Pos1) do begin
+      cmp:=OnCompare(List[Src1Pos],List[Src2Pos]);
+      if cmp>0 then begin
+        MergeList[DestPos]:=List[Src1Pos];
+        dec(Src1Pos);
+      end else begin
+        MergeList[DestPos]:=List[Src2Pos];
+        dec(Src2Pos);
+      end;
+      dec(DestPos);
+    end;
+    while Src2Pos>=Pos2 do begin
+      MergeList[DestPos]:=List[Src2Pos];
+      dec(Src2Pos);
+      dec(DestPos);
+    end;
+    for a:=DestPos+1 to Pos3 do
+      List[a]:=MergeList[a];
+  end;
+
+  procedure Sort(StartPos, EndPos: PtrInt);
+  // sort an interval in List. Use MergeList as work space.
+  var
+    mid: integer;
+  begin
+    if EndPos-StartPos<6 then begin
+      SmallSort(StartPos,EndPos);
+    end else begin
+      mid:=(StartPos+EndPos) shr 1;
+      Sort(StartPos,mid);
+      Sort(mid+1,EndPos);
+      Merge(StartPos,mid+1,EndPos);
+    end;
+  end;
+
+var
+  Cnt: Integer;
+begin
+  if (List=nil) then exit;
+  Cnt:=List.Count;
+  if StartIndex<0 then StartIndex:=0;
+  if EndIndex>=Cnt then EndIndex:=Cnt-1;
+  if StartIndex>=EndIndex then exit;
+  MergeList:=GetMem(List.Count*SizeOf(Pointer));
+  Sort(StartIndex,EndIndex);
+  Freemem(MergeList);
+end;
 
 { TWebIDLParser }
 
@@ -1575,6 +1672,140 @@ begin
   AppendInterfaceIncludes;
 end;
 
+type
+  TTopologicalIntf = class
+    Intf: TIDLInterfaceDefinition;
+    Parent: TIDLInterfaceDefinition;
+    Level: integer;
+    SrcPos: integer;
+  end;
+
+function CompareTopologicalIntfWithLevelAndSrcPos(Data1, Data2: Pointer): integer;
+var
+  A: TTopologicalIntf absolute Data1;
+  B: TTopologicalIntf absolute Data2;
+begin
+  if A.Level<B.Level then
+    Result:=-1
+  else if A.Level>B.Level then
+    Result:=1
+  else if A.SrcPos<B.SrcPos then
+    Result:=-1
+  else if A.SrcPos>B.SrcPos then
+    Result:=1
+  else
+    Result:=0;
+end;
+
+function TWebIDLContext.GetInterfacesTopologically: TIDLDefinitionList;
+var
+  List: TFPList; // list of TTopologicalIntf
+
+  function FindIntf(Intf: TIDLInterfaceDefinition): TTopologicalIntf;
+  var
+    i: Integer;
+  begin
+    for i:=0 to List.Count-1 do
+      if TTopologicalIntf(List[i]).Intf=Intf then
+        exit(TTopologicalIntf(List[i]));
+    Result:=nil;
+  end;
+
+  function FindParent(Top: TTopologicalIntf): TIDLInterfaceDefinition;
+  var
+    ParentIntf, IntfDef: TIDLInterfaceDefinition;
+    Def: TIDLDefinition;
+  begin
+    IntfDef:=Top.Intf;
+    if (Top.Parent=nil) and (IntfDef.ParentName<>'') then
+      begin
+      ParentIntf:=IntfDef.ParentInterface;
+      if ParentIntf<>nil then
+        Top.Parent:=ParentIntf
+      else
+        begin
+        Def:=FindDefinition(IntfDef.ParentName);
+        if Def is TIDLInterfaceDefinition then
+          Top.Parent:=TIDLInterfaceDefinition(Def)
+        else if Def=nil then
+          writeln('Warning: [TWebIDLContext.GetInterfacesTopologically] interface "'+IntfDef.Name+'" at '+GetDefPos(IntfDef)+', parent "'+IntfDef.ParentName+'" not found')
+        else
+          writeln('Error: [TWebIDLContext.GetInterfacesTopologically] interface "'+IntfDef.Name+'" at '+GetDefPos(IntfDef)+', parent "'+IntfDef.ParentName+'" is not an interface at '+GetDefPos(Def));
+        end;
+      end;
+    Result:=Top.Parent;
+  end;
+
+  function GetTopologicalLevel(Top: TTopologicalIntf): integer;
+  var
+    ParentTop: TTopologicalIntf;
+    IntfDef: TIDLInterfaceDefinition;
+  begin
+    IntfDef:=Top.Intf;
+    if Top.Level<0 then
+      begin
+      if Top.Parent=nil then
+        Top.Level:=0
+      else
+        begin
+        ParentTop:=FindIntf(Top.Parent);
+        if ParentTop=nil then
+          begin
+          writeln('Warning: [TWebIDLContext.GetInterfacesTopologically] interface "'+IntfDef.Name+'" at '+GetDefPos(IntfDef)+', parent "'+Top.Parent.Name+'" at '+GetDefPos(Top.Parent)+' not in definition list');
+          Top.Level:=0;
+          end
+        else
+          Top.Level:=GetTopologicalLevel(ParentTop)+1;
+        end;
+      end;
+    Result:=Top.Level;
+  end;
+
+var
+  D: TIDLDefinition;
+  IntfDef: TIDLInterfaceDefinition;
+  Top: TTopologicalIntf;
+  i: Integer;
+begin
+  Result:=nil;
+  List:=TFPList.Create;
+  try
+    // collect all interfaces
+    for D in Definitions do
+      if D is TIDLInterfaceDefinition then
+        begin
+        IntfDef:=TIDLInterfaceDefinition(D);
+        if IntfDef.IsPartial then continue;
+        Top:=TTopologicalIntf.Create;
+        Top.Intf:=IntfDef;
+        Top.Level:=-1;
+        Top.SrcPos:=List.Count;
+        List.Add(Top);
+        end;
+    // set parent interfaces
+    for i:=0 to List.Count-1 do
+      FindParent(TTopologicalIntf(List[i]));
+
+    // sort topologically (keeping source order)
+    for i:=0 to List.Count-1 do
+      GetTopologicalLevel(TTopologicalIntf(List[i]));
+    MergeSort(List,@CompareTopologicalIntfWithLevelAndSrcPos);
+
+    Result:=TIDLDefinitionList.Create(nil,false);
+    for i:=0 to List.Count-1 do
+      begin
+      Top:=TTopologicalIntf(List[i]);
+      //case Top.Intf.Name of
+      //'EventTarget','AbortSignal':
+      //  writeln('AAA1 TWebIDLContext.GetInterfacesTopologically ',Top.Intf.Name,' parent=',Top.Intf.ParentName,' found=',Top.Parent<>nil,' level=',Top.Level,' srcpos=',Top.SrcPos);
+      //end;
+      Result.Add(Top.Intf);
+      end;
+  finally
+    List.Free;
+  end;
+end;
+
 procedure TWebIDLContext.ResolveParentTypes;
 
 Var
@@ -1597,6 +1828,14 @@ end;
 procedure TWebIDLContext.ResolveTypes;
 begin
   ResolveParentTypes;
+end;
+
+function TWebIDLContext.GetDefPos(Def: TIDLBaseObject; WithoutFile: boolean
+  ): string;
+begin
+  Result:='('+IntToStr(Def.Line)+','+IntToStr(Def.Column)+')';
+  if not WithoutFile then
+    Result:=Def.SrcFile+Result;
 end;
 
 function TWebIDLContext.IndexOfDefinition(const AName: String): Integer;
