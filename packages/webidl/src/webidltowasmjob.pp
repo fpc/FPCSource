@@ -440,7 +440,11 @@ begin
   Suff:='';
   RT:='';
   if (foConstructor in aDef.Options) then
-    FN:='New'
+    begin
+    FN:='New';
+    writeln('Note: skipping constructor of '+aDef.Parent.Name+' at '+GetDefPos(aDef));
+    exit(false);
+    end
   else
     begin
     FN:=GetName(aDef);
