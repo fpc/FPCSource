@@ -114,7 +114,7 @@ type
     tkvoid,
     tkShort,
     tkSequence,
-    tkStringToken,
+    //tkStringToken, Mattias: there is no string token in webidl
     tkMixin,
     tkIncludes,
     tkMapLike,
@@ -381,7 +381,7 @@ const
   'void',
   'short',
   'sequence',
-  'string',
+  //'string',
   'mixin',
   'includes',
   'maplike',

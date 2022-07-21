@@ -569,6 +569,7 @@ Const
   Specials = [tkGetter, tkSetter, tkDeleter, tkLegacyCaller, tkConstructor];
   OnlyGetter = [foGetter];
   OnlySetter = [foSetter];
+  OnlyDeleter = [foDeleter];
 
 Var
   Opts : TFunctionOptions;
@@ -606,6 +607,8 @@ begin
       tkBracketOpen:
         if (Opts=OnlyGetter) or (Opts=OnlySetter) then
           // using default name getProperty/setProperty
+        else if (Opts=OnlyDeleter) then
+          // using default name
         else
           CheckCurrentToken(tkIdentifier);
       else
@@ -1338,7 +1341,7 @@ Const
   IdentifierTokens = [tkIdentifier,tkByteString,tkUSVString,tkDOMString];
   SimpleTypeTokens = PrimitiveTokens+IdentifierTokens;
   TypeTokens = PrefixTokens+SimpleTypeTokens;
-  ExtraTypeTokens = TypeTokens +[tkStringToken,tkVoid];
+  ExtraTypeTokens = TypeTokens +[{tkStringToken,}tkVoid];
   LegacyDOMString = 'LegacyNullToEmptyString';
 
 Var
