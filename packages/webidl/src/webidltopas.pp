@@ -97,6 +97,8 @@ type
     procedure AllocatePasNames(aList: TIDLDefinitionList; ParentName: String=''); virtual;
     function AllocatePasName(D: TIDLDefinition; ParentName: String=''): TPasData; virtual;
     procedure AddJSIdentifier(D: TIDLDefinition); virtual;
+    procedure ResolveParentInterfaces(aList: TIDLDefinitionList); virtual;
+    procedure ResolveParentInterface(Intf: TIDLInterfaceDefinition); virtual;
     procedure ResolveTypeDefs(aList: TIDLDefinitionList); virtual;
     procedure ResolveTypeDef(D: TIDLDefinition); virtual;
     procedure RemoveInterfaceForwards(aList: TIDLDefinitionList); virtual;
@@ -1501,6 +1503,27 @@ begin
     writeln('TBaseWebIDLToPas.AddJSIdentifier SubIdentifier: '+D.Name+' at '+GetDefPos(D)+' Parent=',D.Parent.Name,':',D.Parent.ClassName,' at ',GetDefPos(D.Parent));
 end;
 
+procedure TBaseWebIDLToPas.ResolveParentInterfaces(aList: TIDLDefinitionList);
+var
+  D: TIDLDefinition;
+begin
+  For D in aList do
+    if D is TIDLInterfaceDefinition then
+      ResolveParentInterface(TIDLInterfaceDefinition(D));
+end;
+
+procedure TBaseWebIDLToPas.ResolveParentInterface(Intf: TIDLInterfaceDefinition
+  );
+var
+  aDef: TIDLDefinition;
+begin
+  if Intf.ParentInterface<>nil then exit;
+  if Intf.ParentName='' then exit;
+  aDef:=FindGlobalDef(Intf.ParentName);
+  if aDef is TIDLInterfaceDefinition then
+    Intf.ParentInterface:=TIDLInterfaceDefinition(aDef);
+end;
+
 procedure TBaseWebIDLToPas.ResolveTypeDefs(aList: TIDLDefinitionList);
 var
   D: TIDLDefinition;
@@ -1684,6 +1707,7 @@ begin
   FContext.AppendPartials;
   FContext.AppendIncludes;
   AllocatePasNames(FContext.Definitions);
+  ResolveParentInterfaces(FContext.Definitions);
   ResolveTypeDefs(FContext.Definitions);
 end;
 
