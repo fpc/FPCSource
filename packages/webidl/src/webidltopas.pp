@@ -127,13 +127,12 @@ type
     function WriteAttributeImplicitTypes(aList: TIDLDefinitionList): Integer; virtual;
     function WriteOtherImplicitTypes(Intf: TIDLInterfaceDefinition; aMemberList: TIDLDefinitionList): Integer; virtual;
     function WriteDictionaryMemberImplicitTypes(aDict: TIDLDictionaryDefinition; aList: TIDLDefinitionList): Integer; virtual;
-    function WriteCallBackDefs(aList: TIDLDefinitionList): Integer; virtual;
     function WriteDictionaryDefs(aList: TIDLDefinitionList): Integer; virtual;
     function WriteForwardClassDefs(aList: TIDLDefinitionList): Integer; virtual;
     function WriteInterfaceDefs(aList: TIDLDefinitionList): Integer; virtual;
     function WriteMethodDefs(aList: TIDLDefinitionList): Integer; virtual;
     function WriteUtilityMethods(Intf: TIDLInterfaceDefinition): Integer; virtual;
-    function WriteTypeDefs(aList: TIDLDefinitionList): Integer; virtual;
+    function WriteTypeDefsAndCallbacks(aList: TIDLDefinitionList): Integer; virtual;
     function WriteEnumDefs(aList: TIDLDefinitionList): Integer; virtual;
     function WriteConsts(aList: TIDLDefinitionList): Integer; virtual;
     function WriteProperties(aList: TIDLDefinitionList): Integer; virtual;
@@ -970,19 +969,30 @@ begin
   AddLn('end;');
 end;
 
-function TBaseWebIDLToPas.WriteTypeDefs(aList: TIDLDefinitionList): Integer;
+function TBaseWebIDLToPas.WriteTypeDefsAndCallbacks(aList: TIDLDefinitionList): Integer;
 
 Var
   D: TIDLDefinition;
   TD: TIDLTypeDefDefinition absolute D;
+  FD: TIDLFunctionDefinition absolute D;
 
 begin
   Result:=0;
   EnsureSection(csType);
   for D in aList do
+    begin
     if D is TIDLTypeDefDefinition then
+      begin
       if WriteTypeDef(TD) then
         Inc(Result);
+      end
+    else if D is TIDLFunctionDefinition then
+      begin
+      if (foCallBack in FD.Options) then
+         if WriteFunctionTypeDefinition(FD) then
+           Inc(Result);
+      end;
+    end;
 end;
 
 function TBaseWebIDLToPas.WriteEnumDef(aDef: TIDLEnumDefinition): Boolean;
@@ -1248,22 +1258,6 @@ begin
   if aDef=nil then exit;
 end;
 
-function TBaseWebIDLToPas.WriteCallBackDefs(aList: TIDLDefinitionList): Integer;
-
-Var
-  D: TIDLDefinition;
-  FD: TIDLFunctionDefinition absolute D;
-
-begin
-  Result:=0;
-  EnsureSection(csType);
-  for D in aList do
-    if D is TIDLFunctionDefinition then
-      if (foCallBack in FD.Options) then
-         if WriteFunctionTypeDefinition(FD) then
-           Inc(Result);
-end;
-
 function TBaseWebIDLToPas.WriteDictionaryDefs(aList: TIDLDefinitionList): Integer;
 
 Var
@@ -1412,8 +1406,7 @@ begin
   Indent;
   WriteForwardClassDefs(Context.Definitions);
   WriteEnumDefs(Context.Definitions);
-  WriteTypeDefs(Context.Definitions);
-  WriteCallbackDefs(Context.Definitions);
+  WriteTypeDefsAndCallbacks(Context.Definitions);
   WriteDictionaryDefs(Context.Definitions);
   WriteInterfaceDefs(Context.GetInterfacesTopologically);
   Undent;
