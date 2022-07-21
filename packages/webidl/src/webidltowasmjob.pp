@@ -744,7 +744,7 @@ begin
   'UnicodeString': ReadFuncName:='ReadJSPropertyUnicodeString';
   'TJOB_JSValue': ReadFuncName:='ReadJSPropertyValue';
   else
-    Call:='ReadJSPropertyObject('+Attr.Name+','''+GetTypeName(Attr.AttributeType)+''')';
+    Call:='ReadJSPropertyObject('''+Attr.Name+''','+GetTypeName(Attr.AttributeType)+')';
   end;
 
   if Call='' then
