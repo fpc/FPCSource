@@ -34,7 +34,7 @@ Type
     SrcFile: string;
     Resolved: TIDLDefinition;
     Constructor Create(APasName: String; D: TIDLBaseObject);
-    Property PasName: String read FPasName;
+    Property PasName: String read FPasName write FPasName;
   end;
   TPasDataClass = class of TPasData;
 
@@ -266,7 +266,7 @@ end;
 function TBaseWebIDLToPas.GetName(ADef: TIDLDefinition): String;
 
 begin
-  If Assigned(ADef) and (TObject(ADef.Data) is TPasData) then
+  If Assigned(ADef) and (ADef.Data is TPasData) then
     Result:=TPasData(ADef.Data).PasName
   else
     Result:=ADef.Name;
@@ -560,6 +560,30 @@ Var
       L.Add(NewName,Def);
   end;
 
+  procedure CheckRenameArgs(Func: TIDLFunctionDefinition);
+  var
+    i: Integer;
+    Arg: TIDLArgumentDefinition;
+    ArgName: String;
+    ConflictDef: TIDLDefinition;
+  begin
+    for i:=0 to Func.Arguments.Count-1 do
+      begin
+      Arg:=Func.Argument[i];
+      ArgName:=GetName(Arg);
+      repeat
+        ConflictDef:=TIDLDefinition(L.Items[ArgName]);
+        if (ConflictDef=Nil) then break;
+        // name conflict -> rename
+        if ArgName[1]<>'a' then
+          ArgName:='a'+ArgName
+        else
+          ArgName:='_'+ArgName;
+        (Arg.Data as TPasData).PasName:=ArgName;
+      until false;
+      end;
+  end;
+
 var
   D: TIDLDefinition;
 begin
@@ -571,6 +595,9 @@ begin
     For D in ML Do
       if (D is TIDLConstDefinition) then
         CheckRename(D);
+    For D in ML Do
+      if D is TIDLFunctionDefinition then
+        CheckRenameArgs(TIDLFunctionDefinition(D));
   finally
     L.Free;
   end;
