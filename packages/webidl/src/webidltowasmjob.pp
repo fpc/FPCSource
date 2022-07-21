@@ -818,7 +818,7 @@ var
 begin
   if Attr.AttributeType=nil then
     begin
-    AddLn('skipping field without type: "'+Attr.Name+'"');
+    writeln('Note: skipping field "'+Attr.Name+'" without type at '+GetDefPos(Attr));
     exit;
     end;
   PropName:=GetName(Attr);
