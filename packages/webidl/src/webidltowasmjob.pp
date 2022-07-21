@@ -463,7 +463,7 @@ begin
     'Double': InvokeName:='InvokeJSDoubleResult';
     'UnicodeString': InvokeName:='InvokeJSUnicodeStringResult';
     'TJOB_JSValue': InvokeName:='InvokeJSValueResult';
-    'void':
+    'void','undefined':
       begin
       RT:='';
       InvokeName:='InvokeJSNoResult';
