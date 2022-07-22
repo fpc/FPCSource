@@ -1250,6 +1250,7 @@ unit i_linux;
             flags        : [tf_needs_symbol_size,tf_smartlink_sections,tf_needs_dwarf_cfi,
                             tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment,tf_has_winlike_resources,
+                            tf_safecall_exceptions,
                             tf_supports_hidden_symbols];
             cpu          : cpu_riscv32;
             unit_env     : 'LINUXUNITS';
@@ -1320,6 +1321,7 @@ unit i_linux;
             flags        : [tf_needs_symbol_size,tf_library_needs_pic,tf_smartlink_sections,tf_needs_dwarf_cfi,
                             tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment,tf_has_winlike_resources,
+                            tf_safecall_exceptions,
                             tf_supports_hidden_symbols
                             ];
             cpu          : cpu_riscv64;

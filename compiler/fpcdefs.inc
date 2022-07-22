@@ -348,6 +348,7 @@
   {$define cpuneedsdivhelper}
   {$define cpucapabilities}
   {$define cpurequiresproperalignment}
+  {$define SUPPORT_SAFECALL}
 {$endif riscv32}
 
 {$ifdef z80}
@@ -374,6 +375,7 @@
   {$define cpuneedsdivhelper}
   {$define cpucapabilities}
   {$define cpurequiresproperalignment}
+  {$define SUPPORT_SAFECALL}
 {$endif riscv64}
 
 {$ifdef xtensa}
