@@ -37,7 +37,14 @@ uses
 
 function tripletcpustr(tripletstyle: ttripletstyle): ansistring;
   begin
-    if (target_info.system in systems_darwin) or
+    if tripletstyle in [triplet_llvm,triplet_llvmrt] then
+      begin
+        if target_info.system in systems_android then
+          result:='i686'
+        else
+          result:='i386'
+      end
+    else if (target_info.system in systems_darwin) or
        (current_settings.cputype<cpu_Pentium2) then
       result:='i386'
     else

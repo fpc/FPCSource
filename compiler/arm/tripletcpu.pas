@@ -37,6 +37,15 @@ uses
 
 function tripletcpustr(tripletstyle: ttripletstyle): ansistring;
   begin
+    if tripletstyle=triplet_llvmrt then
+      begin
+        if (target_info.abi=abi_eabihf) and
+           not(target_info.system in systems_windows) then
+          result='armhf'
+        else
+          result:='arm';
+        exit:
+      end;
     result:=lower(cputypestr[current_settings.cputype]);
     { llvm replaces the cpu name with thumb for when generating thumb code}
     if (tripletstyle=triplet_llvm) and

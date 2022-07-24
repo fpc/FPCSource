@@ -379,7 +379,10 @@ interface
 
        { platform triplet style }
        ttripletstyle = (
-         triplet_llvm
+         { llvm toolchain parameters }
+         triplet_llvm,
+         { llvm run time library file names }
+         triplet_llvmrt
          { , triple_gnu }
        );
 
