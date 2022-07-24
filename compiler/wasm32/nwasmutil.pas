@@ -26,7 +26,8 @@ unit nwasmutil;
 interface
 
   uses
-    ngenutil;
+    ngenutil,
+    symsym;
 
   type
 
@@ -34,6 +35,7 @@ interface
 
     twasmnodeutils = class(tnodeutils)
     public
+      class procedure insertbssdata(sym : tstaticvarsym); override;
       class procedure InsertObjectInfo; override;
     end;
 
@@ -44,10 +46,21 @@ implementation
     cpubase,
     aasmbase,aasmdata,aasmtai,aasmcpu,
     hlcgobj,hlcgcpu,
-    symdef,symtype,symconst,
+    symdef,symtype,symconst,symcpu,
     fmodule;
 
   { twasmnodeutils }
+
+  class procedure twasmnodeutils.insertbssdata(sym: tstaticvarsym);
+    var
+      symcpu: tcpustaticvarsym;
+    begin
+      symcpu:=tcpustaticvarsym(sym);
+      if symcpu.is_wasm_global then
+        // don't reserve bss data for wasm global vars
+      else
+        inherited;
+    end;
 
   class procedure twasmnodeutils.InsertObjectInfo;
 
