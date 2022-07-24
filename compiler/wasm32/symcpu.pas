@@ -165,6 +165,7 @@ type
   tcpuparavarsymclass = class of tcpuparavarsym;
 
   tcpustaticvarsym = class(tstaticvarsym)
+    function is_wasm_global: Boolean;
   end;
   tcpustaticvarsymclass = class of tcpustaticvarsym;
 
@@ -315,6 +316,10 @@ implementation
                              tcpustaticvarsym
 ****************************************************************************}
 
+    function tcpustaticvarsym.is_wasm_global: Boolean;
+      begin
+        Result:=UpCase(section)='WEBASSEMBLY.GLOBAL';
+      end;
 
 {****************************************************************************
                              tcpufieldvarsym
