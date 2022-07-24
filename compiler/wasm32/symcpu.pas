@@ -166,6 +166,9 @@ type
 
   tcpustaticvarsym = class(tstaticvarsym)
     function is_wasm_global: Boolean;
+    function try_get_wasm_global_vardef_type(out res: TWasmBasicType): Boolean;
+    function get_wasm_global_vardef_type: TWasmBasicType;
+    function has_valid_wasm_global_vardef_type: Boolean;
   end;
   tcpustaticvarsymclass = class of tcpustaticvarsym;
 
@@ -199,6 +202,7 @@ implementation
   uses
     verbose,cutils,cclasses,globals,cgbase,
     symconst,symbase,symtable,symcreat,wasmdef,
+    defutil,
     pdecsub,pparautl,paramgr,
     // high-level code generator is needed to get access to type index for ncall
     hlcgobj,hlcgcpu,
@@ -319,6 +323,36 @@ implementation
     function tcpustaticvarsym.is_wasm_global: Boolean;
       begin
         Result:=UpCase(section)='WEBASSEMBLY.GLOBAL';
+      end;
+
+    function tcpustaticvarsym.try_get_wasm_global_vardef_type(out res: TWasmBasicType): Boolean;
+      begin
+        Result:=True;
+        if is_64bitint(vardef) then
+          res:=wbt_i64
+        else if is_pointer(vardef) then
+          res:=wbt_i32
+        else if is_32bitint(vardef) then
+          res:=wbt_i32
+        else if is_single(vardef) then
+          res:=wbt_f32
+        else if is_double(vardef) then
+          res:=wbt_f64
+        else
+          Result:=False;
+      end;
+
+    function tcpustaticvarsym.get_wasm_global_vardef_type: TWasmBasicType;
+      begin
+        if not try_get_wasm_global_vardef_type(Result) then
+          internalerror(2022072501);
+      end;
+
+    function tcpustaticvarsym.has_valid_wasm_global_vardef_type: Boolean;
+      var
+        TempWBT: TWasmBasicType;
+      begin
+        result:=try_get_wasm_global_vardef_type(TempWBT);
       end;
 
 {****************************************************************************
