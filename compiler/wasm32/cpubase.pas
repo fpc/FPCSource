@@ -19,7 +19,7 @@
 
  ****************************************************************************
 }
-{ This Unit contains the base types for the Java Virtual Machine
+{ This Unit contains the base types for WebAssembly
 }
 unit cpubase;
 
