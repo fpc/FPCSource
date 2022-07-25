@@ -144,7 +144,7 @@ Resourcestring
   SErrTypeNotAllowed = 'Type "%s" not allowed in "%s" type.';
   SErrDictionaryNotFound = 'Dictionary %s not found';
   SErrInterfaceNotFound = 'Interface %s not found';
-  SErrInterfaceNotFoundfor = 'Included Interface %s not found for %s';
+  SErrInterfaceNotFoundForAt = 'Included Interface %s not found for %s at %s';
 
 procedure MergeSort(List: TFPList; const OnCompare: TListSortCompare);
 begin
@@ -1651,7 +1651,7 @@ begin
         if Assigned(Aliases) and (Aliases.IndexOfName(ID.IncludedInterface)<>-1) then
           OI.ParentName:=Aliases.Values[ID.IncludedInterface]
         else
-          Raise EWebIDLParser.CreateFmt(SErrInterfaceNotFoundFor,[ID.IncludedInterface,ID.Name]);
+          Raise EWebIDLParser.CreateFmt('[20220725182631] '+SErrInterfaceNotFoundForAt,[ID.IncludedInterface,ID.Name,GetDefPos(ID)]);
        end
       else
         begin
@@ -1747,9 +1747,11 @@ var
         if Def is TIDLInterfaceDefinition then
           Top.Parent:=TIDLInterfaceDefinition(Def)
         else if Def=nil then
-          writeln('Warning: [TWebIDLContext.GetInterfacesTopologically] interface "'+IntfDef.Name+'" at '+GetDefPos(IntfDef)+', parent "'+IntfDef.ParentName+'" not found')
+          begin
+          raise EConvertError.Create('[20220725182112] interface "'+IntfDef.Name+'" at '+GetDefPos(IntfDef)+', parent "'+IntfDef.ParentName+'" not found');
+          end
         else
-          writeln('Error: [TWebIDLContext.GetInterfacesTopologically] interface "'+IntfDef.Name+'" at '+GetDefPos(IntfDef)+', parent "'+IntfDef.ParentName+'" is not an interface at '+GetDefPos(Def));
+          raise EConvertError.Create('[20220725182109] [TWebIDLContext.GetInterfacesTopologically] interface "'+IntfDef.Name+'" at '+GetDefPos(IntfDef)+', parent "'+IntfDef.ParentName+'" is not an interface at '+GetDefPos(Def));
         end;
       end;
     Result:=Top.Parent;
@@ -1770,7 +1772,7 @@ var
         ParentTop:=FindIntf(Top.Parent);
         if ParentTop=nil then
           begin
-          writeln('Warning: [TWebIDLContext.GetInterfacesTopologically] interface "'+IntfDef.Name+'" at '+GetDefPos(IntfDef)+', parent "'+Top.Parent.Name+'" at '+GetDefPos(Top.Parent)+' not in definition list');
+          writeln('Warning: [20220725182101] [TWebIDLContext.GetInterfacesTopologically] interface "'+IntfDef.Name+'" at '+GetDefPos(IntfDef)+', parent "'+Top.Parent.Name+'" at '+GetDefPos(Top.Parent)+' not in definition list');
           Top.Level:=0;
           end
         else

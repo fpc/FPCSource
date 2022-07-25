@@ -649,7 +649,7 @@ begin
       ArgType:=GetResolvedType(ArgDef.ArgumentType,ArgTypeName,ArgResolvedTypename);
 
       case ArgResolvedTypename of
-      '': raise EWebIDLParser.Create('not yet supported: function type arg['+IntToStr(I)+'] type void/undefined at '+GetDefPos(ArgDef));
+      '': raise EWebIDLParser.Create('[20220725181726] not yet supported: function type arg['+IntToStr(I)+'] type void/undefined at '+GetDefPos(ArgDef));
       'Boolean': GetFunc:='GetBoolean';
       'ShortInt',
       'Byte',
@@ -670,7 +670,7 @@ begin
           begin
           if ArgType<>nil then
             writeln('TWebIDLToPasWasmJob.WriteFunctionTypeDefinition ArgType=',ArgType.ClassName);
-          raise EWebIDLParser.Create('not yet supported: function type arg['+IntToStr(I)+'] type '+ArgDef.ArgumentType.TypeName+' at '+GetDefPos(ArgDef));
+          raise EWebIDLParser.Create('[20220725181732] not yet supported: function type arg['+IntToStr(I)+'] type '+ArgDef.ArgumentType.TypeName+' at '+GetDefPos(ArgDef));
           end;
       end;
 
@@ -715,7 +715,7 @@ begin
         begin
         if ReturnDef<>nil then
           writeln('TWebIDLToPasWasmJob.WriteFunctionTypeDefinition ReturnDef=',ReturnDef.ClassName);
-        raise EWebIDLParser.Create('not yet supported: function type result type "'+ResolvedReturnTypeName+'" at '+GetDefPos(aDef));
+        raise EWebIDLParser.Create('[20220725181735] not yet supported: function type result type "'+ResolvedReturnTypeName+'" at '+GetDefPos(aDef));
         end;
     end;
     Code:=Code+'  '+GetFunc+sLineBreak;
