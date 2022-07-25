@@ -1054,8 +1054,16 @@ implementation
           ref.index:=NR_NO;
         end;
 
-      // setting up memory offset
-      if ref.refaddr=addr_got_tls then
+      if assigned(ref.symbol) and (ref.symbol.typ=AT_WASM_GLOBAL) then
+        begin
+          if ref.base<>NR_NO then
+            internalerror(2022072601);
+          if ref.index<>NR_NO then
+            internalerror(2022072602);
+          if ref.offset<>0 then
+            internalerror(2022072603);
+        end
+      else if ref.refaddr=addr_got_tls then
         begin
           if not assigned(ref.symbol) then
             internalerror(2022071405);
@@ -2395,7 +2403,15 @@ implementation
       getputmemf32 : array [boolean] of TAsmOp = (a_f32_store, a_f32_load);
       getputmemf64 : array [boolean] of TAsmOp = (a_f64_store, a_f64_load);
     begin
-      if (ref.base<>NR_LOCAL_STACK_POINTER_REG) or assigned(ref.symbol) then
+      if assigned(ref.symbol) and (ref.symbol.typ=AT_WASM_GLOBAL) then
+        begin
+          if isload then
+            result:=a_global_get
+          else
+            result:=a_global_set;
+          finishandval:=-1;
+        end
+      else if (ref.base<>NR_LOCAL_STACK_POINTER_REG) or assigned(ref.symbol) then
         begin
           { -> either a global (static) field, or a regular field. If a regular
             field, then ref.base contains the self pointer, otherwise
