@@ -106,12 +106,13 @@ type
     function GetDefPos(Def: TIDLBaseObject; WithoutFile: boolean = false): string; virtual;
     function GetPasDataPos(D: TPasData; WithoutFile: boolean = false): string; virtual;
     procedure EnsureUniqueNames(ML: TIDLDefinitionList); virtual;
+    procedure EnsureUniqueArgNames(Intf: TIDLInterfaceDefinition); virtual;
     function AddSequenceDef(ST: TIDLSequenceTypeDefDefinition): Boolean; virtual;
     function GetName(ADef: TIDLDefinition): String; virtual;
     function GetPasClassName(const aName: string): string; overload; virtual;
     function GetTypeName(Const aTypeName: String; ForTypeDef: Boolean=False): String; overload; virtual;
     function GetTypeName(aTypeDef: TIDLTypeDefDefinition; ForTypeDef: Boolean=False): String; overload; virtual;
-    function GetResolvedTypeName(Const aTypeName: String): String; overload; virtual;
+    function GetResolvedType(aDef: TIDLTypeDefDefinition; out aTypeName, aResolvedTypename: string): TIDLDefinition; overload; virtual;
     function GetSequenceTypeName(Seq: TIDLSequenceTypeDefDefinition; ForTypeDef: Boolean=False): string; virtual;
     function GetInterfaceDefHead(Intf: TIDLInterfaceDefinition): String; virtual;
     function GetDictionaryDefHead(const CurClassName: string; Dict: TIDLDictionaryDefinition): String; virtual;
@@ -563,30 +564,6 @@ Var
       L.Add(NewName,Def);
   end;
 
-  procedure CheckRenameArgs(Func: TIDLFunctionDefinition);
-  var
-    i: Integer;
-    Arg: TIDLArgumentDefinition;
-    ArgName: String;
-    ConflictDef: TIDLDefinition;
-  begin
-    for i:=0 to Func.Arguments.Count-1 do
-      begin
-      Arg:=Func.Argument[i];
-      ArgName:=GetName(Arg);
-      repeat
-        ConflictDef:=TIDLDefinition(L.Items[ArgName]);
-        if (ConflictDef=Nil) then break;
-        // name conflict -> rename
-        if ArgName[1]<>'a' then
-          ArgName:='a'+ArgName
-        else
-          ArgName:='_'+ArgName;
-        (Arg.Data as TPasData).PasName:=ArgName;
-      until false;
-      end;
-  end;
-
 var
   D: TIDLDefinition;
 begin
@@ -598,11 +575,71 @@ begin
     For D in ML Do
       if (D is TIDLConstDefinition) then
         CheckRename(D);
-    For D in ML Do
+  finally
+    L.Free;
+  end;
+end;
+
+procedure TBaseWebIDLToPas.EnsureUniqueArgNames(Intf: TIDLInterfaceDefinition);
+var
+  Names: TFPObjectHashTable;
+
+  procedure CheckRenameArgs(Func: TIDLFunctionDefinition);
+  var
+    i: Integer;
+    Arg: TIDLArgumentDefinition;
+    ArgName: String;
+    ConflictDef: TIDLDefinition;
+  begin
+    for i:=0 to Func.Arguments.Count-1 do
+      begin
+      Arg:=Func.Argument[i];
+      ArgName:=GetName(Arg);
+      if ArgName[1]<>'a' then
+        begin
+        ArgName:='a'+ArgName;
+        (Arg.Data as TPasData).PasName:=ArgName;
+        end;
+      repeat
+        ConflictDef:=TIDLDefinition(Names.Items[ArgName]);
+        if (ConflictDef=Nil) then break;
+        // name conflict -> rename
+        ArgName:='_'+ArgName;
+        (Arg.Data as TPasData).PasName:=ArgName;
+      until false;
+      end;
+  end;
+
+var
+  Members, MembersWithParents: TIDLDefinitionList;
+  CurIntf: TIDLInterfaceDefinition;
+  D: TIDLDefinition;
+  CurName: String;
+begin
+  Names:=TFPObjectHashTable.Create(False);
+  Members:=TIDLDefinitionList.Create(Nil,False);
+  MembersWithParents:=TIDLDefinitionList.Create(Nil,False);
+  try
+    Intf.GetFullMemberList(Members);
+    CurIntf:=Intf;
+    while CurIntf<>nil do
+      begin
+      CurIntf.GetFullMemberList(MembersWithParents);
+      CurIntf:=CurIntf.ParentInterface;
+      end;
+    For D in MembersWithParents Do
+      begin
+      CurName:=GetName(D);
+      if Names.Items[CurName]=nil then
+        Names.Add(CurName,D);
+      end;
+    For D in Members Do
       if D is TIDLFunctionDefinition then
         CheckRenameArgs(TIDLFunctionDefinition(D));
   finally
-    L.Free;
+    MembersWithParents.Free;
+    Members.Free;
+    Names.Free;
   end;
 end;
 
@@ -619,6 +656,7 @@ begin
   try
     Intf.GetFullMemberList(ML);
     EnsureUniqueNames(ML);
+    EnsureUniqueArgNames(Intf);
     aClassName:=GetName(Intf);
     // class comment
     ClassComment(aClassName);
@@ -749,21 +787,36 @@ begin
     Result:=GetTypeName(aTypeDef.TypeName,ForTypeDef);
 end;
 
-function TBaseWebIDLToPas.GetResolvedTypeName(const aTypeName: String): String;
-var
-  aDef: TIDLDefinition;
+function TBaseWebIDLToPas.GetResolvedType(aDef: TIDLTypeDefDefinition; out
+  aTypeName, aResolvedTypename: string): TIDLDefinition;
 begin
-  aDef:=FindGlobalDef(aTypeName);
-  if aDef is TIDLTypeDefDefinition then
-    Result:=GetResolvedTypeName(TIDLTypeDefDefinition(aDef).TypeName)
+  Result:=nil;
+  if aDef=nil then
+    begin
+    aTypeName:='';
+    aResolvedTypename:='';
+    exit;
+    end;
+  aTypeName:=GetTypeName(aDef.TypeName);
+  //writeln('TBaseWebIDLToPas.GetResolvedType START aDef=',aDef.Name,':',aDef.ClassName,' ',aDef.TypeName,' ',GetDefPos(aDef));
+  Result:=aDef;
+  while (aDef.Data is TPasData) and (TPasData(aDef.Data).Resolved<>nil) do
+    begin
+    Result:=TPasData(aDef.Data).Resolved;
+    //writeln('TBaseWebIDLToPas.GetResolvedType RESOLVED Result=',Result.Name,' ',GetDefPos(Result));
+    if not (Result is TIDLTypeDefDefinition) then
+      break;
+    aDef:=TIDLTypeDefDefinition(Result);
+    end;
+  if Result is TIDLTypeDefDefinition then
+    aResolvedTypename:=GetTypeName(TIDLTypeDefDefinition(Result))
   else
-    Result:=GetTypeName(aTypeName);
+    aResolvedTypename:=GetName(Result);
 end;
 
 function TBaseWebIDLToPas.GetSequenceTypeName(
   Seq: TIDLSequenceTypeDefDefinition; ForTypeDef: Boolean): string;
 begin
-  //writeln('TBaseWebIDLToPas.GetSequenceTypeName ',Seq.ElementType.Name,' ',Seq.ElementType.TypeName);
   Result:=GetTypeName(Seq.ElementType,ForTypeDef);
   if Result='' then
     raise EConvertError.Create('sequence without name at '+GetDefPos(Seq));
@@ -1500,7 +1553,7 @@ begin
     FGlobalDefs.Add(D.Name,D);
     end
   else
-    writeln('TBaseWebIDLToPas.AddJSIdentifier SubIdentifier: '+D.Name+' at '+GetDefPos(D)+' Parent=',D.Parent.Name,':',D.Parent.ClassName,' at ',GetDefPos(D.Parent));
+    ; //writeln('TBaseWebIDLToPas.AddJSIdentifier SubIdentifier: '+D.Name+' at '+GetDefPos(D)+' Parent=',D.Parent.Name,':',D.Parent.ClassName,' at ',GetDefPos(D.Parent));
 end;
 
 procedure TBaseWebIDLToPas.ResolveParentInterfaces(aList: TIDLDefinitionList);
@@ -1540,17 +1593,22 @@ procedure TBaseWebIDLToPas.ResolveTypeDef(D: TIDLDefinition);
     Data: TPasData;
   begin
     Def:=FindGlobalDef(aTypeName);
+    //writeln('ResolveTypeName ',Def<>nil);
     if Def=nil then
       begin
       if NameToWebIDLBaseType(aTypeName)=wibtNone then
-        writeln('Type ',aTypeName,' not found at ',GetDefPos(D));
+        raise EConvertError.Create('type "'+aTypeName+'" of "'+D.Name+'" not found at '+GetDefPos(D));
       end
     else
       begin
       Data:=TPasData(D.Data);
       if Data=nil then
+        begin
         Data:=CreatePasName('',D,false);
+        D.Data:=Data;
+        end;
       Data.Resolved:=Def;
+      //writeln('ResolveTypeName D=',D.Name,':',D.ClassName,' at ',GetDefPos(D),' Data.Resolved=',Def.Name,':',Def.ClassName,' at ',GetDefPos(Def));
       end;
   end;
 
@@ -1558,20 +1616,27 @@ var
   DMD: TIDLDictionaryMemberDefinition;
   IT: TIDLIterableDefinition;
   SerializerD: TIDLSerializerDefinition;
+  FD: TIDLFunctionDefinition;
 begin
   if D=nil then exit;
   //writeln('TBaseWebIDLToPas.ResolveTypeDef START ',D.Name,':',D.ClassName,' at ',GetDefPos(D));
   if D Is TIDLInterfaceDefinition then
-    ResolveTypeDefs((D as TIDLInterfaceDefinition).Members)
+    ResolveTypeDefs(TIDLInterfaceDefinition(D).Members)
   else if D Is TIDLDictionaryDefinition then
-    ResolveTypeDefs((D as TIDLDictionaryDefinition).Members)
+    ResolveTypeDefs(TIDLDictionaryDefinition(D).Members)
   else if D is TIDLIncludesDefinition then
   else if D Is TIDLFunctionDefinition then
-    ResolveTypeDefs((D as TIDLFunctionDefinition).Arguments)
+    begin
+    FD:=TIDLFunctionDefinition(D);
+    ResolveTypeDefs(FD.Arguments);
+    ResolveTypeDef(FD.ReturnType);
+    end
   else if D is TIDLAttributeDefinition then
     ResolveTypeDef(TIDLAttributeDefinition(D).AttributeType)
   else if D is TIDLArgumentDefinition then
     ResolveTypeDef(TIDLArgumentDefinition(D).ArgumentType)
+  else if D is TIDLSequenceTypeDefDefinition then
+    ResolveTypeDef(TIDLSequenceTypeDefDefinition(D).ElementType)
   else if D is TIDLTypeDefDefinition then
     ResolveTypeName(TIDLTypeDefDefinition(D).TypeName)
   else if D is TIDLConstDefinition then
@@ -1598,7 +1663,7 @@ begin
     ResolveTypeDef(IT.KeyType);
     end
   else {if Verbose then}
-    writeln('TBaseWebIDLToPas.ResolveTypeDef unknown ',D.Name,':',D.ClassName,' at ',GetDefPos(D));
+    raise EConvertError.Create('TBaseWebIDLToPas.ResolveTypeDef unknown '+D.Name+':'+D.ClassName+' at '+GetDefPos(D));
 end;
 
 procedure TBaseWebIDLToPas.RemoveInterfaceForwards(aList: TIDLDefinitionList);
@@ -1608,7 +1673,8 @@ Var
 
   Procedure DeleteIntf(Def: TIDLInterfaceDefinition);
   begin
-    writeln('DeleteIntf ',Def.Name);
+    if Verbose then
+      writeln('Hint: removing interface ',Def.Name,' at '+GetDefPos(Def));
     aList.Delete(Def);
   end;
 
