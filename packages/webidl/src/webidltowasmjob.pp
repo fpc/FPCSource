@@ -448,6 +448,7 @@ begin
 
   Suff:='';
   ReturnDef:=GetResolvedType(aDef.ReturnType,ReturnTypeName,ResolvedReturnTypeName);
+  writeln('AAA1 TWebIDLToPasWasmJob.WriteFunctionDefinition ',aDef.Name,' ',ReturnTypeName,' ',ResolvedReturnTypeName,' ReturnDef=',ReturnDef.ClassName);
   InvokeName:='';
   InvokeClassName:='';
   if (foConstructor in aDef.Options) then

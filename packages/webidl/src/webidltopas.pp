@@ -511,8 +511,8 @@ begin
     begin
     FAutoTypes.Add(TN);
     DoLog('Automatically adding %s sequence definition for %s.',[TN,GetDefPos(ST)]);
-    AddLn('%s = Array of %s;',[TN,GetTypeName(ST.ElementType)]);
     ST.Data:=CreatePasName(TN,ST,true);
+    WriteSequenceDef(ST);
     end;
 end;
 
@@ -814,6 +814,8 @@ begin
     aResolvedTypename:=GetTypeName(TIDLTypeDefDefinition(Result))
   else
     aResolvedTypename:=GetName(Result);
+  if aTypeName='sequence' then
+    aTypeName:=aResolvedTypename;
 end;
 
 function TBaseWebIDLToPas.GetSequenceTypeName(
