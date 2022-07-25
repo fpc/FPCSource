@@ -236,7 +236,7 @@ begin
   Case aTypeName of
     'union',
     'any': Result:=JOB_JSValueTypeNames[jjvkUndefined];
-    'void': Result:=aTypeName;
+    'void','undefined': Result:=aTypeName;
   else
     //writeln('TWebIDLToPasWasmJob.GetTypeName ',aTypeName,' ',Def<>nil);
     Result:=inherited GetTypeName(aTypeName,ForTypeDef);
@@ -474,7 +474,7 @@ begin
         ReturnTypeName:=GetPasIntfName(ReturnDef);
         end
       else
-        raise EConvertError.Create('not yet supported: function return type '+ResolvedReturnTypeName+' '+ReturnDef.ClassName+' at '+GetDefPos(aDef));
+        raise EConvertError.Create('[20220725172242] not yet supported: function return type '+ResolvedReturnTypeName+' '+ReturnDef.ClassName+' at '+GetDefPos(aDef));
     end;
 
     end;
@@ -532,7 +532,7 @@ begin
             ArgType:=FindGlobalDef(ArgTypeName);
             if Verbose then
               writeln('Hint: TWebIDLToPasWasmJob.WriteFunctionDefinition sequence of ',ArgTypeName,' Element=',ArgType<>nil);
-            raise EConvertError.Create('not yet supported: passing an array of '+ArgTypeName+' as argument at '+GetDefPos(ArgDef));
+            raise EConvertError.Create('[20220725172246] not yet supported: passing an array of '+ArgTypeName+' as argument at '+GetDefPos(ArgDef));
             end
           else
             begin
@@ -649,7 +649,7 @@ begin
       ArgType:=GetResolvedType(ArgDef.ArgumentType,ArgTypeName,ArgResolvedTypename);
 
       case ArgResolvedTypename of
-      '': raise EWebIDLParser.Create('not yet supported: function type arg['+IntToStr(I)+'] type void at '+GetDefPos(ArgDef));
+      '': raise EWebIDLParser.Create('not yet supported: function type arg['+IntToStr(I)+'] type void/undefined at '+GetDefPos(ArgDef));
       'Boolean': GetFunc:='GetBoolean';
       'ShortInt',
       'Byte',

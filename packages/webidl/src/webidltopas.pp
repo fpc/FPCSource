@@ -547,7 +547,7 @@ Var
           ConflictDef:=CurDef;
           inc(I);
           if I>1 then
-            raise EConvertError.Create('Duplicate identifier '+GetDefPos(Def)+' and '+GetDefPos(CurDef)+' (20220620073704)');
+            raise EConvertError.Create('[20220725172221] Duplicate identifier '+GetDefPos(Def)+' and '+GetDefPos(CurDef)+' (20220620073704)');
           NewName:=KeywordPrefix+BaseName+KeywordSuffix;
           OrigName:=KeywordPrefix+OrigName+KeywordSuffix;
           end;
@@ -819,7 +819,7 @@ function TBaseWebIDLToPas.GetSequenceTypeName(
 begin
   Result:=GetTypeName(Seq.ElementType,ForTypeDef);
   if Result='' then
-    raise EConvertError.Create('sequence without name at '+GetDefPos(Seq));
+    raise EConvertError.Create('[20220725172227] sequence without name at '+GetDefPos(Seq));
   if LeftStr(Result,length(ArrayPrefix))<>ArrayPrefix then
     Result:=ArrayPrefix+Result;
   Result:=Result+ArraySuffix;
@@ -1596,8 +1596,9 @@ procedure TBaseWebIDLToPas.ResolveTypeDef(D: TIDLDefinition);
     //writeln('ResolveTypeName ',Def<>nil);
     if Def=nil then
       begin
-      if NameToWebIDLBaseType(aTypeName)=wibtNone then
-        raise EConvertError.Create('type "'+aTypeName+'" of "'+D.Name+'" not found at '+GetDefPos(D));
+      if (NameToWebIDLBaseType(aTypeName)=wibtNone)
+          and (TypeAliases.Values[aTypeName]='') then
+        raise EConvertError.Create('[20220725172231] type "'+aTypeName+'" of "'+D.Name+'" not found at '+GetDefPos(D));
       end
     else
       begin
@@ -1640,7 +1641,10 @@ begin
   else if D is TIDLTypeDefDefinition then
     ResolveTypeName(TIDLTypeDefDefinition(D).TypeName)
   else if D is TIDLConstDefinition then
-    ResolveTypeName(TIDLConstDefinition(D).TypeName)
+    begin
+    if TIDLConstDefinition(D).TypeName<>'' then
+      ResolveTypeName(TIDLConstDefinition(D).TypeName);
+    end
   else if D is TIDLSerializerDefinition then
     begin
     SerializerD:=TIDLSerializerDefinition(D);
@@ -1663,7 +1667,7 @@ begin
     ResolveTypeDef(IT.KeyType);
     end
   else {if Verbose then}
-    raise EConvertError.Create('TBaseWebIDLToPas.ResolveTypeDef unknown '+D.Name+':'+D.ClassName+' at '+GetDefPos(D));
+    raise EConvertError.Create('[20220725172214] TBaseWebIDLToPas.ResolveTypeDef unknown '+D.Name+':'+D.ClassName+' at '+GetDefPos(D));
 end;
 
 procedure TBaseWebIDLToPas.RemoveInterfaceForwards(aList: TIDLDefinitionList);
@@ -1699,7 +1703,7 @@ Var
       else if Def.IsForward then
         DeleteIntf(Def)
       else
-        raise EConvertError.Create('Duplicate interface '+GetDefPos(Def)+' and '+GetDefPos(OldDef)+' (20220718184717)');
+        raise EConvertError.Create('[20220725172236] Duplicate interface '+GetDefPos(Def)+' and '+GetDefPos(OldDef)+' (20220718184717)');
       end;
   end;
 

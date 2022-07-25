@@ -330,7 +330,7 @@ end;
 procedure TWebIDLParser.CheckCurrentTokens(aTokens: TIDLTokens);
 begin
   if Not (CurrentToken in aTokens) then
-    Error(SErrInvalidTokenList,[GetTokenNames(aTokens),CurrentTokenString]);
+    Error('[20220725174524] '+SErrInvalidTokenList,[GetTokenNames(aTokens),CurrentTokenString]);
 end;
 
 function TWebIDLParser.ExpectToken(aToken: TIDLToken): TIDLToken;
@@ -532,7 +532,7 @@ begin
          Options:=Options+[foCallBack];
        end;
   else
-    Error(SErrInvalidTokenList,[GetTokenNames([tkInterface,tkIdentifier])]);
+    Error('[20220725174529] '+SErrInvalidTokenList,[GetTokenNames([tkInterface,tkIdentifier]),CurrentTokenString]);
   end;
 end;
 
@@ -1112,7 +1112,7 @@ begin
     tkInterface : Result:=ParseInterface(aParent);
     tkDictionary : Result:=ParseDictionary(aParent);
   else
-    Error(SErrInvalidTokenList,[GetTokenNames([tkInterface,tkDictionary]),CurrentTokenString]);
+    Error('[20220725174539] '+SErrInvalidTokenList,[GetTokenNames([tkInterface,tkDictionary]),CurrentTokenString]);
   end;
   Result.IsPartial:=True;
 end;

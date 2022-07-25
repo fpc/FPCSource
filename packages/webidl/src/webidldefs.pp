@@ -24,6 +24,7 @@ uses
 Type
   TWebIDLBaseType = (
     wibtNone,
+    wibtUndefined,
     wibtVoid,
     wibtUnion,
     wibtAny,
@@ -72,6 +73,7 @@ Type
 const
   WebIDLBaseTypeNames: array[TWebIDLBaseType] of string = (
     '',
+    'undefined',
     'void',
     'union',
     'any',
