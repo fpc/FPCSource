@@ -399,7 +399,11 @@ begin
   if D is TIDLDictionaryDefinition then
     AddLn(GetName(D)+' = '+JOB_JSValueTypeNames[jjvkDictionary]+';')
   else
+    begin
+    if (not D.IsPartial) and (D is TIDLInterfaceDefinition) then
+      AddLn(GetPasIntfName(D)+' = Interface;');
     Result:=inherited WriteForwardClassDef(D);
+    end;
 end;
 
 function TWebIDLToPasWasmJob.WriteFunctionDefinition(
