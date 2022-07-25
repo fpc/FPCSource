@@ -1342,6 +1342,7 @@ Const
   SimpleTypeTokens = PrimitiveTokens+IdentifierTokens;
   TypeTokens = PrefixTokens+SimpleTypeTokens;
   ExtraTypeTokens = TypeTokens +[{tkStringToken,}tkVoid];
+  EnforceRange = 'EnforceRange';
   LegacyDOMString = 'LegacyNullToEmptyString';
 
 Var
@@ -1361,15 +1362,30 @@ begin
       tk:=CurrentToken;
     if tk=tkSquaredBraceOpen then
       begin
-      // special: [LegacyNullToEmptyString] DOMString
       ExpectToken(tkIdentifier);
-      if CurrentTokenString<>LegacyDOMString then
+      case CurrentTokenString of
+      EnforceRange:
+        begin
+        // special: [EnforceRange] unsigned long
+        ExpectToken(tkSquaredBraceClose);
+        ExpectToken(tkunsigned);
+        ExpectToken(tklong);
+        Result:=TIDLTypeDefDefinition(AddDefinition(aParent,TIDLTypeDefDefinition,''));
+        Result.TypeName:='unsinged long';
+        Result.Attributes.Add(EnforceRange);
+        end;
+      LegacyDOMString:
+        begin
+        // special: [LegacyNullToEmptyString] DOMString
+        ExpectToken(tkSquaredBraceClose);
+        ExpectToken(tkDOMString);
+        Result:=TIDLTypeDefDefinition(AddDefinition(aParent,TIDLTypeDefDefinition,''));
+        Result.TypeName:='DOMString';
+        Result.Attributes.Add(LegacyDOMString);
+        end
+      else
         Error(SErrInvalidToken,[LegacyDOMString,CurrentTokenString]);
-      ExpectToken(tkSquaredBraceClose);
-      ExpectToken(tkDOMString);
-      Result:=TIDLTypeDefDefinition(AddDefinition(aParent,TIDLTypeDefDefinition,''));
-      Result.TypeName:='DOMString';
-      Result.Attributes.Add(LegacyDOMString);
+      end;
       GetToken;
       ok:=true;
       exit;
