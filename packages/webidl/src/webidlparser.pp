@@ -1371,7 +1371,7 @@ begin
         ExpectToken(tkunsigned);
         ExpectToken(tklong);
         Result:=TIDLTypeDefDefinition(AddDefinition(aParent,TIDLTypeDefDefinition,''));
-        Result.TypeName:='unsinged long';
+        Result.TypeName:='unsigned long';
         Result.Attributes.Add(EnforceRange);
         end;
       LegacyDOMString:
