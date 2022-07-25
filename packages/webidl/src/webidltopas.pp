@@ -278,6 +278,8 @@ end;
 
 function TBaseWebIDLToPas.GetPasClassName(const aName: string): string;
 begin
+  if aName='' then
+    raise EConvertError.Create('[20220725184209] empty name');
   Result:=ClassPrefix+aName+ClassSuffix;
 end;
 
@@ -1499,6 +1501,8 @@ begin
   CN:=D.Name;
   if D Is TIDLInterfaceDefinition then
     begin
+    if CN='' then
+      raise EConvertError.Create('[20220725184324] at '+GetDefPos(D));
     if not TIDLInterfaceDefinition(D).IsPartial then
       AddJSIdentifier(D);
     CN:=ClassPrefix+CN+ClassSuffix;
@@ -1508,6 +1512,8 @@ begin
     end
   else if D Is TIDLDictionaryDefinition then
     begin
+    if CN='' then
+      raise EConvertError.Create('[20220725184410] at '+GetDefPos(D));
     if not TIDLDictionaryDefinition(D).IsPartial then
       AddJSIdentifier(D);
     if coDictionaryAsClass in BaseOptions then

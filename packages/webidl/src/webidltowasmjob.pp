@@ -143,6 +143,8 @@ begin
   and (RightStr(Result,length(ClassSuffix))=ClassSuffix)
   then
     Result:=copy(Result,length(ClassPrefix)+1,length(Result)-length(ClassPrefix)-length(ClassSuffix));
+  if Result='' then
+    raise EConvertError.Create('[20220725184518]');
   Result:=PasInterfacePrefix+Result+PasInterfaceSuffix;
 end;
 
@@ -153,6 +155,8 @@ begin
   and (RightStr(Result,length(PasInterfaceSuffix))=PasInterfaceSuffix)
   then
     Result:=copy(Result,length(PasInterfacePrefix)+1,length(Result)-length(PasInterfacePrefix)-length(PasInterfaceSuffix));
+  if Result='' then
+    raise EConvertError.Create('[20220725184440]');
   Result:=ClassPrefix+Result+ClassSuffix;
 end;
 
@@ -244,13 +248,20 @@ begin
     and (LeftStr(Result,length(PasInterfacePrefix))<>PasInterfacePrefix)
     and (RightStr(Result,length(PasInterfaceSuffix))<>PasInterfaceSuffix)
     then
+      begin
+      if Result='' then
+        raise EConvertError.Create('[20220725184536]');
       Result:=PasInterfacePrefix+Result+PasInterfaceSuffix;
+      end;
   end;
 end;
 
 function TWebIDLToPasWasmJob.GetPasIntfName(Intf: TIDLDefinition): string;
 begin
-  Result:=GetPasClassName(GetName(Intf));
+  Result:=GetName(Intf);
+  if Result='' then
+    raise EConvertError.Create('[20220725184653] missing name at '+GetDefPos(Intf));
+  Result:=GetPasClassName(Result);
 end;
 
 function TWebIDLToPasWasmJob.GetInterfaceDefHead(Intf: TIDLInterfaceDefinition
@@ -456,6 +467,7 @@ begin
     'QWord': InvokeName:='InvokeJSMaxIntResult';
     'Single',
     'Double': InvokeName:='InvokeJSDoubleResult';
+    'UTF8String',
     'UnicodeString': InvokeName:='InvokeJSUnicodeStringResult';
     'TJOB_JSValue': InvokeName:='InvokeJSValueResult';
     'void','undefined':
@@ -472,6 +484,10 @@ begin
         begin
         InvokeClassName:=ReturnTypeName;
         ReturnTypeName:=GetPasIntfName(ReturnDef);
+        end
+      else if ResolvedReturnTypeName=PasInterfacePrefix+'Object'+PasInterfaceSuffix then
+        begin
+        InvokeClassName:=ClassPrefix+'Object'+ClassSuffix;
         end
       else
         raise EConvertError.Create('[20220725172242] not yet supported: function return type '+ResolvedReturnTypeName+' '+ReturnDef.ClassName+' at '+GetDefPos(aDef));
