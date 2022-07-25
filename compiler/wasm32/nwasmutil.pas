@@ -57,7 +57,12 @@ implementation
     begin
       symcpu:=tcpustaticvarsym(sym);
       if symcpu.is_wasm_global then
-        // don't reserve bss data for wasm global vars
+        begin
+          if sym.globalasmsym then
+            current_asmdata.asmlists[al_start].Concat(tai_globaltype.create_global(symcpu.mangledname,symcpu.get_wasm_global_vardef_type,false,symcpu.vardef))
+          else
+            current_asmdata.asmlists[al_start].Concat(tai_globaltype.create_local(symcpu.mangledname,symcpu.get_wasm_global_vardef_type,false,symcpu.vardef));
+        end
       else
         inherited;
     end;

@@ -1650,6 +1650,16 @@ implementation
                if tai_globaltype(hp).immutable then
                  writer.AsmWrite(', immutable');
                writer.AsmLn;
+               if tai_globaltype(hp).is_global then
+                 begin
+                   writer.AsmWrite(#9'.globl ');
+                   writer.AsmWriteLn(tai_globaltype(hp).globalname);
+                 end;
+               if not tai_globaltype(hp).is_external then
+                 begin
+                   writer.AsmWrite(tai_globaltype(hp).globalname);
+                   writer.AsmWriteLn(':');
+                 end;
              end;
            ait_functype:
              WriteFuncTypeDirective(tai_functype(hp));

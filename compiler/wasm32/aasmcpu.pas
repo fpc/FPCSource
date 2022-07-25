@@ -30,6 +30,7 @@ uses
   globtype,globals,verbose,
   aasmbase,aasmtai,aasmdata,aasmsym,
   cgbase,cgutils,cpubase,cpuinfo,ogbase,
+  symtype,
   widestr;
 
     { fake, there are no "mov reg,reg" instructions here }
@@ -110,7 +111,12 @@ uses
         globalname: string;
         gtype: TWasmBasicType;
         immutable: boolean;
+        is_external: boolean;
+        is_global: boolean;
+        sym       : tasmsymbol;
         constructor create(const aglobalname:string; atype: TWasmBasicType; aimmutable: boolean);
+        constructor create_local(const aglobalname:string; atype: TWasmBasicType; aimmutable: boolean; def: tdef);
+        constructor create_global(const aglobalname:string; atype: TWasmBasicType; aimmutable: boolean; def: tdef);
       end;
 
       { tai_functype }
@@ -162,10 +168,37 @@ uses
     constructor tai_globaltype.create(const aglobalname: string; atype: TWasmBasicType; aimmutable: boolean);
       begin
         inherited Create;
+        sym:=current_asmdata.RefAsmSymbol(aglobalname,AT_WASM_GLOBAL);
         typ:=ait_globaltype;
         globalname:=aglobalname;
         gtype:=atype;
         immutable:=aimmutable;
+        is_external:=true;
+        is_global:=false;
+      end;
+
+    constructor tai_globaltype.create_local(const aglobalname: string; atype: TWasmBasicType; aimmutable: boolean; def: tdef);
+      begin
+        inherited Create;
+        sym:=current_asmdata.DefineAsmSymbol(aglobalname,AB_LOCAL,AT_WASM_GLOBAL,def);
+        typ:=ait_globaltype;
+        globalname:=aglobalname;
+        gtype:=atype;
+        immutable:=aimmutable;
+        is_external:=false;
+        is_global:=false;
+      end;
+
+    constructor tai_globaltype.create_global(const aglobalname: string; atype: TWasmBasicType; aimmutable: boolean; def: tdef);
+      begin
+        inherited Create;
+        sym:=current_asmdata.DefineAsmSymbol(aglobalname,AB_GLOBAL,AT_WASM_GLOBAL,def);
+        typ:=ait_globaltype;
+        globalname:=aglobalname;
+        gtype:=atype;
+        immutable:=aimmutable;
+        is_external:=false;
+        is_global:=true;
       end;
 
     { tai_import_name }
