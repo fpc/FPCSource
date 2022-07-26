@@ -304,6 +304,8 @@ begin
     ParentName:=GetPasIntfName(Intf.ParentInterface as TIDLInterfaceDefinition)
   else
     ParentName:=GetTypeName(Intf.ParentName);
+  if ParentName='' then
+    ParentName:=PasInterfacePrefix+'Object'+PasInterfaceSuffix;
   if ParentName<>'' then
     Decl:=Decl+'('+ParentName+')';
   AddLn(Decl);
@@ -319,8 +321,6 @@ begin
 
   // public members
   WriteMethodDefs(aMemberList);
-  // type cast function Cast:
-  AddLn('function Cast(Intf: IJSObject): '+aPasIntfName+';');
   WriteProperties(aMemberList);
 
   Undent;
@@ -372,10 +372,10 @@ begin
   Result:=0;
   aClassName:=GetName(Intf);
   aPasIntfName:=GetPasIntfName(Intf);
-  AddLn('function Cast(Intf: IJSObject): '+aPasIntfName+';');
-  Code:='function '+aClassName+'.Cast(Intf: IJSObject): '+aPasIntfName+';'+sLineBreak;
+  AddLn('class function Cast(Intf: IJSObject): '+aPasIntfName+';');
+  Code:='class function '+aClassName+'.Cast(Intf: IJSObject): '+aPasIntfName+';'+sLineBreak;
   Code:=Code+'begin'+sLineBreak;
-  Code:=Code+'  Result:='+aClassName+'.Cast(Intf);'+sLineBreak;
+  Code:=Code+'  Result:='+aClassName+'.JOBCast(Intf);'+sLineBreak;
   Code:=Code+'end;'+sLineBreak;
   IncludeImplementationCode.Add(Code);
 end;
@@ -401,7 +401,7 @@ begin
   else
     begin
     if (not D.IsPartial) and (D is TIDLInterfaceDefinition) then
-      AddLn(GetPasIntfName(D)+' = Interface;');
+      AddLn(GetPasIntfName(D)+' = interface;');
     Result:=inherited WriteForwardClassDef(D);
     end;
 end;
@@ -448,7 +448,6 @@ begin
 
   Suff:='';
   ReturnDef:=GetResolvedType(aDef.ReturnType,ReturnTypeName,ResolvedReturnTypeName);
-  writeln('AAA1 TWebIDLToPasWasmJob.WriteFunctionDefinition ',aDef.Name,' ',ReturnTypeName,' ',ResolvedReturnTypeName,' ReturnDef=',ReturnDef.ClassName);
   InvokeName:='';
   InvokeClassName:='';
   if (foConstructor in aDef.Options) then
@@ -640,9 +639,9 @@ begin
 
   Params:=GetArguments(aDef.Arguments,False);
   if (ResolvedReturnTypeName='') then
-    AddLn(FuncName+' = procedure '+Params+';')
+    AddLn(FuncName+' = procedure '+Params+' of object;')
   else
-    AddLn(FuncName+' = function '+Params+': '+ReturnTypeName+';');
+    AddLn(FuncName+' = function '+Params+': '+ReturnTypeName+' of object;');
 
   Data:=TPasDataWasmJob(aDef.Data);
   if Data.HasFuncBody then exit;
@@ -686,7 +685,7 @@ begin
       'TJOB_JSValue': GetFunc:='GetValue';
       else
         if ArgType is TIDLInterfaceDefinition then
-          GetFunc:='GetObject('+IntfToPasClassName(ArgTypeName)+') as '+ArgTypeName
+          GetFunc:='GetObject('+GetName(ArgType)+') as '+ArgTypeName
         else
           begin
           if ArgType<>nil then
@@ -728,7 +727,7 @@ begin
     'Single',
     'Double': GetFunc:='Result:=H.AllocDouble('+Call+');';
     'UnicodeString': GetFunc:='Result:=H.AllocString('+Call+');';
-    //'TJOB_JSValue': ;
+    'TJOB_JSValue': GetFunc:='Result:=H.AllocJSValue('+Call+');';
     else
       if ReturnDef is TIDLInterfaceDefinition then
         GetFunc:='Result:=H.AllocIntf('+Call+');'
@@ -813,7 +812,7 @@ begin
   Result:=true;
   FuncName:=SetterPrefix+GetName(Attr);
   TypeName:=GetTypeName(Attr.AttributeType);
-  AddLn('Procedure '+FuncName+'(const aValue: '+TypeName+');');
+  AddLn('procedure '+FuncName+'(const aValue: '+TypeName+');');
 
   if Data.SetterBody<>'' then exit;
 
@@ -841,7 +840,7 @@ begin
   if Call='' then
     Call:=WriteFuncName+'('''+Attr.Name+''',aValue)';
 
-  Code:='Procedure '+aClassName+'.'+FuncName+'(const aValue: '+TypeName+');'+sLineBreak;
+  Code:='procedure '+aClassName+'.'+FuncName+'(const aValue: '+TypeName+');'+sLineBreak;
   Code:=Code+'begin'+sLineBreak;
   Code:=Code+'  '+Call+';'+sLineBreak;
   Code:=Code+'end;'+sLineBreak;
@@ -862,7 +861,7 @@ begin
     end;
   PropName:=GetName(Attr);
   TypeName:=GetTypeName(Attr.AttributeType);
-  Code:='Property '+PropName+': '+TypeName+' read '+GetterPrefix+PropName;
+  Code:='property '+PropName+': '+TypeName+' read '+GetterPrefix+PropName;
   if not (aoReadOnly in Attr.Options) then
     Code:=Code+' write '+SetterPrefix+PropName;
   AddLn(Code+';');
@@ -887,6 +886,8 @@ begin
   inherited Create(ThOwner);
   PasDataClass:=TPasDataWasmJob;
   FPasInterfacePrefix:='IJS';
+  GetterPrefix:='_Get';
+  SetterPrefix:='_Set';
   BaseOptions:=BaseOptions+[coDictionaryAsClass];
 end;
 

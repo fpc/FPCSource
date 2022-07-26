@@ -929,7 +929,7 @@ function TBaseWebIDLToPas.WriteForwardClassDef(D: TIDLStructuredDefinition): Boo
 begin
   Result:=not D.IsPartial;
   if Result then
-    AddLn('%s = Class;',[GetName(D)]);
+    AddLn('%s = class;',[GetName(D)]);
 end;
 
 function TBaseWebIDLToPas.WriteForwardClassDefs(aList: TIDLDefinitionList): Integer;
