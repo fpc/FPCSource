@@ -428,9 +428,9 @@ var
 Var
   Data: TPasDataWasmJob;
   FuncName, Suff, Args, ProcKind, Sig, aClassName, Code, InvokeName,
-    InvokeCode, ArgName, TryCode, VarSection, FinallyCode, LocalName,
-    WrapperFn, ArgTypeName, ReturnTypeName, ResolvedReturnTypeName,
-    InvokeClassName: String;
+    InvokeCode, TryCode, VarSection, FinallyCode, LocalName, WrapperFn,
+    ArgName, ArgTypeName, ReturnTypeName, ResolvedReturnTypeName,
+    InvokeClassName, ArgResolvedTypeName: String;
   Overloads: TFPObjectList;
   I: Integer;
   AddFuncBody: Boolean;
@@ -546,17 +546,17 @@ begin
           if Args<>'' then
             Args:=Args+',';
           ArgName:=GetName(ArgDef);
-          if ArgDef.ArgumentType is TIDLSequenceTypeDefDefinition then
+          ArgType:=GetResolvedType(ArgDef.ArgumentType,ArgTypeName,ArgResolvedTypeName);
+          //writeln('TWebIDLToPasWasmJob.WriteFunctionDefinition ',ArgType.Name,':',ArgType.ClassName,' ',ArgResolvedTypeName,' ArgType=',hexstr(ptruint(ArgType),sizeof(ptruint)*2));
+          if ArgType is TIDLSequenceTypeDefDefinition then
             begin
-            ArgTypeName:=TIDLSequenceTypeDefDefinition(ArgDef.ArgumentType).ElementType.TypeName;
-            ArgType:=FindGlobalDef(ArgTypeName);
+            ArgTypeName:=TIDLSequenceTypeDefDefinition(ArgType).ElementType.TypeName;
             if Verbose then
-              writeln('Hint: TWebIDLToPasWasmJob.WriteFunctionDefinition sequence of ',ArgTypeName,' Element=',ArgType<>nil);
+              writeln('Hint: TWebIDLToPasWasmJob.WriteFunctionDefinition sequence of ',ArgTypeName);
             raise EConvertError.Create('[20220725172246] not yet supported: passing an array of '+ArgTypeName+' as argument at '+GetDefPos(ArgDef));
             end
           else
             begin
-            ArgType:=FindGlobalDef(ArgDef.ArgumentType.TypeName);
             if (ArgType is TIDLFunctionDefinition) and (foCallBack in TIDLFunctionDefinition(ArgType).Options) then
               begin
               LocalName:=CreateLocal('m');
