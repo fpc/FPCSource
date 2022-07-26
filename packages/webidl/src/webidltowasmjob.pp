@@ -763,7 +763,9 @@ begin
   AttrType:=GetResolvedType(Attr.AttributeType,AttrTypeName,AttrResolvedTypeName);
 
   if AttrType is TIDLInterfaceDefinition then
-    AttrTypeName:=GetPasIntfName(AttrType);
+    AttrTypeName:=GetPasIntfName(AttrType)
+  else if AttrType is TIDLFunctionDefinition then
+    exit;
   AddLn('function '+FuncName+': '+AttrTypeName+';');
 
   if Data.GetterBody<>'' then exit;
@@ -819,7 +821,9 @@ begin
   FuncName:=SetterPrefix+GetName(Attr);
   AttrType:=GetResolvedType(Attr.AttributeType,AttrTypeName,AttrResolvedTypeName);
   if AttrType is TIDLInterfaceDefinition then
-    AttrTypeName:=GetPasIntfName(AttrType);
+    AttrTypeName:=GetPasIntfName(AttrType)
+  else if AttrType is TIDLFunctionDefinition then
+    exit;
 
   AddLn('procedure '+FuncName+'(const aValue: '+AttrTypeName+');');
 
@@ -876,7 +880,10 @@ begin
   Code:='property '+PropName+': '+AttrTypeName+' read '+GetterPrefix+PropName;
   if not (aoReadOnly in Attr.Options) then
     Code:=Code+' write '+SetterPrefix+PropName;
-  AddLn(Code+';');
+  Code:=Code+';';
+  if AttrType is TIDLFunctionDefinition then
+    Code:='// '+Code;
+  AddLn(Code);
   Result:=true;
 end;
 
