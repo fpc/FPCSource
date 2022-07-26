@@ -135,7 +135,7 @@ type
     function WriteDictionaryDefs(aList: TIDLDefinitionList): Integer; virtual;
     function WriteForwardClassDefs(aList: TIDLDefinitionList): Integer; virtual;
     function WriteInterfaceDefs(aList: TIDLDefinitionList): Integer; virtual;
-    function WriteMethodDefs(aParent: TIDLDefinition; aList: TIDLDefinitionList): Integer; virtual;
+    function WriteMethodDefs(aParent: TIDLInterfaceDefinition; aList: TIDLDefinitionList): Integer; virtual;
     function WriteUtilityMethods(Intf: TIDLInterfaceDefinition): Integer; virtual;
     function WriteTypeDefsAndCallbacks(aList: TIDLDefinitionList): Integer; virtual;
     function WriteEnumDefs(aList: TIDLDefinitionList): Integer; virtual;
@@ -149,7 +149,7 @@ type
     // Definitions. Return true if a definition was written.
     function WriteForwardClassDef(D: TIDLStructuredDefinition): Boolean; virtual;
     function WriteFunctionTypeDefinition(aDef: TIDLFunctionDefinition): Boolean; virtual;
-    function WriteFunctionDefinition(aDef: TIDLFunctionDefinition): Boolean; virtual;
+    function WriteFunctionDefinition(aParent: TIDLInterfaceDefinition; aDef: TIDLFunctionDefinition): Boolean; virtual;
     function WriteTypeDef(aDef: TIDLTypeDefDefinition): Boolean; virtual;
     function WriteRecordDef(aDef: TIDLRecordDefinition): Boolean; virtual;
     function WriteEnumDef(aDef: TIDLEnumDefinition): Boolean; virtual;
@@ -489,7 +489,7 @@ begin
   Undent;
 end;
 
-function TBaseWebIDLToPas.WriteMethodDefs(aParent: TIDLDefinition;
+function TBaseWebIDLToPas.WriteMethodDefs(aParent: TIDLInterfaceDefinition;
   aList: TIDLDefinitionList): Integer;
 
 Var
@@ -501,7 +501,7 @@ begin
   for D in aList do
     if D is TIDLFunctionDefinition then
       if Not (foCallBack in FD.Options) then
-         if WriteFunctionDefinition(FD) then
+         if WriteFunctionDefinition(aParent,FD) then
            Inc(Result);
 end;
 
@@ -1333,10 +1333,12 @@ begin
     AddLn('%s = function %s: %s;',[FN,Args,RT])
 end;
 
-function TBaseWebIDLToPas.WriteFunctionDefinition(aDef: TIDLFunctionDefinition): Boolean;
+function TBaseWebIDLToPas.WriteFunctionDefinition(
+  aParent: TIDLInterfaceDefinition; aDef: TIDLFunctionDefinition): Boolean;
 begin
   Result:=true;
   if aDef=nil then exit;
+  if aParent=nil then ;
 end;
 
 function TBaseWebIDLToPas.WriteDictionaryDefs(aList: TIDLDefinitionList): Integer;

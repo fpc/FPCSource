@@ -96,7 +96,7 @@ type
       aField: TIDLDictionaryMemberDefinition): Boolean; override;
     function WriteForwardClassDef(D: TIDLStructuredDefinition): Boolean;
       override;
-    function WriteFunctionDefinition(aDef: TIDLFunctionDefinition): Boolean;
+    function WriteFunctionDefinition(aParent: TIDLInterfaceDefinition; aDef: TIDLFunctionDefinition): Boolean;
       override;
     function WriteFunctionTypeDefinition(aDef: TIDLFunctionDefinition
       ): Boolean; override;
@@ -420,7 +420,7 @@ begin
 end;
 
 function TWebIDLToPasWasmJob.WriteFunctionDefinition(
-  aDef: TIDLFunctionDefinition): Boolean;
+  aParent: TIDLInterfaceDefinition; aDef: TIDLFunctionDefinition): Boolean;
 var
   ArgNames: TStringList;
 
@@ -511,7 +511,7 @@ begin
     end;
 
     end;
-  aClassName:=GetName(aDef.Parent);
+  aClassName:=GetName(aParent);
   AddFuncBody:=not FWritingPasInterface;
 
   Overloads:=GetOverloads(ADef);

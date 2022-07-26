@@ -50,7 +50,7 @@ type
     function GetInterfaceDefHead(Intf: TIDLInterfaceDefinition): String;
       override;
     // Code generation routines. Return the number of actually written defs.
-    function WriteFunctionDefinition(aDef: TIDLFunctionDefinition): Boolean;
+    function WriteFunctionDefinition(aParent: TIDLInterfaceDefinition; aDef: TIDLFunctionDefinition): Boolean;
       override;
     function WritePrivateReadOnlyFields(aParent: TIDLDefinition; aList: TIDLDefinitionList): Integer;
       override;
@@ -157,8 +157,8 @@ begin
     Result:=Result+' ('+aParentName+')';
 end;
 
-function TWebIDLToPas2js.WriteFunctionDefinition(aDef: TIDLFunctionDefinition
-  ): Boolean;
+function TWebIDLToPas2js.WriteFunctionDefinition(
+  aParent: TIDLInterfaceDefinition; aDef: TIDLFunctionDefinition): Boolean;
 
 Var
   FN,RT,Suff,Args: String;
