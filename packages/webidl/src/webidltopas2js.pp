@@ -167,6 +167,7 @@ Var
 
 begin
   Result:=True;
+  if aParent=nil then ;
   Suff:='';
   RT:='';
   if not (foConstructor in aDef.Options) then
@@ -214,6 +215,7 @@ Var
 
 begin
   Result:=0;
+  if aParent=nil then ;
   For D in aList do
     if (D is TIDLAttributeDefinition) then
       if (aoReadOnly in A.Options) then
@@ -293,6 +295,7 @@ Var
 
 begin
   Result:=True;
+  if aParent=nil then ;
   N:=GetName(aAttr);
   PN:=N;
   TN:=GetTypeName(aAttr.AttributeType);

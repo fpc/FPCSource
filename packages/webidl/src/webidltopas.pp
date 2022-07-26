@@ -460,6 +460,7 @@ Var
 
 begin
   Result:=True;
+  if aDict=nil then ;
   N:=GetName(aField);
   TN:=GetTypeName(aField.MemberType);
   if TN='record' then
@@ -612,7 +613,7 @@ var
       ArgName:=GetName(Arg);
       if ArgName[1]<>'a' then
         begin
-        ArgName:='a'+ArgName;
+        ArgName:='a'+Uppercase(ArgName[1])+copy(ArgName,2,length(ArgName));
         (Arg.Data as TPasData).PasName:=ArgName;
         end;
       repeat
