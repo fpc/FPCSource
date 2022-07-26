@@ -15984,7 +15984,7 @@ const
 //--------------------------------------------------------------------------
 function CryptStringToBinaryA(pszString: LPCSTR; cchString: DWORD;
   dwFlags: DWORD; ppBinary: PBYTE; var ppcbBinary: DWORD;
-  ppdwSkip: PDWORD): BOOL; stdcall;
+  ppdwSkip: PDWORD; pdwFlags: PDWORD): BOOL; stdcall;
 {$EXTERNALSYM CryptStringToBinaryA}
 
 //+-------------------------------------------------------------------------
@@ -15999,12 +15999,12 @@ function CryptStringToBinaryA(pszString: LPCSTR; cchString: DWORD;
 
 function CryptStringToBinaryW(pszString: LPCWSTR; cchString: DWORD;
   dwFlags: DWORD; ppBinary: BYTE; var ppcbBinary: DWORD;
-  ppdwSkip: DWORD): BOOL; stdcall;
+  ppdwSkip: DWORD; pdwFlags: PDWORD): BOOL; stdcall;
 {$EXTERNALSYM CryptStringToBinaryW}
 
 function CryptStringToBinary(pszString: LPCSTR; cchString: DWORD;
   dwFlags: DWORD; ppBinary: BYTE; var ppcbBinary: DWORD;
-  ppdwSkip: DWORD): BOOL; stdcall;
+  ppdwSkip: DWORD; pdwFlags: PDWORD): BOOL; stdcall;
 {$EXTERNALSYM CryptStringToBinary}
 
 
