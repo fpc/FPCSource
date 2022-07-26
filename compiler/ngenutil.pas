@@ -889,6 +889,8 @@ implementation
     begin
       if not(tsym(p).typ in [localvarsym,paravarsym]) then
         exit;
+      if sp_internal in tsym(p).symoptions then
+        exit;
       maybe_trash_variable(stat^,tabstractnormalvarsym(p),cloadnode.create(tsym(p),tsym(p).owner));
     end;
 
