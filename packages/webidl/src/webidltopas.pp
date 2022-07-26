@@ -135,17 +135,17 @@ type
     function WriteDictionaryDefs(aList: TIDLDefinitionList): Integer; virtual;
     function WriteForwardClassDefs(aList: TIDLDefinitionList): Integer; virtual;
     function WriteInterfaceDefs(aList: TIDLDefinitionList): Integer; virtual;
-    function WriteMethodDefs(aList: TIDLDefinitionList): Integer; virtual;
+    function WriteMethodDefs(aParent: TIDLDefinition; aList: TIDLDefinitionList): Integer; virtual;
     function WriteUtilityMethods(Intf: TIDLInterfaceDefinition): Integer; virtual;
     function WriteTypeDefsAndCallbacks(aList: TIDLDefinitionList): Integer; virtual;
     function WriteEnumDefs(aList: TIDLDefinitionList): Integer; virtual;
-    function WriteConsts(aList: TIDLDefinitionList): Integer; virtual;
-    function WriteProperties(aList: TIDLDefinitionList): Integer; virtual;
-    function WritePlainFields(aList: TIDLDefinitionList): Integer; virtual;
-    function WriteDictionaryFields(aList: TIDLDefinitionList): Integer; virtual;
-    function WritePrivateReadOnlyFields(aList: TIDLDefinitionList): Integer; virtual;
-    function WritePrivateGetters(aList: TIDLDefinitionList): Integer; virtual;
-    function WritePrivateSetters(aList: TIDLDefinitionList): Integer; virtual;
+    function WriteConsts(aParent: TIDLDefinition; aList: TIDLDefinitionList): Integer; virtual;
+    function WriteProperties(aParent: TIDLDefinition; aList: TIDLDefinitionList): Integer; virtual;
+    function WritePlainFields(aParent: TIDLDefinition; aList: TIDLDefinitionList): Integer; virtual;
+    function WriteDictionaryFields(aDict: TIDLDictionaryDefinition; aList: TIDLDefinitionList): Integer; virtual;
+    function WritePrivateReadOnlyFields(aParent: TIDLDefinition; aList: TIDLDefinitionList): Integer; virtual;
+    function WritePrivateGetters(aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer; virtual;
+    function WritePrivateSetters(aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer; virtual;
     // Definitions. Return true if a definition was written.
     function WriteForwardClassDef(D: TIDLStructuredDefinition): Boolean; virtual;
     function WriteFunctionTypeDefinition(aDef: TIDLFunctionDefinition): Boolean; virtual;
@@ -153,7 +153,7 @@ type
     function WriteTypeDef(aDef: TIDLTypeDefDefinition): Boolean; virtual;
     function WriteRecordDef(aDef: TIDLRecordDefinition): Boolean; virtual;
     function WriteEnumDef(aDef: TIDLEnumDefinition): Boolean; virtual;
-    function WriteDictionaryField(aField: TIDLDictionaryMemberDefinition): Boolean; virtual;
+    function WriteDictionaryField(aDict: TIDLDictionaryDefinition; aField: TIDLDictionaryMemberDefinition): Boolean; virtual;
     function WriteField(aAttr: TIDLAttributeDefinition): Boolean; virtual;
     function WriteConst(aConst: TIDLConstDefinition): Boolean ; virtual;
     function WriteInterfaceDef(Intf: TIDLInterfaceDefinition): Boolean; virtual;
@@ -373,29 +373,35 @@ begin
           Inc(Result);
 end;
 
-function TBaseWebIDLToPas.WritePrivateReadOnlyFields(aList: TIDLDefinitionList): Integer;
+function TBaseWebIDLToPas.WritePrivateReadOnlyFields(aParent: TIDLDefinition;
+  aList: TIDLDefinitionList): Integer;
 begin
   Result:=0;
+  if aParent=nil then ;
   if aList=nil then ;
 end;
 
-function TBaseWebIDLToPas.WritePrivateGetters(aList: TIDLDefinitionList
-  ): Integer;
+function TBaseWebIDLToPas.WritePrivateGetters(
+  aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer;
 begin
   Result:=0;
+  if aParent=nil then ;
   if aList=nil then ;
 end;
 
-function TBaseWebIDLToPas.WritePrivateSetters(aList: TIDLDefinitionList
-  ): Integer;
+function TBaseWebIDLToPas.WritePrivateSetters(
+  aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer;
 begin
   Result:=0;
+  if aParent=nil then ;
   if aList=nil then ;
 end;
 
-function TBaseWebIDLToPas.WriteProperties(aList: TIDLDefinitionList): Integer;
+function TBaseWebIDLToPas.WriteProperties(aParent: TIDLDefinition;
+  aList: TIDLDefinitionList): Integer;
 begin
   Result:=0;
+  if aParent=nil then ;
   if aList=nil then ;
 end;
 
@@ -410,12 +416,14 @@ begin
   Addln('%s = %s;',[GetName(aConst),S])
 end;
 
-function TBaseWebIDLToPas.WriteConsts(aList: TIDLDefinitionList): Integer;
+function TBaseWebIDLToPas.WriteConsts(aParent: TIDLDefinition;
+  aList: TIDLDefinitionList): Integer;
 
 Var
   D: TIDLDefinition;
 
 begin
+  if aParent=nil then ;
   EnsureSection(csConst);
   Indent;
   Result:=0;
@@ -426,13 +434,15 @@ begin
   Undent;
 end;
 
-function TBaseWebIDLToPas.WritePlainFields(aList: TIDLDefinitionList): Integer;
+function TBaseWebIDLToPas.WritePlainFields(aParent: TIDLDefinition;
+  aList: TIDLDefinitionList): Integer;
 
 Var
   D: TIDLDefinition;
   A: TIDLAttributeDefinition absolute D;
 
 begin
+  if aParent=nil then ;
   EnsureSection(csDeclaration);
   Result:=0;
   For D in aList do
@@ -442,7 +452,7 @@ begin
           Inc(Result);
 end;
 
-function TBaseWebIDLToPas.WriteDictionaryField(
+function TBaseWebIDLToPas.WriteDictionaryField(aDict: TIDLDictionaryDefinition;
   aField: TIDLDictionaryMemberDefinition): Boolean;
 
 Var
@@ -462,7 +472,8 @@ begin
   AddLn(Def);
 end;
 
-function TBaseWebIDLToPas.WriteDictionaryFields(aList: TIDLDefinitionList): Integer;
+function TBaseWebIDLToPas.WriteDictionaryFields(
+  aDict: TIDLDictionaryDefinition; aList: TIDLDefinitionList): Integer;
 
 Var
   D: TIDLDefinition;
@@ -473,12 +484,13 @@ begin
   Result:=0;
   For D in aList do
     if D is TIDLDictionaryMemberDefinition then
-      if WriteDictionaryField(M) then
+      if WriteDictionaryField(aDict,M) then
         Inc(Result);
   Undent;
 end;
 
-function TBaseWebIDLToPas.WriteMethodDefs(aList: TIDLDefinitionList): Integer;
+function TBaseWebIDLToPas.WriteMethodDefs(aParent: TIDLDefinition;
+  aList: TIDLDefinitionList): Integer;
 
 Var
   D: TIDLDefinition;
@@ -673,9 +685,9 @@ begin
     // private section
     AddLn('Private');
     Indent;
-    WritePrivateReadOnlyFields(ML);
-    WritePrivateGetters(ML);
-    WritePrivateSetters(ML);
+    WritePrivateReadOnlyFields(Intf,ML);
+    WritePrivateGetters(Intf,ML);
+    WritePrivateSetters(Intf,ML);
     Undent;
     // write public section
     AddLn('Public');
@@ -683,16 +695,16 @@ begin
       begin
       Indent;
       PushSection(csUnknown);
-      WriteConsts(ML);
+      WriteConsts(Intf,ML);
       PopSection;
       Undent;
       AddLn('Public');
       end;
     Indent;
-    WritePlainFields(ML);
-    WriteMethodDefs(ML);
+    WritePlainFields(Intf,ML);
+    WriteMethodDefs(Intf,ML);
     WriteUtilityMethods(Intf);
-    WriteProperties(ML);
+    WriteProperties(Intf,ML);
     Undent;
     AddLn('end;');
   finally
@@ -724,7 +736,7 @@ begin
     // class and ancestor
     Decl:=GetDictionaryDefHead(CurClassName,aDict);
     AddLn(Decl);
-    WriteDictionaryFields(DefList);
+    WriteDictionaryFields(aDict,DefList);
     AddLn('end;');
   finally
     DefList.Free;

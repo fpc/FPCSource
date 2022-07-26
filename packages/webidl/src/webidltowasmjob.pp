@@ -58,9 +58,6 @@ const
 type
   TPasDataWasmJob = class(TPasData)
   public
-    GetterBody: String; // also used for Function body
-    SetterBody: String;
-    HasFuncBody: boolean;
   end;
 
   { TWebIDLToPasWasmJob }
@@ -70,6 +67,7 @@ type
     FPasInterfacePrefix: String;
     FPasInterfaceSuffix: String;
   Protected
+    FWritingPasInterface: boolean;
     function BaseUnits: String; override;
     // Auxiliary routines
     function GetPasClassName(const aName: string): string; overload; // convert to PasInterfacePrefix+X+FPasInterfaceSuffix
@@ -87,24 +85,24 @@ type
     function WriteOtherImplicitTypes(Intf: TIDLInterfaceDefinition; aMemberList: TIDLDefinitionList): Integer;
       override;
     // Code generation routines. Return the number of actually written defs.
-    function WritePrivateGetters(aList: TIDLDefinitionList): Integer; override;
-    function WritePrivateSetters(aList: TIDLDefinitionList): Integer; override;
-    function WriteProperties(aList: TIDLDefinitionList): Integer; override;
+    function WritePrivateGetters(aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer; override;
+    function WritePrivateSetters(aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer; override;
+    function WriteProperties(aParent: TIDLDefinition; aList: TIDLDefinitionList): Integer; override;
     function WriteUtilityMethods(Intf: TIDLInterfaceDefinition): Integer;
       override;
     // Definitions. Return true if a definition was written.
     function WriteEnumDef(aDef: TIDLEnumDefinition): Boolean; override;
-    function WriteDictionaryField(aField: TIDLDictionaryMemberDefinition
-      ): Boolean; override;
+    function WriteDictionaryField(aDict: TIDLDictionaryDefinition;
+      aField: TIDLDictionaryMemberDefinition): Boolean; override;
     function WriteForwardClassDef(D: TIDLStructuredDefinition): Boolean;
       override;
     function WriteFunctionDefinition(aDef: TIDLFunctionDefinition): Boolean;
       override;
     function WriteFunctionTypeDefinition(aDef: TIDLFunctionDefinition
       ): Boolean; override;
-    function WritePrivateGetter(Attr: TIDLAttributeDefinition): boolean; virtual;
-    function WritePrivateSetter(Attr: TIDLAttributeDefinition): boolean; virtual;
-    function WriteProperty(Attr: TIDLAttributeDefinition): boolean; virtual;
+    function WritePrivateGetter(aParent: TIDLStructuredDefinition; Attr: TIDLAttributeDefinition): boolean; virtual;
+    function WritePrivateSetter(aParent: TIDLStructuredDefinition; Attr: TIDLAttributeDefinition): boolean; virtual;
+    function WriteProperty(aParent: TIDLDefinition; Attr: TIDLAttributeDefinition): boolean; virtual;
     function WriteRecordDef(aDef: TIDLRecordDefinition): Boolean; override;
     procedure WriteSequenceDef(aDef: TIDLSequenceTypeDefDefinition); override;
   Public
@@ -297,71 +295,77 @@ var
 begin
   Result:=1;
 
-  // Pascal interface and ancestor
-  aPasIntfName:=GetPasIntfName(Intf);
+  FWritingPasInterface:=true;
+  try
 
-  Decl:=aPasIntfName+' = interface';
-  if Assigned(Intf.ParentInterface) then
-    ParentName:=GetPasIntfName(Intf.ParentInterface as TIDLInterfaceDefinition)
-  else
-    ParentName:=GetTypeName(Intf.ParentName);
-  if ParentName='' then
-    ParentName:=PasInterfacePrefix+'Object'+PasInterfaceSuffix;
-  if ParentName<>'' then
-    Decl:=Decl+'('+ParentName+')';
-  AddLn(Decl);
+    // Pascal interface and ancestor
+    aPasIntfName:=GetPasIntfName(Intf);
 
-  Indent;
+    Decl:=aPasIntfName+' = interface';
+    if Assigned(Intf.ParentInterface) then
+      ParentName:=GetPasIntfName(Intf.ParentInterface as TIDLInterfaceDefinition)
+    else
+      ParentName:=GetTypeName(Intf.ParentName);
+    if ParentName='' then
+      ParentName:=PasInterfacePrefix+'Object'+PasInterfaceSuffix;
+    if ParentName<>'' then
+      Decl:=Decl+'('+ParentName+')';
+    AddLn(Decl);
 
-  // GUID
-  AddLn('['''+ComputeGUID(Decl,aMemberList)+''']');
+    Indent;
 
-  // private members
-  WritePrivateGetters(aMemberList);
-  WritePrivateSetters(aMemberList);
+    // GUID
+    AddLn('['''+ComputeGUID(Decl,aMemberList)+''']');
 
-  // public members
-  WriteMethodDefs(aMemberList);
-  WriteProperties(aMemberList);
+    // private members
+    WritePrivateGetters(Intf,aMemberList);
+    WritePrivateSetters(Intf,aMemberList);
 
-  Undent;
-  AddLn('end;');
-  AddLn('');
+    // public members
+    WriteMethodDefs(Intf,aMemberList);
+    WriteProperties(Intf,aMemberList);
+
+    Undent;
+    AddLn('end;');
+    AddLn('');
+  finally
+    FWritingPasInterface:=false;
+  end;
 end;
 
-function TWebIDLToPasWasmJob.WritePrivateGetters(aList: TIDLDefinitionList
-  ): Integer;
+function TWebIDLToPasWasmJob.WritePrivateGetters(aParent: TIDLStructuredDefinition;
+  aList: TIDLDefinitionList): Integer;
 var
   D: TIDLDefinition;
 begin
   Result:=0;
   for D in aList do
     if D is TIDLAttributeDefinition then
-      if WritePrivateGetter(TIDLAttributeDefinition(D)) then
+      if WritePrivateGetter(aParent,TIDLAttributeDefinition(D)) then
         inc(Result);
 end;
 
-function TWebIDLToPasWasmJob.WritePrivateSetters(aList: TIDLDefinitionList
-  ): Integer;
+function TWebIDLToPasWasmJob.WritePrivateSetters(
+  aParent: TIDLStructuredDefinition; aList: TIDLDefinitionList): Integer;
 var
   D: TIDLDefinition;
 begin
   Result:=0;
   for D in aList do
     if D is TIDLAttributeDefinition then
-      if WritePrivateSetter(TIDLAttributeDefinition(D)) then
+      if WritePrivateSetter(aParent,TIDLAttributeDefinition(D)) then
         inc(Result);
 end;
 
-function TWebIDLToPasWasmJob.WriteProperties(aList: TIDLDefinitionList
-  ): Integer;
+function TWebIDLToPasWasmJob.WriteProperties(aParent: TIDLDefinition;
+  aList: TIDLDefinitionList): Integer;
 var
   D: TIDLDefinition;
 begin
   Result:=0;
   for D in aList do
     if D is TIDLAttributeDefinition then
-      if WriteProperty(TIDLAttributeDefinition(D)) then
+      if WriteProperty(aParent,TIDLAttributeDefinition(D)) then
         inc(Result);
 end;
 
@@ -388,10 +392,12 @@ begin
 end;
 
 function TWebIDLToPasWasmJob.WriteDictionaryField(
-  aField: TIDLDictionaryMemberDefinition): Boolean;
+  aDict: TIDLDictionaryDefinition; aField: TIDLDictionaryMemberDefinition
+  ): Boolean;
 var
   N, TN: String;
 begin
+  if aDict<>nil then ;
   Result:=True;
   N:=GetName(aField);
   TN:=GetTypeName(aField.MemberType);
@@ -506,7 +512,7 @@ begin
 
     end;
   aClassName:=GetName(aDef.Parent);
-  AddFuncBody:=not Data.HasFuncBody;
+  AddFuncBody:=not FWritingPasInterface;
 
   Overloads:=GetOverloads(ADef);
   try
@@ -609,7 +615,6 @@ begin
       end;
 
       end;
-    Data.HasFuncBody:=true;
   finally
     Overloads.Free;
   end;
@@ -621,7 +626,6 @@ var
   FuncName, ReturnTypeName, ResolvedReturnTypeName: String;
   ArgName, ArgTypeName, ArgResolvedTypename: String;
   VarSection, FetchArgs, Params, Call, Code, GetFunc: String;
-  Data: TPasDataWasmJob;
   Args: TIDLDefinitionList;
   ArgDef: TIDLArgumentDefinition;
   ArgNames: TStringList;
@@ -650,9 +654,7 @@ begin
   else
     AddLn(FuncName+' = function '+Params+': '+ReturnTypeName+' of object;');
 
-  Data:=TPasDataWasmJob(aDef.Data);
-  if Data.HasFuncBody then exit;
-  Data.HasFuncBody:=true;
+  if FWritingPasInterface then exit;
 
   ArgNames:=TStringList.Create;
   try
@@ -755,10 +757,9 @@ begin
   end;
 end;
 
-function TWebIDLToPasWasmJob.WritePrivateGetter(Attr: TIDLAttributeDefinition
-  ): boolean;
+function TWebIDLToPasWasmJob.WritePrivateGetter(
+  aParent: TIDLStructuredDefinition; Attr: TIDLAttributeDefinition): boolean;
 var
-  Data: TPasDataWasmJob;
   FuncName, aClassName, Code, ReadFuncName, Call,
     AttrTypeName, AttrResolvedTypeName, ObjClassName: String;
   AttrType: TIDLDefinition;
@@ -766,7 +767,6 @@ begin
   Result:=true;
   if Attr.AttributeType=nil then
     exit;
-  Data:=Attr.Data as TPasDataWasmJob;
 
   FuncName:=GetterPrefix+GetName(Attr);
   AttrType:=GetResolvedType(Attr.AttributeType,AttrTypeName,AttrResolvedTypeName);
@@ -780,9 +780,9 @@ begin
 
   AddLn('function '+FuncName+': '+AttrTypeName+';');
 
-  if Data.GetterBody<>'' then exit;
+  if FWritingPasInterface then exit;
 
-  aClassName:=GetName(Attr.Parent);
+  aClassName:=GetName(aParent);
   Call:='';
 
   case AttrResolvedTypeName of
@@ -815,23 +815,20 @@ begin
   Code:=Code+'  Result:='+Call+';'+sLineBreak;
   Code:=Code+'end;'+sLineBreak;
 
-  Data.GetterBody:=Code;
   IncludeImplementationCode.Add(Code);
 end;
 
-function TWebIDLToPasWasmJob.WritePrivateSetter(Attr: TIDLAttributeDefinition
-  ): boolean;
+function TWebIDLToPasWasmJob.WritePrivateSetter(
+  aParent: TIDLStructuredDefinition; Attr: TIDLAttributeDefinition): boolean;
 var
   FuncName, aClassName, WriteFuncName, Code, Call,
     AttrTypeName, AttrResolvedTypeName: String;
-  Data: TPasDataWasmJob;
   AttrType: TIDLDefinition;
 begin
   if aoReadOnly in Attr.Options then
     exit(false);
   if Attr.AttributeType=nil then
     exit;
-  Data:=Attr.Data as TPasDataWasmJob;
 
   Result:=true;
   FuncName:=SetterPrefix+GetName(Attr);
@@ -845,9 +842,9 @@ begin
 
   AddLn('procedure '+FuncName+'(const aValue: '+AttrTypeName+');');
 
-  if Data.SetterBody<>'' then exit;
+  if FWritingPasInterface then exit;
 
-  aClassName:=GetName(Attr.Parent);
+  aClassName:=GetName(aParent);
   Call:='';
 
   case AttrResolvedTypeName of
@@ -877,16 +874,16 @@ begin
   Code:=Code+'  '+Call+';'+sLineBreak;
   Code:=Code+'end;'+sLineBreak;
 
-  Data.SetterBody:=Code;
   IncludeImplementationCode.Add(Code);
 end;
 
-function TWebIDLToPasWasmJob.WriteProperty(Attr: TIDLAttributeDefinition
-  ): boolean;
+function TWebIDLToPasWasmJob.WriteProperty(aParent: TIDLDefinition;
+  Attr: TIDLAttributeDefinition): boolean;
 var
   PropName, Code, AttrTypeName, AttrResolvedTypeName: String;
   AttrType: TIDLDefinition;
 begin
+  if aParent=nil then ;
   if Attr.AttributeType=nil then
     begin
     writeln('Note: skipping field "'+Attr.Name+'" without type at '+GetDefPos(Attr));
