@@ -72,7 +72,7 @@ type
   Protected
     function BaseUnits: String; override;
     // Auxiliary routines
-    function GetPasClassName(const aName: string): string; overload;
+    function GetPasClassName(const aName: string): string; overload; // convert to PasInterfacePrefix+X+FPasInterfaceSuffix
       override;
     function IntfToPasClassName(const aName: string): string; virtual;
     function ComputeGUID(const Prefix: string; aList: TIDLDefinitionList): string; virtual;
@@ -749,8 +749,10 @@ end;
 function TWebIDLToPasWasmJob.WritePrivateGetter(Attr: TIDLAttributeDefinition
   ): boolean;
 var
-  FuncName, TypeName, aClassName, Code, ReadFuncName, Call: String;
   Data: TPasDataWasmJob;
+  FuncName, aClassName, Code, ReadFuncName, Call,
+    AttrTypeName, AttrResolvedTypeName: String;
+  AttrType: TIDLDefinition;
 begin
   Result:=true;
   if Attr.AttributeType=nil then
@@ -758,16 +760,18 @@ begin
   Data:=Attr.Data as TPasDataWasmJob;
 
   FuncName:=GetterPrefix+GetName(Attr);
-  TypeName:=GetTypeName(Attr.AttributeType);
+  AttrType:=GetResolvedType(Attr.AttributeType,AttrTypeName,AttrResolvedTypeName);
 
-  AddLn('function '+FuncName+': '+TypeName+';');
+  if AttrType is TIDLInterfaceDefinition then
+    AttrTypeName:=GetPasIntfName(AttrType);
+  AddLn('function '+FuncName+': '+AttrTypeName+';');
 
   if Data.GetterBody<>'' then exit;
 
   aClassName:=GetName(Attr.Parent);
   Call:='';
 
-  case TypeName of
+  case AttrResolvedTypeName of
   'Boolean': ReadFuncName:='ReadJSPropertyBoolean';
   'ShortInt',
   'Byte',
@@ -782,13 +786,13 @@ begin
   'UnicodeString': ReadFuncName:='ReadJSPropertyUnicodeString';
   'TJOB_JSValue': ReadFuncName:='ReadJSPropertyValue';
   else
-    Call:='ReadJSPropertyObject('''+Attr.Name+''','+GetTypeName(Attr.AttributeType)+')';
+    Call:='ReadJSPropertyObject('''+Attr.Name+''','+GetName(AttrType)+') as '+AttrTypeName;
   end;
 
   if Call='' then
     Call:=ReadFuncName+'('''+Attr.Name+''')';
 
-  Code:='function '+aClassName+'.'+FuncName+': '+TypeName+';'+sLineBreak;
+  Code:='function '+aClassName+'.'+FuncName+': '+AttrTypeName+';'+sLineBreak;
   Code:=Code+'begin'+sLineBreak;
   Code:=Code+'  Result:='+Call+';'+sLineBreak;
   Code:=Code+'end;'+sLineBreak;
@@ -800,8 +804,10 @@ end;
 function TWebIDLToPasWasmJob.WritePrivateSetter(Attr: TIDLAttributeDefinition
   ): boolean;
 var
-  FuncName, TypeName, aClassName, WriteFuncName, Code, Call: String;
+  FuncName, aClassName, WriteFuncName, Code, Call,
+    AttrTypeName, AttrResolvedTypeName: String;
   Data: TPasDataWasmJob;
+  AttrType: TIDLDefinition;
 begin
   if aoReadOnly in Attr.Options then
     exit(false);
@@ -811,15 +817,18 @@ begin
 
   Result:=true;
   FuncName:=SetterPrefix+GetName(Attr);
-  TypeName:=GetTypeName(Attr.AttributeType);
-  AddLn('procedure '+FuncName+'(const aValue: '+TypeName+');');
+  AttrType:=GetResolvedType(Attr.AttributeType,AttrTypeName,AttrResolvedTypeName);
+  if AttrType is TIDLInterfaceDefinition then
+    AttrTypeName:=GetPasIntfName(AttrType);
+
+  AddLn('procedure '+FuncName+'(const aValue: '+AttrTypeName+');');
 
   if Data.SetterBody<>'' then exit;
 
   aClassName:=GetName(Attr.Parent);
   Call:='';
 
-  case TypeName of
+  case AttrResolvedTypeName of
   'Boolean': WriteFuncName:='WriteJSPropertyBoolean';
   'ShortInt',
   'Byte',
@@ -840,7 +849,7 @@ begin
   if Call='' then
     Call:=WriteFuncName+'('''+Attr.Name+''',aValue)';
 
-  Code:='procedure '+aClassName+'.'+FuncName+'(const aValue: '+TypeName+');'+sLineBreak;
+  Code:='procedure '+aClassName+'.'+FuncName+'(const aValue: '+AttrTypeName+');'+sLineBreak;
   Code:=Code+'begin'+sLineBreak;
   Code:=Code+'  '+Call+';'+sLineBreak;
   Code:=Code+'end;'+sLineBreak;
@@ -852,7 +861,8 @@ end;
 function TWebIDLToPasWasmJob.WriteProperty(Attr: TIDLAttributeDefinition
   ): boolean;
 var
-  PropName, TypeName, Code: String;
+  PropName, Code, AttrTypeName, AttrResolvedTypeName: String;
+  AttrType: TIDLDefinition;
 begin
   if Attr.AttributeType=nil then
     begin
@@ -860,8 +870,10 @@ begin
     exit;
     end;
   PropName:=GetName(Attr);
-  TypeName:=GetTypeName(Attr.AttributeType);
-  Code:='property '+PropName+': '+TypeName+' read '+GetterPrefix+PropName;
+  AttrType:=GetResolvedType(Attr.AttributeType,AttrTypeName,AttrResolvedTypeName);
+  if AttrType is TIDLInterfaceDefinition then
+    AttrTypeName:=GetPasIntfName(AttrType);
+  Code:='property '+PropName+': '+AttrTypeName+' read '+GetterPrefix+PropName;
   if not (aoReadOnly in Attr.Options) then
     Code:=Code+' write '+SetterPrefix+PropName;
   AddLn(Code+';');
