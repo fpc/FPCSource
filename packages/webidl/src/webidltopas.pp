@@ -1259,6 +1259,8 @@ function TBaseWebIDLToPas.CloneArgument(Arg: TIDLArgumentDefinition
 begin
   Result:=Arg.Clone(nil);
   ResolveTypeDef(Result);
+  if Arg.Data<>nil then
+    Result.Data:=ClonePasData(TPasData(Arg.Data),Result);
 end;
 
 procedure TBaseWebIDLToPas.AddOverloads(aList: TFPObjectlist;

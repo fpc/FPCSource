@@ -650,7 +650,7 @@ begin
   ArgNames:=TStringList.Create;
   try
     // create wrapper callback
-    Code:='function JOBCall'+FuncName+'(const aMethod: TMethod; const H: TJOBCallbackHelper): PByte;'+sLineBreak;
+    Code:='function JOBCall'+FuncName+'(const aMethod: TMethod; var H: TJOBCallbackHelper): PByte;'+sLineBreak;
     ArgNames.Add('aMethod');
     ArgNames.Add('h');
     VarSection:='';
