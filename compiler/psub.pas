@@ -953,6 +953,8 @@ implementation
           begin
             if assigned(tblocknode(procdef.parentfpinitblock).left) then
               begin
+                if cnodeutils.check_insert_trashing(procdef) then
+                  cnodeutils.maybe_trash_variable(newstatement,tabstractnormalvarsym(procdef.parentfpstruct),cloadnode.create(procdef.parentfpstruct,procdef.parentfpstruct.owner));
                 { could be an asmn in case of a pure assembler procedure,
                   but those shouldn't access nested variables }
                 addstatement(newstatement,procdef.parentfpinitblock);

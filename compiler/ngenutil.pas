@@ -84,11 +84,12 @@ interface
       { trashes a paravarsym or localvarsym if possible (not a managed type,
         "out" in case of parameter, ...) }
       class procedure maybe_trash_variable(var stat: tstatementnode; p: tabstractnormalvarsym; trashn: tnode); virtual;
+
+      class function  check_insert_trashing(pd: tprocdef): boolean; virtual;
      strict protected
       { called from wrap_proc_body to insert the trashing for the wrapped
         routine's local variables and parameters }
       class function  maybe_insert_trashing(pd: tprocdef; n: tnode): tnode;
-      class function  check_insert_trashing(pd: tprocdef): boolean; virtual;
       { callback called for every local variable and parameter by
         maybe_insert_trashing(), calls through to maybe_trash_variable() }
       class procedure maybe_trash_variable_callback(p: TObject; statn: pointer);
