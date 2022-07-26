@@ -4164,6 +4164,7 @@ unit aoptx86;
           (taicpu(p).oper[1]^.typ = top_reg) and
           (taicpu(p).opsize = S_L) and
           GetNextInstructionUsingRegTrackingUse(p,hp2,taicpu(p).oper[1]^.reg) and
+          (hp2.typ = ait_instruction) and
           (taicpu(hp2).opcode = A_AND) and
           (MatchOpType(taicpu(hp2),top_const,top_reg) or
            (MatchOpType(taicpu(hp2),top_reg,top_reg) and
