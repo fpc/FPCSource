@@ -93,6 +93,7 @@ type
     function WriteUtilityMethods(Intf: TIDLInterfaceDefinition): Integer;
       override;
     // Definitions. Return true if a definition was written.
+    function WriteEnumDef(aDef: TIDLEnumDefinition): Boolean; override;
     function WriteDictionaryField(aField: TIDLDictionaryMemberDefinition
       ): Boolean; override;
     function WriteForwardClassDef(D: TIDLStructuredDefinition): Boolean;
@@ -380,6 +381,12 @@ begin
   IncludeImplementationCode.Add(Code);
 end;
 
+function TWebIDLToPasWasmJob.WriteEnumDef(aDef: TIDLEnumDefinition): Boolean;
+begin
+  Result:=True;
+  AddLn(GetName(aDef)+' = UnicodeString;');
+end;
+
 function TWebIDLToPasWasmJob.WriteDictionaryField(
   aField: TIDLDictionaryMemberDefinition): Boolean;
 var
@@ -471,7 +478,7 @@ begin
     'QWord': InvokeName:='InvokeJSMaxIntResult';
     'Single',
     'Double': InvokeName:='InvokeJSDoubleResult';
-    'UTF8String',
+    'UTF8String': InvokeName:='InvokeJSUTF8StringResult';
     'UnicodeString': InvokeName:='InvokeJSUnicodeStringResult';
     'TJOB_JSValue': InvokeName:='InvokeJSValueResult';
     'void','undefined':
@@ -681,6 +688,7 @@ begin
       'QWord': GetFunc:='GetMaxInt';
       'Single',
       'Double': GetFunc:='GetDouble';
+      'UTF8String',
       'UnicodeString': GetFunc:='GetString';
       'TJOB_JSValue': GetFunc:='GetValue';
       else
@@ -726,6 +734,7 @@ begin
     'QWord',
     'Single',
     'Double': GetFunc:='Result:=H.AllocDouble('+Call+');';
+    'UTF8String': GetFunc:='Result:=H.AllocString('+Call+');';
     'UnicodeString': GetFunc:='Result:=H.AllocString('+Call+');';
     'TJOB_JSValue': GetFunc:='Result:=H.AllocJSValue('+Call+');';
     else
@@ -751,7 +760,7 @@ function TWebIDLToPasWasmJob.WritePrivateGetter(Attr: TIDLAttributeDefinition
 var
   Data: TPasDataWasmJob;
   FuncName, aClassName, Code, ReadFuncName, Call,
-    AttrTypeName, AttrResolvedTypeName: String;
+    AttrTypeName, AttrResolvedTypeName, ObjClassName: String;
   AttrType: TIDLDefinition;
 begin
   Result:=true;
@@ -765,7 +774,10 @@ begin
   if AttrType is TIDLInterfaceDefinition then
     AttrTypeName:=GetPasIntfName(AttrType)
   else if AttrType is TIDLFunctionDefinition then
-    exit;
+    exit // not supported yet
+  else if AttrType is TIDLEnumDefinition then
+    AttrResolvedTypeName:='UnicodeString';
+
   AddLn('function '+FuncName+': '+AttrTypeName+';');
 
   if Data.GetterBody<>'' then exit;
@@ -785,10 +797,14 @@ begin
   'QWord': ReadFuncName:='ReadJSPropertyInt64';
   'Single',
   'Double': ReadFuncName:='ReadJSPropertyDouble';
+  'UTF8String': ReadFuncName:='ReadJSPropertyUTF8String';
   'UnicodeString': ReadFuncName:='ReadJSPropertyUnicodeString';
   'TJOB_JSValue': ReadFuncName:='ReadJSPropertyValue';
   else
-    Call:='ReadJSPropertyObject('''+Attr.Name+''','+GetName(AttrType)+') as '+AttrTypeName;
+    ObjClassName:=GetName(AttrType);
+    if ObjClassName='' then
+      ObjClassName:=IntfToPasClassName(AttrTypeName);
+    Call:='ReadJSPropertyObject('''+Attr.Name+''','+ObjClassName+') as '+AttrTypeName;
   end;
 
   if Call='' then
@@ -823,7 +839,9 @@ begin
   if AttrType is TIDLInterfaceDefinition then
     AttrTypeName:=GetPasIntfName(AttrType)
   else if AttrType is TIDLFunctionDefinition then
-    exit;
+    exit // not supported yet
+  else if AttrType is TIDLEnumDefinition then
+    AttrResolvedTypeName:='UnicodeString';
 
   AddLn('procedure '+FuncName+'(const aValue: '+AttrTypeName+');');
 
@@ -844,6 +862,7 @@ begin
   'QWord': WriteFuncName:='WriteJSPropertyDouble';
   'Single',
   'Double': WriteFuncName:='WriteJSPropertyDouble';
+  'UTF8String': WriteFuncName:='WriteJSPropertyUTF8String';
   'UnicodeString': WriteFuncName:='WriteJSPropertyUnicodeString';
   'TJOB_JSValue': WriteFuncName:='WriteJSPropertyValue';
   else
