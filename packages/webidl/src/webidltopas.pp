@@ -1860,7 +1860,7 @@ end;
 
 function TBaseWebIDLToPas.IsKeyWord(const S: String): Boolean;
 Const
-   KW=';class;finalization;function;initialization;procedure;';
+   KW=';class;classname;finalization;function;initialization;procedure;';
 begin
   Result:=inherited IsKeyWord(S);
   if Result then exit;
