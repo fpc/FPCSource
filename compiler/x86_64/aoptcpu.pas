@@ -174,7 +174,7 @@ uses
 
             if not Result then
               begin
-                if not (p.typ in SkipInstr) then
+                if (p.typ in SkipInstr) then
                   UpdateUsedRegs(p);
 
                 p := tai(p.Next);
