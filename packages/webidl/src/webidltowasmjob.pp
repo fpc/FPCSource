@@ -78,6 +78,8 @@ type
     function GetTypeName(const aTypeName: String; ForTypeDef: Boolean=False
       ): String; override;
     function GetPasIntfName(Intf: TIDLDefinition): string;
+    function GetResolvedType(aDef: TIDLTypeDefDefinition; out aTypeName,
+      aResolvedTypename: string): TIDLDefinition; overload; override;
     function GetInterfaceDefHead(Intf: TIDLInterfaceDefinition): String;
       override;
     function GetDictionaryDefHead(const CurClassName: string;
@@ -265,6 +267,14 @@ begin
   if Result='' then
     raise EConvertError.Create('[20220725184653] missing name at '+GetDefPos(Intf));
   Result:=GetPasClassName(Result);
+end;
+
+function TWebIDLToPasWasmJob.GetResolvedType(aDef: TIDLTypeDefDefinition; out
+  aTypeName, aResolvedTypename: string): TIDLDefinition;
+begin
+  Result:=inherited GetResolvedType(aDef, aTypeName, aResolvedTypename);
+  if Result is TIDLInterfaceDefinition then
+    aTypeName:=GetPasClassName(aTypeName);
 end;
 
 function TWebIDLToPasWasmJob.GetInterfaceDefHead(Intf: TIDLInterfaceDefinition
@@ -502,10 +512,7 @@ begin
       if ReturnDef is TIDLSequenceTypeDefDefinition then
         InvokeClassName:=ClassPrefix+'Array'+ClassSuffix
       else if ReturnDef is TIDLInterfaceDefinition then
-        begin
-        InvokeClassName:=ReturnTypeName;
-        ReturnTypeName:=GetPasIntfName(ReturnDef);
-        end
+        InvokeClassName:=GetName(ReturnDef)
       else if ResolvedReturnTypeName=PasInterfacePrefix+'Object'+PasInterfaceSuffix then
         begin
         InvokeClassName:=ClassPrefix+'Object'+ClassSuffix;
@@ -572,17 +579,14 @@ begin
               writeln('Hint: TWebIDLToPasWasmJob.WriteFunctionDefinition sequence of ',ArgTypeName);
             raise EConvertError.Create('[20220725172246] not yet supported: passing an array of '+ArgTypeName+' as argument at '+GetDefPos(ArgDef));
             end
-          else
+          else if (ArgType is TIDLFunctionDefinition) and (foCallBack in TIDLFunctionDefinition(ArgType).Options) then
             begin
-            if (ArgType is TIDLFunctionDefinition) and (foCallBack in TIDLFunctionDefinition(ArgType).Options) then
-              begin
-              LocalName:=CreateLocal('m');
-              VarSection:=VarSection+'  '+LocalName+': '+JOB_JSValueTypeNames[jivkMethod]+';'+sLineBreak;
-              WrapperFn:='JOBCall'+GetName(TIDLFunctionDefinition(ArgType));
-              TryCode:=TryCode+'  '+LocalName+':='+JOB_JSValueTypeNames[jivkMethod]+'.Create(TMethod('+ArgName+'),@'+WrapperFn+');'+sLineBreak;
-              FinallyCode:=FinallyCode+'    '+LocalName+'.free;'+sLineBreak;
-              ArgName:=LocalName;
-              end;
+            LocalName:=CreateLocal('m');
+            VarSection:=VarSection+'  '+LocalName+': '+JOB_JSValueTypeNames[jivkMethod]+';'+sLineBreak;
+            WrapperFn:='JOBCall'+GetName(TIDLFunctionDefinition(ArgType));
+            TryCode:=TryCode+'  '+LocalName+':='+JOB_JSValueTypeNames[jivkMethod]+'.Create(TMethod('+ArgName+'),@'+WrapperFn+');'+sLineBreak;
+            FinallyCode:=FinallyCode+'    '+LocalName+'.free;'+sLineBreak;
+            ArgName:=LocalName;
             end;
           Args:=Args+ArgName;
           end;

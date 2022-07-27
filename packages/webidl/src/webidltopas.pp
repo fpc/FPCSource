@@ -1119,23 +1119,23 @@ function TBaseWebIDLToPas.GetArguments(aList: TIDLDefinitionList;
   ForceBrackets: Boolean): String;
 
 Var
-  I, Def: TIDLDefinition;
+  I, ArgType: TIDLDefinition;
   Arg: TIDLArgumentDefinition absolute I;
-  ArgName, aTypeName: string;
+  ArgName, ArgTypeName, ArgResolvedTypeName: string;
 
 begin
   Result:='';
   For I in aList do
     begin
     ArgName:=GetName(Arg);
-    aTypeName:=GetTypeName(Arg.ArgumentType);
-    ArgName:=ArgName+': '+aTypeName;
-    Def:=FindGlobalDef(Arg.ArgumentType.TypeName);
+    ArgType:=GetResolvedType(Arg.ArgumentType,ArgTypeName,ArgResolvedTypeName);
+    ArgName:=ArgName+': '+ArgTypeName;
     //writeln('TBaseWebIDLToPas.GetArguments Arg="',ArgName,'" A.ArgumentType.TypeName=',Arg.ArgumentType.TypeName,' ',Def<>nil);
-    if (Def is TIDLFunctionDefinition)
-        or (Def is TIDLDictionaryDefinition)
-        or (Arg.ArgumentType.TypeName='sequence')
-        or SameText(aTypeName,'UnicodeString') then
+    if (ArgType is TIDLFunctionDefinition)
+        or (ArgType is TIDLDictionaryDefinition)
+        or (ArgType is TIDLSequenceTypeDefDefinition)
+        or (ArgResolvedTypeName='UnicodeString')
+        or (ArgResolvedTypeName='UTF8String') then
       ArgName:='const '+ArgName;
     if Result<>'' then
       Result:=Result+'; ';
