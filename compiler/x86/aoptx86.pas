@@ -2196,7 +2196,7 @@ unit aoptx86;
                         exit;
                       end
                   end;
-            end;
+              end;
           if GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[1]^.reg) then
             begin
               if MatchInstruction(hp1,[A_VFMADDPD,
@@ -2273,7 +2273,7 @@ unit aoptx86;
                     if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp2,TmpUsedRegs)) then
                       begin
                         taicpu(hp1).loadoper(2,taicpu(p).oper[0]^);
-                        RemoveCurrentP(p, hp1); // <-- Is this actually safe? hp1 is not necessarily the next instruction. [Kit]
+                        RemoveCurrentP(p);
                         RemoveInstruction(hp2);
                       end;
                   end
@@ -2310,8 +2310,10 @@ unit aoptx86;
                         { we cannot eliminate the first move if
                           the operations uses the same register for source and dest }
                         if not(OpsEqual(taicpu(hp1).oper[1]^,taicpu(hp1).oper[0]^)) then
-                          RemoveCurrentP(p, nil);
-                        p:=hp1;
+                          { Remember that hp1 is not necessarily the immediate
+                            next instruction }
+                          RemoveCurrentP(p);
+
                         taicpu(hp1).loadoper(1, taicpu(hp2).oper[1]^);
                         RemoveInstruction(hp2);
                         result:=true;
@@ -2342,7 +2344,7 @@ unit aoptx86;
                           taicpu(hp1).loadoper(0, taicpu(p).oper[0]^);
                         if OpsEqual(taicpu(p).oper[1]^,taicpu(hp1).oper[1]^) then
                           taicpu(hp1).loadoper(1, taicpu(p).oper[0]^);
-                        RemoveCurrentP(p, nil);
+                        RemoveCurrentP(p);
                         result:=true;
                         exit;
                       end;
