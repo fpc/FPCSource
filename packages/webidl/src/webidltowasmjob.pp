@@ -724,7 +724,11 @@ begin
 
     Call:=FuncName+'(aMethod)('+Params+')';
     case ResolvedReturnTypeName of
-    '': GetFunc:='Result:=H.AllocUndefined('+Call+');';
+    '':
+      begin
+      Code:=Code+'  '+Call+';'+sLineBreak;
+      GetFunc:='Result:=H.AllocUndefined;';
+      end;
     'Boolean': GetFunc:='Result:=H.AllocBool('+Call+');';
     'ShortInt',
     'Byte',
@@ -801,9 +805,14 @@ begin
   'UnicodeString': ReadFuncName:='ReadJSPropertyUnicodeString';
   'TJOB_JSValue': ReadFuncName:='ReadJSPropertyValue';
   else
-    ObjClassName:=GetName(AttrType);
-    if ObjClassName='' then
-      ObjClassName:=IntfToPasClassName(AttrTypeName);
+    if AttrType is TIDLSequenceTypeDefDefinition then
+      ObjClassName:=ClassPrefix+'Array'+ClassSuffix
+    else
+      begin
+      ObjClassName:=GetName(AttrType);
+      if ObjClassName='' then
+        ObjClassName:=IntfToPasClassName(AttrTypeName);
+      end;
     Call:='ReadJSPropertyObject('''+Attr.Name+''','+ObjClassName+') as '+AttrTypeName;
   end;
 
