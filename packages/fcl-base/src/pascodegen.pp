@@ -198,9 +198,9 @@ end;
 constructor TPascalCodeGenerator.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FSource:=TstringList.Create;
+  FSource:=TStringList.Create;
   FLicenseText:=TstringList.Create;
-  FSwitches:=TstringList.Create;
+  FSwitches:=TStringList.Create;
   FSwitches.Add('MODE ObjFPC');
   FSwitches.Add('H+');
   SetLength(FSections,0);
@@ -405,8 +405,6 @@ procedure TPascalCodeGenerator.ClassHeader(const AClassName: String);
 begin
   ClassComment(AClassName);
 end;
-
-end.
 
 end.
 
