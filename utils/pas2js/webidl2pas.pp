@@ -140,12 +140,13 @@ var
 begin
   Terminate;
   // quick check parameters
-  ErrorMsg:=CheckOptions('ced::f:hi:m:n:o:pt:u:vw:x:', [
+  ErrorMsg:=CheckOptions('ced::f:g:hi:m:n:o:pt:u:vw:x:', [
     'help',
     'constexternal',
     'dicttoclass::',
     'expandunionargs',
     'outputformat:',
+    'globals:',
     'input:',
     'implementation:',
     'include:',
@@ -194,6 +195,17 @@ begin
     TWebIDLToPas2js(FWebIDLToPas).DictionaryClassParent:=GetOptionValue('d','dicttoclass');
 
   CheckBaseOption(coExpandUnionTypeArgs,'e','expandunionargs');
+
+  // -f ?
+
+  A:=GetOptionValue('g','globals');
+  if (Copy(A,1,1)='@') then
+    begin
+    Delete(A,1,1);
+    FWebIDLToPas.GlobalVars.LoadFromFile(A);
+    end
+  else
+    FWebIDLToPas.GlobalVars.CommaText:=A;
 
   InputFileName:=GetOptionValue('i','input');
 
@@ -282,6 +294,9 @@ begin
   Writeln(StdErr,'-d  --dicttoclass[=Parent] Write dictionaries as classes');
   Writeln(StdErr,'-e  --expandunionargs      Add overloads for all Union typed function arguments');
   Writeln(StdErr,'-f  --outputformat=[pas2js|wasmjob] Output format, default ',WebIDLToPasFormatNames[OutputFormat]);
+  Writeln(StdErr,'-g  --globals=list         A comma separated list of global vars');
+  Writeln(StdErr,'                           use @filename to load the globals from file.');
+  Writeln(StdErr,'                           wasmjob: PasVarName=JSClassName,JOBRegisterName');
   Writeln(StdErr,'-i  --input=FileName       input webidl file');
   Writeln(StdErr,'-m  --implementation=Filename include file as implementation');
   Writeln(StdErr,'-n  --include=Filename     include file at end of interface');

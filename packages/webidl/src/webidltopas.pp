@@ -67,6 +67,7 @@ type
     FContext: TWebIDLContext;
     FDictionaryClassParent: String;
     FFieldPrefix: String;
+    FGlobalVars: TStrings;
     FTypePrefix: String;
     FGetterPrefix: String;
     FIncludeImplementationCode: TStrings;
@@ -80,10 +81,12 @@ type
     FTypeAliases: TStrings; // user defined type maping name to name
     FVerbose: Boolean;
     FWebIDLVersion: TWebIDLVersion;
+    procedure SetGlobalVars(const AValue: TStrings);
     procedure SetIncludeImplementationCode(AValue: TStrings);
     procedure SetIncludeInterfaceCode(AValue: TStrings);
     procedure SetTypeAliases(AValue: TStrings);
   Protected
+    procedure TrimList(List: TStrings); virtual;
     procedure AddOptionsToHeader;
     Procedure Parse; virtual;
     Procedure WritePascal; virtual;
@@ -164,6 +167,7 @@ type
     procedure WriteSequenceDef(aDef: TIDLSequenceTypeDefDefinition); virtual;
     procedure WriteUnionDef(aDef: TIDLUnionTypeDefDefinition); virtual;
     // Extra interface/Implementation code.
+    procedure WriteGlobalVars; virtual;
     procedure WriteImplementation; virtual;
     procedure WriteIncludeInterfaceCode; virtual;
     Property Context: TWebIDLContext Read FContext;
@@ -187,6 +191,7 @@ type
     Property TypePrefix: String read FTypePrefix write FTypePrefix;
     Property WebIDLVersion: TWebIDLVersion Read FWebIDLVersion Write FWebIDLVersion;
     Property TypeAliases: TStrings Read FTypeAliases Write SetTypeAliases;
+    Property GlobalVars: TStrings Read FGlobalVars Write SetGlobalVars;
     Property IncludeInterfaceCode: TStrings Read FIncludeInterfaceCode Write SetIncludeInterfaceCode;
     Property IncludeImplementationCode: TStrings Read FIncludeImplementationCode Write SetIncludeImplementationCode;
     Property DictionaryClassParent: String Read FDictionaryClassParent Write FDictionaryClassParent;
@@ -757,6 +762,7 @@ begin
   SetterPrefix:='Set';
   TypePrefix:='T';
   FTypeAliases:=TStringList.Create;
+  FGlobalVars:=TStringList.Create;
   FPasNameList:=TFPObjectList.Create(True);
   FPasDataClass:=TPasData;
   FAutoTypes:=TStringList.Create;
@@ -772,6 +778,7 @@ begin
   FreeAndNil(FIncludeInterfaceCode);
   FreeAndNil(FIncludeImplementationCode);
   FreeAndNil(FAutoTypes);
+  FreeAndNil(FGlobalVars);
   FreeAndNil(FTypeAliases);
   FreeAndNil(FPasNameList);
   inherited Destroy;
@@ -989,6 +996,22 @@ begin
   AddLn(GetName(aDef)+' = '+GetTypeName('any')+';');
 end;
 
+procedure TBaseWebIDLToPas.WriteGlobalVars;
+var
+  i: Integer;
+  VarName, VarType: String;
+begin
+  if GlobalVars.Count=0 then exit;
+  AddLn('var');
+  Indent;
+  for i:=0 to GlobalVars.Count-1 do
+    begin
+    VarName:=GlobalVars.Names[i];
+    VarType:=GlobalVars.ValueFromIndex[i];
+    AddLn(VarName+': '+VarType+';');
+    end;
+  Undent;
+end;
 
 procedure TBaseWebIDLToPas.WritePromiseDef(aDef: TIDLPromiseTypeDefDefinition);
 
@@ -1212,8 +1235,10 @@ Var
   I,J: Integer;
   D: TIDLDefinitionList;
   Dups: TStringList;
+  CurTypeDef: TIDLTypeDefDefinition;
 
 begin
+  //writeln('TBaseWebIDLToPas.AddUnionOverloads Name=',aName,' PasName=',aPasName);
   L2:=Nil;
   Dups:=TStringList.Create;
   Dups.Sorted:=True;
@@ -1230,21 +1255,29 @@ begin
       end;
     // Collect unique pascal types. Note that this can reduce the list to 1 element...
     For I:=0 to UT.Union.Count-1 do
-      Dups.Add(GetTypeName(UT.Union[I] as TIDLTypeDefDefinition));
+      begin
+      CurTypeDef:=UT.Union[I] as TIDLTypeDefDefinition;
+      //writeln('TBaseWebIDLToPas.AddUnionOverloads Union[',I,']='+GetTypeName(CurTypeDef));
+      Dups.AddObject(CurTypeDef.TypeName,CurTypeDef);
+      end;
     // First, clone list and add argument to cloned lists
     For I:=1 to Dups.Count-1 do
       begin
       // Clone list
       CloneNonPartialArgumentList(L,L2,False);
       // Add argument to cloned list
-      AddArgumentToOverloads(L2,aName,aPasName,Dups[i],UT.Union[I]);
+      CurTypeDef:=TIDLTypeDefDefinition(Dups.Objects[I]);
+      //writeln('TBaseWebIDLToPas.AddUnionOverloads Dups[',i,']=',Dups[i]);
+      AddArgumentToOverloads(L2,aName,aPasName,Dups[i],CurTypeDef);
       // Add overloads to original list
       For J:=0 to L2.Count-1 do
         aList.Add(L2[J]);
       L2.Clear;
       end;
     // Add first Union to original list
-    AddArgumentToOverloads(L,aName,aPasName,Dups[0],UT.Union[0]);
+    CurTypeDef:=TIDLTypeDefDefinition(Dups.Objects[0]);
+    //writeln('TBaseWebIDLToPas.AddUnionOverloads Dups[',0,']=',Dups[0]);
+    AddArgumentToOverloads(L,aName,aPasName,Dups[0],CurTypeDef);
   finally
     Dups.Free;
     L2.Free;
@@ -1281,21 +1314,21 @@ procedure TBaseWebIDLToPas.AddOverloads(aList: TFPObjectlist;
 
 Var
   Arg: TIDLArgumentDefinition;
-  D: TIDLDefinition;
+  ArgType: TIDLDefinition;
   UT: TIDLUnionTypeDefDefinition;
 
 begin
  if aIdx>=aDef.Arguments.Count then
     exit;
   Arg:=aDef.Argument[aIdx];
-  //writeln('TBaseWebIDLToPas.AddOverloads ',aDef.Name,'[',aIdx,']=',Arg.Name,':',Arg.ClassName,' at ',GetDefPos(Arg),' Arg.IsOptional=',Arg.IsOptional,' ',TPasData(Arg.ArgumentType.Data).Resolved<>nil);
+  //writeln('TBaseWebIDLToPas.AddOverloads ',aDef.Name,'[',aIdx,']=',Arg.Name,':',Arg.ArgumentType.ClassName,' at ',GetDefPos(Arg),' Arg.IsOptional=',Arg.IsOptional);
   if Arg.IsOptional then
     CloneNonPartialArgumentList(aList);
   // Add current to list.
-  D:=Arg.ArgumentType;
+  ArgType:=Arg.ArgumentType;
   UT:=Nil;
   if coExpandUnionTypeArgs in BaseOptions then
-    UT:=CheckUnionTypeDefinition(D);
+    UT:=CheckUnionTypeDefinition(ArgType);
   if UT=Nil then
     AddArgumentToOverloads(aList,Arg)
   else
@@ -1494,6 +1527,7 @@ begin
   WriteDictionaryDefs(Context.Definitions);
   WriteInterfaceDefs(Context.GetInterfacesTopologically);
   Undent;
+  WriteGlobalVars;
   WriteIncludeInterfaceCode;
   Addln('');
   AddLn('implementation');
@@ -1782,8 +1816,18 @@ end;
 
 procedure TBaseWebIDLToPas.SetTypeAliases(AValue: TStrings);
 begin
-  if FTypeAliases=AValue then Exit;
+  if FTypeAliases.Equals(AValue) then Exit;
   FTypeAliases.Assign(AValue);
+  TrimList(FTypeAliases);
+end;
+
+procedure TBaseWebIDLToPas.TrimList(List: TStrings);
+var
+  i: Integer;
+begin
+  for i:=List.Count-1 downto 0 do
+    if Trim(List[i])='' then
+       List.Delete(i);
 end;
 
 procedure TBaseWebIDLToPas.SetIncludeInterfaceCode(AValue: TStrings);
@@ -1796,6 +1840,13 @@ procedure TBaseWebIDLToPas.SetIncludeImplementationCode(AValue: TStrings);
 begin
   if FIncludeImplementationCode=AValue then Exit;
   FIncludeImplementationCode.Assign(AValue);
+end;
+
+procedure TBaseWebIDLToPas.SetGlobalVars(const AValue: TStrings);
+begin
+  if FGlobalVars.Equals(AValue) then Exit;
+  FGlobalVars.Assign(AValue);
+  TrimList(FGlobalVars);
 end;
 
 procedure TBaseWebIDLToPas.AllocatePasNames(aList: TIDLDefinitionList; ParentName: String = '');

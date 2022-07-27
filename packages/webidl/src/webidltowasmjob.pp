@@ -105,8 +105,12 @@ type
     function WriteProperty(aParent: TIDLDefinition; Attr: TIDLAttributeDefinition): boolean; virtual;
     function WriteRecordDef(aDef: TIDLRecordDefinition): Boolean; override;
     procedure WriteSequenceDef(aDef: TIDLSequenceTypeDefDefinition); override;
+    // Extra interface/Implementation code.
+    procedure WriteGlobalVars; override;
+    procedure WriteImplementation; override;
   Public
     constructor Create(ThOwner: TComponent); override;
+    function SplitGlobalVar(Line: string; out PasVarName, JSClassName, JOBRegisterName: string): boolean; virtual;
   Published
     Property BaseOptions;
     Property ClassPrefix;
@@ -720,7 +724,8 @@ begin
       Code:=Code+'var'+sLineBreak+VarSection;
 
     Code:=Code+'begin'+sLineBreak;
-    Code:=Code+FetchArgs+sLineBreak;
+    if FetchArgs<>'' then
+      Code:=Code+FetchArgs+sLineBreak;
 
     Call:=FuncName+'(aMethod)('+Params+')';
     case ResolvedReturnTypeName of
@@ -925,14 +930,86 @@ begin
   Addln(GetName(aDef)+' = '+PasInterfacePrefix+'Array'+PasInterfaceSuffix+'; // array of '+GetTypeName(aDef.ElementType));
 end;
 
+procedure TWebIDLToPasWasmJob.WriteGlobalVars;
+var
+  i: Integer;
+  PasVarName, JSClassName, JOBRegisterName: String;
+  aDef: TIDLDefinition;
+begin
+  if GlobalVars.Count=0 then exit;
+  AddLn('');
+  AddLn('var');
+  Indent;
+  for i:=0 to GlobalVars.Count-1 do
+    begin
+    if not SplitGlobalVar(GlobalVars[i],PasVarName,JSClassName,JOBRegisterName) then
+      raise EConvertError.Create('invalid global var "'+GlobalVars[i]+'"');
+    aDef:=FindGlobalDef(JSClassName);
+    if aDef=nil then
+      raise EConvertError.Create('missing global var "'+PasVarName+'" type "'+JSClassName+'"');
+    AddLn(PasVarName+': '+GetName(aDef)+';');
+    end;
+  Undent;
+end;
+
+procedure TWebIDLToPasWasmJob.WriteImplementation;
+var
+  i: Integer;
+  aDef: TIDLDefinition;
+  PasVarName, JSClassName, JOBRegisterName: string;
+begin
+  inherited WriteImplementation;
+  if GlobalVars.Count>0 then
+    begin
+    AddLn('initialization');
+    Indent;
+    for i:=0 to GlobalVars.Count-1 do
+      begin
+      SplitGlobalVar(GlobalVars[i],PasVarName,JSClassName,JOBRegisterName);
+      aDef:=FindGlobalDef(JSClassName);
+      AddLn(PasVarName+':='+GetName(aDef)+'.JOBCreateGlobal('''+JOBRegisterName+''');');
+      end;
+    Undent;
+
+    AddLn('finalization');
+    Indent;
+    for i:=0 to GlobalVars.Count-1 do
+      begin
+      SplitGlobalVar(GlobalVars[i],PasVarName,JSClassName,JOBRegisterName);
+      AddLn(PasVarName+'.Free;');
+      end;
+    Undent;
+    end;
+end;
+
 constructor TWebIDLToPasWasmJob.Create(ThOwner: TComponent);
 begin
   inherited Create(ThOwner);
+  // Switches.Add('modeswitch FunctionReferences');
   PasDataClass:=TPasDataWasmJob;
   FPasInterfacePrefix:='IJS';
   GetterPrefix:='_Get';
   SetterPrefix:='_Set';
-  BaseOptions:=BaseOptions+[coDictionaryAsClass];
+  BaseOptions:=BaseOptions+[coExpandUnionTypeArgs,coDictionaryAsClass];
+end;
+
+function TWebIDLToPasWasmJob.SplitGlobalVar(Line: string; out PasVarName,
+  JSClassName, JOBRegisterName: string): boolean;
+var
+  p: SizeInt;
+begin
+  PasVarName:='';
+  JSClassName:='';
+  JOBRegisterName:='';
+  p:=Pos('=',Line);
+  PasVarName:=LeftStr(Line,p-1);
+  if not IsValidIdent(PasVarName) then exit(false);
+  System.Delete(Line,1,p);
+  p:=Pos(',',Line);
+  JSClassName:=LeftStr(Line,p-1);
+  if not IsValidIdent(JSClassName) then exit(false);
+  JOBRegisterName:=copy(Line,p+1,length(Line));
+  Result:=IsValidIdent(JOBRegisterName);
 end;
 
 end.
