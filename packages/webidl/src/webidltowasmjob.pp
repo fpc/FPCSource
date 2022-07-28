@@ -716,7 +716,7 @@ begin
       VarSection:=VarSection+'  '+ArgName+': '+ArgTypeName+';'+sLineBreak;
 
       // get: ArgName:=H.GetX;
-      FetchArgs:=FetchArgs+'  '+ArgName+':=H.'+GetFunc+';';
+      FetchArgs:=FetchArgs+'  '+ArgName+':=H.'+GetFunc+';'+sLineBreak;
 
       // pass: ArgName
       if Params<>'' then
@@ -729,7 +729,7 @@ begin
 
     Code:=Code+'begin'+sLineBreak;
     if FetchArgs<>'' then
-      Code:=Code+FetchArgs+sLineBreak;
+      Code:=Code+FetchArgs;
 
     Call:=FuncName+'(aMethod)('+Params+')';
     case ResolvedReturnTypeName of
