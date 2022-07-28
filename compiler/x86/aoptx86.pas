@@ -7160,19 +7160,40 @@ unit aoptx86;
        }
        Result:=false;
        if MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^,taicpu(p).oper[2]^) and
-         MatchOpType(taicpu(p),top_reg,top_reg,top_reg) and
-         GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
-         MatchInstruction(hp1,taicpu(p).opcode,[taicpu(p).opsize]) and
-         MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[0]^) and
-         MatchOperand(taicpu(hp1).oper[0]^,taicpu(hp1).oper[1]^,taicpu(hp1).oper[2]^) then
+         MatchOpType(taicpu(p),top_reg,top_reg,top_reg) then
          begin
-           DebugMsg(SPeepholeOptimization + 'VPXorVPXor2PXor done',hp1);
-           RemoveInstruction(hp1);
-           Result:=true;
-           Exit;
-         end
-       else
-         Result:=OptPass1VOP(p);
+           if GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
+             MatchInstruction(hp1,taicpu(p).opcode,[taicpu(p).opsize]) and
+             MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[0]^) and
+             MatchOperand(taicpu(hp1).oper[0]^,taicpu(hp1).oper[1]^,taicpu(hp1).oper[2]^) then
+             begin
+               DebugMsg(SPeepholeOptimization + 'VPXorVPXor2PXor done',hp1);
+               RemoveInstruction(hp1);
+               Result:=true;
+               Exit;
+             end;
+{$ifdef x86_64}
+           if GetNextInstruction(p,hp1) and
+             MatchInstruction(hp1,A_VMOVSD,[]) and
+             MatchOperand(taicpu(p).oper[2]^,taicpu(hp1).oper[0]^) and
+             MatchOpType(taicpu(hp1),top_reg,top_ref) then
+             begin
+               TransferUsedRegs(TmpUsedRegs);
+               UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+               if not(RegUsedAfterInstruction(taicpu(hp1).oper[0]^.reg,hp1,TmpUsedRegs)) then
+                 begin
+                   taicpu(hp1).loadconst(0,0);
+                   taicpu(hp1).opcode:=A_MOV;
+                   taicpu(hp1).opsize:=S_Q;
+                   DebugMsg(SPeepholeOptimization + 'VPXorVMov2Mov done',p);
+                   RemoveCurrentP(p);
+                   result:=true;
+                   Exit;
+                 end;
+             end;
+{$endif x86_64}
+         end;
+       Result:=OptPass1VOP(p);
      end;
 
 
