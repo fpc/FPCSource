@@ -3252,10 +3252,13 @@ unit aoptx86;
               GetNextInstruction_p := GetNextInstruction(p, hp1);
 
             if GetNextInstruction_p and (hp1.typ = ait_instruction) then
+              while True do
               begin
                 if (taicpu(hp1).opcode = A_AND) and
                   MatchOpType(taicpu(hp1),top_const,top_reg) then
                   begin
+                    { A change has occurred, just not in p }
+                    Include(OptsToCheck, aoc_ForceNewIteration);
                     if MatchOperand(taicpu(hp1).oper[1]^, p_TargetReg) then
                       begin
                         case taicpu(p).opsize of
@@ -3512,6 +3515,8 @@ unit aoptx86;
                             Result := True;
                             Exit;
 
+                            { Go through DeepMOVOpt again (jump to "while True do") }
+                            Continue;
                           end;
                       end;
                   end;
@@ -4300,6 +4305,7 @@ unit aoptx86;
                         Include(OptsToCheck, aoc_ForceNewIteration);
                       end;
                   end;
+                Break;
               end;
           end;
 
