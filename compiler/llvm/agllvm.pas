@@ -1492,8 +1492,15 @@ implementation
                 sstr:=llvmencodetypename(taillvmalias(hp).def);
               writer.AsmWrite(sstr);
               writer.AsmWrite(', ');
-              writer.AsmWrite(sstr);
-              writer.AsmWrite('* ');
+              if not(llvmflag_opaque_ptr in llvmversion_properties[current_settings.llvmversion]) then
+                begin
+                  writer.AsmWrite(sstr);
+                  writer.AsmWrite('* ');
+                end
+              else
+                begin
+                  writer.AsmWrite('ptr ');
+                end;
               writer.AsmWriteln(LlvmAsmSymName(taillvmalias(hp).oldsym));
             end;
           ait_llvmmetadatanode:
