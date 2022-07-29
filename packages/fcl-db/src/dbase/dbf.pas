@@ -208,7 +208,7 @@ type
     FOnIndexMissing: TDbfIndexMissingEvent;
     FOnCompareRecord: TNotifyEvent;
     FOnCopyDateTimeAsString: TConvertFieldEvent;
-
+    FMyBufferSize : Cardinal;
     function GetIndexName: string;
     function GetVersion: string;
     function GetPhysicalRecNo: Integer;
@@ -250,7 +250,8 @@ type
     procedure SetRangeBuffer(LowRange: PChar; HighRange: PChar);
 
   protected
-
+    function GetDefaultBufferCount : Cardinal; override;
+    procedure SetDefaultBufferCount(aValue : Cardinal); virtual; 
     { abstract methods }
     function  AllocRecordBuffer: TRecordBuffer; override; {virtual abstract}
     procedure ClearCalcFields(Buffer: TRecordBuffer); override;
@@ -409,7 +410,7 @@ type
 {$ifndef SUPPORT_INITDEFSFROMFIELDS}
     procedure InitFieldDefsFromFields;
 {$endif}
-
+    Property DefaultBufferCount : Cardinal Read GetDefaultBufferCount Write SetDefaultBufferCount;
     property AbsolutePath: string read FAbsolutePath;
     property DbfFieldDefs: TDbfFieldDefs read GetDbfFieldDefs;
     property PhysicalRecNo: Integer read GetPhysicalRecNo write SetPhysicalRecNo;
@@ -660,6 +661,21 @@ begin
   end;
 end;
 
+function TDbf.GetDefaultBufferCount : Cardinal; 
+
+begin
+  Result:=fMyBufferSize;
+end;
+
+procedure TDbf.SetDefaultBufferCount(aValue : Cardinal); 
+
+begin
+  CheckInactive;
+  FMyBufferSize:=aValue;
+  if FMyBufferSize<2 then
+    FMyBufferSize:=2;
+end;
+
 //====================================================================
 // TDbf = TDataset Descendant.
 //====================================================================
@@ -669,7 +685,7 @@ begin
 
   if DbfGlobals = nil then
     DbfGlobals := TDbfGlobals.Create;
-
+  FMyBufferSize:=inherited GetDefaultBufferCount;
   BookmarkSize := sizeof(TBookmarkData);
   FIndexDefs := TDbfIndexDefs.Create(Self);
   FMasterLink := TDbfMasterLink.Create(Self);
