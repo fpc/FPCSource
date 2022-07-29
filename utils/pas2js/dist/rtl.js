@@ -1052,7 +1052,7 @@ var rtl = {
     } else if (a['$pas2jsrefcnt']){
       a=rtl.arrayCopy(type,a,0,a.length);
     }
-    rtl.arrayClone(type,arguments,2,arguments.length-1,a,a.length);
+    rtl.arrayClone(type,arguments,2,arguments.length,a,a.length);
     return a;
   },
 
