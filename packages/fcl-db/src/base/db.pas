@@ -1723,6 +1723,7 @@ type
     procedure SetSparseArrays(AValue: Boolean);
     procedure DoInsertAppendRecord(const Values: array of const; DoAppend : boolean);
   protected
+    function GetDefaultBufferCount: Cardinal; virtual;
     procedure RecalcBufListSize;
     procedure ActivateBuffers; virtual;
     procedure BindFields(Binding: Boolean);
