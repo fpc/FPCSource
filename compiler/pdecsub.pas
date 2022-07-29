@@ -1127,6 +1127,8 @@ implementation
                   aprocsym:=cprocsym.create('$'+lower(sp))
                 else
                   aprocsym:=cprocsym.create(orgsp);
+                if ppf_anonymous in flags then
+                  include(aprocsym.symoptions,sp_internal);
                 if addgendummy then
                   include(aprocsym.symoptions,sp_generic_dummy);
                 symtablestack.top.insertsym(aprocsym);
