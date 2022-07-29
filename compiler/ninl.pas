@@ -1329,6 +1329,15 @@ implementation
               filepara := nil;
           end;
 
+        if assigned(filepara) and
+            assigned(filepara.right) and
+            (cpf_is_colon_para in tcallparanode(filepara.right).callparaflags) then
+          begin
+            CGMessagePos(filepara.fileinfo,parser_e_illegal_colon_qualifier);
+            { for recovery we can simply continue, because the compiler will
+              simply treat the next parameters as normal parameters }
+          end;
+
         { create a blocknode in which the successive write/read statements will be  }
         { put, since they belong together. Also create a dummy statement already to }
         { make inserting of additional statements easier                            }
