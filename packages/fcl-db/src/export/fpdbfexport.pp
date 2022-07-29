@@ -207,6 +207,7 @@ begin
   Inherited;
   FDBF:=TDBF.Create(Self);
   FDBF.TableName:=FFileName;
+  FDBF.DefaultBufferCount:=2;
   FE:=FileExists(FFileName);
   If FAppendData and FE then
     FDBF.Open
