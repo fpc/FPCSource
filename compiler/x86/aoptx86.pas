@@ -7167,7 +7167,7 @@ unit aoptx86;
              MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[0]^) and
              MatchOperand(taicpu(hp1).oper[0]^,taicpu(hp1).oper[1]^,taicpu(hp1).oper[2]^) then
              begin
-               DebugMsg(SPeepholeOptimization + 'VPXorVPXor2PXor done',hp1);
+               DebugMsg(SPeepholeOptimization + 'VPXorVPXor2VPXor done',hp1);
                RemoveInstruction(hp1);
                Result:=true;
                Exit;
@@ -7192,6 +7192,16 @@ unit aoptx86;
                  end;
              end;
 {$endif x86_64}
+         end
+       else if MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^) and
+         MatchOpType(taicpu(p),top_reg,top_reg,top_reg) then
+         begin
+           DebugMsg(SPeepholeOptimization + 'VPXor2VPXor done',p);
+           { avoid unncessary data dependency }
+           taicpu(p).loadreg(0,taicpu(p).oper[2]^.reg);
+           taicpu(p).loadreg(1,taicpu(p).oper[2]^.reg);
+           result:=true;
+           exit;
          end;
        Result:=OptPass1VOP(p);
      end;
