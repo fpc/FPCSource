@@ -6671,12 +6671,12 @@ unit aoptx86;
              j(c1) @lbl1
              ...
            @lbl:
-             cmp   ###.### (same comparison as above)
+             cmp   ###,### (same comparison as above)
              j(c2) @lbl2
 
            If c1 is a subset of c2, change to:
              cmp   ###,###
-             j(c2) @lbl2
+             j(c1) @lbl2
              (@lbl1 may become a dead label as a result)
          }
 
@@ -6716,7 +6716,6 @@ unit aoptx86;
                            JumpLabel.DecRefs;
 
                          DebugMsg(SPeepholeOptimization + 'CMP/Jcc/@Lbl/CMP/Jcc -> CMP/Jcc, redirecting first jump', p_jump);
-                         taicpu(p_jump).condition := taicpu(hp1_dist).condition;
                          taicpu(p_jump).loadref(0, taicpu(hp1_dist).oper[0]^.ref^);
                          Result := True;
                          { Don't exit yet.  Since p and p_jump haven't actually been
