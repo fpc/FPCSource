@@ -4949,14 +4949,11 @@ unit aoptx86;
                 if condition_in(taicpu(hp1).condition, taicpu(hp1_dist).condition) then
                   begin
                     { Any registers used here will already be allocated }
-                    if Assigned(JumpLabel_dist) then
-                      JumpLabel_dist.IncRefs;
-
                     if Assigned(JumpLabel) then
                       JumpLabel.DecRefs;
 
                     DebugMsg(SPeepholeOptimization + 'TEST/Jcc/@Lbl/TEST/Jcc -> TEST/Jcc, redirecting first jump', hp1);
-                    taicpu(hp1).loadref(0, taicpu(hp1_dist).oper[0]^.ref^);
+                    taicpu(hp1).loadref(0, taicpu(hp1_dist).oper[0]^.ref^); { This also increases the reference count }
                     Result := True;
                     Exit;
                   end;
@@ -6709,14 +6706,11 @@ unit aoptx86;
                      if IsCmpSubset(taicpu(p_jump).condition, taicpu(hp1_dist).condition) then
                        begin
                          { Any registers used here will already be allocated }
-                         if Assigned(JumpLabel_dist) then
-                           JumpLabel_dist.IncRefs;
-
                          if Assigned(JumpLabel) then
                            JumpLabel.DecRefs;
 
                          DebugMsg(SPeepholeOptimization + 'CMP/Jcc/@Lbl/CMP/Jcc -> CMP/Jcc, redirecting first jump', p_jump);
-                         taicpu(p_jump).loadref(0, taicpu(hp1_dist).oper[0]^.ref^);
+                         taicpu(p_jump).loadref(0, taicpu(hp1_dist).oper[0]^.ref^); { This also increases the reference count }
                          Result := True;
                          { Don't exit yet.  Since p and p_jump haven't actually been
                            removed, we can check for more on this iteration }
