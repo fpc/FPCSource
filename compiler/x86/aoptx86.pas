@@ -7166,6 +7166,15 @@ unit aoptx86;
                Exit;
              end;
 {$ifdef x86_64}
+           {
+              replace
+                 vpxor reg1,reg1,reg1
+                 vmov reg,mem
+
+                 by
+
+                 movq $0,mem
+           }
            if GetNextInstruction(p,hp1) and
              MatchInstruction(hp1,A_VMOVSD,[]) and
              MatchOperand(taicpu(p).oper[2]^,taicpu(hp1).oper[0]^) and
@@ -7186,6 +7195,16 @@ unit aoptx86;
              end;
 {$endif x86_64}
          end
+       {
+          replace
+             vpxor reg1,reg1,reg2
+
+             by
+
+             vpxor reg2,reg2,reg2
+
+             to avoid unncessary data dependencies
+       }
        else if MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^) and
          MatchOpType(taicpu(p),top_reg,top_reg,top_reg) then
          begin
