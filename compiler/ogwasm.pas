@@ -752,7 +752,13 @@ implementation
     procedure TWasmObjData.DeclareGlobalType(gt: tai_globaltype);
       var
         ObjSymExtraData: TWasmObjSymbolExtraData;
+        ObjSym: TObjSymbol;
       begin
+        if not gt.is_external then
+          begin
+            ObjSym:=symboldefine(gt.sym);
+            ObjSym.typ:=AT_WASM_GLOBAL;
+          end;
         ObjSymExtraData:=AddOrCreateObjSymbolExtraData(gt.globalname);
         ObjSymExtraData.GlobalType:=gt.gtype;
         ObjSymExtraData.GlobalIsImmutable:=gt.immutable;
@@ -1753,8 +1759,14 @@ implementation
                       WriteUleb(FWasmSymbolTable,objsym.GlobalIndex);
                   end
                 else
-                  {not implemented yet}
-                  internalerror(2021092705);
+                  begin
+                    WriteUleb(FWasmSymbolTable,0);
+                    if (objsym.GlobalIndex<0) then
+                      message1(asmw_e_illegal_unset_index,objsym.name)
+                    else
+                      WriteUleb(FWasmSymbolTable,objsym.GlobalIndex);
+                    WriteName(FWasmSymbolTable,objsym.Name);
+                  end;
               end
             else if IsExternalFunction(objsym) then
               begin
