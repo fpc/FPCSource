@@ -8219,6 +8219,7 @@ unit aoptx86;
                             { Shouldn't fail here }
                             InternalError(2021040701);
 
+                          taicpu(NewInstr).fileinfo := taicpu(hp2).fileinfo;
                           AsmL.InsertAfter(NewInstr, hp2);
                           { Add new alignment field }
       (*                    AsmL.InsertAfter(
