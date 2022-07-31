@@ -6881,6 +6881,7 @@ unit aoptx86;
                      { Prefer adding before the next instruction so the FLAGS
                        register is deallocated first  }
                      hp2 := taicpu.op_reg_reg(A_OR, S_B, NewReg, taicpu(p_dist).oper[0]^.reg);
+                     taicpu(hp2).fileinfo := taicpu(p_dist).fileinfo;
 
                      AsmL.InsertBefore(
                        hp2,
