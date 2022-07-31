@@ -6169,16 +6169,16 @@ unit aoptx86;
                 if not(TmpBool2) and
                     (taicpu(p).oper[0]^.val=1) then
                   begin
-                    hp1:=taicpu.Op_reg_reg(A_ADD,taicpu(p).opsize,
-                      taicpu(p).oper[1]^.reg, taicpu(p).oper[1]^.reg)
+                    taicpu(p).opcode := A_ADD;
+                    taicpu(p).loadreg(0, taicpu(p).oper[1]^.reg);
                   end
                 else
-                  hp1:=taicpu.op_ref_reg(A_LEA, taicpu(p).opsize, TmpRef,
-                              taicpu(p).oper[1]^.reg);
+                  begin
+                    taicpu(p).opcode := A_LEA;
+                    taicpu(p).loadref(0, TmpRef);
+                  end;
                 DebugMsg(SPeepholeOptimization + 'ShlAddLeaSubIncDec2Lea',p);
-                InsertLLItem(p.previous, p.next, hp1);
-                p.free;
-                p := hp1;
+                Result := True;
               end;
           end
 {$ifndef x86_64}
@@ -6189,11 +6189,9 @@ unit aoptx86;
               (unlike shl, which is only Tairable in the U pipe) }
             if taicpu(p).oper[0]^.val=1 then
                 begin
-                  hp1 := taicpu.Op_reg_reg(A_ADD,taicpu(p).opsize,
-                            taicpu(p).oper[1]^.reg, taicpu(p).oper[1]^.reg);
-                  InsertLLItem(p.previous, p.next, hp1);
-                  p.free;
-                  p := hp1;
+                  taicpu(p).opcode := A_ADD;
+                  taicpu(p).loadreg(0, taicpu(p).oper[1]^.reg);
+                  Result := True;
                 end
            { changes "shl $2, %reg" to "lea (,%reg,4), %reg"
              "shl $3, %reg" to "lea (,%reg,8), %reg }
@@ -6203,10 +6201,9 @@ unit aoptx86;
                reference_reset(tmpref,2,[]);
                TmpRef.index := taicpu(p).oper[1]^.reg;
                TmpRef.scalefactor := 1 shl taicpu(p).oper[0]^.val;
-               hp1 := taicpu.Op_ref_reg(A_LEA,S_L,TmpRef, taicpu(p).oper[1]^.reg);
-               InsertLLItem(p.previous, p.next, hp1);
-               p.free;
-               p := hp1;
+               taicpu(p).opcode := A_LEA;
+               taicpu(p).loadref(0, TmpRef);
+               Result := True;
              end;
           end
 {$endif x86_64}
