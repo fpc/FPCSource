@@ -5161,12 +5161,9 @@ unit aoptx86;
               begin
                 if (taicpu(p).oper[0]^.ref^.base <> taicpu(p).oper[1]^.reg) then
                   begin
-                    hp1:=taicpu.op_reg_reg(A_MOV,taicpu(p).opsize,taicpu(p).oper[0]^.ref^.base,
-                      taicpu(p).oper[1]^.reg);
-                    InsertLLItem(p.previous,p.next, hp1);
-                    DebugMsg(SPeepholeOptimization + 'Lea2Mov done',hp1);
-                    p.free;
-                    p:=hp1;
+                    taicpu(p).opcode := A_MOV;
+                    taicpu(p).loadreg(0, taicpu(p).oper[0]^.ref^.base);
+                    DebugMsg(SPeepholeOptimization + 'Lea2Mov done',p);
                   end
                 else
                   begin
@@ -5840,12 +5837,14 @@ unit aoptx86;
                 hp4:=taicpu.op_reg(A_SETcc, S_B, ThisReg);
 
                 hp2:=taicpu.op_const_reg(A_MOV, taicpu(hp2).opsize, 0, taicpu(hp2).oper[1]^.reg);
+                taicpu(hp2).fileinfo:=taicpu(p).fileinfo;
 
                 { Inserting it right before p will guarantee that the flags are also tracked }
                 Asml.InsertBefore(hp2, p);
               end;
 
-            taicpu(hp4).condition:=taicpu(p).condition;
+            taicpu(hp4).fileinfo := taicpu(hp2).fileinfo;
+            taicpu(hp4).condition := taicpu(p).condition;
             asml.InsertBefore(hp4, hp2);
 
             JumpLoc.decrefs;
