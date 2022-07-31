@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at web.de>
 #
-#   Based on errore.msg of git commit ce1f9cce, 27 Jun, 2021
+#   Based on errore.msg of git commit 403292a1, 06 Jul, 2022
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2022 by the Free Pascal Development team
@@ -154,7 +154,7 @@ general_t_unitscope=01027_T_Benutzter Unit-Bereich: $1
 #
 # Scanner
 #
-# 02107 is the last used one
+# 02108 is the last used one
 #
 # BeginOfTeX
 %
@@ -1421,7 +1421,7 @@ parser_e_objc_enumerator_2_0=03294_E_Objective-Pascal For-in Schleifen erfordern
 % Objective-C ``fast enumeration'' support was added in Objective-C 2.0, and
 % hence the appropriate modeswitch has to be activated to expose this feature.
 % Note that Objective-C 2.0 programs require macOS 10.5 or later.
-parser_e_objc_missing_enumeration_defs=03295_E_Der Kompiler findet die Typen NSFastEnumerationProtocol oder NSFastEnumerationState nicht in der Unit CocoaAll
+parser_e_objc_missing_enumeration_defs=03295_E_Der Compiler findet die Typen NSFastEnumerationProtocol oder NSFastEnumerationState nicht in der Unit CocoaAll
 % Objective-C for-in loops (fast enumeration) require that the compiler can
 % find a unit called CocoaAll that contains definitions for the
 % NSFastEnumerationProtocol and NSFastEnumerationState types. If you get this
@@ -3660,7 +3660,7 @@ option_com_files_require_tiny_model=11057_E_Das Erstellen von .COM Dateien wird 
 % Do not enable experimental -gc option if -Ur option is given.
 option_gc_incompatible_with_release_flag=11058_W_Die experimentelle Option CheckPointer wird nicht eingeschaltet, weil sie zur Option -Ur inkompatibel ist
 % The compiler binary only supports a single target architecture. Invoke the fpc binary if you wish to select a compiler binary for a different target architecture.
-option_invalid_target_architecture=11059_E_Nicht unterstÅtzte Zielarchitektur -P$1, rufe statt dessen den Kompilertreiber "fpc" auf.
+option_invalid_target_architecture=11059_E_Nicht unterstÅtzte Zielarchitektur -P$1, rufe statt dessen den Compilertreiber "fpc" auf.
 % The ppc<target> executables support only a single target architecture. They do not support the -P switch. The compiler driver "fpc"
 % handles this switch, so you have to invoke compiling by using "fpc" instead
 option_features_only_for_system_unit=11060_E_Feature-Schalter werden nur beim öbersetzen der Unit "System" unterstÅtzt
