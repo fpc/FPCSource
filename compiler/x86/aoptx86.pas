@@ -13175,6 +13175,7 @@ unit aoptx86;
            (taicpu(hp1).oper[0]^.ref^.refaddr=addr_full) then
           begin
             hp2 := taicpu.Op_sym(A_PUSH,S_L,taicpu(hp1).oper[0]^.ref^.symbol);
+            taicpu(hp2).fileinfo := taicpu(p).fileinfo;
             InsertLLItem(p.previous, p, hp2);
             taicpu(p).opcode := A_JMP;
             taicpu(p).is_jmp := true;
