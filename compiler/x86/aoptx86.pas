@@ -1562,7 +1562,7 @@ unit aoptx86;
     function TX86AsmOptimizer.PrePeepholeOptIMUL(var p : tai) : boolean;
       var
         opsize : topsize;
-        hp1 : tai;
+        hp1, hp2 : tai;
         tmpref : treference;
         ShiftValue : Cardinal;
         BaseValue : TCGInt;
@@ -1584,10 +1584,11 @@ unit aoptx86;
              { change "imul $1, reg1, reg2" to "mov reg1, reg2" }
               begin
                 hp1 := taicpu.Op_Reg_Reg(A_MOV, opsize, taicpu(p).oper[1]^.reg,taicpu(p).oper[2]^.reg);
-                InsertLLItem(p.previous, p.next, hp1);
+                taicpu(hp1).fileinfo := taicpu(p).fileinfo;
+                asml.InsertAfter(hp1, p);
                 DebugMsg(SPeepholeOptimization + 'Imul2Mov done',p);
-                p.free;
-                p := hp1;
+                RemoveCurrentP(p, hp1);
+                Result := True;
               end
           else if ((taicpu(p).ops <= 2) or
               (taicpu(p).oper[2]^.typ = Top_Reg)) and
@@ -1630,8 +1631,13 @@ unit aoptx86;
                   taicpu(hp1).fileinfo:=taicpu(p).fileinfo;
                   RemoveCurrentP(p, hp1);
                   if ShiftValue>0 then
-                    AsmL.InsertAfter(taicpu.op_const_reg(A_SHL, opsize, ShiftValue, taicpu(hp1).oper[1]^.reg),hp1);
-              end;
+                    begin
+                      hp2 := taicpu.op_const_reg(A_SHL, opsize, ShiftValue, taicpu(hp1).oper[1]^.reg);
+                      AsmL.InsertAfter(hp2,hp1);
+                      taicpu(hp2).fileinfo:=taicpu(hp1).fileinfo;
+                    end;
+                  Result := True;
+                end;
             end;
       end;
 
