@@ -56,6 +56,7 @@ implementation
     nobj,ncal,nmem,nld,nutils,
     ngenutil,
     symbase,symsym,symtable,defutil,defcmp,
+    htypechk,
     pparautl,psub;
 
 
@@ -1029,6 +1030,8 @@ implementation
       if assigned(pinested) then
         begin
           n1:=ccallnode.create(create_paras(pd),ps,capturedef.symtable,cloadnode.create(capturer,capturer.owner),[],nil);
+          { captured variables cannot be in registers }
+          make_not_regable(tcallnode(n1).methodpointer,[ra_addr_regable,ra_addr_taken]);
         end
       else if n.resultdef.typ=procvardef then
         begin
@@ -1057,10 +1060,14 @@ implementation
           tloadnode(n).left:=nil;
         end;
       if assigned(pd.returndef) and not is_void(pd.returndef) then
-        n1:=cassignmentnode.create(
-                    cloadnode.create(pd.funcretsym,pd.localst),
-                    n1
-                  );
+        begin
+          n1:=cassignmentnode.create(
+                      cloadnode.create(pd.funcretsym,pd.localst),
+                      n1
+                    );
+          { captured variables cannot be in registers }
+          make_not_regable(tassignmentnode(n1).left,[ra_addr_regable,ra_addr_taken]);
+        end;
       addstatement(stmt,n1);
       pd.aliasnames.insert(pd.mangledname);
 
