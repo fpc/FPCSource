@@ -69,9 +69,9 @@ Type
     Function EscapeKeyWord(Const S : String; ForceAmpersand : Boolean = false) : String; virtual;
     Function MakePascalString(S: String; AddQuotes: Boolean=False): String;
     Function PrettyPrint(Const S: string): String;
-    Procedure AddLn(Const Aline: string);
-    Procedure AddLn(Const Alines : array of string);
-    Procedure AddLn(Const Alines : TStrings);
+    Procedure AddLn(Const aLine: string);
+    Procedure AddLn(Const TheLines : array of string);
+    Procedure AddLn(Const TheLines : TStrings);
     Procedure AddLn(Const Fmt: string; Args : Array of const);
     Procedure Comment(Const AComment : String; Curly : Boolean = False);
     Procedure Comment(Const AComment : Array of String);
@@ -139,28 +139,28 @@ begin
       Result:=KeywordPrefix+Result+KeywordSuffix
 end;
 
-procedure TPascalCodeGenerator.AddLn(const Aline: string);
+procedure TPascalCodeGenerator.AddLn(const aLine: string);
 
 begin
-  FSource.Add(FIndent+ALine);
+  FSource.Add(FIndent+aLine);
 end;
 
-procedure TPascalCodeGenerator.AddLn(const Alines: array of string);
+procedure TPascalCodeGenerator.AddLn(const TheLines: array of string);
 
 Var
   S : String;
 
 begin
-  For s in alines do
+  For s in TheLines do
     Addln(S);
 end;
 
-procedure TPascalCodeGenerator.AddLn(const Alines: TStrings);
+procedure TPascalCodeGenerator.AddLn(const TheLines: TStrings);
 Var
   S : String;
 
 begin
-  For s in alines do
+  For s in TheLines do
     Addln(S);
 end;
 
