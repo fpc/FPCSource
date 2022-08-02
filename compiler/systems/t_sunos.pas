@@ -642,7 +642,7 @@ begin
    begin
      SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
      Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename));
-     success:=DoExec(utilsprefix+FindUtil(binstr),cmdstr,true,false);
+     success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
    end;
 
 { Remove ReponseFile }
