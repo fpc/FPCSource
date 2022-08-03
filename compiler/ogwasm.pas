@@ -1915,6 +1915,8 @@ implementation
         MaybeAddDebugSectionToSymbolTable('.debug_aranges',wcstDebugAranges,debug_aranges_section_nr);
         MaybeAddDebugSectionToSymbolTable('.debug_ranges',wcstDebugRanges,debug_ranges_section_nr);
 
+        DoRelocations;
+
         if segment_count>0 then
           begin
             WriteUleb(FWasmSections[wsiData],segment_count);
@@ -1974,7 +1976,6 @@ implementation
         MaybeWriteDebugSection('.debug_aranges',wcstDebugAranges);
         MaybeWriteDebugSection('.debug_ranges',wcstDebugRanges);
 
-        DoRelocations;
         WriteRelocations;
 
         WriteSymbolTable;
