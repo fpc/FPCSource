@@ -1401,23 +1401,19 @@ implementation
 
         procedure MaybeWriteDebugSection(const sn: string; st: TWasmCustomSectionType);
           var
-            i: Integer;
             objsec: TWasmObjSection;
           begin
-            for i:=0 to Data.ObjSectionList.Count-1 do
+            objsec:=TWasmObjSection(Data.ObjSectionList.Find(sn));
+            if Assigned(objsec) then
               begin
-                objsec:=TWasmObjSection(Data.ObjSectionList[i]);
-                if objsec.Name=sn then
+                if oso_Data in objsec.SecOptions then
                   begin
-                    if oso_Data in objsec.SecOptions then
-                      begin
-                        objsec.Data.seek(0);
-                        CopyDynamicArray(objsec.Data,FWasmCustomSections[st],objsec.Size);
-                      end
-                    else
-                      WriteZeros(FWasmCustomSections[st],objsec.Size);
-                    WriteWasmCustomSection(st);
-                  end;
+                    objsec.Data.seek(0);
+                    CopyDynamicArray(objsec.Data,FWasmCustomSections[st],objsec.Size);
+                  end
+                else
+                  WriteZeros(FWasmCustomSections[st],objsec.Size);
+                WriteWasmCustomSection(st);
               end;
           end;
 
