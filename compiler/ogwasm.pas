@@ -1895,6 +1895,26 @@ implementation
             WriteWasmSection(wsiExport);
             Inc(section_nr);
           end;
+
+        { determine the section numbers for the datacount, code, data and debug sections ahead of time }
+        if segment_count>0 then
+          Inc(section_nr);  { the DataCount section }
+        code_section_nr:=section_nr;  { the Code section }
+        Inc(section_nr);
+        if segment_count>0 then
+          begin
+            data_section_nr:=section_nr; { the Data section }
+            Inc(section_nr);
+          end;
+        { the debug sections }
+        MaybeAddDebugSectionToSymbolTable('.debug_abbrev',wcstDebugAbbrev,debug_abbrev_section_nr);
+        MaybeAddDebugSectionToSymbolTable('.debug_info',wcstDebugInfo,debug_info_section_nr);
+        MaybeAddDebugSectionToSymbolTable('.debug_str',wcstDebugStr,debug_str_section_nr);
+        MaybeAddDebugSectionToSymbolTable('.debug_line',wcstDebugLine,debug_line_section_nr);
+        MaybeAddDebugSectionToSymbolTable('.debug_frame',wcstDebugFrame,debug_frame_section_nr);
+        MaybeAddDebugSectionToSymbolTable('.debug_aranges',wcstDebugAranges,debug_aranges_section_nr);
+        MaybeAddDebugSectionToSymbolTable('.debug_ranges',wcstDebugRanges,debug_ranges_section_nr);
+
         if segment_count>0 then
           begin
             WriteUleb(FWasmSections[wsiData],segment_count);
@@ -1931,11 +1951,7 @@ implementation
                   end;
               end;
           end;
-        if segment_count>0 then
-          begin
-            WriteWasmSection(wsiDataCount);
-            Inc(section_nr);
-          end;
+
         WriteUleb(FWasmSections[wsiCode],functions_count);
         for i:=0 to Data.ObjSymbolList.Count-1 do
           begin
@@ -1943,23 +1959,12 @@ implementation
             if (objsym.typ=AT_FUNCTION) and not objsym.IsAlias then
               WriteFunctionCode(FWasmSections[wsiCode],objsym);
           end;
-        WriteWasmSection(wsiCode);
-        code_section_nr:=section_nr;
-        Inc(section_nr);
-        if segment_count>0 then
-          begin
-            WriteWasmSection(wsiData);
-            data_section_nr:=section_nr;
-            Inc(section_nr);
-          end;
 
-        MaybeAddDebugSectionToSymbolTable('.debug_abbrev',wcstDebugAbbrev,debug_abbrev_section_nr);
-        MaybeAddDebugSectionToSymbolTable('.debug_info',wcstDebugInfo,debug_info_section_nr);
-        MaybeAddDebugSectionToSymbolTable('.debug_str',wcstDebugStr,debug_str_section_nr);
-        MaybeAddDebugSectionToSymbolTable('.debug_line',wcstDebugLine,debug_line_section_nr);
-        MaybeAddDebugSectionToSymbolTable('.debug_frame',wcstDebugFrame,debug_frame_section_nr);
-        MaybeAddDebugSectionToSymbolTable('.debug_aranges',wcstDebugAranges,debug_aranges_section_nr);
-        MaybeAddDebugSectionToSymbolTable('.debug_ranges',wcstDebugRanges,debug_ranges_section_nr);
+        if segment_count>0 then
+          WriteWasmSection(wsiDataCount);
+        WriteWasmSection(wsiCode);
+        if segment_count>0 then
+          WriteWasmSection(wsiData);
 
         MaybeWriteDebugSection('.debug_abbrev',wcstDebugAbbrev);
         MaybeWriteDebugSection('.debug_info',wcstDebugInfo);
