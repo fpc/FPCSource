@@ -69,6 +69,8 @@ type
     wcstRelocDebugRanges,
     wcstRelocDebugStr);
 
+  TWasmCustomDebugSectionType = wcstDebugFrame..wcstDebugStr;
+
 const
   WasmCustomSectionName: array [TWasmCustomSectionType] of string =
     ('linking',

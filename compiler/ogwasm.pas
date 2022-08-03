@@ -1382,7 +1382,7 @@ implementation
       var
         section_nr: Integer;
 
-        procedure MaybeAddDebugSectionToSymbolTable(const sn: string; st: TWasmCustomSectionType; var debug_section_nr: Integer);
+        procedure MaybeAddDebugSectionToSymbolTable(const sn: string; st: TWasmCustomDebugSectionType; var debug_section_nr: Integer);
           var
             objsec: TWasmObjSection;
           begin
@@ -1399,7 +1399,7 @@ implementation
               end;
           end;
 
-        procedure MaybeWriteDebugSection(const sn: string; st: TWasmCustomSectionType);
+        procedure MaybeWriteDebugSection(const sn: string; st: TWasmCustomDebugSectionType);
           var
             objsec: TWasmObjSection;
           begin
