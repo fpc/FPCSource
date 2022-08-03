@@ -1502,43 +1502,6 @@ implementation
               end;
           end;
 
-        if segment_count>0 then
-          begin
-            WriteUleb(FWasmSections[wsiData],segment_count);
-            WriteUleb(FWasmSections[wsiDataCount],segment_count);
-            WriteUleb(FWasmLinkingSubsections[WASM_SEGMENT_INFO],segment_count);
-            for i:=0 to Data.ObjSectionList.Count-1 do
-              begin
-                objsec:=TWasmObjSection(Data.ObjSectionList[i]);
-                if objsec.IsData then
-                  begin
-                    WriteName(FWasmLinkingSubsections[WASM_SEGMENT_INFO],objsec.Name);
-                    WriteUleb(FWasmLinkingSubsections[WASM_SEGMENT_INFO],BsrQWord(objsec.SecAlign));
-                    SegmentFlags:=0;
-                    if (ts_wasm_threads in current_settings.targetswitches) and
-                       (oso_threadvar in objsec.SecOptions) then
-                      SegmentFlags:=SegmentFlags or WASM_SEG_FLAG_TLS;
-                    WriteUleb(FWasmLinkingSubsections[WASM_SEGMENT_INFO],SegmentFlags);  { flags }
-
-                    WriteByte(FWasmSections[wsiData],0);
-                    WriteByte(FWasmSections[wsiData],$41);
-                    WriteSleb(FWasmSections[wsiData],objsec.SegOfs);
-                    WriteByte(FWasmSections[wsiData],$0b);
-                    WriteUleb(FWasmSections[wsiData],objsec.Size);
-                    objsec.FileSectionOfs:=FWasmSections[wsiData].size;
-                    if oso_Data in objsec.SecOptions then
-                      begin
-                        objsec.Data.seek(0);
-                        CopyDynamicArray(objsec.Data,FWasmSections[wsiData],objsec.Size);
-                      end
-                    else
-                      begin
-                        WriteZeros(FWasmSections[wsiData],objsec.Size);
-                      end;
-                  end;
-              end;
-          end;
-
         imports_count:=2+import_globals_count+import_functions_count+import_exception_tags_count;
         WriteUleb(FWasmSections[wsiImport],imports_count);
         { import memories }
@@ -1931,6 +1894,42 @@ implementation
           begin
             WriteWasmSection(wsiExport);
             Inc(section_nr);
+          end;
+        if segment_count>0 then
+          begin
+            WriteUleb(FWasmSections[wsiData],segment_count);
+            WriteUleb(FWasmSections[wsiDataCount],segment_count);
+            WriteUleb(FWasmLinkingSubsections[WASM_SEGMENT_INFO],segment_count);
+            for i:=0 to Data.ObjSectionList.Count-1 do
+              begin
+                objsec:=TWasmObjSection(Data.ObjSectionList[i]);
+                if objsec.IsData then
+                  begin
+                    WriteName(FWasmLinkingSubsections[WASM_SEGMENT_INFO],objsec.Name);
+                    WriteUleb(FWasmLinkingSubsections[WASM_SEGMENT_INFO],BsrQWord(objsec.SecAlign));
+                    SegmentFlags:=0;
+                    if (ts_wasm_threads in current_settings.targetswitches) and
+                       (oso_threadvar in objsec.SecOptions) then
+                      SegmentFlags:=SegmentFlags or WASM_SEG_FLAG_TLS;
+                    WriteUleb(FWasmLinkingSubsections[WASM_SEGMENT_INFO],SegmentFlags);  { flags }
+
+                    WriteByte(FWasmSections[wsiData],0);
+                    WriteByte(FWasmSections[wsiData],$41);
+                    WriteSleb(FWasmSections[wsiData],objsec.SegOfs);
+                    WriteByte(FWasmSections[wsiData],$0b);
+                    WriteUleb(FWasmSections[wsiData],objsec.Size);
+                    objsec.FileSectionOfs:=FWasmSections[wsiData].size;
+                    if oso_Data in objsec.SecOptions then
+                      begin
+                        objsec.Data.seek(0);
+                        CopyDynamicArray(objsec.Data,FWasmSections[wsiData],objsec.Size);
+                      end
+                    else
+                      begin
+                        WriteZeros(FWasmSections[wsiData],objsec.Size);
+                      end;
+                  end;
+              end;
           end;
         if segment_count>0 then
           begin
