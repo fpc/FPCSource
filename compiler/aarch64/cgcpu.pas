@@ -1238,7 +1238,7 @@ implementation
            r:=makeregsize(intreg,fromsize)
          else
            r:=intreg;
-         list.concat(taicpu.op_reg_indexedreg(A_UMOV,r,mmreg,0));
+         list.concat(taicpu.op_reg_reg(A_FMOV,r,mmreg));
        end;
 
 
