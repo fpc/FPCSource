@@ -1382,11 +1382,11 @@ implementation
       var
         section_nr: Integer;
 
-        procedure MaybeAddDebugSectionToSymbolTable(const sn: string; st: TWasmCustomDebugSectionType; var debug_section_nr: Integer);
+        procedure MaybeAddDebugSectionToSymbolTable(st: TWasmCustomDebugSectionType; var debug_section_nr: Integer);
           var
             objsec: TWasmObjSection;
           begin
-            objsec:=TWasmObjSection(Data.ObjSectionList.Find(sn));
+            objsec:=TWasmObjSection(Data.ObjSectionList.Find(WasmCustomSectionName[st]));
             if Assigned(objsec) then
               begin
                 debug_section_nr:=section_nr;
@@ -1399,11 +1399,11 @@ implementation
               end;
           end;
 
-        procedure MaybeWriteDebugSection(const sn: string; st: TWasmCustomDebugSectionType);
+        procedure MaybeWriteDebugSection(st: TWasmCustomDebugSectionType);
           var
             objsec: TWasmObjSection;
           begin
-            objsec:=TWasmObjSection(Data.ObjSectionList.Find(sn));
+            objsec:=TWasmObjSection(Data.ObjSectionList.Find(WasmCustomSectionName[st]));
             if Assigned(objsec) then
               begin
                 if oso_Data in objsec.SecOptions then
@@ -1903,13 +1903,13 @@ implementation
             Inc(section_nr);
           end;
         { the debug sections }
-        MaybeAddDebugSectionToSymbolTable('.debug_abbrev',wcstDebugAbbrev,debug_abbrev_section_nr);
-        MaybeAddDebugSectionToSymbolTable('.debug_info',wcstDebugInfo,debug_info_section_nr);
-        MaybeAddDebugSectionToSymbolTable('.debug_str',wcstDebugStr,debug_str_section_nr);
-        MaybeAddDebugSectionToSymbolTable('.debug_line',wcstDebugLine,debug_line_section_nr);
-        MaybeAddDebugSectionToSymbolTable('.debug_frame',wcstDebugFrame,debug_frame_section_nr);
-        MaybeAddDebugSectionToSymbolTable('.debug_aranges',wcstDebugAranges,debug_aranges_section_nr);
-        MaybeAddDebugSectionToSymbolTable('.debug_ranges',wcstDebugRanges,debug_ranges_section_nr);
+        MaybeAddDebugSectionToSymbolTable(wcstDebugAbbrev,debug_abbrev_section_nr);
+        MaybeAddDebugSectionToSymbolTable(wcstDebugInfo,debug_info_section_nr);
+        MaybeAddDebugSectionToSymbolTable(wcstDebugStr,debug_str_section_nr);
+        MaybeAddDebugSectionToSymbolTable(wcstDebugLine,debug_line_section_nr);
+        MaybeAddDebugSectionToSymbolTable(wcstDebugFrame,debug_frame_section_nr);
+        MaybeAddDebugSectionToSymbolTable(wcstDebugAranges,debug_aranges_section_nr);
+        MaybeAddDebugSectionToSymbolTable(wcstDebugRanges,debug_ranges_section_nr);
 
         DoRelocations;
 
@@ -1964,13 +1964,13 @@ implementation
         if segment_count>0 then
           WriteWasmSection(wsiData);
 
-        MaybeWriteDebugSection('.debug_abbrev',wcstDebugAbbrev);
-        MaybeWriteDebugSection('.debug_info',wcstDebugInfo);
-        MaybeWriteDebugSection('.debug_str',wcstDebugStr);
-        MaybeWriteDebugSection('.debug_line',wcstDebugLine);
-        MaybeWriteDebugSection('.debug_frame',wcstDebugFrame);
-        MaybeWriteDebugSection('.debug_aranges',wcstDebugAranges);
-        MaybeWriteDebugSection('.debug_ranges',wcstDebugRanges);
+        MaybeWriteDebugSection(wcstDebugAbbrev);
+        MaybeWriteDebugSection(wcstDebugInfo);
+        MaybeWriteDebugSection(wcstDebugStr);
+        MaybeWriteDebugSection(wcstDebugLine);
+        MaybeWriteDebugSection(wcstDebugFrame);
+        MaybeWriteDebugSection(wcstDebugAranges);
+        MaybeWriteDebugSection(wcstDebugRanges);
 
         WriteRelocations;
 
