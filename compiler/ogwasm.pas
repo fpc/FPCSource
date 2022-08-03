@@ -1382,7 +1382,24 @@ implementation
       var
         section_nr: Integer;
 
-        procedure MaybeWriteDebugSection(const sn: string; st: TWasmCustomSectionType; var debug_section_nr: Integer);
+        procedure MaybeAddDebugSectionToSymbolTable(const sn: string; st: TWasmCustomSectionType; var debug_section_nr: Integer);
+          var
+            objsec: TWasmObjSection;
+          begin
+            objsec:=TWasmObjSection(Data.ObjSectionList.Find(sn));
+            if Assigned(objsec) then
+              begin
+                debug_section_nr:=section_nr;
+                Inc(section_nr);
+                objsec.SegSymIdx:=FWasmSymbolTableEntriesCount;
+                Inc(FWasmSymbolTableEntriesCount);
+                WriteByte(FWasmSymbolTable,Ord(SYMTAB_SECTION));
+                WriteUleb(FWasmSymbolTable,WASM_SYM_BINDING_LOCAL);
+                WriteUleb(FWasmSymbolTable,debug_section_nr);
+              end;
+          end;
+
+        procedure MaybeWriteDebugSection(const sn: string; st: TWasmCustomSectionType);
           var
             i: Integer;
             objsec: TWasmObjSection;
@@ -1392,8 +1409,6 @@ implementation
                 objsec:=TWasmObjSection(Data.ObjSectionList[i]);
                 if objsec.Name=sn then
                   begin
-                    debug_section_nr:=section_nr;
-                    Inc(section_nr);
                     if oso_Data in objsec.SecOptions then
                       begin
                         objsec.Data.seek(0);
@@ -1939,62 +1954,21 @@ implementation
             Inc(section_nr);
           end;
 
-        MaybeWriteDebugSection('.debug_abbrev',wcstDebugAbbrev,debug_abbrev_section_nr);
-        MaybeWriteDebugSection('.debug_info',wcstDebugInfo,debug_info_section_nr);
-        MaybeWriteDebugSection('.debug_str',wcstDebugStr,debug_str_section_nr);
-        MaybeWriteDebugSection('.debug_line',wcstDebugLine,debug_line_section_nr);
-        MaybeWriteDebugSection('.debug_frame',wcstDebugFrame,debug_frame_section_nr);
-        MaybeWriteDebugSection('.debug_aranges',wcstDebugAranges,debug_aranges_section_nr);
-        MaybeWriteDebugSection('.debug_ranges',wcstDebugRanges,debug_ranges_section_nr);
+        MaybeAddDebugSectionToSymbolTable('.debug_abbrev',wcstDebugAbbrev,debug_abbrev_section_nr);
+        MaybeAddDebugSectionToSymbolTable('.debug_info',wcstDebugInfo,debug_info_section_nr);
+        MaybeAddDebugSectionToSymbolTable('.debug_str',wcstDebugStr,debug_str_section_nr);
+        MaybeAddDebugSectionToSymbolTable('.debug_line',wcstDebugLine,debug_line_section_nr);
+        MaybeAddDebugSectionToSymbolTable('.debug_frame',wcstDebugFrame,debug_frame_section_nr);
+        MaybeAddDebugSectionToSymbolTable('.debug_aranges',wcstDebugAranges,debug_aranges_section_nr);
+        MaybeAddDebugSectionToSymbolTable('.debug_ranges',wcstDebugRanges,debug_ranges_section_nr);
 
-        if debug_abbrev_section_nr<>-1 then
-          begin
-            TWasmObjSection(Data.ObjSectionList.Find('.debug_abbrev')).SegSymIdx:=FWasmSymbolTableEntriesCount;
-            Inc(FWasmSymbolTableEntriesCount);
-            WriteByte(FWasmSymbolTable,Ord(SYMTAB_SECTION));
-            WriteUleb(FWasmSymbolTable,WASM_SYM_BINDING_LOCAL);
-            WriteUleb(FWasmSymbolTable,debug_abbrev_section_nr);
-          end;
-        if debug_info_section_nr<>-1 then
-          begin
-            TWasmObjSection(Data.ObjSectionList.Find('.debug_info')).SegSymIdx:=FWasmSymbolTableEntriesCount;
-            Inc(FWasmSymbolTableEntriesCount);
-            WriteByte(FWasmSymbolTable,Ord(SYMTAB_SECTION));
-            WriteUleb(FWasmSymbolTable,WASM_SYM_BINDING_LOCAL);
-            WriteUleb(FWasmSymbolTable,debug_info_section_nr);
-          end;
-        if debug_str_section_nr<>-1 then
-          begin
-            TWasmObjSection(Data.ObjSectionList.Find('.debug_str')).SegSymIdx:=FWasmSymbolTableEntriesCount;
-            Inc(FWasmSymbolTableEntriesCount);
-            WriteByte(FWasmSymbolTable,Ord(SYMTAB_SECTION));
-            WriteUleb(FWasmSymbolTable,WASM_SYM_BINDING_LOCAL);
-            WriteUleb(FWasmSymbolTable,debug_str_section_nr);
-          end;
-        if debug_line_section_nr<>-1 then
-          begin
-            TWasmObjSection(Data.ObjSectionList.Find('.debug_line')).SegSymIdx:=FWasmSymbolTableEntriesCount;
-            Inc(FWasmSymbolTableEntriesCount);
-            WriteByte(FWasmSymbolTable,Ord(SYMTAB_SECTION));
-            WriteUleb(FWasmSymbolTable,WASM_SYM_BINDING_LOCAL);
-            WriteUleb(FWasmSymbolTable,debug_line_section_nr);
-          end;
-        if debug_frame_section_nr<>-1 then
-          begin
-            TWasmObjSection(Data.ObjSectionList.Find('.debug_frame')).SegSymIdx:=FWasmSymbolTableEntriesCount;
-            Inc(FWasmSymbolTableEntriesCount);
-            WriteByte(FWasmSymbolTable,Ord(SYMTAB_SECTION));
-            WriteUleb(FWasmSymbolTable,WASM_SYM_BINDING_LOCAL);
-            WriteUleb(FWasmSymbolTable,debug_frame_section_nr);
-          end;
-        if debug_aranges_section_nr<>-1 then
-          begin
-            TWasmObjSection(Data.ObjSectionList.Find('.debug_aranges')).SegSymIdx:=FWasmSymbolTableEntriesCount;
-            Inc(FWasmSymbolTableEntriesCount);
-            WriteByte(FWasmSymbolTable,Ord(SYMTAB_SECTION));
-            WriteUleb(FWasmSymbolTable,WASM_SYM_BINDING_LOCAL);
-            WriteUleb(FWasmSymbolTable,debug_aranges_section_nr);
-          end;
+        MaybeWriteDebugSection('.debug_abbrev',wcstDebugAbbrev);
+        MaybeWriteDebugSection('.debug_info',wcstDebugInfo);
+        MaybeWriteDebugSection('.debug_str',wcstDebugStr);
+        MaybeWriteDebugSection('.debug_line',wcstDebugLine);
+        MaybeWriteDebugSection('.debug_frame',wcstDebugFrame);
+        MaybeWriteDebugSection('.debug_aranges',wcstDebugAranges);
+        MaybeWriteDebugSection('.debug_ranges',wcstDebugRanges);
 
         DoRelocations;
         WriteRelocations;
