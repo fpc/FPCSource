@@ -224,7 +224,7 @@ implementation
           so we can use it if required to handle copying the return value back }
         leftcopy:=left.getcopy;
         implicitptrpara:=jvmimplicitpointertype(orgparadef);
-        { create the array temp that that will serve as the paramter }
+        { create the array temp that that will serve as the parameter }
         if parasym.vardef.typ=formaldef then
           arreledef:=java_jlobject
         else if implicitptrpara then

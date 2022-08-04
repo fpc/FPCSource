@@ -82,7 +82,7 @@ implementation
         begin
           if (procdef.extnumber=$ffff) then
             Internalerror(2000061301);
-          { load vmt from first paramter }
+          { load vmt from first parameter }
           { win64 uses a different abi }
           if x86_64_use_ms_abi(procdef.proccalloption) then
             reference_reset_base(href,voidpointertype,NR_RCX,0,ctempposinvalid,sizeof(pint),[])

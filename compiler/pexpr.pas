@@ -4904,7 +4904,7 @@ implementation
          if not assigned(p1.resultdef) and
             dotypecheck then
           do_typecheckpass(p1);
-         { transfer generic paramter flag }
+         { transfer generic parameter flag }
          if nf_generic_para in oldflags then
            include(p1.flags,nf_generic_para);
          afterassignment:=oldafterassignment;

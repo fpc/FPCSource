@@ -81,7 +81,7 @@ implementation
             internalerror(2011040502);
         end;
         // We can't add hidden params here because record is not yet defined
-        // and therefore record size which has influence on paramter passing rules may change too
+        // and therefore record size which has influence on parameter passing rules may change too
         // look at record_dec to see where calling conventions are applied (issue #0021044).
         // The same goes for objects/classes due to the calling convention that may only be set
         // later (mantis #35233).

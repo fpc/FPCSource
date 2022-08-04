@@ -1537,7 +1537,7 @@ implementation
                 begin
                   { When the *value* of a parameter (so not its address!) is
                     copied into a local variable, you have to generate two
-                    stabs: one for the parmeter, and one for the local copy.
+                    stabs: one for the parameter, and one for the local copy.
                     Not doing this breaks debugging under e.g. SPARC. Doc:
                     http://sourceware.org/gdb/current/onlinedocs/stabs_4.html#SEC26
                   }

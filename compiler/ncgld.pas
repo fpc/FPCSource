@@ -242,7 +242,7 @@ implementation
 
     procedure tcgloadnode.generate_nested_access(vs: tsym);
       var
-        { paramter declared as tsym to reduce interface unit dependencies }
+        { parameter declared as tsym to reduce interface unit dependencies }
         lvs: tabstractnormalvarsym absolute vs;
       begin
         secondpass(left);

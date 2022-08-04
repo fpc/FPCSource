@@ -1788,7 +1788,7 @@ implementation
               MessagePos(result.fileinfo, parser_e_class_methods_only_static_in_records);
 
             // we can't add hidden params here because record is not yet defined
-            // and therefore record size which has influence on paramter passing rules may change too
+            // and therefore record size which has influence on parameter passing rules may change too
             // look at record_dec to see where calling conventions are applied (issue #0021044)
             handle_calling_convention(result,hcc_default_actions_intf_struct);
 
