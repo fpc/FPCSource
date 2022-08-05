@@ -16,18 +16,18 @@
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 {$define FPC_MATH_HAS_ARCTAN2}
-function arctan2(y,x : float) : float;assembler;
+function arctan2(y,x : float) : float;assembler;nostackframe;
   asm
-     fldt y
-     fldt x
+     fldt 8(%rsp)
+     fldt 24(%rsp)
      fpatan
      fwait
   end;
 
 {$define FPC_MATH_HAS_TAN}
-function tan(x : float) : float;assembler;
+function tan(x : float) : float;assembler;nostackframe;
   asm
-    fldt X
+    fldt 8(%rsp)
     fptan
     fstp %st
     fwait
@@ -35,9 +35,9 @@ function tan(x : float) : float;assembler;
 
 
 {$define FPC_MATH_HAS_COTAN}
-function cotan(x : float) : float;assembler;
+function cotan(x : float) : float;assembler;nostackframe;
   asm
-    fldt X
+    fldt 8(%rsp)
     fptan
     fdivp %st,%st(1)
     fwait
@@ -45,10 +45,10 @@ function cotan(x : float) : float;assembler;
 
 
 {$define FPC_MATH_HAS_LOG2}
-function log2(x : float) : float;assembler;
+function log2(x : float) : float;assembler;nostackframe;
   asm
     fld1
-    fldt x
+    fldt 8(%rsp)
     fyl2x
     fwait
   end;
