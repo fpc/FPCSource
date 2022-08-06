@@ -1588,83 +1588,86 @@ begin
      assigned(current_procinfo) and
      (pi_do_call in current_procinfo.flags) then
     g_concatcopy_move(list, Source, dest, len)
+  else if ((source.alignment<>0) and (source.alignment<4)) or
+    ((dest.alignment<>0) and (dest.alignment<4)) then
+    g_concatcopy_unaligned(list, Source, dest, len)
   else
-  begin
-    Count := len div 4;
-    if (count<=4) and reference_is_reusable(source) then
-      src:=source
-    else
-      begin
-        reference_reset(src,sizeof(aint),source.volatility);
-        { load the address of source into src.base }
-        src.base := GetAddressRegister(list);
-        a_loadaddr_ref_reg(list, Source, src.base);
-      end;
-    if (count<=4) and reference_is_reusable(dest) then
-      dst:=dest
-    else
-      begin
-        reference_reset(dst,sizeof(aint),dest.volatility);
-        { load the address of dest into dst.base }
-        dst.base := GetAddressRegister(list);
-        a_loadaddr_ref_reg(list, dest, dst.base);
-      end;
-    { generate a loop }
-    if Count > 4 then
     begin
-      countreg := GetIntRegister(list, OS_INT);
-      tmpreg1  := GetIntRegister(list, OS_INT);
-      a_load_const_reg(list, OS_INT, Count, countreg);
-      current_asmdata.getjumplabel(lab);
-      a_label(list, lab);
-      list.concat(taicpu.op_reg_ref(A_LW, tmpreg1, src));
-      list.concat(taicpu.op_reg_ref(A_SW, tmpreg1, dst));
-      list.concat(taicpu.op_reg_reg_const(A_ADDIU, src.base, src.base, 4));
-      list.concat(taicpu.op_reg_reg_const(A_ADDIU, dst.base, dst.base, 4));
-      list.concat(taicpu.op_reg_reg_const(A_ADDIU, countreg, countreg, -1));
-      a_cmp_reg_reg_label(list,OS_INT,OC_GT,NR_R0,countreg,lab);
-      len := len mod 4;
-    end;
-    { unrolled loop }
-    Count := len div 4;
-    if Count > 0 then
-    begin
-      tmpreg1 := GetIntRegister(list, OS_INT);
-      count2:=1;
-      while count2 <= Count do
+      Count := len div 4;
+      if (count<=4) and reference_is_reusable(source) then
+        src:=source
+      else
+        begin
+          reference_reset(src,sizeof(aint),source.volatility);
+          { load the address of source into src.base }
+          src.base := GetAddressRegister(list);
+          a_loadaddr_ref_reg(list, Source, src.base);
+        end;
+      if (count<=4) and reference_is_reusable(dest) then
+        dst:=dest
+      else
+        begin
+          reference_reset(dst,sizeof(aint),dest.volatility);
+          { load the address of dest into dst.base }
+          dst.base := GetAddressRegister(list);
+          a_loadaddr_ref_reg(list, dest, dst.base);
+        end;
+      { generate a loop }
+      if Count > 4 then
       begin
+        countreg := GetIntRegister(list, OS_INT);
+        tmpreg1  := GetIntRegister(list, OS_INT);
+        a_load_const_reg(list, OS_INT, Count, countreg);
+        current_asmdata.getjumplabel(lab);
+        a_label(list, lab);
         list.concat(taicpu.op_reg_ref(A_LW, tmpreg1, src));
         list.concat(taicpu.op_reg_ref(A_SW, tmpreg1, dst));
+        list.concat(taicpu.op_reg_reg_const(A_ADDIU, src.base, src.base, 4));
+        list.concat(taicpu.op_reg_reg_const(A_ADDIU, dst.base, dst.base, 4));
+        list.concat(taicpu.op_reg_reg_const(A_ADDIU, countreg, countreg, -1));
+        a_cmp_reg_reg_label(list,OS_INT,OC_GT,NR_R0,countreg,lab);
+        len := len mod 4;
+      end;
+      { unrolled loop }
+      Count := len div 4;
+      if Count > 0 then
+      begin
+        tmpreg1 := GetIntRegister(list, OS_INT);
+        count2:=1;
+        while count2 <= Count do
+        begin
+          list.concat(taicpu.op_reg_ref(A_LW, tmpreg1, src));
+          list.concat(taicpu.op_reg_ref(A_SW, tmpreg1, dst));
+          Inc(src.offset, 4);
+          Inc(dst.offset, 4);
+          Inc(count2);
+        end;
+        len := len mod 4;
+      end;
+      if (len and 4) <> 0 then
+      begin
+        hreg := GetIntRegister(list, OS_INT);
+        a_load_ref_reg(list, OS_32, OS_32, src, hreg);
+        a_load_reg_ref(list, OS_32, OS_32, hreg, dst);
         Inc(src.offset, 4);
         Inc(dst.offset, 4);
-        Inc(count2);
       end;
-      len := len mod 4;
+      { copy the leftovers }
+      if (len and 2) <> 0 then
+      begin
+        hreg := GetIntRegister(list, OS_INT);
+        a_load_ref_reg(list, OS_16, OS_16, src, hreg);
+        a_load_reg_ref(list, OS_16, OS_16, hreg, dst);
+        Inc(src.offset, 2);
+        Inc(dst.offset, 2);
+      end;
+      if (len and 1) <> 0 then
+      begin
+        hreg := GetIntRegister(list, OS_INT);
+        a_load_ref_reg(list, OS_8, OS_8, src, hreg);
+        a_load_reg_ref(list, OS_8, OS_8, hreg, dst);
+      end;
     end;
-    if (len and 4) <> 0 then
-    begin
-      hreg := GetIntRegister(list, OS_INT);
-      a_load_ref_reg(list, OS_32, OS_32, src, hreg);
-      a_load_reg_ref(list, OS_32, OS_32, hreg, dst);
-      Inc(src.offset, 4);
-      Inc(dst.offset, 4);
-    end;
-    { copy the leftovers }
-    if (len and 2) <> 0 then
-    begin
-      hreg := GetIntRegister(list, OS_INT);
-      a_load_ref_reg(list, OS_16, OS_16, src, hreg);
-      a_load_reg_ref(list, OS_16, OS_16, hreg, dst);
-      Inc(src.offset, 2);
-      Inc(dst.offset, 2);
-    end;
-    if (len and 1) <> 0 then
-    begin
-      hreg := GetIntRegister(list, OS_INT);
-      a_load_ref_reg(list, OS_8, OS_8, src, hreg);
-      a_load_reg_ref(list, OS_8, OS_8, hreg, dst);
-    end;
-  end;
 end;
 
 
