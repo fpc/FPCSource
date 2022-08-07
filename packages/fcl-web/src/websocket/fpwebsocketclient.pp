@@ -19,7 +19,7 @@ unit fpwebsocketclient;
 interface
 
 uses
-  sysutils, classes, fpwebsocket, ssockets;
+  sysutils, classes, fpwebsocket, ssockets, sslsockets, opensslsockets, fpopenssl;
 
 Type
   EWebSocketClient = Class(EWebSocket);
@@ -276,17 +276,27 @@ begin
 end;
 
 procedure TCustomWebsocketClient.Connect;
+var
+  SSLHandler: TSSLSocketHandler;
 begin
   If Active then
     Exit;
   // Safety: Free any dangling objects before recreating
   FreeConnectionObjects;
-  FSocket:=TInetSocket.Create(HostName,Port,ConnectTimeout);
+  SSLHandler := nil;
+  if UseSSL then
+  begin
+    SSLHandler := TOpenSSLSocketHandler.GetDefaultHandler;
+    SSLHandler.VerifyPeerCert := False;
+  end;
+  FSocket:=TInetSocket.Create(HostName,Port,ConnectTimeout, SSLHandler);
   FTransport:=TWSClientTransport.Create(FSocket);
   FConnection:=CreateClientConnection(FTransport);
   FConnection.OnMessageReceived:=@MessageReceived;
   FConnection.OnControl:=@ControlReceived;
   FCOnnection.OutgoingFrameMask:=Self.OutGoingFrameMask;
+  if UseSSL then
+    FSocket.Connect;
   FActive:=True;
   if not DoHandShake then
     Disconnect(False)
