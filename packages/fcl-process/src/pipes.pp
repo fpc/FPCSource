@@ -44,10 +44,13 @@ Type
     end;
 
   TOutputPipeStream = Class(THandleStream)
+    private
+      FDontClose :  boolean;
     Public
       destructor Destroy; override;
       function Seek(const Offset: int64; Origin: TSeekOrigin): int64; override;
       Function Read (Var Buffer; Count : Longint) : longint; Override;
+      property DontClose :  boolean read FDontClose write FDontClose;
     end;
 
 Function CreatePipeHandles (Var Inhandle,OutHandle : THandle; APipeBufferSize : Cardinal = 1024) : Boolean;
@@ -106,7 +109,8 @@ end;
 
 destructor TOutputPipeStream.Destroy;
 begin
-  PipeClose (Handle);
+  if not fdontclose then
+    PipeClose (Handle);
   inherited;
 end;
 
