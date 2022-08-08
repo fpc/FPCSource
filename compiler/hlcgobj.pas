@@ -4267,6 +4267,7 @@ implementation
     var
       r : treference;
       forcesize: aint;
+      hregister: TRegister;
     begin
       case l.loc of
         LOC_FPUREGISTER,
@@ -4288,6 +4289,18 @@ implementation
             location_reset_ref(l,LOC_REFERENCE,l.size,size.alignment,[]);
             l.reference:=r;
           end;
+{$ifdef cpuflags}
+        LOC_FLAGS :
+          begin
+            hregister:=getregisterfordef(list,size);
+            g_flags2reg(list,size,l.resflags,hregister);
+            cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
+            tg.gethltemp(list,size,size.size,tt_normal,r);
+            a_load_reg_ref(list,size,size,hregister,r);
+            location_reset_ref(l,LOC_REFERENCE,l.size,size.alignment,[]);
+            l.reference:=r;
+          end;
+{$endif cpuflags}
         LOC_CONSTANT,
         LOC_REGISTER,
         LOC_CREGISTER,
