@@ -19,7 +19,7 @@ unit fpwebsocketclient;
 interface
 
 uses
-  sysutils, classes, fpwebsocket, ssockets, sslsockets, fpopenssl;
+  sysutils, classes, fpwebsocket, ssockets, sslsockets;
 
 Type
   EWebSocketClient = Class(EWebSocket);
