@@ -19,7 +19,7 @@ unit fpwebsocketclient;
 interface
 
 uses
-  sysutils, classes, fpwebsocket, ssockets, sslsockets, opensslsockets, fpopenssl;
+  sysutils, classes, fpwebsocket, ssockets, sslsockets, fpopenssl;
 
 Type
   EWebSocketClient = Class(EWebSocket);
@@ -286,7 +286,7 @@ begin
   SSLHandler := nil;
   if UseSSL then
   begin
-    SSLHandler := TOpenSSLSocketHandler.GetDefaultHandler;
+    SSLHandler := TSSLSocketHandler.GetDefaultHandler;
     SSLHandler.VerifyPeerCert := False;
   end;
   FSocket:=TInetSocket.Create(HostName,Port,ConnectTimeout, SSLHandler);
