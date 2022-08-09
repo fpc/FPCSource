@@ -54,6 +54,10 @@
      WINBOOL = longbool;
      BOOL = WINBOOL;
 
+     // newer APIs (e.g. threadpool) have this:
+     // can't find exact true/false conventions here, so for now keep it byte
+     WINAPIBOOLEAN = Byte;
+
      CALTYPE = cardinal;
      CALID = cardinal;
 
@@ -749,6 +753,8 @@
      PFNPROCESSPOLICIESW = function (_para1:HWND; _para2:LPCWSTR; _para3:LPCWSTR; _para4:LPCWSTR; _para5:DWORD):WINBOOL;stdcall;
      PFNPROCESSPOLICIES  = function (_para1:HWND; _para2:LPCTSTR; _para3:LPCTSTR; _para4:LPCTSTR; _para5:DWORD):WINBOOL;stdcall;
      TIMEFMT_ENUMPROCEX  = function (TimeFormat : LPWSTR; AppData : LPARAM) : BOOL; stdcall;
+
+     WAITORTIMERCALLBACK  = procedure (arg1:PVoid;arg2:WINAPIBOOLEAN); stdcall;
 
   (*  Not convertable by H2PAS
   #define SECURITY_NULL_SID_AUTHORITY     {0,0,0,0,0,0}
