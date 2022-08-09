@@ -1330,9 +1330,10 @@ function CONSOLE_REAL_OUTPUT_HANDLE : HANDLE;
   function RealChildWindowFromPoint(Parent : HWND; Pt : TPOINT): HWND; stdcall; external 'user32.dll' name 'RealChildWindowFromPoint';
   function GetGuiResources(ProcessHandle : THANDLE; ResourceType : DWORD): DWORD; stdcall; external 'user32.dll' name 'GetGuiResources';
   function SendInput(InputsCount : UINT; InputsPtr : PINPUT; Size : WINT) : UINT; stdcall; external 'user32.dll' name 'SendInput';
+  function QueueUserWorkItem(func: LPTHREAD_START_ROUTINE; Context: pointer; Flags: ULONG): BOOL; stdcall; external 'kernel32' name 'QueueUserWorkItem';
 
   // only in widechar variant.
-  function GetDateFormatEx(LocaleName : pwidechar;Flags : DWORD;Date : PSYSTEMTIME; Format : pwidechar; DateBuffer : pwidechar; BufferLen  : longint; Calendar : pwidechar) : BOOL; stdcall; external 'kernel32';
+  function GetDateFormatEx(LocaleName : pwidechar;Flags : DWORD;Date : PSYSTEMTIME; Format : pwidechar; DateBuffer : pwidechar; BufferLen  : longint; Calendar : pwidechar) : BOOL; stdcall; external 'kernel32' name 'GetDateFormatEx';
 
 {$endif read_interface}
 
