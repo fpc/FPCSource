@@ -623,9 +623,10 @@
 
      LPCFHOOKPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):UINT_PTR;stdcall;
 
-     PTHREAD_START_ROUTINE = Pointer;
+     PTHREAD_START_ROUTINE = function(p:pointer):integer; stdcall;
 
      LPTHREAD_START_ROUTINE = PTHREAD_START_ROUTINE;
+     TThreadStartRoutine    = PTHREAD_START_ROUTINE;  
 
      EDITSTREAMCALLBACK = function (_para1:DWORD_PTR; _para2:LPBYTE; _para3:LONG; _para4:PLONG):DWORD;stdcall;
 
