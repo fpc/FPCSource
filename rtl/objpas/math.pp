@@ -906,22 +906,26 @@ end;
 {$ifndef FPC_MATH_HAS_ARCTAN2}
 function arctan2(y,x : float) : float;
   begin
-    if (x=0) then
+    if x=0 then
       begin
         if y=0 then
-          arctan2:=0.0
+          result:=0.0
         else if y>0 then
-          arctan2:=pi/2
-        else if y<0 then
-          arctan2:=-pi/2;
+          result:=pi/2
+        else
+          result:=-pi/2;
       end
-    else
-      ArcTan2:=ArcTan(y/x);
-    if x<0.0 then
-      ArcTan2:=ArcTan2+pi;
-    if ArcTan2>pi then
-      ArcTan2:=ArcTan2-2*pi;
-  end;
+    else 
+      begin
+        if X > 0 then
+          result:=ArcTan(y/x)
+        else
+          if Y < 0.0 then
+            result:=ArcTan(y/x)-pi
+          else          
+            result:=ArcTan(y/x)+pi;
+      end;              
+  end;  
 {$endif FPC_MATH_HAS_ARCTAN2}
 
 
