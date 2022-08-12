@@ -1511,6 +1511,9 @@ implementation
           assigned(pd.capturedsyms) and
           (pd.capturedsyms.count>0) then
         begin
+          if pd.was_anonymous then
+            internalerror(2022081201);
+
           {$ifdef DEBUG_CAPTURER}writeln('Converting symbols of nested function ',pd.procsym.name);{$endif}
 
           { this is a nested function, so rework all symbols that are used from
