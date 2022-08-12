@@ -4589,7 +4589,7 @@ implementation
                  p1:=caddnode.create(gtn,p1,p2);
                _LT :
                  begin
-                   { we need to decice whether we have an inline specialization
+                   { we need to decide whether we have an inline specialization
                      (type nodes to the left and right of "<", mode Delphi and
                      ">" or "," following) or a normal "<" comparison }
                    { TODO : p1 could be a non type if e.g. a variable with the
