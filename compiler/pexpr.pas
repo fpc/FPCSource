@@ -4540,6 +4540,53 @@ implementation
           spezcontext.free;
         end;
 
+      function maybe_handle_specialization(var p1,p2:tnode;filepos:tfileposinfo):boolean;
+        var
+          gensym : tsym;
+          parseddef,
+          gendef : tdef;
+          ptmp : tnode;
+        begin
+          result:=false;
+          { we need to decide whether we have an inline specialization
+            (type nodes to the left and right of "<", mode Delphi and
+            ">" or "," following) or a normal "<" comparison }
+          { TODO : p1 could be a non type if e.g. a variable with the
+                   same name is defined in the same unit where the
+                   generic is defined (though "same unit" is not
+                   necessarily needed) }
+          if getgenericsym(p1,gensym) and
+             { Attention: when nested specializations are supported
+                          p2 could be a loadn if a "<" follows }
+             istypenode(p2) and
+              (m_delphi in current_settings.modeswitches) and
+              { TODO : add _LT, _LSHARPBRACKET for nested specializations }
+              (token in [_GT,_RSHARPBRACKET,_COMMA]) then
+            begin
+              { this is an inline specialization }
+
+              { retrieve the defs of two nodes }
+              if p1.nodetype=specializen then
+                gendef:=gettypedef(tspecializenode(p1).sym)
+              else
+                gendef:=nil;
+              parseddef:=gettypedef(p2);
+
+              { check the hints for parseddef }
+              check_hints(parseddef.typesym,parseddef.typesym.symoptions,parseddef.typesym.deprecatedmsg,p1.fileinfo);
+
+              ptmp:=generate_inline_specialization(gendef,p1,filepos,parseddef,gensym,p2);
+
+              { we don't need these nodes anymore }
+              p1.free;
+              p2.free;
+
+              p1:=ptmp;
+
+              result:=true;
+            end;
+        end;
+
       label
         SubExprStart;
       var
@@ -4589,41 +4636,8 @@ implementation
                  p1:=caddnode.create(gtn,p1,p2);
                _LT :
                  begin
-                   { we need to decide whether we have an inline specialization
-                     (type nodes to the left and right of "<", mode Delphi and
-                     ">" or "," following) or a normal "<" comparison }
-                   { TODO : p1 could be a non type if e.g. a variable with the
-                            same name is defined in the same unit where the
-                            generic is defined (though "same unit" is not
-                            necessarily needed) }
-                   if getgenericsym(p1,gensym) and
-                      { Attention: when nested specializations are supported
-                                   p2 could be a loadn if a "<" follows }
-                      istypenode(p2) and
-                       (m_delphi in current_settings.modeswitches) and
-                       { TODO : add _LT, _LSHARPBRACKET for nested specializations }
-                       (token in [_GT,_RSHARPBRACKET,_COMMA]) then
+                   if maybe_handle_specialization(p1,p2,filepos) then
                      begin
-                       { this is an inline specialization }
-
-                       { retrieve the defs of two nodes }
-                       if p1.nodetype=specializen then
-                         gendef:=gettypedef(tspecializenode(p1).sym)
-                       else
-                         gendef:=nil;
-                       parseddef:=gettypedef(p2);
-
-                       { check the hints for parseddef }
-                       check_hints(parseddef.typesym,parseddef.typesym.symoptions,parseddef.typesym.deprecatedmsg,p1.fileinfo);
-
-                       ptmp:=generate_inline_specialization(gendef,p1,filepos,parseddef,gensym,p2);
-
-                       { we don't need these nodes anymore }
-                       p1.free;
-                       p2.free;
-
-                       p1:=ptmp;
-
                        { with p1 now set we are in reality directly behind the
                          call to "factor" thus we need to call down to that
                          again }
