@@ -4816,6 +4816,27 @@ implementation
           else
            break;
         until false;
+        if (p1.nodetype=specializen) and
+            (token=_LSHARPBRACKET) and
+            (m_delphi in current_settings.modeswitches) then
+          begin
+            filepos:=current_tokenpos;
+            consume(token);
+            p2:=factor(false,[]);
+            if maybe_handle_specialization(p1,p2,filepos) then
+              begin
+                { with p1 now set we are in reality directly behind the
+                  call to "factor" thus we need to call down to that
+                  again }
+                { This is disabled until specializations on the right
+                  hand side work as well, because
+                  "not working expressions" is better than "half working
+                  expressions" }
+                {factornode:=p1;
+                goto SubExprStart;}
+              end else
+                message(parser_e_illegal_expression);
+          end;
         sub_expr:=p1;
       end;
 
