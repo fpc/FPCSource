@@ -3403,19 +3403,12 @@ implementation
                              if hdef.typ=procdef then
                                begin
                                  if block_type<>bt_body then
-                                   begin
-                                     message(parser_e_illegal_expression);
-                                     srsym:=generrorsym;
-                                     srsymtable:=nil;
-                                   end
+                                   message(parser_e_illegal_expression);
+                                 srsym:=tprocdef(hdef).procsym;
+                                 if assigned(spezcontext.symtable) then
+                                   srsymtable:=spezcontext.symtable
                                  else
-                                   begin
-                                     srsym:=tprocdef(hdef).procsym;
-                                     if assigned(spezcontext.symtable) then
-                                       srsymtable:=spezcontext.symtable
-                                     else
-                                       srsymtable:=srsym.owner;
-                                   end;
+                                   srsymtable:=srsym.owner;
                                end
                              else
                                internalerror(2015061204);
