@@ -44,7 +44,7 @@ begin
         res:=233;
   end;
   { right now, macOS generates SIGILL signals for fpu exceptions, so always clear the fpu exceptions }
-  SigContext^.uc_mcontext^.__fs.__fpsr:=SigContext^.uc_mcontext^.__fs.__fpsr and not(fpu_exception_mask shr fpu_exception_mask_to_status_mask_shift);
+  SigContext^.uc_mcontext^.__ns.__fpsr:=SigContext^.uc_mcontext^.__ns.__fpsr and not(fpu_exception_mask shr fpu_exception_mask_to_status_mask_shift);
   {$ifdef FPC_USE_SIGPROCMASK}
    reenable_signal(sig);
   {$endif }
