@@ -1339,6 +1339,9 @@ implementation
         TObjData.sectiontype2progbitsandflags(sectype,secprogbits,secflags);
         name:=stringdup(Aname);
         sec:=nil;
+        // .noinit section should be marked with the nobits flag
+        if (sectype=sec_user) and (Aname='.noinit') then
+          secprogbits:=SPB_NOBITS;
       end;
 
     constructor tai_section.Create_proc(Asectype:TAsmSectiontype;
