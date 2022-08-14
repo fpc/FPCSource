@@ -1214,7 +1214,8 @@ end;
 
 procedure TFPGInterfacedObjectList.Put(Index: Integer; const Item: T);
 begin
-  inherited Put(Index, @Item);
+  CheckIndex(Index);
+  InternalItems[Index] := @Item; // eventually calls copyitem()
 end;
 
 function TFPGInterfacedObjectList.Add(const Item: T): Integer;
