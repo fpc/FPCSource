@@ -6063,7 +6063,7 @@ unit aoptx86;
                           taicpu(p).oper[0]^.val := ThisConst;
 {$endif x86_64}
                       else
-                        InternalError(2021102610);
+                        InternalError(2021102611);
                     end;
 
                     { Result may get set to False again if the combined immediate overflows for S_Q sizes }
