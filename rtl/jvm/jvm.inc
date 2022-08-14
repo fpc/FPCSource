@@ -33,14 +33,6 @@ Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
   end;
 
 
-procedure fpc_cpuinit;
-  begin
-    SysResetFPU;
-    if not(IsLibrary) then
-      SysInitFPU;
-  end;
-
-
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;
   begin

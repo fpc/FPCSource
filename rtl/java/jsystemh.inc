@@ -18,6 +18,9 @@
                         Processor specific routines
 ****************************************************************************}
 
+{ CPU specific stuff }
+{$i cpuh.inc}
+
 {$ifdef FPC_USE_LIBC}
   {$ifdef SYSTEMINLINE}
     {$define INLINEGENERICS}

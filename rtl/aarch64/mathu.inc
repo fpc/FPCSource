@@ -14,18 +14,6 @@
 
 {$asmmode gas}
 
-function getfpcr: qword; nostackframe; assembler;
-  asm
-    mrs x0,fpcr
-  end;
-
-
-procedure setfpcr(val: qword); nostackframe; assembler;
-  asm
-    msr fpcr,x0
-  end;
-
-
 function getfpsr: qword; nostackframe; assembler;
   asm
     mrs x0,fpsr
@@ -52,7 +40,7 @@ function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
   begin
     softfloat_rounding_mode:=RoundMode;
     SetRoundMode:=GetRoundMode;
-    setfpcr((getfpcr and $ff3fffff) or (rm2bits[RoundMode] shl 22));
+    SetNativeFPUControlWord((GetNativeFPUControlWord and $ff3fffff) or (rm2bits[RoundMode] shl 22));
   end;
 
 

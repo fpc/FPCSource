@@ -19,6 +19,7 @@
 var
   z80_save_hl: Word; public name 'FPC_Z80_SAVE_HL';
 
+{$define FPC_SYSTEM_HAS_FPC_CPUINIT}
 procedure fpc_cpuinit;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
   end;

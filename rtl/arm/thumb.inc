@@ -25,14 +25,6 @@ begin
 end;
 
 
-procedure fpc_cpuinit;
-begin
-{$ifndef FPUNONE}
-  SysInitFPU;
-{$endif FPUNONE}
-end;
-
-
 procedure fpc_cpucodeinit;
 begin
 end;

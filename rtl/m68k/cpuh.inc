@@ -18,3 +18,5 @@
    Test68000 : byte = 0;      { Must be determined at startup for both }
    Test68881 : byte = 0;
 
+ type
+   TNativeFPUControlWord = dword;

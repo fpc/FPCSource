@@ -25,7 +25,7 @@ function avr_save: byte;[INTERNPROC: in_avr_save];
 { Restores SREG }
 procedure avr_restore(old_sreg: byte); [INTERNPROC: in_avr_restore];
 
-
+{$define FPC_SYSTEM_HAS_FPC_CPUINIT}
 procedure fpc_cpuinit;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
   end;

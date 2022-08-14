@@ -29,13 +29,24 @@ function get_fsr : dword;assembler;[public, alias: 'FPC_GETFSR'];
   end;
 
 
-procedure set_fsr(fsr : dword);assembler;[public, alias: 'FPC_SETFSR'];
-  var
-    _fsr : dword;
-  asm
-    // force memory location
-    st fsr,_fsr
-    ld _fsr,%fsr
+procedure set_fsr(fsr : dword);[public, alias: 'FPC_SETFSR'];
+  begin
+    DefaultFPUControlWord:=fsr;
+    asm
+      ld fsr,%fsr
+    end;
+  end;
+
+
+function GetNativeFPUControlWord: TNativeFPUControlWord; {$if defined(SYSTEMINLINE)}inline;{$endif}
+  begin
+    result:=get_fsr;
+  end;
+
+
+procedure SetNativeFPUControlWord(const cw: TNativeFPUControlWord); {$if defined(SYSTEMINLINE)}inline;{$endif}
+  begin
+    set_fsr(cw);
   end;
 
 
@@ -52,19 +63,8 @@ Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
     { enable div by 0 and invalid operation fpu exceptions
       round towards zero; ieee compliant arithmetics }
     set_fsr((get_fsr and $3fbfffff) or $09000000);
-  end;
-
-{$define FPC_SYSTEM_HAS_SYSRESETFPU}
-Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
-  begin
-  end;
-
-
-procedure fpc_cpuinit;
-  begin
-    SysResetFPU;
-    if not(IsLibrary) then
-      SysInitFPU;
+    softfloat_exception_mask:=[float_flag_underflow,float_flag_overflow,float_flag_inexact,float_flag_denormal];
+    softfloat_exception_flags:=[];
   end;
 
 

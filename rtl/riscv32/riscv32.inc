@@ -79,3 +79,11 @@ function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint
     inc(Target,Source);
   end;
 
+{$define FPC_SYSTEM_HAS_SYSRESETFPU}
+procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  softfloat_exception_flags:=[];
+  softfloat_exception_mask:=[exPrecision,exUnderflow];
+  SetNativeFPUControlWord(DefaultFPUControlWord);
+end;
+

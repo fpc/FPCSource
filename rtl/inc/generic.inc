@@ -2646,6 +2646,9 @@ end;
 procedure SysResetFpu;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   softfloat_exception_flags:=[];
+{$if declared(DefaultFPUControlWord)}
+  SetNativeFPUControlWord(DefaultFPUControlWord);
+{$endif}
 end;
 
 {$endif FPC_SYSTEM_HAS_SYSRESETFPU}
@@ -2655,9 +2658,26 @@ end;
 procedure SysInitFpu;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   softfloat_exception_mask:=[float_flag_underflow,float_flag_inexact,float_flag_denormal];
+  softfloat_exception_flags:=[];
 end;
 
 {$endif FPC_SYSTEM_HAS_SYSINITFPU}
+{$endif}
+
+{$ifndef FPC_SYSTEM_HAS_FPC_CPUINIT}
+procedure fpc_cpuinit;
+  begin
+{$ifndef FPUNONE}
+{$ifdef FPC_HAS_FEATURE_DYNLIBS}
+    if not IsLibrary then
+{$endif}
+      SysInitFPU;
+{$if declared(DefaultFPUControlWord)}
+    DefaultFPUControlWord:=GetNativeFPUControlWord;
+{$endif}
+    SysResetFPU;
+{$endif}
+  end;
 {$endif}
 
 {$ifndef FPC_SYSTEM_HAS_SWAPENDIAN}
