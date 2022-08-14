@@ -1142,6 +1142,10 @@ function ldexp(x : float;const p : Integer) : float;
      ldexp:=x*intpower(2.0,p);
   end;
 
+const
+  { Cutoff for https://en.wikipedia.org/wiki/Pairwise_summation; sums of at least this many elements are split in two halves. }
+  RecursiveSumThreshold=12;
+
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function mean(const data : array of Single) : float;
 
@@ -1164,9 +1168,14 @@ function sum(const data : PSingle;Const N : longint) : float;
   var
      i : SizeInt;
   begin
-     sum:=0.0;
-     for i:=0 to N-1 do
-       sum:=sum+data[i];
+    if N>=RecursiveSumThreshold then
+      result:=sum(data,longword(N) div 2)+sum(data+longword(N) div 2,N-longword(N) div 2)
+    else
+      begin
+        result:=0;
+        for i:=0 to N-1 do
+          result:=result+data[i];
+      end;
   end;
 {$endif FPC_HAS_TYPE_SINGLE}
 
@@ -1191,9 +1200,14 @@ function sum(const data : PDouble;Const N : longint) : float;
   var
      i : SizeInt;
   begin
-     sum:=0.0;
-     for i:=0 to N-1 do
-       sum:=sum+data[i];
+    if N>=RecursiveSumThreshold then
+      result:=sum(data,longword(N) div 2)+sum(data+longword(N) div 2,N-longword(N) div 2)
+    else
+      begin
+        result:=0;
+        for i:=0 to N-1 do
+          result:=result+data[i];
+      end;
   end;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
@@ -1218,9 +1232,14 @@ function sum(const data : PExtended;Const N : longint) : float;
   var
      i : SizeInt;
   begin
-     sum:=0.0;
-     for i:=0 to N-1 do
-       sum:=sum+data[i];
+    if N>=RecursiveSumThreshold then
+      result:=sum(data,longword(N) div 2)+sum(data+longword(N) div 2,N-longword(N) div 2)
+    else
+      begin
+        result:=0;
+        for i:=0 to N-1 do
+          result:=result+data[i];
+      end;
   end;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
@@ -1284,9 +1303,14 @@ function mean(const data: array of Integer):Float;
   var
      i : SizeInt;
   begin
-     sumofsquares:=0.0;
-     for i:=0 to N-1 do
-       sumofsquares:=sumofsquares+sqr(data[i]);
+    if N>=RecursiveSumThreshold then
+      result:=sumofsquares(data,cardinal(N) div 2)+sumofsquares(data+cardinal(N) div 2,N-cardinal(N) div 2)
+    else
+      begin
+        result:=0;
+        for i:=0 to N-1 do
+          result:=result+sqr(data[i]);
+      end;
   end;
 
 procedure sumsandsquares(const data : array of Single;
@@ -1299,16 +1323,28 @@ procedure sumsandsquares(const data : PSingle; Const N : Integer;
   var sum,sumofsquares : float);
   var
      i : SizeInt;
-     temp : float;
+     temp,tsum,tsumofsquares,sum0,sumofsquares0,sum1,sumofsquares1 : float;
   begin
-     sumofsquares:=0.0;
-     sum:=0.0;
-     for i:=0 to N-1 do
-       begin
-          temp:=data[i];
-          sumofsquares:=sumofsquares+sqr(temp);
-          sum:=sum+temp;
-       end;
+    if N>=RecursiveSumThreshold then
+      begin
+        sumsandsquares(data,cardinal(N) div 2,sum0,sumofsquares0);
+        sumsandsquares(data+cardinal(N) div 2,N-cardinal(N) div 2,sum1,sumofsquares1);
+        sum:=sum0+sum1;
+        sumofsquares:=sumofsquares0+sumofsquares1;
+      end
+    else
+      begin
+        tsum:=0;
+        tsumofsquares:=0;
+        for i:=0 to N-1 do
+          begin
+            temp:=data[i];
+            tsum:=tsum+temp;
+            tsumofsquares:=tsumofsquares+sqr(temp);
+          end;
+        sum:=tsum;
+        sumofsquares:=tsumofsquares;
+      end;
   end;
 {$endif FPC_HAS_TYPE_SINGLE}
 
@@ -1322,9 +1358,14 @@ procedure sumsandsquares(const data : PSingle; Const N : Integer;
   var
      i : SizeInt;
   begin
-     sumofsquares:=0.0;
-     for i:=0 to N-1 do
-       sumofsquares:=sumofsquares+sqr(data[i]);
+    if N>=RecursiveSumThreshold then
+      result:=sumofsquares(data,cardinal(N) div 2)+sumofsquares(data+cardinal(N) div 2,N-cardinal(N) div 2)
+    else
+      begin
+        result:=0;
+        for i:=0 to N-1 do
+          result:=result+sqr(data[i]);
+      end;
   end;
 
 procedure sumsandsquares(const data : array of Double;
@@ -1337,16 +1378,28 @@ procedure sumsandsquares(const data : PDouble; Const N : Integer;
   var sum,sumofsquares : float);
   var
      i : SizeInt;
-     temp : float;
+     temp,tsum,tsumofsquares,sum0,sumofsquares0,sum1,sumofsquares1 : float;
   begin
-     sumofsquares:=0.0;
-     sum:=0.0;
-     for i:=0 to N-1 do
-       begin
-          temp:=data[i];
-          sumofsquares:=sumofsquares+sqr(temp);
-          sum:=sum+temp;
-       end;
+    if N>=RecursiveSumThreshold then
+      begin
+        sumsandsquares(data,cardinal(N) div 2,sum0,sumofsquares0);
+        sumsandsquares(data+cardinal(N) div 2,N-cardinal(N) div 2,sum1,sumofsquares1);
+        sum:=sum0+sum1;
+        sumofsquares:=sumofsquares0+sumofsquares1;
+      end
+    else
+      begin
+        tsum:=0;
+        tsumofsquares:=0;
+        for i:=0 to N-1 do
+          begin
+            temp:=data[i];
+            tsum:=tsum+temp;
+            tsumofsquares:=tsumofsquares+sqr(temp);
+          end;
+        sum:=tsum;
+        sumofsquares:=tsumofsquares;
+      end;
   end;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
@@ -1360,9 +1413,14 @@ procedure sumsandsquares(const data : PDouble; Const N : Integer;
   var
      i : SizeInt;
   begin
-     sumofsquares:=0.0;
-     for i:=0 to N-1 do
-       sumofsquares:=sumofsquares+sqr(data[i]);
+    if N>=RecursiveSumThreshold then
+      result:=sumofsquares(data,cardinal(N) div 2)+sumofsquares(data+cardinal(N) div 2,N-cardinal(N) div 2)
+    else
+      begin
+        result:=0;
+        for i:=0 to N-1 do
+          result:=result+sqr(data[i]);
+      end;
   end;
 
 procedure sumsandsquares(const data : array of Extended;
@@ -1375,16 +1433,28 @@ procedure sumsandsquares(const data : PExtended; Const N : Integer;
   var sum,sumofsquares : float);
   var
      i : SizeInt;
-     temp : float;
+     temp,tsum,tsumofsquares,sum0,sumofsquares0,sum1,sumofsquares1 : float;
   begin
-     sumofsquares:=0.0;
-     sum:=0.0;
-     for i:=0 to N-1 do
-       begin
-          temp:=data[i];
-          sumofsquares:=sumofsquares+sqr(temp);
-          sum:=sum+temp;
-       end;
+    if N>=RecursiveSumThreshold then
+      begin
+        sumsandsquares(data,cardinal(N) div 2,sum0,sumofsquares0);
+        sumsandsquares(data+cardinal(N) div 2,N-cardinal(N) div 2,sum1,sumofsquares1);
+        sum:=sum0+sum1;
+        sumofsquares:=sumofsquares0+sumofsquares1;
+      end
+    else
+      begin
+        tsum:=0;
+        tsumofsquares:=0;
+        for i:=0 to N-1 do
+          begin
+            temp:=data[i];
+            tsum:=tsum+temp;
+            tsumofsquares:=tsumofsquares+sqr(temp);
+          end;
+        sum:=tsum;
+        sumofsquares:=tsumofsquares;
+      end;
   end;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
@@ -1414,12 +1484,24 @@ end;
 {$ifdef FPC_HAS_TYPE_SINGLE}
 procedure MeanAndTotalVariance
   (const data: PSingle; N: LongInt; var mu, variance: float);
-var i: SizeInt;
+
+  function CalcVariance(data: PSingle; N: SizeInt; mu: float): float;
+  var
+    i: SizeInt;
+  begin
+    if N>=RecursiveSumThreshold then
+      result:=CalcVariance(data,SizeUint(N) div 2,mu)+CalcVariance(data+SizeUint(N) div 2,N-SizeUint(N) div 2,mu)
+    else
+      begin
+        result:=0;
+        for i:=0 to N-1 do
+          result:=result+Sqr(data[i]-mu);
+      end;
+  end;
+
 begin
   mu := Mean( data, N );
-  variance := 0;
-  for i := 0 to N - 1 do
-    variance := variance + Sqr( data[i] - mu );
+  variance := CalcVariance( data, N, mu );
 end;
 
 function stddev(const data : array of Single) : float; inline;
@@ -1503,6 +1585,9 @@ begin
   momentskewkurtosis(PSingle(@Data[0]),High(Data)+1,m1,m2,m3,m4,skew,kurtosis);
 end;
 
+type
+  TMoments2to4 = array[2 .. 4] of float;
+
 procedure momentskewkurtosis(
   const data: pSingle;
   Const N: integer;
@@ -1513,39 +1598,50 @@ procedure momentskewkurtosis(
   out skew: float;
   out kurtosis: float
 );
+
+  procedure CalcDevSums2to4(data: PSingle; N: SizeInt; m1: float; out m2to4: TMoments2to4);
+  var
+    tm2, tm3, tm4, dev, dev2: float;
+    i: SizeInt;
+    m2to4Part0, m2to4Part1: TMoments2to4;
+  begin
+    if N >= RecursiveSumThreshold then
+      begin
+        CalcDevSums2to4(data, SizeUint(N) div 2, m1, m2to4Part0);
+        CalcDevSums2to4(data + SizeUint(N) div 2, N - SizeUint(N) div 2, m1, m2to4Part1);
+        for i := Low(TMoments2to4) to High(TMoments2to4) do
+          m2to4[i] := m2to4Part0[i] + m2to4Part1[i];
+      end
+    else
+      begin
+        tm2 := 0;
+        tm3 := 0;
+        tm4 := 0;
+        for i := 0 to N - 1 do
+          begin
+            dev := data[i] - m1;
+            dev2 := sqr(dev);
+            tm2 := tm2 + dev2;
+            tm3 := tm3 + dev2 * dev;
+            tm4 := tm4 + sqr(dev2);
+          end;
+        m2to4[2] := tm2;
+        m2to4[3] := tm3;
+        m2to4[4] := tm4;
+      end;
+  end;
+
 var
-  i: SizeInt;
-  value : psingle;
-  deviation, deviation2: single;
   reciprocalN: float;
+  m2to4: TMoments2to4;
 begin
   m1 := 0;
   reciprocalN := 1/N;
-  value := data;
-  for i := 0 to N-1 do
-  begin
-    m1 := m1 + value^;
-    inc(value);
-  end;
-  m1 := reciprocalN * m1;
-
-  m2 := 0;
-  m3 := 0;
-  m4 := 0;
-  value := data;
-  for i := 0 to N-1 do
-  begin
-    deviation := (value^-m1);
-    deviation2 := deviation * deviation;
-    m2 := m2 + deviation2;
-    m3 := m3 + deviation2 * deviation;
-    m4 := m4 + deviation2 * deviation2;
-    inc(value);
-  end;
-  m2 := reciprocalN * m2;
-  m3 := reciprocalN * m3;
-  m4 := reciprocalN * m4;
-
+  m1 := reciprocalN * sum(data, N);
+  CalcDevSums2to4(data, N, m1, m2to4);
+  m2 := reciprocalN * m2to4[2];
+  m3 := reciprocalN * m2to4[3];
+  m4 := reciprocalN * m2to4[4];
   skew := m3 / (sqrt(m2)*m2);
   kurtosis := m4 / (m2 * m2);
 end;
@@ -1565,12 +1661,24 @@ function norm(const data : PSingle; Const N : Integer) : float;
 {$ifdef FPC_HAS_TYPE_DOUBLE}
 procedure MeanAndTotalVariance
   (const data: PDouble; N: LongInt; var mu, variance: float);
-var i: SizeInt;
+
+  function CalcVariance(data: PDouble; N: SizeInt; mu: float): float;
+  var
+    i: SizeInt;
+  begin
+    if N>=RecursiveSumThreshold then
+      result:=CalcVariance(data,SizeUint(N) div 2,mu)+CalcVariance(data+SizeUint(N) div 2,N-SizeUint(N) div 2,mu)
+    else
+      begin
+        result:=0;
+        for i:=0 to N-1 do
+          result:=result+Sqr(data[i]-mu);
+      end;
+  end;
+
 begin
   mu := Mean( data, N );
-  variance := 0;
-  for i := 0 to N - 1 do
-    variance := variance + Sqr( data[i] - mu );
+  variance := CalcVariance( data, N, mu );
 end;
 
 function stddev(const data : array of Double) : float; inline;
@@ -1668,39 +1776,50 @@ procedure momentskewkurtosis(
   out skew: float;
   out kurtosis: float
 );
+
+  procedure CalcDevSums2to4(data: PDouble; N: SizeInt; m1: float; out m2to4: TMoments2to4);
+  var
+    tm2, tm3, tm4, dev, dev2: float;
+    i: SizeInt;
+    m2to4Part0, m2to4Part1: TMoments2to4;
+  begin
+    if N >= RecursiveSumThreshold then
+      begin
+        CalcDevSums2to4(data, SizeUint(N) div 2, m1, m2to4Part0);
+        CalcDevSums2to4(data + SizeUint(N) div 2, N - SizeUint(N) div 2, m1, m2to4Part1);
+        for i := Low(TMoments2to4) to High(TMoments2to4) do
+          m2to4[i] := m2to4Part0[i] + m2to4Part1[i];
+      end
+    else
+      begin
+        tm2 := 0;
+        tm3 := 0;
+        tm4 := 0;
+        for i := 0 to N - 1 do
+          begin
+            dev := data[i] - m1;
+            dev2 := sqr(dev);
+            tm2 := tm2 + dev2;
+            tm3 := tm3 + dev2 * dev;
+            tm4 := tm4 + sqr(dev2);
+          end;
+        m2to4[2] := tm2;
+        m2to4[3] := tm3;
+        m2to4[4] := tm4;
+      end;
+  end;
+
 var
-  i: SizeInt;
-  value : pdouble;
-  deviation, deviation2: double;
   reciprocalN: float;
+  m2to4: TMoments2to4;
 begin
   m1 := 0;
   reciprocalN := 1/N;
-  value := data;
-  for i := 0 to N-1 do
-  begin
-    m1 := m1 + value^;
-    inc(value);
-  end;
-  m1 := reciprocalN * m1;
-
-  m2 := 0;
-  m3 := 0;
-  m4 := 0;
-  value := data;
-  for i := 0 to N-1 do
-  begin
-    deviation := (value^-m1);
-    deviation2 := deviation * deviation;
-    m2 := m2 + deviation2;
-    m3 := m3 + deviation2 * deviation;
-    m4 := m4 + deviation2 * deviation2;
-    inc(value);
-  end;
-  m2 := reciprocalN * m2;
-  m3 := reciprocalN * m3;
-  m4 := reciprocalN * m4;
-
+  m1 := reciprocalN * sum(data, N);
+  CalcDevSums2to4(data, N, m1, m2to4);
+  m2 := reciprocalN * m2to4[2];
+  m3 := reciprocalN * m2to4[3];
+  m4 := reciprocalN * m2to4[4];
   skew := m3 / (sqrt(m2)*m2);
   kurtosis := m4 / (m2 * m2);
 end;
@@ -1720,12 +1839,24 @@ function norm(const data : PDouble; Const N : Integer) : float;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 procedure MeanAndTotalVariance
   (const data: PExtended; N: LongInt; var mu, variance: float);
-var i: SizeInt;
+
+  function CalcVariance(data: PExtended; N: SizeInt; mu: float): float;
+  var
+    i: SizeInt;
+  begin
+    if N>=RecursiveSumThreshold then
+      result:=CalcVariance(data,SizeUint(N) div 2,mu)+CalcVariance(data+SizeUint(N) div 2,N-SizeUint(N) div 2,mu)
+    else
+      begin
+        result:=0;
+        for i:=0 to N-1 do
+          result:=result+Sqr(data[i]-mu);
+      end;
+  end;
+
 begin
   mu := Mean( data, N );
-  variance := 0;
-  for i := 0 to N - 1 do
-    variance := variance + Sqr( data[i] - mu );
+  variance := CalcVariance( data, N, mu );
 end;
 
 function stddev(const data : array of Extended) : float; inline;
@@ -1821,39 +1952,50 @@ procedure momentskewkurtosis(
   out skew: float;
   out kurtosis: float
 );
+
+  procedure CalcDevSums2to4(data: PExtended; N: SizeInt; m1: float; out m2to4: TMoments2to4);
+  var
+    tm2, tm3, tm4, dev, dev2: float;
+    i: SizeInt;
+    m2to4Part0, m2to4Part1: TMoments2to4;
+  begin
+    if N >= RecursiveSumThreshold then
+      begin
+        CalcDevSums2to4(data, SizeUint(N) div 2, m1, m2to4Part0);
+        CalcDevSums2to4(data + SizeUint(N) div 2, N - SizeUint(N) div 2, m1, m2to4Part1);
+        for i := Low(TMoments2to4) to High(TMoments2to4) do
+          m2to4[i] := m2to4Part0[i] + m2to4Part1[i];
+      end
+    else
+      begin
+        tm2 := 0;
+        tm3 := 0;
+        tm4 := 0;
+        for i := 0 to N - 1 do
+          begin
+            dev := data[i] - m1;
+            dev2 := sqr(dev);
+            tm2 := tm2 + dev2;
+            tm3 := tm3 + dev2 * dev;
+            tm4 := tm4 + sqr(dev2);
+          end;
+        m2to4[2] := tm2;
+        m2to4[3] := tm3;
+        m2to4[4] := tm4;
+      end;
+  end;
+
 var
-  i: integer;
-  value : pextended;
-  deviation, deviation2: extended;
   reciprocalN: float;
+  m2to4: TMoments2to4;
 begin
   m1 := 0;
   reciprocalN := 1/N;
-  value := data;
-  for i := 0 to N-1 do
-  begin
-    m1 := m1 + value^;
-    inc(value);
-  end;
-  m1 := reciprocalN * m1;
-
-  m2 := 0;
-  m3 := 0;
-  m4 := 0;
-  value := data;
-  for i := 0 to N-1 do
-  begin
-    deviation := (value^-m1);
-    deviation2 := deviation * deviation;
-    m2 := m2 + deviation2;
-    m3 := m3 + deviation2 * deviation;
-    m4 := m4 + deviation2 * deviation2;
-    inc(value);
-  end;
-  m2 := reciprocalN * m2;
-  m3 := reciprocalN * m3;
-  m4 := reciprocalN * m4;
-
+  m1 := reciprocalN * sum(data, N);
+  CalcDevSums2to4(data, N, m1, m2to4);
+  m2 := reciprocalN * m2to4[2];
+  m3 := reciprocalN * m2to4[3];
+  m4 := reciprocalN * m2to4[4];
   skew := m3 / (sqrt(m2)*m2);
   kurtosis := m4 / (m2 * m2);
 end;
