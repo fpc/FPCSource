@@ -329,6 +329,7 @@ type
     Procedure TestForLoop_NestedSameVarFail;
     Procedure TestForLoop_AssignVarFail;
     Procedure TestForLoop_PassVarFail;
+    Procedure TestForLoop_FieldFail;
     Procedure TestStatements;
     Procedure TestCaseOfInt;
     Procedure TestCaseOfIntExtConst;
@@ -5185,6 +5186,25 @@ begin
   '    DoIt(i);',
   '']);
   CheckResolverException('Illegal assignment to for-loop variable "i"',nIllegalAssignmentToForLoopVar);
+end;
+
+procedure TTestResolver.TestForLoop_FieldFail;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '    Size: word;',
+  '    procedure Fly;',
+  '  end;',
+  'procedure TObject.Fly;',
+  'begin',
+  '  for Size:=1 to 2 do',
+  '    ;',
+  'end;',
+  'begin',
+  '']);
+  CheckResolverException(sForLoopControlVarMustBeSimpleLocalVar,nForLoopControlVarMustBeSimpleLocalVar);
 end;
 
 procedure TTestResolver.TestStatements;

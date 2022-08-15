@@ -7577,6 +7577,7 @@ var
   bt: TResolverBaseType;
   TypeEl, ElType: TPasType;
   C: TClass;
+  IdentEl: TPasElement;
 begin
   CreateScope(Loop,TPasForLoopScope);
 
@@ -7585,6 +7586,19 @@ begin
   ComputeElement(Loop.VariableName,VarResolved,[rcNoImplicitProc,rcSetReferenceFlags]);
   if not ResolvedElCanBeVarParam(VarResolved,Loop.VariableName) then
     RaiseVarExpected(20170216151955,Loop.VariableName,VarResolved.IdentEl);
+  IdentEl:=VarResolved.IdentEl;
+  C:=IdentEl.ClassType;
+  if (C=TPasArgument)
+    or (C=TPasResultElement)
+    or ((C=TPasVariable) and ((IdentEl.Parent is TProcedureBody) or (IdentEl.Parent is TPasSection))) then
+    // loop var is simple local var
+  else
+    begin
+    {$IFDEF VerbosePasResolver}
+    writeln('TPasResolver.FinishForLoopHeader ',GetResolverResultDbg(VarResolved),' IdentEl=',GetObjPath(IdentEl));
+    {$ENDIF}
+    RaiseMsg(20220815164902,nForLoopControlVarMustBeSimpleLocalVar,sForLoopControlVarMustBeSimpleLocalVar,[],Loop.VariableName);
+    end;
 
   // resolve start expression
   ResolveExpr(Loop.StartExpr,rraRead);

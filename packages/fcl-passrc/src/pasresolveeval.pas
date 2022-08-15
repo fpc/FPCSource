@@ -209,6 +209,7 @@ const
   nDirectiveXNotAllowedHere = 3143;
   nAwaitWithoutPromise = 3144;
   nSymbolCannotBeExportedFromALibrary = 3145;
+  nForLoopControlVarMustBeSimpleLocalVar = 3146;
 
   // using same IDs as FPC
   nVirtualMethodXHasLowerVisibility = 3250; // was 3050
@@ -365,6 +366,7 @@ resourcestring
   sDirectiveXNotAllowedHere = 'Directive "%s" not allowed here';
   sAwaitWithoutPromise = 'Await without promise';
   sSymbolCannotBeExportedFromALibrary = 'The symbol cannot be exported from a library';
+  sForLoopControlVarMustBeSimpleLocalVar = 'For loop control variable must be simple local variable';
 
 type
   { TResolveData - base class for data stored in TPasElement.CustomData }
