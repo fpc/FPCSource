@@ -130,6 +130,8 @@ uses
                   result:=OptPass1Sub(p);
                 A_SHL,A_SAL:
                   result:=OptPass1SHLSAL(p);
+                A_SHR:
+                  result:=OptPass1SHR(p);
                 A_FSTP,A_FISTP:
                   result:=OptPass1FSTP(p);
                 A_FLD:

@@ -191,6 +191,8 @@ unit aoptcpu;
                   end;
                 A_SHL, A_SAL:
                   Result:=OptPass1SHLSAL(p);
+                A_SHR:
+                  Result:=OptPass1SHR(p);
                 A_SUB:
                   Result:=OptPass1Sub(p);
                 A_Jcc:

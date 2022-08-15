@@ -135,6 +135,7 @@ unit aoptx86;
 
         class function IsExitCode(p : tai) : boolean; static;
         class function isFoldableArithOp(hp1 : taicpu; reg : tregister) : boolean; static;
+        class function IsShrMovZFoldable(shr_size, movz_size: topsize; Shift: TCGInt): Boolean; static;
         procedure RemoveLastDeallocForFuncRes(p : tai);
 
         function DoSubAddOpt(var p : tai) : Boolean;
@@ -157,6 +158,7 @@ unit aoptx86;
         function OptPass1LEA(var p : tai) : boolean;
         function OptPass1Sub(var p : tai) : boolean;
         function OptPass1SHLSAL(var p : tai) : boolean;
+        function OptPass1SHR(var p : tai) : boolean;
         function OptPass1FSTP(var p : tai) : boolean;
         function OptPass1FLD(var p : tai) : boolean;
         function OptPass1Cmp(var p : tai) : boolean;
@@ -6445,6 +6447,146 @@ unit aoptx86;
                 Result:=true;
               end;
           end;
+      end;
+
+
+    class function TX86AsmOptimizer.IsShrMovZFoldable(shr_size, movz_size: topsize; Shift: TCGInt): Boolean;
+      begin
+        case shr_size of
+          S_B:
+            { No valid combinations }
+            Result := False;
+
+          S_W:
+            Result := (Shift >= 8) and (movz_size = S_BW);
+
+          S_L:
+            Result :=
+              (Shift >= 24) { Any opsize is valid for this shift } or
+              ((Shift >= 16) and (movz_size = S_WL));
+{$ifdef x86_64}
+          S_Q:
+            Result :=
+              (Shift >= 56) { Any opsize is valid for this shift } or
+              ((Shift >= 48) and (movz_size = S_WL));
+{$endif x86_64}
+          else
+            InternalError(2022081510);
+        end;
+      end;
+
+    function TX86AsmOptimizer.OptPass1SHR(var p : tai) : boolean;
+      var
+        hp1, hp2: tai;
+        Shift: TCGInt;
+        LimitSize: Topsize;
+        DoNotMerge: Boolean;
+      begin
+        Result := False;
+
+        { All these optimisations work on "shr const,%reg" }
+        if not MatchOpType(taicpu(p), top_const, top_reg) then
+          Exit;
+
+        DoNotMerge := False;
+        Shift := taicpu(p).oper[0]^.val;
+        LimitSize := taicpu(p).opsize;
+
+        hp1 := p;
+        repeat
+          if not GetNextInstructionUsingReg(hp1, hp1, taicpu(p).oper[1]^.reg) or (hp1.typ <> ait_instruction) then
+            Exit;
+
+          case taicpu(hp1).opcode of
+            A_TEST, A_CMP, A_Jcc:
+              { Skip over conditional jumps and relevant comparisons }
+              Continue;
+
+            A_MOVZX:
+              if MatchOpType(taicpu(hp1), top_reg, top_reg) and
+                SuperRegistersEqual(taicpu(hp1).oper[0]^.reg, taicpu(p).oper[1]^.reg) then
+                begin
+                  { Since the original register is being read as is, subsequent
+                    SHRs must not be merged at this point }
+                  DoNotMerge := True;
+
+                  if IsShrMovZFoldable(taicpu(p).opsize, taicpu(hp1).opsize, Shift) then
+                    begin
+                      if not SuperRegistersEqual(taicpu(hp1).oper[0]^.reg, taicpu(hp1).oper[1]^.reg) then { Different register target }
+                        begin
+                          DebugMsg(SPeepholeOptimization + 'Converted MOVZX instruction to MOV since previous SHR makes zero-extension unnecessary (ShrMovz2ShrMov 1)', hp1);
+                          taicpu(hp1).opcode := A_MOV;
+                          setsubreg(taicpu(hp1).oper[0]^.reg, getsubreg(taicpu(hp1).oper[1]^.reg));
+                          case taicpu(hp1).opsize of
+                            S_BW:
+                              taicpu(hp1).opsize := S_W;
+                            S_BL, S_WL:
+                              taicpu(hp1).opsize := S_L;
+                            else
+                              InternalError(2022081503);
+                          end;
+
+                          { p itself hasn't changed, so no need to set Result to True }
+                          Include(OptsToCheck, aoc_ForceNewIteration);
+
+                          { See if there's anything afterwards that can be
+                            optimised, since the input register hasn't changed }
+                          Continue;
+                        end;
+
+                      { NOTE: If the MOVZX instruction reads and writes the same
+                        register, defer this to the post-peephole optimisation stage }
+                      Exit;
+                    end;
+                end;
+            A_SHL, A_SAL, A_SHR:
+              if (taicpu(hp1).opsize <= LimitSize) and
+                MatchOpType(taicpu(hp1), top_const, top_reg) and
+                SuperRegistersEqual(taicpu(hp1).oper[1]^.reg, taicpu(p).oper[1]^.reg) then
+                begin
+                  { Make sure the sizes don't exceed the register size limit
+                    (measured by the shift value falling below the limit) }
+
+                  if taicpu(hp1).opsize < LimitSize then
+                    LimitSize := taicpu(hp1).opsize;
+
+                  if taicpu(hp1).opcode = A_SHR then
+                    Inc(Shift, taicpu(hp1).oper[0]^.val)
+                  else
+                    begin
+                      Dec(Shift, taicpu(hp1).oper[0]^.val);
+                      DoNotMerge := True;
+                    end;
+
+                  if Shift < topsize2memsize[taicpu(p).opsize] - topsize2memsize[LimitSize] then
+                    Exit;
+
+                  { Since we've established that the combined shift is within
+                    limits, we can actually combine the adjacent SHR
+                    instructions even if they're different sizes }
+                  if not DoNotMerge and (taicpu(hp1).opcode = A_SHR) then
+                    begin
+                      hp2 := tai(hp1.Previous);
+                      DebugMsg(SPeepholeOptimization + 'ShrShr2Shr 1', p);
+                      Inc(taicpu(p).oper[0]^.val, taicpu(hp1).oper[0]^.val);
+                      RemoveInstruction(hp1);
+                      hp1 := hp2;
+
+                      { Though p has changed, only the constant has, and its
+                        effects can still be detected on the next iteration of
+                        the repeat..until loop }
+                      Include(OptsToCheck, aoc_ForceNewIteration);
+                    end;
+
+                  { Move onto the next instruction }
+                  Continue;
+                end;
+            else
+              ;
+          end;
+
+          Break;
+        until False;
       end;
 
 
@@ -12930,35 +13072,192 @@ unit aoptx86;
 
     function TX86AsmOptimizer.PostPeepholeOptShr(var p : tai) : boolean;
       var
-        hp1: tai;
+        hp1, hp2: tai;
+        IdentityMask, Shift: TCGInt;
+        LimitSize: Topsize;
+        DoNotMerge: Boolean;
       begin
-        { Detect:
-            shr    x,  %ax (x > 0)
-            ...
-            movzwl %ax,%eax
-
-          Change movzwl %ax,%eax to cwtl (shorter encoding for movswl %ax,%eax)
-        }
-
         Result := False;
-        if MatchOpType(taicpu(p), top_const, top_reg) and
-          (taicpu(p).oper[1]^.reg = NR_AX) and { This is also enough to determine that opsize = S_W }
-          (taicpu(p).oper[0]^.val > 0) and
-          GetNextInstructionUsingReg(p, hp1, NR_EAX) and
-          MatchInstruction(hp1, A_MOVZX, [S_WL]) and
-          MatchOperand(taicpu(hp1).oper[0]^, NR_AX) and
-          MatchOperand(taicpu(hp1).oper[1]^, NR_EAX) then
-          begin
-            DebugMsg(SPeepholeOptimization + 'Converted movzwl %ax,%eax to cwtl (via ShrMovz2ShrCwtl)', hp1);
-            taicpu(hp1).opcode := A_CWDE;
-            taicpu(hp1).clearop(0);
-            taicpu(hp1).clearop(1);
-            taicpu(hp1).ops := 0;
 
-            { A change was made, but not with p, so move forward 1 }
-            p := tai(p.Next);
-            Result := True;
+        { All these optimisations work on "shr const,%reg" }
+        if not MatchOpType(taicpu(p), top_const, top_reg) then
+          Exit;
+
+        DoNotMerge := False;
+        Shift := taicpu(p).oper[0]^.val;
+        LimitSize := taicpu(p).opsize;
+
+        hp1 := p;
+        repeat
+          if not GetNextInstructionUsingReg(hp1, hp1, taicpu(p).oper[1]^.reg) or (hp1.typ <> ait_instruction) then
+            Exit;
+
+          { Detect:
+              shr x, %reg
+              and y, %reg
+
+            If and y, %reg doesn't actually change the value of %reg (e.g. with
+            "shrl $24,%reg; andl $255,%reg", remove the AND instruction.
+          }
+
+          case taicpu(hp1).opcode of
+            A_AND:
+              if (taicpu(hp1).opsize = taicpu(p).opsize) and
+                MatchOpType(taicpu(hp1), top_const, top_reg) and
+                (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) then
+                begin
+                  { Make sure the FLAGS register isn't in use }
+                  TransferUsedRegs(TmpUsedRegs);
+                  hp2 := p;
+                  repeat
+                    UpdateUsedRegs(TmpUsedRegs, tai(hp2.Next));
+                  until not GetNextInstruction(hp2, hp2) or (hp2 = hp1);
+
+                  if not RegUsedAfterInstruction(NR_DEFAULTFLAGS, hp1, TmpUsedRegs) then
+                    begin
+                      { Generate the identity mask }
+                      case taicpu(p).opsize of
+                        S_B:
+                          IdentityMask := $FF shr Shift;
+                        S_W:
+                          IdentityMask := $FFFF shr Shift;
+                        S_L:
+                          IdentityMask := $FFFFFFFF shr Shift;
+{$ifdef x86_64}
+                        S_Q:
+                          { We need to force the operands to be unsigned 64-bit
+                            integers otherwise the wrong value is generated }
+                          IdentityMask := TCGInt(QWord($FFFFFFFFFFFFFFFF) shr QWord(Shift));
+{$endif x86_64}
+                        else
+                          InternalError(2022081501);
+                      end;
+
+                      if (taicpu(hp1).oper[0]^.val and IdentityMask) = IdentityMask then
+                        begin
+                          DebugMsg(SPeepholeOptimization + 'Removed AND instruction since previous SHR makes this an identity operation (ShrAnd2Shr)', hp1);
+                          { All the possible 1 bits are covered, so we can remove the AND }
+                          hp2 := tai(hp1.Previous);
+                          RemoveInstruction(hp1);
+
+                          { p wasn't actually changed, so don't set Result to True,
+                            but a change was nonetheless made elsewhere }
+                          Include(OptsToCheck, aoc_ForceNewIteration);
+
+                          { Do another pass in case other AND or MOVZX instructions
+                            follow }
+                          hp1 := hp2;
+                          Continue;
+                        end;
+
+                    end;
+                end;
+
+            A_TEST, A_CMP, A_Jcc:
+              { Skip over conditional jumps and relevant comparisons }
+              Continue;
+
+            A_MOVZX:
+              if MatchOpType(taicpu(hp1), top_reg, top_reg) and
+                SuperRegistersEqual(taicpu(hp1).oper[0]^.reg, taicpu(p).oper[1]^.reg) then
+                begin
+                  { Since the original register is being read as is, subsequent
+                    SHRs must not be merged at this point }
+                  DoNotMerge := True;
+
+                  if IsShrMovZFoldable(taicpu(p).opsize, taicpu(hp1).opsize, Shift) then
+                    begin
+                      if SuperRegistersEqual(taicpu(hp1).oper[0]^.reg, taicpu(hp1).oper[1]^.reg) then
+                        begin
+                          DebugMsg(SPeepholeOptimization + 'Removed MOVZX instruction since previous SHR makes it unnecessary (ShrMovz2Shr)', hp1);
+                          { All the possible 1 bits are covered, so we can remove the AND }
+                          hp2 := tai(hp1.Previous);
+                          RemoveInstruction(hp1);
+
+                          hp1 := hp2;
+                        end
+                      else { Different register target }
+                        begin
+                          DebugMsg(SPeepholeOptimization + 'Converted MOVZX instruction to MOV since previous SHR makes zero-extension unnecessary (ShrMovz2ShrMov 2)', hp1);
+                          taicpu(hp1).opcode := A_MOV;
+                          setsubreg(taicpu(hp1).oper[0]^.reg, getsubreg(taicpu(hp1).oper[1]^.reg));
+                          case taicpu(hp1).opsize of
+                            S_BW:
+                              taicpu(hp1).opsize := S_W;
+                            S_BL, S_WL:
+                              taicpu(hp1).opsize := S_L;
+                            else
+                              InternalError(2022081503);
+                          end;
+                        end;
+                    end
+                  else if (Shift > 0) and
+                    (taicpu(p).opsize = S_W) and
+                    (taicpu(hp1).opsize = S_WL) and
+                    (taicpu(hp1).oper[0]^.reg = NR_AX) and
+                    (taicpu(hp1).oper[1]^.reg = NR_EAX) then
+                    begin
+                      { Detect:
+                          shr    x,  %ax (x > 0)
+                          ...
+                          movzwl %ax,%eax
+
+                        Change movzwl %ax,%eax to cwtl (shorter encoding for movswl %ax,%eax)
+                      }
+                      DebugMsg(SPeepholeOptimization + 'Converted movzwl %ax,%eax to cwtl (via ShrMovz2ShrCwtl)', hp1);
+                      taicpu(hp1).opcode := A_CWDE;
+                      taicpu(hp1).clearop(0);
+                      taicpu(hp1).clearop(1);
+                      taicpu(hp1).ops := 0;
+                    end;
+
+                  { Move onto the next instruction }
+                  Continue;
+                end;
+
+            A_SHL, A_SAL, A_SHR:
+              if (taicpu(hp1).opsize <= LimitSize) and
+                MatchOpType(taicpu(hp1), top_const, top_reg) and
+                SuperRegistersEqual(taicpu(hp1).oper[1]^.reg, taicpu(p).oper[1]^.reg) then
+                begin
+                  { Make sure the sizes don't exceed the register size limit
+                    (measured by the shift value falling below the limit) }
+
+                  if taicpu(hp1).opsize < LimitSize then
+                    LimitSize := taicpu(hp1).opsize;
+
+                  if taicpu(hp1).opcode = A_SHR then
+                    Inc(Shift, taicpu(hp1).oper[0]^.val)
+                  else
+                    begin
+                      Dec(Shift, taicpu(hp1).oper[0]^.val);
+                      DoNotMerge := True;
+                    end;
+
+                  if Shift < topsize2memsize[taicpu(p).opsize] - topsize2memsize[LimitSize] then
+                    Exit;
+
+                  { Since we've established that the combined shift is within
+                    limits, we can actually combine the adjacent SHR
+                    instructions even if they're different sizes }
+                  if not DoNotMerge and (taicpu(hp1).opcode = A_SHR) then
+                    begin
+                      hp2 := tai(hp1.Previous);
+                      DebugMsg(SPeepholeOptimization + 'ShrShr2Shr 2', p);
+                      Inc(taicpu(p).oper[0]^.val, taicpu(hp1).oper[0]^.val);
+                      RemoveInstruction(hp1);
+                      hp1 := hp2;
+                    end;
+
+                  { Move onto the next instruction }
+                  Continue;
+                end;
+            else
+              ;
           end;
+
+          Break;
+        until False;
 
       end;
 
