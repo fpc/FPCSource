@@ -6587,16 +6587,34 @@ unit aoptx86;
             { replacing fstp f;fld f by fst f is only valid for extended because of rounding or if fastmath is on }
             if ((taicpu(p).opsize=S_FX) or (cs_opt_fastmath in current_settings.optimizerswitches)) and
                GetNextInstruction(hp1, hp2) and
-               (hp2.typ = ait_instruction) and
+               (((hp2.typ = ait_instruction) and
                IsExitCode(hp2) and
                (taicpu(p).oper[0]^.ref^.base = current_procinfo.FramePointer) and
                not(assigned(current_procinfo.procdef.funcretsym) and
                    (taicpu(p).oper[0]^.ref^.offset < tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset)) and
-               (taicpu(p).oper[0]^.ref^.index = NR_NO) then
+               (taicpu(p).oper[0]^.ref^.index = NR_NO)) or
+               { fstp <temp>
+                 fld  <temp>
+                 <dealloc> <temp>
+               }
+               (SetAndTest(tai(hp1.next),hp2) and (hp2.typ = ait_tempalloc) and
+                (tai_tempalloc(hp2).allocation=false) and
+                (taicpu(p).oper[0]^.ref^.base = current_procinfo.FramePointer) and
+                (taicpu(p).oper[0]^.ref^.index = NR_NO) and
+                (tai_tempalloc(hp2).temppos=taicpu(p).oper[0]^.ref^.offset) and
+                (((taicpu(p).opsize=S_FX) and (tai_tempalloc(hp2).tempsize=16)) or
+                 ((taicpu(p).opsize in [S_IQ,S_FL]) and (tai_tempalloc(hp2).tempsize=8)) or
+                 ((taicpu(p).opsize=S_FS) and (tai_tempalloc(hp2).tempsize=4))
+                )
+               )
+               ) then
               begin
+                DebugMsg(SPeepholeOptimization + 'FstpFld2<Nop>',p);
                 RemoveInstruction(hp1);
                 RemoveCurrentP(p, hp2);
-                RemoveLastDeallocForFuncRes(p);
+                { first case: exit code }
+                if hp2.typ = ait_instruction then
+                  RemoveLastDeallocForFuncRes(p);
                 Result := true;
               end
             else
