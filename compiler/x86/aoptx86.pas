@@ -13090,7 +13090,7 @@ unit aoptx86;
         hp1 := p;
         repeat
           if not GetNextInstructionUsingReg(hp1, hp1, taicpu(p).oper[1]^.reg) or (hp1.typ <> ait_instruction) then
-            Exit;
+            Break;
 
           { Detect:
               shr x, %reg
@@ -13235,7 +13235,7 @@ unit aoptx86;
                     end;
 
                   if Shift < topsize2memsize[taicpu(p).opsize] - topsize2memsize[LimitSize] then
-                    Exit;
+                    Break;
 
                   { Since we've established that the combined shift is within
                     limits, we can actually combine the adjacent SHR
@@ -13258,6 +13258,30 @@ unit aoptx86;
 
           Break;
         until False;
+
+        { Detect the following (looking backwards):
+            shr %cl,%reg
+            shr x,  %reg
+
+          Swap the two SHR instructions to minimise a pipeline stall.
+        }
+        if GetLastInstruction(p, hp1) and
+          MatchInstruction(hp1, A_SHR, [taicpu(p).opsize]) and
+          MatchOpType(taicpu(hp1), top_reg, top_reg) and
+          { First operand will be %cl }
+          (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) and
+          { Just to be sure }
+          (getsupreg(taicpu(hp1).oper[1]^.reg) <> RS_ECX) then
+          begin
+            DebugMsg(SPeepholeOptimization + 'Swapped variable and constant SHR instructions to minimise pipeline stall (ShrShr2ShrShr)', hp1);
+
+            { Moving the entries this way ensures the register tracking remains correct }
+            Asml.Remove(p);
+            Asml.InsertBefore(p, hp1);
+            p := hp1;
+            { Don't set Result to True because the current instruction is now
+              "shr %cl,%reg" and there's nothing more we can do with it }
+          end;
 
       end;
 
