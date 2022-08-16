@@ -519,10 +519,13 @@ implementation
            $M has effect on visibility of default section for classes. 
            Interface has always only public section (fix for problem in tb0631.pp) }
          if ((p.visibility=vis_published) or is_dispinterface(astruct)) and
-            ((not(p.propdef.is_publishable) and not is_interface(astruct)) or
+            ((not(p.propdef.is_publishable=pp_publish) and not is_interface(astruct)) or
              (sp_static in p.symoptions)) then
            begin
-             Message(parser_e_cant_publish_that_property);
+             if p.propdef.is_publishable=pp_error then
+               Message(parser_e_cant_publish_that_property)
+             else
+               Message(parser_w_ignoring_published_property);
              p.visibility:=vis_public;
            end;
 

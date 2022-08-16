@@ -154,7 +154,7 @@ interface
           function  size:asizeint;override;
           function  getvardef:longint;override;
           function  alignment:shortint;override;
-          function  is_publishable : boolean;override;
+          function  is_publishable : tpublishproperty;override;
           function  needs_inittable : boolean;override;
           function  has_non_trivial_init_child(check_parent:boolean):boolean;override;
           function  rtti_mangledname(rt:trttitype):TSymStr;override;
@@ -223,7 +223,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           function  getvardef:longint;override;
           procedure setsize;
-          function is_publishable : boolean;override;
+          function is_publishable : tpublishproperty;override;
           function needs_inittable : boolean;override;
        end;
        tvariantdefclass = class of tvariantdef;
@@ -522,7 +522,7 @@ interface
           function  members_need_inittable : boolean;
           { this should be called when this class implements an interface }
           procedure prepareguid;
-          function  is_publishable : boolean;override;
+          function  is_publishable : tpublishproperty;override;
           function  needs_inittable : boolean;override;
           function  needs_separate_initrtti : boolean;override;
           function  has_non_trivial_init_child(check_parent:boolean):boolean;override;
@@ -564,7 +564,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           function getcopy:tstoreddef;override;
           function GetTypeName:string;override;
-          function is_publishable : boolean;override;
+          function is_publishable : tpublishproperty;override;
           function rtti_mangledname(rt:trttitype):TSymStr;override;
           procedure register_created_object_type;override;
        end;
@@ -614,7 +614,7 @@ interface
           function needs_inittable : boolean;override;
           function needs_separate_initrtti : boolean;override;
           property elementdef : tdef read _elementdef write setelementdef;
-          function is_publishable : boolean;override;
+          function is_publishable : tpublishproperty;override;
           function is_hwvector: boolean;
        end;
        tarraydefclass = class of tarraydef;
@@ -628,7 +628,7 @@ interface
           { do not override this routine in platform-specific subclasses,
             override ppuwrite_platform instead }
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
-          function  is_publishable : boolean;override;
+          function  is_publishable : tpublishproperty;override;
           function  GetTypeName:string;override;
           function alignment:shortint;override;
           procedure setsize;
@@ -646,7 +646,7 @@ interface
             override ppuwrite_platform instead }
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           function  GetTypeName:string;override;
-          function  is_publishable : boolean;override;
+          function  is_publishable : tpublishproperty;override;
           function alignment:shortint;override;
           function structalignment: shortint;override;
           procedure setsize;
@@ -750,7 +750,7 @@ interface
           function  GetSymtable(t:tGetSymtable):TSymtable;override;
           function  size : asizeint;override;
           function  GetTypeName:string;override;
-          function  is_publishable : boolean;override;
+          function  is_publishable : tpublishproperty;override;
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
           function  getmangledparaname:TSymStr;override;
@@ -1016,7 +1016,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           function  GetTypeName:string;override;
           function  getmangledparaname:TSymStr;override;
-          function  is_publishable : boolean;override;
+          function  is_publishable : tpublishproperty;override;
           function  size:asizeint;override;
           function alignment : shortint;override;
           function  needs_inittable : boolean;override;
@@ -1048,7 +1048,7 @@ interface
           procedure buildderef;override;
           procedure deref;override;
           function  GetTypeName:string;override;
-          function  is_publishable : boolean;override;
+          function  is_publishable : tpublishproperty;override;
           procedure calcsavesize(packenum: shortint);
           function  packedbitsize: asizeint; override;
           procedure setmax(_max:asizeint);
@@ -1076,7 +1076,7 @@ interface
           procedure buildderef;override;
           procedure deref;override;
           function  GetTypeName:string;override;
-          function  is_publishable : boolean;override;
+          function  is_publishable : tpublishproperty;override;
           function alignment: shortint; override;
        end;
        tsetdefclass = class of tsetdef;
@@ -2417,9 +2417,9 @@ implementation
 
 
     { returns true, if the definition can be published }
-    function tstoreddef.is_publishable : boolean;
+    function tstoreddef.is_publishable : tpublishproperty;
       begin
-         is_publishable:=false;
+         is_publishable:=pp_error;
       end;
 
 
@@ -2897,9 +2897,9 @@ implementation
       end;
 
 
-    function tstringdef.is_publishable : boolean;
+    function tstringdef.is_publishable : tpublishproperty;
       begin
-         is_publishable:=true;
+         is_publishable:=pp_publish;
       end;
 
 
@@ -3148,9 +3148,15 @@ implementation
       end;
 
 
-    function tenumdef.is_publishable : boolean;
+    function tenumdef.is_publishable : tpublishproperty;
       begin
-         is_publishable:=true;
+         if not has_jumps then
+           is_publishable:=pp_publish
+         else
+         if m_delphi in current_settings.modeswitches then
+           is_publishable:=pp_ignore
+         else
+           is_publishable:=pp_error;
       end;
 
 
@@ -3497,9 +3503,12 @@ implementation
       end;
 
 
-    function torddef.is_publishable : boolean;
+    function torddef.is_publishable : tpublishproperty;
       begin
-         is_publishable:=(ordtype<>uvoid);
+         if ordtype<>uvoid then
+           is_publishable:=pp_publish
+         else
+           is_publishable:=pp_error;
       end;
 
 
@@ -3626,9 +3635,9 @@ implementation
       end;
 
 
-    function tfloatdef.is_publishable : boolean;
+    function tfloatdef.is_publishable : tpublishproperty;
       begin
-         is_publishable:=true;
+         is_publishable:=pp_publish;
       end;
 
 
@@ -3859,9 +3868,9 @@ implementation
       end;
 
 
-    function tvariantdef.is_publishable : boolean;
+    function tvariantdef.is_publishable : tpublishproperty;
       begin
-         is_publishable:=true;
+         is_publishable:=pp_publish;
       end;
 
 
@@ -4100,9 +4109,9 @@ implementation
       end;
 
 
-    function tclassrefdef.is_publishable : boolean;
+    function tclassrefdef.is_publishable : tpublishproperty;
       begin
-         result:=true;
+         is_publishable:=pp_publish;
       end;
 
 
@@ -4207,9 +4216,12 @@ implementation
       end;
 
 
-    function tsetdef.is_publishable : boolean;
+    function tsetdef.is_publishable : tpublishproperty;
       begin
-         is_publishable:=savesize in [1,2,4];
+         if savesize in [1,2,4] then
+           is_publishable:=pp_publish
+         else
+           is_publishable:=pp_error;
       end;
 
     function tsetdef.alignment: shortint;
@@ -4637,9 +4649,12 @@ implementation
       end;
 
 
-    function tarraydef.is_publishable : boolean;
+    function tarraydef.is_publishable : tpublishproperty;
       begin
-        Result:=ado_IsDynamicArray in arrayoptions;
+         if ado_IsDynamicArray in arrayoptions then
+           is_publishable:=pp_publish
+         else
+           is_publishable:=pp_error;
       end;
 
 
@@ -7600,9 +7615,12 @@ implementation
       end;
 
 
-    function tprocvardef.is_publishable : boolean;
+    function tprocvardef.is_publishable : tpublishproperty;
       begin
-         is_publishable:=(po_methodpointer in procoptions);
+         if po_methodpointer in procoptions then
+           is_publishable:=pp_publish
+         else
+           is_publishable:=pp_error;
       end;
 
 
@@ -8472,9 +8490,12 @@ implementation
       end;
 
 
-    function tobjectdef.is_publishable : boolean;
+    function tobjectdef.is_publishable : tpublishproperty;
       begin
-         is_publishable:=objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface];
+         if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
+           is_publishable:=pp_publish
+         else
+           is_publishable:=pp_error;
       end;
 
 

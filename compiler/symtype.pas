@@ -51,6 +51,7 @@ interface
 ************************************************}
 
       tgetsymtable = (gs_none,gs_record,gs_local,gs_para);
+      tpublishproperty = (pp_ignore, pp_error, pp_publish);
 
       tdef = class(TDefEntry)
         protected
@@ -98,7 +99,7 @@ interface
          function  getvardef:longint;virtual;abstract;
          function  getparentdef:tdef;virtual;
          function  getsymtable(t:tgetsymtable):TSymtable;virtual;
-         function  is_publishable:boolean;virtual;abstract;
+         function  is_publishable:tpublishproperty;virtual;abstract;
          function  needs_inittable:boolean;virtual;abstract;
          { contains a (managed) child that is not initialized to 0/Nil }
          function  has_non_trivial_init_child(check_parent:boolean):boolean;virtual;abstract;

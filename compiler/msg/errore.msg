@@ -445,7 +445,7 @@ scan_e_unexpected_endif=02108_E_$ENDIF directive found without a matching $IF(N)
 #
 # Parser
 #
-# 03364 is the last used one
+# 03365 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1639,6 +1639,8 @@ parser_e_section_directive_not_allowed_for_target=03362_E_Directive section not 
 % Only some targets (e.g. Embedded and FreeRTOS) support the section directive.
 parser_e_absolute_sym_cannot_reference_itself=03363_E_Absolute variable cannot reference itself
 parser_e_syscall_format_not_support=03364_E_Syntax of syscall directive not supported by current target
+% Published property is ignored
+parser_w_ignoring_published_property=03365_W_This property will not be published
 % On a certain target, not all syntax variants of the syscall directive make sense and thus those making
 % no sense are not supported
 % Declarations like \var{var i: Integer absolute i;} are not allowed
