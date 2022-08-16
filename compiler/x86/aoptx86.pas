@@ -6675,6 +6675,7 @@ unit aoptx86;
                     end;
                     taicpu(hp1).oper[0]^.reg := taicpu(p).oper[0]^.reg;
                     taicpu(hp1).oper[1]^.reg := NR_ST;
+                    DebugMsg(SPeepholeOptimization + 'FldF*p2F*',hp1);
                     RemoveCurrentP(p, hp1);
                     Result:=true;
                     exit;
@@ -6703,6 +6704,7 @@ unit aoptx86;
                   faddp/                       fmul     st, st
                   fmulp  st, st1 (hp2) }
                 begin
+                  DebugMsg(SPeepholeOptimization + 'Fld/FstFldFaddp/Fmulp2Fld/FstFadd/Fmul',hp1);
                   RemoveCurrentP(p, hp1);
                   if (taicpu(hp2).opcode = A_FADDP) then
                     taicpu(hp2).opcode := A_FADD
@@ -6711,10 +6713,12 @@ unit aoptx86;
                   taicpu(hp2).oper[1]^.reg := NR_ST;
                 end
               else
-              { change              to
-                  fld/fst mem1 (hp1)   fld/fst mem1
-                  fld     mem1 (p)     fld      st}
+                { change              to
+                    fld/fst mem1 (hp1)   fld/fst mem1
+                    fld     mem1 (p)     fld      st
+                }
                 begin
+                  DebugMsg(SPeepholeOptimization + 'Fld/Fst<mem>Fld<mem>2Fld/Fst<mem>Fld<reg>',hp1);
                   taicpu(p).changeopsize(S_FL);
                   taicpu(p).loadreg(0,NR_ST);
                 end
@@ -6722,11 +6726,10 @@ unit aoptx86;
               begin
                 case taicpu(hp2).opcode Of
                   A_FMULP,A_FADDP,A_FSUBP,A_FDIVP,A_FSUBRP,A_FDIVRP:
-            { change                        to
-                fld/fst  mem1    (hp1)      fld/fst    mem1
-                fld      mem2    (p)        fxxx       mem2
-                fxxxp    st, st1 (hp2)                      }
-
+                  { change                        to
+                      fld/fst  mem1    (hp1)      fld/fst    mem1
+                      fld      mem2    (p)        fxxx       mem2
+                      fxxxp    st, st1 (hp2)                      }
                     begin
                       case taicpu(hp2).opcode Of
                         A_FADDP: taicpu(p).opcode := A_FADD;
@@ -6738,6 +6741,7 @@ unit aoptx86;
                         else
                           internalerror(2019050533);
                       end;
+                      DebugMsg(SPeepholeOptimization + 'Fld/FstFldF*2Fld/FstF*',p);
                       RemoveInstruction(hp2);
                     end
                   else
