@@ -1347,6 +1347,14 @@ var
   function BIO_ctrl(bp: PBIO; cmd: cint; larg: clong; parg: Pointer): clong;
   function BIO_read_filename(b: PBIO; const name: PChar): cint;
 
+  function BIO_push(b: PBIO; append: PBIO): PBIO;
+  function BIO_pop(b: PBIO): PBIO; 
+  function BIO_gets(b: PBIO; buf: PChar; size: cint): cint;
+  function BIO_puts(b: PBIO; const buf: PChar): cint; 
+  procedure BIO_set_mem_eof_return(b: PBIO; v: cint);
+  procedure BIO_set_mem_buf(b: PBIO; bm: pointer; c: cint); 
+  procedure BIO_get_mem_ptr(b: PBIO; var pp: pointer);
+
   function BIO_s_file: pBIO_METHOD;
   function BIO_new_file(const filename: PChar; const mode: PChar): pBIO;
   function BIO_new_mem_buf(buf: pointer; len: integer): pBIO;
@@ -1798,6 +1806,14 @@ type
 
   TBIO_ctrl = function(bp: PBIO; cmd: cint; larg: clong; parg: Pointer): clong; cdecl;
 
+  TBIO_push = function(b: PBIO; append: PBIO): PBIO;cdecl;
+  TBIO_pop = function(b: PBIO): PBIO;cdecl; 
+  TBIO_gets = function(b: PBIO; buf: PChar; size: cint): cint;cdecl;
+  TBIO_puts = function(b: PBIO; const buf: PChar): cint;cdecl;
+  TBIO_set_mem_eof_return = procedure(b: PBIO; v: cint);cdecl;
+  TBIO_set_mem_buf = procedure(b: PBIO; bm: pointer; c: cint);cdecl; 
+  TBIO_get_mem_ptr = procedure (b: PBIO; var pp: pointer);cdecl;
+
   TBIO_s_file = function: pBIO_METHOD; cdecl;
   TBIO_new_file = function(const filename: PChar; const mode: PChar): pBIO; cdecl;
   TBIO_new_mem_buf = function(buf: pointer; len: integer): pBIO; cdecl;
@@ -2039,6 +2055,14 @@ var
   // BIO Functions
 
   _BIO_ctrl: TBIO_ctrl = nil;
+
+  _BIO_push: TBIO_push = nil;
+  _BIO_pop: TBIO_pop = nil;
+  _BIO_gets: TBIO_gets = nil;
+  _BIO_puts: TBIO_puts = nil;
+  _BIO_set_mem_eof_return: TBIO_set_mem_eof_return = nil;
+  _BIO_set_mem_buf: TBIO_set_mem_buf = nil;
+  _BIO_get_mem_ptr: TBIO_get_mem_ptr = nil;
 
   _BIO_s_file: TBIO_s_file = nil;
   _BIO_new_file: TBIO_new_file = nil;
@@ -3852,6 +3876,56 @@ begin
     Result := -1;
 end;
 
+function BIO_push(b: PBIO; append: PBIO): PBIO;
+begin
+  if InitSSLInterface and Assigned(_BIO_push) then
+    Result := _BIO_push(b,append)
+  else
+    Result := nil;
+end;
+
+function BIO_pop(b: PBIO): PBIO;
+begin
+  if InitSSLInterface and Assigned(_BIO_pop) then
+    Result := _BIO_pop(b)
+  else
+    Result := nil;
+end;
+
+function BIO_gets(b: PBIO; buf: PChar; size: cint): cint;
+begin
+  if InitSSLInterface and Assigned(_BIO_gets) then
+    Result := _BIO_gets(b,buf,size)
+  else
+    Result := -1;
+end;
+
+function BIO_puts(b: PBIO; const buf: PChar): cint;
+begin
+  if InitSSLInterface and Assigned(_BIO_puts) then
+    Result := _BIO_puts(b,buf)
+  else
+    Result := -1;
+end;
+
+procedure BIO_set_mem_eof_return(b: PBIO; v: cint);
+begin
+  if InitSSLInterface and Assigned(_BIO_set_mem_eof_return) then
+    _BIO_set_mem_eof_return(b,v);
+end;
+
+procedure BIO_set_mem_buf(b: PBIO; bm: pointer; c: cint);
+begin
+  if InitSSLInterface and Assigned(_BIO_set_mem_buf) then
+    _BIO_set_mem_buf(b,bm,c);
+end;
+
+procedure BIO_get_mem_ptr(b: PBIO; var pp: pointer);
+begin
+  if InitSSLInterface and Assigned(_BIO_get_mem_ptr) then
+    _BIO_get_mem_ptr(b,pp);
+end;
+
 function BIO_read_filename(b: PBIO; const name: PChar): cint;
 begin
   Result := BIO_ctrl(b, BIO_C_SET_FILENAME, BIO_CLOSE or BIO_FP_READ, name);
@@ -5084,6 +5158,13 @@ begin
   _PEM_write_bio_PKCS7 := GetProcAddr(SSLUtilHandle,'PEM_write_bio_PKCS7');
   // BIO
   _BIO_ctrl := GetProcAddr(SSLUtilHandle, 'BIO_ctrl');
+  _BIO_push:= GetProcAddr(SSLUtilHandle, 'BIO_push');
+  _BIO_pop:= GetProcAddr(SSLUtilHandle, 'BIO_pop');
+  _BIO_gets:= GetProcAddr(SSLUtilHandle, 'BIO_gets');
+  _BIO_puts:= GetProcAddr(SSLUtilHandle, 'BIO_puts');
+  _BIO_set_mem_eof_return:= GetProcAddr(SSLUtilHandle, 'BIO_set_mem_eof_return');
+  _BIO_set_mem_buf:= GetProcAddr(SSLUtilHandle, 'BIO_set_mem_buf');
+  _BIO_get_mem_ptr:= GetProcAddr(SSLUtilHandle, 'BIO_get_mem_ptr');
   _BIO_s_file := GetProcAddr(SSLUtilHandle, 'BIO_s_file');
   _BIO_new_file := GetProcAddr(SSLUtilHandle, 'BIO_new_file');
   _BIO_new_mem_buf := GetProcAddr(SSLUtilHandle, 'BIO_new_mem_buf');
