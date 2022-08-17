@@ -945,15 +945,18 @@ function sinh(x : float) : float;
      sinh:=copysign(0.5*(temp-1.0/temp),x);
   end;
 
-Const MaxTanh = 5678.22249441322; // Ln(MaxExtended)/2
-
 function tanh(x : float) : float;
-  var Temp : float;
+  var
+    tmp:float;
   begin
-     if x>MaxTanh then exit(1.0)
-     else if x<-MaxTanh then exit (-1.0);
-     temp:=exp(-2*x);
-     tanh:=(1-temp)/(1+temp)
+    if x < 0 then begin
+      tmp:=exp(2*x); 
+      result:=(tmp-1)/(1+tmp)
+    end
+    else begin
+      tmp:=exp(-2*x);
+      result:=(1-tmp)/(1+tmp)
+    end;
   end;
 
 function arccosh(x : float) : float; inline;
