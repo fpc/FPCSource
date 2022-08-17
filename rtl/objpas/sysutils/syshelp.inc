@@ -369,25 +369,37 @@ end;
 
 class function TStringHelper.Join(const Separator: string;
   const Values: array of string; StartIndex: SizeInt; ACount: SizeInt): string;
-
 Var
-  I,L,VLen : SizeInt;
-
+  VLen,I,CountLim,NR,NSep,N : SizeInt;
+  Rp: PChar;
 begin
-  VLen:=High(Values);
-  If (ACount<0) or ((StartIndex>0) and (StartIndex>VLen)) then
+  VLen:=System.Length(Values);
+  If (ACount=0)  then
+    Exit('');
+  CountLim:=VLen-StartIndex;
+  if ACount>CountLim then
+    ACount:=CountLim;
+  If (ACount<0) or (StartIndex>VLen) then
     raise ERangeError.Create(SRangeError);
-  If (ACount=0) or (VLen<0) then
-    Result:=''
-  else
-    begin
-    L:=StartIndex+ACount-1;
-    if L>Vlen then
-      L:=VLen;
-    Result:=Values[StartIndex];
-    For I:=StartIndex+1 to L do
-      Result:=Result+Separator+Values[I];
-    end;
+  if ACount=1 then
+    exit(Values[StartIndex]);
+  NSep:=System.Length(Separator);
+  NR:=(ACount-1)*NSep;
+  for I:=StartIndex to StartIndex+ACount-1 do
+    NR:=NR+System.Length(Values[I]);
+  SetLength(Result,NR);
+  Rp:=@Result[1];
+  for I:=StartIndex to StartIndex+ACount-1 do
+     begin
+        if I>StartIndex then
+          begin
+            Move(separator[1],Rp^,NSep*sizeof(Char));
+            Rp:=Rp+NSep;
+          end;
+        N:=System.Length(Values[I]);
+        Move(Values[I][1],Rp^,N*sizeof(Char));
+        Rp:=Rp+N;
+     end;
 end;
 
 
