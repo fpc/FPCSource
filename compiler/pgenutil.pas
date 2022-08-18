@@ -1099,10 +1099,10 @@ uses
                   { Build VMT indexes for classes and read hint directives }
                   objectdef:
                     begin
-                      if replaydepth>current_scanner.replay_stack_depth then
+                      if replaydepth<current_scanner.replay_stack_depth then
                         begin
                           try_consume_hintdirective(srsym.symoptions,srsym.deprecatedmsg);
-                          if replaydepth>current_scanner.replay_stack_depth then
+                          if replaydepth<current_scanner.replay_stack_depth then
                             consume(_SEMICOLON);
                         end;
 
@@ -1114,24 +1114,24 @@ uses
                   procvardef:
                     begin
                       hintsprocessed:=false;
-                      if replaydepth>current_scanner.replay_stack_depth then
+                      if replaydepth<current_scanner.replay_stack_depth then
                         begin
                           if not check_proc_directive(true) then
                             begin
                               hintsprocessed:=try_consume_hintdirective(ttypesym(srsym).symoptions,ttypesym(srsym).deprecatedmsg);
-                              if replaydepth>current_scanner.replay_stack_depth then
+                              if replaydepth<current_scanner.replay_stack_depth then
                                 consume(_SEMICOLON);
                             end
                           else
                             hintsprocessed:=true;
                         end;
-                      if replaydepth>current_scanner.replay_stack_depth then
+                      if replaydepth<current_scanner.replay_stack_depth then
                         parse_var_proc_directives(ttypesym(srsym));
                       handle_calling_convention(tprocvardef(result),hcc_default_actions_intf);
-                      if not hintsprocessed and (replaydepth>current_scanner.replay_stack_depth) then
+                      if not hintsprocessed and (replaydepth<current_scanner.replay_stack_depth) then
                         begin
                           try_consume_hintdirective(ttypesym(srsym).symoptions,ttypesym(srsym).deprecatedmsg);
-                          if replaydepth>current_scanner.replay_stack_depth then
+                          if replaydepth<current_scanner.replay_stack_depth then
                             consume(_SEMICOLON);
                         end;
                     end;
@@ -1157,9 +1157,9 @@ uses
                     end;
                   else
                     { parse hint directives for records and arrays }
-                    if replaydepth>current_scanner.replay_stack_depth then begin
+                    if replaydepth<current_scanner.replay_stack_depth then begin
                       try_consume_hintdirective(srsym.symoptions,srsym.deprecatedmsg);
-                      if replaydepth>current_scanner.replay_stack_depth then
+                      if replaydepth<current_scanner.replay_stack_depth then
                         consume(_SEMICOLON);
                     end;
                 end;
