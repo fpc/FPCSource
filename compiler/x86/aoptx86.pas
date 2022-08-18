@@ -2761,7 +2761,7 @@ unit aoptx86;
       var
         GetNextInstruction_p, TempRegUsed, CrossJump: Boolean;
         PreMessage, RegName1, RegName2, InputVal, MaskNum: string;
-        NewSize: topsize;
+        NewSize: topsize; NewOffset: asizeint;
         p_SourceReg, p_TargetReg, NewMMReg: TRegister;
         SourceRef, TargetRef: TReference;
         MovAligned, MovUnaligned: TAsmOp;
@@ -4609,54 +4609,155 @@ unit aoptx86;
             exit;
           end;
 
-{$ifdef x86_64}
-        { Convert:
-            movq x(ref),%reg64
-            shrq y,%reg64
-          To:
-            movl x+4(ref),%reg32
-            shrl y-32,%reg32 (Remove if y = 32)
-        }
-        if (taicpu(p).opsize = S_Q) and
-          (taicpu(p).oper[0]^.typ = top_ref) and { Second operand will be a register }
-          (taicpu(p).oper[0]^.ref^.offset <= $7FFFFFFB) and
-          MatchInstruction(hp1, A_SHR, [taicpu(p).opsize]) and
+        if (taicpu(p).oper[0]^.typ = top_ref) and { Second operand will be a register }
+          MatchInstruction(hp1, A_SHR, A_SAR, [taicpu(p).opsize]) and
           MatchOpType(taicpu(hp1), top_const, top_reg) and
-          (taicpu(hp1).oper[0]^.val >= 32) and
           (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) then
           begin
             RegName1 := debug_regname(taicpu(hp1).oper[1]^.reg);
-            PreMessage := 'movq ' + debug_operstr(taicpu(p).oper[0]^) + ',' + RegName1 + '; ' +
-              'shrq $' + debug_tostr(taicpu(hp1).oper[0]^.val) + ',' + RegName1 + ' -> movl ';
-
-            { Convert to 32-bit }
-            setsubreg(taicpu(p).oper[1]^.reg, R_SUBD);
-            taicpu(p).opsize := S_L;
-
-            Inc(taicpu(p).oper[0]^.ref^.offset, 4);
-
-            PreMessage := PreMessage + debug_operstr(taicpu(p).oper[0]^) + ',' + debug_regname(taicpu(p).oper[1]^.reg);
-            if (taicpu(hp1).oper[0]^.val = 32) then
+{$ifdef x86_64}
+            { Convert:
+                movq x(ref),%reg64
+                shrq y,%reg64
+              To:
+                movl x+4(ref),%reg32
+                shrl y-32,%reg32 (Remove if y = 32)
+            }
+            if (taicpu(p).opsize = S_Q) and
+              (taicpu(hp1).opcode = A_SHR) and
+              (taicpu(hp1).oper[0]^.val >= 32) then
               begin
-                DebugMsg(SPeepholeOptimization + PreMessage + ' (MovShr2Mov)', p);
-                RemoveInstruction(hp1);
-              end
-            else
-              begin
-                { This will potentially open up more arithmetic operations since
-                  the peephole optimizer now has a big hint that only the lower
-                  32 bits are currently in use (and opcodes are smaller in size) }
-                setsubreg(taicpu(hp1).oper[1]^.reg, R_SUBD);
-                taicpu(hp1).opsize := S_L;
+                PreMessage := 'movq ' + debug_operstr(taicpu(p).oper[0]^) + ',' + RegName1 + '; ' +
+                  'shrq $' + debug_tostr(taicpu(hp1).oper[0]^.val) + ',' + RegName1 + ' -> movl ';
 
-                Dec(taicpu(hp1).oper[0]^.val, 32);
-                DebugMsg(SPeepholeOptimization + PreMessage +
-                  '; shrl $' + debug_tostr(taicpu(hp1).oper[0]^.val) + ',' + debug_regname(taicpu(hp1).oper[1]^.reg) + ' (MovShr2MovShr)', p);
+                { Convert to 32-bit }
+                setsubreg(taicpu(p).oper[1]^.reg, R_SUBD);
+                taicpu(p).opsize := S_L;
+
+                Inc(taicpu(p).oper[0]^.ref^.offset, 4);
+
+                PreMessage := PreMessage + debug_operstr(taicpu(p).oper[0]^) + ',' + debug_regname(taicpu(p).oper[1]^.reg);
+                if (taicpu(hp1).oper[0]^.val = 32) then
+                  begin
+                    DebugMsg(SPeepholeOptimization + PreMessage + ' (MovShr2Mov)', p);
+                    RemoveInstruction(hp1);
+                  end
+                else
+                  begin
+                    { This will potentially open up more arithmetic operations since
+                      the peephole optimizer now has a big hint that only the lower
+                      32 bits are currently in use (and opcodes are smaller in size) }
+                    setsubreg(taicpu(hp1).oper[1]^.reg, R_SUBD);
+                    taicpu(hp1).opsize := S_L;
+
+                    Dec(taicpu(hp1).oper[0]^.val, 32);
+                    DebugMsg(SPeepholeOptimization + PreMessage +
+                      '; shrl $' + debug_tostr(taicpu(hp1).oper[0]^.val) + ',' + debug_regname(taicpu(hp1).oper[1]^.reg) + ' (MovShr2MovShr)', p);
+                  end;
+                Result := True;
+                Exit;
               end;
-            Result := True;
-            Exit;
-          end;
 {$endif x86_64}
+            { Convert:
+                movl   x(ref),%reg
+                shrl   $24,%reg
+              To:
+                movzbl x+3(ref),%reg
+
+              Do similar things for movl; shrl $16 -> movzwl and movw; shrw $8 -> movzbw
+
+              Also accept sar instead of shr, but convert to movsx instead of movzx
+            }
+            if taicpu(hp1).opcode = A_SHR then
+              MovUnaligned := A_MOVZX
+            else
+              MovUnaligned := A_MOVSX;
+
+            NewSize := S_NO;
+            NewOffset := 0;
+            case taicpu(p).opsize of
+              S_B:
+                { No valid combinations };
+              S_W:
+                if (taicpu(hp1).oper[0]^.val = 8) then
+                  begin
+                    NewSize := S_BW;
+                    NewOffset := 1;
+                  end;
+              S_L:
+                case taicpu(hp1).oper[0]^.val of
+                  16:
+                    begin
+                      NewSize := S_WL;
+                      NewOffset := 2;
+                    end;
+                  24:
+                    begin
+                      NewSize := S_BL;
+                      NewOffset := 3;
+                    end;
+                  else
+                    ;
+                end;
+{$ifdef x86_64}
+              S_Q:
+                case taicpu(hp1).oper[0]^.val of
+                  32:
+                    begin
+                      if taicpu(hp1).opcode = A_SAR then
+                        begin
+                          { 32-bit to 64-bit is a distinct instruction }
+                          MovUnaligned := A_MOVSXD;
+                          NewSize := S_LQ;
+                          NewOffset := 4;
+                        end
+                      else
+                        { Should have been handled by MovShr2Mov above }
+                        InternalError(2022081811);
+                    end;
+                  48:
+                    begin
+                      NewSize := S_WQ;
+                      NewOffset := 6;
+                    end;
+                  56:
+                    begin
+                      NewSize := S_BQ;
+                      NewOffset := 7;
+                    end;
+                  else
+                    ;
+                end;
+{$endif x86_64}
+              else
+                InternalError(2022081810);
+            end;
+
+            if (NewSize <> S_NO) and
+              (taicpu(p).oper[0]^.ref^.offset <= $7FFFFFFF - NewOffset) then
+              begin
+                PreMessage := 'mov' + debug_opsize2str(taicpu(p).opsize) + ' ' + debug_operstr(taicpu(p).oper[0]^) + ',' + RegName1 + '; ' +
+                  'shr' + debug_opsize2str(taicpu(p).opsize) + ' $' + debug_tostr(taicpu(hp1).oper[0]^.val) + ',' + RegName1 + ' -> ' +
+                  debug_op2str(MovUnaligned);
+
+{$ifdef x86_64}
+                if MovUnaligned <> A_MOVSXD then
+                  { Don't add size suffix for MOVSXD }
+{$endif x86_64}
+                  PreMessage := PreMessage + debug_opsize2str(NewSize);
+
+                Inc(taicpu(p).oper[0]^.ref^.offset, NewOffset);
+                taicpu(p).opcode := MovUnaligned;
+                taicpu(p).opsize := NewSize;
+
+                DebugMsg(SPeepholeOptimization + PreMessage + ' ' +
+                  debug_operstr(taicpu(p).oper[0]^) + ',' + debug_regname(taicpu(hp1).oper[1]^.reg) + ' (MovShr/Sar2Movx)', p);
+
+                RemoveInstruction(hp1);
+                Result := True;
+                Exit;
+              end;
+          end;
 
         { Backward optimisation.  If we have:
             func.  %reg1,%reg2
