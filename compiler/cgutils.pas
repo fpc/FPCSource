@@ -412,7 +412,10 @@ uses
         ad,anc,delta,q1,r1,q2,r2,t: aWord;
         two_N_minus_1: aWord;
       begin
-        assert((d<-1) or (d>1));
+        if (d>=-1) and (d<=1) then
+          { Division by unity, -1 or 0 should have been caught earlier }
+          InternalError(2022081801);
+
         two_N_minus_1:=aWord(1) shl (N-1);
 
         ad:=abs(d);
