@@ -945,101 +945,166 @@ implementation
 ****************************************************************************}
 
 
-     procedure DefaultReplacements(var s:ansistring);
-{$ifdef mswindows}
-       procedure ReplaceSpecialFolder(const MacroName: string; const ID: integer);
-         begin
-           // Only try to receive the special folders (and thus dynamically
-           // load shfolder.dll) when that's needed.
-           if pos(MacroName,s)>0 then
-             Replace(s,MacroName,GetWindowsSpecialDir(ID));
-         end;
+     type
+       TGetStringProc = function(param: pointer): ansistring;
 
-{$endif mswindows}
-{$ifdef openbsd}
-       function GetOpenBSDLocalBase: ansistring;
-         var
-           envvalue: pchar;
-         begin
-           envvalue := GetEnvPChar('LOCALBASE');
-           if assigned(envvalue) then
-             Result:=envvalue
-           else
-             Result:='/usr/local';
-           FreeEnvPChar(envvalue);
-         end;
-       function GetOpenBSDX11Base: ansistring;
-         var
-           envvalue: pchar;
-         begin
-           envvalue := GetEnvPChar('X11BASE');
-           if assigned(envvalue) then
-             Result:=envvalue
-           else
-             Result:='/usr/X11R6';
-           FreeEnvPChar(envvalue);
-         end;
-{$endif openbsd}
-       var
-         envstr: string;
-         envvalue: pchar;
-         i: integer;
+     function DefaultReplacements_GetAnsistring(param: pointer): ansistring;
        begin
-         { Replace some macros }
-         Replace(s,'$FPCVERSION',version_string);
-         Replace(s,'$FPCFULLVERSION',full_version_string);
-         Replace(s,'$FPCDATE',date_string);
-         Replace(s,'$FPCCPU',target_cpu_string);
-         Replace(s,'$FPCOS',target_os_string);
-         Replace(s,'$FPCBINDIR',exepath);
-         if (tf_use_8_3 in Source_Info.Flags) or
-            (tf_use_8_3 in Target_Info.Flags) then
-           Replace(s,'$FPCTARGET',target_os_string)
+         result := ansistring(param);
+       end;
+
+     function DefaultReplacements_GetFPCTarget(param: pointer): ansistring;
+       begin
+         if tf_use_8_3 in Source_Info.Flags + Target_Info.Flags then
+           result := target_os_string
          else
-           Replace(s,'$FPCTARGET',target_full_string);
-         Replace(s,'$FPCSUBARCH',lower(cputypestr[init_settings.cputype]));
-         Replace(s,'$FPCABI',lower(abiinfo[target_info.abi].name));
+           result := target_full_string;
+       end;
+
+     function DefaultReplacements_GetFPCSubArch(param: pointer): ansistring;
+       begin
+         result := lower(cputypestr[init_settings.cputype]);
+       end;
+
+     function DefaultReplacements_GetFPCABI(param: pointer): ansistring;
+       begin
+         result := lower(abiinfo[target_info.abi].name);
+       end;
+
+{$ifdef mswindows}
+     function DefaultReplacements_GetWindowsSpecialDir(param: pointer): ansistring;
+       begin
+         result := GetWindowsSpecialDir(PtrUint(param));
+       end;
+{$endif}
+
 {$ifdef i8086}
-         Replace(s,'$FPCMEMORYMODEL',lower(x86memorymodelstr[init_settings.x86memorymodel]));
+     function DefaultReplacements_GetFPCMemoryModel(param: pointer): ansistring;
+       begin
+         result := lower(x86memorymodelstr[init_settings.x86memorymodel]);
+       end;
+{$endif}
+
+{$ifdef openbsd}
+     function DefaultReplacements_GetOpenBSDLocalBase(param: pointer): ansistring;
+       var
+         envvalue: pchar;
+       begin
+         envvalue := GetEnvPChar('LOCALBASE');
+         if assigned(envvalue) then
+           Result:=envvalue
+         else
+           Result:='/usr/local';
+         FreeEnvPChar(envvalue);
+       end;
+
+     function DefaultReplacements_GetOpenBSDX11Base(param: pointer): ansistring;
+       var
+         envvalue: pchar;
+       begin
+         envvalue := GetEnvPChar('X11BASE');
+         if assigned(envvalue) then
+           Result:=envvalue
+         else
+           Result:='/usr/X11R6';
+         FreeEnvPChar(envvalue);
+       end;
+{$endif openbsd}
+
+     procedure DefaultReplacements(var s:ansistring);
+       function DoReplacements(const s: ansistring; depth: cardinal): ansistring;
+         const
+           PanicLen = 4*1024;
+           PanicDepth = 8;
+         var
+           us, envstr: ansistring;
+           sp, litStart, dollar2p, ofs: SizeInt;
+           envvalue: pchar;
+
+           procedure ReplaceAtSp(nsample: SizeInt; const repl: ansistring);
+             begin
+               DoReplacements := DoReplacements+Copy(s,litStart,sp-litStart)+DoReplacements(repl,depth+1);
+               sp := sp+nsample;
+               litStart := sp;
+             end;
+
+           function TryReplace(const sample: ansistring; getRepl: TGetStringProc; param: pointer=nil): boolean;
+             begin
+               if us='' then
+                 us := Upper(s);
+               result := (length(sample)<=length(s)-sp+1) and (CompareChar(sample[1],us[sp],length(sample))=0);
+               if result then
+                 ReplaceAtSp(length(sample),getRepl(param));
+             end;
+
+           function TryReplace(const sample: ansistring; const repl: ansistring): boolean;
+             begin
+               result := TryReplace(sample,@DefaultReplacements_GetAnsistring,pointer(repl));
+             end;
+
+         begin
+           if depth>=PanicDepth then
+             exit(s);
+           us := ''; { Created on demand. }
+           sp := 1;
+           litStart := sp;
+           result := '';
+           repeat
+             sp := Pos('$',s,sp);
+             if sp<=0 then
+               break;
+             if length(result)>=PanicLen then
+               exit(s);
+             { Replace some macros }
+             if    TryReplace('$FPCVERSION',version_string)
+                or TryReplace('$FPCFULLVERSION',full_version_string)
+                or TryReplace('$FPCDATE',date_string)
+                or TryReplace('$FPCCPU',target_cpu_string)
+                or TryReplace('$FPCOS',target_os_string)
+                or TryReplace('$FPCBINDIR',exepath)
+                or TryReplace('$FPCTARGET',@DefaultReplacements_GetFPCTarget)
+                or TryReplace('$FPCSUBARCH',@DefaultReplacements_GetFPCSubArch)
+                or TryReplace('$FPCABI',@DefaultReplacements_GetFPCABI)
+{$ifdef i8086}
+                    or TryReplace('$FPCMEMORYMODEL',@DefaultReplacements_GetFPCMemoryModel)
 {$else i8086}
-         Replace(s,'$FPCMEMORYMODEL','flat');
+                    or TryReplace('$FPCMEMORYMODEL','flat')
 {$endif i8086}
 {$ifdef mswindows}
-         ReplaceSpecialFolder('$LOCAL_APPDATA',CSIDL_LOCAL_APPDATA);
-         ReplaceSpecialFolder('$APPDATA',CSIDL_APPDATA);
-         ReplaceSpecialFolder('$COMMON_APPDATA',CSIDL_COMMON_APPDATA);
-         ReplaceSpecialFolder('$PERSONAL',CSIDL_PERSONAL);
-         ReplaceSpecialFolder('$PROGRAM_FILES',CSIDL_PROGRAM_FILES);
-         ReplaceSpecialFolder('$PROGRAM_FILES_COMMON',CSIDL_PROGRAM_FILES_COMMON);
-         ReplaceSpecialFolder('$PROFILE',CSIDL_PROFILE);
+                or TryReplace('$LOCAL_APPDATA',@DefaultReplacements_GetWindowsSpecialDir,pointer(PtrUint(CSIDL_LOCAL_APPDATA)))
+                or TryReplace('$APPDATA',@DefaultReplacements_GetWindowsSpecialDir,pointer(PtrUint(CSIDL_APPDATA)))
+                or TryReplace('$COMMON_APPDATA',@DefaultReplacements_GetWindowsSpecialDir,pointer(PtrUint(CSIDL_COMMON_APPDATA)))
+                or TryReplace('$PERSONAL',@DefaultReplacements_GetWindowsSpecialDir,pointer(PtrUint(CSIDL_PERSONAL)))
+                or TryReplace('$PROGRAM_FILES',@DefaultReplacements_GetWindowsSpecialDir,pointer(PtrUint(CSIDL_PROGRAM_FILES)))
+                or TryReplace('$PROGRAM_FILES_COMMON',@DefaultReplacements_GetWindowsSpecialDir,pointer(PtrUint(CSIDL_PROGRAM_FILES_COMMON)))
+                or TryReplace('$PROFILE',@DefaultReplacements_GetWindowsSpecialDir,pointer(PtrUint(CSIDL_PROFILE)))
 {$endif mswindows}
 {$ifdef openbsd}
-         Replace(s,'$OPENBSD_LOCALBASE',GetOpenBSDLocalBase);
-         Replace(s,'$OPENBSD_X11BASE',GetOpenBSDX11Base);
-{$endif openbsd}
-         { Replace environment variables between dollar signs }
-         i := pos('$',s);
-         while i>0 do
-          begin
-            envstr:=copy(s,i+1,length(s)-i);
-            i:=pos('$',envstr);
-            if i>0 then
-             begin
-               envstr := copy(envstr,1,i-1);
-               envvalue := GetEnvPChar(envstr);
-               if assigned(envvalue) then
-                 begin
-                 Replace(s,'$'+envstr+'$',envvalue);
-                 // Look if there is another env.var in the string
-                 i:=pos('$',s);
-                 end
-               else
-                 // if the env.var is not set, do not replace the env.variable
-                 // and stop looking for more env.var within the string
-                 i := 0;
-              FreeEnvPChar(envvalue);
-             end;
-          end;
+                or TryReplace('$OPENBSD_LOCALBASE',@DefaultReplacements_GetOpenBSDLocalBase)
+                or TryReplace('$OPENBSD_X11BASE',@DefaultReplacements_GetOpenBSDX11Base)
+{$endif}
+               then
+                 continue;
+
+             { Replace environment variables between dollar signs }
+             dollar2p := Pos('$',s,sp+length('$'));
+             if dollar2p<=0 then
+               break;
+             envstr := copy(s,sp+length('$'),dollar2p-(sp+length('$')));
+             envvalue := GetEnvPChar(envstr);
+             if assigned(envvalue) then
+               ReplaceAtSp(length('$')+length(envstr)+length('$'),envvalue)
+             else
+               sp:=dollar2p+length('$'); { Skip up to and including the second $. }
+             FreeEnvPChar(envvalue);
+           until false;
+           if litStart=1 then
+             exit(s);
+           result := result+Copy(s,litStart,sp-litStart);
+         end;
+
+       begin
+         s := DoReplacements(s,0);
        end;
 
 
