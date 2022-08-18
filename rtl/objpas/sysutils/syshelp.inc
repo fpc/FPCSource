@@ -651,12 +651,19 @@ function TStringHelper.IndexOf(AValue: Char; StartIndex: SizeInt;
   ACount: SizeInt): SizeInt;
 
 Var
-  S : String;
+  CountLim : SizeInt;
 
 begin
-  S:=System.Copy(Self,StartIndex+1,ACount);
-  Result:=Pos(AValue,S)-1;
-  if Result<>-1 then
+  if StartIndex<0 then
+    StartIndex:=0;
+  CountLim:=System.Length(Self)-StartIndex;
+  if ACount>CountLim then
+    ACount:=CountLim;
+  if ACount<=0 then
+    Exit(-1);
+  // pointer casts are to access self as 0 based index!
+  Result:=IndexChar(PChar(Pointer(self))[StartIndex],ACount,AValue);
+  if Result>=0 then
     Result:=Result+StartIndex;
 end;
 
@@ -665,13 +672,30 @@ function TStringHelper.IndexOf(const AValue: string; StartIndex: SizeInt;
   ACount: SizeInt): SizeInt;
 
 Var
-  S : String;
+  CountLim,NV,Ofs : SizeInt;
+  SP,SE : PChar;
 
 begin
-  S:=System.Copy(Self,StartIndex+1,ACount);
-  Result:=Pos(AValue,S)-1;
-  if Result<>-1 then
-    Result:=Result+StartIndex;
+  if StartIndex<0 then
+    StartIndex:=0;
+  CountLim:=System.Length(Self)-StartIndex;
+  if ACount>CountLim then
+    ACount:=CountLim;
+  NV:=System.Length(AValue);
+  if (NV>0) and (ACount>=NV) then
+    begin
+      SP:=PChar(Pointer(Self))+StartIndex;
+      SE:=SP+ACount-NV+1;
+      repeat
+        Ofs:=IndexChar(SP^,SE-SP,PChar(Pointer(AValue))[0]);
+        if Ofs<0 then
+          Break;
+        SP:=SP+Ofs+1;
+        if CompareChar(SP^,PChar(Pointer(AValue))[1],NV-1)=0 then
+          Exit(SP-PChar(Pointer(Self))-1);
+      until false;
+    end;
+  Result:=-1;
 end;
 
 function TStringHelper.IndexOfUnQuoted(const AValue: string; StartQuote,
