@@ -1964,6 +1964,7 @@ begin
            'd' :
              begin
                l:=Pos(':=',more);
+               DefaultReplacements(more);
                if l>0 then
                  hs:=copy(more,1,l-1)
                else
