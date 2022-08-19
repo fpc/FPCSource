@@ -412,7 +412,7 @@ interface
 
     procedure tx86moddivnode.pass_generate_code;
       var
-        hreg1,hreg2,hreg3,rega,regd,tempreg:Tregister;
+        hreg1,hreg2,hreg3,hreg4,rega,regd,tempreg:Tregister;
         power:longint;
         instr:TAiCpu;
         op:Tasmop;
@@ -425,12 +425,161 @@ interface
       label
         DefaultDiv;
 
+{$ifndef i8086}
+        procedure DoBMI2ReciprocalDivision;
+          var
+            exp_regd: Tregister;
+            exp_opsize: topsize;
+            DoMod: Boolean;
+            SubSize: TSubRegister;
+            divsize: Byte;
+          begin
+            DoMod := (nodetype = modn);
+
+            { Extend 32-bit divides to 64-bit registers and 16-bit
+              divides to 32-bit registers.  Because the domain of
+              the left input is only up to 2^(X/2 - 1) - 1, (i.e.
+              2^31 - 1 for 64-bit and 2^15 - 1 for 32-bit), a much
+              larger error in the reciprocal is permitted. }
+            if (resultdef.size <= {$ifdef x86_64}4{$else x86_64}2{$endif x86_64}) then
+              begin
+{$ifdef x86_64}
+                if resultdef.size = 4 then
+                  divsize := 64
+                else
+{$endif x86_64}
+                  divsize := 32;
+
+                calc_divconst_magic_unsigned(divsize, d, m, m_add, s);
+
+                { Should never have a zero shift and a magic add together }
+                if (s = 0) and m_add then
+                  InternalError(2021090203);
+
+                { Extend the input and out registers (the peephole optimizer should
+                  help clean up unnecessary MOVZX instructions }
+                hreg3 := hreg1;
+                case resultdef.size of
+{$ifdef x86_64}
+                  4:
+                    begin
+                      SubSize := R_SUBQ;
+                      setsubreg(hreg3, R_SUBQ);
+                      { Make sure the upper 32 bits are zero; the peephole
+                        optimizer will remove this instruction via MovAnd2Mov
+                        if it's not needed }
+                      emit_const_reg(A_AND, S_L, $FFFFFFFF, hreg1);
+                      exp_regd := NR_RDX;
+                      exp_opsize := S_Q;
+
+                      if m_add then
+                        { Append 1 to the tail end of the result }
+                        m := (m shr s) or ($8000000000000000 shr (s - 1))
+                      else
+                        m := m shr s;
+                    end;
+{$endif x86_64}
+                  1, 2:
+                    begin
+                      { MULX doesn't have a 16-bit version }
+                      SubSize := R_SUBD;
+                      setsubreg(hreg3, R_SUBD);
+                      if resultdef.size = 1 then
+                        exp_opsize := S_BL
+                      else
+                        exp_opsize := S_WL;
+                      emit_reg_reg(A_MOVZX, exp_opsize, hreg1, hreg3);
+                      exp_regd := NR_EDX;
+                      exp_opsize := S_L;
+
+                      if m_add then
+                        { Append 1 to the tail end of the result }
+                        m := (m shr s) or ($80000000 shr (s - 1))
+                      else
+                        m := m shr s;
+                    end;
+                  else
+                    InternalError(2021090211);
+                end;
+
+                Inc(m);
+
+                cg.getcpuregister(current_asmdata.CurrAsmList, exp_regd);
+                emit_const_reg(A_MOV, exp_opsize, aint(m), exp_regd);
+                hreg2 := cg.getintregister(current_asmdata.CurrAsmList, cgsize);
+                hreg4 := hreg2;
+                setsubreg(hreg4, SubSize);
+
+                emit_reg_reg_reg(A_MULX, exp_opsize, hreg3, hreg4, hreg4);
+                cg.ungetcpuregister(current_asmdata.CurrAsmList, exp_regd);
+              end
+            else
+              begin
+                calc_divconst_magic_unsigned(resultdef.size * 8, d, m, m_add, s);
+
+                { Should never have a zero shift and a magic add together }
+                if (s = 0) and m_add then
+                  InternalError(2021090204);
+
+                cg.getcpuregister(current_asmdata.CurrAsmList, regd);
+                emit_const_reg(A_MOV, opsize, aint(m), regd);
+                hreg2 := cg.getintregister(current_asmdata.CurrAsmList, cgsize);
+                emit_reg_reg_reg(A_MULX, opsize, hreg1, hreg2, hreg2);
+                cg.ungetcpuregister(current_asmdata.CurrAsmList, regd);
+
+                if m_add then
+                  begin
+                    { addition can overflow, shift first bit considering carry,
+                      then shift remaining bits in regular way. }
+                    cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+                    emit_reg_reg(A_ADD, opsize, hreg1, hreg2);
+                    emit_const_reg(A_RCR, opsize, 1, hreg2);
+                    cg.a_reg_dealloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
+                    dec(s);
+                  end;
+                if s<>0 then
+                  emit_const_reg(A_SHR, opsize, aint(s), hreg2);
+              end;
+
+            if DoMod then
+              begin
+                { Now multiply the quotient by the original denominator and
+                  subtract the product from the original numerator to get
+                  the remainder. }
+{$ifdef x86_64}
+                if (cgsize in [OS_64,OS_S64]) and (d > $7FFFFFFF) then { Cannot use 64-bit constants in IMUL }
+                  begin
+                    hreg4 := cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                    emit_const_reg(A_MOV, opsize, aint(d), hreg4);
+                    emit_reg_reg(A_IMUL, opsize, hreg4, hreg2);
+                  end
+                else
+{$endif x86_64}
+                  emit_const_reg(A_IMUL, opsize, aint(d), hreg2);
+
+                emit_reg_reg(A_SUB, opsize, hreg2, hreg1);
+                location.register := hreg1;
+              end
+            else
+              location.register := hreg2;
+          end;
+{$endif not i8086}
+
         procedure DoUnsignedReciprocalDivision;
           var
             exp_rega,exp_regd:Tregister;
             exp_opsize:topsize;
             DoMod: Boolean;
           begin
+{$ifndef i8086}
+            if (current_settings.cputype = cpu_core_avx2) then
+              begin
+                { If BMI2 is available, use more efficient instructions }
+                DoBMI2ReciprocalDivision;
+                Exit;
+              end;
+{$endif not i8086}
+
             DoMod := (nodetype = modn);
             { Extend 32-bit divides to 64-bit registers and 16-bit
               divides to 32-bit registers.  Because the domain of
@@ -560,7 +709,6 @@ interface
                     emit_reg_reg(A_IMUL,opsize,hreg3,regd);
                   end
                 else
-{$endif x86_64}
 {$endif x86_64}
                   emit_const_reg(A_IMUL,opsize,aint(d),regd);
 
