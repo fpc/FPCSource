@@ -594,47 +594,79 @@ end;
 
 
 function Sysvartoint (const v : Variant) : Longint;
+var Handler: TCustomVariantType;
+    dest: TVarData;
 begin
   if VarType(v) = varNull then
     if NullStrictConvert then
       VarCastError(varNull, varInt64)
     else
       Result := 0
+  else if FindCustomVariantType(TVarData(v).vType, Handler) then
+    begin
+      VariantInit(dest);
+      Handler.CastTo(dest, TVarData(v), varInteger);
+      Result := dest.vinteger;
+    end
   else
     Result := VariantToLongInt(TVarData(V));
 end;
 
 function Sysvartoint64 (const v : Variant) : Int64;
+var Handler: TCustomVariantType;
+    dest: TVarData;
 begin
   if VarType(v) = varNull then
     if NullStrictConvert then
       VarCastError(varNull, varInt64)
     else
       Result := 0
+  else if FindCustomVariantType(TVarData(v).vType, Handler) then
+    begin
+      VariantInit(dest);
+      Handler.CastTo(dest, TVarData(v), varInt64);
+      Result := dest.vint64;
+    end
   else
     Result := VariantToInt64(TVarData(V));
 end;
 
 
 function sysvartoword64 (const v : Variant) : QWord;
+var Handler: TCustomVariantType;
+    dest: TVarData;
 begin
   if VarType(v) = varNull then
     if NullStrictConvert then
       VarCastError(varNull, varQWord)
     else
       Result := 0
+  else if FindCustomVariantType(TVarData(v).vType, Handler) then
+    begin
+      VariantInit(dest);
+      Handler.CastTo(dest, TVarData(v), varQWord);
+      Result := dest.vqword;
+    end
   else
     Result := VariantToQWord (TVarData(V));
 end;
 
 
 function sysvartobool (const v : Variant) : Boolean;
+var Handler: TCustomVariantType;
+    dest: TVarData;
 begin
   if VarType(v) = varNull then
     if NullStrictConvert then
       VarCastError(varNull, varBoolean)
     else
       Result := False
+  else if FindCustomVariantType(TVarData(v).vType, Handler) then
+    begin
+      VariantInit(dest);
+      Handler.CastTo(dest, TVarData(v), varBoolean);
+      Result := dest.vboolean;
+    end
   else
     Result := VariantToBoolean(TVarData(V));
 end;
