@@ -379,7 +379,7 @@ begin
   CountLim:=VLen-StartIndex;
   if ACount>CountLim then
     ACount:=CountLim;
-  If (ACount<0) or (StartIndex>VLen) then
+  If (ACount<0) or (StartIndex>VLen) or (StartIndex<0) then
     raise ERangeError.Create(SRangeError);
   if ACount=1 then
     exit(Values[StartIndex]);
@@ -1112,8 +1112,38 @@ end;
 
 function TStringHelper.Replace(OldChar: Char; NewChar: Char;
   ReplaceFlags: TReplaceFlags): string;
+var
+  Sp,Se,Rp : PChar;
+  Ofs : SizeInt;
 begin
-  Result:=StringReplace(Self,OldChar,NewChar,ReplaceFlags);
+  if rfIgnoreCase in ReplaceFlags then
+    exit(StringReplace(Self,OldChar,NewChar,ReplaceFlags));
+
+  Sp:=PChar(Pointer(Self));
+  Se:=Sp+System.Length(Self);
+  Ofs:=IndexChar(Sp^,Se-Sp,OldChar);
+  if Ofs<0 then
+    exit(Self);
+  SetLength(Result,Se-Sp);
+  Rp:=PChar(Pointer(Result));
+
+  repeat
+    Move(Sp^,Rp^,Ofs*sizeof(Char));
+    Sp:=Sp+Ofs+1;
+    Rp[Ofs]:=NewChar;
+    Rp:=Rp+Ofs+1;
+    if not (rfReplaceAll in ReplaceFlags) then
+      break;
+    { This loop can be removed entirely, but greatly speeds up replacing streaks of characters. }
+    while (Sp<Se) and (Sp^=OldChar) do
+      begin
+        Rp^:=NewChar;
+        Sp:=Sp+1;
+        Rp:=Rp+1;
+      end;
+    Ofs:=IndexChar(Sp^,Se-Sp,OldChar);
+  until Ofs<0;
+  Move(Sp^,Rp^,(Se-Sp)*sizeof(Char));
 end;
 
 
