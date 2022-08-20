@@ -552,13 +552,16 @@ interface
                 { Now multiply the quotient by the original denominator and
                   subtract the product from the original numerator to get
                   the remainder. }
-                if (cgsize in [OS_64,OS_S64]) then { Cannot use 64-bit constants in IMUL }
+{$ifdef x86_64}
+                if (cgsize in [OS_64,OS_S64]) and (d > $7FFFFFFF) then { Cannot use 64-bit constants in IMUL }
                   begin
                     hreg3:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
                     emit_const_reg(A_MOV,opsize,aint(d),hreg3);
                     emit_reg_reg(A_IMUL,opsize,hreg3,regd);
                   end
                 else
+{$endif x86_64}
+{$endif x86_64}
                   emit_const_reg(A_IMUL,opsize,aint(d),regd);
 
                 emit_reg_reg(A_SUB,opsize,regd,hreg2);
