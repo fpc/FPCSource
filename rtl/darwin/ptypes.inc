@@ -124,6 +124,8 @@ CONST
 
     SIG_MAXSIG      = 32;       // highest signal version
 
+    MFSTYPENAMELEN = 16;
+
     MFSNAMELEN = 15;
     MNAMELEN   = 90;
 
@@ -164,7 +166,7 @@ type
           ftype : cuint32;
           fflags : cuint32;
           fssubtype : cuint32;
-          fstypename : array[0..(MFSNAMELEN)-1] of char;
+          fstypename : array[0..(MFSTYPENAMELEN)-1] of char;
           mountpoint : array[0..(PATH_MAX)-1] of char;
           mntfromname : array[0..(PATH_MAX)-1] of char;
           reserved: array[0..7] of cuint32;
