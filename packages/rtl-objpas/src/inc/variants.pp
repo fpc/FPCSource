@@ -696,12 +696,20 @@ end;
 
 
 function sysvartocurr (const v : Variant) : Currency;
+var Handler: TCustomVariantType;
+    dest: TVarData;
 begin
   if VarType(v) = varNull then
     if NullStrictConvert then
       VarCastError(varNull, varCurrency)
     else
       Result := 0
+  else if FindCustomVariantType(TVarData(v).vType, Handler) then
+    begin
+      VariantInit(dest);
+      Handler.CastTo(dest, TVarData(v), varCurrency);
+      Result := dest.vcurrency;
+    end
   else
     Result := VariantToCurrency(TVarData(V));
 end;
@@ -745,12 +753,20 @@ end;
 
 
 procedure sysvartowstr (var s : WideString; const v : Variant);
+var Handler: TCustomVariantType;
+    dest: TVarData;
 begin
   if VarType(v) = varNull then
     if NullStrictConvert then
       VarCastError(varNull, varOleStr)
     else
       s := NullAsStringValue
+   else if FindCustomVariantType(TVarData(v).vType, Handler) then
+    begin
+      VariantInit(dest);
+      Handler.CastTo(dest, TVarData(v), varOleStr);
+      s:= dest.volestr;
+    end
   else
     S := VariantToWideString(TVarData(V));
 end;
@@ -817,13 +833,21 @@ end;
 
 {$ifndef FPUNONE}
 function sysvartotdatetime (const v : Variant) : TDateTime;
+var Handler: TCustomVariantType;
+    dest: TVarData;
 begin
   if VarType(v) = varNull then
     if NullStrictConvert then
       VarCastError(varNull, varDate)
     else
       Result := 0
-  else
+  else if FindCustomVariantType(TVarData(v).vType, Handler) then
+     begin
+       VariantInit(dest);
+       Handler.CastTo(dest, TVarData(v), vardate);
+       Result := dest.vdate;
+     end
+   else
     Result:=VariantToDate(TVarData(v));
 end;
 {$endif}
