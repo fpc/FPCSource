@@ -16,6 +16,11 @@
   Crosschecked with OS X 10.4/ppc headers.
   To some symbols leading underscores were added. If these values are
    ever exposed in an interface this has to be reevaluated.
+
+  OpenBSD's langinfo came from NetBSD which is different to FreeBSD. CODESET is
+  at the end, shifting the older constants one up, the ERA block
+  is missing and the order after RADIXCHAR is different, first -EXPR then -STR on
+  FreeBSD and -EXPR paired with corresponding -STR on Open/NetBSD
 }
 
 {$IFDEF FPC}
@@ -29,7 +34,7 @@
   __LC_NUMERIC      = 4;
   __LC_TIME         = 5;
   __LC_MESSAGES     = 6;
-  _LC_LAST         = 7;              { marks end }
+  _LC_LAST          = 7;              { marks end }
 
 
 Type
@@ -63,73 +68,92 @@ Type
      plconv = ^lconv;
 
 Const
-        CODESET         = 0;     { codeset name }
-        D_T_FMT         = 1;     { string for formatting date and time }
-        D_FMT           = 2;     { date format string }
-        T_FMT           = 3;     { time format string }
-        T_FMT_AMPM      = 4;     { a.m. or p.m. time formatting string }
-        AM_STR          = 5;     { Ante Meridian affix }
-        PM_STR          = 6;     { Post Meridian affix }
+{$if defined(openbsd) or defined(netbsd)}
+        D_T_FIRST       = 0;
+{$else}
+        // FreeBSD and Mac OS X?
+        D_T_FIRST       = 1;
+        CODESET         = 0;               { codeset name }
+{$endif}
+        D_T_FMT         = D_T_FIRST;       { string for formatting date and time }
+        D_FMT           = D_T_FIRST+1;     { date format string }
+        T_FMT           = D_T_FIRST+2;     { time format string }
+        T_FMT_AMPM      = D_T_FIRST+3;     { a.m. or p.m. time formatting string }
+        AM_STR          = D_T_FIRST+4;     { Ante Meridian affix }
+        PM_STR          = D_T_FIRST+5;     { Post Meridian affix }
 
 { week day names }
-        DAY_1           = 7;
-        DAY_2           = 8;
-        DAY_3           = 9;
-        DAY_4           = 10;
-        DAY_5           = 11;
-        DAY_6           = 12;
-        DAY_7           = 13;
+        DAY_1           = PM_STR+1;
+        DAY_2           = DAY_1+1;
+        DAY_3           = DAY_1+2;
+        DAY_4           = DAY_1+3;
+        DAY_5           = DAY_1+4;
+        DAY_6           = DAY_1+5;
+        DAY_7           = DAY_1+6;
 
 { abbreviated week day names }
-        ABDAY_1         = 14;
-        ABDAY_2         = 15;
-        ABDAY_3         = 16;
-        ABDAY_4         = 17;
-        ABDAY_5         = 18;
-        ABDAY_6         = 19;
-        ABDAY_7         = 20;
+        ABDAY_1         = DAY_7+1;
+        ABDAY_2         = ABDAY_1+1;
+        ABDAY_3         = ABDAY_1+2;
+        ABDAY_4         = ABDAY_1+3;
+        ABDAY_5         = ABDAY_1+4;
+        ABDAY_6         = ABDAY_1+5;
+        ABDAY_7         = ABDAY_1+6;
 
 { month names }
-        MON_1           = 21;
-        MON_2           = 22;
-        MON_3           = 23;
-        MON_4           = 24;
-        MON_5           = 25;
-        MON_6           = 26;
-        MON_7           = 27;
-        MON_8           = 28;
-        MON_9           = 29;
-        MON_10          = 30;
-        MON_11          = 31;
-        MON_12          = 32;
+        MON_1           = ABDAY_7+1;
+        MON_2           = MON_1+1;
+        MON_3           = MON_1+2;
+        MON_4           = MON_1+3;
+        MON_5           = MON_1+4;
+        MON_6           = MON_1+5;
+        MON_7           = MON_1+6;
+        MON_8           = MON_1+7;
+        MON_9           = MON_1+8;
+        MON_10          = MON_1+9;
+        MON_11          = MON_1+10;
+        MON_12          = MON_1+11;
 
 { abbreviated month names }
-        ABMON_1         = 33;
-        ABMON_2         = 34;
-        ABMON_3         = 35;
-        ABMON_4         = 36;
-        ABMON_5         = 37;
-        ABMON_6         = 38;
-        ABMON_7         = 39;
-        ABMON_8         = 40;
-        ABMON_9         = 41;
-        ABMON_10        = 42;
-        ABMON_11        = 43;
-        ABMON_12        = 44;
-                        
-        ERA             = 45;      { era description segments }
-        ERA_D_FMT       = 46;      { era date format string }
-        ERA_D_T_FMT     = 47;      { era date and time format string }
-        ERA_T_FMT       = 48;      { era time format string }
-        ALT_DIGITS      = 49;      { alternative symbols for digits }
-        RADIXCHAR       = 50;      { radix char }
-        THOUSEP         = 51;      { separator for thousands }
+        ABMON_1         = MON_12+1;
+        ABMON_2         = ABMON_1+1;
+        ABMON_3         = ABMON_1+2;
+        ABMON_4         = ABMON_1+3;
+        ABMON_5         = ABMON_1+4;
+        ABMON_6         = ABMON_1+5;
+        ABMON_7         = ABMON_1+6;
+        ABMON_8         = ABMON_1+7;
+        ABMON_9         = ABMON_1+8;
+        ABMON_10        = ABMON_1+9;
+        ABMON_11        = ABMON_1+10;
+        ABMON_12        = ABMON_1+11;
+        {$if defined(openbsd) or defined(netbsd)}
+        RADIXCHAR       = ABMON_1+12;   { Radix char}
+        THOUSEP         = RADIXCHAR+1;  { separator for thousands }
+        YESSTR          = RADIXCHAR+2;  { affirmative response for yes/no queries }
+        YESEXPR         = RADIXCHAR+3;  { affirmative response expression }
+        NOSTR           = RADIXCHAR+4;  { negative response for yes/no queries }
+        NOEXPR          = RADIXCHAR+5;  { negative response expression }
+        CRNCYSTR        = RADIXCHAR+6;  { currency symbol }
+        {$else}
+        ERA             = ABMON_12+1;           { era description segments }
+        ERA_D_FMT       = ERA+1;        { era date format string }
+        ERA_D_T_FMT     = ERA+2;        { era date and time format string }
+        ERA_T_FMT       = ERA+3;        { era time format string }
+        ALT_DIGITS      = ERA+4;        { alternative symbols for digits }
+        RADIXCHAR       = ERA+5;        { radix char }
+        THOUSEP         = RADIXCHAR+1;  { separator for thousands }
+        YESEXPR         = RADIXCHAR+2;  { affirmative response expression }
+        NOEXPR          = RADIXCHAR+3;  { negative response expression }
+        YESSTR          = RADIXCHAR+4;  { affirmative response for yes/no queries }
+        NOSTR           = RADIXCHAR+5;  { negative response for yes/no queries }
+        CRNCYSTR        = RADIXCHAR+6;  { currency symbol }
+        {$endif}
 
-        YESEXPR         = 52;      { affirmative response expression }
-        NOEXPR          = 53;      { negative response expression }
-        YESSTR          = 54;      { affirmative response for yes/no queries }
-        NOSTR           = 55;      { negative response for yes/no queries }
-        CRNCYSTR        = 56;      { currency symbol }
+        {$if defined(openbsd) or defined(netbsd)}
+        CODESET         = 51;
+        {$else}
         D_MD_ORDER      = 57;      { month/day order (local extension) }
+        {$endif}
 
 function localeconv:plconv; cdecl; external clib name 'localeconv';
