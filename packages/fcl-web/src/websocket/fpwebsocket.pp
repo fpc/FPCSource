@@ -666,7 +666,7 @@ begin
   aPos := 0;
   SetLength(aBytes, aCount);
   repeat
-    SetLength(buf, aCount);
+    SetLength(buf{%H-}, aCount);
     Result := FSocket.Read(buf[0], aCount - aPos);
     if Result <= 0 then
       break;
@@ -699,7 +699,6 @@ end;
 { TWSMessage }
 
 function TWSMessage.GetAsString: UTF8String;
-
 begin
   Result:=TEncoding.UTF8.GetString(Payload);
 end;
@@ -947,10 +946,6 @@ end;
 { TWSFrame }
 
 constructor TWSFrame.Create(aType: TFrameType; aIsFinal: Boolean; APayload: TBytes; aMask: Integer=0);
-
-var
-  closeData: TBytes;
-
 begin
   Create(aType,aIsFinal,aMask);
 
