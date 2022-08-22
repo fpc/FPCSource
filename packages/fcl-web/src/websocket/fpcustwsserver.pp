@@ -248,7 +248,7 @@ Type
     Property OnAllow : TWSAllowConnectionEvent Read FOnAllow Write FOnAllow;
     // Called when a text message is received.
     property OnMessageReceived: TWSMessageEvent read FOnMessageReceived write FOnMessageReceived;
-    // Called when a connection is disconnected. Sender is TWSServerConnection
+    // Called when a connection is disconnected. Sender is TCustomWebsocketClient
     property OnDisconnect: TNotifyEvent read FOnDisconnect write FOnDisconnect;
     // Called when a control message is received.
     property OnControlReceived: TWSControlEvent read FOnControl write FOnControl;
