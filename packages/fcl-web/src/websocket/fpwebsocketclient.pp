@@ -466,8 +466,8 @@ procedure TCustomWebsocketClient.FreeConnectionObjects;
 
 begin
   FreeAndNil(FConnection);
-  FreeAndNil(FTransport);
-  FreeAndNil(FSocket);
+  FTransport:=nil; // FTransport is freed in TWSClientConnection.Destroy
+  FSocket:=nil; // FSocket is freed in TWSClientTransport.Destroy
 end;
 
 procedure TCustomWebsocketClient.Disconnect(SendClose : boolean = true);
