@@ -51,7 +51,7 @@ var
   pip  : tfildes;
   flags : cint;
 begin
-  assignPipe:=fppipe(pip, 0);
+  assignPipe:=fppipe(pip); // default parameter adds 0, if necessary. This abstracts between pipe(2) and pipe(3)
   pipe_in:=pip[0];
   pipe_out:=pip[1];
 end;

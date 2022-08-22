@@ -35,7 +35,7 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FpChown      (path : pChar; owner : TUid; group : TGid): cInt;
     Function  FpUtime      (path : pChar; times : putimbuf): cInt;
 {$if defined(freebsd)}
-    Function  FpPipe       (var fildes : tfildes; flags : cInt):cInt;
+    Function  FpPipe       (var fildes : tfildes; flags : cInt=0):cInt;
 {$else}
     Function  FpPipe       (var fildes : tfildes):cInt;
 {$endif}

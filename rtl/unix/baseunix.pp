@@ -13,6 +13,7 @@
 
  **********************************************************************}
 Unit BaseUnix;
+{$modeswitch defaultparameters} // on freebsd to make one (libc) and two parameter pipe transparent.
 
 Interface
 {$modeswitch out}
