@@ -592,15 +592,14 @@ end;
 
 procedure TCustomWSServer.RemoveConnection(AConnection: TWSServerConnection;aDoDisconnect: Boolean);
 begin
-  if not aDoDisconnect then
-    DoDisconnect(aConnection)
-  else
+  if aDoDisconnect then
     try
       aConnection.Disconnect;
     except
       on E : Exception do
        HandleError(aConnection,E);
     end;
+  DoDisconnect(aConnection);
   Connections.Remove(aConnection);
   aConnection.Free;
 end;
