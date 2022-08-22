@@ -91,9 +91,9 @@ type
     property OnMessageReceived;
     property OnDisconnect;
     property OnControlReceived;
-    Property ThreadMode;
     Property OnError;
     Property OnConnectionHandshake;
+    Property ThreadMode;
     // use SSL ?
     Property UseSSL : Boolean Read FUseSSL Write SetUseSSL;
     // Properties to use when doing SSL handshake
@@ -339,7 +339,7 @@ begin
     TAcceptThread.Create(Self)
   else
     begin
-    StartAccepting;
+    StartAccepting; // runs til deactivated
     StopServer;
     end;
 end;
@@ -391,7 +391,5 @@ begin
   FreeServerSocket;
   inherited Destroy;
 end;
-
-
 
 end.
