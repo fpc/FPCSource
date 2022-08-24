@@ -248,25 +248,26 @@ begin
   if not handle_locjump then
     begin
       case left.location.loc of
+        LOC_FLAGS,
         LOC_REGISTER, LOC_CREGISTER, LOC_REFERENCE, LOC_CREFERENCE,
         LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF:
-        begin
-          hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, left.resultdef, True);
-          location_reset(location,LOC_FLAGS,OS_NO);
-          location.resflags.reg2:=NR_R0;
-          location.resflags.cond:=OC_EQ;
+          begin
+            hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location, left.resultdef, left.resultdef, True);
+            location_reset(location,LOC_FLAGS,OS_NO);
+            location.resflags.reg2:=NR_R0;
+            location.resflags.cond:=OC_EQ;
 {$ifdef cpu32bit}
-          if is_64bit(resultdef) then
-            begin
-              tmpreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
-              { OR low and high parts together }
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR,tmpreg,left.location.register64.reglo,left.location.register64.reghi));
-              location.resflags.reg1:=tmpreg;
-            end
-          else
+            if is_64bit(resultdef) then
+              begin
+                tmpreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
+                { OR low and high parts together }
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR,tmpreg,left.location.register64.reglo,left.location.register64.reghi));
+                location.resflags.reg1:=tmpreg;
+              end
+            else
 {$endif cpu32bit}
-            location.resflags.reg1:=left.location.register;
-        end;
+              location.resflags.reg1:=left.location.register;
+          end;
         else
           internalerror(2003042401);
       end;
