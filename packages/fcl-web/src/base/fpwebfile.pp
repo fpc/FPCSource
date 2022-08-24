@@ -30,6 +30,7 @@ Type
   TFPCustomFileModule = Class(TCustomHTTPModule)
   private
     FCacheControlMaxAge: Integer;
+    FScriptName:string;
   Protected
     // Determine filename frome request.
     Function GetRequestFileName(Const ARequest : TRequest) : String; virtual;
@@ -299,19 +300,26 @@ end;
 Function TFPCustomFileModule.MapFileName(Const AFileName : String) : String; 
 
 Var
-  D : String;
+  D,localBaseURL : String;
 
 begin
   if (BaseURL='') then
     Result:=AFileName
   else
     begin
-    D:=Locations.Values[BaseURL];
+    if FScriptName<>'' then
+      localBaseURL:=Copy(BaseURL,Length(FScriptName)+2,MaxInt)
+    else
+      localBaseURL:=BaseURL;
+    D:=Locations.Values[localBaseURL];
     If (D='') then
       Result:=''
     else
       begin
-      Result:=D+AFileName;
+      if FScriptName<>'' then
+        Result:=D+Copy(AFileName,Length(localBaseURL)+1,MaxInt)
+      else
+        Result:=D+AFileName;
       DoDirSeparators(Result);
       Result:=ExpandFileName(Result);
       end;
@@ -374,6 +382,7 @@ Var
   RFN,FN : String;
 
 begin
+  FScriptName:=ARequest.ScriptName;
   If CompareText(ARequest.Method,'GET')<>0 then
     begin
     AResponse.SetStatus(405,True);
