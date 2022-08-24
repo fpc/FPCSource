@@ -987,6 +987,11 @@ begin
     begin
     PQclear(res);
     res:=nil;
+    if ForcedClose then
+    begin
+      FPrepared := False;
+      exit;
+    end;
     if FPrepared then
       begin
       if assigned(tr) and (PQtransactionStatus(tr.PGConn) <> PQTRANS_INERROR) then
