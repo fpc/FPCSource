@@ -81,7 +81,7 @@ Type
     Procedure SimpleMethodBody(Lines: Array of string); virtual;
     procedure SaveToStream(const AStream: TStream);
     Procedure SaveToFile(Const AFileName : string);
-    Property Source : TStrings Read FSource;
+    Property Source : TStrings Read FSource; // output
     Property CurrentSection : TCodeSection Read GetSection Write SetSection;
   Published
     Property OutputUnitName : String Read FOutputUnitName Write FOutputUnitName;
