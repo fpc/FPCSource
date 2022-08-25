@@ -274,7 +274,9 @@ function TWebIDLToPasWasmJob.GetResolvedType(aDef: TIDLTypeDefDefinition; out
 begin
   Result:=inherited GetResolvedType(aDef, aTypeName, aResolvedTypename);
   if Result is TIDLInterfaceDefinition then
-    aTypeName:=GetPasClassName(aTypeName);
+    aTypeName:=GetPasClassName(aTypeName)
+  else if Result is TIDLPromiseTypeDefDefinition then
+    aTypeName:=PasInterfacePrefix+'Promise'+PasInterfaceSuffix;
 end;
 
 function TWebIDLToPasWasmJob.GetInterfaceDefHead(Intf: TIDLInterfaceDefinition
@@ -512,6 +514,8 @@ begin
       InvokeName:='InvokeJSObjectResult';
       if ReturnDef is TIDLSequenceTypeDefDefinition then
         InvokeClassName:=ClassPrefix+'Array'+ClassSuffix
+      else if ReturnDef is TIDLPromiseTypeDefDefinition then
+        InvokeClassName:=ClassPrefix+'Promise'+ClassSuffix
       else if ReturnDef is TIDLInterfaceDefinition then
         InvokeClassName:=GetName(ReturnDef)
       else if ResolvedReturnTypeName=PasInterfacePrefix+'Object'+PasInterfaceSuffix then
@@ -653,7 +657,9 @@ begin
     end;
   end;
   if ReturnDef is TIDLSequenceTypeDefDefinition then
-    ReturnTypeName:='IJSArray';
+    ReturnTypeName:=PasInterfacePrefix+'Array'+PasInterfaceSuffix
+  else if ReturnDef is TIDLPromiseTypeDefDefinition then
+    ReturnTypeName:=PasInterfacePrefix+'Promise'+PasInterfaceSuffix;
 
   Args:=aDef.Arguments;
 
@@ -820,6 +826,8 @@ begin
   else
     if AttrType is TIDLSequenceTypeDefDefinition then
       ObjClassName:=ClassPrefix+'Array'+ClassSuffix
+    else if AttrType is TIDLPromiseTypeDefDefinition then
+      ObjClassName:=ClassPrefix+'Promise'+ClassSuffix
     else
       begin
       ObjClassName:=GetName(AttrType);

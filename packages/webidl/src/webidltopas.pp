@@ -1024,7 +1024,7 @@ end;
 procedure TBaseWebIDLToPas.WritePromiseDef(aDef: TIDLPromiseTypeDefDefinition);
 
 begin
-  AddLn(GetName(aDef)+' = '+ClassPrefix+'Promise'+ClassSuffix+';');
+  // AddLn(GetName(aDef)+' = '+ClassPrefix+'Promise'+ClassSuffix+';');
 end;
 
 procedure TBaseWebIDLToPas.WriteAliasTypeDef(aDef: TIDLTypeDefDefinition);
@@ -1730,6 +1730,8 @@ begin
     ResolveTypeDef(TIDLArgumentDefinition(D).ArgumentType)
   else if D is TIDLSequenceTypeDefDefinition then
     ResolveTypeDef(TIDLSequenceTypeDefDefinition(D).ElementType)
+  else if D is TIDLPromiseTypeDefDefinition then
+    ResolveTypeDef(TIDLPromiseTypeDefDefinition(D).ReturnType)
   else if D is TIDLTypeDefDefinition then
     ResolveTypeName(TIDLTypeDefDefinition(D).TypeName)
   else if D is TIDLConstDefinition then

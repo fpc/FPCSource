@@ -44,6 +44,7 @@ type
     // functions
     procedure TestWJ_IntfFunction_Void;
     procedure TestWJ_IntfFunction_SetEventHandler;
+    procedure TestWJ_IntfFunction_Promise;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -555,6 +556,58 @@ begin
   '  finally',
   '    m.free;',
   '  end;',
+  'end;',
+  '',
+  'class function TJSAttr.Cast(Intf: IJSObject): IJSAttr;',
+  'begin',
+  '  Result:=TJSAttr.JOBCast(Intf);',
+  'end;',
+  '',
+  'end.',
+  '']);
+end;
+
+procedure TTestWebIDL2WasmJob.TestWJ_IntfFunction_Promise;
+begin
+  //  Promise<void> exitFullscreen();
+  TestWebIDL([
+  'interface Attr {',
+  '  Promise<void> exitFullscreen();',
+  '  Promise<any> addCertException(boolean isTemporary);',
+  '};',
+  ''],
+  ['Type',
+  '  // Forward class definitions',
+  '  IJSAttr = interface;',
+  '  TJSAttr = class;',
+  '  { --------------------------------------------------------------------',
+  '    TJSAttr',
+  '    --------------------------------------------------------------------}',
+  '',
+  '  IJSAttr = interface(IJSObject)',
+  '    [''{74BB0007-0E0F-3C31-A77E-B1C656002861}'']',
+  '    function exitFullscreen: IJSPromise;',
+  '    function addCertException(aIsTemporary: Boolean): IJSPromise;',
+  '  end;',
+  '',
+  '  TJSAttr = class(TJSObject,IJSAttr)',
+  '  Private',
+  '  Public',
+  '    function exitFullscreen: IJSPromise;',
+  '    function addCertException(aIsTemporary: Boolean): IJSPromise;',
+  '    class function Cast(Intf: IJSObject): IJSAttr;',
+  '  end;',
+  '',
+  'implementation',
+  '',
+  'function TJSAttr.exitFullscreen: IJSPromise;',
+  'begin',
+  '  Result:=InvokeJSObjectResult(''exitFullscreen'',[],TJSPromise) as IJSPromise;',
+  'end;',
+  '',
+  'function TJSAttr.addCertException(aIsTemporary: Boolean): IJSPromise;',
+  'begin',
+  '  Result:=InvokeJSObjectResult(''addCertException'',[aIsTemporary],TJSPromise) as IJSPromise;',
   'end;',
   '',
   'class function TJSAttr.Cast(Intf: IJSObject): IJSAttr;',
