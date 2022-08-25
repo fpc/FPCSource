@@ -68,6 +68,8 @@ type
     FDictionaryClassParent: String;
     FFieldPrefix: String;
     FGlobalVars: TStrings;
+    FInputStream: TStream;
+    FOutputStream: TStream;
     FTypePrefix: String;
     FGetterPrefix: String;
     FIncludeImplementationCode: TStrings;
@@ -84,6 +86,7 @@ type
     procedure SetGlobalVars(const AValue: TStrings);
     procedure SetIncludeImplementationCode(AValue: TStrings);
     procedure SetIncludeInterfaceCode(AValue: TStrings);
+    procedure SetOutputFileName(const AValue: String);
     procedure SetTypeAliases(AValue: TStrings);
   Protected
     procedure TrimList(List: TStrings); virtual;
@@ -179,7 +182,9 @@ type
     function IsKeyWord(const S: String): Boolean; override;
   Public
     Property InputFileName: String Read FInputFileName Write FInputFileName;
-    Property OutputFileName: String Read FOutputFileName Write FOutputFileName;
+    Property InputStream: TStream Read FInputStream Write FInputStream;
+    Property OutputFileName: String Read FOutputFileName Write SetOutputFileName;
+    Property OutputStream: TStream Read FOutputStream Write FOutputStream;
     Property Verbose: Boolean Read FVerbose Write FVerbose;
     Property FieldPrefix: String Read FFieldPrefix Write FFieldPrefix;
     Property ClassPrefix: String Read FClassPrefix Write FClassPrefix;
@@ -260,7 +265,10 @@ begin
   P:=Nil;
   ms:=TMemoryStream.Create;
   try
-    ms.LoadFromFile(InputFileName);
+    if InputStream<>nil then
+      ms.CopyFrom(InputStream,InputStream.Size-InputStream.Position)
+    else
+      ms.LoadFromFile(InputFileName);
     ms.Position:=0;
     S:=CreateScanner(ms);
     S.CurFile:=InputFileName;
@@ -1514,6 +1522,9 @@ begin
 end;
 
 procedure TBaseWebIDLToPas.WritePascal;
+var
+  i: Integer;
+  Line: String;
 begin
   CreateUnitClause;
   CreateHeader;
@@ -1533,7 +1544,16 @@ begin
   AddLn('implementation');
   WriteImplementation;
   AddLn('end.');
-  Source.SaveToFile(OutputFileName);
+  if OutputStream<>nil then
+    begin
+    for i:=0 to Source.Count-1 do
+      begin
+      Line:=Source[i]+sLineBreak;
+      OutputStream.Write(Line[1],length(Line));
+      end;
+    end
+  else
+    Source.SaveToFile(OutputFileName);
 end;
 
 function TBaseWebIDLToPas.CreatePasData(aName: String; D: TIDLBaseObject;
@@ -1834,6 +1854,22 @@ procedure TBaseWebIDLToPas.SetIncludeInterfaceCode(AValue: TStrings);
 begin
   if FIncludeInterfaceCode=AValue then Exit;
   FIncludeInterfaceCode.Assign(AValue);
+end;
+
+procedure TBaseWebIDLToPas.SetOutputFileName(const AValue: String);
+var
+  aName, Ext: String;
+begin
+  if FOutputFileName=AValue then Exit;
+  FOutputFileName:=AValue;
+  if OutputUnitName='' then
+    begin
+    aName:=ExtractFileName(AValue);
+    Ext:=ExtractFileExt(AName);
+    if Ext<>'' then
+      aName:=LeftStr(aName,length(aName)-length(Ext));
+    OutputUnitName:=aName;
+    end;
 end;
 
 procedure TBaseWebIDLToPas.SetIncludeImplementationCode(AValue: TStrings);

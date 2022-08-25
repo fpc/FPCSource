@@ -500,6 +500,7 @@ begin
     'Double': InvokeName:='InvokeJSDoubleResult';
     'UTF8String': InvokeName:='InvokeJSUTF8StringResult';
     'UnicodeString': InvokeName:='InvokeJSUnicodeStringResult';
+    'Variant': InvokeName:='InvokeJSVariantResult';
     'TJOB_JSValue': InvokeName:='InvokeJSValueResult';
     'void','undefined':
       begin
@@ -700,6 +701,7 @@ begin
       'Double': GetFunc:='GetDouble';
       'UTF8String',
       'UnicodeString': GetFunc:='GetString';
+      'Variant': GetFunc:='GetVariant';
       'TJOB_JSValue': GetFunc:='GetValue';
       else
         if ArgType is TIDLInterfaceDefinition then
@@ -751,6 +753,7 @@ begin
     'Double': GetFunc:='Result:=H.AllocDouble('+Call+');';
     'UTF8String': GetFunc:='Result:=H.AllocString('+Call+');';
     'UnicodeString': GetFunc:='Result:=H.AllocString('+Call+');';
+    'Variant': GetFunc:='Result:=H.AllocVariant('+Call+');';
     'TJOB_JSValue': GetFunc:='Result:=H.AllocJSValue('+Call+');';
     else
       if ReturnDef is TIDLInterfaceDefinition then
@@ -812,6 +815,7 @@ begin
   'Double': ReadFuncName:='ReadJSPropertyDouble';
   'UTF8String': ReadFuncName:='ReadJSPropertyUTF8String';
   'UnicodeString': ReadFuncName:='ReadJSPropertyUnicodeString';
+  'Variant': ReadFuncName:='ReadJSPropertyVariant';
   'TJOB_JSValue': ReadFuncName:='ReadJSPropertyValue';
   else
     if AttrType is TIDLSequenceTypeDefDefinition then
@@ -879,6 +883,7 @@ begin
   'Double': WriteFuncName:='WriteJSPropertyDouble';
   'UTF8String': WriteFuncName:='WriteJSPropertyUTF8String';
   'UnicodeString': WriteFuncName:='WriteJSPropertyUnicodeString';
+  'Variant': WriteFuncName:='WriteJSPropertyVariant';
   'TJOB_JSValue': WriteFuncName:='WriteJSPropertyValue';
   else
     WriteFuncName:='WriteJSPropertyObject';
@@ -991,9 +996,11 @@ begin
   inherited Create(ThOwner);
   // Switches.Add('modeswitch FunctionReferences');
   PasDataClass:=TPasDataWasmJob;
-  FPasInterfacePrefix:='IJS';
+  ClassPrefix:='TJS';
+  PasInterfacePrefix:='IJS';
   GetterPrefix:='_Get';
   SetterPrefix:='_Set';
+  KeywordSuffix:='_';
   BaseOptions:=BaseOptions+[coExpandUnionTypeArgs,coDictionaryAsClass];
 end;
 
