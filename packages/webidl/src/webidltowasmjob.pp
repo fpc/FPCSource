@@ -554,6 +554,8 @@ begin
         ProcKind:='function';
         Sig:=FuncName+Args+': '+ReturnTypeName+Suff+';';
         end;
+      if ReturnDef is TIDLPromiseTypeDefDefinition then
+        Sig:=Sig+' // Promise<'+TIDLPromiseTypeDefDefinition(ReturnDef).ReturnType.TypeName+'>';
       AddLn(ProcKind+' '+Sig);
 
       if not AddFuncBody then continue;
