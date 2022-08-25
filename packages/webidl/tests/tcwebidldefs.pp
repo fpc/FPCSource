@@ -9,8 +9,6 @@ uses
 
 Type
 
-  { TTestParser }
-
   { TTestDefinition }
 
   TTestDefinition = Class(TTestCase)

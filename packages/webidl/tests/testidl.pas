@@ -5,7 +5,7 @@ program testidl;
 
 uses
   consoletestrunner, webidlscanner, tcidlscanner, webidlparser, webidldefs,
-  tcidlparser, tcwebidldefs;
+  tcidlparser, tcwebidldefs, tcwebidl2wasmjob;
 
 Var
   Application : TTestRunner;
