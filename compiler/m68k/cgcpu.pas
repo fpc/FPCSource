@@ -1347,7 +1347,7 @@ unit cgcpu;
 
         { on ColdFire all arithmetic operations are only possible on 32bit }
         if needs_unaligned(ref.alignment,size) or
-           ((current_settings.cputype in cpu_coldfire) and (opsize <> S_L)
+           ((CPUM68K_HAS_BYTEWORDMATH in cpu_capabilities[current_settings.cputype]) and (opsize <> S_L)
            and not (op in [OP_NONE,OP_MOVE])) then
           begin
             inherited;
@@ -1414,7 +1414,7 @@ unit cgcpu;
         opsize : topsize;
       begin
         opcode := topcg2tasmop[op];
-        if current_settings.cputype in cpu_coldfire then
+        if CPUM68K_HAS_BYTEWORDMATH in cpu_capabilities[current_settings.cputype] then
           opsize := S_L
         else
           opsize := TCGSize2OpSize[size];
@@ -1524,7 +1524,7 @@ unit cgcpu;
         { on ColdFire all arithmetic operations are only possible on 32bit 
           and addressing modes are limited }
         if needs_unaligned(ref.alignment,size) or
-           ((current_settings.cputype in cpu_coldfire) and (opsize <> S_L)) then
+           ((CPUM68K_HAS_BYTEWORDMATH in cpu_capabilities[current_settings.cputype]) and (opsize <> S_L)) then
           begin
             //list.concat(tai_comment.create(strpnew('a_op_reg_ref: inherited #1')));
             inherited;
@@ -1567,7 +1567,7 @@ unit cgcpu;
         { on ColdFire all arithmetic operations are only possible on 32bit 
           and addressing modes are limited }
         if needs_unaligned(ref.alignment,size) or
-           ((current_settings.cputype in cpu_coldfire) and (opsize <> S_L)) then
+           ((CPUM68K_HAS_BYTEWORDMATH in cpu_capabilities[current_settings.cputype]) and (opsize <> S_L)) then
           begin
             //list.concat(tai_comment.create(strpnew('a_op_ref_reg: inherited #1')));
             inherited;
@@ -2246,8 +2246,7 @@ unit cgcpu;
                 end;
               OS_8: { 8 -> 16 bit zero extend }
                 begin
-                  if (current_settings.cputype in cpu_coldfire) then
-                    { ColdFire has no ANDI.W }
+                  if (CPUM68K_HAS_BYTEWORDMATH in cpu_capabilities[current_settings.cputype]) then
                     list.concat(taicpu.op_const_reg(A_AND,S_L,$FF,reg))
                   else
                     list.concat(taicpu.op_const_reg(A_AND,S_W,$FF,reg));
