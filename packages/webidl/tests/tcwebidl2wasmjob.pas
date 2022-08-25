@@ -32,7 +32,13 @@ type
   TTestWebIDL2WasmJob = Class(TCustomTestWebIDL2WasmJob)
   published
     procedure TestWJ_Empty;
+
+    // typedefs
     procedure TestWJ_Typedef_Boolean;
+    procedure TestWJ_Typedef_Sequence;
+
+    // attributes
+    procedure TestWJ_IntfAttribute_Boolean;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -304,13 +310,31 @@ var
   Line, ExpectedSrc, InputSrc, OutputSrc: String;
   InputMS: TMemoryStream;
 begin
+  {$IFDEF VerboseWebidl2WasmJob}
+  writeln('TCustomTestWebIDL2WasmJob.TestWebIDL WebIDL:----------------------');
+  {$ENDIF}
   InputMS:=WebIDLToPas.InputStream as TMemoryStream;
   for i:=0 to high(WebIDLSrc) do
     begin
     Line:=WebIDLSrc[i]+sLineBreak;
     InputMS.Write(Line[1],length(Line));
+    {$IFDEF VerboseWebidl2WasmJob}
+    write(Line);
+    {$ENDIF}
     end;
   InputMS.Position:=0;
+
+  {$IFDEF VerboseWebidl2WasmJob}
+  writeln('TCustomTestWebIDL2WasmJob.TestWebIDL ExpectedPascal:--------------');
+  {$ENDIF}
+  ExpectedSrc:=HeaderSrc;
+  for i:=0 to high(ExpectedPascalSrc) do
+    ExpectedSrc:=ExpectedSrc+ExpectedPascalSrc[i]+sLineBreak;
+  {$IFDEF VerboseWebidl2WasmJob}
+  writeln(ExpectedSrc);
+  writeln('TCustomTestWebIDL2WasmJob.TestWebIDL -----------------------------');
+  {$ENDIF}
+
   WebIDLToPas.Execute;
 
   SetLength(InputSrc{%H-},InputMS.Size);
@@ -318,10 +342,6 @@ begin
     Move(InputMS.Memory^,InputSrc[1],length(InputSrc));
 
   OutputSrc:=WebIDLToPas.Source.Text;
-
-  ExpectedSrc:=HeaderSrc;
-  for i:=0 to high(ExpectedPascalSrc) do
-    ExpectedSrc:=ExpectedSrc+ExpectedPascalSrc[i]+sLineBreak;
 
   CheckDiff('TCustomTestWebIDL2WasmJob.TestWebIDL',ExpectedSrc,OutputSrc);
 end;
@@ -357,6 +377,73 @@ begin
   '  // Forward class definitions',
   '  TPerformanceEntry = Boolean;',
   'implementation',
+  'end.',
+  '']);
+end;
+
+procedure TTestWebIDL2WasmJob.TestWJ_Typedef_Sequence;
+begin
+  TestWebIDL([
+  'typedef boolean PerformanceEntry;',
+  'typedef sequence <PerformanceEntry> PerformanceEntryList;',
+  ''],
+  ['Type',
+  '  // Forward class definitions',
+  '  TPerformanceEntry = Boolean;',
+  '  TPerformanceEntryList = IJSArray; // array of TPerformanceEntry',
+  'implementation',
+  'end.',
+  '']);
+end;
+
+procedure TTestWebIDL2WasmJob.TestWJ_IntfAttribute_Boolean;
+begin
+  TestWebIDL([
+  'interface Attr {',
+  '  attribute boolean aBoolean;',
+  '};',
+  ''],
+  ['Type',
+  '  // Forward class definitions',
+  '  IJSAttr = interface;',
+  '  TJSAttr = class;',
+  '  { --------------------------------------------------------------------',
+  '    TJSAttr',
+  '    --------------------------------------------------------------------}',
+  '',
+  '  IJSAttr = interface(IJSObject)',
+  '    [''{AA94F48A-7955-3EBA-B086-85B24440AF2A}'']',
+  '    function _GetaBoolean: Boolean;',
+  '    procedure _SetaBoolean(const aValue: Boolean);',
+  '    property aBoolean: Boolean read _GetaBoolean write _SetaBoolean;',
+  '  end;',
+  '',
+  '  TJSAttr = class(TJSObject,IJSAttr)',
+  '  Private',
+  '    function _GetaBoolean: Boolean;',
+  '    procedure _SetaBoolean(const aValue: Boolean);',
+  '  Public',
+  '    class function Cast(Intf: IJSObject): IJSAttr;',
+  '    property aBoolean: Boolean read _GetaBoolean write _SetaBoolean;',
+  '  end;',
+  '',
+  'implementation',
+  '',
+  'function TJSAttr._GetaBoolean: Boolean;',
+  'begin',
+  '  Result:=ReadJSPropertyBoolean(''aBoolean'');',
+  'end;',
+  '',
+  'procedure TJSAttr._SetaBoolean(const aValue: Boolean);',
+  'begin',
+  '  WriteJSPropertyBoolean(''aBoolean'',aValue);',
+  'end;',
+  '',
+  'class function TJSAttr.Cast(Intf: IJSObject): IJSAttr;',
+  'begin',
+  '  Result:=TJSAttr.JOBCast(Intf);',
+  'end;',
+  '',
   'end.',
   '']);
 end;
