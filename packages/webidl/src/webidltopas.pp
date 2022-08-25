@@ -1142,6 +1142,7 @@ begin
     if (ArgType is TIDLFunctionDefinition)
         or (ArgType is TIDLDictionaryDefinition)
         or (ArgType is TIDLSequenceTypeDefDefinition)
+        or (ArgResolvedTypeName='Variant')
         or (ArgResolvedTypeName='UnicodeString')
         or (ArgResolvedTypeName='UTF8String') then
       ArgName:='const '+ArgName;

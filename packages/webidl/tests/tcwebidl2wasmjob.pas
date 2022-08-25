@@ -45,6 +45,7 @@ type
     procedure TestWJ_IntfFunction_Void;
     procedure TestWJ_IntfFunction_SetEventHandler;
     procedure TestWJ_IntfFunction_Promise;
+    procedure TestWJ_IntfFunction_ArgAny;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -616,6 +617,49 @@ begin
   'function TJSAttr.fly: IJSPromise; // Promise<Attr>',
   'begin',
   '  Result:=InvokeJSObjectResult(''fly'',[],TJSPromise) as IJSPromise;',
+  'end;',
+  '',
+  'class function TJSAttr.Cast(Intf: IJSObject): IJSAttr;',
+  'begin',
+  '  Result:=TJSAttr.JOBCast(Intf);',
+  'end;',
+  '',
+  'end.',
+  '']);
+end;
+
+procedure TTestWebIDL2WasmJob.TestWJ_IntfFunction_ArgAny;
+begin
+  TestWebIDL([
+  'interface Attr {',
+  '  void append(any node);',
+  '};',
+  ''],
+  ['Type',
+  '  // Forward class definitions',
+  '  IJSAttr = interface;',
+  '  TJSAttr = class;',
+  '  { --------------------------------------------------------------------',
+  '    TJSAttr',
+  '    --------------------------------------------------------------------}',
+  '',
+  '  IJSAttr = interface(IJSObject)',
+  '    [''{AA94F48A-84D7-3FAA-A2A6-208CA4B2AF2A}'']',
+  '    procedure append(const aNode: Variant);',
+  '  end;',
+  '',
+  '  TJSAttr = class(TJSObject,IJSAttr)',
+  '  Private',
+  '  Public',
+  '    procedure append(const aNode: Variant);',
+  '    class function Cast(Intf: IJSObject): IJSAttr;',
+  '  end;',
+  '',
+  'implementation',
+  '',
+  'procedure TJSAttr.append(const aNode: Variant);',
+  'begin',
+  '  InvokeJSNoResult(''append'',[aNode]);',
   'end;',
   '',
   'class function TJSAttr.Cast(Intf: IJSObject): IJSAttr;',
