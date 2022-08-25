@@ -39,6 +39,11 @@ type
 
     // attributes
     procedure TestWJ_IntfAttribute_Boolean;
+    // todo procedure TestWJ_IntfAttribute_Any;
+
+    // functions
+    procedure TestWJ_IntfFunction_Void;
+    procedure TestWJ_IntfFunction_SetEventHandler;
   end;
 
 function LinesToStr(Args: array of const): string;
@@ -325,14 +330,14 @@ begin
   InputMS.Position:=0;
 
   {$IFDEF VerboseWebidl2WasmJob}
-  writeln('TCustomTestWebIDL2WasmJob.TestWebIDL ExpectedPascal:--------------');
+  writeln('TCustomTestWebIDL2WasmJob.TestWebIDL ExpectedPascal: BEGIN--------');
   {$ENDIF}
   ExpectedSrc:=HeaderSrc;
   for i:=0 to high(ExpectedPascalSrc) do
     ExpectedSrc:=ExpectedSrc+ExpectedPascalSrc[i]+sLineBreak;
   {$IFDEF VerboseWebidl2WasmJob}
   writeln(ExpectedSrc);
-  writeln('TCustomTestWebIDL2WasmJob.TestWebIDL -----------------------------');
+  writeln('TCustomTestWebIDL2WasmJob.TestWebIDL ExpectedPascal END-----------');
   {$ENDIF}
 
   WebIDLToPas.Execute;
@@ -342,6 +347,11 @@ begin
     Move(InputMS.Memory^,InputSrc[1],length(InputSrc));
 
   OutputSrc:=WebIDLToPas.Source.Text;
+  {$IFDEF VerboseWebidl2WasmJob}
+  writeln('TCustomTestWebIDL2WasmJob.TestWebIDL ActualPascal: BEGIN----------');
+  writeln(OutputSrc);
+  writeln('TCustomTestWebIDL2WasmJob.TestWebIDL ActualPascal: END------------');
+  {$ENDIF}
 
   CheckDiff('TCustomTestWebIDL2WasmJob.TestWebIDL',ExpectedSrc,OutputSrc);
 end;
@@ -437,6 +447,114 @@ begin
   'procedure TJSAttr._SetaBoolean(const aValue: Boolean);',
   'begin',
   '  WriteJSPropertyBoolean(''aBoolean'',aValue);',
+  'end;',
+  '',
+  'class function TJSAttr.Cast(Intf: IJSObject): IJSAttr;',
+  'begin',
+  '  Result:=TJSAttr.JOBCast(Intf);',
+  'end;',
+  '',
+  'end.',
+  '']);
+end;
+
+procedure TTestWebIDL2WasmJob.TestWJ_IntfFunction_Void;
+begin
+  TestWebIDL([
+  'interface Attr {',
+  '  void append(Attr node);',
+  '};',
+  ''],
+  ['Type',
+  '  // Forward class definitions',
+  '  IJSAttr = interface;',
+  '  TJSAttr = class;',
+  '  { --------------------------------------------------------------------',
+  '    TJSAttr',
+  '    --------------------------------------------------------------------}',
+  '',
+  '  IJSAttr = interface(IJSObject)',
+  '    [''{AA94F48A-84D7-3FAA-A2A6-208CA4B2AF2A}'']',
+  '    procedure append(aNode: IJSAttr);',
+  '  end;',
+  '',
+  '  TJSAttr = class(TJSObject,IJSAttr)',
+  '  Private',
+  '  Public',
+  '    procedure append(aNode: IJSAttr);',
+  '    class function Cast(Intf: IJSObject): IJSAttr;',
+  '  end;',
+  '',
+  'implementation',
+  '',
+  'procedure TJSAttr.append(aNode: IJSAttr);',
+  'begin',
+  '  InvokeJSNoResult(''append'',[aNode]);',
+  'end;',
+  '',
+  'class function TJSAttr.Cast(Intf: IJSObject): IJSAttr;',
+  'begin',
+  '  Result:=TJSAttr.JOBCast(Intf);',
+  'end;',
+  '',
+  'end.',
+  '']);
+end;
+
+procedure TTestWebIDL2WasmJob.TestWJ_IntfFunction_SetEventHandler;
+begin
+  TestWebIDL([
+  '[LegacyTreatNonObjectAsNull]',
+  'callback EventHandlerNonNull = any (long event);',
+  'typedef EventHandlerNonNull? EventHandler;',
+  '',
+  'interface Attr {',
+  '  void setEventHandler([TreatNonCallableAsNull] EventHandler handler);',
+  '};',
+  ''],
+  ['Type',
+  '  // Forward class definitions',
+  '  IJSAttr = interface;',
+  '  TJSAttr = class;',
+  '  TEventHandlerNonNull = function (event: Integer): Variant of object;',
+  '  TEventHandler = TEventHandlerNonNull;',
+  '',
+  '  { --------------------------------------------------------------------',
+  '    TJSAttr',
+  '    --------------------------------------------------------------------}',
+  '',
+  '  IJSAttr = interface(IJSObject)',
+  '    [''{AA94F48A-121D-33BC-96FE-420246F2AF2A}'']',
+  '    procedure setEventHandler(const aHandler: TEventHandler);',
+  '  end;',
+  '',
+  '  TJSAttr = class(TJSObject,IJSAttr)',
+  '  Private',
+  '  Public',
+  '    procedure setEventHandler(const aHandler: TEventHandler);',
+  '    class function Cast(Intf: IJSObject): IJSAttr;',
+  '  end;',
+  '',
+  'implementation',
+  '',
+  'function JOBCallTEventHandlerNonNull(const aMethod: TMethod; var H: TJOBCallbackHelper): PByte;',
+  'var',
+  '  event: Integer;',
+  'begin',
+  '  event:=H.GetLongInt;',
+  '  Result:=H.AllocVariant(TEventHandlerNonNull(aMethod)(event));',
+  'end;',
+  '',
+  'procedure TJSAttr.setEventHandler(const aHandler: TEventHandler);',
+  'var',
+  '  m: TJOB_Method;',
+  'begin',
+  '  m:=TJOB_Method.Create(TMethod(aHandler),@JOBCallTEventHandlerNonNull);',
+  '  try',
+  '    InvokeJSNoResult(''setEventHandler'',[m]);',
+  '  finally',
+  '    m.free;',
+  '  end;',
   'end;',
   '',
   'class function TJSAttr.Cast(Intf: IJSObject): IJSAttr;',

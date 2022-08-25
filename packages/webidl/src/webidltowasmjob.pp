@@ -244,7 +244,7 @@ function TWebIDLToPasWasmJob.GetTypeName(const aTypeName: String;
 begin
   Case aTypeName of
     'union',
-    'any': Result:=JOB_JSValueTypeNames[jjvkUndefined];
+    'any': Result:='Variant';
     'void','undefined': Result:=aTypeName;
   else
     //writeln('TWebIDLToPasWasmJob.GetTypeName ',aTypeName,' ',Def<>nil);
