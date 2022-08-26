@@ -801,7 +801,30 @@ implementation
               enumdef:
                 begin
                   name:=procprefixes[do_read]+'enum';
-                  readfunctype:=s32inttype;
+                  if do_read then
+                    { read is done with a var parameter so we need the correct
+                      size for that }
+                    case para.left.resultdef.size of
+                      1:
+                        begin
+                          name:=name+'_shortint';
+                          readfunctype:=s8inttype;
+                        end;
+                      2:
+                        begin
+                          name:=name+'_smallint';
+                          readfunctype:=s16inttype;
+                        end;
+                      4:
+                        begin
+                          name:=name+'_longint';
+                          readfunctype:=s32inttype;
+                        end;
+                      else
+                        internalerror(2022082601);
+                    end
+                  else
+                    readfunctype:=s32inttype;
                 end;
               orddef :
                 begin
@@ -1008,7 +1031,7 @@ implementation
                         Crttinode.create(Tenumdef(para.left.resultdef),fullrtti,rdt_str2ord)
                       ),nil);
                       {Insert a type conversion to to convert the enum to longint.}
-                      para.left:=Ctypeconvnode.create_internal(para.left,s32inttype);
+                      para.left:=Ctypeconvnode.create_internal(para.left,readfunctype);
                       typecheckpass(para.left);
                     end;
                   { special handling of reading small numbers, because the helpers  }

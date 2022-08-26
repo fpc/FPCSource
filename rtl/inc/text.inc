@@ -2109,7 +2109,11 @@ begin
 end;
 {$endif}
 
+{$ifdef VER3_2}
 procedure fpc_read_text_enum(str2ordindex:pointer;var t:text;out ordinal:longint); iocheck;compilerproc;
+{$else VER3_2}
+procedure fpc_read_text_enum_longint(str2ordindex:pointer;var t:text;out ordinal:longint); iocheck;compilerproc;
+{$endif VER3_2}
 
 var s:string;
     code:valsint;
@@ -2129,6 +2133,50 @@ begin
   if code<>0 then
    InOutRes:=106;
 end;
+
+{$ifndef VER3_2}
+procedure fpc_read_text_enum_smallint(str2ordindex:pointer;var t:text;out ordinal:smallint); iocheck;compilerproc;
+
+var s:string;
+    code:valsint;
+
+begin
+  if not checkread(t) then
+    exit;
+  s:='';
+  if ignorespaces(t) then
+    begin
+      { When spaces were found and we are now at EOF, then we return 0 }
+      if (TextRec(t).BufPos>=TextRec(t).BufEnd) then
+        exit;
+      ReadNumeric(t,s);
+    end;
+  ordinal:=smallint(fpc_val_enum_shortstr(str2ordindex,s,code));
+  if code<>0 then
+   InOutRes:=106;
+end;
+
+procedure fpc_read_text_enum_shortint(str2ordindex:pointer;var t:text;out ordinal:shortint); iocheck;compilerproc;
+
+var s:string;
+    code:valsint;
+
+begin
+  if not checkread(t) then
+    exit;
+  s:='';
+  if ignorespaces(t) then
+    begin
+      { When spaces were found and we are now at EOF, then we return 0 }
+      if (TextRec(t).BufPos>=TextRec(t).BufEnd) then
+        exit;
+      ReadNumeric(t,s);
+    end;
+  ordinal:=shortint(fpc_val_enum_shortstr(str2ordindex,s,code));
+  if code<>0 then
+   InOutRes:=106;
+end;
+{$endif VER3_2}
 
 procedure fpc_Read_Text_Currency(var f : Text; out v : Currency); iocheck; compilerproc;
 var
