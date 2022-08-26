@@ -846,6 +846,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           if is_char(def.pointeddef) and
             ((node.nodetype=stringconstn) or is_constcharnode(node)) then
             begin
+              { ensure that a widestring is converted to the current codepage }
+              if is_wide_or_unicode_string(node.resultdef) then
+                tstringconstnode(node).changestringtype(getansistringdef);
               { create a tcb for the string data (it's placed in a separate
                 asmlist) }
               ftcb.start_internal_data_builder(fdatalist,sec_rodata_norel,'',datatcb,ll);
