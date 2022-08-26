@@ -964,9 +964,18 @@ implementation
                     in_cos_real,
                     in_sin_real,
                     in_arctan_real,
-                    in_sqr_real,
                     in_sqrt_real,
                     in_ln_real:
+                      begin
+                        inc(result,15);
+                        if (result >= NODE_COMPLEXITY_INF) then
+                          begin
+                            result:=NODE_COMPLEXITY_INF;
+                            exit;
+                          end;
+                        p:=tunarynode(p).left;
+                      end;
+                    in_sqr_real:
                       begin
                         inc(result,2);
                         if (result >= NODE_COMPLEXITY_INF) then
