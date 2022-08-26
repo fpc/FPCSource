@@ -259,3 +259,13 @@ Procedure DoThreadExitProcChain;
 Begin
   DoThreadProcChain(threadExitProcList);
 End;
+
+{$ifdef FPC_SYSTEM_HAS_BACKTRACESTR}
+function SysBackTraceStr (Addr: CodePointer): ShortString;
+begin
+  if (addr<codestart) or (addr>codeend) then
+    SysBackTraceStr:='  Addr $'+hexstr(addr)
+  else
+    SysBackTraceStr:='  Offs $'+hexstr(pointer(addr-codestart));
+end;
+{$endif FPC_SYSTEM_HAS_BACKTRACESTR}

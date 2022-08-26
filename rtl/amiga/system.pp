@@ -22,6 +22,7 @@ interface
 
 {$define FPC_IS_SYSTEM}
 {$define FPC_ANSI_TEXTFILEREC}
+{$define FPC_SYSTEM_HAS_BACKTRACESTR}
 
 {$if defined(AMIGA_V1_0_ONLY) or defined(AMIGA_V1_2_ONLY)}
 {$define AMIGA_LEGACY}
@@ -146,6 +147,15 @@ implementation
 {$define FPC_SYSTEM_HAS_extractFloat32Exp}
 {$define FPC_SYSTEM_HAS_extractFloat32Sign}
 {$endif defined(cpum68k) and defined(fpusoft)}
+
+var
+  _start: byte; external name '_start';
+  { __text_size is provided by the linker }
+  __text_size: ptruint; external name '___text_size';
+
+var
+  codestart: pointer;
+  codeend: pointer;
 
 {$I system.inc}
 {$ifdef FPC_AMIGA_USE_OSHEAP}
@@ -351,6 +361,8 @@ begin
   IsConsole := TRUE;
   StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := StackTop - StackLength;
+  codestart := @_start;
+  codeend := pointer(ptruint(@_start) + ptruint(@__text_size));
 { OS specific startup }
   AOS_wbMsg:=nil;
   ASYS_origDir:=0;
