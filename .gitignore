@@ -58,6 +58,7 @@ symbol_order*.fpc
 /compiler/utils/mkz80ins
 /compiler/utils/mkarmins
 /compiler/utils/mkx86ins
+/compiler/utils/mk68kins
 /compiler/utils/ppudump
 /compiler/utils/ppufiles
 /compiler/utils/ppumove
