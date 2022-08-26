@@ -157,7 +157,10 @@ unit rgcpu;
               else if (instr.oper[1]^.typ=top_reg) and (getregtype(instr.oper[1]^.reg)=regtype) and
                 (get_alias(getsupreg(instr.oper[1]^.reg))=orgreg) and
                 ((
-                  ((instr.opcode=A_MOVE) or (instr.opcode=A_ADD) or (instr.opcode=A_SUB) or
+                  { FIX ME: if the commented out A_MOVE is enabled, it breaks some code with complex
+                            arithmetics, for example paszlib. Probably having this disabled just hides
+                            some other issue somewhere, but at least the resulting code won't crash. (KB) }
+                  ({(instr.opcode=A_MOVE) or} (instr.opcode=A_ADD) or (instr.opcode=A_SUB) or
                    (instr.opcode=A_AND) or (instr.opcode=A_OR)) and
                   (instr.oper[0]^.typ=top_reg) and not
                   (isaddressregister(instr.oper[0]^.reg)) and
