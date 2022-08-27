@@ -36,7 +36,12 @@ var
 procedure PascalMainEntry; cdecl; forward;
 
 { this function must be the first in this unit which contains code }
-function _FPC_proc_start: longint; cdecl; public name '_start';
+{ the startup code is forced to be in .text section, because the default
+  linker script of MorphOS' GNU LD puts .text section first, and then
+  all .text.* section, so if we link any object with an unnamed .text
+  section, this won't be at the start of the executable, and we get
+  crashes. (KB) }
+function _FPC_proc_start: longint; cdecl; public name '_start'; section '.text';
 var
   sst: TStackSwapStruct;
   newStack: Pointer;
