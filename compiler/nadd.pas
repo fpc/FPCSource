@@ -3983,32 +3983,38 @@ implementation
               end
             else if (left.nodetype=inlinen) and (tinlinenode(left).inlinenumber=in_sqr_real) then
               begin
-                if nodetype=subn then
-                  result:=cinlinenode.create(inlinennr,false,ccallparanode.create(cunaryminusnode.create(right),
-                    ccallparanode.create(tinlinenode(left).left.getcopy,
-                    ccallparanode.create(tinlinenode(left).left.getcopy,nil
-                    ))))
-                else
-                  result:=cinlinenode.create(inlinennr,false,ccallparanode.create(right,
-                    ccallparanode.create(tinlinenode(left).left.getcopy,
-                    ccallparanode.create(tinlinenode(left).left.getcopy,nil
-                    ))));
-                right:=nil;
+                if node_complexity(tinlinenode(left).left)=0 then
+                  begin
+                    if nodetype=subn then
+                      result:=cinlinenode.create(inlinennr,false,ccallparanode.create(cunaryminusnode.create(right),
+                        ccallparanode.create(tinlinenode(left).left.getcopy,
+                        ccallparanode.create(tinlinenode(left).left.getcopy,nil
+                        ))))
+                    else
+                      result:=cinlinenode.create(inlinennr,false,ccallparanode.create(right,
+                        ccallparanode.create(tinlinenode(left).left.getcopy,
+                        ccallparanode.create(tinlinenode(left).left.getcopy,nil
+                        ))));
+                    right:=nil;
+                  end;
               end
             { we get here only if right is a sqr node }
             else if (right.nodetype=inlinen) and (tinlinenode(right).inlinenumber=in_sqr_real) then
               begin
-                if nodetype=subn then
-                  result:=cinlinenode.create(inlinennr,false,ccallparanode.create(left,
-                    ccallparanode.create(cunaryminusnode.create(tinlinenode(right).left.getcopy),
-                    ccallparanode.create(tinlinenode(right).left.getcopy,nil
-                    ))))
-                else
-                  result:=cinlinenode.create(inlinennr,false,ccallparanode.create(left,
-                    ccallparanode.create(tinlinenode(right).left.getcopy,
-                    ccallparanode.create(tinlinenode(right).left.getcopy,nil
-                    ))));
-                left:=nil;
+                if node_complexity(tinlinenode(right).left)=0 then
+                  begin
+                    if nodetype=subn then
+                      result:=cinlinenode.create(inlinennr,false,ccallparanode.create(left,
+                        ccallparanode.create(cunaryminusnode.create(tinlinenode(right).left.getcopy),
+                        ccallparanode.create(tinlinenode(right).left.getcopy,nil
+                        ))))
+                    else
+                      result:=cinlinenode.create(inlinennr,false,ccallparanode.create(left,
+                        ccallparanode.create(tinlinenode(right).left.getcopy,
+                        ccallparanode.create(tinlinenode(right).left.getcopy,nil
+                        ))));
+                    left:=nil;
+                  end;
               end;
           end;
       end;
