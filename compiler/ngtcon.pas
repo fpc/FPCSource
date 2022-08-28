@@ -149,7 +149,7 @@ uses
    symtable,
    defutil,defcmp,
    { pass 1 }
-   htypechk,procinfo,
+   htypechk,procinfo,pass_1,
    nmem,ncnv,ninl,ncon,nld,nadd,
    { parser specific stuff }
    pbase,pexpr,
@@ -844,10 +844,20 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         { maybe pchar ? }
         else
           if is_char(def.pointeddef) and
-            ((node.nodetype=stringconstn) or is_constcharnode(node)) then
+            ((node.nodetype=stringconstn) or is_constcharnode(node) or is_constwidecharnode(node)) then
             begin
               { ensure that a widestring is converted to the current codepage }
-              if is_wide_or_unicode_string(node.resultdef) then
+              if is_constwidecharnode(node) then
+                begin
+                  initwidestring(pw);
+                  concatwidestringchar(pw,tcompilerwidechar(word(tordconstnode(node).value.svalue)));
+                  hp:=cstringconstnode.createunistr(pw);
+                  donewidestring(pw);
+                  node.free;
+                  do_typecheckpass(hp);
+                  node:=hp;
+                end;
+              if (node.nodetype=stringconstn) and is_wide_or_unicode_string(node.resultdef) then
                 tstringconstnode(node).changestringtype(getansistringdef);
               { create a tcb for the string data (it's placed in a separate
                 asmlist) }
