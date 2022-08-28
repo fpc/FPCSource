@@ -510,8 +510,8 @@ interface
                 hreg4 := hreg2;
                 setsubreg(hreg4, SubSize);
 
-                emit_reg_reg_reg(A_MULX, exp_opsize, hreg3, hreg4, hreg4);
                 cg.ungetcpuregister(current_asmdata.CurrAsmList, exp_regd);
+                emit_reg_reg_reg(A_MULX, exp_opsize, hreg3, hreg4, hreg4);
               end
             else
               begin
@@ -524,8 +524,8 @@ interface
                 cg.getcpuregister(current_asmdata.CurrAsmList, regd);
                 emit_const_reg(A_MOV, opsize, aint(m), regd);
                 hreg2 := cg.getintregister(current_asmdata.CurrAsmList, cgsize);
-                emit_reg_reg_reg(A_MULX, opsize, hreg1, hreg2, hreg2);
                 cg.ungetcpuregister(current_asmdata.CurrAsmList, regd);
+                emit_reg_reg_reg(A_MULX, opsize, hreg1, hreg2, hreg2);
 
                 if m_add then
                   begin
