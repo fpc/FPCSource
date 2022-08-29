@@ -610,6 +610,21 @@ Implementation
                   Exit;
                 end;
             end;
+          {
+             remove the second Movz from
+
+             movz reg,...
+             movz reg,...
+          }
+          if GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
+            MatchInstruction(hp1,A_MOVZ,[C_None],[PF_none]) and
+            MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[0]^) then
+            begin
+              DebugMsg(SPeepholeOptimization + 'MovzMovz2Movz', p);
+              RemoveCurrentP(p);
+              Result:=true;
+              exit;
+            end;
         end;
     end;
 
