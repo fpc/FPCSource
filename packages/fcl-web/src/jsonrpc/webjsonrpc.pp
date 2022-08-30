@@ -360,6 +360,7 @@ begin
   Inherited HandleRequest(aRequest,aResponse);
   if CORS.HandleRequest(aRequest,aResponse,[hcDetect,hcSend]) then
     exit;
+  CheckSession(ARequest);
   If (Dispatcher=Nil) then
     Dispatcher:=CreateDispatcher;
   Disp:=Dispatcher;
