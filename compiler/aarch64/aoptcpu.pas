@@ -733,7 +733,7 @@ Implementation
         (taicpu(p).ops=2) and
         GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
         MatchInstruction(hp1, A_STR, [C_None], [PF_None]) and
-        (getsubreg(taicpu(p).oper[0]^.reg)=R_SUBD) and
+        (getsubreg(taicpu(hp1).oper[0]^.reg)=R_SUBD) and
         RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
         { the reference in strb might not use reg2 }
         not(RegInRef(taicpu(p).oper[0]^.reg,taicpu(hp1).oper[1]^.ref^)) and
