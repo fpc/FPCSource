@@ -731,7 +731,7 @@ Implementation
           result:=true;
         end
       else if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-        RemoveSuperfluousMove(p, hp1, 'UxtbMov2Data') then
+        RemoveSuperfluousMove(p, hp1, 'UxtbMov2Uxtb') then
         Result:=true;
     end;
 
@@ -943,7 +943,7 @@ Implementation
           result:=true;
         end
       else if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-           RemoveSuperfluousMove(p, hp1, 'UxtbMov2Data') then
+        RemoveSuperfluousMove(p, hp1, 'SxtbMov2Sxtb') then
         Result:=true;
     end;
 
@@ -971,7 +971,7 @@ Implementation
         { reg1 might not be modified inbetween }
         not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
         begin
-          DebugMsg('Peephole SXTHStrh2Strh done', p);
+          DebugMsg('Peephole SxthStrh2Strh done', p);
           taicpu(hp1).loadReg(0,taicpu(p).oper[1]^.reg);
           GetNextInstruction(p, hp1);
           asml.remove(p);
@@ -1068,7 +1068,7 @@ Implementation
           result:=true;
         end
       else if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-           RemoveSuperfluousMove(p, hp1, 'UxthMov2Data') then
+        RemoveSuperfluousMove(p, hp1, 'SxthMov2Sxth') then
         Result:=true;
     end;
 
