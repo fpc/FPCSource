@@ -59,7 +59,7 @@ _start:
 #        move.l (%sp), %d0
 #        move.l %d0, operatingsystem_parameter_argc
 
-        jbsr PASCALMAIN
+        jsr  PASCALMAIN
 
         illegal                        /* Crash if somehow `exit' does return.  */
 
