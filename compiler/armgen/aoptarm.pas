@@ -644,11 +644,7 @@ Implementation
         begin
           DebugMsg('Peephole UxtbStrb2Strb done', p);
           taicpu(hp1).loadReg(0,taicpu(p).oper[1]^.reg);
-          GetNextInstruction(p,hp2);
-          asml.remove(p);
-          p.free;
-          p:=hp2;
-          result:=true;
+          result:=RemoveCurrentP(p);
         end
       {
         change
@@ -724,11 +720,7 @@ Implementation
           taicpu(hp1).opcode:=A_UXTB;
           taicpu(hp1).ops:=2;
           taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
-          GetNextInstruction(p,hp2);
-          asml.remove(p);
-          p.free;
-          p:=hp2;
-          result:=true;
+          result:=RemoveCurrentP(p);
         end
       else if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
         RemoveSuperfluousMove(p, hp1, 'UxtbMov2Uxtb') then
@@ -761,11 +753,7 @@ Implementation
         begin
           DebugMsg('Peephole UXTHStrh2Strh done', p);
           taicpu(hp1).loadReg(0,taicpu(p).oper[1]^.reg);
-          GetNextInstruction(p, hp1);
-          asml.remove(p);
-          p.free;
-          p:=hp1;
-          result:=true;
+          result:=RemoveCurrentP(p);
         end
       {
         change
@@ -789,11 +777,7 @@ Implementation
           AllocRegBetween(taicpu(p).oper[1]^.reg,p,hp1,UsedRegs);
           taicpu(hp1).opcode:=A_UXTH;
           taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
-          GetNextInstruction(p, hp1);
-          asml.remove(p);
-          p.free;
-          p:=hp1;
-          result:=true;
+          result:=RemoveCurrentP(p);
         end
       {
         change
@@ -819,14 +803,10 @@ Implementation
           taicpu(hp1).opcode:=A_UXTH;
           taicpu(hp1).ops:=2;
           taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
-          GetNextInstruction(p, hp1);
-          asml.remove(p);
-          p.free;
-          p:=hp1;
-          result:=true;
+          result:=RemoveCurrentP(p);
         end
       else if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-           RemoveSuperfluousMove(p, hp1, 'UxthMov2Data') then
+        RemoveSuperfluousMove(p, hp1, 'UxthMov2Data') then
         Result:=true;
     end;
 
@@ -856,11 +836,7 @@ Implementation
         begin
           DebugMsg('Peephole SxtbStrb2Strb done', p);
           taicpu(hp1).loadReg(0,taicpu(p).oper[1]^.reg);
-          GetNextInstruction(p,hp2);
-          asml.remove(p);
-          p.free;
-          p:=hp2;
-          result:=true;
+          result:=RemoveCurrentP(p);
         end
       {
         change
@@ -936,11 +912,7 @@ Implementation
           taicpu(hp1).opcode:=A_UXTB;
           taicpu(hp1).ops:=2;
           taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
-          GetNextInstruction(p,hp2);
-          asml.remove(p);
-          p.free;
-          p:=hp2;
-          result:=true;
+          result:=RemoveCurrentP(p);
         end
       else if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
         RemoveSuperfluousMove(p, hp1, 'SxtbMov2Sxtb') then
@@ -973,11 +945,7 @@ Implementation
         begin
           DebugMsg('Peephole SxthStrh2Strh done', p);
           taicpu(hp1).loadReg(0,taicpu(p).oper[1]^.reg);
-          GetNextInstruction(p, hp1);
-          asml.remove(p);
-          p.free;
-          p:=hp1;
-          result:=true;
+          result:=RemoveCurrentP(p);
         end
       {
         change
@@ -1001,11 +969,7 @@ Implementation
           AllocRegBetween(taicpu(p).oper[1]^.reg,p,hp1,UsedRegs);
           taicpu(hp1).opcode:=A_SXTH;
           taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
-          GetNextInstruction(p, hp1);
-          asml.remove(p);
-          p.free;
-          p:=hp1;
-          result:=true;
+          result:=RemoveCurrentP(p);
         end
 {$ifdef AARCH64}
       {
@@ -1030,11 +994,7 @@ Implementation
           AllocRegBetween(taicpu(p).oper[1]^.reg,p,hp1,UsedRegs);
           taicpu(hp1).opcode:=A_SXTH;
           taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
-          GetNextInstruction(p, hp1);
-          asml.remove(p);
-          p.free;
-          p:=hp1;
-          result:=true;
+          result:=RemoveCurrentP(p);
         end
  {$endif AARCH64}
       {
@@ -1061,11 +1021,7 @@ Implementation
           taicpu(hp1).opcode:=A_UXTH;
           taicpu(hp1).ops:=2;
           taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
-          GetNextInstruction(p, hp1);
-          asml.remove(p);
-          p.free;
-          p:=hp1;
-          result:=true;
+          result:=RemoveCurrentP(p);
         end
       else if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
         RemoveSuperfluousMove(p, hp1, 'SxthMov2Sxth') then
@@ -1107,7 +1063,6 @@ Implementation
           Result := True;
           Exit;
         end;
-
     end;
 
 
