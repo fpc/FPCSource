@@ -719,66 +719,67 @@ Implementation
   function TCpuAsmOptimizer.OptPass1SXTW(var p : tai) : Boolean;
     var
       hp1: tai;
+      GetNextInstructionUsingReg_hp1: Boolean;
     begin
       Result:=false;
-      {
-        change
-        sxtw reg2,reg1
-        str reg2,[...]
-        dealloc reg2
-        to
-        str reg1,[...]
-      }
-      if MatchInstruction(p, taicpu(p).opcode, [C_None], [PF_None]) and
-        (taicpu(p).ops=2) and
-        GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
-        MatchInstruction(hp1, A_STR, [C_None], [PF_None]) and
-        (getsubreg(taicpu(hp1).oper[0]^.reg)=R_SUBD) and
-        RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
-        { the reference in strb might not use reg2 }
-        not(RegInRef(taicpu(p).oper[0]^.reg,taicpu(hp1).oper[1]^.ref^)) and
-        { reg1 might not be modified inbetween }
-        not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
+      if GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) then
         begin
-          DebugMsg('Peephole SXTHStr2Str done', p);
-          taicpu(hp1).loadReg(0,taicpu(p).oper[1]^.reg);
-          GetNextInstruction(p, hp1);
-          asml.remove(p);
-          p.free;
-          p:=hp1;
-          result:=true;
-        end
-      {
-        change
-        sxtw reg2,reg1
-        sxtw reg3,reg2
-        dealloc reg2
-        to
-        sxtw reg3,reg1
-      }
-      else if MatchInstruction(p, A_SXTW, [C_None], [PF_None]) and
-        (taicpu(p).ops=2) and
-        GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
-        MatchInstruction(hp1, A_SXTW, [C_None], [PF_None]) and
-        (taicpu(hp1).ops=2) and
-        MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
-        RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
-        { reg1 might not be modified inbetween }
-        not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
-        begin
-          DebugMsg('Peephole SxtwSxtw2Sxtw done', p);
-          AllocRegBetween(taicpu(p).oper[1]^.reg,p,hp1,UsedRegs);
-          taicpu(hp1).opcode:=A_SXTW;
-          taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
-          GetNextInstruction(p, hp1);
-          asml.remove(p);
-          p.free;
-          p:=hp1;
-          result:=true;
-        end
-      else if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-        RemoveSuperfluousMove(p, hp1, 'SxtwMov2Data') then
-        Result:=true;
+          {
+            change
+            sxtw reg2,reg1
+            str reg2,[...]
+            dealloc reg2
+            to
+            str reg1,[...]
+          }
+          if MatchInstruction(p, taicpu(p).opcode, [C_None], [PF_None]) and
+            (taicpu(p).ops=2) and
+            MatchInstruction(hp1, A_STR, [C_None], [PF_None]) and
+            (getsubreg(taicpu(hp1).oper[0]^.reg)=R_SUBD) and
+            RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
+            { the reference in strb might not use reg2 }
+            not(RegInRef(taicpu(p).oper[0]^.reg,taicpu(hp1).oper[1]^.ref^)) and
+            { reg1 might not be modified inbetween }
+            not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
+            begin
+              DebugMsg('Peephole SXTHStr2Str done', p);
+              taicpu(hp1).loadReg(0,taicpu(p).oper[1]^.reg);
+              GetNextInstruction(p, hp1);
+              asml.remove(p);
+              p.free;
+              p:=hp1;
+              result:=true;
+            end
+          {
+            change
+            sxtw reg2,reg1
+            sxtw reg3,reg2
+            dealloc reg2
+            to
+            sxtw reg3,reg1
+          }
+          else if MatchInstruction(p, A_SXTW, [C_None], [PF_None]) and
+            (taicpu(p).ops=2) and
+            MatchInstruction(hp1, A_SXTW, [C_None], [PF_None]) and
+            (taicpu(hp1).ops=2) and
+            MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
+            RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
+            { reg1 might not be modified inbetween }
+            not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
+            begin
+              DebugMsg('Peephole SxtwSxtw2Sxtw done', p);
+              AllocRegBetween(taicpu(p).oper[1]^.reg,p,hp1,UsedRegs);
+              taicpu(hp1).opcode:=A_SXTW;
+              taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
+              GetNextInstruction(p, hp1);
+              asml.remove(p);
+              p.free;
+              p:=hp1;
+              result:=true;
+            end
+          else if RemoveSuperfluousMove(p, hp1, 'SxtwMov2Data') then
+            Result:=true;
+        end;
     end;
 
 
