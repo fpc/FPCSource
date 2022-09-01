@@ -393,8 +393,8 @@ begin
   Result:=0;
   aClassName:=GetName(Intf);
   aPasIntfName:=GetPasIntfName(Intf);
-  AddLn('class function Cast(Intf: IJSObject): '+aPasIntfName+';');
-  Code:='class function '+aClassName+'.Cast(Intf: IJSObject): '+aPasIntfName+';'+sLineBreak;
+  AddLn('class function Cast(const Intf: IJSObject): '+aPasIntfName+';');
+  Code:='class function '+aClassName+'.Cast(const Intf: IJSObject): '+aPasIntfName+';'+sLineBreak;
   Code:=Code+'begin'+sLineBreak;
   Code:=Code+'  Result:='+aClassName+'.JOBCast(Intf);'+sLineBreak;
   Code:=Code+'end;'+sLineBreak;
