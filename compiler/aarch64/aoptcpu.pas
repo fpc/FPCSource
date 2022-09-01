@@ -745,11 +745,7 @@ Implementation
             begin
               DebugMsg('Peephole SXTHStr2Str done', p);
               taicpu(hp1).loadReg(0,taicpu(p).oper[1]^.reg);
-              GetNextInstruction(p, hp1);
-              asml.remove(p);
-              p.free;
-              p:=hp1;
-              result:=true;
+              result:=RemoveCurrentP(p);
             end
           {
             change
@@ -772,11 +768,7 @@ Implementation
               AllocRegBetween(taicpu(p).oper[1]^.reg,p,hp1,UsedRegs);
               taicpu(hp1).opcode:=A_SXTW;
               taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
-              GetNextInstruction(p, hp1);
-              asml.remove(p);
-              p.free;
-              p:=hp1;
-              result:=true;
+              result:=RemoveCurrentP(p);
             end
           else if MatchInstruction(hp1, [A_ADD,A_SUB], [C_None], [PF_None,PF_S]) and
             (taicpu(p).ops=2) and
@@ -795,8 +787,7 @@ Implementation
               so.shiftmode:=SM_SXTW;
               so.shiftimm:=0;
               taicpu(hp1).loadshifterop(3,so);
-              RemoveCurrentP(p);
-              result:=true;
+              result:=RemoveCurrentP(p);
             end
           else if RemoveSuperfluousMove(p, hp1, 'SxtwMov2Data') then
             Result:=true;
