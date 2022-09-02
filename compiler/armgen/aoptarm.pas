@@ -721,6 +721,7 @@ Implementation
               taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
               result:=RemoveCurrentP(p);
             end
+{$ifdef AARCH64}
           else if MatchInstruction(hp1, [A_ADD,A_SUB], [C_None], [PF_None,PF_S]) and
             (taicpu(p).ops=2) and
             (taicpu(hp1).ops=3) and
@@ -740,6 +741,7 @@ Implementation
               taicpu(hp1).loadshifterop(3,so);
               result:=RemoveCurrentP(p);
             end
+{$endif AARCH64}
           else if RemoveSuperfluousMove(p, hp1, 'UxtbMov2Uxtb') then
             Result:=true;
         end;
@@ -823,6 +825,7 @@ Implementation
               taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
               result:=RemoveCurrentP(p);
             end
+{$ifdef AARCH64}
           else if MatchInstruction(hp1, [A_ADD,A_SUB], [C_None], [PF_None,PF_S]) and
             (taicpu(p).ops=2) and
             (taicpu(hp1).ops=3) and
@@ -842,6 +845,7 @@ Implementation
               taicpu(hp1).loadshifterop(3,so);
               result:=RemoveCurrentP(p);
             end
+{$endif AARCH64}
           else if RemoveSuperfluousMove(p, hp1, 'UxthMov2Data') then
             Result:=true;
         end;
@@ -950,6 +954,7 @@ Implementation
               taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
               result:=RemoveCurrentP(p);
             end
+{$ifdef AARCH64}
           else if MatchInstruction(hp1, [A_ADD,A_SUB], [C_None], [PF_None,PF_S]) and
             (taicpu(p).ops=2) and
             (taicpu(hp1).ops=3) and
@@ -969,6 +974,7 @@ Implementation
               taicpu(hp1).loadshifterop(3,so);
               result:=RemoveCurrentP(p);
             end
+{$endif AARCH64}
           else if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
             RemoveSuperfluousMove(p, hp1, 'SxtbMov2Sxtb') then
             Result:=true;
@@ -1078,6 +1084,7 @@ Implementation
               taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
               result:=RemoveCurrentP(p);
             end
+{$ifdef AARCH64}
           else if MatchInstruction(hp1, [A_ADD,A_SUB], [C_None], [PF_None,PF_S]) and
             (taicpu(p).ops=2) and
             (taicpu(hp1).ops=3) and
@@ -1097,6 +1104,7 @@ Implementation
               taicpu(hp1).loadshifterop(3,so);
               result:=RemoveCurrentP(p);
             end
+{$endif AARCH64}
           else if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
             RemoveSuperfluousMove(p, hp1, 'SxthMov2Sxth') then
             Result:=true;
