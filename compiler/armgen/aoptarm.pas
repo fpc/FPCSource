@@ -44,7 +44,9 @@ Type
     function RemoveSuperfluousMove(const p: tai; movp: tai; const optimizer: string): boolean;
     function RedundantMovProcess(var p: tai; var hp1: tai): boolean;
     function GetNextInstructionUsingReg(Current: tai; out Next: tai; const reg: TRegister): Boolean;
-
+{$ifdef AARCH64}
+    function USxtOp2Op(var p, hp1: tai; shiftmode: tshiftmode): Boolean;
+{$endif AARCH64}
     function OptPreSBFXUBFX(var p: tai): Boolean;
 
     function OptPass1UXTB(var p: tai): Boolean;
@@ -192,6 +194,44 @@ Implementation
           else Result:=false;
         end
     end;
+
+
+{$ifdef AARCH64}
+  function TARMAsmOptimizer.USxtOp2Op(var p,hp1: tai; shiftmode: tshiftmode): Boolean;
+    var
+      so: tshifterop;
+      opoffset: Integer;
+    begin
+      Result:=false;
+      if (taicpu(p).ops=2) and
+        ((MatchInstruction(hp1, [A_ADD,A_SUB], [C_None], [PF_None,PF_S]) and
+        (taicpu(hp1).ops=3) and
+         MatchOperand(taicpu(hp1).oper[2]^, taicpu(p).oper[0]^.reg) and
+         not(MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg))) or
+         (MatchInstruction(hp1, [A_CMP,A_CMN], [C_None], [PF_None]) and
+         (taicpu(hp1).ops=2) and
+         MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg))
+        ) and
+        RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
+        { reg1 might not be modified inbetween }
+        not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
+        begin
+          DebugMsg('Peephole '+gas_op2str[taicpu(p).opcode]+gas_op2str[taicpu(hp1).opcode]+'2'+gas_op2str[taicpu(hp1).opcode]+' done', p);
+          AllocRegBetween(taicpu(p).oper[1]^.reg,p,hp1,UsedRegs);
+          if MatchInstruction(hp1, [A_CMP,A_CMN], [C_None], [PF_None]) then
+            opoffset:=0
+          else
+            opoffset:=1;
+          taicpu(hp1).loadReg(opoffset+1,taicpu(p).oper[1]^.reg);
+          taicpu(hp1).ops:=opoffset+3;
+          shifterop_reset(so);
+          so.shiftmode:=shiftmode;
+          so.shiftimm:=0;
+          taicpu(hp1).loadshifterop(opoffset+2,so);
+          result:=RemoveCurrentP(p);
+        end;
+    end;
+{$endif AARCH64}
 
 
   function TARMAsmOptimizer.GetNextInstructionUsingReg(Current: tai;

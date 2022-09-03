@@ -720,8 +720,6 @@ Implementation
     var
       hp1: tai;
       GetNextInstructionUsingReg_hp1: Boolean;
-      so: tshifterop;
-      opoffset: Integer;
     begin
       Result:=false;
       if GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) then
@@ -771,33 +769,8 @@ Implementation
               taicpu(hp1).loadReg(1,taicpu(p).oper[1]^.reg);
               result:=RemoveCurrentP(p);
             end
-          else if (taicpu(p).ops=2) and
-            ((MatchInstruction(hp1, [A_ADD,A_SUB], [C_None], [PF_None,PF_S]) and
-            (taicpu(hp1).ops=3) and
-             MatchOperand(taicpu(hp1).oper[2]^, taicpu(p).oper[0]^.reg) and
-             not(MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg))) or
-             (MatchInstruction(hp1, [A_CMP,A_CMN], [C_None], [PF_None]) and
-             (taicpu(hp1).ops=2) and
-             MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg))
-            ) and
-            RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
-            { reg1 might not be modified inbetween }
-            not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
-            begin
-              DebugMsg('Peephole SxtwOp2Op done', p);
-              AllocRegBetween(taicpu(p).oper[1]^.reg,p,hp1,UsedRegs);
-              if MatchInstruction(hp1, [A_CMP,A_CMN], [C_None], [PF_None]) then
-                opoffset:=0
-              else
-                opoffset:=1;
-              taicpu(hp1).loadReg(opoffset+1,taicpu(p).oper[1]^.reg);
-              taicpu(hp1).ops:=opoffset+3;
-              shifterop_reset(so);
-              so.shiftmode:=SM_SXTW;
-              so.shiftimm:=0;
-              taicpu(hp1).loadshifterop(opoffset+2,so);
-              result:=RemoveCurrentP(p);
-            end
+          else if USxtOp2Op(p,hp1,SM_SXTW) then
+            Result:=true
           else if RemoveSuperfluousMove(p, hp1, 'SxtwMov2Data') then
             Result:=true;
         end;
