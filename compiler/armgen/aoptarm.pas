@@ -762,25 +762,8 @@ Implementation
               result:=RemoveCurrentP(p);
             end
 {$ifdef AARCH64}
-          else if MatchInstruction(hp1, [A_ADD,A_SUB], [C_None], [PF_None,PF_S]) and
-            (taicpu(p).ops=2) and
-            (taicpu(hp1).ops=3) and
-            MatchOperand(taicpu(hp1).oper[2]^, taicpu(p).oper[0]^.reg) and
-            not(MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg)) and
-            RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
-            { reg1 might not be modified inbetween }
-            not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
-            begin
-              DebugMsg('Peephole UxtbOp2Op done', p);
-              AllocRegBetween(taicpu(p).oper[1]^.reg,p,hp1,UsedRegs);
-              taicpu(hp1).loadReg(2,taicpu(p).oper[1]^.reg);
-              taicpu(hp1).ops:=4;
-              shifterop_reset(so);
-              so.shiftmode:=SM_UXTB;
-              so.shiftimm:=0;
-              taicpu(hp1).loadshifterop(3,so);
-              result:=RemoveCurrentP(p);
-            end
+          else if USxtOp2Op(p,hp1,SM_UXTB) then
+            Result:=true
 {$endif AARCH64}
           else if RemoveSuperfluousMove(p, hp1, 'UxtbMov2Uxtb') then
             Result:=true;
@@ -866,25 +849,8 @@ Implementation
               result:=RemoveCurrentP(p);
             end
 {$ifdef AARCH64}
-          else if MatchInstruction(hp1, [A_ADD,A_SUB], [C_None], [PF_None,PF_S]) and
-            (taicpu(p).ops=2) and
-            (taicpu(hp1).ops=3) and
-            MatchOperand(taicpu(hp1).oper[2]^, taicpu(p).oper[0]^.reg) and
-            not(MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg)) and
-            RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
-            { reg1 might not be modified inbetween }
-            not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
-            begin
-              DebugMsg('Peephole UxthOp2Op done', p);
-              AllocRegBetween(taicpu(p).oper[1]^.reg,p,hp1,UsedRegs);
-              taicpu(hp1).loadReg(2,taicpu(p).oper[1]^.reg);
-              taicpu(hp1).ops:=4;
-              shifterop_reset(so);
-              so.shiftmode:=SM_UXTH;
-              so.shiftimm:=0;
-              taicpu(hp1).loadshifterop(3,so);
-              result:=RemoveCurrentP(p);
-            end
+          else if USxtOp2Op(p,hp1,SM_UXTH) then
+            Result:=true
 {$endif AARCH64}
           else if RemoveSuperfluousMove(p, hp1, 'UxthMov2Data') then
             Result:=true;
@@ -995,25 +961,8 @@ Implementation
               result:=RemoveCurrentP(p);
             end
 {$ifdef AARCH64}
-          else if MatchInstruction(hp1, [A_ADD,A_SUB], [C_None], [PF_None,PF_S]) and
-            (taicpu(p).ops=2) and
-            (taicpu(hp1).ops=3) and
-            MatchOperand(taicpu(hp1).oper[2]^, taicpu(p).oper[0]^.reg) and
-            not(MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg)) and
-            RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
-            { reg1 might not be modified inbetween }
-            not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
-            begin
-              DebugMsg('Peephole SxtbOp2Op done', p);
-              AllocRegBetween(taicpu(p).oper[1]^.reg,p,hp1,UsedRegs);
-              taicpu(hp1).loadReg(2,taicpu(p).oper[1]^.reg);
-              taicpu(hp1).ops:=4;
-              shifterop_reset(so);
-              so.shiftmode:=SM_SXTB;
-              so.shiftimm:=0;
-              taicpu(hp1).loadshifterop(3,so);
-              result:=RemoveCurrentP(p);
-            end
+          else if USxtOp2Op(p,hp1,SM_SXTB) then
+            Result:=true
 {$endif AARCH64}
           else if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
             RemoveSuperfluousMove(p, hp1, 'SxtbMov2Sxtb') then
@@ -1125,25 +1074,8 @@ Implementation
               result:=RemoveCurrentP(p);
             end
 {$ifdef AARCH64}
-          else if MatchInstruction(hp1, [A_ADD,A_SUB], [C_None], [PF_None,PF_S]) and
-            (taicpu(p).ops=2) and
-            (taicpu(hp1).ops=3) and
-            MatchOperand(taicpu(hp1).oper[2]^, taicpu(p).oper[0]^.reg) and
-            not(MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg)) and
-            RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
-            { reg1 might not be modified inbetween }
-            not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
-            begin
-              DebugMsg('Peephole SxthOp2Op done', p);
-              AllocRegBetween(taicpu(p).oper[1]^.reg,p,hp1,UsedRegs);
-              taicpu(hp1).loadReg(2,taicpu(p).oper[1]^.reg);
-              taicpu(hp1).ops:=4;
-              shifterop_reset(so);
-              so.shiftmode:=SM_SXTH;
-              so.shiftimm:=0;
-              taicpu(hp1).loadshifterop(3,so);
-              result:=RemoveCurrentP(p);
-            end
+          else if USxtOp2Op(p,hp1,SM_SXTH) then
+            Result:=true
 {$endif AARCH64}
           else if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
             RemoveSuperfluousMove(p, hp1, 'SxthMov2Sxth') then
