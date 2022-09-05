@@ -53,6 +53,7 @@ unit nx86add;
         procedure second_addfloat;override;
 {$ifndef i8086}
         procedure second_addsmallset;override;
+        procedure second_addsmallsetelement;override;
 {$endif not i8086}
         procedure second_add64bit;override;
         procedure second_cmpfloat;override;
@@ -637,6 +638,49 @@ unit nx86add;
         { fix the changed opsize we did above because of the missing btsb }
         if opsize<>int_cgsize(resultdef.size) then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,location,opdef,cgsize_orddef(int_cgsize(resultdef.size)),false);
+      end;
+
+
+    procedure tx86addnode.second_addsmallsetelement;
+      var
+        setbase, mask: aint;
+      begin
+        if resultdef.size=1 then
+          inherited second_addsmallsetelement
+        else
+          begin
+            if nodetype<>addn then
+              internalerror(2022090502);
+            { no range support for smallsets }
+            if assigned(tsetelementnode(right).right) then
+              internalerror(2022090501);
+            pass_left_right;
+            { setelementn is a special case, it must be on right }
+            if (nf_swapped in flags) and
+               (left.nodetype=setelementn) then
+              swapleftright;
+            force_reg_left_right(false,false);
+            set_result_location_reg;
+            setbase:=tsetdef(left.resultdef).setbase;
+            if (right.location.loc = LOC_CONSTANT) then
+              begin
+                mask:=aint(1 shl (right.location.value-setbase));
+                hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_OR,resultdef,
+                  mask,left.location.register,location.register);
+              end
+            else
+              begin
+                hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,resultdef,true);
+                register_maybe_adjust_setbase(current_asmdata.CurrAsmList,resultdef,right.location,setbase);
+                if left.location.loc <> LOC_CONSTANT then
+                  hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,
+                      left.location.register,location.register)
+                else
+                  hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,
+                      left.location.value,location.register);
+                emit_reg_reg(A_BTS,TCGSize2Opsize[def_cgsize(resultdef)],right.location.register,location.register);
+              end;
+          end;
       end;
 {$endif not i8086}
 
