@@ -20,7 +20,7 @@ unit tcCSSScanner;
 interface
 
 uses
-  TypInfo, Classes, SysUtils, fpcunit, testutils, testregistry, fpcssscanner;
+  TypInfo, Classes, SysUtils, fpcunit, testregistry, fpcssscanner;
 
 type
   TTestLineReader = Class(TTestCase)
