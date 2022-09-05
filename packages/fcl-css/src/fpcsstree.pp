@@ -341,9 +341,9 @@ Type
 
 
 // Convert unicode codepoints to \0000 notation
-Function StringToCSSString(S : UTF8String) : UTF8String;
+Function StringToCSSString(const S : UTF8String) : UTF8String;
 // Escapes non-identifier characters C to \C
-Function StringToIdentifier(S : UTF8String) : UTF8String;
+Function StringToIdentifier(const S : UTF8String) : UTF8String;
 
 Const
   CSSUnitNames : Array[TCSSUnits] of string =
@@ -372,13 +372,13 @@ begin
  Result:=u8_length[Ord(S) shr 4];
 end;
 
-function StringToCSSString(S: UTF8String): UTF8String;
+function StringToCSSString(const S: UTF8String): UTF8String;
 
 Var
-  iIn,iOut,I : Integer;
+  iIn,iOut,I,L : Integer;
   O : String[5];
   u : UTF8String;
-  W : widestring;
+  W : Unicodestring;
   C : Char;
 
   Procedure AddO;
@@ -395,10 +395,11 @@ Var
 
 begin
   Result:='';
-  SetLength(Result,4*Length(S));
+  L:=Length(S);
+  SetLength(Result,4*L);
   iIn:=1;
   iOut:=0;
-  While iIn<=Length(S) do
+  While iIn<=L do
     begin
     C:=S[iIn];
     If C in [#0..' ','"'] then
@@ -423,6 +424,8 @@ begin
           O:='\'+HexStr(Ord(W[I]),4);
           AddO;
           end;
+        inc(iIn,I);
+        continue;
         end;
       end;
     Inc(iIn);
@@ -431,10 +434,10 @@ begin
   Result:='"'+Result+'"';
 end;
 
-function StringToIdentifier(S: UTF8String): UTF8String;
+function StringToIdentifier(const S: UTF8String): UTF8String;
 
 Var
-  iIn,iOut : Integer;
+  iIn,iOut,L : Integer;
   C : Char;
 
 begin
@@ -442,7 +445,8 @@ begin
   SetLength(Result,2*Length(S));
   iIn:=1;
   iOut:=0;
-  While iIn<=Length(S) do
+  L:=Length(S);
+  While iIn<=L do
     begin
     C:=S[iIn];
     If Not (C in ['a'..'z','A'..'Z','_','-','0'..'9']) then
@@ -472,7 +476,6 @@ begin
       Result:=Result+' ';
     Result:=Result+Children[I].GetAsString(aFormat,aIndent);
     end;
-
 end;
 
 function TCSSListElement.ExtractElement(aIndex: Integer): TCSSElement;
@@ -728,7 +731,7 @@ end;
 
 class function TCSSRuleElement.CSSType: TCSSType;
 begin
-  Result:=csstRULE
+  Result:=csstRULE;
 end;
 
 destructor TCSSRuleElement.Destroy;
@@ -754,6 +757,8 @@ Var
   I : Integer;
 
 begin
+  if aFormat then ;
+  if aIndent='' then ;
   I:=1;
   if (Length(Value)>2) and (Value[2]=':') then
     I:=2;
@@ -831,9 +836,9 @@ begin
       Result:=Result+', ';
     Result:=Result+Children[I].GetAsString(aFormat,aIndent);
     end;
+  Result:=Result+')';
   if aFormat then
     Result:=aIndent+Result;
-  Result:=Result+')'
 end;
 
 class function TCSSCallElement.CSSType: TCSSType;
@@ -899,6 +904,8 @@ end;
 
 function TCSSClassNameElement.GetAsString(aFormat: Boolean; const aIndent: String): UTF8String;
 begin
+  if aFormat then ;
+  if aIndent='' then ;
   Result:=Copy(Value,1,1)+StringToIdentifier(Copy(Value,2,Length(Value)-1));
 end;
 
@@ -916,6 +923,8 @@ end;
 
 function TCSSIdentifierElement.GetAsString(aFormat : Boolean; const aIndent : String): UTF8String;
 begin
+  if aFormat then ;
+  if aIndent='' then ;
   Result:=StringToIdentifier(Value);
 end;
 
@@ -1071,6 +1080,8 @@ end;
 
 function TCSSElement.GetAsString(aFormat: Boolean; const aIndent : String): UTF8String;
 begin
+  if aFormat then ;
+  if aIndent='' then ;
   Result:='';
 end;
 
