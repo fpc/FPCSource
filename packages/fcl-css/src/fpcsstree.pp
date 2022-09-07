@@ -176,10 +176,9 @@ Type
     Class function CSSType : TCSSType; override;
   end;
 
-  TCSSStringElement = Class(TCSSElement)
+  TCSSStringElement = Class(TCSSBaseStringElement)
   private
     FChildren : TCSSElementList;
-    FValue: UTF8String;
     function GetChildren: TCSSElementList;
   protected
     function GetAsString(aFormat : Boolean; const aIndent : String): UTF8String; override;
@@ -188,7 +187,6 @@ Type
     Class function CSSType : TCSSType; override;
     Destructor Destroy; override;
     Property Children : TCSSElementList Read GetChildren;
-    Property Value : UTF8String Read FValue Write FValue;
   end;
 
   { TCSSIdentifierElement }
