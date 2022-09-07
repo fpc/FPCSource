@@ -572,7 +572,7 @@ interface
             DoMod: Boolean;
           begin
 {$ifndef i8086}
-            if (current_settings.cputype = cpu_core_avx2) then
+            IF (CPUX86_HAS_BMI2 in cpu_capabilities[current_settings.cputype]) then
               begin
                 { If BMI2 is available, use more efficient instructions }
                 DoBMI2ReciprocalDivision;
