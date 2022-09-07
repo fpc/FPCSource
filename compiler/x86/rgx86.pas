@@ -192,7 +192,7 @@ implementation
                     begin
                       { BMI shifting/rotating instructions have special requirements regarding spilling, only
                         the middle operand can be replaced }
-                      if ((opcode=A_RORX) or (opcode=A_SHRX) or (opcode=A_SARX) or (opcode=A_SHLX)) then
+                      if ((opcode=A_RORX) or (opcode=A_SHRX) or (opcode=A_SARX) or (opcode=A_SHLX) or (opcode=A_BEXTR) or (opcode=A_BZHI)) then
                         begin
                           if (oper[1]^.typ=top_reg) and (getregtype(oper[1]^.reg)=regtype) and (get_alias(getsupreg(oper[1]^.reg))=orgreg) then
                             replaceoper:=1;
