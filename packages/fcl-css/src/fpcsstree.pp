@@ -364,6 +364,8 @@ Function StringToCSSString(const S : UTF8String) : UTF8String;
 // Escapes non-identifier characters C to \C
 Function StringToIdentifier(const S : UTF8String) : UTF8String;
 
+Function GetCSSPath(El: TCSSElement): string;
+
 Const
   CSSUnitNames : Array[TCSSUnits] of string =
         ('','px','%','rem','em','pt','fr','vw','vh','deg');
@@ -478,6 +480,23 @@ begin
     Inc(iIn);
     end;
   SetLength(Result,iOut);
+end;
+
+function GetCSSPath(El: TCSSElement): string;
+begin
+  if El=nil then
+    exit('nil');
+  Result:='';
+  while El<>nil do
+    begin
+    if Result<>'' then
+      Result:='.'+Result;
+    if El is TCSSIdentifierElement then
+      Result:=TCSSIdentifierElement(El).Name+Result
+    else
+      Result:=El.ClassName+Result;
+    El:=El.Parent;
+    end;
 end;
 
 { TCSSListElement }
