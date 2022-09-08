@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal Run time library.
-    Copyright (c) 2022- by Michael Van Canneyt (michael@freepascal.org)
+    Copyright (c) 2022 by Michael Van Canneyt (michael@freepascal.org)
 
     This file contains CSS utility class
 
