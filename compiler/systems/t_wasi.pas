@@ -165,7 +165,7 @@ begin
 
   if ts_wasm_threads in current_settings.targetswitches then
     begin
-      cmdstr := cmdstr + ' --import-memory --shared-memory --initial-memory=16777216 --max-memory=16777216 --global-base=1024';
+      cmdstr := cmdstr + ' --import-memory --shared-memory --initial-memory=16777216 --max-memory=33554432 --global-base=1024';
     end;
 
   if (cs_link_strip in current_settings.globalswitches) then
