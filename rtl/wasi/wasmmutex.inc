@@ -49,13 +49,14 @@ begin
     Res:=fpc_wasm32_i32_atomic_rmw_cmpxchg_u(@M.Locked,0,1)=0
   else
     begin
-    {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TryLockMutex : we ('+IntToStr(PtrUint(GetSelfThread))+') own the lock.');{$ENDIF}
+// TryLockMutex is called in a loop. Be VERY careful when adding this log.
+//    {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TryLockMutex : we ('+IntToStr(PtrUint(GetSelfThread))+') own the lock.');{$ENDIF}
     end;
   if Res then
     begin
     if (MutexKind(M)=mkRecursive) or (M.Count=0) then
       InterLockedIncrement(M.Count);
-    {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TryLockMutex : setting owner to '+IntToStr(PtrUint(GetSelfThread))+'.');{$ENDIF}
+//    {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TryLockMutex : setting owner to '+IntToStr(PtrUint(GetSelfThread))+'.');{$ENDIF}
     M.Owner:=GetSelfThread;
     end;
   TryLockMutex:=Res;
