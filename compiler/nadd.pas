@@ -3067,7 +3067,7 @@ implementation
               if not(nodetype in [addn,subn,xorn,orn,andn,muln,slashn]) then
                 CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
               { both defs must be equal, so taking left or right as resultdef doesn't matter }
-              resultdef:=left.resultdef;
+              resultdef:=to_hwvectordef(left.resultdef,false);
             end
 
          { this is a little bit dangerous, also the left type }

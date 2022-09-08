@@ -1289,12 +1289,15 @@ implementation
                               end
                             else
                             { array -> array }
-                             if not(m_tp7 in current_settings.modeswitches) and
-                                not(m_delphi in current_settings.modeswitches) and
+                             if ((not(m_tp7 in current_settings.modeswitches) and
+                                  not(m_delphi in current_settings.modeswitches)) or
+                                { allow assigning vector results to regular
+                                  arrays. TODO: change once we expose vector types }
+                                 tarraydef(def_from).is_hwvector) and
                                 (tarraydef(def_from).lowrange=tarraydef(def_to).lowrange) and
                                 (tarraydef(def_from).highrange=tarraydef(def_to).highrange) and
                                 equal_defs(tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) and
-                                equal_defs(tarraydef(def_from).rangedef,tarraydef(def_to).rangedef) then
+                                (compare_defs_ext(tarraydef(def_from).rangedef,tarraydef(def_to).rangedef,nothingn,hct,hpd,[])>te_incompatible) then
                               begin
                                 eq:=te_equal
                               end;

@@ -360,6 +360,11 @@ implementation
         if equal_defs(p.resultdef,def) and
            (p.resultdef.typ=def.typ) and
            not is_bitpacked_access(p) and
+           { result of a hardware vector node must remain a hardware
+             vector of the same kind (will match to tc_equal with regular arrays
+             of same dimension/eledef) }
+           not((p.resultdef.typ=arraydef) and
+               tarraydef(p.resultdef).is_hwvector) and
            ((p.blocktype=bt_const) or
             not ctypeconvnode.target_specific_need_equal_typeconv(p.resultdef,def)) then
           begin

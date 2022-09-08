@@ -330,8 +330,11 @@ interface
     { Returns the range type of an ordinal type in the sense of ISO-10206 }
     function get_iso_range_type(def: tdef): tdef;
 
-    { type being a vector? }
+    { is the type a vector, or can it be transparently used as one? }
     function is_vector(p : tdef) : boolean;
+
+    { return a real/hardware vectordef representing this def }
+    function to_hwvectordef(p: tdef; nil_on_error: boolean): tdef;
 
     { some type helper routines for MMX support }
     function is_mmx_able_array(p : tdef) : boolean;
@@ -1424,10 +1427,13 @@ implementation
     function is_vector(p : tdef) : boolean;
       begin
         result:=(p.typ=arraydef) and
-                not(is_special_array(p)) and
-                (tarraydef(p).elementdef.typ in [floatdef,orddef]) {and
-                (tarraydef(p).elementdef.typ=floatdef) and
-                (tfloatdef(tarraydef(p).elementdef).floattype in [s32real,s64real])};
+                (tarraydef(p).is_hwvector or
+                 (not(is_special_array(p)) and
+                  (tarraydef(p).elementdef.typ in [floatdef,orddef]) {and
+                  (tarraydef(p).elementdef.typ=floatdef) and
+                  (tfloatdef(tarraydef(p).elementdef).floattype in [s32real,s64real])}
+                 )
+                );
       end;
 
 
@@ -1501,6 +1507,23 @@ implementation
 {$else x86}
         result:=false;
 {$endif x86}
+      end;
+
+
+    function to_hwvectordef(p: tdef; nil_on_error: boolean): tdef;
+      begin
+        result:=nil;
+        if p.typ=arraydef then
+          begin
+            if tarraydef(p).is_hwvector then
+              result:=p
+            else if fits_in_mm_register(p) then
+              result:=carraydef.getreusable_vector(tarraydef(p).elementdef,tarraydef(p).elecount)
+            else if not nil_on_error then
+              internalerror(2022090811);
+          end
+        else if not nil_on_error then
+          internalerror(2022090810);
       end;
 
 
