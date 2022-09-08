@@ -54,6 +54,7 @@ uses
 
       procedure recordnewsymloc(list: TAsmList; sym: tsym; def: tdef; const ref: treference); override;
 
+      class function def2regtyp(def: tdef): tregistertype; override;
      public
       procedure a_bit_test_reg_reg_reg(list: TAsmList; bitnumbersize, valuesize, destsize: tdef; bitnumber, value, destreg: tregister); override;
       procedure a_bit_set_reg_reg(list: TAsmList; doset: boolean; bitnumbersize, destsize: tdef; bitnumber, dest: tregister); override;
@@ -433,6 +434,16 @@ implementation
           symmetadatapara.done;
           exprmetapara.done;
         end;
+    end;
+
+
+  class function thlcgllvm.def2regtyp(def: tdef): tregistertype;
+    begin
+      if (def.typ=arraydef) and
+         tarraydef(def).is_hwvector then
+        result:=R_INTREGISTER
+      else
+        result:=inherited;
     end;
 
 
