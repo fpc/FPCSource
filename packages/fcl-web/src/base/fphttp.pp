@@ -119,6 +119,7 @@ Type
     Property CORS : TCORSSupport Read FCORS Write SetCORS;
   public
     Constructor CreateNew(aOwner : TComponent; CreateMode: Integer); overload; override;
+    destructor Destroy;override;
     Class Procedure RegisterModule(Const AModuleName : String = ''); overload;
     Class Procedure RegisterModule(Const AModuleName : String; ASkipStreaming : Boolean); overload;
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); virtual; abstract;
@@ -320,6 +321,12 @@ constructor TCustomHTTPModule.CreateNew(aOwner: TComponent; CreateMode: Integer)
 begin
   inherited CreateNew(aOwner, CreateMode);
   FCORS:=CreateCORSSupport;
+end;
+
+destructor TCustomHTTPModule.Destroy;
+begin
+  FCORS.Free;
+  inherited Destroy;
 end;
 
 Class Procedure TCustomHTTPModule.RegisterModule(Const AModuleName: String);
