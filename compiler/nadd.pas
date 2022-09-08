@@ -3060,8 +3060,8 @@ implementation
          { vector support, this must be before the zero based array
            check }
          else if (cs_support_vectors in current_settings.globalswitches) and
-                 is_vector(ld) and
-                 is_vector(rd) and
+                 fits_in_mm_register(ld) and
+                 fits_in_mm_register(rd) and
                  equal_defs(ld,rd) then
             begin
               if not(nodetype in [addn,subn,xorn,orn,andn,muln,slashn]) then
