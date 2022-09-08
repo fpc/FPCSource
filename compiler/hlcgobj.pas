@@ -856,7 +856,9 @@ implementation
           formaldef:
             result:=R_ADDRESSREGISTER;
           arraydef:
-            if tstoreddef(def).is_intregable then
+            if tarraydef(def).is_hwvector then
+              result:=R_MMREGISTER
+            else if tstoreddef(def).is_intregable then
               result:=R_INTREGISTER
             else
               result:=R_ADDRESSREGISTER;
