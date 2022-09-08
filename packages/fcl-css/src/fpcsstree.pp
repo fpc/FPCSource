@@ -19,7 +19,7 @@ unit fpCSSTree;
 
 interface
 
-uses contnrs;
+uses contnrs, Classes;
 
 
 Type
@@ -43,10 +43,12 @@ Type
     FCol: Integer;
     FData: TObject;
     FFileName: UTF8String;
+    FParent: TCSSElement;
     FRow: Integer;
     function GetAsUnFormattedString: UTF8String;
     function GetAsFormattedString: UTF8String;
   Protected
+    procedure SetParent(const AValue: TCSSElement);
     function GetAsString(aFormat : Boolean; const aIndent : String): UTF8String; virtual;
     procedure IterateChildren(aVisitor : TCSSTreeVisitor); virtual;
   Public
@@ -59,18 +61,42 @@ Type
     Property SourceFileName : UTF8String Read FFileName;
     Property AsFormattedString : UTF8String Read GetAsFormattedString;
     Property AsString : UTF8String Read GetAsUnformattedString;
+    Property Parent: TCSSElement read FParent write SetParent;
   end;
   TCSSElementClass = Class of TCSSElement;
   TCSSElementArray = Array of TCSSElement;
 
   { TCSSElementList }
 
-  TCSSElementList = Class(TFPObjectList)
+  TCSSElementList = Class
   private
+    FElementParent: TCSSElement;
+    FList: TFPObjectList;
+    function GetCapacity: Integer;
+    function GetCount: Integer;
     function GetElement(aIndex : Integer): TCSSElement;
+    procedure SetCapacity(const AValue: Integer);
   Public
+    constructor Create(ElParent: TCSSElement);
+    destructor Destroy; override;
+    procedure Clear;
+    Function Add(El: TCSSElement): Integer;
+    Procedure Delete(Index: Integer);
+    Procedure Exchange(Index1, Index2: Integer);
+    Function Extract(Index: Integer): TCSSElement; // remove without free
+    Function IndexOf(El: TCSSElement): Integer;
+    Procedure Insert(Index: Integer; El: TCSSElement);
+    Function First: TCSSElement;
+    Function Last: TCSSElement;
+    Procedure Move(CurIndex, NewIndex: Integer);
+    Procedure Assign(aList: TCSSElementList);
+    Procedure Pack;
+    Procedure Sort(const Compare: TListSortCompare);
     Procedure Iterate(aVisitor : TCSSTreeVisitor);
-    Property Elements[aIndex : Integer] : TCSSElement Read GetElement; default;
+    property Capacity: Integer read GetCapacity write SetCapacity;
+    property Count: Integer read GetCount;
+    property Elements[aIndex : Integer] : TCSSElement Read GetElement; default;
+    property ElementParent: TCSSElement read FElementParent;
   end;
 
   { TCSSIntegerElement }
@@ -89,8 +115,6 @@ Type
     Property Units : TCSSUnits Read FUnits Write FUnits;
   end;
 
-  { TCSSIntegerElement }
-
   { TCSSFloatElement }
 
   TCSSFloatElement = class(TCSSElement)
@@ -104,7 +128,6 @@ Type
     Property Value : Double Read FValue Write FValue;
     Property Units : TCSSUnits Read FUnits Write FUnits;
   end;
-
 
   { TCSSBaseUnaryElement }
 
@@ -149,9 +172,6 @@ Type
     Property Operation : TCSSBinaryOperation Read FOperation Write FOperation;
   end;
 
-
-  { TCSSStringElement }
-
   { TCSSBaseStringElement }
 
   TCSSBaseStringElement = Class(TCSSElement)
@@ -173,8 +193,11 @@ Type
   { TCSSURLElement }
 
   TCSSURLElement = Class(TCSSBaseStringElement)
+  public
     Class function CSSType : TCSSType; override;
   end;
+
+  { TCSSStringElement }
 
   TCSSStringElement = Class(TCSSBaseStringElement)
   private
@@ -218,7 +241,6 @@ Type
   Public
     Class function CSSType : TCSSType; override;
   end;
-
 
   { TCSSChildrenElement }
 
@@ -337,7 +359,6 @@ Type
   end;
 
 
-
 // Convert unicode codepoints to \0000 notation
 Function StringToCSSString(const S : UTF8String) : UTF8String;
 // Escapes non-identifier characters C to \C
@@ -354,7 +375,7 @@ Const
 
 implementation
 
-uses SysUtils, Classes, rtlConsts;
+uses SysUtils, rtlConsts;
 
 Const
   sIndent = '  ';
@@ -478,13 +499,7 @@ end;
 
 function TCSSListElement.ExtractElement(aIndex: Integer): TCSSElement;
 begin
-  Result:=Children[aIndex];
-  FChildren.OwnsObjects:=False;
-  try
-    FChildren.Delete(aIndex);
-  finally
-    FChildren.OwnsObjects:=True;
-  end;
+  Result:=FChildren.Extract(aIndex);
 end;
 
 { TCSSAtRuleElement }
@@ -611,7 +626,7 @@ procedure TCSSDeclarationElement.AddKey(aKey: TCSSElement);
 begin
   if aKey=Nil then exit;
   if Not Assigned(FKeys) then
-    FKeys:=TCSSElementList.Create(True);
+    FKeys:=TCSSElementList.Create(Self);
   FKeys.Add(aKey);
 end;
 
@@ -741,9 +756,9 @@ end;
 procedure TCSSRuleElement.AddSelector(aSelector: TCSSElement);
 begin
   if Not Assigned(aSelector) then
-      exit;
+    exit;
   if not Assigned(FSelectors) then
-    FSelectors:=TCSSElementList.Create(True);
+    FSelectors:=TCSSElementList.Create(Self);
   FSelectors.Add(aSelector);
 end;
 
@@ -804,7 +819,7 @@ begin
   if Not Assigned(aChild) then
     exit;
   if FChildren=Nil then
-     FChildren:=TCSSElementList.Create;
+    FChildren:=TCSSElementList.Create(Self);
   FChildren.Add(aChild);
 end;
 
@@ -869,7 +884,7 @@ end;
 function TCSSStringElement.GetChildren: TCSSElementList;
 begin
   if FChildren=Nil then
-     FChildren:=TCSSElementList.Create(True);
+    FChildren:=TCSSElementList.Create(Self);
   Result:=FChildren;
 end;
 
@@ -972,7 +987,108 @@ end;
 
 function TCSSElementList.GetElement(aIndex : Integer): TCSSElement;
 begin
-  Result:=TCSSElement(Items[aIndex]);
+  Result:=TCSSElement(FList[aIndex]);
+end;
+
+function TCSSElementList.GetCapacity: Integer;
+begin
+  Result:=FList.Capacity;
+end;
+
+function TCSSElementList.GetCount: Integer;
+begin
+  Result:=FList.Count;
+end;
+
+procedure TCSSElementList.SetCapacity(const AValue: Integer);
+begin
+  FList.Capacity:=AValue;
+end;
+
+constructor TCSSElementList.Create(ElParent: TCSSElement);
+begin
+  FElementParent:=ElParent;
+  FList:=TFPObjectList.Create(true);
+end;
+
+destructor TCSSElementList.Destroy;
+begin
+  FreeAndNil(FList);
+  inherited Destroy;
+end;
+
+procedure TCSSElementList.Clear;
+begin
+  FList.Clear;
+end;
+
+function TCSSElementList.Add(El: TCSSElement): Integer;
+begin
+  Result:=FList.Add(El);
+  El.Parent:=ElementParent;
+end;
+
+procedure TCSSElementList.Delete(Index: Integer);
+begin
+  FList.Delete(Index);
+end;
+
+procedure TCSSElementList.Exchange(Index1, Index2: Integer);
+begin
+  FList.Exchange(Index1, Index2);
+end;
+
+function TCSSElementList.Extract(Index: Integer): TCSSElement;
+begin
+  Result:=TCSSElement(FList[Index]);
+  Result.Parent:=nil;
+  FList.OwnsObjects:=false;
+  try
+    FList.Delete(Index);
+  finally
+    FList.OwnsObjects:=true;
+  end;
+end;
+
+function TCSSElementList.IndexOf(El: TCSSElement): Integer;
+begin
+  Result:=FList.IndexOf(El);
+end;
+
+procedure TCSSElementList.Insert(Index: Integer; El: TCSSElement);
+begin
+  FList.Insert(Index,El);
+end;
+
+function TCSSElementList.First: TCSSElement;
+begin
+  Result:=TCSSElement(FList.First);
+end;
+
+function TCSSElementList.Last: TCSSElement;
+begin
+  Result:=TCSSElement(FList.Last);
+end;
+
+procedure TCSSElementList.Move(CurIndex, NewIndex: Integer);
+begin
+  FList.Move(CurIndex,NewIndex);
+end;
+
+procedure TCSSElementList.Assign(aList: TCSSElementList);
+begin
+  if Self=aList then exit;
+  FList.Assign(aList.FList);
+end;
+
+procedure TCSSElementList.Pack;
+begin
+  FList.Pack;
+end;
+
+procedure TCSSElementList.Sort(const Compare: TListSortCompare);
+begin
+  FList.Sort(Compare);
 end;
 
 procedure TCSSElementList.Iterate(aVisitor: TCSSTreeVisitor);
@@ -1004,8 +1120,12 @@ end;
 procedure TCSSBinaryElement.SetLeft(AValue: TCSSElement);
 begin
   if FLeft=AValue then Exit;
+  if FLeft<>nil then
+    FLeft.Parent:=nil;
   FreeAndNil(FLeft);
   FLeft:=AValue;
+  if FLeft<>nil then
+    FLeft.Parent:=Self;
 end;
 
 function TCSSBinaryElement.GetAsString(aFormat: Boolean; const aIndent: String
@@ -1046,10 +1166,13 @@ end;
 procedure TCSSBaseUnaryElement.SetRight(AValue: TCSSElement);
 begin
   if FRight=AValue then Exit;
+  if FRight<>nil then
+    FRight.Parent:=nil;
   FreeAndNil(FRight);
   FRight:=AValue;
+  if FRight<>nil then
+    FRight.Parent:=Self;
 end;
-
 
 destructor TCSSBaseUnaryElement.Destroy;
 begin
@@ -1074,6 +1197,12 @@ end;
 function TCSSElement.GetAsFormattedString: UTF8String;
 begin
   Result:=GetAsString(True,'');
+end;
+
+procedure TCSSElement.SetParent(const AValue: TCSSElement);
+begin
+  if FParent=AValue then Exit;
+  FParent:=AValue;
 end;
 
 function TCSSElement.GetAsString(aFormat: Boolean; const aIndent : String): UTF8String;
