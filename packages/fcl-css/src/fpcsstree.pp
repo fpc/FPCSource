@@ -105,7 +105,7 @@ Type
 
   TCSSIntegerElement = class(TCSSElement)
   private
-    FisEscaped: Boolean;
+    FIsEscaped: Boolean;
     FUnits: TCSSUnits;
     FValue: Integer;
   protected
@@ -113,7 +113,7 @@ Type
   Public
     Class function CSSType : TCSSType; override;
     Property Value : Integer Read FValue Write FValue;
-    Property IsEscaped : Boolean Read FisEscaped Write FIsEscaped;
+    Property IsEscaped : Boolean Read FIsEscaped Write FIsEscaped;
     Property Units : TCSSUnits Read FUnits Write FUnits;
   end;
 
@@ -494,7 +494,7 @@ begin
     if Result<>'' then
       Result:='.'+Result;
     if El is TCSSIdentifierElement then
-      Result:=TCSSIdentifierElement(El).Name+Result
+      Result:=El.ClassName+'"'+TCSSIdentifierElement(El).Name+'"'+Result
     else
       Result:=El.ClassName+Result;
     El:=El.Parent;
@@ -1136,7 +1136,7 @@ end;
 function TCSSIntegerElement.GetAsString(aFormat: Boolean;
   const aIndent: TCSSString): TCSSString;
 begin
-  Result:=IntToStr(Value);
+  Result:=IntToStr(Value)+CSSUnitNames[Units];
   if aFormat then
     Result:=aIndent+Result;
 end;
