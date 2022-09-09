@@ -1328,6 +1328,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_protocol(list: tasmlist; protocol:
     optclssym     : TAsmLabel;
     prottype      : tdef;
     tcb           : ttai_typedconstbuilder;
+    sec           : TAsmSectiontype;
   begin
     gen_objc_protocol_list(list,protocol.ImplementedInterfaces,protolist);
     gen_objc_protocol_elements(list,protocol,reqinstsym,optinstsym,reqclssym,optclssym);
@@ -1367,10 +1368,22 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_protocol(list: tasmlist; protocol:
     { flags }
     tcb.emit_ord_const(0,u32inttype);
     tcb.maybe_end_aggregate(prottype);
+    { coalesced sections are only required for ld-classic, because it does not
+      support "weak" bits on all symbols. They are deprecated in ld64 starting
+      from 2015: https://lists.llvm.org/pipermail/llvm-commits/Week-of-Mon-20151012/305992.html
+
+      While targeting 10.6 or higher does not guarantee we are using ld64,
+      we don't have a better heuristic available.
+    }
+    if not MacOSXVersionMin.isvalid or
+       (MacOSXVersionMin.relationto(10,6,0)>=0) then
+      sec:=sec_data
+    else
+      sec:=sec_data_coalesced;
     list.concatList(
       tcb.get_final_asmlist(
         lbl,prottype,
-        sec_data_coalesced,'_OBJC_PROTOCOL',sizeof(pint)
+        sec,'_OBJC_PROTOCOL',sizeof(pint)
       )
     );
     tcb.free;
