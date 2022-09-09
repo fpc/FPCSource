@@ -14,9 +14,7 @@
  **********************************************************************}
 unit fpCSSParser;
 
-{ $mode ObjFPC}{$H+}
-
-{ $DEFINE VerboseCSSParser}
+{$mode ObjFPC}{$H+}
 
 interface
 
@@ -865,7 +863,6 @@ begin
     aCall.Free;
   end;
 end;
-
 
 function TCSSParser.ParseString: TCSSElement;
 
