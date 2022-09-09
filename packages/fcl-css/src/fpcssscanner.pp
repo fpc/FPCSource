@@ -67,9 +67,11 @@ Type
    );
   TCSSTokens = Set of TCSSToken;
 
+  TCSSString = UTF8String;
+
 resourcestring
   SErrInvalidCharacter = 'Invalid character ''%s''';
-  SErrOpenString = 'UTF8String exceeds end of line';
+  SErrOpenString = 'String exceeds end of line';
   SErrIncludeFileNotFound = 'Could not find include file ''%s''';
   SInvalidHexadecimalNumber = 'Invalid decimal number';
   SErrUnknownCharacter = 'Unknown character: %s';
@@ -80,7 +82,7 @@ Type
   TLineReader = class
   public
     function IsEOF: Boolean; virtual; abstract;
-    function ReadLine: UTF8String; virtual; abstract;
+    function ReadLine: TCSSString; virtual; abstract;
   end;
 
   { TStreamLineReader }
@@ -95,7 +97,7 @@ Type
   public
     Constructor Create(AStream : TStream);
     function IsEOF: Boolean; override;
-    function ReadLine: UTF8String; override;
+    function ReadLine: TCSSString; override;
   end;
 
   TFileLineReader = class(TLineReader)
@@ -103,10 +105,10 @@ Type
     FTextFile: Text;
     FileOpened: Boolean;
   public
-    constructor Create(const AFilename: UTF8String);
+    constructor Create(const AFilename: TCSSString);
     destructor Destroy; override;
     function IsEOF: Boolean; override;
-    function ReadLine: UTF8String; override;
+    function ReadLine: TCSSString; override;
   end;
 
   { TCSSScanner }
@@ -119,11 +121,11 @@ Type
     FDisablePseudo: Boolean;
     FOptions: TCSSScannerOptions;
     FSourceFile: TLineReader;
-    FSourceFilename: UTF8String;
+    FSourceFilename: TCSSString;
     FCurRow: Integer;
     FCurToken: TCSSToken;
-    FCurTokenString: UTF8String;
-    FCurLine: UTF8String;
+    FCurTokenString: TCSSString;
+    FCurLine: TCSSString;
     TokenStr: PChar;
     FSourceStream : TStream;
     FOwnSourceFile : Boolean;
@@ -144,27 +146,27 @@ Type
     function ReadUnicodeEscape: WideChar;
     procedure SetReturnComments(AValue: Boolean);
     procedure SetReturnWhiteSpace(AValue: Boolean);
-    class function UnknownCharToStr(C: Char): String;
+    class function UnknownCharToStr(C: Char): TCSSString;
   protected
-    procedure DoError(const Msg: UTF8String; Args: array of const); overload;
-    procedure DoError(const Msg: UTF8String); overload;
+    procedure DoError(const Msg: TCSSString; Args: array of const); overload;
+    procedure DoError(const Msg: TCSSString); overload;
     function DoFetchToken: TCSSToken; virtual;
   public
     constructor Create(ALineReader: TLineReader);
     constructor Create(AStream : TStream);
     destructor Destroy; override;
-    procedure OpenFile(const AFilename: UTF8String);
+    procedure OpenFile(const AFilename: TCSSString);
     Function FetchToken: TCSSToken;
     Property ReturnComments : Boolean Read GetReturnComments Write SetReturnComments;
     Property ReturnWhiteSpace : Boolean Read GetReturnWhiteSpace Write SetReturnWhiteSpace;
     Property Options : TCSSScannerOptions Read FOptions Write FOptions;
     property SourceFile: TLineReader read FSourceFile;
-    property CurFilename: UTF8String read FSourceFilename;
-    property CurLine: UTF8String read FCurLine;
+    property CurFilename: TCSSString read FSourceFilename;
+    property CurLine: TCSSString read FCurLine;
     property CurRow: Integer read FCurRow;
     property CurColumn: Integer read GetCurColumn;
     property CurToken: TCSSToken read FCurToken;
-    property CurTokenString: UTF8String read FCurTokenString;
+    property CurTokenString: TCSSString read FCurTokenString;
     Property DisablePseudo : Boolean Read FDisablePseudo Write FDisablePseudo;
   end;
 
@@ -180,7 +182,7 @@ Const
   WhiteSpaceEx = WhiteSpace+[#0];
 
 
-constructor TFileLineReader.Create(const AFilename: UTF8String);
+constructor TFileLineReader.Create(const AFilename: TCSSString);
 begin
   inherited Create;
   Assign(FTextFile, AFilename);
@@ -200,7 +202,7 @@ begin
   Result := EOF(FTextFile);
 end;
 
-function TFileLineReader.ReadLine: UTF8String;
+function TFileLineReader.ReadLine: TCSSString;
 begin
   ReadLn(FTextFile, Result);
 end;
@@ -225,7 +227,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TCSSScanner.OpenFile(const AFilename: UTF8String);
+procedure TCSSScanner.OpenFile(const AFilename: TCSSString);
 begin
   FSourceFile := TFileLineReader.Create(AFilename);
   FSourceFilename := AFilename;
@@ -347,7 +349,7 @@ const
   Hex = ['0'..'9','A'..'F','a'..'f' ];
 
 Var
-  S : UTF8String;
+  S : TCSSString;
   I : Integer;
   HaveHex : Boolean;
 
@@ -388,7 +390,7 @@ Var
   Delim : Char;
   TokenStart : PChar;
   Len,OLen: Integer;
-  S : UTF8String;
+  S : TCSSString;
 
 begin
   Delim:=TokenStr[0];
@@ -561,7 +563,7 @@ begin
 
 end;
 
-Class Function TCSSScanner.UnknownCharToStr(C: Char) : String;
+class function TCSSScanner.UnknownCharToStr(C: Char): TCSSString;
 
 begin
   if C=#0 then
@@ -788,15 +790,15 @@ begin
   end; // Case
 end;
 
-procedure TCSSScanner.DoError(const Msg: UTF8String; Args: array of const);
+procedure TCSSScanner.DoError(const Msg: TCSSString; Args: array of const);
 begin
   DoError(Format(Msg,Args));
 end;
 
-procedure TCSSScanner.DoError(const Msg: UTF8String);
+procedure TCSSScanner.DoError(const Msg: TCSSString);
 
 Var
-  S : UTF8String;
+  S : TCSSString;
 
 begin
   S:=Format('Error at (%d,%d): ',[CurRow,CurColumn])+Msg;
@@ -848,7 +850,7 @@ begin
   FBufPos:=0;
 end;
 
-function TStreamLineReader.ReadLine: UTF8String;
+function TStreamLineReader.ReadLine: TCSSString;
 
 Var
   FPos,OLen,Len: Integer;
