@@ -49,7 +49,7 @@ interface
 implementation
 
     uses
-      verbose,cutils,globals,fmodule,systems,finput,
+      verbose,cutils,globals,fmodule,systems,finput,versioncmp,
       aasmtai,cpubase,llvmbase,aasmllvm,
       aasmcnst,nllvmtcon,
       symbase,symtable,defutil,
@@ -295,7 +295,7 @@ implementation
         begin
           { Objective-C ABI version }
           if not(target_info.system in [system_powerpc_darwin,system_powerpc64_darwin,system_i386_darwin,system_x86_64_darwin]) or
-             (CompareVersionStrings(MacOSXVersionMin,'10.5')>=0) then
+             (MacOSXVersionMin.relationto(10,5,0)>=0) then
             objcabiversion:=2
           else
             objcabiversion:=1;

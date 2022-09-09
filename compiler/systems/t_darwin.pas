@@ -173,14 +173,14 @@ implementation
                   system_x86_64_darwin:
                     begin
                       { 10.8 and later: no crt1.* }
-                      if CompareVersionStrings(MacOSXVersionMin,'10.8')>=0 then
+                      if MacOSXVersionMin.relationto(10,8,0)>=0 then
                         exit('');
                       { x86: crt1.10.6.o -> crt1.10.5.o -> crt1.o }
                       { others: crt1.10.5 -> crt1.o }
                       if (target_info.system in [system_i386_darwin,system_x86_64_darwin]) and
-                         (CompareVersionStrings(MacOSXVersionMin,'10.6')>=0) then
+                         (MacOSXVersionMin.relationto(10,6,0)>=0) then
                         exit('crt1.10.6.o');
-                      if CompareVersionStrings(MacOSXVersionMin,'10.5')>=0 then
+                      if MacOSXVersionMin.relationto(10,5,0)>=0 then
                         exit('crt1.10.5.o');
                     end;
                   system_arm_ios:
@@ -190,9 +190,9 @@ implementation
                           iOS 3.1 - 5.x: crt1.3.1.o
                           pre-iOS 3.1: crt1.o
                       }
-                      if (CompareVersionStrings(iPhoneOSVersionMin,'6.0')>=0) then
+                      if iPhoneOSVersionMin.relationto(6,0,0)>=0 then
                         exit('');
-                      if (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
+                      if iPhoneOSVersionMin.relationto(3,1,0)>=0 then
                         exit('crt1.3.1.o');
                     end;
                   system_i386_iphonesim,
@@ -202,7 +202,7 @@ implementation
                         What those recent versions could be, is anyone's guess. It
                         still seems to work with 8.1 and no longer with 8.3, so use
                         8.1 as a cut-off point }
-                      if (CompareVersionStrings(iPhoneOSVersionMin,'8.1')>0) then
+                      if iPhoneOSVersionMin.relationto(8,1,0)>0 then
                         exit('');
                     end;
                   system_aarch64_ios,
@@ -220,7 +220,7 @@ implementation
                 result:='gcrt1.o';
                 { 10.8 and later: tell the linker to use 'start' instead of "_main"
                   as entry point }
-                if CompareVersionStrings(MacOSXVersionMin,'10.8')>=0 then
+                if MacOSXVersionMin.relationto(10,8,0)>=0 then
                   Info.ExeCmd[1]:=Info.ExeCmd[1]+' -no_new_main';
               end;
           end
@@ -236,7 +236,7 @@ implementation
                     begin
                       { < 10.6: bundle1.o
                         >= 10.6: nothing }
-                      if CompareVersionStrings(MacOSXVersionMin,'10.6')>=0 then
+                      if MacOSXVersionMin.relationto(10,6,0)>=0 then
                         exit('');
                     end;
                   system_arm_ios,
@@ -244,14 +244,14 @@ implementation
                     begin
                       { iOS: < 3.1: bundle1.o
                              >= 3.1: nothing }
-                      if (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
+                      if iPhoneOSVersionMin.relationto(3,1,0)>=0 then
                         exit('');
                     end;
                   system_i386_iphonesim,
                   system_x86_64_iphonesim:
                     begin
                       { see rule for crt1.o }
-                      if (CompareVersionStrings(iPhoneOSVersionMin,'8.1')>0) then
+                      if iPhoneOSVersionMin.relationto(8,1,0)>0 then
                         exit('');
                     end;
                   system_aarch64_darwin:
@@ -273,9 +273,9 @@ implementation
                         = 10.5: dylib1.10.5.o
                         < 10.5: dylib1.o
                       }
-                      if CompareVersionStrings(MacOSXVersionMin,'10.6')>=0 then
+                      if MacOSXVersionMin.relationto(10,6,0)>=0 then
                         exit('');
-                      if CompareVersionStrings(MacOSXVersionMin,'10.5')>=0 then
+                      if MacOSXVersionMin.relationto(10,5,0)>=0 then
                         exit('dylib1.10.5.o');
                     end;
                   system_arm_ios,
@@ -283,14 +283,14 @@ implementation
                     begin
                       { iOS: < 3.1: dylib1.o
                              >= 3.1: nothing }
-                      if (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
+                      if iPhoneOSVersionMin.relationto(3,1,0)>=0 then
                         exit('');
                     end;
                   system_i386_iphonesim,
                   system_x86_64_iphonesim:
                     begin
                       { see rule for crt1.o }
-                      if (CompareVersionStrings(iPhoneOSVersionMin,'8.1')>0) then
+                      if iPhoneOSVersionMin.relationto(8,1,0)>0 then
                         exit('');
                     end;
                   system_aarch64_darwin:
@@ -348,20 +348,20 @@ implementation
 
     function tlinkerdarwin.GetLinkVersion: TCmdStr;
       begin
-        if MacOSXVersionMin<>'' then
+        if MacOSXVersionMin.isvalid then
           begin
-            result:='-macosx_version_min '+MacOSXVersionMin;
+            result:='-macosx_version_min '+MacOSXVersionMin.str;
           end
-        else if iPhoneOSVersionMin<>'' then
+        else if iPhoneOSVersionMin.isvalid then
           begin
             if target_info.system in [system_i386_iphonesim,system_x86_64_iphonesim] then
-              result:='-ios_simulator_version_min '+iPhoneOSVersionMin
+              result:='-ios_simulator_version_min '+iPhoneOSVersionMin.str
             else
-              result:='-iphoneos_version_min '+iPhoneOSVersionMin;
+              result:='-iphoneos_version_min '+iPhoneOSVersionMin.str;
           end
         else
           begin
-            result:='';
+            internalerror(2022090920)
           end;
       end;
 

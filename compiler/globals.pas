@@ -47,7 +47,7 @@ interface
 {$if defined(LLVM) or defined(GENERIC_CPU)}
       llvminfo,
 {$endif LLVM or GENERIC_CPU}
-      globtype,version,systems;
+      globtype,version,versioncmp,systems;
 
     const
        delphimodeswitches =
@@ -352,8 +352,9 @@ interface
        GenerateImportSection,
        GenerateImportSectionSetExplicitly,
        RelocSection : boolean;
+
        MacOSXVersionMin,
-       iPhoneOSVersionMin: string[15];
+       iPhoneOSVersionMin: tversion;
        RelocSectionSetExplicitly : boolean;
 
        current_tokenpos,                  { position of the last token }
@@ -1706,8 +1707,8 @@ implementation
         GenerateImportSection:=false;
         RelocSection:=false;
         RelocSectionSetExplicitly:=false;
-        MacOSXVersionMin:='';
-        iPhoneOSVersionMin:='';
+        MacOSXVersionMin.invalidate;
+        iPhoneOSVersionMin.invalidate;
         { memory sizes, will be overridden by parameter or default for target
           in options or init_parser }
         stacksize:=0;

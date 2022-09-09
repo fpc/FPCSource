@@ -26,7 +26,7 @@ unit options;
 interface
 
 uses
-  cfileutl,cclasses,
+  cfileutl,cclasses,versioncmp,
   globtype,globals,verbose,systems,cpuinfo,comprsrc;
 
 Type
@@ -80,7 +80,7 @@ Type
     MacVersionSet: boolean;
     IdfVersionSet: boolean;
     processorstr: TCmdStr;
-    function ParseMacVersionMin(out minstr, emptystr: string; const compvarname, value: string; ios: boolean): boolean;
+    function ParseMacVersionMin(out minversion, invalidateversion: tversion; const compvarname, value: string; ios: boolean): boolean;
     procedure MaybeSetDefaultMacVersionMacro;
 {$ifdef XTENSA}
     function ParseVersionStr(out ver: longint; const compvarname, value: string): boolean;
@@ -1095,7 +1095,7 @@ begin
 end;
 
 
-function toption.ParseMacVersionMin(out minstr, emptystr: string; const compvarname, value: string; ios: boolean): boolean;
+function toption.ParseMacVersionMin(out minversion, invalidateversion: tversion; const compvarname, value: string; ios: boolean): boolean;
 
   function subval(start,maxlen: longint; out stop: longint): string;
     var
@@ -1116,12 +1116,14 @@ function toption.ParseMacVersionMin(out minstr, emptystr: string; const compvarn
 
   var
     temp,
-    compvarvalue: string[15];
-    i: longint;
+    compvarvalue,
+    versionstr: string[15];
+    major, minor, patch: cardinal;
+    i, err: longint;
     osx_minor_two_digits: boolean;
   begin
-    minstr:=value;
-    emptystr:='';
+    invalidateversion.invalidate;
+    versionstr:=value;
     MacVersionSet:=false;
     { check whether the value is a valid version number }
     if value='' then
@@ -1138,9 +1140,15 @@ function toption.ParseMacVersionMin(out minstr, emptystr: string; const compvarn
     if (i>=length(value)) or
        (value[i]<>'.') then
       exit(false);
+    val(compvarvalue,major,err);
+    if err<>0 then
+      exit(false);
     { minor version number }
     temp:=subval(i+1,2,i);
     if temp='' then
+      exit(false);
+    val(temp,minor,err);
+    if err<>0 then
       exit(false);
     { on Mac OS X, the minor version number was originally limited to 1 digit;
       with 10.10 the format changed and two digits were also supported; on iOS,
@@ -1158,6 +1166,7 @@ function toption.ParseMacVersionMin(out minstr, emptystr: string; const compvarn
       temp:='0'+temp;
     compvarvalue:=compvarvalue+temp;
     { optional patch level }
+    patch:=0;
     if i<=length(value) then
       begin
         if value[i]<>'.' then
@@ -1188,19 +1197,23 @@ function toption.ParseMacVersionMin(out minstr, emptystr: string; const compvarn
         { must be the end }
         if i<=length(value) then
           exit(false);
+        val(temp,patch,err);
+        if err<>0 then
+          exit(false);
       end
     else if not ios and
        not osx_minor_two_digits then
       begin
         compvarvalue:=compvarvalue+'0';
-        minstr:=minstr+'.0'
+        versionstr:=versionstr+'.0'
       end
     else
       begin
         compvarvalue:=compvarvalue+'00';
         { command line versions still only use one 0 though }
-        minstr:=minstr+'.0'
+        versionstr:=versionstr+'.0'
       end;
+    minversion.init(versionstr,major,minor,patch);
     set_system_compvar(compvarname,compvarvalue);
     MacVersionSet:=true;
     result:=true;
@@ -1306,7 +1319,7 @@ begin
           begin
 {$ifdef llvm}
              { We only support libunwind as part of libsystem, which happened in Mac OS X 10.6 }
-            if CompareVersionStrings(MacOSXVersionMin,'10.6')<=0 then
+            if MacOSXVersionMin.relationto(10,6,0)<0 then
               Message1(option_invalid_macosx_deployment_target,envstr);
 {$endif}
             exit;
@@ -1325,36 +1338,36 @@ begin
   case target_info.system of
     system_powerpc_darwin:
       begin
-        set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1030');
-        MacOSXVersionMin:='10.3.0';
+        if not ParseMacVersionMin(MacOSXVersionMin,iPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED','10.3.0',false) then
+          internalerror(2022090910);
       end;
     system_powerpc64_darwin:
       begin
-        set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1040');
-        MacOSXVersionMin:='10.4.0';
+        if not ParseMacVersionMin(MacOSXVersionMin,iPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED','10.4.0',false) then
+          internalerror(2022090911);
       end;
     system_i386_darwin,
     system_x86_64_darwin:
       begin
-        set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','1080');
-        MacOSXVersionMin:='10.8.0';
+        if not ParseMacVersionMin(MacOSXVersionMin,iPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED','10.8.0',false) then
+          internalerror(2022090912);
       end;
     system_arm_ios,
     system_i386_iphonesim:
       begin
-        set_system_compvar('IPHONE_OS_VERSION_MIN_REQUIRED','90000');
-        iPhoneOSVersionMin:='9.0.0';
+        if not ParseMacVersionMin(iPhoneOSVersionMin,MacOSXVersionMin,'IPHONE_OS_VERSION_MIN_REQUIRED','9.0.0',false) then
+          internalerror(2022090913);
       end;
     system_aarch64_ios,
     system_x86_64_iphonesim:
       begin
-        set_system_compvar('IPHONE_OS_VERSION_MIN_REQUIRED','90000');
-        iPhoneOSVersionMin:='9.0.0';
+        if not ParseMacVersionMin(iPhoneOSVersionMin,MacOSXVersionMin,'IPHONE_OS_VERSION_MIN_REQUIRED','9.0.0',false) then
+          internalerror(2022090914);
       end;
     system_aarch64_darwin:
       begin
-        set_system_compvar('MAC_OS_X_VERSION_MIN_REQUIRED','110000');
-        MacOSXVersionMin:='11.0.0';
+        if not ParseMacVersionMin(MacOSXVersionMin,iPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED','11.00.0',false) then
+          internalerror(2022090915);
       end
     else
       internalerror(2012031001);

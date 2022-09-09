@@ -45,9 +45,9 @@ uses
         begin
           result:=result+'-apple';
           if target_info.system in systems_macosx then
-            result:=result+'-macosx'+MacOSXVersionMin
+            result:=result+'-macosx'+MacOSXVersionMin.str
           else
-            result:=result+'-ios'+iPhoneOSVersionMin;
+            result:=result+'-ios'+iPhoneOSVersionMin.str;
         end
       else if target_info.system in (systems_linux+systems_android) then
         result:=result+'-unknown-linux'
