@@ -839,7 +839,6 @@ function TTestBaseCSSParser.CheckLiteral(Msg: String; aEl: TCSSelement; aValue: 
 begin
   Result:=TCSSIntegerElement(CheckClass(Msg+': Class', TCSSIntegerElement,aEl));
   AssertEquals(Msg+': Value ',aValue,Result.Value);
-
 end;
 
 function TTestBaseCSSParser.CheckLiteral(Msg: String; aEl: TCSSelement; aValue: Integer; AUnits: TCSSUnits): TCSSIntegerElement;
@@ -854,7 +853,6 @@ begin
   AssertTrue('Have argument '+IntToStr(aIndex),aIndex<aCall.ChildCount);
   Result:=aCall.Children[0];
   AssertNotNull('Have call argument',Result);
-
 end;
  
 initialization

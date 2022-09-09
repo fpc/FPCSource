@@ -7,7 +7,6 @@
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
         <MainUnitHasScaledStatement Value="False"/>
-        <UseDefaultCompilerOptions Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <Title Value="testcss"/>
@@ -29,6 +28,11 @@
         <Filename Value="testcss.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit>
+      <Unit>
+        <Filename Value="tccssresolver.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tcCSSResolver"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -42,9 +46,9 @@
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Other>
-      <CustomOptions Value="-dVerboseCSSParser"/>
-      <OtherDefines Count="1">
+      <OtherDefines Count="2">
         <Define0 Value="VerboseCSSParser"/>
+        <Define1 Value="VerboseCSSResolver"/>
       </OtherDefines>
     </Other>
   </CompilerOptions>

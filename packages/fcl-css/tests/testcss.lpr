@@ -3,7 +3,8 @@ program testcss;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, sysutils, consoletestrunner, tcCSSScanner, tcCSSParser, tcCSSTree;
+  Classes, sysutils, consoletestrunner, tcCSSScanner, tcCSSParser, tcCSSTree,
+  tcCSSResolver;
 
 type
 
