@@ -45,6 +45,9 @@ begin
           AddUnit('fpcsstree');
           AddUnit('fpcssscanner');
         end;
+    T:=P.Targets.AddUnit('fpcssresolver.pp');
+      with T.Dependencies do
+        AddUnit('fpcssparser');
     T:=P.Targets.AddUnit('fpcssutils.pp');
       with T.Dependencies do
         begin
