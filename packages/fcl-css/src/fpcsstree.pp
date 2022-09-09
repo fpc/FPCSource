@@ -16,6 +16,7 @@
 unit fpCSSTree;
 
 {$mode ObjFPC}{$H+}
+{$codepage utf8}
 
 interface
 
@@ -23,6 +24,7 @@ uses contnrs, Classes;
 
 
 Type
+  TCSSString = UTF8String;
   TCSSUnits = (cuNONE, cuPX,cuPERCENT,cuREM,cuEM,cuPT,cuFR,cuVW,cuVH,cuDEG);
   TCSSType = (csstUNKNOWN, csstINTEGER, csstSTRING, csstFLOAT,
               csstIDENTIFIER, csstCLASSNAME, csstPSEUDOCLASS, csstCOMPOUND, csstRULE,
@@ -42,25 +44,25 @@ Type
   private
     FCol: Integer;
     FData: TObject;
-    FFileName: UTF8String;
+    FFileName: TCSSString;
     FParent: TCSSElement;
     FRow: Integer;
-    function GetAsUnFormattedString: UTF8String;
-    function GetAsFormattedString: UTF8String;
+    function GetAsUnFormattedString: TCSSString;
+    function GetAsFormattedString: TCSSString;
   Protected
     procedure SetParent(const AValue: TCSSElement);
-    function GetAsString(aFormat : Boolean; const aIndent : String): UTF8String; virtual;
+    function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString; virtual;
     procedure IterateChildren(aVisitor : TCSSTreeVisitor); virtual;
   Public
-    Constructor Create(const aFileName : UTF8String; aRow,aCol : Integer); virtual;
+    Constructor Create(const aFileName : TCSSString; aRow,aCol : Integer); virtual;
     Class function CSSType : TCSSType; virtual;
     Procedure Iterate(aVisitor : TCSSTreeVisitor);
     Property CustomData : TObject Read FData Write FData;
     Property SourceRow : Integer Read FRow;
     Property SourceCol : Integer Read FCol;
-    Property SourceFileName : UTF8String Read FFileName;
-    Property AsFormattedString : UTF8String Read GetAsFormattedString;
-    Property AsString : UTF8String Read GetAsUnformattedString;
+    Property SourceFileName : TCSSString Read FFileName;
+    Property AsFormattedString : TCSSString Read GetAsFormattedString;
+    Property AsString : TCSSString Read GetAsUnformattedString;
     Property Parent: TCSSElement read FParent write SetParent;
   end;
   TCSSElementClass = Class of TCSSElement;
@@ -107,7 +109,7 @@ Type
     FUnits: TCSSUnits;
     FValue: Integer;
   protected
-    function GetAsString(aFormat : Boolean; const aIndent : String): UTF8String; override;
+    function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString; override;
   Public
     Class function CSSType : TCSSType; override;
     Property Value : Integer Read FValue Write FValue;
@@ -122,7 +124,7 @@ Type
     FUnits: TCSSUnits;
     FValue: Double;
   protected
-    function GetAsString(aFormat : Boolean; const aIndent : String): UTF8String;override;
+    function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString;override;
   Public
     Class function CSSType : TCSSType; override;
     Property Value : Double Read FValue Write FValue;
@@ -148,7 +150,7 @@ Type
   private
     FOperation: TCSSUnaryOperation;
   Protected
-    function GetAsString(aFormat : Boolean; const aIndent : String): UTF8String; override;
+    function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString; override;
   Public
     Class function CSSType : TCSSType; override;
     Property Operation : TCSSUnaryOperation Read FOperation Write FOperation;
@@ -163,7 +165,7 @@ Type
     FOperation: TCSSBinaryOperation;
     procedure SetLeft(AValue: TCSSElement);
   Protected
-    function GetAsString(aFormat : Boolean; const aIndent : String): UTF8String;override;
+    function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString;override;
     procedure IterateChildren(aVisitor: TCSSTreeVisitor); override;
   Public
     Destructor Destroy; override;
@@ -176,11 +178,11 @@ Type
 
   TCSSBaseStringElement = Class(TCSSElement)
   private
-    FValue: UTF8String;
+    FValue: TCSSString;
   Protected
-    function GetAsString(aFormat : Boolean; const aIndent : String): UTF8String; override;
+    function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString; override;
   Public
-    Property Value : UTF8String Read FValue Write FValue;
+    Property Value : TCSSString Read FValue Write FValue;
   end;
 
   { TCSSUnicodeRangeElement }
@@ -204,7 +206,7 @@ Type
     FChildren : TCSSElementList;
     function GetChildren: TCSSElementList;
   protected
-    function GetAsString(aFormat : Boolean; const aIndent : String): UTF8String; override;
+    function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString; override;
     procedure IterateChildren(aVisitor : TCSSTreeVisitor); override;
   Public
     Class function CSSType : TCSSType; override;
@@ -216,19 +218,19 @@ Type
 
   TCSSIdentifierElement = Class(TCSSBaseStringElement)
   private
-    function GetName: UTF8String;
+    function GetName: TCSSString;
   Protected
-    function GetAsString(aFormat : Boolean; const aIndent : String): UTF8String; override;
+    function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString; override;
   Public
     Class function CSSType : TCSSType; override;
-    Property Name : UTF8String Read GetName;
+    Property Name : TCSSString Read GetName;
   end;
 
   { TCSSClassNameElement }
 
   TCSSClassNameElement = Class(TCSSIdentifierElement)
   Protected
-    function GetAsString(aFormat : Boolean; const aIndent : String): UTF8String; override;
+    function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString; override;
   Public
     Class function CSSType : TCSSType; override;
   end;
@@ -237,7 +239,7 @@ Type
 
   TCSSPseudoClassElement = Class(TCSSIdentifierElement)
   Protected
-    function GetAsString(aFormat : Boolean; const aIndent : String): UTF8String; override;
+    function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString; override;
   Public
     Class function CSSType : TCSSType; override;
   end;
@@ -265,7 +267,7 @@ Type
     FPrefix : TCSSElement;
     procedure SetPrefix(AValue: TCSSElement);
   Protected
-    function GetAsString(aFormat : Boolean; const aIndent : String): UTF8String; override;
+    function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString; override;
   Public
     Destructor Destroy; override;
     Class function CSSType : TCSSType; override;
@@ -276,17 +278,17 @@ Type
 
   TCSSCallElement = Class(TCSSChildrenElement)
   private
-    FName: UTF8String;
+    FName: TCSSString;
     function GetArg(aIndex : Integer): TCSSElement;
     function GetArgCount: Integer;
   Protected
-    function GetAsString(aFormat : Boolean; const aIndent : String): UTF8String; override;
+    function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString; override;
   Public
     Class function CSSType : TCSSType; override;
     Procedure AddArg(aArg : TCSSElement); virtual;
     Property Args[aIndex : Integer] : TCSSElement Read GetArg; default;
     Property ArgCount : Integer Read GetArgCount;
-    Property Name : UTF8String Read FName Write FName;
+    Property Name : TCSSString Read FName Write FName;
   end;
 
   { TCSSDeclarationElement }
@@ -299,7 +301,7 @@ Type
     function GetKeyCount: Integer;
     function GetKeys(aIndex : Integer): TCSSElement;
   Protected
-    function GetAsString(aFormat : Boolean; const aIndent : String): UTF8String;override;
+    function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString;override;
     procedure IterateChildren(aVisitor : TCSSTreeVisitor); override;
   Public
     Class function CSSType : TCSSType; override;
@@ -315,7 +317,7 @@ Type
 
   TCSSListElement = class(TCSSChildrenElement)
   Protected
-    function GetAsString(aFormat : Boolean; const aIndent : String): UTF8String;override;
+    function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString;override;
   Public
     Function ExtractElement(aIndex : Integer) : TCSSElement;
   end;
@@ -324,7 +326,7 @@ Type
 
   TCSSCompoundElement = Class(TCSSChildrenElement)
   Protected
-    function GetAsString(aFormat : Boolean; const aIndent : String): UTF8String;override;
+    function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString;override;
   Public
     Class function CSSType : TCSSType; override;
   end;
@@ -337,8 +339,8 @@ Type
     function GetSelector(aIndex : Integer): TCSSElement;
     function GetSelectorCount: Integer;
   Protected
-    function DoGetAsString(const aPrefix : String; aFormat : Boolean; const aIndent : String): UTF8String; virtual;
-    function GetAsString(aFormat : Boolean; const aIndent : String): UTF8String;override;
+    function DoGetAsString(const aPrefix : TCSSString; aFormat : Boolean; const aIndent : TCSSString): TCSSString; virtual;
+    function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString;override;
     procedure IterateChildren(aVisitor : TCSSTreeVisitor); override;
   Public
     Class function CSSType : TCSSType; override;
@@ -352,26 +354,26 @@ Type
 
   TCSSAtRuleElement = class(TCSSRuleElement)
   private
-    FAtKeyWord: String;
+    FAtKeyWord: TCSSString;
   Public
-    function GetAsString(aFormat : Boolean; const aIndent : String): UTF8String;override;
-    Property AtKeyWord : String Read FAtKeyWord Write FAtKeyWord;
+    function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString;override;
+    Property AtKeyWord : TCSSString Read FAtKeyWord Write FAtKeyWord;
   end;
 
 
 // Convert unicode codepoints to \0000 notation
-Function StringToCSSString(const S : UTF8String) : UTF8String;
+Function StringToCSSString(const S : TCSSString) : TCSSString;
 // Escapes non-identifier characters C to \C
-Function StringToIdentifier(const S : UTF8String) : UTF8String;
+Function StringToIdentifier(const S : TCSSString) : TCSSString;
 
-Function GetCSSPath(El: TCSSElement): string;
+Function GetCSSPath(El: TCSSElement): TCSSString;
 
 Const
-  CSSUnitNames : Array[TCSSUnits] of string =
+  CSSUnitNames : Array[TCSSUnits] of TCSSString =
         ('','px','%','rem','em','pt','fr','vw','vh','deg');
-  UnaryOperators : Array[TCSSUnaryOperation] of string =
+  UnaryOperators : Array[TCSSUnaryOperation] of TCSSString =
         ('::','-','+','/');
-  BinaryOperators : Array[TCSSBinaryOperation] of string =
+  BinaryOperators : Array[TCSSBinaryOperation] of TCSSString =
         ('=','+','-','and','<','>','/','*','~',':','::','^');
 
 
@@ -393,12 +395,12 @@ begin
  Result:=u8_length[Ord(S) shr 4];
 end;
 
-function StringToCSSString(const S: UTF8String): UTF8String;
+function StringToCSSString(const S: TCSSString): TCSSString;
 
 Var
   iIn,iOut,I,L : Integer;
-  O : String[5];
-  u : UTF8String;
+  O : TCSSString;
+  u : TCSSString;
   W : Unicodestring;
   C : Char;
 
@@ -455,7 +457,7 @@ begin
   Result:='"'+Result+'"';
 end;
 
-function StringToIdentifier(const S: UTF8String): UTF8String;
+function StringToIdentifier(const S: TCSSString): TCSSString;
 
 Var
   iIn,iOut,L : Integer;
@@ -482,7 +484,7 @@ begin
   SetLength(Result,iOut);
 end;
 
-function GetCSSPath(El: TCSSElement): string;
+function GetCSSPath(El: TCSSElement): TCSSString;
 begin
   if El=nil then
     exit('nil');
@@ -501,7 +503,8 @@ end;
 
 { TCSSListElement }
 
-function TCSSListElement.GetAsString(aFormat: Boolean; const aIndent: String): UTF8String;
+function TCSSListElement.GetAsString(aFormat: Boolean; const aIndent: TCSSString
+  ): TCSSString;
 
 Var
   I : integer;
@@ -523,8 +526,8 @@ end;
 
 { TCSSAtRuleElement }
 
-function TCSSAtRuleElement.GetAsString(aFormat: Boolean; const aIndent: String
-  ): UTF8String;
+function TCSSAtRuleElement.GetAsString(aFormat: Boolean;
+  const aIndent: TCSSString): TCSSString;
 begin
   Result:=DoGetAsString(AtKeyWord+' ',aFormat, aIndent);
 end;
@@ -532,7 +535,7 @@ end;
 { TCSSBaseStringElement }
 
 function TCSSBaseStringElement.GetAsString(aFormat: Boolean;
-  const aIndent: String): UTF8String;
+  const aIndent: TCSSString): TCSSString;
 begin
   Result:=Value;
   if aFormat then
@@ -556,8 +559,8 @@ end;
 
 { TCSSCompoundElement }
 
-function TCSSCompoundElement.GetAsString(aFormat: Boolean; const aIndent: String
-  ): UTF8String;
+function TCSSCompoundElement.GetAsString(aFormat: Boolean;
+  const aIndent: TCSSString): TCSSString;
 
 Var
   I : Integer;
@@ -596,7 +599,8 @@ begin
   Result:=FKeys[aIndex];
 end;
 
-function TCSSDeclarationElement.GetAsString(aFormat: Boolean; const aIndent: String): UTF8String;
+function TCSSDeclarationElement.GetAsString(aFormat: Boolean;
+  const aIndent: TCSSString): TCSSString;
 
 var
   I : Integer;
@@ -656,7 +660,8 @@ begin
   Result:=csstUNARYOP;
 end;
 
-function TCSSUnaryElement.GetAsString(aFormat: Boolean; const aIndent: String): UTF8String;
+function TCSSUnaryElement.GetAsString(aFormat: Boolean;
+  const aIndent: TCSSString): TCSSString;
 
 begin
   Result:=UnaryOperators[Self.Operation];
@@ -689,19 +694,19 @@ begin
 end;
 
 
-function TCSSRuleElement.GetAsString(aFormat: Boolean; const aIndent: String
-  ): UTF8String;
+function TCSSRuleElement.GetAsString(aFormat: Boolean; const aIndent: TCSSString
+  ): TCSSString;
 
 begin
   Result:=DoGetAsString('',aFormat,aIndent);
 end;
 
-function TCSSRuleElement.DoGetAsString(const aPrefix : String; aFormat: Boolean; const aIndent: String
-  ): UTF8String;
+function TCSSRuleElement.DoGetAsString(const aPrefix: TCSSString;
+  aFormat: Boolean; const aIndent: TCSSString): TCSSString;
 
 var
   I : Integer;
-  lIndent : String;
+  lIndent : TCSSString;
 
 begin
   Result:='';
@@ -783,7 +788,8 @@ end;
 
 { TCSSPseudoClassElement }
 
-function TCSSPseudoClassElement.GetAsString(aFormat: Boolean; const aIndent: String): UTF8String;
+function TCSSPseudoClassElement.GetAsString(aFormat: Boolean;
+  const aIndent: TCSSString): TCSSString;
 
 Var
   I : Integer;
@@ -855,7 +861,8 @@ begin
   Result:=ChildCount;
 end;
 
-function TCSSCallElement.GetAsString(aFormat: Boolean; const aIndent: String): UTF8String;
+function TCSSCallElement.GetAsString(aFormat: Boolean; const aIndent: TCSSString
+  ): TCSSString;
 
 Var
   I : Integer;
@@ -885,7 +892,8 @@ end;
 
 { TCSSFloatElement }
 
-function TCSSFloatElement.GetAsString(aFormat : Boolean; const aIndent : String): UTF8String;
+function TCSSFloatElement.GetAsString(aFormat: Boolean;
+  const aIndent: TCSSString): TCSSString;
 begin
   Str(Value:5:2,Result);
   Result:=TrimLeft(Result); // Space for positive numbers
@@ -907,7 +915,8 @@ begin
   Result:=FChildren;
 end;
 
-function TCSSStringElement.GetAsString(aFormat : Boolean; const aIndent : String): UTF8String;
+function TCSSStringElement.GetAsString(aFormat: Boolean;
+  const aIndent: TCSSString): TCSSString;
 begin
   Result:=StringToCSSString(Value);
   if aFormat then
@@ -934,7 +943,8 @@ end;
 
 { TCSSClassNameElement }
 
-function TCSSClassNameElement.GetAsString(aFormat: Boolean; const aIndent: String): UTF8String;
+function TCSSClassNameElement.GetAsString(aFormat: Boolean;
+  const aIndent: TCSSString): TCSSString;
 begin
   if aFormat then ;
   if aIndent='' then ;
@@ -948,12 +958,13 @@ end;
 
 { TCSSIdentifierElement }
 
-function TCSSIdentifierElement.GetName: UTF8String;
+function TCSSIdentifierElement.GetName: TCSSString;
 begin
   Result:=Value;
 end;
 
-function TCSSIdentifierElement.GetAsString(aFormat : Boolean; const aIndent : String): UTF8String;
+function TCSSIdentifierElement.GetAsString(aFormat: Boolean;
+  const aIndent: TCSSString): TCSSString;
 begin
   if aFormat then ;
   if aIndent='' then ;
@@ -975,8 +986,8 @@ begin
   FPrefix:=AValue;
 end;
 
-function TCSSArrayElement.GetAsString(aFormat: Boolean; const aIndent: String
-  ): UTF8String;
+function TCSSArrayElement.GetAsString(aFormat: Boolean;
+  const aIndent: TCSSString): TCSSString;
 var
   I : integer;
 begin
@@ -1122,7 +1133,8 @@ end;
 
 { TCSSIntegerElement }
 
-function TCSSIntegerElement.GetAsString(aFormat : Boolean; const aIndent : String): UTF8String;
+function TCSSIntegerElement.GetAsString(aFormat: Boolean;
+  const aIndent: TCSSString): TCSSString;
 begin
   Result:=IntToStr(Value);
   if aFormat then
@@ -1147,8 +1159,8 @@ begin
     FLeft.Parent:=Self;
 end;
 
-function TCSSBinaryElement.GetAsString(aFormat: Boolean; const aIndent: String
-  ): UTF8String;
+function TCSSBinaryElement.GetAsString(aFormat: Boolean;
+  const aIndent: TCSSString): TCSSString;
 begin
   Result:='';
   if Assigned(Left) then
@@ -1208,12 +1220,12 @@ end;
 
 { TCSSElement }
 
-function TCSSElement.GetAsUnFormattedString: UTF8String;
+function TCSSElement.GetAsUnFormattedString: TCSSString;
 begin
   Result:=GetAsString(False,'');
 end;
 
-function TCSSElement.GetAsFormattedString: UTF8String;
+function TCSSElement.GetAsFormattedString: TCSSString;
 begin
   Result:=GetAsString(True,'');
 end;
@@ -1224,7 +1236,8 @@ begin
   FParent:=AValue;
 end;
 
-function TCSSElement.GetAsString(aFormat: Boolean; const aIndent : String): UTF8String;
+function TCSSElement.GetAsString(aFormat: Boolean; const aIndent: TCSSString
+  ): TCSSString;
 begin
   if aFormat then ;
   if aIndent='' then ;
@@ -1236,7 +1249,7 @@ begin
   if Assigned(aVisitor) then ;
 end;
 
-constructor TCSSElement.Create(const aFileName: UTF8String; aRow, aCol: Integer);
+constructor TCSSElement.Create(const aFileName: TCSSString; aRow, aCol: Integer);
 begin
   FFileName:=aFileName;
   FRow:=aRow;
