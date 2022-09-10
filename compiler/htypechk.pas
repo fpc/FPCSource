@@ -2960,23 +2960,23 @@ implementation
               { Convert tp procvars when not expecting a procvar }
              if (currpt.left.resultdef.typ=procvardef) and
                 not(def_to.typ in [procvardef,formaldef]) and
-                 { Only convert to call when there is no overload or the return type
-                   is equal to the expected type. }
-                 (
-                  (count=1) or
-                  equal_defs(tprocvardef(currpt.left.resultdef).returndef,def_to)
-                 ) and
-                 { and if it doesn't require any parameters }
-                 (tprocvardef(currpt.left.resultdef).minparacount=0)  then
-                begin
-                  releasecurrpt:=true;
-                  currpt:=tcallparanode(pt.getcopy);
-                  if maybe_call_procvar(currpt.left,true) then
-                    begin
-                      currpt.resultdef:=currpt.left.resultdef;
-                      def_from:=currpt.left.resultdef;
-                    end;
-                end;
+                { if it doesn't require any parameters }
+                (tprocvardef(currpt.left.resultdef).minparacount=0) and
+                { Only convert to call when there is no overload or the return type
+                  is compatible with the expected type. }
+                (
+                 (count=1) or
+                 (compare_defs_ext(tprocvardef(currpt.left.resultdef).returndef,def_to,nothingn,convtype,pdoper,[])>te_incompatible)
+                ) then
+               begin
+                 releasecurrpt:=true;
+                 currpt:=tcallparanode(pt.getcopy);
+                 if maybe_call_procvar(currpt.left,true) then
+                   begin
+                     currpt.resultdef:=currpt.left.resultdef;
+                     def_from:=currpt.left.resultdef;
+                   end;
+               end;
 
              { If we expect a procvar and the left is loadnode that
                returns a procdef we need to find the correct overloaded
