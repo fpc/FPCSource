@@ -426,28 +426,34 @@ type
   
 function ElementType(Element: TPasElement): TClassMemberType;
 var
-  ETypeName: String;
+  C: TClass;
 begin
   Result := cmtUnknown;
   if not Assigned(Element) then Exit;
-  ETypeName := Element.ElementTypeName;
-  if Length(ETypeName) = 0 then Exit;
-  // opearator
-  if ETypeName[2] = 'p' then Exit(cmtOperator);
-  if ETypeName[3] = 'n' then Exit(cmtConstant);
-  // overloaded we don't care
-  if ETypeName[1] = 'o' then ETypeName := Copy(ETypeName, 12, Length(ETypeName));
-  
-  if ETypeName[1] = 'f' then Exit(cmtFunction);
-  if ETypeName[1] = 'c' then Exit(cmtConstructor);
-  if ETypeName[1] = 'd' then Exit(cmtDestructor);
-  if ETypeName[1] = 'v' then Exit(cmtVariable);
-  if ETypeName[1] = 'i' then Exit(cmtInterface);
-  // the p's
-  if ETypeName[4] = 'c' then Exit(cmtProcedure);
-  if ETypeName[4] = 'p' then Exit(cmtProperty);
-  // Unknown
-  // WriteLn(' Warning El name: '+ Element.Name+' path: '+Element.PathName+' TypeName: '+Element.ElementTypeName);
+
+  C:=Element.ClassType;
+  if (C=TPasProcedure) or (C=TPasClassProcedure) then
+    exit(cmtProcedure)
+  else if (C=TPasFunction) or (C=TPasClassFunction) then
+    exit(cmtFunction)
+  else if (C=TPasConstructor) or (C=TPasClassConstructor) then
+    exit(cmtConstructor)
+  else if (C=TPasDestructor) or (C=TPasClassDestructor) then
+    exit(cmtDestructor)
+  else if (C=TPasOperator) or (C=TPasClassOperator) then
+    exit(cmtOperator)
+  else if C=TPasConst then
+    exit(cmtConstant)
+  else if C=TPasVariable then
+    exit(cmtVariable)
+  else if C=TPasProperty then
+    exit(cmtProperty)
+  else
+    begin
+    // Unknown
+    exit(cmtUnknown);
+    // WriteLn(' Warning El name: '+ Element.Name+' path: '+Element.PathName+' TypeName: '+Element.ElementTypeName);
+    end;
 end;
 
 procedure TCHMHTMLWriter.GenerateIndex;
