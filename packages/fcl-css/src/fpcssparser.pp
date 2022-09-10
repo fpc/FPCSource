@@ -44,7 +44,7 @@ Type
     Function GetCurPos : Integer;
   protected
     Procedure DoError(Msg : TCSSString);
-    Procedure DoError(Fmt : TCSSString; Args : Array of const);
+    Procedure DoError(Fmt : TCSSString; const Args : Array of const);
     Procedure Consume(aToken : TCSSToken);
     function ParseComponentValueList(allowRules: Boolean=True): TCSSElement;
     function ParseComponentValue: TCSSElement;
@@ -93,7 +93,7 @@ Resourcestring
   SUnaryInvalidToken = 'Invalid token for unary operation: %s';
   SErrFileSource = 'Error: file "%s" line %d, pos %d: ';
   SErrSource = 'Error: line %d, pos %d: ';
-  SErrUnexpectedToken = 'Unexpected token: Got %s (as TCSSString: "%s"), expected: %s ';
+  SErrUnexpectedToken = 'Unexpected token: Got %s (as string: "%s"), expected: %s ';
   SErrInvalidFloat = 'Invalid float: %s';
   SErrUnexpectedEndOfFile = 'Unexpected EOF while scanning function args: %s';
 
@@ -105,14 +105,16 @@ begin
     ctkPlus : Result:=boPlus;
     ctkMinus:  Result:=boMinus;
     ctkAnd : result:=boAnd;
+    ctkGT : Result:=boGT;
     ctkLT : Result:=boLT;
     ctkDIV : Result:=boDIV;
     ctkStar : Result:=boSTAR;
     ctkTilde : Result:=boTilde;
+    ctkSquared : Result:=boSquared;
+    ctkPIPE : Result:=boPipe;
+    ctkDOLLAR : Result:=boDollar;
     ctkColon : Result:=boCOLON;
     ctkDoubleColon : Result:=boDoubleColon;
-    ctkSquared : Result:=boSquared;
-    ctkGT : Result:=boGT;
   else
     Raise ECSSParser.CreateFmt(SBinaryInvalidToken,[GetEnumName(TypeInfo(aToken),Ord(aToken))]);
     // Result:=boEquals;
@@ -152,7 +154,7 @@ begin
   Raise ECSSParser.Create(ErrAt+Msg)
 end;
 
-procedure TCSSParser.DoError(Fmt: TCSSString; Args: array of const);
+procedure TCSSParser.DoError(Fmt: TCSSString; const Args: array of const);
 begin
   DoError(Format(Fmt,Args));
 end;
@@ -216,7 +218,7 @@ begin
   inherited Destroy;
 end;
 
-Class Function TCSSParser.GetAppendElement(aList : TCSSListElement) : TCSSElement;
+class function TCSSParser.GetAppendElement(aList: TCSSListElement): TCSSElement;
 
 begin
   Case aList.ChildCount of
@@ -659,7 +661,7 @@ function TCSSParser.ParseComponentValueList(allowRules : Boolean = True): TCSSEl
 Const
   TermSeps = [ctkEquals,ctkPlus,ctkMinus,ctkAnd,ctkLT,ctkDIV,
               ctkStar,ctkTilde,ctkColon, ctkDoubleColon,
-              ctkSquared,ctkGT];
+              ctkSquared,ctkGT, ctkPIPE, ctkDOLLAR];
   ListTerms = [ctkEOF,ctkLBRACE,ctkATKEYWORD,ctkComma];
 
   function DoBinary(var aLeft : TCSSElement) : TCSSElement;
@@ -672,7 +674,25 @@ Const
       aLeft:=Nil;
       Bin.Operation:=TokenToBinaryOperation(CurrentToken);
       Consume(CurrentToken);
+      if allowRules
+          and (Bin.Operation in [boTilde,boStar,boSquared,boPipe,boDollar]) then
+        begin
+        Consume(ctkEQUALS);
+        case Bin.Operation of
+        boTilde: Bin.Operation:=boTileEqual;
+        boStar: Bin.Operation:=boStarEqual;
+        boSquared: Bin.Operation:=boSquaredEqual;
+        boPipe: Bin.Operation:=boPipeEqual;
+        boDollar: Bin.Operation:=boDollarEqual;
+        end;
+        end;
       Bin.Right:=ParseComponentValue;
+      if Bin.Right=nil then
+        DoError(SErrUnexpectedToken ,[
+               GetEnumName(TypeInfo(TCSSToken),Ord(CurrentToken)),
+               CurrentTokenString,
+               'value'
+               ]);
       Result:=Bin;
       Bin:=nil;
     finally
@@ -692,6 +712,12 @@ begin
       aFactor:=ParseRule(CurrentToken=ctkATKEYWORD)
     else
       aFactor:=ParseComponentValue;
+    if aFactor=nil then
+      DoError(SErrUnexpectedToken ,[
+             GetEnumName(TypeInfo(TCSSToken),Ord(CurrentToken)),
+             CurrentTokenString,
+             'value'
+             ]);
     While Assigned(aFactor) do
       begin
       While CurrentToken in TermSeps do

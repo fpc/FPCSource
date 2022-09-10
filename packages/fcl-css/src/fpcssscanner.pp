@@ -63,7 +63,9 @@ Type
     ctkPSEUDO,
     ctkPSEUDOFUNCTION,
     ctkSQUARED,
-    ctkUNICODERANGE
+    ctkUNICODERANGE,
+    ctkPIPE,
+    ctkDOLLAR
    );
   TCSSTokens = Set of TCSSToken;
 
@@ -597,7 +599,7 @@ begin
       repeat
         Inc(TokenStr);
         //If (TokenStr[0]='\') and (TokenStr[1]='u') then
-      until not (TokenStr[0] in ['A'..'Z', 'a'..'z', '0'..'9', '_','-','$']);
+      until not (TokenStr[0] in ['A'..'Z', 'a'..'z', '0'..'9', '_','-']);
     IsEscape:=TokenStr[0]='\';
     if IsEscape then
       begin
@@ -728,6 +730,8 @@ begin
     '^': CharToken(ctkSQUARED);
     ',': CharToken(ctkCOMMA);
     '~': CharToken(ctkTILDE);
+    '|': CharToken(ctkPIPE);
+    '$': CharToken(ctkDOLLAR);
     ';': CharToken(ctkSEMICOLON);
     '@': Result:=DoIdentifierLike;
     ':':

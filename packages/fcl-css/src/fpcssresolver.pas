@@ -14,7 +14,13 @@
  **********************************************************************
 
 ToDo:
+- descendant combinator
+- and combinator
+- 'all' attribute
 - TCSSResolver.FindComputedAttribute  use binary search for >8 elements
+- CSSSpecifityInline
+- namespaces
+- layers
 
 }
 
@@ -26,7 +32,7 @@ unit fpCSSResolver;
 interface
 
 uses
-  Classes, SysUtils, Contnrs, fpCSSTree;
+  Classes, SysUtils, Contnrs, StrUtils, fpCSSTree;
 
 const
   CSSSpecifityType = 1;
@@ -113,12 +119,21 @@ type
   TCSSComputedAttributeArray = array of TCSSComputedAttribute;
   PCSSComputedAttribute = ^TCSSComputedAttribute;
 
-  TCSSIdentifierData = class
+  TCSSElResolverData = class
   public
-    Identifier: TCSSIdentifierElement;
+    Element: TCSSElement;
+    Next, Prev: TCSSElResolverData;
+  end;
+
+  TCSSIdentifierData = class(TCSSElResolverData)
+  public
     NumericalID: TCSSNumericalID;
     Kind: TCSSNumericalIDKind;
-    Next, Prev: TCSSIdentifierData;
+  end;
+
+  TCSSValueData = class(TCSSElResolverData)
+  public
+    NormValue: string;
   end;
 
   TCSSResolverOption = (
@@ -144,8 +159,8 @@ type
     FOptions: TCSSResolverOptions;
     FStyle: TCSSElement;
     FOwnsStyle: boolean;
-    FFirstIdentifierData: TCSSIdentifierData;
-    FLastIdentifierData: TCSSIdentifierData;
+    FFirstElData: TCSSElResolverData;
+    FLastElData: TCSSElResolverData;
     function GetAttributes(Index: integer): PCSSComputedAttribute;
     function GetNumericalIDs(Kind: TCSSNumericalIDKind): TCSSNumericalIDs;
     procedure SetNumericalIDs(Kind: TCSSNumericalIDKind;
@@ -165,8 +180,15 @@ type
     function SelectorListMatches(aList: TCSSListElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
     function SelectorBinaryMatches(aBinary: TCSSBinaryElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
     function SelectorArrayMatches(anArray: TCSSArrayElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
+    function SelectorArrayBinaryMatches(aBinary: TCSSBinaryElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
+    function ComputeValue(El: TCSSElement): TCSSString; virtual;
+    function IsWordBegin(const s: TCSSString; p: integer): boolean; virtual;
+    function IsWordEnd(const s: TCSSString; p: integer): boolean; virtual;
+    function PosWord(const aSearch, aText: TCSSString): integer; virtual;
     procedure MergeProperty(El: TCSSElement; Specifity: TCSSSpecifity); virtual;
     function ResolveIdentifier(El: TCSSIdentifierElement; Kind: TCSSNumericalIDKind): TCSSNumericalID; virtual;
+    procedure AddElData(El: TCSSElement; ElData: TCSSElResolverData); virtual;
+    function AddElValueData(El: TCSSElement; const aValue: TCSSString): TCSSValueData; virtual;
     function FindComputedAttribute(AttrID: TCSSNumericalID): PCSSComputedAttribute;
     function AddComputedAttribute(TheAttrID: TCSSNumericalID; aSpecifity: TCSSSpecifity;
                           aValue: TCSSElement): PCSSComputedAttribute;
@@ -473,8 +495,151 @@ begin
       if TestNode.HasCSSAttribute(AttrID) then
         Result:=CSSSpecifityClass;
     end;
-  end else
+  end else if C=TCSSBinaryElement then
+    Result:=SelectorArrayBinaryMatches(TCSSBinaryElement(El),TestNode)
+  else
     DoError(20220910153725,'Invalid CSS array selector',El);
+end;
+
+function TCSSResolver.SelectorArrayBinaryMatches(aBinary: TCSSBinaryElement;
+  const TestNode: TCSSNode): TCSSSpecifity;
+var
+  Left, Right: TCSSElement;
+  AttrID: TCSSNumericalID;
+  LeftValue, RightValue: TCSSString;
+  C: TClass;
+begin
+  Result:=-1;
+  Left:=aBinary.Left;
+  if Left.ClassType<>TCSSIdentifierElement then
+    DoError(20220910164353,'Invalid CSS array selector, expected attribute',Left);
+  AttrID:=ResolveIdentifier(TCSSIdentifierElement(Left),nikAttribute);
+  writeln('TCSSResolver.SelectorArrayBinaryMatches AttrID=',AttrID,' Value=',TCSSIdentifierElement(Left).Value);
+  case AttrID of
+  CSSIDNone,
+  CSSAttributeID_All: exit;
+  CSSAttributeID_ID:
+    LeftValue:=TestNode.GetCSSID;
+  else
+    LeftValue:=TestNode.GetCSSAttribute(AttrID);
+  end;
+
+  Right:=aBinary.Right;
+  C:=Right.ClassType;
+  if (C=TCSSStringElement) or (C=TCSSIntegerElement) or (C=TCSSFloatElement)
+      or (C=TCSSIdentifierElement) then
+    // ok
+  else
+    DoError(20220910164921,'Invalid CSS array selector, expected string',Right);
+  RightValue:=ComputeValue(Right);
+
+  writeln('TCSSResolver.SelectorArrayBinaryMatches Left="',LeftValue,'" Right="',RightValue,'" Op=',aBinary.Operation);
+  case aBinary.Operation of
+  boEquals:
+    if AnsiCompareStr(LeftValue,RightValue)=0 then
+      Result:=CSSSpecifityClass;
+  boSquaredEqual:
+    // begins with
+    if AnsiCompareStr(LeftStr(LeftValue,length(RightValue)),RightValue)=0 then
+      Result:=CSSSpecifityClass;
+  boDollarEqual:
+    // ends with
+    if AnsiCompareStr(RightStr(LeftValue,length(RightValue)),RightValue)=0 then
+      Result:=CSSSpecifityClass;
+  boPipeEqual:
+    // equal to or starts with name-hyphen
+    if (AnsiCompareStr(LeftValue,RightValue)=0)
+        or (AnsiCompareStr(LeftStr(LeftValue,length(RightValue)+1),RightValue+'-')=0) then
+      Result:=CSSSpecifityClass;
+  boStarEqual:
+    // contains substring
+    if Pos(RightValue,LeftValue)>0 then
+      Result:=CSSSpecifityClass;
+  boTileEqual:
+    // contains word
+    if PosWord(RightValue,LeftValue)>0 then
+      Result:=CSSSpecifityClass;
+  else
+    DoError(20220910164356,'Invalid CSS array selector operator',aBinary);
+  end;
+  writeln('TCSSResolver.SelectorArrayBinaryMatches Result=',Result);
+end;
+
+function TCSSResolver.ComputeValue(El: TCSSElement): TCSSString;
+var
+  ElData: TObject;
+  C: TClass;
+  StrEl: TCSSStringElement;
+  IntEl: TCSSIntegerElement;
+  FloatEl: TCSSFloatElement;
+begin
+  C:=El.ClassType;
+  if C=TCSSIdentifierElement then
+    Result:=TCSSIdentifierElement(El).Value
+  else if (C=TCSSStringElement)
+      or (C=TCSSIntegerElement)
+      or (C=TCSSFloatElement) then
+  begin
+    ElData:=El.CustomData;
+    if ElData is TCSSValueData then
+      exit(TCSSValueData(ElData).NormValue);
+    if C=TCSSStringElement then
+    begin
+      StrEl:=TCSSStringElement(El);
+      Result:=StrEl.Value;
+      writeln('TCSSResolver.ComputeValue String=[',Result,']');
+    end
+    else if C=TCSSIntegerElement then
+    begin
+      IntEl:=TCSSIntegerElement(El);
+      Result:=IntEl.AsString;
+    end else if C=TCSSFloatElement then
+    begin
+      FloatEl:=TCSSFloatElement(El);
+      Result:=FloatEl.AsString;
+    end;
+    writeln('TCSSResolver.ComputeValue Value="',Result,'"');
+    AddElValueData(El,Result);
+  end else
+    DoError(20220910235106,'TCSSResolver.ComputeValue not supported',El);
+end;
+
+const
+  WordChar = ['a'..'z','A'..'Z','0'..'9',#192..#255];
+
+function TCSSResolver.IsWordBegin(const s: TCSSString; p: integer): boolean;
+begin
+  Result:=false;
+  if p<1 then exit;
+  if p>length(s) then exit;
+  // simple check. ToDo: check unicode
+  if (p>1) and (s[p-1] in WordChar) then exit;
+  if not (s[p] in WordChar) then exit;
+  Result:=true;
+end;
+
+function TCSSResolver.IsWordEnd(const s: TCSSString; p: integer): boolean;
+begin
+  Result:=false;
+  if p<=1 then exit;
+  if p>length(s)+1 then exit;
+  // simple check. ToDo: check unicode
+  if (p>1) and not (s[p-1] in WordChar) then exit;
+  if (s[p] in WordChar) then exit;
+  Result:=true;
+end;
+
+function TCSSResolver.PosWord(const aSearch, aText: TCSSString): integer;
+begin
+  if aSearch='' then exit(0);
+  if aText='' then exit(0);
+  Result:=Pos(aSearch,aText);
+  while Result>0 do
+  begin
+    if IsWordBegin(aText,Result) and IsWordEnd(aText,Result+length(aSearch)) then
+      exit;
+    Result:=PosEx(aSearch,aText,Result+1);
+  end;
 end;
 
 procedure TCSSResolver.MergeProperty(El: TCSSElement; Specifity: TCSSSpecifity);
@@ -571,19 +736,32 @@ begin
         DoError(20220908235919,'TCSSResolver.ResolveTypeIdentifier unknown '+CSSNumericalIDKindNames[Kind]+' "'+El.Name+'"',El);
     end;
     IdentData:=TCSSIdentifierData.Create;
-    El.CustomData:=IdentData;
-    IdentData.Identifier:=El;
     IdentData.Kind:=Kind;
     IdentData.NumericalID:=Result;
-    if FFirstIdentifierData=nil then
-    begin
-      FFirstIdentifierData:=IdentData;
-    end else begin
-      FLastIdentifierData.Next:=IdentData;
-      IdentData:=FLastIdentifierData;
-    end;
-    FLastIdentifierData:=IdentData;
+    AddElData(El,IdentData);
   end;
+end;
+
+procedure TCSSResolver.AddElData(El: TCSSElement; ElData: TCSSElResolverData);
+begin
+  El.CustomData:=ElData;
+  ElData.Element:=El;
+  if FFirstElData=nil then
+  begin
+    FFirstElData:=ElData;
+  end else begin
+    FLastElData.Next:=ElData;
+    ElData.Prev:=FLastElData;
+  end;
+  FLastElData:=ElData;
+end;
+
+function TCSSResolver.AddElValueData(El: TCSSElement; const aValue: TCSSString
+  ): TCSSValueData;
+begin
+  Result:=TCSSValueData.Create;
+  Result.NormValue:=aValue;
+  AddElData(El,Result);
 end;
 
 function TCSSResolver.FindComputedAttribute(AttrID: TCSSNumericalID
@@ -658,19 +836,19 @@ end;
 
 procedure TCSSResolver.ClearStyleCustomData;
 var
-  Data: TCSSIdentifierData;
+  Data: TCSSElResolverData;
 begin
-  while FLastIdentifierData<>nil do
+  while FLastElData<>nil do
   begin
-    Data:=FLastIdentifierData;
-    FLastIdentifierData:=Data.Prev;
-    if FLastIdentifierData<>nil then
-      FLastIdentifierData.Next:=nil
+    Data:=FLastElData;
+    FLastElData:=Data.Prev;
+    if FLastElData<>nil then
+      FLastElData.Next:=nil
     else
-      FFirstIdentifierData:=nil;
-    if Data.Identifier.CustomData<>Data then
-      DoError(20220908234726,'TCSSResolver.ClearStyleCustomData',Data.Identifier);
-    Data.Identifier.CustomData:=nil;
+      FFirstElData:=nil;
+    if Data.Element.CustomData<>Data then
+      DoError(20220908234726,'TCSSResolver.ClearStyleCustomData',Data.Element);
+    Data.Element.CustomData:=nil;
     Data.Free;
   end;
 end;

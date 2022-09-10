@@ -535,10 +535,6 @@ end;
 
 procedure TCSSTreeAsStringTest.TestBINARYOP;
 
-Const
-  MyBinaryOperators : Array[TCSSBinaryOperation] of string =
-        ('=','+','-','and','<','>','/','*','~',':','::','^');
-
 Var
   Op : TCSSBinaryOperation;
   Sop : String;
@@ -547,7 +543,7 @@ begin
   For Op in TCSSBinaryOperation do
     begin
     CreateBinaryOperation(Op,'a','b',amReplace);
-    Sop:=MyBinaryOperators[Op];
+    Sop:=BinaryOperators[Op];
     if Not (Op in [boColon,boDoubleColon]) then
       Sop:=' '+Sop+' ';
     AssertEquals('Value '+Sop,'a'+sop+'b',Element.AsString)

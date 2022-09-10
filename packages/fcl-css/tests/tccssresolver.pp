@@ -202,6 +202,12 @@ type
     procedure Test_Selector_TypePlusType; // adjacent sibling combinator
     procedure Test_Selector_TypeTildeType; // general sibling combinator
     procedure Test_Selector_HasAttribute;
+    procedure Test_Selector_AttributeEquals;
+    procedure Test_Selector_AttributeBeginsWith;
+    procedure Test_Selector_AttributeEndsWith;
+    procedure Test_Selector_AttributeBeginsWithHyphen;
+    procedure Test_Selector_AttributeContainsWord;
+    procedure Test_Selector_AttributeContainsSubstring;
   end;
 
 function LinesToStr(const Args: array of const): string;
@@ -458,6 +464,141 @@ begin
   AssertEquals('Root.Width','',Doc.Root.Width);
   AssertEquals('Button1.Top','3px',Button1.Top);
   AssertEquals('Button1.Width','4px',Button1.Width);
+end;
+
+procedure TTestCSSResolver.Test_Selector_AttributeEquals;
+var
+  Button1: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Left:='2px';
+
+  Button1:=TDemoButton.Create(Doc);
+  Button1.Parent:=Doc.Root;
+  Button1.Left:='3px';
+
+  Doc.Style:=LinesToStr([
+  '[left=2px] { top: 4px; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Root.Top','4px',Doc.Root.Top);
+  AssertEquals('Button1.Top','',Button1.Top);
+end;
+
+procedure TTestCSSResolver.Test_Selector_AttributeBeginsWith;
+var
+  Button1: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Left:='Foo';
+
+  Button1:=TDemoButton.Create(Doc);
+  Button1.Parent:=Doc.Root;
+  Button1.Left:='Foo Bar';
+
+  Doc.Style:=LinesToStr([
+  '[left^=Fo] { top: 4px; }',
+  '[left^="Foo B"] { width: 5px; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Root.Top','4px',Doc.Root.Top);
+  AssertEquals('Root.Width','',Doc.Root.Width);
+  AssertEquals('Button1.Top','4px',Button1.Top);
+  AssertEquals('Button1.Width','5px',Button1.Width);
+end;
+
+procedure TTestCSSResolver.Test_Selector_AttributeEndsWith;
+var
+  Button1: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Left:='Foo';
+
+  Button1:=TDemoButton.Create(Doc);
+  Button1.Parent:=Doc.Root;
+  Button1.Left:='Foo Bar';
+
+  Doc.Style:=LinesToStr([
+  '[left$=o] { top: 4px; }',
+  '[left$="o Bar"] { width: 5px; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Root.Top','4px',Doc.Root.Top);
+  AssertEquals('Root.Width','',Doc.Root.Width);
+  AssertEquals('Button1.Top','',Button1.Top);
+  AssertEquals('Button1.Width','5px',Button1.Width);
+end;
+
+procedure TTestCSSResolver.Test_Selector_AttributeBeginsWithHyphen;
+var
+  Button1: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Left:='Foo';
+
+  Button1:=TDemoButton.Create(Doc);
+  Button1.Parent:=Doc.Root;
+  Button1.Left:='Foo-Bar';
+
+  Doc.Style:=LinesToStr([
+  '[left|=Foo] { top: 4px; }',
+  '[left|="Fo"] { width: 5px; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Root.Top','4px',Doc.Root.Top);
+  AssertEquals('Root.Width','',Doc.Root.Width);
+  AssertEquals('Button1.Top','4px',Button1.Top);
+  AssertEquals('Button1.Width','',Button1.Width);
+end;
+
+procedure TTestCSSResolver.Test_Selector_AttributeContainsWord;
+var
+  Button1: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Left:='One Two Three';
+
+  Button1:=TDemoButton.Create(Doc);
+  Button1.Parent:=Doc.Root;
+  Button1.Left:='Four Five';
+
+  Doc.Style:=LinesToStr([
+  '[left~=One] { top: 4px; }',
+  '[left~=Two] { width: 5px; }',
+  '[left~=Three] { height: 6px; }',
+  '[left~="Four Five"] { color: #123; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Root.Top','4px',Doc.Root.Top);
+  AssertEquals('Root.Width','5px',Doc.Root.Width);
+  AssertEquals('Root.Height','6px',Doc.Root.Height);
+  AssertEquals('Root.Color','',Doc.Root.Color);
+  AssertEquals('Button1.Top','',Button1.Top);
+  AssertEquals('Button1.Width','',Button1.Width);
+  AssertEquals('Button1.Height','',Button1.Height);
+  AssertEquals('Button1.Color','#123',Button1.Color);
+end;
+
+procedure TTestCSSResolver.Test_Selector_AttributeContainsSubstring;
+var
+  Button1: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Left:='Foo';
+
+  Button1:=TDemoButton.Create(Doc);
+  Button1.Parent:=Doc.Root;
+  Button1.Left:='Foo Bar';
+
+  Doc.Style:=LinesToStr([
+  '[left*=oo] { top: 4px; }',
+  '[left*="o B"] { width: 5px; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Root.Top','4px',Doc.Root.Top);
+  AssertEquals('Root.Width','',Doc.Root.Width);
+  AssertEquals('Button1.Top','4px',Button1.Top);
+  AssertEquals('Button1.Width','5px',Button1.Width);
 end;
 
 { TDemoDiv }
@@ -824,7 +965,7 @@ function TDemoNode.GetCSSAttribute(const AttrID: TCSSNumericalID): TCSSString;
 var
   Attr: TDemoNodeAttribute;
 begin
-  if (AttrID<DemoAttrIDBase) or (AttrID>ord(High(TDemoNodeAttribute))) then
+  if (AttrID<DemoAttrIDBase) or (AttrID>DemoAttrIDBase+ord(High(TDemoNodeAttribute))) then
     exit('');
   Attr:=TDemoNodeAttribute(AttrID-DemoAttrIDBase);
   Result:=Attribute[Attr];

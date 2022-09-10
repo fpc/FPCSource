@@ -158,7 +158,9 @@ Type
 
   { TCSSBinaryElement }
   TCSSBinaryOperation = (boEquals,boPlus,boMinus,boAnd,boLT,boGT,boDIV,
-                         boStar,boTilde,boColon, boDoubleColon,boSquared);
+                         boStar,boTilde,boColon, boDoubleColon,boSquared,
+                         boPipe, boDollar,
+                         boStarEqual,boTileEqual,boSquaredEqual,boPipeEqual,boDollarEqual);
   TCSSBinaryElement = Class(TCSSBaseUnaryElement)
   private
     FLeft: TCSSElement;
@@ -375,8 +377,8 @@ Const
   UnaryOperators : Array[TCSSUnaryOperation] of TCSSString =
         ('::','-','+','/');
   BinaryOperators : Array[TCSSBinaryOperation] of TCSSString =
-        ('=','+','-','and','<','>','/','*','~',':','::','^');
-
+        ('=','+','-','and','<','>','/','*','~',':','::','^','|','$',
+         '*=','~=','^=','|=','$=');
 
 implementation
 
