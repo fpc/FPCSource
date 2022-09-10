@@ -55,6 +55,8 @@ type
     function GetCSSTypeID: TCSSNumericalID;
     function HasCSSClass(const aClassName: TCSSString): boolean;
     function GetCSSParent: TCSSNode;
+    function GetCSSIndex: integer; // node index in parent's children
+    function GetCSSPreviousSibling: TCSSNode;
     procedure SetCSSValue(AttrID: TCSSNumericalID; Value: TCSSElement);
   end;
 
@@ -372,23 +374,55 @@ end;
 function TCSSResolver.SelectorBinaryMatches(aBinary: TCSSBinaryElement;
   const TestNode: TCSSNode): TCSSSpecifity;
 var
-  aParent: TCSSNode;
-  ParentSpecifity: TCSSSpecifity;
+  aParent, Sibling: TCSSNode;
+  aSpecifity: TCSSSpecifity;
 begin
   Result:=-1;
   case aBinary.Operation of
   boGT:
     begin
+      // child combinator
       Result:=SelectorMatches(aBinary.Right,TestNode);
       if Result<0 then exit;
       aParent:=TestNode.GetCSSParent;
       if aParent=nil then
         exit(-1);
-      ParentSpecifity:=SelectorMatches(aBinary.Left,aParent);
-      if ParentSpecifity<0 then
+      aSpecifity:=SelectorMatches(aBinary.Left,aParent);
+      if aSpecifity<0 then
         exit(-1);
-      inc(Result,ParentSpecifity);
-    end
+      inc(Result,aSpecifity);
+    end;
+  boPlus:
+    begin
+      // adjacent sibling combinator
+      Result:=SelectorMatches(aBinary.Right,TestNode);
+      if Result<0 then exit;
+      Sibling:=TestNode.GetCSSPreviousSibling;
+      if Sibling=nil then
+        exit(-1);
+      aSpecifity:=SelectorMatches(aBinary.Left,Sibling);
+      if aSpecifity<0 then
+        exit(-1);
+      inc(Result,aSpecifity);
+    end;
+  boTilde:
+    begin
+      // general sibling combinator
+      Result:=SelectorMatches(aBinary.Right,TestNode);
+      if Result<0 then exit;
+      Sibling:=TestNode.GetCSSPreviousSibling;
+      while Sibling<>nil do
+      begin
+        aSpecifity:=SelectorMatches(aBinary.Left,Sibling);
+        if aSpecifity>=0 then
+        begin
+          inc(Result,aSpecifity);
+          exit;
+        end;
+        Sibling:=Sibling.GetCSSPreviousSibling;
+      end;
+      Result:=-1;
+    end;
   else
     DoError(20220910123724,'Invalid CSS binary selector '+BinaryOperators[aBinary.Operation],aBinary);
   end;
