@@ -30,14 +30,15 @@ uses
 
 const
   CSSSpecifityType = 1;
-  CSSSpecifityClass = 10; // includes attribute selectors [href]
+  CSSSpecifityClass = 10; // includes attribute selectors e.g. [href]
   CSSSpecifityIdentifier = 100;
   CSSSpecifityInline = 1000;
   CSSSpecifityImportant = 10000;
 
   CSSIDNone = 0;
-  CSSTypeIDUniversal = 1; // id of type '*'
-  CSSAttributeIDAll = 1; // id of attribute key 'all'
+  CSSTypeID_Universal = 1; // id of type '*'
+  CSSAttributeID_ID = 1; // id of attribute key 'id'
+  CSSAttributeID_All = 2; // id of attribute key 'all'
 
 type
   TCSSMsgID = int64;
@@ -46,6 +47,15 @@ type
 
   ECSSResolver = class(Exception)
   end;
+
+  TCSSAttributeMatchKind = (
+    camkEqual,
+    camkContains,
+    camkContainsWord,
+    camkBegins,
+    camkEnds
+    );
+  TCSSAttributeMatchKinds = set of TCSSAttributeMatchKind;
 
   { TCSSNode }
 
@@ -57,6 +67,8 @@ type
     function GetCSSParent: TCSSNode;
     function GetCSSIndex: integer; // node index in parent's children
     function GetCSSPreviousSibling: TCSSNode;
+    function HasCSSAttribute(const AttrID: TCSSNumericalID): boolean;
+    function GetCSSAttribute(const AttrID: TCSSNumericalID): TCSSString;
     procedure SetCSSValue(AttrID: TCSSNumericalID; Value: TCSSElement);
   end;
 
@@ -152,6 +164,7 @@ type
     function SelectorStringMatches(aString: TCSSStringElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
     function SelectorListMatches(aList: TCSSListElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
     function SelectorBinaryMatches(aBinary: TCSSBinaryElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
+    function SelectorArrayMatches(anArray: TCSSArrayElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
     procedure MergeProperty(El: TCSSElement; Specifity: TCSSSpecifity); virtual;
     function ResolveIdentifier(El: TCSSIdentifierElement; Kind: TCSSNumericalIDKind): TCSSNumericalID; virtual;
     function FindComputedAttribute(AttrID: TCSSNumericalID): PCSSComputedAttribute;
@@ -304,6 +317,8 @@ begin
     Result:=SelectorStringMatches(TCSSStringElement(aSelector),TestNode)
   else if C=TCSSBinaryElement then
     Result:=SelectorBinaryMatches(TCSSBinaryElement(aSelector),TestNode)
+  else if C=TCSSArrayElement then
+    Result:=SelectorArrayMatches(TCSSArrayElement(aSelector),TestNode)
   else if C=TCSSListElement then
     Result:=SelectorListMatches(TCSSListElement(aSelector),TestNode)
   else
@@ -317,7 +332,7 @@ var
 begin
   Result:=-1;
   TypeID:=ResolveIdentifier(Identifier,nikType);
-  if TypeID=CSSTypeIDUniversal then
+  if TypeID=CSSTypeID_Universal then
   begin
     // universal selector
     Result:=0;
@@ -428,6 +443,40 @@ begin
   end;
 end;
 
+function TCSSResolver.SelectorArrayMatches(anArray: TCSSArrayElement;
+  const TestNode: TCSSNode): TCSSSpecifity;
+var
+  El: TCSSElement;
+  C: TClass;
+  AttrID: TCSSNumericalID;
+begin
+  Result:=-1;
+  if anArray.Prefix<>nil then
+    DoError(20220910154004,'Invalid CSS array selector prefix',anArray.Prefix);
+  if anArray.ChildCount<>1 then
+    DoError(20220910154033,'Invalid CSS array selector',anArray);
+  //writeln('TCSSResolver.SelectorArrayMatches Prefix=',GetCSSObj(anArray.Prefix),' ChildCount=',anArray.ChildCount);
+  //for i:=0 to anArray.ChildCount-1 do
+  //  writeln('TCSSResolver.SelectorArrayMatches ',i,' ',GetCSSObj(anArray.Children[i]));
+  El:=anArray.Children[0];
+  C:=El.ClassType;
+  if C=TCSSIdentifierElement then
+  begin
+    // [name]  ->  has attribute name
+    AttrID:=ResolveIdentifier(TCSSIdentifierElement(El),nikAttribute);
+    case AttrID of
+    CSSIDNone,
+    CSSAttributeID_All: ;
+    CSSAttributeID_ID:
+      Result:=CSSSpecifityClass;
+    else
+      if TestNode.HasCSSAttribute(AttrID) then
+        Result:=CSSSpecifityClass;
+    end;
+  end else
+    DoError(20220910153725,'Invalid CSS array selector',El);
+end;
+
 procedure TCSSResolver.MergeProperty(El: TCSSElement; Specifity: TCSSSpecifity);
 var
   C: TClass;
@@ -456,7 +505,7 @@ begin
       AttrID:=ResolveIdentifier(TCSSIdentifierElement(aKey),nikAttribute);
       if AttrID=CSSIDNone then
         DoError(20220909000932,'Unknown CSS property "'+TCSSIdentifierElement(aKey).Name+'"',aKey)
-      else if AttrID=CSSAttributeIDAll then
+      else if AttrID=CSSAttributeID_All then
         // 'all'
         DoError(20220909001019,'Not yet implemented CSS property "'+TCSSIdentifierElement(aKey).Name+'"',aKey)
       else begin
@@ -483,6 +532,7 @@ function TCSSResolver.ResolveIdentifier(El: TCSSIdentifierElement;
 var
   Data: TObject;
   IdentData: TCSSIdentifierData;
+  aName: TCSSString;
 begin
   Data:=El.CustomData;
   if Data<>nil then
@@ -495,7 +545,26 @@ begin
     {$ENDIF}
   end else
   begin
-    Result:=FNumericalIDs[Kind][El.Name];
+    aName:=El.Name;
+    Result:=CSSIDNone;
+
+    // check built-in names
+    case Kind of
+    nikType:
+      case aName of
+      '*': Result:=CSSTypeID_Universal;
+      end;
+    nikAttribute:
+      case aName of
+      'id': Result:=CSSAttributeID_ID;
+      'all': Result:=CSSAttributeID_All;
+      end;
+    end;
+
+    // resolve user defined names
+    if Result=0 then
+      Result:=FNumericalIDs[Kind][aName];
+
     if Result=CSSIDNone then
     begin
       if roErrorOnUnknownName in FOptions then

@@ -94,6 +94,8 @@ type
     function GetCSSParent: TCSSNode; virtual;
     function GetCSSIndex: integer; virtual;
     function GetCSSPreviousSibling: TCSSNode; virtual;
+    function HasCSSAttribute(const AttrID: TCSSNumericalID): boolean; virtual;
+    function GetCSSAttribute(const AttrID: TCSSNumericalID): TCSSString; virtual;
     property Parent: TDemoNode read FParent write SetParent;
     property NodeCount: integer read GetNodeCount;
     property Nodes[Index: integer]: TDemoNode read GetNodes; default;
@@ -131,9 +133,18 @@ type
   { TDemoButton }
 
   TDemoButton = class(TDemoNode)
+  private
+    FCaption: string;
+    procedure SetCaption(const AValue: string);
   public
+    class var CSSCaptionID: TCSSNumericalID;
     class function CSSTypeName: TCSSString; override;
     class function CSSTypeID: TCSSNumericalID; override;
+    function HasCSSAttribute(const AttrID: TCSSNumericalID): boolean; override;
+    function GetCSSAttribute(const AttrID: TCSSNumericalID): TCSSString;
+      override;
+    procedure SetCSSValue(AttrID: TCSSNumericalID; Value: TCSSElement); override;
+    property Caption: string read FCaption write SetCaption;
   end;
 
   { TDemoDocument }
@@ -184,12 +195,13 @@ type
     procedure Test_Selector_Type;
     procedure Test_Selector_Id;
     procedure Test_Selector_Class;
-    procedure Test_Selector_ClassClass; // and combinator
-    procedure Test_Selector_ClassSpaceClass; // descendant combinator
+    procedure Test_Selector_ClassClass; // ToDo and combinator
+    procedure Test_Selector_ClassSpaceClass; // ToDo descendant combinator
     procedure Test_Selector_TypeCommaType; // or combinator
     procedure Test_Selector_ClassGTClass; // child combinator
     procedure Test_Selector_TypePlusType; // adjacent sibling combinator
     procedure Test_Selector_TypeTildeType; // general sibling combinator
+    procedure Test_Selector_HasAttribute;
   end;
 
 function LinesToStr(const Args: array of const): string;
@@ -427,6 +439,27 @@ begin
   AssertEquals('Button3.left','10px',Button3.Left);
 end;
 
+procedure TTestCSSResolver.Test_Selector_HasAttribute;
+var
+  Button1: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Button1:=TDemoButton.Create(Doc);
+  Button1.Parent:=Doc.Root;
+  Button1.Left:='2px';
+
+  Doc.Style:=LinesToStr([
+  '[left] { top: 3px; }',
+  '[caption] { width: 4px; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Root.Top','3px',Doc.Root.Top);
+  AssertEquals('Root.Width','',Doc.Root.Width);
+  AssertEquals('Button1.Top','3px',Button1.Top);
+  AssertEquals('Button1.Width','4px',Button1.Width);
+end;
+
 { TDemoDiv }
 
 class function TDemoDiv.CSSTypeName: TCSSString;
@@ -453,6 +486,12 @@ end;
 
 { TDemoButton }
 
+procedure TDemoButton.SetCaption(const AValue: string);
+begin
+  if FCaption=AValue then Exit;
+  FCaption:=AValue;
+end;
+
 class function TDemoButton.CSSTypeName: TCSSString;
 begin
   Result:='button';
@@ -461,6 +500,27 @@ end;
 class function TDemoButton.CSSTypeID: TCSSNumericalID;
 begin
   Result:=103;
+end;
+
+function TDemoButton.HasCSSAttribute(const AttrID: TCSSNumericalID): boolean;
+begin
+  Result:=(AttrID=CSSCaptionID) or inherited HasCSSAttribute(AttrID);
+end;
+
+function TDemoButton.GetCSSAttribute(const AttrID: TCSSNumericalID): TCSSString;
+begin
+  if AttrID=CSSCaptionID then
+    Result:=Caption
+  else
+    Result:=inherited GetCSSAttribute(AttrID);
+end;
+
+procedure TDemoButton.SetCSSValue(AttrID: TCSSNumericalID; Value: TCSSElement);
+begin
+  if AttrID=CSSCaptionID then
+    SetCaption(Value.AsString)
+  else
+    inherited SetCSSValue(AttrID, Value);
 end;
 
 { TDemoDocument }
@@ -507,14 +567,15 @@ var
   Attr: TDemoNodeAttribute;
   TypeIDs, AttributeIDs: TCSSNumericalIDs;
   NumKind: TCSSNumericalIDKind;
+  AttrID: TCSSNumericalID;
 begin
   inherited Create(AOwner);
 
   for NumKind in TCSSNumericalIDKind do
     FNumericalIDs[NumKind]:=TCSSNumericalIDs.Create(NumKind);
   TypeIDs:=FNumericalIDs[nikType];
-  TypeIDs['*']:=CSSTypeIDUniversal;
-  if TypeIDs['*']<>CSSTypeIDUniversal then
+  TypeIDs['*']:=CSSTypeID_Universal;
+  if TypeIDs['*']<>CSSTypeID_Universal then
     raise Exception.Create('20220909004740');
 
   TypeIDs[TDemoNode.CSSTypeName]:=TDemoNode.CSSTypeID;
@@ -522,9 +583,16 @@ begin
   TypeIDs[TDemoButton.CSSTypeName]:=TDemoButton.CSSTypeID;
 
   AttributeIDs:=FNumericalIDs[nikAttribute];
-  AttributeIDs['all']:=CSSAttributeIDAll;
+  AttributeIDs['all']:=CSSAttributeID_All;
+  AttrID:=DemoAttrIDBase;
   for Attr in TDemoNodeAttribute do
-    AttributeIDs[DemoAttributeNames[Attr]]:=ord(Attr)+DemoAttrIDBase;
+  begin
+    AttributeIDs[DemoAttributeNames[Attr]]:=AttrID;
+    inc(AttrID);
+  end;
+  TDemoButton.CSSCaptionID:=AttrID;
+  AttributeIDs['caption']:=AttrID;
+  inc(AttrID);
 
   FCSSResolver:=TCSSResolver.Create;
   for NumKind in TCSSNumericalIDKind do
@@ -745,6 +813,21 @@ begin
     Result:=nil
   else
     Result:=Parent.Nodes[i-1];
+end;
+
+function TDemoNode.HasCSSAttribute(const AttrID: TCSSNumericalID): boolean;
+begin
+  Result:=(AttrID>=DemoAttrIDBase) and (AttrID<=DemoAttrIDBase+ord(High(TDemoNodeAttribute)));
+end;
+
+function TDemoNode.GetCSSAttribute(const AttrID: TCSSNumericalID): TCSSString;
+var
+  Attr: TDemoNodeAttribute;
+begin
+  if (AttrID<DemoAttrIDBase) or (AttrID>ord(High(TDemoNodeAttribute))) then
+    exit('');
+  Attr:=TDemoNodeAttribute(AttrID-DemoAttrIDBase);
+  Result:=Attribute[Attr];
 end;
 
 function TDemoNode.GetCSSTypeName: TCSSString;
