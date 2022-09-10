@@ -366,6 +366,7 @@ Function StringToCSSString(const S : TCSSString) : TCSSString;
 // Escapes non-identifier characters C to \C
 Function StringToIdentifier(const S : TCSSString) : TCSSString;
 
+Function GetCSSObj(El: TCSSElement): TCSSString;
 Function GetCSSPath(El: TCSSElement): TCSSString;
 
 Const
@@ -484,6 +485,16 @@ begin
   SetLength(Result,iOut);
 end;
 
+function GetCSSObj(El: TCSSElement): TCSSString;
+begin
+  if El=nil then
+    Result:='nil'
+  else if El is TCSSIdentifierElement then
+    Result:=El.ClassName+'"'+TCSSIdentifierElement(El).Name+'"'
+  else
+    Result:=El.ClassName;
+end;
+
 function GetCSSPath(El: TCSSElement): TCSSString;
 begin
   if El=nil then
@@ -493,10 +504,7 @@ begin
     begin
     if Result<>'' then
       Result:='.'+Result;
-    if El is TCSSIdentifierElement then
-      Result:=El.ClassName+'"'+TCSSIdentifierElement(El).Name+'"'+Result
-    else
-      Result:=El.ClassName+Result;
+    Result:=GetCSSObj(El)+Result;
     El:=El.Parent;
     end;
 end;

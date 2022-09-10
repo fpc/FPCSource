@@ -484,10 +484,9 @@ begin
   Move(TokenStart^,FCurTokenString[1],Len);
   if IsEscape then
     begin
-    result:=ctkString;
+    Result:=ctkString;
     FCurTokenString:=Char(StrToInt(FCurTokenString));
     end;
-
 end;
 
 function TCSSScanner.DoHash :TCSSToken;

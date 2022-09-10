@@ -50,9 +50,11 @@ type
   { TCSSNode }
 
   TCSSNode = interface
-    function GetCSSClassName: String;
+    function GetCSSID: TCSSString;
+    function GetCSSTypeName: TCSSString;
     function GetCSSTypeID: TCSSNumericalID;
-    function HasCSSClass(const aClassName: string): boolean;
+    function HasCSSClass(const aClassName: TCSSString): boolean;
+    function GetCSSParent: TCSSNode;
     procedure SetCSSValue(AttrID: TCSSNumericalID; Value: TCSSElement);
   end;
 
@@ -65,7 +67,7 @@ type
   TCSSNumericalIDKinds = set of TCSSNumericalIDKind;
 
 const
-  CSSNumericalIDKindNames: array[TCSSNumericalIDKind] of string = (
+  CSSNumericalIDKindNames: array[TCSSNumericalIDKind] of TCSSString = (
     'Type',
     'Attribute',
     'PseudoAttribute'
@@ -79,13 +81,13 @@ type
   private
     FKind: TCSSNumericalIDKind;
     fList: TFPHashList;
-    function GetIDs(const aName: string): TCSSNumericalID;
-    procedure SetIDs(const aName: string; const AValue: TCSSNumericalID);
+    function GetIDs(const aName: TCSSString): TCSSNumericalID;
+    procedure SetIDs(const aName: TCSSString; const AValue: TCSSNumericalID);
   public
     constructor Create(aKind: TCSSNumericalIDKind);
     destructor Destroy; override;
     procedure Clear;
-    property IDs[const aName: string]: TCSSNumericalID read GetIDs write SetIDs; default;
+    property IDs[const aName: TCSSString]: TCSSNumericalID read GetIDs write SetIDs; default;
     property Kind: TCSSNumericalIDKind read FKind;
   end;
 
@@ -143,6 +145,11 @@ type
     procedure ComputeElement(El: TCSSElement); virtual;
     procedure ComputeRule(aRule: TCSSRuleElement); virtual;
     function SelectorMatches(aSelector: TCSSElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
+    function SelectorIdentifierMatches(Identifier: TCSSIdentifierElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
+    function SelectorClassNameMatches(aClassName: TCSSClassNameElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
+    function SelectorStringMatches(aString: TCSSStringElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
+    function SelectorListMatches(aList: TCSSListElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
+    function SelectorBinaryMatches(aBinary: TCSSBinaryElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
     procedure MergeProperty(El: TCSSElement; Specifity: TCSSSpecifity); virtual;
     function ResolveIdentifier(El: TCSSIdentifierElement; Kind: TCSSNumericalIDKind): TCSSNumericalID; virtual;
     function FindComputedAttribute(AttrID: TCSSNumericalID): PCSSComputedAttribute;
@@ -170,14 +177,14 @@ implementation
 
 { TCSSNumericalIDs }
 
-function TCSSNumericalIDs.GetIDs(const aName: string): TCSSNumericalID;
+function TCSSNumericalIDs.GetIDs(const aName: TCSSString): TCSSNumericalID;
 begin
   {$WARN 4056 off : Conversion between ordinals and pointers is not portable}
   Result:=TCSSNumericalID(fList.Find(aName));
   {$WARN 4056 on}
 end;
 
-procedure TCSSNumericalIDs.SetIDs(const aName: string;
+procedure TCSSNumericalIDs.SetIDs(const aName: TCSSString;
   const AValue: TCSSNumericalID);
 var
   i: Integer;
@@ -284,34 +291,107 @@ function TCSSResolver.SelectorMatches(aSelector: TCSSElement;
   const TestNode: TCSSNode): TCSSSpecifity;
 var
   C: TClass;
-  Identifier: TCSSIdentifierElement;
-  TypeID: TCSSNumericalID;
-  aClassName: TCSSString;
 begin
   Result:=-1;
   C:=aSelector.ClassType;
   if C=TCSSIdentifierElement then
-  begin
-    Identifier:=TCSSIdentifierElement(aSelector);
-    TypeID:=ResolveIdentifier(Identifier,nikType);
-    if TypeID=CSSTypeIDUniversal then
-    begin
-      // universal selector
-      Result:=0;
-    end else if TypeID<>CSSIDNone then
-    begin
-      if TypeID=TestNode.GetCSSTypeID then
-        Result:=CSSSpecifityType;
-    end else
-      DoError(20220908230426,'Unknown CSS selector type name "'+Identifier.Name+'"',Identifier);
-  end else if C=TCSSClassNameElement then
-  begin
-    Identifier:=TCSSIdentifierElement(aSelector);
-    aClassName:=copy(Identifier.Name,2,255);
-    if TestNode.HasCSSClass(aClassName) then
-      Result:=CSSSpecifityClass;
-  end else
+    Result:=SelectorIdentifierMatches(TCSSIdentifierElement(aSelector),TestNode)
+  else if C=TCSSClassNameElement then
+    Result:=SelectorClassNameMatches(TCSSClassNameElement(aSelector),TestNode)
+  else if C=TCSSStringElement then
+    Result:=SelectorStringMatches(TCSSStringElement(aSelector),TestNode)
+  else if C=TCSSBinaryElement then
+    Result:=SelectorBinaryMatches(TCSSBinaryElement(aSelector),TestNode)
+  else if C=TCSSListElement then
+    Result:=SelectorListMatches(TCSSListElement(aSelector),TestNode)
+  else
     DoError(20220908230152,'Unknown CSS selector element',aSelector);
+end;
+
+function TCSSResolver.SelectorIdentifierMatches(
+  Identifier: TCSSIdentifierElement; const TestNode: TCSSNode): TCSSSpecifity;
+var
+  TypeID: TCSSNumericalID;
+begin
+  Result:=-1;
+  TypeID:=ResolveIdentifier(Identifier,nikType);
+  if TypeID=CSSTypeIDUniversal then
+  begin
+    // universal selector
+    Result:=0;
+  end else if TypeID<>CSSIDNone then
+  begin
+    if TypeID=TestNode.GetCSSTypeID then
+      Result:=CSSSpecifityType;
+  end else
+    DoError(20220908230426,'Unknown CSS selector type name "'+Identifier.Name+'"',Identifier);
+end;
+
+function TCSSResolver.SelectorClassNameMatches(
+  aClassName: TCSSClassNameElement; const TestNode: TCSSNode): TCSSSpecifity;
+var
+  aValue: TCSSString;
+begin
+  aValue:=copy(aClassName.Name,2,255);
+  if TestNode.HasCSSClass(aValue) then
+    Result:=CSSSpecifityClass
+  else
+    Result:=-1;
+end;
+
+function TCSSResolver.SelectorStringMatches(aString: TCSSStringElement;
+  const TestNode: TCSSNode): TCSSSpecifity;
+var
+  aValue: TCSSString;
+begin
+  Result:=-1;
+  if aString.Children.Count>0 then
+    DoError(20220910113909,'Invalid CSS string selector',aString.Children[0]);
+  aValue:=aString.Value;
+  if aValue[1]<>'#' then
+    DoError(20220910114014,'Invalid CSS selector',aString);
+  System.Delete(aValue,1,1);
+  if aValue='' then
+    DoError(20220910114133,'Invalid CSS identifier selector',aString);
+  if aValue=TestNode.GetCSSID then
+    Result:=CSSSpecifityIdentifier;
+end;
+
+function TCSSResolver.SelectorListMatches(aList: TCSSListElement;
+  const TestNode: TCSSNode): TCSSSpecifity;
+var
+  i: Integer;
+begin
+  Result:=-1;
+  writeln('TCSSResolver.SelectorListMatches ChildCount=',aList.ChildCount);
+  for i:=0 to aList.ChildCount-1 do
+    writeln('TCSSResolver.SelectorListMatches ',i,' ',GetCSSObj(aList.Children[i]),' AsString=',aList.Children[i].AsString);
+  DoError(20220910115531,'Invalid CSS list selector',aList);
+end;
+
+function TCSSResolver.SelectorBinaryMatches(aBinary: TCSSBinaryElement;
+  const TestNode: TCSSNode): TCSSSpecifity;
+var
+  aParent: TCSSNode;
+  ParentSpecifity: TCSSSpecifity;
+begin
+  Result:=-1;
+  case aBinary.Operation of
+  boGT:
+    begin
+      Result:=SelectorMatches(aBinary.Right,TestNode);
+      if Result<0 then exit;
+      aParent:=TestNode.GetCSSParent;
+      if aParent=nil then
+        exit(-1);
+      ParentSpecifity:=SelectorMatches(aBinary.Left,aParent);
+      if ParentSpecifity<0 then
+        exit(-1);
+      inc(Result,ParentSpecifity);
+    end
+  else
+    DoError(20220910123724,'Invalid CSS binary selector '+BinaryOperators[aBinary.Operation],aBinary);
+  end;
 end;
 
 procedure TCSSResolver.MergeProperty(El: TCSSElement; Specifity: TCSSSpecifity);
