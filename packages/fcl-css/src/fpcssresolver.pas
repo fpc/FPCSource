@@ -202,9 +202,7 @@ type
     function SelectorArrayMatches(anArray: TCSSArrayElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
     function SelectorArrayBinaryMatches(aBinary: TCSSBinaryElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
     function ComputeValue(El: TCSSElement): TCSSString; virtual;
-    function IsWordBegin(const s: TCSSString; p: integer): boolean; virtual;
-    function IsWordEnd(const s: TCSSString; p: integer): boolean; virtual;
-    function PosWord(const aSearch, aText: TCSSString): integer; virtual;
+    function PosWord(const SearchWord, Words: TCSSString): integer; virtual;
     procedure MergeProperty(El: TCSSElement; Specifity: TCSSSpecifity); virtual;
     function ResolveIdentifier(El: TCSSIdentifierElement; Kind: TCSSNumericalIDKind): TCSSNumericalID; virtual;
     procedure AddElData(El: TCSSElement; ElData: TCSSElResolverData); virtual;
@@ -693,42 +691,32 @@ begin
     DoError(20220910235106,'TCSSResolver.ComputeValue not supported',El);
 end;
 
+function TCSSResolver.PosWord(const SearchWord, Words: TCSSString): integer;
+// attribute selector ~=
 const
-  WordChar = ['a'..'z','A'..'Z','0'..'9',#192..#255];
-
-function TCSSResolver.IsWordBegin(const s: TCSSString; p: integer): boolean;
+  Whitespace = [#9,#10,#12,#13,' '];
+var
+  WordsLen, SearchLen: SizeInt;
+  p, WordStart: Integer;
 begin
-  Result:=false;
-  if p<1 then exit;
-  if p>length(s) then exit;
-  // simple check. ToDo: check unicode
-  if (p>1) and (s[p-1] in WordChar) then exit;
-  if not (s[p] in WordChar) then exit;
-  Result:=true;
-end;
-
-function TCSSResolver.IsWordEnd(const s: TCSSString; p: integer): boolean;
-begin
-  Result:=false;
-  if p<=1 then exit;
-  if p>length(s)+1 then exit;
-  // simple check. ToDo: check unicode
-  if (p>1) and not (s[p-1] in WordChar) then exit;
-  if (s[p] in WordChar) then exit;
-  Result:=true;
-end;
-
-function TCSSResolver.PosWord(const aSearch, aText: TCSSString): integer;
-begin
-  if aSearch='' then exit(0);
-  if aText='' then exit(0);
-  Result:=Pos(aSearch,aText);
-  while Result>0 do
-  begin
-    if IsWordBegin(aText,Result) and IsWordEnd(aText,Result+length(aSearch)) then
-      exit;
-    Result:=PosEx(aSearch,aText,Result+1);
-  end;
+  if SearchWord='' then exit(0);
+  if Words='' then exit(0);
+  WordsLen:=length(Words);
+  SearchLen:=length(SearchWord);
+  p:=1;
+  repeat
+    repeat
+      if p>WordsLen then
+        exit(0);
+      if not (Words[p] in Whitespace) then break;
+      inc(p);
+    until false;
+    WordStart:=p;
+    while (p<=WordsLen) and not (Words[p] in Whitespace) do
+      inc(p);
+    if (p-WordStart=SearchLen) and CompareMem(@SearchWord[1],@Words[WordStart],SearchLen) then
+      exit(WordStart);
+  until p>WordsLen;
 end;
 
 procedure TCSSResolver.MergeProperty(El: TCSSElement; Specifity: TCSSSpecifity);
