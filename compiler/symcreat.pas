@@ -201,7 +201,7 @@ implementation
         current_scanner.closeinputfile;
       { inject the string in the scanner }
       str:=str+'end;';
-      current_scanner.substitutemacro('meth_head_macro',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index);
+      current_scanner.substitutemacro('meth_head_macro',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index,true);
       current_scanner.readtoken(false);
       { and parse it... }
       case potype of
@@ -254,7 +254,7 @@ implementation
       { "const" starts a new kind of block and hence makes the scanner return }
       str:=str+'const;';
       { inject the string in the scanner }
-      current_scanner.substitutemacro('meth_impl_macro',@str[1],length(str),lineno,fileno);
+      current_scanner.substitutemacro('meth_impl_macro',@str[1],length(str),lineno,fileno,true);
       current_scanner.readtoken(false);
       { and parse it... }
       flags:=[];
@@ -289,7 +289,7 @@ implementation
       old_block_type:=block_type;
       parse_only:=true;
       block_type:=bt_const;
-      current_scanner.substitutemacro('typed_const_macro',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index);
+      current_scanner.substitutemacro('typed_const_macro',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index,true);
       current_scanner.readtoken(false);
       read_typed_const(list,ssym,ssym.owner.symtabletype in [recordsymtable,objectsymtable]);
       parse_only:=old_parse_only;
@@ -310,7 +310,7 @@ implementation
       if not assigned(def.owner.defowner) and
          assigned(def.owner.realname) and
          (def.owner.moduleid<>0) then
-        result:=def.owner.realname^+'.';
+        result:=internal_macro_escape_unit_namespace_name+def.owner.realname^+'.';
     end;
 
 
@@ -496,7 +496,7 @@ implementation
             begin
               fsym:=tfieldvarsym(sym);
               if fsym.vardef.needs_inittable then
-                str:=str+'system.initialize(&'+fsym.realname+');';
+                str:=str+(internal_macro_escape_unit_namespace_name+'system.initialize(&')+fsym.realname+');';
             end;
         end;
       str:=str+'end;';

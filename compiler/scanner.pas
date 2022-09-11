@@ -37,6 +37,15 @@ interface
        max_macro_nesting=16;
        preprocbufsize=32*1024;
 
+       { when parsing an internally generated macro, if an identifier is
+         prefixed with this constant then it will always be interpreted as a
+         unit name (to avoid clashes with user-specified parameter or field
+         names duplicated in internally generated code) }
+       internal_macro_escape_unit_namespace_name = #1;
+
+       internal_macro_escape_begin = internal_macro_escape_unit_namespace_name;
+       internal_macro_escape_end = internal_macro_escape_unit_namespace_name;
+
 
     type
        tcommentstyle = (comment_none,comment_tp,comment_oldtp,comment_delphi,comment_c);
@@ -168,7 +177,7 @@ interface
           procedure addfile(hp:tinputfile);
           procedure reload;
           { replaces current token with the text in p }
-          procedure substitutemacro(const macname:string;p:pchar;len,line,fileindex:longint);
+          procedure substitutemacro(const macname:string;p:pchar;len,line,fileindex:longint;internally_generated: boolean);
         { Scanner things }
           procedure gettokenpos;
           procedure inc_comment_level;
@@ -2645,7 +2654,7 @@ type
            if macroIsString then
              hs:=''''+hs+'''';
            current_scanner.substitutemacro(path,@hs[1],length(hs),
-             current_scanner.line_no,current_scanner.inputfile.ref_index);
+             current_scanner.line_no,current_scanner.inputfile.ref_index,false);
          end
         else
          begin
@@ -3713,7 +3722,7 @@ type
       end;
 
 
-    procedure tscannerfile.substitutemacro(const macname:string;p:pchar;len,line,fileindex:longint);
+    procedure tscannerfile.substitutemacro(const macname:string;p:pchar;len,line,fileindex:longint;internally_generated: boolean);
       var
         hp : tinputfile;
       begin
@@ -3733,6 +3742,7 @@ type
            inputpointer:=buf;
            inputstart:=bufstart;
            ref_index:=fileindex;
+           internally_generated_macro:=internally_generated;
          end;
       { reset line }
         line_no:=line;
@@ -4187,6 +4197,26 @@ type
               end;
             #0 :
               reload;
+            else if inputfile.internally_generated_macro and
+                    (c in [internal_macro_escape_begin..internal_macro_escape_end]) then
+              begin
+                if i<255 then
+                 begin
+                   inc(i);
+                   orgpattern[i]:=c;
+                   pattern[i]:=c;
+                 end
+                else
+                 begin
+                   if not err then
+                     begin
+                       Message(scan_e_string_exceeds_255_chars);
+                       err:=true;
+                     end;
+                 end;
+                c:=inputpointer^;
+                inc(inputpointer);
+              end
             else
               break;
           end;
@@ -4904,7 +4934,7 @@ type
                        mac.is_used:=true;
                        inc(yylexcount);
                        substitutemacro(pattern,mac.buftext,mac.buflen,
-                         mac.fileinfo.line,mac.fileinfo.fileindex);
+                         mac.fileinfo.line,mac.fileinfo.fileindex,false);
                        { handle empty macros }
                        if c=#0 then
                          begin
@@ -5586,6 +5616,12 @@ type
                  checkpreprocstack;
                  goto exit_label;
                end;
+             else if inputfile.internally_generated_macro and
+                     (c in [internal_macro_escape_begin..internal_macro_escape_end]) then
+               begin
+                 token:=_ID;
+                 readstring;
+               end
              else
                Illegal_Char(c);
            end;

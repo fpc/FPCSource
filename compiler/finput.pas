@@ -41,10 +41,6 @@ interface
          inc_path  : TPathStr;       { path if file was included with $I directive }
          next      : tinputfile;    { next file for reading }
 
-         is_macro,
-         endoffile,                 { still bytes left to read }
-         closed       : boolean;    { is the file closed }
-
          buf          : pchar;      { buffer }
          bufstart,                  { buffer start position in the file }
          bufsize,                   { amount of bytes in the buffer }
@@ -59,6 +55,14 @@ interface
 
          ref_index  : longint;
          ref_next   : tinputfile;
+
+         is_macro,
+         endoffile,                 { still bytes left to read }
+         closed       : boolean;    { is the file closed }
+
+         { this file represents an internally generated macro. Enables
+           certain escape sequences }
+         internally_generated_macro: boolean;
 
          constructor create(const fn:TPathStr);
          destructor  destroy;override;
@@ -206,10 +210,6 @@ uses
         inc_path:='';
         next:=nil;
         filetime:=-1;
-      { file info }
-        is_macro:=false;
-        endoffile:=false;
-        closed:=true;
         buf:=nil;
         bufstart:=0;
         bufsize:=0;
@@ -224,6 +224,11 @@ uses
       { line buffer }
         linebuf:=nil;
         maxlinebuf:=0;
+      { file info }
+        is_macro:=false;
+        endoffile:=false;
+        closed:=true;
+        internally_generated_macro:=false;
       end;
 
 

@@ -311,7 +311,8 @@ interface
          ssf_search_option,
          ssf_search_helper,
          ssf_has_inherited,
-         ssf_no_addsymref
+         ssf_no_addsymref,
+         ssf_unit_or_namespace_only
        );
        tsymbol_search_flags = set of tsymbol_search_flag;
 
@@ -3402,7 +3403,12 @@ implementation
 
     function  searchsym(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
       begin
-        result:=searchsym_maybe_with_symoption(s,srsym,srsymtable,[],sp_none);
+        case s[1] of
+          internal_macro_escape_unit_namespace_name:
+            result:=searchsym_maybe_with_symoption(copy(s,2,length(s)-1),srsym,srsymtable,[ssf_unit_or_namespace_only],sp_none)
+          else
+            result:=searchsym_maybe_with_symoption(s,srsym,srsymtable,[],sp_none);
+        end
       end;
 
 
@@ -3424,7 +3430,8 @@ implementation
         while assigned(stackitem) do
           begin
             srsymtable:=stackitem^.symtable;
-            if (srsymtable.symtabletype=objectsymtable) then
+            if not(ssf_unit_or_namespace_only in flags) and
+               (srsymtable.symtabletype=objectsymtable) then
               begin
                 { TODO : implement the search for an option in classes as well }
                 if ssf_search_option in flags then
@@ -3446,6 +3453,8 @@ implementation
                   They are visible only if they are from the current unit or
                   unit of generic of currently processed specialization. }
                 if assigned(srsym) and
+                   (not(ssf_unit_or_namespace_only in flags) or
+                    (srsym.typ in [unitsym,namespacesym])) and
                    (
                      not(srsym.typ in [unitsym,namespacesym]) or
                      srsymtable.iscurrentunit or
