@@ -93,9 +93,14 @@ type
     procedure SetCSSValue(AttrID: TCSSNumericalID; Value: TCSSElement); virtual;
     function GetCSSParent: TCSSNode; virtual;
     function GetCSSIndex: integer; virtual;
+    function GetCSSNextSibling: TCSSNode; virtual;
     function GetCSSPreviousSibling: TCSSNode; virtual;
+    function GetCSSChildCount: integer; virtual;
+    function GetCSSChild(const anIndex: integer): TCSSNode; virtual;
     function HasCSSAttribute(const AttrID: TCSSNumericalID): boolean; virtual;
     function GetCSSAttribute(const AttrID: TCSSNumericalID): TCSSString; virtual;
+    function HasCSSPseudoAttribute(const AttrID: TCSSNumericalID): boolean; virtual;
+    function GetCSSPseudoAttribute(const AttrID: TCSSNumericalID): TCSSString; virtual;
     property Parent: TDemoNode read FParent write SetParent;
     property NodeCount: integer read GetNodeCount;
     property Nodes[Index: integer]: TDemoNode read GetNodes; default;
@@ -208,6 +213,28 @@ type
     procedure Test_Selector_AttributeBeginsWithHyphen;
     procedure Test_Selector_AttributeContainsWord;
     procedure Test_Selector_AttributeContainsSubstring;
+    // ToDo: all
+    procedure Test_Selector_Root;
+    procedure Test_Selector_Empty;
+    procedure Test_Selector_FirstChild;
+    procedure Test_Selector_LastChild;
+    // ToDo: :first-of-type
+    // ToDo: :last-of-type
+    // ToDo: :not(selector)
+    // ToDo: nth-child(n)
+    // ToDo: nth-last-child(n)
+    // ToDo: nth-of-type(n)
+    // ToDo: nth-last-of-type(n)
+    // ToDo: :only-of-type
+    // ToDo: :only-child
+    // ToDo: :defined
+    // ToDo: div:has(>img)
+    // ToDo: div:has(+img)
+    // ToDo: :is()
+    // ToDo: :where()
+    // ToDo: :lang()
+    // ToDo: inline style
+    // ToDo: specifity
   end;
 
 function LinesToStr(const Args: array of const): string;
@@ -601,6 +628,124 @@ begin
   AssertEquals('Button1.Width','5px',Button1.Width);
 end;
 
+procedure TTestCSSResolver.Test_Selector_Root;
+var
+  Button1: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Left:='Foo';
+
+  Button1:=TDemoButton.Create(Doc);
+  Button1.Parent:=Doc.Root;
+
+  Doc.Style:=LinesToStr([
+  ':root { top: 4px; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Root.Top','4px',Doc.Root.Top);
+  AssertEquals('Button1.Top','',Button1.Top);
+end;
+
+procedure TTestCSSResolver.Test_Selector_Empty;
+var
+  Div1, Div11, Div2: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=TDemoButton.Create(Doc);
+  Div1.Parent:=Doc.Root;
+
+  Div11:=TDemoButton.Create(Doc);
+  Div11.Parent:=Div1;
+
+  Div2:=TDemoButton.Create(Doc);
+  Div2.Parent:=Doc.Root;
+
+  Doc.Style:=LinesToStr([
+  ':empty { left: 1px; }',
+  'div:empty { top: 2px; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Root.Left','',Doc.Root.Left);
+  AssertEquals('Root.Top','',Doc.Root.Top);
+  AssertEquals('Div1.Left','x',Div1.Left);
+  AssertEquals('Div1.Top','',Div1.Top);
+  AssertEquals('Div11.Left','1px',Div1.Left);
+  AssertEquals('Div11.Top','2px',Div1.Top);
+  AssertEquals('Div2.Left','1px',Div1.Left);
+  AssertEquals('Div2.Top','',Div1.Top);
+end;
+
+procedure TTestCSSResolver.Test_Selector_FirstChild;
+var
+  Div1, Div11, Div12, Div2: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=TDemoButton.Create(Doc);
+  Div1.Parent:=Doc.Root;
+
+  Div11:=TDemoButton.Create(Doc);
+  Div11.Parent:=Div1;
+
+  Div12:=TDemoButton.Create(Doc);
+  Div12.Parent:=Div1;
+
+  Div2:=TDemoButton.Create(Doc);
+  Div2.Parent:=Doc.Root;
+
+  Doc.Style:=LinesToStr([
+  ':first-child { left: 1px; }',
+  'div:first-child { top: 2px; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Root.Left','1px',Doc.Root.Left);
+  AssertEquals('Root.Top','',Doc.Root.Top);
+  AssertEquals('Div1.Left','1px',Div1.Left);
+  AssertEquals('Div1.Top','',Div1.Top);
+  AssertEquals('Div11.Left','1px',Div1.Left);
+  AssertEquals('Div11.Top','2px',Div1.Top);
+  AssertEquals('Div12.Left','',Div1.Left);
+  AssertEquals('Div12.Top','',Div1.Top);
+  AssertEquals('Div2.Left','',Div1.Left);
+  AssertEquals('Div2.Top','',Div1.Top);
+end;
+
+procedure TTestCSSResolver.Test_Selector_LastChild;
+var
+  Div1, Div11, Div12, Div2: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=TDemoButton.Create(Doc);
+  Div1.Parent:=Doc.Root;
+
+  Div11:=TDemoButton.Create(Doc);
+  Div11.Parent:=Div1;
+
+  Div12:=TDemoButton.Create(Doc);
+  Div12.Parent:=Div1;
+
+  Div2:=TDemoButton.Create(Doc);
+  Div2.Parent:=Doc.Root;
+
+  Doc.Style:=LinesToStr([
+  ':last-child { left: 6px; }',
+  'div:last-child { top: 7px; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Root.Left','6px',Doc.Root.Left);
+  AssertEquals('Root.Top','',Doc.Root.Top);
+  AssertEquals('Div1.Left','',Div1.Left);
+  AssertEquals('Div1.Top','',Div1.Top);
+  AssertEquals('Div11.Left','',Div1.Left);
+  AssertEquals('Div11.Top','',Div1.Top);
+  AssertEquals('Div12.Left','6px',Div1.Left);
+  AssertEquals('Div12.Top','7px',Div1.Top);
+  AssertEquals('Div2.Left','6px',Div1.Left);
+  AssertEquals('Div2.Top','',Div1.Top);
+end;
+
 { TDemoDiv }
 
 class function TDemoDiv.CSSTypeName: TCSSString;
@@ -945,6 +1090,17 @@ begin
     Result:=Parent.FNodes.IndexOf(Self);
 end;
 
+function TDemoNode.GetCSSNextSibling: TCSSNode;
+var
+  i: Integer;
+begin
+  i:=GetCSSIndex;
+  if i>=NodeCount then
+    Result:=nil
+  else
+    Result:=Parent.Nodes[i+1];
+end;
+
 function TDemoNode.GetCSSPreviousSibling: TCSSNode;
 var
   i: Integer;
@@ -954,6 +1110,16 @@ begin
     Result:=nil
   else
     Result:=Parent.Nodes[i-1];
+end;
+
+function TDemoNode.GetCSSChildCount: integer;
+begin
+  Result:=NodeCount;
+end;
+
+function TDemoNode.GetCSSChild(const anIndex: integer): TCSSNode;
+begin
+  Result:=Nodes[anIndex];
 end;
 
 function TDemoNode.HasCSSAttribute(const AttrID: TCSSNumericalID): boolean;
@@ -969,6 +1135,18 @@ begin
     exit('');
   Attr:=TDemoNodeAttribute(AttrID-DemoAttrIDBase);
   Result:=Attribute[Attr];
+end;
+
+function TDemoNode.HasCSSPseudoAttribute(const AttrID: TCSSNumericalID
+  ): boolean;
+begin
+  Result:=false;
+end;
+
+function TDemoNode.GetCSSPseudoAttribute(const AttrID: TCSSNumericalID
+  ): TCSSString;
+begin
+  Result:='';
 end;
 
 function TDemoNode.GetCSSTypeName: TCSSString;

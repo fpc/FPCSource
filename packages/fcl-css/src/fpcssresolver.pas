@@ -45,6 +45,11 @@ const
   CSSTypeID_Universal = 1; // id of type '*'
   CSSAttributeID_ID = 1; // id of attribute key 'id'
   CSSAttributeID_All = 2; // id of attribute key 'all'
+  // pseudo attribute IDs
+  CSSPseudoID_Root = 1; // :root
+  CSSPseudoID_Empty = 2; // :empty
+  CSSPseudoID_FirstChild = 3; // :first-child
+  CSSPseudoID_LastChild = 4; // :last-child
 
 type
   TCSSMsgID = int64;
@@ -72,9 +77,14 @@ type
     function HasCSSClass(const aClassName: TCSSString): boolean;
     function GetCSSParent: TCSSNode;
     function GetCSSIndex: integer; // node index in parent's children
+    function GetCSSNextSibling: TCSSNode;
     function GetCSSPreviousSibling: TCSSNode;
+    function GetCSSChildCount: integer;
+    function GetCSSChild(const anIndex: integer): TCSSNode;
     function HasCSSAttribute(const AttrID: TCSSNumericalID): boolean;
     function GetCSSAttribute(const AttrID: TCSSNumericalID): TCSSString;
+    function HasCSSPseudoAttribute(const AttrID: TCSSNumericalID): boolean;
+    function GetCSSPseudoAttribute(const AttrID: TCSSNumericalID): TCSSString;
     procedure SetCSSValue(AttrID: TCSSNumericalID; Value: TCSSElement);
   end;
 
@@ -176,6 +186,7 @@ type
     function SelectorMatches(aSelector: TCSSElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
     function SelectorIdentifierMatches(Identifier: TCSSIdentifierElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
     function SelectorClassNameMatches(aClassName: TCSSClassNameElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
+    function SelectorPseudoClassMatches(aPseudoClass: TCSSPseudoClassElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
     function SelectorStringMatches(aString: TCSSStringElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
     function SelectorListMatches(aList: TCSSListElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
     function SelectorBinaryMatches(aBinary: TCSSBinaryElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
@@ -335,6 +346,8 @@ begin
     Result:=SelectorIdentifierMatches(TCSSIdentifierElement(aSelector),TestNode)
   else if C=TCSSClassNameElement then
     Result:=SelectorClassNameMatches(TCSSClassNameElement(aSelector),TestNode)
+  else if C=TCSSPseudoClassElement then
+    Result:=SelectorPseudoClassMatches(TCSSPseudoClassElement(aSelector),TestNode)
   else if C=TCSSStringElement then
     Result:=SelectorStringMatches(TCSSStringElement(aSelector),TestNode)
   else if C=TCSSBinaryElement then
@@ -376,6 +389,35 @@ begin
     Result:=CSSSpecifityClass
   else
     Result:=-1;
+end;
+
+function TCSSResolver.SelectorPseudoClassMatches(
+  aPseudoClass: TCSSPseudoClassElement; const TestNode: TCSSNode
+  ): TCSSSpecifity;
+var
+  PseudoID: TCSSNumericalID;
+begin
+  Result:=-1;
+  PseudoID:=ResolveIdentifier(aPseudoClass,nikPseudoAttribute);
+  case PseudoID of
+  CSSIDNone:
+    if roErrorOnUnknownName in Options then
+      DoError(20220911205605,'Unknown CSS selector pseudo attribute name "'+aPseudoClass.Name+'"',aPseudoClass);
+  CSSPseudoID_Root:
+    if TestNode.GetCSSParent=nil then
+      Result:=CSSSpecifityClass;
+  CSSPseudoID_Empty:
+    if TestNode.GetCSSChildCount=0 then
+      Result:=CSSSpecifityClass;
+  CSSPseudoID_FirstChild:
+    if TestNode.GetCSSPreviousSibling=nil then
+      Result:=CSSSpecifityClass;
+  CSSPseudoID_LastChild:
+    if TestNode.GetCSSNextSibling=nil then
+      Result:=CSSSpecifityClass;
+  else
+    TestNode.GetCSSPseudoAttribute(PseudoID);
+  end;
 end;
 
 function TCSSResolver.SelectorStringMatches(aString: TCSSStringElement;
@@ -723,6 +765,13 @@ begin
       case aName of
       'id': Result:=CSSAttributeID_ID;
       'all': Result:=CSSAttributeID_All;
+      end;
+    nikPseudoAttribute:
+      case aName of
+      ':root': Result:=CSSPseudoID_Root;
+      ':empty': Result:=CSSPseudoID_Empty;
+      ':first-child': Result:=CSSPseudoID_FirstChild;
+      ':last-child': Result:=CSSPseudoID_LastChild;
       end;
     end;
 

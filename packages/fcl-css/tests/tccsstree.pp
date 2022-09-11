@@ -455,27 +455,20 @@ begin
 end;
 
 procedure TCSSTreeAsStringTest.TestRULESelector;
-
-Var
-  aIdent : TCSSIdentifierElement;
-
 begin
   CreateElement(TCSSRuleElement);
   CreateDeclaration('a','b',amChild);
-  aIdent:=CreateIdentifier('c',amSelector);
+  CreateIdentifier('c',amSelector);
   AssertEquals('Value','c { a : b; }',Element.AsString);
   AssertEquals('Value','c {'+sLineBreak+'  a : b;'+sLineBreak+'}',Element.AsFormattedString);
 end;
 
 procedure TCSSTreeAsStringTest.TestRULE2Selectors;
-Var
-  aIdent : TCSSIdentifierElement;
-
 begin
   CreateElement(TCSSRuleElement);
   CreateDeclaration('a','b',amChild);
-  aIdent:=CreateIdentifier('c',amSelector);
-  aIdent:=CreateIdentifier('d',amSelector);
+  CreateIdentifier('c',amSelector);
+  CreateIdentifier('d',amSelector);
   AssertEquals('Value','c, d { a : b; }',Element.AsString);
   AssertEquals('Value','c,'+sLineBreak+'d {'+sLineBreak+'  a : b;'+sLineBreak+'}',Element.AsFormattedString);
 end;
