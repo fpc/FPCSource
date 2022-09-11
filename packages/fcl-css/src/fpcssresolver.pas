@@ -35,6 +35,9 @@ uses
   Classes, SysUtils, Contnrs, StrUtils, fpCSSTree;
 
 const
+  CSSSpecifityInvalid = -2;
+  CSSSpecifityNoMatch = -1;
+  CSSSpecifityUniversal = 0;
   CSSSpecifityType = 1;
   CSSSpecifityClass = 10; // includes attribute selectors e.g. [href]
   CSSSpecifityIdentifier = 100;
@@ -153,7 +156,7 @@ type
   end;
 
   TCSSResolverOption = (
-    roErrorOnUnknownName
+    croErrorOnUnknownName
     );
   TCSSResolverOptions = set of TCSSResolverOption;
 
@@ -346,7 +349,7 @@ function TCSSResolver.SelectorMatches(aSelector: TCSSElement;
 var
   C: TClass;
 begin
-  Result:=-1;
+  Result:=CSSSpecifityInvalid;
   C:=aSelector.ClassType;
   if C=TCSSIdentifierElement then
     Result:=SelectorIdentifierMatches(TCSSIdentifierElement(aSelector),TestNode)
@@ -371,18 +374,22 @@ function TCSSResolver.SelectorIdentifierMatches(
 var
   TypeID: TCSSNumericalID;
 begin
-  Result:=-1;
+  Result:=CSSSpecifityNoMatch;
   TypeID:=ResolveIdentifier(Identifier,nikType);
   if TypeID=CSSTypeID_Universal then
   begin
     // universal selector
-    Result:=0;
-  end else if TypeID<>CSSIDNone then
+    Result:=CSSSpecifityUniversal;
+  end else if TypeID=CSSIDNone then
+  begin
+    if croErrorOnUnknownName in Options then
+      DoError(20220911230224,'Unknown CSS selector type name "'+Identifier.Name+'"',Identifier);
+    Result:=CSSSpecifityInvalid;
+  end else
   begin
     if TypeID=TestNode.GetCSSTypeID then
       Result:=CSSSpecifityType;
-  end else
-    DoError(20220908230426,'Unknown CSS selector type name "'+Identifier.Name+'"',Identifier);
+  end;
 end;
 
 function TCSSResolver.SelectorClassNameMatches(
@@ -394,7 +401,7 @@ begin
   if TestNode.HasCSSClass(aValue) then
     Result:=CSSSpecifityClass
   else
-    Result:=-1;
+    Result:=CSSSpecifityNoMatch;
 end;
 
 function TCSSResolver.SelectorPseudoClassMatches(
@@ -403,11 +410,11 @@ function TCSSResolver.SelectorPseudoClassMatches(
 var
   PseudoID: TCSSNumericalID;
 begin
-  Result:=-1;
+  Result:=CSSSpecifityNoMatch;
   PseudoID:=ResolveIdentifier(aPseudoClass,nikPseudoAttribute);
   case PseudoID of
   CSSIDNone:
-    if roErrorOnUnknownName in Options then
+    if croErrorOnUnknownName in Options then
       DoError(20220911205605,'Unknown CSS selector pseudo attribute name "'+aPseudoClass.Name+'"',aPseudoClass);
   CSSPseudoID_Root:
     if TestNode.GetCSSParent=nil then
@@ -436,16 +443,18 @@ begin
         and (TestNode.GetCSSPreviousOfType=nil) then
       Result:=CSSSpecifityClass;
   else
-    TestNode.GetCSSPseudoAttribute(PseudoID);
+    if TestNode.GetCSSPseudoAttribute(PseudoID)<>'' then
+      Result:=CSSSpecifityClass;
   end;
 end;
 
 function TCSSResolver.SelectorStringMatches(aString: TCSSStringElement;
   const TestNode: TCSSNode): TCSSSpecifity;
+// id selector #name
 var
   aValue: TCSSString;
 begin
-  Result:=-1;
+  Result:=CSSSpecifityNoMatch;
   if aString.Children.Count>0 then
     DoError(20220910113909,'Invalid CSS string selector',aString.Children[0]);
   aValue:=aString.Value;
@@ -463,7 +472,7 @@ function TCSSResolver.SelectorListMatches(aList: TCSSListElement;
 var
   i: Integer;
 begin
-  Result:=-1;
+  Result:=CSSSpecifityInvalid;
   writeln('TCSSResolver.SelectorListMatches ChildCount=',aList.ChildCount);
   for i:=0 to aList.ChildCount-1 do
     writeln('TCSSResolver.SelectorListMatches ',i,' ',GetCSSObj(aList.Children[i]),' AsString=',aList.Children[i].AsString);
@@ -476,7 +485,7 @@ var
   aParent, Sibling: TCSSNode;
   aSpecifity: TCSSSpecifity;
 begin
-  Result:=-1;
+  Result:=CSSSpecifityInvalid;
   case aBinary.Operation of
   boGT:
     begin
@@ -485,10 +494,10 @@ begin
       if Result<0 then exit;
       aParent:=TestNode.GetCSSParent;
       if aParent=nil then
-        exit(-1);
+        exit(CSSSpecifityNoMatch);
       aSpecifity:=SelectorMatches(aBinary.Left,aParent);
       if aSpecifity<0 then
-        exit(-1);
+        exit(aSpecifity);
       inc(Result,aSpecifity);
     end;
   boPlus:
@@ -498,10 +507,10 @@ begin
       if Result<0 then exit;
       Sibling:=TestNode.GetCSSPreviousSibling;
       if Sibling=nil then
-        exit(-1);
+        exit(CSSSpecifityNoMatch);
       aSpecifity:=SelectorMatches(aBinary.Left,Sibling);
       if aSpecifity<0 then
-        exit(-1);
+        exit(aSpecifity);
       inc(Result,aSpecifity);
     end;
   boTilde:
@@ -513,17 +522,20 @@ begin
       while Sibling<>nil do
       begin
         aSpecifity:=SelectorMatches(aBinary.Left,Sibling);
-        if aSpecifity>=0 then
+        if aSpecifity=CSSSpecifityInvalid then
+          exit(aSpecifity)
+        else if aSpecifity>=0 then
         begin
           inc(Result,aSpecifity);
           exit;
         end;
         Sibling:=Sibling.GetCSSPreviousSibling;
       end;
-      Result:=-1;
+      Result:=CSSSpecifityNoMatch;
     end;
   else
-    DoError(20220910123724,'Invalid CSS binary selector '+BinaryOperators[aBinary.Operation],aBinary);
+    if croErrorOnUnknownName in Options then
+      DoError(20220910123724,'Invalid CSS binary selector '+BinaryOperators[aBinary.Operation],aBinary);
   end;
 end;
 
@@ -533,15 +545,20 @@ var
   El: TCSSElement;
   C: TClass;
   AttrID: TCSSNumericalID;
+  {$IFDEF VerboseCSSResolver}
+  i: integer;
+  {$ENDIF}
 begin
-  Result:=-1;
+  Result:=CSSSpecifityInvalid;
   if anArray.Prefix<>nil then
     DoError(20220910154004,'Invalid CSS array selector prefix',anArray.Prefix);
+  {$IFDEF VerboseCSSResolver}
+  writeln('TCSSResolver.SelectorArrayMatches Prefix=',GetCSSObj(anArray.Prefix),' ChildCount=',anArray.ChildCount);
+  for i:=0 to anArray.ChildCount-1 do
+    writeln('TCSSResolver.SelectorArrayMatches ',i,' ',GetCSSObj(anArray.Children[i]));
+  {$ENDIF}
   if anArray.ChildCount<>1 then
     DoError(20220910154033,'Invalid CSS array selector',anArray);
-  //writeln('TCSSResolver.SelectorArrayMatches Prefix=',GetCSSObj(anArray.Prefix),' ChildCount=',anArray.ChildCount);
-  //for i:=0 to anArray.ChildCount-1 do
-  //  writeln('TCSSResolver.SelectorArrayMatches ',i,' ',GetCSSObj(anArray.Children[i]));
   El:=anArray.Children[0];
   C:=El.ClassType;
   if C=TCSSIdentifierElement then
@@ -550,12 +567,14 @@ begin
     AttrID:=ResolveIdentifier(TCSSIdentifierElement(El),nikAttribute);
     case AttrID of
     CSSIDNone,
-    CSSAttributeID_All: ;
+    CSSAttributeID_All: Result:=CSSSpecifityNoMatch;
     CSSAttributeID_ID:
       Result:=CSSSpecifityClass;
     else
       if TestNode.HasCSSAttribute(AttrID) then
-        Result:=CSSSpecifityClass;
+        Result:=CSSSpecifityClass
+      else
+        Result:=CSSSpecifityNoMatch;
     end;
   end else if C=TCSSBinaryElement then
     Result:=SelectorArrayBinaryMatches(TCSSBinaryElement(El),TestNode)
@@ -571,15 +590,17 @@ var
   LeftValue, RightValue: TCSSString;
   C: TClass;
 begin
-  Result:=-1;
+  Result:=CSSSpecifityNoMatch;
   Left:=aBinary.Left;
   if Left.ClassType<>TCSSIdentifierElement then
     DoError(20220910164353,'Invalid CSS array selector, expected attribute',Left);
   AttrID:=ResolveIdentifier(TCSSIdentifierElement(Left),nikAttribute);
+  {$IFDEF VerboseCSSResolver}
   writeln('TCSSResolver.SelectorArrayBinaryMatches AttrID=',AttrID,' Value=',TCSSIdentifierElement(Left).Value);
+  {$ENDIF}
   case AttrID of
   CSSIDNone,
-  CSSAttributeID_All: exit;
+  CSSAttributeID_All: exit(CSSSpecifityNoMatch);
   CSSAttributeID_ID:
     LeftValue:=TestNode.GetCSSID;
   else
@@ -595,23 +616,25 @@ begin
     DoError(20220910164921,'Invalid CSS array selector, expected string',Right);
   RightValue:=ComputeValue(Right);
 
+  {$IFDEF VerboseCSSResolver}
   writeln('TCSSResolver.SelectorArrayBinaryMatches Left="',LeftValue,'" Right="',RightValue,'" Op=',aBinary.Operation);
+  {$ENDIF}
   case aBinary.Operation of
   boEquals:
-    if AnsiCompareStr(LeftValue,RightValue)=0 then
+    if LeftValue=RightValue then
       Result:=CSSSpecifityClass;
   boSquaredEqual:
     // begins with
-    if AnsiCompareStr(LeftStr(LeftValue,length(RightValue)),RightValue)=0 then
+    if LeftStr(LeftValue,length(RightValue))=RightValue then
       Result:=CSSSpecifityClass;
   boDollarEqual:
     // ends with
-    if AnsiCompareStr(RightStr(LeftValue,length(RightValue)),RightValue)=0 then
+    if RightStr(LeftValue,length(RightValue))=RightValue then
       Result:=CSSSpecifityClass;
   boPipeEqual:
     // equal to or starts with name-hyphen
-    if (AnsiCompareStr(LeftValue,RightValue)=0)
-        or (AnsiCompareStr(LeftStr(LeftValue,length(RightValue)+1),RightValue+'-')=0) then
+    if (LeftValue=RightValue)
+        or (LeftStr(LeftValue,length(RightValue)+1)=RightValue+'-') then
       Result:=CSSSpecifityClass;
   boStarEqual:
     // contains substring
@@ -622,9 +645,13 @@ begin
     if PosWord(RightValue,LeftValue)>0 then
       Result:=CSSSpecifityClass;
   else
-    DoError(20220910164356,'Invalid CSS array selector operator',aBinary);
+    if croErrorOnUnknownName in Options then
+      DoError(20220910164356,'Invalid CSS array selector operator',aBinary);
+    Result:=CSSSpecifityInvalid;
   end;
+  {$IFDEF VerboseCSSResolver}
   writeln('TCSSResolver.SelectorArrayBinaryMatches Result=',Result);
+  {$ENDIF}
 end;
 
 function TCSSResolver.ComputeValue(El: TCSSElement): TCSSString;
@@ -787,6 +814,8 @@ begin
       'all': Result:=CSSAttributeID_All;
       end;
     nikPseudoAttribute:
+      begin
+      aName:=lowercase(aName); // pseudo attributes are ASCII case insensitive
       case aName of
       ':root': Result:=CSSPseudoID_Root;
       ':empty': Result:=CSSPseudoID_Empty;
@@ -797,6 +826,7 @@ begin
       ':last-of-type': Result:=CSSPseudoID_LastOfType;
       ':only-of-type': Result:=CSSPseudoID_OnlyOfType;
       end;
+      end;
     end;
 
     // resolve user defined names
@@ -805,7 +835,7 @@ begin
 
     if Result=CSSIDNone then
     begin
-      if roErrorOnUnknownName in FOptions then
+      if croErrorOnUnknownName in FOptions then
         DoError(20220908235919,'TCSSResolver.ResolveTypeIdentifier unknown '+CSSNumericalIDKindNames[Kind]+' "'+El.Name+'"',El);
     end;
     IdentData:=TCSSIdentifierData.Create;

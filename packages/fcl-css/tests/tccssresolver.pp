@@ -200,6 +200,7 @@ type
   published
     procedure Test_Selector_Universal;
     procedure Test_Selector_Type;
+    // Test list spaces "div, button ,span {}"
     procedure Test_Selector_Id;
     procedure Test_Selector_Class;
     procedure Test_Selector_ClassClass; // ToDo and combinator
@@ -210,6 +211,8 @@ type
     procedure Test_Selector_TypeTildeType; // general sibling combinator
     procedure Test_Selector_HasAttribute;
     procedure Test_Selector_AttributeEquals;
+    // ToDo: procedure Test_Selector_AttributeEqualsI;
+    // ToDo: procedure Test_Selector_AttributeEqualsS;
     procedure Test_Selector_AttributeBeginsWith;
     procedure Test_Selector_AttributeEndsWith;
     procedure Test_Selector_AttributeBeginsWithHyphen;
@@ -240,6 +243,11 @@ type
     // ToDo: inline style
 
     // ToDo: specifity
+
+    // pseudo elements
+
+    // ToDo: invalid token in selector makes selector invalid
+
   end;
 
 function LinesToStr(const Args: array of const): string;
@@ -599,16 +607,19 @@ begin
   '[left~=Two] { width: 5px; }',
   '[left~=Three] { height: 6px; }',
   '[left~="Four Five"] { color: #123; }',
+  '[left~=our] { display: none; }',
   '']);
   Doc.ApplyStyle;
   AssertEquals('Root.Top','4px',Doc.Root.Top);
   AssertEquals('Root.Width','5px',Doc.Root.Width);
   AssertEquals('Root.Height','6px',Doc.Root.Height);
   AssertEquals('Root.Color','',Doc.Root.Color);
+  AssertEquals('Root.Display','',Doc.Root.Display);
   AssertEquals('Button1.Top','',Button1.Top);
   AssertEquals('Button1.Width','',Button1.Width);
   AssertEquals('Button1.Height','',Button1.Height);
   AssertEquals('Button1.Color','#123',Button1.Color);
+  AssertEquals('Button1.Display','',Button1.Display);
 end;
 
 procedure TTestCSSResolver.Test_Selector_AttributeContainsSubstring;
@@ -644,7 +655,7 @@ begin
   Button1.Parent:=Doc.Root;
 
   Doc.Style:=LinesToStr([
-  ':root { top: 4px; }',
+  ':roOt { top: 4px; }',
   '']);
   Doc.ApplyStyle;
   AssertEquals('Root.Top','4px',Doc.Root.Top);
@@ -667,8 +678,8 @@ begin
   Div2.Parent:=Doc.Root;
 
   Doc.Style:=LinesToStr([
-  ':empty { left: 1px; }',
-  'div:empty { top: 2px; }',
+  ':eMpty { left: 1px; }',
+  'div:emPty { top: 2px; }',
   '']);
   Doc.ApplyStyle;
   AssertEquals('Root.Left','',Doc.Root.Left);
