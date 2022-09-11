@@ -50,6 +50,10 @@ const
   CSSPseudoID_Empty = 2; // :empty
   CSSPseudoID_FirstChild = 3; // :first-child
   CSSPseudoID_LastChild = 4; // :last-child
+  CSSPseudoID_OnlyChild = 5; // :only-child
+  CSSPseudoID_FirstOfType = 6; // :first-of-type
+  CSSPseudoID_LastOfType = 7; // :last-of-type
+  CSSPseudoID_OnlyOfType = 8; // :only-of-type
 
 type
   TCSSMsgID = int64;
@@ -81,6 +85,8 @@ type
     function GetCSSPreviousSibling: TCSSNode;
     function GetCSSChildCount: integer;
     function GetCSSChild(const anIndex: integer): TCSSNode;
+    function GetCSSNextOfType: TCSSNode;
+    function GetCSSPreviousOfType: TCSSNode;
     function HasCSSAttribute(const AttrID: TCSSNumericalID): boolean;
     function GetCSSAttribute(const AttrID: TCSSNumericalID): TCSSString;
     function HasCSSPseudoAttribute(const AttrID: TCSSNumericalID): boolean;
@@ -414,6 +420,20 @@ begin
       Result:=CSSSpecifityClass;
   CSSPseudoID_LastChild:
     if TestNode.GetCSSNextSibling=nil then
+      Result:=CSSSpecifityClass;
+  CSSPseudoID_OnlyChild:
+    if (TestNode.GetCSSNextSibling=nil)
+        and (TestNode.GetCSSPreviousSibling=nil) then
+      Result:=CSSSpecifityClass;
+  CSSPseudoID_FirstOfType:
+    if TestNode.GetCSSPreviousOfType=nil then
+      Result:=CSSSpecifityClass;
+  CSSPseudoID_LastOfType:
+    if TestNode.GetCSSNextOfType=nil then
+      Result:=CSSSpecifityClass;
+  CSSPseudoID_OnlyOfType:
+    if (TestNode.GetCSSNextOfType=nil)
+        and (TestNode.GetCSSPreviousOfType=nil) then
       Result:=CSSSpecifityClass;
   else
     TestNode.GetCSSPseudoAttribute(PseudoID);
@@ -772,6 +792,10 @@ begin
       ':empty': Result:=CSSPseudoID_Empty;
       ':first-child': Result:=CSSPseudoID_FirstChild;
       ':last-child': Result:=CSSPseudoID_LastChild;
+      ':only-child': Result:=CSSPseudoID_OnlyChild;
+      ':first-of-type': Result:=CSSPseudoID_FirstOfType;
+      ':last-of-type': Result:=CSSPseudoID_LastOfType;
+      ':only-of-type': Result:=CSSPseudoID_OnlyOfType;
       end;
     end;
 
