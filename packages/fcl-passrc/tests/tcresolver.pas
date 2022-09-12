@@ -841,6 +841,7 @@ type
     Procedure TestArray_DynArrayChar;
     Procedure TestArray_CopyConcat;
     Procedure TestStaticArray_CopyConcat;// ToDo
+    Procedure TestRecordArray_CopyConcat;
     Procedure TestArray_CopyMismatchFail;
     Procedure TestArray_InsertDeleteAccess;
     Procedure TestArray_InsertArray;
@@ -15448,6 +15449,33 @@ begin
   '  A:=Copy(S,2,3);',
   '  A:=Copy(Get(S),2,3);',
   '  A:=Concat(S,Get(S));']);
+  ParseProgram;
+end;
+
+procedure TTestResolver.TestRecordArray_CopyConcat;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch arrayoperators}',
+  'type',
+  '  TRec = record w: word; end;',
+  '  TDynRec = array of TRec;',
+  'var',
+  '  r: TRec;',
+  '  A: TDynRec;',
+  '  B: TDynRec;',
+  '  C: array of TRec;',
+  'begin',
+  '  A:=A+[r];',
+  '  A:=Concat(A,[r]);',
+  '  A:=Concat(B,[r]);',
+  '  A:=Concat(C,[r]);',
+  '  C:=Concat(A,[r]);',
+  '  A:=Copy(B,1);',
+  '  A:=Copy(B,2,3);',
+  '  A:=Copy(C,4);',
+  '  A:=Copy(C,5,6);',
+  '']);
   ParseProgram;
 end;
 

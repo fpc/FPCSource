@@ -18935,6 +18935,8 @@ function TPasToJSConverter.CreateArrayConcat(
 var
   Call: TJSCallExpression;
   Func: TPas2JSBuiltInName;
+  TypeEl: TPasType;
+  ArrayType: TPasArrayType;
 begin
   Result:=nil;
   Call:=CreateCallExpression(PosEl);
@@ -18948,11 +18950,27 @@ begin
       Func:=pbifnArray_Concat;
     if ElTypeResolved.BaseType=btContext then
       begin
-      if ElTypeResolved.LoTypeEl.ClassType=TPasRecordType then
+      TypeEl:=ElTypeResolved.LoTypeEl;
+      if TypeEl.ClassType=TPasArrayType then
+        begin
+        ArrayType:=TPasArrayType(TypeEl);
+        if length(ArrayType.Ranges)>0 then
+          begin
+          // static array
+          Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(Func)]);
+          if AContext.Resolver.HasStaticArrayCloneFunc(ArrayType) then
+            // static array with $clone: rtl.arrayConcat(TArrayOfStaticRec$clone,array1,array2,...)
+            Call.AddArg(CreatePrimitiveDotExpr(CreateReferencePath(TypeEl,AContext,rpkPathAndName)+GetBIName(pbifnArray_Static_Clone),PosEl))
+          else
+            // static array of simple type: rtl.arrayConcat("slice",array1,array2,...)
+            Call.AddArg(CreateLiteralString(PosEl,'slice'));
+          end;
+        end
+      else if TypeEl.ClassType=TPasRecordType then
         begin
         // record: rtl.arrayConcat(RecordType,array1,array2,...)
         Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(Func)]);
-        Call.AddArg(CreateReferencePathExpr(ElTypeResolved.LoTypeEl,AContext));
+        Call.AddArg(CreateReferencePathExpr(TypeEl,AContext));
         end;
       end
     else if ElTypeResolved.BaseType=btSet then
@@ -23261,7 +23279,8 @@ begin
             Call.AddArg(ConvertExpression(FirstParam,ParentContext));
             for i:=0 to length(SubParams.Params)-1 do
               begin
-              JS:=CreateArrayEl(SubParams.Params[i],ParentContext);
+              JS:=ConvertExpression(SubParams.Params[i],ParentContext);
+              //JS:=CreateArrayEl(SubParams.Params[i],ParentContext);
               Call.AddArg(JS);
               end;
             Result:=Call;
@@ -23315,7 +23334,8 @@ begin
       Call.AddArg(ConvertExpression(BinLeft,ParentContext));
       for i:=0 to length(SubParams.Params)-1 do
         begin
-        JS:=CreateArrayEl(SubParams.Params[i],ParentContext);
+        JS:=ConvertExpression(SubParams.Params[i],ParentContext);
+        //JS:=CreateArrayEl(SubParams.Params[i],ParentContext);
         Call.AddArg(JS);
         end;
       Result:=Call;
