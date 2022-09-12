@@ -99,10 +99,12 @@ type
     function GetCSSChild(const anIndex: integer): TCSSNode; virtual;
     function GetCSSNextOfType: TCSSNode; virtual;
     function GetCSSPreviousOfType: TCSSNode; virtual;
+    function GetCSSAttributeClass: TCSSString; virtual;
     function HasCSSAttribute(const AttrID: TCSSNumericalID): boolean; virtual;
     function GetCSSAttribute(const AttrID: TCSSNumericalID): TCSSString; virtual;
     function HasCSSPseudoAttribute(const AttrID: TCSSNumericalID): boolean; virtual;
     function GetCSSPseudoAttribute(const AttrID: TCSSNumericalID): TCSSString; virtual;
+    function GetCSSEmpty: boolean; virtual;
     property Parent: TDemoNode read FParent write SetParent;
     property NodeCount: integer read GetNodeCount;
     property Nodes[Index: integer]: TDemoNode read GetNodes; default;
@@ -516,13 +518,16 @@ begin
   Button1:=TDemoButton.Create(Doc);
   Button1.Parent:=Doc.Root;
   Button1.Left:='3px';
+  Button1.Color:='maybe black';
 
   Doc.Style:=LinesToStr([
   '[left=2px] { top: 4px; }',
+  '[color="maybe black"] { width: 5px; }',
   '']);
   Doc.ApplyStyle;
   AssertEquals('Root.Top','4px',Doc.Root.Top);
   AssertEquals('Button1.Top','',Button1.Top);
+  AssertEquals('Button1.Width','5px',Button1.Width);
 end;
 
 procedure TTestCSSResolver.Test_Selector_AttributeBeginsWith;
@@ -1322,6 +1327,12 @@ begin
   end;
 end;
 
+function TDemoNode.GetCSSAttributeClass: TCSSString;
+begin
+  FCSSClasses.Delimiter:=' ';
+  Result:=FCSSClasses.DelimitedText;
+end;
+
 function TDemoNode.HasCSSAttribute(const AttrID: TCSSNumericalID): boolean;
 begin
   Result:=(AttrID>=DemoAttrIDBase) and (AttrID<=DemoAttrIDBase+ord(High(TDemoNodeAttribute)));
@@ -1347,6 +1358,11 @@ function TDemoNode.GetCSSPseudoAttribute(const AttrID: TCSSNumericalID
   ): TCSSString;
 begin
   Result:='';
+end;
+
+function TDemoNode.GetCSSEmpty: boolean;
+begin
+  Result:=NodeCount=0;
 end;
 
 function TDemoNode.GetCSSTypeName: TCSSString;

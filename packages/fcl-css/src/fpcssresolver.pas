@@ -47,7 +47,8 @@ const
   CSSIDNone = 0;
   CSSTypeID_Universal = 1; // id of type '*'
   CSSAttributeID_ID = 1; // id of attribute key 'id'
-  CSSAttributeID_All = 2; // id of attribute key 'all'
+  CSSAttributeID_Class = 2; // id of attribute key 'class'
+  CSSAttributeID_All = 3; // id of attribute key 'all'
   // pseudo attribute IDs
   CSSPseudoID_Root = 1; // :root
   CSSPseudoID_Empty = 2; // :empty
@@ -82,6 +83,7 @@ type
     function GetCSSTypeName: TCSSString;
     function GetCSSTypeID: TCSSNumericalID;
     function HasCSSClass(const aClassName: TCSSString): boolean;
+    function GetCSSAttributeClass: TCSSString;
     function GetCSSParent: TCSSNode;
     function GetCSSIndex: integer; // node index in parent's children
     function GetCSSNextSibling: TCSSNode;
@@ -94,6 +96,7 @@ type
     function GetCSSAttribute(const AttrID: TCSSNumericalID): TCSSString;
     function HasCSSPseudoAttribute(const AttrID: TCSSNumericalID): boolean;
     function GetCSSPseudoAttribute(const AttrID: TCSSNumericalID): TCSSString;
+    function GetCSSEmpty: boolean;
     procedure SetCSSValue(AttrID: TCSSNumericalID; Value: TCSSElement);
   end;
 
@@ -418,7 +421,7 @@ begin
     if TestNode.GetCSSParent=nil then
       Result:=CSSSpecifityClass;
   CSSPseudoID_Empty:
-    if TestNode.GetCSSChildCount=0 then
+    if TestNode.GetCSSEmpty then
       Result:=CSSSpecifityClass;
   CSSPseudoID_FirstChild:
     if TestNode.GetCSSPreviousSibling=nil then
@@ -564,10 +567,15 @@ begin
     // [name]  ->  has attribute name
     AttrID:=ResolveIdentifier(TCSSIdentifierElement(El),nikAttribute);
     case AttrID of
-    CSSIDNone,
-    CSSAttributeID_All: Result:=CSSSpecifityNoMatch;
-    CSSAttributeID_ID:
+    CSSIDNone:
+      Result:=CSSSpecifityNoMatch;
+    CSSAttributeID_ID,
+    CSSAttributeID_Class:
+      // basic CSS attributes are always defined
       Result:=CSSSpecifityClass;
+    CSSAttributeID_All:
+      // special CSS attributes without a value
+      Result:=CSSSpecifityNoMatch;
     else
       if TestNode.HasCSSAttribute(AttrID) then
         Result:=CSSSpecifityClass
@@ -597,10 +605,12 @@ begin
   writeln('TCSSResolver.SelectorArrayBinaryMatches AttrID=',AttrID,' Value=',TCSSIdentifierElement(Left).Value);
   {$ENDIF}
   case AttrID of
-  CSSIDNone,
-  CSSAttributeID_All: exit(CSSSpecifityNoMatch);
+  CSSIDNone: exit(CSSSpecifityNoMatch);
   CSSAttributeID_ID:
     LeftValue:=TestNode.GetCSSID;
+  CSSAttributeID_Class:
+    LeftValue:=TestNode.GetCSSAttributeClass;
+  CSSAttributeID_All: exit(CSSSpecifityNoMatch);
   else
     LeftValue:=TestNode.GetCSSAttribute(AttrID);
   end;
@@ -623,20 +633,21 @@ begin
       Result:=CSSSpecifityClass;
   boSquaredEqual:
     // begins with
-    if LeftStr(LeftValue,length(RightValue))=RightValue then
+    if (RightValue<>'') and (LeftStr(LeftValue,length(RightValue))=RightValue) then
       Result:=CSSSpecifityClass;
   boDollarEqual:
     // ends with
-    if RightStr(LeftValue,length(RightValue))=RightValue then
+    if (RightValue<>'') and (RightStr(LeftValue,length(RightValue))=RightValue) then
       Result:=CSSSpecifityClass;
   boPipeEqual:
     // equal to or starts with name-hyphen
-    if (LeftValue=RightValue)
-        or (LeftStr(LeftValue,length(RightValue)+1)=RightValue+'-') then
+    if (RightValue<>'')
+        and ((LeftValue=RightValue)
+          or (LeftStr(LeftValue,length(RightValue)+1)=RightValue+'-')) then
       Result:=CSSSpecifityClass;
   boStarEqual:
     // contains substring
-    if Pos(RightValue,LeftValue)>0 then
+    if (RightValue<>'') and (Pos(RightValue,LeftValue)>0) then
       Result:=CSSSpecifityClass;
   boTileEqual:
     // contains word
@@ -799,6 +810,7 @@ begin
     nikAttribute:
       case aName of
       'id': Result:=CSSAttributeID_ID;
+      'class': Result:=CSSAttributeID_Class;
       'all': Result:=CSSAttributeID_All;
       end;
     nikPseudoAttribute:
