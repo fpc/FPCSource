@@ -15,7 +15,9 @@
 unit webidlparser;
 
 {$mode objfpc}{$H+}
+{$IF FPC_FULLVERSION>=30301}
 {$WARN 6060 off : }
+{$ENDIF}
 interface
 
 uses
