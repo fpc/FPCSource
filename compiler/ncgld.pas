@@ -551,6 +551,10 @@ implementation
                     not tabstractprocdef(resultdef).is_addressonly then
                    begin
                      location_reset(location,LOC_CREGISTER,int_cgsize(voidpointertype.size*2));
+{$ifdef CPU16BITADDR}
+                     { cpus with 16 bit address registers don't use registerhi here, so allocate already here a register for all purposes }
+                     location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,s32inttype);
+{$endif CPU16BITADDR}
                      secondpass(left);
 
                      { load class instance/classrefdef address }
@@ -568,7 +572,11 @@ implementation
                              { this is not possible for objects }
                              if is_object(left.resultdef) then
                                internalerror(200304234);
+{$ifdef CPU16BITADDR}
+                             hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location.register,cg.GetNextReg(cg.GetNextReg(location.register)));
+{$else CPU16BITADDR}
                              location.registerhi:=left.location.register;
+{$endif CPU16BITADDR}
                              vd:=left.resultdef;
                           end;
                         LOC_CREFERENCE,
@@ -579,14 +587,22 @@ implementation
                                 is_nested_pd(procdef) then
                                begin
                                  vd:=left.resultdef;
+{$ifdef CPU16BITADDR}
+                                 hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location.reference,cg.GetNextReg(cg.GetNextReg(location.register)))
+{$else CPU16BITADDR}
                                  location.registerhi:=hlcg.getaddressregister(current_asmdata.CurrAsmList,left.resultdef);
                                  hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,left.location.reference,location.registerhi)
+{$endif CPU16BITADDR}
                                end
                              else
                                begin
                                  vd:=cpointerdef.getreusable(left.resultdef);
+{$ifdef CPU16BITADDR}
+                                 hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,vd,left.location.reference,cg.GetNextReg(cg.GetNextReg(location.register)));
+{$else CPU16BITADDR}
                                  location.registerhi:=hlcg.getaddressregister(current_asmdata.CurrAsmList,vd);
                                  hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,vd,left.location.reference,location.registerhi);
+{$endif CPU16BITADDR}
                                end;
                              location_freetemp(current_asmdata.CurrAsmList,left.location);
                           end;
@@ -616,13 +632,19 @@ implementation
                              hlcg.reference_reset_base(href,vd,location.registerhi,0,ctempposinvalid,vd.alignment,[]);
                              vmtdef:=cpointerdef.getreusable(tobjectdef(left.resultdef).vmt_def);
                              hlcg.g_set_addr_nonbitpacked_field_ref(current_asmdata.CurrAsmList,tobjectdef(left.resultdef),tfieldvarsym(tobjectdef(left.resultdef).vmt_field),href);
+                             { targets with 32 bit method pointers got already a register assigned }
+{$ifndef CPU16BITADDR}
                              hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,vmtdef);
+{$endif CPU16BITADDR}
                              hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,tfieldvarsym(tobjectdef(left.resultdef).vmt_field).vardef,vmtdef,href,hregister);
                            end
                          else if left.resultdef.typ=classrefdef then
                            begin
+                             { targets with 32 bit method pointers got already a register assigned }
+{$ifndef CPU16BITADDR}
                              { classrefdef is a pointer to the vmt already }
                              hregister:=location.registerhi;
+{$endif CPU16BITADDR}
                              vmtdef:=cpointerdef.getreusable(tobjectdef(tclassrefdef(left.resultdef).pointeddef).vmt_def);
                              hlcg.g_ptrtypecast_reg(current_asmdata.CurrAsmList,left.resultdef,vmtdef,hregister);
                            end
@@ -631,7 +653,10 @@ implementation
                              { an interface is a pointer to a pointer to a vmt }
                              hlcg.reference_reset_base(href,vd,location.registerhi,0,ctempposinvalid,vd.alignment,[]);
                              vmtdef:=cpointerdef.getreusable(tobjectdef(left.resultdef).vmt_def);
+                             { targets with 32 bit method pointers got already a register assigned }
+{$ifndef CPU16BITADDR}
                              hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,vmtdef);
+{$endif CPU16BITADDR}
                              hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,vmtdef,vmtdef,href,hregister);
                            end
                          else
@@ -640,7 +665,10 @@ implementation
                          vmtentry:=tabstractrecordsymtable(trecorddef(vmtdef.pointeddef).symtable).findfieldbyoffset(
                            tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber));
                          hlcg.reference_reset_base(href,vmtdef,hregister,0,ctempposinvalid,vmtdef.alignment,[]);
+                         { targets with 32 bit method pointers got already a register assigned }
+{$ifndef CPU16BITADDR}
                          location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,vmtentry.vardef);
+{$endif CPU16BITADDR}
                          hlcg.g_set_addr_nonbitpacked_field_ref(current_asmdata.CurrAsmList,tabstractrecorddef(vmtdef.pointeddef),vmtentry,href);
                          hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,vmtentry.vardef,vmtentry.vardef,href,location.register);
                        end
@@ -648,7 +676,10 @@ implementation
                        begin
                          { load address of the function }
                          reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION),0,procdef.address_type.alignment,[]);
+                         { targets with 32 bit method pointers got already a register assigned }
+{$ifndef CPU16BITADDR}
                          location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cprocvardef.getreusableprocaddr(procdef,pc_address_only));
+{$endif CPU16BITADDR}
                          hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,procdef,cprocvardef.getreusableprocaddr(procdef,pc_address_only),href,location.register);
                        end;
 
@@ -656,6 +687,10 @@ implementation
                        big endian targets }
                      if target_info.endian=endian_big then
                        begin
+                         { cpus with 16 bit address registers don't use registerhi here }
+{$ifdef CPU16BITADDR}
+                         Internalerror(2022091201);
+{$endif CPU16BITADDR}
                          hregister:=location.register;
                          location.register:=location.registerhi;
                          location.registerhi:=hregister;
