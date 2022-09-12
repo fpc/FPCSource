@@ -2146,8 +2146,7 @@ end;
 function TPas2jsCompiler.MarkNeedBuilding(aFile: TPas2jsCompilerFile;
   Checked: TPasAnalyzerKeySet; var SrcFileCount: integer): boolean;
 
-  procedure Mark(MsgNumber: integer;
-    Args: array of const);
+  procedure Mark(MsgNumber: integer; const Args: array of const);
   begin
     if aFile.NeedBuild then exit;
     aFile.NeedBuild:=true;
