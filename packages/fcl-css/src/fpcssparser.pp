@@ -319,8 +319,7 @@ Var
   aEl : TCSSElement;
   Terms : TCSSTokens;
 begin
-  Terms:=[ctkEOF];
-  Include(Terms,aStopOn);
+  Terms:=[ctkEOF,aStopOn];
   aList:=TCSSCompoundElement(CreateElement(TCSSCompoundElement));
   Try
     While not (CurrentToken in Terms) do
@@ -345,7 +344,6 @@ begin
   else
     Result:=ParseRuleList;
 end;
-
 
 function TCSSParser.GetNextToken: TCSSToken;
 begin

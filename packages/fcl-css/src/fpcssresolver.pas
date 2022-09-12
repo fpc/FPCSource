@@ -317,6 +317,9 @@ var
 begin
   if El=nil then exit;
   C:=El.ClassType;
+  {$IFDEF VerboseCSSResolver}
+  //writeln('TCSSResolver.ComputeElement ',GetCSSPath(El));
+  {$ENDIF}
   if C=TCSSCompoundElement then
   begin
     Compound:=TCSSCompoundElement(El);

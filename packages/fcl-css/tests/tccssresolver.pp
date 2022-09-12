@@ -243,11 +243,13 @@ type
     // ToDo: :lang()
 
     // ToDo: inline style
+    procedure Test_InlineStyle;
 
     // ToDo: specifity
 
     // pseudo elements
 
+    // skipping for forward compatibility
     // ToDo: invalid token in selector makes selector invalid
 
   end;
@@ -919,6 +921,24 @@ begin
   AssertEquals('Button12.Top','',Button12.Top);
   AssertEquals('Div2.Left','',Div2.Left);
   AssertEquals('Div2.Top','',Div2.Top);
+end;
+
+procedure TTestCSSResolver.Test_InlineStyle;
+var
+  Div1: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=TDemoDiv.Create(Doc);
+  Div1.Parent:=Doc.Root;
+  Div1.Style:='left: 10px;';
+
+  Doc.Style:=LinesToStr([
+  'div { left: 6px; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Root.Left','',Doc.Root.Left);
+  AssertEquals('Div1.Left','10px',Div1.Left);
 end;
 
 { TDemoDiv }
