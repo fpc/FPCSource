@@ -213,8 +213,7 @@ type
     procedure Test_Selector_TypeTildeType; // general sibling combinator
     procedure Test_Selector_HasAttribute;
     procedure Test_Selector_AttributeEquals;
-    // ToDo: procedure Test_Selector_AttributeEqualsI;
-    // ToDo: procedure Test_Selector_AttributeEqualsS;
+    procedure Test_Selector_AttributeEqualsI;
     procedure Test_Selector_AttributeBeginsWith;
     procedure Test_Selector_AttributeEndsWith;
     procedure Test_Selector_AttributeBeginsWithHyphen;
@@ -228,7 +227,7 @@ type
     procedure Test_Selector_FirstChild;
     procedure Test_Selector_LastChild;
     procedure Test_Selector_OnlyChild;
-    // ToDo: :nth-child(n)
+    procedure Test_Selector_NthChild;
     // ToDo: :nth-last-child(n)
     procedure Test_Selector_FirstOfType;
     procedure Test_Selector_LastOfType;
@@ -533,6 +532,28 @@ begin
   AssertEquals('Button1.Width','5px',Button1.Width);
 end;
 
+procedure TTestCSSResolver.Test_Selector_AttributeEqualsI;
+var
+  Button1: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+  Doc.Root.Left:='2px';
+
+  Button1:=TDemoButton.Create(Doc);
+  Button1.Parent:=Doc.Root;
+  Button1.Left:='3px';
+  Button1.Color:='maybe Black';
+
+  Doc.Style:=LinesToStr([
+  '[left="2Px" i] { top: 4px; }',
+  '[color="Maybe bLack" i] { width: 5px; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Root.Top','4px',Doc.Root.Top);
+  AssertEquals('Button1.Top','',Button1.Top);
+  AssertEquals('Button1.Width','5px',Button1.Width);
+end;
+
 procedure TTestCSSResolver.Test_Selector_AttributeBeginsWith;
 var
   Button1: TDemoButton;
@@ -737,7 +758,8 @@ end;
 
 procedure TTestCSSResolver.Test_Selector_LastChild;
 var
-  Div1, Div11, Div12, Div2: TDemoDiv;
+  Div1, Div11, Div2: TDemoDiv;
+  Button12: TDemoButton;
 begin
   Doc.Root:=TDemoNode.Create(nil);
 
@@ -747,8 +769,8 @@ begin
   Div11:=TDemoDiv.Create(Doc);
   Div11.Parent:=Div1;
 
-  Div12:=TDemoDiv.Create(Doc);
-  Div12.Parent:=Div1;
+  Button12:=TDemoButton.Create(Doc);
+  Button12.Parent:=Div1;
 
   Div2:=TDemoDiv.Create(Doc);
   Div2.Parent:=Doc.Root;
@@ -764,10 +786,10 @@ begin
   AssertEquals('Div1.Top','',Div1.Top);
   AssertEquals('Div11.Left','',Div11.Left);
   AssertEquals('Div11.Top','',Div11.Top);
-  AssertEquals('Div12.Left','6px',Div12.Left);
-  AssertEquals('Div12.Top','7px',Div12.Top);
+  AssertEquals('Button12.Left','6px',Button12.Left);
+  AssertEquals('Button12.Top','',Button12.Top);
   AssertEquals('Div2.Left','6px',Div2.Left);
-  AssertEquals('Div2.Top','',Div2.Top);
+  AssertEquals('Div2.Top','7px',Div2.Top);
 end;
 
 procedure TTestCSSResolver.Test_Selector_OnlyChild;
@@ -804,6 +826,44 @@ begin
   AssertEquals('Div2.Top','',Div2.Top);
   AssertEquals('Button12.Left','8px',Button12.Left);
   AssertEquals('Button12.Top','',Button12.Top);
+end;
+
+procedure TTestCSSResolver.Test_Selector_NthChild;
+var
+  Div1, Div2, Div3, Div4: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=TDemoDiv.Create(Doc);
+  Div1.Parent:=Doc.Root;
+
+  Div2:=TDemoDiv.Create(Doc);
+  Div2.Parent:=Doc.Root;
+
+  Div3:=TDemoDiv.Create(Doc);
+  Div3.Parent:=Doc.Root;
+
+  Div4:=TDemoDiv.Create(Doc);
+  Div4.Parent:=Doc.Root;
+
+  Doc.Style:=LinesToStr([
+  ':nth-child(2n+1) { left: 8px; }',
+  //':nth-child(even) { top: 3px; }',
+  //':nth-child(odd) { width: 4px; }',
+  //':nth-child(odd of .red) { height: 4px; }',
+  //':nth-child(even of :not([display=none])) { color: blue; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Root.Left','8px',Doc.Root.Left);
+  AssertEquals('Root.Top','',Doc.Root.Top);
+  AssertEquals('Div1.Left','8px',Div1.Left);
+  AssertEquals('Div1.Top','',Div1.Top);
+  AssertEquals('Div2.Left','',Div2.Left);
+  AssertEquals('Div2.Top','',Div2.Top);
+  AssertEquals('Div3.Left','8px',Div3.Left);
+  AssertEquals('Div3.Top','',Div3.Top);
+  AssertEquals('Div4.Left','8px',Div4.Left);
+  AssertEquals('Div4.Top','',Div4.Top);
 end;
 
 procedure TTestCSSResolver.Test_Selector_FirstOfType;
@@ -915,7 +975,7 @@ begin
   AssertEquals('Root.Left','6px',Doc.Root.Left);
   AssertEquals('Root.Top','',Doc.Root.Top);
   AssertEquals('Div1.Left','',Div1.Left);
-  AssertEquals('Div1.Top','7px',Div1.Top);
+  AssertEquals('Div1.Top','',Div1.Top);
   AssertEquals('Div11.Left','6px',Div11.Left);
   AssertEquals('Div11.Top','7px',Div11.Top);
   AssertEquals('Button12.Left','6px',Button12.Left);
@@ -1292,7 +1352,7 @@ var
   i: Integer;
 begin
   i:=GetCSSIndex;
-  if (i<0) or (i+1>=NodeCount) then
+  if (i<0) or (i+1>=Parent.NodeCount) then
     Result:=nil
   else
     Result:=Parent.Nodes[i+1];
@@ -1321,15 +1381,21 @@ end;
 
 function TDemoNode.GetCSSNextOfType: TCSSNode;
 var
-  i: Integer;
+  i, Cnt: Integer;
   MyID: TCSSNumericalID;
+  aNode: TDemoNode;
 begin
-  i:=GetCSSIndex+1;
+  Result:=nil;
+  i:=GetCSSIndex;
+  if i<0 then exit;
+  inc(i);
   MyID:=CSSTypeID;
-  while i<NodeCount do
+  Cnt:=Parent.NodeCount;
+  while i<Cnt do
   begin
-    if Nodes[i].CSSTypeID=MyID then
-      exit(Nodes[i]);
+    aNode:=Parent.Nodes[i];
+    if aNode.CSSTypeID=MyID then
+      exit(aNode);
     inc(i);
   end;
 end;
@@ -1338,13 +1404,18 @@ function TDemoNode.GetCSSPreviousOfType: TCSSNode;
 var
   i: Integer;
   MyID: TCSSNumericalID;
+  aNode: TDemoNode;
 begin
-  i:=GetCSSIndex-1;
+  Result:=nil;
+  i:=GetCSSIndex;
+  if i<0 then exit;
+  dec(i);
   MyID:=CSSTypeID;
   while i>=0 do
   begin
-    if Nodes[i].CSSTypeID=MyID then
-      exit(Nodes[i]);
+    aNode:=Parent.Nodes[i];
+    if aNode.CSSTypeID=MyID then
+      exit(aNode);
     dec(i);
   end;
 end;
