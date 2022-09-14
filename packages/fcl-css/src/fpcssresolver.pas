@@ -609,14 +609,14 @@ end;
 function TCSSResolver.SelectorArrayMatches(anArray: TCSSArrayElement;
   const TestNode: TCSSNode): TCSSSpecifity;
 var
+  {$IFDEF VerboseCSSResolver}
+  i: integer;
+  {$ENDIF}
   El: TCSSElement;
   C: TClass;
   AttrID: TCSSNumericalID;
-  {$IFDEF VerboseCSSResolver}
-  i: integer;
-  aValue: TCSSString;
   OldStringComparison: TCSSResStringComparison;
-  {$ENDIF}
+  aValue: TCSSString;
 begin
   Result:=CSSSpecifityInvalid;
   if anArray.Prefix<>nil then
