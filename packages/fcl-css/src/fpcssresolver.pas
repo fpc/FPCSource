@@ -197,9 +197,9 @@ type
     procedure ComputeRule(aRule: TCSSRuleElement); virtual;
     function SelectorMatches(aSelector: TCSSElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
     function SelectorIdentifierMatches(Identifier: TCSSIdentifierElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
+    function SelectorHashIdentifierMatches(Identifier: TCSSHashIdentifierElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
     function SelectorClassNameMatches(aClassName: TCSSClassNameElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
-    function SelectorPseudoClassMatches(aPseudoClass: TCSSPseudoClassElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
-    function SelectorStringMatches(aString: TCSSStringElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
+    function SelectorPseudoClassMatches(aPseudoClass: TCSSPseudoClassElement; var TestNode: TCSSNode): TCSSSpecifity; virtual;
     function SelectorListMatches(aList: TCSSListElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
     function SelectorBinaryMatches(aBinary: TCSSBinaryElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
     function SelectorArrayMatches(anArray: TCSSArrayElement; const TestNode: TCSSNode): TCSSSpecifity; virtual;
@@ -350,6 +350,15 @@ end;
 
 function TCSSResolver.SelectorMatches(aSelector: TCSSElement;
   const TestNode: TCSSNode): TCSSSpecifity;
+
+  procedure MatchPseudo;
+  var
+    aNode: TCSSNode;
+  begin
+    aNode:=TestNode;
+    Result:=SelectorPseudoClassMatches(TCSSPseudoClassElement(aSelector),aNode);
+  end;
+
 var
   C: TClass;
 begin
@@ -357,12 +366,12 @@ begin
   C:=aSelector.ClassType;
   if C=TCSSIdentifierElement then
     Result:=SelectorIdentifierMatches(TCSSIdentifierElement(aSelector),TestNode)
+  else if C=TCSSHashIdentifierElement then
+    Result:=SelectorHashIdentifierMatches(TCSSHashIdentifierElement(aSelector),TestNode)
   else if C=TCSSClassNameElement then
     Result:=SelectorClassNameMatches(TCSSClassNameElement(aSelector),TestNode)
   else if C=TCSSPseudoClassElement then
-    Result:=SelectorPseudoClassMatches(TCSSPseudoClassElement(aSelector),TestNode)
-  else if C=TCSSStringElement then
-    Result:=SelectorStringMatches(TCSSStringElement(aSelector),TestNode)
+    MatchPseudo
   else if C=TCSSBinaryElement then
     Result:=SelectorBinaryMatches(TCSSBinaryElement(aSelector),TestNode)
   else if C=TCSSArrayElement then
@@ -389,11 +398,20 @@ begin
     if croErrorOnUnknownName in Options then
       DoError(20220911230224,'Unknown CSS selector type name "'+Identifier.Name+'"',Identifier);
     Result:=CSSSpecifityInvalid;
-  end else
-  begin
-    if TypeID=TestNode.GetCSSTypeID then
-      Result:=CSSSpecifityType;
-  end;
+  end else if TypeID=TestNode.GetCSSTypeID then
+    Result:=CSSSpecifityType;
+end;
+
+function TCSSResolver.SelectorHashIdentifierMatches(
+  Identifier: TCSSHashIdentifierElement; const TestNode: TCSSNode
+  ): TCSSSpecifity;
+var
+  aValue: TCSSString;
+begin
+  Result:=CSSSpecifityNoMatch;
+  aValue:=Identifier.Value;
+  if TestNode.GetCSSID=aValue then
+    Result:=CSSSpecifityIdentifier;
 end;
 
 function TCSSResolver.SelectorClassNameMatches(
@@ -401,16 +419,16 @@ function TCSSResolver.SelectorClassNameMatches(
 var
   aValue: TCSSString;
 begin
-  aValue:=copy(aClassName.Name,2,255);
+  aValue:=aClassName.Name;
   if TestNode.HasCSSClass(aValue) then
     Result:=CSSSpecifityClass
   else
     Result:=CSSSpecifityNoMatch;
+  //writeln('TCSSResolver.SelectorClassNameMatches ',aValue,' ',Result);
 end;
 
 function TCSSResolver.SelectorPseudoClassMatches(
-  aPseudoClass: TCSSPseudoClassElement; const TestNode: TCSSNode
-  ): TCSSSpecifity;
+  aPseudoClass: TCSSPseudoClassElement; var TestNode: TCSSNode): TCSSSpecifity;
 var
   PseudoID: TCSSNumericalID;
 begin
@@ -452,35 +470,38 @@ begin
   end;
 end;
 
-function TCSSResolver.SelectorStringMatches(aString: TCSSStringElement;
-  const TestNode: TCSSNode): TCSSSpecifity;
-// id selector #name
-var
-  aValue: TCSSString;
-begin
-  Result:=CSSSpecifityNoMatch;
-  if aString.Children.Count>0 then
-    DoError(20220910113909,'Invalid CSS string selector',aString.Children[0]);
-  aValue:=aString.Value;
-  if aValue[1]<>'#' then
-    DoError(20220910114014,'Invalid CSS selector',aString);
-  System.Delete(aValue,1,1);
-  if aValue='' then
-    DoError(20220910114133,'Invalid CSS identifier selector',aString);
-  if aValue=TestNode.GetCSSID then
-    Result:=CSSSpecifityIdentifier;
-end;
-
 function TCSSResolver.SelectorListMatches(aList: TCSSListElement;
   const TestNode: TCSSNode): TCSSSpecifity;
 var
   i: Integer;
+  El: TCSSElement;
+  C: TClass;
+  Specifity: TCSSSpecifity;
+  aNode: TCSSNode;
 begin
-  Result:=CSSSpecifityInvalid;
+  Result:=0;
+  {$IFDEF VerboseCSSResolver}
   writeln('TCSSResolver.SelectorListMatches ChildCount=',aList.ChildCount);
+  {$ENDIF}
+  aNode:=TestNode;
   for i:=0 to aList.ChildCount-1 do
-    writeln('TCSSResolver.SelectorListMatches ',i,' ',GetCSSObj(aList.Children[i]),' AsString=',aList.Children[i].AsString);
-  DoError(20220910115531,'Invalid CSS list selector',aList);
+    begin
+    El:=aList.Children[i];
+    {$IFDEF VerboseCSSResolver}
+    writeln('TCSSResolver.SelectorListMatches ',i,' ',GetCSSObj(El),' AsString=',El.AsString);
+    {$ENDIF}
+    C:=El.ClassType;
+    if (C=TCSSIdentifierElement) and (i>0) then
+      DoError(20220914163218,'Type selector must be first',aList)
+    else if C=TCSSPseudoClassElement then
+    begin
+      Specifity:=SelectorPseudoClassMatches(TCSSPseudoClassElement(El),aNode);
+    end else
+      Specifity:=SelectorMatches(El,aNode);
+    if Specifity<0 then
+      exit(Specifity);
+    inc(Result,Specifity);
+    end;
 end;
 
 function TCSSResolver.SelectorBinaryMatches(aBinary: TCSSBinaryElement;
@@ -652,7 +673,7 @@ begin
     // contains substring
     if (RightValue<>'') and (Pos(RightValue,LeftValue)>0) then
       Result:=CSSSpecifityClass;
-  boTileEqual:
+  boTildeEqual:
     // contains word
     if PosWord(RightValue,LeftValue)>0 then
       Result:=CSSSpecifityClass;

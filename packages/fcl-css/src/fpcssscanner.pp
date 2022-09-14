@@ -39,16 +39,20 @@ Type
     ctkEQUALS,
     ctkAND,
     ctkTILDE,
+    ctkTILDEEQUAL,
     ctkPLUS,
     ctkCOLON,
     ctkDOUBLECOLON,
     ctkDOT,
     ctkDIV,
     ctkGT,
+    ctkGE,
     ctkLT,
+    ctkLE,
     ctkPERCENTAGE,
     ctkMINUS,
     ctkSTAR,
+    ctkSTAREQUAL,
     ctkINTEGER,
     ctkFLOAT,
     ctkHASH,
@@ -63,9 +67,12 @@ Type
     ctkPSEUDO,
     ctkPSEUDOFUNCTION,
     ctkSQUARED,
+    ctkSQUAREDEQUAL,
     ctkUNICODERANGE,
     ctkPIPE,
-    ctkDOLLAR
+    ctkPIPEEQUAL,
+    ctkDOLLAR,
+    ctkDOLLAREQUAL
    );
   TCSSTokens = Set of TCSSToken;
 
@@ -588,6 +595,7 @@ begin
   TokenStart := TokenStr;
   IsPseudo:=False;
   IsAt:=TokenStr[0]='@';
+  IsFunc:=false;
   For Len:=1 to 2 do
     if TokenStr[0]=':' then
       begin
@@ -617,9 +625,9 @@ begin
     SetLength(FCurTokenString,Olen+Len);
     if Len > 0 then
       Move(TokenStart^,FCurTokenString[Olen+1],Len);
-     if IsEscape then
-       Inc(TokenStr);
-     TokenStart := TokenStr;
+    if IsEscape then
+      Inc(TokenStr);
+    TokenStart := TokenStr;
   until Not IsEscape;
   // Some specials
   if (CurTokenString[1]='.') and not IsFunc then
@@ -670,11 +678,19 @@ end;
 function TCSSScanner.DoFetchToken: TCSSToken;
 
 
-  Procedure CharToken(aToken : TCSSToken); inline;
+  Procedure CharToken(aToken : TCSSToken);
 
   begin
     FCurTokenString:=TokenStr[0];
     Inc(TokenStr);
+    Result:=aToken;
+  end;
+
+  Procedure TwoCharsToken(aToken : TCSSToken);
+
+  begin
+    FCurTokenString:=TokenStr[0]+TokenStr[1];
+    Inc(TokenStr,2);
     Result:=aToken;
   end;
 
@@ -721,17 +737,33 @@ begin
     '&': CharToken(ctkAnd);
     '{': CharToken( ctkLBRACE);
     '}': CharToken(ctkRBRACE);
-    '*': if Not (csoExtendedIdentifiers in Options) then
-           CharToken(ctkSTAR)
-         else if TokenStr[1] in AlNumIden then
+    '*': if TokenStr[1]='=' then
+           TwoCharsToken(ctkSTAREQUAL)
+         else if (csoExtendedIdentifiers in Options) and (TokenStr[1] in AlNumIden) then
            Result:=DoIdentifierLike
          else
            CharToken(ctkSTAR);
-    '^': CharToken(ctkSQUARED);
+    '^':
+      if TokenStr[1]='=' then
+        TwoCharsToken(ctkSQUAREDEQUAL)
+      else
+        CharToken(ctkSQUARED);
     ',': CharToken(ctkCOMMA);
-    '~': CharToken(ctkTILDE);
-    '|': CharToken(ctkPIPE);
-    '$': CharToken(ctkDOLLAR);
+    '~':
+      if TokenStr[1]='=' then
+        TwoCharsToken(ctkTILDEEQUAL)
+      else
+        CharToken(ctkTILDE);
+    '|':
+      if TokenStr[1]='=' then
+        TwoCharsToken(ctkPIPEEQUAL)
+      else
+        CharToken(ctkPIPE);
+    '$':
+      if TokenStr[1]='=' then
+        TwoCharsToken(ctkDOLLAREQUAL)
+      else
+        CharToken(ctkDOLLAR);
     ';': CharToken(ctkSEMICOLON);
     '@': Result:=DoIdentifierLike;
     ':':
@@ -757,8 +789,16 @@ begin
       else
         CharToken(ctkDOT);
       end;
-    '>': CharToken(ctkGT);
-    '<': CharToken(ctkLT);
+    '>':
+      if TokenStr[1]='=' then
+        TwoCharsToken(ctkGE)
+      else
+        CharToken(ctkGT);
+    '<':
+      if TokenStr[1]='=' then
+        TwoCharsToken(ctkLE)
+      else
+        CharToken(ctkLT);
     '(': CharToken(ctkLPARENTHESIS);
     ')': CharToken(ctkRPARENTHESIS);
     '[': CharToken(ctkLBRACKET);

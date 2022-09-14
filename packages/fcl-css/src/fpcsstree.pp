@@ -26,10 +26,23 @@ uses contnrs, Classes;
 Type
   TCSSString = UTF8String;
   TCSSUnits = (cuNONE, cuPX,cuPERCENT,cuREM,cuEM,cuPT,cuFR,cuVW,cuVH,cuDEG);
-  TCSSType = (csstUNKNOWN, csstINTEGER, csstSTRING, csstFLOAT,
-              csstIDENTIFIER, csstCLASSNAME, csstPSEUDOCLASS, csstCOMPOUND, csstRULE,
-              csstDECLARATION, csstBINARYOP, csstCALL, csstUNARYOP, csstARRAY, csstURL,
-              csstUNICODERANGE,csstLIST);
+  TCSSType = (
+    csstUnknown,
+    csstInteger, csstString, csstFloat,
+    csstIdentifier, // name
+    csstHashIdentifier, // #name
+    csstClassname, // .name
+    csstPseudoClass, // :name, ::name
+    csstCompound,
+    csstRule,
+    csstDeclaration,
+    csstBinaryOp,
+    csstCall, // name(, :name(, ::name(
+    csstUnaryOp,
+    csstArray, // []
+    csstURL, // url()
+    csstUnicodeRange,
+    csstList);
 
   TCSSElement = class;
 
@@ -157,10 +170,10 @@ Type
   end;
 
   { TCSSBinaryElement }
-  TCSSBinaryOperation = (boEquals,boPlus,boMinus,boAnd,boLT,boGT,boDIV,
+  TCSSBinaryOperation = (boEquals,boPlus,boMinus,boAnd,boLE,boLT,boGE,boGT,boDIV,
                          boStar,boTilde,boColon, boDoubleColon,boSquared,
-                         boPipe, boDollar,
-                         boStarEqual,boTileEqual,boSquaredEqual,boPipeEqual,boDollarEqual);
+                         boPipe, boDollar, boWhiteSpace,
+                         boStarEqual,boTildeEqual,boSquaredEqual,boPipeEqual,boDollarEqual);
   TCSSBinaryElement = Class(TCSSBaseUnaryElement)
   private
     FLeft: TCSSElement;
@@ -226,6 +239,15 @@ Type
   Public
     Class function CSSType : TCSSType; override;
     Property Name : TCSSString Read GetName;
+  end;
+
+  { TCSSHashIdentifierElement }
+
+  TCSSHashIdentifierElement = Class(TCSSIdentifierElement)
+  Protected
+    function GetAsString(aFormat : Boolean; const aIndent : TCSSString): TCSSString; override;
+  Public
+    Class function CSSType : TCSSType; override;
   end;
 
   { TCSSClassNameElement }
@@ -377,7 +399,7 @@ Const
   UnaryOperators : Array[TCSSUnaryOperation] of TCSSString =
         ('::','-','+','/');
   BinaryOperators : Array[TCSSBinaryOperation] of TCSSString =
-        ('=','+','-','and','<','>','/','*','~',':','::','^','|','$',
+        ('=','+','-','and','<=','<','>=','>','/','*','~',':','::','^','|','$',' ',
          '*=','~=','^=','|=','$=');
 
 implementation
@@ -556,7 +578,7 @@ end;
 
 class function TCSSUnicodeRangeElement.CSSType: TCSSType;
 begin
-  Result:=csstUNICODERANGE;
+  Result:=csstUnicodeRange;
 end;
 
 { TCSSURLElement }
@@ -646,7 +668,7 @@ end;
 
 class function TCSSDeclarationElement.CSSType: TCSSType;
 begin
-  Result:=csstDECLARATION;
+  Result:=csstDeclaration;
 end;
 
 destructor TCSSDeclarationElement.Destroy;
@@ -667,7 +689,7 @@ end;
 
 class function TCSSUnaryElement.CSSType: TCSSType;
 begin
-  Result:=csstUNARYOP;
+  Result:=csstUnaryOp;
 end;
 
 function TCSSUnaryElement.GetAsString(aFormat: Boolean;
@@ -778,7 +800,7 @@ end;
 
 class function TCSSRuleElement.CSSType: TCSSType;
 begin
-  Result:=csstRULE;
+  Result:=csstRule;
 end;
 
 destructor TCSSRuleElement.Destroy;
@@ -815,7 +837,7 @@ end;
 
 class function TCSSPseudoClassElement.CSSType: TCSSType;
 begin
-  Result:=csstPSEUDOCLASS;
+  Result:=csstPseudoClass;
 end;
 
 { TCSSChildrenElement }
@@ -942,7 +964,7 @@ end;
 
 class function TCSSStringElement.CSSType: TCSSType;
 begin
-  Result:=csstSTRING;
+  Result:=csstString;
 end;
 
 destructor TCSSStringElement.Destroy;
@@ -958,12 +980,12 @@ function TCSSClassNameElement.GetAsString(aFormat: Boolean;
 begin
   if aFormat then ;
   if aIndent='' then ;
-  Result:=Copy(Value,1,1)+StringToIdentifier(Copy(Value,2,Length(Value)-1));
+  Result:='.'+StringToIdentifier(Value);
 end;
 
 class function TCSSClassNameElement.CSSType: TCSSType;
 begin
-  Result:=csstCLASSNAME;
+  Result:=csstClassname;
 end;
 
 { TCSSIdentifierElement }
@@ -983,11 +1005,25 @@ end;
 
 class function TCSSIdentifierElement.CSSType: TCSSType;
 begin
-  Result:=csstIDENTIFIER;
+  Result:=csstIdentifier;
+end;
+
+{ TCSSHashIdentifierElement }
+
+function TCSSHashIdentifierElement.GetAsString(aFormat: Boolean;
+  const aIndent: TCSSString): TCSSString;
+begin
+  if aFormat then ;
+  if aIndent='' then ;
+  Result:='#'+StringToIdentifier(Value);
+end;
+
+class function TCSSHashIdentifierElement.CSSType: TCSSType;
+begin
+  Result:=csstHashIdentifier;
 end;
 
 { TCSSArrayElement }
-
 
 procedure TCSSArrayElement.SetPrefix(AValue: TCSSElement);
 begin
@@ -1153,7 +1189,7 @@ end;
 
 class function TCSSIntegerElement.CSSType: TCSSType;
 begin
-  Result:=csstINTEGER;
+  Result:=csstInteger;
 end;
 
 { TCSSBinaryElement }
@@ -1191,7 +1227,7 @@ end;
 
 class function TCSSBinaryElement.CSSType: TCSSType;
 begin
-  Result:=csstBINARYOP;
+  Result:=csstBinaryOp;
 end;
 
 procedure TCSSBinaryElement.IterateChildren(aVisitor: TCSSTreeVisitor);

@@ -35,6 +35,7 @@ type
     Procedure TestSTRING;
     Procedure TestFLOAT;
     Procedure TestIDENTIFIER;
+    Procedure TestHASHIDENTIFIER;
     Procedure TestCLASSNAME;
     Procedure TestPSEUDOCLASS;
     Procedure TestCOMPOUND;
@@ -56,6 +57,7 @@ type
     Procedure TestSTRING;
     Procedure TestFLOAT;
     Procedure TestIDENTIFIER;
+    Procedure TestHashIDENTIFIER;
     Procedure TestCLASSNAME;
     Procedure TestPSEUDOCLASS;
     Procedure TestCOMPOUND;
@@ -104,6 +106,7 @@ type
     Procedure TestSTRING;
     Procedure TestFLOAT;
     Procedure TestIDENTIFIER;
+    Procedure TestHASHIDENTIFIER;
     Procedure TestCLASSNAME;
     Procedure TestPSEUDOCLASS;
     Procedure TestCOMPOUND;
@@ -208,6 +211,14 @@ end;
 procedure TCSSTreeVisitorTest.TestIDENTIFIER;
 begin
   CreateElement(TCSSIdentifierElement);
+  Element.Iterate(Visitor);
+  CheckCount(1);
+  CheckElement(0,Element);
+end;
+
+procedure TCSSTreeVisitorTest.TestHASHIDENTIFIER;
+begin
+  CreateElement(TCSSHashIdentifierElement);
   Element.Iterate(Visitor);
   CheckCount(1);
   CheckElement(0,Element);
@@ -406,9 +417,15 @@ begin
   AssertEquals('Value','abc',Element.AsString);
 end;
 
+procedure TCSSTreeAsStringTest.TestHashIDENTIFIER;
+begin
+  TCSSHashIdentifierElement(CreateElement(TCSSHashIdentifierElement)).Value:='abc';
+  AssertEquals('Value','#abc',Element.AsString);
+end;
+
 procedure TCSSTreeAsStringTest.TestCLASSNAME;
 begin
-  TCSSClassNameElement(CreateElement(TCSSClassNameElement)).Value:='.abc';
+  TCSSClassNameElement(CreateElement(TCSSClassNameElement)).Value:='abc';
   AssertEquals('Value','.abc',Element.AsString);
 end;
 
@@ -612,7 +629,7 @@ end;
 
 procedure TCSSTreeTypeTest.TestINTEGER;
 begin
-  AssertEquals('Type',csstINTEGER,CreateElement(TCSSIntegerElement).CSSType);
+  AssertEquals('Type',csstInteger,CreateElement(TCSSIntegerElement).CSSType);
 end;
 
 procedure TCSSTreeTypeTest.TestSTRING;
@@ -628,12 +645,17 @@ end;
 
 procedure TCSSTreeTypeTest.TestIDENTIFIER;
 begin
-  AssertEquals('Type',csstINTEGER,CreateElement(TCSSIntegerElement).CSSType);
+  AssertEquals('Type',csstIdentifier,CreateElement(TCSSIdentifierElement).CSSType);
+end;
+
+procedure TCSSTreeTypeTest.TestHASHIDENTIFIER;
+begin
+  AssertEquals('Type',csstHashIdentifier,CreateElement(TCSSHashIdentifierElement).CSSType);
 end;
 
 procedure TCSSTreeTypeTest.TestCLASSNAME;
 begin
-  AssertEquals('Type',csstClassName,CreateElement(TCSSClassNameElement).CSSType);
+  AssertEquals('Type',csstClassname,CreateElement(TCSSClassNameElement).CSSType);
 end;
 
 procedure TCSSTreeTypeTest.TestPSEUDOCLASS;

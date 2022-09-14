@@ -354,7 +354,8 @@ begin
   Button1.Parent:=Doc.Root;
 
   Button2:=TDemoButton.Create(Doc);
-  Button2.CSSClasses.Add('west south');
+  Button2.CSSClasses.DelimitedText:='west south';
+  AssertEquals('Button2.CSSClasses.Count',2,Button2.CSSClasses.Count);
   Button2.Parent:=Doc.Root;
 
   Doc.Style:='.west.south { left: 10px; }';
@@ -1201,6 +1202,7 @@ begin
   inherited Create(AOwner);
   FNodes:=TFPObjectList.Create(false);
   FCSSClasses:=TStringList.Create;
+  FCSSClasses.Delimiter:=' ';
   for a in TDemoNodeAttribute do
     FAttributeValues[a]:=FAttributeInitialValues[a];
 end;

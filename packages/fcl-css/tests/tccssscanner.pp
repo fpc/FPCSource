@@ -44,7 +44,7 @@ type
 
   { TTestCSSScanner }
 
-  TTestCSSScanner= class(TTestCase)
+  TTestCSSScanner = class(TTestCase)
   Private
     FPSeudoDisabled,
     FNeedWhiteSpace : Boolean;
