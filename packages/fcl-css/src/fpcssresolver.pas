@@ -514,7 +514,7 @@ begin
   case aBinary.Operation of
   boGT:
     begin
-      // child combinator
+      // child combinator >
       Result:=SelectorMatches(aBinary.Right,TestNode);
       if Result<0 then exit;
       aParent:=TestNode.GetCSSParent;
@@ -527,7 +527,7 @@ begin
     end;
   boPlus:
     begin
-      // adjacent sibling combinator
+      // adjacent sibling combinator +
       Result:=SelectorMatches(aBinary.Right,TestNode);
       if Result<0 then exit;
       Sibling:=TestNode.GetCSSPreviousSibling;
@@ -540,7 +540,7 @@ begin
     end;
   boTilde:
     begin
-      // general sibling combinator
+      // general sibling combinator ~
       Result:=SelectorMatches(aBinary.Right,TestNode);
       if Result<0 then exit;
       Sibling:=TestNode.GetCSSPreviousSibling;
@@ -558,6 +558,26 @@ begin
       end;
       Result:=CSSSpecifityNoMatch;
     end;
+  boWhiteSpace:
+    begin
+    // descendant combinator
+    Result:=SelectorMatches(aBinary.Right,TestNode);
+    if Result<0 then exit;
+    aParent:=TestNode;
+    repeat
+      aParent:=aParent.GetCSSParent;
+      if aParent=nil then
+        exit(CSSSpecifityNoMatch);
+      aSpecifity:=SelectorMatches(aBinary.Left,aParent);
+      if aSpecifity>=0 then
+      begin
+        inc(Result,aSpecifity);
+        exit;
+      end
+      else if aSpecifity=CSSSpecifityInvalid then
+        exit(CSSSpecifityInvalid);
+    until false;
+    end
   else
     if croErrorOnUnknownName in Options then
       DoError(20220910123724,'Invalid CSS binary selector '+BinaryOperators[aBinary.Operation],aBinary);
