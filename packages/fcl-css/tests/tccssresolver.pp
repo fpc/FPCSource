@@ -626,7 +626,7 @@ begin
   AssertEquals('Button1.Top','',Button1.Top);
   AssertEquals('Button1.Width','',Button1.Width);
   AssertEquals('Button1.Height','',Button1.Height);
-  AssertEquals('Button1.Color','#123',Button1.Color);
+  AssertEquals('Button1.Color','',Button1.Color);
   AssertEquals('Button1.Display','',Button1.Display);
 end;
 
@@ -692,12 +692,12 @@ begin
   Doc.ApplyStyle;
   AssertEquals('Root.Left','',Doc.Root.Left);
   AssertEquals('Root.Top','',Doc.Root.Top);
-  AssertEquals('Div1.Left','x',Div1.Left);
+  AssertEquals('Div1.Left','',Div1.Left);
   AssertEquals('Div1.Top','',Div1.Top);
   AssertEquals('Div11.Left','1px',Div11.Left);
   AssertEquals('Div11.Top','2px',Div11.Top);
   AssertEquals('Div2.Left','1px',Div2.Left);
-  AssertEquals('Div2.Top','',Div2.Top);
+  AssertEquals('Div2.Top','2px',Div2.Top);
 end;
 
 procedure TTestCSSResolver.Test_Selector_FirstChild;
@@ -726,7 +726,7 @@ begin
   AssertEquals('Root.Left','1px',Doc.Root.Left);
   AssertEquals('Root.Top','',Doc.Root.Top);
   AssertEquals('Div1.Left','1px',Div1.Left);
-  AssertEquals('Div1.Top','',Div1.Top);
+  AssertEquals('Div1.Top','2px',Div1.Top);
   AssertEquals('Div11.Left','1px',Div11.Left);
   AssertEquals('Div11.Top','2px',Div11.Top);
   AssertEquals('Div12.Left','',Div12.Left);
@@ -1292,7 +1292,7 @@ var
   i: Integer;
 begin
   i:=GetCSSIndex;
-  if i>=NodeCount then
+  if (i<0) or (i+1>=NodeCount) then
     Result:=nil
   else
     Result:=Parent.Nodes[i+1];

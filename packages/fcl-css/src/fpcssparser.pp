@@ -1106,6 +1106,8 @@ begin
       SkipWhiteSpace;
       // parse value
       case CurrentToken of
+      ctkIDENTIFIER:
+        Bin.Right:=ParseIdentifier;
       ctkSTRING:
         begin
         StrEl:=TCSSStringElement(CreateElement(TCSSStringElement));
@@ -1113,8 +1115,10 @@ begin
         Bin.Right:=StrEl;
         GetNextToken;
         end;
-      ctkIDENTIFIER:
-        Bin.Right:=ParseIdentifier;
+      ctkINTEGER:
+        Bin.Right:=ParseInteger;
+      ctkFLOAT:
+        Bin.Right:=ParseFloat;
       else
         DoError(SErrUnexpectedToken ,[
                  GetEnumName(TypeInfo(TCSSToken),Ord(CurrentToken)),
