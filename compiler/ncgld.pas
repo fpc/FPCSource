@@ -632,20 +632,20 @@ implementation
                              hlcg.reference_reset_base(href,vd,location.registerhi,0,ctempposinvalid,vd.alignment,[]);
                              vmtdef:=cpointerdef.getreusable(tobjectdef(left.resultdef).vmt_def);
                              hlcg.g_set_addr_nonbitpacked_field_ref(current_asmdata.CurrAsmList,tobjectdef(left.resultdef),tfieldvarsym(tobjectdef(left.resultdef).vmt_field),href);
-                             { targets with 32 bit method pointers got already a register assigned }
-{$if not(defined(CPU8BITALU) and defined(CPU16BITADDR))}
                              hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,vmtdef);
-{$endif defined(CPU8BITALU) and defined(CPU16BITADDR)}
                              hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,tfieldvarsym(tobjectdef(left.resultdef).vmt_field).vardef,vmtdef,href,hregister);
                            end
                          else if left.resultdef.typ=classrefdef then
                            begin
-                             { targets with 32 bit method pointers got already a register assigned }
-{$if not(defined(CPU8BITALU) and defined(CPU16BITADDR))}
+                             vmtdef:=cpointerdef.getreusable(tobjectdef(tclassrefdef(left.resultdef).pointeddef).vmt_def);
                              { classrefdef is a pointer to the vmt already }
+{$if defined(CPU8BITALU) and defined(CPU16BITADDR)}
+                             hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,vmtdef);
+                             hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,cg.GetNextReg(cg.GetNextReg(location.register)),hregister);
+{$else defined(CPU8BITALU) and defined(CPU16BITADDR)}
+                             { targets with 32 bit method pointers got already a register assigned }
                              hregister:=location.registerhi;
 {$endif defined(CPU8BITALU) and defined(CPU16BITADDR)}
-                             vmtdef:=cpointerdef.getreusable(tobjectdef(tclassrefdef(left.resultdef).pointeddef).vmt_def);
                              hlcg.g_ptrtypecast_reg(current_asmdata.CurrAsmList,left.resultdef,vmtdef,hregister);
                            end
                          else if is_any_interface_kind(left.resultdef) then
@@ -653,10 +653,7 @@ implementation
                              { an interface is a pointer to a pointer to a vmt }
                              hlcg.reference_reset_base(href,vd,location.registerhi,0,ctempposinvalid,vd.alignment,[]);
                              vmtdef:=cpointerdef.getreusable(tobjectdef(left.resultdef).vmt_def);
-                             { targets with 32 bit method pointers got already a register assigned }
-{$if not(defined(CPU8BITALU) and defined(CPU16BITADDR))}
                              hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,vmtdef);
-{$endif defined(CPU8BITALU) and defined(CPU16BITADDR)}
                              hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,vmtdef,vmtdef,href,hregister);
                            end
                          else
