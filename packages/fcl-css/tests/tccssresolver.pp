@@ -992,7 +992,7 @@ begin
 
   Div1:=TDemoDiv.Create(Doc);
   Div1.Parent:=Doc.Root;
-  Div1.Style:='left: 10px;';
+  Div1.Style:='left: 10px; top: 5px';
 
   Doc.Style:=LinesToStr([
   'div { left: 6px; }',
@@ -1000,6 +1000,7 @@ begin
   Doc.ApplyStyle;
   AssertEquals('Root.Left','',Doc.Root.Left);
   AssertEquals('Div1.Left','10px',Div1.Left);
+  AssertEquals('Div1.Top','5px',Div1.Top);
 end;
 
 { TDemoDiv }
