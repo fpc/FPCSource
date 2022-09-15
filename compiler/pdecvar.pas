@@ -1711,6 +1711,7 @@ implementation
          is_first_type: boolean;
 {$endif powerpc or powerpc64}
          old_block_type: tblock_type;
+         typepos : tfileposinfo;
       begin
          old_block_type:=block_type;
          block_type:=bt_var;
@@ -1773,6 +1774,7 @@ implementation
              if had_generic and (sc.count=0) then
                break;
              consume(_COLON);
+             typepos:=current_filepos;
 
              read_anon_type(hdef,false);
              maybe_guarantee_record_typesym(hdef,symtablestack.top);
@@ -1858,9 +1860,31 @@ implementation
              maybe_parse_proc_directives(hdef);
 
              { Add calling convention for procvar }
-             if (hdef.typ=procvardef) and
-                (hdef.typesym=nil) then
-               handle_calling_convention(tprocvardef(hdef),hcc_default_actions_intf);
+             if (
+                 (hdef.typ=procvardef) and
+                 (hdef.typesym=nil)
+               ) or is_funcref(hdef) then
+               begin
+                 if po_is_function_ref in tprocvardef(hdef).procoptions then
+                   begin
+                     if not (m_function_references in current_settings.modeswitches) and
+                         not (po_is_block in tprocvardef(hdef).procoptions) then
+                       messagepos(typepos,sym_e_error_in_type_def)
+                     else
+                       begin
+                         if adjust_funcref(hdef,nil,nil) then
+                           { the def was changed, so update it }
+                           for i:=0 to sc.count-1 do
+                             begin
+                               fieldvs:=tfieldvarsym(sc[i]);
+                               fieldvs.vardef:=hdef;
+                             end;
+                         if current_scanner.replay_stack_depth=0 then
+                           hdef.register_def;
+                       end;
+                   end;
+                 handle_calling_convention(hdef,hcc_default_actions_intf);
+               end;
 
              if (vd_object in options) then
                begin
