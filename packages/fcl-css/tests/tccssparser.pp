@@ -19,7 +19,8 @@ unit tcCSSParser;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry, fpcssparser, fpcsstree;
+  Classes, SysUtils, fpcunit, testregistry, fpcssparser, fpcsstree,
+  fpCSSScanner;
 
 type
 
@@ -28,11 +29,13 @@ type
   TTestBaseCSSParser = class(TTestCase)
   Private
     FParseResult: TCSSElement;
+    FSkipInvalid: boolean;
     FSource : TStringStream;
     FParser : TCSSParser;
     FToFree: TCSSElement;
     procedure Clear;
     function GetRule: TCSSRuleElement;
+    procedure OnScannerWarn(Sender: TObject; Msg: string);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -57,6 +60,7 @@ type
     Property ParseResult : TCSSElement read FParseResult;
     Property FirstRule : TCSSRuleElement Read GetRule;
     Property ToFree : TCSSElement Read FToFree Write FToFree;
+    Property SkipInvalid: boolean read FSkipInvalid write FSkipInvalid;
   end;
 
   { TTestCSSParser }
@@ -189,7 +193,6 @@ begin
       Free;
     end;
 end;
-
 
 procedure TTestCSSFilesParser.Testabsolute;
 begin
@@ -747,11 +750,13 @@ end;
 
 procedure TTestCSSParser.TestOneDeclarationNoColon;
 begin
+  SkipInvalid:=true;
   ParseRule('@a b { 0% { d: e; } }');
 end;
 
 procedure TTestCSSParser.TestTwoDeclarationNoColon;
 begin
+  SkipInvalid:=true;
   ParseRule('@a b { 0% { d: e; } 100% { f : g; }  }');
 end;
 
@@ -808,6 +813,14 @@ begin
     Result:=TCSSRuleElement(CheckClass('First element is rule',TCSSRuleElement,L.Children[0]));
 end;
 
+procedure TTestBaseCSSParser.OnScannerWarn(Sender: TObject; Msg: string);
+var
+  aScanner: TCSSScanner;
+begin
+  aScanner:=FParser.Scanner;
+  writeln('TTestBaseCSSParser.OnScannerWarn ',aScanner.CurFilename+'('+IntToStr(aScanner.CurRow)+','+IntToStr(aScanner.CurColumn)+') ',Msg);
+end;
+
 procedure TTestBaseCSSParser.SetUp;
 begin
   inherited SetUp;
@@ -836,6 +849,8 @@ begin
   Clear;
   FSource:=TStringStream.Create(ASource);
   FParser:=TCSSParser.Create(FSource);
+  if SkipInvalid then
+    FParser.Scanner.OnWarn:=@OnScannerWarn;
 end;
 
 procedure TTestBaseCSSParser.Parse;

@@ -124,10 +124,12 @@ Type
 
   TCSSScannerOption = (csoExtendedIdentifiers,csoReturnComments,csoReturnWhiteSpace);
   TCSSScannerOptions = set of TCSSScannerOption;
+  TCSSScannerWarnEvent = procedure(Sender: TObject; Msg: string) of object;
 
   TCSSScanner = class
   private
     FDisablePseudo: Boolean;
+    FOnWarn: TCSSScannerWarnEvent;
     FOptions: TCSSScannerOptions;
     FSourceFile: TLineReader;
     FSourceFilename: TCSSString;
@@ -176,9 +178,11 @@ Type
     property CurColumn: Integer read GetCurColumn;
     property CurToken: TCSSToken read FCurToken;
     property CurTokenString: TCSSString read FCurTokenString;
-    Property DisablePseudo : Boolean Read FDisablePseudo Write FDisablePseudo;
+    property DisablePseudo : Boolean Read FDisablePseudo Write FDisablePseudo;
+    property OnWarn: TCSSScannerWarnEvent read FOnWarn write FOnWarn;
   end;
 
+function SafeFormat(const Fmt: string; const Args: array of const): string;
 
 implementation
 
@@ -190,6 +194,82 @@ Const
   WhiteSpace = [' ',#9];
   WhiteSpaceEx = WhiteSpace+[#0];
 
+type
+  TMessageArgs = array of string;
+
+procedure CreateMsgArgs(var MsgArgs: TMessageArgs; const Args: array of const);
+var
+  i: Integer;
+  {$ifdef pas2js}
+  v: jsvalue;
+  {$endif}
+begin
+  SetLength(MsgArgs, High(Args)-Low(Args)+1);
+  for i:=Low(Args) to High(Args) do
+    {$ifdef pas2js}
+    begin
+    v:=Args[i];
+    if isBoolean(v) then
+      MsgArgs[i] := BoolToStr(Boolean(v))
+    else if isString(v) then
+      MsgArgs[i] := String(v)
+    else if isNumber(v) then
+      begin
+      if IsInteger(v) then
+        MsgArgs[i] := str(NativeInt(v))
+      else
+        MsgArgs[i] := str(double(v));
+      end
+    else
+      MsgArgs[i]:='';
+    end;
+    {$else}
+    case Args[i].VType of
+      vtInteger:      MsgArgs[i] := IntToStr(Args[i].VInteger);
+      vtBoolean:      MsgArgs[i] := BoolToStr(Args[i].VBoolean);
+      vtChar:         MsgArgs[i] := Args[i].VChar;
+      {$ifndef FPUNONE}
+      vtExtended:     ; //  Args[i].VExtended^;
+      {$ENDIF}
+      vtString:       MsgArgs[i] := Args[i].VString^;
+      vtPointer:      ; //  Args[i].VPointer;
+      vtPChar:        MsgArgs[i] := Args[i].VPChar;
+      vtObject:       ; //  Args[i].VObject;
+      vtClass:        ; //  Args[i].VClass;
+      vtWideChar:     MsgArgs[i] := AnsiString(Args[i].VWideChar);
+      vtPWideChar:    MsgArgs[i] := Args[i].VPWideChar;
+      vtAnsiString:   MsgArgs[i] := AnsiString(Args[i].VAnsiString);
+      vtCurrency:     ; //  Args[i].VCurrency^);
+      vtVariant:      ; //  Args[i].VVariant^);
+      vtInterface:    ; //  Args[i].VInterface^);
+      vtWidestring:   MsgArgs[i] := AnsiString(WideString(Args[i].VWideString));
+      vtInt64:        MsgArgs[i] := IntToStr(Args[i].VInt64^);
+      vtQWord:        MsgArgs[i] := IntToStr(Args[i].VQWord^);
+      vtUnicodeString:MsgArgs[i] := AnsiString(UnicodeString(Args[i].VUnicodeString));
+    end;
+    {$endif}
+end;
+
+function SafeFormat(const Fmt: string; const Args: array of const): string;
+var
+  MsgArgs: TMessageArgs;
+  i: Integer;
+begin
+  try
+    Result:=Format(Fmt,Args);
+  except
+    Result:='';
+    MsgArgs:=nil;
+    CreateMsgArgs(MsgArgs,Args);
+    for i:=0 to length(MsgArgs)-1 do
+      begin
+      if i>0 then
+        Result:=Result+',';
+      Result:=Result+MsgArgs[i];
+      end;
+    Result:='{'+Fmt+'}['+Result+']';
+  end;
+end;
 
 constructor TFileLineReader.Create(const AFilename: TCSSString);
 begin

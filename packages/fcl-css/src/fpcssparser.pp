@@ -43,8 +43,10 @@ Type
     Function GetCurLine : Integer;
     Function GetCurPos : Integer;
   protected
-    Procedure DoError(Msg : TCSSString);
-    Procedure DoError(Fmt : TCSSString; const Args : Array of const);
+    Procedure DoWarn(const Msg : TCSSString);
+    Procedure DoWarn(const Fmt : TCSSString; const Args : Array of const);
+    Procedure DoError(const Msg : TCSSString);
+    Procedure DoError(const Fmt : TCSSString; const Args : Array of const);
     Procedure Consume(aToken : TCSSToken);
     Procedure SkipWhiteSpace;
     function ParseComponentValueList(AllowRules: Boolean=True): TCSSElement;
@@ -74,6 +76,7 @@ Type
     Function ParseUnicodeRange : TCSSElement;
     function ParseArray(aPrefix: TCSSElement): TCSSElement;
     function ParseURL: TCSSElement;
+    function ParseInvalidToken: TCSSElement;
     Property CurrentSource : TCSSString Read GetCurSource;
     Property CurrentLine : Integer Read GetCurLine;
     Property CurrentPos : Integer Read GetCurPos;
@@ -155,22 +158,22 @@ begin
   Result:=(CurrentToken=ctkEOF);
 end;
 
-procedure TCSSParser.DoError(Msg: TCSSString);
+procedure TCSSParser.DoError(const Msg: TCSSString);
 Var
   ErrAt : TCSSString;
 
 begin
   If Assigned(FScanner) then
     If FScanner.CurFilename<>'' then
-      ErrAt:=Format(SErrFileSource,[FScanner.CurFileName,FScanner.CurRow,FScanner.CurColumn])
+      ErrAt:=SafeFormat(SErrFileSource,[FScanner.CurFileName,FScanner.CurRow,FScanner.CurColumn])
     else
-      ErrAt:=Format(SErrSource,[FScanner.Currow,FScanner.CurColumn]);
+      ErrAt:=SafeFormat(SErrSource,[FScanner.Currow,FScanner.CurColumn]);
   Raise ECSSParser.Create(ErrAt+Msg)
 end;
 
-procedure TCSSParser.DoError(Fmt: TCSSString; const Args: array of const);
+procedure TCSSParser.DoError(const Fmt: TCSSString; const Args: array of const);
 begin
-  DoError(Format(Fmt,Args));
+  DoError(SafeFormat(Fmt,Args));
 end;
 
 procedure TCSSParser.Consume(aToken: TCSSToken);
@@ -212,6 +215,19 @@ begin
     Result:=FScanner.CurColumn
   else
     Result:=0;
+end;
+
+procedure TCSSParser.DoWarn(const Msg: TCSSString);
+begin
+  if Assigned(Scanner.OnWarn) then
+    Scanner.OnWarn(Self,Msg)
+  else
+    DoError(Msg);
+end;
+
+procedure TCSSParser.DoWarn(const Fmt: TCSSString; const Args: array of const);
+begin
+  DoWarn(SafeFormat(Fmt,Args));
 end;
 
 constructor TCSSParser.Create(AInput: TStream; ExtraScannerOptions : TCSSScannerOptions = []);
@@ -723,6 +739,12 @@ begin
   end;
 end;
 
+function TCSSParser.ParseInvalidToken: TCSSElement;
+begin
+  Result:=TCSSElement(CreateElement(TCSSElement));
+  GetNextToken;
+end;
+
 function TCSSParser.ParsePseudo: TCSSElement;
 
 Var
@@ -987,11 +1009,16 @@ function TCSSParser.ParseSelector: TCSSElement;
       ctkPSEUDO: Result:=ParsePseudo;
       ctkPSEUDOFUNCTION: Result:=ParseCall('');
     else
-      DoError(SErrUnexpectedToken ,[
+      DoWarn(SErrUnexpectedToken ,[
                GetEnumName(TypeInfo(TCSSToken),Ord(CurrentToken)),
                CurrentTokenString,
                'selector'
                ]);
+      case CurrentToken of
+      ctkINTEGER: Result:=ParseInteger;
+      ctkFLOAT: Result:=ParseFloat;
+      else Result:=ParseInvalidToken;
+      end;
     end;
   end;
 
@@ -1011,11 +1038,11 @@ begin
   Scanner.ReturnWhiteSpace:=true;
   try
     repeat
-      //writeln('TCSSParser.ParseSelector LIST START ',CurrentToken);
+      //writeln('TCSSParser.ParseSelector LIST START ',CurrentToken,' ',CurrentTokenString);
       // read list
       List:=nil;
       El:=ParseSub;
-      //writeln('TCSSParser.ParseSelector LIST NEXT ',CurrentToken);
+      //writeln('TCSSParser.ParseSelector LIST NEXT ',CurrentToken,' ',CurrentTokenString);
       while CurrentToken in [ctkSTAR,ctkIDENTIFIER,ctkCLASSNAME,ctkLBRACKET,ctkPSEUDO,ctkPSEUDOFUNCTION] do
         begin
         if List=nil then
@@ -1035,7 +1062,7 @@ begin
         Result:=El;
       El:=nil;
 
-      //writeln('TCSSParser.ParseSelector LIST END ',CurrentToken);
+      //writeln('TCSSParser.ParseSelector LIST END ',CurrentToken,' ',CurrentTokenString);
       SkipWhiteSpace;
 
       case CurrentToken of
