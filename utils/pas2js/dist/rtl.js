@@ -554,20 +554,20 @@ var rtl = {
     rtl.raiseE("EInvalidCast");
   },
 
-  createInterface: function(module, name, guid, fnnames, ancestor, initfn){
+  createInterface: function(module, name, guid, fnnames, ancestor, initfn, rttiname){
     //console.log('createInterface name="'+name+'" guid="'+guid+'" names='+fnnames);
     var i = ancestor?Object.create(ancestor):{};
     module[name] = i;
     i.$module = module;
-    i.$name = name;
-    i.$fullname = module.$name+'.'+name;
+    i.$name = rttiname?rttiname:name;
+    i.$fullname = module.$name+'.'+i.$name;
     i.$guid = guid;
     i.$guidr = null;
     i.$names = fnnames?fnnames:[];
     if (rtl.isFunction(initfn)){
       // rtti
       if (rtl.debug_rtti) rtl.debug('createInterface '+i.$fullname);
-      var t = i.$module.$rtti.$Interface(name,{ "interface": i, module: module });
+      var t = i.$module.$rtti.$Interface(i.$name,{ "interface": i, module: module });
       i.$rtti = t;
       if (ancestor) t.ancestor = ancestor.$rtti;
       if (!t.ancestor) t.ancestor = null;
