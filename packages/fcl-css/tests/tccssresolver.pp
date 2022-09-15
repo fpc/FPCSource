@@ -227,6 +227,7 @@ type
     procedure Test_Selector_FirstChild;
     procedure Test_Selector_LastChild;
     procedure Test_Selector_OnlyChild;
+    //procedure Test_Selector_Not;
     procedure Test_Selector_NthChild;
     // ToDo: :nth-last-child(n)
     procedure Test_Selector_FirstOfType;
@@ -234,14 +235,13 @@ type
     procedure Test_Selector_OnlyOfType;
     // ToDo: :nth-of-type(n)
     // ToDo: :nth-last-of-type(n)
-    // ToDo: :not(selector)
     // ToDo: div:has(>img)
     // ToDo: div:has(+img)
     // ToDo: :is()
     // ToDo: :where()
     // ToDo: :lang()
 
-    // ToDo: inline style
+    // inline style
     procedure Test_InlineStyle;
 
     // ToDo: specifity
@@ -635,7 +635,7 @@ begin
   '[left~=One] { top: 4px; }',
   '[left~=Two] { width: 5px; }',
   '[left~=Three] { height: 6px; }',
-  '[left~="Four Five"] { color: #123; }',
+  '[left~="Four Five"] { color: #123; }',  // not one word, so does not match!
   '[left~=our] { display: none; }',
   '']);
   Doc.ApplyStyle;
@@ -848,22 +848,33 @@ begin
 
   Doc.Style:=LinesToStr([
   ':nth-child(2n+1) { left: 8px; }',
-  //':nth-child(even) { top: 3px; }',
-  //':nth-child(odd) { width: 4px; }',
+  ':nth-child(n+3) { border: 6px; }',
+  ':nth-child(even) { top: 3px; }',
+  ':nth-child(odd) { width: 4px; }',
   //':nth-child(odd of .red) { height: 4px; }',
   //':nth-child(even of :not([display=none])) { color: blue; }',
   '']);
   Doc.ApplyStyle;
-  AssertEquals('Root.Left','8px',Doc.Root.Left);
+  AssertEquals('Root.Left','',Doc.Root.Left);
+  AssertEquals('Root.Border','',Doc.Root.Border);
   AssertEquals('Root.Top','',Doc.Root.Top);
+  AssertEquals('Root.Width','',Doc.Root.Width);
   AssertEquals('Div1.Left','8px',Div1.Left);
+  AssertEquals('Div1.Border','',Div1.Border);
   AssertEquals('Div1.Top','',Div1.Top);
+  AssertEquals('Div1.Width','4px',Div1.Width);
   AssertEquals('Div2.Left','',Div2.Left);
-  AssertEquals('Div2.Top','',Div2.Top);
+  AssertEquals('Div2.Border','',Div2.Border);
+  AssertEquals('Div2.Top','3px',Div2.Top);
+  AssertEquals('Div2.Width','',Div2.Width);
   AssertEquals('Div3.Left','8px',Div3.Left);
+  AssertEquals('Div3.Border','6px',Div3.Border);
   AssertEquals('Div3.Top','',Div3.Top);
-  AssertEquals('Div4.Left','8px',Div4.Left);
-  AssertEquals('Div4.Top','',Div4.Top);
+  AssertEquals('Div3.Width','4px',Div3.Width);
+  AssertEquals('Div4.Left','',Div4.Left);
+  AssertEquals('Div4.Border','6px',Div4.Border);
+  AssertEquals('Div4.Top','3px',Div4.Top);
+  AssertEquals('Div4.Width','',Div4.Width);
 end;
 
 procedure TTestCSSResolver.Test_Selector_FirstOfType;
@@ -1239,7 +1250,7 @@ begin
   ss:=TStringStream.Create(Style);
   try
     aParser:=TCSSParser.Create(ss);
-    FStyleElements:=aParser.Parse;
+    FStyleElements:=aParser.ParseInline;
   finally
     aParser.Free;
   end;

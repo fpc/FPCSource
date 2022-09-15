@@ -45,12 +45,6 @@
       <OtherUnitFiles Value="../src"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
-    <Other>
-      <OtherDefines Count="2">
-        <Define0 Value="VerboseCSSParser"/>
-        <Define1 Value="VerboseCSSResolver"/>
-      </OtherDefines>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions>

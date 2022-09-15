@@ -72,7 +72,8 @@ Type
     ctkPIPE,
     ctkPIPEEQUAL,
     ctkDOLLAR,
-    ctkDOLLAREQUAL
+    ctkDOLLAREQUAL,
+    ctkINVALID
    );
   TCSSTokens = Set of TCSSToken;
 
@@ -142,6 +143,7 @@ Type
     FOwnSourceFile : Boolean;
     function DoHash: TCSSToken;
     function DoIdentifierLike : TCSSToken;
+    function DoInvalidChars : TCSSToken;
     function DoMultiLineComment: TCSSToken;
     function CommentDiv: TCSSToken;
     function DoNumericLiteral: TCSSToken;
@@ -168,6 +170,7 @@ Type
     destructor Destroy; override;
     procedure OpenFile(const AFilename: TCSSString);
     Function FetchToken: TCSSToken;
+    function IsUTF8BOM: boolean;
     Property ReturnComments : Boolean Read GetReturnComments Write SetReturnComments;
     Property ReturnWhiteSpace : Boolean Read GetReturnWhiteSpace Write SetReturnWhiteSpace;
     Property Options : TCSSScannerOptions Read FOptions Write FOptions;
@@ -321,8 +324,6 @@ begin
   FSourceFile := TFileLineReader.Create(AFilename);
   FSourceFilename := AFilename;
 end;
-
-
 
 function TCSSScanner.FetchLine: Boolean;
 begin
@@ -669,7 +670,6 @@ Var
   Len,oLen : Integer;
   IsEscape,IsAt, IsPseudo, IsFunc : Boolean;
 
-
 begin
   Result:=ctkIDENTIFIER;
   TokenStart := TokenStr;
@@ -739,6 +739,23 @@ begin
     Result:=ctkFUNCTION;
 end;
 
+function TCSSScanner.DoInvalidChars: TCSSToken;
+var
+  TokenStart: PChar;
+  Len: SizeUInt;
+begin
+  Result:=ctkINVALID;
+  TokenStart := TokenStr;
+  repeat
+    writeln('TCSSScanner.DoInvalidChars ',hexstr(ord(TokenStr^),2));
+    Inc(TokenStr);
+  until (TokenStr[0] in [#0,#9,#10,#13,#32..#127]);
+  Len:=TokenStr-TokenStart;
+  SetLength(FCurTokenString,Len);
+  if Len > 0 then
+    Move(TokenStart^,FCurTokenString[1],Len);
+end;
+
 function TCSSScanner.FetchToken: TCSSToken;
 
 var
@@ -747,12 +764,23 @@ var
 begin
   Repeat
     Result:=DoFetchToken;
-    CanStop:=(Not (Result in [ctkComment,ctkWhiteSpace]))
+    if (Result=ctkINVALID) and IsUTF8BOM then
+      CanStop:=false
+    else
+      CanStop:=(Not (Result in [ctkComment,ctkWhiteSpace]))
              or ((ReturnComments and (Result=ctkComment))
                   or
                  (ReturnWhiteSpace and (Result=ctkWhiteSpace))
                 )
   Until CanStop;
+end;
+
+function TCSSScanner.IsUTF8BOM: boolean;
+begin
+  Result:=(length(FCurTokenString)=3)
+      and (FCurTokenString[1]=#$EF)
+      and (FCurTokenString[2]=#$BB)
+      and (FCurTokenString[3]=#$BF);
 end;
 
 function TCSSScanner.DoFetchToken: TCSSToken;
@@ -905,8 +933,9 @@ begin
          Result:=DoIdentifierLike;
        end;
   else
+    writeln('TCSSScanner.DoFetchToken ',Ord(TokenStr[0]));
     If Ord(TokenStr[0])>127 then
-      Result:=DoIdentifierLike
+      Result:=DoInvalidChars
     else
       DoError(SErrUnknownCharacter ,['"'+TokenStr[0]+'"']);
 

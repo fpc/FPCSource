@@ -102,6 +102,7 @@ type
     Procedure TestImportAtKeyWord;
     Procedure TestMediaPrint;
     Procedure TestSupportsFunction;
+    Procedure TestSkipUnknownFunction;
   end;
 
   { TTestCSSFilesParser }
@@ -201,6 +202,7 @@ end;
 
 procedure TTestCSSFilesParser.Testanimation;
 begin
+  SkipInvalid:=true;
   RunFileTest;
 end;
 
@@ -796,6 +798,14 @@ begin
   '  } '+ sLineBreak+
   '} '
   );
+end;
+
+procedure TTestCSSParser.TestSkipUnknownFunction;
+begin
+  SkipInvalid:=true;
+  ParseRule(':-webkit-any(table, thead, tbody, tfoot, tr) > form:-internal-is-html {'+sLineBreak
+    +'  display: none !important;'+sLineBreak
+    +'}');
 end;
 
 
