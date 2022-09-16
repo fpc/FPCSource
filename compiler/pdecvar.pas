@@ -1546,7 +1546,7 @@ implementation
                begin
                  { Parse procvar directives after ; }
                  maybe_parse_proc_directives(hdef);
-                 if po_is_function_ref in tprocvardef(hdef).procoptions then
+                 if (hdef.typ=procvardef) and (po_is_function_ref in tprocvardef(hdef).procoptions) then
                    begin
                      if not (m_function_references in current_settings.modeswitches) and
                          not (po_is_block in tprocvardef(hdef).procoptions) then
@@ -1865,7 +1865,7 @@ implementation
                  (hdef.typesym=nil)
                ) or is_funcref(hdef) then
                begin
-                 if po_is_function_ref in tprocvardef(hdef).procoptions then
+                 if (hdef.typ=procvardef) and (po_is_function_ref in tprocvardef(hdef).procoptions) then
                    begin
                      if not (m_function_references in current_settings.modeswitches) and
                          not (po_is_block in tprocvardef(hdef).procoptions) then
