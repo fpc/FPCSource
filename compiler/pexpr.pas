@@ -1308,7 +1308,17 @@ implementation
                          include(p1.flags,nf_isproperty);
                          consume(_ASSIGNMENT);
                          { read the expression }
+                         if propsym.propdef.typ=procvardef then
+                           getprocvardef:=tprocvardef(propsym.propdef)
+                         else if is_invokable(propsym.propdef) then
+                           getfuncrefdef:=tobjectdef(propsym.propdef);
                          p2:=comp_expr([ef_accept_equal]);
+                         if assigned(getprocvardef) then
+                           handle_procvar(getprocvardef,p2)
+                         else if assigned(getfuncrefdef) then
+                           handle_funcref(getfuncrefdef,p2);
+                         getprocvardef:=nil;
+                         getfuncrefdef:=nil;
                          p1:=cassignmentnode.create(p1,p2);
                       end
                     else
