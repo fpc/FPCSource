@@ -1861,9 +1861,9 @@ implementation
 
              { Add calling convention for procvar }
              if (
-                 (hdef.typ=procvardef) and
-                 (hdef.typesym=nil)
-               ) or is_funcref(hdef) then
+                 (hdef.typ=procvardef) or
+                 is_funcref(hdef)
+               ) and (hdef.typesym=nil) then
                begin
                  if (hdef.typ=procvardef) and (po_is_function_ref in tprocvardef(hdef).procoptions) then
                    begin
