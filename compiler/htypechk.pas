@@ -2995,6 +2995,26 @@ implementation
                    end;
                end;
 
+             { same as above, but for the case that we have a proc-2-procvar
+               conversion together with a load }
+             if (def_to.typ=procvardef) and
+                (currpt.left.nodetype=typeconvn) and
+                (ttypeconvnode(currpt.left).convtype=tc_proc_2_procvar) and
+                (ttypeconvnode(currpt.left).totypedef=voidtype) and
+                not (nf_explicit in currpt.left.flags) and
+                (ttypeconvnode(currpt.left).left.nodetype=loadn) and
+                (ttypeconvnode(currpt.left).left.resultdef.typ=procdef) then
+               begin
+                 pdtemp:=tprocsym(tloadnode(ttypeconvnode(currpt.left).left).symtableentry).Find_procdef_byprocvardef(Tprocvardef(def_to));
+                 if assigned(pdtemp) then
+                   begin
+                     tloadnode(ttypeconvnode(currpt.left).left).setprocdef(pdtemp);
+                     ttypeconvnode(currpt.left).totypedef:=cprocvardef.getreusableprocaddr(pdtemp,pc_normal);
+                     ttypeconvnode(currpt.left).resultdef:=ttypeconvnode(currpt.left).totypedef;
+                     def_from:=ttypeconvnode(currpt.left).resultdef;
+                   end;
+               end;
+
               { varargs are always equal, but not exact }
               if (po_varargs in hp^.data.procoptions) and
                  (currparanr>hp^.data.minparacount) and
