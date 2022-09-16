@@ -815,11 +815,17 @@ implementation
           recorddef,
           setdef:
             result:=R_INTREGISTER;
+          procvardef:
+            { getaddressregister cannot handle if multiple registers
+              are required for a single element }
+            if is_methodpointer(def) then
+              result:=R_INTREGISTER
+            else
+              result:=R_ADDRESSREGISTER;
           stringdef,
           pointerdef,
           classrefdef,
           objectdef,
-          procvardef,
           procdef,
           arraydef,
           formaldef:
