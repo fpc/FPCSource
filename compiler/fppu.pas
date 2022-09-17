@@ -805,26 +805,16 @@ var
     procedure tppumodule.writesourcefiles;
       var
         hp  : tinputfile;
-        i,j : longint;
+        ifile : sizeint;
       begin
       { second write the used source files }
         ppufile.do_crc:=false;
-        hp:=sourcefiles.files;
       { write source files directly in good order }
-        j:=0;
-        while assigned(hp) do
+        for ifile:=0 to sourcefiles.nfiles-1 do
           begin
-            inc(j);
-            hp:=hp.ref_next;
-          end;
-        while j>0 do
-          begin
-            hp:=sourcefiles.files;
-            for i:=1 to j-1 do
-              hp:=hp.ref_next;
+            hp:=sourcefiles.files[ifile];
             ppufile.putstring(hp.inc_path+hp.name);
             ppufile.putlongint(hp.getfiletime);
-            dec(j);
          end;
         ppufile.writeentry(ibsourcefiles);
         ppufile.do_crc:=true;

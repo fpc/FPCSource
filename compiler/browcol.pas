@@ -1760,6 +1760,7 @@ var
   puu: tused_unit;
   pdu: tdependent_unit;
   pif: tinputfile;
+  ifile: sizeint;
 begin
   DisposeBrowserCol;
   if (cs_browser in current_settings.moduleswitches) then
@@ -1783,16 +1784,13 @@ begin
 {           pimportlist(current_module^.imports^.first);}
 
            if assigned(hp.sourcefiles) then
-           begin
-             pif:=hp.sourcefiles.files;
-             while (pif<>nil) do
+             for ifile:=hp.sourcefiles.nfiles-1 downto 0 do
              begin
+               pif:=hp.sourcefiles.files[ifile];
                path:=pif.path;
                name:=pif.name;
                UnitS^.AddSourceFile(path+name);
-               pif:=pif.next;
              end;
-           end;
 
            Modules^.Insert(UnitS);
            ProcessSymTable(UnitS,UnitS^.Items,T);
@@ -1998,6 +1996,7 @@ var m: tmodule;
     s: tinputfile;
     ppu,obj: string;
     source: string;
+    ifile: sizeint;
 begin
   if Assigned(SourceFiles) then
     begin
@@ -2017,16 +2016,13 @@ begin
       if (m.is_unit=false) and (m.islibrary=false) then
         ppu:=ExpandFileName(m.exefilename);
       if assigned(m.sourcefiles) then
+        for ifile:=m.sourcefiles.nfiles-1 downto 0 do
         begin
-          s:=m.sourcefiles.files;
-          while assigned(s) do
-          begin
-            source:=s.path+s.name;
-            source:=ExpandFileName(source);
+          s:=m.sourcefiles.files[ifile];
+          source:=s.path+s.name;
+          source:=ExpandFileName(source);
 
-            sourcefiles^.Insert(New(PSourceFile, Init(source,obj,ppu)));
-            s:=s.ref_next;
-          end;
+          sourcefiles^.Insert(New(PSourceFile, Init(source,obj,ppu)));
         end;
       m:=tmodule(m.next);
     end;

@@ -54,7 +54,6 @@ interface
          maxlinebuf : longint;
 
          ref_index  : longint;
-         ref_next   : tinputfile;
 
          is_macro,
          endoffile,                 { still bytes left to read }
@@ -86,6 +85,7 @@ interface
          function fileclose: boolean; virtual; abstract;
          procedure filegettime; virtual; abstract;
        end;
+       ptinputfile = ^tinputfile;
 
        tdosinputfile = class(tinputfile)
        protected
@@ -100,10 +100,8 @@ interface
        end;
 
        tinputfilemanager = class
-          files : tinputfile;
-          last_ref_index : longint;
-          cacheindex : longint;
-          cacheinputfile : tinputfile;
+          files : ptinputfile;
+          nfiles,afiles : sizeint;
           constructor create;
           destructor destroy;override;
           procedure register_file(f : tinputfile);
@@ -219,7 +217,6 @@ uses
         saveline_no:=0;
         savelastlinepos:=0;
       { indexing refs }
-        ref_next:=nil;
         ref_index:=0;
       { line buffer }
         linebuf:=nil;
@@ -518,25 +515,16 @@ uses
 
     constructor tinputfilemanager.create;
       begin
-         files:=nil;
-         last_ref_index:=0;
-         cacheindex:=0;
-         cacheinputfile:=nil;
       end;
 
 
     destructor tinputfilemanager.destroy;
       var
-         hp : tinputfile;
+         ifile : SizeInt;
       begin
-         hp:=files;
-         while assigned(hp) do
-          begin
-            files:=files.ref_next;
-            hp.free;
-            hp:=files;
-          end;
-         last_ref_index:=0;
+         for ifile:=0 to nfiles-1 do
+          files[ifile].free;
+         FreeMem(files);
       end;
 
 
@@ -545,13 +533,16 @@ uses
          { don't register macro's }
          if f.is_macro then
           exit;
-         inc(last_ref_index);
-         f.ref_next:=files;
-         f.ref_index:=last_ref_index;
-         files:=f;
-         { update cache }
-         cacheindex:=last_ref_index;
-         cacheinputfile:=f;
+
+         if nfiles=afiles then
+          begin
+            afiles:=afiles+4+SizeUint(afiles) div 4+SizeUint(afiles) div 8;
+            ReallocMem(files,afiles*sizeof(files[0]));
+          end;
+         f.ref_index:=1+nfiles;
+         files[nfiles]:=f;
+         inc(nfiles);
+
 {$ifndef GENERIC_CPU}
 {$ifdef heaptrc}
          ppheap_register_file(f.path+f.name,current_module.unit_index*100000+f.ref_index);
@@ -561,24 +552,10 @@ uses
 
 
    function tinputfilemanager.get_file(l :longint) : tinputfile;
-     var
-        ff : tinputfile;
      begin
-       { check cache }
-       if (l=cacheindex) and assigned(cacheinputfile) then
-        begin
-          get_file:=cacheinputfile;
-          exit;
-        end;
-       ff:=files;
-       while assigned(ff) and (ff.ref_index<>l) do
-         ff:=ff.ref_next;
-       if assigned(ff) then
-         begin
-           cacheindex:=ff.ref_index;
-           cacheinputfile:=ff;
-         end;
-       get_file:=ff;
+       if not ((l>=1) and (l<=nfiles)) then
+         exit(nil);
+       result:=files[l-1];
      end;
 
 
