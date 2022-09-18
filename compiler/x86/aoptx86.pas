@@ -55,6 +55,12 @@ unit aoptx86;
         function RegInInstruction(Reg: TRegister; p1: tai): Boolean;override;
         function GetNextInstructionUsingReg(Current: tai; out Next: tai; reg: TRegister): Boolean;
 
+        { Identical to GetNextInstructionUsingReg, but returns a value indicating
+          how many instructions away that Next is from Current is.
+
+          0 = failure, equivalent to False in GetNextInstructionUsingReg }
+        function GetNextInstructionUsingRegCount(Current: tai; out Next: tai; reg: TRegister): Cardinal;
+
         { This version of GetNextInstructionUsingReg will look across conditional jumps,
           potentially allowing further optimisation (although it might need to know if
           it crossed a conditional jump. }
@@ -471,6 +477,27 @@ unit aoptx86;
       repeat
         Result:=GetNextInstruction(Next,Next);
       until not (Result) or
+            not(cs_opt_level3 in current_settings.optimizerswitches) or
+            (Next.typ<>ait_instruction) or
+            RegInInstruction(reg,Next) or
+            is_calljmp(taicpu(Next).opcode);
+    end;
+
+
+  function TX86AsmOptimizer.GetNextInstructionUsingRegCount(Current: tai; out Next: tai; reg: TRegister): Cardinal;
+    var
+      GetNextResult: Boolean;
+    begin
+      Result:=0;
+      Next:=Current;
+      repeat
+        GetNextResult := GetNextInstruction(Next,Next);
+        if GetNextResult then
+          Inc(Result)
+        else
+          { Must return zero upon hitting the end of the linked list without a match }
+          Result := 0;
+      until not (GetNextResult) or
             not(cs_opt_level3 in current_settings.optimizerswitches) or
             (Next.typ<>ait_instruction) or
             RegInInstruction(reg,Next) or
@@ -12631,7 +12658,10 @@ unit aoptx86;
 
     function TX86AsmOptimizer.OptPass2ADD(var p : tai) : boolean;
       var
-        hp1: tai; NewRef: TReference;
+        hp1, hp2: tai;
+        NewRef: TReference;
+        Distance: Cardinal;
+        TempTracking: TAllUsedRegs;
 
         { This entire nested function is used in an if-statement below, but we
           want to avoid all the used reg transfers and GetNextInstruction calls
@@ -12644,18 +12674,82 @@ unit aoptx86;
             hp2 := p;
             repeat
               UpdateUsedRegs(TmpUsedRegs, tai(hp2.Next));
-            until not GetNextInstruction(hp2, hp2) or (hp2 = hp1);
+            until not (cs_opt_level3 in current_settings.optimizerswitches) or not GetNextInstruction(hp2, hp2) or (hp2 = hp1);
 
             Result := not RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs);
           end;
 
       begin
         Result := False;
-        if not GetNextInstruction(p, hp1) or (hp1.typ <> ait_instruction) then
-          Exit;
 
-        if (taicpu(p).opsize in [S_L{$ifdef x86_64}, S_Q{$endif}]) then
+        if (taicpu(p).opsize in [S_L{$ifdef x86_64}, S_Q{$endif}]) and
+          (taicpu(p).oper[1]^.typ = top_reg) then
           begin
+            Distance := GetNextInstructionUsingRegCount(p, hp1, taicpu(p).oper[1]^.reg);
+            if (Distance = 0) or (Distance > 3) { Likely too far to make a meaningful difference } or
+              (hp1.typ <> ait_instruction) or
+              not
+              (
+                (cs_opt_level3 in current_settings.optimizerswitches) or
+                { GetNextInstructionUsingRegCount just returns the next valid instruction under -O2 and under }
+                RegInInstruction(taicpu(p).oper[1]^.reg, hp1)
+              ) then
+              Exit;
+
+            { Some of the MOV optimisations are much more in-depth.  For example, if we have:
+                addq $x,   %rax
+                movq %rax, %rdx
+                sarq $63,  %rdx
+                (%rax still in use)
+
+              ...letting OptPass2ADD run its course (and without -Os) will produce:
+                leaq $x(%rax),%rdx
+                addq $x,   %rax
+                sarq $63,  %rdx
+
+              ...which is okay since it breaks the dependency chain between
+                addq and movq, but if OptPass2MOV is called first:
+
+                addq $x,   %rax
+                cqto
+
+              ...which is better in all ways, taking only 2 cycles to execute
+                and much smaller in code size.
+            }
+
+            { The extra register tracking is quite strenuous }
+            if (cs_opt_level2 in current_settings.optimizerswitches) and
+              MatchInstruction(hp1, A_MOV, []) then
+              begin
+                { Update the register tracking to the MOV instruction }
+                CopyUsedRegs(TempTracking);
+                hp2 := p;
+                repeat
+                  UpdateUsedRegs(tai(hp2.Next));
+                until not (cs_opt_level3 in current_settings.optimizerswitches) or not GetNextInstruction(hp2, hp2) or (hp2 = hp1);
+
+                { if hp1 <> hp2 after the call, then hp1 got removed, so let
+                  OptPass2ADD get called again }
+                if OptPass2MOV(hp1) and (hp1 <> hp2) then
+                  begin
+                    { Reset the tracking to the current instruction }
+                    RestoreUsedRegs(TempTracking);
+                    ReleaseUsedRegs(TempTracking);
+
+                    Result := True;
+                    Exit;
+                  end;
+
+                { Reset the tracking to the current instruction }
+                RestoreUsedRegs(TempTracking);
+                ReleaseUsedRegs(TempTracking);
+
+                { If OptPass2MOV returned True, we don't need to set Result to
+                  True if hp1 didn't change because the ADD instruction didn't
+                  get modified and we'll be evaluating hp1 again when the
+                  peephole optimizer reaches it }
+              end;
+
             { Change:
                 add     %reg2,%reg1
                 mov/s/z #(%reg1),%reg1  (%reg1 superregisters must be the same)
@@ -12663,7 +12757,7 @@ unit aoptx86;
               To:
                 mov/s/z #(%reg1,%reg2),%reg1
             }
-            if MatchOpType(taicpu(p), top_reg, top_reg) and
+            if (taicpu(p).oper[0]^.typ = top_reg) and
               MatchInstruction(hp1, [A_MOV, A_MOVZX, A_MOVSX{$ifdef x86_64}, A_MOVSXD{$endif}], []) and
               MatchOpType(taicpu(hp1), top_ref, top_reg) and
               (taicpu(hp1).oper[0]^.ref^.scalefactor <= 1) and
@@ -12686,11 +12780,18 @@ unit aoptx86;
                 )
               ) then
               begin
+                AllocRegBetween(taicpu(p).oper[0]^.reg, p, hp1, UsedRegs);
                 taicpu(hp1).oper[0]^.ref^.base := taicpu(p).oper[1]^.reg;
                 taicpu(hp1).oper[0]^.ref^.index := taicpu(p).oper[0]^.reg;
 
                 DebugMsg(SPeepholeOptimization + 'AddMov2Mov done', p);
-                RemoveCurrentp(p, hp1);
+
+                if (cs_opt_level3 in current_settings.optimizerswitches) then
+                  { hp1 may not be the immediate next instruction under -O3 }
+                  RemoveCurrentp(p)
+                else
+                  RemoveCurrentp(p, hp1);
+
                 Result := True;
                 Exit;
               end;
@@ -12704,51 +12805,69 @@ unit aoptx86;
 
               Breaks the dependency chain.
             }
-            if MatchOpType(taicpu(p),top_const,top_reg) and
+            if (taicpu(p).oper[0]^.typ = top_const) and
               MatchInstruction(hp1, A_MOV, [taicpu(p).opsize]) and
               (taicpu(hp1).oper[1]^.typ = top_reg) and
               MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[1]^.reg) and
               (
-                { Don't do AddMov2LeaAdd under -Os, but do allow AddMov2Lea }
-                not (cs_opt_size in current_settings.optimizerswitches) or
-                (
-                  not RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs) and
-                  RegUsedAfterInstruction(NR_DEFAULTFLAGS, hp1, TmpUsedRegs)
-                )
+                { Instructions are guaranteed to be adjacent on -O2 and under }
+                not (cs_opt_level3 in current_settings.optimizerswitches) or
+                not RegUsedBetween(taicpu(hp1).oper[1]^.reg, p, hp1)
               ) then
               begin
-                { Change the MOV instruction to a LEA instruction, and update the
-                  first operand }
-
-                reference_reset(NewRef, 1, []);
-                NewRef.base := taicpu(p).oper[1]^.reg;
-                NewRef.scalefactor := 1;
-                NewRef.offset := asizeint(taicpu(p).oper[0]^.val);
-
-                taicpu(hp1).opcode := A_LEA;
-                taicpu(hp1).loadref(0, NewRef);
-
                 TransferUsedRegs(TmpUsedRegs);
-                UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
-                if RegUsedAfterInstruction(NewRef.base, hp1, TmpUsedRegs) or
-                  RegUsedAfterInstruction(NR_DEFAULTFLAGS, hp1, TmpUsedRegs) then
-                  begin
-                    { Move what is now the LEA instruction to before the SUB instruction }
-                    Asml.Remove(hp1);
-                    Asml.InsertBefore(hp1, p);
-                    AllocRegBetween(taicpu(hp1).oper[1]^.reg, hp1, p, UsedRegs);
+                hp2 := p;
+                repeat
+                  UpdateUsedRegs(TmpUsedRegs, tai(hp2.Next));
+                until not (cs_opt_level3 in current_settings.optimizerswitches) or not GetNextInstruction(hp2, hp2) or (hp2 = hp1);
 
-                    DebugMsg(SPeepholeOptimization + 'AddMov2LeaAdd', p);
-                    p := hp1;
-                  end
-                else
+                if (
+                    { Don't do AddMov2LeaAdd under -Os, but do allow AddMov2Lea }
+                    not (cs_opt_size in current_settings.optimizerswitches) or
+                    (
+                      not RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs) and
+                      not RegUsedAfterInstruction(NR_DEFAULTFLAGS, hp1, TmpUsedRegs)
+                    )
+                  ) then
                   begin
-                    { Since %reg1 or the flags aren't used afterwards, we can delete p completely }
-                    RemoveCurrentP(p, hp1);
-                    DebugMsg(SPeepholeOptimization + 'AddMov2Lea', p);
+                    { Change the MOV instruction to a LEA instruction, and update the
+                      first operand }
+
+                    reference_reset(NewRef, 1, []);
+                    NewRef.base := taicpu(p).oper[1]^.reg;
+                    NewRef.scalefactor := 1;
+                    NewRef.offset := asizeint(taicpu(p).oper[0]^.val);
+
+                    taicpu(hp1).opcode := A_LEA;
+                    taicpu(hp1).loadref(0, NewRef);
+
+                    if RegUsedAfterInstruction(NewRef.base, hp1, TmpUsedRegs) or
+                      RegUsedAfterInstruction(NR_DEFAULTFLAGS, hp1, TmpUsedRegs) then
+                      begin
+                        hp2 := tai(hp1.Next); { for the benefit of AllocRegBetween }
+
+                        { Move what is now the LEA instruction to before the ADD instruction }
+                        Asml.Remove(hp1);
+                        Asml.InsertBefore(hp1, p);
+                        AllocRegBetween(taicpu(hp1).oper[1]^.reg, hp1, hp2, UsedRegs);
+
+                        DebugMsg(SPeepholeOptimization + 'AddMov2LeaAdd', p);
+                        p := hp1;
+                      end
+                    else
+                      begin
+                        { Since %reg1 or the flags aren't used afterwards, we can delete p completely }
+                        DebugMsg(SPeepholeOptimization + 'AddMov2Lea', hp1);
+
+                        if (cs_opt_level3 in current_settings.optimizerswitches) then
+                          { hp1 may not be the immediate next instruction under -O3 }
+                          RemoveCurrentp(p)
+                        else
+                          RemoveCurrentp(p, hp1);
+                      end;
+
+                    Result := True;
                   end;
-
-                Result := True;
               end;
           end;
       end;
@@ -12800,65 +12919,156 @@ unit aoptx86;
 
     function TX86AsmOptimizer.OptPass2SUB(var p: tai): Boolean;
       var
-        hp1: tai; NewRef: TReference;
+        hp1, hp2: tai;
+        NewRef: TReference;
+        Distance: Cardinal;
+        TempTracking: TAllUsedRegs;
+
       begin
-        { Change:
-            subl/q $x,%reg1
-            movl/q %reg1,%reg2
-          To:
-            leal/q $-x(%reg1),%reg2
-            subl/q $x,%reg1 (can be removed if %reg1 or the flags are not used afterwards)
-
-          Breaks the dependency chain and potentially permits the removal of
-          a CMP instruction if one follows.
-        }
         Result := False;
-        if (taicpu(p).opsize in [S_L{$ifdef x86_64}, S_Q{$endif x86_64}]) and
-          MatchOpType(taicpu(p),top_const,top_reg) and
-          GetNextInstruction(p, hp1) and
-          MatchInstruction(hp1, A_MOV, [taicpu(p).opsize]) and
-          (taicpu(hp1).oper[1]^.typ = top_reg) and
-          MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[1]^.reg) and
-          (
-            { Don't do SubMov2LeaSub under -Os, but do allow SubMov2Lea }
-            not (cs_opt_size in current_settings.optimizerswitches) or
-            (
-              not RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs) and
-              RegUsedAfterInstruction(NR_DEFAULTFLAGS, hp1, TmpUsedRegs)
-            )
-          ) then
+
+        if (taicpu(p).opsize in [S_L{$ifdef x86_64}, S_Q{$endif}]) and
+          MatchOpType(taicpu(p),top_const,top_reg) then
           begin
-            { Change the MOV instruction to a LEA instruction, and update the
-              first operand }
-            reference_reset(NewRef, 1, []);
-            NewRef.base := taicpu(p).oper[1]^.reg;
-            NewRef.scalefactor := 1;
-            NewRef.offset := -taicpu(p).oper[0]^.val;
+            Distance := GetNextInstructionUsingRegCount(p, hp1, taicpu(p).oper[1]^.reg);
+            if (Distance = 0) or (Distance > 3) { Likely too far to make a meaningful difference } or
+              (hp1.typ <> ait_instruction) or
+              not
+              (
+                (cs_opt_level3 in current_settings.optimizerswitches) or
+                { GetNextInstructionUsingRegCount just returns the next valid instruction under -O2 and under }
+                RegInInstruction(taicpu(p).oper[1]^.reg, hp1)
+              ) then
+              Exit;
 
-            taicpu(hp1).opcode := A_LEA;
-            taicpu(hp1).loadref(0, NewRef);
+            { Some of the MOV optimisations are much more in-depth.  For example, if we have:
+                subq $x,   %rax
+                movq %rax, %rdx
+                sarq $63,  %rdx
+                (%rax still in use)
 
-            TransferUsedRegs(TmpUsedRegs);
-            UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
-            if RegUsedAfterInstruction(NewRef.base, hp1, TmpUsedRegs) or
-              RegUsedAfterInstruction(NR_DEFAULTFLAGS, hp1, TmpUsedRegs) then
+              ...letting OptPass2SUB run its course (and without -Os) will produce:
+                leaq $-x(%rax),%rdx
+                movq $x,   %rax
+                sarq $63,  %rdx
+
+              ...which is okay since it breaks the dependency chain between
+                subq and movq, but if OptPass2MOV is called first:
+
+                subq $x,   %rax
+                cqto
+
+              ...which is better in all ways, taking only 2 cycles to execute
+                and much smaller in code size.
+            }
+
+            { The extra register tracking is quite strenuous }
+            if (cs_opt_level2 in current_settings.optimizerswitches) and
+              MatchInstruction(hp1, A_MOV, []) then
               begin
-                { Move what is now the LEA instruction to before the SUB instruction }
-                Asml.Remove(hp1);
-                Asml.InsertBefore(hp1, p);
-                AllocRegBetween(taicpu(hp1).oper[1]^.reg, hp1, p, UsedRegs);
+                { Update the register tracking to the MOV instruction }
+                CopyUsedRegs(TempTracking);
+                hp2 := p;
+                repeat
+                  UpdateUsedRegs(tai(hp2.Next));
+                until not (cs_opt_level3 in current_settings.optimizerswitches) or not GetNextInstruction(hp2, hp2) or (hp2 = hp1);
 
-                DebugMsg(SPeepholeOptimization + 'SubMov2LeaSub', p);
-                p := hp1;
-              end
-            else
-              begin
-                { Since %reg1 or the flags aren't used afterwards, we can delete p completely }
-                RemoveCurrentP(p, hp1);
-                DebugMsg(SPeepholeOptimization + 'SubMov2Lea', p);
+                { if hp1 <> hp2 after the call, then hp1 got removed, so let
+                  OptPass2SUB get called again }
+                if OptPass2MOV(hp1) and (hp1 <> hp2) then
+                  begin
+                    { Reset the tracking to the current instruction }
+                    RestoreUsedRegs(TempTracking);
+                    ReleaseUsedRegs(TempTracking);
+
+                    Result := True;
+                    Exit;
+                  end;
+
+                { Reset the tracking to the current instruction }
+                RestoreUsedRegs(TempTracking);
+                ReleaseUsedRegs(TempTracking);
+
+                { If OptPass2MOV returned True, we don't need to set Result to
+                  True if hp1 didn't change because the SUB instruction didn't
+                  get modified and we'll be evaluating hp1 again when the
+                  peephole optimizer reaches it }
               end;
 
-            Result := True;
+            { Change:
+                subl/q $x,%reg1
+                movl/q %reg1,%reg2
+              To:
+                leal/q $-x(%reg1),%reg2
+                subl/q $x,%reg1 (can be removed if %reg1 or the flags are not used afterwards)
+
+              Breaks the dependency chain and potentially permits the removal of
+              a CMP instruction if one follows.
+            }
+            if MatchInstruction(hp1, A_MOV, [taicpu(p).opsize]) and
+              (taicpu(hp1).oper[1]^.typ = top_reg) and
+              MatchOperand(taicpu(hp1).oper[0]^, taicpu(p).oper[1]^.reg) and
+              (
+                { Instructions are guaranteed to be adjacent on -O2 and under }
+                not (cs_opt_level3 in current_settings.optimizerswitches) or
+                not RegUsedBetween(taicpu(hp1).oper[1]^.reg, p, hp1)
+              ) then
+              begin
+                TransferUsedRegs(TmpUsedRegs);
+                hp2 := p;
+                repeat
+                  UpdateUsedRegs(TmpUsedRegs, tai(hp2.Next));
+                until not (cs_opt_level3 in current_settings.optimizerswitches) or not GetNextInstruction(hp2, hp2) or (hp2 = hp1);
+
+                if (
+                    { Don't do SubMov2LeaSub under -Os, but do allow SubMov2Lea }
+                    not (cs_opt_size in current_settings.optimizerswitches) or
+                    (
+                      not RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs) and
+                      not RegUsedAfterInstruction(NR_DEFAULTFLAGS, hp1, TmpUsedRegs)
+                    )
+                  ) then
+                  begin
+                    { Change the MOV instruction to a LEA instruction, and update the
+                      first operand }
+                    reference_reset(NewRef, 1, []);
+                    NewRef.base := taicpu(p).oper[1]^.reg;
+                    NewRef.scalefactor := 1;
+                    NewRef.offset := -taicpu(p).oper[0]^.val;
+
+                    taicpu(hp1).opcode := A_LEA;
+                    taicpu(hp1).loadref(0, NewRef);
+
+                    TransferUsedRegs(TmpUsedRegs);
+                    UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+                    if RegUsedAfterInstruction(NewRef.base, hp1, TmpUsedRegs) or
+                      RegUsedAfterInstruction(NR_DEFAULTFLAGS, hp1, TmpUsedRegs) then
+                      begin
+                        hp2 := tai(hp1.Next); { for the benefit of AllocRegBetween }
+
+                        { Move what is now the LEA instruction to before the SUB instruction }
+                        Asml.Remove(hp1);
+                        Asml.InsertBefore(hp1, p);
+                        AllocRegBetween(taicpu(hp1).oper[1]^.reg, hp1, hp2, UsedRegs);
+
+                        DebugMsg(SPeepholeOptimization + 'SubMov2LeaSub', p);
+                        p := hp1;
+                      end
+                    else
+                      begin
+                        { Since %reg1 or the flags aren't used afterwards, we can delete p completely }
+                        DebugMsg(SPeepholeOptimization + 'SubMov2Lea', hp1);
+
+                        if (cs_opt_level3 in current_settings.optimizerswitches) then
+                          { hp1 may not be the immediate next instruction under -O3 }
+                          RemoveCurrentp(p)
+                        else
+                          RemoveCurrentp(p, hp1);
+                      end;
+
+                    Result := True;
+                  end;
+              end;
           end;
       end;
 
