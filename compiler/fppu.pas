@@ -1028,6 +1028,8 @@ var
           include(moduleflags,mf_local_symtable);
         if cs_checkpointer_called in current_settings.moduleswitches then
           include(moduleflags,mf_checkpointer_called);
+        if cs_compilesystem in current_settings.moduleswitches then
+          include(moduleflags,mf_system_unit);
 {$ifdef i8086}
         if current_settings.x86memorymodel in [mm_medium,mm_large,mm_huge] then
           include(moduleflags,mf_i8086_far_code);
