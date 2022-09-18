@@ -227,18 +227,19 @@ type
     procedure Test_Selector_FirstChild;
     procedure Test_Selector_LastChild;
     procedure Test_Selector_OnlyChild;
-    //procedure Test_Selector_Not;
+    procedure Test_Selector_Not;
     procedure Test_Selector_NthChild;
-    // ToDo: :nth-last-child(n)
+    procedure Test_Selector_NthLastChild;
+    procedure Test_Selector_NthChildOf;
     procedure Test_Selector_FirstOfType;
     procedure Test_Selector_LastOfType;
     procedure Test_Selector_OnlyOfType;
-    // ToDo: :nth-of-type(n)
-    // ToDo: :nth-last-of-type(n)
+    procedure Test_Selector_NthOfType;
+    procedure Test_Selector_NthLastOfType;
+    procedure Test_Selector_Is;
+    procedure Test_Selector_Where;
     // ToDo: div:has(>img)
     // ToDo: div:has(+img)
-    // ToDo: :is()
-    // ToDo: :where()
     // ToDo: :lang()
 
     // inline style
@@ -828,6 +829,42 @@ begin
   AssertEquals('Button12.Top','',Button12.Top);
 end;
 
+procedure TTestCSSResolver.Test_Selector_Not;
+var
+  Div1, Div11, Div2: TDemoDiv;
+  Button12: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=TDemoDiv.Create(Doc);
+  Div1.Parent:=Doc.Root;
+
+  Div11:=TDemoDiv.Create(Doc);
+  Div11.Parent:=Div1;
+
+  Div2:=TDemoDiv.Create(Doc);
+  Div2.Parent:=Doc.Root;
+
+  Button12:=TDemoButton.Create(Doc);
+  Button12.Parent:=Div2;
+
+  Doc.Style:=LinesToStr([
+  ':not(:only-child) { left: 8px; }',
+  ':not(div:only-child) { top: 9px; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Root.Left','',Doc.Root.Left);
+  AssertEquals('Root.Top','9px',Doc.Root.Top);
+  AssertEquals('Div1.Left','8px',Div1.Left);
+  AssertEquals('Div1.Top','9px',Div1.Top);
+  AssertEquals('Div11.Left','',Div11.Left);
+  AssertEquals('Div11.Top','',Div11.Top);
+  AssertEquals('Div2.Left','8px',Div2.Left);
+  AssertEquals('Div2.Top','9px',Div2.Top);
+  AssertEquals('Button12.Left','',Button12.Left);
+  AssertEquals('Button12.Top','9px',Button12.Top);
+end;
+
 procedure TTestCSSResolver.Test_Selector_NthChild;
 var
   Div1, Div2, Div3, Div4: TDemoDiv;
@@ -849,32 +886,97 @@ begin
   Doc.Style:=LinesToStr([
   ':nth-child(2n+1) { left: 8px; }',
   ':nth-child(n+3) { border: 6px; }',
+  ':nth-child(-n+2) { display: inline; }',
   ':nth-child(even) { top: 3px; }',
   ':nth-child(odd) { width: 4px; }',
-  //':nth-child(odd of .red) { height: 4px; }',
-  //':nth-child(even of :not([display=none])) { color: blue; }',
   '']);
   Doc.ApplyStyle;
   AssertEquals('Root.Left','',Doc.Root.Left);
   AssertEquals('Root.Border','',Doc.Root.Border);
+  AssertEquals('Root.Display','',Doc.Root.Display);
   AssertEquals('Root.Top','',Doc.Root.Top);
   AssertEquals('Root.Width','',Doc.Root.Width);
   AssertEquals('Div1.Left','8px',Div1.Left);
   AssertEquals('Div1.Border','',Div1.Border);
+  AssertEquals('Div1.Display','inline',Div1.Display);
   AssertEquals('Div1.Top','',Div1.Top);
   AssertEquals('Div1.Width','4px',Div1.Width);
   AssertEquals('Div2.Left','',Div2.Left);
   AssertEquals('Div2.Border','',Div2.Border);
+  AssertEquals('Div2.Display','inline',Div2.Display);
   AssertEquals('Div2.Top','3px',Div2.Top);
   AssertEquals('Div2.Width','',Div2.Width);
   AssertEquals('Div3.Left','8px',Div3.Left);
   AssertEquals('Div3.Border','6px',Div3.Border);
+  AssertEquals('Div3.Display','',Div3.Display);
   AssertEquals('Div3.Top','',Div3.Top);
   AssertEquals('Div3.Width','4px',Div3.Width);
   AssertEquals('Div4.Left','',Div4.Left);
   AssertEquals('Div4.Border','6px',Div4.Border);
+  AssertEquals('Div4.Display','',Div4.Display);
   AssertEquals('Div4.Top','3px',Div4.Top);
   AssertEquals('Div4.Width','',Div4.Width);
+end;
+
+procedure TTestCSSResolver.Test_Selector_NthLastChild;
+var
+  Div1, Div2, Div3, Div4: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=TDemoDiv.Create(Doc);
+  Div1.Parent:=Doc.Root;
+
+  Div2:=TDemoDiv.Create(Doc);
+  Div2.Parent:=Doc.Root;
+
+  Div3:=TDemoDiv.Create(Doc);
+  Div3.Parent:=Doc.Root;
+
+  Div4:=TDemoDiv.Create(Doc);
+  Div4.Parent:=Doc.Root;
+
+  Doc.Style:=LinesToStr([
+  ':nth-last-child(2n+1) { left: 8px; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Root.Left','',Doc.Root.Left);
+  AssertEquals('Div1.Left','',Div1.Left);
+  AssertEquals('Div2.Left','8px',Div2.Left);
+  AssertEquals('Div3.Left','',Div3.Left);
+  AssertEquals('Div4.Left','8px',Div4.Left);
+end;
+
+procedure TTestCSSResolver.Test_Selector_NthChildOf;
+var
+  Div1, Div2, Div3, Div4: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=TDemoDiv.Create(Doc);
+  Div1.Parent:=Doc.Root;
+
+  Div2:=TDemoDiv.Create(Doc);
+  Div2.Parent:=Doc.Root;
+  Div2.Top:='3px';
+
+  Div3:=TDemoDiv.Create(Doc);
+  Div3.Parent:=Doc.Root;
+  Div3.Top:='3px';
+
+  Div4:=TDemoDiv.Create(Doc);
+  Div4.Parent:=Doc.Root;
+  Div4.Top:='3px';
+
+  Doc.Style:=LinesToStr([
+  ':nth-child(2n+1 of [top=3px]) { left: 5px; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Root.Left','',Doc.Root.Left);
+  AssertEquals('Div1.Left','',Div1.Left);
+  AssertEquals('Div2.Left','5px',Div2.Left);
+  AssertEquals('Div3.Left','',Div3.Left);
+  AssertEquals('Div4.Left','5px',Div4.Left);
 end;
 
 procedure TTestCSSResolver.Test_Selector_FirstOfType;
@@ -993,6 +1095,138 @@ begin
   AssertEquals('Button12.Top','',Button12.Top);
   AssertEquals('Div2.Left','',Div2.Left);
   AssertEquals('Div2.Top','',Div2.Top);
+end;
+
+procedure TTestCSSResolver.Test_Selector_NthOfType;
+var
+  Div1, Div2, Div3, Div4: TDemoDiv;
+  Button1, Button2: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=TDemoDiv.Create(Doc);
+  Div1.Parent:=Doc.Root;
+
+  Button1:=TDemoButton.Create(Doc);
+  Button1.Parent:=Doc.Root;
+
+  Div2:=TDemoDiv.Create(Doc);
+  Div2.Parent:=Doc.Root;
+
+  Div3:=TDemoDiv.Create(Doc);
+  Div3.Parent:=Doc.Root;
+
+  Button2:=TDemoButton.Create(Doc);
+  Button2.Parent:=Doc.Root;
+
+  Div4:=TDemoDiv.Create(Doc);
+  Div4.Parent:=Doc.Root;
+
+  Doc.Style:=LinesToStr([
+  ':nth-of-type(2n+1) { left: 8px; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Root.Left','',Doc.Root.Left);
+  AssertEquals('Div1.Left','8px',Div1.Left);
+  AssertEquals('Button1.Left','8px',Button1.Left);
+  AssertEquals('Div2.Left','',Div2.Left);
+  AssertEquals('Div3.Left','8px',Div3.Left);
+  AssertEquals('Button2.Left','',Button2.Left);
+  AssertEquals('Div4.Left','',Div4.Left);
+end;
+
+procedure TTestCSSResolver.Test_Selector_NthLastOfType;
+var
+  Div1, Div2, Div3, Div4: TDemoDiv;
+  Button1, Button2: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=TDemoDiv.Create(Doc);
+  Div1.Parent:=Doc.Root;
+
+  Button1:=TDemoButton.Create(Doc);
+  Button1.Parent:=Doc.Root;
+
+  Div2:=TDemoDiv.Create(Doc);
+  Div2.Parent:=Doc.Root;
+
+  Div3:=TDemoDiv.Create(Doc);
+  Div3.Parent:=Doc.Root;
+
+  Button2:=TDemoButton.Create(Doc);
+  Button2.Parent:=Doc.Root;
+
+  Div4:=TDemoDiv.Create(Doc);
+  Div4.Parent:=Doc.Root;
+
+  Doc.Style:=LinesToStr([
+  ':nth-last-of-type(2n+1) { left: 8px; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Root.Left','',Doc.Root.Left);
+  AssertEquals('Div1.Left','',Div1.Left);
+  AssertEquals('Button1.Left','',Button1.Left);
+  AssertEquals('Div2.Left','8px',Div2.Left);
+  AssertEquals('Div3.Left','',Div3.Left);
+  AssertEquals('Button2.Left','8px',Button2.Left);
+  AssertEquals('Div4.Left','8px',Div4.Left);
+end;
+
+procedure TTestCSSResolver.Test_Selector_Is;
+var
+  Div1, Div2: TDemoDiv;
+  Button1, Button2: TDemoButton;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=TDemoDiv.Create(Doc);
+  Div1.Parent:=Doc.Root;
+  Div1.Top:='3px';
+
+  Button1:=TDemoButton.Create(Doc);
+  Button1.Parent:=Doc.Root;
+
+  Div2:=TDemoDiv.Create(Doc);
+  Div2.Parent:=Doc.Root;
+
+  Button2:=TDemoButton.Create(Doc);
+  Button2.Parent:=Doc.Root;
+  Button2.Top:='3px';
+
+  Doc.Style:=LinesToStr([
+  ':is(div button)[top=3px] { left: 7px; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Root.Left','',Doc.Root.Left);
+  AssertEquals('Div1.Left','7px',Div1.Left);
+  AssertEquals('Button1.Left','',Button1.Left);
+  AssertEquals('Div2.Left','',Div2.Left);
+  AssertEquals('Button2.Left','7px',Button2.Left);
+end;
+
+procedure TTestCSSResolver.Test_Selector_Where;
+var
+  Div1, Div2: TDemoDiv;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=TDemoDiv.Create(Doc);
+  Div1.Parent:=Doc.Root;
+  Div1.Top:='3px';
+
+  Div2:=TDemoDiv.Create(Doc);
+  Div2.Parent:=Div1;
+  Div2.Top:='3px';
+
+  Doc.Style:=LinesToStr([
+  ':where(div[top=3px]) { left: 1px; }',
+  'div div { left: 2px; }',
+  '']);
+  Doc.ApplyStyle;
+  AssertEquals('Root.Left','',Doc.Root.Left);
+  AssertEquals('Div1.Left','1px',Div1.Left);
+  AssertEquals('Div2.Left','2px',Div2.Left);
 end;
 
 procedure TTestCSSResolver.Test_InlineStyle;
