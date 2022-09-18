@@ -308,7 +308,7 @@ ResourceString
   SInvalidUnicodeCodePointSequence = 'Invalid unicode code point sequence';
   SClassCantBeConstructed       = 'Class %s can not be constructed';
   SErrStatusCallBackRequired    = 'Thread status report handler cannot be empty.';
-  SErrFindNeedsSortedList       = 'Cannot use find on unsorted list';
+  SErrFindNeedsSortedList       = 'Cannot use method "Find" on unsorted list';
   SParamIsNegative              = 'Parameter "%s" cannot be negative.';
   SErrCannotWriteToProperty     = 'Cannot write to property "%s".';
   SErrCannotReadProperty        = 'Cannot read property "%s".';
