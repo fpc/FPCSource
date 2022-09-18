@@ -186,6 +186,9 @@ begin
 {$endif mips}
 {$ifdef sparc64}
       LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib/sparc64-linux-gnu',true);
+      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib/sparc64-linux-gnu',true);
+      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib64',true);
+      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib64',true);
 {$endif sparc64}
     end;
 end;
