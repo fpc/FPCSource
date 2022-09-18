@@ -1195,7 +1195,7 @@ begin
   Button2.Top:='3px';
 
   Doc.Style:=LinesToStr([
-  ':is(div button)[top=3px] { left: 7px; }',
+  ':is(div, button)[top=3px] { left: 7px; }',
   '']);
   Doc.ApplyStyle;
   AssertEquals('Root.Left','',Doc.Root.Left);
