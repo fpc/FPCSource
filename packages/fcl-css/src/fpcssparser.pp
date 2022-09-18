@@ -65,6 +65,9 @@ Type
     function ParseWQName: TCSSElement;
     function ParseDeclaration(aIsAt : Boolean = false): TCSSDeclarationElement;
     function ParseCall(aName: TCSSString): TCSSElement;
+    procedure ParseSelectorCommaList(aCall: TCSSCallElement);
+    procedure ParseRelationalSelectorCommaList(aCall: TCSSCallElement);
+    procedure ParseNthChildParams(aCall: TCSSCallElement);
     function ParseUnary: TCSSElement;
     function ParseUnit: TCSSUnits;
     function ParseIdentifier : TCSSIdentifierElement;
@@ -1064,7 +1067,7 @@ begin
     ctkPSEUDOFUNCTION,
     ctkFUNCTION : Result:=ParseCall('');
     ctkSTAR,
-    ctkTILDE,
+    ctkTILDE: Result:=ParseInvalidToken;
     ctkIDENTIFIER: Result:=ParseIdentifier;
     ctkCLASSNAME : Result:=ParseClassName;
   else
@@ -1111,6 +1114,8 @@ var
   List: TCSSListElement;
 begin
   Result:=nil;
+  if CurrentToken in [ctkLBRACE,ctkRBRACE,ctkRPARENTHESIS,ctkEOF] then
+    exit;
   El:=nil;
   Bin:=nil;
   List:=nil;
@@ -1127,7 +1132,7 @@ begin
       List:=nil;
       El:=ParseSub;
       {$IFDEF VerbosecSSParser}
-      writeln('TCSSParser.ParseSelector LIST NEXT ',CurrentToken,' ',CurrentTokenString);
+      writeln('TCSSParser.ParseSelector LIST NEXT ',CurrentToken,' ',CurrentTokenString,' El=',GetCSSObj(El));
       {$ENDIF}
       while CurrentToken in [ctkSTAR,ctkHASH,ctkIDENTIFIER,ctkCLASSNAME,ctkLBRACKET,ctkPSEUDO,ctkPSEUDOFUNCTION] do
         begin
@@ -1154,7 +1159,7 @@ begin
       {$ENDIF}
 
       case CurrentToken of
-      ctkLBRACE,ctkEOF,ctkSEMICOLON,ctkCOMMA:
+      ctkLBRACE,ctkRBRACE,ctkRBRACKET,ctkRPARENTHESIS,ctkEOF,ctkSEMICOLON,ctkCOMMA:
         break;
       ctkGT,ctkPLUS,ctkTILDE,ctkPIPE:
         begin
@@ -1175,7 +1180,7 @@ begin
         Bin.Operation:=boWhiteSpace;
         end;
       else
-        Consume(ctkLBRACE);
+        break;
       end;
     until false;
     ok:=true;
@@ -1365,7 +1370,17 @@ begin
       aName:=Copy(aName,1,L-1);
     aCall.Name:=aName;
     if CurrentToken=ctkPSEUDOFUNCTION then
-      Consume(ctkPSEUDOFUNCTION)
+      begin
+      Consume(ctkPSEUDOFUNCTION);
+      case aName of
+      ':not',':is',':where':
+        ParseSelectorCommaList(aCall);
+      ':has':
+        ParseRelationalSelectorCommaList(aCall);
+      ':nth-child',':nth-last-child',':nth-of-type',':nth-last-of-type':
+        ParseNthChildParams(aCall);
+      end;
+      end
     else
       Consume(ctkFUNCTION);
     // Call argument list can be empty: mask()
@@ -1390,6 +1405,104 @@ begin
     Scanner.ReturnWhiteSpace:=OldReturnWhiteSpace;
     aCall.Free;
   end;
+end;
+
+procedure TCSSParser.ParseSelectorCommaList(aCall: TCSSCallElement);
+var
+  El: TCSSElement;
+begin
+  while not (CurrentToken in [ctkEOF,ctkRBRACKET,ctkRBRACE,ctkRPARENTHESIS]) do
+    begin
+    El:=ParseSelector;
+    if EL=nil then exit;
+    aCall.AddArg(El);
+    SkipWhiteSpace;
+    if CurrentToken<>ctkCOMMA then
+      exit;
+    GetNextToken;
+  end;
+end;
+
+procedure TCSSParser.ParseRelationalSelectorCommaList(aCall: TCSSCallElement);
+var
+  El: TCSSElement;
+begin
+  while not (CurrentToken in [ctkEOF,ctkRBRACKET,ctkRBRACE,ctkRPARENTHESIS]) do
+    begin
+    if CurrentToken in [ctkGT,ctkPLUS,ctkTILDE,ctkPIPE] then
+      aCall.AddArg(ParseInvalidToken);
+    El:=ParseSelector;
+    if EL=nil then exit;
+    aCall.AddArg(El);
+    if CurrentToken<>ctkCOMMA then
+      exit;
+    GetNextToken;
+  end;
+end;
+
+procedure TCSSParser.ParseNthChildParams(aCall: TCSSCallElement);
+// Examples:
+// odd
+// even
+//  n
+//  +n
+// -2n
+// 2n+1
+//  even of :not(:hidden)
+// 2n+1 of [:not(display=none)]
+var
+  aUnary: TCSSUnaryElement;
+  IdentEl: TCSSIdentifierElement;
+begin
+  case CurrentToken of
+  ctkIDENTIFIER:
+    case lowercase(CurrentTokenString) of
+    'odd','even','n':
+      aCall.AddArg(ParseIdentifier);
+    '-n':
+      begin
+        aUnary:=TCSSUnaryElement(CreateElement(TCSSUnaryElement));
+        aCall.AddArg(aUnary);
+        aUnary.Operation:=uoMinus;
+        IdentEl:=TCSSIdentifierElement(CreateElement(TCSSIdentifierElement));
+        aUnary.Right:=IdentEl;
+        IdentEl.Value:='n';
+        GetNextToken;
+      end;
+    else
+      DoWarnExpectedButGot('An+B');
+      aCall.AddArg(ParseIdentifier);
+      exit;
+    end;
+  ctkINTEGER:
+    begin
+    aCall.AddArg(ParseInteger);
+    if (CurrentToken<>ctkIDENTIFIER) then
+      begin
+      DoWarnExpectedButGot('An+B');
+      exit;
+      end;
+    if (lowercase(CurrentTokenString)<>'n') then
+      begin
+      DoWarnExpectedButGot('An+B');
+      exit;
+      end;
+    aCall.AddArg(ParseIdentifier);
+    end;
+  else
+    DoWarnExpectedButGot('An+B');
+    exit;
+  end;
+
+  if CurrentToken in [ctkMINUS,ctkPLUS] then
+    aCall.AddArg(ParseUnary);
+  if CurrentToken=ctkINTEGER then
+    aCall.AddArg(ParseInteger);
+  if (CurrentToken=ctkIDENTIFIER) and SameText(CurrentTokenString,'of') then
+    begin
+    aCall.AddArg(ParseIdentifier);
+    aCall.AddArg(ParseSelector);
+    end;
 end;
 
 function TCSSParser.ParseString: TCSSElement;
