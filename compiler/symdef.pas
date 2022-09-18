@@ -7772,45 +7772,53 @@ implementation
          { handles the predefined class tobject  }
          { the last TOBJECT which is loaded gets }
          { it !                                  }
-         if (childof=nil) and
-            (objecttype in [odt_class,odt_javaclass]) and
-            (objname^='TOBJECT') then
-           class_tobject:=self;
-         if (childof=nil) and
-            (objecttype=odt_interfacecom) then
-            if (objname^='IUNKNOWN') then
-              interface_iunknown:=self
-            else
-            if (objname^='IDISPATCH') then
-              interface_idispatch:=self;
-         if (childof=nil) and
-            (objecttype=odt_objcclass) and
-            (objname^='PROTOCOL') then
-           objc_protocoltype:=self;
-         if (objecttype=odt_javaclass) and
-            not(oo_is_formal in objectoptions) then
+         { but do this only from a unit that's   }
+         { marked as system unit to avoid some   }
+         { equally named user's type to override }
+         { the internal types!                   }
+         if mf_system_unit in current_module.moduleflags then
            begin
-             if (objname^='JLOBJECT') then
-               java_jlobject:=self
-             else if (objname^='JLTHROWABLE') then
-               java_jlthrowable:=self
-             else if (objname^='FPCBASERECORDTYPE') then
-               java_fpcbaserecordtype:=self
-             else if (objname^='JLSTRING') then
-               java_jlstring:=self
-             else if (objname^='ANSISTRINGCLASS') then
-               java_ansistring:=self
-             else if (objname^='SHORTSTRINGCLASS') then
-               java_shortstring:=self
-             else if (objname^='JLENUM') then
-               java_jlenum:=self
-             else if (objname^='JUENUMSET') then
-               java_juenumset:=self
-             else if (objname^='FPCBITSET') then
-               java_jubitset:=self
-             else if (objname^='FPCBASEPROCVARTYPE') then
-               java_procvarbase:=self;
+             if (childof=nil) and
+                (objecttype in [odt_class,odt_javaclass]) and
+                (objname^='TOBJECT') then
+               class_tobject:=self;
+             if (childof=nil) and
+                (objecttype=odt_interfacecom) then
+                if (objname^='IUNKNOWN') then
+                  interface_iunknown:=self
+                else
+                if (objname^='IDISPATCH') then
+                  interface_idispatch:=self;
+             if (childof=nil) and
+                (objecttype=odt_objcclass) and
+                (objname^='PROTOCOL') then
+               objc_protocoltype:=self;
+             if (objecttype=odt_javaclass) and
+                not(oo_is_formal in objectoptions) then
+               begin
+                 if (objname^='JLOBJECT') then
+                   java_jlobject:=self
+                 else if (objname^='JLTHROWABLE') then
+                   java_jlthrowable:=self
+                 else if (objname^='FPCBASERECORDTYPE') then
+                   java_fpcbaserecordtype:=self
+                 else if (objname^='JLSTRING') then
+                   java_jlstring:=self
+                 else if (objname^='ANSISTRINGCLASS') then
+                   java_ansistring:=self
+                 else if (objname^='SHORTSTRINGCLASS') then
+                   java_shortstring:=self
+                 else if (objname^='JLENUM') then
+                   java_jlenum:=self
+                 else if (objname^='JUENUMSET') then
+                   java_juenumset:=self
+                 else if (objname^='FPCBITSET') then
+                   java_jubitset:=self
+                 else if (objname^='FPCBASEPROCVARTYPE') then
+                   java_procvarbase:=self;
+               end;
            end;
+
          writing_class_record_dbginfo:=false;
        end;
 
