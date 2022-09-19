@@ -3641,6 +3641,8 @@ type
 
 
     procedure tscannerfile.reload;
+      var
+        wasmacro: Boolean;
       begin
         with inputfile do
          begin
@@ -3698,6 +3700,7 @@ type
               end
              else
               begin
+                wasmacro:=inputfile.is_macro;
               { load eof position in tokenpos/current_filepos }
                 gettokenpos;
               { close file }
@@ -3713,6 +3716,15 @@ type
                 tempopeninputfile;
               { status }
                 Message1(scan_t_back_in,inputfile.name);
+              { end of include file is like a line break which ends e.g. also // style comments }
+                if not(wasmacro) then
+                  begin
+                    c:=#10;
+                  { ... but we have to decrease the line number first because it is increased due to this
+                    inserted line break later on }
+                    dec(line_no);
+                    exit;
+                  end;
               end;
            { load next char }
              c:=inputpointer^;
