@@ -33,13 +33,18 @@ var
   i : longint;
 
 begin
+  Writeln('Using -n command-line will not send the QUIT command.');
   S:='This is a textstring sent by the client'#10;
   With TInetSocket.Create(TheHost,ThePort,StrToIntDef(ParamStr(1),0)) do
     begin
     For I:=1 to 10 do
       Write(S[1],Length(S));
-    S:='QUIT'#10;
-    Write(S[1],Length(S));
+    if ParamStr(1)<>'-n' then
+      begin
+      Writeln('Sending QUIT command');
+      S:='QUIT'#10;
+      Write(S[1],Length(S));
+      end;
     Free;
     end;
 end.
