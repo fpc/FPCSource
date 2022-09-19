@@ -1421,6 +1421,7 @@ implementation
       mapping : pconvert_mapping;
       i : longint;
       old_filepos : tfileposinfo;
+      loadprocvar : boolean;
     begin
       result:=fen_true;
       if n.nodetype<>loadn then
@@ -1432,8 +1433,11 @@ implementation
             continue;
           old_filepos:=current_filepos;
           current_filepos:=n.fileinfo;
+          loadprocvar:=nf_load_procvar in n.flags;
           n.free;
           n:=csubscriptnode.create(mapping^.newsym,mapping^.selfnode.getcopy);
+          if loadprocvar then
+            include(n.flags,nf_load_procvar);
           typecheckpass(n);
           current_filepos:=old_filepos;
           break;
