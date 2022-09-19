@@ -60,10 +60,9 @@ element/type: 1 p, :before
 *: 0
 
 ToDo:
-- replace parser invalidtoken for relational operators ctkStar, Tile, Pipe
+- replace parser invalidtoken for relational operators ctkGt, ctkTilde
 - :has()
 - 'all' attribute: resets all properties, except direction and unicode bidi
-- surpress duplicate warnings
 - TCSSResolver.FindComputedAttribute  use binary search for >8 elements
 - namespaces
 - layers
@@ -309,15 +308,22 @@ const
   DefaultCSSComputeOptions = [ccoCommit];
 
 type
+  TCSSResolverLogEntry = class
+  public
+    MsgType: TEventType;
+    ID: TCSSMsgID;
+    Msg: string;
+    PosEl: TCSSElement;
+  end;
+
+  TCSSResolverLogEvent = procedure(Sender: TObject; Entry: TCSSResolverLogEntry) of object;
+
   TCSSResStringComparison = (
     crscDefault,
     crscCaseInsensitive,
     crscCaseSensitive
     );
   TCSSResStringComparisons = set of TCSSResStringComparison;
-
-  TCSSResolverLogEvent = procedure(Sender: TObject; aType: TEventType;
-    const ID: TCSSMsgID; const Msg: string; PosEl: TCSSElement) of object;
 
   { TCSSResolver }
 
@@ -332,6 +338,8 @@ type
     FFirstElData: TCSSElResolverData;
     FLastElData: TCSSElResolverData;
     function GetAttributes(Index: integer): PCSSComputedAttribute;
+    function GetLogCount: integer;
+    function GetLogEntries(Index: integer): TCSSResolverLogEntry;
     function GetNumericalIDs(Kind: TCSSNumericalIDKind): TCSSNumericalIDs;
     procedure SetNumericalIDs(Kind: TCSSNumericalIDKind;
       const AValue: TCSSNumericalIDs);
@@ -340,6 +348,7 @@ type
     FAttributes: TCSSComputedAttributeArray;
     FAttributeCount: integer;
     FNode: TCSSNode;
+    FLogEntries: TFPObjectList; // list of TCSSResolverLogEntry
     procedure SetStyle(const AValue: TCSSElement); virtual;
     procedure ComputeElement(El: TCSSElement); virtual;
     procedure ComputeRule(aRule: TCSSRuleElement); virtual;
@@ -382,6 +391,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+    procedure Clear; virtual;
     procedure ClearStyleCustomData; virtual;
     procedure Compute(Node: TCSSNode; NodeStyle: TCSSElement = nil;
       const CompOptions: TCSSComputeOptions = DefaultCSSComputeOptions); virtual;
@@ -394,6 +404,8 @@ type
     property AttributeCount: integer read FAttributeCount;
     property StringComparison: TCSSResStringComparison read FStringComparison;
     property OnLog: TCSSResolverLogEvent read FOnLog write FOnLog;
+    property LogCount: integer read GetLogCount;
+    property LogEntries[Index: integer]: TCSSResolverLogEntry read GetLogEntries;
   end;
 
 implementation
@@ -471,6 +483,16 @@ begin
   if (Index<0) or (Index>=FAttributeCount) then
     raise ECSSResolver.Create('TCSSResolver.GetAttributes index out of bounds');
   Result:=@FAttributes[Index];
+end;
+
+function TCSSResolver.GetLogCount: integer;
+begin
+  Result:=FLogEntries.Count;
+end;
+
+function TCSSResolver.GetLogEntries(Index: integer): TCSSResolverLogEntry;
+begin
+  Result:=TCSSResolverLogEntry(FLogEntries[Index]);
 end;
 
 procedure TCSSResolver.SetNumericalIDs(Kind: TCSSNumericalIDKind;
@@ -1792,9 +1814,29 @@ end;
 
 procedure TCSSResolver.Log(MsgType: TEventType; const ID: TCSSMsgID;
   Msg: string; PosEl: TCSSElement);
+var
+  Entry: TCSSResolverLogEntry;
+  i: Integer;
 begin
-  if assigned(OnLog) then
-    OnLog(Self,MsgType,ID,Msg,PosEl);
+  if Assigned(OnLog) then
+  begin
+    for i:=0 to FLogEntries.Count-1 do
+    begin
+      Entry:=LogEntries[i];
+      if (Entry.PosEl=PosEl)
+          and (Entry.ID=ID)
+          and (Entry.MsgType=MsgType)
+          and (Entry.Msg=Msg) then
+        exit; // this warning was already logged
+    end;
+    Entry:=TCSSResolverLogEntry.Create;
+    Entry.MsgType:=MsgType;
+    Entry.ID:=ID;
+    Entry.Msg:=Msg;
+    Entry.PosEl:=PosEl;
+    FLogEntries.Add(Entry);
+    OnLog(Self,Entry);
+  end;
   if (MsgType=etError) or (FOnLog=nil) then
   begin
     Msg:='['+IntToStr(ID)+'] '+Msg+' at '+GetElPos(PosEl);
@@ -1821,15 +1863,21 @@ end;
 
 constructor TCSSResolver.Create;
 begin
-
+  FLogEntries:=TFPObjectList.Create(true);
 end;
 
 destructor TCSSResolver.Destroy;
 begin
+  FreeAndNil(FLogEntries);
   if FOwnsStyle then
     FStyle.Free;
   FStyle:=nil;
   inherited Destroy;
+end;
+
+procedure TCSSResolver.Clear;
+begin
+  ClearStyleCustomData;
 end;
 
 procedure TCSSResolver.ClearStyleCustomData;
