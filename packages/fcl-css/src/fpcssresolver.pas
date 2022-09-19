@@ -13,16 +13,82 @@
 
  **********************************************************************
 
+Works:
+
+Selector 	Example 	Example description
+.class  	.intro  	Selects all elements with class="intro"
+.class1.class2 	.name1.name2 	Selects all elements with both name1 and name2 set within its class attribute
+.class1 .class2 	.name1 .name2 	Selects all elements with name2 that is a descendant of an element with name1
+#id 	#firstname 	Selects the element with name="firstname"
+* 	* 	Selects all elements
+element 	p 	Selects all <p> elements
+element.class 	p.intro 	Selects all <p> elements with class="intro"
+element,element 	div, p 	Selects all <div> elements and all <p> elements
+element element 	div p 	Selects all <p> elements inside <div> elements
+element>element 	div > p 	Selects all <p> elements where the parent is a <div> element
+element+element 	div + p 	Selects the first <p> element that is placed immediately after <div> elements
+element1~element2 	p ~ ul 	Selects every <ul> element that is preceded by a <p> element
+[attribute] 	[target] 	Selects all elements with a target attribute
+[attribute=value] 	[target=_blank] 	Selects all elements with target="_blank"
+[attribute~=value] 	[title~=flower] 	Selects all elements with a title attribute containing the *word* "flower"
+[attribute|=value] 	[lang|=en] 	Selects all elements with a lang attribute value equal to "en" or starting with "en-" (hyphen)
+[attribute^=value] 	a[href^="https"] 	Selects every <a> element whose href attribute value begins with "https"
+[attribute$=value] 	a[href$=".pdf"] 	Selects every <a> element whose href attribute value ends with ".pdf"
+[attribute*=value] 	a[href*="w3schools"] 	Selects every <a> element whose href attribute value contains the substring "w3schools"
+:root 	:root 	Selects the document's root element
+:empty 	p:empty 	Selects every <p> element that has no children (including text nodes)
+:first-child 	p:first-child 	Selects every <p> element that is the first child of its parent
+:first-of-type 	p:first-of-type 	Selects every <p> element that is the first <p> element of its parent
+:last-child 	p:last-child 	Selects every <p> element that is the last child of its parent
+:last-of-type 	p:last-of-type 	Selects every <p> element that is the last <p> element of its parent
+:not(selector) 	:not(p) 	Selects every element that is not a <p> element
+:nth-child(n) 	p:nth-child(2) 	Selects every <p> element that is the second child of its parent. n can be a number, a keyword (odd or even), or a formula (like an + b).
+:nth-last-child(n) 	p:nth-last-child(2) 	Selects every <p> element that is the second child of its parent, counting from the last child
+:nth-last-of-type(n) 	p:nth-last-of-type(2) 	Selects every <p> element that is the second <p> element of its parent, counting from the last child
+:nth-of-type(n) 	p:nth-of-type(2) 	Selects every <p> element that is the second <p> element of its parent
+:only-of-type 	p:only-of-type 	Selects every <p> element that is the only <p> element of its parent
+:only-child 	p:only-child 	Selects every <p> element that is the only child of its parent
+:is()
+:where()
+
+Specifity:
+important: 10000
+inline: 1000
+id: 100 #menu
+class+attribute selectors: 10 .button, :hover, [href]
+element/type: 1 p, :before
+*: 0
+
 ToDo:
 - replace parser invalidtoken for relational operators ctkStar, Tile, Pipe
-- 'all' attribute
 - :has()
+- 'all' attribute: resets all properties, except direction and unicode bidi
 - surpress duplicate warnings
-- cache list of nth-of-type
 - TCSSResolver.FindComputedAttribute  use binary search for >8 elements
 - namespaces
 - layers
-- @rules: @media, @font-face
+- @rules:-----------------------------------------------------------------------
+- @media
+- @font-face
+- @keyframes
+- columns combinator ||     col.selected || td
+- :nth-col()
+- :nth-last-col()
+- Pseudo-elements - not case sensitive:-----------------------------------------
+- ::first-letter 	p::first-letter 	Selects the first letter of every <p> element
+- ::first-line 	p::first-line 	Selects the first line of every <p> element
+- ::selection 	::selection 	Selects the portion of an element that is selected by a user
+- Altering:---------------------------------------------------------------------
+- ::after 	p::after 	Insert something after the content of each <p> element
+- ::before 	p::before 	Insert something before the content of each <p> element
+- Functions and Vars:-----------------------------------------------------------
+- attr() 	Returns the value of an attribute of the selected element
+- calc() 	Allows you to perform calculations to determine CSS property values  calc(100% - 100px)
+- max() min()  min(50%, 50px)
+- --varname
+- counter-reset
+- counter-increment
+
 }
 
 unit fpCSSResolver;
@@ -128,6 +194,7 @@ type
     function HasCSSPseudoAttribute(const AttrID: TCSSNumericalID): boolean;
     function GetCSSPseudoAttribute(const AttrID: TCSSNumericalID): TCSSString;
     function GetCSSEmpty: boolean;
+    function GetCSSDepth: integer;
     procedure SetCSSValue(AttrID: TCSSNumericalID; Value: TCSSElement);
   end;
 
@@ -198,6 +265,25 @@ type
     destructor Destroy; override;
   end;
 
+  TCSSCallNthChildParams = class;
+
+  TCSSCallNthChildParamsCacheItem = record
+    TypeID: TCSSNumericalID;
+    ChildIDs: TIntegerDynArray;
+    Cnt: integer; // = length(ChildIDs), used during creation
+  end;
+  PCSSCallNthChildParamsCacheItem = ^TCSSCallNthChildParamsCacheItem;
+  TCSSCallNthChildParamsCacheItems = array of TCSSCallNthChildParamsCacheItem;
+
+  TCSSCallNthChildParamsCache = class
+  public
+    Owner: TCSSCallNthChildParams;
+    Parent: TCSSNode;
+    StackDepth: integer;
+    Items: TCSSCallNthChildParamsCacheItems;
+  end;
+  TCSSCallNthChildParamsCaches = array of TCSSCallNthChildParamsCache;
+
   { TCSSCallNthChildParams }
 
   TCSSCallNthChildParams = class
@@ -205,7 +291,7 @@ type
     Start: integer;
     HasOf: boolean;
     OfSelector: TCSSElement;
-    ChildIDs: TIntegerDynArray;
+    StackCache: TCSSCallNthChildParamsCaches;
     destructor Destroy; override;
   end;
 
@@ -273,8 +359,8 @@ type
     function Call_Is(aCall: TCSSCallElement; const TestNode: TCSSNode; OnlySpecifity: boolean): TCSSSpecifity; virtual;
     function Call_Where(aCall: TCSSCallElement; const TestNode: TCSSNode; OnlySpecifity: boolean): TCSSSpecifity; virtual;
     function Call_NthChild(CallID: TCSSNumericalID; aCall: TCSSCallElement; const TestNode: TCSSNode; OnlySpecifity: boolean): TCSSSpecifity; virtual;
-    procedure CollectSiblingsOf(CallID: TCSSNumericalID; TestNode: TCSSNode;
-      Params: TCSSCallNthChildParams); virtual;
+    function CollectSiblingsOf(CallID: TCSSNumericalID; TestNode: TCSSNode;
+      Params: TCSSCallNthChildParams): TIntegerDynArray; virtual;
     function GetSiblingOfIndex(SiblingIDs: TIntegerDynArray; Index: integer): integer; virtual;
     function ComputeValue(El: TCSSElement): TCSSString; virtual;
     function SameValueText(const A, B: TCSSString): boolean; virtual;
@@ -315,7 +401,11 @@ implementation
 { TCSSCallNthChildParams }
 
 destructor TCSSCallNthChildParams.Destroy;
+var
+  i: Integer;
 begin
+  for i:=0 to high(StackCache) do
+    StackCache[i].Free;
   inherited Destroy;
 end;
 
@@ -1008,6 +1098,7 @@ var
   UnaryEl, anUnary: TCSSUnaryElement;
   Params: TCSSCallNthChildParams;
   CallData: TCSSCallData;
+  ChildIDs: TIntegerDynArray;
 begin
   if OnlySpecifity then
     Result:=CSSSpecifityClass
@@ -1185,10 +1276,10 @@ begin
   i:=TestNode.GetCSSIndex;
   if Params.HasOf then
   begin
-    // ToDo: cache
-    CollectSiblingsOf(CallID,TestNode,Params);
-    i:=GetSiblingOfIndex(Params.ChildIDs,i);
-  end;
+    ChildIDs:=CollectSiblingsOf(CallID,TestNode,Params);
+    i:=GetSiblingOfIndex(ChildIDs,i);
+  end else
+    ChildIDs:=nil;
   {$IFDEF VerboseCSSResolver}
   //writeln('TCSSResolver.Call_NthChild CallID=',CallID,' ',aModulo,' * N + ',aStart,' Index=',TestNode.GetCSSIndex,' i=',i,' HasOf=',Params.HasOf,' OfChildCount=',length(Params.ChildIDs));
   {$ENDIF}
@@ -1197,7 +1288,7 @@ begin
   if CallID in [CSSCallID_NthLastChild,CSSCallID_NthLastOfType] then
   begin
     if Params.HasOf then
-      i:=length(Params.ChildIDs)-i
+      i:=length(ChildIDs)-i
     else
       i:=GetSiblingCount(TestNode)-i;
   end else
@@ -1216,45 +1307,98 @@ begin
   {$ENDIF}
 end;
 
-procedure TCSSResolver.CollectSiblingsOf(CallID: TCSSNumericalID;
-  TestNode: TCSSNode; Params: TCSSCallNthChildParams);
+function TCSSResolver.CollectSiblingsOf(CallID: TCSSNumericalID;
+  TestNode: TCSSNode; Params: TCSSCallNthChildParams): TIntegerDynArray;
 var
-  Cnt, i: Integer;
-  TestID: TCSSNumericalID;
+  i, Depth, ChildCount, j: Integer;
+  aTypeID: TCSSNumericalID;
   aParent, aNode: TCSSNode;
   aSelector: TCSSElement;
+  StackDepth: SizeInt;
+  Cache: TCSSCallNthChildParamsCache;
+  Item: PCSSCallNthChildParamsCacheItem;
+  NeedTypeID: Boolean;
 begin
-  Params.HasOf:=true;
+  Result:=nil;
   aParent:=TestNode.GetCSSParent;
   {$IFDEF VerboseCSSResolver}
   //writeln('TCSSResolver.CollectSiblingsOf HasParent=',aParent<>nil);
   {$ENDIF}
   if aParent=nil then exit;
-  Cnt:=aParent.GetCSSChildCount;
-  SetLength(Params.ChildIDs,Cnt);
-  TestID:=CSSIDNone;
-  if CallID in [CSSCallID_NthOfType,CSSCallID_NthLastOfType] then
-    TestID:=TestNode.GetCSSTypeID;
-  Cnt:=0;
-  {$IFDEF VerboseCSSResolver}
-  //writeln('TCSSResolver.CollectSiblingsOf Candidates=',length(Params.ChildIDs),' TestID=',TestID);
-  {$ENDIF}
-  aSelector:=Params.OfSelector;
-  for i:=0 to length(Params.ChildIDs)-1 do
+  ChildCount:=aParent.GetCSSChildCount;
+  if ChildCount=0 then exit;
+
+  Depth:=aParent.GetCSSDepth;
+  StackDepth:=length(Params.StackCache);
+  if StackDepth<=Depth then
   begin
-    aNode:=aParent.GetCSSChild(i);
-    if (Testid<>CSSIDNone)
-        and (TestID<>aNode.GetCSSTypeID) then
-      continue;
-    if (aSelector<>nil) and (SelectorMatches(aSelector,aNode,false)<0) then
-      continue;
-    Params.ChildIDs[Cnt]:=i;
-    {$IFDEF VerboseCSSResolver}
-    //writeln('TCSSResolver.CollectSiblingsOf ',Cnt,'=>',i,' CSSTypeID=',aNode.GetCSSTypeID,' Sel=',GetCSSObj(aSelector));
-    {$ENDIF}
-    inc(Cnt);
+    SetLength(Params.StackCache,Depth+1);
+    for i:=StackDepth to Depth do
+      Params.StackCache[i]:=nil;
   end;
-  SetLength(Params.ChildIDs,Cnt);
+  Cache:=Params.StackCache[Depth];
+  if Cache=nil then
+  begin
+    Cache:=TCSSCallNthChildParamsCache.Create;
+    Params.StackCache[Depth]:=Cache;
+    Cache.Owner:=Params;
+    Cache.StackDepth:=Depth;
+  end;
+
+  NeedTypeID:=CallID in [CSSCallID_NthOfType,CSSCallID_NthLastOfType];
+
+  if Cache.Parent<>aParent then
+  begin
+    // build cache
+    Cache.Parent:=aParent;
+    SetLength(Cache.Items,0);
+    {$IFDEF VerboseCSSResolver}
+    writeln('TCSSResolver.CollectSiblingsOf Depth=',Depth,' Candidates=',ChildCount);
+    {$ENDIF}
+    aSelector:=Params.OfSelector;
+    for i:=0 to ChildCount-1 do
+    begin
+      aNode:=aParent.GetCSSChild(i);
+      if (aSelector<>nil) and (SelectorMatches(aSelector,aNode,false)<0) then
+        continue;
+
+      if NeedTypeID then
+        aTypeID:=aNode.GetCSSTypeID
+      else
+        aTypeID:=0;
+      j:=length(Cache.Items)-1;
+      while (j>=0) and (Cache.Items[j].TypeID<>aTypeID) do dec(j);
+      if j<0 then
+      begin
+        j:=length(Cache.Items);
+        SetLength(Cache.Items,j+1);
+        Item:=@Cache.Items[j];
+        Item^.TypeID:=aTypeID;
+        Item^.Cnt:=0;
+        SetLength(Item^.ChildIDs,ChildCount);
+      end else
+        Item:=@Cache.Items[j];
+      Item^.ChildIDs[Item^.Cnt]:=i;
+      {$IFDEF VerboseCSSResolver}
+      writeln('TCSSResolver.CollectSiblingsOf Sel=',GetCSSObj(aSelector),' CSSTypeID=',aNode.GetCSSTypeID,' ',Item^.Cnt,'=>',i);
+      {$ENDIF}
+      inc(Item^.Cnt);
+    end;
+
+    for i:=0 to high(Cache.Items) do
+      with Cache.Items[i] do
+        SetLength(ChildIDs,Cnt);
+  end;
+
+  // use cache
+  if NeedTypeID then
+  begin
+    aTypeID:=TestNode.GetCSSTypeID;
+    for i:=0 to high(Cache.Items) do
+      if Cache.Items[i].TypeID=aTypeID then
+        exit(Cache.Items[i].ChildIDs);
+  end else
+    Result:=Cache.Items[0].ChildIDs;
 end;
 
 function TCSSResolver.GetSiblingOfIndex(SiblingIDs: TIntegerDynArray;

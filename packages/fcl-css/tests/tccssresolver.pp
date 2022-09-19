@@ -105,6 +105,7 @@ type
     function HasCSSPseudoAttribute(const AttrID: TCSSNumericalID): boolean; virtual;
     function GetCSSPseudoAttribute(const AttrID: TCSSNumericalID): TCSSString; virtual;
     function GetCSSEmpty: boolean; virtual;
+    function GetCSSDepth: integer; virtual;
     property Parent: TDemoNode read FParent write SetParent;
     property NodeCount: integer read GetNodeCount;
     property Nodes[Index: integer]: TDemoNode read GetNodes; default;
@@ -1702,6 +1703,19 @@ end;
 function TDemoNode.GetCSSEmpty: boolean;
 begin
   Result:=NodeCount=0;
+end;
+
+function TDemoNode.GetCSSDepth: integer;
+var
+  Node: TDemoNode;
+begin
+  Result:=0;
+  Node:=Parent;
+  while Node<>nil do
+  begin
+    inc(Result);
+    Node:=Node.Parent;
+  end;
 end;
 
 function TDemoNode.GetCSSTypeName: TCSSString;
