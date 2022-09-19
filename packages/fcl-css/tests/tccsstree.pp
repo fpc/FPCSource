@@ -575,9 +575,6 @@ end;
 
 procedure TCSSTreeAsStringTest.TestUNARYOP;
 
-Const
-  MyUnaryOperators : Array[TCSSUnaryOperation] of string =
-      ('::','-','+','/');
 Var
   Op : TCSSUnaryOperation;
   Sop : String;
@@ -586,7 +583,7 @@ begin
   For Op in TCSSUnaryOperation do
     begin
     CreateUnaryOperation(op,'a',amReplace);
-    Sop:=MyUnaryOperators[Op];
+    Sop:=UnaryOperators[Op];
     if Not (Op in [uoDoubleColon]) then
       Sop:=Sop+' ';
     AssertEquals('Value '+Sop,sop+'a',Element.AsString)

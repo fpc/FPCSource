@@ -60,7 +60,6 @@ element/type: 1 p, :before
 *: 0
 
 ToDo:
-- replace parser invalidtoken for relational operators ctkGt, ctkTilde
 - :has()
 - 'all' attribute: resets all properties, except direction and unicode bidi
 - TCSSResolver.FindComputedAttribute  use binary search for >8 elements

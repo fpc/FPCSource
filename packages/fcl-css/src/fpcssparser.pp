@@ -153,6 +153,8 @@ begin
     ctkMinus: Result:=uoMinus;
     ctkPlus: Result:=uoPlus;
     ctkDiv: Result:=uoDiv;
+    ctkGT: Result:=uoGT;
+    ctkTILDE: Result:=uoTilde;
   else
     Raise ECSSParser.CreateFmt(SUnaryInvalidToken,[GetEnumName(TypeInfo(aToken),Ord(aToken))]);
   end;
@@ -950,7 +952,7 @@ var
 
 begin
   Result:=nil;
-  if not (CurrentToken in [ctkDOUBLECOLON, ctkMinus, ctkPlus, ctkDiv]) then
+  if not (CurrentToken in [ctkDOUBLECOLON, ctkMinus, ctkPlus, ctkDiv, ctkGT, ctkTILDE]) then
     Raise ECSSParser.CreateFmt(SUnaryInvalidToken,[CurrentTokenString]);
   Un:=TCSSUnaryElement(CreateElement(TCSSUnaryElement));
   try
@@ -1058,7 +1060,9 @@ begin
     ctkLBRACKET: Result:=ParseArray(Nil);
     ctkMinus,
     ctkPlus,
-    ctkDiv: Result:=ParseUnary;
+    ctkDiv,
+    ctkGT,
+    ctkTilde: Result:=ParseUnary;
     ctkUnicodeRange: Result:=ParseUnicodeRange;
     ctkSTRING,
     ctkHASH : Result:=ParseString;
@@ -1066,8 +1070,7 @@ begin
     ctkFloat : Result:=ParseFloat;
     ctkPSEUDOFUNCTION,
     ctkFUNCTION : Result:=ParseCall('');
-    ctkSTAR,
-    ctkTILDE: Result:=ParseInvalidToken;
+    ctkSTAR: Result:=ParseInvalidToken;
     ctkIDENTIFIER: Result:=ParseIdentifier;
     ctkCLASSNAME : Result:=ParseClassName;
   else
@@ -1426,14 +1429,30 @@ end;
 procedure TCSSParser.ParseRelationalSelectorCommaList(aCall: TCSSCallElement);
 var
   El: TCSSElement;
+  aToken: TCSSToken;
+  IsUnary: Boolean;
+  Unary: TCSSUnaryElement;
 begin
   while not (CurrentToken in [ctkEOF,ctkRBRACKET,ctkRBRACE,ctkRPARENTHESIS]) do
     begin
-    if CurrentToken in [ctkGT,ctkPLUS,ctkTILDE,ctkPIPE] then
-      aCall.AddArg(ParseInvalidToken);
+    IsUnary:=false;
+    aToken:=CurrentToken;
+    if aToken in [ctkGT,ctkPLUS,ctkTILDE] then
+      begin
+      IsUnary:=true;
+      GetNextToken;
+      end;
     El:=ParseSelector;
-    if EL=nil then exit;
-    aCall.AddArg(El);
+    if El=nil then exit;
+    if IsUnary then
+      begin
+      Unary:=TCSSUnaryElement(CreateElement(TCSSUnaryElement));
+      aCall.AddArg(Unary);
+      Unary.Right:=El;
+      Unary.Operation:=TokenToUnaryOperation(aToken);
+      end
+    else
+      aCall.AddArg(El);
     if CurrentToken<>ctkCOMMA then
       exit;
     GetNextToken;

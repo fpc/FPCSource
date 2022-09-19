@@ -158,7 +158,7 @@ Type
   end;
 
   { TCSSUnaryElement }
-  TCSSUnaryOperation = (uoDoubleColon,uoMinus,uoPlus,uoDiv);
+  TCSSUnaryOperation = (uoDoubleColon,uoMinus,uoPlus,uoDiv,uoGT,uoTilde);
   TCSSUnaryElement = Class(TCSSBaseUnaryElement)
   private
     FOperation: TCSSUnaryOperation;
@@ -397,7 +397,7 @@ Const
   CSSUnitNames : Array[TCSSUnits] of TCSSString =
         ('','px','%','rem','em','pt','fr','vw','vh','deg');
   UnaryOperators : Array[TCSSUnaryOperation] of TCSSString =
-        ('::','-','+','/');
+        ('::','-','+','/','>','~');
   BinaryOperators : Array[TCSSBinaryOperation] of TCSSString =
         ('=','+','-','and','<=','<','>=','>','/','*','~',':','::','^','|','$',' ',
          '*=','~=','^=','|=','$=');
