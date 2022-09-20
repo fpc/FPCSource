@@ -107,8 +107,8 @@ type
     Procedure GetSockOptions;
     procedure SetConnectTimeout(AValue: Integer);
     Procedure SetSocketOptions(Value : TSocketOptions);
-    function GetLocalAddress: TSockAddr;
-    function GetRemoteAddress: TSockAddr;
+    function GetLocalAddress: sockets.TSockAddr;
+    function GetRemoteAddress: sockets.TSockAddr;
     procedure SetIOTimeout(AValue: Integer);
   Protected
     Procedure DoOnClose; virtual;
@@ -124,8 +124,8 @@ type
     Function Write (Const Buffer; Count : Longint) :Longint; Override;
     Property SocketOptions : TSocketOptions Read FSocketOptions
                                             Write SetSocketOptions;
-    property LocalAddress: TSockAddr read GetLocalAddress;
-    property RemoteAddress: TSockAddr read GetRemoteAddress;
+    property LocalAddress: sockets.TSockAddr read GetLocalAddress;
+    property RemoteAddress: sockets.TSockAddr read GetRemoteAddress;
     Property LastError : Integer Read GetLastError;
     Property ReadFlags : Integer Read FReadFlags Write FReadFlags;
     Property WriteFlags : Integer Read FWriteFlags Write FWriteFlags;
