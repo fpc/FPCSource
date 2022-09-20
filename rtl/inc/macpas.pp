@@ -22,7 +22,9 @@ interface
 
 { Using inlining for small system functions/wrappers }
 {$inline on}
-{$define SYSTEMINLINE}
+{$ifndef DISABLE_SYSTEMINLINE}
+  {$define SYSTEMINLINE}
+{$endif}
 
 type
 {$ifndef FPUNONE}

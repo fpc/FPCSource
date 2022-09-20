@@ -28,7 +28,9 @@
 
 { Using inlining for small system functions/wrappers }
 {$inline on}
-{$define SYSTEMINLINE}
+{$ifndef DISABLE_SYSTEMINLINE}
+  {$define SYSTEMINLINE}
+{$endif}
 
 { don't use FPU registervariables on the i386 and i8086 }
 {$if defined(CPUI386) or defined(CPUI8086)}
