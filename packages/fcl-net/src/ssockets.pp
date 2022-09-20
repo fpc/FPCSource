@@ -17,13 +17,6 @@ unit ssockets;
 interface
 
 uses
-// This must be here, to prevent it from overriding the sockets definitions... :/
-{$ifdef unix}
-  BaseUnix,Unix,
-{$endif}
-{$ifdef windows}
-  winsock2, windows,
-{$endif}
   SysUtils, Classes, ctypes, sockets;
 
 type
@@ -336,6 +329,13 @@ type
 Implementation
 
 uses
+// This must be here, to prevent it from overriding the sockets definitions... :/
+{$ifdef unix}
+  BaseUnix,Unix,
+{$endif}
+{$ifdef windows}
+  winsock2, windows,
+{$endif}
   resolve;
 
 Const
@@ -768,7 +768,7 @@ begin
   Result:=FHandler.Send(Buffer,Count);
 end;
 
-function TSocketStream.GetLocalAddress: TSockAddr;
+function TSocketStream.GetLocalAddress: sockets.TSockAddr;
 var
   len: LongInt;
 begin
@@ -777,7 +777,7 @@ begin
     FillChar(Result, SizeOf(Result), 0);
 end;
 
-function TSocketStream.GetRemoteAddress: TSockAddr;
+function TSocketStream.GetRemoteAddress: sockets.TSockAddr;
 var
   len: LongInt;
 begin
