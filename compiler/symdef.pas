@@ -6772,8 +6772,9 @@ implementation
 
     function tprocdef.customprocname(pno: tprocnameoptions):ansistring;
       var
-        s, rn : ansistring;
+        s, hs, rn : ansistring;
         t : ttoken;
+	module : tmodule;
         syssym : tsyssym;
       begin
 {$ifdef EXTDEBUG}
@@ -6850,7 +6851,23 @@ implementation
              potype_class_constructor,potype_class_destructor]) and
            assigned(returndef) and
            not(is_void(returndef)) then
-          s:=s+':'+returndef.GetTypeName;
+          begin
+            if assigned(returndef.typesym) then
+              begin
+                module:=find_module_from_symtable(returndef.typesym.owner);
+		if module <> current_module then
+                  s:=s+':'+module.realmodulename^+'.'
+                else
+	          s:=s+':';
+                hs:=returndef.typesym.realname;
+                if hs[1]<>'$' then
+                  s:=s+returndef.OwnerHierarchyName+hs
+                else
+                  s:=s+returndef.GetTypeName;
+              end
+            else
+              s:=s+':'+returndef.GetTypeName;
+	  end;
         if not (po_anonymous in procoptions) then
           if assigned(owner) and (owner.symtabletype=localsymtable) then
             s:=s+' is nested'
