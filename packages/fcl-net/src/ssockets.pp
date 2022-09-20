@@ -18,6 +18,12 @@ interface
 
 uses
 // This must be here, to prevent it from overriding the sockets definitions... :/
+{$ifdef unix}
+  BaseUnix,Unix,
+{$endif}
+{$ifdef windows}
+  winsock2, windows,
+{$endif}
   SysUtils, Classes, ctypes, sockets;
 
 type
@@ -330,12 +336,6 @@ type
 Implementation
 
 uses
-{$ifdef unix}
-  BaseUnix,Unix,
-{$endif}
-{$ifdef windows}
-  winsock2, windows,
-{$endif}
   resolve;
 
 Const
