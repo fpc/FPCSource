@@ -7806,10 +7806,6 @@ implementation
                 else
                 if (objname^='IDISPATCH') then
                   interface_idispatch:=self;
-             if (childof=nil) and
-                (objecttype=odt_objcclass) and
-                (objname^='PROTOCOL') then
-               objc_protocoltype:=self;
              if (objecttype=odt_javaclass) and
                 not(oo_is_formal in objectoptions) then
                begin
@@ -7835,6 +7831,10 @@ implementation
                    java_procvarbase:=self;
                end;
            end;
+         if (childof=nil) and
+            (objecttype=odt_objcclass) and
+            (objname^='PROTOCOL') then
+           objc_protocoltype:=self;
 
          writing_class_record_dbginfo:=false;
        end;
