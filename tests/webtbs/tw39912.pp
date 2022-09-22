@@ -4,7 +4,7 @@ var
 
 begin
 	i := 0;
-	{$include ib39912.inc} {$include ib39912.inc} {$include ib39912.inc}
+	{$include iw39912.inc} {$include iw39912.inc} {$include iw39912.inc}
 
 	{$define debugln := writeln}
 	debugln('i = ', i, ' (will be printed; must be 3).');
