@@ -1029,7 +1029,7 @@ implementation
       fieldsym:=nil;
       if assigned(pinested) then
         begin
-          n1:=ccallnode.create(create_paras(pd),ps,capturedef.symtable,cloadnode.create(capturer,capturer.owner),[],nil);
+          n1:=ccallnode.create(create_paras(pinested.procdef),ps,capturedef.symtable,cloadnode.create(capturer,capturer.owner),[],nil);
           { captured variables cannot be in registers }
           make_not_regable(tcallnode(n1).methodpointer,[ra_addr_regable,ra_addr_taken]);
         end
