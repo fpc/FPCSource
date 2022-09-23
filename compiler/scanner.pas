@@ -3717,7 +3717,7 @@ type
               { status }
                 Message1(scan_t_back_in,inputfile.name);
               { end of include file is like a line break which ends e.g. also // style comments }
-                if not(wasmacro) then
+                if not(wasmacro) and (current_commentstyle=comment_delphi) then
                   begin
                     c:=#10;
                   { ... but we have to decrease the line number first because it is increased due to this
