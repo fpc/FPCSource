@@ -1081,6 +1081,7 @@ implementation
                 begin
                   captured:=pcapturedsyminfo(capturesyms[i]);
                   pi.add_captured_sym(captured^.sym,captured^.fileinfo);
+                  dispose(captured);
                 end;
               capturesyms.clear;
             end;
