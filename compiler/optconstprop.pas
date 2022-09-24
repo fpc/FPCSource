@@ -142,7 +142,7 @@ unit optconstprop;
                   begin
                     CalcDefSum(tfornode(n).t2);
                     { the constant can propagete if is is not the counter variable ... }
-                    if not(tassignmentnode(arg).left.isequal(tfornode(n).left)) and
+                    if not(tassignmentnode(arg).left.isequal(actualtargetnode(@tfornode(n).left)^)) and
                     { if it is a temprefn or its address is not taken in case of loadn }
                       ((tassignmentnode(arg).left.nodetype=temprefn) or not(tabstractvarsym(tloadnode(tassignmentnode(arg).left).symtableentry).addr_taken)) and
                       { and no definition in the loop? }
