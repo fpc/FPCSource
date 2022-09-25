@@ -6558,11 +6558,11 @@ unit aoptx86;
 
         if MatchOpType(taicpu(p), top_const, top_reg) and
           (taicpu(p).oper[0]^.val in [1..3]) and
-          GetNextInstruction(p, hp1) and
+          GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[1]^.reg) and
           ((MatchInstruction(hp1,A_MOV,A_LEA,[]) and
-           MatchOpType(taicpu(hp1), top_ref, top_reg)) or
+           MatchOpType(taicpu(hp1),top_ref,top_reg)) or
            (MatchInstruction(hp1,A_FST,A_FSTP,A_FLD,[]) and
-           MatchOpType(taicpu(hp1), top_ref))
+           MatchOpType(taicpu(hp1),top_ref))
           ) and
           (taicpu(p).oper[1]^.reg=taicpu(hp1).oper[0]^.ref^.index) and
           (taicpu(p).oper[1]^.reg<>taicpu(hp1).oper[0]^.ref^.base) and
