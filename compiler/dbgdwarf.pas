@@ -4236,10 +4236,7 @@ implementation
             end;
           odt_cppclass,
           odt_object:
-            begin
-              dostruct(DW_TAG_structure_type);
-              doparent(false);
-            end;
+            append_object_struct(def,false,def.objname);
           odt_interfacecom,
           odt_interfacecorba,
           odt_dispinterface:
@@ -4250,8 +4247,6 @@ implementation
           odt_helper,
           odt_class:
             begin
-              //dostruct(DW_TAG_class_type);
-              //doparent(false);
               append_entry(DW_TAG_pointer_type,false,[]);
               append_labelentry_ref(DW_AT_type,def_dwarf_class_struct_lab(def));
               finish_entry;
