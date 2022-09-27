@@ -1197,7 +1197,7 @@ begin
       Add('  .debug_ranges   0 : { *(.debug_ranges) }');
       Add('  /* DWARF Extension.  */');
       Add('  .debug_macro    0 : { *(.debug_macro) }');
-
+      Add('  .debug_addr     0 : { *(.debug_addr) }');
       Add('}');
     end;
 {$endif AVR}
