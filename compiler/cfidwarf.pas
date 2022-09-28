@@ -257,7 +257,11 @@ implementation
         FFrameEndLabel:=nil;
         FLastLocLabel:=nil;
         code_alignment_factor:=1;
+{$if defined(avr)}
+        data_alignment_factor:=-1;
+{$else defined(avr)}
         data_alignment_factor:=-4;
+{$endif defined(avr)}
         FDwarfList:=TAsmList.Create;
       end;
 
@@ -285,8 +289,7 @@ implementation
         list.concat(tai_const.create_8bit(DW_CFA_def_cfa));
         list.concat(tai_const.create_uleb128bit(32));
         list.concat(tai_const.create_uleb128bit(2));
-        list.concat(tai_const.create_8bit(DW_CFA_offset_extended));
-        list.concat(tai_const.create_uleb128bit(36));
+        list.concat(tai_const.create_8bit(DW_CFA_offset+36));
         list.concat(tai_const.create_uleb128bit((-1) div data_alignment_factor));
       end;
 {$elseif defined(arm)}

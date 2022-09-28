@@ -37,6 +37,8 @@ unit dwarfbase;
       DW_CFA_def_cfa          = $0c;
       DW_CFA_def_cfa_register = $0d;
       DW_CFA_def_cfa_offset   = $0e;
+      DW_CFA_advance_loc      = $40;
+      DW_CFA_offset           = $80;
       { Own additions }
       DW_CFA_start_frame = $f0;
       DW_CFA_end_frame   = $f1;
