@@ -1283,13 +1283,18 @@ begin
     If (I<>-1) then
       D:=O.Items[i]
     else if (jdoRequireClass in options) then
-      Exit(CreateJSON2Error(SErrNoClassName,[ClassNameProperty],EJSONRPCInvalidRequest,ID,transactionproperty));
-    // Check if it is a string
-    if Not (D is TJSONString) then
-      Exit(CreateJSON2Error(SErrInvalidClassNameType,[ClassNameProperty],EJSONRPCInvalidRequest,ID,transactionproperty));
-    AClassName:=D.AsString;
-    If (AClassName='') and (jdoRequireClass in options)  then
-      Exit(CreateJSON2Error(SErrNoClassName,[ClassNameProperty],EJSONRPCInvalidRequest,ID,transactionproperty));
+      Exit(CreateJSON2Error(SErrNoClassName,[ClassNameProperty],EJSONRPCInvalidRequest,ID,transactionproperty))
+    else
+      D:=Nil;  
+    if Assigned(D) then
+     begin  
+      // Check if it is a string
+      if Not (D is TJSONString) then
+        Exit(CreateJSON2Error(SErrInvalidClassNameType,[ClassNameProperty],EJSONRPCInvalidRequest,ID,transactionproperty));
+      AClassName:=D.AsString;
+      If (AClassName='') and (jdoRequireClass in options)  then
+        Exit(CreateJSON2Error(SErrNoClassName,[ClassNameProperty],EJSONRPCInvalidRequest,ID,transactionproperty));
+      end;  
     end;
   // Get params, if they exist
   I:=O.IndexOfName(ParamsProperty);
