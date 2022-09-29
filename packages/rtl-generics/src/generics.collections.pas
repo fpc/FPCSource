@@ -37,6 +37,7 @@ unit Generics.Collections;
 {$HINTS OFF}
 {$OVERFLOWCHECKS OFF}
 {$RANGECHECKS OFF}
+{$POINTERMATH ON}
 
 interface
 
@@ -70,7 +71,6 @@ type
       // bug #24282
       TComparerBugHack = TComparer<T>;
   protected
-    // modified QuickSort from classes\lists.inc
     class procedure QuickSort(var AValues: array of T; ALeft, ARight: SizeInt; const AComparer: IComparer<T>);
       virtual; abstract;
   public
@@ -97,8 +97,14 @@ type
   end {$ifdef EXTRA_WARNINGS}experimental{$endif}; // will be renamed to TCustomArray (bug #24254)
 
   TArrayHelper<T> = class(TCustomArrayHelper<T>)
+  private
+    type
+      PT = ^T;
+    class procedure QSort(p: PT; n, reasonable: SizeUint; const cmp: IComparer<T>); static;
+    class function Median(p: PT; n: SizeUint; const cmp: IComparer<T>): PT; static;
+    class procedure HeapSort(p: PT; n: SizeUint; const cmp: IComparer<T>); static;
+    class procedure HeapReplacePessimistic(q: PT; nq, id: SizeUint; const item: T; const cmp: IComparer<T>); static;
   protected
-    // modified QuickSort from classes\lists.inc
     class procedure QuickSort(var AValues: array of T; ALeft, ARight: SizeInt; const AComparer: IComparer<T>); override;
   public
     class function BinarySearch(constref AValues: array of T; constref AItem: T;
@@ -1004,51 +1010,123 @@ end;
 
 { TArrayHelper<T> }
 
+class procedure TArrayHelper<T>.QSort(p: PT; n, reasonable: SizeUint; const cmp: IComparer<T>);
+var
+  L, R: SizeInt;
+  pivot, temp: T;
+begin
+  while (n >= 2) and (reasonable > 0) do
+  begin
+    { 'reasonable' loses 3/16 (~20%) on each partition, and on reaching zero, heap sort is performed.
+      This means -log13/16(n) ~=~ 3.3 * log2(n) partitions allowed. }
+    reasonable := reasonable div 2 + reasonable div 4 + reasonable div 16;
+    pivot := Median(p, n, cmp)^;
+
+    R := 0;
+    L := n - 1;
+    repeat
+      while cmp.Compare((p + R)^, pivot) < 0 do
+        inc(R);
+      while cmp.Compare(pivot, (p + L)^) < 0 do
+        dec(L);
+      if R <= L then
+      begin
+        temp := (p + R)^; (p + R)^ := (p + L)^; (p + L)^ := temp;
+        inc(R);
+        dec(L);
+      end;
+    until R > L;
+
+    { [0 .. L], [R .. n - 1]. Possible edge cases are L = -1 or R = n. Recurse into the smaller half. }
+    if n - R <= L then
+    begin
+      QSort(p + R, n - R, reasonable, cmp);
+      n := L + 1;
+    end else
+    begin
+      QSort(p, L + 1, reasonable, cmp);
+      p := p + R;
+      n := n - R;
+    end;
+  end;
+  if n >= 2 then
+    HeapSort(p, n, cmp);
+end;
+
+class function TArrayHelper<T>.Median(p: PT; n: SizeUint; const cmp: IComparer<T>): PT;
+var
+  a, b, c, temp: PT;
+begin
+  a := p;
+  b := p + n div 2;
+  c := p + (n - 1);
+  if cmp.Compare(b^, a^) < 0 then begin temp := a; a := b; b := temp; end;
+  if cmp.Compare(c^, b^) < 0 then begin temp := b; b := c; c := temp; end;
+  if cmp.Compare(b^, a^) < 0 then result := a else result := b;
+end;
+
+class procedure TArrayHelper<T>.HeapSort(p: PT; n: SizeUint; const cmp: IComparer<T>);
+var
+  temp: T;
+  i: SizeInt;
+begin
+  for i := SizeUint(n - 2) div 2 downto 0 do
+  begin
+    temp := (p + i)^;
+    HeapReplacePessimistic(p, n, i, temp, cmp);
+  end;
+
+  for i := n - 1 downto 1 do
+  begin
+    temp := (p + i)^;
+    (p + i)^ := p^;
+    HeapReplacePessimistic(p, i, 0, temp, cmp);
+  end;
+end;
+
+{ HeapReplacePessimistic replaces q[id] with 'item' by doing something like
+
+  startId := id;
+  q[id] := item;
+  id := HeapDownThoroughly(q, nq, id);
+  id := HeapUpToId(q, nq, id, startId);
+
+  Where 'HeapDownThoroughly' sinks the element all the way down, without stopping at the correct position, so it must float up afterwards.
+  See Python's 'heapq' module for explanation why this is an improvement over simple HeapDown.
+  TL;DR: HeapDownThoroughly uses 1 fewer comparison per level, and the item usually ends up close to the bottom, so these savings pay off.
+
+  Moreover, heap invariant assumed for q[id .. nq - 1] rather than whole q[0 .. nq - 1] which matters when heapifying the array from the end. }
+
+class procedure TArrayHelper<T>.HeapReplacePessimistic(q: PT; nq, id: SizeUint; const item: T; const cmp: IComparer<T>);
+var
+  iChild, iParent, start: SizeUint;
+begin
+  start := id;
+  repeat
+    iChild := 2 * id + 1; { childs of q[id] are q[2 * id + 1] ... q[2 * id + 2]. }
+    if iChild >= nq then
+      break;
+    if (iChild + 1 < nq) and (cmp.Compare((q + iChild)^, (q + iChild + 1)^) < 0) then
+      iChild := iChild + 1;
+    (q + id)^ := (q + iChild)^;
+    id := iChild;
+  until false;
+
+  while id > start do
+  begin
+    iParent := SizeUint(id - 1) div 2;
+    if cmp.Compare((q + iParent)^, item) >= 0 then
+      break;
+    (q + id)^ := (q + iParent)^;
+    id := iParent;
+  end;
+  (q + id)^ := item;
+end;
+
 class procedure TArrayHelper<T>.QuickSort(var AValues: array of T; ALeft, ARight: SizeInt;
   const AComparer: IComparer<T>);
-var
-  I, J: SizeInt;
-  P, Q: T;
 begin
-  if ((ARight - ALeft) <= 0) or (Length(AValues) = 0) then
-    Exit;
-  repeat
-    I := ALeft;
-    J := ARight;
-    P := AValues[ALeft + (ARight - ALeft) shr 1];
-    repeat
-        while AComparer.Compare(AValues[I], P) < 0 do
-          Inc(I);
-        while AComparer.Compare(AValues[J], P) > 0 do
-          Dec(J);
-      if I <= J then
-      begin
-        if I <> J then
-        begin
-          Q := AValues[I];
-          AValues[I] := AValues[J];
-          AValues[J] := Q;
-        end;
-        Inc(I);
-        Dec(J);
-      end;
-    until I > J;
-    // sort the smaller range recursively
-    // sort the bigger range via the loop
-    // Reasons: memory usage is O(log(n)) instead of O(n) and loop is faster than recursion
-    if J - ALeft < ARight - I then
-    begin
-      if ALeft < J then
-        QuickSort(AValues, ALeft, J, AComparer);
-      ALeft := I;
-    end
-    else
-    begin
-      if I < ARight then
-        QuickSort(AValues, I, ARight, AComparer);
-      ARight := J;
-    end;
-   until ALeft >= ARight;
+  QSort(PT(AValues) + ALeft, ARight - ALeft + 1, ARight - ALeft + 1, AComparer);
 end;
 
 class function TArrayHelper<T>.BinarySearch(constref AValues: array of T; constref AItem: T;
