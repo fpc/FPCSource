@@ -470,7 +470,11 @@ implementation
                   current_asmdata.getlabel(curpos,alt_dbgframe);
                   list.concat(tai_label.create(curpos));
                   list.concat(tai_const.Create_sym(hp.oper[0].beginsym));
+{$if defined(avr)}
+                  list.concat(tai_const.create_rel_sym(aitconst_32bit,hp.oper[0].beginsym,hp.oper[0].endsym));
+{$else defined(avr)}
                   list.concat(tai_const.create_rel_sym(aitconst_ptr,hp.oper[0].beginsym,hp.oper[0].endsym));
+{$endif defined(avr)}
 
                   { we wrote a 'z' into the CIE augmentation data }
                   if datatype=dt_eh_frame then
