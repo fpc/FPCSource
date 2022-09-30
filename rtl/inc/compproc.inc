@@ -646,12 +646,42 @@ procedure fpc_rol_assign_int64(var AValue : int64;const Dist : Byte);compilerpro
 procedure fpc_rol_assign_qword(var AValue : QWord;const Dist : Byte);compilerproc;
 {$endif FPC_HAS_INTERNAL_ROX_ASSIGN_QWORD}
 
-
 function fpc_popcnt_byte(AValue : Byte): Byte;compilerproc;
 function fpc_popcnt_word(AValue : Word): Word;compilerproc;
 function fpc_popcnt_dword(AValue : DWord): DWord;compilerproc;
 function fpc_popcnt_qword(AValue : QWord): QWord;compilerproc;
 
+{$if not defined(VER3_2) and not defined(CPUJVM)}
+function fpc_atomic_inc_8(var Target: shortint): shortint;compilerproc;
+function fpc_atomic_inc_16(var Target: smallint): smallint;compilerproc;
+function fpc_atomic_inc_32(var Target: longint): longint;compilerproc;
+function fpc_atomic_inc_64(var Target: int64): int64;compilerproc;
+
+function fpc_atomic_dec_8(var Target: shortint): shortint;compilerproc;
+function fpc_atomic_dec_16(var Target: smallint): smallint;compilerproc;
+function fpc_atomic_dec_32(var Target: longint): longint;compilerproc;
+function fpc_atomic_dec_64(var Target: int64): int64;compilerproc;
+
+function fpc_atomic_add_8(var Target: shortint; Value: shortint): shortint;compilerproc;
+function fpc_atomic_add_16(var Target: smallint; Value: smallint): smallint;compilerproc;
+function fpc_atomic_add_32(var Target: longint; Value: longint): longint;compilerproc;
+function fpc_atomic_add_64(var Target: int64; Value: int64): int64;compilerproc;
+
+function fpc_atomic_sub_8(var Target: shortint; Value: shortint): shortint;compilerproc;
+function fpc_atomic_sub_16(var Target: smallint; Value: smallint): smallint;compilerproc;
+function fpc_atomic_sub_32(var Target: longint; Value: longint): longint;compilerproc;
+function fpc_atomic_sub_64(var Target: int64; Value: int64): int64;compilerproc;
+
+function fpc_atomic_xchg_8(var Target: shortint; Source: shortint): shortint;compilerproc;
+function fpc_atomic_xchg_16(var Target: smallint; Source: smallint): smallint;compilerproc;
+function fpc_atomic_xchg_32(var Target: longint; Source: longint): longint;compilerproc;
+function fpc_atomic_xchg_64(var Target: int64; Source: int64): int64;compilerproc;
+
+function fpc_atomic_cmp_xchg_8(var Target: shortint; NewValue: shortint; Comparand: shortint): shortint;compilerproc;
+function fpc_atomic_cmp_xchg_16(var Target: smallint; NewValue: smallint; Comparand: smallint): smallint;compilerproc;
+function fpc_atomic_cmp_xchg_32(var Target: longint; NewValue: longint; Comparand: longint): longint;compilerproc;
+function fpc_atomic_cmp_xchg_64(var Target: int64; NewValue: int64; Comparand: int64): int64;compilerproc;
+{$endif VER3_2}
 
 {$ifndef FPUNONE}
 function fpc_abs_real(d : ValReal) : ValReal;compilerproc;

@@ -3161,7 +3161,6 @@ function fpc_PopCnt_dword(AValue : DWord): DWord;[Public,Alias:'FPC_POPCNT_DWORD
       end;
   end;
 
-
 {$ifndef FPC_SYSTEM_HAS_POPCNT_QWORD}
 function fpc_PopCnt_qword(AValue : QWord): QWord;[Public,Alias:'FPC_POPCNT_QWORD'];compilerproc;
   begin
@@ -3169,3 +3168,597 @@ function fpc_PopCnt_qword(AValue : QWord): QWord;[Public,Alias:'FPC_POPCNT_QWORD
   end;
 {$endif}
 
+{$if not defined(VER3_2) and not defined(CPUJVM)}
+{$push}
+{$R-,Q-}
+
+{$ifndef FPC_SYSTEM_HAS_ATOMIC_INC_8}
+function fpc_atomic_inc_8(var Target: shortint): shortint;compilerproc;
+{$if defined(FPC_SYSTEM_HAS_ATOMIC_ADD_8)}
+begin
+  Result := AtomicIncrement(Target, 1);
+{$elseif defined(FPC_SYSTEM_HAS_ATOMIC_SUB_8)}
+begin
+  Result := AtomicDecrement(Target, -1);
+{$else}
+var
+  t1, t2: shortint;
+begin
+  repeat
+    t1 := Target;
+    t2 := AtomicCmpExchange(Target, t1 + 1, t1);
+  until t2 = t1;
+  Result := t2 + 1;
+{$endif}
+end;
+{$endif FPC_SYSTEM_HAS_ATOMIC_INC_8}
+
+{$ifndef FPC_SYSTEM_HAS_ATOMIC_INC_16}
+function fpc_atomic_inc_16(var Target: smallint): smallint;compilerproc;
+{$if defined(FPC_SYSTEM_HAS_ATOMIC_ADD_16)}
+begin
+  Result := AtomicIncrement(Target, 1);
+{$elseif defined(FPC_SYSTEM_HAS_ATOMIC_SUB_16)}
+begin
+  Result := AtomicDecrement(Target, -1);
+{$else}
+var
+  t1, t2: smallint;
+begin
+  repeat
+    t1 := Target;
+    t2 := AtomicCmpExchange(Target, t1 + 1, t1);
+  until t2 = t1;
+  Result := t2 + 1;
+{$endif}
+end;
+{$endif FPC_SYSTEM_HAS_ATOMIC_INC_16}
+
+{$ifndef FPC_SYSTEM_HAS_ATOMIC_INC_32}
+function fpc_atomic_inc_32(var Target: longint): longint;compilerproc;
+{$if defined(FPC_SYSTEM_HAS_ATOMIC_ADD_32)}
+begin
+  Result := AtomicIncrement(Target, 1);
+{$elseif defined(FPC_SYSTEM_HAS_ATOMIC_SUB_32)}
+begin
+  Result := AtomicDecrement(Target, -1);
+{$else}
+var
+  t1, t2: longint;
+begin
+  repeat
+    t1 := Target;
+    t2 := AtomicCmpExchange(Target, t1 + 1, t1);
+  until t2 = t1;
+  Result := t2 + 1;
+{$endif}
+end;
+{$endif FPC_SYSTEM_HAS_ATOMIC_INC_32}
+
+{$ifndef FPC_SYSTEM_HAS_ATOMIC_INC_64}
+function fpc_atomic_inc_64(var Target: int64): int64;compilerproc;
+{$if defined(FPC_SYSTEM_HAS_ATOMIC_ADD_64)}
+begin
+  Result := AtomicIncrement(Target, 1);
+{$elseif defined(FPC_SYSTEM_HAS_ATOMIC_SUB_64)}
+begin
+  Result := AtomicDecrement(Target, -1);
+{$else}
+var
+  t1, t2: int64;
+begin
+  repeat
+    t1 := Target;
+    t2 := AtomicCmpExchange(Target, t1 + 1, t1);
+  until t2 = t1;
+  Result := t2 + 1;
+{$endif}
+end;
+{$endif FPC_SYSTEM_HAS_ATOMIC_INC_64}
+
+{$ifndef FPC_SYSTEM_HAS_ATOMIC_DEC_8}
+function fpc_atomic_dec_8(var Target: shortint): shortint;compilerproc;
+{$if defined(FPC_SYSTEM_HAS_ATOMIC_SUB_8)}
+begin
+  Result := AtomicDecrement(Target, 1);
+{$elseif defined(FPC_SYSTEM_HAS_ATOMIC_ADD_8)}
+begin
+  Result := AtomicIncrement(Target, -1);
+{$else}
+var
+  t1, t2: shortint;
+begin
+  repeat
+    t1 := Target;
+    t2 := AtomicCmpExchange(Target, t1 - 1, t1);
+  until t2 = t1;
+  Result := t2 - 1;
+{$endif}
+end;
+{$endif FPC_SYSTEM_HAS_ATOMIC_DEC_8}
+
+{$ifndef FPC_SYSTEM_HAS_ATOMIC_DEC_16}
+function fpc_atomic_dec_16(var Target: smallint): smallint;compilerproc;
+{$if defined(FPC_SYSTEM_HAS_ATOMIC_SUB_16)}
+begin
+  Result := AtomicDecrement(Target, 1);
+{$elseif defined(FPC_SYSTEM_HAS_ATOMIC_ADD_16)}
+begin
+  Result := AtomicIncrement(Target, -1);
+{$else}
+var
+  t1, t2: smallint;
+begin
+  repeat
+    t1 := Target;
+    t2 := AtomicCmpExchange(Target, t1 - 1, t1);
+  until t2 = t1;
+  Result := t2 - 1;
+{$endif}
+end;
+{$endif FPC_SYSTEM_HAS_ATOMIC_DEC_16}
+
+{$ifndef FPC_SYSTEM_HAS_ATOMIC_DEC_32}
+function fpc_atomic_dec_32(var Target: longint): longint;compilerproc;
+{$if defined(FPC_SYSTEM_HAS_ATOMIC_SUB_32)}
+begin
+  Result := AtomicDecrement(Target, 1);
+{$elseif defined(FPC_SYSTEM_HAS_ATOMIC_ADD_32)}
+begin
+  Result := AtomicIncrement(Target, -1);
+{$else}
+var
+  t1, t2: longint;
+begin
+  repeat
+    t1 := Target;
+    t2 := AtomicCmpExchange(Target, t1 - 1, t1);
+  until t2 = t1;
+  Result := t2 - 1;
+{$endif}
+end;
+{$endif FPC_SYSTEM_HAS_ATOMIC_DEC_32}
+
+{$ifndef FPC_SYSTEM_HAS_ATOMIC_DEC_64}
+function fpc_atomic_dec_64(var Target: int64): int64;compilerproc;
+{$if defined(FPC_SYSTEM_HAS_ATOMIC_SUB_64)}
+begin
+  Result := AtomicDecrement(Target, 1);
+{$elseif defined(FPC_SYSTEM_HAS_ATOMIC_ADD_64)}
+begin
+  Result := AtomicIncrement(Target, -1);
+{$else}
+var
+  t1, t2: int64;
+begin
+  repeat
+    t1 := Target;
+    t2 := AtomicCmpExchange(Target, t1 - 1, t1);
+  until t2 = t1;
+  Result := t2 - 1;
+{$endif}
+end;
+{$endif FPC_SYSTEM_HAS_ATOMIC_DEC_64}
+
+{$ifndef FPC_SYSTEM_HAS_ATOMIC_ADD_8}
+function fpc_atomic_add_8(var Target: shortint; Value: shortint): shortint;compilerproc;
+{$ifdef FPC_SYSTEM_HAS_ATOMIC_SUB_8}
+begin
+  { the intrinsic returns the new value, but the helper needs to return the old }
+  Result := AtomicDecrement(Target, - Value) - Value;
+{$else FPC_SYSTEM_HAS_ATOMIC_SUB_8}
+var
+  t1, t2: shortint;
+begin
+  repeat
+    t1:=Target;
+    t2:=AtomicCmpExchange(Target, t1 + Value, t1);
+  until t2 = t1;
+  Result := t2;
+{$endif}
+end;
+{$endif FPC_SYSTEM_HAS_ATOMIC_ADD_8}
+
+{$ifndef FPC_SYSTEM_HAS_ATOMIC_ADD_16}
+function fpc_atomic_add_16(var Target: smallint; Value: smallint): smallint;compilerproc;
+{$ifdef FPC_SYSTEM_HAS_ATOMIC_SUB_16}
+begin
+  { the intrinsic returns the new value, but the helper needs to return the old }
+  Result := AtomicDecrement(Target, - Value) - Value;
+{$else FPC_SYSTEM_HAS_ATOMIC_SUB_16}
+var
+  t1, t2: smallint;
+begin
+  repeat
+    t1 := Target;
+    t2 := AtomicCmpExchange(Target, t1 + Value, t1);
+  until t2 = t1;
+  Result := t2;
+{$endif FPC_SYSTEM_HAS_ATOMIC_SUB_16}
+end;
+{$endif FPC_SYSTEM_HAS_ATOMIC_ADD_16}
+
+{$ifndef FPC_SYSTEM_HAS_ATOMIC_ADD_32}
+function fpc_atomic_add_32(var Target: longint; Value: longint): longint;compilerproc;
+{$ifdef FPC_SYSTEM_HAS_ATOMIC_SUB_32}
+begin
+  { the intrinsic returns the new value, but the helper needs to return the old }
+  Result := AtomicDecrement(Target, - Value) - Value;
+{$else FPC_SYSTEM_HAS_ATOMIC_SUB_32}
+var
+  t1, t2: longint;
+begin
+  repeat
+    t1 := Target;
+    t2 := AtomicCmpExchange(Target, t1 + Value, t1);
+  until t2 = t1;
+  Result := t2;
+{$endif FPC_SYSTEM_HAS_ATOMIC_SUB_32}
+end;
+{$endif FPC_SYSTEM_HAS_ATOMIC_ADD_32}
+
+{$ifndef FPC_SYSTEM_HAS_ATOMIC_ADD_64}
+function fpc_atomic_add_64(var Target: int64; Value: int64): int64;compilerproc;
+{$ifdef FPC_SYSTEM_HAS_ATOMIC_SUB_64}
+begin
+  { the intrinsic returns the new value, but the helper needs to return the old }
+  Result := AtomicDecrement(Target, - Value) - Value;
+{$else FPC_SYSTEM_HAS_ATOMIC_SUB_64}
+var
+  t1, t2: int64;
+begin
+  repeat
+    t1 := Target;
+    t2 := AtomicCmpExchange(Target, t1 + Value, t1);
+  until t2 = t1;
+  Result := t2;
+{$endif FPC_SYSTEM_HAS_ATOMIC_SUB_64}
+end;
+{$endif FPC_SYSTEM_HAS_ATOMIC_ADD_64}
+
+{$ifndef FPC_SYSTEM_HAS_ATOMIC_SUB_8}
+function fpc_atomic_sub_8(var Target: shortint; Value: shortint): shortint;compilerproc;
+{$ifdef FPC_SYSTEM_HAS_ATOMIC_ADD_8}
+begin
+  { the intrinsic returns the new value, but the helper needs to return the old }
+  Result := AtomicIncrement(Target, - Value) + Value;
+{$else FPC_SYSTEM_HAS_ATOMIC_ADD_8}
+var
+  t1, t2: smallint;
+begin
+  repeat
+    t1 := Target;
+    t2 := AtomicCmpExchange(Target, t1 - Value, t1);
+  until t2 = t1;
+  Result := t2;
+{$endif FPC_SYSTEM_HAS_ATOMIC_ADD_8}
+end;
+{$endif FPC_SYSTEM_HAS_ATOMIC_SUB_8}
+
+{$ifndef FPC_SYSTEM_HAS_ATOMIC_SUB_16}
+function fpc_atomic_sub_16(var Target: smallint; Value: smallint): smallint;compilerproc;
+{$ifdef FPC_SYSTEM_HAS_ATOMIC_ADD_16}
+begin
+  { the intrinsic returns the new value, but the helper needs to return the old }
+  Result := AtomicIncrement(Target, - Value) + Value;
+{$else FPC_SYSTEM_HAS_ATOMIC_ADD_16}
+var
+  t1, t2: shortint;
+begin
+  repeat
+    t1 := Target;
+    t2 := AtomicCmpExchange(Target, t1 - Value, t1);
+  until t2 = t1;
+  Result := t2;
+{$endif FPC_SYSTEM_HAS_ATOMIC_ADD_16}
+end;
+{$endif FPC_SYSTEM_HAS_ATOMIC_SUB_16}
+
+{$ifndef FPC_SYSTEM_HAS_ATOMIC_SUB_32}
+function fpc_atomic_sub_32(var Target: longint; Value: longint): longint;compilerproc;
+{$ifdef FPC_SYSTEM_HAS_ATOMIC_ADD_32}
+begin
+  { the intrinsic returns the new value, but the helper needs to return the old }
+  Result := AtomicIncrement(Target, - Value) + Value;
+{$else FPC_SYSTEM_HAS_ATOMIC_ADD_32}
+var
+  t1, t2: longint;
+begin
+  repeat
+    t1 := Target;
+    t2 := AtomicCmpExchange(Target, t1 - Value, t1);
+  until t2 = t1;
+  Result := t2;
+{$endif FPC_SYSTEM_HAS_ATOMIC_ADD_32}
+end;
+{$endif FPC_SYSTEM_HAS_ATOMIC_SUB_32}
+
+{$ifndef FPC_SYSTEM_HAS_ATOMIC_SUB_64}
+function fpc_atomic_sub_64(var Target: int64; Value: int64): int64;compilerproc;
+{$ifdef FPC_SYSTEM_HAS_ATOMIC_ADD_64}
+begin
+  { the intrinsic returns the new value, but the helper needs to return the old }
+  Result := AtomicIncrement(Target, - Value) + Value;
+{$else FPC_SYSTEM_HAS_ATOMIC_ADD_64}
+var
+  t1, t2: int64;
+begin
+  repeat
+    t1 := Target;
+    t2 := AtomicCmpExchange(Target, t1 - Value, t1);
+  until t2 = t1;
+  Result := t2;
+{$endif FPC_SYSTEM_HAS_ATOMIC_ADD_8}
+end;
+{$endif FPC_SYSTEM_HAS_ATOMIC_SUB_64}
+
+{$ifndef FPC_SYSTEM_HAS_ATOMIC_XCHG_8}
+function fpc_atomic_xchg_8(var Target: shortint; Source: shortint): shortint;compilerproc;
+var
+  t1, t2: shortint;
+begin
+  repeat
+    t1 := Target;
+    t2 := AtomicCmpExchange(Target, Source, t1);
+  until t2 = t1;
+  Result := t1;
+end;
+{$endif FPC_SYSTEM_HAS_ATOMIC_XCHG_8}
+
+{$ifndef FPC_SYSTEM_HAS_ATOMIC_XCHG_16}
+function fpc_atomic_xchg_16(var Target: smallint; Source: smallint): smallint;compilerproc;
+var
+  t1, t2: smallint;
+begin
+  repeat
+    t1 := Target;
+    t2 := AtomicCmpExchange(Target, Source, t1);
+  until t2 = t1;
+  Result := t1;
+end;
+{$endif FPC_SYSTEM_HAS_ATOMIC_XCHG_16}
+
+{$ifndef FPC_SYSTEM_HAS_ATOMIC_XCHG_32}
+function fpc_atomic_xchg_32(var Target: longint; Source: longint): longint;compilerproc;
+var
+  t1, t2: longint;
+begin
+  repeat
+    t1 := Target;
+    t2 := AtomicCmpExchange(Target, Source, t1);
+  until t2 = t1;
+  Result := t1;
+end;
+{$endif FPC_SYSTEM_HAS_ATOMIC_XCHG_32}
+
+{$ifndef FPC_SYSTEM_HAS_ATOMIC_XCHG_64}
+function fpc_atomic_xchg_64(var Target: int64; Source: int64): int64;compilerproc;
+var
+  t1, t2: int64;
+begin
+  repeat
+    t1 := Target;
+    t2 := AtomicCmpExchange(Target, Source, t1);
+  until t2 = t1;
+  Result := t1;
+end;
+{$endif FPC_SYSTEM_HAS_ATOMIC_XCHG_64}
+
+{ the variant of fpc_atomic_cmp_xchg_<alusize>() needs to be implemented by
+  the corresponding platforms include file, then the default functions can do
+  the job (poorly) until the other functions are implemented for the platform }
+
+procedure AtomicEnterLock; forward;
+procedure AtomicLeaveLock; forward;
+
+{$ifndef FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_8}
+{$if SizeOf(ALUSInt) = SizeOf(ShortInt)}
+{$message warning 'At least fpc_atomic_cmp_xchg_8 must be implemented for the current platform'}
+{$define FPC_SYSTEM_ATOMIC_8_NO_LOCK}
+{$else}
+{$define FPC_SYSTEM_NEEDS_ATOMIC_FALLBACK}
+{$endif}
+function fpc_atomic_cmp_xchg_8(var Target: shortint; NewValue: shortint; Comparand: shortint): shortint;compilerproc;
+begin
+  {$ifdef FPC_SYSTEM_ATOMIC_8_NO_LOCK}
+  AtomicEnterLock;
+  {$endif FPC_SYSTEM_ATOMIC_8_NO_LOCK}
+  Result:=Target;
+  if Target=Comparand then
+    Target:=NewValue;
+  {$ifdef FPC_SYSTEM_ATOMIC_8_NO_LOCK}
+  AtomicLeaveLock;
+  {$endif FPC_SYSTEM_ATOMIC_8_NO_LOCK}
+end;
+{$endif FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_8}
+
+{$ifndef FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_16}
+{$if SizeOf(ALUSInt) = SizeOf(SmallInt)}
+{$message warning 'At least fpc_atomic_cmp_xchg_16 must be implemented for the current platform'}
+{$define FPC_SYSTEM_ATOMIC_16_NO_LOCK}
+{$else}
+{$define FPC_SYSTEM_NEEDS_ATOMIC_FALLBACK}
+{$endif}
+function fpc_atomic_cmp_xchg_16(var Target: smallint; NewValue: smallint; Comparand: smallint): smallint;compilerproc;
+begin
+  {$ifdef FPC_SYSTEM_ATOMIC_16_NO_LOCK}
+  AtomicEnterLock;
+  {$endif FPC_SYSTEM_ATOMIC_16_NO_LOCK}
+  Result:=Target;
+  if Target=Comparand then
+    Target:=NewValue;
+  {$ifdef FPC_SYSTEM_ATOMIC_16_NO_LOCK}
+  AtomicLeaveLock;
+  {$endif FPC_SYSTEM_ATOMIC_16_NO_LOCK}
+end;
+{$endif FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_16}
+
+{$ifndef FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_32}
+{$if SizeOf(ALUSInt) = SizeOf(LongInt)}
+{$message warning 'At least fpc_atomic_cmp_xchg_32 must be implemented for the current platform'}
+{$define FPC_SYSTEM_ATOMIC_32_NO_LOCK}
+{$else}
+{$define FPC_SYSTEM_NEEDS_ATOMIC_FALLBACK}
+{$endif}
+function fpc_atomic_cmp_xchg_32(var Target: longint; NewValue: longint; Comparand: longint): longint;compilerproc;
+begin
+  {$ifdef FPC_SYSTEM_ATOMIC_32_NO_LOCK}
+  AtomicEnterLock;
+  {$endif FPC_SYSTEM_ATOMIC_32_NO_LOCK}
+  Result:=Target;
+  if Target=Comparand then
+    Target:=NewValue;
+  {$ifdef FPC_SYSTEM_ATOMIC_32_NO_LOCK}
+  AtomicLeaveLock;
+  {$endif FPC_SYSTEM_ATOMIC_32_NO_LOCK}
+end;
+{$endif FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_32}
+
+{$ifndef FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_64}
+{$if SizeOf(ALUSInt) = SizeOf(Int64)}
+{$message warning 'At least fpc_atomic_cmp_xchg_64 must be implemented for the current platform'}
+{$define FPC_SYSTEM_ATOMIC_64_NO_LOCK}
+{$else}
+{$define FPC_SYSTEM_NEEDS_ATOMIC_FALLBACK}
+{$endif}
+function fpc_atomic_cmp_xchg_64(var Target: int64; NewValue: int64; Comparand: int64): int64;compilerproc;
+begin
+  {$ifdef FPC_SYSTEM_ATOMIC_64_NO_LOCK}
+  AtomicEnterLock;
+  {$endif FPC_SYSTEM_ATOMIC_64_NO_LOCK}
+  Result:=Target;
+  if Target=Comparand then
+    Target:=NewValue;
+  {$ifdef FPC_SYSTEM_ATOMIC_64_NO_LOCK}
+  AtomicLeaveLock;
+  {$endif FPC_SYSTEM_ATOMIC_64_NO_LOCK}
+end;
+{$endif FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_64}
+
+{$if defined(FPC_SYSTEM_NEEDS_ATOMIC_FALLBACK)}
+var
+  gAtomicLock: ALUSInt = 0;
+
+function fpc_atomic_cmp_xchg_alu(var Target: ALUSInt; NewValue: ALUSInt; Comparand: ALUSint): ALUSint; external name
+{$if defined(CPU8)}
+  'FPC_ATOMIC_CMP_XCHG_8'
+{$elseif defined(CPU16)}
+  'FPC_ATOMIC_CMP_XCHG_16'
+{$elseif defined(CPU32)}
+  'FPC_ATOMIC_CMP_XCHG_32'
+{$elseif defined(CPU64)}
+  'FPC_ATOMIC_CMP_XCHG_64'
+{$else}
+  'FPC_ATOMIC_CMP_XCHG_UNKNOWN'
+{$endif}
+  ;
+
+procedure AtomicEnterLock;
+var
+  r: ALUSint;
+begin
+  { spin until we get the lock }
+  repeat
+    r := fpc_atomic_cmp_xchg_alu(gAtomicLock, 1, 0);
+  until r = 0;
+end;
+
+procedure AtomicLeaveLock;
+begin
+  fpc_atomic_cmp_xchg_alu(gAtomicLock, 0, 1);
+end;
+{$else}
+procedure AtomicEnterLock;
+begin
+end;
+
+procedure AtomicLeaveLock;
+begin
+end;
+{$endif}
+
+{$if defined(FPC_SYSTEM_INTERLOCKED_USE_INTRIN)}
+
+{$ifdef cpu16}
+function InterlockedIncrement (var Target: smallint) : smallint;
+begin
+  Result := AtomicIncrement(Target);
+end;
+
+function InterlockedDecrement (var Target: smallint) : smallint;
+begin
+  Result := AtomicDecrement(Target);
+end;
+
+function InterlockedExchange (var Target: smallint;Source : smallint) : smallint;
+begin
+  Result := AtomicExchange(Target, Source);
+end;
+
+function InterlockedExchangeAdd (var Target: smallint;Source : smallint) : smallint;
+begin
+  Result := AtomicIncrement(Target, Source) - Source;
+end;
+
+function InterlockedCompareExchange(var Target: smallint; NewValue: smallint; Comperand: smallint): smallint;
+begin
+  Result := AtomicCmpExchange(Target, NewValue, Comperand);
+end;
+{$endif cpu16}
+
+function InterlockedIncrement (var Target: longint) : longint;
+begin
+  Result := AtomicIncrement(Target);
+end;
+
+function InterlockedDecrement (var Target: longint) : longint;
+begin
+  Result := AtomicDecrement(Target);
+end;
+
+function InterlockedExchange (var Target: longint;Source : longint) : longint;
+begin
+  Result := AtomicExchange(Target, Source);
+end;
+
+function InterlockedExchangeAdd (var Target: longint;Source : longint) : longint;
+begin
+  Result := AtomicIncrement(Target, Source) - Source;
+end;
+
+function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
+begin
+  Result := AtomicCmpExchange(Target, NewValue, Comperand);
+end;
+
+{$ifdef cpu64}
+function InterlockedIncrement64 (var Target: int64) : int64;
+begin
+  Result := AtomicIncrement(Target);
+end;
+
+function InterlockedDecrement64 (var Target: int64) : int64;
+begin
+  Result := AtomicDecrement(Target);
+end;
+
+function InterlockedExchange64 (var Target: int64;Source : int64) : int64;
+begin
+  Result := AtomicExchange(Target, Source);
+end;
+
+function InterlockedExchangeAdd64 (var Target: int64;Source : int64) : int64;
+begin
+  Result := AtomicIncrement(Target, Source) - Source;
+end;
+
+function InterlockedCompareExchange64(var Target: int64; NewValue: int64; Comperand: int64): int64;
+begin
+  Result := AtomicCmpExchange(Target, NewValue, Comperand);
+end;
+{$endif cpu64}
+
+{$endif FPC_SYSTEM_INTERLOCKED_USE_INTRIN}
+
+{$pop}
+{$endif VER3_2}
