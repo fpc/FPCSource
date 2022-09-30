@@ -1703,7 +1703,7 @@ parser_e_cannot_evaluate_expression_at_compile_time=03372_E_Expression cannot be
 %
 # Type Checking
 #
-# 04133 is the last used one
+# 04134 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -2163,6 +2163,8 @@ type_e_cannot_take_address_of_wasm_externref=04132_E_Cannot take the address of 
 % WebAssembly externref types don't have an in-memory representation and therefore, their address cannot be taken.
 type_e_cannot_determine_size_of_wasm_reference_type=04133_E_WebAssembly reference types don't have an observable size
 % WebAssembly reference types are opaque, meaning neither their size, nor their bit pattern can be observed.
+type_e_ordinal_or_pointer_expr_expected=04134_E_Ordinal or pointer expression expected
+% The expression must be of an ordinal or pointer type.
 %
 % \end{description}
 #
