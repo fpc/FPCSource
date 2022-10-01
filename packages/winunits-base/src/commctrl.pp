@@ -9902,7 +9902,7 @@ type _LI_METRIC= (
 		 );
 
 Function LoadIconMetric( hinst:HINST; pszName:LPCWStr;lims:cint; var phico: HICON ):HRESULT; stdcall; external commctrldll name 'LoadIconMetric';
-Function LoadIconWithScaleDown( hinst:HINST; pszName:LPCWStr;cx:cint;cy:cint;var phico: HICON ):HRESULT; stdcall; external commctrldll name 'LoadIconMetric';
+Function LoadIconWithScaleDown( hinst:HINST; pszName:LPCWStr;cx:cint;cy:cint;var phico: HICON ):HRESULT; stdcall; external commctrldll name 'LoadIconWithScaleDown';
 
 {$endif}
 
