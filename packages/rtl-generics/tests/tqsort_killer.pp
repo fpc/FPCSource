@@ -22,7 +22,8 @@ type
 		class procedure Run(create: CreateProc; const tyPlural: string; lenMul: double); static;
 		class procedure BenchSort(const src, ref: array of Ty; var prevTime: double); static;
 
-		// Built against specific QSort implementation that uses (L + R) div 2 as a median, and won't kill any other, even one that uses (L + R + 1) div 2.
+		// Built against specific QSort implementation that uses median of 3 elements: L, R, and (L + R + 1) div 2,
+		// and WON'T KILL ANY OTHER.
 		// 'ref' must be sorted and contain no duplicates.
 		class function BuildQSortKiller(const ref: array of Ty): TyArray; static;
 	end;
@@ -87,16 +88,20 @@ type
 	class function SortBenchmark.BuildQSortKiller(const ref: array of Ty): TyArray;
 	var
 		ris: array of SizeInt;
-		i: SizeInt;
+		i, nr: SizeInt;
 	begin
 		SetLength((@ris)^, length(ref)); // Swaps that QSort would perform are tracked here, to build the worst case possible. >:3
 		for i := 0 to High(ris) do ris[i] := i;
 
 		SetLength((@result)^, length(ref));
-		for i := 0 to High(ref) do
+		i := 0; nr := length(ref);
+		while i < nr do
 		begin
-			specialize Swap<SizeInt>(ris[i], ris[i + (High(ref) - i) shr 1]);
 			result[ris[i]] := ref[i];
+			if i + 1 = nr then break;
+			specialize Swap<SizeInt>(ris[i + 1], ris[i + SizeInt(SizeUint(nr - i) div 2)]);
+			result[ris[i + 1]] := ref[i + 1];
+			i += 2;
 		end;
 	end;
 
@@ -115,12 +120,12 @@ type
 			specialize TArrayHelper<Ty>.Sort(arr);
 			timePassed := (Now - startTime) * SecsPerDay;
 			reps += 1;
-		until not (timePassed < 0.5);
+		until not (timePassed < 0.2);
 
 		time := timePassed / reps;
 		write(time * 1e3:0:1, ' ms/sort');
 		if prevTime > 0 then write(' (', time / prevTime:0:1, 'x from previous)');
-		if time / prevTime > 3 then
+		if (prevTime > 0) and (time / prevTime > 3) then
 		  begin
 		    writeln;
 		    writeln('Bad sorting algorithm behaviour');
@@ -157,6 +162,10 @@ begin
 			result := -1000 + id / 1000;
 		end, 'float32''s', 1.0);
 
-	if anythingWrong then writeln(LineEnding, 'Something was wrong, see above.');
+	if anythingWrong then
+	begin
+		writeln(LineEnding, 'Something was wrong, see above.');
+		halt(2);
+	end;
 end.
 
