@@ -326,7 +326,7 @@ ifneq ($(REVINC),)
 #Use it to compile version.pas unit
 override LOCALOPT+=-dREVINC
 # Automatically update revision.inc if
-# svnversion executable is available
+# git/svnversion executable is available
  ifeq ($(REVSTR),)
   ifneq ($(wildcard ../.git),)
    ifneq ($(GIT),)
