@@ -15,4 +15,11 @@
  **********************************************************************}
 
 type
+{$ifndef aix}
   TNativeFPUControlWord = dword;
+{$else aix}
+  TNativeFPUControlWord = record
+    rndmode: word;
+    exceptionmask: byte;
+  end;
+{$endif}

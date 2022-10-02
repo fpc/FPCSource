@@ -62,7 +62,7 @@ end;
 function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
 var
   mode : DWord;
-  currentcw: TNativeFPUControlWord
+  currentcw: TNativeFPUControlWord;
 begin
   softfloat_rounding_mode:=RoundMode;
   case (RoundMode) of
