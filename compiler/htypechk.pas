@@ -459,7 +459,8 @@ implementation
                              ) or
                              (
                                (lt=niln) and
-                               (rd.typ in [procvardef,procdef,classrefdef]) and
+                               ((rd.typ in [procvardef,procdef,classrefdef]) or
+                                (is_dynamic_array(rd))) and
                                (treetyp in identity_operators)
                              ) or
                              (
