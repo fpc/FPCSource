@@ -946,11 +946,11 @@ unit i_linux;
                 coalescealign   : 0;
                 coalescealignskipmax: 0;
                 constalignmin   : 0;
-                constalignmax   : 16;
+                constalignmax   : 64;
                 varalignmin     : 0;
                 varalignmax     : 64;
                 localalignmin   : 4;
-                localalignmax   : 64;
+                localalignmax   : 16;
                 recordalignmin  : 0;
                 recordalignmax  : 16;
                 maxCrecordalign : 16
