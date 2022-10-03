@@ -30,7 +30,7 @@ function GetRoundMode: TFPURoundingMode;
   const
     bits2rm: array[0..3] of TFPURoundingMode = (rmNearest,rmUp,rmDown,rmTruncate);
   begin
-    result:=TFPURoundingMode(bits2rm[(getfpcr shr 22) and 3])
+    result:=TFPURoundingMode(bits2rm[(GetNativeFPUControlWord shr 22) and 3])
   end;
 
 
@@ -121,7 +121,7 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
       newfpcr:=newfpcr and not(fpu_ixe);
     if exDenormalized in Mask then
       newfpcr:=newfpcr and not(fpu_ide);
-    setfpcr((getfpcr and not(fpu_exception_mask)) or newfpcr);
+    SetNativeFPUControlWord((GetNativeFPUControlWord and not(fpu_exception_mask)) or newfpcr);
 
     { as the fpcr flags might be RAZ, the softfloat exception mask
       is considered as the authoritative mask }
