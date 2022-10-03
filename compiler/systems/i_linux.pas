@@ -948,9 +948,9 @@ unit i_linux;
                 constalignmin   : 0;
                 constalignmax   : 16;
                 varalignmin     : 0;
-                varalignmax     : 16;
+                varalignmax     : 64;
                 localalignmin   : 4;
-                localalignmax   : 16;
+                localalignmax   : 64;
                 recordalignmin  : 0;
                 recordalignmax  : 16;
                 maxCrecordalign : 16
