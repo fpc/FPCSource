@@ -161,7 +161,7 @@ begin
 {$ifdef aix}
   currentcw.exceptionmask:=mode;
 {$else}
-  currentcw:=currentcw or ExceptionMask) and not mode and not ExceptionsPendingMask;
+  currentcw:=(currentcw or ExceptionMask) and not mode and not ExceptionsPendingMask;
 {$endif}
   SetNativeFPUControlWord(currentcw);
   { also clear out pending exceptions on AIX }
@@ -180,7 +180,7 @@ begin
   feclearexcept(AllExceptionsMask);
 {$else}
   { RaisePending has no effect on PPC, always raises them at the correct location }
-  setFPSCR(getFPSCR and (not ExceptionsPendingMask));
+  SetNativeFPUControlWord(GetNativeFPUControlWord and (not ExceptionsPendingMask));
 {$endif}
   softfloat_exception_flags := [];
 end;
