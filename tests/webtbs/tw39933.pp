@@ -1,6 +1,4 @@
 { %norun }
-program Project1;
-
 {$mode delphi}
 
 var a: TArray<integer>;
