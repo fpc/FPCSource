@@ -41,11 +41,16 @@ function getfpcr: qword; nostackframe; assembler;
 
 procedure setfpcr(val: qword);
   begin
-    DefaultFPUControlWord:=val;
     asm
       ldr x0,val
       msr fpcr,x0
+{$if not defined(darwin) or defined(ios) or defined(watchos) or defined(tvos)}
+      // read back the fpcr because on several (non-macOS) platforms it's raz
+      mrs x0,fpcr
+      str x0, val
+{$endif}
     end;
+    DefaultFPUControlWord:=val;
   end;
 
 
