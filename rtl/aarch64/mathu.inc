@@ -100,10 +100,13 @@ function GetExceptionMask: TFPUExceptionMask;
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
   var
     newfpcr: qword;
+    old_softfloat_exception_mask: TFPUExceptionMask;
   begin
     { clear "exception happened" flags }
     ClearExceptions(false);
-    softfloat_exception_mask:=mask;
+    { as the fpcr flags might be RAZ, the softfloat exception mask
+      is considered as the authoritative mask }
+    result:=softfloat_exception_mask;
 
     { at least the ThunderX AArch64 support apparently hardware exceptions,
       so set fpcr correctly, thought it might be WI on most implementations it does not hurt
@@ -122,10 +125,6 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
     if exDenormalized in Mask then
       newfpcr:=newfpcr and not(fpu_ide);
     SetNativeFPUControlWord((GetNativeFPUControlWord and not(fpu_exception_mask)) or newfpcr);
-
-    { as the fpcr flags might be RAZ, the softfloat exception mask
-      is considered as the authoritative mask }
-    result:=softfloat_exception_mask;
   end;
 
 
