@@ -1467,7 +1467,10 @@ begin
       UseProcedure(TPasProcedure(Decl))
       end
     else if C.InheritsFrom(TPasType) then
-      UseType(TPasType(Decl),Mode)
+      begin
+      if OnlyExports then continue;
+      UseType(TPasType(Decl),Mode);
+      end
     else if C.InheritsFrom(TPasVariable) then
       begin
       if OnlyExports and ([vmExport,vmPublic]*TPasVariable(Decl).VarModifiers=[]) then
@@ -2890,7 +2893,7 @@ procedure TPasAnalyzer.EmitTypeHints(El: TPasType);
 
   function IsRightStr(const s, right: string): boolean;
   begin
-    Result:=RightStr(s,length(right))=right;
+    Result:=(right<>'') and (RightStr(s,length(right))=right);
   end;
 
 var
@@ -2909,6 +2912,7 @@ begin
   if Usage=nil then
     begin
     // the whole type was never used
+
     if IsSpecializedGenericType(El) then
       exit; // no hints for not used specializations
     if (El.CustomData is TPasGenericScope) then
