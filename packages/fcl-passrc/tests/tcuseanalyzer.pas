@@ -109,6 +109,7 @@ type
     procedure TestM_Hint_ArgPassed_No_ParameterNotUsed;
     procedure TestM_Hint_ArrayArg_No_ParameterNotUsed;
     procedure TestM_Hint_ArrayArg_No_ParameterNotUsed2;
+    procedure TestM_Hint_ArrayStaticDim2_No_LocalArrayTypeNotUsed;
     procedure TestM_Hint_InheritedWithoutParams;
     procedure TestM_Hint_LocalVariableNotUsed;
     procedure TestM_HintsOff_LocalVariableNotUsed;
@@ -1795,6 +1796,23 @@ begin
   '  Fly(nil);',
   '']);
   AnalyzeProgram;
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestM_Hint_ArrayStaticDim2_No_LocalArrayTypeNotUsed;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  'var',
+  '  oa: array [1..10, 1..10] of TObject;',
+  'begin',
+  '']);
+  AnalyzeProgram;
+  CheckUseAnalyzerHint(mtHint,nPALocalXYNotUsed,'Local class "TObject" not used');
+  CheckUseAnalyzerHint(mtHint,nPALocalVariableNotUsed,'Local variable "oa" not used');
   CheckUseAnalyzerUnexpectedHints;
 end;
 

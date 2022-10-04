@@ -48,6 +48,7 @@ type
   Published
     procedure TestM_ProgramLocalVar;
     procedure TestM_PassRecordToJSValue;
+    procedure TestM_StaticArrayDim2;
   end;
 
 
@@ -94,6 +95,23 @@ begin
   '  DoIt(n.b);',
   'end.']);
   AnalyzeProgram;
+end;
+
+procedure TTestPas2jsAnalyzer.TestM_StaticArrayDim2;
+begin
+  StartProgram(false);
+  Add([
+  'type',
+  '  TObject = class',
+  '  end;',
+  'var',
+  '  oa: array [1..10, 1..10] of TObject;',
+  'begin',
+  'end.']);
+  AnalyzeProgram;
+  CheckUseAnalyzerHint(mtHint,nPALocalXYNotUsed,'Local class "TObject" not used');
+  CheckUseAnalyzerHint(mtHint,nPALocalVariableNotUsed,'Local variable "oa" not used');
+  CheckUseAnalyzerUnexpectedHints;
 end;
 
 { TCustomTestPas2jsAnalyzer }

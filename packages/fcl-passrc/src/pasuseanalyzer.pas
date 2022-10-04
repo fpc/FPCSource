@@ -2887,6 +2887,12 @@ begin
 end;
 
 procedure TPasAnalyzer.EmitTypeHints(El: TPasType);
+
+  function IsRightStr(const s, right: string): boolean;
+  begin
+    Result:=RightStr(s,length(right))=right;
+  end;
+
 var
   C: TClass;
   Usage: TPAElement;
@@ -2918,6 +2924,9 @@ begin
           end;
       end;
 
+    if IsRightStr(El.Name,Resolver.AnonymousElTypePostfix) then
+      exit; // anonymous type
+
     if (El.Visibility in [visPrivate,visStrictPrivate]) then
       EmitMessage(20170312000020,mtHint,nPAPrivateTypeXNeverUsed,
         sPAPrivateTypeXNeverUsed,[El.FullName],El)
@@ -2929,6 +2938,7 @@ begin
       EmitMessage(20170312000025,mtHint,nPALocalXYNotUsed,
         sPALocalXYNotUsed,[El.ElementTypeName,GetElementNameAndParams(El)],El);
       end;
+
     exit;
     end;
   // emit hints for sub elements
