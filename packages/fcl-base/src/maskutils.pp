@@ -780,7 +780,7 @@ begin
   end//FMaskSave = True
   else
   begin//FMaskSave = False
-    if Value<>'' then
+    if AValue<>'' then
     begin
       if FTrimType = metTrimRight then
       begin
