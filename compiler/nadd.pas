@@ -3015,13 +3015,29 @@ implementation
          { <dyn. array>+<dyn. array> ? }
          else if (nodetype=addn) and (is_dynamic_array(ld) or is_dynamic_array(rd)) then
            begin
-              result:=maybe_convert_to_insert;
-              if assigned(result) then
-                exit;
-              if not(is_dynamic_array(ld)) then
-                inserttypeconv(left,rd);
-              if not(is_dynamic_array(rd)) then
-                inserttypeconv(right,ld);
+              { empty array to add? }
+              if (right.nodetype=arrayconstructorn) and (tarrayconstructornode(right).left=nil) then
+                begin
+                  result:=left;
+                  left:=nil;
+                  exit;
+                end
+              else if (left.nodetype=arrayconstructorn) and (tarrayconstructornode(left).left=nil) then
+                begin
+                  result:=right;
+                  right:=nil;
+                  exit;
+                end
+              else
+                begin
+                  result:=maybe_convert_to_insert;
+                  if assigned(result) then
+                    exit;
+                  if not(is_dynamic_array(ld)) then
+                    inserttypeconv(left,rd);
+                  if not(is_dynamic_array(rd)) then
+                    inserttypeconv(right,ld);
+                end;
            end
 
         { support dynamicarray=nil,dynamicarray<>nil }
