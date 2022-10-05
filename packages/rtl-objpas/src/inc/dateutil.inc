@@ -1351,15 +1351,26 @@ end;
 }
 
 
-Function DateTimeDiff(const ANow, AThen: TDateTime): TDateTime;
+function DateTimeToNumber(ADateTime: TDateTime): Double;
 begin
-  Result:= ANow - AThen;
-  if (ANow>0) and (AThen<0) then
-    Result:=Result-0.5
-  else if (ANow<-1.0) and (AThen>-1.0) then
-    Result:=Result+0.5;
+  if ADateTime >= 0  then
+    Result := ADateTime
+  else
+    Result := int(ADateTime) - frac(ADateTime);
 end;
 
+function NumberToDateTime(AValue: Double): TDateTime;
+begin
+  if AValue >= 0 then
+    Result := AValue
+  else
+    Result := int(AValue) + frac(AValue);
+end;
+
+Function DateTimeDiff(const ANow, AThen: TDateTime): TDateTime;
+begin
+  Result := NumberToDateTime(DateTimeToNumber(ANow) - DateTimeToNumber(AThen));
+end;
 
 Function YearsBetween(const ANow, AThen: TDateTime; AExact : Boolean = False): Integer;
 
