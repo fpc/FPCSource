@@ -421,7 +421,7 @@ type
   end;
 
   { TWSServerConnection }
-  TWSConnectionHandshakeEvent =  procedure (aRequest : TWSHandShakeRequest; aResponse : TWSHandShakeResponse) of object;
+  TWSConnectionHandshakeEvent =  function(aRequest : TWSHandShakeRequest; aResponse : TWSHandShakeResponse): boolean of object;
 
   TWSServerConnection = Class(TWSConnection)
   Private
@@ -432,7 +432,7 @@ type
   Protected
     Procedure DoDisconnect; override;
     function GetTransport: IWSTransport; override;
-    procedure DoPrepareHandshakeResponse(aRequest : TWSHandShakeRequest; aResponse : TWSHandShakeResponse); virtual;
+    function DoPrepareHandshakeResponse(aRequest : TWSHandShakeRequest; aResponse : TWSHandShakeResponse): boolean; virtual;
     function GetHandshakeCompleted: Boolean; override;
   public
     // Transport is owned by connection
@@ -442,7 +442,7 @@ type
     // Do full circle.
     Procedure PerformHandshake; virtual;
     // Given a request, send response
-    function DoHandshake(const aRequest : TWSHandShakeRequest): Boolean;
+    function DoHandshake(const aRequest : TWSHandShakeRequest): Boolean; virtual;
     // Has handshake been exchanged?
     property HandshakeResponseSent: Boolean read FHandshakeResponseSent;
     // Extra handshake headers
@@ -568,7 +568,7 @@ end;
 
 function TWSTransport.GetSocket: TSocketStream;
 begin
-  Result:=FHelper.Socket
+  Result:=FHelper.Socket;
 end;
 
 constructor TWSTransport.Create(aStream : TSocketStream);
@@ -700,7 +700,7 @@ end;
 
 function TWSMessage.GetAsString: UTF8String;
 begin
-  Result:=TEncoding.UTF8.GetString(Payload);
+  Result:=UTF8String(TEncoding.UTF8.GetString(Payload));
 end;
 
 function TWSMessage.GetAsUnicodeString: UnicodeString;
@@ -946,6 +946,7 @@ end;
 { TWSFrame }
 
 constructor TWSFrame.Create(aType: TFrameType; aIsFinal: Boolean; APayload: TBytes; aMask: Integer=0);
+
 begin
   Create(aType,aIsFinal,aMask);
 
@@ -965,14 +966,13 @@ begin
   FFinalFrame := AIsFinal;
 end;
 
-
 constructor TWSFrame.Create(const aMessage: UTF8String; aMask: Integer=0);
 
 Var
   Data : TBytes;
 
 begin
-  Data:=TEncoding.UTF8.GetBytes(AMessage);
+  Data:=TEncoding.UTF8.GetBytes(UnicodeString(AMessage));
   Create(ftText,True,Data,aMask);
 end;
 
@@ -1463,7 +1463,7 @@ begin
   c := @AValue[0];
   while i < len do
   begin
-    if (c^ >= $00) and (c^ <= $7f) then
+    if (c^ <= $7f) then
       n := 0
     else if (c^ >= $c2) and (c^ <= $df) then
       n := 1
@@ -1793,10 +1793,13 @@ begin
   Result:=FTransport;
 end;
 
-procedure TWSServerConnection.DoPrepareHandshakeResponse(aRequest: TWSHandShakeRequest; aResponse: TWSHandShakeResponse);
+function TWSServerConnection.DoPrepareHandshakeResponse(
+  aRequest: TWSHandShakeRequest; aResponse: TWSHandShakeResponse): boolean;
 begin
   If Assigned(OnHandshake) then
-    OnHandShake(aRequest,aResponse);
+    Result:=OnHandShake(aRequest,aResponse)
+  else
+    Result:=true;
 end;
 
 
@@ -1814,8 +1817,8 @@ begin
   H:=Nil;
   aResp:=TWSHandShakeResponse.Create('',FExtraHeaders);
   try
-    DoPrepareHandshakeResponse(aRequest,aResp);
     try
+      DoPrepareHandshakeResponse(aRequest,aResp);
       H:=TStringList.Create;
       aResp.ToStrings(aRequest,H,True);
       Reply:='';
