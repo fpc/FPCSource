@@ -803,6 +803,9 @@ function DynArraySize(a : pointer): tdynarrayindex;
 procedure DynArrayClear(var a: Pointer; typeInfo: Pointer);
   external name 'FPC_DYNARRAY_CLEAR';
 
+procedure DynArrayAssign(var dest: Pointer; src: Pointer; typeInfo: pointer);
+  external name 'FPC_DYNARRAY_ASSIGN';
+
 function DynArrayDim(typeInfo: Pointer): Integer;
   begin
     result:=0;

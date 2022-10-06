@@ -39,6 +39,8 @@ function DynArraySize(a : pointer): tdynarrayindex;
 procedure DynArrayClear(var a: Pointer; typeInfo: Pointer);
 function DynArrayDim(typeInfo: Pointer): Integer;
 function DynArrayBounds(a: Pointer; typeInfo: Pointer): TBoundArray;
+procedure DynArrayAssign(var dest: Pointer; src: Pointer; typeInfo: pointer);
+
 
 function IsDynArrayRectangular(a: Pointer; typeInfo: Pointer): Boolean;
 function DynArrayIndex(a: Pointer; const indices: array of SizeInt; typeInfo: Pointer): Pointer;
