@@ -644,12 +644,23 @@ implementation
       return uppercased string of s
     }
       var
-        i  : longint;
+        i,n : sizeint;
       begin
-        Result:='';
-        setlength(upper,length(s));
-        for i:=1 to length(s) do
-          upper[i]:=uppertbl[s[i]];
+        Result:=s;
+        n:=length(s);
+        i:=0;
+        while i<n do
+          if PChar(Pointer(s))[i] in ['a'..'z'] then
+            begin
+              UniqueString(Result);
+              repeat
+                PChar(Pointer(Result))[i]:=uppertbl[PChar(Pointer(s))[i]];
+                inc(i);
+              until i=n;
+              exit;
+            end
+          else
+            inc(i);
       end;
 
 
@@ -680,12 +691,23 @@ implementation
       return lowercased string of s
     }
       var
-        i : longint;
+        i,n : sizeint;
       begin
-        Result:='';
-        setlength(lower,length(s));
-        for i:=1 to length(s) do
-          lower[i]:=lowertbl[s[i]];
+        Result:=s;
+        n:=length(s);
+        i:=0;
+        while i<n do
+          if PChar(Pointer(s))[i] in ['A'..'Z'] then
+            begin
+              UniqueString(Result);
+              repeat
+                PChar(Pointer(Result))[i]:=lowertbl[PChar(Pointer(s))[i]];
+                inc(i);
+              until i=n;
+              exit;
+            end
+          else
+            inc(i);
       end;
 
 

@@ -496,15 +496,12 @@ end;
       return TCmdStr s with all \ changed into /
     }
       var
-         i : longint;
+         i : sizeint;
       begin
-        Result:='';
-        setlength(bstoslash,length(s));
-        for i:=1to length(s) do
+        bstoslash:=s;
+        for i:=1 to length(s) do
          if s[i]='\' then
-          bstoslash[i]:='/'
-         else
-          bstoslash[i]:=s[i];
+          bstoslash[i]:='/';
       end;
 
 
@@ -711,40 +708,36 @@ end;
       end;
 
 
-    Function FixPath(const s:TCmdStr;allowdot:boolean):TCmdStr;
+    Function _FixPath(const s:TCmdStr;allowdot:boolean;const info:tsysteminfo;const drivesep:string):TCmdStr;
       var
-        i, L : longint;
-        P: PChar;
+        i, L : sizeint;
       begin
         Result := s;
-        { make result unique since we're going to change it via a pchar }
-        uniquestring(result);
         L := Length(Result);
         if L=0 then
           exit;
         { Fix separator }
-        P := @Result[1];
-        for i:=0 to L-1 do
-          begin
-            if p^ in ['/','\'] then
-              p^:=source_info.DirSep;
-            inc(p);
-          end;
+        for i:=1 to L do
+          if (Result[i] in ['/','\']) and (Result[i]<>info.DirSep) then
+            Result[i]:=info.DirSep;
+        { Remove . or ./ }
+        if (not allowdot) and (Result[1]='.') and ((L=1) or (L=2) and (Result[2]=info.DirSep)) then
+          exit('');
         { Fix ending / }
-        if (L>0) and (Result[L]<>source_info.DirSep) and
-           (Result[L]<>DriveSeparator) then
-          Result:=Result+source_info.DirSep;  { !still results in temp AnsiString }
-        { Remove ./ }
-        if (not allowdot) and ((Length(Result)=2) and (Result[1]='.') and (Result[2] = source_info.DirSep)) then
-          begin
-            Result:='';
-            Exit;
-          end;
+        if (Result[L]<>info.DirSep) and (Result[L]<>drivesep) then
+          Result:=Result+info.DirSep;
         { return }
-        if not ((tf_files_case_aware in source_info.flags) or
-           (tf_files_case_sensitive in source_info.flags)) then
+        if not ((tf_files_case_aware in info.flags) or
+           (tf_files_case_sensitive in info.flags)) then
           Result := lower(Result);
       end;
+
+
+    Function FixPath(const s:TCmdStr;allowdot:boolean):TCmdStr;
+      begin
+        Result:=_FixPath(s,allowdot,source_info,DriveSeparator);
+      end;
+
 
   {Actually the version in macutils.pp could be used,
    but that would not work for crosscompiling, so this is a slightly modified
@@ -873,105 +866,44 @@ end;
   end;
 
 
-   function FixFileName(const s:TCmdStr):TCmdStr;
+   function _FixFileName(const s:TCmdStr; const info:tsysteminfo):TCmdStr;
      var
-       i      : longint;
+       i      : sizeint;
      begin
-       if source_info.system = system_powerpc_macosclassic then
-         FixFileName:= TranslatePathToMac(s, true)
-       else
-        if (tf_files_case_aware in source_info.flags) or
-           (tf_files_case_sensitive in source_info.flags) then
-        begin
-          setlength(FixFileName,length(s));
-          for i:=1 to length(s) do
-           begin
-             case s[i] of
-               '/','\' :
-                 FixFileName[i]:=source_info.dirsep;
-               else
-                 FixFileName[i]:=s[i];
-             end;
-           end;
-        end
+       if info.system = system_powerpc_macosclassic then
+         Result:=TranslatePathToMac(s, true)
        else
         begin
-          setlength(FixFileName,length(s));
+          if (tf_files_case_aware in info.flags) or
+             (tf_files_case_sensitive in info.flags) then
+            Result:=s
+          else
+            Result:=Lower(s);
           for i:=1 to length(s) do
-           begin
-             case s[i] of
-               '/','\' :
-                  FixFileName[i]:=source_info.dirsep;
-               'A'..'Z' :
-                  FixFileName[i]:=char(byte(s[i])+32);
-                else
-                  FixFileName[i]:=s[i];
-             end;
+           case s[i] of
+             '/','\' :
+               if s[i]<>info.dirsep then
+                 Result[i]:=info.dirsep;
            end;
         end;
      end;
 
 
-    Function TargetFixPath(s:TCmdStr;allowdot:boolean):TCmdStr;
-      var
-        i : longint;
-      begin
-        { Fix separator }
-        for i:=1 to length(s) do
-         if s[i] in ['/','\'] then
-          s[i]:=target_info.DirSep;
-        { Fix ending / }
-        if (length(s)>0) and (s[length(s)]<>target_info.DirSep) and
-           (s[length(s)]<>':') then
-         s:=s+target_info.DirSep;
-        { Remove ./ }
-        if (not allowdot) and (s='.'+target_info.DirSep) then
-         s:='';
-        { return }
-        if (tf_files_case_aware in target_info.flags) or
-           (tf_files_case_sensitive in target_info.flags) then
-         TargetFixPath:=s
-        else
-         TargetFixPath:=Lower(s);
-      end;
+   function FixFileName(const s:TCmdStr):TCmdStr;
+     begin
+       result:=_FixFileName(s,source_info);
+     end;
+
+
+   Function TargetFixPath(s:TCmdStr;allowdot:boolean):TCmdStr;
+     begin
+       result:=_FixPath(s,allowdot,target_info,':');
+     end;
 
 
    function TargetFixFileName(const s:TCmdStr):TCmdStr;
-     var
-       i : longint;
      begin
-       if target_info.system = system_powerpc_macosclassic then
-         TargetFixFileName:= TranslatePathToMac(s, true)
-       else
-        if (tf_files_case_aware in target_info.flags) or
-           (tf_files_case_sensitive in target_info.flags) then
-         begin
-           setlength(TargetFixFileName,length(s));
-           for i:=1 to length(s) do
-           begin
-             case s[i] of
-               '/','\' :
-                 TargetFixFileName[i]:=target_info.dirsep;
-               else
-                 TargetFixFileName[i]:=s[i];
-             end;
-           end;
-         end
-       else
-         begin
-           setlength(TargetFixFileName,length(s));
-           for i:=1 to length(s) do
-           begin
-             case s[i] of
-               '/','\' :
-                  TargetFixFileName[i]:=target_info.dirsep;
-               'A'..'Z' :
-                  TargetFixFileName[i]:=char(byte(s[i])+32);
-                else
-                  TargetFixFileName[i]:=s[i];
-             end;
-           end;
-         end;
+       result:=_FixFileName(s,target_info);
      end;
 
 
