@@ -41,176 +41,176 @@ Unit UComplex;
       after this operator any real can be passed to a function
       as a complex arg !! }
 
-    operator := (r : real) z : complex;
+    operator := (const r : real) z : complex;
     {$ifdef TEST_INLINE}
     inline;
     {$endif TEST_INLINE}
 
-    { operator := (i : longint) z : complex;
+    { operator := (const i : longint) z : complex;
       not needed because longint can be converted to real }
 
 
     { four operator : +, -, * , /  and comparison = }
-    operator + (z1, z2 : complex) z : complex;
+    operator + (const z1, z2 : complex) z : complex;
     {$ifdef TEST_INLINE}
     inline;
     {$endif TEST_INLINE}
 
     { these ones are created because the code
       is simpler and thus faster }
-    operator + (z1 : complex; r : real) z : complex;
+    operator + (const z1 : complex;const r : real) z : complex;
     {$ifdef TEST_INLINE}
     inline;
     {$endif TEST_INLINE}
 
-    operator + (r : real; z1 : complex) z : complex;
-    {$ifdef TEST_INLINE}
-    inline;
-    {$endif TEST_INLINE}
-
-
-    operator - (z1, z2 : complex) z : complex;
-    {$ifdef TEST_INLINE}
-    inline;
-    {$endif TEST_INLINE}
-
-    operator - (z1 : complex;r : real) z : complex;
-    {$ifdef TEST_INLINE}
-    inline;
-    {$endif TEST_INLINE}
-
-    operator - (r : real; z1 : complex) z : complex;
+    operator + (const r : real;const  z1 : complex) z : complex;
     {$ifdef TEST_INLINE}
     inline;
     {$endif TEST_INLINE}
 
 
-    operator * (z1, z2 : complex) z : complex;
+    operator - (const z1, z2 : complex) z : complex;
     {$ifdef TEST_INLINE}
     inline;
     {$endif TEST_INLINE}
 
-    operator * (z1 : complex; r : real) z : complex;
+    operator - (const z1 : complex;const r : real) z : complex;
     {$ifdef TEST_INLINE}
     inline;
     {$endif TEST_INLINE}
 
-    operator * (r : real; z1 : complex) z : complex;
+    operator - (const r : real;const z1 : complex) z : complex;
     {$ifdef TEST_INLINE}
     inline;
     {$endif TEST_INLINE}
 
 
-    operator / (znum, zden : complex) z : complex;
+    operator * (const z1, z2 : complex) z : complex;
     {$ifdef TEST_INLINE}
     inline;
     {$endif TEST_INLINE}
 
-    operator / (znum : complex; r : real) z : complex;
+    operator * (const z1 : complex;const r : real) z : complex;
     {$ifdef TEST_INLINE}
     inline;
     {$endif TEST_INLINE}
 
-    operator / (r : real; zden : complex) z : complex;
+    operator * (const r : real;const z1 : complex) z : complex;
+    {$ifdef TEST_INLINE}
+    inline;
+    {$endif TEST_INLINE}
+
+
+    operator / (const znum, zden : complex) z : complex;
+    {$ifdef TEST_INLINE}
+    inline;
+    {$endif TEST_INLINE}
+
+    operator / (const znum : complex;const r : real) z : complex;
+    {$ifdef TEST_INLINE}
+    inline;
+    {$endif TEST_INLINE}
+
+    operator / (const r : real;const zden : complex) z : complex;
     {$ifdef TEST_INLINE}
     inline;
     {$endif TEST_INLINE}
 
     { ** is the exponentiation operator }
-    operator ** (z1, z2 : complex) z : complex;
+    operator ** (const z1, z2 : complex) z : complex;
     {$ifdef TEST_INLINE}
     inline;
     {$endif TEST_INLINE}
 
-    operator ** (z1 : complex; r : real) z : complex;
+    operator ** (const z1 : complex;const r : real) z : complex;
     {$ifdef TEST_INLINE}
     inline;
     {$endif TEST_INLINE}
 
-    operator ** (r : real; z1 : complex) z : complex;
+    operator ** (const r : real;const z1 : complex) z : complex;
     {$ifdef TEST_INLINE}
     inline;
     {$endif TEST_INLINE}
 
 
-    operator = (z1, z2 : complex) b : boolean;
+    operator = (const z1, z2 : complex) b : boolean;
     {$ifdef TEST_INLINE}
     inline;
     {$endif TEST_INLINE}
 
-    operator = (z1 : complex;r : real) b : boolean;
+    operator = (const z1 : complex;const r : real) b : boolean;
     {$ifdef TEST_INLINE}
     inline;
     {$endif TEST_INLINE}
 
-    operator = (r : real; z1 : complex) b : boolean;
+    operator = (const r : real;const z1 : complex) b : boolean;
     {$ifdef TEST_INLINE}
     inline;
     {$endif TEST_INLINE}
 
-    operator - (z1 : complex) z : complex;
+    operator - (const z1 : complex) z : complex;
     {$ifdef TEST_INLINE}
     inline;
     {$endif TEST_INLINE}
 
-    function cinit(_re,_im : real) : complex;inline;
-    function csamevalue(z1, z2 : complex) : boolean;
+    function cinit(const _re,_im : real) : complex;inline;
+    function csamevalue(const z1, z2 : complex) : boolean;
 
     { complex functions }
-    function cong (z : complex) : complex;      { conjuge }
+    function cong (const z : complex) : complex;      { conjuge }
 
     { inverse function 1/z }
-    function cinv (z : complex) : complex;
+    function cinv (const z : complex) : complex;
 
     { complex functions with real return values }
-    function cmod (z : complex) : real;           { module }
-    function carg (z : complex) : real;           { argument : a / z = p.e^ia }
+    function cmod (const z : complex) : real;           { module }
+    function carg (const z : complex) : real;           { argument : a / z = p.e^ia }
 
     { fonctions elementaires }
-    function cexp (z : complex) : complex;       { exponential }
-    function cln (z : complex) : complex;        { natural logarithm }
-    function csqr (z: complex) : complex;        { square }
-    function csqrt (z : complex) : complex;      { square root }
+    function cexp (const z : complex) : complex;       { exponential }
+    function cln (const z : complex) : complex;        { natural logarithm }
+    function csqr (const z: complex) : complex;        { square }
+    function csqrt (const z : complex) : complex;      { square root }
 
     { complex trigonometric functions  }
-    function ccos (z : complex) : complex;       { cosinus }
-    function csin (z : complex) : complex;       { sinus }
-    function ctg  (z : complex) : complex;       { tangent }
+    function ccos (const z : complex) : complex;       { cosinus }
+    function csin (const z : complex) : complex;       { sinus }
+    function ctg  (const z : complex) : complex;       { tangent }
 
     { inverse complex trigonometric functions }
-    function carc_cos (z : complex) : complex;   { arc cosinus }
-    function carc_sin (z : complex) : complex;   { arc sinus }
-    function carc_tg  (z : complex) : complex;   { arc tangent }
+    function carc_cos (const z : complex) : complex;   { arc cosinus }
+    function carc_sin (const z : complex) : complex;   { arc sinus }
+    function carc_tg  (const z : complex) : complex;   { arc tangent }
 
     { hyperbolic complex functions }
-    function cch (z : complex) : complex;        { hyperbolic cosinus }
-    function csh (z : complex) : complex;        { hyperbolic sinus }
-    function cth (z : complex) : complex;        { hyperbolic tangent }
+    function cch (const z : complex) : complex;        { hyperbolic cosinus }
+    function csh (const z : complex) : complex;        { hyperbolic sinus }
+    function cth (const z : complex) : complex;        { hyperbolic tangent }
 
     { inverse hyperbolic complex functions }
-    function carg_ch (z : complex) : complex;    { hyperbolic arc cosinus }
-    function carg_sh (z : complex) : complex;    { hyperbolic arc sinus }
-    function carg_th (z : complex) : complex;    { hyperbolic arc tangente }
+    function carg_ch (const z : complex) : complex;    { hyperbolic arc cosinus }
+    function carg_sh (const z : complex) : complex;    { hyperbolic arc sinus }
+    function carg_th (const z : complex) : complex;    { hyperbolic arc tangente }
 
     { functions to write out a complex value }
-    function cstr(z : complex) : string;
-    function cstr(z:complex;len : integer) : string;
-    function cstr(z:complex;len,dec : integer) : string;
+    function cstr(const z : complex) : string;
+    function cstr(const z:complex;const len : integer) : string;
+    function cstr(const z:complex;const len,dec : integer) : string;
 
   implementation
 
-    function cinit(_re,_im : real) : complex;inline;
+    function cinit(const _re,_im : real) : complex;inline;
     begin
       cinit.re:=_re;
       cinit.im:=_im;
     end;
 
-    function csamevalue(z1, z2: complex): boolean;
+    function csamevalue(const z1, z2: complex): boolean;
     begin
       csamevalue:=SameValue(z1.re, z2.re) and SameValue(z1.im, z2.im);
     end;
 
-  operator := (r : real) z : complex;
+  operator := (const r : real) z : complex;
   {$ifdef TEST_INLINE}
   inline;
   {$endif TEST_INLINE}
@@ -222,7 +222,7 @@ Unit UComplex;
 
   { four base operations  +, -, * , / }
 
-  operator + (z1, z2 : complex) z : complex;
+  operator + (const z1, z2 : complex) z : complex;
   {$ifdef TEST_INLINE}
   inline;
   {$endif TEST_INLINE}
@@ -232,7 +232,7 @@ Unit UComplex;
        z.im := z1.im + z2.im;
     end;
 
-  operator + (z1 : complex; r : real) z : complex;
+  operator + (const z1 : complex;const r : real) z : complex;
   { addition : z := z1 + r }
   {$ifdef TEST_INLINE}
   inline;
@@ -242,7 +242,7 @@ Unit UComplex;
        z.im := z1.im;
     end;
 
-  operator + (r : real; z1 : complex) z : complex;
+  operator + (const r : real;const z1 : complex) z : complex;
   { addition : z := r + z1 }
   {$ifdef TEST_INLINE}
   inline;
@@ -253,7 +253,7 @@ Unit UComplex;
        z.im := z1.im;
     end;
 
-  operator - (z1, z2 : complex) z : complex;
+  operator - (const z1, z2 : complex) z : complex;
   {$ifdef TEST_INLINE}
   inline;
   {$endif TEST_INLINE}
@@ -263,7 +263,7 @@ Unit UComplex;
        z.im := z1.im - z2.im;
     end;
 
-  operator - (z1 : complex; r : real) z : complex;
+  operator - (const z1 : complex;const r : real) z : complex;
   {$ifdef TEST_INLINE}
   inline;
   {$endif TEST_INLINE}
@@ -273,7 +273,7 @@ Unit UComplex;
        z.im := z1.im;
     end;
 
-  operator - (z1 : complex) z : complex;
+  operator - (const z1 : complex) z : complex;
   {$ifdef TEST_INLINE}
   inline;
   {$endif TEST_INLINE}
@@ -283,7 +283,7 @@ Unit UComplex;
        z.im := -z1.im;
     end;
 
-  operator - (r : real; z1 : complex) z : complex;
+  operator - (const r : real;const z1 : complex) z : complex;
   {$ifdef TEST_INLINE}
   inline;
   {$endif TEST_INLINE}
@@ -293,7 +293,7 @@ Unit UComplex;
        z.im := - z1.im;
     end;
 
-  operator * (z1, z2 : complex) z : complex;
+  operator * (const z1, z2 : complex) z : complex;
   { multiplication : z := z1 * z2 }
   {$ifdef TEST_INLINE}
   inline;
@@ -303,7 +303,7 @@ Unit UComplex;
        z.im := (z1.re * z2.im) + (z1.im * z2.re);
     end;
 
-  operator * (z1 : complex; r : real) z : complex;
+  operator * (const z1 : complex;const r : real) z : complex;
   {$ifdef TEST_INLINE}
   inline;
   {$endif TEST_INLINE}
@@ -313,7 +313,7 @@ Unit UComplex;
        z.im := z1.im * r;
     end;
 
-  operator * (r : real; z1 : complex) z : complex;
+  operator * (const r : real;const z1 : complex) z : complex;
   {$ifdef TEST_INLINE}
   inline;
   {$endif TEST_INLINE}
@@ -323,7 +323,7 @@ Unit UComplex;
        z.im := z1.im * r;
     end;
 
-  operator / (znum, zden : complex) z : complex;
+  operator / (const znum, zden : complex) z : complex;
   {$ifdef TEST_INLINE}
   inline;
   {$endif TEST_INLINE}
@@ -358,14 +358,14 @@ Unit UComplex;
        end;
      end;
 
-    operator / (znum : complex; r : real) z : complex;
+    operator / (const znum : complex;const r : real) z : complex;
       { division : z := znum / r }
       begin
          z.re := znum.re / r;
          z.im := znum.im / r;
       end;
 
-  operator / (r : real; zden : complex) z : complex;
+  operator / (const r : real;const zden : complex) z : complex;
     { division : z := r / zden }
     var denom : real;
     begin
@@ -375,20 +375,20 @@ Unit UComplex;
        z.im := - (r * zden.im) / denom;
     end;
 
-  function cmod (z : complex): real;
+  function cmod (const z : complex): real;
     { module : r = |z| }
     begin
        with z do
          cmod := sqrt((re * re) + (im * im));
     end;
 
-  function carg (z : complex): real;
+  function carg (const z : complex): real;
     { argument : 0 / z = p ei0 }
     begin
        carg := arctan2(z.im, z.re);
     end;
 
-  function cong (z : complex) : complex;
+  function cong (const z : complex) : complex;
     { complex conjugee :
        if z := x + i.y
        then cong is x - i.y }
@@ -397,7 +397,7 @@ Unit UComplex;
        cong.im := - z.im;
     end;
 
-  function cinv (z : complex) : complex;
+  function cinv (const z : complex) : complex;
     { inverse : r := 1 / z }
     var
        denom : real;
@@ -408,19 +408,19 @@ Unit UComplex;
        cinv.im:=-z.im/denom;
     end;
 
-  operator = (z1, z2 : complex) b : boolean;
+  operator = (const z1, z2 : complex) b : boolean;
     { returns TRUE if z1 = z2 }
     begin
        b := (z1.re = z2.re) and (z1.im = z2.im);
     end;
 
-  operator = (z1 : complex; r :real) b : boolean;
+  operator = (const z1 : complex;const r :real) b : boolean;
     { returns TRUE if z1 = r }
     begin
        b := (z1.re = r) and (z1.im = 0.0)
     end;
 
-  operator = (r : real; z1 : complex) b : boolean;
+  operator = (const r : real;const z1 : complex) b : boolean;
     { returns TRUE if z1 = r }
     begin
        b := (z1.re = r) and (z1.im = 0.0)
@@ -429,7 +429,7 @@ Unit UComplex;
 
   { fonctions elementaires }
 
-  function cexp (z : complex) : complex;
+  function cexp (const z : complex) : complex;
     { exponantial : r := exp(z) }
     { exp(x + iy) = exp(x).exp(iy) = exp(x).[cos(y) + i sin(y)] }
     var expz : real;
@@ -439,7 +439,7 @@ Unit UComplex;
        cexp.im := expz * sin(z.im);
     end;
 
-  function cln (z : complex) : complex;
+  function cln (const z : complex) : complex;
     { natural logarithm : r := ln(z) }
     { ln( p exp(i0)) = ln(p) + i0 + 2kpi }
     begin
@@ -447,14 +447,14 @@ Unit UComplex;
        cln.im := arctan2(z.im, z.re);
     end;
 
-  function csqr(z: complex): complex;
+  function csqr(const z: complex): complex;
     { square : r := z*z }
     begin
       csqr.re := z.re * z.re - z.im * z.im;
       csqr.im := 2 * z.re * z.im;
     end;
 
-  function csqrt (z : complex) : complex;
+  function csqrt (const z : complex) : complex;
     { square root : r := sqrt(z) }
     var
        root, q : real;
@@ -483,19 +483,19 @@ Unit UComplex;
     end;
 
 
-  operator ** (z1, z2 : complex) z : complex;
+  operator ** (const z1, z2 : complex) z : complex;
     { exp : z := z1 ** z2 }
     begin
        z := cexp(z2*cln(z1));
     end;
 
-  operator ** (z1 : complex; r : real) z : complex;
+  operator ** (const z1 : complex;const r : real) z : complex;
     { multiplication : z := z1 * r }
     begin
        z := cexp( r *cln(z1));
     end;
 
-  operator ** (r : real; z1 : complex) z : complex;
+  operator ** (const r : real;const z1 : complex) z : complex;
     { multiplication : z := r + z1 }
     begin
        z := cexp(z1*ln(r));
@@ -503,7 +503,7 @@ Unit UComplex;
 
   { direct trigonometric functions }
 
-  function ccos (z : complex) : complex;
+  function ccos (const z : complex) : complex;
     { complex cosinus }
     { cos(x+iy) = cos(x).cos(iy) - sin(x).sin(iy) }
     { cos(ix) = cosh(x) et sin(ix) = i.sinh(x) }
@@ -512,7 +512,7 @@ Unit UComplex;
        ccos.im := - sin(z.re) * sinh(z.im);
     end;
 
-  function csin (z : complex) : complex;
+  function csin (const z : complex) : complex;
     { sinus complex }
     { sin(x+iy) = sin(x).cos(iy) + cos(x).sin(iy) }
     { cos(ix) = cosh(x) et sin(ix) = i.sinh(x) }
@@ -521,7 +521,7 @@ Unit UComplex;
        csin.im := cos(z.re) * sinh(z.im);
     end;
 
-  function ctg (z : complex) : complex;
+  function ctg (const z : complex) : complex;
     { tangente }
     var ccosz, temp : complex;
     begin
@@ -532,21 +532,21 @@ Unit UComplex;
 
   { fonctions trigonometriques inverses }
 
-  function carc_cos (z : complex) : complex;
+  function carc_cos (const z : complex) : complex;
     { arc cosinus complex }
     { arccos(z) = -i.argch(z) }
     begin
        carc_cos := -i*carg_ch(z);
     end;
 
-  function carc_sin (z : complex) : complex;
+  function carc_sin (const z : complex) : complex;
     { arc sinus complex }
     { arcsin(z) = -i.argsh(i.z) }
     begin
        carc_sin := -i*carg_sh(i*z);
     end;
 
-  function carc_tg (z : complex) : complex;
+  function carc_tg (const z : complex) : complex;
     { arc tangente complex }
     { arctg(z) = -i.argth(i.z) }
     begin
@@ -555,7 +555,7 @@ Unit UComplex;
 
   { hyberbolic complex functions }
 
-  function cch (z : complex) : complex;
+  function cch (const z : complex) : complex;
     { hyberbolic cosinus }
     { cosh(x+iy) = cosh(x).cosh(iy) + sinh(x).sinh(iy) }
     { cosh(iy) = cos(y) et sinh(iy) = i.sin(y) }
@@ -564,7 +564,7 @@ Unit UComplex;
        cch.im := sinh(z.re) * sin(z.im);
     end;
 
-  function csh (z : complex) : complex;
+  function csh (const z : complex) : complex;
     { hyberbolic sinus }
     { sinh(x+iy) = sinh(x).cosh(iy) + cosh(x).sinh(iy) }
     { cosh(iy) = cos(y) et sinh(iy) = i.sin(y) }
@@ -573,20 +573,19 @@ Unit UComplex;
        csh.im := cosh(z.re) * sin(z.im);
     end;
 
-  function cth (z : complex) : complex;
+  function cth (const z : complex) : complex;
     { hyberbolic complex tangent }
     { th(x) = sinh(x) / cosh(x) }
     { cosh(x) > 1 qq x }
     var temp : complex;
     begin
        temp := cch(z);
-       z := csh(z);
-       cth := z / temp;
+       cth := csh(z) / temp;
     end;
 
   { inverse complex hyperbolic functions }
 
-  function carg_ch (z : complex) : complex;
+  function carg_ch (const z : complex) : complex;
     {   hyberbolic arg cosinus }
     {                          _________  }
     { argch(z) = -/+ ln(z + i.V 1 - z.z)  }
@@ -594,7 +593,7 @@ Unit UComplex;
        carg_ch:=-cln(z+i*csqrt(1.0-z*z));
     end;
 
-  function carg_sh (z : complex) : complex;
+  function carg_sh (const z : complex) : complex;
     {   hyperbolic arc sinus       }
     {                    ________  }
     { argsh(z) = ln(z + V 1 + z.z) }
@@ -602,7 +601,7 @@ Unit UComplex;
        carg_sh:=cln(z+csqrt(z*z+1.0));
     end;
 
-  function carg_th (z : complex) : complex;
+  function carg_th (const z : complex) : complex;
     { hyperbolic arc tangent }
     { argth(z) = 1/2 ln((z + 1) / (1 - z)) }
     begin
@@ -610,7 +609,7 @@ Unit UComplex;
     end;
 
   { functions to write out a complex value }
-  function cstr(z : complex) : string;
+  function cstr(const z : complex) : string;
     var
        istr : string;
     begin
@@ -624,7 +623,7 @@ Unit UComplex;
          cstr:=cstr+'+'+istr+'i';
     end;
 
-    function cstr(z:complex;len : integer) : string;
+    function cstr(const z:complex;const len : integer) : string;
     var
        istr : string;
     begin
@@ -638,7 +637,7 @@ Unit UComplex;
          cstr:=cstr+'+'+istr+'i';
     end;
 
-    function cstr(z:complex;len,dec : integer) : string;
+    function cstr(const z:complex;const len,dec : integer) : string;
     var
        istr : string;
     begin
