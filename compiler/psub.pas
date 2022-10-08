@@ -1314,7 +1314,11 @@ implementation
        if cs_opt_use_load_modify_store in current_settings.optimizerswitches then
          do_optloadmodifystore(code);
 
-       if cs_opt_consts in current_settings.optimizerswitches then
+       if (cs_opt_consts in current_settings.optimizerswitches) and
+          { non-local gotos can cause an fpc_setjmp call to be generated before
+            this block, which means the loaded value won't be loaded when the
+             longjmp is performed }
+          not(m_non_local_goto in current_settings.modeswitches) then
          do_consttovar(code);
       end;
 
