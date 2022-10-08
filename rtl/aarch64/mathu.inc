@@ -107,6 +107,7 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
     { as the fpcr flags might be RAZ, the softfloat exception mask
       is considered as the authoritative mask }
     result:=softfloat_exception_mask;
+    softfloat_exception_mask:=mask;
 
     { at least the ThunderX AArch64 support apparently hardware exceptions,
       so set fpcr correctly, thought it might be WI on most implementations it does not hurt
