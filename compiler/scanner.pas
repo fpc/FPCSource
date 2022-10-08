@@ -624,12 +624,16 @@ implementation
                  include(init_settings.localswitches,cs_strict_var_strings);
              end;
 
-           { in delphi mode, excess precision is by default on }
+           { in delphi mode, excess precision and open strings are by default on }
            if ([m_delphi] * current_settings.modeswitches <> []) then
              begin
                include(current_settings.localswitches,cs_excessprecision);
+               include(current_settings.localswitches,cs_openstring);
                if changeinit then
-                 include(init_settings.localswitches,cs_excessprecision);
+                 begin
+                   include(init_settings.localswitches,cs_excessprecision);
+                   include(init_settings.localswitches,cs_openstring);
+                 end;
              end;
 
 {$ifdef i8086}
