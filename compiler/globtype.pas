@@ -163,6 +163,7 @@ interface
          { parser }
          cs_typed_addresses,cs_strict_var_strings,cs_refcountedstrings,
          cs_bitpacking,cs_varpropsetter,cs_scopedenums,cs_pointermath,
+         cs_openstring,
          { macpas specific}
          cs_external_var, cs_externally_visible,
          { jvm specific }
@@ -179,7 +180,7 @@ interface
        { Switches which can be changed only at the beginning of a new module }
        tmoduleswitch = (cs_modulenone,
          { parser }
-         cs_fp_emulation,cs_extsyntax,cs_openstring,
+         cs_fp_emulation,cs_extsyntax,
          { support }
          cs_support_goto,cs_support_macro,
          cs_support_c_operators,

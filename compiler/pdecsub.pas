@@ -425,7 +425,7 @@ implementation
                         begin
                           { not 100% Delphi-compatible: type xstr=string[255] cannot
                             become an openstring there, while here it can }
-                          if (cs_openstring in current_settings.moduleswitches) and
+                          if (cs_openstring in current_settings.localswitches) and
                              (tstringdef(hdef).len=255) then
                             hdef:=openshortstringtype
                         end;

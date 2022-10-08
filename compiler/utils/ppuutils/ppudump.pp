@@ -2257,7 +2257,6 @@ const
          { parser }
         'Floating Point Emulation',{ cs_fp_emulation}
         'Extended syntax', {cs_extsyntax}
-        'Open string', {cs_openstring}
          { support }
         'Goto allowed', {cs_support_goto}
         'Macro support', {cs_support_macro}
@@ -2375,6 +2374,7 @@ const
         'Use var property setter', {cs_varpropsetter}
         'Use scoped enums',{cs_scopedenums}
         'Use pointer math', {cs_pointermath}
+        'Open string', {cs_openstring}
          { macpas specific}
         'MACPAS exteranl variable', {cs_external_var}
         'MACPAS externally visible', {cs_externally_visible}
