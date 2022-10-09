@@ -4581,22 +4581,22 @@ implementation
             begin
               if is_widestring(ld) then
                 begin
-                   { this is only for add, the comparisaion is handled later }
+                   { this is only for add, the comparison is handled later }
                    expectloc:=LOC_REGISTER;
                 end
               else if is_unicodestring(ld) then
                 begin
-                   { this is only for add, the comparisaion is handled later }
+                   { this is only for add, the comparison is handled later }
                    expectloc:=LOC_REGISTER;
                 end
               else if is_ansistring(ld) then
                 begin
-                   { this is only for add, the comparisaion is handled later }
+                   { this is only for add, the comparison is handled later }
                    expectloc:=LOC_REGISTER;
                 end
               else if is_longstring(ld) then
                 begin
-                   { this is only for add, the comparisaion is handled later }
+                   { this is only for add, the comparison is handled later }
                    expectloc:=LOC_REFERENCE;
                 end
               else
