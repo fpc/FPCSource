@@ -1103,9 +1103,9 @@ begin
   H:=FindHandler(AClassName,AMethodName,AContext,FreeObject);
   If (H=Nil) then
     if (AClassName='') then
-      Exit(CreateJSON2Error(SErrInvalidMethodName,[AMethodName],EJSONRPCMethodNotFound,ID.Clone,transactionProperty))
+      Exit(CreateJSON2Error(SErrInvalidMethodName,[AMethodName],EJSONRPCMethodNotFound,ID,transactionProperty))
     else
-      Exit(CreateJSON2Error(SErrInvalidClassMethodName,[AClassName,AMethodName],EJSONRPCMethodNotFound,ID.Clone,transactionProperty));
+      Exit(CreateJSON2Error(SErrInvalidClassMethodName,[AClassName,AMethodName],EJSONRPCMethodNotFound,ID,transactionProperty));
   try
     If Assigned(FOndispatchRequest) then
       FOndispatchRequest(Self,AClassName,AMethodName,Params);
