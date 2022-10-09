@@ -341,7 +341,13 @@ begin
   arrp.allow_array_constructor:=true;
   if assigned(aktassignmentnode) and
      (aktassignmentnode.right=p) and
-     (aktassignmentnode.left.resultdef=p.resultdef) and
+     (
+       (aktassignmentnode.left.resultdef=p.resultdef) or
+       (
+         is_shortstring(aktassignmentnode.left.resultdef) and
+         is_shortstring(p.resultdef)
+       )
+     ) and
      valid_for_var(aktassignmentnode.left,false) then
     begin
       para:=ccallparanode.create(

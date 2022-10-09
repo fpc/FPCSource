@@ -3382,7 +3382,13 @@ implementation
               { create the call to the concat routine both strings as arguments }
               if assigned(aktassignmentnode) and
                   (aktassignmentnode.right=self) and
-                  (aktassignmentnode.left.resultdef=resultdef) and
+                  (
+                    (aktassignmentnode.left.resultdef=resultdef) or
+                    (
+                      is_shortstring(aktassignmentnode.left.resultdef) and
+                      is_shortstring(resultdef)
+                    )
+                  ) and
                   valid_for_var(aktassignmentnode.left,false) then
                 begin
                   para:=ccallparanode.create(
