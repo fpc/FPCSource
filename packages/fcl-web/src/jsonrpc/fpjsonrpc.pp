@@ -253,7 +253,7 @@ Type
     Function CheckRequests(Requests : TJSONData) : TJSONData; virtual;
     // Format result of a single request. Result is returned to the client, possibly in an array if multiple requests were received in batch.
     Function FormatResult(const AClassName, AMethodName: TJSONStringType;  const Params, ID, Return: TJSONData) : TJSONData; virtual;
-    // Format error of a single request.
+    // Format error of a single request. ID will be cloned if non-nil.
     function CreateJSON2Error(Const AMessage : String; Const ACode : Integer; ID : TJSONData = Nil; idname : TJSONStringType = 'id' ) : TJSONObject; virtual;
     function CreateJSON2Error(Const AFormat : String; Args : Array of const; Const ACode : Integer; ID : TJSONData = Nil; idname : TJSONStringType = 'id') : TJSONObject;
     // Hooks for user.
@@ -423,6 +423,7 @@ function CreateJSONErrorObject(Const AMessage : String; Const ACode : Integer) :
 
 // Create a JSON RPC 2 error response object containing an 'Error' object.
 // Result is of type TJSONErrorObject
+// ID is cloned if it is non-nil.
 function CreateJSON2ErrorResponse(Const AMessage : String; Const ACode : Integer; ID : TJSONData = Nil; idname : TJSONStringType = 'id' ) : TJSONObject;
 function CreateJSON2ErrorResponse(Const AFormat : String; Args : Array of const; Const ACode : Integer; ID : TJSONData = Nil; idname : TJSONStringType = 'id') : TJSONObject;
 // Examines Req (request) and returns Error or an array of clones of Error)
@@ -1099,20 +1100,16 @@ function TCustomJSONRPCDispatcher.ExecuteMethod(Const AClassName,AMethodName: TJ
 Var
   H : TCustomJSONRPCHandler;
   FreeObject : TComponent;
-  aClonedID : TJSONData;
 
 begin
   H:=FindHandler(AClassName,AMethodName,AContext,FreeObject);
   If (H=Nil) then
     begin
-    if Assigned(ID) then
-      aClonedID:=ID.Clone
-    else
-      aClonedID:=TJSONNull.Create;
+    // ID is cloned by CreateJSON2Error
     if (AClassName='') then
-      Exit(CreateJSON2Error(SErrInvalidMethodName,[AMethodName],EJSONRPCMethodNotFound,aClonedID,transactionProperty))
+      Exit(CreateJSON2Error(SErrInvalidMethodName,[AMethodName],EJSONRPCMethodNotFound,ID,transactionProperty))
     else
-      Exit(CreateJSON2Error(SErrInvalidClassMethodName,[AClassName,AMethodName],EJSONRPCMethodNotFound,aClonedID,transactionProperty));
+      Exit(CreateJSON2Error(SErrInvalidClassMethodName,[AClassName,AMethodName],EJSONRPCMethodNotFound,ID,transactionProperty));
     end;
   H.SetRequestClassAndMethod(aClassName,aMethodName);
   try
