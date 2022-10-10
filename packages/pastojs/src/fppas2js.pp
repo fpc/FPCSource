@@ -16977,7 +16977,8 @@ begin
       MaxIndex:=length(El.Ranges)-1;
 
       UseSlice:=(ElTypeLo is TPasUnresolvedSymbolRef)
-             or (ElTypeLo is TPasRangeType);
+             or (ElTypeLo is TPasRangeType)
+             or ((ElTypeLo is TPasClassType) and (TPasClassType(ElTypeLo).ObjKind in [okClass]));
       ForLoop:=nil;
       if UseSlice then
         // static array of a base type -> inner loop is replaced with slice(0)
