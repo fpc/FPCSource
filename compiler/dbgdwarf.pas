@@ -3978,6 +3978,8 @@ implementation
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_lit0)+sizesinttype.size));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_minus)));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
+        { skip to past end is not allowed, thus use a nop here }
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_nop)));
         append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.rangedef));
         finish_entry;
 
@@ -4071,6 +4073,8 @@ implementation
                   current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_lit1)));
                   current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_shr)));
                 end;
+              { skip to past end is not allowed, thus use a nop here }
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_nop)));
             end
           else
             begin
@@ -4236,7 +4240,10 @@ implementation
             end;
           odt_cppclass,
           odt_object:
-            append_object_struct(def,false,def.objname);
+            begin
+              append_object_struct(def,false,def.objname);
+              exit;
+            end;
           odt_interfacecom,
           odt_interfacecorba,
           odt_dispinterface:
