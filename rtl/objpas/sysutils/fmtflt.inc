@@ -317,6 +317,11 @@ var
 begin
   Result:=0;
   Initvars;
+  if E.IsNan then
+    begin
+    AddToResult('NaN');
+    Exit;
+    end;
   // What section to use ?
   if (E>0) then
     S:=1
