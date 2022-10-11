@@ -320,18 +320,19 @@ begin
   while assigned(hp) and (hp.nodetype=addn) do
     begin
       sn:=taddnode(hp).right.getcopy;
-      inserttypeconv(sn,p.resultdef);
+      if not is_shortstr or not is_shortstring(sn.resultdef) then
+        inserttypeconv(sn,p.resultdef);
       if is_shortstr then
         begin
           sn:=caddrnode.create(sn);
-          include(taddrnode(sn).addrnodeflags,anf_typedaddr);
           include(sn.flags,nf_internal);
         end;
       arrp:=carrayconstructornode.create(sn,arrp);
       hp:=taddnode(hp).left;
     end;
   sn:=hp.getcopy;
-  inserttypeconv(sn,p.resultdef);
+  if not is_shortstr or not is_shortstring(sn.resultdef) then
+    inserttypeconv(sn,p.resultdef);
   if is_shortstr then
     begin
       sn:=caddrnode.create(sn);
