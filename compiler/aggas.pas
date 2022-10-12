@@ -1050,7 +1050,10 @@ implementation
                         internalerror(200404292);
                       if not(target_info.system in systems_aix) then
                         begin
-                          writer.AsmWrite(ait_const2str[aitconst_32bit]);
+                          if (target_info.system in use_ua_elf_systems) then
+                            writer.AsmWrite(ait_ua_elf_const2str[aitconst_32bit])
+                          else
+                            writer.AsmWrite(ait_const2str[aitconst_32bit]);
                           if target_info.endian = endian_little then
                             begin
                               writer.AsmWrite(tostr(longint(lo(tai_const(hp).value))));
