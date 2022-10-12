@@ -589,7 +589,7 @@ implementation
        end;
 
      { Post process }
-     if success then
+     if success and not(cs_link_nolink in current_settings.globalswitches) then
        success:=PostProcessExecutable(current_module.exefilename,false);
 
       MakeExecutable:=success;   { otherwise a recursive call to link method }
