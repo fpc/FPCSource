@@ -586,7 +586,8 @@ end;
 
 procedure TCustomWSServer.CloseConnectionSocket(aConnection: TWSServerConnection; var aContinue: boolean);
 begin
-  aConnection.ServerTransport.CloseSocket;
+  if aConnection.ServerTransport<>nil then
+    aConnection.ServerTransport.CloseSocket;
   aContinue:=True;
 end;
 
