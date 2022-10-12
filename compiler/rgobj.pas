@@ -1327,7 +1327,7 @@ unit rgobj;
     procedure trgobj.combine(u,v:Tsuperregister);
 
     var adj : Psuperregisterworklist;
-        i,n,p,q:cardinal;
+        original_u_count, i,n,p,q:cardinal;
         t : tsuperregister;
         searched:Tmoveins;
         found : boolean;
@@ -1365,6 +1365,7 @@ unit rgobj;
               sort_movelist(reginfo[u].movelist);
           if assigned(reginfo[v].movelist) then
             begin
+              original_u_count:=reginfo[u].movelist^.header.count;
               for n:=0 to reginfo[v].movelist^.header.count-1 do
                 begin
                   {Binary search the sorted part of the list.}
@@ -1385,7 +1386,9 @@ unit rgobj;
                       begin
                         {Linear search the unsorted part of the list.}
                         found:=false;
-                        for i:=header.sorted_until+1 to header.count-1 do
+                        { no need to search the instructions we've already added
+                          from v, we know we won't find a match there }
+                        for i:=header.sorted_until+1 to original_u_count-1 do
                           if searched.id=data[i].id then
                             begin
                               found:=true;
