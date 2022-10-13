@@ -12826,24 +12826,42 @@ unit aoptx86;
                   not SuperRegistersEqual(taicpu(p).oper[1]^.reg, taicpu(hp1).oper[1]^.reg) and
                   MemRegisterNotUsedLater
                 )
-              ) and
-              (
-                { Instructions are guaranteed to be adjacent on -O2 and under }
-                not (cs_opt_level3 in current_settings.optimizerswitches) or
-                not RegModifiedBetween(taicpu(p).oper[0]^.reg, p, hp1)
               ) then
-              begin
-                AllocRegBetween(taicpu(p).oper[0]^.reg, p, hp1, UsedRegs);
-                taicpu(hp1).oper[0]^.ref^.base := taicpu(p).oper[1]^.reg;
-                taicpu(hp1).oper[0]^.ref^.index := taicpu(p).oper[0]^.reg;
+                begin
 
-                DebugMsg(SPeepholeOptimization + 'AddMov2Mov done', p);
+                if (
+                  { Instructions are guaranteed to be adjacent on -O2 and under }
+                  (cs_opt_level3 in current_settings.optimizerswitches) and
+                  RegModifiedBetween(taicpu(p).oper[0]^.reg, p, hp1)
+                ) then
+                  begin
+                    { If the other register is used in between, move the MOV
+                      instruction to right after the ADD instruction so a
+                      saving can still be made }
+                    Asml.Remove(hp1);
+                    Asml.InsertAfter(hp1, p);
 
-                if (cs_opt_level3 in current_settings.optimizerswitches) then
-                  { hp1 may not be the immediate next instruction under -O3 }
-                  RemoveCurrentp(p)
+                    taicpu(hp1).oper[0]^.ref^.base := taicpu(p).oper[1]^.reg;
+                    taicpu(hp1).oper[0]^.ref^.index := taicpu(p).oper[0]^.reg;
+
+                    DebugMsg(SPeepholeOptimization + 'AddMov2Mov done (instruction moved)', p);
+
+                    RemoveCurrentp(p, hp1);
+                  end
                 else
-                  RemoveCurrentp(p, hp1);
+                  begin
+                    AllocRegBetween(taicpu(p).oper[0]^.reg, p, hp1, UsedRegs);
+                    taicpu(hp1).oper[0]^.ref^.base := taicpu(p).oper[1]^.reg;
+                    taicpu(hp1).oper[0]^.ref^.index := taicpu(p).oper[0]^.reg;
+
+                    DebugMsg(SPeepholeOptimization + 'AddMov2Mov done', p);
+
+                    if (cs_opt_level3 in current_settings.optimizerswitches) then
+                      { hp1 may not be the immediate next instruction under -O3 }
+                      RemoveCurrentp(p)
+                    else
+                      RemoveCurrentp(p, hp1);
+                  end;
 
                 Result := True;
                 Exit;
