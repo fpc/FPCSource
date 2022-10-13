@@ -12799,6 +12799,7 @@ unit aoptx86;
 
             { Change:
                 add     %reg2,%reg1
+                (%reg2 not modified in between)
                 mov/s/z #(%reg1),%reg1  (%reg1 superregisters must be the same)
 
               To:
@@ -12825,6 +12826,11 @@ unit aoptx86;
                   not SuperRegistersEqual(taicpu(p).oper[1]^.reg, taicpu(hp1).oper[1]^.reg) and
                   MemRegisterNotUsedLater
                 )
+              ) and
+              (
+                { Instructions are guaranteed to be adjacent on -O2 and under }
+                not (cs_opt_level3 in current_settings.optimizerswitches) or
+                not RegModifiedBetween(taicpu(p).oper[0]^.reg, p, hp1)
               ) then
               begin
                 AllocRegBetween(taicpu(p).oper[0]^.reg, p, hp1, UsedRegs);
