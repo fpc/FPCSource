@@ -1248,9 +1248,6 @@ end;
 function TStringHelper.Split(const Separators: array of Char; AQuoteStart,
   AQuoteEnd: Char; ACount: SizeInt; Options: TStringSplitOptions): TStringArray;
 
-Const
-  BlockSize = 10;
-
   Function NextSep(StartIndex : SizeInt) : SizeInt;
 
   begin
@@ -1264,41 +1261,29 @@ Const
 
   begin
     if System.Length(Result)<=CurLen then
-      SetLength(Result,System.Length(Result)+BlockSize);
+      SetLength(Result,System.Length(Result)+4+SizeInt(SizeUint(System.Length(Result)) div 4));
   end;
 
 Var
   Sep,LastSep,Len : SizeInt;
-  T : String;
 
 begin
-  SetLength(Result,BlockSize);
+  Result:=nil;
   Len:=0;
   LastSep:=0;
-  Sep:=NextSep(0);
-  While (Sep<>-1) and ((ACount=0) or (Len<ACount)) do
+  While ((ACount=0) or (Len<ACount)) and (LastSep<=System.Length(Self)) do
     begin
-    T:=SubString(LastSep,Sep-LastSep);
+    Sep:=NextSep(LastSep);
+    if Sep<0 then
+      Sep:=System.Length(Self);
 //    Writeln('Examining >',T,'< at pos ',LastSep,', till pos ',Sep);
-    If (T<>'') or (not (TStringSplitOptions.ExcludeEmpty=Options)) then
+    If (Sep>LastSep) or (not (TStringSplitOptions.ExcludeEmpty=Options)) then
       begin
       MaybeGrow(Len);
-      Result[Len]:=T;
+      Result[Len]:=SubString(LastSep,Sep-LastSep);
       Inc(Len);
       end;
     LastSep:=Sep+1;
-    Sep:=NextSep(LastSep);
-    end;
-  if (LastSep<=Length) and ((ACount=0) or (Len<ACount)) then
-    begin
-    T:=SubString(LastSep);
-//    Writeln('Examining >',T,'< at pos,',LastSep,' till pos ',Sep);
-    If (T<>'') or (not (TStringSplitOptions.ExcludeEmpty=Options)) then
-      begin
-      MaybeGrow(Len);
-      Result[Len]:=T;
-      Inc(Len);
-      end;
     end;
 
   if (TStringSplitOptions.ExcludeLastEmpty=Options) then
