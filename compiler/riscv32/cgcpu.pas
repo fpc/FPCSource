@@ -481,7 +481,7 @@ unit cgcpu;
                   else
                     begin
                       cg.a_load_const_reg(list,OS_INT,aint(lo(value)),tmplo);
-                      list.concat(taicpu.op_reg_reg_reg(A_SUB,tmplo,tmplo,regsrc.reglo))
+                      list.concat(taicpu.op_reg_reg_reg(A_SUB,tmplo,regsrc.reglo,tmplo))
                     end;
                   list.concat(taicpu.op_reg_reg_reg(A_SLTU,carry,regsrc.reglo,tmplo));
                   cg.a_load_reg_reg(list,OS_32,OS_32,tmplo,regdst.reglo);
