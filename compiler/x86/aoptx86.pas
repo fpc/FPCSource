@@ -10320,6 +10320,7 @@ unit aoptx86;
       begin
         ThisLabel := tasmlabel(taicpu(p).oper[0]^.ref^.symbol);
         ThisLabel.decrefs;
+        taicpu(p).condition := C_None;
         taicpu(p).opcode := A_RET;
         taicpu(p).is_jmp := false;
         taicpu(p).ops := taicpu(ret_p).ops;
