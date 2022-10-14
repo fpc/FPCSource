@@ -3775,7 +3775,8 @@ implementation
 
     procedure Ttypeconvnode.mark_write;
       begin
-        left.mark_write;
+        if not(convtype=tc_pointer_2_array) then
+          left.mark_write;
       end;
 
     function ttypeconvnode.first_cord_to_pointer : tnode;
