@@ -102,8 +102,8 @@ type
     function GetCSSAttributeClass: TCSSString; virtual;
     function HasCSSAttribute(const AttrID: TCSSNumericalID): boolean; virtual;
     function GetCSSAttribute(const AttrID: TCSSNumericalID): TCSSString; virtual;
-    function HasCSSPseudoAttribute(const AttrID: TCSSNumericalID): boolean; virtual;
-    function GetCSSPseudoAttribute(const AttrID: TCSSNumericalID): TCSSString; virtual;
+    function HasCSSPseudo(const AttrID: TCSSNumericalID): boolean; virtual;
+    function GetCSSPseudo(const AttrID: TCSSNumericalID): TCSSString; virtual;
     function GetCSSEmpty: boolean; virtual;
     function GetCSSDepth: integer; virtual;
     property Parent: TDemoNode read FParent write SetParent;
@@ -1688,13 +1688,13 @@ begin
   Result:=Attribute[Attr];
 end;
 
-function TDemoNode.HasCSSPseudoAttribute(const AttrID: TCSSNumericalID
+function TDemoNode.HasCSSPseudo(const AttrID: TCSSNumericalID
   ): boolean;
 begin
   Result:=false;
 end;
 
-function TDemoNode.GetCSSPseudoAttribute(const AttrID: TCSSNumericalID
+function TDemoNode.GetCSSPseudo(const AttrID: TCSSNumericalID
   ): TCSSString;
 begin
   Result:='';

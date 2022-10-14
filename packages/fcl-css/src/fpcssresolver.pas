@@ -60,8 +60,8 @@ element/type: 1 p, :before
 *: 0
 
 ToDo:
-- :has()
 - 'all' attribute: resets all properties, except direction and unicode bidi
+- :has()
 - TCSSResolver.FindComputedAttribute  use binary search for >8 elements
 - namespaces
 - layers
@@ -73,19 +73,19 @@ ToDo:
 - :nth-col()
 - :nth-last-col()
 - Pseudo-elements - not case sensitive:-----------------------------------------
-- ::first-letter 	p::first-letter 	Selects the first letter of every <p> element
-- ::first-line 	p::first-line 	Selects the first line of every <p> element
-- ::selection 	::selection 	Selects the portion of an element that is selected by a user
+ - ::first-letter 	p::first-letter 	Selects the first letter of every <p> element
+ - ::first-line 	p::first-line 	Selects the first line of every <p> element
+ - ::selection 	::selection 	Selects the portion of an element that is selected by a user
 - Altering:---------------------------------------------------------------------
-- ::after 	p::after 	Insert something after the content of each <p> element
-- ::before 	p::before 	Insert something before the content of each <p> element
+ - ::after 	p::after 	Insert something after the content of each <p> element
+ - ::before 	p::before 	Insert something before the content of each <p> element
 - Functions and Vars:-----------------------------------------------------------
-- attr() 	Returns the value of an attribute of the selected element
-- calc() 	Allows you to perform calculations to determine CSS property values  calc(100% - 100px)
-- max() min()  min(50%, 50px)
-- --varname
-- counter-reset
-- counter-increment
+ - attr() 	Returns the value of an attribute of the selected element
+ - calc() 	Allows you to perform calculations to determine CSS property values  calc(100% - 100px)
+ - max() min()  min(50%, 50px)
+ - --varname
+ - counter-reset
+ - counter-increment
 
 }
 
@@ -110,11 +110,15 @@ const
   CSSSpecifityImportant = 10000;
 
   CSSIDNone = 0;
+  // built-in type IDs
   CSSTypeID_Universal = 1; // id of type '*'
+  CSSLastTypeID = CSSTypeID_Universal;
+  // built-in attribute IDs
   CSSAttributeID_ID = 1; // id of attribute key 'id'
   CSSAttributeID_Class = 2; // id of attribute key 'class'
   CSSAttributeID_All = 3; // id of attribute key 'all'
-  // pseudo attribute IDs
+  CSSLastAttributeID = CSSAttributeID_All;
+  // pseudo attribute and call IDs
   CSSPseudoID_Root = 1; // :root
   CSSPseudoID_Empty = CSSPseudoID_Root+1; // :empty
   CSSPseudoID_FirstChild = CSSPseudoID_Empty+1; // :first-child
@@ -131,10 +135,10 @@ const
   CSSCallID_NthLastChild = CSSCallID_NthChild+1; // :nth-child
   CSSCallID_NthOfType = CSSCallID_NthLastChild+1; // :nth-child
   CSSCallID_NthLastOfType = CSSCallID_NthOfType+1; // :nth-child
-  CSSIDLast = CSSCallID_NthLastOfType;
+  CSSLastPseudoID = CSSCallID_NthLastOfType;
 
 const
-  CSSPseudoNames: array[0..CSSIDLast] of string = (
+  CSSPseudoNames: array[0..CSSLastPseudoID] of string = (
     '?',
     ':root',
     ':empty',
@@ -189,8 +193,8 @@ type
     function GetCSSPreviousOfType: TCSSNode;
     function HasCSSAttribute(const AttrID: TCSSNumericalID): boolean;
     function GetCSSAttribute(const AttrID: TCSSNumericalID): TCSSString;
-    function HasCSSPseudoAttribute(const AttrID: TCSSNumericalID): boolean;
-    function GetCSSPseudoAttribute(const AttrID: TCSSNumericalID): TCSSString;
+    function HasCSSPseudo(const AttrID: TCSSNumericalID): boolean;
+    function GetCSSPseudo(const AttrID: TCSSNumericalID): TCSSString;
     function GetCSSEmpty: boolean;
     function GetCSSDepth: integer;
     procedure SetCSSValue(AttrID: TCSSNumericalID; Value: TCSSElement);
@@ -219,6 +223,7 @@ type
   private
     FKind: TCSSNumericalIDKind;
     fList: TFPHashList;
+    function GetCount: Integer;
     function GetIDs(const aName: TCSSString): TCSSNumericalID;
     procedure SetIDs(const aName: TCSSString; const AValue: TCSSNumericalID);
   public
@@ -227,6 +232,7 @@ type
     procedure Clear;
     property IDs[const aName: TCSSString]: TCSSNumericalID read GetIDs write SetIDs; default;
     property Kind: TCSSNumericalIDKind read FKind;
+    property Count: Integer read GetCount;
   end;
 
   TCSSComputedAttribute = record
@@ -435,6 +441,11 @@ begin
   {$WARN 4056 off : Conversion between ordinals and pointers is not portable}
   Result:=TCSSNumericalID(fList.Find(aName));
   {$WARN 4056 on}
+end;
+
+function TCSSNumericalIDs.GetCount: Integer;
+begin
+  Result:=fList.Count;
 end;
 
 procedure TCSSNumericalIDs.SetIDs(const aName: TCSSString;
@@ -713,7 +724,7 @@ begin
         and (TestNode.GetCSSPreviousOfType=nil) then
       Result:=CSSSpecifityClass;
   else
-    if TestNode.GetCSSPseudoAttribute(PseudoID)<>'' then
+    if TestNode.GetCSSPseudo(PseudoID)<>'' then
       Result:=CSSSpecifityClass;
   end;
 end;

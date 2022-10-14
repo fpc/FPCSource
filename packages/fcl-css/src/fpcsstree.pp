@@ -25,6 +25,7 @@ uses contnrs, Classes;
 
 Type
   TCSSString = UTF8String;
+  TCSSStringDynArray = array of TCSSString;
   TCSSUnits = (cuNONE, cuPX,cuPERCENT,cuREM,cuEM,cuPT,cuFR,cuVW,cuVH,cuDEG);
   TCSSType = (
     csstUnknown,
