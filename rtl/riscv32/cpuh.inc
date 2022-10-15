@@ -14,5 +14,12 @@
 
  **********************************************************************}
 
+{$ifdef FPUFD}
 type
-  TNativeFPUControlWord = sizeuint;
+  TNativeFPUControlWord = record
+    cw: sizeuint;
+    rndmode: dword;
+  end;
+{$else}
+  {$define FPC_SYSTEM_FPUCW_IMMUTABLE}
+{$endif}

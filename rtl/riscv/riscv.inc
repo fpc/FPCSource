@@ -35,7 +35,7 @@ function getfflags: sizeuint; nostackframe; assembler;
 
 procedure setfflags(flags : sizeuint);
   begin
-    DefaultFPUControlWord:=flags;
+    DefaultFPUControlWord.cw:=flags;
     asm
 {$ifdef cpuriscv32}
       lw a0, flags
@@ -46,16 +46,33 @@ procedure setfflags(flags : sizeuint);
     end;
   end;
 
+function getrm: dword; nostackframe; assembler;
+  asm
+    frrm a0
+  end;
+
+
+procedure setrm(val: dword);
+begin
+  DefaultFPUControlWord.cw:=val;
+  asm
+    lw a0, val
+    fsrm a0
+  end;
+end;
+
 
 function GetNativeFPUControlWord: TNativeFPUControlWord; {$if defined(SYSTEMINLINE)}inline;{$endif}
   begin
-    result:=getfflags;
+    result.cw:=getfflags;
+    result.rndmode:=getrm;
   end;
 
 
 procedure SetNativeFPUControlWord(const cw: TNativeFPUControlWord); {$if defined(SYSTEMINLINE)}inline;{$endif}
   begin
-    setfflags(cw);
+    setfflags(cw.cw);
+    setrm(cw.rndmode);
   end;
 
 

@@ -13,45 +13,25 @@
 **********************************************************************}
 
 {$ifdef FPUFD}
-function getrm: dword; nostackframe; assembler;
-  asm
-    frrm a0
-  end;
-
-
-procedure setrm(val: dword); nostackframe; assembler;
-  asm
-    fsrm a0
-  end;
-
-
-function getfflags: dword; nostackframe; assembler;
-  asm
-    frflags a0
-  end;
-
-
-procedure setfflags(flags : dword); nostackframe; assembler;
-  asm
-    fsflags a0
-  end;
-
-
 function GetRoundMode: TFPURoundingMode;
   const
     bits2rm: array[0..3] of TFPURoundingMode = (rmNearest,rmTruncate,rmDown,rmUp);
   begin
-    result:=TFPURoundingMode(bits2rm[getrm])
+    result:=TFPURoundingMode(bits2rm[GetNativeFPUControlWord.rndmode])
   end;
 
 
 function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
   const
     rm2bits : array[TFPURoundingMode] of byte = (0,2,3,1);
+  var
+    cw: TNativeFPUControlWord;
   begin
     softfloat_rounding_mode:=RoundMode;
     SetRoundMode:=GetRoundMode;
-    setrm(rm2bits[RoundMode]);
+    cw:=GetNativeFPUControlWord;
+    cw.rndmode:=rm2bits[RoundMode];
+    SetNativeFPUControlWord(cw);
   end;
 
 
@@ -94,7 +74,7 @@ procedure RaisePendingExceptions;
     fflags : dword;
     f: TFPUException;
   begin
-    fflags:=getfflags;
+    fflags:=GetNativeFPUControlWord.cw;
     if (fflags and fpu_dz) <> 0 then
       float_raise(exZeroDivide);
     if (fflags and fpu_of) <> 0 then
@@ -112,11 +92,15 @@ procedure RaisePendingExceptions;
 
 
 procedure ClearExceptions(RaisePending: Boolean);
+  var
+    cw: TNativeFPUControlWord;
   begin
     if raisepending then
       RaisePendingExceptions;
     softfloat_exception_flags:=[];
-    setfflags(0);
+    cw:=GetNativeFPUControlWord;
+    cw.cw:=0;
+    SetNativeFPUControlWord(cw);
   end;
 {$else}
 function GetRoundMode: TFPURoundingMode;
