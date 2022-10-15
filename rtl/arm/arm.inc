@@ -77,6 +77,14 @@ const
   fpu_dz = 1 shl 3;
   fpu_nv = 1 shl 4;
 
+  FPSCR_IOC = 1;
+  FPSCR_DZC = 1 shl 1;
+  FPSCR_OFC = 1 shl 2;
+  FPSCR_UFC = 1 shl 3;
+  FPSCR_IXC = 1 shl 4;
+  FPSCR_IDC = 1 shl 7;
+  FPSCR_EXCEPTIONS = FPSCR_IOC or FPSCR_DZC or FPSCR_OFC or FPSCR_UFC or FPSCR_IXC or FPSCR_IDC;
+
 function getfpscr: sizeuint; nostackframe; assembler; nostackframe;
   asm
     fmrx r0,fpscr
@@ -104,15 +112,6 @@ procedure SetNativeFPUControlWord(const cw: TNativeFPUControlWord); {$if defined
     setfpscr(cw);
   end;
 
-
-const
-  FPSCR_IOC = 1;
-  FPSCR_DZC = 1 shl 1;
-  FPSCR_OFC = 1 shl 2;
-  FPSCR_UFC = 1 shl 3;
-  FPSCR_IXC = 1 shl 4;
-  FPSCR_IDC = 1 shl 7;
-  FPSCR_EXCEPTIONS = FPSCR_IOC or FPSCR_DZC or FPSCR_OFC or FPSCR_UFC or FPSCR_IXC or FPSCR_IDC;
 
 procedure RaisePendingExceptions;
   var
