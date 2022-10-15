@@ -58,6 +58,7 @@ begin
     ldr r0, cw
     wfs r0
   end;
+end;
 
 Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
