@@ -248,7 +248,7 @@ begin
                               if (current_settings.optimizecputype <= cpu_386) then
                                 begin
                                   TmpRef.index := taicpu(p).oper[1]^.reg;
-                                  if (taicpu(p).ops = 3) then
+                                  if (taicpu(p).ops = 3) and (taicpu(p).oper[1]^.reg <> taicpu(p).oper[2]^.reg) then
                                     begin
                                       TmpRef.base := taicpu(p).oper[2]^.reg;
                                       TmpRef.ScaleFactor := 4;
@@ -263,7 +263,7 @@ begin
                                   reference_reset(tmpref,2,[]);
                                   TmpRef.index := taicpu(p).oper[1]^.reg;
                                   TmpRef.ScaleFactor := 2;
-                                  if (taicpu(p).ops = 3) then
+                                  if (taicpu(p).ops = 3) and (taicpu(p).oper[1]^.reg <> taicpu(p).oper[2]^.reg) then
                                     begin
                                       TmpRef.base := NR_NO;
                                       hp1 :=  taicpu.op_ref_reg(A_LEA, S_L, TmpRef,
@@ -334,7 +334,7 @@ begin
                                  then
                                    begin
                                      TmpRef.index := taicpu(p).oper[1]^.reg;
-                                     if (taicpu(p).ops = 3) then
+                                     if (taicpu(p).ops = 3) and (taicpu(p).oper[1]^.reg <> taicpu(p).oper[2]^.reg) then
                                        begin
                                          TmpRef.base := taicpu(p).oper[2]^.reg;
                                          TmpRef.ScaleFactor := 8;
@@ -349,7 +349,7 @@ begin
                                      InsertLLItem(p, p.next, hp1);
                                      reference_reset(tmpref,2,[]);
                                      TmpRef.index := taicpu(p).oper[1]^.reg;
-                                     if (taicpu(p).ops = 3) then
+                                     if (taicpu(p).ops = 3) and (taicpu(p).oper[1]^.reg <> taicpu(p).oper[2]^.reg) then
                                        begin
                                          TmpRef.base := NR_NO;
                                          TmpRef.ScaleFactor := 4;
