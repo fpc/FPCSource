@@ -383,8 +383,6 @@ unit cgcpu;
                   list.concat(taicpu.op_reg_reg_reg(A_SUB, carry, hreg, carry));
                   // then add another addend
                   list.concat(taicpu.op_reg_reg_reg(A_ADD, regdst.reghi, tmphi, regsrc1.reghi));
-                  list.concat(taicpu.op_reg_reg_reg(A_SLTU, carry, regdst.reghi, tmphi));
-                  list.concat(taicpu.op_reg_reg_reg(A_SUB, carry, hreg, carry));
                 end;
             end;
           OP_SUB:
@@ -412,8 +410,6 @@ unit cgcpu;
                   list.concat(taicpu.op_reg_reg_reg(A_SUB, carry, hreg, carry));
                   // ...then the subtrahend
                   list.concat(taicpu.op_reg_reg_reg(A_SUB, regdst.reghi, tmphi, regsrc1.reghi));
-                  list.concat(taicpu.op_reg_reg_reg(A_SLTU, carry, tmphi, regdst.reghi));
-                  list.concat(taicpu.op_reg_reg_reg(A_SUB, carry, hreg, carry));
                 end;
             end;
           else
