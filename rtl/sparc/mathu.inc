@@ -16,7 +16,7 @@ function GetRoundMode: TFPURoundingMode;
   const
     bits2rm: array[0..3] of TFPURoundingMode = (rmNearest,rmTruncate,rmUp,rmDown);
   begin
-    result:=TFPURoundingMode(bits2rm[(get_fsr shr 30) and 3])
+    result:=TFPURoundingMode(bits2rm[(GetNativeFPUControlWord shr 30) and 3])
   end;
 
 
