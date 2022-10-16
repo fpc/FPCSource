@@ -12,10 +12,6 @@
 
  **********************************************************************}
 
-{ exported by the system unit }
-function get_fsr : dword;external name 'FPC_GETFSR';
-procedure set_fsr(fsr : dword);external name 'FPC_SETFSR';
-
 const
   { FPU enable exception bits for FCSR register }
   fpu_enable_inexact   =  $80;
@@ -53,17 +49,17 @@ const
 
 function GetRoundMode: TFPURoundingMode;
   begin
-    result:=fsr2roundmode[get_fsr and fpu_rounding_mask];
+    result:=fsr2roundmode[GetNativeFPUControlWord and fpu_rounding_mask];
   end;
 
 function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
   var
-    fsr: longword;
+    fsr: TNativeFPUControlWord;
   begin
-    fsr:=get_fsr;
+    fsr:=GetNativeFPUControlWord;
     result:=fsr2roundmode[fsr and fpu_rounding_mask];
     softfloat_rounding_mode:=RoundMode;
-    set_fsr((fsr and not fpu_rounding_mask) or roundmode2fsr[RoundMode]);
+    SetNativeFPUControlWord((fsr and not fpu_rounding_mask) or roundmode2fsr[RoundMode]);
   end;
 
 
@@ -79,7 +75,7 @@ function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode
   end;
 
 
-function fsr2ExceptionMask(fsr: longword): TFPUExceptionMask;
+function fsr2ExceptionMask(fsr: TNativeFPUControlWord): TFPUExceptionMask;
   begin
     result:=[];
     { invalid operation }
@@ -106,15 +102,15 @@ function fsr2ExceptionMask(fsr: longword): TFPUExceptionMask;
 
 function GetExceptionMask: TFPUExceptionMask;
   begin
-    result:=fsr2ExceptionMask(get_fsr);
+    result:=fsr2ExceptionMask(GetNativeFPUControlWord);
   end;
 
 
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
   var
-    fsr : longword;
+    fsr : TNativeFPUControlWord;
   begin
-    fsr:=get_fsr;
+    fsr:=GetNativeFPUControlWord;
     result:=fsr2ExceptionMask(fsr);
 
     { Reset flags, cause and enables }
@@ -141,12 +137,12 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
       fsr:=fsr or (fpu_enable_inexact);
 
     { update control register contents }
-    set_fsr(fsr);
+    SetNativeFPUControlWord(fsr);
   end;
 
 
 procedure ClearExceptions(RaisePending: Boolean =true);
   begin
-    set_fsr(get_fsr and not (fpu_flags_mask or fpu_cause_mask));
+    SetNativeFPUControlWord(GetNativeFPUControlWord and not (fpu_flags_mask or fpu_cause_mask));
   end;
 
