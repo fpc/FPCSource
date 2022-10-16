@@ -59,7 +59,7 @@ type
 
   { TDemoNode }
 
-  TDemoNode = class(TComponent,TCSSNode)
+  TDemoNode = class(TComponent,ICSSNode)
   private
     class var FAttributeInitialValues: array[TDemoNodeAttribute] of string;
   private
@@ -91,14 +91,14 @@ type
     class function GetAttributeInitialValue(Attr: TDemoNodeAttribute): string; virtual;
     function HasCSSClass(const aClassName: TCSSString): boolean; virtual;
     procedure SetCSSValue(AttrID: TCSSNumericalID; Value: TCSSElement); virtual;
-    function GetCSSParent: TCSSNode; virtual;
+    function GetCSSParent: ICSSNode; virtual;
     function GetCSSIndex: integer; virtual;
-    function GetCSSNextSibling: TCSSNode; virtual;
-    function GetCSSPreviousSibling: TCSSNode; virtual;
+    function GetCSSNextSibling: ICSSNode; virtual;
+    function GetCSSPreviousSibling: ICSSNode; virtual;
     function GetCSSChildCount: integer; virtual;
-    function GetCSSChild(const anIndex: integer): TCSSNode; virtual;
-    function GetCSSNextOfType: TCSSNode; virtual;
-    function GetCSSPreviousOfType: TCSSNode; virtual;
+    function GetCSSChild(const anIndex: integer): ICSSNode; virtual;
+    function GetCSSNextOfType: ICSSNode; virtual;
+    function GetCSSPreviousOfType: ICSSNode; virtual;
     function GetCSSAttributeClass: TCSSString; virtual;
     function HasCSSAttribute(const AttrID: TCSSNumericalID): boolean; virtual;
     function GetCSSAttribute(const AttrID: TCSSNumericalID): TCSSString; virtual;
@@ -1415,7 +1415,10 @@ procedure TDemoDocument.ApplyStyle;
   end;
 
 begin
-  CSSResolver.Style:=StyleElements;
+  if CSSResolver.StyleCount=0 then
+    CSSResolver.AddStyle(StyleElements)
+  else
+    CSSResolver.Styles[0]:=StyleElements;
   Traverse(Root);
 end;
 
@@ -1581,7 +1584,7 @@ begin
   Attribute[Attr]:=s;
 end;
 
-function TDemoNode.GetCSSParent: TCSSNode;
+function TDemoNode.GetCSSParent: ICSSNode;
 begin
   Result:=Parent;
 end;
@@ -1594,7 +1597,7 @@ begin
     Result:=Parent.FNodes.IndexOf(Self);
 end;
 
-function TDemoNode.GetCSSNextSibling: TCSSNode;
+function TDemoNode.GetCSSNextSibling: ICSSNode;
 var
   i: Integer;
 begin
@@ -1605,7 +1608,7 @@ begin
     Result:=Parent.Nodes[i+1];
 end;
 
-function TDemoNode.GetCSSPreviousSibling: TCSSNode;
+function TDemoNode.GetCSSPreviousSibling: ICSSNode;
 var
   i: Integer;
 begin
@@ -1621,12 +1624,12 @@ begin
   Result:=NodeCount;
 end;
 
-function TDemoNode.GetCSSChild(const anIndex: integer): TCSSNode;
+function TDemoNode.GetCSSChild(const anIndex: integer): ICSSNode;
 begin
   Result:=Nodes[anIndex];
 end;
 
-function TDemoNode.GetCSSNextOfType: TCSSNode;
+function TDemoNode.GetCSSNextOfType: ICSSNode;
 var
   i, Cnt: Integer;
   MyID: TCSSNumericalID;
@@ -1647,7 +1650,7 @@ begin
   end;
 end;
 
-function TDemoNode.GetCSSPreviousOfType: TCSSNode;
+function TDemoNode.GetCSSPreviousOfType: ICSSNode;
 var
   i: Integer;
   MyID: TCSSNumericalID;
