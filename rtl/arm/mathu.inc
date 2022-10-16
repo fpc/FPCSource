@@ -388,7 +388,7 @@ const
   _FPU_MASK_DM  =  $00000000;      { denormalized operation }
   _FPU_MASK_ALL =  $001f0000;      { mask for all flags     }
 
-function FPUCw2ExceptionMask(cw: dword): TFPUExceptionMask;
+function FPUCw2ExceptionMask(cw: TNativeFPUControlWord): TFPUExceptionMask;
   begin
     Result:=[];
 
@@ -442,7 +442,7 @@ function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode
 function GetExceptionMask: TFPUExceptionMask;
   begin
 {$if not(defined(gba)) and not(defined(nds)) and not(defined(FPUSOFT)) and not(defined(FPULIBGCC))}
-    Result:=FPUCw2ExceptionMask(FPU_GetCW);
+    Result:=FPUCw2ExceptionMask(GetNativeFPUControlWord);
 {$else}
     Result:=softfloat_exception_mask;
 {$endif}
