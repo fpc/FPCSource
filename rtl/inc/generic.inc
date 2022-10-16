@@ -958,7 +958,9 @@ begin
     end;
   dests[0]:=chr(s1l+s2l);
 end;
+{$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 
+{$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT_MULTI}
 procedure fpc_shortstr_concat_multi(var dests:shortstring;const sarr:array of pshortstring);compilerproc;
 var
   s2l : byte;
@@ -1020,7 +1022,7 @@ begin
   if needtemp then
     DestS:=TmpStr;
 end;
-{$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
+{$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT_MULTI}
 
 {$pop}
 

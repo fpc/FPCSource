@@ -279,5 +279,67 @@ function InterLockedExchangeAdd (var Target: smallint;Source : smallint) : small
     avr_restore(temp_sreg);
   end;
 
+{$define FPC_HAS_SHORTSTR_SHORTSTR_INTERN_CHARMOVE}
+procedure fpc_shortstr_shortstr_intern_charmove(const src: shortstring; const srcindex: byte; var dst: shortstring; const dstindex, len: byte); {$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    move(src[srcindex],dst[dstindex],len);
+  end;
+
+{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT_MULTI}
+procedure fpc_shortstr_concat_multi(var dests:shortstring;const sarr:array of pshortstring);compilerproc;
+  var
+    s2l, tmpindex : byte;
+    i,
+    Len : ObjpasInt;
+    relocatedstringindex: byte;
+    p : pshortstring;
+  begin
+    if high(sarr)=0 then
+      begin
+        DestS:='';
+        exit;
+      end;
+    { for s := s1 + s + ..., relocate s to the correct first position in dests
+      and remember this position for possible subsequent occurences of s }
+    Len:=1;
+    i:=low(sarr);
+    while (i<=high(sarr)) and (@dests<>sarr[i]) and (Len<=high(dests)) do
+      begin
+        Len:=Len+length(sarr[i]^);
+        inc(i);
+      end;
+
+    if Len<=high(dests) then
+      begin
+        relocatedstringindex:=Len;
+        s2l:=length(dests);
+        if uint16(s2l)+uint16(relocatedstringindex) > high(dests) then
+          s2l:=high(dests)-relocatedstringindex+1;
+        fpc_shortstr_shortstr_intern_charmove(dests,1,dests,relocatedstringindex,s2l);
+      end;
+
+    Len:=0;
+    for i:=low(sarr) to high(sarr) do
+      begin
+        p:=sarr[i];
+        if assigned(p) then
+          begin
+            s2l:=length(p^);
+            if Len+s2l>high(dests) then
+              s2l:=high(dests)-Len;
+
+            { Use relocated string position if src = dests }
+            if (p=@dests) then
+              tmpindex:=relocatedstringindex
+            else
+              tmpindex:=1;
+
+            fpc_shortstr_shortstr_intern_charmove(p^,tmpindex,dests,Len+1,s2l);
+            inc(Len,s2l);
+          end;
+      end;
+    dests[0]:=Chr(Len);
+  end;
+
 {include hand-optimized assembler code}
 {$i math.inc}
