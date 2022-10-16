@@ -201,6 +201,10 @@ interface
     }
     function MatchAndTransformNodesCommutative(n1,n2,n3,n4 : tnode;matchproc : TMatchProc4;transformproc : TTransformProc4;var res : tnode) : Boolean;
 
+    {
+      resets all flags so that nf_write/nf_modify information is regenerated
+    }
+    procedure node_reset_pass1_write(n: tnode);
 
 implementation
 
@@ -1692,5 +1696,26 @@ implementation
         else
           result:=false;
       end;
+
+
+     function _node_reset_pass1_write(var n: tnode; arg: pointer): foreachnoderesult;
+       begin
+         Result := fen_false;
+         n.flags := n.flags - [nf_pass1_done,nf_write,nf_modify];
+         if n.nodetype = assignn then
+           begin
+             { Force re-evaluation of assignments so nf_modify and nf_write
+               flags are correctly set. }
+             n.resultdef := nil;
+             Result := fen_true;
+           end;
+       end;
+
+
+     procedure node_reset_pass1_write(n: tnode);
+       begin
+         foreachnodestatic(n,@_node_reset_pass1_write,nil);
+       end;
+
 
 end.

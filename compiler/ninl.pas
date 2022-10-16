@@ -4558,25 +4558,12 @@ implementation
         temp_pnode^ := nil;
       end;
 
+
      function tinlinenode.first_abs_long : tnode;
       begin
         expectloc:=LOC_REGISTER;
         result:=nil;
       end;
-
-
-     function node_reset_pass1_write(var n: tnode; arg: pointer): foreachnoderesult;
-       begin
-         Result := fen_false;
-         n.flags := n.flags - [nf_pass1_done,nf_write,nf_modify];
-         if n.nodetype = assignn then
-           begin
-             { Force re-evaluation of assignments so nf_modify and nf_write
-               flags are correctly set. }
-             n.resultdef := nil;
-             Result := fen_true;
-           end;
-       end;
 
 
      function tinlinenode.getaddsub_for_incdec : tnode;
@@ -4680,7 +4667,7 @@ implementation
 
          { force pass 1, so copied trees get first pass'ed as well and flags like
            nf_call_unique get set right }
-         foreachnodestatic(hpp,@node_reset_pass1_write,nil);
+         node_reset_pass1_write(hpp);
          do_typecheckpass(hpp);
 
          addstatement(newstatement,cassignmentnode.create(resultnode,hpp));

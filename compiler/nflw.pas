@@ -1707,6 +1707,7 @@ implementation
                 cinlinenode.create(in_nr,false,ccallparanode.create(tassignmentnode(elsestmnt).right.getcopy,
                       ccallparanode.create(tassignmentnode(thenstmnt).right.getcopy,nil)))
                 );
+            node_reset_pass1_write(Result);
           end;
 {$endif defined(i386) or defined(x86_64) or defined(xtensa) or defined(aarch64)}
 {$endif llvm}
