@@ -2580,7 +2580,9 @@ copyfiles:
 	-$(MKDIRTREE) $(TEST_OUTPUTDIR)/test/cg
 	-$(COPY) $(C_OBJECTS) $(TEST_OUTPUTDIR)/test/cg
 	-$(COPY) $(CPP_OBJECTS) $(TEST_OUTPUTDIR)/test/cg
+ifeq ($(FULL_TARGET),i8086-msdos)
 	-$(COPY) $(TASM_OBJECTS) $(TEST_OUTPUTDIR)/test/cg
+endif
 	-$(MKDIRTREE) $(TEST_OUTPUTDIR)/test/units/system
 testprep: testprep-stamp.$(TEST_FULL_TARGET)
 testprep-stamp.$(TEST_FULL_TARGET): utils tstunits copyfiles
