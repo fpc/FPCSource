@@ -27,6 +27,10 @@ program ExecStack;
 {$ifdef cpum68k}
     ret: word;
 {$endif}
+{$if defined(cpuloongarch64)}
+    ret: longint;
+{$endif}
+
     DoNothing: proc;
 
   begin
@@ -93,6 +97,12 @@ program ExecStack;
     DoNothing:=proc(@ret);
     DoNothing;
 {$endif cpuarm}
+
+{$if defined(cpuloongarch64)}
+  ret := $20220829;
+  DoNothing := proc(@ret);
+  DoNothing;
+{$endif cpuloongarch64}
 
   end;
 begin
