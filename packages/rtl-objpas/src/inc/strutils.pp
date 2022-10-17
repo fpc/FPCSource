@@ -440,7 +440,7 @@ begin
       AddMatch(i+1);
       //Only first match ?
       if not aMatchAll then break;
-      inc(i,DeltaJumpTable2[0]);
+      inc(i,DeltaJumpTable2[0]+1);
     end else begin
       i:=i + Max(DeltaJumpTable1[ord(s[i])],DeltaJumpTable2[j]);
     end;
@@ -592,7 +592,7 @@ begin
       AddMatch(i+1);
       //Only first match ?
       if not aMatchAll then break;
-      inc(i,DeltaJumpTable2[0]);
+      inc(i,DeltaJumpTable2[0]+1);
     end else begin
       i:=i + Max(DeltaJumpTable1[Ord(lCaseArray[Ord(s[i])])],DeltaJumpTable2[j]);
     end;
