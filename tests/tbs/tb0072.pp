@@ -73,6 +73,13 @@ asm
   addi a1, y, 0
 end;
 {$endif CPURISCV64}
+{$ifdef CPULOONGARCH64}
+{$define SUPPORTED}
+asm
+  addi.d $a0, x, 0
+  addi.d $a1, y, 0
+end;
+{$endif CPULOONGARCH6}
 {$ifndef SUPPORTED}
 asm
 end;
