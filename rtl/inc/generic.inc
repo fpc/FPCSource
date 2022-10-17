@@ -1064,141 +1064,236 @@ function strpas(p:pchar):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif not cpujvm}
 
 
+{ Combining codepoints are those belonging to one of the three "Mark" general categories.
+  UnicodeData.txt column 3 has M* for them: Mn, Mc, Me.
+
+  Using the table below, codepoint %...XXXXXXXX_YYYY_ZZZZZ can be classified as combining or not with a 3-level lookup:
+
+  if %...XXXXXXXX <= High(IsCombinings.L2) then
+  begin
+    index := IsCombinings.L2[%XXXXXXXX];
+    index := IsCombinings.L1[index][%YYYY];
+    IsCombining := boolean(IsCombinings.L0[index] shr %ZZZZZ and 1);
+  end else
+    IsCombining := false;
+
+  Equivalent one-liner:
+
+  IsCombining := (%...XXXXXXXX <= High(IsCombinings.L2)) and (IsCombinings.L0[IsCombinings.L1[IsCombinings.L2[%XXXXXXXX]][%YYYY]] shr %ZZZZZ and 1 <> 0);
+
+  Additionally, there is a combining range U+E0100..U+E01EF far to the right, not included into the table to save 1 level.
+
+  Table built from UnicodeData.txt 15.0.0 (September 2022). }
+
+const
+  IsCombinings: record
+    L2: array[0 .. 244] of uint8;
+    L1: array[0 .. 46, 0 .. 15] of uint8;
+    L0: array[0 .. 161] of uint32;
+  end =
+  (
+    L2: (
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 9, {10} 0, 10, 11, 12, 13, 0, 14, 0, 0, 0, {20} 0, 0, 15, 0, 16, 0, 0, 0, 0, 0, {30} 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      {40} 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {50} 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {60} 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {70} 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {80} 0,
+      0, 0, 17, 18, 19, 0, 0, 0, 0, {90} 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {100} 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {110} 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {120} 0, 0,
+      0, 0, 0, 20, 0, 21, 22, 23, {130} 0, 0, 0, 24, 25, 26, 27, 28, 29, 30, {140} 31, 32, 33, 34, 0, 0, 0, 0, 0, 0, {150} 0, 0, 0, 0, 35, 0, 0, 0, 0, 0,
+      {160} 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {170} 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {180} 0, 36, 0, 37, 0, 0, 0, 0, 0, 0, {190} 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      {200} 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {210} 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {220} 0, 0, 38, 0, 0, 0, 0, 0, 0, 0, {230} 0, 39, 40, 41, 0, 0, 0, 42, 0, 0,
+      {240} 43, 44, 45, 0, 46
+    );
+    L1: (
+      {0} (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),               (0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 0, 0, 0, 0),
+      {2} (0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 4, 5, 6, 0),               (7, 0, 8, 9, 0, 0, 10, 11, 12, 13, 14, 0, 0, 15, 0, 16),
+      {4} (17, 18, 19, 0, 20, 0, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30), (27, 28, 31, 32, 27, 28, 33, 34, 27, 28, 35, 26, 36, 37, 38, 0),
+      {6} (39, 28, 40, 26, 27, 28, 40, 41, 23, 42, 43, 26, 27, 0, 44, 45), (0, 46, 47, 0, 0, 48, 49, 0, 50, 51, 0, 4, 52, 53, 54, 0),
+      {8} (0, 55, 56, 57, 58, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),           (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 0, 0, 0, 0, 0),
+      {10} (0, 0, 0, 0, 0, 0, 0, 0, 60, 61, 45, 45, 0, 62, 63, 0),        (64, 0, 0, 0, 65, 66, 0, 0, 0, 67, 0, 0, 0, 0, 0, 0),
+      {12} (68, 0, 69, 70, 0, 13, 1, 1, 39, 62, 39, 71, 72, 73, 0, 74),   (0, 75, 0, 0, 0, 0, 76, 77, 0, 0, 0, 0, 0, 0, 1, 1),
+      {14} (0, 0, 0, 0, 0, 0, 13, 1, 0, 0, 0, 0, 0, 0, 0, 0),             (0, 0, 0, 0, 0, 0, 0, 78, 0, 0, 0, 79, 0, 0, 0, 1),
+      {16} (0, 80, 0, 0, 81, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),            (0, 0, 0, 82, 37, 0, 0, 83, 0, 0, 0, 0, 0, 0, 0, 0),
+      {18} (84, 85, 0, 0, 86, 62, 87, 88, 0, 89, 90, 0, 23, 91, 92, 93),  (0, 94, 95, 96, 0, 97, 98, 99, 0, 0, 0, 0, 0, 0, 0, 100),
+      {20} (0, 0, 0, 0, 0, 0, 0, 0, 101, 0, 0, 0, 0, 0, 0, 0),            (2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+      {22} (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 102),            (0, 0, 0, 0, 0, 0, 0, 92, 0, 0, 0, 103, 0, 0, 0, 0),
+      {24} (104, 105, 0, 0, 0, 0, 0, 65, 0, 0, 0, 0, 0, 0, 0, 0),         (0, 0, 0, 0, 0, 0, 0, 0, 0, 106, 0, 0, 0, 0, 0, 0),
+      {26} (0, 0, 0, 0, 0, 107, 0, 59, 0, 0, 15, 0, 108, 0, 0, 0),        (72, 20, 109, 110, 72, 7, 36, 0, 72, 111, 65, 112, 72, 91, 113, 0),
+      {28} (0, 114, 98, 0, 0, 0, 79, 14, 23, 42, 29, 115, 0, 0, 0, 0),    (0, 116, 117, 0, 0, 13, 23, 0, 0, 0, 0, 0, 0, 118, 119, 0),
+      {30} (0, 13, 92, 0, 0, 120, 0, 0, 59, 121, 0, 0, 0, 0, 0, 0),       (0, 122, 0, 0, 0, 0, 0, 0, 0, 123, 124, 0, 0, 0, 125, 126),
+      {32} (127, 128, 129, 0, 130, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),      (0, 131, 0, 0, 132, 133, 0, 0, 0, 134, 135, 0, 136, 0, 0, 0),
+      {34} (0, 0, 0, 0, 0, 0, 0, 137, 138, 139, 72, 0, 0, 0, 0, 0),       (0, 0, 140, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+      {36} (0, 0, 0, 0, 0, 0, 0, 141, 0, 142, 0, 0, 0, 0, 0, 0),          (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 143, 1, 144, 0, 0, 145),
+      {38} (0, 0, 0, 0, 146, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),            (0, 0, 0, 0, 0, 0, 0, 0, 1, 147, 109, 0, 0, 0, 0, 0),
+      {40} (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 148, 149, 150, 0, 0),        (0, 0, 151, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+      {42} (1, 152, 1, 153, 154, 155, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),      (156, 157, 0, 0, 158, 0, 0, 0, 0, 142, 0, 0, 0, 0, 0, 0),
+      {44} (0, 0, 0, 0, 0, 159, 0, 160, 0, 0, 0, 0, 0, 0, 0, 0),          (0, 0, 0, 0, 0, 0, 0, 160, 0, 0, 0, 0, 0, 0, 0, 0),
+      {46} (0, 0, 0, 0, 0, 0, 142, 0, 0, 0, 161, 0, 0, 0, 0, 0)
+    );
+    L0: (
+      {0} $00000000,   $FFFFFFFF, $0000FFFF, $000003F8, $FFFE0000, $BFFFFFFF, $000000B6, $07FF0000, $FFFFF800, $00010000, $9FC00000, $00003D9F, $00020000,
+      {13} $FFFF0000,  $000007FF, $0001FFC0, $200FF800, $FBC00000, $00003EEF, $0E000000, $FF000000, $FFFFFC00, $FFFFFFFB, $0000000F, $DC000000, $00FEFFFF,
+      {26} $0000000C,  $0000000E, $D0000000, $0080399F, $4000000C, $00023987, $00230000, $00003BBF, $FC00000C, $00E0399F, $00000004, $C0000000, $00803DC7,
+      {39} $0000001F,  $00603DDF, $0008000C, $D8000000, $00803DDF, $FF5F8400, $000C0000, $07F20000, $00007F80, $1FF20000, $00007F00, $03000000, $C2A00000,
+      {52} $FEFFE0DF,  $1FFFFFFF, $00000040, $7FFFF800, $C3C00000, $001E3F9D, $3C00BFFC, $E0000000, $003C0000, $001C0000, $FFF00000, $200FFFFF, $0000B800,
+      {65} $00000060,  $00000200, $0FFF0FFF, $0F800000, $7FE00000, $9FFFFFFF, $000FF800, $00000007, $00003FFE, $000FFFC0, $00FFFFF0, $FFF70000, $039021FF,
+      {78} $00038000,  $80000000, $0000FC00, $06000000, $3FF78000, $00030000, $00000844, $000010F8, $00000003, $0000003F, $8003FFFF, $00003FC0, $000FFF80,
+      {91} $FFF80000,  $00000001, $00000020, $007FFE00, $00003008, $38000000, $C19D0000, $00000002, $0060F800, $000037F8, $40000000, $20000000, $07C00000,
+      {104} $0000F06E, $87000000, $000000F0, $00001800, $0000003C, $0000007F, $80190000, $001FFF80, $00080000, $0000DE01, $40FFF000, $001F1FCC, $FFE00000,
+      {117} $4000007F, $FF3F8000, $30000001, $00FFF800, $00000FFF, $07FFF000, $79BF0000, $0000000D, $FCFE0000, $00000011, $000007FE, $7BF80000, $0FFE0080,
+      {130} $03FFFC00, $FF7F8000, $FFFC0000, $007FFEFF, $B47E0000, $000000BF, $00FB7C00, $00780000, $0000000B, $C7F00000, $003FFF81, $001F0000, $007F0000,
+      {143} $FFFE8000, $000780FF, $00030010, $60000000, $FFFF3FFF, $F807E3E0, $00000FE7, $00003C00, $0000001C, $F87FFFFF, $00201FFF, $F8000010, $0000FFFE,
+      {156} $F9FFFF7F, $000007DB, $00008000, $00004000, $0000F000, $000007F0
+    );
+  );
+
 function Utf8CodePointLen(P: PAnsiChar; MaxLookAhead: SizeInt; IncludeCombiningDiacriticalMarks: Boolean): SizeInt;
   var
-    bytes: sizeint;
-    firstzerobit: byte;
+    cp: uint32;
+    iByte,cpLen: SizeInt;
   begin
     { see https://en.wikipedia.org/wiki/UTF-8#Description for details }
+    result:=0;
 
-    if maxlookahead<=0 then
-      begin
-        { incomplete }
-        result:=0;
+    { result = 0 when scanning first character, result > 0 when scanning potential diacritical marks following it.
+
+      Common case is correct UTF-8.
+
+      Setting cpLen and breaking from the loop (instead of exiting) will handle invalid/incomplete cases
+      when cpLen bytes were expected, but not all are present/valid.
+      This keeps the code more compact, both source and binary. }
+
+    repeat
+      if MaxLookAhead<1 then
         exit;
-      end;
-    { include the first byte }
-    result:=1;
-    { multiple byte utf-8 code point? }
-    if p[0]>#127 then
-      begin
-        { bsr searches for the leftmost 1 bit. We are interested in the
-          leftmost 0 bit, so first invert the value
-        }
-        firstzerobit:=bsrbyte(not(byte(p[0])));
-        { if there is no zero bit or the first zero bit is the rightmost bit
-          (bit 0), this is an invalid UTF-8 byte ($ff cannot appear in an
-          UTF-8-encoded string, and in the worst case bit 1 has to be zero)
-          Additionally, 5-byte UTF-8 sequences don't exist either, so bit 1
-          cannot be the first zero-bit either. And bits 6 and 7 can't be 0
-          either in the first byte.
-        }
-        if (firstzerobit<=1) or (firstzerobit>=6)  then
-          begin
-            result:=-result;
-            exit;
-          end;
-        { the number of bytes belonging to this code point is
-          7-(pos first 0-bit). Subtract 1 since we're already at the first
-          byte. All subsequent bytes of the same sequence must have their
-          highest bit set and the next one unset. We stop when we detect an
-          invalid sequence.
-        }
-        bytes:=6-firstzerobit;
-        while (result<maxlookahead) and
-              (bytes>0) and
-              ((ord(p[result]) and %11000000)=%10000000) do
-          begin
-            inc(result);
-            dec(bytes);
-          end;
-        { stopped because of invalid/incomplete sequence -> exit }
-        if bytes<>0 then
-          begin
-            if result>=maxlookahead then
-              result:=0
-            else
-              result:=-result;
-            exit;
-          end;
-      end;
-    if includecombiningdiacriticalmarks then
-      begin
-        { combining diacritical marks?
-            1) U+0300 - U+036F in UTF-8 = %11001100 10000000 - %11001101 10101111
-            2) U+1AB0 - U+1AFF in UTF-8 = %11100001 10101010 10110000 - %11100001 10101011 10111111
-            3) U+1DC0 - U+1DFF in UTF-8 = %11100001 10110111 10000000 - %11100001 10110111 10111111
-            4) U+20D0 - U+20FF in UTF-8 = %11100010 10000011 10010000 - %11100010 10000011 10111111
-            5) U+FE20 - U+FE2F in UTF-8 = %11101111 10111000 10100000 - %11101111 10111000 10101111
-        }
-        repeat
-          bytes:=result;
-          if result+1<maxlookahead then
+
+      case ord(P[0]) of
+        { One-byte codepoints have the form
+          %(0)xxxxxxx. }
+
+        0..$7F {%01111111}:
+          { There are no diacritics among them. }
+          if not IncludeCombiningDiacriticalMarks then
+            exit(1)
+          else if result=0 then
             begin
-              { case 1) }
-              if ((ord(p[result]) and %11001100=%11001100)) and
-                  (ord(p[result+1])>=%10000000) and
-                  (ord(p[result+1])<=%10101111) then
-                inc(result,2)
-                  { case 2), 3), 4), 5) }
-              else if (result+2<maxlookahead) and
-                 (ord(p[result])>=%11100001) then
+              result:=1;
+              Inc(P);
+              Dec(MaxLookAhead);
+            end
+          else
+            exit;
+
+        { Two-byte codepoints have the form
+          %(110)xxxxx (10)xxxxxx.
+
+          but also minimum value of $80 = %10000000 =
+          %(110)00010 (10)000000. }
+
+        $C2 {%11000010}..$DF {%11011111}:
+          if (MaxLookAhead>=2) and (ord(P[1]) and $C0=$80) then
+            begin
+              if not IncludeCombiningDiacriticalMarks then
+                exit(2);
+              if result>0 then
                 begin
-                     { case 2) }
-                  if ((ord(p[result])=%11100001) and
-                      (ord(p[result+1])=%10101010) and
-                      (ord(p[result+2])>=%10110000) and
-                      (ord(p[result+2])<=%10111111)) or
-                     { case 3) }
-                     ((ord(p[result])=%11100001) and
-                      (ord(p[result+1])=%10110111) and
-                      (ord(p[result+2])>=%10000000) and
-                      (ord(p[result+2])<=%10111111)) or
-                     { case 4) }
-                     ((ord(p[result])=%11100010) and
-                      (ord(p[result+1])=%10000011) and
-                      (ord(p[result+2])>=%10010000) and
-                      (ord(p[result+2])<=%10111111)) or
-                     { case 5) }
-                     ((ord(p[result])=%11101111) and
-                      (ord(p[result+1])=%10111000) and
-                      (ord(p[result+2])>=%10100000) and
-                      (ord(p[result+2])<=%10101111)) then
-                    inc(result,3);
+                  cp:=ord(P[0]) and $1F {%11111} shl 6 or ord(P[1]) and $3F {%111111};
+                  { Max possible cp value, $7FF, won't overflow L2. }
+                  if IsCombinings.L0[IsCombinings.L1[IsCombinings.L2[cp shr (5+4)]][cp shr 5 and (1 shl 4-1)]] shr (cp and (1 shl 5-1)) and 1=0 then
+                    exit;
                 end;
+              Inc(result,2);
+              Inc(P,2);
+              Dec(MaxLookAhead,2);
+            end
+          else
+            begin
+              cpLen:=2;
+              break;
             end;
-        until bytes=result;
-        { is there an incomplete diacritical mark? (invalid makes little sense:
-          either a sequence is a combining diacritical mark, or it's not ; if
-          it's invalid, it may also not have been a combining diacritical mark)
-        }
-        if result<maxlookahead then
+
+        { Three-byte codepoints have the form
+          %(1110)xxxx (10)xxxxxx (10)xxxxxx
+
+          but also minimum value of $800 = %1000 00000000 =
+          %(1110)0000 (10)100000 (10)000000. }
+
+        $E0 {%11100000}..$EF {%11101111}:
+          if (MaxLookAhead>=3) and (ord(P[1]) and $C0=$80) and (ord(P[2]) and $C0=$80) and ((ord(P[0])>$E0 {%11100000}) or (ord(P[1])>=$A0 {%10100000})) then
+            begin
+              if not IncludeCombiningDiacriticalMarks then
+                exit(3);
+              if result>0 then
+                begin
+                  cp:=ord(P[0]) and $F {%1111} shl 12 or ord(P[1]) and $3F {%111111} shl 6 or ord(P[2]) and $3F {%111111};
+                  { Max possible cp value, $FFFF, won't overflow L2. }
+                  if IsCombinings.L0[IsCombinings.L1[IsCombinings.L2[cp shr (5+4)]][cp shr 5 and (1 shl 4-1)]] shr (cp and (1 shl 5-1)) and 1=0 then
+                    exit;
+                end;
+              Inc(result,3);
+              Inc(P,3);
+              Dec(MaxLookAhead,3);
+            end
+          else
+            begin
+              cpLen:=3;
+              break;
+            end;
+
+        { Four-byte codepoints have the form
+          %(11110)xxx (10)xxxxxx (10)xxxxxx (10)xxxxxx
+
+          but also minimum value of $10000 = %1 00000000 00000000 =
+          %(11110)000 (10)010000 (10)000000 (10)000000
+
+          and maximum of $10FFFF = %10000 11111111 11111111 =
+          %(11110)100 (10)001111 (10)111111 (10)111111. }
+
+        $F0 {%11110000}..$F4 {%11110100}:
+          if (MaxLookAhead>=4) and (ord(P[1]) and $C0=$80) and (ord(P[2]) and $C0=$80) and (ord(P[3]) and $C0=$80) and
+             (uint16(P[0]) shl 8 or ord(P[1])>=$F090 {%11110000 10010000}) and
+             (uint16(P[0]) shl 8 or ord(P[1])<=$F48F {%11110100 10001111}) then
+            begin
+              if not IncludeCombiningDiacriticalMarks then
+                exit(4);
+              if result>0 then
+                begin
+                  cp:=ord(P[0]) and $7 {%111} shl 18 or ord(P[1]) and $3F {%111111} shl 12 or ord(P[2]) and $3F {%111111} shl 6 or ord(P[3]) and $3F {%111111};
+                  { This time, cp can overflow L2, and can have special-cased values U+E0100..U+E01EF. }
+                  if cp<length(IsCombinings.L2) shl (5+4) then
+                    begin
+                      if IsCombinings.L0[IsCombinings.L1[IsCombinings.L2[cp shr (5+4)]][cp shr 5 and (1 shl 4-1)]] shr (cp and (1 shl 5-1)) and 1=0 then
+                        exit;
+                    end
+                  else if not ((cp>=$E0100) and (cp<=$E01EF)) then
+                    exit;
+                end;
+              Inc(result,4);
+              Inc(P,4);
+              Dec(MaxLookAhead,4);
+            end
+          else
+            begin
+              cpLen:=4;
+              break;
+            end;
+        else
           begin
-               { case 1) }
-            if (((ord(p[result]) and %11001100=%11001100)) and
-                (result+1>=maxlookahead)) or
-               { case 2) and 3)}
-               ((ord(p[result])=%11100001) and
-                ((result+1>=maxlookahead) or
-                 (((ord(p[result+1])=%10101010) or
-                   (ord(p[result+1])=%10110111)) and
-                  (result+2>=maxlookahead)))) or
-               { case 4 }
-               ((ord(p[result])=%11100010) and
-                ((result+1>=maxlookahead) or
-                 ((ord(p[result+1])=%10000011) and
-                  (result+2>=maxlookahead)))) or
-               { case 5 }
-               ((ord(p[result])=%11101111) and
-                ((result+1>=maxlookahead) or
-                 ((ord(p[result+1])=%10111000) and
-                  (result+2>=maxlookahead)))) then
-              begin
-                result:=0;
-                exit;
-              end;
+            cpLen:=1;
+            break;
           end;
       end;
+    until false;
+
+    { Handle invalid or incomplete cases, when expected codepoint length is cpLen. }
+    for iByte:=1 to cpLen-1 do
+      if (iByte<MaxLookAhead) and (ord(P[iByte]) and $C0 {%11000000}<>$80 {%10000000}) then
+        begin
+          if result=0 then result:=-1-iByte;
+          exit;
+        end;
+
+    if cpLen>MaxLookAhead then
+      result:=0 { Signal an incomplete codepoint, even if there were complete codepoints before. }
+    else if result=0 then
+       result:=-cpLen;
   end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
