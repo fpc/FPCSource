@@ -8,7 +8,7 @@ procedure check(index, lookahead: longint; combiningdiacritics: boolean; expecte
 begin
   if Utf8CodePointLen(pchar(@name[index]),lookahead,combiningdiacritics)<>expectedresult then
     begin
-      writeln('check ',checknr,': Utf8CodePointLen(',copy(name,index,length(name)),',',lookahead,',',combiningdiacritics,') = ',Utf8CodePointLen(pchar(@name[index]),lookahead,false),' <> expected ',expectedresult);
+      writeln('check ',checknr,': Utf8CodePointLen(',copy(name,index,length(name)),',',lookahead,',',combiningdiacritics,') = ',Utf8CodePointLen(pchar(@name[index]),lookahead,combiningdiacritics),' <> expected ',expectedresult);
       halt(1);
     end;
 end;
@@ -143,6 +143,54 @@ begin
   check(5,2,false,0,92);
   check(5,2,true,0,93);
   { 2) invalid }
-  check(5,3,false,-2,94);
-  check(5,3,true,-2,95);
+  check(5,3,false,-3,94);
+  check(5,3,true,-3,95);
+
+  { Last allowed 4-byte codepoint, U+10FFFF. }
+  name:=#$f4#$8f#$bf#$bf;
+  check(1,4,false,4,96);
+
+  { Last allowed 4-byte codepoint + 1, U+110000. }
+  name:=#$f4#$90#$80#$80;
+  check(1,4,false,-4,97);
+
+  { First 5-byte codepoint, U+200000. }
+  name:=#$f8#$88#$80#$80#$80;
+  check(1,5,false,-1,98);
+
+  { Overlong 2-byte U+7F. }
+  name:=#$c1#$bf;
+  check(1,2,false,-1,99);
+
+  { Overlong 3-byte NULL. }
+  name:=#$e0#$80#$80;
+  check(1,3,false,-3,100);
+
+  { Overlong 4-byte U+FFFF. }
+  name:=#$f0#$8f#$bf#$bf;
+  check(1,4,false,-4,101);
+
+  { Cyrillic A + U+1AFF (last in the combining range 1AB0..1AFF). }
+  name:='А᫿';
+  check(1,5,true,5,102);
+
+  { Cyrillic A + U+1B00 (character just to the right of the combining range 1AB0..1AFF that happens to be combining anyway :D) }
+  name:='Аᬀ';
+  check(1,5,true,5,103);
+
+  { Cyrillic A + U+33F COMBINING DOUBLE OVERLINE. }
+  name:='А̿';
+  check(1,4,true,4,104);
+
+  { Cyrillic A + U+3099 (kana voice mark, 3-byte combining character outside of five ranges). }
+  name:='А゙';
+  check(1,5,true,5,105);
+
+  { Cyrillic A + U+1D167 (tremolo, 4-byte combining character outside of five ranges). }
+  name:='А𝅧';
+  check(1,6,true,6,106);
+
+  { Cyrillic A + U+E0100 (variation selector 17, 4-byte combining character outside of five ranges, special-cased in Utf8CodepointLen). }
+  name:='А󠄀';
+  check(1,6,true,6,107);
 end.
