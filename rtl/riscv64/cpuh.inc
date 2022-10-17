@@ -13,3 +13,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{$ifdef FPUFD}
+type
+  TNativeFPUControlWord = record
+    cw: sizeuint;
+    rndmode: dword;
+  end;
+{$else}
+  {$define FPC_SYSTEM_FPUCW_IMMUTABLE}
+{$endif}

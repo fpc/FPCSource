@@ -33,9 +33,46 @@ function getfflags: sizeuint; nostackframe; assembler;
   end;
 
 
-procedure setfflags(flags : sizeuint); nostackframe; assembler;
+procedure setfflags(flags : sizeuint);
+  begin
+    DefaultFPUControlWord.cw:=flags;
+    asm
+{$ifdef cpuriscv32}
+      lw a0, flags
+{$else}
+      ld a0, flags
+{$endif}
+      fsflags a0
+    end;
+  end;
+
+function getrm: dword; nostackframe; assembler;
   asm
-    fsflags a0
+    frrm a0
+  end;
+
+
+procedure setrm(val: dword);
+begin
+  DefaultFPUControlWord.cw:=val;
+  asm
+    lw a0, val
+    fsrm a0
+  end;
+end;
+
+
+function GetNativeFPUControlWord: TNativeFPUControlWord; {$if defined(SYSTEMINLINE)}inline;{$endif}
+  begin
+    result.cw:=getfflags;
+    result.rndmode:=getrm;
+  end;
+
+
+procedure SetNativeFPUControlWord(const cw: TNativeFPUControlWord); {$if defined(SYSTEMINLINE)}inline;{$endif}
+  begin
+    setfflags(cw.cw);
+    setrm(cw.rndmode);
   end;
 
 
@@ -82,8 +119,3 @@ procedure fpc_throwfpuexception;[public,alias:'FPC_THROWFPUEXCEPTION'];
       RaisePendingExceptions;
   end;
 {$endif FPUFD}
-
-procedure fpc_cpuinit;{$ifdef SYSTEMINLINE}inline;{$endif}
-  begin
-    softfloat_exception_mask:=[exPrecision,exUnderflow];
-  end;

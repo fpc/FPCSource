@@ -37,3 +37,9 @@ function fpc_x86_get_gs:longint;[internproc:fpc_in_x86_get_gs];
 { do not active yet, they are not usable yet neither is the naming fixed }
 { $i cpummprocs.inc}
 {$endif not VER3_0 and not VER3_2}
+
+type
+  TNativeFPUControlWord = record
+    cw8087: word;
+    MXCSR: dword;
+  end;

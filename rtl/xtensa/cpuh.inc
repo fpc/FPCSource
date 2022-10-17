@@ -13,3 +13,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{ no hardware fpu }
+{$define FPC_SYSTEM_FPUCW_IMMUTABLE}

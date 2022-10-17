@@ -21,32 +21,7 @@
                            PowerPC specific stuff
 ****************************************************************************}
 
-procedure fpc_enable_ppc_fpu_exceptions; assembler; nostackframe;
-asm
-  { clear all "exception happened" flags we care about}
-  mtfsfi 0,0
-  mtfsfi 1,0
-  mtfsfi 2,0
-  mtfsfi 3,0
-{$ifdef fpc_mtfsb0_corrected}
-  mtfsb0 21
-  mtfsb0 22
-  mtfsb0 23
-{$endif fpc_mtfsb0_corrected}
-
-  { enable invalid operations and division by zero exceptions. }
-  { No overflow/underflow, since those give some spurious      }
-  { exceptions                                                 }
-  mtfsfi 6,9
-end;
-
-
-procedure fpc_cpuinit;
-begin
-  { don't let libraries influence the FPU cw set by the host program }
-  if not IsLibrary then
-    fpc_enable_ppc_fpu_exceptions;
-end;
+{$i ../ppcgen/ppcfpuex.inc}
 
 {****************************************************************************
                                 Move / Fill
@@ -725,6 +700,7 @@ asm
   bne .LInterlockedCompareExchangeLoop
   mr     r3, r10
 end;
+
 
 function InterLockedDecrement64(var Target: Int64) : Int64; assembler; nostackframe;
 { input:  address of target in r3 }

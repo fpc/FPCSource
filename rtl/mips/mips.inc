@@ -22,9 +22,25 @@ function get_fsr : dword;assembler;nostackframe;[public, alias: 'FPC_GETFSR'];
   end;
 
 
-procedure set_fsr(fsr : dword);assembler;nostackframe;[public, alias: 'FPC_SETFSR'];
-  asm
-    ctc1 $4,$31
+procedure set_fsr(fsr : dword);[public, alias: 'FPC_SETFSR'];
+  begin
+    DefaultFPUControlWord:=fsr;
+    asm
+      lw $4,fsr
+      ctc1 $4,$31
+    end;
+  end;
+
+
+function GetNativeFPUControlWord: TNativeFPUControlWord; {$if defined(SYSTEMINLINE)}inline;{$endif}
+  begin
+    result:=get_fsr;
+  end;
+
+
+procedure SetNativeFPUControlWord(const cw: TNativeFPUControlWord); {$if defined(SYSTEMINLINE)}inline;{$endif}
+  begin
+    set_fsr(cw);
   end;
 
 
@@ -60,24 +76,10 @@ const
 procedure SysInitFPU;
   begin
     set_fsr(get_fsr and (not fpu_all_bits) or (default_fpu_enable or fpu_rounding_nearest));
-  end;
-
-
-{$define FPC_SYSTEM_HAS_SYSRESETFPU}
-procedure SysResetFPU;
-  begin
+    softfloat_exception_mask:=[float_flag_inexact,float_flag_denormal];
+    softfloat_exception_flags:=[];
   end;
 {$endif FPUMIPS2 or FPUMIPS3}
-
-
-procedure fpc_cpuinit;
-  begin
-{$ifndef FPUNONE}
-    SysResetFPU;
-    if (not IsLibrary) then
-      SysInitFPU;
-{$endif FPUNONE}
-  end;
 
 
 {$ifndef INTERNAL_BACKTRACE}

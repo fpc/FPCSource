@@ -40,9 +40,12 @@ asm
   fmove.l fpsr, d0
 end;
 
-procedure SetFPCR(x: DWord); assembler; nostackframe;
-asm
-  fmove.l x, fpcr
+procedure SetFPCR(x: DWord);
+begin
+  Default68kFPCR:=x;
+  asm
+    fmove.l x, fpcr
+  end;
 end;
 
 procedure SetFPSR(x: DWord); assembler; nostackframe;
@@ -50,9 +53,20 @@ asm
   fmove.l x, fpsr
 end;
 
+function GetNativeFPUControlWord: TNativeFPUControlWord;
+  begin
+    result:=GetFPCR;
+  end;
+
+procedure SetNativeFPUControlWord(const cw: TNativeFPUControlWord);
+  begin
+    SetFPCR(cw);
+  end;
+
 {$DEFINE FPC_SYSTEM_HAS_SYSRESETFPU}
 procedure SysResetFPU;
 begin
+  softfloat_exception_flags:=[];
   SetFPCR(Default68KFPCR);
   SetFPSR(0);
 end;
@@ -60,29 +74,12 @@ end;
 {$DEFINE FPC_SYSTEM_HAS_SYSINITFPU}
 procedure SysInitFPU;
 begin
+  softfloat_exception_mask:=[float_flag_underflow,float_flag_inexact,float_flag_denormal];
+  softfloat_exception_flags:=[];
+  SetFPSR(0);
 end;
 
-procedure fpc_cpuinit;
-  begin
-    if IsLibrary then
-      begin
-        Default68kFPCR:=GetFPCR;
-      end;
-    SysResetFPU;
-  end;
-
-{$ELSE}
-
-procedure fpc_cpuinit;
-  begin
-{$IFNDEF FPUNONE}
-    SysResetFPU;
-    if (not IsLibrary) then
-      SysInitFPU;
-{$ENDIF}
-  end;
-
-{$ENDIF}
+{$endif}
 
 {$ifndef INTERNAL_BACKTRACE}
 {$define FPC_SYSTEM_HAS_GET_FRAME}

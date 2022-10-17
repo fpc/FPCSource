@@ -16,3 +16,5 @@
  const
    STACK_BIAS = 2047;
 
+ type
+   TNativeFPUControlWord = dword;

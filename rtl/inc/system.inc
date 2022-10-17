@@ -101,6 +101,20 @@ begin
 end;
 {$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 
+{$if not defined(FPC_SYSTEM_FPU_CUSTOM_CONTROL_WORD) and not defined(FPUNONE) and not defined(FPC_SYSTEM_FPUCW_IMMUTABLE)}
+var
+  { Control word of the fpu that determes which exceptions will be thrown and
+    potentially other flags (precision, exception-happened flags, ... Used to
+    initialise the FPU when starting a new thread (in SysResetFPU).
+
+    Some platforms already have a legacy/existing global variable holding this
+    information (FPC_SYSTEM_FPU_CUSTOM_CONTROL_WORD). In case of FPU_NONE,
+    we don't support floating point at all. And in case of
+    FPC_SYSTEM_FPUCW_IMMUTABLE, either the control word cannot be changed
+    (e.g. wasm), or FPU operations are supported by only as softfloat }
+  DefaultFPUControlWord: TNativeFPUControlWord;
+{$endif}
+
 { checks whether the given suggested size for the stack of the current
  thread is acceptable. If this is the case, returns it unaltered.
  Otherwise it should return an acceptable value.
@@ -1137,6 +1151,22 @@ begin
    end;
 end;
 {$endif FPC_INIT_FINAL_UNITS_BY_CALLS}
+
+
+{*****************************************************************************
+                        FPU Exceptions state
+*****************************************************************************}
+
+{$if defined(FPC_SYSTEM_FPUCW_IMMUTABLE) or defined(FPU_NONE)}
+function GetNativeFPUControlWord: TNativeFPUControlWord; {$if defined(SYSTEMINLINE)}inline;{$endif}
+begin
+  result:=default(TNativeFPUControlWord);
+end;
+
+procedure SetNativeFPUControlWord(const cw: TNativeFPUControlWord); {$if defined(SYSTEMINLINE)}inline;{$endif}
+begin
+end;
+{$endif}
 
 {*****************************************************************************
                           Error / Exit / ExitProc

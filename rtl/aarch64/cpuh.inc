@@ -13,3 +13,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+type
+  TNativeFPUControlWord = qword;

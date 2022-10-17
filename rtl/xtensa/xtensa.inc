@@ -17,18 +17,14 @@
 {$define FPC_SYSTEM_HAS_SYSRESETFPU}
 Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
+  softfloat_exception_flags:=[];
 end;
 
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
 Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
-end;
-
-procedure fpc_cpuinit;
-begin
-  { don't let libraries influence the FPU cw set by the host program }
-  if not IsLibrary then
-    SysInitFPU;
+  softfloat_exception_mask:=[float_flag_underflow,float_flag_inexact,float_flag_denormal];
+  softfloat_exception_flags:=[];
 end;
 
 {$ifdef fpc_abi_windowed}

@@ -36,7 +36,6 @@ Var
       begin
 {$ifndef FPUNONE}
         SysResetFPU;
-        SysInitFPU;
 {$endif}
 {$ifndef HAS_MEMORYMANAGER}
 {$ifndef FPC_NO_DEFAULT_HEAP}

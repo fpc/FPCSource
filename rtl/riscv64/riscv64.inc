@@ -252,3 +252,23 @@ procedure WriteBarrier; assembler; nostackframe;
   asm
     fence ow, ow
   end;
+
+{$define FPC_SYSTEM_HAS_SYSRESETFPU}
+procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$ifdef FPUFD}
+var
+  cw: TNativeFPUControlWord;
+{$endif}
+begin
+  softfloat_exception_flags:=[];
+  softfloat_exception_mask:=[exPrecision,exUnderflow];
+{$ifdef FPUFD}
+  cw:=GetNativeFPUControlWord;
+  { riscv does not support triggering exceptoins when FPU exceptions happen;
+    it merely records which exceptions have happened until now -> clear }
+  cw.cw:=0;
+  { round to nearest }
+  cw.rndmode:=0;
+  SetNativeFPUControlWord(cw);
+{$endif}
+end;

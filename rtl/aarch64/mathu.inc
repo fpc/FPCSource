@@ -14,18 +14,6 @@
 
 {$asmmode gas}
 
-function getfpcr: qword; nostackframe; assembler;
-  asm
-    mrs x0,fpcr
-  end;
-
-
-procedure setfpcr(val: qword); nostackframe; assembler;
-  asm
-    msr fpcr,x0
-  end;
-
-
 function getfpsr: qword; nostackframe; assembler;
   asm
     mrs x0,fpsr
@@ -42,7 +30,7 @@ function GetRoundMode: TFPURoundingMode;
   const
     bits2rm: array[0..3] of TFPURoundingMode = (rmNearest,rmUp,rmDown,rmTruncate);
   begin
-    result:=TFPURoundingMode(bits2rm[(getfpcr shr 22) and 3])
+    result:=TFPURoundingMode(bits2rm[(GetNativeFPUControlWord shr 22) and 3])
   end;
 
 
@@ -52,7 +40,7 @@ function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
   begin
     softfloat_rounding_mode:=RoundMode;
     SetRoundMode:=GetRoundMode;
-    setfpcr((getfpcr and $ff3fffff) or (rm2bits[RoundMode] shl 22));
+    SetNativeFPUControlWord((GetNativeFPUControlWord and $ff3fffff) or (rm2bits[RoundMode] shl 22));
   end;
 
 
@@ -112,9 +100,13 @@ function GetExceptionMask: TFPUExceptionMask;
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
   var
     newfpcr: qword;
+    old_softfloat_exception_mask: TFPUExceptionMask;
   begin
     { clear "exception happened" flags }
     ClearExceptions(false);
+    { as the fpcr flags might be RAZ, the softfloat exception mask
+      is considered as the authoritative mask }
+    result:=softfloat_exception_mask;
     softfloat_exception_mask:=mask;
 
     { at least the ThunderX AArch64 support apparently hardware exceptions,
@@ -133,11 +125,7 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
       newfpcr:=newfpcr and not(fpu_ixe);
     if exDenormalized in Mask then
       newfpcr:=newfpcr and not(fpu_ide);
-    setfpcr((getfpcr and not(fpu_exception_mask)) or newfpcr);
-
-    { as the fpcr flags might be RAZ, the softfloat exception mask
-      is considered as the authoritative mask }
-    result:=softfloat_exception_mask;
+    SetNativeFPUControlWord((GetNativeFPUControlWord and not(fpu_exception_mask)) or newfpcr);
   end;
 
 

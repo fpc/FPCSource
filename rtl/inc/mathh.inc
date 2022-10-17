@@ -15,6 +15,7 @@
    { i386 FPU Controlword }
 
 {$if defined(cpui8086) or defined(cpui386) or defined(cpux86_64)}
+    {$define FPC_SYSTEM_FPU_CUSTOM_CONTROL_WORD}
     const
       Default8087CW : word = $1332;
 
@@ -23,6 +24,7 @@
 {$endif}
 
 {$if defined (cpui386) or defined(cpux86_64)}
+    {$define FPC_SYSTEM_FPU_CUSTOM_CONTROL_WORD}
     const
       DefaultMXCSR: dword = $1900;
 
@@ -33,6 +35,7 @@
 {$endif}
 
 {$if defined(cpum68k)}
+    {$define FPC_SYSTEM_FPU_CUSTOM_CONTROL_WORD}
 {$if defined(fpu68881) or defined(fpucoldfire)}
     const
     {$ifdef FPC_68K_SYSTEM_HAS_FPU_EXCEPTIONS}
@@ -45,8 +48,19 @@
     procedure SetFPSR(x: DWord);
     function GetFPCR: DWord;
     function GetFPSR: DWord;
+{$else}
+    {$define FPC_SYSTEM_FPUCW_IMMUTABLE}
 {$endif}
 {$endif}
+
+{$if (defined(FPC_SYSTEM_FPUCW_IMMUTABLE) or defined(FPU_NONE)) and not declared(TNativeFPUControlWord)}
+  type
+    TNativeFPUControlWord = record
+    end;
+{$endif}
+
+    function GetNativeFPUControlWord: TNativeFPUControlWord; {$if (defined(FPC_SYSTEM_FPUCW_IMMUTABLE) or defined(FPUNONE)) and defined(SYSTEMINLINE)}inline;{$endif}
+    procedure SetNativeFPUControlWord(const cw: TNativeFPUControlWord); {$if (defined(FPC_SYSTEM_FPUCW_IMMUTABLE) or defined(FPUNONE)) and defined(SYSTEMINLINE)}inline;{$endif}
 
   type
     TFPURoundingMode = (rmNearest, rmDown, rmUp, rmTruncate);
@@ -83,8 +97,11 @@ ThreadVar
 {$else FPC_HAS_FEATURE_THREADING}
 Var
 {$endif FPC_HAS_FEATURE_THREADING}
-  softfloat_exception_mask : TFPUExceptionMask;
   softfloat_exception_flags : TFPUExceptionMask;
+
+{ global/shared just like the native ones }
+var
+  softfloat_exception_mask : TFPUExceptionMask;
   softfloat_rounding_mode : TFPURoundingMode;
 
 procedure float_raise(i: TFPUException);

@@ -44,16 +44,30 @@ const
 {$endif}
 
 {$if defined(FPUARM_HAS_FPA)}
-Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$define FPC_SYSTEM_HAS_GETSETNATIVEFPUCONTROLWORD}
+function GetNativeFPUControlWord: TNativeFPUControlWord; assembler;
+asm
+  rfs r0
+end;
+
+
+procedure SetNativeFPUControlWord(const cw: TNativeFPUControlWord);
 begin
-  { Enable FPU exceptions, but disable INEXACT, UNDERFLOW, DENORMAL }
+  DefaultFPUControlWord:=cw;
   asm
-    rfs r0
-    and r0,r0,#0xffe0ffff
-    orr r0,r0,#0x00070000
+    ldr r0, cw
     wfs r0
   end;
 end;
+
+Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  { Enable FPU exceptions, but disable INEXACT, UNDERFLOW, DENORMAL }
+  SetNativeFPUControlWord((GetNativeFPUControlWord and $ffe0ffff) or $00070000);
+  softfloat_exception_mask:=[float_flag_underflow,float_flag_inexact,float_flag_denormal];
+  softfloat_exception_flags:=[];
+end;
+
 {$elseif defined(FPUARM_HAS_VFP_EXTENSION)}
 
 
@@ -64,19 +78,6 @@ const
   fpu_dz = 1 shl 3;
   fpu_nv = 1 shl 4;
 
-function getfpscr: sizeuint; nostackframe; assembler;
-  asm
-    fmrx r0,fpscr
-  end;
-
-
-procedure setfpscr(flags : sizeuint); nostackframe; assembler;
-  asm
-    fmxr fpscr,r0
-  end;
-
-
-const
   FPSCR_IOC = 1;
   FPSCR_DZC = 1 shl 1;
   FPSCR_OFC = 1 shl 2;
@@ -84,6 +85,34 @@ const
   FPSCR_IXC = 1 shl 4;
   FPSCR_IDC = 1 shl 7;
   FPSCR_EXCEPTIONS = FPSCR_IOC or FPSCR_DZC or FPSCR_OFC or FPSCR_UFC or FPSCR_IXC or FPSCR_IDC;
+
+function getfpscr: sizeuint; nostackframe; assembler; nostackframe;
+  asm
+    fmrx r0,fpscr
+  end;
+
+
+procedure setfpscr(flags : sizeuint);
+  begin
+    DefaultFPUControlWord:=flags and not(FPSCR_EXCEPTIONS);
+    asm
+      ldr r0, flags
+      fmxr fpscr,r0
+    end;
+  end;
+
+{$define FPC_SYSTEM_HAS_GETSETNATIVEFPUCONTROLWORD}
+function GetNativeFPUControlWord: TNativeFPUControlWord; {$if defined(SYSTEMINLINE)}inline;{$endif}
+  begin
+    result:=getfpscr;
+  end;
+
+
+procedure SetNativeFPUControlWord(const cw: TNativeFPUControlWord); {$if defined(SYSTEMINLINE)}inline;{$endif}
+  begin
+    setfpscr(cw);
+  end;
+
 
 procedure RaisePendingExceptions;
   var
@@ -165,23 +194,8 @@ begin
   softfloat_exception_flags:=[];
 end;
 
-{$define FPC_SYSTEM_HAS_SYSRESETFPU}
-Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
-begin
-  softfloat_exception_flags:=[];
-  setfpscr(getfpscr and not(FPSCR_EXCEPTIONS));
-end;
-
-
-{$endif}
-{$endif}
-
-procedure fpc_cpuinit;
-begin
-  { don't let libraries influence the FPU cw set by the host program }
-  if not IsLibrary then
-    SysInitFPU;
-end;
+{$endif defined(FPUARM_HAS_VFP_EXTENSION)}
+{$endif not(defined(wince)) and not(defined(gba)) and not(defined(nds)) and not(defined(FPUSOFT)) and not(defined(FPULIBGCC))}
 
 {$ifdef wince}
 function _controlfp(new: DWORD; mask: DWORD): DWORD; cdecl; external 'coredll';
@@ -189,6 +203,7 @@ function _controlfp(new: DWORD; mask: DWORD): DWORD; cdecl; external 'coredll';
 {$define FPC_SYSTEM_HAS_SYSRESETFPU}
 Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
+  softfloat_exception_flags:=[];
 end;
 
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
@@ -197,8 +212,34 @@ begin
   { Enable FPU exceptions, but disable INEXACT, UNDERFLOW, DENORMAL }
   { FPU precision 64 bit, rounding to nearest, affine infinity }
   _controlfp($000C0003, $030F031F);
+  softfloat_exception_mask:=[float_flag_underflow,float_flag_inexact,float_flag_denormal];
+  softfloat_exception_flags:=[];
 end;
+
+{$define FPC_SYSTEM_HAS_GETSETNATIVEFPUCONTROLWORD}
+function GetNativeFPUControlWord: TNativeFPUControlWord;
+  begin
+    result:=_controlfp(0,0);
+  end;
+
+procedure SetNativeFPUControlWord(const cw: TNativeFPUControlWord);
+  begin
+    _controlfp(cw,$ffffffff);
+  end;
+
 {$endif wince}
+
+{$ifndef FPC_SYSTEM_HAS_GETSETNATIVEFPUCONTROLWORD}
+{$define FPC_SYSTEM_HAS_GETSETNATIVEFPUCONTROLWORD}
+function GetNativeFPUControlWord: TNativeFPUControlWord; {$if defined(SYSTEMINLINE)}inline;{$endif}
+  begin
+    result:=0;
+  end;
+
+procedure SetNativeFPUControlWord(const cw: TNativeFPUControlWord); {$if defined(SYSTEMINLINE)}inline;{$endif}
+  begin
+  end;
+{$endif}
 
 {$ifdef linux}
 function fpc_read_tp : pointer; [public, alias: 'fpc_read_tp'];assembler; nostackframe;

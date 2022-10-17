@@ -56,6 +56,7 @@ function cpuid_support : boolean;assembler;nostackframe;
 {$endif FPC_SYSTEM_HAS_MOVE}
 {$endif FPC_PIC}
 
+{$define FPC_SYSTEM_HAS_FPC_CPUINIT}
 procedure fpc_cpuinit;
   begin
     { because of the brain dead sse detection on x86, this test is post poned to fpc_cpucodeinit which

@@ -39,6 +39,18 @@
 	pop ax
       end;
 
+    function GetNativeFPUControlWord: TNativeFPUControlWord; {$if defined(SYSTEMINLINE)}inline;{$endif}
+      begin
+        result:=Get8087CW;
+      end;
+
+
+    procedure SetNativeFPUControlWord(const cw: TNativeFPUControlWord); {$if defined(SYSTEMINLINE)}inline;{$endif}
+      begin
+        Set8087CW(cw);
+      end;
+
+
     procedure Handle_I8086_Error(InterruptNumber : dword); public name 'FPC_HANDLE_I8086_ERROR';
       var
         FpuStatus : word;

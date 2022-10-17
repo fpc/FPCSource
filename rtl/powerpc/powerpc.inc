@@ -30,61 +30,10 @@
 {****************************************************************************
                            PowerPC specific stuff
 ****************************************************************************}
-{
 
-const
-  ppc_fpu_overflow     = (1 shl (32-3));
-  ppc_fpu_underflow    = (1 shl (32-4));
-  ppc_fpu_divbyzero    = (1 shl (32-5));
-  ppc_fpu_inexact      = (1 shl (32-6));
-  ppc_fpu_invalid_snan = (1 shl (32-7));
-}
+{$i ../ppcgen/ppcfpuex.inc}
 
 {$ifndef FPUNONE}
-
-procedure fpc_enable_ppc_fpu_exceptions;
-assembler; nostackframe;
-asm
-  { clear all "exception happened" flags we care about}
-  mtfsfi 0,0
-  mtfsfi 1,0
-  mtfsfi 2,0
-  mtfsfi 3,0
-  mtfsb0 21
-  mtfsb0 22
-  mtfsb0 23
-
-  { enable invalid operations and division by zero exceptions. }
-  { No overflow/underflow, since those give some spurious      }
-  { exceptions                                                 }
-  mtfsfi 6,9
-end;
-
-procedure fpc_cpuinit;
-begin
-  { don't let libraries influence the FPU cw set by the host program }
-  if not IsLibrary then
-    fpc_enable_ppc_fpu_exceptions;
-end;
-
-
-function fpc_get_ppc_fpscr: cardinal;
-assembler;
-var
-  temp: record a,b:longint; end;
-asm
-  mffs f0
-  stfd f0,temp
-  lwz  r3,temp.b
-  { clear all exception flags }
-{
-  rlwinm r4,r3,0,16,31
-  stw  r4,temp.b
-  lfd  f0,temp
-  a_mtfsf f0
-}
-end;
-
 { This function is never called directly, it's a dummy to hold the register save/
   load subroutines
 }
@@ -215,13 +164,7 @@ _restfpr_31_l:  lwz     r0, 4(r11)
 end;
 {$endif MACOS}
 
-{$else}
-
-procedure fpc_cpuinit;
-begin
-end;
-
-{$endif}
+{$endif NOT FPUNONE}
 
 {****************************************************************************
                                 Move / Fill
@@ -1229,32 +1172,6 @@ asm
   bne .LInterlockedCompareExchangeLoop
   mr     r3, r10
 end;
-
-{$IFDEF MORPHOS}
-{ this is only required for MorphOS }
-{$define FPC_SYSTEM_HAS_SYSINITFPU}
-procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
-  var tmp: array[0..1] of dword;
-begin
-  asm
-     { setting fpu to round to nearest mode }
-     li r3,0
-     stw r3,8(r1)
-     stw r3,12(r1)
-     lfd f1,8(r1)
-     mtfsf 7,f1
-  end;
-  { powerpc might use softfloat code }
-  softfloat_exception_flags:=[];
-  softfloat_exception_mask:=[float_flag_underflow, float_flag_inexact, float_flag_denormal];
-end;
-
-{$define FPC_SYSTEM_HAS_SYSRESETFPU}
-procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
-begin
-  softfloat_exception_flags:=[];
-end;
-{$ENDIF}
 
 {$ifndef FPC_SYSTEM_HAS_MEM_BARRIER}
 {$define FPC_SYSTEM_HAS_MEM_BARRIER}

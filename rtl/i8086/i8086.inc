@@ -14,6 +14,7 @@
 
  **********************************************************************}
 
+{$define FPC_SYSTEM_HAS_FPC_CPUINIT}
 procedure fpc_cpuinit;
   begin
   end;

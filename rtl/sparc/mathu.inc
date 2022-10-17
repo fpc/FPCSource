@@ -12,16 +12,11 @@
 
  **********************************************************************}
 
-{ exported by the system unit }
-function get_fsr : dword;external name 'FPC_GETFSR';
-procedure set_fsr(fsr : dword);external name 'FPC_SETFSR';
-
-
 function GetRoundMode: TFPURoundingMode;
   const
     bits2rm: array[0..3] of TFPURoundingMode = (rmNearest,rmTruncate,rmUp,rmDown);
   begin
-    result:=TFPURoundingMode(bits2rm[(get_fsr shr 30) and 3])
+    result:=TFPURoundingMode(bits2rm[(GetNativeFPUControlWord shr 30) and 3])
   end;
 
 
@@ -29,12 +24,12 @@ function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
   const
     rm2bits: array[TFPURoundingMode] of byte = (0,3,2,1);
   var
-    cw: dword;
+    cw: TNativeFPUControlWord;
   begin
-    cw:=get_fsr;
+    cw:=GetNativeFPUControlWord;
     softfloat_rounding_mode:=RoundMode;
     result:=TFPURoundingMode(cw shr 30);
-    set_fsr((cw and $3fffffff) or (rm2bits[RoundMode] shl 30));
+    SetNativeFPUControlWord((cw and $3fffffff) or (rm2bits[RoundMode] shl 30));
   end;
 
 function GetPrecisionMode: TFPUPrecisionMode;
@@ -49,7 +44,7 @@ function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode
   end;
 
 
-function FSR2ExceptionMask(fsr: dword): TFPUExceptionMask;
+function FSR2ExceptionMask(fsr: TNativeFPUControlWord): TFPUExceptionMask;
   begin
     result:=[];
     { invalid operation: bit 27 }
@@ -76,15 +71,15 @@ function FSR2ExceptionMask(fsr: dword): TFPUExceptionMask;
 
 function GetExceptionMask: TFPUExceptionMask;
   begin
-    result:=FSR2ExceptionMask(get_fsr);
+    result:=FSR2ExceptionMask(GetNativeFPUControlWord);
   end;
 
 
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
   var
-    fsr : dword;
+    fsr : TNativeFPUControlWord;
   begin
-    fsr:=get_fsr;
+    fsr:=GetNativeFPUControlWord;
     result:=FSR2ExceptionMask(fsr);
 
     { invalid operation: bit 27 }
@@ -118,12 +113,12 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
       fsr:=fsr or (1 shl 23);
 
     { update control register contents }
-    set_fsr(fsr);
+    SetNativeFPUControlWord(fsr);
   end;
 
 
 procedure ClearExceptions(RaisePending: Boolean =true);
   begin
-    set_fsr(get_fsr and $fffffc1f);
+    SetNativeFPUControlWord(GetNativeFPUControlWord and $fffffc1f);
   end;
 

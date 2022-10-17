@@ -39,15 +39,36 @@ function getfpcr: qword; nostackframe; assembler;
   end;
 
 
-procedure setfpcr(val: qword); nostackframe; assembler;
-  asm
-    msr fpcr,x0
+procedure setfpcr(val: qword);
+  begin
+    asm
+      ldr x0,val
+      msr fpcr,x0
+{$if not defined(darwin) or defined(ios) or defined(watchos) or defined(tvos)}
+      // read back the fpcr because on several (non-macOS) platforms it's raz
+      mrs x0,fpcr
+      str x0, val
+{$endif}
+    end;
+    DefaultFPUControlWord:=val;
   end;
 
 
 function getfpsr: qword; nostackframe; assembler;
   asm
     mrs x0,fpsr
+  end;
+
+
+function GetNativeFPUControlWord: TNativeFPUControlWord;
+  begin
+    result:=getfpcr;
+  end;
+
+
+procedure SetNativeFPUControlWord(const cw: TNativeFPUControlWord);
+  begin
+    setfpcr(cw);
   end;
 
 
@@ -129,26 +150,10 @@ procedure SysInitFPU;
     setfpcr(getfpcr and $ff3fffff);
     { clear all "exception happened" flags we care about}
     setfpsr(getfpsr and not(fpu_exception_mask shr fpu_exception_mask_to_status_mask_shift));
-    { enable invalid operations and division by zero exceptions. }
+    { enable invalid operations, overflow and division by zero exceptions. }
     setfpcr(((getfpcr and not(fpu_exception_mask)) or fpu_dze or fpu_ofe or fpu_ioe));
     softfloat_exception_mask:=[float_flag_underflow,float_flag_inexact,float_flag_denormal];
     softfloat_exception_flags:=[];
-  end;
-
-
-{$define FPC_SYSTEM_HAS_SYSRESETFPU}
-Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
-begin
-  softfloat_exception_flags:=[];
-  setfpsr(getfpsr and not(FPSR_EXCEPTIONS));
-end;
-
-
-procedure fpc_cpuinit;
-  begin
-    { don't let libraries influence the FPU cw set by the host program }
-    if not IsLibrary then
-      SysInitFPU;
   end;
 
 

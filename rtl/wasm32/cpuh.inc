@@ -14,6 +14,8 @@
 
  **********************************************************************}
 
+{$define FPC_SYSTEM_FPUCW_IMMUTABLE}
+
 const
   {$I cpuinnr.inc}
 

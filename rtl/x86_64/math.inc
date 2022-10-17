@@ -95,10 +95,24 @@ const
       end;
 
 
-    procedure SetSSECSR(w : dword);
-      begin
-        SetMXCSR(w);
-      end;
+      function GetNativeFPUControlWord: TNativeFPUControlWord; {$if defined(SYSTEMINLINE)}inline;{$endif}
+        begin
+          result.cw8087:=Get8087CW;
+          result.MXCSR:=GetMXCSR
+        end;
+
+
+      procedure SetNativeFPUControlWord(const cw: TNativeFPUControlWord); {$if defined(SYSTEMINLINE)}inline;{$endif}
+        begin
+          Set8087CW(cw.cw8087);
+          SetMXCSR(cw.MXCSR);
+        end;
+
+
+      procedure SetSSECSR(w : dword);
+        begin
+          SetMXCSR(w);
+        end;
 
 
     function GetSSECSR: dword;

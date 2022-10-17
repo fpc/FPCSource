@@ -962,6 +962,7 @@ const
   MM_MaskUnderflow = %0000100000000000;
   MM_MaskPrecision = %0001000000000000;
 
+{$define FPC_SYSTEM_HAS_FPC_CPUINIT}
 procedure fpc_cpuinit;
   begin
     { don't let libraries influence the FPU cw set by the host program }

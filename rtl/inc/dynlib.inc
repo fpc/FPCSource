@@ -23,34 +23,25 @@ Function DoSafeLoadLibrary(const Name : RawByteString) : TLibHandle;
 {$else not FPCRTL_FILESYSTEM_TWO_BYTE_API}
 Function DoSafeLoadLibrary(const Name : UnicodeString) : TLibHandle;
 {$endif not FPCRTL_FILESYSTEM_TWO_BYTE_API}
-{$if defined(cpui386) or defined(cpux86_64)}
+{$ifndef FPUNONE}
   var
-    fpucw : Word;
-    ssecw : DWord;
-{$endif}
+    fpucw: TNativeFPUControlWord;
   begin
     try
-{$if defined(cpui386) or defined(cpux86_64)}
-      fpucw:=Get8087CW;
-{$ifdef cpui386}
-      if has_sse_support then
-{$endif cpui386}
-        ssecw:=GetMXCSR;
+      fpucw:=GetNativeFPUControlWord;
+{$else}
+  begin
 {$endif}
 {$ifndef FPCRTL_FILESYSTEM_TWO_BYTE_API}
       Result:=CurrentDLM.LoadLibraryA(Name);
 {$else FPCRTL_FILESYSTEM_TWO_BYTE_API}
       Result:=CurrentDLM.LoadLibraryU(Name);
 {$endif FPCRTL_FILESYSTEM_TWO_BYTE_API}
-      finally
-{$if defined(cpui386) or defined(cpux86_64)}
-      Set8087CW(fpucw);
-{$ifdef cpui386}
-      if has_sse_support then
-{$endif cpui386}
-        SetMXCSR(ssecw);
-{$endif}
+{$ifndef FPUNONE}
+    finally
+      SetNativeFPUControlWord(fpucw);
     end;
+{$endif}
   end;
 
 Function LoadLibrary(const Name : RawByteString) : TLibHandle;
