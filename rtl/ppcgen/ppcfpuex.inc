@@ -44,7 +44,11 @@ var
 asm
   mffs f0
   stfd f0,temp
+{$ifdef FPC_BIG_ENDIAN}
   lwz  r3,temp.b
+{$else}
+  lwz  r3,temp.a
+{$endif}
 end;
 
 procedure fpc_set_ppc_fpsrc(cw: TNativeFPUControlWord);
