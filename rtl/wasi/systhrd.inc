@@ -267,6 +267,11 @@ end;
   ----------------------------------------------------------------------}
 
 
+procedure FPCWasmThreadSetStackPointer(Address: Pointer); [public, alias: 'FPC_WASM_THREAD_SET_STACK_POINTER'];
+begin
+  fpc_wasm32_set_base_pointer(Address);
+end;
+
 // Javascript definition: TThreadInitInstanceFunction = Function(IsWorkerThread : Longint; IsMainThread : Integer; CanBlock : Integer) : Integer;
 
 Function FPCWasmThreadInit(IsWorkerThread : Longint; IsMainThread : Longint; CanBlock : Longint) : Longint; [public, alias: 'FPC_WASM_THREAD_INIT'];
@@ -295,7 +300,7 @@ begin
   Result:=tthreadfunc(RunFunction)(args);
 end;
 
-exports FPCWasmThreadInit, FPCWasmThreadEntry;
+exports FPCWasmThreadSetStackPointer, FPCWasmThreadInit, FPCWasmThreadEntry;
 
 Function thread_spawn(thread_id : PInteger; attrs: Pointer; thread_start_func : Pointer; args : Pointer) : LongInt;  external 'FPCThreading' name 'thread_spawn';
 

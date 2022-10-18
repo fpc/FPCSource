@@ -107,3 +107,4 @@ function fpc_wasm32_tls_size: SizeUInt;[internproc:fpc_in_wasm32_tls_size];
 function fpc_wasm32_tls_align: SizeUInt;[internproc:fpc_in_wasm32_tls_align];
 function fpc_wasm32_tls_base: Pointer;[internproc:fpc_in_wasm32_tls_base];
 
+procedure fpc_wasm32_set_base_pointer(Address: Pointer);[internproc:fpc_in_wasm32_set_base_pointer];
