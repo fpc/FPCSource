@@ -1,4 +1,4 @@
-unit testut;
+unit uexrttiutil;
 
 {$mode ObjFPC}{$H+}
 

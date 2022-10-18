@@ -5,7 +5,7 @@
 
 program testextrtti4;
 
-uses typinfo, sysutils, testut;
+uses typinfo, sysutils, uexrttiutil;
 
 Type
   {$RTTI EXPLICIT
