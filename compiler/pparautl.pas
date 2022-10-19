@@ -415,7 +415,12 @@ implementation
            { needs high parameter ? }
            if paramanager.push_high_param(varspez,vardef,pd.proccalloption) then
              begin
-               hvs:=cparavarsym.create('$high'+name,paranr+1,vs_const,sizesinttype,[vo_is_high_para,vo_is_hidden_para]);
+{$ifdef cpu8bitalu}
+               if is_shortstring(vardef) then
+                 hvs:=cparavarsym.create('$high'+name,paranr+1,vs_const,aluuinttype,[vo_is_high_para,vo_is_hidden_para])
+               else
+{$endif cpu8bitalu}
+                 hvs:=cparavarsym.create('$high'+name,paranr+1,vs_const,sizesinttype,[vo_is_high_para,vo_is_hidden_para]);
                hvs.symoptions:=[];
                owner.insertsym(hvs);
                { don't place to register if it will be accessed from implicit finally block }
