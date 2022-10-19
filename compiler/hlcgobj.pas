@@ -1328,6 +1328,24 @@ implementation
 {$r-,q-}
 
   procedure thlcgobj.a_load_subsetreg_reg(list: TAsmList; subsetsize, tosize: tdef; const sreg: tsubsetregister; destreg: tregister);
+
+    function GetRegBitSize: Integer;
+      begin
+        case getsubreg(sreg.subsetreg) of
+          R_SUBL, R_SUBH:
+            Result := 8;
+          R_SUBW:
+            Result := 16;
+          R_SUBD:
+            Result := 32;
+          R_SUBQ:
+            Result := 64;
+          else
+            { So (stopbit < regsize) will always return True }
+            Result := High(Integer);
+        end;
+      end;
+
     var
       subsetregdef: torddef;
       bitmask: aword;
@@ -1352,13 +1370,18 @@ implementation
             begin
               a_op_const_reg_reg(list,OP_SHR,subsetregdef,sreg.startbit,sreg.subsetreg,tmpreg);
               stopbit:=sreg.startbit+sreg.bitlen;
-              // on x86(64), 1 shl 32(64) = 1 instead of 0
-              // use aword to prevent overflow with 1 shl 31
-              if (stopbit-sreg.startbit<>AIntBits) then
-                bitmask:=(aword(1) shl (stopbit-sreg.startbit))-1
-              else
-                bitmask:=high(aword);
-              a_op_const_reg(list,OP_AND,subsetregdef,tcgint(bitmask),tmpreg);
+              { If stopbit = (tcgsize2size[sreg.subsetregsize] * 8), then an
+                AND mask is unnecessary }
+              if (stopbit < GetRegBitSize()) then
+                begin
+                  { on x86(64), 1 shl 32(64) = 1 instead of 0
+                    use aword to prevent overflow with 1 shl 31 }
+                  if (stopbit-sreg.startbit<>AIntBits) then
+                    bitmask:=(aword(1) shl (stopbit-sreg.startbit))-1
+                  else
+                    bitmask:=high(aword);
+                  a_op_const_reg(list,OP_AND,subsetregdef,tcgint(bitmask),tmpreg);
+                end;
             end;
         end
       else
