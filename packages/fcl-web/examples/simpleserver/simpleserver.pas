@@ -392,7 +392,11 @@ begin
       FAPISecret:=ReadString(SConfig,keyAPI,'');
       FCrossOriginIsolation:=ReadBool(SConfig,KeyCOI,FCrossOriginIsolation);
       if ValueExists(SConfig,KeyCapture) then
-
+        begin
+        FCaptureFileName:=ReadString(SConfig,keyCapture,'');
+        if FCaptureFileName='' then
+          FCaptureFileName:='-';
+        end;  
       L:=TstringList.Create;
       ReadSectionValues(SProxy,L,[]);
       For I:=0 to L.Count-1 do
