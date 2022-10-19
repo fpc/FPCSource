@@ -44,7 +44,7 @@ uses
   {$ifdef unix}
   baseunix,
   {$endif}
-  sysutils,Classes, jsonparser, strutils, inifiles, sslbase, httproute, httpdefs, fpmimetypes, fpwebfile, fpwebproxy, webutil;
+  sysutils,Classes, jsonparser, fpjson, strutils, inifiles, sslbase, httproute, httpdefs, fpmimetypes, fpwebfile, fpwebproxy, webutil;
 
 Type
 
@@ -64,6 +64,8 @@ Type
 
   THTTPApplication = Class(TParentApp)
   private
+    FCaptureFileName : String;
+    FCaptureStream : TFileStream;
     FAPISecret : String;
     FBaseDir: string;
     FIndexPageName: String;
@@ -78,13 +80,20 @@ Type
     FCrossOriginIsolation : Boolean;
     procedure AddProxy(const aProxyDef: String);
     procedure DoEcho(ARequest: TRequest; AResponse: TResponse);
+    procedure DoCapture(ARequest: TRequest; AResponse: TResponse);
     procedure DoProxyLog(Sender: TObject; const aMethod, aLocation, aFromURL, aToURL: String);
-    procedure Doquit(ARequest: TRequest; AResponse: TResponse);
+    procedure DoQuit(ARequest: TRequest; AResponse: TResponse);
+    function GetCaptureJSON(ARequest: TRequest; AResponse: TResponse;
+      var aJSON: TJSONData): TJSONArray;
     procedure LoadMimeTypes;
     procedure ProcessOptions;
     procedure ReadConfigFile(const ConfigFile: string);
+    procedure SetupCapture(const aFileName: string);
+    procedure ShowCaptureOutput(aJSON: TJSONData);
     procedure Usage(Msg: String);
     procedure Writeinfo;
+  Public
+    Destructor Destroy; override;
   published
     procedure DoLog(EventType: TEventType; const Msg: String); override;
     Procedure DoRun; override;
@@ -133,6 +142,83 @@ begin
     L.Free;
   end;
 end;
+
+function THTTPApplication.GetCaptureJSON(ARequest: TRequest;
+  AResponse: TResponse; var aJSON: TJSONData): TJSONArray;
+
+var
+  aJSONObj : TJSONObject absolute aJSON;
+  Cont : String;
+
+begin
+  Result:=Nil;
+  aJSON:=Nil;
+  try
+    Cont:=aRequest.Content;
+    aJSON:=GetJSON(Cont);
+    if aJSON.JSONType<>jtObject then
+      Raise EHTTP.Create('No JSON object in capture JSON');
+    Result:=aJSONObj.Get('lines',TJSONArray(Nil));
+    if Result=Nil then
+      begin
+      FreeAndNil(aJSON);
+      Raise EHTTP.Create('No lines element in capture JSON');
+      end;
+  except
+    On E : Exception do
+      begin
+      DoLog(etError,Format('Exception %s (%s) : Invalid capture content: not valid JSON: %s',[E.ClassName,E.Message,Copy(Cont,1,255)]));
+      aResponse.Code:=400;
+      aResponse.CodeText:='INVALID PARAM';
+      aResponse.SendResponse;
+      end;
+  end;
+end;
+
+procedure THTTPApplication.ShowCaptureOutput(aJSON : TJSONData);
+
+var
+  S : TJSONStringType;
+
+begin
+  if aJSON.JSONType in StructuredJSONTypes then
+    S:=aJSON.AsJSON
+  else
+    S:=aJSON.AsString;
+  if Assigned(FCaptureStream) then
+    begin
+    S:=S+sLineBreak;
+    FCaptureStream.WriteBuffer(S[1],Length(S)*SizeOf(TJSONCharType));
+    end
+  else
+    DoLog(etInfo,'Capture : '+S);
+end;
+
+procedure THTTPApplication.DoCapture(ARequest: TRequest; AResponse: TResponse);
+
+Var
+  aJSON : TJSONData;
+  aArray : TJSONArray;
+  I : Integer;
+
+begin
+  aJSON:=Nil;
+  aArray:=Nil;
+  try
+    aArray:=GetCaptureJSON(aRequest,aResponse,aJSON);
+    if aArray<>Nil then
+      begin
+      For I:=0 to aArray.Count-1 do
+        ShowCaptureOutput(aArray[i]);
+      aResponse.Code:=200;
+      aResponse.CodeText:='OK';
+      aResponse.SendResponse;
+      end;
+  finally
+    aJSON.Free;
+  end;
+end;
+
 procedure THTTPApplication.Doquit(ARequest: TRequest; AResponse: TResponse);
 
 Var
@@ -208,6 +294,8 @@ begin
   Writeln('-q --quiet            Do not write diagnostic messages');
   Writeln('-Q --quit=PWD         Register /quit URL. Send request with password variable equal to PWD to stop');
   Writeln('-s --ssl              Use SSL');
+  Writeln('-u --capture[=FILE]   Set up /debugcapture route to capture output sent by browser.');
+  Writeln('                      If FILE is specified, write to file. If not specified, writes to STDOUT.');
   Writeln('-x --proxy=proxydef   Add proxy definition. Definition is of form:');
   Writeln('                      name:BaseURL');
   Writeln('');
@@ -249,8 +337,8 @@ begin
   ProxyManager.RegisterLocation(N,URL).AppendPathInfo:=True;
 end;
 
-
-procedure THTTPApplication.ReadConfigFile(const ConfigFile: string);
+Const
+  SCaptureRoute = '/debugcapture';
 
 Const
   SConfig  = 'Server';
@@ -272,6 +360,11 @@ Const
   KeyMaxAge = 'MaxAge';
   KeyAPI = 'API';
   KeyCOI = 'CrossOriginIsolation';
+  KeyCapture = 'DebugCapture';
+
+procedure THTTPApplication.ReadConfigFile(const ConfigFile: string);
+
+
 
 Var
   L : TStringList;
@@ -298,6 +391,8 @@ begin
       FMaxAge:=ReadInteger(SConfig,KeyMaxAge,FMaxAge);
       FAPISecret:=ReadString(SConfig,keyAPI,'');
       FCrossOriginIsolation:=ReadBool(SConfig,KeyCOI,FCrossOriginIsolation);
+      if ValueExists(SConfig,KeyCapture) then
+
       L:=TstringList.Create;
       ReadSectionValues(SProxy,L,[]);
       For I:=0 to L.Count-1 do
@@ -348,6 +443,12 @@ begin
   FMaxAge:=StrToIntDef(GetOptionValue('a','max-age'),FMaxAge);
   FBackground:=HasOption('b','background');
   FCrossOriginIsolation:=hasOption('o','coi');
+  if HasOption('u','capture') then
+    begin
+    FCaptureFileName:=GetOptionValue('u','capture');
+    if FCaptureFileName='' then
+      FCaptureFileName:='-';
+    end;
 end;
 
 procedure THTTPApplication.Writeinfo;
@@ -362,8 +463,34 @@ begin
       Log(etInfo,'Proxy location /proxy/%s redirects to %s',[Path,URL]);
   if not NoIndexPage then
     Log(etInfo,'Using index page %s',[IndexPageName]);
+  if (Self.FPassword<>'') then
+    DoLog(etInfo,'/quit route set up');
+  if FEcho then
+    DoLog(etInfo,'Setting up /echo route');
   Log(etInfo,'Location REST API '+IfThen(FAPISecret<>'','','NOT ')+'activated.');
+end;
 
+destructor THTTPApplication.Destroy;
+begin
+  FreeAndNil(FCaptureStream);
+  inherited Destroy;
+end;
+
+procedure THTTPApplication.SetupCapture(Const aFileName : string);
+
+Var
+ Dest : String;
+
+begin
+  if (aFileName<>'') and (aFileName<>'-') then
+    begin
+    FCaptureStream:=TFileStream.Create(aFileName,fmCreate);
+    Dest:='file: '+aFileName
+    end
+  else
+    Dest:='console';
+  DoLog(etInfo,Format('Setting up capture on route "%s", writing to %s',[SCaptureRoute,Dest]));
+  HTTPRouter.RegisterRoute(SCaptureRoute,rmPost,@DoCapture,False);
 end;
 
 procedure THTTPApplication.DoRun;
@@ -373,7 +500,7 @@ Var
 
 begin
   FMaxAge:=31557600;
-  S:=Checkoptions('hqd:ni:p:sH:m:x:c:beQ:a:A:o',['help','quiet','noindexpage','directory:','port:','indexpage:','ssl','hostname:','mimetypes:','proxy:','config:','background','echo','quit:','max-age:','api:','coi']);
+  S:=Checkoptions('hqd:ni:p:sH:m:x:c:beQ:a:A:ou::',['help','quiet','noindexpage','directory:','port:','indexpage:','ssl','hostname:','mimetypes:','proxy:','config:','background','echo','quit:','max-age:','api:','coi','capture']);
   if (S<>'') or HasOption('h','help') then
     usage(S);
   if HasOption('c','config') then
@@ -390,8 +517,12 @@ begin
     Log(etError,'Background option not supported');
 {$endif}
     end;
+  if FCaptureFileName<>'' then
+    SetupCapture(FCaptureFileName);
   if FPassword<>'' then
+    begin
     HTTPRouter.RegisterRoute('/quit',rmAll,@Doquit,False);
+    end;
   if FEcho  then
     HTTPRouter.RegisterRoute('/echo',rmAll,@DoEcho,False);
   if ProxyManager.LocationCount>0 then
