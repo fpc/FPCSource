@@ -90,6 +90,8 @@ type
     function GetCSSTypeID: TCSSNumericalID;
     class function GetAttributeInitialValue(Attr: TDemoNodeAttribute): string; virtual;
     function HasCSSClass(const aClassName: TCSSString): boolean; virtual;
+    function CheckCSSValue(AttrID: TCSSNumericalID; Value: TCSSElement
+      ): boolean; virtual;
     procedure SetCSSValue(AttrID: TCSSNumericalID; Value: TCSSElement); virtual;
     function GetCSSParent: ICSSNode; virtual;
     function GetCSSIndex: integer; virtual;
@@ -1567,6 +1569,14 @@ begin
     if aClassName=CSSClasses[i] then
       exit(true);
   Result:=false;
+end;
+
+function TDemoNode.CheckCSSValue(AttrID: TCSSNumericalID; Value: TCSSElement
+  ): boolean;
+begin
+  if (AttrID<DemoAttrIDBase) or (AttrID>ord(High(TDemoNodeAttribute))+DemoAttrIDBase) then
+    exit(false);
+  Result:=Value<>nil;
 end;
 
 procedure TDemoNode.SetCSSValue(AttrID: TCSSNumericalID; Value: TCSSElement);

@@ -198,6 +198,7 @@ type
     function GetCSSEmpty: boolean;
     function GetCSSDepth: integer;
     procedure SetCSSValue(AttrID: TCSSNumericalID; Value: TCSSElement);
+    function CheckCSSValue(AttrID: TCSSNumericalID; Value: TCSSElement): boolean;
   end;
 
 type
@@ -249,10 +250,18 @@ type
     Next, Prev: TCSSElResolverData;
   end;
 
+  TCSSValueValidity = (
+    cvvNone,
+    cvvValid,
+    cvvInvalid
+    );
+  TCSSValueValidities = set of TCSSValueValidity;
+
   TCSSIdentifierData = class(TCSSElResolverData)
   public
     NumericalID: TCSSNumericalID;
     Kind: TCSSNumericalIDKind;
+    ValueValid: TCSSValueValidity;
   end;
 
   TCSSValueData = class(TCSSElResolverData)
@@ -385,6 +394,7 @@ type
     function PosWord(const SearchWord, Words: TCSSString): integer; virtual;
     function GetSiblingCount(aNode: ICSSNode): integer; virtual;
     procedure MergeProperty(El: TCSSElement; Specifity: TCSSSpecifity); virtual;
+    function CheckAttrValueValidity(AttrID: TCSSNumericalID; aKey, aValue: TCSSElement): boolean; virtual;
     function ResolveIdentifier(El: TCSSIdentifierElement; Kind: TCSSNumericalIDKind): TCSSNumericalID; virtual;
     function ResolveCall(El: TCSSCallElement): TCSSNumericalID; virtual;
     procedure AddElData(El: TCSSElement; ElData: TCSSElResolverData); virtual;
@@ -1674,9 +1684,13 @@ begin
         begin
           if CompAttr^.Specifity>Specifity then
             exit;
+          if not CheckAttrValueValidity(AttrID,aKey,aValue) then
+            exit;
           CompAttr^.Specifity:=Specifity;
           CompAttr^.Value:=aValue;
         end else begin
+          if not CheckAttrValueValidity(AttrID,aKey,aValue) then
+            exit;
           AddComputedAttribute(AttrID,Specifity,aValue);
         end;
       end;
@@ -1684,6 +1698,25 @@ begin
       Log(etError,20220908232359,'Unknown CSS key',aKey);
   end else
     Log(etError,20220908230855,'Unknown CSS property',El);
+end;
+
+function TCSSResolver.CheckAttrValueValidity(AttrID: TCSSNumericalID; aKey,
+  aValue: TCSSElement): boolean;
+var
+  Data: TCSSIdentifierData;
+begin
+  if not (aKey.CustomData is TCSSIdentifierData) then
+    raise Exception.Create('TCSSResolver.CheckAttrValueValidity 20221019173901');
+  Data:=TCSSIdentifierData(aKey.CustomData);
+  case Data.ValueValid of
+  cvvValid: exit(true);
+  cvvInvalid: exit(false);
+  end;
+  Result:=FNode.CheckCSSValue(AttrID,aValue);
+  if Result then
+    Data.ValueValid:=cvvValid
+  else
+    Data.ValueValid:=cvvInvalid;
 end;
 
 function TCSSResolver.ResolveIdentifier(El: TCSSIdentifierElement;
