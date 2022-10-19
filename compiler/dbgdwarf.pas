@@ -3961,7 +3961,7 @@ implementation
         { to simplify things, we don't write a multidimensional array here }
         append_entry(DW_TAG_subrange_type,false,[
           DW_AT_lower_bound,DW_FORM_udata,0,
-          DW_AT_upper_bound,DW_FORM_block1,14
+          DW_AT_upper_bound,DW_FORM_block1,15
           ]);
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
@@ -4028,9 +4028,9 @@ implementation
           if deref then
             begin
               if not (is_widestring(def) and (tf_winlikewidestring in target_info.flags)) then
-                upperopcodes:=13
+                upperopcodes:=14
               else
-                upperopcodes:=16;
+                upperopcodes:=17;
               { lower bound is always 1, upper bound (length) needs to be calculated }
               append_entry(DW_TAG_subrange_type,false,[
                 DW_AT_lower_bound,DW_FORM_udata,1,
@@ -4047,19 +4047,19 @@ implementation
               { yes -> length = 0 }
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_lit0)));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_skip)));
-              if upperopcodes=16 then
+              if upperopcodes=17 then
                 { skip the extra deref_size argument and the division by two of the length }
                 current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit_unaligned(6))
               else
                 current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit_unaligned(3));
               { no -> load length }
-              if upperopcodes=16 then
+              if upperopcodes=17 then
                 { for Windows WideString the size is always a DWORD }
                 current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_lit4)))
               else
                 current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_lit0)+sizesinttype.size));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_minus)));
-              if upperopcodes=16 then
+              if upperopcodes=17 then
                 begin
                   current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref_size)));
                   current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(4));
@@ -4068,7 +4068,7 @@ implementation
                 current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
 
               { for widestrings, the length is specified in bytes, so divide by two }
-              if (upperopcodes=16) then
+              if (upperopcodes=17) then
                 begin
                   current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_lit1)));
                   current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_shr)));
