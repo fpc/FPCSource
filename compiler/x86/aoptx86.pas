@@ -16681,7 +16681,18 @@ unit aoptx86;
                   Continue;
                 end;
             else
-              ;
+              { If the register isn't actually modified, move onto the next instruction,
+                but set DoNotMerge to True since the register is being read }
+              if (
+                  { Under -O2 and below, GetNextInstructionUsingReg only returns
+                    the next instruction, whether or not it contains the register }
+                  (cs_opt_level3 in current_settings.optimizerswitches) or
+                  RegReadByInstruction(taicpu(p).oper[1]^.reg, hp1)
+                ) and not RegModifiedByInstruction(taicpu(p).oper[1]^.reg, hp1) then
+                begin
+                  DoNotMerge := True;
+                  Continue;
+                end;
           end;
 
           Break;
