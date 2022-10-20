@@ -62,7 +62,6 @@ begin
   { FPU precision 64 bit, rounding to nearest, affine infinity }
   _controlfp($000C0003, $030F031F);
 end;
-{$endif wince}
 
 {$define FPC_SYSTEM_HAS_GETSETNATIVEFPUCONTROLWORD}
 function GetNativeFPUControlWord: TNativeFPUControlWord;
@@ -74,6 +73,7 @@ procedure SetNativeFPUControlWord(const cw: TNativeFPUControlWord);
   begin
     _controlfp(cw,$ffffffff);
   end;
+{$endif wince}
 
 
 {****************************************************************************

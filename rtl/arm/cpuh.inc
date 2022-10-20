@@ -13,6 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
+{$if defined(CPUTHUMB) or defined(CPUTHUMB2)}
+  {$define FPC_SYSTEM_FPUCW_IMMUTABLE}
+{$else}
 type
   TNativeFPUControlWord = dword;
+{$endif}
