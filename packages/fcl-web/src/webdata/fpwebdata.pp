@@ -490,6 +490,10 @@ type
 
   TFPWebProviderDataModule = Class(TFPCustomWebProviderDataModule)
   Published
+    Property Kind;
+    Property BaseURL;
+    Property AfterInitModule;
+    Property Session;
     Property CreateSession;
     Property InputAdaptor;
     Property ContentProducer;

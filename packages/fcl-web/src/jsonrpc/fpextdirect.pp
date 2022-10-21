@@ -113,6 +113,10 @@ Type
     Property RouterPath;
     Property CreateSession;
     Property NameSpace;
+    Property BaseURL;
+    Property AfterInitModule;
+    Property Kind;
+    Property Session;
     Property OnNewSession;
     Property OnSessionExpired;
     Property CORS;

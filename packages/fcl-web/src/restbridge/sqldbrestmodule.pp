@@ -37,7 +37,13 @@ Type
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); override;
   Published
     Property Dispatcher : TSQLDBRestDispatcher Read FDispatcher Write SetDispatcher;
+    Property CORS;
+    Property BaseURL;
+    Property AfterInitModule;
     Property Kind;
+    Property Session;
+    Property OnNewSession;
+    Property OnSessionExpired;
   end;
 
 implementation

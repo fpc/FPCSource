@@ -143,6 +143,12 @@ type
     Property CORS;
     Property APIRequestSources;
     Property APIRequestName;
+    Property Session;
+    Property OnNewSession;
+    Property OnSessionExpired;
+    Property Kind;
+    Property BaseURL;
+    Property AfterInitModule;
   end;
 
 implementation

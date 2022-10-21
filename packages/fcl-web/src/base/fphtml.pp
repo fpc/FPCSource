@@ -514,6 +514,8 @@ type
     Property Actions;
     Property CreateSession;
     Property Session;
+    Property Kind;
+    Property AfterInitModule;
     Property OnCreateDocument;
     Property OnCreateWriter;
     Property OnGetContent;

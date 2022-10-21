@@ -45,6 +45,11 @@ Type
     // Overrides TCustomHTTPModule to implement file serving.
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); override;
     Property CacheControlMaxAge : Integer Read FCacheControlMaxAge Write FCacheControlMaxAge;
+  Published
+    Property CORS;
+    property Kind;
+    Property BaseURL;
+    Property AfterInitModule;
   end;
   TFPCustomFileModuleClass = Class of TFPCustomFileModule;
 

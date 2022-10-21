@@ -66,6 +66,11 @@ Type
     procedure ReRouteRequest(L: TProxyLocation; ARequest: TRequest;  AResponse: TResponse);virtual;
   Public
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); override;
+  Published
+    Property CORS;
+    Property BaseURL;
+    Property AfterInitModule;
+    Property Kind;
   end;
 
    { TProxyManager }
