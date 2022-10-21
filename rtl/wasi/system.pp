@@ -445,5 +445,7 @@ begin
   SysInitStdIO;
   Setup_Environment;
   Setup_PreopenedDirs;
+{$ifdef FPC_WASM_THREADS}  
   TLSInfoBlock:=Nil;
+{$endif}  
 end.
