@@ -26,7 +26,7 @@ uses
   {$IFDEF NodeJS}
   node.fs,
   {$ENDIF}
-  SysUtils, Pas2jsFileUtils, Pas2JSFS, Pas2jsCompiler;
+  SysUtils, Classes, Pas2jsFileUtils, Pas2JSFS, Pas2jsCompiler;
 
 Type
   TPas2JSFileConfigSupport = Class(TPas2JSConfigSupport)
@@ -47,12 +47,16 @@ begin
 end;
 
 Function TPas2JSFileConfigSupport.FindDefaultConfig : String;
+var
+  Tried: TStringList;
 
   function TryConfig(aFilename: string): boolean;
   begin
     Result:=false;
     if aFilename='' then exit;
     aFilename:=ExpandFileName(aFilename);
+    if Tried.IndexOf(aFilename)>=0 then exit;
+    Tried.Add(aFilename);
     if Compiler.ShowDebug or Compiler.ShowTriedUsedFiles then
       Compiler.Log.LogMsgIgnoreFilter(nConfigFileSearch,[aFilename]);
     if not Compiler.FS.FileExists(aFilename) then exit;
@@ -65,32 +69,47 @@ var
 
 begin
   Result:='';
-  // first try HOME directory
-  aFilename:=ChompPathDelim(GetEnvironmentVariablePJ('HOME'));
-  if aFilename<>'' then
-    begin
-    aFilename:=aFilename+PathDelim{$IFDEF UNIX}+'.'{$ENDIF}+DefaultConfigFile;
-    if TryConfig(aFileName) then
-      exit;
-    end;
-
-  // then try compiler directory
-  if (Compiler.CompilerExe<>'') then
-  begin
-    aFilename:=ExtractFilePath(Compiler.CompilerExe);
+  Tried:=TStringList.Create;
+  try
+    // first try HOME directory
+    aFilename:=ChompPathDelim(GetEnvironmentVariablePJ('HOME'));
     if aFilename<>'' then
-    begin
-      aFilename:=IncludeTrailingPathDelimiter(aFilename)+DefaultConfigFile;
-      if TryConfig(aFilename) then
+      begin
+      aFilename:=aFilename+PathDelim{$IFDEF UNIX}+'.'{$ENDIF}+DefaultConfigFile;
+      if TryConfig(aFileName) then
         exit;
-    end;
-  end;
+      end;
 
-  // finally try global directory
-  {$IFDEF Unix}
-  if TryConfig('/etc/'+DefaultConfigFile) then
-    exit;
-  {$ENDIF}
+    // then try compiler directory
+    if (Compiler.CompilerExe<>'') then
+    begin
+      aFilename:=ExtractFilePath(Compiler.CompilerExe);
+      if aFilename<>'' then
+      begin
+        aFilename:=IncludeTrailingPathDelimiter(aFilename)+DefaultConfigFile;
+        if TryConfig(aFilename) then
+          exit;
+      end;
+      // resolve symlinks and then search
+      aFilename:=GetPhysicalFilename(Compiler.CompilerExe,false);
+      if (aFilename<>'') and (aFilename<>Compiler.CompilerExe) then
+      begin
+        aFilename:=ExtractFilePath(aFilename);
+        aFilename:=IncludeTrailingPathDelimiter(aFilename)+DefaultConfigFile;
+        if TryConfig(aFilename) then
+          exit;
+      end;
+    end;
+
+    // finally try global directory
+    {$IFDEF Unix}
+    if TryConfig('/etc/'+DefaultConfigFile) then
+      exit;
+    {$ENDIF}
+
+  finally
+    Tried.Free;
+  end;
 end;
 
 end.
