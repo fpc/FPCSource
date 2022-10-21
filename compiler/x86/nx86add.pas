@@ -82,7 +82,7 @@ unit nx86add;
       tgobj,ncgutil,
       ncon,nset,ninl,ncnv,ncal,nmat,
       defutil,defcmp,constexp,
-      htypechk;
+      pass_2,htypechk;
 
 { Range check must be disabled explicitly as the code serves
   on three different architecture sizes }
@@ -1942,6 +1942,78 @@ unit nx86add;
          needoverflowcheck;
 
        opsize:=def_cgsize(left.resultdef);
+
+{$ifndef i8086}
+       { Bit-manipulation optimisations }
+       if (cs_opt_level2 in current_settings.optimizerswitches) and
+         (CPUX86_HAS_BMI2 in cpu_capabilities[current_settings.cputype]) then
+         begin
+           { Can we turn "x and (not y)" into an ANDN instruction instead? }
+           if (nodetype = andn) and
+             (opsize in [OS_32, OS_S32{$ifdef x86_64}, OS_64, OS_S64{$endif x86_64}]) and
+             ((left.nodetype = notn) or (right.nodetype = notn)) and
+             (
+               { With "const and (not variable)", ANDN will produce larger
+                 code once everything is moved into registers (as a side-note,
+                 "const and (not const)" and "variable and (not const)" will
+                 have been simplified earlier to remove the NOT operation). }
+               not (cs_opt_size in current_settings.optimizerswitches) or
+               (
+                 (left.location.loc <> LOC_CONSTANT) and
+                 (right.location.loc <> LOC_CONSTANT)
+               )
+             ) then
+             begin
+               { ANDN only supports the second operand being inverted; however,
+                 since we're dealing with ordinals, there won't be any Boolean
+                 shortcutting, so we can safely swap the parameters }
+
+               if (right.nodetype <> notn) then
+                 swapleftright;
+
+               secondpass(left);
+               { Skip the not node completely }
+               secondpass(tnotnode(right).left);
+
+               { allocate registers }
+               hlcg.location_force_reg(
+                 current_asmdata.CurrAsmList,
+                 tnotnode(right).left.location,
+                 tnotnode(right).left.resultdef,
+                 tnotnode(right).left.resultdef,
+                 false
+               );
+
+               if left.location.loc = LOC_CONSTANT then
+                 { With "const and (not variable)", we can probably still make a
+                   saving when it comes to pipeline stalls (left.location.loc
+                   will become LOC_CREGISTER). }
+                 hlcg.location_force_reg(
+                   current_asmdata.CurrAsmList,
+                   left.location,
+                   left.resultdef,
+                   left.resultdef,
+                   true
+                 );
+
+               set_result_location_reg;
+
+               case left.location.loc of
+                 LOC_REFERENCE,
+                 LOC_CREFERENCE:
+                   emit_ref_reg_reg(A_ANDN, TCGSize2OpSize[opsize], left.location.reference, tnotnode(right).left.location.register, location.register);
+                 LOC_REGISTER,
+                 LOC_CREGISTER:
+                   emit_reg_reg_reg(A_ANDN, TCGSize2OpSize[opsize], left.location.register, tnotnode(right).left.location.register, location.register)
+                 else
+                   InternalError(2022102101);
+               end;
+
+               { Overflow can't happen with and/andn }
+               Exit;
+             end;
+         end;
+{$endif not i8086}
 
        pass_left_right;
 
