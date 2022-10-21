@@ -887,6 +887,8 @@ implementation
         write(t,']');
         if (nf_pass1_done in flags) then
           write(t,', cmplx = ',node_complexity(self));
+        if assigned(optinfo) then
+          write(t,', optinfo = ',HexStr(optinfo));
       end;
 
 
