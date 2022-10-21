@@ -137,6 +137,8 @@ unit aoptx86;
 
         function DeepMOVOpt(const p_mov: taicpu; const hp: taicpu): Boolean;
 
+        function FuncMov2Func(var p: tai; const hp1: tai): Boolean;
+
         procedure DebugMsg(const s : string; p : tai);inline;
 
         class function IsExitCode(p : tai) : boolean; static;
@@ -2682,6 +2684,87 @@ unit aoptx86;
       end;
 
 
+    function TX86AsmOptimizer.FuncMov2Func(var p: tai; const hp1: tai): Boolean;
+      var
+        hp2: tai;
+        p_SourceReg, p_TargetReg: TRegister;
+
+      begin
+        Result := False;
+        { Backward optimisation.  If we have:
+            func.  %reg1,%reg2
+            mov    %reg2,%reg3
+            (dealloc %reg2)
+
+          Change to:
+            func.  %reg1,%reg3 (see comment below for what a valid func. is)
+
+          Perform similar optimisations with 1, 3 and 4-operand instructions
+          that only have one output.
+        }
+        if MatchOpType(taicpu(p), top_reg, top_reg) then
+          begin
+            p_SourceReg := taicpu(p).oper[0]^.reg;
+            p_TargetReg := taicpu(p).oper[1]^.reg;
+            TransferUsedRegs(TmpUsedRegs);
+            if not RegUsedAfterInstruction(p_SourceReg, p, TmpUsedRegs) and
+              GetLastInstruction(p, hp2) and
+              (hp2.typ = ait_instruction) and
+              { Have to make sure it's an instruction that only reads from
+                the first operands and only writes (not reads or modifies) to
+                the last one; in essence, a pure function such as BSR, POPCNT
+                or ANDN }
+              (
+                (
+                  (taicpu(hp2).ops = 1) and
+                  (insprop[taicpu(hp2).opcode].Ch * [Ch_Wop1] = [Ch_Wop1])
+                ) or
+                (
+                  (taicpu(hp2).ops = 2) and
+                  (insprop[taicpu(hp2).opcode].Ch * [Ch_Rop1, Ch_Wop2] = [Ch_Rop1, Ch_Wop2])
+                ) or
+                (
+                  (taicpu(hp2).ops = 3) and
+                  (insprop[taicpu(hp2).opcode].Ch * [Ch_Rop1, Ch_Rop2, Ch_Wop3] = [Ch_Rop1, Ch_Rop2, Ch_Wop3])
+                ) or
+                (
+                  (taicpu(hp2).ops = 4) and
+                  (insprop[taicpu(hp2).opcode].Ch * [Ch_Rop1, Ch_Rop2, Ch_Rop3, Ch_Wop4] = [Ch_Rop1, Ch_Rop2, Ch_Rop3, Ch_Wop4])
+                )
+              ) and
+              (taicpu(hp2).oper[taicpu(hp2).ops-1]^.typ = top_reg) and
+              (taicpu(hp2).oper[taicpu(hp2).ops-1]^.reg = p_SourceReg) then
+              begin
+                case taicpu(hp2).opcode of
+                  A_FSTSW, A_FNSTSW,
+                  A_IN,   A_INS,  A_OUT,  A_OUTS,
+                  A_CMPS, A_LODS, A_MOVS, A_SCAS, A_STOS:
+                    { These routines have explicit operands, but they are restricted in
+                      what they can be (e.g. IN and OUT can only read from AL, AX or
+                      EAX. }
+                    ;
+                  else
+                    begin
+                      DebugMsg(SPeepholeOptimization + 'Removed MOV and changed destination on previous instruction to optimise register usage (FuncMov2Func)', p);
+                      taicpu(hp2).oper[taicpu(hp2).ops-1]^.reg := p_TargetReg;
+
+                      if not RegInInstruction(p_TargetReg, hp2) then
+                        begin
+                          { Since we're allocating from an earlier point, we
+                            need to remove the register from the tracking }
+                          ExcludeRegFromUsedRegs(p_TargetReg, TmpUsedRegs);
+                          AllocRegBetween(p_TargetReg, hp2, p, TmpUsedRegs);
+                        end;
+                      RemoveCurrentp(p, hp1);
+                      Result := True;
+                      Exit;
+                    end;
+                end;
+              end;
+          end;
+      end;
+
+
     function TX86AsmOptimizer.OptPass1MOV(var p : tai) : boolean;
     var
       hp1, hp2, hp3: tai;
@@ -4810,76 +4893,11 @@ unit aoptx86;
               end;
           end;
 
-        { Backward optimisation.  If we have:
-            func.  %reg1,%reg2
-            mov    %reg2,%reg3
-            (dealloc %reg2)
-
-          Change to:
-            func.  %reg1,%reg3 (see comment below for what a valid func. is)
-
-          Perform similar optimisations with 1, 3 and 4-operand instructions
-          that only have one output.
-        }
-        if MatchOpType(taicpu(p), top_reg, top_reg) then
+        { Backward optimisation shared with OptPass2MOV }
+        if FuncMov2Func(p, hp1) then
           begin
-            p_SourceReg := taicpu(p).oper[0]^.reg;
-            { Remember that p_TargetReg contains taicpu(p).oper[1]^.reg }
-            TransferUsedRegs(TmpUsedRegs);
-            if not RegUsedAfterInstruction(p_SourceReg, p, TmpUsedRegs) and
-              GetLastInstruction(p, hp2) and
-              (hp2.typ = ait_instruction) and
-              { Have to make sure it's an instruction that only reads from
-                the first operands and only writes (not reads or modifies) to
-                the last one; in essence, a pure function such as BSR, POPCNT
-                or ANDN }
-              (
-                (
-                  (taicpu(hp2).ops = 1) and
-                  (insprop[taicpu(hp2).opcode].Ch * [Ch_Wop1] = [Ch_Wop1])
-                ) or
-                (
-                  (taicpu(hp2).ops = 2) and
-                  (insprop[taicpu(hp2).opcode].Ch * [Ch_Rop1, Ch_Wop2] = [Ch_Rop1, Ch_Wop2])
-                ) or
-                (
-                  (taicpu(hp2).ops = 3) and
-                  (insprop[taicpu(hp2).opcode].Ch * [Ch_Rop1, Ch_Rop2, Ch_Wop3] = [Ch_Rop1, Ch_Rop2, Ch_Wop3])
-                ) or
-                (
-                  (taicpu(hp2).ops = 4) and
-                  (insprop[taicpu(hp2).opcode].Ch * [Ch_Rop1, Ch_Rop2, Ch_Rop3, Ch_Wop4] = [Ch_Rop1, Ch_Rop2, Ch_Rop3, Ch_Wop4])
-                )
-              ) and
-              (taicpu(hp2).oper[taicpu(hp2).ops-1]^.typ = top_reg) and
-              (taicpu(hp2).oper[taicpu(hp2).ops-1]^.reg = p_SourceReg) then
-              begin
-                case taicpu(hp2).opcode of
-                  A_FSTSW, A_FNSTSW,
-                  A_IN,   A_INS,  A_OUT,  A_OUTS,
-                  A_CMPS, A_LODS, A_MOVS, A_SCAS, A_STOS:
-                    { These routines have explicit operands, but they are restricted in
-                      what they can be (e.g. IN and OUT can only read from AL, AX or
-                      EAX. }
-                    ;
-                  else
-                    begin
-                      DebugMsg(SPeepholeOptimization + 'Removed MOV and changed destination on previous instruction to optimise register usage (FuncMov2Func)', p);
-                      taicpu(hp2).oper[taicpu(hp2).ops-1]^.reg := p_TargetReg;
-
-                      if not RegInInstruction(p_TargetReg, hp2) then
-                        begin
-                          { Since we're allocating from an earlier point, we
-                            need to remove the register from the tracking }
-                          ExcludeRegFromUsedRegs(p_TargetReg, TmpUsedRegs);
-                          AllocRegBetween(p_TargetReg, hp2, p, TmpUsedRegs);
-                        end;
-                      RemoveCurrentp(p, hp1);
-                      Result := True;
-                      Exit;
-                    end;
-                end;
-              end;
+            Result := True;
+            Exit;
           end;
       end;
 
@@ -9239,6 +9257,12 @@ unit aoptx86;
             taicpu(hp3).changeopsize(S_L);
             setsubreg(taicpu(hp3).oper[1]^.reg, R_SUBD);
 {$endif x86_64}
+          end;
+
+        if FuncMov2Func(p, hp1) then
+          begin
+            Result := True;
+            Exit;
           end;
       end;
 
