@@ -701,42 +701,6 @@ implementation
             current_tokenpos:=storepos;
           end;
 
-        procedure consume_generic_interface;
-          var
-            genparalist : tfpobjectlist;
-            prettyname,
-            specializename : ansistring;
-            genname,
-            ugenname : tidstring;
-            gencount : string;
-          begin
-            consume(_LSHARPBRACKET);
-            genparalist:=tfpobjectlist.create(false);
-
-            if not parse_generic_specialization_types(genparalist,nil,prettyname,specializename) then
-              srsym:=generrorsym
-            else
-              begin
-                str(genparalist.count,gencount);
-                genname:=sp+'$'+gencount;
-                { ToDo: handle nested interfaces }
-                genname:=generate_generic_name(genname,specializename,'');
-                ugenname:=upper(genname);
-
-                srsym:=search_object_name(ugenname,false);
-
-                if not assigned(srsym) then
-                  begin
-                    Message1(type_e_generic_declaration_does_not_match,sp+'<'+prettyname+'>');
-                    srsym:=nil;
-                    exit;
-                  end;
-              end;
-
-            genparalist.free;
-            consume(_RSHARPBRACKET);
-          end;
-
         function handle_generic_interface:boolean;
           var
             i : longint;
