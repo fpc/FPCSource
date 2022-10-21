@@ -888,7 +888,7 @@ unit optdfa;
             exit;
           include(node.flags,nf_processing);
 
-          if not(DFASetIn(node.optinfo^.life,nodetosearch.optinfo^.index)) then
+          if not(assigned(node.optinfo)) or not(DFASetIn(node.optinfo^.life,nodetosearch.optinfo^.index)) then
             exit;
 
           { we do not need this info always, so try to safe some time here, CheckAndWarn
