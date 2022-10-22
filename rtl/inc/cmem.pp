@@ -63,7 +63,7 @@ const
     headersize = max(sizeof(ptruint),FPC_STACKALIGNMENT); }    
   headersize = ord(sizeof(ptruint)>FPC_STACKALIGNMENT)*sizeof(ptruint)+ord(sizeof(ptruint)<=FPC_STACKALIGNMENT)*FPC_STACKALIGNMENT;
 
-{$macros off}
+{$macro off}
 
 Function CGetMem  (Size : ptruint) : Pointer;
 
