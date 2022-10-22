@@ -108,6 +108,8 @@ interface
           ait_eabi_attribute
           );
 
+        taitypes = set of taitype;
+
         taiconst_type = (
           aitconst_128bit,
           aitconst_64bit,

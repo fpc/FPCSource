@@ -9226,104 +9226,121 @@ unit aoptx86;
               if Assigned(hp1) and (hp1.typ = ait_label) then
                 SkipLabels(hp1,hp1);
 
-              if (hp1.typ <> ait_instruction) then
-                InternalError(2021040720);
+              case hp1.typ of
+                ait_regalloc:
+                  if tai_regalloc(hp1).ratype = ra_dealloc then
+                    begin
+                      { Duplicate the register deallocation... }
+                      hp3:=tai(hp1.getcopy);
+                      if first_assignment = nil then
+                        first_assignment := hp3;
 
-              case taicpu(hp1).opcode of
-                A_JMP:
-                  begin
-                    { Change the original jump to the new destination }
-                    OrigLabel.decrefs;
-                    taicpu(hp1).oper[0]^.ref^.symbol.increfs;
-                    taicpu(p).loadref(0, taicpu(hp1).oper[0]^.ref^);
+                      asml.InsertBefore(hp3, p);
 
-                    { Set p to the first duplicated assignment so it can get optimised if needs be }
-                    if not Assigned(first_assignment) then
-                      InternalError(2021040810)
+                      { ... but also reallocate it after the jump }
+                      hp3:=tai(hp1.getcopy);
+                      tai_regalloc(hp3).ratype := ra_alloc;
+
+                      asml.InsertAfter(hp3, p);
+                    end;
+                ait_instruction:
+                  case taicpu(hp1).opcode of
+                    A_JMP:
+                      begin
+                        { Change the original jump to the new destination }
+                        OrigLabel.decrefs;
+                        taicpu(hp1).oper[0]^.ref^.symbol.increfs;
+                        taicpu(p).loadref(0, taicpu(hp1).oper[0]^.ref^);
+
+                        { Set p to the first duplicated assignment so it can get optimised if needs be }
+                        if not Assigned(first_assignment) then
+                          InternalError(2021040810)
+                        else
+                          p := first_assignment;
+
+                        Exit;
+                      end;
+                    A_RET:
+                      begin
+                        { Now change the jump into a RET instruction }
+                        ConvertJumpToRET(p, hp1);
+
+                        { Set p to the first duplicated assignment so it can get optimised if needs be }
+                        if not Assigned(first_assignment) then
+                          InternalError(2021040811)
+                        else
+                          p := first_assignment;
+
+                        Exit;
+                      end;
                     else
-                      p := first_assignment;
+                      begin
+                        { Duplicate the MOV instruction }
+                        hp3:=tai(hp1.getcopy);
+                        if first_assignment = nil then
+                          first_assignment := hp3;
 
-                    Exit;
-                  end;
-                A_RET:
-                  begin
-                    { Now change the jump into a RET instruction }
-                    ConvertJumpToRET(p, hp1);
+                        asml.InsertBefore(hp3, p);
 
-                    { Set p to the first duplicated assignment so it can get optimised if needs be }
-                    if not Assigned(first_assignment) then
-                      InternalError(2021040811)
-                    else
-                      p := first_assignment;
-
-                    Exit;
+                        { Make sure the compiler knows about any final registers written here }
+                        for OperIdx := 0 to taicpu(hp3).ops - 1 do
+                          with taicpu(hp3).oper[OperIdx]^ do
+                            begin
+                              case typ of
+                                top_ref:
+                                  begin
+                                    if (ref^.base <> NR_NO) and
+                                      (getsupreg(ref^.base) <> RS_STACK_POINTER_REG) and
+                                      (
+                                        (getsupreg(ref^.base) <> RS_FRAME_POINTER_REG) or
+                                        (
+                                          { Allow the frame pointer if it's not being used by the procedure as such }
+                                          Assigned(current_procinfo) and
+                                          (current_procinfo.framepointer <> NR_FRAME_POINTER_REG)
+                                        )
+                                      )
+                                      {$ifdef x86_64} and (ref^.base <> NR_RIP) {$endif x86_64}
+                                      then
+                                      begin
+                                        AllocRegBetween(ref^.base, hp3, p, TmpUsedRegs);
+                                        if not Assigned(first_assignment) then
+                                          IncludeRegInUsedRegs(ref^.base, UsedRegs);
+                                      end;
+                                    if (ref^.index <> NR_NO) and
+                                      (getsupreg(ref^.index) <> RS_STACK_POINTER_REG) and
+                                      (
+                                        (getsupreg(ref^.index) <> RS_FRAME_POINTER_REG) or
+                                        (
+                                          { Allow the frame pointer if it's not being used by the procedure as such }
+                                          Assigned(current_procinfo) and
+                                          (current_procinfo.framepointer <> NR_FRAME_POINTER_REG)
+                                        )
+                                      )
+                                      {$ifdef x86_64} and (ref^.index <> NR_RIP) {$endif x86_64} and
+                                      (ref^.index <> ref^.base) then
+                                      begin
+                                        AllocRegBetween(ref^.index, hp3, p, TmpUsedRegs);
+                                        if not Assigned(first_assignment) then
+                                          IncludeRegInUsedRegs(ref^.index, UsedRegs);
+                                      end;
+                                  end;
+                                top_reg:
+                                  begin
+                                    AllocRegBetween(reg, hp3, p, TmpUsedRegs);
+                                    if not Assigned(first_assignment) then
+                                      IncludeRegInUsedRegs(reg, UsedRegs);
+                                  end;
+                                else
+                                  ;
+                              end;
+                            end;
+                      end;
                   end;
                 else
-                  begin
-                    { Duplicate the MOV instruction }
-                    hp3:=tai(hp1.getcopy);
-
-                    asml.InsertBefore(hp3, p);
-
-                    { Make sure the compiler knows about any final registers written here }
-                    for OperIdx := 0 to taicpu(hp3).ops - 1 do
-                      with taicpu(hp3).oper[OperIdx]^ do
-                        begin
-                          case typ of
-                            top_ref:
-                              begin
-                                if (ref^.base <> NR_NO) and
-                                  (getsupreg(ref^.base) <> RS_STACK_POINTER_REG) and
-                                  (
-                                    (getsupreg(ref^.base) <> RS_FRAME_POINTER_REG) or
-                                    (
-                                      { Allow the frame pointer if it's not being used by the procedure as such }
-                                      Assigned(current_procinfo) and
-                                      (current_procinfo.framepointer <> NR_FRAME_POINTER_REG)
-                                    )
-                                  )
-                                  {$ifdef x86_64} and (ref^.base <> NR_RIP) {$endif x86_64}
-                                  then
-                                  begin
-                                    AllocRegBetween(ref^.base, hp3, p, TmpUsedRegs);
-                                    if not Assigned(first_assignment) then
-                                      IncludeRegInUsedRegs(ref^.base, UsedRegs);
-                                  end;
-                                if (ref^.index <> NR_NO) and
-                                  (getsupreg(ref^.index) <> RS_STACK_POINTER_REG) and
-                                  (
-                                    (getsupreg(ref^.index) <> RS_FRAME_POINTER_REG) or
-                                    (
-                                      { Allow the frame pointer if it's not being used by the procedure as such }
-                                      Assigned(current_procinfo) and
-                                      (current_procinfo.framepointer <> NR_FRAME_POINTER_REG)
-                                    )
-                                  )
-                                  {$ifdef x86_64} and (ref^.index <> NR_RIP) {$endif x86_64} and
-                                  (ref^.index <> ref^.base) then
-                                  begin
-                                    AllocRegBetween(ref^.index, hp3, p, TmpUsedRegs);
-                                    if not Assigned(first_assignment) then
-                                      IncludeRegInUsedRegs(ref^.index, UsedRegs);
-                                  end;
-                              end;
-                            top_reg:
-                              begin
-                                AllocRegBetween(reg, hp3, p, TmpUsedRegs);
-                                if not Assigned(first_assignment) then
-                                  IncludeRegInUsedRegs(reg, UsedRegs);
-                              end;
-                            else
-                              ;
-                          end;
-                        end;
-
-                    if first_assignment = nil then
-                      first_assignment := hp3;
-                  end;
+                  InternalError(2021040720);
               end;
 
-              if not GetNextInstruction(hp1, hp1) then
+              if not GetNextInstruction(hp1, hp1, [ait_regalloc]) then
                 { Should have dropped out earlier }
                 InternalError(2021040710);
             end;
