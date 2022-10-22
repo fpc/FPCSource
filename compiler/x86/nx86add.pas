@@ -1944,9 +1944,9 @@ unit nx86add;
        opsize:=def_cgsize(left.resultdef);
 
 {$ifndef i8086}
-       { Bit-manipulation optimisations }
+       { BMI1 optimisations }
        if (cs_opt_level2 in current_settings.optimizerswitches) and
-         (CPUX86_HAS_BMI2 in cpu_capabilities[current_settings.cputype]) then
+         (CPUX86_HAS_BMI1 in cpu_capabilities[current_settings.cputype]) then
          begin
            { Can we turn "x and (not y)" into an ANDN instruction instead? }
            if (nodetype = andn) and
