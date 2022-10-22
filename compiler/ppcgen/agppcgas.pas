@@ -640,7 +640,9 @@ unit agppcgas;
 {$else cpu64bitaddr}
          asmcmd: '$ENDIAN -o $OBJ $EXTRAOPT $ARCH $ASM';
 {$endif cpu64bitaddr}
-         supported_targets : [system_powerpc_linux,system_powerpc_netbsd,system_powerpc_openbsd,system_powerpc_MorphOS,system_powerpc_Amiga,system_powerpc64_linux,system_powerpc_embedded,system_powerpc64_embedded];
+         supported_targets : [system_powerpc_linux,system_powerpc_netbsd,system_powerpc_openbsd,
+                              system_powerpc_MorphOS,system_powerpc_Amiga,system_powerpc_wii,
+                              system_powerpc64_linux,system_powerpc_embedded,system_powerpc64_embedded];
          flags : [af_needar,af_smartlink_sections];
          labelprefix : '.L';
          comment : '# ';
