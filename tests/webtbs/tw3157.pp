@@ -28,6 +28,11 @@ begin
   on E:Exception do
     begin
       Writeln('Line "c:=..." raised ' +E.ClassName+ ': ' +E.Message);
+      if E.ClassType<>EInvalidOp then
+        begin
+          writeln('EInvalidOp exception expected');
+          halt(1);
+        end;
       dec(notcaught);
     end;
  end;
@@ -46,6 +51,11 @@ begin
   on E:Exception do
    begin
      Writeln('Line "temp_int:=..." raised ' +E.ClassName+ ': ' +E.Message);
+      if E.ClassType<>EInvalidOp then
+        begin
+          writeln('EInvalidOp exception expected');
+          halt(1);
+        end;
      dec(notcaught);
    end;
  end;
