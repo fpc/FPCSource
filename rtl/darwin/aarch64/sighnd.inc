@@ -16,6 +16,7 @@
 
 procedure SignalToRunerror(Sig: cint; info : PSigInfo; SigContext:PSigContext); public name '_FPC_DEFAULTSIGHANDLER'; cdecl;
 var
+  fpuexceptionflags: cardinal;
   res : word;
 begin
   res:=0;
@@ -31,11 +32,51 @@ begin
           FPE_FLTINV : Res:=207;  { invalid floating point operation }
           Else
             Res:=207; {coprocessor error}
+          SigContext^.uc_mcontext^.__ns.__fpsr:=SigContext^.uc_mcontext^.__ns.__fpsr and not(fpu_exception_mask shr fpu_exception_mask_to_status_mask_shift);
         end;
       end;
     SIGBUS:
         res:=214;
-    SIGILL,
+    SIGILL:
+      begin
+        { right now, macOS generates SIGILL signals for fpu exceptions on AArch64.
+          Additionally, fpsr is 0 in the context when this happens. Fortunately,
+          the esr is valid, so we can decode that one. }
+        if (Info^.si_code=ILL_ILLTRP) and
+           { Trapped AArch64 floating point exception }
+           ((SigContext^.uc_mcontext^.__es.__esr and __ESR_EC_Mask)=__ESR_EC_TrappedAArch64_FloatingPoint) then
+          begin
+            { the FPU status bits in the ESR are valid }
+            if (SigContext^.uc_mcontext^.__es.__esr and __ESR_ISS_TFV)<>0 then
+              begin
+                fpuexceptionflags:=(SigContext^.uc_mcontext^.__es.__esr shl fpu_exception_mask_to_status_mask_shift) and fpu_exception_mask;
+                if (fpuexceptionflags and fpu_dze)<>0 then
+                  res:=208
+                else if (fpuexceptionflags and fpu_ofe)<>0 then
+                  res:=205
+                else if (fpuexceptionflags and fpu_ufe)<>0 then
+                  res:=206
+                else if (fpuexceptionflags and fpu_ioe)<>0 then
+                  res:=207
+                else if (fpuexceptionflags and fpu_ixe)<>0 then
+                  res:=207
+                else if (fpuexceptionflags and fpu_ide)<>0 then
+                  res:=216
+                else
+                  { unknown FPU exception }
+                  res:=207
+              end
+            else
+              { unknown FPU exception }
+              res:=207;
+          end
+        else
+          res:=216;
+        { for safety, always clear in case we had a SIGILL to prevent potential
+          infinite trap loops, even if it can cause us to miss some FPU
+          exceptions in case we process an actual illegal instruction }
+        SigContext^.uc_mcontext^.__ns.__fpsr:=SigContext^.uc_mcontext^.__ns.__fpsr and not(fpu_exception_mask shr fpu_exception_mask_to_status_mask_shift);
+      end;
     SIGSEGV :
         res:=216;
     SIGINT:
@@ -43,8 +84,6 @@ begin
     SIGQUIT:
         res:=233;
   end;
-  { right now, macOS generates SIGILL signals for fpu exceptions, so always clear the fpu exceptions }
-  SigContext^.uc_mcontext^.__ns.__fpsr:=SigContext^.uc_mcontext^.__ns.__fpsr and not(fpu_exception_mask shr fpu_exception_mask_to_status_mask_shift);
   {$ifdef FPC_USE_SIGPROCMASK}
    reenable_signal(sig);
   {$endif }

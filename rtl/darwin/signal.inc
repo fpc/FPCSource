@@ -298,3 +298,6 @@ const
      FPE_FLTSUB    =  6;  { subscript out of range -NOTIMP on Mac OS X 10.4.7 }
      FPE_INTDIV    =  7;  { integer divide by zero -NOTIMP on Mac OS X 10.4.7 }
      FPE_INTOVF    =  8;  { integer overflow -NOTIMP on Mac OS X 10.4.7 }
+
+{ Codes for SIGILL }
+     ILL_ILLTRP    = 2;   {  /* [XSI] illegal trap */ }
