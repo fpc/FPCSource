@@ -34,7 +34,7 @@
           __fpcr : cuint32;
           { array of cuint128 is aligned/padded to multiple of 16 bytes }
           pad: cuint64;
-       end {$ifdef VER_3_3}align 16{$endif};
+       end {$IF FPC_FULLVERSION>=30301}align 16{$endif};
 
      __darwin_arm_debug_state64 = record
           __bvr : array[0..15] of cuint64;
