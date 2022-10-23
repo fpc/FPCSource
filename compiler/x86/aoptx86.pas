@@ -13915,6 +13915,7 @@ unit aoptx86;
                     )
                   ) then
                   begin
+                    DebugMsg(SPeepholeOptimization + 'OpTest/Or2Op done', hp1);
                     RemoveCurrentP(p, hp2);
                     Result:=true;
                     Exit;
@@ -13932,6 +13933,7 @@ unit aoptx86;
                   { and in case of carry for A(E)/B(E)/C/NC                  }
                    (taicpu(hp2).condition in [C_Z,C_NZ,C_E,C_NE]) then
                   begin
+                    DebugMsg(SPeepholeOptimization + 'OpTest/Or2Op done', hp1);
                     RemoveCurrentP(p, hp2);
                     Result:=true;
                     Exit;
@@ -13944,6 +13946,19 @@ unit aoptx86;
                   { and in case of carry for A(E)/B(E)/C/NC                  }
                   (taicpu(hp2).condition in [C_Z,C_NZ,C_E,C_NE]) then
                   begin
+                    DebugMsg(SPeepholeOptimization + 'OpTest/Or2Op done', hp1);
+                    RemoveCurrentP(p, hp2);
+                    Result:=true;
+                    Exit;
+                  end;
+              end;
+            A_ANDN:
+              begin
+                if OpsEqual(taicpu(hp1).oper[2]^,taicpu(p).oper[1]^) and
+                  { ANDN sets only the Z and S flag }
+                  (taicpu(hp2).condition in [C_Z,C_NZ,C_E,C_NE]) then
+                  begin
+                    DebugMsg(SPeepholeOptimization + 'OpTest/Or2Op done', hp1);
                     RemoveCurrentP(p, hp2);
                     Result:=true;
                     Exit;
