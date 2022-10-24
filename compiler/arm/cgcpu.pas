@@ -2704,13 +2704,15 @@ unit cgcpu;
         maxtmpreg_arm = 10; {roozbeh: can be reduced to 8 or lower if might conflick with reserved ones,also +2 is used becouse of regs required for referencing}
         maxtmpreg_thumb = 5;
 
+      type
+        ttmpregisters = array[1..maxtmpreg_arm] of tregister;
       var
         srcref,dstref,usedtmpref,usedtmpref2:treference;
         srcreg,destreg,countreg,r,tmpreg:tregister;
         helpsize:aint;
         copysize:byte;
         cgsize:Tcgsize;
-        tmpregisters:array[1..maxtmpreg_arm] of tregister;
+        tmpregisters:ttmpregisters;
         maxtmpreg,
         tmpregi,tmpregi2:byte;
 
@@ -2876,6 +2878,7 @@ unit cgcpu;
         end;
 
       begin
+        tmpregisters:=Default(ttmpregisters);
         if len=0 then
           exit;
         if GenerateThumbCode then

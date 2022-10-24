@@ -84,6 +84,7 @@ Var
   found1,
   found2   : boolean;
 begin
+  s:='';
   WriteResponseFile:=False;
   linklibc:=(SharedLibFiles.Find('c')<>nil);
   linklibgcc:=(SharedLibFiles.Find('gcc')<>nil);
