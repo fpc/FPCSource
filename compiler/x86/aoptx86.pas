@@ -14018,7 +14018,7 @@ unit aoptx86;
                     )
                   ) then
                   begin
-                    DebugMsg(SPeepholeOptimization + 'OpTest/Or2Op done', hp1);
+                    DebugMsg(SPeepholeOptimization + 'OpTest/Or2Op (2-op) done', hp1);
                     RemoveCurrentP(p, hp2);
                     Result:=true;
                     Exit;
@@ -14036,7 +14036,7 @@ unit aoptx86;
                   { and in case of carry for A(E)/B(E)/C/NC                  }
                    (taicpu(hp2).condition in [C_Z,C_NZ,C_E,C_NE]) then
                   begin
-                    DebugMsg(SPeepholeOptimization + 'OpTest/Or2Op done', hp1);
+                    DebugMsg(SPeepholeOptimization + 'OpTest/Or2Op (shift) done', hp1);
                     RemoveCurrentP(p, hp2);
                     Result:=true;
                     Exit;
@@ -14049,24 +14049,36 @@ unit aoptx86;
                   { and in case of carry for A(E)/B(E)/C/NC                  }
                   (taicpu(hp2).condition in [C_Z,C_NZ,C_E,C_NE]) then
                   begin
-                    DebugMsg(SPeepholeOptimization + 'OpTest/Or2Op done', hp1);
+                    DebugMsg(SPeepholeOptimization + 'OpTest/Or2Op (1-op) done', hp1);
                     RemoveCurrentP(p, hp2);
                     Result:=true;
                     Exit;
                   end;
               end;
-            A_ANDN:
+            A_ANDN, A_BZHI:
               begin
                 if OpsEqual(taicpu(hp1).oper[2]^,taicpu(p).oper[1]^) and
-                  { ANDN sets only the Z and S flag }
-                  (taicpu(hp2).condition in [C_Z,C_NZ,C_E,C_NE]) then
+                  { Only the zero and sign flags are consistent with what the result is }
+                  (taicpu(hp2).condition in [C_Z,C_NZ,C_E,C_NE,C_S,C_NS]) then
                   begin
-                    DebugMsg(SPeepholeOptimization + 'OpTest/Or2Op done', hp1);
+                    DebugMsg(SPeepholeOptimization + 'OpTest/Or2Op (ANDN/BZHI) done', hp1);
                     RemoveCurrentP(p, hp2);
                     Result:=true;
                     Exit;
                   end;
-              end
+              end;
+            A_BEXTR:
+              begin
+                if OpsEqual(taicpu(hp1).oper[2]^,taicpu(p).oper[1]^) and
+                  { Only the zero flag is set }
+                  (taicpu(hp2).condition in [C_Z,C_NZ,C_E,C_NE]) then
+                  begin
+                    DebugMsg(SPeepholeOptimization + 'OpTest/Or2Op (BEXTR) done', hp1);
+                    RemoveCurrentP(p, hp2);
+                    Result:=true;
+                    Exit;
+                  end;
+              end;
           else
             ;
           end; { case }
