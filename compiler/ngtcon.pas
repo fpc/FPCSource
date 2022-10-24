@@ -1675,13 +1675,13 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         srsym:=get_next_varsym(def,symlist,symidx);
         recsym := nil;
         startoffset:=curoffset;
+        error := false;
         while token<>_RKLAMMER do
           begin
             s:=pattern;
             sorg:=orgpattern;
             consume(_ID);
             consume(_COLON);
-            error := false;
             recsym := tsym(def.symtable.Find(s));
             if not assigned(recsym) then
               begin

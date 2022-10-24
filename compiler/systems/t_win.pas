@@ -136,6 +136,7 @@ implementation
     begin
       if target_info.system=system_i386_win32 then
         begin
+          linkcygwin := false;
           hp:=tmodule(loaded_units.first);
           while assigned(hp) do
            begin

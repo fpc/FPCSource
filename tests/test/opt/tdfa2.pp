@@ -37,6 +37,7 @@ var
   c1: Word;
 begin
   counter:=0;  
+  c1 := 0;
   while counter<len do
   begin
     c1 := ord(s1[counter]);

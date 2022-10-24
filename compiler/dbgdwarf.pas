@@ -3486,7 +3486,8 @@ implementation
         prevline := 1;
         prevfileidx := 1;
         prevlabel := nil;
-        nolineinfolevel:=0;
+        nolineinfolevel := 0;
+        hpend := nil;
         while assigned(hp) do
           begin
             case hp.typ of

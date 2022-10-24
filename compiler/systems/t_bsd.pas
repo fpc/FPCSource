@@ -69,6 +69,7 @@ function ModulesLinkToLibc:boolean;
 var
   hp: tmodule;
 begin
+  result:=false;
   { This is called very early, ImportLibraryList is not yet merged into linkothersharedlibs.
     The former contains library names qualified with prefix and suffix (coming from
     "external 'c' name 'foo' declarations), the latter contains raw names (from "$linklib c"

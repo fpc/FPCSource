@@ -505,6 +505,7 @@ uses
                             for j:=0 to formalobjdef.implementedinterfaces.count-1 do
                               begin
                                 objdef:=paraobjdef;
+                                intffound:=false;
                                 while assigned(objdef) do
                                   begin
                                     intffound:=assigned(
