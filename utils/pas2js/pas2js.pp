@@ -42,7 +42,7 @@ begin
     for i:=1 to ParamCount do
       ParamList.Add(Params[i]);
     try
-      Compiler.Run(ParamStr(0),GetCurrentDirPJ,ParamList);
+      Compiler.Run(ExeName,GetCurrentDirPJ,ParamList);
     except
       on E: ECompilerTerminate do ;
       on E: Exception do
