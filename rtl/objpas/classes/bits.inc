@@ -14,220 +14,230 @@
 {*                               TBits                                      *}
 {****************************************************************************}
 
-Procedure BitsError (const Msg : string);
-begin
-  Raise EBitsError.Create(Msg) at get_caller_addr(get_frame), get_caller_frame(get_frame);
-end;
+const
+   TBITS_SHIFT = BsrDWord(bitsizeof(TBitsBase));
+   TBITS_MASK = 1 shl TBITS_SHIFT - 1;
 
 Procedure BitsErrorFmt (const Msg : string; const Args : array of const);
 begin
   Raise EBitsError.CreateFmt(Msg,args) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
 
-{Min function for Longint}
-Function liMin(X, Y: Longint): Longint;
-  begin
-    Result := X;
-    if X > Y then Result := Y;
-  end;
-
-procedure TBits.CheckBitIndex (Bit : longint;CurrentSize : Boolean);
+procedure TBits.CheckBitIndex (Bit : SizeInt;CurrentSize : Boolean);
 
 begin
  if (bit<0) or (CurrentSize and (Bit >= FBSize)) then
    BitsErrorFmt(SErrInvalidBitIndex,[bit]);
  if (bit>=MaxBitFlags) then
    BitsErrorFmt(SErrIndexTooLarge,[bit])
-
 end;
 
 { ************* functions to match TBits class ************* }
 
-procedure TBits.setSize(value: longint);
+procedure TBits.setSize(value: SizeInt);
 var
-  newSize, loop: LongInt;
+  newSize: SizeInt;
 begin
   CheckBitIndex(value, false);
-
-  if value <> 0 then
-    newSize :=  (value shr BITSHIFT) + 1
-  else
-    newSize := 0;
-
+  newSize := value shr TBITS_SHIFT + ord(value and TBITS_MASK <> 0);
   if newSize <> FSize then
   begin
-    ReAllocMem(FBits, newSize * SizeOf(longint));
-    if FBits <> nil then
-    begin
-      if newSize > FSize then
-        for loop := FSize to newSize - 1 do
-          FBits^[loop] := 0;
-    end
-    else if newSize > 0 then
-      BitsError(SErrOutOfMemory);  { isn't ReallocMem supposed to throw EOutOfMemory? }
+    ReAllocMem(FBits, newSize * SizeOf(TBitsBase));
+    if newSize > FSize then
+      FillChar(FBits[FSize], (newSize - FSize) * sizeof(TBitsBase), 0);
     FSize := newSize;
   end;
+
+  { If the new size is in the middle of the last chunk, zero its upper bits, so they won't reappear on resizing back. }
+  if value and TBITS_MASK <> 0 then
+    FBits[value shr TBITS_SHIFT] := FBits[value shr TBITS_SHIFT] and TBitsBase(TBitsBaseUnsigned(1) shl (value and TBITS_MASK) - 1);
+
   FBSize := value;
 end;
 
-procedure TBits.SetBit(bit : longint; value : Boolean);
+function TBits.ScanFor1(start : SizeInt; xorMask : TBitsBase) : SizeInt;
 var
-  n: Integer;
+   cell: TBitsBase;
 begin
-  grow(bit+1);   { validates bit range and adjusts FBSize if necessary }
-  n := bit shr BITSHIFT;
-  if value then
-    FBits^[n] := FBits^[n] or (longword(1) shl (bit and MASK))
-  else
-    FBits^[n] := FBits^[n] and not (longword(1) shl (bit and MASK));
+   result := start;
+   while result < FBSize do
+   begin
+      { On first iteration, position ('result') is arbitrary.
+        On subsequent iterations, position is always 0 modulo bitsizeof(TBitsBase) - points to the start of the next FBits item,
+        and (result and TBITS_MASK) becomes 0 (number of lower bits to skip). }
+      cell := (xorMask xor FBits[result shr TBITS_SHIFT]) shr (result and TBITS_MASK);
+      if cell <> 0 then
+      begin
+         result := result + integer(
+{$if sizeof(TBitsBase) = sizeof(word)}
+            BsfWord
+{$elseif sizeof(TBitsBase) = sizeof(dword)}
+            BsfDWord
+{$elseif sizeof(TBitsBase) = sizeof(qword)}
+            BsfQWord
+{$else} {$error unknown TBitsBase} {$endif}
+               (TBitsBaseUnsigned(cell)));
+         if result >= FBSize then
+            result := -1;
+         exit;
+      end;
+      result := (result + bitsizeof(TBitsBase)) and TBitsBase(not TBitsBase(TBITS_MASK));
+   end;
+   result := -1;
 end;
 
-function TBits.OpenBit : longint;
+function TBits.ScanFor1Rev(start : SizeInt; xorMask : TBitsBase) : SizeInt;
 var
-   loop : longint;
-   loop2 : longint;
+   cell: TBitsBase;
 begin
-   result := -1; {should only occur if the whole array is set}
-   { map 0 to -1, 1..32 to 0, etc }
-   for loop := 0 to ((FBSize + MASK) shr BITSHIFT) - 1 do
+   result := start;
+   while result >= 0 do
    begin
-      if FBits^[loop] <> $FFFFFFFF then
-      begin
-         for loop2 := 0 to MASK do
-         begin
-           if (FBits^[loop] and (longint(1) shl loop2)) = 0 then
-           begin
-             result := (loop shl BITSHIFT) + loop2;
-             if result > FBSize then
-               result := FBSize;
-             Exit;
-           end;
-         end;
-      end;
+      { On first iteration, position ('result') is arbitrary.
+        On subsequent iterations, position is always -1 modulo bitsizeof(TBitsBase) - points to the end of the previous FBits item,
+        and ((-result - 1) and TBITS_MASK) becomes 0 (number of upper bits to skip). }
+      cell := TBitsBase((xorMask xor FBits[result shr TBITS_SHIFT]) shl ((-result - 1) and TBITS_MASK));
+      if cell <> 0 then
+         exit(result - TBITS_MASK + integer(
+{$if sizeof(TBitsBase) = sizeof(word)}
+            BsrWord
+{$elseif sizeof(TBitsBase) = sizeof(dword)}
+            BsrDWord
+{$elseif sizeof(TBitsBase) = sizeof(qword)}
+            BsrQWord
+{$else} {$error unknown TBitsBase} {$endif}
+               (TBitsBaseUnsigned(cell))));
+      result := (result - bitsizeof(TBitsBase)) or TBITS_MASK;
    end;
+   result := -1;
+end;
 
-   if FSize < MaxBitRec then
-     result := FBSize;  {first bit of next record}
+procedure TBits.SetBit(bit : SizeInt; value : Boolean);
+var
+   cell: PBitsBase;
+   mask: TBitsBase;
+begin
+   grow(bit+1);
+   cell := FBits + bit shr TBITS_SHIFT;
+   mask := TBitsBase(TBitsBaseUnsigned(1) shl (bit and TBITS_MASK));
+   if value then
+      cell^ := cell^ or mask
+   else
+      cell^ := cell^ and not mask;
+end;
+
+function TBits.OpenBit : SizeInt;
+begin
+   result := ScanFor1(0, -1);
+   if result < 0 then
+      result := FBSize;
 end;
 
 { ******************** TBits ***************************** }
 
 constructor TBits.Create(theSize : longint = 0 );
 begin
-   FSize := 0;
-   FBSize := 0;
-   FBits := nil;
    findIndex := -1;
-   findState := True;  { no reason just setting it to something }
    if TheSize > 0 then grow(theSize);
 end;
 
 destructor TBits.Destroy;
 begin
-   if FBits <> nil then
-      FreeMem(FBits, FSize * SizeOf(longint));
-   FBits := nil;
-
+   FreeMem(FBits);
    inherited Destroy;
 end;
 
-procedure TBits.grow(nbit: longint);
+procedure TBits.grow(nbit: SizeInt);
 begin
   if nbit > FBSize then
     SetSize(nbit);
 end;
 
-function TBits.getFSize : longint;
+function TBits.getFSize : SizeInt;
 begin
    result := FSize;
 end;
 
-procedure TBits.seton(bit : longint);
+procedure TBits.seton(bit : SizeInt);
 begin
-  SetBit(bit, True);
+  grow(bit+1);
+  FBits[bit shr TBITS_SHIFT] := FBits[bit shr TBITS_SHIFT] or TBitsBase(TBitsBaseUnsigned(1) shl (bit and TBITS_MASK))
 end;
 
-procedure TBits.clear(bit : longint);
+procedure TBits.clear(bit : SizeInt);
 begin
-  SetBit(bit, False);
+  grow(bit+1);
+  FBits[bit shr TBITS_SHIFT] := FBits[bit shr TBITS_SHIFT] and not TBitsBase(TBitsBaseUnsigned(1) shl (bit and TBITS_MASK));
 end;
 
 procedure TBits.clearall;
-var
-   loop : longint;
 begin
-   for loop := 0 to FSize - 1 do
-      FBits^[loop] := 0;
+   FillChar(FBits^, FSize * sizeof(TBitsBase), 0);
 { don't clear FBSize here, it will cause exceptions on subsequent reading bit values }
 { use 'Size := 0' to reset everything and deallocate storage }
 end;
 
-function TBits.get(bit : longint) : Boolean;
-var
-   n : longint;
+function TBits.get(bit : SizeInt) : Boolean;
 begin
    CheckBitIndex(bit,true);
-   result := False;
-   n := bit shr BITSHIFT;
-   if (n < FSize) then
-      result := (FBits^[n] and (longint(1) shl (bit and MASK))) <> 0;
+   result := FBits[bit shr TBITS_SHIFT] shr (bit and TBITS_MASK) and 1 <> 0;
 end;
 
 procedure TBits.CopyBits(BitSet : TBits);
 begin
   setSize(bitset.Size);
-  Move(bitset.FBits^,FBits^,FSize*SizeOf(cardinal));
+  Move(bitset.FBits^,FBits^,FSize*SizeOf(TBitsBase));
 end;
 
 procedure TBits.andbits(bitset : TBits);
 var
-   n : longint;
-   loop : longint;
+   n, loop : SizeInt;
 begin
-   if FSize < bitset.getFSize then
-      n := FSize - 1
-   else
-      n := bitset.getFSize - 1;
+   n := FSize;
+   if bitset.FSize < n then
+      n := bitset.FSize;
 
-   for loop := 0 to n do
-      FBits^[loop] := FBits^[loop] and bitset.FBits^[loop];
+   for loop := 0 to n - 1 do
+      FBits[loop] := FBits[loop] and bitset.FBits[loop];
 
-   for loop := n + 1 to FSize - 1 do
-      FBits^[loop] := 0;
+   if FSize > n then
+      FillChar(FBits[n], (FSize - n) * sizeof(TBitsBase), 0);
 end;
 
 procedure TBits.notbits(bitset : TBits);
 var
-   n : longint;
-   loop : longint;
+   n, loop : SizeInt;
 begin
-   if FSize < bitset.getFSize then
-      n := FSize - 1
-   else
-      n := bitset.getFSize - 1;
+   n := FSize;
+   if bitset.FSize < n then
+      n := bitset.FSize;
 
-   for loop := 0 to n do
-      FBits^[loop] := FBits^[loop] xor bitset.FBits^[loop];
+   for loop := 0 to n - 1 do
+      FBits[loop] := FBits[loop] xor bitset.FBits[loop];
+
+   { Zero upper bits, for similar reason as in SetSize. }
+   if FBSize and TBITS_MASK <> 0 then
+      FBits[FBSize shr TBITS_SHIFT] := FBits[FBSize shr TBITS_SHIFT] and TBitsBase(TBitsBaseUnsigned(1) shl (FBSize and TBITS_MASK) - 1);
 end;
 
 procedure TBits.orbits(bitset : TBits);
 var
-   loop : longint;
+   loop : SizeInt;
 begin
    grow(bitset.Size);
 
-   for loop := 0 to bitset.getFSize-1 do
-      FBits^[loop] := FBits^[loop] or bitset.FBits^[loop];
+   for loop := 0 to bitset.FSize - 1 do
+      FBits[loop] := FBits[loop] or bitset.FBits[loop];
 end;
 
 procedure TBits.xorbits(bitset : TBits);
 var
-   loop : longint;
+   loop : SizeInt;
 begin
    grow(bitset.Size);
 
-   for loop := 0 to bitset.getFSize-1 do
-      FBits^[loop] := FBits^[loop] xor bitset.FBits^[loop];
+   for loop := 0 to bitset.FSize - 1 do
+      FBits[loop] := FBits[loop] xor bitset.FBits[loop];
 end;
 
 function TBits.Equals(Obj : TObject): Boolean;
@@ -240,36 +250,32 @@ end;
 
 function TBits.equals(bitset : TBits) : Boolean;
 var
-   n : longint;
-   loop : longint;
+   smallest, largest : TBits;
 begin
-   result := False;
-
-   if FSize < bitset.getFSize then
-      n := FSize - 1
-   else
-      n := bitset.getFSize - 1;
-
-   for loop := 0 to n do
-      if FBits^[loop] <> bitset.FBits^[loop] then exit;
-
-   if FSize - 1 > n then
+   if FBSize < bitset.FBSize then
    begin
-      for loop := n to FSize - 1 do
-         if FBits^[loop] <> 0 then exit;
-   end
-   else if bitset.getFSize - 1 > n then
-      for loop := n to bitset.getFSize - 1 do
-         if bitset.FBits^[loop] <> 0 then exit;
+      smallest := self;
+      largest := bitset;
+   end else
+   begin
+      smallest := bitset;
+      largest := self;
+   end;
 
-   result := True;  {passed all tests}
+   result :=
+      (CompareByte(smallest.FBits^, largest.FBits^, smallest.FSize * sizeof(TBitsBase)) = 0) and
+      (
+         { First smallest.FSize TBitsBases were equal, so scan can start from the next. }
+         (largest.FSize = smallest.FSize) or
+         (largest.ScanFor1(smallest.FSize shl TBITS_SHIFT, 0) < 0)
+      );
 end;
 
 
 { us this in place of calling FindFirstBit. It sets the current }
 { index used by FindNextBit and FindPrevBit                     }
 
-procedure TBits.SetIndex(index : longint);
+procedure TBits.SetIndex(index : SizeInt);
 begin
    CheckBitIndex(index,true);
    findIndex := index;
@@ -280,85 +286,30 @@ end;
 { and when it is set to False it looks for bits that are turned      }
 { off (0).                                                           }
 
-function TBits.FindFirstBit(state : boolean) : longint;
-var
-   loop : longint;
-   loop2 : longint;
-   startIndex : longint;
-   stopIndex : Longint;
-   compareVal : cardinal;
+function TBits.FindFirstBit(state : boolean) : SizeInt;
 begin
-   result := -1; {should only occur if none are set}
-
-   findState := state;
-
-   if state = False then
-      compareVal := $FFFFFFFF  { looking for off bits }
-   else
-      compareVal := $00000000; { looking for on bits }
-
-   for loop := 0 to FSize - 1 do
-   begin
-      if FBits^[loop] <> compareVal then
-      begin
-         startIndex := loop * 32;
-         stopIndex:= liMin(StartIndex+31,FBSize -1);
-         for loop2 := startIndex to stopIndex do
-         begin
-            if get(loop2) = state then
-            begin
-               result := loop2;
-               break; { use this as the index to return }
-            end;
-         end;
-         break;  {stop looking for bit in records }
-      end;
-   end;
-
+   { -TBitsBase(not state) is 0 for true or -1 for false, making following ScanFor1s search for 'state'. }
+   result := ScanFor1(0, -TBitsBase(not state));
+   findXorMask := -TBitsBase(not state);
    findIndex := result;
 end;
 
-function TBits.FindNextBit : longint;
-var
-   loop : longint;
+function TBits.FindNextBit : SizeInt;
 begin
-   result := -1;  { will occur only if no other bits set to }
-                  { current findState                        }
-
-   if findIndex > -1 then { must have called FindFirstBit first }
-   begin                  { or set the start index              }
-
-      for loop := findIndex + 1 to FBSize-1 do
-      begin
-         if get(loop) = findState then
-         begin
-            result := loop;
-            break;
-         end;
-      end;
-
+   result := findIndex;
+   if result >= 0 then
+   begin
+      result := ScanFor1(result + 1, findXorMask);
       findIndex := result;
    end;
 end;
 
-function TBits.FindPrevBit : longint;
-var
-   loop : longint;
+function TBits.FindPrevBit : SizeInt;
 begin
-   result := -1;  { will occur only if no other bits set to }
-                  { current findState                        }
-
-   if findIndex > -1 then { must have called FindFirstBit first }
-   begin                  { or set the start index              }
-      for loop := findIndex - 1 downto 0  do
-      begin
-         if get(loop) = findState then
-         begin
-            result := loop;
-            break;
-         end;
-      end;
-
+   result := findIndex;
+   if result >= 0 then
+   begin
+      result := ScanFor1Rev(result - 1, findXorMask);
       findIndex := result;
    end;
 end;
