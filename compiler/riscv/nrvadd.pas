@@ -305,7 +305,12 @@ implementation
 
         if expectloc=LOC_FLAGS then
           expectloc:=LOC_REGISTER;
-        if (expectloc=LOC_JUMP) and (nodetype in [equaln, unequaln, ltn, lten, gtn, gten]) then
+        if (expectloc=LOC_JUMP)
+{$ifdef cpu32bitalu}
+           and (not (is_64bit(left.resultdef) or
+                     is_64bit(right.resultdef)))
+{$endif cpu32bitalu}
+	  and (nodetype in [equaln, unequaln, ltn, lten, gtn, gten]) then
           expectloc:=LOC_REGISTER;
       end;
 
