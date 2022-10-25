@@ -372,59 +372,57 @@ Type
 
 {TBits Class}
 
-const
-   BITSHIFT = 5;
-   MASK = 31; {for longs that are 32-bit in size}
-   // to further increase, signed integer limits have to be researched.
-{$ifdef cpu16}
-   MaxBitFlags = $7FE0;
-{$else cpu16}
-   MaxBitFlags = $7FFFFFE0;
-{$endif cpu16}
-   MaxBitRec = MaxBitFlags Div (SizeOf(cardinal)*8);
 type
-   TBitArray = array[0..MaxBitRec - 1] of cardinal;
+   TBitsBase = PtrInt;
+   PBitsBase = ^TBitsBase;
+   TBitsBaseUnsigned = PtrUint;
 
+const
+   MaxBitFlags = High(SizeInt) - (bitsizeof(TBitsBase) - 1);
+
+type
    TBits = class(TObject)
    private
-      { Private declarations }
-      FBits : ^TBitArray;
-      FSize : longint;  { total longints currently allocated }
-      FBSize: longint;  {total bits currently allocated}
-      findIndex : longint;
-      findState : boolean;
+      FBits : PBitsBase;
+      FSize : SizeInt;  { total TBitsBases currently allocated }
+      FBSize: SizeInt;  {total bits currently allocated}
+      findIndex : SizeInt;
+      findXorMask : int8; { 0 (all zeros) or -1 (all ones), sign-extended to TBitsBase on read.
+                            0 is for searching ones, -1 is for searching zeros. }
+
+      function ScanFor1(start : SizeInt; xorMask : TBitsBase) : SizeInt;
+      function ScanFor1Rev(start : SizeInt; xorMask : TBitsBase) : SizeInt;
 
       { functions and properties to match TBits class }
-      procedure SetBit(bit : longint; value : Boolean);
-      procedure SetSize(value : longint);
+      procedure SetBit(bit : SizeInt; value : Boolean);
+      procedure SetSize(value : SizeInt);
    Protected
-      procedure CheckBitIndex (Bit : longint;CurrentSize : Boolean);
+      procedure CheckBitIndex (Bit : SizeInt;CurrentSize : Boolean);
    public
-      { Public declarations }
       constructor Create(TheSize : longint = 0); virtual;
       destructor Destroy; override;
-      function  GetFSize : longint;
-      procedure SetOn(Bit : longint);
-      procedure Clear(Bit : longint);
+      function  GetFSize : SizeInt;
+      procedure SetOn(Bit : SizeInt);
+      procedure Clear(Bit : SizeInt);
       procedure Clearall;
       procedure CopyBits(BitSet : TBits);
       procedure AndBits(BitSet : TBits);
       procedure OrBits(BitSet : TBits);
       procedure XorBits(BitSet : TBits);
       procedure NotBits(BitSet : TBits);
-      function  Get(Bit : longint) : boolean;
-      procedure Grow(NBit : longint);
+      function  Get(Bit : SizeInt) : boolean;
+      procedure Grow(NBit : SizeInt);
       function  Equals(Obj : TObject): Boolean; override; overload;
       function  Equals(BitSet : TBits) : Boolean; overload;
-      procedure SetIndex(Index : longint);
-      function  FindFirstBit(State : boolean) : longint;
-      function  FindNextBit : longint;
-      function  FindPrevBit : longint;
+      procedure SetIndex(Index : SizeInt);
+      function  FindFirstBit(State : boolean) : SizeInt;
+      function  FindNextBit : SizeInt;
+      function  FindPrevBit : SizeInt;
 
       { functions and properties to match TBits class }
-      function OpenBit: longint;
-      property Bits[Bit: longint]: Boolean read get write SetBit; default;
-      property Size: longint read FBSize write setSize;
+      function OpenBit: SizeInt;
+      property Bits[Bit: SizeInt]: Boolean read get write SetBit; default;
+      property Size: SizeInt read FBSize write setSize;
    end;
 
 { TPersistent abstract class }
