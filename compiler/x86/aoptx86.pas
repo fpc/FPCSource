@@ -8565,6 +8565,7 @@ unit aoptx86;
               Exit;
 
             case hp1.typ of
+              ait_align,
               ait_label:
                 begin
                   { Change:
@@ -8584,11 +8585,10 @@ unit aoptx86;
 
                     (Not if it's optimised for size)
                   }
-                  if not GetNextInstruction(hp1, hp2) then
+                  if not SkipAligns(hp1, hp1) or not GetNextInstruction(hp1, hp2) then
                     Exit;
 
-                  if not (cs_opt_size in current_settings.optimizerswitches) and
-                    (hp2.typ = ait_instruction) and
+                  if (hp2.typ = ait_instruction) and
                     (
                       { Register sizes must exactly match }
                       (
@@ -8663,10 +8663,21 @@ unit aoptx86;
                             increases the reference count) }
                           NewInstr.loadsymbol(0, DestLabel, 0);
 
-                          { Get instruction before original label (may not be p under -O3) }
-                          if not GetLastInstruction(hp1, hp2) then
-                            { Shouldn't fail here }
-                            InternalError(2021040701);
+                          if (cs_opt_level3 in current_settings.optimizerswitches) then
+                            begin
+                              { Get instruction before original label (may not be p under -O3) }
+                              if not GetLastInstruction(hp1, hp2) then
+                                { Shouldn't fail here }
+                                InternalError(2021040701);
+
+                              { Before the aligns too }
+                              while (hp2.typ = ait_align) do
+                                if not GetLastInstruction(hp2, hp2) then
+                                  { Shouldn't fail here }
+                                  InternalError(2021040702);
+                            end
+                          else
+                            hp2 := p;
 
                           taicpu(NewInstr).fileinfo := taicpu(hp2).fileinfo;
                           AsmL.InsertAfter(NewInstr, hp2);
