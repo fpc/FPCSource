@@ -90,12 +90,25 @@ const                   { JPEG marker codes }
 
   M_ERROR = $100;
 
+  EXIF_TAG_PRIMARY            = UINT32(1);
+  EXIF_TAGPARENT_PRIMARY      = UINT32(EXIF_TAG_PRIMARY shl 16);        // $00010000;
+
 type
   JPEG_MARKER = uint;        { JPEG marker codes }
 
 { Private state }
 
 type
+  jpeg_exif_ifd_record = packed record
+    tag_id: UINT16;
+    data_type: UINT16;
+    data_count: UINT32;
+    data_value: UINT32;
+  end;
+
+  { Routine signature for application-supplied exif processing method. }
+  jpeg_exif_parser_method = function(cinfo : j_decompress_ptr; ifdRec: jpeg_exif_ifd_record; bigEndian: boolean; data: array of JOCTET; parent_tag_id: UINT32): boolean;
+
   my_marker_ptr = ^my_marker_reader;
   my_marker_reader = record
     pub : jpeg_marker_reader; { public fields }
@@ -103,6 +116,8 @@ type
     { Application-overridable marker processing methods }
     process_COM : jpeg_marker_parser_method;
     process_APPn : array[0..16-1] of jpeg_marker_parser_method;
+
+    handle_exif_tag : jpeg_exif_parser_method;
 
     { Limit on marker data length to save for each marker type }
     length_limit_COM : uint;
@@ -1487,6 +1502,7 @@ end;  { get_dri }
 
 const
   APP0_DATA_LEN = 14;   { Length of interesting data in APP0 }
+  APP1_HEADER_LEN = 14; { Length of data header in APP1 }
   APP14_DATA_LEN = 12;  { Length of interesting data in APP14 }
   APPN_DATA_LEN = 14;   { Must be the largest of the above!! }
 
@@ -1579,6 +1595,195 @@ begin
       TRACEMS1(j_common_ptr(cinfo), 1, JTRC_APP0, int(totallen));
       {$ENDIF}
     end;
+end;
+
+
+{LOCAL}
+function handle_exif_marker(cinfo : j_decompress_ptr; ifdRec: jpeg_exif_ifd_record; bigEndian: boolean; data: array of JOCTET; parent_tag_id: UINT32): Boolean;
+  function FixEndian16(Value: UINT16): UINT16;
+  begin
+    if BigEndian then
+      Result := BEtoN(Value)
+    else
+      Result := LEtoN(Value);
+  end;
+const
+  EXIF_TAG_ORIENTATION = EXIF_TAGPARENT_PRIMARY or $0112;
+var
+  i: Integer;
+  orientation: UINT16;
+begin
+  case (ifdRec.tag_id or parent_tag_id) of
+    EXIF_TAG_ORIENTATION:
+    begin
+      if Length(data)=SizeOf(UINT16) then
+      begin
+        move(data[0], orientation, Length(data));
+        cinfo^.orientation := FixEndian16(orientation);
+      end else
+        Exit(False);
+    end;
+  end;
+
+  Result := True;
+end;
+
+{LOCAL}
+function examine_app1 (cinfo : j_decompress_ptr;
+                        var header : array of JOCTET;
+                        headerlen : uint;
+                        var remaining : INT32;
+                        datasrc : jpeg_source_mgr_ptr;
+                        var next_input_byte : JOCTETptr;
+                        var bytes_in_buffer : size_t): Boolean;
+
+{ Read Exif marker.
+  headerlen is # of bytes at header[], remaining is length of rest of marker header.
+}
+var
+  BigEndian: Boolean;
+  Offset: UINT32;
+const
+  TagElementSize: array[1..13] of Integer = (1, 1, 2, 4, 8, 1, 1, 2, 4, 8, 4, 8, 4);
+
+  function FixEndian16(Value: UINT16): UINT16;
+  begin
+    if BigEndian then
+      Result := BEtoN(Value)
+    else
+      Result := LEtoN(Value);
+  end;
+  function FixEndian32(Value: UINT32): UINT32;
+  begin
+    if BigEndian then
+      Result := BEtoN(Value)
+    else
+      Result := LEtoN(Value);
+  end;
+  function Read(const Buffer: Pointer; numtoread: uint): Boolean;
+  var
+    i: UINT32;
+  begin
+    Result := False;
+    if numtoread=0 then
+      Exit;
+    for i := 0 to numtoread-1 do
+    begin
+      { if the offset is less than headerlen, there were more bytes read into the header than necessary }
+      { this can happen when APPN_DATA_LEN>APP1_HEADER_LEN (e.g. due to a future source code change }
+      { first read the bytes from header }
+      if Offset<headerlen then
+      begin
+        PByte(Buffer)[i] := header[Offset];
+        Inc(Offset);
+      end else
+      begin
+        { Read a byte into b[i]. If must suspend, return FALSE. }
+        { make a byte available.
+          Note we do *not* do INPUT_SYNC before calling fill_input_buffer,
+          but we must reload the local copies after a successful fill. }
+        if (bytes_in_buffer = 0) then
+        begin
+          if (not datasrc^.fill_input_buffer(cinfo)) then
+            exit(False);
+          { Reload the local copies }
+          next_input_byte := datasrc^.next_input_byte;
+          bytes_in_buffer := datasrc^.bytes_in_buffer;
+        end;
+        Dec( bytes_in_buffer );
+
+        PByte(Buffer)[i] := GETJOCTET(next_input_byte^);
+        Inc(next_input_byte);
+        Dec(remaining);
+      end;
+    end;
+    Result := True;
+  end;
+  function Read16(out Value: UINT16): Boolean;
+  begin
+    Result := Read(@Value, SizeOf(UINT16));
+    if Result then
+      Value := FixEndian16(Value);
+  end;
+
+var
+  Signature, numRecords: UINT16;
+  i, byteCount: UINT32;
+  ifdRec: jpeg_exif_ifd_record;
+  data: array of JOCTET;
+begin
+  if (headerlen >= APP1_HEADER_LEN) and
+     (GETJOCTET(header[0]) = Ord('E')) and
+     (GETJOCTET(header[1]) = Ord('x')) and
+     (GETJOCTET(header[2]) = Ord('i')) and
+     (GETJOCTET(header[3]) = Ord('f')) and
+     (GETJOCTET(header[4]) = 0) and
+     (GETJOCTET(header[5]) = 0) then
+  begin
+    // Tiff header
+    if (GETJOCTET(header[6]) = Ord('M')) and
+       (GETJOCTET(header[7]) = Ord('M'))
+    then
+      BigEndian := True
+    else
+    if (GETJOCTET(header[6]) = Ord('I')) and
+       (GETJOCTET(header[7]) = Ord('I'))
+    then
+      BigEndian := False
+    else
+      Exit; // invalid
+
+    Signature := FixEndian16(GETJOCTET(header[8]) or (GETJOCTET(header[9]) shl 8));
+    if Signature<>42 then
+      Exit;
+    Offset := FixEndian32(GETJOCTET(header[10]) or (GETJOCTET(header[11]) shl 8) or (GETJOCTET(header[12]) shl (8*2)) or (GETJOCTET(header[13]) shl (8*3)));
+    Inc(Offset, 6); // get over Exif header
+    { Found JFIF APP0 marker: save info }
+    cinfo^.saw_EXIF_marker := TRUE;
+
+    { skip offset bytes }
+    if Offset>headerlen then
+    begin
+      datasrc^.next_input_byte := next_input_byte;
+      datasrc^.bytes_in_buffer := bytes_in_buffer;
+      cinfo^.src^.skip_input_data(cinfo, long(Offset-headerlen));
+      next_input_byte := datasrc^.next_input_byte;
+      bytes_in_buffer := datasrc^.bytes_in_buffer;
+    end;
+
+    // read data
+    if not Read16(numRecords) then
+      Exit(False);
+
+    for i:=1 to numRecords do
+    begin
+      if not Read(@ifdRec, SizeOf(jpeg_exif_ifd_record)) then
+        Exit;
+      if (ifdRec.tag_id = 0) and (ifdRec.data_type = 0) and (ifdRec.data_count = 0) and (ifdRec.data_value = 0) then // nothing to read
+        Continue;
+      if (ifdRec.tag_id = 0) and (ifdRec.data_type = 0) then // Unexpected end of directory (4 zero bytes), so breaking here.
+        Break;
+
+      ifdRec.tag_id := FixEndian16(ifdRec.tag_id);
+      ifdRec.data_type := FixEndian16(ifdRec.data_type);
+
+      ifdRec.data_count := FixEndian32(ifdRec.data_count);
+      byteCount := Integer(ifdRec.data_count) * TagElementSize[ifdRec.data_type];
+      if byteCount>0 then
+      begin
+        SetLength(data, bytecount);
+        if byteCount <= 4 then
+        begin
+          Move(ifdRec.data_value, data[0], byteCount)
+        end else
+        begin
+          //ToDo read at position ifdRec.data_value
+          continue; // for now ignore the tag
+        end;
+        my_marker_ptr(cinfo^.marker)^.handle_exif_tag(cinfo, ifdRec, BigEndian, data, EXIF_TAGPARENT_PRIMARY);
+      end;
+    end;
+  end;
 end;
 
 
@@ -1727,6 +1932,8 @@ begin
   case (cinfo^.unread_marker) of
   M_APP0:
     examine_app0(cinfo, b, numtoread, length);
+  M_APP1:
+    examine_app1(cinfo, b, numtoread, length, datasrc, next_input_byte, bytes_in_buffer);
   M_APP14:
     examine_app14(cinfo, b, numtoread, length);
   else
@@ -2567,7 +2774,9 @@ begin
     marker^.length_limit_APPn[i] := 0;
   end;
   marker^.process_APPn[0] := get_interesting_appn;
+  marker^.process_APPn[1] := get_interesting_appn;
   marker^.process_APPn[14] := get_interesting_appn;
+  marker^.handle_exif_tag := handle_exif_marker;
   { Reset marker processing state }
   reset_marker_reader(cinfo);
 end; { jinit_marker_reader }
