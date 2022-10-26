@@ -12649,6 +12649,7 @@ unit aoptx86;
                   if reg is deallocated before the
                   jump, but only if it's a conditional jump (PFV)
                 }
+                DebugMsg(SPeepholeOptimization + 'AndJcc2TestJcc', p);
                 taicpu(p).opcode := A_TEST;
                 Exit;
               end;
@@ -13861,6 +13862,7 @@ unit aoptx86;
           begin
             taicpu(p).opcode := A_TEST;
             taicpu(p).loadreg(0,taicpu(p).oper[1]^.reg);
+            DebugMsg(SPeepholeOptimization + 'Cmp2Test', p);
             Result:=true;
           end;
       end;

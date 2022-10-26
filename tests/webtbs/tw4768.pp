@@ -47,11 +47,11 @@ begin
  if not(later(ca1,ca2)) then
    halt(1);
  if not(later1(ca1,ca2)) then
-   halt(1);
+   halt(2);
  if not(later2(ca1,ca2)) then
-   halt(1);
+   halt(3);
  if not(later3(ca1,ca2)) then
-   halt(1);
+   halt(4);
  if not(later4(ca1,ca2)) then
-   halt(1);
+   halt(5);
 end.
