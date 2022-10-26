@@ -24,7 +24,7 @@ unit FPReadJPEG;
 interface
 
 uses
-  Classes, SysUtils, FPImage, JPEGLib, JdAPImin, JDataSrc, JdAPIstd, JmoreCfg;
+  Classes, SysUtils, Types, FPImage, JPEGLib, JdAPImin, JDataSrc, JdAPIstd, JmoreCfg;
 
 type
   { TFPReaderJPEG }
@@ -78,6 +78,12 @@ type
   end;
 
 implementation
+
+type
+  TExifOrientation = ( // all angles are clockwise
+    eoUnknown, eoNormal, eoMirrorHor, eoRotate180, eoMirrorVert,
+    eoMirrorHorRot270, eoRotate90, eoMirrorHorRot90, eoRotate270
+  );
 
 procedure ReadCompleteStreamToStream(SrcStream, DestStream: TStream;
                                      StartSize: integer);
@@ -166,6 +172,61 @@ end;
 procedure TFPReaderJPEG.InternalRead(Str: TStream; Img: TFPCustomImage);
 var
   MemStream: TMemoryStream;
+  Orientation: TExifOrientation;
+
+  function TranslatePixel(const Px: TPoint): TPoint;
+  begin
+    case Orientation of
+      eoUnknown, eoNormal: Result := Px;
+      eoMirrorHor:
+      begin
+        Result.X := FInfo.output_width-1-Px.X;
+        Result.Y := Px.Y;
+      end;
+      eoRotate180:
+      begin
+        Result.X := FInfo.output_width-1-Px.X;
+        Result.Y := FInfo.output_height-1-Px.Y;
+      end;
+      eoMirrorVert:
+      begin
+        Result.X := Px.X;
+        Result.Y := FInfo.output_height-1-Px.Y;
+      end;
+      eoMirrorHorRot270:
+      begin
+        Result.X := Px.Y;
+        Result.Y := Px.X;
+      end;
+      eoRotate90:
+      begin
+        Result.X := FInfo.output_height-1-Px.Y;
+        Result.Y := Px.X;
+      end;
+      eoMirrorHorRot90:
+      begin
+        Result.X := FInfo.output_height-1-Px.Y;
+        Result.Y := FInfo.output_width-1-Px.X;
+      end;
+      eoRotate270:
+      begin
+        Result.X := Px.Y;
+        Result.Y := FInfo.output_width-1-Px.X;
+      end;
+    end;
+  end;
+
+  function TranslateSize(const Sz: TSize): TSize;
+  begin
+    case Orientation of
+      eoUnknown, eoNormal, eoMirrorHor, eoMirrorVert, eoRotate180: Result := Sz;
+      eoMirrorHorRot270, eoRotate90, eoMirrorHorRot90, eoRotate270:
+      begin
+        Result.Width := Sz.Height;
+        Result.Height := Sz.Width;
+      end;
+    end;
+  end;
 
   procedure SetSource;
   begin
@@ -174,10 +235,19 @@ var
   end;
 
   procedure ReadHeader;
+  var
+    S: TSize;
   begin
     jpeg_read_header(@FInfo, TRUE);
-    FWidth := FInfo.image_width;
-    FHeight := FInfo.image_height;
+
+    if FInfo.saw_EXIF_marker and (FInfo.orientation >= Ord(Low(TExifOrientation))) and (FInfo.orientation <= Ord(High(TExifOrientation))) then
+      Orientation := TExifOrientation(FInfo.orientation)
+    else
+      Orientation := Low(TExifOrientation);
+    S := TranslateSize(TSize.Create(FInfo.image_width, FInfo.image_height));
+    FWidth := S.Width;
+    FHeight := S.Height;
+
     FGrayscale := FInfo.jpeg_color_space = JCS_GRAYSCALE;
     FProgressiveEncoding := jpeg_has_multiple_scans(@FInfo);
   end;
@@ -257,6 +327,14 @@ var
     Result.alpha:=alphaOpaque;
   end;
   procedure ReadPixels;
+    procedure SetPixel(x, y: integer; const C: TFPColor);
+    var
+      P: TPoint;
+    begin
+      P := TPoint.Create(x,y);
+      P := TranslatePixel(P);
+      Img.Colors[P.x, P.y] := C;
+    end;
   var
     Continue: Boolean;
     SampArray: JSAMPARRAY;
@@ -287,7 +365,7 @@ var
           Color.Green:=SampRow^[x*4+1];
           Color.Blue:=SampRow^[x*4+2];
           Color.alpha:=SampRow^[x*4+3];
-          Img.Colors[x,y]:=CorrectCMYK(Color);
+          SetPixel(x, y, CorrectCMYK(Color));
         end
         else
         if (FInfo.jpeg_color_space = JCS_YCCK) then
@@ -296,7 +374,7 @@ var
           Color.Green:=SampRow^[x*4+1];
           Color.Blue:=SampRow^[x*4+2];
           Color.alpha:=SampRow^[x*4+3];
-          Img.Colors[x,y]:=CorrectYCCK(Color);
+          SetPixel(x, y, CorrectYCCK(Color));
         end
         else
         if fgrayscale then begin
@@ -305,7 +383,7 @@ var
            Color.Red:=c;
            Color.Green:=c;
            Color.Blue:=c;
-           Img.Colors[x,y]:=Color;
+           SetPixel(x, y, Color);
          end;
         end
         else begin
@@ -313,7 +391,7 @@ var
            Color.Red:=SampRow^[x*3+0] shl 8;
            Color.Green:=SampRow^[x*3+1] shl 8;
            Color.Blue:=SampRow^[x*3+2] shl 8;
-           Img.Colors[x,y]:=Color;
+           SetPixel(x, y, Color);
          end;
         end;
         inc(y);
@@ -328,7 +406,7 @@ var
 
     jpeg_start_decompress(@FInfo);
 
-    Img.SetSize(FInfo.output_width,FInfo.output_height);
+    Img.SetSize(FWidth,FHeight);
 
     GetMem(SampArray,SizeOf(JSAMPROW));
     GetMem(SampRow,FInfo.output_width*FInfo.output_components);

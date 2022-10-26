@@ -1200,6 +1200,9 @@ type
     saw_Adobe_marker : boolean; { TRUE iff an Adobe APP14 marker was found }
     Adobe_transform : UINT8;    { Color transform code from Adobe marker }
 
+    saw_EXIF_marker : boolean;  { TRUE if an Exif APP1 marker was found }
+    orientation : UINT16;       { Exif orientation value }
+
     CCIR601_sampling : boolean; { TRUE=first samples are cosited }
 
     { Aside from the specific data retained from APPn markers known to the
