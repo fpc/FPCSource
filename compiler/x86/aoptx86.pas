@@ -2756,6 +2756,21 @@ unit aoptx86;
                           AllocRegBetween(p_TargetReg, hp2, p, TmpUsedRegs);
                         end;
                       RemoveCurrentp(p, hp1);
+
+                      { If the Func was another MOV instruction, we might get
+                        "mov %reg,%reg" that doesn't get removed in Pass 2
+                        otherwise, so deal with it here (also do something
+                        similar with lea (%reg),%reg}
+                      if (taicpu(hp2).opcode = A_MOV) and MatchOperand(taicpu(hp2).oper[0]^, taicpu(hp2).oper[1]^.reg) then
+                        begin
+                          DebugMsg(SPeepholeOptimization + 'Mov2Nop 1a done', hp2);
+
+                          if p = hp2 then
+                            RemoveCurrentp(p)
+                          else
+                            RemoveInstruction(hp2);
+                        end;
+
                       Result := True;
                       Exit;
                     end;
