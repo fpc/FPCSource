@@ -4245,15 +4245,25 @@ implementation
     procedure tcallnode.check_stack_parameters;
       var
         hp : tcallparanode;
+       loc : pcgparalocation;
       begin
         hp:=tcallparanode(left);
         while assigned(hp) do
           begin
-             if assigned(hp.parasym) and
-                assigned(hp.parasym.paraloc[callerside].location) and
-               (hp.parasym.paraloc[callerside].location^.loc=LOC_REFERENCE) then
-               include(current_procinfo.flags,pi_has_stackparameter);
-             hp:=tcallparanode(hp.right);
+            if assigned(hp.parasym) then
+              begin
+                loc:=hp.parasym.paraloc[callerside].location;
+                while assigned(loc) do
+                  begin
+                    if loc^.loc=LOC_REFERENCE then
+                      begin
+                        include(current_procinfo.flags,pi_has_stackparameter);
+                        exit;
+                       end;
+                      loc:=loc^.next;
+                  end;
+              end;
+            hp:=tcallparanode(hp.right);
           end;
       end;
 
