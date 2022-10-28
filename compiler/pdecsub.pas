@@ -750,8 +750,15 @@ implementation
                 srsym:=generrorsym;
                 exit;
               end;
-            { ToDo: handle nested interfaces }
-            genname:=generate_generic_name(sp,specializename,'');
+
+            if not searchsym(sp,typesrsym,typesrsymtable) or (typesrsym.typ<>typesym) then
+              begin
+                identifier_not_found(sp);
+                srsym:=generrorsym;
+                exit;
+              end;
+
+            genname:=generate_generic_name(sp,specializename,ttypesym(typesrsym).typedef.ownerhierarchyname);
             ugenname:=upper(genname);
 
             srsym:=search_object_name(ugenname,false);
