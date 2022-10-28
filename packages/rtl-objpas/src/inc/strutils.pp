@@ -1180,132 +1180,124 @@ function NaturalCompareText(const Str1, Str2: string; const ADecSeparator, AThou
 
  in a intuitive order.
  }
-var
-  Num1, Num2: double;
-  pStr1, pStr2: PAnsiChar;
-  Len1, Len2: SizeInt;
-  TextLen1, TextLen2: SizeInt;
-  TextStr1: string = '';
-  TextStr2: string = '';
-  i: SizeInt;
-  j: SizeInt;
-  
-  function Sign(const AValue: sizeint): integer;inline;
 
-  begin
-    If Avalue<0 then
-      Result:=-1
-    else If Avalue>0 then
-      Result:=1
-    else
-      Result:=0;
+// All indices are zero-based to be used with PChar(Pointer(...))[Sp] form,
+// which allows to omit Sp < Length check, instead reading terminating #0 at Sp = Length.
+
+type
+  TRunningNumberCompare = record
+    S: string;
+    Sp: SizeInt;
   end;
 
-  function IsNumber(ch: AnsiChar): boolean;
+  function ScanText(const S: string; Sp: SizeInt): SizeInt;
   begin
-    Result := ch in ['0'..'9'];
+    Result := Sp;
+    repeat
+      while not (PChar(Pointer(S))[Result] in ['0' .. '9', #0]) do
+        Inc(Result);
+      // End?
+      if Result >= Length(S) then
+        exit;
+      // Undo spaces if there is a number.
+      if PChar(Pointer(S))[Result] in ['0' .. '9'] then
+      begin
+        while (Result > Sp) and (PChar(Pointer(S))[Result - 1] in [' ']) do
+          Dec(Result);
+        exit;
+      end;
+      // Embedded #0.
+      Inc(Result);
+    until false;
   end;
 
-  function GetInteger(var pch: PAnsiChar; var Len: sizeint): double;
+  function InitNumber(out C: TRunningNumberCompare; const S: string; Sp: SizeInt): boolean;
   begin
+    C.S := S;
+    C.Sp := Sp;
+    while PChar(Pointer(S))[C.Sp] in [' '] do
+      Inc(C.Sp);
+    while (PChar(Pointer(S))[C.Sp] in ['0']) and (PChar(Pointer(S))[C.Sp + 1] in ['0' .. '9']) do
+      Inc(C.Sp);
+    Result := PChar(Pointer(S))[C.Sp] in ['0' .. '9'];
+  end;
+
+  function NextDigit(var C: TRunningNumberCompare): Integer;
+  var
+    Ch: Char;
+  begin
+    Ch := PChar(Pointer(C.S))[C.Sp];
+    if Ch in ['0' .. '9'] then
+    begin
+      Result := Ord(Ch) - Ord('0');
+      Inc(C.Sp);
+    end else
+      Result := -1;
+  end;
+
+  function ScanAndCompareTexts(const S1: string; var S1p: SizeInt; const S2: string; var S2p: SizeInt): Integer;
+  var
+    S1e, S2e: SizeInt;
+  begin
+    S1e := ScanText(S1, S1p);
+    S2e := ScanText(S2, S2p);
+    Result := (S1e - S1p) - (S2e - S2p);
+    if Result = 0 then 
+      Result := CompareByte(S1[1 + S1p], S2[1 + S2p], (S1e - S1p) * SizeOf(Char));
+{$if sizeof(char) = sizeof(ansichar)}
+    if Result <> 0 then
+      Result := WideCompareText(UTF8Decode(Copy(S1, 1 + S1p, S1e - S1p)), UTF8Decode(Copy(S2, 1 + S2p, S2e - S2p)));
+{$endif}
+    S1p := S1e;
+    S2p := S2e;
+  end;
+
+  function ScanAndCompareNumbers(const S1: string; var S1p: SizeInt; const S2: string; var S2p: SizeInt): Integer;
+  var
+    C1, C2: TRunningNumberCompare;
+    Digit1, Digit2: Integer;
+  begin
+    if not InitNumber(C1, S1, S1p) or not InitNumber(C2, S2, S2p) then
+      Exit(0);
     Result := 0;
-    while (pch^ <> #0) and IsNumber(pch^) do
-    begin
-      Result := Result * 10 + Ord(pch^) - Ord('0');
-      Inc(Len);
-      Inc(pch);
-    end;
+
+    repeat
+      Digit1 := NextDigit(C1);
+      Digit2 := NextDigit(C2);
+      if (Digit1 < 0) <> (Digit2 < 0) then
+        Exit(2 * Ord(Digit2 < 0) - 1); // C1 > C2 if C2 ended first, and vice versa.
+      if Digit1 < 0 then
+        Break;
+      // 'Result' remembers the result of comparison between most significant different digits, used if it turns out that amounts of digits are equal.
+      if Result = 0 then
+        Result := Ord(Digit1 > Digit2) - Ord(Digit1 < Digit2);
+    until false;
+
+    // Compare lengths if numbers are equal (but not characters, so '01' and ' 1' are equal).
+    if Result = 0 then
+      Result := Ord(C1.Sp - S1p > C2.Sp - S2p) - Ord(C1.Sp - S1p < C2.Sp - S2p);
+    S1p := C1.Sp;
+    S2p := C2.Sp;
   end;
 
-  procedure GetChars;
-  begin
-    TextLen1 := 0;
-    while not ((pStr1 + TextLen1)^ in ['0'..'9']) and ((pStr1 + TextLen1)^ <> #0) do
-      Inc(TextLen1);
-    SetLength(TextStr1, TextLen1);
-    i := 1;
-    j := 0;
-    while i <= TextLen1 do
-    begin
-      TextStr1[i] := (pStr1 + j)^;
-      Inc(i);
-      Inc(j);
-    end;
-
-    TextLen2 := 0;
-    while not ((pStr2 + TextLen2)^ in ['0'..'9']) and ((pStr2 + TextLen2)^ <> #0) do
-      Inc(TextLen2);
-    SetLength(TextStr2, TextLen2);
-    i := 1;
-    j := 0;
-    while i <= TextLen2 do
-    begin
-      TextStr2[i] := (pStr2 + j)^;
-      Inc(i);
-      Inc(j);
-    end;
-  end;
+var
+  S1p, S1n, S2p, S2n: SizeInt;
 
 begin
-  if (Str1 <> '') and (Str2 <> '') then
+  S1p := 0;
+  S2p := 0;
+  S1n := Length(Str1);
+  S2n := Length(Str2);
+  while (S1p < S1n) and (S2p < S2n) do
   begin
-    pStr1 := PAnsiChar(Str1);
-    pStr2 := PAnsiChar(Str2);
-    Result := 0;
-    while not ((pStr1^ = #0) or (pStr2^ = #0)) do
-    begin
-      TextLen1 := 1;
-      TextLen2 := 1;
-      Len1 := 0;
-      Len2 := 0;
-      while (pStr1^ = ' ') do
-      begin
-        Inc(pStr1);
-        Inc(Len1);
-      end;
-      while (pStr2^ = ' ') do
-      begin
-        Inc(pStr2);
-        Inc(Len2);
-      end;
-      if IsNumber(pStr1^) and IsNumber(pStr2^) then
-      begin
-         Num1 := GetInteger(pStr1, Len1);
-         Num2 := GetInteger(pStr2, Len2);
-        if Num1 < Num2 then
-          Result := -1
-        else if Num1 > Num2 then
-          Result := 1
-        else
-        begin
-          Result := Sign(Len1 - Len2);
-        end;
-        Dec(pStr1);
-        Dec(pStr2);
-      end
-      else
-      begin
-        GetChars;
-        if TextStr1 <> TextStr2 then
-          Result := WideCompareText(UTF8Decode(TextStr1), UTF8Decode(TextStr2))
-        else
-          Result := 0;
-      end;
-      if Result <> 0 then
-        Break;
-      Inc(pStr1, TextLen1);
-      Inc(pStr2, TextLen2);
-    end;
+    Result := ScanAndCompareTexts(Str1, S1p, Str2, S2p);
+    if Result <> 0 then
+      Exit;
+    Result := ScanAndCompareNumbers(Str1, S1p, Str2, S2p);
+    if Result <> 0 then
+      Exit;
   end;
-  Num1 := Length(Str1);
-  Num2 := Length(Str2);
-  if (Result = 0) and (Num1 <> Num2) then
-  begin
-    if Num1 < Num2 then
-      Result := -1
-    else
-      Result := 1;
-  end;
+  Result := Ord(S1p < S1n) - Ord(S2p < S2n);
 end;
 
 function SplitString(const S, Delimiters: string): TRTLStringDynArray;
