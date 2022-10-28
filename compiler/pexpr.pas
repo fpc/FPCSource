@@ -1592,7 +1592,7 @@ implementation
       end;
 
 
-    function handle_specialize_inline_specialization(var srsym:tsym;out srsymtable:tsymtable;out spezcontext:tspecializationcontext):boolean;
+    function handle_specialize_inline_specialization(var srsym:tsym;enforce_unit:boolean;out srsymtable:tsymtable;out spezcontext:tspecializationcontext):boolean;
       var
         spezdef : tdef;
         symname : tsymstr;
@@ -1617,7 +1617,7 @@ implementation
                 symname:=srsym.RealName
               else
                 symname:='';
-              spezdef:=generate_specialization_phase1(spezcontext,spezdef,symname,srsym.owner);
+              spezdef:=generate_specialization_phase1(spezcontext,spezdef,enforce_unit,symname,srsym.owner);
               case spezdef.typ of
                 errordef:
                   begin
@@ -1721,7 +1721,7 @@ implementation
                  if isspecialize then
                    begin
                      consume(_ID);
-                     if not handle_specialize_inline_specialization(srsym,srsymtable,spezcontext) then
+                     if not handle_specialize_inline_specialization(srsym,false,srsymtable,spezcontext) then
                        begin
                          result.free;
                          result:=cerrornode.create;
@@ -1764,7 +1764,7 @@ implementation
                 if isspecialize and assigned(srsym) then
                   begin
                     consume(_ID);
-                    if handle_specialize_inline_specialization(srsym,srsymtable,spezcontext) then
+                    if handle_specialize_inline_specialization(srsym,false,srsymtable,spezcontext) then
                       erroroutresult:=false;
                   end
                 else
@@ -1777,7 +1777,7 @@ implementation
                             not (token in [_LT,_LSHARPBRACKET]) then
                           check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg,savedfilepos)
                         else
-                          result:=cspecializenode.create(result,getaddr,srsym);
+                          result:=cspecializenode.create(result,getaddr,srsym,false);
                         erroroutresult:=false;
                       end
                     else
@@ -2522,7 +2522,7 @@ implementation
                                begin
                                  searchsym_in_record(structh,pattern,srsym,srsymtable);
                                  consume(_ID);
-                                 if handle_specialize_inline_specialization(srsym,srsymtable,spezcontext) then
+                                 if handle_specialize_inline_specialization(srsym,false,srsymtable,spezcontext) then
                                    erroroutp1:=false;
                                end;
                            end
@@ -2537,7 +2537,7 @@ implementation
                                      not (token in [_LT,_LSHARPBRACKET]) then
                                    check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg,old_current_filepos)
                                  else
-                                   p1:=cspecializenode.create(p1,getaddr,srsym);
+                                   p1:=cspecializenode.create(p1,getaddr,srsym,false);
                                  erroroutp1:=false;
                                end
                              else
@@ -2698,7 +2698,7 @@ implementation
                                 begin
                                   searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable,[ssf_search_helper]);
                                   consume(_ID);
-                                  if handle_specialize_inline_specialization(srsym,srsymtable,spezcontext) then
+                                  if handle_specialize_inline_specialization(srsym,false,srsymtable,spezcontext) then
                                     erroroutp1:=false;
                                 end;
                             end
@@ -2713,7 +2713,7 @@ implementation
                                       not (token in [_LT,_LSHARPBRACKET]) then
                                     check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg,old_current_filepos)
                                   else
-                                    p1:=cspecializenode.create(p1,getaddr,srsym);
+                                    p1:=cspecializenode.create(p1,getaddr,srsym,false);
                                   erroroutp1:=false;
                                 end
                               else
@@ -2752,7 +2752,7 @@ implementation
                                 begin
                                   searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable,[ssf_search_helper]);
                                   consume(_ID);
-                                  if handle_specialize_inline_specialization(srsym,srsymtable,spezcontext) then
+                                  if handle_specialize_inline_specialization(srsym,false,srsymtable,spezcontext) then
                                     erroroutp1:=false;
                                 end;
                             end
@@ -2767,7 +2767,7 @@ implementation
                                        not (token in [_LT,_LSHARPBRACKET]) then
                                      check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg,old_current_filepos)
                                    else
-                                     p1:=cspecializenode.create(p1,getaddr,srsym);
+                                     p1:=cspecializenode.create(p1,getaddr,srsym,false);
                                    erroroutp1:=false;
                                 end
                               else
@@ -3052,7 +3052,7 @@ implementation
                    begin
                      if block_type in [bt_type,bt_const_type,bt_var_type] then
                        begin
-                         if not handle_specialize_inline_specialization(srsym,srsymtable,spezcontext) or (srsym.typ=procsym) then
+                         if not handle_specialize_inline_specialization(srsym,unit_found,srsymtable,spezcontext) or (srsym.typ=procsym) then
                            begin
                              spezcontext.free;
                              result:=cerrornode.create;
@@ -3071,7 +3071,7 @@ implementation
                            end;
                        end
                      else
-                       result:=cspecializenode.create(nil,getaddr,srsym)
+                       result:=cspecializenode.create(nil,getaddr,srsym,unit_found)
                    end
                  else
                    begin
@@ -3108,7 +3108,7 @@ implementation
                   (sp_generic_dummy in srsym.symoptions) and
                   (token in [_LT,_LSHARPBRACKET]) then
                 begin
-                  result:=cspecializenode.create(nil,getaddr,srsym)
+                  result:=cspecializenode.create(nil,getaddr,srsym,unit_found)
                 end
               { check if it's a method/class method }
               else if is_member_read(srsym,srsymtable,result,hdef) then
@@ -3380,9 +3380,11 @@ implementation
                      end
                    else
                      begin
+                       if not unit_found then
+                         srsymtable:=nil;
                        {$push}
                        {$warn 5036 off}
-                       hdef:=generate_specialization_phase1(spezcontext,nil,nil,orgstoredpattern,nil,dummypos);
+                       hdef:=generate_specialization_phase1(spezcontext,nil,unit_found,nil,orgstoredpattern,srsymtable,dummypos);
                        {$pop}
                        if hdef=generrordef then
                          begin
@@ -3818,7 +3820,7 @@ implementation
                          searchsym_in_class(hclassdef,current_structdef,hs,srsym,srsymtable,[ssf_search_helper]);
                        if isspecialize and assigned(srsym) then
                          begin
-                           if not handle_specialize_inline_specialization(srsym,srsymtable,spezcontext) then
+                           if not handle_specialize_inline_specialization(srsym,false,srsymtable,spezcontext) then
                              srsym:=nil;
                          end;
                      end;
@@ -4406,7 +4408,8 @@ implementation
       function generate_inline_specialization(gendef:tdef;n:tnode;filepos:tfileposinfo;parseddef:tdef;gensym:tsym;p2:tnode):tnode;
         var
           again,
-          getaddr : boolean;
+          getaddr,
+          unitspecific : boolean;
           pload : tnode;
           spezcontext : tspecializationcontext;
           structdef,
@@ -4418,6 +4421,7 @@ implementation
               getaddr:=tspecializenode(n).getaddr;
               pload:=tspecializenode(n).left;
               inheriteddef:=tabstractrecorddef(tspecializenode(n).inheriteddef);
+              unitspecific:=tspecializenode(n).unit_specific;
               tspecializenode(n).left:=nil;
             end
           else
@@ -4425,12 +4429,13 @@ implementation
               getaddr:=false;
               pload:=nil;
               inheriteddef:=nil;
+              unitspecific:=false;
             end;
 
           if assigned(parseddef) and assigned(gensym) and assigned(p2) then
-            gendef:=generate_specialization_phase1(spezcontext,gendef,parseddef,gensym.realname,gensym.owner,p2.fileinfo)
+            gendef:=generate_specialization_phase1(spezcontext,gendef,unitspecific,parseddef,gensym.realname,gensym.owner,p2.fileinfo)
           else
-            gendef:=generate_specialization_phase1(spezcontext,gendef);
+            gendef:=generate_specialization_phase1(spezcontext,gendef,unitspecific);
           case gendef.typ of
             errordef:
               begin

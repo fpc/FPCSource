@@ -707,6 +707,7 @@ implementation
             sym : ttypesym;
             typesrsym : tsym;
             typesrsymtable : tsymtable;
+            hierarchy,
             specializename,
             prettyname: ansistring;
             error : boolean;
@@ -758,7 +759,15 @@ implementation
                 exit;
               end;
 
-            genname:=generate_generic_name(sp,specializename,ttypesym(typesrsym).typedef.ownerhierarchyname);
+            module:=find_module_from_symtable(ttypesym(typesrsym).owner);
+            if not assigned(module) then
+              internalerror(2022102105);
+
+            hierarchy:=ttypesym(typesrsym).typedef.ownerhierarchyname;
+            if hierarchy<>'' then
+              hierarchy:='.'+hierarchy;
+
+            genname:=generate_generic_name(sp,specializename,module.modulename^+hierarchy);
             ugenname:=upper(genname);
 
             srsym:=search_object_name(ugenname,false);

@@ -55,7 +55,8 @@ interface
           sym:tsym;
           getaddr:boolean;
           inheriteddef:tdef;
-          constructor create(l:tnode;g:boolean;s:tsym);virtual;
+          unit_specific:boolean;
+          constructor create(l:tnode;g:boolean;s:tsym;u:boolean);virtual;
           constructor create_inherited(l:tnode;g:boolean;s:tsym;i:tdef);virtual;
           function pass_1:tnode;override;
           function pass_typecheck:tnode;override;
@@ -485,16 +486,17 @@ implementation
                              TSPECIALIZENODE
 *****************************************************************************}
 
-    constructor tspecializenode.create(l:tnode;g:boolean;s:tsym);
+    constructor tspecializenode.create(l:tnode;g:boolean;s:tsym;u:boolean);
       begin
          inherited create(specializen,l);
          sym:=s;
          getaddr:=g;
+         unit_specific:=u;
       end;
 
     constructor tspecializenode.create_inherited(l:tnode;g:boolean;s:tsym;i:tdef);
       begin
-        create(l,g,s);
+        create(l,g,s,false);
         inheriteddef:=i;
       end;
 

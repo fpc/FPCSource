@@ -242,7 +242,7 @@ implementation
       end;
 
 
-    procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef,allowgenericsyms,allowunitsym:boolean;out srsym:tsym;out srsymtable:tsymtable;out is_specialize:boolean); forward;
+    procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef,allowgenericsyms,allowunitsym:boolean;out srsym:tsym;out srsymtable:tsymtable;out is_specialize,is_unit_specific:boolean); forward;
 
 
     { def is the outermost type in which other types have to be searched
@@ -262,7 +262,8 @@ implementation
         srsym: tsym;
         srsymtable: tsymtable;
         oldsymtablestack: TSymtablestack;
-        isspecialize : boolean;
+        isspecialize,
+        isunitspecific : boolean;
       begin
         if assigned(currentstructstack) then
           structstackindex:=currentstructstack.count-1
@@ -290,7 +291,7 @@ implementation
                      symtablestack:=TSymtablestack.create;
                      symtablestack.push(tabstractrecorddef(def).symtable);
                      t2:=generrordef;
-                     id_type(t2,isforwarddef,false,false,false,srsym,srsymtable,isspecialize);
+                     id_type(t2,isforwarddef,false,false,false,srsym,srsymtable,isspecialize,isunitspecific);
                      symtablestack.pop(tabstractrecorddef(def).symtable);
                      symtablestack.free;
                      symtablestack:=oldsymtablestack;
@@ -298,7 +299,7 @@ implementation
                        begin
                          if not allowspecialization then
                            Message(parser_e_no_local_para_def);
-                         generate_specialization(t2,false,'');
+                         generate_specialization(t2,isunitspecific,false,'');
                        end;
                      def:=t2;
                    end;
@@ -344,12 +345,12 @@ implementation
          result:=false;
       end;
 
-    procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef,allowgenericsyms,allowunitsym:boolean;out srsym:tsym;out srsymtable:tsymtable;out is_specialize:boolean);
+    procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef,allowgenericsyms,allowunitsym:boolean;out srsym:tsym;out srsymtable:tsymtable;out is_specialize,is_unit_specific:boolean);
     { reads a type definition }
     { to a appropriating tdef, s gets the name of   }
     { the type to allow name mangling          }
       var
-        is_unit_specific,not_a_type : boolean;
+        not_a_type : boolean;
         pos : tfileposinfo;
         s,sorg : TIDString;
         t : ttoken;
@@ -357,6 +358,7 @@ implementation
          srsym:=nil;
          srsymtable:=nil;
          is_specialize:=false;
+         is_unit_specific:=false;
          s:=pattern;
          sorg:=orgpattern;
          pos:=current_tokenpos;
@@ -478,6 +480,7 @@ implementation
 
        var
          t2 : tdef;
+         isunitspecific,
          isspecialize,
          dospecialize,
          again : boolean;
@@ -485,6 +488,7 @@ implementation
          srsymtable : tsymtable;
        begin
          dospecialize:=false;
+         isunitspecific:=false;
          srsym:=nil;
          repeat
            again:=false;
@@ -530,7 +534,7 @@ implementation
                      end
                    else
                      begin
-                       id_type(def,stoIsForwardDef in options,true,true,not dospecialize or ([stoAllowSpecialization,stoAllowTypeDef]*options=[]),srsym,srsymtable,isspecialize);
+                       id_type(def,stoIsForwardDef in options,true,true,not dospecialize or ([stoAllowSpecialization,stoAllowTypeDef]*options=[]),srsym,srsymtable,isspecialize,isunitspecific);
                        if isspecialize and dospecialize then
                          internalerror(2015021301);
                        if isspecialize then
@@ -569,7 +573,7 @@ implementation
           begin
             if def.typ=forwarddef then
               def:=ttypesym(srsym).typedef;
-            generate_specialization(def,stoParseClassParent in options,'');
+            generate_specialization(def,isunitspecific,stoParseClassParent in options,'');
             parse_nested_types(def,stoIsForwardDef in options,[stoAllowSpecialization,stoAllowTypeDef]*options<>[],nil);
           end
         else
@@ -1226,7 +1230,7 @@ implementation
                      end;
                    if dospecialize then
                      begin
-                       generate_specialization(def,false,name);
+                       generate_specialization(def,false,false,name);
                        { handle nested types }
                        if assigned(def) then
                          post_comp_expr_gendef(def);
