@@ -1708,6 +1708,7 @@ uses
         result:=nil;
 
         pd:=nil;
+        hmodule:=nil;
 
         if not check_generic_constraints(genericdef,context.paramlist,context.poslist) then
           begin
