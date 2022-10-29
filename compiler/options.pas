@@ -1366,7 +1366,7 @@ begin
       end;
     system_aarch64_darwin:
       begin
-        if not ParseMacVersionMin(MacOSXVersionMin,iPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED','11.00.0',false) then
+        if not ParseMacVersionMin(MacOSXVersionMin,iPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED','11.0.0',false) then
           internalerror(2022090915);
       end
     else
