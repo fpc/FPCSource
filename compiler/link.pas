@@ -692,7 +692,7 @@ Implementation
               result:=result+'_osx_dynamic'
             else if target_info.system in systems_ios then
               result:='_ios_dynamic'
-            else if target_info.system in systems_iphonesym then
+            else if target_info.system in systems_iphonesim then
               result:='_iossim_dynamic'
             else
               internalerror(2022071010);

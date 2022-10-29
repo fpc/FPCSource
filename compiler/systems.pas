@@ -289,11 +289,11 @@ interface
 
        { all darwin systems }
        systems_ios = [system_arm_ios,system_aarch64_ios];
-       systems_iphonesym = [system_i386_iphonesim,system_x86_64_iphonesim];
+       systems_iphonesim = [system_i386_iphonesim,system_x86_64_iphonesim];
        systems_macosx = [system_powerpc_darwin,system_i386_darwin,
                          system_powerpc64_darwin,system_x86_64_darwin,
                          system_aarch64_darwin];
-       systems_darwin = systems_ios + systems_iphonesym + systems_macosx;
+       systems_darwin = systems_ios + systems_iphonesim + systems_macosx;
 
        { all WebAssembly systems }
        systems_wasm = [system_wasm32_embedded,system_wasm32_wasi];
