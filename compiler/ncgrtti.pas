@@ -168,12 +168,15 @@ implementation
                (ds_init_table_used in def.defstates) then
               RTTIWriter.write_rtti(def,initrtti);
             { RTTI }
-            if (
-                assigned(def.typesym) and
-                is_global and
-                not is_objc_class_or_protocol(def)
-               ) or
-               (ds_rtti_table_used in def.defstates) then
+            if not(df_internal in def.defoptions) and
+               (
+                (
+                 assigned(def.typesym) and
+                 is_global and
+                 not is_objc_class_or_protocol(def)
+                ) or
+                (ds_rtti_table_used in def.defstates)
+               ) then
               RTTIWriter.write_rtti(def,fullrtti);
           end;
       end;
