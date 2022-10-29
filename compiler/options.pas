@@ -3961,7 +3961,7 @@ begin
     end;
 {$endif i8086_link_intern_debuginfo}
 
-  if (paratargetdbg in [dbg_dwarf2,dbg_dwarf3]) and
+  if (paratargetdbg in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4]) and
      not(target_info.system in (systems_darwin+[system_i8086_msdos,system_i8086_embedded])) then
     begin
       { smartlink creation does not yet work with DWARF
