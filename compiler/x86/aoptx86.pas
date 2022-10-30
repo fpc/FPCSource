@@ -2819,8 +2819,8 @@ unit aoptx86;
 
         if taicpu(p).oper[1]^.typ = top_reg then
           begin
-          { Saves on a large number of dereferences }
-          p_TargetReg := taicpu(p).oper[1]^.reg;
+            { Saves on a large number of dereferences }
+            p_TargetReg := taicpu(p).oper[1]^.reg;
 
             { Look for:
                 mov %reg1,%reg2
@@ -4609,6 +4609,30 @@ unit aoptx86;
             asml.remove(hp1);
             insertllitem(hp2,hp2.next,hp1);
             RemoveCurrentp(p, hp1);
+            Result:=true;
+            exit;
+          end;
+
+        if MatchInstruction(hp1,A_SUB,[Taicpu(p).opsize]) and
+          MatchOperand(Taicpu(p).oper[1]^,Taicpu(hp1).oper[1]^) and
+          GetNextInstruction(hp1, hp2) and
+          MatchInstruction(hp2,A_CMP,[Taicpu(p).opsize]) and
+          MatchOperand(Taicpu(p).oper[0]^,Taicpu(hp2).oper[1]^) and
+          MatchOperand(Taicpu(hp1).oper[0]^,Taicpu(hp2).oper[0]^) then
+          { change
+
+            mov reg1,reg2
+            sub reg3,reg2
+            cmp reg3,reg1
+
+            into
+
+            mov reg1,reg2
+            sub reg3,reg2
+          }
+          begin
+            DebugMsg(SPeepholeOptimization + 'MovSubCmp2MovSub done',p);
+            RemoveInstruction(hp2);
             Result:=true;
             exit;
           end;
