@@ -218,7 +218,11 @@ implementation
                  begin
                    if ((p.location.loc=loc_register) and (p.expectloc=loc_cregister))
                       or ((p.location.loc=loc_fpuregister) and (p.expectloc=loc_cfpuregister))
-                      or ((p.location.loc=loc_reference) and (p.expectloc=loc_creference)) then
+{$ifdef SUPPORT_MMX}
+                      or ((p.location.loc=loc_mmxregister) and (p.expectloc=loc_cmmxregister))
+{$endif SUPPORT_MMX}
+                      or ((p.location.loc=loc_reference) and (p.expectloc=loc_creference))
+                      or ((p.location.loc=loc_void) and (p.nodetype = calln)) then
                      Comment(V_Note,'Location ('+tcgloc2str[p.location.loc]+') not equal to expectloc ('+tcgloc2str[p.expectloc]+'): '+nodetype2str[p.nodetype])
                    else
                      Comment(V_Warning,'Location ('+tcgloc2str[p.location.loc]+') not equal to expectloc ('+tcgloc2str[p.expectloc]+'): '+nodetype2str[p.nodetype]);
