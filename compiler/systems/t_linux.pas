@@ -720,7 +720,8 @@ begin
       add('  {');
       add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
       add('  }');
-      if not ((cs_debuginfo in current_settings.moduleswitches)) then
+      if not(cs_debuginfo in current_settings.moduleswitches) and
+         not(tf_use_psabieh in target_info.flags) then
         add('  /DISCARD/ : {*(.debug_frame)}');
       add('  .threadvar : { *(.threadvar .threadvar.* .gnu.linkonce.tv.*) }');
       add('}');
