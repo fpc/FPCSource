@@ -1606,7 +1606,7 @@ procedure readprocinfooptions(space : string);
 type
   tprocinfoopt=record
     mask : tprocinfoflag;
-    str  : string[81];
+    str  : string[82];
   end;
 const
   procinfoopts=ord(high(tprocinfoflag)) - ord(low(tprocinfoflag));
@@ -2286,7 +2286,7 @@ const
         'Supports LLVM Link-Time Optimization' {cs_lto}
         ,'Enable LLVM Address Sanitizer'
        );
-    globalswitchname : array[tglobalswitch] of string[50] =
+    globalswitchname : array[tglobalswitch] of string[73] =
        ('Global None',{cs_globalnone}
          { parameter switches }
         'Check unit name', {cs_check_unit_name}
