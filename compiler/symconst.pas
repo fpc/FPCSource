@@ -682,7 +682,7 @@ type
     localsymtable,         { subroutine symtable             }
     parasymtable,          { arguments symtable              }
     withsymtable,          { with operator symtable          }
-    stt_excepTSymtable,    { try/except symtable             }
+    exceptsymtable,        { try/except symtable             }
     exportedmacrosymtable, { }
     localmacrosymtable,    { }
     enumsymtable,          { symtable for enum members       }

@@ -263,6 +263,7 @@ implementation
                 result:=st;
                 exit;
               end;
+            exceptsymtable,
             recordsymtable,
             enumsymtable,
             arraysymtable,
@@ -528,12 +529,12 @@ implementation
           won't be saved to the ppu and as a result we can get unreachable
           defs when reloading the derived ones from the ppu }
         origowner:=owner;
-        while not(origowner.symtabletype in [localsymtable,staticsymtable,globalsymtable,stt_excepTSymtable]) do
+        while not(origowner.symtabletype in [localsymtable,staticsymtable,globalsymtable,exceptsymtable]) do
           origowner:=origowner.defowner.owner;
         { if the def is in an exceptionsymtable, we can't create a reusable
           def because the original one will be freed when the (always
           temprary) exceptionsymtable is freed }
-        if origowner.symtabletype=stt_excepTSymtable then
+        if origowner.symtabletype=exceptsymtable then
           internalerror(2015111701)
         else if origowner.symtabletype=localsymtable then
           result:=origowner

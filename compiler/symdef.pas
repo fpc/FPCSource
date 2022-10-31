@@ -2643,7 +2643,7 @@ implementation
              the module is compiled, so we can get crashes on high level targets
              if they still need it while e.g. writing assembler code }
            while assigned(insertstack) and
-                 (insertstack^.symtable.symtabletype in [stt_exceptsymtable,withsymtable]) do
+                 (insertstack^.symtable.symtabletype in [exceptsymtable,withsymtable]) do
              insertstack:=insertstack^.next;
            if not assigned(insertstack) then
              internalerror(200602044);

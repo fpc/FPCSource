@@ -277,7 +277,7 @@ interface
           procedure insertdef(def:TDefEntry);override;
         end;
 
-       tstt_excepTSymtable = class(TSymtable)
+       tstt_exceptsymtable = class(TSymtable)
        public
           constructor create;
        end;
@@ -2828,7 +2828,7 @@ implementation
     constructor tstt_excepTSymtable.create;
       begin
         inherited create('');
-        symtabletype:=stt_excepTSymtable;
+        symtabletype:=exceptsymtable;
       end;
 
 
