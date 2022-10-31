@@ -15,7 +15,7 @@
 unit fpCSSParser;
 
 {$mode ObjFPC}{$H+}
-
+{$WARN 6060 off : }
 interface
 
 uses

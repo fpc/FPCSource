@@ -93,7 +93,7 @@ unit fpCSSResolver;
 
 {$mode ObjFPC}{$H+}
 {$Interfaces CORBA}
-
+{$WARN 6060 off : }
 interface
 
 uses
@@ -341,7 +341,7 @@ type
 
   { TCSSResolver }
 
-  TCSSResolver = class
+  TCSSResolver = class(TComponent)
   private
     FNumericalIDs: array[TCSSNumericalIDKind] of TCSSNumericalIDs;
     FOnLog: TCSSResolverLogEvent;
@@ -406,7 +406,7 @@ type
     function GetElPos(El: TCSSElement): string; virtual;
     function GetElPath(El: TCSSElement): string; virtual;
   public
-    constructor Create;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Clear; virtual;
     procedure ClearStyleCustomData; virtual;
@@ -1927,8 +1927,9 @@ begin
   Result:=GetCSSPath(El);
 end;
 
-constructor TCSSResolver.Create;
+constructor TCSSResolver.Create(AOwner: TComponent);
 begin
+  inherited;
   FLogEntries:=TFPObjectList.Create(true);
 end;
 

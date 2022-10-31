@@ -104,8 +104,8 @@ type
     function GetCSSAttributeClass: TCSSString; virtual;
     function HasCSSAttribute(const AttrID: TCSSNumericalID): boolean; virtual;
     function GetCSSAttribute(const AttrID: TCSSNumericalID): TCSSString; virtual;
-    function HasCSSPseudo(const AttrID: TCSSNumericalID): boolean; virtual;
-    function GetCSSPseudo(const AttrID: TCSSNumericalID): TCSSString; virtual;
+    function HasCSSPseudo(const {%H-}AttrID: TCSSNumericalID): boolean; virtual;
+    function GetCSSPseudo(const {%H-}AttrID: TCSSNumericalID): TCSSString; virtual;
     function GetCSSEmpty: boolean; virtual;
     function GetCSSDepth: integer; virtual;
     property Parent: TDemoNode read FParent write SetParent;
@@ -1385,7 +1385,7 @@ begin
   AttributeIDs['caption']:=AttrID;
   inc(AttrID);
 
-  FCSSResolver:=TCSSResolver.Create;
+  FCSSResolver:=TCSSResolver.Create(nil);
   for NumKind in TCSSNumericalIDKind do
     CSSResolver.NumericalIDs[NumKind]:=FNumericalIDs[NumKind];
 
