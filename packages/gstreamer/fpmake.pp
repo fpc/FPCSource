@@ -22,7 +22,7 @@ begin
     if Defaults.CPU<>arm then
       P.OSes := P.OSes + [darwin];
 
-    P.Author := 'Library: Wim Waytack, header: Michael Van Canneyt';
+    P.Author := 'Library: Wim Taymans and others, header: Michael Van Canneyt';
     P.License := 'Library: LGPL2.1, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
@@ -112,7 +112,7 @@ begin
       AddInclude('gstversion.inc');
       // Implementations
       AddInclude('gstmessage_impl.inc');
-      AddInclude('gstbin_impl.inc');
+       AddInclude('gstbin_impl.inc');
       end;
     P.Sources.AddExampleFiles('examples/camrecord.lpr',P.Directory,false,'.');
 {$ifndef ALLPACKAGES}
