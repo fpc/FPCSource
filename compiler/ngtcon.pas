@@ -1359,7 +1359,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 consume(_RKLAMMER);
               end;
             curoffset:=oldoffset;
-            ftcb.maybe_end_aggregate(def);
+            if ErrorCount=0 then
+              ftcb.maybe_end_aggregate(def);
           end
         { if array of char then we allow also a string }
         else if is_anychar(def.elementdef) then
