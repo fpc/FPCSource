@@ -28,7 +28,7 @@ unit gst;
 
 interface
 
-uses sqldbrestbridge, glib2;
+uses glib2;
 
 const
   gstreamerlib = 'libgstreamer-1.0'; {Setup as you need}
