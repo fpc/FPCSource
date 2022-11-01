@@ -1,0 +1,208 @@
+{
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2022 by Michael Van Canneyt (michael@freepascal.org) member of the Free Pascal development team
+
+    Enumeration types needed in several include files
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+Type
+  // Moved here from gstminiobject.inc
+  TGstMiniObjectFlags = (
+    GST_MINI_OBJECT_FLAG_LOCKABLE := 1 shl 0,
+    GST_MINI_OBJECT_FLAG_LOCK_READONLY := 1 shl 1,
+    GST_MINI_OBJECT_FLAG_MAY_BE_LEAKED := 1 shl 2,
+    GST_MINI_OBJECT_FLAG_LAST := 1 shl 4);
+
+  // moved here from gstcaps.inc
+  TGstCapsFlags = (GST_CAPS_FLAG_ANY := Ord(GST_MINI_OBJECT_FLAG_LAST) shl 0);
+
+  TGstCapsIntersectMode = (GST_CAPS_INTERSECT_ZIG_ZAG := 0,GST_CAPS_INTERSECT_FIRST := 1
+    );
+  PGstBufferPoolAcquireFlags = ^TGstBufferPoolAcquireFlags;
+  TGstBufferPoolAcquireFlags = (
+    GST_BUFFER_POOL_ACQUIRE_FLAG_NONE := 0,
+    GST_BUFFER_POOL_ACQUIRE_FLAG_KEY_UNIT := 1 shl 0,
+    GST_BUFFER_POOL_ACQUIRE_FLAG_DONTWAIT := 1 shl 1,
+    GST_BUFFER_POOL_ACQUIRE_FLAG_DISCONT := 1 shl 2,
+    GST_BUFFER_POOL_ACQUIRE_FLAG_LAST := 1 shl 16
+    );
+
+  PGstFormat = ^TGstFormat;
+  TGstFormat = (GST_FORMAT_UNDEFINED := 0,GST_FORMAT_DEFAULT := 1,
+    GST_FORMAT_BYTES := 2,GST_FORMAT_TIME := 3,
+    GST_FORMAT_BUFFERS := 4,GST_FORMAT_PERCENT := 5
+    );
+
+
+  TGstBufferingMode = (
+  GST_BUFFERING_STREAM,
+  GST_BUFFERING_DOWNLOAD,
+  GST_BUFFERING_TIMESHIFT,
+  GST_BUFFERING_LIVE
+  )  ;
+  PGstBufferingMode = ^TGstBufferingMode;
+
+  PGstMessageType = ^TGstMessageType;
+  TGstMessageType = (
+    GST_MESSAGE_UNKNOWN := 0,
+    GST_MESSAGE_EOS := 1 shl 0,
+    GST_MESSAGE_ERROR := 1 shl 1,
+    GST_MESSAGE_WARNING := 1 shl 2,
+    GST_MESSAGE_INFO := 1 shl 3,
+    GST_MESSAGE_TAG := 1 shl 4,
+    GST_MESSAGE_BUFFERING := 1 shl 5,
+    GST_MESSAGE_STATE_CHANGED := 1 shl 6,
+    GST_MESSAGE_STATE_DIRTY := 1 shl 7,
+    GST_MESSAGE_STEP_DONE := 1 shl 8,
+    GST_MESSAGE_CLOCK_PROVIDE := 1 shl 9,
+    GST_MESSAGE_CLOCK_LOST := 1 shl 10,
+    GST_MESSAGE_NEW_CLOCK := 1 shl 11,
+    GST_MESSAGE_STRUCTURE_CHANGE := 1 shl 12,
+    GST_MESSAGE_STREAM_STATUS := 1 shl 13,
+    GST_MESSAGE_APPLICATION := 1 shl 14,
+    GST_MESSAGE_ELEMENT := 1 shl 15,
+    GST_MESSAGE_SEGMENT_START := 1 shl 16,
+    GST_MESSAGE_SEGMENT_DONE := 1 shl 17,
+    GST_MESSAGE_DURATION_CHANGED := 1 shl 18,
+    GST_MESSAGE_LATENCY := 1 shl 19,
+    GST_MESSAGE_ASYNC_START := 1 shl 20,
+    GST_MESSAGE_ASYNC_DONE := 1 shl 21,
+    GST_MESSAGE_REQUEST_STATE := 1 shl 22,
+    GST_MESSAGE_STEP_START := 1 shl 23,
+    GST_MESSAGE_QOS := 1 shl 24,
+    GST_MESSAGE_PROGRESS := 1 shl 25,
+    GST_MESSAGE_TOC := 1 shl 26,
+    GST_MESSAGE_RESET_TIME := 1 shl 27,
+    GST_MESSAGE_STREAM_START := 1 shl 28,
+    GST_MESSAGE_NEED_CONTEXT := 1 shl 29,
+    GST_MESSAGE_HAVE_CONTEXT := 1 shl 30,
+    GST_MESSAGE_EXTENDED := Tgint(1 shl 31),
+    GST_MESSAGE_DEVICE_ADDED := Ord(GST_MESSAGE_EXTENDED)+1,
+    GST_MESSAGE_DEVICE_REMOVED := Ord(GST_MESSAGE_EXTENDED)+2,
+    GST_MESSAGE_PROPERTY_NOTIFY := Ord(GST_MESSAGE_EXTENDED)+3,
+    GST_MESSAGE_STREAM_COLLECTION := Ord(GST_MESSAGE_EXTENDED)+4,
+    GST_MESSAGE_STREAMS_SELECTED := Ord(GST_MESSAGE_EXTENDED)+5,
+    GST_MESSAGE_REDIRECT := Ord(GST_MESSAGE_EXTENDED)+6,
+    GST_MESSAGE_DEVICE_CHANGED := Ord(GST_MESSAGE_EXTENDED)+7,
+    GST_MESSAGE_ANY := Tgint($ffffffff)
+    );
+
+  TGstState = (
+  GST_STATE_VOID_PENDING = 0,
+  GST_STATE_NULL = 1,
+  GST_STATE_READY = 2,
+  GST_STATE_PAUSED = 3,
+  GST_STATE_PLAYING = 4
+
+);
+
+
+
+TGstStateChangeReturn = (
+  GST_STATE_CHANGE_FAILURE = 0,
+  GST_STATE_CHANGE_SUCCESS = 1,
+  GST_STATE_CHANGE_ASYNC = 2,
+  GST_STATE_CHANGE_NO_PREROLL = 3
+) ;
+
+
+
+//    PGstStateChange = ^TGstStateChange;
+    TGstStateChange = (
+      GST_STATE_CHANGE_NULL_TO_READY := (Ord(GST_STATE_NULL) shl 3) or Ord(GST_STATE_READY),
+      GST_STATE_CHANGE_READY_TO_PAUSED := (Ord(GST_STATE_READY) shl 3) or Ord(GST_STATE_PAUSED),
+      GST_STATE_CHANGE_PAUSED_TO_PLAYING := (ord(GST_STATE_PAUSED) shl 3) or Ord(GST_STATE_PLAYING),
+      GST_STATE_CHANGE_PLAYING_TO_PAUSED := (ord(GST_STATE_PLAYING) shl 3) or Ord(GST_STATE_PAUSED),
+      GST_STATE_CHANGE_PAUSED_TO_READY := (ord(GST_STATE_PAUSED) shl 3) or Ord(GST_STATE_READY),
+      GST_STATE_CHANGE_READY_TO_NULL := (ord(GST_STATE_READY) shl 3) or Ord(GST_STATE_NULL),
+      GST_STATE_CHANGE_NULL_TO_NULL := (ord(GST_STATE_NULL) shl 3) or Ord(GST_STATE_NULL),
+      GST_STATE_CHANGE_READY_TO_READY := (ord(GST_STATE_READY) shl 3) or Ord(GST_STATE_READY),
+      GST_STATE_CHANGE_PAUSED_TO_PAUSED := (ord(GST_STATE_PAUSED) shl 3) or Ord(GST_STATE_PAUSED),
+      GST_STATE_CHANGE_PLAYING_TO_PLAYING := (ord(GST_STATE_PLAYING) shl 3) or Ord(GST_STATE_PLAYING)
+      );
+
+    TGstElementFlags = (
+      GST_ELEMENT_FLAG_LOCKED_STATE := GST_OBJECT_FLAG_LAST shl 0,
+      GST_ELEMENT_FLAG_SINK := GST_OBJECT_FLAG_LAST shl 1,
+      GST_ELEMENT_FLAG_SOURCE := GST_OBJECT_FLAG_LAST shl 2,
+      GST_ELEMENT_FLAG_PROVIDE_CLOCK := GST_OBJECT_FLAG_LAST shl 3,
+      GST_ELEMENT_FLAG_REQUIRE_CLOCK := GST_OBJECT_FLAG_LAST shl 4,
+      GST_ELEMENT_FLAG_INDEXABLE := GST_OBJECT_FLAG_LAST shl 5,
+      GST_ELEMENT_FLAG_LAST := GST_OBJECT_FLAG_LAST shl 10
+      );
+
+    TGstStreamFlags = (
+      GST_STREAM_FLAG_NONE,
+      GST_STREAM_FLAG_SPARSE := (1 shl 0),
+      GST_STREAM_FLAG_SELECT := (1 shl 1),
+      GST_STREAM_FLAG_UNSELECT := (1 shl 2)
+    );
+
+    TGstPadLinkReturn = (
+      GST_PAD_LINK_OK := 0,
+      GST_PAD_LINK_WRONG_HIERARCHY := -(1),
+      GST_PAD_LINK_WAS_LINKED := -(2),
+      GST_PAD_LINK_WRONG_DIRECTION := -(3),
+      GST_PAD_LINK_NOFORMAT := -(4),
+      GST_PAD_LINK_NOSCHED := -(5),
+      GST_PAD_LINK_REFUSED := -(6)
+    );
+    PGstPadLinkReturn = ^TGstPadLinkReturn;
+
+    TGstFlowReturn = (
+      GST_FLOW_CUSTOM_SUCCESS_2 := 102,
+      GST_FLOW_CUSTOM_SUCCESS_1 := 101,
+      GST_FLOW_CUSTOM_SUCCESS := 100,
+      GST_FLOW_OK := 0,
+      GST_FLOW_NOT_LINKED := -(1),
+      GST_FLOW_FLUSHING := -(2),
+      GST_FLOW_EOS := -(3),
+      GST_FLOW_NOT_NEGOTIATED := -(4),
+      GST_FLOW_ERROR := -(5),
+      GST_FLOW_NOT_SUPPORTED := -(6),
+      GST_FLOW_CUSTOM_ERROR := -(100),
+      GST_FLOW_CUSTOM_ERROR_1 := -(101),
+      GST_FLOW_CUSTOM_ERROR_2 := -(102));
+
+  TGstPadLinkCheck = (
+    GST_PAD_LINK_CHECK_NOTHING := 0,
+    GST_PAD_LINK_CHECK_HIERARCHY := 1 shl 0,
+    GST_PAD_LINK_CHECK_TEMPLATE_CAPS := 1 shl 1,
+    GST_PAD_LINK_CHECK_CAPS := 1 shl 2,
+    GST_PAD_LINK_CHECK_NO_RECONFIGURE := 1 shl 3,
+    GST_PAD_LINK_CHECK_DEFAULT := Ord(GST_PAD_LINK_CHECK_HIERARCHY) or  Ord(GST_PAD_LINK_CHECK_CAPS)
+    );
+
+  TGstPadDirection = (
+    GST_PAD_UNKNOWN,
+    GST_PAD_SRC,
+    GST_PAD_SINK
+  );
+  PGstPadDirection = ^TGstPadDirection;
+
+  TGstPadMode = (
+    GST_PAD_MODE_NONE,
+    GST_PAD_MODE_PUSH,
+    GST_PAD_MODE_PULL
+  );
+  PGstPadMode = TGstPadMode;
+
+  PGstMemoryFlags = ^TGstMemoryFlags;
+  TGstMemoryFlags = (
+    GST_MEMORY_FLAG_READONLY := Ord(GST_MINI_OBJECT_FLAG_LOCK_READONLY),
+    GST_MEMORY_FLAG_NO_SHARE := Ord(GST_MINI_OBJECT_FLAG_LAST) shl 0,
+    GST_MEMORY_FLAG_ZERO_PREFIXED := Ord(GST_MINI_OBJECT_FLAG_LAST) shl 1,
+    GST_MEMORY_FLAG_ZERO_PADDED := Ord(GST_MINI_OBJECT_FLAG_LAST) shl 2,
+    GST_MEMORY_FLAG_PHYSICALLY_CONTIGUOUS := Ord(GST_MINI_OBJECT_FLAG_LAST) shl 3,
+    GST_MEMORY_FLAG_NOT_MAPPABLE := Ord(GST_MINI_OBJECT_FLAG_LAST) shl 4,
+    GST_MEMORY_FLAG_LAST := Ord(GST_MINI_OBJECT_FLAG_LAST) shl 16
+    );
+

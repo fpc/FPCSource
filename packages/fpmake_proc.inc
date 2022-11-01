@@ -851,5 +851,11 @@ begin
 {$include wasmtime/fpmake.pp}
 end;
 
+procedure add_gstreamer(const ADirectory: string);
+begin
+  with Installer do
+{$include gstreamer/fpmake.pp}
+end;
+
 {$include ide/fpmake.pp}
 {$include gitlab/fpmake.pp}
