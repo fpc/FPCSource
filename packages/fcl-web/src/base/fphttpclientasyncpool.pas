@@ -136,7 +136,6 @@ type
     function GetHost: string;
     function GetURLDataString: string;
     procedure SetURLDataString(const aURLDataString: string);
-    function GetSelf: TFPHTTPClientAsyncPoolRequest;
   public
     constructor Create;
   public
@@ -437,11 +436,6 @@ var
 begin
   xURI := ParseURI(URL, False);
   Result := xURI.Host;
-end;
-
-function TFPHTTPClientAsyncPoolRequest.GetSelf: TFPHTTPClientAsyncPoolRequest;
-begin
-  Result := Self;
 end;
 
 function TFPHTTPClientAsyncPoolRequest.GetURLDataString: string;
