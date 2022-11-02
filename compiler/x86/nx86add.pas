@@ -79,10 +79,10 @@ unit nx86add;
       aasmbase,aasmdata,aasmcpu,
       symconst,symdef,
       cgobj,hlcgobj,cgx86,cga,cgutils,
-      tgobj,ncgutil,
+      tgobj,ncgutil,nutils,
       ncon,nset,ninl,ncnv,ncal,nmat,
       defutil,defcmp,constexp,
-      pass_2,htypechk;
+      pass_1,pass_2,htypechk;
 
 { Range check must be disabled explicitly as the code serves
   on three different architecture sizes }
@@ -1892,6 +1892,7 @@ unit nx86add;
          checkoverflow : Boolean;
          ovloc : tlocation;
          tmpreg : TRegister;
+         indexnode : TNode;
       begin
         { determine if the comparison will be unsigned }
         unsigned:=not(is_signed(left.resultdef)) or
@@ -1944,73 +1945,156 @@ unit nx86add;
        opsize:=def_cgsize(left.resultdef);
 
 {$ifndef i8086}
-       { BMI1 optimisations }
-       if (cs_opt_level2 in current_settings.optimizerswitches) and
-         (CPUX86_HAS_BMI1 in cpu_capabilities[current_settings.cputype]) then
+       if (cs_opt_level2 in current_settings.optimizerswitches) then
          begin
-           { Can we turn "x and (not y)" into an ANDN instruction instead? }
-           if (nodetype = andn) and
-             (opsize in [OS_32, OS_S32{$ifdef x86_64}, OS_64, OS_S64{$endif x86_64}]) and
-             ((left.nodetype = notn) or (right.nodetype = notn)) and
-             (
-               { With "const and (not variable)", ANDN will produce larger
-                 code once everything is moved into registers (as a side-note,
-                 "const and (not const)" and "variable and (not const)" will
-                 have been simplified earlier to remove the NOT operation). }
-               not (cs_opt_size in current_settings.optimizerswitches) or
-               (
-                 (left.location.loc <> LOC_CONSTANT) and
-                 (right.location.loc <> LOC_CONSTANT)
-               )
-             ) then
+           { BMI1 optimisations }
+           if (CPUX86_HAS_BMI1 in cpu_capabilities[current_settings.cputype]) then
              begin
-               { ANDN only supports the second operand being inverted; however,
-                 since we're dealing with ordinals, there won't be any Boolean
-                 shortcutting, so we can safely swap the parameters }
+               { Can we turn "x and (not y)" into an ANDN instruction instead? }
+               if (nodetype = andn) and
+                 (opsize in [OS_32, OS_S32{$ifdef x86_64}, OS_64, OS_S64{$endif x86_64}]) and
+                 ((left.nodetype = notn) or (right.nodetype = notn)) and
+                 (
+                   { With "const and (not variable)", ANDN will produce larger
+                     code once everything is moved into registers (as a side-note,
+                     "const and (not const)" and "variable and (not const)" will
+                     have been simplified earlier to remove the NOT operation). }
+                   not (cs_opt_size in current_settings.optimizerswitches) or
+                   (
+                     (left.location.loc <> LOC_CONSTANT) and
+                     (right.location.loc <> LOC_CONSTANT)
+                   )
+                 ) then
+                 begin
+                   { ANDN only supports the second operand being inverted; however,
+                     since we're dealing with ordinals, there won't be any Boolean
+                     shortcutting, so we can safely swap the parameters }
 
-               if (right.nodetype <> notn) then
-                 swapleftright;
+                   if (right.nodetype <> notn) then
+                     swapleftright;
 
-               secondpass(left);
-               { Skip the not node completely }
-               secondpass(tnotnode(right).left);
+                   secondpass(left);
+                   { Skip the not node completely }
+                   secondpass(tnotnode(right).left);
 
-               { allocate registers }
-               hlcg.location_force_reg(
-                 current_asmdata.CurrAsmList,
-                 tnotnode(right).left.location,
-                 tnotnode(right).left.resultdef,
-                 tnotnode(right).left.resultdef,
-                 false
-               );
+                   { allocate registers }
+                   hlcg.location_force_reg(
+                     current_asmdata.CurrAsmList,
+                     tnotnode(right).left.location,
+                     tnotnode(right).left.resultdef,
+                     tnotnode(right).left.resultdef,
+                     false
+                   );
 
-               if left.location.loc = LOC_CONSTANT then
-                 { With "const and (not variable)", we can probably still make a
-                   saving when it comes to pipeline stalls (left.location.loc
-                   will become LOC_CREGISTER). }
-                 hlcg.location_force_reg(
-                   current_asmdata.CurrAsmList,
-                   left.location,
-                   left.resultdef,
-                   left.resultdef,
-                   true
-                 );
+                   if left.location.loc = LOC_CONSTANT then
+                     { With "const and (not variable)", we can probably still make a
+                       saving when it comes to pipeline stalls (left.location.loc
+                       will become LOC_CREGISTER). }
+                     hlcg.location_force_reg(
+                       current_asmdata.CurrAsmList,
+                       left.location,
+                       left.resultdef,
+                       left.resultdef,
+                       true
+                     );
 
-               set_result_location_reg;
+                   set_result_location_reg;
 
-               case left.location.loc of
-                 LOC_REFERENCE,
-                 LOC_CREFERENCE:
-                   emit_ref_reg_reg(A_ANDN, TCGSize2OpSize[opsize], left.location.reference, tnotnode(right).left.location.register, location.register);
-                 LOC_REGISTER,
-                 LOC_CREGISTER:
-                   emit_reg_reg_reg(A_ANDN, TCGSize2OpSize[opsize], left.location.register, tnotnode(right).left.location.register, location.register)
-                 else
-                   InternalError(2022102101);
-               end;
+                   case left.location.loc of
+                     LOC_REFERENCE,
+                     LOC_CREFERENCE:
+                       emit_ref_reg_reg(A_ANDN, TCGSize2OpSize[opsize], left.location.reference, tnotnode(right).left.location.register, location.register);
+                     LOC_REGISTER,
+                     LOC_CREGISTER:
+                       emit_reg_reg_reg(A_ANDN, TCGSize2OpSize[opsize], left.location.register, tnotnode(right).left.location.register, location.register);
+                     else
+                       InternalError(2022102110);
+                   end;
 
-               { Overflow can't happen with and/andn }
-               Exit;
+                   { Overflow can't happen with and/andn }
+                   Exit;
+                 end;
+             end;
+
+           { BMI2 optimisations }
+           if (CPUX86_HAS_BMI2 in cpu_capabilities[current_settings.cputype]) then
+             begin
+               { Can we turn "x and ((1 shl y) - 1)" into a BZHI instruction instead? }
+               if (nodetype = andn) and
+                 (opsize in [OS_32, OS_S32{$ifdef x86_64}, OS_64, OS_S64{$endif x86_64}]) and
+                 (
+                   (
+                     (right.nodetype = subn) and
+                     (taddnode(right).right.nodetype = ordconstn) and
+                     (tordconstnode(taddnode(right).right).value = 1) and
+                     (taddnode(right).left.nodetype = shln) and
+                     (tshlshrnode(taddnode(right).left).left.nodetype = ordconstn) and
+                     (tordconstnode(tshlshrnode(taddnode(right).left).left).value = 1)
+                   ) or
+                   (
+                     (left.nodetype = subn) and
+                     (taddnode(left).right.nodetype = ordconstn) and
+                     (tordconstnode(taddnode(left).right).value = 1) and
+                     (taddnode(left).left.nodetype = shln) and
+                     (tshlshrnode(taddnode(left).left).left.nodetype = ordconstn) and
+                     (tordconstnode(tshlshrnode(taddnode(left).left).left).value = 1)
+                   )
+                 ) then
+                 begin
+
+                   { Put the subtract node on the right }
+                   if (right.nodetype <> subn) then
+                     swapleftright;
+
+                   secondpass(left);
+
+                   { Skip the subtract and shift nodes completely }
+
+                   { Helps avoid all the awkward typecasts }
+                   indexnode := tshlshrnode(taddnode(right).left).right;
+{$ifdef x86_64}
+                   { The code generator sometimes extends the shift result to 64-bit unnecessarily }
+                   if (indexnode.nodetype = typeconvn) and (opsize in [OS_32, OS_S32]) and
+                     (def_cgsize(TTypeConvNode(indexnode).resultdef) in [OS_64, OS_S64]) then
+                     begin
+                       { Convert to the 32-bit type }
+                       indexnode.resultdef := resultdef;
+                       node_reset_flags(indexnode,[nf_pass1_done]);
+
+                       { We should't be getting any new errors }
+                       if do_firstpass(indexnode) then
+                         InternalError(2022110201);
+
+                       { Keep things internally consistent in case indexnode changed }
+                       tshlshrnode(taddnode(right).left).right := indexnode;
+                     end;
+{$endif x86_64}
+                   secondpass(indexnode);
+
+                   { allocate registers }
+                   hlcg.location_force_reg(
+                     current_asmdata.CurrAsmList,
+                     indexnode.location,
+                     indexnode.resultdef,
+                     resultdef,
+                     false
+                   );
+
+                   set_result_location_reg;
+
+                   case left.location.loc of
+                     LOC_REFERENCE,
+                     LOC_CREFERENCE:
+                       emit_reg_ref_reg(A_BZHI, TCGSize2OpSize[opsize], indexnode.location.register, left.location.reference, location.register);
+                     LOC_REGISTER,
+                     LOC_CREGISTER:
+                       emit_reg_reg_reg(A_BZHI, TCGSize2OpSize[opsize], indexnode.location.register, left.location.register, location.register);
+                     else
+                       InternalError(2022102111);
+                   end;
+
+                   Exit;
+                 end;
              end;
          end;
 {$endif not i8086}
