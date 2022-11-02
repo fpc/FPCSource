@@ -337,7 +337,6 @@ type
     function CreateWaitForAllRequestsThreadRef(const aOnAllDoneRef: TFPHTTPClientPoolSimpleCallbackRef;
       const aSynchronizeOnAllDone: Boolean; const aOwner: TComponent; const aTimeoutMS: Integer): TFPHTTPClientAsyncPoolCustomWaitForAllThread; virtual;
     {$ENDIF}
-    procedure WaitForThreadsToFinish; virtual;
 
     // support for MaxClientsPerServer (add requests that wait for a client to a queue)
     procedure AddToQueue(const aClients: TFPCustomHTTPClients; const aBreakUTC: TDateTime; const aRequest: TFPHTTPClientAbstractAsyncPoolRequest);
@@ -1127,11 +1126,6 @@ begin
     // That is fine - it will be removed automatically when the owner is destroyed.
   end;
   CreateWaitForAllRequestsThread(aOnAllDone, aSynchronizeOnAllDone, aOwner, aTimeoutMS);
-end;
-
-procedure TFPCustomHTTPClientAsyncPool.WaitForThreadsToFinish;
-begin
-  Sleep(10);
 end;
 
 { TFPHTTPClientAsyncPoolRequestThread }
