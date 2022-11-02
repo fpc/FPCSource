@@ -31,7 +31,7 @@ unit optdeadstore;
     uses
       node;
 
-    function do_optdeadstoreelim(var rootnode : tnode) : tnode;
+    function do_optdeadstoreelim(var rootnode : tnode;changed: boolean) : tnode;
 
   implementation
 
@@ -106,9 +106,7 @@ unit optdeadstore;
       end;
 
 
-    function do_optdeadstoreelim(var rootnode: tnode): tnode;
-      var
-        changed: boolean;
+    function do_optdeadstoreelim(var rootnode: tnode;changed: boolean): tnode;
       begin
 {$ifdef EXTDEBUG_DEADSTORE}
         writeln('******************* Tree before deadstore elimination **********************');

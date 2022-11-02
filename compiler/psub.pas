@@ -1294,14 +1294,21 @@ implementation
                        tabstractnormalvarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry).noregvarinitneeded:=true
                    end;
                end;
+
+           if cs_opt_dead_store_eliminate in current_settings.optimizerswitches then
+             begin
+               changed:=false;
+               repeat
+                 do_optdeadstoreelim(code,changed);
+                 if changed then
+                   dfabuilder.redodfainfo(code);
+               until not(changed);
+             end;
          end
        else
          begin
            ConvertForLoops(code);
          end;
-
-       if (pi_dfaavailable in flags) and (cs_opt_dead_store_eliminate in current_settings.optimizerswitches) then
-         do_optdeadstoreelim(code);
 
        if (cs_opt_remove_empty_proc in current_settings.optimizerswitches) and
          (procdef.proctypeoption in [potype_operator,potype_procedure,potype_function]) and
