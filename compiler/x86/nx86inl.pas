@@ -61,6 +61,7 @@ interface
           { second pass override to generate these nodes }
           procedure pass_generate_code_cpu;override;
           procedure second_IncludeExclude;override;
+          procedure second_AndOrXorShiftRot_assign;override;
           procedure second_pi; override;
           procedure second_arctan_real; override;
           procedure second_abs_real; override;
@@ -98,7 +99,7 @@ implementation
       htypechk,
       cgbase,pass_1,pass_2,
       cpuinfo,cpubase,nutils,
-      ncal,ncgutil,nld,ncon,
+      ncal,ncgutil,nld,ncon,nadd,nmat,constexp,
       tgobj,
       cga,cgutils,cgx86,cgobj,hlcgobj;
 
@@ -618,6 +619,92 @@ implementation
          end;
        end;
 
+
+     procedure tx86inlinenode.second_AndOrXorShiftRot_assign;
+       var
+         opsize : tcgsize;
+         valuenode, indexnode, loadnode: TNode;
+         DestReg: TRegister;
+       begin
+{$ifndef i8086}
+         if (cs_opt_level2 in current_settings.optimizerswitches) then
+           begin
+             { Saves on a lot of typecasting and potential coding mistakes }
+             valuenode := tcallparanode(left).left;
+             loadnode := tcallparanode(tcallparanode(left).right).left;
+
+             opsize := def_cgsize(loadnode.resultdef);
+
+             { BMI2 optimisations }
+             if (CPUX86_HAS_BMI2 in cpu_capabilities[current_settings.cputype]) then
+               begin
+                 { If the second operand is "((1 shl y) - 1)", we can turn it
+                   into a BZHI operator instead }
+                 if (opsize in [OS_32, OS_S32{$ifdef x86_64}, OS_64, OS_S64{$endif x86_64}]) and
+                   (valuenode.nodetype = subn) and
+                   (taddnode(valuenode).right.nodetype = ordconstn) and
+                   (tordconstnode(taddnode(valuenode).right).value = 1) and
+                   (taddnode(valuenode).left.nodetype = shln) and
+                   (tshlshrnode(taddnode(valuenode).left).left.nodetype = ordconstn) and
+                   (tordconstnode(tshlshrnode(taddnode(valuenode).left).left).value = 1) then
+                   begin
+                     { Skip the subtract and shift nodes completely }
+
+                     { Helps avoid all the awkward typecasts }
+                     indexnode := tshlshrnode(taddnode(valuenode).left).right;
+{$ifdef x86_64}
+                     { The code generator sometimes extends the shift result to 64-bit unnecessarily }
+                     if (indexnode.nodetype = typeconvn) and (opsize in [OS_32, OS_S32]) and
+                       (def_cgsize(TTypeConvNode(indexnode).resultdef) in [OS_64, OS_S64]) then
+                       begin
+                         { Convert to the 32-bit type }
+                         indexnode.resultdef := loadnode.resultdef;
+                         node_reset_flags(indexnode,[nf_pass1_done]);
+
+                         { We should't be getting any new errors }
+                         if do_firstpass(indexnode) then
+                           InternalError(2022110202);
+
+                         { Keep things internally consistent in case indexnode changed }
+                         tshlshrnode(taddnode(valuenode).left).right := indexnode;
+                       end;
+{$endif x86_64}
+                     secondpass(indexnode);
+                     secondpass(loadnode);
+
+                     { allocate registers }
+                     hlcg.location_force_reg(
+                       current_asmdata.CurrAsmList,
+                       indexnode.location,
+                       indexnode.resultdef,
+                       loadnode.resultdef,
+                       false
+                     );
+
+                     case loadnode.location.loc of
+                       LOC_REFERENCE,
+                       LOC_CREFERENCE:
+                         begin
+                           { BZHI can only write to a register }
+                           DestReg := cg.getintregister(current_asmdata.CurrAsmList,opsize);
+                           emit_reg_ref_reg(A_BZHI, TCGSize2OpSize[opsize], indexnode.location.register, loadnode.location.reference, DestReg);
+                           emit_reg_ref(A_MOV, TCGSize2OpSize[opsize], DestReg, loadnode.location.reference);
+                         end;
+                       LOC_REGISTER,
+                       LOC_CREGISTER:
+                         emit_reg_reg_reg(A_BZHI, TCGSize2OpSize[opsize], indexnode.location.register, loadnode.location.register, loadnode.location.register);
+                       else
+                         InternalError(2022102110);
+                     end;
+
+                     Exit;
+                   end;
+               end;
+           end;
+{$endif not i8086}
+
+         inherited second_AndOrXorShiftRot_assign;
+       end;
 
      procedure tx86inlinenode.second_pi;
        begin
