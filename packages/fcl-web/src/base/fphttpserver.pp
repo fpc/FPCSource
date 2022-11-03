@@ -25,7 +25,7 @@ uses
 
 Const
   ReadBufLen = 4096;
-  DefaultKeepConnectionTimeout = 50; // Ms
+  DefaultKeepConnectionIdleTimeout = 50; // Ms
 
 Type
   TFPHTTPConnection = Class;
@@ -76,6 +76,7 @@ Type
     FKeepAlive : Boolean;
     function GetKeepConnections: Boolean;
     function GetKeepConnectionTimeout: Integer;
+    function GetKeepConnectionIdleTimeout: Integer;
     procedure InterPretHeader(ARequest: TFPHTTPConnectionRequest; const AHeader: String);
     function ReadString: String;
     Function GetLookupHostNames : Boolean;
@@ -96,6 +97,8 @@ Type
     Procedure SetBusy;
     // Actually handle request
     procedure DoHandleRequest; virtual;
+    // Called when KeepConnection is idle.
+    procedure DoKeepConnectionIdle; virtual;
     // Read request headers
     Function ReadRequestHeaders : TFPHTTPConnectionRequest;
     // Check if we have keep-alive and no errors occurred
@@ -106,7 +109,10 @@ Type
     Property Busy : Boolean Read FBusy;
     // The server supports HTTP 1.1 connection: keep-alive
     Property KeepConnections : Boolean read GetKeepConnections;
-    // time-out for keep-alive: how many ms should the server keep the connection alive after a request has been handled
+    // Idle time-out for keep-alive: after how many ms should the connection fire the OnKeepConnectionIdle event
+    Property KeepConnectionIdleTimeout: Integer read GetKeepConnectionIdleTimeout;
+    // Time-out for keep-alive: how many ms should the server keep the connection alive after a request has been handled.
+    //   After this timeout the keep-alive connection is forcefully closed.
     Property KeepConnectionTimeout: Integer read GetKeepConnectionTimeout;
   Public
     Type
@@ -299,8 +305,10 @@ Type
     FAfterSocketHandlerCreated: TSocketHandlerCreatedEvent;
     FCertificateData: TCertificateData;
     FKeepConnections: Boolean;
+    FKeepConnectionIdleTimeout: Integer;
     FKeepConnectionTimeout: Integer;
     FOnAcceptIdle: TNotifyEvent;
+    FOnKeepConnectionIdle: TNotifyEvent;
     FOnAllowConnect: TConnectQuery;
     FOnGetSocketHandler: TGetSocketHandlerEvent;
     FOnRequest: THTTPServerRequestHandler;
@@ -356,6 +364,8 @@ Type
     procedure DoAcceptError(Sender: TObject; ASocket: Longint; E: Exception;  var ErrorAction: TAcceptErrorAction);
     // Called when accept is idle. Will check for new requests.
     procedure DoAcceptIdle(Sender: TObject);
+    // Called when KeepConnection is idle.
+    procedure DoKeepConnectionIdle(Sender: TObject);
     // Create a connection handling object.
     function CreateConnection(Data : TSocketStream) : TFPHTTPConnection; virtual;
     // Create a connection handler object depending on threadmode
@@ -401,7 +411,10 @@ Type
     Property Port : Word Read FPort Write SetPort Default 80;
     // Set to true if you want to support HTTP 1.1 connection: keep-alive - only available for threaded server
     Property KeepConnections: Boolean read FKeepConnections write FKeepConnections;
-    // time-out for keep-alive: how many ms should the server keep the connection alive after a request has been handled
+    // Idle time-out for keep-alive: after how many ms should the connection fire the OnKeepConnectionIdle event
+    Property KeepConnectionIdleTimeout: Integer read FKeepConnectionIdleTimeout write FKeepConnectionIdleTimeout;
+    // Time-out for keep-alive: how many ms should the server keep the connection alive after a request has been handled.
+    //   After this timeout the keep-alive connection is forcefully closed.
     Property KeepConnectionTimeout: Integer read FKeepConnectionTimeout write FKeepConnectionTimeout;
     // Max connections on queue (for Listen call)
     Property QueueSize : Word Read FQueueSize Write SetQueueSize Default 5;
@@ -419,6 +432,8 @@ Type
     Property OnUnexpectedError : TRequestErrorHandler Read FOnUnexpectedError Write FOnUnexpectedError;
     // Called when there are no connections waiting.
     Property OnAcceptIdle : TNotifyEvent Read FOnAcceptIdle Write SetIdle;
+    // Called when there are no requests waiting in a keep-alive connection.
+    Property OnKeepConnectionIdle : TNotifyEvent Read FOnKeepConnectionIdle Write FOnKeepConnectionIdle;
     // If >0, when no new connection appeared after timeout, OnAcceptIdle is called.
     Property AcceptIdleTimeout : Cardinal Read FAcceptIdleTimeout Write SetAcceptIdleTimeout;
   published
@@ -452,6 +467,7 @@ Type
     Property OnAcceptIdle;
     Property AcceptIdleTimeout;
     Property KeepConnections;
+    Property KeepConnectionIdleTimeout;
     Property KeepConnectionTimeout;
   end;
 
@@ -1065,7 +1081,7 @@ end;
 
 function TFPHTTPConnection.RequestPending: Boolean;
 begin
-  Result:=(Not IsUpgraded) and Socket.CanRead(KeepConnectionTimeout);
+  Result:=(Not IsUpgraded) and Socket.CanRead(KeepConnectionIdleTimeout);
 end;
 
 constructor TFPHTTPConnection.Create(AServer: TFPCustomHttpServer; ASocket: TSocketStream);
@@ -1157,12 +1173,28 @@ begin
   end;
 end;
 
+procedure TFPHTTPConnection.DoKeepConnectionIdle;
+begin
+  if Assigned(FServer) then
+    FServer.DoKeepConnectionIdle(Self);
+end;
+
 function TFPHTTPConnection.GetKeepConnections: Boolean;
 begin
   if Assigned(FServer) then
     Result := FServer.KeepConnections
   else
     Result := False;
+end;
+
+function TFPHTTPConnection.GetKeepConnectionIdleTimeout: Integer;
+begin
+  if Assigned(FServer) then
+    Result := FServer.KeepConnectionIdleTimeout
+  else
+    Result := 0;
+  if Result=0 then
+    Result := KeepConnectionTimeout; // when there is KeepConnectionTimeout set, limit KeepConnectionIdleTimeout with its value
 end;
 
 function TFPHTTPConnection.GetKeepConnectionTimeout: Integer;
@@ -1205,13 +1237,28 @@ end;
 
 procedure TFPHTTPConnectionThread.Execute;
 
+var
+  AttemptsLeft: Integer;
 begin
   try
     // Always handle first request
     Connection.HandleRequest;
-    While not Terminated and Connection.AllowNewRequest do
+    if (Connection.KeepConnectionIdleTimeout>0) and (Connection.KeepConnectionTimeout>0) then
+      AttemptsLeft := Connection.KeepConnectionTimeout div Connection.KeepConnectionIdleTimeout
+    else
+      AttemptsLeft := -1; // infinitely
+    While not Terminated and Connection.AllowNewRequest and (AttemptsLeft<>0) do
+      begin
       if Connection.RequestPending then
-        Connection.HandleRequest;
+        Connection.HandleRequest
+      else // KeepConnectionIdleTimeout was reached without a new request -> idle
+        begin
+        if AttemptsLeft>0 then
+          Dec(AttemptsLeft);
+        if AttemptsLeft<>0 then
+          Connection.DoKeepConnectionIdle;
+        end;
+      end;
   except
     on E : Exception do
       Connection.HandleUnexpectedError(E);
@@ -1278,6 +1325,12 @@ begin
     On E : Exception do
       HandleUnexpectedError(Self, E);
   end;
+end;
+
+procedure TFPCustomHttpServer.DoKeepConnectionIdle(Sender: TObject);
+begin
+  if Assigned(OnKeepConnectionIdle) then
+    OnKeepConnectionIdle(Sender);
 end;
 
 function TFPCustomHttpServer.GetHostName: string;
@@ -1541,7 +1594,7 @@ begin
   FServerBanner := 'FreePascal';
   FCertificateData:=CreateCertificateData;
   FKeepConnections:=False;
-  FKeepConnectionTimeout:=DefaultKeepConnectionTimeout;
+  FKeepConnectionIdleTimeout:=DefaultKeepConnectionIdleTimeout;
 end;
 
 
