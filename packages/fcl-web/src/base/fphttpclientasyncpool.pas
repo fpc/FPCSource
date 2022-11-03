@@ -46,8 +46,6 @@ type
     function GetResponseEncoding: TEncoding;
     function GetResponseString: string;
     function GetResponseBytes: TBytes;
-
-    //class function Create(const aFromThread: TOHttpPoolThread): TFPHTTPClientPoolResult; static;
   protected
     procedure AssignTo(Dest: TPersistent); override;
   public
