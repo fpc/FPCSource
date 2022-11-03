@@ -652,7 +652,10 @@ end;
 procedure TFPHTTPServerConnectionListHandler.CloseConnectionSocket(aConnection: TFPHTTPConnection; var aContinue: boolean);
 begin
   if Not aConnection.IsUpgraded then
+    begin
     sockets.CloseSocket(aConnection.Socket.Handle);
+    aConnection.FKeepAlive:=False; // to exit the keep-alive loop for hanging sockets
+    end;
 end;
 
 procedure TFPHTTPServerConnectionListHandler.Foreach(aIterator: TConnectionIterator);
