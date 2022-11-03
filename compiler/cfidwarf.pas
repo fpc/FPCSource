@@ -338,6 +338,8 @@ implementation
         fdeofslabel, curpos: tasmlabel;
         tc             : tai_const;
       begin
+        if DwarfList.Empty then
+          exit;
         CurrentLSDALabel:=nil;
         case datatype of
           dt_none:
