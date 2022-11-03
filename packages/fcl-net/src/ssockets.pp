@@ -62,7 +62,6 @@ type
 
   TSocketHandler = Class(TObject)
   Private
-    FServer: TSocketServer;
     FSocket: TSocketStream;
   Protected
     FLastError : integer;
