@@ -19,6 +19,9 @@ unit ctypes;
 
 {$ifdef FPC}
   {$inline on}
+  {$ifndef DISABLE_INLINE}
+     {$define CTYPES_INLINE}
+  {$endif}
   {$define dummy}
 {$endif}
 
@@ -129,27 +132,27 @@ type
 
 {$ifdef longdouble_assignment_overload_real128}
 {Non-x86 typically doesn't have extended. To be fixed once this changes.}
-operator := (const v:clongdouble) r:double;inline;
-operator := (const v:double) r:clongdouble;inline;
+operator := (const v:clongdouble) r:double;{$ifdef CTYPES_INLINE}inline;{$endif}
+operator := (const v:double) r:clongdouble;{$ifdef CTYPES_INLINE}inline;{$endif}
 {$ifdef dummy}
-operator +(const e:Double;const c:clongdouble) r:Double;inline;
-operator +(const c:clongdouble;const e:Double) r:Double;inline;
-operator -(const e:Double;const c:clongdouble) r:Double;inline;
-operator -(const c:clongdouble;const e:Double) r:Double;inline;
-operator *(const e:Double;const c:clongdouble) r:Double;inline;
-operator *(const c:clongdouble;const e:Double) r:Double;inline;
-operator /(const e:Double;const c:clongdouble) r:Double;inline;
-operator /(const c:clongdouble;const e:Double) r:Double;inline;
-operator =(const e:Double;const c:clongdouble) r:boolean;inline;
-operator =(const c:clongdouble;const e:Double) r:boolean;inline;
-operator <(const e:Double;const c:clongdouble) r:boolean;inline;
-operator <(const c:clongdouble;const e:Double) r:boolean;inline;
-operator >(const e:Double;const c:clongdouble) r:boolean;inline;
-operator >(const c:clongdouble;const e:Double) r:boolean;inline;
-operator >=(const e:Double;const c:clongdouble) r:boolean;inline;
-operator >=(const c:clongdouble;const e:Double) r:boolean;inline;
-operator <=(const e:Double;const c:clongdouble) r:boolean;inline;
-operator <=(const c:clongdouble;const e:Double) r:boolean;inline;
+operator +(const e:Double;const c:clongdouble) r:Double;{$ifdef CTYPES_INLINE}inline;{$endif}
+operator +(const c:clongdouble;const e:Double) r:Double;{$ifdef CTYPES_INLINE}inline;{$endif}
+operator -(const e:Double;const c:clongdouble) r:Double;{$ifdef CTYPES_INLINE}inline;{$endif}
+operator -(const c:clongdouble;const e:Double) r:Double;{$ifdef CTYPES_INLINE}inline;{$endif}
+operator *(const e:Double;const c:clongdouble) r:Double;{$ifdef CTYPES_INLINE}inline;{$endif}
+operator *(const c:clongdouble;const e:Double) r:Double;{$ifdef CTYPES_INLINE}inline;{$endif}
+operator /(const e:Double;const c:clongdouble) r:Double;{$ifdef CTYPES_INLINE}inline;{$endif}
+operator /(const c:clongdouble;const e:Double) r:Double;{$ifdef CTYPES_INLINE}inline;{$endif}
+operator =(const e:Double;const c:clongdouble) r:boolean;{$ifdef CTYPES_INLINE}inline;{$endif}
+operator =(const c:clongdouble;const e:Double) r:boolean;{$ifdef CTYPES_INLINE}inline;{$endif}
+operator <(const e:Double;const c:clongdouble) r:boolean;{$ifdef CTYPES_INLINE}inline;{$endif}
+operator <(const c:clongdouble;const e:Double) r:boolean;{$ifdef CTYPES_INLINE}inline;{$endif}
+operator >(const e:Double;const c:clongdouble) r:boolean;{$ifdef CTYPES_INLINE}inline;{$endif}
+operator >(const c:clongdouble;const e:Double) r:boolean;{$ifdef CTYPES_INLINE}inline;{$endif}
+operator >=(const e:Double;const c:clongdouble) r:boolean;{$ifdef CTYPES_INLINE}inline;{$endif}
+operator >=(const c:clongdouble;const e:Double) r:boolean;{$ifdef CTYPES_INLINE}inline;{$endif}
+operator <=(const e:Double;const c:clongdouble) r:boolean;{$ifdef CTYPES_INLINE}inline;{$endif}
+operator <=(const c:clongdouble;const e:Double) r:boolean;{$ifdef CTYPES_INLINE}inline;{$endif}
 {$endif dummy}
 {$endif}
 {$endif FPUNONE}
@@ -201,7 +204,7 @@ begin
     exp:=exp+$8000;
   Pword(@r[r128_exponent_ofs])^:=exp;
 {$ifdef USE_UNALIGNED}
-  unaligned(Pqword(@r[r128_mantissa_ofs])^):=qword(v) shl 12;
+  Pqword(unaligned(@r[r128_mantissa_ofs]))^:=qword(v) shl 12;
   Pword(@r[r128_mantissa_ofs+8])^:=0;
   Pword(@r[r128_mantissa_ofs+10])^:=0;
 {$else not USE_UNALIGNED}
@@ -215,92 +218,92 @@ end;
 
 // There is no record with a value field in this case
 
-operator +(const e:Double;const c:clongdouble) r:Double;inline;
+operator +(const e:Double;const c:clongdouble) r:Double;{$ifdef CTYPES_INLINE}inline;{$endif}
 begin
   r:=e+double(c);
 end;
 
-operator +(const c:clongdouble;const e:Double) r:Double;inline;
+operator +(const c:clongdouble;const e:Double) r:Double;{$ifdef CTYPES_INLINE}inline;{$endif}
 begin
   r:=double(c)+e;
 end;
 
-operator -(const e:Double;const c:clongdouble) r:Double;inline;
+operator -(const e:Double;const c:clongdouble) r:Double;{$ifdef CTYPES_INLINE}inline;{$endif}
 begin
   r:=e-double(c);
 end;
 
-operator -(const c:clongdouble;const e:Double) r:Double;inline;
+operator -(const c:clongdouble;const e:Double) r:Double;{$ifdef CTYPES_INLINE}inline;{$endif}
 begin
   r:=double(c)-e;
 end;
 
-operator *(const e:Double;const c:clongdouble) r:Double;inline;
+operator *(const e:Double;const c:clongdouble) r:Double;{$ifdef CTYPES_INLINE}inline;{$endif}
 begin
   r:=e*double(c);
 end;
 
-operator *(const c:clongdouble;const e:Double) r:Double;inline;
+operator *(const c:clongdouble;const e:Double) r:Double;{$ifdef CTYPES_INLINE}inline;{$endif}
 begin
   r:=double(c)*e;
 end;
 
-operator /(const e:Double;const c:clongdouble) r:Double;inline;
+operator /(const e:Double;const c:clongdouble) r:Double;{$ifdef CTYPES_INLINE}inline;{$endif}
 begin
   r:=e/double(c);
 end;
 
-operator /(const c:clongdouble;const e:Double) r:Double;inline;
+operator /(const c:clongdouble;const e:Double) r:Double;{$ifdef CTYPES_INLINE}inline;{$endif}
 begin
   r:=double(c)/e;
 end;
 
-operator =(const e:Double;const c:clongdouble) r:boolean;inline;
+operator =(const e:Double;const c:clongdouble) r:boolean;{$ifdef CTYPES_INLINE}inline;{$endif}
 begin
   r:=e=double(c);
 end;
 
-operator =(const c:clongdouble;const e:Double) r:boolean;inline;
+operator =(const c:clongdouble;const e:Double) r:boolean;{$ifdef CTYPES_INLINE}inline;{$endif}
 begin
   r:=double(c)=e;
 end;
 
-operator <(const e:Double;const c:clongdouble) r:boolean;inline;
+operator <(const e:Double;const c:clongdouble) r:boolean;{$ifdef CTYPES_INLINE}inline;{$endif}
 begin
   r:=e<double(c);
 end;
 
-operator <(const c:clongdouble;const e:Double) r:boolean;inline;
+operator <(const c:clongdouble;const e:Double) r:boolean;{$ifdef CTYPES_INLINE}inline;{$endif}
 begin
   r:=double(c)<e;
 end;
 
-operator >(const e:Double;const c:clongdouble) r:boolean;inline;
+operator >(const e:Double;const c:clongdouble) r:boolean;{$ifdef CTYPES_INLINE}inline;{$endif}
 begin
   r:=e>double(c);
 end;
 
-operator >(const c:clongdouble;const e:Double) r:boolean;inline;
+operator >(const c:clongdouble;const e:Double) r:boolean;{$ifdef CTYPES_INLINE}inline;{$endif}
 begin
   r:=double(c)>e;
 end;
 
-operator >=(const e:Double;const c:clongdouble) r:boolean;inline;
+operator >=(const e:Double;const c:clongdouble) r:boolean;{$ifdef CTYPES_INLINE}inline;{$endif}
 begin
   r:=e>=double(c);
 end;
 
-operator >=(const c:clongdouble;const e:Double) r:boolean;inline;
+operator >=(const c:clongdouble;const e:Double) r:boolean;{$ifdef CTYPES_INLINE}inline;{$endif}
 begin
   r:=double(c)>=e;
 end;
 
-operator <=(const e:Double;const c:clongdouble) r:boolean;inline;
+operator <=(const e:Double;const c:clongdouble) r:boolean;{$ifdef CTYPES_INLINE}inline;{$endif}
 begin
   r:=e<=double(c);
 end;
 
-operator <=(const c:clongdouble;const e:Double) r:boolean;inline;
+operator <=(const c:clongdouble;const e:Double) r:boolean;{$ifdef CTYPES_INLINE}inline;{$endif}
 begin
   r:=double(c)<=e;
 end;
