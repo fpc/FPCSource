@@ -100,6 +100,7 @@ interface
         procedure outmost_frame(list: TAsmList);override;
         procedure cfa_offset(list:TAsmList;reg:tregister;ofs:longint);override;
         procedure cfa_restore(list:TAsmList;reg:tregister);override;
+        procedure cfa_def_cfa(list:TAsmList;reg:tregister;ofs:longint);override;
         procedure cfa_def_cfa_register(list:TAsmList;reg:tregister);override;
         procedure cfa_def_cfa_offset(list:TAsmList;ofs:longint);override;
       end;
@@ -115,6 +116,7 @@ interface
         procedure outmost_frame(list: TAsmList);override;
         procedure cfa_offset(list:TAsmList;reg:tregister;ofs:longint);override;
         procedure cfa_restore(list:TAsmList;reg:tregister);override;
+        procedure cfa_def_cfa(list:TAsmList;reg:tregister;ofs:longint);override;
         procedure cfa_def_cfa_register(list:TAsmList;reg:tregister);override;
         procedure cfa_def_cfa_offset(list:TAsmList;ofs:longint);override;
       end;
@@ -641,6 +643,15 @@ implementation
       end;
 
 
+    procedure TDwarfAsmCFILowLevel.cfa_def_cfa(list:TAsmList;reg:tregister;ofs:longint);
+      begin
+        if datatype=dt_none then
+          exit;
+        cfa_advance_loc(list);
+        DwarfList.concat(tdwarfitem.create_reg_const(DW_CFA_def_cfa,doe_uleb,reg,doe_uleb,ofs));
+      end;
+
+
     procedure TDwarfAsmCFILowLevel.cfa_def_cfa_register(list:TAsmList;reg:tregister);
       begin
         if datatype=dt_none then
@@ -736,6 +747,19 @@ implementation
         if not(af_supports_hlcfi in target_asm.flags) then
           exit;
         list.concat(tai_cfi_op_reg.create(cfi_restore,reg));
+      end;
+
+
+    procedure TDwarfAsmCFIHighLevel.cfa_def_cfa(list: TAsmList; reg: tregister; ofs: longint);
+      begin
+        if not(tf_use_hlcfi in target_info.flags) then
+          begin
+            inherited;
+            exit;
+          end;
+        if not(af_supports_hlcfi in target_asm.flags) then
+          exit;
+        list.concat(tai_cfi_op_reg_val.create(cfi_def_cfa,reg,ofs));
       end;
 
 

@@ -173,6 +173,7 @@ interface
         procedure outmost_frame(list:TAsmList);virtual;
         procedure cfa_offset(list:TAsmList;reg:tregister;ofs:longint);virtual;
         procedure cfa_restore(list:TAsmList;reg:tregister);virtual;
+        procedure cfa_def_cfa(list:TAsmList;reg:tregister;ofs:longint);virtual;
         procedure cfa_def_cfa_register(list:TAsmList;reg:tregister);virtual;
         procedure cfa_def_cfa_offset(list:TAsmList;ofs:longint);virtual;
         function get_frame_start: TAsmLabel;virtual;
@@ -311,6 +312,11 @@ implementation
 
 
     procedure TAsmCFI.cfa_restore(list:TAsmList;reg:tregister);
+      begin
+      end;
+
+
+    procedure TAsmCFI.cfa_def_cfa(list:TAsmList;reg:tregister;ofs:longint);
       begin
       end;
 
