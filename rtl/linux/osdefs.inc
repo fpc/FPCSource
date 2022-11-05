@@ -122,3 +122,8 @@
     {$define MMAP2}
   {$endif}
 {$endif android}
+
+{$ifdef cpuloongarch64}
+  {$define generic_linux_syscalls}
+  {$undef usestime}
+{$endif cpuloongarch64}

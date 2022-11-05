@@ -188,6 +188,14 @@ begin
 end;
 {$endif defined(CPUX86_64)}
 
+{$ifdef CPULOONGARCH64}
+{$define INITTLS}
+Function fpset_tls(p : pointer;size : SizeUInt):cint; assembler;
+asm
+  move $tp, p
+end;
+{$endif CPULOONGARCH64}
+
 {$endif not FPC_USE_LIBC}
 
 
@@ -660,6 +668,9 @@ function FpUGetRLimit(resource : cInt; rlim : PRLimit) : cInt; cdecl; external c
 const
   page_size = $10000;
   {$define LAST_PAGE_GENERATES_SIGNAL}
+{$elseif defined(CPULOONGARCH)}
+const
+  page_size = $4000;
 {$else}
 const
   page_size = $1000;

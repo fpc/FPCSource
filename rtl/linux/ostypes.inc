@@ -320,7 +320,7 @@ CONST
 {$if defined(cpupowerpc)}
     O_LARGEFILE =   $10000;
 {$endif}
-{$if defined(cpui386) or defined(cpux86_64) or defined(cpuia64) or defined(cpuxtensa) or defined(cpuriscv32)}
+{$if defined(cpui386) or defined(cpux86_64) or defined(cpuia64) or defined(cpuxtensa) or defined(cpuriscv32) or defined(loongarch64)}
     O_LARGEFILE =    $8000;
 {$endif}
 {$if defined(cpumips) or defined(cpumipsel)}
