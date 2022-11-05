@@ -1483,9 +1483,9 @@ unit rgobj;
        such as stack/framepointers, because otherwise they can be changed }
       else if (((u<first_imaginary) and adjacent_ok(u,v)) or
                conservative(u,v)) and
-              ((u>first_imaginary) or
+              ((u>=first_imaginary) or
                (u in usable_register_set)) and
-              ((v>first_imaginary) or
+              ((v>=first_imaginary) or
                (v in usable_register_set)) then
         begin
           m.moveset:=ms_coalesced_moves;  {Move coalesced!}
