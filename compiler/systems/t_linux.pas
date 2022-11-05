@@ -210,6 +210,9 @@ begin
       LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib/riscv64-linux-gnu',true);
       LibrarySearchPath.AddLibraryPath(sysrootpath,'=/lib/riscv64-linux-gnu',true);
 {$endif riscv64}
+{$ifdef loongarch64}
+      LibrarySearchPath.AddLibraryPath(sysrootpath,'=/usr/lib/loongarch64-linux-gnu',true);
+{$endif loongarch64}
     end;
 end;
 
@@ -275,6 +278,9 @@ const defdynlinker='/lib/ld-linux-aarch64.so.1';
   const defdynlinker='/lib/ld.so.1';
 {$endif xtensa}
 
+{$ifdef loongarch64}
+  const defdynlinker='/usr/lib64/ld-linux-loongarch-lp64d.so.1';
+{$endif loongarch64}
 
 procedure SetupDynlinker(out DynamicLinker:string;out libctype:TLibcType);
 begin
@@ -383,6 +389,7 @@ const
 {$ifdef riscv32}   platform_select='-m elf32lriscv';{$endif}
 {$ifdef riscv64}   platform_select='-m elf64lriscv';{$endif}
 {$ifdef xtensa}    platform_select='';{$endif}
+{$ifdef loongarch64}   platform_select='';{$endif}
 
 var
   platformopt: string;
@@ -1367,6 +1374,11 @@ initialization
   RegisterExport(system_xtensa_linux,texportliblinux);
   RegisterTarget(system_xtensa_linux_info);
 {$endif xtensa}
+{$ifdef loongarch64}
+  RegisterImport(system_loongarch64_linux,timportliblinux);
+  RegisterExport(system_loongarch64_linux,texportliblinux);
+  RegisterTarget(system_loongarch64_linux_info);
+{$endif loongarch64}
   RegisterRes(res_elf_info,TWinLikeResourceFile);
 end.
 

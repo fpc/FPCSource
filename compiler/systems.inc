@@ -211,7 +211,8 @@
              system_aarch64_embedded,   { 116 }
              system_mips64_linux,       { 117 }
              system_mips64el_linux,     { 118 }
-             system_riscv32_freertos    { 119 }
+             system_riscv32_freertos,   { 119 }
+             system_loongarch64_linux   { 120 }
        );
 
      type
