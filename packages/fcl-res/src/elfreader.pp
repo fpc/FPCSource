@@ -294,6 +294,8 @@ begin
                     fMachineType:=emtriscv32
                   else
                     fMachineType:=emtriscv64;
+      EM_LOONGARCH : if fBits=ELFCLASS64 then
+                       fMachineType:=emtloongarch64;
     end;
   finally
     subreader.Free;

@@ -263,6 +263,7 @@ begin
     mtaarch64 : Result.MachineType:=emtaarch64;
     mtriscv32 : Result.MachineType:=emtriscv32;
     mtriscv64 : Result.MachineType:=emtriscv64;
+    mtloongarch64 : Result.MachineType:=emtloongarch64;
   end;
 end;
 
