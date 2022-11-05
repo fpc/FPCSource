@@ -285,6 +285,9 @@ begin
         if CompilerTarget = mipsel then
           P.Options.Add('-Fu'+CompilerDir+'/mips');
 
+        if CompilerTarget = loongarch64 then
+          P.Options.Add('-Fu'+CompilerDir+'/loongarch64');
+
         if llvm then
           begin
             P.Options.Add('-Fu'+CompilerDir+'/llvm');

@@ -23,7 +23,7 @@ type
   TElfMachineType = (emtnone, emtsparc, emti386, emtm68k, emtppc, emtppc64,
                      emtarm, emtarmeb, emtia64, emtx86_64, emtalpha,
                      emtmips, emtmipsel, emtppc64le, emtaarch64,
-                     emtriscv32, emtriscv64);
+                     emtriscv32, emtriscv64, emtloongarch64);
 const
   ELFMAGIC     = chr($7f)+'ELF';
 
@@ -75,6 +75,7 @@ const
   EM_AARCH64     = 183;
   EM_ALPHA       = $9026; //unofficial, but used by gnu toolchain
   EM_RISCV       = 243;
+  EM_LOONGARCH   = 258;
   
   //machine-specific flags
   EF_IA_64_ABI64 = $10;  //wow, this is really a 64-bit object file!
@@ -88,6 +89,13 @@ const
   //  bitfield of 2 indicating the largest float abi supported
   EF_RISCV_FLOAT_ABI_SINGLE = 2;
   EF_RISCV_FLOAT_ABI_DOUBLE = 4;
+
+  // loongarch flags
+  EF_LOONGARCH_ABI_ILP32 = $1;
+  EF_LOONGARCH_ABI_LP64 = $3;
+  EF_LOONGARCH_FLOAT_ABI_SOFT = $c;
+  EF_LOONGARCH_FLOAT_ABI_SINGLE = $8;
+  EF_LOONGARCH_FLOAT_ABI_DOUBLE = $0;
 
   //section type
   SHT_NULL     =  0;
@@ -151,6 +159,7 @@ const
   R_MIPS_32       =   2;
   R_RISCV_32      =   1;
   R_RISCV_64      =   2;
+  R_LARCH_64      =   2;
 
 
   //fpc resource constants

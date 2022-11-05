@@ -1321,6 +1321,54 @@ end;
 
 {$endif CPUINTEL}
 
+{$ifdef CPULOONGARCH64}
+function crc32cloongarch(crc: cardinal; buf: Pointer; len: cardinal): cardinal; nostackframe; assembler;
+asm
+  nor $a0, $zero, $a0
+  beqz $a1, .Lret
+  beqz $a2, .Lret
+  andi $t0, $a1, 7
+  beqz $t0, .Lcrc1
+  xori $t0, $t0, 7
+.Lcrc0:
+  ld.b $t1, $a1, 0
+  addi.d $a1, $a1, 1
+  addi.d $t0, $t0, -1
+  addi.d $a2, $a2, -1
+  crcc.w.b.w $a0, $t1, $a0
+  beqz $a2, .Lret
+  bgez $t0, .Lcrc0
+.Lcrc1:
+  srli.d $t0, $a2, 3
+  andi $t1, $a2, 4
+  andi $t2, $a2, 2
+  andi $t3, $a2, 1
+  beqz $t0, .Lcrc3
+.Lcrc2:
+  ld.d $t4, $a1, 0
+  crcc.w.d.w $a0, $t4, $a0
+  addi.d $t0, $t0, -1
+  addi.d $a1, $a1, 8
+  bnez $t0, .Lcrc2
+.Lcrc3:
+  beqz $t1,.Lcrc4
+  ld.w $t4, $a1, 0
+  crcc.w.w.w $a0, $t4, $a0
+  addi.d $a1, $a1, 4
+.Lcrc4:
+  beqz $t2,.Lcrc5
+  ld.h $t4, $a1, 0
+  crcc.w.h.w $a0, $t4, $a0
+  addi.d $a1, $a1, 2
+.Lcrc5:
+  beqz $t3,.Lret
+  ld.b $t4, $a1, 0
+  crcc.w.b.w $a0, $t4, $a0
+.Lret:
+  nor $a0, $zero, $a0
+end;
+{$endif CPULOONGARCH64}
+
 var
   crc32ctab: array[0..{$ifdef PUREPASCAL}3{$else}7{$endif},byte] of cardinal;
 
@@ -1481,6 +1529,14 @@ begin
   end
   else
   {$endif CPUINTEL}
+  {$ifdef CPULOONGARCH64}
+  if True then
+  begin
+    crc32c := @crc32cloongarch;
+    mORMotHasher := @crc32cloongarch;
+  end
+  else
+  {$endif CPULOONGARCH64}
   begin
     InitializeCrc32ctab;
     crc32c := @crc32cfast;
