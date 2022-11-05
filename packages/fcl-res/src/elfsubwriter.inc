@@ -431,6 +431,7 @@ begin
       {$ELSE}
       EM_RISCV  : begin RelocType:=R_RISCV_32;      SectionType:=SHT_RELA; end;
       {$ENDIF}
+      EM_LOONGARCH: begin RelocType:=R_LARCH_64;    SectionType:=SHT_RELA; end;
       else
         raise EElfResourceWriterUnknownMachineException.Create('');
     end;
@@ -448,6 +449,8 @@ begin
       fMachineFlags:=EF_RISCV_FLOAT_ABI_DOUBLE or EF_RISCV_RVC; // This is the default class for now;
     EM_ARM:
       fMachineFlags:=EF_ARM_ABI5;
+    EM_LOONGARCH:
+      fMachineFlags:=EF_LOONGARCH_ABI_LP64 or EF_LOONGARCH_FLOAT_ABI_DOUBLE;
     else
       fMachineFlags:=0;
   end;

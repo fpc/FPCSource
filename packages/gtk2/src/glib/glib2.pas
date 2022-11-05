@@ -797,7 +797,7 @@ end;
 
 function g_rand_boolean(rand : PGRand) : gboolean;
 begin
-   g_rand_boolean:=((g_rand_int(rand)) and (1 shl 15)) <> 0;
+   g_rand_boolean:=g_rand_int(rand) <> 0;
 end;
 {
 function g_rand_boolean(rand : PGRand) :gboolean;
