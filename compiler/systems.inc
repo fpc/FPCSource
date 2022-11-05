@@ -58,7 +58,8 @@
              cpu_xtensa,                   { 21 }
              cpu_z80,                      { 22 }
              cpu_mips64,                   { 23 }
-             cpu_mips64el                  { 24 }
+             cpu_mips64el,                 { 24 }
+             cpu_loongarch64               { 25 }
        );
 
        tasmmode= (asmmode_none

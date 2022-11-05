@@ -48,7 +48,7 @@ unit raatt;
         AS_RPAREN,AS_COLON,AS_DOT,AS_PLUS,AS_MINUS,AS_STAR,
         AS_SEPARATOR,AS_ID,AS_REGISTER,AS_OPCODE,AS_SLASH,AS_DOLLAR,
         AS_HASH,AS_LSBRACKET,AS_RSBRACKET,AS_LBRACKET,AS_RBRACKET,
-        AS_EQUAL,
+        AS_EQUAL,AS_QUESTION,AS_LT,AS_GT,
         {------------------ Assembler directives --------------------}
         AS_DB,AS_DW,AS_DD,AS_DQ,AS_GLOBAL,
         AS_ALIGN,AS_BALIGN,AS_P2ALIGN,AS_ASCII,
@@ -76,7 +76,7 @@ unit raatt;
         ')',':','.','+','-','*',
         ';','identifier','register','opcode','/','$',
         '#','{','}','[',']',
-        '=',
+        '=','?','<','>',
         '.byte','.word','.long','.quad','.globl',
         '.align','.balign','.p2align','.ascii',
         '.asciz','.lcomm','.comm','.single','.double','.tfloat','.tcfloat',
@@ -363,6 +363,18 @@ unit raatt;
                end;
            end;
 {$endif xtensa}
+{$ifdef loongarch64}
+           { LoongArch have multiple postfixes. So... }
+           case c of
+             '.' :
+               begin
+                 repeat
+                   actasmpattern:=actasmpattern+c;
+                   c:=current_scanner.asmgetchar;
+                 until not(c in ['a'..'z','A'..'Z', '0'..'9', '.']);
+               end;
+           end;
+{$endif loongarch64}
            { Opcode ? }
            If is_asmopcode(upper(actasmpattern)) then
             Begin
@@ -718,14 +730,23 @@ unit raatt;
                  exit;
                end;
 {$endif arm or aarch64}
-{$ifdef arm}
+{$if defined(arm) or defined(loongarch64)}
              '=' :
                begin
                  actasmtoken:=AS_EQUAL;
                  c:=current_scanner.asmgetchar;
                  exit;
                end;
-{$endif arm}
+{$endif arm or loongarch64}
+
+{$ifdef loongarch64}
+             '?' :
+               begin
+                 actasmtoken:=AS_QUESTION;
+                 c:=current_scanner.asmgetchar;
+                 exit;
+               end;
+{$endif loongarch64}
 
              ',' :
                begin
@@ -736,19 +757,39 @@ unit raatt;
 
              '<' :
                begin
+{$if defined(loongarch64)}
+                 actasmtoken:=AS_LT;
+                 c:=current_scanner.asmgetchar;
+                 if c = '<' then
+                   begin
+                     actasmtoken:=AS_SHL;
+                     c:=current_scanner.asmgetchar;
+                   end;
+{$else}
                  actasmtoken:=AS_SHL;
                  c:=current_scanner.asmgetchar;
                  if c = '<' then
                   c:=current_scanner.asmgetchar;
+{$endif loongarch64}
                  exit;
                end;
 
              '>' :
                begin
-                 actasmtoken:=AS_SHL;
+{$if defined(loongarch64)}
+                 actasmtoken:=AS_GT;
+                 c:=current_scanner.asmgetchar;
+                 if c = '>' then
+                   begin
+                     actasmtoken:=AS_SHR;
+                     c:=current_scanner.asmgetchar;
+                   end;
+{$else}
+                 actasmtoken:=AS_SHR;
                  c:=current_scanner.asmgetchar;
                  if c = '>' then
                   c:=current_scanner.asmgetchar;
+{$endif loongarch64}
                  exit;
                end;
 

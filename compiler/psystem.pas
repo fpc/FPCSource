@@ -394,6 +394,10 @@ implementation
         create_fpu_types;
         s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
 {$endif xtensa}
+{$ifdef loongarch64}
+        create_fpu_types;
+        s64currencytype:=corddef.create(scurrency,low(int64),high(int64),true);
+{$endif loongarch64}
         set_default_int_types;
         { some other definitions }
         charpointertype:=cpointerdef.create(cansichartype);
