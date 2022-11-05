@@ -354,6 +354,14 @@ function do_isdevice(handle:thandle):boolean;forward;
   {$define SYSPROCDEFINED}
 {$endif cpuwasm32}
 
+{$ifdef cpuloongarch64}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i loongarch64.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpuloongarch64}
+
 {$ifndef SYSPROCDEFINED}
   {$Error Can't determine processor type !}
 {$endif}
