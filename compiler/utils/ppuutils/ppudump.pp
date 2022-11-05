@@ -89,7 +89,8 @@ const
     { 21 } 'xtensa',
     { 22 } 'z80',
     { 23 } 'mips64',
-    { 24 } 'mips64el'
+    { 24 } 'mips64el',
+    { 25 } 'loongarch64'
     );
 
   CpuHasController : array[tsystemcpu] of boolean =
@@ -118,7 +119,8 @@ const
     { 21 } true  {'xtensa'},
     { 22 } true  {'z80'},
     { 23 } false {'mips64'},
-    { 24 } false {'mips64el'}
+    { 24 } false {'mips64el'},
+    { 25 } false {'loongarch64'}
     );
 
 { List of all supported system-cpu couples }

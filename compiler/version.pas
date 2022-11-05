@@ -86,6 +86,9 @@ interface
 {$ifdef cpuwasm32}
         source_cpu_string = 'wasm32';
 {$endif cpuwasm32}
+{$ifdef cpuloongarch64}
+        source_cpu_string = 'loongarch64';
+{$endif cpuloongarch64}
 
 function version_string:string;
 function full_version_string:string;

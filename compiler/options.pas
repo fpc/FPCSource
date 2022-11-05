@@ -982,6 +982,9 @@ begin
 {$ifdef wasm32}
       'W',
 {$endif}
+{$ifdef loongarch64}
+      'l',
+{$endif}
       '*' : show:=true;
      end;
      if show then
@@ -4395,6 +4398,16 @@ procedure read_arguments(cmd:TCmdStr);
         def_system_macro('FPC_COMP_IS_INT64');
       {$endif wasm32}
 
+      {$ifdef loongarch64}
+        def_system_macro('CPULOONGARCH');
+        def_system_macro('CPULOONGARCH64');
+        def_system_macro('CPU64');
+        def_system_macro('FPC_CURRENCY_IS_INT64');
+        def_system_macro('FPC_COMP_IS_INT64');
+        def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
+        def_system_macro('FPC_LOCALS_ARE_STACK_REG_RELATIVE');
+      {$endif loongarch64}
+
       {$if defined(cpu8bitalu)}
         def_system_macro('CPUINT8');
       {$elseif defined(cpu16bitalu)}
@@ -5181,6 +5194,15 @@ begin
       include(init_settings.targetswitches,ts_wasm_no_exceptions);
     end;
 {$endif wasm}
+
+{$if defined(loongarch64)}
+  { LoongArch defaults }
+  if (target_info.abi = abi_riscv_hf) then
+    begin
+      init_settings.cputype:=cpu_3a;
+      init_settings.fputype:=fpu_fd;
+    end;
+{$endif defined(loongarch64)}
 
   { now we can define cpu and fpu type }
   def_cpu_macros;

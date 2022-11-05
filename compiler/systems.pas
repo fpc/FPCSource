@@ -470,11 +470,11 @@ interface
        asms_int_coff = [as_arm_pecoffwince,as_x86_64_pecoff,as_i386_pecoffwince,
                         as_i386_pecoffwdosx,as_i386_pecoff,as_i386_coff];
 
-       cpu2str : array[TSystemCpu] of string[10] =
+       cpu2str : array[TSystemCpu] of string[12] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
              'mips','arm', 'powerpc64', 'avr', 'mipsel','jvm', 'i8086',
              'aarch64', 'wasm32', 'sparc64', 'riscv32', 'riscv64', 'xtensa',
-             'z80', 'mips64', 'mips64el');
+             'z80', 'mips64', 'mips64el', 'loongarch64');
 
        abiinfo : array[tabi] of tabiinfo = (
          (name: 'DEFAULT'; supported: true),

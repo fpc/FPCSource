@@ -391,6 +391,16 @@
   {$define cpufloatintregmov}
 {$endif xtensa}
 
+{$ifdef loongarch64}
+  {$define loongarch}
+  {$define cpu64bit}
+  {$define cpu64bitaddr}
+  {$define cpu64bitalu}
+  {$define cputargethasfixedstack}
+  {$define cpucapabilities}
+  {$define SUPPORT_SAFECALL}
+{$endif loongarch64}
+
 { Stabs is not officially supported on 64 bit targets by gdb, except on Mac OS X
   (but there we don't support it)
 }

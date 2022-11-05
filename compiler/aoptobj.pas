@@ -473,8 +473,8 @@ Unit AoptObj;
 
     function JumpTargetOp(ai: taicpu): poper; inline;
       begin
-{$if defined(MIPS) or defined(riscv64) or defined(riscv32) or defined(xtensa)}
-        { MIPS, Xtensa or RiscV branches can have 1,2 or 3 operands, target label is the last one. }
+{$if defined(MIPS) or defined(riscv64) or defined(riscv32) or defined(xtensa) or defined(loongarch64)}
+        { Branches of above archs can have 1,2 or 3 operands, target label is the last one. }
         result:=ai.oper[ai.ops-1];
 {$elseif defined(SPARC64)}
         if ai.ops=2 then
@@ -2330,7 +2330,7 @@ Unit AoptObj;
 
       var p1: tai;
           p2: tai;
-{$if not defined(MIPS) and not defined(riscv64) and not defined(riscv32) and not defined(JVM)}
+{$if not defined(MIPS) and not defined(riscv64) and not defined(riscv32) and not defined(JVM) and not defined(loongarch64)}
           p3: tai;
 {$endif}
           ThisLabel, l: tasmlabel;
@@ -2377,9 +2377,9 @@ Unit AoptObj;
                       Exit;
                   end;
 
-{$if not defined(MIPS) and not defined(riscv64) and not defined(riscv32) and not defined(JVM)}
+{$if not defined(MIPS) and not defined(riscv64) and not defined(riscv32) and not defined(JVM) and not defined(loongarch64)}
                 p3 := p2;
-{$endif not MIPS and not RV64 and not RV32 and not JVM}
+{$endif not MIPS and not RV64 and not RV32 and not JVM and not loongarch64}
 
                 if { the next instruction after the label where the jump hp arrives}
                    { is unconditional or of the same type as hp, so continue       }
@@ -2388,7 +2388,7 @@ Unit AoptObj;
                    { TODO: For anyone with experience with MIPS or RISC-V, please add support for tracing
                      conditional jumps. [Kit] }
 
-{$if not defined(MIPS) and not defined(riscv64) and not defined(riscv32) and not defined(JVM)}
+{$if not defined(MIPS) and not defined(riscv64) and not defined(riscv32) and not defined(JVM) and not defined(loongarch64)}
   { for MIPS, it isn't enough to check the condition; first operands must be same, too. }
                    or
                    condition_in(hp.condition, taicpu(p1).condition) or
@@ -2406,7 +2406,7 @@ Unit AoptObj;
                      ) and
                      SetAndTest(p2,p1)
                    )
-{$endif not MIPS and not RV64 and not RV32 and not JVM}
+{$endif not MIPS and not RV64 and not RV32 and not JVM and not loongarch64}
                    then
                   begin
                     { quick check for loops of the form "l5: ; jmp l5" }
@@ -2435,7 +2435,7 @@ Unit AoptObj;
                     GetFinalDestination := True;
                     Exit;
                   end
-{$if not defined(MIPS) and not defined(riscv64) and not defined(riscv32) and not defined(JVM)}
+{$if not defined(MIPS) and not defined(riscv64) and not defined(riscv32) and not defined(JVM) and not defined(loongarch64)}
                 else
                   if condition_in(inverse_cond(hp.condition), taicpu(p1).condition) then
                     begin
@@ -2472,7 +2472,7 @@ Unit AoptObj;
                       GetFinalDestination := True;
                       Exit;
                     end;
-{$endif not MIPS and not RV64 and not RV32 and not JVM}
+{$endif not MIPS and not RV64 and not RV32 and not JVM and not loongarch64}
               end;
           end;
 

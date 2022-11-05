@@ -45,6 +45,7 @@ program pp;
   X86_64              generate a compiler for the AMD x86-64 architecture
   XTENSA              generate a compiler for XTENSA
   Z80                 generate a compiler for Z80
+  LOONGARCH64         generate a compiler for the LoongArch64 architecture
 
   -----------------------------------------------------------------
   Other compiler switches
@@ -201,6 +202,12 @@ program pp;
   {$endif CPUDEFINED}
   {$define CPUDEFINED}
 {$endif WASM32}
+{$ifdef LOONGARCH64}
+  {$ifdef CPUDEFINED}
+    {$fatal ONLY one of the switches for the CPU type must be defined}
+  {$endif CPUDEFINED}
+  {$define CPUDEFINED}
+{$endif LOONGARCH64}
 
 {$ifndef CPUDEFINED}
   {$fatal A CPU type switch must be defined}

@@ -32,7 +32,7 @@ fpcdir=..
 unexport FPC_VERSION FPC_COMPILERINFO
 
 # Which platforms are ready for inclusion in the cycle
-CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr jvm i8086 aarch64 sparc64 riscv32 riscv64 xtensa z80 wasm32
+CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr jvm i8086 aarch64 sparc64 riscv32 riscv64 xtensa z80 wasm32 loongarch64
 
 # All supported targets used for clean
 ALLTARGETS=$(CYCLETARGETS)
@@ -127,6 +127,9 @@ PPC_TARGET=xtensa
 endif
 ifdef Z80
 PPC_TARGET=z80
+endif
+ifdef LOONGARCH64
+PPC_TARGET=loongarch64
 endif
 
 # Default is to generate a compiler for the same
@@ -302,6 +305,9 @@ endif
 ifeq ($(CPC_TARGET),wasm32)
 CPUSUF=wasm32
 endif
+ifeq ($(CPC_TARGET),loongarch64)
+CPUSUF=loongarch64
+endif
 
 # Do not define the default -d$(CPU_TARGET) because that
 # will conflict with our -d$(CPC_TARGET)
@@ -466,6 +472,11 @@ endif
 # WASM32 specific
 ifeq ($(PPC_TARGET),wasm32)
 override LOCALOPT+=-dNOOPT
+endif
+
+# LoongArch64 specific
+ifeq ($(PPC_TARGET),loongarch64)
+override LOCALOPT+=-Fuloongarch64
 endif
 
 OPTWPOCOLLECT=-OWdevirtcalls,optvmts -FW$(BASEDIR)/pp1.wpo
@@ -671,8 +682,8 @@ endif
 # cpu targets
 #####################################################################
 
-PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 mips mipsel mips64 mips64el avr jvm i8086 aarch64 sparc64 riscv32 riscv64 xtensa z80 wasm32
-PPC_SUFFIXES=386 68k ppc sparc arm armeb x64 ppc64 mips mipsel mips64 mips64el avr jvm 8086 a64 sparc64 rv32 rv64 xtensa z80 wasm32
+PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 mips mipsel mips64 mips64el avr jvm i8086 aarch64 sparc64 riscv32 riscv64 xtensa z80 wasm32 loongarch64
+PPC_SUFFIXES=386 68k ppc sparc arm armeb x64 ppc64 mips mipsel mips64 mips64el avr jvm 8086 a64 sparc64 rv32 rv64 xtensa z80 wasm32 loongarch64
 INSTALL_TARGETS=$(addsuffix _exe_install,$(sort $(CYCLETARGETS) $(PPC_TARGETS)))
 CLEAN_TARGETS=$(addsuffix _clean,$(sort $(CYCLETARGETS) $(PPC_TARGETS)))
 SYMLINKINSTALL_TARGETS=$(addsuffix _symlink_install,$(sort $(CYCLETARGETS) $(PPC_TARGETS)))
@@ -784,7 +795,11 @@ insdatz80 : z80/z80ins.dat
 	$(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkz80ins.pp
         cd z80 && ..$(PATHSEP)utils$(PATHSEP)mkz80ins$(SRCEXEEXT)
 
-insdat: insdatx86 insdatarm insdataarch64 insdatz80
+insdatloongarch64 : loongarch64/loongarchins.dat
+	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkloongarch64ins.pp
+        cd loongarch64 && ..$(PATHSEP)utils$(PATHSEP)mkloongarch64ins$(SRCEXEEXT)
+
+insdat: insdatx86 insdatarm insdataarch64 insdatz80 insdatloongarch64
 
 regdatx86 : x86/x86reg.dat
 	$(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkx86reg.pp
@@ -839,7 +854,11 @@ regdatrv64 : riscv/rvreg.dat
         cd riscv && ..$(PATHSEP)utils$(PATHSEP)mkrvreg$(SRCEXEEXT) riscv64
 		mv -f riscv/rrv64*.inc riscv64
 
-regdat : regdatx86 regdatarm regdatsp regdatavr regdataarch64 regdatmips regdatsp64 regdatz80 regdatwasm regdatrv32 regdatrv64
+regdatloongarch64 : loongarch64/loongarchreg.dat
+            $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkloongarch64reg.pp
+        cd loongarch64 && ..$(PATHSEP)utils$(PATHSEP)mkloongarch64reg$(SRCEXEEXT)
+
+regdat : regdatx86 regdatarm regdatsp regdatavr regdataarch64 regdatmips regdatsp64 regdatz80 regdatwasm regdatrv32 regdatrv64 regdatloongarch64
 
 intrdatx86 : x86/x86intr.dat
 		$(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkx86inl.pp
@@ -1122,7 +1141,7 @@ ifeq ($(OS_SOURCE),win64)
   EXCLUDE_80BIT_TARGETS=1
 endif
 
-ifneq ($(findstring $(CPU_SOURCE),aarch64 arm avr jvm m68k mips mipsel mips64 mips64el powerpc powerpc64 sparc sparc64 riscv32 riscv64 xtensa),)
+ifneq ($(findstring $(CPU_SOURCE),aarch64 arm avr jvm m68k mips mipsel mips64 mips64el powerpc powerpc64 sparc sparc64 riscv32 riscv64 xtensa loongarch64),)
   EXCLUDE_80BIT_TARGETS=1
 endif
 endif
