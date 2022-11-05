@@ -828,9 +828,16 @@ unit raatt;
                  exit;
                end;
 
-             '!', '~' :
+             '!' :
                begin
                  actasmtoken:=AS_NOT;
+                 c:=current_scanner.asmgetchar;
+                 exit;
+               end;
+
+             '~' :
+               begin
+                 actasmtoken:=AS_NOR;
                  c:=current_scanner.asmgetchar;
                  exit;
                end;
