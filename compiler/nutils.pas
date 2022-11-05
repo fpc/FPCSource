@@ -83,6 +83,7 @@ interface
     function load_high_value_node(vs:tparavarsym):tnode;
     function load_self_node:tnode;
     function load_result_node:tnode;
+    function load_safecallresult_node:tnode;
     function load_self_pointer_node:tnode;
     function load_vmt_pointer_node:tnode;
     function is_self_node(p:tnode):boolean;
@@ -579,6 +580,13 @@ implementation
     function load_result_node:tnode;
       begin
         result:=gen_load_var(get_local_or_para_sym('result'));
+        typecheckpass(result);
+      end;
+
+
+    function load_safecallresult_node: tnode;
+      begin
+        result:=gen_load_var(get_local_or_para_sym('safecallresult'));
         typecheckpass(result);
       end;
 

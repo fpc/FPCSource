@@ -642,6 +642,8 @@ unit optdfa;
           begin
             if current_procinfo.procdef.proctypeoption=potype_constructor then
               resultnode:=load_self_node
+            else if current_procinfo.procdef.proccalloption=pocall_safecall then
+              resultnode:=load_safecallresult_node
             else
               resultnode:=load_result_node;
             resultnode.allocoptinfo;
