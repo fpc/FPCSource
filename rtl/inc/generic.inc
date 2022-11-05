@@ -1265,7 +1265,7 @@ var
  len: byte;
 begin
   l:=high(arr)+1;
-  if l>=high(res)+1 then
+  if l>=ObjpasInt(high(res))+1 then
     l:=high(res)
   else if l<0 then
     l:=0;
