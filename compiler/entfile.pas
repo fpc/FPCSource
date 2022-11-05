@@ -163,7 +163,8 @@ const
     { 21 } 32 {'xtensa'},
     { 22 } 16 {'z80'},
     { 23 } 64 {'mips64'},
-    { 24 } 64 {'mips64el'}
+    { 24 } 64 {'mips64el'},
+    { 25 } 64 {'loongarch64'}
     );
   CpuAluBitSize : array[tsystemcpu] of longint =
     (
@@ -191,7 +192,8 @@ const
     { 21 } 32 {'xtensa'},
     { 22 }  8 {'z80'},
     { 23 } 64 {'mips64'},
-    { 24 } 64 {'mips64el'}
+    { 24 } 64 {'mips64el'},
+    { 25 } 64 {'loongarch64'}
     );
 {$endif generic_cpu}
 

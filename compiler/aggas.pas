@@ -221,11 +221,11 @@ implementation
 { vtable for a class called Window:                                       }
 { .section .data.rel.ro._ZTV6Window,"awG",@progbits,_ZTV6Window,comdat    }
 { TODO: .data.ro not yet working}
-{$if defined(arm) or defined(aarch64) or defined(riscv64) or defined(powerpc) or defined(x86_64)}
+{$if defined(arm) or defined(aarch64) or defined(riscv64) or defined(powerpc) or defined(x86_64) or defined(loongarch64)}
           '.rodata',
-{$else defined(arm) or defined(aarch64) or defined(riscv64) or defined(powerpc) or defined(x86_64)}
+{$else defined(arm) or defined(aarch64) or defined(riscv64) or defined(powerpc) or defined(x86_64) or defined(loongarch64)}
           '.data',
-{$endif defined(arm) or defined(aarch64) or defined(riscv64) or defined(powerpc) or defined(x86_64)}
+{$endif defined(arm) or defined(aarch64) or defined(riscv64) or defined(powerpc) or defined(x86_64) or defined(loongarch64)}
           '.rodata',
           '.bss',
           '.threadvar',

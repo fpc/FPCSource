@@ -677,7 +677,11 @@ interface
           the bits that define the true status can be outside the limits
           of the new size and truncating the register can result in a 0
           value }
+{$ifndef loongarch64}
         if (left.expectloc in [LOC_FLAGS,LOC_JUMP]) and
+{$else loongarch64}
+        if (left.expectloc=LOC_JUMP) and
+{$endif loongarch64}
            { a cbool must be converted to -1/0 }
            not is_cbool(resultdef) then
           begin

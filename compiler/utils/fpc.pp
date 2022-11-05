@@ -188,6 +188,10 @@ program fpc;
      ppcbin:='ppcwasm32';
      processorname:='wasm32';
 {$endif wasm32}
+{$ifdef loongarch64}
+     ppcbin:='ppcloongarch64';
+     processorname:='loongarch64';
+{$endif loongarch64}
      versionstr:='';                      { Default is just the name }
      if ParamCount = 0 then
        begin
