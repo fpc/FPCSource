@@ -125,6 +125,7 @@ interface
           procedure insertdef(def:TDefEntry);override;
           function is_packed: boolean;
           function has_single_field(out def:tdef): boolean;
+          function has_double_field(out def1,def2:tdef; out offset:integer): integer;
           { collects all management operators of the specified type in list (which
             is not cleared); the entries are copies and thus must be freed by the
             caller }
@@ -1623,6 +1624,47 @@ implementation
         result:=usefieldalignment=bit_alignment;
       end;
 
+    function tabstractrecordsymtable.has_double_field(out def1,def2:tdef; out offset:integer): integer;
+      var
+        i,cnt: longint;
+        currentsymlist: TFPHashObjectList;
+        currentdef: tdef;
+        sym: tfieldvarsym;
+      begin
+        has_double_field := 0;
+        offset := 0;
+        if (defowner.typ=recorddef) and
+           trecorddef(defowner).isunion then
+          exit;
+        currentsymlist:=symlist;
+        if currentsymlist = nil then
+          exit;
+        if currentsymlist.Count <> 2 then
+          exit;
+        currentdef := nil;
+        if is_normal_fieldvarsym(tsym(currentsymlist[0])) then
+          begin
+            sym:=tfieldvarsym(currentsymlist[0]);
+            def1 := sym.vardef;
+          end
+        else
+          exit;
+        if is_normal_fieldvarsym(tsym(currentsymlist[1])) then
+          begin
+            sym:=tfieldvarsym(currentsymlist[1]);
+            def2 := sym.vardef;
+          end
+        else
+          exit;
+        offset := sym.fieldoffset;
+        if(def2.typ = def1.typ)then
+          cnt := 2
+        else
+          cnt := 1;
+        if((offset = 0))then
+          cnt := 0;
+        has_double_field := cnt;
+      end;
 
     function tabstractrecordsymtable.has_single_field(out def:tdef): boolean;
       var
@@ -1655,7 +1697,7 @@ implementation
                       exit;
                     end;
                   result:=true;
-                  sym:=tfieldvarsym(currentsymlist[i])
+                  sym:=tfieldvarsym(currentsymlist[i]);
                 end;
             end;
           if assigned(sym) then
