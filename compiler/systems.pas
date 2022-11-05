@@ -383,7 +383,7 @@ interface
        { all systems that support indirect entry information }
        systems_indirect_entry_information = systems_darwin+
                                             [system_i386_win32,system_x86_64_win64,system_x86_64_linux,
-                                            system_aarch64_win64];
+                                            system_aarch64_win64,system_loongarch64_linux];
 
        { all systems for which weak linking has been tested/is supported }
        systems_weak_linking = systems_darwin + systems_solaris + systems_linux + systems_android + systems_bsd +
