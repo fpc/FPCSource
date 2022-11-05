@@ -626,7 +626,6 @@ implementation
         usetmp2:=false;
         tmpreg1:=getintregister(list,OS_INT);
         tmpreg2:=getintregister(list,OS_INT);
-
         if op=OP_NOT then
           begin
             list.concat(taicpu.op_reg_reg_reg(A_NOR,dst,NR_R0,src1));
