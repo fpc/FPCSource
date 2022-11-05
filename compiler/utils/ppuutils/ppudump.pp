@@ -245,7 +245,8 @@ const
   { 116 } 'Embedded-aarch64',
   { 117 } 'Linux-MIPS64',
   { 118 } 'Linux-MIPS64el',
-  { 119 } 'FreeRTos-RiscV32'
+  { 119 } 'FreeRTos-RiscV32',
+  { 120 } 'Linux-LoongArch64'
   );
 
 const
