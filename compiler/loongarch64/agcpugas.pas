@@ -203,7 +203,7 @@ unit agcpugas;
          idtxt  : 'AS';
          asmbin : 'as';
          asmcmd : '-o $OBJ $EXTRAOPT -mabi=lp64d $ASM';
-         supported_targets : [];
+         supported_targets : [system_loongarch64_linux];
          flags : [af_needar,af_smartlink_sections];
          labelprefix : '.L';
          labelmaxlen : -1;
