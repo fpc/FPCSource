@@ -409,6 +409,15 @@ Type
   FarPointer = Pointer;
 {$endif CPUWASM32}
 
+{$ifdef CPULOONGARCH64}
+  {$define DEFAULT_DOUBLE}
+
+  {$define SUPPORT_SINGLE}
+  {$define SUPPORT_DOUBLE}
+
+  ValReal = Double;
+{$endif CPULOONGARCH64}
+
 
 { By default enable a simple implementation of Random for 8/16 bit CPUs }
 {$if (defined(CPU16) or defined(CPU8)) and not defined(FPC_NO_SIMPLE_RANDOM)}
@@ -1124,10 +1133,10 @@ function RolQWord(Const AValue : QWord;const Dist : Byte): QWord;{$ifdef SYSTEMI
 {$define FPC_HAS_INTERNAL_SAR_DWORD}
 { $endif defined(cpux86_64) or defined(cpui386) or defined(cpuarm) or defined(cpupowerpc) or defined(cpupowerpc64) or defined(cpumips) or defined(cpumipsel)}
 
-{$if defined(cpux86_64) or defined(cpupowerpc64) or defined(cpuaarch64) or defined(cpuriscv64) or defined(cpuwasm32)}
+{$if defined(cpux86_64) or defined(cpupowerpc64) or defined(cpuaarch64) or defined(cpuriscv64) or defined(cpuwasm32) or defined(cpuloongarch64)}
 {$define FPC_HAS_INTERNAL_SAR_QWORD}
 {$define FPC_HAS_INTERNAL_SAR_ASSIGN_QWORD}
-{$endif defined(cpux86_64) or defined(cpupowerpc64) or defined(cpuaarch64) or defined(cpuriscv64) or defined(cpuwasm32)}
+{$endif defined(cpux86_64) or defined(cpupowerpc64) or defined(cpuaarch64) or defined(cpuriscv64) or defined(cpuwasm32) or defined(cpuloongarch64)}
 
 {$endif FPC_HAS_INTERNAL_SAR}
 
