@@ -755,6 +755,8 @@ implementation
       result:=fen_false;
       if n.nodetype<>loadn then
         exit;
+      if not (n.resultdef.typ in [procdef,procvardef]) then
+        exit;
       sym^:=tloadnode(n).symtableentry;
       result:=fen_norecurse_true;
     end;
