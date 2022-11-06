@@ -1094,10 +1094,23 @@ implementation
       { does this need to capture Self? }
       else if not foreachnodestatic(pm_postprocess,n,@find_self_sym,@selfinfo) then
         begin
-          { does this need some other local variable or parameter? }
-          foreachnodestatic(pm_postprocess,n,@collect_syms_to_capture,@pd)
-        end
-      else if not assigned(fieldsym) then
+          { is this a method of the current class? }
+          if (n.resultdef.typ=procdef) and
+              assigned(tprocdef(n.resultdef).struct) and
+              not (po_staticmethod in tprocdef(n.resultdef).procoptions) and
+              assigned(current_procinfo.procdef.struct) and
+              def_is_related(current_procinfo.procdef.struct,tprocdef(n.resultdef).struct) then
+            begin
+              selfinfo.selfsym:=tsym(current_procinfo.procdef.parast.find('self'));
+              if not assigned(selfinfo.selfsym) then
+                internalerror(2022110601);
+            end
+          else
+            { does this need some other local variable or parameter? }
+            foreachnodestatic(pm_postprocess,n,@collect_syms_to_capture,@pd)
+        end;
+
+      if assigned(selfinfo.selfsym) and not assigned(fieldsym) then
         { this isn't a procdef that was captured into a field, so capture the
           self }
         pd.add_captured_sym(selfinfo.selfsym,n.fileinfo);
