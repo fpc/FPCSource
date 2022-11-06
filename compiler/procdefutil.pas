@@ -461,6 +461,7 @@ implementation
           end;
 
           def:=cobjectdef.create(odt_class,name,parent,false);
+          include(def.objectoptions,oo_is_capturer);
           typesym:=ctypesym.create(name,def);
           typesym.fileinfo:=pd.fileinfo;
           st.insertdef(def);
