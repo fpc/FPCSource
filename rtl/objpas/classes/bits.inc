@@ -15,7 +15,17 @@
 {****************************************************************************}
 
 const
-   TBITS_SHIFT = BsrDWord(bitsizeof(TBitsBase));
+   TBITS_SHIFT =
+{$if sizeof(TBitsBase) = sizeof(word)}
+            4
+{$elseif sizeof(TBitsBase) = sizeof(dword)}
+            5
+{$elseif sizeof(TBitsBase) = sizeof(qword)}
+            6
+{$else}
+{$error unknown TBitsBase}
+{$endif}
+            ;
    TBITS_MASK = 1 shl TBITS_SHIFT - 1;
 
 Procedure BitsErrorFmt (const Msg : string; const Args : array of const);
