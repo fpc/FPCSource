@@ -1930,8 +1930,12 @@ implementation
       function dwarf_calling_convention(def: tprocdef): Tdwarf_calling_convention;
         begin
           case def.proccalloption of
+{$ifdef i386}
             pocall_register:
               result:=DW_CC_GNU_borland_fastcall_i386;
+{$else i386}
+            pocall_register,
+{$endif i386}
             pocall_cdecl,
             pocall_stdcall,
             pocall_cppdecl,
