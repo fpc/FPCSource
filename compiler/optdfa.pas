@@ -54,7 +54,9 @@ unit optdfa;
   implementation
 
     uses
-      globtype,constexp,
+      globtype,
+      systems,
+      constexp,
       verbose,
       symconst,symdef,symsym,
       defutil,
@@ -642,7 +644,8 @@ unit optdfa;
           begin
             if current_procinfo.procdef.proctypeoption=potype_constructor then
               resultnode:=load_self_node
-            else if current_procinfo.procdef.proccalloption=pocall_safecall then
+            else if (current_procinfo.procdef.proccalloption=pocall_safecall) and
+              (tf_safecall_exceptions in target_info.flags) then
               resultnode:=load_safecallresult_node
             else
               resultnode:=load_result_node;
