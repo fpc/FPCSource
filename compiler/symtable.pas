@@ -3355,6 +3355,15 @@ implementation
           else
             internalerror(2019050702);
         end;
+
+        if not result then
+          begin
+            { capturers have access to anything as we assume checks were done
+              before the procdef was inserted into the capturer }
+            result:=assigned(current_structdef) and
+                    (current_structdef.typ=objectdef) and
+                    (oo_is_capturer in tobjectdef(current_structdef).objectoptions);
+          end;
       end;
 
 
