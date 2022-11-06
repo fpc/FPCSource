@@ -2983,11 +2983,17 @@ implementation
                returns a procdef we need to find the correct overloaded
                procdef that matches the expected procvar. The loadnode
                temporary returned the first procdef (PFV) }
-             if (def_to.typ=procvardef) and
+             if (
+                   (def_to.typ=procvardef) or
+                   is_funcref(def_to)
+                ) and
                 (currpt.left.nodetype=loadn) and
                 (currpt.left.resultdef.typ=procdef) then
                begin
-                 pdtemp:=tprocsym(Tloadnode(currpt.left).symtableentry).Find_procdef_byprocvardef(Tprocvardef(def_to));
+                 if def_to.typ=procvardef then
+                   pdtemp:=tprocsym(Tloadnode(currpt.left).symtableentry).Find_procdef_byprocvardef(Tprocvardef(def_to))
+                 else
+                   pdtemp:=tprocsym(tloadnode(currpt.left).symtableentry).find_procdef_byfuncrefdef(tobjectdef(def_to));
                  if assigned(pdtemp) then
                    begin
                      tloadnode(currpt.left).setprocdef(pdtemp);
@@ -2998,7 +3004,10 @@ implementation
 
              { same as above, but for the case that we have a proc-2-procvar
                conversion together with a load }
-             if (def_to.typ=procvardef) and
+             if (
+                   (def_to.typ=procvardef) or
+                   is_funcref(def_to)
+                ) and
                 (currpt.left.nodetype=typeconvn) and
                 (ttypeconvnode(currpt.left).convtype=tc_proc_2_procvar) and
                 (ttypeconvnode(currpt.left).totypedef=voidtype) and
@@ -3006,7 +3015,10 @@ implementation
                 (ttypeconvnode(currpt.left).left.nodetype=loadn) and
                 (ttypeconvnode(currpt.left).left.resultdef.typ=procdef) then
                begin
-                 pdtemp:=tprocsym(tloadnode(ttypeconvnode(currpt.left).left).symtableentry).Find_procdef_byprocvardef(Tprocvardef(def_to));
+                 if def_to.typ=procvardef then
+                   pdtemp:=tprocsym(tloadnode(ttypeconvnode(currpt.left).left).symtableentry).Find_procdef_byprocvardef(Tprocvardef(def_to))
+                 else
+                   pdtemp:=tprocsym(tloadnode(ttypeconvnode(currpt.left).left).symtableentry).find_procdef_byfuncrefdef(tobjectdef(def_to));
                  if assigned(pdtemp) then
                    begin
                      tloadnode(ttypeconvnode(currpt.left).left).setprocdef(pdtemp);
