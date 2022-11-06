@@ -1699,6 +1699,7 @@ procedure TCg64MPSel.a_load64_reg_ref(list: tasmlist; reg: tregister64; const re
 var
   tmpref: treference;
   tmpreg: tregister;
+  incr: shortint;
 begin
   if target_info.endian = endian_big then
     begin
@@ -1708,9 +1709,46 @@ begin
     end;
   tmpref := ref;
   tcgmips(cg).make_simple_ref(list,tmpref);
-  list.concat(taicpu.op_reg_ref(A_SW,reg.reglo,tmpref));
-  Inc(tmpref.offset, 4);
-  list.concat(taicpu.op_reg_ref(A_SW,reg.reghi,tmpref));
+  if (ref.alignment <4) then
+    begin
+      if target_info.endian = endian_big then
+        begin
+          inc(tmpref.offset,3);
+	  incr:=-1;
+	end
+      else
+        incr:=1;
+      list.concat(taicpu.op_reg_ref(A_SB,reg.reglo,tmpref));
+      Inc(tmpref.offset,incr);
+      list.concat(taicpu.op_reg_reg_const(A_SRL,reg.reglo,reg.reglo,8));
+      list.concat(taicpu.op_reg_ref(A_SB,reg.reglo,tmpref));
+      Inc(tmpref.offset,incr);
+      list.concat(taicpu.op_reg_reg_const(A_SRL,reg.reglo,reg.reglo,8));
+      list.concat(taicpu.op_reg_ref(A_SB,reg.reglo,tmpref));
+      Inc(tmpref.offset,incr);
+      list.concat(taicpu.op_reg_reg_const(A_SRL,reg.reglo,reg.reglo,8));
+      list.concat(taicpu.op_reg_ref(A_SB,reg.reglo,tmpref));
+      Inc(tmpref.offset,incr);
+      if target_info.endian = endian_big then
+        inc(tmpref.offset,7);
+      list.concat(taicpu.op_reg_ref(A_SB,reg.reghi,tmpref));
+      Inc(tmpref.offset,incr);
+      list.concat(taicpu.op_reg_reg_const(A_SRL,reg.reghi,reg.reghi,8));
+      list.concat(taicpu.op_reg_ref(A_SB,reg.reghi,tmpref));
+      Inc(tmpref.offset,incr);
+      list.concat(taicpu.op_reg_reg_const(A_SRL,reg.reghi,reg.reghi,8));
+      list.concat(taicpu.op_reg_ref(A_SB,reg.reghi,tmpref));
+      Inc(tmpref.offset,incr);
+      list.concat(taicpu.op_reg_reg_const(A_SRL,reg.reghi,reg.reghi,8));
+      list.concat(taicpu.op_reg_ref(A_SB,reg.reghi,tmpref));
+      Inc(tmpref.offset,incr);
+    end
+  else
+    begin
+      list.concat(taicpu.op_reg_ref(A_SW,reg.reglo,tmpref));
+      Inc(tmpref.offset, 4);
+      list.concat(taicpu.op_reg_ref(A_SW,reg.reghi,tmpref));
+    end;
 end;
 
 
@@ -1718,6 +1756,7 @@ procedure TCg64MPSel.a_load64_ref_reg(list: tasmlist; const ref: treference; reg
 var
   tmpref: treference;
   tmpreg: tregister;
+  incr: shortint;
 begin
   if target_info.endian = endian_big then
     begin
@@ -1727,9 +1766,46 @@ begin
     end;
   tmpref := ref;
   tcgmips(cg).make_simple_ref(list,tmpref);
-  list.concat(taicpu.op_reg_ref(A_LW,reg.reglo,tmpref));
-  Inc(tmpref.offset, 4);
-  list.concat(taicpu.op_reg_ref(A_LW,reg.reghi,tmpref));
+  if (ref.alignment <4) then
+    begin
+      if target_info.endian = endian_big then
+        begin
+          inc(tmpref.offset,3);
+	  incr:=-1;
+	end
+      else
+        incr:=1;
+      list.concat(taicpu.op_reg_ref(A_LBU,reg.reglo,tmpref));
+      Inc(tmpref.offset,incr);
+      list.concat(taicpu.op_reg_reg_const(A_SLL,reg.reglo,reg.reglo,8));
+      list.concat(taicpu.op_reg_ref(A_LBU,reg.reglo,tmpref));
+      Inc(tmpref.offset,incr);
+      list.concat(taicpu.op_reg_reg_const(A_SLL,reg.reglo,reg.reglo,8));
+      list.concat(taicpu.op_reg_ref(A_LBU,reg.reglo,tmpref));
+      Inc(tmpref.offset,incr);
+      list.concat(taicpu.op_reg_reg_const(A_SLL,reg.reglo,reg.reglo,8));
+      list.concat(taicpu.op_reg_ref(A_LBU,reg.reglo,tmpref));
+      Inc(tmpref.offset,incr);
+      if target_info.endian = endian_big then
+        inc(tmpref.offset,7);
+      list.concat(taicpu.op_reg_ref(A_LBU,reg.reghi,tmpref));
+      Inc(tmpref.offset,incr);
+      list.concat(taicpu.op_reg_reg_const(A_SLL,reg.reghi,reg.reghi,8));
+      list.concat(taicpu.op_reg_ref(A_LBU,reg.reghi,tmpref));
+      Inc(tmpref.offset,incr);
+      list.concat(taicpu.op_reg_reg_const(A_SLL,reg.reghi,reg.reghi,8));
+      list.concat(taicpu.op_reg_ref(A_LBU,reg.reghi,tmpref));
+      Inc(tmpref.offset,incr);
+      list.concat(taicpu.op_reg_reg_const(A_SLL,reg.reghi,reg.reghi,8));
+      list.concat(taicpu.op_reg_ref(A_LBU,reg.reghi,tmpref));
+      Inc(tmpref.offset,incr);
+    end
+  else
+    begin
+      list.concat(taicpu.op_reg_ref(A_LW,reg.reglo,tmpref));
+      Inc(tmpref.offset, 4);
+      list.concat(taicpu.op_reg_ref(A_LW,reg.reghi,tmpref));
+    end;
 end;
 
 
