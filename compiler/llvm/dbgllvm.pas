@@ -590,6 +590,8 @@ implementation
             dilocalvar.addmetadatarefto('scope',functionscope);
             try_add_file_metaref(dilocalvar,sym.fileinfo,false);
             dilocalvar.addmetadatarefto('type',def_meta_node(sym.vardef));
+            if vo_is_self in sym.varoptions then
+              dilocalvar.addenum('flags','DIFlagArtificial');
           end
         else
           begin
@@ -1161,12 +1163,14 @@ implementation
         i, varindex: longint;
         field: tfieldvarsym;
         bitoffset: asizeuint;
-        bpackedrecst: boolean;
+        bpackedrecst,
+        classorobject: boolean;
       begin
         recst:=tabstractrecordsymtable(def.symtable);
         bpackedrecst:=recst.fieldalignment=bit_alignment;
         scope:=defdinode;
         variantinfolist:=nil;
+        classorobject:=is_class_or_interface_or_object(def);
 
         fieldlist:=initialfieldlist;
         list.concat(fieldlist);
@@ -1178,8 +1182,7 @@ implementation
               continue;
 
             field:=tfieldvarsym(recst.symlist[i]);
-            if (sp_static in field.symoptions) or
-               (field.visibility=vis_hidden) then
+            if (sp_static in field.symoptions) then
               exit;
 
             { start of a new variant part? }
@@ -1286,7 +1289,13 @@ implementation
             fielddi.addstring('name',symname(field,false));
             fielddi.addmetadatarefto('scope',scope);
             try_add_file_metaref(fielddi,field.fileinfo,false);
-            fielddi.addmetadatarefto('baseType',def_meta_node(field.vardef));
+            { the vmt field's type is voidpointerdef, because when it gets
+              inserted we can't build the vmt's def yet }
+            if classorobject and
+               (field=tobjectdef(def).vmt_field) then
+              fielddi.addmetadatarefto('baseType',def_meta_node(cpointerdef.getreusable(tobjectdef(def).vmt_def)))
+            else
+              fielddi.addmetadatarefto('baseType',def_meta_node(field.vardef));
             if bpackedrecst and
                is_ordinal(field.vardef) then
               fielddi.addqword('size',field.getpackedbitsize)
@@ -1295,7 +1304,9 @@ implementation
             bitoffset:=bitoffsetfromvariantstart(field,variantinfolist,cappedsize);
             if bitoffset<>0 then
               fielddi.addqword('offset',bitoffset);
-
+            { currently only vmt }
+            if field.visibility=vis_hidden then
+              fielddi.addenum('flags','DIFlagArtificial');
             fieldlist.addvalue(llvm_getmetadatareftypedconst(fielddi));
             list.concat(fielddi);
           end;
@@ -1714,7 +1725,17 @@ implementation
           end;
 
         dinode.addstring('name',symdebugname(def.procsym));
-        try_add_file_metaref(dinode,def.fileinfo,true);
+        if assigned(def.struct) and
+           not is_objc_class_or_protocol(def.struct) then
+          begin
+            if is_implicit_pointer_object_type(def.struct) then
+              dinode.addmetadatarefto('scope',def_meta_class_struct(tobjectdef(def.struct)))
+             else
+               dinode.addmetadatarefto('scope',def_meta_node(def.struct));
+            try_add_file_metaref(dinode,def.fileinfo,false);
+          end
+        else
+          try_add_file_metaref(dinode,def.fileinfo,true);
         if not(cs_debuginfo in current_settings.moduleswitches) then
           begin
             def.dbg_state:=dbg_state_written;
@@ -2530,11 +2551,18 @@ implementation
     begin
       if ds_dwarf_cpp in current_settings.debugswitches then
         begin
-          result:=sym.RealName;
-          if (result<>'') and
-             (result[1]='$') then
-            delete(result,1,1);
+          if sym.visibility=vis_hidden then
+            result:=copy(sym.RealName,length('$hidden')+1,length(sym.RealName))
+          else
+            begin
+              result:=sym.RealName;
+              if (result<>'') and
+                 (result[1]='$') then
+                delete(result,1,1);
+            end
         end
+      else if sym.visibility=vis_hidden then
+        result:=copy(sym.name,length('hidden')+1,length(sym.name))
       else
         result:=sym.name
     end;
