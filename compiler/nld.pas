@@ -562,6 +562,7 @@ implementation
                 { parent frame pointer pointer as "self" }
                 left.free;
                 left:=cloadparentfpnode.create(tprocdef(p.owner.defowner),lpf_forpara);
+                typecheckpass(left);
               end;
           end
         { we should never go from nested to non-nested (except for an anonymous

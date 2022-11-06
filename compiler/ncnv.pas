@@ -2631,6 +2631,7 @@ implementation
                         (left.nodetype=loadn) then
                       begin
                         tloadnode(left).left:=cloadparentfpnode.create(tprocdef(tloadnode(left).symtable.defowner),lpf_forload);
+                        typecheckpass(tloadnode(left).left);
 
                         pi:=current_procinfo.get_first_nestedproc;
                         while assigned(pi) do
