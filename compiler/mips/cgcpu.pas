@@ -1701,36 +1701,17 @@ var
   tmpreg: tregister;
   incr: shortint;
 begin
-  if target_info.endian = endian_big then
-    begin
-      tmpreg := reg.reglo;
-      reg.reglo := reg.reghi;
-      reg.reghi := tmpreg;
-    end;
   tmpref := ref;
   tcgmips(cg).make_simple_ref(list,tmpref);
   if (ref.alignment <4) then
     begin
-      if target_info.endian = endian_big then
+      if target_info.endian = endian_little then
         begin
-          inc(tmpref.offset,3);
+          inc(tmpref.offset,7);
 	  incr:=-1;
 	end
       else
         incr:=1;
-      list.concat(taicpu.op_reg_ref(A_SB,reg.reglo,tmpref));
-      Inc(tmpref.offset,incr);
-      list.concat(taicpu.op_reg_reg_const(A_SRL,reg.reglo,reg.reglo,8));
-      list.concat(taicpu.op_reg_ref(A_SB,reg.reglo,tmpref));
-      Inc(tmpref.offset,incr);
-      list.concat(taicpu.op_reg_reg_const(A_SRL,reg.reglo,reg.reglo,8));
-      list.concat(taicpu.op_reg_ref(A_SB,reg.reglo,tmpref));
-      Inc(tmpref.offset,incr);
-      list.concat(taicpu.op_reg_reg_const(A_SRL,reg.reglo,reg.reglo,8));
-      list.concat(taicpu.op_reg_ref(A_SB,reg.reglo,tmpref));
-      Inc(tmpref.offset,incr);
-      if target_info.endian = endian_big then
-        inc(tmpref.offset,7);
       list.concat(taicpu.op_reg_ref(A_SB,reg.reghi,tmpref));
       Inc(tmpref.offset,incr);
       list.concat(taicpu.op_reg_reg_const(A_SRL,reg.reghi,reg.reghi,8));
@@ -1741,10 +1722,27 @@ begin
       Inc(tmpref.offset,incr);
       list.concat(taicpu.op_reg_reg_const(A_SRL,reg.reghi,reg.reghi,8));
       list.concat(taicpu.op_reg_ref(A_SB,reg.reghi,tmpref));
+      Inc(tmpref.offset,incr);
+      list.concat(taicpu.op_reg_ref(A_SB,reg.reglo,tmpref));
+      Inc(tmpref.offset,incr);
+      list.concat(taicpu.op_reg_reg_const(A_SRL,reg.reglo,reg.reglo,8));
+      list.concat(taicpu.op_reg_ref(A_SB,reg.reglo,tmpref));
+      Inc(tmpref.offset,incr);
+      list.concat(taicpu.op_reg_reg_const(A_SRL,reg.reglo,reg.reglo,8));
+      list.concat(taicpu.op_reg_ref(A_SB,reg.reglo,tmpref));
+      Inc(tmpref.offset,incr);
+      list.concat(taicpu.op_reg_reg_const(A_SRL,reg.reglo,reg.reglo,8));
+      list.concat(taicpu.op_reg_ref(A_SB,reg.reglo,tmpref));
       Inc(tmpref.offset,incr);
     end
   else
     begin
+      if target_info.endian = endian_big then
+        begin
+          tmpreg := reg.reglo;
+          reg.reglo := reg.reghi;
+          reg.reghi := tmpreg;
+        end;
       list.concat(taicpu.op_reg_ref(A_SW,reg.reglo,tmpref));
       Inc(tmpref.offset, 4);
       list.concat(taicpu.op_reg_ref(A_SW,reg.reghi,tmpref));
@@ -1758,50 +1756,55 @@ var
   tmpreg: tregister;
   incr: shortint;
 begin
-  if target_info.endian = endian_big then
-    begin
-      tmpreg := reg.reglo;
-      reg.reglo := reg.reghi;
-      reg.reghi := tmpreg;
-    end;
   tmpref := ref;
   tcgmips(cg).make_simple_ref(list,tmpref);
   if (ref.alignment <4) then
     begin
-      if target_info.endian = endian_big then
+      tmpreg:=cg.getintregister(list,OS_INT);
+      if target_info.endian = endian_little then
         begin
-          inc(tmpref.offset,3);
+          inc(tmpref.offset,7);
 	  incr:=-1;
 	end
       else
         incr:=1;
-      list.concat(taicpu.op_reg_ref(A_LBU,reg.reglo,tmpref));
-      Inc(tmpref.offset,incr);
-      list.concat(taicpu.op_reg_reg_const(A_SLL,reg.reglo,reg.reglo,8));
-      list.concat(taicpu.op_reg_ref(A_LBU,reg.reglo,tmpref));
-      Inc(tmpref.offset,incr);
-      list.concat(taicpu.op_reg_reg_const(A_SLL,reg.reglo,reg.reglo,8));
-      list.concat(taicpu.op_reg_ref(A_LBU,reg.reglo,tmpref));
-      Inc(tmpref.offset,incr);
-      list.concat(taicpu.op_reg_reg_const(A_SLL,reg.reglo,reg.reglo,8));
-      list.concat(taicpu.op_reg_ref(A_LBU,reg.reglo,tmpref));
-      Inc(tmpref.offset,incr);
-      if target_info.endian = endian_big then
-        inc(tmpref.offset,7);
       list.concat(taicpu.op_reg_ref(A_LBU,reg.reghi,tmpref));
       Inc(tmpref.offset,incr);
       list.concat(taicpu.op_reg_reg_const(A_SLL,reg.reghi,reg.reghi,8));
-      list.concat(taicpu.op_reg_ref(A_LBU,reg.reghi,tmpref));
+      list.concat(taicpu.op_reg_ref(A_LBU,tmpreg,tmpref));
+      list.concat(taicpu.op_reg_reg_reg(A_ADDU,reg.reghi,reg.reghi,tmpreg));
       Inc(tmpref.offset,incr);
       list.concat(taicpu.op_reg_reg_const(A_SLL,reg.reghi,reg.reghi,8));
-      list.concat(taicpu.op_reg_ref(A_LBU,reg.reghi,tmpref));
+      list.concat(taicpu.op_reg_ref(A_LBU,tmpreg,tmpref));
+      list.concat(taicpu.op_reg_reg_reg(A_ADDU,reg.reghi,reg.reghi,tmpreg));
       Inc(tmpref.offset,incr);
       list.concat(taicpu.op_reg_reg_const(A_SLL,reg.reghi,reg.reghi,8));
-      list.concat(taicpu.op_reg_ref(A_LBU,reg.reghi,tmpref));
+      list.concat(taicpu.op_reg_ref(A_LBU,tmpreg,tmpref));
+      list.concat(taicpu.op_reg_reg_reg(A_ADDU,reg.reghi,reg.reghi,tmpreg));
+      Inc(tmpref.offset,incr);
+      list.concat(taicpu.op_reg_ref(A_LBU,reg.reglo,tmpref));
+      Inc(tmpref.offset,incr);
+      list.concat(taicpu.op_reg_reg_const(A_SLL,reg.reglo,reg.reglo,8));
+      list.concat(taicpu.op_reg_ref(A_LBU,tmpreg,tmpref));
+      list.concat(taicpu.op_reg_reg_reg(A_ADDU,reg.reglo,reg.reglo,tmpreg));
+      Inc(tmpref.offset,incr);
+      list.concat(taicpu.op_reg_reg_const(A_SLL,reg.reglo,reg.reglo,8));
+      list.concat(taicpu.op_reg_ref(A_LBU,tmpreg,tmpref));
+      list.concat(taicpu.op_reg_reg_reg(A_ADDU,reg.reglo,reg.reglo,tmpreg));
+      Inc(tmpref.offset,incr);
+      list.concat(taicpu.op_reg_reg_const(A_SLL,reg.reglo,reg.reglo,8));
+      list.concat(taicpu.op_reg_ref(A_LBU,tmpreg,tmpref));
+      list.concat(taicpu.op_reg_reg_reg(A_ADDU,reg.reglo,reg.reglo,tmpreg));
       Inc(tmpref.offset,incr);
     end
   else
     begin
+      if target_info.endian = endian_big then
+        begin
+          tmpreg := reg.reglo;
+          reg.reglo := reg.reghi;
+          reg.reghi := tmpreg;
+        end;
       list.concat(taicpu.op_reg_ref(A_LW,reg.reglo,tmpref));
       Inc(tmpref.offset, 4);
       list.concat(taicpu.op_reg_ref(A_LW,reg.reghi,tmpref));
