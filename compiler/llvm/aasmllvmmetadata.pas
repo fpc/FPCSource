@@ -147,7 +147,6 @@ interface
      strict private
       { identifies name and fieldnames }
       fkind: tspecialisedmetadatanodekind;
-      fnritems: longint;
       { adds the item, appropriating its contents (so don't destroy the original
         afterwards) }
       procedure addemplaceitem(const item: tllvmspecialisedmetaitem);
@@ -160,6 +159,12 @@ interface
       procedure addmetadatarefto(const aitemname: TSymStr; aival: tai_llvmbasemetadatanode);
       procedure addstring(const aitemname: TSymStr; const stringval: TSymStr);
       procedure addenum(const aitemname: TSymStr; const enumval: TSymStr);
+      { only allowed before adding any items; needed because when generating
+        debug info, we first generat everything as DIDerivedType (works for
+        typedefs and most other types, and switch it later when necessary).
+        Make it an explicit proc rather than a setter for kind to avoid
+        accidental usage }
+      procedure switchkind(newKind: tspecialisedmetadatanodekind);
       property kind: tspecialisedmetadatanodekind read fkind;
 
       function IsDistinct: boolean;
@@ -339,6 +344,13 @@ implementation
   procedure tai_llvmspecialisedmetadatanode.addemplaceitem(const item: tllvmspecialisedmetaitem);
     begin
       inherited addvalue(item);
+    end;
+
+  procedure tai_llvmspecialisedmetadatanode.switchkind(newKind: tspecialisedmetadatanodekind);
+    begin
+      if fvalues.Count<>0 then
+        internalerror(2022110611);
+      fkind:=newKind;
     end;
 
   procedure tai_llvmspecialisedmetadatanode.addvalue(val: tai_abstracttypedconst);

@@ -93,7 +93,7 @@ interface
         function add_line_metanode(const fileinfo: tfileposinfo): tai_llvmspecialisedmetadatanode;
 
         function def_meta_impl(def: tdef) : tai_llvmspecialisedmetadatanode;
-        function def_set_meta_impl(def: tdef; meta_impl: tai_llvmspecialisedmetadatanode): tai_llvmspecialisedmetadatanode;
+        function def_set_meta_impl(def: tdef; meta_kind: tspecialisedmetadatanodekind): tai_llvmspecialisedmetadatanode;
         function def_meta_class_struct(def: tobjectdef) : tai_llvmspecialisedmetadatanode;
         function def_meta_node(def: tdef): tai_llvmspecialisedmetadatanode;
         function def_meta_ref(def: tdef): tai_simpletypedconst;
@@ -272,8 +272,6 @@ implementation
       end;
 
     function TDebugInfoLLVM.get_def_metatai(def:tdef): PLLVMMetaDefHashSetItem;
-      var
-        needstructdeflab: boolean;
       begin
         if def.dbg_state=dbg_state_unused then
           def.dbg_state:=dbg_state_used;
@@ -355,8 +353,7 @@ implementation
     procedure TDebugInfoLLVM.appenddef_array_internal(list: TAsmList; fordef: tdef; eledef: tdef; lowrange, highrange: asizeint);
       var
         dinode,
-        subrangenode,
-        exprnode: tai_llvmspecialisedmetadatanode;
+        subrangenode: tai_llvmspecialisedmetadatanode;
         arrayrangenode: tai_llvmunnamedmetadatanode;
       begin
         { range of the array }
@@ -373,7 +370,7 @@ implementation
         arrayrangenode.addvalue(llvm_getmetadatareftypedconst(subrangenode));
         list.concat(arrayrangenode);
         { the array definition }
-        dinode:=def_set_meta_impl(fordef,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType));
+        dinode:=def_set_meta_impl(fordef,tspecialisedmetadatanodekind.DICompositeType);
         dinode.addenum('tag','DW_TAG_array_type');
         dinode.addmetadatarefto('baseType',def_meta_node(eledef));
         dinode.addqword('size',eledef.size*(highrange-lowrange+1)*8);
@@ -404,13 +401,24 @@ implementation
 
     function TDebugInfoLLVM.def_meta_impl(def: tdef): tai_llvmspecialisedmetadatanode;
       begin
-        result:=tai_llvmspecialisedmetadatanode(get_def_metatai(def)^.implmetadef);
+        if assigned(def.typesym) then
+          result:=get_def_metatai(def)^.implmetadef
+        else
+          result:=def_meta_node(def);
       end;
 
-    function TDebugInfoLLVM.def_set_meta_impl(def: tdef; meta_impl: tai_llvmspecialisedmetadatanode): tai_llvmspecialisedmetadatanode;
+    function TDebugInfoLLVM.def_set_meta_impl(def: tdef; meta_kind: tspecialisedmetadatanodekind): tai_llvmspecialisedmetadatanode;
       begin
-        tai_llvmspecialisedmetadatanode(get_def_metatai(def)^.implmetadef):=meta_impl;
-        result:=meta_impl;
+        if assigned(def.typesym) then
+          begin
+            result:=tai_llvmspecialisedmetadatanode.create(meta_kind);
+            get_def_metatai(def)^.implmetadef:=result
+          end
+        else
+          begin
+            result:=def_meta_node(def);
+            result.switchkind(meta_kind);
+          end;
       end;
 
     function TDebugInfoLLVM.def_meta_class_struct(def: tobjectdef): tai_llvmspecialisedmetadatanode;
@@ -768,7 +776,7 @@ implementation
         if ordtype=customint then
           ordtype:=range_to_basetype(def.low,def.high);
 
-        dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIBasicType));
+        dinode:=def_set_meta_impl(def,tspecialisedmetadatanodekind.DIBasicType);
         case ordtype of
           s8bit,
           s16bit,
@@ -832,7 +840,7 @@ implementation
       var
         dinode: tai_llvmspecialisedmetadatanode;
       begin
-        dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIBasicType));
+        dinode:=def_set_meta_impl(def,tspecialisedmetadatanodekind.DIBasicType);
         case def.floattype of
           s32real,
           s64real,
@@ -870,7 +878,7 @@ implementation
         enumelem: tai_llvmspecialisedmetadatanode;
         enumlist: tai_llvmunnamedmetadatanode;
       begin
-        dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType));
+        dinode:=def_set_meta_impl(def,tspecialisedmetadatanodekind.DICompositeType);
         dinode.addenum('tag','DW_TAG_enumeration_type');
         dinode.addqword('size',def.size*8);
         dinode.addstring('identifier',def.mangledparaname);
@@ -921,7 +929,7 @@ implementation
         if is_dynamic_array(def) { and
            not(llvmflag_array_datalocation in llvmversion_properties[current_settings.llvmversion]) } then
           begin
-            dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType));
+            dinode:=def_set_meta_impl(def,tspecialisedmetadatanodekind.DIDerivedType);
             dinode.addenum('tag','DW_TAG_pointer_type');
             dinode.addmetadatarefto('baseType',def_meta_node(def.elementdef));
             dinode.addqword('size',def.size*8);
@@ -1008,7 +1016,7 @@ implementation
             nesteddef:=tarraydef(nesteddef).elementdef;
           end;
         { the array definition }
-        dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType));
+        dinode:=def_set_meta_impl(def,tspecialisedmetadatanodekind.DICompositeType);
         dinode.addenum('tag','DW_TAG_array_type');
         dinode.addmetadatarefto('baseType',def_meta_node(nesteddef));
         dinode.addmetadatarefto('elements',arrayrangenode);
@@ -1048,7 +1056,7 @@ implementation
       var
         dinode: tai_llvmspecialisedmetadatanode;
       begin
-        dinode:=def_set_meta_impl(fordef,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType));
+        dinode:=def_set_meta_impl(fordef,tspecialisedmetadatanodekind.DICompositeType);
         list.concat(dinode);
         dinode.addenum('tag','DW_TAG_structure_type');
         appenddef_struct_named(list,def,dinode,tai_llvmunnamedmetadatanode.create,name);
@@ -1325,7 +1333,7 @@ implementation
       var
         dinode: tai_llvmspecialisedmetadatanode;
       begin
-        dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType));
+        dinode:=def_set_meta_impl(def,tspecialisedmetadatanodekind.DIDerivedType);
         dinode.addenum('tag','DW_TAG_pointer_type');
         if not(is_voidpointer(def)) then
           dinode.addmetadatarefto('baseType',def_meta_node(def.pointeddef))
@@ -1339,7 +1347,7 @@ implementation
       var
         dinode: tai_llvmspecialisedmetadatanode;
       begin
-        dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType));
+        dinode:=def_set_meta_impl(def,tspecialisedmetadatanodekind.DIDerivedType);
         dinode.addenum('tag','DW_TAG_pointer_type');
         dinode.addmetadatarefto('baseType',nil);
         list.concat(dinode);
@@ -1398,7 +1406,7 @@ implementation
          st_ansistring:
            begin
              // Todo: dynamic length "array"
-             dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType));
+             dinode:=def_set_meta_impl(def,tspecialisedmetadatanodekind.DIDerivedType);
              dinode.addenum('tag','DW_TAG_pointer_type');
              dinode.addmetadatarefto('baseType',def_meta_node(cansichartype));
              list.concat(dinode);
@@ -1407,7 +1415,7 @@ implementation
          st_widestring:
            begin
              // Todo: dynamic length "array"
-             dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType));
+             dinode:=def_set_meta_impl(def,tspecialisedmetadatanodekind.DIDerivedType);
              dinode.addenum('tag','DW_TAG_pointer_type');
              dinode.addmetadatarefto('baseType',def_meta_node(cwidechartype));
              list.concat(dinode);
@@ -1422,7 +1430,7 @@ implementation
         { plain pointer for now }
         if def.is_addressonly then
           begin
-            dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType));
+            dinode:=def_set_meta_impl(def,tspecialisedmetadatanodekind.DIDerivedType);
             dinode.addenum('tag','DW_TAG_pointer_type');
             dinode.addmetadatarefto('baseType',nil);
             list.concat(dinode);
@@ -1438,7 +1446,7 @@ implementation
     var
       dinode: tai_llvmspecialisedmetadatanode;
     begin
-      dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType));
+      dinode:=def_set_meta_impl(def,tspecialisedmetadatanodekind.DICompositeType);
       dinode.addenum('tag','DW_TAG_structure_type');
       if assigned(def.typesym) then
         dinode.addstring('name',symname(def.typesym, false));
@@ -1473,7 +1481,7 @@ implementation
           end;
         if is_implicit_pointer_object_type(def) then
           begin
-            dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType));
+            dinode:=def_set_meta_impl(def,tspecialisedmetadatanodekind.DIDerivedType);
             dinode.addenum('tag','DW_TAG_pointer_type');
 
             structdi:=def_meta_class_struct(def);
@@ -1488,7 +1496,7 @@ implementation
           odt_cppclass,
           odt_object:
             begin
-              dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType));
+              dinode:=def_set_meta_impl(def,tspecialisedmetadatanodekind.DICompositeType);
               dinode.addenum('tag','DW_TAG_class_type');
               appenddef_struct_named(list,def,dinode,fields,def.objname^);
             end;
@@ -1498,14 +1506,14 @@ implementation
                   a) Apple-specific tag that identifies it as an Objective-C class
                   b) use extname^ instead of objname
               }
-              dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DICompositeType));
+              dinode:=def_set_meta_impl(def,tspecialisedmetadatanodekind.DICompositeType);
               dinode.addenum('tag','DW_TAG_class_type');
               dinode.addenum('runtimeLang','DW_LANG_ObjC');
               appenddef_struct_named(list,def,dinode,fields,def.objextname^);
             end;
           odt_objcprotocol:
             begin
-              dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType));
+              dinode:=def_set_meta_impl(def,tspecialisedmetadatanodekind.DIDerivedType);
               dinode.addenum('tag','DW_TAG_pointer_type');
               dinode.addmetadatarefto('baseType',nil);
             end;
@@ -1529,7 +1537,7 @@ implementation
       var
         dinode: tai_llvmspecialisedmetadatanode;
       begin
-        dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType));
+        dinode:=def_set_meta_impl(def,tspecialisedmetadatanodekind.DIDerivedType);
         dinode.addenum('tag','DW_TAG_pointer_type');
         dinode.addmetadatarefto('baseType',nil);
         list.concat(dinode);
@@ -1540,7 +1548,7 @@ implementation
       var
         dinode: tai_llvmspecialisedmetadatanode;
       begin
-        dinode:=def_set_meta_impl(def,tai_llvmspecialisedmetadatanode.create(tspecialisedmetadatanodekind.DIDerivedType));
+        dinode:=def_set_meta_impl(def,tspecialisedmetadatanodekind.DIDerivedType);
         dinode.addenum('tag','DW_TAG_pointer_type');
         dinode.addmetadatarefto('baseType',nil);
         list.concat(dinode);
@@ -1567,6 +1575,9 @@ implementation
           exit;
 
         refdinode:=def_meta_node(def);
+        impldinode:=def_meta_impl(def);
+        if not assigned(impldinode) then
+          internalerror(2021120501);
 
         if is_objc_class_or_protocol(def) then
           begin
@@ -1587,19 +1598,19 @@ implementation
             refdinode:=tempdinode;
           end;
 
-        refdinode.addenum('tag','DW_TAG_typedef');
         if assigned(def.typesym) and
            not(df_generic in def.defoptions) then
           begin
+            if refdinode=impldinode then
+              internalerror(2022110710);
+            refdinode.addenum('tag','DW_TAG_typedef');
             refdinode.addstring('name',symname(def.typesym,false));
             try_add_file_metaref(refdinode,def.typesym.fileinfo,false);
-          end;
-
-        impldinode:=def_meta_impl(def);
-        if not assigned(impldinode) then
-          internalerror(2021120501);
-        refdinode.addmetadatarefto('baseType',impldinode);
-        list.concat(refdinode);
+            refdinode.addmetadatarefto('baseType',impldinode);
+            list.concat(refdinode);
+          end
+        else if impldinode<>refdinode then
+          internalerror(2022110711);
       end;
 
 
