@@ -14023,10 +14023,97 @@ unit aoptx86;
 
     function TX86AsmOptimizer.PostPeepholeOptTestOr(var p : tai) : Boolean;
       var
-        IsTestConstX : Boolean;
+        IsTestConstX, IsValid : Boolean;
         hp1,hp2 : tai;
       begin
         Result:=false;
+        { If x is a power of 2 (popcnt = 1), change:
+            test $x, %reg/ref
+            je / sete / cmove (or jne / setne)
+
+          To:
+            bt   lb(x), %reg/ref
+            jnc / setnc / cmovnc (or jc / setc / cmovnc)
+        }
+        if (taicpu(p).opcode = A_TEST) and
+{$ifdef i8086}
+          (current_settings.optimizecputype >= cpu_386) and
+{$endif i8086}
+          MatchOpType(taicpu(p), top_const, top_reg) and { "btx $x,mem" is unacceptably slow }
+          (PopCnt(QWord(taicpu(p).oper[0]^.val)) = 1) and
+          { For sizes less than S_L, the byte size is equal or larger with BT,
+            so don't bother optimising }
+          (taicpu(p).opsize >= S_L) then
+          begin
+            IsValid := True;
+            { Check the next set of instructions, watching the FLAGS register
+              and the conditions used }
+            TransferUsedRegs(TmpUsedRegs);
+            UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+            hp1 := p;
+            hp2 := nil;
+
+            while GetNextInstruction(hp1, hp1) do
+              begin
+                if not Assigned(hp2) then
+                  { The first instruction after TEST }
+                  hp2 := hp1;
+
+                if (hp1.typ <> ait_instruction) then
+                  begin
+                    { If the flags are no longer in use, everything is fine }
+                    if RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) then
+                      IsValid := False;
+                    Break;
+                  end;
+
+                case taicpu(hp1).condition of
+                  C_None:
+                    begin
+                      if RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) then
+                        { Something is not quite normal, so play safe and don't change }
+                        IsValid := False;
+
+                      Break;
+                    end;
+                  C_E, C_Z, C_NE, C_NZ:
+                    { This is fine };
+                  else
+                    begin
+                      { Unsupported condition }
+                      IsValid := False;
+                      Break;
+                    end;
+                end;
+
+                UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
+              end;
+
+            if IsValid then
+              begin
+                while hp2 <> hp1 do
+                  begin
+                    case taicpu(hp2).condition of
+                      C_Z, C_E:
+                        taicpu(hp2).condition := C_NC;
+                      C_NZ, C_NE:
+                        taicpu(hp2).condition := C_C;
+                      else
+                        { Should not get this by this point }
+                        InternalError(2022110701);
+                    end;
+
+                    GetNextInstruction(hp2, hp2);
+                  end;
+
+                DebugMsg(SPeepholeOptimization + 'Changed TEST $0x' + hexstr(taicpu(p).oper[0]^.val, 2) + ' to BT ' + debug_tostr(BsrQWord(taicpu(p).oper[0]^.val)) + ' to shrink instruction size (Test2Bt)', p);
+                taicpu(p).opcode := A_BT;
+                taicpu(p).oper[0]^.val := BsrQWord(taicpu(p).oper[0]^.val); { Essentially the base 2 logarithm }
+                Result := True;
+                Exit;
+              end;
+          end;
+
         { removes the line marked with (x) from the sequence
           and/or/xor/add/sub/... $x, %y
           test/or %y, %y  | test $-1, %y    (x)
