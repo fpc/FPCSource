@@ -14028,6 +14028,45 @@ unit aoptx86;
       begin
         Result:=false;
         { If x is a power of 2 (popcnt = 1), change:
+            or  $x, %reg/ref
+
+          To:
+            bts lb(x), %reg/ref
+        }
+        if (taicpu(p).opcode = A_OR) and
+{$ifndef x86_64}
+          (
+            (cs_opt_size in current_settings.optimizerswitches) or
+            { BTS takes more than 1 cycle on earlier processors }
+            (current_settings.optimizecputype >= cpu_Pentium2)
+          ) and
+{$endif not x86_64}
+          MatchOpType(taicpu(p), top_const, top_reg) and { "btx $x,mem" is unacceptably slow }
+          (PopCnt(QWord(taicpu(p).oper[0]^.val)) = 1) and
+          { For sizes less than S_L, the byte size is equal or larger with BT,
+            so don't bother optimising }
+          (taicpu(p).opsize >= S_L) and
+          (
+            { If the value can bit into an 8-bit signed integer, a smaller
+              instruction can be encded with OR, so don't optimise if it falls
+              within this range }
+            (taicpu(p).oper[0]^.val < -128) or
+            (taicpu(p).oper[0]^.val >= 127)
+          ) and
+          (
+            { Don't optimise if a test instruction follows }
+            not GetNextInstruction(p, hp1) or
+            not MatchInstruction(hp1, A_TEST, [taicpu(p).opsize])
+          ) then
+          begin
+            DebugMsg(SPeepholeOptimization + 'Changed OR $0x' + hexstr(taicpu(p).oper[0]^.val, 2) + ' to BTS ' + debug_tostr(BsrQWord(taicpu(p).oper[0]^.val)) + ' to shrink instruction size (Or2Bts)', p);
+            taicpu(p).opcode := A_BTS;
+            taicpu(p).oper[0]^.val := BsrQWord(taicpu(p).oper[0]^.val); { Essentially the base 2 logarithm }
+            Result := True;
+            Exit;
+          end;
+
+        { If x is a power of 2 (popcnt = 1), change:
             test $x, %reg/ref
             je / sete / cmove (or jne / setne)
 
