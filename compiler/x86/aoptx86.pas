@@ -13531,34 +13531,90 @@ unit aoptx86;
     function TX86AsmOptimizer.PostPeepholeOptAnd(var p : tai) : boolean;
       var
         hp1: tai;
+        Value: TCGInt;
       begin
-        { Detect:
-            andw   x,  %ax (0 <= x < $8000)
-            ...
-            movzwl %ax,%eax
-
-          Change movzwl %ax,%eax to cwtl (shorter encoding for movswl %ax,%eax)
-        }
-
-        Result := False;        if MatchOpType(taicpu(p), top_const, top_reg) and
-          (taicpu(p).oper[1]^.reg = NR_AX) and { This is also enough to determine that opsize = S_W }
-          ((taicpu(p).oper[0]^.val and $7FFF) = taicpu(p).oper[0]^.val) and
-          GetNextInstructionUsingReg(p, hp1, NR_EAX) and
-          MatchInstruction(hp1, A_MOVZX, [S_WL]) and
-          MatchOperand(taicpu(hp1).oper[0]^, NR_AX) and
-          MatchOperand(taicpu(hp1).oper[1]^, NR_EAX) then
+        Result := False;
+        if MatchOpType(taicpu(p), top_const, top_reg) then
           begin
-            DebugMsg(SPeepholeOptimization + 'Converted movzwl %ax,%eax to cwtl (via AndMovz2AndCwtl)', hp1);
-            taicpu(hp1).opcode := A_CWDE;
-            taicpu(hp1).clearop(0);
-            taicpu(hp1).clearop(1);
-            taicpu(hp1).ops := 0;
+            { Detect:
+                andw   x,  %ax (0 <= x < $8000)
+                ...
+                movzwl %ax,%eax
 
-            { A change was made, but not with p, so move forward 1 }
-            p := tai(p.Next);
-            Result := True;
+              Change movzwl %ax,%eax to cwtl (shorter encoding for movswl %ax,%eax)
+            }
+
+            if (taicpu(p).oper[1]^.reg = NR_AX) and { This is also enough to determine that opsize = S_W }
+              ((taicpu(p).oper[0]^.val and $7FFF) = taicpu(p).oper[0]^.val) and
+              GetNextInstructionUsingReg(p, hp1, NR_EAX) and
+              MatchInstruction(hp1, A_MOVZX, [S_WL]) and
+              MatchOperand(taicpu(hp1).oper[0]^, NR_AX) and
+              MatchOperand(taicpu(hp1).oper[1]^, NR_EAX) then
+              begin
+                DebugMsg(SPeepholeOptimization + 'Converted movzwl %ax,%eax to cwtl (via AndMovz2AndCwtl)', hp1);
+                taicpu(hp1).opcode := A_CWDE;
+                taicpu(hp1).clearop(0);
+                taicpu(hp1).clearop(1);
+                taicpu(hp1).ops := 0;
+
+                { A change was made, but not with p, so move forward 1 }
+                p := tai(p.Next);
+                Result := True;
+                Exit; { and -> btr won't happen because an opsize of S_W won't be optimised anyway }
+              end;
+
+            { If "not x" is a power of 2 (popcnt = 1), change:
+                and $x, %reg/ref
+
+              To:
+                btr lb(x), %reg/ref
+            }
+            if
+{$ifndef x86_64}
+              (
+                (cs_opt_size in current_settings.optimizerswitches) or
+                { BTR takes more than 1 cycle on earlier processors }
+                (current_settings.optimizecputype >= cpu_Pentium2)
+              ) and
+{$endif not x86_64}
+              { For sizes less than S_L, the byte size is equal or larger with BT,
+                so don't bother optimising }
+              (taicpu(p).opsize >= S_L) and
+              { "btx $x,mem" is unacceptably slow, but oper[1] being top_reg is already checked }
+              (
+                { If the value can bit into an 8-bit signed integer, a smaller
+                  instruction can be encded with OR, so don't optimise if it falls
+                  within this range }
+                (taicpu(p).oper[0]^.val < -128) or
+                (taicpu(p).oper[0]^.val >= 127)
+              ) and
+              (
+                { Make sure a TEST doesn't follow that plays with the register }
+                not GetNextInstruction(p, hp1) or
+                not MatchInstruction(hp1, A_TEST, A_CMP, [taicpu(p).opsize]) or
+                not MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[1]^.reg)
+              ) then
+              begin
+{$push}{$R-}{$Q-}
+                { Value is a sign-extended 32-bit integer - just correct it
+                  if it's represented as an unsigned value }
+                Value := not taicpu(p).oper[0]^.val;
+{$pop}
+{$ifdef x86_64}
+                if taicpu(p).opsize = S_L then
+{$endif x86_64}
+                  Value := Value and $FFFFFFFF;
+
+                if (PopCnt(QWord(Value)) = 1) then
+                  begin
+                    DebugMsg(SPeepholeOptimization + 'Changed AND (not $0x' + hexstr(taicpu(p).oper[0]^.val, 2) + ') to BTR ' + debug_tostr(BsrQWord(Value)) + ' to shrink instruction size (And2Btr)', p);
+                    taicpu(p).opcode := A_BTR;
+                    taicpu(p).oper[0]^.val := BsrQWord(Value); { Essentially the base 2 logarithm }
+                    Result := True;
+                    Exit;
+                  end;
+              end;
           end;
-
       end;
 
 
@@ -14075,10 +14131,19 @@ unit aoptx86;
             jnc / setnc / cmovnc (or jc / setc / cmovnc)
         }
         if (taicpu(p).opcode = A_TEST) and
-{$ifdef i8086}
-          (current_settings.optimizecputype >= cpu_386) and
-{$endif i8086}
-          MatchOpType(taicpu(p), top_const, top_reg) and { "btx $x,mem" is unacceptably slow }
+          (CPUX86_HAS_BTX in cpu_capabilities[current_settings.optimizecputype]) and
+          (taicpu(p).oper[0]^.typ = top_const) and
+          (
+            (cs_opt_size in current_settings.optimizerswitches) or
+            (
+              (taicpu(p).oper[1]^.typ = top_reg) and
+              (CPUX86_HAS_FAST_BTX in cpu_capabilities[current_settings.optimizecputype])
+            ) or
+            (
+              (taicpu(p).oper[1]^.typ <> top_reg) and
+              (CPUX86_HAS_FAST_BT_MEM in cpu_capabilities[current_settings.optimizecputype])
+            )
+          ) and
           (PopCnt(QWord(taicpu(p).oper[0]^.val)) = 1) and
           { For sizes less than S_L, the byte size is equal or larger with BT,
             so don't bother optimising }
