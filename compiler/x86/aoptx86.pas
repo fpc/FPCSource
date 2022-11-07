@@ -5956,10 +5956,16 @@ unit aoptx86;
               end
             else
               begin
-                DebugMsg(SPeepholeOptimization + 'Arithmetic combine: ' +
-                  debug_op2str(taicpu(hp1).opcode) + ' $' + debug_tostr(taicpu(hp1).oper[0]^.val) + ',' + debug_operstr(taicpu(hp1).oper[1]^) + '; ' +
-                  debug_op2str(taicpu(p).opcode) + ' $' + debug_tostr(taicpu(p).oper[0]^.val) + ',' + debug_operstr(taicpu(p).oper[1]^) + ' -> ' +
-                  debug_op2str(taicpu(p).opcode) + ' $' + debug_tostr(ThisConst) + ' ' + debug_operstr(taicpu(p).oper[1]^), p);
+                if taicpu(hp1).opercnt=1 then
+                  DebugMsg(SPeepholeOptimization + 'Arithmetic combine: ' +
+                    debug_op2str(taicpu(hp1).opcode) + ' $' + debug_tostr(taicpu(hp1).oper[0]^.val) + '; ' +
+                    debug_op2str(taicpu(p).opcode) + ' $' + debug_tostr(taicpu(p).oper[0]^.val) + ',' + debug_operstr(taicpu(p).oper[1]^) + ' -> ' +
+                    debug_op2str(taicpu(p).opcode) + ' $' + debug_tostr(ThisConst) + ' ' + debug_operstr(taicpu(p).oper[1]^), p)
+                else
+                  DebugMsg(SPeepholeOptimization + 'Arithmetic combine: ' +
+                    debug_op2str(taicpu(hp1).opcode) + ' $' + debug_tostr(taicpu(hp1).oper[0]^.val) + ',' + debug_operstr(taicpu(hp1).oper[1]^) + '; ' +
+                    debug_op2str(taicpu(p).opcode) + ' $' + debug_tostr(taicpu(p).oper[0]^.val) + ',' + debug_operstr(taicpu(p).oper[1]^) + ' -> ' +
+                    debug_op2str(taicpu(p).opcode) + ' $' + debug_tostr(ThisConst) + ' ' + debug_operstr(taicpu(p).oper[1]^), p);
 
                 taicpu(p).loadconst(0, ThisConst);
               end;
