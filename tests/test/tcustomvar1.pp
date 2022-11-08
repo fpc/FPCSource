@@ -78,15 +78,22 @@ begin
           TVarData(v).VType := varUString;
           UnicodeString(TVarData(v).VUString) := StrPas(PPWideChar(arg)^);
         end;
-        varSingle,
-        varSmallint,
-        varInteger,
-        varLongWord,
-        varBoolean,
-        varShortInt,
-        varByte,
+        varSingle:
+          TVarData(v).VSingle := PLongint(arg)^;
+        varSmallint:
+          TVarData(v).VSmallInt := PLongint(arg)^;
+        varInteger:
+          TVarData(v).VInteger := PLongint(arg)^;
+        varLongWord:
+          TVarData(v).VLongWord := PLongint(arg)^;
+        varBoolean:
+          TVarData(v).VBoolean := Boolean(PLongint(arg)^);
+        varShortInt:
+          TVarData(v).VShortInt := PLongint(arg)^;
+        varByte:
+          TVarData(v).VByte := PLongint(arg)^;
         varWord:
-          TVarData(v).VInteger := PInteger(arg)^;
+          TVarData(v).VWord := PLongint(arg)^;
         else
           TVarData(v).VAny := PPointer(arg)^;
       end;
@@ -160,6 +167,18 @@ begin
   argtypes[1] := ConvertArgType(TVarData(argvalues[1]).VType);
   argtypes[0] := ConvertArgType(TVarData(argvalues[0]).VType);
   v.&Begin(Date:=42,Foobar:='Hello');
+
+  argvalues[1] := 3542;
+  argvalues[0] := UnicodeString('Hello');
+  argtypes[1] := ConvertArgType(TVarData(argvalues[1]).VType);
+  argtypes[0] := ConvertArgType(TVarData(argvalues[0]).VType);
+  v.&Begin(Date:=3542,Foobar:='Hello');
+
+  argvalues[1] := 1233542;
+  argvalues[0] := UnicodeString('Hello');
+  argtypes[1] := ConvertArgType(TVarData(argvalues[1]).VType);
+  argtypes[0] := ConvertArgType(TVarData(argvalues[0]).VType);
+  v.&Begin(Date:=1233542,Foobar:='Hello');
 
   funcname := '_';
   SetLength(argnames, 0);
