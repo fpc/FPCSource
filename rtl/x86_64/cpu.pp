@@ -29,6 +29,7 @@ unit cpu;
       sysutils;
 
     function InterlockedCompareExchange128Support : boolean;inline;
+    function CMOVSupport : boolean;inline;
     function AESSupport : boolean;inline;
     function AVXSupport : boolean;inline;
     function AVX2Support: boolean;inline;
@@ -267,6 +268,12 @@ unit cpu;
     function InterlockedCompareExchange128Support : boolean;inline;
       begin
         result:=_InterlockedCompareExchange128Support;
+      end;
+
+
+    function CMOVSupport : boolean;
+      begin
+        result:=true;
       end;
 
 

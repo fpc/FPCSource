@@ -31,6 +31,7 @@ unit cpu;
     { returns the contents of the cr0 register }
     function cr0 : longint;
 
+    function CMOVSupport : boolean;inline;
     function InterlockedCompareExchange128Support : boolean;
     function AESSupport : boolean;inline;
     function AVXSupport: boolean;inline;
@@ -73,6 +74,7 @@ unit cpu;
 
 {$ASMMODE INTEL}
     var
+      _CMOVSupport,
       _AESSupport,
       _AVXSupport,
       _AVX2Support,
@@ -219,9 +221,11 @@ unit cpu;
                  pushl %ebx
                  movl $1,%eax
                  cpuid
+                 movl %edx,_edx
                  movl %ecx,_ecx
                  popl %ebx
               end;
+              _CMOVSupport:=(_edx and $8000)<>0;
               _AESSupport:=(_ecx and $2000000)<>0;
               _POPCNTSupport:=(_ecx and $800000)<>0;
               _SSE41Support:=(_ecx and $80000)<>0;
@@ -296,6 +300,12 @@ unit cpu;
         { 32 Bit CPUs have no 128 Bit interlocked exchange support,
           but it can simulated using RTM }
         result:=_RTMSupport;
+      end;
+
+
+    function CMOVSupport : boolean;
+      begin
+        result:=_CMOVSupport;
       end;
 
 

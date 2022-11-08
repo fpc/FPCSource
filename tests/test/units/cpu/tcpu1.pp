@@ -4,6 +4,21 @@ uses
   cpu;
 
 begin
+  write('CMOV support: ');
+  if CMOVSupport then
+    begin
+      writeln('yes');
+      asm
+        cmov %eax,%eax
+        fldz
+        fldz
+        fcmovb %st(1)
+        fstpl %st(0)
+        fstpl %st(0)
+      end;
+    end
+  else
+    writeln('no');
   write('AES support: ');
   if AESSupport then
     begin
