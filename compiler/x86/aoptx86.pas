@@ -5643,13 +5643,13 @@ unit aoptx86;
 
     function TX86AsmOptimizer.OptPass1LEA(var p : tai) : boolean;
       var
-        hp1: tai;
+        hp1, hp2: tai;
         ref: Integer;
         saveref: treference;
         offsetcalc: Int64;
         TempReg: TRegister;
         Multiple: TCGInt;
-        Adjacent: Boolean;
+        Adjacent, IntermediateRegDiscarded: Boolean;
       begin
         Result:=false;
 
@@ -5804,7 +5804,6 @@ unit aoptx86;
               begin
                 { Check common LEA/LEA conditions }
                 if MatchInstruction(hp1,A_LEA,[taicpu(p).opsize]) and
-                  (taicpu(p).oper[1]^.reg = taicpu(hp1).oper[1]^.reg) and
                   (taicpu(p).oper[0]^.ref^.relsymbol = nil) and
                   (taicpu(p).oper[0]^.ref^.segment = NR_NO) and
                   (taicpu(p).oper[0]^.ref^.symbol = nil) and
@@ -5827,6 +5826,16 @@ unit aoptx86;
                     )
                   ) then
                   begin
+                    TransferUsedRegs(TmpUsedRegs);
+                    hp2 := p;
+                    repeat
+                      UpdateUsedRegs(TmpUsedRegs, tai(hp2.Next));
+                    until not GetNextInstruction(hp2, hp2) or (hp2 = hp1);
+
+                    IntermediateRegDiscarded :=
+                      (taicpu(p).oper[1]^.reg = taicpu(hp1).oper[1]^.reg) or
+                      not RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs);
+
                     { changes
                         lea offset1(regX,scale), reg1
                         lea offset2(reg1,reg1), reg2
@@ -5850,6 +5859,11 @@ unit aoptx86;
                       (Similarly, allow the first instruction to be "lea (regX,regX),reg1")
                       }
                     if (taicpu(p).oper[0]^.ref^.base<>NR_STACK_POINTER_REG) and { lea (%rsp,scale),reg is not a valid encoding }
+                      (
+                        { Don't optimise if size is a concern and the intermediate register remains in use }
+                        IntermediateRegDiscarded or
+                        not (cs_opt_size in current_settings.optimizerswitches)
+                      ) and
                       (taicpu(hp1).oper[0]^.ref^.index = taicpu(p).oper[1]^.reg) and
                       (
                         (taicpu(p).oper[0]^.ref^.base <> taicpu(p).oper[0]^.ref^.index) or
@@ -5897,8 +5911,6 @@ unit aoptx86;
 
                         if (offsetcalc <= $7FFFFFFF) and (offsetcalc >= -2147483648) then
                           begin
-                            DebugMsg(SPeepholeOptimization + 'LeaLea2Lea 2 done',p);
-
                             if (taicpu(hp1).oper[0]^.ref^.base = taicpu(p).oper[1]^.reg) and
                               (taicpu(hp1).oper[0]^.ref^.index <> taicpu(p).oper[1]^.reg) then
                               begin
@@ -5925,7 +5937,16 @@ unit aoptx86;
                             if (taicpu(p).oper[0]^.ref^.offset <> 0) then
                               Inc(taicpu(hp1).oper[0]^.ref^.offset, taicpu(p).oper[0]^.ref^.offset * max(taicpu(p).oper[0]^.ref^.scalefactor, 1));
                             taicpu(hp1).oper[0]^.ref^.index := taicpu(p).oper[0]^.ref^.index;
-                            RemoveCurrentP(p);
+
+                            { Only remove the first LEA if we don't need the intermediate register's value as is }
+                            if IntermediateRegDiscarded then
+                              begin
+                                DebugMsg(SPeepholeOptimization + 'LeaLea2Lea 2 done',p);
+                                RemoveCurrentP(p);
+                              end
+                            else
+                              DebugMsg(SPeepholeOptimization + 'LeaLea2LeaLea 2 done (intermediate register still in use)',p);
+
                             result:=true;
                             exit;
                           end;
@@ -5933,29 +5954,35 @@ unit aoptx86;
 
                     { changes
                         lea offset1(regX), reg1
-                        lea offset2(reg1), reg1
+                        lea offset2(reg1), reg2
                         to
-                        lea offset1+offset2(regX), reg1 }
-                    if
+                        lea offset1+offset2(regX), reg2 }
+                    if (
+                        { Don't optimise if size is a concern and the intermediate register remains in use }
+                        IntermediateRegDiscarded or
+                        not (cs_opt_size in current_settings.optimizerswitches)
+                      ) and
                       (
-                        (taicpu(hp1).oper[0]^.ref^.index = taicpu(p).oper[1]^.reg) and
-                        (taicpu(p).oper[0]^.ref^.index = NR_NO)
-                      ) or (
-                        (taicpu(hp1).oper[0]^.ref^.base = taicpu(p).oper[1]^.reg) and
-                        (taicpu(hp1).oper[0]^.ref^.scalefactor <= 1) and
                         (
+                          (taicpu(hp1).oper[0]^.ref^.index = taicpu(p).oper[1]^.reg) and
+                          (taicpu(p).oper[0]^.ref^.index = NR_NO)
+                        ) or (
+                          (taicpu(hp1).oper[0]^.ref^.base = taicpu(p).oper[1]^.reg) and
+                          (taicpu(hp1).oper[0]^.ref^.scalefactor <= 1) and
                           (
-                            (taicpu(p).oper[0]^.ref^.index = NR_NO) or
-                            (taicpu(p).oper[0]^.ref^.base = NR_NO)
-                          ) or (
-                            (taicpu(p).oper[0]^.ref^.scalefactor <= 1) and
                             (
                               (taicpu(p).oper[0]^.ref^.index = NR_NO) or
+                              (taicpu(p).oper[0]^.ref^.base = NR_NO)
+                            ) or (
+                              (taicpu(p).oper[0]^.ref^.scalefactor <= 1) and
                               (
-                                (taicpu(p).oper[0]^.ref^.index = taicpu(p).oper[0]^.ref^.base) and
+                                (taicpu(p).oper[0]^.ref^.index = NR_NO) or
                                 (
-                                  (taicpu(hp1).oper[0]^.ref^.index = NR_NO) or
-                                  (taicpu(hp1).oper[0]^.ref^.base = NR_NO)
+                                  (taicpu(p).oper[0]^.ref^.index = taicpu(p).oper[0]^.ref^.base) and
+                                  (
+                                    (taicpu(hp1).oper[0]^.ref^.index = NR_NO) or
+                                    (taicpu(hp1).oper[0]^.ref^.base = NR_NO)
+                                  )
                                 )
                               )
                             )
@@ -5963,34 +5990,49 @@ unit aoptx86;
                         )
                       ) then
                       begin
-                        DebugMsg(SPeepholeOptimization + 'LeaLea2Lea 1 done',p);
+                        { Make sure the offset doesn't go out of range (use 64-bit arithmetic)}
+                        offsetcalc := taicpu(hp1).oper[0]^.ref^.offset;
+                        Inc(offsetcalc, Int64(taicpu(p).oper[0]^.ref^.offset) * max(taicpu(hp1).oper[0]^.ref^.scalefactor, 1));
 
-                        if taicpu(hp1).oper[0]^.ref^.index=taicpu(p).oper[1]^.reg then
+                        if (offsetcalc <= $7FFFFFFF) and (offsetcalc >= -2147483648) then
                           begin
-                            taicpu(hp1).oper[0]^.ref^.index:=taicpu(p).oper[0]^.ref^.base;
-                            inc(taicpu(hp1).oper[0]^.ref^.offset,taicpu(p).oper[0]^.ref^.offset*max(taicpu(hp1).oper[0]^.ref^.scalefactor,1));
-                            { if the register is used as index and base, we have to increase for base as well
-                              and adapt base }
-                            if taicpu(hp1).oper[0]^.ref^.base=taicpu(p).oper[1]^.reg then
+                            if taicpu(hp1).oper[0]^.ref^.index=taicpu(p).oper[1]^.reg then
                               begin
-                                taicpu(hp1).oper[0]^.ref^.base:=taicpu(p).oper[0]^.ref^.base;
+                                taicpu(hp1).oper[0]^.ref^.index:=taicpu(p).oper[0]^.ref^.base;
+                                inc(taicpu(hp1).oper[0]^.ref^.offset,taicpu(p).oper[0]^.ref^.offset*max(taicpu(hp1).oper[0]^.ref^.scalefactor,1));
+                                { if the register is used as index and base, we have to increase for base as well
+                                  and adapt base }
+                                if taicpu(hp1).oper[0]^.ref^.base=taicpu(p).oper[1]^.reg then
+                                  begin
+                                    taicpu(hp1).oper[0]^.ref^.base:=taicpu(p).oper[0]^.ref^.base;
+                                    inc(taicpu(hp1).oper[0]^.ref^.offset,taicpu(p).oper[0]^.ref^.offset);
+                                  end;
+                              end
+                            else
+                              begin
                                 inc(taicpu(hp1).oper[0]^.ref^.offset,taicpu(p).oper[0]^.ref^.offset);
+                                taicpu(hp1).oper[0]^.ref^.base:=taicpu(p).oper[0]^.ref^.base;
                               end;
-                          end
-                        else
-                          begin
-                            inc(taicpu(hp1).oper[0]^.ref^.offset,taicpu(p).oper[0]^.ref^.offset);
-                            taicpu(hp1).oper[0]^.ref^.base:=taicpu(p).oper[0]^.ref^.base;
+                            if taicpu(p).oper[0]^.ref^.index<>NR_NO then
+                              begin
+                                taicpu(hp1).oper[0]^.ref^.base:=taicpu(hp1).oper[0]^.ref^.index;
+                                taicpu(hp1).oper[0]^.ref^.index:=taicpu(p).oper[0]^.ref^.index;
+                                taicpu(hp1).oper[0]^.ref^.scalefactor:=taicpu(p).oper[0]^.ref^.scalefactor;
+                              end;
+
+                            { Only remove the first LEA if we don't need the intermediate register's value as is }
+                            if IntermediateRegDiscarded then
+                              begin
+                                DebugMsg(SPeepholeOptimization + 'LeaLea2Lea 1 done',p);
+                                RemoveCurrentP(p);
+                              end
+                            else
+                              DebugMsg(SPeepholeOptimization + 'LeaLea2LeaLea 1 done (intermediate register still in use)',p);
+
+
+                            result:=true;
+                            exit;
                           end;
-                        if taicpu(p).oper[0]^.ref^.index<>NR_NO then
-                          begin
-                            taicpu(hp1).oper[0]^.ref^.base:=taicpu(hp1).oper[0]^.ref^.index;
-                            taicpu(hp1).oper[0]^.ref^.index:=taicpu(p).oper[0]^.ref^.index;
-                            taicpu(hp1).oper[0]^.ref^.scalefactor:=taicpu(p).oper[0]^.ref^.scalefactor;
-                          end;
-                        RemoveCurrentP(p);
-                        result:=true;
-                        exit;
                       end;
                   end;
 
