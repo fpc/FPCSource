@@ -56,6 +56,8 @@ unit cpu;
     function FMASupport: boolean;inline;
     function POPCNTSupport: boolean;inline;
     function LZCNTSupport: boolean;inline;
+    function SSE3Support: boolean;inline;
+    function SSSE3Support: boolean;inline;
     function SSE41Support: boolean;inline;
     function SSE42Support: boolean;inline;
     function MOVBESupport: boolean;inline;
@@ -98,6 +100,8 @@ unit cpu;
       _FMASupport,
       _POPCNTSupport,
       _LZCNTSupport,
+      _SSE3Support,
+      _SSSE3Support,
       _SSE41Support,
       _SSE42Support,
       _MOVBESupport,
@@ -228,6 +232,8 @@ unit cpu;
               _CMOVSupport:=(_edx and $8000)<>0;
               _AESSupport:=(_ecx and $2000000)<>0;
               _POPCNTSupport:=(_ecx and $800000)<>0;
+              _SSE3Support:=(_ecx and $1)<>0;
+              _SSSE3Support:=(_ecx and $200)<>0;
               _SSE41Support:=(_ecx and $80000)<>0;
               _SSE42Support:=(_ecx and $100000)<>0;
               _MOVBESupport:=(_ecx and $400000)<>0;
@@ -444,6 +450,18 @@ unit cpu;
     function LZCNTSupport: boolean;inline;
       begin
         result:=_LZCNTSupport;
+      end;
+
+
+    function SSE3Support: boolean;inline;
+      begin
+        result:=_SSE3Support;
+      end;
+
+
+    function SSSE3Support: boolean;inline;
+      begin
+        result:=_SSSE3Support;
       end;
 
 
