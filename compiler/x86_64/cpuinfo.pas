@@ -165,14 +165,19 @@ Const
 
 type
    tcpuflags =
-      (CPUX86_HAS_CMOV,
-       CPUX86_HAS_SSEUNIT,
-       CPUX86_HAS_SSE2,
-       CPUX86_HAS_BMI1,
-       CPUX86_HAS_BMI2,
-       CPUX86_HAS_POPCNT,
-       CPUX86_HAS_LZCNT,
-       CPUX86_HAS_MOVBE
+      (CPUX86_HAS_BTX,          { Bit-test instructions (BT, BTC, BTR and BTS) are available }
+       CPUX86_HAS_FAST_XCHG,    { XCHG %reg,%reg executes in 2 cycles or less }
+       CPUX86_HAS_CMOV,         { CMOVcc instructions are available }
+       CPUX86_HAS_FAST_BTX,     { BT/C/R/S instructions with register operands are at least as fast as logical instructions }
+       CPUX86_HAS_FAST_BT_MEM,  { BT instructions with memory operands are at least as fast as logical instructions }
+       CPUX86_HAS_FAST_BTX_MEM, { BTC/R/S instructions with memory operands are at least as fast as logical instructions }
+       CPUX86_HAS_SSEUNIT,      { SSE instructions are available }
+       CPUX86_HAS_SSE2,         { SSE2 instructions are available }
+       CPUX86_HAS_BMI1,         { BMI1 instructions are available }
+       CPUX86_HAS_BMI2,         { BMI2 instructions are available }
+       CPUX86_HAS_POPCNT,       { POPCNT is available }
+       CPUX86_HAS_LZCNT,        { LZCNT is available }
+       CPUX86_HAS_MOVBE         { MOVBE is available }
       );
 
    tfpuflags =
@@ -188,10 +193,10 @@ type
  const
    cpu_capabilities : array[tcputype] of set of tcpuflags = (
      { cpu_none      } [],
-     { Athlon64      } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2],
-     { cpu_core_i    } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT],
-     { cpu_core_avx  } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT],
-     { cpu_core_avx2 } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT,CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE]
+     { Athlon64      } [CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_FAST_BTX,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2],
+     { cpu_core_i    } [CPUX86_HAS_BTX,CPUX86_HAS_FAST_XCHG,CPUX86_HAS_CMOV,CPUX86_HAS_FAST_BTX,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT],
+     { cpu_core_avx  } [CPUX86_HAS_BTX,CPUX86_HAS_FAST_XCHG,CPUX86_HAS_CMOV,CPUX86_HAS_FAST_BTX,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT],
+     { cpu_core_avx2 } [CPUX86_HAS_BTX,CPUX86_HAS_FAST_XCHG,CPUX86_HAS_CMOV,CPUX86_HAS_FAST_BTX,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT,CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE]
    );
 
    fpu_capabilities : array[tfputype] of set of tfpuflags = (
