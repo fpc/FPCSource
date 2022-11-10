@@ -47,6 +47,7 @@
 
 function GetBinaryType(lpApplicationName:LPCSTR; lpBinaryType:LPDWORD):WINBOOL; external 'kernel32' name 'GetBinaryTypeA';
 function GetShortPathName(lpszLongPath:LPCSTR; lpszShortPath:LPSTR; cchBuffer:DWORD):DWORD; external 'kernel32' name 'GetShortPathNameA';
+function GetLongPathName(lpszShortPath:LPCSTR; lpszLongPath:LPSTR; cchBuffer:DWORD):DWORD; external 'kernel32' name 'GetLongPathNameA';
 function GetEnvironmentStrings : LPSTR; external 'kernel32' name 'GetEnvironmentStringsA';
 function FreeEnvironmentStrings(_para1:LPSTR):WINBOOL; external 'kernel32' name 'FreeEnvironmentStringsA';
 function FormatMessage(dwFlags:DWORD; lpSource:LPCVOID; dwMessageId:DWORD; dwLanguageId:DWORD; lpBuffer:LPSTR;nSize:DWORD; Arguments:va_list):DWORD; external 'kernel32' name 'FormatMessageA';

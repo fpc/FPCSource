@@ -48,6 +48,7 @@
 
 function GetBinaryTypeW(lpApplicationName:LPCWSTR; lpBinaryType:LPDWORD):WINBOOL; external 'kernel32' name 'GetBinaryTypeW';
 function GetShortPathNameW(lpszLongPath:LPCWSTR; lpszShortPath:LPWSTR; cchBuffer:DWORD):DWORD; external 'kernel32' name 'GetShortPathNameW';
+function GetLongPathNameW(lpszShortPath:LPCWSTR; lpszLongPath:LPWSTR; cchBuffer:DWORD):DWORD; external 'kernel32' name 'GetLongPathNameW';
 function GetEnvironmentStringsW:LPWSTR; external 'kernel32' name 'GetEnvironmentStringsW';function FreeEnvironmentStringsW(_para1:LPWSTR):WINBOOL; external 'kernel32' name 'FreeEnvironmentStringsW';
 function FormatMessageW(dwFlags:DWORD; lpSource:LPCVOID; dwMessageId:DWORD; dwLanguageId:DWORD; lpBuffer:LPWSTR;nSize:DWORD; Arguments:va_list):DWORD; external 'kernel32' name 'FormatMessageW';
 function CreateMailslotW(lpName:LPCWSTR; nMaxMessageSize:DWORD; lReadTimeout:DWORD; lpSecurityAttributes:LPSECURITY_ATTRIBUTES):HANDLE; external 'kernel32' name 'CreateMailslotW';
