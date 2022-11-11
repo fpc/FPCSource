@@ -110,7 +110,8 @@ interface
         'x64',         // cpu_athlon64,
         'ia64',        // cpu_core_i,
         'ia64',        // cpu_core_avx,
-        'ia64'         // cpu_core_avx2
+        'ia64',        // cpu_core_avx2,
+        'ia64'         // cpu_zen
 {$elseif defined(i386)}
         'ia64',     // cpu_none,
         '386',      // cpu_386,
@@ -122,7 +123,8 @@ interface
         'p4',       // cpu_PentiumM,
         'ia64',     // cpu_core_i,
         'ia64',     // cpu_core_avx,
-        'ia64'      // cpu_core_avx2
+        'ia64',     // cpu_core_avx2
+        'ia64'      // cpu_zen
 {$elseif defined(i8086)}
         'ia64',    // cpu_none
         '8086',    // cpu_8086
