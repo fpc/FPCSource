@@ -5942,13 +5942,13 @@ unit aoptx86;
               { Overflow; abort }
               Exit;
 
-            RemoveInstruction(hp1);
             if (ThisConst = 0) then
               begin
                 DebugMsg(SPeepholeOptimization + 'Arithmetic combine: ' +
                   debug_op2str(taicpu(hp1).opcode) + ' $' + debug_tostr(taicpu(hp1).oper[0]^.val) + ',' + debug_operstr(taicpu(hp1).oper[1]^) + '; ' +
                   debug_op2str(taicpu(p).opcode) + ' $' + debug_tostr(taicpu(p).oper[0]^.val) + ',' + debug_operstr(taicpu(p).oper[1]^) + ' cancel out (NOP)', p);
 
+                RemoveInstruction(hp1);
                 hp1 := tai(p.next);
                 RemoveInstruction(p); { Note, the choice to not use RemoveCurrentp is deliberate }
                 if not GetLastInstruction(hp1, p) then
@@ -5967,6 +5967,7 @@ unit aoptx86;
                     debug_op2str(taicpu(p).opcode) + ' $' + debug_tostr(taicpu(p).oper[0]^.val) + ',' + debug_operstr(taicpu(p).oper[1]^) + ' -> ' +
                     debug_op2str(taicpu(p).opcode) + ' $' + debug_tostr(ThisConst) + ' ' + debug_operstr(taicpu(p).oper[1]^), p);
 
+                RemoveInstruction(hp1);
                 taicpu(p).loadconst(0, ThisConst);
               end;
 
