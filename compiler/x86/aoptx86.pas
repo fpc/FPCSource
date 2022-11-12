@@ -196,9 +196,7 @@ unit aoptx86;
 
         function PostPeepholeOptMov(var p : tai) : Boolean;
         function PostPeepholeOptMovzx(var p : tai) : Boolean;
-{$ifdef x86_64} { These post-peephole optimisations only affect 64-bit registers. [Kit] }
         function PostPeepholeOptXor(var p : tai) : Boolean;
-{$endif x86_64}
         function PostPeepholeOptAnd(var p : tai) : boolean;
         function PostPeepholeOptMOVSX(var p : tai) : boolean;
         function PostPeepholeOptCmp(var p : tai) : Boolean;
@@ -14567,16 +14565,42 @@ unit aoptx86;
       end;
 
 
-{$ifdef x86_64}
     function TX86AsmOptimizer.PostPeepholeOptXor(var p : tai) : Boolean;
       var
+        hp1: tai;
+{$ifdef x86_64}
         PreMessage, RegName: string;
+{$endif x86_64}
       begin
+        Result := False;
+
+        { If x is a power of 2 (popcnt = 1), change:
+            xor $x, %reg/ref
+
+          To:
+            btc lb(x), %reg/ref
+        }
+        if IsBTXAcceptable(p) and
+          { IsBTXAcceptable checks to see if oper[0] is an immediate }
+          (PopCnt(QWord(taicpu(p).oper[0]^.val)) = 1) and
+          (
+            { Don't optimise if a test instruction follows }
+            not GetNextInstruction(p, hp1) or
+            not MatchInstruction(hp1, A_TEST, [taicpu(p).opsize])
+          ) then
+          begin
+            DebugMsg(SPeepholeOptimization + 'Changed XOR $0x' + hexstr(taicpu(p).oper[0]^.val, 2) + ' to BTC ' + debug_tostr(BsrQWord(taicpu(p).oper[0]^.val)) + ' to shrink instruction size (Xor2Btc)', p);
+            taicpu(p).opcode := A_BTC;
+            taicpu(p).oper[0]^.val := BsrQWord(taicpu(p).oper[0]^.val); { Essentially the base 2 logarithm }
+            Result := True;
+            Exit;
+          end;
+
+{$ifdef x86_64}
         { Code size reduction by J. Gareth "Kit" Moreton }
         { change "xorq %reg,%reg" to "xorl %reg,%reg" for %rax, %rcx, %rdx, %rbx, %rsi, %rdi, %rbp and %rsp,
           as this removes the REX prefix }
 
-        Result := False;
         if not OpsEqual(taicpu(p).oper[0]^,taicpu(p).oper[1]^) then
           Exit;
 
@@ -14602,8 +14626,8 @@ unit aoptx86;
           else
             ;
         end;
+{$endif x86_64}
       end;
-{$endif}
 
     function TX86AsmOptimizer.PostPeepholeOptVPXOR(var p : tai) : Boolean;
       var
