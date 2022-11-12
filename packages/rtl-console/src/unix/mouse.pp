@@ -16,11 +16,11 @@
 unit Mouse;
 interface
 
-{$if defined(aix) or defined(solaris)}
+{$if defined(aix) or defined(solaris) or (defined(bsd) and not(defined(darwin)))}
 {$define NOMOUSE}
 {$endif}
 
-{$if defined(bsd) or defined(haiku) or defined(beos)}
+{$if defined(darwin) or defined(haiku) or defined(beos)}
 {$define NOGPM}
 {$endif}
 
