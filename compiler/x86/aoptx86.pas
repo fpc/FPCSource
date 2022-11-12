@@ -131,6 +131,10 @@ unit aoptx86;
         class function CanBeCMOV(p : tai) : boolean; static;
 
 
+        { Returns true if the given logic instruction can be converted into a BTx instruction (BT not included) }
+        class function IsBTXAcceptable(p : tai) : boolean; static;
+
+
         { Converts the LEA instruction to ADD/INC/SUB/DEC. Returns True if the
           conversion was successful }
         function ConvertLEA(const p : taicpu): Boolean;
@@ -13528,6 +13532,42 @@ unit aoptx86;
       end;
 
 
+    { Returns true if the given logic instruction can be converted into a BTx instruction (BT not included) }
+    class function TX86AsmOptimizer.IsBTXAcceptable(p : tai) : boolean;
+      begin
+        Result := False;
+
+        if not (CPUX86_HAS_BTX in cpu_capabilities[current_settings.optimizecputype]) then
+          Exit;
+
+        { For sizes less than S_L, the byte size is equal or larger with BTx,
+          so don't bother optimising }
+        if not MatchInstruction(p, A_AND, A_OR, A_XOR, [S_L{$ifdef x86_64}, S_Q{$endif x86_64}]) then
+          Exit;
+
+        if (taicpu(p).oper[0]^.typ <> top_const) or
+          { If the value can fit into an 8-bit signed integer, a smaller
+            instruction can be encoded with AND/OR/XOR, so don't optimise if it
+            falls within this range }
+          (
+            (taicpu(p).oper[0]^.val > -128) and
+            (taicpu(p).oper[0]^.val <= 127)
+          ) then
+          Exit;
+
+        { If we're optimising for size, this is acceptable }
+        if (cs_opt_size in current_settings.optimizerswitches) then
+          Exit(True);
+
+        if (taicpu(p).oper[1]^.typ = top_reg) and
+          (CPUX86_HINT_FAST_BTX_REG_IMM in cpu_optimization_hints[current_settings.optimizecputype]) then
+          Exit(True);
+
+        if (taicpu(p).oper[1]^.typ <> top_reg) and
+          (CPUX86_HINT_FAST_BTX_MEM_IMM in cpu_optimization_hints[current_settings.optimizecputype]) then
+          Exit(True);
+      end;
+
     function TX86AsmOptimizer.PostPeepholeOptAnd(var p : tai) : boolean;
       var
         hp1: tai;
@@ -13562,57 +13602,40 @@ unit aoptx86;
                 Result := True;
                 Exit; { and -> btr won't happen because an opsize of S_W won't be optimised anyway }
               end;
+          end;
 
-            { If "not x" is a power of 2 (popcnt = 1), change:
-                and $x, %reg/ref
+        { If "not x" is a power of 2 (popcnt = 1), change:
+            and $x, %reg/ref
 
-              To:
-                btr lb(x), %reg/ref
-            }
-            if
-{$ifndef x86_64}
-              (
-                (cs_opt_size in current_settings.optimizerswitches) or
-                { BTR takes more than 1 cycle on earlier processors }
-                (current_settings.optimizecputype >= cpu_Pentium2)
-              ) and
-{$endif not x86_64}
-              { For sizes less than S_L, the byte size is equal or larger with BT,
-                so don't bother optimising }
-              (taicpu(p).opsize >= S_L) and
-              { "btx $x,mem" is unacceptably slow, but oper[1] being top_reg is already checked }
-              (
-                { If the value can bit into an 8-bit signed integer, a smaller
-                  instruction can be encded with OR, so don't optimise if it falls
-                  within this range }
-                (taicpu(p).oper[0]^.val < -128) or
-                (taicpu(p).oper[0]^.val >= 127)
-              ) and
-              (
-                { Make sure a TEST doesn't follow that plays with the register }
-                not GetNextInstruction(p, hp1) or
-                not MatchInstruction(hp1, A_TEST, A_CMP, [taicpu(p).opsize]) or
-                not MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[1]^.reg)
-              ) then
-              begin
+          To:
+            btr lb(x), %reg/ref
+        }
+        if IsBTXAcceptable(p) and
+          (
+            { Make sure a TEST doesn't follow that plays with the register }
+            not GetNextInstruction(p, hp1) or
+            not MatchInstruction(hp1, A_TEST, A_CMP, [taicpu(p).opsize]) or
+            not MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[1]^.reg)
+          ) then
+          begin
 {$push}{$R-}{$Q-}
-                { Value is a sign-extended 32-bit integer - just correct it
-                  if it's represented as an unsigned value }
-                Value := not taicpu(p).oper[0]^.val;
+            { Value is a sign-extended 32-bit integer - just correct it
+              if it's represented as an unsigned value.  Also, IsBTXAcceptable
+              checks to see if this operand is an immediate. }
+            Value := not taicpu(p).oper[0]^.val;
 {$pop}
 {$ifdef x86_64}
-                if taicpu(p).opsize = S_L then
+            if taicpu(p).opsize = S_L then
 {$endif x86_64}
-                  Value := Value and $FFFFFFFF;
+              Value := Value and $FFFFFFFF;
 
-                if (PopCnt(QWord(Value)) = 1) then
-                  begin
-                    DebugMsg(SPeepholeOptimization + 'Changed AND (not $0x' + hexstr(taicpu(p).oper[0]^.val, 2) + ') to BTR ' + debug_tostr(BsrQWord(Value)) + ' to shrink instruction size (And2Btr)', p);
-                    taicpu(p).opcode := A_BTR;
-                    taicpu(p).oper[0]^.val := BsrQWord(Value); { Essentially the base 2 logarithm }
-                    Result := True;
-                    Exit;
-                  end;
+            if (PopCnt(QWord(Value)) = 1) then
+              begin
+                DebugMsg(SPeepholeOptimization + 'Changed AND (not $0x' + hexstr(taicpu(p).oper[0]^.val, 2) + ') to BTR ' + debug_tostr(BsrQWord(Value)) + ' to shrink instruction size (And2Btr)', p);
+                taicpu(p).opcode := A_BTR;
+                taicpu(p).oper[0]^.val := BsrQWord(Value); { Essentially the base 2 logarithm }
+                Result := True;
+                Exit;
               end;
           end;
       end;
@@ -14090,25 +14113,9 @@ unit aoptx86;
             bts lb(x), %reg/ref
         }
         if (taicpu(p).opcode = A_OR) and
-{$ifndef x86_64}
-          (
-            (cs_opt_size in current_settings.optimizerswitches) or
-            { BTS takes more than 1 cycle on earlier processors }
-            (current_settings.optimizecputype >= cpu_Pentium2)
-          ) and
-{$endif not x86_64}
-          MatchOpType(taicpu(p), top_const, top_reg) and { "btx $x,mem" is unacceptably slow }
+          IsBTXAcceptable(p) and
+          { IsBTXAcceptable checks to see if oper[0] is an immediate }
           (PopCnt(QWord(taicpu(p).oper[0]^.val)) = 1) and
-          { For sizes less than S_L, the byte size is equal or larger with BT,
-            so don't bother optimising }
-          (taicpu(p).opsize >= S_L) and
-          (
-            { If the value can bit into an 8-bit signed integer, a smaller
-              instruction can be encded with OR, so don't optimise if it falls
-              within this range }
-            (taicpu(p).oper[0]^.val < -128) or
-            (taicpu(p).oper[0]^.val >= 127)
-          ) and
           (
             { Don't optimise if a test instruction follows }
             not GetNextInstruction(p, hp1) or
@@ -14137,11 +14144,11 @@ unit aoptx86;
             (cs_opt_size in current_settings.optimizerswitches) or
             (
               (taicpu(p).oper[1]^.typ = top_reg) and
-              (CPUX86_HAS_FAST_BTX in cpu_capabilities[current_settings.optimizecputype])
+              (CPUX86_HINT_FAST_BT_REG_IMM in cpu_optimization_hints[current_settings.optimizecputype])
             ) or
             (
               (taicpu(p).oper[1]^.typ <> top_reg) and
-              (CPUX86_HAS_FAST_BT_MEM in cpu_capabilities[current_settings.optimizecputype])
+              (CPUX86_HINT_FAST_BT_MEM_IMM in cpu_optimization_hints[current_settings.optimizecputype])
             )
           ) and
           (PopCnt(QWord(taicpu(p).oper[0]^.val)) = 1) and
