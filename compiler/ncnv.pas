@@ -3168,19 +3168,25 @@ implementation
                                    (nf_internal in flags)
                                  ))
                                 )
-                               ) or ((((resultdef.typ=objectdef) and (left.resultdef.typ=classrefdef))
-                                     or ((left.resultdef.typ=objectdef) and (resultdef.typ=classrefdef)))
-                                     and not (nf_internal in flags)) then
+                               ) then
                            CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename)
                          else
                            begin
-                             { perform target-specific explicit typecast
-                               checks }
-                             if target_specific_explicit_typeconv then
-                               begin
-                                 result:=simplify(false);
-                                 exit;
-                               end;
+                             if ((((resultdef.typ=objectdef) and (left.resultdef.typ=classrefdef))
+                                 or ((left.resultdef.typ=objectdef) and (resultdef.typ=classrefdef)))
+                                 and not (nf_internal in flags)) then
+                               if not(m_delphi in current_settings.modeswitches) then
+                                 CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename)
+                               else
+                                 begin
+                                   CGMessage2(type_w_dangerous_type_conversion,left.resultdef.typename,resultdef.typename);
+			           { perform target-specific explicit typecast checks }
+                                   if target_specific_explicit_typeconv then
+                                     begin
+                                       result:=simplify(false);
+                                       exit;
+                                     end;
+                                 end;
                            end;
                        end;
                    end
