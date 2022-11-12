@@ -386,6 +386,8 @@ unit aoptcpu;
                 A_ADD,
                 A_SUB:
                   Result:=PostPeepholeOptADDSUB(p);
+                A_XOR:
+                  Result:=PostPeepholeOptXor(p);
                 A_VPXOR:
                   Result:=PostPeepholeOptVPXOR(p);
                 else
