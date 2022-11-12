@@ -9,15 +9,8 @@ unit FPHTTPClientAsyncPool;
     check (TODO: URL)
 }
 
-{$IF (FPC_FULLVERSION >= 30301)}
-  {$define use_functionreferences}
-{$ENDIF}
-
 {$mode ObjFPC}{$H+}
 {$modeswitch advancedrecords}
-{$IFDEF use_functionreferences}
-  {$modeswitch functionreferences}
-{$ENDIF}
 
 interface
 
@@ -27,14 +20,14 @@ uses
 type
   TFPHTTPClientPoolMethodResult = (mrSuccess, mrAbortedByClient, mrAbortedWithException);
 
-  TFPHTTPClientAbstractAsyncPoolRequest = class;
+  TFPHTTPClientAsyncPoolRequest = class;
 
   TFPHTTPClientPoolResult = class(TPersistent)
   private
     fExceptionClass: TClass;
     fExceptionMessage: string;
 
-    fRequest: TFPHTTPClientAbstractAsyncPoolRequest;
+    fRequest: TFPHTTPClientAsyncPoolRequest;
     fMethodResult: TFPHTTPClientPoolMethodResult;
     fResponseHeaders: TStringList;
     fResponseStatusCode: Integer;
@@ -46,10 +39,12 @@ type
     function GetResponseEncoding: TEncoding;
     function GetResponseString: string;
     function GetResponseBytes: TBytes;
+
+    //class function Create(const aFromThread: TOHttpPoolThread): TFPHTTPClientPoolResult; static;
   protected
     procedure AssignTo(Dest: TPersistent); override;
   public
-    property Request: TFPHTTPClientAbstractAsyncPoolRequest read fRequest;
+    property Request: TFPHTTPClientAsyncPoolRequest read fRequest;
     property MethodResult: TFPHTTPClientPoolMethodResult read fMethodResult write fMethodResult;
     property ResponseStatusCode: Integer read fResponseStatusCode write fResponseStatusCode;
     property ResponseStatusText: string read fResponseStatusText write fResponseStatusText;
@@ -67,36 +62,22 @@ type
     property ExceptionClass: TClass read fExceptionClass write fExceptionClass;
     property ExceptionMessage: string read fExceptionMessage write fExceptionMessage;
   public
-    constructor Create(const aRequest: TFPHTTPClientAbstractAsyncPoolRequest);
+    constructor Create(const aRequest: TFPHTTPClientAsyncPoolRequest);
     destructor Destroy; override;
   end;
 
   TFPHTTPClientAsyncPoolRequestThread = class;
 
-  TFPHTTPClientPoolProgressDirection = (pdDataSent, pdDataReceived);
-
-{$IFDEF use_functionreferences}
-  TFPHTTPClientAsyncPoolRequestRef = class;
-  TFPHTTPClientPoolInitRef = reference to procedure(const aRequest: TFPHTTPClientAsyncPoolRequestRef; const aClient: TFPHTTPClient);
-  TFPHTTPClientPoolFinishRef = reference to procedure(const aResult: TFPHTTPClientPoolResult);
-  TFPHTTPClientPoolProgressRef = reference to procedure(
-    Sender: TFPHTTPClientAsyncPoolRequestThread;
-    const aDirection: TFPHTTPClientPoolProgressDirection;
-    const aPosition, aContentLength: Int64; var ioStop: Boolean);
-  TFPHTTPClientPoolSimpleCallbackRef = reference to procedure;
-{$ENDIF}
-  TFPHTTPClientAsyncPoolRequest = class;
   TFPHTTPClientPoolInit = procedure(const aRequest: TFPHTTPClientAsyncPoolRequest; const aClient: TFPHTTPClient) of object;
   TFPHTTPClientPoolFinish = procedure(const aResult: TFPHTTPClientPoolResult) of object;
+  TFPHTTPClientPoolProgressDirection = (pdDataSent, pdDataReceived);
   TFPHTTPClientPoolProgress = procedure(
     Sender: TFPHTTPClientAsyncPoolRequestThread;
     const aDirection: TFPHTTPClientPoolProgressDirection;
     const aPosition, aContentLength: Int64; var ioStop: Boolean) of object;
-  TNotifyComponentEvent = procedure(AOwner: TComponent) of object;
 
   TFPCustomHTTPClientAsyncPool = class;
-
-  TFPHTTPClientAbstractAsyncPoolRequest = class(TPersistent)
+  TFPHTTPClientAsyncPoolRequest = class(TPersistent)
   public
     // if Owner gets destroyed, the request will be aborted (=rsAbortedByClient)
     //  especially needed in an LCL application where e.g. the form can get closed while the request is still running
@@ -114,12 +95,16 @@ type
     AllowedResponseCodes: array of Integer;
 
     // EVENTS
+    // setup custom client properties
+    OnInit: TFPHTTPClientPoolInit;
     // should OnInit be synchronized with the main thread?
     SynchronizeOnInit: Boolean;
+    // read out the result
+    OnFinish: TFPHTTPClientPoolFinish;
     // should OnFinish be synchronized with the main thread?
     SynchronizeOnFinish: Boolean;
-    // should OnFinish be executed when Owner is destroyed during the request
-    ExecuteOnFinishOnOwnerDestroy: Boolean;
+    // progress callback
+    OnProgress: TFPHTTPClientPoolProgress;
 
     // TIMEOUTS in ms
     // timeout to find a free client in the pool. Default=0 (infinite)
@@ -132,14 +117,7 @@ type
     function GetHost: string;
     function GetURLDataString: string;
     procedure SetURLDataString(const aURLDataString: string);
-
-  protected
-    procedure OwnerDestroyed; virtual;
-
-    procedure DoOnInit(const aClient: TFPHTTPClient); virtual; abstract;
-    procedure DoOnFinish(const aResult: TFPHTTPClientPoolResult); virtual; abstract;
-    procedure DoOnProgress(Sender: TFPHTTPClientAsyncPoolRequestThread; const aDirection: TFPHTTPClientPoolProgressDirection;
-      const aPosition, aContentLength: Int64; var ioStop: Boolean); virtual; abstract;
+    function GetSelf: TFPHTTPClientAsyncPoolRequest;
   public
     constructor Create;
   public
@@ -147,47 +125,8 @@ type
     property Host: string read GetHost;
   end;
 
-  TFPHTTPClientAsyncPoolRequest = class(TFPHTTPClientAbstractAsyncPoolRequest)
-  protected
-    procedure OwnerDestroyed; override;
-
-    procedure DoOnInit(const aClient: TFPHTTPClient); override;
-    procedure DoOnFinish(const aResult: TFPHTTPClientPoolResult); override;
-    procedure DoOnProgress(Sender: TFPHTTPClientAsyncPoolRequestThread; const aDirection: TFPHTTPClientPoolProgressDirection;
-      const aPosition, aContentLength: Int64; var ioStop: Boolean); override;
-  public
-    // EVENTS
-    // setup custom client properties
-    OnInit: TFPHTTPClientPoolInit;
-    // read out the result
-    OnFinish: TFPHTTPClientPoolFinish;
-    // progress callback
-    OnProgress: TFPHTTPClientPoolProgress;
-  end;
-
-{$IFDEF use_functionreferences}
-  TFPHTTPClientAsyncPoolRequestRef = class(TFPHTTPClientAbstractAsyncPoolRequest)
-  protected
-    procedure OwnerDestroyed; override;
-
-    procedure DoOnInit(const aClient: TFPHTTPClient); override;
-    procedure DoOnFinish(const aResult: TFPHTTPClientPoolResult); override;
-    procedure DoOnProgress(Sender: TFPHTTPClientAsyncPoolRequestThread; const aDirection: TFPHTTPClientPoolProgressDirection;
-      const aPosition, aContentLength: Int64; var ioStop: Boolean); override;
-  public
-    // EVENTS
-    // setup custom client properties
-    OnInit: TFPHTTPClientPoolInitRef;
-    // read out the result
-    OnFinish: TFPHTTPClientPoolFinishRef;
-    // progress callback
-    OnProgress: TFPHTTPClientPoolProgressRef;
-  end;
-{$ENDIF}
-
-  TFPHTTPClientAsyncPoolRequestQueueItem = class;
   TFPHTTPClientAsyncPoolThread = class(TThread)
-  private
+  strict private
     fPool: TFPCustomHTTPClientAsyncPool;
     fCSProperties: TCriticalSection;
   protected
@@ -195,6 +134,9 @@ type
     procedure OwnerDestroyed; virtual;
   public
     property Pool: TFPCustomHTTPClientAsyncPool read fPool;
+
+    // access only through LockProperties
+    function GetOwner: TComponent; virtual; abstract;
 
     // lock&unlock read/write properties (properties are written currently only in OwnerDestroyed)
     procedure LockProperties;
@@ -204,56 +146,38 @@ type
     destructor Destroy; override;
   end;
 
-  TFPHTTPClientAsyncPoolCustomWaitForAllThread = class(TFPHTTPClientAsyncPoolThread)
+  TFPHTTPClientAsyncPoolWaitForAllThread = class(TFPHTTPClientAsyncPoolThread)
   private
     fTimeoutMS: Integer;
     fOwner: TComponent;
+    fOnAllDone: TNotifyEvent;
     fSynchronizeOnAllDone: Boolean;
 
     procedure ExecOnAllDone;
   protected
-    procedure DoOnAllDone; virtual; abstract;
+
+    procedure DoOnAllDone; virtual;
 
     procedure Execute; override;
 
     // access only through LockProperties
     procedure OwnerDestroyed; override;
   public
-    constructor Create(aPool: TFPCustomHTTPClientAsyncPool; const aSynchronizeOnAllDone: Boolean; const aOwner: TComponent; const aTimeoutMS: Integer);
-  end;
-
-  TFPHTTPClientAsyncPoolWaitForAllThread = class(TFPHTTPClientAsyncPoolCustomWaitForAllThread)
-  private
-    fOnAllDone: TNotifyEvent;
-  protected
-    procedure DoOnAllDone; override;
-    procedure OwnerDestroyed; override;
+    // access only through LockProperties
+    function GetOwner: TComponent; override;
   public
     constructor Create(aPool: TFPCustomHTTPClientAsyncPool; aOnAllDone: TNotifyEvent;
-      const aSynchronizeOnAllDone: Boolean; const aOwner: TComponent; const aTimeoutMS: Integer);
+      const aSynchronizeOnAllDone: Boolean;
+      const aOwner: TComponent; const aTimeoutMS: Integer);
   end;
-
-  {$IFDEF use_functionreferences}
-  TFPHTTPClientAsyncPoolWaitForAllThreadRef = class(TFPHTTPClientAsyncPoolCustomWaitForAllThread)
-  private
-    fOnAllDone: TFPHTTPClientPoolSimpleCallbackRef;
-  protected
-    procedure DoOnAllDone; override;
-    procedure OwnerDestroyed; override;
-  public
-    constructor Create(aPool: TFPCustomHTTPClientAsyncPool; aOnAllDone: TFPHTTPClientPoolSimpleCallbackRef;
-      const aSynchronizeOnAllDone: Boolean; const aOwner: TComponent; const aTimeoutMS: Integer);
-  end;
-  {$ENDIF}
 
   TFPHTTPClientAsyncPoolRequestThread = class(TFPHTTPClientAsyncPoolThread)
   private
-    fItem: TFPHTTPClientAsyncPoolRequestQueueItem;
+    fRequest: TFPHTTPClientAsyncPoolRequest;
 
     fClient: TFPHTTPClient;
+    fResult: TFPHTTPClientPoolResult;
 
-    function GetRequest: TFPHTTPClientAbstractAsyncPoolRequest;
-    function GetResult: TFPHTTPClientPoolResult;
     procedure OnDataReceived(Sender: TObject; const aContentLength, aCurrentPos: Int64);
     procedure OnDataSent(Sender: TObject; const aContentLength, aCurrentPos: Int64);
 
@@ -261,6 +185,7 @@ type
     procedure ExecOnInit;
     procedure ExecOnProgress(const aDirection: TFPHTTPClientPoolProgressDirection;
       const aCurrentPos, aContentLength: Integer; var ioStop: Boolean);
+    procedure ExecOnFinish;
   protected
     // access only through LockProperties
     procedure OwnerDestroyed; override;
@@ -268,8 +193,7 @@ type
     procedure OnDataReceivedSend(Sender: TObject; const aDirection: TFPHTTPClientPoolProgressDirection; const aCurrentPos, aContentLength: Int64); virtual;
   protected
     property Client: TFPHTTPClient read fClient;
-    property Result: TFPHTTPClientPoolResult read GetResult;
-    procedure TerminatedSet; override;
+    property Result: TFPHTTPClientPoolResult read fResult;
 
     // the DoOn* methods do the actual work and can be synchronised by their ExecOn* counterparts
     // DoOnInit - executed when the request aquired a TFPHTTPClient to setup its extra properties
@@ -279,92 +203,76 @@ type
     //  should not be synchronized with Synchronize() - it slows down the execution. Better to use CriticalSections or Application.QueueAsyncCall in an LCL application
     procedure DoOnProgress(const aDirection: TFPHTTPClientPoolProgressDirection;
       const aCurrentPos, aContentLength: Integer; var ioStop: Boolean); virtual;
+    // DoOnFinish - executed when the request is done
+    //  can happily be synchronized with Synchronize() because when called, the request connection is already released back to pool for reuse
+    procedure DoOnFinish; virtual;
   protected
     procedure Execute; override;
 
   public
-    constructor Create(aPool: TFPCustomHTTPClientAsyncPool; aItem: TFPHTTPClientAsyncPoolRequestQueueItem;
-      aClient: TFPHTTPClient); virtual;
+    constructor Create(aPool: TFPCustomHTTPClientAsyncPool;
+      aRequest: TFPHTTPClientAsyncPoolRequest; aClient: TFPHTTPClient); virtual;
     destructor Destroy; override;
   public
     // access only through LockProperties
-    property Request: TFPHTTPClientAbstractAsyncPoolRequest read GetRequest;
+    property Request: TFPHTTPClientAsyncPoolRequest read fRequest;
+    function GetOwner: TComponent; override;
   end;
 
-  TFPHTTPClientAsyncPoolRequestQueueItem = class(TComponent)
-  private
-    fBreakUTC: TDateTime;
-    fClients: TFPCustomHTTPClients;
-    fPool: TFPCustomHTTPClientAsyncPool;
-    fRequest: TFPHTTPClientAbstractAsyncPoolRequest;
-    fRequestOwner: TComponent;
-    fResult: TFPHTTPClientPoolResult;
-
-    Thread: TFPHTTPClientAsyncPoolRequestThread;
-  protected
-    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+  TFPHTTPClientAsyncPoolRequestQueueItem = class(TObject)
   public
-    property Pool: TFPCustomHTTPClientAsyncPool read fPool;
-    property Clients: TFPCustomHTTPClients read fClients;
-    property BreakUTC: TDateTime read fBreakUTC;
-    property Request: TFPHTTPClientAbstractAsyncPoolRequest read fRequest;
-    property Result: TFPHTTPClientPoolResult read fResult;
-
-    procedure DoOnFinish;
-    procedure ExecOnFinish;
+    Pool: TFPCustomHTTPClientAsyncPool;
+    Clients: TFPCustomHTTPClients;
+    BreakUTC: TDateTime;
+    Request: TFPHTTPClientAsyncPoolRequest;
   public
-    constructor Create(aPool: TFPCustomHTTPClientAsyncPool; aClients: TFPCustomHTTPClients;
-      aBreakUTC: TDateTime; aRequest: TFPHTTPClientAbstractAsyncPoolRequest); reintroduce;
     destructor Destroy; override;
-  end;
-
-  TFPHTTPClientAsyncPoolRequestQueue = class(TList)
-  private
-    function GetItem(Index: Integer): TFPHTTPClientAsyncPoolRequestQueueItem;
-  public
-    property Items[Index: Integer]: TFPHTTPClientAsyncPoolRequestQueueItem read GetItem; default;
   end;
 
   TFPCustomHTTPClientAsyncPool = class(TComponent)
   private
     fHttpPool: TFPCustomHTTPClientPool;
 
-    // do not access fQueue directly, use LockQueue() instead
-    fListCS: TCriticalSection;
-    fQueue: TFPHTTPClientAsyncPoolRequestQueue;
+    // do not access fWaitingQueue directly, use LockWorkingThreads() instead
+    fWorkingThreads: TThreadList;
+    fWaitingQueue: TList;
 
     fBlockRequestsCounter: Integer;
     function GetActiveAsyncMethodCount: Integer;
     function GetClientCount: Integer;
     function GetMaxClientsPerServer: Integer;
     function GetWaitingAsyncMethodCount: Integer;
-    function GetQueueCount: Integer;
     procedure SetMaxClientsPerServer(const aMaxClientsPerServer: Integer);
 
+  private
+    fDoOnAbortedFinishSynchronizedCS: TCriticalSection;
+    fDoOnAbortedFinishSynchronizedRequest: TFPHTTPClientAsyncPoolRequest;
+    procedure ExecOnAbortedFinish(var ioRequest: TFPHTTPClientAsyncPoolRequest);
+    procedure DoOnAbortedFinishSynchronized;
   protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+
     function CreatePool: TFPCustomHTTPClientPool; virtual;
-    function CreateRequestThread(aItem: TFPHTTPClientAsyncPoolRequestQueueItem; aRequest: TFPHTTPClientAbstractAsyncPoolRequest;
-      aClient: TFPHTTPClient): TFPHTTPClientAsyncPoolRequestThread; virtual;
-    function CreateWaitForAllRequestsThread(const aOnAllDone: TNotifyEvent;
-      const aSynchronizeOnAllDone: Boolean; const aOwner: TComponent; const aTimeoutMS: Integer): TFPHTTPClientAsyncPoolCustomWaitForAllThread; virtual;
-    {$IFDEF use_functionreferences}
-    function CreateWaitForAllRequestsThreadRef(const aOnAllDoneRef: TFPHTTPClientPoolSimpleCallbackRef;
-      const aSynchronizeOnAllDone: Boolean; const aOwner: TComponent; const aTimeoutMS: Integer): TFPHTTPClientAsyncPoolCustomWaitForAllThread; virtual;
-    {$ENDIF}
+    function CreateRequestThread(aRequest: TFPHTTPClientAsyncPoolRequest; aClient: TFPHTTPClient): TFPHTTPClientAsyncPoolRequestThread; virtual;
+    function CreateWaitForAllRequestsThread(const aOnAllDone: TNotifyEvent; const aSynchronizeOnAllDone: Boolean;
+      const aOwner: TComponent; const aTimeoutMS: Integer): TFPHTTPClientAsyncPoolWaitForAllThread; virtual;
+    procedure WaitForThreadsToFinish; virtual;
 
     // support for MaxClientsPerServer (add requests that wait for a client to a queue)
-    function AddToQueue(const aClients: TFPCustomHTTPClients; const aBreakUTC: TDateTime; const aRequest: TFPHTTPClientAbstractAsyncPoolRequest): TFPHTTPClientAsyncPoolRequestQueueItem;
-    procedure RemoveFromQueue(const aItem: TFPHTTPClientAsyncPoolRequestQueueItem);
-    procedure ReleaseClient(const aRequest: TFPHTTPClientAbstractAsyncPoolRequest; const aClient: TFPHTTPClient);
+    procedure AddToQueue(const aClients: TFPCustomHTTPClients; const aBreakUTC: TDateTime; const aRequest: TFPHTTPClientAsyncPoolRequest);
+    procedure ReleaseClient(const aURL: string; const aClient: TFPHTTPClient);
+    procedure DoOnAbortedFinish(var ioRequest: TFPHTTPClientAsyncPoolRequest); virtual;
 
-    procedure LockQueue(out outQueue: TFPHTTPClientAsyncPoolRequestQueue);
-    procedure UnlockQueue;
+    procedure LockWorkingThreads(out outWorkingThreads, outWaitingQueue: TList);
+    procedure UnlockWorkingThreads;
   public
     // send an asynchronous HTTP request
-    procedure AsyncMethod(aRequest: TFPHTTPClientAbstractAsyncPoolRequest);
+    procedure AsyncMethod(aRequest: TFPHTTPClientAsyncPoolRequest); overload;
 
     // stop all requests with Blocker
     procedure StopRequests(const aBlocker: TObject);
+    // stop all requests with Owner and don't send results to Owner
+    procedure OwnerDestroyed(const aOwner: TObject);
 
     procedure BlockNewRequests;
     procedure UnblockNewRequests;
@@ -373,10 +281,6 @@ type
     //  all new requests will be blocked in between
     procedure WaitForAllRequests(const aOnAllDone: TNotifyEvent; const aSynchronizeOnAllDone: Boolean;
       const aOwner: TComponent; const aTimeoutMS: Integer);
-    {$IFDEF use_functionreferences}
-    procedure WaitForAllRequests(const aOnAllDoneRef: TFPHTTPClientPoolSimpleCallbackRef; const aSynchronizeOnAllDone: Boolean;
-      const aOwner: TComponent; const aTimeoutMS: Integer);
-    {$ENDIF}
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -385,163 +289,21 @@ type
     property ClientCount: Integer read GetClientCount;
     property ActiveAsyncMethodCount: Integer read GetActiveAsyncMethodCount;
     property WaitingAsyncMethodCount: Integer read GetWaitingAsyncMethodCount;
-    property QueueCount: Integer read GetQueueCount;
     property MaxClientsPerServer: Integer read GetMaxClientsPerServer write SetMaxClientsPerServer;
   end;
 
 implementation
 
-{ TFPHTTPClientAsyncPoolRequestQueue }
-
-function TFPHTTPClientAsyncPoolRequestQueue.GetItem(Index: Integer): TFPHTTPClientAsyncPoolRequestQueueItem;
-begin
-  Result := TFPHTTPClientAsyncPoolRequestQueueItem(inherited Items[Index]);
-end;
-
-{$IFDEF use_functionreferences}
-{ TFPHTTPClientAsyncPoolRequestRef }
-
-procedure TFPHTTPClientAsyncPoolRequestRef.DoOnFinish(const aResult: TFPHTTPClientPoolResult);
-begin
-  if Assigned(OnFinish) then
-  begin
-    OnFinish(aResult);
-    OnFinish := nil;
-  end;
-end;
-
-procedure TFPHTTPClientAsyncPoolRequestRef.DoOnInit(const aClient: TFPHTTPClient);
-begin
-  if Assigned(OnInit) then
-    OnInit(Self, aClient);
-end;
-
-procedure TFPHTTPClientAsyncPoolRequestRef.DoOnProgress(Sender: TFPHTTPClientAsyncPoolRequestThread;
-  const aDirection: TFPHTTPClientPoolProgressDirection; const aPosition, aContentLength: Int64; var ioStop: Boolean);
-begin
-  if Assigned(OnProgress) then
-    OnProgress(Sender, aDirection, aPosition, aContentLength, ioStop);
-end;
-
-procedure TFPHTTPClientAsyncPoolRequestRef.OwnerDestroyed;
-begin
-  inherited;
-  if not ExecuteOnFinishOnOwnerDestroy then
-    OnFinish := nil;
-  OnProgress := nil;
-end;
-{$ENDIF}
-
-{ TFPHTTPClientAsyncPoolRequest }
-
-procedure TFPHTTPClientAsyncPoolRequest.DoOnFinish(const aResult: TFPHTTPClientPoolResult);
-begin
-  if Assigned(OnFinish) then
-  begin
-    OnFinish(aResult);
-    OnFinish := nil;
-  end;
-end;
-
-procedure TFPHTTPClientAsyncPoolRequest.DoOnInit(const aClient: TFPHTTPClient);
-begin
-  if Assigned(OnInit) then
-    OnInit(Self, aClient);
-end;
-
-procedure TFPHTTPClientAsyncPoolRequest.DoOnProgress(Sender: TFPHTTPClientAsyncPoolRequestThread;
-  const aDirection: TFPHTTPClientPoolProgressDirection; const aPosition, aContentLength: Int64; var ioStop: Boolean);
-begin
-  if Assigned(OnProgress) then
-    OnProgress(Sender, aDirection, aPosition, aContentLength, ioStop);
-end;
-
-procedure TFPHTTPClientAsyncPoolRequest.OwnerDestroyed;
-begin
-  inherited;
-  if not ExecuteOnFinishOnOwnerDestroy then
-    OnFinish := nil;
-  OnProgress := nil;
-end;
-
 { TFPHTTPClientAsyncPoolRequestQueueItem }
-
-constructor TFPHTTPClientAsyncPoolRequestQueueItem.Create(aPool: TFPCustomHTTPClientAsyncPool;
-  aClients: TFPCustomHTTPClients; aBreakUTC: TDateTime; aRequest: TFPHTTPClientAbstractAsyncPoolRequest);
-begin
-  inherited Create(nil);
-
-  fBreakUTC := aBreakUTC;
-  fClients := aClients;
-  fPool := aPool;
-  fRequest := aRequest;
-
-  fRequestOwner := fRequest.Owner;
-  if Assigned(fRequestOwner) then
-    FreeNotification(fRequestOwner);
-
-  fResult := TFPHTTPClientPoolResult.Create(aRequest);
-  if Assigned(aRequest.ResponseStream) then
-  begin
-    fResult.ResponseStream := aRequest.ResponseStream;
-    fResult.OwnsResponseStream := aRequest.OwnsResponseStream;
-  end else
-  begin
-    fResult.ResponseStream := TBytesStream.Create;
-    fResult.OwnsResponseStream := True;
-  end;
-end;
 
 destructor TFPHTTPClientAsyncPoolRequestQueueItem.Destroy;
 begin
-  {$IFDEF DEBUG}
-  Assert(not Assigned(Thread)); // for debugging
-  {$ENDIF}
-
   if Assigned(Request) then
   begin
-    ExecOnFinish;
-    fRequest.Free;
-    fRequest := nil;
+    Pool.DoOnAbortedFinish(Request);
+    Request.Free;
   end;
-  fResult.Free;
-
-  Pool.RemoveFromQueue(Self);
   inherited Destroy;
-end;
-
-procedure TFPHTTPClientAsyncPoolRequestQueueItem.DoOnFinish;
-begin
-  fRequest.DoOnFinish(fResult);
-end;
-
-procedure TFPHTTPClientAsyncPoolRequestQueueItem.ExecOnFinish;
-begin
-  if fRequest.SynchronizeOnFinish and (ThreadID<>MainThreadID) then
-  begin
-    TThread.Synchronize(nil, @DoOnFinish);
-  end else
-    DoOnFinish;
-end;
-
-procedure TFPHTTPClientAsyncPoolRequestQueueItem.Notification(AComponent: TComponent; Operation: TOperation);
-begin
-  inherited Notification(AComponent, Operation);
-
-  if (Operation=opRemove) and (fRequestOwner=AComponent) then
-  begin
-    fRequestOwner := nil;
-    fResult.MethodResult := mrAbortedByClient;
-    if Assigned(Thread) then
-    begin
-      Thread.LockProperties;
-      Thread.OwnerDestroyed;
-      ExecOnFinish;
-      Thread.UnlockProperties;
-      Thread.Terminate;
-    end else
-      Self.Free;
-  end;
 end;
 
 { TFPHTTPClientAsyncPoolWaitForAllThread }
@@ -550,7 +312,11 @@ constructor TFPHTTPClientAsyncPoolWaitForAllThread.Create(aPool: TFPCustomHTTPCl
   aOnAllDone: TNotifyEvent; const aSynchronizeOnAllDone: Boolean; const aOwner: TComponent; const aTimeoutMS: Integer);
 begin
   fOnAllDone := aOnAllDone;
-  inherited Create(aPool, aSynchronizeOnAllDone, aOwner, aTimeoutMS);
+  fSynchronizeOnAllDone := aSynchronizeOnAllDone;
+  fTimeoutMS := aTimeoutMS;
+  fOwner := aOwner;
+
+  inherited Create(aPool);
 end;
 
 procedure TFPHTTPClientAsyncPoolWaitForAllThread.DoOnAllDone;
@@ -559,57 +325,18 @@ begin
     fOnAllDone(Self);
 end;
 
-procedure TFPHTTPClientAsyncPoolWaitForAllThread.OwnerDestroyed;
+procedure TFPHTTPClientAsyncPoolWaitForAllThread.ExecOnAllDone;
 begin
-  fOnAllDone := nil;
-  inherited OwnerDestroyed;
-end;
+  if not Assigned(fOnAllDone) then
+    Exit;
 
-{$IFDEF use_functionreferences}
-{ TFPHTTPClientAsyncPoolWaitForAllThreadRef }
-
-constructor TFPHTTPClientAsyncPoolWaitForAllThreadRef.Create(aPool: TFPCustomHTTPClientAsyncPool;
-  aOnAllDone: TFPHTTPClientPoolSimpleCallbackRef; const aSynchronizeOnAllDone: Boolean; const aOwner: TComponent;
-  const aTimeoutMS: Integer);
-begin
-  fOnAllDone := aOnAllDone;
-  inherited Create(aPool, aSynchronizeOnAllDone, aOwner, aTimeoutMS);
-end;
-
-procedure TFPHTTPClientAsyncPoolWaitForAllThreadRef.DoOnAllDone;
-begin
-  if Assigned(fOnAllDone) then
-    fOnAllDone();
-end;
-
-procedure TFPHTTPClientAsyncPoolWaitForAllThreadRef.OwnerDestroyed;
-begin
-  fOnAllDone := nil;
-  inherited OwnerDestroyed;
-end;
-{$ENDIF}
-
-{ TFPHTTPClientAsyncPoolCustomWaitForAllThread }
-
-constructor TFPHTTPClientAsyncPoolCustomWaitForAllThread.Create(aPool: TFPCustomHTTPClientAsyncPool;
-  const aSynchronizeOnAllDone: Boolean; const aOwner: TComponent; const aTimeoutMS: Integer);
-begin
-  fOwner := aOwner;
-  fSynchronizeOnAllDone := aSynchronizeOnAllDone;
-  fTimeoutMS := aTimeoutMS;
-
-  inherited Create(aPool);
-end;
-
-procedure TFPHTTPClientAsyncPoolCustomWaitForAllThread.ExecOnAllDone;
-begin
   if fSynchronizeOnAllDone then
     Synchronize(@DoOnAllDone)
   else
     DoOnAllDone;
 end;
 
-procedure TFPHTTPClientAsyncPoolCustomWaitForAllThread.Execute;
+procedure TFPHTTPClientAsyncPoolWaitForAllThread.Execute;
 var
   xBreak: TDateTime;
 begin
@@ -618,7 +345,7 @@ begin
     try
       if fTimeoutMS>0 then
         xBreak := IncMilliSecond(NowUTC, fTimeoutMS);
-      while not Terminated and (Pool.ActiveAsyncMethodCount>0) and (Pool.WaitingAsyncMethodCount>0) and ((fTimeoutMS=0) or (NowUTC<xBreak)) do
+      while not Terminated and (Pool.ActiveAsyncMethodCount>0) and ((fTimeoutMS=0) or (NowUTC<xBreak)) do
         Sleep(10);
     finally
       Pool.UnblockNewRequests;
@@ -629,10 +356,17 @@ begin
   end;
 end;
 
-procedure TFPHTTPClientAsyncPoolCustomWaitForAllThread.OwnerDestroyed;
+function TFPHTTPClientAsyncPoolWaitForAllThread.GetOwner: TComponent;
 begin
-  fOwner := nil;
+  Result := fOwner;
+end;
+
+procedure TFPHTTPClientAsyncPoolWaitForAllThread.OwnerDestroyed;
+begin
   inherited OwnerDestroyed;
+
+  fOwner := nil;
+  fOnAllDone := nil;
 end;
 
 { TFPHTTPClientAsyncPoolThread }
@@ -640,6 +374,7 @@ end;
 constructor TFPHTTPClientAsyncPoolThread.Create(aPool: TFPCustomHTTPClientAsyncPool);
 begin
   fPool := aPool;
+  fPool.fWorkingThreads.Add(Self);
   FreeOnTerminate := True;
   fCSProperties := TCriticalSection.Create;
 
@@ -648,6 +383,7 @@ end;
 
 destructor TFPHTTPClientAsyncPoolThread.Destroy;
 begin
+  fPool.fWorkingThreads.Remove(Self);
   fCSProperties.Free;
   inherited Destroy;
 end;
@@ -659,7 +395,7 @@ end;
 
 procedure TFPHTTPClientAsyncPoolThread.OwnerDestroyed;
 begin
-  // nothing here
+  Terminate;
 end;
 
 procedure TFPHTTPClientAsyncPoolThread.UnlockProperties;
@@ -667,16 +403,16 @@ begin
   fCSProperties.Leave;
 end;
 
-{ TFPHTTPClientAbstractAsyncPoolRequest }
+{ TFPHTTPClientAsyncPoolRequest }
 
-constructor TFPHTTPClientAbstractAsyncPoolRequest.Create;
+constructor TFPHTTPClientAsyncPoolRequest.Create;
 begin
   inherited Create;
 
   ConnectTimeout := 3000;
 end;
 
-function TFPHTTPClientAbstractAsyncPoolRequest.GetHost: string;
+function TFPHTTPClientAsyncPoolRequest.GetHost: string;
 var
   xURI: TURI;
 begin
@@ -684,24 +420,24 @@ begin
   Result := xURI.Host;
 end;
 
-function TFPHTTPClientAbstractAsyncPoolRequest.GetURLDataString: string;
+function TFPHTTPClientAsyncPoolRequest.GetSelf: TFPHTTPClientAsyncPoolRequest;
+begin
+  Result := Self;
+end;
+
+function TFPHTTPClientAsyncPoolRequest.GetURLDataString: string;
 begin
   Result := TEncoding.SystemEncoding.GetAnsiString(URLData);
 end;
 
-procedure TFPHTTPClientAbstractAsyncPoolRequest.OwnerDestroyed;
-begin
-  Owner := nil;
-end;
-
-procedure TFPHTTPClientAbstractAsyncPoolRequest.SetURLDataString(const aURLDataString: string);
+procedure TFPHTTPClientAsyncPoolRequest.SetURLDataString(const aURLDataString: string);
 begin
   URLData := TEncoding.SystemEncoding.GetAnsiBytes(aURLDataString);
 end;
 
 { TFPHTTPClientPoolResult }
 
-constructor TFPHTTPClientPoolResult.Create(const aRequest: TFPHTTPClientAbstractAsyncPoolRequest);
+constructor TFPHTTPClientPoolResult.Create(const aRequest: TFPHTTPClientAsyncPoolRequest);
 begin
   inherited Create;
 
@@ -732,6 +468,7 @@ begin
   fResponseHeaders.Free;
   if OwnsResponseStream then
     ResponseStream.Free;
+  fRequest.Free;
 
   inherited Destroy;
 end;
@@ -817,31 +554,29 @@ end;
 
 { TFPCustomHTTPClientAsyncPool }
 
-procedure TFPCustomHTTPClientAsyncPool.AsyncMethod(aRequest: TFPHTTPClientAbstractAsyncPoolRequest);
+procedure TFPCustomHTTPClientAsyncPool.AsyncMethod(aRequest: TFPHTTPClientAsyncPoolRequest);
 var
   xClients: TFPCustomHTTPClients;
   xBreakUTC: TDateTime;
   xURI: TURI;
   xClient: TFPHTTPClient;
-  xQueue: TFPHTTPClientAsyncPoolRequestQueue;
-  xItem: TFPHTTPClientAsyncPoolRequestQueueItem;
-  xResult: TFPHTTPClientPoolResult;
 begin
   try
     if InterlockedExchangeAdd(fBlockRequestsCounter, 0)<>0 then
     begin
-      xResult := TFPHTTPClientPoolResult.Create(aRequest);
-      try
-        xResult.MethodResult := mrAbortedByClient;
-        aRequest.DoOnFinish(xResult);
-      finally
-        xResult.Free;
-      end;
+      DoOnAbortedFinish(aRequest);
       Exit;
     end;
 
     if Assigned(aRequest.Blocker) then
       StopRequests(aRequest.Blocker);
+    if Assigned(aRequest.Owner) then
+    begin
+      FreeNotification(aRequest.Owner);
+      // We do not remove the notification with RemoveFreeNotification().
+      // It would be unsafe if more requests are sent with the same owner.
+      // That is fine - it will be removed automatically when the owner is destroyed.
+    end;
 
     xURI := ParseURI(aRequest.URL, False);
     xClients := fHttpPool.GetCreateServerClients(xURI.Host, xURI.Port);
@@ -850,11 +585,12 @@ begin
     else
       xBreakUTC := 0;
     xClient := xClients.GetClient;
-    LockQueue(xQueue);
-    xItem := AddToQueue(xClients, xBreakUTC, aRequest);
-    if Assigned(xClient) then // client is available -> create request thread
-      xItem.Thread := CreateRequestThread(xItem, aRequest, xClient);
-    UnlockQueue;
+    if Assigned(xClient) then
+      // client is available -> create request thread
+      CreateRequestThread(aRequest, xClient)
+    else
+      // no client available -> add to queue
+      AddToQueue(xClients, xBreakUTC, aRequest);
     aRequest := nil; // don't destroy aRequest
   finally
     aRequest.Free;
@@ -871,83 +607,66 @@ begin
   Result := TFPCustomHTTPClientPool.Create(Self);
 end;
 
-function TFPCustomHTTPClientAsyncPool.CreateRequestThread(aItem: TFPHTTPClientAsyncPoolRequestQueueItem;
-  aRequest: TFPHTTPClientAbstractAsyncPoolRequest; aClient: TFPHTTPClient): TFPHTTPClientAsyncPoolRequestThread;
+function TFPCustomHTTPClientAsyncPool.CreateRequestThread(aRequest: TFPHTTPClientAsyncPoolRequest;
+  aClient: TFPHTTPClient): TFPHTTPClientAsyncPoolRequestThread;
 begin
-  Result := TFPHTTPClientAsyncPoolRequestThread.Create(Self, aItem, aClient);
+  Result := TFPHTTPClientAsyncPoolRequestThread.Create(Self, aRequest, aClient);
 end;
-
-{$IFDEF use_functionreferences}
-function TFPCustomHTTPClientAsyncPool.CreateWaitForAllRequestsThreadRef(
-  const aOnAllDoneRef: TFPHTTPClientPoolSimpleCallbackRef; const aSynchronizeOnAllDone: Boolean;
-  const aOwner: TComponent; const aTimeoutMS: Integer): TFPHTTPClientAsyncPoolCustomWaitForAllThread;
-begin
-  Result := TFPHTTPClientAsyncPoolWaitForAllThreadRef.Create(Self, aOnAllDoneRef, aSynchronizeOnAllDone, aOwner, aTimeoutMS);
-end;
-{$ENDIF}
 
 function TFPCustomHTTPClientAsyncPool.CreateWaitForAllRequestsThread(const aOnAllDone: TNotifyEvent;
   const aSynchronizeOnAllDone: Boolean; const aOwner: TComponent;
-  const aTimeoutMS: Integer): TFPHTTPClientAsyncPoolCustomWaitForAllThread;
+  const aTimeoutMS: Integer): TFPHTTPClientAsyncPoolWaitForAllThread;
 begin
   Result := TFPHTTPClientAsyncPoolWaitForAllThread.Create(Self, aOnAllDone, aSynchronizeOnAllDone, aOwner, aTimeoutMS);
 end;
 
 constructor TFPCustomHTTPClientAsyncPool.Create(AOwner: TComponent);
 begin
-  fListCS := TCriticalSection.Create;
-  fQueue := TFPHTTPClientAsyncPoolRequestQueue.Create;
+  fWorkingThreads := TThreadList.Create;
+  fWaitingQueue := TList.Create;
   fHttpPool := CreatePool;
+  fDoOnAbortedFinishSynchronizedCS := TCriticalSection.Create;
 
   inherited Create(AOwner);
 end;
 
-function TFPCustomHTTPClientAsyncPool.AddToQueue(const aClients: TFPCustomHTTPClients; const aBreakUTC: TDateTime;
-  const aRequest: TFPHTTPClientAbstractAsyncPoolRequest): TFPHTTPClientAsyncPoolRequestQueueItem;
+procedure TFPCustomHTTPClientAsyncPool.AddToQueue(const aClients: TFPCustomHTTPClients; const aBreakUTC: TDateTime;
+  const aRequest: TFPHTTPClientAsyncPoolRequest);
 var
-  xQueue: TFPHTTPClientAsyncPoolRequestQueue;
+  xNewItem: TFPHTTPClientAsyncPoolRequestQueueItem;
+  xThreads, xQueue: TList;
 begin
-  LockQueue(xQueue);
+  LockWorkingThreads(xThreads, xQueue);
   try
-    Result := TFPHTTPClientAsyncPoolRequestQueueItem.Create(Self, aClients, aBreakUTC, aRequest);
-    xQueue.Add(Result);
+    xNewItem := TFPHTTPClientAsyncPoolRequestQueueItem.Create;
+    xNewItem.Pool := Self;
+    xNewItem.Clients := aClients;
+    xNewItem.BreakUTC := aBreakUTC;
+    xNewItem.Request := aRequest;
+    xQueue.Add(xNewItem);
   finally
-    UnlockQueue;
+    UnlockWorkingThreads;
   end;
 end;
 
-procedure TFPCustomHTTPClientAsyncPool.ReleaseClient(const aRequest: TFPHTTPClientAbstractAsyncPoolRequest;
-  const aClient: TFPHTTPClient);
+procedure TFPCustomHTTPClientAsyncPool.ReleaseClient(const aURL: string; const aClient: TFPHTTPClient);
 var
   xURI: TURI;
   xClients: TFPCustomHTTPClients;
   xItem: TFPHTTPClientAsyncPoolRequestQueueItem;
+  xRequest: TFPHTTPClientAsyncPoolRequest;
   I: Integer;
-  xQueue: TFPHTTPClientAsyncPoolRequestQueue;
+  xThreads, xQueue: TList;
 begin
-  LockQueue(xQueue);
+  LockWorkingThreads(xThreads, xQueue);
   try
-    // remove old item
-    for I := 0 to xQueue.Count-1 do
-    begin
-      xItem := xQueue[I];
-      if xItem.Request=aRequest then
-      begin
-        xQueue.Delete(I);
-        break;
-      end;
-    end;
-
-    xURI := ParseURI(aRequest.URL, False);
+    xURI := ParseURI(aURL, False);
     xClients := fHttpPool.GetCreateServerClients(xURI.Host, xURI.Port);
 
-    // find next to start
     I := 0;
     while I<xQueue.Count do
     begin
-      xItem := xQueue[I];
-      if not Assigned(xItem.Thread) then
-      begin
+      xItem := TFPHTTPClientAsyncPoolRequestQueueItem(xQueue[I]);
         if (CompareDateTime(xItem.BreakUTC, 0)<>0) and (CompareDateTime(xItem.BreakUTC, NowUTC)<0) then
         begin // timeout is over
           xItem.Free;
@@ -955,87 +674,117 @@ begin
         end else
         if xClients=xItem.Clients then
         begin // found a request waiting in queue
-          xItem.Thread := CreateRequestThread(xItem, xItem.Request, aClient);
+        xRequest := xItem.Request;
+        xItem.Request := nil; // do not destroy/abort request
+        xItem.Free;
+        xQueue.Delete(I);
+
+        CreateRequestThread(xRequest, aClient);
           Exit;
         end else
           Inc(I);
-      end else
-        Inc(I);
     end;
 
     // no waiting request found - release the client
     fHttpPool.ReleaseClient(xURI.Host, xURI.Port, aClient);
   finally
-    UnlockQueue;
-  end;
-end;
-
-procedure TFPCustomHTTPClientAsyncPool.RemoveFromQueue(const aItem: TFPHTTPClientAsyncPoolRequestQueueItem);
-var
-  xQueue: TFPHTTPClientAsyncPoolRequestQueue;
-  I: Integer;
-  xItem: TFPHTTPClientAsyncPoolRequestQueueItem;
-begin
-  LockQueue(xQueue);
-  try
-    // remove old item
-    for I := 0 to xQueue.Count-1 do
-    begin
-      xItem := xQueue[I];
-      if xItem=aItem then
-      begin
-        xQueue.Delete(I);
-        break;
-      end;
-    end;
-  finally
-    UnlockQueue;
+    UnlockWorkingThreads;
   end;
 end;
 
 destructor TFPCustomHTTPClientAsyncPool.Destroy;
-  procedure _TerminateAll(_List: TFPHTTPClientAsyncPoolRequestQueue);
+  procedure _TerminateAll(_List: TList);
+  var
+  I: Integer;
+    begin
+    for I := 0 to _List.Count-1 do
+      TThread(_List[I]).Terminate;
+      end;
+  procedure _ClearWaitingQueue(_List: TList);
   var
     I: Integer;
   begin
     for I := 0 to _List.Count-1 do
-      if Assigned(_List[I].Thread) then
-        _List[I].Thread.Terminate;
+      TObject(_List[I]).Free;
+    _List.Clear;
   end;
 var
-  xQueue: TFPHTTPClientAsyncPoolRequestQueue;
+  xThreads, xQueue: TList;
 begin
-  BlockNewRequests;
-  LockQueue(xQueue);
+  LockWorkingThreads(xThreads, xQueue);
   try
-    _TerminateAll(xQueue);
+    _TerminateAll(xThreads);
+    _ClearWaitingQueue(xQueue);
   finally
-    UnlockQueue;
+    UnlockWorkingThreads;
   end;
-  while QueueCount>0 do
+  while ActiveAsyncMethodCount>0 do
   begin
     if (ThreadID=MainThreadID) then // we are synchronizing events - call CheckSynchronize to prevent deadlock in the main thread
       CheckSynchronize(10)
     else
       Sleep(10);
   end;
-  fQueue.Free;
-  fListCS.Free;
+  fWorkingThreads.Free;
+  fWaitingQueue.Free;
+  fDoOnAbortedFinishSynchronizedCS.Free;
 
   inherited Destroy;
 end;
 
+procedure TFPCustomHTTPClientAsyncPool.DoOnAbortedFinish(var ioRequest: TFPHTTPClientAsyncPoolRequest);
+var
+  xResult: TFPHTTPClientPoolResult;
+begin
+  if Assigned(ioRequest.OnFinish) then
+  begin
+    xResult := TFPHTTPClientPoolResult.Create(ioRequest);
+    try
+      xResult.MethodResult := mrAbortedByClient;
+      ioRequest.OnFinish(xResult);
+      ioRequest := nil; // ioRequest gets destroyed in xResult.Free
+    finally
+      xResult.Free;
+    end;
+  end else
+  begin
+    ioRequest.Free;
+    ioRequest := nil;
+  end;
+end;
+
+procedure TFPCustomHTTPClientAsyncPool.DoOnAbortedFinishSynchronized;
+begin
+  DoOnAbortedFinish(fDoOnAbortedFinishSynchronizedRequest);
+end;
+
+procedure TFPCustomHTTPClientAsyncPool.ExecOnAbortedFinish(var ioRequest: TFPHTTPClientAsyncPoolRequest);
+begin
+  // always synchronize - even if OnFinish is nil, so that ioRequest gets destroyed in the main thread
+  //  if somebody had the idea to do something with the LCL in a custom request destructor
+  //  -- don't do: if not Assigned(ioRequest.OnFinish) then Exit;
+
+  if ioRequest.SynchronizeOnFinish and (ThreadID<>MainThreadID) then
+  begin
+    fDoOnAbortedFinishSynchronizedCS.Enter; // we need to protect fDoOnAbortedFinishSynchronizedRequest
+    try
+      fDoOnAbortedFinishSynchronizedRequest := ioRequest;
+      TThread.Synchronize(nil, @DoOnAbortedFinishSynchronized);
+      ioRequest := nil;
+    finally
+      fDoOnAbortedFinishSynchronizedCS.Free;
+    end;
+  end else
+    DoOnAbortedFinish(ioRequest);
+end;
+
 function TFPCustomHTTPClientAsyncPool.GetActiveAsyncMethodCount: Integer;
 var
-  xQueue: TFPHTTPClientAsyncPoolRequestQueue;
-  I: Integer;
+  xThreads, xQueue: TList;
 begin
-  LockQueue(xQueue);
-  Result := 0;
-  for I := 0 to xQueue.Count-1 do
-    if Assigned(xQueue[I].Thread) then
-      Inc(Result);
-  UnlockQueue;
+  LockWorkingThreads(xThreads, xQueue);
+  Result := xThreads.Count;
+  UnlockWorkingThreads;
 end;
 
 function TFPCustomHTTPClientAsyncPool.GetClientCount: Integer;
@@ -1048,32 +797,27 @@ begin
   Result := fHttpPool.MaxClientsPerServer;
 end;
 
-function TFPCustomHTTPClientAsyncPool.GetQueueCount: Integer;
-var
-  xQueue: TFPHTTPClientAsyncPoolRequestQueue;
-begin
-  LockQueue(xQueue);
-  Result := xQueue.Count;
-  UnlockQueue;
-end;
-
 function TFPCustomHTTPClientAsyncPool.GetWaitingAsyncMethodCount: Integer;
 var
-  xQueue: TFPHTTPClientAsyncPoolRequestQueue;
-  I: Integer;
+  xThreads, xQueue: TList;
 begin
-  LockQueue(xQueue);
-  Result := 0;
-  for I := 0 to xQueue.Count-1 do
-    if not Assigned(xQueue[I].Thread) then
-      Inc(Result);
-  UnlockQueue;
+  LockWorkingThreads(xThreads, xQueue);
+  Result := xQueue.Count;
+  UnlockWorkingThreads;
 end;
 
-procedure TFPCustomHTTPClientAsyncPool.LockQueue(out outQueue: TFPHTTPClientAsyncPoolRequestQueue);
+procedure TFPCustomHTTPClientAsyncPool.LockWorkingThreads(out outWorkingThreads, outWaitingQueue: TList);
 begin
-  fListCS.Enter;
-  outQueue := fQueue;
+  outWorkingThreads := fWorkingThreads.LockList;
+  outWaitingQueue := fWaitingQueue;
+end;
+
+procedure TFPCustomHTTPClientAsyncPool.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  if Operation=opRemove then
+    OwnerDestroyed(AComponent);
+
+  inherited Notification(AComponent, Operation);
 end;
 
 procedure TFPCustomHTTPClientAsyncPool.SetMaxClientsPerServer(const aMaxClientsPerServer: Integer);
@@ -1084,28 +828,76 @@ end;
 procedure TFPCustomHTTPClientAsyncPool.StopRequests(const aBlocker: TObject);
 var
   I: Integer;
+  xThreads, xQueue: TList;
+  xThread: TFPHTTPClientAsyncPoolRequestThread;
   xItem: TFPHTTPClientAsyncPoolRequestQueueItem;
-  xQueue: TFPHTTPClientAsyncPoolRequestQueue;
 begin
-  LockQueue(xQueue);
+  LockWorkingThreads(xThreads, xQueue);
   try
+    for I := 0 to xThreads.Count-1 do
+    begin
+      if TObject(xThreads[I]) is TFPHTTPClientAsyncPoolRequestThread then
+      begin
+        xThread := TFPHTTPClientAsyncPoolRequestThread(TObject(xThreads[I]));
+        xThread.LockProperties;
+        try
+          if xThread.Request.Blocker=aBlocker then
+            xThread.Terminate;
+        finally
+          xThread.UnlockProperties;
+        end;
+      end;
+    end;
+
     for I := xQueue.Count-1 downto 0 do
     begin
-      xItem := xQueue[I];
-      if (xItem.Request.Blocker=aBlocker) then
+      xItem := TFPHTTPClientAsyncPoolRequestQueueItem(xQueue[I]);
+      if xItem.Request.Blocker=aBlocker then
+      begin // found a request waiting in queue
+        xItem.Free;
+        xQueue.Delete(I);
+      end;
+    end;
+  finally
+    UnlockWorkingThreads;
+  end;
+end;
+
+procedure TFPCustomHTTPClientAsyncPool.OwnerDestroyed(const aOwner: TObject);
+var
+  I: Integer;
+  xList, xQueue: TList;
+  xThread: TFPHTTPClientAsyncPoolThread;
+  xItem: TFPHTTPClientAsyncPoolRequestQueueItem;
+begin
+  LockWorkingThreads(xList, xQueue);
+  try
+    for I := 0 to xList.Count-1 do
       begin
-        if Assigned(xItem.Thread) then
+      if TObject(xList[I]) is TFPHTTPClientAsyncPoolThread then
         begin
-          xItem.Thread.Terminate;
-        end else
+        xThread := TFPHTTPClientAsyncPoolThread(TObject(xList[I]));
+        xThread.LockProperties;
+        try
+          if xThread.GetOwner=aOwner then
+            xThread.OwnerDestroyed;
+        finally
+          xThread.UnlockProperties;
+        end;
+      end;
+    end;
+
+    for I := xQueue.Count-1 downto 0 do
         begin
+      xItem := TFPHTTPClientAsyncPoolRequestQueueItem(xQueue[I]);
+      if xItem.Request.Owner=aOwner then
+      begin // found a request waiting in queue
           xItem.Free;
           xQueue.Delete(I);
         end;
       end;
-    end;
   finally
-    UnlockQueue;
+    UnlockWorkingThreads;
   end;
 end;
 
@@ -1114,25 +906,10 @@ begin
   InterlockedDecrement(fBlockRequestsCounter);
 end;
 
-procedure TFPCustomHTTPClientAsyncPool.UnlockQueue;
+procedure TFPCustomHTTPClientAsyncPool.UnlockWorkingThreads;
 begin
-  fListCS.Leave;
+  fWorkingThreads.UnlockList;
 end;
-
-{$IFDEF use_functionreferences}
-procedure TFPCustomHTTPClientAsyncPool.WaitForAllRequests(const aOnAllDoneRef: TFPHTTPClientPoolSimpleCallbackRef;
-  const aSynchronizeOnAllDone: Boolean; const aOwner: TComponent; const aTimeoutMS: Integer);
-begin
-  if ActiveAsyncMethodCount=0 then
-  begin
-    if Assigned(aOnAllDoneRef) then
-      aOnAllDoneRef();
-    Exit;
-  end;
-
-  CreateWaitForAllRequestsThreadRef(aOnAllDoneRef, aSynchronizeOnAllDone, aOwner, aTimeoutMS);
-end;
-{$ENDIF}
 
 procedure TFPCustomHTTPClientAsyncPool.WaitForAllRequests(const aOnAllDone: TNotifyEvent;
   const aSynchronizeOnAllDone: Boolean; const aOwner: TComponent; const aTimeoutMS: Integer);
@@ -1144,25 +921,46 @@ begin
     Exit;
   end;
 
+  if Assigned(aOwner) then
+  begin
+    FreeNotification(aOwner);
+    // We do not remove the notification with RemoveFreeNotification().
+    // It would be unsafe if more requests are sent with the same owner.
+    // That is fine - it will be removed automatically when the owner is destroyed.
+  end;
   CreateWaitForAllRequestsThread(aOnAllDone, aSynchronizeOnAllDone, aOwner, aTimeoutMS);
+end;
+
+procedure TFPCustomHTTPClientAsyncPool.WaitForThreadsToFinish;
+begin
+  Sleep(10);
 end;
 
 { TFPHTTPClientAsyncPoolRequestThread }
 
 constructor TFPHTTPClientAsyncPoolRequestThread.Create(aPool: TFPCustomHTTPClientAsyncPool;
-  aItem: TFPHTTPClientAsyncPoolRequestQueueItem; aClient: TFPHTTPClient);
+  aRequest: TFPHTTPClientAsyncPoolRequest; aClient: TFPHTTPClient);
 begin
-  fItem := aItem;
+  fRequest := aRequest;
+  fResult := TFPHTTPClientPoolResult.Create(fRequest);
   fClient := aClient;
+
+  if Assigned(aRequest.ResponseStream) then
+  begin
+    fResult.ResponseStream := aRequest.ResponseStream;
+    fResult.OwnsResponseStream := aRequest.OwnsResponseStream;
+  end else
+  begin
+    fResult.ResponseStream := TBytesStream.Create;
+    fResult.OwnsResponseStream := True;
+  end;
 
   inherited Create(aPool);
 end;
 
 destructor TFPHTTPClientAsyncPoolRequestThread.Destroy;
 begin
-  fItem.Thread := nil;
-  fItem.Free;
-
+  fResult.Free;
   inherited Destroy;
 end;
 
@@ -1179,6 +977,7 @@ begin
   LockProperties;
   try
     xStop := False;
+    if Assigned(Request.OnProgress) then
     ExecOnProgress(aDirection, aCurrentPos, aContentLength, xStop);
 
     if xStop or Terminated then
@@ -1197,40 +996,49 @@ procedure TFPHTTPClientAsyncPoolRequestThread.OwnerDestroyed;
 begin
   inherited;
 
-  if Assigned(Request) then
-    Request.OwnerDestroyed;
-end;
-
-procedure TFPHTTPClientAsyncPoolRequestThread.TerminatedSet;
-begin
-  inherited TerminatedSet;
-  fClient.Terminate;
+  fRequest.Owner := nil;
+  fRequest.OnFinish := nil;
+  fRequest.OnProgress := nil;
+  fRequest.OnInit := nil;
 end;
 
 procedure TFPHTTPClientAsyncPoolRequestThread.DoOnInit;
 begin
-  if Assigned(Request) then
-    Request.DoOnInit(fClient);
+  LockProperties;
+  try
+    if Assigned(Request.OnInit) then
+      Request.OnInit(Request, fClient);
+  finally
+    UnlockProperties;
+  end;
 end;
 
 procedure TFPHTTPClientAsyncPoolRequestThread.DoOnProgress(const aDirection: TFPHTTPClientPoolProgressDirection;
   const aCurrentPos, aContentLength: Integer; var ioStop: Boolean);
 begin
-  if Assigned(Request) then
-    Request.DoOnProgress(Self, aDirection, aCurrentPos, aContentLength, ioStop);
+  LockProperties;
+  try
+    if Assigned(Request.OnProgress) then
+      Request.OnProgress(Self, aDirection, aCurrentPos, aContentLength, ioStop);
+  finally
+    UnlockProperties;
+  end;
+end;
+
+procedure TFPHTTPClientAsyncPoolRequestThread.ExecOnFinish;
+begin
+  if Request.SynchronizeOnFinish then
+    Synchronize(@DoOnFinish)
+  else
+    DoOnFinish;
 end;
 
 procedure TFPHTTPClientAsyncPoolRequestThread.ExecOnInit;
 begin
-  LockProperties;
-  try
-    if fItem.Request.SynchronizeOnInit then
+  if Request.SynchronizeOnInit then
       Synchronize(@DoOnInit)
     else
       DoOnInit;
-  finally
-    UnlockProperties;
-  end;
 end;
 
 procedure TFPHTTPClientAsyncPoolRequestThread.ExecOnProgress(const aDirection: TFPHTTPClientPoolProgressDirection;
@@ -1260,63 +1068,68 @@ begin
 
       if Terminated then
       begin
-        Result.MethodResult := mrAbortedByClient;
+        fResult.MethodResult := mrAbortedByClient;
         Exit;
       end;
 
       try
-        fClient.HTTPMethod(Request.Method, Request.URL, Result.ResponseStream, Request.AllowedResponseCodes);
+        fClient.HTTPMethod(Request.Method, Request.URL, fResult.ResponseStream, Request.AllowedResponseCodes);
       finally
         fClient.RequestBody.Free;
         fClient.RequestBody := nil;
       end;
-      Result.ResponseStream.Position := 0;
+      fResult.ResponseStream.Position := 0;
       if Terminated then
       begin
-        Result.MethodResult := mrAbortedByClient;
+        fResult.MethodResult := mrAbortedByClient;
       end else
       begin
-        Result.MethodResult := mrSuccess;
-        Result.ResponseStatusCode := fClient.ResponseStatusCode;
-        Result.ResponseStatusText := fClient.ResponseStatusText;
-        Result.ResponseHeaders.Assign(fClient.ResponseHeaders);
+        fResult.MethodResult := mrSuccess;
+        fResult.ResponseStatusCode := fClient.ResponseStatusCode;
+        fResult.ResponseStatusText := fClient.ResponseStatusText;
+        fResult.ResponseHeaders.Assign(fClient.ResponseHeaders);
       end;
     except
       on E: TObject do
       begin
         if Terminated then // client terminated the connection -> it has priority above mrAbortedWithException
-          Result.MethodResult := mrAbortedByClient
+          fResult.MethodResult := mrAbortedByClient
         else
-          Result.MethodResult := mrAbortedWithException;
-        Result.ExceptionClass := E.ClassType;
+          fResult.MethodResult := mrAbortedWithException;
+        fResult.ExceptionClass := E.ClassType;
         if E is Exception then
-          Result.ExceptionMessage := Exception(E).Message;
+          fResult.ExceptionMessage := Exception(E).Message;
       end;
     end;
   finally
     try
-      Pool.ReleaseClient(fItem.Request, fClient);
+      Pool.ReleaseClient(Request.URL, fClient);
       fClient := nil; // do not use fClient - it doesn't belong here anymore
+      ExecOnFinish;
     except
     end;
   end;
 end;
 
-function TFPHTTPClientAsyncPoolRequestThread.GetRequest: TFPHTTPClientAbstractAsyncPoolRequest;
+function TFPHTTPClientAsyncPoolRequestThread.GetOwner: TComponent;
 begin
-  if Assigned(fItem) then
-    Result := fItem.Request
-  else
-    Result := nil;
+  Result := fRequest.Owner;
 end;
 
-function TFPHTTPClientAsyncPoolRequestThread.GetResult: TFPHTTPClientPoolResult;
+procedure TFPHTTPClientAsyncPoolRequestThread.DoOnFinish;
 begin
-  if Assigned(fItem) then
-    Result := fItem.Result
-  else
-    Result := nil;
+  LockProperties;
+  try
+    if Assigned(Request.OnFinish) then
+      Request.OnFinish(fResult);
+    // always destroy fResult so that the Request's destructor is synchronised if DoOnFinish is synchronised
+    fResult.Free;
+    fResult := nil;
+  finally
+    UnlockProperties;
+  end;
 end;
 
 end.
+
 
