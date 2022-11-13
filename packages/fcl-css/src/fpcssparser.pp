@@ -15,7 +15,8 @@
 unit fpCSSParser;
 
 {$mode ObjFPC}{$H+}
-{$WARN 6060 off : }
+{$WARN 6060 off} // Case statement does not handle all possible cases
+
 interface
 
 uses
