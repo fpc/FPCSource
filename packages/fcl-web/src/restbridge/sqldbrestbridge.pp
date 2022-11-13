@@ -167,6 +167,8 @@ Type
   Public
     Function AddSchema (aSchema : TSQLDBRestSchema) : TSQLDBRestSchemaRef;
     Function IndexOfSchema(aSchemaName : String) : Integer;
+    Function FindSchemaRef(aSchemaName : String) : TSQLDBRestSchemaRef;
+    Function FindSchema(aSchemaName : String) : TSQLDBRestSchema;
     Property Schemas[aIndex :Integer] : TSQLDBRestSchemaRef Read GetSchema Write SetSchema;default;
   end;
 
@@ -482,6 +484,32 @@ begin
   Result:=Count-1;
   While (Result>=0) and Not (Assigned(GetSchema(Result).Schema) and SameText(GetSchema(Result).Schema.Name,aSchemaName)) do
     Dec(Result);
+end;
+
+function TSQLDBRestSchemaList.FindSchemaRef(aSchemaName: String): TSQLDBRestSchemaRef;
+
+Var
+  Idx : integer;
+
+begin
+  Idx:=IndexOfSchema(aSchemaName);
+  if Idx=-1 then
+    Result:=Nil
+  else
+    Result:=Schemas[Idx];
+end;
+
+function TSQLDBRestSchemaList.FindSchema(aSchemaName: String): TSQLDBRestSchema;
+
+Var
+  Ref : TSQLDBRestSchemaRef;
+
+begin
+  Ref:=FindSchemaRef(aSchemaName);
+  if Ref=Nil then
+    Result:=Nil
+  else
+    Result:=Ref.Schema;
 end;
 
 { TSQLDBRestDispatcher }
@@ -2114,16 +2142,26 @@ function TSQLDBRestDispatcher.ExposeConnection(aOwner: TComponent;
 Var
   Conn : TSQLConnection;
   TR : TSQLTransaction;
+  Ref : TSQLDBRestSchemaRef;
   S : TSQLDBRestSchema;
+  SName : String;
 
 begin
   Conn:=GetSQLConnection(aConnection,TR);
-  S:=TSQLDBRestSchema.Create(aOwner);
-  S.Name:='Schema'+aConnection.Name;
-  S.PopulateResources(Conn,aTables,aMinFieldOpts);
-  if not (rdoConnectionInURL in DispatchOptions) then
-    S.ConnectionName:=aConnection.Name;
-  Schemas.AddSchema(S).Enabled:=true;
+  SName:='Schema'+aConnection.Name;
+  Ref:=Schemas.FindSchemaRef(SName);
+  if Ref<>Nil then
+    S:=Ref.Schema
+  else
+    begin
+    S:=TSQLDBRestSchema.Create(aOwner);
+    S.Name:='Schema'+aConnection.Name;
+    S.PopulateResources(Conn,aTables,aMinFieldOpts);
+    if not (rdoConnectionInURL in DispatchOptions) then
+      S.ConnectionName:=aConnection.Name;
+    Ref:=Schemas.AddSchema(S);
+    end;
+  Ref.Enabled:=true;
   Result:=S;
 end;
 
