@@ -168,11 +168,7 @@ Const
 type
    tcpuflags =
       (CPUX86_HAS_BTX,          { Bit-test instructions (BT, BTC, BTR and BTS) are available }
-       CPUX86_HAS_FAST_XCHG,    { XCHG %reg,%reg executes in 2 cycles or less }
        CPUX86_HAS_CMOV,         { CMOVcc instructions are available }
-       CPUX86_HAS_FAST_BTX,     { BT/C/R/S instructions with register operands are at least as fast as logical instructions }
-       CPUX86_HAS_FAST_BT_MEM,  { BT instructions with memory operands are at least as fast as logical instructions }
-       CPUX86_HAS_FAST_BTX_MEM, { BTC/R/S instructions with memory operands are at least as fast as logical instructions }
        CPUX86_HAS_SSEUNIT,      { SSE instructions are available }
        CPUX86_HAS_SSE2,         { SSE2 instructions are available }
        CPUX86_HAS_BMI1,         { BMI1 instructions are available }
@@ -192,14 +188,27 @@ type
        FPUX86_HAS_AVX512DQ
       );
 
+   { Instruction optimisation hints }
+   TCPUOptimizeFlags =
+      (CPUX86_HINT_FAST_BT_REG_IMM,  { BT instructions with register source and immediate indices are at least as fast as logical instructions }
+       CPUX86_HINT_FAST_BT_REG_REG,  { BT instructions with register source and register indices are at least as fast as equivalent logical instructions }
+       CPUX86_HINT_FAST_BTX_REG_IMM, { BTC/R/S instructions with register source and immediate indices are at least as fast as logical instructions }
+       CPUX86_HINT_FAST_BTX_REG_REG, { BTC/R/S instructions with register source and register indices are at least as fast as equivalent logical instructions }
+       CPUX86_HINT_FAST_BT_MEM_IMM,  { BT instructions with memory sources and inmediate indices are at least as fast as logical instructions }
+       CPUX86_HINT_FAST_BT_MEM_REG,  { BT instructions with memory sources and register indices and a register index are at least as fast as equivalent logical instructions }
+       CPUX86_HINT_FAST_BTX_MEM_IMM, { BTC/R/S instructions with memory sources and immediate indices are at least as fast as logical instructions }
+       CPUX86_HINT_FAST_BTX_MEM_REG, { BTC/R/S instructions with memory sources and register indices are at least as fast as equivalent logical instructions }
+       CPUX86_HINT_FAST_XCHG         { XCHG %reg,%reg executes in 2 cycles or less }
+      );
+
  const
    cpu_capabilities : array[tcputype] of set of tcpuflags = (
      { cpu_none      } [],
-     { Athlon64      } [CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_FAST_BTX,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2],
-     { cpu_core_i    } [CPUX86_HAS_BTX,CPUX86_HAS_FAST_XCHG,CPUX86_HAS_CMOV,CPUX86_HAS_FAST_BTX,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT],
-     { cpu_core_avx  } [CPUX86_HAS_BTX,CPUX86_HAS_FAST_XCHG,CPUX86_HAS_CMOV,CPUX86_HAS_FAST_BTX,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT],
-     { cpu_core_avx2 } [CPUX86_HAS_BTX,CPUX86_HAS_FAST_XCHG,CPUX86_HAS_CMOV,CPUX86_HAS_FAST_BTX,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT,CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE],
-     { cpu_zen       } [CPUX86_HAS_BTX,CPUX86_HAS_FAST_XCHG,CPUX86_HAS_CMOV,CPUX86_HAS_FAST_BTX,CPUX86_HAS_FAST_BT_MEM,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT,CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE]
+     { Athlon64      } [CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2],
+     { cpu_core_i    } [CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT],
+     { cpu_core_avx  } [CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT],
+     { cpu_core_avx2 } [CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT,CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE],
+     { cpu_zen       } [CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2,CPUX86_HAS_POPCNT,CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE]
    );
 
    fpu_capabilities : array[tfputype] of set of tfpuflags = (
@@ -212,6 +221,15 @@ type
       { fpu_avx      } [FPUX86_HAS_AVXUNIT],
       { fpu_avx2     } [FPUX86_HAS_AVXUNIT,FPUX86_HAS_FMA],
       { fpu_avx512   } [FPUX86_HAS_AVXUNIT,FPUX86_HAS_FMA,FPUX86_HAS_32MMREGS,FPUX86_HAS_AVX512F,FPUX86_HAS_AVX512VL,FPUX86_HAS_AVX512DQ]
+   );
+
+   cpu_optimization_hints : array[TCPUType] of set of TCPUOptimizeFlags = (
+      { cpu_none      } [],
+      { cpu_Athlon64  } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_XCHG],
+      { cpu_core_i    } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_XCHG],
+      { cpu_core_avx  } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_XCHG],
+      { cpu_core_avx2 } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_XCHG],
+      { cpu_zen       } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_BT_MEM_IMM,CPUX86_HINT_FAST_XCHG]
    );
 
 Implementation

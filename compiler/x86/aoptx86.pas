@@ -8614,7 +8614,7 @@ unit aoptx86;
            { From the Pentium M onwards, XCHG only has a latency of 2 rather
              than 3, so it becomes a saving compared to three MOVs with two of
              them able to execute simultaneously. [Kit] }
-           (CPUX86_HAS_FAST_XCHG in cpu_capabilities[current_settings.optimizecputype]);
+           (CPUX86_HINT_FAST_XCHG in cpu_optimization_hints[current_settings.optimizecputype]);
        end;
 
       var

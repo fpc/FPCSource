@@ -156,13 +156,22 @@ Const
 type
    tcpuflags =
       (CPUX86_HAS_BTX,          { Bit-test instructions (BT, BTC, BTR and BTS) are available }
-       CPUX86_HAS_FAST_XCHG,    { XCHG %reg,%reg executes in 2 cycles or less }
        CPUX86_HAS_CMOV,         { CMOVcc instructions are available }
-       CPUX86_HAS_FAST_BTX,     { BT/C/R/S instructions with register operands are at least as fast as logical instructions }
-       CPUX86_HAS_FAST_BT_MEM,  { BT instructions with memory operands are at least as fast as logical instructions }
-       CPUX86_HAS_FAST_BTX_MEM, { BTC/R/S instructions with memory operands are at least as fast as logical instructions }
        CPUX86_HAS_SSEUNIT,      { SSE instructions are available }
        CPUX86_HAS_SSE2          { SSE2 instructions are available }
+      );
+
+   { Instruction optimisation hints }
+   TCPUOptimizeFlags =
+      (CPUX86_HINT_FAST_BT_REG_IMM,  { BT instructions with register source and immediate indices are at least as fast as logical instructions }
+       CPUX86_HINT_FAST_BT_REG_REG,  { BT instructions with register source and register indices are at least as fast as equivalent logical instructions }
+       CPUX86_HINT_FAST_BTX_REG_IMM, { BTC/R/S instructions with register source and immediate indices are at least as fast as logical instructions }
+       CPUX86_HINT_FAST_BTX_REG_REG, { BTC/R/S instructions with register source and register indices are at least as fast as equivalent logical instructions }
+       CPUX86_HINT_FAST_BT_MEM_IMM,  { BT instructions with memory sources and inmediate indices are at least as fast as logical instructions }
+       CPUX86_HINT_FAST_BT_MEM_REG,  { BT instructions with memory sources and register indices and a register index are at least as fast as equivalent logical instructions }
+       CPUX86_HINT_FAST_BTX_MEM_IMM, { BTC/R/S instructions with memory sources and immediate indices are at least as fast as logical instructions }
+       CPUX86_HINT_FAST_BTX_MEM_REG, { BTC/R/S instructions with memory sources and register indices are at least as fast as equivalent logical instructions }
+       CPUX86_HINT_FAST_XCHG         { XCHG %reg,%reg executes in 2 cycles or less }
       );
 
  const
@@ -174,10 +183,24 @@ type
      { cpu_386       } [CPUX86_HAS_BTX],
      { cpu_486       } [CPUX86_HAS_BTX],
      { cpu_Pentium   } [CPUX86_HAS_BTX],
-     { cpu_Pentium2  } [CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_FAST_BTX],
-     { cpu_Pentium3  } [CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_FAST_BTX,CPUX86_HAS_SSEUNIT],
-     { cpu_Pentium4  } [CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_FAST_BTX,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2],
-     { cpu_PentiumM  } [CPUX86_HAS_BTX,CPUX86_HAS_FAST_XCHG,CPUX86_HAS_CMOV,CPUX86_HAS_FAST_BTX,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2]
+     { cpu_Pentium2  } [CPUX86_HAS_BTX,CPUX86_HAS_CMOV],
+     { cpu_Pentium3  } [CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT],
+     { cpu_Pentium4  } [CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2],
+     { cpu_PentiumM  } [CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2]
+   );
+
+   cpu_optimization_hints : array[TCPUType] of set of TCPUOptimizeFlags = (
+     { cpu_none      } [],
+     { cpu_8086      } [],
+     { cpu_186       } [],
+     { cpu_286       } [],
+     { cpu_386       } [],
+     { cpu_486       } [],
+     { cpu_Pentium   } [],
+     { cpu_Pentium2  } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM],
+     { cpu_Pentium3  } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM],
+     { cpu_Pentium4  } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM],
+     { cpu_PentiumM  } [CPUX86_HINT_FAST_BT_REG_IMM,CPUX86_HINT_FAST_BTX_REG_IMM,CPUX86_HINT_FAST_XCHG]
    );
 
    x86_near_code_models = [mm_tiny,mm_small,mm_compact];
