@@ -397,6 +397,17 @@ CONST
   F_GetOwn = 9;
 {$endif}
 
+  F_SETLEASE = 1024;
+  F_GETLEASE = 1025;
+  F_CANCELLK = 1029;
+  F_DUPFD_CLOEXEC = 1030;
+  F_NOTIFY = 1026;
+  F_SETPIPE_SZ = 1031;
+  F_GETPIPE_SZ = 1032;
+  F_ADD_SEALS = 1033;
+  F_GET_SEALS = 1034;
+
+
 { getrlimit/ugetrlimit resource parameter constants }
 const
   RLIMIT_CPU = 0;       { CPU time in ms  }
