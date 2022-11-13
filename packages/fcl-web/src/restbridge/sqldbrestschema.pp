@@ -176,6 +176,7 @@ Type
     function GetResourceName: UTF8String;
     function GetSQL(AIndex: Integer): TStrings;
     function GetSQLTyped(aKind : TSQLKind): TStrings;
+    procedure SetAllowedOperations(AValue: TRestOperations);
     procedure SetFields(AValue: TSQLDBRestFieldList);
     procedure SetSQL(AIndex: Integer; AValue: TStrings);
   Protected
@@ -212,7 +213,7 @@ Type
     Property ConnectionName : UTF8String read FConnectionName Write FConnectionName;
     Property TableName : UTF8String read FTableName Write FTableName;
     Property ResourceName : UTF8String read GetResourceName Write FResourceName;
-    Property AllowedOperations : TRestOperations Read FAllowedOperations Write FAllowedOperations;
+    Property AllowedOperations : TRestOperations Read FAllowedOperations Write SetAllowedOperations;
     Property SQLSelect : TStrings Index 0 Read GetSQL Write SetSQL;
     Property SQLInsert : TStrings Index 1 Read GetSQL Write SetSQL;
     Property SQLUpdate : TStrings Index 2 Read GetSQL Write SetSQL;
@@ -922,6 +923,12 @@ end;
 function TSQLDBRestResource.GetSQLTyped(aKind : TSQLKind): TStrings;
 begin
   Result:=FSQL[aKind];
+end;
+
+procedure TSQLDBRestResource.SetAllowedOperations(AValue: TRestOperations);
+begin
+  if FAllowedOperations=AValue then Exit;
+  FAllowedOperations:=AValue;
 end;
 
 
