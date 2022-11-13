@@ -449,7 +449,9 @@ unit optdfa;
 
                 { get life info from then branch }
                 if assigned(tifnode(node).right) then
-                  DFASetIncludeSet(l,tifnode(node).right.optinfo^.life);
+                  DFASetIncludeSet(l,tifnode(node).right.optinfo^.life)
+                else if assigned(node.successor) then
+                  DFASetIncludeSet(l,node.successor.optinfo^.life);
 
                 { get life info from else branch }
                 if assigned(tifnode(node).t1) then
