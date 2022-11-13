@@ -456,6 +456,7 @@ Type
 
   TFPHttpServer = Class(TFPCustomHttpServer)
   Published
+    Property Address;
     Property Active;
     Property Port;
     Property QueueSize;
@@ -469,6 +470,8 @@ Type
     Property KeepConnections;
     Property KeepConnectionIdleTimeout;
     Property KeepConnectionTimeout;
+    Property OnKeepConnectionIdle;
+    Property OnUnexpectedError;
   end;
 
   EHTTPServer = Class(EHTTP);
