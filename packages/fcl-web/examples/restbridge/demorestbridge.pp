@@ -73,10 +73,11 @@ end;
 
 procedure TRestServerDemoApplication.DoRun;
 var
+  UN,PWD,
   ErrorMsg: String;
 begin
   // quick check parameters
-  ErrorMsg:=CheckOptions('hc:s:m:p:', ['help','config:','save-config:','max-requests:','port:']);
+  ErrorMsg:=CheckOptions('hc:s:m:p:u:w:', ['help','config:','save-config:','max-requests:','port:','user:','password:']);
   if ErrorMsg<>'' then begin
     ShowException(Exception.Create(ErrorMsg));
     Terminate;
@@ -97,7 +98,7 @@ begin
   else
     FDisp:=TSQLDBRestDispatcher.Create(Self);
   if HasOption('c', 'config') then
-    FDisp.LoadFromFile(GetOptionValue('c', 'config'),[dioSkipReadSchemas])
+    FDisp.LoadFromFile(GetOptionValue('c', 'config'),[{dioSkipReadSchemas}])
   else
     begin
     // create a Default setup
@@ -107,7 +108,13 @@ begin
     FAuth.DefaultPassword:='secret';
     FAuth.AuthenticateUserSQL.Text:='select uID from users where (uLogin=:UserName) and (uPassword=:Password)';
     FDisp.DispatchOptions:=FDisp.DispatchOptions+[rdoCustomView,rdoHandleCORS];
-    FDisp.ExposeDatabase(TPQConnectionDef.TypeName,'localhost','expensetracker','You','YourSecret',Nil,[foFilter,foInInsert,foInUpdate,foOrderByDesc]);
+    UN:=GetOptionValue('u','user');
+    if UN='' then
+      UN:='You';
+    PWD:=GetOPtionValue('w','password');
+    if PWD='' then
+      PWD:='Secret';
+    FDisp.ExposeDatabase(TPQConnectionDef.TypeName,'localhost','expensetracker',UN,PWD,Nil,[foFilter,foInInsert,foInUpdate,foOrderByDesc]);
     With FDisp.Schemas[0].Schema.Resources do
       begin
       FindResourceByName('users').Fields.FindByFieldName('uID').GeneratorName:='seqUsersID';
@@ -152,6 +159,8 @@ begin
   Writeln('-m --max-requests=N   Server at most N requests, then quit.');
   Writeln('-p --port=N           TCP/IP Port to listen on (default 3000)');
   Writeln('-s --saveconfig=File  Write config to .ini file (ignored when -c or --config is used)');
+  Writeln('-u --user=USER        Database connection username');
+  Writeln('-w --password=PWD     Password for database connection user');
   Writeln('-x --xml-only         Only allow XML requests)');
 end;
 
