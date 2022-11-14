@@ -4352,8 +4352,8 @@ begin
   begin
     NewWindow := @Nw;
     FillChar(Nw, SizeOf(Nw), 0);
-    NW.LeftEdge := 20;
-    NW.TopEdge := 20;
+    NW.LeftEdge := 0;
+    NW.TopEdge := 0;
     NW.Width := 200;
     NW.Height := 100;
     Nw.DetailPen := 0;
@@ -4379,7 +4379,14 @@ begin
       WA_MinHeight: NewWindow^.MinHeight := TagList^.ti_Data;
       WA_MinWidth: NewWindow^.MinWidth := TagList^.ti_Data;
       WA_NoCareRefresh: NewWindow^.Flags := NewWindow^.Flags or WFLG_NOCAREREFRESH;
-      WA_PubScreen: NewWindow^.Screen := Pointer(TagList^.ti_Data);
+      WA_PubScreen: begin
+        NewWindow^.Screen := Pointer(TagList^.ti_Data);
+        NewWindow^.WType := PUBLICSCREEN_F;
+      end;
+      WA_CustomScreen: begin
+        NewWindow^.Screen := Pointer(TagList^.ti_Data);
+        NewWindow^.WType := CUSTOMSCREEN_F;
+      end;
       WA_PubScreenName:
       begin
         ILock := LockIBase(0);
