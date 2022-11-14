@@ -6934,8 +6934,7 @@ unit aoptx86;
             )
           ) and
           GetNextInstruction(hp3, hp4) and
-          (hp4.typ=ait_label) and
-          (tai_label(hp4).labsym=JumpLoc) and
+          FindLabel(JumpLoc, hp4) and
           (
             not (cs_opt_size in current_settings.optimizerswitches) or
             { If the initial jump is the label's only reference, then it will
@@ -6955,7 +6954,7 @@ unit aoptx86;
           MatchOperand(taicpu(hp2).oper[1]^,taicpu(hp5).oper[1]^) and
           GetNextInstruction(hp5,hp6) and
           (
-            (hp6.typ<>ait_label) or
+            not (hp6.typ in [ait_align, ait_label]) or
             SkipLabels(hp6, hp6)
           ) and
           (hp6.typ=ait_instruction) then
@@ -6977,8 +6976,8 @@ unit aoptx86;
                     { Reuse hp5 }
                     hp5 := getlabelwithsym(TAsmLabel(JumpTargetOp(taicpu(hp3))^.ref^.symbol));
 
-                    { Make sure hp5 doesn't jump back to .L2 (infinite loop) }
-                    if not Assigned(hp5) or (hp5=hp4) or not GetNextInstruction(hp5, hp5) then
+                    { Make sure hp5 doesn't jump back to .L1 (zero distance jump) or .L2 (infinite loop) }
+                    if not Assigned(hp5) or (hp5 = hp_label) or (hp5 = hp4) or not GetNextInstruction(hp5, hp5) then
                       Exit;
 
                     if MatchInstruction(hp5, A_RET, []) then
@@ -7102,8 +7101,8 @@ unit aoptx86;
               begin
                 JumpLoc.decrefs;
                 MakeUnconditional(taicpu(p));
+                { This also increases the reference count }
                 taicpu(p).loadref(0, JumpTargetOp(taicpu(hp3))^.ref^);
-                TAsmLabel(JumpTargetOp(taicpu(hp3))^.ref^.symbol).increfs;
               end
             else
               ConvertJumpToRET(p, hp3);
@@ -8950,8 +8949,7 @@ unit aoptx86;
          GetNextInstruction(hp1,hp2) and
          MatchInstruction(hp2,A_JMP,[]) and (taicpu(hp2).oper[0]^.ref^.refaddr=addr_full) and
          GetNextInstruction(hp2,hp3) and
-         (hp3.typ=ait_label) and
-         (tasmlabel(taicpu(p).oper[0]^.ref^.symbol)=tai_label(hp3).labsym) and
+         FindLabel(tasmlabel(taicpu(p).oper[0]^.ref^.symbol), hp3) and
          GetNextInstruction(hp3,hp4) and
          MatchInstruction(hp4,A_MOV,[taicpu(hp1).opsize]) and
          (taicpu(hp4).oper[0]^.typ = top_const) and
@@ -8961,8 +8959,7 @@ unit aoptx86;
          ) and
          MatchOperand(taicpu(hp1).oper[1]^,taicpu(hp4).oper[1]^) and
          GetNextInstruction(hp4,hp5) and
-         (hp5.typ=ait_label) and
-         (tasmlabel(taicpu(hp2).oper[0]^.ref^.symbol)=tai_label(hp5).labsym) then
+         FindLabel(tasmlabel(taicpu(hp2).oper[0]^.ref^.symbol), hp5) then
          begin
            if (taicpu(hp1).oper[0]^.val = 1) and (taicpu(hp4).oper[0]^.val = 0) then
              taicpu(p).condition := inverse_cond(taicpu(p).condition);
@@ -13875,8 +13872,7 @@ unit aoptx86;
                 ((Taicpu(hp1).opcode=A_INC) or (Taicpu(hp1).opcode=A_DEC))
               ) and
               GetNextInstruction(hp1,hp2) and
-              (hp2.typ = ait_label) and
-              (Tasmlabel(symbol) = Tai_label(hp2).labsym) then
+              FindLabel(TAsmLabel(symbol), hp2) then
              { jb @@1                            cmc
                inc/dec operand           -->     adc/sbb operand,0
                @@1:
