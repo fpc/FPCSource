@@ -873,22 +873,22 @@ begin
     while I<xQueue.Count do
     begin
       xItem := TFPHTTPClientAsyncPoolRequestQueueItem(xQueue[I]);
-        if (CompareDateTime(xItem.BreakUTC, 0)<>0) and (CompareDateTime(xItem.BreakUTC, NowUTC)<0) then
-        begin // timeout is over
-          xItem.Free;
-          xQueue.Delete(I);
-        end else
-        if xClients=xItem.Clients then
-        begin // found a request waiting in queue
+      if (CompareDateTime(xItem.BreakUTC, 0)<>0) and (CompareDateTime(xItem.BreakUTC, NowUTC)<0) then
+      begin // timeout is over
+        xItem.Free;
+        xQueue.Delete(I);
+      end else
+      if xClients=xItem.Clients then
+      begin // found a request waiting in queue
         xRequest := xItem.Request;
         xItem.Request := nil; // do not destroy/abort request
         xItem.Free;
         xQueue.Delete(I);
 
         CreateRequestThread(xRequest, aClient);
-          Exit;
-        end else
-          Inc(I);
+        Exit;
+      end else
+        Inc(I);
     end;
 
     // no waiting request found - release the client
@@ -901,11 +901,11 @@ end;
 destructor TFPCustomHTTPClientAsyncPool.Destroy;
   procedure _TerminateAll(_List: TList);
   var
-  I: Integer;
-    begin
+    I: Integer;
+  begin
     for I := 0 to _List.Count-1 do
       TThread(_List[I]).Terminate;
-      end;
+  end;
   procedure _ClearWaitingQueue(_List: TList);
   var
     I: Integer;
@@ -942,14 +942,14 @@ procedure TFPCustomHTTPClientAsyncPool.DoOnAbortedFinish(var ioRequest: TFPHTTPC
 var
   xResult: TFPHTTPClientPoolResult;
 begin
-    xResult := TFPHTTPClientPoolResult.Create(ioRequest);
-    try
-      xResult.MethodResult := mrAbortedByClient;
+  xResult := TFPHTTPClientPoolResult.Create(ioRequest);
+  try
+    xResult.MethodResult := mrAbortedByClient;
     ioRequest.DoOnFinish(xResult);
-      ioRequest := nil; // ioRequest gets destroyed in xResult.Free
-    finally
-      xResult.Free;
-    end;
+    ioRequest := nil; // ioRequest gets destroyed in xResult.Free
+  finally
+    xResult.Free;
+  end;
 end;
 
 procedure TFPCustomHTTPClientAsyncPool.DoOnAbortedFinishSynchronized;
@@ -1072,9 +1072,9 @@ begin
   LockWorkingThreads(xList, xQueue);
   try
     for I := 0 to xList.Count-1 do
-      begin
+    begin
       if TObject(xList[I]) is TFPHTTPClientAsyncPoolThread then
-        begin
+      begin
         xThread := TFPHTTPClientAsyncPoolThread(TObject(xList[I]));
         xThread.LockProperties;
         try
@@ -1087,14 +1087,14 @@ begin
     end;
 
     for I := xQueue.Count-1 downto 0 do
-        begin
+    begin
       xItem := TFPHTTPClientAsyncPoolRequestQueueItem(xQueue[I]);
       if xItem.Request.Owner=aOwner then
       begin // found a request waiting in queue
-          xItem.Free;
-          xQueue.Delete(I);
-        end;
+        xItem.Free;
+        xQueue.Delete(I);
       end;
+    end;
   finally
     UnlockWorkingThreads;
   end;
@@ -1194,7 +1194,7 @@ begin
   try
     xStop := False;
     if Request.HasProgress then
-    ExecOnProgress(aDirection, aCurrentPos, aContentLength, xStop);
+      ExecOnProgress(aDirection, aCurrentPos, aContentLength, xStop);
 
     if xStop or Terminated then
       (Sender as TFPCustomHTTPClient).Terminate;
@@ -1255,9 +1255,9 @@ end;
 procedure TFPHTTPClientAsyncPoolRequestThread.ExecOnInit;
 begin
   if Request.SynchronizeOnInit then
-      Synchronize(@DoOnInit)
-    else
-      DoOnInit;
+    Synchronize(@DoOnInit)
+  else
+    DoOnInit;
 end;
 
 procedure TFPHTTPClientAsyncPoolRequestThread.ExecOnProgress(const aDirection: TFPHTTPClientPoolProgressDirection;
@@ -1350,5 +1350,6 @@ begin
 end;
 
 end.
+
 
 
