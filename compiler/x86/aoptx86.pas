@@ -224,6 +224,7 @@ unit aoptx86;
         function PostPeepholeOptShr(var p : tai) : boolean;
         function PostPeepholeOptADDSUB(var p : tai) : Boolean;
         function PostPeepholeOptVPXOR(var p: tai): Boolean;
+        function PostPeepholeOptRET(var p: tai): Boolean;
 
         procedure ConvertJumpToRET(const p: tai; const ret_p: tai);
 
@@ -17545,6 +17546,43 @@ unit aoptx86;
                 taicpu(p).oper[1]^.reg := XReg;
                 Result := True;
               end;
+          end;
+      end;
+
+
+    function TX86AsmOptimizer.PostPeepholeOptRET(var p: tai): Boolean;
+      var
+        hp1, p_new: tai;
+      begin
+        Result := False;
+        { Check for:
+              ret
+            .Lbl:
+              ret
+
+          Remove first 'ret'
+        }
+        if GetNextInstruction(p, hp1) and
+          { Remember where the label is }
+          SetAndTest(hp1, p_new) and
+          (hp1.typ in [ait_align, ait_label]) and
+          SkipLabels(hp1, hp1) and
+          MatchInstruction(hp1, A_RET, []) and
+          { To be safe, make sure the RET instructions are identical }
+          (taicpu(p).ops = taicpu(hp1).ops) and
+          (
+            (taicpu(p).ops = 0) or
+            (
+              (taicpu(p).ops = 1) and
+              MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^)
+            )
+          ) then
+          begin
+            DebugMsg(SPeepholeOptimization + 'Removed superfluous RET', p);
+            UpdateUsedRegs(tai(p.Next));
+            RemoveCurrentP(p, p_new);
+            Result := True;
+            Exit;
           end;
       end;
 

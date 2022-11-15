@@ -162,6 +162,8 @@ unit aoptcpu;
                 A_OR,
                 A_TEST:
                   Result:=PostPeepholeOptTestOr(p);
+                A_RET:
+                  Result:=PostPeepholeOptRET(p);
                 else
                   ;
               end;
