@@ -5019,6 +5019,7 @@ unit aoptx86;
         hp1, p_label, p_dist, hp1_dist: tai;
         JumpLabel, JumpLabel_dist: TAsmLabel;
         FirstValue, SecondValue: TCGInt;
+        TempBool: Boolean;
       begin
         Result := False;
         if (taicpu(p).oper[0]^.typ = top_const) and
@@ -5062,6 +5063,44 @@ unit aoptx86;
           begin
             Result := True;
             Exit;
+          end;
+
+        if MatchInstruction(hp1, A_Jcc, []) then
+          begin
+            TempBool := True;
+            if DoJumpOptimizations(hp1, TempBool) or
+              not TempBool then
+              begin
+                Result := True;
+
+                if Assigned(hp1) then
+                  begin
+                    if (hp1.typ in [ait_align]) then
+                      SkipAligns(hp1, hp1);
+
+                    { CollapseZeroDistJump will be set to the label after the
+                      jump if it optimises, whether or not it's live or dead }
+                    if (hp1.typ in [ait_label]) and
+                      not (tai_label(hp1).labsym.is_used) then
+                      GetNextInstruction(hp1, hp1);
+                  end;
+
+                TransferUsedRegs(TmpUsedRegs);
+                UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+
+                if not Assigned(hp1) or
+                  (
+                    not MatchInstruction(hp1, A_Jcc, A_SETcc, A_CMOVcc, []) and
+                    not RegUsedAfterInstruction(NR_DEFAULTFLAGS, hp1, TmpUsedRegs)
+                  ) then
+                  begin
+                    { No more conditional jumps; conditional statement is no longer required }
+                    DebugMsg(SPeepholeOptimization + 'Removed unnecessary condition (Test2Nop)', p);
+                    RemoveCurrentP(p);
+                  end;
+
+                Exit;
+              end;
           end;
 
         { Search for:
@@ -7233,7 +7272,7 @@ unit aoptx86;
        var
          v: TCGInt;
          hp1, hp2, p_dist, p_jump, hp1_dist, p_label, hp1_label: tai;
-         FirstMatch: Boolean;
+         FirstMatch, TempBool: Boolean;
          NewReg: TRegister;
          JumpLabel, JumpLabel_dist, JumpLabel_far: TAsmLabel;
        begin
@@ -7263,7 +7302,60 @@ unit aoptx86;
            begin
              if IsJumpToLabel(taicpu(p_jump)) then
                begin
+                 { Do jump optimisations first in case the condition becomes
+                   unnecessary }
+
+                 TempBool := True;
+                 if DoJumpOptimizations(p_jump, TempBool) or
+                   not TempBool then
+                   begin
+
+                     if Assigned(p_jump) then
+                       begin
+                         hp1 := p_jump;
+                         if (p_jump.typ in [ait_align]) then
+                           SkipAligns(p_jump, p_jump);
+
+                         { CollapseZeroDistJump will be set to the label after the
+                           jump if it optimises, whether or not it's live or dead }
+                         if (p_jump.typ in [ait_label]) and
+                           not (tai_label(p_jump).labsym.is_used) then
+                           GetNextInstruction(p_jump, p_jump);
+                       end;
+
+                     TransferUsedRegs(TmpUsedRegs);
+                     UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+
+                     if not Assigned(p_jump) or
+                       (
+                         not MatchInstruction(p_jump, A_Jcc, A_SETcc, A_CMOVcc, []) and
+                         not RegUsedAfterInstruction(NR_DEFAULTFLAGS, p_jump, TmpUsedRegs)
+                       ) then
+                       begin
+                         { No more conditional jumps; conditional statement is no longer required }
+                         DebugMsg(SPeepholeOptimization + 'Removed unnecessary condition (Cmp2Nop)', p);
+                         RemoveCurrentP(p);
+                         Result := True;
+                         Exit;
+                       end;
+
+                     hp1 := p_jump;
+                     Include(OptsToCheck, aoc_ForceNewIteration);
+                     Continue;
+                   end;
+
                  JumpLabel := TAsmLabel(taicpu(p_jump).oper[0]^.ref^.symbol);
+                 if GetNextInstruction(p_jump, hp2) and
+                   (
+                     OptimizeConditionalJump(JumpLabel, p_jump, hp2, TempBool) or
+                     not TempBool
+                   ) then
+                   begin
+                     hp1 := p_jump;
+                     Include(OptsToCheck, aoc_ForceNewIteration);
+                     Continue;
+                   end;
+
                  p_label := nil;
                  if Assigned(JumpLabel) then
                    p_label := getlabelwithsym(JumpLabel);
