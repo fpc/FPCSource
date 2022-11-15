@@ -414,8 +414,8 @@ unit optdfa;
               begin
                 { nested statement }
                 CreateInfo(tstatementnode(node).statement);
-                { inherit info }
-                node.optinfo^.life:=tstatementnode(node).statement.optinfo^.life;
+                { propagate info }
+                node.optinfo^.life:=tstatementnode(node).successor.optinfo^.life;
               end;
 
             blockn:
