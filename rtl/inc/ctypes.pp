@@ -204,7 +204,7 @@ begin
     exp:=exp+$8000;
   Pword(@r[r128_exponent_ofs])^:=exp;
 {$ifdef USE_UNALIGNED}
-  Pqword(unaligned(@r[r128_mantissa_ofs]))^:=qword(v) shl 12;
+  unaligned(Pqword(@r[r128_mantissa_ofs])^):=qword(v) shl 12;
   Pword(@r[r128_mantissa_ofs+8])^:=0;
   Pword(@r[r128_mantissa_ofs+10])^:=0;
 {$else not USE_UNALIGNED}
