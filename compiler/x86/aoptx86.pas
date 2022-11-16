@@ -7679,31 +7679,31 @@ unit aoptx86;
                end
              else if (taicpu(p).oper[0]^.val = 1) and
                MatchInstruction(hp1,A_Jcc,A_SETcc,[]) and
-               (taicpu(hp1).condition in [C_L, C_NGE]) then
+               (taicpu(hp1).condition in [C_L, C_NL, C_NGE, C_GE]) then
                begin
                  { Convert;       To:
                      cmp $1,r/m     cmp $0,r/m
                      jl  @lbl       jle @lbl
+                     (Also do inverted conditions)
                  }
                  DebugMsg(SPeepholeOptimization + 'Cmp1Jl2Cmp0Jle', p);
                  taicpu(p).oper[0]^.val := 0;
-                 taicpu(hp1).condition := C_LE;
+                 if taicpu(hp1).condition in [C_L, C_NGE] then
+                   taicpu(hp1).condition := C_LE
+                 else
+                   taicpu(hp1).condition := C_NLE;
 
                  { If the instruction is now "cmp $0,%reg", convert it to a
                    TEST (and effectively do the work of the "cmp $0,%reg" in
                    the block above)
-
-                   If it's a reference, we can get away with not setting
-                   Result to True because he haven't evaluated the jump
-                   in this pass yet.
                  }
                  if (taicpu(p).oper[1]^.typ = top_reg) then
                    begin
                      taicpu(p).opcode := A_TEST;
                      taicpu(p).loadreg(0,taicpu(p).oper[1]^.reg);
-                     Result := True;
                    end;
 
+                 Result := True;
                  Exit;
                end
              else if (taicpu(p).oper[1]^.typ = top_reg)
