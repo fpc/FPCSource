@@ -358,7 +358,8 @@ begin
       begin
         if unaligned(psrc^)=b then
           begin
-            result:=psrc-pword(@buf);
+            { the result is always >=0 so avoid handling of negative values }
+            result:=PtrUint(pointer(psrc)-pointer(@buf)) div sizeof(word);
             exit;
           end;
         inc(psrc);
@@ -369,7 +370,8 @@ begin
       begin
         if psrc^=b then
           begin
-            result:=psrc-pword(@buf);
+            { the result is always >=0 so avoid handling of negative values }
+            result:=PtrUint(pointer(psrc)-pointer(@buf)) div sizeof(word);
             exit;
           end;
         inc(psrc);
@@ -399,7 +401,8 @@ begin
       begin
         if unaligned(psrc^)=b then
           begin
-            result:=psrc-pdword(@buf);
+            { the result is always >=0 so avoid handling of negative values }
+            result:=PtrUint(pointer(psrc)-pointer(@buf)) div sizeof(DWord);
             exit;
           end;
         inc(psrc);
@@ -410,7 +413,8 @@ begin
       begin
         if psrc^=b then
           begin
-            result:=psrc-pdword(@buf);
+            { the result is always >=0 so avoid handling of negative values }
+            result:=PtrUint(pointer(psrc)-pointer(@buf)) div sizeof(DWord);
             exit;
           end;
         inc(psrc);
@@ -440,7 +444,8 @@ begin
       begin
         if unaligned(psrc^)=b then
           begin
-            result:=psrc-pqword(@buf);
+            { the result is always >=0 so avoid handling of negative values }
+            result:=PtrUint(pointer(psrc)-pointer(@buf)) div sizeof(QWord);
             exit;
           end;
         inc(psrc);
@@ -451,7 +456,8 @@ begin
       begin
         if psrc^=b then
           begin
-            result:=psrc-pqword(@buf);
+            { the result is always >=0 so avoid handling of negative values }
+            result:=PtrUint(pointer(psrc)-pointer(@buf)) div sizeof(QWord);
             exit;
           end;
         inc(psrc);
