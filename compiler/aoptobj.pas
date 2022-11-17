@@ -2185,7 +2185,7 @@ Unit AoptObj;
 
     function TAOptObj.CollapseZeroDistJump(var p: tai; ThisLabel: TAsmLabel): Boolean;
       var
-        tmp, hp1: tai;
+        hp1: tai;
       begin
         Result := False;
         if not GetNextInstruction(p,hp1) then
@@ -2203,15 +2203,11 @@ Unit AoptObj;
 {$ifdef cpudelayslot}
             RemoveDelaySlot(p);
 {$endif cpudelayslot}
-            tmp := tai(p.Next); { Might be an align before the label, so keep a note of it }
-            asml.remove(p);
-            p.free;
-
-            StripDeadLabels(tmp, p);
-
-            if p.typ <> ait_instruction then
-              GetNextInstruction(UpdateUsedRegsAndOptimize(p), p);
-
+            hp1 := tai(p.Next);
+            { Use RemoveInstruction, not RemoveCurrentP, since the latter also
+              updates the registers }
+            RemoveInstruction(p);
+            p := hp1;
             Result := True;
           end;
 
