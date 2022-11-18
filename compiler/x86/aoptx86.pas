@@ -7078,9 +7078,10 @@ unit aoptx86;
     function TX86AsmOptimizer.OptPass1FSTP(var p: tai): boolean;
       { returns true if a "continue" should be done after this optimization }
       var
-        hp1, hp2: tai;
+        hp1, hp2, hp3: tai;
       begin
         Result := false;
+        hp3 := nil;
         if MatchOpType(taicpu(p),top_ref) and
            GetNextInstruction(p, hp1) and
            (hp1.typ = ait_instruction) and
@@ -7128,23 +7129,41 @@ unit aoptx86;
             else
               { we can do this only in fast math mode as fstp is rounding ...
                 ... still disabled as it breaks the compiler and/or rtl }
-              if ({ (cs_opt_fastmath in current_settings.optimizerswitches) or }
+              if { (cs_opt_fastmath in current_settings.optimizerswitches) or }
                 { ... or if another fstp equal to the first one follows }
-                (GetNextInstruction(hp1,hp2) and
+                GetNextInstruction(hp1,hp2) and
                 (hp2.typ = ait_instruction) and
                 (taicpu(p).opcode=taicpu(hp2).opcode) and
-                (taicpu(p).opsize=taicpu(hp2).opsize))
-                ) and
-                { fst can't store an extended/comp value }
-                (taicpu(p).opsize <> S_FX) and
-                (taicpu(p).opsize <> S_IQ) then
+                (taicpu(p).opsize=taicpu(hp2).opsize) then
                 begin
-                  if (taicpu(p).opcode = A_FSTP) then
-                    taicpu(p).opcode := A_FST
-                  else
-                    taicpu(p).opcode := A_FIST;
-                  DebugMsg(SPeepholeOptimization + 'FstpFld2Fst',p);
-                  RemoveInstruction(hp1);
+                  if SetAndTest(tai(hp2.next),hp3) and (hp3.typ = ait_tempalloc) and
+                    (tai_tempalloc(hp3).allocation=false) and
+                    (taicpu(p).oper[0]^.ref^.base = current_procinfo.FramePointer) and
+                    (taicpu(p).oper[0]^.ref^.index = NR_NO) and
+                    MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[0]^) and
+                    (tai_tempalloc(hp3).temppos=taicpu(p).oper[0]^.ref^.offset) and
+                    (((taicpu(p).opsize=S_FX) and (tai_tempalloc(hp3).tempsize=16)) or
+                     ((taicpu(p).opsize in [S_IQ,S_FL]) and (tai_tempalloc(hp3).tempsize=8)) or
+                     ((taicpu(p).opsize=S_FS) and (tai_tempalloc(hp3).tempsize=4))
+                    ) then
+                    begin
+                      DebugMsg(SPeepholeOptimization + 'FstpFldFstp2Fstp',p);
+                      RemoveCurrentP(p,hp2);
+                      RemoveInstruction(hp1);
+                      Result := true;
+                    end
+                  else if { fst can't store an extended/comp value }
+                    (taicpu(p).opsize <> S_FX) and
+                    (taicpu(p).opsize <> S_IQ) then
+                    begin
+                      if (taicpu(p).opcode = A_FSTP) then
+                        taicpu(p).opcode := A_FST
+                      else
+                        taicpu(p).opcode := A_FIST;
+                      DebugMsg(SPeepholeOptimization + 'FstpFld2Fst',p);
+                      RemoveInstruction(hp1);
+                      Result := true;
+                    end;
                 end;
           end;
       end;
@@ -7152,7 +7171,7 @@ unit aoptx86;
 
      function TX86AsmOptimizer.OptPass1FLD(var p : tai) : boolean;
       var
-       hp1, hp2: tai;
+       hp1, hp2, hp3: tai;
       begin
         result:=false;
         if MatchOpType(taicpu(p),top_reg) and
