@@ -7106,10 +7106,9 @@ unit aoptx86;
                  fld  <temp>
                  <dealloc> <temp>
                }
-               (SetAndTest(tai(hp1.next),hp2) and (hp2.typ = ait_tempalloc) and
-                (tai_tempalloc(hp2).allocation=false) and
-                (taicpu(p).oper[0]^.ref^.base = current_procinfo.FramePointer) and
+               ((taicpu(p).oper[0]^.ref^.base = current_procinfo.FramePointer) and
                 (taicpu(p).oper[0]^.ref^.index = NR_NO) and
+                SetAndTest(FindTempDeAlloc(taicpu(p).oper[0]^.ref^.offset,tai(hp1.next)),hp2) and
                 (tai_tempalloc(hp2).temppos=taicpu(p).oper[0]^.ref^.offset) and
                 (((taicpu(p).opsize=S_FX) and (tai_tempalloc(hp2).tempsize=16)) or
                  ((taicpu(p).opsize in [S_IQ,S_FL]) and (tai_tempalloc(hp2).tempsize=8)) or
@@ -7136,10 +7135,9 @@ unit aoptx86;
                 (taicpu(p).opcode=taicpu(hp2).opcode) and
                 (taicpu(p).opsize=taicpu(hp2).opsize) then
                 begin
-                  if SetAndTest(tai(hp2.next),hp3) and (hp3.typ = ait_tempalloc) and
-                    (tai_tempalloc(hp3).allocation=false) and
-                    (taicpu(p).oper[0]^.ref^.base = current_procinfo.FramePointer) and
+                  if (taicpu(p).oper[0]^.ref^.base = current_procinfo.FramePointer) and
                     (taicpu(p).oper[0]^.ref^.index = NR_NO) and
+                    SetAndTest(FindTempDeAlloc(taicpu(p).oper[0]^.ref^.offset,tai(hp2.next)),hp3) and
                     MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[0]^) and
                     (tai_tempalloc(hp3).temppos=taicpu(p).oper[0]^.ref^.offset) and
                     (((taicpu(p).opsize=S_FX) and (tai_tempalloc(hp3).tempsize=16)) or
