@@ -6517,7 +6517,7 @@ unit aoptx86;
         TmpBool1,TmpBool2 : Boolean;
         tmpref : treference;
         hp1,hp2: tai;
-        mask:    tcgint;
+        mask, shiftval:    tcgint;
       begin
         Result:=false;
 
@@ -6811,7 +6811,35 @@ unit aoptx86;
                 DebugMsg(SPeepholeOptimization + 'ShlOp2Op', p);
                 RemoveCurrentP(p);
                 Result:=true;
+                exit;
               end;
+          end;
+        if MatchOpType(taicpu(p), top_const, top_reg) and
+          GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[1]^.reg) and
+          MatchInstruction(hp1,A_SHL,[taicpu(p).opsize]) and
+          MatchOpType(taicpu(hp1),top_const,top_reg) and
+          (taicpu(p).oper[1]^.reg=taicpu(hp1).oper[1]^.reg) then
+          begin
+            shiftval:=taicpu(p).oper[0]^.val+taicpu(hp1).oper[0]^.val;
+            if ((taicpu(p).opsize=S_B) and (shiftval>7)) or
+              ((taicpu(p).opsize=S_W) and (shiftval>15)) or
+{$ifdef x86_64}
+              ((taicpu(p).opsize=S_Q) and (shiftval>63)) or
+{$endif x86_64}
+              ((taicpu(p).opsize=S_L) and (shiftval>31)) then
+              begin
+                DebugMsg(SPeepholeOptimization + 'ShlShl2Mov', p);
+                taicpu(hp1).opcode:=A_MOV;
+                taicpu(hp1).oper[0]^.val:=0;
+              end
+            else
+              begin
+                DebugMsg(SPeepholeOptimization + 'ShlShl2Shl', p);
+                taicpu(hp1).oper[0]^.val:=shiftval;
+              end;
+            RemoveCurrentP(p);
+            Result:=true;
+            exit;
           end;
       end;
 
