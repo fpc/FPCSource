@@ -1,5 +1,6 @@
 { %CPU=i386,x86_64 }
 { %OPT=-O3 -CpCOREAVX2 -OpCOREAVX2 }
+{$R-}
 
 program tbzhi1g;
 
@@ -9,7 +10,7 @@ begin
 end;
 
 const
-  Inputs:  array[0..3] of LongInt = (0, $FFFFFFFF, $12345678, $87654321);
+  Inputs:  array[0..3] of LongInt = (0, LongInt($FFFFFFFF), $12345678, LongInt($87654321));
   Expected: array[0..3] of array[0..31] of LongInt =
     (
       ($00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000),
@@ -26,14 +27,14 @@ begin
   for Y := Low(Inputs) to High(Inputs) do
     for X := 0 to 31 do
       begin
-	    Output := Inputs[Y];
-		MaskOut(Output, X);
-		if Output <> Expected[Y][X] then
-		  begin
-		    WriteLn('FAIL: $', HexStr(Inputs[Y], 8), ' and ((1 shl ', X, ') - 1) returned $', HexStr(Output, 8), '; expected $', HexStr(Expected[Y][X], 8));
-		    Halt(1);
-		  end;
-	  end;
+        Output := Inputs[Y];
+        MaskOut(Output, X);
+        if Output <> Expected[Y][X] then
+          begin
+            WriteLn('FAIL: $', HexStr(Inputs[Y], 8), ' and ((1 shl ', X, ') - 1) returned $', HexStr(Output, 8), '; expected $', HexStr(Expected[Y][X], 8));
+            Halt(1);
+          end;
+      end;
 
   WriteLn('ok');
 end.
