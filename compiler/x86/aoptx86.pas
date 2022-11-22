@@ -4125,13 +4125,13 @@ unit aoptx86;
             if (taicpu(p).oper[0]^.reg = taicpu(hp1).oper[1]^.reg) then
               begin
                 { %reg1 = %reg3 }
-                DebugMsg(SPeepholeOptimization + 'Made 32-to-64-bit zero extension more efficient (MovlMovq2MovlAndl)', hp1);
+                DebugMsg(SPeepholeOptimization + 'Made 32-to-64-bit zero extension more efficient (MovlMovq2MovlAndl 1)', hp1);
                 taicpu(hp1).opcode := A_AND;
               end
             else
               begin
                 { %reg1 <> %reg3 }
-                DebugMsg(SPeepholeOptimization + 'Made 32-to-64-bit zero extension more efficient (MovlMovq2MovlMovl)', hp1);
+                DebugMsg(SPeepholeOptimization + 'Made 32-to-64-bit zero extension more efficient (MovlMovq2MovlMovl 1)', hp1);
               end;
 
             if not RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs) then
@@ -4332,35 +4332,99 @@ unit aoptx86;
                               Internalerror(2019103001);
                           end;
                       end
-                    else
-                      if MatchOperand(taicpu(hp2).oper[1]^, p_TargetReg) then
-                        begin
-                          if not CrossJump and
-                            not RegUsedBetween(p_TargetReg, p, hp2) and
-                            not RegReadByInstruction(p_TargetReg, hp2) then
-                            begin
-                              { Register is not used before it is overwritten }
-                              DebugMsg(SPeepholeOptimization + 'Mov2Nop 3a done',p);
-                              RemoveCurrentp(p, hp1);
-                              Result := True;
-                              Exit;
-                            end;
+                    else if MatchOperand(taicpu(hp2).oper[1]^, p_TargetReg) then
+                      begin
+                        if not CrossJump and
+                          not RegUsedBetween(p_TargetReg, p, hp2) and
+                          not RegReadByInstruction(p_TargetReg, hp2) then
+                          begin
+                            { Register is not used before it is overwritten }
+                            DebugMsg(SPeepholeOptimization + 'Mov2Nop 3a done',p);
+                            RemoveCurrentp(p, hp1);
+                            Result := True;
+                            Exit;
+                          end;
 
-                          if (taicpu(p).oper[0]^.typ = top_const) and
-                            (taicpu(hp2).oper[0]^.typ = top_const) then
-                            begin
-                              if taicpu(p).oper[0]^.val = taicpu(hp2).oper[0]^.val then
-                                begin
-                                  { Same value - register hasn't changed }
-                                  DebugMsg(SPeepholeOptimization + 'Mov2Nop 2 done', hp2);
-                                  RemoveInstruction(hp2);
-                                  Result := True;
+                        if (taicpu(p).oper[0]^.typ = top_const) and
+                          (taicpu(hp2).oper[0]^.typ = top_const) then
+                          begin
+                            if taicpu(p).oper[0]^.val = taicpu(hp2).oper[0]^.val then
+                              begin
+                                { Same value - register hasn't changed }
+                                DebugMsg(SPeepholeOptimization + 'Mov2Nop 2 done', hp2);
+                                RemoveInstruction(hp2);
+                                Result := True;
 
-                                  { See if there's more we can optimise }
-                                  Continue;
-                                end;
-                            end;
-                        end;
+                                { See if there's more we can optimise }
+                                Continue;
+                              end;
+                          end;
+{$ifdef x86_64}
+                      end
+                    { Change:
+                        movl %reg1l,%reg2l
+                        ...
+                        movq %reg2q,%reg3q  (%reg1 <> %reg3)
+
+                      To:
+                        movl %reg1l,%reg2l
+                        ...
+                        movl %reg1l,%reg3l  (Upper 32 bits of %reg3q will be zero)
+
+                      If %reg1 = %reg3, convert to:
+                        movl %reg1l,%reg2l
+                        ...
+                        andl %reg1l,%reg1l
+                    }
+                    else if (taicpu(p).opsize = S_L) and MatchInstruction(hp2,A_MOV,[S_Q]) and
+                      (taicpu(p).oper[0]^.typ = top_reg) and
+                      MatchOpType(taicpu(hp2), top_reg, top_reg) and
+                      SuperRegistersEqual(p_TargetReg, taicpu(hp2).oper[0]^.reg) and
+                      not RegModifiedBetween(p_TargetReg, p, hp2) then
+                      begin
+                        TempRegUsed :=
+                          CrossJump { Assume the register is in use if it crossed a conditional jump } or
+                          RegReadByInstruction(p_TargetReg, hp3) or
+                          RegUsedAfterInstruction(p_TargetReg, hp2, TmpUsedRegs);
+
+                        taicpu(hp2).opsize := S_L;
+                        taicpu(hp2).loadreg(0, taicpu(p).oper[0]^.reg);
+                        setsubreg(taicpu(hp2).oper[1]^.reg, R_SUBD);
+
+                        AllocRegBetween(taicpu(p).oper[0]^.reg, p, hp2, UsedRegs);
+
+                        if (taicpu(p).oper[0]^.reg = taicpu(hp2).oper[1]^.reg) then
+                          begin
+                            { %reg1 = %reg3 }
+                            DebugMsg(SPeepholeOptimization + 'Made 32-to-64-bit zero extension more efficient (MovlMovq2MovlAndl 2)', hp2);
+                            taicpu(hp2).opcode := A_AND;
+                          end
+                        else
+                          begin
+                            { %reg1 <> %reg3 }
+                            DebugMsg(SPeepholeOptimization + 'Made 32-to-64-bit zero extension more efficient (MovlMovq2MovlMovl 2)', hp2);
+                          end;
+
+                        if not TempRegUsed then
+                          begin
+                            DebugMsg(SPeepholeOptimization + 'Mov2Nop 8a done', p);
+                            RemoveCurrentP(p, hp1);
+                            Result := True;
+                            Exit;
+                          end
+                        else
+                          begin
+                            { Initial instruction wasn't actually changed }
+                            Include(OptsToCheck, aoc_ForceNewIteration);
+
+                            { if %reg1 = %reg3, don't do the long-distance lookahead that
+                              appears below since %reg1 has technically changed }
+                            if taicpu(hp2).opcode = A_AND then
+                              Break;
+                          end;
+{$endif x86_64}
+                      end;
+
                   A_MOVZX, A_MOVSX{$ifdef x86_64}, A_MOVSXD{$endif x86_64}:
                     if MatchOpType(taicpu(hp2), top_reg, top_reg) and
                       MatchOperand(taicpu(hp2).oper[0]^, p_TargetReg) and
