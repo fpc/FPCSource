@@ -958,6 +958,16 @@ implementation
               exit;
           end;
 
+        { convert n - n mod const into n div const*const }
+        if (nodetype=subn) and (right.nodetype=modn) and is_constintnode(taddnode(right).right) and
+          (left.isequal(taddnode(right).left)) and not(might_have_sideeffects(left)) then
+          begin
+            result:=caddnode.create_internal(muln,cmoddivnode.create(divn,left,taddnode(right).right.getcopy),taddnode(right).right);
+            left:=nil;
+            taddnode(right).right:=nil;
+            exit;
+          end;
+
       { both real constants ? }
         if (lt=realconstn) and (rt=realconstn) then
           begin
