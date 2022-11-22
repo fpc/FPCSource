@@ -4,6 +4,9 @@
 
 program tbzhi1e;
 
+uses
+  cpu;
+
 function MaskOut(Input: LongInt; Index: Int64): LongInt; noinline;
 begin
   MaskOut := Input and ((1 shl Index) - 1);
@@ -24,16 +27,21 @@ var
   Y: Integer;
   Output: LongInt;
 begin
-  for Y := Low(Inputs) to High(Inputs) do
-    for X := 0 to 31 do
-      begin
-        Output := MaskOut(Inputs[Y], X);
-        if Output <> Expected[Y][X] then
-          begin
-            WriteLn('FAIL: $', HexStr(Inputs[Y], 8), ' and ((1 shl ', X, ') - 1) returned $', HexStr(Output, 8), '; expected $', HexStr(Expected[Y][X], 8));
-            Halt(1);
-          end;
-      end;
+  if avx2support then
+    begin
+      for Y := Low(Inputs) to High(Inputs) do
+	for X := 0 to 31 do
+	  begin
+	    Output := MaskOut(Inputs[Y], X);
+	    if Output <> Expected[Y][X] then
+	      begin
+		WriteLn('FAIL: $', HexStr(Inputs[Y], 8), ' and ((1 shl ', X, ') - 1) returned $', HexStr(Output, 8), '; expected $', HexStr(Expected[Y][X], 8));
+		Halt(1);
+	      end;
+	  end;
 
-  WriteLn('ok');
+      WriteLn('ok');
+    end
+  else
+    writeln('CPU does not support AVX2 extension');
 end.
