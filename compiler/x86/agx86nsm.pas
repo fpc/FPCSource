@@ -106,25 +106,37 @@ interface
       { nasm 2.13 expects lowercase cpu names }
       nasm_cpu_name : array[tcputype] of string = (
 {$if defined(x86_64)}
-        'ia64',        // cpu_none,
-        'x64',         // cpu_athlon64,
-        'ia64',        // cpu_core_i,
-        'ia64',        // cpu_core_avx,
-        'ia64',        // cpu_core_avx2,
-        'ia64'         // cpu_zen
+        'ia64',        // cpu_none
+        'x64',         // cpu_athlon64
+        'ia64',        // cpu_core_i
+        'ia64',        // cpu_bobcat
+        'ia64',        // cpu_core_avx
+        'ia64',        // cpu_jaguar
+        'ia64',        // cpu_piledriver
+        'ia64',        // cpu_excavator
+        'ia64',        // cpu_core_avx2
+        'ia64',        // cpu_zen
+        'ia64',        // cpu_zen2
+        'ia64'         // cpu_zen3
 {$elseif defined(i386)}
-        'ia64',     // cpu_none,
-        '386',      // cpu_386,
-        '486',      // cpu_486,
-        'pentium',  // cpu_Pentium,
-        'p2',       // cpu_Pentium2,
-        'p3',       // cpu_Pentium3,
-        'p4',       // cpu_Pentium4,
-        'p4',       // cpu_PentiumM,
-        'ia64',     // cpu_core_i,
-        'ia64',     // cpu_core_avx,
+        'ia64',     // cpu_none
+        '386',      // cpu_386
+        '486',      // cpu_486
+        'pentium',  // cpu_Pentium
+        'p2',       // cpu_Pentium2
+        'p3',       // cpu_Pentium3
+        'p4',       // cpu_Pentium4
+        'p4',       // cpu_PentiumM
+        'ia64',     // cpu_core_i
+        'ia64',     // cpu_bobcat
+        'ia64',     // cpu_core_avx
+        'ia64',     // cpu_jaguar
+        'ia64',     // cpu_piledriver
+        'ia64',     // cpu_excavator
         'ia64',     // cpu_core_avx2
-        'ia64'      // cpu_zen
+        'ia64',     // cpu_zen
+        'ia64',     // cpu_zen2
+        'ia64'      // cpu_zen3
 {$elseif defined(i8086)}
         'ia64',    // cpu_none
         '8086',    // cpu_8086
