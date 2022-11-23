@@ -26,5 +26,8 @@ begin
 			ok := false;
 		end;
 	end;
-	if ok then writeln('ok');
+	if ok then 
+	  writeln('ok')
+	else
+	  halt(1);
 end.
