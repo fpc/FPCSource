@@ -46,6 +46,9 @@ uses
   {$endif}
   sysutils,Classes, jsonparser, fpjson, strutils, inifiles, sslbase, httproute, httpdefs, fpmimetypes, fpwebfile, fpwebproxy, webutil;
 
+Const
+  ServerVersion = '1.0';
+
 Type
 
   { THTTPApplication }
@@ -273,6 +276,7 @@ begin
   if (Msg<>'') then
     Writeln('Error: ',Msg);
   Writeln('Usage ',ExtractFileName(ParamStr(0)),' [options] ');
+  Writeln('Version : ',ServerVersion);
   Writeln('Where options is one or more of : ');
   Writeln('-A --api=path,secret  Activate location API on path, using secret as accepted bearer token.');
   Writeln('-a --max-age=age      Set max-age expiry header on returned file requests.');
@@ -296,6 +300,7 @@ begin
   Writeln('-s --ssl              Use SSL');
   Writeln('-u --capture[=FILE]   Set up /debugcapture route to capture output sent by browser.');
   Writeln('                      If FILE is specified, write to file. If not specified, writes to STDOUT.');
+  Writeln('-V --version          Display server version and exit');         
   Writeln('-x --proxy=proxydef   Add proxy definition. Definition is of form:');
   Writeln('                      name:BaseURL');
   Writeln('');
@@ -504,9 +509,15 @@ Var
 
 begin
   FMaxAge:=31557600;
-  S:=Checkoptions('hqd:ni:p:sH:m:x:c:beQ:a:A:ou::',['help','quiet','noindexpage','directory:','port:','indexpage:','ssl','hostname:','mimetypes:','proxy:','config:','background','echo','quit:','max-age:','api:','coi','capture']);
+  S:=Checkoptions('hqd:ni:p:sH:m:x:c:beQ:a:A:ou::V',['help','quiet','noindexpage','directory:','port:','indexpage:','ssl','hostname:','mimetypes:','proxy:','config:','background','echo','quit:','max-age:','api:','coi','capture','version']);
   if (S<>'') or HasOption('h','help') then
     usage(S);
+  if HasOption('V','version') then
+    begin
+    Terminate;
+    Writeln(ServerVersion);
+    Exit;
+    end;
   if HasOption('c','config') then
     ConfigFile:=GetOptionValue('c','config')
   else
