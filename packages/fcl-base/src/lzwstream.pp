@@ -40,13 +40,13 @@ type
 
 const
   // TIFF Codes
-  ClearCode = 256; // clear table, start with 9bit codes
-  EoiCode = 257;   // end of input
-  NoCode = $7fff;
-  InitialBitLength = 9;
-  MaxBitLength = 12;
+  TiffClearCode = 256; // clear table, start with 9bit codes
+  TiffEoiCode = 257;   // end of input
+  TiffNoCode = $7fff;
+  LZWInitialBitLength = 9;
+  LZWMaxBitLength = 12;
 
-  DefaultBufSize = 1024;
+  LZWDefaultBufSize = 1024;
 
 Type
   { TLZWStream }
@@ -99,7 +99,7 @@ Type
     Procedure FillInBuffer;
     Procedure FillOutBuffer;
   Public
-    Constructor Create(aSource : TStream; aOptions : TLZWStreamOptions; InitialBufsize : Word = DefaultBufSize); overload;
+    Constructor Create(aSource : TStream; aOptions : TLZWStreamOptions; InitialBufsize : Word = LZWDefaultBufSize); overload;
     function Read(var Buffer; Count: Longint): Longint; override;
   end;
 
@@ -127,7 +127,7 @@ end;
 
 procedure TLZWStream.InitializeTable;
 begin
-  FCurBitLength:=InitialBitLength;
+  FCurBitLength:=LZWInitialBitLength;
   ClearTable;
 end;
 
@@ -155,7 +155,7 @@ begin
   FCodeBufferLength := 0;
   FCodeBuffer := 0;
   FTableCount:=0;
-  FOldCode := NoCode;
+  FOldCode := TiffNoCode;
 end;
 
 destructor TLZWStream.Destroy;
@@ -221,7 +221,7 @@ begin
   case TableCount+FSkipCodes+FTableMargin of
   512,1024,2048: begin
       //check if there is room for a greater code
-      if FCurBitLength<MaxBitLength then
+      if FCurBitLength<LZWMaxBitLength then
         inc(FCurBitLength);
     end;
   end;
@@ -252,7 +252,7 @@ begin
   while FCodeBufferLength<FCurBitLength do
     begin
     if not ReadByte(B) then
-      Exit(EoiCode);
+      Exit(TiffEoiCode);
     // Writeln('Byte: ',B);
     If FBigEndian then
       FCodeBuffer:=(FCodeBuffer shl 8) or B
@@ -341,16 +341,16 @@ begin
   repeat
     lCode:=GetNextCode;
     // WriteLn('DecompressLZW Code=',lCode);
-    if lCode=EoiCode then
+    if lCode=TiffEoiCode then
       break;
-    if lCode=ClearCode then
+    if lCode=TiffClearCode then
       begin
       InitializeTable;
       lCode:=GetNextCode;
       // WriteLn('DecompressLZW after clear Code=',lCode);
-      if lCode=EoiCode then
+      if lCode=TiffEoiCode then
         break;
-      if lCode=ClearCode then
+      if lCode=TiffClearCode then
         Error('LZW code out of bounds');
       WriteStringFromCode(lCode);
       FOldCode:=lCode;
@@ -361,11 +361,11 @@ begin
         begin
         // Writeln(lCode,' in Table (',TableCount,')');
         WriteStringFromCode(lCode);
-        if FOldCode <> NoCode then
+        if FOldCode <> TiffNoCode then
           AddStringToTable(FOldCode,lCode);
         FOldCode:=lCode;
         end
-      else if {(Code=TableCount+258) and} (FOldCode <> NoCode) then
+      else if {(Code=TableCount+258) and} (FOldCode <> TiffNoCode) then
         begin
         // Writeln(lCode,' not yet in Table (',TableCount,')');
         WriteStringFromCode(FOldCode,true);
