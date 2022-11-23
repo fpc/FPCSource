@@ -509,7 +509,7 @@ Var
 
 begin
   FMaxAge:=31557600;
-  S:=Checkoptions('hqd:ni:p:sH:m:x:c:beQ:a:A:ou::V',['help','quiet','noindexpage','directory:','port:','indexpage:','ssl','hostname:','mimetypes:','proxy:','config:','background','echo','quit:','max-age:','api:','coi','capture','version']);
+  S:=Checkoptions('hqd:ni:p:sH:m:x:c:beQ:a:A:ou::VI',['help','quiet','noindexpage','directory:','port:','indexpage:','ssl','hostname:','mimetypes:','proxy:','config:','background','echo','quit:','max-age:','api:','coi','capture','version','interface']);
   if (S<>'') or HasOption('h','help') then
     usage(S);
   if HasOption('V','version') then
