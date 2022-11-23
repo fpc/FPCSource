@@ -1747,6 +1747,7 @@ begin
       datasrc^.next_input_byte := next_input_byte;
       datasrc^.bytes_in_buffer := bytes_in_buffer;
       cinfo^.src^.skip_input_data(cinfo, long(Offset-headerlen));
+      Dec(remaining, long(Offset-headerlen));
       next_input_byte := datasrc^.next_input_byte;
       bytes_in_buffer := datasrc^.bytes_in_buffer;
     end;
