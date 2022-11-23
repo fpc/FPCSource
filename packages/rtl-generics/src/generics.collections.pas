@@ -1048,11 +1048,15 @@ end;
 { TArrayHelper<T> }
 
 class procedure TArrayHelper<T>.QSort(p: PT; n, reasonable: SizeUint; const cmp: IComparer<T>);
+const
+  INSERTION_SORT_THRESHOLD = 10;
 var
   L, R: SizeInt;
   pivot, temp: T;
 begin
-  while (n >= 2) and (reasonable > 0) do
+  Prefetch(p);
+
+  while (n > INSERTION_SORT_THRESHOLD) and (reasonable > 0) do
   begin
     { 'reasonable' loses 3/16 (~20%) on each partition, and on reaching zero, heap sort is performed.
       This means -log13/16(n) ~=~ 3.3 * log2(n) partitions allowed. }
@@ -1086,7 +1090,25 @@ begin
       n := n - R;
     end;
   end;
-  if n >= 2 then
+
+  { When the partition is small, switch to insertion sort }
+  if (n <= INSERTION_SORT_THRESHOLD) then
+  begin
+    L := 1;
+    while L < n do
+    begin
+      pivot := (P + L)^;
+      R := L - 1;
+      while (R >= 0) and (cmp.compare((p + R)^, pivot) > 0) do
+        begin
+          (p + (R + 1))^ := (p + R)^;
+          Dec(R);
+        end;
+
+      (p + (R + 1))^ := pivot;
+      Inc(L);
+    end;
+  end else
     HeapSort(p, n, cmp);
 end;
 
