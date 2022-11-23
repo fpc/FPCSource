@@ -83,6 +83,7 @@ begin
           AddUnit('contnrs');
         end;
     T:=P.Targets.AddUnit('iostream.pp');
+    T:=P.Targets.AddUnit('chainstream.pp');
     T:=P.Targets.AddUnit('nullstream.pp');
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('maskutils.pp');
