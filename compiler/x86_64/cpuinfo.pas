@@ -67,6 +67,7 @@ Type
       fpu_sse41,
       fpu_sse42,
       fpu_avx,
+      fpu_fma,
       fpu_avx2,
       fpu_avx512f
      );
@@ -141,6 +142,7 @@ Const
      'SSE41',
      'SSE42',
      'AVX',
+     'FMA',
      'AVX2',
      'AVX512F'
    );
@@ -153,6 +155,7 @@ Const
      'sse4.1',
      'sse4.2',
      'avx',
+     'fma',
      'avx2',
      'avx512f'
    );
@@ -160,7 +163,7 @@ Const
    sse_singlescalar = [fpu_sse64..fpu_avx512f];
    sse_doublescalar = [fpu_sse64..fpu_avx512f];
 
-   fpu_avx_instructionsets = [fpu_avx,fpu_avx2,fpu_avx512f];
+   fpu_avx_instructionsets = [fpu_avx,fpu_fma,fpu_avx2,fpu_avx512f];
 
    { Supported optimizations, only used for information }
    supported_optimizerswitches = genericlevel1optimizerswitches+
@@ -194,6 +197,7 @@ type
       (FPUX86_HAS_AVXUNIT,
        FPUX86_HAS_FMA,
        FPUX86_HAS_FMA4,
+       FPUX86_HAS_AVX2,
        FPUX86_HAS_32MMREGS,
        FPUX86_HAS_AVX512F,
        FPUX86_HAS_AVX512VL,
@@ -238,8 +242,9 @@ type
       { fpu_sse41    } [],
       { fpu_sse42    } [],
       { fpu_avx      } [FPUX86_HAS_AVXUNIT],
-      { fpu_avx2     } [FPUX86_HAS_AVXUNIT,FPUX86_HAS_FMA],
-      { fpu_avx512   } [FPUX86_HAS_AVXUNIT,FPUX86_HAS_FMA,FPUX86_HAS_32MMREGS,FPUX86_HAS_AVX512F,FPUX86_HAS_AVX512VL,FPUX86_HAS_AVX512DQ]
+      { fpu_fma      } [FPUX86_HAS_AVXUNIT,FPUX86_HAS_FMA],
+      { fpu_avx2     } [FPUX86_HAS_AVXUNIT,FPUX86_HAS_FMA,FPUX86_HAS_AVX2],
+      { fpu_avx512   } [FPUX86_HAS_AVXUNIT,FPUX86_HAS_FMA,FPUX86_HAS_AVX2,FPUX86_HAS_32MMREGS,FPUX86_HAS_AVX512F,FPUX86_HAS_AVX512VL,FPUX86_HAS_AVX512DQ]
    );
 
    cpu_optimization_hints : array[TCPUType] of set of TCPUOptimizeFlags = (
