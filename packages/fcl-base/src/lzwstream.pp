@@ -88,6 +88,7 @@ Type
     FOutSize : Cardinal;
     FOutRead : Cardinal;
     FFirstRead : Boolean;
+    FPosition : Int64;
     procedure MoveFromBuffer(Dest: PByte; aCount: Integer);
   Protected
     function ReadByte(out aByte: Byte): Boolean;
@@ -98,8 +99,11 @@ Type
     procedure WriteStringFromCode(aCode: integer; AddFirstChar: boolean = false);
     Procedure FillInBuffer;
     Procedure FillOutBuffer;
+    function  GetPosition: Int64; override;
+    procedure SetPosition(const Pos: Int64); override;
   Public
     Constructor Create(aSource : TStream; aOptions : TLZWStreamOptions; InitialBufsize : Word = LZWDefaultBufSize); overload;
+    function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
     function Read(var Buffer; Count: Longint): Longint; override;
   end;
 
@@ -278,7 +282,7 @@ end;
 procedure TLZWDecompressionStream.WriteStringFromCode(aCode: integer; AddFirstChar: boolean = false);
 var
   s: TLZWString;
-  i : Integer;
+//  i : Integer;
 
 begin
   // WriteLn('WriteStringFromCode Code=',aCode,' AddFirstChar=',AddFirstChar);
@@ -378,6 +382,18 @@ begin
   until FOutSize>=FillCapacity;
 end;
 
+function TLZWDecompressionStream.GetPosition: Int64;
+begin
+  Result:=FPosition;
+end;
+
+procedure TLZWDecompressionStream.SetPosition(const Pos: Int64);
+begin
+  if Pos=FPosition then
+    exit;
+  inherited SetPosition(Pos);
+end;
+
 constructor TLZWDecompressionStream.Create(aSource: TStream;
   aOptions: TLZWStreamOptions; InitialBufsize: Word);
 begin
@@ -386,6 +402,16 @@ begin
   FOutSize:=0;
   FOutRead:=0;
   FFirstRead:=True;
+  FPosition:=0;
+end;
+
+function TLZWDecompressionStream.Seek(const Offset: Int64; Origin: TSeekOrigin
+  ): Int64;
+begin
+  if (Offset=0) and (Origin=soCurrent) then
+    Result:=FPosition
+  else
+    Result:=inherited Seek(Offset, Origin);
 end;
 
 procedure TLZWDecompressionStream.MoveFromBuffer(Dest : PByte; aCount : Integer);
@@ -395,7 +421,7 @@ begin
   Inc(FOutRead,aCount);
 end;
 
-Procedure TLZWDecompressionStream.FillInBuffer;
+procedure TLZWDecompressionStream.FillInBuffer;
 
 begin
   FInSize:=Source.Read(FInBuffer,SizeOf(FInBuffer));
@@ -439,6 +465,7 @@ begin
     if Count>0 then // we need more data
       FillOutBuffer;
     end;
+  Inc(FPosition,Result);
 end;
 
 
