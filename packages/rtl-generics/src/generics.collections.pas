@@ -1058,9 +1058,8 @@ begin
 
   while (n > INSERTION_SORT_THRESHOLD) and (reasonable > 0) do
   begin
-    { 'reasonable' loses 3/16 (~20%) on each partition, and on reaching zero, heap sort is performed.
-      This means -log13/16(n) ~=~ 3.3 * log2(n) partitions allowed. }
-    reasonable := reasonable div 2 + reasonable div 4 + reasonable div 16;
+    { If 'reasonable' reaches zero, the algorithm changes to heapsort }
+    Dec(reasonable);
     pivot := Median(p, n, cmp)^;
 
     R := 0;
@@ -1184,8 +1183,24 @@ end;
 
 class procedure TArrayHelper<T>.QuickSort(var AValues: array of T; ALeft, ARight: SizeInt;
   const AComparer: IComparer<T>);
+var
+  N: SizeInt;
 begin
-  QSort(PT(AValues) + ALeft, ARight - ALeft + 1, ARight - ALeft + 1, AComparer);
+  N := ARight - ALeft + 1;
+  if N > 1 then
+    { Use BSR as a base-2 logarithm }
+    QSort(
+      PT(AValues) + ALeft,
+      N,
+{$if defined(CPU64)}
+      2 * BsrQWord(QWord(N)),
+{$elseif defined(CPU32)}
+      2 * BsrDWord(LongWord(N)),
+{$elseif defined(CPU16)}
+      2 * BsrWord(Word(N)),
+{$endif}
+      AComparer
+    );
 end;
 
 class function TArrayHelper<T>.BinarySearch(const AValues: array of T; const AItem: T;
