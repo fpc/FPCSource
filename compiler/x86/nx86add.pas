@@ -2051,6 +2051,8 @@ unit nx86add;
                    secondpass(left);
 
                    { Skip the subtract and shift nodes completely }
+                   Include(right.flags, nf_do_not_execute);
+                   Include(taddnode(right).left.flags, nf_do_not_execute);
 
                    { Helps avoid all the awkward typecasts }
                    indexnode := tshlshrnode(taddnode(right).left).right;
