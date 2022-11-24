@@ -1974,7 +1974,9 @@ unit nx86add;
                      swapleftright;
 
                    secondpass(left);
+
                    { Skip the not node completely }
+                   Include(right.flags, nf_do_not_execute);
                    secondpass(tnotnode(right).left);
 
                    { allocate registers }
