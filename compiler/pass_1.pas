@@ -45,6 +45,7 @@ implementation
       globtype,comphook,
       globals,
       procinfo,
+      verbose,
       symdef
 {$ifdef extdebug}
       ,verbose,htypechk
@@ -157,6 +158,7 @@ implementation
       begin
          if (nf_pass1_done in p.flags) then
            exit;
+
          if not(nf_error in p.flags) then
            begin
              oldcodegenerror:=codegenerror;
@@ -165,6 +167,11 @@ implementation
              oldverbosity:=status.verbosity;
              codegenerror:=false;
              repeat
+               { The error flag takes precedence over the 'do not execute' flag,
+                 as its assumed the node tree isn't tenable beyond this point }
+               if (nf_do_not_execute in p.flags) then
+                 InternalError(2022112401);
+
                { checks make always a call }
                if ([cs_check_range,cs_check_overflow,cs_check_stack] * current_settings.localswitches <> []) then
                  include(current_procinfo.flags,pi_do_call);
