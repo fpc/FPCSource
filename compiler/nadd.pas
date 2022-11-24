@@ -960,11 +960,13 @@ implementation
 
         { convert n - n mod const into n div const*const }
         if (nodetype=subn) and (right.nodetype=modn) and is_constintnode(tmoddivnode(right).right) and
-          (left.isequal(tmoddivnode(right).left)) and not(might_have_sideeffects(left)) then
+          (left.isequal(tmoddivnode(right).left)) and not(might_have_sideeffects(left)) and
+	  not(cs_check_overflow in localswitches) then
           begin
             result:=caddnode.create_internal(muln,cmoddivnode.create(divn,left,tmoddivnode(right).right.getcopy),tmoddivnode(right).right);
             left:=nil;
             tmoddivnode(right).right:=nil;
+            result.localswitches:=localswitches;
             exit;
           end;
 
