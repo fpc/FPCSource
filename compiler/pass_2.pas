@@ -189,6 +189,11 @@ implementation
           internalerror(200208221);
          if not(nf_error in p.flags) then
           begin
+            { The error flag takes precedence over the 'do not execute' flag,
+              as its assumed the node tree isn't tenable beyond this point }
+            if (nf_do_not_execute in p.flags) then
+              InternalError(2022112402);
+
             oldcodegenerror:=codegenerror;
             oldlocalswitches:=current_settings.localswitches;
             oldpos:=current_filepos;

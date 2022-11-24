@@ -279,14 +279,11 @@ interface
          nf_ignore_for_wpo, { we know that this loadvmtaddrnode cannot be used to construct a class instance }
 
          { node is derived from generic parameter }
-         nf_generic_para
+         nf_generic_para,
 
-         { WARNING: there are now 32 elements in this type, and a set of this
-             type is written to the PPU. So before adding more elements,
-             either move some flags to specific nodes, or stream a normalset
-             to the ppu
-         }
-
+         { internal flag to indicate that this node has been removed from the tree or must otherwise not be
+           execute.  Running it through firstpass etc. will raise an internal error }
+         nf_do_not_execute
        );
 
        tnodeflags = set of tnodeflag;
@@ -777,7 +774,7 @@ implementation
         ppufile.getset(tppuset5(localswitches));
         verbosity:=ppufile.getlongint;
         ppufile.getderef(resultdefderef);
-        ppufile.getset(tppuset4(flags));
+        ppufile.getset(tppuset5(flags));
         { updated by firstpass }
         expectloc:=LOC_INVALID;
         { updated by secondpass }
@@ -792,7 +789,7 @@ implementation
         ppufile.putset(tppuset5(localswitches));
         ppufile.putlongint(verbosity);
         ppufile.putderef(resultdefderef);
-        ppufile.putset(tppuset4(flags));
+        ppufile.putset(tppuset5(flags));
       end;
 
 
@@ -1425,9 +1422,9 @@ begin
   { tvaroption must fit into a 4 byte set for speed reasons }
   if ord(high(tvaroption))>31 then
     internalerror(201110301);
-  { tnodeflags must fit into a 4 byte set for speed reasons }
+(*  { tnodeflags must fit into a 4 byte set for speed reasons }
   if ord(high(tnodeflags))>31 then
-    internalerror(2014020701);
+    internalerror(2014020701); *)
 {$pop}
 end.
 
