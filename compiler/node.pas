@@ -420,6 +420,9 @@ interface
 {$ifdef DEBUG_NODE_XML}
          procedure XMLPrintNodeData(var T: Text); override;
 {$endif DEBUG_NODE_XML}
+         { Marks the current node for deletion and sets 'left' to nil.
+           Returns what 'left' was previously set to }
+         function PruneKeepLeft: TNode; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       end;
 
       //pbinarynode = ^tbinarynode;
@@ -442,6 +445,9 @@ interface
          procedure XMLPrintNodeData(var T: Text); override;
 {$endif DEBUG_NODE_XML}
          procedure printnodelist(var t:text);
+         { Marks the current node for deletion and sets 'right' to nil.
+           Returns what 'right' was previously set to }
+         function PruneKeepRight: TNode; {$IFDEF USEINLINE}inline;{$endif USEINLINE}
       end;
 
       //ptertiarynode = ^ttertiarynode;
@@ -461,6 +467,9 @@ interface
 {$ifdef DEBUG_NODE_XML}
          procedure XMLPrintNodeData(var T: Text); override;
 {$endif DEBUG_NODE_XML}
+         { Marks the current node for deletion and sets 'third' to nil.
+           Returns what 'third' was previously set to }
+         function PruneKeepThird: TNode; {$IFDEF USEINLINE}inline;{$endif USEINLINE}
       end;
 
       tbinopnode = class(tbinarynode)
@@ -1137,6 +1146,16 @@ implementation
       end;
 
 
+    { Marks the current node for deletion and sets 'left' to nil.
+      Returns what 'left' was previously set to }
+    function tunarynode.PruneKeepLeft: TNode; {$IFDEF USEINLINE}inline;{$endif USEINLINE}
+      begin
+        Result := left;
+        left := nil;
+        Include(flags, nf_do_not_execute);
+      end;
+
+
 {****************************************************************************
                             TBINARYNODE
  ****************************************************************************}
@@ -1281,6 +1300,16 @@ implementation
       end;
 
 
+    { Marks the current node for deletion and sets 'right' to nil.
+      Returns what 'right' was previously set to }
+    function tbinarynode.PruneKeepRight: TNode; {$IFDEF USEINLINE}inline;{$endif USEINLINE}
+      begin
+        Result := right;
+        right := nil;
+        Include(flags, nf_do_not_execute);
+      end;
+
+
 {****************************************************************************
                                  TTERTIARYNODE
  ****************************************************************************}
@@ -1383,6 +1412,16 @@ implementation
     function ttertiarynode.ischild(p : tnode) : boolean;
       begin
          ischild:=p=third;
+      end;
+
+
+    { Marks the current node for deletion and sets 'third' to nil.
+      Returns what 'third' was previously set to }
+    function ttertiarynode.PruneKeepThird: TNode; {$IFDEF USEINLINE}inline;{$endif USEINLINE}
+      begin
+        Result := third;
+        third := nil;
+        Include(flags, nf_do_not_execute);
       end;
 
 
