@@ -817,13 +817,13 @@ implementation
           end;
 
         { Add,Sub,Mul,Or,Xor,Andn with constant 0, 1 or -1?  }
-        if is_constintnode(right) and (is_integer(left.resultdef) or is_pointer(left.resultdef)) then
+        if is_constintnode(right) and (is_integer(ld) or is_pointer(ld)) then
           begin
             if (tordconstnode(right).value = 0) and (nodetype in [addn,subn,orn,xorn,andn,muln]) then
               begin
                 case nodetype of
                   addn,subn,orn,xorn:
-                    result := left.getcopy;
+                    result := PruneKeepLeft();
                   andn,muln:
                     begin
                       if (cs_opt_level4 in current_settings.optimizerswitches) or
@@ -839,10 +839,10 @@ implementation
               { insert type conversion in case it is a 32*32 to 64 bit multiplication optimization,
                 the type conversion does not hurt because it is normally removed later on
               }
-              result := ctypeconvnode.create_internal(left.getcopy,resultdef)
+              result := ctypeconvnode.create_internal(PruneKeepLeft(),resultdef)
 
             else if (tordconstnode(right).value = -1) and (nodetype=muln) then
-              result := ctypeconvnode.create_internal(cunaryminusnode.create(left.getcopy),left.resultdef)
+              result := ctypeconvnode.create_internal(cunaryminusnode.create(PruneKeepLeft()),ld)
 
             { try to fold
                           op                         op
@@ -854,7 +854,7 @@ implementation
             else if (left.nodetype=nodetype) and
               { there might be a mul operation e.g. longint*longint => int64 in this case
                 we cannot do this optimziation, see e.g. tests/webtbs/tw36587.pp on arm }
-              (compare_defs(resultdef,left.resultdef,nothingn)=te_exact) then
+              (compare_defs(resultdef,ld,nothingn)=te_exact) then
               begin
                 if is_constintnode(taddnode(left).left) then
                   begin
@@ -886,15 +886,15 @@ implementation
             if assigned(result) then
               exit;
           end;
-        if is_constintnode(left) and (is_integer(right.resultdef) or is_pointer(right.resultdef)) then
+        if is_constintnode(left) and (is_integer(rd) or is_pointer(rd)) then
           begin
             if (tordconstnode(left).value = 0) and (nodetype in [addn,orn,xorn,subn,andn,muln]) then
               begin
                 case nodetype of
                   addn,orn,xorn:
-                    result := right.getcopy;
+                    result := PruneKeepRight();
                   subn:
-                    result := ctypeconvnode.create_internal(cunaryminusnode.create(right.getcopy),right.resultdef);
+                    result := ctypeconvnode.create_internal(cunaryminusnode.create(PruneKeepRight()),rd);
                   andn,muln:
                     begin
                       if (cs_opt_level4 in current_settings.optimizerswitches) or
@@ -910,10 +910,10 @@ implementation
               { insert type conversion in case it is a 32*32 to 64 bit multiplication optimization,
                 the type conversion does not hurt because it is normally removed later on
               }
-              result :=  ctypeconvnode.create_internal(right.getcopy,resultdef)
+              result := ctypeconvnode.create_internal(PruneKeepRight(),resultdef)
 
             else if (tordconstnode(left).value = -1) and (nodetype=muln) then
-              result := ctypeconvnode.create_internal(cunaryminusnode.create(right.getcopy),right.resultdef)
+              result := ctypeconvnode.create_internal(cunaryminusnode.create(PruneKeepRight()),rd)
 
             { try to fold
                           op
@@ -925,7 +925,7 @@ implementation
             else if (right.nodetype=nodetype) and
               { there might be a mul operation e.g. longint*longint => int64 in this case
                 we cannot do this optimziation, see e.g. tests/webtbs/tw36587.pp on arm }
-              (compare_defs(resultdef,right.resultdef,nothingn)=te_exact)  then
+              (compare_defs(resultdef,rd,nothingn)=te_exact)  then
               begin
                 if is_constintnode(taddnode(right).left) then
                   begin
@@ -963,9 +963,16 @@ implementation
           (left.isequal(tmoddivnode(right).left)) and not(might_have_sideeffects(left)) { and
 	  not(cs_check_overflow in localswitches) } then
           begin
-            result:=caddnode.create(muln,cmoddivnode.create(divn,left,tmoddivnode(right).right.getcopy),tmoddivnode(right).right);
-            left:=nil;
-            tmoddivnode(right).right:=nil;
+            t := tmoddivnode(right).PruneKeepRight();
+            result := caddnode.create(
+              muln,
+              cmoddivnode.create(
+                divn,
+                PruneKeepLeft(),
+                t.getcopy
+              ),
+              t
+            );
             exit;
           end;
 
@@ -1024,7 +1031,8 @@ implementation
                   this operation is always valid }
                 if (left.nodetype=unaryminusn) then
                   begin
-                    result:=caddnode.create(subn,right.getcopy,tunaryminusnode(left).left.getcopy);
+                    t := tunaryminusnode(left).PruneKeepLeft();
+                    result:=caddnode.create(subn,PruneKeepRight(),t);
                     exit;
                   end;
 
@@ -1032,7 +1040,8 @@ implementation
                   this operation is always valid }
                 if (right.nodetype=unaryminusn) then
                   begin
-                    result:=caddnode.create(subn,left.getcopy,tunaryminusnode(right).left.getcopy);
+                    t := tunaryminusnode(right).PruneKeepLeft();
+                    result:=caddnode.create(subn,PruneKeepLeft(),t);
                     exit;
                   end;
               end;
@@ -1041,23 +1050,18 @@ implementation
               this operation is always valid }
             if (nodetype=subn) and (right.nodetype=unaryminusn) then
               begin
-                result:=caddnode.create(addn,left.getcopy,tunaryminusnode(right).left.getcopy);
+                t := tunaryminusnode(right).PruneKeepLeft();
+                result:=caddnode.create(addn,PruneKeepLeft(),t);
                 exit;
               end;
 
-            { (-left)*(-right) => left*right,
-              this operation is always valid }
-            if (nodetype=muln) and (left.nodetype=unaryminusn) and (right.nodetype=unaryminusn) then
+            { (-left)*(-right) => left*right, and
+              (-left)/(-right) => left/right,
+              these operations are always valid }
+            if (nodetype in [muln,slashn]) and (left.nodetype=unaryminusn) and (right.nodetype=unaryminusn) then
               begin
-                result:=caddnode.create(muln,tunaryminusnode(left).left.getcopy,tunaryminusnode(right).left.getcopy);
-                exit;
-              end;
-
-            { (-left)/(-right) => left/right,
-              this operation is always valid }
-            if (nodetype=slashn) and (left.nodetype=unaryminusn) and (right.nodetype=unaryminusn) then
-              begin
-                result:=caddnode.create(slashn,tunaryminusnode(left).left.getcopy,tunaryminusnode(right).left.getcopy);
+                t := tunaryminusnode(right).PruneKeepLeft();
+                result:=caddnode.create(nodetype,tunaryminusnode(left).PruneKeepLeft(),t);
                 exit;
               end;
 
@@ -1076,7 +1080,7 @@ implementation
                               { -0.0+(+0.0)=+0.0 so we cannot carry out this optimization if no fastmath is passed }
                               if not(cs_opt_fastmath in current_settings.optimizerswitches) then
                                 begin
-                                  result:=right.getcopy;
+                                  result:=PruneKeepRight();
                                   exit;
                                 end;
                             end;
@@ -1084,12 +1088,13 @@ implementation
                           muln:
                             if not(might_have_sideeffects(right,[mhs_exceptions])) then
                               begin
-                                result:=left.getcopy;
+                                result:=PruneKeepLeft;
                                 exit;
                               end;
                           subn:
                             begin
-                              result:=ctypeconvnode.create_internal(cunaryminusnode.create(right.getcopy),right.resultdef);
+                              t := PruneKeepRight();
+                              result:=ctypeconvnode.create_internal(cunaryminusnode.create(t),rd);
                               exit;
                             end;
                           else
@@ -1149,9 +1154,9 @@ implementation
                   begin
                     case nodetype of
                       subn:
-                        result:=crealconstnode.create(0,left.resultdef);
+                        result:=crealconstnode.create(0,ld);
                       slashn:
-                        result:=crealconstnode.create(1,left.resultdef);
+                        result:=crealconstnode.create(1,ld);
                       else
                         Internalerror(2020060901);
                     end;
@@ -1168,9 +1173,9 @@ implementation
           folded }
         if (nodetype=slashn) and
           { do not mess with currency and comp types }
-          (not(is_currency(right.resultdef)) and
-           not((right.resultdef.typ=floatdef) and
-               (tfloatdef(right.resultdef).floattype=s64comp)
+          (not(is_currency(rd)) and
+           not((rd.typ=floatdef) and
+               (tfloatdef(rd).floattype=s64comp)
               )
           ) and
           (((cs_opt_fastmath in current_settings.optimizerswitches) and (rt=ordconstn)) or
@@ -1381,7 +1386,7 @@ implementation
 
         { in case of expressions having no side effect, we can simplify boolean expressions
           containing constants }
-        if is_boolean(left.resultdef) and is_boolean(right.resultdef) then
+        if is_boolean(ld) and is_boolean(rd) then
           begin
             if is_constboolnode(left) then
               begin
@@ -1389,22 +1394,19 @@ implementation
                   ((nodetype=orn) and (tordconstnode(left).value=0)) or
                   ((nodetype=xorn) and (tordconstnode(left).value=0)) then
                   begin
-                    result:=right;
-                    right:=nil;
+                    Result := PruneKeepRight();
                     exit;
                   end
                 else if not(might_have_sideeffects(right)) and
                   (((nodetype=orn) and (tordconstnode(left).value<>0)) or
                   ((nodetype=andn) and (tordconstnode(left).value=0))) then
                   begin
-                    result:=left;
-                    left:=nil;
+                    Result := PruneKeepLeft();
                     exit;
                   end
                 else if ((nodetype=xorn) and (tordconstnode(left).value<>0)) then
                   begin
-                    result:=cnotnode.create(right);
-                    right:=nil;
+                    Result := cnotnode.create(PruneKeepRight());
                     exit;
                   end
               end
@@ -1414,22 +1416,19 @@ implementation
                   ((nodetype=orn) and (tordconstnode(right).value=0)) or
                   ((nodetype=xorn) and (tordconstnode(right).value=0)) then
                   begin
-                    result:=left;
-                    left:=nil;
+                    result := PruneKeepLeft();
                     exit;
                   end
                 else if not(might_have_sideeffects(left)) and
                   (((nodetype=orn) and (tordconstnode(right).value<>0)) or
                    ((nodetype=andn) and (tordconstnode(right).value=0))) then
                   begin
-                    result:=right;
-                    right:=nil;
+                    result := PruneKeepRight();
                     exit;
                   end
                 else if ((nodetype=xorn) and (tordconstnode(right).value<>0)) then
                   begin
-                    result:=cnotnode.create(left);
-                    left:=nil;
+                    result := cnotnode.create(PruneKeepLeft());
                     exit;
                   end
               end;
@@ -1493,7 +1492,7 @@ implementation
                 if (left.nodetype=addn) and
                   (nodetype=subn) and
                   (cs_opt_fastmath in current_settings.optimizerswitches) and (rt=realconstn) and (taddnode(left).right.nodetype=realconstn) and
-                  (compare_defs(resultdef,left.resultdef,nothingn)=te_exact) then
+                  (compare_defs(resultdef,ld,nothingn)=te_exact) then
                   begin
                     Result:=getcopy;
                     Result.nodetype:=addn;
@@ -1505,7 +1504,7 @@ implementation
                 if (left.nodetype=subn) and
                   (nodetype=addn) and
                   (cs_opt_fastmath in current_settings.optimizerswitches) and (rt=realconstn) and (taddnode(left).right.nodetype=realconstn) and
-                  (compare_defs(resultdef,left.resultdef,nothingn)=te_exact) then
+                  (compare_defs(resultdef,ld,nothingn)=te_exact) then
                   begin
                     Result:=getcopy;
                     taddnode(Result).left.nodetype:=addn;
@@ -1526,7 +1525,7 @@ implementation
                   (((nodetype=addn) and ((rt=stringconstn) or is_constcharnode(right)) and ((taddnode(left).right.nodetype=stringconstn) or is_constcharnode(taddnode(left).right))) or
                    ((nodetype in [addn,muln,subn]) and (cs_opt_fastmath in current_settings.optimizerswitches) and (rt=realconstn) and (taddnode(left).right.nodetype=realconstn))
                   ) and
-                  (compare_defs(resultdef,left.resultdef,nothingn)=te_exact) then
+                  (compare_defs(resultdef,ld,nothingn)=te_exact) then
                   begin
                     { SwapRightWithLeftLeft moves the nodes around in way that we need to insert a minus
                       on left.right: a-b-c becomes b-c-a so we
@@ -1561,7 +1560,7 @@ implementation
                   (((nodetype=addn) and ((lt=stringconstn) or is_constcharnode(left)) and ((taddnode(right).left.nodetype=stringconstn) or is_constcharnode(taddnode(right).left))) or
                    ((nodetype in [addn,muln]) and (cs_opt_fastmath in current_settings.optimizerswitches) and (lt=realconstn) and (taddnode(right).left.nodetype=realconstn))
                   ) and
-                  (compare_defs(resultdef,right.resultdef,nothingn)=te_exact) then
+                  (compare_defs(resultdef,rd,nothingn)=te_exact) then
                   begin
                     Result:=SwapLeftWithRightRight;
                     exit;
@@ -1592,7 +1591,7 @@ implementation
               equal if some previous optimizations were done so don't check
               this simplification always
             }
-            if is_boolean(left.resultdef) and is_boolean(right.resultdef) then
+            if is_boolean(ld) and is_boolean(rd) then
               begin
                 { transform unsigned comparisons of (v>=x) and (v<=y)
                   into (v-x)<=(y-x)
@@ -1687,8 +1686,7 @@ implementation
                     case nodetype of
                       andn,orn:
                         begin
-                          result:=left;
-                          left:=nil;
+                          result:=PruneKeepLeft();
                           exit;
                         end;
                       {
@@ -1726,7 +1724,7 @@ implementation
                   end
               end;
 
-            if is_integer(left.resultdef) and is_integer(right.resultdef) then
+            if is_integer(ld) and is_integer(rd) then
               begin
                 if (cs_opt_level3 in current_settings.optimizerswitches) and
                    left.isequal(right) and not might_have_sideeffects(left) then
@@ -1734,8 +1732,7 @@ implementation
                     case nodetype of
                       andn,orn:
                         begin
-                          result:=left;
-                          left:=nil;
+                          result:=PruneKeepLeft();
                           exit;
                         end;
                       xorn,
@@ -1776,13 +1773,12 @@ implementation
                (FPUXTENSA_DOUBLE in fpu_capabilities[current_settings.fputype]) and
 {$endif xtensa}
                (nodetype=muln) and
-               is_real(left.resultdef) and is_real(right.resultdef) and
+               is_real(ld) and is_real(rd) and
                left.isequal(right) and
                not(might_have_sideeffects(left)) then
               begin
-                result:=cinlinenode.create(in_sqr_real,false,left);
+                result:=cinlinenode.create(in_sqr_real,false,PruneKeepLeft());
                 inserttypeconv(result,resultdef);
-                left:=nil;
                 exit;
               end;
 {$ifdef cpurox}
@@ -1792,8 +1788,8 @@ implementation
                and (CPUM68K_HAS_ROLROR in cpu_capabilities[current_settings.cputype])
 {$endif m68k}
 {$ifndef cpu64bitalu}
-               and (left.resultdef.typ=orddef) and
-               not(torddef(left.resultdef).ordtype in [s64bit,u64bit,scurrency])
+               and (ld.typ=orddef) and
+               not(torddef(ld).ordtype in [s64bit,u64bit,scurrency])
 {$endif cpu64bitalu}
               then
               begin
@@ -1868,7 +1864,7 @@ implementation
                 c xor ((c xor a) and b)
             }
             if (nodetype=orn) and
-             (left.resultdef.typ=orddef) and
+             (ld.typ=orddef) and
              (left.nodetype=andn) and
              (right.nodetype=andn) and
              (not(is_boolean(resultdef)) or not(might_have_sideeffects(self,[mhs_exceptions])) or not(doshortbooleval(self))) and
@@ -1923,6 +1919,7 @@ implementation
                         else
                           nt:=equaln;
                         result:=caddnode.create(nt,t,cordconstnode.create(0,vl.resultdef,false));
+                        Include(flags, nf_do_not_execute);
                         if t=left then
                           left:=nil
                         else
