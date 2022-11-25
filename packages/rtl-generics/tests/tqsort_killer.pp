@@ -120,7 +120,7 @@ type
 			specialize TArrayHelper<Ty>.Sort(arr);
 			timePassed := (Now - startTime) * SecsPerDay;
 			reps += 1;
-		until not (timePassed < 0.2);
+		until not (timePassed < 3);
 
 		time := timePassed / reps;
 		write(time * 1e3:0:1, ' ms/sort');
@@ -168,4 +168,3 @@ begin
 		halt(2);
 	end;
 end.
-
