@@ -1805,20 +1805,16 @@ implementation
                        tshlshrnode(left).left.resultdef.size*8-tordconstnode(tshlshrnode(right).right).value) then
                        begin
                          result:=cinlinenode.create(in_ror_x_y,false,
-                           ccallparanode.create(tshlshrnode(left).right,
-                           ccallparanode.create(tshlshrnode(left).left,nil)));
-                         tshlshrnode(left).left:=nil;
-                         tshlshrnode(left).right:=nil;
+                           ccallparanode.create(tshlshrnode(left).PruneKeepRight(),
+                           ccallparanode.create(tshlshrnode(left).PruneKeepLeft(),nil)));
                          exit;
                        end
                      else if (tordconstnode(tshlshrnode(right).right).value=
                        tshlshrnode(left).left.resultdef.size*8-tordconstnode(tshlshrnode(left).right).value) then
                        begin
                          result:=cinlinenode.create(in_rol_x_y,false,
-                           ccallparanode.create(tshlshrnode(right).right,
-                           ccallparanode.create(tshlshrnode(left).left,nil)));
-                         tshlshrnode(left).left:=nil;
-                         tshlshrnode(right).right:=nil;
+                           ccallparanode.create(tshlshrnode(right).PruneKeepRight(),
+                           ccallparanode.create(tshlshrnode(left).PruneKeepLeft(),nil)));
                          exit;
                        end;
                    end;
@@ -1835,10 +1831,8 @@ implementation
                         then
                        begin
                          result:=cinlinenode.create(in_rol_x_y,false,
-                           ccallparanode.create(tshlshrnode(left).right,
-                           ccallparanode.create(tshlshrnode(left).left,nil)));
-                         tshlshrnode(left).left:=nil;
-                         tshlshrnode(left).right:=nil;
+                           ccallparanode.create(tshlshrnode(left).PruneKeepRight(),
+                           ccallparanode.create(tshlshrnode(left).PruneKeepLeft(),nil)));
                          exit;
                        end
                      else if (tordconstnode(tshlshrnode(right).right).value=
@@ -1846,10 +1840,8 @@ implementation
                         then
                        begin
                          result:=cinlinenode.create(in_ror_x_y,false,
-                           ccallparanode.create(tshlshrnode(right).right,
-                           ccallparanode.create(tshlshrnode(left).left,nil)));
-                         tshlshrnode(left).left:=nil;
-                         tshlshrnode(right).right:=nil;
+                           ccallparanode.create(tshlshrnode(right).PruneKeepRight(),
+                           ccallparanode.create(tshlshrnode(left).PruneKeepLeft(),nil)));
                          exit;
                        end;
                    end;
