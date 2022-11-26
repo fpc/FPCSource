@@ -2342,9 +2342,9 @@ end;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
 Const
-  EZeroResolution = 1E-16;
-  DZeroResolution = 1E-12;
-  SZeroResolution = 1E-4;
+  EZeroResolution = Extended(1E-16);
+  DZeroResolution = Double(1E-12);
+  SZeroResolution = Single(1E-4);
 
 
 function IsZero(const A: Single; Epsilon: Single): Boolean;
