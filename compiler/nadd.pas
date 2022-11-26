@@ -966,8 +966,6 @@ implementation
             result:=caddnode.create(muln,cmoddivnode.create(divn,left,tmoddivnode(right).right.getcopy),tmoddivnode(right).right);
             left:=nil;
             tmoddivnode(right).right:=nil;
-//            node_reset_flags(result,[nf_pass1_done]);
-//            do_firstpass(Result);
             exit;
           end;
 
