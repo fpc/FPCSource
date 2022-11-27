@@ -9652,20 +9652,26 @@ unit aoptx86;
                     { Convert the output MOVZX to a MOV }
                     if SuperRegistersEqual(taicpu(hp1).oper[1]^.reg, ThisReg) then
                       begin
-                        { Or remove it completely! }
-                        DebugMsg(SPeepholeOptimization + 'Movzx2Nop 2', hp1);
-
-                        { Be careful; if p = hp1 and p was also removed, p
-                          will become a dangling pointer }
-                        if p = hp1 then
+                        { Make sure the zero-expansion covers at least the minimum size (fixes i40003) }
+                        if (MinSize = S_B) or
+                          (not ShiftDownOverflow and (TryShiftDown = S_B)) or
+                          ((MinSize = S_W) and (taicpu(hp1).opsize = S_WL)) then
                           begin
-                            RemoveCurrentp(p); { p = hp1 and will then become the next instruction }
-                            p_removed := True;
-                          end
-                        else
-                          RemoveInstruction(hp1);
+                            { Remove it completely! }
+                            DebugMsg(SPeepholeOptimization + 'Movzx2Nop 2', hp1);
 
-                        hp1_removed := True;
+                            { Be careful; if p = hp1 and p was also removed, p
+                              will become a dangling pointer }
+                            if p = hp1 then
+                              begin
+                                RemoveCurrentp(p); { p = hp1 and will then become the next instruction }
+                                p_removed := True;
+                              end
+                            else
+                              RemoveInstruction(hp1);
+
+                            hp1_removed := True;
+                          end;
                       end
                     else
                       begin
@@ -10583,21 +10589,49 @@ unit aoptx86;
                   if UpperUnsignedOverflow or (taicpu(hp1).oper[0]^.typ <> top_reg) then
                     Break;
 
-                  if not SuperRegistersEqual(taicpu(hp1).oper[0]^.reg, ThisReg) then
+                  if (InstrMax = -1) then
                     begin
-                      if (InstrMax = -1) and
-                        { Will return false if the second parameter isn't ThisReg
-                          (can happen on -O2 and under) }
-                        Reg1WriteOverwritesReg2Entirely(taicpu(hp1).oper[1]^.reg, ThisReg) then
+                      if SuperRegistersEqual(taicpu(hp1).oper[0]^.reg, ThisReg) then
                         begin
-                          { The two MOVZX instructions are adjacent, so remove the first one }
-                          DebugMsg(SPeepholeOptimization + 'Movzx2Nop 5', p);
-                          RemoveCurrentP(p);
-                          Result := True;
-                          Exit;
-                        end;
+                          { Optimise around i40003 }
+                          if SuperRegistersEqual(taicpu(hp1).oper[1]^.reg, ThisReg) and
+                            (taicpu(p).opsize = S_WL) and (taicpu(hp1).opsize = S_BL)
+{$ifndef x86_64}
+                            and (
+                              (taicpu(p).oper[0]^.typ <> top_reg) or
+                              { Cannot encode byte-sized ESI, EDI, EBP or ESP under i386 }
+                              (GetSupReg(taicpu(p).oper[0]^.reg) in [RS_EAX, RS_EBX, RS_ECX, RS_EDX])
+                            )
+{$endif not x86_64}
+                            then
+                              begin
+                                if (taicpu(p).oper[0]^.typ = top_reg) then
+                                  setsubreg(taicpu(p).oper[0]^.reg, R_SUBL);
 
-                      Break;
+                                DebugMsg(SPeepholeOptimization + 'movzwl2movzbl 1', p);
+                                taicpu(p).opsize := S_BL;
+
+                                DebugMsg(SPeepholeOptimization + 'Movzx2Nop 2a', hp1);
+                                RemoveInstruction(hp1);
+                                Result := True;
+                                Exit;
+                              end;
+                        end
+                      else
+                        begin
+                          { Will return false if the second parameter isn't ThisReg
+                            (can happen on -O2 and under) }
+                          if Reg1WriteOverwritesReg2Entirely(taicpu(hp1).oper[1]^.reg, ThisReg) then
+                            begin
+                              { The two MOVZX instructions are adjacent, so remove the first one }
+                              DebugMsg(SPeepholeOptimization + 'Movzx2Nop 5', p);
+                              RemoveCurrentP(p);
+                              Result := True;
+                              Exit;
+                            end;
+
+                          Break;
+                        end;
                     end;
 
                   Result := CompressInstructions;
