@@ -95,6 +95,7 @@ Function TypeInfo(Const T : AnyType) : Pointer;
 Function GetTypeKind(Const T : AnyType) : TTypeKind;
 Procedure Fail;
 Function TypeOf(T : TObjectType) : Pointer;
+Function IsManagedType(T : TType) : Boolean;
 Procedure Initialize(Var T : TAnyType; ACount : SizeInt = 1);
 Procedure Finalize(Var T : TAnyType; ACount : SizeInt = 1);
 
