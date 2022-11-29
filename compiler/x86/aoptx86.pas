@@ -23,7 +23,7 @@ unit aoptx86;
 
 {$i fpcdefs.inc}
 
-{ $define DEBUG_AOPTCPU}
+{$define DEBUG_AOPTCPU}
 
 {$ifdef EXTDEBUG}
 {$define DEBUG_AOPTCPU}
@@ -9451,6 +9451,8 @@ unit aoptx86;
               smaller code, but won't account for x + y causing an overflow). [Kit]
             }
 
+            DebugMsg(SPeepholeOptimization + 'MovMov*Shr2MovMov*Rcr', p);
+
             if (getsupreg(taicpu(hp2).oper[1]^.reg) = getsupreg(taicpu(hp1).oper[1]^.reg)) then
               { Change first MOV command to have the same register as the final output }
               taicpu(p).oper[1]^.reg := taicpu(hp1).oper[1]^.reg
@@ -13692,6 +13694,7 @@ unit aoptx86;
                     - It is possible to set memory operands using this method, but this creates an even greater false dependency, so don't do this at all
                   }
                   taicpu(p).opcode := A_OR;
+                  DebugMsg(SPeepholeOptimization + 'Mov-12Or-1',p);
                   Result := True;
                 end;
             else
