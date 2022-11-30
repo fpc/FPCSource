@@ -2288,7 +2288,8 @@ implementation
                 if (varcount>=variantstarts.count) then
                   internalerror(2008051005);
                 { new variant part -> use the one with the biggest alignment }
-                i:=tempsymlist.indexof(tobject(variantstarts[varcount]));
+                fieldvs:=tfieldvarsym(variantstarts[varcount]);
+                i:=tempsymlist.indexof(fieldvs);
                 lastvaroffsetprocessed:=fieldvs.fieldoffset;
                 inc(varcount);
                 if (i<0) then
