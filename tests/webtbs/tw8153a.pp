@@ -18,7 +18,9 @@ asm
   ld r4,0(r3)
   ld r4,+vmtoffset tc.v(r4)
 {$if defined(linux) or defined(aix)}
-  ld r4,0(r4)
+  {$ifndef FPC_ABI_ELFV2}
+    ld r4,0(r4)
+  {$endif}
 {$endif linux or aix}
 {$else}
   lwz r4,0(r3)

@@ -39,7 +39,11 @@ asm
 {$else}
   std r0, retaddr
 {$ifdef linux}
+  {$ifdef FPC_ABI_ELFV2}
+  bl TMyObject.Test2
+  {$else}
   bl .TMyObject.Test2
+  {$endif}
 {$else linux}
   bl TMyObject.Test2
 {$endif linux}
