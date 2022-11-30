@@ -19,7 +19,6 @@
   from the system unit interface; macro's have to be on at this point
   because they're use to propagate the MUTEXTYPENAME here }
 
-{$if defined(CPUMIPS) or defined(cpuaarch64) or defined(cpusparc64)}
 {$define USE_PTHREAD_SIZEOF}
 
 {$if defined(cpuaarch64)}
@@ -30,26 +29,14 @@
   {$define __SIZEOF_PTHREAD_MUTEX_T := 24}
 {$endif CPU64}
 
-{$endif defined(CPUMIPS) or defined(cpuaarch64) or defined(cpusparc64)}
-
   MUTEXTYPENAME = record
     case byte of
-{$ifdef USE_PTHREAD_SIZEOF}
       0 : (
-        __size : array[0..__SIZEOF_PTHREAD_MUTEX_T-1] of char;
-        __align : sizeint;
-      );
-{$endif}
+            __size : array[0..__SIZEOF_PTHREAD_MUTEX_T-1] of char;
+          );
       1 : (
-        __m_reserved: longint;
-        __m_count: longint;
-        __m_owner: pointer;
-        __m_kind:  longint;
-        __m_lock:  record
-           __status: sizeint;
-          __spinlock: longint;
-        end;
-       );
+             __align : sizeint;
+          );
   end;
 
 {$ifdef __SIZEOF_PTHREAD_MUTEX_T}
