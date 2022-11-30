@@ -636,7 +636,7 @@ implementation
              opsize := def_cgsize(loadnode.resultdef);
 
              { BMI2 optimisations }
-             if (CPUX86_HAS_BMI2 in cpu_capabilities[current_settings.cputype]) then
+             if (CPUX86_HAS_BMI2 in cpu_capabilities[current_settings.cputype]) and (inlinenumber=in_and_assign_x_y) then
                begin
                  { If the second operand is "((1 shl y) - 1)", we can turn it
                    into a BZHI operator instead }
