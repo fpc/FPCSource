@@ -816,6 +816,11 @@ implementation
             exit;
           end;
 
+        { For operations that follow the commutative law, put integer constants on the right }
+        if (nodetype in [addn,orn,xorn,andn,muln]) and
+          is_constintnode(left) and (is_integer(right.resultdef) or is_pointer(right.resultdef)) then
+          SwapLeftRight;
+
         { Add,Sub,Mul,Or,Xor,Andn with constant 0, 1 or -1?  }
         if is_constintnode(right) and (is_integer(ld) or is_pointer(ld)) then
           begin
