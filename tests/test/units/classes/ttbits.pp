@@ -1,6 +1,6 @@
 program ttbits;
 
-{$MODE objfpc}{$H+} {$coperators on} {$typedaddress on}
+{$MODE objfpc}{$H+} {$coperators on} {$typedaddress on} {$modeswitch advancedrecords} {$modeswitch duplicatelocals}
 
 uses
   Classes, SysUtils, Math;
@@ -345,11 +345,161 @@ begin
   end;
 end;
 
+type
+  BitfieldRangeTest = record
+    procedure PerformOnSrc;
+    procedure PrepareScratch;
+    function ExpectMatchesResb: boolean;
+    function SrcBitfieldPiece: string;
+    function ResbAndExpectedPiece: string;
+    class function BytesToString(b: pByte; n: SizeUint): string; static;
+    class function BitsToString(b: TBits; n: SizeUint): string; static;
+
+  const
+    BaseBits = bitsizeof(TBitsBase);
+    Size = 8 * BaseBits;
+
+    PositionBases: array[0 .. 3] of uint16 =
+    (
+      BaseBits, BaseBits + BaseBits div 2, Size div 2, Size div 2 + BaseBits div 2
+    );
+
+    CountBases: array[0 .. 3] of uint16 =
+    (
+      0, BaseBits, 4 * BaseBits, 6 * BaseBits
+    );
+
+    Fuzz: array[0 .. 4] of int8 =
+    (
+      -5, -2, 0, +2, +5
+    );
+
+  var
+    src, expect: array[0 .. Size - 1] of byte;
+    srcb, resb: TBits;
+  end;
+
+procedure BitfieldRangeTest.PerformOnSrc;
+var
+  srcBase, srcFuzz, dstBase, dstFuzz, countBase, countFuzz, src, dst, count: SizeInt;
+begin
+  for srcBase in PositionBases do
+    for srcFuzz in Fuzz do
+    begin
+      src := srcBase + srcFuzz;
+      if not ((src >= 0) and (src <= Size)) then continue;
+
+      for dstBase in PositionBases do
+        for dstFuzz in Fuzz do
+        begin
+          dst := dstBase + dstFuzz;
+          if not ((dst >= 0) and (dst <= Size)) then continue;
+
+          for countBase in CountBases do
+            for countFuzz in Fuzz do
+            begin
+              count := countBase + countFuzz;
+              if not ((count >= 0) and (count <= Size - max(src, dst))) then continue;
+
+              PrepareScratch;
+              Move(pByte(expect)[src], pByte(expect)[dst], count * sizeof(byte));
+              resb.MoveRange(src, dst, count);
+              if not ExpectMatchesResb then
+                Fail(SrcBitfieldPiece + LineEnding +
+                  'MoveRange(' + src.ToString + ', ' + dst.ToString + ', ' + count.ToString + ') = ' + LineEnding +
+                  ResbAndExpectedPiece + '.');
+            end;
+        end;
+    end;
+end;
+
+procedure BitfieldRangeTest.PrepareScratch;
+begin
+  Move(src, expect, sizeof(src));
+  resb.CopyBits(srcb);
+end;
+
+function BitfieldRangeTest.ExpectMatchesResb: boolean;
+var
+  i: SizeInt;
+begin
+  for i := 0 to Size - 1 do
+    if expect[i] <> ord(resb[i]) then
+      exit(false);
+  result := true;
+end;
+
+function BitfieldRangeTest.SrcBitfieldPiece: string;
+begin
+  result :=
+    'Source bitfield:' + LineEnding +
+    BytesToString(src, Size);
+end;
+
+function BitfieldRangeTest.ResbAndExpectedPiece: string;
+begin
+  result :=
+    BitsToString(resb, Size) + LineEnding +
+    'expected ' + LineEnding +
+    BytesToString(expect, Size);
+end;
+
+class function BitfieldRangeTest.BytesToString(b: pByte; n: SizeUint): string;
+var
+  i: SizeInt;
+begin
+  result := '';
+  for i := 0 to SizeInt(n) - 1 do
+  begin
+    if (i > 0) and (SizeUint(i) mod bitsizeof(TBitsBase) = 0) then
+      result += LineEnding;
+    result += IntToStr(b[i]);
+  end;
+end;
+
+class function BitfieldRangeTest.BitsToString(b: TBits; n: SizeUint): string;
+var
+  i: SizeInt;
+begin
+  result := '';
+  for i := 0 to SizeInt(n) - 1 do
+  begin
+    if (i > 0) and (SizeUint(i) mod bitsizeof(TBitsBase) = 0) then
+      result += LineEnding;
+    result += Bool01[b[i]];
+  end;
+end;
+
+procedure TestRanges;
+var
+  iBitfieldSeed, i: SizeInt;
+  br: BitfieldRangeTest;
+begin
+  br.srcb := nil; br.resb := nil;
+  try
+    br.srcb := TBits.Create(br.Size);
+    br.resb := TBits.Create(br.Size);
+    for iBitfieldSeed := 1 to 10 do
+    begin
+      RandSeed := iBitfieldSeed;
+      for i := 0 to br.Size - 1 do
+      begin
+        br.src[i] := random(2);
+        br.srcb[i] := br.src[i] <> 0;
+      end;
+      br.PerformOnSrc;
+    end;
+  finally
+    br.srcb.Free; br.resb.Free;
+  end;
+end;
+
 begin
   TestCopyBits;
   TestBinOps;
   TestFinds;
   TestZeroUpper;
+  TestRanges;
   if somethingFailed then
     Halt(1);
   Writeln('Ok!');

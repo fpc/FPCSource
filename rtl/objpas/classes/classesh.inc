@@ -658,9 +658,9 @@ Type
 {TBits Class}
 
 type
-   TBitsBase = PtrInt;
+   TBitsBase = PtrUint;
    PBitsBase = ^TBitsBase;
-   TBitsBaseUnsigned = PtrUint;
+   TBitsBaseSigned = PtrInt;
 
 const
    MaxBitFlags = High(SizeInt) - (bitsizeof(TBitsBase) - 1);
@@ -672,8 +672,8 @@ type
       FSize : SizeInt;  { total TBitsBases currently allocated }
       FBSize: SizeInt;  {total bits currently allocated}
       findIndex : SizeInt;
-      findXorMask : int8; { 0 (all zeros) or -1 (all ones), sign-extended to TBitsBase on read.
-                            0 is for searching ones, -1 is for searching zeros. }
+      findXorMask : TBitsBase; { 0 (all zeros) or High(TBitsBase) (all ones).
+                                 0 is for searching ones, High(TBitsBase) is for searching zeros. }
 
       function ScanFor1(start : SizeInt; xorMask : TBitsBase) : SizeInt;
       function ScanFor1Rev(start : SizeInt; xorMask : TBitsBase) : SizeInt;
@@ -717,6 +717,18 @@ type
       function OpenBit: SizeInt;
       property Bits[Bit: SizeInt]: Boolean read get write SetBit; default;
       property Size: SizeInt read FBSize write setSize;
+
+      { Bit moves. }
+      class procedure MoveRange(SrcBf: TBits; SrcPos: SizeInt; DstBf: TBits; DstPos, Count: SizeInt); static;
+      procedure MoveRange(SrcPos, DstPos, Count: SizeInt); inline;
+   private
+      procedure ValidateRange(Pos, Count: SizeInt);
+      procedure FitRange(Pos, Count: SizeInt);
+      procedure ThrowBadRange(Pos, Count: SizeInt);
+      class procedure MoveUnalignedSrcToAlignedDest(Src, Dst: PBitsBase; Count, Src1Bits: SizeInt); static;
+      class procedure MoveUnalignedSrcToAlignedDestRightToLeft(SrcR, DstR: PBitsBase; Count, Src0Bits: SizeInt); static;
+      class function ReadSmall(Src: PBitsBase; Pos, Count: SizeInt): TBitsBase; static;
+      class procedure Write1(Dst: PBitsBase; Pos, Count: SizeInt; Value: TBitsBase); static;
    end;
 
 { TPersistent abstract class }
