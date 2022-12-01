@@ -891,94 +891,27 @@ implementation
             if assigned(result) then
               exit;
           end;
-        if is_constintnode(left) and (is_integer(rd) or is_pointer(rd)) then
+
+        { Deal with anti-commutative subtraction }
+        if (nodetype = subn) then
           begin
-            if (tordconstnode(left).value = 0) and (nodetype in [addn,orn,xorn,subn,andn,muln]) then
+            { change "0 - val" to "-val" }
+            if is_constintnode(left) and (is_integer(right.resultdef) or is_pointer(right.resultdef)) then
               begin
-                case nodetype of
-                  addn,orn,xorn:
-                    result := PruneKeepRight();
-                  subn:
-                    result := ctypeconvnode.create_internal(cunaryminusnode.create(PruneKeepRight()),rd);
-                  andn,muln:
-                    begin
-                      if (cs_opt_level4 in current_settings.optimizerswitches) or
-                         not might_have_sideeffects(right) then
-                        result:=cordconstnode.create(0,resultdef,true);
-                    end;
-                  else
-                    ;
-                end;
+                if (tordconstnode(left).value = 0) then
+                  result := ctypeconvnode.create_internal(cunaryminusnode.create(right.getcopy),right.resultdef);
               end
 
-            else if (tordconstnode(left).value = 1) and (nodetype=muln) then
-              { insert type conversion in case it is a 32*32 to 64 bit multiplication optimization,
-                the type conversion does not hurt because it is normally removed later on
-              }
-              result := ctypeconvnode.create_internal(PruneKeepRight(),resultdef)
-
-            else if (tordconstnode(left).value = -1) and (nodetype=muln) then
-              result := ctypeconvnode.create_internal(cunaryminusnode.create(PruneKeepRight()),rd)
-
-            { try to fold
-                          op
-                         /  \
-                     const1  op
-                            /  \
-                        const2 val
-            }
-            else if (right.nodetype=nodetype) and
-              { there might be a mul operation e.g. longint*longint => int64 in this case
-                we cannot do this optimziation, see e.g. tests/webtbs/tw36587.pp on arm }
-              (compare_defs(resultdef,rd,nothingn)=te_exact)  then
+            { convert n - n mod const into n div const*const }
+            else if (right.nodetype=modn) and is_constintnode(tmoddivnode(right).right) and
+              (left.isequal(tmoddivnode(right).left)) and not(might_have_sideeffects(left)) { and
+	      not(cs_check_overflow in localswitches) } then
               begin
-                if is_constintnode(taddnode(right).left) then
-                  begin
-                    case right.nodetype of
-                      xorn,
-                      addn,
-                      andn,
-                      orn,
-                      muln:
-                        Result:=SwapLeftWithRightRight;
-                      else
-                        ;
-                    end;
-                  end
-                else if is_constintnode(taddnode(right).right) then
-                  begin
-                    case right.nodetype of
-                      xorn,
-                      addn,
-                      andn,
-                      orn,
-                      muln:
-                        Result:=SwapLeftWithRightLeft;
-                      else
-                        ;
-                    end;
-                  end
+                result:=caddnode.create(muln,cmoddivnode.create(divn,left,tmoddivnode(right).right.getcopy),tmoddivnode(right).right);
+                left:=nil;
+                tmoddivnode(right).right:=nil;
+                exit;
               end;
-            if assigned(result) then
-              exit;
-          end;
-
-        { convert n - n mod const into n div const*const }
-        if (nodetype=subn) and (right.nodetype=modn) and is_constintnode(tmoddivnode(right).right) and
-          (left.isequal(tmoddivnode(right).left)) and not(might_have_sideeffects(left)) { and
-	  not(cs_check_overflow in localswitches) } then
-          begin
-            t := tmoddivnode(right).PruneKeepRight();
-            result := caddnode.create(
-              muln,
-              cmoddivnode.create(
-                divn,
-                PruneKeepLeft(),
-                t.getcopy
-              ),
-              t
-            );
-            exit;
           end;
 
       { both real constants ? }
