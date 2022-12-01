@@ -128,8 +128,10 @@ type
 		if (prevTime > 0) and (time / prevTime > 3) then
 		  begin
 		    writeln;
-		    writeln('Bad sorting algorithm behaviour');
+		    writeln('Potentially bad sorting algorithm behaviour');
+			{ causes too many false negative
 			halt(1);
+			}
 		  end;
 		prevTime := time;
 		write(', ');
