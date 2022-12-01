@@ -699,10 +699,19 @@ type
       procedure Grow(NBit : SizeInt);
       function  Equals(Obj : TObject): Boolean; override; overload;
       function  Equals(BitSet : TBits) : Boolean; overload;
+
       procedure SetIndex(Index : SizeInt);
       function  FindFirstBit(State : boolean) : SizeInt;
       function  FindNextBit : SizeInt;
       function  FindPrevBit : SizeInt;
+
+      { Searches that store no state inside TBits. }
+      function Find(State: boolean; StartIndex: SizeInt): SizeInt;
+      function FindRev(State: boolean; StartIndex: SizeInt): SizeInt;
+      function Find0(StartIndex: SizeInt): SizeInt;
+      function Find0Rev(StartIndex: SizeInt): SizeInt;
+      function Find1(StartIndex: SizeInt): SizeInt;
+      function Find1Rev(StartIndex: SizeInt): SizeInt;
 
       { functions and properties to match TBits class }
       function OpenBit: SizeInt;

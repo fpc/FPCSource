@@ -188,7 +188,7 @@ type
 var
   b: TBits;
   direction: DirectionEnum;
-  found, iPos, expected: SizeInt;
+  found, iPos, expected, foundRO: SizeInt;
   msg: string;
 begin
   b := nil;
@@ -200,6 +200,7 @@ begin
         LeftToRight:
           begin
             found := b.FindFirstBit(state);
+            foundRO := b.Find(state, 0);
             iPos := 0;
           end;
         RightToLeft:
@@ -213,6 +214,7 @@ begin
               b.SetIndex(b.Size - 1);
               if b[b.Size - 1] = state then found := b.Size - 1 else found := b.FindPrevBit;
             end;
+            foundRO := b.FindRev(state, b.Size - 1);
             iPos := High(positions);
           end;
       end;
@@ -221,10 +223,19 @@ begin
         if (iPos >= 0) and (iPos < length(positions)) then expected := positions[iPos] else expected := -1;
         if found <> expected then
         begin
-          WriteStr(msg, 'Finds failed:' + LineEnding +
+          WriteStr(msg, 'FindFirst/NextBit failed:' + LineEnding +
             'src = ' + src + LineEnding +
             'state = ', Bool01[state], ', dir = ', direction, ', iPos = ', iPos, ', found = ', found, ', expected = ', expected);
           Fail(msg);
+          break;
+        end;
+        if foundRO <> expected then
+        begin
+          WriteStr(msg, 'Find0/1 failed:' + LineEnding +
+            'src = ' + src + LineEnding +
+            'state = ', Bool01[state], ', dir = ', direction, ', iPos = ', iPos, ', foundRO = ', foundRO, ', expected = ', expected);
+          Fail(msg);
+          break;
         end;
         if expected < 0 then break;
         case direction of
@@ -232,11 +243,13 @@ begin
             begin
               iPos += 1;
               found := b.FindNextBit;
+              foundRO := b.Find(state, foundRO + 1);
             end;
           RightToLeft:
             begin
               iPos -= 1;
               found := b.FindPrevBit;
+              foundRO := b.FindRev(state, foundRO - 1);
             end;
         end;
       until false;

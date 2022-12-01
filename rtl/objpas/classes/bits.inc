@@ -325,4 +325,52 @@ begin
    end;
 end;
 
+function TBits.Find(State: boolean; StartIndex: SizeInt): SizeInt;
+begin
+   if SizeUint(StartIndex) < SizeUint(FBSize) then
+     result := ScanFor1(StartIndex, -TBitsBase(not State))
+   else
+     result := -1;
+end;
+
+function TBits.FindRev(State: boolean; StartIndex: SizeInt): SizeInt;
+begin
+   if SizeUint(StartIndex) < SizeUint(FBSize) then
+     result := ScanFor1Rev(StartIndex, -TBitsBase(not State))
+   else
+     result := -1;
+end;
+
+function TBits.Find0(StartIndex: SizeInt): SizeInt;
+begin
+   if SizeUint(StartIndex) < SizeUint(FBSize) then
+     result := ScanFor1(StartIndex, -1)
+   else
+     result := -1;
+end;
+
+function TBits.Find0Rev(StartIndex: SizeInt): SizeInt;
+begin
+   if SizeUint(StartIndex) < SizeUint(FBSize) then
+     result := ScanFor1Rev(StartIndex, -1)
+   else
+     result := -1;
+end;
+
+function TBits.Find1(StartIndex: SizeInt): SizeInt;
+begin
+   if SizeUint(StartIndex) < SizeUint(FBSize) then
+     result := ScanFor1(StartIndex, 0)
+   else
+     result := -1;
+end;
+
+function TBits.Find1Rev(StartIndex: SizeInt): SizeInt;
+begin
+   if SizeUint(StartIndex) < SizeUint(FBSize) then
+     result := ScanFor1Rev(StartIndex, 0)
+   else
+     result := -1;
+end;
+
 
