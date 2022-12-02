@@ -1677,7 +1677,11 @@ Implementation
       begin
         while assigned(hp) do
          begin
-           case hp.typ of
+{$ifdef DEBUG}
+           if not(hp.typ in SkipLineInfo) then
+             current_filepos:=tailineinfo(hp).fileinfo;
+{$endif DEBUG}
+            case hp.typ of
              ait_align :
                begin
                  if tai_align_abstract(hp).aligntype>1 then
@@ -1898,6 +1902,10 @@ Implementation
       begin
         while assigned(hp) do
          begin
+{$ifdef DEBUG}
+           if not(hp.typ in SkipLineInfo) then
+             current_filepos:=tailineinfo(hp).fileinfo;
+{$endif DEBUG}
            case hp.typ of
              ait_align :
                begin
@@ -2110,6 +2118,10 @@ Implementation
         { main loop }
         while assigned(hp) do
          begin
+{$ifdef DEBUG}
+           if not(hp.typ in SkipLineInfo) then
+             current_filepos:=tailineinfo(hp).fileinfo;
+{$endif DEBUG}
            case hp.typ of
              ait_align :
                begin
