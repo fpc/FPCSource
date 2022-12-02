@@ -1429,13 +1429,14 @@ implementation
         righttarget:=actualtargetnode(@right)^;
         if (nodetype in [equaln,unequaln]) and (lefttarget.nodetype=inlinen) and (righttarget.nodetype=inlinen) and
           (tinlinenode(lefttarget).inlinenumber=in_typeinfo_x) and (tinlinenode(righttarget).inlinenumber=in_typeinfo_x) and
-          (tinlinenode(lefttarget).left.nodetype=typen) and (tinlinenode(righttarget).left.nodetype=typen) then
+          not (tinlinenode(lefttarget).left.resultdef.typ in [undefineddef,errordef]) and
+          not (tinlinenode(righttarget).left.resultdef.typ in [undefineddef,errordef]) then
           begin
             case nodetype of
               equaln:
-                result:=cordconstnode.create(ord(ttypenode(tinlinenode(lefttarget).left).resultdef=ttypenode(tinlinenode(righttarget).left).resultdef),bool8type,false);
+                result:=cordconstnode.create(ord(tinlinenode(lefttarget).left.resultdef=tinlinenode(righttarget).left.resultdef),bool8type,false);
               unequaln:
-                result:=cordconstnode.create(ord(ttypenode(tinlinenode(lefttarget).left).resultdef<>ttypenode(tinlinenode(righttarget).left).resultdef),bool8type,false);
+                result:=cordconstnode.create(ord(tinlinenode(lefttarget).left.resultdef<>tinlinenode(righttarget).left.resultdef),bool8type,false);
               else
                 Internalerror(2020092901);
             end;
