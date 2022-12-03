@@ -1142,3 +1142,189 @@ begin
   if Count and 1 <> 0 then
     Inc(Result, SizeInt(PopCnt(TBitsBase(A^ and (X shr B1Bits or B[1] shl B0Bits)))));
 end;
+
+function TBits.DumpBinary(Pos, Count: SizeInt; Bin: PByte; BinAvail: SizeInt): SizeInt;
+var
+  N: SizeInt;
+  Tail: TBitsBase;
+  B: PBitsBase;
+begin
+  Result := SizeUint(Count + (bitsizeof(byte) - 1)) div bitsizeof(byte);
+  if Result > BinAvail then
+    ThrowInsufficientBuffer(Result, BinAvail);
+
+  ValidateRange(Pos, Count);
+  B := FBits + Pos shr TBITS_SHIFT;
+  Pos := Pos and TBITS_MASK;
+  N := Count shr TBITS_SHIFT;
+  if N > 0 then
+  begin
+    if Pos = 0 then
+{$ifdef endian_little}
+      Move(B^, Bin^, N * sizeof(TBitsBase))
+{$else}
+      DumpBinaryAligned(B, N, Bin)
+{$endif}
+    else
+      DumpBinaryUnaligned(B, Pos, N, Bin);
+    Inc(B, N); Inc(Bin, N * sizeof(TBitsBase));
+  end;
+
+  Count := Count and TBITS_MASK;
+  if Count > 0 then
+  begin
+    Tail := ReadSmall(B, Pos, Count);
+    repeat
+      Bin^ := byte(Tail);
+      Tail := Tail shr bitsizeof(byte);
+      Inc(Bin); Dec(Count, bitsizeof(byte));
+    until count <= 0;
+  end;
+end;
+
+{$ifndef endian_little}
+class procedure TBits.DumpBinaryAligned(B: PBitsBase; Count: SizeInt; Bin: PByte);
+var
+  BE: PBitsBase;
+begin
+  BE := B + Count;
+  repeat
+    unaligned(PBitsBase(Bin)^) := LEtoN(B^);
+    Inc(B); Inc(Bin, sizeof(TBitsBase));
+  until B = BE;
+end;
+{$endif}
+
+class procedure TBits.DumpBinaryUnaligned(B: PBitsBase; B1Bits, Count: SizeInt; Bin: PByte);
+var
+  B0Bits: SizeInt;
+  X, X1: TBitsBase;
+  BE: PBitsBase;
+begin
+  { Count > 0, 0 < B1Bits < bitsizeof(TBitsBase). }
+  X := B[0];
+  B0Bits := bitsizeof(TBitsBase) - B1Bits;
+
+  BE := B + Count shr 1 shl 1;
+  while B < BE do
+  begin
+    X1 := B[1];
+    unaligned(PBitsBase(Bin)^) := NtoLE(TBitsBase(X shr B1Bits or X1 shl B0Bits));
+    X := B[2];
+    unaligned(PBitsBase(Bin)[1]) := NtoLE(TBitsBase(X1 shr B1Bits or X shl B0Bits));
+    Inc(B, 2); Inc(Bin, 2 * sizeof(TBitsBase));
+  end;
+
+  if Count and 1 <> 0 then
+    unaligned(PBitsBase(Bin)^) := NtoLE(TBitsBase(X shr B1Bits or B[1] shl B0Bits));
+end;
+
+class procedure TBits.ThrowInsufficientBuffer(Required, Avail: SizeInt);
+begin
+  BitsErrorFmt('Insufficient buffer: %d / %d.', [Required, Avail]);
+end;
+
+function TBits.LoadBinary(Pos, Count: SizeInt; Bin: PByte; BinAvail: SizeInt): SizeInt;
+var
+  N, BinPos: SizeInt;
+  B: PBitsBase;
+begin
+  Result := SizeUint(Count + (bitsizeof(byte) - 1)) div bitsizeof(byte);
+  if Result > BinAvail then
+    ThrowInsufficientBuffer(Result, BinAvail);
+
+  FitRange(Pos, Count);
+  B := FBits;
+  BinPos := 0;
+  N := Pos and TBITS_MASK;
+  if N > 0 then
+  begin
+    N := bitsizeof(TBitsBase) - N;
+    if Count <= N then
+      if Count = 0 then exit else N := Count;
+    Write1(B, Pos, n, ReadSmallBinary(bin, 0, n));
+    Inc(Pos, N); Inc(BinPos, N); Dec(Count, N);
+  end;
+
+  N := Count shr TBITS_SHIFT;
+  if N > 0 then
+  begin
+    if SizeUint(BinPos) mod bitsizeof(byte) = 0 then
+{$ifdef endian_little}
+      Move(Bin[SizeUint(BinPos) div bitsizeof(byte)], B[Pos shr TBITS_SHIFT], N * sizeof(TBitsBase))
+{$else}
+      LoadBinaryAligned(B + Pos shr TBITS_SHIFT, N, Bin + SizeUint(BinPos) div bitsizeof(byte))
+{$endif}
+    else
+      LoadBinaryUnaligned(B + Pos shr TBITS_SHIFT, N, Bin + SizeUint(BinPos) div bitsizeof(byte), SizeUint(BinPos) mod bitsizeof(byte));
+    N := N shl TBITS_SHIFT;
+    Inc(Pos, N); Inc(BinPos, N); Dec(Count, N);
+  end;
+
+  if Count > 0 then
+    Write1(B, Pos, Count, ReadSmallBinary(Bin, BinPos, Count));
+end;
+
+{$ifndef endian_little}
+class procedure TBits.LoadBinaryAligned(B: PBitsBase; Count: SizeInt; Bin: PByte);
+var
+  BE: PBitsBase;
+begin
+  BE := B + Count;
+  repeat
+    B^ := LEtoN(unaligned(PBitsBase(Bin)^));
+    Inc(B); Inc(Bin, sizeof(TBitsBase));
+  until B = BE;
+end;
+{$endif}
+
+class procedure TBits.LoadBinaryUnaligned(B: PBitsBase; Count: SizeInt; Bin: PByte; Bin1Bits: SizeInt);
+var
+  Bin0Bits: SizeInt;
+  X, X1: TBitsBase;
+  BE2, BE: PBitsBase;
+begin
+  Bin0Bits := bitsizeof(TBitsBase) - Bin1Bits;
+  BE := B + Count;
+  { Loop by 2 reinterprets 'Bin' as a sequence of little-endian 'TBitsBase's that must be shifted by 0 < Bin1Bits < bitsizeof(byte),
+    and assumes PBitsBase(Bin)[2] is accessible: its lower Bin1Bits bits become upper bits of B[1].
+
+    Unlike MoveUnalignedSrcToAlignedDest that works with actual 'TBitsBases', here this assumption if safe only for Count - 1 elements:
+    if Bin is 9 bytes and TBitsBase is 4-byte, Bin has two whole 'TBitsBase's (so Count = 2), but PBitsBase(Bin)[2] can't be read. }
+  if Count >= 3 then
+  begin
+    X := LEtoN(unaligned(PBitsBase(Bin)^));
+    BE2 := B + (Count - 1) shr 1 shl 1;
+    repeat
+      X1 := LEtoN(unaligned(PBitsBase(Bin)[1]));
+      B^ := TBitsBase(X shr Bin1Bits or X1 shl Bin0Bits);
+      X := LEtoN(unaligned(PBitsBase(Bin)[2]));
+      B[1] := TBitsBase(X1 shr Bin1Bits or X shl Bin0Bits);
+      Inc(B, 2); Inc(Bin, 2 * sizeof(TBitsBase));
+    until B = BE2;
+  end;
+
+  { The rest is handled by reading only 1 required byte instead of over-reading PBitsBase(Bin)[2]. }
+  repeat
+    B^ := TBitsBase(LEtoN(unaligned(PBitsBase(Bin)^)) shr Bin1Bits or TBitsBase(Bin[sizeof(TBitsBase)]) shl Bin0Bits);
+    Inc(B); Inc(Bin, sizeof(TBitsBase));
+  until B = BE;
+end;
+
+class function TBits.ReadSmallBinary(Bin: PByte; Pos, Count: SizeInt): TBitsBase;
+var
+  N: SizeInt;
+begin
+  { 0 < Count < bitsizeof(TBitsBase). }
+  Inc(Bin, SizeUint(Pos) div bitsizeof(byte));
+  Pos := SizeUint(Pos) mod bitsizeof(byte);
+  Result := Bin^ shr Pos;
+  Inc(Bin);
+  N := bitsizeof(byte) - Pos;
+  while N < Count do
+  begin
+    Result := Result or TBitsBase(bin^) shl N;
+    Inc(Bin); Inc(N, bitsizeof(byte));
+  end;
+  Result := Result and (TBitsBase(1) shl Count - 1);
+end;

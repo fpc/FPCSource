@@ -782,6 +782,26 @@ type
    private
       class function IntersectionPopCountAlignedAB(A, B: PBitsBase; Count, Lim: SizeInt): SizeInt; static;
       class function IntersectionPopCountAlignedAUnalignedB(A, B: PBitsBase; Count, B1Bits, Lim: SizeInt): SizeInt; static;
+
+   public
+      { Convert to portable bitfield with byte base type. }
+      function DumpBinary(Pos, Count: SizeInt; Bin: PByte; BinAvail: SizeInt): SizeInt;
+   private
+{$ifndef endian_little}
+      class procedure DumpBinaryAligned(B: PBitsBase; Count: SizeInt; Bin: PByte); static;
+{$endif}
+      class procedure DumpBinaryUnaligned(B: PBitsBase; B1Bits, Count: SizeInt; Bin: PByte); static;
+      class procedure ThrowInsufficientBuffer(Required, Avail: SizeInt); static;
+
+   public
+      { Load from portable bitfield with byte base type. }
+      function LoadBinary(Pos, Count: SizeInt; Bin: PByte; BinAvail: SizeInt): SizeInt;
+   private
+{$ifndef endian_little}
+      class procedure LoadBinaryAligned(B: PBitsBase; Count: SizeInt; Bin: PByte); static;
+{$endif}
+      class procedure LoadBinaryUnaligned(B: PBitsBase; Count: SizeInt; Bin: PByte; Bin1Bits: SizeInt); static;
+      class function ReadSmallBinary(Bin: PByte; Pos, Count: SizeInt): TBitsBase; static;
    end;
 
 { TPersistent abstract class }

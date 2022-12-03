@@ -377,6 +377,7 @@ type
   var
     src, expect: array[0 .. Size - 1] of byte;
     srcb, resb: TBits;
+    bin: array[0 .. 2 { first and last guard bytes } + (Size + bitsizeof(byte) - 1) div bitsizeof(byte) - 1] of byte;
   end;
 
 procedure BitfieldRangeTest.PerformOnSrc;
@@ -478,6 +479,19 @@ begin
               if pcGot <> pcExp then
                 Fail(SrcBitfieldPiece + LineEnding +
                   'IntersectionPopCount(' + src.ToString + ', ' + dst.ToString + ', ' + count.ToString + ') = ' + pcGot.ToString + ', expected ' + pcExp.ToString + '.');
+
+              PrepareScratch;
+              bin[0] := 123;
+              bin[(Size - 1) div bitsizeof(byte) + 1] := 124;
+              Move(pByte(expect)[src], pByte(expect)[dst], count * sizeof(byte));
+              resb.DumpBinary(src, count, @bin[1], length(bin) - 2);
+              if (bin[0] <> 123) or (bin[(Size - 1) div bitsizeof(byte) + 1] <> 124) then
+                Fail('DumpBinary(' + src.ToString + ', ' + count.ToString + ') corrupted memory.');
+              resb.LoadBinary(dst, count, @bin[1], length(bin) - 2);
+              if not ExpectMatchesResb then
+                Fail(SrcBitfieldPiece + LineEnding +
+                  'Dump/LoadBinary(' + src.ToString + ', ' + dst.ToString + ', ' + count.ToString + ') = ' + LineEnding +
+                  ResbAndExpectedPiece + '.');
             end;
         end;
     end;
