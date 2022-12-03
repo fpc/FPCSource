@@ -229,6 +229,9 @@ interface
     {# Returns true if p is a voidpointer def }
     function is_voidpointer(p : tdef) : boolean;
 
+    {# Returns true if p is a cyclic reference (refers to itself at some point via pointer or array) }
+    function is_cyclic(p : tdef): Boolean;
+
     {# Returns true, if definition is a float }
     function is_fpu(def : tdef) : boolean;
 
@@ -1029,6 +1032,43 @@ implementation
                         (torddef(tpointerdef(p).pointeddef).ordtype=uvoid);
       end;
 
+
+    { true, if p is a cyclic reference (refers to itself at some point via pointer or array) }
+    function is_cyclic(p : tdef): Boolean;
+      var
+        DefList: array of TDef;
+        CurrentTop: Integer;
+
+      function is_cyclic_internal(def: tdef): Boolean;
+        var
+          X: Integer;
+        begin
+          if not (def.typ in [arraydef, pointerdef]) then
+            Exit(False);
+
+          CurrentTop := Length(DefList);
+
+          { Check to see if the definition has appeared already }
+          for X := 0 to CurrentTop - 1 do
+            if def = DefList[X] then
+              Exit(True);
+
+          SetLength(DefList, CurrentTop + 1);
+          DefList[CurrentTop] := def;
+
+          case def.typ of
+            arraydef:
+              Result := is_cyclic_internal(tarraydef(def).elementdef);
+            pointerdef:
+              Result := is_cyclic_internal(tabstractpointerdef(def).pointeddef);
+            else
+              InternalError(2022120301);
+          end;
+        end;
+
+      begin
+        Result := is_cyclic_internal(p);
+      end;
 
     { true, if def is a 8 bit int type }
     function is_8bitint(def : tdef) : boolean;

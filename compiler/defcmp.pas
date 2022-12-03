@@ -1315,6 +1315,7 @@ implementation
                          end
                         else
                          if is_zero_based_array(def_to) and
+                            not is_cyclic(def_from) and
                             equal_defs(tpointerdef(def_from).pointeddef,tarraydef(def_to).elementdef) then
                           begin
                             doconv:=tc_pointer_2_array;
