@@ -37,6 +37,12 @@
       1 : (
              __align : sizeint;
           );
+      2 : (
+             pad1, pad2, pad3 {$ifdef cpu64}, pad4{$endif}: longint;
+             { this field is guaranteed to stay at this offset by glibc for
+               binary compatibility with static initialisers }
+             __m_kind: longint;
+          );
   end;
 
 {$ifdef __SIZEOF_PTHREAD_MUTEX_T}
