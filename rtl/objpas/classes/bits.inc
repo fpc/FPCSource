@@ -602,3 +602,79 @@ begin
     or (Value shl Pos); { ABCqwerH }
 end;
 
+function TBits.GetUint(Pos, Count: SizeInt): Cardinal;
+var
+  Src: PBitsBase;
+  Rd: SizeInt;
+begin
+  if (SizeUint(Pos) > SizeUint(FBSize)) or (SizeUint(Count) > SizeUint(FBSize - Pos)) or not ((Count >= 1) and (Count <= bitsizeof(Cardinal))) then
+    ThrowBadRange(Pos, Count);
+
+  Src := FBits + Pos shr TBITS_SHIFT;
+  Pos := Pos and TBITS_MASK;
+  Result := Cardinal(Src^ shr pos);
+  Rd := bitsizeof(TBitsBase) - Pos;
+{$if sizeof(Cardinal) > sizeof(TBitsBase)}
+  while Rd < Count do
+  begin
+    Inc(Src);
+    Result := Result or Cardinal(Src^) shl Rd;
+    Inc(Rd, bitsizeof(TBitsBase));
+  end;
+{$else}
+  if Rd < Count then
+    Result := Result or Cardinal(Src[1]) shl Rd;
+{$endif}
+  if Count < bitsizeof(Cardinal) then
+    Result := Result and (Cardinal(1) shl Count - 1);
+end;
+
+procedure TBits.SetUint(Pos, Count: SizeInt; Value: Cardinal);
+var
+  Wr: SizeInt;
+  Dst: PBitsBase;
+begin
+  if not ((Count >= 1) and (Count <= bitsizeof(Cardinal))) then
+    ThrowBadRange(Pos, Count);
+  if (Count < bitsizeof(Cardinal)) and (Value shr Count <> 0) then
+    BitsErrorFmt(SOutOfRange, [0, Cardinal(1) shl Count - 1]);
+  FitRange(Pos, Count);
+  Dst := FBits + Pos shr TBITS_SHIFT;
+  Wr := -Pos and TBITS_MASK;
+  if Wr >= Count then
+    Dst^ := Dst^ and not ((TBitsBase(1) shl Count - 1) shl (Pos and TBITS_MASK)) or TBitsBase(Value) shl (pos and TBITS_MASK)
+  else
+  begin
+{$if sizeof(Cardinal) > sizeof(TBitsBase)}
+    if Wr > 0 then
+    begin
+      Dst^ := TBitsBase(TBitsBase(Dst^ shl Wr) shr Wr or TBitsBase(Value) shl (bitsizeof(TBitsBase) - Wr));
+      Inc(Dst);
+    end;
+    while Wr + bitsizeof(TBitsBase) <= Count do
+    begin
+      Dst^ := TBitsBase(Value shr wr);
+      Inc(Dst);
+      Inc(Wr, bitsizeof(TBitsBase));
+    end;
+    if Wr < Count then
+      Dst^ := Dst^ shr (Count - Wr) shl (Count - Wr) or Value shr Wr;
+{$else}
+    if Wr > 0 then
+    begin
+      Dst^ := TBitsBase(TBitsBase(Dst^ shl Wr) shr Wr or TBitsBase(Value) shl (bitsizeof(TBitsBase) - wr));
+      Dst[1] := Dst[1] shr (Count - Wr) shl (Count - Wr) or Value shr Wr;
+    end
+{$if sizeof(Cardinal) < sizeof(TBitsBase)}
+    else
+      Dst^ := Dst^ shr Count shl Count or Value;
+{$else}
+    else if Count < bitsizeof(TBitsBase) then
+      Dst^ := Dst^ shr Count shl Count or Value
+    else
+      Dst^ := Value;
+{$endif sizeof(Cardinal) < sizeof(TBitsBase)}
+{$endif sizeof(Cardinal) > sizeof(TBitsBase)}
+  end;
+end;
+

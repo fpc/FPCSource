@@ -729,6 +729,11 @@ type
       class procedure MoveUnalignedSrcToAlignedDestRightToLeft(SrcR, DstR: PBitsBase; Count, Src0Bits: SizeInt); static;
       class function ReadSmall(Src: PBitsBase; Pos, Count: SizeInt): TBitsBase; static;
       class procedure Write1(Dst: PBitsBase; Pos, Count: SizeInt; Value: TBitsBase); static;
+
+   public
+      { Interpreting bits as numbers. }
+      function GetUint(Pos, Count: SizeInt): Cardinal;
+      procedure SetUint(Pos, Count: SizeInt; Value: Cardinal);
    end;
 
 { TPersistent abstract class }

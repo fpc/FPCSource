@@ -494,12 +494,75 @@ begin
   end;
 end;
 
+procedure TestGetSetUint;
+type
+  NumRec = record
+    value, count, pos: cardinal;
+  end;
+var
+  iBitfieldSeed, i, iSwap, len: SizeInt;
+  b: TBits;
+  n: array of NumRec;
+  nSwap: NumRec;
+  msg: string;
+  got: cardinal;
+begin
+  for iBitfieldSeed := 1 to 10 do
+  begin
+    RandSeed := iBitfieldSeed;
+
+    // Fill 'n' with random numbers of different bit lengths.
+    SetLength((@n)^, 200);
+    len := 0;
+    for i := 0 to High(n) do
+    begin
+      n[i].count := 1 + i * bitsizeof(cardinal) div length(n);
+      n[i].value := random(High(cardinal) + 1);
+      if n[i].count < bitsizeof(n[i].value) then
+        n[i].value := n[i].value and (cardinal(1) shl n[i].count - 1);
+      n[i].pos := len;
+      len += SizeInt(n[i].count);
+    end;
+
+    // Shuffle 'n'.
+    for i := High(n) downto 1 do
+    begin
+      iSwap := random(i + 1);
+      nSwap := n[iSwap];
+      n[iSwap] := n[i];
+      n[i] := nSwap;
+    end;
+
+    b := TBits.Create;
+    try
+      for i := 0 to High(n) do
+        b.SetUint(n[i].pos, n[i].count, n[i].value);
+      for i := 0 to High(n) do
+      begin
+        got := b.GetUint(n[i].pos, n[i].count);
+        if got <> n[i].value then
+        begin
+          WriteStr(msg,
+            'Get/SetUint failed:', LineEnding,
+            Dump(b), LineEnding,
+            'pos = ', n[i].pos, ', count = ', n[i].count, ', expected = ', n[i].value, ', got = ', got);
+          Fail(msg);
+          break;
+        end;
+      end;
+    finally
+      b.Free;
+    end;
+  end;
+end;
+
 begin
   TestCopyBits;
   TestBinOps;
   TestFinds;
   TestZeroUpper;
   TestRanges;
+  TestGetSetUint;
   if somethingFailed then
     Halt(1);
   Writeln('Ok!');
