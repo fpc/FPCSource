@@ -1,36 +1,71 @@
-# This .gitlab.ci.yml is based on:
-# https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
-# the FPC specific parts are partly from:
-# https://gitlab.com/alb42/testconversion2/-/blob/main/.gitlab-ci.yml
+stages:
+  - build compiler
+  - build
+  - test
 
-.linux_runners:
-  image: registry.gitlab.com/freepascal.org/fpc/source/debian-buster-x86_64
+# Template for Linux builds
+.linux: &linux
+  before_script:
+    - AVAILABLE_CPU_CORES=$(nproc)
   tags:
     - saas-linux-medium-amd64
 
-stages:
-  - compilercycle
-  - buildandtest
+# Template for Alpine Linux builds
+.alpine_linux: &alpine_linux_configuration
+  <<: *linux
+  image: freepascal/fpc:3.2.2-minimal
 
-compiler-fullcycle-job:
-  stage: compilercycle
-  extends:
-    - .linux_runners
+# Template for Ubuntu builds
+.ubuntu_linux: &ubuntu_linux_configuration
+  <<: *linux
+  image: freepascal/fpc:3.2.2-focal-full
+
+
+# Templates for compiling
+.full_cycle_of_compiler: &full_cycle_of_compiler
+  stage: build compiler
   script:
     - cd compiler
-    - make fullcycle -j 4 "OPT=-Oodfa"
+    - make fullcycle -j $AVAILABLE_CPU_CORES "OPT=-Oodfa"
 
-build-and-test-job-linux:
-  stage: buildandtest
-  extends:
-    - .linux_runners
+
+
+
+Full Cycle of Compiler on Alpine Linux:
+  <<: *full_cycle_of_compiler
+  <<: *alpine_linux_configuration
+
+
+Full Cycle of Compiler on Ubuntu Linux:
+  <<: *full_cycle_of_compiler
+  <<: *ubuntu_linux_configuration
+
+
+Build FPC on Ubuntu Linux:
+  stage: build
+  <<: *ubuntu_linux_configuration
   script:
-    - make -j 4 all OS_TARGET=linux CPU_TARGET=x86_64 FPMAKEOPT="-T 4" "OPT=-Oodfa"
+    - make -j $AVAILABLE_CPU_CORES zipinstall OS_TARGET=linux CPU_TARGET=x86_64 FPMAKEOPT="-T $AVAILABLE_CPU_CORES" "OPT=-Oodfa"
+  artifacts:
+    when: on_success
+    expire_in: 2 days
+    paths:
+      - fpc-*.tar.gz
+
+
+Run FPC Tests on Ubuntu Linux:
+  stage: test
+  <<: *ubuntu_linux_configuration
+  script:
+    # extract installer from previous stage
+    - tar -xzf fpc-*.tar.gz
     - FPC_SRC=$(pwd)
-    - FPC_COMPILER=$FPC_SRC/compiler/ppcx64
+    - FPC_COMPILER=$FPC_SRC/lib/fpc/3.3.1/ppcx64
+    # run tests
     - cd tests
-    - make clean TEST_FPC=$FPC_COMPILER TEST_DELTEMP=1 -j 4
-    - make full TEST_FPC=$FPC_COMPILER TEST_DELTEMP=1 -j 4
+    - make clean -j $AVAILABLE_CPU_CORES TEST_FPC=$FPC_COMPILER TEST_DELTEMP=1
+    - make full -j $AVAILABLE_CPU_CORES TEST_FPC=$FPC_COMPILER TEST_DELTEMP=1
+    # generate junit test report
     - cd utils
     - make fpts2junit
     - cd $FPC_SRC
