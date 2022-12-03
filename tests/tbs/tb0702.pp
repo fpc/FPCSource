@@ -1,3 +1,4 @@
+{ %NORUN }
 { %OPT=-Sew }
 
 { don't optimize TypeInfo comparisons if undefined types are involved }
