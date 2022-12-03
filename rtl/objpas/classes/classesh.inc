@@ -661,6 +661,8 @@ type
    TBitsBase = PtrUint;
    PBitsBase = ^TBitsBase;
    TBitsBaseSigned = PtrInt;
+   TBitsOpTruth = 0 .. 15 {%1111};
+   TBitsOpCallback = function(A, B: TBitsBase): TBitsBase;
 
 const
    MaxBitFlags = High(SizeInt) - (bitsizeof(TBitsBase) - 1);
@@ -734,6 +736,42 @@ type
       { Interpreting bits as numbers. }
       function GetUint(Pos, Count: SizeInt): Cardinal;
       procedure SetUint(Pos, Count: SizeInt; Value: Cardinal);
+
+      { Bitwise operations on subranges. }
+      procedure NotRange(Pos, Count: SizeInt);
+      procedure AndRange(Pos: SizeInt; B: TBits; BPos, Count: SizeInt); inline;
+      procedure OrRange(Pos: SizeInt; B: TBits; BPos, Count: SizeInt); inline;
+      procedure XorRange(Pos: SizeInt; B: TBits; BPos, Count: SizeInt); inline;
+      procedure AndNotRange(Pos: SizeInt; B: TBits; BPos, Count: SizeInt); inline;
+
+      { Generic two-input boolean operation. OpTruth is %XYZW of truth table:
+        A B | R
+        0 0 | W
+        0 1 | Z
+        1 0 | Y
+        1 1 | X }
+      procedure OpRange(Pos: SizeInt; BBf: TBits; BPos, Count: SizeInt; OpTruth: TBitsOpTruth);
+   private
+      class procedure OpAlignedAB(A, B: PBitsBase; Count: SizeInt; Op: TBitsOpCallback); static;
+      class procedure OpAlignedAUnalignedB(A, B: PBitsBase; Count, B1Bits: SizeInt; Op: TBitsOpCallback); static;
+      class procedure OpAlignedABRightToLeft(AR, BR: PBitsBase; Count: SizeInt; Op: TBitsOpCallback); static;
+      class procedure OpAlignedAUnalignedBRightToLeft(AR, BR: PBitsBase; Count, B0Bits: SizeInt; Op: TBitsOpCallback); static;
+
+      class function _0001_Nor(A, B: TBitsBase): TBitsBase; static;
+      class function _0010_AInhibitsB(A, B: TBitsBase): TBitsBase; static;
+      class function _0100_BInhibitsA(A, B: TBitsBase): TBitsBase; static;
+      class function _0110_Xor(A, B: TBitsBase): TBitsBase; static;
+      class function _0111_Nand(A, B: TBitsBase): TBitsBase; static;
+      class function _1000_And(A, B: TBitsBase): TBitsBase; static;
+      class function _1001_Equiv(A, B: TBitsBase): TBitsBase; static;
+      class function _1011_AImpliesB(A, B: TBitsBase): TBitsBase; static;
+      class function _1101_BImpliesA(A, B: TBitsBase): TBitsBase; static;
+      class function _1110_Or(A, B: TBitsBase): TBitsBase; static;
+
+   public
+      { Fill subrange with 0s or 1s. }
+      procedure ClearRange(Pos, Count: SizeInt);
+      procedure SetRange(Pos, Count: SizeInt);
    end;
 
 { TPersistent abstract class }

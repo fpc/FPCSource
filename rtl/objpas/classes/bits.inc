@@ -678,3 +678,332 @@ begin
   end;
 end;
 
+procedure TBits.NotRange(Pos, Count: SizeInt);
+var
+  B, BE: PBitsBase;
+begin
+  ValidateRange(Pos, Count);
+  B := FBits + pos shr TBITS_SHIFT;
+  Pos := Pos and TBITS_MASK;
+  if Pos <> 0 then
+    if Pos + Count <= bitsizeof(TBitsBase) then
+    begin
+      if Count > 0 then
+        B^ := B^ xor (TBitsBase(1) shl Count - 1) shl Pos;
+      exit;
+    end else
+    begin
+      B^ := TBitsBase(B^ xor High(TBitsBase) shl Pos);
+      Inc(B); Dec(Count, bitsizeof(TBitsBase) - Pos);
+    end;
+
+  BE := B + Count shr TBITS_SHIFT;
+  while B < Be do
+  begin
+    B^ := not B^;
+    Inc(B);
+  end;
+
+  Count := Count and TBITS_MASK;
+  if Count <> 0 then
+    B^ := B^ xor (TBitsBase(1) shl Count - 1);
+end;
+
+procedure TBits.AndRange(Pos: SizeInt; B: TBits; BPos, Count: SizeInt);
+begin
+  OpRange(Pos, B, BPos, Count, 8 {%1000});
+end;
+
+procedure TBits.OrRange(Pos: SizeInt; B: TBits; BPos, Count: SizeInt);
+begin
+  OpRange(Pos, B, BPos, Count, 14 {%1110});
+end;
+
+procedure TBits.XorRange(Pos: SizeInt; B: TBits; BPos, Count: SizeInt);
+begin
+  OpRange(Pos, B, BPos, Count, 6 {%0110});
+end;
+
+procedure TBits.AndNotRange(Pos: SizeInt; B: TBits; BPos, Count: SizeInt);
+begin
+  OpRange(Pos, B, BPos, Count, 4 {%0100});
+end;
+
+procedure TBits.OpRange(Pos: SizeInt; BBf: TBits; BPos, Count: SizeInt; OpTruth: TBitsOpTruth);
+const
+  Callbacks: array[TBitsOpTruth] of TBitsOpCallback =
+  (
+    nil, { %0000 = 0 }
+    @_0001_Nor,
+    @_0010_AInhibitsB,
+    nil, { %0011 = not A }
+    @_0100_BInhibitsA,
+    nil, { %0101 = not B }
+    @_0110_Xor,
+    @_0111_Nand,
+    @_1000_And,
+    @_1001_Equiv,
+    nil, // %1010 = B
+    @_1011_AImpliesB,
+    nil, // %1100 = A
+    @_1101_BImpliesA,
+    @_1110_Or,
+    nil // %1111 = 1
+  );
+var
+  Op: TBitsOpCallback;
+  N: SizeInt;
+  A, B: PBitsBase;
+begin
+  Op := Callbacks[OpTruth];
+  if not Assigned(Op) then
+  begin
+    case OpTruth of
+      0 {%0000} {0}: ClearRange(Pos, Count);
+      3 {%0011} {not A}: NotRange(Pos, Count);
+      5 {%0101} {not B}: begin MoveRange(BBf, BPos, Self, Pos, Count); NotRange(Pos, Count); end;
+      10 {%1010} {B}: MoveRange(BBf, BPos, Self, Pos, Count);
+      12 {%1100} {A}: ;
+      15 {%1111} {1}: SetRange(Pos, Count);
+      else {impossible};
+    end;
+    exit;
+  end;
+
+  BBf.ValidateRange(BPos, Count);
+  FitRange(Pos, Count);
+
+  A := FBits;
+  B := BBf.FBits;
+
+  if (A <> B) or (BPos >= Pos) or (BPos + Count <= Pos) then
+  begin
+    N := Pos and TBITS_MASK;
+    if N > 0 then
+    begin
+      N := bitsizeof(TBitsBase) - N;
+      if Count < N then
+        if Count = 0 then exit else N := Count;
+      Write1(A, Pos, N, Op(A[Pos shr TBITS_SHIFT] shr (Pos and TBITS_MASK), ReadSmall(B, BPos, N)) and (TBitsBase(1) shl N - 1));
+      Inc(Pos, N); Inc(BPos, N); Dec(Count, N);
+    end;
+
+    N := Count shr TBITS_SHIFT;
+    if N > 0 then
+    begin
+      if BPos and TBITS_MASK = 0 then
+        OpAlignedAB(A + Pos shr TBITS_SHIFT, B + BPos shr TBITS_SHIFT, N, Op)
+      else
+        OpAlignedAUnalignedB(A + Pos shr TBITS_SHIFT, B + BPos shr TBITS_SHIFT, N, BPos and TBITS_MASK, Op);
+      N := N shl TBITS_SHIFT;
+      Inc(Pos, N); Inc(BPos, N); Dec(Count, N);
+    end;
+
+    if Count > 0 then
+    begin
+      Inc(A, Pos shr TBITS_SHIFT);
+      A^ := A^ shr Count shl Count or Op(A^, ReadSmall(B, BPos, Count)) and (TBitsBase(1) shl Count - 1);
+    end;
+  end else
+  begin
+    Inc(Pos, Count); Inc(BPos, Count);
+    N := Pos and TBITS_MASK;
+    if N <> 0 then
+    begin
+      if Count < N then
+        if Count = 0 then exit else N := Count;
+      Dec(Pos, N); Dec(BPos, N); Dec(Count, N);
+      Write1(A, Pos, N, Op(A[Pos shr TBITS_SHIFT] shr (Pos and TBITS_MASK), ReadSmall(B, BPos, N)) and (TBitsBase(1) shl N - 1));
+    end;
+
+    N := Count shr TBITS_SHIFT;
+    if N > 0 then
+    begin
+      if BPos and TBITS_MASK = 0 then
+        OpAlignedABRightToLeft(A + Pos shr TBITS_SHIFT, B + BPos shr TBITS_SHIFT, N, Op)
+      else
+        OpAlignedAUnalignedBRightToLeft(A + Pos shr TBITS_SHIFT, B + BPos shr TBITS_SHIFT, N, BPos and TBITS_MASK, Op);
+      N := N shl TBITS_SHIFT;
+      Dec(Pos, N); Dec(BPos, N); Dec(Count, N);
+    end;
+
+    if Count > 0 then
+    begin
+      Inc(A, SizeUint(Pos - Count) shr TBITS_SHIFT);
+      N := bitsizeof(TBitsBase) - Count;
+      A^ := TBitsBase(A^ shl Count) shr Count or Op(A^ shr N, ReadSmall(B, BPos - Count, Count)) and (TBitsBase(1) shl Count - 1) shl N;
+    end;
+  end;
+end;
+
+class procedure TBits.OpAlignedAB(A, B: PBitsBase; Count: SizeInt; Op: TBitsOpCallback);
+var
+  AE: PBitsBase;
+begin
+  { Count > 0. }
+  AE := A + Count;
+  repeat
+    A^ := Op(A^, B^);
+    Inc(A); Inc(B);
+  until A = AE;
+end;
+
+class procedure TBits.OpAlignedAUnalignedB(A, B: PBitsBase; Count, B1Bits: SizeInt; Op: TBitsOpCallback);
+var
+  B0Bits: SizeUint;
+  X, X1: TBitsBase;
+  BE: PBitsBase;
+begin
+  { Count > 0, 0 < B1Bits < bitsizeof(TBitsBase). }
+  X := B[0];
+  B0Bits := bitsizeof(TBitsBase) - B1Bits;
+
+  BE := B + Count shr 1 shl 1;
+  while B < BE do
+  begin
+    X1 := B[1];
+    A^ := TBitsBase(Op(A^, TBitsBase(X shr B1Bits or X1 shl B0Bits)));
+    X := B[2];
+    A[1] := TBitsBase(Op(A[1], TBitsBase(X1 shr B1Bits or X shl B0Bits)));
+    Inc(A, 2); Inc(B, 2);
+  end;
+
+  if Count and 1 <> 0 then
+    A^ := TBitsBase(Op(A^, TBitsBase(X shr B1Bits or B[1] shl B0Bits)));
+end;
+
+class procedure TBits.OpAlignedABRightToLeft(AR, BR: PBitsBase; Count: SizeInt; Op: TBitsOpCallback); static;
+var
+  ARE: PBitsBase;
+begin
+  { Count > 0. }
+  ARE := AR - Count;
+  repeat
+    Dec(AR); Dec(BR);
+    AR^ := Op(AR^, BR^);
+  until AR = ARE;
+end;
+
+class procedure TBits.OpAlignedAUnalignedBRightToLeft(AR, BR: PBitsBase; Count, B0Bits: SizeInt; Op: TBitsOpCallback); static;
+var
+  B1Bits: SizeUint;
+  X, X1: TBitsBase;
+  BRE: PBitsBase;
+begin
+  { Count > 0, 0 < B0Bits < bitsizeof(TBitsBase). }
+  X := BR[0];
+  B1Bits := bitsizeof(TBitsBase) - B0Bits;
+
+  BRE := BR - Count div 2 * 2;
+  while BR > BRE do
+  begin
+    Dec(AR, 2); Dec(BR, 2);
+    X1 := BR[1];
+    AR[1] := TBitsBase(Op(AR[1], TBitsBase(X shl B1Bits or X1 shr B0Bits)));
+    X := BR[0];
+    AR[0] := TBitsBase(Op(AR[0], TBitsBase(X1 shl B1Bits or X shr B0Bits)));
+  end;
+
+  if Count and 1 <> 0 then
+    AR[-1] := TBitsBase(Op(AR[-1], TBitsBase(X shl B1Bits or BR[-1] shr B0Bits)));
+end;
+
+class function TBits._0001_Nor(A, B: TBitsBase): TBitsBase;
+begin
+  result := not (A or B);
+end;
+
+class function TBits._0010_AInhibitsB(A, B: TBitsBase): TBitsBase;
+begin
+  result := not A and B;
+end;
+
+class function TBits._0100_BInhibitsA(A, B: TBitsBase): TBitsBase;
+begin
+  result := A and not B;
+end;
+
+class function TBits._0110_Xor(A, B: TBitsBase): TBitsBase;
+begin
+  result := A xor B;
+end;
+
+class function TBits._0111_Nand(A, B: TBitsBase): TBitsBase;
+begin
+  result := not (A and B);
+end;
+
+class function TBits._1000_And(A, B: TBitsBase): TBitsBase;
+begin
+  result := A and B;
+end;
+
+class function TBits._1001_Equiv(A, B: TBitsBase): TBitsBase;
+begin
+  result := not (A xor B);
+end;
+
+class function TBits._1011_AImpliesB(A, B: TBitsBase): TBitsBase;
+begin
+  result := not A or B;
+end;
+
+class function TBits._1101_BImpliesA(A, B: TBitsBase): TBitsBase;
+begin
+  result := A or not B;
+end;
+
+class function TBits._1110_Or(A, B: TBitsBase): TBitsBase;
+begin
+  result := A or B;
+end;
+
+procedure TBits.ClearRange(Pos, Count: SizeInt);
+var
+  B: PBitsBase;
+begin
+  FitRange(Pos, Count);
+  B := FBits + Pos shr TBITS_SHIFT;
+  Pos := Pos and TBITS_MASK;
+  if Pos <> 0 then
+    if Pos + Count <= bitsizeof(TBitsBase) then
+    begin
+      if Count <> 0 then B^ := B^ and not ((TBitsBase(1) shl Count - 1) shl Pos);
+      exit;
+    end else
+    begin
+      B^ := B^ and (TBitsBase(1) shl Pos - 1);
+      Inc(B);
+      Dec(Count, bitsizeof(TBitsBase) - Pos);
+    end;
+  FillChar(B^, Count shr TBITS_SHIFT * sizeof(TBitsBase), 0);
+  Inc(B, Count shr TBITS_SHIFT);
+  Count := Count and TBITS_MASK;
+  if Count <> 0 then
+    B^ := B^ shr Count shl Count;
+end;
+
+procedure TBits.SetRange(Pos, Count: SizeInt);
+var
+  B: PBitsBase;
+begin
+  FitRange(Pos, Count);
+  B := FBits + Pos shr TBITS_SHIFT;
+  Pos := Pos and TBITS_MASK;
+  if Pos <> 0 then
+    if Pos + Count <= bitsizeof(TBitsBase) then
+    begin
+      if Count <> 0 then B^ := B^ or (TBitsBase(1) shl Count - 1) shl Pos;
+      exit;
+    end else
+    begin
+      B^ := B^ or TBitsBase(High(TBitsBase) shl Pos);
+      Inc(B);
+      Dec(Count, bitsizeof(TBitsBase) - Pos);
+    end;
+  FillChar(B^, Count shr TBITS_SHIFT * sizeof(TBitsBase), High(Byte));
+  Inc(B, Count shr TBITS_SHIFT);
+  Count := Count and TBITS_MASK;
+  if Count <> 0 then
+    B^ := B^ or (TBitsBase(1) shl Count - 1);
+end;

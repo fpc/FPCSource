@@ -381,13 +381,58 @@ type
 
 procedure BitfieldRangeTest.PerformOnSrc;
 var
-  srcBase, srcFuzz, dstBase, dstFuzz, countBase, countFuzz, src, dst, count: SizeInt;
+  srcBase, srcFuzz, dstBase, dstFuzz, countBase, countFuzz, src, dst, count, i: SizeInt;
+  opTruth: TBitsOpTruth;
 begin
+  for opTruth in TBitsOpTruth do
+  begin
+    PrepareScratch;
+    resb.OpRange(0, resb, Size div 2, Size div 2, opTruth);
+    for i := 0 to Size div 2 - 1 do
+      expect[i] := opTruth shr (self.src[i] shl 1 or self.src[Size div 2 + i]) and 1;
+    if not ExpectMatchesResb then
+      Fail(SrcBitfieldPiece + LineEnding +
+        'OpRange(0 .. ' + (Size div 2 - 1).ToString + ', ' + (Size div 2).ToString + ' .. ' + (Size - 1).ToString + ', %' + BinStr(opTruth, 4) + ') = ' + LineEnding +
+        ResbAndExpectedPiece + '.');
+  end;
+
   for srcBase in PositionBases do
     for srcFuzz in Fuzz do
     begin
       src := srcBase + srcFuzz;
       if not ((src >= 0) and (src <= Size)) then continue;
+
+      for countBase in CountBases do
+        for countFuzz in Fuzz do
+        begin
+          count := countBase + countFuzz;
+          if not ((count >= 0) and (count <= Size - src)) then continue;
+
+          PrepareScratch;
+          resb.NotRange(src, count);
+          for i := 0 to count - 1 do
+            expect[src + i] := 1 - self.src[src + i];
+          if not ExpectMatchesResb then
+            Fail(SrcBitfieldPiece + LineEnding +
+              'NotRange(' + src.ToString + ', ' + count.ToString + ') = ' + LineEnding +
+              ResbAndExpectedPiece + '.');
+
+          PrepareScratch;
+          resb.SetRange(src, count);
+          FillChar(expect[src], count, 1);
+          if not ExpectMatchesResb then
+            Fail(SrcBitfieldPiece + LineEnding +
+              'SetRange(' + src.ToString + ', ' + count.ToString + ') = ' + LineEnding +
+              ResbAndExpectedPiece + '.');
+
+          PrepareScratch;
+          resb.ClearRange(src, count);
+          FillChar(expect[src], count, 0);
+          if not ExpectMatchesResb then
+            Fail(SrcBitfieldPiece + LineEnding +
+              'ClearRange(' + src.ToString + ', ' + count.ToString + ') = ' + LineEnding +
+              ResbAndExpectedPiece + '.');
+        end;
 
       for dstBase in PositionBases do
         for dstFuzz in Fuzz do
@@ -407,6 +452,15 @@ begin
               if not ExpectMatchesResb then
                 Fail(SrcBitfieldPiece + LineEnding +
                   'MoveRange(' + src.ToString + ', ' + dst.ToString + ', ' + count.ToString + ') = ' + LineEnding +
+                  ResbAndExpectedPiece + '.');
+
+              PrepareScratch;
+              for i := 0 to count - 1 do
+                expect[dst + i] := expect[dst + i] and (1 - self.src[src + i]);
+              resb.AndNotRange(dst, resb, src, count);
+              if not ExpectMatchesResb then
+                Fail(SrcBitfieldPiece + LineEnding +
+                  'AndNotRange(' + src.ToString + ', ' + dst.ToString + ', ' + count.ToString + ') = ' + LineEnding +
                   ResbAndExpectedPiece + '.');
             end;
         end;
