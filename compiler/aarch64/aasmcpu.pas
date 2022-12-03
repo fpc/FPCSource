@@ -708,8 +708,8 @@ implementation
           references internally, they should never end up here with an
           extra base or offset) }
         if (ref.refaddr in [addr_gotpage,addr_page]) and
-           (ref.base<>NR_NO) or
-           (ref.index<>NR_NO) then
+           ((ref.base<>NR_NO) or
+            (ref.index<>NR_NO)) then
           begin
             result:=sr_internal_illegal;
             exit;
