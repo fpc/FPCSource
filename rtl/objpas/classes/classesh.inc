@@ -772,6 +772,16 @@ type
       { Fill subrange with 0s or 1s. }
       procedure ClearRange(Pos, Count: SizeInt);
       procedure SetRange(Pos, Count: SizeInt);
+
+      { Count 1s in subrange. }
+      function PopCount(Pos, Count: SizeInt; Lim: SizeInt = High(SizeInt)): SizeInt;
+      { Count 1s in AndRange. }
+      function IntersectionPopCount(Pos: SizeInt; BBf: TBits; BPos, Count: SizeInt; Lim: SizeInt = High(SizeInt)): SizeInt;
+      { Shortcut for "IntersectionPopCount > 0". }
+      function HasIntersection(Pos: SizeInt; B: TBits; BPos, Count: SizeInt): boolean; inline;
+   private
+      class function IntersectionPopCountAlignedAB(A, B: PBitsBase; Count, Lim: SizeInt): SizeInt; static;
+      class function IntersectionPopCountAlignedAUnalignedB(A, B: PBitsBase; Count, B1Bits, Lim: SizeInt): SizeInt; static;
    end;
 
 { TPersistent abstract class }

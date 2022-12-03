@@ -381,7 +381,7 @@ type
 
 procedure BitfieldRangeTest.PerformOnSrc;
 var
-  srcBase, srcFuzz, dstBase, dstFuzz, countBase, countFuzz, src, dst, count, i: SizeInt;
+  srcBase, srcFuzz, dstBase, dstFuzz, countBase, countFuzz, src, dst, count, i, pcExp, pcGot: SizeInt;
   opTruth: TBitsOpTruth;
 begin
   for opTruth in TBitsOpTruth do
@@ -432,6 +432,14 @@ begin
             Fail(SrcBitfieldPiece + LineEnding +
               'ClearRange(' + src.ToString + ', ' + count.ToString + ') = ' + LineEnding +
               ResbAndExpectedPiece + '.');
+
+          pcExp := 0;
+          for i := 0 to count - 1 do
+            pcExp += self.src[src + i];
+          pcGot := srcb.PopCount(src, count);
+          if pcGot <> pcExp then
+            Fail(SrcBitfieldPiece + LineEnding +
+              'PopCount(' + src.ToString + ', ' + count.ToString + ') = ' + pcGot.ToString + ', expected ' + pcExp.ToString + '.');
         end;
 
       for dstBase in PositionBases do
@@ -462,6 +470,14 @@ begin
                 Fail(SrcBitfieldPiece + LineEnding +
                   'AndNotRange(' + src.ToString + ', ' + dst.ToString + ', ' + count.ToString + ') = ' + LineEnding +
                   ResbAndExpectedPiece + '.');
+
+              pcExp := 0;
+              for i := 0 to count - 1 do
+                pcExp += self.src[src + i] and self.src[dst + i];
+              pcGot := srcb.IntersectionPopCount(src, srcb, dst, count);
+              if pcGot <> pcExp then
+                Fail(SrcBitfieldPiece + LineEnding +
+                  'IntersectionPopCount(' + src.ToString + ', ' + dst.ToString + ', ' + count.ToString + ') = ' + pcGot.ToString + ', expected ' + pcExp.ToString + '.');
             end;
         end;
     end;

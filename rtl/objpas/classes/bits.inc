@@ -1007,3 +1007,138 @@ begin
   if Count <> 0 then
     B^ := B^ or (TBitsBase(1) shl Count - 1);
 end;
+
+function TBits.PopCount(Pos, Count: SizeInt; Lim: SizeInt = High(SizeInt)): SizeInt;
+var
+  N: SizeInt;
+  B, BE: PBitsBase;
+begin
+  ValidateRange(Pos, Count);
+  Result := 0;
+  if Lim <= 0 then exit;
+
+  B := FBits + Pos shr TBITS_SHIFT;
+  if Pos and TBITS_MASK <> 0 then
+  begin
+    N := bitsizeof(TBitsBase) - Pos and TBITS_MASK;
+    if Count <= N then
+      if Count = 0 then exit else N := Count;
+    Result := PopCnt(TBitsBase(b^ shr (Pos and TBITS_MASK) and (TBitsBase(1) shl N - 1)));
+    Inc(B); Dec(Count, N);
+  end;
+
+  { Unrolling by 4 is faster by itself, and also dilutes checks against 'Lim'. }
+  N := Count shr TBITS_SHIFT;
+  BE := B + N shr 2 shl 2;
+  while B < BE do
+  begin
+    Inc(Result, SizeInt(PopCnt(B^) + PopCnt(B[1]) + PopCnt(B[2]) + PopCnt(B[3])));
+    if Result >= Lim then exit(Lim);
+    Inc(B, 4);
+  end;
+
+  BE := B + N and (4 - 1);
+  while B < BE do
+  begin
+    Inc(Result, SizeInt(PopCnt(b^)));
+    Inc(B);
+  end;
+
+  Count := Count and TBITS_MASK;
+  if Count > 0 then
+    Inc(Result, SizeInt(PopCnt(TBitsBase(B^ and (TBitsBase(1) shl Count - 1)))));
+
+  if Result > Lim then
+    Result := Lim;
+end;
+
+function TBits.IntersectionPopCount(Pos: SizeInt; BBf: TBits; BPos, Count: SizeInt; Lim: SizeInt = High(SizeInt)): SizeInt;
+var
+  N: SizeInt;
+  A, B: PBitsBase;
+begin
+  ValidateRange(Pos, Count);
+  BBf.ValidateRange(BPos, Count);
+  Result := 0;
+  if Lim <= 0 then exit;
+
+  A := FBits;
+  B := BBf.FBits;
+
+  if Pos and TBITS_MASK <> 0 then
+  begin
+    N := bitsizeof(TBitsBase) - Pos and TBITS_MASK;
+    if Count <= N then
+      if Count = 0 then exit else n := count;
+    Result := PopCnt(TBitsBase(A[Pos shr TBITS_SHIFT] shr (Pos and TBITS_MASK) and ReadSmall(b, bPos, n)));
+    Inc(Pos, N); Inc(BPos, N); Dec(Count, N);
+  end;
+
+  if Count >= bitsizeof(TBitsBase) then
+  begin
+    if BPos and TBITS_MASK = 0 then
+      Inc(Result, IntersectionPopCountAlignedAB(A + Pos shr TBITS_SHIFT, B + BPos shr TBITS_SHIFT, Count shr TBITS_SHIFT, Lim - Result))
+    else
+      Inc(Result, IntersectionPopCountAlignedAUnalignedB(A + Pos shr TBITS_SHIFT, B + BPos shr TBITS_SHIFT, Count shr TBITS_SHIFT, BPos and TBITS_MASK, Lim - Result));
+    N := Count shr TBITS_SHIFT shl TBITS_SHIFT;
+    Inc(Pos, N); Inc(BPos, N); Dec(Count, N);
+  end;
+
+  if Count > 0 then
+    Inc(Result, SizeInt(PopCnt(TBitsBase(A[Pos shr TBITS_SHIFT] and ReadSmall(B, BPos, Count)))));
+
+  if Result > Lim then
+    Result := Lim;
+end;
+
+function TBits.HasIntersection(Pos: SizeInt; B: TBits; BPos, Count: SizeInt): boolean;
+begin
+  result := IntersectionPopCount(Pos, B, BPos, Count, 1) > 0;
+end;
+
+class function TBits.IntersectionPopCountAlignedAB(A, B: PBitsBase; Count, Lim: SizeInt): SizeInt;
+var
+  AE: PBitsBase;
+begin
+  Result := 0;
+
+  AE := A + Count shr 2 shl 2;
+  while A < AE do
+  begin
+    Inc(Result, SizeInt(PopCnt(TBitsBase(A^ and B^)) + PopCnt(TBitsBase(A[1] and B[1])) + PopCnt(TBitsBase(A[2] and B[2])) + PopCnt(TBitsBase(A[3] and B[3]))));
+    if Result >= Lim then exit;
+    Inc(A, 4); Inc(B, 4);
+  end;
+
+  AE := A + Count and (4 - 1);
+  while A < AE do
+  begin
+    Inc(Result, SizeInt(PopCnt(TBitsBase(A^ and B^))));
+    Inc(A); Inc(B);
+  end;
+end;
+
+class function TBits.IntersectionPopCountAlignedAUnalignedB(A, B: PBitsBase; Count, B1Bits, Lim: SizeInt): SizeInt;
+var
+  B0Bits: SizeInt;
+  X, X1: TBitsBase;
+  AE: PBitsBase;
+begin
+  result := 0;
+  x := b[0];
+  B0Bits := bitsizeof(TBitsBase) - B1Bits;
+
+  AE := A + Count shr 1 shl 1;
+  while A < AE do
+  begin
+    X1 := B[1];
+    Inc(Result, SizeInt(PopCnt(TBitsBase(A^ and (X shr B1Bits or X1 shl B0Bits)))));
+    X := B[2];
+    Inc(Result, SizeInt(PopCnt(TBitsBase(A[1] and (X1 shr B1Bits or X shl B0Bits)))));
+    if Result >= Lim then exit;
+    Inc(A, 2); Inc(B, 2);
+  end;
+
+  if Count and 1 <> 0 then
+    Inc(Result, SizeInt(PopCnt(TBitsBase(A^ and (X shr B1Bits or B[1] shl B0Bits)))));
+end;
