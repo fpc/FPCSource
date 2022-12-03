@@ -92,7 +92,7 @@ begin
             result := -1;
          exit;
       end;
-      result := (result + bitsizeof(TBitsBase)) and TBitsBase(not TBitsBase(TBITS_MASK));
+      result := (result + bitsizeof(TBitsBase)) and not SizeInt(TBITS_MASK);
    end;
    result := -1;
 end;
