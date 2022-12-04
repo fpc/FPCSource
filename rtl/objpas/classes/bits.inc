@@ -1328,3 +1328,203 @@ begin
   end;
   Result := Result and (TBitsBase(1) shl Count - 1);
 end;
+
+function TBits.DumpText(Pos, Count: SizeInt; const S0, S1: string; Buf: PChar; BufAvail: SizeInt): SizeInt;
+type
+  { These things track strings corresponding to longest sequences of 0s and 1s built so far,
+    to Move() in bigger chunks than starting S0 and S1 if possible. }
+  TStringSource = record
+    P: PChar;
+    OneLen, TotalLen: SizeInt;
+    Xm: TBitsBase;
+  end;
+var
+  EndPos, Ones, Next, WantedChars, CharsToMove: SizeInt;
+  SS: array[0 .. 1] of TStringSource;
+  Cs: ^TStringSource;
+begin
+  ValidateRange(Pos, Count);
+  SS[0].OneLen := length(S0);
+  SS[1].OneLen := length(S1);
+  if (SS[0].OneLen = 1) and (SS[1].OneLen = 1) then
+    exit(DumpTextCC(Pos, Count, S0[1], S1[1], Buf, BufAvail));
+
+  Ones := PopCount(Pos, Count);
+  Result := (Count - Ones) * SS[0].OneLen + Ones * SS[1].OneLen;
+  if Result > BufAvail then
+    ThrowInsufficientBuffer(Result, BufAvail);
+
+  SS[0].P := PChar(Pointer(S0));
+  SS[0].TotalLen := SS[0].OneLen;
+  SS[0].Xm := 0;
+  SS[1].P := PChar(Pointer(S1));
+  SS[1].TotalLen := SS[1].OneLen;
+  SS[1].Xm := High(TBitsBase);
+  Cs := @SS[0];
+  EndPos := Pos + Count;
+
+  repeat
+    Next := ScanFor1(Pos, Cs^.Xm);
+    if SizeUint(Next) >= SizeUint(EndPos) then
+    begin
+      if Pos = EndPos then break;
+      Next := EndPos;
+    end;
+    WantedChars := (Next - Pos) * Cs^.OneLen;
+    Pos := Next;
+    if WantedChars <= Cs^.TotalLen then
+    begin
+      { Will not become new longest chunk, and can be filled in one call. }
+      Move(Cs^.P^, Buf^, WantedChars * sizeof(char));
+      Inc(Buf, WantedChars);
+    end else
+    begin
+      { Will become new longest chunk, filled with the data of the previous and then logarithmically. }
+      Move(Cs^.P^, Buf^, Cs^.TotalLen * sizeof(char));
+      Cs^.P := Buf;
+      Inc(Buf, Cs^.TotalLen);
+      Dec(WantedChars, Cs^.TotalLen);
+      repeat
+        CharsToMove := Cs^.TotalLen;
+        if WantedChars < CharsToMove then
+          CharsToMove := WantedChars;
+        Move(Cs^.P^, Buf^, CharsToMove * sizeof(char));
+        Inc(Buf, CharsToMove);
+        Inc(Cs^.TotalLen, CharsToMove);
+        Dec(WantedChars, CharsToMove);
+      until WantedChars = 0;
+    end;
+    if Cs = @SS[0] then Cs := @SS[1] else Cs := @SS[0];
+  until false;
+end;
+
+function TBits.DumpText(Pos, Count: SizeInt; const S0, S1: string): string;
+var
+  Ones, NR: SizeInt;
+begin
+  Ones := PopCount(Pos, Count);
+  NR := (Count - Ones) * length(S0) + Ones * length(S1);
+  Result := '';
+  SetLength(Result, NR);
+  DumpText(Pos, Count, S0, S1, PChar(pointer(Result)), NR);
+end;
+
+function TBits.DumpTextCC(Pos, Count: SizeInt; C0, C1: Char; Buf: PChar; BufAvail: SizeInt): SizeInt;
+var
+  EndPos, NextPos, WantedChars, IC: SizeInt;
+  Xm: TBitsBase;
+  C: array[0 .. 1] of char;
+begin
+  Result := Count;
+  if Result > BufAvail then
+    ThrowInsufficientBuffer(Result, BufAvail);
+  C[0] := C0;
+  C[1] := C1;
+  IC := 0;
+  Xm := 0;
+  EndPos := Pos + Count;
+  repeat
+    NextPos := ScanFor1(Pos, Xm);
+    if SizeUint(NextPos) >= SizeUint(EndPos) then
+    begin
+      if Pos = EndPos then break;
+      NextPos := EndPos;
+    end;
+    WantedChars := NextPos - Pos;
+    Pos := NextPos;
+    FillChar(Buf^, WantedChars, C[IC]);
+    Inc(Buf, WantedChars);
+    IC := 1 - IC;
+    Xm := not Xm;
+  until false;
+end;
+
+function TBits.LoadText(Pos, Count: SizeInt; const S0, S1: string; Buf: PChar; BufAvail: SizeInt): SizeInt;
+var
+  NS0, NS1, NS: SizeInt;
+  Cell: PBitsBase;
+  Mask: TBitsBase;
+  StartingBuf: PChar;
+begin
+  if (S0 = '') or (S1 = '') or (S0 = S1) then
+    BitsErrorFmt('Bad strings for 0/1: %s/%s.', [S0, S1]);
+  FitRange(Pos, Count);
+  NS0 := length(S0);
+  NS1 := length(S1);
+  if (NS0 = 1) and (NS1 = 1) then
+    exit(LoadTextCC(Pos, Count, S0[1], S1[1], Buf, BufAvail));
+
+  StartingBuf := Buf;
+  Cell := FBits + Pos shr TBITS_SHIFT;
+  Mask := TBitsBase(1) shl (Pos and TBITS_MASK);
+  while Count > 0 do
+  begin
+    if (BufAvail >= NS0) and (CompareChar(Buf^, PChar(Pointer(S0))^, NS0) = 0) then
+    begin
+      Cell^ := Cell^ and not Mask;
+      NS := NS0;
+    end else if (BufAvail >= NS1) and (CompareChar(Buf^, PChar(Pointer(S1))^, NS1) = 0) then
+    begin
+      Cell^ := Cell^ or Mask;
+      NS := NS1;
+    end else
+      ThrowLoadTextError(BufAvail, S0, S1);
+    Inc(Buf, NS);
+    Dec(BufAvail, NS);
+    Mask := TBitsBase(Mask shl 1);
+    if Mask = 0 then
+    begin
+      Inc(Cell);
+      Mask := 1;
+    end;
+    Dec(Count);
+  end;
+  Result := Buf - StartingBuf;
+end;
+
+procedure TBits.LoadText(Pos, Count: SizeInt; const S0, S1, Src: string);
+var
+  NSrc, Rd: SizeInt;
+begin
+  NSrc := length(Src);
+  Rd := LoadText(Pos, Count, S0, S1, PChar(Pointer(Src)), NSrc);
+  if Rd <> NSrc then
+    BitsErrorFmt('Too much data at position %d.', [1 + Rd]);
+end;
+
+function TBits.LoadTextCC(Pos, Count: SizeInt; C0, C1: Char; Buf: PChar; BufAvail: SizeInt): SizeInt;
+var
+  Cell: PBitsBase;
+  Mask: TBitsBase;
+begin
+  Result := Count;
+  if Result > BufAvail then
+    ThrowInsufficientBuffer(Result, BufAvail);
+  Cell := FBits + Pos shr TBITS_SHIFT;
+  Mask := TBitsBase(1) shl (Pos and TBITS_MASK);
+  while Count > 0 do
+  begin
+    if Buf^ = C0 then
+      Cell^ := Cell^ and not Mask
+    else if Buf^ = C1 then
+      Cell^ := Cell^ or Mask
+    else
+      ThrowLoadTextError(BufAvail, C0, C1);
+    Inc(Buf);
+    Mask := TBitsBase(Mask shl 1);
+    if Mask = 0 then
+    begin
+      Inc(Cell);
+      Mask := 1;
+    end;
+    Dec(Count);
+  end;
+end;
+
+class procedure TBits.ThrowLoadTextError(BufAvail: SizeInt; const S0, S1: string);
+begin
+  if BufAvail <= 0 then
+    BitsErrorFmt('Not enough data in the buffer.', [])
+  else
+    BitsErrorFmt('Data in the buffer does not match "%s" nor "%s".', [S0, S1]);
+end;

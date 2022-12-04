@@ -802,6 +802,21 @@ type
 {$endif}
       class procedure LoadBinaryUnaligned(B: PBitsBase; Count: SizeInt; Bin: PByte; Bin1Bits: SizeInt); static;
       class function ReadSmallBinary(Bin: PByte; Pos, Count: SizeInt): TBitsBase; static;
+
+   public
+      { Convert to text. }
+      function DumpText(Pos, Count: SizeInt; const S0, S1: string; Buf: PChar; BufAvail: SizeInt): SizeInt;
+      function DumpText(Pos, Count: SizeInt; const S0, S1: string): string;
+   private
+      function DumpTextCC(Pos, Count: SizeInt; C0, C1: Char; Buf: PChar; BufAvail: SizeInt): SizeInt;
+
+   public
+      { Load from text. }
+      function LoadText(Pos, Count: SizeInt; const S0, S1: string; Buf: PChar; BufAvail: SizeInt): SizeInt;
+      procedure LoadText(Pos, Count: SizeInt; const S0, S1, Src: string);
+   private
+      function LoadTextCC(Pos, Count: SizeInt; C0, C1: Char; Buf: PChar; BufAvail: SizeInt): SizeInt;
+      class procedure ThrowLoadTextError(BufAvail: SizeInt; const S0, S1: string); static;
    end;
 
 { TPersistent abstract class }
