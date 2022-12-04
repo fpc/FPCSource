@@ -857,7 +857,7 @@ implementation
                 encodedstr:=encodedstr+'*';
               if withattributes then
                 begin
-                  encodedstr:=encodedstr+llvmparatypeattr(' byval',hp.vardef,false);
+                  encodedstr:=encodedstr+llvmparatypeattr(' byval',paraloc^.def,false);
                   if firstloc and
                      (para^.alignment<>std_param_align) then
                     begin
