@@ -16,17 +16,7 @@
 {****************************************************************************}
 
 const
-   TBITS_SHIFT =
-{$if sizeof(TBitsBase) = sizeof(word)}
-            4
-{$elseif sizeof(TBitsBase) = sizeof(dword)}
-            5
-{$elseif sizeof(TBitsBase) = sizeof(qword)}
-            6
-{$else}
-{$error unknown TBitsBase}
-{$endif}
-            ;
+   TBITS_SHIFT = round(ln(bitsizeof(TBitsBase)) / ln(2));
    TBITS_MASK = 1 shl TBITS_SHIFT - 1;
 
 Procedure BitsErrorFmt (const Msg : string; const Args : array of const);
@@ -80,7 +70,9 @@ begin
       if cell <> 0 then
       begin
          result := result + integer(
-{$if sizeof(TBitsBase) = sizeof(word)}
+{$if sizeof(TBitsBase) = sizeof(byte)}
+            BsfByte
+{$elseif sizeof(TBitsBase) = sizeof(word)}
             BsfWord
 {$elseif sizeof(TBitsBase) = sizeof(dword)}
             BsfDWord
@@ -110,7 +102,9 @@ begin
       cell := TBitsBase((xorMask xor FBits[result shr TBITS_SHIFT]) shl ((-result - 1) and TBITS_MASK));
       if cell <> 0 then
          exit(result - TBITS_MASK + integer(
-{$if sizeof(TBitsBase) = sizeof(word)}
+{$if sizeof(TBitsBase) = sizeof(byte)}
+            BsrByte
+{$elseif sizeof(TBitsBase) = sizeof(word)}
             BsrWord
 {$elseif sizeof(TBitsBase) = sizeof(dword)}
             BsrDWord
