@@ -230,7 +230,7 @@ interface
     function is_voidpointer(p : tdef) : boolean;
 
     {# Returns true if p is a cyclic reference (refers to itself at some point via pointer or array) }
-    function is_cyclic(p : tdef): Boolean;
+    function is_cyclic(p : tdef): Boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
     {# Returns true, if definition is a float }
     function is_fpu(def : tdef) : boolean;
@@ -1033,41 +1033,47 @@ implementation
       end;
 
 
-    { true, if p is a cyclic reference (refers to itself at some point via pointer or array) }
-    function is_cyclic(p : tdef): Boolean;
+    type
+      PDefListItem = ^TDefListItem;
+      TDefListItem = record
+        Next: PDefListItem;
+        Def: tdef;
+      end;
+
+    { See "is_cyclic" below }
+    function is_cyclic_internal(const def: tdef; const first: PDefListItem): Boolean;
       var
-        DefList: array of TDef;
-        CurrentTop: Integer;
-
-      function is_cyclic_internal(def: tdef): Boolean;
-        var
-          X: Integer;
-        begin
-          if not (def.typ in [arraydef, pointerdef]) then
-            Exit(False);
-
-          CurrentTop := Length(DefList);
-
-          { Check to see if the definition has appeared already }
-          for X := 0 to CurrentTop - 1 do
-            if def = DefList[X] then
-              Exit(True);
-
-          SetLength(DefList, CurrentTop + 1);
-          DefList[CurrentTop] := def;
-
-          case def.typ of
-            arraydef:
-              Result := is_cyclic_internal(tarraydef(def).elementdef);
-            pointerdef:
-              Result := is_cyclic_internal(tabstractpointerdef(def).pointeddef);
-            else
-              InternalError(2022120301);
-          end;
-        end;
-
+        thisdef: TDefListItem;
+        curitem: PDefListItem;
       begin
-        Result := is_cyclic_internal(p);
+        if not (def.typ in [arraydef, pointerdef]) then
+          Exit(False);
+
+        curitem := first;
+        while assigned(curitem) do
+          begin
+            if curitem^.Def = def then
+              Exit(True);
+            curitem := curitem^.Next;
+          end;
+
+        thisdef.Next := first;
+        thisdef.Def := def;
+
+        case def.typ of
+          arraydef:
+            Result := is_cyclic_internal(tarraydef(def).elementdef, @thisdef);
+          pointerdef:
+            Result := is_cyclic_internal(tabstractpointerdef(def).pointeddef, @thisdef);
+          else
+            InternalError(2022120301);
+        end;
+      end;
+
+    { true, if p is a cyclic reference (refers to itself at some point via pointer or array) }
+    function is_cyclic(p : tdef): Boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+      begin
+        Result := is_cyclic_internal(p, nil);
       end;
 
     { true, if def is a 8 bit int type }
