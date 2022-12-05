@@ -801,19 +801,37 @@ implementation
     function tblocknode.pass_1 : tnode;
       var
          hp : tstatementnode;
+         FirstNode: Boolean;
          //count : longint;
       begin
          result:=nil;
          expectloc:=LOC_VOID;
          //count:=0;
          hp:=tstatementnode(left);
+         FirstNode := True;
          while assigned(hp) do
            begin
               if assigned(hp.left) then
                 begin
+                   { Calling firstpass on a statement node normally causes
+                     problems, so we have to be a little bit hacky if we want
+                     to remove nothing nodes }
                    codegenerror:=false;
-                   firstpass(hp.left);
-                   hp.expectloc:=hp.left.expectloc;
+                   firstpass(tnode(hp));
+                   { If the first node gets deleted, left must be updated,
+                     otherwise it will be a dangling pointer }
+                   if FirstNode then
+                     begin
+                       { If multiple statements are to be removed, they would
+                         have all been removed by the firstpass call above, so
+                         the next one will not be removed, hence it's safe to
+                         set FirstNode to false }
+                       FirstNode := False;
+                       left := hp;
+                     end;
+
+                   if assigned(hp.left) then
+                     hp.expectloc:=hp.left.expectloc;
                 end;
               expectloc:=hp.expectloc;
               //inc(count);
