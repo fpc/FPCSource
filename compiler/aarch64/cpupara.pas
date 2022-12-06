@@ -608,7 +608,11 @@ unit cpupara;
                     case we're on Darwin and have allocated a non-variadic argument
                     < 8 bytes previously }
                   if target_info.abi=abi_aarch64_darwin then
-                    curstackoffset:=align(curstackoffset,paraloc^.def.alignment);
+                    begin
+                      curstackoffset:=align(curstackoffset,paraloc^.def.alignment);
+                      if firstparaloc then
+                        result.alignment:=newalignment(result.alignment,curstackoffset);
+                    end;
 
                   { on Darwin, non-variadic arguments take up their actual size
                     on the stack; on other platforms, they take up a multiple of
