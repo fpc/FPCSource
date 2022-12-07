@@ -200,52 +200,14 @@ type
   end;
 
 { "Vi" stands for variable-sized indices.
-  Variable-sized indices use less space and reduce the size of a region with potentially chaotic accesses (FHash). }
-type
-  TViTypeEnum = (vi_u8, vi_u16, vi_u24, vi_u32);
-  TViGetter = function(p: pointer; index: SizeUint): SizeUint;
-  TViSetter = procedure(p: pointer; index: SizeUint; const value: SizeUint);
-  uint24 = packed record
-{$if defined(endian_little)}
-    lo16: uint16;
-    hi8: uint8;
-{$elseif defined(endian_big)}
-    hi8: uint8;
-    lo16: uint16;
-{$else} {$error unknown endianness} {$endif}
-  end;
+  Variable-sized indices use less space and reduce the size of a region with potentially chaotic accesses (FHash).
 
-  function vi_u8_get(p: pointer; index: SizeUint): SizeUint;
-  procedure vi_u8_set(p: pointer; index: SizeUint; const value: SizeUint);
-  function vi_u16_get(p: pointer; index: SizeUint): SizeUint;
-  procedure vi_u16_set(p: pointer; index: SizeUint; const value: SizeUint);
-{ Assumes FOUR bytes are available. Hence ViTypes[u24].overallocate = 1. }
-  function vi_u24_get(p: pointer; index: SizeUint): SizeUint;
-  procedure vi_u24_set(p: pointer; index: SizeUint; const value: SizeUint);
-  function vi_u32_get(p: pointer; index: SizeUint): SizeUint;
-  procedure vi_u32_set(p: pointer; index: SizeUint; const value: SizeUint);
+  Indices are bitpacked. For speed and simplicity, bitfield base type is the same as index type (SizeUint),
+  and maximum bit size is bitsizeof(SizeUint) - 1, to allow unconditional masking with "1 shl bitsPerIndex - 1", etc. }
 
-type
-  PViTypeDesc = ^TViTypeDesc;
-  TViTypeDesc = record
-    size, overallocate: uint8;
-    lim: uint32;
-    get: TViGetter;
-    &set: TViSetter;
-  end;
-
-const
-  ViTypes: array[TViTypeEnum] of TViTypeDesc =
-  (
-    (size: sizeof(uint8);  overallocate: 0; lim: High(uint8);  get: @vi_u8_get;  &set: @vi_u8_set),
-    (size: sizeof(uint16); overallocate: 0; lim: High(uint16); get: @vi_u16_get; &set: @vi_u16_set),
-    (size: 3;              overallocate: 1; lim: 1 shl 24 - 1; get: @vi_u24_get; &set: @vi_u24_set),
-    (size: sizeof(uint32); overallocate: 0; lim: High(uint32); get: @vi_u32_get; &set: @vi_u32_set)
-  );
-
-  function ChooseViType(fitValue: SizeUint): PViTypeDesc;
-  function ViTypeFromGetter(get: TViGetter): PViTypeDesc; { To avoid storing PViTypeDesc if rarely used. }
-  function ViDataSize(ty: PViTypeDesc; n: SizeUint): SizeUint;
+  function ViGet(data: PSizeUint; index, bitsPerIndex: SizeUint): SizeUint;
+  procedure ViSet(data: PSizeUint; index, bitsPerIndex, value: SizeUint);
+  function ViDataSize(n, bitsPerIndex: SizeUint): SizeUint;
 
 const
   ViEmpty = 0;
@@ -265,10 +227,9 @@ type
   TViHashList = class(TObject)
   private
     { When not special "empty list", that is, when Assigned(FItems), FHash is a memory region containing FHash + FItems. }
-    FHash: Pointer; { Hash table. ViEmpty means empty cell, ViRealIndexOffset+i references FItems[i]. }
+    FHash: PSizeUint; { Bitpacked hash table. ViEmpty means empty cell, ViRealIndexOffset+i references FItems[i]. }
     FItems: PViHashListItem;
-    FGetIndex: TViGetter; { Accessors for FHash. }
-    FSetIndex: TViSetter;
+    FBitsPerIndex: uint8; { Size of indices in FHash. }
     FHashMask: uint32; { Count of indices in FHash is always "FHashMask + 1" and is always a power of two. }
     FCount: int32;
     FCapacity: uint32; { Allocation size of FItems. Generally speaking, can be arbitrary, without any relation to "FHashMask + 1". }
@@ -1490,92 +1451,41 @@ begin
 end;
 
 
-function vi_u8_get(p: pointer; index: SizeUint): SizeUint;
+function ViGet(data: PSizeUint; index, bitsPerIndex: SizeUint): SizeUint;
 begin
-  result:=PUint8(p)[index];
+  index:=index*bitsPerIndex;
+  data:=data+index div bitsizeof(SizeUint);
+  index:=index mod bitsizeof(SizeUint);
+  result:=data^ shr index;
+  index:=bitsizeof(data^)-index;
+  if bitsPerIndex<=index then
+    result:=result and (SizeUint(1) shl bitsPerIndex-1)
+  else
+    result:=result or data[1] shl index and (SizeUint(1) shl bitsPerIndex-1);
 end;
 
 
-procedure vi_u8_set(p: pointer; index: SizeUint; const value: SizeUint);
+procedure ViSet(data: PSizeUint; index, bitsPerIndex, value: SizeUint);
 begin
-  PUint8(p)[index]:=value;
+  index:=index*bitsPerIndex;
+  data:=data+index div bitsizeof(SizeUint);
+  index:=index mod bitsizeof(SizeUint);
+  if index+bitsPerIndex<=bitsizeof(data^) then
+    data^:=data^ and not ((SizeUint(1) shl bitsPerIndex-1) shl index) or value shl index
+  else
+  begin
+    data^:=SizeUint(data^ and (SizeUint(1) shl index - 1) or value shl index);
+    index:=bitsizeof(data^)-index;
+    value:=value shr index;
+    index:=bitsPerIndex-index;
+    data[1]:=data[1] shr index shl index or value;
+  end;
 end;
 
 
-function vi_u16_get(p: pointer; index: SizeUint): SizeUint;
+function ViDataSize(n, bitsPerIndex: SizeUint): SizeUint;
 begin
-  result:=PUint16(p)[index];
-end;
-
-
-procedure vi_u16_set(p: pointer; index: SizeUint; const value: SizeUint);
-begin
-  PUint16(p)[index]:=value;
-end;
-
-
-function vi_u24_get(p: pointer; index: SizeUint): SizeUint;
-begin
-  result:=unaligned(PUint32(p+3*index)^)
-{$if defined(endian_little)}
-    and $FFFFFF
-{$elseif defined(endian_big)}
-    shr 8
-{$else} {$error unknown endianness} {$endif};
-end;
-
-
-procedure vi_u24_set(p: pointer; index: SizeUint; const value: SizeUint);
-begin
-  p:=p+3*index;
-  uint24(p^).lo16:=uint16(value);
-  uint24(p^).hi8:=value shr 16;
-end;
-
-
-function vi_u32_get(p: pointer; index: SizeUint): SizeUint;
-begin
-  result:=PUint32(p)[index];
-end;
-
-
-procedure vi_u32_set(p: pointer; index: SizeUint; const value: SizeUint);
-begin
-  PUint32(p)[index]:=value;
-end;
-
-
-function ChooseViType(fitValue: SizeUint): PViTypeDesc;
-var
-  typeEnum: TViTypeEnum;
-begin
-  for typeEnum in TViTypeEnum do
-    begin
-      result:=@ViTypes[typeEnum];
-      if fitValue<=result^.lim then
-        exit;
-    end;
-  internalerrorproc(2021122601);
-end;
-
-
-function ViTypeFromGetter(get: TViGetter): PViTypeDesc;
-var
-  typeEnum: TViTypeEnum;
-begin
-  for typeEnum in TViTypeEnum do
-    begin
-      result:=@ViTypes[typeEnum];
-      if result^.get=get then
-        exit;
-    end;
-  internalerrorproc(2021122607);
-end;
-
-
-function ViDataSize(ty: PViTypeDesc; n: SizeUint): SizeUint;
-begin
-  result:=ty^.size*n+ty^.overallocate;
+  result:=(n*bitsPerIndex+(bitsizeof(SizeUint)-1)) div bitsizeof(SizeUint)*sizeof(SizeUint);
 end;
 
 
@@ -1602,27 +1512,26 @@ end;
 
 
 procedure TViHashList.SetupEmptyTable;
-begin
-  { PChar('') is a pointer to #0 and is reinterpreted as a pointer to 1-element uint8 array containing one zero, which is ViEmpty.
+const
+  { 1-element FHash array containing one zero, which is ViEmpty.
     Any searches will answer "not found", and any additions will instantly rehash. }
-  FHash:=PUint8(PChar(''));
+  EmptyFHash: SizeUint = 0;
+begin
+  FHash:=@EmptyFHash;
   FItems:=nil;
+  FBitsPerIndex:=1;
   FHashMask:=0;
   FCapacity:=0;
-  FGetIndex:=@vi_u8_get;
-  FSetIndex:=@vi_u8_set;
 end;
 
 
 procedure TViHashList.Rehash(ForItems: SizeUint; mode: TViRehashMode=vi_Auto);
 var
-  newCapacity, fitCapacity, newHashMask, itemsOffset, regionSize: SizeUint;
+  newCapacity, newHashMask, newBitsPerIndex, itemsOffset, regionSize: SizeUint;
   i: SizeInt;
-  newIndexType: PViTypeDesc;
-  newHash: pointer;
+  newHash: PSizeUint;
   newItems: PViHashListItem;
   shortcutReAdd: boolean;
-  newSetIndex: TViSetter;
 begin
   if ForItems=0 then
     begin
@@ -1632,29 +1541,23 @@ begin
   if ForItems>MaxHashListSize then
     TFPList.Error(SListCapacityError, ForItems);
 
+  { Can be something like "137.5% ForItems", but with bitwise indices, better to just derive the capacity later from chosen index type limit,
+    which will be 200% at most -
+    this way, both capacity and hash mask size become beautiful powers of two,
+    saving on rehashes ("shortcutReAdd" branch, while still required for degenerate scenarios, becomes de facto unreachable),
+    and often even on memory (though the reason for the latter is unclear to me; maybe "137.5%" in conjunction with "UpToPow2" introduces extra breakpoints). }
   newCapacity:=ForItems;
-  fitCapacity:=ForItems;
-  if mode<>vi_Tight then
-    begin
-      { Reserve some space. }
-      newCapacity:=8+newCapacity+newCapacity div 4+newCapacity div 8; { 137.5% }
-      { Reserving 260 items when 240 is enough will switch to 16-bit indices without good enough reason, so allow some recoil.
-        Subtracting 1/8 here means that the base reserve of 137% is allowed to reduce this way to 137%*7/8≈120%. }
-      fitCapacity:=newCapacity-newCapacity div 8;
-    end;
 
   { Max index for "capacity" items is "ViRealIndexOffset + (capacity - 1)", which can be rewritten as "capacity + (ViRealIndexOffset - 1)". }
-  newIndexType:=ChooseViType(fitCapacity+(ViRealIndexOffset-1));
+  newBitsPerIndex:=1+BsrDWord(newCapacity+(ViRealIndexOffset-1));
+  if not ((newBitsPerIndex>=1) and (newBitsPerIndex<=bitsizeof(SizeUint)-1)) then
+    InternalErrorProc(2022120701);
 
-  { Index type is usually chosen against deliberately lowered fitCapacity instead of newCapacity.
-    If it does not fit newCapacity, re-deduce newCapacity from its limit, realizing the recoil mentioned above.
-    Neither allocating 240 indices is a good decision because 1-byte index limit being 255 is very close to it.
-    Adding 1/8 here means that the base reserve of 137% is allowed to increase this way to 137*9/8≈154%. }
-  fitCapacity:=newIndexType^.lim-(ViRealIndexOffset-1);
-  if newCapacity+newCapacity div 8>fitCapacity then
-    newCapacity:=fitCapacity;
+  { In place of explicit over-allocation, increase capacity to index type limit. }
+  if mode<>vi_Tight then
+    newCapacity:=(SizeUint(1) shl newBitsPerIndex-1)-(ViRealIndexOffset-1);
 
-  { Take item list capacity rounded up to power of two. This can give 50% to 100% load factor (Capacity/(1+HashMask)).
+  { Take item list capacity rounded up to power of two. This can give 50% to 100% load factor.
     If it gives more than 3/4, double the hash capacity again. After that, possible load factors will range from 37.5% to 75%.
     Even load factors greater than 100% will work though. Low factors are just slightly faster, at the expense of memory. }
   newHashMask:=SizeUint(1) shl (1+BsrDWord((newCapacity-1) or 1))-1; { UpToPow2(newCapacity)-1 }
@@ -1662,7 +1565,7 @@ begin
     newHashMask:=newHashMask*2+1;
 
   { Allocating and marking up the region for FHash + FItems. }
-  itemsOffset:=Align(ViDataSize(newIndexType,newHashMask+1), SizeUint(sizeof(pointer)));
+  itemsOffset:=Align(ViDataSize(newHashMask+1,newBitsPerIndex), SizeUint(sizeof(pointer)));
   regionSize:=itemsOffset+sizeof(TViHashListItem)*newCapacity;
   newHash:=GetMem(regionSize);
   newItems:=pointer(newHash)+itemsOffset;
@@ -1674,18 +1577,15 @@ begin
   if shortcutReAdd then
     begin
       { If even index type hasn't changed, just copy FHash. Else convert. }
-      if newIndexType=ViTypeFromGetter(FGetIndex) then
-        Move(FHash^, newHash^, ViDataSize(newIndexType,newHashMask+1))
+      if newBitsPerIndex=FBitsPerIndex then
+        Move(FHash^, newHash^, ViDataSize(newHashMask+1,newBitsPerIndex))
       else
-        begin
-          newSetIndex:=newIndexType^.&set;
-          for i:=0 to newHashMask do
-            newSetIndex(newHash, i, FGetIndex(FHash, i));
-        end;
+        for i:=0 to newHashMask do
+          ViSet(newHash, i, newBitsPerIndex, ViGet(FHash, i, FBitsPerIndex));
     end
   else
     { Otherwise set all indices to ViEmpty. }
-    FillChar(newHash^, ViDataSize(newIndexType,newHashMask+1), 0);
+    FillChar(newHash^, ViDataSize(newHashMask+1,newBitsPerIndex), 0);
 
   { Move items as raw memory, even managed (old area is then deallocated without finalizing). }
   Move(FItems^, newItems^, FCount*sizeof(TViHashListItem));
@@ -1697,8 +1597,7 @@ begin
 
   FHash:=newHash;
   FItems:=newItems;
-  FGetIndex:=newIndexType^.get;
-  FSetIndex:=newIndexType^.&set;
+  FBitsPerIndex:=newBitsPerIndex;
   FHashMask:=newHashMask;
   FCapacity:=newCapacity;
 
@@ -1724,7 +1623,7 @@ end;
 procedure TViHashList.Shrink;
 begin
   if (FCapacity >= 64) and (uint32(FCount) < FCapacity div 4) then
-    Rehash(FCount);
+    Rehash(uint32(FCount)+uint32(FCount) div 4);
 end;
 
 
@@ -1735,8 +1634,8 @@ begin
   if not Assigned(Item^.Data) then
     exit;
   HashIndex:=Item^.HashValue and FHashMask;
-  FItems[Index].Next:=SizeInt(FGetIndex(FHash, HashIndex))-ViRealIndexOffset;
-  FSetIndex(FHash, HashIndex, ViRealIndexOffset+Index);
+  FItems[Index].Next:=SizeInt(ViGet(FHash, HashIndex, FBitsPerIndex))-ViRealIndexOffset;
+  ViSet(FHash, HashIndex, FBitsPerIndex, ViRealIndexOffset+Index);
 end;
 
 
@@ -1744,7 +1643,7 @@ function TViHashList.InternalFind(AHash:LongWord;const AName:TSymStr;out PrevInd
 var
   it: PViHashListItem;
 begin
-  Result:=SizeInt(FGetIndex(FHash, AHash and FHashMask))-ViRealIndexOffset;
+  Result:=SizeInt(ViGet(FHash, AHash and FHashMask, FBitsPerIndex))-ViRealIndexOffset;
   PrevIndex:=-1;
   repeat
     if Result<0 then
@@ -1764,7 +1663,7 @@ var
 begin
   next:=SizeInt(FItems[Index].Next);
   if PrevIndex<0 then
-    FSetIndex(FHash, AHash and FHashMask, ViRealIndexOffset+next)
+    ViSet(FHash, AHash and FHashMask, FBitsPerIndex, ViRealIndexOffset+next)
   else
     FItems[PrevIndex].Next:=next;
 end;
@@ -1871,7 +1770,7 @@ begin
   dec(FCount);
 
   { Rebuild the table. This is much faster than trying to fix up indices. :( }
-  FillChar(FHash^, ViDataSize(ViTypeFromGetter(FGetIndex),FHashMask+1), 0);
+  FillChar(FHash^, ViDataSize(FHashMask+1, FBitsPerIndex), 0);
   for i:=0 to FCount-1 do
     AddToHashTable(FItems+i, i);
   Shrink;
@@ -2013,7 +1912,7 @@ begin
   for i:=0 to FHashMask do
     begin
       j:=0;
-      Index:=SizeInt(FGetIndex(FHash, i))-ViRealIndexOffset;
+      Index:=SizeInt(ViGet(FHash, i, FBitsPerIndex))-ViRealIndexOffset;
       while Index>=0 do
         begin
           inc(j);
