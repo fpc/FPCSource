@@ -67,7 +67,10 @@ Type
     wibtUint32Array,
     wibtUint8ClampedArray,
     wibtFloat32Array,
-    wibtFloat64Array
+    wibtFloat64Array,
+    wibtDocument,
+    wibtDocumentFragment,
+    wibtNode
     );
   TWebIDLBaseTypes = set of TWebIDLBaseType;
 const
@@ -110,7 +113,10 @@ const
     'Uint32Array',
     'Uint8ClampedArray',
     'Float32Array',
-    'Float64Array');
+    'Float64Array',
+    'Document',
+    'DocumentFragment',
+    'Node');
 
 type
 
