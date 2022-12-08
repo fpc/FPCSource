@@ -928,7 +928,10 @@ begin
     'Uint32Array',
     'Uint8ClampedArray',
     'Float32Array',
-    'Float64Array': Result:=GetPasClassName(aTypeName);
+    'Float64Array',
+    'Document',
+    'DocumentFragment',
+    'Node': Result:=GetPasClassName(aTypeName);
 
     'void': Result:=aTypeName;
   else
