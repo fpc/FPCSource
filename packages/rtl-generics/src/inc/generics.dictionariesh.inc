@@ -98,7 +98,7 @@ type
     procedure KeyNotify(constref AKey: TKey; ACollectionNotification: TCollectionNotification); virtual;
     procedure ValueNotify(constref AValue: TValue; ACollectionNotification: TCollectionNotification); virtual;
     procedure PairNotify(constref APair: TDictionaryPair; ACollectionNotification: TCollectionNotification); inline;
-    procedure SetValue(var AValue: TValue; constref ANewValue: TValue);
+    procedure SetValue(var AValue: TValue; constref ANewValue: TValue); dynamic;
   public
     property OnKeyNotify: TCollectionNotifyEvent<TKey> read FOnKeyNotify write FOnKeyNotify;
     property OnValueNotify: TCollectionNotifyEvent<TValue> read FOnValueNotify write FOnValueNotify;
@@ -597,6 +597,7 @@ type
   private
     FOwnerships: TDictionaryOwnerships;
   protected
+    procedure SetValue(var AValue: TValue; constref ANewValue: TValue); override;
     procedure KeyNotify(constref AKey: TKey; ACollectionNotification: TCollectionNotification); override;
     procedure ValueNotify(constref AValue: TValue; ACollectionNotification: TCollectionNotification); override;
   public

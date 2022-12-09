@@ -2233,6 +2233,20 @@ begin
   FOwnerships := AOwnerships;
 end;
 
+procedure TObjectOpenAddressingLP<OPEN_ADDRESSING_CONSTRAINTS>.SetValue(var AValue: TValue; constref ANewValue: TValue);
+var
+  LOldValue: TValue;
+begin
+  if TObject((@AValue)^) <> TObject((@ANewValue)^) then
+  begin
+    LOldValue := AValue;
+    AValue := ANewValue;
+
+    ValueNotify(LOldValue, cnRemoved);
+    ValueNotify(ANewValue, cnAdded);
+  end;
+end;
+
 procedure TObjectOpenAddressingLP<OPEN_ADDRESSING_CONSTRAINTS>.KeyNotify(
   constref AKey: TKey; ACollectionNotification: TCollectionNotification);
 begin
