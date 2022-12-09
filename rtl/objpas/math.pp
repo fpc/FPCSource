@@ -412,10 +412,20 @@ function Floor64(x: float): Int64;
 
 { misc. functions }
 
+{$ifdef FPC_HAS_TYPE_SINGLE}
 { splits x into mantissa and exponent (to base 2) }
-procedure Frexp(X: float; var Mantissa: float; var Exponent: integer);
+procedure Frexp(X: single; out Mantissa: single; out Exponent: integer);
 { returns x*(2^p) }
-function Ldexp(x : float; const p : Integer) : float;
+function Ldexp(X: single; p: Integer) : single;
+{$endif}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+procedure Frexp(X: double; out Mantissa: double; out Exponent: integer);
+function Ldexp(X: double; p: Integer) : double;
+{$endif}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+procedure Frexp(X: extended; out Mantissa: extended; out Exponent: integer);
+function Ldexp(X: extended; p: Integer) : extended;
+{$endif}
 
 { statistical functions }
 
@@ -1122,28 +1132,221 @@ function floor64(x: float): Int64;
   end;
 
 
-procedure Frexp(X: float; var Mantissa: float; var Exponent: integer);
-begin
-  Exponent:=0;
-  if (X<>0) then
-    if (abs(X)<0.5) then
-      repeat
-        X:=X*2;
-        Dec(Exponent);
-      until (abs(X)>=0.5)
-    else
-      while (abs(X)>=1) do
-        begin
-        X:=X/2;
-        Inc(Exponent);
-        end;
-  Mantissa:=X;
-end;
-
-function ldexp(x : float;const p : Integer) : float;
+// Correction for "rounding to nearest, ties to even".
+// RoundToNearestTieToEven(QWE.RTYUIOP) = QWE + TieToEven(ER, TYUIOP <> 0).
+function TieToEven(AB: cardinal; somethingAfter: boolean): cardinal;
   begin
-     ldexp:=x*intpower(2.0,p);
+    result := AB and 1;
+    if (result <> 0) and not somethingAfter then
+      result := AB shr 1;
   end;
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+procedure Frexp(X: single; out Mantissa: single; out Exponent: integer);
+  var
+    M: uint32;
+    E, ExtraE: int32;
+  begin
+    Mantissa := X;
+    E := TSingleRec(X).Exp;
+    if (E > 0) and (E < 2 * TSingleRec.Bias + 1) then
+    begin
+      // Normal.
+      TSingleRec(Mantissa).Exp := TSingleRec.Bias - 1;
+      Exponent := E - (TSingleRec.Bias - 1);
+      exit;
+    end;
+    if E = 0 then
+    begin
+      M := TSingleRec(X).Frac;
+      if M <> 0 then
+      begin
+        // Subnormal.
+        ExtraE := 23 - BsrDWord(M);
+        TSingleRec(Mantissa).Frac := M shl ExtraE; // "and (1 shl 23 - 1)" required to remove starting 1, but .SetFrac already does it.
+        TSingleRec(Mantissa).Exp  := TSingleRec.Bias - 1;
+        Exponent := -TSingleRec.Bias + 2 - ExtraE;
+        exit;
+      end;
+    end;
+    // ±0, ±Inf, NaN.
+    Exponent := 0;
+  end;
+
+
+function Ldexp(X: single; p: integer): single;
+  var
+    M, E: uint32;
+    xp, sh: integer;
+  begin
+    E := TSingleRec(X).Exp;
+    if (E = 0) and (TSingleRec(X).Frac = 0) or (E = 2 * TSingleRec.Bias + 1) then
+      // ±0, ±Inf, NaN.
+      exit(X);
+
+    Frexp(X, result, xp);
+    inc(xp, p);
+    if (xp >= -TSingleRec.Bias + 2) and (xp <= TSingleRec.Bias + 1) then
+      // Normalized.
+      TSingleRec(result).Exp := xp + (TSingleRec.Bias - 1)
+    else if xp > TSingleRec.Bias + 1 then
+    begin
+      // Overflow.
+      TSingleRec(result).Exp := 2 * TSingleRec.Bias + 1;
+      TSingleRec(result).Frac := 0;
+    end else
+    begin
+      TSingleRec(result).Exp := 0;
+      if xp >= -TSingleRec.Bias + 2 - 23 then
+      begin
+        // Denormalized.
+        M := TSingleRec(result).Frac or uint32(1) shl 23;
+        sh := -TSingleRec.Bias + 1 - xp;
+        TSingleRec(result).Frac := M shr (sh + 1) + TieToEven(M shr sh and 3, M and (uint32(1) shl sh - 1) <> 0);
+      end else
+        // Underflow.
+        TSingleRec(result).Frac := 0;
+    end;
+  end;
+{$endif}
+
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+procedure Frexp(X: double; out Mantissa: double; out Exponent: integer);
+  var
+    M: uint64;
+    E, ExtraE: int32;
+  begin
+    Mantissa := X;
+    E := TDoubleRec(X).Exp;
+    if (E > 0) and (E < 2 * TDoubleRec.Bias + 1) then
+    begin
+      // Normal.
+      TDoubleRec(Mantissa).Exp := TDoubleRec.Bias - 1;
+      Exponent := E - (TDoubleRec.Bias - 1);
+      exit;
+    end;
+    if E = 0 then
+    begin
+      M := TDoubleRec(X).Frac;
+      if M <> 0 then
+      begin
+        // Subnormal.
+        ExtraE := 52 - BsrQWord(M);
+        TDoubleRec(Mantissa).Frac := M shl ExtraE; // "and (1 shl 52 - 1)" required to remove starting 1, but .SetFrac already does it.
+        TDoubleRec(Mantissa).Exp  := TDoubleRec.Bias - 1;
+        Exponent := -TDoubleRec.Bias + 2 - ExtraE;
+        exit;
+      end;
+    end;
+    // ±0, ±Inf, NaN.
+    Exponent := 0;
+  end;
+
+function Ldexp(X: double; p: integer): double;
+  var
+    M: uint64;
+    E: uint32;
+    xp, sh: integer;
+  begin
+    E := TDoubleRec(X).Exp;
+    if (E = 0) and (TDoubleRec(X).Frac = 0) or (E = 2 * TDoubleRec.Bias + 1) then
+      // ±0, ±Inf, NaN.
+      exit(X);
+
+    Frexp(X, result, xp);
+    inc(xp, p);
+    if (xp >= -TDoubleRec.Bias + 2) and (xp <= TDoubleRec.Bias + 1) then
+      // Normalized.
+      TDoubleRec(result).Exp := xp + (TDoubleRec.Bias - 1)
+    else if xp > TDoubleRec.Bias + 1 then
+    begin
+      // Overflow.
+      TDoubleRec(result).Exp := 2 * TDoubleRec.Bias + 1;
+      TDoubleRec(result).Frac := 0;
+    end else
+    begin
+      TDoubleRec(result).Exp := 0;
+      if xp >= -TDoubleRec.Bias + 2 - 52 then
+      begin
+        // Denormalized.
+        M := TDoubleRec(result).Frac or uint64(1) shl 52;
+        sh := -TSingleRec.Bias + 1 - xp;
+        TDoubleRec(result).Frac := M shr (sh + 1) + TieToEven(M shr sh and 3, M and (uint64(1) shl sh - 1) <> 0);
+      end else
+        // Underflow.
+        TDoubleRec(result).Frac := 0;
+    end;
+  end;
+{$endif}
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+procedure Frexp(X: extended; out Mantissa: extended; out Exponent: integer);
+  var
+    M: uint64;
+    E, ExtraE: int32;
+  begin
+    Mantissa := X;
+    E := TExtended80Rec(X).Exp;
+    if (E > 0) and (E < 2 * TExtended80Rec.Bias + 1) then
+    begin
+      // Normal.
+      TExtended80Rec(Mantissa).Exp := TExtended80Rec.Bias - 1;
+      Exponent := E - (TExtended80Rec.Bias - 1);
+      exit;
+    end;
+    if E = 0 then
+    begin
+      M := TExtended80Rec(X).Frac;
+      if M <> 0 then
+      begin
+        // Subnormal. Extended has explicit starting 1.
+        ExtraE := 63 - BsrQWord(TExtended80Rec(X).Frac);
+        TExtended80Rec(Mantissa).Frac := M shl ExtraE;
+        TExtended80Rec(Mantissa).Exp  := TExtended80Rec.Bias - 1;
+        Exponent := -TExtended80Rec.Bias + 2 - ExtraE;
+        exit;
+      end;
+    end;
+    // ±0, ±Inf, NaN.
+    Exponent := 0;
+  end;
+
+function Ldexp(X: extended; p: integer): extended;
+  var
+    M: uint64;
+    E: uint32;
+    xp, sh: integer;
+  begin
+    E := TExtended80Rec(X).Exp;
+    if (E = 0) and (TExtended80Rec(X).Frac = 0) or (E = 2 * TExtended80Rec.Bias + 1) then
+      // ±0, ±Inf, NaN.
+      exit(X);
+
+    Frexp(X, result, xp);
+    inc(xp, p);
+    if (xp >= -TExtended80Rec.Bias + 2) and (xp <= TExtended80Rec.Bias + 1) then
+      // Normalized.
+      TExtended80Rec(result).Exp := xp + (TExtended80Rec.Bias - 1)
+    else if xp > TExtended80Rec.Bias + 1 then
+    begin
+      // Overflow.
+      TExtended80Rec(result).Exp := 2 * TExtended80Rec.Bias + 1;
+      TExtended80Rec(result).Frac := uint64(1) shl 63;
+    end else
+    begin
+      TExtended80Rec(result).Exp := 0;
+      if xp >= -TExtended80Rec.Bias + 2 - 63 then
+      begin
+        // Denormalized.
+        M := TExtended80Rec(result).Frac;
+        sh := -TExtended80Rec.Bias + 1 - xp;
+        TExtended80Rec(result).Frac := M shr (sh + 1) + TieToEven(M shr sh and 3, M and (uint64(1) shl sh - 1) <> 0);
+      end else
+        // Underflow.
+        TExtended80Rec(result).Frac := 0;
+    end;
+  end;
+{$endif}
 
 const
   { Cutoff for https://en.wikipedia.org/wiki/Pairwise_summation; sums of at least this many elements are split in two halves. }
