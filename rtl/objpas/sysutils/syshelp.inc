@@ -503,9 +503,12 @@ begin
     end;
 end;
 
-function TStringHelper.Contains(const AValue: string): Boolean;
+function TStringHelper.Contains(const AValue: string; IgnoreCase: Boolean): Boolean;
 begin
-  Result:=Pos(AValue,Self)>0;
+  if IgnoreCase then
+    Result:=Pos(LowerCase(AValue),LowerCase(Self))>0
+  else
+    Result:=Pos(AValue,Self)>0;
 end;
 
 
@@ -590,10 +593,13 @@ begin
 end;
 
 
-function TStringHelper.Equals(const AValue: string): Boolean;
+function TStringHelper.Equals(const AValue: string; IgnoreCase: Boolean = False): Boolean;
 
 begin
-  Result:=(Self=AValue);
+  if IgnoreCase then
+    Result:=SameText(Self,aValue)
+  else
+    Result:=(Self=AValue);
 end;
 
 
