@@ -54,7 +54,14 @@ Dump of assembler code for function _start:   }
 procedure _start;assembler;nostackframe;public name '_start';
 asm
    mov    %esp,%eax
-   mov    %eax,StackTopPtr
+{$ifdef FPC_PIC}
+  call fpc_geteipasebx
+  addl $_GLOBAL_OFFSET_TABLE_,%ebx
+  movl StackTopPtr@GOT(%ebx),%ecx
+{$else FPC_PIC}
+   mov   $StackTopPtr,%ecx
+{$endif FPC_PIC}
+   mov    %eax,(%ecx)
    pushl  $0x0
    pushl  $0x0
    mov    %esp,%ebp
@@ -83,18 +90,43 @@ asm
    *)
 .Label2:
    mov    0x8(%ebp),%eax
+{$ifdef FPC_PIC}
+  movl argc@GOT(%ebx),%ecx
+  movl %eax,(%ecx)
+{$else FPC_PIC}
    mov    %eax,argc
+{$endif FPC_PIC}
+{$ifdef FPC_PIC}
+  movl _environ@GOT(%ebx),%ecx
+  movl (%ecx),%edx
+{$else FPC_PIC}
    mov    _environ,%edx
+{$endif FPC_PIC}
    test   %edx,%edx
    jne    .Label3
    lea    0x10(%ebp,%eax,4),%edx
 .Label3:
+{$ifdef FPC_PIC}
+  movl _environ@GOT(%ebx),%ecx
+  movl %edx,(%ecx)
+{$else FPC_PIC}
    movl   %edx,_environ
+{$endif FPC_PIC}
+{$ifdef FPC_PIC}
+  movl envp@GOT(%ebx),%ecx
+  movl %edx,(%ecx)
+{$else FPC_PIC}
    movl   %edx,envp
+{$endif FPC_PIC}
    and    $0xfffffff0,%esp
    push   %edx
    lea    0xc(%ebp),%edx
+{$ifdef FPC_PIC}
+  movl argv@GOT(%ebx),%ecx
+  movl %edx,(%ecx)
+{$else FPC_PIC}
    mov    %edx,argv
+{$endif FPC_PIC}
    push   %edx
    push   %eax
    //call   __fpstart {@plt}
