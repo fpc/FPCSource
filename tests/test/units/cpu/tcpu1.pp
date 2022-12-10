@@ -9,10 +9,10 @@ begin
     begin
       writeln('yes');
       asm
-        cmov %eax,%eax
+        cmove %eax,%eax
         fldz
         fldz
-        fcmovb %st(1)
+        fcmove %st(1)
         fstpl %st(0)
         fstpl %st(0)
       end;
