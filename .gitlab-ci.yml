@@ -6,7 +6,7 @@ stages:
 # Template for Linux builds
 .linux: &linux
   before_script:
-    - AVAILABLE_CPU_CORES=$(nproc)
+    - 'AVAILABLE_CPU_CORES=$(( $(nproc) > 6 ? 6 : $(nproc) ))'
   tags:
     - saas-linux-medium-amd64
 
