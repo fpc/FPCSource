@@ -565,7 +565,8 @@ implementation
              writer.AsmWrite('.section ');
              { sectionname may rename those sections, so we do not write flags/progbits for them,
                the assembler will ignore them/spite out a warning anyways }
-             if not(atype in [sec_data,sec_rodata,sec_rodata_norel]) then
+             if not(atype in [sec_data,sec_rodata,sec_rodata_norel]) and
+                not(asminfo^.id=as_solaris_as) then
                begin
                  usesectionflags:=true;
                  usesectionprogbits:=true;
