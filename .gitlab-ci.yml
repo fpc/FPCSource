@@ -32,13 +32,11 @@ stages:
 
 
 Full Cycle of Compiler on Alpine Linux:
-  <<: *full_cycle_of_compiler
-  <<: *alpine_linux_configuration
+  <<: [*full_cycle_of_compiler, *alpine_linux_configuration]
 
 
 Full Cycle of Compiler on Ubuntu Linux:
-  <<: *full_cycle_of_compiler
-  <<: *ubuntu_linux_configuration
+  <<: [*full_cycle_of_compiler, *ubuntu_linux_configuration]
 
 
 Build FPC on Ubuntu Linux:
