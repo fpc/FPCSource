@@ -48,7 +48,7 @@ Build FPC on Ubuntu Linux:
     - make -j $AVAILABLE_CPU_CORES zipinstall OS_TARGET=linux CPU_TARGET=x86_64 FPMAKEOPT="-T $AVAILABLE_CPU_CORES" "OPT=-Oodfa"
   artifacts:
     when: on_success
-    expire_in: 2 days
+    expire_in: 5 days
     paths:
       - fpc-*.tar.gz
 
