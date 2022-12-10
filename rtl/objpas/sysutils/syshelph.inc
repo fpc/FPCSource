@@ -104,14 +104,14 @@ Type
     Class Function ToSingle(const S: string): Single; overload; static; inline;
     Class Function UpperCase(const S: string): string; overload; static; inline;
     Function CompareTo(const B: string): Integer;
-    Function Contains(const AValue: string): Boolean;
+    Function Contains(const AValue: string; IgnoreCase: Boolean = False): Boolean;
     procedure CopyTo(SourceIndex: SizeInt; var destination: array of Char; DestinationIndex: SizeInt; ACount: SizeInt);
     Function CountChar(const C: Char): SizeInt;
     Function DeQuotedString: string; overload;
     Function DeQuotedString(const AQuoteChar: Char): string; overload;
     Function EndsWith(const AValue: string): Boolean; overload; inline;
     Function EndsWith(const AValue: string; IgnoreCase: Boolean): Boolean; overload;
-    Function Equals(const AValue: string): Boolean; overload;
+    Function Equals(const AValue: string; IgnoreCase: Boolean = False): Boolean; overload;
     Function Format(const args: array of const): string; overload;
     Function GetHashCode: Integer;
     Function IndexOf(AValue: Char): SizeInt; overload; inline;
