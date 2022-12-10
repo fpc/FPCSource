@@ -12,7 +12,7 @@ begin
         cmove %eax,%eax
         fldz
         fldz
-        fcmove %st(1)
+        fcmove %st(1),%st(0)
         fstpl %st(0)
         fstpl %st(0)
       end;
