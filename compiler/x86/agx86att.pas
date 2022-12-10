@@ -388,7 +388,7 @@ interface
            (op<>A_FLDCW) and
            (not fskipPopcountSuffix or
             (op<>A_POPCNT)) and
-           ((owner.asminfo^.id<>as_solaris_as) or (op<>A_Jcc) and (op<>A_SETcc)) and
+           ((owner.asminfo^.id<>as_solaris_as) or ((op<>A_Jcc) and (op<>A_SETcc) and (op<>A_CMOVCC))) and
            not(
                (taicpu(hp).ops<>0) and
                (taicpu(hp).oper[0]^.typ=top_reg) and
@@ -482,7 +482,7 @@ interface
             id     : as_solaris_as;
             idtxt  : 'AS-SOL';
             asmbin : 'as';
-            asmcmd : ' -m64 -o $OBJ $EXTRAOPT $ASM';
+            asmcmd : ' -m64 -o $OBJ $PIC $EXTRAOPT $ASM';
             supported_targets : [system_x86_64_solaris];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
@@ -622,7 +622,7 @@ interface
             id     : as_solaris_as;
             idtxt  : 'AS-SOL';
             asmbin : 'as';
-            asmcmd : ' -o $OBJ $EXTRAOPT $ASM';
+            asmcmd : ' -m32 -o $OBJ $PIC $EXTRAOPT $ASM';
             supported_targets : [system_i386_solaris];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
