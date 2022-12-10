@@ -60,7 +60,7 @@ Run FPC Tests on Ubuntu Linux:
     # extract installer from previous stage
     - tar -xzf fpc-*.tar.gz
     - FPC_SRC=$(pwd)
-    - FPC_COMPILER=$FPC_SRC/lib/fpc/3.3.1/ppcx64
+    - FPC_COMPILER=$(find $FPC_SRC/lib/fpc/ -name ppc*)
     # run tests
     - cd tests
     - make clean -j $AVAILABLE_CPU_CORES TEST_FPC=$FPC_COMPILER TEST_DELTEMP=1
