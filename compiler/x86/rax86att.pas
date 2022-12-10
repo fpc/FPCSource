@@ -1035,6 +1035,10 @@ Implementation
                   if (gas_needsuffix[actopcode]=attsufINTdual) xor (suflen=2) then
                     continue;
 
+                 { We need to refuse the opcodes that require a condition }
+                 if (actopcode=A_Jcc) or (actopcode=A_SETcc) or (actopcode=A_CMOVcc) then
+                   actopcode:=A_NONE;
+
                   if actopcode<>A_NONE then
                     begin
                       if gas_needsuffix[actopcode]=attsufFPU then
