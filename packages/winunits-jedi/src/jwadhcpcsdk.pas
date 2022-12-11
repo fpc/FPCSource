@@ -61,6 +61,10 @@ uses
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
+{$ifdef win64}
+{$push}  {$define dopop}
+{$align 8}
+{$endif}
 
 //
 // DHCP Standard Options.
@@ -340,6 +344,11 @@ function DhcpDeRegisterParamChange(Flags: DWORD; Reserved, Event: LPVOID): DWORD
 
 function DhcpRemoveDNSRegistrations: DWORD; stdcall;
 {$EXTERNALSYM DhcpRemoveDNSRegistrations}
+
+{$ifdef dopop}
+{$pop}
+{$undef dopop}
+{$endif}
 
 {$ENDIF JWA_IMPLEMENTATIONSECTION}
 
