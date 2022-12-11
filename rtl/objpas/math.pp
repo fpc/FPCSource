@@ -1300,7 +1300,7 @@ procedure Frexp(X: extended; out Mantissa: extended; out Exponent: integer);
       if M <> 0 then
       begin
         // Subnormal. Extended has explicit starting 1.
-        ExtraE := 63 - BsrQWord(TExtended80Rec(X).Frac);
+        ExtraE := 63 - BsrQWord(M);
         TExtended80Rec(Mantissa).Frac := M shl ExtraE;
         TExtended80Rec(Mantissa).Exp  := TExtended80Rec.Bias - 1;
         Exponent := -TExtended80Rec.Bias + 2 - ExtraE;
@@ -1332,18 +1332,22 @@ function Ldexp(X: extended; p: integer): extended;
       // Overflow.
       TExtended80Rec(result).Exp := 2 * TExtended80Rec.Bias + 1;
       TExtended80Rec(result).Frac := uint64(1) shl 63;
+    end
+    else if xp >= -TExtended80Rec.Bias + 2 - 63 then
+    begin
+      // Denormalized... usually.
+      // Mantissa of subnormal 'extended' (Exp = 0) must always start with 0.
+      // If the calculated mantissa starts with 1, extended instead becomes normalized with Exp = 1.
+      M := TExtended80Rec(result).Frac;
+      sh := -TExtended80Rec.Bias + 1 - xp;
+      M := M shr (sh + 1) + TieToEven(M shr sh and 3, M and (uint64(1) shl sh - 1) <> 0);
+      TExtended80Rec(result).Exp := M shr 63;
+      TExtended80Rec(result).Frac := M;
     end else
     begin
+      // Underflow.
       TExtended80Rec(result).Exp := 0;
-      if xp >= -TExtended80Rec.Bias + 2 - 63 then
-      begin
-        // Denormalized.
-        M := TExtended80Rec(result).Frac;
-        sh := -TExtended80Rec.Bias + 1 - xp;
-        TExtended80Rec(result).Frac := M shr (sh + 1) + TieToEven(M shr sh and 3, M and (uint64(1) shl sh - 1) <> 0);
-      end else
-        // Underflow.
-        TExtended80Rec(result).Frac := 0;
+      TExtended80Rec(result).Frac := 0;
     end;
   end;
 {$endif}
