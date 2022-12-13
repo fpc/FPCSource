@@ -3632,7 +3632,8 @@ option_too_many_exception_modes=11064_E_Only one WebAssembly exception support m
 option_subtarget_is_already_set=11065_W_Subtarget is already set to: $1
 % Displayed if more than one \var{-t} option is specified.
 option_subtarget_config_not_found=11066_E_Subtarget $1 specified but no corresponding config file $2 found.
-% Displayed if more than one \var{-t} option is specified.
+% Displayed if \var{-t} option is specified and no config file is found for
+% the configuration.
 option_x_ignored=11067_N_Ignoring compiler executable suffix $1.
 % Displayed if more than one \var{-t} option is specified.
 %\end{description}
@@ -4319,9 +4320,15 @@ W*2Tembedded_Embedded
 W*2Twasi_The WebAssembly System Interface (WASI)
 # end of targets section
 **1t<x>_Target architecture
+<<<<<<< HEAD
 **2*_ * Defines FPC_SUBTARGET_<x> 
 **2*_ * Defines FPC_SUBTARGET as <arg>
 **2*_ * Additionally reads config file fpc-<subtarget>.cfg
+=======
+**2*_ * Defines FPC_ARCH_<x> 
+**2*_ * Defines FPC_ARCH as <arg>
+**2*_ * Additionally reads config file fpc-<arch>.cfg
+>>>>>>> 12c193974a (* Implement -t and -x options)
 **1u<x>_Undefines the symbol <x>
 **1U_Unit options:
 **2Un_Do not check where the unit name matches the file name
