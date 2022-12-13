@@ -209,8 +209,11 @@ interface
 
       TFPCMakeVerbose = (FPCMakeError, FPCMakeInfo, FPCMakeDebug);
 
+      { TFPCMake }
+
       TFPCMake = class
       private
+        FKnownArchitectures: TStrings;
         FStream         : TStream;
         FFileName       : string;
         FCommentChars   : TSysCharSet;
@@ -270,6 +273,7 @@ interface
         property CommentChars:TSysCharSet read FCommentChars write FCommentChars;
         property EmptyLines:Boolean read FEmptyLines write FEmptyLines;
         property IncludeTargets:TTargetSet read FIncludeTargets write FIncludeTargets;
+        Property KnownArchitectures : TStrings Read FKnownArchitectures;
       end;
 
     function posidx(const substr,s : string;idx:integer):integer;
@@ -649,6 +653,7 @@ implementation
         for c:=low(tcpu) to high(tcpu) do
          for t:=low(tos) to high(tos) do
           FRequireList[c,t]:=TStringList.Create;
+        FKnownArchitectures:=TStringList.Create;
         FVariables:=TKeyValue.Create;
         FCommentChars:=[';','#'];
         FEmptyLines:=false;
@@ -672,6 +677,7 @@ implementation
         for c:=low(tcpu) to high(tcpu) do
          for t:=low(tos) to high(tos) do
           FRequireList[c,t].Free;
+        FKnownArchitectures.Free;
         FVariables.Free;
       end;
 
@@ -1104,7 +1110,7 @@ implementation
       end;
 
 
-    function TFPCMake.GetTargetRequires(c:TCpu;t:Tos):TStringList;
+        function TFPCMake.GetTargetRequires(c: TCpu; t: TOS): TStringList;
       var
         ReqSec  : TFPCMakeSection;
         ReqList : TStringList;
