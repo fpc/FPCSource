@@ -67,6 +67,7 @@ program fpc;
     var
       Info : TSearchRec;
     begin
+      Writeln('Testing :',F);
       FileExists:= findfirst(F,fareadonly+faarchive+fahidden,info)=0;
       findclose(Info);
     end;
@@ -112,6 +113,9 @@ program fpc;
 
   var
      s              : ansistring;
+     tmp,
+     archsuffix,
+     exesuffix,
      cpusuffix,
      processorname,
      ppcbin,
@@ -121,6 +125,8 @@ program fpc;
      ppccommandlinelen : longint;
      i : longint;
      errorvalue     : Longint;
+     found : boolean;
+
   begin
      setlength(ppccommandline,paramcount);
      ppccommandlinelen:=0;
@@ -199,8 +205,16 @@ program fpc;
       for i:=1 to paramcount do
        begin
           s:=paramstr(i);
-          if pos('-V',s)=1 then
-              versionstr:=copy(s,3,length(s)-2)
+          if pos('-x',s)=1 then
+            exesuffix:=copy(s,3,length(s)-2)
+          else if pos('-t',s)=1 then
+            begin
+            archsuffix:=copy(s,3,length(s)-2);
+            ppccommandline[ppccommandlinelen]:=s;
+            inc(ppccommandlinelen);
+            end
+          else if pos('-V',s)=1 then
+            versionstr:=copy(s,3,length(s)-2)
           else
             begin
               if pos('-P',s)=1 then
@@ -310,16 +324,43 @@ program fpc;
 
      if versionstr<>'' then
        ppcbin:=ppcbin+'-'+versionstr;
+     // -x was specified.
+     if exesuffix<>'' then
+       ppcbin:=ppcbin+'-'+exesuffix;
+     Writeln('ppcbin: ',ppcbin);
      { find the full path to the specified exe }
-     if not findexe(ppcbin) then
-        begin
-          if cpusuffix<>'' Then
-            begin
-              ppcbin:='ppc'+cpusuffix;
-              if versionstr<>'' then
-                ppcbin:=ppcbin+'-'+versionstr;
-              findexe(ppcbin);
-            end;
+     // If an architecture was defined, check that first.
+     found:=false;
+     if archsuffix<>'' then
+       begin
+         tmp:=ppcbin;
+         ppcbin:=ppcbin+'-'+archsuffix;
+         Found:=findexe(ppcbin);
+         if not found then
+           begin
+             if cpusuffix<>'' Then
+               begin
+               ppcbin:='ppc'+cpusuffix;
+               if versionstr<>'' then
+                 ppcbin:=ppcbin+'-'+versionstr;
+               ppcbin:=ppcbin+'-'+archsuffix;
+               found:=findexe(ppcbin);
+               end;
+           end;
+         if not found then
+           ppcbin:=tmp;
+       end;
+
+     if not found then
+       if not findexe(ppcbin) then
+         begin
+           if cpusuffix<>'' Then
+             begin
+               ppcbin:='ppc'+cpusuffix;
+               if versionstr<>'' then
+                 ppcbin:=ppcbin+'-'+versionstr;
+               findexe(ppcbin);
+             end;
         end;
 
      { call ppcXXX }

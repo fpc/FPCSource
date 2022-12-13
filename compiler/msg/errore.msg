@@ -4425,6 +4425,7 @@ P*2WT_Specify MPW tool type application (Classic Mac OS)
 6*3WQqhdr_Set metadata to QDOS File Header style (default)
 6*3WQxtcc_Set metadata to XTcc style
 **2WX_Enable executable stack (Linux)
+**1x<suff>_Set suffix for compiler executable (fpc command only).
 **1X_Executable options:
 **2X9_Generate linkerscript for GNU Binutils ld older than version 2.19.1 (Linux)
 **2Xa_Generate code which allows to use more than 2 GB static data on 64 bit targets (Linux)
