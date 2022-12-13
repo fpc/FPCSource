@@ -396,7 +396,7 @@ function LnXP1(x : float) : float;
 
 function Power(base,exponent : float) : float;
 { base^exponent }
-function IntPower(base : float;const exponent : Integer) : float;
+function IntPower(base : float;exponent : longint) : float;
 
 operator ** (bas,expo : float) e: float; inline;
 operator ** (bas,expo : int64) i: int64; inline;
@@ -1070,29 +1070,21 @@ function power(base,exponent : float) : float;
   end;
 
 
-function intpower(base : float;const exponent : Integer) : float;
-  var
-     i : longint;
+function intpower(base : float;exponent : longint) : float;
   begin
-     if (base = 0.0) and (exponent = 0) then
-       result:=1
-     else
-       begin
-         if exponent<0 then
-           base:=1.0/base;
-         i:=abs(exponent);
-         intpower:=1.0;
-         while i>0 do
-           begin
-              while (i and 1)=0 do
-                begin
-                   i:=i shr 1;
-                   base:=sqr(base);
-                end;
-              i:=i-1;
-              intpower:=intpower*base;
-           end;
-       end;
+    if exponent<0 then
+      begin
+        base:=1.0/base;
+        exponent:=-exponent;
+      end;
+    intpower:=1.0;
+    while exponent<>0 do
+      begin
+        if exponent and 1<>0 then
+          intpower:=intpower*base;
+        exponent:=exponent shr 1;
+        base:=sqr(base);
+      end;
   end;
 
 
