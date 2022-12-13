@@ -56,6 +56,7 @@ Type
     paratarget        : tsystem;
     paratargetasm     : tasm;
     paratargetdbg     : tdbg;
+    parasubtarget    : string;
     LinkTypeSetExplicitly : boolean;
     LinkerSetExplicitly : boolean;
     Constructor Create;
@@ -123,8 +124,10 @@ const
 
 var
   option     : toption;
+  read_subfile,         { read subtarget config file, set when a cfgfile is found }
   read_configfile,        { read config file, set when a cfgfile is found }
   disable_configfile : boolean;
+  subcfg,
   fpcdir,
   ppccfg,
   param_file    : string;   { file to compile specified on the commandline }
@@ -1507,7 +1510,7 @@ begin
      not(
          (opt[1]='-') and
          (
-          ((length(opt)>1) and (opt[2] in ['i','d','v','T','u','n','X','l','U'])) or
+          ((length(opt)>1) and (opt[2] in ['i','d','v','T','t','u','n','x','X','l','U'])) or
           ((length(opt)>3) and (opt[2]='F') and (opt[3]='e')) or
           ((length(opt)>2) and (opt[2]='C') and (opt[3] in ['a','b','f','p'])) or
           ((length(opt)>3) and (opt[2]='W') and (opt[3] in ['m','p']))
@@ -2782,6 +2785,22 @@ begin
                 if More<>upper(target_info.shortname) then
                  Message1(option_target_is_already_set,target_info.shortname);
              end;
+           't' :
+             begin
+               more:=Upper(More);
+               if (more='') then
+                 Message1(option_missing_arg,'-t')
+               else
+                 begin
+                 if (self.parasubtarget<>'') and (More<>upper(self.parasubtarget)) then
+                    Message1(option_subtarget_is_already_set,self.parasubtarget)
+                 else
+                    begin
+                    self.parasubtarget:=more;
+                    end;
+                 end;
+
+             end;
 
            'u' :
              if is_identifier(more) then
@@ -3177,7 +3196,8 @@ begin
                   inc(j);
                 end;
              end;
-
+           'x' :
+             message1(option_x_ignored,more);
            'X' :
              begin
                j:=1;
@@ -3768,6 +3788,7 @@ procedure toption.writequickinfo;
 var
   s : string;
   i : longint;
+  emptyOK : Boolean;
 
   procedure addinfo(const hs:string);
   begin
@@ -3778,6 +3799,7 @@ var
   end;
 
 begin
+  emptyOK:=False;
   s:='';
   i:=0;
   while (i<length(quickinfo)) do
@@ -3804,6 +3826,11 @@ begin
              addinfo(lower(target_info.shortname));
            'P' :
              AddInfo(target_cpu_string);
+           'T' :
+             begin
+             addinfo(lower(self.parasubtarget));
+             emptyOK:=True;
+             end
            else
              IllegalPara('-i'+QuickInfo);
           end;
@@ -3820,7 +3847,7 @@ begin
         IllegalPara('-i'+QuickInfo);
     end;
   end;
-  if s<>'' then
+  if (s<>'') or EmptyOK then
    begin
      writeln(s);
      stopoptions(0);
@@ -4154,6 +4181,8 @@ begin
       check_configfile:=false;
    end;
 end;
+
+
 
 procedure read_arguments(cmd:TCmdStr);
 
@@ -4580,6 +4609,16 @@ begin
 
   { don't remove this, it's also for fpdoc necessary (FK) }
   def_system_macro('FPC_HAS_FEATURE_SUPPORT');
+  if (Option.parasubtarget<>'') then
+    begin
+    def_system_macro('FPC_SUBTARGET_'+Option.parasubtarget);
+    if cs_support_macro in init_settings.moduleswitches then
+      set_system_macro('FPC_SUBTARGET',Option.parasubtarget)
+    else
+      set_system_compvar('FPC_SUBTARGET',Option.parasubtarget);
+    // So it can be used in macro substitution.
+    globals.subtarget:=Option.parasubtarget;
+    end;
 
   { make cpu makros available when reading the config files the second time }
   def_cpu_macros;
@@ -4649,6 +4688,14 @@ begin
     read_configfile:=check_configfile(ppccfg,ppccfg)
   else
     read_configfile := false;
+  if (option.parasubtarget<>'') then
+    begin
+    subcfg:='fpc-'+lower(option.parasubtarget)+'.cfg';
+    read_subfile:=check_configfile(subcfg,subcfg);
+    // Warn if we didn't find an architecture-specific file
+    if not read_subfile then
+      message2(option_subtarget_config_not_found,option.parasubtarget,subcfg);
+    end;
 
 { Read commandline and configfile }
   param_file:='';
@@ -4656,6 +4703,8 @@ begin
   { read configfile }
   if read_configfile then
     option.interpret_file(ppccfg);
+  if read_subfile then
+    option.interpret_file(subcfg);
 
   { read parameters again to override config file }
   if cmd<>'' then
