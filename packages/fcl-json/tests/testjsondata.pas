@@ -234,6 +234,8 @@ type
     procedure TestCreateIntegerUnquoted;
     procedure TestCreateInt64;
     procedure TestCreateInt64Unquoted;
+    procedure TestCreateQWord;
+    procedure TestCreateQWordUnquoted;
     procedure TestCreateFloat;
     procedure TestCreateFloatUnquoted;
     procedure TestCreateBoolean;
@@ -3497,7 +3499,7 @@ begin
   AssertEquals('6 Existing case-insensitive match, case insensitive',2,J.IndexOfName(Uppercase(C),true));
 end;
 
-Procedure TTestObject.TestIfFind;
+procedure TTestObject.TestIfFind;
 Var
   B: TJSONBoolean;
   S: TJSONString;
@@ -3797,6 +3799,47 @@ procedure TTestObject.TestCreateInt64Unquoted;
 Const
   A = 'A';
   S : Int64 = $FFFFFFFFFFFFF;
+
+Var
+  O : TJSONObject;
+
+begin
+  TJSONObject.UnQuotedMemberNames:=True;
+  O:=TJSONObject.Create([A,S]);
+  try
+    TestJSONType(O,jtObject);
+    TestItemCount(O,1);
+    TestJSONType(O[A],jtNumber);
+    TestJSON(O,'{ A : '+IntToStr(S)+' }');
+  finally
+    FreeAndNil(O);
+  end;
+end;
+
+procedure TTestObject.TestCreateQWord;
+Const
+  A = 'A';
+  S : QWord = $FFFFFFFFFFFFF;
+
+Var
+  O : TJSONObject;
+
+begin
+  O:=TJSONObject.Create([A,S]);
+  try
+    TestJSONType(O,jtObject);
+    TestItemCount(O,1);
+    TestJSONType(O[A],jtNumber);
+    TestJSON(O,'{ "A" : '+IntToStr(S)+' }');
+  finally
+    FreeAndNil(O);
+  end;
+end;
+
+procedure TTestObject.TestCreateQWordUnquoted;
+Const
+  A = 'A';
+  S : QWord = $FFFFFFFFFFFFF;
 
 Var
   O : TJSONObject;

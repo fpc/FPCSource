@@ -2848,6 +2848,7 @@ begin
                        Result:=CreateJSON();
       vtCurrency   : Result:=CreateJSON(vCurrency^);
       vtInt64      : Result:=CreateJSON(vInt64^);
+      vtQWord      : Result:=CreateJSON(VQWord^);
       vtObject     : if (VObject is TJSONData) then
                        Result:=TJSONData(VObject)
                      else
