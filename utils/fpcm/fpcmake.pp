@@ -21,7 +21,7 @@ program fpcmake;
     uses
       getopts,
       sysutils,
-      fpcmmain,fpcmwr,fpcmpkg;
+      fpcmmain,fpcmwr,fpcmpkg, fpcmdic;
 
     type
       { Verbosity Level }
