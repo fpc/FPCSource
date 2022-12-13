@@ -1104,6 +1104,9 @@ const
   option_valgrind_heaptrc_mismatch=11062;
   option_unsupported_fpu=11063;
   option_too_many_exception_modes=11064;
+  option_subtarget_is_already_set=11065;
+  option_subtarget_config_not_found=11066;
+  option_x_ignored=11067;
   wpo_cant_find_file=12000;
   wpo_begin_processing=12001;
   wpo_end_processing=12002;
@@ -1157,9 +1160,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 90618;
+  MsgTxtSize = 91007;
 
   MsgIdxMax : array[1..20] of longint=(
     28,109,366,132,100,63,148,38,223,71,
-    65,20,30,1,1,1,1,1,1,1
+    68,20,30,1,1,1,1,1,1,1
   );
