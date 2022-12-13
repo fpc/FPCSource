@@ -290,7 +290,7 @@ implementation
                 s:=FInput.GetTargetVariable(c,t,IniVar,false);
                 if s<>'' then
                   begin
-                    FOutput.Add('ifeq ($(FULL_TARGET),'+CPUStr[c]+'-'+OSStr[t]+')');
+                    FOutput.Add('ifeq ($(CPU_OS_TARGET),'+CPUStr[c]+'-'+OSStr[t]+')');
                     FOutput.Add('override '+FixVariable(IniVar)+'+='+s);
                     FOutput.Add('endif');
                   end;
@@ -347,7 +347,7 @@ implementation
                 s:=FInput.GetTargetVariable(c,t,IniVar,false);
                 if s<>'' then
                   begin
-                    FOutput.Add('ifeq ($(FULL_TARGET),'+CpuStr[c]+'-'+OSStr[t]+')');
+                    FOutput.Add('ifeq ($(CPU_OS_TARGET),'+CpuStr[c]+'-'+OSStr[t]+')');
                     AddTokens(s);
                     FOutput.Add('endif');
                   end;
@@ -608,7 +608,7 @@ implementation
                 FInput.Verbose(FPCMakeInfo,CpuStr[c]+'-'+OSStr[t]+' requires: '+sl.CommaText);
                 if sl.count>0 then
                  begin
-                   FOutput.Add('ifeq ($(FULL_TARGET),'+CPUStr[c]+'-'+OSStr[t]+')');
+                   FOutput.Add('ifeq ($(CPU_OS_TARGET),'+CPUStr[c]+'-'+OSStr[t]+')');
                    for i:=0 to sl.count-1 do
                     begin
                       FOutput.Add(prefix+VarName(sl[i])+'=1');
