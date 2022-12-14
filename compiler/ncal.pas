@@ -211,6 +211,7 @@ interface
 {$endif DEBUG_NODE_XML}
           function  para_count:longint;
           function  required_para_count:longint;
+          function  GetParaFromIndex(const Index: Integer): TCallParaNode;
           { checks if there are any parameters which end up at the stack, i.e.
             which have LOC_REFERENCE and set pi_has_stackparameter if this applies }
           procedure check_stack_parameters;
@@ -247,6 +248,9 @@ interface
           fparacopyback: tnode;
           callparaflags : tcallparaflags;
           parasym       : tparavarsym;
+          { The original order of the parameters prior to the "order_parameters"
+            call, or -1 if not yet configured }
+          originalindex: Integer;
           { only the processor specific nodes need to override this }
           { constructor                                             }
           constructor create(expr,next : tnode);virtual;
@@ -952,6 +956,7 @@ implementation
            internalerror(200305091);
          expr.fileinfo:=fileinfo;
          callparaflags:=[];
+         originalindex:=-1;
          if expr.nodetype = typeconvn then
            ttypeconvnode(expr).warn_pointer_to_signed:=false;
       end;
@@ -2097,6 +2102,39 @@ implementation
               inc(result);
             ppn:=tcallparanode(ppn.right);
           end;
+      end;
+
+
+    function tcallnode.GetParaFromIndex(const Index: Integer): TCallParaNode;
+      var
+        hp : TCallParaNode;
+        Count: Integer;
+      begin
+        Result := nil;
+        Count := 0;
+
+        hp := TCallParaNode(left);
+        repeat
+          { If the original indices have not yet been set, just go by the order
+            they appear in the node tree }
+          if hp.originalindex = -1 then
+            begin
+              if Count = Index then
+                begin
+                  Result := hp;
+                  Exit;
+                end;
+
+              Inc(Count);
+            end
+          else if hp.originalindex = Index then
+            begin
+              Result := hp;
+              Exit;
+            end;
+
+          hp := TCallParaNode(hp.right);
+        until not Assigned(hp);
       end;
 
 
@@ -4233,13 +4271,22 @@ implementation
       var
         hp,hpcurr,hpnext,hpfirst,hpprev : tcallparanode;
         currloc : tcgloc;
+        indexcount: Integer;
       begin
+        indexcount:=0;
         hpfirst:=nil;
         hpcurr:=tcallparanode(left);
         { cache all info about parameters containing stack tainting calls,
           since we will need it a lot below and calculting it can be expensive }
         while assigned(hpcurr) do
           begin
+            { Also remember the original parameter order for the sake of
+              tcallnode.simplify }
+            if hpcurr.originalindex = -1 then
+              begin
+                hpcurr.originalindex := indexcount;
+                Inc(indexcount);
+              end;
             hpcurr.init_contains_stack_tainting_call_cache;
             hpcurr:=tcallparanode(hpcurr.right);
           end;
