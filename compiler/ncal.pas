@@ -92,6 +92,7 @@ interface
           function  pass1_normal:tnode;
           procedure register_created_object_types;
           function get_expect_loc: tcgloc;
+          function  handle_compilerproc: tnode;
 
        protected
           function safe_call_self_node: tnode;
@@ -201,6 +202,7 @@ interface
           procedure insertintolist(l : tnodelist);override;
           function  pass_1 : tnode;override;
           function  pass_typecheck:tnode;override;
+          function  simplify(forinline : boolean) : tnode;override;
        {$ifdef state_tracking}
           function track_state_pass(exec_known:boolean):boolean;override;
        {$endif state_tracking}
@@ -2724,6 +2726,82 @@ implementation
       end;
 
 
+    function tcallnode.handle_compilerproc: tnode;
+      var
+        para: TCallParaNode;
+        maxlennode, outnode, valnode: TNode;
+        MaxStrLen: Int64;
+        StringLiteral: string;
+      begin
+        result := nil;
+        case intrinsiccode of
+          in_str_x_string:
+            begin
+              { If n is a constant, attempt to convert, for example:
+                  "Str(5, Output);" to "Output := '5';" }
+
+              { Format of the internal function (also for fpc_shortstr_uint) is:
+                $fpc_shortstr_sint(Int64;Int64;out OpenString;<const Int64>); }
+
+              { Remember the parameters are in reverse order - the leftmost one
+                can usually be ignored }
+              para := GetParaFromIndex(1);
+              if Assigned(para) then
+                begin
+                  { Output variable }
+                  outnode := para.left;
+                  para := GetParaFromIndex(2);
+
+                  if Assigned(para) then
+                    begin
+                      { Maximum length }
+                      maxlennode := para.left;
+                      if is_integer(maxlennode.resultdef) then
+                        begin
+                          para := GetParaFromIndex(3);
+
+                          while (maxlennode.nodetype = typeconvn) and (ttypeconvnode(maxlennode).convtype in [tc_equal, tc_int_2_int]) do
+                            begin
+                              maxlennode := ttypeconvnode(maxlennode).left;
+                            end;
+
+                          if Assigned(para) and is_constintnode(maxlennode) then
+                            begin
+                              { Numeric value }
+                              valnode := para.left;
+                              if is_integer(valnode.resultdef) and not Assigned(GetParaFromIndex(4)) then
+                                begin
+                                  while (valnode.nodetype = typeconvn) and (ttypeconvnode(valnode).convtype in [tc_equal, tc_int_2_int]) do
+                                    begin
+                                      valnode := ttypeconvnode(valnode).left;
+                                    end;
+
+                                  if is_constintnode(valnode) then
+                                    begin
+                                      MaxStrLen := TOrdConstNode(maxlennode).value.svalue;
+
+                                      { If we've gotten this far, we can convert the node into a direct assignment }
+                                      StringLiteral := tostr(tordconstnode(valnode).value);
+                                      if MaxStrLen <> -1 then
+                                        SetLength(StringLiteral, Integer(MaxStrLen));
+
+                                      result := cassignmentnode.create(
+                                        outnode.getcopy,
+                                        cstringconstnode.createstr(StringLiteral)
+                                      );
+                                    end;
+                                end;
+                            end;
+                        end;
+                    end;
+                end;
+            end;
+          else
+            ;
+        end;
+      end;
+
+
     function tcallnode.safe_call_self_node: tnode;
       begin
         if not assigned(call_self_node) then
@@ -4264,6 +4342,16 @@ implementation
          finally
            aktcallnode:=oldcallnode;
          end;
+      end;
+
+
+    function tcallnode.simplify(forinline : boolean) : tnode;
+      begin
+        { See if there's any special handling we can do based on the intrinsic code }
+        if (intrinsiccode <> Default(TInlineNumber)) then
+          result := handle_compilerproc
+        else
+          result := nil;
       end;
 
 
