@@ -5438,7 +5438,7 @@ end;
 
 procedure TCustomInstaller.Log(Level: TVerboseLevel; Const Msg: String);
 begin
-  If Level in FLogLevels then
+  If (Level in FLogLevels) or (ListMode and (level=vlCommand)) then
     begin
     Writeln(StdOut, Msg);
     Flush(StdOut);
@@ -6558,7 +6558,8 @@ begin
       EnterCriticalSection(FGeneralCriticalSection);
       try
 {$endif NO_THREADING}
-      if Level in [vlInfo,vlDebug] then
+      if (Level in [vlInfo,vlDebug])
+         or (ListMode and (level=vlCommand)) then
         FOnLog(Level,GLogPrefix+Msg)
       else
         FOnLog(Level,Msg);
