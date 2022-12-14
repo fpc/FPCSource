@@ -123,6 +123,8 @@ begin
                           P.Options.Add('-Fl/opt/freeware/lib');
                           P.Options.Add('-k-bbigtoc');
                         end;
+            else
+              ; // Avoid compiler warning
             end; {case}
 
             P.NeedLibc := true;
