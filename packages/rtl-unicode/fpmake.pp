@@ -10,7 +10,7 @@ procedure add_rtl_unicode(const ADirectory: string);
 Const
   // All Unices have full set of KVM+Crt in unix/ except QNX which is not
   // in workable state atm.
-  UnixLikes = AllUnixOSes -[QNX];
+  // UnixLikes = AllUnixOSes -[QNX];
 
   CollationOSes = [aix,android,darwin,emx,freebsd,go32v2,linux,netbsd,openbsd,os2,solaris,win32,win64,dragonfly,haiku,freertos,watcom,wasi];
   CPUnits       = [aix,amiga,aros,android,beos,darwin,iphonesim,ios,emx,gba,nds,freebsd,go32v2,haiku,linux,morphos,netbsd,netware,netwlibc,openbsd,os2,solaris,watcom,wii,win32,win64,wince,dragonfly,freertos,wasi];
