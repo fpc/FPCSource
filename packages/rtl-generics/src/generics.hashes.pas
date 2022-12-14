@@ -122,6 +122,10 @@ var
   mORMotHasher: THasher;
 
 implementation
+{$ifdef CPUINTEL}
+  uses
+    cpu;
+{$endif CPUINTEL}
 
 function SimpleChecksumHash(AKey: Pointer; ALength: SizeInt): UInt32;
 var
@@ -1241,210 +1245,80 @@ end;
 
 {$ifdef CPUINTEL}
 
-type
- TRegisters = record
-   eax,ebx,ecx,edx: cardinal;
- end;
-
 {$ifdef CPU64}
-procedure GetCPUID(Param: Cardinal; var Registers: TRegisters); nostackframe; assembler;
+function crc32csse42(crc: cardinal; buf: PAnsiChar; len: cardinal): cardinal; nostackframe; assembler; 
 asm
-        {$ifdef win64}
-        mov     eax, ecx
-        mov     r9, rdx
-        {$else}
-        mov     eax, edi
-        mov     r9, rsi
-        {$endif win64}
-        mov     r10, rbx // preserve rbx
-        xor     ebx, ebx
-        xor     ecx, ecx
-        xor     edx, edx
-        cpuid
-        mov     TRegisters(r9).&eax, eax
-        mov     TRegisters(r9).&ebx, ebx
-        mov     TRegisters(r9).&ecx, ecx
-        mov     TRegisters(r9).&edx, edx
-        mov     rbx, r10
-end;
-
-function crc32csse42(crc: cardinal; buf: Pointer; len: cardinal): cardinal; nostackframe; assembler;
-asm // ecx=crc, rdx=buf, r8=len (Linux: edi,rsi,rdx)
-        {$ifdef win64}
-        mov     eax, ecx
-        {$else}
-        mov     eax, edi
-        mov     r8, rdx
-        mov     rdx, rsi
-        {$endif win64}
+        mov     eax, crc
+        test    len, len
+        jz      @z
+        test    buf, buf
+        jz      @z
         not     eax
-        test    rdx, rdx
-        jz      @0
-        test    r8, r8
-        jz      @0
-@7:     test    dl, 7
-        jz      @8 // align to 8 bytes boundary
-        crc32   eax, byte ptr[rdx]
-        inc     rdx
-        dec     r8
-        jz      @0
-        test    dl, 7
-        jnz     @7
-@8:     mov     rcx, r8
-        shr     r8, 3
+        mov     ecx, len
+        shr     len, 3
+        jnz     @by8 // we don't care for read alignment
+@0:     test    cl, 4
+        jz      @4
+        crc32   eax, dword ptr [buf]
+        add     buf, 4
+@4:     test    cl, 2
         jz      @2
-@1:
-        crc32   rax, qword [rdx] // hash 8 bytes per loop
-        dec     r8
-        lea     rdx, [rdx + 8]
-        jnz     @1
-@2:     and     ecx, 7
-        jz      @0
-        cmp     ecx, 4
-        jb      @4
-        crc32   eax, dword ptr[rdx]
-        sub     ecx, 4
-        lea     rdx, [rdx + 4]
-        jz      @0
-@4:     crc32   eax, byte ptr[rdx]
-        dec     ecx
-        jz      @0
-        crc32   eax, byte ptr[rdx + 1]
-        dec     ecx
-        jz      @0
-        crc32   eax, byte ptr[rdx + 2]
-@0:     not     eax
+        crc32   eax, word ptr [buf]
+        add     buf, 2
+@2:     test    cl, 1
+        jz      @1
+        crc32   eax, byte ptr [buf]
+@1:     not     eax
+@z:     ret
+        align 16
+@by8:   crc32   rax, qword ptr [buf] // hash 8 bytes per loop
+        add     buf, 8
+        sub     len, 1
+        jnz     @by8
+        jmp     @0
 end;
-{$endif CPU64}
-
-{$ifdef CPUX86}
-procedure GetCPUID(Param: Cardinal; var Registers: TRegisters);
+{$else}
+function crc32csse42(crc: cardinal; buf: PAnsiChar; len: cardinal): cardinal; nostackframe; assembler;
 asm
-        push    esi
-        push    edi
-        mov     esi, edx
-        mov     edi, eax
-        pushfd
-        pop     eax
-        mov     edx, eax
-        xor     eax, $200000
-        push    eax
-        popfd
-        pushfd
-        pop     eax
-        xor     eax, edx
-        jz      @nocpuid
-        push    ebx
-        mov     eax, edi
-        xor     ecx, ecx
-        cpuid
-        mov     TRegisters(esi).&eax, eax
-        mov     TRegisters(esi).&ebx, ebx
-        mov     TRegisters(esi).&ecx, ecx
-        mov     TRegisters(esi).&edx, edx
-        pop     ebx
-@nocpuid:
-        pop     edi
-        pop     esi
-end;
-
-function crc32csse42(crc: cardinal; buf: Pointer; len: cardinal): cardinal;
-asm // eax=crc, edx=buf, ecx=len
+        // eax=crc, edx=buf, ecx=len
         not     eax
         test    ecx, ecx
         jz      @0
         test    edx, edx
         jz      @0
-@3:     test    edx, 3
-        jz      @8 // align to 4 bytes boundary
-        crc32   eax, byte ptr[edx]
+        jmp     @align
+@a:     crc32   eax, byte ptr [edx]
         inc     edx
         dec     ecx
         jz      @0
-        test    edx, 3
-        jnz     @3
-@8:     push    ecx
+@align: test    dl, 3
+        jnz     @a
+        push    ecx
         shr     ecx, 3
+        jnz     @by8
+@rem:   pop     ecx
+        test    cl, 4
+        jz      @4
+        crc32   eax, dword ptr [edx]
+        add     edx, 4
+@4:     test    cl, 2
         jz      @2
-@1:
-        crc32   eax, dword ptr[edx]
-        crc32   eax, dword ptr[edx + 4]
-        dec     ecx
-        lea     edx, [edx + 8]
-        jnz     @1
-@2:     pop     ecx
-        and     ecx, 7
+        crc32   eax, word ptr [edx]
+        add     edx, 2
+@2:     test    cl, 1
         jz      @0
-        cmp     ecx, 4
-        jb      @4
-        crc32   eax, dword ptr[edx]
-        sub     ecx, 4
-        lea     edx, [edx + 4]
-        jz      @0
-@4:
-        crc32   eax, byte ptr[edx]
-        dec     ecx
-        jz      @0
-        crc32   eax, byte ptr[edx + 1]
-        dec     ecx
-        jz      @0
-        crc32   eax, byte ptr[edx + 2]
+        crc32   eax, byte ptr [edx]
 @0:     not     eax
+        ret
+@by8:   crc32   eax, dword ptr [edx]
+        crc32   eax, dword ptr [edx + 4]
+        add     edx, 8
+        dec     ecx
+        jnz     @by8
+        jmp     @rem
 end;
-{$endif CPUX86}
+{$endif}
 
-type
-  /// the potential features, retrieved from an Intel CPU
-  // - see https://en.wikipedia.org/wiki/CPUID#EAX.3D1:_Processor_Info_and_Feature_Bits
-  TIntelCpuFeature =
-   ( { in EDX }
-   cfFPU, cfVME, cfDE, cfPSE, cfTSC, cfMSR, cfPAE, cfMCE,
-   cfCX8, cfAPIC, cf_d10, cfSEP, cfMTRR, cfPGE, cfMCA, cfCMOV,
-   cfPAT, cfPSE36, cfPSN, cfCLFSH, cf_d20, cfDS, cfACPI, cfMMX,
-   cfFXSR, cfSSE, cfSSE2, cfSS, cfHTT, cfTM, cfIA64, cfPBE,
-   { in ECX }
-   cfSSE3, cfCLMUL, cfDS64, cfMON, cfDSCPL, cfVMX, cfSMX, cfEST,
-   cfTM2, cfSSSE3, cfCID, cfSDBG, cfFMA, cfCX16, cfXTPR, cfPDCM,
-   cf_c16, cfPCID, cfDCA, cfSSE41, cfSSE42, cfX2A, cfMOVBE, cfPOPCNT,
-   cfTSC2, cfAESNI, cfXS, cfOSXS, cfAVX, cfF16C, cfRAND, cfHYP,
-   { extended features in EBX, ECX }
-   cfFSGS, cf_b01, cfSGX, cfBMI1, cfHLE, cfAVX2, cf_b06, cfSMEP,
-   cfBMI2, cfERMS, cfINVPCID, cfRTM, cfPQM, cf_b13, cfMPX, cfPQE,
-   cfAVX512F, cfAVX512DQ, cfRDSEED, cfADX, cfSMAP, cfAVX512IFMA, cfPCOMMIT, cfCLFLUSH,
-   cfCLWB, cfIPT, cfAVX512PF, cfAVX512ER, cfAVX512CD, cfSHA, cfAVX512BW, cfAVX512VL,
-   cfPREFW1, cfAVX512VBMI, cfUMIP, cfPKU, cfOSPKE, cf_c05, cf_c06, cf_c07,
-   cf_c08, cf_c09, cf_c10, cf_c11, cf_c12, cf_c13, cfAVX512VPC, cf_c15,
-   cf_cc16, cf_c17, cf_c18, cf_c19, cf_c20, cf_c21, cfRDPID, cf_c23,
-   cf_c24, cf_c25, cf_c26, cf_c27, cf_c28, cf_c29, cfSGXLC, cf_c31,
-   cf_d0, cf_d1, cfAVX512NNI, cfAVX512MAS, cf_d4, cf_d5, cf_d6, cf_d7);
-
-  /// all features, as retrieved from an Intel CPU
-  TIntelCpuFeatures = set of TIntelCpuFeature;
-
-var
-  /// the available CPU features, as recognized at program startup
-  CpuFeatures: TIntelCpuFeatures;
-
-procedure TestIntelCpuFeatures;
-var regs: TRegisters;
-begin
-  regs.edx := 0;
-  regs.ecx := 0;
-  GetCPUID(1,regs);
-  PIntegerArray(@CpuFeatures)^[0] := regs.edx;
-  PIntegerArray(@CpuFeatures)^[1] := regs.ecx;
-  GetCPUID(7,regs);
-  PIntegerArray(@CpuFeatures)^[2] := regs.ebx;
-  PIntegerArray(@CpuFeatures)^[3] := regs.ecx;
-  PByte(@PIntegerArray(@CpuFeatures)^[4])^ := regs.edx;
-//  assert(sizeof(CpuFeatures)=4*4+1);
-  {$ifdef Darwin}
-  {$ifdef CPU64}
-  // SSE42 asm does not (yet) work on Darwin x64 ...
-  Exclude(CpuFeatures, cfSSE42);
-  {$endif}
-  {$endif}
-end;
 {$endif CPUINTEL}
 
 var
@@ -1600,8 +1474,7 @@ end;
 
 begin
   {$ifdef CPUINTEL}
-  TestIntelCpuFeatures;
-  if cfSSE42 in CpuFeatures then
+  if SSE42Support then
   begin
     crc32c := @crc32csse42;
     mORMotHasher := @crc32csse42;
