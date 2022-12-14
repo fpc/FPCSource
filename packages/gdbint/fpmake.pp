@@ -14,9 +14,11 @@ procedure BeforeCompile_gdbint(Sender: TObject);
 var
   L : TStrings;
   P : TPackage;
-  GdbLibDir, GdbLibFile: string;
+  Cmd,GdbLibDir, GdbLibFile: string;
   GdbLibFound: boolean;
   GdbintTarget, GdbVerTarget: TTarget;
+  Opts : TStrings;
+
 begin
   P := Sender as TPackage;
   // Search for a libgdb file.
@@ -90,10 +92,19 @@ begin
       Installer.BuildEngine.CreateOutputDir(p);
       Installer.BuildEngine.Log(vlCommand,'GDB-lib found, compiling and running gdbver to obtain GDB-version');
       Installer.BuildEngine.Compile(P,GdbVerTarget);
-      Installer.BuildEngine.ExecuteCommand(Installer.BuildEngine.AddPathPrefix(p,p.
-        GetBinOutputDir(Defaults.CPU, Defaults.OS))+PathDelim+
-        AddProgramExtension('gdbver',Defaults.BuildOS),'-o ' +
-        Installer.BuildEngine.AddPathPrefix(p,'src'+PathDelim+'gdbver.inc'));
+      Cmd:=Installer.BuildEngine.AddPathPrefix(p,
+            p.GetBinOutputDir(Defaults.CPU, Defaults.OS))+
+            PathDelim+
+            AddProgramExtension('gdbver',Defaults.BuildOS);
+      Opts:=TStringList.Create;
+      try
+        Opts.Add('-o');
+        Opts.Add(Installer.BuildEngine.AddPathPrefix(p,'src'+PathDelim+'gdbver.inc'));
+        Installer.BuildEngine.ExecuteCommand(Cmd,Opts);
+      finally
+        opts.Free;
+      end;
+
 
       with GdbintTarget.Dependencies do
         AddInclude('gdbver.inc');
