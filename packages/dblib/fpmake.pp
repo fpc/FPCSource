@@ -13,7 +13,7 @@ Const
 
 Var
   P : TPackage;
-  T : TTarget;
+
 begin
   With Installer do
     begin
