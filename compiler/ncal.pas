@@ -36,7 +36,7 @@ interface
        nstate,
        {$endif state_tracking}
        symbase,symtype,symsym,symdef,symtable,
-       pgentype;
+       pgentype,compinnr;
 
     type
        tcallnodeflag = (
@@ -159,6 +159,10 @@ interface
           { varargs parasyms }
           varargsparas : tvarargsparalist;
 
+          { If an inline node is transmuted into a call node, this is the index of
+            the original internal routine }
+          intrinsiccode : TInlineNumber;
+
           { separately specified resultdef for some compilerprocs (e.g.
             you can't have a function with an "array of char" resultdef
             the RTL) (JM)
@@ -173,6 +177,7 @@ interface
           constructor create(l:tnode; v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags;sc:tspecializationcontext);virtual;
           constructor create_procvar(l,r:tnode);
           constructor createintern(const name: string; params: tnode);
+          constructor createfromintrinsic(const intrinsic: TInlineNumber; const name: string; params: tnode);
           constructor createinternfromunit(const fromunit, procname: string; params: tnode);
           constructor createinternres(const name: string; params: tnode; res:tdef);
           constructor createinternresfromunit(const fromunit, procname: string; params: tnode; res:tdef);
@@ -317,7 +322,7 @@ implementation
       systems,
       verbose,globals,fmodule,ppu,
       aasmbase,aasmdata,
-      symconst,defutil,defcmp,compinnr,
+      symconst,defutil,defcmp,
       htypechk,pass_1,
       ncnv,nflw,nld,ninl,nadd,ncon,nmem,nset,nobjc,
       pgenutil,
@@ -1538,6 +1543,7 @@ implementation
          funcretnode:=nil;
          paralength:=-1;
          varargsparas:=nil;
+         intrinsiccode:=Default(TInlineNumber);
          if assigned(current_structdef) and
             assigned(mp) and
             assigned(current_procinfo) then
@@ -1581,6 +1587,13 @@ implementation
             (srsym.typ<>procsym) then
            Message1(cg_f_unknown_compilerproc,name);
          create(params,tprocsym(srsym),srsym.owner,nil,[],nil);
+       end;
+
+
+     constructor tcallnode.createfromintrinsic(const intrinsic: TInlineNumber; const name: string; params: tnode);
+       begin
+         createintern(name, params);
+         intrinsiccode := intrinsic;
        end;
 
 
@@ -1692,6 +1705,7 @@ implementation
         symtableproc:=nil;
         ppufile.getderef(procdefinitionderef);
         ppufile.getset(tppuset4(callnodeflags));
+        intrinsiccode:=TInlineNumber(ppufile.getword);
       end;
 
 
@@ -1707,6 +1721,7 @@ implementation
         ppufile.putderef(symtableprocentryderef);
         ppufile.putderef(procdefinitionderef);
         ppufile.putset(tppuset4(callnodeflags));
+        ppufile.putword(word(intrinsiccode));
       end;
 
 
@@ -1889,6 +1904,9 @@ implementation
               WriteLn(T, PrintNodeIndention, '<procname>', symtableprocentry.name, '</procname>')
           end;
 
+        if intrinsiccode <> Default(TInlineNumber) then
+          WriteLn(T, PrintNodeIndention, '<intrinsiccode>', intrinsiccode, '</intrinsiccode>');
+
         if assigned(methodpointer) then
           begin
             WriteLn(T, PrintNodeIndention, '<methodpointer>');
@@ -1941,6 +1959,9 @@ implementation
             else
               writeln(t,printnodeindention,'proc = <nil>');
           end;
+
+        if intrinsiccode <> Default(TInlineNumber) then
+          writeln(t,printnodeindention,'intrinsiccode = ', intrinsiccode);
 
         if assigned(methodpointer) then
           begin
