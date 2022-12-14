@@ -252,6 +252,7 @@ implementation
         procname: string;
         is_real,is_enum : boolean;
         rt : aint;
+        intrinsiccode: TInlineNumber;
 
       begin
         result := cerrornode.create;
@@ -399,6 +400,8 @@ implementation
         { since they're reused                                                     }
         left := nil;
 
+        intrinsiccode := Default(TInlineNumber);
+
         { create procedure name }
         if is_chararray(dest.resultdef) then
           procname:='fpc_chararray_'
@@ -417,7 +420,10 @@ implementation
             bool8bit,bool16bit,bool32bit,bool64bit:
               procname := procname + 'bool';
             else
-              procname := procname + get_str_int_func(source.resultdef);
+              begin
+                intrinsiccode := in_str_x_string;
+                procname := procname + get_str_int_func(source.resultdef);
+              end;
           end;
 
         { for ansistrings insert the encoding argument }
@@ -428,7 +434,7 @@ implementation
         { free the errornode we generated in the beginning }
         result.free;
         { create the call node, }
-        result := ccallnode.createintern(procname,newparas);
+        result := ccallnode.createfromintrinsic(intrinsiccode,procname,newparas);
       end;
 
 
