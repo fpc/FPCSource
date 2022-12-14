@@ -12,7 +12,6 @@ Const
   TargetsWithfpWeb = [linux,beos,haiku,freebsd,netbsd,openbsd,darwin,iphonesim,ios,solaris,win32,win64,wince,aix,dragonfly];
 
 Var
-  T : TTarget;
   P : TPackage;
 begin
   With Installer do
