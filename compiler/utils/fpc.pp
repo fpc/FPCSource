@@ -114,7 +114,7 @@ program fpc;
   var
      s              : ansistring;
      tmp,
-     archsuffix,
+     subsuffix,
      exesuffix,
      cpusuffix,
      processorname,
@@ -209,7 +209,7 @@ program fpc;
             exesuffix:=copy(s,3,length(s)-2)
           else if pos('-t',s)=1 then
             begin
-            archsuffix:=copy(s,3,length(s)-2);
+            subsuffix:=copy(s,3,length(s)-2);
             ppccommandline[ppccommandlinelen]:=s;
             inc(ppccommandlinelen);
             end
@@ -331,10 +331,10 @@ program fpc;
      { find the full path to the specified exe }
      // If an architecture was defined, check that first.
      found:=false;
-     if archsuffix<>'' then
+     if subsuffix<>'' then
        begin
          tmp:=ppcbin;
-         ppcbin:=ppcbin+'-'+archsuffix;
+         ppcbin:=ppcbin+'-'+subsuffix;
          Found:=findexe(ppcbin);
          if not found then
            begin
@@ -343,7 +343,7 @@ program fpc;
                ppcbin:='ppc'+cpusuffix;
                if versionstr<>'' then
                  ppcbin:=ppcbin+'-'+versionstr;
-               ppcbin:=ppcbin+'-'+archsuffix;
+               ppcbin:=ppcbin+'-'+subsuffix;
                found:=findexe(ppcbin);
                end;
            end;

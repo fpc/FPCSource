@@ -3629,9 +3629,9 @@ option_unsupported_fpu=11063_F_The selected FPU type "$1" is not supported by th
 % Not all instruction sets support all FPU types. For example on ARM, Thumb(-1) supports no FPU/VFP instruction set
 option_too_many_exception_modes=11064_E_Only one WebAssembly exception support mode can be specified.
 % Only one WebAssembly exception support mode (NOEXCEPTIONS, JSEXCEPTIONS, BFEXCEPTIONS or NATIVEEXCEPTIONS) can be specified.
-option_architecture_is_already_set=11065_W_Architecture is already set to: $1
+option_subtarget_is_already_set=11065_W_Subtarget is already set to: $1
 % Displayed if more than one \var{-t} option is specified.
-option_architecture_config_not_found=11066_W_Architecture $1 specified but no corresponding config file $2 found.
+option_subtarget_config_not_found=11066_W_Subtarget $1 specified but no corresponding config file $2 found.
 % Displayed if more than one \var{-t} option is specified.
 option_x_ignored=11067_N_Ignoring compiler executable suffix $1.
 % Displayed if more than one \var{-t} option is specified.
