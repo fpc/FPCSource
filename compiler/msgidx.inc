@@ -1104,8 +1104,8 @@ const
   option_valgrind_heaptrc_mismatch=11062;
   option_unsupported_fpu=11063;
   option_too_many_exception_modes=11064;
-  option_architecture_is_already_set=11065;
-  option_architecture_config_not_found=11066;
+  option_subtarget_is_already_set=11065;
+  option_subtarget_config_not_found=11066;
   option_x_ignored=11067;
   wpo_cant_find_file=12000;
   wpo_begin_processing=12001;
@@ -1162,6 +1162,7 @@ const
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   MsgTxtSize = 90570;
 =======
   MsgTxtSize = 90867;
@@ -1169,6 +1170,9 @@ const
 =======
   MsgTxtSize = 90933;
 >>>>>>> 317064c473 (* Implement -x and -t options for fpc executable)
+=======
+  MsgTxtSize = 90927;
+>>>>>>> 13368ac5cc (* Rename architecture to more neutral subtarget)
 
   MsgIdxMax : array[1..20] of longint=(
     28,109,366,132,100,63,148,38,223,71,
