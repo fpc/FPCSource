@@ -4320,15 +4320,8 @@ W*2Tembedded_Embedded
 W*2Twasi_The WebAssembly System Interface (WASI)
 # end of targets section
 **1t<x>_Target architecture
-<<<<<<< HEAD
 **2*_ * Defines FPC_SUBTARGET_<x> 
-**2*_ * Defines FPC_SUBTARGET as <arg>
-**2*_ * Additionally reads config file fpc-<subtarget>.cfg
-=======
-**2*_ * Defines FPC_ARCH_<x> 
-**2*_ * Defines FPC_ARCH as <arg>
-**2*_ * Additionally reads config file fpc-<arch>.cfg
->>>>>>> 12c193974a (* Implement -t and -x options)
+**2*_ * Additionally reads config file fpc-<x>.cfg
 **1u<x>_Undefines the symbol <x>
 **1U_Unit options:
 **2Un_Do not check where the unit name matches the file name
