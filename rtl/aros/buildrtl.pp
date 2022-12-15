@@ -11,7 +11,10 @@ unit buildrtl;
 
       exeinfo,
 {$ifdef cpui386}
-      lineinfo,
+      cpu, mmx, lineinfo,
+{$endif}
+{$ifdef cpux86_64}
+      cpu,
 {$endif}
 
       typinfo, sortbase, fgl, classes,
