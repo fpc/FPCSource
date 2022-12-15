@@ -2760,7 +2760,7 @@ begin
                  Message1(option_missing_arg,'-t')
                else
                  begin
-                 if More<>upper(self.parasubtarget) then
+                 if (self.parasubtarget<>'') and (More<>upper(self.parasubtarget)) then
                     Message1(option_subtarget_is_already_set,self.parasubtarget)
                  else
                     self.parasubtarget:=more;
