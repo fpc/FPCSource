@@ -25,26 +25,46 @@ Type
   TDebugLevel = (dlInformation,dlWarning,dlError);
   TErrorLevel = Array[TDebugLevel] of integer;
 
-procedure SendBoolean(const Identifier: string; const Value: Boolean);
-procedure SendDateTime(const Identifier: string; const Value: TDateTime);
-procedure SendInteger(const Identifier: string; const Value: Integer; HexNotation: Boolean = False);
-procedure SendPointer(const Identifier: string; const Value: Pointer);
-procedure SendDebugEx(const Msg: string; MType: TDebugLevel);
-procedure SendDebug(const Msg: string);
-procedure SendMethodEnter(const MethodName: string);
-procedure SendMethodExit(const MethodName: string);
-procedure SendSeparator;
-procedure SendDebugFmt(const Msg: string; const Args: array of const);
-procedure SendDebugFmtEx(const Msg: string; const Args: array of const; MType: TDebugLevel);
+//Result is true on success. See RaiseExceptionOnSendError.
+function SendBoolean    (const Identifier: string; const Value: Boolean) : Boolean;
+//Result is true on success. See RaiseExceptionOnSendError.
+function SendDateTime   (const Identifier: string; const Value: TDateTime) : Boolean;
+//Result is true on success. See RaiseExceptionOnSendError.
+function SendInteger    (const Identifier: string; const Value: Integer;
+                         HexNotation: Boolean = False) : Boolean;
+//Result is true on success. See RaiseExceptionOnSendError.
+function SendPointer    (const Identifier: string; const Value: Pointer) : Boolean;
+//Result is true on success. See RaiseExceptionOnSendError.
+function SendDebugEx    (const Msg: string; MType: TDebugLevel) : Boolean;
+//Result is true on success. See RaiseExceptionOnSendError.
+function SendDebug      (const Msg: string) : Boolean;
+//Result is true on success. See RaiseExceptionOnSendError.
+function SendMethodEnter(const MethodName: string) : Boolean;
+//Result is true on success. See RaiseExceptionOnSendError.
+function SendMethodExit (const MethodName: string) : Boolean;
+//Result is true on success. See RaiseExceptionOnSendError.
+function SendSeparator : Boolean;
+//Result is true on success. See RaiseExceptionOnSendError.
+function SendDebugFmt   (const Msg: string; const Args: array of const) : Boolean;
+//Result is true on success. See RaiseExceptionOnSendError.
+function SendDebugFmtEx (const Msg: string; const Args: array of const;
+                         MType: TDebugLevel) : Boolean;
 
 procedure SetDebuggingEnabled(const AValue : boolean);
 function GetDebuggingEnabled : Boolean;
 
 { low-level routines }
 
-Function StartDebugServer(const aLogFilename : String = '') : integer;
-Function InitDebugClient : Boolean;
-function InitDebugClient(const ShowPID: Boolean; const ServerLogFilename: String = ''): Boolean;
+//Start the debug server and return its ProcessID.
+function StartDebugServer(const ADebugServerExe : String = '';
+                          const ARaiseExceptionOnSendError : Boolean = False;
+                          const aLogFilename : String = '') : integer;
+//Initialize the debug client and start the server.
+function InitDebugClient : Boolean;
+//Initialize the debug client and start the server.
+function InitDebugClient(const ShowPID: Boolean; const ADebugServerExe : String = '';
+                         const ARaiseExceptionOnSendError : Boolean = False;
+                         const ServerLogFilename: String = ''): Boolean;
 procedure FreeDebugClient;
 
 ResourceString
@@ -52,17 +72,21 @@ ResourceString
   SEntering = '> Entering ';
   SExiting  = '< Exiting ';
   SSeparator = '>-=-=-=-=-=-=-=-=-=-=-=-=-=-=-<';
-  SServerStartFailed = 'Failed to start debugserver. (%s)';
+  SServerStartFailed = 'Failed to start debugserver (%s). (%s)';
 
 Var
-  DebugServerExe     : String = ''; { We can override this global var. in our compiled IPC client, with DefaultDebugServer a.k.a. dbugmsg.DebugServerID, or something else  }
-  DefaultDebugServer : String = DebugServerID ; { A "last ressort" simplier compiled IPC server's name, called in command line by your client a.k.a. the compiler's target file "-o" }
-  SendError          : String = '';
+  DebugServerExe            : String = ''; { We can override this global var. in our compiled IPC client, with DefaultDebugServer a.k.a. dbugmsg.DebugServerID, or something else  }
+  DefaultDebugServer        : String = DebugServerID ; { A "last ressort" simplier compiled IPC server's name, called in command line by your client a.k.a. the compiler's target file "-o" }
+  //Last error message of a Send... function. Not cleared on a new call!
+  SendError                 : String = '';
+  //Raise an exception if a Send... function fails.
+  //Otherwise the Send... functions will return false without an exception in case of an error.
+  RaiseExceptionOnSendError : Boolean = false;
 
 implementation
 
 Uses 
-  SysUtils, classes, process, simpleipc, strutils;
+  SysUtils, classes, process, simpleipc;
 
 Const
   DmtInformation = lctInformation;
@@ -89,53 +113,59 @@ begin
 end;
 
 
-procedure SendDebugMessage(Var Msg : TDebugMessage);
-
+function SendDebugMessage(Var Msg : TDebugMessage) : Boolean;
 begin
-  if DebugDisabled then exit;
+  Result:=False;
+  if DebugDisabled then exit(True);
   try
     If (DebugClient=Nil) then
       if InitDebugClient = false then exit;
-    if (Indent>0) then
+    If (Indent>0) then
       Msg.Msg:=StringOfChar(' ',Indent)+Msg.Msg;
     WriteMessage(Msg);
+    Result:=True;
   except
     On E : Exception do
+    begin
       SendError:=E.Message;
+      if RaiseExceptionOnSendError then
+        raise;
+    end;
   end;
 end;
 
-procedure SendBoolean(const Identifier: string; const Value: Boolean);
+function SendBoolean(const Identifier: string; const Value: Boolean) : Boolean;
 
 Const
   Booleans : Array[Boolean] of string = ('False','True');
 
 begin
-  SendDebugFmt('%s = %s',[Identifier,Booleans[value]]);
+  Result:=SendDebugFmt('%s = %s',[Identifier,Booleans[value]]);
 end;
 
-procedure SendDateTime(const Identifier: string; const Value: TDateTime);
+function SendDateTime(const Identifier: string; const Value: TDateTime) : Boolean;
 
 begin
-  SendDebugFmt('%s = %s',[Identifier,DateTimeToStr(Value)]);
+  Result:=SendDebugFmt('%s = %s',[Identifier,DateTimeToStr(Value)]);
 end;
 
-procedure SendInteger(const Identifier: string; const Value: Integer; HexNotation: Boolean = False);
+function SendInteger(const Identifier: string; const Value: Integer;
+                     HexNotation: Boolean = False) : Boolean;
 
 Const
   Msgs : Array[Boolean] of string = ('%s = %d','%s = %x');
 
 begin
-  SendDebugFmt(Msgs[HexNotation],[Identifier,Value]);
+  Result:=SendDebugFmt(Msgs[HexNotation],[Identifier,Value]);
 end;
 
-procedure SendPointer(const Identifier: string; const Value: Pointer);
+function SendPointer(const Identifier: string; const Value: Pointer) : Boolean;
 
 begin
-  SendDebugFmt('%s = %p',[Identifier,Value]);
+  Result:=SendDebugFmt('%s = %p',[Identifier,Value]);
 end;
 
-procedure SendDebugEx(const Msg: string; MType: TDebugLevel);
+function SendDebugEx(const Msg: string; MType: TDebugLevel) : Boolean;
 
 Var
   Mesg : TDebugMessage;
@@ -147,10 +177,10 @@ begin
     Mesg.Msg:=IntToStr(GetProcessID)+' '+Msg
   else
     Mesg.Msg:=Msg;
-  SendDebugMessage(Mesg);
+  Result:=SendDebugMessage(Mesg);
 end;
 
-procedure SendDebug(const Msg: string);
+function SendDebug(const Msg: string) : Boolean;
 
 Var
   Mesg : TDebugMessage;
@@ -161,32 +191,32 @@ begin
     Mesg.Msg:=IntToStr(GetProcessID)+' '+Msg
   else
     Mesg.Msg:=Msg;
-  SendDebugMessage(Mesg);
+  Result:=SendDebugMessage(Mesg);
 end;
 
-procedure SendMethodEnter(const MethodName: string);
+function SendMethodEnter(const MethodName: string) : Boolean;
 
 begin
-  SendDebug(SEntering+MethodName);
+  Result:=SendDebug(SEntering+MethodName);
   inc(Indent,IndentChars);
 end;
 
-procedure SendMethodExit(const MethodName: string);
+function SendMethodExit(const MethodName: string) : Boolean;
 
 begin
   Dec(Indent,IndentChars);
   If (Indent<0) then
     Indent:=0;
-  SendDebug(SExiting+MethodName);
+  Result:=SendDebug(SExiting+MethodName);
 end;
 
-procedure SendSeparator;
+function SendSeparator: Boolean;
 
 begin
-  SendDebug(SSeparator);
+  Result:=SendDebug(SSeparator);
 end;
 
-procedure SendDebugFmt(const Msg: string; const Args: array of const);
+function SendDebugFmt(const Msg: string; const Args: array of const) : Boolean;
 
 Var
   Mesg : TDebugMessage;
@@ -198,10 +228,11 @@ begin
     Mesg.Msg:=IntToStr(GetProcessID)+' '+Format(Msg,Args)
   else
     Mesg.Msg:=Format(Msg,Args);
-  SendDebugMessage(Mesg);
+  Result:=SendDebugMessage(Mesg);
 end;
 
-procedure SendDebugFmtEx(const Msg: string; const Args: array of const; MType: TDebugLevel);
+function SendDebugFmtEx(const Msg: string; const Args: array of const;
+                        MType: TDebugLevel) : Boolean;
 
 Var
   Mesg : TDebugMessage;
@@ -213,7 +244,7 @@ begin
     Mesg.Msg:=IntToStr(GetProcessID)+' '+Format(Msg,Args)
   else
     Mesg.Msg:=Format(Msg,Args);
-  SendDebugMessage(Mesg);
+  Result:=SendDebugMessage(Mesg);
 end;
 
 procedure SetDebuggingEnabled(const AValue: boolean);
@@ -226,12 +257,17 @@ begin
   Result := not DebugDisabled;
 end;
 
-function StartDebugServer(Const aLogFileName : string = '') : Integer;
-
+function StartDebugServer(const ADebugServerExe : String = '';
+                          const ARaiseExceptionOnSendError : Boolean = False;
+                          Const aLogFileName : string = '') : Integer;
 Var
   Cmd : string;
-
 begin
+  Result := 0;
+  if ADebugServerExe<>'' then
+    DebugServerExe:=ADebugServerExe;
+  RaiseExceptionOnSendError:=ARaiseExceptionOnSendError;
+
   Cmd := DebugServerExe;
   if Cmd='' then
     Cmd := DefaultDebugServer;
@@ -245,8 +281,9 @@ begin
       Result := ProcessID;
     Except On E: Exception do
       begin
-      SendError := Format(SServerStartFailed,[E.Message]);
-      Result := 0;
+      E.Message:=Format(SServerStartFailed,[cmd,E.Message]);
+      Free;
+      raise;
       end;
     end;
     Free;
@@ -277,11 +314,14 @@ end;
 Function InitDebugClient : Boolean;
 
 begin
-  InitDebugClient(False,'');
+  Result:=InitDebugClient(False,'',RaiseExceptionOnSendError,'');
 end;
 
 
-function InitDebugClient(const ShowPID: Boolean; const ServerLogFilename: String = ''): Boolean;
+function InitDebugClient(const ShowPID: Boolean;
+                         const ADebugServerExe : String = '';                      // Start the debug server and return its ProcessID.
+                         const ARaiseExceptionOnSendError : Boolean = False;
+                         const ServerLogFilename: String = ''): Boolean;
 
 Var
   msg : TDebugMessage;
@@ -294,7 +334,7 @@ begin
   DebugClient.ServerID:=DebugServerID;
   If not DebugClient.ServerRunning then
     begin
-    ServerID:=StartDebugServer(ServerLogFileName);
+    ServerID:=StartDebugServer(ADebugServerExe,ARaiseExceptionOnSendError,ServerLogFileName);
     if ServerID = 0 then
       begin
       DebugDisabled := True;
@@ -304,7 +344,7 @@ begin
     else
       DebugDisabled := False;
     I:=0;
-    While (I<10) and not DebugClient.ServerRunning do
+    While (I<100) and not DebugClient.ServerRunning do
       begin
       Inc(I);
       Sleep(100);
