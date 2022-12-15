@@ -1399,7 +1399,7 @@ const msgtxt : array[0..000378,1..240] of char=(
   '2 found.'#000+
 =======
   '11065_W_Subtarget is already set to: $1'#000+
-  '11066_W_Subtarget $1 specif','ied but no corresponding config file $2 f'+
+  '11066_E_Subtarget $1 specif','ied but no corresponding config file $2 f'+
   'ound.'#000+
 >>>>>>> 13368ac5cc (* Rename architecture to more neutral subtarget)
   '11067_N_Ignoring compiler executable suffix $1.'#000+
