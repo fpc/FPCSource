@@ -67,7 +67,6 @@ program fpc;
     var
       Info : TSearchRec;
     begin
-      Writeln('Testing :',F);
       FileExists:= findfirst(F,fareadonly+faarchive+fahidden,info)=0;
       findclose(Info);
     end;
@@ -327,7 +326,6 @@ program fpc;
      // -x was specified.
      if exesuffix<>'' then
        ppcbin:=ppcbin+'-'+exesuffix;
-     Writeln('ppcbin: ',ppcbin);
      { find the full path to the specified exe }
      // If an architecture was defined, check that first.
      found:=false;
