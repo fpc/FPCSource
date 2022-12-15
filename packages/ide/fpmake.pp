@@ -310,7 +310,7 @@ begin
         if CompilerTarget<>Defaults.CPU then
           begin
             T.SetExeName(AddProgramExtension(CPUToString(CompilerTarget)+'-fp',Defaults.BuildOS));
-            P.SetUnitsOutputDir(P.GetUnitsOutputDir(Defaults.BuildCPU,Defaults.BuildOS)+CPUToString(CompilerTarget));
+            P.SetUnitsOutputDir(P.GetUnitsOutputDir(Defaults.BuildTarget)+CPUToString(CompilerTarget));
             P.Options.Add('-dCROSSGDB');
           end;
 
