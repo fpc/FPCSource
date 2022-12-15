@@ -1353,7 +1353,7 @@ const msgtxt : array[0..000378,1..240] of char=(
   'struction set "$2"'#000+
   '11064_E_Only one WebAssembly exception support mode can be specified.'#000+
   '11065_W_Subtarget is already set to: $1'#000+
-  '11066_W_Subtarget $1 specif','ied but no corresponding config file $2 f'+
+  '11066_E_Subtarget $1 specif','ied but no corresponding config file $2 f'+
   'ound.'#000+
   '11067_N_Ignoring compiler executable suffix $1.'#000+
   '12000_F_Cannot open whole program optimization feedback file "$1"'#000+

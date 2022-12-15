@@ -3631,7 +3631,7 @@ option_too_many_exception_modes=11064_E_Only one WebAssembly exception support m
 % Only one WebAssembly exception support mode (NOEXCEPTIONS, JSEXCEPTIONS, BFEXCEPTIONS or NATIVEEXCEPTIONS) can be specified.
 option_subtarget_is_already_set=11065_W_Subtarget is already set to: $1
 % Displayed if more than one \var{-t} option is specified.
-option_subtarget_config_not_found=11066_W_Subtarget $1 specified but no corresponding config file $2 found.
+option_subtarget_config_not_found=11066_E_Subtarget $1 specified but no corresponding config file $2 found.
 % Displayed if more than one \var{-t} option is specified.
 option_x_ignored=11067_N_Ignoring compiler executable suffix $1.
 % Displayed if more than one \var{-t} option is specified.
