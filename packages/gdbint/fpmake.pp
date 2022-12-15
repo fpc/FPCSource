@@ -93,7 +93,7 @@ begin
       Installer.BuildEngine.Log(vlCommand,'GDB-lib found, compiling and running gdbver to obtain GDB-version');
       Installer.BuildEngine.Compile(P,GdbVerTarget);
       Cmd:=Installer.BuildEngine.AddPathPrefix(p,
-            p.GetBinOutputDir(Defaults.CPU, Defaults.OS))+
+            p.GetBinOutputDir(Defaults.CompileTarget ))+
             PathDelim+
             AddProgramExtension('gdbver',Defaults.BuildOS);
       Opts:=TStringList.Create;
