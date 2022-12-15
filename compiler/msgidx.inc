@@ -1163,6 +1163,7 @@ const
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   MsgTxtSize = 90570;
 =======
   MsgTxtSize = 90867;
@@ -1173,6 +1174,9 @@ const
 =======
   MsgTxtSize = 90927;
 >>>>>>> 13368ac5cc (* Rename architecture to more neutral subtarget)
+=======
+  MsgTxtSize = 90942;
+>>>>>>> f53ac13900 (* Forgot some instances of arch instead of subtarget)
 
   MsgIdxMax : array[1..20] of longint=(
     28,109,366,132,100,63,148,38,223,71,
