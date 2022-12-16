@@ -243,6 +243,80 @@ const
     'mrYesToAll',
     'mrClose');
 
+// CONTROLS
+type
+  TCloseAction = (caNone, caHide, caFree, caMinimize);
+  TMouseButton = (mbLeft, mbRight, mbMiddle, mbExtra1, mbExtra2);
+  TTabOrder = -1..32767;
+  TDragKind = (dkDrag, dkDock);
+  TDragMode = (dmManual , dmAutomatic);
+  TDragState = (dsDragEnter, dsDragLeave, dsDragMove);
+  TDragMessage = (dmDragEnter, dmDragLeave, dmDragMove, dmDragDrop,
+                  dmDragCancel,dmFindTarget);
+
+  TAnchorKind = (akLeft, akTop, akRight, akBottom);
+  TAnchors = set of TAnchorKind;
+  TAnchorSideReference = (asrTop, asrBottom, asrCenter);
+
+  TCursor = -32768..32767;
+
+const
+  // Cursor constants
+  crHigh        = TCursor(0);
+  crDefault     = TCursor(0);
+  crNone        = TCursor(-1);
+  crArrow       = TCursor(-2);
+  crCross       = TCursor(-3);
+  crIBeam       = TCursor(-4);
+  crSize        = TCursor(-22);
+  crSizeNESW    = TCursor(-6); // diagonal north east - south west
+  crSizeNS      = TCursor(-7);
+  crSizeNWSE    = TCursor(-8);
+  crSizeWE      = TCursor(-9);
+  crSizeNW      = TCursor(-23);
+  crSizeN       = TCursor(-24);
+  crSizeNE      = TCursor(-25);
+  crSizeW       = TCursor(-26);
+  crSizeE       = TCursor(-27);
+  crSizeSW      = TCursor(-28);
+  crSizeS       = TCursor(-29);
+  crSizeSE      = TCursor(-30);
+  crUpArrow     = TCursor(-10);
+  crHourGlass   = TCursor(-11);
+  crDrag        = TCursor(-12);
+  crNoDrop      = TCursor(-13);
+  crHSplit      = TCursor(-14);
+  crVSplit      = TCursor(-15);
+  crMultiDrag   = TCursor(-16);
+  crSQLWait     = TCursor(-17);
+  crNo          = TCursor(-18);
+  crAppStart    = TCursor(-19);
+  crHelp        = TCursor(-20);
+  crHandPoint   = TCursor(-21);
+  crSizeAll     = TCursor(-22);
+  crLow         = TCursor(-30);
+
+
+  // font types&styles
+  LF_FULLFACESIZE = 64;
+  LF_FACESIZE = 32;
+
+type
+  TFontPitch = (fpDefault, fpVariable, fpFixed);
+  TFontName = string;
+  TFontDataName = string[LF_FACESIZE -1];
+  TFontStyle = (fsBold, fsItalic, fsUnderline, fsStrikeOut);
+  TFontStyles = set of TFontStyle;
+  TFontStylesBase = set of TFontStyle;
+  TFontCharSet = 0..255;
+  TFontQuality = (fqDefault, fqDraft, fqProof, fqNonAntialiased, fqAntialiased,
+    fqCleartype, fqCleartypeNatural);
+
+// PRINTERS
+  TPrinterOrientation = (poPortrait,poLandscape,poReverseLandscape,poReversePortrait);
+  TPrinterCapability  = (pcCopies, pcOrientation, pcCollation);
+  TPrinterCapabilities= Set of TPrinterCapability;
+
 implementation
 
 class operator TColorRec.:= (AColor : TColor): TColorRec;
