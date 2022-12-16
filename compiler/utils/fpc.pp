@@ -44,6 +44,18 @@ program fpc;
   {$endif HASAMIGA}
 {$endif UNIX}
 
+Const
+{$ifdef darwin}
+  { the mach-o format supports "fat" binaries whereby }
+  { a single executable contains machine code for     }
+  { several architectures -> it is counter-intuitive  }
+  { and non-standard to use different binary names    }
+  { for cross-compilers vs. native compilers          }
+  CrossSuffix = '';
+{$else not darwin}
+  CrossSuffix = 'ross';
+{$endif not darwin}
+
 
   procedure error(const s : string);
 
@@ -295,17 +307,7 @@ program fpc;
                    if TargetCPU <> SourceCPU then
                      begin
                        cpusuffix:=processortosuffix(TargetCPU);
-
-{$ifndef darwin}
-                       ppcbin:='ppcross'+cpusuffix;
-{$else not darwin}
-                     { the mach-o format supports "fat" binaries whereby }
-                     { a single executable contains machine code for     }
-                     { several architectures -> it is counter-intuitive  }
-                     { and non-standard to use different binary names    }
-                     { for cross-compilers vs. native compilers          }
-                     ppcbin:='ppc'+cpusuffix;
-{$endif not darwin}
+                       ppcbin:='ppc'+crosssuffix+cpusuffix;
                      end;
                  end
               else if pos('-Xp',s)=1 then
