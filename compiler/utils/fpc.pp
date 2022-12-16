@@ -251,10 +251,10 @@ program fpc;
      s              : ansistring;
      cpusuffix,
      exesuffix,
-     processorname,
+     SourceCPU,
      ppcbin,
      targetname,
-     processorstr   : string;
+     TargetCPU   : string;
      ppccommandline : array of ansistring;
      ppccommandlinelen : longint;
      i : longint;
@@ -266,7 +266,7 @@ program fpc;
      cpusuffix     :='';        // if not empty, signals attempt at cross
                                 // compiler.
      extrapath     :='';
-     initplatform(ppcbin,processorname);
+     initplatform(ppcbin,SourceCPU);
      exesuffix:='';                      { Default is just the name }
      if ParamCount = 0 then
        begin
@@ -290,11 +290,11 @@ program fpc;
             begin
               if pos('-P',s)=1 then
                  begin
-                   processorstr:=copy(s,3,length(s)-2);
-                   CheckSpecialProcessors(processorstr,processorname,ppcbin,cpusuffix,exesuffix);
-                   if processorstr <> processorname then
+                   TargetCPU:=copy(s,3,length(s)-2);
+                   CheckSpecialProcessors(TargetCPU,SourceCPU,ppcbin,cpusuffix,exesuffix);
+                   if TargetCPU <> SourceCPU then
                      begin
-                       cpusuffix:=processortosuffix(processorstr);
+                       cpusuffix:=processortosuffix(TargetCPU);
 
 {$ifndef darwin}
                        ppcbin:='ppcross'+cpusuffix;
