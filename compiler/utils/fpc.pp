@@ -54,7 +54,6 @@ const
   CrossSuffix = '';
 {$else not darwin}
   CrossSuffix = 'ross';
-
 {$endif not darwin}
 
 
@@ -218,6 +217,7 @@ begin
     end;
   end;
 end;
+
 
 function findcompiler(basecompiler, cpusuffix, exesuffix: string) : string;
 
