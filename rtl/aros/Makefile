@@ -367,10 +367,10 @@ override FPCOPT+=-Ur
 endif
 OBJPASDIR=$(RTL)/objpas
 ifeq ($(ARCH),i386)
-CPU_UNITS=cpu mmx lineinfo
+CPUUNITS=cpu mmx lineinfo
 endif
 ifeq ($(ARCH),x86_64)
-CPU_UNITS=cpu
+CPUUNITS=cpu
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=$(SYSTEMUNIT) heaptrc uuchar objpas macpas iso7185 extpas buildrtl cpall
