@@ -86,7 +86,8 @@ begin
     'x86_64': Result := 'x64';
     'xtensa': Result := 'xtensa';
     'z80': Result := 'z80';
-    'wasm32': Result := 'wasm32'
+    'wasm32': Result := 'wasm32';
+    'loongarch64' : result:='arch64';
     else
       error('Illegal processor type "'+processorstr+'"');
   end;
@@ -156,6 +157,10 @@ begin
        ppcbin:='ppcwasm32';
        processorname:='wasm32';
   {$endif wasm32}
+  {$ifdef loongarch64}
+       ppcbin:='ppcloongarch64';
+       processorname:='loongarch64';
+  {$endif loongarch64}
 end;
 
 function SplitPath(const HStr: string) : string;
@@ -217,7 +222,6 @@ begin
     end;
   end;
 end;
-
 
 function findcompiler(basecompiler, cpusuffix, exesuffix: string) : string;
 
