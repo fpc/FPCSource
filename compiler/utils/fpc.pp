@@ -238,7 +238,6 @@ begin
   end;
 end;
 
-<<<<<<< HEAD
 procedure CheckSpecialProcessors(processorstr, processorname, ppcbin, cpusuffix, exesuffix: string);
 
 begin
@@ -286,44 +285,6 @@ var
   {$ifdef unix}hs,{$endif} aSearchPath,exepath,configpath : string;
 
   Procedure AddToPath(aDir : String);
-=======
-    procedure CheckSpecialProcessors(processorstr,processorname,ppcbin,cpusuffix,exesuffix : string);
-
-    begin
-      { -PB is a special code that will show the
-        default compiler and exit immediately. It's
-        main usage is for Makefile }
-      if processorstr='B' then
-        begin
-          { report the full name of the ppcbin }
-          writeln(findcompiler(ppcbin,cpusuffix,exesuffix));
-          halt(0);
-        end;
-      { -PP is a special code that will show the
-         processor and exit immediately. It's
-         main usage is for Makefile }
-      if processorstr='P' then
-        begin
-          { report the processor }
-          writeln(processorname);
-          halt(0);
-        end;
-   end;
-
-
-  var
-     s              : ansistring;
-     cpusuffix,
-     exesuffix,
-     processorname,
-     ppcbin,
-     targetname,
-     processorstr   : string;
-     ppccommandline : array of ansistring;
-     ppccommandlinelen : longint;
-     i : longint;
-     errorvalue     : Longint;
->>>>>>> 319f7e796d (* Refactor check for -PB and -PP for clarity of flow)
 
   begin
     if aDir='' then exit;
