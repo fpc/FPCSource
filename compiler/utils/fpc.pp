@@ -22,10 +22,10 @@ program fpc;
 
 {$mode objfpc}{$H+}
 
-  uses
-     Sysutils;
+uses
+  SysUtils;
 
-  const
+const
 {$ifdef UNIX}
     exeext='';
 {$else UNIX}
@@ -38,13 +38,13 @@ program fpc;
       {$ifdef ATARI}
         exeext='.ttp';
       {$else}
-        exeext='.exe';
+        exeext = '.exe';
       {$endif ATARI}
     {$endif NETWARE}
   {$endif HASAMIGA}
 {$endif UNIX}
 
-Const
+const
 {$ifdef darwin}
   { the mach-o format supports "fat" binaries whereby }
   { a single executable contains machine code for     }
@@ -54,45 +54,46 @@ Const
   CrossSuffix = '';
 {$else not darwin}
   CrossSuffix = 'ross';
+
 {$endif not darwin}
 
 
-  procedure error(const s : string);
+  procedure error(const s: string);
 
   begin
-     writeln('Error: ',s);
-     halt(1);
+    writeln('Error: ', s);
+    halt(1);
   end;
 
-  function processortosuffix(processorstr : string ) : String;
+  function processortosuffix(processorstr: string) : string;
 
   begin
     case processorstr of
-      'aarch64': Result:='a64';
-      'arm' : Result:='arm';
-      'avr' : Result:='avr';
-      'i386' : Result:='386';
-      'i8086' : Result:='8086';
-      'jvm' : Result:='jvm';
-      'm68k' : Result:='68k';
-      'mips' : Result:='mips';
-      'mipsel' : Result:='mipsel';
-      'powerpc' : Result:='ppc';
-      'powerpc64' : Result:='ppc64';
-      'riscv32' : Result:='rv32';
-      'riscv64' : Result:='rv64';
-      'sparc' : Result:='sparc';
-      'sparc64' : Result:='sparc64';
-      'x86_64' : Result:='x64';
-      'xtensa' : Result:='xtensa';
-      'z80' : Result:='z80';
-      'wasm32' : Result:='wasm32'
-    else
-      error('Illegal processor type "'+processorstr+'"');
+      'aarch64': Result := 'a64';
+      'arm': Result := 'arm';
+      'avr': Result := 'avr';
+      'i386': Result := '386';
+      'i8086': Result := '8086';
+      'jvm': Result := 'jvm';
+      'm68k': Result := '68k';
+      'mips': Result := 'mips';
+      'mipsel': Result := 'mipsel';
+      'powerpc': Result := 'ppc';
+      'powerpc64': Result := 'ppc64';
+      'riscv32': Result := 'rv32';
+      'riscv64': Result := 'rv64';
+      'sparc': Result := 'sparc';
+      'sparc64': Result := 'sparc64';
+      'x86_64': Result := 'x64';
+      'xtensa': Result := 'xtensa';
+      'z80': Result := 'z80';
+      'wasm32': Result := 'wasm32'
+      else
+        error('Illegal processor type "'+processorstr+'"');
     end;
   end;
 
-  procedure InitPlatform(out ppcbin,processorname : string);
+  procedure InitPlatform(out ppcbin, processorname: string);
 
   begin
     {$ifdef i386}
@@ -158,190 +159,184 @@ Const
     {$endif wasm32}
   end;
 
-  function SplitPath(Const HStr:String):String;
-    var
-      i : longint;
-    begin
-      i:=Length(Hstr);
-      while (i>0) and not(Hstr[i] in ['\','/']) do
-       dec(i);
-      SplitPath:=Copy(Hstr,1,i);
-    end;
-
-
-  function FileExists ( Const F : String) : Boolean;
-    var
-      Info : TSearchRec;
-    begin
-      FileExists:= findfirst(F,fareadonly+faarchive+fahidden,info)=0;
-      findclose(Info);
-    end;
-
+  function SplitPath(const HStr: string) : string;
   var
-    extrapath : ansistring;
+    i: longint;
+  begin
+    i := Length(Hstr);
+    while (i>0) and not(Hstr[i] in ['\', '/']) do
+      Dec(i);
+    SplitPath := Copy(Hstr, 1, i);
+  end;
 
-  function findexe(var ppcbin:string): boolean;
-    var
-      path : string;
-    begin
-      { add .exe extension }
-      findexe:=false;
-      ppcbin:=ppcbin+exeext;
 
-      if (extrapath<>'') and (extrapath[length(extrapath)]<>DirectorySeparator) then
-        extrapath:=extrapath+DirectorySeparator;
-      { get path of fpc.exe }
-      path:=splitpath(paramstr(0));
+  function FileExists(const F: string) : boolean;
+  var
+    Info: TSearchRec;
+  begin
+    FileExists := findfirst(F, fareadonly+faarchive+fahidden, info) = 0;
+    findclose(Info);
+  end;
+
+var
+  extrapath: ansistring;
+
+  function findexe(var ppcbin: string) : boolean;
+  var
+    path: string;
+  begin
+    { add .exe extension }
+    findexe := False;
+    ppcbin := ppcbin+exeext;
+
+    if (extrapath<>'') and (extrapath[length(extrapath)]<>DirectorySeparator) then
+      extrapath := extrapath+DirectorySeparator;
+    { get path of fpc.exe }
+    path := splitpath(ParamStr(0));
       { don't try with an empty extra patch, this might have strange results
         if the current directory contains a compiler
       }
-      if (extrapath<>'') and FileExists(extrapath+ppcbin) then
-       begin
-         ppcbin:=extrapath+ppcbin;
-         findexe:=true;
-       end
-      else if (path<>'') and FileExists(path+ppcbin) then
-       begin
-         ppcbin:=path+ppcbin;
-         findexe:=true;
-       end
-      else
-       begin
-         path:=ExeSearch(ppcbin,getenvironmentvariable('PATH'));
-         if path<>'' then
-          begin
-            ppcbin:=path;
-            findexe:=true;
-          end
-       end;
-    end;
-
-    function findcompiler(basecompiler,cpusuffix,exesuffix : string) : string;
-
+    if (extrapath<>'') and FileExists(extrapath+ppcbin) then
     begin
-      Result:=basecompiler;
-      if exesuffix<>'' then
-        Result:=Result+'-'+exesuffix;
-      if not findexe(Result) then
-        begin
-          if cpusuffix<>'' Then
-            begin
-              Result:='ppc'+cpusuffix;
-              if exesuffix<>'' then
-                result:=result+'-'+exesuffix;
-              if not findexe(result) then
-                result:='';
-            end;
-        end;
-    end;
-
-    procedure CheckSpecialProcessors(processorstr,processorname,ppcbin,cpusuffix,exesuffix : string);
-
+      ppcbin := extrapath+ppcbin;
+      findexe := True;
+    end
+    else if (path<>'') and FileExists(path+ppcbin) then
     begin
+      ppcbin := path+ppcbin;
+      findexe := True;
+    end
+    else
+    begin
+      path := ExeSearch(ppcbin, getenvironmentvariable('PATH'));
+      if path<>'' then
+      begin
+        ppcbin := path;
+        findexe := True;
+      end;
+    end;
+  end;
+
+  function findcompiler(basecompiler, cpusuffix, exesuffix: string) : string;
+
+  begin
+    Result := basecompiler;
+    if exesuffix<>'' then
+      Result := Result+'-'+exesuffix;
+    if not findexe(Result) then
+    begin
+      if cpusuffix<>'' then
+      begin
+        Result := 'ppc'+cpusuffix;
+        if exesuffix<>'' then
+          Result := Result+'-'+exesuffix;
+        if not findexe(Result) then
+          Result := '';
+      end;
+    end;
+  end;
+
+  procedure CheckSpecialProcessors(processorstr, processorname, ppcbin, cpusuffix, exesuffix: string);
+
+  begin
       { -PB is a special code that will show the
         default compiler and exit immediately. It's
         main usage is for Makefile }
-      if processorstr='B' then
-        begin
-          { report the full name of the ppcbin }
-          writeln(findcompiler(ppcbin,cpusuffix,exesuffix));
-          halt(0);
-        end;
+    if processorstr = 'B' then
+    begin
+      { report the full name of the ppcbin }
+      writeln(findcompiler(ppcbin, cpusuffix, exesuffix));
+      halt(0);
+    end;
       { -PP is a special code that will show the
          processor and exit immediately. It's
          main usage is for Makefile }
-      if processorstr='P' then
-        begin
-          { report the processor }
-          writeln(processorname);
-          halt(0);
-        end;
-   end;
+    if processorstr = 'P' then
+    begin
+      { report the processor }
+      writeln(processorname);
+      halt(0);
+    end;
+  end;
 
 
-  var
-     s              : ansistring;
-     cpusuffix,
-     exesuffix,
-     SourceCPU,
-     ppcbin,
-     targetname,
-     TargetCPU   : string;
-     ppccommandline : array of ansistring;
-     ppccommandlinelen : longint;
-     i : longint;
-     errorvalue     : Longint;
+var
+  s: ansistring;
+  cpusuffix, exesuffix, SourceCPU, ppcbin, targetname, TargetCPU: string;
+  ppccommandline: array of ansistring;
+  ppccommandlinelen: longint;
+  i: longint;
+  errorvalue: longint;
 
-     Procedure AddToCommandLine(S : String);
-
-     begin
-       PPCCommandLine [PPCCommandLineLen] := S;
-       Inc(PPCCommandLineLen);
-     end;
+  procedure AddToCommandLine(S: string);
 
   begin
-     ppccommandline:=[];
-     setlength(ppccommandline,paramcount);
-     ppccommandlinelen:=0;
-     cpusuffix     :='';        // if not empty, signals attempt at cross
-                                // compiler.
-     extrapath     :='';
-     initplatform(ppcbin,SourceCPU);
-     exesuffix:='';                      { Default is just the name }
-     if ParamCount = 0 then
-       begin
-         SetLength (PPCCommandLine, 1);
-         AddToCommandLine('-?F' + ParamStr (0));
-       end
-     else
-      for i:=1 to paramcount do
-       begin
-          s:=paramstr(i);
-          if pos('-t',s)=1 then
-            begin
-            targetname:=copy(s,3,length(s)-2);
-            AddToCommandLine(S);
-            end
-          else if pos('-V',s)=1 then
-            exesuffix:=copy(s,3,length(s)-2)
+    PPCCommandLine[PPCCommandLineLen] := S;
+    Inc(PPCCommandLineLen);
+  end;
+
+begin
+  ppccommandline := [];
+  setlength(ppccommandline, paramcount);
+  ppccommandlinelen := 0;
+  cpusuffix := '';        // if not empty, signals attempt at cross
+  // compiler.
+  extrapath := '';
+  initplatform(ppcbin, SourceCPU);
+  exesuffix := '';                      { Default is just the name }
+  if ParamCount = 0 then
+  begin
+    SetLength(PPCCommandLine, 1);
+    AddToCommandLine('-?F'+ParamStr(0));
+  end
+  else
+    for i := 1 to paramcount do
+    begin
+      s := ParamStr(i);
+      if pos('-t', s) = 1 then
+      begin
+        targetname := copy(s, 3, length(s)-2);
+        AddToCommandLine(S);
+      end
+      else if pos('-V', s) = 1 then
+        exesuffix := copy(s, 3, length(s)-2)
+      else
+      begin
+        if pos('-P', s) = 1 then
+        begin
+          TargetCPU := copy(s, 3, length(s)-2);
+          CheckSpecialProcessors(TargetCPU, SourceCPU, ppcbin, cpusuffix, exesuffix);
+          if TargetCPU<>SourceCPU then
+          begin
+            cpusuffix := processortosuffix(TargetCPU);
+            ppcbin := 'ppc'+crosssuffix+cpusuffix;
+          end;
+        end
+        else if pos('-Xp', s) = 1 then
+          extrapath := copy(s, 4, length(s)-3)
+        else
+        begin
+          if pos('-h', s) = 1 then
+            AddToCommandLine('-hF'+ParamStr(0))
+          else if pos('-?', s) = 1 then
+            AddToCommandLine('-?F'+ParamStr(0))
           else
-            begin
-              if pos('-P',s)=1 then
-                 begin
-                   TargetCPU:=copy(s,3,length(s)-2);
-                   CheckSpecialProcessors(TargetCPU,SourceCPU,ppcbin,cpusuffix,exesuffix);
-                   if TargetCPU <> SourceCPU then
-                     begin
-                       cpusuffix:=processortosuffix(TargetCPU);
-                       ppcbin:='ppc'+crosssuffix+cpusuffix;
-                     end;
-                 end
-              else if pos('-Xp',s)=1 then
-                extrapath:=copy(s,4,length(s)-3)
-              else
-                begin
-                  if pos('-h',s)=1 then
-                    AddToCommandLine('-hF'+ParamStr(0))
-                  else if pos('-?',s)=1 then
-                    AddToCommandLine('-?F'+ParamStr(0))
-                  else
-                    AddToCommandLine(S);
-                end;
-            end;
-       end;
-     SetLength(ppccommandline,ppccommandlinelen);
-     ppcbin:=findcompiler(ppcbin,cpusuffix,exesuffix);
+            AddToCommandLine(S);
+        end;
+      end;
+    end;
+  SetLength(ppccommandline, ppccommandlinelen);
+  ppcbin := findcompiler(ppcbin, cpusuffix, exesuffix);
 
-     { call ppcXXX }
-     try
-       errorvalue:=ExecuteProcess(ppcbin,ppccommandline);
-     except
-       on e : exception do
-         error(ppcbin+' can''t be executed, error message: '+e.message);
-     end;
-     if (errorvalue<>0) and
-        (paramcount<>0) then
-       error(ppcbin+' returned an error exitcode');
-     halt(errorvalue);
-  end.
-
+  { call ppcXXX }
+  try
+    errorvalue := ExecuteProcess(ppcbin, ppccommandline);
+  except
+    on e: Exception do
+      error(ppcbin+' can''t be executed, error message: '+e.message);
+  end;
+  if (errorvalue<>0) and
+    (paramcount<>0) then
+    error(ppcbin+' returned an error exitcode');
+  halt(errorvalue);
+end.
