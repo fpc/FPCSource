@@ -1182,6 +1182,9 @@ var
   function Asn1IntegerGet(a: PASN1_INTEGER): integer;
   function i2dX509bio(b: PBIO; x: PX509): cInt;
   function i2dPrivateKeyBio(b: PBIO; pkey: PEVP_PKEY): cInt;
+  function d2iX509bio(b:PBIO; x:PX509):  PX509;
+  function PEMReadBioX509(b:PBIO; x:PSslPtr; callback:PFunction; cb_arg: SslPtr): PX509;
+  procedure SkX509PopFree(st: SslPtr);
 
   // 3DES functions
   procedure DESsetoddparity(Key: des_cblock);
@@ -1678,6 +1681,9 @@ type
   TAsn1IntegerSet = function(a: PASN1_INTEGER; v: integer): integer; cdecl;
   TAsn1IntegerGet = function(a: PASN1_INTEGER): integer; cdecl;
   Ti2dX509bio = function(b: PBIO; x: PX509): cInt; cdecl;
+  Td2iX509bio = function(b:PBIO;  x:PX509):   PX509; cdecl;
+  TPEMReadBioX509 = function(b:PBIO; x:PSslPtr; callback:PFunction; cb_arg:SslPtr): PX509; cdecl;
+  TSkX509PopFree = procedure(st: PSslPtr; func: TX509Free); cdecl;
   Ti2dPrivateKeyBio= function(b: PBIO; pkey: PEVP_PKEY): cInt; cdecl;
 
   // 3DES functions
@@ -1922,6 +1928,9 @@ var
   _Asn1IntegerSet: TAsn1IntegerSet = nil;
   _Asn1IntegerGet: TAsn1IntegerGet = nil;
   _i2dX509bio: Ti2dX509bio = nil;
+  _d2iX509bio: Td2iX509bio = nil;
+  _PEMReadBioX509: TPEMReadBioX509 = nil;
+  _SkX509PopFree: TSkX509PopFree = nil;
   _i2dPrivateKeyBio: Ti2dPrivateKeyBio = nil;
   _EVP_enc_null : TEVP_CIPHERFunction = nil;
   _EVP_rc2_cbc : TEVP_CIPHERFunction = nil;
@@ -3026,6 +3035,28 @@ begin
     Result := _i2dPrivateKeyBio(b, pkey)
   else
     Result := 0;
+end;
+
+function d2iX509bio(b:PBIO; x:PX509):  PX509;
+begin
+  if InitSSLInterface and Assigned(_d2iX509bio) then
+    Result := _d2iX509bio(x,b)
+  else
+    Result := nil;
+end;
+
+function PEMReadBioX509(b:PBIO; x:PSslPtr; callback:PFunction; cb_arg: SslPtr): PX509;
+begin
+  if InitSSLInterface and Assigned(_PEMReadBioX509) then
+    Result := _PEMReadBioX509(b,x,callback,cb_arg)
+  else
+    Result := nil;
+end;
+
+procedure SkX509PopFree(st: SslPtr);
+begin
+  if InitSSLInterface and Assigned(_SkX509PopFree) then
+    _SkX509PopFree(st,_X509Free);
 end;
 
 function EvpGetDigestByName(Name: String): PEVP_MD;
@@ -5046,6 +5077,9 @@ begin
   _Asn1IntegerSet := GetProcAddr(SSLUtilHandle, 'ASN1_INTEGER_set');
   _Asn1IntegerGet := GetProcAddr(SSLUtilHandle, 'ASN1_INTEGER_get');
   _i2dX509bio := GetProcAddr(SSLUtilHandle, 'i2d_X509_bio');
+  _d2iX509bio := GetProcAddr(SSLUtilHandle, 'd2i_X509_bio');
+  _PEMReadBioX509 := GetProcAddr(SSLUtilHandle, 'PEM_read_bio_X509');
+  _SkX509PopFree := GetProcAddr(SSLUtilHandle, 'SK_X509_POP_FREE');
   _i2dPrivateKeyBio := GetProcAddr(SSLUtilHandle, 'i2d_PrivateKey_bio');
   _EVP_enc_null := GetProcAddr(SSLUtilHandle, 'EVP_enc_null');
   _EVP_rc2_cbc := GetProcAddr(SSLUtilHandle, 'EVP_rc2_cbc');
@@ -5495,6 +5529,9 @@ begin
   _Asn1IntegerSet:= nil;
   _Asn1IntegerGet:= nil;
   _i2dX509bio := nil;
+  _d2iX509bio := nil;
+  _PEMReadBioX509 := nil;
+  _SkX509PopFree := nil;
   _i2dPrivateKeyBio := nil;
 
   // 3DES functions
