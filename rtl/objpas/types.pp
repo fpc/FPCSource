@@ -104,6 +104,7 @@ type
 {$endif}
 
   { TPointF }
+  PPointF = ^TPointF;
   TPointF =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
   packed
@@ -141,24 +142,101 @@ type
           class operator * (const apt1, apt2: TPointF): Single; // scalar product
           class operator * (const apt1: TPointF; afactor: single): TPointF;
           class operator * (afactor: single; const apt1: TPointF): TPointF;
+          class operator := (const apt: TPoint): TPointF;
        end;
-  { TRectF }
 
+  { TSizeF }
+  PSizeF = ^TSizeF;
+  TSizeF =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+  packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  record
+       cx,cy : Single;
+       public
+          function Add(const asz: TSize): TSizeF;
+          function Add(const asz: TSizeF): TSizeF;
+          function Distance(const asz : TSizeF) : Single;
+          function IsZero : Boolean;
+          function Subtract(const asz : TSizeF): TSizeF;
+          function Subtract(const asz : TSize): TSizeF;
+
+          function  Scale (afactor:Single)  : TSizeF;
+          function  Ceiling : TSize;
+          function  Truncate: TSize;
+          function  Floor   : TSize;
+          function  Round   : TSize;
+          function  Length  : Single;
+
+          class function Create(const ax, ay: Single): TSizeF; overload; static; inline;
+          class function Create(const asz: TSize): TSizeF; overload; static; inline;
+          class operator = (const asz1, asz2 : TSizeF) : Boolean;
+          class operator <> (const asz1, asz2 : TSizeF): Boolean;
+          class operator + (const asz1, asz2 : TSizeF): TSizeF;
+          class operator - (const asz1, asz2 : TSizeF): TSizeF;
+          class operator - (const asz1 : TSizeF): TSizeF;
+          class operator * (const asz1: TSizeF; afactor: single): TSizeF;
+          class operator * (afactor: single; const asz1: TSizeF): TSizeF;
+          class operator := (const apt: TPointF): TSizeF;
+          class operator := (const asz: TSize): TSizeF;
+          class operator := (const asz: TSizeF): TPointF;
+
+          property Width: Single read cx write cx;
+          property Height: Single read cy write cy;
+       end;
+
+  { TRectF }
+  PRectF = ^TRectF;
   TRectF =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
   packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
   record
   private
+    function  GetLocation: TPointF;
+    function  GetSize: TSizeF;
+    procedure SetSize(AValue: TSizeF);
     function GetHeight: Single; inline;
     function GetWidth: Single;  inline;
     procedure SetHeight(AValue: Single);
     procedure SetWidth (AValue: Single);
   public
-    function  Union  (const r: TRectF):TRectF; inline;
+    constructor Create(Origin: TPointF); // empty rect at given origin
+    constructor Create(Origin: TPointF; AWidth, AHeight: Single);
+    constructor Create(ALeft, ATop, ARight, ABottom: Single);
+    constructor Create(P1, P2: TPointF; Normalize: Boolean = False);
+    constructor Create(R: TRectF; Normalize: Boolean = False);
+    constructor Create(R: TRect; Normalize: Boolean = False);
+
+    class operator = (L, R: TRectF): Boolean;
+    class operator <> (L, R: TRectF): Boolean;
+    class operator + (L, R: TRectF): TRectF; // union
+    class operator * (L, R: TRectF): TRectF; // intersection
+    class operator := (const arc: TRect): TRectF;
+    class function Empty: TRectF; static;
+
+    procedure NormalizeRect;
+    function IsEmpty: Boolean;
+    function Contains(Pt: TPointF): Boolean;
+    function Contains(R: TRectF): Boolean;
+    function IntersectsWith(R: TRectF): Boolean;
+    class function Intersect(R1: TRectF; R2: TRectF): TRectF; static;
+    procedure Intersect(R: TRectF);
+    class function Union(R1, R2: TRectF): TRectF; static;
+    class function Union(const Points: array of TPointF): TRectF; static;
+    procedure SetLocation(X, Y: Single);
+    procedure SetLocation(P: TPointF);
+    procedure Inflate(DX, DY: Single);
+    procedure Inflate(DL, DT, DR, DB: Single);
+    function CenterPoint: TPointF;
+
+    procedure Union  (const r: TRectF); inline;
     procedure Offset (const dx,dy : Single); inline;
+    procedure Offset (DP: TPointF); inline;
     property  Width  : Single read GetWidth write SetWidth;
     property  Height : Single read GetHeight write SetHeight;
+    property  Size   : TSizeF read getSize   write SetSize;
+    property  Location: TPointF read getLocation write setLocation;
     case Integer of
      0: (Left, Top, Right, Bottom: Single);
      1: (TopLeft, BottomRight: TPointF);
@@ -347,8 +425,10 @@ type
 
 function EqualRect(const r1,r2 : TRect) : Boolean;
 function Rect(Left,Top,Right,Bottom : Integer) : TRect; inline;
+function RectF(Left,Top,Right,Bottom : Single) : TRectF; inline;
 function Bounds(ALeft,ATop,AWidth,AHeight : Integer) : TRect; inline;
 function Point(x,y : Integer) : TPoint; inline;
+function PointF(x,y: Single) : TPointF; inline;
 function PtInRect(const Rect : TRect; const p : TPoint) : Boolean;
 function IntersectRect(var Rect : TRect; const R1,R2 : TRect) : Boolean;
 function UnionRect(var Rect : TRect; const R1,R2 : TRect) : Boolean;
@@ -392,6 +472,15 @@ begin
   Rect.Bottom:=Bottom;
 end;
 
+function RectF(Left,Top,Right,Bottom : Single) : TRectF; inline;
+
+begin
+  RectF.Left:=Left;
+  RectF.Top:=Top;
+  RectF.Right:=Right;
+  RectF.Bottom:=Bottom;
+end;
+
 function Bounds(ALeft,ATop,AWidth,AHeight : Integer) : TRect; inline;
 
 begin
@@ -406,6 +495,13 @@ function Point(x,y : Integer) : TPoint; inline;
 begin
   Point.x:=x;
   Point.y:=y;
+end;
+
+function PointF(x,y: Single) : TPointF; inline;
+
+begin
+  PointF.x:=x;
+  PointF.y:=y;
 end;
 
 function PtInRect(const Rect : TRect;const p : TPoint) : Boolean;
@@ -660,6 +756,12 @@ begin
   Result.y:=-apt1.y;
 end;
 
+class operator TPointF. := (const apt: TPoint): TPointF;
+begin
+  Result.x:=apt.x;
+  Result.y:=apt.y;
+end;
+
 procedure TPointF.SetLocation(const apt :TPointF);
 begin
  x:=apt.x; y:=apt.y;
@@ -687,16 +789,333 @@ begin
   Result.y := apt.Y;
 end;
 
+{ TSizeF }
+
+function TSizeF.Add(const asz: TSize): TSizeF;
+begin
+  result.cx:=cx+asz.cx;
+  result.cy:=cy+asz.cy;
+end;
+
+function TSizeF.Add(const asz: TSizeF): TSizeF;
+begin
+  result.cx:=cx+asz.cx;
+  result.cy:=cy+asz.cy;
+end;
+
+function TSizeF.Subtract(const asz : TSizeF): TSizeF;
+begin
+  result.cx:=cx-asz.cx;
+  result.cy:=cy-asz.cy;
+end;
+
+function TSizeF.Subtract(const asz: TSize): TSizeF;
+begin
+  result.cx:=cx-asz.cx;
+  result.cy:=cy-asz.cy;
+end;
+
+function TSizeF.Distance(const asz : TSizeF) : Single;
+begin
+  result:=sqrt(sqr(asz.cx-cx)+sqr(asz.cy-cy));
+end;
+
+function TSizeF.IsZero : Boolean;
+begin
+  result:=SameValue(cx,0.0) and SameValue(cy,0.0);
+end;
+
+function TSizeF.Scale(afactor: Single): TSizeF;
+begin
+  result.cx:=afactor*cx;
+  result.cy:=afactor*cy;
+end;
+
+function TSizeF.Ceiling: TSize;
+begin
+  result.cx:=ceil(cx);
+  result.cy:=ceil(cy);
+end;
+
+function TSizeF.Truncate: TSize;
+begin
+  result.cx:=trunc(cx);
+  result.cy:=trunc(cy);
+end;
+
+function TSizeF.Floor: TSize;
+begin
+  result.cx:=Math.floor(cx);
+  result.cy:=Math.floor(cy);
+end;
+
+function TSizeF.Round: TSize;
+begin
+  result.cx:=System.round(cx);
+  result.cy:=System.round(cy);
+end;
+
+function TSizeF.Length: Single;
+begin     //distance(self) ?
+  result:=sqrt(sqr(cx)+sqr(cy));
+end;
+
+class operator TSizeF.= (const asz1, asz2 : TSizeF) : Boolean;
+begin
+  result:=SameValue(asz1.cx,asz2.cx) and SameValue(asz1.cy,asz2.cy);
+end;
+
+class operator TSizeF.<> (const asz1, asz2 : TSizeF): Boolean;
+begin
+  result:=NOT (SameValue(asz1.cx,asz2.cx) and Samevalue(asz1.cy,asz2.cy));
+end;
+
+class operator TSizeF. * (afactor: single; const asz1: TSizeF): TSizeF;
+begin
+  result:=asz1.Scale(afactor);
+end;
+
+class operator TSizeF. * (const asz1: TSizeF; afactor: single): TSizeF;
+begin
+  result:=asz1.Scale(afactor);
+end;
+
+class operator TSizeF.+ (const asz1, asz2 : TSizeF): TSizeF;
+begin
+  result.cx:=asz1.cx+asz2.cx;
+  result.cy:=asz1.cy+asz2.cy;
+end;
+
+class operator TSizeF.- (const asz1, asz2 : TSizeF): TSizeF;
+begin
+  result.cx:=asz1.cx-asz2.cx;
+  result.cy:=asz1.cy-asz2.cy;
+end;
+
+class operator TSizeF. - (const asz1: TSizeF): TSizeF;
+begin
+  Result.cx:=-asz1.cx;
+  Result.cy:=-asz1.cy;
+end;
+
+class operator TSizeF. := (const apt: TPointF): TSizeF;
+begin
+  Result.cx:=apt.x;
+  Result.cy:=apt.y;
+end;
+
+class operator TSizeF. := (const asz: TSize): TSizeF;
+begin
+  Result.cx := asz.cx;
+  Result.cy := asz.cy;
+end;
+
+class operator TSizeF. := (const asz: TSizeF): TPointF;
+begin
+  Result.x := asz.cx;
+  Result.y := asz.cy;
+end;
+
+class function TSizeF.Create(const ax, ay: Single): TSizeF;
+begin
+  Result.cx := ax;
+  Result.cy := ay;
+end;
+
+class function TSizeF.Create(const asz: TSize): TSizeF;
+begin
+  Result.cx := asz.cX;
+  Result.cy := asz.cY;
+end;
+
 { TRectF }
+
+class operator TRectF. * (L, R: TRectF): TRectF;
+begin
+  Result := TRectF.Intersect(L, R);
+end;
+
+class operator TRectF. + (L, R: TRectF): TRectF;
+begin
+  Result := TRectF.Union(L, R);
+end;
+
+class operator TRectF. := (const arc: TRect): TRectF;
+begin
+  Result.Left:=arc.Left;
+  Result.Top:=arc.Top;
+  Result.Right:=arc.Right;
+  Result.Bottom:=arc.Bottom;
+end;
+
+class operator TRectF. <> (L, R: TRectF): Boolean;
+begin
+  Result := not(L=R);
+end;
+
+class operator TRectF. = (L, R: TRectF): Boolean;
+begin
+  Result :=
+    SameValue(L.Left,R.Left) and SameValue(L.Right,R.Right) and
+    SameValue(L.Top,R.Top) and SameValue(L.Bottom,R.Bottom);
+end;
+
+constructor TRectF.Create(ALeft, ATop, ARight, ABottom: Single);
+begin
+  Left := ALeft;
+  Top := ATop;
+  Right := ARight;
+  Bottom := ABottom;
+end;
+
+constructor TRectF.Create(P1, P2: TPointF; Normalize: Boolean);
+begin
+  TopLeft := P1;
+  BottomRight := P2;
+  if Normalize then
+    NormalizeRect;
+end;
+
+constructor TRectF.Create(Origin: TPointF);
+begin
+  TopLeft := Origin;
+  BottomRight := Origin;
+end;
+
+constructor TRectF.Create(Origin: TPointF; AWidth, AHeight: Single);
+begin
+  TopLeft := Origin;
+  Width := AWidth;
+  Height := AHeight;
+end;
+
+constructor TRectF.Create(R: TRectF; Normalize: Boolean);
+begin
+  Self := R;
+  if Normalize then
+    NormalizeRect;
+end;
+
+constructor TRectF.Create(R: TRect; Normalize: Boolean);
+begin
+  Self := R;
+  if Normalize then
+    NormalizeRect;
+end;
+
+function TRectF.CenterPoint: TPointF;
+begin
+  Result.X := (Right-Left) / 2 + Left;
+  Result.Y := (Bottom-Top) / 2 + Top;
+end;
+
+function TRectF.Contains(Pt: TPointF): Boolean;
+begin
+  Result := (Left <= Pt.X) and (Pt.X < Right) and (Top <= Pt.Y) and (Pt.Y < Bottom);
+end;
+
+function TRectF.Contains(R: TRectF): Boolean;
+begin
+  Result := (Left <= R.Left) and (R.Right <= Right) and (Top <= R.Top) and (R.Bottom <= Bottom);
+end;
+
+class function TRectF.Empty: TRectF;
+begin
+  Result := TRectF.Create(0,0,0,0);
+end;
 
 function TRectF.GetHeight: Single;
 begin
   result:=bottom-top;
 end;
 
+function TRectF.GetLocation: TPointF;
+begin
+  result.x:=Left; result.y:=top;
+end;
+
+function TRectF.GetSize: TSizeF;
+begin
+  result.cx:=width; result.cy:=height;
+end;
+
 function TRectF.GetWidth: Single;
 begin
- result:=right-left;
+  result:=right-left;
+end;
+
+procedure TRectF.Inflate(DX, DY: Single);
+begin
+  Left:=Left-dx;
+  Top:=Top-dy;
+  Right:=Right+dx;
+  Bottom:=Bottom+dy;
+end;
+
+procedure TRectF.Intersect(R: TRectF);
+begin
+  Self := Intersect(Self, R);
+end;
+
+class function TRectF.Intersect(R1: TRectF; R2: TRectF): TRectF;
+begin
+  Result := R1;
+  if R2.Left > R1.Left then
+    Result.Left := R2.Left;
+  if R2.Top > R1.Top then
+    Result.Top := R2.Top;
+  if R2.Right < R1.Right then
+    Result.Right := R2.Right;
+  if R2.Bottom < R1.Bottom then
+    Result.Bottom := R2.Bottom;
+end;
+
+function TRectF.IntersectsWith(R: TRectF): Boolean;
+begin
+  Result := (Left < R.Right) and (R.Left < Right) and (Top < R.Bottom) and (R.Top < Bottom);
+end;
+
+function TRectF.IsEmpty: Boolean;
+begin
+  Result := (CompareValue(Right,Left)<=0) or (CompareValue(Bottom,Top)<=0);
+end;
+
+procedure TRectF.NormalizeRect;
+var
+  x: Single;
+begin
+  if Top>Bottom then
+  begin
+    x := Top;
+    Top := Bottom;
+    Bottom := x;
+  end;
+  if Left>Right then
+  begin
+    x := Left;
+    Left := Right;
+    Right := x;
+  end
+end;
+
+procedure TRectF.Inflate(DL, DT, DR, DB: Single);
+begin
+  Left:=Left-dl;
+  Top:=Top-dt;
+  Right:=Right+dr;
+  Bottom:=Bottom+db;
+end;
+
+procedure TRectF.Offset(const dx, dy: Single);
+begin
+  left:=left+dx; right:=right+dx;
+  bottom:=bottom+dy; top:=top+dy;
+end;
+
+procedure TRectF.Offset(DP: TPointF);
+begin
+  left:=left+DP.x; right:=right+DP.x;
+  bottom:=bottom+DP.y; top:=top+DP.y;
 end;
 
 procedure TRectF.SetHeight(AValue: Single);
@@ -704,23 +1123,59 @@ begin
   bottom:=top+avalue;
 end;
 
+procedure TRectF.SetLocation(X, Y: Single);
+begin
+  Offset(X-Left, Y-Top);
+end;
+
+procedure TRectF.SetLocation(P: TPointF);
+begin
+  SetLocation(P.X, P.Y);
+end;
+
+procedure TRectF.SetSize(AValue: TSizeF);
+begin
+  bottom:=top+avalue.cy;
+  right:=left+avalue.cx;
+end;
+
 procedure TRectF.SetWidth(AValue: Single);
 begin
   right:=left+avalue;
 end;
 
-function TRectF.Union(const r: TRectF): TRectF;
+class function TRectF.Union(const Points: array of TPointF): TRectF;
+var
+  i: Integer;
 begin
-  result.left:=min(r.left,left);
-  result.top:=min(r.top,top);
-  result.right:=max(r.right,right);
-  result.bottom:=max(r.bottom,bottom);
+  if Length(Points) > 0 then
+  begin
+    Result.TopLeft := Points[Low(Points)];
+    Result.BottomRight := Points[Low(Points)];
+
+    for i := Low(Points)+1 to High(Points) do
+    begin
+      if Points[i].X < Result.Left then Result.Left := Points[i].X;
+      if Points[i].X > Result.Right then Result.Right := Points[i].X;
+      if Points[i].Y < Result.Top then Result.Top := Points[i].Y;
+      if Points[i].Y > Result.Bottom then Result.Bottom := Points[i].Y;
+    end;
+  end else
+    Result := Empty;
 end;
 
-procedure TRectF.Offset(const dx, dy: Single);
+procedure TRectF.Union(const r: TRectF);
 begin
-  left:=left+dx; right:=right+dx;
-  bottom:=bottom+dy; top:=top+dy;
+  left:=min(r.left,left);
+  top:=min(r.top,top);
+  right:=max(r.right,right);
+  bottom:=max(r.bottom,bottom);
+end;
+
+class function TRectF.Union(R1, R2: TRectF): TRectF;
+begin
+  Result:=R1;
+  Result.Union(R2);
 end;
 
 { TPoint3D }
