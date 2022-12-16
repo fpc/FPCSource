@@ -260,6 +260,13 @@ program fpc;
      i : longint;
      errorvalue     : Longint;
 
+     Procedure AddToCommandLine(S : String);
+
+     begin
+       PPCCommandLine [PPCCommandLineLen] := S;
+       Inc(PPCCommandLineLen);
+     end;
+
   begin
      setlength(ppccommandline,paramcount);
      ppccommandlinelen:=0;
@@ -271,8 +278,7 @@ program fpc;
      if ParamCount = 0 then
        begin
          SetLength (PPCCommandLine, 1);
-         PPCCommandLine [PPCCommandLineLen] := '-?F' + ParamStr (0);
-         Inc (PPCCommandLineLen);
+         AddToCommandLine('-?F' + ParamStr (0));
        end
      else
       for i:=1 to paramcount do
@@ -281,8 +287,7 @@ program fpc;
           if pos('-t',s)=1 then
             begin
             targetname:=copy(s,3,length(s)-2);
-            ppccommandline[ppccommandlinelen]:=s;
-            inc(ppccommandlinelen);
+            AddToCommandLine(S);
             end
           else if pos('-V',s)=1 then
             exesuffix:=copy(s,3,length(s)-2)
@@ -313,17 +318,15 @@ program fpc;
               else
                 begin
                   if pos('-h',s)=1 then
-                    ppccommandline[ppccommandlinelen] := '-hF' + ParamStr (0)
+                    AddToCommandLine('-hF'+ParamStr(0))
                   else if pos('-?',s)=1 then
-                    ppccommandline[ppccommandlinelen] := '-?F' + ParamStr (0)
+                    AddToCommandLine('-?F'+ParamStr(0))
                   else
-                    ppccommandline[ppccommandlinelen]:=s;
-                  inc(ppccommandlinelen);
+                    AddToCommandLine(S);
                 end;
             end;
        end;
      SetLength(ppccommandline,ppccommandlinelen);
-
      ppcbin:=findcompiler(ppcbin,cpusuffix,exesuffix);
 
      { call ppcXXX }
@@ -338,3 +341,4 @@ program fpc;
        error(ppcbin+' returned an error exitcode');
      halt(errorvalue);
   end.
+
