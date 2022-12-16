@@ -80,7 +80,7 @@ program fpc;
     end;
   end;
 
-  procedure InitPlatform(var ppcbin,processorname : string);
+  procedure InitPlatform(out ppcbin,processorname : string);
 
   begin
     {$ifdef i386}
@@ -267,6 +267,7 @@ program fpc;
      end;
 
   begin
+     ppccommandline:=[];
      setlength(ppccommandline,paramcount);
      ppccommandlinelen:=0;
      cpusuffix     :='';        // if not empty, signals attempt at cross
