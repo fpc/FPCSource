@@ -1160,23 +1160,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-  MsgTxtSize = 90570;
-=======
-  MsgTxtSize = 90867;
->>>>>>> 0438a64972 (* Implement -t and -x options)
-=======
-  MsgTxtSize = 90933;
->>>>>>> 317064c473 (* Implement -x and -t options for fpc executable)
-=======
-  MsgTxtSize = 90927;
->>>>>>> 13368ac5cc (* Rename architecture to more neutral subtarget)
-=======
-  MsgTxtSize = 90942;
->>>>>>> f53ac13900 (* Forgot some instances of arch instead of subtarget)
+  MsgTxtSize = 90959;
 
   MsgIdxMax : array[1..20] of longint=(
     28,109,366,132,100,63,148,38,223,71,
