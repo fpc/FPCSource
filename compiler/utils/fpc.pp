@@ -58,215 +58,320 @@ const
 {$endif not darwin}
 
 
-  procedure error(const s: string);
+procedure error(const s: string);
 
-  begin
-    writeln('Error: ', s);
-    halt(1);
+begin
+  writeln('Error: ', s);
+  halt(1);
+end;
+
+function processortosuffix(processorstr: string) : string;
+
+begin
+  case processorstr of
+    'aarch64': Result := 'a64';
+    'arm': Result := 'arm';
+    'avr': Result := 'avr';
+    'i386': Result := '386';
+    'i8086': Result := '8086';
+    'jvm': Result := 'jvm';
+    'm68k': Result := '68k';
+    'mips': Result := 'mips';
+    'mipsel': Result := 'mipsel';
+    'powerpc': Result := 'ppc';
+    'powerpc64': Result := 'ppc64';
+    'riscv32': Result := 'rv32';
+    'riscv64': Result := 'rv64';
+    'sparc': Result := 'sparc';
+    'sparc64': Result := 'sparc64';
+    'x86_64': Result := 'x64';
+    'xtensa': Result := 'xtensa';
+    'z80': Result := 'z80';
+    'wasm32': Result := 'wasm32'
+    else
+      error('Illegal processor type "'+processorstr+'"');
   end;
+end;
 
-  function processortosuffix(processorstr: string) : string;
+procedure InitPlatform(out ppcbin, processorname: string);
 
-  begin
-    case processorstr of
-      'aarch64': Result := 'a64';
-      'arm': Result := 'arm';
-      'avr': Result := 'avr';
-      'i386': Result := '386';
-      'i8086': Result := '8086';
-      'jvm': Result := 'jvm';
-      'm68k': Result := '68k';
-      'mips': Result := 'mips';
-      'mipsel': Result := 'mipsel';
-      'powerpc': Result := 'ppc';
-      'powerpc64': Result := 'ppc64';
-      'riscv32': Result := 'rv32';
-      'riscv64': Result := 'rv64';
-      'sparc': Result := 'sparc';
-      'sparc64': Result := 'sparc64';
-      'x86_64': Result := 'x64';
-      'xtensa': Result := 'xtensa';
-      'z80': Result := 'z80';
-      'wasm32': Result := 'wasm32'
-      else
-        error('Illegal processor type "'+processorstr+'"');
-    end;
-  end;
+begin
+  {$ifdef i386}
+       ppcbin:='ppc386';
+       processorname:='i386';
+  {$endif i386}
+  {$ifdef m68k}
+       ppcbin:='ppc68k';
+       processorname:='m68k';
+  {$endif m68k}
+  {$ifdef powerpc}
+       ppcbin:='ppcppc';
+       processorname:='powerpc';
+  {$endif powerpc}
+  {$ifdef powerpc64}
+       ppcbin:='ppcppc64';
+       processorname:='powerpc64';
+  {$endif powerpc64}
+  {$ifdef arm}
+       ppcbin:='ppcarm';
+       processorname:='arm';
+  {$endif arm}
+  {$ifdef aarch64}
+       ppcbin:='ppca64';
+       processorname:='aarch64';
+  {$endif aarch64}
+  {$ifdef sparc}
+       ppcbin:='ppcsparc';
+       processorname:='sparc';
+  {$endif sparc}
+  {$ifdef sparc64}
+       ppcbin:='ppcsparc64';
+       processorname:='sparc64';
+  {$endif sparc64}
+  {$ifdef x86_64}
+       ppcbin:='ppcx64';
+       processorname:='x86_64';
+  {$endif x86_64}
+  {$ifdef mipsel}
+       ppcbin:='ppcmipsel';
+       processorname:='mipsel';
+  {$else : not mipsel}
+    {$ifdef mips}
+       ppcbin:='ppcmips';
+       processorname:='mips';
+    {$endif mips}
+  {$endif not mipsel}
+  {$ifdef riscv32}
+       ppcbin:='ppcrv32';
+       processorname:='riscv32';
+  {$endif riscv32}
+  {$ifdef riscv64}
+       ppcbin:='ppcrv64';
+       processorname:='riscv64';
+  {$endif riscv64}
+  {$ifdef xtensa}
+       ppcbin:='ppcxtensa';
+       processorname:='xtensa';
+  {$endif xtensa}
+  {$ifdef wasm32}
+       ppcbin:='ppcwasm32';
+       processorname:='wasm32';
+  {$endif wasm32}
+end;
 
-  procedure InitPlatform(out ppcbin, processorname: string);
-
-  begin
-    {$ifdef i386}
-         ppcbin:='ppc386';
-         processorname:='i386';
-    {$endif i386}
-    {$ifdef m68k}
-         ppcbin:='ppc68k';
-         processorname:='m68k';
-    {$endif m68k}
-    {$ifdef powerpc}
-         ppcbin:='ppcppc';
-         processorname:='powerpc';
-    {$endif powerpc}
-    {$ifdef powerpc64}
-         ppcbin:='ppcppc64';
-         processorname:='powerpc64';
-    {$endif powerpc64}
-    {$ifdef arm}
-         ppcbin:='ppcarm';
-         processorname:='arm';
-    {$endif arm}
-    {$ifdef aarch64}
-         ppcbin:='ppca64';
-         processorname:='aarch64';
-    {$endif aarch64}
-    {$ifdef sparc}
-         ppcbin:='ppcsparc';
-         processorname:='sparc';
-    {$endif sparc}
-    {$ifdef sparc64}
-         ppcbin:='ppcsparc64';
-         processorname:='sparc64';
-    {$endif sparc64}
-    {$ifdef x86_64}
-         ppcbin:='ppcx64';
-         processorname:='x86_64';
-    {$endif x86_64}
-    {$ifdef mipsel}
-         ppcbin:='ppcmipsel';
-         processorname:='mipsel';
-    {$else : not mipsel}
-      {$ifdef mips}
-         ppcbin:='ppcmips';
-         processorname:='mips';
-      {$endif mips}
-    {$endif not mipsel}
-    {$ifdef riscv32}
-         ppcbin:='ppcrv32';
-         processorname:='riscv32';
-    {$endif riscv32}
-    {$ifdef riscv64}
-         ppcbin:='ppcrv64';
-         processorname:='riscv64';
-    {$endif riscv64}
-    {$ifdef xtensa}
-         ppcbin:='ppcxtensa';
-         processorname:='xtensa';
-    {$endif xtensa}
-    {$ifdef wasm32}
-         ppcbin:='ppcwasm32';
-         processorname:='wasm32';
-    {$endif wasm32}
-  end;
-
-  function SplitPath(const HStr: string) : string;
-  var
-    i: longint;
-  begin
-    i := Length(Hstr);
-    while (i>0) and not(Hstr[i] in ['\', '/']) do
-      Dec(i);
-    SplitPath := Copy(Hstr, 1, i);
-  end;
+function SplitPath(const HStr: string) : string;
+var
+  i: longint;
+begin
+  i := Length(Hstr);
+  while (i>0) and not(Hstr[i] in ['\', '/']) do
+    Dec(i);
+  SplitPath := Copy(Hstr, 1, i);
+end;
 
 
-  function FileExists(const F: string) : boolean;
-  var
-    Info: TSearchRec;
-  begin
-    FileExists := findfirst(F, fareadonly+faarchive+fahidden, info) = 0;
-    findclose(Info);
-  end;
+function FileExists(const F: string) : boolean;
+var
+  Info: TSearchRec;
+begin
+  FileExists := findfirst(F, fareadonly+faarchive+fahidden, info) = 0;
+  findclose(Info);
+end;
 
 var
   extrapath: ansistring;
 
-  function findexe(var ppcbin: string) : boolean;
-  var
-    path: string;
-  begin
-    { add .exe extension }
-    findexe := False;
-    ppcbin := ppcbin+exeext;
+function findexe(var ppcbin: string) : boolean;
+var
+  path: string;
+begin
+  { add .exe extension }
+  findexe := False;
+  ppcbin := ppcbin+exeext;
 
-    if (extrapath<>'') and (extrapath[length(extrapath)]<>DirectorySeparator) then
-      extrapath := extrapath+DirectorySeparator;
-    { get path of fpc.exe }
-    path := splitpath(ParamStr(0));
-      { don't try with an empty extra patch, this might have strange results
-        if the current directory contains a compiler
-      }
-    if (extrapath<>'') and FileExists(extrapath+ppcbin) then
+  if (extrapath<>'') and (extrapath[length(extrapath)]<>DirectorySeparator) then
+    extrapath := extrapath+DirectorySeparator;
+  { get path of fpc.exe }
+  path := splitpath(ParamStr(0));
+    { don't try with an empty extra patch, this might have strange results
+      if the current directory contains a compiler
+    }
+  if (extrapath<>'') and FileExists(extrapath+ppcbin) then
+  begin
+    ppcbin := extrapath+ppcbin;
+    findexe := True;
+  end
+  else if (path<>'') and FileExists(path+ppcbin) then
+  begin
+    ppcbin := path+ppcbin;
+    findexe := True;
+  end
+  else
+  begin
+    path := ExeSearch(ppcbin, getenvironmentvariable('PATH'));
+    if path<>'' then
     begin
-      ppcbin := extrapath+ppcbin;
+      ppcbin := path;
       findexe := True;
-    end
-    else if (path<>'') and FileExists(path+ppcbin) then
-    begin
-      ppcbin := path+ppcbin;
-      findexe := True;
-    end
-    else
-    begin
-      path := ExeSearch(ppcbin, getenvironmentvariable('PATH'));
-      if path<>'' then
-      begin
-        ppcbin := path;
-        findexe := True;
-      end;
     end;
   end;
+end;
 
-  function findcompiler(basecompiler, cpusuffix, exesuffix: string) : string;
+function findcompiler(basecompiler, cpusuffix, exesuffix: string) : string;
 
+begin
+  Result := basecompiler;
+  if exesuffix<>'' then
+    Result := Result+'-'+exesuffix;
+  if not findexe(Result) then
   begin
-    Result := basecompiler;
-    if exesuffix<>'' then
-      Result := Result+'-'+exesuffix;
-    if not findexe(Result) then
+    if cpusuffix<>'' then
     begin
-      if cpusuffix<>'' then
-      begin
-        Result := 'ppc'+cpusuffix;
-        if exesuffix<>'' then
-          Result := Result+'-'+exesuffix;
-        if not findexe(Result) then
-          Result := '';
-      end;
+      Result := 'ppc'+cpusuffix;
+      if exesuffix<>'' then
+        Result := Result+'-'+exesuffix;
+      if not findexe(Result) then
+        Result := '';
     end;
   end;
+end;
 
-  procedure CheckSpecialProcessors(processorstr, processorname, ppcbin, cpusuffix, exesuffix: string);
+procedure CheckSpecialProcessors(processorstr, processorname, ppcbin, cpusuffix, exesuffix: string);
 
+begin
+    { -PB is a special code that will show the
+      default compiler and exit immediately. It's
+      main usage is for Makefile }
+  if processorstr = 'B' then
   begin
-      { -PB is a special code that will show the
-        default compiler and exit immediately. It's
-        main usage is for Makefile }
-    if processorstr = 'B' then
-    begin
-      { report the full name of the ppcbin }
-      writeln(findcompiler(ppcbin, cpusuffix, exesuffix));
-      halt(0);
-    end;
-      { -PP is a special code that will show the
-         processor and exit immediately. It's
-         main usage is for Makefile }
-    if processorstr = 'P' then
-    begin
-      { report the processor }
-      writeln(processorname);
-      halt(0);
-    end;
+    { report the full name of the ppcbin }
+    writeln(findcompiler(ppcbin, cpusuffix, exesuffix));
+    halt(0);
   end;
+    { -PP is a special code that will show the
+       processor and exit immediately. It's
+       main usage is for Makefile }
+  if processorstr = 'P' then
+  begin
+    { report the processor }
+    writeln(processorname);
+    halt(0);
+  end;
+end;
 
+Function FindConfigFile(const aFile : string) : String;
+// Adapted from check_configfile(fn:string; var foundfn:string):boolean;
+{
+  Order to read configuration file :
+  Unix:
+   1 - current dir
+   2 - ~/.fpc.cfg
+   3 - configpath
+   4 - /etc
+  Windows:
+   1 - current dir
+   2 - home dir of user or all users
+   3 - config path
+   4 - next to binary
+  Other:
+   1 - current dir
+   3 - config path
+   4 - next to binary
+}
 
 var
-  s: ansistring;
-  cpusuffix, exesuffix, SourceCPU, ppcbin, targetname, TargetCPU: string;
-  ppccommandline: array of ansistring;
-  ppccommandlinelen: longint;
+  {$ifdef unix}hs,{$endif} aSearchPath,exepath,configpath : string;
+
+  Procedure AddToPath(aDir : String);
+
+  begin
+    if aDir='' then exit;
+    if (aSearchPath<>'') then
+      aSearchPath:=aSearchPath+PathSeparator;
+    aSearchPath:=aSearchPath+IncludeTrailingPathDelimiter(SetDirSeparators(aDir));
+  end;
+
+begin
+  if FileExists(aFile) then
+    Exit(aFile);
+  ExePath:=SetDirSeparators(ExtractFilePath(paramstr(0)));
+  aSearchPath:='';
+  { retrieve configpath }
+  configpath:=SetDirSeparators(GetEnvironmentVariable('PPC_CONFIG_PATH'));
+{$ifdef Unix}
+  hs:=SetDirSeparators(GetEnvironmentVariable('HOME'));
+  if (hs<>'') then
+    begin
+    Result:=IncludeTrailingPathDelimiter(hs)+'.'+aFile;
+    if FileExists(Result) then
+      exit;
+    end;
+  if configpath='' then
+    configpath:=ExpandFileName(ExePath+'../etc/');
+{$endif}
+  AddToPath(ConfigPath);
+{$ifdef WINDOWS}
+  AddToPath(GetEnvironmentVariable('USERPROFILE'));
+  AddToPath(GetEnvironmentVariable('ALLUSERSPROFILE'));
+{$endif WINDOWS}
+{$ifdef Unix}
+  AddToPath('/etc/');
+{$else}
+  AddToPath(exepath);
+{$endif}
+  Result:=FileSearch(aFile,aSearchPath);
+end;
+
+Procedure ProcessConfigFile(aFileName : String; var ExeSuffix : String);
+
+  Function Stripline(aLine : String) : string;
+
+  Var
+    P : integer;
+
+  begin
+    if (aLine<>'') and (aLine[1]=';') then exit;
+    Pos('#',aLine); // no ifdef or include.
+    if P=0 then
+      P:=Length(aLine)+1;
+    Result:=Copy(aLine,1,P-1);
+  end;
+
+Var
+  aFile : Text;
+  aLine : String;
+
+begin
+  Assign(aFile,aFileName);
+  {$push}{$I-}
+  filemode:=0;
+  Reset(aFile);
+  {$pop}
+  if ioresult<>0 then
+    Error('Cannot open config file: '+aFileName);
+  While not EOF(aFile) do
+    begin
+    ReadLn(aFile,aLine);
+    aLine:=StripLine(aLine);
+    if aLine='' then
+      continue;
+    if Copy(aLine,1,2)='-V' then
+      if ExeSuffix='' then
+        ExeSuffix:=Copy(aLine,3,Length(aLine)-2)
+      else
+        Error('Option -V already specified on command-line: '+ExeSuffix);
+    end;
+  {$i+}
+  Close(aFile);
+end;
+
+var
+  s,CfgFile: ansistring;
+  CPUSuffix, ExeSuffix, SourceCPU, ppcbin, TargetName, TargetCPU: string;
+  PPCCommandLine: array of ansistring;
+  PPCCommandLineLen: longint;
   i: longint;
-  errorvalue: longint;
+  ErrorValue: longint;
 
   procedure AddToCommandLine(S: string);
 
@@ -324,6 +429,14 @@ begin
             AddToCommandLine(S);
         end;
       end;
+    end;
+  if (TargetName<>'') then
+    begin
+    S:='fpc-'+TargetName+'.cfg';
+    CfgFile:=FindConfigFile(s);
+    if CfgFile='' then
+      Error('Cannot find subtarget config file: '+s);
+    ProcessConfigFile(CfgFile,ExeSuffix);
     end;
   SetLength(ppccommandline, ppccommandlinelen);
   ppcbin := findcompiler(ppcbin, cpusuffix, exesuffix);
