@@ -18,7 +18,7 @@ unit fppdfparser;
 {$mode ObjFPC}{$H+}
 {$J-}
 
-{$DEFINE DEBUGSTREAMS}
+{ $DEFINE DEBUGSTREAMS}
 { $DEFINE DUMPSTREAMS}
 
 interface
@@ -827,7 +827,9 @@ function TPDFParser.ParseCMap(aStream : TStream) : TPDFCMap;
 begin
   Result:=TPDFCMap.Create;
   try
+{$IFDEF DEBUGSTREAMS}
     SaveStreamToFile('parsecmap',aStream);
+{$ENDIF}
     ParseCMap(aStream,Result);
   except
     Result.Free;
