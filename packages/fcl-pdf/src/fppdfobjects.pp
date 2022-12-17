@@ -1425,11 +1425,14 @@ Var
   i : integer;
 
 begin
+  if aUnicodeMap=Nil then
+    Exit(GetFullText);
   Result:='';
   if Length(Tokens)>=2 then
     For I:=1 to Length(Tokens)-2 do
       begin
       if Tokens[I].TokenType=ptString then
+
         Result:=Result+aUnicodeMap.InterPret(Tokens[I].TokenData)
       else if Tokens[i].IsNumber then
         begin
