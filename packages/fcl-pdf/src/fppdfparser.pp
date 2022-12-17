@@ -27,12 +27,12 @@ uses
   Types, Typinfo, Classes, SysUtils, fppdfobjects, fppdfscanner, fppdfsource, streamex, fppdfpredict;
 
 Const
-  MaxTrailerDistance = 6;  // Maximum number of bytes to scan backwards for trailer dictionary end: >>
+  PDFMaxTrailerDistance = 6;  // Maximum number of bytes to scan backwards for trailer dictionary end: >>
 
 
 Type
   { TPDFParser }
-  TFilterData = Record
+  TPDFFilterData = Record
     FilterName : String;
     Source : TStream;
     Dest : TStream;
@@ -44,23 +44,23 @@ Type
     ObjectID,ObjectGeneration : Integer;
   end;
 
-  TFilterEvent = Procedure (Sender : TObject; Var aData : TFilterData) of object;
-  TLogKind = (lkInfo,lkWarning,lkError);
-  TLogNotifyEvent = Procedure(sender : TObject; aKind : TLogkind; const aMessage : string) of object;
+  TPDFFilterEvent = Procedure (Sender : TObject; Var aData : TPDFFilterData) of object;
+  TPDFLogKind = (lkInfo,lkWarning,lkError);
+  TPDFLogNotifyEvent = Procedure(sender : TObject; aKind : TPDFLogKind; const aMessage : string) of object;
 
-  TIndexPair = Array[1..2] of Longint;
-  TIndexPairArray = Array of TIndexPair;
-  TProgressKind = (pkXRef,pkIndirect,pkContentStream);
+  TPDFIndexPair = Array[1..2] of Longint;
+  TPDFIndexPairArray = Array of TPDFIndexPair;
+  TPDFProgressKind = (pkXRef,pkIndirect,pkContentStream);
 
-  TNewCommandEvent = procedure(Sender : TObject; aStream : TPDFPageObject; aCommand : TPDFCommand) of object;
-  TProgressEvent = Procedure(Sender : TObject; aKind : TProgressKind;aCurrent,aCount : Integer) of object;
+  TPDFNewCommandEvent = procedure(Sender : TObject; aStream : TPDFPageObject; aCommand : TPDFCommand) of object;
+  TPDFProgressEvent = Procedure(Sender : TObject; aKind : TPDFProgressKind;aCurrent,aCount : Integer) of object;
 
   TPDFParser = class
   Private
     FLoadObjects: Boolean;
-    FOnLog: TLogNotifyEvent;
-    FOnProgress: TProgressEvent;
-    FOnUnknownFilter: TFilterEvent;
+    FOnLog: TPDFLogNotifyEvent;
+    FOnProgress: TPDFProgressEvent;
+    FOnUnknownFilter: TPDFFilterEvent;
     FResolveContentStreams: Boolean;
     FResolveObjects: Boolean;
     FScanner : TPDFScanner;
@@ -75,9 +75,9 @@ Type
     procedure SetResolveContentStreams(AValue: Boolean);
   Protected
     // Progress, Logging & Errors.
-    procedure DoProgress(aKind : TProgressKind; aCurrent,aCount : Integer);
-    Procedure DoLog(aKind : TLogKind; Const Msg : string);
-    Procedure DoLog(aKind : TLogKind; Const Fmt : string; Const Args : Array of const);
+    procedure DoProgress(aKind : TPDFProgressKind; aCurrent,aCount : Integer);
+    Procedure DoLog(aKind : TPDFLogKind; Const Msg : string);
+    Procedure DoLog(aKind : TPDFLogKind; Const Fmt : string; Const Args : Array of const);
     Procedure DoInfo(Const Msg : string);
     Procedure DoInfo(Const Fmt : string; Const args : Array of const);
     Procedure DoWarning(Const Msg : string);
@@ -103,17 +103,17 @@ Type
     function GetUnfilteredStream(aObj: TPDFIndirect): TStream;
     function ResolveFilters(aStream: TStream; aDict: TPDFDictionary): TStream;
     // XRef handling
-    function GetXRefStreamSubSections(aObjectDict: TPDFDictionary): TIndexPairArray;
+    function GetXRefStreamSubSections(aObjectDict: TPDFDictionary): TPDFIndexPairArray;
     function ParseXREFStream(aStream: TStream; aObjectDict: TPDFDictionary): TPDFXRefList;
     function ParseXRefAt(aStartPos: Int64; out ParentObject : TPDFIndirect): TPDFXRefList;
     function GetLastXRef(StartAt: Int64; out FoundAt: Int64): TPDFStartXRef;
     procedure LoadIndirectObjects;
     // Object Stream
     function ParseIndirectObjectInStream(aSTMObj: TPDFIndirect; aIdx, aObjectID: Integer): TPDFIndirect;
-    function ParseStreamObjectPositions(aSTMObj: TPDFIndirect  ): TObjectPositionArray;
+    function ParseStreamObjectPositions(aSTMObj: TPDFIndirect  ): TPDFObjectPositionArray;
     // Content streams
     procedure DoResolveContentStreams(aDoc: TPDFDocument;
-      aOnCommand: TNewCommandEvent=nil);
+      aOnCommand: TPDFNewCommandEvent=nil);
     // Trailer
     function DetectTrailerAt(aStartPos: Int64): TPDFTrailer;
     // Dictionary handling
@@ -138,7 +138,7 @@ Type
     function ParseXREFItem(aIndex: Integer): TPDFXRef; virtual;
     function ParseStartXREF(const aToken: TPDFToken): TPDFStartXRef; virtual;
   Public
-    Constructor Create(aFile : TStream; aBufferSize : Cardinal = DefaultBufferSize); virtual;
+    Constructor Create(aFile : TStream; aBufferSize : Cardinal = PDFDefaultBufferSize); virtual;
     Destructor Destroy; override;
     function GetPageContentStream(aDoc: TPDFDocument; aPage: TPDFPageObject
       ): TStream;
@@ -146,9 +146,9 @@ Type
     Procedure ParseDocument(aDoc : TPDFDocument); virtual;
     function LoadXREFobject(Itm: TPDFXRef; addToDocument : Boolean = True): TPDFIndirect; virtual;
     procedure ParseContentStream(aObject: TPDFPageObject; aStream: TStream;
-      aOnCommand: TNewCommandEvent); virtual;
+      aOnCommand: TPDFNewCommandEvent); virtual;
     Procedure ResolveToUnicodeCMaps(aDoc : TPDFDocument);
-    class procedure Unpredict(var Data: TFilterData);
+    class procedure Unpredict(var Data: TPDFFilterData);
     Class procedure AsciiHEXDecode(aSrc,aDest : TStream);
     Class Function AsciiHEXDecode(aSrc : TStream) : TStream;
     Class procedure Ascii85Decode(aSrc,aDest : TStream);
@@ -167,11 +167,11 @@ Type
     // Resolve content streams of pages ?
     Property ResolveContentStreams : Boolean Read FResolveContentStreams Write SetResolveContentStreams;
     // Called when an unknown filter is encountered
-    Property OnUnknownFilter : TFilterEvent Read FOnUnknownFilter Write FOnUnknownFilter;
+    Property OnUnknownFilter : TPDFFilterEvent Read FOnUnknownFilter Write FOnUnknownFilter;
     // Log function
-    Property OnLog : TLogNotifyEvent Read FOnLog Write FOnLog;
+    Property OnLog : TPDFLogNotifyEvent Read FOnLog Write FOnLog;
     // Progress indicator when loading
-    Property OnProgress : TProgressEvent Read FOnProgress Write FOnProgress;
+    Property OnProgress : TPDFProgressEvent Read FOnProgress Write FOnProgress;
   end;
 
 
@@ -544,7 +544,7 @@ begin
     end;
 end;
 
-procedure TPDFParser.ParseContentStream(aObject: TPDFPageObject; aStream : TStream; aOnCommand : TNewCommandEvent);
+procedure TPDFParser.ParseContentStream(aObject: TPDFPageObject; aStream : TStream; aOnCommand : TPDFNewCommandEvent);
 
 var
   aScanner : TPDFScanner;
@@ -617,7 +617,7 @@ end;
 Procedure TPDFParser.ParseCMAPCodeSpaceRange(aMap : TPDFCMapData);
 
 Var
-  L : TCodeSpaceRangeArray;
+  L : TPDFCodeSpaceRangeArray;
   aCount: Integer;
   Len : Integer;
 
@@ -633,7 +633,7 @@ Var
 
 Var
   lToken :TPDFToken;
-  aRange : TCodeSpaceRange;
+  aRange : TPDFCodeSpaceRange;
 
 begin
   Len:=0;
@@ -662,7 +662,7 @@ end;
 Procedure TPDFParser.ParseCMAPBFChar(aMap : TPDFCMapData);
 
 Var
-  L : TBFCharArray;
+  L : TPDFBFCharArray;
   aCount: Integer;
   Len : Integer;
 
@@ -678,7 +678,7 @@ Var
 
 Var
   lToken :TPDFToken;
-  aChar : TBFChar;
+  aChar : TPDFBFChar;
 
 begin
   Len:=0;
@@ -708,8 +708,8 @@ end;
 Procedure TPDFParser.ParseCMAPBFRange(aMap : TPDFCMapData);
 
 Var
-  L : TCIDRangeArray;
-  aNames : TCIDUnicodeCharOrNameArray;
+  L : TPDFCIDRangeArray;
+  aNames : TPDFCIDUnicodeCharOrNameArray;
   aNameCount,
   aCount: Integer;
   NameLen,
@@ -737,7 +737,7 @@ Var
 
 Var
   lToken :TPDFToken;
-  aRange : TCIDRange;
+  aRange : TPDFCIDRange;
 
 begin
   Len:=0;
@@ -1570,14 +1570,14 @@ begin
   Result:=ParseStartXREF(lToken);
 end;
 
-class procedure TPDFParser.Unpredict(var Data: TFilterData);
+class procedure TPDFParser.Unpredict(var Data: TPDFFilterData);
 
 Var
   Tmp : TBytesStream;
   Buf,B2 : TBytes;
   aCount : Integer;
   aPredictor,aColors,aColumns,aBitsPerComponent : Integer;
-  aStream : TPredictSTream;
+  aStream : TPDFPredictStream;
 
   Function MaybeInt(aKey : string; aDefault : integer) : Integer;
 
@@ -1601,7 +1601,7 @@ begin
       aBitsperComponent:=MaybeInt(SPDFKeyBitsPerComponent,8);
       Data.Dest.Position:=0;
       tmp:=nil;
-      aStream:=TPredictStream.Create(Data.Dest,aPredictor,aColumns,aColors,aBitsPerComponent);
+      aStream:=TPDFPredictStream.Create(Data.Dest,aPredictor,aColumns,aColors,aBitsPerComponent);
       try
         SetLength(B2,Data.Dest.Size);
         Tmp:=TBytesStream.Create(B2);
@@ -1632,11 +1632,11 @@ end;
 function TPDFParser.FilterStream(aStream : TStream; aFilterName : String; aParams : TPDFDictionary) : TStream;
 
 Var
-  Data : TFilterData;
+  Data : TPDFFilterData;
 
 begin
   Result:=Nil;
-  Data:=Default(TFilterData);
+  Data:=Default(TPDFFilterData);
   Data.FilterName:=aFilterName;
   Data.Source:=aStream;
   Data.ParamDict:=aParams;
@@ -1720,13 +1720,13 @@ begin
   Result:=aRes;
 end;
 
-function TPDFParser.GetXRefStreamSubSections(aObjectDict : TPDFDictionary) : TIndexPairArray;
+function TPDFParser.GetXRefStreamSubSections(aObjectDict : TPDFDictionary) : TPDFIndexPairArray;
 
 Var
   I,aSize : integer;
-  aPair : TIndexPair;
+  aPair : TPDFIndexPair;
   Idx : TPDFArray;
-  Index : TIndexPairArray;
+  Index : TPDFIndexPairArray;
 
 begin
   aSize:=aObjectDict.GetIntegerValue(SPDFKeySize);
@@ -1780,10 +1780,10 @@ function TPDFParser.ParseXREFStream(aStream : TStream; aObjectDict : TPDFDiction
 Var
   Entry : Array of Byte;
   Sizes : Array[0..2] of Byte;
-  Indexes : TIndexPairArray;
+  Indexes : TPDFIndexPairArray;
   Fields : Array[0..2] of Integer;
   aID,aFirst,aLast : integer;
-  aPair : TIndexPair;
+  aPair : TPDFIndexPair;
   O,O2 : TPDFObject;
   W : TPDFArray absolute O;
   Idx : TPDFArray absolute O;
@@ -1943,11 +1943,11 @@ begin
     DoError(penNoXrefAt,SErrNoXRefAt,[aStartPos])
 end;
 
-function TPDFParser.ParseStreamObjectPositions(aSTMObj: TPDFIndirect ) :TObjectPositionArray;
+function TPDFParser.ParseStreamObjectPositions(aSTMObj: TPDFIndirect ) :TPDFObjectPositionArray;
 
 Var
   I,N : Integer;
-  Position : TObjectPosition;
+  Position : TPDFObjectPosition;
   lToken : TPDFToken;
 
 begin
@@ -1977,19 +1977,19 @@ begin
     ResolveObjects:=true;
 end;
 
-procedure TPDFParser.DoProgress(aKind: TProgressKind; aCurrent, aCount: Integer);
+procedure TPDFParser.DoProgress(aKind: TPDFProgressKind; aCurrent, aCount: Integer);
 begin
   If Assigned(FOnProgress) then
     FOnProgress(Self,aKind,aCurrent,aCount)
 end;
 
-procedure TPDFParser.DoLog(aKind: TLogKind; const Msg: string);
+procedure TPDFParser.DoLog(aKind: TPDFLogKind; const Msg: string);
 begin
   if assigned(FonLog) then
     FonLog(Self,aKind,Msg);
 end;
 
-procedure TPDFParser.DoLog(aKind: TLogKind; const Fmt: string;
+procedure TPDFParser.DoLog(aKind: TPDFLogKind; const Fmt: string;
   const Args: array of const);
 begin
   DoLog(aKind,Format(Fmt,Args));
@@ -2048,8 +2048,8 @@ Var
   First : Integer;
   aScanner : TPDFScanner;
   aEndOffset : Integer;
-  Position : TObjectPosition;
-  Positions : TObjectPositionArray;
+  Position : TPDFObjectPosition;
+  Positions : TPDFObjectPositionArray;
   aStartOffset : Integer;
   Obj : TPDFIndirect;
   {$IFDEF DEBUGSTREAMS}
@@ -2208,7 +2208,7 @@ begin
   FScanner.Reposition(aStartPos,False);
   aPos:=FScanner.Position;
   aDictEnd:=FScanner.FindBytesBackward('>>');
-  if (aPos-aDictEnd)>MaxTrailerDistance then
+  if (aPos-aDictEnd)>PDFMaxTrailerDistance then
     exit;
   aDictEnd:=FScanner.FindBytesBackward(SPDFTrailer);
   lToken:=FScanner.GetToken(False);
@@ -2342,7 +2342,7 @@ begin
   end;
 end;
 
-procedure TPDFParser.DoResolveContentStreams(aDoc: TPDFDocument; aOnCommand : TNewCommandEvent = Nil);
+procedure TPDFParser.DoResolveContentStreams(aDoc: TPDFDocument; aOnCommand : TPDFNewCommandEvent = Nil);
 
 Var
   I,J,aCount : Integer;

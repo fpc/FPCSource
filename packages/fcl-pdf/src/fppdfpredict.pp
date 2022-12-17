@@ -23,11 +23,11 @@ uses
   Classes, SysUtils, fpreadpng  ;
 
 Type
-  EPredict = Class(Exception);
+  EPDFPredict = Class(Exception);
 
-  { TPredictStream }
+  { TPDFPredictStream }
 
-  TPredictStream = Class(TOwnerStream)
+  TPDFPredictStream = Class(TOwnerStream)
     FPredictor : Integer;
     Fcolumns : Integer;
     Fcolors : Integer;
@@ -55,7 +55,7 @@ Type
 implementation
 
 
-function TPredictStream.GetComponent(Line : PByte; x : Integer) : Integer;
+function TPDFPredictStream.GetComponent(Line : PByte; x : Integer) : Integer;
 begin
   Case FBitsPerComponent of
      1:  Result :=(line[x shr 3] shr (7-(x and 7))) and 1;
@@ -69,7 +69,7 @@ begin
 end;
 
 
-procedure TPredictStream.PutComponent(buf : PByte; x, value: Integer);
+procedure TPDFPredictStream.PutComponent(buf : PByte; x, value: Integer);
 begin
   Case FBitsPerComponent of
   1:
@@ -89,7 +89,7 @@ begin
 end;
 
 
-class function TPredictStream.Paeth(l,p,lp: integer) : integer;
+class function TPDFPredictStream.Paeth(l,p,lp: integer) : integer;
 
 // taken from ReadPNG
 
@@ -110,18 +110,18 @@ begin
     Result:=lp;
 end;
 
-constructor TPredictStream.Create(aSource: TStream; aPredictor, aColumns, aColors, aBitsPerComponent: Integer);
+constructor TPDFPredictStream.Create(aSource: TStream; aPredictor, aColumns, aColors, aBitsPerComponent: Integer);
 
 begin
   Inherited Create(aSource);
   if Not (aPredictor in [1,2,10,11,12,13,14,15]) then
-    Raise EPredict.CreateFmt('Invalid predictor value: %d',[aPredictor]);
+    Raise EPDFPredict.CreateFmt('Invalid predictor value: %d',[aPredictor]);
   if Not (aBitsPerComponent in [1,2,4,8,16]) then
-    Raise EPredict.CreateFmt('Invalid bits per component: %d',[aBitsPerComponent]);
+    Raise EPDFPredict.CreateFmt('Invalid bits per component: %d',[aBitsPerComponent]);
   if (aColors > 32) then
-    Raise EPredict.CreateFmt('Invalid amount of: %d',[aColors]);
+    Raise EPDFPredict.CreateFmt('Invalid amount of: %d',[aColors]);
   if (aColumns > (MaxInt div (aBitsPerComponent*aColors))) then
-    Raise EPredict.CreateFmt('Too many columns leads to overflow: %d',[aColumns]);
+    Raise EPDFPredict.CreateFmt('Too many columns leads to overflow: %d',[aColumns]);
   FPredictor:=aPredictor;
   Fcolumns:=aColumns;
   FBitsPerComponent:=aBitsPerComponent;
@@ -136,7 +136,7 @@ begin
   FWritePos:=PByte(FOutBuffer);
 end;
 
-procedure TPredictStream.PredictTiff(aOut, aIn: PByte);
+procedure TPDFPredictStream.PredictTiff(aOut, aIn: PByte);
 
 Var
   Left : array[0..31] of integer;
@@ -173,7 +173,7 @@ begin
       end;
 end;
 
-procedure TPredictStream.PredictPng(aOut, aIn: PByte; len: Integer; aPredictor : Byte);
+procedure TPDFPredictStream.PredictPng(aOut, aIn: PByte; len: Integer; aPredictor : Byte);
 
 var
   I : integer;
@@ -255,7 +255,7 @@ begin
   end;
 end;
 
-function TPredictStream.Read(var aBuffer ; aCount : Integer) : Integer;
+function TPDFPredictStream.Read(var aBuffer ; aCount : Integer) : Integer;
 
 var
   buf,p,ep : PByte;

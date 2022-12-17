@@ -22,11 +22,11 @@ uses
   Classes, SysUtils, fppdfobjects, fppdfsource;
 
 Const
-  StringLengthDelta = 100;
+  PDFStringLengthDelta = 100;
 
 
 Type
-  TCharacterClass = (ccWhitespace,ccDelimiter,ccRegular);
+  TPDFCharacterClass = (ccWhitespace,ccDelimiter,ccRegular);
   TPDFContext = (cNone,cObj,cXRef,cTrailer);
 
   { EPDFScanner }
@@ -58,9 +58,9 @@ Type
     Property PDF : TPDFSourceStream Read FSource;
     Function DoGetToken : TPDFToken; virtual;
   Public
-    Constructor Create(aFile : TStream; aBufSize : Cardinal = DefaultBufferSize); virtual;
+    Constructor Create(aFile : TStream; aBufSize : Cardinal = PDFDefaultBufferSize); virtual;
     Destructor Destroy; override;
-    Class Function CharacterClass(aByte : Byte) : TCharacterClass;
+    Class Function CharacterClass(aByte : Byte) : TPDFCharacterClass;
     Function GetToken(aAllowWhiteSpace : boolean = True) : TPDFToken;
     Function CopyBytes(B : TBytes; aCount : Integer) : Integer;
     Procedure ReadStreamData(S : TStream);
@@ -108,7 +108,7 @@ begin
   inherited Destroy;
 end;
 
-class function TPDFScanner.CharacterClass(aByte: Byte): TCharacterClass;
+class function TPDFScanner.CharacterClass(aByte: Byte): TPDFCharacterClass;
 
 begin
   Result:=ccRegular;
@@ -272,7 +272,7 @@ begin
     Inc(I);
     if I>Len then
       begin
-      Len:=Len+StringLengthDelta;
+      Len:=Len+PDFStringLengthDelta;
       SetLength(Result,Len);
       end;
     Result[i]:=AnsiChar(aCurrent);

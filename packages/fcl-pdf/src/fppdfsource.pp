@@ -28,7 +28,7 @@ uses
   Classes, SysUtils;
 
 Const
-  DefaultBufferSize  = 4 * 1024; // 4K buffer
+  PDFDefaultBufferSize  = 4 * 1024; // 4K buffer
 
 Type
   { TPDFSourceStream }
@@ -54,7 +54,7 @@ Type
     // Size of data in buffer
     Property Datasize : Cardinal Read FDatasize;
   Public
-    Constructor Create(aStream : TStream; aBufSize : Cardinal = DefaultBufferSize);
+    Constructor Create(aStream : TStream; aBufSize : Cardinal = PDFDefaultBufferSize);
     // First byte of buffer is aPosition. aPosition is 0 based.
     Function FillBufferForwardAt(aPosition : Int64): Boolean;
     // Last byte of buffer is at aPosition. aPosition is 0 based.
