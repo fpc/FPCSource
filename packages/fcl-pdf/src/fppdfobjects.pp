@@ -28,7 +28,7 @@ uses
   TypInfo, Types, rtlConsts, SysUtils, Classes, Contnrs, fppdfconsts;
 
 Const
-  TextArraySpaceTreshold = 200;
+  PDFTextArraySpaceTreshold = 200;
 
 Type
   EPDF = Class(Exception);
@@ -367,11 +367,11 @@ Type
 
 
   { TPDFIndirect }
-  TObjectPosition = record
+  TPDFObjectPosition = record
     ID : Integer;
     Offset : Integer;
   end;
-  TObjectPositionArray = Array of TObjectPosition;
+  TPDFObjectPositionArray = Array of TPDFObjectPosition;
 
   TPDFIndirect = class(TPDFContainer)
   private
@@ -383,7 +383,7 @@ Type
     FObjectGeneration: Integer;
     FStream: TPDFStream;
     FUnfilteredStream: TStream;
-    FObjectPositions : TObjectPositionArray;
+    FObjectPositions : TPDFObjectPositionArray;
     FDocument : TPDFDocument;
     function GetObjectType: String;
   Protected
@@ -421,7 +421,7 @@ Type
     // Determined from dictionary. empty steing if not found
     Property ObjectType : String Read GetObjectType;
     // For object stream
-    Property ObjectPositions : TObjectPositionArray Read FObjectPositions Write FObjectPositions;
+    Property ObjectPositions : TPDFObjectPositionArray Read FObjectPositions Write FObjectPositions;
   end;
 
   { TPDFIndirectXRef }
@@ -671,52 +671,52 @@ Type
     Property Commands[aIndex :Integer] : TPDFCommand Read GetCommand; default;
   end;
 
-  { TCodeSpaceRange }
+  { TPDFCodeSpaceRange }
 
-  TCodeSpaceRange = record
+  TPDFCodeSpaceRange = record
     RangeStart, RangeEnd : Cardinal;
     Function Contains(aCode : Cardinal) : Boolean;
   end;
-  TCodeSpaceRangeArray = Array of TCodeSpaceRange;
+  TPDFCodeSpaceRangeArray = Array of TPDFCodeSpaceRange;
 
-  { TNotDefRange }
+  { TPDFNotDefRange }
 
-  TNotDefRange = record
+  TPDFNotDefRange = record
     RangeStart, RangeEnd : Cardinal;
     ReplaceMent : Cardinal;
     Function Contains(aCode : Cardinal) : Boolean;
   end;
-  TNotDefRangeArray = Array of TNotDefRange;
+  TPDFNotDefRangeArray = Array of TPDFNotDefRange;
 
-  TBFChar = record
+  TPDFBFChar = record
     Src,Dest : Cardinal;
     DestName : String;
   end;
-  TBFCharArray = Array of TBFChar;
+  TPDFBFCharArray = Array of TPDFBFChar;
 
-  { TCIDRange }
-  TCIDUnicodeCharOrName = record
+  { TPDFCIDRange }
+  TPDFCIDUnicodeCharOrName = record
     Name : string;
     UnicodeChar : Cardinal;
   end;
-  TCIDUnicodeCharOrNameArray = Array of TCIDUnicodeCharOrName;
+  TPDFCIDUnicodeCharOrNameArray = Array of TPDFCIDUnicodeCharOrName;
 
-  TCIDRange = record
+  TPDFCIDRange = record
     RangeStart, RangeEnd : Cardinal;
     CharOffset : Cardinal;
-    CharNames : TCIDUnicodeCharOrNameArray;
+    CharNames : TPDFCIDUnicodeCharOrNameArray;
     Function Contains(aCode : Cardinal) : Boolean;
   end;
-  TCIDRangeArray = Array of TCIDRange;
+  TPDFCIDRangeArray = Array of TPDFCIDRange;
 
   { TPDFCMapData }
 
   TPDFCMapData = class(TObject)
   private
-    FBFChars: TBFCharArray;
-    FCIDRange: TCIDRangeArray;
-    FCodeSpaceRange: TCodeSpaceRangeArray;
-    FNotDefRange: TNotDefRangeArray;
+    FBFChars: TPDFBFCharArray;
+    FCIDRange: TPDFCIDRangeArray;
+    FCodeSpaceRange: TPDFCodeSpaceRangeArray;
+    FNotDefRange: TPDFNotDefRangeArray;
   Public
     Function Interpret(aRaw : RawByteString) : RawByteString;
     function GetNotDef(aCode: Integer): UnicodeString;
@@ -725,10 +725,10 @@ Type
     Function IndexInBFRange(aCode : Integer): Integer;
     Function IndexInBFChar(aCode : Integer): Integer;
     function IsValidCode(aCode: Cardinal): Boolean;
-    Property CodeSpaceRange : TCodeSpaceRangeArray Read FCodeSpaceRange Write FCodeSpaceRange;
-    Property NotDefRange : TNotDefRangeArray Read FNotDefRange Write FNotDefRange;
-    Property BFRange : TCIDRangeArray Read FCIDRange Write FCIDRange;
-    Property BFChars : TBFCharArray Read FBFChars Write FBFChars;
+    Property CodeSpaceRange : TPDFCodeSpaceRangeArray Read FCodeSpaceRange Write FCodeSpaceRange;
+    Property NotDefRange : TPDFNotDefRangeArray Read FNotDefRange Write FNotDefRange;
+    Property BFRange : TPDFCIDRangeArray Read FCIDRange Write FCIDRange;
+    Property BFChars : TPDFBFCharArray Read FBFChars Write FBFChars;
   end;
 
   { TPDFCMap }
@@ -946,23 +946,23 @@ begin
   Result:=FCurrentIdx<FDoc.PageCount;
 end;
 
-{ TNotDefRange }
+{ TPDFNotDefRange }
 
-function TNotDefRange.Contains(aCode: Cardinal): Boolean;
+function TPDFNotDefRange.Contains(aCode: Cardinal): Boolean;
 begin
   Result:=(RangeStart<=aCode) and (aCode<=RangeEnd);
 end;
 
-{ TCodeSpaceRange }
+{ TPDFCodeSpaceRange }
 
-function TCodeSpaceRange.Contains(aCode: Cardinal): Boolean;
+function TPDFCodeSpaceRange.Contains(aCode: Cardinal): Boolean;
 begin
   Result:=(RangeStart<=aCode) and (aCode<=RangeEnd);
 end;
 
-{ TCIDRange }
+{ TPDFCIDRange }
 
-function TCIDRange.Contains(aCode: Cardinal): Boolean;
+function TPDFCIDRange.Contains(aCode: Cardinal): Boolean;
 begin
   Result:=(RangeStart<=aCode) and (aCode<=RangeEnd);
 end;
@@ -1433,7 +1433,7 @@ begin
         Result:=Result+aUnicodeMap.InterPret(Tokens[I].TokenData)
       else if Tokens[i].IsNumber then
         begin
-        if Abs(Tokens[i].AsDouble)>TextArraySpaceTreshold then
+        if Abs(Tokens[i].AsDouble)>PDFTextArraySpaceTreshold then
           Result:=Result+' '
         end
       else
@@ -1455,7 +1455,7 @@ begin
         Result:=Result+Tokens[I].TokenData
       else if Tokens[i].IsNumber then
         begin
-        if Abs(Tokens[i].AsDouble)>TextArraySpaceTreshold then
+        if Abs(Tokens[i].AsDouble)>PDFTextArraySpaceTreshold then
           Result:=Result+' '
         end
       else
