@@ -1,4 +1,5 @@
 { **********************************************************************
+
   This file is part of the Free Component Library
 
   PDF File data structures
@@ -32,7 +33,7 @@ Const
 Type
   EPDF = Class(Exception);
   TPDFElementType = (peComment,peIndirectObject,peXREF,peXREFItem, peTrailer,peStartXRef,peMalFormed,
-                     peValue,peStream,peArray,peContainer,peDictionary,peDictEntry,peRef,peCommand);
+                     peValue,peStream,peArray,peContainer,peDictionary,peDictEntry,peRef,peCommand, peDocumentInfo);
   TPDFTokenType = (
      ptEOF,
      ptWhiteSpace,        //  #10,#13,#12,#11,#32,#8
@@ -553,7 +554,7 @@ Type
     Class Procedure UnRegisterCommand(const aCommand : String);
     Class Procedure Register;
     Class Procedure UnRegister;
-    Constructor Create(const aCommand : String; aTokens : TPDFTokenArray);
+    Constructor Create(const aCommand : String; aTokens : TPDFTokenArray); reintroduce;
   Public
     Property Command : String Read FCommand Write FCommand;
   end;
@@ -649,6 +650,14 @@ Type
   end;
 
 
+  { TPDFCommandEnumerator }
+
+  TPDFCommandEnumerator = Class(TPDFContainerObjectEnumerator)
+  Private
+  Public
+    function GetCurrent: TPDFCommand; override;
+    Property Current : TPDFCommand Read GetCurrent;
+  end;
 
   // This object owns all operands for all commands
 
@@ -658,6 +667,7 @@ Type
   private
     function GetCommand(aIndex : Integer): TPDFCommand;
   Public
+    Function GetEnumerator : TPDFCommandEnumerator; reintroduce;
     Property Commands[aIndex :Integer] : TPDFCommand Read GetCommand; default;
   end;
 
@@ -752,6 +762,9 @@ Type
 
   // This keeps a reference to the dictionary of the original TPDFIndirect object.
   // If that is destroyed, this object must also be destroyed.
+
+  { TPDFDocumentInfo }
+
   TPDFDocumentInfo = class(TPDFObject)
   Private
     FSource : TPDFDictionary;
@@ -762,7 +775,8 @@ Type
     Function GetName(aIndex : integer) : String;
     Property Source : TPDFDictionary Read FSource;
   Public
-    Constructor Create(aSource : TPDFDictionary);
+    Class Function ElementType: TPDFElementType; override;
+    Constructor Create(aSource : TPDFDictionary); reintroduce;
     // Keep Indexes unique, all indexes are passed through 1 routine to get the key name.
     Property Title : String Index 0 Read GetString;
     Property Author : String Index 1 Read GetString;
@@ -776,10 +790,32 @@ Type
   end;
 
 
+  { TPDFDocPagesEnumerator }
+
+  TPDFDocPagesEnumerator = class
+    FDoc: TPDFDocument;
+    FCurrentIdx : Integer;
+  public
+    Constructor create(aDoc : TPDFDocument);
+    function GetCurrent: TPDFPageObject;
+    function MoveNext: Boolean;
+    property Current: TPDFPageObject read GetCurrent;
+  end;
+
+  { TPDFPagesProxy }
+
+  TPDFPagesProxy = class
+    FDoc : TPDFDocument;
+    Constructor Create(aDoc : TPDFDocument);
+    function GetEnumerator : TPDFDocPagesEnumerator;
+  end;
+
+
   { TPDFDocument }
 
   TPDFDocument = Class(TPDFContainer)
   private
+    FPagesProxy: TPDFPagesProxy;
     FPDFVersion: String;
     FStartXref: TPDFStartXRef;
     FTrailerDict: TPDFDictionary;
@@ -793,6 +829,8 @@ Type
     function getXRef(aIndex : Integer): TPDFXRef;
     function GetXRefCount: Integer;
   Public
+    Constructor Create; override;
+    Destructor Destroy; override;
     Procedure SetXrefArray(aArray : TPDFXRefArray);
     // Find indirect object with given object ID and generation.
     Function FindInDirectObject(aID : Integer; aGeneration : Integer) : TPDFIndirect;
@@ -839,7 +877,9 @@ Type
     // Can be a pages node or a page object
     Property PageNodes[aIndex : Integer] : TPDFIndirect Read GetPageNode;
     // Get a page by index (0-based) (leaf in the page tree)
-    Property Pages[aIndex : Integer] : TPDFPageObject Read GetPage;
+    Property Page[aIndex : Integer] : TPDFPageObject Read GetPage;
+    // Enumerate the pages
+    Property Pages : TPDFPagesProxy Read FPagesProxy;
     // Count of elements in XREfs
     Property XRefCount : Integer Read GetXRefCount;
     // Indexed access to XRefs
@@ -866,6 +906,44 @@ Function Canonicalize(const S : RawByteString) : RawByteString;
 
 begin
   Result:=S;
+end;
+
+{ TPDFCommandEnumerator }
+
+function TPDFCommandEnumerator.GetCurrent: TPDFCommand;
+begin
+  Result:=TPDFCommand(inherited GetCurrent);
+end;
+
+{ TPDFPagesProxy }
+
+constructor TPDFPagesProxy.Create(aDoc: TPDFDocument);
+begin
+  FDoc:=aDoc;
+end;
+
+function TPDFPagesProxy.GetEnumerator: TPDFDocPagesEnumerator;
+begin
+  Result:=TPDFDocPagesEnumerator.Create(FDoc);
+end;
+
+{ TPDFDocPagesEnumerator }
+
+constructor TPDFDocPagesEnumerator.create(aDoc: TPDFDocument);
+begin
+  FDoc:=aDoc;
+  FCurrentIdx:=-1;
+end;
+
+function TPDFDocPagesEnumerator.GetCurrent: TPDFPageObject;
+begin
+  Result:=FDoc.Page[FCurrentIdx];
+end;
+
+function TPDFDocPagesEnumerator.MoveNext: Boolean;
+begin
+  Inc(FCurrentIdx);
+  Result:=FCurrentIdx<FDoc.PageCount;
 end;
 
 { TNotDefRange }
@@ -1471,6 +1549,11 @@ end;
 function TPDFCommandList.GetCommand(aIndex : Integer): TPDFCommand;
 begin
   Result:=Objects[aIndex] as TPDFCommand;
+end;
+
+function TPDFCommandList.GetEnumerator: TPDFCommandEnumerator;
+begin
+  Result:=TPDFCommandEnumerator.Create(Self);
 end;
 
 
@@ -2106,6 +2189,18 @@ begin
   Result:=Length(FXRefs);
 end;
 
+constructor TPDFDocument.Create;
+begin
+  inherited Create;
+  FPagesProxy:=TPDFPagesProxy.Create(Self)
+end;
+
+destructor TPDFDocument.Destroy;
+begin
+  FreeAndNil(FPagesProxy);
+  inherited Destroy;
+end;
+
 procedure TPDFDocument.SetXrefArray(aArray: TPDFXRefArray);
 begin
   FXrefs:=aArray;
@@ -2689,8 +2784,6 @@ begin
 end;
 
 function TPDFDictionary.GetArrayValue(const aKeyword: RawByteString): TPDFArray;
-Var
-  aVal : TPDFObject;
 
 begin
   Result:=FindArrayValue(aKeyWord);
@@ -3084,14 +3177,14 @@ end;
 
 { TPDFDocumentInfo }
 
-Constructor TPDFDocumentInfo.Create(aSource : TPDFDictionary);
+constructor TPDFDocumentInfo.Create(aSource: TPDFDictionary);
 
 begin
   Inherited Create;
   FSource:=aSource;
 end;
 
-Function TPDFDocumentInfo.GetKeyName(aIndex : Integer) : RawByteString;
+function TPDFDocumentInfo.GetKeyName(aIndex: Integer): RawByteString;
 
 begin
   Result:='';
@@ -3111,7 +3204,7 @@ begin
   
 end;
 
-Function TPDFDocumentInfo.GetString(aIndex : Integer) : String;
+function TPDFDocumentInfo.GetString(aIndex: Integer): String;
 
 Var
   Key : RawByteString;
@@ -3129,7 +3222,7 @@ begin
     end;
 end;
 
-Function TPDFDocumentInfo.GetDate(aIndex : Integer) : TDateTime;
+function TPDFDocumentInfo.GetDate(aIndex: Integer): TDateTime;
 
  Var
   Key : RawByteString;
@@ -3147,10 +3240,15 @@ begin
     end;
 end;
 
-Function TPDFDocumentInfo.GetName(aIndex : integer) : String;
+function TPDFDocumentInfo.GetName(aIndex: integer): String;
 
 begin
   Result:=GetString(aIndex);
+end;
+
+class function TPDFDocumentInfo.ElementType: TPDFElementType;
+begin
+  Result:=peDocumentInfo;
 end;
 
 Procedure RegisterStandardClasses;
