@@ -39,8 +39,8 @@ type
     destructor destroy; override;
   Protected
     procedure DisplayPageText(Doc: TPDFDocument; aIndex: Integer;  aPage: TPDFPageObject);
-    procedure DoLog(sender: TObject; aKind: TLogkind; const aMessage: string);
-    Procedure DoProgress(Sender : TObject;aKind : TProgressKind; aCurrent,aCount : Integer);
+    procedure DoLog(sender: TObject; aKind: TPDFLogkind; const aMessage: string);
+    Procedure DoProgress(Sender : TObject;aKind : TPDFProgressKind; aCurrent,aCount : Integer);
     procedure DisplayCatalog(Doc: TPDFDocument);
     procedure DisplayInfo(Doc: TPDFDocument);
     procedure DisplayObjects(Doc: TPDFDocument);
@@ -218,17 +218,17 @@ begin
 
 end;
 
-procedure TPDFDumpApplication.DoProgress(Sender: TObject; aKind: TProgressKind;
+procedure TPDFDumpApplication.DoProgress(Sender: TObject; aKind: TPDFProgressKind;
   aCurrent, aCount: Integer);
 
 Const
-  Kinds : Array [TProgressKind] of String = ('XRef','Indirect','ContentStream');
+  Kinds : Array [TPDFProgressKind] of String = ('XRef','Indirect','ContentStream');
 
 begin
   Writeln('Loading ', Kinds[aKind],': ',aCurrent,'/',aCount);
 end;
 
-procedure TPDFDumpApplication.DoLog(sender: TObject; aKind: TLogkind;
+procedure TPDFDumpApplication.DoLog(sender: TObject; aKind: TPDFLogkind;
   const aMessage: string);
 begin
   Writeln('[',aKind,'] : ',aMessage);
@@ -334,7 +334,7 @@ begin
   Writeln('Page count : ',Doc.PageCount);
   For I:=0 to Doc.PageCount-1 do
     begin
-    aPage:=Doc.Pages[I];
+    aPage:=Doc.Page[I];
     Write('Page object ',I,': ');
     if not Assigned(aPage) then
       Writeln('Not found')
