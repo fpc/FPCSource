@@ -139,10 +139,11 @@ type
           class operator + (const apt1, apt2 : TPointF): TPointF;
           class operator - (const apt1, apt2 : TPointF): TPointF;
           class operator - (const apt1 : TPointF): TPointF;
-          class operator * (const apt1, apt2: TPointF): Single; // scalar product
+          class operator * (const apt1, apt2: TPointF): TPointF;
           class operator * (const apt1: TPointF; afactor: single): TPointF;
           class operator * (afactor: single; const apt1: TPointF): TPointF;
           class operator := (const apt: TPoint): TPointF;
+          class operator ** (const apt1, apt2: TPointF): Single; // scalar product
        end;
 
   { TSizeF }
@@ -723,9 +724,10 @@ begin
   result:=NOT (SameValue(apt1.x,apt2.x) and Samevalue(apt1.y,apt2.y));
 end;
 
-class operator TPointF. * (const apt1, apt2: TPointF): Single;
+class operator TPointF. * (const apt1, apt2: TPointF): TPointF;
 begin
-  result:=apt1.x*apt2.x + apt1.y*apt2.y;
+  result.x:=apt1.x*apt2.x;
+  result.y:=apt1.y*apt2.y;
 end;
 
 class operator TPointF. * (afactor: single; const apt1: TPointF): TPointF;
@@ -736,6 +738,11 @@ end;
 class operator TPointF. * (const apt1: TPointF; afactor: single): TPointF;
 begin
   result:=apt1.Scale(afactor);
+end;
+
+class operator TPointF. ** (const apt1, apt2: TPointF): Single;
+begin
+  result:=apt1.x*apt2.x + apt1.y*apt2.y;
 end;
 
 class operator TPointF.+ (const apt1, apt2 : TPointF): TPointF;
