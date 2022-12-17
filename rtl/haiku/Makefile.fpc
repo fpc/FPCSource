@@ -11,7 +11,7 @@ units=system $(SYSINITUNITS) uuchar baseunix unixtype ctypes objpas macpas iso71
       errors dos dl \
       sysconst sysutils \
       types charset cpall character typinfo sortbase classes fgl math \
-      cpu $(CPUUNITS) getopts heaptrc lineinfo lnfodwrf \
+      $(CPU_UNITS) getopts heaptrc lineinfo lnfodwrf \
       rtlconsts unix unixutil termio initc \
       cmem \
       dynlibs cwstring cthreads \
@@ -62,14 +62,17 @@ INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
 HAIKUINC=$(RTL)/haiku
-LOADERS=cprt0 dllcprt0
-CPUUNITS=mmx
 SYSINITUNITS=si_c si_dllc
 UNITPREFIX=rtl
 
+ifeq ($(ARCH),i386)
+LOADERS=cprt0 dllcprt0
+CPU_UNITS=cpu mmx
+endif
+
 ifeq ($(ARCH),x86_64)
-override LOADERS=
-override CPUUNITS=
+LOADERS=
+CPU_UNITS=cpu
 endif
 
 
