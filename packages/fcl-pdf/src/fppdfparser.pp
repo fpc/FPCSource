@@ -2355,7 +2355,7 @@ begin
   aCount:=aDoc.PageCount;
   For I:=0 to aCount-1 do
     begin
-    aPage:=aDoc.Pages[I];
+    aPage:=aDoc.Page[I];
     DoProgress(pkContentStream,I+1,aCount);
     aStream:=GetPageContentStream(aDoc,aPage);
     ParseContentStream(aPage,aStream,aOnCommand)
