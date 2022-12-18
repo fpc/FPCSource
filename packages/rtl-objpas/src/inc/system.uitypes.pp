@@ -291,7 +291,7 @@ type
   TDragMessage = (dmDragEnter, dmDragLeave, dmDragMove, dmDragDrop,
                   dmDragCancel,dmFindTarget);
 
-  TAnchorKind = (akLeft, akTop, akRight, akBottom);
+  TAnchorKind = (akTop, akLeft, akRight, akBottom);
   TAnchors = set of TAnchorKind;
   TAnchorSideReference = (asrTop, asrBottom, asrCenter);
 
