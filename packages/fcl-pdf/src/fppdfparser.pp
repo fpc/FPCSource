@@ -17,6 +17,7 @@ unit fppdfparser;
 
 {$mode ObjFPC}{$H+}
 {$J-}
+{$ModeSwitch typehelpers}
 
 { $DEFINE DEBUGSTREAMS}
 { $DEFINE DUMPSTREAMS}
@@ -36,6 +37,7 @@ Type
     FilterName : String;
     Source : TStream;
     Dest : TStream;
+
     ParamDict : TPDFDictionary;
   end;
 
@@ -63,6 +65,7 @@ Type
     FOnUnknownFilter: TPDFFilterEvent;
     FResolveContentStreams: Boolean;
     FResolveObjects: Boolean;
+    FResolveToUnicodeCMaps: Boolean;
     FScanner : TPDFScanner;
     FLastDict : TPDFDictionary; // Last created dictionary
     FloadingXRef : TPDFXRefArray;
@@ -73,6 +76,7 @@ Type
     procedure ParseCMAPCodeSpaceRange(aMap: TPDFCMapData);
     procedure ParseInlineImageData(var aOperands: TPDFTokenArray; aScanner: TPDFScanner );
     procedure SetResolveContentStreams(AValue: Boolean);
+    procedure SetResolveToUnicodeCMaps(AValue: Boolean);
   Protected
     // Progress, Logging & Errors.
     procedure DoProgress(aKind : TPDFProgressKind; aCurrent,aCount : Integer);
@@ -147,7 +151,7 @@ Type
     function LoadXREFobject(Itm: TPDFXRef; addToDocument : Boolean = True): TPDFIndirect; virtual;
     procedure ParseContentStream(aObject: TPDFPageObject; aStream: TStream;
       aOnCommand: TPDFNewCommandEvent); virtual;
-    Procedure ResolveToUnicodeCMaps(aDoc : TPDFDocument);
+    Procedure DoResolveToUnicodeCMaps(aDoc : TPDFDocument);
     class procedure Unpredict(var Data: TPDFFilterData);
     Class procedure AsciiHEXDecode(aSrc,aDest : TStream);
     Class Function AsciiHEXDecode(aSrc : TStream) : TStream;
@@ -161,11 +165,13 @@ Type
     Class Function RunlengthDecode(aSrc : TStream) : TStream;
     Property Document : TPDFDocument Read FDoc;
     // load all objects when XRef is parsed ?
-    Property LoadObjects : Boolean Read FLoadObjects Write FLoadObjects;
+    Property LoadObjects : Boolean Read FLoadObjects Write FLoadObjects  default True;
     // When loading objects, resolve objects ?
-    Property ResolveObjects : Boolean Read FResolveObjects Write FResolveObjects;
-    // Resolve content streams of pages ?
-    Property ResolveContentStreams : Boolean Read FResolveContentStreams Write SetResolveContentStreams;
+    Property ResolveObjects : Boolean Read FResolveObjects Write FResolveObjects default True;
+    // Resolve content streams of pages ? Default true.
+    Property ResolveContentStreams : Boolean Read FResolveContentStreams Write SetResolveContentStreams default true;
+    // Resolve ToUnicode CMap maps ? Default false,
+    Property ResolveToUnicodeCMaps : Boolean Read FResolveToUnicodeCMaps Write SetResolveToUnicodeCMaps default false;
     // Called when an unknown filter is encountered
     Property OnUnknownFilter : TPDFFilterEvent Read FOnUnknownFilter Write FOnUnknownFilter;
     // Log function
@@ -174,8 +180,22 @@ Type
     Property OnProgress : TPDFProgressEvent Read FOnProgress Write FOnProgress;
   end;
 
+  { TPDFDocumentHelper }
+Type
+  TPDFLoadOption = (loLoadObjects,loResolveObjects,loResolveContentStreams,loResolveToUnicodeCMaps);
+  TPDFLoadOptions = set of TPDFLoadOption;
+
+  TPDFDocumentHelper = class Helper for TPDFDocument
+    Procedure LoadFromFile(Const aFilename : String; aOnLog : TPDFLogNotifyEvent = nil; aOnProgress : TPDFProgressEvent = Nil);
+    Procedure LoadFromStream(Const aStream : TStream; aOnLog : TPDFLogNotifyEvent = nil; aOnProgress : TPDFProgressEvent = Nil);
+    Procedure LoadFromFile(Const aFilename : String; aOptions : TPDFLoadOptions; aOnLog : TPDFLogNotifyEvent = nil; aOnProgress : TPDFProgressEvent = Nil);
+    Procedure LoadFromStream(Const aStream : TStream; aOptions : TPDFLoadOptions; aOnLog : TPDFLogNotifyEvent = nil; aOnProgress : TPDFProgressEvent = Nil);
+  end;
+
 
 Const
+  PDFDefaultLoadOptions = [loLoadObjects,loResolveObjects,loResolveContentStreams,loResolveToUnicodeCMaps];
+
   // Error codes
   penUnknownToken = 1;
   penExpectedInteger = 2;
@@ -242,7 +262,6 @@ resourcestring
   SErrUnknownFilter =  'Unknown stream filter : %s';
   SErrInvalidDictionaryRef = 'Invalid dictionary reference value: %s ';
   SErrDictionaryNoLengthObject = 'Invalid dictionary length object reference [%d %d]';
-  SErrEOFWhileScanningString = 'EOF encountered while scanning string';
   sErrContentStreamNotFound = 'Invalid content stream object reference [%d %d]';
 
   // SErrDictionaryNoLengthInObject = 'Invalid dictionary length object reference [%d %d] : No length in object';
@@ -251,7 +270,6 @@ resourcestring
 
   SErrObjectIsNotObjectStream = 'Object %d is not a ObjStm object.';
   SErrStreamObjectWithoutDict = 'ObjStm Object %d does not have a dictionary';
-  SErrNoSuchObjectInstream = 'No object %d in stream %s (%d)';
   SErrNotStreamObject = 'Object %d is not a stream, it is a %s object';
   SErrExpectedString = ': Expected string';
   SErrXRefindex = 'XRef index';
@@ -280,6 +298,55 @@ resourcestring
   SErrExpectedHexInteger = '%s: Expected a hexadecimal integer, got: %s';
   SErrExpectedIdentifierN = '%s: Expected identifier "%s", got "%s"';
   SErrExpectedName = '%s: Expected name "%s", got "%s"';
+
+{ TPDFDocumentHelper }
+
+procedure TPDFDocumentHelper.LoadFromFile(const aFilename: String;aOnLog: TPDFLogNotifyEvent; aOnProgress: TPDFProgressEvent);
+begin
+  LoadFromFile(aFileName,PDFDefaultLoadOptions,aOnLog,aOnProgress);
+end;
+
+procedure TPDFDocumentHelper.LoadFromFile(const aFilename: String;
+  aOptions : TPDFLoadOptions; aOnLog: TPDFLogNotifyEvent; aOnProgress: TPDFProgressEvent);
+
+Var
+  F : TFileStream;
+
+begin
+  F:=TFileStream.Create(aFileName,fmOpenRead or fmShareDenyWrite);
+  try
+    LoadFromStream(F,aOptions, aOnLog,aOnProgress)
+  finally
+    F.Free;
+  end;
+
+end;
+
+procedure TPDFDocumentHelper.LoadFromStream(const aStream: TStream;
+  aOnLog: TPDFLogNotifyEvent; aOnProgress: TPDFProgressEvent);
+
+begin
+  LoadFromStream(aStream,PDFDefaultLoadOptions,aOnLog,aOnProgress);
+end;
+
+procedure TPDFDocumentHelper.LoadFromStream(const aStream: TStream;aOptions : TPDFLoadOptions;
+  aOnLog: TPDFLogNotifyEvent; aOnProgress: TPDFProgressEvent);
+Var
+  aParser:TPDFParser;
+begin
+  aParser:=TPDFParser.Create(aStream);
+  try
+    aParser.OnLog:=aOnLog;
+    aParser.OnProgress:=aOnProgress;
+    aParser.LoadObjects:=loLoadObjects in aOptions;
+    aParser.ResolveObjects:=loResolveObjects in aOptions;
+    aParser.ResolveContentStreams:=loResolveContentStreams in aOptions;
+    aParser.ResolveToUnicodeCMaps:=loResolveToUnicodeCMaps in aOptions;
+    aParser.ParseDocument(Self);
+  Finally
+    aParser.Free;
+  end;
+end;
 
 {$IFDEF DEBUGSTREAMS}
 {$IFDEF DUMPSTREAMS}
@@ -348,6 +415,7 @@ begin
   FLoadObjects:=True;
   FResolveObjects:=True;
   FResolveContentStreams:=True;
+  FResolveToUnicodeCMaps:=False;
 end;
 
 
@@ -614,7 +682,7 @@ end;
 
 // On entry, we're on begincodespacerange.
 // On exit, we're on endcodespacerange
-Procedure TPDFParser.ParseCMAPCodeSpaceRange(aMap : TPDFCMapData);
+procedure TPDFParser.ParseCMAPCodeSpaceRange(aMap: TPDFCMapData);
 
 Var
   L : TPDFCodeSpaceRangeArray;
@@ -659,7 +727,7 @@ end;
 
 // On entry, we're on beginbfchar.
 // On exit, we're on endbfchar
-Procedure TPDFParser.ParseCMAPBFChar(aMap : TPDFCMapData);
+procedure TPDFParser.ParseCMAPBFChar(aMap: TPDFCMapData);
 
 Var
   L : TPDFBFCharArray;
@@ -705,7 +773,7 @@ begin
   aMap.BFChars:=Concat(aMap.BFChars,L);
 end;
 
-Procedure TPDFParser.ParseCMAPBFRange(aMap : TPDFCMapData);
+procedure TPDFParser.ParseCMAPBFRange(aMap: TPDFCMapData);
 
 Var
   L : TPDFCIDRangeArray;
@@ -788,7 +856,7 @@ begin
 end;
 
 
-Procedure TPDFParser.ParseCMap(aStream : TStream; aMap : TPDFCMap);
+procedure TPDFParser.ParseCMap(aStream: TStream; aMap: TPDFCMap);
 
 Var
   aScanner: TPDFScanner;
@@ -837,7 +905,7 @@ begin
   end;
 end;
 
-procedure TPDFParser.ResolveToUnicodeCMaps(aDoc: TPDFDocument);
+procedure TPDFParser.DoResolveToUnicodeCMaps(aDoc: TPDFDocument);
 
 var
   Obj : TPDFObject;
@@ -924,8 +992,6 @@ Var
   I,aStartIndex,aCount : Integer;
   lToken : TPDFToken;
   Itm : TPDFXRef;
-  EndByTrailer : Boolean;
-  T : TPDFTrailer;
 
 begin
   Result:=TPDFXRefList.Create();
@@ -1731,6 +1797,7 @@ Var
   Index : TPDFIndexPairArray;
 
 begin
+  Index:=[];
   aSize:=aObjectDict.GetIntegerValue(SPDFKeySize);
   if aObjectDict.ContainsKey(SPDFKeyIndex) then
     Idx:=aObjectDict.GetArrayValue(SPDFKeyIndex)
@@ -1784,11 +1851,10 @@ Var
   Sizes : Array[0..2] of Byte;
   Indexes : TPDFIndexPairArray;
   Fields : Array[0..2] of Integer;
-  aID,aFirst,aLast : integer;
+  aID,aFirst : integer;
   aPair : TPDFIndexPair;
   O,O2 : TPDFObject;
   W : TPDFArray absolute O;
-  Idx : TPDFArray absolute O;
   V : TPDFValue absolute O2;
   I,J,aSize : Integer;
   D : PByte;
@@ -1909,7 +1975,7 @@ Var
   aStream : TStream;
 
 begin
-  Writeln('Parsing XREF at : ',aStartPos);
+  // Writeln('Parsing XREF at : ',aStartPos);
   Result:=Nil;
   ParentObject:=Nil;
   if (FScanner.Position<>aStartPos) then
@@ -1977,6 +2043,14 @@ begin
   FResolveContentStreams:=AValue;
   if aValue then
     ResolveObjects:=true;
+end;
+
+procedure TPDFParser.SetResolveToUnicodeCMaps(AValue: Boolean);
+begin
+  if FResolveToUnicodeCMaps=AValue then Exit;
+  FResolveToUnicodeCMaps:=AValue;
+  if aValue then
+    ResolveObjects:=True;
 end;
 
 procedure TPDFParser.DoProgress(aKind: TPDFProgressKind; aCurrent, aCount: Integer);
@@ -2175,7 +2249,6 @@ var
   I : Integer;
   Itm : TPDFXRef;
   UseCompressed : Boolean;
-  Ind : TPDFIndirect;
 
 begin
   For UseCompressed:=False to True do
@@ -2191,7 +2264,7 @@ begin
       else if (Itm.Instance=Nil) and Itm.InUse and (Itm.Compressed=UseCompressed) then
         if Itm.ReferenceIndex>0 then
           begin
-          Ind:=LoadXRefObject(Itm);
+          LoadXRefObject(Itm);
 {          if Assigned(Ind) then
             Writeln('Loaded ',Ind.GetDescription);}
           end;
@@ -2299,6 +2372,8 @@ begin
     LoadIndirectObjects;
     If ResolveContentStreams then
       DoResolveContentStreams(FDoc);
+    if ResolveToUnicodeCMaps then
+      DoResolveToUnicodeCMaps(FDoc);
     end;
 end;
 
@@ -2323,6 +2398,7 @@ Var
   Streams : Array of TStream;
 
 begin
+  Streams:=[];
   Result:=Nil;
   try
     if aPage.ContentCount=1 then
@@ -2347,9 +2423,7 @@ end;
 procedure TPDFParser.DoResolveContentStreams(aDoc: TPDFDocument; aOnCommand : TPDFNewCommandEvent = Nil);
 
 Var
-  I,J,aCount : Integer;
-  Obj,ObjFree : TPDFIndirect;
-  Cont : TPDFContentStream;
+  I,aCount : Integer;
   aPage : TPDFPageObject;
   aStream : TStream;
 
