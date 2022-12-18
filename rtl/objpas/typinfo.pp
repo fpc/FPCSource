@@ -990,11 +990,19 @@ procedure AddEnumElementAliases(aTypeInfo: PTypeInfo; const aNames: array of str
 procedure RemoveEnumElementAliases(aTypeInfo: PTypeInfo);
 function GetEnumeratedAliasValue(aTypeInfo: PTypeInfo; const aName: string): Integer;
 
+function SetToArray(TypeInfo: PTypeInfo; Value: Pointer) : TBytes;
+function SetToArray(PropInfo: PPropInfo; Value: Pointer) : TBytes;
+function SetToArray(TypeInfo: PTypeInfo; Value: LongInt) : TBytes;
+function SetToArray(PropInfo: PPropInfo; Value: LongInt) : TBytes;
 function SetToString(TypeInfo: PTypeInfo; Value: LongInt; Brackets: Boolean) : String;
 function SetToString(PropInfo: PPropInfo; Value: LongInt; Brackets: Boolean) : String;
 function SetToString(PropInfo: PPropInfo; Value: LongInt) : String;
 function SetToString(TypeInfo: PTypeInfo; Value: Pointer; Brackets: Boolean = False) : String;
 function SetToString(PropInfo: PPropInfo; Value: Pointer; Brackets: Boolean = False) : String;
+function ArrayToSet(PropInfo: PPropInfo; const Value: array of Byte): LongInt;
+function ArrayToSet(TypeInfo: PTypeInfo; const Value: array of Byte): LongInt;
+procedure ArrayToSet(PropInfo: PPropInfo; const Value: array of Byte; Result: Pointer);
+procedure ArrayToSet(TypeInfo: PTypeInfo; const Value: array of Byte; Result: Pointer);
 function StringToSet(PropInfo: PPropInfo; const Value: string): LongInt;
 function StringToSet(TypeInfo: PTypeInfo; const Value: string): LongInt;
 procedure StringToSet(PropInfo: PPropInfo; const Value: String; Result: Pointer);
@@ -1212,18 +1220,45 @@ begin
 end;
 
 function SetToString(TypeInfo: PTypeInfo; Value: Pointer; Brackets: Boolean): String;
+var
+  A: TBytes;
+  B: Byte;
+  PTI : PTypeInfo;
+begin
+  PTI:=GetTypeData(TypeInfo)^.CompType;
+  A:=SetToArray(TypeInfo, Value);
+  Result := '';
+  for B in A do
+    If Result='' then
+      Result:=GetEnumName(PTI,B)
+    else
+      Result:=Result+','+GetEnumName(PTI,B);
+  if Brackets then
+    Result:='['+Result+']';
+end;
+
+Function SetToString(PropInfo: PPropInfo; Value: LongInt) : String;
+
+begin
+  Result:=SetToString(PropInfo,Value,False);
+end;
+
+function SetToString(PropInfo: PPropInfo; Value: Pointer; Brackets: Boolean): String;
+begin
+  Result := SetToString(PropInfo^.PropType, Value, Brackets);
+end;
+
+function SetToArray(TypeInfo: PTypeInfo; Value: Pointer) : TBytes;
 type
   tsetarr = bitpacked array[0..SizeOf(LongInt)*8-1] of 0..1;
 Var
   I,El,Els,Rem,V,Max : Integer;
-  PTI : PTypeInfo;
   PTD : PTypeData;
   ValueArr : PLongInt;
 begin
   PTD := GetTypeData(TypeInfo);
-  PTI:=PTD^.CompType;
   ValueArr := PLongInt(Value);
-  Result:='';
+  Result:=[];
 {$ifdef ver3_0}
   case PTD^.OrdType of
     otSByte, otUByte: begin
@@ -1259,26 +1294,26 @@ begin
           if (tsetarr(ValueArr[El])[i]<>0) then
             begin
               V := I + SizeOf(LongInt) * 8 * El;
-              If Result='' then
-                Result:=GetEnumName(PTI,V)
-              else
-                Result:=Result+','+GetEnumName(PTI,V);
+              SetLength(Result, Length(Result)+1);
+              Result[High(Result)]:=V;
             end;
         end;
     end;
-  if Brackets then
-    Result:='['+Result+']';
 end;
 
-Function SetToString(PropInfo: PPropInfo; Value: LongInt) : String;
-
+function SetToArray(PropInfo: PPropInfo; Value: Pointer) : TBytes;
 begin
-  Result:=SetToString(PropInfo,Value,False);
+  Result:=SetToArray(PropInfo^.PropType,Value);
 end;
 
-function SetToString(PropInfo: PPropInfo; Value: Pointer; Brackets: Boolean): String;
+function SetToArray(TypeInfo: PTypeInfo; Value: LongInt) : TBytes;
 begin
-  Result := SetToString(PropInfo^.PropType, Value, Brackets);
+  Result:=SetToArray(TypeInfo,@Value);
+end;
+
+function SetToArray(PropInfo: PPropInfo; Value: LongInt) : TBytes;
+begin
+  Result:=SetToArray(PropInfo^.PropType,@Value);
 end;
 
 Const
@@ -1323,17 +1358,10 @@ Var
   I, ElOfs, BitOfs : Integer;
   PTD: PTypeData;
   PTI : PTypeInfo;
-  ResArr: PLongWord;
-
+  A: TBytes;
 begin
   PTD:=GetTypeData(TypeInfo);
-{$ifndef ver3_0}
-  FillChar(Result^, PTD^.SetSize, 0);
-{$else}
-  PInteger(Result)^ := 0;
-{$endif}
   PTI:=PTD^.Comptype;
-  ResArr := PLongWord(Result);
   S:=Value;
   I:=1;
   If Length(S)>0 then
@@ -1342,6 +1370,7 @@ begin
         Inc(I);
       Delete(S,1,i-1);
     end;
+  A:=[];
   While (S<>'') do
     begin
       T:=GetNextElement(S);
@@ -1350,21 +1379,67 @@ begin
           I:=GetEnumValue(PTI,T);
           if (I<0) then
             raise EPropertyError.CreateFmt(SErrUnknownEnumValue, [T]);
-          ElOfs := I shr 5;
-          BitOfs := I and $1F;
-{$ifdef FPC_BIG_ENDIAN}
-          { on Big Endian systems enum values start from the MSB, thus we need
-            to reverse the shift }
-          BitOfs := 31 - BitOfs;
-{$endif}
-          ResArr[ElOfs] := ResArr[ElOfs] or (LongInt(1) shl BitOfs);
+          SetLength(A, Length(A)+1);
+          A[High(A)]:=I;
         end;
     end;
+  ArrayToSet(TypeInfo,A,Result);
 end;
 
 procedure StringToSet(PropInfo: PPropInfo; const Value: String; Result: Pointer);
 begin
   StringToSet(PropInfo^.PropType, Value, Result);
+end;
+
+Function ArrayToSet(PropInfo: PPropInfo; const Value: array of Byte): LongInt;
+
+begin
+  Result:=ArrayToSet(PropInfo^.PropType,Value);
+end;
+
+Function ArrayToSet(TypeInfo: PTypeInfo; const Value: array of Byte): LongInt;
+begin
+  ArrayToSet(TypeInfo, Value, @Result);
+{$if defined(FPC_BIG_ENDIAN)}
+  { correctly adjust packed sets that are smaller than 32-bit }
+  case GetTypeData(TypeInfo)^.OrdType of
+    otSByte,otUByte: Result := Result shr (SizeOf(Integer)*8-8);
+    otSWord,otUWord: Result := Result shr (SizeOf(Integer)*8-16);
+  end;
+{$endif}
+end;
+
+procedure ArrayToSet(TypeInfo: PTypeInfo; const Value: array of Byte; Result: Pointer);
+Var
+  ElOfs, BitOfs : Integer;
+  PTD: PTypeData;
+  ResArr: PLongWord;
+  B: Byte;
+
+begin
+  PTD:=GetTypeData(TypeInfo);
+{$ifndef ver3_0}
+  FillChar(Result^, PTD^.SetSize, 0);
+{$else}
+  PInteger(Result)^ := 0;
+{$endif}
+  ResArr := PLongWord(Result);
+  for B in Value do
+    begin
+      ElOfs := B shr 5;
+      BitOfs := B and $1F;
+{$ifdef FPC_BIG_ENDIAN}
+      { on Big Endian systems enum values start from the MSB, thus we need
+        to reverse the shift }
+      BitOfs := 31 - BitOfs;
+{$endif}
+      ResArr[ElOfs] := ResArr[ElOfs] or (LongInt(1) shl BitOfs);
+    end;
+end;
+
+procedure ArrayToSet(PropInfo: PPropInfo; const Value: array of Byte; Result: Pointer);
+begin
+  ArrayToSet(PropInfo^.PropType, Value, Result);
 end;
 
 Function AlignTypeData(p : Pointer) : Pointer;
