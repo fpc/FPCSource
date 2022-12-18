@@ -141,6 +141,8 @@ Type
     Function ParseStatusLine(AStatusLine : String) : Integer;
     // Construct server URL for use in request line.
     function GetServerURL(URI: TURI): String;
+    // Verify protocol is supported
+    function ProtocolSupported(Protocol: String; out IsSSL: Boolean): Boolean; virtual;
     // Read raw data from socket
     Function ReadFromSocket(var Buffer; Count: Longint): Longint; virtual;
     // Write raw data to socket
@@ -718,6 +720,11 @@ procedure TFPCustomHTTPClient.DisconnectFromServer;
 
 begin
   FreeAndNil(FSocket);
+end;
+function TFPCustomHTTPClient.ProtocolSupported(Protocol: String; out IsSSL: Boolean): Boolean;
+begin
+  Result := (Protocol='http') or (Protocol='https');
+  IsSSL := (Protocol = 'https');
 end;
 
 function TFPCustomHTTPClient.ReadFromSocket(var Buffer; Count: Longint): Longint;
@@ -1461,9 +1468,8 @@ begin
   ResetResponse;
   URI:=ParseURI(AURL,False);
   p:=LowerCase(URI.Protocol);
-  If Not ((P='http') or (P='https')) then
+  If Not ProtocolSupported(p, IsHttps) then
    Raise EHTTPClient.CreateFmt(SErrInvalidProtocol,[URI.Protocol]);
-  IsHttps:=P='https';
   HeadersOnly:=CompareText(AMethod,'HEAD')=0;
   if FKeepConnection then
     DoKeepConnectionRequest(URI,AMethod,Stream,AllowedResponseCodes,HeadersOnly,IsHttps)
