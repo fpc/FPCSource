@@ -51,8 +51,8 @@ type
   Private
     Function GetService (Index : Integer) : TServiceEntry;
   Public
-    Function FindService(ServiceName : String) : TServiceEntry;
-    Function ServiceByName(ServiceName : String) : TServiceEntry;
+    Function FindService(const ServiceName : String) : TServiceEntry;
+    Function ServiceByName(const ServiceName : String) : TServiceEntry;
     Property Items [index : Integer] : TServiceEntry Read GetService;default;
   end;
 
@@ -96,8 +96,8 @@ type
   protected
     { Protected declarations }
     procedure Loaded;override;
-    Procedure SMError(Msg : String);
-    Procedure CheckConnected(Msg : String);
+    Procedure SMError(const Msg : String);
+    Procedure CheckConnected(const Msg : String);
     Procedure DoBeforeDisConnect; virtual;
     Procedure DoAfterConnect; virtual;
     Procedure DoAfterRefresh; virtual;
@@ -109,32 +109,32 @@ type
     Procedure Refresh;
     Procedure Connect;
     Procedure Disconnect;
-    function GetServiceHandle(ServiceName: String; SAccess: DWord): THandle;
+    function GetServiceHandle(const ServiceName: String; SAccess: DWord): THandle;
     procedure ContinueService(SHandle: THandle); overload;
-    procedure ContinueService(ServiceName : String); overload;
+    procedure ContinueService(const ServiceName : String); overload;
     procedure StartService(SHandle: THandle; Args: TStrings);overload;
-    procedure StartService(ServiceName : String; Args: TStrings); overload;
-    procedure StopService(ServiceName: String; StopDependent: Boolean); overload;
+    procedure StartService(const ServiceName : String; Args: TStrings); overload;
+    procedure StopService(const ServiceName: String; StopDependent: Boolean); overload;
     procedure StopService(SHandle : THandle; StopDependent: Boolean); overload;
     procedure PauseService(SHandle: THandle);overload;
-    procedure PauseService(ServiceName: String);Overload;
-    procedure CustomControlService(ServiceName : String; ControlCode : DWord); overload;
+    procedure PauseService(const ServiceName: String);Overload;
+    procedure CustomControlService(const ServiceName : String; ControlCode : DWord); overload;
     procedure CustomControlService(Shandle : THandle; ControlCode : DWord); overload;
     procedure ListDependentServices(SHandle: THandle; ServiceState: DWord;  List: TStrings); overload;
-    procedure ListDependentServices(ServiceName : String; ServiceState : DWord; List : TStrings); overload;
+    procedure ListDependentServices(const ServiceName : String; ServiceState : DWord; List : TStrings); overload;
     Procedure LockServiceDatabase;
     Procedure UnlockServiceDatabase;
     procedure QueryServiceConfig(SHandle : THandle; Var Config : TServiceDescriptor);overload;
-    procedure QueryServiceConfig(ServiceName : String; Var Config : TServiceDescriptor);overload;
+    procedure QueryServiceConfig(const ServiceName : String; Var Config : TServiceDescriptor);overload;
     Function  RegisterService(Var Desc : TServiceDescriptor) : THandle;
-    procedure SetStartupType(ServiceName: String; StartupType: DWord); overload;
+    procedure SetStartupType(const ServiceName: String; StartupType: DWord); overload;
     procedure SetStartupType(SHandle : THandle; StartupType: DWord); overload;
-    Procedure UnregisterService(ServiceName : String);
+    Procedure UnregisterService(const ServiceName : String);
     procedure ConfigService(SHandle: THandle; Config: TServiceDescriptor); overload;
-    procedure ConfigService(ServiceName : string; Config: TServiceDescriptor); overload;
-    procedure RefreshServiceStatus(ServiceName: String);
+    procedure ConfigService(const ServiceName : string; Config: TServiceDescriptor); overload;
+    procedure RefreshServiceStatus(const ServiceName: String);
     procedure GetServiceStatus(SHandle : THandle; Var Status : TServiceStatus); overload;
-    procedure GetServiceStatus(ServiceName : String; Var Status : TServiceStatus); overload;
+    procedure GetServiceStatus(const ServiceName : String; Var Status : TServiceStatus); overload;
     Property  Handle : THandle Read FHandle;
     Property  Access : DWord read FAccess Write FAccess;    
     Property  Acces : DWord read FAccess Write FAccess; deprecated; //Kept for compatibility
@@ -213,7 +213,7 @@ begin
 end;
 {$endif}
 
-procedure TServiceManager.CheckConnected(Msg: String);
+procedure TServiceManager.CheckConnected(const Msg: String);
 begin
   If Not Connected then
     SMError(Format(SErrNotConnected,[Msg]));
@@ -343,7 +343,7 @@ begin
   FMachineName := Value;
 end;
 
-procedure TServiceManager.SMError(Msg: String);
+procedure TServiceManager.SMError(const Msg: String);
 begin
   raise EServiceManager.Create(Msg);
 end;
@@ -387,7 +387,7 @@ end;
 
 Function ControlsAcceptedToString(AValue : DWord) : String;
 
-  Procedure AddToResult(S : String);
+  Procedure AddToResult(const S : String);
   begin
     If (Result='') then
       Result:=S
@@ -483,7 +483,7 @@ begin
     end;
 end;
 
-procedure TServiceManager.ListDependentServices(ServiceName : String; ServiceState : DWord; List : TStrings);
+procedure TServiceManager.ListDependentServices(const ServiceName : String; ServiceState : DWord; List : TStrings);
 
 Var
   H : THandle;
@@ -557,7 +557,7 @@ begin
     end;
 end;
 
-Procedure TServiceManager.StopService(ServiceName : String; StopDependent : Boolean);
+Procedure TServiceManager.StopService(const ServiceName : String; StopDependent : Boolean);
 
 Var
   H : THandle;
@@ -576,7 +576,7 @@ begin
 end;
 
 
-Function TServiceManager.GetServiceHandle(ServiceName : String; SAccess : DWord) : THandle;
+Function TServiceManager.GetServiceHandle(const ServiceName : String; SAccess : DWord) : THandle;
 
 begin
   Result:=OpenService(Handle,PChar(ServiceName),SAccess);
@@ -584,7 +584,7 @@ begin
     RaiseLastOSError;
 end;
 
-procedure TServiceManager.UnregisterService(ServiceName: String);
+procedure TServiceManager.UnregisterService(const ServiceName: String);
 
 Var
   H : THandle;
@@ -611,7 +611,7 @@ begin
     RaiseLastOSError;
 end;
 
-Procedure TServiceManager.PauseService(ServiceName : String);
+Procedure TServiceManager.PauseService(const ServiceName : String);
 
 Var
   H : THandle;
@@ -635,7 +635,7 @@ begin
     RaiseLastOSError;
 end;
 
-Procedure TServiceManager.ContinueService(ServiceName : String);
+Procedure TServiceManager.ContinueService(const ServiceName : String);
 
 Var
   H : THandle;
@@ -708,7 +708,7 @@ begin
 end;
 
 
-Procedure TServiceManager.StartService(ServiceName : String; Args : TStrings);
+Procedure TServiceManager.StartService(const ServiceName : String; Args : TStrings);
 
 Var
   H : THandle;
@@ -777,7 +777,7 @@ begin
   end;
 end;
 
-procedure TServiceManager.QueryServiceConfig(ServiceName : String; Var Config : TServiceDescriptor);
+procedure TServiceManager.QueryServiceConfig(const ServiceName : String; Var Config : TServiceDescriptor);
 
 Var
   H : THandle;
@@ -791,7 +791,7 @@ begin
   end;
 end;
 
-procedure TServiceManager.SetStartupType(ServiceName : String; StartupType : DWord);
+procedure TServiceManager.SetStartupType(const ServiceName : String; StartupType : DWord);
 
 Var
   H : THandle;
@@ -859,7 +859,7 @@ begin
     RaiseLastOSError;
 end;
 
-procedure TServiceManager.GetServiceStatus(ServiceName : String; Var Status: TServiceStatus);
+procedure TServiceManager.GetServiceStatus(const ServiceName : String; Var Status: TServiceStatus);
 
 Var
   H : THandle;
@@ -873,7 +873,7 @@ begin
   end;
 end;
 
-procedure TServiceManager.RefreshServiceStatus(ServiceName : String);
+procedure TServiceManager.RefreshServiceStatus(const ServiceName : String);
 
 Var
   Status : TServiceStatus;
@@ -887,7 +887,7 @@ begin
 end;
 
 
-procedure TServiceManager.ConfigService(ServiceName : String; Config : TServiceDescriptor);
+procedure TServiceManager.ConfigService(const ServiceName : String; Config : TServiceDescriptor);
 
 Var
   H : THandle;
@@ -902,7 +902,7 @@ begin
 end;
 
 
-procedure TServiceManager.CustomControlService(ServiceName: String; ControlCode: DWord);
+procedure TServiceManager.CustomControlService(const ServiceName: String; ControlCode: DWord);
 
 Var
   H : THandle;
@@ -931,7 +931,7 @@ end;
 
 { TServiceEntries }
 
-function TServiceEntries.FindService(ServiceName: String): TServiceEntry;
+function TServiceEntries.FindService(const ServiceName: String): TServiceEntry;
 
 Var
   I : Integer;
@@ -951,7 +951,7 @@ begin
   Result:=inherited Items[Index] as TServiceEntry;
 end;
 
-function TServiceEntries.ServiceByName(ServiceName: String): TServiceEntry;
+function TServiceEntries.ServiceByName(const ServiceName: String): TServiceEntry;
 
 begin
   Result:=FindService(ServiceName);

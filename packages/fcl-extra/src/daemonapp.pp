@@ -415,8 +415,8 @@ Function Application : TCustomDaemonApplication;
 Procedure RegisterDaemonMapper(AMapperClass : TCustomDaemonMapperClass);
 Procedure RegisterDaemonClass(AClass : TCustomDaemonClass);
 Procedure RegisterDaemonApplicationClass(AClass : TCustomDaemonApplicationClass);
-Procedure DaemonError(Msg : String);
-Procedure DaemonError(Fmt : String; Args : Array of const);
+Procedure DaemonError(const Msg : String);
+Procedure DaemonError(const Fmt : String; const Args : Array of const);
 
 
 Resourcestring
@@ -443,7 +443,7 @@ Resourcestring
 { $define svcdebug}
 
 {$ifdef svcdebug}
-Procedure DebugLog(Msg : String);
+Procedure DebugLog(const Msg : String);
 {$endif}
 
 Var
@@ -484,7 +484,7 @@ begin
   DebugLog('Start logging');
 end;
 
-Procedure DebugLog(Msg : String);
+Procedure DebugLog(const Msg : String);
 begin
   EnterCriticalSection(LCS);
   try
@@ -565,12 +565,12 @@ begin
   MapperClass:=AMapperClass;
 end;
 
-procedure DaemonError(Msg: String);
+procedure DaemonError(const Msg: String);
 begin
   Raise EDaemon.Create(MSg);
 end;
 
-procedure DaemonError(Fmt: String; Args: array of const);
+procedure DaemonError(const Fmt: String; const Args: array of const);
 begin
   Raise EDaemon.CreateFmt(Fmt,Args);
 end;
