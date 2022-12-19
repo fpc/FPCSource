@@ -19,31 +19,31 @@
 {$IFDEF read_interface}
 
     class procedure Check(pValue: boolean; pMessage: string = '');
-    class procedure CheckEquals(expected, actual: extended; msg: string = ''); overload;
-    class procedure CheckEquals(expected, actual: extended; delta: extended; msg: string = ''); overload;
-    class procedure CheckEquals(expected, actual: string; msg: string = ''); overload;
-    class procedure CheckEquals(expected, actual: unicodestring; msg: string = ''); overload;
-    class procedure CheckEquals(expected, actual: integer; msg: string = ''); overload;
-    class procedure CheckEquals(expected, actual: boolean; msg: string = ''); overload;
-    class procedure CheckEquals(expected, actual: TClass; msg: string = ''); overload;
-    class procedure CheckEquals(expected, actual: int64; msg: string = ''); overload;
-    class procedure CheckEquals(expected, actual: QWord; msg: string = ''); overload;
-    class procedure CheckNotEquals(expected, actual: string; msg: string = ''); overload;
-    class procedure CheckNotEquals(expected, actual: unicodestring; msg: string = ''); overload;
-    class procedure CheckNotEquals(expected, actual: integer; msg: string = ''); overload; virtual;
-    class procedure CheckNotEquals(expected, actual: boolean; msg: string = ''); overload; virtual;
-    class procedure CheckNotEquals(expected: extended; actual: extended; delta: extended = 0; msg: string = ''); overload; virtual;
-    class procedure CheckNotEquals(expected, actual: int64; msg: string = ''); overload; virtual;
-    class procedure CheckNotEquals(expected, actual: QWord; msg: string = ''); overload; virtual;
-    class procedure CheckNull(obj: IUnknown; msg: string = ''); overload;
-    class procedure CheckNull(obj: TObject; msg: string = ''); overload;
-    class procedure CheckNotNull(obj: TObject; msg: string = ''); overload;
-    class procedure CheckNotNull(obj: IUnknown; msg: string = ''); overload; virtual;
-    class procedure CheckIs(obj :TObject; pClass: TClass; msg: string = ''); overload;
-    class procedure CheckSame(expected, actual: TObject; msg: string = ''); overload;
-    class procedure CheckTrue(condition: Boolean; msg: string = '');
-    class procedure CheckFalse(condition: Boolean; msg: string = '');
-    class procedure CheckException(AMethod: TRunMethod; AExceptionClass: ExceptClass; msg: string = '');
+    class procedure CheckEquals(expected, actual: extended; const msg: string = ''); overload;
+    class procedure CheckEquals(expected, actual: extended; delta: extended; const msg: string = ''); overload;
+    class procedure CheckEquals(expected, actual: string; const msg: string = ''); overload;
+    class procedure CheckEquals(expected, actual: unicodestring; const msg: string = ''); overload;
+    class procedure CheckEquals(expected, actual: integer; const msg: string = ''); overload;
+    class procedure CheckEquals(expected, actual: boolean; const msg: string = ''); overload;
+    class procedure CheckEquals(expected, actual: TClass; const msg: string = ''); overload;
+    class procedure CheckEquals(expected, actual: int64; const msg: string = ''); overload;
+    class procedure CheckEquals(expected, actual: QWord; const msg: string = ''); overload;
+    class procedure CheckNotEquals(expected, actual: string; const msg: string = ''); overload;
+    class procedure CheckNotEquals(expected, actual: unicodestring; const msg: string = ''); overload;
+    class procedure CheckNotEquals(expected, actual: integer; const msg: string = ''); overload; virtual;
+    class procedure CheckNotEquals(expected, actual: boolean; const msg: string = ''); overload; virtual;
+    class procedure CheckNotEquals(expected: extended; actual: extended; delta: extended = 0; const msg: string = ''); overload; virtual;
+    class procedure CheckNotEquals(expected, actual: int64; const msg: string = ''); overload; virtual;
+    class procedure CheckNotEquals(expected, actual: QWord; const msg: string = ''); overload; virtual;
+    class procedure CheckNull(obj: IUnknown; const msg: string = ''); overload;
+    class procedure CheckNull(obj: TObject; const msg: string = ''); overload;
+    class procedure CheckNotNull(obj: TObject; const msg: string = ''); overload;
+    class procedure CheckNotNull(obj: IUnknown; const msg: string = ''); overload; virtual;
+    class procedure CheckIs(obj :TObject; pClass: TClass; const msg: string = ''); overload;
+    class procedure CheckSame(expected, actual: TObject; const msg: string = ''); overload;
+    class procedure CheckTrue(condition: Boolean; const msg: string = '');
+    class procedure CheckFalse(condition: Boolean; const msg: string = '');
+    class procedure CheckException(AMethod: TRunMethod; AExceptionClass: ExceptClass; const msg: string = '');
     class function  EqualsErrorMessage(const expected, actual: string; const ErrorMsg: string): string;
     class function  NotEqualsErrorMessage(const expected, actual: string; const ErrorMsg: string): string;
 
@@ -52,14 +52,14 @@
 
     {
     *** TODO  ***
-    procedure CheckEqualsBin(expected, actual: longword; msg: string = ''; digits: integer=32); virtual;
-    procedure CheckEqualsHex(expected, actual: longword; msg: string = ''; digits: integer=8); virtual;
-    procedure CheckNotEqualsBin(expected, actual: longword; msg: string = ''; digits: integer=32); virtual;
-    procedure CheckNotEqualsHex(expected, actual: longword; msg: string = ''; digits: integer=8); virtual;
+    procedure CheckEqualsBin(expected, actual: longword; const msg: string = ''; digits: integer=32); virtual;
+    procedure CheckEqualsHex(expected, actual: longword; const msg: string = ''; digits: integer=8); virtual;
+    procedure CheckNotEqualsBin(expected, actual: longword; const msg: string = ''; digits: integer=32); virtual;
+    procedure CheckNotEqualsHex(expected, actual: longword; const msg: string = ''; digits: integer=8); virtual;
     procedure CheckNotNull(obj :IUnknown; msg :string = ''); overload; virtual;
-    procedure CheckSame(expected, actual: IUnknown; msg: string = ''); overload; virtual;
+    procedure CheckSame(expected, actual: IUnknown; const msg: string = ''); overload; virtual;
     procedure CheckException(AMethod: TTestMethod; AExceptionClass: TClass; msg :string = '');
-    procedure CheckInherits(expected, actual: TClass; msg: string = ''); overload; virtual;
+    procedure CheckInherits(expected, actual: TClass; const msg: string = ''); overload; virtual;
     }
 
 {$ENDIF read_interface}
@@ -72,54 +72,54 @@ begin
   AssertTrue(pMessage, pValue);
 end;
 
-class procedure TAssert.CheckEquals(expected, actual: extended; msg: string);
+class procedure TAssert.CheckEquals(expected, actual: extended; const msg: string);
 begin
   CheckEquals(expected, actual, 0, msg);
 end;
 
 class procedure TAssert.CheckEquals(expected, actual: extended;
-  delta: extended; msg: string);
+  delta: extended; const msg: string);
 begin
   AssertEquals(msg, expected, actual, delta);
 end;
 
-class procedure TAssert.CheckEquals(expected, actual: string; msg: string);
+class procedure TAssert.CheckEquals(expected, actual: string; const msg: string);
 begin
   AssertEquals(msg, expected, actual);
 end;
-class procedure TAssert.CheckEquals(expected, actual: unicodestring; msg: string);
-begin
-  AssertEquals(msg, expected, actual);
-end;
-
-class procedure TAssert.CheckEquals(expected, actual: integer; msg: string);
+class procedure TAssert.CheckEquals(expected, actual: unicodestring; const msg: string);
 begin
   AssertEquals(msg, expected, actual);
 end;
 
-class procedure TAssert.CheckEquals(expected, actual: boolean; msg: string);
+class procedure TAssert.CheckEquals(expected, actual: integer; const msg: string);
 begin
   AssertEquals(msg, expected, actual);
 end;
 
-class procedure TAssert.CheckEquals(expected, actual: TClass; msg: string);
+class procedure TAssert.CheckEquals(expected, actual: boolean; const msg: string);
+begin
+  AssertEquals(msg, expected, actual);
+end;
+
+class procedure TAssert.CheckEquals(expected, actual: TClass; const msg: string);
 begin
   AssertEquals(msg, expected, actual);
 end;
 
 class procedure TAssert.CheckEquals(expected, actual: QWord;
-  msg: string);
+  const msg: string);
 begin
   AssertEquals(msg, expected, actual);
 end;
 
 class procedure TAssert.CheckEquals(expected, actual: int64;
-  msg: string);
+  const msg: string);
 begin
   AssertEquals(msg, expected, actual);
 end;
 
-class procedure TAssert.CheckNotEquals(expected, actual: string; msg: string);
+class procedure TAssert.CheckNotEquals(expected, actual: string; const msg: string);
 begin
   if AnsiCompareStr(Expected, Actual) = 0 then
     Fail(ComparisonMsg(msg, Expected, Actual, false))
@@ -127,7 +127,7 @@ begin
     Inc(AssertCount);
 end;
 
-class procedure TAssert.CheckNotEquals(expected, actual: unicodestring; msg: string);
+class procedure TAssert.CheckNotEquals(expected, actual: unicodestring; const msg: string);
 begin
   if (Expected=Actual) then
     Fail(ComparisonMsg(msg, Expected, Actual, false))
@@ -135,7 +135,7 @@ begin
     Inc(AssertCount);
 end;
 
-class procedure TAssert.CheckNotEquals(expected, actual: integer; msg: string);
+class procedure TAssert.CheckNotEquals(expected, actual: integer; const msg: string);
 begin
   if (expected = actual) then
     Fail(ComparisonMsg(msg, IntToStr(expected), IntToStr(actual), false))
@@ -143,7 +143,7 @@ begin
     Inc(AssertCount);
 end;
 
-class procedure TAssert.CheckNotEquals(expected, actual: boolean; msg: string);
+class procedure TAssert.CheckNotEquals(expected, actual: boolean; const msg: string);
 begin
   if (expected = actual) then
     Fail(ComparisonMsg(msg, BoolToStr(expected), BoolToStr(actual), false))
@@ -152,7 +152,7 @@ begin
 end;
 
 class procedure TAssert.CheckNotEquals(expected: extended; actual: extended;
-  delta: extended; msg: string);
+  delta: extended; const msg: string);
 begin
   if (abs(expected-actual) <= delta) then
     FailNotEquals(FloatToStr(expected), FloatToStr(actual), msg, nil)
@@ -161,7 +161,7 @@ begin
 end;
 
 class procedure TAssert.CheckNotEquals(expected, actual: QWord;
-  msg: string);
+  const msg: string);
 begin
   if (expected = actual) then
     Fail(ComparisonMsg(msg, IntToStr(expected), IntToStr(actual), false))
@@ -170,7 +170,7 @@ begin
 end;
 
 class procedure TAssert.CheckNotEquals(expected, actual: int64;
-  msg: string);
+  const msg: string);
 begin
   if (expected = actual) then
     Fail(ComparisonMsg(msg, IntToStr(expected), IntToStr(actual), false))
@@ -178,27 +178,27 @@ begin
     Inc(AssertCount);
 end;
 
-class procedure TAssert.CheckNull(obj: IUnknown; msg: string);
+class procedure TAssert.CheckNull(obj: IUnknown; const msg: string);
 begin
   AssertNullIntf(msg, obj);
 end;
 
-class procedure TAssert.CheckNull(obj: TObject; msg: string);
+class procedure TAssert.CheckNull(obj: TObject; const msg: string);
 begin
   AssertNull(msg, obj);
 end;
 
-class procedure TAssert.CheckNotNull(obj: TObject; msg: string);
+class procedure TAssert.CheckNotNull(obj: TObject; const msg: string);
 begin
   AssertNotNull(msg, obj);
 end;
 
-class procedure TAssert.CheckNotNull(obj: IUnknown; msg: string);
+class procedure TAssert.CheckNotNull(obj: IUnknown; const msg: string);
 begin
   AssertNotNullIntf(msg, obj);
 end;
 
-class procedure TAssert.CheckIs(obj: TObject; pClass: TClass; msg: string);
+class procedure TAssert.CheckIs(obj: TObject; pClass: TClass; const msg: string);
 begin
   Assert(pClass <> nil);
   if obj = nil then
@@ -209,12 +209,12 @@ begin
     Inc(AssertCount);
 end;
 
-class procedure TAssert.CheckSame(expected, actual: TObject; msg: string);
+class procedure TAssert.CheckSame(expected, actual: TObject; const msg: string);
 begin
    AssertSame(msg, expected, actual);
 end;
 
-class procedure TAssert.CheckTrue(condition: Boolean; msg: string);
+class procedure TAssert.CheckTrue(condition: Boolean; const msg: string);
 begin
   if (not condition) then
     FailNotEquals(BoolToStr(true, true), BoolToStr(false, true), msg, nil)
@@ -222,7 +222,7 @@ begin
     Inc(AssertCount);
 end;
 
-class procedure TAssert.CheckFalse(condition: Boolean; msg: string);
+class procedure TAssert.CheckFalse(condition: Boolean; const msg: string);
 begin
   if (condition) then
     FailNotEquals(BoolToStr(false, true), BoolToStr(true, true), msg, nil)
@@ -231,7 +231,7 @@ begin
 end;
 
 
-class procedure TAssert.CheckException(AMethod: TRunMethod; AExceptionClass: ExceptClass; msg: string = '');
+class procedure TAssert.CheckException(AMethod: TRunMethod; AExceptionClass: ExceptClass; const msg: string = '');
 begin
   AssertException(msg, AExceptionClass, AMethod);
 end;

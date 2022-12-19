@@ -140,8 +140,8 @@ type
     class procedure AssertNull(APointer: Pointer); overload;
     class procedure AssertNotNull(const AMessage, AString: string); overload;
     class procedure AssertNotNull(const AString: string); overload;
-    class procedure AssertException(const AMessage: string; AExceptionClass: ExceptClass; AMethod: TRunMethod;AExceptionMessage : String = ''; AExceptionContext : Integer = 0; AErrorAddr : Pointer = Nil); overload;
-    class procedure AssertException(AExceptionClass: ExceptClass; AMethod: TRunMethod;AExceptionMessage : String = ''; AExceptionContext : Integer = 0); overload;
+    class procedure AssertException(const AMessage: string; AExceptionClass: ExceptClass; AMethod: TRunMethod; const AExceptionMessage : String = ''; AExceptionContext : Integer = 0; AErrorAddr : Pointer = Nil); overload;
+    class procedure AssertException(AExceptionClass: ExceptClass; AMethod: TRunMethod;const AExceptionMessage : String = ''; AExceptionContext : Integer = 0); overload;
 
     {$IFDEF DUnit}
       {$I DUnitCompatibleInterface.inc}
@@ -223,8 +223,8 @@ type
     constructor Create; virtual;
     constructor CreateWith(const ATestName: string; const ATestSuiteName: string); virtual;
     constructor CreateWithName(const AName: string); virtual;
-    procedure ExpectException(AExceptionClass: TClass; AExceptionMessage: string=''; AExceptionHelpContext: Integer=0);
-    procedure ExpectException(const Msg: String; AExceptionClass: TClass; AExceptionMessage: string=''; AExceptionHelpContext: Integer=0);
+    procedure ExpectException(AExceptionClass: TClass; const AExceptionMessage: string=''; AExceptionHelpContext: Integer=0);
+    procedure ExpectException(const Msg: String; AExceptionClass: TClass; const AExceptionMessage: string=''; AExceptionHelpContext: Integer=0);
     function CountTestCases: integer; override;
     function CreateResultAndRun: TTestResult; virtual;
     procedure Run(AResult: TTestResult); override;
@@ -261,10 +261,10 @@ type
     procedure SetEnableIgnores(Value: boolean); override;
     property OwnsTests : Boolean Read FOwnsTests Write SetOwnsTests;
   public
-    constructor Create(AClass: TClass; AName: string); reintroduce; overload; virtual;
+    constructor Create(AClass: TClass; const AName: string); reintroduce; overload; virtual;
     constructor Create(AClass: TClass); reintroduce; overload; virtual;
     constructor Create(AClassArray: Array of TClass); reintroduce; overload; virtual;
-    constructor Create(AName: string); reintroduce; overload; virtual;
+    constructor Create(const AName: string); reintroduce; overload; virtual;
     constructor Create; reintroduce; overload; virtual;
     destructor Destroy; override;
     function CountTestCases: integer; override;
@@ -938,7 +938,7 @@ end;
 
 
 class procedure TAssert.AssertException(const AMessage: string; AExceptionClass: ExceptClass;
-  AMethod: TRunMethod;AExceptionMessage : String = ''; AExceptionContext : Integer = 0; AErrorAddr : Pointer = Nil);
+  AMethod: TRunMethod;const AExceptionMessage : String = ''; AExceptionContext : Integer = 0; AErrorAddr : Pointer = Nil);
 
   Function MisMatch (AClassName : String) : String;
 
@@ -973,7 +973,7 @@ end;
 
 
 class procedure TAssert.AssertException(AExceptionClass: ExceptClass;
-  AMethod: TRunMethod;AExceptionMessage : String = ''; AExceptionContext : Integer = 0);
+  AMethod: TRunMethod;const AExceptionMessage : String = ''; AExceptionContext : Integer = 0);
 begin
   AssertException('', AExceptionClass, AMethod, AExceptionMessage, AExceptionContext, CallerAddr);
 end;
@@ -1192,7 +1192,7 @@ begin
   inherited Destroy;
 end;
 
-constructor TTestSuite.Create(AClass: TClass; AName: string);
+constructor TTestSuite.Create(AClass: TClass; const AName: string);
 begin
   Create(AClass);
   FName := AName;
@@ -1252,7 +1252,7 @@ begin
 end;
 
 
-constructor TTestSuite.Create(AName: string);
+constructor TTestSuite.Create(const AName: string);
 begin
   Create();
   FName := AName;
@@ -1372,7 +1372,7 @@ begin
 end;
 
 procedure TTestCase.ExpectException(const Msg: String;
-  AExceptionClass: TClass; AExceptionMessage: string = '';
+  AExceptionClass: TClass; const AExceptionMessage: string = '';
   AExceptionHelpContext: Integer =0 );
 begin
   FExpectedExceptionFailMessage:=Msg;
@@ -1383,7 +1383,7 @@ begin
 end;
 
 procedure TTestCase.ExpectException(AExceptionClass: TClass;
-  AExceptionMessage: string = ''; AExceptionHelpContext: Integer = 0);
+  const AExceptionMessage: string = ''; AExceptionHelpContext: Integer = 0);
 begin
   FExpectedExceptionFailMessage:='';
   FExpectedException:=AExceptionClass;

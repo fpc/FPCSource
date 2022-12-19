@@ -28,11 +28,11 @@ type
 
 
 procedure RegisterTest(ATestClass: TTestCaseClass); overload;
-procedure RegisterTest(ASuitePath: String; ATestClass: TTestCaseClass); overload;
-procedure RegisterTest(ASuitePath: String; ATest: TTest); overload;
+procedure RegisterTest(const ASuitePath: String; ATestClass: TTestCaseClass); overload;
+procedure RegisterTest(const ASuitePath: String; ATest: TTest); overload;
 
 procedure RegisterTests(ATests: Array of TTestCaseClass);
-procedure RegisterTests(ASuitePath: String; ATests: Array of TTestCaseClass);
+procedure RegisterTests(const ASuitePath: String; ATests: Array of TTestCaseClass);
 
 procedure RegisterTestDecorator(ADecoratorClass: TTestDecoratorClass; ATestClass: TTestCaseClass);
 
@@ -55,7 +55,7 @@ begin
   Result := FTestRegistry;
 end;
 
-procedure RegisterTestInSuite(ARootSuite: TTestSuite; APath: string; ATest: TTest);
+procedure RegisterTestInSuite(ARootSuite: TTestSuite; const APath: string; ATest: TTest);
 var
   i: Integer;
   lTargetSuite: TTestSuite;
@@ -106,7 +106,7 @@ begin
     end;
 
     RegisterTestInSuite(lTargetSuite, lPathRemainder, ATest);
-  end;  { if/else }
+  end;  { if  else }
 end;
 
 procedure RegisterTest(ATestClass: TTestCaseClass);
@@ -114,12 +114,12 @@ begin
   GetTestRegistry.AddTestSuiteFromClass(ATestClass);
 end;
 
-procedure RegisterTest(ASuitePath: String; ATestClass: TTestCaseClass);
+procedure RegisterTest(const ASuitePath: String; ATestClass: TTestCaseClass);
 begin
   RegisterTestInSuite(GetTestRegistry, ASuitePath, TTestSuite.Create(ATestClass));
 end;
 
-procedure RegisterTest(ASuitePath: String; ATest: TTest);
+procedure RegisterTest(const ASuitePath: String; ATest: TTest);
 begin
   RegisterTestInSuite(GetTestRegistry, ASuitePath, ATest);
 end;
@@ -140,7 +140,7 @@ begin
     end;
 end;
 
-procedure RegisterTests(ASuitePath: String; ATests: Array of TTestCaseClass);
+procedure RegisterTests(const ASuitePath: String; ATests: Array of TTestCaseClass);
 var
   i: integer;
 begin

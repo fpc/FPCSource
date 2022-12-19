@@ -55,7 +55,7 @@ type
     FSuite: String;
     FRunMode : TRunMode;
   protected
-    Class function StrToFormat(S: String): TFormat;
+    Class function StrToFormat(const S: String): TFormat;
     function DefaultsFileName: String;
     procedure RunSuite; virtual;
     procedure ShowTestList; virtual;
@@ -229,7 +229,7 @@ begin
   inherited Destroy;
 end;
 
-class function TTestRunner.StrToFormat(S: String): TFormat;
+class function TTestRunner.StrToFormat(const S: String): TFormat;
 
 begin
   Case lowercase(S) of
