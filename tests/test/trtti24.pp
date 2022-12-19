@@ -107,9 +107,16 @@ type
   TLargeSetP = set of TLargeEnum;
 {$pop}
 
-function SameArray(const A, B: array of Byte): Boolean;
-begin
-  Result := True;
+function SameArray(const A, B: array of Byte): Boolean;                                                                             
+var                                                                                                                                 
+  I: Integer;                                                                                                                       
+begin                                                                                                                               
+  Result := Length(A)=Length(B);                                                                                                    
+  if not Result then                                                                                                                
+    Exit;                                                                                                                           
+  for I := Low(A) to High(A) do                                                                                                     
+    if A[I]<>B[I] then                                                                                                              
+      Exit(False);                                                                                                                  
 end;
 
 const
