@@ -112,7 +112,7 @@ type
     procedure EndTest(ATest: TTest);
     procedure StartTestSuite(ATestSuite: TTestSuite);
     procedure EndTestSuite(ATestSuite: TTestSuite);
-    procedure AddExpectedLine(ALine: string);
+    procedure AddExpectedLine(const ALine: string);
     procedure Verify(ActualList: TStrings);
   end;
 
@@ -622,7 +622,7 @@ procedure TMockListener.EndTestSuite(ATestSuite: TTestSuite);
 begin
 end;
 
-procedure TMockListener.AddExpectedLine(ALine: string);
+procedure TMockListener.AddExpectedLine(const ALine: string);
 begin
   FExpectedList.Add(ALine)
 end;

@@ -43,7 +43,7 @@ type
     function GetAmount: int64;
     function GetCurrencyUnit: string;
   public
-    constructor Create(aAmount: int64; aCurrencyUnit: String);
+    constructor Create(aAmount: int64; const aCurrencyUnit: String);
     function add(m: IMoney): IMoney;
     function addMoney(m: TMoney): IMoney;
     function addMoneyBag(mb: TMoneyBag): IMoney;
@@ -63,7 +63,7 @@ type
   TMoneyBag = class(TInterfacedObject, IMoney)
   private
     FMonies: TInterfaceList;
-    function FindMoney(aCurrencyUnit: string): Integer;
+    function FindMoney(const aCurrencyUnit: string): Integer;
     function Contains(m: ISingleCurrencyMoney): boolean;
   public
     constructor Create;
@@ -108,7 +108,7 @@ begin
 end;
 
 
-function TMoneyBag.FindMoney(aCurrencyUnit: string): Integer;
+function TMoneyBag.FindMoney(const aCurrencyUnit: string): Integer;
 var
   i: Integer;
 begin
@@ -318,7 +318,7 @@ begin
   Result := FAmount;
 end;
 
-constructor TMoney.Create(aAmount: int64; aCurrencyUnit: string);
+constructor TMoney.Create(aAmount: int64; const aCurrencyUnit: string);
 begin
   FAmount := aAmount;
   FCurrencyUnit := aCurrencyUnit;
