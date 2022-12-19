@@ -61,7 +61,7 @@ type
     procedure SetEnabled(AValue: Boolean);
     procedure SetFileName (Const AFileName : String);
     procedure SetFilter(AValue: TStrings);
-    procedure SetTranslation(AValue: String);
+    procedure SetTranslation(const AValue: String);
     procedure SetTranslationOnly(AValue: Boolean);
   public
     constructor Create(AOwner: TComponent);  override;
@@ -110,8 +110,8 @@ Function CompareProgramVersion(Version1,Version2 : TProgramVersion) : TVersionCo
 Function VersionQuadToStr(Const Quad : TVersionQuad) : String;
 Function ProgramVersionToStr(Const Version : TProgramVersion) : String;
 // Try to convert string to version quad.
-Function TryStrToVersionQuad(S : String; Out Quad : TVersionQuad) : Boolean;
-Function TryStrToProgramVersion(S : String; Out Version : TProgramVersion) : Boolean;
+Function TryStrToVersionQuad( S : String; Out Quad : TVersionQuad) : Boolean;
+Function TryStrToProgramVersion(const S : String; Out Version : TProgramVersion) : Boolean;
 // Convert string to version quad, raise exception if invalid string.
 Function StrToVersionQuad(Const S : String) : TVersionQuad;
 Function StrToProgramVersion(Const S : String ): TProgramVersion;
@@ -318,7 +318,7 @@ begin
   CheckRead;
 end;
 
-procedure TFileVersionInfo.SetTranslation(AValue: String);
+procedure TFileVersionInfo.SetTranslation(const AValue: String);
 begin
   if FTranslation=AValue then Exit;
   FTranslation:=AValue;
@@ -434,7 +434,7 @@ begin
   Result:=Format('%d.%d.%d.%d',[Version.Major,Version.Minor,Version.Revision,Version.Build]);
 end;
 
-Function TryStrToProgramVersion(S : String; Out Version : TProgramVersion) : Boolean;
+Function TryStrToProgramVersion(const S : String; Out Version : TProgramVersion) : Boolean;
 
 Var
   Q : TVersionQuad;
