@@ -142,6 +142,7 @@ type
           class operator * (const apt1, apt2: TPointF): TPointF;
           class operator * (const apt1: TPointF; afactor: single): TPointF;
           class operator * (afactor: single; const apt1: TPointF): TPointF;
+          class operator / (const apt1: TPointF; afactor: single): TPointF;
           class operator := (const apt: TPoint): TPointF;
           class operator ** (const apt1, apt2: TPointF): Single; // scalar product
        end;
@@ -779,6 +780,11 @@ class operator TPointF. - (const apt1: TPointF): TPointF;
 begin
   Result.x:=-apt1.x;
   Result.y:=-apt1.y;
+end;
+
+class operator TPointF. / (const apt1: TPointF; afactor: single): TPointF;
+begin
+  result:=apt1.Scale(1/afactor);
 end;
 
 class operator TPointF. := (const apt: TPoint): TPointF;
