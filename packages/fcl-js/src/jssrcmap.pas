@@ -144,8 +144,8 @@ type
     procedure SaveToStream(aStream: TFPJSStream); virtual;
     {$ifdef HasStreams}
     procedure LoadFromStream(aStream: TStream); virtual;
-    procedure SaveToFile(Filename: string); virtual;
-    procedure LoadFromFile(Filename: string); virtual;
+    procedure SaveToFile(const Filename: string); virtual;
+    procedure LoadFromFile(const Filename: string); virtual;
     {$endif}
     property GeneratedFilename: string read FGeneratedFilename write SetGeneratedFilename;
     function IndexOfName(const Name: string; AddIfNotExists: boolean = false): integer;
@@ -605,7 +605,7 @@ function TSourceMap.AddMapping(GeneratedLine: integer; GeneratedCol: integer;
   const SourceFile: string; SrcLine: integer; SrcCol: integer;
   const Name: String): TSourceMapSegment;
 
-  procedure RaiseInvalid(Msg: string);
+  procedure RaiseInvalid(const Msg: string);
   begin
     raise EJSSourceMap.CreateFmt('%s (GeneratedLine=%d GeneratedCol=%d SrcFile="%s" SrcLine=%d SrcCol=%d Name="%s")',
       [Msg,GeneratedLine,GeneratedCol,SourceFile,SrcLine,SrcCol,Name]);
@@ -1134,7 +1134,7 @@ begin
   end;
 end;
 
-procedure TSourceMap.SaveToFile(Filename: string);
+procedure TSourceMap.SaveToFile(const Filename: string);
 var
   TheStream: TMemoryStream;
 begin
@@ -1148,7 +1148,7 @@ begin
   end;
 end;
 
-procedure TSourceMap.LoadFromFile(Filename: string);
+procedure TSourceMap.LoadFromFile(const Filename: string);
 var
   TheStream: TMemoryStream;
 begin
