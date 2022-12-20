@@ -18,7 +18,7 @@
 
 {$IFDEF read_interface}
 
-    class procedure Check(pValue: boolean; pMessage: string = '');
+    class procedure Check(pValue: boolean; const pMessage: string = '');
     class procedure CheckEquals(expected, actual: extended; const msg: string = ''); overload;
     class procedure CheckEquals(expected, actual: extended; delta: extended; const msg: string = ''); overload;
     class procedure CheckEquals(expected, actual: string; const msg: string = ''); overload;
@@ -56,7 +56,7 @@
     procedure CheckEqualsHex(expected, actual: longword; const msg: string = ''; digits: integer=8); virtual;
     procedure CheckNotEqualsBin(expected, actual: longword; const msg: string = ''; digits: integer=32); virtual;
     procedure CheckNotEqualsHex(expected, actual: longword; const msg: string = ''; digits: integer=8); virtual;
-    procedure CheckNotNull(obj :IUnknown; msg :string = ''); overload; virtual;
+    procedure CheckNotNull(obj :IUnknown; const msg :string = ''); overload; virtual;
     procedure CheckSame(expected, actual: IUnknown; const msg: string = ''); overload; virtual;
     procedure CheckException(AMethod: TTestMethod; AExceptionClass: TClass; msg :string = '');
     procedure CheckInherits(expected, actual: TClass; const msg: string = ''); overload; virtual;
@@ -67,7 +67,7 @@
 
 {$IFDEF read_implementation}
 
-class procedure TAssert.Check(pValue: boolean; pMessage: string);
+class procedure TAssert.Check(pValue: boolean; const pMessage: string);
 begin
   AssertTrue(pMessage, pValue);
 end;
