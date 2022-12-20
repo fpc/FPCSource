@@ -33,7 +33,7 @@ Type
     FStrings : Array of String;
     function GetCount: Integer;
     function GetS(AIndex : Integer): String;
-    procedure SetS(AIndex : Integer; AValue: String);
+    procedure SetS(AIndex : Integer; const AValue: String);
   Public
     Function Add(Const S : String) : Integer;
     Procedure Assign(Source : TStrings);
@@ -2565,7 +2565,7 @@ begin
     Raise EListError.CreateFmt('List index (%d) out of bounds.',[AIndex]);
 end;
 
-procedure TStrings.SetS(AIndex : Integer; AValue: String);
+procedure TStrings.SetS(AIndex : Integer; const AValue: String);
 begin
   if (AIndex>=0) and (AIndex<=FCount) then
     begin
@@ -3445,7 +3445,7 @@ end;
 
 constructor TJSSourceElements.Create(ALine, AColumn: Integer; const ASource: String);
 
-  Function CN(aName : String; DoClear : Boolean = True) : TJSElementNodes;
+  Function CN(const aName : String; DoClear : Boolean = True) : TJSElementNodes;
   begin
     Result:=TJSElementNodes.Create(TJSElementNode);
     Result.NodeType:=aName;

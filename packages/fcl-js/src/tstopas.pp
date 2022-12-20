@@ -179,10 +179,10 @@ Type
     function CheckUnionTypeDefinition(D: TJSTypeDef): TJSUnionTypeDef;
     function CreatePasName(const aOriginal : jsBase.TJSString; const aName: String): TPasData;virtual;
     function TypeNeedsTypeName(aType: TJSElement; IgnoreData : Boolean; IsResultType : Boolean = False): Boolean;
-    procedure AllocatePasNames(FD: TJSFuncDef; aPrefix: String='');
-    procedure AllocatePasNames(aList: TJSSourceElements; ParentName: String=''); virtual;
-    procedure AllocatePasNames(aList: TJSElementNodes; ParentName: String=''); virtual;
-    Function AllocatePasName(D: TJSElement; ParentName: String='') : TPasData;virtual;
+    procedure AllocatePasNames(FD: TJSFuncDef; const aPrefix: String='');
+    procedure AllocatePasNames(aList: TJSSourceElements; const ParentName: String=''); virtual;
+    procedure AllocatePasNames(aList: TJSElementNodes; Const ParentName: String=''); virtual;
+    Function AllocatePasName(D: TJSElement; Const ParentName: String='') : TPasData;virtual;
     procedure EnsureUniqueNames(ML: TJSSourceElements);virtual;
     function GetExternalMemberName(const aName: jsBase.TJSString): string;
     function GetName(ADef: TJSElement): String;virtual;
@@ -215,7 +215,7 @@ Type
     function WriteClassDefs(aClasses: TJSElementNodes) : Integer;
 
     // Forwards
-    function WriteForwardClass(aName: string): Boolean;
+    function WriteForwardClass(const aName: string): Boolean;
     function WriteForwardClassDef(aIntf: TJSInterfaceDeclaration): Boolean;
     function WriteForwardClassDef(aObj: TJSTypeDeclaration): Boolean;
     function WriteForwardClassDef(aClass: TJSClassDeclaration): Boolean;
@@ -1385,10 +1385,11 @@ begin
   FPasNameList.Add(Result);
 end;
 
-function TTypescriptToPas.AllocatePasName(D: TJSElement; ParentName: String): TPasData;
+function TTypescriptToPas.AllocatePasName(D: TJSElement; const ParentName: String): TPasData;
 
 Var
   Org : TJSString;
+  lParentName,
   CN : String;
   CD : TJSClassDeclaration absolute D;
   AD : TJSAmbientClassDeclaration absolute D;
@@ -1465,9 +1466,10 @@ begin
   D.Data:=Result;
   if Verbose and (Result<>Nil) and (Result.PasName<>UTF8Encode(Org)) then
     begin
-    if (ParentName<>'') then
-      ParentName:=ParentName+'.';
-    DoLog(SLogRenamedType, [ParentName+UTF8Encode(Org), TPasData(D.Data).PasName]);
+    lParentName:=ParentName;
+    if (lParentName<>'') then
+      lParentName:=lParentName+'.';
+    DoLog(SLogRenamedType, [lParentName+UTF8Encode(Org), TPasData(D.Data).PasName]);
     end;
 end;
 
@@ -1636,7 +1638,7 @@ begin
   Result:=coRaw in Options;
 end;
 
-procedure TTypescriptToPas.AllocatePasNames(FD : TJSFuncDef; aPrefix: String = '');
+procedure TTypescriptToPas.AllocatePasNames(FD : TJSFuncDef; const aPrefix: String = '');
 
 begin
   AllocateIndirectTypeDefs(FD.TypedParams,aPrefix);
@@ -1644,7 +1646,7 @@ begin
     AllocateIndirectTypeDef(FD.ResultType,aPrefix,'Result');
 end;
 
-procedure TTypescriptToPas.AllocatePasNames(aList : TJSElementNodes; ParentName: String = '');
+procedure TTypescriptToPas.AllocatePasNames(aList : TJSElementNodes; const ParentName: String = '');
 
 Var
   I : Integer;
@@ -1701,7 +1703,7 @@ begin
     end;
 end;
 
-procedure TTypescriptToPas.AllocatePasNames(aList : TJSSourceElements; ParentName: String = '');
+procedure TTypescriptToPas.AllocatePasNames(aList : TJSSourceElements; const ParentName: String = '');
 
 begin
   AllocatePasNames(aList.Types,ParentName);
@@ -3037,7 +3039,7 @@ end;
   Classes
   ----------------------------------------------------------------------}
 
-function TTypescriptToPas.WriteForwardClass(aName : string) : Boolean;
+function TTypescriptToPas.WriteForwardClass(const aName : string) : Boolean;
 
 begin
   Result:=FContext.CurrentForwards.IndexOf(aName)=-1;
@@ -3356,7 +3358,7 @@ end;
 
 function TTypescriptToPas.WriteInterfaceDefs(aList: TJSElementNodes): Integer;
 
-  Function GetInterfaces(aName : String) : TJSInterfaceDeclarationArray;
+  Function GetInterfaces(const aName : String) : TJSInterfaceDeclarationArray;
 
   Var
     I,aCount : Integer;
