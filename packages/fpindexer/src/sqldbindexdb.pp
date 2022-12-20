@@ -147,8 +147,6 @@ function TSQLDBIndexDB.GetWordID(const AWord: UTF8String): int64;
 var
   Q: TSQLQuery;
 begin
-  if aWord='Just' then
-    Writeln('here');
   if (FLastWord = AWord) then
     Result := FLastWordID
   else
