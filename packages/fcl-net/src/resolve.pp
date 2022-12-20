@@ -59,7 +59,7 @@ Type
     Function GetAliasSorted : Boolean;
     Procedure SetAliasSorted (Value : Boolean);
   Protected
-    Procedure CheckOperation(Msg : String);
+    Procedure CheckOperation(const Msg : String);
     Function NameLookup(Const S : String) : Boolean; virtual;
     Procedure SaveAliases(P : PPChar);
   Public
@@ -137,7 +137,7 @@ Type
     Procedure ClearData; override;
     Function NameLookup (Const S : String) : boolean; override;
     Function NameLookup (Const S,Proto : String) : Boolean;
-    Function PortLookup (APort : Longint; Proto: string) : Boolean;
+    Function PortLookup (APort : Longint; const Proto: string) : Boolean;
     Property Protocol : String Read FProtocol;
     Property Port : Integer Read FPort;
     Property NetPort : Integer Read GetNetPort;
@@ -157,13 +157,13 @@ Type
     FBookmark: String;
     FURI : String;
   Protected
-    Procedure SetElement (Index : Integer; Value : String);Virtual;
+    Procedure SetElement (Index : Integer; const Value : String);Virtual;
     Function GetElement(Index : Integer) : String;
     Procedure SetPort(Value : Word);
-    Procedure SetURI(Value : String);
+    Procedure SetURI(const Value : String);
   Public
     Procedure Clear;
-    Procedure ParseUri(AURI : String);
+    Procedure ParseUri(const AURI : String);
     Function ComposeURI : String;
   Published
     Property Port: Word  Read FPort Write SetPort;
@@ -248,7 +248,7 @@ begin
   FAliases.Sorted:=Value;
 end;
 
-Procedure TResolver.CheckOperation(Msg : String);
+Procedure TResolver.CheckOperation(const Msg : String);
 
 begin
 end;
@@ -594,7 +594,7 @@ begin
     SaveServiceEntry(@E);
 end;
 
-Function TServiceResolver.PortLookup (APort: Longint; Proto : String) : Boolean;
+Function TServiceResolver.PortLookup (APort: Longint; const Proto : String) : Boolean;
 
 Var
   E : TServiceEntry;
@@ -644,7 +644,7 @@ begin
     end;
 end;
 
-Function TServiceResolver.PortLookup (APort: Longint; Proto : String) : Boolean;
+Function TServiceResolver.PortLookup (APort: Longint; const Proto : String) : Boolean;
 
 Var
   FServiceEntry : PServEntry;
@@ -699,7 +699,7 @@ end;
   ---------------------------------------------------------------------}
 
 
-Procedure TURIParser.SetElement (Index : Integer; Value : String);
+Procedure TURIParser.SetElement (Index : Integer; const Value : String);
 
 begin
  Case index of
@@ -742,7 +742,7 @@ begin
     FURI:=ComposeURI;
 end;
 
-Procedure TURIParser.SetURI(Value : String);
+Procedure TURIParser.SetURI(const Value : String);
 
 begin
   If Active and not (csLoading in ComponentState) then
@@ -768,7 +768,7 @@ begin
    FURI      :='';
 end;
 
-Procedure TURIParser.ParseUri(AURI : String);
+Procedure TURIParser.ParseUri(const AURI : String);
 
 Var
   U : TURI;

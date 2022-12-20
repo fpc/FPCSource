@@ -55,7 +55,7 @@ Type
     function GetSSLData(AIndex: Integer): TSSLData;
     procedure SetSSLData(AIndex: Integer; AValue: TSSLData);
     function GetString(AIndex: Integer): String;
-    procedure SetString(AIndex: Integer; AValue: String);
+    procedure SetString(AIndex: Integer; const AValue: String);
   Public
     constructor Create;
     Destructor Destroy; override;
@@ -157,7 +157,7 @@ begin
     Result:='localhost';
 end;
 
-procedure TCertificateData.SetString(AIndex: Integer; AValue: String);
+procedure TCertificateData.SetString(AIndex: Integer; const AValue: String);
 begin
   FStrData[AIndex]:=aValue;
 end;
