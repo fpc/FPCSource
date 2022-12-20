@@ -703,7 +703,7 @@ begin
   WriteString(Section, Ident, IntToStr(Value));
 end;
 
-function IndexOfString(A : TStringArray; S : String) : integer;
+function IndexOfString(A : TStringArray; const S : String) : integer;
 
 begin
   Result:=Length(A)-1;

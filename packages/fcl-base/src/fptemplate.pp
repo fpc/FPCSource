@@ -62,12 +62,12 @@ Type
     FOnReplaceTag: TReplaceTagEvent;                       //Event handler to use for templates containing tags with parameters (ex: <#TagName paramname1="paramvalue1" paramname2="paramvalue2">)
     function GetDelimiter(Index: integer): TParseDelimiter;
     function GetNameByIndex(index : Integer): String;
-    function GetValue(Key : String): String;
+    function GetValue(const Key : String): String;
     function GetValueByIndex(index : Integer): String;
     function GetValueCount: Integer;
     procedure SetDelimiter(Index: integer; const AValue: TParseDelimiter);
-    procedure SetValue(Key : String; const AValue: String);
-    Function IntParseString(Src : String) : String;
+    procedure SetValue(const Key : String; const AValue: String);
+    Function IntParseString(const Src : String) : String;
   Public
     Constructor Create;
     Destructor Destroy; override;
@@ -75,7 +75,7 @@ Type
     Function ReplaceTag(const Key: String; TagParams:TStringList; out ReplaceWith: String): Boolean;//used only when AllowTagParams = true
     Function GetParam(Const Key : String; Out AValue : String) : Boolean;                           //used only when AllowTagParams = false
     Procedure GetTagParams(var TagName:String; var TagParams : TStringList) ;
-    Function ParseString(Src : String) : String;
+    Function ParseString(const Src : String) : String;
     Function ParseStream(Src : TStream; Dest : TStream) : Integer; // Wrapper, Returns number of bytes written.
     Procedure ParseStrings(Src : TStrings; Dest : TStrings) ;      // Wrapper
     Procedure ParseFiles(Const Src,Dest : String);
@@ -163,20 +163,20 @@ Type
   Private
     FValue : String;
   Public
-    Constructor Create(AValue : String);
+    Constructor Create(const AValue : String);
     Property Value : String Read FValue Write FValue;
   end;
 
 { TStringItem }
 
-constructor TStringItem.Create(AValue: String);
+constructor TStringItem.Create(const AValue: String);
 begin
   FValue:=AValue;
 end;
 
 { TTemplateParser }
 
-function TTemplateParser.GetValue(Key : String): String;
+function TTemplateParser.GetValue(const Key : String): String;
 
 Var
   I : Integer;
@@ -241,7 +241,7 @@ begin
 
 end;
 
-procedure TTemplateParser.SetValue(Key : String; const AValue: String);
+procedure TTemplateParser.SetValue(const Key : String; const AValue: String);
 
 Var
   I : Integer;
@@ -446,13 +446,13 @@ begin
   TagName := Trim(TP);
 end;
 
-function TTemplateParser.ParseString(Src: String): String;
+function TTemplateParser.ParseString(const Src: String): String;
 begin
   FParseLevel:=0;
   Result:=IntParseString(Src);
 end;
 
-function TTemplateParser.IntParseString(Src: String): String;
+function TTemplateParser.IntParseString(const Src: String): String;
 
 Var
   PN,PV,ReplaceWith : String;
