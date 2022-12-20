@@ -35,6 +35,7 @@ type
     function InsertLanguage(const ALanguage: UTF8String): int64; override;
     function CreateConnection: TSQLConnection; override;
     function GetID(TableType: TIndexTable): int64;
+    procedure CommitTrans; override;
     procedure FinishCreateTable(const TableType: TIndexTable); override;
     procedure FinishDropTable(const TableType: TIndexTable); override;
   end;
@@ -58,6 +59,17 @@ begin
   finally
     Q.Close;
   end;
+end;
+
+procedure TPGIndexDB.CommitTrans;
+
+Var
+  Tbl : TIndexTable;
+
+begin
+  for Tbl in TIndexTable do
+    FreeAndNil(FGenQuery[Tbl]);
+  inherited CommitTrans;
 end;
 
 function TPGIndexDB.InsertLanguage(const ALanguage: UTF8String): int64;

@@ -147,6 +147,8 @@ function TSQLDBIndexDB.GetWordID(const AWord: UTF8String): int64;
 var
   Q: TSQLQuery;
 begin
+  if aWord='Just' then
+    Writeln('here');
   if (FLastWord = AWord) then
     Result := FLastWordID
   else
@@ -368,7 +370,11 @@ begin
 end;
 
 procedure TSQLDBIndexDB.CommitTrans;
+Var
+  T : TCachedQueryType;
 begin
+  For T:=Low(TCachedQueryType) to High(TCachedQueryType) do
+    FreeAndNil(FQueries[T]);
   FDB.Transaction.Commit;
 end;
 
