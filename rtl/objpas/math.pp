@@ -398,8 +398,8 @@ function Power(base,exponent : float) : float;
 { base^exponent }
 function IntPower(base : float;exponent : longint) : float;
 
-operator ** (bas,expo : float) e: float; inline;
-operator ** (bas,expo : int64) i: int64; inline;
+operator ** (base,exponent : float) e: float; inline;
+operator ** (base,exponent : int64) res: int64;
 
 { number converting }
 
@@ -1088,16 +1088,33 @@ function intpower(base : float;exponent : longint) : float;
   end;
 
 
-operator ** (bas,expo : float) e: float; inline;
+operator ** (base,exponent : float) e: float; inline;
   begin
-    e:=power(bas,expo);
+    e:=power(base,exponent);
   end;
 
 
-operator ** (bas,expo : int64) i: int64; inline;
-  begin
-    i:=round(intpower(bas,expo));
-  end;
+operator ** (base,exponent : int64) res: int64;
+begin
+  if exponent<0 then
+    begin
+      if base<=0 then
+        raise EInvalidArgument.Create('Non-positive base with negative exponent in **');
+      if base=1 then
+        res:=1
+      else
+        res:=0;
+      exit;
+    end; 
+  res:=1;
+  while exponent<>0 do
+    begin
+      if exponent and 1<>0 then
+        res:=res*base;
+      exponent:=exponent shr 1;
+      base:=base*base;
+    end;
+end;
 
 
 function ceil(x : float) : integer;
