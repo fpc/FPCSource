@@ -50,7 +50,7 @@ TRTFParser = class(TObject)
     dcb : array [0..rtfMaxDestination] of TRTFFuncPtr;  { destination callbacks }
     readHook : TRTFFUNCPTR;
     FTokenClass: Integer;
-    Procedure Error (msg : String);
+    Procedure Error (const msg : String);
     Procedure LookupInit ;
     Procedure ReadFontTbl ;
     Procedure ReadColorTbl;
@@ -83,7 +83,7 @@ TRTFParser = class(TObject)
     Procedure StartReading;
     Procedure SetReadHook (Hook : TRTFFuncPtr);
     Procedure UngetToken;
-    Procedure SetToken (Aclass, major, minor, param : Integer; text : string);
+    Procedure SetToken (Aclass, major, minor, param : Integer; const text : string);
     Procedure ExpandStyle (n : Integer);
     Function GetRtfBuf : String;
     { Properties }
@@ -112,7 +112,7 @@ Const EOF = -255;
          Utility functions
   ---------------------------------------------------------------------}
 
-Function Hash (s : String) : Integer;
+Function Hash (const s : String) : Integer;
 
 var
   val,i : integer;
@@ -630,7 +630,7 @@ End;
   values supplied.  Typically this is followed with a call
   to RTFRouteToken().
   If param is non-negative, it becomes part of the token text. }
-Procedure TRTFParser.SetToken (Aclass, major, minor, param : Integer; text : string);
+Procedure TRTFParser.SetToken (Aclass, major, minor, param : Integer; const text : string);
 
 Begin
   FrtfClass := Aclass;
@@ -1032,7 +1032,7 @@ End;
        not found, the class turns into rtfUnknown.
   ---------------------------------------------------------------------}
 
-Procedure TRTFParser.Lookup (S : String);
+Procedure TRTFParser.Lookup(S : String);
 
 var
  thehash,rp : Integer;
@@ -1056,7 +1056,7 @@ FrtfClass:=rtfUnknown;
 End;
 
 
-Procedure TRTFParser.Error (msg : String);
+Procedure TRTFParser.Error (const msg : String);
 
 { Call errorhandler }
 

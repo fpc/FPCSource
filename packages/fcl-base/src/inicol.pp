@@ -30,8 +30,8 @@ Type
   Public
     Procedure SaveToIni(Ini: TCustomInifile; Section : String); Virtual; Abstract;
     Procedure LoadFromIni(Ini: TCustomInifile; Section : String); Virtual; Abstract;
-    Procedure SaveToFile(FileName : String; Section : String);
-    Procedure LoadFromFile(FileName : String; Section : String);
+    Procedure SaveToFile(const FileName : String; const Section : String);
+    Procedure LoadFromFile(const FileName : String; const Section : String);
     Property SectionName : String Read GetSectionName Write SetSectionName;
   end;
 
@@ -46,9 +46,9 @@ Type
     Procedure Load;
     Procedure Save;
     Procedure SaveToIni(Ini: TCustomInifile; Section : String); virtual;
-    Procedure SaveToFile(AFileName : String; Section : String);
+    Procedure SaveToFile(const AFileName : String; const Section : String);
     Procedure LoadFromIni(Ini: TCustomInifile; Section : String); virtual;
-    Procedure LoadFromFile(AFileName : String; Section : String);
+    Procedure LoadFromFile(const AFileName : String; const Section : String);
     Property Prefix : String Read FPrefix;
     Property SectionPrefix : String Read FSectionPrefix;
     Property FileName : String Read FFileName Write FFileName;
@@ -101,7 +101,7 @@ resourcestring
   SErrNoSection = '%s: No [global] section specified.';
   SErrDuplicateName = 'Duplicate names "%s" not allowed in collection';
   
-procedure TIniCollectionItem.LoadFromFile(FileName, Section: String);
+procedure TIniCollectionItem.LoadFromFile(const FileName, Section: String);
 
 Var
   Ini : TMemInifile;
@@ -115,7 +115,7 @@ begin
   end;
 end;
 
-procedure TIniCollectionItem.SaveToFile(FileName, Section: String);
+procedure TIniCollectionItem.SaveToFile(const FileName, Section: String);
 
 Var
   Ini : TMemInifile;
@@ -142,7 +142,7 @@ begin
   LoadFromFile(FFileName,GlobalSection)
 end;
 
-procedure TIniCollection.LoadFromFile(AFileName, Section: String);
+procedure TIniCollection.LoadFromFile(const AFileName, Section: String);
 
 Var
   Ini  : TMemIniFile;
@@ -191,7 +191,7 @@ begin
   SaveToFile(FFileName,GlobalSection)
 end;
 
-procedure TIniCollection.SaveToFile(AFileName, Section: String);
+procedure TIniCollection.SaveToFile(const AFileName, Section: String);
 
 Var
   Ini : TMemIniFile;

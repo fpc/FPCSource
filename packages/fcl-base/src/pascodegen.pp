@@ -67,7 +67,7 @@ Type
     Procedure Undent;
     Function IsKeyWord (Const S : String) : Boolean;
     Function EscapeKeyWord(Const S : String; ForceAmpersand : Boolean = false) : String;
-    Function MakePascalString(S: String; AddQuotes: Boolean=False): String;
+    Function MakePascalString(const S: String; AddQuotes: Boolean=False): String;
     Function PrettyPrint(Const S: string): String;
     Procedure AddLn(Const aLine: string);
     Procedure AddLn(Const TheLines : array of string);
@@ -372,8 +372,7 @@ begin
   Result:='';
 end;
 
-
-function TPascalCodeGenerator.MakePascalString(S: String; AddQuotes: Boolean
+function TPascalCodeGenerator.MakePascalString(const S: String; AddQuotes: Boolean
   ): String;
 
 begin

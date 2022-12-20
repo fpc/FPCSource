@@ -62,8 +62,8 @@ type
     constructor Create(AStream: TStream);
     destructor Destroy; override;
     function Translate(AOrig: PChar; ALen: Integer; AHash: LongWord): String;
-    function Translate(AOrig: String; AHash: LongWord): String;
-    function Translate(AOrig: String): String;
+    function Translate(const AOrig: String; AHash: LongWord): String;
+    function Translate(const AOrig: String): String;
   end;
 
   EMOFileError = class(Exception);
@@ -244,12 +244,12 @@ begin
   end;
 end;
 
-function TMOFile.Translate(AOrig: String; AHash: LongWord): String;
+function TMOFile.Translate(const AOrig: String; AHash: LongWord): String;
 begin
   Result := Translate(PChar(AOrig), Length(AOrig), AHash);
 end;
 
-function TMOFile.Translate(AOrig: String): String;
+function TMOFile.Translate(Const AOrig: String): String;
 begin
   Result := Translate(AOrig, Hash(AOrig));
 end;

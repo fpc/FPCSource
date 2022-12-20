@@ -368,7 +368,7 @@ Type
     function FindDefFor(ASubject: TObject; AGui: TComponent; const APropName: string): TMediatorDef; overload;
     function FindDefFor(ASubject: TObject; AGui: TComponent; APropInfo: PPropInfo): TMediatorDef; overload;
     function RegisterMediator(MediatorClass: TMediatorClass; MinSubjectClass: TClass): TMediatorDef; overload;
-    function RegisterMediator(MediatorClass: TMediatorClass; MinSubjectClass: TClass; PropertyName: string): TMediatorDef; overload;
+    function RegisterMediator(MediatorClass: TMediatorClass; MinSubjectClass: TClass; const PropertyName: string): TMediatorDef; overload;
     function RegisterMediator(MediatorClass: TMediatorClass; MinSubjectClass: TClass; PropertyTypes: TTypeKinds): TMediatorDef; overload;
     property Defs: TMediatorDefs read FDefs;
   end;
@@ -949,7 +949,7 @@ begin
   Result.FPT  := tkProperties - [tkClass, tkInterface, tkDynArray, tkObject, tkInterfaceRaw];
 end;
 
-function TMediatorManager.RegisterMediator(MediatorClass: TMediatorClass; MinSubjectClass: TClass; PropertyName: string): TMediatorDef;
+function TMediatorManager.RegisterMediator(MediatorClass: TMediatorClass; MinSubjectClass: TClass; const PropertyName: string): TMediatorDef;
 
 begin
   Result      := FDefs.AddDef;
