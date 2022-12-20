@@ -940,7 +940,7 @@ end;
 class procedure TAssert.AssertException(const AMessage: string; AExceptionClass: ExceptClass;
   AMethod: TRunMethod;const AExceptionMessage : String = ''; AExceptionContext : Integer = 0; AErrorAddr : Pointer = Nil);
 
-  Function MisMatch (AClassName : String) : String;
+  Function MisMatch (const AClassName : String) : String;
 
   begin
     Result:=Format(SExceptionCompare,[AExceptionClass.ClassName, AClassName])
