@@ -45,7 +45,7 @@ Type
     function GetString(AIndex: Integer): string;
     procedure SetCertificateData(AValue: TCertificateData);
     procedure SetSSLData(AIndex: Integer; AValue: TSSLData);
-    procedure SetString(AIndex: Integer; AValue: string);
+    procedure SetString(AIndex: Integer; const AValue: string);
   Private
     Class Var FDefaultHandlerClass : TSSLSocketHandlerClass;
   protected
@@ -141,7 +141,7 @@ end;
 
 
 
-procedure TSSLSocketHandler.SetString(AIndex: Integer; AValue: string);
+procedure TSSLSocketHandler.SetString(AIndex: Integer; const AValue: string);
 begin
   Case AIndex of
     0 : FCertificateData.KeyPassword:=AValue;

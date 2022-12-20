@@ -231,13 +231,13 @@ Var
 {$ifdef android}
 Function GetDNSServers : Integer;
 {$else}
-Function GetDNSServers(FN : String) : Integer;
+Function GetDNSServers(const FN : String) : Integer;
 {$endif android}
 {$endif FPC_USE_LIBC}
 
 // Addresses are returned in the net byte order
-Function ResolveName(HostName : String; Var Addresses : Array of THostAddr) : Integer;
-Function ResolveName6(HostName : String; Var Addresses : Array of THostAddr6) : Integer;
+Function ResolveName(const HostName : String; Var Addresses : Array of THostAddr) : Integer;
+Function ResolveName6(const HostName : String; Var Addresses : Array of THostAddr6) : Integer;
 
 // HostAddr is specified in the host byte order
 Function ResolveAddress(HostAddr : THostAddr; Var Addresses : Array of String) : Integer;
@@ -246,20 +246,20 @@ Function ResolveAddress6(HostAddr: THostAddr6; var Addresses: Array of string) :
 function IN6_IS_ADDR_V4MAPPED(HostAddr: THostAddr6): boolean;
 
 // H.Addr is returned in the net byte order
-Function ResolveHostByName(HostName : String; Var H : THostEntry) : Boolean;
+Function ResolveHostByName(const HostName : String; Var H : THostEntry) : Boolean;
 // HostAddr is specified in the host byte order
 Function ResolveHostByAddr(HostAddr : THostAddr; Var H : THostEntry) : Boolean;
 
-Function ResolveHostByName6(Hostname : String; Var H : THostEntry6) : Boolean;
+Function ResolveHostByName6(const Hostname : String; Var H : THostEntry6) : Boolean;
 Function ResolveHostByAddr6(HostAddr : THostAddr6; Var H : THostEntry6) : Boolean;
 
 // H.Addr is returned in the host byte order
-Function GetHostByName(HostName: String;  Var H : THostEntry) : boolean;
+Function GetHostByName(const HostName: String;  Var H : THostEntry) : boolean;
 // Addr is specified in the host byte order
 Function GetHostByAddr(Addr: THostAddr;  Var H : THostEntry) : boolean;
 
 // N.Addr is returned in the net byte order
-Function GetNetworkByName(NetName: String; Var N : TNetworkEntry) : boolean;
+Function GetNetworkByName(const NetName: String; Var N : TNetworkEntry) : boolean;
 // Addr is specified in the host byte order
 Function GetNetworkByAddr(Addr: THostAddr; Var N : TNetworkEntry) : boolean;
 
@@ -268,11 +268,11 @@ Function GetServiceByName(Const Name,Proto : String; Var E : TServiceEntry) : Bo
 // Port is specified in the host byte order
 Function GetServiceByPort(Port : Word;Const Proto : String; Var E : TServiceEntry) : Boolean;
 
-Function GetProtocolByName(ProtoName: String;  Var H : TProtocolEntry) : boolean;
+Function GetProtocolByName(const ProtoName: String;  Var H : TProtocolEntry) : boolean;
 Function GetProtocolByNumber(proto: Integer;  Var H : TProtocolEntry) : boolean;
 
 {$ifndef FPC_USE_LIBC}
-Function ProcessHosts(FileName : String) : PHostListEntry;
+Function ProcessHosts(const FileName : String) : PHostListEntry;
 Function FreeHostsList(var List : PHostListEntry) : Integer;
 Procedure HostsListToArray(var List : PHostListEntry; Var Hosts : THostEntryArray; FreeList : Boolean);
 
@@ -308,9 +308,9 @@ function GetRRrecords(const pl: TPayloadTCP; var Start: Word; Count: Word):
 function GetRRrecords(const pl: TPayload; var Start: Word; Count: Word):
   TRRNameDataArray;
 
-function DnsLookup(dn: String; qtype: Word; out Ans: TQueryData;
+function DnsLookup(const dn: String; qtype: Word; out Ans: TQueryData;
   out AnsLen: Longint): Boolean;
-function DnsLookup(dn: String; qtype: Word; out Ans: TQueryDataLengthTCP;
+function DnsLookup(const dn: String; qtype: Word; out Ans: TQueryDataLengthTCP;
   out AnsLen: Longint): Boolean;
 
 function DNSRRGetA(const RR: TRRNameData; const pl: TPayLoadTCP;
@@ -475,7 +475,7 @@ begin
   until (H='');
 end;
 
-Function ProcessHosts(FileName : String) : PHostListEntry;
+Function ProcessHosts(const FileName : String) : PHostListEntry;
 
 Var
   F : Text;
@@ -588,7 +588,7 @@ begin
     end;  
 end;
 
-Function FindHostEntryInHostsFile(N: String; Addr: THostAddr; Var H : THostEntry) : boolean;
+Function FindHostEntryInHostsFile(const N: String; Addr: THostAddr; Var H : THostEntry) : boolean;
 
 Var
 //  F : Text;
@@ -690,7 +690,7 @@ Var
   ResolveFileAge  : Longint;
   ResolveFileName : String;
   
-Function GetDNSServers(Fn : String) : Integer;
+Function GetDNSServers(const Fn : String) : Integer;
 
 Var
   R : Text;
@@ -699,7 +699,7 @@ Var
   H : THostAddr;
   E : THostEntry;
   
-  Function CheckDirective(Dir : String) : Boolean;
+  Function CheckDirective(const Dir : String) : Boolean;
   
   Var
     P : Integer;
@@ -1116,7 +1116,7 @@ begin
   if Total < Count then SetLength(Result,Total);
 end;
 
-function DnsLookup(dn: String; qtype: Word; out Ans: TQueryData; out
+function DnsLookup(const dn: String; qtype: Word; out Ans: TQueryData; out
   AnsLen: Longint): Boolean;
 var
   Qry: TQueryData;
@@ -1146,7 +1146,7 @@ begin
   until (idx > High(DNSServers)) or (Result = True) or (AnsLen >= 0);
 end;
 
-function DnsLookup(dn: String; qtype: Word; out Ans: TQueryDataLengthTCP; out
+function DnsLookup(const dn: String; qtype: Word; out Ans: TQueryDataLengthTCP; out
   AnsLen: Longint): Boolean;
 var
   Qry: TQueryDataLength;
@@ -1904,7 +1904,7 @@ begin
     setlength(result,length(result)-1);
 end;
 
-Function ResolveNameAt(Resolver : Integer; HostName : String; Var Addresses : Array of THostAddr; Recurse: Integer) : Integer;
+Function ResolveNameAt(Resolver : Integer; const HostName : String; Var Addresses : Array of THostAddr; Recurse: Integer) : Integer;
 
 Var
   Qry, Ans            : TQueryData;
@@ -1950,7 +1950,7 @@ begin
     end;
 end;
 
-Function ResolveName(HostName : String; Var Addresses : Array of THostAddr) : Integer;
+Function ResolveName(const HostName : String; Var Addresses : Array of THostAddr) : Integer;
 
 Var
   I : Integer;
@@ -1968,7 +1968,7 @@ end;
 
 //const NoAddress6 : array[0..7] of word = (0,0,0,0,0,0,0,0);
 
-Function ResolveNameAt6(Resolver : Integer; HostName : String; Var Addresses : Array of THostAddr6; Recurse: Integer) : Integer;
+Function ResolveNameAt6(Resolver : Integer; const HostName : String; Var Addresses : Array of THostAddr6; Recurse: Integer) : Integer;
                                                                                                                                         
 Var
   Qry, Ans            : TQueryData;
@@ -2034,7 +2034,7 @@ end;
                                                                                                                                         
 
 
-Function ResolveName6(HostName: String; Var Addresses: Array of THostAddr6) : Integer;
+Function ResolveName6(const HostName: String; Var Addresses: Array of THostAddr6) : Integer;
 var
   i: Integer;
 begin
@@ -2164,7 +2164,7 @@ begin
       end;
 end;
 
-Function ResolveHostByName(HostName : String; Var H : THostEntry) : Boolean;
+Function ResolveHostByName(const HostName : String; Var H : THostEntry) : Boolean;
 
 Var
   Address : Array[1..MaxResolveAddr] of THostAddr;
@@ -2220,7 +2220,7 @@ begin
     end;
 end;
 
-Function ResolveHostByName6(HostName : String; Var H : THostEntry6) : Boolean;
+Function ResolveHostByName6(const HostName : String; Var H : THostEntry6) : Boolean;
 
 Var
   Address : Array[1..MaxResolveAddr] of THostAddr6;
@@ -2290,7 +2290,7 @@ end;
 
 //const NoAddress : in_addr = (s_addr: 0);
 
-Function GetHostByName(HostName: String;  Var H : THostEntry) : boolean;
+Function GetHostByName(const HostName: String;  Var H : THostEntry) : boolean;
 
 begin
   Result:=FindHostEntryInHostsFile(HostName,NoAddress,H);
@@ -2343,7 +2343,7 @@ begin
   until Result or EOF(F);
 end;
 
-Function FindProtoEntryInProtoFile(N: String; prot: integer; Var H : TProtocolEntry) : boolean;
+Function FindProtoEntryInProtoFile(const N: String; prot: integer; Var H : TProtocolEntry) : boolean;
 
 Var
   F : Text;
@@ -2377,7 +2377,7 @@ begin
     end;
 end;
 
-Function GetProtocolByName(ProtoName: String;  Var H : TProtocolEntry) : boolean;
+Function GetProtocolByName(const ProtoName: String;  Var H : TProtocolEntry) : boolean;
 
 begin
   Result:=FindProtoEntryInProtoFile(ProtoName,0,H);
@@ -2445,7 +2445,7 @@ begin
   until Result or EOF(F);
 end;
 
-Function FindNetworkEntryInNetworksFile(Net: String; Addr: TNetAddr; Var N : TNetworkEntry) : boolean;
+Function FindNetworkEntryInNetworksFile(const Net: String; Addr: TNetAddr; Var N : TNetworkEntry) : boolean;
 
 Var
   F : Text;
@@ -2481,7 +2481,7 @@ end;
 
 Const NoNet : in_addr = (s_addr:0);
 
-Function GetNetworkByName(NetName: String; Var N : TNetworkEntry) : boolean;
+Function GetNetworkByName(const NetName: String; Var N : TNetworkEntry) : boolean;
 
 begin
   Result:=FindNetworkEntryInNetworksFile(NetName,NoNet,N);
@@ -2671,12 +2671,12 @@ begin
   freeaddrinfo(res);
 end;
 
-Function ResolveName(HostName : String; Var Addresses : Array of THostAddr) : Integer;
+Function ResolveName(const HostName : String; Var Addresses : Array of THostAddr) : Integer;
 begin
   Result:=ResolveName(HostName, @Addresses, Length(Addresses), AF_INET);
 end;
 
-Function ResolveName6(HostName : String; Var Addresses : Array of THostAddr6) : Integer;
+Function ResolveName6(Const HostName : String; Var Addresses : Array of THostAddr6) : Integer;
 begin
   Result:=ResolveName(HostName, @Addresses, Length(Addresses), AF_INET6);
 end;
@@ -2716,7 +2716,7 @@ begin
   Result:=ResolveAddress(@a, SizeOf(a), Addresses);
 end;
 
-Function ResolveHostByName(HostName : String; Var H : THostEntry) : Boolean;
+Function ResolveHostByName(const HostName : String; Var H : THostEntry) : Boolean;
 Var
   Address : Array[1..1] of THostAddr;
 begin
@@ -2728,7 +2728,7 @@ begin
   end;
 end;
 
-Function ResolveHostByName6(Hostname : String; Var H : THostEntry6) : Boolean;
+Function ResolveHostByName6(Const Hostname : String; Var H : THostEntry6) : Boolean;
 Var
   Address : Array[1..1] of THostAddr6;
 begin
@@ -2782,7 +2782,7 @@ begin
     end;
 end;
 
-Function GetHostByName(HostName: String;  Var H : THostEntry) : boolean;
+Function GetHostByName(const HostName: String;  Var H : THostEntry) : boolean;
 begin
   Result:=False;
 end;
@@ -2806,7 +2806,7 @@ begin
   end;
 end;
 
-Function GetNetworkByName(NetName: String; Var N : TNetworkEntry) : boolean;
+Function GetNetworkByName(const NetName: String; Var N : TNetworkEntry) : boolean;
 var
   ne: PNetEnt;
 begin
@@ -2860,7 +2860,7 @@ begin
   end;
 end;
 
-Function GetProtocolByName(ProtoName: String;  Var H : TProtocolEntry) : boolean;
+Function GetProtocolByName(const ProtoName: String;  Var H : TProtocolEntry) : boolean;
 var
   pe: PProtoEnt;
 begin

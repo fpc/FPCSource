@@ -271,7 +271,7 @@ type
   Public
     DefaultUnixSocketClass : TUnixSocketClass;
   Public
-    Constructor Create(AFileName : String; AHandler : TSocketHandler = Nil);
+    Constructor Create(const AFileName : String; AHandler : TSocketHandler = Nil);
     Property FileName : String Read FFileName;
   end;
 {$endif}
@@ -322,7 +322,7 @@ type
     Procedure DoConnect(ASocket : longint); Virtual;
   Public
     Constructor Create(ASocket : Longint); Overload;
-    Constructor Create(AFileName : String); Overload;
+    Constructor Create(const AFileName : String); Overload;
     Property FileName : String Read FFileName;
   end;
 {$endif}
@@ -1319,7 +1319,7 @@ end;
     TUnixServer
   ---------------------------------------------------------------------}
 {$ifdef Unix}
-Constructor TUnixServer.Create(AFileName : String; AHandler : TSocketHandler = Nil);
+Constructor TUnixServer.Create(const AFileName : String; AHandler : TSocketHandler = Nil);
 
 Var S : Longint;
 
@@ -1591,7 +1591,7 @@ begin
   Inherited Create(ASocket);
 end;
 
-Constructor TUnixSocket.Create(AFileName : String);
+Constructor TUnixSocket.Create(const AFileName : String);
 
 Var S : Longint;
 
