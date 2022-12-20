@@ -60,7 +60,7 @@ Type
     FTokenType : TTokenType;
   private
     function GetCurrentChar: Char;
-    procedure ScanError(Msg: String);
+    procedure ScanError(const Msg: String);
   protected
     procedure SetSource(const AValue: String); virtual;
     function DoIdentifier: TTokenType;
@@ -466,7 +466,7 @@ Type
   private
     FValue : TFPExpressionResult;
   public
-    Constructor CreateString(AValue : String);
+    Constructor CreateString(const AValue : String);
     Constructor CreateInteger(AValue : Int64);
     Constructor CreateDateTime(AValue : TDateTime);
     Constructor CreateFloat(AValue : TExprFloat);
@@ -579,12 +579,12 @@ Type
     Function IdentifierByName(Const AName : ShortString) : TFPExprIdentifierDef;
     Function AddVariable(Const AName : ShortString; AResultType : TResultType; ACallback : TFPExprVariableCallBack) : TFPExprIdentifierDef;
     Function AddVariable(Const AName : ShortString; AResultType : TResultType; ACallback : TFPExprVariableEvent) : TFPExprIdentifierDef;
-    Function AddVariable(Const AName : ShortString; AResultType : TResultType; AValue : String) : TFPExprIdentifierDef;
+    Function AddVariable(Const AName : ShortString; AResultType : TResultType; const AValue : String) : TFPExprIdentifierDef;
     Function AddBooleanVariable(Const AName : ShortString; AValue : Boolean) : TFPExprIdentifierDef;
     Function AddIntegerVariable(Const AName : ShortString; AValue : Integer) : TFPExprIdentifierDef;
     Function AddFloatVariable(Const AName : ShortString; AValue : TExprFloat) : TFPExprIdentifierDef;
     Function AddCurrencyVariable(Const AName : ShortString; AValue : Currency) : TFPExprIdentifierDef;
-    Function AddStringVariable(Const AName : ShortString; AValue : String) : TFPExprIdentifierDef;
+    Function AddStringVariable(Const AName : ShortString; const AValue : String) : TFPExprIdentifierDef;
     Function AddDateTimeVariable(Const AName : ShortString; AValue : TDateTime) : TFPExprIdentifierDef;
     Function AddFunction(Const AName : ShortString; Const AResultType : Char; Const AParamTypes : String; ACallBack : TFPExprFunctionCallBack) : TFPExprIdentifierDef;
     Function AddFunction(Const AName : ShortString; Const AResultType : Char; Const AParamTypes : String; ACallBack : TFPExprFunctionEvent) : TFPExprIdentifierDef;
@@ -742,7 +742,7 @@ Type
     procedure SetIdentifiers(const AValue: TFPExprIdentifierDefs);
     procedure AddIdentifierToStrings(Sender : TObject; Const aIdentifier : String; var ID : TFPExprIdentifierDef);
   Protected
-    procedure ParserError(Msg: String);
+    procedure ParserError(const Msg: String);
     procedure SetExpression(const AValue: String); virtual;
     Procedure CheckResultType(Const Res :TFPExpressionResult; AType : TResultType); inline;
     Procedure CheckResultTypes(Const Res :TFPExpressionResult; ATypes : TResultTypes); inline;
@@ -807,18 +807,18 @@ Type
     Function IndexOfIdentifier(Const AName : ShortString) : Integer;
     Function FindIdentifier(Const AName : ShortString) : TFPBuiltinExprIdentifierDef;
     Function IdentifierByName(Const AName : ShortString) : TFPBuiltinExprIdentifierDef;
-    Function AddVariable(Const ACategory : TBuiltInCategory; Const AName : ShortString; AResultType : TResultType; AValue : String) : TFPBuiltInExprIdentifierDef;
+    Function AddVariable(Const ACategory : TBuiltInCategory; Const AName : ShortString; AResultType : TResultType; const AValue : String) : TFPBuiltInExprIdentifierDef;
     Function AddBooleanVariable(Const ACategory : TBuiltInCategory; Const AName : ShortString; AValue : Boolean) : TFPBuiltInExprIdentifierDef;
     Function AddIntegerVariable(Const ACategory : TBuiltInCategory; Const AName : ShortString; AValue : Integer) : TFPBuiltInExprIdentifierDef;
     Function AddFloatVariable(Const ACategory : TBuiltInCategory; Const AName : ShortString; AValue : TExprFloat) : TFPBuiltInExprIdentifierDef;
     Function AddCurrencyVariable(Const ACategory : TBuiltInCategory; Const AName : ShortString; AValue : Currency) : TFPBuiltInExprIdentifierDef;
-    Function AddStringVariable(Const ACategory : TBuiltInCategory; Const AName : ShortString; AValue : String) : TFPBuiltInExprIdentifierDef;
+    Function AddStringVariable(Const ACategory : TBuiltInCategory; Const AName : ShortString; const AValue : String) : TFPBuiltInExprIdentifierDef;
     Function AddDateTimeVariable(Const ACategory : TBuiltInCategory; Const AName : ShortString; AValue : TDateTime) : TFPBuiltInExprIdentifierDef;
     Function AddFunction(Const ACategory : TBuiltInCategory; Const AName : ShortString; Const AResultType : Char; Const AParamTypes : String; ACallBack : TFPExprFunctionCallBack) : TFPBuiltInExprIdentifierDef;
     Function AddFunction(Const ACategory : TBuiltInCategory; Const AName : ShortString; Const AResultType : Char; Const AParamTypes : String; ACallBack : TFPExprFunctionEvent) : TFPBuiltInExprIdentifierDef;
     Function AddFunction(Const ACategory : TBuiltInCategory; Const AName : ShortString; Const AResultType : Char; Const AParamTypes : String; ANodeClass : TFPExprFunctionClass) : TFPBuiltInExprIdentifierDef;
     Procedure Delete(AIndex: Integer);
-    Function Remove(aIdentifier : String) : Integer;
+    Function Remove(const aIdentifier : String) : Integer;
     Property IdentifierCount : Integer Read GetCount;
     Property Identifiers[AIndex : Integer] :TFPBuiltInExprIdentifierDef Read GetI;
   end;
@@ -909,12 +909,12 @@ Resourcestring
   Auxiliary functions
   ---------------------------------------------------------------------}
 
-Procedure RaiseParserError(Msg : String);
+Procedure RaiseParserError(const Msg : String);
 begin
   Raise EExprParser.Create(Msg);
 end;
 
-Procedure RaiseParserError(Fmt : String; Args : Array of const);
+Procedure RaiseParserError(const Fmt : String; const Args : Array of const);
 begin
   Raise EExprParser.CreateFmt(Fmt,Args);
 end;
@@ -1318,7 +1318,7 @@ begin
 
 end;
 
-Procedure TFPExpressionScanner.ScanError(Msg : String);
+Procedure TFPExpressionScanner.ScanError(const Msg : String);
 
 begin
   Raise EExprScanner.Create(Msg)
@@ -1668,7 +1668,7 @@ begin
     end;
 end;
 
-procedure TFPExpressionParser.ParserError(Msg: String);
+procedure TFPExpressionParser.ParserError(const Msg: String);
 begin
   Raise EExprParser.Create(Msg);
 end;
@@ -2279,7 +2279,7 @@ begin
 end;
 
 function TFPExprIdentifierDefs.AddVariable(const AName: ShortString;
-  AResultType: TResultType; AValue: String): TFPExprIdentifierDef;
+  AResultType: TResultType; const AValue: String): TFPExprIdentifierDef;
 begin
   Result:=Add as TFPExprIdentifierDef;
   Result.IdentifierType:=itVariable;
@@ -2328,7 +2328,7 @@ begin
 end;
 
 function TFPExprIdentifierDefs.AddStringVariable(const AName: ShortString;
-  AValue: String): TFPExprIdentifierDef;
+  const AValue: String): TFPExprIdentifierDef;
 begin
   Result:=Add as TFPExprIdentifierDef;
   Result.IdentifierType:=itVariable;
@@ -2690,7 +2690,7 @@ begin
 end;
 
 function TExprBuiltInManager.AddVariable(const ACategory: TBuiltInCategory;
-  const AName: ShortString; AResultType: TResultType; AValue: String
+  const AName: ShortString; AResultType: TResultType; const AValue: String
   ): TFPBuiltInExprIdentifierDef;
 begin
   Result:=TFPBuiltInExprIdentifierDef(FDefs.Addvariable(AName,AResultType,AValue));
@@ -2729,7 +2729,7 @@ begin
 end;
 
 function TExprBuiltInManager.AddStringVariable(
-  const ACategory: TBuiltInCategory; const AName: ShortString; AValue: String
+  const ACategory: TBuiltInCategory; const AName: ShortString; const AValue: String
   ): TFPBuiltInExprIdentifierDef;
 begin
   Result:=TFPBuiltInExprIdentifierDef(FDefs.AddStringVariable(AName,AValue));
@@ -2773,7 +2773,7 @@ begin
   FDefs.Delete(AIndex);
 end;
 
-function TExprBuiltInManager.Remove(aIdentifier: String): Integer;
+function TExprBuiltInManager.Remove(const aIdentifier: String): Integer;
 begin
   Result:=IndexOfIdentifier(aIdentifier);
   if Result<>-1 then
@@ -2891,7 +2891,7 @@ end;
 
 { TFPConstExpression }
 
-constructor TFPConstExpression.CreateString(AValue: String);
+constructor TFPConstExpression.CreateString(const AValue: String);
 begin
   FValue.ResultType:=rtString;
   FValue.ResString:=AValue;

@@ -24,7 +24,7 @@ type
   Protected
     Procedure WriteInteger(S : TStream; AValue : Integer);
     Procedure WriteBoolean(S : TStream; AValue : Boolean);
-    Procedure WriteString(S : TStream; AValue : String);
+    Procedure WriteString(S : TStream; const AValue : String);
     Procedure WriteCurrency(S : TStream; AValue : Currency);
     Procedure WriteDateTime(S : TStream; AValue : TDateTime);
     Procedure WriteFloat(S : TStream; AValue : Double);
@@ -44,7 +44,7 @@ type
   Protected
     Procedure WriteInteger(S : TStream; AValue : Integer);
     Procedure WriteBoolean(S : TStream; AValue : Boolean);
-    Procedure WriteString(S : TStream; AValue : String);
+    Procedure WriteString(S : TStream; const AValue : String);
     Procedure WriteCurrency(S : TStream; AValue : Currency);
     Procedure WriteDateTime(S : TStream; AValue : TDateTime);
     Procedure WriteFloat(S : TStream; AValue : Double);
@@ -68,7 +68,7 @@ type
 
 Procedure ColWriteInteger(S : TStream; AValue : Integer);
 Procedure ColWriteBoolean(S : TStream; AValue : Boolean);
-Procedure ColWriteString(S : TStream; AValue : String);
+Procedure ColWriteString(S : TStream; const AValue : String);
 Procedure ColWriteCurrency(S : TStream; AValue : Currency);
 Procedure ColWriteDateTime(S : TStream; AValue : TDateTime);
 Procedure ColWriteFloat(S : TStream; AValue : Double);
@@ -96,7 +96,7 @@ begin
   ColWriteInteger(S,Ord(AValue));
 end;
 
-Procedure ColWriteString(S : TStream; AValue : String);
+Procedure ColWriteString(S : TStream; const AValue : String);
 
 Var
   L : Integer;
@@ -231,7 +231,7 @@ begin
   ColWriteInteger(S,AValue);
 end;
 
-procedure TStreamCollectionItem.WriteString(S: TStream; AValue: String);
+procedure TStreamCollectionItem.WriteString(S: TStream; const AValue: String);
 begin
   ColWriteString(S,AValue);
 end;
@@ -349,7 +349,7 @@ begin
   ColWriteInteger(S,AValue);
 end;
 
-procedure TStreamCollection.WriteString(S: TStream; AValue: String);
+procedure TStreamCollection.WriteString(S: TStream; const AValue: String);
 begin
   ColWriteString(S,AValue);
 end;

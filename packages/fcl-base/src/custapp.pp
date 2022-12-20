@@ -41,7 +41,7 @@ Type
     FCaseSensitiveOptions : Boolean;
     FStopOnException : Boolean;
     FExceptionExitCode : Integer;
-    function GetEnvironmentVar(VarName : String): String;
+    function GetEnvironmentVar(const VarName : String): String;
     function GetExeName: string;
     Function GetLocation : String;
     function GetSingleInstance: TBaseSingleInstance;
@@ -195,7 +195,7 @@ begin
     end;
 end;
 
-function TCustomApplication.GetEnvironmentVar(VarName : String): String;
+function TCustomApplication.GetEnvironmentVar(const VarName : String): String;
 begin
   Result:=GetEnvironmentVariable(VarName);
 end;
