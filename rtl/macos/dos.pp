@@ -184,7 +184,7 @@ End;
 ******************************************************************************}
 
 { Create a DoScript AppleEvent that targets the given application with text as the direct object. }
-function CreateDoScriptEvent (applCreator: OSType; scriptText: PChar; var theEvent: AppleEvent): OSErr;
+function CreateDoScriptEvent (applCreator: OSType; scriptText: PAnsiChar; var theEvent: AppleEvent): OSErr;
 
   var
    err: OSErr;
@@ -220,13 +220,13 @@ begin
   if desc.descriptorType = FourCharCodeToLongword(typeChar) then
     begin
       HLock(desc.dataHandle);
-      Fpc_WriteBuffer(f, PChar(desc.dataHandle^)^, GetHandleSize(desc.dataHandle));
+      Fpc_WriteBuffer(f, PAnsiChar(desc.dataHandle^)^, GetHandleSize(desc.dataHandle));
       Flush(f);
       HUnLock(desc.dataHandle);
     end;
 end;
 
-function ExecuteToolserverScript(scriptText: PChar; var statusCode: Longint): OSErr;
+function ExecuteToolserverScript(scriptText: PAnsiChar; var statusCode: Longint): OSErr;
 
   var
     err: OSErr;
@@ -301,13 +301,13 @@ Begin
   {Make ToolServers working directory in sync with our working directory}
   PathArgToFullPath(':', wdpath);
   wdpath:= 'Directory ''' + wdpath + '''';
-  err:= ExecuteToolserverScript(PChar(wdpath), LastDosExitCode);
+  err:= ExecuteToolserverScript(PAnsiChar(wdpath), LastDosExitCode);
     {TODO Only change path when actually needed. But this requires some
      change counter to be incremented each time wd is changed. }
 
   s:= path + ' ' + comline;
 
-  err:= ExecuteToolserverScript(PChar(s), LastDosExitCode);
+  err:= ExecuteToolserverScript(PAnsiChar(s), LastDosExitCode);
   if err = afpItemNotFound then
     DosError := 900
   else
@@ -906,7 +906,7 @@ End;
 Function EnvCount: Longint;
 var
   envcnt : longint;
-  p      : ppchar;
+  p      : PPAnsiChar;
 Begin
   envcnt:=0;
   p:=envp;      {defined in system}
@@ -923,7 +923,7 @@ Function EnvStr (Index: longint): String;
 
 Var
   i : longint;
-  p : ppchar;
+  p : PPAnsiChar;
 Begin
   if Index <= 0 then
     envstr:=''
@@ -944,12 +944,12 @@ Begin
 end;
 
 
-function c_getenv(varname: PChar): PChar; {TODO perhaps move to a separate inc file.}
+function c_getenv(varname: PAnsiChar): PAnsiChar; {TODO perhaps move to a separate inc file.}
   external 'StdCLib' name 'getenv';
 
 Function GetEnv(EnvVar: String): String;
 var
-  p: PChar;
+  p: PAnsiChar;
   name: String;
 Begin
   name:= EnvVar+#0;
