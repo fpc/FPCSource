@@ -23,12 +23,12 @@ begin
 end;
 
 
-procedure do_erase(p : pchar; pchangeable: boolean);inline;
+procedure do_erase(p : PAnsiChar; pchangeable: boolean);inline;
 begin
 end;
 
 
-procedure do_rename(p1,p2 : pchar; p1changeable, p2changeable: boolean);inline;
+procedure do_rename(p1,p2 : PAnsiChar; p1changeable, p2changeable: boolean);inline;
 begin
 end;
 
@@ -38,7 +38,7 @@ begin
   do_write:=len;
   while len>0 do
   begin
-    PrintChar(PChar(addr)^);
+    PrintChar(PAnsiChar(addr)^);
     Inc(addr);
     Dec(len);
   end;
@@ -47,14 +47,14 @@ end;
 
 function do_read(h:thandle;addr:pointer;len : longint) : longint;
 var
-  ch: Char;
+  ch: AnsiChar;
 begin
   do_read:=0;
   while len>0 do
   begin
     ch:=ReadKey;
     PrintChar(ch);
-    PChar(addr)^:=ch;
+    PAnsiChar(addr)^:=ch;
     Inc(addr);
     Inc(do_read);
     Dec(len);
@@ -90,7 +90,7 @@ procedure do_truncate (handle:thandle;pos:longint);inline;
 begin
 end;
 
-procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);inline;
+procedure do_open(var f;p:PAnsiChar;flags:longint; pchangeable: boolean);inline;
 {
   filerec and textrec have both handle and mode as the first items so
   they could use the same routine for opening/creating.
