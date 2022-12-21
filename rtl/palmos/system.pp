@@ -31,8 +31,8 @@ const
     DriveSeparator = ':';
     ExtensionSeparator = '.';
     PathSeparator = ';';
-    AllowDirectorySeparators : set of char = ['\','/'];
-    AllowDriveSeparators : set of char = [':'];
+    AllowDirectorySeparators : set of AnsiChar = ['\','/'];
+    AllowDriveSeparators : set of AnsiChar = [':'];
     FileNameCaseSensitive = false;
     FileNameCasePreserving = true;
     CtrlZMarksEOF: boolean = false; (* #26 not considered as end of file *)
@@ -50,10 +50,10 @@ const
     StdErrorHandle  = $ffff;
 
 var
-    args: PChar;
+    args: PAnsiChar;
     argc: LongInt;
-    argv: PPChar;
-    envp: PPChar;
+    argv: PPAnsiChar;
+    envp: PPAnsiChar;
 
 
 {$if defined(FPUSOFT)}
