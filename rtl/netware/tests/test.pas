@@ -39,7 +39,7 @@ BEGIN
   ErrorCheck ('Create',TestFN);
   FOR I := 1 TO NumBlocks DO
   BEGIN
-    FillChar (Buffer, SIZEOF (Buffer), CHAR(I));
+    FillChar (Buffer, SIZEOF (Buffer), AnsiChar(I));
     Write ('BlockWrite');
     BlockWrite (F,Buffer,SIZEOF(Buffer));
     ErrorCheck ('BlockWrite',TestFN);
@@ -208,7 +208,7 @@ END;
 
 {PROCEDURE VolInfo;
 VAR I : LONGINT;
-    Buf: ARRAY [0..255] OF CHAR;
+    Buf: ARRAY [0..255] OF AnsiChar;
     TotalBlocks  : WORD;
     SectorsPerBlock : WORD;
     availableBlocks : WORD;
@@ -244,11 +244,11 @@ BEGIN
 END;}
 
 PROCEDURE CrtTest;
-VAR C : CHAR;
+VAR C : AnsiChar;
     I : INTEGER;
 
     PROCEDURE KeyTest;
-    VAR C : CHAR;
+    VAR C : AnsiChar;
     BEGIN
       WriteLn ('Key-Test, CR will be converted to ausgegeben, End with ESC');
       Repeat
@@ -341,7 +341,7 @@ Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
 }
 PROCEDURE SysUtilsTest;
 VAR H,I,Attr : LONGINT;
-    X : ARRAY [0..255] OF CHAR;
+    X : ARRAY [0..255] OF AnsiChar;
     TD: TDateTime;
     SR: TSearchRec;
     ST1,ST2: STRING;
@@ -481,7 +481,7 @@ PROCEDURE VideoTest;
     BEGIN
       W := (TextAttr SHL 8) or byte (S[I]);
       PWord(P)^ := w;
-      INC (PChar(P),2);
+      INC (PAnsiChar(P),2);
     END;
   END;
 
@@ -542,7 +542,7 @@ END;
 
 VAR I : LONGINT;
     S : STRING [255];
-    C : CHAR;
+    C : AnsiChar;
     P : ^Str255;
 BEGIN
   New (P);

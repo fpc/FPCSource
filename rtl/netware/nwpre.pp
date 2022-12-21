@@ -36,8 +36,8 @@ procedure _nlm_main; external  name '_nlm_main';
 procedure FPC_NW_CHECKFUNCTION; external name 'FPC_NW_CHECKFUNCTION';
 function _StartNLM (NLMHandle              : longint;
                    initErrorScreenID       : longint;
-                   cmdLineP                : pchar;
-                   loadDirectoryPath       : pchar;
+                   cmdLineP                : PAnsiChar;
+                   loadDirectoryPath       : PAnsiChar;
                    uninitializedDataLength : longint;
                    NLMFileHandle           : longint;
                    readRoutineP            : pointer;
@@ -73,7 +73,7 @@ end;
 // structure needed by clib
 type kNLMInfoT =
    packed record
-      Signature      : array [0..3] of char;	// LONG 'NLMI'
+      Signature      : array [0..3] of AnsiChar;	// LONG 'NLMI'
       Flavor         : longint;			// TRADINIONAL_FLAVOR = 0
       Version        : longint;			// TRADINIONAL_VERSION = 0, LIBERTY_VERSION = 1
       LongDoubleSize : longint;			// gcc nwpre defines 12, watcom 8
@@ -99,8 +99,8 @@ procedure CSetB(value:byte; var addr; count:longint); cdecl; external '!' name '
 // created thread
 function _Prelude (NLMHandle               : longint;
                    initErrorScreenID       : longint;
-                   cmdLineP                : pchar;
-                   loadDirectoryPath       : pchar;
+                   cmdLineP                : PAnsiChar;
+                   loadDirectoryPath       : PAnsiChar;
                    uninitializedDataLength : longint;
                    NLMFileHandle           : longint;
                    readRoutineP            : pointer;

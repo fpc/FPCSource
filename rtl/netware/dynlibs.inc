@@ -32,7 +32,7 @@ end;
 Function SysGetProcedureAddress(Lib : TLibHandle; const ProcName : AnsiString) : Pointer;
 
 begin
-  Result:=ImportSymbol(GetNlmHandle, pchar(ProcName));
+  Result:=ImportSymbol(GetNlmHandle, PAnsiChar(ProcName));
 end;
 
 Function SysUnloadLibrary(Lib : TLibHandle) : Boolean;

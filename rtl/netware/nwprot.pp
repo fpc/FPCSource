@@ -159,18 +159,18 @@ const
 type
    Phostent = ^Thostent;
    Thostent = record
-     h_name      : Pchar;    // official name of host
-     h_aliases   : ^Pchar;   // alias list
+     h_name      : PAnsiChar;    // official name of host
+     h_aliases   : ^PAnsiChar;   // alias list
      h_addrtype  : longint;
      h_length    : longint;  // length of address
-     h_addr_list : ^Pchar;   // list of addresses from name server
+     h_addr_list : ^PAnsiChar;   // list of addresses from name server
    end;
 
 // Assumption here is that a network number fits in 32 bits -- probably a poor one.
    Pnetent = ^Tnetent;
    Tnetent = record
-     n_name     : Pchar;    // official name of net
-     n_aliases  : ^Pchar;   // alias list
+     n_name     : PAnsiChar;    // official name of net
+     n_aliases  : ^PAnsiChar;   // alias list
      n_addrtype : longint;
      n_net      : dword;
      n_mask     : dword;    // Netmask, Novell extension
@@ -178,16 +178,16 @@ type
 
    Pservent = ^Tservent;
    Tservent = record
-     s_name    : Pchar;        // official service name
-     s_aliases : ^Pchar;       // alias list
+     s_name    : PAnsiChar;        // official service name
+     s_aliases : ^PAnsiChar;       // alias list
      s_port    : longint;      // portnumber
-     s_proto   : Pchar;        // protocol to use
+     s_proto   : PAnsiChar;        // protocol to use
    end;
 
    Pprotoent = ^Tprotoent;
    Tprotoent = record
-     p_name    : Pchar;     // official protocol name
-     p_aliases : ^Pchar;
+     p_name    : PAnsiChar;     // official protocol name
+     p_aliases : ^PAnsiChar;
      p_proto   : longint;
    end;
 
@@ -219,7 +219,7 @@ type
                    2 : ( nsu_proto : Tprotoent );
                    3 : ( nsu_serv  : Tservent );
                 end;
-            nse_scratch : array[0..(SCRATCHBUFSIZE)-1] of char;
+            nse_scratch : array[0..(SCRATCHBUFSIZE)-1] of AnsiChar;
          end;
     { Declare the context block.  The client must supply the actual
       block by placing NETDB_DEFINE_CONTEXT in one of the C modules
@@ -231,11 +231,11 @@ type
        ------------------------------------------------------------------------  }
 { Local-file-only routines  }
 
-function NWgethostbyname(nwsktctx:Pnwsockent; name:Pchar):Phostent;cdecl;external {'tcpip'} name 'NWgethostbyname';
-function NWgethostbyname(var nwsktctx:Tnwsockent; name:Pchar):Phostent;cdecl;external {'tcpip'} name 'NWgethostbyname';
+function NWgethostbyname(nwsktctx:Pnwsockent; name:PAnsiChar):Phostent;cdecl;external {'tcpip'} name 'NWgethostbyname';
+function NWgethostbyname(var nwsktctx:Tnwsockent; name:PAnsiChar):Phostent;cdecl;external {'tcpip'} name 'NWgethostbyname';
 
-function NWgethostbyaddr(nwsktctx:Pnwsockent; addr:Pchar; length:longint; _type:longint):Phostent;cdecl;external {'tcpip'} name 'NWgethostbyaddr';
-function NWgethostbyaddr(var nwsktctx:Tnwsockent; addr:Pchar; length:longint; _type:longint):Phostent;cdecl;external {'tcpip'} name 'NWgethostbyaddr';
+function NWgethostbyaddr(nwsktctx:Pnwsockent; addr:PAnsiChar; length:longint; _type:longint):Phostent;cdecl;external {'tcpip'} name 'NWgethostbyaddr';
+function NWgethostbyaddr(var nwsktctx:Tnwsockent; addr:PAnsiChar; length:longint; _type:longint):Phostent;cdecl;external {'tcpip'} name 'NWgethostbyaddr';
 
 function NWgethostent(nwsktctx:Pnwsockent):Phostent;cdecl;external {'tcpip'} name 'NWgethostent';
 function NWgethostent(var nwsktctx:Tnwsockent):Phostent;cdecl;external {'tcpip'} name 'NWgethostent';
@@ -269,7 +269,7 @@ procedure NWendhostent(var nwsktctx:Tnwsockent);cdecl;external {'tcpip'} name 'N
 
         Syntax:
           struct hostent   NetDBgethostbyname(struct nwsockent  nwsktent,
-                                              char  name);
+                                              AnsiChar  name);
 
              nwskent: Points to a context block.
 
@@ -279,8 +279,8 @@ procedure NWendhostent(var nwsktctx:Tnwsockent);cdecl;external {'tcpip'} name 'N
           A pointer to the appropriate struct hostent if any that matches.
           NULL if no match found.
                                                                               }
-function NetDBgethostbyname(nwskent:Pnwsockent; name:Pchar):Phostent;cdecl;external {'tcpip'} name 'NetDBgethostbyname';
-function NetDBgethostbyname(var nwskent:Tnwsockent; name:Pchar):Phostent;cdecl;external {'tcpip'} name 'NetDBgethostbyname';
+function NetDBgethostbyname(nwskent:Pnwsockent; name:PAnsiChar):Phostent;cdecl;external {'tcpip'} name 'NetDBgethostbyname';
+function NetDBgethostbyname(var nwskent:Tnwsockent; name:PAnsiChar):Phostent;cdecl;external {'tcpip'} name 'NetDBgethostbyname';
     {
        NetDBgethostbyaddr() -- returns the host entry (struct hostent  ) given
         the address of a host.
@@ -304,7 +304,7 @@ function NetDBgethostbyname(var nwskent:Tnwsockent; name:Pchar):Phostent;cdecl;e
 
         Syntax:
           struct hostent   NetDBgethostbyaddr(struct nwsockent  nwskent,
-                                              char  addr, int len, int type);
+                                              AnsiChar  addr, int len, int type);
 
              nwsktent: (Input) Points to a context block.
 
@@ -319,8 +319,8 @@ function NetDBgethostbyname(var nwskent:Tnwsockent; name:Pchar):Phostent;cdecl;e
           A pointer to the appropriate struct hostent if any that matches.
           NULL if no match found.
                                                                               }
-function NetDBgethostbyaddr(nwsktent:Pnwsockent; addr:Pchar; len:longint; _type:longint):Phostent;cdecl;external {'tcpip'} name 'NetDBgethostbyaddr';
-function NetDBgethostbyaddr(var nwsktent:Tnwsockent; addr:Pchar; len:longint; _type:longint):Phostent;cdecl;external {'tcpip'} name 'NetDBgethostbyaddr';
+function NetDBgethostbyaddr(nwsktent:Pnwsockent; addr:PAnsiChar; len:longint; _type:longint):Phostent;cdecl;external {'tcpip'} name 'NetDBgethostbyaddr';
+function NetDBgethostbyaddr(var nwsktent:Tnwsockent; addr:PAnsiChar; len:longint; _type:longint):Phostent;cdecl;external {'tcpip'} name 'NetDBgethostbyaddr';
     {
        NetDBgethostent() -- returns the next sequential entry from the
         SYS:ETC/HOSTS file, opening the file it it is not already open.  Once
@@ -406,7 +406,7 @@ procedure NetDBendhostent(var nwsktent:Tnwsockent);cdecl;external {'tcpip'} name
         our own machine.
 
         Syntax:
-          int NetDBgethostname(struct nwsockent  nwsktent, char  name,
+          int NetDBgethostname(struct nwsockent  nwsktent, AnsiChar  name,
                                                                 int namelen);
 
           nwsktent: (Input)  Points to a context block.
@@ -419,12 +419,12 @@ procedure NetDBendhostent(var nwsktent:Tnwsockent);cdecl;external {'tcpip'} name
            0: The call succeeded.
           -1: The call failed.
                                                                               }
-function NetDBgethostname(nwsktent:Pnwsockent; name:Pchar; namelen:longint):longint;cdecl;external {'tcpip'} name 'NetDBgethostname';
-function NetDBgethostname(var nwsktent:Tnwsockent; name:Pchar; namelen:longint):longint;cdecl;external {'tcpip'} name 'NetDBgethostname';
+function NetDBgethostname(nwsktent:Pnwsockent; name:PAnsiChar; namelen:longint):longint;cdecl;external {'tcpip'} name 'NetDBgethostname';
+function NetDBgethostname(var nwsktent:Tnwsockent; name:PAnsiChar; namelen:longint):longint;cdecl;external {'tcpip'} name 'NetDBgethostname';
 
 // Network file examination
-function NWgetnetbyname(nwsktctx:Pnwsockent; name:Pchar):Pnetent;cdecl;external {'tcpip'} name 'NWgetnetbyname';
-function NWgetnetbyname(var nwsktctx:Tnwsockent; name:Pchar):Pnetent;cdecl;external {'tcpip'} name 'NWgetnetbyname';
+function NWgetnetbyname(nwsktctx:Pnwsockent; name:PAnsiChar):Pnetent;cdecl;external {'tcpip'} name 'NWgetnetbyname';
+function NWgetnetbyname(var nwsktctx:Tnwsockent; name:PAnsiChar):Pnetent;cdecl;external {'tcpip'} name 'NWgetnetbyname';
 
 function NWgetnetbyaddr(nwsktctx:Pnwsockent; net:longint; _type:longint):Pnetent;cdecl;external {'tcpip'} name 'NWgetnetbyaddr';
 function NWgetnetbyaddr(var nwsktctx:Tnwsockent; net:longint; _type:longint):Pnetent;cdecl;external {'tcpip'} name 'NWgetnetbyaddr';
@@ -439,11 +439,11 @@ procedure NWendnetent(nwsktctx:Pnwsockent);cdecl;external {'tcpip'} name 'NWendn
 procedure NWendnetent(var nwsktctx:Tnwsockent);cdecl;external {'tcpip'} name 'NWendnetent';
 
 // Service file examination
-function NWgetservbyname(nwsktctx:Pnwsockent; name:Pchar; protocol:Pchar):Pservent;cdecl;external {'tcpip'} name 'NWgetservbyname';
-function NWgetservbyname(var nwsktctx:Tnwsockent; name:Pchar; protocol:Pchar):Pservent;cdecl;external {'tcpip'} name 'NWgetservbyname';
+function NWgetservbyname(nwsktctx:Pnwsockent; name:PAnsiChar; protocol:PAnsiChar):Pservent;cdecl;external {'tcpip'} name 'NWgetservbyname';
+function NWgetservbyname(var nwsktctx:Tnwsockent; name:PAnsiChar; protocol:PAnsiChar):Pservent;cdecl;external {'tcpip'} name 'NWgetservbyname';
 
-function NWgetservbyport(nwsktctx:Pnwsockent; port:longint; protocol:Pchar):Pservent;cdecl;external {'tcpip'} name 'NWgetservbyport';
-function NWgetservbyport(var nwsktctx:Tnwsockent; port:longint; protocol:Pchar):Pservent;cdecl;external {'tcpip'} name 'NWgetservbyport';
+function NWgetservbyport(nwsktctx:Pnwsockent; port:longint; protocol:PAnsiChar):Pservent;cdecl;external {'tcpip'} name 'NWgetservbyport';
+function NWgetservbyport(var nwsktctx:Tnwsockent; port:longint; protocol:PAnsiChar):Pservent;cdecl;external {'tcpip'} name 'NWgetservbyport';
 
 function NWgetservent(nwsktctx:Pnwsockent):Pservent;cdecl;external {'tcpip'} name 'NWgetservent';
 function NWgetservent(var nwsktctx:Tnwsockent):Pservent;cdecl;external {'tcpip'} name 'NWgetservent';
@@ -455,8 +455,8 @@ procedure NWendservent(nwsktctx:Pnwsockent);cdecl;external {'tcpip'} name 'NWend
 procedure NWendservent(var nwsktctx:Tnwsockent);cdecl;external {'tcpip'} name 'NWendservent';
 
 // Protocol file examination
-function NWgetprotobyname(nwsktctx:Pnwsockent; name:Pchar):Pprotoent;cdecl;external {'tcpip'} name 'NWgetprotobyname';
-function NWgetprotobyname(var nwsktctx:Tnwsockent; name:Pchar):Pprotoent;cdecl;external {'tcpip'} name 'NWgetprotobyname';
+function NWgetprotobyname(nwsktctx:Pnwsockent; name:PAnsiChar):Pprotoent;cdecl;external {'tcpip'} name 'NWgetprotobyname';
+function NWgetprotobyname(var nwsktctx:Tnwsockent; name:PAnsiChar):Pprotoent;cdecl;external {'tcpip'} name 'NWgetprotobyname';
 
 function NWgetprotobynumber(nwsktctx:Pnwsockent; protocol:longint):Pprotoent;cdecl;external {'tcpip'} name 'NWgetprotobynumber';
 function NWgetprotobynumber(var nwsktctx:Tnwsockent; protocol:longint):Pprotoent;cdecl;external {'tcpip'} name 'NWgetprotobynumber';
@@ -470,7 +470,7 @@ procedure NWsetprotoent(var nwsktctx:Tnwsockent; stayopen:longint);cdecl;externa
 procedure NWendprotoent(nwsktctx:Pnwsockent);cdecl;external {'tcpip'} name 'NWendprotoent';
 procedure NWendprotoent(var nwsktctx:Tnwsockent);cdecl;external {'tcpip'} name 'NWendprotoent';
 
-function gethostname(name:Pchar; namelen:longint):longint;cdecl;external {'tcpip'} name 'gethostname';
+function gethostname(name:PAnsiChar; namelen:longint):longint;cdecl;external {'tcpip'} name 'gethostname';
 function gethostid:longint;cdecl;external {'tcpip'} name 'gethostid';
 {-tiuser.h---------------------------------------------------------------------}
 const
@@ -548,7 +548,7 @@ var t_errno : longint;cvar;external;
        Tnetbuf = record
          maxlen : dword;
          len    : dword;
-         buf    : Pchar;
+         buf    : PAnsiChar;
        end;
 
        Pt_bind = ^Tt_bind;
@@ -640,7 +640,7 @@ var t_errno : longint;cvar;external;
        _T_NULL = 0;
        _T_ABSREQ = $8000;
       var
-         t_errlist : array of Pchar;cvar;external;
+         t_errlist : array of PAnsiChar;cvar;external;
          t_nerr : longint;cvar;external;
     {---------------------TCP specific Options-------------------------- }
     { TCP Precedence Levels  }
@@ -674,27 +674,27 @@ var t_errno : longint;cvar;external;
 
 
 function t_accept(fd:longint; resfd:longint; call:Pt_call):longint;cdecl;external 'tli' name 't_accept';
-function t_alloc(fd:longint; struct_type:longint; fields:longint):Pchar;cdecl;external 'tli' name 't_alloc';
+function t_alloc(fd:longint; struct_type:longint; fields:longint):PAnsiChar;cdecl;external 'tli' name 't_alloc';
 function t_bind(fd:longint; req:Pt_bind; ret:Pt_bind):longint;cdecl;external 'tli' name 't_bind';
 function t_blocking(fd:longint):longint;cdecl;external 'tli' name 't_blocking';
 function t_close(fd:longint):longint;cdecl;external 'tli' name 't_close';
 function t_connect(fd:longint; sndcall:Pt_call; rcvcall:Pt_call):longint;cdecl;external 'tli' name 't_connect';
-procedure t_error(errmsg:Pchar);cdecl;external 'tli' name 't_error';
-function t_free(ptr:Pchar; struct_type:longint):longint;cdecl;external 'tli' name 't_free';
+procedure t_error(errmsg:PAnsiChar);cdecl;external 'tli' name 't_error';
+function t_free(ptr:PAnsiChar; struct_type:longint):longint;cdecl;external 'tli' name 't_free';
 function t_getinfo(fd:longint; info:Pt_info):longint;cdecl;external 'tli' name 't_getinfo';
 function t_getstate(fd:longint):longint;cdecl;external 'tli' name 't_getstate';
 function t_listen(fd:longint; call:Pt_call):longint;cdecl;external 'tli' name 't_listen';
 function t_look(fd:longint):longint;cdecl;external 'tli' name 't_look';
 function t_nonblocking(fd:longint):longint;cdecl;external 'tli' name 't_nonblocking';
-function t_open(path:Pchar; oflag:longint; info:Pt_info):longint;cdecl;external 'tli' name 't_open';
+function t_open(path:PAnsiChar; oflag:longint; info:Pt_info):longint;cdecl;external 'tli' name 't_open';
 function t_optmgmt(fd:longint; req:Pt_optmgmt; ret:Pt_optmgmt):longint;cdecl;external 'tli' name 't_optmgmt';
-function t_rcv(fd:longint; buf:Pchar; nbytes:dword; flags:Plongint):longint;cdecl;external 'tli' name 't_rcv';
+function t_rcv(fd:longint; buf:PAnsiChar; nbytes:dword; flags:Plongint):longint;cdecl;external 'tli' name 't_rcv';
 function t_rcvconnect(fd:longint; call:Pt_call):longint;cdecl;external 'tli' name 't_rcvconnect';
 function t_rcvdis(fd:longint; discon:Pt_discon):longint;cdecl;external 'tli' name 't_rcvdis';
 function t_rcvrel(fd:longint):longint;cdecl;external 'tli' name 't_rcvrel';
 function t_rcvudata(fd:longint; unitdata:Pt_unitdata; flags:Plongint):longint;cdecl;external 'tli' name 't_rcvudata';
 function t_rcvuderr(fd:longint; uderr:Pt_uderr):longint;cdecl;external 'tli' name 't_rcvuderr';
-function t_snd(fd:longint; buf:Pchar; nbytes:dword; flags:longint):longint;cdecl;external 'tli' name 't_snd';
+function t_snd(fd:longint; buf:PAnsiChar; nbytes:dword; flags:longint):longint;cdecl;external 'tli' name 't_snd';
 function t_snddis(fd:longint; call:Pt_call):longint;cdecl;external 'tli' name 't_snddis';
 function t_sndrel(fd:longint):longint;cdecl;external 'tli' name 't_sndrel';
 function t_sndudata(fd:longint; unitdata:Pt_unitdata):longint;cdecl;external 'tli' name 't_sndudata';
@@ -768,13 +768,13 @@ type
      dflt      : smallint;
      ltpdu     : longint;
      reastime  : smallint;
-     _class    : char;
-     altclass  : char;
-     extform   : char;
-     flowctrl  : char;
-     checksum  : char;
-     netexp    : char;
-     netrecptcf: char;
+     _class    : AnsiChar;
+     altclass  : AnsiChar;
+     extform   : AnsiChar;
+     flowctrl  : AnsiChar;
+     checksum  : AnsiChar;
+     netexp    : AnsiChar;
+     netrecptcf: AnsiChar;
    end;
 
 // Connection oriented options.
@@ -792,7 +792,7 @@ type
      protection     : word;
      priority       : smallint;
      mngmt          : Tmanagement;   // management parameters
-     expd           : char;          // expedited data: T_YES or T_NO
+     expd           : AnsiChar;          // expedited data: T_YES or T_NO
    end;
 
 // Connectionless options.
@@ -870,7 +870,7 @@ type
    Tlog_ctl = record
      mid   : smallint;
      sid   : smallint;
-     level : char;
+     level : AnsiChar;
      flags : smallint;
      ltime : longint;
      ttime : longint;
@@ -881,7 +881,7 @@ type
    Ttrace_ids = record
      ti_mid   : smallint;
      ti_sid   : smallint;
-     ti_level : char;
+     ti_level : AnsiChar;
      ti_flags : smallint;
    end;
 {-strstat.h--------------------------------------------------------------------}
@@ -893,7 +893,7 @@ type
      ms_ocnt : longint;
      ms_ccnt : longint;
      ms_acnt : longint;
-     ms_xptr : Pchar;
+     ms_xptr : PAnsiChar;
      ms_xsize: smallint;
    end;
 {-user.h-----------------------------------------------------------------------}
@@ -913,7 +913,7 @@ type
    Pmodule_info = ^Tmodule_info;
    Tmodule_info = record
      mi_idnum  : word;
-     mi_idname : Pchar;
+     mi_idname : PAnsiChar;
      mi_minpsz : smallint;
      mi_maxpsz : smallint;
      mi_hiwat  : smallint;
@@ -950,8 +950,8 @@ type
      b_next  : Pmsgb;   // next message on queue
      b_prev  : Pmsgb;   // previous message on queue
      b_cont  : Pmsgb;   // next message block of message
-     b_rptr  : PChar;   // first unread data byte in buffer
-     b_wptr  : PChar;   // first unwritten data byte
+     b_rptr  : PAnsiChar;   // first unread data byte in buffer
+     b_wptr  : PAnsiChar;   // first unwritten data byte
      b_datap : Pdatab;  // data block
    end;
 
@@ -967,7 +967,7 @@ type
      q_last  : Pmsgb;
      q_next  : Pqueue;
      q_link  : Pqueue;
-     q_ptr   : Pchar;
+     q_ptr   : PAnsiChar;
      q_count : byte;  //ushort;
      q_flag  : byte;  // ushort;
      q_minpsz: smallint;
@@ -1121,8 +1121,8 @@ function allocq:Pqueue_t;cdecl;external 'streams' name 'allocq';
 function adjmsg(mp:Pmblk_t; len_param:longint):longint;cdecl;external 'streams' name 'adjmsg';
 function backq(q:Pqueue_t):Pqueue_t;cdecl;external 'streams' name 'backq';
 function bufcall(size:longint; pri:longint; func:TFuncLongCdecl; arg:longint):longint;cdecl;external 'streams' name 'bufcall';
-procedure bcopy(src:Pchar; dst:Pchar; len:longint);cdecl;external 'streams' name 'bcopy';
-procedure bzero(buffer:Pchar; nbytes:longint);cdecl;external 'streams' name 'bzero';
+procedure bcopy(src:PAnsiChar; dst:PAnsiChar; len:longint);cdecl;external 'streams' name 'bcopy';
+procedure bzero(buffer:PAnsiChar; nbytes:longint);cdecl;external 'streams' name 'bzero';
 function canput(q:Pqueue_t):longint;cdecl;external 'streams' name 'canput';
 function copyb(mp:Pmblk_t):Pmblk_t;cdecl;external 'streams' name 'copyb';
 function copymsg(mp:Pmblk_t):Pmblk_t;cdecl;external 'streams' name 'copymsg';
@@ -1146,8 +1146,8 @@ function qreply(q:Pqueue_t; mp:Pmblk_t):longint;cdecl;external 'streams' name 'q
 function qsize(q:Pqueue_t):longint;cdecl;external 'streams' name 'qsize';
 function rmvb(mp:Pmblk_t; bp:Pmblk_t):Pmblk_t;cdecl;external 'streams' name 'rmvb';
 function rmvq(q:Pqueue_t; mp:Pmblk_t):longint;cdecl;external 'streams' name 'rmvq';
-function strlog(sid:smallint; mid:smallint; level:char; aflags:smallint; args:array of const):longint;cdecl;external 'streams' name 'strlog';
-function strlog(sid:smallint; mid:smallint; level:char; aflags:smallint):longint;cdecl;external 'streams' name 'strlog';
+function strlog(sid:smallint; mid:smallint; level:AnsiChar; aflags:smallint; args:array of const):longint;cdecl;external 'streams' name 'strlog';
+function strlog(sid:smallint; mid:smallint; level:AnsiChar; aflags:smallint):longint;cdecl;external 'streams' name 'strlog';
 function testb(size:longint; pri:longint):longint;cdecl;external 'streams' name 'testb';
 function timeout(func:TFuncLongCdecl; arg:pointer; ticks:longint):longint;cdecl;external 'streams' name 'timeout';
 function unlinkb(mp:Pmblk_t):Pmblk_t;cdecl;external 'streams' name 'unlinkb';
@@ -1321,7 +1321,7 @@ const
    IN_LOOPBACKNET = 127;
 
 // var sin_port : word;cvar;public;
-//   sin_zero : array[0..7] of char;cvar;public;
+//   sin_zero : array[0..7] of AnsiChar;cvar;public;
 
     const
        IP_OPTIONS = 1;

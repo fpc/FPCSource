@@ -48,7 +48,7 @@ end;
 
 
 {$ifdef DEBUG_MT}
-var dummy_buff : array [0..255] of char;  // to avoid abends (for current compiler error that not all threadvars are initialized)
+var dummy_buff : array [0..255] of AnsiChar;  // to avoid abends (for current compiler error that not all threadvars are initialized)
 {$endif}
 
 function SysRelocateThreadvar (offset : dword) : pointer;
@@ -218,12 +218,12 @@ end;
 
 function GetThreadName  (threadId : longint; var threadName) : longint; cdecl; external 'clib' name 'GetThreadName';
 function CGetThreadID : dword; cdecl; external 'clib' name 'GetThreadID';
-//function __RenameThread (threadId : longint; threadName:pchar) : longint; cdecl; external 'clib' name 'RenameThread';
+//function __RenameThread (threadId : longint; threadName:PAnsiChar) : longint; cdecl; external 'clib' name 'RenameThread';
 
 function  SysWaitForThreadTerminate (threadHandle : dword; TimeoutMs : longint) : dword;
 var
   status : longint;
-  buf : array [0..50] of char;
+  buf : array [0..50] of AnsiChar;
 begin
   {$warning timeout needs to be implemented}
   {$ifdef DEBUG_MT}

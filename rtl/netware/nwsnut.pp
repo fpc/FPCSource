@@ -375,8 +375,8 @@ uses libc;
           cursorLine : longint;
           cursorColumn : longint;
           firstUpdateFlag : longint;
-          headerText : pchar;
-          headerText2 : pchar;
+          headerText : PAnsiChar;
+          headerText2 : PAnsiChar;
           virtualScreen : pointer;
           saveScreen : pointer;
           screenID : TScr;
@@ -415,8 +415,8 @@ uses libc;
           saveFlag        : longint;
           directFlag      : longint;
           headerAttribute : longint;
-          headerText      : pchar;
-          text            : pchar;
+          headerText      : PAnsiChar;
+          text            : PAnsiChar;
        end;
      THELP_SCREEN = THS_;
      PHELP_SCREEN = ^THELP_SCREEN;
@@ -431,7 +431,7 @@ uses libc;
           maxSkew        : word;
           entryProcedure : procedure (listElement:PLIST_STRUCT; displayLine:longint; NUTInfoStructure:pointer);cdecl;
           extra          : longint;
-          text           : array[0..0] of char;
+          text           : array[0..0] of AnsiChar;
        end;
      TLIST = TLIST_STRUCT;
      PLIST = ^TLIST;
@@ -449,22 +449,22 @@ uses libc;
 
      PMI_ = ^TMI_;
      TMI_ = record
-          dynamicMessageOne      : pchar;
-          dynamicMessageTwo      : pchar;
-          dynamicMessageThree    : pchar;
-          dynamicMessageFour     : pchar;
-          dynamicMessageFive     : pchar;
-          dynamicMessageSix      : pchar;
-          dynamicMessageSeven    : pchar;
-          dynamicMessageEight    : pchar;
-          dynamicMessageNine     : pchar;
-          dynamicMessageTen      : pchar;
-          dynamicMessageEleven   : pchar;
-          dynamicMessageTwelve   : pchar;
-          dynamicMessageThirteen : pchar;
-          dynamicMessageFourteen : pchar;
+          dynamicMessageOne      : PAnsiChar;
+          dynamicMessageTwo      : PAnsiChar;
+          dynamicMessageThree    : PAnsiChar;
+          dynamicMessageFour     : PAnsiChar;
+          dynamicMessageFive     : PAnsiChar;
+          dynamicMessageSix      : PAnsiChar;
+          dynamicMessageSeven    : PAnsiChar;
+          dynamicMessageEight    : PAnsiChar;
+          dynamicMessageNine     : PAnsiChar;
+          dynamicMessageTen      : PAnsiChar;
+          dynamicMessageEleven   : PAnsiChar;
+          dynamicMessageTwelve   : PAnsiChar;
+          dynamicMessageThirteen : PAnsiChar;
+          dynamicMessageFourteen : PAnsiChar;
           messageCount : longint;
-          programMesgTable : ppchar;
+          programMesgTable : PPAnsiChar;
        end;
      TMessageInfo = TMI_;
      PMessageInfo = ^TMessageInfo;
@@ -526,9 +526,9 @@ uses libc;
           customData : pointer;
           customDataRelease : procedure (theData:pointer; thisStructure:PNUTInfo_); cdecl;
           displayErrorLabel : longint;
-          markBuffer : pchar;
+          markBuffer : PAnsiChar;
           markBufferLength : longint;
-          editBuffer : pchar;
+          editBuffer : PAnsiChar;
           editBufferLength : longint;
           staticFlag : longint;
           processID : longint;
@@ -607,12 +607,12 @@ uses libc;
           fieldWidth : longint;
           fieldAttribute : longint;
           fieldActivateKeys : longint;
-          fieldFormat : procedure (field:Pfielddef; text:pchar; buffLen:longint);cdecl;
+          fieldFormat : procedure (field:Pfielddef; text:PAnsiChar; buffLen:longint);cdecl;
           fieldControl : function (field:Pfielddef; selectKey:longint; fieldChanged:Plongint; handle:PNUTInfo):longint;
-          fieldVerify : function (field:Pfielddef; data:pchar; handle:PNUTInfo):longint;
+          fieldVerify : function (field:Pfielddef; data:PAnsiChar; handle:PNUTInfo):longint;
           fieldRelease : procedure (para1:Pfielddef);
-          fieldData : pchar;
-          fieldXtra : pchar;
+          fieldData : PAnsiChar;
+          fieldXtra : PAnsiChar;
           fieldHelp : longint;
           fieldAbove : Pfielddef;
           fieldBelow : Pfielddef;
@@ -650,8 +650,8 @@ uses libc;
                  version,
                  headerType,
                  compatibilityLevel : longint;
-                 messageTable       : PPchar;
-                 helpScreens        : pchar;
+                 messageTable       : PPAnsiChar;
+                 helpScreens        : PAnsiChar;
                  screenID           : TScr;     // Clib/OS Screen Id
                  resourceTag        : TRtag;    // OS ResourceTagStructure
              var handle             : PNUTInfo) : longint;cdecl;external External_library name 'NWSInitializeNut';
@@ -659,9 +659,9 @@ uses libc;
   procedure NWSScreenSize(maxLines,maxColumns:plongint);cdecl;external External_library name 'NWSScreenSize';
   procedure NWSScreenSize(var maxLines,maxColumns:longint);cdecl;external External_library name 'NWSScreenSize';
 
-  procedure NWSShowPortalLine(line,column:longint; text:pchar; length:longint; portal:PPCB);cdecl;external External_library name 'NWSShowPortalLine';
+  procedure NWSShowPortalLine(line,column:longint; text:PAnsiChar; length:longint; portal:PPCB);cdecl;external External_library name 'NWSShowPortalLine';
 
-  procedure NWSShowPortalLineAttribute(line,column:longint; text:pchar; attribute,length:longint;
+  procedure NWSShowPortalLineAttribute(line,column:longint; text:PAnsiChar; attribute,length:longint;
               portal:PPCB);cdecl;external External_library name 'NWSShowPortalLineAttribute';
 
   procedure NWSScrollPortalZone(line,column,height,width,attribute,
@@ -673,10 +673,10 @@ uses libc;
   procedure NWSFillPortalZoneAttribute(line,column,height,width,attribute:longint;
               portal:PPCB);cdecl;external External_library name 'NWSFillPortalZoneAttribute';
 
-  function NWSGetMessage(message:longint; messages:PMessageInfo):pchar;cdecl;external External_library name 'NWSGetMessage';
+  function NWSGetMessage(message:longint; messages:PMessageInfo):PAnsiChar;cdecl;external External_library name 'NWSGetMessage';
 
-  procedure NWSSetDynamicMessage(message:longint; text:pchar; messages:PMessageInfo);cdecl;external External_library name 'NWSSetDynamicMessage';
-  procedure NWSSetDynamicMessage(message:longint; text:pchar; var messages:TMessageInfo);cdecl;external External_library name 'NWSSetDynamicMessage';
+  procedure NWSSetDynamicMessage(message:longint; text:PAnsiChar; messages:PMessageInfo);cdecl;external External_library name 'NWSSetDynamicMessage';
+  procedure NWSSetDynamicMessage(message:longint; text:PAnsiChar; var messages:TMessageInfo);cdecl;external External_library name 'NWSSetDynamicMessage';
 
   function NWSCreatePortal
                 (line,
@@ -686,7 +686,7 @@ uses libc;
                  virtualHeight,
                  virtualWidth,
                  saveFlag:longint;
-                 headerText:pchar;
+                 headerText:PAnsiChar;
                  headerAttribute,
                  borderType,
                  borderAttribute,
@@ -729,13 +729,13 @@ type TFreeRoutine = procedure (memoryPointer:pointer); cdecl;
 
   procedure NWSDestroyForm(handle:PNUTInfo);cdecl;external External_library name 'NWSDestroyForm';
 
-  function NWSAppendToList(text:pchar; otherInfo:pointer; handle:PNUTInfo):PLIST;cdecl;external External_library name 'NWSAppendToList';
+  function NWSAppendToList(text:PAnsiChar; otherInfo:pointer; handle:PNUTInfo):PLIST;cdecl;external External_library name 'NWSAppendToList';
 
   function NWSDeleteFromList(el:PLIST; handle:PNUTInfo):PLIST;cdecl;external External_library name 'NWSDeleteFromList';
 
-  function NWSInsertInList(text:pchar; otherInfo:pointer; atElement:PLIST; handle:PNUTInfo):PLIST;cdecl;external External_library name 'NWSInsertInList';
+  function NWSInsertInList(text:PAnsiChar; otherInfo:pointer; atElement:PLIST; handle:PNUTInfo):PLIST;cdecl;external External_library name 'NWSInsertInList';
 
-  function NWSGetListElementText(element:PLIST):pchar;cdecl;external External_library name 'NWSGetListElementText';
+  function NWSGetListElementText(element:PLIST):PAnsiChar;cdecl;external External_library name 'NWSGetListElementText';
 
   function NWSGetListHead(handle:PNUTInfo):PLIST;cdecl;external External_library name 'NWSGetListHead';
 
@@ -763,28 +763,28 @@ type TFreeRoutine = procedure (memoryPointer:pointer); cdecl;
 
   function NWSGetLineDrawCharacter(charIndex:longint):longint;cdecl;external External_library name 'NWSGetLineDrawCharacter';
 
-  function NWSStrcat(_string, newStuff:pchar):longint;cdecl;external External_library name 'NWSStrcat';
+  function NWSStrcat(_string, newStuff:PAnsiChar):longint;cdecl;external External_library name 'NWSStrcat';
 
   procedure NWSMemmove(dest:pointer; source:pointer; len:longint);cdecl;external External_library name 'NWSMemmove';
 
-  function NWSToupper(ch:char):char;cdecl;external External_library name 'NWSToupper';
+  function NWSToupper(ch:AnsiChar):AnsiChar;cdecl;external External_library name 'NWSToupper';
 
-  function NWSIsdigit(ch:char):longbool;cdecl;external External_library name 'NWSIsdigit';
+  function NWSIsdigit(ch:AnsiChar):longbool;cdecl;external External_library name 'NWSIsdigit';
 
-  function NWSIsxdigit(ch:char):longbool;cdecl;external External_library name 'NWSIsxdigit';
+  function NWSIsxdigit(ch:AnsiChar):longbool;cdecl;external External_library name 'NWSIsxdigit';
 
-  function NWSAsciiToInt(data:pchar):longint;cdecl;external External_library name 'NWSAsciiToInt';
+  function NWSAsciiToInt(data:PAnsiChar):longint;cdecl;external External_library name 'NWSAsciiToInt';
 
-  function NWSAsciiToLONG(data:pchar):longint;cdecl;external External_library name 'NWSAsciiToLONG';
+  function NWSAsciiToLONG(data:PAnsiChar):longint;cdecl;external External_library name 'NWSAsciiToLONG';
 
-  function NWSAsciiHexToInt(data:pchar):longint;cdecl;external External_library name 'NWSAsciiHexToInt';
+  function NWSAsciiHexToInt(data:PAnsiChar):longint;cdecl;external External_library name 'NWSAsciiHexToInt';
 
   procedure NWSWaitForEscape(handle:PNUTInfo);cdecl;external External_library name 'NWSWaitForEscape';
 
   function NWSWaitForEscapeOrCancel(handle:PNUTInfo):longint;cdecl;external External_library name 'NWSWaitForEscapeOrCancel';
 
-  procedure NWSGetKey(_type:plongint; value:pchar; handle:PNUTInfo);cdecl;external External_library name 'NWSGetKey';
-  procedure NWSGetKey(var _type:longint; value:pchar; handle:PNUTInfo);cdecl;external External_library name 'NWSGetKey';
+  procedure NWSGetKey(_type:plongint; value:PAnsiChar; handle:PNUTInfo);cdecl;external External_library name 'NWSGetKey';
+  procedure NWSGetKey(var _type:longint; value:PAnsiChar; handle:PNUTInfo);cdecl;external External_library name 'NWSGetKey';
 
   function NWSKeyStatus(handle:PNUTInfo):longint;cdecl;external External_library name 'NWSKeyStatus';
 
@@ -800,9 +800,9 @@ type TInterruptProc = procedure (handle:pointer); cdecl;
 
   procedure NWSEnableInterruptKey(key:longint; interruptProc:TInterruptProc; handle:PNUTInfo);cdecl;external External_library name 'NWSEnableInterruptKey';
 
-  procedure NWSSaveFunctionKeyList(keyList:pchar; handle:PNUTInfo);cdecl;external External_library name 'NWSSaveFunctionKeyList';
+  procedure NWSSaveFunctionKeyList(keyList:PAnsiChar; handle:PNUTInfo);cdecl;external External_library name 'NWSSaveFunctionKeyList';
 
-  procedure NWSEnableFunctionKeyList(keyList:pchar; handle:PNUTInfo);cdecl;external External_library name 'NWSEnableFunctionKeyList';
+  procedure NWSEnableFunctionKeyList(keyList:PAnsiChar; handle:PNUTInfo);cdecl;external External_library name 'NWSEnableFunctionKeyList';
 
   procedure NWSSaveInterruptList(interruptList:PINTERRUPT; handle:PNUTInfo);cdecl;external External_library name 'NWSSaveInterruptList';
 
@@ -814,10 +814,10 @@ type TInterruptProc = procedure (handle:pointer); cdecl;
 
   procedure NWSEnableAllFunctionKeys(handle:PNUTInfo);cdecl;external External_library name 'NWSEnableAllFunctionKeys';
 
-  function NWSDisplayTextInPortal(line,indentLevel:longint; text:pchar; attribute:longint; portal:PPCB):longint;cdecl;external External_library name 'NWSDisplayTextInPortal';
+  function NWSDisplayTextInPortal(line,indentLevel:longint; text:PAnsiChar; attribute:longint; portal:PPCB):longint;cdecl;external External_library name 'NWSDisplayTextInPortal';
 
   function NWSDisplayInformation(header,pauseFlag,centerLine,centerColumn,palette,
-             attribute:longint; displayText:pchar; handle:PNUTInfo):longint;cdecl;external External_library name 'NWSDisplayInformation';
+             attribute:longint; displayText:PAnsiChar; handle:PNUTInfo):longint;cdecl;external External_library name 'NWSDisplayInformation';
 
   procedure NWSStartWait(centerLine,centerColumn:longint; handle:PNUTInfo);cdecl;external External_library name 'NWSStartWait';
 
@@ -832,17 +832,17 @@ type TInterruptProc = procedure (handle:pointer); cdecl;
 
   function NWSAlertWithHelp(centerLine,centerColumn:longint; handle:PNUTInfo; message:longint; helpContext:longint):longint;cdecl;external External_library name 'NWSAlertWithHelp';
 
-  function NWSTrace(handle:PNUTInfo; message:pchar; args:array of const):longint;cdecl;external External_library name 'NWSTrace';
-  function NWSTrace(handle:PNUTInfo; message:pchar):longint;cdecl;external External_library name 'NWSTrace';
+  function NWSTrace(handle:PNUTInfo; message:PAnsiChar; args:array of const):longint;cdecl;external External_library name 'NWSTrace';
+  function NWSTrace(handle:PNUTInfo; message:PAnsiChar):longint;cdecl;external External_library name 'NWSTrace';
 
   procedure NWSDisplayErrorText(message:longint; severity:longint; handle:PNUTInfo; args:array of const);cdecl;external External_library name 'NWSDisplayErrorText';
 
   procedure NWSDisplayErrorText(message:longint; severity:longint; handle:PNUTInfo);cdecl;external External_library name 'NWSDisplayErrorText';
 
-  procedure NWSDisplayErrorCondition(procedureName:pchar; errorCode:longint; severity:longint; errorList:PPROCERROR; handle:PNUTInfo;
+  procedure NWSDisplayErrorCondition(procedureName:PAnsiChar; errorCode:longint; severity:longint; errorList:PPROCERROR; handle:PNUTInfo;
               args:array of const);cdecl;external External_library name 'NWSDisplayErrorCondition';
 
-  procedure NWSDisplayErrorCondition(procedureName:pchar; errorCode:longint; severity:longint; errorList:PPROCERROR; handle:PNUTInfo);cdecl;external External_library name 'NWSDisplayErrorCondition';
+  procedure NWSDisplayErrorCondition(procedureName:PAnsiChar; errorCode:longint; severity:longint; errorList:PPROCERROR; handle:PNUTInfo);cdecl;external External_library name 'NWSDisplayErrorCondition';
 
   function NWSAppendToMenu(message:longint; option:longint; handle:PNUTInfo):PLIST;cdecl;external External_library name 'NWSAppendToMenu';
 
@@ -865,20 +865,20 @@ type TActionFunc = function (option:longint; parameter:pointer) : longint; cdecl
 
   function NWSPopHelpContext(handle:PNUTInfo):longint;cdecl;external External_library name 'NWSPopHelpContext';
 
-type TFormatFunc=function (element:PLIST; skew:longint; displayLine:pchar; width:longint):longint; cdecl;
+type TFormatFunc=function (element:PLIST; skew:longint; displayLine:PAnsiChar; width:longint):longint; cdecl;
      TNWSListActionFunc=function (keyPressed:longint; elementSelected:PPLIST; itemLineNumber:plongint; actionParameter:pointer):longint;  cdecl;
 
   function NWSList(header:longint; centerLine:longint; centerColumn:longint; height:longint; width:longint;
              validKeyFlags:longint; element:PPLIST; handle:PNUTInfo; format:TFormatFunc; action:TNWSListActionFunc;
              actionParameter:pointer):longint;cdecl;external External_library name 'NWSList';
 
-type TInsertFunc = function (text:pchar; otherInfo:Ppointer; parameters:pointer):longint; cdecl;
+type TInsertFunc = function (text:PAnsiChar; otherInfo:Ppointer; parameters:pointer):longint; cdecl;
      TFreeProcedure=function (otherInfo:pointer):longint; cdecl;
 
   function NWSInsertInPortalList(currentElement:PPLIST; currentLine:plongint; InsertProcedure:TInsertFunc; FreeProcedure:TFreeProcedure; handle:PNUTInfo;
              parameters:pointer):longint;cdecl;external External_library name 'NWSInsertInPortalList';
 
-type TModifyProcedure=function (text:pchar; parameters:pointer):longint;  cdecl;
+type TModifyProcedure=function (text:PAnsiChar; parameters:pointer):longint;  cdecl;
 
   function NWSModifyInPortalList(currentElement:PPLIST; currentLine:plongint; ModifyProcedure:TModifyProcedure; handle:PNUTInfo; parameters:pointer):longint;cdecl;external External_library name 'NWSModifyInPortalList';
 
@@ -886,13 +886,13 @@ type TDeleteFunc = function (el:PLIST; handle:PNUTInfo; parameters:pointer):PLIS
   function NWSDeleteFromPortalList(currentElement:PPLIST; currentLine:plongint; DeleteProcedure:TDeleteFunc; deleteCurrentHeader:longint; deleteMarkedHeader:longint;
              handle:PNUTInfo; parameters:pointer):longint;cdecl;external External_library name 'NWSDeleteFromPortalList';
 
-type TNWSEditInsertFunc=function (buffer:pchar; maxLen:longint; parameters:pointer):longint; cdecl;
-     TNWSEditActionFunc=function (action:longint; buffer:pchar; parameters:pointer):longint; cdecl;
+type TNWSEditInsertFunc=function (buffer:PAnsiChar; maxLen:longint; parameters:pointer):longint; cdecl;
+     TNWSEditActionFunc=function (action:longint; buffer:PAnsiChar; parameters:pointer):longint; cdecl;
 
   function NWSEditString(
              centerLine, centerColumn, editHeight, editWidth, header,
              prompt :longint;
-             buf:pchar;
+             buf:PAnsiChar;
              maxLen, _type:longint; handle:PNUTInfo;
              insertProc:TNWSEditInsertFunc;
              actionProc:TNWSEditActionFunc;
@@ -938,7 +938,7 @@ type TNWSEditInsertFunc=function (buffer:pchar; maxLen:longint; parameters:point
               (handle:PNUTInfo);cdecl;external External_library name 'NWSRemovePreHelp';
 
   function  NWSGetADisk
-              (volName,prompt:pchar;
+              (volName,prompt:PAnsiChar;
                handle:PNUTInfo):longint;cdecl;external External_library name 'NWSGetADisk';
 
   procedure NWSInitListPtr(listPtr:PLISTPTR);cdecl;external External_library name 'NWSInitListPtr';
@@ -979,7 +979,7 @@ type TNWSEditInsertFunc=function (buffer:pchar; maxLen:longint; parameters:point
                confirmMessage:longint;
                handle:PNUTInfo):longint;cdecl;external External_library name 'NWSEditPortalForm';
 
-type TfFormat  = procedure (field:Pfielddef; text:pchar; buffLen:longint); cdecl;
+type TfFormat  = procedure (field:Pfielddef; text:PAnsiChar; buffLen:longint); cdecl;
      TfControl = function (field:Pfielddef; selectKey:longint; var fieldChanged:longint; handle:PNUTInfo):longint; cdecl;
      TfVerify  = function (field:Pfielddef; data:pointer; handle:PNUTInfo):longint; cdecl;
      TfRelease = procedure (field:Pfielddef); cdecl;
@@ -1003,14 +1003,14 @@ type TfFormat  = procedure (field:Pfielddef; text:pchar; buffLen:longint); cdecl
 
   function NWSAppendPromptField(line,column,promptnum:longint; handle:PNUTInfo):PFIELD;cdecl;external External_library name 'NWSAppendPromptField';
 
-  function NWSAppendCommentField(line,column:longint; prompt:pchar; handle:PNUTInfo):PFIELD;cdecl;external External_library name 'NWSAppendCommentField';
+  function NWSAppendCommentField(line,column:longint; prompt:PAnsiChar; handle:PNUTInfo):PFIELD;cdecl;external External_library name 'NWSAppendCommentField';
 
   function NWSAppendStringField
             (line,
              column,
              width,
              fflag:longint;
-             data,cset:pchar;
+             data,cset:PAnsiChar;
              help:longint;
              handle:PNUTInfo):PFIELD;cdecl;external External_library name 'NWSAppendStringField';
 
@@ -1036,7 +1036,7 @@ type TfFormat  = procedure (field:Pfielddef; text:pchar; buffLen:longint); cdecl
              fflag:longint;
              data:pointer;
              help:longint;
-             yesString, noString:pchar;
+             yesString, noString:PAnsiChar;
              handle:PNUTInfo):PFIELD;cdecl;external External_library name 'NWSAppendGenericBoolField';
 
   function NWSAppendGenericBoolField
@@ -1045,7 +1045,7 @@ type TfFormat  = procedure (field:Pfielddef; text:pchar; buffLen:longint); cdecl
              fflag:longint;
          var data:longbool;
              help:longint;
-             yesString, noString:pchar;
+             yesString, noString:PAnsiChar;
              handle:PNUTInfo):PFIELD;cdecl;external External_library name 'NWSAppendGenericBoolField';
 
 type TSpotActionFunc = function (fp:PFIELD; selectKey:longint; var changedField:longint; handle:PNUTInfo):longint; cdecl;
@@ -1053,7 +1053,7 @@ type TSpotActionFunc = function (fp:PFIELD; selectKey:longint; var changedField:
             (line,
              column,
              fflag:longint;
-             displayString:pchar;
+             displayString:PAnsiChar;
              SpotAction:TSpotActionFunc;
              handle:PNUTInfo):PFIELD;cdecl;external External_library name 'NWSAppendHotSpotField';
 
@@ -1102,7 +1102,7 @@ type TSpotActionFunc = function (fp:PFIELD; selectKey:longint; var changedField:
              height,
              width,
              headerNumber:longint;
-             textBuffer:pchar;
+             textBuffer:PAnsiChar;
              maxBufferLength,
              confirmMessage,
              forceConfirm:longint;
@@ -1114,7 +1114,7 @@ type TSpotActionFunc = function (fp:PFIELD; selectKey:longint; var changedField:
              height,
              width,
              headerNumber:longint;
-             textBuffer:pchar;
+             textBuffer:PAnsiChar;
              maxBufferLength:longint;
              handle:PNUTInfo):longint;cdecl;external External_library name 'NWSViewText';
 
@@ -1134,7 +1134,7 @@ type TSpotActionFunc = function (fp:PFIELD; selectKey:longint; var changedField:
   // Displays justified text in an existing portal
   function NWSDisplayTextJustifiedInPortal
             (justify,
-             line:longint; column:longint; textWidth:longint; text:pchar;
+             line:longint; column:longint; textWidth:longint; text:PAnsiChar;
              attribute:longint; portal:PPCB):longint;cdecl;external External_library name 'NWSDisplayTextJustifiedInPortal';
 
   function NWSDisplayInformationInPortal
@@ -1154,7 +1154,7 @@ type TSpotActionFunc = function (fp:PFIELD; selectKey:longint; var changedField:
              textTBIndent,
              textAttribute,
              textMinimizeStyle:longint;
-             text:pchar;
+             text:PAnsiChar;
              handle:PNUTInfo):longint;cdecl;external External_library name 'NWSDisplayInformationInPortal';
 
   procedure NWSRestoreNut(handle:PNUTInfo);cdecl;external External_library name 'NWSRestoreNut';
@@ -1165,7 +1165,7 @@ type TSpotActionFunc = function (fp:PFIELD; selectKey:longint; var changedField:
 
 type TSSFEntryProc = procedure (para1:PFIELD; para2:pointer; para3:PNUTInfo); cdecl;
      TSSFCustomDataReleaseProc = procedure (para1:pointer; para2:PNUTInfo); cdecl;
-     TSSFFormat=procedure (para1:PFIELD; text:pchar; para3:longint); cdecl;
+     TSSFFormat=procedure (para1:PFIELD; text:PAnsiChar; para3:longint); cdecl;
      TSSFControlFunc = function (para1:PFIELD; para2:longint; para3:Plongint; para4:PNUTInfo):longint; cdecl;
      TSSFVerifyFunc  = function (para1:PFIELD; para2:pointer; para3:PNUTInfo):longint; cdecl;
      TSSFReleaseProc = procedure (para1:PFIELD); cdecl;
@@ -1229,7 +1229,7 @@ type TcdReleaseProc = procedure (theData:pointer; handle:PNUTInfo); cdecl;
                 line,
                 column,
                 maxPasswordLen : longint;
-                passwordString:pchar;
+                passwordString:PAnsiChar;
                 verifyEntry:longint;
                 handle:PNUTInfo):longint;cdecl;external External_library name 'NWSPromptForPassword';
 
@@ -1238,7 +1238,7 @@ type TcdReleaseProc = procedure (theData:pointer; handle:PNUTInfo); cdecl;
                 column,
                 width,
                 fflag:longint;            // field flags
-                data:pchar;             // ptr to field text
+                data:PAnsiChar;             // ptr to field text
                 maxDataLen,             // including null
                 help,                   // help for field
                 verifyEntry,            // force password verification
@@ -1251,14 +1251,14 @@ type TcdReleaseProc = procedure (theData:pointer; handle:PNUTInfo); cdecl;
                 column,
                 width,
                 fflag:longint;
-                data:pchar;
+                data:PAnsiChar;
                 maxLen:longint;           // max len of data, allowing for null terminator
                 cset:pointer;           // valid characters, if using EF_SET
                 editFlags,              // NWSEditString flags (EF_UPPER etc.)
                 help:longint;
                 handle:PNUTInfo):PFIELD;cdecl;external External_library name 'NWSAppendScrollableStringField';
 
-type TSSFInsertFunc = function (_string:pchar; maxLen:longint; parameters:pointer):longint; cdecl;
+type TSSFInsertFunc = function (_string:PAnsiChar; maxLen:longint; parameters:pointer):longint; cdecl;
   procedure NWSSetScrollableFieldInsertProc(fp:PFIELD; insertProc:TSSFInsertFunc);cdecl;external External_library name 'NWSSetScrollableFieldInsertProc';
 
   { Returns 0 for success, -1 if none selected  }
@@ -1273,12 +1273,12 @@ type TSSFInsertFunc = function (_string:pchar; maxLen:longint; parameters:pointe
 
   procedure NWSShowLineAttribute(line,
                                  column:longint;
-                                 text:pchar;
+                                 text:PAnsiChar;
                                  attribute,
                                  length:longint;
                                  screenID:TScr);cdecl;external External_library name 'NWSShowLineAttribute';
 
-  procedure NWSShowLine(line,column:longint; text:pchar; length:longint; screenID:TScr);cdecl;external External_library name 'NWSShowLine';
+  procedure NWSShowLine(line,column:longint; text:PAnsiChar; length:longint; screenID:TScr);cdecl;external External_library name 'NWSShowLine';
 
   procedure NWSScrollZone
                    (line,
@@ -1339,7 +1339,7 @@ type TSSFInsertFunc = function (_string:pchar; maxLen:longint; parameters:pointe
                  height,
                  width,
                  headerNumber:longint;
-                 textBuffer:pchar;
+                 textBuffer:PAnsiChar;
                  maxBufferLength,
                  scrollBarFlag:longint;
                  handle:PNUTInfo):longint;cdecl;external External_library name 'NWSViewTextWithScrollBars';
@@ -1351,7 +1351,7 @@ type TSSFInsertFunc = function (_string:pchar; maxLen:longint; parameters:pointe
                  height,
                  width,
                  headerNumber:longint;
-                 textBuffer:pchar;
+                 textBuffer:PAnsiChar;
                  maxBufferLength,
                  confirmMessage,
                  forceConfirm,
@@ -1364,7 +1364,7 @@ type TSSFInsertFunc = function (_string:pchar; maxLen:longint; parameters:pointe
                  height,
                  width,
                  headerNumber:longint;
-                 textBuffer:pchar;
+                 textBuffer:PAnsiChar;
                  maxBufferLength,
                  confirmMessage : longint;
                  forceConfirm   : longbool;

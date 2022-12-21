@@ -43,10 +43,10 @@ type
   Tnuint8 = byte;
   Pnuint8 = ^byte;
   Tnptr = pointer;
-  pnstr = pchar;
-  ppnstr = ppchar;
-  Tnstr8 = char;
-  Pnstr8 = pchar;
+  pnstr = PAnsiChar;
+  ppnstr = PPAnsiChar;
+  Tnstr8 = AnsiChar;
+  Pnstr8 = PAnsiChar;
   nptr = pointer;
   Pnptr = ^pointer;
   Tnflag32 = longint;
@@ -884,7 +884,7 @@ const
   NWU_UNSUPPORTED_AUX_FUNCTION = -(526); // Unsupported AUX function
   NWU_EMBEDDED_NULL = -(525); // Embedded null in len spec string
   NWU_GET_CODE_PAGE_FAILED = -(524); // Failed to get system cp or cc
-  NWU_ILLEGAL_UTF8_CHARACTER = -(506); // Cannot convert UTF8 char to Uni
+  NWU_ILLEGAL_UTF8_CHARACTER = -(506); // Cannot convert UTF8 AnsiChar to Uni
   NWU_INSUFFICIENT_BUFFER = -(500);
     { Error codes for translator based APIs (i.e. NW prefix) }
   UNI_ALREADY_LOADED = -(489); // Already loaded another country or code page
@@ -1112,7 +1112,7 @@ function NWUXUnicodeToNormalized(normalizeHandle: TpCONVERT; normalizedOutput: p
     { Convert Unicode to bytes for file path    }
     { Handle to Byte <-> Uni converter   }
 
-    { Ptr to single or double-byte char  }
+    { Ptr to single or double-byte AnsiChar  }
     { # bytes in character (1 or 2)      }
 function NWUXGetCharSize(byteUniHandle: TpCONVERT; byteInput: Pnuint8; pCharSize: pnuint): Tnint; NWLIB_LOCNLM32;
     { Set action to be taken for no map chars   }
@@ -1143,13 +1143,13 @@ function NWUXSetSubByte(byteUniHandle: TpCONVERT; substituteByte: Tnuint8): Tnin
     { Handle to a Byte <-> Unicode converter    }
     { Substitution byte returned here           }
 function NWUXGetSubByte(byteUniHandle: TpCONVERT; substituteByte: pnuint8): Tnint; NWLIB_LOCNLM32;
-    { Set substitute uni char for converter     }
+    { Set substitute uni AnsiChar for converter     }
     { Handle to a Byte <-> Unicode converter    }
     { Unicode character to be substituted       }
 function NWUXSetSubUni(byteUniHandle: TpCONVERT; substituteUni: Tunicode): Tnint; NWLIB_LOCNLM32;
-    { Get substitute uni char for converter     }
+    { Get substitute uni AnsiChar for converter     }
     { Handle to a Byte <-> Unicode converter    }
-    { Substitution unicode char returned here   }
+    { Substitution unicode AnsiChar returned here   }
 function NWUXGetSubUni(byteUniHandle: TpCONVERT; substituteUni: punicode): Tnint; NWLIB_LOCNLM32;
     { Set up unmappable byte handling           }
     { Handle to a Byte <-> Unicode converter    }
@@ -1169,7 +1169,7 @@ function NWUXGetByteFunctions(byteUniHandle: TpCONVERT; var noMapByteFunc: TNMBY
     { Unicode scanning function                 }
     { Unicode parsing function                  }
 function NWUXSetUniFunctions(byteUniHandle: TpCONVERT; noMapUniFunc: TNMUNI; scanUniFunc: TSCUNI; parseUniFunc: TPRUNI): Tnint; NWLIB_LOCNLM32;
-    { Set up unmappable unicode char handling   }
+    { Set up unmappable unicode AnsiChar handling   }
     { Handle to a Byte <-> Unicode converter    }
     { Function called for unmappable uni chars  }
     { Unicode scan function                     }
@@ -5896,7 +5896,7 @@ function NWDSGetConnectionInfo
   connStatus: pnuint8;
   connType: pnuint8;
   serverFlags: pnuint8;
-  serverName: pchar;
+  serverName: PAnsiChar;
   transType: pnuint8;
   transLen: pnuint32;
   transBuf: pointer;
@@ -5929,7 +5929,7 @@ function NWGetConnectionIDFromAddress
 { replacement - NWCCScanConnInfo, NWCCOpenConnByRef, NWCCLicenseConn }
 function NWGetConnectionIDFromName
   (nameLen: Tnuint32;
-  name: pchar;
+  name: PAnsiChar;
   connHandle: PNWCONN_HANDLE): TNWCCODE; NWLIB_DSAPI;
 { replacement - NWCCScanConnInfo, NWCCOpenConnByRef }
 function NWGetNearestDSConnRef(connRef: pnuint32): TNWCCODE; NWLIB_DSAPI;
