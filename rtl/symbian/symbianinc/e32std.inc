@@ -4,5 +4,5 @@
 
 { User class }
 
-function User_InfoPrint(aString: PChar): TInt; cdecl; external;
+function User_InfoPrint(aString: PAnsiChar): TInt; cdecl; external;
 
