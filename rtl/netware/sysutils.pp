@@ -105,7 +105,7 @@ begin
     1 : NWOpenFlags:=NWOpenFlags or O_WRONLY;
     2 : NWOpenFlags:=NWOpenFlags or O_RDWR;
   end;
-  FileOpen := _open (pchar(SystemFileName),NWOpenFlags,0);
+  FileOpen := _open (PAnsiChar(SystemFileName),NWOpenFlags,0);
 
   //!! We need to set locking based on Mode !!
 end;
@@ -115,7 +115,7 @@ Function FileCreate (Const FileName : RawByteString) : THandle;
 VAR SystemFileName: RawByteString;
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
-  FileCreate:=_open(Pchar(SystemFileName),O_RdWr or O_Creat or O_Trunc,0);
+  FileCreate:=_open(PAnsiChar(SystemFileName),O_RdWr or O_Creat or O_Trunc,0);
 end;
 
 Function FileCreate (Const FileName : RawByteString; Rights:longint) : THandle;
@@ -216,7 +216,7 @@ Function FileAge (Const FileName : String): Int64;
 VAR Info : NWStatBufT;
     PTM  : PNWTM;
 begin
-  If _stat (pchar(FileName),Info) <> 0 then
+  If _stat (PAnsiChar(FileName),Info) <> 0 then
     exit(-1)
   else
     begin
@@ -241,7 +241,7 @@ VAR Info : NWStatBufT;
     SystemFileName: RawByteString;
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
-  FileExists:=(_stat(pchar(SystemFileName),Info) = 0);
+  FileExists:=(_stat(PAnsiChar(SystemFileName),Info) = 0);
 end;
 
 Function DirectoryExists (Const Directory : RawByteString; FollowLink : Boolean) : Boolean;
@@ -316,7 +316,7 @@ begin
   IF path = '' then
     exit (18);
   SystemEncodedPath := ToSingleByteFileSystemEncodedFileName(Path);
-  Rslt.FindData.DirP := _opendir (pchar(SystemEncodedPath));
+  Rslt.FindData.DirP := _opendir (PAnsiChar(SystemEncodedPath));
   IF Rslt.FindData.DirP = NIL THEN
     exit (18);
   IF attr <> faAnyFile THEN
@@ -395,7 +395,7 @@ Var Info : NWStatBufT;
     SystemFileName: RawByteString;
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
-  If _stat (pchar(SystemFileName),Info) <> 0 then
+  If _stat (PAnsiChar(SystemFileName),Info) <> 0 then
     Result:=-1
   Else
     Result := Info.st_attr AND $FFFF;
@@ -409,7 +409,7 @@ begin
   { The Attr parameter is not used! }
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   FillChar (MS, SIZEOF (MS), 0);
-  if _ChangeDirectoryEntry (PChar (SystemFilename), MS, MFileAtrributesBit, 0) <> 0 then
+  if _ChangeDirectoryEntry (PAnsiChar (SystemFilename), MS, MFileAtrributesBit, 0) <> 0 then
     result := -1
   else
     result := 0;
@@ -421,7 +421,7 @@ var
   SystemFileName: RawByteString;
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
-  Result:= (_UnLink (pchar(SystemFileName)) = 0);
+  Result:= (_UnLink (PAnsiChar(SystemFileName)) = 0);
 end;
 
 
@@ -431,7 +431,7 @@ var
 begin
   OldSystemFileName:=ToSingleByteFileSystemEncodedFileName(OldName);
   NewSystemFileName:=ToSingleByteFileSystemEncodedFileName(NewName);
-  RenameFile:=(_rename(pchar(OldSystemFileName),pchar(NewSystemFileName)) = 0);
+  RenameFile:=(_rename(PAnsiChar(OldSystemFileName),PAnsiChar(NewSystemFileName)) = 0);
 end;
 
 
@@ -452,7 +452,7 @@ end;
   They both return -1 when a failure occurs.
 }
 Const
-  FixDriveStr : array[0..3] of pchar=(
+  FixDriveStr : array[0..3] of PAnsiChar=(
     '.',
     'a:.',
     'b:.',
@@ -460,7 +460,7 @@ Const
     );
 var
   Drives   : byte;
-  DriveStr : array[4..26] of pchar;
+  DriveStr : array[4..26] of PAnsiChar;
 
 Procedure AddDisk(const path:string);
 begin
@@ -509,7 +509,7 @@ var
   SystemFileName: RawByteString;
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(Directory);
-  If _stat (pchar(SystemFileName),Info) <> 0 then
+  If _stat (PAnsiChar(SystemFileName),Info) <> 0 then
     exit(false)
   else
     Exit ((Info.st_attr and faDirectory) <> 0);
@@ -580,7 +580,7 @@ end;
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
 
 begin
-  Result:=_getenv(PChar(EnvVar));
+  Result:=_getenv(PAnsiChar(EnvVar));
 end;
 
 Function GetEnvironmentVariableCount : Integer;

@@ -42,8 +42,8 @@ const NULL = 0;
 type
    Psize_t = ^Tsize_t;
    Tsize_t = dword;
-   PPChar = ^PChar;
-   PPPChar= ^PPChar;
+   PPAnsiChar = ^PAnsiChar;
+   PPPChar= ^PPAnsiChar;
    Tsigset_t = longint;
    TNlmHandle = longint;
 
@@ -76,27 +76,27 @@ type
      end;
 
 { ISO/ANSI C functions...  }
-function asctime(para1:Ptm):Pchar;cdecl;external 'clib' name 'asctime';
+function asctime(para1:Ptm):PAnsiChar;cdecl;external 'clib' name 'asctime';
 function clock:Tclock_t;cdecl;external 'clib' name 'clock';
-function ctime(para1:Ptime_t):Pchar;cdecl;external 'clib' name 'ctime';
+function ctime(para1:Ptime_t):PAnsiChar;cdecl;external 'clib' name 'ctime';
 function difftime(para1:Ttime_t; para2:Ttime_t):double;cdecl;external 'clib' name 'difftime';
 function gmtime(para1:Ptime_t):Ptm;cdecl;external 'clib' name 'gmtime';
 function localtime(para1:Ptime_t):Ptm;cdecl;external 'clib' name 'localtime';
 function mktime(para1:Ptm):Ttime_t;cdecl;external 'clib' name 'mktime';
-function strftime(para1:Pchar; para2:Tsize_t; para3:Pchar; para4:Ptm):Tsize_t;cdecl;external 'clib' name 'strftime';
+function strftime(para1:PAnsiChar; para2:Tsize_t; para3:PAnsiChar; para4:Ptm):Tsize_t;cdecl;external 'clib' name 'strftime';
 function time(para1:Ptime_t):Ttime_t;cdecl;external 'clib' name 'time';
 { POSIX data and functions...  }
-{ For extern char tzname[2], see macro below  }
+{ For extern AnsiChar tzname[2], see macro below  }
 procedure tzset;cdecl;external 'clib' name 'tzset';
 function __get_CLK_TCK:Tclock_t;cdecl;external 'clib' name '__get_CLK_TCK';
-function __get_tzname:pPchar;cdecl;external 'clib' name '__get_tzname';
+function __get_tzname:PPAnsiChar;cdecl;external 'clib' name '__get_tzname';
 { POSIX-defined additions ...  }
-function asctime_r(para1:Ptm; para2:Pchar):Pchar;cdecl;external 'clib' name 'asctime_r';
-function ctime_r(para1:Ptime_t; para2:Pchar):Pchar;cdecl;external 'clib' name 'ctime_r';
+function asctime_r(para1:Ptm; para2:PAnsiChar):PAnsiChar;cdecl;external 'clib' name 'asctime_r';
+function ctime_r(para1:Ptime_t; para2:PAnsiChar):PAnsiChar;cdecl;external 'clib' name 'ctime_r';
 function gmtime_r(para1:Ptime_t; para2:Ptm):Ptm;cdecl;external 'clib' name 'gmtime_r';
 function localtime_r(para1:Ptime_t; para2:Ptm):Ptm;cdecl;external 'clib' name 'localtime_r';
 function CLK_TCK : longint;
-function tzname : pchar;
+function tzname : PAnsiChar;
 
 {-utime.h----------------------------------------------------------------------}
 type
@@ -107,8 +107,8 @@ type
    end;
 
 
-function utime(path:Pchar; times:Putimbuf):longint;cdecl;external 'clib' name 'utime';
-function utime(path:Pchar; var times:Tutimbuf):longint;cdecl;external 'clib' name 'utime';
+function utime(path:PAnsiChar; times:Putimbuf):longint;cdecl;external 'clib' name 'utime';
+function utime(path:PAnsiChar; var times:Tutimbuf):longint;cdecl;external 'clib' name 'utime';
 
 {-string.h---------------------------------------------------------------------}
 function memchr(para1:pointer; para2:longint; para3:Tsize_t):pointer;cdecl;external 'clib' name 'memchr';
@@ -116,36 +116,36 @@ function memcmp(para1:pointer; para2:pointer; para3:Tsize_t):longint;cdecl;exter
 function memcpy(para1:pointer; para2:pointer; para3:Tsize_t):pointer;cdecl;external 'clib' name 'memcpy';
 function memmove(para1:pointer; para2:pointer; para3:Tsize_t):pointer;cdecl;external 'clib' name 'memmove';
 function memset(para1:pointer; para2:longint; para3:Tsize_t):pointer;cdecl;external 'clib' name 'memset';
-function strcpy(para1:Pchar; para2:Pchar):Pchar;cdecl;external 'clib' name 'strcpy';
-function strcat(para1:Pchar; para2:Pchar):Pchar;cdecl;external 'clib' name 'strcat';
-function strchr(para1:Pchar; para2:longint):Pchar;cdecl;external 'clib' name 'strchr';
-function strcmp(para1:Pchar; para2:Pchar):longint;cdecl;external 'clib' name 'strcmp';
-function strcoll(para1:Pchar; para2:Pchar):longint;cdecl;external 'clib' name 'strcoll';
-function strcspn(para1:Pchar; para2:Pchar):Tsize_t;cdecl;external 'clib' name 'strcspn';
-function strerror(para1:longint):Pchar;cdecl;external 'clib' name 'strerror';
-function strlen(para1:Pchar):Tsize_t;cdecl;external 'clib' name 'strlen';
-function strncat(para1:Pchar; para2:Pchar; para3:Tsize_t):Pchar;cdecl;external 'clib' name 'strncat';
-function strncmp(para1:Pchar; para2:Pchar; para3:Tsize_t):longint;cdecl;external 'clib' name 'strncmp';
-function strncpy(para1:Pchar; para2:Pchar; para3:Tsize_t):Pchar;cdecl;external 'clib' name 'strncpy';
-function strpbrk(para1:Pchar; para2:Pchar):Pchar;cdecl;external 'clib' name 'strpbrk';
-function strrchr(para1:Pchar; para2:longint):Pchar;cdecl;external 'clib' name 'strrchr';
-function strspn(para1:Pchar; para2:Pchar):Tsize_t;cdecl;external 'clib' name 'strspn';
-function strstr(para1:Pchar; para2:Pchar):Pchar;cdecl;external 'clib' name 'strstr';
-function strtok(para1:Pchar; para2:Pchar):Pchar;cdecl;external 'clib' name 'strtok';
-function strxfrm(para1:Pchar; para2:Pchar; para3:Tsize_t):Tsize_t;cdecl;external 'clib' name 'strxfrm';
-function strtok_r(para1:Pchar; para2:Pchar; para3:PPchar):Pchar;cdecl;external 'clib' name 'strtok_r';
+function strcpy(para1:PAnsiChar; para2:PAnsiChar):PAnsiChar;cdecl;external 'clib' name 'strcpy';
+function strcat(para1:PAnsiChar; para2:PAnsiChar):PAnsiChar;cdecl;external 'clib' name 'strcat';
+function strchr(para1:PAnsiChar; para2:longint):PAnsiChar;cdecl;external 'clib' name 'strchr';
+function strcmp(para1:PAnsiChar; para2:PAnsiChar):longint;cdecl;external 'clib' name 'strcmp';
+function strcoll(para1:PAnsiChar; para2:PAnsiChar):longint;cdecl;external 'clib' name 'strcoll';
+function strcspn(para1:PAnsiChar; para2:PAnsiChar):Tsize_t;cdecl;external 'clib' name 'strcspn';
+function strerror(para1:longint):PAnsiChar;cdecl;external 'clib' name 'strerror';
+function strlen(para1:PAnsiChar):Tsize_t;cdecl;external 'clib' name 'strlen';
+function strncat(para1:PAnsiChar; para2:PAnsiChar; para3:Tsize_t):PAnsiChar;cdecl;external 'clib' name 'strncat';
+function strncmp(para1:PAnsiChar; para2:PAnsiChar; para3:Tsize_t):longint;cdecl;external 'clib' name 'strncmp';
+function strncpy(para1:PAnsiChar; para2:PAnsiChar; para3:Tsize_t):PAnsiChar;cdecl;external 'clib' name 'strncpy';
+function strpbrk(para1:PAnsiChar; para2:PAnsiChar):PAnsiChar;cdecl;external 'clib' name 'strpbrk';
+function strrchr(para1:PAnsiChar; para2:longint):PAnsiChar;cdecl;external 'clib' name 'strrchr';
+function strspn(para1:PAnsiChar; para2:PAnsiChar):Tsize_t;cdecl;external 'clib' name 'strspn';
+function strstr(para1:PAnsiChar; para2:PAnsiChar):PAnsiChar;cdecl;external 'clib' name 'strstr';
+function strtok(para1:PAnsiChar; para2:PAnsiChar):PAnsiChar;cdecl;external 'clib' name 'strtok';
+function strxfrm(para1:PAnsiChar; para2:PAnsiChar; para3:Tsize_t):Tsize_t;cdecl;external 'clib' name 'strxfrm';
+function strtok_r(para1:PAnsiChar; para2:PAnsiChar; para3:PPAnsiChar):PAnsiChar;cdecl;external 'clib' name 'strtok_r';
 function memicmp(para1:pointer; para2:pointer; para3:Tsize_t):longint;cdecl;external 'clib' name 'memicmp';
-function strcmpi(para1:Pchar; para2:Pchar):longint;cdecl;external 'clib' name 'strcmpi';
-function stricmp(para1:Pchar; para2:Pchar):longint;cdecl;external 'clib' name 'stricmp';
-function strdup(para1:Pchar):Pchar;cdecl;external 'clib' name 'strdup';
-function strlist(para1,para2:Pchar; args:array of const):Pchar;cdecl;external 'clib' name 'strlist';
-function strlist(para1,para2:Pchar):Pchar;cdecl;external 'clib' name 'strlist';
-function strlwr(para1:Pchar):Pchar;cdecl;external 'clib' name 'strlwr';
-function strnicmp(para1,para2:Pchar; para3:Tsize_t):longint;cdecl;external 'clib' name 'strnicmp';
-function strnset(para1:Pchar; para2:longint; para3:Tsize_t):Pchar;cdecl;external 'clib' name 'strnset';
-function strrev(para1:Pchar):Pchar;cdecl;external 'clib' name 'strrev';
-function strset(para1:Pchar; para2:longint):Pchar;cdecl;external 'clib' name 'strset';
-function strupr(para1:Pchar):Pchar;cdecl;external 'clib' name 'strupr';
+function strcmpi(para1:PAnsiChar; para2:PAnsiChar):longint;cdecl;external 'clib' name 'strcmpi';
+function stricmp(para1:PAnsiChar; para2:PAnsiChar):longint;cdecl;external 'clib' name 'stricmp';
+function strdup(para1:PAnsiChar):PAnsiChar;cdecl;external 'clib' name 'strdup';
+function strlist(para1,para2:PAnsiChar; args:array of const):PAnsiChar;cdecl;external 'clib' name 'strlist';
+function strlist(para1,para2:PAnsiChar):PAnsiChar;cdecl;external 'clib' name 'strlist';
+function strlwr(para1:PAnsiChar):PAnsiChar;cdecl;external 'clib' name 'strlwr';
+function strnicmp(para1,para2:PAnsiChar; para3:Tsize_t):longint;cdecl;external 'clib' name 'strnicmp';
+function strnset(para1:PAnsiChar; para2:longint; para3:Tsize_t):PAnsiChar;cdecl;external 'clib' name 'strnset';
+function strrev(para1:PAnsiChar):PAnsiChar;cdecl;external 'clib' name 'strrev';
+function strset(para1:PAnsiChar; para2:longint):PAnsiChar;cdecl;external 'clib' name 'strset';
+function strupr(para1:PAnsiChar):PAnsiChar;cdecl;external 'clib' name 'strupr';
 procedure swab(para1:pointer; para2:pointer; para3:Tsize_t);cdecl;external 'clib' name 'swab';
 procedure swaw(para1:pointer; para2:pointer; para3:Tsize_t);cdecl;external 'clib' name 'swaw';
 {-dirent.h---------------------------------------------------------------------}
@@ -170,12 +170,12 @@ type
      d_uid                  : longint;
      d_archivedID           : dword;
      d_updatedID            : dword;
-     d_nameDOS              : array[0..12] of char;
+     d_nameDOS              : array[0..12] of AnsiChar;
      d_inheritedRightsMask  : word;
      d_originatingNameSpace : byte;
      d_ddatetime            : dword;
      d_deletedID            : dword;
-     d_name                 : array[0..255] of char;
+     d_name                 : array[0..255] of AnsiChar;
    end;
    TDIR = Tdirent;
    PDIR = ^TDIR;
@@ -183,8 +183,8 @@ type
 
 function closedir_old (dirp:PDIR):longint;                            cdecl; external 'clib' name 'closedir';
 function closedir     (dirp:PDIR):longint;                            cdecl; external 'clib' name 'closedir_510';
-function opendir_old  (pathName:Pchar):PDIR;                          cdecl; external 'clib' name 'opendir';
-function opendir      (pathName:Pchar):PDIR;                          cdecl; external 'clib' name 'opendir_411';
+function opendir_old  (pathName:PAnsiChar):PDIR;                          cdecl; external 'clib' name 'opendir';
+function opendir      (pathName:PAnsiChar):PDIR;                          cdecl; external 'clib' name 'opendir_411';
 function readdir_old  (dirp:PDIR):PDIR;                               cdecl; external 'clib' name 'readdir';
 function readdir      (dirp:PDIR):PDIR;                               cdecl; external 'clib' name 'readdir_411';
 procedure rewinddir   (dirp:PDIR);                                    cdecl; external 'clib' name 'rewinddir';
@@ -672,17 +672,17 @@ type
      end;
 
 
-function creat (path:Pchar; mode:Tmode_t):longint;                  cdecl;external 'clib' name 'creat';
+function creat (path:PAnsiChar; mode:Tmode_t):longint;                  cdecl;external 'clib' name 'creat';
 function _fcntl (fildes:longint; cmd:longint;
                 args:array of const):longint;                       cdecl;external 'clib' name 'fcntl';
 function _fcntl (fildes:longint; cmd:longint):longint;               cdecl;external 'clib' name 'fcntl';
-function open  (path:Pchar; oflag:longint;
+function open  (path:PAnsiChar; oflag:longint;
                 args:array of const):longint;                       cdecl;external 'clib' name 'open';
-function open  (path:Pchar; oflag:longint):longint;                 cdecl;external 'clib' name 'open';
-function fpopen(path:Pchar; oflag:longint):longint;                 cdecl;external 'clib' name 'open';
-function sopen (path:Pchar; oflag, shflag:longint;
+function open  (path:PAnsiChar; oflag:longint):longint;                 cdecl;external 'clib' name 'open';
+function fpopen(path:PAnsiChar; oflag:longint):longint;                 cdecl;external 'clib' name 'open';
+function sopen (path:PAnsiChar; oflag, shflag:longint;
                 args:array of const):longint;                       cdecl;external 'clib' name 'sopen';
-function sopen (path:Pchar; oflag,shflag:longint):longint;          cdecl;external 'clib' name 'sopen';
+function sopen (path:PAnsiChar; oflag,shflag:longint):longint;          cdecl;external 'clib' name 'sopen';
 
 {-limits.h---------------------------------------------------------------------}
 const
@@ -723,38 +723,38 @@ type
    Plconv = ^Tlconv;
    Tlconv =
    record
-     decimal_point       : array [0..3] of char;
-     thousands_sep       : array [0..3] of char;
-     grouping            : array [0..3] of char;
-     int_curr_symbol     : array [0..7] of char;
-     currency_symbol     : array [0..3] of char;
-     mon_decimal_point   : array [0..3] of char;
-     mon_thousands_sep   : array [0..3] of char;
-     mon_grouping        : array [0..7] of char;
-     positive_sign       : array [0..3] of char;
-     negative_sign       : array [0..3] of char;
-     int_frac_digits     : char;
-     frac_digits         : char;
-     p_cs_precedes       : char;
-     p_sep_by_space      : char;
-     n_cs_precedes       : char;
-     n_sep_by_space      : char;
-     p_sign_posn         : char;
-     n_sign_posn         : char;
+     decimal_point       : array [0..3] of AnsiChar;
+     thousands_sep       : array [0..3] of AnsiChar;
+     grouping            : array [0..3] of AnsiChar;
+     int_curr_symbol     : array [0..7] of AnsiChar;
+     currency_symbol     : array [0..3] of AnsiChar;
+     mon_decimal_point   : array [0..3] of AnsiChar;
+     mon_thousands_sep   : array [0..3] of AnsiChar;
+     mon_grouping        : array [0..7] of AnsiChar;
+     positive_sign       : array [0..3] of AnsiChar;
+     negative_sign       : array [0..3] of AnsiChar;
+     int_frac_digits     : AnsiChar;
+     frac_digits         : AnsiChar;
+     p_cs_precedes       : AnsiChar;
+     p_sep_by_space      : AnsiChar;
+     n_cs_precedes       : AnsiChar;
+     n_sep_by_space      : AnsiChar;
+     p_sign_posn         : AnsiChar;
+     n_sign_posn         : AnsiChar;
      code_page           : word;
      country_id          : word;
-     data_list_separator : array[0..1] of char;
-     date_separator      : array[0..1] of char;
-     time_separator      : array[0..1] of char;
-     time_format         : char;
+     data_list_separator : array[0..1] of AnsiChar;
+     date_separator      : array[0..1] of AnsiChar;
+     time_separator      : array[0..1] of AnsiChar;
+     time_format         : AnsiChar;
      date_format         : word;
-     reserved            : array[0..49] of char;
+     reserved            : array[0..49] of AnsiChar;
    end;
 
 // ???? struct lconv  *localeconv( void );
 
-function setlocale_old (p1:longint; p2:Pchar):Pchar;  cdecl; external 'clib' name 'setlocale';
-function setlocale     (p1:longint; p2:Pchar):Pchar;  cdecl; external 'clib' name 'setlocale_411';
+function setlocale_old (p1:longint; p2:PAnsiChar):PAnsiChar;  cdecl; external 'clib' name 'setlocale';
+function setlocale     (p1:longint; p2:PAnsiChar):PAnsiChar;  cdecl; external 'clib' name 'setlocale_411';
 {-nwlocale.h-------------------------------------------------------------------}
 {$PACKRECORDS C}
 
@@ -799,69 +799,69 @@ const
 type
    PVECTOR = ^TVECTOR;
    TVECTOR = record
-        lowValue : char;
-        highValue : char;
+        lowValue : AnsiChar;
+        highValue : AnsiChar;
      end;
 { extern double-byte table data...  }
 //??  var _DBCSVector : array[0..4] of TVECTOR;cvar;external;
 { prototypes...  }
 
 function NWCharType(ch:dword):longint;cdecl;external 'locnlm32' name 'NWCharType';
-function NWCharVal(_string:Pchar):longint;cdecl;external 'locnlm32' name 'NWCharVal';
+function NWCharVal(_string:PAnsiChar):longint;cdecl;external 'locnlm32' name 'NWCharVal';
 function NWCharUpr(chr:longint):longint;cdecl;external 'locnlm32' name 'NWCharUpr';
-function NWcprintf(format:Pchar; args:array of const):longint;cdecl;external 'locnlm32' name 'NWcprintf';
-function NWcprintf(format:Pchar):longint;cdecl;external 'locnlm32' name 'NWcprintf';
-function NWIncrement(_string:Pchar; numChars:Tsize_t):Pchar;cdecl;external 'locnlm32' name 'NWIncrement';
+function NWcprintf(format:PAnsiChar; args:array of const):longint;cdecl;external 'locnlm32' name 'NWcprintf';
+function NWcprintf(format:PAnsiChar):longint;cdecl;external 'locnlm32' name 'NWcprintf';
+function NWIncrement(_string:PAnsiChar; numChars:Tsize_t):PAnsiChar;cdecl;external 'locnlm32' name 'NWIncrement';
 {
    NWatoi, NWisalnum, NWisalpha, and NWisdigit are preferred over NWLatoi,
    NWisalnum, NWLisalpha, and NWLisdigit respectively.
  }
-function NWatoi(_string:Pchar):longint;cdecl;external 'locnlm32' name 'NWatoi';
+function NWatoi(_string:PAnsiChar):longint;cdecl;external 'locnlm32' name 'NWatoi';
 function NWisalnum(ch:dword):longint;cdecl;external 'locnlm32' name 'NWisalnum';
 function NWisalpha(ch:dword):longint;cdecl;external 'locnlm32' name 'NWisalpha';
 function NWisdigit(ch:dword):longint;cdecl;external 'locnlm32' name 'NWisdigit';
 function NWisxdigit(ch:dword):longint;cdecl;external 'locnlm32' name 'NWisxdigit';
-function NWitoa(value:longint; _string:Pchar; radix:longint):longint;cdecl;external 'locnlm32' name 'NWitoa';
-function NWutoa(value:dword; _string:Pchar; radix:longint):longint;cdecl;external 'locnlm32' name 'NWutoa';
-function NWltoa(value:longint; _string:Pchar; radix:longint):longint;cdecl;external 'locnlm32' name 'NWltoa';
-function NWultoa(value:dword; _string:Pchar; radix:longint):longint;cdecl;external 'locnlm32' name 'NWultoa';
+function NWitoa(value:longint; _string:PAnsiChar; radix:longint):longint;cdecl;external 'locnlm32' name 'NWitoa';
+function NWutoa(value:dword; _string:PAnsiChar; radix:longint):longint;cdecl;external 'locnlm32' name 'NWutoa';
+function NWltoa(value:longint; _string:PAnsiChar; radix:longint):longint;cdecl;external 'locnlm32' name 'NWltoa';
+function NWultoa(value:dword; _string:PAnsiChar; radix:longint):longint;cdecl;external 'locnlm32' name 'NWultoa';
 (* Const before type ignored *)
-function NWLatoi(_string:Pchar):longint;cdecl;external 'locnlm32' name 'NWLatoi';
+function NWLatoi(_string:PAnsiChar):longint;cdecl;external 'locnlm32' name 'NWLatoi';
 function NWLisalnum(ch:dword):longint;cdecl;external 'locnlm32' name 'NWLisalnum';
 function NWLisalpha(ch:dword):longint;cdecl;external 'locnlm32' name 'NWLisalpha';
 function NWLisdigit(ch:dword):longint;cdecl;external 'locnlm32' name 'NWLisdigit';
 function NWLlocaleconv(lconvPtr:PLCONV):PLCONV;cdecl;external 'locnlm32' name 'NWLlocaleconv';
-function NWLmblen(_string:Pchar; maxBytes:Tsize_t):longint;cdecl;external 'locnlm32' name 'NWLmblen';
-function NWLmbslen(_string:Pchar):longint;cdecl;external 'locnlm32' name 'NWLmbslen';
-function NWLsetlocale(category:longint; locale:Pchar):Pchar;cdecl;external 'locnlm32' name 'NWLsetlocale';
-function NWLsetlocale_411(category:longint; locale:Pchar):Pchar;cdecl;external 'locnlm32' name 'NWLsetlocale_411';
-function NWLstrbcpy(dest:Pchar; src:Pchar; maxlen:Tsize_t):Pchar;cdecl;external 'locnlm32' name 'NWLstrbcpy';
-function NWLstrchr(_string:Pchar; find:longint):Pchar;cdecl;external 'locnlm32' name 'NWLstrchr';
-function NWLstrcoll(string1:Pchar; string2:Pchar):longint;cdecl;external 'locnlm32' name 'NWLstrcoll';
-function NWLstrcspn(string1:Pchar; string2:Pchar):Tsize_t;cdecl;external 'locnlm32' name 'NWLstrcspn';
-function NWLstrftime(_string:Pchar; maxSize:Tsize_t; format:Pchar; timePtr:Ptm):Tsize_t;cdecl;external 'locnlm32' name 'NWLstrftime';
-function NWLstricmp(str1:Pchar; str2:Pchar):longint;cdecl;external 'locnlm32' name 'NWLstricmp';
-function NWLstrlwr(_string:Pchar):Pchar;cdecl;external 'locnlm32' name 'NWLstrlwr';
-function NWLstrpbrk(string1:Pchar; string2:Pchar):Pchar;cdecl;external 'locnlm32' name 'NWLstrpbrk';
-function NWLstrrchr(_string:Pchar; find:longint):Pchar;cdecl;external 'locnlm32' name 'NWLstrrchr';
-function NWLstrrev(string1:Pchar; string2:Pchar):Pchar;cdecl;external 'locnlm32' name 'NWLstrrev';
-function NWLstrspn(string1:Pchar; string2:Pchar):Tsize_t;cdecl;external 'locnlm32' name 'NWLstrspn';
-function NWLstrstr(_string:Pchar; searchString:Pchar):Pchar;cdecl;external 'locnlm32' name 'NWLstrstr';
-function NWLstrupr(_string:Pchar):Pchar;cdecl;external 'locnlm32' name 'NWLstrupr';
-function NWLstrxfrm(string1:Pchar; string2:Pchar; numChars:Tsize_t):Tsize_t;cdecl;external 'locnlm32' name 'NWLstrxfrm';
-function NWPrevChar(_string:Pchar; position:Pchar):Pchar;cdecl;external 'locnlm32' name 'NWPrevChar';
-function NWprintf(format:Pchar; args:array of const):longint;cdecl;external 'locnlm32' name 'NWprintf';
-function NWprintf(format:Pchar):longint;cdecl;external 'locnlm32' name 'NWprintf';
-function NWsprintf(s:Pchar; format:Pchar; args:array of const):longint;cdecl;external 'locnlm32' name 'NWsprintf';
-function NWsprintf(s:Pchar; format:Pchar):longint;cdecl;external 'locnlm32' name 'NWsprintf';
-function NWstrImoney(buffer:Pchar; Value:TNUMBER_TYPE):Pchar;cdecl;external 'locnlm32' name 'NWstrImoney';
-function NWstrmoney(buffer:Pchar; Value:TNUMBER_TYPE):Pchar;cdecl;external 'locnlm32' name 'NWstrmoney';
-function NWstrncoll(string1:Pchar; string2:Pchar; maxChars:Tsize_t):longint;cdecl;external 'locnlm32' name 'NWstrncoll';
-function NWstrncpy(target_string:Pchar; source_string:Pchar; numChars:longint):Pchar;cdecl;external 'locnlm32' name 'NWstrncpy';
-function NWstrnum(buffer:Pchar; Value:TNUMBER_TYPE):Pchar;cdecl;external 'locnlm32' name 'NWstrnum';
-//function NWvcprintf(format:Pchar; arg:Tva_list):longint;cdecl;external 'locnlm32' name 'NWvcprintf';
-//function NWvprintf(format:Pchar; arg:Tva_list):longint;cdecl;external 'locnlm32' name 'NWvprintf';
-//function NWvsprintf(s:Pchar; format:Pchar; arg:Tva_list):longint;cdecl;external 'locnlm32' name 'NWvsprintf';
+function NWLmblen(_string:PAnsiChar; maxBytes:Tsize_t):longint;cdecl;external 'locnlm32' name 'NWLmblen';
+function NWLmbslen(_string:PAnsiChar):longint;cdecl;external 'locnlm32' name 'NWLmbslen';
+function NWLsetlocale(category:longint; locale:PAnsiChar):PAnsiChar;cdecl;external 'locnlm32' name 'NWLsetlocale';
+function NWLsetlocale_411(category:longint; locale:PAnsiChar):PAnsiChar;cdecl;external 'locnlm32' name 'NWLsetlocale_411';
+function NWLstrbcpy(dest:PAnsiChar; src:PAnsiChar; maxlen:Tsize_t):PAnsiChar;cdecl;external 'locnlm32' name 'NWLstrbcpy';
+function NWLstrchr(_string:PAnsiChar; find:longint):PAnsiChar;cdecl;external 'locnlm32' name 'NWLstrchr';
+function NWLstrcoll(string1:PAnsiChar; string2:PAnsiChar):longint;cdecl;external 'locnlm32' name 'NWLstrcoll';
+function NWLstrcspn(string1:PAnsiChar; string2:PAnsiChar):Tsize_t;cdecl;external 'locnlm32' name 'NWLstrcspn';
+function NWLstrftime(_string:PAnsiChar; maxSize:Tsize_t; format:PAnsiChar; timePtr:Ptm):Tsize_t;cdecl;external 'locnlm32' name 'NWLstrftime';
+function NWLstricmp(str1:PAnsiChar; str2:PAnsiChar):longint;cdecl;external 'locnlm32' name 'NWLstricmp';
+function NWLstrlwr(_string:PAnsiChar):PAnsiChar;cdecl;external 'locnlm32' name 'NWLstrlwr';
+function NWLstrpbrk(string1:PAnsiChar; string2:PAnsiChar):PAnsiChar;cdecl;external 'locnlm32' name 'NWLstrpbrk';
+function NWLstrrchr(_string:PAnsiChar; find:longint):PAnsiChar;cdecl;external 'locnlm32' name 'NWLstrrchr';
+function NWLstrrev(string1:PAnsiChar; string2:PAnsiChar):PAnsiChar;cdecl;external 'locnlm32' name 'NWLstrrev';
+function NWLstrspn(string1:PAnsiChar; string2:PAnsiChar):Tsize_t;cdecl;external 'locnlm32' name 'NWLstrspn';
+function NWLstrstr(_string:PAnsiChar; searchString:PAnsiChar):PAnsiChar;cdecl;external 'locnlm32' name 'NWLstrstr';
+function NWLstrupr(_string:PAnsiChar):PAnsiChar;cdecl;external 'locnlm32' name 'NWLstrupr';
+function NWLstrxfrm(string1:PAnsiChar; string2:PAnsiChar; numChars:Tsize_t):Tsize_t;cdecl;external 'locnlm32' name 'NWLstrxfrm';
+function NWPrevChar(_string:PAnsiChar; position:PAnsiChar):PAnsiChar;cdecl;external 'locnlm32' name 'NWPrevChar';
+function NWprintf(format:PAnsiChar; args:array of const):longint;cdecl;external 'locnlm32' name 'NWprintf';
+function NWprintf(format:PAnsiChar):longint;cdecl;external 'locnlm32' name 'NWprintf';
+function NWsprintf(s:PAnsiChar; format:PAnsiChar; args:array of const):longint;cdecl;external 'locnlm32' name 'NWsprintf';
+function NWsprintf(s:PAnsiChar; format:PAnsiChar):longint;cdecl;external 'locnlm32' name 'NWsprintf';
+function NWstrImoney(buffer:PAnsiChar; Value:TNUMBER_TYPE):PAnsiChar;cdecl;external 'locnlm32' name 'NWstrImoney';
+function NWstrmoney(buffer:PAnsiChar; Value:TNUMBER_TYPE):PAnsiChar;cdecl;external 'locnlm32' name 'NWstrmoney';
+function NWstrncoll(string1:PAnsiChar; string2:PAnsiChar; maxChars:Tsize_t):longint;cdecl;external 'locnlm32' name 'NWstrncoll';
+function NWstrncpy(target_string:PAnsiChar; source_string:PAnsiChar; numChars:longint):PAnsiChar;cdecl;external 'locnlm32' name 'NWstrncpy';
+function NWstrnum(buffer:PAnsiChar; Value:TNUMBER_TYPE):PAnsiChar;cdecl;external 'locnlm32' name 'NWstrnum';
+//function NWvcprintf(format:PAnsiChar; arg:Tva_list):longint;cdecl;external 'locnlm32' name 'NWvcprintf';
+//function NWvprintf(format:PAnsiChar; arg:Tva_list):longint;cdecl;external 'locnlm32' name 'NWvprintf';
+//function NWvsprintf(s:PAnsiChar; format:PAnsiChar; arg:Tva_list):longint;cdecl;external 'locnlm32' name 'NWvsprintf';
 {-nwaudnlm.h-------------------------------------------------------------------}
 { defined network address types:  }
 
@@ -891,19 +891,19 @@ function NWAddRecordToAuditingFile
 function NWGetAuditingIdentity
     (addressType       : Plongint;
      networkAddress    : pointer;
-     identityName      : Pchar):longint;cdecl;external 'clib' name 'NWGetAuditingIdentity';
+     identityName      : PAnsiChar):longint;cdecl;external 'clib' name 'NWGetAuditingIdentity';
 function NWGetAuditingIdentity
     (var addressType   : longint;
      var networkAddress;
-     identityName      : Pchar):longint;cdecl;external 'clib' name 'NWGetAuditingIdentity';
+     identityName      : PAnsiChar):longint;cdecl;external 'clib' name 'NWGetAuditingIdentity';
 function NWSetAuditingIdentity
     (addressType:longint;
      networkAddress:pointer;
-     identityName:Pchar):longint;cdecl;external 'clib' name 'NWSetAuditingIdentity';
+     identityName:PAnsiChar):longint;cdecl;external 'clib' name 'NWSetAuditingIdentity';
 function NWSetAuditingIdentity
     (addressType:longint;
  var networkAddress;
-     identityName:Pchar):longint;cdecl;external 'clib' name 'NWSetAuditingIdentity';
+     identityName:PAnsiChar):longint;cdecl;external 'clib' name 'NWSetAuditingIdentity';
 {-nwbitops.h-------------------------------------------------------------------}
 procedure BitClear        (bitArray:pointer; bitNumber:longint);cdecl;external 'clib' name 'BitClear';
 procedure BitSet          (bitArray:pointer; bitNumber:longint);cdecl;external 'clib' name 'BitSet';
@@ -921,7 +921,7 @@ function  BitTestAndSet   (var bitArray; bitNumber:longint):longint;cdecl;extern
 function  ScanBits        (var bitArray; startingBitNumber,totalBitCount:longint):longint;cdecl;external 'clib' name 'ScanBits';
 function  ScanClearedBits (var bitArray; startingBitNumber,totalBitCount:longint):longint;cdecl;external 'clib' name 'ScanClearedBits';
 {-nwcntask.h-------------------------------------------------------------------}
-{#define LOGIN_WITHOUT_PASSWORD ((char *) N_TRUE) }
+{#define LOGIN_WITHOUT_PASSWORD ((AnsiChar *) N_TRUE) }
 
 function AllocateBlockOfTasks(numberWanted:longint):longint;cdecl;external 'clib' name 'AllocateBlockOfTasks';
 function CheckIfConnectionActive(connection:longint):byte;cdecl;external 'clib' name 'CheckIfConnectionActive';
@@ -930,7 +930,7 @@ function EnableConnection(connection:longint):longint;cdecl;external 'clib' name
 function GetCurrentConnection:longint;cdecl;external 'clib' name 'GetCurrentConnection';
 function GetCurrentFileServerID:word;cdecl;external 'clib' name 'GetCurrentFileServerID';
 function GetCurrentTask:longint;cdecl;external 'clib' name 'GetCurrentTask';
-function LoginObject(connection:longint; objectName:Pchar; objectType:word; password:Pchar):longint;cdecl;external 'clib' name 'LoginObject';
+function LoginObject(connection:longint; objectName:PAnsiChar; objectType:word; password:PAnsiChar):longint;cdecl;external 'clib' name 'LoginObject';
 function LogoutObject(connection:longint):longint;cdecl;external 'clib' name 'LogoutObject';
 function ReturnBlockOfTasks(startingTask,numberOfTasks:longint):longint;cdecl;external 'clib' name 'ReturnBlockOfTasks';
 function ReturnConnection(connection:longint):longint;cdecl;external 'clib' name 'ReturnConnection';
@@ -1003,24 +1003,24 @@ function kbhit:longint; cdecl; external 'clib' name 'kbhit';
 function putch(c:longint):longint; cdecl; external 'clib' name 'putch';
 function ungetch(c:longint):longint; cdecl; external 'clib' name 'ungetch';
 function ungetcharacter(c:longint):longint; cdecl; external 'clib' name 'ungetch';
-function cgets(buf:Pchar):Pchar; cdecl; external 'clib' name 'cgets';
+function cgets(buf:PAnsiChar):PAnsiChar; cdecl; external 'clib' name 'cgets';
 function CheckIfScreenDisplayed(screenHandle,waitFlag:longint):longint; cdecl; external 'clib' name 'CheckIfScreenDisplayed';
 function CheckIfScreenDisplayed(screenHandle:TScr;waitFlag:longint):longint; cdecl; external 'clib' name 'CheckIfScreenDisplayed';
 procedure clrscr; cdecl; external 'clib' name 'clrscr';
-procedure ConsolePrintf(format:Pchar; args:array of const); cdecl; external 'clib' name 'ConsolePrintf';
-procedure ConsolePrintf(format:Pchar); cdecl; external 'clib' name 'ConsolePrintf';
+procedure ConsolePrintf(format:PAnsiChar; args:array of const); cdecl; external 'clib' name 'ConsolePrintf';
+procedure ConsolePrintf(format:PAnsiChar); cdecl; external 'clib' name 'ConsolePrintf';
 procedure CopyToScreenMemory(height,width:word; Rect:PBYTE; beg_x,beg_y:word); cdecl; external 'clib' name 'CopyToScreenMemory';
 procedure CopyToScreenMemory(height,width:word; var Data; beg_x,beg_y:word); cdecl; external 'clib' name 'CopyToScreenMemory';
 procedure CopyFromScreenMemory(height,width:word; Rect:PBYTE; beg_x,beg_y:word); cdecl; external 'clib' name 'CopyFromScreenMemory';
 procedure CopyFromScreenMemory(height,width:word; var Data; beg_x,beg_y:word); cdecl; external 'clib' name 'CopyFromScreenMemory';
 function CoupleInputOutputCursors:longint; cdecl; external 'clib' name 'CoupleInputOutputCursors';
-function cputs(buf:Pchar):longint; cdecl; external 'clib' name 'cputs';
-function cprintf(fmt:Pchar; args:array of const):longint; cdecl; external 'clib' name 'cprintf';
-function cprintf(fmt:Pchar):longint; cdecl; external 'clib' name 'cprintf';
-//function CreateScreen(screenName:Pchar; attr:byte):longint; cdecl; external 'clib' name 'CreateScreen';
-function CreateScreen(screenName:Pchar; attr:byte):TScr; cdecl; external 'clib' name 'CreateScreen';
-function cscanf(fmt:Pchar; args:array of const):longint; cdecl; external 'clib' name 'cscanf';
-function cscanf(fmt:Pchar):longint; cdecl; external 'clib' name 'cscanf';
+function cputs(buf:PAnsiChar):longint; cdecl; external 'clib' name 'cputs';
+function cprintf(fmt:PAnsiChar; args:array of const):longint; cdecl; external 'clib' name 'cprintf';
+function cprintf(fmt:PAnsiChar):longint; cdecl; external 'clib' name 'cprintf';
+//function CreateScreen(screenName:PAnsiChar; attr:byte):longint; cdecl; external 'clib' name 'CreateScreen';
+function CreateScreen(screenName:PAnsiChar; attr:byte):TScr; cdecl; external 'clib' name 'CreateScreen';
+function cscanf(fmt:PAnsiChar; args:array of const):longint; cdecl; external 'clib' name 'cscanf';
+function cscanf(fmt:PAnsiChar):longint; cdecl; external 'clib' name 'cscanf';
 function DecoupleInputOutputCursors:longint; cdecl; external 'clib' name 'DecoupleInputOutputCursors';
 function DestroyScreen(screenHandle:longint):longint; cdecl; external 'clib' name 'DestroyScreen';
 function DestroyScreen(screenHandle:TScr):longint; cdecl; external 'clib' name 'DestroyScreen';
@@ -1040,8 +1040,8 @@ function GetPositionOfOutputCursor(rowP,columnP:PWORD):longint; cdecl; external 
 function GetPositionOfOutputCursor(var row,col:word):longint; cdecl; external 'clib' name 'GetPositionOfOutputCursor';
 function __GetScreenID(screenHandle:longint):longint; cdecl; external 'clib' name '__GetScreenID';
 function __GetScreenID(screenHandle:TScr):longint; cdecl; external 'clib' name '__GetScreenID';
-function GetScreenInfo(handle:longint; name:Pchar; attr:plongint):longint; cdecl; external 'clib' name 'GetScreenInfo';
-function GetScreenInfo(handle:longint; name:Pchar; var attr:longint):longint; cdecl; external 'clib' name 'GetScreenInfo';
+function GetScreenInfo(handle:longint; name:PAnsiChar; attr:plongint):longint; cdecl; external 'clib' name 'GetScreenInfo';
+function GetScreenInfo(handle:longint; name:PAnsiChar; var attr:longint):longint; cdecl; external 'clib' name 'GetScreenInfo';
 function GetSizeOfScreen(heightP,widthP:PWORD):longint; cdecl; external 'clib' name 'GetSizeOfScreen';
 function GetSizeOfScreen(var heightP,widthP:word):longint; cdecl; external 'clib' name 'GetSizeOfScreen';
 procedure gotoxy(col,row:word); cdecl; external 'clib' name 'gotoxy';
@@ -1054,10 +1054,10 @@ function PressEscape:longint; cdecl; external 'clib' name 'PressEscapeToQuit';
 procedure RingTheBell; cdecl; external 'clib' name 'RingTheBell';
 procedure RingBell; cdecl; external 'clib' name 'RingTheBell';
 
-function ScanScreens(LastScreenID:longint; name:Pchar; attr:plongint):longint; cdecl; external 'clib' name 'ScanScreens';
-function ScanScreens(LastScreenID:longint; name:Pchar; var attr:longint):longint; cdecl; external 'clib' name 'ScanScreens';
-function ScanScreens(LastScreenID:TScr; name:Pchar; attr:plongint):TScr; cdecl; external 'clib' name 'ScanScreens';
-function ScanScreens(LastScreenID:TScr; name:Pchar; var attr:longint):TScr; cdecl; external 'clib' name 'ScanScreens';
+function ScanScreens(LastScreenID:longint; name:PAnsiChar; attr:plongint):longint; cdecl; external 'clib' name 'ScanScreens';
+function ScanScreens(LastScreenID:longint; name:PAnsiChar; var attr:longint):longint; cdecl; external 'clib' name 'ScanScreens';
+function ScanScreens(LastScreenID:TScr; name:PAnsiChar; attr:plongint):TScr; cdecl; external 'clib' name 'ScanScreens';
+function ScanScreens(LastScreenID:TScr; name:PAnsiChar; var attr:longint):TScr; cdecl; external 'clib' name 'ScanScreens';
 
 function ScrollScreenRegionDown(firstLine,numLines:longint):longint; cdecl; external 'clib' name 'ScrollScreenRegionDown';
 function ScrollScreenRegionUp(firstLine,numLines:longint):longint; cdecl; external 'clib' name 'ScrollScreenRegionUp';
@@ -1098,7 +1098,7 @@ const
 type
    PUserNameStruct = ^TUserNameStruct;
    TUserNameStruct = record
-        UserName : array[0..47] of char;
+        UserName : array[0..47] of AnsiChar;
         ObjectID : longint;
      end;
    TConnectionCriticalErrorHandler =
@@ -1109,19 +1109,19 @@ type
 function AttachByAddress(transType:byte; transLen:longint; transBuf:pointer; fileServerID:PWORD):longint;cdecl;external 'clib' name 'AttachByAddress';
 function AttachByAddress(transType:byte; transLen:longint; var transBuf; var fileServerID:word):longint;cdecl;external 'clib' name 'AttachByAddress';
 
-function AttachToFileServer(fileServerName:Pchar; fileServerID:PWORD):longint;cdecl;external 'clib' name 'AttachToFileServer';
-function AttachToFileServer(fileServerName:Pchar; var fileServerID:word):longint;cdecl;external 'clib' name 'AttachToFileServer';
+function AttachToFileServer(fileServerName:PAnsiChar; fileServerID:PWORD):longint;cdecl;external 'clib' name 'AttachToFileServer';
+function AttachToFileServer(fileServerName:PAnsiChar; var fileServerID:word):longint;cdecl;external 'clib' name 'AttachToFileServer';
 
 function GetConnectionFromID(fileServerID:PWORD):longint;cdecl;external 'clib' name 'GetConnectionFromID';
 function GetConnectionFromID(var fileServerID:word):longint;cdecl;external 'clib' name 'GetConnectionFromID';
 
 function GetConnectionInformation (connectionNumber:word;
-                                   objectName      :Pchar;
+                                   objectName      :PAnsiChar;
                                    objectType      :PWORD;
                                    objectID        :Plongint;
                                    loginTime       :pointer):longint;cdecl;external 'clib' name 'GetConnectionInformation';
 function GetConnectionInformation (connectionNumber:word;
-                                   objectName      :Pchar;
+                                   objectName      :PAnsiChar;
                                var objectType      :word;
                                var objectID        :longint;
                                var loginTime):longint;cdecl;external 'clib' name 'GetConnectionInformation';
@@ -1137,8 +1137,8 @@ function GetConnectionList(objectID,lastConnection:longint;
 function GetConnectionNumber:word;cdecl;external 'clib' name 'GetConnectionNumber';
 function GetDefaultConnectionID:longint;cdecl;external 'clib' name 'GetDefaultConnectionID';
 function GetDefaultFileServerID:longint;cdecl;external 'clib' name 'GetDefaultFileServerID';
-function GetFileServerID(fileServerName:Pchar; fileServerID:PWORD):longint;cdecl;external 'clib' name 'GetFileServerID';
-function GetFileServerID(fileServerName:Pchar; var fileServerID:word):longint;cdecl;external 'clib' name 'GetFileServerID';
+function GetFileServerID(fileServerName:PAnsiChar; fileServerID:PWORD):longint;cdecl;external 'clib' name 'GetFileServerID';
+function GetFileServerID(fileServerName:PAnsiChar; var fileServerID:word):longint;cdecl;external 'clib' name 'GetFileServerID';
 
 function GetInternetAddress(connectionNumber:word;
                             networkNumber:pointer;
@@ -1154,12 +1154,12 @@ function GetLANAddress (boardNumber:longint;
 function GetMaximumNumberOfStations:longint;cdecl;external 'clib' name 'GetMaximumNumberOfStations';
 function GetNetNumber(boardNumber:longint):longint;cdecl;external 'clib' name 'GetNetNumber';
 
-function GetObjectConnectionNumbers (objectName:Pchar;
+function GetObjectConnectionNumbers (objectName:PAnsiChar;
                                      objectType:word;
                                      numberOfConnections:PWORD;
                                      connectionList:PWORD;
                                      maxConnections:word):longint;cdecl;external 'clib' name 'GetObjectConnectionNumbers';
-function GetObjectConnectionNumbers (objectName:Pchar;
+function GetObjectConnectionNumbers (objectName:PAnsiChar;
                                      objectType:word;
                                  var numberOfConnections:word;
                                  var connectionList;  {array of WORD}
@@ -1175,15 +1175,15 @@ function GetUserNameFromNetAddress (var internetAddress;  {10 bytes}
                                     sequenceNumber:longint;
                                     var userName:TUserNameStruct):longint;cdecl;external 'clib' name 'GetUserNameFromNetAddress';
 
-function LoginToFileServer (objectName:Pchar;
+function LoginToFileServer (objectName:PAnsiChar;
                             objectType:word;
-                            objectPassword:Pchar):longint;cdecl;external 'clib' name 'LoginToFileServer';
+                            objectPassword:PAnsiChar):longint;cdecl;external 'clib' name 'LoginToFileServer';
 procedure Logout;cdecl;external 'clib' name 'Logout';
 procedure LogoutFromFileServer(fileServerID:word);cdecl;external 'clib' name 'LogoutFromFileServer';
 function NWDSGetCurrentUser:longint;cdecl;external 'clib' name 'NWDSGetCurrentUser';
 function NWDSSetCurrentUser(userHandle:longint):longint;cdecl;external 'clib' name 'NWDSSetCurrentUser';
 
-function NWDSSetPreferredDSTree (len:longint; treeName:Pchar):longint;cdecl;external 'clib' name 'NWDSSetPreferredDSTree';
+function NWDSSetPreferredDSTree (len:longint; treeName:PAnsiChar):longint;cdecl;external 'clib' name 'NWDSSetPreferredDSTree';
 function NWGetPacketBurstBufferCount:longint;cdecl;external 'clib' name 'NWGetPacketBurstBufferCount';
 function NWGetSecurityLevel:longint;cdecl;external 'clib' name 'NWGetSecurityLevel';
 
@@ -1217,22 +1217,22 @@ const
 // avoid linker errors
 procedure NWClearBreakpoint(breakpoint:longint);cdecl;external 'clib' name 'NWClearBreakpoint';
 function NWSetBreakpoint(address,breakType:longint):longint;cdecl;external 'clib' name 'NWSetBreakpoint';
-function NWDebugPrintf(format:Pchar; args:array of const):longint;cdecl;external 'clib' name 'NWDebugPrintf';
-function NWDebugPrintf(format:Pchar):longint;cdecl;external 'clib' name 'NWDebugPrintf';
+function NWDebugPrintf(format:PAnsiChar; args:array of const):longint;cdecl;external 'clib' name 'NWDebugPrintf';
+function NWDebugPrintf(format:PAnsiChar):longint;cdecl;external 'clib' name 'NWDebugPrintf';
 function NWValidateDebugProfile:longint;cdecl;external 'clib' name 'NWValidateDebugProfile';
-procedure NWBumpFunctionCount(name:Pchar);cdecl;external 'clib' name 'NWBumpFunctionCount';
+procedure NWBumpFunctionCount(name:PAnsiChar);cdecl;external 'clib' name 'NWBumpFunctionCount';
 procedure NWDisplayBinaryAtAddr(addr:pointer);cdecl;external 'clib' name 'NWDisplayBinaryAtAddr';
 procedure NWDisplayDoubleAtAddr(addr:pointer);cdecl;external 'clib' name 'NWDisplayDoubleAtAddr';
 procedure NWDisplayLConvAtAddr(lc:pointer);cdecl;external 'clib' name 'NWDisplayLConvAtAddr';
-procedure NWDisplayStringAtAddr(s:Pchar; len:longint);cdecl;external 'clib' name 'NWDisplayStringAtAddr';
+procedure NWDisplayStringAtAddr(s:PAnsiChar; len:longint);cdecl;external 'clib' name 'NWDisplayStringAtAddr';
 procedure NWDisplayTMAtAddr(t:pointer);cdecl;external 'clib' name 'NWDisplayTMAtAddr';
 procedure NWDisplayUnicodeAtAddr(s:pointer; len:longint);cdecl;external 'clib' name 'NWDisplayUnicodeAtAddr';
 procedure NWEnableDebugProfile(flag:longint);cdecl;external 'clib' name 'NWEnableDebugProfile';
 procedure EnterDebugger;cdecl;external 'clib' name 'EnterDebugger';
 function GetDebugSettings:longint;cdecl;external 'clib' name 'GetDebugSettings';
 procedure SetDebugSettings(Settings:longint);cdecl;external 'clib' name 'SetDebugSettings';
-function GetNLMIDFromNLMName(NLMName:PChar):longint;cdecl;external 'clib' name 'GetNLMIDFromNLMName';
-function GetDebugErrorMessage:PChar;cdecl;external 'clib' name 'GetDebugErrorMessage';
+function GetNLMIDFromNLMName(NLMName:PAnsiChar):longint;cdecl;external 'clib' name 'GetNLMIDFromNLMName';
+function GetDebugErrorMessage:PAnsiChar;cdecl;external 'clib' name 'GetDebugErrorMessage';
 function GetMemoryUsage(NLMID:longint):longint;cdecl;external 'clib' name 'GetMemoryUsage';
 {-nwdfs.h----------------------------------------------------------------------}
 // completion codes
@@ -1300,11 +1300,11 @@ const
    SETSIZE_LOGICAL_ONLY    = $00000010;    // Change only the logical EOF expand will always be sparse and truncate won't free physical blocks
 
 function DFSclose(fileHandle:longint):longint;cdecl;external 'clib' name 'DFSclose';
-function DFScreat(fileName:Pchar; permission,flagBits:longint):longint;cdecl;external 'clib' name 'DFScreat';
+function DFScreat(fileName:PAnsiChar; permission,flagBits:longint):longint;cdecl;external 'clib' name 'DFScreat';
 function DFSExpandFile(fileHandle,fileBlockNumber,
                        numberOfBlocks,volumeBlockNumber,segmentNumber:longint):longint;cdecl;external 'clib' name 'DFSExpandFile';
 function DFSFreeLimboVolumeSpace(volumeNumber,numberOfBlocks:longint):longint;cdecl;external 'clib' name 'DFSFreeLimboVolumeSpace';
-function DFSsopen(fileName:PChar; access,share,permission,flagBits,dataStream:longint):longint;cdecl;external 'clib' name 'DFSsopen';
+function DFSsopen(fileName:PAnsiChar; access,share,permission,flagBits,dataStream:longint):longint;cdecl;external 'clib' name 'DFSsopen';
 function DFSRead(fileHandle,startingSector,sectorCount:longint; buffer:pointer):longint;cdecl;external 'clib' name 'DFSRead';
 function DFSRead(fileHandle,startingSector,sectorCount:longint; var buffer):longint;cdecl;external 'clib' name 'DFSRead';
 function DFSReadNoWait(fileHandle,startingSector,sectorCount:longint; buffer:pointer; callBackNode:PDFSCallBackParameters):longint;cdecl;external 'clib' name 'DFSReadNoWait';
@@ -1325,36 +1325,36 @@ function DFSWriteNoWait(fileHandle,startingSector,sectorCount:longint; var buffe
 type
    Pfind_t = ^Tfind_t;
    Tfind_t = record
-        reserved : array[0..20] of char;
-        attrib : char;
+        reserved : array[0..20] of AnsiChar;
+        attrib : AnsiChar;
         wr_time : word;
         wr_date : word;
         size : longint;
-        name : array[0..12] of char;
+        name : array[0..12] of AnsiChar;
      end;
 
 {$include npackoff.inc}
 
-function DOSChangeFileMode(name:Pchar; attributes:Plongint; _function:longint; newAttributes:longint):longint;cdecl;external 'clib' name 'DOSChangeFileMode';
+function DOSChangeFileMode(name:PAnsiChar; attributes:Plongint; _function:longint; newAttributes:longint):longint;cdecl;external 'clib' name 'DOSChangeFileMode';
 function DOSClose(handle:longint):longint;cdecl;external 'clib' name 'DOSClose';
-function DOSCopy(NetWareFileName,DOSFileName:Pchar):longint;cdecl;external 'clib' name 'DOSCopy';
-function DOSCreate(fileName:Pchar; handle:Plongint):longint;cdecl;external 'clib' name 'DOSCreate';
-function DOSCreate(fileName:Pchar; var handle:longint):longint;cdecl;external 'clib' name 'DOSCreate';
-function DOSsopen(filename:Pchar; access,share,permission:longint):longint;cdecl;external 'clib' name 'DOSsopen';
-function DOSFindFirstFile(fileName:Pchar; searchAttributes:word; diskTransferAddress:Pfind_t):longint;cdecl;external 'clib' name 'DOSFindFirstFile';
+function DOSCopy(NetWareFileName,DOSFileName:PAnsiChar):longint;cdecl;external 'clib' name 'DOSCopy';
+function DOSCreate(fileName:PAnsiChar; handle:Plongint):longint;cdecl;external 'clib' name 'DOSCreate';
+function DOSCreate(fileName:PAnsiChar; var handle:longint):longint;cdecl;external 'clib' name 'DOSCreate';
+function DOSsopen(filename:PAnsiChar; access,share,permission:longint):longint;cdecl;external 'clib' name 'DOSsopen';
+function DOSFindFirstFile(fileName:PAnsiChar; searchAttributes:word; diskTransferAddress:Pfind_t):longint;cdecl;external 'clib' name 'DOSFindFirstFile';
 function DOSFindNextFile(diskTransferAddress:Pfind_t):longint;cdecl;external 'clib' name 'DOSFindNextFile';
-function DOSMkdir(__dirName:Pchar):longint;cdecl;external 'clib' name 'DOSMkdir';
-function DOSOpen(fileName:Pchar; handle:Plongint):longint;cdecl;external 'clib' name 'DOSOpen';
-function DOSOpen(fileName:Pchar; var handle:longint):longint;cdecl;external 'clib' name 'DOSOpen';
+function DOSMkdir(__dirName:PAnsiChar):longint;cdecl;external 'clib' name 'DOSMkdir';
+function DOSOpen(fileName:PAnsiChar; handle:Plongint):longint;cdecl;external 'clib' name 'DOSOpen';
+function DOSOpen(fileName:PAnsiChar; var handle:longint):longint;cdecl;external 'clib' name 'DOSOpen';
 function DOSPresent:longint;cdecl;external 'clib' name 'DOSPresent';
 function DOSRead(handle,fileOffset:longint; buffer:pointer; numberOfBytesToRead:longint; numberOfBytesRead:Plongint):longint;cdecl;external 'clib' name 'DOSRead';
 function DOSRead(handle,fileOffset:longint; var buffer; numberOfBytesToRead:longint; var numberOfBytesRead:longint):longint;cdecl;external 'clib' name 'DOSRead';
-function DOSRemove(name:Pchar):longint;cdecl;external 'clib' name 'DOSRemove';
-function DOSRename(srcName,dstName:Pchar):longint;cdecl;external 'clib' name 'DOSRename';
-function DOSRmdir(Name:Pchar):longint;cdecl;external 'clib' name 'DOSRmdir';
+function DOSRemove(name:PAnsiChar):longint;cdecl;external 'clib' name 'DOSRemove';
+function DOSRename(srcName,dstName:PAnsiChar):longint;cdecl;external 'clib' name 'DOSRename';
+function DOSRmdir(Name:PAnsiChar):longint;cdecl;external 'clib' name 'DOSRmdir';
 function DOSSetDateAndTime(handle,date,time:longint):longint;cdecl;external 'clib' name 'DOSSetDateAndTime';
 procedure DOSShutOffFloppyDrive;cdecl;external 'clib' name 'DOSShutOffFloppyDrive';
-function DOSUnlink(Name:Pchar):longint;cdecl;external 'clib' name 'DOSUnlink';
+function DOSUnlink(Name:PAnsiChar):longint;cdecl;external 'clib' name 'DOSUnlink';
 function DOSWrite(handle,fileOffset:longint; buffer:pointer; numberOfBytesToWrite:longint; numberOfBytesWritten:Plongint):longint;cdecl;external 'clib' name 'DOSWrite';
 function DOSWrite(handle,fileOffset:longint; var buffer; numberOfBytesToWrite:longint; var numberOfBytesWritten:longint):longint;cdecl;external 'clib' name 'DOSWrite';
 {-nwfattr.h--------------------------------------------------------------------}
@@ -1522,7 +1522,7 @@ const
 
 type
    TCommandParserFunc = function (screenID    : scr_t;
-                                  commandLine : PChar):longint;cdecl;
+                                  commandLine : PAnsiChar):longint;cdecl;
    PcommandParserStructure = ^TcommandParserStructure;
    TcommandParserStructure = record                 // Data structure for RegisterConsoleCommand
         Link         : PcommandParserStructure;     // set by RegisterConsoleCommand
@@ -1971,7 +1971,7 @@ type
   PRtag = ^TRtag;
 
 function AllocateResourceTag (NLMHandle:TNlmHandle;
-                              descriptionString:PChar;
+                              descriptionString:PAnsiChar;
                               resourceType:longint):longint;cdecl;external 'clib' name 'AllocateResourceTag';
 function DSAllocateEventTag (DSEventSignature:longint):pointer;cdecl;external 'clib' name 'DSAllocateEventTag';
 function GetCurrentOSLanguageID:longint;cdecl;external 'clib' name 'GetCurrentOSLanguageID';
@@ -1986,34 +1986,34 @@ function GetFileHoleMap (handle:longint;
                          var replyBitMapP;
                          var allocationUnitSizeP:longint):longint;cdecl;external 'clib' name 'GetFileHoleMap';
 function GetSetableParameterValue (connectionNumber:longint;
-                                   setableParameterString:PChar;
+                                   setableParameterString:PAnsiChar;
                                    returnValue:pointer):longint;cdecl;external 'clib' name 'GetSetableParameterValue';
 function GetSettableParameterValue (connectionNumber:longint;
                                     setableParameterString:PBYTE;
                                     returnValue:pointer):longint;cdecl;external 'clib' name 'GetSetableParameterValue';  // use this define if the misspelling is too annoying
 function GetThreadDataAreaPtr:pointer;cdecl;external 'clib' name 'GetThreadDataAreaPtr';
-function ImportSymbol(NLMHandle:TNlmHandle; symbolName:Pchar):pointer;cdecl;external 'clib' name 'ImportSymbol';
+function ImportSymbol(NLMHandle:TNlmHandle; symbolName:PAnsiChar):pointer;cdecl;external 'clib' name 'ImportSymbol';
 function LoadLanguageMessageTable(messageTable:PPPchar; messageCount:Plongint; languageID:Plongint):longint;cdecl;external 'clib' name 'LoadLanguageMessageTable';
 function LoadLanguageMessageTable(var messageTable; var messageCount:longint; languageID:Plongint):longint;cdecl;external 'clib' name 'LoadLanguageMessageTable';
-function NWAddSearchPathAtEnd(searchPath:PChar; number:Plongint):longint;cdecl;external 'clib' name 'NWAddSearchPathAtEnd';
-function NWAddSearchPathAtEnd(searchPath:PChar; var number:longint):longint;cdecl;external 'clib' name 'NWAddSearchPathAtEnd';
+function NWAddSearchPathAtEnd(searchPath:PAnsiChar; number:Plongint):longint;cdecl;external 'clib' name 'NWAddSearchPathAtEnd';
+function NWAddSearchPathAtEnd(searchPath:PAnsiChar; var number:longint):longint;cdecl;external 'clib' name 'NWAddSearchPathAtEnd';
 function NWDeleteSearchPath(searchPathNumber:longint):longint;cdecl;external 'clib' name 'NWDeleteSearchPath';
 function NWGetSearchPathElement (searchPathNumber:longint;
                                  isDOSSearchPath:Plongint;
-                                 searchPath:PChar):longint;cdecl;external 'clib' name 'NWGetSearchPathElement';
+                                 searchPath:PAnsiChar):longint;cdecl;external 'clib' name 'NWGetSearchPathElement';
 function NWGetSearchPathElement (searchPathNumber:longint;
                                  var isDOSSearchPath:boolean;
-                                 searchPath:PChar):longint;cdecl;external 'clib' name 'NWGetSearchPathElement';
-function NWInsertSearchPath(searchPathNumber:longint; path:PChar):longint;cdecl;external 'clib' name 'NWInsertSearchPath';
+                                 searchPath:PAnsiChar):longint;cdecl;external 'clib' name 'NWGetSearchPathElement';
+function NWInsertSearchPath(searchPathNumber:longint; path:PAnsiChar):longint;cdecl;external 'clib' name 'NWInsertSearchPath';
 function RegisterConsoleCommand(newCommandParser:PcommandParserStructure):longint;cdecl;external 'clib' name 'RegisterConsoleCommand';
 function RegisterConsoleCommand(var newCommandParser:TcommandParserStructure):longint;cdecl;external 'clib' name 'RegisterConsoleCommand';
 function RegisterForEvent (eventType:longint;
                            reportProcedure:TreportProcedure;
                            warnProcedure:TwarnProcedure):longint;cdecl;external 'clib' name 'RegisterForEvent';
 function RenameLanguage (languageID:longint;
-                         newLanguageName:PChar;
+                         newLanguageName:PAnsiChar;
                          showErrorsToConsole:longint):longint;cdecl;external 'clib' name 'RenameLanguage';
-function ReturnLanguageName(languageID:longint; languageName:PChar):longint;cdecl;external 'clib' name 'ReturnLanguageName';
+function ReturnLanguageName(languageID:longint; languageName:PAnsiChar):longint;cdecl;external 'clib' name 'ReturnLanguageName';
 procedure SaveThreadDataAreaPtr(threadDataAreaPtr:pointer);cdecl;external 'clib' name 'SaveThreadDataAreaPtr';
     { -1 for all, COMMUNICATIONS, MEMORY, etc  }
     { 0 for first time  }
@@ -2037,7 +2037,7 @@ function SetSetableParameterValue (connectionNumber:longint;
                                    newValue:pointer):longint;cdecl;external 'clib' name 'SetSetableParameterValue';
 procedure SynchronizeStart;cdecl;external 'clib' name 'SynchronizeStart';
 function UnimportSymbol (NLMHandle:TNlmHandle;
-                         symbolName:Pchar):longint;cdecl;external 'clib' name 'UnimportSymbol';
+                         symbolName:PAnsiChar):longint;cdecl;external 'clib' name 'UnimportSymbol';
 function UnRegisterConsoleCommand (commandParserToDelete:PcommandParserStructure):longint;cdecl;external 'clib' name 'UnRegisterConsoleCommand';
 function UnRegisterConsoleCommand (var commandParserToDelete:TcommandParserStructure):longint;cdecl;external 'clib' name 'UnRegisterConsoleCommand';
 function UnregisterForEvent (eventHandle:longint):longint;cdecl;external 'clib' name 'UnregisterForEvent';
@@ -2045,7 +2045,7 @@ function UnregisterForEvent (eventHandle:longint):longint;cdecl;external 'clib' 
 type
    PcacheBufferStructure = ^TcacheBufferStructure;
    TcacheBufferStructure = record
-        cacheBufferPointer : Pchar;
+        cacheBufferPointer : PAnsiChar;
         cacheBufferLength  : longint;
         completionCode     : longint;
      end;
@@ -2054,7 +2054,7 @@ type
 
    PmwriteBufferStructure = ^TmwriteBufferStructure;
    TmwriteBufferStructure = record
-        mwriteBufferPointer : Pchar;
+        mwriteBufferPointer : PAnsiChar;
         mwriteBufferLength  : longint;
         reserved            : longint;
      end;
@@ -2073,8 +2073,8 @@ function qwrite(fildes:longint; buffer:pointer; len,position:longint):longint;cd
 function qwrite(fildes:longint; var buffer; len,position:longint):longint;cdecl;external 'clib' name 'qwrite';
 function setmode(fildes,mode:longint):longint;cdecl;external 'clib' name 'setmode';
 // sopen already in fcntl
-//function sopen(path:Pchar; oflag,shflag:longint; args:array of const):longint;cdecl;external 'clib' name 'sopen';
-//function sopen(path:Pchar; oflag,shflag:longint):longint;cdecl;external 'clib' name 'sopen';
+//function sopen(path:PAnsiChar; oflag,shflag:longint; args:array of const):longint;cdecl;external 'clib' name 'sopen';
+//function sopen(path:PAnsiChar; oflag,shflag:longint):longint;cdecl;external 'clib' name 'sopen';
 function tell(fildes:longint):longint;cdecl;external 'clib' name 'tell';
 function unlock(fildes,offset,nbytes:longint):longint;cdecl;external 'clib' name 'unlock';
 { other NetWare file I/O utilities...  }
@@ -2095,17 +2095,17 @@ function AsyncRead(handle:longint;
 
 procedure AsyncRelease(cacheBufferInfo:PT_cacheBufferStructure);cdecl;external 'clib' name 'AsyncRelease';
 procedure AsyncRelease(var cacheBufferInfo:TT_cacheBufferStructure);cdecl;external 'clib' name 'AsyncRelease';
-function CountComponents(pathString:PChar; len:longint):longint;cdecl;external 'clib' name 'CountComponents';
-function GetExtendedFileAttributes(pathName:Pchar; extFileAttrs:PBYTE):longint;cdecl;external 'clib' name 'GetExtendedFileAttributes';
-function GetExtendedFileAttributes(pathName:Pchar; var extFileAttrs):longint;cdecl;external 'clib' name 'GetExtendedFileAttributes';
-procedure _makepath(path,drive,dir,fname,ext:Pchar);cdecl;external 'clib' name '_makepath';
+function CountComponents(pathString:PAnsiChar; len:longint):longint;cdecl;external 'clib' name 'CountComponents';
+function GetExtendedFileAttributes(pathName:PAnsiChar; extFileAttrs:PBYTE):longint;cdecl;external 'clib' name 'GetExtendedFileAttributes';
+function GetExtendedFileAttributes(pathName:PAnsiChar; var extFileAttrs):longint;cdecl;external 'clib' name 'GetExtendedFileAttributes';
+procedure _makepath(path,drive,dir,fname,ext:PAnsiChar);cdecl;external 'clib' name '_makepath';
 function NWGetVolumeFlags(volume:longint; flags:plongint):longint;cdecl;external 'clib' name 'NWGetVolumeFlags';
 function NWGetVolumeFlags(volume:longint; var flags:longint):longint;cdecl;external 'clib' name 'NWGetVolumeFlags';
 function NWSetVolumeFlags(volume,flags:longint):longint;cdecl;external 'clib' name 'NWSetVolumeFlags';
-function ParsePath(path,server,volume,directories:Pchar):longint;cdecl;external 'clib' name 'ParsePath';
+function ParsePath(path,server,volume,directories:PAnsiChar):longint;cdecl;external 'clib' name 'ParsePath';
 // SetReaddirAttribute already defined in dirent
 //function SetReaddirAttribute(dirP:PDIR; newAttribute:dword):longint;cdecl;external 'clib' name 'SetReaddirAttribute';
-procedure _splitpath(path,drive,dir,fname,ext:Pchar);cdecl;external 'clib' name '_splitpath';
+procedure _splitpath(path,drive,dir,fname,ext:PAnsiChar);cdecl;external 'clib' name '_splitpath';
 procedure UseAccurateCaseForPaths(yesno:longint);cdecl;external 'clib' name 'UseAccurateCaseForPaths';
 procedure UnAugmentAsterisk(yesno:longint);cdecl;external 'clib' name 'UnAugmentAsterisk';
 {-nwfileeng.h------------------------------------------------------------------}
@@ -2138,11 +2138,11 @@ const
    _TTSWriteAuditBit                   = $80000000;
 
 type
-  TT_PathParseFunc = function (inputPath:Pchar;
+  TT_PathParseFunc = function (inputPath:PAnsiChar;
                            var connectionIDp:word;
                            var volumeNumber:longint;
                            var directoryNumber:longint;
-                               outPathStringP:PChar;
+                               outPathStringP:PAnsiChar;
                            var outPathCount:longint):longint;cdecl;
   TVolumeNameString = String [17];
 
@@ -2156,20 +2156,20 @@ function FEConvertDirectoryNumber(sourceNameSpace:longint;
                                   sourceDirectoryNumber:longint;
                                   destinationNameSpace:longint;
                               var destinationDirectoryNumber:longint):longint;cdecl;external 'clib' name 'FEConvertDirectoryNumber';
-function FEcreat(name:Pchar; permission,flagBits:longint):longint;cdecl;external 'clib' name 'FEcreat';
+function FEcreat(name:PAnsiChar; permission,flagBits:longint):longint;cdecl;external 'clib' name 'FEcreat';
 function FEFlushWrite(handle:longint):longint;cdecl;external 'clib' name 'FEFlushWrite';
 function FEGetCWDnum:longint;cdecl;external 'clib' name 'FEGetCWDnum';
 function FEGetCWVnum:longint;cdecl;external 'clib' name 'FEGetCWVnum';
-function FEGetDirectoryEntry(volumeNumber,directoryNumber:longint; pathString:PChar;
+function FEGetDirectoryEntry(volumeNumber,directoryNumber:longint; pathString:PAnsiChar;
                              pathCount,desiredNameSpace:longint;
                              namespaceDirectoryStructPp:Ppointer;
                              DOSdirectoryStructPp:Ppointer):longint;cdecl;external 'clib' name 'FEGetDirectoryEntry';
-function FEGetDirectoryEntry(volumeNumber,directoryNumber:longint; pathString:PChar;
+function FEGetDirectoryEntry(volumeNumber,directoryNumber:longint; pathString:PAnsiChar;
                              pathCount,desiredNameSpace:longint;
                              var namespaceDirectoryStructP:Pointer;
                              var DOSdirectoryStructP:Pointer):longint;cdecl;external 'clib' name 'FEGetDirectoryEntry';
-function FEGetEntryVersion(volumeNumber,directoryNumber:longint; pathString:PChar; pathCount:longint; version:PWORD):longint;cdecl;external 'clib' name 'FEGetEntryVersion';
-function FEGetEntryVersion(volumeNumber,directoryNumber:longint; pathString:PChar; pathCount:longint; var version:word):longint;cdecl;external 'clib' name 'FEGetEntryVersion';
+function FEGetEntryVersion(volumeNumber,directoryNumber:longint; pathString:PAnsiChar; pathCount:longint; version:PWORD):longint;cdecl;external 'clib' name 'FEGetEntryVersion';
+function FEGetEntryVersion(volumeNumber,directoryNumber:longint; pathString:PAnsiChar; pathCount:longint; var version:word):longint;cdecl;external 'clib' name 'FEGetEntryVersion';
 function FEGetOpenFileInfo (connection:longint;
                             handle:longint;
                             volume:Plongint;
@@ -2190,24 +2190,24 @@ function FEMapConnsHandleToVolAndDir(connection,handle:longint; volumeNumberP,di
 function FEMapConnsHandleToVolAndDir(connection,handle:longint; var volumeNumber,directoryNumber:longint):longint;cdecl;external 'clib' name 'FEMapConnsHandleToVolAndDir';
 function FEMapHandleToVolumeAndDirectory(handle:longint; volumeNumberP,directoryNumberP:PLongint):longint;cdecl;external 'clib' name 'FEMapHandleToVolumeAndDirectory';
 function FEMapHandleToVolumeAndDirectory(handle:longint; var volumeNumberP,directoryNumberP:Longint):longint;cdecl;external 'clib' name 'FEMapHandleToVolumeAndDirectory';
-function FEMapPathVolumeDirToVolumeDir(pathName:Pchar; volumeNumber,directoryNumber:longint; newVolumeNumberP,newDirectoryNumberP:Plongint):longint;cdecl;external 'clib' name 'FEMapPathVolumeDirToVolumeDir';
-function FEMapPathVolumeDirToVolumeDir(pathName:Pchar; volumeNumber,directoryNumber:longint; var newVolumeNumberP,newDirectoryNumberP:longint):longint;cdecl;external 'clib' name 'FEMapPathVolumeDirToVolumeDir';
+function FEMapPathVolumeDirToVolumeDir(pathName:PAnsiChar; volumeNumber,directoryNumber:longint; newVolumeNumberP,newDirectoryNumberP:Plongint):longint;cdecl;external 'clib' name 'FEMapPathVolumeDirToVolumeDir';
+function FEMapPathVolumeDirToVolumeDir(pathName:PAnsiChar; volumeNumber,directoryNumber:longint; var newVolumeNumberP,newDirectoryNumberP:longint):longint;cdecl;external 'clib' name 'FEMapPathVolumeDirToVolumeDir';
 
-function FEMapVolumeAndDirectoryToPath(volumeNumber,directoryNumber:longint; pathString:PChar; pathCount:Plongint):longint;cdecl;external 'clib' name 'FEMapVolumeAndDirectoryToPath';
-function FEMapVolumeAndDirectoryToPath(volumeNumber,directoryNumber:longint; pathString:PChar; var pathCount:longint):longint;cdecl;external 'clib' name 'FEMapVolumeAndDirectoryToPath';
+function FEMapVolumeAndDirectoryToPath(volumeNumber,directoryNumber:longint; pathString:PAnsiChar; pathCount:Plongint):longint;cdecl;external 'clib' name 'FEMapVolumeAndDirectoryToPath';
+function FEMapVolumeAndDirectoryToPath(volumeNumber,directoryNumber:longint; pathString:PAnsiChar; var pathCount:longint):longint;cdecl;external 'clib' name 'FEMapVolumeAndDirectoryToPath';
 
 function FEMapVolumeAndDirectoryToPathForNS(volumeNumber,directoryNumber:longint; nameSpace:longint; pathString:PBYTE; pathCount:Plongint):longint;cdecl;external 'clib' name 'FEMapVolumeAndDirectoryToPathForNS';
-function FEMapVolumeNumberToName(volumeNumber:longint; volumeName:PChar):longint;cdecl;external 'clib' name 'FEMapVolumeNumberToName';
+function FEMapVolumeNumberToName(volumeNumber:longint; volumeName:PAnsiChar):longint;cdecl;external 'clib' name 'FEMapVolumeNumberToName';
 function FEMapVolumeNumberToName(volumeNumber:longint; var volumeName:TVolumeNameString):longint;cdecl;external 'clib' name 'FEMapVolumeNumberToName';
 function FEQuickClose(connection,task,fileHandle:longint):longint;cdecl;external 'clib' name 'FEQuickClose';
 function FEQuickFileLength(connection,handle:longint; fileSize:Plongint):longint;cdecl;external 'clib' name 'FEQuickFileLength';
 function FEQuickFileLength(connection,handle:longint; var fileSize:longint):longint;cdecl;external 'clib' name 'FEQuickFileLength';
 function FEQuickOpen (connection,task,volumeNumber,directoryNumber:longint;
-                      pathString:PChar;
+                      pathString:PAnsiChar;
                       pathCount,nameSpace,attributeMatchBits,requestedAccessRights,dataStreamNumber:longint;
                       fileHandle:Plongint):longint;cdecl;external 'clib' name 'FEQuickOpen';
 function FEQuickOpen (connection,task,volumeNumber,directoryNumber:longint;
-                      pathString:PChar;
+                      pathString:PAnsiChar;
                       pathCount,nameSpace,attributeMatchBits,requestedAccessRights,dataStreamNumber:longint;
                       var fileHandle:longint):longint;cdecl;external 'clib' name 'FEQuickOpen';
 
@@ -2226,10 +2226,10 @@ function FESetCWDnum(CWDnum:longint):longint;cdecl;external 'clib' name 'FESetCW
 function FESetCWVandCWDnums(CWVnum:longint; CWDnum:longint):longint;cdecl;external 'clib' name 'FESetCWVandCWDnums';
 function FESetCWVnum(CWVnum:longint):longint;cdecl;external 'clib' name 'FESetCWVnum';
 function FESetOriginatingNameSpace(volumeNumber,directoryNumber,currentNameSpace,newNameSpace:longint):longint;cdecl;external 'clib' name 'FESetOriginatingNameSpace';
-function FEsopen(name:Pchar; access,share,permission,flagBits:longint;
+function FEsopen(name:PAnsiChar; access,share,permission,flagBits:longint;
            dataStream:byte):longint;cdecl;external 'clib' name 'FEsopen';
-function NWGetDirBaseFromPath(path:Pchar; nameSpace:byte; volNum,NSDirBase,DOSDirBase:Plongint):longint;cdecl;external 'clib' name 'NWGetDirBaseFromPath';
-function NWGetDirBaseFromPath(path:Pchar; nameSpace:byte; var volNum,NSDirBase,DOSDirBase:longint):longint;cdecl;external 'clib' name 'NWGetDirBaseFromPath';
+function NWGetDirBaseFromPath(path:PAnsiChar; nameSpace:byte; volNum,NSDirBase,DOSDirBase:Plongint):longint;cdecl;external 'clib' name 'NWGetDirBaseFromPath';
+function NWGetDirBaseFromPath(path:PAnsiChar; nameSpace:byte; var volNum,NSDirBase,DOSDirBase:longint):longint;cdecl;external 'clib' name 'NWGetDirBaseFromPath';
 {-nwfinfo.h--------------------------------------------------------------------}
 function FileServerFileCopy (sourceFileHandle,destinationFileHandle:longint;
                              sourceFileOffset,destinationFileOffset,numberOfBytesToCopy:longint;
@@ -2250,19 +2250,19 @@ function NWSetCompressedFileLengths (handle,
                                      uncompressedLength,
                                      compressedLengt:longint):longint;cdecl;external 'clib' name 'NWSetCompressedFileLengths';
 
-function PurgeErasedFile(pathName:Pchar; sequenceNumber:longint):longint;cdecl;external 'clib' name 'PurgeErasedFile';
-function SalvageErasedFile(pathName:Pchar; sequenceNumber:longint; newFileName:Pchar):longint;cdecl;external 'clib' name 'SalvageErasedFile';
+function PurgeErasedFile(pathName:PAnsiChar; sequenceNumber:longint):longint;cdecl;external 'clib' name 'PurgeErasedFile';
+function SalvageErasedFile(pathName:PAnsiChar; sequenceNumber:longint; newFileName:PAnsiChar):longint;cdecl;external 'clib' name 'SalvageErasedFile';
 
-function ScanErasedFiles_411 (path           : PChar;
+function ScanErasedFiles_411 (path           : PAnsiChar;
                               nextEntryNumber: Plongint;
                               deletedFileInfo: PDIR):longint; cdecl;external 'clib' name 'ScanErasedFiles_411';
-function ScanErasedFiles_411 (path               : PChar;
+function ScanErasedFiles_411 (path               : PAnsiChar;
                               var nextEntryNumber: longint;
                               var deletedFileInfo: TDIR):longint; cdecl;external 'clib' name 'ScanErasedFiles_411';
 
-function SetExtendedFileAttributes(pathName:Pchar; extendedFileAttributes:byte):longint;cdecl;external 'clib' name 'SetExtendedFileAttributes';
-function SetFileInfo(pathName:Pchar; searchAttributes:byte; fileAttributes:longint; creationDate:Pchar; lastAccessDate:Pchar;
-               lastUpdateDateAndTime:Pchar; lastArchiveDateAndTime:Pchar; fileOwnerID:longint):longint;cdecl;external 'clib' name 'SetFileInfo';
+function SetExtendedFileAttributes(pathName:PAnsiChar; extendedFileAttributes:byte):longint;cdecl;external 'clib' name 'SetExtendedFileAttributes';
+function SetFileInfo(pathName:PAnsiChar; searchAttributes:byte; fileAttributes:longint; creationDate:PAnsiChar; lastAccessDate:PAnsiChar;
+               lastUpdateDateAndTime:PAnsiChar; lastArchiveDateAndTime:PAnsiChar; fileOwnerID:longint):longint;cdecl;external 'clib' name 'SetFileInfo';
 {-nwfshook.h-------------------------------------------------------------------}
 { ------------  File System Monitor Hook Call Back Numbers ------------
    The defined constants below that have _GEN_ in the name represent call back
@@ -2322,7 +2322,7 @@ type
      task,
      volume,
      dirBase : Longint;
-     pathString : Pchar;
+     pathString : PAnsiChar;
      pathComponentCount,
      nameSpace,
      attributeMatchBits : Longint;
@@ -2338,7 +2338,7 @@ type
      task,
      volume,
      dirBase : Longint;
-     pathString : Pchar;
+     pathString : PAnsiChar;
      pathComponentCount,
      nameSpace,
      attributeMatchBits,
@@ -2357,7 +2357,7 @@ type
      task,
      volume,
      dirBase : Longint;
-     pathString : Pchar;
+     pathString : PAnsiChar;
      pathComponentCount,
      nameSpace,
      createAttributeBits,
@@ -2376,7 +2376,7 @@ type
      task,
      volume,
      dirBase : Longint;
-     pathString : Pchar;
+     pathString : PAnsiChar;
      pathComponentCount,
      nameSpace,
      createAttributeBits,
@@ -2396,13 +2396,13 @@ type
      task,
      volume,
      dirBase                 : Longint;
-     pathString              : Pchar;
+     pathString              : PAnsiChar;
      pathComponentCount,
      nameSpace,
      attributeMatchBits,
      subDirsOnlyFlag,
      newDirBase              : Longint;
-     newPathString           : Pchar;
+     newPathString           : PAnsiChar;
      originalNewCount,
      compatibilityFlag,
      allowRenamesToMyselfFlag: Longint;
@@ -2428,7 +2428,7 @@ type
      connection,
      volume,
      dirBase    : Longint;
-     pathString : Pchar;
+     pathString : PAnsiChar;
      pathComponentCount,
      nameSpace,
      directoryAccessMask : Longint;
@@ -2443,7 +2443,7 @@ type
      connection,
      volume,
      dirBase : Longint;
-     pathString : PChar;
+     pathString : PAnsiChar;
      pathComponentCount,
      nameSpace : Longint;
    end;
@@ -2458,7 +2458,7 @@ type
      task,
      volume,
      dirBase            : Longint;
-     pathString         : PChar;
+     pathString         : PAnsiChar;
      pathComponentCount,
      nameSpace,
      attributeMatchBits,
@@ -2479,7 +2479,7 @@ type
      dirBase,
      toBeSalvagedDirBase,
      nameSpace            : Longint;
-     newName              : PChar;
+     newName              : PAnsiChar;
    end;
 {--------------------------------------------------------------------
   Structure returned for
@@ -2505,11 +2505,11 @@ type
      task,
      volume,
      dirBase       : Longint;
-     pathString    : PChar;
+     pathString    : PAnsiChar;
      pathComponentCount,
      nameSpace,
      matchBits     : Longint;
-     newName       : PChar;
+     newName       : PAnsiChar;
    end;
 {--------------------------------------------------------------------
   Structure returned for
@@ -2523,7 +2523,7 @@ type
      sequence,
      volume,
      dirBase : Longint;
-     newName : PChar;
+     newName : PAnsiChar;
   end;
 {--------------------------------------------------------------------
       Structure returned for
@@ -2550,7 +2550,7 @@ type
      volume,
      pathComponentCount,
      dirBase               : Longint;
-     pathString            : Pchar;
+     pathString            : PAnsiChar;
      nameSpace,
      dataStreamNumber,
      openCreateFlags,
@@ -2576,11 +2576,11 @@ type
      srcVolume,
      srcPathComponentCount,
      srcDirBase            : Longint;
-     srcPathString         : Pchar;
+     srcPathString         : PAnsiChar;
      dstVolume,
      dstPathComponentCount,
      dstDirBase            : Longint;
-     dstPathString         : Pchar;
+     dstPathString         : PAnsiChar;
    end;
 {--------------------------------------------------------------------
   Structure returned for
@@ -2594,7 +2594,7 @@ type
      volume,
      pathComponentCount,
      dirBase          : Longint;
-     pathString       : Pchar;
+     pathString       : PAnsiChar;
      nameSpace,
      searchAttributes : Longint;
    end;
@@ -2610,7 +2610,7 @@ type
         volume,
         pathComponentCount,
         dirBase              : Longint;
-        pathString           : Pchar;
+        pathString           : PAnsiChar;
         nameSpace            : Longint;
         searchAttributes     : Longint;
         modifyMask           : Longint;
@@ -2786,7 +2786,7 @@ type
 
    PtagIPX_STATS = ^TtagIPX_STATS;
    TtagIPX_STATS = record
-        dummy : char;
+        dummy : AnsiChar;
      end;
    TIPX_STATS = TtagIPX_STATS;
    PIPX_STATS = ^TIPX_STATS;
@@ -2931,7 +2931,7 @@ function SpxQueuedSendSequencedPacket(connection:word; ecb:PSPX_ECB; var rcode:l
 function SpxSendSequencedPacket(connection:word; ecb:PSPX_ECB):longint;cdecl;external 'clib' name 'SpxSendSequencedPacket';
 function SpxTerminateConnection(connection:word; ecb:PSPX_ECB):longint;cdecl;external 'clib' name 'SpxTerminateConnection';
 { SAP function prototypes...  }
-function AdvertiseService(serviceType:word; serviceName:Pchar; serviceSocket:word):longint;cdecl;external 'clib' name 'AdvertiseService';
+function AdvertiseService(serviceType:word; serviceName:PAnsiChar; serviceSocket:word):longint;cdecl;external 'clib' name 'AdvertiseService';
 function FreeQueryServicesList(listP:PSAP_RESPONSE_LIST_ENTRY):longint;cdecl;external 'clib' name 'FreeQueryServicesList';
 function QueryServices(queryType,serviceType:word):PSAP_RESPONSE_LIST_ENTRY;cdecl;external 'clib' name 'QueryServices';
 function ShutdownAdvertising(advertisingHandle:longint):longint;cdecl;external 'clib' name 'ShutdownAdvertising';
@@ -3005,11 +3005,11 @@ type
      procedure (NCPExtensionClient:PNCPExtensionClient; replyBuffer:pointer); cdecl;
 
 function NWDeRegisterNCPExtension(queryData:pointer):longint;cdecl;external name 'NWDeRegisterNCPExtension';
-function NWGetNCPExtensionInfo(NCPExtensionName:Pchar; NCPExtensionID:Plongint; majorVersion:PBYTE; minorVersion:PBYTE; revision:PBYTE;
+function NWGetNCPExtensionInfo(NCPExtensionName:PAnsiChar; NCPExtensionID:Plongint; majorVersion:PBYTE; minorVersion:PBYTE; revision:PBYTE;
            queryData:pointer):longint;cdecl;external  name 'NWGetNCPExtensionInfo';
-function NWGetNCPExtensionInfoByID(NCPExtensionID:longint; NCPExtensionName:Pchar; majorVersion:PBYTE; minorVersion:PBYTE; revision:PBYTE;
+function NWGetNCPExtensionInfoByID(NCPExtensionID:longint; NCPExtensionName:PAnsiChar; majorVersion:PBYTE; minorVersion:PBYTE; revision:PBYTE;
            queryData:pointer):longint;cdecl;external  name 'NWGetNCPExtensionInfoByID';
-function NWRegisterNCPExtension(NCPExtensionName:Pchar;
+function NWRegisterNCPExtension(NCPExtensionName:PAnsiChar;
                                 NCPExtensionHandler:TNCPExtensionHandlerFunc;
                                 ConnectionEventHandler:TConnectionEventHandlerProc;
                                 ReplyBufferManager:TReplyBufferManagerProc;
@@ -3017,13 +3017,13 @@ function NWRegisterNCPExtension(NCPExtensionName:Pchar;
                                 queryData:Ppointer):longint;cdecl;external  name 'NWRegisterNCPExtension';
 
 function NWRegisterNCPExtensionByID(NCPExtensionID:longint;
-                                    NCPExtensionName:Pchar;
+                                    NCPExtensionName:PAnsiChar;
                                     NCPExtensionHandler:TNCPExtensionHandlerFunc;
                                     ConnectionEventHandler:TConnectionEventHandlerProc;
                                     ReplyBufferManager:TReplyBufferManagerProc;
                                     majorVersion,minorVersion,revision:byte; queryData:Ppointer):longint;cdecl;external  name 'NWRegisterNCPExtensionByID';
 
-function NWScanNCPExtensions(NCPExtensionID:Plongint; NCPExtensionName:Pchar; majorVersion:PBYTE; minorVersion:PBYTE; revision:PBYTE;
+function NWScanNCPExtensions(NCPExtensionID:Plongint; NCPExtensionName:PAnsiChar; majorVersion:PBYTE; minorVersion:PBYTE; revision:PBYTE;
            queryData:pointer):longint;cdecl;external  name 'NWScanNCPExtensions';
 function NWSendNCPExtensionFraggedRequest(NCPExtensionID:longint; requestFrag:PNCPExtensionMessageFrag; replyFrag:PNCPExtensionMessageFrag):longint;cdecl;external  name 'NWSendNCPExtensionFraggedRequest';
 function NWSendNCPExtensionRequest(NCPExtensionID:longint; requestData:pointer; requestDataLen:longint; replyData:pointer; replyDataLen:Plongint):longint;cdecl;external  name 'NWSendNCPExtensionRequest';
@@ -3049,10 +3049,10 @@ type
 
 {$include npackoff.inc}
 
-function GetDataStreamName(volume:longint; dataStream:byte; name:Pchar; numberOfDataStreams:Plongint):longint;cdecl;external 'clib' name 'GetDataStreamName';
-function GetDataStreamName(volume:longint; dataStream:byte; name:Pchar; var numberOfDataStreams:longint):longint;cdecl;external 'clib' name 'GetDataStreamName';
-function GetNameSpaceName(volume:longint; nameSpace:longint; name:Pchar; numberOfNameSpaces:Plongint):longint;cdecl;external 'clib' name 'GetNameSpaceName';
-function GetNameSpaceName(volume:longint; nameSpace:longint; name:Pchar; var numberOfNameSpaces:longint):longint;cdecl;external 'clib' name 'GetNameSpaceName';
+function GetDataStreamName(volume:longint; dataStream:byte; name:PAnsiChar; numberOfDataStreams:Plongint):longint;cdecl;external 'clib' name 'GetDataStreamName';
+function GetDataStreamName(volume:longint; dataStream:byte; name:PAnsiChar; var numberOfDataStreams:longint):longint;cdecl;external 'clib' name 'GetDataStreamName';
+function GetNameSpaceName(volume:longint; nameSpace:longint; name:PAnsiChar; numberOfNameSpaces:Plongint):longint;cdecl;external 'clib' name 'GetNameSpaceName';
+function GetNameSpaceName(volume:longint; nameSpace:longint; name:PAnsiChar; var numberOfNameSpaces:longint):longint;cdecl;external 'clib' name 'GetNameSpaceName';
 function NWGetHugeNSInfo(volNum,nameSpace:byte; dirBase,hugeInfoMask:longint;
                          hugeStateInfo:PBYTE;
                          hugeData:PBYTE;
@@ -3063,8 +3063,8 @@ function NWGetHugeNSInfo(volNum,nameSpace:byte; dirBase,hugeInfoMask:longint;
                          var hugeData;
                          var hugeDataLen:longint;
                          var nextHugeStateInfo):longint;cdecl;external 'clib' name 'NWGetHugeNSInfo';
-function NWGetNameSpaceEntryName(path:PBYTE; nameSpace:longint; maxNameBufferLength:longint; nameSpaceEntryName:PChar):longint;cdecl;external 'clib' name 'NWGetNameSpaceEntryName';
-function NWGetNameSpaceEntryName(var path:byte; nameSpace:longint; maxNameBufferLength:longint; nameSpaceEntryName:PChar):longint;cdecl;external 'clib' name 'NWGetNameSpaceEntryName';
+function NWGetNameSpaceEntryName(path:PBYTE; nameSpace:longint; maxNameBufferLength:longint; nameSpaceEntryName:PAnsiChar):longint;cdecl;external 'clib' name 'NWGetNameSpaceEntryName';
+function NWGetNameSpaceEntryName(var path:byte; nameSpace:longint; maxNameBufferLength:longint; nameSpaceEntryName:PAnsiChar):longint;cdecl;external 'clib' name 'NWGetNameSpaceEntryName';
 function NWGetNSInfo(volNum:byte; srcNameSpace:byte; dstNameSpace:byte; dirBase:longint; nsInfoMask:longint;
            nsSpecificInfo:PBYTE):longint;cdecl;external 'clib' name 'NWGetNSInfo';
 function NWGetNSLoadedList(volNum:byte; loadListSize:word; NSLoadedList:PBYTE; returnListSize:PWORD):longint;cdecl;external 'clib' name 'NWGetNSLoadedList';
@@ -3083,7 +3083,7 @@ function NWSetHugeNSInfo(volNum,nameSpace:byte; dirBase:longint;
                          var nextHugeStateInfo;
                          var hugeDataUsed:longint):longint;cdecl;external 'clib' name 'NWSetHugeNSInfo';
 
-function NWSetNameSpaceEntryName(path:PChar; nameSpace:longint; nameSpaceEntryName:PChar):longint;cdecl;external 'clib' name 'NWSetNameSpaceEntryName';
+function NWSetNameSpaceEntryName(path:PAnsiChar; nameSpace:longint; nameSpaceEntryName:PAnsiChar):longint;cdecl;external 'clib' name 'NWSetNameSpaceEntryName';
 function NWSetNSInfo(volNum,srcNameSpace,dstNameSpace:byte; dirBase:longint;
                      nsInfoMask:longint;
                      nsSpecificInfoLen:longint;
@@ -3098,14 +3098,14 @@ function SetTargetNameSpace(newNameSpace:byte):byte;cdecl;external 'clib' name '
 type TStdfds = array[0..2] of longint;
 
 function CreateChildProcess (func:pointer;
-                             threadName:PChar;
-                             cmdLine:PChar;
-                             arg:PChar;
+                             threadName:PAnsiChar;
+                             cmdLine:PAnsiChar;
+                             arg:PAnsiChar;
                              stack:pointer;
                              stackSize:longint;
                              stdfds:TStdfds;
                              clearenv:longint;
-                             procName:PChar;
+                             procName:PAnsiChar;
                              enableApp:longint):Tpid_t;cdecl;external 'clib' name 'CreateChildProcess';
 function KillChildProcess(pid:Tpid_t):longint;cdecl;external 'clib' name 'KillChildProcess';
 function WaitOnChildProcess(pid:Tpid_t; statloc:Plongint; options:longint):longint;cdecl;external 'clib' name 'WaitOnChildProcess';
@@ -3170,22 +3170,22 @@ function signal(sig:longint; func:TSigHandlerProc):longint;cdecl;external 'clib'
 function nw_raise(para1:longint):longint;cdecl;external 'clib' name 'raise';
 function nw_signal(sig:longint; func:TSigHandlerProc):longint;cdecl;external 'clib' name 'signal';
 {-nwstring.h-------------------------------------------------------------------}
-function ASCIIZToLenStr (lenString,ASCIIZstring:Pchar) : longint; cdecl;external 'clib' name 'ASCIIZToLenStr';
-function ASCIIZToMaxLenStr (lenString,ASCIIZstring:Pchar; maximumLength:longint):longint; cdecl;external 'clib' name 'ASCIIZToMaxLenStr';
+function ASCIIZToLenStr (lenString,ASCIIZstring:PAnsiChar) : longint; cdecl;external 'clib' name 'ASCIIZToLenStr';
+function ASCIIZToMaxLenStr (lenString,ASCIIZstring:PAnsiChar; maximumLength:longint):longint; cdecl;external 'clib' name 'ASCIIZToMaxLenStr';
 function IntSwap (w:word):word; cdecl;external 'clib' name 'IntSwap';
-function LenStrCat (destStr,srcStr:Pchar):Pchar; cdecl;external 'clib' name 'LenStrCat';
-function LenStrCmp (s1,s2:Pchar):longint; cdecl;external 'clib' name 'LenStrCmp';
-function LenStrCpy (dest,src:Pchar):Pchar; cdecl;external 'clib' name 'LenStrCpy';
-function LenToASCIIZStr (ASCIIZstring,lenString:Pchar) : longint; cdecl;external 'clib' name 'LenToASCIIZStr';
+function LenStrCat (destStr,srcStr:PAnsiChar):PAnsiChar; cdecl;external 'clib' name 'LenStrCat';
+function LenStrCmp (s1,s2:PAnsiChar):longint; cdecl;external 'clib' name 'LenStrCmp';
+function LenStrCpy (dest,src:PAnsiChar):PAnsiChar; cdecl;external 'clib' name 'LenStrCpy';
+function LenToASCIIZStr (ASCIIZstring,lenString:PAnsiChar) : longint; cdecl;external 'clib' name 'LenToASCIIZStr';
 function LongSwap (l:longint) : longint; cdecl;external 'clib' name 'LongSwap';
 {-nwtoolib.h-------------------------------------------------------------------}
 type
   TreadFunc           = function :longint; cdecl;
-  TNLMBeginFunc       = procedure (NLMID:longint; commandLine:Pchar); cdecl;
+  TNLMBeginFunc       = procedure (NLMID:longint; commandLine:PAnsiChar); cdecl;
   TNLMPreEndFunc      = procedure (NLMID:longint); cdecl;
   TNLMPostEndFunc     = procedure (NLMID:longint); cdecl;
   TNLMEndNoContextFunc= procedure (NLMID:longint); cdecl;
-  TthreadGroupBeginFunc=function (threadGroupID:longint; argc:longint; const argv:array of Pchar):longint; cdecl;
+  TthreadGroupBeginFunc=function (threadGroupID:longint; argc:longint; const argv:array of PAnsiChar):longint; cdecl;
   TthreadGroupEndFunc = procedure (threadGroupID:longint); cdecl;
   TthreadBeginFunc    = function (threadID:longint):longint;  cdecl;
   TthreadEndFunc      = procedure (threadID:longint); cdecl;
@@ -3301,25 +3301,25 @@ function ferror(para1:PFILE):longint;cdecl;external 'clib' name 'ferror';
 function ferror(var para1:TFILE):longint;cdecl;external 'clib' name 'ferror';
 function fflush(para1:PFILE):longint;cdecl;external 'clib' name 'fflush';
 function fflush(var para1:TFILE):longint;cdecl;external 'clib' name 'fflush';
-function fgetc(para1:PFILE):char;cdecl;external 'clib' name 'fgetc';
-function fgetc(var para1:TFILE):char;cdecl;external 'clib' name 'fgetc';
+function fgetc(para1:PFILE):AnsiChar;cdecl;external 'clib' name 'fgetc';
+function fgetc(var para1:TFILE):AnsiChar;cdecl;external 'clib' name 'fgetc';
 function fgetpos(para1:PFILE; para2:Pfpos_t):longint;cdecl;external 'clib' name 'fgetpos';
 function fgetpos(var para1:TFILE; var para2:Tfpos_t):longint;cdecl;external 'clib' name 'fgetpos';
-function fgets(para1:Pchar; para2:longint; para3:PFILE):Pchar;cdecl;external 'clib' name 'fgets';
-function fgets(para1:Pchar; para2:longint; var para3:TFILE):Pchar;cdecl;external 'clib' name 'fgets';
-function fopen(para1,para2:Pchar):PFILE;cdecl;external 'clib' name 'fopen';
-function fprintf(para1:PFILE; para2:Pchar; args:array of const):longint;cdecl;external 'clib' name 'fprintf';
-function fprintf(var para1:TFILE; para2:Pchar; args:array of const):longint;cdecl;external 'clib' name 'fprintf';
-function fprintf(para1:PFILE; para2:Pchar):longint;cdecl;external 'clib' name 'fprintf';
-function fprintf(var para1:TFILE; para2:Pchar):longint;cdecl;external 'clib' name 'fprintf';
+function fgets(para1:PAnsiChar; para2:longint; para3:PFILE):PAnsiChar;cdecl;external 'clib' name 'fgets';
+function fgets(para1:PAnsiChar; para2:longint; var para3:TFILE):PAnsiChar;cdecl;external 'clib' name 'fgets';
+function fopen(para1,para2:PAnsiChar):PFILE;cdecl;external 'clib' name 'fopen';
+function fprintf(para1:PFILE; para2:PAnsiChar; args:array of const):longint;cdecl;external 'clib' name 'fprintf';
+function fprintf(var para1:TFILE; para2:PAnsiChar; args:array of const):longint;cdecl;external 'clib' name 'fprintf';
+function fprintf(para1:PFILE; para2:PAnsiChar):longint;cdecl;external 'clib' name 'fprintf';
+function fprintf(var para1:TFILE; para2:PAnsiChar):longint;cdecl;external 'clib' name 'fprintf';
 function fputc(para1:longint; para2:PFILE):longint;cdecl;external 'clib' name 'fputc';
-function fputs(para1:Pchar; para2:PFILE):longint;cdecl;external 'clib' name 'fputs';
+function fputs(para1:PAnsiChar; para2:PFILE):longint;cdecl;external 'clib' name 'fputs';
 function fread(para1:pointer; para2:Tsize_t; para3:Tsize_t; para4:PFILE):Tsize_t;cdecl;external 'clib' name 'fread';
-function freopen(para1:Pchar; para2:Pchar; para3:PFILE):PFILE;cdecl;external 'clib' name 'freopen';
-function fscanf(para1:PFILE; para2:Pchar; args:array of const):longint;cdecl;external 'clib' name 'fscanf';
-function fscanf(var para1:TFILE; para2:Pchar; args:array of const):longint;cdecl;external 'clib' name 'fscanf';
-function fscanf(para1:PFILE; para2:Pchar):longint;cdecl;external 'clib' name 'fscanf';
-function fscanf(var para1:TFILE; para2:Pchar):longint;cdecl;external 'clib' name 'fscanf';
+function freopen(para1:PAnsiChar; para2:PAnsiChar; para3:PFILE):PFILE;cdecl;external 'clib' name 'freopen';
+function fscanf(para1:PFILE; para2:PAnsiChar; args:array of const):longint;cdecl;external 'clib' name 'fscanf';
+function fscanf(var para1:TFILE; para2:PAnsiChar; args:array of const):longint;cdecl;external 'clib' name 'fscanf';
+function fscanf(para1:PFILE; para2:PAnsiChar):longint;cdecl;external 'clib' name 'fscanf';
+function fscanf(var para1:TFILE; para2:PAnsiChar):longint;cdecl;external 'clib' name 'fscanf';
 function fseek(fp:PFILE; offset:longint; whence:longint):longint;cdecl;external 'clib' name 'fseek';
 function fseek(var fp:TFILE; offset:longint; whence:longint):longint;cdecl;external 'clib' name 'fseek';
 (* Const before type ignored *)
@@ -3330,73 +3330,73 @@ function ftell(var para1:TFILE):longint;cdecl;external 'clib' name 'ftell';
 
 function fwrite(para1:pointer; para2:Tsize_t; para3:Tsize_t; para4:PFILE):Tsize_t;cdecl;external 'clib' name 'fwrite';
 
-function getc(para1:PFILE):char;cdecl;external 'clib' name 'getc';
-function getc(var para1:TFILE):char;cdecl;external 'clib' name 'getc';
+function getc(para1:PFILE):AnsiChar;cdecl;external 'clib' name 'getc';
+function getc(var para1:TFILE):AnsiChar;cdecl;external 'clib' name 'getc';
 
-function getchar:char;cdecl;external 'clib' name 'getchar';
-function gets(para1:Pchar):Pchar;cdecl;external 'clib' name 'gets';
-procedure perror(para1:Pchar);cdecl;external 'clib' name 'perror';
-function printf(para1:Pchar; args:array of const):longint;cdecl;external 'clib' name 'printf';
-function printf(para1:Pchar):longint;cdecl;external 'clib' name 'printf';
-function putc(para1:char; para2:PFILE):longint;cdecl;external 'clib' name 'putc';
-function putc(para1:char; var para2:TFILE):longint;cdecl;external 'clib' name 'putc';
+function getchar:AnsiChar;cdecl;external 'clib' name 'getchar';
+function gets(para1:PAnsiChar):PAnsiChar;cdecl;external 'clib' name 'gets';
+procedure perror(para1:PAnsiChar);cdecl;external 'clib' name 'perror';
+function printf(para1:PAnsiChar; args:array of const):longint;cdecl;external 'clib' name 'printf';
+function printf(para1:PAnsiChar):longint;cdecl;external 'clib' name 'printf';
+function putc(para1:AnsiChar; para2:PFILE):longint;cdecl;external 'clib' name 'putc';
+function putc(para1:AnsiChar; var para2:TFILE):longint;cdecl;external 'clib' name 'putc';
 
-function putchar(para1:char):longint;cdecl;external 'clib' name 'putchar';
+function putchar(para1:AnsiChar):longint;cdecl;external 'clib' name 'putchar';
 
-function puts(para1:Pchar):longint;cdecl;external 'clib' name 'puts';
-function remove(para1:Pchar):longint;cdecl;external 'clib' name 'remove';
-function rename(para1, para2:Pchar):longint;cdecl;external 'clib' name 'rename';
+function puts(para1:PAnsiChar):longint;cdecl;external 'clib' name 'puts';
+function remove(para1:PAnsiChar):longint;cdecl;external 'clib' name 'remove';
+function rename(para1, para2:PAnsiChar):longint;cdecl;external 'clib' name 'rename';
 procedure rewind(para1:PFILE);cdecl;external 'clib' name 'rewind';
 procedure rewind(var para1:TFILE);cdecl;external 'clib' name 'rewind';
 
-function scanf(para1:Pchar; args:array of const):longint;cdecl;external 'clib' name 'scanf';
-function scanf(para1:Pchar):longint;cdecl;external 'clib' name 'scanf';
-procedure setbuf(para1:PFILE; para2:Pchar);cdecl;external 'clib' name 'setbuf';
-procedure setbuf(var para1:TFILE; para2:Pchar);cdecl;external 'clib' name 'setbuf';
-function setvbuf(para1:PFILE; para2:Pchar; para3:longint; para4:Tsize_t):longint;cdecl;external 'clib' name 'setvbuf';
-function setvbuf(para1:TFILE; para2:Pchar; para3:longint; para4:Tsize_t):longint;cdecl;external 'clib' name 'setvbuf';
+function scanf(para1:PAnsiChar; args:array of const):longint;cdecl;external 'clib' name 'scanf';
+function scanf(para1:PAnsiChar):longint;cdecl;external 'clib' name 'scanf';
+procedure setbuf(para1:PFILE; para2:PAnsiChar);cdecl;external 'clib' name 'setbuf';
+procedure setbuf(var para1:TFILE; para2:PAnsiChar);cdecl;external 'clib' name 'setbuf';
+function setvbuf(para1:PFILE; para2:PAnsiChar; para3:longint; para4:Tsize_t):longint;cdecl;external 'clib' name 'setvbuf';
+function setvbuf(para1:TFILE; para2:PAnsiChar; para3:longint; para4:Tsize_t):longint;cdecl;external 'clib' name 'setvbuf';
 
-function sprintf(para1,para2:Pchar; args:array of const):longint;cdecl;external 'clib' name 'sprintf';
-function sprintf(para1,para2:Pchar):longint;cdecl;external 'clib' name 'sprintf';
-function sscanf(para1, para2:Pchar; args:array of const):longint;cdecl;external 'clib' name 'sscanf';
-function sscanf(para1, para2:Pchar):longint;cdecl;external 'clib' name 'sscanf';
+function sprintf(para1,para2:PAnsiChar; args:array of const):longint;cdecl;external 'clib' name 'sprintf';
+function sprintf(para1,para2:PAnsiChar):longint;cdecl;external 'clib' name 'sprintf';
+function sscanf(para1, para2:PAnsiChar; args:array of const):longint;cdecl;external 'clib' name 'sscanf';
+function sscanf(para1, para2:PAnsiChar):longint;cdecl;external 'clib' name 'sscanf';
 function tmpfile:PFILE;cdecl;external 'clib' name 'tmpfile';
-function tmpnam(para1:Pchar):Pchar;cdecl;external 'clib' name 'tmpnam';
+function tmpnam(para1:PAnsiChar):PAnsiChar;cdecl;external 'clib' name 'tmpnam';
 function ungetc(para1:longint; para2:PFILE):longint;cdecl;external 'clib' name 'ungetc';
 function ungetc(para1:longint; var para2:TFILE):longint;cdecl;external 'clib' name 'ungetc';
 
-function vfprintf(para1:PFILE; para2:Pchar; para3:Tva_list):longint;cdecl;external 'clib' name 'vfprintf';
-function vfprintf(var para1:TFILE; para2:Pchar; para3:Tva_list):longint;cdecl;external 'clib' name 'vfprintf';
+function vfprintf(para1:PFILE; para2:PAnsiChar; para3:Tva_list):longint;cdecl;external 'clib' name 'vfprintf';
+function vfprintf(var para1:TFILE; para2:PAnsiChar; para3:Tva_list):longint;cdecl;external 'clib' name 'vfprintf';
 
-function vfscanf(para1:PFILE; para2:Pchar; para3:Tva_list):longint;cdecl;external 'clib' name 'vfscanf';
-function vfscanf(var para1:TFILE; para2:Pchar; para3:Tva_list):longint;cdecl;external 'clib' name 'vfscanf';
+function vfscanf(para1:PFILE; para2:PAnsiChar; para3:Tva_list):longint;cdecl;external 'clib' name 'vfscanf';
+function vfscanf(var para1:TFILE; para2:PAnsiChar; para3:Tva_list):longint;cdecl;external 'clib' name 'vfscanf';
 
-function vprintf(para1:Pchar; para2:Tva_list):longint;cdecl;external 'clib' name 'vprintf';
-function vscanf(para1:Pchar; para2:Tva_list):longint;cdecl;external 'clib' name 'vscanf';
-function vsprintf(para1,para2:Pchar; para3:Tva_list):longint;cdecl;external 'clib' name 'vsprintf';
-function vsscanf(para1, para2:Pchar; para3:Tva_list):longint;cdecl;external 'clib' name 'vsscanf';
+function vprintf(para1:PAnsiChar; para2:Tva_list):longint;cdecl;external 'clib' name 'vprintf';
+function vscanf(para1:PAnsiChar; para2:Tva_list):longint;cdecl;external 'clib' name 'vscanf';
+function vsprintf(para1,para2:PAnsiChar; para3:Tva_list):longint;cdecl;external 'clib' name 'vsprintf';
+function vsscanf(para1, para2:PAnsiChar; para3:Tva_list):longint;cdecl;external 'clib' name 'vsscanf';
 { POSIX-defined additions...  }
-function fdopen(para1:longint; para2:Pchar):PFILE;cdecl;external 'clib' name 'fdopen';
+function fdopen(para1:longint; para2:PAnsiChar):PFILE;cdecl;external 'clib' name 'fdopen';
 function fileno(fp:PFILE):longint;cdecl;external 'clib' name 'fileno';
 function fileno(var f:TFILE):longint;cdecl;external 'clib' name 'fileno';
-//function cgets(para1:Pchar):Pchar;cdecl;external 'clib' name 'cgets';
-//function cprintf(para1:Pchar; args:array of const):longint;cdecl;external 'clib' name 'cprintf';
-//function cprintf(para1:Pchar):longint;cdecl;external 'clib' name 'cprintf';
-//function cputs(para1:Pchar):longint;cdecl;external 'clib' name 'cputs';
-//function cscanf(para1:Pchar; args:array of const):longint;cdecl;external 'clib' name 'cscanf';
-//function cscanf(para1:Pchar):longint;cdecl;external 'clib' name 'cscanf';
+//function cgets(para1:PAnsiChar):PAnsiChar;cdecl;external 'clib' name 'cgets';
+//function cprintf(para1:PAnsiChar; args:array of const):longint;cdecl;external 'clib' name 'cprintf';
+//function cprintf(para1:PAnsiChar):longint;cdecl;external 'clib' name 'cprintf';
+//function cputs(para1:PAnsiChar):longint;cdecl;external 'clib' name 'cputs';
+//function cscanf(para1:PAnsiChar; args:array of const):longint;cdecl;external 'clib' name 'cscanf';
+//function cscanf(para1:PAnsiChar):longint;cdecl;external 'clib' name 'cscanf';
 function fcloseall:longint;cdecl;external 'clib' name 'fcloseall';
 function fgetchar:longint;cdecl;external 'clib' name 'fgetchar';
 function flushall:longint;cdecl;external 'clib' name 'flushall';
 function fputchar(para1:longint):longint;cdecl;external 'clib' name 'fputchar';
-function vcprintf(para1:Pchar; para2:Tva_list):longint;cdecl;external 'clib' name 'vcprintf';
-function vcscanf(para1:Pchar; para2:Tva_list):longint;cdecl;external 'clib' name 'vcscanf';
-function NWfprintf(var para1:TFILE; para2:Pchar; args:array of const):longint;cdecl;external 'clib' name 'NWfprintf';
-function NWfprintf(var para1:TFILE; para2:Pchar):longint;cdecl;external 'clib' name 'NWfprintf';
-function NWvcprintf(para1:Pchar; para2:Tva_list):longint;cdecl;external 'clib' name 'NWvcprintf';
-function NWvfprintf(para1:PFILE; para2:Pchar; para3:Tva_list):longint;cdecl;external 'clib' name 'NWvfprintf';
-function NWvprintf(para1:Pchar; para2:Tva_list):longint;cdecl;external 'clib' name 'NWvprintf';
-function NWvsprintf(para1:Pchar; para2:Pchar; para3:Tva_list):longint;cdecl;external 'clib' name 'NWvsprintf';
+function vcprintf(para1:PAnsiChar; para2:Tva_list):longint;cdecl;external 'clib' name 'vcprintf';
+function vcscanf(para1:PAnsiChar; para2:Tva_list):longint;cdecl;external 'clib' name 'vcscanf';
+function NWfprintf(var para1:TFILE; para2:PAnsiChar; args:array of const):longint;cdecl;external 'clib' name 'NWfprintf';
+function NWfprintf(var para1:TFILE; para2:PAnsiChar):longint;cdecl;external 'clib' name 'NWfprintf';
+function NWvcprintf(para1:PAnsiChar; para2:Tva_list):longint;cdecl;external 'clib' name 'NWvcprintf';
+function NWvfprintf(para1:PFILE; para2:PAnsiChar; para3:Tva_list):longint;cdecl;external 'clib' name 'NWvfprintf';
+function NWvprintf(para1:PAnsiChar; para2:Tva_list):longint;cdecl;external 'clib' name 'NWvprintf';
+function NWvsprintf(para1:PAnsiChar; para2:PAnsiChar; para3:Tva_list):longint;cdecl;external 'clib' name 'NWvsprintf';
 {
    For the following support, open the file without 'b' in the mode. Additions
    for transparent Macintosh text file support ('\r' on lines) and additions
@@ -3458,52 +3458,52 @@ type
 procedure abort;cdecl;external 'clib' name 'abort';
 function abs(para1:longint):longint;cdecl;external 'clib' name 'abs';
 function atexit(proc:TCdeclProcedure):longint;cdecl;external 'clib' name 'atexit';
-function atof(para1:Pchar):double;cdecl;external 'clib' name 'atof';
-function atoi(para1:Pchar):longint;cdecl;external 'clib' name 'atoi';
-function atol(para1:Pchar):longint;cdecl;external 'clib' name 'atol';
+function atof(para1:PAnsiChar):double;cdecl;external 'clib' name 'atof';
+function atoi(para1:PAnsiChar):longint;cdecl;external 'clib' name 'atoi';
+function atol(para1:PAnsiChar):longint;cdecl;external 'clib' name 'atol';
 function bsearch(para1,para2:pointer; para3,para4:Tsize_t; para5:TBsearchFunc):pointer;cdecl;external 'clib' name 'bsearch';
 function calloc(para1:Tsize_t; para2:Tsize_t):pointer;cdecl;external 'clib' name 'calloc';
 function _div(para1,para2:longint):Tdiv_t;cdecl;external 'clib' name 'div';
 //procedure exit(para1:longint);cdecl;external 'clib' name 'exit';
 procedure _exit(para1:longint);cdecl;external 'clib' name '_exit';
-function getenv(para1:Pchar):Pchar;cdecl;external 'clib' name 'getenv';
+function getenv(para1:PAnsiChar):PAnsiChar;cdecl;external 'clib' name 'getenv';
 function labs(para1:longint):longint;cdecl;external 'clib' name 'labs';
 function ldiv(para1:longint; para2:longint):Tldiv_t;cdecl;external 'clib' name 'ldiv';
 function malloc(para1:Tsize_t):pointer;cdecl;external 'clib' name 'malloc';
-function mblen(para1:Pchar; para2:Tsize_t):longint;cdecl;external 'clib' name 'mblen';
-function mbstowcs(para1:Pwchar_t; para2:Pchar; para3:Tsize_t):Tsize_t;cdecl;external 'clib' name 'mbstowcs';
-function mbtowc(para1:Pwchar_t; para2:Pchar; para3:Tsize_t):longint;cdecl;external 'clib' name 'mbtowc';
+function mblen(para1:PAnsiChar; para2:Tsize_t):longint;cdecl;external 'clib' name 'mblen';
+function mbstowcs(para1:Pwchar_t; para2:PAnsiChar; para3:Tsize_t):Tsize_t;cdecl;external 'clib' name 'mbstowcs';
+function mbtowc(para1:Pwchar_t; para2:PAnsiChar; para3:Tsize_t):longint;cdecl;external 'clib' name 'mbtowc';
 procedure qsort(para1:pointer; para2,para3:Tsize_t; para4:TQSortFunc);cdecl;external 'clib' name 'qsort';
 function rand:longint;cdecl;external 'clib' name 'rand';
 function realloc(para1:pointer; para2:Tsize_t):pointer;cdecl;external 'clib' name 'realloc';
 procedure srand(para1:dword);cdecl;external 'clib' name 'srand';
-function strtod(para1:Pchar; para2:PPchar):double;cdecl;external 'clib' name 'strtod';
-function strtol(para1:Pchar; para2:PPchar; para3:longint):longint;cdecl;external 'clib' name 'strtol';
-function strtoul(para1:Pchar; para2:PPchar; para3:longint):dword;cdecl;external 'clib' name 'strtoul';
-function _system(para1:Pchar):longint;cdecl;external 'clib' name 'system';
-function wcstombs(para1:Pchar; para2:Pwchar_t; para3:Tsize_t):Tsize_t;cdecl;external 'clib' name 'wcstombs';
-function wctomb(para1:Pchar; para2:Twchar_t):longint;cdecl;external 'clib' name 'wctomb';
+function strtod(para1:PAnsiChar; para2:PPAnsiChar):double;cdecl;external 'clib' name 'strtod';
+function strtol(para1:PAnsiChar; para2:PPAnsiChar; para3:longint):longint;cdecl;external 'clib' name 'strtol';
+function strtoul(para1:PAnsiChar; para2:PPAnsiChar; para3:longint):dword;cdecl;external 'clib' name 'strtoul';
+function _system(para1:PAnsiChar):longint;cdecl;external 'clib' name 'system';
+function wcstombs(para1:PAnsiChar; para2:Pwchar_t; para3:Tsize_t):Tsize_t;cdecl;external 'clib' name 'wcstombs';
+function wctomb(para1:PAnsiChar; para2:Twchar_t):longint;cdecl;external 'clib' name 'wctomb';
 function clearenv:longint;cdecl;external 'clib' name 'clearenv';
-function ecvt(para1:double; para2:longint; para3:Plongint; para4:Plongint):Pchar;cdecl;external 'clib' name 'ecvt';
-function fcvt(para1:double; para2:longint; para3:Plongint; para4:Plongint):Pchar;cdecl;external 'clib' name 'fcvt';
-function gcvt(para1:double; para2:longint; para3:Pchar):Pchar;cdecl;external 'clib' name 'gcvt';
-function htol(para1:Pchar):dword;cdecl;external 'clib' name 'htol';
-function itoa(para1:longint; para2:Pchar; para3:longint):Pchar;cdecl;external 'clib' name 'itoa';
-function itoab(para1:dword; para2:Pchar):Pchar;cdecl;external 'clib' name 'itoab';
-function ltoa(para1:longint; para2:Pchar; para3:longint):Pchar;cdecl;external 'clib' name 'ltoa';
+function ecvt(para1:double; para2:longint; para3:Plongint; para4:Plongint):PAnsiChar;cdecl;external 'clib' name 'ecvt';
+function fcvt(para1:double; para2:longint; para3:Plongint; para4:Plongint):PAnsiChar;cdecl;external 'clib' name 'fcvt';
+function gcvt(para1:double; para2:longint; para3:PAnsiChar):PAnsiChar;cdecl;external 'clib' name 'gcvt';
+function htol(para1:PAnsiChar):dword;cdecl;external 'clib' name 'htol';
+function itoa(para1:longint; para2:PAnsiChar; para3:longint):PAnsiChar;cdecl;external 'clib' name 'itoa';
+function itoab(para1:dword; para2:PAnsiChar):PAnsiChar;cdecl;external 'clib' name 'itoab';
+function ltoa(para1:longint; para2:PAnsiChar; para3:longint):PAnsiChar;cdecl;external 'clib' name 'ltoa';
 function max(para1:longint; para2:longint):longint;cdecl;external 'clib' name 'max';
 function min(para1:longint; para2:longint):longint;cdecl;external 'clib' name 'min';
-function putenv(name:Pchar):longint;cdecl;external 'clib' name 'putenv';
+function putenv(name:PAnsiChar):longint;cdecl;external 'clib' name 'putenv';
 function rand_r(seed:Pdword; result:Plongint):longint;cdecl;external 'clib' name 'rand_r';
 function _rotl(para1:dword; para2:dword):dword;cdecl;external 'clib' name '_rotl';
 function _rotr(para1:dword; para2:dword):dword;cdecl;external 'clib' name '_rotr';
-function scanenv(sequence:Plongint; variable:Pchar; length:Psize_t; value:Pchar):longint;cdecl;external 'clib' name 'scanenv';
-function setenv(name:Pchar; value:Pchar; overwrite:longint):longint;cdecl;external 'clib' name 'setenv';
-// double   strtod_ld( const char *, char **, long double *);
-function strtoi(para1:Pchar; para2:longint):longint;cdecl;external 'clib' name 'strtoi';
-function ultoa(para1:dword; para2:Pchar; para3:longint):Pchar;cdecl;external 'clib' name 'ultoa';
-function unsetenv(name:Pchar):longint;cdecl;external 'clib' name 'unsetenv';
-function utoa(para1:dword; para2:Pchar; para3:longint):Pchar;cdecl;external 'clib' name 'utoa';
+function scanenv(sequence:Plongint; variable:PAnsiChar; length:Psize_t; value:PAnsiChar):longint;cdecl;external 'clib' name 'scanenv';
+function setenv(name:PAnsiChar; value:PAnsiChar; overwrite:longint):longint;cdecl;external 'clib' name 'setenv';
+// double   strtod_ld( const AnsiChar *, AnsiChar **, long double *);
+function strtoi(para1:PAnsiChar; para2:longint):longint;cdecl;external 'clib' name 'strtoi';
+function ultoa(para1:dword; para2:PAnsiChar; para3:longint):PAnsiChar;cdecl;external 'clib' name 'ultoa';
+function unsetenv(name:PAnsiChar):longint;cdecl;external 'clib' name 'unsetenv';
+function utoa(para1:dword; para2:PAnsiChar; para3:longint):PAnsiChar;cdecl;external 'clib' name 'utoa';
 function _lrotl(para1:dword; para2:dword):dword;cdecl;external 'clib' name '_lrotl';
 function _lrotr(para1:dword; para2:dword):dword;cdecl;external 'clib' name '_lrotr';
 {-unistd.h---------------------------------------------------------------------}
@@ -3520,9 +3520,9 @@ const
 
 type TPipeFiledes = array [0..1] of longint;
 
-function access(path:Pchar; mode:longint):longint;cdecl;external 'clib' name 'access';
-function _chdir(path:Pchar):longint;cdecl;external 'clib' name 'chdir';
-function Fpchdir(path:Pchar):longint;cdecl;external 'clib' name 'chdir';
+function access(path:PAnsiChar; mode:longint):longint;cdecl;external 'clib' name 'access';
+function _chdir(path:PAnsiChar):longint;cdecl;external 'clib' name 'chdir';
+function Fpchdir(path:PAnsiChar):longint;cdecl;external 'clib' name 'chdir';
 function chsize(fildes:longint; size:dword):longint;cdecl;external 'clib' name 'chsize';
 function _close(fildes:longint):longint;cdecl;external 'clib' name 'close';
 function Fpclose(fildes:longint):longint;cdecl;external 'clib' name 'close';
@@ -3532,14 +3532,14 @@ function dup2(fildes1:longint; fildes2:longint):longint;cdecl;external 'clib' na
 function fpdup2(fildes1:longint; fildes2:longint):longint;cdecl;external 'clib' name 'dup2';
 function _eof(fildes:longint):longint;cdecl;external 'clib' name 'eof';
 function Fpeof(fildes:longint):longint;cdecl;external 'clib' name 'eof';
-function getcwd(path:Pchar; len:Tsize_t):Pchar;cdecl;external 'clib' name 'getcwd';
+function getcwd(path:PAnsiChar; len:Tsize_t):PAnsiChar;cdecl;external 'clib' name 'getcwd';
 function isatty(fildes:longint):longint;cdecl;external 'clib' name 'isatty';
 function lseek(fildes:longint; offset:Toff_t; whence:longint):Toff_t;cdecl;external 'clib' name 'lseek';
 function pipe(fildes:TPipeFiledes):longint;cdecl;external 'clib' name 'pipe';
 function _read(fildes:longint; buf:pointer; nbytes:Tsize_t):Tssize_t;cdecl;external 'clib' name 'read';
 function Fpread(fildes:longint; buf:pointer; nbytes:Tsize_t):Tssize_t;cdecl;external 'clib' name 'read';
-function rmdir(path:Pchar):longint;cdecl;external 'clib' name 'rmdir';
-function unlink(path:Pchar):longint;cdecl;external 'clib' name 'unlink';
+function rmdir(path:PAnsiChar):longint;cdecl;external 'clib' name 'rmdir';
+function unlink(path:PAnsiChar):longint;cdecl;external 'clib' name 'unlink';
 function _write(fildes:longint; buf:pointer; nbytes:Tsize_t):Tssize_t;cdecl;external 'clib' name 'write';
 function Fpwrite(fildes:longint; buf:pointer; nbytes:Tsize_t):Tssize_t;cdecl;external 'clib' name 'write';
 function pread(fildes:longint; buf:pointer; nbytes:Tsize_t; offset:Toff_t):Tssize_t;cdecl;external 'clib' name 'pread';
@@ -3557,7 +3557,7 @@ type
    Pclibctx_t = ^Tclibctx_t;
    Tclibctx_t = record
      ThreadGroupGetID   : function :longint;cdecl;
-     ThreadGroupCreate  : function (name:Pchar; threadGroupID:Plongint):longint; cdecl;
+     ThreadGroupCreate  : function (name:PAnsiChar; threadGroupID:Plongint):longint; cdecl;
      ThreadGroupDispose : function (threadGroupID:longint):longint; cdecl;
      ThreadGroupUnwrap  : function (threadGroupID:longint; restoredThreadGroupID:longint):longint; cdecl;
      ThreadGroupWrap    : function (threadGroupID:longint):longint; cdecl;
@@ -3572,7 +3572,7 @@ type
      reserved           : array[0..7] of pointer;
    end;
 
-function CLibLoadContextBroker(module:pointer; callback:Pchar):longint;cdecl;external 'clib' name 'CLibLoadContextBroker';
+function CLibLoadContextBroker(module:pointer; callback:PAnsiChar):longint;cdecl;external 'clib' name 'CLibLoadContextBroker';
 function CLibUnloadContextBroker(broker:Pclibctx_t):longint;cdecl;external 'clib' name 'CLibUnloadContextBroker';
 function MyCallBack(broker:Pclibctx_t):longint;cdecl;external 'clib' name 'MyCallBack';
 {-nwtime.h---------------------------------------------------------------------}
@@ -3762,53 +3762,53 @@ procedure TicksToSeconds(Ticks:longint; Seconds:Plongint; TenthsOfSeconds:Plongi
   procedure ExitThread(action_code     :longint;
                        termination_code:longint);                        cdecl;external ThreadsNlm name 'ExitThread';
 
-  function FindNLMHandle(NLMFileName:Pchar):TNlmHandle;                  cdecl;external ThreadsNlm name 'FindNLMHandle';
-  function getcmd(cmdLine:Pchar):Pchar;                                  cdecl;external ThreadsNlm name 'getcmd';
+  function FindNLMHandle(NLMFileName:PAnsiChar):TNlmHandle;                  cdecl;external ThreadsNlm name 'FindNLMHandle';
+  function getcmd(cmdLine:PAnsiChar):PAnsiChar;                                  cdecl;external ThreadsNlm name 'getcmd';
   function GetNLMHandle:TNlmHandle;                                      cdecl;external ThreadsNlm name 'GetNLMHandle';
   function GetNLMID:longint;                                             cdecl;external ThreadsNlm name 'GetNLMID';
   function GetNLMIDFromNLMHandle(NLMHandle:longint):longint;             cdecl;external ThreadsNlm name 'GetNLMIDFromNLMHandle';
-  function GetNLMIDFromThreadID(threadID:longint;fileName:Pchar):longint;cdecl;external ThreadsNlm name 'GetNLMIDFromThreadID';
+  function GetNLMIDFromThreadID(threadID:longint;fileName:PAnsiChar):longint;cdecl;external ThreadsNlm name 'GetNLMIDFromThreadID';
   function GetNLMNameFromNLMID(NLMID:longint;
-                               fileName:Pchar;
-                               description:Pchar):longint;               cdecl;external ThreadsNlm name 'GetNLMNameFromNLMID';
+                               fileName:PAnsiChar;
+                               description:PAnsiChar):longint;               cdecl;external ThreadsNlm name 'GetNLMNameFromNLMID';
   function GetNLMNameFromNLMHandle(NLMHandle:TNlmHandle;
-                                   LDFileName:Pchar;
-                                   LDName:Pchar):longint;                cdecl;external ThreadsNlm name 'GetNLMNameFromNLMHandle';
+                                   LDFileName:PAnsiChar;
+                                   LDName:PAnsiChar):longint;                cdecl;external ThreadsNlm name 'GetNLMNameFromNLMHandle';
   function GetThreadContextSpecifier(threadID:longint):longint;          cdecl;external ThreadsNlm name 'GetThreadContextSpecifier';
   function GetThreadGroupID:longint;                                     cdecl;external ThreadsNlm name 'GetThreadGroupID';
   function __GetThreadIDFromPCB(PCB:longint):longint;                    cdecl;external Lib0Nlm name '__GetThreadIDFromPCB';
   function GetThreadHandicap(threadID:longint):longint;                  cdecl;external ThreadsNlm name 'GetThreadHandicap';
   function GetThreadID:longint;                                          cdecl;external ThreadsNlm name 'GetThreadID';
-  function GetThreadName(threadID:longint; tName:Pchar):longint;         cdecl;external ThreadsNlm name 'GetThreadName';
+  function GetThreadName(threadID:longint; tName:PAnsiChar):longint;         cdecl;external ThreadsNlm name 'GetThreadName';
   function GetThreadName(threadID:longint; var tName):longint;           cdecl;external ThreadsNlm name 'GetThreadName';
   function MapNLMIDToHandle(NLMID:longint):TNlmHandle;                   cdecl;external ThreadsNlm name 'MapNLMIDToHandle';
   function PopThreadCleanup(execute:longint):TCLEANUP;                   cdecl;external ThreadsNlm name 'PopThreadCleanup';
   function PopThreadGroupCleanup(execute:longint):TCLEANUP;              cdecl;external ThreadsNlm name 'PopThreadGroupCleanup';
   function PushThreadCleanup(func:TCLEANUP):longint;                     cdecl;external ThreadsNlm name 'PushThreadCleanup';
   function PushThreadGroupCleanup(func:TCLEANUP):longint;                cdecl;external ThreadsNlm name 'PushThreadGroupCleanup';
-  function RenameThread(threadID:longint; newName:Pchar):longint;        cdecl;external ThreadsNlm name 'RenameThread';
+  function RenameThread(threadID:longint; newName:PAnsiChar):longint;        cdecl;external ThreadsNlm name 'RenameThread';
   function ResumeThread(threadID:longint):longint;                       cdecl;external ThreadsNlm name 'ResumeThread';
-  function ReturnNLMVersionInfoFromFile(pathName:pchar;
+  function ReturnNLMVersionInfoFromFile(pathName:PAnsiChar;
                                         majorVersion:Plongint;
                                         minorVersion:Plongint;
                                         revision:Plongint;
                                         year:Plongint;
                                         month:Plongint;
                                         day:Plongint;
-                                        copyrightString:pchar;
-                                        description:pchar):longint;      cdecl;external NlmLibNlm name 'ReturnNLMVersionInfoFromFile';
-  function ReturnNLMVersionInfoFromFile(pathName:pchar;
+                                        copyrightString:PAnsiChar;
+                                        description:PAnsiChar):longint;      cdecl;external NlmLibNlm name 'ReturnNLMVersionInfoFromFile';
+  function ReturnNLMVersionInfoFromFile(pathName:PAnsiChar;
                                         var majorVersion,minorVersion,revision:longint;
                                         var year,month,day:longint;
-                                        copyrightString:pchar;
-                                        description:pchar):longint;      cdecl;external NlmLibNlm name 'ReturnNLMVersionInfoFromFile';
+                                        copyrightString:PAnsiChar;
+                                        description:PAnsiChar):longint;      cdecl;external NlmLibNlm name 'ReturnNLMVersionInfoFromFile';
 
   function ReturnNLMVersionInformation(NLMHandle:TNlmHandle;
                                        majorVersion,minorVersion,revision,year,month,day:Plongint;
-                                       copyrightString:pchar; description:pchar):longint;cdecl;external NlmLibNlm name 'ReturnNLMVersionInformation';
+                                       copyrightString:PAnsiChar; description:PAnsiChar):longint;cdecl;external NlmLibNlm name 'ReturnNLMVersionInformation';
   function ReturnNLMVersionInformation(NLMHandle:TNlmHandle;
                                        var majorVersion,minorVersion,revision,year,month,day:longint;
-                                       copyrightString:pchar; description:pchar):longint;cdecl;external NlmLibNlm name 'ReturnNLMVersionInformation';
+                                       copyrightString:PAnsiChar; description:PAnsiChar):longint;cdecl;external NlmLibNlm name 'ReturnNLMVersionInformation';
 
   procedure ScheduleNoSleepAESProcessEvent(EventNode:PAESProcessStructure);cdecl;external ThreadsNlm name 'ScheduleNoSleepAESProcessEvent';
   procedure ScheduleSleepAESProcessEvent(EventNode:PAESProcessStructure);  cdecl;external ThreadsNlm name 'ScheduleSleepAESProcessEvent';
@@ -3824,12 +3824,12 @@ procedure TicksToSeconds(Ticks:longint; Seconds:Plongint; TenthsOfSeconds:Plongi
   function SetThreadGroupID(newThreadGroupID:longint):longint;             cdecl;external ThreadsNlm name 'SetThreadGroupID';
   procedure SetThreadHandicap(threadID, handicap:longint);                 cdecl;external ThreadsNlm name 'SetThreadHandicap';
   function spawnlp(mode:longint;
-                   path,arg0:Pchar;
+                   path,arg0:PAnsiChar;
                    args:array of const):longint;                           cdecl;external ThreadsNlm name 'spawnlp';
   function spawnlp(mode:longint;
-                   path,arg0:Pchar):longint;                               cdecl;external ThreadsNlm name 'spawnlp';
+                   path,arg0:PAnsiChar):longint;                               cdecl;external ThreadsNlm name 'spawnlp';
   function spawnvp(mode:longint;
-                   path,argv:PPchar):longint;                              cdecl;external ThreadsNlm name 'spawnvp';
+                   path,argv:PPAnsiChar):longint;                              cdecl;external ThreadsNlm name 'spawnvp';
   function SuspendThread(threadID:longint):longint;                        cdecl;external ThreadsNlm name 'SuspendThread';
   procedure ThreadSwitch;                                                  cdecl;external ThreadsNlm name 'ThreadSwitch';
   procedure ThreadSwitchLowPriority;                                       cdecl;external ThreadsNlm name 'ThreadSwitchLowPriority';
@@ -4267,7 +4267,7 @@ type TLongintCDeclFunc = function :longint; cdecl;
 
 function MM_Register_Application (applicationhandle:Plongint;
                                   applicationid:longint;
-                                  name:PChar;
+                                  name:PAnsiChar;
                                   reserved:longint;
                                   mediaconsoleroutine:TLongintCDeclFunc;
                                   resourcetag:PResourceTagDef):longint;cdecl;external 'clib' name 'MM_Register_Application';
@@ -4322,7 +4322,7 @@ function ioctl(fd:longint; command:longint):longint;cdecl;external 'clib' name '
 type
    Piovec = ^Tiovec;
    Tiovec = record
-        iov_base : Pchar;
+        iov_base : PAnsiChar;
         iov_len : longint;
      end;
 
@@ -4453,7 +4453,7 @@ type
    Psockaddr = ^Tsockaddr;
    Tsockaddr = record
         sa_family : word;
-        sa_data : array[0..13] of char;
+        sa_data : array[0..13] of AnsiChar;
      end;
 
 { structure used by kernel to pass protocol information in raw sockets  }
@@ -4491,11 +4491,11 @@ const
 type
    Pmsghdr = ^Tmsghdr;
    Tmsghdr = record
-        msg_name : Pchar;
+        msg_name : PAnsiChar;
         msg_namelen : longint;
         msg_iov : Piovec;
         msg_iovlen : longint;
-        msg_accrights : Pchar;
+        msg_accrights : PAnsiChar;
         msg_accrightslen : longint;
      end;
 
@@ -4517,29 +4517,29 @@ function bind(s:TSKT; name:Psockaddr; namelen:longint):longint;cdecl;external 'c
 function connect(s:TSKT; name:Psockaddr; namelen:longint):longint;cdecl;external 'clib' name 'connect';
 function getpeername(s:TSKT; name:Psockaddr; namelen:Plongint):longint;cdecl;external 'clib' name 'getpeername';
 function getsockname(s:TSKT; name:Psockaddr; namelen:Plongint):longint;cdecl;external 'clib' name 'getsockname';
-function getsockopt(s:TSKT; level:longint; name:longint; val:Pchar; len:Plongint):longint;cdecl;external 'clib' name 'getsockopt';
-function getsockopt(s:TSKT; level:longint; name:longint; val:Pchar; var len:longint):longint;cdecl;external 'clib' name 'getsockopt';
+function getsockopt(s:TSKT; level:longint; name:longint; val:PAnsiChar; len:Plongint):longint;cdecl;external 'clib' name 'getsockopt';
+function getsockopt(s:TSKT; level:longint; name:longint; val:PAnsiChar; var len:longint):longint;cdecl;external 'clib' name 'getsockopt';
 
 function listen(s:TSKT; backlog:longint):longint;cdecl;external 'clib' name 'listen';
 function readv(s:TSKT; iov:Piovec; iovcnt:longint):longint;cdecl;external 'clib' name 'readv';
-function recv(s:TSKT; msg:Pchar; len:longint; flags:longint):longint;cdecl;external 'clib' name 'recv';
+function recv(s:TSKT; msg:PAnsiChar; len:longint; flags:longint):longint;cdecl;external 'clib' name 'recv';
 function recv(s:TSKT; var data; len:longint; flags:longint):longint;cdecl;external 'clib' name 'recv';
 
-function recvfrom(s:TSKT; msg:Pchar; len:longint; flags:longint; from:Psockaddr;
+function recvfrom(s:TSKT; msg:PAnsiChar; len:longint; flags:longint; from:Psockaddr;
            fromlen:Plongint):longint;cdecl;external 'clib' name 'recvfrom';
 function recvfrom(s:TSKT; var data; len:longint; flags:longint; from:Psockaddr;
            var fromlen:longint):longint;cdecl;external 'clib' name 'recvfrom';
 
 function recvmsg(s:TSKT; msg:Pmsghdr; flags:longint):longint;cdecl;external 'clib' name 'recvmsg';
-function send(s:TSKT; msg:Pchar; len:longint; flags:longint):longint;cdecl;external 'clib' name 'send';
+function send(s:TSKT; msg:PAnsiChar; len:longint; flags:longint):longint;cdecl;external 'clib' name 'send';
 function send(s:TSKT; var data; len:longint; flags:longint):longint;cdecl;external 'clib' name 'send';
-function sendto(s:TSKT; msg:Pchar; len:longint; flags:longint; _to:Psockaddr;
+function sendto(s:TSKT; msg:PAnsiChar; len:longint; flags:longint; _to:Psockaddr;
            tolen:longint):longint;cdecl;external 'clib' name 'sendto';
 function sendto(s:TSKT; var data; len:longint; flags:longint; _to:Psockaddr;
            tolen:longint):longint;cdecl;external 'clib' name 'sendto';
 
 function sendmsg(s:TSKT; msg:Pmsghdr; flags:longint):longint;cdecl;external 'clib' name 'sendmsg';
-function setsockopt(s:TSKT; level:longint; name:longint; val:Pchar; len:longint):longint;cdecl;external 'clib' name 'setsockopt';
+function setsockopt(s:TSKT; level:longint; name:longint; val:PAnsiChar; len:longint):longint;cdecl;external 'clib' name 'setsockopt';
 function setsockopt(s:TSKT; level:longint; name:longint; var value; len:longint):longint;cdecl;external 'clib' name 'setsockopt';
 function shutdown(s:TSKT; how:longint):longint;cdecl;external 'clib' name 'shutdown';
 function socket(domain:longint; _type:longint; protocol:longint):longint;cdecl;external 'clib' name 'socket';
@@ -4591,12 +4591,12 @@ const
 type
    Putsname = ^Tutsname;
    Tutsname = record
-     sysname  : array[0..(_SYS_NMLN)-1] of char;  // name of operating system implementation
-     release  : array[0..(_SYS_NMLN)-1] of char;
-     version  : array[0..(_SYS_NMLN)-1] of char;
-     nodename : array[0..(_SYS_NMLN)-1] of char;
-     machine  : array[0..(_SYS_NMLN)-1] of char;
-     _library : array[0..(_SYS_NMLN)-1] of char;
+     sysname  : array[0..(_SYS_NMLN)-1] of AnsiChar;  // name of operating system implementation
+     release  : array[0..(_SYS_NMLN)-1] of AnsiChar;
+     version  : array[0..(_SYS_NMLN)-1] of AnsiChar;
+     nodename : array[0..(_SYS_NMLN)-1] of AnsiChar;
+     machine  : array[0..(_SYS_NMLN)-1] of AnsiChar;
+     _library : array[0..(_SYS_NMLN)-1] of AnsiChar;
    end;
 
 function uname(name:Putsname):longint;cdecl;external 'clib' name 'uname';
@@ -4748,9 +4748,9 @@ type
         st_name : array[0..12] of byte;
      end;
 
-function chmod(path:Pchar; mode:Tmode_t):longint;cdecl;external 'clib' name 'chmod';
-function mkdir(path:Pchar):longint;cdecl;external 'clib' name 'mkdir';
-function mkdir_510(pathname:Pchar; mode:Tmode_t):longint;cdecl;external 'clib' name 'mkdir_510';
+function chmod(path:PAnsiChar; mode:Tmode_t):longint;cdecl;external 'clib' name 'chmod';
+function mkdir(path:PAnsiChar):longint;cdecl;external 'clib' name 'mkdir';
+function mkdir_510(pathname:PAnsiChar; mode:Tmode_t):longint;cdecl;external 'clib' name 'mkdir_510';
 function umask(cmask:Tmode_t):Tmode_t;cdecl;external 'clib' name 'umask';
 function fstat_410(fildes:longint; buf:Pstat410):longint;cdecl;external 'clib' name 'fstat_410';
 function fstat_410(fildes:longint; var buf:Tstat410):longint;cdecl;external 'clib' name 'fstat_410';
@@ -4761,14 +4761,14 @@ function fstat_500(fildes:longint; var buf:Tstat):longint;cdecl;external 'clib' 
 function fstat (fildes:longint; buf:Pstat):longint;cdecl;external 'clib' name 'fstat_500';
 function fstat (fildes:longint; var buf:Tstat):longint;cdecl;external 'clib' name 'fstat_500';
 
-function stat_410(path:Pchar; buf:Pstat410):longint;cdecl;external 'clib' name 'stat_410';
-function stat_410(path:Pchar; var buf:Tstat410):longint;cdecl;external 'clib' name 'stat_410';
-function stat_411(path:Pchar; buf:Pstat411):longint;cdecl;external 'clib' name 'stat_411';
-function stat_411(path:Pchar; var buf:Tstat411):longint;cdecl;external 'clib' name 'stat_411';
-function stat_500(path:Pchar; buf:Pstat):longint;cdecl;external 'clib' name 'stat_500';
-function stat_500(path:Pchar; var buf:Tstat):longint;cdecl;external 'clib' name 'stat_500';
-function stat (path:Pchar; buf:Pstat):longint;cdecl;external 'clib' name 'stat_500';
-function stat (path:Pchar; var buf:Tstat):longint;cdecl;external 'clib' name 'stat_500';
+function stat_410(path:PAnsiChar; buf:Pstat410):longint;cdecl;external 'clib' name 'stat_410';
+function stat_410(path:PAnsiChar; var buf:Tstat410):longint;cdecl;external 'clib' name 'stat_410';
+function stat_411(path:PAnsiChar; buf:Pstat411):longint;cdecl;external 'clib' name 'stat_411';
+function stat_411(path:PAnsiChar; var buf:Tstat411):longint;cdecl;external 'clib' name 'stat_411';
+function stat_500(path:PAnsiChar; buf:Pstat):longint;cdecl;external 'clib' name 'stat_500';
+function stat_500(path:PAnsiChar; var buf:Tstat):longint;cdecl;external 'clib' name 'stat_500';
+function stat (path:PAnsiChar; buf:Pstat):longint;cdecl;external 'clib' name 'stat_500';
+function stat (path:PAnsiChar; var buf:Tstat):longint;cdecl;external 'clib' name 'stat_500';
 {------------------------------------------------------------------------------}
 {definitions for netwareAlert, not documented, found that on the novell developer newsgroup}
 const
@@ -5242,7 +5242,7 @@ type
        nwAlertSeverity              : longint;
        nwAlertDataPtr               : pointer;
        nwAlertDataFree              : TnwAlertDataFreeProc;
-       nwControlString              : pchar;
+       nwControlString              : PAnsiChar;
        nwControlStringMessageNumber : longint;
      end;
 
@@ -5265,7 +5265,7 @@ begin
    CLK_TCK:=__get_CLK_TCK;
 end;
 
-function tzname : pchar;
+function tzname : PAnsiChar;
 begin
    tzname:=__get_tzname^;
 end;
