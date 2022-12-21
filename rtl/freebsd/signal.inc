@@ -117,9 +117,9 @@ type sigset_t = array[0..3] of Longint;
        en_opcode    : word;         { opcode last executed (11 bits ) }
        en_foo       : cardinal;     { floating operand offset }
        en_fos       : cardinal;     { floating operand segment selector }
-       fpr_acc      : array[0..79] of char;
+       fpr_acc      : array[0..79] of AnsiChar;
        fpr_ex_sw    : cardinal;
-       fpr_pad      : array[0..63] of char;
+       fpr_pad      : array[0..63] of AnsiChar;
        end;
 {$endif def x86}
 
@@ -189,7 +189,7 @@ type sigset_t = array[0..3] of Longint;
 
   pstack_t = ^stack_t;
   stack_t = record
-    ss_sp: pChar;                       {* signal stack base *}
+    ss_sp: PAnsiChar;                       {* signal stack base *}
     ss_size: size_t;                    {* signal stack length *}
     ss_flags: cInt;                     {* SS_DISABLE and/or SS_ONSTACK *}
   end;

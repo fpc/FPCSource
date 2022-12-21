@@ -2,7 +2,7 @@
 {$define CRT_IRELOC_RELA}
 
 procedure init_tls; cdecl; external name 'init_tls';
-function  cmain(nrarg:longint;pp:ppchar;env:ppchar):longint; cdecl; external name 'main';
+function  cmain(nrarg:longint;pp:PPAnsiChar;env:PPAnsiChar):longint; cdecl; external name 'main';
 
 {$ifdef gcrt}
  procedure cmcleanup; cdecl; external name '_mcleanup';
@@ -14,19 +14,19 @@ var
 {$endif}
 
 {$i ignore_init.inc}
-procedure start(ap:ppchar;cleanup:TCleanupProc);
+procedure start(ap:PPAnsiChar;cleanup:TCleanupProc);
 
 var argc: longint;
-    argv: ppchar;
-    env : ppchar;
-    s   : pchar;
+    argv: PPAnsiChar;
+    env : PPAnsiChar;
+    s   : PAnsiChar;
 begin
   argc:=pptrint(ap)^;
-  argv:=ppchar(ap[1]);
-  env:=	ppchar(ap[2+argc]);
+  argv:=PPAnsiChar(ap[1]);
+  env:=	PPAnsiChar(ap[2+argc]);
   environ:=env;
   handle_argv(argc,argv,env);
-  if assigned(pchar(@_dynamic)) then // I suspect this is a trick to find
+  if assigned(PAnsiChar(@_dynamic)) then // I suspect this is a trick to find
 				    // out runtime if we are shared
 				    // linking, so the same code can be used
 				    // for static and shared linking

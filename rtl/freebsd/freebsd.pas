@@ -79,10 +79,10 @@ Type
   
   kld_file_stat = record
     Version: cInt;            {* set to sizeof(linker_file_stat) *}
-    Name: array[0..MAXPATHLEN-1] of Char;
+    Name: array[0..MAXPATHLEN-1] of AnsiChar;
     Refs: cInt;
     ID: cInt;
-    Address: pChar;           {* load address *}
+    Address: PAnsiChar;           {* load address *}
     Size: size_t;             {* size in bytes *}
   end;
   tkld_file_stat = kld_file_stat;
@@ -92,7 +92,7 @@ Type
   
   kld_sym_lookup = record
     Version: cInt;            {* sizeof(struct kld_sym_lookup) *}
-    SymName: pChar;           {* Symbol name we are looking up *}
+    SymName: PAnsiChar;           {* Symbol name we are looking up *}
     SymValue: culong;
     SymSize: size_t;
   end;
@@ -162,11 +162,11 @@ Type
                       
   // Kernel modules support
                     
-  function kldload(FileName: pChar): cInt; extdecl;
+  function kldload(FileName: PAnsiChar): cInt; extdecl;
 
   function kldunload(fileid: cInt): cInt; extdecl;
 
-  function kldfind(FileName: pChar): cInt; extdecl;
+  function kldfind(FileName: PAnsiChar): cInt; extdecl;
 
   function kldnext(fileid: cInt): cInt; extdecl;
 
@@ -259,7 +259,7 @@ end;
 
 // kernel modules
 
-function kldload(FileName: pChar): cInt;
+function kldload(FileName: PAnsiChar): cInt;
 begin
   kldload:=do_sysCall(syscall_nr_kldload, TSysParam(FileName));
 end;
@@ -269,7 +269,7 @@ begin
   kldunload:=do_sysCall(syscall_nr_kldunload, TSysParam(fileid));
 end;
 
-function kldfind(FileName: pChar): cInt;
+function kldfind(FileName: PAnsiChar): cInt;
 begin
   kldfind:=do_sysCall(syscall_nr_kldfind, TSysParam(FileName));
 end;
