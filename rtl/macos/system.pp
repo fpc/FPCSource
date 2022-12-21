@@ -35,8 +35,8 @@ const
  DriveSeparator = ':';
  ExtensionSeparator = '.';
  PathSeparator = ',';  {Is used in MPW and OzTeX}
- AllowDirectorySeparators : set of char = [':'];
- AllowDriveSeparators : set of char = [':'];
+ AllowDirectorySeparators : set of AnsiChar = [':'];
+ AllowDriveSeparators : set of AnsiChar = [':'];
  FileNameCaseSensitive = false;
  FileNameCasePreserving = true;
  CtrlZMarksEOF: boolean = false; (* #26 not considered as end of file *)
@@ -59,8 +59,8 @@ const
 
 var
   argc : longint;
-  argv : ppchar;
-  envp : ppchar;
+  argv : PPAnsiChar;
+  envp : PPAnsiChar;
 
 {*********************************}
 {**  MacOS specific functions    **}
@@ -255,9 +255,9 @@ procedure pascalmain; external name 'PASCALMAIN';
 {Main entry point in C style, needed to capture program parameters.
  For this to work, the system unit must be before the main program
  in the linking order.}
-procedure main(argcparam: Longint; argvparam: ppchar; envpparam: ppchar); cdecl; [public];
+procedure main(argcparam: Longint; argvparam: PPAnsiChar; envpparam: PPAnsiChar); cdecl; [public];
 {$else FPC_DARWIN_PASCALMAIN}
-procedure FPC_SYSTEMMAIN(argcparam: Longint; argvparam: ppchar; envpparam: ppchar); cdecl; [public];
+procedure FPC_SYSTEMMAIN(argcparam: Longint; argvparam: PPAnsiChar; envpparam: PPAnsiChar); cdecl; [public];
 {$endif FPC_DARWIN_PASCALMAIN}
 
 begin

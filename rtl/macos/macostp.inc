@@ -1068,7 +1068,7 @@ TYPE
 
   QDGlobalsPtr = ^QDGlobals;
   QDGlobals = RECORD
-    privates:        PACKED ARRAY [0..75] OF CHAR;
+    privates:        PACKED ARRAY [0..75] OF AnsiChar;
     randSeed:        LONGINT;                {  in Carbon use GetQDGlobalsRandomSeed }
     screenBits:        BitMap;                  {  in Carbon use GetQDGlobalsScreenBits }
     arrow:          Cursor;                  {  in Carbon use GetQDGlobalsArrow }
@@ -1306,7 +1306,7 @@ const
 
   TIOFLUSH = $00007408;       // discard unread input.  arg is ignored
 
-function c_open(path: PChar; oflag: C_int): C_int; cdecl;
+function c_open(path: PAnsiChar; oflag: C_int): C_int; cdecl;
   external 'StdCLib' name 'open';
 
 function c_close(filedes: C_int): C_int; cdecl;
@@ -1324,10 +1324,10 @@ function lseek(filedes: C_int; offset: off_t; whence: C_int): off_t; cdecl;
 function ioctl(filedes: C_int; cmd: C_unsigned_int; arg: pointer): C_int; cdecl;
   external 'StdCLib' name 'ioctl';
 
-function remove(filename: PChar): C_int; cdecl;
+function remove(filename: PAnsiChar): C_int; cdecl;
   external 'StdCLib';
 
-function c_rename(old, c_new: PChar): C_int; cdecl;
+function c_rename(old, c_new: PAnsiChar): C_int; cdecl;
   external 'StdCLib' name 'rename';
 
 procedure c_exit(status: C_int); cdecl;
