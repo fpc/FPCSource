@@ -34,7 +34,7 @@
 
 var
   libc_fpc_ret, libc_fpc_ret_ebx, libc_fpc_ret_ebp: ptrint; { return address to libc }
-  __progname : pchar; cvar;
+  __progname : PAnsiChar; cvar;
 
 procedure get_rtld_cleanup; external name 'get_rtld_cleanup';
 procedure atexit; external name 'atexit';
@@ -43,7 +43,7 @@ procedure libc_start_main; external name '__libc_start_main';
 
 procedure PASCALMAIN; external name 'PASCALMAIN';
 
-var progname : pchar cvar; // = '';
+var progname : PAnsiChar cvar; // = '';
     __fpucw  : word; cvar; // = 0x1332;
 
 {******************************************************************************
