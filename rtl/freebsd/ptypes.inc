@@ -147,7 +147,7 @@ type
        sysse   : cint;
        entry   : psem_t;
        backpointer : ppsem_t;
-       spare   : array[0..SEM_SAFE] of char;
+       spare   : array[0..SEM_SAFE] of AnsiChar;
 
     end;
 
@@ -259,12 +259,12 @@ Type TStatFS =  {?} Record
     fflags         : cint; {copy of mount flags}
     fsyncwrites,
     fasyncwrites   : clong;
-    fstypename     : array[0..OMFSNamLen-1] of char;
-    mountpoint     : array[0..OMNAMLEN-1] of char;
+    fstypename     : array[0..OMFSNamLen-1] of AnsiChar;
+    mountpoint     : array[0..OMNAMLEN-1] of AnsiChar;
     fsyncreads,            { count of sync reads since mount }
     fasyncreads    : clong;
     fspares1       : cshort;
-    mnfromname     : array[0..OMNAMLEN-1] of char;
+    mnfromname     : array[0..OMNAMLEN-1] of AnsiChar;
     fspares2       : cshort;
     fspare3        : array[0..1] of clong;
   end;
@@ -273,7 +273,7 @@ Type TStatFS =  {?} Record
 
   mbstate_t = record
       case byte of
-        0: (__mbstate8: array[0..127] of char);
+        0: (__mbstate8: array[0..127] of AnsiChar);
         1: (_mbstateL: cint64); { for alignment }
     end;
     pmbstate_t = ^mbstate_t;
