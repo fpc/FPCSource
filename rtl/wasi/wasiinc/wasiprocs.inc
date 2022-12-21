@@ -170,14 +170,14 @@ function __wasi_fd_write(
 
 function __wasi_path_create_directory(
   fd: __wasi_fd_t;
-  const path: PChar;
+  const path: PAnsiChar;
   path_len: size_t
 ): __wasi_errno_t; external 'wasi_snapshot_preview1' name 'path_create_directory';
 
 function __wasi_path_filestat_get(
   fd: __wasi_fd_t;
   flags: __wasi_lookupflags_t;
-  const path: PChar;
+  const path: PAnsiChar;
   path_len: size_t;
   buf: P__wasi_filestat_t
 ): __wasi_errno_t; external 'wasi_snapshot_preview1' name 'path_filestat_get';
@@ -185,7 +185,7 @@ function __wasi_path_filestat_get(
 function __wasi_path_filestat_set_times(
   fd: __wasi_fd_t;
   flags: __wasi_lookupflags_t;
-  const path: PChar;
+  const path: PAnsiChar;
   path_len: size_t;
   atim: __wasi_timestamp_t;
   mtim: __wasi_timestamp_t;
@@ -195,17 +195,17 @@ function __wasi_path_filestat_set_times(
 function __wasi_path_link(
   old_fd: __wasi_fd_t;
   old_flags: __wasi_lookupflags_t;
-  const old_path: PChar;
+  const old_path: PAnsiChar;
   old_path_len: size_t;
   new_fd: __wasi_fd_t;
-  const new_path: PChar;
+  const new_path: PAnsiChar;
   new_path_len: size_t
 ): __wasi_errno_t; external 'wasi_snapshot_preview1' name 'path_link';
 
 function __wasi_path_open(
   fd: __wasi_fd_t;
   dirflags: __wasi_lookupflags_t;
-  const path: PChar;
+  const path: PAnsiChar;
   path_len: size_t;
   oflags: __wasi_oflags_t;
   fs_rights_base: __wasi_rights_t;
@@ -216,7 +216,7 @@ function __wasi_path_open(
 
 function __wasi_path_readlink(
   fd: __wasi_fd_t;
-  const path: PChar;
+  const path: PAnsiChar;
   path_len: size_t;
   buf: PUInt8;
   buf_len: __wasi_size_t;
@@ -225,30 +225,30 @@ function __wasi_path_readlink(
 
 function __wasi_path_remove_directory(
   fd: __wasi_fd_t;
-  const path: PChar;
+  const path: PAnsiChar;
   path_len: size_t
 ): __wasi_errno_t; external 'wasi_snapshot_preview1' name 'path_remove_directory';
 
 function __wasi_path_rename(
   fd: __wasi_fd_t;
-  const old_path: PChar;
+  const old_path: PAnsiChar;
   old_path_len: size_t;
   new_fd: __wasi_fd_t;
-  const new_path: PChar;
+  const new_path: PAnsiChar;
   new_path_len: size_t
 ): __wasi_errno_t; external 'wasi_snapshot_preview1' name 'path_rename';
 
 function __wasi_path_symlink(
-  const old_path: PChar;
+  const old_path: PAnsiChar;
   old_path_len: size_t;
   fd: __wasi_fd_t;
-  const new_path: PChar;
+  const new_path: PAnsiChar;
   new_path_len: size_t
 ): __wasi_errno_t; external 'wasi_snapshot_preview1' name 'path_symlink';
 
 function __wasi_path_unlink_file(
   fd: __wasi_fd_t;
-  const path: PChar;
+  const path: PAnsiChar;
   path_len: size_t
 ): __wasi_errno_t; external 'wasi_snapshot_preview1' name 'path_unlink_file';
 

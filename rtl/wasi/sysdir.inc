@@ -27,7 +27,7 @@ begin
   InOutRes:=ConvertToFdRelativePath(s,fd,pr);
   if InOutRes<>0 then
     exit;
-  res:=__wasi_path_create_directory(fd,PChar(pr),Length(pr));
+  res:=__wasi_path_create_directory(fd,PAnsiChar(pr),Length(pr));
   if res<>__WASI_ERRNO_SUCCESS then
     InOutRes:=Errno2InoutRes(res);
 end;
@@ -41,7 +41,7 @@ begin
   InOutRes:=ConvertToFdRelativePath(s,fd,pr);
   if InOutRes<>0 then
     exit;
-  res:=__wasi_path_remove_directory(fd,PChar(pr),Length(pr));
+  res:=__wasi_path_remove_directory(fd,PAnsiChar(pr),Length(pr));
   if res<>__WASI_ERRNO_SUCCESS then
     InOutRes:=Errno2InoutRes(res);
 end;
@@ -137,7 +137,7 @@ begin
           InOutRes:=3;
           exit;
         end;
-        res:=__wasi_path_filestat_get(fd,0,PChar(pr),Length(pr),@st);
+        res:=__wasi_path_filestat_get(fd,0,PAnsiChar(pr),Length(pr),@st);
         if res<>__WASI_ERRNO_SUCCESS then
         begin
           if res=__WASI_ERRNO_NOENT then
@@ -148,7 +148,7 @@ begin
         end;
         if st.filetype=__WASI_FILETYPE_SYMBOLIC_LINK then
         begin
-          res:=fpc_wasi_path_readlink_ansistring(fd,PChar(pr),Length(pr),symlink);
+          res:=fpc_wasi_path_readlink_ansistring(fd,PAnsiChar(pr),Length(pr),symlink);
           if res<>__WASI_ERRNO_SUCCESS then
           begin
             InOutRes:=Errno2InoutRes(res);
