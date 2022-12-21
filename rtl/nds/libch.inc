@@ -33,17 +33,17 @@ type
 
 
 (* Some libc functions *)
-//function printf(format: Pchar; args: array of const): longint; cdecl; external;
-function printf(format: Pchar): longint; cdecl; varargs; external;
-//function sprintf(s: Pchar; format: Pchar; args: array of const): longint; cdecl; external;
-function sprintf(s: Pchar; format: Pchar): longint; varargs; cdecl; external;
-//function iprintf(format: Pchar; args: array of const): longint; cdecl; external;
-function iprintf(format: Pchar): longint; varargs; cdecl; external;
-//function scanf(format: Pchar; args: array of const): longint; cdecl; external;
-function scanf(format: Pchar): longint; cdecl; varargs; external;
-//function sscanf(s: Pchar; format: Pchar; args: array of const): longint; cdecl; external;
-function sscanf(s: Pchar; format: Pchar): longint; cdecl; varargs; external;
-function strcmp(s1: Pchar; s2: Pchar): longint; cdecl; external;
+//function printf(format: PAnsiChar; args: array of const): longint; cdecl; external;
+function printf(format: PAnsiChar): longint; cdecl; varargs; external;
+//function sprintf(s: PAnsiChar; format: PAnsiChar; args: array of const): longint; cdecl; external;
+function sprintf(s: PAnsiChar; format: PAnsiChar): longint; varargs; cdecl; external;
+//function iprintf(format: PAnsiChar; args: array of const): longint; cdecl; external;
+function iprintf(format: PAnsiChar): longint; varargs; cdecl; external;
+//function scanf(format: PAnsiChar; args: array of const): longint; cdecl; external;
+function scanf(format: PAnsiChar): longint; cdecl; varargs; external;
+//function sscanf(s: PAnsiChar; format: PAnsiChar; args: array of const): longint; cdecl; external;
+function sscanf(s: PAnsiChar; format: PAnsiChar): longint; cdecl; varargs; external;
+function strcmp(s1: PAnsiChar; s2: PAnsiChar): longint; cdecl; external;
 
 function malloc(size: integer): pointer; cdecl; external;
 function realloc(ptr: pointer; size: integer): pointer; cdecl; external;
@@ -171,7 +171,7 @@ function S_ISSOCK(m: longint): boolean; inline;
 type
   dirent = record
     d_ino: longint;
-    d_name: array [0..NAME_MAX] of char;
+    d_name: array [0..NAME_MAX] of AnsiChar;
   end;
   PDirent = ^dirent;
   PPDirent = ^PDirent;
@@ -185,20 +185,20 @@ type
 
 (* DIR handling *)
 function closedir(dirp: PDIR): longint; cdecl; external;
-function opendir(const dirname: pchar): PDIR; cdecl; external;
+function opendir(const dirname: PAnsiChar): PDIR; cdecl; external;
 function readdir(dirp: PDIR): PDirent; cdecl; external;
 function readdir_r(dirp: PDIR; entry: PDirent; result: PPDirent): longint; cdecl; external;
 procedure rewinddir(dirp: PDIR); cdecl; external;
 procedure seekdir(dirp: PDIR; loc: longint); cdecl; external;
 function telldir(dirp: PDIR): longint; cdecl; external;
 
-function diropen(const path: pchar): PDIR_ITER; cdecl; external;
+function diropen(const path: PAnsiChar): PDIR_ITER; cdecl; external;
 function dirreset(dirState: PDIR_ITER): longint; cdecl; external;
-function dirnext(dirState: PDIR_ITER; filename: pchar; filestat: Pstat): longint; cdecl; external;
+function dirnext(dirState: PDIR_ITER; filename: PAnsiChar; filestat: Pstat): longint; cdecl; external;
 function dirclose(dirState: PDIR_ITER): longint; cdecl; external;
 
 (* File handling *)
-function fopen(filename: Pchar; modes: Pchar): P_FILE; cdecl; external;
+function fopen(filename: PAnsiChar; modes: PAnsiChar): P_FILE; cdecl; external;
 function fread(ptr: pointer; size: longint; n: longint; stream: P_FILE): longint; cdecl; external;
 function fread(var ptr; size: longint; n: longint; var stream: _FILE): longint; cdecl; external;
 function fwrite(ptr: pointer; size: longint; n: longint; s: P_FILE): longint; cdecl; external;
@@ -214,23 +214,23 @@ function fileno(para1: P_FILE): longint; cdecl; external;
 function fileno(var para1: _FILE): longint; cdecl; external;
 function fstat(fildes: longint; buf: PStat): longint; cdecl; external;
 function fstat(fildes: longint; var buf: TStat): longint; cdecl; external;
-function _stat(__file: Pchar; var __buf: Tstat): longint; cdecl; external name 'stat';
-function _stat(path: Pchar; buf: Pstat): longint; cdecl; external name 'stat';
+function _stat(__file: PAnsiChar; var __buf: Tstat): longint; cdecl; external name 'stat';
+function _stat(path: PAnsiChar; buf: Pstat): longint; cdecl; external name 'stat';
 function ftruncate(fildes: longint; len: longint): longint; cdecl; external;
-function unlink(path: Pchar): longint; cdecl; external;
-function rename(para1: Pchar; para2: Pchar): longint; cdecl; external;
+function unlink(path: PAnsiChar): longint; cdecl; external;
+function rename(para1: PAnsiChar; para2: PAnsiChar): longint; cdecl; external;
 
-function _open(path: Pchar; oflag: longint): longint; cdecl; external name 'open';
-function _open(path: Pchar; oflag, mode: longint): longint; cdecl; external name 'open';  
+function _open(path: PAnsiChar; oflag: longint): longint; cdecl; external name 'open';
+function _open(path: PAnsiChar; oflag, mode: longint): longint; cdecl; external name 'open';  
 function _read(fildes:longint; buf:pointer; nbytes:dword):longint;cdecl;external name 'read';
 function _read(fildes:longint; var buf; nbytes:dword):longint;cdecl;external name 'read';
 function _write(fildes:longint; buf:pointer; nbytes:dword):longint;cdecl;external name 'write';
 function _write(fildes:longint; var buf; nbytes:dword):longint;cdecl;external name 'write';
 function _lseek(fildes:longint; offset:longint; whence:longint):longint;cdecl;external name 'lseek';
 function _close(fildes:longint): longint; cdecl; external name 'close';
-function _unlink(path:Pchar): longint; cdecl; external name 'unlink';
-function _rename(para1: Pchar; para2: Pchar): longint; cdecl; external name 'rename';
-function _access(path: Pchar; mode: longint): longint; cdecl; external name 'access';
+function _unlink(path:PAnsiChar): longint; cdecl; external name 'unlink';
+function _rename(para1: PAnsiChar; para2: PAnsiChar): longint; cdecl; external name 'rename';
+function _access(path: PAnsiChar; mode: longint): longint; cdecl; external name 'access';
 function _tell(fildes: longint): longint; cdecl; external name 'tell';
 function _isatty(fildes: longint): longint; cdecl; external name 'isatty';
 function _truncate(fildes: longint; len: longint): longint; cdecl; external name 'truncate';
