@@ -10,7 +10,7 @@ interface
 
 {$define HAS_MEMORYMANAGER}
 
-{ Use Ansi Char for files }
+{ Use AnsiChar for files }
 {$define FPC_ANSI_TEXTFILEREC}
 {$define FPC_STDOUT_TRUE_ALIAS}
 {$define FPC_STDERR_IS_ALIAS_FOR_STDOUT}
@@ -39,7 +39,7 @@ var
   OpenChannel(1) opens the lower screen
   OpenChannel(3) opens the ZX Printer }
 procedure OpenChannel(Chan: Byte);
-procedure PrintChar(Ch: Char);
+procedure PrintChar(Ch: AnsiChar);
 procedure PrintLn;
 procedure PrintShortString(const s: ShortString);
 procedure PrintHexDigit(const d: byte);
@@ -48,7 +48,7 @@ procedure PrintHexWord(const w: word);
 procedure Ink(colour: Byte);
 procedure Paper(colour: Byte);
 procedure GotoXY(X, Y: Byte);
-function ReadKey: Char;
+function ReadKey: AnsiChar;
 function KeyPressed: Boolean;
 
 implementation
@@ -60,8 +60,8 @@ const
   DriveSeparator = ':';
   ExtensionSeparator = '.';
   PathSeparator = ';';
-  AllowDirectorySeparators : set of char = ['\','/'];
-  AllowDriveSeparators : set of char = [':'];
+  AllowDirectorySeparators : set of AnsiChar = ['\','/'];
+  AllowDriveSeparators : set of AnsiChar = [':'];
   { FileNameCaseSensitive and FileNameCasePreserving are defined separately below!!! }
   maxExitCode = 255;
   MaxPathLen = 256;
@@ -133,9 +133,9 @@ end;
 
 var
   save_iy: Word; public name 'FPC_SAVE_IY';
-  LastKey: Char absolute 23560;
+  LastKey: AnsiChar absolute 23560;
 
-function ReadKey: Char;
+function ReadKey: AnsiChar;
 begin
   repeat
     ReadKey:=LastKey;
@@ -158,7 +158,7 @@ asm
   ld (save_iy),iy
 end;
 
-procedure PrintChar(Ch: Char);assembler;
+procedure PrintChar(Ch: AnsiChar);assembler;
 asm
   ld iy,(save_iy)
   ld a, (Ch)
@@ -177,9 +177,9 @@ procedure PrintHexDigit(const d: byte);
 begin
   { the code generator is still to broken to compile this, so we do it in a stupid way }
 {  if (d >= 0) or (d <= 9) then
-    PrintChar(Char(d + Ord('0')))
+    PrintChar(AnsiChar(d + Ord('0')))
   else if (d >= 10) and (d <= 15) then
-    PrintChar(Char(d + (Ord('A') - 10)));}
+    PrintChar(AnsiChar(d + (Ord('A') - 10)));}
   if d=0 then
     PrintChar('0')
   else if d=1 then
@@ -231,20 +231,20 @@ end;
 procedure Ink(colour: Byte);
 begin
   PrintChar(#16);
-  PrintChar(Char(colour));
+  PrintChar(AnsiChar(colour));
 end;
 
 procedure Paper(colour: Byte);
 begin
   PrintChar(#17);
-  PrintChar(Char(colour));
+  PrintChar(AnsiChar(colour));
 end;
 
 procedure GotoXY(X, Y: Byte);
 begin
   PrintChar(#22);
-  PrintChar(Char(Y-1));
-  PrintChar(Char(X-1));
+  PrintChar(AnsiChar(Y-1));
+  PrintChar(AnsiChar(X-1));
 end;
 
 procedure PrintShortString(const s: ShortString);
