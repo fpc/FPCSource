@@ -26,13 +26,13 @@ begin
 end;
 
 { delete a file, given its name }
-procedure do_erase(p : pchar; pchangeable: boolean);
+procedure do_erase(p : PAnsiChar; pchangeable: boolean);
 begin
   Error2InOutRes(io_delet(p));
 end;
 
 
-procedure do_rename(p1,p2 : pchar; p1changeable, p2changeable: boolean);
+procedure do_rename(p1,p2 : PAnsiChar; p1changeable, p2changeable: boolean);
 var
   chanId: longint;
   res: longint;
@@ -172,7 +172,7 @@ begin
 end;
 
 
-procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);
+procedure do_open(var f;p:PAnsiChar;flags:longint; pchangeable: boolean);
 {
   filerec and textrec have both handle and mode as the first items so
   they could use the same routine for opening/creating.
