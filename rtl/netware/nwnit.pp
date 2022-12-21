@@ -32,22 +32,22 @@ const
 
 function AccountingInstalled (fileServerID:word):longint;cdecl;external Clib name 'AccountingInstalled';
 function GetAccountStatus    (binderyObjectType:word;
-                              binderyObjectName:Pchar;
+                              binderyObjectName:PAnsiChar;
                               balance,limits,holds:Plongint):longint;cdecl;external Clib name 'GetAccountStatus';
 function GetAccountStatus    (binderyObjectType:word;
-                              binderyObjectName:Pchar;
+                              binderyObjectName:PAnsiChar;
                           var balance,limits,holds:longint):longint;cdecl;external Clib name 'GetAccountStatus';
 
 function SubmitAccountCharge(binderyObjectType:word;
-                             binderyObjectName:Pchar;
+                             binderyObjectName:PAnsiChar;
                              serviceType:word;
                              chargeAmount:longint;
                              cancelHoldAmount:longint;
                              commentType:word;
-                             comment:Pchar):longint;cdecl;external Clib name 'SubmitAccountCharge';
+                             comment:PAnsiChar):longint;cdecl;external Clib name 'SubmitAccountCharge';
 function SubmitAccountChargeWithLength(
                              binderyObjectType:word;
-                             binderyObjectName:Pchar;
+                             binderyObjectName:PAnsiChar;
                              serviceType:word;
                              chargeAmount:longint;
                              cancelHoldAmount:longint;
@@ -55,13 +55,13 @@ function SubmitAccountChargeWithLength(
                              commentData:pointer;
                              commentLength:word):longint;cdecl;external Clib name 'SubmitAccountChargeWithLength';
 function SubmitAccountHold  (binderyObjectType:word;
-                             binderyObjectName:Pchar;
+                             binderyObjectName:PAnsiChar;
                              reserveAmount:longint):longint;cdecl;external Clib name 'SubmitAccountHold';
 function SubmitAccountNote  (binderyObjectType:word;
-                             binderyObjectName:Pchar;
+                             binderyObjectName:PAnsiChar;
                              serviceType:word;
                              commentType:word;
-                             comment:Pchar):longint;cdecl;external Clib name 'SubmitAccountNote';
+                             comment:PAnsiChar):longint;cdecl;external Clib name 'SubmitAccountNote';
 
 {------------------------------------------------------------------------------}
 
@@ -83,11 +83,11 @@ type
         backupDate         : word;
         backupTime         : word;
         finderInfo         : array[0..31] of byte;
-        longName           : array[0..32] of char;
-        pad1               : char;
+        longName           : array[0..32] of AnsiChar;
+        pad1               : AnsiChar;
         ownerID            : longint;
-        shortName          : array[0..12] of char;
-        pad2               : char;
+        shortName          : array[0..12] of AnsiChar;
+        pad2               : AnsiChar;
         accessPrivileges   : word;
         proDosInfo         : array[0..5] of byte;
      end;
@@ -109,7 +109,7 @@ type
 function AFPAllocTemporaryDirHandle (connectionID:word;
                                      volumeNum:byte;
                                      AFPEntryID:longint;
-                                     AFPPathString:Pchar;
+                                     AFPPathString:PAnsiChar;
                                      NetWareDirectoryHandle:PBYTE;
                                      AccessRights:PBYTE):longint;  cdecl;external Clib name 'AFPAllocTemporaryDirHandle';
 
@@ -117,7 +117,7 @@ function AFPCreateDirectory (connectionID:word;
                              volumeNum:byte;
                              AFPEntryID:longint;
                              finderInfo:PBYTE;
-                             AFPPathString:Pchar;
+                             AFPPathString:PAnsiChar;
                              newAFPEntryID:Plongint):longint;cdecl;external Clib name 'AFPCreateDirectory';
 
 function AFPCreateFile (connectionID:word;
@@ -125,22 +125,22 @@ function AFPCreateFile (connectionID:word;
                         AFPEntryID:longint;
                         deleteExistingFile:byte;
                         finderInfo:PBYTE;
-                        AFPPathString:Pchar;
+                        AFPPathString:PAnsiChar;
                         newAFPEntryID:Plongint):longint;  cdecl;external Clib name 'AFPCreateFile';
 
 function AFPDelete (connectionID:word;
                     volumeNum:byte;
                     AFPEntryID:longint;
-                    AFPPathString:Pchar):longint;  cdecl;external Clib name 'AFPDelete';
+                    AFPPathString:PAnsiChar):longint;  cdecl;external Clib name 'AFPDelete';
 
 function AFPDirectoryEntry (connectionID:word;
                             directoryHandle:byte;
-                            pathName:Pchar):longint;  cdecl;external Clib name 'AFPDirectoryEntry';
+                            pathName:PAnsiChar):longint;  cdecl;external Clib name 'AFPDirectoryEntry';
 
 function AFPGetEntryIDFromName (connectionID:word;
                                 volumeNum:byte;
                                 AFPEntryID:longint;
-                                AFPPathString:Pchar;
+                                AFPPathString:PAnsiChar;
                                 newAFPEntryID:Plongint):longint;          cdecl;external Clib name 'AFPGetEntryIDFromName';
 
 function AFPGetEntryIDFromNetWareHandle (connectionID:word;
@@ -157,14 +157,14 @@ function AFPGetEntryIDFromNetWareHandle (connectionID:word;
 
 function AFPGetEntryIDFromPathName (connectionID:word;
                                     directoryHandle:byte;
-                                    pathName:Pchar;
+                                    pathName:PAnsiChar;
                                     AFPEntryID:Plongint):longint;         cdecl;external Clib name 'AFPGetEntryIDFromPathName';
 
 function AFPGetFileInformation     (connectionID:word;
                                     volumeNum:byte;
                                     AFPEntryID:longint;
                                     requestBitMap:word;
-                                    AFPPathString:Pchar;
+                                    AFPPathString:PAnsiChar;
                                     strucSize:word;
                                     AFPFileInfo:PAFPFILEINFO):longint;    cdecl;external Clib name 'AFPGetFileInformation';
 
@@ -172,7 +172,7 @@ function AFPGetFileInformation     (connectionID:word;
                                     volumeNum:byte;
                                     AFPEntryID:longint;
                                     requestBitMap:word;
-                                    AFPPathString:Pchar;
+                                    AFPPathString:PAnsiChar;
                                     strucSize:word;
                                 var AFPFileInfo:TAFPFILEINFO):longint;    cdecl;external Clib name 'AFPGetFileInformation';
 
@@ -181,7 +181,7 @@ function AFPOpenFileFork           (connectionID:word;
                                     AFPEntryID:longint;
                                     forkIndicator:byte;
                                     accessMode:byte;
-                                    AFPPathString:Pchar;
+                                    AFPPathString:PAnsiChar;
                                     fileID:Plongint;
                                     forkLength:Plongint;
                                     NetWareHandle:PBYTE;
@@ -192,7 +192,7 @@ function AFPOpenFileFork           (connectionID:word;
                                     AFPEntryID:longint;
                                     forkIndicator:byte;
                                     accessMode:byte;
-                                    AFPPathString:Pchar;
+                                    AFPPathString:PAnsiChar;
                                     var fileID:longint;
                                     var forkLength:longint;
                                     var NetWareHandle:byte;
@@ -203,8 +203,8 @@ function AFPRename                 (connectionID:word;
                                     volumeNum:byte;
                                     AFPSourceEntryID:longint;
                                     AFPDestEntryID:longint;
-                                    AFPSourcePath:Pchar;
-                                    AFPDestPath:Pchar):longint;              cdecl;external Clib name 'AFPRename';
+                                    AFPSourcePath:PAnsiChar;
+                                    AFPDestPath:PAnsiChar):longint;              cdecl;external Clib name 'AFPRename';
 
 function AFPScanFileInformation    (connectionID:word;
                                     volumeNum:byte;
@@ -212,7 +212,7 @@ function AFPScanFileInformation    (connectionID:word;
                                     AFPLastSeenID:Plongint;
                                     searchBitMap:word;
                                     requestBitMap:word;
-                                    AFPPathString:Pchar;
+                                    AFPPathString:PAnsiChar;
                                     strucSize:word;
                                     AFPScanFileInfo:PAFPFILEINFO):longint;    cdecl;external Clib name 'AFPScanFileInformation';
 function AFPScanFileInformation    (connectionID:word;
@@ -221,7 +221,7 @@ function AFPScanFileInformation    (connectionID:word;
                                     AFPLastSeenID:Plongint;
                                     searchBitMap:word;
                                     requestBitMap:word;
-                                    AFPPathString:Pchar;
+                                    AFPPathString:PAnsiChar;
                                     strucSize:word;
                                 var AFPScanFileInfo:TAFPFILEINFO):longint;    cdecl;external Clib name 'AFPScanFileInformation';
 
@@ -229,7 +229,7 @@ function AFPSetFileInformation     (connectionID:word;
                                     volumeNum:byte;
                                     AFPEntryID:longint;
                                     requestBitMap:word;
-                                    AFPPathString:Pchar;
+                                    AFPPathString:PAnsiChar;
                                     strucSize:word;
                                     AFPSetInfo:PAFPSETINFO):longint;          cdecl;external Clib name 'AFPSetFileInformation';
 
@@ -237,7 +237,7 @@ function AFPSetFileInformation     (connectionID:word;
                                     volumeNum:byte;
                                     AFPEntryID:longint;
                                     requestBitMap:word;
-                                    AFPPathString:Pchar;
+                                    AFPPathString:PAnsiChar;
                                     strucSize:word;
                                 var AFPSetInfo:TAFPSETINFO):longint;          cdecl;external Clib name 'AFPSetFileInformation';
 
@@ -295,143 +295,143 @@ const
    BL_PROPERTY                    = 16;
    BL_PASSWORD                    = 128;
 
-function AddBinderyObjectToSet (objectName   : Pchar;
+function AddBinderyObjectToSet (objectName   : PAnsiChar;
                                 objectType   : word;
-                                propertyName : Pchar;
-                                memberName   : Pchar;
+                                propertyName : PAnsiChar;
+                                memberName   : PAnsiChar;
                                 memberType   : word):longint;  cdecl;external Clib name 'AddBinderyObjectToSet';
 
-function ChangeBinderyObjectPassword (objectName  : Pchar;
+function ChangeBinderyObjectPassword (objectName  : PAnsiChar;
                                       objectType  : word;
-                                      oldPassword : Pchar;
-                                      newPassword : Pchar):longint;  cdecl;external Clib name 'ChangeBinderyObjectPassword';
+                                      oldPassword : PAnsiChar;
+                                      newPassword : PAnsiChar):longint;  cdecl;external Clib name 'ChangeBinderyObjectPassword';
 
-function ChangeBinderyObjectSecurity (objectName  : Pchar;
+function ChangeBinderyObjectSecurity (objectName  : PAnsiChar;
                                       objectType  : word;
                                       newObjectSecurity : byte):longint;  cdecl;external Clib name 'ChangeBinderyObjectSecurity';
 
 
-function ChangePropertySecurity (objectName         : Pchar;
+function ChangePropertySecurity (objectName         : PAnsiChar;
                                  objectType         : word;
-                                 propertyName       : Pchar;
+                                 propertyName       : PAnsiChar;
                                  newPropertySecurity: byte):longint;  cdecl;external Clib name 'ChangePropertySecurity';
 
 function CloseBindery:longint;  cdecl;external Clib name 'CloseBindery';
-function CreateBinderyObject    (objectName         : Pchar;
+function CreateBinderyObject    (objectName         : PAnsiChar;
                                  objectType         : word;
                                  objectFlag         : byte;
                                  objectSecurity     : byte):longint;       cdecl;external Clib name 'CreateBinderyObject';
-function CreateProperty         (objectName         : Pchar;
+function CreateProperty         (objectName         : PAnsiChar;
                                  objectType         : word;
-                                 propertyName       : Pchar;
+                                 propertyName       : PAnsiChar;
                                  propertyFlags      : byte;
                                  propertySecurity   : byte):longint;     cdecl;external Clib name 'CreateProperty';
 
-function DeleteBinderyObject    (objectName         : Pchar;
+function DeleteBinderyObject    (objectName         : PAnsiChar;
                                  objectType         : word):longint;           cdecl;external Clib name 'DeleteBinderyObject';
 
-function DeleteBinderyObjectFromSet (objectName:Pchar;
+function DeleteBinderyObjectFromSet (objectName:PAnsiChar;
                                      objectType:word;
-                                     propertyName:Pchar;
-                                     memberName:Pchar;
+                                     propertyName:PAnsiChar;
+                                     memberName:PAnsiChar;
                                      memberType:word):longint;       cdecl;external Clib name 'DeleteBinderyObjectFromSet';
 
-function DeleteProperty             (objectName:Pchar;
+function DeleteProperty             (objectName:PAnsiChar;
                                      objectType:word;
-                                     propertyName:Pchar):longint;    cdecl;external Clib name 'DeleteProperty';
+                                     propertyName:PAnsiChar):longint;    cdecl;external Clib name 'DeleteProperty';
 function GetBinderyAccessLevel      (accessLevel:PBYTE;
                                      objectID:Plongint):longint;     cdecl;external Clib name 'GetBinderyAccessLevel';
 function GetBinderyAccessLevel      (var accessLevel:byte;
                                      var objectID:longint):longint;  cdecl;external Clib name 'GetBinderyAccessLevel';
 
-function GetBinderyObjectID         (objectName:Pchar;
+function GetBinderyObjectID         (objectName:PAnsiChar;
                                      objectType:word;
                                      objectID:Plongint):longint;     cdecl;external Clib name 'GetBinderyObjectID';
-function GetBinderyObjectID         (objectName:Pchar;
+function GetBinderyObjectID         (objectName:PAnsiChar;
                                      objectType:word;
                                  var objectID:longint):longint;      cdecl;external Clib name 'GetBinderyObjectID';
 function GetBinderyObjectName       (objectID:longint;
-                                     objectName:Pchar;
+                                     objectName:PAnsiChar;
                                      objectType:PWORD):longint;      cdecl;external Clib name 'GetBinderyObjectName';
 function GetBinderyObjectName       (objectID:longint;
-                                     objectName:Pchar;
+                                     objectName:PAnsiChar;
                                  var objectType:word):longint;       cdecl;external Clib name 'GetBinderyObjectName';
 
-function IsBinderyObjectInSet       (objectName:Pchar;
+function IsBinderyObjectInSet       (objectName:PAnsiChar;
                                      objectType:word;
-                                     propertyName:Pchar;
-                                     memberName:Pchar;
+                                     propertyName:PAnsiChar;
+                                     memberName:PAnsiChar;
                                      memberType:word):longint;       cdecl;external Clib name 'IsBinderyObjectInSet';
 function OpenBindery:longint;                                        cdecl;external Clib name 'OpenBindery';
-function ReadPropertyValue          (objectName   : Pchar;
+function ReadPropertyValue          (objectName   : PAnsiChar;
                                      objectType   : word;
-                                     propertyName : Pchar;
+                                     propertyName : PAnsiChar;
                                      segmentNumber: longint;
                                      propertyValue: PBYTE;
                                      moreSegments : PBYTE;
                                      propertyFlags: PBYTE):longint;   cdecl;external Clib name 'ReadPropertyValue';
-function ReadPropertyValue          (objectName   : Pchar;
+function ReadPropertyValue          (objectName   : PAnsiChar;
                                      objectType   : word;
-                                     propertyName : Pchar;
+                                     propertyName : PAnsiChar;
                                      segmentNumber: longint;
                                  var propertyValue: byte;
                                  var moreSegments : byte;
                                  var propertyFlags: byte):longint;   cdecl;external Clib name 'ReadPropertyValue';
 
-function RenameBinderyObject        (objectName   : Pchar;
-                                     newObjectName: Pchar;
+function RenameBinderyObject        (objectName   : PAnsiChar;
+                                     newObjectName: PAnsiChar;
                                      objectType   : word):longint;   cdecl;external Clib name 'RenameBinderyObject';
 
-function ScanBinderyObject          (searchObjectName:Pchar;
+function ScanBinderyObject          (searchObjectName:PAnsiChar;
                                      searchObjectType:word;
                                      objectID:Plongint;
-                                     objectName:Pchar;
+                                     objectName:PAnsiChar;
                                      objectType:PWORD;
-                                     objectHasProperties:Pchar;
-                                     objectFlag:Pchar;
-                                     objectSecurity:Pchar):longint;   cdecl;external Clib name 'ScanBinderyObject';
-function ScanBinderyObject          (searchObjectName:Pchar;
+                                     objectHasProperties:PAnsiChar;
+                                     objectFlag:PAnsiChar;
+                                     objectSecurity:PAnsiChar):longint;   cdecl;external Clib name 'ScanBinderyObject';
+function ScanBinderyObject          (searchObjectName:PAnsiChar;
                                      searchObjectType:word;
                                  var objectID:longint;
-                                     objectName:Pchar;
+                                     objectName:PAnsiChar;
                                  var objectType:word;
-                                     objectHasProperties:Pchar;
-                                     objectFlag:Pchar;
-                                     objectSecurity:Pchar):longint;   cdecl;external Clib name 'ScanBinderyObject';
+                                     objectHasProperties:PAnsiChar;
+                                     objectFlag:PAnsiChar;
+                                     objectSecurity:PAnsiChar):longint;   cdecl;external Clib name 'ScanBinderyObject';
 
-function ScanProperty               (objectName:Pchar;
+function ScanProperty               (objectName:PAnsiChar;
                                      objectType:word;
-                                     searchPropertyName:Pchar;
+                                     searchPropertyName:PAnsiChar;
                                      sequenceNumber:Plongint;
-                                     propertyName:Pchar;
-                                     propertyFlags:Pchar;
-                                     propertySecurity:Pchar;
-                                     propertyHasValue:Pchar;
+                                     propertyName:PAnsiChar;
+                                     propertyFlags:PAnsiChar;
+                                     propertySecurity:PAnsiChar;
+                                     propertyHasValue:PAnsiChar;
                                      moreProperties:Pbyte):longint;   cdecl;external Clib name 'ScanProperty';
-function ScanProperty               (objectName:Pchar;
+function ScanProperty               (objectName:PAnsiChar;
                                      objectType:word;
-                                     searchPropertyName:Pchar;
+                                     searchPropertyName:PAnsiChar;
                                  var sequenceNumber:longint;
-                                     propertyName:Pchar;
-                                     propertyFlags:Pchar;
-                                     propertySecurity:Pchar;
-                                     propertyHasValue:Pchar;
+                                     propertyName:PAnsiChar;
+                                     propertyFlags:PAnsiChar;
+                                     propertySecurity:PAnsiChar;
+                                     propertyHasValue:PAnsiChar;
                                  var moreProperties:byte):longint;   cdecl;external Clib name 'ScanProperty';
 
 
-function VerifyBinderyObjectPassword (objectName : Pchar;
+function VerifyBinderyObjectPassword (objectName : PAnsiChar;
                                       objectType : word;
-                                      password   : Pchar):longint;       cdecl;external Clib name 'VerifyBinderyObjectPassword';
+                                      password   : PAnsiChar):longint;       cdecl;external Clib name 'VerifyBinderyObjectPassword';
 
-function WritePropertyValue          (objectName    : Pchar;
+function WritePropertyValue          (objectName    : PAnsiChar;
                                       objectType    : word;
-                                      propertyName  : Pchar;
+                                      propertyName  : PAnsiChar;
                                       segmentNumber : longint;
                                       propertyValue : PBYTE;
                                       moreSegments  : byte):longint;        cdecl;external Clib name 'WritePropertyValue';
-function WritePropertyValue          (objectName    : Pchar;
+function WritePropertyValue          (objectName    : PAnsiChar;
                                       objectType    : word;
-                                      propertyName  : Pchar;
+                                      propertyName  : PAnsiChar;
                                       segmentNumber : longint;
                                   var propertyValue : byte;
                                       moreSegments  : byte):longint;        cdecl;external Clib name 'WritePropertyValue';
@@ -475,14 +475,14 @@ type
         InfoBlockSize : longint;
         AvailSpace    : longint;
         UsedSpace     : longint;
-        SMString      : char; // 128 length limit, Info block follows string
+        SMString      : AnsiChar; // 128 length limit, Info block follows string
      end;
 
 {$include npackoff.inc}
 
 
 function NWDeRegisterDMSupportModule    (SupportModuleID:longint;
-                                         SupportModuleName:PChar;
+                                         SupportModuleName:PAnsiChar;
                                          SlotNumber:longint):longint;  cdecl;external Clib name 'NWDeRegisterDMSupportModule';
 function NWDeRegisterRTDataMigrationNLM (Station:longint;
                                          DMTAG:PBYTE;
@@ -504,13 +504,13 @@ function NWGetDefaultSupportModule      (defaultSupportModuleID:PLongint):longin
 function NWGetDefaultSupportModule      (var defaultSupportModuleID:longint):longint; cdecl;external Clib name 'NWGetDefaultSupportModule';
 
 { Local and Remote call  }
-function NWGetDMFileInfo (path:Pchar;
+function NWGetDMFileInfo (path:PAnsiChar;
                           nameSpace:longint;
                           supportModuleID:PLongint;
                           validDataStreams:PLongint;
                           estRetrievalTime:PLongint;
                           info:PLongint):longint;cdecl;external Clib name 'NWGetDMFileInfo';
-function NWGetDMFileInfo (path:Pchar;
+function NWGetDMFileInfo (path:PAnsiChar;
                           nameSpace:longint;
                           var supportModuleID:longint;
                           var validDataStreams:longint;
@@ -546,15 +546,15 @@ function NWGetSupportModuleInfo (informationLevel:longint;
 
 function NWIsDataMigrationAllowed (Volume:longint):longint; cdecl;external Clib name 'NWIsDataMigrationAllowed';
 { Local and Remote call  }
-function NWMoveFileFromDM         (path:Pchar;
+function NWMoveFileFromDM         (path:PAnsiChar;
                                    nameSpace:longint):longint; cdecl;external Clib name 'NWMoveFileFromDM';
 { Local and Remote call  }
-function NWMoveFileToDM           (path:Pchar;
+function NWMoveFileToDM           (path:PAnsiChar;
                                    nameSpace:longint;
                                    SupportModuleID:longint;
                                    flags:longint):longint; cdecl;external Clib name 'NWMoveFileToDM';
 
-function NWPeekFileData           (path:Pchar;
+function NWPeekFileData           (path:PAnsiChar;
                                    nameSpace:longint;
                                    noWaitFlag:longint;
                                    startingSector:longint;
@@ -563,7 +563,7 @@ function NWPeekFileData           (path:Pchar;
                                    sectorsRead:PLongint;
                                    bytesRead:PLongint;
                                    NoWaitReason:PLongint):longint; cdecl;external Clib name 'NWPeekFileData';
-function NWPeekFileData           (path:Pchar;
+function NWPeekFileData           (path:PAnsiChar;
                                    nameSpace:longint;
                                    noWaitFlag:longint;
                                    startingSector:longint;
@@ -648,7 +648,7 @@ type
         isHashing : byte;
         isRemovable : byte;
         isMounted : byte;
-        volumeName : array[0..16] of char;
+        volumeName : array[0..16] of AnsiChar;
         purgableBlocks : longint;
         notYetPurgableBlocks : longint;
      end;
@@ -667,7 +667,7 @@ type
         isHashing : byte;
         isRemovable : byte;
         isMounted : byte;
-        volumeName : array[0..16] of char;
+        volumeName : array[0..16] of AnsiChar;
         purgableBlocks : longint;
         notYetPurgableBlocks : longint;
      end;
@@ -711,34 +711,34 @@ type
 
 {$include npackoff.inc}
 
-function AddSpaceRestrictionForDirectory (pathName:Pchar;
+function AddSpaceRestrictionForDirectory (pathName:PAnsiChar;
                                           value:longint;
                                           allowWildCardsFlag:longint):longint;cdecl;external Clib name 'AddSpaceRestrictionForDirectory';
-function AddTrustee                      (pathName:Pchar;
+function AddTrustee                      (pathName:PAnsiChar;
                                           trusteeID:longint;
                                           newRights:word):longint; cdecl;external Clib name 'AddTrustee';
 function AddUserSpaceRestriction         (volume:longint;
                                           trusteeID:longint;
                                           value:longint):longint;cdecl;external Clib name 'AddUserSpaceRestriction';
-function ChangeDirectoryEntry            (pathName:Pchar;
+function ChangeDirectoryEntry            (pathName:PAnsiChar;
                                           modifyVector:pointer;  //PModifyStructure;
                                           modifyBits:longint;
                                           allowWildCardsFlag:longint):longint;cdecl;external Clib name 'ChangeDirectoryEntry';
-function ChangeDirectoryEntry            (pathName:Pchar;
+function ChangeDirectoryEntry            (pathName:PAnsiChar;
                                       var modifyVector;
                                           modifyBits:longint;
                                           allowWildCardsFlag:longint):longint;cdecl;external Clib name 'ChangeDirectoryEntry';
-function ConvertNameToFullPath           (partialPath:Pchar;
-                                          fullPath:Pchar):longint;cdecl;external Clib name 'ConvertNameToFullPath';
-function ConvertNameToVolumePath         (fileName:Pchar;
-                                          volumePath:Pchar):longint;cdecl;external Clib name 'ConvertNameToVolumePath';
-function DeleteTrustee                   (pathName:Pchar;
+function ConvertNameToFullPath           (partialPath:PAnsiChar;
+                                          fullPath:PAnsiChar):longint;cdecl;external Clib name 'ConvertNameToFullPath';
+function ConvertNameToVolumePath         (fileName:PAnsiChar;
+                                          volumePath:PAnsiChar):longint;cdecl;external Clib name 'ConvertNameToVolumePath';
+function DeleteTrustee                   (pathName:PAnsiChar;
                                           trusteeID:longint):longint;cdecl;external Clib name 'DeleteTrustee';
 function DeleteUserSpaceRestriction      (volume:longint;
                                           trusteeID:longint):longint;cdecl;external Clib name 'DeleteUserSpaceRestriction';
-function GetAvailableUserDiskSpace       (pathName:Pchar;
+function GetAvailableUserDiskSpace       (pathName:PAnsiChar;
                                           availableSpace:PLongint):longint;cdecl;external Clib name 'GetAvailableUserDiskSpace';
-function GetAvailableUserDiskSpace       (pathName:Pchar;
+function GetAvailableUserDiskSpace       (pathName:PAnsiChar;
                                       var availableSpace:longint):longint;cdecl;external Clib name 'GetAvailableUserDiskSpace';
 function GetDiskSpaceUsedByObject        (trusteeID:longint;
                                           volume:longint;
@@ -746,9 +746,9 @@ function GetDiskSpaceUsedByObject        (trusteeID:longint;
 function GetDiskSpaceUsedByObject        (trusteeID:longint;
                                           volume:longint;
                                       var usedSpace:longint):longint;cdecl;external Clib name 'GetDiskSpaceUsedByObject';
-function GetEffectiveRights              (pathName:Pchar;
+function GetEffectiveRights              (pathName:PAnsiChar;
                                           accessRights:PWORD):longint;cdecl;external Clib name 'GetEffectiveRights';
-function GetEffectiveRights              (pathName:Pchar;
+function GetEffectiveRights              (pathName:PAnsiChar;
                                       var accessRights:word):longint;cdecl;external Clib name 'GetEffectiveRights';
 function GetMaximumUserSpaceRestriction  (trusteeID, volume:longint; maxRestriction:PLongint):longint;cdecl;external Clib name 'GetMaximumUserSpaceRestriction';
 function GetMaximumUserSpaceRestriction  (trusteeID, volume:longint; var maxRestriction:longint):longint;cdecl;external Clib name 'GetMaximumUserSpaceRestriction';
@@ -762,7 +762,7 @@ function GetVolumeInformation            (connectionID:word;
                                           structSize:longint;
                                       var volumeStatistics:TVOLUME_STATS):longint;cdecl;external Clib name 'GetVolumeInformation';
 function GetVolumeInfoWithNumber         (volumeNumber:byte;
-                                          volumeName:Pchar;
+                                          volumeName:PAnsiChar;
                                           totalBlocks:PWORD;
                                           sectorsPerBlock:PWORD;
                                           availableBlocks:PWORD;
@@ -770,17 +770,17 @@ function GetVolumeInfoWithNumber         (volumeNumber:byte;
                                           availableDirectorySlots:PWORD;
                                           volumeIsRemovable:PWORD):longint;cdecl;external Clib name 'GetVolumeInfoWithNumber';
 function GetVolumeInfoWithNumber         (volumeNumber:byte;
-                                          volumeName:Pchar;
+                                          volumeName:PAnsiChar;
                                       var totalBlocks:word;
                                       var sectorsPerBlock:word;
                                       var availableBlocks:word;
                                       var totalDirectorySlots:word;
                                       var availableDirectorySlots:word;
                                       var volumeIsRemovable:word):longint;cdecl;external Clib name 'GetVolumeInfoWithNumber';
-function GetVolumeName(volumeNumber:longint; volumeName:Pchar):longint;cdecl;external Clib name 'GetVolumeName';
+function GetVolumeName(volumeNumber:longint; volumeName:PAnsiChar):longint;cdecl;external Clib name 'GetVolumeName';
 
-function GetVolumeNumber(volumeName:Pchar; volumeNumber:Plongint):longint;cdecl;external Clib name 'GetVolumeNumber';
-function GetVolumeNumber(volumeName:Pchar; var volumeNumber:longint):longint;cdecl;external Clib name 'GetVolumeNumber';
+function GetVolumeNumber(volumeName:PAnsiChar; volumeNumber:Plongint):longint;cdecl;external Clib name 'GetVolumeNumber';
+function GetVolumeNumber(volumeName:PAnsiChar; var volumeNumber:longint):longint;cdecl;external Clib name 'GetVolumeNumber';
 function GetVolumeStatistics             (connectionID:word;
                                           volumeNumber:byte;
                                           structSize:longint;
@@ -790,34 +790,34 @@ function GetVolumeStatistics             (connectionID:word;
                                           structSize:longint;
                                       var volumeStatistics:TVOLUME_INFO):longint;cdecl;external Clib name 'GetVolumeStatistics';
 
-procedure _makepath                      (path:Pchar;
-                                          drive:Pchar;
-                                          dir:Pchar;
-                                          fname:Pchar;
-                                          ext:Pchar);cdecl;external Clib name '_makepath';
+procedure _makepath                      (path:PAnsiChar;
+                                          drive:PAnsiChar;
+                                          dir:PAnsiChar;
+                                          fname:PAnsiChar;
+                                          ext:PAnsiChar);cdecl;external Clib name '_makepath';
 
-function ModifyInheritedRightsMask       (path:Pchar;
+function ModifyInheritedRightsMask       (path:PAnsiChar;
                                           revokeRightsMask:word;
                                           grantRightsMask:word):longint;cdecl;external Clib name 'ModifyInheritedRightsMask';
 function NWGetExtendedVolumeInfo         (volNumber:longint;
-                                          volName:Pchar;
+                                          volName:PAnsiChar;
                                           volInfo:PNWVolExtendedInfo):longint;cdecl;external Clib name 'NWGetExtendedVolumeInfo';
 function NWGetExtendedVolumeInfo         (volNumber:longint;
-                                          volName:Pchar;
+                                          volName:PAnsiChar;
                                       var volInfo:TNWVolExtendedInfo):longint;cdecl;external Clib name 'NWGetExtendedVolumeInfo';
 function NWVolumeIsCDROM                 (volNumber:longint;
                                           isCDROM:PLongint):longint;cdecl;external Clib name 'NWVolumeIsCDROM';
 function NWVolumeIsCDROM                 (volNumber:longint;
                                       var isCDROM:longint):longint;cdecl;external Clib name 'NWVolumeIsCDROM';
 
-function ParsePath                       (path:Pchar;
-                                          server:Pchar;
-                                          volume:Pchar;
-                                          directories:Pchar):longint;cdecl;external Clib name 'ParsePath';
+function ParsePath                       (path:PAnsiChar;
+                                          server:PAnsiChar;
+                                          volume:PAnsiChar;
+                                          directories:PAnsiChar):longint;cdecl;external Clib name 'ParsePath';
 function PurgeTrusteeFromVolume          (volume:longint;
                                           trusteeID:longint):longint;cdecl;external Clib name 'PurgeTrusteeFromVolume';
 
-function ReturnSpaceRestrictionForDirectory(pathName:Pchar;
+function ReturnSpaceRestrictionForDirectory(pathName:PAnsiChar;
                                             numberOfStructuresToReturn:longint;
                                             answerBuffer:pointer;
                                             numberOfStructuresReturned:PLongint):longint;cdecl;external Clib name 'ReturnSpaceRestrictionForDirectory';
@@ -825,20 +825,20 @@ function ScanBinderyObjectTrusteePaths     (objectID:longint;
                                             volumeNumber:byte;
                                             sequenceNumber:Plongint;
                                             trusteeAccessMask:PWORD;
-                                            trusteePathName:Pchar):longint;cdecl;external Clib name 'ScanBinderyObjectTrusteePaths';
+                                            trusteePathName:PAnsiChar):longint;cdecl;external Clib name 'ScanBinderyObjectTrusteePaths';
 function ScanBinderyObjectTrusteePaths     (objectID:longint;
                                             volumeNumber:byte;
                                         var sequenceNumber:longint;
                                         var trusteeAccessMask:word;
-                                            trusteePathName:Pchar):longint;cdecl;external Clib name 'ScanBinderyObjectTrusteePaths';
+                                            trusteePathName:PAnsiChar):longint;cdecl;external Clib name 'ScanBinderyObjectTrusteePaths';
 (* Const before type ignored *)
-function ScanTrustees                      (pathName:Pchar;
+function ScanTrustees                      (pathName:PAnsiChar;
                                             startingOffset:longint;
                                             vectorSize:longint;
                                             trusteeVector:PLongint;
                                             maskVector:PWORD;
                                             actualVectorSize:PLongint):longint;cdecl;external Clib name 'ScanTrustees';
-function ScanTrustees                      (pathName:Pchar;
+function ScanTrustees                      (pathName:PAnsiChar;
                                             startingOffset:longint;
                                             vectorSize:longint;
                                         var trusteeVector:longint;
@@ -855,21 +855,21 @@ function ScanUserSpaceRestrictions         (volume:longint;
                                         var answerArea;
                                         var numberOfTrusteesReturned:longint):longint;cdecl;external Clib name 'ScanUserSpaceRestrictions';
 
-function SetDirectoryInfo                  (pathName:Pchar;
+function SetDirectoryInfo                  (pathName:PAnsiChar;
                                             newCreationDateAndTime:PBYTE;
                                             newOwnerObjectID:longint;
                                             inheritedRightsMask:word):longint;cdecl;external Clib name 'SetDirectoryInfo';
 
 function SetWildcardTranslationMode         (newMode:byte):byte;cdecl;external Clib name 'SetWildcardTranslationMode';
 
-procedure _splitpath                        (path:Pchar;
-                                             drive:Pchar;
-                                             dir:Pchar;
-                                             fname:Pchar;
-                                             ext:Pchar);cdecl;external Clib name '_splitpath';
+procedure _splitpath                        (path:PAnsiChar;
+                                             drive:PAnsiChar;
+                                             dir:PAnsiChar;
+                                             fname:PAnsiChar;
+                                             ext:PAnsiChar);cdecl;external Clib name '_splitpath';
 
-function StripFileServerFromPath            (path:Pchar;
-                                             server:Pchar):Pchar;cdecl;external Clib name 'StripFileServerFromPath';
+function StripFileServerFromPath            (path:PAnsiChar;
+                                             server:PAnsiChar):PAnsiChar;cdecl;external Clib name 'StripFileServerFromPath';
 function UpdateDirectoryEntry               (handle:longint):longint;cdecl;external Clib name 'UpdateDirectoryEntry';
 
 {------------------------------------------------------------------------------}
@@ -886,7 +886,7 @@ type
 
    PFILE_SERV_INFO = ^TFILE_SERV_INFO;
    TFILE_SERV_INFO = record
-        serverName : array[0..47] of char;
+        serverName : array[0..47] of AnsiChar;
         netwareVersion : byte;
         netwareSubVersion : byte;
         maxConnectionsSupported : word;
@@ -934,26 +934,26 @@ function GetBinderyObjectDiskSpaceLeft (connectionID:word;
                                     var unusedDiskBlocks:Longint;
                                     var restrictionEnforced:byte):longint;cdecl;external Clib name 'GetBinderyObjectDiskSpaceLeft';
 function GetDiskUtilization            (objectID:longint;
-                                        volumeNumber:char;
+                                        volumeNumber:AnsiChar;
                                         usedDirectories:PLongint;
                                         usedFiles:PLongint;
                                         usedBlocks:PLongint):longint;cdecl;external Clib name 'GetDiskUtilization';
 function GetDiskUtilization            (objectID:longint;
-                                        volumeNumber:char;
+                                        volumeNumber:AnsiChar;
                                     var usedDirectories:Longint;
                                     var usedFiles:Longint;
                                     var usedBlocks:Longint):longint; cdecl;external Clib name 'GetDiskUtilization';
 
-//procedure GetFileServerConnectionID(fileServerName:Pchar; connectionID:PWORD);cdecl;external Clib name 'GetFileServerConnectionID';
+//procedure GetFileServerConnectionID(fileServerName:PAnsiChar; connectionID:PWORD);cdecl;external Clib name 'GetFileServerConnectionID';
 procedure GetFileServerDateAndTime(dateAndTime:PBYTE);cdecl;external Clib name 'GetFileServerDateAndTime';
 procedure GetFileServerDateAndTime(var dateAndTime);cdecl;external Clib name 'GetFileServerDateAndTime';
-function GetFileServerDescriptionStrings (company_Name:Pchar;
-                                          revision:Pchar;
-                                          revisionDate:Pchar;
-                                          copyrightNotice:Pchar):longint;cdecl;external Clib name 'GetFileServerDescriptionStrings';
+function GetFileServerDescriptionStrings (company_Name:PAnsiChar;
+                                          revision:PAnsiChar;
+                                          revisionDate:PAnsiChar;
+                                          copyrightNotice:PAnsiChar):longint;cdecl;external Clib name 'GetFileServerDescriptionStrings';
 function GetFileServerLoginStatus        (loginEnabledFlag:PLongint):longint;cdecl;external Clib name 'GetFileServerLoginStatus';
 function GetFileServerLoginStatus        (var loginEnabledFlag:Longint):longint;cdecl;external Clib name 'GetFileServerLoginStatus';
-procedure GetFileServerName(connectionID:word; fileServerName:Pchar);cdecl;external Clib name 'GetFileServerName';
+procedure GetFileServerName(connectionID:word; fileServerName:PAnsiChar);cdecl;external Clib name 'GetFileServerName';
 function GetServerConfigurationInfo      (serverType:PLongint;
                                           loaderType:PLongint):longint;cdecl;external Clib name 'GetServerConfigurationInfo';
 function GetServerConfigurationInfo      (var serverType:Longint;
@@ -964,10 +964,10 @@ function GetServerInformation            (returnSize:longint;
                                       var serverInfo:TFILE_SERV_INFO):longint;cdecl;external Clib name 'GetServerInformation';
 function GetServerMemorySize:longint;cdecl;external Clib name 'GetServerMemorySize';
 function GetServerUtilization:longint;cdecl;external Clib name 'GetServerUtilization';
-function SendConsoleBroadcast(msg:Pchar;
+function SendConsoleBroadcast(msg:PAnsiChar;
                               connectionCount:word;
                               connectionList:PWORD):longint;cdecl;external Clib name 'SendConsoleBroadcast';
-function SendConsoleBroadcast(msg:Pchar;
+function SendConsoleBroadcast(msg:PAnsiChar;
                               connectionCount:word;
                               const connectionList:array of word):longint;cdecl;external Clib name 'SendConsoleBroadcast';
 function SetFileServerDateAndTime (year,month,day,hour,minute,second:word):longint;cdecl;external Clib name 'SetFileServerDateAndTime';
@@ -1029,7 +1029,7 @@ type
         driverType : byte;
         driverMajorVersion : byte;
         driverMinorVersion : byte;
-        driverDescription : array[0..64] of char;
+        driverDescription : array[0..64] of AnsiChar;
         IOAddr1 : word;
         IOAddr1Size : word;
         IOAddr2 : word;
@@ -1047,7 +1047,7 @@ type
         DMAChannel2Used : byte;
         DMAChannel2 : byte;
         reserved2 : word;
-        configDescription : array[0..79] of char;
+        configDescription : array[0..79] of AnsiChar;
      end;
 
 
@@ -1154,7 +1154,7 @@ type
         hostAddress : array[0..5] of byte;
         LANDriverInstalled : byte;
         optionNumber : byte;
-        configurationText : array[0..159] of char;
+        configurationText : array[0..159] of AnsiChar;
      end;
 
    PPHYS_DISK_STATS = ^TPHYS_DISK_STATS;
@@ -1170,7 +1170,7 @@ type
         driveCylinders : word;
         driveHeads : byte;
         sectorsPerTrack : byte;
-        driveDefinition : array[0..63] of char;
+        driveDefinition : array[0..63] of AnsiChar;
         IOErrorCount : word;
         hotFixStart : longint;
         hotFixSize : word;
@@ -1214,7 +1214,7 @@ type
         lockFlag : byte;
         volumeNumber : byte;
         dirEntry : word;
-        fileName : array[0..13] of char;
+        fileName : array[0..13] of AnsiChar;
      end;
 
    PCONN_OPEN_FILES_386 = ^TCONN_OPEN_FILES_386;
@@ -1733,7 +1733,7 @@ function GetLANDriverConfigInfo(LANBoardNumber:byte; LANConfiguration:PLAN_CONFI
 function GetLANDriverConfigInfo(LANBoardNumber:byte; var LANConfiguration:TLAN_CONFIG):longint;cdecl;external Clib name 'GetLANDriverConfigInfo';
 function GetLogicalRecordInformation(requestSize:longint; request:pointer; buffer:pointer; bufferSize:longint):longint;cdecl;external Clib name 'GetLogicalRecordInformation';
 function GetLogicalRecordsByConnection(connectionNumber:word; nextRecord:word; buffer:pointer; bufferSize:longint):longint;cdecl;external Clib name 'GetLogicalRecordsByConnection';
-function GetPathFromDirectoryEntry(volumeNumber:byte; directoryEntry:word; pathLength:PBYTE; path:Pchar):longint;cdecl;external Clib name 'GetPathFromDirectoryEntry';
+function GetPathFromDirectoryEntry(volumeNumber:byte; directoryEntry:word; pathLength:PBYTE; path:PAnsiChar):longint;cdecl;external Clib name 'GetPathFromDirectoryEntry';
 function GetPhysicalDiskStats(physicalDiskNumber:byte; physicalDiskStats:PPHYS_DISK_STATS):longint;cdecl;external Clib name 'GetPhysicalDiskStats';
 function GetPhysicalDiskStats(physicalDiskNumber:byte; var physicalDiskStats:TPHYS_DISK_STATS):longint;cdecl;external Clib name 'GetPhysicalDiskStats';
 function GetPhysicalRecordLocksByFile(requestSize:longint; request:pointer; buffer:pointer; bufferSize:longint):longint;cdecl;external Clib name 'GetPhysicalRecordLocksByFile';
@@ -1764,7 +1764,7 @@ type
         valueLength : longint;
         keyLength   : word;
         accessFlags : longint;
-        keyValue    : array[0..0] of char;
+        keyValue    : array[0..0] of AnsiChar;
      end;
 {----------------------------------------------------------------------
      T_enumerateEAwithKey is the structure returned in the dataBuffer
@@ -1780,33 +1780,33 @@ type
         accessFlags : longint;
         keyExtants : longint;
         valueExtants : longint;
-        keyValue : array[0..0] of char;
+        keyValue : array[0..0] of AnsiChar;
      end;
 
 {$include npackoff.inc}
 
 function CloseEA(handle:longint):longint;cdecl;external Clib name 'CloseEA';
-function CopyEA (srcPath,destPath:Pchar; destVolumeNumber,destDirectoryNumber:longint;
+function CopyEA (srcPath,destPath:PAnsiChar; destVolumeNumber,destDirectoryNumber:longint;
                  EAcount,EAdataSize,EAkeySize:PLongint):longint;cdecl;external Clib name 'CopyEA';
-function CopyEA (srcPath,destPath:Pchar; destVolumeNumber,destDirectoryNumber:longint;
+function CopyEA (srcPath,destPath:PAnsiChar; destVolumeNumber,destDirectoryNumber:longint;
              var EAcount,EAdataSize,EAkeySize:longint):longint;cdecl;external Clib name 'CopyEA';
 
-function EnumerateEA(handle:longint; keyBuffer:Pchar; dataBuffer:pointer; dataBufferSize:longint;
+function EnumerateEA(handle:longint; keyBuffer:PAnsiChar; dataBuffer:pointer; dataBufferSize:longint;
                      startPosition:longint;
                      dataSize,EAsInReply:PLongint):longint;cdecl;external Clib name 'EnumerateEA';
-function EnumerateEA(handle:longint; keyBuffer:Pchar; var dataBuffer; dataBufferSize:longint;
+function EnumerateEA(handle:longint; keyBuffer:PAnsiChar; var dataBuffer; dataBufferSize:longint;
                      startPosition:longint;
                  var dataSize,EAsInReply:longint):longint;cdecl;external Clib name 'EnumerateEA';
-function EnumerateEA(handle:longint; keyBuffer:Pchar; dataBuffer:pointer; dataBufferSize:longint;
+function EnumerateEA(handle:longint; keyBuffer:PAnsiChar; dataBuffer:pointer; dataBufferSize:longint;
                      startPosition:longint;
                  var dataSize,EAsInReply:longint):longint;cdecl;external Clib name 'EnumerateEA';
 function GetEAInfo (handle:longint; totalEAs,totalDataSizeOfEAs,totalKeySizeOfEAs:PLongint):longint;cdecl;external Clib name 'GetEAInfo';
 function GetEAInfo (handle:longint; var totalEAs,totalDataSizeOfEAs,totalKeySizeOfEAs:longint):longint;cdecl;external Clib name 'GetEAInfo';
 
-function OpenEA(path:Pchar; reserved:longint):longint;cdecl;external Clib name 'OpenEA';
-function ReadEA(handle:longint; keyBuffer:Pchar; dataBuffer:Pchar; dataBufferSize:longint; accessFlags:PLongint):longint;cdecl;external Clib name 'ReadEA';
-function ReadEA(handle:longint; keyBuffer:Pchar; dataBuffer:Pchar; dataBufferSize:longint; var accessFlags:longint):longint;cdecl;external Clib name 'ReadEA';
-function WriteEA(handle:longint; keyBuffer:Pchar; dataBuffer:Pchar; dataBufferSize:longint; accessFlags:longint):longint;cdecl;external Clib name 'WriteEA';
+function OpenEA(path:PAnsiChar; reserved:longint):longint;cdecl;external Clib name 'OpenEA';
+function ReadEA(handle:longint; keyBuffer:PAnsiChar; dataBuffer:PAnsiChar; dataBufferSize:longint; accessFlags:PLongint):longint;cdecl;external Clib name 'ReadEA';
+function ReadEA(handle:longint; keyBuffer:PAnsiChar; dataBuffer:PAnsiChar; dataBufferSize:longint; var accessFlags:longint):longint;cdecl;external Clib name 'ReadEA';
+function WriteEA(handle:longint; keyBuffer:PAnsiChar; dataBuffer:PAnsiChar; dataBufferSize:longint; accessFlags:longint):longint;cdecl;external Clib name 'WriteEA';
 
 {------------------------------------------------------------------------------}
 
@@ -1814,15 +1814,15 @@ const MAX_CONSOLE_MESSAGE_LENGTH =  80;
       MAX_MESSAGE_LENGTH         =  58;
       NEW_MAX_MESSAGE_LENGTH     = 250;
 
-function BroadcastToConsole       (msg:Pchar):longint;       cdecl;external Clib name 'BroadcastToConsole';
+function BroadcastToConsole       (msg:PAnsiChar):longint;       cdecl;external Clib name 'BroadcastToConsole';
 function DisableStationBroadcasts:longint;                   cdecl;external Clib name 'DisableStationBroadcasts';
 function EnableStationBroadcasts:longint;                    cdecl;external Clib name 'EnableStationBroadcasts';
-function GetBroadcastMessage      (msgBuffer:Pchar):longint; cdecl;external Clib name 'GetBroadcastMessage';
-function SendBroadcastMessage     (msg:Pchar;
+function GetBroadcastMessage      (msgBuffer:PAnsiChar):longint; cdecl;external Clib name 'GetBroadcastMessage';
+function SendBroadcastMessage     (msg:PAnsiChar;
                                    connectionList:PWORD;
                                    resultList:PBYTE;
                                    connectionCount:word):longint; cdecl;external Clib name 'SendBroadcastMessage';
-function SendBroadcastMessage     (msg:Pchar;
+function SendBroadcastMessage     (msg:PAnsiChar;
                                    var connectionList;
                                    var resultList;
                                    var connectionCount:word):longint; cdecl;external Clib name 'SendBroadcastMessage';
@@ -1910,7 +1910,7 @@ type
         _type : word;
         position : word;
         controlFlags : word;
-        assocFileName : array[0..13] of char;
+        assocFileName : array[0..13] of AnsiChar;
         fileHandle : TNWFileHandle_t;
      end;
 
@@ -1921,7 +1921,7 @@ type
         formType : word;
         position : word;
         controlFlags : word;
-        assocFileName : array[0..13] of char;
+        assocFileName : array[0..13] of AnsiChar;
         fileHandle : TNWFileHandle_t;
      end;
 
@@ -1944,12 +1944,12 @@ type
         printControlFlags : word;
         maxLinesPerPage : word;
         maxCharsPerLine : word;
-        formName : array[0..12] of char;
+        formName : array[0..12] of AnsiChar;
         reserve : array[0..8] of byte;
-        bannerNameField : array[0..12] of char;
-        bannerFileField : array[0..12] of char;
-        bannerFileName : array[0..13] of char;
-        directoryPath : array[0..79] of char;
+        bannerNameField : array[0..12] of AnsiChar;
+        bannerFileField : array[0..12] of AnsiChar;
+        bannerFileName : array[0..13] of AnsiChar;
+        directoryPath : array[0..79] of AnsiChar;
      end;
 {$include npackoff.inc}
 
@@ -1961,8 +1961,8 @@ function ChangeQueueJobPosition(queueID:longint; jobNumber:word; newPosition:byt
 function ChangeToClientRights(queueID:longint; jobNumber:word):longint;cdecl;external Clib name 'ChangeToClientRights';
 function CloseFileAndAbortQueueJob(queueID:longint; jobNumber:word; fileHandle:longint):longint;cdecl;external Clib name 'CloseFileAndAbortQueueJob';
 function CloseFileAndStartQueueJob(queueID:longint; jobNumber:word; fileHandle:longint):longint;cdecl;external Clib name 'CloseFileAndStartQueueJob';
-function CreateAQueue(queueName:Pchar; queueType:longint; pathName:Pchar; queueID:Plongint):longint;cdecl;external Clib name 'CreateAQueue';
-function CreateAQueue(queueName:Pchar; queueType:longint; pathName:Pchar; var queueID:longint):longint;cdecl;external Clib name 'CreateAQueue';
+function CreateAQueue(queueName:PAnsiChar; queueType:longint; pathName:PAnsiChar; queueID:Plongint):longint;cdecl;external Clib name 'CreateAQueue';
+function CreateAQueue(queueName:PAnsiChar; queueType:longint; pathName:PAnsiChar; var queueID:longint):longint;cdecl;external Clib name 'CreateAQueue';
 function CreateQueueJobAndFile(queueID:longint; job:PJobStruct; fileHandle:Plongint):longint;cdecl;external Clib name 'CreateQueueJobAndFile';
 function CreateQueueJobAndFile(queueID:longint; var job:TJobStruct; var fileHandle:longint):longint;cdecl;external Clib name 'CreateQueueJobAndFile';
 function DestroyQueue(queueID:longint):longint;cdecl;external Clib name 'DestroyQueue';
@@ -1978,7 +1978,7 @@ function NWQChangeJobEntry(queueID:longint; jobInfo:PNWQJobRec_t):longint;cdecl;
 function NWQChangeJobPosition(queueID:longint; jobNum:longint; newPosition:longint):longint;cdecl;external Clib name 'NWQChangeJobPosition';
 function NWQChangeJobQueue(srcQueueID:longint; srcJobNum:longint; dstQueueID:longint; dstJobNum:Plongint):longint;cdecl;external Clib name 'NWQChangeJobQueue';
 function NWQChangeToClientRights(queueID:longint; jobNum:longint):longint;cdecl;external Clib name 'NWQChangeToClientRights';
-function NWQCreate(queueName:Pchar; queueType:word; pathName:Pchar; queueID:Plongint):longint;cdecl;external Clib name 'NWQCreate';
+function NWQCreate(queueName:PAnsiChar; queueType:word; pathName:PAnsiChar; queueID:Plongint):longint;cdecl;external Clib name 'NWQCreate';
 function NWQCreateJob(queueID:longint; jobInfo:PNWQJobRec_t; fileHandle:Plongint):longint;cdecl;external Clib name 'NWQCreateJob';
 function NWQCreateJob(queueID:longint; var jobInfo:TNWQJobRec_t; fileHandle:Plongint):longint;cdecl;external Clib name 'NWQCreateJob';
 function NWQDestroy(queueID:longint):longint;cdecl;external Clib name 'NWQDestroy';
@@ -2001,7 +2001,7 @@ function NWQSetStatus(queueID:longint; queueStatus:longint):longint;cdecl;extern
 function ReadQueueCurrentStatus(queueID:longint; queueStatus:PBYTE; numberOfJobs:PBYTE; numberOfServers:PBYTE; serverIDList:Plongint;
            serverStationList:PWORD; maxNumberOfServers:word):longint;cdecl;external Clib name 'ReadQueueCurrentStatus';
 function ReadQueueJobEntry(queueID:longint; jobNumber:word; job:PJobStruct):longint;cdecl;external Clib name 'ReadQueueJobEntry';
-function ReadQueueServerCurrentStatus(queueID:longint; serverID:longint; serverStation:char; serverStatusRecord:Pchar):longint;cdecl;external Clib name 'ReadQueueServerCurrentStatus';
+function ReadQueueServerCurrentStatus(queueID:longint; serverID:longint; serverStation:AnsiChar; serverStatusRecord:PAnsiChar):longint;cdecl;external Clib name 'ReadQueueServerCurrentStatus';
 function RemoveJobFromQueue(queueID:longint; jobNumber:word):longint;cdecl;external Clib name 'RemoveJobFromQueue';
 function RestoreQueueServerRights:longint;cdecl;external Clib name 'RestoreQueueServerRights';
 function ServiceQueueJobAndOpenFile(queueID:longint; targetJobType:word; job:PJobStruct; fileHandle:Plongint):longint;cdecl;external Clib name 'ServiceQueueJobAndOpenFile';
@@ -3101,7 +3101,7 @@ function SSGetProtocolNumbersByMedia(mediaNumber:longint; buffer:pointer; buffer
 function SSGetProtocolStatistics(stackNumber:longint; buffer:pointer; bufferLen:word):longint;cdecl;external Clib name 'SSGetProtocolStatistics';
 function SSGetRouterAndSAPInfo(buffer:pointer; bufferLen:word):longint;cdecl;external Clib name 'SSGetRouterAndSAPInfo';
 function SSGetServerInfo(serverType:longint; nameLength:byte; name:PBYTE; buffer:pointer; bufferLen:word):longint;cdecl;external Clib name 'SSGetServerInfo';
-function SSGetServerSourcesInfo(startNumber:longint; serverType:longint; nameLength:byte; name:PChar; buffer:pointer;
+function SSGetServerSourcesInfo(startNumber:longint; serverType:longint; nameLength:byte; name:PAnsiChar; buffer:pointer;
            bufferLen:word):longint;cdecl;external Clib name 'SSGetServerSourcesInfo';
 function SSGetUserInfo(connectionNumber:longint; buffer:pointer; bufferLen:word):longint;cdecl;external Clib name 'SSGetUserInfo';
 function SSGetVolumeSegmentList(volumeNumber:longint; buffer:pointer; bufferLen:word):longint;cdecl;external Clib name 'SSGetVolumeSegmentList';
@@ -3111,9 +3111,9 @@ function SSGetVolumeSwitchInfo(startNumber:longint; buffer:pointer; bufferLen:wo
 const _MAX_LOGREC_NAME = 128;
      _MAX_SEMAPHORE_NAME = 128;
 
-function  ClearFile(fileName:Pchar):longint; cdecl;external Clib name 'ClearFile';
+function  ClearFile(fileName:PAnsiChar):longint; cdecl;external Clib name 'ClearFile';
 procedure ClearFileSet;                      cdecl;external Clib name 'ClearFileSet';
-function  ClearLogicalRecord(logicalRecordName:Pchar):longint;cdecl;external Clib name 'ClearLogicalRecord';
+function  ClearLogicalRecord(logicalRecordName:PAnsiChar):longint;cdecl;external Clib name 'ClearLogicalRecord';
 procedure ClearLogicalRecordSet;             cdecl;external Clib name 'ClearLogicalRecordSet';
 function  ClearPhysicalRecord(fileHandle,recordStartOffset,recordLength:longint):longint;cdecl;external Clib name 'ClearPhysicalRecord';
 procedure ClearPhysicalRecordSet;cdecl;external Clib name 'ClearPhysicalRecordSet';
@@ -3123,14 +3123,14 @@ function  ExamineSemaphore(semaphoreHandle:longint; var semaphoreValue:longint; 
 function  LockFileSet(timeoutLimit:word):longint;cdecl;external Clib name 'LockFileSet';
 function  LockLogicalRecordSet(timeoutLimit:word):longint;cdecl;external Clib name 'LockLogicalRecordSet';
 function  LockPhysicalRecordSet(lockDirective:byte; timeoutLimit:word):longint;cdecl;external Clib name 'LockPhysicalRecordSet';
-function  LogFile(fileName:Pchar; lockDirective:byte; timeoutLimit:word):longint;cdecl;external Clib name 'LogFile';
-function  LogLogicalRecord(logicalRecordName:Pchar; lockDirective:byte; timeoutLimit:word):longint;cdecl;external Clib name 'LogLogicalRecord';
+function  LogFile(fileName:PAnsiChar; lockDirective:byte; timeoutLimit:word):longint;cdecl;external Clib name 'LogFile';
+function  LogLogicalRecord(logicalRecordName:PAnsiChar; lockDirective:byte; timeoutLimit:word):longint;cdecl;external Clib name 'LogLogicalRecord';
 function  LogPhysicalRecord(fileHandle,recordStartOffset,recordLength:longint; lockDirective:byte; timeoutLimit:word):longint;cdecl;external Clib name 'LogPhysicalRecord';
-function  OpenSemaphore(semaphoreName:Pchar; initialValue:longint; semaphoreHandle:Plongint; openCount:PWORD):longint;cdecl;external Clib name 'OpenSemaphore';
-function  OpenSemaphore(semaphoreName:Pchar; initialValue:longint; var semaphoreHandle:longint; var openCount:word):longint;cdecl;external Clib name 'OpenSemaphore';
-function  ReleaseFile(fileName:Pchar):longint;cdecl;external Clib name 'ReleaseFile';
+function  OpenSemaphore(semaphoreName:PAnsiChar; initialValue:longint; semaphoreHandle:Plongint; openCount:PWORD):longint;cdecl;external Clib name 'OpenSemaphore';
+function  OpenSemaphore(semaphoreName:PAnsiChar; initialValue:longint; var semaphoreHandle:longint; var openCount:word):longint;cdecl;external Clib name 'OpenSemaphore';
+function  ReleaseFile(fileName:PAnsiChar):longint;cdecl;external Clib name 'ReleaseFile';
 procedure ReleaseFileSet;cdecl;external Clib name 'ReleaseFileSet';
-function  ReleaseLogicalRecord(logicalRecordName:Pchar):longint;cdecl;external Clib name 'ReleaseLogicalRecord';
+function  ReleaseLogicalRecord(logicalRecordName:PAnsiChar):longint;cdecl;external Clib name 'ReleaseLogicalRecord';
 procedure ReleaseLogicalRecordSet;cdecl;external Clib name 'ReleaseLogicalRecordSet';
 function  ReleasePhysicalRecord(fileHandle,recordStartOffset,recordLength:longint):longint;cdecl;external Clib name 'ReleasePhysicalRecord';
 procedure ReleasePhysicalRecordSet;cdecl;external Clib name 'ReleasePhysicalRecordSet';
