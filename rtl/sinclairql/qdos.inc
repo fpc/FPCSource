@@ -32,7 +32,7 @@ asm
   movem.l (sp)+,d2-d3/a2-a3
 end;
 
-function mt_inf(sys_vars: ppchar; ver_ascii: plongint): Tjobid; assembler; nostackframe; public name '_mt_inf';
+function mt_inf(sys_vars: PPAnsiChar; ver_ascii: plongint): Tjobid; assembler; nostackframe; public name '_mt_inf';
 asm
   move.l  d2,-(sp)
   move.l  sys_vars,-(sp)
@@ -115,10 +115,10 @@ asm
   movem.l (sp)+,d2-d3
 end;
 
-function io_open(name: pchar; mode: longint): Tchanid; public name '_io_open';
+function io_open(name: PAnsiChar; mode: longint): Tchanid; public name '_io_open';
 var
   len: longint;
-  name_qlstr: array[0..63] of char;
+  name_qlstr: array[0..63] of AnsiChar;
 begin
   len:=length(name);
   if len > length(name_qlstr)-2 then
@@ -149,10 +149,10 @@ asm
   movem.l (sp)+,d2-d3
 end;
 
-function io_delet(name: pchar): Tchanid; public name '_io_delet';
+function io_delet(name: PAnsiChar): Tchanid; public name '_io_delet';
 var
   len: longint;
-  name_qlstr: array[0..63] of char;
+  name_qlstr: array[0..63] of AnsiChar;
 begin
   len:=length(name);
   if len > length(name_qlstr)-2 then
@@ -228,7 +228,7 @@ begin
   io_fstrg := io_fetch(chan, timeout, buf, len, _IO_FSTRG);
 end;
 
-function io_sbyte(chan: Tchanid; timeout: Ttimeout; c: char): longint; assembler; public name '_io_sbyte';
+function io_sbyte(chan: Tchanid; timeout: Ttimeout; c: AnsiChar): longint; assembler; public name '_io_sbyte';
 asm
   move.l d3,-(sp)
   move.w timeout,d3
@@ -339,10 +339,10 @@ asm
   move.l (sp)+,d3
 end;
 
-function fs_rename(chan: Tchanid; new_name: pchar): longint; public name '_fs_rename';
+function fs_rename(chan: Tchanid; new_name: PAnsiChar): longint; public name '_fs_rename';
 var
   len: longint;
-  new_name_qlstr: array[0..63] of char;
+  new_name_qlstr: array[0..63] of AnsiChar;
 begin
   len:=length(new_name);
   if len > length(new_name_qlstr)-2 then
