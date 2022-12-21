@@ -30,8 +30,8 @@ interface
 
 var
   argc : longint; public name 'operatingsystem_parameter_argc';
-  argv : ppchar;public name 'operatingsystem_parameter_argv';
-  envp : ppchar;public name 'operatingsystem_parameter_envp';
+  argv : PPAnsiChar;public name 'operatingsystem_parameter_argv';
+  envp : PPAnsiChar;public name 'operatingsystem_parameter_envp';
   
   
 var
@@ -79,11 +79,11 @@ Var
   NewDir : shortstring;
   p1     : Longint;
   Info   : Stat;
-  buffer : array[0..PATH_MAX+1] of char;
+  buffer : array[0..PATH_MAX+1] of AnsiChar;
 Begin
   Move(path[1], Buffer, Length(path));
   Buffer[Length(path)]:=#0;
-  if (length(Path)>0) and (path[1]='/') and (sys_stat(pchar(@Buffer),info)=0) then
+  if (length(Path)>0) and (path[1]='/') and (sys_stat(PAnsiChar(@Buffer),info)=0) then
   begin
     FileSearch:=path;
     exit;
@@ -109,7 +109,7 @@ Begin
        Delete(DirList,1,p1);
        Move(NewDir[1], Buffer, Length(NewDir));
        Buffer[Length(NewDir)]:=#0;
-       if sys_stat(pchar(@Buffer),Info)=0 then
+       if sys_stat(PAnsiChar(@Buffer),Info)=0 then
         Begin
           If Pos('./',NewDir)=1 Then
            Delete(NewDir,1,2);
@@ -125,13 +125,13 @@ End;
 Function GetEnv(EnvVar:shortstring):shortstring;
 {
   Searches the environment for a string with name p and
-  returns a pchar to it's value.
-  A pchar is used to accomodate for strings of length > 255
+  returns a PAnsiChar to it's value.
+  A PAnsiChar is used to accomodate for strings of length > 255
 }
 var
-  ep    : ppchar;
+  ep    : PPAnsiChar;
   found : boolean;
-  p1 : pchar;
+  p1 : PAnsiChar;
 Begin
   EnvVar:=EnvVar+'=';            {Else HOST will also find HOSTNAME, etc}
   ep:=envp;

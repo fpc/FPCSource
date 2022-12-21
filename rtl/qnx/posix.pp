@@ -26,29 +26,29 @@ interface
 {$i osposixh.inc}
 
     function sys_fork : pid_t; 
-    function sys_execve(const path : pchar; const argv : ppchar; const envp: ppchar): cint; 
+    function sys_execve(const path : PAnsiChar; const argv : PPAnsiChar; const envp: PPAnsiChar): cint;
     function sys_waitpid(pid : pid_t; var stat_loc : cint; options: cint): pid_t; 
     procedure sys_exit(status : cint); cdecl; external name '_exit';
     function sys_uname(var name: utsname): cint; 
-    function sys_opendir(const dirname : pchar): pdir; 
+    function sys_opendir(const dirname : PAnsiChar): pdir;
     function sys_readdir(dirp : pdir) : pdirent;
     function sys_closedir(dirp : pdir): cint; 
-    function sys_chdir(const path : pchar): cint; 
-    function sys_open(const path: pchar; flags : cint; mode: mode_t):cint; 
-    function sys_mkdir(const path : pchar; mode: mode_t):cint; 
-    function sys_unlink(const path: pchar): cint; 
-    function sys_rmdir(const path : pchar): cint; 
-    function sys_rename(const old : pchar; const newpath: pchar): cint; 
-    function sys_access(const pathname : pchar; amode : cint): cint; 
+    function sys_chdir(const path : PAnsiChar): cint;
+    function sys_open(const path: PAnsiChar; flags : cint; mode: mode_t):cint;
+    function sys_mkdir(const path : PAnsiChar; mode: mode_t):cint;
+    function sys_unlink(const path: PAnsiChar): cint;
+    function sys_rmdir(const path : PAnsiChar): cint;
+    function sys_rename(const old : PAnsiChar; const newpath: PAnsiChar): cint;
+    function sys_access(const pathname : PAnsiChar; amode : cint): cint;
     function sys_close(fd : cint): cint; 
-    function sys_read(fd: cint; buf: pchar; nbytes : size_t): ssize_t; 
-    function sys_write(fd: cint;const buf:pchar; nbytes : size_t): ssize_t; 
+    function sys_read(fd: cint; buf: PAnsiChar; nbytes : size_t): ssize_t;
+    function sys_write(fd: cint;const buf:PAnsiChar; nbytes : size_t): ssize_t;
     function sys_lseek(fd : cint; offset : off_t; whence : cint): off_t; 
     function sys_time(var tloc:time_t): time_t; 
     function sys_ftruncate(fd : cint; flength : off_t): cint; 
     function sys_sigaction(sig: cint; var act : sigactionrec; var oact : sigactionrec): cint; 
     function sys_fstat(fd : cint; var sb : stat): cint; 
-    function sys_stat(const path: pchar; var buf : stat): cint; 
+    function sys_stat(const path: PAnsiChar; var buf : stat): cint;
 
 
     function S_ISDIR(m : mode_t): boolean;
@@ -67,28 +67,28 @@ interface
 implementation
  
     function int_fork : pid_t; cdecl; external name 'fork';
-    function int_execve(const path : pchar; const argv : ppchar; const envp: ppchar): cint; cdecl; external name 'execve';
+    function int_execve(const path : PAnsiChar; const argv : PPAnsiChar; const envp: PPAnsiChar): cint; cdecl; external name 'execve';
     function int_waitpid(pid : pid_t; var stat_loc : cint; options: cint): pid_t; cdecl; external name 'waitpid';
     function int_uname(var name: utsname): cint; cdecl; external name 'uname';
-    function int_opendir(const dirname : pchar): pdir; cdecl; external name 'opendir';
+    function int_opendir(const dirname : PAnsiChar): pdir; cdecl; external name 'opendir';
     function int_readdir(dirp : pdir) : pdirent;cdecl; external name 'readdir';
     function int_closedir(dirp : pdir): cint; cdecl; external name 'closedir';
-    function int_chdir(const path : pchar): cint; cdecl; external name 'chdir';
-    function int_open(const path: pchar; flags : cint; mode: mode_t):cint; cdecl; external name 'open';
-    function int_mkdir(const path : pchar; mode: mode_t):cint; cdecl; external name 'mkdir';
-    function int_unlink(const path: pchar): cint; cdecl; external name 'unlink';
-    function int_rmdir(const path : pchar): cint; cdecl; external name 'rmdir';
-    function int_rename(const old : pchar; const newpath: pchar): cint; cdecl;external name 'rename';
-    function int_access(const pathname : pchar; amode : cint): cint; cdecl; external name 'access';
+    function int_chdir(const path : PAnsiChar): cint; cdecl; external name 'chdir';
+    function int_open(const path: PAnsiChar; flags : cint; mode: mode_t):cint; cdecl; external name 'open';
+    function int_mkdir(const path : PAnsiChar; mode: mode_t):cint; cdecl; external name 'mkdir';
+    function int_unlink(const path: PAnsiChar): cint; cdecl; external name 'unlink';
+    function int_rmdir(const path : PAnsiChar): cint; cdecl; external name 'rmdir';
+    function int_rename(const old : PAnsiChar; const newpath: PAnsiChar): cint; cdecl;external name 'rename';
+    function int_access(const pathname : PAnsiChar; amode : cint): cint; cdecl; external name 'access';
     function int_close(fd : cint): cint; cdecl; external name 'close';
-    function int_read(fd: cint; buf: pchar; nbytes : size_t): ssize_t; cdecl; external name 'read';
-    function int_write(fd: cint;const buf:pchar; nbytes : size_t): ssize_t; cdecl; external name 'write';
+    function int_read(fd: cint; buf: PAnsiChar; nbytes : size_t): ssize_t; cdecl; external name 'read';
+    function int_write(fd: cint;const buf:PAnsiChar; nbytes : size_t): ssize_t; cdecl; external name 'write';
     function int_lseek(fd : cint; offset : off_t; whence : cint): off_t; cdecl; external name 'lseek';
     function int_time(var tloc:time_t): time_t; cdecl; external name 'time';
     function int_ftruncate(fd : cint; flength : off_t): cint; cdecl; external name 'ftruncate';
     function int_sigaction(sig: cint; var act : sigactionrec; var oact : sigactionrec): cint; cdecl; external name 'sigaction';
     function int_fstat(fd : cint; var sb : stat): cint; cdecl; external name 'fstat';
-    function int_stat(const path: pchar; var buf : stat): cint; cdecl; external name 'stat';
+    function int_stat(const path: PAnsiChar; var buf : stat): cint; cdecl; external name 'stat';
 
 
     function sys_fork : pid_t; 
@@ -101,7 +101,7 @@ implementation
      end;
      
      
-    function sys_execve(const path : pchar; const argv : ppchar; const envp: ppchar): cint;
+    function sys_execve(const path : PAnsiChar; const argv : PPAnsiChar; const envp: PPAnsiChar): cint;
     begin
        sys_execve := int_execve(path, argv, envp);
        if sys_execve <> - 1 then
@@ -129,7 +129,7 @@ implementation
          end;
      end;
      
-    function sys_opendir(const dirname : pchar): pdir; 
+    function sys_opendir(const dirname : PAnsiChar): pdir;
     begin
        sys_opendir := int_opendir(dirname);
        if sys_opendir <> nil then
@@ -158,7 +158,7 @@ implementation
          end;
     end;
     
-    function sys_chdir(const path : pchar): cint; 
+    function sys_chdir(const path : PAnsiChar): cint;
     begin
        sys_chdir := int_chdir(path);
        if sys_chdir <> -1 then
@@ -168,7 +168,7 @@ implementation
     end;
     
     
-    function sys_open(const path: pchar; flags : cint; mode: mode_t):cint; 
+    function sys_open(const path: PAnsiChar; flags : cint; mode: mode_t):cint;
     begin
        sys_open:= int_open(path, flags, mode);
        if sys_open <> -1 then
@@ -178,7 +178,7 @@ implementation
     end;
     
     
-    function sys_mkdir(const path : pchar; mode: mode_t):cint; 
+    function sys_mkdir(const path : PAnsiChar; mode: mode_t):cint;
     begin
        sys_mkdir:= int_mkdir(path, mode);
        if sys_mkdir <> -1 then
@@ -187,7 +187,7 @@ implementation
          end;
     end;
     
-    function sys_unlink(const path: pchar): cint; 
+    function sys_unlink(const path: PAnsiChar): cint;
     begin
        sys_unlink := int_unlink(path);
        if sys_unlink <> -1 then
@@ -197,7 +197,7 @@ implementation
     end;
     
     
-    function sys_rmdir(const path : pchar): cint; 
+    function sys_rmdir(const path : PAnsiChar): cint;
     begin
        sys_rmdir := int_rmdir(path);
        if sys_rmdir <> -1 then
@@ -206,7 +206,7 @@ implementation
          end;
     end;
     
-    function sys_rename(const old : pchar; const newpath: pchar): cint; 
+    function sys_rename(const old : PAnsiChar; const newpath: PAnsiChar): cint;
     begin
        sys_rename := int_rename(old, newpath);
        if sys_rename <> -1 then
@@ -215,7 +215,7 @@ implementation
          end;
     end;
     
-    function sys_access(const pathname : pchar; amode : cint): cint; 
+    function sys_access(const pathname : PAnsiChar; amode : cint): cint;
     begin
        sys_access := int_access(pathname, amode);
        if sys_access <> -1 then
@@ -234,7 +234,7 @@ implementation
          end;
     end;
     
-    function sys_read(fd: cint; buf: pchar; nbytes : size_t): ssize_t; 
+    function sys_read(fd: cint; buf: PAnsiChar; nbytes : size_t): ssize_t;
     begin
        sys_read := int_read(fd, buf, nbytes);
        if sys_read <> -1 then
@@ -244,7 +244,7 @@ implementation
     end;
     
     
-    function sys_write(fd: cint;const buf:pchar; nbytes : size_t): ssize_t; 
+    function sys_write(fd: cint;const buf:PAnsiChar; nbytes : size_t): ssize_t;
     begin
        sys_write := int_write(fd, buf, nbytes);
        if sys_write <> -1 then
@@ -300,7 +300,7 @@ implementation
          end;
       end;
       
-    function sys_stat(const path: pchar; var buf : stat): cint; 
+    function sys_stat(const path: PAnsiChar; var buf : stat): cint;
       begin
         sys_stat := int_stat(path, buf);
         if sys_stat <> -1 then

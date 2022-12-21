@@ -43,11 +43,11 @@ type
     f_free : fsfilcnt_t;               {* total free file nodes *}
     f_favail : fsfilcnt_t;             {* free nodes avail to non-superuser *}
     f_fsid :  cardinal;                {* file system id (dev for now) *}
-    f_basetype : array[0.._FSTYPSZ-1] of char; {* target fs type name null terminated *}
+    f_basetype : array[0.._FSTYPSZ-1] of AnsiChar; {* target fs type name null terminated *}
     f_flag : cardinal;                 {* bit-mask of flags *} 
     f_namemax : cardinal;              {* maximum file name length *}
     f_filler : array[1..21] of cardinal; {* reserved for future expansion *} 
   end;  
   
-function sys_statvfs(const path: pchar; var buf : statvfs_t): cint; cdecl; external name 'statvfs';  
+function sys_statvfs(const path: PAnsiChar; var buf : statvfs_t): cint; cdecl; external name 'statvfs';  
 
