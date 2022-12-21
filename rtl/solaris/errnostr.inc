@@ -15,7 +15,7 @@
 
 const
   sys_errn = 152;
-  sys_errlist:array[0..sys_errn-1] of pchar = (
+  sys_errlist:array[0..sys_errn-1] of PAnsiChar = (
     'Success',
     'Not super-user',
     'No such file or directory',

@@ -29,7 +29,7 @@ CONST
    ln2bitsinword   = 5;         { 32bit : ln(32)/ln(2)=5 }
    ln2bitmask      = 1 shl ln2bitsinword - 1;
 
-    UTSNAME_LENGTH = 256;   { 256 + 1 in pchar format }
+    UTSNAME_LENGTH = 256;   { 256 + 1 in PAnsiChar format }
     UTSNAME_NODENAME_LENGTH = 256;
 
     ST_FSTYPSZ = 16;           {* array size for file system type name *}
@@ -65,7 +65,7 @@ TYPE
      st_ctimens : clong;    { modification time nanosecond field   }
      st_blksize : blksize_t;
      st_blocks : blkcnt_t;
-     st_fstype : array[0..ST_FSTYPSZ-1] of char;
+     st_fstype : array[0..ST_FSTYPSZ-1] of AnsiChar;
 {$ifndef CPU64}
      st_pad4 : array[1..8] of longint;
 {$endif ndef CPU64}
@@ -102,11 +102,11 @@ TYPE
 
    { system information services }
    utsname = packed record   { don't forget to verify the alignment }
-     sysname : array[0..UTSNAME_LENGTH] of char;
-     nodename : array[0..UTSNAME_LENGTH] of char;
-     release : array[0..UTSNAME_LENGTH] of char;
-     version : array[0..UTSNAME_LENGTH] of char;
-     machine : array[0..UTSNAME_LENGTH] of char;
+     sysname : array[0..UTSNAME_LENGTH] of AnsiChar;
+     nodename : array[0..UTSNAME_LENGTH] of AnsiChar;
+     release : array[0..UTSNAME_LENGTH] of AnsiChar;
+     version : array[0..UTSNAME_LENGTH] of AnsiChar;
+     machine : array[0..UTSNAME_LENGTH] of AnsiChar;
    end;
 
    UTimBuf   = Record
@@ -124,7 +124,7 @@ TYPE
              d_ino : ino_t;                  {* "inode number" of entry *}
              d_off : off_t;                  {* offset of disk directory entry *}
              d_reclen : word;                {* length of this record *}
-             d_name : array[0..255] of char; { name of file            }
+             d_name : array[0..255] of AnsiChar; { name of file            }
             );
        { overlay with alias }
        2 : (
@@ -140,14 +140,14 @@ TYPE
            d_fd : cint;               {* file descriptor *}
            d_loc : cint;              {* offset in block *}
            d_size : cint;             {* amount of valid data *}
-           d_buf : pchar;             { directory block   }
+           d_buf : PAnsiChar;             { directory block   }
           );
       { overlay for posix compatibility }
       2 : (
            dd_fd : cint;               {* file descriptor *}
            dd_loc : cint;              {* offset in block *}
            dd_size : cint;             {* amount of valid data *}
-           dd_buf : pchar;             { directory block   }
+           dd_buf : PAnsiChar;             { directory block   }
           );
    end;
 
