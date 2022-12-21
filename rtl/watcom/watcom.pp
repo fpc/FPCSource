@@ -104,7 +104,7 @@ interface
     procedure seg_move(sseg : word;source : longint;dseg : word;dest : longint;count : longint);
 
     { fills a memory area specified by a 48 bit pointer with c }
-    procedure seg_fillchar(seg : word;ofs : longint;count : longint;c : char);
+    procedure seg_fillchar(seg : word;ofs : longint;count : longint;c : AnsiChar);
     procedure seg_fillword(seg : word;ofs : longint;count : longint;w : word);
 
     {************************************}
@@ -157,7 +157,7 @@ interface
     procedure dpmi_dosmemput(seg : word;ofs : word;var data;count : longint);
     procedure dpmi_dosmemget(seg : word;ofs : word;var data;count : longint);
     procedure dpmi_dosmemmove(sseg,sofs,dseg,dofs : word;count : longint);
-    procedure dpmi_dosmemfillchar(seg,ofs : word;count : longint;c : char);
+    procedure dpmi_dosmemfillchar(seg,ofs : word;count : longint;c : AnsiChar);
     procedure dpmi_dosmemfillword(seg,ofs : word;count : longint;w : word);
 
 
@@ -169,7 +169,7 @@ interface
        dosmemput      : procedure(seg : word;ofs : word;var data;count : longint)=@dpmi_dosmemput;
        dosmemget      : procedure(seg : word;ofs : word;var data;count : longint)=@dpmi_dosmemget;
        dosmemmove     : procedure(sseg,sofs,dseg,dofs : word;count : longint)=@dpmi_dosmemmove;
-       dosmemfillchar : procedure(seg,ofs : word;count : longint;c : char)=@dpmi_dosmemfillchar;
+       dosmemfillchar : procedure(seg,ofs : word;count : longint;c : AnsiChar)=@dpmi_dosmemfillchar;
        dosmemfillword : procedure(seg,ofs : word;count : longint;w : word)=@dpmi_dosmemfillword;
 
   implementation
@@ -196,7 +196,7 @@ interface
          seg_move(dosmemselector,sseg*16+sofs,dosmemselector,dseg*16+dofs,count);
       end;
 
-    procedure dpmi_dosmemfillchar(seg,ofs : word;count : longint;c : char);
+    procedure dpmi_dosmemfillchar(seg,ofs : word;count : longint;c : AnsiChar);
 
       begin
          seg_fillchar(dosmemselector,seg*16+ofs,count,c);
@@ -287,7 +287,7 @@ interface
          end;
       end;
 
-    procedure seg_fillchar(seg : word;ofs : longint;count : longint;c : char);
+    procedure seg_fillchar(seg : word;ofs : longint;count : longint;c : AnsiChar);
 
       begin
          asm
