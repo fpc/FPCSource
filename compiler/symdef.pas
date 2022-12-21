@@ -3543,7 +3543,7 @@ implementation
           'ShortInt','SmallInt','LongInt','Int64','Int128',
           'Boolean','Boolean8','Boolean16','Boolean32','Boolean64',
           'ByteBool','WordBool','LongBool','QWordBool',
-          'Char','WideChar','Currency','CustomRange');
+          'AnsiChar','WideChar','Currency','CustomRange');
 
       begin
          GetTypeName:=names[ordtype];
