@@ -28,9 +28,9 @@ type
   TCdeclProcedure = procedure; cdecl;
 
 var
-  operatingsystem_parameter_envp: ppchar; public name 'operatingsystem_parameter_envp';
+  operatingsystem_parameter_envp: PPAnsiChar; public name 'operatingsystem_parameter_envp';
   operatingsystem_parameter_argc: longint; public name 'operatingsystem_parameter_argc';
-  operatingsystem_parameter_argv: ppchar; public name 'operatingsystem_parameter_argv';
-  environ: ppchar; public name 'environ';
-  __progname: pchar = ''; public name '__progname';
-  __progname_storage: array [0..255] of char; public name '__progname_storage';
+  operatingsystem_parameter_argv: PPAnsiChar; public name 'operatingsystem_parameter_argv';
+  environ: PPAnsiChar; public name 'environ';
+  __progname: PAnsiChar = ''; public name '__progname';
+  __progname_storage: array [0..255] of AnsiChar; public name '__progname_storage';

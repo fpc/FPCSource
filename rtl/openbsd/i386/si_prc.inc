@@ -16,7 +16,7 @@
 
 {$asmmode att}
 
-procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; cleanup: TCdeclProcedure); cdecl; forward;
+procedure _FPC_proc___start(argc: LongInt; argv: PPAnsiChar; envp: Pointer; cleanup: TCdeclProcedure); cdecl; forward;
 
 procedure _FPC_proc_start; assembler; nostackframe; public name '_start'; public name '__start';
   asm
@@ -34,9 +34,9 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start'; public
   end;
 
 procedure _FPC_proc_haltproc; cdecl; noreturn; forward;
-function _strrchr(str: PChar; character: LongInt): PChar; forward;
+function _strrchr(str: PAnsiChar; character: LongInt): PAnsiChar; forward;
 
-procedure _FPC_proc___start(argc: LongInt; argv: PPChar; envp: Pointer; cleanup: TCdeclProcedure); cdecl;
+procedure _FPC_proc___start(argc: LongInt; argv: PPAnsiChar; envp: Pointer; cleanup: TCdeclProcedure); cdecl;
   var
     I: SizeUInt;
   begin
@@ -84,7 +84,7 @@ procedure _FPC_proc_haltproc; cdecl; noreturn; public name '_haltproc';
     end;
   end;
 
-function _strrchr(str: PChar; character: LongInt): PChar; public name '_strrchr';
+function _strrchr(str: PAnsiChar; character: LongInt): PAnsiChar; public name '_strrchr';
   begin
     _strrchr:=nil;
     repeat
