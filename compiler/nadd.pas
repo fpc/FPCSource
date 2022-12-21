@@ -1483,7 +1483,7 @@ implementation
                   begin
                     Result:=getcopy;
                     Result.nodetype:=addn;
-                    right:=cunaryminusnode.create(right);
+                    taddnode(result).right:=cunaryminusnode.create(taddnode(result).right);
                     exit;
                   end;
 
