@@ -23,7 +23,7 @@ Var
   len  : size_t;
   oerrno : cint;
   err : word;
-  point, c : char;
+  point, c : AnsiChar;
   i, version_major, version_minor, version : cint;
 Begin
   mib[0] := 1{ CTL_KERN};

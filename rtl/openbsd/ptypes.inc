@@ -175,7 +175,7 @@ type
 	4: (procfs_args:  ^procfs_args_rec);
 	5: (msdosfs_args: ^msdosfs_args_rec);
 	6: (ntfs_args:    ^ntfs_args_rec);
-	7: (__align: array[0..159] of char); { 64-bit alignment and room to grow }
+	7: (__align: array[0..159] of AnsiChar); { 64-bit alignment and room to grow }
     end;
 
 // kernel statfs from mount.h
@@ -204,17 +204,17 @@ type
     owner             : tuid;     { user that mounted the fileystem }
     ctime             : cuint64;  { last mount [-u] time }
 
-    fstypename : array[0..MFSNAMELEN-1] of char;      { fs type name }
-    mntonname  : array[0..MNAMELEN-1] of char;        { directory on which mounted }
-    mntfromname: array[0..MNAMELEN-1] of char;        { mounted file system }
-    mntfromspec: array[0..MNAMELEN-1] of char;        { special for mount request }
+    fstypename : array[0..MFSNAMELEN-1] of AnsiChar;      { fs type name }
+    mntonname  : array[0..MNAMELEN-1] of AnsiChar;        { directory on which mounted }
+    mntfromname: array[0..MNAMELEN-1] of AnsiChar;        { mounted file system }
+    mntfromspec: array[0..MNAMELEN-1] of AnsiChar;        { special for mount request }
     mount_info: mountinfo;                            { per-filesystem mount options }
   end;
   PStatFS=^TStatFS;
 
   mbstate_t = record
       case byte of
-        0: (__mbstate8: array[0..127] of char);
+        0: (__mbstate8: array[0..127] of AnsiChar);
         1: (_mbstateL: cint64); { for alignment }
     end;
   pmbstate_t = ^mbstate_t;
@@ -285,7 +285,7 @@ type
         d_type        : cuint8;                         // file type, see below
         d_namlen      : cuint8;                         // length of string in d_name
 	d_padding     : array[1..4] of cuint8;
-        d_name        : array[0..(255 + 1)-1] of char;  // name must be no longer than this
+        d_name        : array[0..(255 + 1)-1] of AnsiChar;  // name must be no longer than this
    end;
    TDirent_55 = dirent_55;
    pDirent_55 = ^dirent_55;
@@ -294,7 +294,7 @@ type
         dd_fd     : cint;         // file descriptor associated with directory
         dd_loc    : clong;        // offset in current buffer
         dd_size   : clong;        // amount of data returned by getdirentries
-        dd_buf    : pchar;        // data buffer
+        dd_buf    : PAnsiChar;        // data buffer
         dd_len    : cint;         // size of data buffer
 	dd_curpos : off_t;
 	dd_lock   : pointer;

@@ -66,7 +66,7 @@ begin
   fpfstatfs:=do_SysCall(SysCall_nr_fstatfs,fd,TSysParam(info))
 end;
 
-Function  fpStatFS  (Path:pchar; Info:pstatfs):cint;
+Function  fpStatFS  (Path:PAnsiChar; Info:pstatfs):cint;
 
 begin
   fpstatfs:=do_SysCall(SysCall_nr_statfs,TSysParam(path),TSysParam(Info))
