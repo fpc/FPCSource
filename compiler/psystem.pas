@@ -544,7 +544,7 @@ implementation
         addtype('LongInt',s32inttype);
         addtype('QWord',u64inttype);
         addtype('Int64',s64inttype);
-        addtype('Char',cansichartype);
+        addtype('AnsiChar',cansichartype);
         addtype('WideChar',cwidechartype);
         addtype('Text',cfiledef.createtext);
         addtype('TypedFile',cfiledef.createtyped(voidtype));
@@ -577,7 +577,7 @@ implementation
         addtype('$int64',s64inttype);
         addtype('$uint128',u128inttype);
         addtype('$int128',s128inttype);
-        addtype('$char',cansichartype);
+        addtype('$ansichar',cansichartype);
         addtype('$widechar',cwidechartype);
         addtype('$shortstring',cshortstringtype);
         addtype('$longstring',clongstringtype);
@@ -739,7 +739,7 @@ implementation
         loadtype('typedformal',ctypedformaltype);
         loadtype('void',voidtype);
         loadtype('void_pointer',voidpointertype);
-        loadtype('char',cansichartype);
+        loadtype('ansichar',cansichartype);
         loadtype('widechar',cwidechartype);
         loadtype('shortstring',cshortstringtype);
         loadtype('longstring',clongstringtype);

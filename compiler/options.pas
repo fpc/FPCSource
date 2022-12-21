@@ -4736,6 +4736,7 @@ procedure read_arguments(cmd:TCmdStr);
         def_system_macro('FPC_HAS_LWSYNC');
       {$endif}
 
+      def_system_macro('FPC_HAS_ANSICHAR_CHAR');
       { currently, all supported CPUs have an internal sar implementation }
         def_system_macro('FPC_HAS_INTERNAL_SAR');
       {$ifdef SUPPORT_GET_FRAME}
