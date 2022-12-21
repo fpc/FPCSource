@@ -25,8 +25,8 @@ interface
 {$I sysunixh.inc}
 
 var argc:longint;
-    argv:PPchar;
-    envp:PPchar;
+    argv:PPAnsiChar;
+    envp:PPAnsiChar;
 
 {$define FPC_SYSTEM_HAS_STACKTOP}
 var
@@ -85,7 +85,7 @@ Begin
 End;
 
 
-function BackPos(c:char; const s: shortstring): integer;
+function BackPos(c:AnsiChar; const s: shortstring): integer;
 var
  i: integer;
 Begin
@@ -195,7 +195,7 @@ var
   len,j,
   size,i : longint;
   found  : boolean;
-  buf    : pchar;
+  buf    : PAnsiChar;
 
   procedure AddBuf;
   begin
