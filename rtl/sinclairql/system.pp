@@ -36,8 +36,8 @@ const
     DriveSeparator = ':';
     ExtensionSeparator = '.';
     PathSeparator = ';';
-    AllowDirectorySeparators : set of char = ['\','/'];
-    AllowDriveSeparators : set of char = [':'];
+    AllowDirectorySeparators : set of AnsiChar = ['\','/'];
+    AllowDriveSeparators : set of AnsiChar = [':'];
     FileNameCaseSensitive = false;
     FileNameCasePreserving = false;
     maxExitCode = 255;
@@ -57,9 +57,9 @@ var
     QL_ChannelIDNum : word;
     QL_ChannelIDs: pdword;
     QL_CommandLineLen : word;
-    QL_CommandLine : pchar;
+    QL_CommandLine : PAnsiChar;
 
-    argv: PPChar;
+    argv: PPAnsiChar;
     argc: Longint;
 
     {$if defined(FPUSOFT)}
@@ -84,7 +84,7 @@ function SetQLJobName(const s: string): longint;
 function GetQLJobName: string;
 function GetQLJobNamePtr: pointer;
 
-procedure SetQLDefaultConExitMessage(const msg: PChar);
+procedure SetQLDefaultConExitMessage(const msg: PAnsiChar);
 
 implementation
 
@@ -129,7 +129,7 @@ end;
 *****************************************************************************}
 
 var
-  args: PChar;
+  args: PAnsiChar;
 
 { number of args }
 function ParamCount: LongInt;
@@ -149,7 +149,7 @@ end;
 procedure SysInitParamsAndEnv;
 var
   i,j : longint;
-  c : char;
+  c : AnsiChar;
   argv_size : longint;
 const
   word_separators=[' ',#0];
@@ -277,9 +277,9 @@ begin
 end;
 
 const
-  QLDefaultConExitMessage: PChar = 'Press any key to exit';
+  QLDefaultConExitMessage: PAnsiChar = 'Press any key to exit';
 
-procedure SetQLDefaultConExitMessage(const msg: PChar);
+procedure SetQLDefaultConExitMessage(const msg: PAnsiChar);
 begin
   QLDefaultConExitMessage:=msg;
 end;
