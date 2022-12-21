@@ -60,7 +60,7 @@ Uses
 {$DEFINE HAS_GETMSCOUNT}
 
 {$DEFINE FPC_FEXPAND_TILDE} { Tilde is expanded to home }
-{$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PChar }
+{$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PAnsiChar }
 
 {$I dos.inc}
 
@@ -222,7 +222,7 @@ End;
   They both return -1 when a failure occurs.
 }
 Const
-  FixDriveStr : array[0..3] of pchar=(
+  FixDriveStr : array[0..3] of PAnsiChar=(
     '.',
     '/fd0/.',
     '/fd1/.',
@@ -231,7 +231,7 @@ Const
 const
   Drives   : byte = 4;
 var
-  DriveStr : array[4..26] of pchar;
+  DriveStr : array[4..26] of PAnsiChar;
 
 Function AddDisk(const path:string) : byte;
 begin
@@ -424,7 +424,7 @@ Begin
       DosError:=3;
       exit;
     end;
-  if __wasi_path_filestat_get(fd,__WASI_LOOKUPFLAGS_SYMLINK_FOLLOW,PChar(pr),length(pr),@Info)<>__WASI_ERRNO_SUCCESS then
+  if __wasi_path_filestat_get(fd,__WASI_LOOKUPFLAGS_SYMLINK_FOLLOW,PAnsiChar(pr),length(pr),@Info)<>__WASI_ERRNO_SUCCESS then
     begin
       DosError:=3;
       exit;
@@ -475,7 +475,7 @@ Begin
       doserror:=3;
       exit;
     end;
-  if __wasi_path_filestat_set_times(fd,0,PChar(pr),length(pr),0,modtime,
+  if __wasi_path_filestat_set_times(fd,0,PAnsiChar(pr),length(pr),0,modtime,
      __WASI_FSTFLAGS_MTIM or __WASI_FSTFLAGS_ATIM_NOW)<>__WASI_ERRNO_SUCCESS then
     doserror:=3;
 End;
@@ -487,7 +487,7 @@ End;
 Function EnvCount: Longint;
 var
   envcnt : longint;
-  p      : ppchar;
+  p      : PPAnsiChar;
 Begin
   envcnt:=0;
   p:=envp;      {defined in system}
@@ -504,7 +504,7 @@ End;
 Function EnvStr (Index: longint): String;
 Var
   i : longint;
-  p : ppchar;
+  p : PPAnsiChar;
 Begin
   if (Index <= 0) or (envp=nil) then
     envstr:=''
@@ -527,7 +527,7 @@ end;
 
 Function GetEnv(EnvVar: String): String;
 var
-  hp : ppchar;
+  hp : PPAnsiChar;
   hs : string;
   eqpos : longint;
 Begin

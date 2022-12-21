@@ -26,7 +26,7 @@ begin
     InOutRes:=Errno2InoutRes(res);
 end;
 
-procedure Do_Erase(p: pchar; pchangeable: boolean);
+procedure Do_Erase(p: PAnsiChar; pchangeable: boolean);
 var
   fd: __wasi_fd_t;
   pr: RawByteString;
@@ -35,7 +35,7 @@ begin
   InOutRes:=ConvertToFdRelativePath(p,fd,pr);
   if InOutRes<>0 then
     exit;
-  res:=__wasi_path_unlink_file(fd,PChar(pr),Length(pr));
+  res:=__wasi_path_unlink_file(fd,PAnsiChar(pr),Length(pr));
   if res<>__WASI_ERRNO_SUCCESS then
     InOutRes:=Errno2InoutRes(res);
 end;
@@ -51,7 +51,7 @@ begin
     InOutRes:=Errno2InoutRes(res);
 end;
 
-procedure Do_Rename(p1,p2:pchar; p1changeable, p2changeable: boolean);
+procedure Do_Rename(p1,p2:PAnsiChar; p1changeable, p2changeable: boolean);
 var
   fd1,fd2: __wasi_fd_t;
   pr1,pr2: RawByteString;
@@ -63,7 +63,7 @@ begin
   InOutRes:=ConvertToFdRelativePath(p2,fd2,pr2);
   if InOutRes<>0 then
     exit;
-  res:=__wasi_path_rename(fd1,PChar(pr1),Length(pr1),fd2,PChar(pr2),Length(pr2));
+  res:=__wasi_path_rename(fd1,PAnsiChar(pr1),Length(pr1),fd2,PAnsiChar(pr2),Length(pr2));
   if res<>__WASI_ERRNO_SUCCESS then
     InOutRes:=Errno2InoutRes(res);
 end;
@@ -180,7 +180,7 @@ begin
   end;
 end;
 
-procedure Do_Open(var f; p: pchar; flags: longint; pchangeable: boolean);
+procedure Do_Open(var f; p: PAnsiChar; flags: longint; pchangeable: boolean);
 {
   FileRec and textrec have both Handle and mode as the first items so
   they could use the same routine for opening/creating.
@@ -285,7 +285,7 @@ Begin
   repeat
     res:=__wasi_path_open(fd,
                           0,
-                          PChar(pr),
+                          PAnsiChar(pr),
                           length(pr),
                           oflags,
                           fs_rights_base,
