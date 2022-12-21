@@ -51,7 +51,7 @@ ACCOMPANYING THE COMPACT DISK.
 
     { Fixed size data types }
     type
-       SByte = char;      // I'am not sure about that (FK)
+       SByte = AnsiChar;      // I'am not sure about that (FK)
        UInt16 = word;
        UInt32 = cardinal;
        SWord = integer;
@@ -59,7 +59,7 @@ ACCOMPANYING THE COMPACT DISK.
        SDWord = longint;
        Int32 = longint;
        DWord = cardinal;
-       UChar = char;      // I'am not sure about that (FK)
+       UChar = AnsiChar;      // I'am not sure about that (FK)
        Short = integer;
        UShort = word;
        Int = integer;
@@ -83,7 +83,7 @@ ACCOMPANYING THE COMPACT DISK.
        { Logical data types }
        BooleanPtr = ^Boolean;
 
-       CharPtr = ^Char;
+       CharPtr = ^AnsiChar;
        UCharPtr = ^UChar;
        ShortPtr = ^Short;
        UShortPtr = ^UShort;
@@ -93,9 +93,9 @@ ACCOMPANYING THE COMPACT DISK.
        ULongPtr = ^ULong;
 
        { Generic Pointer types used by Memory Manager }
-       { We have to define Ptr as char* because that's what the Mac includes do. }
+       { We have to define Ptr as AnsiChar* because that's what the Mac includes do. }
        { global pointer }
-       Ptr = ^char;
+       Ptr = ^AnsiChar;
 
        { global handle }
        Handle = ^Ptr;

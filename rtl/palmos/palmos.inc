@@ -99,6 +99,6 @@ function DmReleaseResource(resourceH: MemHandle): Err; syscall sysTrapDmReleaseR
 const
   sysTrapWinDrawChars = $A220;
 
-procedure WinDrawChars(const chars: PChar; len: SmallInt; x, y: SmallInt); syscall sysTrapWinDrawChars;
+procedure WinDrawChars(const chars: PAnsiChar; len: SmallInt; x, y: SmallInt); syscall sysTrapWinDrawChars;
 
 {$PACKRECORDS DEFAULT}
