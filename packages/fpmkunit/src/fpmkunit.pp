@@ -7746,7 +7746,7 @@ begin
               { prevent FCachedlibcPath getting freed by thread 2 while thread 1 is
                 concatenating it to -Fl below }
               try
-                if volatile(FCachedlibcPath)='' then
+                if (FCachedlibcPath)='' then
                   begin
 {$endif NO_THREADING}
                     FCachedlibcPath:=s;
@@ -7766,7 +7766,7 @@ begin
 {$ifdef NO_THREADING}
       Args.Add('-Fl'+FCachedlibcPath);
 {$ELSE}
-      Args.Add('-Fl'+volatile(FCachedlibcPath));
+      Args.Add('-Fl'+FCachedlibcPath);
 {$ENDIF}
     end;
 
