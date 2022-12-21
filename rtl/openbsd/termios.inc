@@ -90,7 +90,7 @@ CONST
         ICRNL           =     $100;     { map CR to NL (ala CRMOD) }
         IXON            =     $200;     { enable output flow control }
         IXOFF           =     $400;     { enable input flow control }
-        IXANY           =     $800;     { any char will restart after stop }
+        IXANY           =     $800;     { any AnsiChar will restart after stop }
         IUCLC           =    $1000;     { translate upper to lower case }
         IMAXBEL         =    $2000;     { ring bell on input queue full }
 
@@ -141,7 +141,7 @@ CONST
         ECHO            =       $8;     { enable echoing }
         ECHONL          =      $10;     { echo NL even if ECHO is off }
         ECHOPRT         =      $20;     { visual erase mode for hardcopy }
-        ECHOCTL         =      $40;     { echo control chars as ^(Char) }
+        ECHOCTL         =      $40;     { echo control chars as ^(AnsiChar) }
         ISIG            =      $80;     { enable signals INTR, QUIT, [D]SUSP }
         ICANON          =     $100;     { canonicalize input lines }
         ALTWERASE       =     $200;     { use alternate WERASE algorithm }
@@ -369,7 +369,7 @@ struct winsize {
 {
  *        TTYDEFCHARS to include an array of default control characters.
 }
-    ttydefchars : array[0..NCCS-1] OF char =(
+    ttydefchars : array[0..NCCS-1] OF AnsiChar =(
         CEOF,   CEOL,   CEOL,   CERASE, CWERASE, CKILL, CREPRINT,
         POSIX_VDISABLE, CINTR,  CQUIT,  CSUSP,  CDSUSP, CSTART, CSTOP,  CLNEXT,
         CDISCARD, CMIN, CTIME,  CSTATUS, POSIX_VDISABLE);
