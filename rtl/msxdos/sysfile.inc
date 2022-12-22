@@ -19,7 +19,7 @@
    var
       openfiles : array [0..max_files-1] of boolean;
 {$ifdef SYSTEMDEBUG}
-      opennames : array [0..max_files-1] of pchar;
+      opennames : array [0..max_files-1] of PAnsiChar;
    const
       free_closed_names : boolean = true;
       verbose_files : boolean = true;
@@ -68,10 +68,10 @@ begin
 end;
 
 
-procedure do_erase(p : pchar; pchangeable: boolean);
+procedure do_erase(p : PAnsiChar; pchangeable: boolean);
 var
   regs: Registers;
-  oldp: pchar;
+  oldp: PAnsiChar;
 begin
   oldp := p;
   DoDirSeparators(p, pchangeable);
@@ -86,10 +86,10 @@ begin
 end;
 
 
-procedure do_rename(p1,p2 : pchar; p1changeable, p2changeable: boolean);
+procedure do_rename(p1,p2 : PAnsiChar; p1changeable, p2changeable: boolean);
 var
   regs: Registers;
-  oldp1, oldp2: pchar;
+  oldp1, oldp2: PAnsiChar;
 begin
   oldp1 := p1;
   oldp2 := p2;
@@ -228,7 +228,7 @@ begin
    GetInOutRes(regs.A);}
 end;
 
-procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);
+procedure do_open(var f;p:PAnsiChar;flags:longint; pchangeable: boolean);
 {
   filerec and textrec have both handle and mode as the first items so
   they could use the same routine for opening/creating.
@@ -239,7 +239,7 @@ procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);
 var
   regs   : Registers;
   action : word;
-  oldp : pchar;
+  oldp : PAnsiChar;
 begin
 {$ifdef SYSTEMDEBUG}
   if verbose_files then
