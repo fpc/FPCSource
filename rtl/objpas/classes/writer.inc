@@ -443,7 +443,7 @@ end;
 procedure TBinaryObjectWriter.Write(const Buffer; Count: Longint);
 var
   CopyNow: LongInt;
-  SourceBuf: PChar;
+  SourceBuf: PAnsiChar;
 begin
   SourceBuf:=@Buffer;
   while Count > 0 do
@@ -451,7 +451,7 @@ begin
     CopyNow := Count;
     if CopyNow > FBufSize - FBufPos then
       CopyNow := FBufSize - FBufPos;
-    Move(SourceBuf^, PChar(FBuffer)[FBufPos], CopyNow);
+    Move(SourceBuf^, PAnsiChar(FBuffer)[FBufPos], CopyNow);
     Dec(Count, CopyNow);
     Inc(FBufPos, CopyNow);
     inc(SourceBuf, CopyNow);
@@ -609,7 +609,7 @@ begin
   Driver.WriteBoolean(Value);
 end;
 
-procedure TWriter.WriteChar(Value: Char);
+procedure TWriter.WriteChar(Value: AnsiChar);
 begin
   WriteString(Value);
 end;
