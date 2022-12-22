@@ -119,14 +119,14 @@ unit avrsim;
       end;
 
 
-    function WriteChar(ACh: char; AUserData: pointer): boolean;
+    function WriteChar(ACh: AnsiChar; AUserData: pointer): boolean;
       begin
         WriteChar:=true;
         OUTPUTREG:=ord(ACh);
       end;
 
 
-    function ReadChar(var ACh: char; AUserData: pointer): boolean;
+    function ReadChar(var ACh: AnsiChar; AUserData: pointer): boolean;
       begin
         ReadChar:=true;
         ACh:=#0;

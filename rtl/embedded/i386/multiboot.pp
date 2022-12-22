@@ -7,7 +7,7 @@ type
  TMBModule = packed record
   mod_start,
   mod_end: PtrUInt;
-  name: pchar;
+  name: PAnsiChar;
   reserved: DWord;
  end;
 
