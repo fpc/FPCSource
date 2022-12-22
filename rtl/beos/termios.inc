@@ -51,11 +51,11 @@ Type
   TWinSize=winsize;
 
 // typedef unsigned long tcflag_t;
-// typedef unsigned char speed_t;
-// typedef unsigned char cc_t;
+// typedef unsigned AnsiChar speed_t;
+// typedef unsigned AnsiChar cc_t;
  tcflag_t = Cardinal;
  speed_t = byte;
- cc_t = char;
+ cc_t = AnsiChar;
 
 type
   Termios = packed record
@@ -63,7 +63,7 @@ type
     c_oflag,
     c_cflag,
     c_lflag  : tcflag_t;
-    c_line   : char;
+    c_line   : AnsiChar;
     c_ixxxxx : speed_t;
     c_oxxxxx : speed_t;
     c_cc     : array[0..NCCS-1] of speed_t;
@@ -93,7 +93,7 @@ CONST
         IUCLC			=	  $200;		{ maps all upper case to lower }
         IXON            =     $400;     { enable output flow control }
         IXANY           =     $800;     { enable input flow control }
-        IXOFF           =    $1000;	    { any char will restart after stop }
+        IXOFF           =    $1000;	    { any AnsiChar will restart after stop }
 
 {
  * Output flags - software output processing
@@ -411,7 +411,7 @@ struct winsize {
 {
  *        TTYDEFCHARS to include an array of default control characters.
 }
-    ttydefchars : array[0..NCCS-1] OF char =(
+    ttydefchars : array[0..NCCS-1] OF AnsiChar =(
         Chr(VINTR), Chr(VQUIT), Chr(VERASE), Chr(VKILL), Chr(VEOF), Chr(VEOL),
         Chr(VEOL2), Chr(VSWTCH), Chr(VSTART), Chr(VSTOP), Chr(VSUSP));
 

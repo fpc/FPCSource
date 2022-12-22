@@ -21,7 +21,7 @@ var
   heap_handle : longint;
 implementation
 
-procedure debugger(s : PChar); cdecl; external 'root' name 'debugger';
+procedure debugger(s : PAnsiChar); cdecl; external 'root' name 'debugger';
 
 function disable_debugger(state : integer): integer; external 'root' name 'disable_debugger';
 //begin
