@@ -40,7 +40,7 @@ begin
   if os_mode = osOs2 then
    begin
     DoDirSeparators (S);
-    RC := DosCreateDir (pchar(S), nil);
+    RC := DosCreateDir (PAnsiChar(S), nil);
     if RC <> 0 then
      begin
       InOutRes := RC;
@@ -67,7 +67,7 @@ begin
    if os_mode = osOs2 then
     begin
      DoDirSeparators (S);
-     RC := DosDeleteDir (pchar(S));
+     RC := DosDeleteDir (PAnsiChar(S));
      if RC <> 0 then
       begin
        InOutRes := RC;
@@ -108,7 +108,7 @@ begin
          DoDirSeparators (S);
          if (S [Len] = DirectorySeparator) and (Len <> 3) then
           S [Len] := #0;
-         RC := DosSetCurrentDir (pchar(S));
+         RC := DosSetCurrentDir (PAnsiChar(S));
          if RC <> 0 then
           begin
            InOutRes := RC;
@@ -121,7 +121,7 @@ begin
       DoDirSeparators (S);
       if (Len > 1) and (S [Len] = DirectorySeparator) then
        S [Len] := #0;
-      RC := DosSetCurrentDir (pchar(S));
+      RC := DosSetCurrentDir (PAnsiChar(S));
       if RC <> 0 then
        begin
         InOutRes:= RC;
@@ -173,14 +173,14 @@ procedure do_GetDir (DriveNr: byte; var Dir: RawByteString);
 
 {Written by Michael Van Canneyt.}
 
-var sof:Pchar;
+var sof:PAnsiChar;
     i:byte;
 
 begin
     SetLength(Dir,260);
     Dir [4] := #0;
     { Used in case the specified drive isn't available }
-    sof:=pchar(@dir[4]);
+    sof:=PAnsiChar(@dir[4]);
     { dir[1..3] will contain '[drivenr]:\', but is not }
     { supplied by DOS, so we let dos string start at   }
     { dir[4]                                           }
@@ -220,7 +220,7 @@ begin
                 addb $65,%al
                 movb %al,i
             end ['eax'];
-            dir[1]:=char(i);
+            dir[1]:=AnsiChar(i);
         end;
     SetCodePage(dir,DefaultFileSystemCodePage,false);
     { upcase the string (FPC function) }
