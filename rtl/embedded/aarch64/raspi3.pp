@@ -38,14 +38,14 @@ asm
     b .Lhalt
 end;
 
-function RaspiWrite(ACh: char; AUserData: pointer): boolean;
+function RaspiWrite(ACh: AnsiChar; AUserData: pointer): boolean;
 begin
     UARTPuts(PeripheralBase, ACh);
 
     RaspiWrite := true;
 end;
 
-function RaspiRead(var ACh: char; AUserData: pointer): boolean;
+function RaspiRead(var ACh: AnsiChar; AUserData: pointer): boolean;
 begin
     ACh := UARTGet(PeripheralBase);
 
