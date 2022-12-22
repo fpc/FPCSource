@@ -747,7 +747,7 @@ unit TypInfo;
               (MethodKind : TMethodKind;
                ParamCount : Byte;
                case Boolean of
-                 False: (ParamList : array[0..1023] of Char);
+                 False: (ParamList : array[0..1023] of AnsiChar);
                  { dummy for proper alignment }
                  True: (ParamListDummy : Word);
              {in reality ParamList is a array[1..ParamCount] of:
