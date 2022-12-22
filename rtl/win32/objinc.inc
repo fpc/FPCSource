@@ -52,9 +52,9 @@ CONST
      stdcall;external 'kernel32' name 'ReadFile';
    function CloseHandle(h : longint) : longint;
      stdcall;external 'kernel32' name 'CloseHandle';
-   function DeleteFile(p : pchar) : longint;
+   function DeleteFile(p : PAnsiChar) : longint;
      stdcall;external 'kernel32' name 'DeleteFileA';
-   function MoveFile(old,_new : pchar) : longint;
+   function MoveFile(old,_new : PAnsiChar) : longint;
      stdcall;external 'kernel32' name 'MoveFileA';
    function SetFilePointer(l1,l2 : longint;l3 : pointer;l4 : longint) : longint;
      stdcall;external 'kernel32' name 'SetFilePointer';
