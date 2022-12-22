@@ -101,11 +101,11 @@ TYPE
 
    { system information services }
    utsname = record
-     sysname : array[0..UTSNAME_LENGTH] of char;
-     nodename : array[0..UTSNAME_LENGTH] of char;
-     release : array[0..UTSNAME_LENGTH] of char;
-     version : array[0..UTSNAME_LENGTH] of char;
-     machine : array[0..UTSNAME_LENGTH] of char;
+     sysname : array[0..UTSNAME_LENGTH] of AnsiChar;
+     nodename : array[0..UTSNAME_LENGTH] of AnsiChar;
+     release : array[0..UTSNAME_LENGTH] of AnsiChar;
+     version : array[0..UTSNAME_LENGTH] of AnsiChar;
+     machine : array[0..UTSNAME_LENGTH] of AnsiChar;
    end;
 
    UTimBuf   = Record
@@ -125,7 +125,7 @@ TYPE
              d_ino : ino64_t;                  {* "inode number" of entry *}
              d_reclen : cushort;             {* length of this record *}
              d_namelen : cushort;
-             d_name : array[0..255] of char; { name of file            }
+             d_name : array[0..255] of AnsiChar; { name of file            }
             );
        { overlay with alias }
        2 : (
@@ -142,14 +142,14 @@ TYPE
            d_fd : cint;               {* file descriptor *}
            d_loc : cint;              {* offset in block *}
            d_size : cint;             {* amount of valid data *}
-           d_buf : pchar;             { directory block   }
+           d_buf : PAnsiChar;             { directory block   }
           );
       { overlay for posix compatibility }
       2 : (
            dd_fd : cint;               {* file descriptor *}
            dd_loc : cint;              {* offset in block *}
            dd_size : cint;             {* amount of valid data *}
-           dd_buf : pchar;             { directory block   }
+           dd_buf : PAnsiChar;             { directory block   }
           );
    end;
 

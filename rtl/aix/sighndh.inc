@@ -36,7 +36,7 @@ type
   mstsave = record
     prev: pmstsave;
     kjmpbuf: plabel_t;
-    stackfix: pchar;
+    stackfix: PAnsiChar;
     intpri: byte;
     backt: byte;
     rsvd: array[0..1] of byte;

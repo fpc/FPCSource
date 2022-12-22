@@ -24,7 +24,7 @@
       ldinfo_textsize: ptrint;
       ldinfo_dataorg: pointer;
       ldinfo_datasize: ptrint;
-      ldinfo_filename: pchar;
+      ldinfo_filename: PAnsiChar;
     end;
 
   function loadquery(__lflags: cint; __buffer: pointer; __length: cuint): longint; cdecl; varargs; external;
