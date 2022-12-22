@@ -1495,7 +1495,7 @@ implementation
                   begin
                     Result:=getcopy;
                     taddnode(Result).left.nodetype:=addn;
-                    taddnode(left).right:=cunaryminusnode.create(taddnode(left).right);
+                    taddnode(taddnode(Result).left).right:=cunaryminusnode.create(taddnode(taddnode(Result).left).right);
                     exit;
                   end;
 
