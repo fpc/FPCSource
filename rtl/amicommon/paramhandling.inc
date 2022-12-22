@@ -31,7 +31,7 @@ function GetWBArg(Idx: Integer): string;
 var
   startup: PWBStartup;
   wbarg: PWBArgList;
-  Path: array[0..254] of Char;
+  Path: array[0..254] of AnsiChar;
   strPath: string;
   Len: Integer;
 begin
@@ -84,7 +84,7 @@ var
   Ende: Word;
   LocalIndex: Word;
   i: Integer;
-  P : PChar;
+  P : PAnsiChar;
   Temp : AnsiString;
   InQuotes: boolean;
 begin
@@ -177,7 +177,7 @@ begin
       Counter := 1;
       while (s1[Counter] <> #0) and (Counter <> 0) do
         Inc(Counter);
-      s1[0] := char(Counter - 1);
+      s1[0] := AnsiChar(Counter - 1);
       GetProgDir := s1;
     end;
   end;
@@ -197,7 +197,7 @@ begin
     Counter := 1;
     while (s1[Counter] <> #0) and (Counter <> 0) do
       Inc(Counter);
-    s1[0] := char(Counter - 1);
+    s1[0] := AnsiChar(Counter - 1);
 
     { now remove any component path which should not be there }
     for Counter := Length(s1) downto 1 do
