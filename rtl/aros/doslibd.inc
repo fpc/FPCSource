@@ -76,18 +76,18 @@ type  // Checked OK 04.08.2011 ALB
   TFileInfoBlock = record
     fib_DiskKey     : PtrUInt;
     fib_DirEntryType: LongInt;
-    fib_FileName    : array[0..MAXFILENAMELENGTH - 1] of char;
+    fib_FileName    : array[0..MAXFILENAMELENGTH - 1] of AnsiChar;
     fib_Protection  : LongInt;
     fib_EntryType   : LongInt;
     fib_Size        : LongInt;
     fib_NumBlocks   : LongInt;
     fib_Date        : TDateStamp;
-    fib_Comment     : Array[0..MAXCOMMENTLENGTH - 1] Of char;
+    fib_Comment     : Array[0..MAXCOMMENTLENGTH - 1] Of AnsiChar;
 
     fib_OwnerUID    : Word;
     fib_OwnerGID    : Word;
 
-    fib_Reserved    : array[0..31] of char;
+    fib_Reserved    : array[0..31] of AnsiChar;
   end;
 
 const  // Checked OK 04.08.2011 ALB
@@ -334,7 +334,7 @@ type  // Checked OK 04.08.2011 ALB
     pr_Flags         : LongInt;
     pr_ExitCode      : Pointer;  { Procedure }
     pr_ExitData      : PtrUInt;
-    pr_Arguments     : PChar;
+    pr_Arguments     : PAnsiChar;
     pr_LocalVars     : TMinList;
     pr_ShellPrivate  : DWord;
     pr_CES           : BPTR;    { BPTR }
@@ -510,7 +510,7 @@ type   // Checked OK 04.08.2011 ALB
   PErrorString = ^TErrorString;
   TErrorString = record
     estr_Nums: PLongInt;
-    estr_Strings: PChar;
+    estr_Strings: PAnsiChar;
   end;
 
 type   // Checked OK 04.08.2011 ALB
@@ -600,7 +600,7 @@ type  // Checked OK 04.08.2011 ALB
     seg_Next : PSegment;  // Pointer to next segment.
     seg_UC   : LongInt;
     seg_Seg  : BPTR;   { BPTR }
-    seg_Name : Array[0..3] of char;
+    seg_Name : Array[0..3] of AnsiChar;
     { * seg_Name continues * }
   end;
 
@@ -713,7 +713,7 @@ type  // Checked TODO 04.08.2011 ALB
          end;
        );
     2: ( dol_assign : record
-           dol_AssignName: PChar;
+           dol_AssignName: PAnsiChar;
            dol_List      : PAssignList;
          end;
        );
@@ -813,7 +813,7 @@ type  // Checked OK 04.08.2011 ALB
     an_Lock  : BPTR;
     an_Info  : TFileInfoBlock;
     an_Flags : ShortInt;
-    an_String: array[0..0] of Char;
+    an_String: array[0..0] of AnsiChar;
     { * an_String continues * }
   end;
 
@@ -835,7 +835,7 @@ type  // Checked OK 04.08.2011 ALB
           ap_Reserved:   ShortInt;
           ap_Strlen:     SmallInt;
           ap_Info:       TFileInfoBlock;
-          ap_Buf:        array[0..255] of char;
+          ap_Buf:        array[0..255] of AnsiChar;
           { * an_Buf continues * }
         );
   end;
@@ -1009,14 +1009,14 @@ type  // Checked OK 04.08.2011 ALB
   PExAllData = ^TExAllData;
   TExAllData = record
     ed_Next    : PExAllData;
-    ed_Name    : PChar;
+    ed_Name    : PAnsiChar;
     ed_Type    : LongInt;
     ed_Size    : Cardinal;
     ed_Prot    : Cardinal;
     ed_Days    : Cardinal;
     ed_Mins    : Cardinal;
     ed_Ticks   : Cardinal;
-    ed_Comment : PChar;
+    ed_Comment : PAnsiChar;
     ed_OwnerUID: Word;
     ed_OwnerGID: Word;
   end;
@@ -1026,7 +1026,7 @@ type  // Checked OK 04.08.2011 ALB
   TexAllControl = record
     eac_Entries    : Cardinal;
     eac_LastKey    : PtrUInt;  // private
-    eac_MatchString: PChar;
+    eac_MatchString: PAnsiChar;
     eac_MatchFunc  : PHook;
   end;
 
@@ -1144,7 +1144,7 @@ type  // Checked OK 04.08.2011 ALB
   TLocalVar = record
     lv_Node : TNode;
     lv_Flags: Word;
-    lv_Value: PChar;
+    lv_Value: PAnsiChar;
     lv_Len  : Cardinal;
   end;
 
@@ -1153,9 +1153,9 @@ type  // Checked OK 04.08.2011 ALB
   TScanVarsMsg = record
     sv_SVMSize: Cardinal;  // Size of ScanVarsMsg structure
     sv_Flags: Cardinal;    // The flags parameter given to ScanVars()
-    sv_GDir: PChar;        // Directory patch for global variables or empty string "\0" for local variables
-    sv_Name: PChar;        // Name of the variable
-    sv_Var: PChar;         // Pointer to the contents of the variable
+    sv_GDir: PAnsiChar;        // Directory patch for global variables or empty string "\0" for local variables
+    sv_Name: PAnsiChar;        // Name of the variable
+    sv_Var: PAnsiChar;         // Pointer to the contents of the variable
     sv_VarLen: Cardinal;   // Size of the variable
   end;
 
@@ -1192,7 +1192,7 @@ const   // Checked OK 04.08.2011 ALB
 type  // Checked OK 04.08.2011 ALB
   PCSource = ^TCSource;
   TCSource = record
-    CS_Buffer: PChar;
+    CS_Buffer: PAnsiChar;
     CS_Length: LongInt;
     CS_CurChr: LongInt;
   end;
@@ -1202,9 +1202,9 @@ type  // Checked OK 04.08.2011 ALB
   TRDArgs = record
     RDA_Source : TCSource;
     RDA_DAList : PtrUInt;
-    RDA_Buffer : PChar;
+    RDA_Buffer : PAnsiChar;
     RDA_BufSiz : LongInt;
-    RDA_ExtHelp: PChar;
+    RDA_ExtHelp: PAnsiChar;
     RDA_Flags  : LongInt;
   end;
 
@@ -1320,8 +1320,8 @@ const  // Checked OK 04.08.2011 ALB
 type  // Checked OK 04.08.2011 ALB
   PNotifyRequest = ^TNotifyRequest;
   TNotifyRequest = record
-    nr_Name    : PChar;
-    nr_FullName: PChar;
+    nr_Name    : PAnsiChar;
+    nr_FullName: PAnsiChar;
     nr_UserData: PtrUInt;
     nr_Flags   : Cardinal;
     nr_stuff : record

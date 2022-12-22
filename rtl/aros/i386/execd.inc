@@ -69,9 +69,9 @@ type  // Checked OK 05.08.2011 ALB
 {$ifdef AROS_BINCOMPAT}
     ln_Type: Byte;
     ln_Pri : ShortInt;
-    ln_Name: PChar;
+    ln_Name: PAnsiChar;
 {$else}
-    ln_Name: PChar;
+    ln_Name: PAnsiChar;
     ln_Type: Byte;
     ln_Pri : ShortInt;
 {$endif}
@@ -480,8 +480,8 @@ type
     rt_Version  : Byte;
     rt_Type     : Byte;
     rt_Pri      : Byte;
-    rt_Name     : PChar;
-    rt_IdString : PChar;
+    rt_Name     : PAnsiChar;
+    rt_IdString : PAnsiChar;
     rt_Init     : Pointer;
     { * Only valid when RTF_EXTENDED is set
       * }
@@ -1190,7 +1190,7 @@ type  // Checked OK 05.08.2011 ALB
     lib_PosSize : Word;
     lib_Version : Word;
     lib_Revision: Word;
-    lib_IdString: PChar;
+    lib_IdString: PAnsiChar;
     lib_Sum     : DWord;
     lib_OpenCnt : Word;
   end;

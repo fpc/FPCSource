@@ -20,7 +20,7 @@ procedure Forbid; syscall AOS_ExecBase 22;
 procedure Permit; syscall AOS_ExecBase 23;
 function execAllocMem(byteSize: PtrUInt; requirements: Cardinal): Pointer; syscall LocalExecBase 33;
 procedure execFreeMem(memoryBlock: Pointer; byteSize: PtrUInt); syscall LocalExecBase 35;
-function FindTask(name: PChar): PTask; syscall LocalExecBase 49;
+function FindTask(name: PAnsiChar): PTask; syscall LocalExecBase 49;
 function SetSignal(newSignals: Cardinal; signalSet : Cardinal): Cardinal; syscall LocalExecBase 51;
 function Wait(SignalSet: LongWord): LongWord; syscall AOS_ExecBase 53;
 procedure Signal(Task: PTask; SignalSet: LongWord); syscall AOS_ExecBase 54;
@@ -33,10 +33,10 @@ function GetMsg(port: PMsgPort): PMessage; syscall LocalExecBase 62;
 procedure ReplyMsg(message : pMessage); syscall LocalExecBase 63;
 function WaitPort(port: PMsgPort): PMessage; syscall LocalExecBase 64;
 procedure CloseLibrary(libHandle: PLibrary); syscall LocalExecBase 69;
-function OpenDevice(devName: PChar; numunit: Cardinal; ioRequest: pIORequest; flags: Cardinal): ShortInt; syscall LocalExecBase 74;
+function OpenDevice(devName: PAnsiChar; numunit: Cardinal; ioRequest: pIORequest; flags: Cardinal): ShortInt; syscall LocalExecBase 74;
 procedure CloseDevice(ioRequest: PIORequest); syscall LocalExecBase 75;
 function DoIO(ioRequest: PIORequest): ShortInt; syscall LocalExecBase 76;
-function OpenLibrary(libname: PChar; libver : Cardinal): Pointer; syscall LocalExecBase 92;
+function OpenLibrary(libname: PAnsiChar; libver : Cardinal): Pointer; syscall LocalExecBase 92;
 procedure InitSemaphore(SigSem: PSignalSemaphore); syscall AOS_ExecBase 93;
 procedure ObtainSemaphore(SigSem: PSignalSemaphore); syscall AOS_ExecBase 94;
 procedure ReleaseSemaphore(SigSem: PSignalSemaphore); syscall AOS_ExecBase 95;
@@ -52,10 +52,10 @@ function AllocPooled(poolHeader: Pointer; memSize: PtrUInt): Pointer; syscall Lo
 function FreePooled(poolHeader: Pointer; memory: Pointer; memSize: PtrUInt): Pointer; syscall LocalExecBase 119;
 procedure StackSwap(NewStack: PStackSwapStruct); syscall AOS_ExecBase 122;
 function NewStackSwap(NewStack: PStackSwapStruct; Function_: Pointer; Args: PStackSwapArgs): Pointer; syscall AOS_ExecBase 134;
-procedure RawPutChar(c: Char); syscall AOS_ExecBase 86;
+procedure RawPutChar(c: AnsiChar); syscall AOS_ExecBase 86;
 
-//function RawDoFmt(const formatString : pCHAR;const dataStream : POINTER; putChProc : tPROCEDURE; putChData : POINTER): pointer;
-function RawDoFmt(const formatString : pCHAR;const dataStream : POINTER; putChProc : POINTER; putChData : POINTER): pointer; syscall LocalExecBase 87;
+//function RawDoFmt(const formatString : PAnsiChar;const dataStream : POINTER; putChProc : tPROCEDURE; putChData : POINTER): pointer;
+function RawDoFmt(const formatString : PAnsiChar;const dataStream : POINTER; putChProc : POINTER; putChData : POINTER): pointer; syscall LocalExecBase 87;
 
 // Debugbase
 function DecodeLocation(Addr1: Pointer; Tags: Pointer): Integer; syscall SysDebugBase 7;
@@ -73,7 +73,7 @@ end;
 
 procedure Debug(s: string);
 type
-  TkPrintf = function(Msg: PChar): Integer; cdecl;
+  TkPrintf = function(Msg: PAnsiChar): Integer; cdecl;
 var
   kPrintf: TkPrintf;
   d: string;
