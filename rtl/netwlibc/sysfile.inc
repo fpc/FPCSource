@@ -84,7 +84,7 @@ begin
     InOutRes := 0;
 end;
 
-procedure do_erase(p : pchar; pchangeable: boolean);
+procedure do_erase(p : PAnsiChar; pchangeable: boolean);
 VAR res : LONGINT;
 begin
   res := unlink (p);
@@ -94,7 +94,7 @@ begin
     InOutRes := 0;
 end;
 
-procedure do_rename(p1,p2 : pchar; p1changeable, p2changeable: boolean);
+procedure do_rename(p1,p2 : PAnsiChar; p1changeable, p2changeable: boolean);
 VAR res : LONGINT;
 begin
   res := rename (p1,p2);
@@ -221,7 +221,7 @@ end;
 
 {$ifdef IOpossix}
 // mostly stolen from syslinux
-procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);
+procedure do_open(var f;p:PAnsiChar;flags:longint; pchangeable: boolean);
 {
   filerec and textrec have both handle and mode as the first items so
   they could use the same routine for opening/creating.
@@ -306,7 +306,7 @@ end;
 
 
 {$else}
-procedure do_open(var f;p:pchar;flags:longint);
+procedure do_open(var f;p:PAnsiChar;flags:longint);
 {
   filerec and textrec have both handle and mode as the first items so
   they could use the same routine for opening/creating.

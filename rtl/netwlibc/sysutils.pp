@@ -108,7 +108,7 @@ begin
     1 : NWOpenFlags:=NWOpenFlags or O_WRONLY;
     2 : NWOpenFlags:=NWOpenFlags or O_RDWR;
   end;
-  FileOpen := Fpopen (pchar(SystemFileName),NWOpenFlags);
+  FileOpen := Fpopen (PAnsiChar(SystemFileName),NWOpenFlags);
 
   //!! We need to set locking based on Mode !!
 end;
@@ -118,7 +118,7 @@ Function FileCreate (Const FileName : RawByteString) : THandle;
 var SystemFileName: RawByteString;
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
-  FileCreate:=Fpopen(Pchar(SystemFileName),O_RdWr or O_Creat or O_Trunc or O_Binary);
+  FileCreate:=Fpopen(PAnsiChar(SystemFileName),O_RdWr or O_Creat or O_Trunc or O_Binary);
   if FileCreate >= 0 then
     FileSetAttr (Filename, 0);  // dont know why but open always sets ReadOnly flag
 end;
@@ -207,7 +207,7 @@ var Info : TStat;
     SystemFileName: RawByteString;
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
-  If Fpstat (pchar(SystemFileName),Info) <> 0 then
+  If Fpstat (PAnsiChar(SystemFileName),Info) <> 0 then
     exit(-1)
   else
     begin
@@ -229,7 +229,7 @@ VAR Info : TStat;
     SystemFileName: RawByteString;
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
-  FileExists:=(Fpstat(pchar(SystemFileName),Info) = 0);
+  FileExists:=(Fpstat(PAnsiChar(SystemFileName),Info) = 0);
 end;
 
 
@@ -258,7 +258,7 @@ begin
       name := Pdirent(FindData.EntryP)^.d_name;
       SetCodePage(name, DefaultFileSystemCodePage, False);
       fname := FindData._dir + name;
-      if Fpstat (pchar(fname),StatBuf) = 0 then
+      if Fpstat (PAnsiChar(fname),StatBuf) = 0 then
         time := UnixToWinAge (StatBuf.st_mtim.tv_sec)
       else
         time := 0;
@@ -309,7 +309,7 @@ begin
   if Rslt.FindData._mask = '*' then Rslt.FindData._mask := '';
   if Rslt.FindData._mask = '*.*' then Rslt.FindData._mask := '';
   //writeln (stderr,'mask: "',Rslt._mask,'" dir:"',path0,'"');
-  Pdirent(Rslt.FindData.DirP) := opendir (pchar(Rslt.FindData._dir));
+  Pdirent(Rslt.FindData.DirP) := opendir (PAnsiChar(Rslt.FindData._dir));
   if Rslt.FindData.DirP = nil then
     result := 18
   else begin
@@ -384,7 +384,7 @@ Var Info : TStat;
     SystemFileName: RawByteString;
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
-  If Fpstat (pchar(SystemFileName),Info) <> 0 then
+  If Fpstat (PAnsiChar(SystemFileName),Info) <> 0 then
     Result:=-1
   Else
     Result := (Info.st_mode shr 16) and $ffff;
@@ -398,7 +398,7 @@ var
   SystemFileName: RawByteString;
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
-  if Fpstat (pchar(SystemFilename),StatBuf) = 0 then
+  if Fpstat (PAnsiChar(SystemFilename),StatBuf) = 0 then
   begin
     {what should i do here ?
      only support sysutils-standard attributes or also support the extensions defined
@@ -414,7 +414,7 @@ begin
       newmode := StatBuf.st_mode and ($ffff0000-M_A_RDONLY-M_A_HIDDEN- M_A_SYSTEM-M_A_SUBDIR-M_A_ARCH);
       newmode := newmode or (attr shl 16) or M_A_BITS_SIGNIFICANT;
     end;
-    if Fpchmod (pchar(SystemFilename),newMode) < 0 then
+    if Fpchmod (PAnsiChar(SystemFilename),newMode) < 0 then
       result := ___errno^ else
       result := 0;
   end else
@@ -427,7 +427,7 @@ var
   SystemFileName: RawByteString;
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
-  Result:= (libc.UnLink (pchar(SystemFileName)) = 0);
+  Result:= (libc.UnLink (PAnsiChar(SystemFileName)) = 0);
 end;
 
 
@@ -437,7 +437,7 @@ var
 begin
   OldSystemFileName:=ToSingleByteFileSystemEncodedFileName(OldName);
   NewSystemFileName:=ToSingleByteFileSystemEncodedFileName(NewName);
-  RenameFile:=(libc.rename(pchar(OldSystemFileName),pchar(NewSystemFileName)) = 0);
+  RenameFile:=(libc.rename(PAnsiChar(OldSystemFileName),PAnsiChar(NewSystemFileName)) = 0);
 end;
 
 
@@ -458,7 +458,7 @@ end;
   They both return -1 when a failure occurs.
 }
 Const
-  FixDriveStr : array[0..3] of pchar=(
+  FixDriveStr : array[0..3] of PAnsiChar=(
     '.',
     'a:.',
     'b:.',
@@ -466,7 +466,7 @@ Const
     );
 var
   Drives   : byte;
-  DriveStr : array[4..26] of pchar;
+  DriveStr : array[4..26] of PAnsiChar;
 
 Procedure AddDisk(const path:string);
 begin
@@ -515,7 +515,7 @@ var
   SystemFileName: RawByteString;
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(Directory);
-  If Fpstat (pchar(SystemFileName),Info) <> 0 then
+  If Fpstat (PAnsiChar(SystemFileName),Info) <> 0 then
     exit(false)
   else
     Exit ((Info.st_mode and M_A_SUBDIR) <> 0);
@@ -596,7 +596,7 @@ end;
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
 
 begin
-  Result:=libc.getenv(PChar(EnvVar));
+  Result:=libc.getenv(PAnsiChar(EnvVar));
 end;
 
 Function GetEnvironmentVariableCount : Integer;
@@ -616,12 +616,12 @@ function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:
 var
   params:array of AnsiString;
   count,i: longint;
-  Buf  : pchar;
-  p    : pchar;
+  Buf  : PAnsiChar;
+  p    : PAnsiChar;
   CLine: AnsiString;
 begin
   cLine := ComLine;
-  buf:=pchar(CLine);
+  buf:=PAnsiChar(CLine);
   count:=0;
   while(buf^<>#0) do
   begin
@@ -633,7 +633,7 @@ begin
   end;
   i := 0;
   setlength(params,count);
-  buf:=pchar(CLine);
+  buf:=PAnsiChar(CLine);
   while(buf^<>#0) do
   begin
     while (buf^ in [' ',#9,#10]) do
@@ -668,7 +668,7 @@ function ExecuteProcess (const Path: AnsiString;
                                   const ComLine: array of AnsiString;Flags:TExecuteFlags=[]): integer;
 var c : comstr;
     i : integer;
-    args : array[0..maxargs+1] of pchar;
+    args : array[0..maxargs+1] of PAnsiChar;
     arg0 : string;
     numargs,wstat : integer;
     Wiring : TWiring;
@@ -679,13 +679,13 @@ begin
     arg0 := fexpand(path+'.nlm')
   else
     arg0 := fexpand (path);
-  args[0] := pchar(arg0);
+  args[0] := PAnsiChar(arg0);
   numargs := 0;
   for I := 0 to High (ComLine) do
     if numargs < maxargs then
     begin
       inc(numargs);
-      args[numargs] := pchar(ComLine[i]);
+      args[numargs] := PAnsiChar(ComLine[i]);
     end;
   args[numargs+1] := nil;
   Wiring.infd := StdInputHandle;  //textrec(Stdin).Handle;
