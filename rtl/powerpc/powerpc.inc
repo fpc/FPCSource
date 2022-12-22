@@ -756,7 +756,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_INDEXCHAR0}
 {$define FPC_SYSTEM_HAS_INDEXCHAR0}
-function IndexChar0(const buf;len:longint;b:Char):longint; assembler; nostackframe;
+function IndexChar0(const buf;len:longint;b:AnsiChar):longint; assembler; nostackframe;
 { input: r3 = buf, r4 = len, r5 = b                         }
 { output: r3 = position of found position (-1 if not found) }
 asm
@@ -947,7 +947,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
-procedure fpc_pchar_to_shortstr(out res : shortstring;p:pchar);assembler;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc; nostackframe;
+procedure fpc_pchar_to_shortstr(out res : shortstring;p:PAnsiChar);assembler;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc; nostackframe;
 {
   r3: result address
   r4: high(result)
@@ -997,7 +997,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
-function fpc_pchar_length(p:pchar):sizeint;assembler;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc; nostackframe;
+function fpc_pchar_length(p:PAnsiChar):sizeint;assembler;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc; nostackframe;
 {$include strlen.inc}
 {$endif FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 
