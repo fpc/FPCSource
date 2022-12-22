@@ -61,7 +61,7 @@
      CALTYPE = cardinal;
      CALID = cardinal;
 
-     CCHAR = char;
+     CCHAR = AnsiChar;
 
      COLORREF = cardinal;
      TCOLORREF = cardinal;
@@ -159,16 +159,16 @@
      LP     = ^word;
      LPBOOL = ^WINBOOL;
      LPBYTE = pbyte;
-     LPCCH  = PCHAR;
-     LPCH   = PCHAR;
+     LPCCH  = PAnsiChar;
+     LPCH   = PAnsiChar;
 
      LPCOLORREF = ^COLORREF;
 
-     LPCSTR  = Pchar;
+     LPCSTR  = PAnsiChar;
 {$ifdef UNICODE}
      LPCTSTR = Pwidechar;
 {$else}
-     LPCTSTR = Pchar;
+     LPCTSTR = PAnsiChar;
 {$endif}
 
      LPCWCH  = Pwidechar;
@@ -185,13 +185,13 @@
      LPINT  = ^longint;
      LPLONG = ^longint;
 
-     LPSTR = Pchar;
+     LPSTR = PAnsiChar;
 {$ifdef UNICODE}
      LPTCH  = Pwidechar;
      LPTSTR = Pwidechar;
 {$else}
-     LPTCH  = Pchar;
-     LPTSTR = Pchar;
+     LPTCH  = PAnsiChar;
+     LPTSTR = PAnsiChar;
 {$endif}
 
      LRESULT = LONG_PTR;
@@ -213,10 +213,10 @@
 
      PBYTE = System.PByte;
 
-     PCCH = PCHAR;
-     PCH  = PCHAR;
+     PCCH = PAnsiChar;
+     PCH  = PAnsiChar;
 
-     PCSTR = Pchar;
+     PCSTR = PAnsiChar;
 
      PCWCH  = Pwidechar;
      PCWSTR = Pwidechar;
@@ -230,10 +230,10 @@
      PLONG = ^longint;
      PSHORT = ^SHORT;
 
-     PSTR = Pchar;
+     PSTR = PAnsiChar;
      PWSTR = LPWSTR;
 
-     PSZ = Pchar;
+     PSZ = PAnsiChar;
 {$ifdef UNICODE}
      PTBYTE = ^word;
      PTCH = Pwidechar;
@@ -241,9 +241,9 @@
      PTSTR = Pwidechar;
 {$else}
      PTBYTE = ^byte;
-     PTCH   = Pchar;
-     PTCHAR = Pchar;
-     PTSTR  = Pchar;
+     PTCH   = PAnsiChar;
+     PTCHAR = PAnsiChar;
+     PTSTR  = PAnsiChar;
 {$endif}
 
      PUCHAR = ^byte;
@@ -713,7 +713,7 @@
      ICMENUMPROCW = function (_para1:LPWSTR; _para2:LPARAM):longint;stdcall;
      ICMENUMPROC = function  (_para1:LPTSTR; _para2:LPARAM):longint;stdcall;
 
-     EDITWORDBREAKPROCEX = function (_para1:pchar; _para2:LONG; _para3:BYTE; _para4:WINT):LONG;stdcall;
+     EDITWORDBREAKPROCEX = function (_para1:PAnsiChar; _para2:LONG; _para3:BYTE; _para4:WINT):LONG;stdcall;
 
      PFNLVCOMPARE = function (_para1:LPARAM; _para2:LPARAM; _para3:LPARAM):longint;stdcall;
 
