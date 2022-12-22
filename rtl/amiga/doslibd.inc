@@ -73,18 +73,18 @@ type
   TFileInfoBlock = record
     fib_DiskKey     : LongInt;
     fib_DirEntryType: LongInt;
-    fib_FileName    : Array[0..107] Of Char;
+    fib_FileName    : Array[0..107] Of AnsiChar;
     fib_Protection  : LongInt;
     fib_EntryType   : LongInt;
     fib_Size        : LongInt;
     fib_NumBlocks   : LongInt;
     fib_Date        : TDateStamp;
-    fib_Comment     : Array[0..79] Of Char;
+    fib_Comment     : Array[0..79] Of AnsiChar;
 
     fib_OwnerUID    : Word;
     fib_OwnerGID    : Word;
 
-    fib_Reserved    : Array[0..31] Of Char;
+    fib_Reserved    : Array[0..31] Of AnsiChar;
   end;
 
 const
@@ -327,7 +327,7 @@ type
     pr_Flags         : LongInt;
     pr_ExitCode      : Pointer;  { Procedure }
     pr_ExitData      : LongInt;
-    pr_Arguments     : PChar;
+    pr_Arguments     : PAnsiChar;
     pr_LocalVars     : TMinList;
     pr_ShellPrivate  : DWord;
     pr_CES           : DWord;    { BPTR }
@@ -653,7 +653,7 @@ type
          end;
        );
     2: ( dol_assign : record
-           dol_AssignName: PChar;
+           dol_AssignName: PAnsiChar;
            dol_List      : PAssignList;
          end;
        );
@@ -765,7 +765,7 @@ type
     an_Lock  : DWord;   { BPTR }
     an_Info  : TFileInfoBlock;
     an_Flags : ShortInt;
-    an_String: Array[0..0] Of Char;
+    an_String: Array[0..0] Of AnsiChar;
     { * an_String continues * }
   end;
 
@@ -784,7 +784,7 @@ type
           ap_Reserved  : ShortInt;
           ap_Strlen    : SmallInt;
           ap_Info      : TFileInfoBlock;
-          ap_Buf       : Array[0..0] of Char;
+          ap_Buf       : Array[0..0] of AnsiChar;
           { * an_Buf continues * }
         );
   end;
@@ -967,14 +967,14 @@ type
   PExAllData = ^TExAllData;
   TExAllData = record
     ed_Next    : PExAllData;
-    ed_Name    : PChar;
+    ed_Name    : PAnsiChar;
     ed_Type    : LongInt;
     ed_Size    : Cardinal;
     ed_Prot    : Cardinal;
     ed_Days    : Cardinal;
     ed_Mins    : Cardinal;
     ed_Ticks   : Cardinal;
-    ed_Comment : PChar;
+    ed_Comment : PAnsiChar;
     ed_OwnerUID: Word;
     ed_OwnerGID: Word;
   end;
@@ -984,7 +984,7 @@ type
   TexAllControl = record
     eac_Entries    : Cardinal;
     eac_LastKey    : Cardinal;
-    eac_MatchString: PChar;
+    eac_MatchString: PAnsiChar;
     eac_MatchFunc  : PHook;
 
   end;
@@ -1126,7 +1126,7 @@ type
   TLocalVar = record
     lv_Node : TNode;
     lv_Flags: Word;
-    lv_Value: PChar;
+    lv_Value: PAnsiChar;
     lv_Len  : Cardinal;
   end;
 
@@ -1164,7 +1164,7 @@ const
 type
   PCSource = ^TCSource;
   TCSource = record
-    CS_Buffer: PChar;
+    CS_Buffer: PAnsiChar;
     CS_Length: LongInt;
     CS_CurChr: LongInt;
   end;
@@ -1174,9 +1174,9 @@ type
   TRDArgs = record
     RDA_Source : TCSource;
     RDA_DAList : LongInt;
-    RDA_Buffer : PChar;
+    RDA_Buffer : PAnsiChar;
     RDA_BufSiz : LongInt;
-    RDA_ExtHelp: PChar;
+    RDA_ExtHelp: PAnsiChar;
     RDA_Flags  : LongInt;
   end;
 
@@ -1292,8 +1292,8 @@ const
 type
   PNotifyRequest = ^TNotifyRequest;
   TNotifyRequest = record
-    nr_Name    : PChar;
-    nr_FullName: PChar;
+    nr_Name    : PAnsiChar;
+    nr_FullName: PAnsiChar;
     nr_UserData: Cardinal;
     nr_Flags   : Cardinal;
     nr_stuff : record
@@ -1373,7 +1373,7 @@ type
   PSegNode = ^TSegNode;
   TSegNode = record
     seg_Node : TMinNode;
-    seg_Name : PChar;
+    seg_Name : PAnsiChar;
     seg_Array: Array[0..0] Of TSegArray;
   end;
 
