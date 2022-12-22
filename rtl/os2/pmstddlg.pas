@@ -59,7 +59,7 @@ unit PMStdDlg;
        FDM_ERROR = WM_USER+42;
 
     type
-       APSZ = array [0..0] of PChar;
+       APSZ = array [0..0] of PAnsiChar;
 
        PAPSZ = ^APSZ;
 
@@ -69,15 +69,15 @@ unit PMStdDlg;
           ulUser : cardinal;
           lReturn : longint;
           lSRC : longint;
-          pszTitle : PChar;
-          pszOKButton : PChar;
+          pszTitle : PAnsiChar;
+          pszOKButton : PAnsiChar;
           pfnDlgProc : Pointer;
-          pszIType : PChar;
+          pszIType : PAnsiChar;
           papszITypeList : PAPSZ;
-          pszIDrive : PChar;
+          pszIDrive : PAnsiChar;
           papszIDriveList : PAPSZ;
           hMod : cardinal;
-          szFullFile : array [0..MaxPathLength-1] of char;
+          szFullFile : array [0..MaxPathLength-1] of AnsiChar;
           papszFQFilename : PAPSZ;
           ulFQFCount : cardinal;
           usDlgId : word;
@@ -164,11 +164,11 @@ unit PMStdDlg;
           cbSize : cardinal;
           hpsScreen : HPS;
           hpsPrinter : HPS;
-          pszTitle : PChar;
-          pszPreview : PChar;
-          pszPtSizeList : PChar;
+          pszTitle : PAnsiChar;
+          pszPreview : PAnsiChar;
+          pszPtSizeList : PAnsiChar;
           pfnDlgProc : Pointer;
-          pszFamilyname : PChar;
+          pszFamilyname : PAnsiChar;
           fxPointSize : longint;
           fl : cardinal;
           flFlags : cardinal;
@@ -500,7 +500,7 @@ unit PMStdDlg;
        PRenderFile = ^RenderFile;
 
 
-    function DrgAcceptDroppedFiles(hwnd : HWnd;pszPath : PChar;pszTypes : PChar;ulDefaultOp : cardinal;ulRsvd : cardinal) : Longbool; cdecl;
+    function DrgAcceptDroppedFiles(hwnd : HWnd;pszPath : PAnsiChar;pszTypes : PAnsiChar;ulDefaultOp : cardinal;ulRsvd : cardinal) : Longbool; cdecl;
 
     function DrgAllocDraginfo(cditem : cardinal) : PDragInfo; cdecl;
 
@@ -509,7 +509,7 @@ unit PMStdDlg;
     function DrgDrag(hwndSource : HWnd;pdinfo : PDragInfo;pdimg : PDragImage;cdimg : cardinal;vkTerminate : longint; var pRsvd) : HWnd; cdecl;
 
     type
-       PPSZ = ^PChar;
+       PPSZ = ^PAnsiChar;
 
 
     function DrgDragFiles(hwnd : HWnd;apszFiles : PPSZ;apszTypes : PPSZ;apszTargets : PPSZ;cFiles : cardinal;hptrDrag : cardinal;vkTerm : cardinal;fSourceRender : Longbool;ulRsvd : cardinal) : Longbool; cdecl;
@@ -522,15 +522,15 @@ unit PMStdDlg;
 
     function DrgQueryDragitemPtr(pdinfo : PDragInfo;i : cardinal) : PDragItem; cdecl;
 
-    function DrgQueryNativeRMF(pditem : PDragItem;cbBuffer : cardinal;pBuffer : PChar) : Longbool; cdecl;
+    function DrgQueryNativeRMF(pditem : PDragItem;cbBuffer : cardinal;pBuffer : PAnsiChar) : Longbool; cdecl;
 
     function DrgQueryNativeRMFLen(pditem : PDragItem) : cardinal; cdecl;
 
-    function DrgQueryStrName(hstr : HStr;cbBuffer : cardinal;pBuffer : PChar) : cardinal; cdecl;
+    function DrgQueryStrName(hstr : HStr;cbBuffer : cardinal;pBuffer : PAnsiChar) : cardinal; cdecl;
 
     function DrgQueryStrNameLen(hstr : HStr) : cardinal; cdecl;
 
-    function DrgQueryTrueType(pditem : PDragItem;cbBuffer : cardinal;pBuffer : PChar) : Longbool; cdecl;
+    function DrgQueryTrueType(pditem : PDragItem;cbBuffer : cardinal;pBuffer : PAnsiChar) : Longbool; cdecl;
 
     function DrgQueryTrueTypeLen(pditem : PDragItem) : cardinal; cdecl;
 
@@ -540,11 +540,11 @@ unit PMStdDlg;
 
     function DrgSetDragImage(pdinfo : PDragInfo;pdimg : PDragImage;cdimg : cardinal; var pRsvd) : Longbool; cdecl;
 
-    function DrgVerifyTypeSet(pditem : PDragItem;pszType : PChar;cbMatch : cardinal;pszMatch : PChar) : Longbool; cdecl;
+    function DrgVerifyTypeSet(pditem : PDragItem;pszType : PAnsiChar;cbMatch : cardinal;pszMatch : PAnsiChar) : Longbool; cdecl;
 
     function DrgAccessDraginfo(pdinfo : PDragInfo) : Longbool; cdecl;
 
-    function DrgAddStrHandle(psz : PChar) : HStr; cdecl;
+    function DrgAddStrHandle(psz : PAnsiChar) : HStr; cdecl;
 
     function DrgDeleteDraginfoStrHandles(pdinfo : PDragInfo) : Longbool; cdecl;
 
@@ -562,13 +562,13 @@ unit PMStdDlg;
 
     function DrgSetDragPointer(pdinfo : PDragInfo;hptr : cardinal) : Longbool; cdecl;
 
-    function DrgVerifyNativeRMF(pditem : PDragItem;pszRMF : PChar) : Longbool; cdecl;
+    function DrgVerifyNativeRMF(pditem : PDragItem;pszRMF : PAnsiChar) : Longbool; cdecl;
 
-    function DrgVerifyRMF(pditem : PDragItem;pszMech : PChar;pszFmt : PChar) : Longbool; cdecl;
+    function DrgVerifyRMF(pditem : PDragItem;pszMech : PAnsiChar;pszFmt : PAnsiChar) : Longbool; cdecl;
 
-    function DrgVerifyTrueType(pditem : PDragItem;pszType : PChar) : Longbool; cdecl;
+    function DrgVerifyTrueType(pditem : PDragItem;pszType : PAnsiChar) : Longbool; cdecl;
 
-    function DrgVerifyType(pditem : PDragItem;pszType : PChar) : Longbool; cdecl;
+    function DrgVerifyType(pditem : PDragItem;pszType : PAnsiChar) : Longbool; cdecl;
 
     const
        PMERR_NOFILTERED_ITEMS = $1f02;
@@ -644,15 +644,15 @@ unit PMStdDlg;
           flRecordAttr : cardinal;
           ptlIcon : PointL;
           preccNextRecord : PRecordCore;
-          pszIcon : PChar;
+          pszIcon : PAnsiChar;
           hptrIcon : cardinal;
           hptrMiniIcon : cardinal;
           hbmBitmap : HBitmap;
           hbmMiniBitmap : HBitmap;
           pTreeItemDesc : PTreeItemDesc;
-          pszText : PChar;
-          pszName : PChar;
-          pszTree : PChar;
+          pszText : PAnsiChar;
+          pszName : PAnsiChar;
+          pszTree : PAnsiChar;
        end;
 
        PMiniRecordCore = ^MiniRecordCore;
@@ -662,7 +662,7 @@ unit PMStdDlg;
           flRecordAttr : cardinal;
           ptlIcon : PointL;
           preccNextRecord : PMiniRecordCore;
-          pszIcon : PChar;
+          pszIcon : PAnsiChar;
           hptrIcon : cardinal;
        end;
 
@@ -671,7 +671,7 @@ unit PMStdDlg;
           pSortRecord : Pointer;
           pFieldInfoLast : PFieldInfo;
           pFieldInfoObject : PFieldInfo;
-          pszCnrTitle : PChar;
+          pszCnrTitle : PAnsiChar;
           flWindowAttr : cardinal;
           ptlOrigin : PointL;
           cDelta : cardinal;
@@ -839,7 +839,7 @@ unit PMStdDlg;
 
        SearchString = record
           cb : cardinal;
-          pszSearch : PChar;
+          pszSearch : PAnsiChar;
           fsPrefix : cardinal;
           fsCaseSensitive : cardinal;
           usView : cardinal;
@@ -1073,7 +1073,7 @@ unit PMStdDlg;
        PVSDragInfo = ^VSDragInfo;
 
        VSText = record
-          pszItemText : PChar;
+          pszItemText : PAnsiChar;
           ulBufLen : cardinal;
        end;
 
@@ -1181,7 +1181,7 @@ unit PMStdDlg;
 
     type
        BookText = record
-          pString : PChar;
+          pString : PAnsiChar;
           textLen : cardinal;
        end;
 
@@ -1216,7 +1216,7 @@ unit PMStdDlg;
         external 'PMCTLS' index 2;
     function WinDefFontDlgProc(_hwnd : HWnd;msg : cardinal;mp1 : MParam;mp2 : MParam) : MResult; cdecl;
         external 'PMCTLS' index 3;
-    function DrgAcceptDroppedFiles(hwnd : HWnd;pszPath : PChar;pszTypes : PChar;ulDefaultOp : cardinal;ulRsvd : cardinal) : Longbool; cdecl;
+    function DrgAcceptDroppedFiles(hwnd : HWnd;pszPath : PAnsiChar;pszTypes : PAnsiChar;ulDefaultOp : cardinal;ulRsvd : cardinal) : Longbool; cdecl;
         external 'PMDRAG' index 66;
     function DrgAllocDraginfo(cditem : cardinal) : PDragInfo; cdecl;
         external 'PMDRAG' index 34;
@@ -1234,15 +1234,15 @@ unit PMStdDlg;
         external 'PMDRAG' index 45;
     function DrgQueryDragitemPtr(pdinfo : PDragInfo;i : cardinal) : PDragItem; cdecl;
         external 'PMDRAG' index 46;
-    function DrgQueryNativeRMF(pditem : PDragItem;cbBuffer : cardinal;pBuffer : PCHAR) : Longbool; cdecl;
+    function DrgQueryNativeRMF(pditem : PDragItem;cbBuffer : cardinal;pBuffer : PAnsiChar) : Longbool; cdecl;
         external 'PMDRAG' index 47;
     function DrgQueryNativeRMFLen(pditem : PDragItem) : cardinal; cdecl;
         external 'PMDRAG' index 48;
-    function DrgQueryStrName(hstr : HStr;cbBuffer : cardinal;pBuffer : PChar) : cardinal; cdecl;
+    function DrgQueryStrName(hstr : HStr;cbBuffer : cardinal;pBuffer : PAnsiChar) : cardinal; cdecl;
         external 'PMDRAG' index 49;
     function DrgQueryStrNameLen(hstr : HStr) : cardinal; cdecl;
         external 'PMDRAG' index 50;
-    function DrgQueryTrueType(pditem : PDragItem;cbBuffer : cardinal;pBuffer : PChar) : Longbool; cdecl;
+    function DrgQueryTrueType(pditem : PDragItem;cbBuffer : cardinal;pBuffer : PAnsiChar) : Longbool; cdecl;
         external 'PMDRAG' index 51;
     function DrgQueryTrueTypeLen(pditem : PDragItem) : cardinal; cdecl;
         external 'PMDRAG' index 52;
@@ -1252,11 +1252,11 @@ unit PMStdDlg;
         external 'PMDRAG' index 57;
     function DrgSetDragImage(pdinfo : PDragInfo;pdimg : PDragImage;cdimg : cardinal; var pRsvd) : Longbool; cdecl;
         external 'PMDRAG' index 56;
-    function DrgVerifyTypeSet(pditem : PDragItem;pszType : PChar;cbMatch : cardinal;pszMatch : PChar) : Longbool; cdecl;
+    function DrgVerifyTypeSet(pditem : PDragItem;pszType : PAnsiChar;cbMatch : cardinal;pszMatch : PAnsiChar) : Longbool; cdecl;
         external 'PMDRAG' index 62;
     function DrgAccessDraginfo(pdinfo : PDragInfo) : Longbool; cdecl;
         external 'PMDRAG' index 32;
-    function DrgAddStrHandle(PSZ : PChar) : HStr; cdecl;
+    function DrgAddStrHandle(PSZ : PAnsiChar) : HStr; cdecl;
         external 'PMDRAG' index 33;
     function DrgDeleteDraginfoStrHandles(pdinfo : PDragInfo) : Longbool; cdecl;
         external 'PMDRAG' index 36;
@@ -1274,13 +1274,13 @@ unit PMStdDlg;
         external 'PMDRAG' index 53;
     function DrgSetDragPointer(pdinfo : PDragInfo;hptr : cardinal) : Longbool; cdecl;
         external 'PMDRAG' index 55;
-    function DrgVerifyNativeRMF(pditem : PDragItem;pszRMF : PChar) : Longbool; cdecl;
+    function DrgVerifyNativeRMF(pditem : PDragItem;pszRMF : PAnsiChar) : Longbool; cdecl;
         external 'PMDRAG' index 58;
-    function DrgVerifyRMF(pditem : PDragItem;pszMech : PChar;pszFmt : PChar) : Longbool; cdecl;
+    function DrgVerifyRMF(pditem : PDragItem;pszMech : PAnsiChar;pszFmt : PAnsiChar) : Longbool; cdecl;
         external 'PMDRAG' index 59;
-    function DrgVerifyTrueType(pditem : PDragItem;pszType : PChar) : Longbool; cdecl;
+    function DrgVerifyTrueType(pditem : PDragItem;pszType : PAnsiChar) : Longbool; cdecl;
         external 'PMDRAG' index 60;
-    function DrgVerifyType(pditem : PDragItem;pszType : PChar) : Longbool; cdecl;
+    function DrgVerifyType(pditem : PDragItem;pszType : PAnsiChar) : Longbool; cdecl;
         external 'PMDRAG' index 61;
 
 end.

@@ -38,9 +38,9 @@ begin
 {$endif}
 end;
 
-procedure do_erase(p:Pchar; pchangeable: boolean);
+procedure do_erase(p:PAnsiChar; pchangeable: boolean);
 var
-  oldp: pchar;
+  oldp: PAnsiChar;
   RC: cardinal;
 begin
   oldp:=p;
@@ -55,9 +55,9 @@ begin
     freemem(p);
 end;
 
-procedure do_rename(p1,p2:Pchar; p1changeable, p2changeable: boolean);
+procedure do_rename(p1,p2:PAnsiChar; p1changeable, p2changeable: boolean);
 var
-  oldp1, oldp2 : pchar;
+  oldp1, oldp2 : PAnsiChar;
   RC: cardinal;
 begin
   oldp1:=p1;
@@ -220,7 +220,7 @@ begin
     Increase_File_Handle_Count := false;
 end;
 
-procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);
+procedure do_open(var f;p:PAnsiChar;flags:longint; pchangeable: boolean);
 {
   filerec and textrec have both handle and mode as the first items so
   they could use the same routine for opening/creating.
@@ -231,7 +231,7 @@ procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);
 }
 var
   Action, Attrib, OpenFlags, FM: Cardinal;
-  oldp : pchar;
+  oldp : PAnsiChar;
   RC: cardinal;
 begin
   // close first if opened

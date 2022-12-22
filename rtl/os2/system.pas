@@ -44,8 +44,8 @@ const
   DriveSeparator = ':';
   ExtensionSeparator = '.';
   PathSeparator = ';';
-  AllowDirectorySeparators : set of char = ['\','/'];
-  AllowDriveSeparators : set of char = [':'];
+  AllowDirectorySeparators : set of AnsiChar = ['\','/'];
+  AllowDriveSeparators : set of AnsiChar = [':'];
 { FileNameCaseSensitive and FileNameCasePreserving are defined separately below!!! }
   MaxExitCode = 65535;
   MaxPathLen = 260;
@@ -83,12 +83,12 @@ const
 var
 { C-compatible arguments and environment }
   argc  : longint;
-  argv  : ppchar;
-  envp  : ppchar;
+  argv  : PPAnsiChar;
+  envp  : PPAnsiChar;
   EnvC: cardinal;
 
 (* Pointer to the block of environment variables - used e.g. in unit Dos. *)
-  Environment: PChar;
+  Environment: PAnsiChar;
 
 
 var
@@ -164,7 +164,7 @@ procedure SetDefaultOS2FileType (FType: ShortString);
 procedure SetDefaultOS2Creator (Creator: ShortString);
 
 type
-  TDosOpenL = function (FileName: PChar; var Handle: THandle;
+  TDosOpenL = function (FileName: PAnsiChar; var Handle: THandle;
                         var Action: cardinal; InitSize: int64;
                         Attrib, OpenFlags, FileMode: cardinal;
                                                  EA: pointer): cardinal; cdecl;
@@ -184,10 +184,10 @@ type
                    CodepageName: PWideChar; const N: cardinal): longint; cdecl;
 
   TUniUConvFromUcs = function (UConv_Object: TUConvObject;
-       var UcsBuf: PWideChar; var UniCharsLeft: longint; var OutBuf: PChar;
+       var UcsBuf: PWideChar; var UniCharsLeft: longint; var OutBuf: PAnsiChar;
          var OutBytesLeft: longint; var NonIdentical: longint): longint; cdecl;
 
-  TUniUConvToUcs = function (UConv_Object: TUConvObject; var InBuf: PChar;
+  TUniUConvToUcs = function (UConv_Object: TUConvObject; var InBuf: PAnsiChar;
    var InBytesLeft: longint; var UcsBuf: PWideChar; var UniCharsLeft: longint;
                                     var NonIdentical: longint): longint; cdecl;
 
@@ -243,7 +243,7 @@ var
 
 function GetDynLibsError: longint;
 
-function GetDynLibsErrPath: PChar;
+function GetDynLibsErrPath: PAnsiChar;
 
 
 
@@ -812,7 +812,7 @@ end {['EAX']};
 
 function paramstr(l:longint):string;
 
-var p:^Pchar;
+var p:^PAnsiChar;
 
 begin
   if (l>=0) and (l<=paramcount) then
@@ -845,7 +845,7 @@ const
   EnvSize: cardinal = 0;
 
 var
-  ErrorBuf: array [0..ErrorBufferLength] of char;
+  ErrorBuf: array [0..ErrorBufferLength] of AnsiChar;
   ErrorLen: longint;
   PMWinHandle: cardinal;
 
@@ -854,7 +854,7 @@ function ErrorWrite (var F: TextRec): integer;
   An error message should always end with #13#10#13#10
 }
 var
-  P: PChar;
+  P: PAnsiChar;
   I: longint;
 begin
   if F.BufPos > 0 then
@@ -881,7 +881,7 @@ begin
      I := 4;
    if (I = 4) then
     begin
-      WinMessageBox (0, 0, @ErrorBuf, PChar ('Error'), 0, MBStyle);
+      WinMessageBox (0, 0, @ErrorBuf, PAnsiChar ('Error'), 0, MBStyle);
       ErrorLen := 0;
     end;
   F.BufPos := 0;
@@ -892,7 +892,7 @@ function ErrorClose (var F: TextRec): integer;
 begin
   if ErrorLen > 0 then
    begin
-     WinMessageBox (0, 0, @ErrorBuf, PChar ('Error'), 0, MBStyle);
+     WinMessageBox (0, 0, @ErrorBuf, PAnsiChar ('Error'), 0, MBStyle);
      ErrorLen := 0;
    end;
   ErrorLen := 0;
@@ -978,7 +978,7 @@ begin
 end;
 
 
-function strcopy(dest,source : pchar) : pchar;assembler;
+function strcopy(dest,source : PAnsiChar) : PAnsiChar;assembler;
 var
   saveeax,saveesi,saveedi : longint;
 asm
@@ -1091,7 +1091,7 @@ end;
 
 procedure InitEnvironment;
 var env_count : longint;
-    cp : pchar;
+    cp : PAnsiChar;
 begin
   env_count:=0;
   cp:=environment;
@@ -1101,7 +1101,7 @@ begin
     while (cp^ <> #0) do inc(longint(cp)); { skip to NUL }
     inc(longint(cp)); { skip to next character }
     end;
-  envp := sysgetmem((env_count+1) * sizeof(pchar));
+  envp := sysgetmem((env_count+1) * sizeof(PAnsiChar));
   envc := env_count;
   if (envp = nil) then exit;
   cp:=environment;
@@ -1132,8 +1132,8 @@ var
   arglen,
   count   : PtrInt;
   argstart,
-  pc,arg  : pchar;
-  quote   : char;
+  pc,arg  : PAnsiChar;
+  quote   : AnsiChar;
   argvlen : PtrInt;
   RC: cardinal;
 
@@ -1159,7 +1159,7 @@ begin
 
   ArgV := SysAllocMem (8 * SizeOf (pointer));
 
-  ArgLen := StrLen (PChar (PIB^.Cmd));
+  ArgLen := StrLen (PAnsiChar (PIB^.Cmd));
   Inc (ArgLen);
 
   RC := DosQueryModuleName (PIB^.Handle, MaxPathLen, CmdLine);
@@ -1178,7 +1178,7 @@ begin
   Count := 1;
 
 (* PC points to leading space after program name on command line *)
-  PC := PChar (PIB^.Cmd) + ArgLen;
+  PC := PAnsiChar (PIB^.Cmd) + ArgLen;
 
 (* ArgLen contains size of command line arguments including leading space. *)
   ArgLen := Succ (StrLen (PC));
@@ -1216,7 +1216,7 @@ begin
             begin
               if quote<>'''' then
                begin
-                 if pchar(pc+1)^<>'"' then
+                 if PAnsiChar(pc+1)^<>'"' then
                   begin
                     if quote='"' then
                      quote:=' '
@@ -1233,7 +1233,7 @@ begin
             begin
               if quote<>'"' then
                begin
-                 if pchar(pc+1)^<>'''' then
+                 if PAnsiChar(pc+1)^<>'''' then
                   begin
                     if quote=''''  then
                      quote:=' '
@@ -1276,7 +1276,7 @@ begin
                begin
                  if quote<>'''' then
                   begin
-                    if pchar(pc+1)^<>'"' then
+                    if PAnsiChar(pc+1)^<>'"' then
                      begin
                        if quote='"' then
                         quote:=' '
@@ -1296,7 +1296,7 @@ begin
                begin
                  if quote<>'"' then
                   begin
-                    if pchar(pc+1)^<>'''' then
+                    if PAnsiChar(pc+1)^<>'''' then
                      begin
                        if quote=''''  then
                         quote:=' '
@@ -1362,7 +1362,7 @@ var
   DW: cardinal;
 
 const
-  DosCallsName: array [0..8] of char = 'DOSCALLS'#0;
+  DosCallsName: array [0..8] of AnsiChar = 'DOSCALLS'#0;
 
 {$IFDEF OS2UNICODE}
   {$I sysucode.inc}

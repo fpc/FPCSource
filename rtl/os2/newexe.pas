@@ -69,7 +69,7 @@ unit NEWEXE;
           ne_cres : word;
           ne_exetyp : byte;
           ne_flagsothers : byte;
-          ne_res : array[0..NERESBYTES-1] of char;
+          ne_res : array[0..NERESBYTES-1] of AnsiChar;
        end;
 
     const
@@ -152,8 +152,8 @@ unit NEWEXE;
 
     type
        rsrc_string = record
-          rs_len : char;
-          rs_string : array[0..1-1] of char;
+          rs_len : AnsiChar;
+          rs_string : array[0..1-1] of AnsiChar;
        end;
 
        rsrc_typeinfo = record

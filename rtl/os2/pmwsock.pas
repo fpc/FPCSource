@@ -136,13 +136,13 @@ const
 
 type
   hostent=record
-    h_name: PChar;             // official name of host
-    h_aliases: PPChar;         // alias list
+    h_name: PAnsiChar;             // official name of host
+    h_aliases: PPAnsiChar;         // alias list
     h_addrtype: LongInt;       // host address type
     h_length: LongInt;         // length of address
     case byte of
-       0: (h_addr_list: ppchar); // list of addresses from name server
-       1: (h_addr: ppchar)       // address, for backward compatiblity
+       0: (h_addr_list: PPAnsiChar); // list of addresses from name server
+       1: (h_addr: PPAnsiChar)       // address, for backward compatiblity
   end;
   phostent=^hostent;
   THostEnt = hostent;
@@ -151,8 +151,8 @@ type
 // fits in 32 bits.
 type
   netent=record
-    n_name: PChar;                       // official name of net
-    n_aliases: PPChar;                   // alias list
+    n_name: PAnsiChar;                       // official name of net
+    n_aliases: PPAnsiChar;                   // alias list
     n_addrtype: Longint;                 // net address type
     n_net: Cardinal;                     // network #
   End;
@@ -161,17 +161,17 @@ type
 
 type
   servent=record
-    s_name: PChar;                      // official service name
-    s_aliases: PPChar;                  // alias list
+    s_name: PAnsiChar;                      // official service name
+    s_aliases: PPAnsiChar;                  // alias list
     s_port: LongInt;                    // port #
-    s_proto: PChar;                     // protocol to use
+    s_proto: PAnsiChar;                     // protocol to use
   end;
   TServEnt = servent;
   pservent=^servent;
 
   protoent=record
-    p_name: PChar;                      // official protocol name
-    p_aliases: PPChar;                  // alias list
+    p_name: PAnsiChar;                      // official protocol name
+    p_aliases: PPAnsiChar;                  // alias list
     p_proto: LongInt;                   // protocol #
   end;
   TProtoEnt = protoent;
@@ -295,11 +295,11 @@ Type
       sin_family : SmallInt;                (* 2 byte *)
       sin_port : Word;                   (* 2 byte *)
       sin_addr : TInAddr;                   (* 4 byte *)
-      sin_zero : array[0..8-1] of char;     (* 8 byte *)
+      sin_zero : array[0..8-1] of AnsiChar;     (* 8 byte *)
       );
     1 : ((* equals to sockaddr, size is 16 byte *)
       sa_family : Smallint; (* 2 byte *)
-      sa_data : array[0..14-1] of char;    (* 14 byte *)
+      sa_data : array[0..14-1] of AnsiChar;    (* 14 byte *)
       );
     end;
     TSockAddrIn = sockaddr_in;
@@ -315,13 +315,13 @@ Type
     WSAData=Record
                wVersion:Word;
                wHighVersion:Word;
-               szDescription: array[0..WSADESCRIPTION_LEN] of Char;
-               szSystemStatus: array[0..WSASYS_STATUS_LEN] of Char;
+               szDescription: array[0..WSADESCRIPTION_LEN] of AnsiChar;
+               szSystemStatus: array[0..WSASYS_STATUS_LEN] of AnsiChar;
                iMaxSockets:Word;
                iMaxUdpDg:Word;
                // in OS/2 no such entry
      //          pad1 : SmallInt;              { 2 byte, ofs 394 } { ensure right packaging }
-               lpVendorInfo:PChar;
+               lpVendorInfo:PAnsiChar;
     End;
     PWSADATA=^WSAData;
     LPWSADATA=^WSAData;
@@ -463,7 +463,7 @@ Const
 Type
     sockaddr=Record
         sa_family:Word;                 // address family
-        sa_data:Array[0..13] of char;   // up to 14 bytes of direct address
+        sa_data:Array[0..13] of AnsiChar;   // up to 14 bytes of direct address
     End;
 
 // Structure used by kernel to pass protocol
@@ -742,7 +742,7 @@ Function getsockname(s: TSocket;Var name: sockaddr; Var namelen: LongInt): LongI
 
 Function getsockopt(s: TSocket; level, optname: LongInt;Var optval; Var optlen: LongInt): LongInt; cdecl;
     external 'PMWSock' index 7;
-Function getsockopt(s: TSocket; level: Longint; optname: Longint; optval:pchar;var optlen: Longint): Longint; cdecl;
+Function getsockopt(s: TSocket; level: Longint; optname: Longint; optval:PAnsiChar;var optlen: Longint): Longint; cdecl;
     external 'PMWSock' index 7;
 
 Function htonl(hostlong: Cardinal): Cardinal; cdecl;
@@ -751,12 +751,12 @@ Function htonl(hostlong: Cardinal): Cardinal; cdecl;
 Function htons(hostshort: Word): Word; cdecl;
     external 'PMWSock' index 9;
 
-Function inet_addr(cp: pchar): Cardinal; cdecl;
+Function inet_addr(cp: PAnsiChar): Cardinal; cdecl;
     external 'PMWSock' index 10;
 
-Function inet_ntoa(Var _in: in_addr): PChar; cdecl;
+Function inet_ntoa(Var _in: in_addr): PAnsiChar; cdecl;
     external 'PMWSock' index 11;
-Function inet_ntoa(i: PInAddr): pchar; cdecl;
+Function inet_ntoa(i: PInAddr): PAnsiChar; cdecl;
     external 'PMWSock' index 11;
 
 Function listen(s: TSocket; backlog: LongInt): LongInt; cdecl;
@@ -770,13 +770,13 @@ Function ntohs(netshort: Word): Word; cdecl;
 
 Function recv(s: TSocket;Var Buf; len, flags: LongInt): LongInt; cdecl;
     external 'PMWSock' index 16;
-Function recv(s: TSocket; buf:pchar; len: Longint; flags: Longint): Longint; cdecl;
+Function recv(s: TSocket; buf:PAnsiChar; len: Longint; flags: Longint): Longint; cdecl;
     external 'PMWSock' index 16;
 
-Function recvfrom(s: TSocket; Var Buf: PChar; len, flags:LongInt;
+Function recvfrom(s: TSocket; Var Buf: PAnsiChar; len, flags:LongInt;
                          Var from: sockaddr; Var fromLen: LongInt): LongInt; cdecl;
     external 'PMWSock' index 17;
-Function recvfrom(s: TSocket; buf:pchar; len: Longint; flags: Longint;
+Function recvfrom(s: TSocket; buf:PAnsiChar; len: Longint; flags: Longint;
                          from: PSockAddr; fromlen: Longint): Longint; cdecl;
     external 'PMWSock' index 17;
 Function recvfrom(s: TSocket; var buf; len: Longint; flags: Longint;
@@ -790,18 +790,18 @@ Function select(nfds: Longint; readfds, writefds, exceptfds : PFDSet;
                        timeout: PTimeVal): Longint; cdecl;
     external 'PMWSock' index 18;
 
-Function send(s: TSocket; Const Buf: PChar; len, flags: LongInt): LongInt; cdecl;
+Function send(s: TSocket; Const Buf: PAnsiChar; len, flags: LongInt): LongInt; cdecl;
     external 'PMWSock' index 19;
 
-Function sendto(s: TSocket; Const Buf: PChar; len, flags: LongInt;
+Function sendto(s: TSocket; Const Buf: PAnsiChar; len, flags: LongInt;
                     Const _to: sockaddr; tolen: LongInt): LongInt; cdecl;
     external 'PMWSock' index 20;
-Function sendto(s: TSocket; buf: pchar; len: Longint; flags: Longint;
+Function sendto(s: TSocket; buf: PAnsiChar; len: Longint; flags: Longint;
                     toaddr: PSockAddr; tolen: Longint): Longint; cdecl;
     external 'PMWSock' index 20;
 
 Function setsockopt(s: TSocket; level: Longint; optname: Longint;
-                           optval: pchar; optlen: Longint): Longint; cdecl;
+                           optval: PAnsiChar; optlen: Longint): Longint; cdecl;
     external 'PMWSock' index 21;
 
 Function shutdown(s: TSocket; how: LongInt): LongInt; cdecl;
@@ -812,25 +812,25 @@ Function socket(af, typ, protocol: LongInt): TSocket; cdecl;
 
 // Database function prototypes
 
-Function gethostbyaddr(addr: pchar; len: Longint; t: Longint): PHostEnt; cdecl;
+Function gethostbyaddr(addr: PAnsiChar; len: Longint; t: Longint): PHostEnt; cdecl;
     external 'PMWSock' index 51;
 
-Function gethostbyname(name: pchar): PHostEnt; cdecl;
+Function gethostbyname(name: PAnsiChar): PHostEnt; cdecl;
     external 'PMWSock' index 52;
 
-Function gethostname(name: pchar; namelen: Longint): Longint; cdecl;
+Function gethostname(name: PAnsiChar; namelen: Longint): Longint; cdecl;
     external 'PMWSock' index 57;
 
-Function getservbyport(port: Longint; proto: pchar): PServEnt; cdecl;
+Function getservbyport(port: Longint; proto: PAnsiChar): PServEnt; cdecl;
     external 'PMWSock' index 56;
 
-Function getservbyname(name: pchar; proto: pchar): PServEnt; cdecl;
+Function getservbyname(name: PAnsiChar; proto: PAnsiChar): PServEnt; cdecl;
     external 'PMWSock' index 55;
 
 Function getprotobynumber(proto: LongInt): pprotoent; cdecl;
     external 'PMWSock' index 54;
 
-Function getprotobyname(name: pchar): PProtoEnt; cdecl;
+Function getprotobyname(name: PAnsiChar): PProtoEnt; cdecl;
     external 'PMWSock' index 53;
 
 // Microsoft Windows Extension function prototypes
@@ -860,36 +860,36 @@ Function WSACancelBlockingCall: LongInt; cdecl;
     external 'PMWSock' index 113;
 
 Function WSAAsyncGetServByName(hWnd: HWND; wMsg: Cardinal;
-                                     name: pchar; proto: pchar;
-                                     buf: pchar;
+                                     name: PAnsiChar; proto: PAnsiChar;
+                                     buf: PAnsiChar;
                                      buflen: Longint): Cardinal; cdecl;
     external 'PMWSock' index 107;
 
 Function WSAAsyncGetServByPort(hWnd: HWND; wMsg: Cardinal;
                                       port: Longint;
-                                      proto: pchar; buf: pchar;
+                                      proto: PAnsiChar; buf: PAnsiChar;
                                       buflen: Longint): Cardinal; cdecl;
     external 'PMWSock' index 106;
 
 Function WSAAsyncGetProtoByName(hWnd: HWND; wMsg: Cardinal;
-                                       name: pchar; buf: pchar;
+                                       name: PAnsiChar; buf: PAnsiChar;
                                        buflen: Longint): Cardinal; cdecl;
     external 'PMWSock' index 105;
 
 Function WSAAsyncGetProtoByNumber(hWnd: HWND; wMsg: Cardinal;
                                          number: Longint;
-                                         buf: pchar;
+                                         buf: PAnsiChar;
                                          buflen: Longint): Cardinal; cdecl;
     external 'PMWSock' index 104;
 
 Function WSAAsyncGetHostByName(hWnd: HWND; wMsg: Cardinal;
-                                      name: pchar; buf: pchar;
+                                      name: PAnsiChar; buf: PAnsiChar;
                                       buflen: Longint): Cardinal; cdecl;
     external 'PMWSock' index 103;
 
 Function WSAAsyncGetHostByAddr(hWnd: HWND; wMsg: Cardinal;
-                                      addr: pchar; len: Longint; t: Longint;
-                                      buf: pchar; buflen: Longint): Cardinal; cdecl;
+                                      addr: PAnsiChar; len: Longint; t: Longint;
+                                      buf: PAnsiChar; buflen: Longint): Cardinal; cdecl;
     external 'PMWSock' index 102;
 
 Function WSACancelAsyncRequest(hAsyncTaskHandle: Cardinal): LongInt; cdecl;

@@ -33,7 +33,7 @@ type    PString = PShortString;
 
 type    TByteArray=array[0..$fff0] of byte;
         PByteArray=^TByteArray;
-        TCharArray=array[0..$fff0] of char;
+        TCharArray=array[0..$fff0] of AnsiChar;
         PCharArray=^TCharArray;
         TWordArray=array[0..$7ff8] of word;
         PWordArray=^TWordArray;
@@ -413,9 +413,9 @@ type    TResultCodes=record
                   nil is also allowed meaning inherit parent's environment.
  FileName       = Filename with full path and extension. Is not sensitive
                   for the PATH environment variable.}
-function DosExecPgm(ObjName:PChar;ObjLen:longint;ExecFlag:cardinal;
+function DosExecPgm(ObjName:PAnsiChar;ObjLen:longint;ExecFlag:cardinal;
                     Args,Env:PByteArray;var Res:TResultCodes;
-                    FileName:PChar):cardinal; cdecl;
+                    FileName:PAnsiChar):cardinal; cdecl;
 function DosExecPgm(var ObjName:string;ExecFlag:cardinal;
                     Args,Env:PByteArray;var Res:TResultCodes;
                     const FileName:string):cardinal;
@@ -488,8 +488,8 @@ const   AppTyp_NotSpec          = $0000; {Apptype is unknown.}
 {Get the application type of an executable file on disk.
  FileName           = Name of file to get type from.
  Flags              = Receives a bitfield using the AppTyp constants.}
-function DosQueryAppType(FileName:PChar;var Flags:longint):cardinal; cdecl;
-function DosQueryAppType (FileName: PChar; var Flags: cardinal): cardinal;
+function DosQueryAppType(FileName:PAnsiChar;var Flags:longint):cardinal; cdecl;
+function DosQueryAppType (FileName: PAnsiChar; var Flags: cardinal): cardinal;
                                                                          cdecl;
 
 const   diPrinter   = 0;    {Get number of printer (parallel) ports.}
@@ -563,9 +563,9 @@ const   fEA_needEA=$80;
 type    TgEA = record
             case byte of
                 1: (NameLen: byte;
-                    Name: array [0..0] of char);
+                    Name: array [0..0] of AnsiChar);
                 2: (cbName: byte;         { name length not including NULL }
-                    szName: char);        { attribute name }
+                    szName: AnsiChar);        { attribute name }
         end;
         PgEA = ^TgEA;
         GEA = TgEA;
@@ -613,7 +613,7 @@ type    TgEA = record
             Flags,
             NameLen: byte;
             Value: word;
-            szName: array [0..0] of char;
+            szName: array [0..0] of AnsiChar;
         end;
         PfEA2 = ^TfEA2;
         FEA2 = TfEA2;
@@ -629,7 +629,7 @@ type    TgEA = record
             case byte of
                 1: (NextEntry: cardinal;
                     NameLen: byte;
-                    Name: array [0..0] of char);
+                    Name: array [0..0] of AnsiChar);
                 2: (oNextEntryOffset: cardinal;     { new field }
                     cbName: byte;
                     szName: array [0..0] of byte);  { new field }
@@ -803,17 +803,17 @@ The bits in the filemode parameter have the following meanings:
 When the DASD flag is set, the whole drive is read as a single file. The
 file starts with 512 bytes of bootsector, then 512 bytes of the second sector etc.
 The filename must consist of the driveletter followed by a semicolon.}
-function DosOpen(FileName:PChar;var Handle: longint; var Action:longint;
+function DosOpen(FileName:PAnsiChar;var Handle: longint; var Action:longint;
                  InitSize:longint;Attrib,OpenFlags,FileMode:longint;
                  EA:PEAOp2):cardinal; cdecl;
-function DosOpen(FileName:PChar;var Handle: THandle;var Action:cardinal;
+function DosOpen(FileName:PAnsiChar;var Handle: THandle;var Action:cardinal;
                  InitSize,Attrib,OpenFlags,FileMode:cardinal;
                  EA:PEAOp2):cardinal; cdecl;
 {This variant of DosOpen always creates or overwrites a file.}
-function DosCreate(FileName:PChar;var Handle: THandle;
+function DosCreate(FileName:PAnsiChar;var Handle: THandle;
                    Attrib,OpenMode:cardinal):cardinal;
 {This variant of DosOpen always opens an existing file.}
-function DosOpen(FileName:PChar;var Handle: THandle;
+function DosOpen(FileName:PAnsiChar;var Handle: THandle;
                  Attrib,OpenMode:cardinal):cardinal;
 {There are also string variants.}
 function DosOpen(const FileName:string;var Handle: longint; var Action:longint;
@@ -942,15 +942,15 @@ Source          = string to edit
 Edit            = editstring
 Target          = destination buffer
 TargetLen       = size of the destination buffer}
-function DosEditName(MetaLevel:cardinal;Source,Edit:PChar;
-                     Target:PChar;TargetLen:cardinal):cardinal; cdecl;
+function DosEditName(MetaLevel:cardinal;Source,Edit:PAnsiChar;
+                     Target:PAnsiChar;TargetLen:cardinal):cardinal; cdecl;
 function DosEditName(MetaLevel:cardinal;const Source,Edit:string;
                      var Target:string):cardinal;
 
 {Move or rename a file.
  OldFile    = old name of file
  NewFile    = new name of file}
-function DosMove(OldFile,NewFile:PChar):cardinal; cdecl;
+function DosMove(OldFile,NewFile:PAnsiChar):cardinal; cdecl;
 function DosMove(const OldFile,NewFile:string):cardinal;
 
 
@@ -961,16 +961,16 @@ const   dcExisting=1;           {Overwrite existing files.}
 {Copy a file.
  OldFile    = source file
  NewFile    = destination file}
-function DosCopy(OldFile,NewFile:PChar;Option:cardinal):cardinal; cdecl;
+function DosCopy(OldFile,NewFile:PAnsiChar;Option:cardinal):cardinal; cdecl;
 function DosCopy(const OldFile,NewFile:string;Option:cardinal):cardinal;
 
 {Delete a file from disk.}
-function DosDelete(FileName:PChar):cardinal; cdecl;
+function DosDelete(FileName:PAnsiChar):cardinal; cdecl;
 function DosDelete(const FileName:string):cardinal;
 
 {Destroy a file on disk. DosForceDelete makes sure that the file cannot
  be unerased anymore.}
-function DosForceDelete(FileName:PChar):cardinal; cdecl;
+function DosForceDelete(FileName:PAnsiChar):cardinal; cdecl;
 function DosForceDelete(const FileName:string):cardinal;
 
 {Create a new directory.
@@ -979,14 +979,14 @@ Name            = Name of directory to create.
 EA              = Extented attributes to give the directory. Use nil if you
                   do not want do give it extented attributes. Only the FEA
                   list is used.}
-function DosCreateDir(Name:PChar;EA:PEAOp2):cardinal; cdecl;
+function DosCreateDir(Name:PAnsiChar;EA:PEAOp2):cardinal; cdecl;
 function DosCreateDir(const Name:string;EA:PEAOp2):cardinal;
 {Variants without the EA parameter (nil is used).}
-function DosCreateDir(Name:PChar):cardinal;
+function DosCreateDir(Name:PAnsiChar):cardinal;
 function DosCreateDir(const Name:string):cardinal;
 
 {Remove a directory.}
-function DosDeleteDir(Name:PChar):cardinal; cdecl;
+function DosDeleteDir(Name:PAnsiChar):cardinal; cdecl;
 function DosDeleteDir(const Name:string):cardinal;
 
 {Set the current drive. Cannot fail if the driveletter is correct.}
@@ -997,7 +997,7 @@ procedure DosQueryCurrentDisk(var DiskNum:longint;var Logical:longint); cdecl;
 procedure DosQueryCurrentDisk(var DiskNum:cardinal;var Logical:cardinal); cdecl;
 
 {Set the current directory.}
-function DosSetCurrentDir(Name:PChar):cardinal; cdecl;
+function DosSetCurrentDir(Name:PAnsiChar):cardinal; cdecl;
 function DosSetCurrentDir(const Name:string):cardinal;
 
 {Get the current directory.}
@@ -1199,7 +1199,7 @@ type
  InfoLevel      = One of the ilXXXX constants. Consult IBM documentation
                   for exact meaning. For normal use: Use ilStandard and
                   use PFileFindBuf3 for AFileStatus.}
-function DosFindFirst (FileMask: PChar; var Handle: THandle; Attrib: cardinal;
+function DosFindFirst (FileMask: PAnsiChar; var Handle: THandle; Attrib: cardinal;
                       AFileStatus: PFileStatus; FileStatusLen: cardinal;
                       var Count: cardinal; InfoLevel: cardinal): cardinal;
                                                                          cdecl;
@@ -1234,13 +1234,13 @@ function DosSetFileInfo (Handle: THandle; InfoLevel: cardinal;
 
 {Return info about a file. In contradiction to the above functions, the
  file does not have to be open.}
-function DosQueryPathInfo(FileName:PChar;InfoLevel:cardinal;
+function DosQueryPathInfo(FileName:PAnsiChar;InfoLevel:cardinal;
                 AFileStatus:PFileStatus;FileStatusLen:cardinal):cardinal; cdecl;
 function DosQueryPathInfo(const FileName:string;InfoLevel:cardinal;
                        AFileStatus:PFileStatus;FileStatusLen:cardinal):cardinal;
 
 {Set information about a file.}
-function DosSetPathInfo(FileName:PChar;InfoLevel:cardinal;
+function DosSetPathInfo(FileName:PAnsiChar;InfoLevel:cardinal;
                         AFileStatus:PFileStatus;FileStatusLen,
                         Options:cardinal):cardinal; cdecl;
 
@@ -1266,7 +1266,7 @@ function DosEnumAttribute(RefType:cardinal;AFile:pointer;
                           Entry:cardinal;var Buf;BufSize:cardinal;
                         var Count:cardinal;InfoLevel:cardinal):cardinal; cdecl;
 
-function DosEnumAttribute (RefType: cardinal; AFile: PChar;
+function DosEnumAttribute (RefType: cardinal; AFile: PAnsiChar;
                           Entry: cardinal; var Buf; BufSize:cardinal;
                     var Count: cardinal; InfoLevel: cardinal): cardinal; cdecl;
 
@@ -1287,7 +1287,7 @@ function DosEnumAttribute (const FileName: string;
 {Get an environment variable.
  Name               = Name of environment variable to get.
  Value              = Receives pointer to environment string.}
-function DosScanEnv(Name:PChar;var Value:PChar):cardinal; cdecl;
+function DosScanEnv(Name:PAnsiChar;var Value:PAnsiChar):cardinal; cdecl;
 {There is, of course a string variant.}
 function DosScanEnv(const Name:string;var Value:string):cardinal;
 
@@ -1307,8 +1307,8 @@ const   dsPathOnly      = 0;    {Do not search current dir. (Unless it is
  FileName       = Filename to search for. May contain wildcards.
  FullName       = Receives filename found, including path.
  FullLen        = Length of your fullname buffer.}
-function DosSearchPath(Flag:cardinal;DirList,FileName:PChar;
-                       FullName:PChar;FullLen:cardinal):cardinal; cdecl;
+function DosSearchPath(Flag:cardinal;DirList,FileName:PAnsiChar;
+                       FullName:PAnsiChar;FullLen:cardinal):cardinal; cdecl;
 function DosSearchPath(Flag:cardinal;const DirList,FileName:string;
                        var FullName:string):cardinal;
 
@@ -1358,11 +1358,11 @@ type    TFSInfo=record
             NameLen:word;
             FSDNameLen:word;
             FSADataLen:word;
-            Name:char;
+            Name:AnsiChar;
             Nul1:byte;
-            FSDName:char;
+            FSDName:AnsiChar;
             Nul2:byte;
-            FSAData:char;
+            FSAData:AnsiChar;
             Nul3:byte;
         end;
         PFSQBuffer2=^TFSQBuffer2;
@@ -1388,7 +1388,7 @@ const   fsAttach        = 0;    {Attach a drive.}
                       2. Should be nil when flag is 3.
  DataLen            = Number of bytes in data parameter.
  Flag               = One of the dsXXXX constants. See above}
-function DosFSAttach(DevName,FileSystem:PChar;var Data:TAttachData;
+function DosFSAttach(DevName,FileSystem:PAnsiChar;var Data:TAttachData;
                      DataLen,Flag:cardinal):cardinal; cdecl;
 function DosFSAttach(const DevName,FileSystem:string;var Data:TAttachData;
                      DataLen,Flag:cardinal):cardinal;
@@ -1410,11 +1410,11 @@ function DosFSAttach(const DevName,FileSystem:string;var Data:TAttachData;
  Buffer             = Will be filled with infomation.
  BufLen             = Size of your buffer in bytes. Number of bytes filled
                       in your buffer is returned here.}
-function DosQueryFSAttach(DevName:PChar;Ordinal,InfoLevel:longint;
+function DosQueryFSAttach(DevName:PAnsiChar;Ordinal,InfoLevel:longint;
                      var Buffer:TFSQBuffer2;var BufLen:longint):cardinal; cdecl;
 function DosQueryFSAttach(const DevName:string;Ordinal,InfoLevel:longint;
                           var Buffer:TFSQBuffer2;var BufLen:longint):cardinal;
-function DosQueryFSAttach(DevName:PChar;Ordinal,InfoLevel:cardinal;
+function DosQueryFSAttach(DevName:PAnsiChar;Ordinal,InfoLevel:cardinal;
                      var Buffer:TFSQBuffer2;var BufLen:cardinal):cardinal; cdecl;
 function DosQueryFSAttach(const DevName:string;Ordinal,InfoLevel:cardinal;
                           var Buffer:TFSQBuffer2;var BufLen:cardinal):cardinal;
@@ -1431,7 +1431,7 @@ const   FSCtl_Handle=1;
  Consult IBM documentation about this function..}
 function DosFSCtl (Data: pointer; DataLen: longint; var ResDataLen: longint;
                   Parms: pointer; ParmsLen: longint; var ResParmsLen: longint;
-                  _Function: longint; Route: PChar;
+                  _Function: longint; Route: PAnsiChar;
                   Handle, Method: longint): cardinal; cdecl;
 function DosFSCtl (Data: pointer; DataLen: longint; var ResDataLen: longint;
                   Parms: pointer;ParmsLen: longint; var ResParmsLen: longint;
@@ -1439,7 +1439,7 @@ function DosFSCtl (Data: pointer; DataLen: longint; var ResDataLen: longint;
                   Handle, Method: longint): cardinal;
 function DosFSCtl (Data: pointer; DataLen: cardinal; var ResDataLen: cardinal;
                  Parms: pointer; ParmsLen: cardinal; var ResParmsLen: cardinal;
-                  _Function: cardinal; Route: PChar;
+                  _Function: cardinal; Route: PAnsiChar;
                   Handle: THandle;Method: cardinal): cardinal; cdecl;
 function DosFSCtl (Data: pointer; DataLen: cardinal; var ResDataLen: cardinal;
                  Parms: pointer; ParmsLen: cardinal; var ResParmsLen: cardinal;
@@ -1712,7 +1712,7 @@ function DosGetSharedMem(P:pointer;Flag:cardinal):cardinal; cdecl;
  P          = Pointer to shared memory object.
  Name       = Name of the memory object. (Starting with '\SHAREMEM\'.
  Flag       = Permissions to ask.}
-function DosGetNamedSharedMem(var P:pointer;Name:PChar;Flag:cardinal):cardinal;
+function DosGetNamedSharedMem(var P:pointer;Name:PAnsiChar;Flag:cardinal):cardinal;
                                                                          cdecl;
 function DosGetNamedSharedMem(var P:pointer;const Name:string;
                               Flag:cardinal):cardinal;
@@ -1720,9 +1720,9 @@ function DosGetNamedSharedMem(var P:pointer;const Name:string;
 {Allocate memory so that it can later be shared with another program.
  P          = Reveives pointer to memory.
  Name       = Optional: name to give memory. Must start with '\SHAREMEM\'.
-              Use nil for the PChar or '' for the string variant for no name.
+              Use nil for the PAnsiChar or '' for the string variant for no name.
  Size       = Number of bytes to allocate.}
-function DosAllocSharedMem(var P:pointer;Name:PChar;
+function DosAllocSharedMem(var P:pointer;Name:PAnsiChar;
                                             Size,Flag:cardinal):cardinal; cdecl;
 function DosAllocSharedMem(var P:pointer;const Name:string;Size,
                                                         Flag:cardinal):cardinal;
@@ -1802,17 +1802,17 @@ type   PSemRecord=^TSemRecord;
 
 {Create an event semaphore.
  Name       = Optional: Name of semaphore to create. Must start with '\SEM32\.
-              Use nil for PChar or '' for string variant for noname. An
+              Use nil for PAnsiChar or '' for string variant for noname. An
               unnamed semaphore is not shared unless the sm_Shared flag is
               set.
  Handle     = Receives handle of semaphore.
  Attr       = One or more of the smXXXX constants.
  State      = Initial state: 0 = Reset (false), 1 = Posted (true).}
-function DosCreateEventSem (Name: PChar;var Handle: THandle;
+function DosCreateEventSem (Name: PAnsiChar;var Handle: THandle;
                             Attr, State: cardinal): cardinal; cdecl;
 function DosCreateEventSem (const Name: string; var Handle: THandle;
                             Attr, State: cardinal): cardinal;
-function DosCreateEventSem (Name: PChar;var Handle: THandle;
+function DosCreateEventSem (Name: PAnsiChar;var Handle: THandle;
                             Attr: cardinal; State: boolean): cardinal;
 function DosCreateEventSem (const Name: string; var Handle: THandle;
                             Attr: cardinal; State: boolean): cardinal;
@@ -1821,7 +1821,7 @@ function DosCreateEventSem (const Name: string; var Handle: THandle;
 
  Name       = Name of semaphore.
  Handle     = Receives handle of semaphore.}
-function DosOpenEventSem (Name: PChar; var Handle: THandle): cardinal; cdecl;
+function DosOpenEventSem (Name: PAnsiChar; var Handle: THandle): cardinal; cdecl;
 function DosOpenEventSem (const Name: string; var Handle: THandle): cardinal;
 
 {Close an event semaphore.
@@ -1863,16 +1863,16 @@ function DosQueryEventSem (Handle: THandle; var Posted: cardinal): cardinal;
 
 {Create a Mutual Exclusion semaphore (mutex).
  Name       = Optional: Name to give to semaphore. Must start with '\SEM32\'.
-              Use nil for PChar or '' for string variant to use no name.
+              Use nil for PAnsiChar or '' for string variant to use no name.
               If a name if used the semaphore is shared.
  Handle     = Receives handle of semaphore.
  Attr       = One or more of the smXXXX constants.
  State      = Initial state: (0/false=Not owned, 1/true=Owned.)}
-function DosCreateMutExSem (Name: PChar; var Handle: THandle;
+function DosCreateMutExSem (Name: PAnsiChar; var Handle: THandle;
                             Attr: cardinal; State: boolean): cardinal;
 function DosCreateMutExSem (const Name: string; var Handle: THandle;
                             Attr: cardinal; State: boolean): cardinal;
-function DosCreateMutExSem (Name: PChar; var Handle: THandle;
+function DosCreateMutExSem (Name: PAnsiChar; var Handle: THandle;
                             Attr, State: cardinal): cardinal; cdecl;
 function DosCreateMutExSem (const Name: string; var Handle: THandle;
                             Attr, State: cardinal): cardinal;
@@ -1880,7 +1880,7 @@ function DosCreateMutExSem (const Name: string; var Handle: THandle;
 {Open a shared mutex semaphore.
  Name       = Name of semaphore to open, always starts with '\SEM32\'.
  Handle     = Receives handle to semaphore.}
-function DosOpenMutExSem (Name: PChar; var Handle: THandle): cardinal; cdecl;
+function DosOpenMutExSem (Name: PAnsiChar; var Handle: THandle): cardinal; cdecl;
 function DosOpenMutExSem (const Name: string; var Handle: THandle): cardinal;
 
 {Close a mutex semaphore.
@@ -1913,15 +1913,15 @@ function DosQueryMutExSem (Handle: THandle; var PID, TID, Count: cardinal):
 
 {Create a Multiple Wait (MuxWait) semaphore.
  Name       = Optional: Name to give semaphore. Must start with '\SEM32\'.
-              Use nil for PChar or '' for string variant to use no name.
+              Use nil for PAnsiChar or '' for string variant to use no name.
               If a name if used the semaphore is shared.
  Handle     = Receives handle of semaphore.
  CSemRec    = Number of semaphores to link muxwait semaphore with.
  SemArray   = Array of semaphore records to link with muxwait semaphore.
  Attr       = One or more of the smXXXX constants.}
-function DosCreateMuxWaitSem (Name: PChar; var Handle: THandle;
+function DosCreateMuxWaitSem (Name: PAnsiChar; var Handle: THandle;
   CSemRec: cardinal; var SemArray: TSemArray; Attr: cardinal): cardinal; cdecl;
-function DosCreateMuxWaitSem (Name: PChar; var Handle: THandle;
+function DosCreateMuxWaitSem (Name: PAnsiChar; var Handle: THandle;
       CSemRec: cardinal; SemArray: PSemArray; Attr: cardinal): cardinal; cdecl;
 function DosCreateMuxWaitSem (const Name: string; var Handle: THandle;
                              CSemRec: cardinal; var SemArray: TSemArray;
@@ -1930,7 +1930,7 @@ function DosCreateMuxWaitSem (const Name: string; var Handle: THandle;
 {Open a MuxWait semaphore.
  Name       = Name of semaphore to open.
  Handle     = Receives handle of semaphore.}
-function DosOpenMuxWaitSem (Name: PChar; var Handle: THandle): cardinal; cdecl;
+function DosOpenMuxWaitSem (Name: PAnsiChar; var Handle: THandle): cardinal; cdecl;
 function DosOpenMuxWaitSem (const Name: string; var Handle: THandle): cardinal;
 
 {Close a MuxWait semaphore.}
@@ -2047,7 +2047,7 @@ function DosTmrQueryTime (var Time: QWord): cardinal; cdecl;
                   just the name. OS/2 will automatically search through the
                   LIBPATH for the DLL.
  Handle         = Receives DLL handle.}
-function DosLoadModule (ObjName: PChar; ObjLen: cardinal; DLLName: PChar;
+function DosLoadModule (ObjName: PAnsiChar; ObjLen: cardinal; DLLName: PAnsiChar;
                                          var Handle: THandle): cardinal; cdecl;
 function DosLoadModule (var ObjName: string; ObjLen: cardinal;
                          const DLLName: string; var Handle: THandle): cardinal;
@@ -2060,9 +2060,9 @@ function DosFreeModule (Handle: THandle): cardinal; cdecl;
  Handle         = DLL handle,
  Ordinal        = Procedure to get address for. 0=Use its name.
  ProcName       = Name of the procedure to query address for. Must be nil
-                  for PChar or '' for string variant if Ordinal is nonzero.
+                  for PAnsiChar or '' for string variant if Ordinal is nonzero.
  Address        = Receives address of procedure.}
-function DosQueryProcAddr (Handle: THandle; Ordinal: cardinal; ProcName: PChar;
+function DosQueryProcAddr (Handle: THandle; Ordinal: cardinal; ProcName: PAnsiChar;
                                         var Address: pointer): cardinal; cdecl;
 function DosQueryProcAddr (Handle: THandle; Ordinal: cardinal;
                        const ProcName: string; var Address: pointer): cardinal;
@@ -2070,7 +2070,7 @@ function DosQueryProcAddr (Handle: THandle; Ordinal: cardinal;
 {Get the handle of a loaded DLL or a loaded executable.
  DLLName        = Name of DLL.
  Handle         = Receives DLL handle if present.}
-function DosQueryModuleHandle (DLLName: PChar; var Handle: THandle): cardinal;
+function DosQueryModuleHandle (DLLName: PAnsiChar; var Handle: THandle): cardinal;
                                                                          cdecl;
 function DosQueryModuleHandle (const DLLName: string;
                                                 var Handle: THandle): cardinal;
@@ -2078,10 +2078,10 @@ function DosQueryModuleHandle (const DLLName: string;
 {Get the pathname of a loaded DLL or a loaded executable.
 
  Handle         = Handle of DLL.
- NameLen        = Maximum length of char array.
- Name           = PChar (or string) where name is returned.}
+ NameLen        = Maximum length of AnsiChar array.
+ Name           = PAnsiChar (or string) where name is returned.}
 function DosQueryModuleName (Handle: THandle; NameLen: cardinal;
-                                                 Name: Pchar): cardinal; cdecl;
+                                                 Name: PAnsiChar): cardinal; cdecl;
 {function DosQueryModuleName(Handle:THandle;var Name:OpenString):cardinal;}
 
 const   pt16bit=0;
@@ -2090,14 +2090,14 @@ const   pt16bit=0;
 {Return if a procedure is either 16 or 32 bit.
  Handle         = Handle of DLL.
  Ordinal        = DLL index number. 0 means use Name.
- Name           = Must be nil for PChar or '' for string variant if Ordinal
+ Name           = Must be nil for PAnsiChar or '' for string variant if Ordinal
                   is zero. Otherwise it contains the procedure name.
  ProcType       = One of the ptXXXX constants.}
-function DosQueryProcType (Handle,Ordinal:longint;Name:PChar;
+function DosQueryProcType (Handle,Ordinal:longint;Name:PAnsiChar;
                           var ProcType:longint):cardinal; cdecl;
 function DosQueryProcType(Handle,Ordinal:longint;const Name:string;
                           var ProcType:longint):cardinal;
-function DosQueryProcType (Handle: THandle; Ordinal: cardinal; Name:PChar;
+function DosQueryProcType (Handle: THandle; Ordinal: cardinal; Name:PAnsiChar;
                           var ProcType: cardinal): cardinal; cdecl;
 function DosQueryProcType (Handle: THandle; Ordinal: cardinal; const Name: string;
                           var ProcType: cardinal): cardinal;
@@ -2174,14 +2174,14 @@ type    TCountryCode=record
             case byte of
             0:(
             DateFormat:cardinal;            {1=ddmmyy 2=yymmdd 3=mmddyy}
-            CurrencyUnit:array[0..4] of char;
-            ThousandSeparator:char;         {Thousands separator.}
+            CurrencyUnit:array[0..4] of AnsiChar;
+            ThousandSeparator:AnsiChar;         {Thousands separator.}
             Zero1:byte;                     {Always zero.}
-            DecimalSeparator:char;          {Decimals separator,}
+            DecimalSeparator:AnsiChar;          {Decimals separator,}
             Zero2:byte;
-            DateSeparator:char;             {Date separator.}
+            DateSeparator:AnsiChar;             {Date separator.}
             Zero3:byte;
-            TimeSeparator:char;             {Time separator.}
+            TimeSeparator:AnsiChar;             {Time separator.}
             Zero4:byte;
             CurrencyFormat,                 {Bit field:
                                              Bit 0: 0=indicator before value
@@ -2195,18 +2195,18 @@ type    TCountryCode=record
                                              currency indication.}
             TimeFormat:TTimeFmt;            {12/24 hour.}
             Reserve1:array[0..1] of word;
-            DataSeparator:char;             {Data list separator}
+            DataSeparator:AnsiChar;             {Data list separator}
             Zero5:byte;
             Reserve2:array[0..4] of word);
             1:(
             fsDateFmt:cardinal;             {1=ddmmyy 2=yymmdd 3=mmddyy}
-            szCurrency:array[0..4] of char; {null terminated currency symbol}
-            szThousandsSeparator:array[0..1] of char;
+            szCurrency:array[0..4] of AnsiChar; {null terminated currency symbol}
+            szThousandsSeparator:array[0..1] of AnsiChar;
                                             {Thousands separator + #0}
-            szDecimal:array[0..1] of char;  {Decimals separator + #0}
-            szDateSeparator:array[0..1] of char;
+            szDecimal:array[0..1] of AnsiChar;  {Decimals separator + #0}
+            szDateSeparator:array[0..1] of AnsiChar;
                                             {Date separator + #0}
-            szTimeSeparator:array[0..1] of char;
+            szTimeSeparator:array[0..1] of AnsiChar;
                                             {Time separator + #0}
             fsCurrencyFmt,                  {Bit field:
                                              Bit 0: 0=indicator before value
@@ -2220,7 +2220,7 @@ type    TCountryCode=record
                                              currency indication}
             fsTimeFmt:byte;                 {0=12,1=24 hours}
             abReserved1:array[0..1] of word;
-            szDataSeparator:array[0..1] of char;
+            szDataSeparator:array[0..1] of AnsiChar;
                                             {Data list separator + #0}
             abReserved2:array[0..4] of word);
         end;
@@ -2247,14 +2247,14 @@ function DosQueryCtryInfo(Size:cardinal;var Country:TCountryCode;
 
 {Get info about a code page with a DBCS character set.}
 function DosQueryDBCSEnv(Size:cardinal;var Country:TCountryCode;
-                                                    Buf:PChar):cardinal; cdecl;
+                                                    Buf:PAnsiChar):cardinal; cdecl;
 
 {Convert a string to uppercase.
     Size        = Length of string.
     Country     = Country and codepage for converting.
     AString     = String to convert.}
 function DosMapCase(Size:cardinal;var Country:TCountryCode;
-                                                AString:PChar):cardinal; cdecl;
+                                                AString:PAnsiChar):cardinal; cdecl;
 function DosMapCase(var Country:TCountryCode;
                                                   var AString:string):cardinal;
 
@@ -2499,19 +2499,19 @@ function DosCloseQueue (Handle: THandle): cardinal; cdecl;
                   processes to 32 bit pointers.
  Name           = Name of queue to create.}
 function DosCreateQueue (var Handle: THandle; Priority: cardinal;
-                         Name: PChar): cardinal; cdecl;
+                         Name: PAnsiChar): cardinal; cdecl;
 function DosCreateQueue (var Handle: THandle; Priority: cardinal;
                          const Name: string): cardinal;
 
 {Open an existing queue. You cannot read from the queue unless you are the
  process that created it. The name must have the format '\QUEUES\name.ext'}
 function DosOpenQueue(var Parent_PID:longint;var Handle:longint;
-                      Name:PChar):cardinal; cdecl;
+                      Name:PAnsiChar):cardinal; cdecl;
 function DosOpenQueue(var Parent_PID:longint;var Handle:longint;
                       const Name:string):cardinal;
 
 function DosOpenQueue (var Parent_PID: cardinal; var Handle: THandle;
-                       Name: PChar): cardinal; cdecl;
+                       Name: PAnsiChar): cardinal; cdecl;
 function DosOpenQueue (var Parent_PID: cardinal; var Handle: THandle;
                        const Name: string): cardinal;
 
@@ -2631,7 +2631,7 @@ procedure DosErrClass (Code: cardinal; var _Class, Action, Locus: cardinal);
 
 
 type    PInsertTable=^TInsertTable;
-        TInsertTable=array[1..9] of PChar;
+        TInsertTable=array[1..9] of PAnsiChar;
 
 {Get a message from a messagefile.
  Table          = Table of strings to insert.
@@ -2641,19 +2641,19 @@ type    PInsertTable=^TInsertTable;
  MsgNumber      = Number of message to get.
  FileName       = Name of file to get message from.
  MsgSize        = The size of the message returned.}
-function DosGetMessage(Table:PInsertTable;TableSize:longint;Buf:PChar;
-                       BufSize,MsgNumber:longint;FileName:PChar;
+function DosGetMessage(Table:PInsertTable;TableSize:longint;Buf:PAnsiChar;
+                       BufSize,MsgNumber:longint;FileName:PAnsiChar;
                        var MsgSize:longint):cardinal;
-function DosGetMessage (Table: PInsertTable; TableSize: cardinal; Buf: PChar;
-                        BufSize, MsgNumber: cardinal; FileName: PChar;
+function DosGetMessage (Table: PInsertTable; TableSize: cardinal; Buf: PAnsiChar;
+                        BufSize, MsgNumber: cardinal; FileName: PAnsiChar;
                         var MsgSize: cardinal): cardinal; cdecl;
 {And a variant using strings and open arrays.
 function DosGetMessage(const Table:array of PString;var Buf:string;
-                       BufSize,MsgNumber:longint;const FileName:PChar):cardinal;}
+                       BufSize,MsgNumber:longint;const FileName:PAnsiChar):cardinal;}
 
-{And a variant using strings, but with a PChar buffer, because of long
+{And a variant using strings, but with a PAnsiChar buffer, because of long
  messages, and open arrays.
-function DosGetMessage(const Table:array of PString;Buf:PChar;
+function DosGetMessage(const Table:array of PString;Buf:PAnsiChar;
                        BufSize,MsgNumber:longint;const FileName:string;
                        MsgSize:longint):cardinal;}
 
@@ -2668,30 +2668,30 @@ function DosGetMessage(const Table:array of PString;Buf:PChar;
  BufSize        = Size of your buffer.
  DstMessageSize = Receives size of adjusted message.}
 function DosInsertMessage(Table:PInsertTable;TableSize:longint;
-                          Message:PChar;SrcMessageSize:longint;
-                          Buf:PChar;BufSize:longint;
+                          Message:PAnsiChar;SrcMessageSize:longint;
+                          Buf:PAnsiChar;BufSize:longint;
                           var DstMessageSize:longint):cardinal; cdecl;
 function DosInsertMessage (Table: PInsertTable; TableSize: cardinal;
-                           Message: PChar; SrcMessageSize: cardinal;
-                           Buf: PChar; BufSize: cardinal;
+                           Message: PAnsiChar; SrcMessageSize: cardinal;
+                           Buf: PAnsiChar; BufSize: cardinal;
                            var DstMessageSize: cardinal): cardinal; cdecl;
 {And a variant using strings and open arrays.
 function DosInsertMessage(Table:array of PString;
                           const Message:string;
                           var Buf:openstring):cardinal;}
 
-{And a variant using strings, but with a PChar buffer, because of long
+{And a variant using strings, but with a PAnsiChar buffer, because of long
  messages, and open arrays.
 function DosInsertMessage(Table:array of PString;
-                          Message:PChar;SrcMessageSize:longint;
-                          Buf:PChar;BufSize:longint;
+                          Message:PAnsiChar;SrcMessageSize:longint;
+                          Buf:PAnsiChar;BufSize:longint;
                           var DstMessageSize:longint):cardinal;}
 
 {Write a message to a file.
  Handle         = Handle of file.
  Size           = Size of message.
  Buf            = Buffer where message is located.}
-function DosPutMessage (Handle: THandle; Size: cardinal; Buf: PChar): cardinal;
+function DosPutMessage (Handle: THandle; Size: cardinal; Buf: PAnsiChar): cardinal;
                                                                          cdecl;
 function DosPutMessage (Handle: THandle; const Buf: string): cardinal;
 
@@ -2700,11 +2700,11 @@ function DosPutMessage (Handle: THandle; const Buf: string): cardinal;
  BufSize        = Size of buffer.
  FileName       = Filename of message file.
  InfoSize       = Receives size in bytes of the returned info.}
-function DosQueryMessageCP(var Buf;BufSize:longint;FileName:PChar;
+function DosQueryMessageCP(var Buf;BufSize:longint;FileName:PAnsiChar;
                             var InfoSize:longint):cardinal;
 function DosQueryMessageCP(var Buf;BufSize:longint;const FileName:string;
                             var InfoSize:longint):cardinal;
-function DosQueryMessageCP (var Buf; BufSize: cardinal; FileName: PChar;
+function DosQueryMessageCP (var Buf; BufSize: cardinal; FileName: PAnsiChar;
                             var InfoSize: cardinal): cardinal;
 function DosQueryMessageCP (var Buf; BufSize: cardinal; const FileName: string;
                             var InfoSize: cardinal): cardinal;
@@ -2812,25 +2812,25 @@ type    TStatusData=record
             FgBg:word;                  {Foreground/background (0/1).}
             TraceOpt:word;              {No trace/trace this/trace all
                                          (0/1/2).}
-            PgmTitle:PChar;             {Program title.}
-            PgmName:PChar;              {Filename to program.}
-            PgmInputs:PChar;            {Command parameters (nil allowed).}
-            TermQ:PChar;                {System queue. (nil allowed).}
-            Environment:PChar;          {Environment to pass (nil allowed).}
+            PgmTitle:PAnsiChar;             {Program title.}
+            PgmName:PAnsiChar;              {Filename to program.}
+            PgmInputs:PAnsiChar;            {Command parameters (nil allowed).}
+            TermQ:PAnsiChar;                {System queue. (nil allowed).}
+            Environment:PAnsiChar;          {Environment to pass (nil allowed).}
             InheritOpt:word;            {Inherit environment from shell/
                                          inherit environment from parent
                                          (0/1).}
             SessionType:word;           {Auto/full screen/window/presentation
                                          manager/full screen Dos/windowed Dos
                                          (0/1/2/3/4/5/6/7).}
-            Iconfile:PChar;             {Icon file to use (nil allowed).}
+            Iconfile:PAnsiChar;             {Icon file to use (nil allowed).}
             PgmHandle:cardinal;         {0 or the program handle.}
             PgmControl:word;            {Bitfield describing initial state
                                          of windowed sessions.}
             InitXPos,InitYPos:word;     {Initial top coordinates.}
             InitXSize,InitYSize:word;   {Initial size.}
             Reserved:word;
-            ObjectBuffer:PChar;         {If a module cannot be loaded, its
+            ObjectBuffer:PAnsiChar;         {If a module cannot be loaded, its
                                          name will be returned here.}
             ObjectBuffLen:cardinal;     {Size of your buffer.}
         end;
@@ -2881,7 +2881,7 @@ type
     MaxInst: byte;       {Maximum number of instances.}
     CurInst: byte;       {Current number of instances.}
     Name: string;        {Name of the pipe. You can use @Name[1] if
-                          you need a PChar to the name; the string is
+                          you need a PAnsiChar to the name; the string is
                           always followed by a zero.}
   end;
 
@@ -2950,7 +2950,7 @@ const   {np_XXXX constants for openmode.}
  OutBufSize     = The number of bytes to allocate for the output buffer.
  InBufSize      = The number of bytes to allocate for the input buffer.
  MSec           = The maximum time to wait for an available instance.}
-function DosCreateNPipe (Name: PChar; var Handle: THandle; OpenMode, PipeMode,
+function DosCreateNPipe (Name: PAnsiChar; var Handle: THandle; OpenMode, PipeMode,
                          OutBufSize, InBufSize, MSec: cardinal): cardinal;
                                                                          cdecl;
 function DosCreateNPipe (const Name: string; var Handle: THandle; OpenMode,
@@ -2965,13 +2965,13 @@ function DosCreateNPipe (const Name: string; var Handle: THandle; OpenMode,
  OutputSize     = Size of the outputbuffer.
  ReadBytes      = Receives number of bytes actually read.
  MSec           = The maximum time to wait for an available instance.}
-function DosCallNPipe(Name:PChar;var Input;InputSize:longint;
+function DosCallNPipe(Name:PAnsiChar;var Input;InputSize:longint;
                       var Output;OutputSize:longint;var ReadBytes:longint;
                       MSec:longint):cardinal; cdecl;
 function DosCallNPipe(const Name:string;var Input;InputSize:longint;
                       var Output;OutputSize:longint;var ReadBytes:longint;
                       MSec:longint):cardinal;
-function DosCallNPipe (Name: PChar; var Input; InputSize: cardinal;
+function DosCallNPipe (Name: PAnsiChar; var Input; InputSize: cardinal;
                        var Output; OutputSize: cardinal;
                        var ReadBytes: cardinal; MSec: cardinal): cardinal;
                                                                          cdecl;
@@ -3062,7 +3062,7 @@ function DosTransactNPipe (Handle: THandle; var OutBuf; OutSize: cardinal;
 {Waits until an instance of a named pipe becomes available.
  Name           = Name of named pipe (always starts with '\PIPE\').
  MSec           = Return with an error code if this time has elapsed.}
-function DosWaitNPipe (Name: PChar; MSec: cardinal): cardinal; cdecl;
+function DosWaitNPipe (Name: PAnsiChar; MSec: cardinal): cardinal; cdecl;
 function DosWaitNPipe (const Name: string; MSec: cardinal): cardinal;
 
 {****************************************************************************
@@ -3074,7 +3074,7 @@ function DosWaitNPipe (const Name: string; MSec: cardinal): cardinal;
 {Open a virtual device driver.
  Name           = Name of virtual device driver.
  Handle         = Receives handle to virtual device driver.}
-function DosOpenVDD (Name: PChar; var Handle: THandle): cardinal; cdecl;
+function DosOpenVDD (Name: PAnsiChar; var Handle: THandle): cardinal; cdecl;
 
 {Request to talk with a virtual device driver.
  Handle         = Handle to virtual device driver.
@@ -3209,30 +3209,30 @@ type
     Len: word;          { length of this record (including the Len field) }
     Rec_ID: word;       { record ID }
     Status: cardinal;   { record status bits (see lf_Bit_* constants) }
-    Qualifier: array [1..4] of char;    { qualifier tag }
+    Qualifier: array [1..4] of AnsiChar;    { qualifier tag }
     Reserved: cardinal;
     Time: cardinal;     { hours, minutes, seconds, hundreds }
     Date: cardinal;     { day, month, year (stored as word) }
     case byte of
-     0: (Data: array [1..3400] of char); { variable data (up to 3400 bytes); }
+     0: (Data: array [1..3400] of AnsiChar); { variable data (up to 3400 bytes); }
                                          { beginning of this area must match }
                                          { one of the following patterns     }
-     1: (Originator256: array [0..255] of char;     {Originator - if the flag }
+     1: (Originator256: array [0..255] of AnsiChar;     {Originator - if the flag }
                                                     {lf_Bit_Origin_256 is set }
-         ProcessName_O256: array [1..260] of char;  {if lf_Bit_ProcName is set}
-         FormatDLLName_O256_ProcName: array [1..12] of char;  {ASCIIZ DLL name}
-         Data_O256_ProcName: array [1..3400] of char);        {Variable data  }
-     2: (Originator256b: array [0..255] of char;
-         FormatDLLName_O256: array [1..12] of char;
-         Data_O256: array [1..3400] of char);
-     3: (Originator8: array [0..7] of char;      {Originator - if flag     }
+         ProcessName_O256: array [1..260] of AnsiChar;  {if lf_Bit_ProcName is set}
+         FormatDLLName_O256_ProcName: array [1..12] of AnsiChar;  {ASCIIZ DLL name}
+         Data_O256_ProcName: array [1..3400] of AnsiChar);        {Variable data  }
+     2: (Originator256b: array [0..255] of AnsiChar;
+         FormatDLLName_O256: array [1..12] of AnsiChar;
+         Data_O256: array [1..3400] of AnsiChar);
+     3: (Originator8: array [0..7] of AnsiChar;      {Originator - if flag     }
                                                  {lf_Bit_Origin_256 clear  }
-         ProcessName_O8: array [1..260] of char; {if lf_Bit_ProcName is set}
-         FormatDLLName_O8_ProcName: array [1..12] of char;
-         Data_O8_ProcName: array [1..3400] of char);
-     4: (Originator8b: array [0..7] of char;
-         FormatDLLName_O8: array [1..12] of char;
-         Data_O8: array [1..3400] of char);
+         ProcessName_O8: array [1..260] of AnsiChar; {if lf_Bit_ProcName is set}
+         FormatDLLName_O8_ProcName: array [1..12] of AnsiChar;
+         Data_O8_ProcName: array [1..3400] of AnsiChar);
+     4: (Originator8b: array [0..7] of AnsiChar;
+         FormatDLLName_O8: array [1..12] of AnsiChar;
+         Data_O8: array [1..3400] of AnsiChar);
   end;
   LogRecord = TLogRecord;
   PLogRecord = ^TLogRecord;
@@ -3335,7 +3335,7 @@ function LogAddEntries (Handle: cardinal; Service: cardinal;
                                 var LogEntries: TLogEntryRec): cardinal; cdecl;
 
 
-function DosReplaceModule (OldModule, NewModule, BackupModule: PChar):
+function DosReplaceModule (OldModule, NewModule, BackupModule: PAnsiChar):
                                                                cardinal; cdecl;
 
 
@@ -3540,7 +3540,7 @@ type
     SysSemPad: byte;                { Pad byte to round structure up to word }
     Pad_sh: word;                   { Padding for 32-bit alignment }
     SemPtr: word;                   { RMP SysSemPtr field }
-    SemName: array [0..0] of char;  { Start of semaphore name string }
+    SemName: array [0..0] of AnsiChar;  { Start of semaphore name string }
   end;
 
   PQSS16HeadRec = ^TQSS16HeadRec;
@@ -3571,7 +3571,7 @@ type
     hMem: word;                     { Handle for shared memory }
     Sel: word;                      { Selector }
     RefCnt: word;                   { Reference count }
-    MemName: array [0..0] of char;  { Start of shared memory name string }
+    MemName: array [0..0] of AnsiChar;  { Start of shared memory name string }
   end;
 
 {     32-bit system semaphore record
@@ -3627,7 +3627,7 @@ type
   PQSEvent = ^TQSEvent;
   TQSEvent = record
     pOpenQ: PQSOpenQ;       { Pointer to open Queue entries }
-    pName: PChar;           { Pointer to semaphore name }
+    pName: PAnsiChar;           { Pointer to semaphore name }
     pMuxQ: PCardinal;       { Pointer to the mux queue }
     Flags: word;
     PostCt: word;           { Number of posts }
@@ -3636,7 +3636,7 @@ type
   PQSMutex = ^TQSMutex;
   TQSMutex = record
     pOpenQ: PQSOpenQ;       { Pointer to open queue entries }
-    pName: PChar;           { Pointer to semaphore name }
+    pName: PAnsiChar;           { Pointer to semaphore name }
     pMuxQ: PCardinal;       { Pointer to the mux queue }
     Flags: word;
     ReqCt: word;            { Number of requests }
@@ -3647,7 +3647,7 @@ type
   PQSMux = ^TQSMux;
   TQSMux = record
     pOpenQ: PQSOpenQ;       { Pointer to open queue entries }
-    pName: PChar;           { Pointer to semaphore name }
+    pName: PAnsiChar;           { Pointer to semaphore name }
     pSemRec: PSemArray;     { Array of semaphore record entries }
     Flags: word;
     cSemRec: word;          { Count of semaphore records }
@@ -3712,7 +3712,7 @@ type
     ctImpMod: cardinal;     { Number of imported modules in table }
     ctObj: cardinal;        { Number of objects in module (MTE_ObjCnt) }
     pObjInfo: PQSLObjRec;   { (Far?) pointer to per object information if any }
-    pName: PChar;           { (Far?) pointer to name string following record }
+    pName: PAnsiChar;           { (Far?) pointer to name string following record }
   end;
 
   PQSExLRec = ^TQSExLRec;
@@ -3724,9 +3724,9 @@ type
     RefCnt: cardinal;       { Size of reference array }
     SegCnt: cardinal;       { Number of segments in module }
     _reserved_: pointer;
-    Name: PChar;            { (Far?) pointer to Module Name }
+    Name: PAnsiChar;            { (Far?) pointer to Module Name }
     ModuleVersion: cardinal;{ Module version value }
-    ShortModName: PChar;    { (Far?) new pointer to module short name }
+    ShortModName: PAnsiChar;    { (Far?) new pointer to module short name }
     ModRef: cardinal;       { Start of array of handles of module }
   end;
 
@@ -3979,15 +3979,15 @@ external 'DOSCALLS' index 317;
 function DosExitList (OrderCode: cardinal; Proc: TExitProc): cardinal; cdecl;
 external 'DOSCALLS' index 296;
 
-function DosExecPgm (ObjName: PChar; ObjLen: longint; ExecFlag: cardinal;
+function DosExecPgm (ObjName: PAnsiChar; ObjLen: longint; ExecFlag: cardinal;
                      Args, Env: PByteArray; var Res: TResultCodes;
-                     FileName:PChar): cardinal; cdecl;
+                     FileName:PAnsiChar): cardinal; cdecl;
 external 'DOSCALLS' index 283;
 
 function DosExecPgm (var ObjName: string; Execflag: cardinal;
                      Args, Env: PByteArray; var Res: TResultCodes;
                      const FileName: string): cardinal;
-var T,T2:array[0..255] of char;
+var T,T2:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,FileName);
@@ -4010,10 +4010,10 @@ external 'DOSCALLS' index 236;
 function DosKillProcess (Action, PID: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 235;
 
-function DosQueryAppType(FileName:PChar;var Flags:longint):cardinal; cdecl;
+function DosQueryAppType(FileName:PAnsiChar;var Flags:longint):cardinal; cdecl;
 external 'DOSCALLS' index 323;
 
-function DosQueryAppType (FileName: PChar; var Flags: cardinal): cardinal;
+function DosQueryAppType (FileName: PAnsiChar; var Flags: cardinal): cardinal;
                                                                          cdecl;
 external 'DOSCALLS' index 323;
 
@@ -4028,17 +4028,17 @@ function DosCancelLockRequest (Handle: THandle; var Lock: TFileLock): cardinal;
                                                                          cdecl;
 external 'DOSCALLS' index 429;
 
-function DosOpen(FileName:PChar;var Handle,Action:longint;
+function DosOpen(FileName:PAnsiChar;var Handle,Action:longint;
                  InitSize,Attrib,OpenFlags,FileMode:longint;
                  EA:PEAOp2):cardinal; cdecl;
 external 'DOSCALLS' index 273;
 
-function DosOpen (FileName: PChar; var Handle: THandle; var Action: cardinal;
+function DosOpen (FileName: PAnsiChar; var Handle: THandle; var Action: cardinal;
                   InitSize, Attrib, OpenFlags, FileMode: cardinal;
                   EA: PEAOp2): cardinal; cdecl;
 external 'DOSCALLS' index 273;
 
-function DosCreate (FileName: PChar; var Handle: THandle;
+function DosCreate (FileName: PAnsiChar; var Handle: THandle;
                     Attrib, OpenMode: cardinal): cardinal;
 
 var Action: cardinal;
@@ -4047,7 +4047,7 @@ begin
     DosCreate:=DosOpen(FileName,Handle,Action,0,Attrib,18,OpenMode,nil);
 end;
 
-function DosOpen (FileName: PChar; var Handle: THandle;
+function DosOpen (FileName: PAnsiChar; var Handle: THandle;
                   Attrib, OpenMode: cardinal): cardinal;
 
 var Action: cardinal;
@@ -4060,7 +4060,7 @@ function DosOpen(const FileName:string;var Handle,Action:longint;
                  InitSize,Attrib,OpenFlags,OpenMode:longint;
                  EA:PEAOp2):cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,FileName);
@@ -4071,7 +4071,7 @@ function DosOpen (const FileName: string; var Handle: THandle;
                   var Action: cardinal; InitSize, Attrib, OpenFlags: cardinal;
                   OpenMode: cardinal; EA: PEAOp2): cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,FileName);
@@ -4081,7 +4081,7 @@ end;
 function DosCreate (const FileName: string; var Handle: THandle;
                     Attrib, OpenMode: cardinal): cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
     Action:cardinal;
 
 begin
@@ -4092,7 +4092,7 @@ end;
 function DosOpen (const FileName: string; var Handle: THandle;
                   Attrib, OpenMode: cardinal): cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
     Action:cardinal;
 
 begin
@@ -4175,14 +4175,14 @@ function DosQueryHType (Handle: THandle; var HandType: cardinal;
                         var Attr: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 224;
 
-function DosEditName (MetaLevel: cardinal; Source, Edit: PChar;
-                      Target: PChar; TargetLen: cardinal): cardinal; cdecl;
+function DosEditName (MetaLevel: cardinal; Source, Edit: PAnsiChar;
+                      Target: PAnsiChar; TargetLen: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 261;
 
 function DosEditName (MetaLevel: cardinal; const Source, Edit: string;
                       var Target: string): cardinal;
 
-var T,T2,T3:array[0..255] of char;
+var T,T2,T3:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,Source);
@@ -4191,12 +4191,12 @@ begin
     Target:=StrPas(@T3);
 end;
 
-function DosMove(OldFile,NewFile:PChar):cardinal; cdecl;
+function DosMove(OldFile,NewFile:PAnsiChar):cardinal; cdecl;
 external 'DOSCALLS' index 271;
 
 function DosMove(const OldFile,NewFile:string):cardinal;
 
-var T,T2:array[0..255] of char;
+var T,T2:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,OldFile);
@@ -4204,12 +4204,12 @@ begin
     DosMove:=DosMove(@T,@T2);
 end;
 
-function DosCopy (OldFile, NewFile: PChar; Option: cardinal): cardinal; cdecl;
+function DosCopy (OldFile, NewFile: PAnsiChar; Option: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 258;
 
 function DosCopy (const OldFile, NewFile: string; Option: cardinal): cardinal;
 
-var T,T2:array[0..255] of char;
+var T,T2:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,OldFile);
@@ -4217,34 +4217,34 @@ begin
     DosCopy:=DosCopy(@T,@T2,Option);
 end;
 
-function DosDelete(FileName:PChar):cardinal; cdecl;
+function DosDelete(FileName:PAnsiChar):cardinal; cdecl;
 external 'DOSCALLS' index 259;
 
 function DosDelete(const FileName:string):cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,FileName);
     DosDelete:=DosDelete(@T);
 end;
 
-function DosForceDelete(FileName:PChar):cardinal; cdecl;
+function DosForceDelete(FileName:PAnsiChar):cardinal; cdecl;
 external 'DOSCALLS' index 110;
 
 function DosForceDelete(const FileName:string):cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,FileName);
     DosForceDelete:=DosForceDelete(@T);
 end;
 
-function DosCreateDir(Name:PChar;EA:PEAOp2):cardinal; cdecl;
+function DosCreateDir(Name:PAnsiChar;EA:PEAOp2):cardinal; cdecl;
 external 'DOSCALLS' index 270;
 
-function DosCreateDir(Name:PChar):cardinal;
+function DosCreateDir(Name:PAnsiChar):cardinal;
 
 begin
     DosCreateDir:=DosCreateDir(Name,nil);
@@ -4252,7 +4252,7 @@ end;
 
 function DosCreateDir(const Name:string;EA:PEAOp2):cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,Name);
@@ -4261,19 +4261,19 @@ end;
 
 function DosCreateDir(const Name:string):cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,Name);
     DosCreateDir:=DosCreateDir(@T,nil);
 end;
 
-function DosDeleteDir(Name:PChar):cardinal; cdecl;
+function DosDeleteDir(Name:PAnsiChar):cardinal; cdecl;
 external 'DOSCALLS' index 226;
 
 function DosDeleteDir(const Name:string):cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,Name);
@@ -4290,12 +4290,12 @@ procedure DosQueryCurrentDisk (var DiskNum: cardinal; var Logical: cardinal);
                                                                          cdecl;
 external 'DOSCALLS' index 275;
 
-function DosSetCurrentDir(Name:PChar):cardinal; cdecl;
+function DosSetCurrentDir(Name:PAnsiChar):cardinal; cdecl;
 external 'DOSCALLS' index 255;
 
 function DosSetCurrentDir(const Name:string):cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,Name);
@@ -4312,7 +4312,7 @@ external 'DOSCALLS' index 274;
 
 function DosQueryCurrentDir (DiskNum: cardinal; var Buffer: string): cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
     L: cardinal;
 
 begin
@@ -4332,7 +4332,7 @@ function DosDevIOCtl (Handle: THandle; Category, Func: cardinal; var Params;
                                                                cardinal; cdecl;
 external 'DOSCALLS' index 284;
 
-function DosFindFirst (FileMask: PChar; var Handle: THandle; Attrib: cardinal;
+function DosFindFirst (FileMask: PAnsiChar; var Handle: THandle; Attrib: cardinal;
                        AFileStatus: PFileStatus; FileStatusLen: cardinal;
                        var Count: cardinal; InfoLevel: cardinal): cardinal;
                                                                          cdecl;
@@ -4343,7 +4343,7 @@ function DosFindFirst (const FileMask: string; var Handle: THandle;
                        FileStatusLen: cardinal; var Count: cardinal;
                        InfoLevel: cardinal): cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,FileMask);
@@ -4369,14 +4369,14 @@ function DosSetFileInfo (Handle: THandle; InfoLevel: cardinal;
                          FileStatusLen: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 218;
 
-function DosQueryPathInfo (FileName: PChar; InfoLevel: cardinal;
+function DosQueryPathInfo (FileName: PAnsiChar; InfoLevel: cardinal;
            AFileStatus: PFileStatus; FileStatusLen: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 223;
 
 function DosQueryPathInfo (const FileName: string; InfoLevel: cardinal;
                   AFileStatus: PFileStatus; FileStatusLen: cardinal): cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,FileName);
@@ -4384,7 +4384,7 @@ begin
      FileStatusLen);
 end;
 
-function DosSetPathInfo (FileName: PChar; InfoLevel: cardinal;
+function DosSetPathInfo (FileName: PAnsiChar; InfoLevel: cardinal;
                          AFileStatus: PFileStatus; FileStatusLen,
                          Options: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 219;
@@ -4400,7 +4400,7 @@ function DosEnumAttribute (RefType: cardinal; AFile: pointer;
                                                                          cdecl;
 external 'DOSCALLS' index 372;
 
-function DosEnumAttribute (RefType: cardinal; AFile: PChar;
+function DosEnumAttribute (RefType: cardinal; AFile: PAnsiChar;
                            Entry: cardinal; var Buf; BufSize: cardinal;
                            var Count: cardinal; InfoLevel: cardinal): cardinal;
                                                                          cdecl;
@@ -4434,7 +4434,7 @@ function DosEnumAttribute (const FileName: string;
                            Entry: cardinal;var Buf;BufSize: cardinal;
                            var Count: cardinal; InfoLevel: cardinal): cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,FileName);
@@ -4442,13 +4442,13 @@ begin
      InfoLevel);
 end;
 
-function DosScanEnv(Name:PChar;var Value:PChar):cardinal; cdecl;
+function DosScanEnv(Name:PAnsiChar;var Value:PAnsiChar):cardinal; cdecl;
 external 'DOSCALLS' index 227;
 
 function DosScanEnv(const Name:string;var Value:string):cardinal;
 
-var T:array[0..255] of char;
-    P:PChar;
+var T:array[0..255] of AnsiChar;
+    P:PAnsiChar;
 
 begin
     StrPCopy(@T,Name);
@@ -4456,14 +4456,14 @@ begin
     Value:=StrPas(P);
 end;
 
-function DosSearchPath (Flag: cardinal; DirList, FileName: PChar;
-                        FullName: PChar; FullLen: cardinal): cardinal; cdecl;
+function DosSearchPath (Flag: cardinal; DirList, FileName: PAnsiChar;
+                        FullName: PAnsiChar; FullLen: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 228;
 
 function DosSearchPath (Flag: cardinal; const DirList, FileName: string;
                         var FullName: string): cardinal;
 
-var T1,T2,T3:array[0..255] of char;
+var T1,T2,T3:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T1,DirList);
@@ -4472,14 +4472,14 @@ begin
     FullName:=StrPas(@T3);
 end;
 
-function DosFSAttach (DevName, FileSystem: PChar; var Data: TAttachData;
+function DosFSAttach (DevName, FileSystem: PAnsiChar; var Data: TAttachData;
                       DataLen, Flag: cardinal):cardinal; cdecl;
 external 'DOSCALLS' index 269;
 
 function DosFSAttach (const DevName, FileSystem: string; var Data: TAttachData;
                       DataLen, Flag: cardinal): cardinal;
 
-var T1,T2:array[0..255] of char;
+var T1,T2:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T1,DevName);
@@ -4487,18 +4487,18 @@ begin
     DosFSAttach:=DosFSAttach(@T1,@T2,Data,DataLen,Flag);
 end;
 
-function DosQueryFSAttach(DevName:PChar;Ordinal,InfoLevel:longint;
+function DosQueryFSAttach(DevName:PAnsiChar;Ordinal,InfoLevel:longint;
                      var Buffer:TFSQBuffer2;var BufLen:longint):cardinal; cdecl;
 external 'DOSCALLS' index 277;
 
-function DosQueryFSAttach (DevName: PChar; Ordinal, InfoLevel: cardinal;
+function DosQueryFSAttach (DevName: PAnsiChar; Ordinal, InfoLevel: cardinal;
                var Buffer: TFSQBuffer2; var BufLen: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 277;
 
 function DosQueryFSAttach(const DevName:string;Ordinal,InfoLevel:longint;
                           var Buffer:TFSQBuffer2;var BufLen:longint):cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,DevName);
@@ -4508,7 +4508,7 @@ end;
 function DosQueryFSAttach (const DevName: string; Ordinal, InfoLevel: cardinal;
                       var Buffer: TFSQBuffer2; var BufLen: cardinal): cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,DevName);
@@ -4517,14 +4517,14 @@ end;
 
 function DosFSCtl(Data:pointer;DataLen:longint;var ResDataLen:longint;
                   Parms:pointer;ParmsLen:longint;var ResParmsLen:longint;
-                  _Function:longint;Route:PChar;
+                  _Function:longint;Route:PAnsiChar;
                   Handle,Method:longint):cardinal; cdecl;
 external 'DOSCALLS' index 285;
 
 function DosFSCtl (Data: pointer; DataLen: cardinal; var ResDataLen: cardinal;
                    Parms: pointer; ParmsLen: cardinal;
                    var ResParmsLen: cardinal; _Function: cardinal;
-                   Route: PChar; Handle: THandle; Method: cardinal): cardinal;
+                   Route: PAnsiChar; Handle: THandle; Method: cardinal): cardinal;
                                                                          cdecl;
 external 'DOSCALLS' index 285;
 
@@ -4533,7 +4533,7 @@ function DosFSCtl(Data:pointer;DataLen:longint;var ResDataLen:longint;
                   _Function:longint;const Route:string;
                   Handle,Method:longint):cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,Route);
@@ -4547,7 +4547,7 @@ function DosFSCtl (Data: pointer; DataLen: cardinal; var ResDataLen: cardinal;
                    const Route: string; Handle: THandle; Method: cardinal):
                                                                       cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,Route);
@@ -4628,28 +4628,28 @@ external 'DOSCALLS' index 303;
 function DosGetSharedMem (P: pointer; Flag: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 302;
 
-function DosGetNamedSharedMem (var P: pointer; Name: PChar; Flag: cardinal):
+function DosGetNamedSharedMem (var P: pointer; Name: PAnsiChar; Flag: cardinal):
                                                                cardinal; cdecl;
 external 'DOSCALLS' index 301;
 
 function DosGetNamedSharedMem (var P: pointer; const Name: string;
                                Flag: cardinal): cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,Name);
     DosGetNamedSharedMem:=DosGetNamedSharedMem(P,@T,Flag);
 end;
 
-function DosAllocSharedMem (var P: pointer; Name: PChar;
+function DosAllocSharedMem (var P: pointer; Name: PAnsiChar;
                                         Size, Flag: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 300;
 
 function DosAllocSharedMem (var P: pointer; const Name: string;
                                                Size, Flag: cardinal): cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     if Name<>'' then
@@ -4680,11 +4680,11 @@ external 'DOSCALLS' index 344;
 function DosSubUnSetMem (Base: pointer): cardinal; cdecl;
 external 'DOSCALLS' index 347;
 
-function DosCreateEventSem (Name: PChar; var Handle: THandle;
+function DosCreateEventSem (Name: PAnsiChar; var Handle: THandle;
                             Attr, State: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 324;
 
-function DosCreateEventSem (Name: PChar; var Handle: THandle;
+function DosCreateEventSem (Name: PAnsiChar; var Handle: THandle;
                             Attr: cardinal; State: boolean): cardinal;
 begin
   DosCreateEventSem :=
@@ -4694,7 +4694,7 @@ end;
 function DosCreateEventSem (const Name: string; var Handle: THandle;
                             Attr: cardinal; State: boolean): cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
   if Name<>'' then
@@ -4715,12 +4715,12 @@ begin
   DosCreateEventSem := DosCreateEventSem (Name, Handle, Attr, boolean (State));
 end;
 
-function DosOpenEventSem (Name: PChar; var Handle: THandle): cardinal; cdecl;
+function DosOpenEventSem (Name: PAnsiChar; var Handle: THandle): cardinal; cdecl;
 external 'DOSCALLS' index 325;
 
 function DosOpenEventSem (const Name: string; var Handle: THandle): cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,Name);
@@ -4750,11 +4750,11 @@ function DosQueryEventSem (Handle: THandle; var Posted: cardinal): cardinal;
                                                                          cdecl;
 external 'DOSCALLS' index 330;
 
-function DosCreateMutExSem (Name: PChar; var Handle: THandle;
+function DosCreateMutExSem (Name: PAnsiChar; var Handle: THandle;
                             Attr, State: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 331;
 
-function DosCreateMutExSem (Name: PChar; var Handle: THandle;
+function DosCreateMutExSem (Name: PAnsiChar; var Handle: THandle;
                             Attr: cardinal; State: boolean): cardinal;
 begin
   DosCreateMutExSem :=
@@ -4764,7 +4764,7 @@ end;
 function DosCreateMutExSem (const Name: string; var Handle: THandle;
                             Attr: cardinal; State: boolean): cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
   if Name<>'' then
@@ -4786,12 +4786,12 @@ begin
                        DosCreateMutExSem (Name, Handle, Attr, boolean (State));
 end;
 
-function DosOpenMutExSem (Name: PChar; var Handle: THandle): cardinal; cdecl;
+function DosOpenMutExSem (Name: PAnsiChar; var Handle: THandle): cardinal; cdecl;
 external 'DOSCALLS' index 332;
 
 function DosOpenMutExSem (const Name: string; var Handle: THandle): cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,Name);
@@ -4816,12 +4816,12 @@ function DosQueryMutExSem (Handle: THandle; var PID, TID, Count: cardinal):
                                                                cardinal; cdecl;
 external 'DOSCALLS' index 336;
 
-function DosCreateMuxWaitSem (Name: PChar; var Handle: THandle;
+function DosCreateMuxWaitSem (Name: PAnsiChar; var Handle: THandle;
                               CSemRec: cardinal; var SemArray: TSemArray;
                               Attr: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 337;
 
-function DosCreateMuxWaitSem (Name: PChar; var Handle: THandle;
+function DosCreateMuxWaitSem (Name: PAnsiChar; var Handle: THandle;
                               CSemRec: cardinal; SemArray: PSemArray;
                               Attr: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 337;
@@ -4830,7 +4830,7 @@ function DosCreateMuxWaitSem (const Name: string; var Handle: THandle;
                               CSemRec: cardinal; var SemArray: TSemArray;
                               Attr: cardinal): cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     if Name<>'' then
@@ -4844,12 +4844,12 @@ begin
          Attr);
 end;
 
-function DosOpenMuxWaitSem (Name: PChar; var Handle: THandle): cardinal; cdecl;
+function DosOpenMuxWaitSem (Name: PAnsiChar; var Handle: THandle): cardinal; cdecl;
 external 'DOSCALLS' index 338;
 
 function DosOpenMuxWaitSem (const Name: string; var Handle: THandle): cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,Name);
@@ -4911,14 +4911,14 @@ external 'DOSCALLS' index 363;
 function DosTmrQueryTime (var Time: qword): cardinal; cdecl;
 external 'DOSCALLS' index 363;
 
-function DosLoadModule (ObjName: PChar; ObjLen: cardinal; DLLName: PChar;
+function DosLoadModule (ObjName: PAnsiChar; ObjLen: cardinal; DLLName: PAnsiChar;
                         var Handle: THandle): cardinal; cdecl;
 external 'DOSCALLS' index 318;
 
 function DosLoadModule (var ObjName: string; ObjLen: cardinal;
                         const DLLName: string; var Handle: THandle): cardinal;
 
-var T1,T2:array[0..255] of char;
+var T1,T2:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T2,DLLName);
@@ -4929,14 +4929,14 @@ end;
 function DosFreeModule (Handle: THandle): cardinal; cdecl;
 external 'DOSCALLS' index 322;
 
-function DosQueryProcAddr (Handle: THandle; Ordinal: cardinal; ProcName: PChar;
+function DosQueryProcAddr (Handle: THandle; Ordinal: cardinal; ProcName: PAnsiChar;
                            var Address: pointer): cardinal; cdecl;
 external 'DOSCALLS' index 321;
 
 function DosQueryProcAddr (Handle: THandle; Ordinal: cardinal;
                        const ProcName: string; var Address: pointer): cardinal;
 
-var T1:array[0..255] of char;
+var T1:array[0..255] of AnsiChar;
 
 begin
     if ProcName<>'' then
@@ -4948,45 +4948,45 @@ begin
         DosQueryProcAddr:=DosQueryProcAddr(Handle,Ordinal,nil,Address);
 end;
 
-function DosQueryModuleHandle (DLLName: PChar; var Handle: THandle): cardinal;
+function DosQueryModuleHandle (DLLName: PAnsiChar; var Handle: THandle): cardinal;
                                                                          cdecl;
 external 'DOSCALLS' index 319;
 
 function DosQueryModuleHandle (const DLLName: string; var Handle: THandle):
                                                                       cardinal;
 
-var T1:array[0..255] of char;
+var T1:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T1,DLLName);
     DosQueryModuleHandle:=DosQueryModuleHandle(@T1,Handle);
 end;
 
-function DosQueryModuleName (Handle: THandle; NameLen: cardinal; Name: PChar):
+function DosQueryModuleName (Handle: THandle; NameLen: cardinal; Name: PAnsiChar):
                                                                cardinal; cdecl;
 external 'DOSCALLS' index 320;
 
 {function DosQueryModuleName(Handle:longint;var Name:openstring):cardinal;
 
-var T1:array[0..255] of char;
+var T1:array[0..255] of AnsiChar;
 
 begin
     DosQueryModuleName:=DosQueryModuleName(Handle,High(Name),@T1);
     Name:=StrPas(@T1);
 end;}
 
-function DosQueryProcType(Handle,Ordinal:longint;Name:PChar;
+function DosQueryProcType(Handle,Ordinal:longint;Name:PAnsiChar;
                           var ProcType:longint):cardinal; cdecl;
 external 'DOSCALLS' index 586;
 
-function DosQueryProcType (Handle: THandle; Ordinal: cardinal; Name: PChar;
+function DosQueryProcType (Handle: THandle; Ordinal: cardinal; Name: PAnsiChar;
                            var ProcType: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 586;
 
 function DosQueryProcType(Handle,Ordinal:longint;const Name:string;
                           var ProcType:longint):cardinal;
 
-var T1:array[0..255] of char;
+var T1:array[0..255] of AnsiChar;
 
 begin
     if Name<>'' then
@@ -5001,7 +5001,7 @@ end;
 function DosQueryProcType (Handle: THandle; Ordinal: cardinal;
                          const Name: string; var ProcType: cardinal): cardinal;
 
-var T1:array[0..255] of char;
+var T1:array[0..255] of AnsiChar;
 
 begin
     if Name<>'' then
@@ -5037,11 +5037,11 @@ function DosQueryCtryInfo (Size: cardinal; var Country: TCountryCode;
 external 'NLS' index 5;
 
 function DosQueryDBCSEnv (Size: cardinal; var Country: TCountryCode;
-                                                  Buf: PChar): cardinal; cdecl;
+                                                  Buf: PAnsiChar): cardinal; cdecl;
 external 'NLS' index 6;
 
 function DosMapCase (Size: cardinal; var Country: TCountryCode;
-                     AString: PChar): cardinal; cdecl;
+                     AString: PAnsiChar): cardinal; cdecl;
 external 'NLS' index 7;
 
 function DosMapCase (var Country: TCountryCode; var AString: string): cardinal;
@@ -5131,13 +5131,13 @@ function DosCloseQueue (Handle: THandle): cardinal; cdecl;
 external 'QUECALLS' index 11;
 
 function DosCreateQueue (var Handle: THandle; Priority: cardinal;
-                         Name: PChar): cardinal; cdecl;
+                         Name: PAnsiChar): cardinal; cdecl;
 external 'QUECALLS' index 16;
 
 function DosCreateQueue (var Handle: THandle; Priority: cardinal;
                          const Name: string): cardinal;
 
-var T1:array[0..255] of char;
+var T1:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T1,Name);
@@ -5145,17 +5145,17 @@ begin
 end;
 
 function DosOpenQueue(var Parent_PID:longint;var Handle:longint;
-                      Name:PChar):cardinal; cdecl;
+                      Name:PAnsiChar):cardinal; cdecl;
 external 'QUECALLS' index 15;
 
 function DosOpenQueue (var Parent_PID: cardinal; var Handle: THandle;
-                       Name: PChar): cardinal; cdecl;
+                       Name: PAnsiChar): cardinal; cdecl;
 external 'QUECALLS' index 15;
 
 function DosOpenQueue(var Parent_PID:longint;var Handle:longint;
                       const Name:string):cardinal;
 
-var T1:array[0..255] of char;
+var T1:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T1,Name);
@@ -5165,7 +5165,7 @@ end;
 function DosOpenQueue (var Parent_PID: cardinal; var Handle: THandle;
                        const Name: string): cardinal;
 
-var T1:array[0..255] of char;
+var T1:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T1,Name);
@@ -5238,12 +5238,12 @@ procedure DosErrClass (Code: cardinal; var _Class, Action, Locus: cardinal);
 external 'DOSCALLS' index 211;
 
 function DosTrueGetMessage (MsgSeg: pointer; Table: PInsertTable;
-                            TableSize: cardinal; Buf: PChar;
-                            BufSize, MsgNumber: cardinal; FileName: PChar;
+                            TableSize: cardinal; Buf: PAnsiChar;
+                            BufSize, MsgNumber: cardinal; FileName: PAnsiChar;
                             var MsgSize: cardinal): cardinal; cdecl;
 external 'MSG' index 6;
 
-function DosIQueryMessageCP (var Buf; BufSize: cardinal; FileName: PChar;
+function DosIQueryMessageCP (var Buf; BufSize: cardinal; FileName: PAnsiChar;
                      var InfoSize: cardinal; MesSeg: pointer): cardinal; cdecl;
 external 'MSG' index 8;
 
@@ -5260,8 +5260,8 @@ asm
   dd MAGICHEADEREND
 end;
 
-function DosGetMessage (Table: PInsertTable; TableSize: cardinal; Buf: PChar;
-                        BufSize, MsgNumber: cardinal; FileName: PChar;
+function DosGetMessage (Table: PInsertTable; TableSize: cardinal; Buf: PAnsiChar;
+                        BufSize, MsgNumber: cardinal; FileName: PAnsiChar;
                         var MsgSize: cardinal): cardinal; cdecl; assembler;
                                                                   nostackframe;
 asm
@@ -5271,22 +5271,22 @@ asm
   jmp DosTrueGetMessage
 end;
 
-function DosGetMessage (Table: PInsertTable; TableSize:longint;Buf:PChar;
-                        BufSize,MsgNumber:longint;FileName:PChar;
+function DosGetMessage (Table: PInsertTable; TableSize:longint;Buf:PAnsiChar;
+                        BufSize,MsgNumber:longint;FileName:PAnsiChar;
                         var MsgSize:longint):cardinal;
 begin
   DosGetMessage := DosGetMessage (Table, cardinal (TableSize), Buf,
        cardinal (BufSize), cardinal (MsgNumber), FileName, cardinal (MsgSize));
 end;
 
-function DosQueryMessageCP (var Buf; BufSize: cardinal; FileName: PChar;
+function DosQueryMessageCP (var Buf; BufSize: cardinal; FileName: PAnsiChar;
                             var InfoSize: cardinal): cardinal;
 begin
     DosQueryMessageCP := DosIQueryMessageCP(Buf, BufSize, FileName, InfoSize,
                                                             @MagicHeaderStart);
 end;
 
-function DosQueryMessageCP(var Buf;BufSize:longint;FileName:PChar;
+function DosQueryMessageCP(var Buf;BufSize:longint;FileName:PAnsiChar;
                             var InfoSize:longint):cardinal;
 begin
     DosQueryMessageCP := DosIQueryMessageCP(Buf, cardinal (BufSize), FileName,
@@ -5314,7 +5314,7 @@ type    TTableBuffer=record
 var Buffer:PTableBuffer;
     I,S:word;
     BufPtr:pointer;
-    T1,T2:array[0..255] of char;
+    T1,T2:array[0..255] of AnsiChar;
 
 begin
     {Check if there are more than nine items in the table.}
@@ -5347,7 +5347,7 @@ begin
              High(Buf),MsgNumber,@T2,I);
 
             {Step 6: Convert the returned message.}
-            Buf[0]:=Char(I);
+            Buf[0]:=AnsiChar(I);
             Move(T1,Buf[1],I);
 
             {Step 7: Free the memory.}
@@ -5355,14 +5355,14 @@ begin
         end;
 end;*)
 
-{function DosGetMessage(const Table:array of PString;Buf:PChar;
+{function DosGetMessage(const Table:array of PString;Buf:PAnsiChar;
                        BufSize,MsgNumber:longint;const FileName:string;
                        MsgSize:longint):cardinal;}
 
 function DosQueryMessageCP(var Buf;BufSize:longint;const FileName:string;
                            var InfoSize:longint):cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,FileName);
@@ -5372,7 +5372,7 @@ end;
 function DosQueryMessageCP (var Buf; BufSize: cardinal; const FileName: string;
                             var InfoSize: cardinal): cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,FileName);
@@ -5380,14 +5380,14 @@ begin
 end;
 
 function DosInsertMessage(Table:PInsertTable;TableSize:longint;
-                          Message:PChar;SrcMessageSize:longint;
-                          Buf:PChar;BufSize:longint;
+                          Message:PAnsiChar;SrcMessageSize:longint;
+                          Buf:PAnsiChar;BufSize:longint;
                           var DstMessageSize:longint):cardinal; cdecl;
 external 'MSG' index 4;
 
 function DosInsertMessage (Table: PInsertTable; TableSize: cardinal;
-                           Message: PChar; SrcMessageSize: cardinal;
-                           Buf: PChar; BufSize: cardinal;
+                           Message: PAnsiChar; SrcMessageSize: cardinal;
+                           Buf: PAnsiChar; BufSize: cardinal;
                            var DstMessageSize: cardinal): cardinal; cdecl;
 external 'MSG' index 4;
 
@@ -5396,11 +5396,11 @@ external 'MSG' index 4;
                           var Buf:openstring):cardinal;
 
 function DosInsertMessage(Table:array of PString;
-                          Message:PChar;SrcMessageSize:longint;
-                          Buf:PChar;BufSize:longint;
+                          Message:PAnsiChar;SrcMessageSize:longint;
+                          Buf:PAnsiChar;BufSize:longint;
                           var DstMessageSize:longint):cardinal;}
 
-function DosPutMessage (Handle: THandle; Size: cardinal; Buf: PChar): cardinal;
+function DosPutMessage (Handle: THandle; Size: cardinal; Buf: PAnsiChar): cardinal;
                                                                          cdecl;
 external 'MSG' index 5;
 
@@ -5432,14 +5432,14 @@ function DosCreatePipe (var ReadHandle, WriteHandle: THandle;
                         Size: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 239;
 
-function DosCreateNPipe (Name: PChar; var Handle: THandle; OpenMode, PipeMode,
+function DosCreateNPipe (Name: PAnsiChar; var Handle: THandle; OpenMode, PipeMode,
                        OutBufSize, InBufSize, MSec: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 243;
 
 function DosCreateNPipe (const Name: string; var Handle: THandle; OpenMode,
                     PipeMode, OutBufSize, InBufSize, MSec: cardinal): cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,Name);
@@ -5447,12 +5447,12 @@ begin
      InBufSize,MSec);
 end;
 
-function DosCallNPipe(Name:PChar;var Input;InputSize:longint;
+function DosCallNPipe(Name:PAnsiChar;var Input;InputSize:longint;
                       var Output;OutputSize:longint;var ReadBytes:longint;
                       MSec:longint):cardinal; cdecl;
 external 'DOSCALLS' index 240;
 
-function DosCallNPipe (Name: PChar; var Input; InputSize: cardinal;
+function DosCallNPipe (Name: PAnsiChar; var Input; InputSize: cardinal;
                        var Output; OutputSize: cardinal;
                        var ReadBytes: cardinal; MSec: cardinal): cardinal;
                                                                          cdecl;
@@ -5462,7 +5462,7 @@ function DosCallNPipe(const Name:string;var Input;InputSize:longint;
                       var Output;OutputSize:longint;var ReadBytes:longint;
                       MSec:longint):cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,Name);
@@ -5474,7 +5474,7 @@ function DosCallNPipe (const Name: string; var Input; InputSize: cardinal;
                        var Output; OutputSize: cardinal;
                        var ReadBytes: cardinal; MSec: cardinal): cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,Name);
@@ -5534,19 +5534,19 @@ function DosTransactNPipe (Handle: THandle; var OutBuf; OutSize: cardinal;
                           var ReadBytes: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 252;
 
-function DosWaitNPipe (Name: PChar; MSec: cardinal): cardinal; cdecl;
+function DosWaitNPipe (Name: PAnsiChar; MSec: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 253;
 
 function DosWaitNPipe (const Name: string; MSec: cardinal): cardinal;
 
-var T:array[0..255] of char;
+var T:array[0..255] of AnsiChar;
 
 begin
     StrPCopy(@T,Name);
     DosWaitNPipe:=DosWaitNPipe(@T,MSec);
 end;
 
-function DosOpenVDD (Name: PChar; var Handle: THandle): cardinal; cdecl;
+function DosOpenVDD (Name: PAnsiChar; var Handle: THandle): cardinal; cdecl;
 external 'DOSCALLS' index 308;
 
 function DosRequestVDD (Handle: THandle; SGroup, Cmd: cardinal;
@@ -5671,7 +5671,7 @@ function DosProfile ...; cdecl;
 external 'DOSCALLS' index 377; - no documentation???
 *)
 
-function DosReplaceModule (OldModule, NewModule, BackupModule: PChar):
+function DosReplaceModule (OldModule, NewModule, BackupModule: PAnsiChar):
                                                                cardinal; cdecl;
 external 'DOSCALLS' index 417;
 

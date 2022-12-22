@@ -62,8 +62,8 @@ const
         y : longint;
         x : longint;
         flStyle : cardinal;
-        pszText : pchar;
-        pszClass : pchar;
+        pszText : PAnsiChar;
+        pszClass : PAnsiChar;
         hwndParent : cardinal;
        end;
        PCREATESTRUCT = ^CREATESTRUCT;
@@ -94,7 +94,7 @@ const
        WNDPARAMS = record
         fsStatus : cardinal;
         cchText : cardinal;
-        pszText : pchar;
+        pszText : PAnsiChar;
         cbPresParams : cardinal;
         pPresParams : pointer;
         cbCtlData : cardinal;
@@ -192,8 +192,8 @@ const
        PCONVCONTEXT = ^CONVCONTEXT;
        DDEINIT = record
         cb : cardinal;
-        pszAppName : pchar;
-        pszTopic : pchar;
+        pszAppName : PAnsiChar;
+        pszTopic : PAnsiChar;
         offConvContext : cardinal;
        end;
        PDDEINIT = ^DDEINIT;
@@ -341,7 +341,7 @@ const
 
 (* Type definitions for WinMessageBox2 *)
   MB2D = record
-    achText: array [0..MaxMB2DText] of char;
+    achText: array [0..MaxMB2DText] of AnsiChar;
     idButtons: cardinal;
     flStyle: cardinal;
   end;
@@ -409,55 +409,55 @@ type
   FOCAMETRICS=record    // foca
     ulIdentity: Cardinal;
     ulSize: Cardinal;
-    szFamilyname: Array[1..32] of Char;
-    szFacename: Array[1..32] of Char;
-    usRegistryId: System.integer;
-    usCodePage: System.integer;
-    yEmHeight: System.integer;
-    yXHeight: System.integer;
-    yMaxAscender: System.integer;
-    yMaxDescender: System.integer;
-    yLowerCaseAscent: System.integer;
-    yLowerCaseDescent: System.integer;
-    yInternalLeading: System.integer;
-    yExternalLeading: System.integer;
-    xAveCharWidth: System.integer;
-    xMaxCharInc: System.integer;
-    xEmInc: System.integer;
-    yMaxBaselineExt: System.integer;
-    sCharSlope: System.integer;
-    sInlineDir: System.integer;
-    sCharRot: System.integer;
+    szFamilyname: Array[1..32] of AnsiChar;
+    szFacename: Array[1..32] of AnsiChar;
+    usRegistryId: Integer;
+    usCodePage: Integer;
+    yEmHeight: Integer;
+    yXHeight: Integer;
+    yMaxAscender: Integer;
+    yMaxDescender: Integer;
+    yLowerCaseAscent: Integer;
+    yLowerCaseDescent: Integer;
+    yInternalLeading: Integer;
+    yExternalLeading: Integer;
+    xAveCharWidth: Integer;
+    xMaxCharInc: Integer;
+    xEmInc: Integer;
+    yMaxBaselineExt: Integer;
+    sCharSlope: Integer;
+    sInlineDir: Integer;
+    sCharRot: Integer;
     usWeightClass: Word;
     usWidthClass: Word;
-    xDeviceRes: System.integer;
-    yDeviceRes: System.integer;
-    usFirstChar: System.integer;
-    usLastChar: System.integer;
-    usDefaultChar: System.integer;
-    usBreakChar: System.integer;
-    usNominalPointSize: System.integer;
-    usMinimumPointSize: System.integer;
-    usMaximumPointSize: System.integer;
-    fsTypeFlags: System.integer;
-    fsDefn: System.integer;
-    fsSelectionFlags: System.integer;
-    fsCapabilities: System.integer;
-    ySubscriptXSize: System.integer;
-    ySubscriptYSize: System.integer;
-    ySubscriptXOffset: System.integer;
-    ySubscriptYOffset: System.integer;
-    ySuperscriptXSize: System.integer;
-    ySuperscriptYSize: System.integer;
-    ySuperscriptXOffset: System.integer;
-    ySuperscriptYOffset: System.integer;
-    yUnderscoreSize: System.integer;
-    yUnderscorePosition: System.integer;
-    yStrikeoutSize: System.integer;
-    yStrikeoutPosition: System.integer;
-    usKerningPairs: System.integer;
-    sFamilyClass: System.integer;
-    pszDeviceNameOffset: PChar;
+    xDeviceRes: Integer;
+    yDeviceRes: Integer;
+    usFirstChar: Integer;
+    usLastChar: Integer;
+    usDefaultChar: Integer;
+    usBreakChar: Integer;
+    usNominalPointSize: Integer;
+    usMinimumPointSize: Integer;
+    usMaximumPointSize: Integer;
+    fsTypeFlags: Integer;
+    fsDefn: Integer;
+    fsSelectionFlags: Integer;
+    fsCapabilities: Integer;
+    ySubscriptXSize: Integer;
+    ySubscriptYSize: Integer;
+    ySubscriptXOffset: Integer;
+    ySubscriptYOffset: Integer;
+    ySuperscriptXSize: Integer;
+    ySuperscriptYSize: Integer;
+    ySuperscriptXOffset: Integer;
+    ySuperscriptYOffset: Integer;
+    yUnderscoreSize: Integer;
+    yUnderscorePosition: Integer;
+    yStrikeoutSize: Integer;
+    yStrikeoutPosition: Integer;
+    usKerningPairs: Integer;
+    sFamilyClass: Integer;
+    pszDeviceNameOffset: PAnsiChar;
   end;
   PFOCAMETRICS=^FOCAMETRICS;
 
@@ -468,25 +468,25 @@ type
   FONTFILEMETRICS=record   // ffm
     ulIdentity: Cardinal;
     ulSize: Cardinal;
-    szFamilyname: Array[0..32-1] of Char;
-    szFacename: Array[0..32-1] of Char;
-    usRegistryId: System.integer;
-    usCodePage: System.integer;
-    yEmHeight: System.integer;
-    yXHeight: System.integer;
-    yMaxAscender: System.integer;
-    yMaxDescender: System.integer;
-    yLowerCaseAscent: System.integer;
-    yLowerCaseDescent: System.integer;
-    yInternalLeading: System.integer;
-    yExternalLeading: System.integer;
-    xAveCharWidth: System.integer;
-    xMaxCharInc: System.integer;
-    xEmInc: System.integer;
-    yMaxBaselineExt: System.integer;
-    sCharSlope: System.integer;
-    sInlineDir: System.integer;
-    sCharRot: System.integer;
+    szFamilyname: Array[0..32-1] of AnsiChar;
+    szFacename: Array[0..32-1] of AnsiChar;
+    usRegistryId: Integer;
+    usCodePage: Integer;
+    yEmHeight: Integer;
+    yXHeight: Integer;
+    yMaxAscender: Integer;
+    yMaxDescender: Integer;
+    yLowerCaseAscent: Integer;
+    yLowerCaseDescent: Integer;
+    yInternalLeading: Integer;
+    yExternalLeading: Integer;
+    xAveCharWidth: Integer;
+    xMaxCharInc: Integer;
+    xEmInc: Integer;
+    yMaxBaselineExt: Integer;
+    sCharSlope: Integer;
+    sInlineDir: Integer;
+    sCharRot: Integer;
     usWeightClass: Word;
     usWidthClass: Word;
     xDeviceRes: System.integer;
@@ -552,7 +552,7 @@ type
   FONTSIGNATURE=record    // fs
     ulIdentity: Cardinal;
     ulSize: Cardinal;
-    achSignature: Array[0..12-1] of Char;
+    achSignature: Array[0..12-1] of AnsiChar;
   end;
   PFONTSIGNATURE=^FONTSIGNATURE;
 
@@ -720,18 +720,18 @@ const
   //* MLM_SEARCH structure
   //*************************************************************************/
 type
-  MLE_SEARCHDATA=record         // search
-    cb: Word;                   // size of search spec structure
-    pchFind: PChar;             // string to search for
-    pchReplace: PChar;          // string to replace with
-    cchFind: System.integer;    // length of pchFindString
-    cchReplace: System.integer; // length of replace string
-    iptStart: IPT;              // point at which to start search
-                                // (negative indicates cursor pt)
-                                // becomes pt where string found
-    iptStop: IPT;               // point at which to stop search
-                                // (negative indicates EOT)
-    cchFound: Word;             // Length of found string at iptStart
+  MLE_SEARCHDATA=record // search
+    cb: Word;             // size of search spec structure
+    pchFind: PAnsiChar;       // string to search for
+    pchReplace: PAnsiChar;    // string to replace with
+    cchFind: Integer;     // length of pchFindString
+    cchReplace: Integer;  // length of replace string
+    iptStart: IPT;        // point at which to start search
+      // (negative indicates cursor pt)
+      // becomes pt where string found
+    iptStop: IPT;         // point at which to stop search
+      // (negative indicates EOT)
+    cchFound: Word;       // Length of found string at iptStart
   end;
   PMLE_SEARCHDATA=^MLE_SEARCHDATA;
 
@@ -3095,7 +3095,7 @@ const
        PMERR_SEG_OVFLOW = $5009;
        PMERR_PIC_DUP_FILENAME = $5010;
 
-    function WinRegisterClass(hab : cardinal;pszClassName : pchar;pfnWndProc : proc;flStyle,cbWindowData : cardinal) : longbool; cdecl;
+    function WinRegisterClass(hab : cardinal;pszClassName : PAnsiChar;pfnWndProc : proc;flStyle,cbWindowData : cardinal) : longbool; cdecl;
     function WinDefWindowProc(hwnd,msg : cardinal;mp1,mp2 : pointer) : pointer; cdecl;
     function WinDestroyWindow(hwnd : cardinal) : longbool; cdecl;
     function WinShowWindow(hwnd : cardinal;fShow : longbool) : longbool;  cdecl;
@@ -3117,15 +3117,15 @@ const
     function WinInitialize(flOptions : cardinal) : cardinal; cdecl;
     function WinTerminate(hab : cardinal) : longbool; cdecl;
     function WinQueryAnchorBlock(hwnd : cardinal) : cardinal; cdecl;
-    function WinCreateWindow(hwndParent : cardinal;pszClass,pszName : pchar;flStyle : cardinal;x,y,cx,cy : longint;hwndOwner,hwndInsertBehind,id : cardinal;pCtlData,pPresParams : pointer) : cardinal; cdecl;
-    function WinCreateWindow(hwndParent : cardinal;pszClass : cardinal;pszName : pchar;flStyle : cardinal;x,y,cx,cy : longint;hwndOwner,hwndInsertBehind,id : cardinal;pCtlData,pPresParams : pointer) : cardinal; cdecl;
-    function WinCreateWCWindow(hwndParent : cardinal;pszClass : cardinal;pszName : pchar;flStyle : cardinal;x,y,cx,cy : longint;hwndOwner,hwndInsertBehind,id : cardinal;pCtlData,pPresParams : pointer) : cardinal; cdecl;
+    function WinCreateWindow(hwndParent : cardinal;pszClass,pszName : PAnsiChar;flStyle : cardinal;x,y,cx,cy : longint;hwndOwner,hwndInsertBehind,id : cardinal;pCtlData,pPresParams : pointer) : cardinal; cdecl;
+    function WinCreateWindow(hwndParent : cardinal;pszClass : cardinal;pszName : PAnsiChar;flStyle : cardinal;x,y,cx,cy : longint;hwndOwner,hwndInsertBehind,id : cardinal;pCtlData,pPresParams : pointer) : cardinal; cdecl;
+    function WinCreateWCWindow(hwndParent : cardinal;pszClass : cardinal;pszName : PAnsiChar;flStyle : cardinal;x,y,cx,cy : longint;hwndOwner,hwndInsertBehind,id : cardinal;pCtlData,pPresParams : pointer) : cardinal; cdecl;
     function WinEnableWindow(hwnd : cardinal;fEnable : longbool) : longbool; cdecl;
     function WinIsWindowEnabled(hwnd : cardinal) : longbool; cdecl;
     function WinEnableWindowUpdate(hwnd : cardinal;fEnable : longbool) : longbool; cdecl;
     function WinIsWindowVisible(hwnd : cardinal) : longbool; cdecl;
-    function WinQueryWindowText(hwnd : cardinal;cchBufferMax : longint;pchBuffer : pchar) : longint; cdecl;
-    function WinSetWindowText(hwnd : cardinal;pszText : pchar) : longbool; cdecl;
+    function WinQueryWindowText(hwnd : cardinal;cchBufferMax : longint;pchBuffer : PAnsiChar) : longint; cdecl;
+    function WinSetWindowText(hwnd : cardinal;pszText : PAnsiChar) : longbool; cdecl;
     function WinQueryWindowTextLength(hwnd : cardinal) : longint; cdecl;
     function WinWindowFromID(hwndParent,id : cardinal) : cardinal; cdecl;
     function WinIsWindow(hab,hwnd : cardinal) : longbool; cdecl;
@@ -3152,17 +3152,17 @@ const
     function WinInvertRect(hps : cardinal;prcl : PRectl) : longbool; cdecl;
     function WinDrawBitmap(hpsDst,hbm : cardinal;var wrcSrc : TRectl;var ptlDst : POINTL;clrFore : longint;clrBack : longint;fl : cardinal) : longbool; cdecl;
     function WinDrawBitmap(hpsDst,hbm : cardinal;pwrcSrc : PRectl;pptlDst : PPOINTL;clrFore : longint;clrBack : longint;fl : cardinal) : longbool; cdecl;
-    function WinDrawText(hps : cardinal;cchText : longint;lpchText : pchar;var rcl : TRectl;clrFore,clrBack : longint;flCmd : cardinal) : longint; cdecl;
-    function WinDrawText(hps : cardinal;cchText : longint;lpchText : pchar;prcl : PRectl;clrFore,clrBack : longint;flCmd : cardinal) : longint; cdecl;
+    function WinDrawText(hps : cardinal;cchText : longint;lpchText : PAnsiChar;var rcl : TRectl;clrFore,clrBack : longint;flCmd : cardinal) : longint; cdecl;
+    function WinDrawText(hps : cardinal;cchText : longint;lpchText : PAnsiChar;prcl : PRectl;clrFore,clrBack : longint;flCmd : cardinal) : longint; cdecl;
     function WinDrawBorder(hps : cardinal;var rcl : TRectl;cx,cy : longint;clrFore,clrBack : longint;flCmd : cardinal) : longbool; cdecl;
     function WinDrawBorder(hps : cardinal;prcl : PRectl;cx,cy : longint;clrFore,clrBack : longint;flCmd : cardinal) : longbool; cdecl;
-    function WinLoadString(hab,hmod,id : cardinal;cchMax : longint;pchBuffer : pchar) : longint; cdecl;
-    function WinLoadMessage(hab,hmod,id : cardinal;cchMax : longint;pchBuffer : pchar) : longint; cdecl;
+    function WinLoadString(hab,hmod,id : cardinal;cchMax : longint;pchBuffer : PAnsiChar) : longint; cdecl;
+    function WinLoadMessage(hab,hmod,id : cardinal;cchMax : longint;pchBuffer : PAnsiChar) : longint; cdecl;
     function WinSetActiveWindow(hwndDesktop,hwnd : cardinal) : longbool; cdecl;
     function WinSubclassWindow(hwnd : cardinal;pfnwp : proc) : proc; cdecl;
-    function WinQueryClassName(hwnd : cardinal;cchMax : longint;pch : pchar) : longint; cdecl;
-    function WinQueryClassInfo(hab : cardinal;pszClassName : pchar;var _ClassInfo : TClassInfo) : longbool; cdecl;
-    function WinQueryClassInfo(hab : cardinal;pszClassName : pchar;_PClassInfo : PClassInfo) : longbool; cdecl;
+    function WinQueryClassName(hwnd : cardinal;cchMax : longint;pch : PAnsiChar) : longint; cdecl;
+    function WinQueryClassInfo(hab : cardinal;pszClassName : PAnsiChar;var _ClassInfo : TClassInfo) : longbool; cdecl;
+    function WinQueryClassInfo(hab : cardinal;pszClassName : PAnsiChar;_PClassInfo : PClassInfo) : longbool; cdecl;
     function WinQueryActiveWindow(hwndDesktop : cardinal) : cardinal; cdecl;
     function WinIsThreadActive(hab : cardinal) : longbool; cdecl;
     function WinQuerySysModalWindow(hwndDesktop : cardinal) : cardinal; cdecl;
@@ -3208,7 +3208,7 @@ const
     function WinPostMsg(hwnd,msg : cardinal;mp1,mp2 : pointer) : longbool; cdecl;
     function WinRegisterUserMsg(hab,msgid : cardinal;datatype1,dir1,datatype2,dir2,datatyper : longint) : longbool; cdecl;
     function WinRegisterUserDatatype(hab : cardinal;datatype,count : longint;var types : longint) : longbool; cdecl;
-    function WinSetMsgMode(hab : cardinal;classname : pchar;control : longint) : longbool; cdecl;
+    function WinSetMsgMode(hab : cardinal;classname : PAnsiChar;control : longint) : longbool; cdecl;
     function WinSetSynchroMode(hab : cardinal;mode : longint) : longbool;  cdecl;
     function WinInSendMsg(hab : cardinal) : longbool; cdecl;
     function WinBroadcastMsg(hwnd,msg : cardinal;mp1,mp2 : pointer;rgf : cardinal) : longbool; cdecl;
@@ -3223,7 +3223,7 @@ const
     function WinWaitMuxWaitSem(hmux,ulTimeout:cardinal;pulUser : PCardinal) : cardinal; cdecl;
     function WinPostQueueMsg(hmq,msg : cardinal;mp1,mp2 : pointer) : longbool; cdecl;
     function WinSetMsgInterest(hwnd,msg_class : cardinal;control : longint) : longbool; cdecl;
-    function WinSetClassMsgInterest(hab : cardinal;pszClassName : pchar;msg_class : cardinal;control : longint) : longbool; cdecl;
+    function WinSetClassMsgInterest(hab : cardinal;pszClassName : PAnsiChar;msg_class : cardinal;control : longint) : longbool; cdecl;
     function WinSetFocus(hwndDesktop,hwndSetFocus : cardinal) : longbool; cdecl;
     function WinFocusChange(hwndDesktop,hwndSetFocus,flFocusChange : cardinal) : longbool; cdecl;
     function WinSetCapture(hwndDesktop,hwnd : cardinal) : longbool; cdecl;
@@ -3243,31 +3243,31 @@ const
     function WinQueryDlgItemShort(hwndDlg,idItem : cardinal;var _Result : System.integer;fSigned : longbool) : longbool; cdecl;
     function WinQueryDlgItemShort(hwndDlg,idItem : cardinal;PResult : System.PInteger;fSigned : longbool) : longbool; cdecl;
     function WinSetDlgItemShort(hwndDlg,idItem : cardinal;usValue : word;fSigned : longbool) : longbool; cdecl;
-    function WinSetDlgItemText(hwndDlg,idItem : cardinal;pszText : pchar) : longbool; cdecl;
-    function WinQueryDlgItemText(hwndDlg,idItem : cardinal;cchBufferMax : longint;pchBuffer : pchar) : cardinal; cdecl;
+    function WinSetDlgItemText(hwndDlg,idItem : cardinal;pszText : PAnsiChar) : longbool; cdecl;
+    function WinQueryDlgItemText(hwndDlg,idItem : cardinal;cchBufferMax : longint;pchBuffer : PAnsiChar) : cardinal; cdecl;
     function WinQueryDlgItemTextLength(hwndDlg,idItem : cardinal) : longint; cdecl;
     function WinDefDlgProc(hwndDlg,msg : cardinal;mp1,mp2 : pointer) : pointer; cdecl;
     function WinAlarm(hwndDesktop,rgfType : cardinal) : longbool; cdecl;
-    function WinMessageBox(hwndParent,hwndOwner : cardinal;pszText,pszCaption : pchar;idWindow,flStyle : cardinal) : cardinal; cdecl;
+    function WinMessageBox(hwndParent,hwndOwner : cardinal;pszText,pszCaption : PAnsiChar;idWindow,flStyle : cardinal) : cardinal; cdecl;
 (*
-    function WinMessageBox2(hwndParent,hwndOwner: cardinal;pszText,pszCaption: PChar; idWindow: cardinal; MBInfo: PMB2Info): cardinal; cdecl;
+    function WinMessageBox2(hwndParent,hwndOwner: cardinal;pszText,pszCaption: PAnsiChar; idWindow: cardinal; MBInfo: PMB2Info): cardinal; cdecl;
 *)
     function WinProcessDlg(hwndDlg : cardinal) : cardinal; cdecl;
     function WinSendDlgItemMsg(hwndDlg,idItem,msg : cardinal;mp1,mp2 : pointer) : pointer; cdecl;
     function WinMapDlgPoints(hwndDlg : cardinal;var prgwptl : TPointL;cwpt : cardinal;fCalcWindowCoords : longbool) : longbool; cdecl;
     function WinMapDlgPoints(hwndDlg : cardinal;prgwptl : PPointL;cwpt : cardinal;fCalcWindowCoords : longbool) : longbool; cdecl;
     function WinEnumDlgItem(hwndDlg,hwnd,code : cardinal) : cardinal; cdecl;
-    function WinSubstituteStrings(hwnd : cardinal;pszSrc : pchar;cchDstMax : longint;pszDst : pchar) : longint; cdecl;
+    function WinSubstituteStrings(hwnd : cardinal;pszSrc : PAnsiChar;cchDstMax : longint;pszDst : PAnsiChar) : longint; cdecl;
     function WinCreateDlg(hwndParent,hwndOwner : cardinal;pfnDlgProc : proc;var dlgt : TDlgTemplate;pCreateParams : pointer) : cardinal; cdecl;
     function WinCreateDlg(hwndParent,hwndOwner : cardinal;pfnDlgProc : proc;pdlgt : PDlgTemplate;pCreateParams : pointer) : cardinal; cdecl;
     function WinLoadMenu(hwndFrame,hmod,idMenu : cardinal) : cardinal; cdecl;
     function WinCreateMenu(hwndParent : cardinal;lpmt : pointer) : cardinal; cdecl;
     function WinPopupMenu(hwndParent,hwndOwner,hwndMenu : cardinal;x,y,idItem : longint;fs : cardinal) : longbool; cdecl;
-    function WinCreateStdWindow(hwndParent,flStyle : cardinal;var flCreateFlags : cardinal;pszClientClass,pszTitle : pchar;styleClient,hmod,idResources : cardinal;var hwndClient : cardinal) : cardinal; cdecl;
-    function WinCreateStdWindow(hwndParent,flStyle : cardinal;pflCreateFlags : PCardinal;pszClientClass,pszTitle : pchar;styleClient,hmod,idResources : cardinal;phwndClient : PCardinal) : cardinal; cdecl;
+    function WinCreateStdWindow(hwndParent,flStyle : cardinal;var flCreateFlags : cardinal;pszClientClass,pszTitle : PAnsiChar;styleClient,hmod,idResources : cardinal;var hwndClient : cardinal) : cardinal; cdecl;
+    function WinCreateStdWindow(hwndParent,flStyle : cardinal;pflCreateFlags : PCardinal;pszClientClass,pszTitle : PAnsiChar;styleClient,hmod,idResources : cardinal;phwndClient : PCardinal) : cardinal; cdecl;
     function WinFlashWindow(hwndFrame : cardinal;fFlash : longbool) : longbool; cdecl;
-    function WinCreateFrameControls(hwndFrame : cardinal;var fcdata : TFrameCData;pszTitle : pchar) : longbool;  cdecl;
-    function WinCreateFrameControls(hwndFrame : cardinal;pfcdata : PFrameCData;pszTitle : pchar) : longbool;  cdecl;
+    function WinCreateFrameControls(hwndFrame : cardinal;var fcdata : TFrameCData;pszTitle : PAnsiChar) : longbool;  cdecl;
+    function WinCreateFrameControls(hwndFrame : cardinal;pfcdata : PFrameCData;pszTitle : PAnsiChar) : longbool;  cdecl;
     function WinCalcFrameRect(hwndFrame : cardinal;var rcl : TRectl;fClient : longbool) : longbool; cdecl;
     function WinCalcFrameRect(hwndFrame : cardinal;prcl : PRectl;fClient : longbool) : longbool; cdecl;
     function WinGetMinPosition(hwnd : cardinal;var _swp : TSWP;var pptl : POINTL) : longbool; cdecl;
@@ -3366,8 +3366,8 @@ const
     function WinReleaseHook(hab,hmq : cardinal;iHook : longint;pfnHook : pointer;hmod : cardinal) : longbool; cdecl;
     function WinCallMsgFilter(hab : cardinal;var _qmsg : TQMsg;msgf : cardinal) : longbool; cdecl;
     function WinCallMsgFilter(hab : cardinal;_pqmsg : PQMsg;msgf : cardinal) : longbool; cdecl;
-    function WinSetClassThunkProc(pszClassname : pchar;pfnThunkProc : pointer) : longbool; cdecl;
-    function WinQueryClassThunkProc(pszClassname : pchar) : pointer; cdecl;
+    function WinSetClassThunkProc(pszClassname : PAnsiChar;pfnThunkProc : pointer) : longbool; cdecl;
+    function WinQueryClassThunkProc(pszClassname : PAnsiChar) : pointer; cdecl;
     function WinSetWindowThunkProc(hwnd : cardinal;pfnThunkProc : pointer) : longbool; cdecl;
     function WinQueryWindowThunkProc(hwnd : cardinal) : pointer; cdecl;
     function WinQueryWindowModel(hwnd : cardinal) : longint; cdecl;
@@ -3375,36 +3375,36 @@ const
     function WinSetCp(hmq,idCodePage : cardinal) : longbool; cdecl;
     function WinQueryCpList(hab,ccpMax : cardinal;var prgcp : cardinal) : cardinal; cdecl;
     function WinQueryCpList(hab,ccpMax : cardinal;prgcp : PCardinal) : cardinal; cdecl;
-    function WinCpTranslateString(hab,cpSrc : cardinal;pszSrc : pchar;cpDst,cchDestMax : cardinal;pchDest : pchar) : longbool; cdecl;
+    function WinCpTranslateString(hab,cpSrc : cardinal;pszSrc : PAnsiChar;cpDst,cchDestMax : cardinal;pchDest : PAnsiChar) : longbool; cdecl;
     function WinCpTranslateChar(hab,cpSrc : cardinal;chSrc : byte;cpDst : cardinal) : byte; cdecl;
-    function WinUpper(hab,idcp,idcc : cardinal;psz : pchar) : cardinal; cdecl;
+    function WinUpper(hab,idcp,idcc : cardinal;psz : PAnsiChar) : cardinal; cdecl;
     function WinUpperChar(hab,idcp,idcc,c : cardinal) : cardinal; cdecl;
-    function WinNextChar(hab,idcp,idcc : cardinal;psz : pchar) : pchar; cdecl;
-    function WinPrevChar(hab,idcp,idcc : cardinal;pszStart,psz : pchar) : pchar; cdecl;
-    function WinCompareStrings(hab,idcp,idcc : cardinal;psz1,psz2 : pchar;reserved : cardinal) : cardinal; cdecl;
+    function WinNextChar(hab,idcp,idcc : cardinal;psz : PAnsiChar) : PAnsiChar; cdecl;
+    function WinPrevChar(hab,idcp,idcc : cardinal;pszStart,psz : PAnsiChar) : PAnsiChar; cdecl;
+    function WinCompareStrings(hab,idcp,idcc : cardinal;psz1,psz2 : PAnsiChar;reserved : cardinal) : cardinal; cdecl;
     function WinCreateAtomTable(cbInitial,cBuckets : cardinal) : cardinal; cdecl;
     function WinDestroyAtomTable(hAtomTbl : cardinal) : cardinal; cdecl;
-    function WinAddAtom(hAtomTbl : cardinal;pszAtomName : pchar) : cardinal; cdecl;
-    function WinFindAtom(hAtomTbl : cardinal;pszAtomName : pchar) : cardinal; cdecl;
+    function WinAddAtom(hAtomTbl : cardinal;pszAtomName : PAnsiChar) : cardinal; cdecl;
+    function WinFindAtom(hAtomTbl : cardinal;pszAtomName : PAnsiChar) : cardinal; cdecl;
     function WinDeleteAtom(hAtomTbl,atom : cardinal) : cardinal; cdecl;
     function WinQueryAtomUsage(hAtomTbl,atom : cardinal) : cardinal; cdecl;
     function WinQueryAtomLength(hAtomTbl,atom : cardinal) : cardinal; cdecl;
-    function WinQueryAtomName(hAtomTbl,atom : cardinal;pchBuffer : pchar;cchBufferMax : cardinal) : cardinal; cdecl;
+    function WinQueryAtomName(hAtomTbl,atom : cardinal;pchBuffer : PAnsiChar;cchBufferMax : cardinal) : cardinal; cdecl;
     function WinGetLastError(hab : cardinal) : cardinal; cdecl;
     function WinGetErrorInfo(hab : cardinal) : PERRINFO; cdecl;
     function WinFreeErrorInfo(var perrinfo : ERRINFO) : longbool; cdecl;
     {DDE Functions}
-    function WinDdeInitiate(hwndClient : cardinal;pszAppName,pszTopicName : pchar;var cctxt : TConvContext) : longbool; cdecl;
-    function WinDdeInitiate(hwndClient : cardinal;pszAppName,pszTopicName : pchar;pcctxt : PConvContext) : longbool; cdecl;
-    function WinDdeRespond(hwndClient,hwndServer : cardinal;pszAppName,pszTopicName : pchar;var cctxt : TConvContext) : pointer; cdecl;
-    function WinDdeRespond(hwndClient,hwndServer : cardinal;pszAppName,pszTopicName : pchar;pcctxt : PConvContext) : pointer; cdecl;
+    function WinDdeInitiate(hwndClient : cardinal;pszAppName,pszTopicName : PAnsiChar;var cctxt : TConvContext) : longbool; cdecl;
+    function WinDdeInitiate(hwndClient : cardinal;pszAppName,pszTopicName : PAnsiChar;pcctxt : PConvContext) : longbool; cdecl;
+    function WinDdeRespond(hwndClient,hwndServer : cardinal;pszAppName,pszTopicName : PAnsiChar;var cctxt : TConvContext) : pointer; cdecl;
+    function WinDdeRespond(hwndClient,hwndServer : cardinal;pszAppName,pszTopicName : PAnsiChar;pcctxt : PConvContext) : pointer; cdecl;
     function WinDdePostMsg(hwndTo,hwndFrom,wm : cardinal;var ddest : TDDEStruct;flOptions : cardinal) : longbool; cdecl;
     function WinDdePostMsg(hwndTo,hwndFrom,wm : cardinal;pddest : PDDEStruct;flOptions : cardinal) : longbool; cdecl;
     {Library related functions}
     function WinDeleteProcedure(hab : cardinal;wndproc : proc) : longbool; cdecl;
     function WinDeleteLibrary(hab,libhandle : cardinal) : longbool; cdecl;
-    function WinLoadProcedure(hab,libhandle : cardinal;procname : pchar) : proc; cdecl;
-    function WinLoadLibrary(hab : cardinal;libname : pchar) : cardinal; cdecl;
+    function WinLoadProcedure(hab,libhandle : cardinal;procname : PAnsiChar) : proc; cdecl;
+    function WinLoadLibrary(hab : cardinal;libname : PAnsiChar) : cardinal; cdecl;
     function WinSetDesktopBkgnd(hwndDesktop : cardinal;var dskNew : TDesktop) : cardinal; cdecl;
     function WinSetDesktopBkgnd(hwndDesktop : cardinal;pdskNew : PDesktop) : cardinal; cdecl;
     function WinQueryDesktopBkgnd(hwndDesktop : cardinal;var dsk : TDesktop) : longbool; cdecl;
@@ -3447,7 +3447,7 @@ Function WinSetErrorInfo(ErrID: ErrorID; Flags: Cardinal; Params: Array of const
 
   implementation
 
-    function WinRegisterClass(hab : cardinal;pszClassName : pchar;pfnWndProc : proc;flStyle,cbWindowData : cardinal) : longbool; cdecl;external 'pmwin' index 926;
+    function WinRegisterClass(hab : cardinal;pszClassName : PAnsiChar;pfnWndProc : proc;flStyle,cbWindowData : cardinal) : longbool; cdecl;external 'pmwin' index 926;
     function WinDefWindowProc(hwnd,msg : cardinal;mp1,mp2 : pointer) : pointer; cdecl;external 'pmwin' index 911;
     function WinDestroyWindow(hwnd : cardinal) : longbool; cdecl;external 'pmwin' index 728;
     function WinShowWindow(hwnd : cardinal;fShow : longbool) : longbool; cdecl;external 'pmwin' index 883;
@@ -3469,15 +3469,15 @@ Function WinSetErrorInfo(ErrID: ErrorID; Flags: Cardinal; Params: Array of const
     function WinInitialize(flOptions : cardinal) : cardinal; cdecl;external 'pmwin' index 763;
     function WinTerminate(hab : cardinal) : longbool; cdecl;external 'pmwin' index 888;
     function WinQueryAnchorBlock(hwnd : cardinal) : cardinal; cdecl;external 'pmwin' index 800;
-    function WinCreateWindow(hwndParent : cardinal;pszClass,pszName : pchar;flStyle : cardinal;x,y,cx,cy : longint;hwndOwner,hwndInsertBehind,id : cardinal;pCtlData,pPresParams : pointer) : cardinal; cdecl;external 'pmwin' index 909;
-    function WinCreateWindow(hwndParent : cardinal;pszClass : cardinal;pszName : pchar;flStyle : cardinal;x,y,cx,cy : longint;hwndOwner,hwndInsertBehind,id : cardinal;pCtlData,pPresParams : pointer) : cardinal; cdecl;external 'pmwin' index 909;
-    function WinCreateWCWindow(hwndParent : cardinal;pszClass : cardinal;pszName : pchar;flStyle : cardinal;x,y,cx,cy : longint;hwndOwner,hwndInsertBehind,id : cardinal;pCtlData,pPresParams : pointer) : cardinal; cdecl;external 'pmwin' index 909;
+    function WinCreateWindow(hwndParent : cardinal;pszClass,pszName : PAnsiChar;flStyle : cardinal;x,y,cx,cy : longint;hwndOwner,hwndInsertBehind,id : cardinal;pCtlData,pPresParams : pointer) : cardinal; cdecl;external 'pmwin' index 909;
+    function WinCreateWindow(hwndParent : cardinal;pszClass : cardinal;pszName : PAnsiChar;flStyle : cardinal;x,y,cx,cy : longint;hwndOwner,hwndInsertBehind,id : cardinal;pCtlData,pPresParams : pointer) : cardinal; cdecl;external 'pmwin' index 909;
+    function WinCreateWCWindow(hwndParent : cardinal;pszClass : cardinal;pszName : PAnsiChar;flStyle : cardinal;x,y,cx,cy : longint;hwndOwner,hwndInsertBehind,id : cardinal;pCtlData,pPresParams : pointer) : cardinal; cdecl;external 'pmwin' index 909;
     function WinEnableWindow(hwnd : cardinal;fEnable : longbool) : longbool; cdecl;external 'pmwin' index 735;
     function WinIsWindowEnabled(hwnd : cardinal) : longbool; cdecl;external 'pmwin' index 773;
     function WinEnableWindowUpdate(hwnd : cardinal;fEnable : longbool) : longbool; cdecl;external 'pmwin' index 736;
     function WinIsWindowVisible(hwnd : cardinal) : longbool; cdecl;external 'pmwin' index 775;
-    function WinQueryWindowText(hwnd : cardinal;cchBufferMax : longint; pchBuffer : pchar) : longint; cdecl;external 'pmwin' index 841;
-    function WinSetWindowText(hwnd : cardinal;pszText : pchar) : longbool; cdecl;external 'pmwin' index 877;
+    function WinQueryWindowText(hwnd : cardinal;cchBufferMax : longint; pchBuffer : PAnsiChar) : longint; cdecl;external 'pmwin' index 841;
+    function WinSetWindowText(hwnd : cardinal;pszText : PAnsiChar) : longbool; cdecl;external 'pmwin' index 877;
     function WinQueryWindowTextLength(hwnd : cardinal) : longint; cdecl;external 'pmwin' index 842;
     function WinWindowFromID(hwndParent,id : cardinal) : cardinal; cdecl;external 'pmwin' index 899;
     function WinIsWindow(hab,hwnd : cardinal) : longbool; cdecl;external 'pmwin' index 772;
@@ -3504,17 +3504,17 @@ Function WinSetErrorInfo(ErrID: ErrorID; Flags: Cardinal; Params: Array of const
     function WinInvertRect(hps : cardinal;prcl : PRectl) : longbool; cdecl;external 'pmwin' index 767;
     function WinDrawBitmap(hpsDst,hbm : cardinal;var wrcSrc : TRectl;var ptlDst : TPointL;clrFore,clrBack : longint;fl : cardinal) : longbool; cdecl;external 'pmwin' index 730;
     function WinDrawBitmap(hpsDst,hbm : cardinal;pwrcSrc : PRectl;pptlDst : PPointL;clrFore,clrBack : longint;fl : cardinal) : longbool; cdecl;external 'pmwin' index 730;
-    function WinDrawText(hps : cardinal;cchText : longint;lpchText : pchar;var rcl : TRectl;clrFore,clrBack : longint;flCmd : cardinal) : longint; cdecl;external 'pmwin' index 913;
-    function WinDrawText(hps : cardinal;cchText : longint;lpchText : pchar;prcl : PRectl;clrFore,clrBack : longint;flCmd : cardinal) : longint; cdecl;external 'pmwin' index 913;
+    function WinDrawText(hps : cardinal;cchText : longint;lpchText : PAnsiChar;var rcl : TRectl;clrFore,clrBack : longint;flCmd : cardinal) : longint; cdecl;external 'pmwin' index 913;
+    function WinDrawText(hps : cardinal;cchText : longint;lpchText : PAnsiChar;prcl : PRectl;clrFore,clrBack : longint;flCmd : cardinal) : longint; cdecl;external 'pmwin' index 913;
     function WinDrawBorder(hps : cardinal;var rcl : TRectl;cx,cy,clrFore,clrBack : longint;flCmd : cardinal) : longbool; cdecl;external 'pmwin' index 731;
     function WinDrawBorder(hps : cardinal;prcl : PRectl;cx,cy,clrFore,clrBack : longint;flCmd : cardinal) : longbool; cdecl;external 'pmwin' index 731;
-    function WinLoadString(hab,hmod,id : cardinal;cchMax : longint;pchBuffer : pchar) : longint; cdecl;external 'pmwin' index 781;
-    function WinLoadMessage(hab,hmod,id : cardinal;cchMax : longint;pchBuffer : pchar) : longint; cdecl;external 'pmwin' index 779;
+    function WinLoadString(hab,hmod,id : cardinal;cchMax : longint;pchBuffer : PAnsiChar) : longint; cdecl;external 'pmwin' index 781;
+    function WinLoadMessage(hab,hmod,id : cardinal;cchMax : longint;pchBuffer : PAnsiChar) : longint; cdecl;external 'pmwin' index 779;
     function WinSetActiveWindow(hwndDesktop,hwnd : cardinal) : longbool; cdecl;external 'pmwin' index 851;
     function WinSubclassWindow(hwnd : cardinal;pfnwp : proc) : proc; cdecl;external 'pmwin' index 929;
-    function WinQueryClassName(hwnd : cardinal;cchMax : longint; pch : pchar) : longint; cdecl;external 'pmwin' index 805;
-    function WinQueryClassInfo(hab : cardinal;pszClassName : pchar;var _ClassInfo : TClassInfo) : longbool; cdecl;external 'pmwin' index 925;
-    function WinQueryClassInfo(hab : cardinal;pszClassName : pchar;_pClassInfo : PClassInfo) : longbool; cdecl;external 'pmwin' index 925;
+    function WinQueryClassName(hwnd : cardinal;cchMax : longint; pch : PAnsiChar) : longint; cdecl;external 'pmwin' index 805;
+    function WinQueryClassInfo(hab : cardinal;pszClassName : PAnsiChar;var _ClassInfo : TClassInfo) : longbool; cdecl;external 'pmwin' index 925;
+    function WinQueryClassInfo(hab : cardinal;pszClassName : PAnsiChar;_pClassInfo : PClassInfo) : longbool; cdecl;external 'pmwin' index 925;
     function WinQueryActiveWindow(hwndDesktop : cardinal) : cardinal; cdecl;external 'pmwin' index 799;
     function WinIsThreadActive(hab : cardinal) : longbool; cdecl;external 'pmwin' index 771;
     function WinQuerySysModalWindow(hwndDesktop : cardinal) : cardinal; cdecl;external 'pmwin' index 827;
@@ -3560,7 +3560,7 @@ Function WinSetErrorInfo(ErrID: ErrorID; Flags: Cardinal; Params: Array of const
     function WinPostMsg(hwnd,msg : cardinal;mp1,mp2 : pointer) : longbool; cdecl;external 'pmwin' index 919;
     function WinRegisterUserMsg(hab,msgid : cardinal;datatype1,dir1,datatype2,dir2,datatyper : longint) : longbool; cdecl;external 'pmwin' index 846;
     function WinRegisterUserDatatype(hab : cardinal;datatype,count : longint;var types : longint) : longbool; cdecl;external 'pmwin' index 845;
-    function WinSetMsgMode(hab : cardinal;classname :pchar;control : longint) : longbool; cdecl;external 'pmwin' index 862;
+    function WinSetMsgMode(hab : cardinal;classname :PAnsiChar;control : longint) : longbool; cdecl;external 'pmwin' index 862;
     function WinSetSynchroMode(hab : cardinal;mode : longint) : longbool; cdecl;external 'pmwin' index 870;
     function WinInSendMsg(hab : cardinal) : longbool; cdecl;external 'pmwin' index 761;
     function WinBroadcastMsg(hwnd,msg : cardinal;mp1,mp2 : pointer;rgf : cardinal) : longbool; cdecl;external 'pmwin' index 901;
@@ -3575,7 +3575,7 @@ Function WinSetErrorInfo(ErrID: ErrorID; Flags: Cardinal; Params: Array of const
     function WinWaitMuxWaitSem(hmux,ulTimeout : cardinal;pulUser : PCardinal) : cardinal; cdecl;external 'pmwin' index 980;
     function WinPostQueueMsg(hmq,msg : cardinal;mp1,mp2 : pointer) : longbool; cdecl;external 'pmwin' index 902;
     function WinSetMsgInterest(hwnd,msg_class : cardinal;control : longint) : longbool; cdecl;external 'pmwin' index 861;
-    function WinSetClassMsgInterest(hab : cardinal;pszClassName : pchar;msg_class : cardinal;control : longint) : longbool; cdecl;external 'pmwin' index 853;
+    function WinSetClassMsgInterest(hab : cardinal;pszClassName : PAnsiChar;msg_class : cardinal;control : longint) : longbool; cdecl;external 'pmwin' index 853;
     function WinSetFocus(hwndDesktop,hwndSetFocus : cardinal) : longbool; cdecl;external 'pmwin' index 860;
     function WinFocusChange(hwndDesktop,hwndSetFocus,flFocusChange : cardinal) : longbool; cdecl;external 'pmwin' index 746;
     function WinSetCapture(hwndDesktop,hwnd : cardinal) : longbool; cdecl;external 'pmwin' index 852;
@@ -3595,31 +3595,31 @@ Function WinSetErrorInfo(ErrID: ErrorID; Flags: Cardinal; Params: Array of const
     function WinQueryDlgItemShort(hwndDlg,idItem : cardinal;var _Result : System.integer;fSigned : longbool) : longbool; cdecl;external 'pmwin' index 814;
     function WinQueryDlgItemShort(hwndDlg,idItem : cardinal;pResult : System.PInteger;fSigned : longbool) : longbool; cdecl;external 'pmwin' index 814;
     function WinSetDlgItemShort(hwndDlg,idItem : cardinal;usValue : word;fSigned : longbool) : longbool; cdecl;external 'pmwin' index 858;
-    function WinSetDlgItemText(hwndDlg,idItem : cardinal;pszText : pchar) : longbool; cdecl;external 'pmwin' index 859;
-    function WinQueryDlgItemText(hwndDlg,idItem : cardinal;cchBufferMax : longint;pchBuffer : pchar) : cardinal; cdecl;external 'pmwin' index 815;
+    function WinSetDlgItemText(hwndDlg,idItem : cardinal;pszText : PAnsiChar) : longbool; cdecl;external 'pmwin' index 859;
+    function WinQueryDlgItemText(hwndDlg,idItem : cardinal;cchBufferMax : longint;pchBuffer : PAnsiChar) : cardinal; cdecl;external 'pmwin' index 815;
     function WinQueryDlgItemTextLength(hwndDlg,idItem : cardinal) : longint; cdecl;external 'pmwin' index 816;
     function WinDefDlgProc(hwndDlg,msg : cardinal;mp1,mp2 : pointer) : pointer; cdecl;external 'pmwin' index 910;
     function WinAlarm(hwndDesktop,rgfType : cardinal) : longbool; cdecl;external 'pmwin' index 701;
-    function WinMessageBox(hwndParent,hwndOwner : cardinal;pszText,pszCaption : pchar;idWindow,flStyle : cardinal) : cardinal; cdecl;external 'pmwin' index 789;
+    function WinMessageBox(hwndParent,hwndOwner : cardinal;pszText,pszCaption : PAnsiChar;idWindow,flStyle : cardinal) : cardinal; cdecl;external 'pmwin' index 789;
 (* Only available in later OS/2 versions probably???
-    function WinMessageBox2(hwndParent,hwndOwner: cardinal;pszText,pszCaption: PChar; idWindow: cardinal; MBInfo: PMB2Info): cardinal; cdecl; external 'pmwin' index 1015;
+    function WinMessageBox2(hwndParent,hwndOwner: cardinal;pszText,pszCaption: PAnsiChar; idWindow: cardinal; MBInfo: PMB2Info): cardinal; cdecl; external 'pmwin' index 1015;
 *)
     function WinProcessDlg(hwndDlg : cardinal) : cardinal; cdecl;external 'pmwin' index 796;
     function WinSendDlgItemMsg(hwndDlg,idItem,msg : cardinal;mp1,mp2 : pointer) : pointer; cdecl;external 'pmwin' index 903;
     function WinMapDlgPoints(hwndDlg : cardinal;var prgwptl : TPointL;cwpt : cardinal;fCalcWindowCoords : longbool) : longbool; cdecl;external 'pmwin' index 787;
     function WinMapDlgPoints(hwndDlg : cardinal;prgwptl : PPointL;cwpt : cardinal;fCalcWindowCoords : longbool) : longbool; cdecl;external 'pmwin' index 787;
     function WinEnumDlgItem(hwndDlg,hwnd,code : cardinal) : cardinal; cdecl;external 'pmwin' index 740;
-    function WinSubstituteStrings(hwnd : cardinal;pszSrc : pchar;cchDstMax : longint;pszDst : pchar) : longint; cdecl;external 'pmwin' index 886;
+    function WinSubstituteStrings(hwnd : cardinal;pszSrc : PAnsiChar;cchDstMax : longint;pszDst : PAnsiChar) : longint; cdecl;external 'pmwin' index 886;
     function WinCreateDlg(hwndParent,hwndOwner : cardinal;pfnDlgProc : proc;var dlgt : TDlgTemplate;pCreateParams : pointer) : cardinal; cdecl;external 'pmwin' index 922;
     function WinCreateDlg(hwndParent,hwndOwner : cardinal;pfnDlgProc : proc;pdlgt : PDlgTemplate;pCreateParams : pointer) : cardinal; cdecl;external 'pmwin' index 922;
     function WinLoadMenu(hwndFrame,hmod,idMenu : cardinal) : cardinal; cdecl;external 'pmwin' index 778;
     function WinCreateMenu(hwndParent : cardinal;lpmt : pointer) : cardinal; cdecl;external 'pmwin' index 907;
     function WinPopupMenu(hwndParent,hwndOwner,hwndMenu : cardinal;x,y,idItem : longint;fs : cardinal) : longbool; cdecl;external 'pmwin' index 937;
-    function WinCreateStdWindow(hwndParent,flStyle : cardinal;var flCreateFlags : cardinal;pszClientClass,pszTitle : pchar;styleClient,hmod,idResources : cardinal;var hwndClient : cardinal) : cardinal; cdecl;external 'pmwin' index 908;
-    function WinCreateStdWindow(hwndParent,flStyle : cardinal;pflCreateFlags : PCardinal;pszClientClass,pszTitle : pchar;styleClient,hmod,idResources : cardinal;phwndClient : PCardinal) : cardinal; cdecl;external 'pmwin' index 908;
+    function WinCreateStdWindow(hwndParent,flStyle : cardinal;var flCreateFlags : cardinal;pszClientClass,pszTitle : PAnsiChar;styleClient,hmod,idResources : cardinal;var hwndClient : cardinal) : cardinal; cdecl;external 'pmwin' index 908;
+    function WinCreateStdWindow(hwndParent,flStyle : cardinal;pflCreateFlags : PCardinal;pszClientClass,pszTitle : PAnsiChar;styleClient,hmod,idResources : cardinal;phwndClient : PCardinal) : cardinal; cdecl;external 'pmwin' index 908;
     function WinFlashWindow(hwndFrame : cardinal;fFlash : longbool) : longbool; cdecl;external 'pmwin' index 745;
-    function WinCreateFrameControls(hwndFrame : cardinal;var fcdata : TFrameCData;pszTitle : pchar) : longbool; cdecl;external 'pmwin' index 906;
-    function WinCreateFrameControls(hwndFrame : cardinal;pfcdata : PFrameCData;pszTitle : pchar) : longbool; cdecl;external 'pmwin' index 906;
+    function WinCreateFrameControls(hwndFrame : cardinal;var fcdata : TFrameCData;pszTitle : PAnsiChar) : longbool; cdecl;external 'pmwin' index 906;
+    function WinCreateFrameControls(hwndFrame : cardinal;pfcdata : PFrameCData;pszTitle : PAnsiChar) : longbool; cdecl;external 'pmwin' index 906;
     function WinCalcFrameRect(hwndFrame : cardinal;var rcl : TRectl;fClient : longbool) : longbool; cdecl;external 'pmwin' index 704;
     function WinCalcFrameRect(hwndFrame : cardinal;prcl : PRectl;fClient : longbool) : longbool; cdecl;external 'pmwin' index 704;
     function WinGetMinPosition(hwnd : cardinal;var _swp : TSWP;var pptl : POINTL) : longbool; cdecl;external 'pmwin' index 755;
@@ -3718,8 +3718,8 @@ Function WinSetErrorInfo(ErrID: ErrorID; Flags: Cardinal; Params: Array of const
     function WinReleaseHook(hab,hmq : cardinal;iHook : longint;pfnHook : pointer;hmod : cardinal) : longbool; cdecl;external 'pmwin' index 927;
     function WinCallMsgFilter(hab : cardinal;var _qmsg : TQMsg;msgf : cardinal) : longbool; cdecl;external 'pmwin' index 905;
     function WinCallMsgFilter(hab : cardinal;_pqmsg : PQMsg;msgf : cardinal) : longbool; cdecl;external 'pmwin' index 905;
-    function WinSetClassThunkProc(pszClassname : pchar;pfnThunkProc : pointer) : longbool; cdecl;external 'pmwin' index 959;
-    function WinQueryClassThunkProc(pszClassname : pchar) : pointer; cdecl;external 'pmwin' index 960;
+    function WinSetClassThunkProc(pszClassname : PAnsiChar;pfnThunkProc : pointer) : longbool; cdecl;external 'pmwin' index 959;
+    function WinQueryClassThunkProc(pszClassname : PAnsiChar) : pointer; cdecl;external 'pmwin' index 960;
     function WinSetWindowThunkProc(hwnd : cardinal;pfnThunkProc : pointer) : longbool; cdecl;external 'pmwin' index 961;
     function WinQueryWindowThunkProc(hwnd : cardinal) : pointer; cdecl;external 'pmwin' index 962;
     function WinQueryWindowModel(hwnd : cardinal) : longint; cdecl;external 'pmwin' index 934;
@@ -3727,34 +3727,34 @@ Function WinSetErrorInfo(ErrID: ErrorID; Flags: Cardinal; Params: Array of const
     function WinSetCp(hmq,idCodePage : cardinal) : longbool; cdecl;external 'pmwin' index 857;
     function WinQueryCpList(hab,ccpMax : cardinal;var prgcp : cardinal) : cardinal; cdecl;external 'pmwin' index 811;
     function WinQueryCpList(hab,ccpMax : cardinal;prgcp : PCardinal) : cardinal; cdecl;external 'pmwin' index 811;
-    function WinCpTranslateString(hab,cpSrc : cardinal;pszSrc : pchar;cpDst,cchDestMax : cardinal;pchDest : pchar) : longbool; cdecl;external 'pmwin' index 712;
+    function WinCpTranslateString(hab,cpSrc : cardinal;pszSrc : PAnsiChar;cpDst,cchDestMax : cardinal;pchDest : PAnsiChar) : longbool; cdecl;external 'pmwin' index 712;
     function WinCpTranslateChar(hab,cpSrc : cardinal;chSrc : byte;cpDst : cardinal) : byte; cdecl;external 'pmwin' index 711;
-    function WinUpper(hab,idcp,idcc : cardinal;psz : pchar) : cardinal; cdecl;external 'pmwin' index 893;
+    function WinUpper(hab,idcp,idcc : cardinal;psz : PAnsiChar) : cardinal; cdecl;external 'pmwin' index 893;
     function WinUpperChar(hab,idcp,idcc,c : cardinal) : cardinal; cdecl;external 'pmwin' index 894;
-    function WinNextChar(hab,idcp,idcc : cardinal;psz : pchar) : pchar; cdecl;external 'pmwin' index 791;
-    function WinPrevChar(hab,idcp,idcc : cardinal;pszStart,psz : pchar) : pchar; cdecl;external 'pmwin' index 795;
-    function WinCompareStrings(hab,idcp,idcc : cardinal;psz1,psz2 : pchar;reserved : cardinal) : cardinal; cdecl;external 'pmwin' index 708;
+    function WinNextChar(hab,idcp,idcc : cardinal;psz : PAnsiChar) : PAnsiChar; cdecl;external 'pmwin' index 791;
+    function WinPrevChar(hab,idcp,idcc : cardinal;pszStart,psz : PAnsiChar) : PAnsiChar; cdecl;external 'pmwin' index 795;
+    function WinCompareStrings(hab,idcp,idcc : cardinal;psz1,psz2 : PAnsiChar;reserved : cardinal) : cardinal; cdecl;external 'pmwin' index 708;
     function WinCreateAtomTable(cbInitial,cBuckets : cardinal) : cardinal; cdecl;external 'pmwin' index 714;
     function WinDestroyAtomTable(hAtomTbl : cardinal) : cardinal; cdecl;external 'pmwin' index 724;
-    function WinAddAtom(hAtomTbl : cardinal;pszAtomName : pchar) : cardinal; cdecl;external 'pmwin' index 700;
-    function WinFindAtom(hAtomTbl : cardinal;pszAtomName : pchar) : cardinal; cdecl;external 'pmwin' index 744;
+    function WinAddAtom(hAtomTbl : cardinal;pszAtomName : PAnsiChar) : cardinal; cdecl;external 'pmwin' index 700;
+    function WinFindAtom(hAtomTbl : cardinal;pszAtomName : PAnsiChar) : cardinal; cdecl;external 'pmwin' index 744;
     function WinDeleteAtom(hAtomTbl,atom : cardinal) : cardinal; cdecl;external 'pmwin' index 721;
     function WinQueryAtomUsage(hAtomTbl,atom : cardinal) : cardinal; cdecl;external 'pmwin' index 803;
     function WinQueryAtomLength(hAtomTbl,atom : cardinal) : cardinal; cdecl;external 'pmwin' index 801;
-    function WinQueryAtomName(hAtomTbl,atom : cardinal;pchBuffer : pchar;cchBufferMax : cardinal) : cardinal; cdecl;external 'pmwin' index 802;
+    function WinQueryAtomName(hAtomTbl,atom : cardinal;pchBuffer : PAnsiChar;cchBufferMax : cardinal) : cardinal; cdecl;external 'pmwin' index 802;
     function WinGetLastError(hab : cardinal) : cardinal; cdecl;external 'pmwin' index 753;
     function WinGetErrorInfo(hab : cardinal) : PERRINFO; cdecl;external 'pmwin' index 751;
     function WinFreeErrorInfo(var perrinfo : ERRINFO) : longbool; cdecl;external 'pmwin' index 748;
-    function WinDdeInitiate(hwndClient : cardinal;pszAppName,pszTopicName : pchar;var cctxt : TConvContext) : longbool; cdecl;external 'pmwin' index 718;
-    function WinDdeInitiate(hwndClient : cardinal;pszAppName,pszTopicName : pchar;pcctxt : PConvContext) : longbool; cdecl;external 'pmwin' index 718;
-    function WinDdeRespond(hwndClient,hwndServer : cardinal;pszAppName,pszTopicName : pchar;var cctxt : TConvContext) : pointer; cdecl;external 'pmwin' index 720;
-    function WinDdeRespond(hwndClient,hwndServer : cardinal;pszAppName,pszTopicName : pchar;pcctxt : PConvContext) : pointer; cdecl;external 'pmwin' index 720;
+    function WinDdeInitiate(hwndClient : cardinal;pszAppName,pszTopicName : PAnsiChar;var cctxt : TConvContext) : longbool; cdecl;external 'pmwin' index 718;
+    function WinDdeInitiate(hwndClient : cardinal;pszAppName,pszTopicName : PAnsiChar;pcctxt : PConvContext) : longbool; cdecl;external 'pmwin' index 718;
+    function WinDdeRespond(hwndClient,hwndServer : cardinal;pszAppName,pszTopicName : PAnsiChar;var cctxt : TConvContext) : pointer; cdecl;external 'pmwin' index 720;
+    function WinDdeRespond(hwndClient,hwndServer : cardinal;pszAppName,pszTopicName : PAnsiChar;pcctxt : PConvContext) : pointer; cdecl;external 'pmwin' index 720;
     function WinDdePostMsg(hwndTo,hwndFrom,wm : cardinal;var ddest : DDEStruct;flOptions : cardinal) : longbool; cdecl;external 'pmwin' index 719;
     function WinDdePostMsg(hwndTo,hwndFrom,wm : cardinal;pddest : PDDEStruct;flOptions : cardinal) : longbool; cdecl;external 'pmwin' index 719;
     function WinDeleteProcedure(hab : cardinal;wndproc : proc) : longbool; cdecl;external 'pmwin' index 987;
     function WinDeleteLibrary(hab,libhandle : cardinal) : longbool; cdecl;external 'pmwin' index 722;
-    function WinLoadProcedure(hab,libhandle : cardinal;procname : pchar) : proc; cdecl;external 'pmwin' index 986;
-    function WinLoadLibrary(hab : cardinal;libname : pchar) : cardinal; cdecl;external 'pmwin' index 777;
+    function WinLoadProcedure(hab,libhandle : cardinal;procname : PAnsiChar) : proc; cdecl;external 'pmwin' index 986;
+    function WinLoadLibrary(hab : cardinal;libname : PAnsiChar) : cardinal; cdecl;external 'pmwin' index 777;
     function WinSetDesktopBkgnd(hwndDesktop : cardinal;var dskNew : TDesktop) : cardinal; cdecl;external 'pmwin' index 935;
     function WinSetDesktopBkgnd(hwndDesktop : cardinal;pdskNew : PDesktop) : cardinal; cdecl;external 'pmwin' index 935;
     function WinQueryDesktopBkgnd(hwndDesktop : cardinal;var dsk : TDesktop) : longbool; cdecl;external 'pmwin' index 936;

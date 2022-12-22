@@ -88,7 +88,7 @@ begin
 (* DenyReadWrite if sharing not specified. *)
   if (Mode and 112 = 0) or (Mode and 112 > 64) then
    Mode := Mode or doDenyRW;
-  Rc:=Sys_DosOpenL(PChar (SystemFileName), Handle, Action, 0, 0, 1, Mode, nil);
+  Rc:=Sys_DosOpenL(PAnsiChar (SystemFileName), Handle, Action, 0, 0, 1, Mode, nil);
   If Rc=0 then
     FileOpen:=Handle
   else
@@ -122,7 +122,7 @@ begin
   (* Sharing to DenyAll as default in case of values not allowed by OS/2. *)
   if (ShareMode = 0) or (ShareMode > 64) then
    ShareMode := doDenyRW;
-  RC := Sys_DosOpenL (PChar (SystemFileName), Handle, Action, 0, 0, $12,
+  RC := Sys_DosOpenL (PAnsiChar (SystemFileName), Handle, Action, 0, 0, $12,
                                     faCreate or ofReadWrite or ShareMode, nil);
   if RC = 0 then
    FileCreate := Handle
@@ -268,10 +268,10 @@ begin
   Rslt.FindHandle := THandle ($FFFFFFFF);
   Count := 1;
   if FSApi64 then
-   Err := DosFindFirst (PChar (SystemEncodedPath), Rslt.FindHandle,
+   Err := DosFindFirst (PAnsiChar (SystemEncodedPath), Rslt.FindHandle,
             Attr and FindResvdMask, FStat, SizeOf (FStat^), Count, ilStandardL)
   else
-   Err := DosFindFirst (PChar (SystemEncodedPath), Rslt.FindHandle,
+   Err := DosFindFirst (PAnsiChar (SystemEncodedPath), Rslt.FindHandle,
             Attr and FindResvdMask, FStat, SizeOf (FStat^), Count, ilStandard);
   if Err <> 0 then
    OSErrorWatch (Err)
@@ -410,7 +410,7 @@ var
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(Filename);
   New(FS);
-  RC := DosQueryPathInfo(PChar (SystemFileName), ilStandard, FS, SizeOf(FS^));
+  RC := DosQueryPathInfo(PAnsiChar (SystemFileName), ilStandard, FS, SizeOf(FS^));
   if RC = 0 then
    Result := FS^.AttrFile
   else
@@ -429,11 +429,11 @@ Var
 Begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(Filename);
   New(FS);
-  RC := DosQueryPathInfo (PChar (SystemFileName), ilStandard, FS, SizeOf (FS^));
+  RC := DosQueryPathInfo (PAnsiChar (SystemFileName), ilStandard, FS, SizeOf (FS^));
   if RC = 0 then
    begin
     FS^.AttrFile:=Attr;
-    RC := DosSetPathInfo(PChar (SystemFileName), ilStandard, FS, SizeOf(FS^), 0);
+    RC := DosSetPathInfo(PAnsiChar (SystemFileName), ilStandard, FS, SizeOf(FS^), 0);
     if RC <> 0 then
      OSErrorWatch (RC);
    end
@@ -450,7 +450,7 @@ var
   RC: cardinal;
 Begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(Filename);
-  RC := DosDelete (PChar (SystemFileName));
+  RC := DosDelete (PAnsiChar (SystemFileName));
   if RC <> 0 then
    begin
     Result := false;
@@ -467,7 +467,7 @@ var
 Begin
   OldSystemFileName:=ToSingleByteFileSystemEncodedFileName(OldName);
   NewSystemFileName:=ToSingleByteFileSystemEncodedFileName(NewName);
-  RC := DosMove (PChar (OldSystemFileName), PChar (NewSystemFileName));
+  RC := DosMove (PAnsiChar (OldSystemFileName), PAnsiChar (NewSystemFileName));
   if RC <> 0 then
    begin
     Result := false;
@@ -708,7 +708,7 @@ begin
     DecimalSeparator := CtryInfo.DecimalSeparator;
     ThousandSeparator := CtryInfo.ThousandSeparator;
     CurrencyFormat := CtryInfo.CurrencyFormat;
-    CurrencyString := PChar (CtryInfo.CurrencyUnit);
+    CurrencyString := PAnsiChar (CtryInfo.CurrencyUnit);
    end
   else
    OSErrorWatch (RC);
@@ -718,9 +718,9 @@ end;
 
 function SysErrorMessage(ErrorCode: Integer): String;
 const
-  SysMsgFile: array [0..10] of char = 'OSO001.MSG'#0;
+  SysMsgFile: array [0..10] of AnsiChar = 'OSO001.MSG'#0;
 var
-  OutBuf: array [0..999] of char;
+  OutBuf: array [0..999] of AnsiChar;
   RetMsgSize: cardinal;
   RC: cardinal;
 begin
@@ -743,10 +743,10 @@ end;
                               OS Utils
 ****************************************************************************}
 
-function GetEnvPChar (EnvVar: shortstring): PChar;
+function GetEnvPChar (EnvVar: shortstring): PAnsiChar;
 (* The assembler version is more than three times as fast as Pascal. *)
 var
- P: PChar;
+ P: PAnsiChar;
 begin
  EnvVar := UpCase (EnvVar);
 {$ASMMODE INTEL}
@@ -845,7 +845,7 @@ var
  E: EOSError;
  CommandLine: RawByteString;
  Args0, Args: DosCalls.PByteArray;
- ObjNameBuf: PChar;
+ ObjNameBuf: PAnsiChar;
  ArgSize: word;
  Res: TResultCodes;
  ObjName: shortstring;
@@ -878,9 +878,9 @@ begin
   CommandLine := ExpandFileName (Path)
  else
   CommandLine := Path;
- SD.PgmName := PChar (CommandLine);
+ SD.PgmName := PAnsiChar (CommandLine);
  if ComLine <> '' then
-  SD.PgmInputs := PChar (ComLine);
+  SD.PgmInputs := PAnsiChar (ComLine);
  if ExecInheritsHandles in Flags then
    SD.InheritOpt := ssf_InhertOpt_Parent;
  Str (GetProcessID, SPID);
@@ -935,7 +935,7 @@ begin
  GetMem (ObjNameBuf, ObjBufSize);
  FillChar (ObjNameBuf^, ObjBufSize, 0);
 
- RC := DosQueryAppType (PChar (Path), ExecAppType);
+ RC := DosQueryAppType (PAnsiChar (Path), ExecAppType);
  if RC <> 0 then
   begin
    OSErrorWatch (RC);
@@ -985,7 +985,7 @@ begin
       end;
      Res.ExitCode := $FFFFFFFF;
      RC := DosExecPgm (ObjNameBuf, ObjBufSize, 0, Args, nil, Res,
-                                                                 PChar (Path));
+                                                                 PAnsiChar (Path));
      if RC <> 0 then
       OSErrorWatch (RC);
      if Args0 <> nil then

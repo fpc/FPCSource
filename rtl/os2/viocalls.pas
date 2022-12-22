@@ -403,13 +403,13 @@ type
         Ext_Data_Addr:pointer);     {Address of an extended-mode data}
         true:(
         fbType2,                (* should be fbType, Color, etc., but this *)
-        Color2:char;            (* construct is unsupported currently      *)
+        Color2:AnsiChar;            (* construct is unsupported currently      *)
         Col2,
         Row2,
         HRes2,
         VRes2:word;
         fmt_ID2,
-        Attrib2:char);
+        Attrib2:AnsiChar);
     end;
     PVioModeInfo=^TVioModeInfo;
     VioModeInfo=TVioModeInfo;
@@ -527,7 +527,7 @@ type
     PVioSetTarget=^TVioSetTarget;
     VioSetTarget=TVioSetTarget;
 
-    TStr8=array[0..7] of char;
+    TStr8=array[0..7] of AnsiChar;
     PStr8=^TStr8;
 
 {font record type for Vio/GpiCreateLogFont}
@@ -535,7 +535,7 @@ type
         usRecordLength:word;
         fsSelection:word;
         lMatch:longint;
-        szFacename:array[0..FACESIZE-1] of char;
+        szFacename:array[0..FACESIZE-1] of AnsiChar;
         idRegistry:word;
         usCodePage:word;
         lMaxBaselineExt:longint;
@@ -564,8 +564,8 @@ type
     PPanose=^TPanose;
 
     TFontMetrics=record
-        szFamilyname:array[0..FACESIZE-1] of char;
-        szFacename:array[0..FACESIZE-1] of char;
+        szFamilyname:array[0..FACESIZE-1] of AnsiChar;
+        szFacename:array[0..FACESIZE-1] of AnsiChar;
         idRegistry:word;
         usCodePage:word;
         lEmHeight:longint;
@@ -621,12 +621,12 @@ type
     FontMetrics=TFontMetrics;
 
 
-function VioRegister(ModuleName,ProcName:PChar;FnMask1,FnMask2:cardinal):word;
+function VioRegister(ModuleName,ProcName:PAnsiChar;FnMask1,FnMask2:cardinal):word;
                                                                          cdecl;
 
 function VioRegister(ModuleName,ProcName:string;FnMask1,FnMask2:cardinal):word;
 
-function VioGlobalReg(ModuleName,ProcName:PChar;FnMask1,FnMask2:cardinal;
+function VioGlobalReg(ModuleName,ProcName:PAnsiChar;FnMask1,FnMask2:cardinal;
                                                       Return:word):word; cdecl;
 
 function VioGlobalReg(ModuleName,ProcName:string;FnMask1,FnMask2:cardinal;
@@ -692,7 +692,7 @@ function VioWrtNCell(var Cell:word;Times,Row,Column,VioHandle:word):word;
 
 function VioWrtNChar(var Ch:byte;Times,Row,Column,VioHandle:word):word; cdecl;
 
-function VioWrtNChar(var Ch:char;Times,Row,Column,VioHandle:word):word; cdecl;
+function VioWrtNChar(var Ch:AnsiChar;Times,Row,Column,VioHandle:word):word; cdecl;
 
 function VioWrtTTY(CharStr:pointer;Len,VioHandle:word):word; cdecl;
 
@@ -766,7 +766,7 @@ function VioGetDeviceCellSize(var Height,Width:integer;VPS:word):word; cdecl;
 function VioGetOrg(var Row,Column:integer;VPS:word):word; cdecl;
 
 function VioQueryFonts(var Remfonts:longint;var fmMetrics:TFontMetrics;
-                MetricsLength:longint;var Fonts:longint;FaceName:PChar;
+                MetricsLength:longint;var Fonts:longint;FaceName:PAnsiChar;
                                       flOptions:cardinal;VPS:word):word; cdecl;
 
 function VioQueryFonts(var Remfonts:longint;var fmMetrics:TFontMetrics;
@@ -816,7 +816,7 @@ implementation
 {***************************************************************************}
 
 
-function VioRegister(ModuleName,ProcName:PChar;FnMask1,FnMask2:cardinal):word;
+function VioRegister(ModuleName,ProcName:PAnsiChar;FnMask1,FnMask2:cardinal):word;
                                                                          cdecl;
 external 'EMXWRAP' index 145;
 {external 'VIOCALLS' index 45;}
@@ -830,7 +830,7 @@ begin
     VioRegister:=VioRegister(@ModuleName[1],@ProcName[1],FnMask1,FnMask2);
 end;
 
-function VioGlobalReg(ModuleName,ProcName:PChar;FnMask1,FnMask2:cardinal;
+function VioGlobalReg(ModuleName,ProcName:PAnsiChar;FnMask1,FnMask2:cardinal;
                                                       Return:word):word; cdecl;
 external 'EMXWRAP' index 170;
 {external 'VIOCALLS' index 70;}
@@ -952,7 +952,7 @@ function VioWrtNChar(var Ch:byte;Times,Row,Column,VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 153;
 {external 'VIOCALLS' index 53;}
 
-function VioWrtNChar(var Ch:char;Times,Row,Column,VioHandle:word):word; cdecl;
+function VioWrtNChar(var Ch:AnsiChar;Times,Row,Column,VioHandle:word):word; cdecl;
 external 'EMXWRAP' index 153;
 {external 'VIOCALLS' index 53;}
 
@@ -1092,7 +1092,7 @@ external 'EMXWRAP' index 159;
 {external 'VIOCALLS' index 59;}
 
 function VioQueryFonts(var Remfonts:longint;var fmMetrics:TFontMetrics;
-                MetricsLength:longint;var Fonts:longint;FaceName:PChar;
+                MetricsLength:longint;var Fonts:longint;FaceName:PAnsiChar;
                                       flOptions:cardinal;VPS:word):word; cdecl;
 external 'EMXWRAP' index 164;
 {external 'VIOCALLS' index 64;}

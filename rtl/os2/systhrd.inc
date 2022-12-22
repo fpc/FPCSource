@@ -128,7 +128,7 @@ function DosCreateThread (var TID: cardinal; Address: pointer;
      aParam: pointer; Flags: cardinal; StackSize: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 311;
 
-function DosCreateMutExSem (Name: PChar; var Handle: THandle; Attr: cardinal;
+function DosCreateMutExSem (Name: PAnsiChar; var Handle: THandle; Attr: cardinal;
               State: cardinal): cardinal; cdecl; external 'DOSCALLS' index 331;
 
 function DosCloseMutExSem (Handle: THandle): cardinal; cdecl;
@@ -165,7 +165,7 @@ function DosSetPriority (Scope, TrClass: cardinal; Delta: longint;
                                            PortID: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 236;
 
-function DosCreateEventSem (Name: PChar; var Handle: THandle;
+function DosCreateEventSem (Name: PAnsiChar; var Handle: THandle;
                              Attr: cardinal; State: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 324;
 
@@ -773,7 +773,7 @@ begin
    RC := DosCreateEventSem (nil, PLocalEventRec (Result)^.FHandle,
                                                  Attr, cardinal (InitialState))
   else
-   RC := DosCreateEventSem (PChar (Name2), PLocalEventRec (Result)^.FHandle,
+   RC := DosCreateEventSem (PAnsiChar (Name2), PLocalEventRec (Result)^.FHandle,
                                                 Attr, cardinal (InitialState));
   if RC <> 0 then
    begin

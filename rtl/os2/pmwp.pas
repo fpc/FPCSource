@@ -37,7 +37,7 @@ const
   QC_Next                = 1;
   QC_Last                = 2;
 
-  LOCATION_DESKTOP = PChar($FFFF0001); // Current Desktop
+  LOCATION_DESKTOP = PAnsiChar($FFFF0001); // Current Desktop
          // use instead of <WP_DESKTOP>
 
 //*** An object's appearance (icon or bitmap or outline) **************/
@@ -53,21 +53,21 @@ type
   POBJCLASS=^OBJCLASS;
   OBJCLASS=record         // ocls
     pNext: POBJCLASS;     // Null for the last structure..
-    pszClassName: PChar;  // Class name
-    pszModName: PChar;    // Module name
+    pszClassName: PAnsiChar;  // Class name
+    pszModName: PAnsiChar;    // Module name
   end;
 
 //*** Workplace object management functions ***************************/
 
 Function WinRegisterObjectClass(pszClassName,
-                                pszModName: PChar): Longbool; cdecl;
+                                pszModName: PAnsiChar): Longbool; cdecl;
     external 'PMWP' index 200;
 
-Function WinDeRegisterObjectClass(pszClassName: PChar): Longbool; cdecl;
+Function WinDeRegisterObjectClass(pszClassName: PAnsiChar): Longbool; cdecl;
     external 'PMWP' index 201;
 
 Function WinReplaceObjectClass(pszOldClassName,
-                               pszNewClassName: PChar;
+                               pszNewClassName: PAnsiChar;
                                fReplace: Longbool): Longbool; cdecl;
     external 'PMWP' index 219;
 
@@ -78,7 +78,7 @@ Function WinEnumObjectClasses(VAR apObjClass: OBJCLASS;
 Function WinCreateObject(pszClassName,
                          pszTitle,
                          pszSetupString,
-                         pszLocation: PChar;
+                         pszLocation: PAnsiChar;
                          ulFlags: Cardinal): HObject; cdecl;
     external 'PMWP' index 281;
 
@@ -88,13 +88,13 @@ const
   CO_UPDATEIFEXISTS  = 2;
 
 Function WinSetObjectData(aobject: HOBJECT;
-                          pszSetupString: PChar): Longbool; cdecl;
+                          pszSetupString: PAnsiChar): Longbool; cdecl;
     external 'PMWP' index 250;
 
 Function WinDestroyObject(aobject: HOBJECT): Longbool; cdecl;
     external 'PMWP' index 251;
 
-Function WinQueryObject(pszObjectID: PChar): HObject; cdecl;
+Function WinQueryObject(pszObjectID: PAnsiChar): HObject; cdecl;
     external 'PMWP' index 252;
 
 Function WinSaveObject(ahObject: HOBJECT;
@@ -121,12 +121,12 @@ Function WinCreateShadow(hObjectofObject: HOBJECT;
                          ulReserved: Cardinal): HObject; cdecl;
     external 'PMWP' index 289;
 
-Function WinQueryActiveDesktopPathname(pszPathName: PChar;
+Function WinQueryActiveDesktopPathname(pszPathName: PAnsiChar;
                                        ulSize: Cardinal): Longbool; cdecl;
     external 'PMWP' index 262;
 
 Function WinQueryObjectPath(ahobject: HOBJECT;
-                            pszPathName: PChar;
+                            pszPathName: PAnsiChar;
                             ulSize: Cardinal): Longbool; cdecl;
     external 'PMWP' index 263;
 
@@ -155,10 +155,10 @@ type
     usPageStyleFlags: Word;
     usPageInsertFlags: Word;
     usSettingsFlags: Word;
-    pszName: PChar;
+    pszName: PAnsiChar;
     idDefaultHelpPanel: Word;
     usReserved2: Word;
-    pszHelpLibraryName: PChar;
+    pszHelpLibraryName: PAnsiChar;
     pHelpSubtable: ^Word;   // PHELPSUBTABLE when PMHELP.H is included
     hmodHelpSubtable: Cardinal;
     ulPageInsertId: Cardinal;
@@ -173,29 +173,29 @@ const
 type
   ICONPOS=record     // icp
     ptlIcon: POINTL;                    // Location
-    szIdentity: Array[0..1-1] of Char;  // Object identity string
+    szIdentity: Array[0..1-1] of AnsiChar;  // Object identity string
   end;
   PICONPOS=^ICONPOS;
 
 //*********************************************************************/
-Function WinSetFileIcon(pszFileName: PChar;
+Function WinSetFileIcon(pszFileName: PAnsiChar;
                     var pIcon: ICONINFO): Longbool; cdecl;
     external 'PMWP' index 210;
 
 Function WinFreeFileIcon(hptr: Cardinal): Longbool; cdecl;
     external 'PMWP' index 216;
 
-Function WinLoadFileIcon(pszFileName: PChar;
+Function WinLoadFileIcon(pszFileName: PAnsiChar;
                          fPrivate: Longbool): Cardinal; cdecl;
     external 'PMWP' index 209;
 
 Function WinStoreWindowPos(pszAppName,
-                           pszKeyName: PChar;
+                           pszKeyName: PAnsiChar;
                            ahwnd: HWND): Longbool; cdecl;
     external 'PMWP' index 207;
 
 Function WinRestoreWindowPos(pszAppName,
-                             pszKeyName: PChar;
+                             pszKeyName: PAnsiChar;
                              ahwnd: HWND): Longbool; cdecl;
     external 'PMWP' index 208;
 
@@ -221,12 +221,12 @@ WinWaitForShell         PMWP     512 ?
 
 {
 // Not founded indexes
-Function WinSetFileIconN(pszFileName: PChar
+Function WinSetFileIconN(pszFileName: PAnsiChar
                          pIcnInfo: PICONINFO;
                          ulIconIndex: Cardinal): Longbool; cdecl;
     external 'PMWP' index ???;
 
-Function WinLoadFileIconN(pszFileName: PChar;
+Function WinLoadFileIconN(pszFileName: PAnsiChar;
                           fPrivate: Longbool,
                           ulIconIndex: Cardinal): Cardinal; cdecl;
     external 'PMWP' index ???;
