@@ -520,10 +520,10 @@ begin
 end;
 
 
-function GetLocaleChar(LID, LT: Longint; Def: Char): Char;
+function GetLocaleChar(LID, LT: Longint; Def: AnsiChar): AnsiChar;
 var
   Buf: array[0..1] of WideChar;
-  Buf2: array[0..1] of Char;
+  Buf2: array[0..1] of AnsiChar;
 begin
   if GetLocaleInfo(LID, LT, Buf, 2) > 0 then
   begin
@@ -916,7 +916,7 @@ begin
   FreeMem(ws1);
 end;
 
-function WinCEAnsiStrComp(S1, S2: PChar): PtrInt;
+function WinCEAnsiStrComp(S1, S2: PAnsiChar): PtrInt;
 var
   ws1, ws2: PWideChar;
 begin
@@ -928,7 +928,7 @@ begin
 end;
 
 
-function WinCEAnsiStrIComp(S1, S2: PChar): PtrInt;
+function WinCEAnsiStrIComp(S1, S2: PAnsiChar): PtrInt;
 var
   ws1, ws2: PWideChar;
 begin
@@ -940,7 +940,7 @@ begin
 end;
 
 
-function WinCEAnsiStrLComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+function WinCEAnsiStrLComp(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
 var
   ws1, ws2: PWideChar;
   len1, len2: longint;
@@ -953,7 +953,7 @@ begin
 end;
 
 
-function WinCEAnsiStrLIComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+function WinCEAnsiStrLIComp(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
 var
   ws1, ws2: PWideChar;
   len1, len2: longint;
@@ -966,7 +966,7 @@ begin
 end;
 
 
-function WinCEAnsiStrLower(Str: PChar): PChar;
+function WinCEAnsiStrLower(Str: PAnsiChar): PAnsiChar;
 var
   buf: PWideChar;
   len: longint;
@@ -979,7 +979,7 @@ begin
 end;
 
 
-function WinCEAnsiStrUpper(Str: PChar): PChar;
+function WinCEAnsiStrUpper(Str: PAnsiChar): PAnsiChar;
 var
   buf: PWideChar;
   len: longint;

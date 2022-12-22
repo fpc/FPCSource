@@ -1278,7 +1278,7 @@ Type
     TWMGetText = record
       Msg : Cardinal;
       TextMax : LongInt;
-      Text : PChar;
+      Text : PAnsiChar;
       Result : LongInt;
     end;
 

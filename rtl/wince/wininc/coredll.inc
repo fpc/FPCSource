@@ -2327,7 +2327,7 @@ function Header_InsertItem(hwndHD:HWND;index : longint;var hdi : HD_ITEM) : long
 function Header_Layout(hwndHD:HWND;var layout : HD_LAYOUT) : WINBOOL;
 function Header_SetItem(hwndHD:HWND;index : longint;var hdi : HD_ITEM) : WINBOOL;
 function HeapAlloc(hHeap:HANDLE; dwFlags:DWORD; dwBytes:DWORD):LPVOID; external KernelDLL name 'HeapAlloc';
-function HeapAllocTrace(hHeap:HANDLE; dwFlags:DWORD; dwBytes:DWORD; dwLineNum:DWORD; szFileName:PCHAR):LPVOID; external KernelDLL name 'HeapAllocTrace';  //+winbase
+function HeapAllocTrace(hHeap:HANDLE; dwFlags:DWORD; dwBytes:DWORD; dwLineNum:DWORD; szFileName:PAnsiChar):LPVOID; external KernelDLL name 'HeapAllocTrace';  //+winbase
 function HeapCreate(flOptions:DWORD; dwInitialSize:DWORD; dwMaximumSize:DWORD):HANDLE; external KernelDLL name 'HeapCreate';
 function HeapDestroy(hHeap:HANDLE):WINBOOL; external KernelDLL name 'HeapDestroy';
 function HeapFree(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPVOID):WINBOOL; external KernelDLL name 'HeapFree';
@@ -2808,7 +2808,7 @@ function TranslateAccelerator(hWnd:HWND; hAccTable:HACCEL; lpMsg:LPMSG):longint;
 function TranslateAcceleratorW(hWnd:HWND; hAccTable:HACCEL; lpMsg:LPMSG):longint; external KernelDLL name 'TranslateAcceleratorW';
 function TranslateCharsetInfo(var lpSrc:DWORD; lpCs:LPCHARSETINFO; dwFlags:DWORD):WINBOOL; external KernelDLL name 'TranslateCharsetInfo';
 function TranslateMessage(lpMsg:LPMSG):WINBOOL; external KernelDLL name 'TranslateMessage';
-function TransmitCommChar(hFile:HANDLE; cChar:char):WINBOOL; external KernelDLL name 'TransmitCommChar';
+function TransmitCommChar(hFile:HANDLE; cChar:AnsiChar):WINBOOL; external KernelDLL name 'TransmitCommChar';
 function TransparentBlt(hdcDest : HDC;DstX : LONG;DstY : LONG;DstCx : LONG;DstCy : LONG;hSrc : HANDLE;SrcX : LONG;SrcY : LONG;SrcCx : LONG;SrcCy : LONG;TransparentColor : COLORREF): WINBOOL; external KernelDLL name 'TransparentImage';
 function TransparentImage(hdcDest : HDC;DstX : LONG;DstY : LONG;DstCx : LONG;DstCy : LONG;hSrc : HANDLE;SrcX : LONG;SrcY : LONG;SrcCx : LONG;SrcCy : LONG;TransparentColor : COLORREF): WINBOOL; external KernelDLL name 'TransparentImage';
 function TreeView_InsertItem(hwnd:HWND;lpis : LPTV_INSERTSTRUCT) : LRESULT;
@@ -2912,7 +2912,7 @@ function wcsstr(_string:PWideChar; strCharSet:PWideChar):PWideChar; external Ker
 function wcstod(nptr:PWideChar; var endptr:PWideChar):double; external KernelDLL name 'wcstod'; // index 5B5
 function wcstok(strToken:PWideChar; strDelimit:PWideChar):PWideChar; external KernelDLL name 'wcstok'; // index 67
 function wcstol(nptr:PWideChar; var endptr:PWideChar; _base:longint):longint; external KernelDLL name 'wcstol'; // index 5B6
-function wcstombs(mbstr:PChar; wcstr:PWideChar; _count:SIZE_T):SIZE_T; external KernelDLL name 'wcstombs'; // index 65
+function wcstombs(mbstr:PAnsiChar; wcstr:PWideChar; _count:SIZE_T):SIZE_T; external KernelDLL name 'wcstombs'; // index 65
 function wcstoul(nptr:PWideChar; var endptr:PWideChar; _base:longint):Cardinal; external KernelDLL name 'wcstoul'; // index 5B7
 function wsprintf(lpBuffer:LPWSTR; lpFormat:LPCWSTR; const args:array of const):longint; external KernelDLL name 'wsprintfW';
 function wsprintfW(lpBuffer:LPWSTR; lpFormat:LPCWSTR; const args:array of const):longint; external KernelDLL name 'wsprintfW';
@@ -3036,7 +3036,7 @@ end;
 
 procedure FillMemory(Destination:PVOID; Length:DWORD; Fill:BYTE);
 begin
-  FillChar(Destination^,Length,Char(Fill));
+  FillChar(Destination^,Length,AnsiChar(Fill));
 end;
 
 function GetCurrentThread:HANDLE;
