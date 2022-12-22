@@ -75,11 +75,11 @@ CONST               // OS specific parameters for general<fd,sig>set behaviour
 TYPE
    { system information services }
    utsname = record
-              sysname : Array[0..SYS_NMLN-1] OF Char;   // Name of this OS
-              nodename: Array[0..SYS_NMLN-1] OF Char;   // Name of this network node.
-              release : Array[0..SYS_NMLN-1] OF Char;   // Release level.
-              version : Array[0..SYS_NMLN-1] OF Char;   // Version level.
-              machine : Array[0..SYS_NMLN-1] OF Char;   // Hardware type.
+              sysname : Array[0..SYS_NMLN-1] OF AnsiChar;   // Name of this OS
+              nodename: Array[0..SYS_NMLN-1] OF AnsiChar;   // Name of this network node.
+              release : Array[0..SYS_NMLN-1] OF AnsiChar;   // Release level.
+              version : Array[0..SYS_NMLN-1] OF AnsiChar;   // Version level.
+              machine : Array[0..SYS_NMLN-1] OF AnsiChar;   // Hardware type.
              end;
   TUtsName= utsname;
   pUtsName= ^utsname;
@@ -119,7 +119,7 @@ TYPE
         d_ino : ino_t;
         d_pino : ino_t;
         d_reclen : cushort;
-        d_name : array[0..255] of char;
+        d_name : array[0..255] of AnsiChar;
    end;
    TDirent = dirent;
    pDirent = ^dirent;
@@ -287,7 +287,7 @@ type
      term_routine: pointer;
      device: dev_t;
      node: ino_t;
-     name: array[0..1024{MAXPATHLEN}-1] of char;
+     name: array[0..1024{MAXPATHLEN}-1] of AnsiChar;
      text: pointer;
      data: pointer;
      text_size: longint;

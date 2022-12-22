@@ -65,7 +65,7 @@ begin
  AssignPipe:=ret;
 end;
 
-(*function intGetDomainName(Name:PChar; NameLen:Cint):cint;
+(*function intGetDomainName(Name:PAnsiChar; NameLen:Cint):cint;
 {$ifndef FPC_USE_LIBC}
  external name 'FPC_SYSC_GETDOMAINNAME';
 {$else FPC_USE_LIBC}
