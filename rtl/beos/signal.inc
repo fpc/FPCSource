@@ -257,9 +257,9 @@ type
        en_opcode    : word;         { opcode last executed (11 bits ) }
        en_foo       : cardinal;     { floating operand offset }
        en_fos       : cardinal;     { floating operand segment selector }
-       fpr_acc      : array[0..79] of char;
+       fpr_acc      : array[0..79] of AnsiChar;
        fpr_ex_sw    : cardinal;
-       fpr_pad      : array[0..63] of char;
+       fpr_pad      : array[0..63] of AnsiChar;
        end;
        
   SignalHandler   = Procedure(Sig : Longint);cdecl;
