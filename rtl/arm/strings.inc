@@ -18,7 +18,7 @@
 {$ifndef CPUTHUMB}
 {$ifndef FPC_UNIT_HAS_STRUPPER}
 {$define FPC_UNIT_HAS_STRUPPER}
-function strupper(p : pchar) : pchar;assembler;nostackframe;
+function strupper(p : PAnsiChar) : PAnsiChar;assembler;nostackframe;
 asm
         mov     ip, r0   // Don't change r0, because thats our return value
 
@@ -48,7 +48,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRLOWER}
 {$define FPC_UNIT_HAS_STRLOWER}
-function strlower(p : pchar) : pchar;assembler;nostackframe;
+function strlower(p : PAnsiChar) : PAnsiChar;assembler;nostackframe;
 asm
         mov     ip, r0   // Don't change r0, because thats our return value
 
