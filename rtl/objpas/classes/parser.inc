@@ -36,7 +36,7 @@ const
     'WideString'
   );
 
-function TParser.GetTokenName(aTok: char): string;
+function TParser.GetTokenName(aTok: AnsiChar): string;
 begin
   if ord(aTok) <= LastSpecialToken then
     Result:=TokNames[ord(aTok)]
@@ -87,7 +87,7 @@ begin
   Result:=IsAlpha or IsNumber;
 end;
 
-function TParser.GetHexValue(c: char): byte; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+function TParser.GetHexValue(c: AnsiChar): byte; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
 begin
   case c of
     '0'..'9' : Result:=ord(c)-$30;
@@ -259,7 +259,7 @@ begin
 end;
 
 procedure TParser.HandleDecimalCharacter(var ascii: boolean; out
-  WideChr: widechar; out StringChr: char);
+  WideChr: widechar; out StringChr: AnsiChar);
 var i : integer;
 begin
   inc(fPos);
@@ -285,7 +285,7 @@ procedure TParser.HandleString;
 var ascii : boolean;
   s: string;
   w: WideChar;
-  c: char;
+  c: AnsiChar;
 begin
   fLastTokenWStr:='';
   fLastTokenStr:='';
@@ -374,7 +374,7 @@ begin
   FreeMem(fBuf);
 end;
 
-procedure TParser.CheckToken(T: Char);
+procedure TParser.CheckToken(T: AnsiChar);
 begin
   if fToken<>T then
     ErrorFmt(SParWrongTokenType,[GetTokenName(T),GetTokenName(fToken)]);
@@ -433,7 +433,7 @@ begin
   NextToken;
 end;
 
-function TParser.NextToken: Char;
+function TParser.NextToken: AnsiChar;
 
 begin
   SkipWhiteSpace;
