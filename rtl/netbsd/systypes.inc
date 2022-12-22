@@ -27,9 +27,9 @@ type
     ftype          : longint;
     fflags         : longint; {copy of mount flags}
     spare          : array [0..1] of longint; { For later use }
-    fstypename     : array[0..15] of char;
-    mountpoint     : array[0..89] of char;
-    mnfromname     : array[0..89] of char;
+    fstypename     : array[0..15] of AnsiChar;
+    mountpoint     : array[0..89] of AnsiChar;
+    mnfromname     : array[0..89] of AnsiChar;
   end;
   PStatFS=^TStatFS;
 

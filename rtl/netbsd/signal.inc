@@ -122,7 +122,7 @@ type
   psiginfo = ^tsiginfo;
   tsiginfo = record
           case longint of
-              0 : ( _pad : array[0..(SI_PAD_SIZE)-1] of char );
+              0 : ( _pad : array[0..(SI_PAD_SIZE)-1] of AnsiChar );
               1 : ( _info : ksiginfo);
           { end; }
     end;
@@ -202,9 +202,9 @@ struct sigcontext {
        en_opcode    : word;         { opcode last executed (11 bits ) }
        en_foo       : cardinal;     { floating operand offset }
        en_fos       : cardinal;     { floating operand segment selector }
-       fpr_acc      : array[0..79] of char;
+       fpr_acc      : array[0..79] of AnsiChar;
        fpr_ex_sw    : cardinal;
-       fpr_pad      : array[0..63] of char; *)
+       fpr_pad      : array[0..63] of AnsiChar; *)
        end;
 {$endif}
 (* From amd64 /usr/include/machine/frame_regs.h

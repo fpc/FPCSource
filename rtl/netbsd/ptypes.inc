@@ -122,9 +122,9 @@ struct statfs12 {
 	long	f_syncwrites;		/* count of sync writes since mount */
 	long	f_asyncwrites;		/* count of async writes since mount */
 	long	f_spare[1];		/* spare for later */
-	char	f_fstypename[MFSNAMELEN]; /* fs type name */
-	char	f_mntonname[MNAMELEN];	  /* directory on which mounted */
-	char	f_mntfromname[MNAMELEN];  /* mounted file system */
+	AnsiChar	f_fstypename[MFSNAMELEN]; /* fs type name */
+	AnsiChar	f_mntonname[MNAMELEN];	  /* directory on which mounted */
+	AnsiChar	f_mntfromname[MNAMELEN];  /* mounted file system */
 };
 *)
     TStatfs12 = record
@@ -143,9 +143,9 @@ struct statfs12 {
       fsyncwrites,
       fasyncwrites   : clong;
       fspare0        : array [0..0] of clong;
-      fstypename     : array[0..MFSNamLen-1] of char;
-      mountpoint     : array[0..MNAMLEN-1] of char;
-      mnfromname     : array[0..MNAMLEN-1] of char;
+      fstypename     : array[0..MFSNamLen-1] of AnsiChar;
+      mountpoint     : array[0..MNAMLEN-1] of AnsiChar;
+      mnfromname     : array[0..MNAMLEN-1] of AnsiChar;
     end;
     TStatFS = TStatFS12;   
     PStatFS=^TStatFS;
@@ -165,7 +165,7 @@ struct statfs12 {
 
    mbstate_t = record
       case byte of
-        0: (__mbstate8: array[0..127] of char);
+        0: (__mbstate8: array[0..127] of AnsiChar);
         1: (_mbstateL: cint64); { for alignment }
     end;
    pmbstate_t = ^mbstate_t;
@@ -182,7 +182,7 @@ struct statfs12 {
      ptma_magic : cint;
      ptma_private : pointer;
    end;
-   pthread_spin_t = char;
+   pthread_spin_t = AnsiChar;
    pthread_queue_t = record
        first, last : pointer;
      end;
