@@ -58,7 +58,7 @@ type
 {$endif FPC_CODEPOINTER_DIFFERENT_THAN_POINTER}
 
 {$if defined(FPC_MM_TINY) or defined(FPC_MM_SMALL) or defined(FPC_MM_MEDIUM)}
-function FindResource(hInstance: HINST; lpName, lpType: PChar): HRSRC; inline;
+function FindResource(hInstance: HINST; lpName, lpType: PAnsiChar): HRSRC; inline;
 begin
   Result:=WinProcs.FindResource(hInstance,FarAddr(lpName^),FarAddr(lpType^));
 end;
