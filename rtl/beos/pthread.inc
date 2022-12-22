@@ -74,7 +74,7 @@ function pthread_sigmask(how: cint; nset: psigset; oset: psigset): cint; cdecl; 
 function sem_init(__sem:Psem_t; __pshared:cint;__value:dword):cint;cdecl; external;
 function sem_destroy(__sem:Psem_t):cint;cdecl;external ;
 function sem_close(__sem:Psem_t):cint;cdecl;external ;
-function sem_unlink(__name:Pchar):cint;cdecl;external ;
+function sem_unlink(__name:PAnsiChar):cint;cdecl;external ;
 function sem_wait(__sem:Psem_t):cint;cdecl;external ;
 function sem_trywait(__sem:Psem_t):cint;cdecl;external ;
 function sem_post(__sem:Psem_t):cint;cdecl;external ;
