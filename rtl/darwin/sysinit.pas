@@ -59,7 +59,7 @@ const
     );
 
 
-procedure FPC_SYSTEMMAIN(argcparam: Longint; argvparam: ppchar; envpparam: ppchar); cdecl; [public];
+procedure FPC_SYSTEMMAIN(argcparam: Longint; argvparam: PPAnsiChar; envpparam: PPAnsiChar); cdecl; [public];
 begin
   SysInitEntryInformation.OS.argc := argcparam;
   SysInitEntryInformation.OS.argv := argvparam;

@@ -89,7 +89,7 @@
 
   type
      ctlname = record
-          ctl_name : ^char;
+          ctl_name : ^AnsiChar;
           ctl_type : longint;
        end;
 
