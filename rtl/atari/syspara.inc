@@ -51,7 +51,7 @@ var
 
   function scan_argv : boolean;
   var
-     hp, start : pchar;
+     hp, start : PAnsiChar;
      len: integer;
   begin
    hp:=basepage^.p_env;
@@ -106,7 +106,7 @@ var
   Start: Word;
   Ende: Word;
   i: Integer;
-  P : PChar;
+  P : PAnsiChar;
 begin
   P := Args;
   ArgVLen := 0;
@@ -181,7 +181,7 @@ Var
   olddta : PDTA;
   dta    : TDTA;
   i,j    : longint;
-  p      : pchar;
+  p      : PAnsiChar;
   tmpPath: String;
 Begin
 
@@ -202,7 +202,7 @@ Begin
      mypath:=ToSingleByteFileSystemEncodedFileName(tmppath);
      olddta := gemdos_getdta;
      gemdos_setdta(@dta);
-     p:=pchar(dirlist);
+     p:=PAnsiChar(dirlist);
      i:=length(dirlist);
      j:=1;
      Repeat
@@ -214,7 +214,7 @@ Begin
             mydir[length(mydir)]:=DirectorySeparator;
           end;
        NewDir:=mydir+mypath;
-       if (gemdos_fsfirst(PChar(NewDir),$07)>=0) and
+       if (gemdos_fsfirst(PAnsiChar(NewDir),$07)>=0) and
           ((dta.d_attrib and ATTRIB_DIRECTORY)=0) then
         Begin
           {DOS strips off an initial .\}
