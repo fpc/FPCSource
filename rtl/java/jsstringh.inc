@@ -36,7 +36,7 @@ type
     class function CreateFromLiteralStringBytes(const u: unicodestring): shortstring; static;
     procedure FpcDeepCopy(dest: ShortstringClass);
     procedure copyFromAnsiCharArray(const arr: array of ansichar; maxlen: byte);
-    procedure setChar(index: jint; char: ansichar);
+    procedure setChar(index: jint; AnsiChar: ansichar);
     function charAt(index: jint): ansichar;
     function toUnicodeString: unicodestring;
     function toAnsistring: ansistring;

@@ -51,7 +51,7 @@ begin
     end;
   setlength(fdata,length+1);
   JLSystem.ArrayCopy(JLObject(@arr),0,JLObject(fdata),0,length);
-  // last char is already #0 because of setlength
+  // last AnsiChar is already #0 because of setlength
 end;
 
 
@@ -69,7 +69,7 @@ begin
     end;
   widestringmanager.Unicode2AnsiMoveProc(punicodechar(@arr),temp,cp,system.length(arr));
   fdata:=AnsistringClass(temp).fdata;
-  // last char is already #0 because of Unicode2AnsiMoveProc()
+  // last AnsiChar is already #0 because of Unicode2AnsiMoveProc()
 end;
 
 
@@ -87,7 +87,7 @@ begin
     end;
   widestringmanager.Unicode2AnsiMoveProc(punicodechar(JLString(u).toCharArray),temp,cp,system.length(u));
   fdata:=AnsistringClass(temp).fdata;
-  // last char is already #0 because of Unicode2AnsiMoveProc()
+  // last AnsiChar is already #0 because of Unicode2AnsiMoveProc()
 end;
 
 
@@ -118,7 +118,7 @@ begin
   fCodePage:=cp;
   setlength(fdata,2);
   fdata[0]:=ch;
-  // last char is already #0 because of setlength
+  // last AnsiChar is already #0 because of setlength
 end;
 
 
@@ -158,7 +158,7 @@ end;
 
 function AnsistringClass.toUnicodeString: unicodestring;
 begin
-  widestringmanager.Ansi2UnicodeMoveProc(pchar(fdata),TranslatePlaceholderCP(fCodePage),result,system.length(fdata)-1);
+  widestringmanager.Ansi2UnicodeMoveProc(PAnsiChar(fdata),TranslatePlaceholderCP(fCodePage),result,system.length(fdata)-1);
 end;
 
 
@@ -235,7 +235,7 @@ begin
   if a<>'' then
     result:=AnsistringClass(a).fdata
   else
-    { empty pchar: array with one element that is #0 }
+    { empty PAnsiChar: array with one element that is #0 }
     setlength(result,1);
 end;
 
@@ -246,7 +246,7 @@ end;
 
 {$ifndef FPC_HAS_PCHAR_ANSISTR_INTERN_CHARMOVE}
 {$define FPC_HAS_PCHAR_ANSISTR_INTERN_CHARMOVE}
-procedure fpc_pchar_ansistr_intern_charmove(const src: pchar; const srcindex: sizeint; var dst: rawbytestring; const dstindex, len: sizeint); {$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif} {$ifdef SYSTEMINLINE}inline;{$endif}
+procedure fpc_pchar_ansistr_intern_charmove(const src: PAnsiChar; const srcindex: sizeint; var dst: rawbytestring; const dstindex, len: sizeint); {$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif} {$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   JLSystem.arraycopy(JLObject(src),srcindex,JLObject(AnsistringClass(dst).fdata),dstindex,len);
 end;
@@ -255,7 +255,7 @@ end;
 
 {$ifndef FPC_HAS_PCHAR_PCHAR_INTERN_CHARMOVE}
 {$define FPC_HAS_PCHAR_PCHAR_INTERN_CHARMOVE}
-procedure fpc_pchar_pchar_intern_charmove(const src: pchar; const srcindex: sizeint; const dst: pchar; const dstindex, len: sizeint); {$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif} {$ifdef SYSTEMINLINE}inline;{$endif}
+procedure fpc_pchar_pchar_intern_charmove(const src: PAnsiChar; const srcindex: sizeint; const dst: PAnsiChar; const dstindex, len: sizeint); {$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif} {$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   JLSystem.arraycopy(JLObject(src),srcindex,JLObject(dst),dstindex,len);
 end;
@@ -440,7 +440,7 @@ begin
       if assigned(p) then
         begin
           Size:=length(ansistring(p));
-          fpc_pchar_pchar_intern_charmove(pchar(ansistring(p)),0,pchar(DestS),NewLen,Size+1);
+          fpc_pchar_pchar_intern_charmove(PAnsiChar(ansistring(p)),0,PAnsiChar(DestS),NewLen,Size+1);
           inc(NewLen,size);
         end;
     end;
@@ -767,9 +767,9 @@ end;
 
 
 {$define FPC_HAS_POS_ANSICHAR_ANSISTR}
-{ Faster version for a char alone. Must be implemented because   }
-{ pos(c: char; const s: shortstring) also exists, so otherwise   }
-{ using pos(char,pchar) will always call the shortstring version }
+{ Faster version for a AnsiChar alone. Must be implemented because   }
+{ pos(c: AnsiChar; const s: shortstring) also exists, so otherwise   }
+{ using pos(AnsiChar,PAnsiChar) will always call the shortstring version }
 { (exact match for first argument), also with $h+ (JM)           }
 Function Pos(c : AnsiChar; Const s : RawByteString; Offset : Sizeint = 1) : SizeInt;var
   i: SizeInt;
