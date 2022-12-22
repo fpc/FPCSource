@@ -136,7 +136,7 @@ end;
   TStringHelper
   ---------------------------------------------------------------------}
 
-Function HaveChar(AChar : Char; const AList: array of Char) : Boolean;
+Function HaveChar(AChar : AnsiChar; const AList: array of AnsiChar) : Boolean;
 
 Var
   I : SizeInt;
@@ -151,7 +151,7 @@ begin
     end;
 end;
 
-function TStringHelper.GetChar(AIndex: SizeInt): Char;
+function TStringHelper.GetChar(AIndex: SizeInt): AnsiChar;
 begin
   Result:=Self[AIndex+1];
 end;
@@ -263,20 +263,20 @@ begin
 end;
 
 
-class function TStringHelper.Create(AChar: Char; ACount: SizeInt): string;
+class function TStringHelper.Create(AChar: AnsiChar; ACount: SizeInt): string;
 begin
    Result:=StringOfChar(AChar,ACount);
 end;
 
 
-class function TStringHelper.Create(const AValue: array of Char): string;
+class function TStringHelper.Create(const AValue: array of AnsiChar): string;
 
 begin
   Result:=Create(AValue,0,System.Length(AValue));
 end;
 
 
-class function TStringHelper.Create(const AValue: array of Char;
+class function TStringHelper.Create(const AValue: array of AnsiChar;
   StartIndex: SizeInt; ALen: SizeInt): string;
 begin
   SetLength(Result,ALen);
@@ -378,7 +378,7 @@ class function TStringHelper.Join(const Separator: string;
   const Values: array of string; StartIndex: SizeInt; ACount: SizeInt): string;
 Var
   VLen,I,CountLim,NR,NSep,N : SizeInt;
-  Rp: PChar;
+  Rp: PAnsiChar;
 begin
   VLen:=System.Length(Values);
   If (ACount=0)  then
@@ -400,11 +400,11 @@ begin
      begin
         if I>StartIndex then
           begin
-            Move(separator[1],Rp^,NSep*sizeof(Char));
+            Move(separator[1],Rp^,NSep*sizeof(AnsiChar));
             Rp:=Rp+NSep;
           end;
         N:=System.Length(Values[I]);
-        Move(Values[I][1],Rp^,N*sizeof(Char));
+        Move(Values[I][1],Rp^,N*sizeof(AnsiChar));
         Rp:=Rp+N;
      end;
 end;
@@ -485,13 +485,13 @@ end;
 function TStringHelper.CompareTo(const B: string): Integer;
 begin
   // Order is important
-  Result:=sysUtils.StrComp(PChar(Self),PChar(B));
+  Result:=sysUtils.StrComp(PAnsiChar(Self),PAnsiChar(B));
 end;
 
-procedure TStringHelper.CopyTo(SourceIndex: SizeInt; var destination: array of Char; DestinationIndex: SizeInt; ACount: SizeInt);
+procedure TStringHelper.CopyTo(SourceIndex: SizeInt; var destination: array of AnsiChar; DestinationIndex: SizeInt; ACount: SizeInt);
 
 Var
-  P1,P2 : PChar;
+  P1,P2 : PAnsiChar;
 begin
 //  Writeln('((',DestinationIndex,'+',ACount,')<',System.Length(Destination),')  : ', ((DestinationIndex+ACount)<System.Length(Destination)));
   if ((DestinationIndex+ACount)<=System.Length(Destination)) then
@@ -499,7 +499,7 @@ begin
 //    Writeln('AHA');
     P1:=@Self[SourceIndex+1];
     P2:=@Destination[DestinationIndex];
-    Move(P1^,P2^,ACount*SizeOf(Char));
+    Move(P1^,P2^,ACount*SizeOf(AnsiChar));
     end;
 end;
 
@@ -512,10 +512,10 @@ begin
 end;
 
 
-function TStringHelper.CountChar(const C: Char): SizeInt;
+function TStringHelper.CountChar(const C: AnsiChar): SizeInt;
 
 Var
-  S : Char;
+  S : AnsiChar;
 begin
   Result:=0;
   For S in Self do
@@ -530,12 +530,12 @@ begin
 end;
 
 
-function TStringHelper.DeQuotedString(const AQuoteChar: Char): string;
+function TStringHelper.DeQuotedString(const AQuoteChar: AnsiChar): string;
 
 var
   L,I : SizeInt;
-  Res : Array of Char;
-  PS,PD : PChar;
+  Res : Array of AnsiChar;
+  PS,PD : PAnsiChar;
   IsQuote : Boolean;
 
 begin
@@ -589,7 +589,7 @@ begin
     if IgnoreCase then
       Result:=SameText(System.Copy(Self,NS-L+1,L),AValue)
     else
-      Result:=CompareChar(PChar(Pointer(Self))[NS-L],PChar(Pointer(AValue))^,L)=0;
+      Result:=CompareChar(PAnsiChar(Pointer(Self))[NS-L],PAnsiChar(Pointer(AValue))^,L)=0;
 end;
 
 
@@ -614,12 +614,12 @@ function TStringHelper.GetHashCode: Integer;
 
 // Taken from contnrs, fphash
 var
-  P,pmax : PChar;
+  P,pmax : PAnsiChar;
 begin
 {$push}
 {$Q-}
   Result:=0;
-  P:=Pchar(Self);
+  P:=PAnsiChar(Self);
   pmax:=p+length;
   while (p<pmax) do
     begin
@@ -630,7 +630,7 @@ begin
 end;
 
 
-function TStringHelper.IndexOf(AValue: Char): SizeInt;
+function TStringHelper.IndexOf(AValue: AnsiChar): SizeInt;
 begin
   Result:=IndexOf(AValue,0,Length);
 end;
@@ -642,7 +642,7 @@ begin
 end;
 
 
-function TStringHelper.IndexOf(AValue: Char; StartIndex: SizeInt): SizeInt;
+function TStringHelper.IndexOf(AValue: AnsiChar; StartIndex: SizeInt): SizeInt;
 begin
   Result:=IndexOf(AValue,StartIndex,Length);
 end;
@@ -655,7 +655,7 @@ begin
 end;
 
 
-function TStringHelper.IndexOf(AValue: Char; StartIndex: SizeInt;
+function TStringHelper.IndexOf(AValue: AnsiChar; StartIndex: SizeInt;
   ACount: SizeInt): SizeInt;
 
 Var
@@ -670,7 +670,7 @@ begin
   if ACount<=0 then
     Exit(-1);
   // pointer casts are to access self as 0 based index!
-  Result:=IndexChar(PChar(Pointer(self))[StartIndex],ACount,AValue);
+  Result:=IndexChar(PAnsiChar(Pointer(self))[StartIndex],ACount,AValue);
   if Result>=0 then
     Result:=Result+StartIndex;
 end;
@@ -681,7 +681,7 @@ function TStringHelper.IndexOf(const AValue: string; StartIndex: SizeInt;
 
 Var
   CountLim,NV,Ofs : SizeInt;
-  SP,SE : PChar;
+  SP,SE : PAnsiChar;
 
 begin
   if StartIndex<0 then
@@ -692,22 +692,22 @@ begin
   NV:=System.Length(AValue);
   if (NV>0) and (ACount>=NV) then
     begin
-      SP:=PChar(Pointer(Self))+StartIndex;
+      SP:=PAnsiChar(Pointer(Self))+StartIndex;
       SE:=SP+ACount-NV+1;
       repeat
-        Ofs:=IndexChar(SP^,SE-SP,PChar(Pointer(AValue))[0]);
+        Ofs:=IndexChar(SP^,SE-SP,PAnsiChar(Pointer(AValue))[0]);
         if Ofs<0 then
           Break;
         SP:=SP+Ofs+1;
-        if CompareChar(SP^,PChar(Pointer(AValue))[1],NV-1)=0 then
-          Exit(SP-PChar(Pointer(Self))-1);
+        if CompareChar(SP^,PAnsiChar(Pointer(AValue))[1],NV-1)=0 then
+          Exit(SP-PAnsiChar(Pointer(Self))-1);
       until false;
     end;
   Result:=-1;
 end;
 
 function TStringHelper.IndexOfUnQuoted(const AValue: string; StartQuote,
-  EndQuote: Char; StartIndex: SizeInt = 0): SizeInt;
+  EndQuote: AnsiChar; StartIndex: SizeInt = 0): SizeInt;
 
 Var
   LV : SizeInt;
@@ -763,20 +763,20 @@ begin
 end;
 
 
-function TStringHelper.IndexOfAny(const AnyOf: array of Char): SizeInt;
+function TStringHelper.IndexOfAny(const AnyOf: array of AnsiChar): SizeInt;
 begin
   Result:=IndexOfAny(AnyOf,0,Length);
 end;
 
 
-function TStringHelper.IndexOfAny(const AnyOf: array of Char;
+function TStringHelper.IndexOfAny(const AnyOf: array of AnsiChar;
   StartIndex: SizeInt): SizeInt;
 begin
   Result:=IndexOfAny(AnyOf,StartIndex,Length);
 end;
 
 
-function TStringHelper.IndexOfAny(const AnyOf: array of Char;
+function TStringHelper.IndexOfAny(const AnyOf: array of AnsiChar;
   StartIndex: SizeInt; ACount: SizeInt): SizeInt;
 
 Var
@@ -837,22 +837,22 @@ begin
 end;
 
 
-function TStringHelper.IndexOfAnyUnquoted(const AnyOf: array of Char;
-  StartQuote, EndQuote: Char): SizeInt;
+function TStringHelper.IndexOfAnyUnquoted(const AnyOf: array of AnsiChar;
+  StartQuote, EndQuote: AnsiChar): SizeInt;
 begin
   Result:=IndexOfAnyUnquoted(AnyOf,StartQuote,EndQuote,0,Length);
 end;
 
 
-function TStringHelper.IndexOfAnyUnquoted(const AnyOf: array of Char;
-  StartQuote, EndQuote: Char; StartIndex: SizeInt): SizeInt;
+function TStringHelper.IndexOfAnyUnquoted(const AnyOf: array of AnsiChar;
+  StartQuote, EndQuote: AnsiChar; StartIndex: SizeInt): SizeInt;
 begin
   Result:=IndexOfAnyUnquoted(AnyOf,StartQuote,EndQuote,StartIndex,Length);
 end;
 
 
-function TStringHelper.IndexOfAnyUnquoted(const AnyOf: array of Char;
-  StartQuote, EndQuote: Char; StartIndex: SizeInt; ACount: SizeInt): SizeInt;
+function TStringHelper.IndexOfAnyUnquoted(const AnyOf: array of AnsiChar;
+  StartQuote, EndQuote: AnsiChar; StartIndex: SizeInt; ACount: SizeInt): SizeInt;
 
 Var
   I,L : SizeInt;
@@ -893,7 +893,7 @@ begin
 end;
 
 function TStringHelper.IndexOfAnyUnquoted(const AnyOf: array of string;
-  StartQuote, EndQuote: Char; StartIndex: SizeInt; out Matched: SizeInt
+  StartQuote, EndQuote: AnsiChar; StartIndex: SizeInt; out Matched: SizeInt
   ): SizeInt;
 
 Var
@@ -940,7 +940,7 @@ begin
 end;
 
 
-function TStringHelper.LastIndexOf(AValue: Char): SizeInt;
+function TStringHelper.LastIndexOf(AValue: AnsiChar): SizeInt;
 begin
   Result:=LastIndexOf(AValue,Length-1,Length);
 end;
@@ -952,7 +952,7 @@ begin
 end;
 
 
-function TStringHelper.LastIndexOf(AValue: Char; AStartIndex: SizeInt): SizeInt;
+function TStringHelper.LastIndexOf(AValue: AnsiChar; AStartIndex: SizeInt): SizeInt;
 begin
   Result:=LastIndexOf(AValue,AStartIndex,Length);
 end;
@@ -965,7 +965,7 @@ begin
 end;
 
 
-function TStringHelper.LastIndexOf(AValue: Char; AStartIndex: SizeInt;
+function TStringHelper.LastIndexOf(AValue: AnsiChar; AStartIndex: SizeInt;
   ACount: SizeInt): SizeInt;
 
 Var
@@ -990,7 +990,7 @@ function TStringHelper.LastIndexOf(const AValue: string; AStartIndex: SizeInt; A
 var
   I,L,LS,M : SizeInt;
   S : String;
-  P : PChar;
+  P : PAnsiChar;
     
 begin
   Result:=-1;
@@ -998,7 +998,7 @@ begin
   L:=system.Length(AValue);
   if (L=0) or (L>LS) then
     Exit;
-  P:=PChar(AValue);  
+  P:=PAnsiChar(AValue);  
   S:=Self;
   I:=AStartIndex+1; // 1 based
   if (I>LS) then
@@ -1009,27 +1009,27 @@ begin
     M:=1;
   while (Result=-1) and (I>=M) do
     begin
-    if (0=StrLComp(PChar(@S[I]),P,L)) then
+    if (0=StrLComp(PAnsiChar(@S[I]),P,L)) then
       Result:=I-1;
     Dec(I);
     end;
 end;
 
 
-function TStringHelper.LastIndexOfAny(const AnyOf: array of Char): SizeInt;
+function TStringHelper.LastIndexOfAny(const AnyOf: array of AnsiChar): SizeInt;
 begin
   Result:=LastIndexOfAny(AnyOf,Length-1,Length);
 end;
 
 
-function TStringHelper.LastIndexOfAny(const AnyOf: array of Char;
+function TStringHelper.LastIndexOfAny(const AnyOf: array of AnsiChar;
   AStartIndex: SizeInt): SizeInt;
 begin
   Result:=LastIndexOfAny(AnyOf,AStartIndex,Length);
 end;
 
 
-function TStringHelper.LastIndexOfAny(const AnyOf: array of Char;
+function TStringHelper.LastIndexOfAny(const AnyOf: array of AnsiChar;
   AStartIndex: SizeInt; ACount: SizeInt): SizeInt;
 
 Var
@@ -1055,7 +1055,7 @@ begin
 end;
 
 
-function TStringHelper.PadLeft(ATotalWidth: SizeInt; PaddingChar: Char): string;
+function TStringHelper.PadLeft(ATotalWidth: SizeInt; PaddingChar: AnsiChar): string;
 Var
   L : SizeInt;
 
@@ -1073,7 +1073,7 @@ begin
 end;
 
 
-function TStringHelper.PadRight(ATotalWidth: SizeInt; PaddingChar: Char
+function TStringHelper.PadRight(ATotalWidth: SizeInt; PaddingChar: AnsiChar
   ): string;
 
 Var
@@ -1093,7 +1093,7 @@ begin
 end;
 
 
-function TStringHelper.QuotedString(const AQuoteChar: Char): string;
+function TStringHelper.QuotedString(const AQuoteChar: AnsiChar): string;
 begin
   Result:=AnsiQuotedStr(Self,AQuoteChar);
 end;
@@ -1112,31 +1112,31 @@ begin
 end;
 
 
-function TStringHelper.Replace(OldChar: Char; NewChar: Char): string;
+function TStringHelper.Replace(OldChar: AnsiChar; NewChar: AnsiChar): string;
 begin
   Result:=Replace(OldChar,NewChar,[rfReplaceAll]);
 end;
 
 
-function TStringHelper.Replace(OldChar: Char; NewChar: Char;
+function TStringHelper.Replace(OldChar: AnsiChar; NewChar: AnsiChar;
   ReplaceFlags: TReplaceFlags): string;
 var
-  Sp,Se,Rp : PChar;
+  Sp,Se,Rp : PAnsiChar;
   Ofs : SizeInt;
 begin
   if rfIgnoreCase in ReplaceFlags then
     exit(StringReplace(Self,OldChar,NewChar,ReplaceFlags));
 
-  Sp:=PChar(Pointer(Self));
+  Sp:=PAnsiChar(Pointer(Self));
   Se:=Sp+System.Length(Self);
   Ofs:=IndexChar(Sp^,Se-Sp,OldChar);
   if Ofs<0 then
     exit(Self);
   SetLength(Result,Se-Sp);
-  Rp:=PChar(Pointer(Result));
+  Rp:=PAnsiChar(Pointer(Result));
 
   repeat
-    Move(Sp^,Rp^,Ofs*sizeof(Char));
+    Move(Sp^,Rp^,Ofs*sizeof(AnsiChar));
     Sp:=Sp+Ofs+1;
     Rp[Ofs]:=NewChar;
     Rp:=Rp+Ofs+1;
@@ -1151,7 +1151,7 @@ begin
       end;
     Ofs:=IndexChar(Sp^,Se-Sp,OldChar);
   until Ofs<0;
-  Move(Sp^,Rp^,(Se-Sp)*sizeof(Char));
+  Move(Sp^,Rp^,(Se-Sp)*sizeof(AnsiChar));
 end;
 
 
@@ -1169,27 +1169,27 @@ begin
 end;
 
 
-function TStringHelper.Split(const Separators: array of Char): TStringArray;
+function TStringHelper.Split(const Separators: array of AnsiChar): TStringArray;
 begin
   Result:=Split(Separators,#0,#0,Length+1,TStringSplitOptions.None);
 end;
 
 
-function TStringHelper.Split(const Separators: array of Char; ACount: SizeInt
+function TStringHelper.Split(const Separators: array of AnsiChar; ACount: SizeInt
   ): TStringArray;
 begin
   Result:=Split(Separators,#0,#0,ACount,TStringSplitOptions.None);
 end;
 
 
-function TStringHelper.Split(const Separators: array of Char;
+function TStringHelper.Split(const Separators: array of AnsiChar;
   Options: TStringSplitOptions): TStringArray;
 begin
   Result:=Split(Separators,Length+1,Options);
 end;
 
 
-function TStringHelper.Split(const Separators: array of Char; ACount: SizeInt;
+function TStringHelper.Split(const Separators: array of AnsiChar; ACount: SizeInt;
   Options: TStringSplitOptions): TStringArray;
 begin
   Result:=Split(Separators,#0,#0,ACount,Options);
@@ -1223,36 +1223,36 @@ begin
 end;
 
 
-function TStringHelper.Split(const Separators: array of Char; AQuote: Char
+function TStringHelper.Split(const Separators: array of AnsiChar; AQuote: AnsiChar
   ): TStringArray;
 begin
   Result:=Split(Separators,AQuote,AQuote);
 end;
 
 
-function TStringHelper.Split(const Separators: array of Char; AQuoteStart,
-  AQuoteEnd: Char): TStringArray;
+function TStringHelper.Split(const Separators: array of AnsiChar; AQuoteStart,
+  AQuoteEnd: AnsiChar): TStringArray;
 begin
   Result:=Split(Separators,AQuoteStart,AQuoteEnd,TStringSplitOptions.None);
 end;
 
 
-function TStringHelper.Split(const Separators: array of Char; AQuoteStart,
-  AQuoteEnd: Char; Options: TStringSplitOptions): TStringArray;
+function TStringHelper.Split(const Separators: array of AnsiChar; AQuoteStart,
+  AQuoteEnd: AnsiChar; Options: TStringSplitOptions): TStringArray;
 begin
   Result:=Split(Separators,AQuoteStart,AQuoteEnd,Length+1,Options);
 end;
 
 
-function TStringHelper.Split(const Separators: array of Char; AQuoteStart,
-  AQuoteEnd: Char; ACount: SizeInt): TStringArray;
+function TStringHelper.Split(const Separators: array of AnsiChar; AQuoteStart,
+  AQuoteEnd: AnsiChar; ACount: SizeInt): TStringArray;
 begin
   Result:=Split(Separators,AQuoteStart,AQuoteEnd,ACount,TStringSplitOptions.None);
 end;
 
 
-function TStringHelper.Split(const Separators: array of Char; AQuoteStart,
-  AQuoteEnd: Char; ACount: SizeInt; Options: TStringSplitOptions): TStringArray;
+function TStringHelper.Split(const Separators: array of AnsiChar; AQuoteStart,
+  AQuoteEnd: AnsiChar; ACount: SizeInt; Options: TStringSplitOptions): TStringArray;
 
   Function NextSep(StartIndex : SizeInt) : SizeInt;
 
@@ -1300,7 +1300,7 @@ begin
 end;
 
 
-function TStringHelper.Split(const Separators: array of string; AQuote: Char
+function TStringHelper.Split(const Separators: array of string; AQuote: AnsiChar
   ): TStringArray;
 begin
   Result:=SPlit(Separators,AQuote,AQuote);
@@ -1308,28 +1308,28 @@ end;
 
 
 function TStringHelper.Split(const Separators: array of string; AQuoteStart,
-  AQuoteEnd: Char): TStringArray;
+  AQuoteEnd: AnsiChar): TStringArray;
 begin
   Result:=SPlit(Separators,AQuoteStart,AQuoteEnd,Length+1,TStringSplitOptions.None);
 end;
 
 
 function TStringHelper.Split(const Separators: array of string; AQuoteStart,
-  AQuoteEnd: Char; Options: TStringSplitOptions): TStringArray;
+  AQuoteEnd: AnsiChar; Options: TStringSplitOptions): TStringArray;
 begin
   Result:=SPlit(Separators,AQuoteStart,AQuoteEnd,Length+1,Options);
 end;
 
 
 function TStringHelper.Split(const Separators: array of string; AQuoteStart,
-  AQuoteEnd: Char; ACount: SizeInt): TStringArray;
+  AQuoteEnd: AnsiChar; ACount: SizeInt): TStringArray;
 begin
   Result:=SPlit(Separators,AQuoteStart,AQuoteEnd,ACount,TStringSplitOptions.None);
 end;
 
 
 function TStringHelper.Split(const Separators: array of string; AQuoteStart,
-  AQuoteEnd: Char; ACount: SizeInt; Options: TStringSplitOptions): TStringArray;
+  AQuoteEnd: AnsiChar; ACount: SizeInt; Options: TStringSplitOptions): TStringArray;
 Const
   BlockSize = 10;
 
@@ -1409,7 +1409,7 @@ begin
     if IgnoreCase then
       Result:=SameText(System.Copy(Self,1,L),AValue)
     else
-      Result:=CompareChar(PChar(Pointer(Self))^,PChar(Pointer(AValue))^,L)=0;
+      Result:=CompareChar(PAnsiChar(Pointer(Self))^,PAnsiChar(Pointer(AValue))^,L)=0;
 end;
 
 
@@ -1523,13 +1523,13 @@ begin
 end;
 
 
-function TStringHelper.Trim(const ATrimChars: array of Char): string;
+function TStringHelper.Trim(const ATrimChars: array of AnsiChar): string;
 begin
   Result:=Self.TrimLeft(ATrimChars).TrimRight(ATrimChars);
 end;
 
 
-function TStringHelper.TrimLeft(const ATrimChars: array of Char): string;
+function TStringHelper.TrimLeft(const ATrimChars: array of AnsiChar): string;
 
 Var
   I,Len : SizeInt;
@@ -1547,7 +1547,7 @@ begin
 end;
 
 
-function TStringHelper.TrimRight(const ATrimChars: array of Char): string;
+function TStringHelper.TrimRight(const ATrimChars: array of AnsiChar): string;
 
 Var
   I,Len : SizeInt;
@@ -1565,13 +1565,13 @@ begin
 end;
 
 
-function TStringHelper.TrimEnd(const ATrimChars: array of Char): string;
+function TStringHelper.TrimEnd(const ATrimChars: array of AnsiChar): string;
 begin
   Result:=TrimRight(ATrimChars);
 end;
 
 
-function TStringHelper.TrimStart(const ATrimChars: array of Char): string;
+function TStringHelper.TrimStart(const ATrimChars: array of AnsiChar): string;
 begin
   Result:=TrimLeft(ATrimChars);
 end;

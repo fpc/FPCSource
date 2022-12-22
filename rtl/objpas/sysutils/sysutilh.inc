@@ -257,7 +257,7 @@ type
    function ExceptFrameCount: Longint;
    function ExceptFrames: PCodePointer;
    function ExceptionErrorMessage(ExceptObject: TObject; ExceptAddr: Pointer;
-                                  Buffer: PChar; Size: Integer): Integer;
+                                  Buffer: PAnsiChar; Size: Integer): Integer;
    procedure ShowException(ExceptObject: TObject; ExceptAddr: Pointer);
    procedure Abort;
    procedure OutOfMemoryError;
@@ -310,7 +310,7 @@ Type
    TTextRec=TextRec;
 
 
-  { Read pchar handling functions declaration }
+  { Read PAnsiChar handling functions declaration }
   {$i syspchh.inc}
 
   { MCBS functions }
