@@ -158,7 +158,7 @@ begin
 
   { the zero offset for cmdline is actually correct here. pexec() expects
     pascal formatted string for cmdline, so length in first byte }
-  dosResult:=gemdos_pexec(0,PChar(@tmpPath[1]),@ComLine[0],nil);
+  dosResult:=gemdos_pexec(0,PAnsiChar(@tmpPath[1]),@ComLine[0],nil);
   if dosResult < 0 then
     Error2DosError(dosResult);
 end;
@@ -215,7 +215,7 @@ begin
   gemdos_setdta(@IFD^.dta_search);
 
   f.IFD:=IFD;
-  dosResult:=gemdos_fsfirst(pchar(r), Attr and AnyFile);
+  dosResult:=gemdos_fsfirst(PAnsiChar(r), Attr and AnyFile);
   if dosResult < 0 then
     begin
       Error2DosError(dosResult);
@@ -326,7 +326,7 @@ end;
 procedure GetFAttr(var f; var Attr : word);
 var
   dosResult: LongInt;
-  path: PChar;
+  path: PAnsiChar;
 {$ifndef FPC_ANSI_TEXTFILEREC}
   r: rawbytestring;
 {$endif not FPC_ANSI_TEXTFILEREC}
@@ -335,7 +335,7 @@ begin
   path:=@filerec(f).Name;
 {$else}
   r:=ToSingleByteFileSystemEncodedFileName(filerec(f).Name);
-  path:=pchar(r);
+  path:=PAnsiChar(r);
 {$endif}
 
   Attr:=0;
@@ -357,7 +357,7 @@ end;
 procedure SetFAttr(var f; attr : word);
 var
   dosResult: LongInt;
-  path: PChar;
+  path: PAnsiChar;
 {$ifndef FPC_ANSI_TEXTFILEREC}
   r: rawbytestring;
 {$endif not FPC_ANSI_TEXTFILEREC}
@@ -366,10 +366,10 @@ begin
   path:=@filerec(f).Name;
 {$else}
   r:=ToSingleByteFileSystemEncodedFileName(filerec(f).Name);
-  path:=pchar(r);
+  path:=PAnsiChar(r);
 {$endif}
 
-  dosResult:=gemdos_fattrib(pchar(@FileRec(f).name),1,Attr);
+  dosResult:=gemdos_fattrib(PAnsiChar(@FileRec(f).name),1,Attr);
   if dosResult < 0 then
     Error2DosError(dosResult)
 end;
@@ -386,7 +386,7 @@ end;
 
 function EnvCount: Longint;
 var
-  hp : pchar;
+  hp : PAnsiChar;
 begin
   EnvCount:=0;
   hp:=basepage^.p_env;
@@ -400,7 +400,7 @@ end;
 
 function EnvStr(Index: LongInt): String;
 var
-  hp : pchar;
+  hp : PAnsiChar;
 begin
   EnvStr:='';
   hp:=basepage^.p_env;

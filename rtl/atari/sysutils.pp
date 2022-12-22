@@ -73,7 +73,7 @@ function FileOpen(const FileName: rawbytestring; Mode: Integer): THandle;
 begin
   { Mode has some Share modes. Maybe something for MiNT? }
   { Lower three bits of Mode are actually TOS compatible }
-  FileOpen:=gemdos_fopen(pchar(FileName), Mode and 3);
+  FileOpen:=gemdos_fopen(PAnsiChar(FileName), Mode and 3);
   if FileOpen < -1 then
     FileOpen:=-1;
 end;
@@ -116,7 +116,7 @@ end;
 
 function FileCreate(const FileName: RawByteString) : THandle;
 begin
-  FileCreate:=gemdos_fcreate(pchar(FileName),0);
+  FileCreate:=gemdos_fcreate(PAnsiChar(FileName),0);
   if FileCreate < -1 then
     FileCreate:=-1;
 end;
@@ -192,13 +192,13 @@ end;
 
 function DeleteFile(const FileName: RawByteString) : Boolean;
 begin
-  DeleteFile:=gemdos_fdelete(pchar(FileName)) >= 0;
+  DeleteFile:=gemdos_fdelete(PAnsiChar(FileName)) >= 0;
 end;
 
 
 function RenameFile(const OldName, NewName: RawByteString): Boolean;
 begin
-  RenameFile:=gemdos_frename(0,pchar(oldname),pchar(newname)) >= 0;
+  RenameFile:=gemdos_frename(0,PAnsiChar(oldname),PAnsiChar(newname)) >= 0;
 end;
 
 
@@ -257,7 +257,7 @@ begin
   gemdos_setdta(@IFD^.dta_search);
 
   Rslt.FindHandle:=nil;
-  dosResult:=gemdos_fsfirst(pchar(path), Attr and faAnyFile);
+  dosResult:=gemdos_fsfirst(PAnsiChar(path), Attr and faAnyFile);
   if dosResult < 0 then
     begin
       InternalFindClose(IFD);
@@ -330,13 +330,13 @@ end;
 
 Function FileGetAttr (Const FileName : RawByteString) : Longint;
 begin
-  FileGetAttr:=gemdos_fattrib(pchar(FileName),0,0);
+  FileGetAttr:=gemdos_fattrib(PAnsiChar(FileName),0,0);
 end;
 
 
 Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
 begin
-  FileSetAttr:=gemdos_fattrib(pchar(FileName),1,Attr and faAnyFile);
+  FileSetAttr:=gemdos_fattrib(PAnsiChar(FileName),1,Attr and faAnyFile);
 
   if FileSetAttr < -1 then
     FileSetAttr:=-1
@@ -464,7 +464,7 @@ end;
 
 Function GetEnvironmentVariableCount : Integer;
 var
-  hp : pchar;
+  hp : PAnsiChar;
 begin
   result:=0;
   hp:=basepage^.p_env;
@@ -478,7 +478,7 @@ end;
 
 Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 var
-  hp : pchar;
+  hp : PAnsiChar;
 begin
   result:='';
   hp:=basepage^.p_env;
@@ -503,10 +503,10 @@ var
   pcmdline: ShortString;
   CommandLine: RawByteString;
   E: EOSError;
-  env, s: pchar;
-  buf, start: pchar;
+  env, s: PAnsiChar;
+  buf, start: PAnsiChar;
   enlen, len: SizeInt;
-  hp : pchar;
+  hp : PAnsiChar;
 
 begin
   tmpPath:=ToSingleByteFileSystemEncodedFileName(Path);
@@ -524,9 +524,9 @@ begin
       end;
 
   { count up space needed for arguments }
-  len := strlen(PChar(tmpPath)) + 1;
+  len := strlen(PAnsiChar(tmpPath)) + 1;
   inc(enlen, len);
-  buf := PChar(ComLine);
+  buf := PAnsiChar(ComLine);
   while (buf^<>#0) do                   // count nr of args
    begin
      while (buf^ in [' ',#9,#10]) do    // Kill separators.
@@ -580,13 +580,13 @@ begin
       inc(s, 6); { s+=sizeof("ARGV=") }
 
       { copy argv[0] }
-      buf := PChar(tmpPath);
+      buf := PAnsiChar(tmpPath);
       len := strlen(buf) + 1;
       strcopy(s, buf);
           inc(s, len);
 
       { copy the parameters }
-          buf:=PChar(ComLine);
+          buf:=PAnsiChar(ComLine);
           while (buf^<>#0) do
            begin
              while (buf^ in [' ',#9,#10]) do    // Kill separators.
@@ -636,7 +636,7 @@ begin
       pcmdline[0] := #127;
       { the zero offset for cmdline is actually correct here. pexec() expects
         pascal formatted string for cmdline, so length in first byte }
-      result:=gemdos_pexec(0,PChar(tmpPath),@pcmdline[0],env);
+      result:=gemdos_pexec(0,PAnsiChar(tmpPath),@pcmdline[0],env);
       gemdos_mfree(env);
     end;
 

@@ -24,7 +24,7 @@ var
 begin
   ps:=s;
   DoDirSeparators(ps);
-  dosResult:=gemdos_dcreate(pchar(ps));
+  dosResult:=gemdos_dcreate(PAnsiChar(ps));
   if dosResult < 0 then
     Error2InOutRes(dosResult);
 end;
@@ -43,7 +43,7 @@ begin
       exit;
     end;
 
-  dosResult:=gemdos_ddelete(pchar(ps));
+  dosResult:=gemdos_ddelete(PAnsiChar(ps));
   if dosResult < 0 then
     Error2InOutRes(dosResult);
 end;
@@ -84,7 +84,7 @@ begin
         exit;
     end;
   { do normal setpath }
-  dosResult:=gemdos_dsetpath(pchar(ps));
+  dosResult:=gemdos_dsetpath(PAnsiChar(ps));
   if dosResult < 0 then
     Error2InOutRes(dosResult);
 end;
@@ -93,7 +93,7 @@ end;
 procedure do_GetDir (DriveNr: byte; var Dir: RawByteString);
 var
   dosResult: longint;
-  pathbuf: array[0..259] of char;
+  pathbuf: array[0..259] of AnsiChar;
 begin
   Dir := '';
 
@@ -108,7 +108,7 @@ begin
     DriveNr := gemdos_dgetdrv + 1;
 
   { return a full path, including drive }
-  pathbuf[0]:=char(ord('A') + DriveNr - 1);
+  pathbuf[0]:=AnsiChar(ord('A') + DriveNr - 1);
   pathbuf[1]:=DriveSeparator;
 
   Dir:=pathbuf;

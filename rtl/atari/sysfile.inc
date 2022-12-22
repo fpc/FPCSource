@@ -30,9 +30,9 @@ begin
 end;
 
 
-procedure do_erase(p : pchar; pchangeable: boolean);
+procedure do_erase(p : PAnsiChar; pchangeable: boolean);
 var
-  oldp: pchar;
+  oldp: PAnsiChar;
   dosResult: longint;
 begin
   oldp:=p;
@@ -45,9 +45,9 @@ begin
 end;
 
 
-procedure do_rename(p1,p2 : pchar; p1changeable, p2changeable: boolean);
+procedure do_rename(p1,p2 : PAnsiChar; p1changeable, p2changeable: boolean);
 var
-  oldp1, oldp2 : pchar;
+  oldp1, oldp2 : PAnsiChar;
   dosResult: longint;
 begin
   oldp1:=p1;
@@ -163,7 +163,7 @@ begin
 end;
 
 
-procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);
+procedure do_open(var f;p:PAnsiChar;flags:longint; pchangeable: boolean);
 {
   filerec and textrec have both handle and mode as the first items so
   they could use the same routine for opening/creating.
@@ -172,7 +172,7 @@ procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);
   when (flags and $10000) there is no check for close (needed for textfiles)
 }
 var
-  oldp     : pchar;
+  oldp     : PAnsiChar;
   dosResult: longint;
 begin
 { close first if opened }
