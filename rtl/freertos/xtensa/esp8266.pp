@@ -18,8 +18,8 @@ unit esp8266;
       operatingsystem_result: longint; external name 'operatingsystem_result';
 
     procedure PASCALMAIN; external name 'PASCALMAIN';
-    procedure putchar(c : char);external;
-    function uart_rx_one_char(pRxChar: PChar): longint; external;
+    procedure putchar(c : AnsiChar);external;
+    function uart_rx_one_char(pRxChar: PAnsiChar): longint; external;
     function __getreent : pointer;external;
     procedure fflush(f : pointer);external;
     procedure vTaskDelay(xTicksToDelay: uint32); external;
@@ -50,13 +50,13 @@ unit esp8266;
         _FPC_haltproc;
       end;
 
-    function WriteChar(ACh: char; AUserData: pointer): boolean;
+    function WriteChar(ACh: AnsiChar; AUserData: pointer): boolean;
       begin
         WriteChar:=true;
         putchar(ACh);
       end;
 
-    function ReadChar(var ACh: char; AUserData: pointer): boolean;
+    function ReadChar(var ACh: AnsiChar; AUserData: pointer): boolean;
       begin
         ReadChar := true;
         ACh := #0;
