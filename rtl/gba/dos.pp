@@ -91,7 +91,7 @@ procedure DeleteExtIO ();
 begin
 end;
 
-function Createport(name : PChar; pri : longint): integer;
+function Createport(name : PAnsiChar; pri : longint): integer;
 begin
   result := -1;
 end;
@@ -241,7 +241,7 @@ procedure AddDevice(str : String);
 begin
 end;
 
-function MakeDeviceName(str : pchar): string;
+function MakeDeviceName(str : PAnsiChar): string;
 begin
   result := '';
 end;

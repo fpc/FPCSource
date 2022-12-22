@@ -40,8 +40,8 @@ const
  DriveSeparator = ':';
  ExtensionSeparator = '.';
  PathSeparator = ';';
- AllowDirectorySeparators : set of char = ['\','/'];
- AllowDriveSeparators : set of char = [':'];
+ AllowDirectorySeparators : set of AnsiChar = ['\','/'];
+ AllowDriveSeparators : set of AnsiChar = [':'];
  FileNameCaseSensitive = false;
  FileNameCasePreserving = true;
  maxExitCode = 255;
@@ -58,8 +58,8 @@ const
 
 var
   argc: LongInt = 0;
-  argv: PPChar;
-  envp: PPChar;
+  argv: PPAnsiChar;
+  envp: PPAnsiChar;
   fake_heap_end: ^byte; cvar; external;
 
 
