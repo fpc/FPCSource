@@ -56,7 +56,7 @@ implementation
 {$i sysutils.inc}
 
 type
-  PFarChar=^Char;far;
+  PFarChar=^AnsiChar;far;
   PPFarChar=^PFarChar;
 var
   dos_env_count:smallint;external name '__dos_env_count';
@@ -83,11 +83,11 @@ const
 Type
   PSearchrec = ^Searchrec;
 
-{  converts S to a pchar and copies it to the transfer-buffer.   }
+{  converts S to a PAnsiChar and copies it to the transfer-buffer.   }
 
 {procedure StringToTB(const S: string);
 var
-  P: pchar;
+  P: PAnsiChar;
   Len: integer;
 begin
   Len := Length(S) + 1;
@@ -110,7 +110,7 @@ begin
     begin
       Regs.ax := $716c;                    { Use LFN Open/Create API }
       Regs.dx := Action;                   { Action if file does/doesn't exist }
-      Regs.si := Ofs(PChar(FileName)^);
+      Regs.si := Ofs(PAnsiChar(FileName)^);
       Regs.bx := $2000 + (Mode and $ff);   { File open mode }
     end
   else
@@ -119,9 +119,9 @@ begin
         Regs.ax := $3c00                   { Map to Create/Replace API }
       else
         Regs.ax := $3d00 + (Mode and $ff); { Map to Open_Existing API }
-      Regs.dx := Ofs(PChar(FileName)^);
+      Regs.dx := Ofs(PAnsiChar(FileName)^);
     end;
-  Regs.Ds := Seg(PChar(FileName)^);
+  Regs.Ds := Seg(PAnsiChar(FileName)^);
   Regs.cx := $20;                          { Attributes }
   MsDos(Regs);
   if (Regs.Flags and fCarry) <> 0 then
@@ -460,8 +460,8 @@ Function FileGetAttr (Const FileName : RawByteString) : Longint;
 var
   Regs: registers;
 begin
-  Regs.dx := Ofs(PChar(FileName)^);
-  Regs.Ds := Seg(PChar(FileName)^);
+  Regs.dx := Ofs(PAnsiChar(FileName)^);
+  Regs.Ds := Seg(PAnsiChar(FileName)^);
   if LFNSupport then
    begin
      Regs.Ax := $7143;
@@ -481,8 +481,8 @@ Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
 var
   Regs: registers;
 begin
-  Regs.dx := Ofs(PChar(FileName)^);
-  Regs.Ds := Seg(PChar(FileName)^);
+  Regs.dx := Ofs(PAnsiChar(FileName)^);
+  Regs.Ds := Seg(PAnsiChar(FileName)^);
   if LFNSupport then
     begin
       Regs.Ax := $7143;
@@ -503,8 +503,8 @@ Function DeleteFile (Const FileName : RawByteString) : Boolean;
 var
   Regs: registers;
 begin
-  Regs.dx := Ofs(PChar(FileName)^);
-  Regs.Ds := Seg(PChar(FileName)^);
+  Regs.dx := Ofs(PAnsiChar(FileName)^);
+  Regs.Ds := Seg(PAnsiChar(FileName)^);
   if LFNSupport then
     Regs.ax := $7141
   else
@@ -521,10 +521,10 @@ var
   Regs: registers;
 begin
 //  StringToTB(OldName + #0 + NewName);
-  Regs.dx := Ofs(PChar(OldName)^);
-  Regs.Ds := Seg(PChar(OldName)^);
-  Regs.di := Ofs(PChar(NewName)^);
-  Regs.Es := Seg(PChar(NewName)^);
+  Regs.dx := Ofs(PAnsiChar(OldName)^);
+  Regs.Ds := Seg(PAnsiChar(OldName)^);
+  Regs.di := Ofs(PAnsiChar(NewName)^);
+  Regs.Es := Seg(PAnsiChar(NewName)^);
   if LFNSupport then
     Regs.ax := $7156
   else
@@ -656,7 +656,7 @@ end ;
 ****************************************************************************}
 
 const
-  BeepChars: array [1..2] of char = #7'$';
+  BeepChars: array [1..2] of AnsiChar = #7'$';
 
 procedure sysBeep;
 var
@@ -721,7 +721,7 @@ end;
 
 procedure InitAnsi;
 type
-  PFarChar = ^char; far;
+  PFarChar = ^AnsiChar; far;
 var
   CountryInfo: TCountryInfo; i: integer;
 begin

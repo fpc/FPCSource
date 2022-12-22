@@ -22,12 +22,12 @@ interface
   systemh.inc is included otherwise the
   $mode switch is not effective }
 
-{ Use Ansi Char for files }
+{ Use AnsiChar for files }
 {$define FPC_ANSI_TEXTFILEREC}
 {$define FPC_STDOUT_TRUE_ALIAS}
 
 {$ifdef NO_WIDESTRINGS}
-  { Do NOT use wide Char for files }
+  { Do NOT use wide AnsiChar for files }
   {$undef FPC_HAS_FEATURE_WIDESTRINGS}
 {$endif NO_WIDESTRINGS}
 
@@ -42,8 +42,8 @@ const
   DriveSeparator = ':';
   ExtensionSeparator = '.';
   PathSeparator = ';';
-  AllowDirectorySeparators : set of char = ['\','/'];
-  AllowDriveSeparators : set of char = [':'];
+  AllowDirectorySeparators : set of AnsiChar = ['\','/'];
+  AllowDriveSeparators : set of AnsiChar = [':'];
   { FileNameCaseSensitive and FileNameCasePreserving are defined separately below!!! }
   maxExitCode = 255;
   MaxPathLen = 256;
@@ -78,7 +78,7 @@ var
   meml : array[0..($7fff div sizeof(longint))-1] of longint absolute $0:$0;
 { C-compatible arguments and environment }
   argc:smallint; //!! public name 'operatingsystem_parameter_argc';
-  argv:PPchar; //!! public name 'operatingsystem_parameter_argv';
+  argv:PPAnsiChar; //!! public name 'operatingsystem_parameter_argv';
 
 { The DOS Program Segment Prefix segment (TP7 compatibility) }
   PrefixSeg:Word;public name '__fpc_PrefixSeg';
@@ -122,7 +122,7 @@ const
 
 type
   PFarByte = ^Byte;far;
-  PFarChar = ^Char;far;
+  PFarChar = ^AnsiChar;far;
   PFarWord = ^Word;far;
   PPFarChar = ^PFarChar;
 
@@ -359,13 +359,13 @@ end;
 procedure setup_arguments;
 var
   I: SmallInt;
-  pc: PChar;
+  pc: PAnsiChar;
   pfc: PFarChar;
-  quote: Char;
+  quote: AnsiChar;
   count: SmallInt;
   arglen, argv0len: SmallInt;
-  argblock: PChar;
-  arg: PChar;
+  argblock: PAnsiChar;
+  arg: PAnsiChar;
   doscmd   : string[129];  { Dos commandline copied from PSP, max is 128 chars +1 for terminating zero }
 begin
   { force environment to be setup so dos_argv0 is loaded }
@@ -417,7 +417,7 @@ begin
               begin
                 if quote<>'''' then
                   begin
-                    if pchar(pc+1)^<>'"' then
+                    if PAnsiChar(pc+1)^<>'"' then
                       begin
                         if quote='"' then
                           quote:=' '
@@ -434,7 +434,7 @@ begin
               begin
                 if quote<>'"' then
                   begin
-                    if pchar(pc+1)^<>'''' then
+                    if PAnsiChar(pc+1)^<>'''' then
                       begin
                         if quote=''''  then
                          quote:=' '
@@ -457,7 +457,7 @@ begin
     end;
   { set argc and allocate argv }
   argc:=count;
-  argv:=AllocMem((count+1)*SizeOf(PChar));
+  argv:=AllocMem((count+1)*SizeOf(PAnsiChar));
   { allocate a single memory block for all arguments }
   argblock:=GetMem(arglen);
   { create argv[0] }
@@ -505,7 +505,7 @@ begin
               begin
                 if quote<>'''' then
                   begin
-                    if pchar(pc+1)^<>'"' then
+                    if PAnsiChar(pc+1)^<>'"' then
                       begin
                         if quote='"' then
                           quote:=' '
@@ -525,7 +525,7 @@ begin
               begin
                 if quote<>'"' then
                   begin
-                    if pchar(pc+1)^<>'''' then
+                    if PAnsiChar(pc+1)^<>'''' then
                       begin
                         if quote=''''  then
                           quote:=' '
@@ -636,8 +636,8 @@ end;
 function CheckLFN:boolean;
 var
   regs     : Registers;
-  RootName : pchar;
-  buf      : array [0..31] of char;
+  RootName : PAnsiChar;
+  buf      : array [0..31] of AnsiChar;
 begin
 { Check LFN API on drive c:\ }
   RootName:='C:\';
