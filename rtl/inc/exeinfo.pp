@@ -60,12 +60,12 @@ type
 function OpenExeFile(var e:TExeFile;const fn:shortstring):boolean;
 function FindExeSection(var e:TExeFile;const secname:shortstring;var secofs,seclen:longint):boolean;
 function CloseExeFile(var e:TExeFile):boolean;
-function ReadDebugLink(var e:TExeFile;var dbgfn:shortstring):boolean;
+function ReadDebugLink(var e:TExeFile;var dbgfn:ansistring):boolean;
 
 {$ifdef CPUI8086}
-procedure GetModuleByAddr(addr: farpointer; var baseaddr: farpointer; var filename: shortstring);
+procedure GetModuleByAddr(addr: farpointer; var baseaddr: farpointer; var filename: ansistring);
 {$else CPUI8086}
-procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: shortstring);
+procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: ansistring);
 {$endif CPUI8086}
 
 implementation
@@ -78,7 +78,7 @@ uses
 
 {$if defined(unix) and not defined(beos) and not defined(haiku)}
 
-  procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: shortstring);
+  procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: ansistring);
     begin
       if assigned(UnixGetModuleByAddrHook) then
         UnixGetModuleByAddrHook(addr,baseaddr,filename)
@@ -906,7 +906,7 @@ begin
 end;
 
 procedure GetExeInMemoryBaseAddr(addr : pointer; var BaseAddr : pointer;
-                                 var filename : openstring);
+                                 var filename : ansistring);
 type
   AT_HDR = record
     typ : ptruint;
@@ -1588,7 +1588,7 @@ begin
 end;
 
 {$ifndef darwin}
-function ReadDebugLink(var e:TExeFile;var dbgfn:shortstring):boolean;
+function ReadDebugLink(var e:TExeFile;var dbgfn:ansistring):boolean;
 var
   dbglink : array[0..255] of AnsiChar;
   i,
@@ -1632,7 +1632,7 @@ begin
     end;
 end;
 {$else}
-function ReadDebugLink(var e:TExeFile;var dbgfn:shortstring):boolean;
+function ReadDebugLink(var e:TExeFile;var dbgfn:ansistring):boolean;
 var
    dsymexefile: TExeFile;
    execmd, dsymcmd: pmach_load_command;
