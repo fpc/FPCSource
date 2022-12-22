@@ -16,7 +16,7 @@
 { Checked using ../unix/scipts/check_errnostr.sh  }
 const
   sys_errn=97;
-  sys_errlist:array[0..sys_errn-1] of pchar = (
+  sys_errlist:array[0..sys_errn-1] of PAnsiChar = (
         'Success',                              { 0 }
         'Operation not permitted',              { EPERM }
         'No such file or directory',            { ENOENT }
