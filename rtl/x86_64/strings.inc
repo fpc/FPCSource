@@ -19,7 +19,7 @@
 
 {$ifndef FPC_UNIT_HAS_STRCOMP}
 {$define FPC_UNIT_HAS_STRCOMP}
-function StrComp(Str1, Str2: PChar): SizeInt;assembler;nostackframe;
+function StrComp(Str1, Str2: PAnsiChar): SizeInt;assembler;nostackframe;
 asm
 {$ifndef win64}
         movq   %rsi,%rdx
