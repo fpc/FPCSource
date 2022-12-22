@@ -37,7 +37,7 @@
 
 {$L abitag.o}
 var
-  libc_environ: pchar; external name '__environ';
+  libc_environ: PAnsiChar; external name '__environ';
   libc_fpu_control: word; external name '__fpu_control';
   libc_init_proc: procedure; external name '_init';
   libc_fini_proc: procedure; external name '_fini';
