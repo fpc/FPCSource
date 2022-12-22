@@ -40,7 +40,7 @@
 
 {$ifndef FPC_UNIT_HAS_STREND}
 {$define FPC_UNIT_HAS_STREND}
-function strend(p : pchar) : pchar;assembler;nostackframe;
+function strend(p : PAnsiChar) : PAnsiChar;assembler;nostackframe;
 const
   { used for an offset fixup for accessing the proc parameters in asm routines
     that use nostackframe. We can't use the parameter name directly, because
@@ -80,7 +80,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRUPPER}
 {$define FPC_UNIT_HAS_STRUPPER}
-function strupper(p : pchar) : pchar;assembler;nostackframe;
+function strupper(p : PAnsiChar) : PAnsiChar;assembler;nostackframe;
 const
 {$ifdef FPC_X86_CODE_FAR}
   extra_param_offset = 2;
@@ -132,7 +132,7 @@ end;
 
 {$ifndef FPC_UNIT_HAS_STRLOWER}
 {$define FPC_UNIT_HAS_STRLOWER}
-function strlower(p : pchar) : pchar;assembler;nostackframe;
+function strlower(p : PAnsiChar) : PAnsiChar;assembler;nostackframe;
 const
 {$ifdef FPC_X86_CODE_FAR}
   extra_param_offset = 2;
