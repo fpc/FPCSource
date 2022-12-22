@@ -52,7 +52,7 @@ const
   Uls_Unsupported = $20414;
   Uls_BadAttr = $20415;
   Uls_Version = $20416;
-  UConvName: array [0..5] of char = 'UCONV'#0;
+  UConvName: array [0..5] of AnsiChar = 'UCONV'#0;
   OrdUniCreateUconvObject = 1;
   OrdUniUconvToUcs = 2;
   OrdUniUconvFromUcs = 3;
@@ -65,7 +65,7 @@ const
   OrdUniStrToUcs = 12;
   Ord_UniMalloc = 13;
   Ord_UniFree = 14;
-  LibUniName: array [0..6] of char = 'LIBUNI'#0;
+  LibUniName: array [0..6] of AnsiChar = 'LIBUNI'#0;
   OrdUniQueryXdigit = 1;
   OrdUniQuerySpace = 2;
   OrdUniQueryPrint = 3;
@@ -174,8 +174,8 @@ type
 
 
 var
-  DBCSLeadRanges: array [0..11] of char;
-  CollationSequence: array [char] of char;
+  DBCSLeadRanges: array [0..11] of AnsiChar;
+  CollationSequence: array [AnsiChar] of AnsiChar;
 
 
 const
@@ -191,7 +191,7 @@ const
   (* The following two arrays are initialized on startup in case that *)
   (* Dummy* routines must be used. First for current codepage...      *)
   DBCSLeadRangesEnd: byte = 0;
-  LowerChars: array [char] of char =
+  LowerChars: array [AnsiChar] of AnsiChar =
    (#0, #1, #2, #3, #4, #5, #6, #7, #8, #9, #10, #11, #12, #13, #14, #15, #16,
     #17, #18, #19, #20, #21, #22, #23, #24, #25, #26, #27, #28, #29, #30, #31,
     #32, #33, #34, #35, #36, #37, #38, #39, #40, #41, #42, #43, #44, #45, #46,
@@ -213,7 +213,7 @@ const
     #238, #239, #240, #241, #242, #243, #244, #245, #246, #247, #248, #249,
     #250, #251, #252, #253, #254, #255);
   (* ...and now for ISO 8859-1 aka IBM codepage 819 *)
-  LowerCharsISO88591: array [char] of char =
+  LowerCharsISO88591: array [AnsiChar] of AnsiChar =
    (#0, #1, #2, #3, #4, #5, #6, #7, #8, #9, #10, #11, #12, #13, #14, #15, #16,
     #17, #18, #19, #20, #21, #22, #23, #24, #25, #26, #27, #28, #29, #30, #31,
     #32, #33, #34, #35, #36, #37, #38, #39, #40, #41, #42, #43, #44, #45, #46,
@@ -269,7 +269,7 @@ var
   C: cardinal;
   L: PtrInt;
   I: longint;
-  A: array [0..7] of char;
+  A: array [0..7] of AnsiChar;
   CPN2: UnicodeString;
   RC, RetSize: cardinal;
 begin
@@ -292,9 +292,9 @@ begin
     PCPN := CpName;
     for I := 0 to 7 do
      if I mod 2 = 0 then
-      A [I] := UpCase (PChar (@PCPN [0]) [I])
+      A [I] := UpCase (PAnsiChar (@PCPN [0]) [I])
      else
-      A [I] := PChar (@PCPN [0]) [I];
+      A [I] := PAnsiChar (@PCPN [0]) [I];
     if PQWord (@A)^ <> PQWord (@IBMPrefix)^ then
      begin
       DummyUniCreateUConvObject := Uls_Invalid;
@@ -304,7 +304,7 @@ begin
     PW := PCPN + 4;
     while ((PW + L)^ <> #0) and (L <= SizeOf (S)) do
      begin
-      S [Succ (L)] := char (Ord ((PW + L)^));
+      S [Succ (L)] := AnsiChar (Ord ((PW + L)^));
       Inc (L);
      end;
     if L > SizeOf (S) then
@@ -375,7 +375,7 @@ end;
 
 
 function DummyUniUConvFromUcs (UConv_Object: TUConvObject;
-       var UcsBuf: PWideChar; var UniCharsLeft: longint; var OutBuf: PChar;
+       var UcsBuf: PWideChar; var UniCharsLeft: longint; var OutBuf: PAnsiChar;
          var OutBytesLeft: longint; var NonIdentical: longint): longint; cdecl;
 var
   Dest, Dest2: RawByteString;
@@ -418,7 +418,7 @@ begin
 end;
 
 
-function DummyUniUConvToUcs (UConv_Object: TUConvObject; var InBuf: PChar;
+function DummyUniUConvToUcs (UConv_Object: TUConvObject; var InBuf: PAnsiChar;
    var InBytesLeft: longint; var UcsBuf: PWideChar; var UniCharsLeft: longint;
                                     var NonIdentical: longint): longint; cdecl;
 var
@@ -492,8 +492,8 @@ end;
 
 procedure InitDummyAnsiSupport;
 var
-  C: char;
-  AllChars: array [char] of char;
+  C: AnsiChar;
+  AllChars: array [AnsiChar] of AnsiChar;
   RetSize: cardinal;
 begin
   if DosQueryCollate (SizeOf (CollationSequence), EmptyCC, @CollationSequence,
@@ -507,7 +507,7 @@ begin
     DosMapCase (SizeOf (AllChars), EmptyCC, @AllChars [#0]);
     NoIso88591Support := true;
    end;
-  for C := Low (char) to High (char) do
+  for C := Low (AnsiChar) to High (AnsiChar) do
    if AllChars [C] <> C then
     LowerCharsIso88591 [AllChars [C]] := C;
   if NoIso88591Support then
@@ -516,7 +516,7 @@ begin
    begin
     Move (LowerChars, AllChars, SizeOf (AllChars));
     DosMapCase (SizeOf (AllChars), EmptyCC, @AllChars [#0]);
-    for C := Low (char) to High (char) do
+    for C := Low (AnsiChar) to High (AnsiChar) do
      if AllChars [C] <> C then
       LowerChars [AllChars [C]] := C;
    end;
@@ -526,17 +526,17 @@ end;
 
 procedure ReInitDummyAnsiSupport;
 var
-  C: char;
-  AllChars: array [char] of char;
+  C: AnsiChar;
+  AllChars: array [AnsiChar] of AnsiChar;
   RetSize: cardinal;
 begin
-  for C := Low (char) to High (char) do
+  for C := Low (AnsiChar) to High (AnsiChar) do
    AllChars [C] := C;
   if DosQueryCollate (SizeOf (CollationSequence), EmptyCC, @CollationSequence,
                                                              RetSize) <> 0 then
    Move (AllChars, CollationSequence, SizeOf (CollationSequence));
   DosMapCase (SizeOf (AllChars), EmptyCC, @AllChars [#0]);
-  for C := Low (char) to High (char) do
+  for C := Low (AnsiChar) to High (AnsiChar) do
    if AllChars [C] <> C then
     LowerChars [AllChars [C]] := C;
   InitDBCSLeadRanges;
@@ -545,7 +545,7 @@ end;
 
 function DummyUniToLower (UniCharIn: WideChar): WideChar; cdecl;
 var
-  C: char;
+  C: AnsiChar;
 begin
   C := UniCharIn;
   DummyUniToLower := LowerCharsIso88591 [C];
@@ -554,7 +554,7 @@ end;
 
 function DummyUniToUpper (UniCharIn: WideChar): WideChar; cdecl;
 var
-  C: char;
+  C: AnsiChar;
 begin
   DummyUniToUpper := UniCharIn;
   C := UniCharIn;
@@ -1043,7 +1043,7 @@ var
   OS2CP: cardinal;
   Src2: PUnicodeChar;
   Len2, LenOut, OutOffset, NonIdentical: longint;
-  Dest2: PChar;
+  Dest2: PAnsiChar;
 begin
   OS2CP := RtlCpToOS2CP (CP, CpxAll, UConvObj);
 {  if UniAPI and (UConvObj = nil) then  - OS2Unicode2AnsiMove should be never called if not UniAPI }
@@ -1059,7 +1059,7 @@ begin
   SetCodePage (Dest, CP, false);
   Src2 := Source;
   Len2 := Len;
-  Dest2 := PChar (Dest);
+  Dest2 := PAnsiChar (Dest);
   RCI := Sys_UniUConvFromUcs (UConvObj, Src2, Len2, Dest2, LenOut,
                                                                  NonIdentical);
   repeat
@@ -1082,12 +1082,12 @@ begin
      end;
     Uls_BufferFull:
      begin
-      OutOffset := Dest2 - PChar (Dest);
+      OutOffset := Dest2 - PAnsiChar (Dest);
 (* Use Len2 or Len decreased by difference between Source and Src2? *)
 (* Extend more this time - target is probably a DBCS or UTF-8 *)
       SetLength (Dest, Length (Dest) + Succ (Len2 * 2));
       { string could have been moved }
-      Dest2 := PChar (Dest) + OutOffset;
+      Dest2 := PAnsiChar (Dest) + OutOffset;
       Inc (LenOut, Succ (Len2 * 2));
      end
     else
@@ -1104,13 +1104,13 @@ begin
 end;
 
 
-procedure OS2Ansi2UnicodeMove (Source: PChar; CP: TSystemCodePage;
+procedure OS2Ansi2UnicodeMove (Source: PAnsiChar; CP: TSystemCodePage;
                                         var Dest: UnicodeString; Len: SizeInt);
 var
   RCI: longint;
   UConvObj: TUConvObject;
   OS2CP: cardinal;
-  Src2: PChar;
+  Src2: PAnsiChar;
   Len2, LenOut, OutOffset, NonIdentical: longint;
   Dest2: PWideChar;
 begin
@@ -1301,7 +1301,7 @@ begin
   Result := S;
   UniqueString (Result);
   FillChar (EmptyCC, SizeOf (EmptyCC), 0);
-  RC := DosMapCase (Length (Result), EmptyCC, PChar (Result));
+  RC := DosMapCase (Length (Result), EmptyCC, PAnsiChar (Result));
 { What to do in case of a failure??? }
   if RC <> 0 then
    Result := UpCase (S); { Use a fallback? }
@@ -1312,7 +1312,7 @@ function OS2LowerAnsiString (const S: AnsiString): AnsiString;
 var
   I: PtrUInt;
 
-  function IsDBCSLeadChar (C: char): boolean;
+  function IsDBCSLeadChar (C: AnsiChar): boolean;
   var
     D: byte;
   begin
@@ -1434,7 +1434,7 @@ begin
 end;
 
 
-function OS2StrCompAnsiString (S1, S2: PChar): PtrInt;
+function OS2StrCompAnsiString (S1, S2: PAnsiChar): PtrInt;
 var
   HSA1, HSA2: AnsiString;
   HSU1, HSU2: UnicodeString;
@@ -1488,13 +1488,13 @@ begin
 end;
 
 
-function OS2StrICompAnsiString (S1, S2: PChar): PtrInt;
+function OS2StrICompAnsiString (S1, S2: PAnsiChar): PtrInt;
 begin
   Result := OS2CompareTextAnsiString (AnsiString (S1), AnsiString (S2));
 end;
 
 
-function OS2StrLCompAnsiString (S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+function OS2StrLCompAnsiString (S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
 var
   A, B: AnsiString;
 begin
@@ -1508,7 +1508,7 @@ begin
 end;
 
 
-function OS2StrLICompAnsiString (S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+function OS2StrLICompAnsiString (S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
 var
   A, B: AnsiString;
 begin
@@ -1525,7 +1525,7 @@ end;
 procedure FPC_RangeError; [external name 'FPC_RANGEERROR'];
 
 
-procedure Ansi2PChar (const S: AnsiString; const OrgP: PChar; out P: Pchar);
+procedure Ansi2PChar (const S: AnsiString; const OrgP: PAnsiChar; out P: PAnsiChar);
 var
   NewLen: SizeUInt;
 begin
@@ -1539,7 +1539,7 @@ begin
 end;
 
 
-function OS2StrUpperAnsiString (Str: PChar): PChar;
+function OS2StrUpperAnsiString (Str: PAnsiChar): PAnsiChar;
 var
   Temp: AnsiString;
 begin
@@ -1548,7 +1548,7 @@ begin
 end;
 
 
-function OS2StrLowerAnsiString (Str: PChar): PChar;
+function OS2StrLowerAnsiString (Str: PAnsiChar): PAnsiChar;
 var
   Temp: AnsiString;
 begin
@@ -1563,10 +1563,10 @@ CWSTRING:
   code point is encountered, all characters part of this invalid code point
   are considered to form one "character" and the next character is
   considered to be the start of a new (possibly also invalid) code point }
-function CharLengthPChar(const Str: PChar): PtrInt;
+function CharLengthPChar(const Str: PAnsiChar): PtrInt;
   var
     nextlen: ptrint;
-    s: pchar;
+    s: PAnsiChar;
 {$ifndef beos}
     mbstate: mbstate_t;
 {$endif not beos}
@@ -1591,7 +1591,7 @@ function CharLengthPChar(const Str: PChar): PtrInt;
   end;
 
 
-function CodePointLength(const Str: PChar; maxlookahead: ptrint): PtrInt;
+function CodePointLength(const Str: PAnsiChar; maxlookahead: ptrint): PtrInt;
   var
     nextlen: ptrint;
 {$ifndef beos}
@@ -1614,7 +1614,7 @@ function CodePointLength(const Str: PChar; maxlookahead: ptrint): PtrInt;
 procedure InitOS2WideStringManager; inline;
 var
   RC: cardinal;
-  ErrName: array [0..MaxPathLen] of char;
+  ErrName: array [0..MaxPathLen] of AnsiChar;
   P: pointer;
 begin
   RC := DosLoadModule (@ErrName [0], SizeOf (ErrName), @UConvName [0],

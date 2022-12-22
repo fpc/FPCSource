@@ -665,7 +665,7 @@ type    SizeL=record
         PFaceNameDesc=^FaceNameDesc;
         TFaceNameDesc=FaceNameDesc;
 
-        FFDescs=array[0..1,0..FaceSize-1] of char;
+        FFDescs=array[0..1,0..FaceSize-1] of AnsiChar;
         PFFDescs=^FFDescs;
         TFFDescs = FFDescs;
 
@@ -735,8 +735,8 @@ type
 
 // form of POINTL with 1 byte offsets instead of longs
   ODPOINT=record          // odpt
-    dx: Char;
-    dy: Char;
+    dx: AnsiChar;
+    dy: AnsiChar;
   end;
 
 // form of SIZEL with shorts instead of longs
@@ -1005,7 +1005,7 @@ const
 type
   ORDER_GBEL=record       // ogbel
     lElementType: Longint;
-    achDesc: Array[0..GBEL_DL-1] of Char;
+    achDesc: Array[0..GBEL_DL-1] of AnsiChar;
   end;
 
 // Begin Image
@@ -1581,7 +1581,7 @@ type
     uchReserved: Byte;
     ptRect: Array[0..2-1] of POINTS;
     cchString: SWPUSHORT;
-    achString: Array[0..1-1] of Char;
+    achString: Array[0..1-1] of AnsiChar;
     adx: Array[0..1-1] of Integer;
   end;
 
@@ -1590,7 +1590,7 @@ type
     uchReserved: Byte;
     ptRect: Array[0..2-1] of POINTL;
     cchString: SWPUSHORT;
-    achString: Array[0..1-1] of Char;
+    achString: Array[0..1-1] of AnsiChar;
     adx: Array[0..1-1] of Longint;
   end;
 
@@ -1599,7 +1599,7 @@ type
     uchReserved: Byte;
     ptRect: Array[0..2-1] of POINTL;
     cchString: SWPUSHORT;
-    achString: Array[0..1-1] of Char;
+    achString: Array[0..1-1] of AnsiChar;
     adx: Array[0..2-1] of Longint;
     tabs: Array[0..1-1] of Longint;
   end;
@@ -1682,10 +1682,10 @@ function GpiDrawFrom(hps : cardinal;lFirstSegment,lLastSegment : longint) : long
 function GpiDrawSegment(hps : cardinal;lSegment : longint) : longbool; cdecl;
 function GpiDrawDynamics(hps : cardinal) : longbool; cdecl;
 function GpiRemoveDynamics(hps : cardinal;lFirstSegid,lLastSegid : longint) : longbool; cdecl;
-function GpiBeginElement(hps : cardinal;lType : longint;pszDesc : pchar) : longbool; cdecl;
+function GpiBeginElement(hps : cardinal;lType : longint;pszDesc : PAnsiChar) : longbool; cdecl;
 function GpiEndElement(hps : cardinal) : longbool; cdecl;
 function GpiLabel(hps : cardinal;lLabel : longint) : longbool; cdecl;
-function GpiElement(hps : cardinal;lType : longint;pszDesc : pchar;lLength : longint;var pbData : BYTE) : longint; cdecl;
+function GpiElement(hps : cardinal;lType : longint;pszDesc : PAnsiChar;lLength : longint;var pbData : BYTE) : longint; cdecl;
 function GpiQueryElement(hps : cardinal;lOff,lMaxLength : longint;var pbData : BYTE) : longint; cdecl;
 function GpiDeleteElement(hps : cardinal) : longbool; cdecl;
 function GpiDeleteElementRange(hps : cardinal;lFirstElement,lLastElement : longint) : longbool; cdecl;
@@ -1695,7 +1695,7 @@ function GpiSetEditMode(hps : cardinal;lMode : longint) : longbool; cdecl;
 function GpiQueryElementPointer(hps : cardinal) : longint; cdecl;
 function GpiSetElementPointer(hps : cardinal;lElement : longint) : longbool; cdecl;
 function GpiOffsetElementPointer(hps : cardinal;loffset : longint) : longbool; cdecl;
-function GpiQueryElementType(hps : cardinal;var plType : longint;lLength : longint;pszData : pchar) : longint; cdecl;
+function GpiQueryElementType(hps : cardinal;var plType : longint;lLength : longint;pszData : PAnsiChar) : longint; cdecl;
 function GpiSetElementPointerAtLabel(hps : cardinal;lLabel : longint) : longbool; cdecl;
 function GpiQuerySegmentTransformMatrix(hps : cardinal;lSegid,lCount : longint;var pmatlfArray : MATRIXLF) : longbool; cdecl;
 function GpiSetSegmentTransformMatrix(hps : cardinal;lSegid,lCount : longint;var pmatlfarray : MATRIXLF;lOptions : longint) : longbool; cdecl;
@@ -1751,8 +1751,8 @@ function GpiSetPattern(hps : cardinal;lPatternSymbol : longint) : longbool; cdec
 function GpiQueryPattern(hps : cardinal) : longint;  cdecl;
 function GpiBeginArea(hps,flOptions : cardinal) : longbool; cdecl;
 function GpiEndArea(hps : cardinal) : longint; cdecl;
-function GpiCharString(hps : cardinal;lCount : longint;pchString : pchar) : longint; cdecl;
-function GpiCharStringAt(hps : cardinal;var pptlPoint : POINTL;lCount : longint;pchString : pchar) : longint; cdecl;
+function GpiCharString(hps : cardinal;lCount : longint;pchString : PAnsiChar) : longint; cdecl;
+function GpiCharStringAt(hps : cardinal;var pptlPoint : POINTL;lCount : longint;pchString : PAnsiChar) : longint; cdecl;
 function GpiSetAttrMode(hps : cardinal;lMode : longint) : longbool; cdecl;
 function GpiQueryAttrMode(hps : cardinal) : longint; cdecl;
 function GpiSetAttrs(hps : cardinal;lPrimType : longint;flAttrMask,flDefMask : cardinal;ppbunAttrs : pointer) : longbool; cdecl;
@@ -1787,9 +1787,9 @@ function GpiSetPatternSet(hps : cardinal;lSet : longint) : longbool; cdecl;
 function GpiQueryPatternSet(hps : cardinal) : longint; cdecl;
 function GpiSetPatternRefPoint(hps : cardinal;var pptlRefPoint : POINTL) : longbool; cdecl;
 function GpiQueryPatternRefPoint(hps : cardinal;var pptlRefPoint : POINTL) : longbool; cdecl;
-function GpiQueryCharStringPos(hps,flOptions : cardinal;lCount : longint;pchString : pchar;var alXincrements : longint;var aptlPositions : POINTL) : longbool; cdecl;
-function GpiQueryCharStringPosAt(hps : cardinal;var pptlStart : POINTL;flOptions : cardinal;lCount : longint;pchString : pchar;var alXincrements : longint;var aptlPositions : POINTL) : longbool; cdecl;
-function GpiQueryTextBox(hps : cardinal;lCount1 : longint;pchString : pchar;lCount2 : longint;var aptlPoints : POINTL) : longbool; cdecl;
+function GpiQueryCharStringPos(hps,flOptions : cardinal;lCount : longint;pchString : PAnsiChar;var alXincrements : longint;var aptlPositions : POINTL) : longbool; cdecl;
+function GpiQueryCharStringPosAt(hps : cardinal;var pptlStart : POINTL;flOptions : cardinal;lCount : longint;pchString : PAnsiChar;var alXincrements : longint;var aptlPositions : POINTL) : longbool; cdecl;
+function GpiQueryTextBox(hps : cardinal;lCount1 : longint;pchString : PAnsiChar;lCount2 : longint;var aptlPoints : POINTL) : longbool; cdecl;
 function GpiQueryDefCharBox(hps : cardinal;var psizlSize : SIZEL) : longbool; cdecl;
 function GpiSetCharSet(hps : cardinal;llcid : longint) : longbool; cdecl;
 function GpiQueryCharSet(hps : cardinal) : longint; cdecl;
@@ -1805,8 +1805,8 @@ function GpiSetCharMode(hps : cardinal;lMode : longint) : longbool; cdecl;
 function GpiQueryCharMode(hps : cardinal) : longint; cdecl;
 function GpiSetTextAlignment(hps : cardinal;lHoriz,lVert : longint) : longbool; cdecl;
 function GpiQueryTextAlignment(hps : cardinal;var plHoriz,plVert : longint) : longbool; cdecl;
-function GpiCharStringPos(hps : cardinal;var prclRect : RECTL;flOptions : cardinal;lCount : longint;pchString : pchar;var alAdx : longint) : longint; cdecl;
-function GpiCharStringPosAt(hps : cardinal;var pptlStart : POINTL;var prclRect : RECTL;flOptions : cardinal;lCount : longint;pchString : pchar;var alAdx : longint) : longint; cdecl;
+function GpiCharStringPos(hps : cardinal;var prclRect : RECTL;flOptions : cardinal;lCount : longint;pchString : PAnsiChar;var alAdx : longint) : longint; cdecl;
+function GpiCharStringPosAt(hps : cardinal;var pptlStart : POINTL;var prclRect : RECTL;flOptions : cardinal;lCount : longint;pchString : PAnsiChar;var alAdx : longint) : longint; cdecl;
 function GpiSetCharExtra(hps : cardinal;Extra : longint) : longbool;  cdecl;
 function GpiSetCharBreakExtra(hps : cardinal;BreakExtra : longint) : longbool; cdecl;
 function GpiQueryCharExtra(hps : cardinal;var Extra : longint) : longbool; cdecl;
@@ -1826,23 +1826,23 @@ function GpiRectVisible(hps : cardinal;var prclRectangle : RECTL) : longint; cde
 function GpiComment(hps : cardinal;lLength : longint;var pbData : BYTE) : longbool; cdecl;
 function GpiCreateLogFont(hps : cardinal;var pName : STR8;lLcid : longint;var pfatAttrs : FATTRS) : longint; cdecl;
 function GpiDeleteSetId(hps : cardinal;lLcid : longint) : longbool; cdecl;
-function GpiLoadFonts(hab : cardinal;pszFilename : pchar) : longbool; cdecl;
-function GpiUnloadFonts(hab : cardinal;pszFilename : pchar) : longbool; cdecl;
-function GpiQueryFonts(hps,flOptions : cardinal;pszFacename : pchar;var plReqFonts : longint;lMetricsLength : longint;var afmMetrics : FONTMETRICS) : longint; cdecl;
+function GpiLoadFonts(hab : cardinal;pszFilename : PAnsiChar) : longbool; cdecl;
+function GpiUnloadFonts(hab : cardinal;pszFilename : PAnsiChar) : longbool; cdecl;
+function GpiQueryFonts(hps,flOptions : cardinal;pszFacename : PAnsiChar;var plReqFonts : longint;lMetricsLength : longint;var afmMetrics : FONTMETRICS) : longint; cdecl;
 function GpiQueryFontMetrics(hps : cardinal;lMetricsLength : longint;var pfmMetrics : FONTMETRICS) : longbool; cdecl;
 function GpiQueryKerningPairs(hps : cardinal;lCount : longint;var akrnprData : KERNINGPAIRS) : longint; cdecl;
 function GpiQueryWidthTable(hps : cardinal;lFirstChar,lCount : longint;var alData : longint) : longbool; cdecl;
 function GpiQueryNumberSetIds(hps : cardinal) : longint; cdecl;
 function GpiQuerySetIds(hps : cardinal;lCount : longint;var alTypes : longint;var aNames : STR8;var allcids : longint) : longbool; cdecl;
-function GpiQueryFaceString(PS : cardinal;FamilyName : pchar;var attrs : FACENAMEDESC;length : longint;CompoundFaceName : pchar) : cardinal; cdecl;
+function GpiQueryFaceString(PS : cardinal;FamilyName : PAnsiChar;var attrs : FACENAMEDESC;length : longint;CompoundFaceName : PAnsiChar) : cardinal; cdecl;
 function GpiQueryLogicalFont(PS : cardinal;lcid : longint;var name : STR8;var attrs : FATTRS;length : longint) : longbool; cdecl;
 function GpiQueryFontAction(anchor,options : cardinal) : cardinal; cdecl;
-function GpiLoadPublicFonts(p1 : cardinal;p2 : pchar):longbool; cdecl;
-function GpiUnloadPublicFonts(p1 : cardinal;p2 : pchar) : longbool; cdecl;
+function GpiLoadPublicFonts(p1 : cardinal;p2 : PAnsiChar):longbool; cdecl;
+function GpiUnloadPublicFonts(p1 : cardinal;p2 : PAnsiChar) : longbool; cdecl;
 function GpiSetCp(hps,ulCodePage : cardinal) : longbool;  cdecl;
 function GpiQueryCp(hps : cardinal) : cardinal; cdecl;
-function GpiQueryFontFileDescriptions(hab : cardinal;pszFilename : pchar;var plCount : longint;var affdescsNames : FFDESCS) : longint;  cdecl;
-function GpiQueryFullFontFileDescs(hab : cardinal;pszFilename : pchar;var plCount : longint;pNames : pointer;var plNamesBuffLength : longint) : longint; cdecl;
+function GpiQueryFontFileDescriptions(hab : cardinal;pszFilename : PAnsiChar;var plCount : longint;var affdescsNames : FFDESCS) : longint;  cdecl;
+function GpiQueryFullFontFileDescs(hab : cardinal;pszFilename : PAnsiChar;var plCount : longint;pNames : pointer;var plNamesBuffLength : longint) : longint; cdecl;
 function GpiBitBlt(hpsTarget,hpsSource : cardinal;lCount : longint;var aptlPoints : POINTL;lRop : longint;flOptions : cardinal) : longint; cdecl;
 function GpiDeleteBitmap(hbm : cardinal) : longbool; cdecl;
 function GpiLoadBitmap(hps,Resource,idBitmap : cardinal;lWidth,lHeight : longint) : cardinal; cdecl;
@@ -1882,11 +1882,11 @@ function GpiIntersectClipRectangle(hps : cardinal;var prclRectangle : RECTL) : l
 function GpiOffsetClipRegion(hps : cardinal;var pptlPoint : POINTL) : longint; cdecl;
 function GpiCopyMetaFile(hmf : cardinal) : cardinal; cdecl;
 function GpiDeleteMetaFile(hmf : cardinal) : longbool; cdecl;
-function GpiLoadMetaFile(hab : cardinal;pszFilename : pchar) : cardinal; cdecl;
-function GpiPlayMetaFile(hps,hmf : cardinal;lCount1 : longint;var alOptarray,plSegCount : longint;lCount2 : longint;pszDesc : pchar) : longint;  cdecl;
+function GpiLoadMetaFile(hab : cardinal;pszFilename : PAnsiChar) : cardinal; cdecl;
+function GpiPlayMetaFile(hps,hmf : cardinal;lCount1 : longint;var alOptarray,plSegCount : longint;lCount2 : longint;pszDesc : PAnsiChar) : longint;  cdecl;
 function GpiQueryMetaFileBits(hmf : cardinal;lOffset,lLength : longint;var pbData : BYTE) : longbool;  cdecl;
 function GpiQueryMetaFileLength(hmf : cardinal) : longint;  cdecl;
-function GpiSaveMetaFile(hmf : cardinal;pszFilename : pchar) : longbool; cdecl;
+function GpiSaveMetaFile(hmf : cardinal;pszFilename : PAnsiChar) : longbool; cdecl;
 function GpiSetMetaFileBits(hmf : cardinal;lOffset,lLength : longint;var pbBuffer : BYTE) : longbool; cdecl;
 function GpiQueryDefArcParams(hps : cardinal;var parcpArcParams : ARCPARAMS) : longbool; cdecl;
 function GpiQueryDefAttrs(hps : cardinal;lPrimType : longint;flAttrMask : cardinal;ppbunAttrs : pointer) : longbool; cdecl;
@@ -1946,10 +1946,10 @@ function GpiDrawFrom(hps : cardinal;lFirstSegment,lLastSegment : longint) : long
 function GpiDrawSegment(hps : cardinal;lSegment : longint) : longbool; cdecl; external 'pmgpi' index 383;
 function GpiDrawDynamics(hps : cardinal) : longbool; cdecl; external 'pmgpi' index 381;
 function GpiRemoveDynamics(hps : cardinal;lFirstSegid,lLastSegid : longint) : longbool; cdecl; external 'pmgpi' index 496;
-function GpiBeginElement(hps : cardinal;lType : longint;pszDesc : pchar) : longbool; cdecl; external 'pmgpi' index 353;
+function GpiBeginElement(hps : cardinal;lType : longint;pszDesc : PAnsiChar) : longbool; cdecl; external 'pmgpi' index 353;
 function GpiEndElement(hps : cardinal) : longbool; cdecl; external 'pmgpi' index 386;
 function GpiLabel(hps : cardinal;lLabel : longint) : longbool; cdecl; external 'pmgpi' index 397;
-function GpiElement(hps : cardinal;lType : longint;pszDesc : pchar;lLength : longint;var pbData : BYTE) : longint; cdecl; external 'pmgpi' index 384;
+function GpiElement(hps : cardinal;lType : longint;pszDesc : PAnsiChar;lLength : longint;var pbData : BYTE) : longint; cdecl; external 'pmgpi' index 384;
 function GpiQueryElement(hps : cardinal;lOff,lMaxLength : longint;var pbData : BYTE) : longint; cdecl; external 'pmgpi' index 449;
 function GpiDeleteElement(hps : cardinal) : longbool; cdecl; external 'pmgpi' index 372;
 function GpiDeleteElementRange(hps : cardinal;lFirstElement,lLastElement : longint) : longbool; cdecl; external 'pmgpi' index 373;
@@ -1959,7 +1959,7 @@ function GpiSetEditMode(hps : cardinal;lMode : longint) : longbool; cdecl; exter
 function GpiQueryElementPointer(hps : cardinal) : longint; cdecl; external 'pmgpi' index 450;
 function GpiSetElementPointer(hps : cardinal;lElement : longint) : longbool; cdecl; external 'pmgpi' index 524;
 function GpiOffsetElementPointer(hps : cardinal;loffset : longint) : longbool; cdecl; external 'pmgpi' index 406;
-function GpiQueryElementType(hps : cardinal;var plType : longint;lLength : longint;pszData : pchar) : longint; cdecl; external 'pmgpi' index 451;
+function GpiQueryElementType(hps : cardinal;var plType : longint;lLength : longint;pszData : PAnsiChar) : longint; cdecl; external 'pmgpi' index 451;
 function GpiSetElementPointerAtLabel(hps : cardinal;lLabel : longint) : longbool; cdecl; external 'pmgpi' index 525;
 function GpiQuerySegmentTransformMatrix(hps : cardinal;lSegid,lCount : longint;var pmatlfArray : MATRIXLF) : longbool; cdecl; external 'pmgpi' index 485;
 function GpiSetSegmentTransformMatrix(hps : cardinal;lSegid,lCount : longint;var pmatlfarray : MATRIXLF;lOptions : longint) : longbool; cdecl; external 'pmgpi' index 549;
@@ -2015,8 +2015,8 @@ function GpiSetPattern(hps : cardinal;lPatternSymbol : longint) : longbool; cdec
 function GpiQueryPattern(hps : cardinal) : longint; cdecl; external 'pmgpi' index 473;
 function GpiBeginArea(hps,flOptions : cardinal) : longbool; cdecl; external 'pmgpi' index 352;
 function GpiEndArea(hps : cardinal) : longint; cdecl; external 'pmgpi' index 385;
-function GpiCharString(hps : cardinal;lCount : longint;pchString : pchar) : longint; cdecl; external 'pmgpi' index 358;
-function GpiCharStringAt(hps : cardinal;var pptlPoint : POINTL;lCount : longint;pchString : pchar) : longint; cdecl; external 'pmgpi' index 359;
+function GpiCharString(hps : cardinal;lCount : longint;pchString : PAnsiChar) : longint; cdecl; external 'pmgpi' index 358;
+function GpiCharStringAt(hps : cardinal;var pptlPoint : POINTL;lCount : longint;pchString : PAnsiChar) : longint; cdecl; external 'pmgpi' index 359;
 function GpiSetAttrMode(hps : cardinal;lMode : longint) : longbool; cdecl; external 'pmgpi' index 503;
 function GpiQueryAttrMode(hps : cardinal) : longint; cdecl; external 'pmgpi' index 423;
 function GpiSetAttrs(hps : cardinal;lPrimType : longint;flAttrMask,flDefMask : cardinal;ppbunAttrs : pointer) : longbool; cdecl; external 'pmgpi' index 588;
@@ -2051,9 +2051,9 @@ function GpiSetPatternSet(hps : cardinal;lSet : longint) : longbool; cdecl; exte
 function GpiQueryPatternSet(hps : cardinal) : longint; cdecl; external 'pmgpi' index 475;
 function GpiSetPatternRefPoint(hps : cardinal;var pptlRefPoint : POINTL) : longbool; cdecl; external 'pmgpi' index 542;
 function GpiQueryPatternRefPoint(hps : cardinal;var pptlRefPoint : POINTL) : longbool; cdecl; external 'pmgpi' index 474;
-function GpiQueryCharStringPos(hps,flOptions : cardinal;lCount : longint;pchString : pchar;var alXincrements : longint;var aptlPositions : POINTL) : longbool; cdecl; external 'pmgpi' index 584;
-function GpiQueryCharStringPosAt(hps : cardinal;var pptlStart : POINTL;flOptions : cardinal;lCount : longint;pchString : pchar;var alXincrements : longint;var aptlPositions : POINTL) : longbool; cdecl; external 'pmgpi' index 585;
-function GpiQueryTextBox(hps : cardinal;lCount1 : longint;pchString : pchar;lCount2 : longint;var aptlPoints : POINTL) : longbool; cdecl; external 'pmgpi' index 489;
+function GpiQueryCharStringPos(hps,flOptions : cardinal;lCount : longint;pchString : PAnsiChar;var alXincrements : longint;var aptlPositions : POINTL) : longbool; cdecl; external 'pmgpi' index 584;
+function GpiQueryCharStringPosAt(hps : cardinal;var pptlStart : POINTL;flOptions : cardinal;lCount : longint;pchString : PAnsiChar;var alXincrements : longint;var aptlPositions : POINTL) : longbool; cdecl; external 'pmgpi' index 585;
+function GpiQueryTextBox(hps : cardinal;lCount1 : longint;pchString : PAnsiChar;lCount2 : longint;var aptlPoints : POINTL) : longbool; cdecl; external 'pmgpi' index 489;
 function GpiQueryDefCharBox(hps : cardinal;var psizlSize : SIZEL) : longbool; cdecl; external 'pmgpi' index 442;
 function GpiSetCharSet(hps : cardinal;llcid : longint) : longbool; cdecl; external 'pmgpi' index 513;
 function GpiQueryCharSet(hps : cardinal) : longint; cdecl; external 'pmgpi' index 433;
@@ -2069,8 +2069,8 @@ function GpiSetCharMode(hps : cardinal;lMode : longint) : longbool; cdecl; exter
 function GpiQueryCharMode(hps : cardinal) : longint; cdecl; external 'pmgpi' index 432;
 function GpiSetTextAlignment(hps : cardinal;lHoriz,lVert : longint) : longbool; cdecl; external 'pmgpi' index 649;
 function GpiQueryTextAlignment(hps : cardinal;var plHoriz,plVert : longint) : longbool; cdecl; external 'pmgpi' index 648;
-function GpiCharStringPos(hps : cardinal;var prclRect : RECTL;flOptions : cardinal;lCount : longint;pchString : pchar;var alAdx : longint) : longint; cdecl; external 'pmgpi' index 580;
-function GpiCharStringPosAt(hps : cardinal;var pptlStart : POINTL;var prclRect : RECTL;flOptions : cardinal;lCount : longint;pchString : pchar;var alAdx : longint) : longint; cdecl; external 'pmgpi' index 581;
+function GpiCharStringPos(hps : cardinal;var prclRect : RECTL;flOptions : cardinal;lCount : longint;pchString : PAnsiChar;var alAdx : longint) : longint; cdecl; external 'pmgpi' index 580;
+function GpiCharStringPosAt(hps : cardinal;var pptlStart : POINTL;var prclRect : RECTL;flOptions : cardinal;lCount : longint;pchString : PAnsiChar;var alAdx : longint) : longint; cdecl; external 'pmgpi' index 581;
 function GpiSetCharExtra(hps : cardinal;Extra : longint) : longbool; cdecl; external 'pmgpi' index 614;
 function GpiSetCharBreakExtra(hps : cardinal;BreakExtra : longint) : longbool; cdecl; external 'pmgpi' index 616;
 function GpiQueryCharExtra(hps : cardinal;var Extra : longint) : longbool; cdecl; external 'pmgpi' index 613;
@@ -2090,23 +2090,23 @@ function GpiRectVisible(hps : cardinal;var prclRectangle : RECTL) : longint; cde
 function GpiComment(hps : cardinal;lLength : longint;var pbData : BYTE) : longbool; cdecl; external 'pmgpi' index 363;
 function GpiCreateLogFont(hps : cardinal;var pName : STR8;lLcid : longint;var pfatAttrs : FATTRS) : longint; cdecl; external 'pmgpi' index 368;
 function GpiDeleteSetId(hps : cardinal;lLcid : longint) : longbool; cdecl; external 'pmgpi' index 378;
-function GpiLoadFonts(hab : cardinal;pszFilename : pchar) : longbool; cdecl; external 'pmgpi' index 400;
-function GpiUnloadFonts(hab : cardinal;pszFilename : pchar) : longbool; cdecl; external 'pmgpi' index 555;
-function GpiQueryFonts(hps,flOptions : cardinal;pszFacename : pchar;var plReqFonts : longint;lMetricsLength : longint;var afmMetrics : FONTMETRICS) : longint; cdecl; external 'pmgpi' index 586;
+function GpiLoadFonts(hab : cardinal;pszFilename : PAnsiChar) : longbool; cdecl; external 'pmgpi' index 400;
+function GpiUnloadFonts(hab : cardinal;pszFilename : PAnsiChar) : longbool; cdecl; external 'pmgpi' index 555;
+function GpiQueryFonts(hps,flOptions : cardinal;pszFacename : PAnsiChar;var plReqFonts : longint;lMetricsLength : longint;var afmMetrics : FONTMETRICS) : longint; cdecl; external 'pmgpi' index 586;
 function GpiQueryFontMetrics(hps : cardinal;lMetricsLength : longint;var pfmMetrics : FONTMETRICS) : longbool; cdecl; external 'pmgpi' index 453;
 function GpiQueryKerningPairs(hps : cardinal;lCount : longint;var akrnprData : KERNINGPAIRS) : longint; cdecl; external 'pmgpi' index 456;
 function GpiQueryWidthTable(hps : cardinal;lFirstChar,lCount : longint;var alData : longint) : longbool; cdecl; external 'pmgpi' index 492;
 function GpiQueryNumberSetIds(hps : cardinal) : longint; cdecl; external 'pmgpi' index 470;
 function GpiQuerySetIds(hps : cardinal;lCount : longint;var alTypes : longint;var aNames : STR8;var allcids : longint) : longbool; cdecl; external 'pmgpi' index 486;
-function GpiQueryFaceString(PS : cardinal;FamilyName : pchar;var attrs : FACENAMEDESC;length : longint;CompoundFaceName : pchar) : cardinal; cdecl; external 'pmgpi' index 575;
+function GpiQueryFaceString(PS : cardinal;FamilyName : PAnsiChar;var attrs : FACENAMEDESC;length : longint;CompoundFaceName : PAnsiChar) : cardinal; cdecl; external 'pmgpi' index 575;
 function GpiQueryLogicalFont(PS : cardinal;lcid : longint;var name : STR8;var attrs : FATTRS;length : longint) : longbool; cdecl; external 'pmgpi' index 574;
 function GpiQueryFontAction(anchor,options : cardinal) : cardinal; cdecl; external 'pmgpi' index 576;
-function GpiLoadPublicFonts(p1 : cardinal;p2 : pchar) : longbool; cdecl; external 'pmgpi' index 622;
-function GpiUnloadPublicFonts(p1 : cardinal;p2 : pchar) : longbool; cdecl; external 'pmgpi' index 623;
+function GpiLoadPublicFonts(p1 : cardinal;p2 : PAnsiChar) : longbool; cdecl; external 'pmgpi' index 622;
+function GpiUnloadPublicFonts(p1 : cardinal;p2 : PAnsiChar) : longbool; cdecl; external 'pmgpi' index 623;
 function GpiSetCp(hps,ulCodePage : cardinal) : longbool; cdecl; external 'pmgpi' index 518;
 function GpiQueryCp(hps : cardinal) : cardinal; cdecl; external 'pmgpi' index 440;
-function GpiQueryFontFileDescriptions(hab : cardinal;pszFilename : pchar;var plCount : longint;var affdescsNames : FFDESCS) : longint; cdecl; external 'pmgpi' index 452;
-function GpiQueryFullFontFileDescs(hab : cardinal;pszFilename : pchar;var plCount : longint;pNames : pointer;var plNamesBuffLength : longint) : longint; cdecl; external 'pmgpi' index 657;
+function GpiQueryFontFileDescriptions(hab : cardinal;pszFilename : PAnsiChar;var plCount : longint;var affdescsNames : FFDESCS) : longint; cdecl; external 'pmgpi' index 452;
+function GpiQueryFullFontFileDescs(hab : cardinal;pszFilename : PAnsiChar;var plCount : longint;pNames : pointer;var plNamesBuffLength : longint) : longint; cdecl; external 'pmgpi' index 657;
 function GpiBitBlt(hpsTarget,hpsSource : cardinal;lCount : longint;var aptlPoints : POINTL;lRop : longint;flOptions : cardinal) : longint; cdecl; external 'pmgpi' index 355;
 function GpiDeleteBitmap(hbm : cardinal) : longbool; cdecl; external 'pmgpi' index 371;
 function GpiLoadBitmap(hps,Resource,idBitmap:cardinal;lWidth,lHeight : longint) : cardinal; cdecl; external 'pmgpi' index 399;
@@ -2146,11 +2146,11 @@ function GpiIntersectClipRectangle(hps : cardinal;var prclRectangle : RECTL) : l
 function GpiOffsetClipRegion(hps : cardinal;var pptlPoint : POINTL) : longint; cdecl; external 'pmgpi' index 405;
 function GpiCopyMetaFile(hmf : cardinal) : cardinal; cdecl; external 'pmgpi' index 365;
 function GpiDeleteMetaFile(hmf : cardinal) : longbool; cdecl; external 'pmgpi' index 375;
-function GpiLoadMetaFile(hab : cardinal;pszFilename : pchar) : cardinal; cdecl; external 'pmgpi' index 401;
-function GpiPlayMetaFile(hps,hmf : cardinal;lCount1 : longint;var alOptarray,plSegCount : longint;lCount2 : longint;pszDesc : pchar) : longint; cdecl; external 'pmgpi' index 411;
+function GpiLoadMetaFile(hab : cardinal;pszFilename : PAnsiChar) : cardinal; cdecl; external 'pmgpi' index 401;
+function GpiPlayMetaFile(hps,hmf : cardinal;lCount1 : longint;var alOptarray,plSegCount : longint;lCount2 : longint;pszDesc : PAnsiChar) : longint; cdecl; external 'pmgpi' index 411;
 function GpiQueryMetaFileBits(hmf : cardinal;lOffset,lLength : longint;var pbData : BYTE) : longbool; cdecl; external 'pmgpi' index 465;
 function GpiQueryMetaFileLength(hmf : cardinal) : longint; cdecl; external 'pmgpi' index 466;
-function GpiSaveMetaFile(hmf : cardinal;pszFilename : pchar) : longbool; cdecl; external 'pmgpi' index 500;
+function GpiSaveMetaFile(hmf : cardinal;pszFilename : PAnsiChar) : longbool; cdecl; external 'pmgpi' index 500;
 function GpiSetMetaFileBits(hmf : cardinal;lOffset,lLength : longint;var pbBuffer : BYTE) : longbool; cdecl; external 'pmgpi' index 536;
 function GpiQueryDefArcParams(hps : cardinal;var parcpArcParams : ARCPARAMS) : longbool; cdecl; external 'pmgpi' index 567;
 function GpiQueryDefAttrs(hps : cardinal;lPrimType : longint;flAttrMask : cardinal;ppbunAttrs : pointer) : longbool; cdecl; external 'pmgpi' index 590;

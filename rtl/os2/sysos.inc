@@ -77,18 +77,18 @@ procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock;
                             PAPIB: PPProcessInfoBlock); cdecl;
                             external 'DOSCALLS' index 312;
 
-function DosLoadModule (ObjName: PChar; ObjLen: cardinal; DLLName: PChar;
+function DosLoadModule (ObjName: PAnsiChar; ObjLen: cardinal; DLLName: PAnsiChar;
                                          var Handle: THandle): cardinal; cdecl;
 external 'DOSCALLS' index 318;
 
 function DosFreeModule (Handle: THandle): cardinal; cdecl;
 external 'DOSCALLS' index 322;
 
-function DosQueryModuleHandle (DLLName: PChar; var Handle: THandle): cardinal;
+function DosQueryModuleHandle (DLLName: PAnsiChar; var Handle: THandle): cardinal;
                                                                          cdecl;
 external 'DOSCALLS' index 319;
 
-function DosQueryProcAddr (Handle, Ordinal: cardinal; ProcName: PChar;
+function DosQueryProcAddr (Handle, Ordinal: cardinal; ProcName: PAnsiChar;
                                         var Address: pointer): cardinal; cdecl;
 external 'DOSCALLS' index 321;
 
@@ -96,7 +96,7 @@ function DosSetRelMaxFH (var ReqCount: longint; var CurMaxFH: cardinal):
                                                                cardinal; cdecl;
 external 'DOSCALLS' index 382;
 
-function DosSetCurrentDir (Name:PChar): cardinal; cdecl;
+function DosSetCurrentDir (Name:PAnsiChar): cardinal; cdecl;
 external 'DOSCALLS' index 255;
 
 procedure DosQueryCurrentDisk(var DiskNum:cardinal;var Logical:cardinal); cdecl;
@@ -108,27 +108,27 @@ external 'DOSCALLS' index 220;
 { This is not real prototype, but is close enough }
 { for us (the 2nd parameter is actually a pointer }
 { to a structure).                                }
-function DosCreateDir (Name: PChar; P: pointer): cardinal; cdecl;
+function DosCreateDir (Name: PAnsiChar; P: pointer): cardinal; cdecl;
 external 'DOSCALLS' index 270;
 
-function DosDeleteDir (Name: PChar): cardinal; cdecl;
+function DosDeleteDir (Name: PAnsiChar): cardinal; cdecl;
 external 'DOSCALLS' index 226;
 
 function DosQueryCurrentDir(DiskNum:cardinal;var Buffer;
                             var BufLen:cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 274;
 
-function DosMove(OldFile,NewFile:PChar):cardinal; cdecl;
+function DosMove(OldFile,NewFile:PAnsiChar):cardinal; cdecl;
     external 'DOSCALLS' index 271;
 
-function DosDelete(FileName:PChar):cardinal; cdecl;
+function DosDelete(FileName:PAnsiChar):cardinal; cdecl;
     external 'DOSCALLS' index 259;
 
 procedure DosExit(Action, Result: cardinal); cdecl;
     external 'DOSCALLS' index 234;
 
 // EAs not used in System unit
-function DosOpen(FileName:PChar;var Handle: THandle;var Action:cardinal;
+function DosOpen(FileName:PAnsiChar;var Handle: THandle;var Action:cardinal;
                  InitSize,Attrib,OpenFlags,FileMode:cardinal;
                  EA:Pointer): cardinal; cdecl;
     external 'DOSCALLS' index 273;
@@ -155,7 +155,7 @@ function DosQueryHType(Handle: THandle; var HandType: cardinal;
                                           var Attr: cardinal): cardinal; cdecl;
     external 'DOSCALLS' index 224;
 
-function DosQueryModuleName (Handle: THandle; NameLen: cardinal; Name: PChar):
+function DosQueryModuleName (Handle: THandle; NameLen: cardinal; Name: PAnsiChar):
                                                                cardinal; cdecl;
     external 'DOSCALLS' index 320;
 
@@ -166,7 +166,7 @@ function DosGetDateTime(var Buf:TSysDateTime): cardinal; cdecl;
 {
 Already declared in interface part:
 type
-  TDosOpenL = function (FileName: PChar; var Handle: THandle;
+  TDosOpenL = function (FileName: PAnsiChar; var Handle: THandle;
                         var Action: cardinal; InitSize: int64;
                         Attrib, OpenFlags, FileMode: cardinal;
                                                  EA: pointer): cardinal; cdecl;
@@ -177,7 +177,7 @@ type
   TDosSetFileSizeL = function (Handle: THandle; Size: int64): cardinal; cdecl;
 }
 
-function DummyDosOpenL (FileName: PChar; var Handle: THandle;
+function DummyDosOpenL (FileName: PAnsiChar; var Handle: THandle;
                         var Action: cardinal; InitSize: int64;
                         Attrib, OpenFlags, FileMode: cardinal;
                                                  EA: pointer): cardinal; cdecl;
@@ -376,7 +376,7 @@ external 'DOSCALLS' index 212;
 
 type
   TWinMessageBox = function (Parent, Owner: cardinal;
-         BoxText, BoxTitle: PChar; Identity, Style: cardinal): cardinal; cdecl;
+         BoxText, BoxTitle: PAnsiChar; Identity, Style: cardinal): cardinal; cdecl;
   TWinInitialize = function (Options: cardinal): cardinal; cdecl;
   TWinCreateMsgQueue = function (Handle: cardinal; cmsg: longint): cardinal;
                                                                          cdecl;
@@ -442,11 +442,11 @@ type
  end;
 
 function DosMapCase (Size: cardinal; var Country: TCountryCode;
-                     AString: PChar): cardinal; cdecl;
+                     AString: PAnsiChar): cardinal; cdecl;
 external 'NLS' index 7;
 
 function DosQueryDBCSEnv (Size: cardinal; var Country: TCountryCode;
-                                                  Buf: PChar): cardinal; cdecl;
+                                                  Buf: PAnsiChar): cardinal; cdecl;
 external 'NLS' index 6;
 
 function DosQueryCollate (Size: cardinal; var Country: TCountryCode;
@@ -459,14 +459,14 @@ type
  TCountryInfo = record
   Country, CodePage: cardinal;     {Country and codepage requested.}
   DateFormat: cardinal;            {1=ddmmyy 2=yymmdd 3=mmddyy}
-  CurrencyUnit: array [0..4] of char;
-  ThousandSeparator: char;         {Thousands separator.}
+  CurrencyUnit: array [0..4] of AnsiChar;
+  ThousandSeparator: AnsiChar;         {Thousands separator.}
   Zero1: byte;                     {Always zero.}
-  DecimalSeparator: char;          {Decimals separator,}
+  DecimalSeparator: AnsiChar;          {Decimals separator,}
   Zero2: byte;
-  DateSeparator: char;             {Date separator.}
+  DateSeparator: AnsiChar;             {Date separator.}
   Zero3: byte;
-  TimeSeparator: char;             {Time separator.}
+  TimeSeparator: AnsiChar;             {Time separator.}
   Zero4: byte;
   CurrencyFormat,                  {Bit field:
                                     Bit 0: 0=indicator before value
@@ -479,7 +479,7 @@ type
                                     currency indication.}
   TimeFormat: TTimeFmt;            {12/24 hour.}
   Reserve1: array [0..1] of word;
-  DataSeparator: char;             {Data list separator}
+  DataSeparator: AnsiChar;             {Data list separator}
   Zero5: byte;
   Reserve2: array [0..4] of word;
  end;
@@ -493,11 +493,11 @@ external 'NLS' index 5;
 
 type
  PInsertTable = ^TInsertTable;
- TInsertTable = array [1..9] of PChar;
+ TInsertTable = array [1..9] of PAnsiChar;
 
 function DosTrueGetMessage (MsgSeg: pointer; Table: PInsertTable;
-                            TableSize: cardinal; Buf: PChar;
-                            BufSize, MsgNumber: cardinal; FileName: PChar;
+                            TableSize: cardinal; Buf: PAnsiChar;
+                            BufSize, MsgNumber: cardinal; FileName: PAnsiChar;
                             var MsgSize: cardinal): cardinal; cdecl;
 external 'MSG' index 6;
 
@@ -514,8 +514,8 @@ asm
   dd MagicHeaderEnd
 end;
 
-function DosGetMessage (Table: PInsertTable; TableSize: cardinal; Buf: PChar;
-                        BufSize, MsgNumber: cardinal; FileName: PChar;
+function DosGetMessage (Table: PInsertTable; TableSize: cardinal; Buf: PAnsiChar;
+                        BufSize, MsgNumber: cardinal; FileName: PAnsiChar;
                         var MsgSize: cardinal): cardinal; cdecl; assembler;
                                                                   nostackframe;
 asm

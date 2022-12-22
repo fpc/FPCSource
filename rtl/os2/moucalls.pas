@@ -264,10 +264,10 @@ type
 
 {Register a mouse subsystem within a session.}
 {ModuleName is name of the dynamic link module (the maximum length
-is 8 characters - plus the final #0 character in the PChar version of this
+is 8 characters - plus the final #0 character in the PAnsiChar version of this
 call), ProcName is the dynamic link entry point name of a routine that receives
 control when any of the registered functions are called (the maximum length
-is 32 bytes - plus the final #0 character in the PChar version of this call),
+is 32 bytes - plus the final #0 character in the PAnsiChar version of this call),
 FnMask is a mask of bits, where each bit set to 1 identifies a mouse function
 being registered - see MR_MOU* constants.}
 {Possible return codes:
@@ -345,7 +345,7 @@ being registered - see MR_MOU* constants.}
   MouSetDevStatus             15h
 * A registered mouse sybsystem must leave the stack, on exit, in the exact
   state it was received.}
-function MouRegister(ModuleName,ProcName:PChar;FnMask:cardinal):word; cdecl;
+function MouRegister(ModuleName,ProcName:PAnsiChar;FnMask:cardinal):word; cdecl;
 function MouRegister(ModuleName,ProcName:string;FnMask:cardinal):word;
 
 {Deregister a mouse subsystem previously registered within a session.}
@@ -738,7 +738,7 @@ handle is returned in MouHandle.}
   Base Mouse Subsystem can detect a change in display configurations. This form
   of the MouOpen call is not recommended for applications. Applications should
   either send the name of the pointer draw device driver or nil.}
-function MouOpen(DriverName:PChar;var MouHandle:word):word; cdecl;
+function MouOpen(DriverName:PAnsiChar;var MouHandle:word):word; cdecl;
 function MouOpen(DriverName:string;var MouHandle:word):word;
 
 {Close the mouse device for the current session.}
@@ -863,7 +863,7 @@ device driver must be included in the CONFIG.SYS file at system start-up time.}
   and the offset portion is non-zero, the offset portion identifies the
   power-up display configuration. However, this isn't possible in the current
   implementation (using 32-bit wrap-around function supplied in EMXWRAP.DLL).}
-function MouInitReal(DriverName:PChar):word; cdecl;
+function MouInitReal(DriverName:PAnsiChar):word; cdecl;
 function MouInitReal(DriverName:string):word;
 
 {Synchronize the mouse subsystem with the mouse device driver.}
@@ -907,7 +907,7 @@ implementation
 {***************************************************************************}
 
 
-function MouRegister(ModuleName,ProcName:PChar;FnMask:cardinal):word; cdecl;
+function MouRegister(ModuleName,ProcName:PAnsiChar;FnMask:cardinal):word; cdecl;
 external 'EMXWRAP' index 324;
 {external 'MOUCALLS' index 24;}
 
@@ -993,7 +993,7 @@ function MouSetScaleFact(const Scale:TScaleFact;MouHandle:word):word; cdecl;
 external 'EMXWRAP' index 311;
 {external 'MOUCALLS' index 11;}
 
-function MouOpen(DriverName:PChar;var MouHandle:word):word; cdecl;
+function MouOpen(DriverName:PAnsiChar;var MouHandle:word):word; cdecl;
 external 'EMXWRAP' index 317;
 {external 'MOUCALLS' index 17;}
 
@@ -1034,7 +1034,7 @@ function MouSetDevStatus(var Status:word;MouHandle:word):word; cdecl;
 external 'EMXWRAP' index 326;
 {external 'MOUCALLS' index 26;}
 
-function MouInitReal(DriverName:PChar):word; cdecl;
+function MouInitReal(DriverName:PAnsiChar):word; cdecl;
 external 'EMXWRAP' index 327;
 {external 'MOUCALLS' index 27;}
 
