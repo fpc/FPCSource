@@ -22,8 +22,8 @@
 //       Initializers.h - Macros needed?
 
 type
-  STRPTR   = PChar;
-  PSTRPTR  = PPChar;
+  STRPTR   = PAnsiChar;
+  PSTRPTR  = PPAnsiChar;
   ULONG    = Longword;
   LONG     = LongInt;
   APTR     = Pointer;

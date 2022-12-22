@@ -73,8 +73,8 @@ const
   DriveSeparator = ':';
   ExtensionSeparator = '.';
   PathSeparator = ';';
-  AllowDirectorySeparators : set of char = ['\','/'];
-  AllowDriveSeparators : set of char = [':'];
+  AllowDirectorySeparators : set of AnsiChar = ['\','/'];
+  AllowDriveSeparators : set of AnsiChar = [':'];
   maxExitCode = 255;
   MaxPathLen = 256;
   AllFilesMask = '#?';
@@ -119,12 +119,12 @@ var
   ASYS_origDir  : LongInt; { original directory on startup }
   AOS_wbMsg    : Pointer; public name '_WBenchMsg'; { the "public" part is amunits compatibility kludge }
   _WBenchMsg   : Pointer; external name '_WBenchMsg'; { amunits compatibility kludge }
-  AOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
+  AOS_ConName  : PAnsiChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
   AOS_ConHandle: LongInt;
 
   argc: LongInt;
-  argv: PPChar;
-  envp: PPChar;
+  argv: PPAnsiChar;
+  envp: PPAnsiChar;
 
 
 implementation
@@ -185,7 +185,7 @@ type
     PWBArg = ^TWBArg;
     TWBArg = record
         wa_Lock         : LongInt;      { a lock descriptor }
-        wa_Name         : PChar;       { a string relative to that lock }
+        wa_Name         : PAnsiChar;       { a string relative to that lock }
     end;
 
     WBArgList = array[1..MaxInt] of TWBArg; { Only 1..smNumArgs are valid }

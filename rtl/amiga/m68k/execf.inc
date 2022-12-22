@@ -37,7 +37,7 @@ procedure MakeFunctions(target       : Pointer location 'a0';
                         funcDispBase : Pointer location 'a2');
 SysCall AOS_ExecBase 090;
 
-function FindResident(name: PChar location 'a1'): PResident;
+function FindResident(name: PAnsiChar location 'a1'): PResident;
 SysCall AOS_ExecBase 096;
 
 function InitResident(resident: PResident location 'a1';
@@ -147,7 +147,7 @@ procedure Enqueue(list: PList location 'a0';
 SysCall AOS_ExecBase 270;
 
 function FindName(list: PList location 'a0';
-                  name: PChar location 'a1'): PNode;
+                  name: PAnsiChar location 'a1'): PNode;
 SysCall AOS_ExecBase 276;
 
 function AddTask(task   : PTask   location 'a1';
@@ -158,7 +158,7 @@ SysCall AOS_ExecBase 282;
 procedure RemTask(task: PTask location 'a1');
 SysCall AOS_ExecBase 288;
 
-function FindTask(name: PChar location 'a1'): PTask;
+function FindTask(name: PAnsiChar location 'a1'): PTask;
 SysCall AOS_ExecBase 294;
 
 function SetTaskPri(task    : PTask   location 'a1';
@@ -211,7 +211,7 @@ SysCall AOS_ExecBase 378;
 function WaitPort(port: PMsgPort location 'a0'): PMessage;
 SysCall AOS_ExecBase 384;
 
-function FindPort(name: PChar location 'a1'): PMsgPort;
+function FindPort(name: PAnsiChar location 'a1'): PMsgPort;
 SysCall AOS_ExecBase 390;
 
 procedure AddLibrary(libHandle: PLibrary location 'a1');
@@ -220,7 +220,7 @@ SysCall AOS_ExecBase 396;
 procedure RemLibrary(libHandle: PLibrary location 'a1');
 SysCall AOS_ExecBase 402;
 
-function OldOpenLibrary(libName: PChar location 'a1'): PLibrary;
+function OldOpenLibrary(libName: PAnsiChar location 'a1'): PLibrary;
 SysCall AOS_ExecBase 408;
 
 procedure CloseLibrary(libHandle: PLibrary location 'a1');
@@ -240,7 +240,7 @@ SysCall AOS_ExecBase 432;
 procedure RemDevice(device: PDevice location 'a1');
 SysCall AOS_ExecBase 438;
 
-function OpenDevice(devName  : PChar      location 'a0';
+function OpenDevice(devName  : PAnsiChar      location 'a0';
                     numunit  : Cardinal   location 'd0';
                     ioRequest: pIORequest location 'a1';
                     flags    : Cardinal   location 'd1'): ShortInt;
@@ -270,19 +270,19 @@ SysCall AOS_ExecBase 486;
 procedure RemResource(resource: Pointer location 'a1');
 SysCall AOS_ExecBase 492;
 
-function OpenResource(resName: PChar location 'a1'): Pointer;
+function OpenResource(resName: PAnsiChar location 'a1'): Pointer;
 SysCall AOS_ExecBase 498;
 
 procedure RawIOInit;
 SysCall AOS_ExecBase 504;
 
-function RawMayGetChar: Char;
+function RawMayGetChar: AnsiChar;
 SysCall AOS_ExecBase 510;
 
-procedure RawPutChar(d0arg: Char location 'd0');
+procedure RawPutChar(d0arg: AnsiChar location 'd0');
 SysCall AOS_ExecBase 516;
 
-function RawDoFmt(formatString: PChar   location 'a0';
+function RawDoFmt(formatString: PAnsiChar   location 'a0';
                   dataStream  : Pointer location 'a1';
                   putChProc   : Pointer location 'a2';
                   putChData   : Pointer location 'a3'): Pointer;
@@ -302,7 +302,7 @@ procedure Vacate(sigSem: PSignalSemaphore  location 'a0';
                  bidMsg: PSemaphoreMessage location 'a1');
 SysCall AOS_ExecBase 546;
 
-function OpenLibrary(libname: PChar    location 'a1';
+function OpenLibrary(libname: PAnsiChar    location 'a1';
                      libver : Cardinal location 'd0'): Pointer;
 SysCall AOS_ExecBase 552;
 
@@ -327,7 +327,7 @@ SysCall AOS_ExecBase 582;
 procedure ReleaseSemaphoreList(sigSem: PList location 'a0');
 SysCall AOS_ExecBase 588;
 
-function FindSemaphore(sigSem: PChar location 'a1'): PSignalSemaphore;
+function FindSemaphore(sigSem: PAnsiChar location 'a1'): PSignalSemaphore;
 SysCall AOS_ExecBase 594;
 
 procedure AddSemaphore(sigSem: PSignalSemaphore location 'a1');
@@ -343,7 +343,7 @@ procedure AddMemList(size      : Cardinal location 'd0';
                      attributes: Cardinal location 'd1';
                      pri       : LongInt  location 'd2';
                      base      : Pointer  location 'a0';
-                     name      : PChar    location 'a1');
+                     name      : PAnsiChar    location 'a1');
 SysCall AOS_ExecBase 618;
 
 procedure CopyMem(source: Pointer  location 'a0';
