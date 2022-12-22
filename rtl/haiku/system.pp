@@ -27,7 +27,7 @@ implementation
 var
   initialstkptr : Pointer; external name '__stkptr';
 
-procedure debugger(s : PChar); cdecl; external 'root' name 'debugger';
+procedure debugger(s : PAnsiChar); cdecl; external 'root' name 'debugger';
 function disable_debugger(state : integer): integer; cdecl; external 'root' name 'disable_debugger';
 
 
@@ -199,7 +199,7 @@ type
   {$PACKRECORDS C}
   TAlternateSignalStack = record
     case Integer of
-      0 : (buffer : array[0..(SIGSTKSZ * 4)-1] of Char);
+      0 : (buffer : array[0..(SIGSTKSZ * 4)-1] of AnsiChar);
       1 : (ld : clonglong);
       2 : (l : integer);
       3 : (p : pointer);
