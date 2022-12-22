@@ -403,7 +403,7 @@ Type
     mask   : cuint32;
     cookie : cuint32;
     len    : cuint32;
-    name   : char;
+    name   : AnsiChar;
   end;
   Pinotify_event = ^inotify_event;
 
@@ -453,7 +453,7 @@ function inotify_init1(flags:cint):cint;  {$ifdef FPC_USE_LIBC} cdecl; external 
 
 { Add watch of object NAME to inotify instance FD.
   Notify about events specified by MASK.   }
-function inotify_add_watch(fd:cint; name:Pchar; mask:cuint32):cint;  {$ifdef FPC_USE_LIBC} cdecl; external name 'inotify_add_watch'; {$ENDIF}
+function inotify_add_watch(fd:cint; name:PAnsiChar; mask:cuint32):cint;  {$ifdef FPC_USE_LIBC} cdecl; external name 'inotify_add_watch'; {$ENDIF}
 
 { Remove the watch specified by WD from the inotify instance FD.   }
 function inotify_rm_watch(fd:cint; wd: cint):cint;  {$ifdef FPC_USE_LIBC} cdecl; external name 'inotify_rm_watch'; {$ENDIF}
@@ -542,7 +542,7 @@ Type
   end;
   pstatx = ^tstatx;
 
-  function statx(dfd: cint; filename: pchar; flags,mask: cuint; var buf: tstatx):cint; {$ifdef FPC_USE_LIBC} cdecl; weakexternal name 'statx'; {$ENDIF}
+  function statx(dfd: cint; filename: PAnsiChar; flags,mask: cuint; var buf: tstatx):cint; {$ifdef FPC_USE_LIBC} cdecl; weakexternal name 'statx'; {$ENDIF}
 
 Type
    kernel_time64_t = clonglong;
@@ -556,7 +556,7 @@ Type
    tkernel_timespecs = array[0..1] of kernel_timespec;
 
 {$ifndef android}
-Function utimensat(dfd: cint; path:pchar;const times:tkernel_timespecs;flags:cint):cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'utimensat'; {$ENDIF}
+Function utimensat(dfd: cint; path:PAnsiChar;const times:tkernel_timespecs;flags:cint):cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'utimensat'; {$ENDIF}
 Function futimens(fd: cint; const times:tkernel_timespecs):cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'futimens'; {$ENDIF}
 {$endif android}
 
@@ -828,7 +828,7 @@ begin
 {$endif}
 end;
 
-function inotify_add_watch(fd:cint; name:Pchar; mask:cuint32):cint;
+function inotify_add_watch(fd:cint; name:PAnsiChar; mask:cuint32):cint;
 
 begin
   inotify_add_watch:=do_SysCall(syscall_nr_inotify_add_watch,tsysparam(fd),tsysparam(name),tsysparam(mask));
@@ -870,14 +870,14 @@ begin
 end;
 
 
-function statx(dfd: cint; filename: pchar; flags,mask: cuint; var buf: tstatx):cint;
+function statx(dfd: cint; filename: PAnsiChar; flags,mask: cuint; var buf: tstatx):cint;
 begin
   statx:=do_syscall(syscall_nr_statx,TSysParam(dfd),TSysParam(filename),TSysParam(flags),TSysParam(mask),TSysParam(@buf));
 end;
 
 
 {$ifndef android}
-Function utimensat(dfd: cint; path:pchar;const times:tkernel_timespecs;flags:cint):cint;
+Function utimensat(dfd: cint; path:PAnsiChar;const times:tkernel_timespecs;flags:cint):cint;
 var
   tsa: Array[0..1] of timespec;
 begin

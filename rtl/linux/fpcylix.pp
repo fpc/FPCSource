@@ -30,8 +30,8 @@ unit fpcylix;
       MainInstance: PtrUInt;
 
     function GetModuleName(Module: HMODULE): string;
-    function GetModuleHandle(ModuleName: PChar): HMODULE;
-    function GetModuleFileName(Module: HMODULE; Buffer: PChar; BufLen: Integer): Integer;
+    function GetModuleHandle(ModuleName: PAnsiChar): HMODULE;
+    function GetModuleFileName(Module: HMODULE; Buffer: PAnsiChar; BufLen: Integer): Integer;
 
   implementation
 
@@ -41,13 +41,13 @@ unit fpcylix;
       end;
 
 
-    function GetModuleHandle(ModuleName: PChar): HMODULE;
+    function GetModuleHandle(ModuleName: PAnsiChar): HMODULE;
       begin
         result:=NilHandle;
       end;
 
 
-    function GetModuleFileName(Module: HMODULE; Buffer: PChar; BufLen: Integer): Integer;
+    function GetModuleFileName(Module: HMODULE; Buffer: PAnsiChar; BufLen: Integer): Integer;
       begin
         result:=0;
       end;

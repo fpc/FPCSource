@@ -223,7 +223,7 @@ Type
   mbstate_value_t = record
     case byte of
       0: (__wch: wint_t);
-      1: (__wchb: array[0..3] of char);
+      1: (__wchb: array[0..3] of AnsiChar);
   end;
 
   mbstate_t = record
@@ -241,7 +241,7 @@ Type
   pthread_attr_t = record
     case byte of
       0 : (
-             __size : array[0..__SIZEOF_PTHREAD_ATTR_T-1] of char;
+             __size : array[0..__SIZEOF_PTHREAD_ATTR_T-1] of AnsiChar;
           );
       1 : (
              __align : clong;
@@ -262,7 +262,7 @@ Type
   pthread_mutexattr_t = record
     case byte of
       0 : (
-             __size : array[0..__SIZEOF_PTHREAD_MUTEXATTR_T-1] of char;
+             __size : array[0..__SIZEOF_PTHREAD_MUTEXATTR_T-1] of AnsiChar;
           );
       1 : (
              __align : cint;
@@ -272,7 +272,7 @@ Type
   pthread_cond_t = record
     case byte of
       0 : (
-             __size : array[0..__SIZEOF_PTHREAD_COND_T-1] of char;
+             __size : array[0..__SIZEOF_PTHREAD_COND_T-1] of AnsiChar;
           );
       1 : (
              ___align : clonglong;
@@ -282,7 +282,7 @@ Type
   pthread_condattr_t = record
     case byte of
       0 : (
-             __size : array[0..__SIZEOF_PTHREAD_CONDATTR_T-1] of char;
+             __size : array[0..__SIZEOF_PTHREAD_CONDATTR_T-1] of AnsiChar;
           );
       1 : (
              __align : cint;
@@ -295,7 +295,7 @@ type
   pthread_rwlock_t = record // should be 56 for 64-bit, 32 bytes for 32-bit mantis #21552
     case byte of
       0 : (
-             __size : array[0..__SIZEOF_PTHREAD_RWLOCK_T-1] of char;
+             __size : array[0..__SIZEOF_PTHREAD_RWLOCK_T-1] of AnsiChar;
           );
       1 : (
              __align : clong;
@@ -305,7 +305,7 @@ type
   pthread_rwlockattr_t = record
     case byte of
       0 : (
-             __size : array[0..__SIZEOF_PTHREAD_RWLOCKATTR_T-1] of char;
+             __size : array[0..__SIZEOF_PTHREAD_RWLOCKATTR_T-1] of AnsiChar;
           );
       1 : (
              __align : cint;
@@ -315,7 +315,7 @@ type
   sem_t = record
     case byte of
       0 : (
-             __size : array[0..__SIZEOF_SEM_T-1] of char;
+             __size : array[0..__SIZEOF_SEM_T-1] of AnsiChar;
           );
       1 : (
              __align : clonglong;

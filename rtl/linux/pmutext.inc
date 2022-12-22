@@ -32,7 +32,7 @@
   MUTEXTYPENAME = record
     case byte of
       0 : (
-            __size : array[0..__SIZEOF_PTHREAD_MUTEX_T-1] of char;
+            __size : array[0..__SIZEOF_PTHREAD_MUTEX_T-1] of AnsiChar;
           );
       1 : (
              __align : sizeint;
