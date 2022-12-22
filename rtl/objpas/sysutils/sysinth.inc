@@ -33,12 +33,12 @@ type
   TFormatSettings = record
     CurrencyFormat: Byte;
     NegCurrFormat: Byte;
-    ThousandSeparator: Char;
-    DecimalSeparator: Char;
+    ThousandSeparator: AnsiChar;
+    DecimalSeparator: AnsiChar;
     CurrencyDecimals: Byte;
-    DateSeparator: Char;
-    TimeSeparator: Char;
-    ListSeparator: Char;
+    DateSeparator: AnsiChar;
+    TimeSeparator: AnsiChar;
+    ListSeparator: AnsiChar;
     CurrencyString: string;
     ShortDateFormat: string;
     LongDateFormat: string;
@@ -87,7 +87,7 @@ var
 Var
 
    { Character to be put between date, month and year }
-   DateSeparator: char absolute DefaultFormatSettings.DateSeparator deprecated;
+   DateSeparator: AnsiChar absolute DefaultFormatSettings.DateSeparator deprecated;
 
    { Format used for short date notation }
    ShortDateFormat: string absolute DefaultFormatSettings.ShortDateFormat deprecated;
@@ -115,7 +115,7 @@ Var
    LongTimeFormat: string absolute DefaultFormatSettings.LongTimeFormat deprecated;
 
    { Character to be put between hours and minutes }
-   TimeSeparator: char absolute DefaultFormatSettings.TimeSeparator deprecated;
+   TimeSeparator: AnsiChar absolute DefaultFormatSettings.TimeSeparator deprecated;
 
    { String to indicate AM time when using 12 hour clock. }
    TimeAMString: string absolute DefaultFormatSettings.TimeAMString deprecated;
@@ -131,10 +131,10 @@ Var
 
 
   { Character that comes between integer and fractional part of a number }
-  DecimalSeparator : Char absolute DefaultFormatSettings.DecimalSeparator deprecated;
+  DecimalSeparator : AnsiChar absolute DefaultFormatSettings.DecimalSeparator deprecated;
 
   { Character that is put every 3 numbers in a currency }
-  ThousandSeparator : Char absolute DefaultFormatSettings.ThousandSeparator deprecated;
+  ThousandSeparator : AnsiChar absolute DefaultFormatSettings.ThousandSeparator deprecated;
 
   { Number of decimals to use when formatting a currency.  }
   CurrencyDecimals : Byte absolute DefaultFormatSettings.CurrencyDecimals deprecated;
@@ -166,7 +166,7 @@ Var
   { Currency notation. Default is $ for dollars. }
   CurrencyString : String absolute DefaultFormatSettings.CurrencyString deprecated;
 
-  ListSeparator: Char absolute DefaultFormatSettings.ListSeparator deprecated;
+  ListSeparator: AnsiChar absolute DefaultFormatSettings.ListSeparator deprecated;
 
 type
   TSysLocale = record

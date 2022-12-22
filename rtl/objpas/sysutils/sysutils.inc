@@ -130,7 +130,7 @@ begin
 end;
 {$ENDIF}
 
-  { Read pchar handling functions implementation }
+  { Read PAnsiChar handling functions implementation }
   {$i syspch.inc}
 
   { generic internationalisation code }
@@ -571,7 +571,7 @@ begin
 end;
 
 function ExceptionErrorMessage(ExceptObject: TObject; ExceptAddr: Pointer;
-                               Buffer: PChar; Size: Integer): Integer;
+                               Buffer: PAnsiChar; Size: Integer): Integer;
 
 Var
   S : AnsiString;

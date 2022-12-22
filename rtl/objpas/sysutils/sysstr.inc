@@ -87,20 +87,20 @@ function IsLeadChar(B: Byte): Boolean; inline;
 
 
 begin
-  Result:=Char(B) in LeadBytes;
+  Result:=AnsiChar(B) in LeadBytes;
 end;
 
 Function InternalChangeCase(Const S : AnsiString; const Chars: TSysCharSet; const Adjustment: Longint): AnsiString;
   var
     i : Integer;
-    P : PChar;
+    P : PAnsiChar;
     Unique : Boolean;
   begin
     Result := S;
     if Result='' then
       exit;
     Unique:=false;
-    P:=PChar(Result);
+    P:=PAnsiChar(Result);
     for i:=1 to Length(Result) do
       begin
         if CharInSet(P^,Chars) then
@@ -111,7 +111,7 @@ Function InternalChangeCase(Const S : AnsiString; const Chars: TSysCharSet; cons
                 p:=@Result[i];
                 Unique:=true;
               end;
-            P^:=Char(Ord(P^)+Adjustment);
+            P^:=AnsiChar(Ord(P^)+Adjustment);
           end;
         Inc(P);
       end;
@@ -239,7 +239,7 @@ function CompareText(const S1, S2: string): Integer; overload;
 var
   i, count, count1, count2: sizeint;
   Chr1, Chr2: byte;
-  P1, P2: PChar;
+  P1, P2: PAnsiChar;
 begin
   Count1 := Length(S1);
   Count2 := Length(S2);
@@ -321,7 +321,7 @@ end;
 {==============================================================================}
 
 type
-  TCaseTranslationTable = array[0..255] of char;
+  TCaseTranslationTable = array[0..255] of AnsiChar;
 
 var
   { Tables with upper and lowercase forms of character sets.
@@ -385,7 +385,7 @@ begin
     Result:=L1-L2;
 end;
 
-function GenericAnsiStrComp(S1, S2: PChar): PtrInt;
+function GenericAnsiStrComp(S1, S2: PAnsiChar): PtrInt;
 
 begin
   Result:=0;
@@ -413,7 +413,7 @@ begin
 end;
 
 
-function GenericAnsiStrIComp(S1, S2: PChar): PtrInt;
+function GenericAnsiStrIComp(S1, S2: PAnsiChar): PtrInt;
 
 begin
   Result:=0;
@@ -441,7 +441,7 @@ begin
 end;
 
 
-function GenericAnsiStrLComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+function GenericAnsiStrLComp(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
 
 Var I : PtrUInt;
 
@@ -469,7 +469,7 @@ begin
 end;
 
 
-function GenericAnsiStrLIComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+function GenericAnsiStrLIComp(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
 
 Var I : PtrUInt;
 
@@ -497,7 +497,7 @@ begin
 end;
 
 
-function GenericAnsiStrLower(Str: PChar): PChar;
+function GenericAnsiStrLower(Str: PAnsiChar): PAnsiChar;
 begin
 result := Str;
 if Str <> Nil then begin
@@ -509,7 +509,7 @@ if Str <> Nil then begin
 end;
 
 
-function GenericAnsiStrUpper(Str: PChar): PChar;
+function GenericAnsiStrUpper(Str: PAnsiChar): PAnsiChar;
 begin
 result := Str;
 if Str <> Nil then begin
@@ -533,15 +533,15 @@ begin
   AnsiSameStr:=AnsiCompareStr(S1,S2)=0;
 end;
 
-function AnsiLastChar(const S: string): PChar;
+function AnsiLastChar(const S: string): PAnsiChar;
 
 begin
   //!! No multibyte yet, so we return the last one.
-  result:=StrEnd(Pchar(pointer(S)));  // strend checks for nil
+  result:=StrEnd(PAnsiChar(pointer(S)));  // strend checks for nil
   Dec(Result);
 end ;
 
-function AnsiStrLastChar(Str: PChar): PChar;
+function AnsiStrLastChar(Str: PAnsiChar): PAnsiChar;
 begin
   //!! No multibyte yet, so we return the last one.
   result:=StrEnd(Str);
@@ -575,41 +575,41 @@ function AnsiCompareText(const S1, S2: string): integer;{$ifdef SYSUTILSINLINE}i
   end;
 
 
-function AnsiStrComp(S1, S2: PChar): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrComp(S1, S2: PAnsiChar): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     // CAPSIZEINT is no-op if Sizeof(Sizeint)<=SizeOF(Integer)
     result:=CAPSIZEINT(widestringmanager.StrCompAnsiStringProc(s1,s2));
   end;
 
 
-function AnsiStrIComp(S1, S2: PChar): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrIComp(S1, S2: PAnsiChar): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     // CAPSIZEINT is no-op if Sizeof(Sizeint)<=SizeOF(Integer)
     result:=CAPSIZEINT(widestringmanager.StrICompAnsiStringProc(s1,s2));
   end;
 
 
-function AnsiStrLComp(S1, S2: PChar; MaxLen: SizeUInt): Integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrLComp(S1, S2: PAnsiChar; MaxLen: SizeUInt): Integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     // CAPSIZEINT is no-op if Sizeof(Sizeint)<=SizeOF(Integer)
     result:=CAPSIZEINT(widestringmanager.StrLCompAnsiStringProc(s1,s2,maxlen));
   end;
 
 
-function AnsiStrLIComp(S1, S2: PChar; MaxLen: SizeUint): Integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrLIComp(S1, S2: PAnsiChar; MaxLen: SizeUint): Integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     // CAPSIZEINT is no-op if Sizeof(Sizeint)<=SizeOF(Integer)
     result:=CAPSIZEINT(widestringmanager.StrLICompAnsiStringProc(s1,s2,maxlen));
   end;
 
 
-function AnsiStrLower(Str: PChar): PChar;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrLower(Str: PAnsiChar): PAnsiChar;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     result:=widestringmanager.StrLowerAnsiStringProc(Str);
   end;
 
 
-function AnsiStrUpper(Str: PChar): PChar;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrUpper(Str: PAnsiChar): PAnsiChar;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     result:=widestringmanager.StrUpperAnsiStringProc(Str);
   end;
@@ -669,7 +669,7 @@ end ;
 {   AnsiQuotedStr returns S quoted left and right by Quote,
     and every single occurance of Quote replaced by two   }
 
-function AnsiQuotedStr(const S: string; Quote: char): string;
+function AnsiQuotedStr(const S: string; Quote: AnsiChar): string;
 var i, j, count: integer;
 begin
 result := '' + Quote;
@@ -693,9 +693,9 @@ end ;
     of Quote replaced by a single Quote   }
 
 
-function AnsiExtractQuotedStr(var  Src: PChar; Quote: Char): string;
+function AnsiExtractQuotedStr(var  Src: PAnsiChar; Quote: AnsiChar): string;
 var
-  P,Q,R: PChar;
+  P,Q,R: PAnsiChar;
 begin
  result:='';
  if Src=Nil then exit;
@@ -724,7 +724,7 @@ begin
      P := P + 1;
    end ;
  src:=p;
- SetLength(result, (R-pchar(@Result[1])));
+ SetLength(result, (R-PAnsiChar(@Result[1])));
 end ;
 
 
@@ -740,7 +740,7 @@ end;
 
 function AdjustLineBreaks(const S: string; Style: TTextLineBreakStyle): string;
 var
-  Source,Dest: PChar;
+  Source,Dest: PAnsiChar;
   DestLen: Integer;
   I,J,L: Longint;
 
@@ -1124,7 +1124,7 @@ end;
 {$macro on}
 {$define INFORMAT}
 {$define TFormatString:=ansistring}
-{$define TFormatChar:=char}
+{$define TFormatChar:=AnsiChar}
 
 Function Format (Const Fmt : AnsiString; const Args : Array of const; const FormatSettings: TFormatSettings) : AnsiString;
 {$i sysformt.inc}
@@ -1194,26 +1194,26 @@ begin
 end;
 
 
-Function StrFmt(Buffer,Fmt : PChar; Const args: Array of const) : Pchar;
+Function StrFmt(Buffer,Fmt : PAnsiChar; Const args: Array of const) : PAnsiChar;
 
 begin
   Result:=StrFmt(Buffer,Fmt,Args,DefaultFormatSettings);
 end;
 
-Function StrFmt(Buffer,Fmt : PChar; Const Args: Array of const; Const FormatSettings: TFormatSettings): PChar;
+Function StrFmt(Buffer,Fmt : PAnsiChar; Const Args: Array of const; Const FormatSettings: TFormatSettings): PAnsiChar;
 
 begin
   Buffer[FormatBuf(Buffer^,Maxint,Fmt^,strlen(fmt),args,FormatSettings)]:=#0;
   Result:=Buffer;
 end;
 
-Function StrLFmt(Buffer : PCHar; Maxlen : Cardinal;Fmt : PChar; Const args: Array of const) : Pchar;
+Function StrLFmt(Buffer : PAnsiChar; Maxlen : Cardinal;Fmt : PAnsiChar; Const args: Array of const) : PAnsiChar;
 
 begin
   Result:=StrLFmt(Buffer,MaxLen,Fmt,Args,DefaultFormatSettings);
 end;
 
-Function StrLFmt(Buffer : PCHar; Maxlen : Cardinal;Fmt : PChar; Const args: Array of const; Const FormatSettings: TFormatSettings) : Pchar;
+Function StrLFmt(Buffer : PAnsiChar; Maxlen : Cardinal;Fmt : PAnsiChar; Const args: Array of const; Const FormatSettings: TFormatSettings) : PAnsiChar;
 
 begin
   Buffer[FormatBuf(Buffer^,MaxLen,Fmt^,strlen(fmt),args,FormatSettings)]:=#0;
@@ -1231,7 +1231,7 @@ end;
 Function StrToFloat(Const S : String; Const FormatSettings: TFormatSettings) : Extended;
 
 Begin // texttofloat handles NIL properly
-  If Not TextToFloat(Pchar(pointer(S)),Result,FormatSettings) then
+  If Not TextToFloat(PAnsiChar(pointer(S)),Result,FormatSettings) then
     Raise EConvertError.createfmt(SInValidFLoat,[S]);
 End;
 
@@ -1244,11 +1244,11 @@ end;
 Function StrToFloatDef(Const S: String; Const Default: Extended; Const FormatSettings: TFormatSettings): Extended;
 
 begin
-   if not TextToFloat(PChar(pointer(S)),Result,fvExtended,FormatSettings) then
+   if not TextToFloat(PAnsiChar(pointer(S)),Result,fvExtended,FormatSettings) then
      Result:=Default;
 end;
 
-Function TextToFloat(Buffer: PChar; Out Value: Extended; Const FormatSettings: TFormatSettings): Boolean;
+Function TextToFloat(Buffer: PAnsiChar; Out Value: Extended; Const FormatSettings: TFormatSettings): Boolean;
 
 Var
   E,P : Integer;
@@ -1288,19 +1288,19 @@ Begin
 End;
 
 
-Function TextToFloat(Buffer: PChar; Out Value: Extended): Boolean;
+Function TextToFloat(Buffer: PAnsiChar; Out Value: Extended): Boolean;
 
 begin
   Result:=TextToFloat(Buffer,Value,DefaultFormatSettings);
 end;
 
-Function TextToFloat(Buffer: PChar; Out Value; ValueType: TFloatValue): Boolean;
+Function TextToFloat(Buffer: PAnsiChar; Out Value; ValueType: TFloatValue): Boolean;
 
 begin
   Result:=TextToFloat(Buffer,Value,ValueType,DefaultFormatSettings);
 end;
 
-Function TextToFloat(Buffer: PChar; Out Value; ValueType: TFloatValue; Const FormatSettings: TFormatSettings): Boolean;
+Function TextToFloat(Buffer: PAnsiChar; Out Value; ValueType: TFloatValue; Const FormatSettings: TFormatSettings): Boolean;
 
 Var
   E,P : Integer;
@@ -1363,7 +1363,7 @@ end;
 
 Function TryStrToFloat(Const S : String; Out Value: Single; Const FormatSettings: TFormatSettings): Boolean;
 Begin
-  Result := TextToFloat(PChar(pointer(S)), Value, fvSingle,FormatSettings);
+  Result := TextToFloat(PAnsiChar(pointer(S)), Value, fvSingle,FormatSettings);
 End;
 
 Function TryStrToFloat(Const S : String; Out Value: Double): Boolean;
@@ -1374,7 +1374,7 @@ end;
 
 Function TryStrToFloat(Const S : String; Out Value: Double; Const FormatSettings: TFormatSettings): Boolean;
 Begin
-  Result := TextToFloat(PChar(pointer(S)), Value, fvDouble,FormatSettings);
+  Result := TextToFloat(PAnsiChar(pointer(S)), Value, fvDouble,FormatSettings);
 End;
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
@@ -1386,7 +1386,7 @@ end;
 
 Function TryStrToFloat(Const S : String; Out Value: Extended; Const FormatSettings: TFormatSettings): Boolean;
 Begin
-  Result := TextToFloat(PChar(pointer(S)), Value,FormatSettings);
+  Result := TextToFloat(PAnsiChar(pointer(S)), Value,FormatSettings);
 End;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
@@ -1402,13 +1402,13 @@ Function FloatToStrFIntl(const Value; format: TFloatFormat; Precision, Digits: I
 Var
   P, PE, Q, Exponent: Integer;
   Negative: Boolean;
-  DS: Char;
+  DS: AnsiChar;
 
   function RemoveLeadingNegativeSign(var AValue: String): Boolean;
   // removes negative sign in case when result is zero eg. -0.00
   var
     i: PtrInt;
-    TS: Char;
+    TS: AnsiChar;
     StartPos: PtrInt;
   begin
     Result := False;
@@ -1791,7 +1791,7 @@ End;
 {$endif FPC_COMP_IS_INT64}
 
 
-Function FloatToText(Buffer: PChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer; Const FormatSettings: TFormatSettings): Longint;
+Function FloatToText(Buffer: PAnsiChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer; Const FormatSettings: TFormatSettings): Longint;
 Var
   Tmp: String[40];
 Begin
@@ -1801,7 +1801,7 @@ Begin
 End;
 
 
-Function FloatToText(Buffer: PChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer): Longint;
+Function FloatToText(Buffer: PAnsiChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer): Longint;
 
 begin
   Result:=FloatToText(Buffer,Value,Format,Precision,Digits,DefaultFormatSettings);
@@ -1957,49 +1957,49 @@ end;
 
 function StrToCurr(const S: string): Currency;
 begin
-  if not TextToFloat(PChar(pointer(S)), Result, fvCurrency) then
+  if not TextToFloat(PAnsiChar(pointer(S)), Result, fvCurrency) then
     Raise EConvertError.createfmt(SInValidFLoat,[S]);
 end;
 
 
 function StrToCurr(const S: string; Const FormatSettings: TFormatSettings): Currency;
 begin
-  if not TextToFloat(PChar(pointer(S)), Result, fvCurrency,FormatSettings) then
+  if not TextToFloat(PAnsiChar(pointer(S)), Result, fvCurrency,FormatSettings) then
     Raise EConvertError.createfmt(SInValidFLoat,[S]);
 end;
 
 
 Function TryStrToCurr(Const S : String; Out Value: Currency): Boolean;
 Begin
-  Result := TextToFloat(PChar(pointer(S)), Value, fvCurrency);
+  Result := TextToFloat(PAnsiChar(pointer(S)), Value, fvCurrency);
 End;
 
 
 function TryStrToCurr(const S: string;Out Value : Currency; Const FormatSettings: TFormatSettings): Boolean;
 Begin
-  Result := TextToFloat(PChar(pointer(S)), Value, fvCurrency,FormatSettings);
+  Result := TextToFloat(PAnsiChar(pointer(S)), Value, fvCurrency,FormatSettings);
 End;
 
 
 function StrToCurrDef(const S: string; Default : Currency): Currency;
 begin
-  if not TextToFloat(PChar(pointer(S)), Result, fvCurrency) then
+  if not TextToFloat(PAnsiChar(pointer(S)), Result, fvCurrency) then
     Result:=Default;
 end;
 
 function StrToCurrDef(const S: string; Default : Currency; Const FormatSettings: TFormatSettings): Currency;
 begin
-  if not TextToFloat(PChar(pointer(S)), Result, fvCurrency,FormatSettings) then
+  if not TextToFloat(PAnsiChar(pointer(S)), Result, fvCurrency,FormatSettings) then
     Result:=Default;
 end;
 {$endif FPUNONE}
 
-function AnsiDequotedStr(const S: string; AQuote: Char): string;
+function AnsiDequotedStr(const S: string; AQuote: AnsiChar): string;
 
-var p : pchar;
+var p : PAnsiChar;
 
 begin
-  p:=pchar(pointer(s)); // work around CONST. Ansiextract is safe for nil
+  p:=PAnsiChar(pointer(s)); // work around CONST. Ansiextract is safe for nil
   result:=AnsiExtractquotedStr(p,AQuote);
 end;
 
@@ -2112,7 +2112,7 @@ end;
 
 {$ifndef FPUNONE}
 
-Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar): Integer;
+Function FloatToTextFmt(Buffer: PAnsiChar; Value: Extended; format: PAnsiChar): Integer;
 
 begin
   Result:=FloatToTextFmt(Buffer,Value,Format,DefaultFormatSettings);
@@ -2125,7 +2125,7 @@ end;
 
 {$I fmtflt.inc}
 
-Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar; FormatSettings : TFormatSettings): Integer;
+Function FloatToTextFmt(Buffer: PAnsiChar; Value: Extended; format: PAnsiChar; FormatSettings : TFormatSettings): Integer;
 
 begin
   Result:=IntFloatToTextFmt(Buffer,Value,fvExtended,Format,FormatSettings);
@@ -2189,7 +2189,7 @@ begin
       else
         begin
           if BeforeDot then
-            begin  // Currently this is always 1 char
+            begin  // Currently this is always 1 AnsiChar
               Inc(Result.Exponent);
               Result.Digits[N-Start] := Buffer[N];
               if Buffer[N] <> '0' then
@@ -2276,10 +2276,10 @@ end;
 Function FormatFloat(Const Format : String; Value : Extended; Const FormatSettings: TFormatSettings) : String;
 
 Var
-  buf : Array[0..1024] of char;
+  buf : Array[0..1024] of AnsiChar;
 
-Begin // not changed to pchar(pointer(). Possibly not safe
-  Buf[FloatToTextFmt(@Buf[0],Value,Pchar(Format),FormatSettings)]:=#0;
+Begin // not changed to PAnsiChar(pointer(). Possibly not safe
+  Buf[FloatToTextFmt(@Buf[0],Value,PAnsiChar(Format),FormatSettings)]:=#0;
   Result:=StrPas(@Buf[0]);
 End;
 
@@ -2368,8 +2368,8 @@ end;
 {$define INSTRINGREPLACE}
 {$define SRString:=String}
 {$define SRUpperCase:=AnsiUppercase}
-{$define SRPCHAR:=PChar}
-{$define SRCHAR:=Char}
+{$define SRPCHAR:=PAnsiChar}
+{$define SRCHAR:=AnsiChar}
 
 Function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags): string;
 
@@ -2434,19 +2434,19 @@ begin
 end;
 
 
-Function StrByteType(Str: PChar; Index: SizeUInt): TMbcsByteType;
+Function StrByteType(Str: PAnsiChar; Index: SizeUInt): TMbcsByteType;
 begin
   Result:=mbSingleByte;
 end;
 
 
-Function StrCharLength(const Str: PChar): SizeInt;
+Function StrCharLength(const Str: PAnsiChar): SizeInt;
 begin
   result:=widestringmanager.CharLengthPCharProc(Str);
 end;
 
 
-function StrNextChar(const Str: PChar): PChar;
+function StrNextChar(const Str: PAnsiChar): PAnsiChar;
 begin
   result:=Str+StrCharLength(Str);
 end;
@@ -2497,7 +2497,7 @@ const
 
 Var
   L : String;
-  C,LQ,BC : Char;
+  C,LQ,BC : AnsiChar;
   P,BLen,Len : Integer;
   HB,IBC : Boolean;
 
@@ -2570,7 +2570,7 @@ cd    it is better to not use those, since most implementation are not 100%
 const
 {$if defined(MSDOS) or defined(GO32V2) or defined(WATCOM) or defined(WIN16) }
    { upper case translation table for character set 850 }
-   CP850UCT: array[128..255] of char =
+   CP850UCT: array[128..255] of AnsiChar =
    (#128,#154,#144,#182,#142,#182,#143,#128,#210,#211,#212,#216,#215,#222,#142,#143,
     #144,#146,#146,#226,#153,#227,#234,#235,'Y',#153,#154,#157,#156,#157,#158,#159,
     #181,#214,#224,#233,#165,#165,#166,#167,#168,#169,#170,#171,#172,#173,#174,#175,
@@ -2581,7 +2581,7 @@ const
     #240,#241,#242,#243,#244,#245,#246,#247,#248,#249,#250,#251,#252,#253,#254,#255);
 
    { lower case translation table for character set 850 }
-   CP850LCT: array[128..255] of char =
+   CP850LCT: array[128..255] of AnsiChar =
    (#135,#129,#130,#131,#132,#133,#134,#135,#136,#137,#138,#139,#140,#141,#132,#134,
     #130,#145,#145,#147,#148,#149,#150,#151,#152,#148,#129,#155,#156,#155,#158,#159,
     #160,#161,#162,#163,#164,#164,#166,#167,#168,#169,#170,#171,#172,#173,#174,#175,
@@ -2593,7 +2593,7 @@ const
 {$endif}
 
    { upper case translation table for character set ISO 8859/1  Latin 1  }
-   CPISO88591UCT: array[192..255] of char =
+   CPISO88591UCT: array[192..255] of AnsiChar =
    ( #192, #193, #194, #195, #196, #197, #198, #199,
      #200, #201, #202, #203, #204, #205, #206, #207,
      #208, #209, #210, #211, #212, #213, #214, #215,
@@ -2604,7 +2604,7 @@ const
      #216, #217, #218, #219, #220, #221, #222, #89 );
 
    { lower case translation table for character set ISO 8859/1  Latin 1  }
-   CPISO88591LCT: array[192..255] of char =
+   CPISO88591LCT: array[192..255] of AnsiChar =
    ( #224, #225, #226, #227, #228, #229, #230, #231,
      #232, #233, #234, #235, #236, #237, #238, #239,
      #240, #241, #242, #243, #244, #245, #246, #215,
@@ -2681,7 +2681,7 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
     end;
 
 
-  function ScanStr(c : Char) : Boolean;
+  function ScanStr(c : AnsiChar) : Boolean;
     begin
       while (Length(s) > n) and (s[n] <> c) do
         inc(n);
@@ -2758,7 +2758,7 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
             begin
               if Length(s)>n then
                 begin
-                  pchar(Pointers[i])^:=s[n];
+                  PAnsiChar(Pointers[i])^:=s[n];
                   inc(n);
                   inc(Result);
                 end
