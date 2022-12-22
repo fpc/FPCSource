@@ -41,8 +41,8 @@ const
     DriveSeparator = ':';
     ExtensionSeparator = '.';
     PathSeparator = ';';
-    AllowDirectorySeparators : set of char = ['\','/'];
-    AllowDriveSeparators : set of char = [':'];
+    AllowDirectorySeparators : set of AnsiChar = ['\','/'];
+    AllowDriveSeparators : set of AnsiChar = [':'];
     FileNameCaseSensitive = false;
     FileNameCasePreserving = false;
     maxExitCode = 255;
@@ -59,10 +59,10 @@ const
     StdErrorHandle  = 2;
 
 var
-    args: PChar;
+    args: PAnsiChar;
     argc: LongInt;
-    argv: PPChar;
-    envp: PPChar;
+    argv: PPAnsiChar;
+    envp: PPAnsiChar;
     AppFlag: Boolean;			{ Application or Accessory				}
 
 
@@ -132,7 +132,7 @@ var
 
 function fpGetEnv(const envvar : ShortString): RawByteString; public name '_fpc_atari_getenv';
   var
-    hp : pchar;
+    hp : PAnsiChar;
     i : longint;
     upperenv, str : RawByteString;
 begin
