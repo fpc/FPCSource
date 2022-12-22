@@ -98,7 +98,7 @@ const
 
 {OS/2 specific functions}
 
-function GetEnvPChar (EnvVar: string): PChar;
+function GetEnvPChar (EnvVar: string): PAnsiChar;
 
 
 threadvar
@@ -127,7 +127,7 @@ threadvar
 
 var
   EnvC: longint; external name '_envc';
-  EnvP: ppchar; external name '_environ';
+  EnvP: PPAnsiChar; external name '_environ';
 
 type
   TBA = array [1..SizeOf (SearchRec)] of byte;
@@ -370,14 +370,14 @@ var args:Pbytearray;
     d:dirstr;
     n:namestr;
     e:extstr;
-    p : ppchar;
+    p : PPAnsiChar;
     j : integer;
 const
     ArgsSize = 2048; (* Amount of memory reserved for arguments in bytes. *)
 
 begin
     getmem(args,ArgsSize);
-    GetMem(env, envc*sizeof(pchar)+16384);
+    GetMem(env, envc*sizeof(PAnsiChar)+16384);
     GetMem (Path2, 260);
     {Now setup the arguments. The first argument should be the program
      name without directory and extension.}
@@ -427,7 +427,7 @@ begin
         movl envp,%esi      {Load env. strings.}
         xorl %edx,%edx      {Count environment size.}
 .Lexa1:
-        lodsl               {Load a Pchar.}
+        lodsl               {Load a PAnsiChar.}
         xchgl %eax,%ebx
 .Lexa2:
         movb (%ebx),%al     {Load a byte.}
@@ -472,7 +472,7 @@ begin
     end ['eax', 'ebx', 'ecx', 'edx', 'esi', 'edi'];
 
     FreeMem (Path2, 260);
-    FreeMem(env, envc*sizeof(pchar)+16384);
+    FreeMem(env, envc*sizeof(PAnsiChar)+16384);
     freemem(args,ArgsSize);
     {Phew! That's it. This was the most sophisticated procedure to call
      a system function I ever wrote!}
@@ -752,13 +752,13 @@ begin
                 end;
         for i:=namesize-1 downto 0 do
             f.name[i+1]:=f.name[i];
-        f.name[0]:=char(l);
+        f.name[0]:=AnsiChar(l);
         Move (F, LastSR, SizeOf (LastSR));
     end;
 end;
 
 
-    procedure _findfirst(path:pchar;attr:word;var f:searchrec);
+    procedure _findfirst(path:PAnsiChar;attr:word;var f:searchrec);
 
     begin
         asm
@@ -780,7 +780,7 @@ end;
 procedure FindFirst (const Path: PathStr; Attr: word; var F: SearchRec);
 
 
-var path0: array[0..255] of char;
+var path0: array[0..255] of AnsiChar;
     Count: cardinal;
 
 begin
@@ -855,7 +855,7 @@ end ['EAX'];
 
 function envstr(index : longint) : string;
 
-var hp:Pchar;
+var hp:PAnsiChar;
 
 begin
     if (index<=0) or (index>envcount) then
@@ -868,10 +868,10 @@ begin
 end;
 
 
-function GetEnvPChar (EnvVar: string): PChar;
+function GetEnvPChar (EnvVar: string): PAnsiChar;
 (* The assembler version is more than three times as fast as Pascal. *)
 var
- P: PChar;
+ P: PAnsiChar;
 begin
  EnvVar := UpCase (EnvVar);
 {$ASMMODE INTEL}
@@ -941,7 +941,7 @@ procedure getfattr(var f;var attr : word);
  { properly (CEC)                       }
 var
  path:  pathstr;
- buffer:array[0..255] of char;
+ buffer:array[0..255] of AnsiChar;
 begin
   DosError := 0;
 {$ifdef FPC_ANSI_TEXTFILEREC}
@@ -975,7 +975,7 @@ procedure setfattr(var f;attr : word);
  { properly (CEC)                       }
 var
  path:  pathstr;
- buffer:array[0..255] of char;
+ buffer:array[0..255] of AnsiChar;
 begin
   DosError := 0;
 {$ifdef FPC_ANSI_TEXTFILEREC}
@@ -1003,8 +1003,8 @@ end;
 procedure InitEnvironment;
 var
  cnt : integer;
- ptr : pchar;
- base : pchar;
+ ptr : PAnsiChar;
+ base : PAnsiChar;
  i: integer;
  PIB: PProcessInfoBlock;
  TIB: PThreadInfoBlock;
@@ -1017,7 +1017,7 @@ begin
   cnt := 0;
   { count number of environment pointers }
   DosGetInfoBlocks (PPThreadInfoBlock (@TIB), PPProcessInfoBlock (@PIB));
-  ptr := pchar(PIB^.env);
+  ptr := PAnsiChar(PIB^.env);
   { stringz,stringz...,#0 }
   i := 0;
   repeat
@@ -1032,9 +1032,9 @@ begin
   { save environment count }
   envc := cnt;
   { got count of environment strings }
-  GetMem(envp, cnt*sizeof(pchar)+16384);
+  GetMem(envp, cnt*sizeof(PAnsiChar)+16384);
   cnt := 0;
-  ptr := pchar(PIB^.env);
+  ptr := PAnsiChar(PIB^.env);
   i:=0;
   repeat
     envp[cnt] := ptr;
@@ -1053,7 +1053,7 @@ procedure DoneEnvironment;
 begin
   { it is allocated on the stack for DOS/DPMI }
   if os_mode = osOs2 then
-     FreeMem(envp, envc*sizeof(pchar)+16384);
+     FreeMem(envp, envc*sizeof(PAnsiChar)+16384);
 end;
 
 var

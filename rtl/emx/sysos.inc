@@ -28,11 +28,11 @@ procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock;
                             PAPIB: PPProcessInfoBlock); cdecl;
                             external 'DOSCALLS' index 312;
 
-function DosLoadModule (ObjName: PChar; ObjLen: cardinal; DLLName: PChar;
+function DosLoadModule (ObjName: PAnsiChar; ObjLen: cardinal; DLLName: PAnsiChar;
                                         var Handle: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 318;
 
-function DosQueryProcAddr (Handle, Ordinal: cardinal; ProcName: PChar;
+function DosQueryProcAddr (Handle, Ordinal: cardinal; ProcName: PAnsiChar;
                                         var Address: pointer): cardinal; cdecl;
 external 'DOSCALLS' index 321;
 
@@ -40,7 +40,7 @@ function DosSetRelMaxFH (var ReqCount: longint; var CurMaxFH: cardinal):
                                                                cardinal; cdecl;
 external 'DOSCALLS' index 382;
 
-function DosSetCurrentDir (Name:PChar): cardinal; cdecl;
+function DosSetCurrentDir (Name:PAnsiChar): cardinal; cdecl;
 external 'DOSCALLS' index 255;
 
 function DosSetDefaultDisk (DiskNum:cardinal): cardinal; cdecl;
@@ -49,10 +49,10 @@ external 'DOSCALLS' index 220;
 { This is not real prototype, but is close enough }
 { for us (the 2nd parameter is actually a pointer }
 { to a structure).                                }
-function DosCreateDir (Name: PChar; P: pointer): cardinal; cdecl;
+function DosCreateDir (Name: PAnsiChar; P: pointer): cardinal; cdecl;
 external 'DOSCALLS' index 270;
 
-function DosDeleteDir (Name: PChar): cardinal; cdecl;
+function DosDeleteDir (Name: PAnsiChar): cardinal; cdecl;
 external 'DOSCALLS' index 226;
 
 {This is the correct way to call external assembler procedures.}

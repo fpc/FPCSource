@@ -44,7 +44,7 @@ function DosCreateThread (var TID: cardinal; Address: pointer;
 procedure DosExit (Action, Result: cardinal); cdecl;
                                                  external 'DOSCALLS' index 234;
 
-function DosCreateMutExSem (Name: PChar; var Handle: longint; Attr: cardinal;
+function DosCreateMutExSem (Name: PAnsiChar; var Handle: longint; Attr: cardinal;
                State: boolean): cardinal; cdecl; external 'DOSCALLS' index 331;
 
 function DosCloseMutExSem (Handle: longint): cardinal; cdecl;
