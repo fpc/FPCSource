@@ -109,8 +109,8 @@ type
         tm_yday : longint;
         tm_isdst : longint;
         case boolean of
-          false : (tm_gmtoff : longint;tm_zone : Pchar);
-          true  : (__tm_gmtoff : longint;__tm_zone : Pchar);
+          false : (tm_gmtoff : longint;tm_zone : PAnsiChar);
+          true  : (__tm_gmtoff : longint;__tm_zone : PAnsiChar);
 	 end;
 
 function localtime(t: Ptime_t): Ptm; cdecl; external 'c' name 'localtime';
