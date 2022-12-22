@@ -122,12 +122,12 @@ type
   function  objc_msgSend_fpret (self: id; op: SEL): double; cdecl; varargs; external libname name 'objc_msgSend';
 {$endif cpui386}
 
-  function sel_getName(sel: SEL): PChar; cdecl; external libname;
-  function sel_registerName(str: PChar): SEL; cdecl; external libname;
-  function object_getClassName(obj: id): PChar; cdecl; external libname;
+  function sel_getName(sel: SEL): PAnsiChar; cdecl; external libname;
+  function sel_registerName(str: PAnsiChar): SEL; cdecl; external libname;
+  function object_getClassName(obj: id): PAnsiChar; cdecl; external libname;
   function object_getIndexedIvars(obj: id ): Pointer; cdecl; external libname;
 
-  function sel_getUid(const str: PChar): SEL; cdecl; external libname;
+  function sel_getUid(const str: PAnsiChar): SEL; cdecl; external libname;
 
   function object_copy(obj:id; size:size_t):id; cdecl; external libname;
   function object_dispose(obj:id):id; cdecl; external libname;
@@ -138,20 +138,20 @@ type
   function object_getIvar(obj:id; _ivar:Ivar):id; cdecl;
   procedure object_setIvar(obj:id; _ivar:Ivar; value:id); cdecl;
 
-  function object_setInstanceVariable(obj:id; name:pchar; value:pointer):Ivar; cdecl; external libname;
-  function object_getInstanceVariable(obj:id; name:pchar; var outValue: Pointer):Ivar; cdecl; external libname;
+  function object_setInstanceVariable(obj:id; name:PAnsiChar; value:pointer):Ivar; cdecl; external libname;
+  function object_getInstanceVariable(obj:id; name:PAnsiChar; var outValue: Pointer):Ivar; cdecl; external libname;
 
-  function objc_getClass(name:pchar):id; cdecl; external libname;
-  function objc_getMetaClass(name:pchar):id; cdecl; external libname;
-  function objc_lookUpClass(name:pchar):id; cdecl; external libname;
+  function objc_getClass(name:PAnsiChar):id; cdecl; external libname;
+  function objc_getMetaClass(name:PAnsiChar):id; cdecl; external libname;
+  function objc_lookUpClass(name:PAnsiChar):id; cdecl; external libname;
   function objc_getClassList(buffer:pClass; bufferCount:cint):cint; cdecl; external libname;
 
 {$ifdef FPC_HAS_FEATURE_OBJECTIVEC1}
-  function objc_getProtocol(name:pchar): pobjc_protocol; cdecl; weakexternal libname;
+  function objc_getProtocol(name:PAnsiChar): pobjc_protocol; cdecl; weakexternal libname;
   function objc_copyProtocolList(outCount:pdword):ppobjc_protocol; cdecl; weakexternal libname;
 {$endif}
 
-  function class_getName(cls:pobjc_class):PChar; cdecl; inline;
+  function class_getName(cls:pobjc_class):PAnsiChar; cdecl; inline;
   function class_isMetaClass(cls:pobjc_class):ObjCBOOL; cdecl;
   function class_getSuperclass(cls:pobjc_class):pobjc_class; cdecl; inline;
 
@@ -160,8 +160,8 @@ type
 
   function class_getInstanceSize(cls:pobjc_class):size_t; cdecl; external libname;
 
-  function class_getInstanceVariable(cls:pobjc_class; name:pchar):Ivar; cdecl; external libname;
-  function class_getClassVariable(cls:pobjc_class; name:pchar):Ivar; cdecl; external libname;
+  function class_getInstanceVariable(cls:pobjc_class; name:PAnsiChar):Ivar; cdecl; external libname;
+  function class_getClassVariable(cls:pobjc_class; name:PAnsiChar):Ivar; cdecl; external libname;
   function class_copyIvarList(cls:pobjc_class; outCount:pdword):PIvar; cdecl; external libname;
 
   function class_getInstanceMethod(cls:pobjc_class; name:SEL):Method; cdecl; external libname;
@@ -177,31 +177,31 @@ type
   function class_createInstance(cls:pobjc_class; extraBytes:size_t):id; cdecl; external libname;
 
 (*
-  function objc_allocateClassPair(superclass:pobjc_class; name:pchar; extraBytes:size_t):pobjc_class; cdecl; external libname;
+  function objc_allocateClassPair(superclass:pobjc_class; name:PAnsiChar; extraBytes:size_t):pobjc_class; cdecl; external libname;
   procedure objc_registerClassPair(cls:pobjc_class); cdecl; external libname;
-  function objc_duplicateClass(original:pobjc_class; name:pchar; extraBytes:size_t):pobjc_class; cdecl; external libname;
+  function objc_duplicateClass(original:pobjc_class; name:PAnsiChar; extraBytes:size_t):pobjc_class; cdecl; external libname;
   procedure objc_disposeClassPair(cls:pobjc_class); cdecl; external libname;
 
-  function class_addMethod(cls:pobjc_class; name:SEL; imp:IMP; types:pchar):ObjCBOOL; cdecl; external libname;
-  function class_addIvar(cls:pobjc_class; name:pchar; size:size_t; alignment:uint8_t; types:pchar):ObjCBOOL; cdecl; external libname;
+  function class_addMethod(cls:pobjc_class; name:SEL; imp:IMP; types:PAnsiChar):ObjCBOOL; cdecl; external libname;
+  function class_addIvar(cls:pobjc_class; name:PAnsiChar; size:size_t; alignment:uint8_t; types:PAnsiChar):ObjCBOOL; cdecl; external libname;
   function class_addProtocol(cls:pobjc_class; protocol:pProtocol):ObjCBOOL; cdecl; external libname;
 *)
 
   function method_getName(m:Method):SEL; cdecl; inline;
   function method_getImplementation(m:Method):IMP; cdecl; inline;
-  function method_getTypeEncoding(m:Method):Pchar; cdecl; inline;
+  function method_getTypeEncoding(m:Method):PAnsiChar; cdecl; inline;
 
   function method_getNumberOfArguments(m:Method):dword; cdecl; external libname;
 (*
-  function method_copyReturnType(m:Method):Pchar; cdecl; weakexternal libname;
-  function method_copyArgumentType(m:Method; index:dword):Pchar; cdecl; weakexternal libname;
-  procedure method_getReturnType(m:Method; dst:pchar; dst_len:size_t); cdecl; external libname;
+  function method_copyReturnType(m:Method):PAnsiChar; cdecl; weakexternal libname;
+  function method_copyArgumentType(m:Method; index:dword):PAnsiChar; cdecl; weakexternal libname;
+  procedure method_getReturnType(m:Method; dst:PAnsiChar; dst_len:size_t); cdecl; external libname;
 
   function method_setImplementation(m:Method; imp:IMP):IMP; cdecl; external libname;
 *)
 
-  function ivar_getName(v:Ivar):Pchar; cdecl; inline;
-  function ivar_getTypeEncoding(v:Ivar):Pchar; cdecl; inline;
+  function ivar_getName(v:Ivar):PAnsiChar; cdecl; inline;
+  function ivar_getTypeEncoding(v:Ivar):PAnsiChar; cdecl; inline;
   function ivar_getOffset(v:Ivar):ptrdiff_t; cdecl; inline;
 
 (*
@@ -221,7 +221,7 @@ type
 
   objc_method1 = packed record
     method_name   : SEL;
-    method_types  : PChar;
+    method_types  : PAnsiChar;
     method_imp    : IMP;
   end;
   Pobjc_method_list1 = ^objc_method_list1;
@@ -241,8 +241,8 @@ type
   Ivar1 = Pobjc_ivar1;
   PIvar1 = ^Ivar1;
   objc_ivar1 = packed record
-    ivar_name   : PChar;
-    ivar_type   : PChar;
+    ivar_name   : PAnsiChar;
+    ivar_type   : PAnsiChar;
     ivar_offset : cint;
   {$ifdef __alpha__}
     space: cint;
@@ -278,7 +278,7 @@ type
   objc_class1 = packed record
 	  isa           : Pobjc_class1;
 	  super_class   : Pobjc_class1;
-	  name          : PChar;
+	  name          : PAnsiChar;
 	  version       : culong;
 	  info          : culong;
 	  instance_size : culong;
@@ -324,7 +324,7 @@ procedure object_setIvar(obj:id; _ivar:Ivar; value:id); cdecl;
     Pid(PtrUInt(obj) + ivar_getOffset(_ivar))^ := value;
   end;
 
-function class_getName(cls:pobjc_class):PChar; cdecl; inline;
+function class_getName(cls:pobjc_class):PAnsiChar; cdecl; inline;
   begin
     class_getName := pobjc_class1(cls)^.name;
   end;
@@ -349,17 +349,17 @@ function method_getImplementation(m:Method):IMP; cdecl; inline;
     method_getImplementation := IMP(Method1(m)^.method_imp);
   end;
 
-function method_getTypeEncoding(m:Method):Pchar; cdecl; inline;
+function method_getTypeEncoding(m:Method):PAnsiChar; cdecl; inline;
   begin
     method_getTypeEncoding := Method1(m)^.method_types;
   end;
 
-function ivar_getName(v:Ivar):Pchar; cdecl; inline;
+function ivar_getName(v:Ivar):PAnsiChar; cdecl; inline;
   begin
     ivar_getName := IVar1(v)^.ivar_name;
   end;
 
-function ivar_getTypeEncoding(v:Ivar):Pchar; cdecl; inline;
+function ivar_getTypeEncoding(v:Ivar):PAnsiChar; cdecl; inline;
   begin
     ivar_getTypeEncoding := IVar1(v)^.ivar_type;
   end;

@@ -651,7 +651,7 @@ end;
    environments - DOS, OS/2, Win32). Example is 'C:\TEST'.
 
    FPC_FEXPAND_GETENV_PCHAR - an implementation of GetEnv returning
-   PChar instead of a shortstring is available (Unix) to support
+   PAnsiChar instead of a shortstring is available (Unix) to support
    long values of environment variables.
 
    FPC_FEXPAND_TILDE - expansion of '~/' to GetEnv('HOME') - Unix.
