@@ -13,6 +13,9 @@
 
  **********************************************************************}
 unit dos;
+
+{$mode fpc}
+
 interface
 
 uses windows;
@@ -301,7 +304,7 @@ end;
                          --- Findfirst FindNext ---
 ******************************************************************************}
 
-Procedure StringToPchar (Var S : String);
+Procedure StringToPchar (Var S : ShortString);
 Var L : Longint;
 begin
   L:=ord(S[0]);
@@ -309,18 +312,18 @@ begin
   S[L]:=#0;
 end;
 
-Procedure PCharToString (Var S : String);
+Procedure PCharToString (Var S : ShortString);
 Var L : Longint;
 begin
-  L:=strlen(pchar(@S[0]));
+  L:=strlen(PAnsiChar(@S[0]));
   Move (S[0],S[1],L);
-  S[0]:=char(l);
+  S[0]:=AnsiChar(l);
 end;
 
 
 procedure FindMatch(var f:searchrec);
 var
-  buf: array[0..MaxPathLen] of char;
+  buf: array[0..MaxPathLen] of AnsiChar;
 begin
   { Find file with correct attribute }
   While (F.W32FindData.dwFileAttributes and cardinal(F.ExcludeAttr))<>0 do
@@ -404,7 +407,7 @@ end;
                                --- File ---
 ******************************************************************************}
 
-Function FSearch(path: pathstr; dirlist: string): pathstr;
+Function FSearch(path: pathstr; dirlist: shortstring): pathstr;
 var
   p1     : longint;
   s      : searchrec;

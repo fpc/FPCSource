@@ -66,7 +66,7 @@
      CALTYPE = cardinal;
      CALID = cardinal;
 
-     CCHAR = char;                    //winnt
+     CCHAR = AnsiChar;                    //winnt
 
      COLORREF = Cardinal;             //windef
      TCOLORREF = cardinal;
@@ -160,16 +160,16 @@
      LP     = ^word;
      LPBOOL = ^WINBOOL;      //windef
      LPBYTE = System.pbyte;         //windef
-     LPCCH  = PCHAR;         //winnt
-     LPCH   = PCHAR;         //winnt
+     LPCCH  = PAnsiChar;         //winnt
+     LPCH   = PAnsiChar;         //winnt
 
      LPCOLORREF = ^COLORREF; //windef
 
-     LPCSTR  = Pchar;        //winnt
+     LPCSTR  = PAnsiChar;        //winnt
 {$ifdef UNICODE}
      LPCTSTR = Pwidechar;    //winnt
 {$else}
-     LPCTSTR = Pchar;        //winnt
+     LPCTSTR = PAnsiChar;        //winnt
 {$endif}
 
      LPCWCH  = Pwidechar;   //winnt
@@ -181,13 +181,13 @@
      LPINT  = ^longint;     //windef
      LPLONG = ^longint;     //windef
 
-     LPSTR = Pchar;         //winnt
+     LPSTR = PAnsiChar;         //winnt
 {$ifdef UNICODE}
      LPTCH  = Pwidechar;
      LPTSTR = Pwidechar;
 {$else}
-     LPTCH  = Pchar;
-     LPTSTR = Pchar;
+     LPTCH  = PAnsiChar;
+     LPTSTR = PAnsiChar;
 {$endif}
 
      LRESULT = longint;     //windef LONG_PTR
@@ -218,10 +218,10 @@
 
      PBYTE = ^BYTE;         //windef
 
-     PCCH = PCHAR;          //winnt
-     PCH  = PCHAR;          //winnt
+     PCCH = PAnsiChar;          //winnt
+     PCH  = PAnsiChar;          //winnt
 
-     PCSTR = Pchar;
+     PCSTR = PAnsiChar;
 
      PCWCH  = Pwidechar;    //winnt
      PCWSTR = Pwidechar;    //winnt
@@ -236,9 +236,9 @@
      PSHORT = ^SHORT;       //windef
      LPSHORT = ^SHORT;      //+windef
 
-     PSTR = Pchar;
+     PSTR = PAnsiChar;
 
-     PSZ = Pchar;         //winnt
+     PSZ = PAnsiChar;         //winnt
 {$ifdef UNICODE}
      PTBYTE = ^word;      //winnt
      PTCH = Pwidechar;
@@ -246,9 +246,9 @@
      PTSTR = Pwidechar;
 {$else}
      PTBYTE = ^byte;
-     PTCH   = Pchar;
-     PTCHAR = Pchar;
-     PTSTR  = Pchar;
+     PTCH   = PAnsiChar;
+     PTCHAR = PAnsiChar;
+     PTSTR  = PAnsiChar;
 {$endif}
 
      PUCHAR = ^byte;        //windef
@@ -277,7 +277,7 @@
      BCHAR = word;
 {$else}
      TBYTE = byte;
-     TCHAR = char;
+     TCHAR = AnsiChar;
      BCHAR = BYTE;
 {$endif}
 
@@ -696,7 +696,7 @@ type
 
      ICMENUMPROC = function (_para1:LPTSTR; _para2:LPARAM):longint;
 
-     EDITWORDBREAKPROCEX = function (_para1:pchar; _para2:LONG; _para3:BYTE; _para4:WINT):LONG;
+     EDITWORDBREAKPROCEX = function (_para1:PAnsiChar; _para2:LONG; _para3:BYTE; _para4:WINT):LONG;
 
      PFNLVCOMPARE = function (_para1:LPARAM; _para2:LPARAM; _para3:LPARAM):longint;
 
