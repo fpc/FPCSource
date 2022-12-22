@@ -58,7 +58,7 @@ Const
       va_list is just a dummy record
       MvdV: Nevertheless it should be a pointer type, not a record}
 
-     va_list = pchar;
+     va_list = PAnsiChar;
 
      ABC = record
           abcA : longint;
@@ -558,7 +558,7 @@ Const
               case longint of
                  0 : ( UnicodeChar : WCHAR;
                        Attributes  : Word);
-                 1 : ( AsciiChar : CHAR );
+                 1 : ( AsciiChar : AnsiChar );
               end;
      _CHAR_INFO = CHAR_INFO;
      TCHAR_INFO = CHAR_INFO;
@@ -809,11 +809,11 @@ Const
           ByteSize : BYTE;
           Parity : BYTE;
           StopBits : BYTE;
-          XonChar : char;
-          XoffChar : char;
-          ErrorChar : char;
-          EofChar : char;
-          EvtChar : char;
+          XonChar : AnsiChar;
+          XoffChar : AnsiChar;
+          ErrorChar : AnsiChar;
+          EofChar : AnsiChar;
+          EvtChar : AnsiChar;
           wReserved1 : WORD;
        end;
      LPDCB = ^DCB;
@@ -1548,7 +1548,7 @@ Const
         LeadByte       : array[0..(MAX_LEADBYTES)-1] of BYTE;
         DefaultUnicode : WCHAR;
         CodePage       : UINT;
-        CodePageName   : array[0..(MAX_PATH)-1] of CHAR;
+        CodePageName   : array[0..(MAX_PATH)-1] of AnsiChar;
       end;
      LPCPINFOEXA = ^CPINFOEXA;
      _cpinfoexA  = CPINFOEXA;
@@ -2064,7 +2064,7 @@ Const
 
      _DEV_BROADCAST_USERDEFINED = record
           dbud_dbh : _DEV_BROADCAST_HDR;
-          dbud_szName : array[0..0] of char;
+          dbud_szName : array[0..0] of AnsiChar;
           dbud_rgbUserDefined : array[0..0] of BYTE;
        end;
      TDEVBROADCASTUSERDEFINED = _DEV_BROADCAST_USERDEFINED;
@@ -3756,7 +3756,7 @@ Const
             SID   UserSid
             TCHAR Strings[]
             BYTE  Data[]
-            CHAR  Pad[]
+            AnsiChar  Pad[]
             DWORD Length;
            }
      tagENUMLOGFONTEXW = ENUMLOGFONTEXW;
@@ -4296,7 +4296,7 @@ Const
           case longint of
              0 : ( UnicodeChar : WCHAR;
                    dwControlKeyState : DWORD; );
-             1 : ( AsciiChar : CHAR );
+             1 : ( AsciiChar : AnsiChar );
        end;
      _KEY_EVENT_RECORD = KEY_EVENT_RECORD;
      TKEYEVENTRECORD = KEY_EVENT_RECORD;
@@ -5579,7 +5579,7 @@ Const
           nErrCode : WORD;
           Reserved1 : WORD;
           Reserved2 : WORD;
-          szPathName : array[0..(OFS_MAXPATHNAME)-1] of CHAR;
+          szPathName : array[0..(OFS_MAXPATHNAME)-1] of AnsiChar;
        end;
      LPOFSTRUCT = ^OFSTRUCT;
      _OFSTRUCT = OFSTRUCT;
@@ -7238,7 +7238,7 @@ Const
           case longint of
            0: ( polestr:LPWSTR);
            1: ( uOffset : UINT);
-           2: ( cStr : array[0..(MAX_PATH)-1] of char );
+           2: ( cStr : array[0..(MAX_PATH)-1] of AnsiChar );
        end;
      LPSTRRET = ^STRRET;
      _STRRET = STRRET;
@@ -7536,7 +7536,7 @@ Const
      PTOGGLEKEYS = ^TOGGLEKEYS;
 
      TOKEN_SOURCE = record
-          SourceName : array[0..7] of CHAR;  // 0..(TOKEN_SOURCE_LENGTH-1)
+          SourceName : array[0..7] of AnsiChar;  // 0..(TOKEN_SOURCE_LENGTH-1)
           SourceIdentifier : LUID;
        end;
      _TOKEN_SOURCE = TOKEN_SOURCE;

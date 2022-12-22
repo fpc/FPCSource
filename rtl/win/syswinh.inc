@@ -20,8 +20,8 @@ const
  DriveSeparator = ':';
  ExtensionSeparator = '.';
  PathSeparator = ';';
- AllowDirectorySeparators : set of char = ['\','/'];
- AllowDriveSeparators : set of char = [':'];
+ AllowDirectorySeparators : set of AnsiChar = ['\','/'];
+ AllowDriveSeparators : set of AnsiChar = [':'];
 { FileNameCaseSensitive and FileNameCasePreserving are defined separately below!!! }
  maxExitCode = 65535;
  MaxPathLen = 260;
@@ -53,7 +53,7 @@ var
 { C compatible arguments }
 { CmdLine and argv are always in the current ANSI encoding set in Windows }
   argc : longint;
-  argv : ppchar;
+  argv : PPAnsiChar;
 { Win32 Info }
   startupinfo : tstartupinfo deprecated;  // Delphi does not have one in interface
   StartupConsoleMode : dword;

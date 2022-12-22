@@ -145,12 +145,12 @@ function GetFileVersion(const AFileName:string):Cardinal;
     result:=$fffffff;
     fn:=AFileName;
     UniqueString(fn);
-    size:=GetFileVersionInfoSizeA(pchar(fn),@h);
+    size:=GetFileVersionInfoSizeA(PAnsiChar(fn),@h);
     if size>sizeof(buf) then
       begin
         getmem(bufp,size);
         try
-          if GetFileVersionInfoA(pchar(fn),h,size,bufp) then
+          if GetFileVersionInfoA(PAnsiChar(fn),h,size,bufp) then
             if VerQueryValue(bufp,'\',valrec,valsize) then
               result:=valrec^.dwFileVersionMS;
         finally
@@ -159,7 +159,7 @@ function GetFileVersion(const AFileName:string):Cardinal;
       end
     else
       begin
-        if GetFileVersionInfoA(pchar(fn),h,size,@buf) then
+        if GetFileVersionInfoA(PAnsiChar(fn),h,size,@buf) then
           if VerQueryValue(@buf,'\',valrec,valsize) then
             result:=valrec^.dwFileVersionMS;
       end;
@@ -212,7 +212,7 @@ function ConvertEraString(Count ,Year,Month,Day : integer) : string; forward;
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
-function GetTempFileName(Dir,Prefix: PChar; uUnique: DWORD; TempFileName: PChar):DWORD;
+function GetTempFileName(Dir,Prefix: PAnsiChar; uUnique: DWORD; TempFileName: PAnsiChar):DWORD;
 
 begin
   Result:= Windows.GetTempFileNameA(Dir,Prefix,uUnique,TempFileName);
@@ -876,14 +876,14 @@ end;
 ****************************************************************************}
 
 type
-   TGetDiskFreeSpaceEx = function(drive:pchar;var availableforcaller,total,free):longbool;stdcall;
+   TGetDiskFreeSpaceEx = function(drive:PAnsiChar;var availableforcaller,total,free):longbool;stdcall;
 
 var
  GetDiskFreeSpaceEx : TGetDiskFreeSpaceEx;
 
 function diskfree(drive : byte) : int64;
 var
-  disk : array[1..4] of char;
+  disk : array[1..4] of AnsiChar;
   secs,bytes,
   free,total : dword;
   qwtotal,qwfree,qwcaller : int64;
@@ -919,7 +919,7 @@ end;
 
 function disksize(drive : byte) : int64;
 var
-  disk : array[1..4] of char;
+  disk : array[1..4] of AnsiChar;
   secs,bytes,
   free,total : dword;
   qwtotal,qwfree,qwcaller : int64;
@@ -1126,9 +1126,9 @@ begin
 end;
 
 
-function GetLocaleChar(LID, LT: Longint; Def: Char): Char;
+function GetLocaleChar(LID, LT: Longint; Def: AnsiChar): AnsiChar;
 var
-  Buf: array[0..3] of Char; // sdate allows 4 chars.
+  Buf: array[0..3] of AnsiChar; // sdate allows 4 chars.
 begin
   if GetLocaleInfoA(LID, LT, Buf, sizeof(buf)) > 0 then
     Result := Buf[0]
@@ -1162,7 +1162,7 @@ function ConvertEraYearString(Count ,Year,Month,Day : integer) : string;
     ALCID : LCID;
     ASystemTime : TSystemTime;
     AFormatText : string;
-    buf : array[0..100] of Char;
+    buf : array[0..100] of AnsiChar;
 begin
   Result := '';
   DateTimeToSystemTime(EncodeDate(Year,Month,Day),ASystemTime);
@@ -1176,7 +1176,7 @@ begin
 //  ALCID := SysLocale.DefaultLCID;
 
   if GetDateFormatA(ALCID, DATE_USE_ALT_CALENDAR
-      , @ASystemTime, PChar(AFormatText)
+      , @ASystemTime, PAnsiChar(AFormatText)
       , @buf, SizeOf(buf)) > 0 then
   begin
     Result := buf;
@@ -1197,7 +1197,7 @@ Begin
     Result:=Def;
 End;
 
-function EnumEraNames(Names: PChar): WINBOOL; stdcall;
+function EnumEraNames(Names: PAnsiChar): WINBOOL; stdcall;
 var
   i : integer;
 begin
@@ -1211,7 +1211,7 @@ begin
    end;
 end;
 
-function EnumEraYearOffsets(YearOffsets: PChar): WINBOOL; stdcall;
+function EnumEraYearOffsets(YearOffsets: PAnsiChar): WINBOOL; stdcall;
 var
   i : integer;
 begin
@@ -1229,7 +1229,7 @@ procedure GetEraNamesAndYearOffsets;
   var
     ACALID : CALID;
     ALCID : LCID;
-    buf : array[0..10] of char;
+    buf : array[0..10] of AnsiChar;
     i : integer;
 begin
   for i:= 1 to MaxEraCount do
@@ -1263,14 +1263,14 @@ begin
 end;
 
 procedure GetLocaleFormatSettings(LCID: Integer; var FormatSettings: TFormatSettings);
-  function FixSeparator(const Format: string; const FromSeparator, ToSeparator: Char): string;
+  function FixSeparator(const Format: string; const FromSeparator, ToSeparator: AnsiChar): string;
   var
-    R: PChar;
+    R: PAnsiChar;
   begin
     if (Format='') or (FromSeparator=ToSeparator) then
       Exit(Format);
     Result := Copy(Format, 1);
-    R := PChar(Result);
+    R := PAnsiChar(Result);
     while R^<>#0 do
       begin
       if R^=FromSeparator then
@@ -1456,7 +1456,7 @@ Function GetEnvironmentVariable(Const EnvVar : String) : String;
 var
    oemenvvar, oemstr : RawByteString;
    i, hplen : longint;
-   hp,p : pchar;
+   hp,p : PAnsiChar;
 begin
    oemenvvar:=uppercase(envvar);
    SetCodePage(oemenvvar,CP_OEMCP);
@@ -1511,7 +1511,7 @@ end;
 Function GetEnvironmentVariableCount : Integer;
 
 var
-  hp,p : pchar;
+  hp,p : PAnsiChar;
 begin
   Result:=0;
   p:=GetEnvironmentStringsA;
@@ -1528,7 +1528,7 @@ end;
 Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 
 var
-  hp,p : pchar;
+  hp,p : PAnsiChar;
 {$ifdef FPC_RTL_UNICODE}
   tmpstr : RawByteString;
 {$endif}
@@ -1686,7 +1686,7 @@ begin
   Win32MinorVersion:=versionInfo.dwMinorVersion;
   Win32BuildNumber:=versionInfo.dwBuildNumber;
   Move (versioninfo.szCSDVersion ,Win32CSDVersion[1],128);
-  win32CSDVersion[0]:=chr(strlen(pchar(@versioninfo.szCSDVersion)));
+  win32CSDVersion[0]:=chr(strlen(PAnsiChar(@versioninfo.szCSDVersion)));
   kernel32dll:=GetModuleHandle('kernel32');
   if kernel32dll<>0 then
     GetDiskFreeSpaceEx:=TGetDiskFreeSpaceEx(GetProcAddress(kernel32dll,'GetDiskFreeSpaceExA'));
@@ -1731,7 +1731,7 @@ Procedure InitSysConfigDir;
 
 begin
   SetLength(SysConfigDir, MAX_PATH);
-  SetLength(SysConfigDir, GetWindowsDirectoryA(PChar(SysConfigDir), MAX_PATH));
+  SetLength(SysConfigDir, GetWindowsDirectoryA(PAnsiChar(SysConfigDir), MAX_PATH));
 end;
 
 {****************************************************************************
@@ -1749,8 +1749,8 @@ function DoCompareStringA(P1, P2: PWideChar; L1, L2: PtrUInt; Flags: DWORD): Ptr
     if L2>0 then
       widestringmanager.Wide2AnsiMoveProc(P2,a2,DefaultSystemCodePage,L2);
     SetLastError(0);
-    Result:=CompareStringA(LOCALE_USER_DEFAULT,Flags,pchar(a1),
-      length(a1),pchar(a2),length(a2))-2;
+    Result:=CompareStringA(LOCALE_USER_DEFAULT,Flags,PAnsiChar(a1),
+      length(a1),PAnsiChar(a2),length(a2))-2;
   end;
 
 function DoCompareStringW(P1, P2: PWideChar; L1, L2: PtrUInt; Flags: DWORD): PtrInt;
@@ -1798,7 +1798,7 @@ function Win32AnsiUpperCase(const s: string): string;
       begin
         result:=s;
         UniqueString(result);
-        CharUpperBuffA(pchar(result),length(result));
+        CharUpperBuffA(PAnsiChar(result),length(result));
       end
     else
       result:='';
@@ -1811,7 +1811,7 @@ function Win32AnsiLowerCase(const s: string): string;
       begin
         result:=s;
         UniqueString(result);
-        CharLowerBuffA(pchar(result),length(result));
+        CharLowerBuffA(PAnsiChar(result),length(result));
       end
     else
       result:='';
@@ -1820,50 +1820,50 @@ function Win32AnsiLowerCase(const s: string): string;
 
 function Win32AnsiCompareStr(const S1, S2: string): PtrInt;
   begin
-    result:=CompareStringA(LOCALE_USER_DEFAULT,0,pchar(s1),length(s1),
-      pchar(s2),length(s2))-2;
+    result:=CompareStringA(LOCALE_USER_DEFAULT,0,PAnsiChar(s1),length(s1),
+      PAnsiChar(s2),length(s2))-2;
   end;
 
 
 function Win32AnsiCompareText(const S1, S2: string): PtrInt;
   begin
-    result:=CompareStringA(LOCALE_USER_DEFAULT,NORM_IGNORECASE,pchar(s1),length(s1),
-      pchar(s2),length(s2))-2;
+    result:=CompareStringA(LOCALE_USER_DEFAULT,NORM_IGNORECASE,PAnsiChar(s1),length(s1),
+      PAnsiChar(s2),length(s2))-2;
   end;
 
 
-function Win32AnsiStrComp(S1, S2: PChar): PtrInt;
+function Win32AnsiStrComp(S1, S2: PAnsiChar): PtrInt;
   begin
     result:=CompareStringA(LOCALE_USER_DEFAULT,0,s1,-1,s2,-1)-2;
   end;
 
 
-function Win32AnsiStrIComp(S1, S2: PChar): PtrInt;
+function Win32AnsiStrIComp(S1, S2: PAnsiChar): PtrInt;
   begin
     result:=CompareStringA(LOCALE_USER_DEFAULT,NORM_IGNORECASE,s1,-1,s2,-1)-2;
   end;
 
 
-function Win32AnsiStrLComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+function Win32AnsiStrLComp(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
   begin
     result:=CompareStringA(LOCALE_USER_DEFAULT,0,s1,maxlen,s2,maxlen)-2;
   end;
 
 
-function Win32AnsiStrLIComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+function Win32AnsiStrLIComp(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
   begin
     result:=CompareStringA(LOCALE_USER_DEFAULT,NORM_IGNORECASE,s1,maxlen,s2,maxlen)-2;
   end;
 
 
-function Win32AnsiStrLower(Str: PChar): PChar;
+function Win32AnsiStrLower(Str: PAnsiChar): PAnsiChar;
   begin
     CharLowerA(str);
     result:=str;
   end;
 
 
-function Win32AnsiStrUpper(Str: PChar): PChar;
+function Win32AnsiStrUpper(Str: PAnsiChar): PAnsiChar;
   begin
     CharUpperA(str);
     result:=str;
@@ -1898,12 +1898,12 @@ procedure InitWin32Widestrings;
       code point is encountered, all characters part of this invalid code point
       are considered to form one "character" and the next character is
       considered to be the start of a new (possibly also invalid) code point }
-//!!!    CharLengthPCharProc : function(const Str: PChar): PtrInt;
+//!!!    CharLengthPCharProc : function(const Str: PAnsiChar): PtrInt;
     { return value:
       -1 if incomplete or invalid code point
       0 if NULL character,
       > 0 if that's the length in bytes of the code point }
-//!!!!    CodePointLengthProc : function(const Str: PChar; MaxLookAead: PtrInt): Ptrint;
+//!!!!    CodePointLengthProc : function(const Str: PAnsiChar; MaxLookAead: PtrInt): Ptrint;
     widestringmanager.CompareWideStringProc:=@Win32CompareWideString;
     widestringmanager.UpperAnsiStringProc:=@Win32AnsiUpperCase;
     widestringmanager.LowerAnsiStringProc:=@Win32AnsiLowerCase;
