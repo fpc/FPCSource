@@ -62,7 +62,7 @@ end;
 
 function GetTimezoneFile:shortstring;
 var
-  tzenv : pchar;
+  tzenv : PAnsiChar;
   l: longint;
   s: shortstring;
   ft : text;

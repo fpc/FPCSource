@@ -81,7 +81,7 @@ Type
     pTime     = ^time_t;
     ptime_t   = ^time_t;
     clockid_t = clonglong;
-    caddr_t   = ^char;
+    caddr_t   = ^AnsiChar;
 
     uint32_t = cuint32;
     int32_t = cint32;
@@ -173,8 +173,8 @@ Type
     vfsoff : cint;     { reserved, for vfs specific data offset }
     vfslen : cint;     { reserved, for len of vfs specific data }
     vfsvers : cint;    { reserved, for vers of vfs specific data }
-    fstr   : array[0..31] of char; { fname in C header, file system name (usually mount pt.) }
-    fpack   : array[0..31] of char; { file system pack name }
+    fstr   : array[0..31] of AnsiChar; { fname in C header, file system name (usually mount pt.) }
+    fpack   : array[0..31] of AnsiChar; { file system pack name }
     namelen : cint; { maximum component name length for posix }
   end;
   PStatFS=^TStatFS;
