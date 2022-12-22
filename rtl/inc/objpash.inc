@@ -390,7 +390,7 @@
          procedure(reason: FPC_Unwind_Reason_Code; exc: PFPC_Unwind_Exception); cdecl;
 
        FPC_Unwind_Exception = record
-         { qword instead of array of char to ensure proper alignment and
+         { qword instead of array of AnsiChar to ensure proper alignment and
            padding, and also easier to compare }
          exception_class: qword;
          exception_cleanup: FPC_Unwind_Exception_Cleanup_Fn;
@@ -555,12 +555,12 @@
 {$ifdef ENDIAN_BIG}
            vtInteger       : ({$IFDEF CPU64}integerdummy1 : Longint;{$ENDIF CPU64}VInteger: Longint);
            vtBoolean       : ({$IFDEF CPU64}booldummy : Longint;{$ENDIF CPU64}booldummy1,booldummy2,booldummy3: byte; VBoolean: Boolean);
-           vtChar          : ({$IFDEF CPU64}chardummy : Longint;{$ENDIF CPU64}chardummy1,chardummy2,chardummy3: byte; VChar: Char);
+           vtChar          : ({$IFDEF CPU64}chardummy : Longint;{$ENDIF CPU64}chardummy1,chardummy2,chardummy3: byte; VChar: AnsiChar);
            vtWideChar      : ({$IFDEF CPU64}widechardummy : Longint;{$ENDIF CPU64}wchardummy1,VWideChar: WideChar);
 {$else ENDIAN_BIG}
            vtInteger       : (VInteger: Longint);
            vtBoolean       : (VBoolean: Boolean);
-           vtChar          : (VChar: Char);
+           vtChar          : (VChar: AnsiChar);
            vtWideChar      : (VWideChar: WideChar);
 {$endif ENDIAN_BIG}
 {$ifndef FPUNONE}

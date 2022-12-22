@@ -932,7 +932,7 @@ end;
  |
  *-------------------------------------------------------*)
 {$ifdef cpujvm}
-procedure do_fillchar( var str: shortstring; pos, count: integer; c: char );
+procedure do_fillchar( var str: shortstring; pos, count: integer; c: AnsiChar );
 begin
   while count>0 do
     begin
@@ -942,7 +942,7 @@ begin
     end;
 end;
 {$else not cpujvm}
-procedure do_fillchar( var str: shortstring; pos, count: integer; c: char ); {$ifdef grisu1_inline}inline;{$endif}
+procedure do_fillchar( var str: shortstring; pos, count: integer; c: AnsiChar ); {$ifdef grisu1_inline}inline;{$endif}
 begin
   fillchar( str[pos], count, c );
 end;
@@ -1057,7 +1057,7 @@ begin
     if rounded then
         while ( n_before_dot > 0 ) do
         begin
-            str[i] := char( temp_round[j] + ord('0') );
+            str[i] := AnsiChar( temp_round[j] + ord('0') );
             inc( i );
             inc( j );
             dec( n_before_dot );
@@ -1065,7 +1065,7 @@ begin
     else
         while ( n_before_dot > 0 ) do
         begin
-            str[i] := char( digits[j] + ord('0') );
+            str[i] := AnsiChar( digits[j] + ord('0') );
             inc( i );
             inc( j );
             dec( n_before_dot );
@@ -1092,7 +1092,7 @@ begin
         if rounded then
             while ( n_after_dot > 0 ) do
             begin
-                str[i] := char( temp_round[j] + ord('0') );
+                str[i] := AnsiChar( temp_round[j] + ord('0') );
                 inc( i );
                 inc( j );
                 dec( n_after_dot );
@@ -1100,7 +1100,7 @@ begin
         else
             while ( n_after_dot > 0 ) do
             begin
-                str[i] := char( digits[j] + ord('0') );
+                str[i] := AnsiChar( digits[j] + ord('0') );
                 inc( i );
                 inc( j );
                 dec( n_after_dot );
@@ -1175,7 +1175,7 @@ begin
     inc( i );
     // Integer part
     if ( n_digits_have > 0 ) then
-        str[i] := char( digits[0] + ord('0') )
+        str[i] := AnsiChar( digits[0] + ord('0') )
     else
         str[i] := '0';
     inc( i );
@@ -1189,7 +1189,7 @@ begin
     j := 1;
     while ( j < n_digits_have ) and ( j < n_digits_req ) do
     begin
-        str[i] := char( digits[j] + ord('0') );
+        str[i] := AnsiChar( digits[j] + ord('0') );
         inc( i );
         inc( j );
     end;
@@ -1219,7 +1219,7 @@ begin
     // Exponent digits
     for j := 0 to n_exp - 1 do
     begin
-        str[i] := char( buf_exp[j] + ord('0') );
+        str[i] := AnsiChar( buf_exp[j] + ord('0') );
         inc( i );
     end;
 {$ifdef grisu1_debug}
@@ -1906,7 +1906,8 @@ end;
 (****************************************************************************)
 
 {$ifndef fpc_softfpu_implementation}
-procedure str_real_iso( len, f: longint; d: ValReal; real_type: treal_type; out s: string );
+procedure str_real_iso( len, f: longint; d: ValReal; real_type: treal_type; out s:
+shortstring );
 var
     i: integer;
 begin
@@ -2273,7 +2274,7 @@ end;
 
 (****************************************************************************)
 var
-    a: char;
+    a: AnsiChar;
     mantissa, bit_round, bit_round_mask: {$ifdef VALREAL_32} dword {$else} qword {$endif};
 {$ifdef VALREAL_80}
     mantissa_h: dword;

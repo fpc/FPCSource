@@ -13,7 +13,7 @@
  **********************************************************************}
 
 {$ifndef FPC_UNIT_HAS_STRPCOPY}
-   function strpcopy(d : pchar;const s : string) : pchar;
+   function strpcopy(d : PAnsiChar;const s : string) : PAnsiChar;
    var
     counter : byte;
   Begin

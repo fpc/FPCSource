@@ -13,17 +13,17 @@
 
  **********************************************************************}
 
-    function strcat(dest,source : pchar) : pchar;
+    function strcat(dest,source : PAnsiChar) : PAnsiChar;
 
       begin
         strcopy(strend(dest),source);
         strcat:=dest;
       end;
 
-    function strlcat(dest,source : pchar;l : SizeInt) : pchar;
+    function strlcat(dest,source : PAnsiChar;l : SizeInt) : PAnsiChar;
 
       var
-         destend : pchar;
+         destend : PAnsiChar;
 
       begin
          destend:=strend(dest);
@@ -33,7 +33,7 @@
          strlcat:=dest;
       end;
 
-    function strmove(dest,source : pchar;l : SizeInt) : pchar;
+    function strmove(dest,source : PAnsiChar;l : SizeInt) : PAnsiChar;
 
       begin
          move(source^,dest^,l);
@@ -41,9 +41,9 @@
       end;
 
 
-    function strpos(str1,str2 : pchar) : pchar;
+    function strpos(str1,str2 : PAnsiChar) : PAnsiChar;
       var
-         p : pchar;
+         p : PAnsiChar;
          lstr2 : SizeInt;
       begin
          strpos:=nil;
@@ -65,9 +65,9 @@
            end;
       end;
 
-    function stripos(str1,str2 : pchar) : pchar;
+    function stripos(str1,str2 : PAnsiChar) : PAnsiChar;
       var
-         p : pchar;
+         p : PAnsiChar;
          lstr2 : SizeInt;
       begin
          stripos:=nil;

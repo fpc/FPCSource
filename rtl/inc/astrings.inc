@@ -23,15 +23,15 @@
 {
   This file contains the implementation of the AnsiString type,
   and all things that are needed for it.
-  AnsiString is defined as a 'silent' pchar :
-  a pchar that points to (S= SizeOf(SizeInt), R= (if CPU64 then SizeOf(Longint) else SizeOf(SizeInt))):
+  AnsiString is defined as a 'silent' pansichar :
+  a pansichar that points to (S= SizeOf(SizeInt), R= (if CPU64 then SizeOf(Longint) else SizeOf(SizeInt))):
 
   @-S-R-4 : Code page indicator.
   @-S-R-2 : Character size (2 bytes)
   @-S-R   : Reference count (R bytes)
   @-S  : SizeInt for size;
   @    : String + Terminating #0;
-  Pchar(Ansistring) is a valid typecast.
+  PAnsiChar(Ansistring) is a valid typecast.
   So AS[i] is converted to the address @AS+i-1.
 
   Constants should be assigned a reference count of -1
@@ -83,7 +83,7 @@ end;
 
 {$ifndef FPC_HAS_PCHAR_ANSISTR_INTERN_CHARMOVE}
 {$define FPC_HAS_PCHAR_ANSISTR_INTERN_CHARMOVE}
-procedure fpc_pchar_ansistr_intern_charmove(const src: pchar; const srcindex: sizeint; var dst: rawbytestring; const dstindex, len: sizeint); {$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif} {$ifdef SYSTEMINLINE}inline;{$endif}
+procedure fpc_pchar_ansistr_intern_charmove(const src: pansichar; const srcindex: sizeint; var dst: rawbytestring; const dstindex, len: sizeint); {$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif} {$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   move(src[srcindex],pbyte(pointer(dst))[dstindex],len);
 end;
@@ -92,7 +92,7 @@ end;
 
 {$ifndef FPC_HAS_PCHAR_PCHAR_INTERN_CHARMOVE}
 {$define FPC_HAS_PCHAR_PCHAR_INTERN_CHARMOVE}
-procedure fpc_pchar_pchar_intern_charmove(const src: pchar; const srcindex: sizeint; const dst: pchar; const dstindex, len: sizeint); {$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif} {$ifdef SYSTEMINLINE}inline;{$endif}
+procedure fpc_pchar_pchar_intern_charmove(const src: pansichar; const srcindex: sizeint; const dst: pansichar; const dstindex, len: sizeint); {$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif} {$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   move(src[srcindex],dst[dstindex],len);
 end;
@@ -120,7 +120,7 @@ Var
   P : Pointer;
 begin
   { request a multiple of 16 because the heap manager alloctes anyways chunks of 16 bytes }
-  GetMem(P,Len+(AnsiFirstOff+sizeof(char)));
+  GetMem(P,Len+(AnsiFirstOff+sizeof(AnsiChar)));
   If P<>Nil then
    begin
      PAnsiRec(P)^.Ref:=1;         { Set reference count }
@@ -533,7 +533,7 @@ end;
 {$define FPC_HAS_CHAR_TO_ANSISTR}
 Function fpc_Char_To_AnsiStr(const c : AnsiChar{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}): RawByteString; compilerproc;
 {
-  Converts a Char to a AnsiString;
+  Converts a AnsiChar to a AnsiString;
 }
 {$ifndef FPC_HAS_CPSTRING}
 var
@@ -1001,9 +1001,9 @@ end;
 
 {$ifndef FPC_HAS_POS_ANSICHAR_ANSISTR}
 {$define FPC_HAS_POS_ANSICHAR_ANSISTR}
-{ Faster version for a char alone. Must be implemented because   }
-{ pos(c: char; const s: shortstring) also exists, so otherwise   }
-{ using pos(char,pchar) will always call the shortstring version }
+{ Faster version for a AnsiChar alone. Must be implemented because   }
+{ pos(c: AnsiChar; const s: shortstring) also exists, so otherwise   }
+{ using pos(AnsiChar,pansichar) will always call the shortstring version }
 { (exact match for first argument), also with $h+ (JM)           }
 Function Pos(c : AnsiChar; Const s : RawByteString; Offset : Sizeint = 1) : SizeInt;
 var
@@ -1383,7 +1383,7 @@ begin
   If (Size<=LS-Index) then
     begin
       Dec(Index);
-      fpc_pchar_ansistr_intern_charmove(pchar(S),Index+Size,S,Index,LS-Index-Size+1);
+      fpc_pchar_ansistr_intern_charmove(PAnsiChar(S),Index+Size,S,Index,LS-Index-Size+1);
     end;
   Setlength(S,LS-Size);
 end;
@@ -1410,10 +1410,10 @@ begin
     cp:=TranslatePlaceholderCP(StringCodePage(Source));
   SetCodePage(Temp,cp,false);
   If Index>0 then
-    fpc_pchar_ansistr_intern_charmove(pchar(S),0,Temp,0,Index);
-  fpc_pchar_ansistr_intern_charmove(pchar(Source),0,Temp,Index,Length(Source));
+    fpc_pchar_ansistr_intern_charmove(PAnsiChar(S),0,Temp,0,Index);
+  fpc_pchar_ansistr_intern_charmove(PAnsiChar(Source),0,Temp,Index,Length(Source));
   If (LS-Index)>0 then
-    fpc_pchar_ansistr_intern_charmove(pchar(S),Index,Temp,Length(Source)+Index,LS-Index);
+    fpc_pchar_ansistr_intern_charmove(PAnsiChar(S),Index,Temp,Length(Source)+Index,LS-Index);
   S:=Temp;
 end;
 

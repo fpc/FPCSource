@@ -44,7 +44,7 @@ begin
   while tableEntry^.varaddr <> nil do
    begin
      CurrentTM.InitThreadvar (tableEntry^.varaddr^, tableEntry^.size);
-     inc (pchar (tableEntry), sizeof (tableEntry^));
+     inc (pansichar (tableEntry), sizeof (tableEntry^));
    end;
 end;
 
@@ -76,9 +76,9 @@ begin
   while tableEntry^.varaddr <> nil do
    begin
      newp:=CurrentTM.RelocateThreadVar(tableEntry^.varaddr^);
-     oldp:=pointer(pchar(tableEntry^.varaddr)+sizeof(pointer));
+     oldp:=pointer(pansichar(tableEntry^.varaddr)+sizeof(pointer));
      move(oldp^,newp^,tableEntry^.size);
-     inc (pchar (tableEntry), sizeof (tableEntry^));
+     inc (pansichar (tableEntry), sizeof (tableEntry^));
    end;
 end;
 

@@ -25,7 +25,7 @@ begin
       p[i]:=DirectorySeparator;
 end;
 
-procedure DoDirSeparators(p:Pchar);
+procedure DoDirSeparators(p:PAnsiChar);
 var
   i : longint;
 begin

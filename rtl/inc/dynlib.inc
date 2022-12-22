@@ -181,7 +181,7 @@ begin
   NoDynLibsError;
 end;
 
-function NoGetLoadErrorStr: String; noreturn;
+function NoGetLoadErrorStr: AnsiString; noreturn;
 begin
   NoDynLibsError;
 end;
