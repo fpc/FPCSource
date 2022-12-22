@@ -629,7 +629,7 @@ var
   TOCSTART: pointer; external name '.TOC.';
 
 
-procedure save_argc_argv_envp_stkptr_fpcret(argc: longint; argv, envp: ppchar; stkptr: pointer);
+procedure save_argc_argv_envp_stkptr_fpcret(argc: longint; argv, envp: PPAnsiChar; stkptr: pointer);
   begin
     operatingsystem_parameter_argc:=argc;
     operatingsystem_parameter_argv:=argv;
@@ -643,7 +643,7 @@ procedure save_argc_argv_envp_stkptr_fpcret(argc: longint; argv, envp: ppchar; s
  * The document "64-bit PowerPC ELF Application Binary Interface Supplement 1.9"
  * pg. 24f specifies the register contents.
  *}
-procedure _FPC_shared_lib_start(argc: longint; argv, envp: ppchar); cdecl; public name 'FPC_SHARED_LIB_START'; public name '_start'; assembler; nostackframe;
+procedure _FPC_shared_lib_start(argc: longint; argv, envp: PPAnsiChar); cdecl; public name 'FPC_SHARED_LIB_START'; public name '_start'; assembler; nostackframe;
   asm
 {$if defined(_CALL_ELF) and (_CALL_ELF = 2)}
 .L1:

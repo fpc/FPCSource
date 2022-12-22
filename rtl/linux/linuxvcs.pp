@@ -14,12 +14,12 @@ function try_grab_vcsa:boolean;
 
 uses baseunix,strings;
 
-function try_grab_vcsa_in_path(path:Pchar;len:cardinal):boolean;
+function try_grab_vcsa_in_path(path:PAnsiChar;len:cardinal):boolean;
 
 const  grab_vcsa='/grab_vcsa';
-       grab_vcsa_s:array[1..length(grab_vcsa)] of char=grab_vcsa;
+       grab_vcsa_s:array[1..length(grab_vcsa)] of AnsiChar=grab_vcsa;
 
-var p:Pchar;
+var p:PAnsiChar;
     child:Tpid;
     status:cint;
     pstat:stat;
@@ -56,7 +56,7 @@ function try_grab_vcsa:boolean;
  you when you log out. We try to call a setuid root helper which chowns
  the vcsa device so we can get access to the screen buffer...}
 
-var path,p:Pchar;
+var path,p:PAnsiChar;
 
 begin
   try_grab_vcsa:=false;

@@ -27,7 +27,7 @@ begin
 {$endif android}
 end;
 
-Function  fpStatFS  (Path:pchar; Info:pstatfs):cint;
+Function  fpStatFS  (Path:PAnsiChar; Info:pstatfs):cint;
 
 begin
 {$ifdef android}

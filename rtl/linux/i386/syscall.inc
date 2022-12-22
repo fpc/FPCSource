@@ -48,7 +48,7 @@ var
 
 procedure InitSyscallIntf;
 var
-  ep: PPChar;
+  ep: PPAnsiChar;
   auxv: PElf32AuxiliaryVector;
 begin
 

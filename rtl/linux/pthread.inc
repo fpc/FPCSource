@@ -183,7 +183,7 @@ Type
     function sem_init (__sem:Psem_t; __pshared:longint; __value:dword):longint;cdecl;external;
     function sem_destroy  (__sem:Psem_t):longint;cdecl;external;
     function sem_close (__sem:Psem_t):longint;cdecl;external;
-    function sem_unlink (__name:Pchar):longint;cdecl;external;
+    function sem_unlink (__name:PAnsiChar):longint;cdecl;external;
     function sem_wait (__sem:Psem_t):longint;cdecl;external;
     function sem_timedwait (__sem:Psem_t; __abs_timeout:ptimespec):longint;cdecl;external;
     function sem_trywait  (__sem:Psem_t):longint;cdecl;external;
@@ -265,7 +265,7 @@ Var
     sem_init     :   function (__sem:Psem_t; __pshared:longint; __value:dword):longint;cdecl;
     sem_destroy  :   function (__sem:Psem_t):longint;cdecl;
     sem_close    :   function (__sem:Psem_t):longint;cdecl;
-    sem_unlink   :   function (__name:Pchar):longint;cdecl;
+    sem_unlink   :   function (__name:PAnsiChar):longint;cdecl;
     sem_wait     :   function (__sem:Psem_t):longint;cdecl;
     sem_timedwait:   function (__sem:Psem_t; __abs_timeout:ptimespec):longint;cdecl;
     sem_trywait  :   function (__sem:Psem_t):longint;cdecl;
