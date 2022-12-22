@@ -411,7 +411,7 @@ function strupper(p : pwidechar) : pwidechar;
 function strlicomp(str1,str2 : pwidechar;l : SizeInt) : SizeInt;
   var
    counter: sizeint;
-   c1, c2: char;
+   c1, c2: AnsiChar;
   begin
     counter := 0;
     if l=0 then
