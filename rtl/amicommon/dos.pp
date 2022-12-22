@@ -110,7 +110,7 @@ function PathConv(path: string): string; external name 'PATHCONV';
 function dosLock(const name: String;
                  accessmode: Longint) : BPTR;
 var
- buffer: array[0..255] of Char;
+ buffer: array[0..255] of AnsiChar;
 begin
   move(name[1],buffer,length(name));
   buffer[length(name)]:=#0;
@@ -126,21 +126,21 @@ begin
   {$endif}
 end;
 
-function BSTR2STRING(s : Pointer): PChar; Inline;
+function BSTR2STRING(s : Pointer): PAnsiChar; Inline;
 begin
   {$if defined(AROS)}  // deactivated for now //and (not defined(AROS_BINCOMPAT))}
-  BSTR2STRING:=PChar(s);
+  BSTR2STRING:=PAnsiChar(s);
   {$else}
-  BSTR2STRING:=PChar(BADDR(PtrInt(s)))+1;
+  BSTR2STRING:=PAnsiChar(BADDR(PtrInt(s)))+1;
   {$endif}
 end;
 
-function BSTR2STRING(s : PtrInt): PChar; Inline;
+function BSTR2STRING(s : PtrInt): PAnsiChar; Inline;
 begin
   {$if defined(AROS)}  // deactivated for now //and (not defined(AROS_BINCOMPAT))}
-  BSTR2STRING:=PChar(s);
+  BSTR2STRING:=PAnsiChar(s);
   {$else}
-  BSTR2STRING:=PChar(BADDR(s))+1;
+  BSTR2STRING:=PAnsiChar(BADDR(s))+1;
   {$endif}
 end;
 
@@ -231,7 +231,7 @@ end;
 
 function dosSetProtection(const name: string; mask:longint): Boolean;
 var
-  buffer : array[0..255] of Char;
+  buffer : array[0..255] of AnsiChar;
 begin
   move(name[1],buffer,length(name));
   buffer[length(name)]:=#0;
@@ -240,7 +240,7 @@ end;
 
 function dosSetFileDate(const name: string; p : PDateStamp): Boolean;
 var
-  buffer : array[0..255] of Char;
+  buffer : array[0..255] of AnsiChar;
 begin
   move(name[1],buffer,length(name));
   buffer[length(name)]:=#0;
@@ -303,7 +303,7 @@ begin
     end
 end;
 
-function Createport(name : PChar; pri : longint): pMsgPort;
+function Createport(name : PAnsiChar; pri : longint): pMsgPort;
 var
    sigbit : ShortInt;
    port    : pMsgPort;
@@ -497,7 +497,7 @@ end;
 
 procedure Exec(const Path: PathStr; const ComLine: ComStr);
 var
-  tmpPath: array[0..515] of char;
+  tmpPath: array[0..515] of AnsiChar;
   result : longint;
   tmpLock: BPTR;
 begin
@@ -628,7 +628,7 @@ end;
 function RefreshDeviceList: Integer;
 var
   List: PDosList;
-  Temp: PChar;
+  Temp: PAnsiChar;
   Str: string;
 begin
   NumDevices := 0;
@@ -665,7 +665,7 @@ begin
   //
   OldWinPtr:=SetProcessWinPtr(PROC_WIN_DISABLE);
   //
-  DirLock := Lock(PChar(Drive), SHARED_LOCK);
+  DirLock := Lock(PAnsiChar(Drive), SHARED_LOCK);
   if DirLock <> 0 then
   begin
     if Info(DirLock, @Inf) <> 0 then
@@ -695,7 +695,7 @@ begin
   //
   OldWinPtr:=SetProcessWinPtr(PROC_WIN_DISABLE);
   //
-  DirLock := Lock(PChar(Drive), SHARED_LOCK);
+  DirLock := Lock(PAnsiChar(Drive), SHARED_LOCK);
   if DirLock <> 0 then
   begin
     if Info(DirLock, @Inf) <> 0 then
@@ -771,7 +771,7 @@ end;
 
 procedure FindFirst(const Path: PathStr; Attr: Word; Var f: SearchRec);
 var
- tmpStr: array[0..255] of Char;
+ tmpStr: array[0..255] of AnsiChar;
  Anchor: PAnchorPath;
 begin
   tmpStr:=PathConv(path)+#0;
@@ -980,13 +980,13 @@ var
 {$ifndef FPC_ANSI_TEXTFILEREC}
   r : rawbytestring;
 {$endif not FPC_ANSI_TEXTFILEREC}
-  p : pchar;
+  p : PAnsiChar;
 begin
 {$ifdef FPC_ANSI_TEXTFILEREC}
   p := @filerec(f).Name;
 {$else}
   r := ToSingleByteFileSystemEncodedFileName(filerec(f).Name);
-  p := pchar(r);
+  p := PAnsiChar(r);
 {$endif}
   DosError:=0;
   flags:=FIBF_WRITE;
@@ -1015,7 +1015,7 @@ end;
 var
   strofpaths : string;
 
-function SystemTags(const command: PChar; const tags: array of PtrUInt): LongInt;
+function SystemTags(const command: PAnsiChar; const tags: array of PtrUInt): LongInt;
 begin
   SystemTags:=SystemTagList(command,@tags);
 end;
@@ -1074,7 +1074,7 @@ Var
   ThisProcess: PProcess;
   LocalVars_List: PMinList;  // Local Var structure in struct process (pr_LocalVarsis is actually a minlist
   LocalVar_Node: PLocalVar;
-  Buffer: array[0..BUFFER_SIZE] of Char; // Buffer to hold a value for GetVar()
+  Buffer: array[0..BUFFER_SIZE] of AnsiChar; // Buffer to hold a value for GetVar()
   TempLen: LongInt;      // hold returnlength of GetVar()
   // for env: searching
   Anchor: TAnchorPath;
@@ -1107,7 +1107,7 @@ begin
       begin
         SetLength(EnvList, Length(EnvList) + 1);
         EnvList[High(EnvList)].Name := LocalVar_Node^.lv_Node.ln_Name;
-        EnvList[High(EnvList)].Value := string(PChar(@Buffer[0]));
+        EnvList[High(EnvList)].Value := string(PAnsiChar(@Buffer[0]));
         EnvList[High(EnvList)].Local := True;
       end;
     end;
@@ -1147,8 +1147,8 @@ end;
 
 function GetEnvFromEnv(envvar : String): String;
 var
-   bufarr : array[0..255] of char;
-   strbuffer : array[0..255] of char;
+   bufarr : array[0..255] of AnsiChar;
+   strbuffer : array[0..255] of AnsiChar;
    temp : Longint;
 begin
    GetEnvFromEnv := '';

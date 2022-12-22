@@ -181,9 +181,9 @@ begin
   end;
 end;
 
-procedure do_erase(p : pchar; pchangeable: boolean);
+procedure do_erase(p : PAnsiChar; pchangeable: boolean);
 var
-  tmpStr: array[0..255] of Char;
+  tmpStr: array[0..255] of AnsiChar;
 begin
   tmpStr:=PathConv(strpas(p))+#0;
   checkCTRLC;
@@ -191,11 +191,11 @@ begin
     dosError2InOut(IoErr);
 end;
 
-procedure do_rename(p1,p2 : pchar; p1changeable, p2changeable: boolean);
+procedure do_rename(p1,p2 : PAnsiChar; p1changeable, p2changeable: boolean);
 { quite stack-effective code, huh? :) damn path conversions... (KB) }
 var
-  tmpStr1: array[0..255] of Char;
-  tmpStr2: array[0..255] of Char;
+  tmpStr1: array[0..255] of AnsiChar;
+  tmpStr2: array[0..255] of AnsiChar;
 begin
   tmpStr1:=PathConv(strpas(p1))+#0;
   tmpStr2:=PathConv(strpas(p2))+#0;
@@ -351,7 +351,7 @@ begin
 {$ENDIF}
 end;
 
-procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);
+procedure do_open(var f;p:PAnsiChar;flags:longint; pchangeable: boolean);
 {
   filerec and textrec have both handle and mode as the first items so
   they could use the same routine for opening/creating.
@@ -362,7 +362,7 @@ procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);
 var
   handle   : THandle;
   openflags: LongInt;
-  tmpStr   : array[0..255] of Char;
+  tmpStr   : array[0..255] of AnsiChar;
 begin
   tmpStr:=PathConv(strpas(p))+#0;
 

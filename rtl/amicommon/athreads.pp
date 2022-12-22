@@ -458,7 +458,7 @@ begin
       { this line can't be before threadvar allocation }
       SysDebugLn('FPC AThreads: Renaming thread ID:'+hexStr(threadInfo)+' to '+threadInfo^.name);
 {$endif}
-      thisThread^.pr_Task.tc_Node.ln_Name:=PChar(@threadInfo^.name[1]);
+      thisThread^.pr_Task.tc_Node.ln_Name:=PAnsiChar(@threadInfo^.name[1]);
     end;
 
   { Reply the message, so the calling thread could continue }
@@ -995,7 +995,7 @@ begin
   end;
 end;
 
-function CreatePort(Name: PChar; Pri: LongInt): PMsgPort;
+function CreatePort(Name: PAnsiChar; Pri: LongInt): PMsgPort;
 var
   SigBit: ShortInt;
   Port: PMsgPort;
