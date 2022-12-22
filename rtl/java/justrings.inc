@@ -45,7 +45,7 @@ end;
 
 
 {$define FPC_HAS_DEFAULT_ANSI_2_UNICODE}
-procedure DefaultAnsi2UnicodeMove(source:pchar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt);
+procedure DefaultAnsi2UnicodeMove(source:PAnsiChar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt);
 var
   localdecoder: JNCCharsetDecoder;
   inbuf: JNByteBuffer;
@@ -114,7 +114,7 @@ begin
   result:='';
   Size:=Length(S2);
   if Size>0 then
-    widestringmanager.Ansi2UnicodeMoveProc(PChar(ShortstringClass(@S2).fdata),DefaultSystemCodePage,result,Size);
+    widestringmanager.Ansi2UnicodeMoveProc(PAnsiChar(ShortstringClass(@S2).fdata),DefaultSystemCodePage,result,Size);
 end;
 
 
@@ -292,9 +292,9 @@ end;
 
 
 {$define FPC_HAS_UCHAR_TO_CHAR}
-Function fpc_UChar_To_Char(const c : UnicodeChar): Char; compilerproc;
+Function fpc_UChar_To_Char(const c : UnicodeChar): AnsiChar; compilerproc;
 {
-  Converts a UnicodeChar to a Char;
+  Converts a UnicodeChar to a AnsiChar;
 }
 var
   u: unicodestring;
@@ -375,7 +375,7 @@ end;
 
 
 {$define FPC_HAS_PCHAR_TO_UNICODESTR}
-Function fpc_PChar_To_UnicodeStr(const p : pchar): UnicodeString; compilerproc;
+Function fpc_PChar_To_UnicodeStr(const p : PAnsiChar): UnicodeString; compilerproc;
 var
   i, len: longint;
   arr: TAnsiCharArray;
@@ -694,9 +694,9 @@ begin
 end;
 
 
-{ Faster version for a char alone. Must be implemented because   }
-{ pos(c: char; const s: shortstring) also exists, so otherwise   }
-{ using pos(char,pchar) will always call the shortstring version }
+{ Faster version for a AnsiChar alone. Must be implemented because   }
+{ pos(c: AnsiChar; const s: shortstring) also exists, so otherwise   }
+{ using pos(AnsiChar,PAnsiChar) will always call the shortstring version }
 { (exact match for first argument), also with $h+ (JM)           }
 {$define FPC_HAS_POS_CHAR_UNICODESTR}
 Function Pos (c : AnsiChar; Const s : UnicodeString; Offset: Sizeint = 1) : SizeInt;
@@ -805,7 +805,7 @@ function UTF8Encode(const s : UnicodeString) : RawByteString;
       exit;
     SetLength(hs,length(s)*3);
     chars:=JLString(s).toCharArray;
-    i:=UnicodeToUtf8(pchar(hs),length(hs)+1,pwidechar(chars),length(s));
+    i:=UnicodeToUtf8(PAnsiChar(hs),length(hs)+1,pwidechar(chars),length(s));
     if i>0 then
       begin
         SetLength(hs,i-1);
@@ -824,7 +824,7 @@ function UTF8Decode(const s : RawByteString): UnicodeString;
     if s='' then
       exit;
     SetLength(chars,length(s)+1);
-    i:=Utf8ToUnicode(pwidechar(chars),length(s)+1,pchar(s),length(s));
+    i:=Utf8ToUnicode(pwidechar(chars),length(s)+1,PAnsiChar(s),length(s));
     if i>0 then
       result:=JLString.Create(chars,0,i-1);
   end;
@@ -832,7 +832,7 @@ function UTF8Decode(const s : RawByteString): UnicodeString;
 
 {$define FPC_HAS_UCS4STRING_TO_UNICODESTR}
 
-{ concatenates an utf-32 char to a unicodestring. S *must* be unique when entering. }
+{ concatenates an utf-32 AnsiChar to a unicodestring. S *must* be unique when entering. }
 procedure ConcatUTF32ToUnicodeStr(const nc: UCS4Char; var S: JLStringBuilder; var index: SizeInt);
 begin
   { if nc > $ffff, we need two places }
@@ -1046,7 +1046,7 @@ procedure TUnicodeStringManager.Wide2AnsiMoveProc(source:pwidechar;var dest:RawB
   end;
 
 
-procedure TUnicodeStringManager.Ansi2WideMoveProc(source:pchar;cp : TSystemCodePage;var dest:widestring;len:SizeInt);
+procedure TUnicodeStringManager.Ansi2WideMoveProc(source:PAnsiChar;cp : TSystemCodePage;var dest:widestring;len:SizeInt);
   begin
     DefaultAnsi2UnicodeMove(source,cp,dest,len);
   end;
@@ -1084,7 +1084,7 @@ function TUnicodeStringManager.CompareTextWideStringProc(const s1, s2 : WideStri
   end;
 
 
-function TUnicodeStringManager.CharLengthPCharProc(const Str: PChar; Index: PtrInt): PtrInt;
+function TUnicodeStringManager.CharLengthPCharProc(const Str: PAnsiChar; Index: PtrInt): PtrInt;
   var
     localdecoder: JNCCharsetDecoder;
   begin
@@ -1096,7 +1096,7 @@ function TUnicodeStringManager.CharLengthPCharProc(const Str: PChar; Index: PtrI
   end;
 
 
-function TUnicodeStringManager.CodePointLengthProc(const Str: PChar; Index, MaxLookAhead: PtrInt): Ptrint;
+function TUnicodeStringManager.CodePointLengthProc(const Str: PAnsiChar; Index, MaxLookAhead: PtrInt): Ptrint;
   var
     localdecoder: JNCCharsetDecoder;
     inbuf: JNByteBuffer;
@@ -1111,7 +1111,7 @@ function TUnicodeStringManager.CodePointLengthProc(const Str: PChar; Index, MaxL
     localdecoder.reset;
     limit:=0;
     maxlimit:=min(length(Str)-Index,MaxLookAhead);
-    { end of pchar? }
+    { end of PAnsiChar? }
     if maxlimit=0 then
       begin
         result:=0;
@@ -1160,7 +1160,7 @@ function TUnicodeStringManager.CompareTextAnsiStringProc(const S1, S2: ansistrin
   end;
 
 
-function TUnicodeStringManager.StrCompAnsiStringProc(S1, S2: PChar): PtrInt;
+function TUnicodeStringManager.StrCompAnsiStringProc(S1, S2: PAnsiChar): PtrInt;
   var
     str1,str2: unicodestring;
   begin
@@ -1170,7 +1170,7 @@ function TUnicodeStringManager.StrCompAnsiStringProc(S1, S2: PChar): PtrInt;
   end;
 
 
-function TUnicodeStringManager.StrICompAnsiStringProc(S1, S2: PChar): PtrInt;
+function TUnicodeStringManager.StrICompAnsiStringProc(S1, S2: PAnsiChar): PtrInt;
   var
     str1,str2: unicodestring;
   begin
@@ -1180,7 +1180,7 @@ function TUnicodeStringManager.StrICompAnsiStringProc(S1, S2: PChar): PtrInt;
   end;
 
 
-function TUnicodeStringManager.StrLCompAnsiStringProc(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+function TUnicodeStringManager.StrLCompAnsiStringProc(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
   var
     str1,str2: unicodestring;
   begin
@@ -1190,7 +1190,7 @@ function TUnicodeStringManager.StrLCompAnsiStringProc(S1, S2: PChar; MaxLen: Ptr
   end;
 
 
-function TUnicodeStringManager.StrLICompAnsiStringProc(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+function TUnicodeStringManager.StrLICompAnsiStringProc(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
   var
     str1,str2: unicodestring;
   begin
@@ -1200,21 +1200,21 @@ function TUnicodeStringManager.StrLICompAnsiStringProc(S1, S2: PChar; MaxLen: Pt
   end;
 
 
-function TUnicodeStringManager.StrLowerAnsiStringProc(Str: PChar): PChar;
+function TUnicodeStringManager.StrLowerAnsiStringProc(Str: PAnsiChar): PAnsiChar;
   var
     ustr: unicodestring;
   begin
     ustr:=JLString.Create(TJCharArray(Str),0,length(Str));
-    result:=PChar(AnsiStringClass(ansistring(LowerWideStringProc(ustr))).fdata);
+    result:=PAnsiChar(AnsiStringClass(ansistring(LowerWideStringProc(ustr))).fdata);
   end;
 
 
-function TUnicodeStringManager.StrUpperAnsiStringProc(Str: PChar): PChar;
+function TUnicodeStringManager.StrUpperAnsiStringProc(Str: PAnsiChar): PAnsiChar;
   var
     ustr: unicodestring;
   begin
     ustr:=JLString.Create(TJCharArray(Str),0,length(Str));
-    result:=PChar(AnsiStringClass(ansistring(UpperWideStringProc(ustr))).fdata);
+    result:=PAnsiChar(AnsiStringClass(ansistring(UpperWideStringProc(ustr))).fdata);
   end;
 
 
@@ -1224,7 +1224,7 @@ procedure TUnicodeStringManager.Unicode2AnsiMoveProc(source:punicodechar;var des
   end;
 
 
-procedure TUnicodeStringManager.Ansi2UnicodeMoveProc(source:pchar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt);
+procedure TUnicodeStringManager.Ansi2UnicodeMoveProc(source:PAnsiChar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt);
   begin
     DefaultAnsi2UnicodeMove(source,cp,dest,len);
   end;
