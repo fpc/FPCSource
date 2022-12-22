@@ -36,8 +36,8 @@ var
   argv_save: pointer; external name 'argv_save';
   main_thread_id: ptruint; external name '__main_thread_id';
 
-function find_thread(name: pchar): ptruint; cdecl; external libc name 'find_thread';
-procedure _init_c_library_(argc: longint; argv: ppchar; env: ppchar); cdecl; external libc name '_init_c_library_';
+function find_thread(name: PAnsiChar): ptruint; cdecl; external libc name 'find_thread';
+procedure _init_c_library_(argc: longint; argv: PPAnsiChar; env: PPAnsiChar); cdecl; external libc name '_init_c_library_';
 procedure _call_init_routines_; cdecl; external libc name '_call_init_routines_';
 procedure __exit(status: longint); cdecl; external libc name 'exit';
 

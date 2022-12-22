@@ -42,9 +42,9 @@ type
 
   mbstate_t = record
     converter : pointer;
-    charset : array[0..63] of char;
+    charset : array[0..63] of AnsiChar;
     count : cuint;
-    data : array[0..1023+8] of char;  { 1024 bytes for data, 8 for alignment space }
+    data : array[0..1023+8] of AnsiChar;  { 1024 bytes for data, 8 for alignment space }
   end;
   pmbstate_t = ^mbstate_t;
 
