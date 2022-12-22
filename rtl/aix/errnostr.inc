@@ -18,5 +18,5 @@ const
 
 { since we're libc-based, just just the libc version }
 var
-  sys_errlist:array[0..sys_errn-1] of pchar; cvar; external;
+  sys_errlist:array[0..sys_errn-1] of PAnsiChar; cvar; external;
 
