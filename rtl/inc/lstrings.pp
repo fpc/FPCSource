@@ -14,17 +14,17 @@
 {
   This file contains the implementation of the LongString type,
   and all things that are needed for it.
-  LongSTring is defined as a 'silent' pchar :
-  a pchar that points to :
+  LongSTring is defined as a 'silent' pansichar :
+  a pansichar that points to :
 
   @   : Longint for size
   @+4 : Unused byte;
-  @+5 : String;
+  @+5 : AnsiString;
    So LS[i] is converted to the address @LS+4+i.
 
-  pchar[0]-pchar[3] : Longint Size
-  pchar [4] : Unused
-  pchar[5] : String;
+  pansichar[0]-pansichar[3] : Longint Size
+  pansichar [4] : Unused
+  pansichar[5] : AnsiString;
 
 }
 
@@ -34,7 +34,7 @@ unit lstrings;
 
 Interface
 
-Type longstring = pchar;
+Type longstring = pansichar;
      ShortString = string;
 
 { Internal functions, will not appear in systemh.inc }
@@ -98,7 +98,7 @@ begin
   If P<>Nil then
      begin
      PLongint(P)^:=0;
-     pchar(P+4)^:=#0;
+     pansichar(P+4)^:=#0;
      end;
   NewLongString:=P;
 end;
@@ -128,7 +128,7 @@ begin
     if Size+PLongint(S1)^>MaxLen then
       Size:=Maxlen-PLongint(S1)^;
   If Size<=0 then exit;
-  Move (pchar(S2)[5],pchar(S1)[PLongint(S1)^+5],Size);
+  Move (pansichar(S2)[5],ansipchar(S1)[PLongint(S1)^+5],Size);
   PLongint(S1)^:=PLongint(S1)^+Size;
 end;
 
@@ -147,7 +147,7 @@ begin
     if Size+PLongint(S1)^>Maxlen then
       Size:=Maxlen-PLongint(S1)^;
   If Size<=0 then exit;
-  Move (S2[1],Pchar(S1)[PLongint(S1)^+5],Size);
+  Move (S2[1],PAnsiChar(S1)[PLongint(S1)^+5],Size);
   PLongint(S1)^:=PLongint(S1)^+Size;
 end;
 
@@ -165,7 +165,7 @@ begin
   Size:=PLongint(S2)^;
   if maxlen=-1 then maxlen:=255;
   If Size>maxlen then Size:=maxlen;
-  Move (Pchar(S2)[5],S1[1],Size);
+  Move (PAnsiChar(S2)[5],S1[1],Size);
   S1[0]:=chr(Size);
 end;
 
@@ -182,7 +182,7 @@ begin
   Size:=Byte(S2[0]);
   if maxlen=-1 then maxlen:=255;
   If Size>maxlen then Size:=maxlen;
-  Move (S2[1],pchar(S1)[5],Size);
+  Move (S2[1],PAnsiChar(S1)[5],Size);
   PLongint(S1)^:=Size;
 end;
 
@@ -205,7 +205,7 @@ begin
  if MaxI>PLOngint(S2)^ then MaxI:=PLongint(S2)^;
  While (i<=MaxI) and (Temp=0) do
    begin
-   Temp:= Byte( Pchar(S1)[i+4] ) - Byte( Pchar(S2)[I+4] );
+   Temp:= Byte( PAnsiChar(S1)[i+4] ) - Byte( PAnsiChar(S2)[I+4] );
    inc(i);
    end;
  if temp=0 then temp:=Plongint(S1)^-PLongint(S2)^;
@@ -231,7 +231,7 @@ begin
  if MaxI>byte(S2[0]) then MaxI:=Byte(S2[0]);
  While (i<=MaxI) and (Temp=0) do
    begin
-   Temp:=(Byte(Pchar(S1)[i+4])-Byte(S2[I]));
+   Temp:=(Byte(PAnsiChar(S1)[i+4])-Byte(S2[I]));
    inc(i);
    end;
  LongCompare:=Temp;
@@ -267,7 +267,7 @@ end;
 
 Function Copy (Const S : LongString; Index,Size : Longint) : LongString;
 
-var ResultAddress : pchar;
+var ResultAddress : PAnsiChar;
 
 begin
   ResultAddress:=NewLongString (Size);
@@ -278,7 +278,7 @@ begin
   if PLongint(S)^<Index+Size then
     Size:=PLongint(S)^-Index;
   if Size>0 then
-    Move (Pchar(S)[Index+5],ResultAddress[5],Size)
+    Move (PAnsiChar(S)[Index+5],ResultAddress[5],Size)
   Else
     Size:=0;
   PLongint(ResultAddress)^:=Size;
@@ -505,20 +505,20 @@ begin
       Size:=PLongint(s)^-Index+1;
     PLongint(s)^:=PLongint(s)^-Size;
     if Index<=Length(s) then
-      Move(pchar(s)[Index+Size+4],pchar(s)[Index+4],Length(s)-Index+1);
+      Move(PAnsiChar(s)[Index+Size+4],PAnsiChar(s)[Index+4],Length(s)-Index+1);
     end;
 end;
 
 Procedure Insert (Const Source : LongString; Var S : LongString; Index : Longint);
 
-var s3,s4 : pchar;
+var s3,s4 : PAnsiChar;
 
 begin
   if index <= 0 then index := 1;
   s3 := longString(copy (s, index, length(s)));
   if index > PLongint(s)^ then index := PLongint(S)^+1;
   PLongint(s)^ := index - 1;
-  s4 :=Pchar ( NewLongString (Plongint(Source)^) );
+  s4 :=PAnsiChar ( NewLongString (Plongint(Source)^) );
   Long_String_Concat(LongString(s4),Source,-1);
   Long_String_Concat(LongString(S4),LongString(s3),-1);
   Long_String_Concat(S,LongString(S4),-1);

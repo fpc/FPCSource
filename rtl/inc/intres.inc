@@ -15,7 +15,7 @@
 type
   PResInfoNode = ^TResInfoNode;
   TResInfoNode = packed record
-    nameid : PChar;             //name / integer ID / languageID
+    nameid : PAnsiChar;             //name / integer ID / languageID
     ncounthandle : longword;    //named sub-entries count / resource handle
     idcountsize : longword;     //id sub-entries count / resource size
     subptr : PResInfoNode;      //first sub-entry pointer
@@ -75,10 +75,10 @@ end;
 
 
 //resource functions are case insensitive... copied from genstr.inc
-function ResStrIComp(Str1, Str2 : PChar): SizeInt;
+function ResStrIComp(Str1, Str2 : PAnsiChar): SizeInt;
 var
   counter: SizeInt;
-  c1, c2: char;
+  c1, c2: AnsiChar;
 begin
   counter := 0;
   c1 := upcase(str1[counter]);
@@ -94,8 +94,8 @@ begin
 end;
 
 {!fixme!}
-//function InternalIsIntResource(aStr : pchar; out aInt : PtrUint) : boolean;
-function InternalIsIntResource(aStr : pchar; var aInt : PtrUint) : boolean;
+//function InternalIsIntResource(aStr : PAnsiChar; out aInt : PtrUint) : boolean;
+function InternalIsIntResource(aStr : pansichar; var aInt : PtrUint) : boolean;
 var i : integer;
     s : shortstring;
     code : word;
@@ -119,10 +119,10 @@ begin
   end;
 end;
 
-function BinSearchStr(arr : PResInfoNode; query : pchar; left, right : integer)
+function BinSearchStr(arr : PResInfoNode; query : pansichar; left, right : integer)
 : PResInfoNode;
 var pivot, res : integer;
-    resstr : pchar;
+    resstr : pansichar;
 begin
   BinSearchStr:=nil;
   while left<=right do
@@ -140,7 +140,7 @@ begin
   end;
 end;
 
-function BinSearchInt(arr : PResInfoNode; query : pchar; left, right : integer)
+function BinSearchInt(arr : PResInfoNode; query : pansichar; left, right : integer)
 : PResInfoNode;
 var pivot : integer;
 begin
@@ -158,18 +158,18 @@ begin
   end;
 end;
 
-function BinSearchRes(root : PResInfoNode; aDesc : PChar) : PResInfoNode;
+function BinSearchRes(root : PResInfoNode; aDesc : PAnsiChar) : PResInfoNode;
 var aID : PtrUint;
 begin
   if InternalIsIntResource(aDesc,aID) then
-    BinSearchRes:=BinSearchInt(root^.subptr,PChar(aID),root^.ncounthandle,
+    BinSearchRes:=BinSearchInt(root^.subptr,PAnsiChar(aID),root^.ncounthandle,
       root^.ncounthandle+root^.idcountsize-1)
   else
     BinSearchRes:=BinSearchStr(root^.subptr,aDesc,0,root^.ncounthandle-1);
 end;
 
 //Returns a pointer to a name node.
-function InternalFindResource(ResHdr:PResHdr;ResourceName, ResourceType: PChar):
+function InternalFindResource(ResHdr:PResHdr;ResourceName, ResourceType: PAnsiChar):
  PResInfoNode;
 begin
   InternalFindResource:=nil;
@@ -230,7 +230,7 @@ begin
   end;
 end;
 
-Function IntEnumResourceNames(ModuleHandle : TFPResourceHMODULE; ResourceType : PChar; EnumFunc : EnumResNameProc; lParam : PtrInt) : LongBool;
+Function IntEnumResourceNames(ModuleHandle : TFPResourceHMODULE; ResourceType : PAnsiChar; EnumFunc : EnumResNameProc; lParam : PtrInt) : LongBool;
 var ptr : PResInfoNode;
     tot, i : integer;
     res_hdr:PResHdr;
@@ -254,7 +254,7 @@ begin
   end;
 end;
 
-Function IntEnumResourceLanguages(ModuleHandle : TFPResourceHMODULE; ResourceType, ResourceName : PChar; EnumFunc : EnumResLangProc; lParam : PtrInt) : LongBool;
+Function IntEnumResourceLanguages(ModuleHandle : TFPResourceHMODULE; ResourceType, ResourceName : PAnsiChar; EnumFunc : EnumResLangProc; lParam : PtrInt) : LongBool;
 var ptr : PResInfoNode;
     tot, i : integer;
     res_hdr:PResHdr;
@@ -277,7 +277,7 @@ begin
 end;
 
 Function IntFindResource(ModuleHandle: TFPResourceHMODULE; ResourceName,
-  ResourceType: PChar): TFPResourceHandle;
+  ResourceType: PAnsiChar): TFPResourceHandle;
 var ptr : PResInfoNode;
     res_hdr: PresHdr;
 begin
@@ -299,7 +299,7 @@ begin
 end;
 
 Function IntFindResourceEx(ModuleHandle: TFPResourceHMODULE; ResourceType,
-  ResourceName: PChar; Language : word): TFPResourceHandle;
+  ResourceName: PAnsiChar; Language : word): TFPResourceHandle;
 const LANG_NEUTRAL = 0;
       LANG_ENGLISH = 9;
 var nameptr,ptr : PResInfoNode;

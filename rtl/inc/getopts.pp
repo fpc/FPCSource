@@ -32,24 +32,24 @@ Type
   TOption = Record
     Name    : String;
     Has_arg : Integer;
-    Flag    : PChar;
-    Value   : Char;
-    Procedure SetOption(const aName:String;AHas_Arg:integer=0;AFlag:PChar=nil;AValue:Char=#0);
+    Flag    : PAnsiChar;
+    Value   : AnsiChar;
+    Procedure SetOption(const aName:String;AHas_Arg:integer=0;AFlag:PAnsiChar=nil;AValue:AnsiChar=#0);
   end;
 
   Orderings = (require_order,permute,return_in_order);
 
 Const
-  OptSpecifier : set of char=['-'];
+  OptSpecifier : set of AnsiChar=['-'];
 
 Var
   OptArg : String;
   OptInd : Longint;
   OptErr : Boolean;
-  OptOpt : Char;
+  OptOpt : AnsiChar;
 
-Function GetOpt (ShortOpts : String) : char;
-Function GetLongOpts (ShortOpts : String;LongOpts : POption;var Longind : Longint) : char;
+Function GetOpt (ShortOpts : String) : AnsiChar;
+Function GetLongOpts (ShortOpts : String;LongOpts : POption;var Longind : Longint) : AnsiChar;
 
 
 Implementation
@@ -66,24 +66,24 @@ uses SysUtils;
     type PtrInt = Integer;
 
 type
-  ppchar = ^pchar;
-  apchar = array[0..127] of pchar;
+  PPAnsiChar = ^pansichar;
+  apchar = array[0..127] of pansichar;
 
 var
   argc  : longint;
   argv  : apchar;
 
 const
-  CHAR_SIZE = SizeOf(Char);
+  CHAR_SIZE = SizeOf(AnsiChar);
 
 procedure setup_arguments;
 var
   arglen,
   count   : longint;
   argstart,
-  cmdline : pchar;
-  quote   : set of char;
-  argsbuf : array[0..127] of pchar;
+  cmdline : pansichar;
+  quote   : set of ansichar;
+  argsbuf : array[0..127] of ansipchar;
   s       : string;
   i       : integer;
 begin
@@ -146,7 +146,7 @@ end;
 
 {$ENDIF}
 
-function strpas(p : pchar) : ansistring;
+function strpas(p : pansichar) : ansistring;
 
 begin
   if p=nil then 
@@ -155,7 +155,7 @@ begin
     strpas:=p;
 end;
 
-Procedure TOption.SetOption(const aName:String;AHas_Arg:integer=0;AFlag:PChar=nil;AValue:Char=#0);
+Procedure TOption.SetOption(const aName:String;AHas_Arg:integer=0;AFlag:PAnsiChar=nil;AValue:AnsiChar=#0);
 begin
   Name:=aName; Has_Arg:=AHas_Arg; Flag:=AFlag; Value:=Avalue;
 end;
@@ -176,7 +176,7 @@ var
   bottom,
   middle,
   top,i,len : longint;
-  temp      : pchar;
+  temp      : pansichar;
 begin
   bottom:=first_nonopt;
   middle:=last_nonopt;
@@ -239,7 +239,7 @@ end;
 
 
 Function Internal_getopt (Var Optstring : string;LongOpts : POption;
-                          LongInd : pointer;Long_only : boolean ) : char;
+                          LongInd : pointer;Long_only : boolean ) : AnsiChar;
 var
   temp,endopt,
   option_index : byte;
@@ -248,7 +248,7 @@ var
   optname      : string;
   p,pfound     : POption;
   exact,ambig  : boolean;
-  c            : char;
+  c            : AnsiChar;
 begin
   optarg:='';
   if optind=0 then
@@ -506,13 +506,13 @@ begin
 end; { End of internal getopt...}
 
 
-Function GetOpt(ShortOpts : String) : char;
+Function GetOpt(ShortOpts : String) : AnsiChar;
 begin
   getopt:=internal_getopt(shortopts,nil,nil,false);
 end;
 
 
-Function GetLongOpts(ShortOpts : String;LongOpts : POption;var Longind : Longint) : char;
+Function GetLongOpts(ShortOpts : String;LongOpts : POption;var Longind : Longint) : AnsiChar;
 begin
   getlongopts:=internal_getopt(shortopts,longopts,@longind,true);
 end;

@@ -101,7 +101,7 @@ end;
 
 {$ifndef FPC_HAS_SHORTSTR_INSERT_CHAR}
 {$define FPC_HAS_SHORTSTR_INSERT_CHAR}
-procedure {$ifdef ver3_0}insert{$else}fpc_shortstr_insert_char{$endif}(source : Char;var s : shortstring;index : SizeInt);
+procedure {$ifdef ver3_0}insert{$else}fpc_shortstr_insert_char{$endif}(source : AnsiChar;var s : shortstring;index : SizeInt);
 var
   indexlen : SizeInt;
 begin
@@ -128,7 +128,7 @@ end;
 function pos(const substr : shortstring;const s : shortstring; Offset : Sizeint = 1):SizeInt;
 var
   i,MaxLen : SizeInt;
-  pc : pchar;
+  pc : PAnsiChar;
 begin
   Pos:=0;
   if (Length(SubStr)>0) and (Offset>0) and (Offset<=Length(S)) then
@@ -154,11 +154,11 @@ end;
 
 {$ifndef FPC_HAS_SHORTSTR_POS_CHAR}
 {$define FPC_HAS_SHORTSTR_POS_CHAR}
-{Faster when looking for a single char...}
-function pos(c:char;const s:shortstring; Offset : Sizeint = 1 ):SizeInt;
+{Faster when looking for a single AnsiChar...}
+function pos(c:ansichar;const s:shortstring; Offset : Sizeint = 1 ):SizeInt;
 var
   i : SizeInt;
-  pc : pchar;
+  pc : PAnsiChar;
 begin
   Pos:=0;
   if (Offset<1) or (Offset>Length(S)) then
@@ -178,7 +178,7 @@ end;
 {$endif FPC_HAS_SHORTSTR_POS_CHAR}
 
 
-function fpc_char_copy(c:char;index : SizeInt;count : SizeInt): shortstring;compilerproc;
+function fpc_char_copy(c:ansichar;index : SizeInt;count : SizeInt): shortstring;compilerproc;
 begin
   if (index=1) and (Count>0) then
    fpc_char_Copy:=c
@@ -186,7 +186,7 @@ begin
    fpc_char_Copy:='';
 end;
 
-function pos(const substr : shortstring;c:char;  Offset : Sizeint = 1): SizeInt;
+function pos(const substr : shortstring;c:Ansichar;  Offset : Sizeint = 1): SizeInt;
 begin
   if (length(substr)=1) and (substr[1]=c) and (Offset=1) then
    Pos:=1
@@ -205,14 +205,14 @@ const
 
 {$ifndef FPC_UPCASE_CHAR}
 {$define FPC_UPCASE_CHAR}
-function upcase(c : char) : char;
+function upcase(c : Ansichar) : Ansichar;
 {$IFDEF IBM_CHAR_SET}
 var
   i : ObjpasInt;
 {$ENDIF}
 begin
   if (c in ['a'..'z']) then
-    upcase:=char(byte(c)-32)
+    upcase:=AnsiChar(byte(c)-32)
   else
 {$IFDEF IBM_CHAR_SET}
     begin
@@ -244,14 +244,14 @@ end;
 
 {$ifndef FPC_LOWERCASE_CHAR}
 {$define FPC_LOWERCASE_CHAR}
-function lowercase(c : char) : char;overload;
+function lowercase(c : AnsiChar) : AnsiChar;overload;
 {$IFDEF IBM_CHAR_SET}
 var
   i : ObjpasInt;
 {$ENDIF}
 begin
   if (c in ['A'..'Z']) then
-   lowercase:=char(byte(c)+32)
+   lowercase:=AnsiChar(byte(c)+32)
   else
 {$IFDEF IBM_CHAR_SET}
    begin
@@ -281,13 +281,13 @@ end;
 {$endif FPC_LOWERCASE_SHORTSTR}
 
 const
-  HexTbl : array[0..15] of char='0123456789ABCDEF';
+  HexTbl : array[0..15] of AnsiChar='0123456789ABCDEF';
 
 function hexstr(val : longint;cnt : byte) : shortstring;
 var
   i : ObjpasInt;
 begin
-  hexstr[0]:=char(cnt);
+  hexstr[0]:=AnsiChar(cnt);
   for i:=cnt downto 1 do
    begin
      hexstr[i]:=hextbl[val and $f];
@@ -299,7 +299,7 @@ function octstr(val : longint;cnt : byte) : shortstring;
 var
   i : ObjpasInt;
 begin
-  octstr[0]:=char(cnt);
+  octstr[0]:=AnsiChar(cnt);
   for i:=cnt downto 1 do
    begin
      octstr[i]:=hextbl[val and 7];
@@ -312,10 +312,10 @@ function binstr(val : longint;cnt : byte) : shortstring;
 var
   i : ObjpasInt;
 begin
-  binstr[0]:=char(cnt);
+  binstr[0]:=AnsiChar(cnt);
   for i:=cnt downto 1 do
    begin
-     binstr[i]:=char(48+val and 1);
+     binstr[i]:=AnsiChar(48+val and 1);
      val:=val shr 1;
    end;
 end;
@@ -325,7 +325,7 @@ function hexstr(val : int64;cnt : byte) : shortstring;
 var
   i : ObjpasInt;
 begin
-  hexstr[0]:=char(cnt);
+  hexstr[0]:=AnsiChar(cnt);
   for i:=cnt downto 1 do
    begin
      hexstr[i]:=hextbl[val and $f];
@@ -338,7 +338,7 @@ function octstr(val : int64;cnt : byte) : shortstring;
 var
   i : ObjpasInt;
 begin
-  octstr[0]:=char(cnt);
+  octstr[0]:=AnsiChar(cnt);
   for i:=cnt downto 1 do
    begin
      octstr[i]:=hextbl[val and 7];
@@ -351,10 +351,10 @@ function binstr(val : int64;cnt : byte) : shortstring;
 var
   i : ObjpasInt;
 begin
-  binstr[0]:=char(cnt);
+  binstr[0]:=AnsiChar(cnt);
   for i:=cnt downto 1 do
    begin
-     binstr[i]:=char(48+val and 1);
+     binstr[i]:=AnsiChar(48+val and 1);
      val:=val shr 1;
    end;
 end;
@@ -518,7 +518,7 @@ type
   Tenum_typeinfo={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
     kind:TTypeKind; { always tkEnumeration }
     num_chars:byte;
-    chars:array[0..0] of char; { variable length with size of num_chars }
+    chars:array[0..0] of AnsiChar; { variable length with size of num_chars }
   end;
 
 {$push}
@@ -689,7 +689,7 @@ procedure fpc_shortstr_currency({$ifdef cpujvm}constref{$endif} c : currency; le
 const
   MinLen = 8; { Minimal string length in scientific format }
 var
-  buf : array[1..19] of char;
+  buf : array[1..19] of AnsiChar;
   i,j,k,reslen,tlen,sign,r,point : ObjpasInt;
   ic : qword;
 begin
@@ -865,10 +865,10 @@ begin
 end;
 
 {
-   Array Of Char Str() helpers
+   Array Of AnsiChar Str() helpers
 }
 
-procedure fpc_chararray_sint(v : valsint;len : SizeInt;out a:array of char);compilerproc;
+procedure fpc_chararray_sint(v : valsint;len : SizeInt;out a:array of AnsiChar);compilerproc;
 var
   ss : shortstring;
   maxlen : SizeInt;
@@ -884,7 +884,7 @@ begin
 end;
 
 
-procedure fpc_chararray_uint(v : valuint;len : SizeInt;out a : array of char);compilerproc;
+procedure fpc_chararray_uint(v : valuint;len : SizeInt;out a : array of AnsiChar);compilerproc;
 var
   ss : shortstring;
   maxlen : SizeInt;
@@ -902,7 +902,7 @@ end;
 
 {$ifndef CPU64}
 
-procedure fpc_chararray_qword(v : qword;len : SizeInt;out a : array of char);compilerproc;
+procedure fpc_chararray_qword(v : qword;len : SizeInt;out a : array of AnsiChar);compilerproc;
 {$ifdef EXCLUDE_COMPLEX_PROCS}
 begin
   runerror(219);
@@ -924,7 +924,7 @@ end;
 {$endif EXCLUDE_COMPLEX_PROCS}
 
 
-procedure fpc_chararray_int64(v : int64;len : SizeInt;out a : array of char);compilerproc;
+procedure fpc_chararray_int64(v : int64;len : SizeInt;out a : array of AnsiChar);compilerproc;
 {$ifdef EXCLUDE_COMPLEX_PROCS}
 begin
   runerror(219);
@@ -950,7 +950,7 @@ end;
 
 {$if defined(CPU16) or defined(CPU8)}
 
-procedure fpc_chararray_longword(v : longword;len : SizeInt;out a : array of char);compilerproc;
+procedure fpc_chararray_longword(v : longword;len : SizeInt;out a : array of AnsiChar);compilerproc;
 var
   ss : shortstring;
   maxlen : SizeInt;
@@ -966,7 +966,7 @@ begin
 end;
 
 
-procedure fpc_chararray_longint(v : longint;len : SizeInt;out a : array of char);compilerproc;
+procedure fpc_chararray_longint(v : longint;len : SizeInt;out a : array of AnsiChar);compilerproc;
 var
   ss : shortstring;
   maxlen : SizeInt;
@@ -982,7 +982,7 @@ begin
 end;
 
 
-procedure fpc_chararray_word(v : word;len : SizeInt;out a : array of char);compilerproc;
+procedure fpc_chararray_word(v : word;len : SizeInt;out a : array of AnsiChar);compilerproc;
 var
   ss : shortstring;
   maxlen : SizeInt;
@@ -998,7 +998,7 @@ begin
 end;
 
 
-procedure fpc_chararray_smallint(v : smallint;len : SizeInt;out a : array of char);compilerproc;
+procedure fpc_chararray_smallint(v : smallint;len : SizeInt;out a : array of AnsiChar);compilerproc;
 var
   ss : shortstring;
   maxlen : SizeInt;
@@ -1017,7 +1017,7 @@ end;
 
 
 {$ifndef FPUNONE}
-procedure fpc_chararray_Float(d : ValReal;len,fr,rt : SizeInt;out a : array of char);compilerproc;
+procedure fpc_chararray_Float(d : ValReal;len,fr,rt : SizeInt;out a : array of AnsiChar);compilerproc;
 var
   ss : shortstring;
   maxlen : SizeInt;
@@ -1036,7 +1036,7 @@ end;
   this is not a good solution but fixing compilation of this procedure for
   avr is hard, requires significant changes to the register allocator to take
   care of different register classes }
-procedure fpc_chararray_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out a : array of char);compilerproc;
+procedure fpc_chararray_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out a : array of AnsiChar);compilerproc;
 var
   ss : shortstring;
   maxlen : SizeInt;
@@ -1054,7 +1054,7 @@ begin
 end;
 {$endif not FPC_STR_ENUM_INTERN}
 
-procedure fpc_chararray_bool(b : boolean;len:sizeint;out a : array of char);compilerproc;
+procedure fpc_chararray_bool(b : boolean;len:sizeint;out a : array of AnsiChar);compilerproc;
 var
   ss : shortstring;
   maxlen : SizeInt;
@@ -1070,7 +1070,7 @@ end;
 
 {$ifndef FPC_HAS_CHARARRAY_CURRENCY}
 {$define FPC_HAS_CHARARRAY_CURRENCY}
-procedure fpc_chararray_Currency(c : Currency;len,fr : SizeInt;out a : array of char);compilerproc;
+procedure fpc_chararray_Currency(c : Currency;len,fr : SizeInt;out a : array of AnsiChar);compilerproc;
 {$ifdef EXCLUDE_COMPLEX_PROCS}
 begin
   runerror(217);
@@ -1643,7 +1643,7 @@ function fpc_val_enum_shortstr(str2ordindex:pointer;const s:shortstring;out code
      comparison.}
 
     var i,l:byte;
-        c1,c2:char;
+        c1,c2:AnsiChar;
 
     begin
       l:=length(s1);
@@ -1871,7 +1871,7 @@ end;
 
 {$ifndef FPC_HAS_SETSTRING_SHORTSTR}
 {$define FPC_HAS_SETSTRING_SHORTSTR}
-Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_shortstr{$else}SetString{$endif}(Out S : Shortstring; Buf : PChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
+Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_shortstr{$else}SetString{$endif}(Out S : Shortstring; Buf : PAnsiChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
 begin
   If Len > High(S) then
     Len := High(S);
@@ -1890,7 +1890,7 @@ var
   c1, c2: Byte;
   i: SizeInt;
   L1, L2, Count: SizeInt;
-  P1, P2: PChar;
+  P1, P2: PAnsiChar;
 begin
   L1 := Length(S1);
   L2 := Length(S2);

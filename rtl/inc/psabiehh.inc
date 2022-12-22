@@ -63,7 +63,7 @@ type
   TFPC_psabieh_exceptionClass = record
     case byte of
       0: (u: qword); {cuint64}
-      1: (a: array[0..7] of char);
+      1: (a: array[0..7] of AnsiChar);
   end;
 
 {$push}

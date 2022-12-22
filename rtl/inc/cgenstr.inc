@@ -19,7 +19,7 @@
 {$ifndef FPC_UNIT_HAS_STREND}
 {$define FPC_UNIT_HAS_STREND}
 
- function StrEnd(P: PChar): PChar;{$ifdef SYSTEMINLINE}inline;{$endif}
+ function StrEnd(P: PAnsiChar): PAnsiChar;{$ifdef SYSTEMINLINE}inline;{$endif}
    begin
      strend := p+strlen(p);
    end;
@@ -28,9 +28,9 @@
 
 {$ifndef FPC_UNIT_HAS_STRCOPY}
 {$define FPC_UNIT_HAS_STRCOPY}
- function libc_strcpy(dest: pchar; const src: pchar): pchar; cdecl; external 'c' name 'strcpy';
+ function libc_strcpy(dest: pansichar; const src: pansichar): pansichar; cdecl; external 'c' name 'strcpy';
 
- Function StrCopy(Dest, Source:PChar): PChar;{$ifdef SYSTEMINLINE}inline;{$endif}
+ Function StrCopy(Dest, Source:PAnsiChar): PAnsiChar;{$ifdef SYSTEMINLINE}inline;{$endif}
    Begin
      StrCopy := libc_strcpy(dest,source);
    end;
@@ -39,9 +39,9 @@
 
 {$ifndef FPC_UNIT_HAS_STRSCAN}
 {$define FPC_UNIT_HAS_STRSCAN}
- function libc_strchr(const p: pchar; c: longint): pchar; cdecl; external 'c' name 'strchr';
+ function libc_strchr(const p: PAnsiChar; c: longint): PAnsiChar; cdecl; external 'c' name 'strchr';
 
- function StrScan(P: PChar; C: Char): PChar;{$ifdef SYSTEMINLINE}inline;{$endif}
+ function StrScan(P: PAnsiChar; C: AnsiChar): PAnsiChar;{$ifdef SYSTEMINLINE}inline;{$endif}
    Begin
      StrScan := libc_strchr(p,longint(c));
    end;
@@ -50,9 +50,9 @@
 
 {$ifndef FPC_UNIT_HAS_STRRSCAN}
 {$define FPC_UNIT_HAS_STRRSCAN}
- function libc_strrchr(const p: pchar; c: longint): pchar; cdecl; external 'c' name 'strrchr';
+ function libc_strrchr(const p: PAnsiChar; c: longint): PAnsiChar; cdecl; external 'c' name 'strrchr';
 
- function StrRScan(P: PChar; C: Char): PChar;{$ifdef SYSTEMINLINE}inline;{$endif}
+ function StrRScan(P: PAnsiChar; C: AnsiChar): PAnsiChar;{$ifdef SYSTEMINLINE}inline;{$endif}
    Begin
      StrRScan := libc_strrchr(p,longint(c));
    end;
@@ -61,9 +61,9 @@
 (*
 {$ifndef FPC_UNIT_HAS_STRECOPY}
 {$define FPC_UNIT_HAS_STRECOPY}
- function libc_stpcpy(dest: pchar; const src: pchar): pchar; cdecl; external 'c' name 'stpcpy';
+ function libc_stpcpy(dest: PAnsiChar; const src: PAnsiChar): PAnsiChar; cdecl; external 'c' name 'stpcpy';
 
-  Function StrECopy(Dest, Source: PChar): PChar;{$ifdef SYSTEMINLINE}inline;{$endif}
+  Function StrECopy(Dest, Source: PAnsiChar): PAnsiChar;{$ifdef SYSTEMINLINE}inline;{$endif}
     Begin
       StrECopy := libc_stpcpy(dest,source);
     end;
@@ -74,9 +74,9 @@
 {$ifndef FPC_UNIT_HAS_STRLCOPY}
 {$define FPC_UNIT_HAS_STRLCOPY}
 
- function libc_strlcpy(dest: pchar; const src: pchar; maxlen: SizeInt): SizeInt; cdecl; external 'c' name 'strlcpy';
+ function libc_strlcpy(dest: PAnsiChar; const src: PAnsiChar; maxlen: SizeInt): SizeInt; cdecl; external 'c' name 'strlcpy';
 
- Function StrLCopy(Dest,Source: PChar; MaxLen: SizeInt): PChar;{$ifdef SYSTEMINLINE}inline;{$endif}
+ Function StrLCopy(Dest,Source: PAnsiChar; MaxLen: SizeInt): PAnsiChar;{$ifdef SYSTEMINLINE}inline;{$endif}
    Begin
      libc_strlcpy(dest,source,maxlen);
      StrLCopy := Dest;
@@ -86,9 +86,9 @@
 
 {$ifndef FPC_UNIT_HAS_STRCOMP}
 {$define FPC_UNIT_HAS_STRCOMP}
- function libc_strcmp(const str1,str2: pchar): longint; cdecl; external 'c' name 'strcmp';
+ function libc_strcmp(const str1,str2: PAnsiChar): longint; cdecl; external 'c' name 'strcmp';
 
- function StrComp(Str1, Str2 : PChar): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+ function StrComp(Str1, Str2 : PAnsiChar): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
    Begin
      strcomp := libc_strcmp(str1,str2);
    end;
@@ -97,9 +97,9 @@
 
 {$ifndef FPC_UNIT_HAS_STRICOMP}
 {$define FPC_UNIT_HAS_STRICOMP}
- function libc_strcasecmp(const str1,str2: pchar): longint; cdecl; external 'c' name 'strcasecmp';
+ function libc_strcasecmp(const str1,str2: PAnsiChar): longint; cdecl; external 'c' name 'strcasecmp';
 
- function StrIComp(Str1, Str2 : PChar): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+ function StrIComp(Str1, Str2 : PAnsiChar): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
    Begin
      stricomp := libc_strcasecmp(str1,str2);
    end;
@@ -108,9 +108,9 @@
 
 {$ifndef FPC_UNIT_HAS_STRLCOMP}
 {$define FPC_UNIT_HAS_STRLCOMP}
- function libc_strncmp(const str1,str2: pchar; l: sizeint): longint; cdecl; external 'c' name 'strncmp';
+ function libc_strncmp(const str1,str2: PAnsiChar; l: sizeint): longint; cdecl; external 'c' name 'strncmp';
 
- function StrLComp(Str1, Str2 : PChar; L: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+ function StrLComp(Str1, Str2 : PAnsiChar; L: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
    Begin
      strlcomp := libc_strncmp(str1,str2,l);
    end;
@@ -119,9 +119,9 @@
 
 {$ifndef FPC_UNIT_HAS_STRLICOMP}
 {$define FPC_UNIT_HAS_STRLICOMP}
- function libc_strncasecmp(const str1,str2: pchar; l: sizeint): longint; cdecl; external 'c' name 'strncasecmp';
+ function libc_strncasecmp(const str1,str2: PAnsiChar; l: sizeint): longint; cdecl; external 'c' name 'strncasecmp';
 
- function StrLIComp(Str1, Str2 : PChar; L: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+ function StrLIComp(Str1, Str2 : PAnsiChar; L: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
    Begin
      strlicomp := libc_strncasecmp(str1,str2,l);
    end;

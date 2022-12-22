@@ -242,7 +242,7 @@ var
   index : TFilePos;
   baseaddr : {$ifdef cpui8086}farpointer{$else}pointer{$endif};
   filename,
-  dbgfn : string;
+  dbgfn : ansistring;
   lastfilename: string;   { store last processed file }
   lastopendwarf: Boolean; { store last result of processing a file }
 
@@ -521,7 +521,7 @@ begin
   i := 1;
   temp := ReadNext();
   while (temp > 0) do begin
-    ReadString[i] := char(temp);
+    ReadString[i] := AnsiChar(temp);
     if (i = 255) then begin
       { skip remaining characters }
       repeat

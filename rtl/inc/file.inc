@@ -46,7 +46,7 @@ Begin
     UnicodeString(FileRec(f).FullName):=Name;
 {$endif USE_FILEREC_FULLNAME}
 {$endif FPC_ANSI_TEXTFILEREC}
-  { null terminate, since the name array is regularly used as p(wide)char }
+  { null terminate, since the name array is regularly used as p(wide/Ansi)Char }
   FileRec(f).Name[high(FileRec(f).Name)]:=#0;
 End;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
@@ -73,7 +73,7 @@ Begin
     UnicodeString(FileRec(f).FullName):=Name;
 {$endif USE_FILEREC_FULLNAME}
 {$endif FPC_ANSI_TEXTFILEREC}
-  { null terminate, since the name array is regularly used as p(wide)char }
+  { null terminate, since the name array is regularly used as p(wide/Ansi)Char }
   FileRec(f).Name[high(FileRec(f).Name)]:=#0;
 End;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
@@ -89,7 +89,7 @@ Begin
   InitFile(f);
   { warning: no encoding support }
   FileRec(f).Name:=Name;
-  { null terminate, since the name array is regularly used as p(wide)char }
+  { null terminate, since the name array is regularly used as p(wide/Ansi)Char }
   FileRec(f).Name[high(FileRec(f).Name)]:=#0;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 End;
@@ -629,11 +629,11 @@ Begin
 End;
 {$else FPC_HAS_FEATURE_ANSISTRINGS}
 var
-  p : array[0..255] Of Char;
+  p : array[0..255] Of AnsiChar;
 Begin
   Move(s[1],p,Length(s));
   p[Length(s)]:=#0;
-  Rename(f,Pchar(@p));
+  Rename(f,PAnsichar(@p));
 End;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 

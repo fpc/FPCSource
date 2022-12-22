@@ -77,7 +77,7 @@ unit charset;
     function getmap(cp : word) : punicodemap;
     function mappingavailable(const s : string) : boolean;inline;
     function mappingavailable(cp :word) : boolean;inline;
-    function getunicode(c : char;p : punicodemap) : tunicodechar;inline;
+    function getunicode(c : AnsiChar;p : punicodemap) : tunicodechar;inline;
     function getunicode(
       AAnsiStr : pansichar;
       AAnsiLen : LongInt;
@@ -609,7 +609,7 @@ unit charset;
          mappingavailable:=getmap(cp)<>nil;
       end;
 
-    function getunicode(c : char;p : punicodemap) : tunicodechar;
+    function getunicode(c : AnsiChar;p : punicodemap) : tunicodechar;
 
       begin
          if ord(c)<=p^.lastchar then

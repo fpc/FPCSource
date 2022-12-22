@@ -13,7 +13,7 @@
  **********************************************************************}
 
 {$ifndef FPC_UNIT_HAS_STREND}
- Function StrEnd(P: PChar): PChar;
+ Function StrEnd(P: PAnsiChar): PAnsiChar;
  var
   counter: SizeInt;
  begin
@@ -36,7 +36,7 @@
   happen to overlap. So do it in a bit more reliable way.
   Also this implementation should not need per-platform optimization,
   given that IndexByte and Move are optimized. }
- Function StrCopy(Dest, Source:PChar): PChar;
+ Function StrCopy(Dest, Source:PAnsiChar): PAnsiChar;
  var
    counter : SizeInt;
  Begin
@@ -50,7 +50,7 @@
 
 
 {$ifndef FPC_UNIT_HAS_STRUPPER}
- function StrUpper(P: PChar): PChar;
+ function StrUpper(P: PAnsiChar): PAnsiChar;
  var
   counter: SizeInt;
  begin
@@ -67,7 +67,7 @@
 
 
 {$ifndef FPC_UNIT_HAS_STRLOWER}
- function StrLower(P: PChar): PChar;
+ function StrLower(P: PAnsiChar): PAnsiChar;
  var
   counter: SizeInt;
  begin
@@ -85,7 +85,7 @@
 
 
 {$ifndef FPC_UNIT_HAS_STRSCAN}
- function StrScan(P: PChar; C: Char): PChar;
+ function StrScan(P: PAnsiChar; C: AnsiChar): PAnsiChar;
    Var
      count: SizeInt;
   Begin
@@ -113,10 +113,10 @@
 
 
 {$ifndef FPC_UNIT_HAS_STRISCAN}
- function StrIScan(P: PChar; C: Char): PChar;
+ function StrIScan(P: PAnsiChar; C: AnsiChar): PAnsiChar;
    Var
      count: SizeInt;
-     UC: Char;
+     UC: AnsiChar;
   Begin
    UC := upcase(C);
    count := 0;
@@ -143,7 +143,7 @@
 
 
 {$ifndef FPC_UNIT_HAS_STRRSCAN}
- function StrRScan(P: PChar; C: Char): PChar;
+ function StrRScan(P: PAnsiChar; C: AnsiChar): PAnsiChar;
  Var
   count: SizeInt;
   index: SizeInt;
@@ -171,11 +171,11 @@
 
 
 {$ifndef FPC_UNIT_HAS_STRRISCAN}
- function StrRIScan(P: PChar; C: Char): PChar;
+ function StrRIScan(P: PAnsiChar; C: AnsiChar): PAnsiChar;
  Var
   count: SizeInt;
   index: SizeInt;
-  UC: Char;
+  UC: AnsiChar;
  Begin
    UC := upcase(C);
    count := Strlen(P);
@@ -201,7 +201,7 @@
 
 
 {$ifndef FPC_UNIT_HAS_STRECOPY}
-  Function StrECopy(Dest, Source: PChar): PChar;
+  Function StrECopy(Dest, Source: PAnsiChar): PAnsiChar;
  { Equivalent to the following:                                          }
  {  strcopy(Dest,Source);                                                }
  {  StrECopy := StrEnd(Dest);                                            }
@@ -217,7 +217,7 @@
 
 
 {$ifndef FPC_UNIT_HAS_STRLCOPY}
- Function StrLCopy(Dest,Source: PChar; MaxLen: SizeInt): PChar;
+ Function StrLCopy(Dest,Source: PAnsiChar; MaxLen: SizeInt): PAnsiChar;
   var
    counter: SizeInt;
  Begin
@@ -230,7 +230,7 @@
    end;
    while (Source[counter] <> #0)  and (counter < MaxLen) do
    Begin
-      Dest[counter] := char(Source[counter]);
+      Dest[counter] := AnsiChar(Source[counter]);
       Inc(counter);
    end;
    { terminate the string }
@@ -241,7 +241,7 @@
 
 
 {$ifndef FPC_UNIT_HAS_STRCOMP}
- function StrComp(Str1, Str2 : PChar): SizeInt;
+ function StrComp(Str1, Str2 : PAnsiChar): SizeInt;
      var
       counter: SizeInt;
      Begin
@@ -258,10 +258,10 @@
 
 
 {$ifndef FPC_UNIT_HAS_STRICOMP}
-     function StrIComp(Str1, Str2 : PChar): SizeInt;
+     function StrIComp(Str1, Str2 : PAnsiChar): SizeInt;
      var
       counter: SizeInt;
-      c1, c2: char;
+      c1, c2: AnsiChar;
      Begin
         counter := 0;
         c1 := upcase(str1[counter]);
@@ -279,10 +279,10 @@
 
 
 {$ifndef FPC_UNIT_HAS_STRLCOMP}
-     function StrLComp(Str1, Str2 : PChar; L: SizeInt): SizeInt;
+     function StrLComp(Str1, Str2 : PAnsiChar; L: SizeInt): SizeInt;
      var
       counter: SizeInt;
-      c1, c2: char;
+      c1, c2: AnsiChar;
      Begin
         counter := 0;
        if L = 0 then
@@ -302,10 +302,10 @@
 
 
 {$ifndef FPC_UNIT_HAS_STRLICOMP}
-     function StrLIComp(Str1, Str2 : PChar; L: SizeInt): SizeInt;
+     function StrLIComp(Str1, Str2 : PAnsiChar; L: SizeInt): SizeInt;
      var
       counter: SizeInt;
-      c1, c2: char;
+      c1, c2: AnsiChar;
      Begin
         counter := 0;
        if L = 0 then

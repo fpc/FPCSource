@@ -17,7 +17,7 @@
                              Utility functions
 *****************************************************************************)
 
-function Is_IntResource(aStr : pchar) : boolean; {$ifdef SYSTEMINLINE}inline;{$endif}
+function Is_IntResource(aStr : PAnsiChar) : boolean; {$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   Result:=((PtrUInt(aStr) shr 16)=0);
 end;
@@ -35,38 +35,38 @@ end;
 Function FindResource(ModuleHandle: TFPResourceHMODULE; const ResourceName, ResourceType: AnsiString): TFPResourceHandle;
 
 begin
-  Result:=FindResource(ModuleHandle,PChar(ResourceName),PChar(ResourceType));
+  Result:=FindResource(ModuleHandle,PAnsiChar(ResourceName),PAnsiChar(ResourceType));
 end;
 
 Function FindResourceEx(ModuleHandle: TFPResourceHMODULE; const ResourceType, ResourceName: AnsiString; Language : word): TFPResourceHandle;
 
 begin
-  Result:=FindResourceEx(ModuleHandle,PChar(ResourceType),PChar(ResourceName),Language);
+  Result:=FindResourceEx(ModuleHandle,PAnsiChar(ResourceType),PAnsiChar(ResourceName),Language);
 end;
 
 {$ifndef Win16}
-Function FindResource(ModuleHandle: TFPResourceHMODULE; const ResourceName: AnsiString; ResourceType: PChar): TFPResourceHandle;
+Function FindResource(ModuleHandle: TFPResourceHMODULE; const ResourceName: AnsiString; ResourceType: PAnsiChar): TFPResourceHandle;
 
 begin
-  Result:=FindResource(ModuleHandle,PChar(ResourceName),ResourceType);
+  Result:=FindResource(ModuleHandle,PAnsiChar(ResourceName),ResourceType);
 end;
 
-Function FindResourceEx(ModuleHandle: TFPResourceHMODULE; ResourceType: PChar; const ResourceName: AnsiString; Language : word): TFPResourceHandle;
+Function FindResourceEx(ModuleHandle: TFPResourceHMODULE; ResourceType: PAnsiChar; const ResourceName: AnsiString; Language : word): TFPResourceHandle;
 
 begin
-  Result:=FindResourceEx(ModuleHandle,ResourceType,PChar(ResourceName),Language);
+  Result:=FindResourceEx(ModuleHandle,ResourceType,PAnsiChar(ResourceName),Language);
 end;
 
-Function FindResource(ModuleHandle: TFPResourceHMODULE; ResourceName: PChar; const ResourceType: AnsiString): TFPResourceHandle;
+Function FindResource(ModuleHandle: TFPResourceHMODULE; ResourceName: PAnsiChar; const ResourceType: AnsiString): TFPResourceHandle;
 
 begin
-  Result:=FindResource(ModuleHandle,ResourceName,PChar(ResourceType));
+  Result:=FindResource(ModuleHandle,ResourceName,PAnsiChar(ResourceType));
 end;
 
-Function FindResourceEx(ModuleHandle: TFPResourceHMODULE; const ResourceType: AnsiString; ResourceName: PChar; Language : word): TFPResourceHandle;
+Function FindResourceEx(ModuleHandle: TFPResourceHMODULE; const ResourceType: AnsiString; ResourceName: PAnsiChar; Language : word): TFPResourceHandle;
 
 begin
-  Result:=FindResourceEx(ModuleHandle,PChar(ResourceType),ResourceName,Language);
+  Result:=FindResourceEx(ModuleHandle,PAnsiChar(ResourceType),ResourceName,Language);
 end;
 {$endif Win16}
 {$endif}
@@ -87,22 +87,22 @@ begin
   Result:=False;
 end;
 
-Function DefaultEnumResourceNames(ModuleHandle : TFPResourceHMODULE; ResourceType : PChar; EnumFunc : EnumResNameProc; lParam : PtrInt) : LongBool;
+Function DefaultEnumResourceNames(ModuleHandle : TFPResourceHMODULE; ResourceType : PAnsiChar; EnumFunc : EnumResNameProc; lParam : PtrInt) : LongBool;
 begin
   Result:=False;
 end;
 
-Function DefaultEnumResourceLanguages(ModuleHandle : TFPResourceHMODULE; ResourceType, ResourceName : PChar; EnumFunc : EnumResLangProc; lParam : PtrInt) : LongBool;
+Function DefaultEnumResourceLanguages(ModuleHandle : TFPResourceHMODULE; ResourceType, ResourceName : PAnsiChar; EnumFunc : EnumResLangProc; lParam : PtrInt) : LongBool;
 begin
   Result:=False;
 end;
 
-Function DefaultFindResource(ModuleHandle: TFPResourceHMODULE; ResourceName, ResourceType: PChar): TFPResourceHandle;
+Function DefaultFindResource(ModuleHandle: TFPResourceHMODULE; ResourceName, ResourceType: PAnsiChar): TFPResourceHandle;
 begin
   Result:=0;
 end;
 
-Function DefaultFindResourceEx(ModuleHandle: TFPResourceHMODULE; ResourceType, ResourceName: PChar; Language : word): TFPResourceHandle;
+Function DefaultFindResourceEx(ModuleHandle: TFPResourceHMODULE; ResourceType, ResourceName: PAnsiChar; Language : word): TFPResourceHandle;
 begin
   Result:=0;
 end;
@@ -179,23 +179,23 @@ begin
   Result:=resourcemanager.EnumResourceTypesFunc(ModuleHandle,EnumFunc,lParam);
 end;
 
-Function EnumResourceNames(ModuleHandle : TFPResourceHMODULE; ResourceType : PChar; EnumFunc : EnumResNameProc; lParam : PtrInt) : LongBool;
+Function EnumResourceNames(ModuleHandle : TFPResourceHMODULE; ResourceType : PAnsiChar; EnumFunc : EnumResNameProc; lParam : PtrInt) : LongBool;
 begin
   Result:=resourcemanager.EnumResourceNamesFunc(ModuleHandle,ResourceType,EnumFunc,lParam);
 end;
 
-Function EnumResourceLanguages(ModuleHandle : TFPResourceHMODULE; ResourceType, ResourceName : PChar; EnumFunc : EnumResLangProc; lParam : PtrInt) : LongBool;
+Function EnumResourceLanguages(ModuleHandle : TFPResourceHMODULE; ResourceType, ResourceName : PAnsiChar; EnumFunc : EnumResLangProc; lParam : PtrInt) : LongBool;
 begin
   Result:=resourcemanager.EnumResourceLanguagesFunc(ModuleHandle,ResourceType,ResourceName,EnumFunc,lParam);
 end;
 
 {$ifndef Win16}
-Function FindResource(ModuleHandle: TFPResourceHMODULE; ResourceName, ResourceType: PChar): TFPResourceHandle;
+Function FindResource(ModuleHandle: TFPResourceHMODULE; ResourceName, ResourceType: PAnsiChar): TFPResourceHandle;
 begin
   Result:=resourcemanager.FindResourceFunc(ModuleHandle,ResourceName,ResourceType);
 end;
 
-Function FindResourceEx(ModuleHandle: TFPResourceHMODULE; ResourceType, ResourceName: PChar; Language : word): TFPResourceHandle;
+Function FindResourceEx(ModuleHandle: TFPResourceHMODULE; ResourceType, ResourceName: PAnsiChar; Language : word): TFPResourceHandle;
 begin
   Result:=resourcemanager.FindResourceExFunc(ModuleHandle,ResourceType,ResourceName,Language);
 end;

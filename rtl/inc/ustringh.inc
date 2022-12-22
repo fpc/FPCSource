@@ -17,7 +17,7 @@
 
 Procedure UniqueString (Var S : UnicodeString);{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Pos (Const Substr : UnicodeString; Const Source : UnicodeString; Offset: Sizeint = 1) : SizeInt;
-Function Pos (c : Char; Const s : UnicodeString; Offset: Sizeint = 1) : SizeInt;
+Function Pos (c : AnsiChar; Const s : UnicodeString; Offset: Sizeint = 1) : SizeInt;
 Function Pos (c : UnicodeChar; Const s : UnicodeString; Offset: Sizeint = 1) : SizeInt;
 Function Pos (const c : RawByteString; Const s : UnicodeString; Offset: Sizeint = 1) : SizeInt;
 Function Pos (const c : UnicodeString; Const s : RawByteString; Offset: Sizeint = 1) : SizeInt;
@@ -33,7 +33,7 @@ Procedure Insert (Const Source : UnicodeString; Var S : UnicodeString; Index : S
 Procedure Delete (Var S : UnicodeString; Index,Size: SizeInt);
 {$endif VER3_0}
 Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_unicodestr_pwidechar{$else}SetString{$endif}(Out S : UnicodeString; Buf : PUnicodeChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
-Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_unicodestr_pansichar{$else}SetString{$endif}(Out S : UnicodeString; Buf : PChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
+Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_unicodestr_pansichar{$else}SetString{$endif}(Out S : UnicodeString; Buf : PAnsiChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
 
 function WideCharToString(S : PWideChar) : UnicodeString;
 function StringToWideChar(const Src : RawByteString;Dest : PWideChar;DestSize : SizeInt) : PWideChar;
@@ -51,7 +51,7 @@ procedure UnicodeCharLenToStrVar(Src : PUnicodeChar;Len : SizeInt;out Dest : Ans
 procedure UnicodeCharToStrVar(S : PUnicodeChar;out Dest : AnsiString);
 
 procedure DefaultUnicode2AnsiMove(source:punicodechar;var dest:RawByteString;cp : TSystemCodePage;len:SizeInt);
-procedure DefaultAnsi2UnicodeMove(source:pchar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt);
+procedure DefaultAnsi2UnicodeMove(source:pansichar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt);
 
 Type
   { please only enable options below after creating a test program for them that
@@ -73,7 +73,7 @@ Type
     please add new procedures at the end, it makes it easier to detect new procedures }
   TUnicodeStringManager = record
     Wide2AnsiMoveProc : procedure(source:pwidechar;var dest:RawByteString;cp : TSystemCodePage;len:SizeInt);
-    Ansi2WideMoveProc : procedure(source:pchar;cp : TSystemCodePage;var dest:widestring;len:SizeInt);
+    Ansi2WideMoveProc : procedure(source:pansichar;cp : TSystemCodePage;var dest:widestring;len:SizeInt);
 
 //    UpperUTF8 : procedure(p:PUTF8String);
 
@@ -94,29 +94,29 @@ Type
       code point is encountered, all characters part of this invalid code point
       are considered to form one "character" and the next character is
       considered to be the start of a new (possibly also invalid) code point }
-    CharLengthPCharProc : function(const Str: PChar): PtrInt;
+    CharLengthPCharProc : function(const Str: PAnsiChar): PtrInt;
     { return value:
       -1 if incomplete or invalid code point
       0 if NULL character,
       > 0 if that's the length in bytes of the code point }
-    CodePointLengthProc : function(const Str: PChar; MaxLookAead: PtrInt): Ptrint;
+    CodePointLengthProc : function(const Str: PAnsiChar; MaxLookAead: PtrInt): Ptrint;
 
     UpperAnsiStringProc : function(const s : ansistring) : ansistring;
     LowerAnsiStringProc : function(const s : ansistring) : ansistring;
     CompareStrAnsiStringProc : function(const S1, S2: ansistring): PtrInt;
     CompareTextAnsiStringProc : function(const S1, S2: ansistring): PtrInt;
-    StrCompAnsiStringProc : function(S1, S2: PChar): PtrInt;
-    StrICompAnsiStringProc : function(S1, S2: PChar): PtrInt;
-    StrLCompAnsiStringProc : function(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
-    StrLICompAnsiStringProc : function(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
-    StrLowerAnsiStringProc : function(Str: PChar): PChar;
-    StrUpperAnsiStringProc : function(Str: PChar): PChar;
+    StrCompAnsiStringProc : function(S1, S2: PAnsiChar): PtrInt;
+    StrICompAnsiStringProc : function(S1, S2: PAnsiChar): PtrInt;
+    StrLCompAnsiStringProc : function(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
+    StrLICompAnsiStringProc : function(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
+    StrLowerAnsiStringProc : function(Str: PAnsiChar): PAnsiChar;
+    StrUpperAnsiStringProc : function(Str: PAnsiChar): PAnsiChar;
     ThreadInitProc : procedure;
     ThreadFiniProc : procedure;
 
     { this is only different on windows }
     Unicode2AnsiMoveProc : procedure(source:punicodechar;var dest:RawByteString;cp : TSystemCodePage;len:SizeInt);
-    Ansi2UnicodeMoveProc : procedure(source:pchar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt);
+    Ansi2UnicodeMoveProc : procedure(source:pansichar;cp : TSystemCodePage;var dest:unicodestring;len:SizeInt);
     UpperUnicodeStringProc : function(const S: UnicodeString): UnicodeString;
     LowerUnicodeStringProc : function(const S: UnicodeString): UnicodeString;
     CompareUnicodeStringProc : function(const s1, s2 : UnicodeString; Options : TCompareOptions) : PtrInt;
@@ -131,11 +131,11 @@ Type
 var
   widestringmanager : TUnicodeStringManager;
 
-function UnicodeToUtf8(Dest: PChar; Source: PUnicodeChar; MaxBytes: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PUnicodeChar; SourceChars: SizeUInt): SizeUInt;
-function Utf8ToUnicode(Dest: PUnicodeChar; Source: PChar; MaxChars: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-function Utf8ToUnicode(Dest: PUnicodeChar; MaxDestChars: SizeUInt; Source: PChar; SourceBytes: SizeUInt): SizeUInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-function Utf8ToUnicode(Dest: PUnicodeChar; MaxDestChars: SizeUInt; Source: PChar; SourceBytes: SizeUInt; IgnoreInvalid : Boolean): SizeUInt;
+function UnicodeToUtf8(Dest: PAnsiChar; Source: PUnicodeChar; MaxBytes: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+function UnicodeToUtf8(Dest: PAnsiChar; MaxDestBytes: SizeUInt; Source: PUnicodeChar; SourceChars: SizeUInt): SizeUInt;
+function Utf8ToUnicode(Dest: PUnicodeChar; Source: PAnsiChar; MaxChars: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+function Utf8ToUnicode(Dest: PUnicodeChar; MaxDestChars: SizeUInt; Source: PAnsiChar; SourceBytes: SizeUInt): SizeUInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+function Utf8ToUnicode(Dest: PUnicodeChar; MaxDestChars: SizeUInt; Source: PAnsiChar; SourceBytes: SizeUInt; IgnoreInvalid : Boolean): SizeUInt;
 function UTF8Encode(const s : RawByteString) : RawByteString; inline;
 function UTF8Encode(const s : UnicodeString) : RawByteString;
 function UTF8Decode(const s : RawByteString): UnicodeString;

@@ -178,7 +178,7 @@ begin
     tkWstring,tkUString,
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
     tkInterface:
-      PPchar(Data)^:=Nil;
+      PPAnsiChar(Data)^:=Nil;
     tkArray:
       arrayrtti(data,typeinfo,@int_initialize);
 {$ifdef FPC_HAS_FEATURE_OBJECTS}

@@ -35,7 +35,7 @@ type
   TGetProcAddressHandler = function(Lib: TLibHandle; const ProcName: AnsiString): {$ifdef cpui8086}FarPointer{$else}Pointer{$endif};
   TGetProcAddressOrdinalHandler = function(Lib: TLibHandle; Ordinal: TOrdinalEntry): {$ifdef cpui8086}FarPointer{$else}Pointer{$endif};
   TUnloadLibraryHandler = function(Lib: TLibHandle): Boolean;
-  TGetLoadErrorStrHandler = function: String;
+  TGetLoadErrorStrHandler = function: AnsiString;
 
   TDynLibsManager = record
     LoadLibraryU: TLoadLibraryUHandler;

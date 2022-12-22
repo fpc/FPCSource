@@ -58,9 +58,9 @@ end;
 
 {$ifndef FPC_HAS_SHORTSTR_CHARARRAY_INTERN_CHARMOVE}
 {$define FPC_HAS_SHORTSTR_CHARARRAY_INTERN_CHARMOVE}
-procedure fpc_shortstr_chararray_intern_charmove(const src: shortstring; out dst: array of char; const len: sizeint);
+procedure fpc_shortstr_chararray_intern_charmove(const src: shortstring; out dst: array of ansichar; const len: sizeint);
 begin
-  move(src[1],pchar(@dst)^,len);
+  move(src[1],PAnsiChar(@dst)^,len);
 end;
 {$endif FPC_HAS_SHORTSTR_CHARARRAY_INTERN_CHARMOVE}
 
@@ -619,7 +619,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_INDEXCHAR0}
-function IndexChar0(Const buf;len:SizeInt;b:Char):SizeInt;
+function IndexChar0(Const buf;len:SizeInt;b:AnsiChar):SizeInt;
 var
   psrc,pend : pbyte;
 begin
@@ -826,7 +826,7 @@ begin
     len:=slen;
   move(sstr^,dstr^,len+1);
   if slen>len then
-    pchar(dstr)^:=chr(len);
+    PAnsiChar(dstr)^:=chr(len);
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
@@ -991,7 +991,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
 
-procedure fpc_pchar_to_shortstr(out res : shortstring;p:pchar);[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc;
+procedure fpc_pchar_to_shortstr(out res : shortstring;p:PAnsiChar);[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc;
 var
   l : ObjpasInt;
   s: shortstring;
@@ -1014,10 +1014,10 @@ end;
 {$ifndef cpujvm}
 
 { also define alias which can be used inside the system unit }
-procedure fpc_pchar_to_shortstr(out res : shortstring;p:pchar);[external name 'FPC_PCHAR_TO_SHORTSTR'];
+procedure fpc_pchar_to_shortstr(out res : shortstring;p:PAnsiChar);[external name 'FPC_PCHAR_TO_SHORTSTR'];
 
 
-function strpas(p:pchar):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
+function strpas(p:PAnsiChar):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     fpc_pchar_to_shortstr(result,p);
   end;
@@ -1264,7 +1264,7 @@ function Utf8CodePointLen(P: PAnsiChar; MaxLookAhead: SizeInt; IncludeCombiningD
 
 {$ifndef FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
 
-procedure fpc_chararray_to_shortstr(out res : shortstring;const arr: array of char; zerobased: boolean = true);[public,alias:'FPC_CHARARRAY_TO_SHORTSTR']; compilerproc;
+procedure fpc_chararray_to_shortstr(out res : shortstring;const arr: array of AnsiChar; zerobased: boolean = true);[public,alias:'FPC_CHARARRAY_TO_SHORTSTR']; compilerproc;
 var
  l: ObjpasInt;
  index: ObjpasInt;
@@ -1294,7 +1294,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_TO_CHARARRAY}
 
-procedure fpc_shortstr_to_chararray(out res: array of char; const src: ShortString); compilerproc;
+procedure fpc_shortstr_to_chararray(out res: array of AnsiChar; const src: ShortString); compilerproc;
 var
   len: ObjpasInt;
 begin
@@ -1302,7 +1302,7 @@ begin
   if len > length(res) then
     len := length(res);
 {$push}{$r-}
-  { make sure we don't access char 1 if length is 0 (JM) }
+  { make sure we don't access AnsiChar 1 if length is 0 (JM) }
   if len > 0 then
     move(src[1],res[0],len);
   fillchar(res[len],length(res)-len,0);
@@ -1313,7 +1313,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 
-function fpc_pchar_length(p:pchar):sizeint;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc;
+function fpc_pchar_length(p:PAnsiChar):sizeint;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc;
 begin
   if assigned(p) then
     Result:=IndexByte(p^,high(Result),0)
@@ -2487,7 +2487,7 @@ var
   m,m1 : longword;
   pcstart,
   pc2start,
-  pc,pc2 : pchar;
+  pc,pc2 : PAnsiChar;
   hs : string[32];
   overflow : longint;
 begin
@@ -2501,12 +2501,12 @@ begin
     end
   else
     m:=longword(l);
-  pcstart:=pchar(@hs[0]);
+  pcstart:=PAnsiChar(@hs[0]);
   pc:=pcstart;
   repeat
     m1:=m div 10;
     inc(pc);
-    pc^:=char(m-(m1*10)+byte('0'));
+    pc^:=AnsiChar(m-(m1*10)+byte('0'));
     m:=m1;
   until m=0;
   overflow:=(pc-pcstart)+(pc2-pc2start)-high(s);
@@ -2518,7 +2518,7 @@ begin
       inc(pc2);
       dec(pc);
     end;
-  s[0]:=char(pc2-pc2start);
+  s[0]:=AnsiChar(pc2-pc2start);
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_LONGINT}
@@ -2530,18 +2530,18 @@ var
   m1 : longword;
   pcstart,
   pc2start,
-  pc,pc2 : pchar;
+  pc,pc2 : PAnsiChar;
   hs : string[32];
   overflow : longint;
 begin
   pc2start:=@s[1];
   pc2:=pc2start;
-  pcstart:=pchar(@hs[0]);
+  pcstart:=PAnsiChar(@hs[0]);
   pc:=pcstart;
   repeat
     inc(pc);
     m1:=l div 10;
-    pc^:=char(l-(m1*10)+byte('0'));
+    pc^:=AnsiChar(l-(m1*10)+byte('0'));
     l:=m1;
   until l=0;
   overflow:=(pc-pcstart)-high(s);
@@ -2553,7 +2553,7 @@ begin
       inc(pc2);
       dec(pc);
     end;
-  s[0]:=char(pc2-pc2start);
+  s[0]:=AnsiChar(pc2-pc2start);
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_LONGWORD}
@@ -2570,7 +2570,7 @@ var
   m,m1 : qword;
   pcstart,
   pc2start,
-  pc,pc2 : pchar;
+  pc,pc2 : PAnsiChar;
   hs : string[32];
   overflow : longint;
 begin
@@ -2584,12 +2584,12 @@ begin
     end
   else
     m:=qword(l);
-  pcstart:=pchar(@hs[0]);
+  pcstart:=PAnsiChar(@hs[0]);
   pc:=pcstart;
   repeat
     m1:=m div 10;
     inc(pc);
-    pc^:=char(m-(m1*10)+byte('0'));
+    pc^:=AnsiChar(m-(m1*10)+byte('0'));
     m:=m1;
   until m=0;
   overflow:=(pc-pcstart)+(pc2-pc2start)-high(s);
@@ -2601,7 +2601,7 @@ begin
       inc(pc2);
       dec(pc);
     end;
-  s[0]:=char(pc2-pc2start);
+  s[0]:=AnsiChar(pc2-pc2start);
 end;
 {$endif EXCLUDE_COMPLEX_PROCS}
 
@@ -2619,18 +2619,18 @@ var
   m1 : qword;
   pcstart,
   pc2start,
-  pc,pc2 : pchar;
+  pc,pc2 : PAnsiChar;
   hs : string[64];
   overflow : longint;
 begin
   pc2start:=@s[1];
   pc2:=pc2start;
-  pcstart:=pchar(@hs[0]);
+  pcstart:=PAnsiChar(@hs[0]);
   pc:=pcstart;
   repeat
     inc(pc);
     m1:=l div 10;
-    pc^:=char(l-(m1*10)+byte('0'));
+    pc^:=AnsiChar(l-(m1*10)+byte('0'));
     l:=m1;
   until l=0;
   overflow:=(pc-pcstart)-high(s);
@@ -2642,7 +2642,7 @@ begin
       inc(pc2);
       dec(pc);
     end;
-  s[0]:=char(pc2-pc2start);
+  s[0]:=AnsiChar(pc2-pc2start);
 end;
 {$endif EXCLUDE_COMPLEX_PROCS}
 

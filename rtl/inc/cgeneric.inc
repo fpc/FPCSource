@@ -120,9 +120,9 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 
-function libc_pchar_length(p:pchar):size_t; cdecl; external clib name 'strlen';
+function libc_pchar_length(p:PAnsiChar):size_t; cdecl; external clib name 'strlen';
 
-function fpc_pchar_length(p:pchar):sizeint;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc;
+function fpc_pchar_length(p:PAnsiChar):sizeint;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc;
 begin
   if assigned(p) then
     fpc_pchar_length:=libc_pchar_length(p)
