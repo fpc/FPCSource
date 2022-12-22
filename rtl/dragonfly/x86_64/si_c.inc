@@ -3,9 +3,9 @@ Type
     TCleanup = procedure; cdecl;
 
 var 
-  environ : ppchar; cvar; public  name '__environ';
-  progname: pchar = #0#0; cvar; public name '__progname';
-  dynamic : pchar;  external name '_DYNAMIC'; // #pragma weak
+  environ : PPAnsiChar; cvar; public  name '__environ';
+  progname: PAnsiChar = #0#0; cvar; public name '__progname';
+  dynamic : PAnsiChar;  external name '_DYNAMIC'; // #pragma weak
 
 procedure atexit(prc:TCleanup); cdecl external name 'atexit';
 procedure cleanup(prc:TCleanup); cdecl external name 'cleanup';			
@@ -13,7 +13,7 @@ procedure init_tls; cdecl; external name 'init_tls';
 procedure fini; cdecl; external name '_fini';
 procedure init; cdecl; external name '_init';
 procedure libc_exit(exitcode:longint);cdecl; external name 'exit';
-function  main(nrarg:longint;pp:ppchar;env:ppchar):longint; cdecl; external name 'main';
+function  main(nrarg:longint;pp:PPAnsiChar;env:PPAnsiChar):longint; cdecl; external name 'main';
 
 {$ifdef gcrt}
  procedure cmcleanup; cdecl; external name '_mcleanup';
@@ -24,16 +24,16 @@ var
  etext:longint; external name 'etext';
 {$endif}
 
-procedure start(ap:ppchar;cleanup:TCleanup);
+procedure start(ap:PPAnsiChar;cleanup:TCleanup);
 
 var argc: longint;
-    argv: ppchar;
-    env : ppchar;
-    s   : pchar;
+    argv: PPAnsiChar;
+    env : PPAnsiChar;
+    s   : PAnsiChar;
 begin
   argc:=plongint(ap)^; 
-  argv:=ppchar(ap[1]);
-  env:=	ppchar(ap[2+argc]);
+  argv:=PPAnsiChar(ap[1]);
+  env:=	PPAnsiChar(ap[2+argc]);
   environ:=env;
   if (argc>0) and (argv[0]<>#0) Then
    begin
@@ -46,7 +46,7 @@ begin
           inc(s);
 	end; 
     end;
-  if assigned(pchar(@dynamic)) then // I suspect this is a trick to find
+  if assigned(PAnsiChar(@dynamic)) then // I suspect this is a trick to find
 				    // out runtime if we are shared
 				    // linking, so the same code can be used
 				    // for static and shared linking

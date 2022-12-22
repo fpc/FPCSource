@@ -37,7 +37,7 @@ CONST
 
 Type
     ctlname = record
-                ctl_name : pchar;       {  subsystem name }
+                ctl_name : PAnsiChar;       {  subsystem name }
                 ctl_type : cint         {  type of name }
                End;
 
