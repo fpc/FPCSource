@@ -40,13 +40,13 @@ struct	__pthread_mutex_st {
 {$endif}
   record
     ptm_magic : dword { should be cuint};
-    ptm_errorcheck : char { should be pthread_spin_t};
+    ptm_errorcheck : AnsiChar { should be pthread_spin_t};
 {$ifdef __CPU_SIMPLE_LOCK_PAD}
-    ptm_pad : array[0..2] of char;
+    ptm_pad : array[0..2] of AnsiChar;
 {$endif _CPU_SIMPLE_LOCK_PAD}
-    ptm_interlock : char { should be pthread_spinn_t};
+    ptm_interlock : AnsiChar { should be pthread_spinn_t};
 {$ifdef __CPU_SIMPLE_LOCK_PAD}
-    ptm_pad2 : array[0..2] of char;
+    ptm_pad2 : array[0..2] of AnsiChar;
 {$endif _CPU_SIMPLE_LOCK_PAD}
     ptm_owner : pointer { should be pthread_t};
     ptm_waiter :  pointer { should be ppthread_t};
