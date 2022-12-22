@@ -130,9 +130,9 @@ type
    LPTSTR  = ^word;
    LPCTSTR = ^word;
 {$else FPC_OS_UNICODE}
-   LPTCH   = ^char;
-   LPTSTR  = ^char;
-   LPCTSTR = ^char;
+   LPTCH   = ^AnsiChar;
+   LPTSTR  = ^AnsiChar;
+   LPCTSTR = ^AnsiChar;
 {$endif FPC_OS_UNICODE}
    LPWSTR  = ^wchar;
    PVOID   = pointer;
@@ -140,8 +140,8 @@ type
    LPCVOID = pointer;
    LPDWORD = ^DWORD;
    HLocal  = THandle;
-   PStr    = pchar;
-   LPStr   = pchar;
+   PStr    = PAnsiChar;
+   LPStr   = PAnsiChar;
    PLPSTR  = ^LPSTR;
    PLPWSTR = ^LPWSTR;
 
@@ -150,7 +150,7 @@ type
      is not implemented for FPC
      va_list is just a dummy record
      MvdV: Nevertheless it should be a pointer type, not a record}
-   va_list = pchar;
+   va_list = PAnsiChar;
 
   PSecurityAttributes = ^TSecurityAttributes;
   TSecurityAttributes = record
@@ -270,7 +270,7 @@ type
   function GetModuleFileNameW(l1:THandle;p:PWideChar;l2:longint):longint;
     stdcall;external KernelDLL name 'GetModuleFileNameW';
 
-  function GetModuleHandle(p : PChar) : THandle;
+  function GetModuleHandle(p : PAnsiChar) : THandle;
     stdcall;external KernelDLL name 'GetModuleHandleA';
 
 {$else WINCE}
@@ -304,9 +304,9 @@ type
    function WinLoadLibraryW(lpLibFileName:pwidechar):THandle; {$ifdef wince}cdecl{$else}stdcall{$endif}; external KernelDLL name 'LoadLibraryW';
    function WinLoadLibraryA(lpLibFileName:pwidechar):THandle; {$ifdef wince}cdecl{$else}stdcall{$endif}; external KernelDLL name 'LoadLibraryA';
    {$ifdef wince}
-   function WinGetProcAddress(hModule:THandle; lpProcName:pchar):pointer; {$ifdef wince}cdecl{$else}stdcall{$endif}; external KernelDLL name 'GetProcAddressA';
+   function WinGetProcAddress(hModule:THandle; lpProcName:PAnsiChar):pointer; {$ifdef wince}cdecl{$else}stdcall{$endif}; external KernelDLL name 'GetProcAddressA';
    {$else}
-   function WinGetProcAddress(hModule:THandle; lpProcName:pchar):pointer; {$ifdef wince}cdecl{$else}stdcall{$endif}; external KernelDLL name 'GetProcAddress';
+   function WinGetProcAddress(hModule:THandle; lpProcName:PAnsiChar):pointer; {$ifdef wince}cdecl{$else}stdcall{$endif}; external KernelDLL name 'GetProcAddress';
    {$endif}
    function WinFreeLibrary(hLibModule:THandle):ByteBool; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'FreeLibrary';
 
@@ -411,7 +411,7 @@ type
   function StringToOleStr(const source : ansistring) : PWideChar;inline;
     begin
       result:=nil;
-      widestringmanager.Ansi2WideMoveProc(pchar(pointer(source)),StringCodePage(source),widestring(pointer(result)),length(source));
+      widestringmanager.Ansi2WideMoveProc(PAnsiChar(pointer(source)),StringCodePage(source),widestring(pointer(result)),length(source));
     end;
 
 
