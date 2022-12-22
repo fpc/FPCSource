@@ -129,7 +129,7 @@ Var
   Mode : TMode;
   S : String;
   I,L : Longint;
-  c : char;
+  c : AnsiChar;
 
    Procedure Add (A : String);
 
