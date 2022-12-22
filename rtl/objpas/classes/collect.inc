@@ -1,3 +1,4 @@
+{%MainUnit classes.pp}
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by the Free Pascal development team
