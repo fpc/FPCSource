@@ -24,11 +24,11 @@
 { Internal structure used by MSDOS }
 type
   MCB = packed record
-    sig : char;
+    sig : AnsiChar;
     psp : word;
     paragraphs : word;
-    res : array [0..2] of char;
-    exename : array [0..7] of char;
+    res : array [0..2] of AnsiChar;
+    exename : array [0..7] of AnsiChar;
   end;
   PMCB = ^MCB;
 {$endif def DEBUG_TINY_HEAP}
