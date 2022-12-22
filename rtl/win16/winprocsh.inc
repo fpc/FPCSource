@@ -193,8 +193,8 @@ function _lwrite(FileHandle: HFILE; Buffer: HugePointer; Bytes: UINT): UINT; ext
 function _lwrite(FileHandle: HFILE; Buffer: FarPointer; Bytes: UINT): UINT; external 'KERNEL';
 
 function GetTempFileName(DriveLetter: BYTE; PrefixString: LPCSTR; Unique: UINT; TempFileName: LPSTR): SmallInt; external 'KERNEL';
-function GetTempFileName(DriveLetter: Char; PrefixString: LPCSTR; Unique: UINT; TempFileName: LPSTR): SmallInt; external 'KERNEL';
-function GetTempDrive(DriveLetter: Char): BYTE; external 'KERNEL';
+function GetTempFileName(DriveLetter: AnsiChar; PrefixString: LPCSTR; Unique: UINT; TempFileName: LPSTR): SmallInt; external 'KERNEL';
+function GetTempDrive(DriveLetter: AnsiChar): BYTE; external 'KERNEL';
 
 function GetDriveType(Drive: SmallInt): UINT; external 'KERNEL';
 
@@ -246,7 +246,7 @@ function GetAtomHandle(atm: ATOM): HLOCAL; external 'KERNEL';
   function GetPrivateProfileString(lpszSection, lpszEntry, lpszDefault: LPCSTR; lpszReturnBuffer: LPSTR; cbReturnBuffer: SmallInt; lpszFilename: LPCSTR): SmallInt; external 'KERNEL';
   function WritePrivateProfileString(lpszSection, lpszEntry, lpszString, lpszFilename: LPCSTR): BOOL; external 'KERNEL';
 
-{ International & Char Translation Support }
+{ International & AnsiChar Translation Support }
 
 procedure AnsiToOem(hpszWindows, hpszOem: PHugeChar); external 'KEYBOARD';
 procedure AnsiToOem(hpszWindows, hpszOem: PFarChar); external 'KEYBOARD';
@@ -266,10 +266,10 @@ function AnsiUpperBuff(lpszString: LPSTR; cbString: UINT): UINT; external 'USER'
 function AnsiLowerBuff(lpszString: LPSTR; cbString: UINT): UINT; external 'USER';
 
 
-function IsCharAlpha(chTest: char): BOOL; external 'USER';
-function IsCharAlphaNumeric(chTest: char): BOOL; external 'USER';
-function IsCharUpper(chTest: char): BOOL; external 'USER';
-function IsCharLower(chTest: char): BOOL; external 'USER';
+function IsCharAlpha(chTest: AnsiChar): BOOL; external 'USER';
+function IsCharAlphaNumeric(chTest: AnsiChar): BOOL; external 'USER';
+function IsCharUpper(chTest: AnsiChar): BOOL; external 'USER';
+function IsCharLower(chTest: AnsiChar): BOOL; external 'USER';
 
 function lstrcmp(lpszString1, lpszString2: LPCSTR): SmallInt; external 'USER';
 function lstrcmpi(lpszString1, lpszString2: LPCSTR): SmallInt; external 'USER';
@@ -1277,9 +1277,9 @@ function ReadComm(idComDev: SmallInt; lpvBuf: FarPointer; cbRead: SmallInt): Sma
 function ReadComm(idComDev: SmallInt; lpvBuf: PFarChar; cbRead: SmallInt): SmallInt; external 'USER';
 function WriteComm(idComDev: SmallInt; lpvBuf: FarPointer; cbWrite: SmallInt): SmallInt; external 'USER';
 function WriteComm(idComDev: SmallInt; lpvBuf: PFarChar; cbWrite: SmallInt): SmallInt; external 'USER';
-function UngetCommChar(idComDev: SmallInt; chUnget: char): SmallInt; external 'USER';
+function UngetCommChar(idComDev: SmallInt; chUnget: AnsiChar): SmallInt; external 'USER';
 function FlushComm(idComDev, fnQueue: SmallInt): SmallInt; external 'USER';
-function TransmitCommChar(idComDev: SmallInt; chTransmit: char): SmallInt; external 'USER';
+function TransmitCommChar(idComDev: SmallInt; chTransmit: AnsiChar): SmallInt; external 'USER';
 
 function SetCommState(lpdcb: LPDCB): SmallInt; external 'USER';
 function GetCommState(idComDev: SmallInt; lpdcb: LPDCB): SmallInt; external 'USER';

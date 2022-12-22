@@ -112,7 +112,7 @@ type
     flags: UINT;
     dwOptions: DWORD;
     dwFilter: DWORD;
-    achAllocModule: array [0..7] of char;
+    achAllocModule: array [0..7] of AnsiChar;
     dwAllocBreak: DWORD;
     dwAllocCount: DWORD;
   end;
@@ -307,8 +307,8 @@ type
   LPENUMLOGFONT = ^ENUMLOGFONT; far;
   ENUMLOGFONT = record
     elfLogFont: LOGFONT;
-    elfFullName: array [0..LF_FULLFACESIZE-1] of char;
-    elfStyle: array [0..LF_FACESIZE-1] of char;
+    elfFullName: array [0..LF_FULLFACESIZE-1] of AnsiChar;
+    elfStyle: array [0..LF_FACESIZE-1] of AnsiChar;
   end;
   TEnumLogFont = ENUMLOGFONT;
 
@@ -824,7 +824,7 @@ type
     length: UINT;
     hDriver: HDRVR;
     hModule: HINST;
-    szAliasName: array [0..127] of char;
+    szAliasName: array [0..127] of AnsiChar;
   end;
   TDriverInfoStruct = DRIVERINFOSTRUCT;
 
@@ -861,7 +861,7 @@ function IsTask(Task: HTASK): BOOL; external 'KERNEL';
 function _hread(FileHandle: HFILE; Buffer: HugePointer; Bytes: LongInt): LongInt; external 'KERNEL';
 function _hwrite(FileHandle: HFILE; Buffer: HugePointer; Bytes: LongInt): LongInt; external 'KERNEL';
 
-{ International & Char Translation Support }
+{ International & AnsiChar Translation Support }
 
 function lstrcpyn(lpszString1: LPSTR; lpszString2: LPCSTR; cChars: SmallInt): LPSTR; external 'KERNEL';
 procedure hmemcpy(hpvDest, hpvSource: HugePointer; cbCopy: LongInt); external 'KERNEL';
