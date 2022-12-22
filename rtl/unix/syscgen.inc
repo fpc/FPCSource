@@ -2,11 +2,11 @@
 // general purpose unix routines for syscall based *nix system unit.
 
 {$ifndef FPC_USE_LIBC}
-Function fpgetenv(name:pchar):pchar;[public, alias : 'FPC_SYSC_FPGETENVPCHAR'];
+Function fpgetenv(name:pansichar):pansichar;[public, alias : 'FPC_SYSC_FPGETENVPCHAR'];
 
 var
-  p     : ppchar;
-  np,cp : pchar;
+  p     : ppansichar;
+  np,cp : pansichar;
   len,i : longint;
 Begin
   if (name=nil) or (envp=NIL) Then

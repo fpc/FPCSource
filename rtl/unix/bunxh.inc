@@ -29,11 +29,11 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
 {$endif ndef FPC_SYS_SIGTIMEDWAIT_UNAVAILABLE}
 
     Function  FpUmask      (cmask : TMode): TMode;
-    Function  FpLink       (existing : pChar; newone : pChar): cInt;
-    Function  FpMkfifo     (path : pChar; Mode : TMode): cInt;
-    Function  FpChmod      (path : pChar; Mode : TMode): cInt;
-    Function  FpChown      (path : pChar; owner : TUid; group : TGid): cInt;
-    Function  FpUtime      (path : pChar; times : putimbuf): cInt;
+    Function  FpLink       (existing : PAnsiChar; newone : PAnsiChar): cInt;
+    Function  FpMkfifo     (path : PAnsiChar; Mode : TMode): cInt;
+    Function  FpChmod      (path : PAnsiChar; Mode : TMode): cInt;
+    Function  FpChown      (path : PAnsiChar; owner : TUid; group : TGid): cInt;
+    Function  FpUtime      (path : PAnsiChar; times : putimbuf): cInt;
 {$if defined(freebsd)}
     Function  FpPipe       (var fildes : tfildes; flags : cInt=0):cInt;
 {$else}
@@ -63,34 +63,34 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FpFcntl      (fildes : cInt; cmd : cInt; arg : cInt): cInt;
     Function  FpFcntl      (fildes : cInt; cmd : cInt; var arg : flock): cInt;
 
-    Function  FpGetcwd     (path:pChar; siz:TSize):pChar;  external name 'FPC_SYSC_GETCWD';
+    Function  FpGetcwd     (path:PAnsiChar; siz:TSize):PAnsiChar;  external name 'FPC_SYSC_GETCWD';
     Function  FpFork : TPid; external name 'FPC_SYSC_FORK';
-    Function  FpExecve     (path : pChar; argv : ppChar; envp: ppChar): cInt;
-    Function  FpExecv      (path : pChar; argv : ppChar): cInt;
+    Function  FpExecve     (path : PAnsiChar; argv : PPAnsiChar; envp: PPAnsiChar): cInt;
+    Function  FpExecv      (path : PAnsiChar; argv : PPAnsiChar): cInt;
     Function  FpWaitpid    (pid : TPid; stat_loc : pcInt; options: cInt): TPid; external name 'FPC_SYSC_WAITPID';
     Function  FpWait       (var stat_loc : cInt): TPid;
     Procedure FpExit       (Status : cInt);  external name 'FPC_SYSC_EXIT';
     Function  FpKill       (pid : TPid; sig: cInt): cInt;
     Function  FpUname      (var name: utsname): cInt;
-    Function  FpOpendir    (dirname : pChar): pDir;  external name 'FPC_SYSC_OPENDIR';
+    Function  FpOpendir    (dirname : PAnsiChar): pDir;  external name 'FPC_SYSC_OPENDIR';
     Function  FpReaddir    (var dirp : Dir) : pDirent; external name 'FPC_SYSC_READDIR';
     Function  FpClosedir   (var dirp : Dir): cInt; external name 'FPC_SYSC_CLOSEDIR';
-    Function  FpChdir      (path : pChar): cInt;  external name 'FPC_SYSC_CHDIR';
-    Function  FpOpen       (path : pChar; flags : cInt; Mode: TMode):cInt; external name 'FPC_SYSC_OPEN';
-    Function  FpMkdir      (path : pChar; Mode: TMode):cInt;  external name 'FPC_SYSC_MKDIR';
-    Function  FpUnlink     (path : pChar): cInt;  external name 'FPC_SYSC_UNLINK';
-    Function  FpRmdir      (path : pChar): cInt; external name 'FPC_SYSC_RMDIR';
-    Function  FpRename     (old  : pChar; newpath: pChar): cInt;   external name 'FPC_SYSC_RENAME';
+    Function  FpChdir      (path : PAnsiChar): cInt;  external name 'FPC_SYSC_CHDIR';
+    Function  FpOpen       (path : PAnsiChar; flags : cInt; Mode: TMode):cInt; external name 'FPC_SYSC_OPEN';
+    Function  FpMkdir      (path : PAnsiChar; Mode: TMode):cInt;  external name 'FPC_SYSC_MKDIR';
+    Function  FpUnlink     (path : PAnsiChar): cInt;  external name 'FPC_SYSC_UNLINK';
+    Function  FpRmdir      (path : PAnsiChar): cInt; external name 'FPC_SYSC_RMDIR';
+    Function  FpRename     (old  : PAnsiChar; newpath: PAnsiChar): cInt;   external name 'FPC_SYSC_RENAME';
     Function  FpFStat      (fd : cInt; var sb : stat): cInt; external name 'FPC_SYSC_FSTAT';
-    Function  FpStat       (path: pChar; var buf : stat): cInt;  external name 'FPC_SYSC_STAT';
-    Function  FpAccess     (pathname : pChar; aMode : cInt): cInt; external name 'FPC_SYSC_ACCESS';
+    Function  FpStat       (path: PAnsiChar; var buf : stat): cInt;  external name 'FPC_SYSC_STAT';
+    Function  FpAccess     (pathname : PAnsiChar; aMode : cInt): cInt; external name 'FPC_SYSC_ACCESS';
     Function  FpClose      (fd : cInt): cInt;  external name 'FPC_SYSC_CLOSE';
 
-    Function  FpRead       (fd : cInt; buf: pChar; nbytes : TSize): TSsize; external name 'FPC_SYSC_READ';
-    Function  FpPRead      (fd : cInt; buf: pChar; nbytes : TSize; offset:Toff): TSsize;
+    Function  FpRead       (fd : cInt; buf: PAnsiChar; nbytes : TSize): TSsize; external name 'FPC_SYSC_READ';
+    Function  FpPRead      (fd : cInt; buf: PAnsiChar; nbytes : TSize; offset:Toff): TSsize;
     function  FpReadV	   (fd: cint; const iov : piovec; iovcnt : cint):TSSize;
-    Function  FpWrite      (fd : cInt; buf:pChar; nbytes : TSize): TSsize;  external name 'FPC_SYSC_WRITE';
-    Function  FpPWrite     (fd : cInt; buf:pChar; nbytes : TSize; offset:Toff): TSSize;
+    Function  FpWrite      (fd : cInt; buf:PAnsiChar; nbytes : TSize): TSsize;  external name 'FPC_SYSC_WRITE';
+    Function  FpPWrite     (fd : cInt; buf:PAnsiChar; nbytes : TSize; offset:Toff): TSSize;
     function  FpWriteV	   (fd: cint; const iov : piovec; iovcnt : cint):TSSize;
 
     Function  FpLseek      (fd : cInt; offset : TOff; whence : cInt): TOff; external name 'FPC_SYSC_LSEEK';
@@ -101,9 +101,9 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FpPoll       (fds: ppollfd; nfds: cuint; timeout: clong): cint;
     Function  FpIOCtl      (Handle:cint;Ndx: TIOCtlRequest; Data: Pointer):cint; external name  'FPC_SYSC_IOCTL';
     Function  FpNanoSleep  (req : ptimespec;rem : ptimespec):cint; external name 'FPC_SYSC_NANOSLEEP';
-    Function  fpLstat(path:pchar;Info:pstat):cint;
-    Function  fpSymlink(oldname,newname:pchar):cint;
-    Function  fpReadLink(name,linkname:pchar;maxlen:size_t):cint; external name  'FPC_SYSC_READLINK';
+    Function  fpLstat(path:PAnsiChar;Info:pstat):cint;
+    Function  fpSymlink(oldname,newname:PAnsiChar):cint;
+    Function  fpReadLink(name,linkname:PAnsiChar;maxlen:size_t):cint; external name  'FPC_SYSC_READLINK';
 
     function  fpNice(N:cint):cint;
     Function  fpGetPriority(Which,Who:cint):cint;
@@ -112,7 +112,7 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  Fpmunmap(start:pointer;len:size_t):cint;  external name 'FPC_SYSC_MUNMAP';
     Function  Fpmprotect(start:pointer;len:size_t;prot:cint):cint; external name 'FPC_SYSC_MPROTECT';
 
-    Function  FpGetEnv (name : pChar): pChar; external name 'FPC_SYSC_FPGETENVPCHAR';
+    Function  FpGetEnv (name : PAnsiChar): PAnsiChar; external name 'FPC_SYSC_FPGETENVPCHAR';
     function  fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint;
 
     function FpGetRLimit(resource:cint;rlim:PRLimit):cint; external name 'FPC_SYSC_GETRLIMIT';

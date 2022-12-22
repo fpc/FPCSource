@@ -24,7 +24,7 @@ Begin
     Errno2Inoutres;
 End;
 
-Procedure Do_Erase(p: pchar; pchangeable: boolean);
+Procedure Do_Erase(p: PAnsiChar; pchangeable: boolean);
 var
  fileinfo : stat;
 Begin
@@ -60,7 +60,7 @@ end;
 
 
 
-Procedure Do_Rename(p1,p2:pchar; p1changeable, p2changeable: boolean);
+Procedure Do_Rename(p1,p2:PAnsiChar; p1changeable, p2changeable: boolean);
 Begin
   If Fprename(p1,p2)<0 Then
    Errno2Inoutres
@@ -147,7 +147,7 @@ Begin
    InOutRes:=0;
 End;
 
-Procedure Do_Open(var f; p: pchar; flags: longint; pchangeable: boolean);
+Procedure Do_Open(var f; p: PAnsiChar; flags: longint; pchangeable: boolean);
 {
   FileRec and textrec have both Handle and mode as the first items so
   they could use the same routine for opening/creating.

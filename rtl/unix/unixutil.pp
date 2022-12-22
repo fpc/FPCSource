@@ -27,22 +27,22 @@ unit unixutil;
 
 interface
 
-Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
-Function StringToPPChar(Var S:RawByteString;ReserveEntries:integer):ppchar;
-function ArrayStringToPPchar(const S:Array of RawByteString;reserveentries:Longint):ppchar; // const ?
+Function StringToPPChar(S: PAnsiChar;ReserveEntries:integer):PPAnsiChar;
+Function StringToPPChar(Var S:RawByteString;ReserveEntries:integer):PPAnsiChar;
+function ArrayStringToPPchar(const S:Array of RawByteString;reserveentries:Longint):PPAnsiChar; // const ?
 
 implementation
 
-function ArrayStringToPPchar(const S:Array of RawByteString;reserveentries:Longint):ppchar; // const ?
-// Extra allocate reserveentries pchar's at the beginning (default param=0 after 1.0.x ?)
+function ArrayStringToPPchar(const S:Array of RawByteString;reserveentries:Longint):PPAnsiChar; // const ?
+// Extra allocate reserveentries PAnsiChar's at the beginning (default param=0 after 1.0.x ?)
 // Note: for internal use by skilled programmers only
 // if "s" goes out of scope in the parent procedure, the pointer is dangling.
 
-var p   : ppchar;
+var p   : PPAnsiChar;
     i   : LongInt;
 begin
   if High(s)<Low(s) Then Exit(NIL);
-  Getmem(p,sizeof(pchar)*(high(s)-low(s)+ReserveEntries+2));  // one more for NIL, one more
+  Getmem(p,sizeof(PAnsiChar)*(high(s)-low(s)+ReserveEntries+2));  // one more for NIL, one more
                                               // for cmd
   if p=nil then
     begin
@@ -52,27 +52,27 @@ begin
       exit(NIL);
     end;
   for i:=low(s) to high(s) do
-     p[i+Reserveentries]:=pchar(s[i]);
+     p[i+Reserveentries]:=PAnsiChar(s[i]);
   p[high(s)+1+Reserveentries]:=nil;
   ArrayStringToPPchar:=p;
 end;
 
-Function StringToPPChar(Var S:RawByteString;ReserveEntries:integer):ppchar;
+Function StringToPPChar(Var S:RawByteString;ReserveEntries:integer):PPAnsiChar;
 {
-  Create a PPChar to structure of pchars which are the arguments specified
+  Create a PPAnsiChar to structure of pchars which are the arguments specified
   in the string S. Especially useful for creating an ArgV for Exec-calls
 }
 
 begin
-  StringToPPChar:=StringToPPChar(PChar(S),ReserveEntries);
+  StringToPPChar:=StringToPPChar(PAnsiChar(S),ReserveEntries);
 end;
 
-Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
+Function StringToPPChar(S: PAnsiChar;ReserveEntries:integer):PPAnsiChar;
 
 var
   i,nr  : longint;
-  Buf : ^char;
-  p   : ppchar;
+  Buf : ^AnsiChar;
+  p   : PPAnsiChar;
 
 begin
   buf:=s;
@@ -96,7 +96,7 @@ begin
            inc(buf);
        end;
    end;
-  getmem(p,(ReserveEntries+nr)*sizeof(pchar));
+  getmem(p,(ReserveEntries+nr)*sizeof(PAnsiChar));
   StringToPPChar:=p;
   if p=nil then
    begin

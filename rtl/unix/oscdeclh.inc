@@ -50,11 +50,11 @@ const
     Function  FpSigTimedWait (Constref sigset : TSigSet; info : Psiginfo; timeout:Ptimespec): cInt; cdecl; external clib name 'sigtimedwait';
 {$endif}
     Function  FpUmask       (cmask : TMode): TMode; cdecl; external clib name 'umask';
-    Function  FpLink       (existing : pChar; newone : pChar): cInt; cdecl; external clib name 'link';
-    Function  FpMkfifo     (path: pchar; mode: tmode): cint; cdecl; external clib name 'mkfifo';
-    Function  FpChmod      (path : pChar; Mode : TMode): cInt; cdecl; external clib name 'chmod';
-    Function  FpChown   (path : pChar; owner : TUid; group : TGid): cInt; cdecl; external clib name 'chown';
-    Function  FPUtime(path:pchar;times:putimbuf):cint; cdecl; external clib name 'utime';
+    Function  FpLink       (existing : PAnsiChar; newone : PAnsiChar): cInt; cdecl; external clib name 'link';
+    Function  FpMkfifo     (path: PAnsiChar; mode: tmode): cint; cdecl; external clib name 'mkfifo';
+    Function  FpChmod      (path : PAnsiChar; Mode : TMode): cInt; cdecl; external clib name 'chmod';
+    Function  FpChown   (path : PAnsiChar; owner : TUid; group : TGid): cInt; cdecl; external clib name 'chown';
+    Function  FPUtime(path:PAnsiChar;times:putimbuf):cint; cdecl; external clib name 'utime';
     Function  FpPipe       (var fildes : tfildes):cInt; cdecl;external clib name 'pipe';
     function  FpDup     (oldd:cint):cint; cdecl; external clib name 'dup';
     function  FpDup2    (oldd:cint;newd:cint):cint; cdecl; external clib name 'dup2';
@@ -83,46 +83,46 @@ const
     Function  FpFcntl      (fildes : cInt; cmd : cInt; arg :cInt): cInt; {$ifdef FPC_IS_SYSTEM}forward;{$endif}
     Function  FpFcntl      (fildes : cInt; cmd : cInt; var arg : flock): cInt; {$ifdef FPC_IS_SYSTEM}forward;{$endif}
 
-    Function  FpGetcwd  (path:pChar; siz:TSize):pChar; cdecl;  external clib name 'getcwd';
+    Function  FpGetcwd  (path:PAnsiChar; siz:TSize):PAnsiChar; cdecl;  external clib name 'getcwd';
     function  FpFork  : TPid; cdecl; external clib name 'fork';
-    function  FpExecve  (path : pchar; argv : ppchar; envp: ppchar): cint; cdecl; external clib name 'execve';
-    function  FpExecv  (path : pchar; argv : ppchar): cint; cdecl; external clib name 'execv';
+    function  FpExecve  (path : PAnsiChar; argv : PPAnsiChar; envp: PPAnsiChar): cint; cdecl; external clib name 'execve';
+    function  FpExecv  (path : PAnsiChar; argv : PPAnsiChar): cint; cdecl; external clib name 'execv';
     function  FpWaitpid (pid : TPid; stat_loc : pcint; options: cint): TPid; cdecl; external clib name 'waitpid';
     Function  FpWait       (var stat_loc : cInt): TPid; cdecl; external clib name 'wait';
     procedure FpExit    (status : cint); cdecl; external clib name '_exit';
     Function  FpKill       (pid : TPid; sig: cInt): cInt; cdecl; external clib name 'kill';
     function  FpUname   (var name: utsname): cint; cdecl; external clib name 'uname';
-    function  FpOpendir (dirname : pchar): pdir; cdecl; external clib name 'opendir'{$ifdef aix}+suffix64bit{$endif};
+    function  FpOpendir (dirname : PAnsiChar): pdir; cdecl; external clib name 'opendir'{$ifdef aix}+suffix64bit{$endif};
     Function  FpReaddir (var dirp : Dir) : pDirent;cdecl; external clib name 'readdir'+suffix64bit+darwinsuffix64bit;
     Function  FpClosedir (var dirp : Dir): cInt; cdecl; external clib name 'closedir'{$ifdef aix}+suffix64bit{$endif};
-    function  FpChdir   (path : pchar): cint; cdecl; external clib name 'chdir';
+    function  FpChdir   (path : PAnsiChar): cint; cdecl; external clib name 'chdir';
     { emulate the bunxovl version that automatically passes
      638 as mode }
-    function  FpOpen    (path: pchar; flags : cint; mode: TMode):cint; {$ifdef FPC_IS_SYSTEM}forward;{$endif}
-    function  FpMkdir   (path : pchar; mode: TMode):cint; cdecl; external clib name 'mkdir';
-    function  FpUnlink  (path: pchar): cint; cdecl; external clib name 'unlink';
-    function  FpRmdir   (path : pchar): cint; cdecl; external clib name 'rmdir';
-    function  FpRename  (old : pchar; newpath: pchar): cint; cdecl;external clib name 'rename';
+    function  FpOpen    (path: PAnsiChar; flags : cint; mode: TMode):cint; {$ifdef FPC_IS_SYSTEM}forward;{$endif}
+    function  FpMkdir   (path : PAnsiChar; mode: TMode):cint; cdecl; external clib name 'mkdir';
+    function  FpUnlink  (path: PAnsiChar): cint; cdecl; external clib name 'unlink';
+    function  FpRmdir   (path : PAnsiChar): cint; cdecl; external clib name 'rmdir';
+    function  FpRename  (old : PAnsiChar; newpath: PAnsiChar): cint; cdecl;external clib name 'rename';
 {$ifdef linux}
 {$ifndef FPC_IS_SYSTEM}
     { those functions are macros on linux }
     function  FpFstat   (fd : cint; var sb : stat): cint;inline;
-    Function  fpLstat       (path:pchar;Info:pstat):cint;inline;
-    function  FpStat      (path: pchar; var buf : stat): cint;inline;
+    Function  fpLstat       (path:PAnsiChar;Info:pstat):cint;inline;
+    function  FpStat      (path: PAnsiChar; var buf : stat): cint;inline;
 {$endif FPC_IS_SYSTEM}
 {$else linux}
     function  FpFstat   (fd : cint; var sb : stat): cint; cdecl; external clib name 'fstat'+suffix64bit+darwinsuffix64bit;
-    Function  fpLstat   (path:pchar;Info:pstat):cint;     cdecl; external clib name 'lstat'+suffix64bit+darwinsuffix64bit;
-    function  FpStat    (path: pchar; var buf : stat): cint; cdecl; external clib name 'stat'+suffix64bit+darwinsuffix64bit;
+    Function  fpLstat   (path:PAnsiChar;Info:pstat):cint;     cdecl; external clib name 'lstat'+suffix64bit+darwinsuffix64bit;
+    function  FpStat    (path: PAnsiChar; var buf : stat): cint; cdecl; external clib name 'stat'+suffix64bit+darwinsuffix64bit;
 {$endif linux}
-    function  FpAccess  (pathname : pchar; amode : cint): cint; cdecl; external clib name 'access';
+    function  FpAccess  (pathname : PAnsiChar; amode : cint): cint; cdecl; external clib name 'access';
     function  FpClose   (fd : cint): cint; cdecl; external clib name 'close';
 
-    function  FpRead    (fd: cint; buf: pchar; nbytes : TSize): TSSize; cdecl; external clib name 'read';
-    Function  FpPRead      (fd : cInt; buf: pChar; nbytes : TSize; offset:Toff): TSsize;   cdecl; external clib name 'pread'+suffix64bit;
+    function  FpRead    (fd: cint; buf: PAnsiChar; nbytes : TSize): TSSize; cdecl; external clib name 'read';
+    Function  FpPRead      (fd : cInt; buf: PAnsiChar; nbytes : TSize; offset:Toff): TSsize;   cdecl; external clib name 'pread'+suffix64bit;
     function  FpReadV	   (fd: cint; const iov : piovec; iovcnt : cint):TSSize;  cdecl; external clib name 'readv';
-    function  FpWrite   (fd: cint;buf:pchar; nbytes : TSize): TSSize; cdecl; external clib name 'write';
-    Function  FpPWrite     (fd : cInt; buf:pChar; nbytes : TSize; offset:Toff): TSSize;  cdecl; external clib name 'pwrite'+suffix64bit;
+    function  FpWrite   (fd: cint;buf:PAnsiChar; nbytes : TSize): TSSize; cdecl; external clib name 'write';
+    Function  FpPWrite     (fd : cInt; buf:PAnsiChar; nbytes : TSize; offset:Toff): TSSize;  cdecl; external clib name 'pwrite'+suffix64bit;
     function  FpWriteV	   (fd: cint; const iov : piovec; iovcnt : cint):TSSize;  cdecl; external clib name 'writev';
 
     function  FpLseek   (fd : cint; offset : TOff; whence : cint): TOff; cdecl; external clib name 'lseek'+suffix64bit;
@@ -153,8 +153,8 @@ const
     Function  FPnanosleep  (const rqtp: ptimespec; rmtp: ptimespec): cint; cdecl; external clib name 'nanosleep';
 {$endif}
 {$endif solaris}
-    Function  fpSymlink    (oldname,newname:pchar):cint;   cdecl; external clib name 'symlink';
-    Function  fpReadLink           (name,linkname:pchar;maxlen:size_t):cint;  cdecl; external clib name 'readlink';
+    Function  fpSymlink    (oldname,newname:PAnsiChar):cint;   cdecl; external clib name 'symlink';
+    Function  fpReadLink           (name,linkname:PAnsiChar;maxlen:size_t):cint;  cdecl; external clib name 'readlink';
 
     function  fpNice       (N:cint):cint; cdecl; external clib name 'nice';
     Function  fpGetPriority (Which,Who:cint):cint;      cdecl; external clib name 'getpriority';
@@ -163,7 +163,7 @@ const
     function  fpmunmap  (addr:pointer;len:size_t):cint; cdecl; external clib name 'munmap';
     function  fpmprotect(addr:pointer;len:size_t;prot:cint):cint; cdecl; external clib name 'mprotect';
 
-    function  fpgetenv  (name : pchar):pchar; cdecl; external clib name 'getenv';
+    function  fpgetenv  (name : PAnsiChar):PAnsiChar; cdecl; external clib name 'getenv';
 {$ifndef beos}
     function  fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint; cdecl; external clib name 'settimeofday';
 {$else}
@@ -188,5 +188,5 @@ const
 {$if defined(linux)}
     function  FpSchedGetAffinity(pid : pid_t;cpusetsize : size_t;mask : pcpu_set_t) : cint; cdecl; external clib name 'sched_getaffinity';
 {$endif}
-    Function FpPathconf(path : pchar;name : cint) : clong; cdecl; external clib name 'pathconf';
+    Function FpPathconf(path : PAnsiChar;name : cint) : clong; cdecl; external clib name 'pathconf';
 

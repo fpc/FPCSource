@@ -13,15 +13,15 @@
 
  **********************************************************************}
 
-function Ansi2AnsiMove(source:pchar; fromcp:TSystemCodePage; const tocp: pchar; out dest:rawbytestring; len:SizeInt): boolean;
+function Ansi2AnsiMove(source:PAnsiChar; fromcp:TSystemCodePage; const tocp: PAnsiChar; out dest:rawbytestring; len:SizeInt): boolean;
   var
     outlength,
     outoffset,
     outleft : size_t;
     use_iconv: iconv_t;
     srcpos,
-    destpos: pchar;
-    mynil : pchar;
+    destpos: PAnsiChar;
+    mynil : PAnsiChar;
     my0 : size_t;
     err: cint;
   begin
@@ -35,7 +35,7 @@ function Ansi2AnsiMove(source:pchar; fromcp:TSystemCodePage; const tocp: pchar; 
     outlength:=len;
     setlength(dest,outlength);
     srcpos:=source;
-    destpos:=pchar(dest);
+    destpos:=PAnsiChar(dest);
     outleft:=outlength;
     while iconv(use_iconv,@srcpos,psize(@len),@destpos,@outleft)=size_t(-1) do
       begin
@@ -47,7 +47,7 @@ function Ansi2AnsiMove(source:pchar; fromcp:TSystemCodePage; const tocp: pchar; 
               { skip and set to '?' }
               inc(srcpos);
               dec(len);
-              pchar(destpos)^:='?';
+              PAnsiChar(destpos)^:='?';
               inc(destpos,2);
               dec(outleft,2);
               { reset }
@@ -57,13 +57,13 @@ function Ansi2AnsiMove(source:pchar; fromcp:TSystemCodePage; const tocp: pchar; 
             end;
           ESysE2BIG:
             begin
-              outoffset:=destpos-pchar(dest);
+              outoffset:=destpos-PAnsiChar(dest);
               { extend }
               setlength(dest,outlength+len);
               inc(outleft,len);
               inc(outlength,len);
               { string could have been moved }
-              destpos:=pchar(dest)+outoffset;
+              destpos:=PAnsiChar(dest)+outoffset;
             end;
           else
             runerror(231);
@@ -76,7 +76,7 @@ function Ansi2AnsiMove(source:pchar; fromcp:TSystemCodePage; const tocp: pchar; 
   end;
 
 
-function handle_aix_intermediate(source: pchar; sourcecp: TSystemCodePage; out newcp: TSystemCodePage; out str: rawbytestring; len: SizeInt): boolean;
+function handle_aix_intermediate(source: PAnsiChar; sourcecp: TSystemCodePage; out newcp: TSystemCodePage; out str: rawbytestring; len: SizeInt): boolean;
   begin
     result:=false;
     { for some reason, IBM's iconv only supports converting cp866 to/from

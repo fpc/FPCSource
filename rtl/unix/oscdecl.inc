@@ -57,9 +57,9 @@ end;
 { fpopen                                                                }
 { ********************************************************************* }
 
-function  real_FpOpen(path: pchar; flags : cint):cint; varargs; cdecl; external clib name 'open'{$ifdef aix}+suffix64bit{$endif};
+function  real_FpOpen(path: PAnsiChar; flags : cint):cint; varargs; cdecl; external clib name 'open'{$ifdef aix}+suffix64bit{$endif};
 
-function  FpOpen    (path: pchar; flags : cint; mode: TMode):cint;
+function  FpOpen    (path: PAnsiChar; flags : cint; mode: TMode):cint;
 begin
 {$if defined(linux) and defined(fs32bit)}
   flags:=flags or O_LARGEFILE;

@@ -412,12 +412,12 @@ type
 
     i386_vm86_args = record
         sub_op   : cint;             { sub-operation to perform }
-        sub_args : pchar;               { args }
+        sub_args : PAnsiChar;               { args }
         end;
 
    sysarch_args     = record
                         op    : longint;
-                        parms : pchar;
+                        parms : PAnsiChar;
                        end;
 
 Function fpIOPerm(From,Num:CARDINAL;Value:cint):cint;

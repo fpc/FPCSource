@@ -32,8 +32,8 @@ const
  DriveSeparator = '';
  ExtensionSeparator = '.';
  PathSeparator = ':';
- AllowDirectorySeparators : set of char = ['\','/'];
- AllowDriveSeparators : set of char = [];
+ AllowDirectorySeparators : set of AnsiChar = ['\','/'];
+ AllowDriveSeparators : set of AnsiChar = [];
 { FileNameCaseSensitive and FileNameCasePreserving are defined below! }
  maxExitCode = 255;
  {$ifdef LINUX}
@@ -59,12 +59,12 @@ const
 {$if not defined(solaris) and not defined(darwin) and not defined(aix)}
 {$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 var argc:longint;
-    argv:PPchar;
-    envp:PPchar;
+    argv:PPAnsiChar;
+    envp:PPAnsiChar;
 {$else FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 var argc:longint;external name 'operatingsystem_parameter_argc';
-    argv:PPchar;external name 'operatingsystem_parameter_argv';
-    envp:PPchar;external name 'operatingsystem_parameter_envp';
+    argv:PPAnsiChar;external name 'operatingsystem_parameter_argv';
+    envp:PPAnsiChar;external name 'operatingsystem_parameter_envp';
 {$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 {$endif}
 
@@ -73,5 +73,6 @@ const
   { hook for lineinfo, to get the module name from an address,
     unit dl sets it if it is used
   }
-  UnixGetModuleByAddrHook : procedure (addr: pointer; var baseaddr: pointer; var filename: string) = nil;
+  UnixGetModuleByAddrHook : procedure (addr: pointer; var baseaddr: pointer; var filename:
+  ansistring) = nil;
 {$endif unix}
