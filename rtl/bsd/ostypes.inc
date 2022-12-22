@@ -52,11 +52,11 @@ CONST                           // OS specific parameters for general<fd,sig>set
 TYPE
    { system information services }
    utsname = record
-              sysname : Array[0..SYS_NMLN-1] OF Char;   // Name of this OS
-              nodename: Array[0..SYS_NMLN-1] OF Char;   // Name of this network node.
-              release : Array[0..SYS_NMLN-1] OF Char;   // Release level.
-              version : Array[0..SYS_NMLN-1] OF Char;   // Version level.
-              machine : Array[0..SYS_NMLN-1] OF Char;   // Hardware type.
+              sysname : Array[0..SYS_NMLN-1] OF AnsiChar;   // Name of this OS
+              nodename: Array[0..SYS_NMLN-1] OF AnsiChar;   // Name of this network node.
+              release : Array[0..SYS_NMLN-1] OF AnsiChar;   // Release level.
+              version : Array[0..SYS_NMLN-1] OF AnsiChar;   // Version level.
+              machine : Array[0..SYS_NMLN-1] OF AnsiChar;   // Hardware type.
              end;
   TUtsName= utsname;
   pUtsName= ^utsname;
@@ -227,7 +227,7 @@ TYPE
         d_reclen      : cuint16;                        // length of this record
         d_namlen      : cuint16;                        // length of string in d_name
         d_type        : cuint8;                         // file type, see below
-        d_name        : array[0..PATH_MAX-1] of char;        // name must be no longer than this
+        d_name        : array[0..PATH_MAX-1] of AnsiChar;        // name must be no longer than this
    end;
    {$packrecords c}
 {$elseif defined(dragonfly)}
@@ -237,7 +237,7 @@ TYPE
         d_type        : cuint8;                         // file type, see below
         d_unused1     : cuint8;                         // padding, reserved
         d_unused2     : cuint32;                        // reserved
-        d_name        : array[0..255] of char;          // name, null terminated
+        d_name        : array[0..255] of AnsiChar;          // name, null terminated
    end;
 {$elseif defined(openbsd)}
    dirent  = record
@@ -247,7 +247,7 @@ TYPE
         d_type        : cuint8;                         // file type, see below
         d_namlen      : cuint8;                         // length of string in d_name
         d_padding     : array[0..3] of cuint8;
-        d_name        : array[0..(255 + 1)-1] of char;  // name must be no longer than this
+        d_name        : array[0..(255 + 1)-1] of AnsiChar;  // name must be no longer than this
    end;
 {$elseif defined(freebsd)}
    dirent  = record
@@ -258,7 +258,7 @@ TYPE
 	d_pad0        : cuint8;
         d_namlen      : cuint16;                        // length of string in d_name
 	d_pad1        : cuint16;
-        d_name        : array[0..(255 + 1)-1] of char;  // name must be no longer than this
+        d_name        : array[0..(255 + 1)-1] of AnsiChar;  // name must be no longer than this
    end;
 {$else}
    dirent  = record
@@ -266,7 +266,7 @@ TYPE
         d_reclen      : cuint16;                        // length of this record
         d_type        : cuint8;                         // file type, see below
         d_namlen      : cuint8;                         // length of string in d_name
-        d_name        : array[0..(255 + 1)-1] of char;  // name must be no longer than this
+        d_name        : array[0..(255 + 1)-1] of AnsiChar;  // name must be no longer than this
    end;
 {$endif}
    TDirent = dirent;
@@ -276,7 +276,7 @@ TYPE
         dd_fd     : cint;         // file descriptor associated with directory
         dd_loc    : clong;        // offset in current buffer
         dd_size   : clong;        // amount of data returned by getdirentries
-        dd_buf    : pchar;        // data buffer
+        dd_buf    : PAnsiChar;        // data buffer
         dd_len    : cint;         // size of data buffer
 {$ifdef openbsd}
         dd_curpos : off_t;

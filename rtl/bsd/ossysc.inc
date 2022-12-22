@@ -38,7 +38,7 @@ End;
                --- File:File handling related calls ---
 *****************************************************************************}
 
-function Fpopen(path: pchar; flags : cint; mode: mode_t):cint; [public, alias : 'FPC_SYSC_OPEN'];
+function Fpopen(path: PAnsiChar; flags : cint; mode: mode_t):cint; [public, alias : 'FPC_SYSC_OPEN'];
 
 Begin
  Fpopen:=do_syscall(syscall_nr_open,TSysParam(path),TSysParam(flags),TSysParam(mode));
@@ -140,39 +140,39 @@ end;
 {$endif}
 
 
-function Fpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; [public, alias : 'FPC_SYSC_READ'];
+function Fpread(fd: cint; buf: PAnsiChar; nbytes : size_t): ssize_t; [public, alias : 'FPC_SYSC_READ'];
 
 begin
   Fpread:=do_syscall(syscall_nr_read,Fd,TSysParam(buf),nbytes);
 end;
 
-function Fpwrite(fd: cint;buf:pchar; nbytes : size_t): ssize_t; [public, alias : 'FPC_SYSC_WRITE'];
+function Fpwrite(fd: cint;buf:PAnsiChar; nbytes : size_t): ssize_t; [public, alias : 'FPC_SYSC_WRITE'];
 
 begin
  Fpwrite:=do_syscall(syscall_nr_write,Fd,TSysParam(buf),nbytes);
 end;
 
-function Fpunlink(const path: pchar): cint; [public, alias : 'FPC_SYSC_UNLINK'];
+function Fpunlink(const path: PAnsiChar): cint; [public, alias : 'FPC_SYSC_UNLINK'];
 
 begin
   Fpunlink:=do_syscall(syscall_nr_unlink,TSysParam(path));
 end;
 
-function Fprename(old : pchar; newpath: pchar): cint; [public, alias : 'FPC_SYSC_RENAME'];
+function Fprename(old : PAnsiChar; newpath: PAnsiChar): cint; [public, alias : 'FPC_SYSC_RENAME'];
 
 begin
   Fprename:=do_syscall(syscall_nr_rename,TSysParam(old),TSysParam(newpath));
 end;
 
 {$ifdef freebsd}
-Function fpFstatat(fd: cint; path: pchar; var sb: stat; flag: cint):cint;
+Function fpFstatat(fd: cint; path: PAnsiChar; var sb: stat; flag: cint):cint;
 
 begin
   fpFStatat:=do_syscall(syscall_nr_fstatat,fd,TSysParam(path),TSysParam(@sb),flag);
 end;
 {$endif}
 
-function Fpstat(const path: pchar; var buf : stat):cint; [public, alias : 'FPC_SYSC_STAT'];
+function Fpstat(const path: PAnsiChar; var buf : stat):cint; [public, alias : 'FPC_SYSC_STAT'];
 
 const
  AT_FDCWD=-100;
@@ -188,19 +188,19 @@ end;
                --- Directory:Directory related calls ---
 *****************************************************************************}
 
-function Fpchdir(path : pchar): cint; [public, alias : 'FPC_SYSC_CHDIR'];
+function Fpchdir(path : PAnsiChar): cint; [public, alias : 'FPC_SYSC_CHDIR'];
 
 begin
  Fpchdir:=do_syscall(syscall_nr_chdir,TSysParam(path));
 end;
 
-function Fpmkdir(path : pchar; mode: mode_t):cint; [public, alias : 'FPC_SYSC_MKDIR'];
+function Fpmkdir(path : PAnsiChar; mode: mode_t):cint; [public, alias : 'FPC_SYSC_MKDIR'];
 
 begin {Mode is 16-bit on F-BSD 4!}
   Fpmkdir:=do_syscall(syscall_nr_mkdir,TSysParam(path),mode);
 end;
 
-function Fprmdir(path : pchar): cint;  [public, alias : 'FPC_SYSC_RMDIR'];
+function Fprmdir(path : PAnsiChar): cint;  [public, alias : 'FPC_SYSC_RMDIR'];
 
 begin
  Fprmdir:=do_syscall(syscall_nr_rmdir,TSysParam(path));
@@ -211,7 +211,7 @@ end;
 const DIRBLKSIZ=1024;
 
 {$ifdef freebsd}
-function FpGetdirentries(fd : cint; buf : pchar; nbytes : clong) : cint;
+function FpGetdirentries(fd : cint; buf : PAnsiChar; nbytes : clong) : cint;
 
 begin
   FpGetdirentries:=do_syscall(syscall_nr_getdirentries,fd,TSysParam(buf),nbytes,TSysParam(0));
@@ -220,7 +220,7 @@ end;
 
 function Fpfstat(fd : cint; var sb : stat): cint; forward;
 
-function Fpopendir(dirname : pchar): pdir;  [public, alias : 'FPC_SYSC_OPENDIR'];
+function Fpopendir(dirname : PAnsiChar): pdir;  [public, alias : 'FPC_SYSC_OPENDIR'];
 
 var
   fd:longint;
@@ -422,7 +422,7 @@ Begin
 End;
 
 {
-function Fpexecve(const path : pathstr; const argv : ppchar; const envp: ppchar): cint;
+function Fpexecve(const path : pathstr; const argv : PPAnsiChar; const envp: PPAnsiChar): cint;
 }
 {
   Replaces the current program by the program specified in path,
@@ -437,7 +437,7 @@ Begin
 End;
 }
 {
-function Fpexecve(const path : pchar; const argv : ppchar; const envp: ppchar): cint;  [public, alias : 'FPC_SYSC_EXECVE'];
+function Fpexecve(const path : PAnsiChar; const argv : PPAnsiChar; const envp: PPAnsiChar): cint;  [public, alias : 'FPC_SYSC_EXECVE'];
 }
 {
   Replaces the current program by the program specified in path,
@@ -461,7 +461,7 @@ begin // actually a wait4() call with 4th arg 0.
  FpWaitPID:=do_syscall(syscall_nr_WaitPID,PID,TSysParam(Stat_loc),options,0);
 end;
 
-function Fpaccess(const pathname : pchar; amode : cint): cint; [public, alias : 'FPC_SYSC_ACCESS'];
+function Fpaccess(const pathname : PAnsiChar; amode : cint): cint; [public, alias : 'FPC_SYSC_ACCESS'];
 {
   Test users access rights on the specified file.
   Mode is a mask xosisting of one or more of R_OK, W_OK, X_OK, F_OK.
@@ -596,11 +596,11 @@ begin
   FpNanoSleep:=Do_SysCall(syscall_nr_nanosleep,TSysParam(req),TSysParam(rem));
 end;
 
-function Fpgetcwd(pt:pchar; _size:size_t):pchar;[public, alias :'FPC_SYSC_GETCWD'];
+function Fpgetcwd(pt:PAnsiChar; _size:size_t):PAnsiChar;[public, alias :'FPC_SYSC_GETCWD'];
 const intpathmax = 1024-4;      // didn't use POSIX data in libc
                                 // implementation.
-var ept,bpt : pchar;
-    c       : char;
+var ept,bpt : PAnsiChar;
+    c       : AnsiChar;
     ret     : cint;
 
 begin
@@ -647,7 +647,7 @@ begin
       end
 {$if defined(openbsd) or defined (netbsd)}
    { At least for openbsd, a positive return value is
-     the length of the returned pchar }
+     the length of the returned PAnsiChar }
    else if (ret<0) then
 {$else not opensd}
    else
@@ -659,7 +659,7 @@ begin
  Fpgetcwd:=pt;
 end;
 
-Function fpReadLink(name,linkname:pchar;maxlen:size_t):cint; [public, alias : 'FPC_SYSC_READLINK'];
+Function fpReadLink(name,linkname:PAnsiChar;maxlen:size_t):cint; [public, alias : 'FPC_SYSC_READLINK'];
 
 begin
   fpreadlink:=do_syscall(syscall_nr_readlink, TSysParam(name),TSysParam(linkname),maxlen);

@@ -31,8 +31,8 @@ type
 {$define HAS_ENTRYINFORMATION_OS}
   TEntryInformationOS = record
     argc: longint;
-    argv: ppchar;
-    envp: ppchar;
+    argv: PPAnsiChar;
+    envp: PPAnsiChar;
     stklen: sizeuint;
   end;
 {$endif}
