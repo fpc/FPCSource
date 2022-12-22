@@ -97,7 +97,7 @@ end;
 procedure do_GetDir (DriveNr: byte; var Dir: RawByteString);
 {$ifdef todo}
 var
-  temp : array[0..260] of char;
+  temp : array[0..260] of AnsiChar;
   i    : integer;
   regs : Registers;
 {$endif}
@@ -115,7 +115,7 @@ begin
   if (regs.Flags and fCarry) <> 0 then
    Begin
      GetInOutRes (regs.AX);
-     Dir := char (DriveNr + 64) + ':\';
+     Dir := AnsiChar (DriveNr + 64) + ':\';
      SetCodePage (Dir,DefaultFileSystemCodePage,false);
      exit;
    end
@@ -139,7 +139,7 @@ begin
   if not FileNameCasePreserving then
    dir:=upcase(dir);
   if drivenr<>0 then   { Drive was supplied. We know it }
-   dir[1]:=char(65+drivenr-1)
+   dir[1]:=AnsiChar(65+drivenr-1)
   else
    begin
    { We need to get the current drive from DOS function 19H  }
