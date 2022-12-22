@@ -26,7 +26,7 @@ procedure FreePooled(poolHeader: Pointer;memory: Pointer;memSize: longword); sys
 
 procedure Permit; syscall IExec 200;
 
-function FindTask(name: PChar): PTask; syscall IExec 260;
+function FindTask(name: PAnsiChar): PTask; syscall IExec 260;
 
 function AllocSignal(signalNum: shortint): shortint; syscall IExec 276;
 procedure FreeSignal(signalNum: shortint); syscall IExec 280;
@@ -53,18 +53,18 @@ procedure ObtainSemaphoreShared(sigSem: PSignalSemaphore); syscall IExec 376;
 
 procedure ReleaseSemaphore(sigSem: PSignalSemaphore); syscall IExec 384;
 
-function OpenLibrary(name: PChar; version: longword): PLibrary; syscall IExec 424;
+function OpenLibrary(name: PAnsiChar; version: longword): PLibrary; syscall IExec 424;
 function CloseLibrary(_library: PLibrary): Pointer; syscall IExec 428;
 
-function GetInterface(_library: PLibrary;name: PChar;version: longword;taglist: PTagItem): POS4Interface; syscall IExec 448;
-function GetInterfaceTags(_library: PLibrary;name: PChar;version: longword): POS4Interface; {varargs;} syscall IExec 452; {$WARNING varargs should be possible with syscalls too on OS4}
+function GetInterface(_library: PLibrary;name: PAnsiChar;version: longword;taglist: PTagItem): POS4Interface; syscall IExec 448;
+function GetInterfaceTags(_library: PLibrary;name: PAnsiChar;version: longword): POS4Interface; {varargs;} syscall IExec 452; {$WARNING varargs should be possible with syscalls too on OS4}
 procedure DropInterface(_interface: POS4Interface); syscall IExec 456;
 
-function OpenDevice(devName: PChar; unitNumber: longword;ioRequest: PIORequest; flags: longword): longint; syscall IExec 504;
+function OpenDevice(devName: PAnsiChar; unitNumber: longword;ioRequest: PIORequest; flags: longword): longint; syscall IExec 504;
 function CloseDevice(ioRequest: PIORequest): Pointer; syscall IExec 508;
 function CreateIORequest(const IOReplyPort: PMsgPort; Size: LongWord): PIORequest; syscall IExec 512;
 procedure DeleteIORequest(IORequest: PIORequest); syscall IExec 516;
 
 function DoIO(ioRequest: PIORequest): shortint; syscall IExec 528;
 
-procedure RawPutChar(c: Char); syscall IExec 760;
+procedure RawPutChar(c: AnsiChar); syscall IExec 760;

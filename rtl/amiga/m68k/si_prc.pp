@@ -85,7 +85,7 @@ begin
       AOS_DOSBase:=OpenLibrary('dos.library',0);
       if AOS_DOSBase <> nil then
         begin
-          dosWrite(dosOutput,PChar(NEEDS_NEWER_OS),length(NEEDS_NEWER_OS));
+          dosWrite(dosOutput,PAnsiChar(NEEDS_NEWER_OS),length(NEEDS_NEWER_OS));
           CloseLibrary(AOS_DOSBase);
         end;
       exit(20);
