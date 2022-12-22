@@ -37,7 +37,7 @@ type
   tpa = ^pointer_array;
 var
   dh     : dxe_header;
-  data   : pchar;
+  data   : PAnsiChar;
   f      : file;
   relocs : tpa;
   i      : longint;

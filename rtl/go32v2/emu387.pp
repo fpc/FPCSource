@@ -116,7 +116,7 @@ end;
 function getenv(const envvar:string):string;
 { Copied here, preserves uses Dos (PFV) }
 var
-  hp      : ppchar;
+  hp      : PPAnsiChar;
   hs,
   _envvar : string;
   eqpos   : longint;

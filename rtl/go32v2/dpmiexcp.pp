@@ -832,7 +832,7 @@ end;
 
 const
   EXCEPTIONCOUNT = 20;
-  exception_names : array[0..EXCEPTIONCOUNT-1] of pchar = (
+  exception_names : array[0..EXCEPTIONCOUNT-1] of PAnsiChar = (
    'Division by Zero',
    'Debug',
    'NMI',
@@ -897,7 +897,7 @@ const message_level : byte = 0;
 function do_faulting_finish_message(fake : boolean) : integer;cdecl;
 public;
 var
-  en : pchar;
+  en : PAnsiChar;
   signum,i : longint;
   old_vid : byte;
 label
@@ -1576,7 +1576,7 @@ begin
     truesig:=sig;
   ErrorOfSig:=0;
   case truesig of
-   {exception_names : array[0..EXCEPTIONCOUNT-1] of pchar = (}
+   {exception_names : array[0..EXCEPTIONCOUNT-1] of PAnsiChar = (}
    0 : ErrorOfSig:=200;    {'Division by Zero'}
    5 : ErrorOfSig:=201;    {'Bounds Check'}
    12 : ErrorOfSig:=202;   {'Stack Fault'}

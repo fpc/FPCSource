@@ -171,7 +171,7 @@ begin
 end;
 
 
-function strcopy(dest,source : pchar) : pchar;assembler;
+function strcopy(dest,source : PAnsiChar) : PAnsiChar;assembler;
 var
   saveeax,saveesi,saveedi : longint;
 asm
