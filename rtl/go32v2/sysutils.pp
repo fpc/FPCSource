@@ -71,11 +71,11 @@ const
 Type
   PSearchrec = ^Searchrec;
 
-{  converts S to a pchar and copies it to the transfer-buffer.   }
+{  converts S to a PAnsiChar and copies it to the transfer-buffer.   }
 
 procedure StringToTB(const S: rawbytestring);
 var
-  P: pchar;
+  P: PAnsiChar;
   Len: longint;
 begin
   Len := Length(S) + 1;
@@ -671,7 +671,7 @@ end ;
 ****************************************************************************}
 
 const
-  BeepChars: array [1..2] of char = #7'$';
+  BeepChars: array [1..2] of AnsiChar = #7'$';
 
 procedure sysBeep;
 var
