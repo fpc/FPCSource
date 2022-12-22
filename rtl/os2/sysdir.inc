@@ -24,7 +24,7 @@ var
     Rc : word;
 begin
   DoDirSeparators(s);
-  Rc := DosCreateDir(pchar(s),nil);
+  Rc := DosCreateDir(PAnsiChar(s),nil);
   if Rc <> 0 then
     begin
       InOutRes := Rc;
@@ -43,7 +43,7 @@ begin
       exit;
     end;
   DoDirSeparators(s);
-  Rc := DosDeleteDir(pchar(s));
+  Rc := DosDeleteDir(PAnsiChar(s));
   if Rc <> 0 then
     begin
       InOutRes := Rc;
@@ -75,7 +75,7 @@ begin
         DoDirSeparators (s);
         if (S [Len] = DirectorySeparator) and (Len <> 3) then
          S [Len] := #0;
-        RC := DosSetCurrentDir (pchar (s));
+        RC := DosSetCurrentDir (PAnsiChar (s));
         if RC <> 0 then
         begin
           InOutRes := RC;
@@ -87,7 +87,7 @@ begin
     DoDirSeparators (s);
     if (Len > 1) and (S [Len] = DirectorySeparator) then
      S [Len] := #0;
-    RC := DosSetCurrentDir (pchar (s));
+    RC := DosSetCurrentDir (PAnsiChar (s));
     if RC <> 0 then
     begin
       InOutRes:= RC;
@@ -101,7 +101,7 @@ end;
 
 procedure do_GetDir (DriveNr: byte; var Dir: RawByteString);
 {Written by Michael Van Canneyt.}
-var sof: Pchar;
+var sof: PAnsiChar;
     i:byte;
     l,l2:cardinal;
     RC: cardinal;
@@ -109,7 +109,7 @@ begin
     setlength(Dir,255);
     Dir [4] := #0;
     { Used in case the specified drive isn't available }
-    sof:=pchar(@dir[4]);
+    sof:=PAnsiChar(@dir[4]);
     { dir[1..3] will contain '[drivenr]:\', but is not }
     { supplied by DOS, so we let dos string start at   }
     { dir[4]                                           }

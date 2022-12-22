@@ -199,19 +199,19 @@ const   PIP_MF       = 1;
         PIC_PIFTOMET = 0;
         PIC_SSTOFONT = 2;
 
-function PicPrint (ahab: longint; var pszFilename: PChar; lType: longint;
-                                        var pszParams: PChar): Longbool; cdecl;
+function PicPrint (ahab: longint; var pszFilename: PAnsiChar; lType: longint;
+                                        var pszParams: PAnsiChar): Longbool; cdecl;
 
-function PicIchg (ahab: longint; var pszFilename1, pszFilename2: PChar;
+function PicIchg (ahab: longint; var pszFilename1, pszFilename2: PAnsiChar;
                                               lType: longint): Longbool; cdecl;
 
 
 implementation
 
-function PicPrint (ahab: longint; var pszFilename: PChar; lType: longint;
-             var pszParams: PChar): Longbool; cdecl; external 'PMPIC' index 11;
+function PicPrint (ahab: longint; var pszFilename: PAnsiChar; lType: longint;
+             var pszParams: PAnsiChar): Longbool; cdecl; external 'PMPIC' index 11;
 
-function PicIchg (ahab: longint; var pszFilename1, pszFilename2: PChar;
+function PicIchg (ahab: longint; var pszFilename1, pszFilename2: PAnsiChar;
                    lType: longint): Longbool; cdecl; external 'PMPIC' index 12;
 
 end.

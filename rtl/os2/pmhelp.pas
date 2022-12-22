@@ -64,15 +64,15 @@ type
    HelpInit=record
      cb: cardinal;
      ulReturnCode: cardinal;
-     pszTutorialName: PChar;
+     pszTutorialName: PAnsiChar;
      phtHelpTable: PHelpTable;
      hmodHelpTableModule: cardinal;
      hmodAccelActionBarModule: cardinal;
      idAccelTable: cardinal;
      idActionBar: cardinal;
-     pszHelpWindowTitle: PChar;
+     pszHelpWindowTitle: PAnsiChar;
      fShowPanelId: cardinal;
-     pszHelpLibraryName: PChar;
+     pszHelpLibraryName: PAnsiChar;
    End;
 
 //************************************************************************/
@@ -437,15 +437,15 @@ function DdfPara(ahddf: HDDF):Longbool; cdecl;
 function DdfSetFormat(ahddf: HDDF; fFormatType: cardinal): Longbool; cdecl;
 function DdfSetTextAlign(ahddf: HDDF; fAlign: cardinal): Longbool; cdecl;
 function DdfSetColor(ahddf: HDDF; fBackColor, fForColor: Longint): Longbool; cdecl;
-function DdfInform(ahddf: HDDF; var pszText: PChar; resInformNumber: cardinal): Longbool; cdecl;
+function DdfInform(ahddf: HDDF; var pszText: PAnsiChar; resInformNumber: cardinal): Longbool; cdecl;
 function DdfSetFontStyle(ahddf: HDDF; fFontStyle: cardinal): Longbool; cdecl;
-function DdfHyperText(ahddf: HDDF; var pszText, pszReference: PChar; fReferenceType: cardinal): Longbool; cdecl;
+function DdfHyperText(ahddf: HDDF; var pszText, pszReference: PAnsiChar; fReferenceType: cardinal): Longbool; cdecl;
 function DdfBeginList(ahddf: HDDF; ulWidthDT, fBreakType, fSpacing: cardinal): Longbool; cdecl;
-function DdfListItem(ahddf: HDDF; var pszTerm, pszDescription: PChar): Longbool; cdecl;
+function DdfListItem(ahddf: HDDF; var pszTerm, pszDescription: PAnsiChar): Longbool; cdecl;
 function DdfEndList(ahddf: HDDF): Longbool; cdecl;
 function DdfMetafile(ahddf: HDDF; ahmf: cardinal; var prclRect: RECTL): Longbool; cdecl;
-function DdfText(ahddf: HDDF; var pszText: PChar): Longbool; cdecl;
-function DdfSetFont(ahddf: HDDF; var pszFaceName: PChar; ulWidth, ulHeight: cardinal): Longbool; cdecl;
+function DdfText(ahddf: HDDF; var pszText: PAnsiChar): Longbool; cdecl;
+function DdfSetFont(ahddf: HDDF; var pszFaceName: PAnsiChar; ulWidth, ulHeight: cardinal): Longbool; cdecl;
 function DdfBitmap(ahddf: HDDF; hbm: HBITMAP; fAlign: cardinal): Longbool; cdecl;
 
 implementation
@@ -475,23 +475,23 @@ function DdfSetTextAlign (ahddf: HDDF; fAlign: cardinal): Longbool; cdecl;
     external HELPMGRDLL index 77;
 function DdfSetColor(ahddf: HDDF; fBackColor, fForColor: Longint): Longbool; cdecl;
     external HELPMGRDLL index 78;
-function DdfInform(ahddf: HDDF; var pszText: PChar; resInformNumber: cardinal): Longbool; cdecl;
+function DdfInform(ahddf: HDDF; var pszText: PAnsiChar; resInformNumber: cardinal): Longbool; cdecl;
     external HELPMGRDLL index 79;
 function DdfSetFontStyle(ahddf: HDDF; fFontStyle: cardinal): Longbool; cdecl;
     external HELPMGRDLL index 80;
-function DdfHyperText(ahddf: HDDF; var pszText, pszReference: PChar; fReferenceType: cardinal): Longbool; cdecl;
+function DdfHyperText(ahddf: HDDF; var pszText, pszReference: PAnsiChar; fReferenceType: cardinal): Longbool; cdecl;
     external HELPMGRDLL index 81;
 function DdfBeginList(ahddf: HDDF; ulWidthDT, fBreakType, fSpacing: cardinal): Longbool; cdecl;
     external HELPMGRDLL index 82;
-function DdfListItem(ahddf: HDDF; var pszTerm, pszDescription: PChar): Longbool; cdecl;
+function DdfListItem(ahddf: HDDF; var pszTerm, pszDescription: PAnsiChar): Longbool; cdecl;
     external HELPMGRDLL index 83;
 function DdfEndList(ahddf: HDDF): Longbool; cdecl;
     external HELPMGRDLL index 84;
 function DdfMetafile(ahddf: HDDF; ahmf: cardinal; var prclRect: RECTL): Longbool; cdecl;
     external HELPMGRDLL index 86;
-function DdfText(ahddf: HDDF; var pszText: PChar): Longbool; cdecl;
+function DdfText(ahddf: HDDF; var pszText: PAnsiChar): Longbool; cdecl;
     external HELPMGRDLL index 85;
-function DdfSetFont(ahddf: HDDF; var pszFaceName: PChar; ulWidth, ulHeight: cardinal): Longbool; cdecl;
+function DdfSetFont(ahddf: HDDF; var pszFaceName: PAnsiChar; ulWidth, ulHeight: cardinal): Longbool; cdecl;
     external HELPMGRDLL index 87;
 function DdfBitmap(ahddf: HDDF; hbm: HBITMAP; fAlign: cardinal): Longbool; cdecl;
     external HELPMGRDLL index 88;

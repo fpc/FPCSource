@@ -115,29 +115,29 @@ const
 
        NPrectL = ^RectL;
 
-       Str8 = array[0..7] of char;
+       Str8 = array[0..7] of AnsiChar;
 
        PStr8 = ^Str8;
 
        DrivData = record
           cb: longint;
           lVersion: longint;
-          szDeviceName: array[0..31] of char;
-          abGeneralData: array[0..0] of char;
+          szDeviceName: array[0..31] of AnsiChar;
+          abGeneralData: array[0..0] of AnsiChar;
        end;
 
        PDrivData = ^DrivData;
 
        DevOpenStruc = record
-          pszLogAddress: PChar;
-          pszDriverName: PChar;
+          pszLogAddress: PAnsiChar;
+          pszDriverName: PAnsiChar;
           pdriv: PDrivData;
-          pszDataType: PChar;
-          pszComment: PChar;
-          pszQueueProcName: PChar;
-          pszQueueProcParams: PChar;
-          pszSpoolerParams: PChar;
-          pszNetworkParams: PChar;
+          pszDataType: PAnsiChar;
+          pszComment: PAnsiChar;
+          pszQueueProcName: PAnsiChar;
+          pszQueueProcParams: PAnsiChar;
+          pszSpoolerParams: PAnsiChar;
+          pszNetworkParams: PAnsiChar;
        end;
 
        PDevOpenStruc = ^DevOpenStruc;
@@ -147,11 +147,11 @@ const
        PrintDest = record
           cb: cardinal;
           lType: longint;
-          pszToken: PChar;
+          pszToken: PAnsiChar;
           lCount: longint;
           pdopData: PDevOpenData;
           fl: cardinal;
-          pszPrinter: PChar;
+          pszPrinter: PAnsiChar;
        end;
 
        PPrintDest = ^PrintDest;
@@ -160,7 +160,7 @@ const
           usRecordLength: word;
           fsSelection: word;
           lMatch: longint;
-          szFacename: array[0..FaceSize-1] of char;
+          szFacename: array[0..FaceSize-1] of AnsiChar;
           idRegistry: word;
           usCodePage: word;
           lMaxBaselineExt: longint;
@@ -186,8 +186,8 @@ const
        end;
 
        FontMetrics = record
-          szFamilyname: array[0..FaceSize-1] of char;
-          szFacename: array[0..FaceSize-1] of char;
+          szFamilyname: array[0..FaceSize-1] of AnsiChar;
+          szFacename: array[0..FaceSize-1] of AnsiChar;
           idRegistry: word;
           usCodePage: word;
           lEmHeight: longint;
@@ -244,7 +244,7 @@ const
 
       { Null terminated strings are often declared as array[0..0] of byte  }
       { in header files, the following type makes type conversion possible }
-      CharArray = array[0..0] of char;
+      CharArray = array[0..0] of AnsiChar;
 
 {Names beginning with T for compatibility}
         TPointL = PointL;
@@ -3237,7 +3237,7 @@ Type
        ICONINFO=record
           cb: Cardinal;         // size of ICONINFO structure
           fFormat: Cardinal;
-          pszFileName: PChar;   //use when fFormat = ICON_FILE
+          pszFileName: PAnsiChar;   //use when fFormat = ICON_FILE
           hmod: Cardinal;       // use when fFormat = ICON_RESOURCE
           resid: Cardinal;      // use when fFormat = ICON_RESOURCE
           cbIconData: Cardinal; // use when fFormat = ICON_DATA

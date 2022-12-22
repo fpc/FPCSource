@@ -190,7 +190,7 @@ type
 {TKbdKeyInfo - record type for character data for KbdCharIn and KbdPeek}
 (*   #pragma pack(2) ??? *)
     TKbdKeyInfo=record
-        chChar:char;    {ASCII character code; the scan code received}
+        chChar:AnsiChar;    {ASCII character code; the scan code received}
                         {from the keyboard is translated to the ASCII}
                         {character code                              }
         case boolean of
@@ -203,9 +203,9 @@ type
                         {specified in milliseconds from the time      }
                         {the system was started                       }
         true:(
-        chScan2:char;   (* should be chScan, fbStatus and bNlsShift,   *)
+        chScan2:AnsiChar;   (* should be chScan, fbStatus and bNlsShift,   *)
         fbStatus2:byte; (* but this construct is unsupported currently *)
-        bNlsShift2:char);
+        bNlsShift2:AnsiChar);
     end;
     PKbdKeyInfo=^TKbdKeyInfo;
     KbdKeyInfo=TKbdKeyInfo; {for better compatibility with other compilers}
@@ -270,7 +270,7 @@ type
         false:(
             CharData:TKbdKeyInfo);
         true:(
-            chChar:char;    {ASCII character code; the scan code received}
+            chChar:AnsiChar;    {ASCII character code; the scan code received}
                             {from the keyboard is translated to the ASCII}
                             {character code                              }
             case boolean of
@@ -297,7 +297,7 @@ type
             true:(
             chScan2,        (* should be chScan, fbStatus and bNlsShift,   *)
             fbStatus2,      (* but this construct is unsupported currently *)
-            bNlsShift2:char));
+            bNlsShift2:AnsiChar));
     end;
     PKbdTrans=^TKbdTrans;
     KbdTrans=TKbdTrans;
@@ -512,17 +512,17 @@ type
         XlateOp:word;   {translate operation specifier;             }
                         {bits 0- 6 - AccentFlags (see Notes 1 and 8)}
                         {bits 7-15 - KeyType (see Note 2)           }
-        Char1:char;
-        Char2:char;
-        Char3:char;
-        Char4:char;
-        Char5:char;
+        Char1:AnsiChar;
+        Char2:AnsiChar;
+        Char3:AnsiChar;
+        Char4:AnsiChar;
+        Char5:AnsiChar;
     end;
     PXLateKeyDef=^TXLateKeyDef;
 
 {record type for character definition in TAccentEntry}
     TKeyCode=record
-        CharCode:char;
+        CharCode:AnsiChar;
         ScanCode:byte;
     end;
 
@@ -1237,7 +1237,7 @@ KR_* constants}
 * There can be only one KbdRegister call outstanding for each session without
   an intervening KbdDeRegister. KbdDeRegister must be issued by the same
   process that issued the KbdRegister.}
-function KbdRegister(ModuleName,ProcName:PChar;FnMask:cardinal):word; cdecl;
+function KbdRegister(ModuleName,ProcName:PAnsiChar;FnMask:cardinal):word; cdecl;
 function KbdRegister(ModuleName,ProcName:string;FnMask:cardinal):word;
 
 {Deregister a keyboard subsystem previously registered within a session - only
@@ -1346,7 +1346,7 @@ default keyboard (0) or a logical keyboard.}
   (focus), or is equal to zero and no other handle has the focus.}
 function KbdStringIn(var CharBuf;var LenInOut:TStringInBuf;WaitFlag:word;
                                                    KbdHandle:word):word; cdecl;
-function KbdStringIn(CharBuf:PChar;LenInOutP:PStringInBuf;WaitFlag:word;
+function KbdStringIn(CharBuf:PAnsiChar;LenInOutP:PStringInBuf;WaitFlag:word;
                                                    KbdHandle:word):word; cdecl;
 
 {Clear the keystroke buffer.}
@@ -1618,7 +1618,7 @@ implementation
 {***************************************************************************}
 
 
-function KbdRegister(ModuleName,ProcName:PChar;FnMask:cardinal):word; cdecl;
+function KbdRegister(ModuleName,ProcName:PAnsiChar;FnMask:cardinal):word; cdecl;
 external 'EMXWRAP' index 208;
 {external 'KBDCALLS' index 8;}
 
@@ -1648,7 +1648,7 @@ function KbdStringIn(var CharBuf;var LenInOut:TStringInBuf;WaitFlag:word;
 external 'EMXWRAP' index 209;
 {external 'KBDCALLS' index 9;}
 
-function KbdStringIn(CharBuf:PChar;LenInOutP:PStringInBuf;WaitFlag:word;
+function KbdStringIn(CharBuf:PAnsiChar;LenInOutP:PStringInBuf;WaitFlag:word;
                                                    KbdHandle:word):word; cdecl;
 external 'EMXWRAP' index 209;
 {external 'KBDCALLS' index 9;}

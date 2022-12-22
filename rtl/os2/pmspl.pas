@@ -46,8 +46,8 @@ type
     PHStd = ^HStd;
 
 { Spooler manager open data }
-    QMOpenData = PChar;
-    PQMOpenData = ^PChar;
+    QMOpenData = PAnsiChar;
+    PQMOpenData = ^PAnsiChar;
 
 { Spooler Queue Processor interface }
 
@@ -66,7 +66,7 @@ type
 { Handle to a spooler queue processor }
     HProc = cardinal;
 
-    PQPOpenData = ^PChar;
+    PQPOpenData = ^PAnsiChar;
 
 const
 { Definition for elements within the PQPOpenData block }
@@ -85,17 +85,17 @@ const
 
 type
     TSQPOpenData = record
-        pszLogAddress: PChar;
-        pszDriverName: PChar;
+        pszLogAddress: PAnsiChar;
+        pszDriverName: PAnsiChar;
         pdriv: PDrivData;
-        pszDataType: PChar;
-        pszComment: PChar;
-        pszProcParams: PChar;
-        pszSpoolParams: PChar;
-        pszNetworkParams: PChar;
-        pszDocName: PChar;
-        pszQueueName: PChar;
-        pszToken: PChar;
+        pszDataType: PAnsiChar;
+        pszComment: PAnsiChar;
+        pszProcParams: PAnsiChar;
+        pszSpoolParams: PAnsiChar;
+        pszNetworkParams: PAnsiChar;
+        pszDocName: PAnsiChar;
+        pszQueueName: PAnsiChar;
+        pszToken: PAnsiChar;
         idJobId: word;
     end;
     PSQPOpenData = ^TSQPOpenData;
@@ -146,7 +146,7 @@ const
 
 type
     TDrivProps = record
-        pszKeyName: PChar;
+        pszKeyName: PAnsiChar;
         cbBuf: cardinal;
         pBuf: pointer;
     end;
@@ -156,17 +156,17 @@ type
 
     TPrJInfo = record
         uJobId: word;
-        szUserName: array [0..UNLen] of char;
-        pad_1: char;
-        szNotifyName: array [0..CNLen] of char;
-        szDataType: array [0..DTLen] of char;
-        pszParms: PChar;
+        szUserName: array [0..UNLen] of AnsiChar;
+        pad_1: AnsiChar;
+        szNotifyName: array [0..CNLen] of AnsiChar;
+        szDataType: array [0..DTLen] of AnsiChar;
+        pszParms: PAnsiChar;
         uPosition: word;
         fsStatus: word;
-        pszStatus: PChar;
+        pszStatus: PAnsiChar;
         ulSubmitted: cardinal;
         ulSize: cardinal;
-        pszComment: PChar;
+        pszComment: PAnsiChar;
     end;
     PPrJInfo = ^TPrJInfo;
     PrJInfo = TPrJInfo;
@@ -175,13 +175,13 @@ type
     TPrJInfo2 = record
         uJobId: word;
         uPriority: word;
-        pszUserName: PChar;
+        pszUserName: PAnsiChar;
         uPosition: word;
         fsStatus: word;
         ulSubmitted: cardinal;
         ulSize: cardinal;
-        pszComment: PChar;
-        pszDocument: PChar;
+        pszComment: PAnsiChar;
+        pszDocument: PAnsiChar;
     end;
     PPrJInfo2 = ^TPrJInfo2;
     PrJInfo2 = TPrJInfo2;
@@ -190,34 +190,34 @@ type
     TPrJInfo3 = record
         uJobId: word;
         uPriority: word;
-        pszUserName: PChar;
+        pszUserName: PAnsiChar;
         uPosition: word;
         fsStatus: word;
         ulSubmitted: cardinal;
         ulSize: cardinal;
-        pszComment: PChar;
-        pszDocument: PChar;
-        pszNotifyName: PChar;
-        pszDataType: PChar;
-        pszParms: PChar;
-        pszStatus: PChar;
-        pszQueue: PChar;
-        pszQProcName: PChar;
-        pszQProcParms: PChar;
-        pszDriverName: PChar;
+        pszComment: PAnsiChar;
+        pszDocument: PAnsiChar;
+        pszNotifyName: PAnsiChar;
+        pszDataType: PAnsiChar;
+        pszParms: PAnsiChar;
+        pszStatus: PAnsiChar;
+        pszQueue: PAnsiChar;
+        pszQProcName: PAnsiChar;
+        pszQProcParms: PAnsiChar;
+        pszDriverName: PAnsiChar;
         pDriverData: PDrivData;
-        pszPrinterName: PChar;
+        pszPrinterName: PAnsiChar;
     end;
     PPrJInfo3 = ^TPrJInfo3;
     PrJInfo3 = TPrJInfo3;
     NPPrJInfo3 = ^TPrJInfo3;
 
     TPrDInfo = record
-        szName: array [0..PDLen] of char;
-        szUserName: array [0..UNLen] of char;
+        szName: array [0..PDLen] of AnsiChar;
+        szUserName: array [0..UNLen] of AnsiChar;
         uJobId: word;
         fsStatus: word;
-        pszStatus: PChar;
+        pszStatus: PAnsiChar;
         time: word;
     end;
     PPrDInfo = ^TPrDInfo;
@@ -225,14 +225,14 @@ type
     NPPrDInfo = ^TPrDInfo;
 
     TPrDInfo3 = record
-        pszPrinterName: PChar;
-        pszUserName: PChar;
-        pszLogAddr: PChar;
+        pszPrinterName: PAnsiChar;
+        pszUserName: PAnsiChar;
+        pszLogAddr: PAnsiChar;
         uJobId: word;
         fsStatus: word;
-        pszStatus: PChar;
-        pszComment: PChar;
-        pszDrivers: PChar;
+        pszStatus: PAnsiChar;
+        pszComment: PAnsiChar;
+        pszDrivers: PAnsiChar;
         time: word;
         usTimeOut: word;
     end;
@@ -241,16 +241,16 @@ type
     NPPrDInfo3 = ^TPrDInfo3;
 
     TPrQInfo = record
-        szName: array [0..QNLen] of char;
-        pad_1: char;
+        szName: array [0..QNLen] of AnsiChar;
+        pad_1: AnsiChar;
         uPriority: word;
         uStartTime: word;
         uUntilTime: word;
-        pszSepFile: PChar;
-        pszPrProc: PChar;
-        pszDestinations: PChar;
-        pszParms: PChar;
-        pszComment: PChar;
+        pszSepFile: PAnsiChar;
+        pszPrProc: PAnsiChar;
+        pszDestinations: PAnsiChar;
+        pszParms: PAnsiChar;
+        pszComment: PAnsiChar;
         fsStatus: word;
         cJobs: word;
     end;
@@ -259,19 +259,19 @@ type
     NPPrQInfo = ^TPrQInfo;
 
     TPrQInfo3 = record
-        pszName: PChar;
+        pszName: PAnsiChar;
         uPriority: word;
         uStartTime: word;
         uUntilTime: word;
         fsType: word;
-        pszSepFile: PChar;
-        pszPrProc: PChar;
-        pszParms: PChar;
-        pszComment: PChar;
+        pszSepFile: PAnsiChar;
+        pszPrProc: PAnsiChar;
+        pszParms: PAnsiChar;
+        pszComment: PAnsiChar;
         fsStatus: word;
         cJobs: word;
-        pszPrinters: PChar;
-        pszDriverName: PChar;
+        pszPrinters: PAnsiChar;
+        pszDriverName: PAnsiChar;
         pDriverData: PDrivData;
     end;
     PPrQInfo3 = ^TPrQInfo3;
@@ -279,22 +279,22 @@ type
     NPPrQInfo3 = ^TPrQInfo3;
 
     TPrQInfo6 = record
-        pszName: PChar;
+        pszName: PAnsiChar;
         uPriority: word;
         uStartTime: word;
         uUntilTime: word;
         fsType: word;
-        pszSepFile: PChar;
-        pszPrProc: PChar;
-        pszParms: PChar;
-        pszComment: PChar;
+        pszSepFile: PAnsiChar;
+        pszPrProc: PAnsiChar;
+        pszParms: PAnsiChar;
+        pszComment: PAnsiChar;
         fsStatus: word;
         cJobs: word;
-        pszPrinters: PChar;
-        pszDriverName: PChar;
+        pszPrinters: PAnsiChar;
+        pszDriverName: PAnsiChar;
         pDriverData: PDrivData;
-        pszRemoteComputerName: PChar;
-        pszRemoteQueueName: PChar;
+        pszRemoteComputerName: PAnsiChar;
+        pszRemoteQueueName: PAnsiChar;
     end;
     PPrQInfo6 = ^TPrQInfo6;
     PrQInfo6 = TPrQInfo6;
@@ -303,9 +303,9 @@ type
 { Structure for DosPrintJobGetId }
     TPrIDInfo = record
         uJobId: word;
-        szComputerName: array [0..CNLen] of char;
-        szQueueName: array [0..QNLen] of char;
-        pad_1: char;
+        szComputerName: array [0..CNLen] of AnsiChar;
+        szQueueName: array [0..QNLen] of AnsiChar;
+        pad_1: AnsiChar;
     end;
     PPrIDInfo = ^TPrIDInfo;
     PrIDInfo = TPrIDInfo;
@@ -313,7 +313,7 @@ type
 
 { Structure for DosPrintDriverEnum }
     TPrDrivInfo = record
-        szDrivName: array [0..Driv_Name_Size+1+Driv_DeviceName_Size] of char;
+        szDrivName: array [0..Driv_Name_Size+1+Driv_DeviceName_Size] of AnsiChar;
     end;
     PPrDrivInfo = ^TPrDrivInfo;
     PrDrivInfo = TPrDrivInfo;
@@ -321,7 +321,7 @@ type
 
 { Structure for DosPrintQProcessorEnum }
     TPrQProcInfo = record
-        szQProcName: array [0..QNLen] of char;
+        szQProcName: array [0..QNLen] of AnsiChar;
     end;
     PPrQProcInfo = ^TPrQProcInfo;
     PrQProcInfo = TPrQProcInfo;
@@ -329,7 +329,7 @@ type
 
 { Structure for DosPrintPortEnum Level 0 }
     TPrPortInfo = record
-        szPortName: array [0..PDLen] of char;
+        szPortName: array [0..PDLen] of AnsiChar;
     end;
     PPrPortInfo = ^TPrPortInfo;
     PrPortInfo = TPrPortInfo;
@@ -337,9 +337,9 @@ type
 
 { Structure for DosPrintPortEnum Level 1 }
     TPrPortInfo1 = record
-        pszPortName : PChar;
-        pszPortDriverName : PChar;
-        pszPortDriverPathName : PChar;
+        pszPortName : PAnsiChar;
+        pszPortDriverName : PAnsiChar;
+        pszPortDriverPathName : PAnsiChar;
     end;
     PPrPortInfo1 = ^TPrPortInfo1;
     PrPortInfo1 = TPrPortInfo1;
@@ -453,10 +453,10 @@ type
 { Structure for SplEnumPrinter }
     TPrinterInfo = record
         fltype: cardinal;
-        pszComputerName: PChar;
-        pszPrintDestinationName: PChar;
-        pszDescription: PChar;
-        pszLocalName: PChar;
+        pszComputerName: PAnsiChar;
+        pszPrintDestinationName: PAnsiChar;
+        pszDescription: PAnsiChar;
+        pszLocalName: PAnsiChar;
     end;
     PrinterInfo = TPrinterInfo;
     PPrinterInfo = ^TPrinterInfo;
@@ -469,22 +469,22 @@ const
     SPL_PR_LOCAL_ONLY     = $00000100; { exclude remote queues }
 
 
-function SplQueryDevice (const pszComputerName, pszPrintDeviceName: PChar;
+function SplQueryDevice (const pszComputerName, pszPrintDeviceName: PAnsiChar;
                         ulLevel: cardinal; var pBuf; cbBuf: cardinal;
                         var pcbNeeded: cardinal): longint; cdecl;
 
-function SplQueryQueue (const pszComputerName, pszQueueName: PChar;
+function SplQueryQueue (const pszComputerName, pszQueueName: PAnsiChar;
                        ulLevel: cardinal; var pBuf; cbBuf: cardinal;
                        var pcbNeeded: cardinal): longint; cdecl;
 
-function SplEnumQueue (const pszComputerName: PChar; ulLevel: cardinal;
+function SplEnumQueue (const pszComputerName: PAnsiChar; ulLevel: cardinal;
       var pBuf; cbBuf: cardinal; var pcReturned, pcTotal, pcbNeeded: cardinal;
                                                 var pReserved): longint; cdecl;
 
-function SplQmOpen (const pszToken: PChar; lCount: longint;
-                                       var pqmdopData: PChar): cardinal; cdecl;
+function SplQmOpen (const pszToken: PAnsiChar; lCount: longint;
+                                       var pqmdopData: PAnsiChar): cardinal; cdecl;
 
-function SplQmStartDoc (ahspl: cardinal; const pszDocName: PChar): longbool;
+function SplQmStartDoc (ahspl: cardinal; const pszDocName: PAnsiChar): longbool;
                                                                          cdecl;
 
 function SplQmWrite (ahspl: cardinal; lCount: longint; var pData): longbool;
@@ -498,11 +498,11 @@ function SplQmAbort(ahspl: cardinal): longbool; cdecl;
 
 function SplQmAbortDoc (ahspl: cardinal): longbool; cdecl;
 
-function SplMessageBox (const pszLogAddr: PChar; fErrInfo, fErrData: cardinal;
-                                             const pszText, pszCaption: PChar;
+function SplMessageBox (const pszLogAddr: PAnsiChar; fErrInfo, fErrData: cardinal;
+                                             const pszText, pszCaption: PAnsiChar;
                                   idWindow, fStyle: cardinal): cardinal; cdecl;
 
-function PrtOpen (const pszDeviceName: PChar; var phDevice: cardinal;
+function PrtOpen (const pszDeviceName: PAnsiChar; var phDevice: cardinal;
                  var pActionTaken: cardinal;cbFileSize,uFileAttr: cardinal;
                  openFlag,openMode,reserved: cardinal): cardinal;
           cdecl;
@@ -532,103 +532,103 @@ function SplStdGetBits (hMetaFile: cardinal; offData, cbData: longint;
 
 function SplStdQueryLength (hMetaFile: cardinal): longint; cdecl;
 
-function SplCreateDevice (const pszComputerName: PChar;ulLevel: cardinal;
+function SplCreateDevice (const pszComputerName: PAnsiChar;ulLevel: cardinal;
                                    var pBuf; cbBuf: cardinal): cardinal; cdecl;
 
-function SplControlDevice (const pszComputerName, pszPortName: PChar;
+function SplControlDevice (const pszComputerName, pszPortName: PAnsiChar;
                                          ulControl: cardinal): cardinal; cdecl;
 
 function SplDeleteDevice (const pszComputerName,
-                                   pszPrintDeviceName: PChar): cardinal; cdecl;
+                                   pszPrintDeviceName: PAnsiChar): cardinal; cdecl;
 
-function SplEnumDevice (const pszComputerName: PChar; ulLevel: cardinal;
+function SplEnumDevice (const pszComputerName: PAnsiChar; ulLevel: cardinal;
       var pBuf; cbBuf: cardinal; var pcReturned, pcTotal, pcbNeeded: cardinal;
                                                var pReserved): cardinal; cdecl;
 
-function SplSetDevice (const pszComputerName, pszPrintDeviceName: PChar;
+function SplSetDevice (const pszComputerName, pszPrintDeviceName: PAnsiChar;
      ulLevel: cardinal; var pBuf; cbBuf, ulParmNum: cardinal): cardinal; cdecl;
 
-function SplReleaseJob (const pszComputerName, pszQueueName: PChar;
+function SplReleaseJob (const pszComputerName, pszQueueName: PAnsiChar;
                                              ulJob: cardinal): cardinal; cdecl;
 
-function SplDeleteJob (const pszComputerName, pszQueueName: PChar;
+function SplDeleteJob (const pszComputerName, pszQueueName: PAnsiChar;
                                              ulJob: cardinal): cardinal; cdecl;
 
-function SplEnumJob (const pszComputerName, pszQueueName: PChar;
+function SplEnumJob (const pszComputerName, pszQueueName: PAnsiChar;
                               ulLevel: cardinal; var pBuf;cbBuf: cardinal;
                                  var pcReturned, pcTotal, pcbNeeded: cardinal;
                                                var pReserved): cardinal; cdecl;
 
-function SplQueryJob (const pszComputerName, pszQueueName: PChar;
+function SplQueryJob (const pszComputerName, pszQueueName: PAnsiChar;
                           ulJob, ulLevel: cardinal; var pBuf; cbBuf: cardinal;
                                      var pcbNeeded: cardinal): cardinal; cdecl;
 
-function SplHoldJob (const pszComputerName, pszQueueName: PChar;
+function SplHoldJob (const pszComputerName, pszQueueName: PAnsiChar;
                                              ulJob: cardinal): cardinal; cdecl;
 
-function SplSetJob (const pszComputerName, pszQueueName: PChar;
+function SplSetJob (const pszComputerName, pszQueueName: PAnsiChar;
                                           ulJob, ulLevel: cardinal; var pBuf;
                                   cbBuf, ulParmNum: cardinal): cardinal; cdecl;
 
-function SplCreateQueue (const pszComputerName: PChar; ulLevel: cardinal;
+function SplCreateQueue (const pszComputerName: PAnsiChar; ulLevel: cardinal;
                                    var pBuf; cbBuf: cardinal): cardinal; cdecl;
 
 function SplReleaseQueue (const pszComputerName,
-                                         pszQueueName: PChar): cardinal; cdecl;
+                                         pszQueueName: PAnsiChar): cardinal; cdecl;
 
-function SplDeleteQueue (const pszComputerName, pszQueueName: PChar): cardinal;
+function SplDeleteQueue (const pszComputerName, pszQueueName: PAnsiChar): cardinal;
                                                                          cdecl;
 
-function SplHoldQueue (const pszComputerName, pszQueueName: PChar): cardinal;
+function SplHoldQueue (const pszComputerName, pszQueueName: PAnsiChar): cardinal;
                                                                          cdecl;
 
-function SplPurgeQueue (const pszComputerName, pszQueueName: PChar): cardinal;
+function SplPurgeQueue (const pszComputerName, pszQueueName: PAnsiChar): cardinal;
                                                                          cdecl;
 
-function SplSetQueue (const pszComputerName, pszQueueName: PChar;
+function SplSetQueue (const pszComputerName, pszQueueName: PAnsiChar;
        ulLevel: cardinal; var pBuf;cbBuf,ulParmNum: cardinal): cardinal; cdecl;
 
-function SplEnumDriver (const pszComputerName: PChar; ulLevel: cardinal;
+function SplEnumDriver (const pszComputerName: PAnsiChar; ulLevel: cardinal;
         var pBuf; cbBuf: cardinal; var pcReturned,pcTotal,pcbNeeded: cardinal;
                                                var pReserved): cardinal; cdecl;
 
-function SplEnumPort (const pszComputerName: PChar; ulLevel: cardinal;
+function SplEnumPort (const pszComputerName: PAnsiChar; ulLevel: cardinal;
       var pBuf; cbBuf: cardinal; var pcReturned, pcTotal, pcbNeeded: cardinal;
                                                var pReserved): cardinal; cdecl;
 
-function SplEnumQueueProcessor (const pszComputerName: PChar;
+function SplEnumQueueProcessor (const pszComputerName: PAnsiChar;
        ulLevel: cardinal; var pBuf; cbBuf: cardinal; var pcReturned, pcTotal,
                           pcbNeeded: cardinal; var pReserved): cardinal; cdecl;
 
-function SplEnumPrinter (const pszComputerName: PChar;
+function SplEnumPrinter (const pszComputerName: PAnsiChar;
          uLevel, fltype: cardinal; var pBuf; cbbuf: cardinal; var pcReturned,
                  pcTotal, pcbNeeded: cardinal; var pReserved): cardinal; cdecl;
 
-function SplCopyJob (const pszSrcComputerName, pszSrcQueueName: PChar;
-         ulSrcJob: cardinal; const pszTrgComputerName, pszTrgQueueName: PChar;
+function SplCopyJob (const pszSrcComputerName, pszSrcQueueName: PAnsiChar;
+         ulSrcJob: cardinal; const pszTrgComputerName, pszTrgQueueName: PAnsiChar;
                                      var pulTrgJob: cardinal): cardinal; cdecl;
 
 
 implementation
 
-function SplQueryDevice (const pszComputerName, pszPrintDeviceName: PChar;
+function SplQueryDevice (const pszComputerName, pszPrintDeviceName: PAnsiChar;
                               ulLevel: cardinal; var pBuf; cbBuf: cardinal;
                                            var pcbNeeded: cardinal): longint;
                                              cdecl; external 'PMSPL' index 381;
 
-function SplQueryQueue (const pszComputerName, pszQueueName: PChar;
+function SplQueryQueue (const pszComputerName, pszQueueName: PAnsiChar;
                               ulLevel: cardinal; var pBuf; cbBuf: cardinal;
                                            var pcbNeeded: cardinal): longint;
                                              cdecl; external 'PMSPL' index 397;
 
-function SplEnumQueue (const pszComputerName: PChar; ulLevel: cardinal;
+function SplEnumQueue (const pszComputerName: PAnsiChar; ulLevel: cardinal;
       var pBuf; cbBuf: cardinal; var pcReturned, pcTotal, pcbNeeded: cardinal;
                     var pReserved): longint; cdecl; external 'PMSPL' index 399;
 
-function SplQmOpen (const pszToken: PChar; lCount: longint;
-           var pqmdopData: PChar): cardinal; cdecl; external 'PMSPL' index 301;
+function SplQmOpen (const pszToken: PAnsiChar; lCount: longint;
+           var pqmdopData: PAnsiChar): cardinal; cdecl; external 'PMSPL' index 301;
 
-function SplQmStartDoc (ahspl: cardinal; const pszDocName: PChar): longbool;
+function SplQmStartDoc (ahspl: cardinal; const pszDocName: PAnsiChar): longbool;
                                              cdecl; external 'PMSPL' index 302;
 
 function SplQmWrite (ahspl: cardinal; lCount: longint; var pData): longbool;
@@ -646,11 +646,11 @@ function SplQmAbort (ahspl: cardinal): longbool;
 function SplQmAbortDoc (ahspl: cardinal): longbool;
                                              cdecl; external 'PMSPL' index 308;
 
-function SplMessageBox (const pszLogAddr: PChar; fErrInfo, fErrData: cardinal;
-      const pszText, pszCaption: PChar; idWindow, fStyle: cardinal): cardinal;
+function SplMessageBox (const pszLogAddr: PAnsiChar; fErrInfo, fErrData: cardinal;
+      const pszText, pszCaption: PAnsiChar; idWindow, fStyle: cardinal): cardinal;
                                              cdecl; external 'PMSPL' index 307;
 
-function PrtOpen (const pszDeviceName: PChar; var phDevice: cardinal;
+function PrtOpen (const pszDeviceName: PAnsiChar; var phDevice: cardinal;
                  var pActionTaken: cardinal; cbFileSize, uFileAttr: cardinal;
                             openFlag, openMode, reserved: cardinal): cardinal;
                                              cdecl; external 'PMSPL' index 370;
@@ -687,82 +687,82 @@ function SplStdGetBits (hMetaFile: cardinal; offData, cbData: longint;
 function SplStdQueryLength (hMetaFile: cardinal): longint;
                                              cdecl; external 'PMSPL' index 356;
 
-function SplCreateDevice (const pszComputerName: PChar; ulLevel: cardinal;
+function SplCreateDevice (const pszComputerName: PAnsiChar; ulLevel: cardinal;
        var pBuf; cbBuf: cardinal): cardinal; cdecl; external 'PMSPL' index 401;
 
-function SplControlDevice (const pszComputerName, pszPortName: PChar;
+function SplControlDevice (const pszComputerName, pszPortName: PAnsiChar;
              ulControl: cardinal): cardinal; cdecl; external 'PMSPL' index 380;
 
 function SplDeleteDevice (const pszComputerName,
-       pszPrintDeviceName: PChar): cardinal; cdecl; external 'PMSPL' index 403;
+       pszPrintDeviceName: PAnsiChar): cardinal; cdecl; external 'PMSPL' index 403;
 
-function SplEnumDevice (const pszComputerName: PChar; ulLevel: cardinal;
+function SplEnumDevice (const pszComputerName: PAnsiChar; ulLevel: cardinal;
         var pBuf; cbBuf: cardinal; var pcReturned,pcTotal,pcbNeeded: cardinal;
                    var pReserved): cardinal; cdecl; external 'PMSPL' index 382;
 
-function SplSetDevice (const pszComputerName, pszPrintDeviceName: PChar;
+function SplSetDevice (const pszComputerName, pszPrintDeviceName: PAnsiChar;
            ulLevel: cardinal; var pBuf; cbBuf, ulParmNum: cardinal): cardinal;
                                              cdecl; external 'PMSPL' index 402;
 
-function SplReleaseJob (const pszComputerName, pszQueueName: PChar;
+function SplReleaseJob (const pszComputerName, pszQueueName: PAnsiChar;
                  ulJob: cardinal): cardinal; cdecl; external 'PMSPL' index 384;
 
-function SplDeleteJob (const pszComputerName, pszQueueName: PChar;
+function SplDeleteJob (const pszComputerName, pszQueueName: PAnsiChar;
                  ulJob: cardinal): cardinal; cdecl; external 'PMSPL' index 386;
 
-function SplEnumJob (const pszComputerName, pszQueueName: PChar;
+function SplEnumJob (const pszComputerName, pszQueueName: PAnsiChar;
                            ulLevel: cardinal; var pBuf; cbBuf: cardinal;
                                  var pcReturned, pcTotal, pcbNeeded: cardinal;
                    var pReserved): cardinal; cdecl; external 'PMSPL' index 392;
 
-function SplQueryJob (const pszComputerName, pszQueueName: PChar;
+function SplQueryJob (const pszComputerName, pszQueueName: PAnsiChar;
                           ulJob, ulLevel: cardinal; var pBuf; cbBuf: cardinal;
          var pcbNeeded: cardinal): cardinal; cdecl; external 'PMSPL' index 390;
 
-function SplHoldJob (const pszComputerName, pszQueueName: PChar;
+function SplHoldJob (const pszComputerName, pszQueueName: PAnsiChar;
                  ulJob: cardinal): cardinal; cdecl; external 'PMSPL' index 385;
 
-function SplSetJob (const pszComputerName, pszQueueName: PChar;
+function SplSetJob (const pszComputerName, pszQueueName: PAnsiChar;
       ulJob, ulLevel: cardinal; var pBuf;cbBuf,ulParmNum: cardinal): cardinal;
                                              cdecl; external 'PMSPL' index 391;
 
-function SplCreateQueue (const pszComputerName: PChar; ulLevel: cardinal;
+function SplCreateQueue (const pszComputerName: PAnsiChar; ulLevel: cardinal;
        var pBuf; cbBuf: cardinal): cardinal; cdecl; external 'PMSPL' index 393;
 
 function SplReleaseQueue (const pszComputerName,
-             pszQueueName: PChar): cardinal; cdecl; external 'PMSPL' index 395;
+             pszQueueName: PAnsiChar): cardinal; cdecl; external 'PMSPL' index 395;
 
-function SplDeleteQueue (const pszComputerName, pszQueueName: PChar): cardinal;
+function SplDeleteQueue (const pszComputerName, pszQueueName: PAnsiChar): cardinal;
                                              cdecl; external 'PMSPL' index 396;
 
-function SplHoldQueue (const pszComputerName, pszQueueName: PChar): cardinal;
+function SplHoldQueue (const pszComputerName, pszQueueName: PAnsiChar): cardinal;
                                              cdecl; external 'PMSPL' index 394;
 
-function SplPurgeQueue (const pszComputerName, pszQueueName: PChar): cardinal;
+function SplPurgeQueue (const pszComputerName, pszQueueName: PAnsiChar): cardinal;
                                              cdecl; external 'PMSPL' index 404;
 
-function SplSetQueue (const pszComputerName, pszQueueName: PChar;
+function SplSetQueue (const pszComputerName, pszQueueName: PAnsiChar;
              ulLevel: cardinal; var pBuf;cbBuf,ulParmNum: cardinal): cardinal;
                                              cdecl; external 'PMSPL' index 398;
 
-function SplEnumDriver (const pszComputerName: PChar; ulLevel: cardinal;
+function SplEnumDriver (const pszComputerName: PAnsiChar; ulLevel: cardinal;
       var pBuf; cbBuf: cardinal; var pcReturned, pcTotal, pcbNeeded: cardinal;
                    var pReserved): cardinal; cdecl; external 'PMSPL' index 406;
 
-function SplEnumPort (const pszComputerName: PChar; ulLevel: cardinal;
+function SplEnumPort (const pszComputerName: PAnsiChar; ulLevel: cardinal;
         var pBuf; cbBuf: cardinal; var pcReturned,pcTotal,pcbNeeded: cardinal;
                    var pReserved): cardinal; cdecl; external 'PMSPL' index 408;
 
-function SplEnumQueueProcessor (const pszComputerName: PChar;ulLevel: cardinal;
+function SplEnumQueueProcessor (const pszComputerName: PAnsiChar;ulLevel: cardinal;
        var pBuf; cbBuf: cardinal; var pcReturned, pcTotal, pcbNeeded: cardinal;
                    var pReserved): cardinal; cdecl; external 'PMSPL' index 407;
 
-function SplEnumPrinter (const pszComputerName: PChar;uLevel, fltype: cardinal;
+function SplEnumPrinter (const pszComputerName: PAnsiChar;uLevel, fltype: cardinal;
        var pBuf; cbbuf: cardinal; var pcReturned, pcTotal, pcbNeeded: cardinal;
                    var pReserved): cardinal; cdecl; external 'PMSPL' index 441;
 
-function SplCopyJob (const pszSrcComputerName, pszSrcQueueName: PChar;
-         ulSrcJob: cardinal; const pszTrgComputerName, pszTrgQueueName: PChar;
+function SplCopyJob (const pszSrcComputerName, pszSrcQueueName: PAnsiChar;
+         ulSrcJob: cardinal; const pszTrgComputerName, pszTrgQueueName: PAnsiChar;
          var pulTrgJob: cardinal): cardinal; cdecl; external 'PMSPL' index 442;
 
 
