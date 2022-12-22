@@ -48,7 +48,7 @@ const
 
 type
   TExtHeader = packed record
-    magic : array[0..5] of char;//'FPCRES'
+    magic : array[0..5] of AnsiChar;//'FPCRES'
     version : byte;             //EXT_CURRENT_VERSION
     endianess : byte;           //EXT_ENDIAN_BIG or EXT_ENDIAN_LITTLE
     count : longword;           //resource count
@@ -86,10 +86,10 @@ var
 *****************************************************************************)
 
 //resource functions are case insensitive... copied from genstr.inc
-function ResStrIComp(Str1, Str2 : PChar): SizeInt;
+function ResStrIComp(Str1, Str2 : PAnsiChar): SizeInt;
 var
   counter: SizeInt;
-  c1, c2: char;
+  c1, c2: AnsiChar;
 begin
   counter := 0;
   c1 := upcase(str1[counter]);
@@ -105,8 +105,8 @@ begin
 end;
 
 {!fixme!}
-//function InternalIsIntResource(aStr : pchar; out aInt : PtrUint) : boolean;
-function InternalIsIntResource(aStr : pchar; var aInt : PtrUint) : boolean;
+//function InternalIsIntResource(aStr : PAnsiChar; out aInt : PtrUint) : boolean;
+function InternalIsIntResource(aStr : PAnsiChar; var aInt : PtrUint) : boolean;
 var i : integer;
     s : shortstring;
     code : word;
@@ -135,9 +135,9 @@ begin
   GetResInfoPtr:=PResInfoNode(PtrUInt(base)+offset);
 end;
 
-function GetPchar(base : PExtHeader; const offset : longword) : Pchar; inline;
+function GetPchar(base : PExtHeader; const offset : longword) : PAnsiChar; inline;
 begin
-  GetPchar:=Pchar(PtrUInt(base)+offset);
+  GetPchar:=PAnsiChar(PtrUInt(base)+offset);
 end;
 
 function GetPtr(base : PExtHeader; const offset : longword) : Pointer; inline;
@@ -195,7 +195,7 @@ begin
 //  writeln('base path is ',GetExtResBasePath);
 end;
 
-function GetExtResPathArch(const base : shortstring) : pchar;
+function GetExtResPathArch(const base : shortstring) : PAnsiChar;
 var len : integer;
 begin
   len:=byte(base[0]);
@@ -209,7 +209,7 @@ begin
 //  writeln('Arch-dependent resource file is ',GetExtResPathArch);
 end;
 
-function GetExtResPath(const base : shortstring) : pchar;
+function GetExtResPath(const base : shortstring) : PAnsiChar;
 var len : integer;
 begin
   len:=byte(base[0]);
@@ -221,7 +221,7 @@ begin
 //  writeln('Shared resource file is ',GetExtResPath);
 end;
 
-procedure MapResFile(var aInfo : TResFileInfo; aName : pchar);
+procedure MapResFile(var aInfo : TResFileInfo; aName : PAnsiChar);
 const
   PROT_READ  = 1;
   PROT_WRITE = 2;
@@ -265,8 +265,8 @@ begin
 end;
 
 procedure InitResources;
-var respathArch : pchar;
-    respath : pchar;
+var respathArch : PAnsiChar;
+    respath : PAnsiChar;
     basepath : shortstring;
 begin
   basepath:=GetExtResBasePath;
@@ -296,10 +296,10 @@ begin
   end;
 end;
 
-function BinSearchStr(base : PExtHeader; arr : PResInfoNode; query : pchar;
+function BinSearchStr(base : PExtHeader; arr : PResInfoNode; query : PAnsiChar;
   left, right : integer) : PResInfoNode;
 var pivot, res : integer;
-    resstr : pchar;
+    resstr : PAnsiChar;
 begin
   BinSearchStr:=nil;
   while left<=right do
@@ -317,7 +317,7 @@ begin
   end;
 end;
 
-function BinSearchInt(arr : PResInfoNode; query : pchar; left, right : integer)
+function BinSearchInt(arr : PResInfoNode; query : PAnsiChar; left, right : integer)
 : PResInfoNode;
 var pivot : integer;
 begin
@@ -335,12 +335,12 @@ begin
   end;
 end;
 
-function BinSearchRes(base : PExtHeader; root : PResInfoNode; aDesc : PChar)
+function BinSearchRes(base : PExtHeader; root : PResInfoNode; aDesc : PAnsiChar)
 : PResInfoNode;
 var aID : PtrUint;
 begin
   if InternalIsIntResource(aDesc,aID) then
-    BinSearchRes:=BinSearchInt(GetResInfoPtr(base,root^.subptr),PChar(aID),
+    BinSearchRes:=BinSearchInt(GetResInfoPtr(base,root^.subptr),PAnsiChar(aID),
       root^.ncounthandle,root^.ncounthandle+root^.idcountsize-1)
   else
     BinSearchRes:=BinSearchStr(base,GetResInfoPtr(base,root^.subptr),aDesc,0,
@@ -367,7 +367,7 @@ begin
 end;
 
 //Returns a pointer to a name node.
-function InternalFindResource(base : PExtHeader; ResourceName, ResourceType: PChar):
+function InternalFindResource(base : PExtHeader; ResourceName, ResourceType: PAnsiChar):
  PResInfoNode;
 begin
   InternalFindResource:=nil;
@@ -380,7 +380,7 @@ begin
 end;
 
 function FindResourceSingleFile(ResHeader : PExtHeader; ResourceName,
-  ResourceType: PChar) : TFPResourceHandle;
+  ResourceType: PAnsiChar) : TFPResourceHandle;
 var ptr : PResInfoNode;
 begin
   FindResourceSingleFile:=0;
@@ -400,9 +400,9 @@ end;
 
 {!fixme!}
 //function FindResourceExSingleFile(ResHeader : PExtHeader; ResourceType,
-//  ResourceName: PChar;  Language : word; out precision : integer): TFPResourceHandle;
+//  ResourceName: PAnsiChar;  Language : word; out precision : integer): TFPResourceHandle;
 function FindResourceExSingleFile(ResHeader : PExtHeader; ResourceType,
-  ResourceName: PChar;  Language : word; var precision : integer): TFPResourceHandle;
+  ResourceName: PAnsiChar;  Language : word; var precision : integer): TFPResourceHandle;
 const LANG_NEUTRAL = 0;
       LANG_ENGLISH = 9;
 var nameptr,ptr : PResInfoNode;
@@ -453,7 +453,7 @@ function EnumResourceTypesSingleFile(ResHeader,Other : PExtHeader; ModuleHandle
  : TFPResourceHMODULE; EnumFunc : EnumResTypeProc; lParam : PtrInt) : LongBool;
 var ptr,otarr : PResInfoNode;
     totn, totid, ottotn, ottotid, i : longword;
-    pc : pchar;
+    pc : PAnsiChar;
 begin
   EnumResourceTypesSingleFile:=false;
   if ResHeader=nil then exit;
@@ -482,18 +482,18 @@ begin
   end;
   while i<totid do
   begin
-    if (Other=nil) or (BinSearchInt(otarr,PChar(ptr[i].nameid),ottotn,ottotid)=nil) then
-      if not EnumFunc(ModuleHandle,PChar(ptr[i].nameid),lParam) then exit;
+    if (Other=nil) or (BinSearchInt(otarr,PAnsiChar(ptr[i].nameid),ottotn,ottotid)=nil) then
+      if not EnumFunc(ModuleHandle,PAnsiChar(ptr[i].nameid),lParam) then exit;
     inc(i);
   end;
 end;
 
 function EnumResourceNamesSingleFile(ResHeader,Other : PExtHeader;
-  ModuleHandle : TFPResourceHMODULE; ResourceType : PChar;
+  ModuleHandle : TFPResourceHMODULE; ResourceType : PAnsiChar;
   EnumFunc : EnumResNameProc; lParam : PtrInt) : LongBool;
 var ptr,otarr : PResInfoNode;
     totn, totid, ottotn, ottotid, i : longword;
-    pc : pchar;
+    pc : PAnsiChar;
 begin
   EnumResourceNamesSingleFile:=False;
   if ResHeader=nil then exit;
@@ -529,14 +529,14 @@ begin
   end;
   while i<totid do
   begin
-    if (otarr=nil) or (BinSearchInt(otarr,PChar(ptr[i].nameid),ottotn,ottotid)=nil) then
-      if not EnumFunc(ModuleHandle,ResourceType,PChar(ptr[i].nameid),lParam) then exit;
+    if (otarr=nil) or (BinSearchInt(otarr,PAnsiChar(ptr[i].nameid),ottotn,ottotid)=nil) then
+      if not EnumFunc(ModuleHandle,ResourceType,PAnsiChar(ptr[i].nameid),lParam) then exit;
     inc(i);
   end;
 end;
 
 function EnumResourceLanguagesSingleFile(ResHeader,Other : PExtHeader;
-  ModuleHandle : TFPResourceHMODULE; ResourceType, ResourceName : PChar;
+  ModuleHandle : TFPResourceHMODULE; ResourceType, ResourceName : PAnsiChar;
   EnumFunc : EnumResLangProc; lParam : PtrInt) : LongBool;
 var ptr, otarr : PResInfoNode;
     tot, ottot, i : integer;
@@ -563,7 +563,7 @@ begin
   i:=0;
   while i<tot do
   begin
-    if (otarr=nil) or (BinSearchInt(otarr,PChar(ptr[i].nameid),0,ottot)=nil) then
+    if (otarr=nil) or (BinSearchInt(otarr,PAnsiChar(ptr[i].nameid),0,ottot)=nil) then
       if not EnumFunc(ModuleHandle,ResourceType,ResourceName,PtrUInt(
         ptr[i].nameid),lParam) then exit;
     inc(i);
@@ -588,7 +588,7 @@ begin
     ResFileInfoArch.Resheader,ModuleHandle,EnumFunc,lParam) then ExtEnumResourceTypes:=true;
 end;
 
-function ExtEnumResourceNames(ModuleHandle : TFPResourceHMODULE; ResourceType : PChar; EnumFunc : EnumResNameProc; lParam : PtrInt) : LongBool;
+function ExtEnumResourceNames(ModuleHandle : TFPResourceHMODULE; ResourceType : PAnsiChar; EnumFunc : EnumResNameProc; lParam : PtrInt) : LongBool;
 begin
   ExtEnumResourceNames:=False;
   if EnumResourceNamesSingleFile(ResFileInfoArch.Resheader,nil,ModuleHandle,
@@ -597,7 +597,7 @@ begin
     ResFileInfoArch.Resheader,ModuleHandle,ResourceType,EnumFunc,lParam) then ExtEnumResourceNames:=true;
 end;
 
-function ExtEnumResourceLanguages(ModuleHandle : TFPResourceHMODULE; ResourceType, ResourceName : PChar; EnumFunc : EnumResLangProc; lParam : PtrInt) : LongBool;
+function ExtEnumResourceLanguages(ModuleHandle : TFPResourceHMODULE; ResourceType, ResourceName : PAnsiChar; EnumFunc : EnumResLangProc; lParam : PtrInt) : LongBool;
 begin
   ExtEnumResourceLanguages:=False;
   if EnumResourceLanguagesSingleFile(ResFileInfoArch.Resheader,nil,ModuleHandle,
@@ -607,7 +607,7 @@ begin
     lParam) then ExtEnumResourceLanguages:=true;
 end;
 
-function ExtFindResource(ModuleHandle: TFPResourceHMODULE; ResourceName, ResourceType: PChar): TFPResourceHandle;
+function ExtFindResource(ModuleHandle: TFPResourceHMODULE; ResourceName, ResourceType: PAnsiChar): TFPResourceHandle;
 begin
   //search for resource in architecture-dependent res file first
   ExtFindResource:=FindResourceSingleFile(ResFileInfoArch.ResHeader,ResourceName,ResourceType);
@@ -615,7 +615,7 @@ begin
     ExtFindResource:=FindResourceSingleFile(ResFileInfo.ResHeader,ResourceName,ResourceType);
 end;
 
-function ExtFindResourceEx(ModuleHandle: TFPResourceHMODULE; ResourceType, ResourceName: PChar; Language : word): TFPResourceHandle;
+function ExtFindResourceEx(ModuleHandle: TFPResourceHMODULE; ResourceType, ResourceName: PAnsiChar; Language : word): TFPResourceHandle;
 var precar, precsh : integer;
     handlear, handlesh : TResourceHandle;
 begin
