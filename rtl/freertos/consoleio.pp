@@ -17,8 +17,8 @@ Unit consoleio;
   interface
 
     type
-      TWriteCharFunc = function(ACh: char; AUserData: pointer): boolean;
-      TReadCharFunc = function(var ACh: char; AUserData: pointer): boolean;
+      TWriteCharFunc = function(ACh: AnsiChar; AUserData: pointer): boolean;
+      TReadCharFunc = function(var ACh: AnsiChar; AUserData: pointer): boolean;
 
     procedure OpenIO(var f: Text; AWrite: TWriteCharFunc; ARead: TReadCharFunc; AMode: word; AUserData: pointer);
 
@@ -34,12 +34,12 @@ Unit consoleio;
         UserData: Pointer;
       end;
 
-    function EmptyWrite(ACh: char; AUserData: pointer): boolean;
+    function EmptyWrite(ACh: AnsiChar; AUserData: pointer): boolean;
       begin
         EmptyWrite:=true;
       end;
 
-    function EmptyRead(var ACh: char; AUserData: pointer): boolean;
+    function EmptyRead(var ACh: AnsiChar; AUserData: pointer): boolean;
       begin
         EmptyRead:=true;
         ACh:=#0;
@@ -49,9 +49,9 @@ Unit consoleio;
       begin
       end;
 
-    function ReadData(Func: TReadCharFunc; UserData: pointer; Buffer: pchar; count: SizeInt): SizeInt;
+    function ReadData(Func: TReadCharFunc; UserData: pointer; Buffer: PAnsiChar; count: SizeInt): SizeInt;
       var
-        c: char;
+        c: AnsiChar;
         got_linechar: boolean;
       begin
         ReadData:=0;
@@ -75,20 +75,20 @@ Unit consoleio;
       begin
         userdata:=@t.UserData[1];
         InOutRes:=0;
-        t.bufend:=ReadData(userdata^.ReadChar,userdata^.UserData,pchar(t.bufptr),t.bufsize);
+        t.bufend:=ReadData(userdata^.ReadChar,userdata^.UserData,PAnsiChar(t.bufptr),t.bufsize);
         t.bufpos:=0;
       end;
 
     Procedure Console_Write(var t:TextRec);
       var
         userdata: PUserData;
-        p: pchar;
+        p: PAnsiChar;
         i: SizeInt;
       begin
         if t.BufPos=0 then exit;
         userdata:=@t.UserData[1];
         i := 0;
-        p := pchar(t.bufptr);
+        p := PAnsiChar(t.bufptr);
         while i < t.bufpos do
           begin
             if not userdata^.WriteChar(p^, userdata^.UserData) then
