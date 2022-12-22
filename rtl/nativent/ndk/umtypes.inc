@@ -20,7 +20,7 @@ type
   // Basic Types that aren't defined in User-Mode Headers
   //
   CINT = LongInt; // Int64 in 64 bit?
-  PCSZ = PChar;
+  PCSZ = PAnsiChar;
   CLONG = ULONG;
   CSHORT = SmallInt;
   PCSHORT = ^CSHORT;

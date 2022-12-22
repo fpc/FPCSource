@@ -358,7 +358,7 @@ begin
   end;
 end;
 
-procedure SysPCharToNtStr(var aNtStr: TNtUnicodeString; aText: PChar;
+procedure SysPCharToNtStr(var aNtStr: TNtUnicodeString; aText: PAnsiChar;
   aLen: LongWord);
 var
   i: Integer;

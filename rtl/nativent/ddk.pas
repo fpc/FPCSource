@@ -31,7 +31,7 @@ const
 function RegistryPath: PNtUnicodeString; inline;
 function DriverObject: PDriverObject; inline;
 
-function DbgPrint(aFormat: PChar): LongWord; cdecl; varargs; external ntkrnl name 'DbgPrint';
+function DbgPrint(aFormat: PAnsiChar): LongWord; cdecl; varargs; external ntkrnl name 'DbgPrint';
 
 function PoolTag(aTag: TTagString): LongWord;
 

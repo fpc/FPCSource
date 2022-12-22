@@ -718,7 +718,7 @@ Var
   i: LongInt;
   dirinfo: POBJECT_DIRECTORY_INFORMATION;
   filedirinfo: PFILE_DIRECTORY_INFORMATION;
-  pc: PChar;
+  pc: PAnsiChar;
   filename: UnicodeString;
   iostatus: IO_STATUS_BLOCK;
 begin
@@ -767,7 +767,7 @@ begin
         DirName:='./'
       Else
         DirName:=Copy(NTFindData^.SearchSpec,1,NTFindData^.NamePos);
-      NTFindData^.DirPtr := fpopendir(Pchar(pointer(DirName)));
+      NTFindData^.DirPtr := fpopendir(PAnsiChar(pointer(DirName)));
     end;}
   SName := Copy(Rslt.FindData.SearchSpec, Rslt.FindData.NamePos + 1,
              Length(Rslt.FindData.SearchSpec));
@@ -1144,7 +1144,7 @@ begin
      begin
         len:=UnicodeToUTF8(Nil, hp, 0);
         SetLength(s,len);
-        UnicodeToUTF8(PChar(s), hp, len);
+        UnicodeToUTF8(PAnsiChar(s), hp, len);
         i:=pos('=',s);
         if uppercase(copy(s,1,i-1))=upperenvvar then
           begin
@@ -1192,7 +1192,7 @@ begin
 {$else}
         len:=UnicodeToUTF8(Nil, hp, 0);
         SetLength(Result, len);
-        UnicodeToUTF8(PChar(Result), hp, len);
+        UnicodeToUTF8(PAnsiChar(Result), hp, len);
         SetCodePage(RawByteString(Result),CP_UTF8,false);
 {$endif}
       end;
