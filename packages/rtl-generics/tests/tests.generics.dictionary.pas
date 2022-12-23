@@ -30,8 +30,8 @@ Type
     Procedure DoneExpectKeys;
     Procedure DoneExpectValues;
     procedure DoGetValue(aKey: Integer; Match: String; ExceptionClass: TClass=nil);
-    procedure DoKeyNotify(ASender: TObject; {$ifdef fpc}constref{$else}const{$endif} AItem: Integer; AAction: TCollectionNotification);
-    procedure DoValueNotify(ASender: TObject; {$ifdef fpc}constref{$else}const{$endif} AItem: String; AAction: TCollectionNotification);
+    procedure DoKeyNotify(ASender: TObject; const AItem: Integer; AAction: TCollectionNotification);
+    procedure DoValueNotify(ASender: TObject; const AItem: String; AAction: TCollectionNotification);
   Public
     Procedure SetExpectKeys(aMessage : string; AKeys : Array of Integer; AActions : Array of TCollectionNotification; DoReverse : Boolean = False);
     Procedure SetExpectValues(aMessage : string; AKeys : Array of String; AActions : Array of TCollectionNotification; DoReverse : Boolean = False);
@@ -173,7 +173,7 @@ begin
     end;
 end;
 
-procedure TTestSimpleDictionary.DoKeyNotify(ASender: TObject;  {$ifdef fpc}constref{$else}const{$endif}  AItem: Integer; AAction: TCollectionNotification);
+procedure TTestSimpleDictionary.DoKeyNotify(ASender: TObject; const AItem: Integer; AAction: TCollectionNotification);
 begin
   Writeln(FnotifyMessage+' Notification',FCurrentKeyNotify);
   AssertSame(FnotifyMessage+' Correct sender', FDict,aSender);
@@ -183,7 +183,7 @@ begin
   Inc(FCurrentKeyNotify);
 end;
 
-procedure TTestSimpleDictionary.DoValueNotify(ASender: TObject; {$ifdef fpc}constref{$else}const{$endif} AItem: String; AAction: TCollectionNotification);
+procedure TTestSimpleDictionary.DoValueNotify(ASender: TObject; const AItem: String; AAction: TCollectionNotification);
 begin
   Writeln(FnotifyMessage+' value Notification',FCurrentValueNotify);
   AssertSame(FnotifyMessage+' value Correct sender', FDict,aSender);

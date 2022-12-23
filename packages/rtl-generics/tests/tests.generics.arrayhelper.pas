@@ -37,9 +37,9 @@ type
 
   TTestArrayHelper = class(TTestCase)
   protected
-    procedure CheckBinarySearch(constref AArray: TArray<Integer>;
+    procedure CheckBinarySearch(const AArray: TArray<Integer>;
       AValue: Integer; AExpectedResult: boolean; out ASearchResult: TBinarySearchResult);
-    procedure CheckSearchResult(constref ASearchResult: TBinarySearchResult;
+    procedure CheckSearchResult(const ASearchResult: TBinarySearchResult;
       AValue: Integer; ACandidateIndex, AFoundIndex: SizeInt; ACompareResult: Boolean);
   published
     procedure Test_BinarySearch_Integers;
@@ -50,7 +50,7 @@ implementation
 
 { TTestArrayHelper }
 
-procedure TTestArrayHelper.CheckBinarySearch(constref AArray: TArray<Integer>;
+procedure TTestArrayHelper.CheckBinarySearch(const AArray: TArray<Integer>;
   AValue: Integer; AExpectedResult: boolean; out
   ASearchResult: TBinarySearchResult);
 begin
@@ -59,7 +59,7 @@ begin
     'Wrong BinarySearch result for ' + AValue.ToString);
 end;
 
-procedure TTestArrayHelper.CheckSearchResult(constref
+procedure TTestArrayHelper.CheckSearchResult(const
   ASearchResult: TBinarySearchResult; AValue: Integer; ACandidateIndex,
   AFoundIndex: SizeInt; ACompareResult: Boolean);
 begin
