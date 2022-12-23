@@ -71,7 +71,7 @@ type
     property Capacity: SizeInt read GetCapacity write SetCapacity;
 
     procedure Clear; virtual; abstract;
-    procedure Add(constref APair: TPair<TKey, TValue>); virtual; abstract;
+    procedure Add(const APair: TPair<TKey, TValue>); virtual; abstract;
   strict private // bug #24283. workaround for this class because can't inherit from TEnumerable
     function ToArray(ACount: SizeInt): TArray<TDictionaryPair>; overload;
   public
@@ -95,10 +95,10 @@ type
   protected
     procedure UpdateItemsThreshold(ASize: SizeInt); virtual; abstract;
 
-    procedure KeyNotify(constref AKey: TKey; ACollectionNotification: TCollectionNotification); virtual;
-    procedure ValueNotify(constref AValue: TValue; ACollectionNotification: TCollectionNotification); virtual;
-    procedure PairNotify(constref APair: TDictionaryPair; ACollectionNotification: TCollectionNotification); inline;
-    procedure SetValue(var AValue: TValue; constref ANewValue: TValue);
+    procedure KeyNotify(const AKey: TKey; ACollectionNotification: TCollectionNotification); virtual;
+    procedure ValueNotify(const AValue: TValue; ACollectionNotification: TCollectionNotification); virtual;
+    procedure PairNotify(const APair: TDictionaryPair; ACollectionNotification: TCollectionNotification); inline;
+    procedure SetValue(var AValue: TValue; const ANewValue: TValue);
   public
     property OnKeyNotify: TCollectionNotifyEvent<TKey> read FOnKeyNotify write FOnKeyNotify;
     property OnValueNotify: TCollectionNotifyEvent<TValue> read FOnValueNotify write FOnValueNotify;
@@ -193,8 +193,8 @@ type
   protected
     function RealItemsLength: SizeInt; virtual;
     function Rehash(ASizePow2: SizeInt; AForce: Boolean = False): boolean; virtual;
-    function FindBucketIndex(constref AKey: TKey): SizeInt; overload; inline;
-    function FindBucketIndex(constref AItems: TArray<TItem>; constref AKey: TKey; out AHash: UInt32): SizeInt; virtual; abstract; overload;
+    function FindBucketIndex(const AKey: TKey): SizeInt; overload; inline;
+    function FindBucketIndex(const AItems: TArray<TItem>; const AKey: TKey; out AHash: UInt32): SizeInt; virtual; abstract; overload;
   public
     type
       // Enumerators
@@ -237,11 +237,11 @@ type
   private
     function GetItem(const AKey: TKey): TValue; inline;
     procedure SetItem(const AKey: TKey; const AValue: TValue); inline;
-    procedure AddItem(var AItem: TItem; constref AKey: TKey; constref AValue: TValue; const AHash: UInt32); inline;
+    procedure AddItem(var AItem: TItem; const AKey: TKey; const AValue: TValue; const AHash: UInt32); inline;
   protected
      // useful for using dictionary as array
     function DoRemove(AIndex: SizeInt; ACollectionNotification: TCollectionNotification): TValue; virtual;
-    function DoAdd(constref AKey: TKey; constref AValue: TValue): SizeInt; virtual;
+    function DoAdd(const AKey: TKey; const AValue: TValue): SizeInt; virtual;
 
     procedure UpdateItemsThreshold(ASize: SizeInt); override;
 
@@ -255,18 +255,18 @@ type
     // many constructors because bug #25607
     constructor Create(ACapacity: SizeInt; const AComparer: IEqualityComparer<TKey>); override; overload;
 
-    procedure Add(constref APair: TPair<TKey, TValue>); override; overload;
-    procedure Add(constref AKey: TKey; constref AValue: TValue); overload; inline;
-    procedure Remove(constref AKey: TKey);
-    function ExtractPair(constref AKey: TKey): TPair<TKey, TValue>;
+    procedure Add(const APair: TPair<TKey, TValue>); override; overload;
+    procedure Add(const AKey: TKey; const AValue: TValue); overload; inline;
+    procedure Remove(const AKey: TKey);
+    function ExtractPair(const AKey: TKey): TPair<TKey, TValue>;
     procedure Clear; override;
     procedure TrimExcess;
-    function TryGetValue(constref AKey: TKey; out AValue: TValue): Boolean;
-    function TryAdd(constref AKey: TKey; constref AValue: TValue): Boolean;
-    procedure AddOrSetValue(constref AKey: TKey; constref AValue: TValue);
-    function ContainsKey(constref AKey: TKey): Boolean; inline;
-    function ContainsValue(constref AValue: TValue): Boolean; overload;
-    function ContainsValue(constref AValue: TValue; const AEqualityComparer: IEqualityComparer<TValue>): Boolean; virtual; overload;
+    function TryGetValue(const AKey: TKey; out AValue: TValue): Boolean;
+    function TryAdd(const AKey: TKey; const AValue: TValue): Boolean;
+    procedure AddOrSetValue(const AKey: TKey; const AValue: TValue);
+    function ContainsKey(const AKey: TKey): Boolean; inline;
+    function ContainsValue(const AValue: TValue): Boolean; overload;
+    function ContainsValue(const AValue: TValue; const AEqualityComparer: IEqualityComparer<TValue>): Boolean; virtual; overload;
 
     property Items[Index: TKey]: TValue read GetItem write SetItem; default;
     property Keys: TKeyCollection read GetKeys;
@@ -285,7 +285,7 @@ type
   protected
     procedure NotifyIndexChange(AFrom, ATo: SizeInt); virtual;
     function DoRemove(AIndex: SizeInt; ACollectionNotification: TCollectionNotification): TValue; override;
-    function FindBucketIndex(constref AItems: TArray<TItem>; constref AKey: TKey; out AHash: UInt32): SizeInt; override; overload;
+    function FindBucketIndex(const AItems: TArray<TItem>; const AKey: TKey; out AHash: UInt32): SizeInt; override; overload;
   end;
 
   // More info and TODO
@@ -298,11 +298,11 @@ type
     function Rehash(ASizePow2: SizeInt; AForce: Boolean = False): boolean; override;
     function RealItemsLength: SizeInt; override;
 
-    function FindBucketIndexOrTombstone(constref AItems: TArray<TItem>; constref AKey: TKey;
+    function FindBucketIndexOrTombstone(const AItems: TArray<TItem>; const AKey: TKey;
       out AHash: UInt32): SizeInt; virtual; abstract;
 
     function DoRemove(AIndex: SizeInt; ACollectionNotification: TCollectionNotification): TValue; override;
-    function DoAdd(constref AKey: TKey; constref AValue: TValue): SizeInt; override;
+    function DoAdd(const AKey: TKey; const AValue: TValue): SizeInt; override;
   public
     property TombstonesCount: SizeInt read FTombstonesCount;
     procedure ClearTombstones; virtual;
@@ -316,9 +316,9 @@ type
       Pair: TPair<TKey, TValue>;
     end;
   protected
-    function FindBucketIndex(constref AItems: TArray<TItem>; constref AKey: TKey;
+    function FindBucketIndex(const AItems: TArray<TItem>; const AKey: TKey;
       out AHash: UInt32): SizeInt; override; overload;
-    function FindBucketIndexOrTombstone(constref AItems: TArray<TItem>; constref AKey: TKey;
+    function FindBucketIndexOrTombstone(const AItems: TArray<TItem>; const AKey: TKey;
       out AHash: UInt32): SizeInt; override;
   end;
 
@@ -327,10 +327,10 @@ type
     FPrimaryNumberAsSizeApproximation: SizeInt;
   protected
     procedure UpdateItemsThreshold(ASize: SizeInt); override;
-    function FindBucketIndex(constref AItems: TArray<TItem>;
-      constref AKey: TKey; out AHash: UInt32): SizeInt; override; overload;
-    function FindBucketIndexOrTombstone(constref AItems: TArray<TItem>;
-      constref AKey: TKey; out AHash: UInt32): SizeInt; override;
+    function FindBucketIndex(const AItems: TArray<TItem>;
+      const AKey: TKey; out AHash: UInt32): SizeInt; override; overload;
+    function FindBucketIndexOrTombstone(const AItems: TArray<TItem>;
+      const AKey: TKey; out AHash: UInt32): SizeInt; override;
   end;
 
   TOpenAddressingDH<OPEN_ADDRESSING_CONSTRAINTS> = class(TOpenAddressingTombstones<OPEN_ADDRESSING_CONSTRAINTS>)
@@ -343,9 +343,9 @@ type
     R: UInt32;
   protected
     procedure UpdateItemsThreshold(ASize: SizeInt); override;
-    function FindBucketIndex(constref AItems: TArray<TItem>; constref AKey: TKey;
+    function FindBucketIndex(const AItems: TArray<TItem>; const AKey: TKey;
       out AHash: UInt32): SizeInt; override; overload;
-    function FindBucketIndexOrTombstone(constref AItems: TArray<TItem>; constref AKey: TKey;
+    function FindBucketIndexOrTombstone(const AItems: TArray<TItem>; const AKey: TKey;
       out AHash: UInt32): SizeInt; override;
   strict protected
     constructor Create(ACapacity: SizeInt; const AComparer: IEqualityComparer<TKey>); override; overload;
@@ -470,8 +470,8 @@ type
     procedure PrepareAddingItem;
   protected
     procedure UpdateItemsThreshold(ASize: SizeInt); override;
-    function Lookup(constref AKey: TKey; var AHashListOrIndex: PUInt32): SizeInt; inline; overload;
-    function Lookup(constref AItems: TItemsDArray; constref AKey: TKey; var AHashListOrIndex: PUInt32): SizeInt; virtual; overload;
+    function Lookup(const AKey: TKey; var AHashListOrIndex: PUInt32): SizeInt; inline; overload;
+    function Lookup(const AItems: TItemsDArray; const AKey: TKey; var AHashListOrIndex: PUInt32): SizeInt; virtual; overload;
   public
     type
       // Enumerators
@@ -514,9 +514,9 @@ type
   private
     function GetItem(const AKey: TKey): TValue; inline;
     procedure SetItem(const AKey: TKey; const AValue: TValue); overload; inline;
-    procedure SetItem(constref AValue: TValue; const AHashListOrIndex: PUInt32; ALookupResult: SizeInt); overload;
+    procedure SetItem(const AValue: TValue; const AHashListOrIndex: PUInt32; ALookupResult: SizeInt); overload;
 
-    procedure AddItem(constref AItems: TItemsDArray; constref AKey: TKey; constref AValue: TValue; const AHashList: PUInt32); overload;
+    procedure AddItem(const AItems: TItemsDArray; const AKey: TKey; const AValue: TValue; const AHashList: PUInt32); overload;
     procedure DoAdd(const AKey: TKey; const AValue: TValue; const AHashList: PUInt32); overload; inline;
     function DoRemove(const AHashListOrIndex: PUInt32; ALookupResult: SizeInt;
       ACollectionNotification: TCollectionNotification): TValue;
@@ -553,17 +553,17 @@ type
     {$ENDIF}
     destructor Destroy; override;
 
-    procedure Add(constref APair: TPair<TKey, TValue>); override; overload;
-    procedure Add(constref AKey: TKey; constref AValue: TValue); overload;
-    procedure Remove(constref AKey: TKey);
-    function ExtractPair(constref AKey: TKey): TPair<TKey, TValue>;
+    procedure Add(const APair: TPair<TKey, TValue>); override; overload;
+    procedure Add(const AKey: TKey; const AValue: TValue); overload;
+    procedure Remove(const AKey: TKey);
+    function ExtractPair(const AKey: TKey): TPair<TKey, TValue>;
     procedure Clear; override;
     procedure TrimExcess;
-    function TryGetValue(constref AKey: TKey; out AValue: TValue): Boolean;
-    procedure AddOrSetValue(constref AKey: TKey; constref AValue: TValue);
-    function ContainsKey(constref AKey: TKey): Boolean; inline;
-    function ContainsValue(constref AValue: TValue): Boolean; overload;
-    function ContainsValue(constref AValue: TValue; const AEqualityComparer: IEqualityComparer<TValue>): Boolean; virtual; overload;
+    function TryGetValue(const AKey: TKey; out AValue: TValue): Boolean;
+    procedure AddOrSetValue(const AKey: TKey; const AValue: TValue);
+    function ContainsKey(const AKey: TKey): Boolean; inline;
+    function ContainsValue(const AValue: TValue): Boolean; overload;
+    function ContainsValue(const AValue: TValue; const AEqualityComparer: IEqualityComparer<TValue>): Boolean; virtual; overload;
 
     property Items[Index: TKey]: TValue read GetItem write SetItem; default;
     property Keys: TKeyCollection read GetKeys;
@@ -580,8 +580,8 @@ type
   private
     FOwnerships: TDictionaryOwnerships;
   protected
-    procedure KeyNotify(constref AKey: TKey; ACollectionNotification: TCollectionNotification); override;
-    procedure ValueNotify(constref AValue: TValue; ACollectionNotification: TCollectionNotification); override;
+    procedure KeyNotify(const AKey: TKey; ACollectionNotification: TCollectionNotification); override;
+    procedure ValueNotify(const AValue: TValue; ACollectionNotification: TCollectionNotification); override;
   public
     // can't be as "Create(AOwnerships: TDictionaryOwnerships; ACapacity: SizeInt = 0)"
     // because bug #25607
@@ -597,8 +597,8 @@ type
   private
     FOwnerships: TDictionaryOwnerships;
   protected
-    procedure KeyNotify(constref AKey: TKey; ACollectionNotification: TCollectionNotification); override;
-    procedure ValueNotify(constref AValue: TValue; ACollectionNotification: TCollectionNotification); override;
+    procedure KeyNotify(const AKey: TKey; ACollectionNotification: TCollectionNotification); override;
+    procedure ValueNotify(const AValue: TValue; ACollectionNotification: TCollectionNotification); override;
   public
     // can't be as "Create(AOwnerships: TDictionaryOwnerships; ACapacity: SizeInt = 0)"
     // because bug #25607
