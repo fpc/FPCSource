@@ -27,7 +27,7 @@ Type
     procedure DoAdd2;
     Procedure DoneExpectValues;
     procedure DoGetValue(Match: String; ExceptionClass: TClass=nil);
-    procedure DoValueNotify(ASender: TObject; {$ifdef fpc}constref{$else}const{$endif} AItem: String; AAction: TCollectionNotification);
+    procedure DoValueNotify(ASender: TObject; const AItem: String; AAction: TCollectionNotification);
   Public
     Procedure SetExpectValues(aMessage : string; AKeys : Array of String; AActions : Array of TCollectionNotification; DoReverse : Boolean = False);
     Procedure SetUp; override;
@@ -244,7 +244,7 @@ begin
     end;
 end;
 
-procedure TTestSimpleQueue.DoValueNotify(ASender: TObject; {$ifdef fpc}constref{$else}const{$endif} AItem: String; AAction: TCollectionNotification);
+procedure TTestSimpleQueue.DoValueNotify(ASender: TObject; const AItem: String; AAction: TCollectionNotification);
 begin
 //  Writeln(FnotifyMessage+' value Notification',FCurrentValueNotify);
   AssertSame(FnotifyMessage+' value Correct sender', FQueue,aSender);

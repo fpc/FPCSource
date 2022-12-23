@@ -86,8 +86,8 @@ type
     procedure ClearNotificationsObj;
     procedure NotifyTestNodeStr(ASender: TObject; ANode: PNode_String; AAction: TCollectionNotification; ADispose: boolean);
     procedure NotifyTestNodeEmpty(ASender: TObject; ANode: PNode_Empty; AAction: TCollectionNotification; ADispose: boolean);
-    procedure NotifyTestStr(ASender: TObject; constref AItem: string; AAction: TCollectionNotification);
-    procedure NotifyTestObj(ASender: TObject; constref AItem: TObject; AAction: TCollectionNotification);
+    procedure NotifyTestStr(ASender: TObject; const AItem: string; AAction: TCollectionNotification);
+    procedure NotifyTestObj(ASender: TObject; const AItem: TObject; AAction: TCollectionNotification);
 
     procedure CreateObjects(var AArray: TArray<TObject>; ACount: Integer);
     procedure FreeObjects(AArray: TArray<TObject>);
@@ -381,7 +381,7 @@ begin
   Inc(NotificationsNodesIndex)
 end;
 
-procedure TTestCollections.NotifyTestStr(ASender: TObject; constref AItem: string; AAction: TCollectionNotification);
+procedure TTestCollections.NotifyTestStr(ASender: TObject; const AItem: string; AAction: TCollectionNotification);
 var
   LNotification: TNotificationRec_String;
 begin
@@ -396,7 +396,7 @@ begin
   Inc(NotificationsIndex)
 end;
 
-procedure TTestCollections.NotifyTestObj(ASender: TObject; constref AItem: TObject; AAction: TCollectionNotification);
+procedure TTestCollections.NotifyTestObj(ASender: TObject; const AItem: TObject; AAction: TCollectionNotification);
 var
   LNotification: TNotificationRec_TObject;
 begin

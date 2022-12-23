@@ -191,7 +191,7 @@ begin
   finally FreeAndNil(Apples) end;
 end;
 
-function CompareApples(constref Left, Right: TApple): Integer;
+function CompareApples(const Left, Right: TApple): Integer;
 begin
   Result := AnsiCompareStr(Left.Name, Right.Name);
 end;

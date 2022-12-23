@@ -44,9 +44,9 @@ type
   private
     procedure CountAsKey_Check(const AWhat: string; AValue, AExpectedValue: Integer;
       AAction: PCollectionNotification);
-    procedure CountAsKey_Notify(const AKind: string; ASender: TObject; constref AItem: Integer; AAction: TCollectionNotification);
-    procedure CountAsKey_NotifyValue(ASender: TObject; constref AItem: Integer; AAction: TCollectionNotification);
-    procedure CountAsKey_NotifyKey(ASender: TObject; constref AItem: Integer; AAction: TCollectionNotification);
+    procedure CountAsKey_Notify(const AKind: string; ASender: TObject; const AItem: Integer; AAction: TCollectionNotification);
+    procedure CountAsKey_NotifyValue(ASender: TObject; const AItem: Integer; AAction: TCollectionNotification);
+    procedure CountAsKey_NotifyKey(ASender: TObject; const AItem: Integer; AAction: TCollectionNotification);
   published
     procedure Test_CountAsKey_OpenAddressingLP;
     procedure Test_CountAsKey_OpenAddressingLPT;
@@ -89,7 +89,7 @@ begin
   AssertEquals(AWhat + LCollectionNotificationStr, AExpectedValue, AValue);
 end;
 
-procedure TTestHashMaps.CountAsKey_Notify(const AKind: string; ASender: TObject; constref
+procedure TTestHashMaps.CountAsKey_Notify(const AKind: string; ASender: TObject; const
   AItem: Integer; AAction: TCollectionNotification);
 var
   LCount: Integer;
@@ -105,13 +105,13 @@ begin
   end;
 end;
 
-procedure TTestHashMaps.CountAsKey_NotifyValue(ASender: TObject; constref AItem: Integer;
+procedure TTestHashMaps.CountAsKey_NotifyValue(ASender: TObject; const AItem: Integer;
   AAction: TCollectionNotification);
 begin
   CountAsKey_Notify('Value', ASender, AItem, AAction);
 end;
 
-procedure TTestHashMaps.CountAsKey_NotifyKey(ASender: TObject; constref AItem: Integer;
+procedure TTestHashMaps.CountAsKey_NotifyKey(ASender: TObject; const AItem: Integer;
   AAction: TCollectionNotification);
 begin
   CountAsKey_Notify('Key', ASender, AItem, AAction);

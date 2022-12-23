@@ -37,21 +37,21 @@ end;
 
 { TCustomDictionary<CUSTOM_DICTIONARY_CONSTRAINTS> }
 
-procedure TCustomDictionary<CUSTOM_DICTIONARY_CONSTRAINTS>.PairNotify(constref APair: TDictionaryPair;
+procedure TCustomDictionary<CUSTOM_DICTIONARY_CONSTRAINTS>.PairNotify(const APair: TDictionaryPair;
   ACollectionNotification: TCollectionNotification);
 begin
   KeyNotify(APair.Key, ACollectionNotification);
   ValueNotify(APair.Value, ACollectionNotification);
 end;
 
-procedure TCustomDictionary<CUSTOM_DICTIONARY_CONSTRAINTS>.KeyNotify(constref AKey: TKey;
+procedure TCustomDictionary<CUSTOM_DICTIONARY_CONSTRAINTS>.KeyNotify(const AKey: TKey;
   ACollectionNotification: TCollectionNotification);
 begin
   if Assigned(FOnKeyNotify) then
     FOnKeyNotify(Self, AKey, ACollectionNotification);
 end;
 
-procedure TCustomDictionary<CUSTOM_DICTIONARY_CONSTRAINTS>.SetValue(var AValue: TValue; constref ANewValue: TValue);
+procedure TCustomDictionary<CUSTOM_DICTIONARY_CONSTRAINTS>.SetValue(var AValue: TValue; const ANewValue: TValue);
 var
   LOldValue: TValue;
 begin
@@ -62,7 +62,7 @@ begin
   ValueNotify(ANewValue, cnAdded);
 end;
 
-procedure TCustomDictionary<CUSTOM_DICTIONARY_CONSTRAINTS>.ValueNotify(constref AValue: TValue;
+procedure TCustomDictionary<CUSTOM_DICTIONARY_CONSTRAINTS>.ValueNotify(const AValue: TValue;
   ACollectionNotification: TCollectionNotification);
 begin
   if Assigned(FOnValueNotify) then
@@ -334,7 +334,7 @@ begin
   Result := TValueCollection(FValues);
 end;
 
-function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndex(constref AKey: TKey): SizeInt;
+function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndex(const AKey: TKey): SizeInt;
 var
   LHash: UInt32;
 begin
@@ -362,14 +362,14 @@ begin
     FItemsThreshold := Pred(Round(ASize * FMaxLoadFactor));
 end;
 
-procedure TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.AddItem(var AItem: TItem; constref AKey: TKey;
-  constref AValue: TValue; const AHash: UInt32);
+procedure TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.AddItem(var AItem: TItem; const AKey: TKey;
+  const AValue: TValue; const AHash: UInt32);
 begin
   AItem.Hash := AHash;
   AItem.Pair.Key := AKey;
   AItem.Pair.Value := AValue;
 
-  // ! very important. FItemsLength must be increased after above code (because constref has meaning)
+  // ! very important. FItemsLength must be increased after above code (because const has meaning)
   Inc(FItemsLength);
 
   PairNotify(AItem.Pair, cnAdded);
@@ -380,17 +380,17 @@ begin
   Result := PPointersCollection(@FItems);
 end;
 
-procedure TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.Add(constref AKey: TKey; constref AValue: TValue);
+procedure TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.Add(const AKey: TKey; const AValue: TValue);
 begin
   DoAdd(AKey, AValue);
 end;
 
-procedure TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.Add(constref APair: TPair<TKey, TValue>);
+procedure TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.Add(const APair: TPair<TKey, TValue>);
 begin
   DoAdd(APair.Key, APair.Value);
 end;
 
-function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.DoAdd(constref AKey: TKey; constref AValue: TValue): SizeInt;
+function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.DoAdd(const AKey: TKey; const AValue: TValue): SizeInt;
 var
   LHash: UInt32;
 begin
@@ -419,7 +419,7 @@ begin
   PairNotify(LPair, ACollectionNotification);
 end;
 
-procedure TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.Remove(constref AKey: TKey);
+procedure TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.Remove(const AKey: TKey);
 var
   LIndex: SizeInt;
 begin
@@ -430,7 +430,7 @@ begin
   DoRemove(LIndex, cnRemoved);
 end;
 
-function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.ExtractPair(constref AKey: TKey): TPair<TKey, TValue>;
+function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.ExtractPair(const AKey: TKey): TPair<TKey, TValue>;
 var
   LIndex: SizeInt;
 begin
@@ -594,7 +594,7 @@ begin
   SetValue(FItems[LIndex].Pair.Value, AValue);
 end;
 
-function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.TryGetValue(constref AKey: TKey; out AValue: TValue): Boolean;
+function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.TryGetValue(const AKey: TKey; out AValue: TValue): Boolean;
 var
   LIndex: SizeInt;
 begin
@@ -607,7 +607,7 @@ begin
     AValue := Default(TValue);
 end;
 
-function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.TryAdd(constref AKey: TKey; constref AValue: TValue): Boolean;
+function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.TryAdd(const AKey: TKey; const AValue: TValue): Boolean;
 var
   LHash: UInt32;
 begin
@@ -616,7 +616,7 @@ begin
     DoAdd(AKey, AValue);
 end;
 
-procedure TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.AddOrSetValue(constref AKey: TKey; constref AValue: TValue);
+procedure TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.AddOrSetValue(const AKey: TKey; const AValue: TValue);
 var
   LIndex: SizeInt;
   LHash: UInt32;
@@ -629,7 +629,7 @@ begin
     SetValue(FItems[LIndex].Pair.Value, AValue);
 end;
 
-function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.ContainsKey(constref AKey: TKey): Boolean;
+function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.ContainsKey(const AKey: TKey): Boolean;
 var
   LIndex: SizeInt;
 begin
@@ -637,12 +637,12 @@ begin
   Result := LIndex >= 0;
 end;
 
-function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.ContainsValue(constref AValue: TValue): Boolean;
+function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.ContainsValue(const AValue: TValue): Boolean;
 begin
   Result := ContainsValue(AValue, TEqualityComparer<TValue>.Default(THashFactory));
 end;
 
-function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.ContainsValue(constref AValue: TValue;
+function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.ContainsValue(const AValue: TValue;
   const AEqualityComparer: IEqualityComparer<TValue>): Boolean;
 var
   i: SizeInt;
@@ -760,8 +760,8 @@ begin
   PairNotify(LPair, ACollectionNotification);
 end;
 
-function TOpenAddressingLP<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndex(constref AItems: TArray<TItem>;
-  constref AKey: TKey; out AHash: UInt32): SizeInt;
+function TOpenAddressingLP<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndex(const AItems: TArray<TItem>;
+  const AKey: TKey; out AHash: UInt32): SizeInt;
 var
   LItem: {TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.}_TItem; // for workaround Lazarus bug #25613
   LLengthMask: SizeInt;
@@ -833,8 +833,8 @@ begin
   Inc(FTombstonesCount);
 end;
 
-function TOpenAddressingTombstones<OPEN_ADDRESSING_CONSTRAINTS>.DoAdd(constref AKey: TKey;
-  constref AValue: TValue): SizeInt;
+function TOpenAddressingTombstones<OPEN_ADDRESSING_CONSTRAINTS>.DoAdd(const AKey: TKey;
+  const AValue: TValue): SizeInt;
 var
   LHash: UInt32;
 begin
@@ -854,8 +854,8 @@ end;
 
 { TOpenAddressingSH<OPEN_ADDRESSING_CONSTRAINTS> }
 
-function TOpenAddressingSH<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndex(constref AItems: TArray<TItem>;
-  constref AKey: TKey; out AHash: UInt32): SizeInt;
+function TOpenAddressingSH<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndex(const AItems: TArray<TItem>;
+  const AKey: TKey; out AHash: UInt32): SizeInt;
 var
   LItem: {TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.}_TItem; // for workaround Lazarus bug #25613
   LLengthMask: SizeInt;
@@ -893,8 +893,8 @@ begin
   until false;
 end;
 
-function TOpenAddressingSH<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndexOrTombstone(constref AItems: TArray<TItem>;
-  constref AKey: TKey; out AHash: UInt32): SizeInt;
+function TOpenAddressingSH<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndexOrTombstone(const AItems: TArray<TItem>;
+  const AKey: TKey; out AHash: UInt32): SizeInt;
 var
   LItem: {TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.}_TItem; // for workaround Lazarus bug #25613
   LLengthMask: SizeInt;
@@ -948,8 +948,8 @@ begin
     end;
 end;
 
-function TOpenAddressingQP<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndex(constref AItems: TArray<TItem>;
-  constref AKey: TKey; out AHash: UInt32): SizeInt;
+function TOpenAddressingQP<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndex(const AItems: TArray<TItem>;
+  const AKey: TKey; out AHash: UInt32): SizeInt;
 var
   LItem: {TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.}_TItem; // for workaround Lazarus bug #25613
   i: SizeInt;
@@ -982,8 +982,8 @@ begin
 end;
 
 
-function TOpenAddressingQP<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndexOrTombstone(constref AItems: TArray<TItem>;
-  constref AKey: TKey; out AHash: UInt32): SizeInt;
+function TOpenAddressingQP<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndexOrTombstone(const AItems: TArray<TItem>;
+  const AKey: TKey; out AHash: UInt32): SizeInt;
 var
   LItem: {TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.}_TItem; // for workaround Lazarus bug #25613
   i: SizeInt;
@@ -1098,8 +1098,8 @@ begin
       MultiplyDeBruijnBitPosition[UInt32(((ASize and -ASize) * $077CB531)) shr 27]]
 end;
 
-function TOpenAddressingDH<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndex(constref AItems: TArray<TItem>;
-  constref AKey: TKey; out AHash: UInt32): SizeInt;
+function TOpenAddressingDH<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndex(const AItems: TArray<TItem>;
+  const AKey: TKey; out AHash: UInt32): SizeInt;
 var
   LItem: {TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.}_TItem; // for workaround Lazarus bug #25613
   LLengthMask: SizeInt;
@@ -1142,8 +1142,8 @@ begin
   until false;
 end;
 
-function TOpenAddressingDH<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndexOrTombstone(constref AItems: TArray<TItem>;
-  constref AKey: TKey; out AHash: UInt32): SizeInt;
+function TOpenAddressingDH<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndexOrTombstone(const AItems: TArray<TItem>;
+  const AKey: TKey; out AHash: UInt32): SizeInt;
 var
   LItem: {TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.}_TItem; // for workaround Lazarus bug #25613
   LLengthMask: SizeInt;
@@ -1568,13 +1568,13 @@ begin
   Result := PPointersCollection(@FItems);
 end;
 
-function TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.Lookup(constref AKey: TKey;
+function TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.Lookup(const AKey: TKey;
   var AHashListOrIndex: PUInt32): SizeInt;
 begin
   Result := Lookup(FItems, AKey, AHashListOrIndex);
 end;
 
-function TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.Lookup(constref AItems: TItemsDArray; constref AKey: TKey;
+function TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.Lookup(const AItems: TItemsDArray; const AKey: TKey;
   var AHashListOrIndex: PUInt32): SizeInt;
 var
   LLengthMask: SizeInt;
@@ -1660,8 +1660,8 @@ begin
     FItemsThreshold := Pred(Round(LLength * FMaxLoadFactor));
 end;
 
-procedure TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.AddItem(constref AItems: TItemsDArray; constref AKey: TKey;
-  constref AValue: TValue; const AHashList: PUInt32);
+procedure TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.AddItem(const AItems: TItemsDArray; const AKey: TKey;
+  const AValue: TValue; const AHashList: PUInt32);
 var
   LNewItem: TItem;
   LPNewItem: PItem;
@@ -1740,7 +1740,7 @@ begin
   ValueNotify(AValue, cnAdded);
 end;
 
-procedure TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.Add(constref AKey: TKey; constref AValue: TValue);
+procedure TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.Add(const AKey: TKey; const AValue: TValue);
 var
   LHashList: array[0..TCuckooCfg.D] of UInt32;
   LHashListOrIndex: PUint32;
@@ -1753,7 +1753,7 @@ begin
   DoAdd(AKey, AValue, LHashListOrIndex);
 end;
 
-procedure TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.Add(constref APair: TPair<TKey, TValue>);
+procedure TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.Add(const APair: TPair<TKey, TValue>);
 begin
   Add(APair.Key, APair.Value);
 end;
@@ -1792,7 +1792,7 @@ begin
   PairNotify(LPair, ACollectionNotification);
 end;
 
-procedure TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.Remove(constref AKey: TKey);
+procedure TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.Remove(const AKey: TKey);
 var
   LHashList: array[0..TCuckooCfg.D] of UInt32;
   LHashListOrIndex: PUint32;
@@ -1806,7 +1806,7 @@ begin
   DoRemove(LHashListOrIndex, LLookupResult, cnRemoved);
 end;
 
-function TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.ExtractPair(constref AKey: TKey): TPair<TKey, TValue>;
+function TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.ExtractPair(const AKey: TKey): TPair<TKey, TValue>;
 var
   LHashList: array[0..TCuckooCfg.D] of UInt32;
   LHashListOrIndex: PUint32;
@@ -2011,7 +2011,7 @@ begin
   FQueue.FIdx.TrimExcess;
 end;
 
-procedure TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.SetItem(constref AValue: TValue;
+procedure TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.SetItem(const AValue: TValue;
   const AHashListOrIndex: PUInt32; ALookupResult: SizeInt);
 var
   LIndex: UInt32;
@@ -2039,7 +2039,7 @@ begin
   SetItem(AValue, LHashListOrIndex, LLookupResult);
 end;
 
-function TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.TryGetValue(constref AKey: TKey; out AValue: TValue): Boolean;
+function TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.TryGetValue(const AKey: TKey; out AValue: TValue): Boolean;
 var
   LHashList: array[0..TCuckooCfg.D] of UInt32;
   LHashListOrIndex: PUint32;
@@ -2062,7 +2062,7 @@ begin
   end;
 end;
 
-procedure TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.AddOrSetValue(constref AKey: TKey; constref AValue: TValue);
+procedure TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.AddOrSetValue(const AKey: TKey; const AValue: TValue);
 var
   LHashList: array[0..TCuckooCfg.D] of UInt32;
   LHashListOrIndex: PUint32;
@@ -2082,7 +2082,7 @@ begin
     SetItem(AValue, LHashListOrIndex, LLookupResult);
 end;
 
-function TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.ContainsKey(constref AKey: TKey): Boolean;
+function TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.ContainsKey(const AKey: TKey): Boolean;
 var
   LHashList: array[0..TCuckooCfg.D] of UInt32;
   LHashListOrIndex: PUint32;
@@ -2091,12 +2091,12 @@ begin
   Result := Lookup(AKey, LHashListOrIndex) <> LR_NIL;
 end;
 
-function TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.ContainsValue(constref AValue: TValue): Boolean;
+function TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.ContainsValue(const AValue: TValue): Boolean;
 begin
   Result := ContainsValue(AValue, TEqualityComparer<TValue>.Default(THashFactory));
 end;
 
-function TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.ContainsValue(constref AValue: TValue;
+function TDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.ContainsValue(const AValue: TValue;
   const AEqualityComparer: IEqualityComparer<TValue>): Boolean;
 var
   i, j: SizeInt;
@@ -2186,7 +2186,7 @@ end;
 { TObjectDictionary<DICTIONARY_CONSTRAINTS> }
 
 procedure TObjectDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.KeyNotify(
-  constref AKey: TKey; ACollectionNotification: TCollectionNotification);
+  const AKey: TKey; ACollectionNotification: TCollectionNotification);
 begin
   inherited;
 
@@ -2194,7 +2194,7 @@ begin
     TObject((@AKey)^).Free;
 end;
 
-procedure TObjectDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.ValueNotify(constref AValue: TValue;
+procedure TObjectDeamortizedDArrayCuckooMap<CUCKOO_CONSTRAINTS>.ValueNotify(const AValue: TValue;
   ACollectionNotification: TCollectionNotification);
 begin
   inherited;
@@ -2234,7 +2234,7 @@ begin
 end;
 
 procedure TObjectOpenAddressingLP<OPEN_ADDRESSING_CONSTRAINTS>.KeyNotify(
-  constref AKey: TKey; ACollectionNotification: TCollectionNotification);
+  const AKey: TKey; ACollectionNotification: TCollectionNotification);
 begin
   inherited;
 
@@ -2243,7 +2243,7 @@ begin
 end;
 
 procedure TObjectOpenAddressingLP<OPEN_ADDRESSING_CONSTRAINTS>.ValueNotify(
-  constref AValue: TValue; ACollectionNotification: TCollectionNotification);
+  const AValue: TValue; ACollectionNotification: TCollectionNotification);
 begin
   inherited;
 
