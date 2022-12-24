@@ -39,7 +39,7 @@ type
 const
   TotalThreadCount : longint = 50;
   TestCount = 1000000;
-  WaitTime = 60;
+  WaitTime = 120;
 
 var
   Counter, Counter2, Counter3: int64;
