@@ -1,3 +1,4 @@
+{ %OPT=-O4 }
 {$mode objfpc}
 function ShiftPM(x: single): single; noinline;
 begin
